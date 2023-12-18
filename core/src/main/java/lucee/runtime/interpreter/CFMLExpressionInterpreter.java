@@ -23,7 +23,6 @@ import java.util.List;
 
 import lucee.commons.lang.CFTypes;
 import lucee.commons.lang.ParserString;
-import lucee.loader.engine.CFMLEngine;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.runtime.MappingImpl;
 import lucee.runtime.PageContext;
@@ -262,7 +261,7 @@ public class CFMLExpressionInterpreter {
 				}
 			}
 		}
-		fld = config == null ? null : config.getCombinedFLDs(CFMLEngine.DIALECT_CFML);
+		fld = config == null ? null : config.getFLDs();
 	}
 
 	/*

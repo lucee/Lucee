@@ -120,7 +120,7 @@ public class ScriptEngineFactoryImpl implements ScriptEngineFactory {
 	}
 
 	private String getSetTagName() {
-		String prefix = ((ConfigPro) ThreadLocalPageContext.getConfig()).getCoreTagLib(CFMLEngine.DIALECT_CFML).getNameSpaceAndSeparator();
+		String prefix = ((ConfigPro) ThreadLocalPageContext.getConfig()).getCoreTagLib().getNameSpaceAndSeparator();
 		return prefix + (Constants.CFML_SET_TAG_NAME);
 
 	}

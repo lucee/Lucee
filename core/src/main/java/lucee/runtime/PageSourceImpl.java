@@ -476,7 +476,7 @@ public final class PageSourceImpl implements PageSource {
 		long now;
 		if ((getPhyscalFile().lastModified() + 10000) > (now = System.currentTimeMillis())) cwi.getCompiler().watch(this, now);// SystemUtil.get
 		Result result;
-		result = cwi.getCompiler().compile(cwi, this, cwi.getTLDs(CFMLEngine.DIALECT_CFML), cwi.getFLDs(CFMLEngine.DIALECT_CFML), classRootDir, returnValue, ignoreScopes);
+		result = cwi.getCompiler().compile(cwi, this, cwi.getTLDs(), cwi.getFLDs(), classRootDir, returnValue, ignoreScopes);
 
 		try {
 			Class<?> clazz = mapping.getPhysicalClass(getClassName(), result.barr);

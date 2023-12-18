@@ -49,7 +49,7 @@ public final class Output extends EvaluatorSupport {
 	private static String ESAPI_ENCODE = "org.lucee.extension.esapi.functions.ESAPIEncode";
 
 	@Override
-	public void evaluate(Tag tag, TagLibTag libTag, FunctionLib[] flibs) throws EvaluatorException {
+	public void evaluate(Tag tag, TagLibTag libTag, FunctionLib flibs) throws EvaluatorException {
 
 		TagOutput output = (TagOutput) tag;
 

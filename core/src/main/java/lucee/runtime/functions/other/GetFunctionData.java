@@ -26,7 +26,6 @@ import java.util.ArrayList;
 import lucee.commons.lang.CFTypes;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
-import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.PageContext;
 import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigWebUtil;
@@ -73,14 +72,9 @@ public final class GetFunctionData implements Function {
 
 	private static Struct _call(PageContext pc, String strFunctionName) throws PageException {
 
-		FunctionLib[] flds;
-		flds = ((ConfigPro) pc.getConfig()).getFLDs(CFMLEngine.DIALECT_CFML);
+		FunctionLib flds = ((ConfigPro) pc.getConfig()).getFLDs();
 
-		FunctionLibFunction function = null;
-		for (int i = 0; i < flds.length; i++) {
-			function = flds[i].getFunction(strFunctionName.toLowerCase());
-			if (function != null) break;
-		}
+		FunctionLibFunction function = flds.getFunction(strFunctionName.toLowerCase());
 		if (function == null) throw new ExpressionException("Function [" + strFunctionName + "] is not a built in function");
 
 		// CFML Based Function

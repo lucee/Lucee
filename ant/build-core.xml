@@ -258,7 +258,6 @@
       <fileset dir="${srcCFML}/context/gateway">
         <include name="*.cfm"/>
         <include name="*.cfc"/>
-        <include name="*.lucee"/>
         <include name="*.xml"/>
         <include name="*.json"/>
       </fileset>
@@ -268,7 +267,6 @@
       <fileset dir="${srcCFML}/context/templates/error">
         <include name="*.cfm"/>
         <include name="*.cfc"/>
-        <include name="*.lucee"/>
         <include name="*.xml"/>
         <include name="*.json"/>
       </fileset>
@@ -278,7 +276,6 @@
       <fileset dir="${srcCFML}/context/admin/plugin">
         <include name="**/*.cfm"/>
         <include name="**/*.cfc"/>
-        <include name="**/*.lucee"/>
         <include name="**/*.xml"/>
         <include name="**/*.json"/>
       </fileset>
@@ -303,7 +300,6 @@
       <fileset dir="${srcCFML}/context/admin/plugin">
         <include name="**/*.cfm"/>
         <include name="**/*.cfc"/>
-        <include name="**/*.lucee"/>
         <include name="**/*.xml"/>
         <include name="**/*.json"/>
       </fileset>

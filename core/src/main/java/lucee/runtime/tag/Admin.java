@@ -2448,9 +2448,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 						"source" },
 				new String[] { "varchar", "varchar", "varchar", "varchar", "varchar", "varchar", "varchar", "varchar", "varchar", "varchar", "varchar" }, 0, "tlds");
 
-		int dialect = "lucee".equalsIgnoreCase(getString("dialect", "cfml")) ? CFMLEngine.DIALECT_LUCEE : CFMLEngine.DIALECT_CFML;
-
-		TagLib[] libs = config.getTLDs(dialect);
+		TagLib[] libs = config.getTLDs();
 		for (int i = 0; i < libs.length; i++) {
 			qry.addRow();
 			qry.setAt("displayname", i + 1, libs[i].getDisplayName());
@@ -2549,19 +2547,15 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		lucee.runtime.type.Query qry = new QueryImpl(new String[] { "displayname", "namespace", "namespaceseparator", "shortname", "description", "uri", "source" },
 				new String[] { "varchar", "varchar", "varchar", "varchar", "varchar", "varchar", "varchar" }, 0, "tlds");
 
-		int dialect = "lucee".equalsIgnoreCase(getString("dialect", "cfml")) ? CFMLEngine.DIALECT_LUCEE : CFMLEngine.DIALECT_CFML;
-
-		FunctionLib[] libs = config.getFLDs(dialect);
-		for (int i = 0; i < libs.length; i++) {
-			qry.addRow();
-			qry.setAt("displayname", i + 1, libs[i].getDisplayName());
-			qry.setAt("namespace", i + 1, "");// TODO support for namespace
-			qry.setAt("namespaceseparator", i + 1, "");
-			qry.setAt("shortname", i + 1, libs[i].getShortName());
-			qry.setAt("description", i + 1, libs[i].getDescription());
-			qry.setAt("uri", i + 1, Caster.toString(libs[i].getUri()));
-			qry.setAt("source", i + 1, StringUtil.emptyIfNull(libs[i].getSource()));
-		}
+		FunctionLib lib = config.getFLDs();
+		qry.addRow();
+		qry.setAt("displayname", 1, lib.getDisplayName());
+		qry.setAt("namespace", 1, "");// TODO support for namespace
+		qry.setAt("namespaceseparator", 1, "");
+		qry.setAt("shortname", 1, lib.getShortName());
+		qry.setAt("description", 1, lib.getDescription());
+		qry.setAt("uri", 1, Caster.toString(lib.getUri()));
+		qry.setAt("source", 1, StringUtil.emptyIfNull(lib.getSource()));
 		pageContext.setVariable(getString("admin", action, "returnVariable"), qry);
 	}
 

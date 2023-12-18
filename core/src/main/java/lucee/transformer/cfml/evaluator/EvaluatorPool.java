@@ -51,7 +51,7 @@ public final class EvaluatorPool {
 	/**
 	 * add a tag to the pool to evaluate at the end
 	 */
-	public void add(TagLibTag libTag, Tag tag, FunctionLib[] flibs, SourceCode cfml) {
+	public void add(TagLibTag libTag, Tag tag, FunctionLib flibs, SourceCode cfml) {
 		tags.add(new TagData(libTag, tag, flibs, cfml));
 	}
 
@@ -121,11 +121,11 @@ public final class EvaluatorPool {
 	static class TagData {
 		private final TagLibTag libTag;
 		private final Tag tag;
-		private final FunctionLib[] flibs;
+		private final FunctionLib flibs;
 		private final SourceCode cfml;
 		private final int pos;
 
-		public TagData(TagLibTag libTag, Tag tag, FunctionLib[] flibs, SourceCode cfml) {
+		public TagData(TagLibTag libTag, Tag tag, FunctionLib flibs, SourceCode cfml) {
 			this.libTag = libTag;
 			this.tag = tag;
 			this.flibs = flibs;

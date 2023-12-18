@@ -29,7 +29,6 @@ import java.util.Set;
 import lucee.commons.lang.CFTypes;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
-import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.PageContext;
 import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.exp.ExpressionException;
@@ -64,20 +63,18 @@ public class MemberUtil {
 		Map<Key, FunctionLibFunction> match = matches.get(type);
 		if (match != null) return match;
 
-		FunctionLib[] flds = ((ConfigWebPro) pc.getConfig()).getFLDs(CFMLEngine.DIALECT_CFML);
+		FunctionLib flds = ((ConfigWebPro) pc.getConfig()).getFLDs();
 		Iterator<FunctionLibFunction> it;
 		FunctionLibFunction f;
 		match = new HashMap<Collection.Key, FunctionLibFunction>();
 		String[] names;
-		for (int i = 0; i < flds.length; i++) {
-			it = flds[i].getFunctions().values().iterator();
-			while (it.hasNext()) {
-				f = it.next();
-				names = f.getMemberNames();
-				if (!ArrayUtil.isEmpty(names) && f.getMemberType() == type && f.getArgType() == FunctionLibFunction.ARG_FIX) {
-					for (int y = 0; y < names.length; y++)
-						match.put(KeyImpl.init(names[y]), f);
-				}
+		it = flds.getFunctions().values().iterator();
+		while (it.hasNext()) {
+			f = it.next();
+			names = f.getMemberNames();
+			if (!ArrayUtil.isEmpty(names) && f.getMemberType() == type && f.getArgType() == FunctionLibFunction.ARG_FIX) {
+				for (int y = 0; y < names.length; y++)
+					match.put(KeyImpl.init(names[y]), f);
 			}
 		}
 		matches.put(type, match);

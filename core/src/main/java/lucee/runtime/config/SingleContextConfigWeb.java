@@ -168,18 +168,18 @@ class SingleContextConfigWeb extends ConfigBase implements ConfigWebInner {
 	}
 
 	@Override
+	public FunctionLib getFLDs() {
+		return cs.getFLDs();
+	}
+
+	@Override
 	public FunctionLib[] getFLDs(int dialect) {
 		return cs.getFLDs(dialect);
 	}
 
 	@Override
-	public FunctionLib getCombinedFLDs(int dialect) {
-		return cs.getCombinedFLDs(dialect);
-	}
-
-	@Override
-	public TagLib[] getTLDs(int dialect) {
-		return cs.getTLDs(dialect);
+	public TagLib[] getTLDs() {
+		return cs.getTLDs();
 	}
 
 	@Override
@@ -431,8 +431,8 @@ class SingleContextConfigWeb extends ConfigBase implements ConfigWebInner {
 	}
 
 	@Override
-	public TagLib getCoreTagLib(int dialect) {
-		return cs.getCoreTagLib(dialect);
+	public TagLib getCoreTagLib() {
+		return cs.getCoreTagLib();
 	}
 
 	@Override
@@ -461,8 +461,8 @@ class SingleContextConfigWeb extends ConfigBase implements ConfigWebInner {
 	}
 
 	@Override
-	public PageSource getBaseComponentPageSource(int dialect, PageContext pc, boolean force) {
-		return cs.getBaseComponentPageSource(dialect, pc, force);
+	public PageSource getBaseComponentPageSource(PageContext pc, boolean force) {
+		return cs.getBaseComponentPageSource(pc, force);
 	}
 
 	@Override
@@ -1655,8 +1655,8 @@ class SingleContextConfigWeb extends ConfigBase implements ConfigWebInner {
 	}
 
 	@Override
-	public CIPage getBaseComponentPage(int dialect, PageContext pc) throws PageException {
-		return helper.getBaseComponentPage(dialect, pc);
+	public CIPage getBaseComponentPage(PageContext pc) throws PageException {
+		return helper.getBaseComponentPage(pc);
 	}
 
 	@Override

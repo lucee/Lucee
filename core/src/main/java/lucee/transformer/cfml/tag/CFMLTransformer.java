@@ -30,7 +30,6 @@ import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.types.RefBoolean;
 import lucee.commons.lang.types.RefBooleanImpl;
-import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.MappingImpl;
 import lucee.runtime.PageSource;
 import lucee.runtime.config.ConfigPro;
@@ -142,7 +141,7 @@ public final class CFMLTransformer {
 	 * @throws TemplateException
 	 * @throws IOException
 	 */
-	public Page transform(Factory factory, ConfigPro config, PageSource ps, TagLib[] tlibs, FunctionLib[] flibs, boolean returnValue, boolean ignoreScopes)
+	public Page transform(Factory factory, ConfigPro config, PageSource ps, TagLib[] tlibs, FunctionLib flibs, boolean returnValue, boolean ignoreScopes)
 			throws TemplateException, IOException {
 		Page p;
 		SourceCode sc;
@@ -240,7 +239,7 @@ public final class CFMLTransformer {
 		TagLib tl;
 		try {
 			// this is already loaded, oherwise we where not here
-			tl = TagLibFactory.loadFromSystem(CFMLEngine.DIALECT_CFML, id);
+			tl = TagLibFactory.loadFromSystem(id);
 			return tl.getTag(name);
 		}
 		catch (TagLibException e) {
@@ -265,7 +264,7 @@ public final class CFMLTransformer {
 	 * @return uebersetztes CFXD Dokument Element.
 	 * @throws TemplateException
 	 */
-	public Page transform(Factory factory, ConfigPro config, SourceCode sc, TagLib[] tlibs, FunctionLib[] flibs, long sourceLastModified, Boolean dotNotationUpperCase,
+	public Page transform(Factory factory, ConfigPro config, SourceCode sc, TagLib[] tlibs, FunctionLib flibs, long sourceLastModified, Boolean dotNotationUpperCase,
 			boolean returnValue, boolean ignoreScope) throws TemplateException {
 		boolean dnuc;
 		if (dotNotationUpperCase == null) {
@@ -285,7 +284,7 @@ public final class CFMLTransformer {
 				config.getSuppressWSBeforeArg(), config.getDefaultFunctionOutput(), returnValue, ignoreScope);
 
 		TransfomerSettings settings = new TransfomerSettings(dnuc, factory.getConfig().getHandleUnQuotedAttrValueAsString(), ignoreScope);
-		Data data = new Data(factory, page, sc, new EvaluatorPool(), settings, _tlibs, flibs, config.getCoreTagLib(CFMLEngine.DIALECT_CFML).getScriptTags(), false);
+		Data data = new Data(factory, page, sc, new EvaluatorPool(), settings, _tlibs, flibs, config.getCoreTagLib().getScriptTags(), false);
 		transform(data, page);
 		return page;
 

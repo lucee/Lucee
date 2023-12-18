@@ -40,7 +40,6 @@ import lucee.commons.io.SystemUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.filter.ExtensionResourceFilter;
 import lucee.commons.io.sax.SaxUtil;
-import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.config.Identification;
 import lucee.runtime.op.Caster;
 import lucee.runtime.text.xml.XMLUtil;
@@ -70,7 +69,7 @@ public final class TagLibFactory extends DefaultHandler {
 	private XMLReader xmlReader;
 
 	private static Map<String, TagLib> hashLib = MapFactory.<String, TagLib>getConcurrentMap();
-	private static TagLib[] systemTLDs = new TagLib[2];
+	private static TagLib systemTLDs;
 	private final TagLib lib;
 
 	private TagLibTag tag;
@@ -90,8 +89,6 @@ public final class TagLibFactory extends DefaultHandler {
 	// private final static String TLD_1_0= "/resource/tld/web-cfmtaglibrary_1_0";
 
 	private final static String TLD_BASE = "/resource/tld/core-base.tld";
-	private final static String TLD_CFML = "/resource/tld/core-cfml.tld";
-	private final static String TLD_LUCEE = "/resource/tld/core-lucee.tld";
 
 	/**
 	 * Privater Konstruktor, der als Eingabe die TLD als File Objekt erhaelt.
@@ -524,19 +521,11 @@ public final class TagLibFactory extends DefaultHandler {
 	 * @return FunctionLib
 	 * @throws TagLibException
 	 */
-	private static TagLib[] loadFromSystem(Identification id) throws TagLibException {
-
-		if (systemTLDs[CFMLEngine.DIALECT_CFML] == null) {
-			TagLib cfml = new TagLibFactory(null, TLD_BASE, id).getLib();
-			TagLib lucee = cfml.duplicate(false);
-			systemTLDs[CFMLEngine.DIALECT_CFML] = new TagLibFactory(cfml, TLD_CFML, id).getLib();
-			systemTLDs[CFMLEngine.DIALECT_LUCEE] = new TagLibFactory(lucee, TLD_LUCEE, id).getLib();
+	public static TagLib loadFromSystem(Identification id) throws TagLibException {
+		if (systemTLDs == null) {
+			systemTLDs = new TagLibFactory(null, TLD_BASE, id).getLib();
 		}
 		return systemTLDs;
-	}
-
-	public static TagLib loadFromSystem(int dialect, Identification id) throws TagLibException {
-		return loadFromSystem(id)[dialect];
 	}
 
 	public static TagLib[] loadFrom(Resource res, Identification id) throws TagLibException {

@@ -27,7 +27,6 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.PageContext;
 import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigWebUtil;
@@ -63,29 +62,26 @@ public final class GetFunctionList implements Function {
 		Struct sct = new StructImpl(StructImpl.TYPE_LINKED);
 		// synchronized(sct) {
 		// hasSet=true;
-		FunctionLib[] flds;
-		flds = ((ConfigPro) pc.getConfig()).getFLDs(CFMLEngine.DIALECT_CFML);
+		FunctionLib flds = ((ConfigPro) pc.getConfig()).getFLDs();
 		FunctionLibFunction func;
 		Map<String, FunctionLibFunction> _functions;
 		Iterator<Entry<String, FunctionLibFunction>> it;
 		Entry<String, FunctionLibFunction> e;
 		ArrayList<String> tagList = new ArrayList<>();
-		for (int i = 0; i < flds.length; i++) {
-			_functions = flds[i].getFunctions();
-			it = _functions.entrySet().iterator();
+		_functions = flds.getFunctions();
+		it = _functions.entrySet().iterator();
 
-			while (it.hasNext()) {
-				e = it.next();
-				func = e.getValue();
-				if (func.getStatus() != TagLib.STATUS_HIDDEN && func.getStatus() != TagLib.STATUS_UNIMPLEMENTED) {
-					// sct.set(e.getKey(), "");
-					tagList.add(e.getKey());
-				}
+		while (it.hasNext()) {
+			e = it.next();
+			func = e.getValue();
+			if (func.getStatus() != TagLib.STATUS_HIDDEN && func.getStatus() != TagLib.STATUS_UNIMPLEMENTED) {
+				// sct.set(e.getKey(), "");
+				tagList.add(e.getKey());
 			}
-			Collections.sort(tagList);
-			for (String t: tagList) {
-				sct.put(t, "");
-			}
+		}
+		Collections.sort(tagList);
+		for (String t: tagList) {
+			sct.put(t, "");
 		}
 		return sct;
 	}

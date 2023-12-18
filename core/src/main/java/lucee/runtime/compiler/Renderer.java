@@ -28,7 +28,6 @@ import lucee.commons.digest.HashUtil;
 import lucee.commons.lang.ClassUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.MemoryClassLoader;
-import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.Page;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageSource;
@@ -62,8 +61,7 @@ public class Renderer {
 		SourceCode sc = new SourceCode(null, cfml, false);
 
 		// compile
-		lucee.runtime.compiler.CFMLCompilerImpl.Result result = compiler.compile(config, sc, config.getTLDs(CFMLEngine.DIALECT_CFML), config.getFLDs(CFMLEngine.DIALECT_CFML), null,
-				className, true, ignoreScopes);
+		lucee.runtime.compiler.CFMLCompilerImpl.Result result = compiler.compile(config, sc, config.getTLDs(), config.getFLDs(), null, className, true, ignoreScopes);
 
 		// before we add a new class, we make sure we are still in range
 		if (mcl.getSize() + result.barr.length > MAX_SIZE) {
@@ -93,7 +91,7 @@ public class Renderer {
 	}
 
 	public static Result script(PageContext pc, String cfml, boolean catchOutput, boolean ignoreScopes) throws PageException {
-		String prefix = ((ConfigPro) pc.getConfig()).getCoreTagLib(CFMLEngine.DIALECT_CFML).getNameSpaceAndSeparator();
+		String prefix = ((ConfigPro) pc.getConfig()).getCoreTagLib().getNameSpaceAndSeparator();
 		String name = prefix + Constants.CFML_SCRIPT_TAG_NAME;
 		return tag(pc, "<" + name + ">" + cfml + "</" + name + ">", catchOutput, ignoreScopes);
 	}

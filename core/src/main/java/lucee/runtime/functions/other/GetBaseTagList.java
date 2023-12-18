@@ -26,7 +26,6 @@ import java.util.Map;
 
 import javax.servlet.jsp.tagext.Tag;
 
-import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.PageContext;
 import lucee.runtime.config.ConfigPro;
 import lucee.runtime.ext.function.Function;
@@ -59,7 +58,7 @@ public final class GetBaseTagList implements Function {
 		Class clazz = tag.getClass();
 		if (clazz == CFImportTag.class) clazz = CFTag.class;
 		String className = clazz.getName();
-		TagLib[] tlds = ((ConfigPro) pc.getConfig()).getTLDs(CFMLEngine.DIALECT_CFML);
+		TagLib[] tlds = ((ConfigPro) pc.getConfig()).getTLDs();
 		TagLibTag tlt;
 
 		for (int i = 0; i < tlds.length; i++) {

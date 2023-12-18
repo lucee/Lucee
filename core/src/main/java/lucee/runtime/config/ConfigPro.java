@@ -104,11 +104,14 @@ public interface ConfigPro extends Config {
 
 	public boolean getDefaultFunctionOutput();
 
-	public TagLib getCoreTagLib(int dialect);
+	public TagLib getCoreTagLib();
 
-	public TagLib[] getTLDs(int dialect);
+	public TagLib[] getTLDs();
 
-	public FunctionLib[] getFLDs(int dialect);
+	public FunctionLib getFLDs();
+
+	@Deprecated
+	public FunctionLib[] getFLDs(int dialect); // only exists because used with the image extension
 
 	public Collection<Mapping> getFunctionMappings();
 
@@ -163,7 +166,7 @@ public interface ConfigPro extends Config {
 
 	public boolean closeConnection();
 
-	public PageSource getBaseComponentPageSource(int dialect, PageContext pc, boolean force);
+	public PageSource getBaseComponentPageSource(PageContext pc, boolean force);
 
 	public TimeSpan getCachedAfterTimeRange();
 
@@ -192,8 +195,6 @@ public interface ConfigPro extends Config {
 	public int getExternalizeStringGTE();
 
 	public boolean allowLuceeDialect();
-
-	public FunctionLib getCombinedFLDs(int dialect);
 
 	public Cluster createClusterScope() throws PageException;
 

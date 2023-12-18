@@ -26,7 +26,6 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.Map;
 
-import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.PageContext;
 import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigWebUtil;
@@ -59,7 +58,7 @@ public final class GetTagList implements Function {
 		// hasSet=true;
 		TagLib[] tlds;
 		TagLibTag tag;
-		tlds = ((ConfigPro) pc.getConfig()).getTLDs(CFMLEngine.DIALECT_CFML);
+		tlds = ((ConfigPro) pc.getConfig()).getTLDs();
 
 		for (int i = 0; i < tlds.length; i++) {
 			String ns = tlds[i].getNameSpaceAndSeparator();

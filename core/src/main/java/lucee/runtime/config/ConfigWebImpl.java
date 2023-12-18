@@ -109,8 +109,8 @@ public class ConfigWebImpl implements ConfigWebPro {
 	}
 
 	@Override
-	public lucee.runtime.PageSource getBaseComponentPageSource(int arg0, lucee.runtime.PageContext arg1, boolean force) {
-		return instance.getBaseComponentPageSource(arg0, arg1, force);
+	public lucee.runtime.PageSource getBaseComponentPageSource(lucee.runtime.PageContext arg1, boolean force) {
+		return instance.getBaseComponentPageSource(arg1, force);
 	}
 
 	@Override
@@ -145,8 +145,13 @@ public class ConfigWebImpl implements ConfigWebPro {
 	}
 
 	@Override
-	public lucee.transformer.library.function.FunctionLib[] getFLDs(int arg0) {
-		return instance.getFLDs(arg0);
+	public lucee.transformer.library.function.FunctionLib getFLDs() {
+		return instance.getFLDs();
+	}
+
+	@Override
+	public lucee.transformer.library.function.FunctionLib[] getFLDs(int dialect) {
+		return instance.getFLDs(dialect);
 	}
 
 	@Override
@@ -373,8 +378,8 @@ public class ConfigWebImpl implements ConfigWebPro {
 	}
 
 	@Override
-	public lucee.runtime.CIPage getBaseComponentPage(int arg0, lucee.runtime.PageContext arg1) throws lucee.runtime.exp.PageException {
-		return instance.getBaseComponentPage(arg0, arg1);
+	public lucee.runtime.CIPage getBaseComponentPage(lucee.runtime.PageContext arg1) throws lucee.runtime.exp.PageException {
+		return instance.getBaseComponentPage(arg1);
 	}
 
 	@Override
@@ -390,11 +395,6 @@ public class ConfigWebImpl implements ConfigWebPro {
 	@Override
 	public boolean getSuppressWSBeforeArg() {
 		return instance.getSuppressWSBeforeArg();
-	}
-
-	@Override
-	public lucee.transformer.library.function.FunctionLib getCombinedFLDs(int arg0) {
-		return instance.getCombinedFLDs(arg0);
 	}
 
 	@Override
@@ -1532,8 +1532,8 @@ public class ConfigWebImpl implements ConfigWebPro {
 	}
 
 	@Override
-	public lucee.transformer.library.tag.TagLib[] getTLDs(int arg0) {
-		return instance.getTLDs(arg0);
+	public lucee.transformer.library.tag.TagLib[] getTLDs() {
+		return instance.getTLDs();
 	}
 
 	public lucee.runtime.Mapping getApplicationMapping(java.lang.String arg0, java.lang.String arg1) {
@@ -1820,8 +1820,8 @@ public class ConfigWebImpl implements ConfigWebPro {
 	}
 
 	@Override
-	public lucee.transformer.library.tag.TagLib getCoreTagLib(int arg0) {
-		return instance.getCoreTagLib(arg0);
+	public lucee.transformer.library.tag.TagLib getCoreTagLib() {
+		return instance.getCoreTagLib();
 	}
 
 	protected void setMode(int mode) {

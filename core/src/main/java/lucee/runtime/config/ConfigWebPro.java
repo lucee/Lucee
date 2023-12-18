@@ -67,7 +67,7 @@ public interface ConfigWebPro extends ConfigWeb, ConfigPro {
 
 	public boolean isApplicationMapping(Mapping mapping);
 
-	public CIPage getBaseComponentPage(int dialect, PageContext pc) throws PageException;
+	public CIPage getBaseComponentPage(PageContext pc) throws PageException;
 
 	public void resetBaseComponentPage();
 

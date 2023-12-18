@@ -45,7 +45,7 @@ public final class Sprite extends EvaluatorSupport {
 	private static Map<String, Previous> sprites = new HashMap<String, Previous>();
 
 	@Override
-	public void evaluate(Tag tag, TagLibTag tagLibTag, FunctionLib[] flibs) throws EvaluatorException {
+	public void evaluate(Tag tag, TagLibTag tagLibTag, FunctionLib flibs) throws EvaluatorException {
 		String id = "sprite_" + IDGenerator.intId();
 		try {
 			Page page = ASMUtil.getAncestorPage(null, tag);

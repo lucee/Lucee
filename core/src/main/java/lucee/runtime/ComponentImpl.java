@@ -52,7 +52,6 @@ import lucee.commons.lang.Pair;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.types.RefBoolean;
 import lucee.commons.lang.types.RefBooleanImpl;
-import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.component.AbstractFinal;
 import lucee.runtime.component.AbstractFinal.UDFB;
 import lucee.runtime.component.ComponentLoader;
@@ -382,7 +381,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 			base = ComponentLoader.searchComponent(pageContext, componentPage.getPageSource(), properties.extend, Boolean.TRUE, null, true, executeConstr);
 		}
 		else {
-			CIPage p = ((ConfigWebPro) pageContext.getConfig()).getBaseComponentPage(CFMLEngine.DIALECT_CFML, pageContext);
+			CIPage p = ((ConfigWebPro) pageContext.getConfig()).getBaseComponentPage(pageContext);
 			if (p != null && !componentPage.getPageSource().equals(p.getPageSource())) {
 				base = ComponentLoader.loadComponent(pageContext, p, "Component", false, false, true, executeConstr);
 			}

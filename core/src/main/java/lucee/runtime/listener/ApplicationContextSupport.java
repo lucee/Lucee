@@ -34,7 +34,6 @@ import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.type.ftp.FTPConnectionData;
 import lucee.commons.lang.Pair;
 import lucee.commons.lang.StringUtil;
-import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.PageContext;
 import lucee.runtime.cache.CacheConnection;
 import lucee.runtime.config.Config;
@@ -199,12 +198,12 @@ public abstract class ApplicationContextSupport implements ApplicationContext {
 		ConfigPro ci = ((ConfigPro) config);
 
 		// first check the core lib without namespace
-		TagLib lib = ci.getCoreTagLib(CFMLEngine.DIALECT_CFML);
+		TagLib lib = ci.getCoreTagLib();
 		_initTagDefaultAttributeValues(config, lib, tagDefaultAttributeValues, sct, false);
 		if (sct.size() == 0) return;
 
 		// then all the other libs including the namespace
-		TagLib[] tlds = ci.getTLDs(CFMLEngine.DIALECT_CFML);
+		TagLib[] tlds = ci.getTLDs();
 		for (int i = 0; i < tlds.length; i++) {
 			_initTagDefaultAttributeValues(config, tlds[i], tagDefaultAttributeValues, sct, true);
 			if (sct.size() == 0) return;

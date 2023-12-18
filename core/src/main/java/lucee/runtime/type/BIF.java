@@ -27,7 +27,6 @@ import lucee.commons.digest.Hash;
 import lucee.commons.lang.CFTypes;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
-import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.Component;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageSource;
@@ -63,7 +62,7 @@ public class BIF extends MemberSupport implements UDFPlus {
 	private String id;
 
 	public static BIF getInstance(PageContext pc, String name, BIF defaultValue) {
-		FunctionLib fl = ((ConfigPro) pc.getConfig()).getCombinedFLDs(CFMLEngine.DIALECT_CFML);
+		FunctionLib fl = ((ConfigPro) pc.getConfig()).getFLDs();
 		FunctionLibFunction flf = fl.getFunction(name);
 
 		// BIF not found
@@ -74,7 +73,7 @@ public class BIF extends MemberSupport implements UDFPlus {
 	public BIF(PageContext pc, String name) throws ApplicationException {
 		super(Component.ACCESS_PUBLIC);
 		cp = (ConfigPro) pc.getConfig();
-		FunctionLib fl = cp.getCombinedFLDs(CFMLEngine.DIALECT_CFML);
+		FunctionLib fl = cp.getFLDs();
 		flf = fl.getFunction(name);
 
 		// BIF not found

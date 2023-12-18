@@ -3472,7 +3472,7 @@ public final class PageContextImpl extends PageContext {
 	public void compile(PageSource pageSource) throws PageException {
 		Resource classRootDir = pageSource.getMapping().getClassRootDirectory();
 		try {
-			config.getCompiler().compile(config, pageSource, config.getTLDs(CFMLEngine.DIALECT_CFML), config.getFLDs(CFMLEngine.DIALECT_CFML), classRootDir, false, ignoreScopes());
+			config.getCompiler().compile(config, pageSource, config.getTLDs(), config.getFLDs(), classRootDir, false, ignoreScopes());
 		}
 		catch (Exception e) {
 			throw Caster.toPageException(e);

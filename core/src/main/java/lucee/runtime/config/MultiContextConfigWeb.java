@@ -224,8 +224,8 @@ class MultiContextConfigWeb extends ConfigImpl implements ServletConfig, ConfigW
 	}
 
 	@Override
-	public CIPage getBaseComponentPage(int dialect, PageContext pc) throws PageException {
-		return helper.getBaseComponentPage(dialect, pc);
+	public CIPage getBaseComponentPage(PageContext pc) throws PageException {
+		return helper.getBaseComponentPage(pc);
 	}
 
 	@Override

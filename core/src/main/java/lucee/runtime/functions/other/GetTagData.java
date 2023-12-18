@@ -27,7 +27,6 @@ import java.util.Map.Entry;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
-import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.Component;
 import lucee.runtime.ComponentSpecificAccess;
 import lucee.runtime.PageContext;
@@ -69,7 +68,7 @@ public final class GetTagData implements Function {
 	}
 
 	private static Struct _call(PageContext pc, String nameSpace, String strTagName) throws PageException {
-		TagLibTag tlt = TagUtil.getTagLibTag(pc, CFMLEngine.DIALECT_CFML, nameSpace, strTagName);
+		TagLibTag tlt = TagUtil.getTagLibTag(pc, nameSpace, strTagName);
 		if (tlt == null) throw new ExpressionException("tag [" + nameSpace + strTagName + "] is not a built in tag");
 
 		// CFML Based Function

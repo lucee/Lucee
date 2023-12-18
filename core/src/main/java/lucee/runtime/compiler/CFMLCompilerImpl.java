@@ -70,12 +70,12 @@ public final class CFMLCompilerImpl implements CFMLCompiler {
 		cfmlTransformer = new CFMLTransformer();
 	}
 
-	public Result compile(ConfigPro config, PageSource ps, TagLib[] tld, FunctionLib[] fld, Resource classRootDir, boolean returnValue, boolean ignoreScopes)
+	public Result compile(ConfigPro config, PageSource ps, TagLib[] tld, FunctionLib fld, Resource classRootDir, boolean returnValue, boolean ignoreScopes)
 			throws TemplateException, IOException {
 		return _compile(config, ps, null, null, tld, fld, classRootDir, returnValue, ignoreScopes);
 	}
 
-	public Result compile(ConfigPro config, SourceCode sc, TagLib[] tld, FunctionLib[] fld, Resource classRootDir, String className, boolean returnValue, boolean ignoreScopes)
+	public Result compile(ConfigPro config, SourceCode sc, TagLib[] tld, FunctionLib fld, Resource classRootDir, String className, boolean returnValue, boolean ignoreScopes)
 			throws TemplateException, IOException {
 
 		// just to be sure
@@ -84,7 +84,7 @@ public final class CFMLCompilerImpl implements CFMLCompiler {
 		return _compile(config, ps, sc, className, tld, fld, classRootDir, returnValue, ignoreScopes);
 	}
 
-	private Result _compile(ConfigPro config, PageSource ps, SourceCode sc, String className, TagLib[] tld, FunctionLib[] fld, Resource classRootDir, boolean returnValue,
+	private Result _compile(ConfigPro config, PageSource ps, SourceCode sc, String className, TagLib[] tld, FunctionLib fld, Resource classRootDir, boolean returnValue,
 			boolean ignoreScopes) throws TemplateException, IOException {
 		String javaName;
 		if (className == null) {
@@ -236,8 +236,8 @@ public final class CFMLCompilerImpl implements CFMLCompiler {
 		return false;
 	}
 
-	public Page transform(ConfigPro config, PageSource source, TagLib[] tld, FunctionLib[] fld, boolean returnValue, boolean ignoreScopes) throws TemplateException, IOException {
-		return cfmlTransformer.transform(BytecodeFactory.getInstance(config), config, source, tld, fld, returnValue, ignoreScopes);
+	public Page transform(ConfigPro config, PageSource source, TagLib[] tld, FunctionLib funcLib, boolean returnValue, boolean ignoreScopes) throws TemplateException, IOException {
+		return cfmlTransformer.transform(BytecodeFactory.getInstance(config), config, source, tld, funcLib, returnValue, ignoreScopes);
 	}
 
 	public class Result {

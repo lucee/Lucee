@@ -50,7 +50,7 @@ public class EvaluatorSupport implements TagEvaluator {
 	 * @throws TemplateException
 	 */
 	@Override
-	public TagLib execute(Config config, Tag tag, TagLibTag libTag, FunctionLib[] flibs, Data data) throws TemplateException {
+	public TagLib execute(Config config, Tag tag, TagLibTag libTag, FunctionLib flibs, Data data) throws TemplateException {
 
 		return null;
 	}
@@ -67,7 +67,7 @@ public class EvaluatorSupport implements TagEvaluator {
 	 * @throws EvaluatorException
 	 */
 	@Override
-	public void evaluate(Tag tag, TagLibTag libTag, FunctionLib[] flibs) throws EvaluatorException {
+	public void evaluate(Tag tag, TagLibTag libTag, FunctionLib flibs) throws EvaluatorException {
 		evaluate(tag);
 		evaluate(tag, libTag);
 	}
