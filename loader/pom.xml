@@ -486,12 +486,6 @@
     <scope>provided</scope>
   </dependency>
   <dependency>
-    <groupId>org.lucee</groupId>
-    <artifactId>jta</artifactId>
-    <version>1.1.0</version>
-    <scope>provided</scope>
-  </dependency>
-  <dependency>
     <groupId>fusiondebug.api</groupId>
     <artifactId>server</artifactId>
     <version>1.0.20</version>
