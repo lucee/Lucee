@@ -1425,7 +1425,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 
 			}
 
-			boolean isValid = (data.srcCode.isCurrent(' ') || (tlt.getHasBody() && data.srcCode.isCurrent('{')));
+			boolean isValid = (data.srcCode.isCurrent(' ') || data.srcCode.isCurrent(';') || (tlt.getHasBody() && data.srcCode.isCurrent('{')));
 			if (isValid && (data.srcCode.isCurrent(" ", "=") || data.srcCode.isCurrent(" ", "("))) { // simply avoid a later exception
 				isValid = false;
 			}
@@ -1436,7 +1436,6 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 			}
 		}
 		else return null;
-
 		Position line = data.srcCode.getPosition(pos);
 
 		TagLibTagScript script = tlt.getScript();

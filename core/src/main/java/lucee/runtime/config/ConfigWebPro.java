@@ -104,4 +104,6 @@ public interface ConfigWebPro extends ConfigWeb, ConfigPro {
 	public ServletConfig getServletConfig();
 
 	public void setIdentification(IdentificationWeb id);
+
+	public void checkMappings();
 }

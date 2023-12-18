@@ -39,6 +39,7 @@ import lucee.runtime.dump.DumpTable;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.op.Caster;
 import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.KeyImpl;
@@ -204,7 +205,14 @@ public class InterfaceImpl implements Interface {
 
 	private static Struct _getMetaData(PageContext pc, InterfaceImpl icfc, boolean ignoreCache) throws PageException {
 		Page page = MetadataUtil.getPageWhenMetaDataStillValid(pc, icfc, ignoreCache);
-		if (page != null && page.metaData != null && page.metaData.get() != null) return page.metaData.get();
+		Struct existingMetaData = null;
+		if (page != null && page.metaData != null && page.metaData.get() != null) {
+			existingMetaData = page.metaData.get();
+			if (existingMetaData != null) {
+				Struct data = Caster.toStruct(existingMetaData.get(icfc._getName() + "", null), null);
+				if (data != null) return data;
+			}
+		}
 
 		long creationTime = System.currentTimeMillis();
 
@@ -251,7 +259,16 @@ public class InterfaceImpl implements Interface {
 		sct.set(KeyConstants._path, ps.getDisplayPath());
 		sct.set(KeyConstants._type, "interface");
 
-		page.metaData = new MetaDataSoftReference<Struct>(sct, creationTime);
+		if (page != null) {
+			if (existingMetaData != null) existingMetaData.setEL(icfc._getName() + "", sct);
+			else {
+				Struct coll = new StructImpl();
+				coll.setEL(icfc._getName() + "", sct);
+				page.metaData = new MetaDataSoftReference<Struct>(coll, creationTime);
+			}
+
+		}
+
 		return sct;
 	}
 

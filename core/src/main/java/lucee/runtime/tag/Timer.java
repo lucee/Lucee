@@ -20,12 +20,12 @@ package lucee.runtime.tag;
 
 import java.io.IOException;
 
+import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageSource;
 import lucee.runtime.engine.CFMLEngineImpl;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.tag.BodyTagImpl;
-import lucee.commons.lang.StringUtil;
 import lucee.runtime.op.Caster;
 //import lucee.runtime.debug.DebuggerPro;
 

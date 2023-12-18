@@ -39,6 +39,8 @@ import java.io.Writer;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -1416,6 +1418,16 @@ public final class IOUtil {
 			}
 			finally {
 				finished = true;
+			}
+		}
+	}
+
+	public static void deleteEL(Path path) {
+		if (path != null) {
+			try {
+				Files.delete(path);
+			}
+			catch (Exception e) {
 			}
 		}
 	}

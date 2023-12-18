@@ -80,7 +80,7 @@ import lucee.runtime.type.util.KeyConstants;
  */
 public final class WDDXConverter extends ConverterSupport {
 
-	private static final Collection.Key REMOTING_FETCH = KeyImpl.getInstance("remotingFetch");
+	private static final Collection.Key REMOTING_FETCH = KeyConstants._remotingFetch;
 
 	private static final List<String> KNOWN_STRUCT_TYPES = Arrays.asList(new String[] { "coldfusion.server.ConfigMap" });
 

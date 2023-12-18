@@ -9,7 +9,6 @@
 	,"clientManagement":false
 	,"clientTimeout":"0,0,90,0"
 	,"componentBase":"/lucee/Component.cfc"
-	,"componentBaseLuceeDialect":"/lucee/Component.lucee"
 	,"componentDataMemberAccess":"public"
 	,"componentDumpTemplate":"/lucee/component-dump.cfm"
 	,"debuggingEnabled":false
@@ -51,16 +50,8 @@
 	}
 	,"componentMappings":[
 		{
-			"virtual":"/default"
-			,"physical":"{lucee-web}/components/"
-			,"primary":"physical"
-			,"inspectTemplate":"never"
-		}
-		,{
-			"virtual":"/default-server"
-			,"physical":"{lucee-server}/components/"
-			,"primary":"physical"
-			,"inspectTemplate":"never"
+			"inspectTemplate":"never"
+			,"physical":"{lucee-config}/components/"
 		}
 	]
 	,"customTagMappings":[

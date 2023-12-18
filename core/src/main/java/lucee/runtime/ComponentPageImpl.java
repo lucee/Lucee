@@ -23,6 +23,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
 import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
@@ -90,11 +91,11 @@ import lucee.runtime.type.util.UDFUtil;
  */
 public abstract class ComponentPageImpl extends ComponentPage implements PagePro {
 
-	public static final Collection.Key ACCEPT_ARG_COLL_FORMATS = KeyImpl.getInstance("acceptedArgumentCollectionFormats");
+	public static final Collection.Key ACCEPT_ARG_COLL_FORMATS = KeyConstants._acceptedArgumentCollectionFormats;
 
 	private static final long serialVersionUID = -3483642653131058030L;
 
-	public static final lucee.runtime.type.Collection.Key REMOTE_PERSISTENT_ID = KeyImpl.getInstance("Id16hohohh");
+	public static final lucee.runtime.type.Collection.Key REMOTE_PERSISTENT_ID = KeyConstants._Id16hohohh;
 
 	private long lastCheck = -1;
 
@@ -465,18 +466,27 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 		Struct args = new StructImpl(), meta;
 
 		Key name;
+		List<Key> arrName = new ArrayList<Key>();
+		List<String> arrRestArgSource = new ArrayList<String>();
+		List<String> arrRestArgName = new ArrayList<String>();
 		String restArgName, restArgSource, value;
 		for (int i = 0; i < fa.length; i++) {
-			name = fa[i].getName();
-			meta = fa[i].getMetaData();
-			restArgSource = meta == null ? "" : Caster.toString(meta.get(KeyConstants._restArgSource, ""), "");
 
+			arrName.add(fa[i].getName());
+			meta = fa[i].getMetaData();
+			arrRestArgSource.add(meta == null ? "" : Caster.toString(meta.get(KeyConstants._restArgSource, ""), ""));
+			arrRestArgName.add(meta == null ? "" : Caster.toString(meta.get(KeyConstants._restArgName, ""), ""));
+		}
+
+		for (int i = 0; i < fa.length; i++) {
+			name = arrName.get(i);
+			restArgSource = arrRestArgSource.get(i);
 			if ("path".equalsIgnoreCase(restArgSource)) setValue(fa[i], args, name, variables.get(name, null));
 			if ("query".equalsIgnoreCase(restArgSource) || "url".equalsIgnoreCase(restArgSource)) setValue(fa[i], args, name, pc.urlScope().get(name, null));
 			if ("form".equalsIgnoreCase(restArgSource)) setValue(fa[i], args, name, pc.formScope().get(name, null));
 			if ("cookie".equalsIgnoreCase(restArgSource)) setValue(fa[i], args, name, pc.cookieScope().get(name, null));
 			if ("header".equalsIgnoreCase(restArgSource) || "head".equalsIgnoreCase(restArgSource)) {
-				restArgName = meta == null ? "" : Caster.toString(meta.get(KeyConstants._restArgName, ""), "");
+				restArgName = arrRestArgName.get(i);
 				if (StringUtil.isEmpty(restArgName)) restArgName = name.getString();
 				value = ReqRspUtil.getHeaderIgnoreCase(pc, restArgName, null);
 				setValue(fa[i], args, name, value);
@@ -484,9 +494,21 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 			if ("matrix".equalsIgnoreCase(restArgSource)) setValue(fa[i], args, name, result.getMatrix().get(name, null));
 
 			if ("body".equalsIgnoreCase(restArgSource) || StringUtil.isEmpty(restArgSource, true)) {
+				// cfargument cannot have the attributes restArgSource and restArgName specified. That is, you can
+				// only send data in the body of the request.
+				if (!StringUtil.isEmpty(arrRestArgName.get(i), true)) {
+					continue;
+				}
+				else if (!"body".equalsIgnoreCase(restArgSource)) {
+					// There can only be one argument that does not specify the restArgSource attribute.
+					for (int j = 0; j < fa.length; j++) {
+						if (StringUtil.isEmpty(arrRestArgSource.get(j)) && i != j) continue;
+					}
+				}
 				boolean isSimple = CFTypes.isSimpleType(fa[i].getType());
-				Object body = ReqRspUtil.getRequestBody(pc, true, null);
-				if (isSimple && !Decision.isSimpleValue(body)) body = ReqRspUtil.getRequestBody(pc, false, null);
+				Object body;
+				if (isSimple) body = ReqRspUtil.getRequestBody(pc, false, null);
+				else body = ReqRspUtil.getRequestBody(pc, true, null);
 				setValue(fa[i], args, name, body);
 			}
 		}

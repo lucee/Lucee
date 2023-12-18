@@ -32,6 +32,7 @@ import lucee.runtime.type.Collection;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
+import lucee.runtime.type.util.KeyConstants;
 
 /**
  * Allows subtag data to be saved with the base tag. Applies only to custom tags.
@@ -41,7 +42,7 @@ import lucee.runtime.type.Struct;
  **/
 public final class Associate extends TagImpl {
 
-	private static final Key ASSOC_ATTRS = KeyImpl.getInstance("AssocAttribs");
+	private static final Key ASSOC_ATTRS = KeyConstants._AssocAttribs;
 
 	/** The name of the structure in which the base tag stores subtag data. */
 	private Collection.Key datacollection = ASSOC_ATTRS;

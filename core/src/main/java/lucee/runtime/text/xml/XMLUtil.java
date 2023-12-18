@@ -95,6 +95,7 @@ import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.util.KeyConstants;
+import lucee.runtime.type.util.StructUtil;
 
 /**
  *
@@ -103,23 +104,23 @@ public final class XMLUtil {
 
 	public static final short UNDEFINED_NODE = -1;
 
-	public static final Collection.Key XMLCOMMENT = KeyImpl.getInstance("xmlcomment");
-	public static final Collection.Key XMLTEXT = KeyImpl.getInstance("xmltext");
-	public static final Collection.Key XMLCDATA = KeyImpl.getInstance("xmlcdata");
-	public static final Collection.Key XMLCHILDREN = KeyImpl.getInstance("xmlchildren");
-	public static final Collection.Key XMLNODES = KeyImpl.getInstance("xmlnodes");
-	public static final Collection.Key XMLNSURI = KeyImpl.getInstance("xmlnsuri");
-	public static final Collection.Key XMLNSPREFIX = KeyImpl.getInstance("xmlnsprefix");
-	public static final Collection.Key XMLROOT = KeyImpl.getInstance("xmlroot");
-	public static final Collection.Key XMLPARENT = KeyImpl.getInstance("xmlparent");
-	public static final Collection.Key XMLNAME = KeyImpl.getInstance("xmlname");
-	public static final Collection.Key XMLTYPE = KeyImpl.getInstance("xmltype");
-	public static final Collection.Key XMLVALUE = KeyImpl.getInstance("xmlvalue");
-	public static final Collection.Key XMLATTRIBUTES = KeyImpl.getInstance("xmlattributes");
+	public static final Collection.Key XMLCOMMENT = KeyConstants._xmlcomment;
+	public static final Collection.Key XMLTEXT = KeyConstants._xmltext;
+	public static final Collection.Key XMLCDATA = KeyConstants._xmlcdata;
+	public static final Collection.Key XMLCHILDREN = KeyConstants._xmlchildren;
+	public static final Collection.Key XMLNODES = KeyConstants._xmlnodes;
+	public static final Collection.Key XMLNSURI = KeyConstants._xmlnsuri;
+	public static final Collection.Key XMLNSPREFIX = KeyConstants._xmlnsprefix;
+	public static final Collection.Key XMLROOT = KeyConstants._xmlroot;
+	public static final Collection.Key XMLPARENT = KeyConstants._xmlparent;
+	public static final Collection.Key XMLNAME = KeyConstants._xmlname;
+	public static final Collection.Key XMLTYPE = KeyConstants._xmltype;
+	public static final Collection.Key XMLVALUE = KeyConstants._xmlvalue;
+	public static final Collection.Key XMLATTRIBUTES = KeyConstants._xmlattributes;
 	public static final Collection.Key KEY_FEATURE_SECURE = KeyConstants._secure;
-	public static final Collection.Key KEY_FEATURE_DISALLOW_DOCTYPE_DECL = KeyImpl.getInstance("disallowDoctypeDecl");
-	public static final Collection.Key KEY_FEATURE_EXTERNAL_GENERAL_ENTITIES = KeyImpl.getInstance("externalGeneralEntities");
-	public static final Collection.Key KEY_FEATURE_EXTERNAL_GENERAL_ENTITIES_ACF = KeyImpl.getInstance("allowExternalEntities");
+	public static final Collection.Key KEY_FEATURE_DISALLOW_DOCTYPE_DECL = KeyConstants._disallowDoctypeDecl;
+	public static final Collection.Key KEY_FEATURE_EXTERNAL_GENERAL_ENTITIES = KeyConstants._externalGeneralEntities;
+	public static final Collection.Key KEY_FEATURE_EXTERNAL_GENERAL_ENTITIES_ACF = KeyConstants._allowExternalEntities;
 
 	// public final static String
 	// DEFAULT_SAX_PARSER="org.apache.xerces.parsers.SAXParser";
@@ -140,6 +141,8 @@ public final class XMLUtil {
 	private static SAXParserFactory saxParserFactory;
 
 	private static URL transformerFactoryResource;
+
+	private static boolean disableXmlFeatureOverride = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.xmlfeatures.override.disable", "false"), false);
 
 	public static String unescapeXMLString(String str) {
 
@@ -283,8 +286,8 @@ public final class XMLUtil {
 	public static final Document parse(InputSource xml, Object validator, EntityResolver entRes, boolean isHtml) throws SAXException, IOException {
 
 		if (!isHtml) {
-			DocumentBuilderFactory factory = (validator instanceof InputSource)
-				? newDocumentBuilderFactory((InputSource) validator, null) : newDocumentBuilderFactory(null, (Struct) validator);
+			DocumentBuilderFactory factory = (validator instanceof InputSource) ? newDocumentBuilderFactory((InputSource) validator, null)
+					: newDocumentBuilderFactory(null, (Struct) validator);
 
 			try {
 				DocumentBuilder builder = factory.newDocumentBuilder();
@@ -345,14 +348,17 @@ public final class XMLUtil {
 		if (pc != null || xmlFeatures != null) {
 			if (xmlFeatures != null) {
 				features = xmlFeatures;
-			} else {
+			}
+			else {
 				ApplicationContextSupport ac = ((ApplicationContextSupport) pc.getApplicationContext());
 				features = ac == null ? null : ac.getXmlFeatures();
 			}
 			if (features != null) {
 				try { // handle feature aliases, e.g. secure
+					if (disableXmlFeatureOverride) throw new ExpressionException("xmlFeatures override has been disabled by lucee.xmlfeatures.override.disable");
+					features = StructUtil.duplicate(features, true);
 					Object obj;
-					
+
 					obj = features.get(KEY_FEATURE_SECURE, null);
 					if (obj != null) featureSecure = Caster.toBoolean(obj);
 					features.remove(KEY_FEATURE_SECURE, null);
@@ -367,9 +373,11 @@ public final class XMLUtil {
 						if (Caster.toBoolean(obj) != Caster.toBoolean(obj2))
 							throw new ExpressionException("When both externalGeneralEntities and allowExternalEntities are set, they must match ");
 						externalGeneralEntities = Caster.toBoolean(obj);
-					} else if (obj != null) {
+					}
+					else if (obj != null) {
 						externalGeneralEntities = Caster.toBoolean(obj);
-					} else if (obj2 != null) {
+					}
+					else if (obj2 != null) {
 						externalGeneralEntities = Caster.toBoolean(obj2);
 					}
 					features.remove(KEY_FEATURE_EXTERNAL_GENERAL_ENTITIES, null);
@@ -380,7 +388,7 @@ public final class XMLUtil {
 				}
 			}
 		}
-		
+
 		try { // set built in feature aliases
 			if (featureSecure) {
 				// set features per
@@ -394,7 +402,7 @@ public final class XMLUtil {
 				factory.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
 				factory.setAttribute(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
 			}
-			
+
 			factory.setFeature(XMLConstants.FEATURE_DISALLOW_DOCTYPE_DECL, disallowDocType);
 			factory.setFeature(XMLConstants.FEATURE_EXTERNAL_GENERAL_ENTITIES, externalGeneralEntities);
 		}
@@ -403,7 +411,7 @@ public final class XMLUtil {
 		}
 		// pass thru any additional feature directives
 		// https://xerces.apache.org/xerces2-j/features.html#disallow-doctype-decl
-		if (features != null){
+		if (features != null) {
 			features.forEach((k, v) -> {
 				try {
 					factory.setFeature(k.toString().toLowerCase(), Caster.toBoolean(v));

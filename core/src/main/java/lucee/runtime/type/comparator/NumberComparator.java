@@ -20,11 +20,11 @@ package lucee.runtime.type.comparator;
 
 import java.util.Comparator;
 
+import lucee.commons.lang.StringUtil;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.op.Caster;
-import lucee.commons.lang.StringUtil;
 
 /**
  * comparator implementation, compare to numbers

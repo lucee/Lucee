@@ -22,7 +22,6 @@ import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageSource;
 import lucee.runtime.config.Config;
 import lucee.runtime.type.Collection;
-import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.util.KeyConstants;
 
 /**
@@ -30,9 +29,9 @@ import lucee.runtime.type.util.KeyConstants;
  */
 public final class MissingIncludeException extends PageExceptionImpl {
 
-	private static final Collection.Key MISSING_FILE_NAME = KeyImpl.getInstance("MissingFileName");
-	private static final Collection.Key MISSING_FILE_NAME_REL = KeyImpl.getInstance("MissingFileName_rel");
-	private static final Collection.Key MISSING_FILE_NAME_ABS = KeyImpl.getInstance("MissingFileName_abs");
+	private static final Collection.Key MISSING_FILE_NAME = KeyConstants._MissingFileName;
+	private static final Collection.Key MISSING_FILE_NAME_REL = KeyConstants._MissingFileName_rel;
+	private static final Collection.Key MISSING_FILE_NAME_ABS = KeyConstants._MissingFileName_abs;
 
 	private PageSource pageSource;
 

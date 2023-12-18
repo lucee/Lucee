@@ -26,7 +26,6 @@ import org.xml.sax.InputSource;
 import lucee.runtime.PageContext;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.op.Caster;
-import lucee.runtime.text.xml.XMLCaster;
 import lucee.runtime.text.xml.XMLUtil;
 import lucee.runtime.type.Struct;
 
@@ -39,9 +38,10 @@ public final class IsXML implements Function {
 		if (xml instanceof Node) return true;
 
 		try {
-			if (xmlFeatures == null){
+			if (xmlFeatures == null) {
 				return call(pc, xml);
-			} else {
+			}
+			else {
 				XMLUtil.parse(new InputSource(new StringReader(Caster.toString(xml))), xmlFeatures, null, false);
 				return true;
 			}

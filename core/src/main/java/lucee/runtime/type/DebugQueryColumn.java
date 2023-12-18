@@ -20,10 +20,10 @@ package lucee.runtime.type;
 
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import lucee.runtime.exp.DatabaseException;
 import lucee.runtime.exp.DeprecatedException;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * implementation of the query column

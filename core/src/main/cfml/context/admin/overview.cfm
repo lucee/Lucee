@@ -18,7 +18,7 @@ Defaults --->
 <cfset error.detail="">
 <cfparam name="form.mainAction" default="none">
 <!--- load asynchron all extension providers  --->
-<cfparam name="application[request.admintype].preloadedExtensionProviders" default="false" type="boolean">
+<cfif isNull(application[request.admintype].preloadedExtensionProviders)><cfset application[request.admintype].preloadedExtensionProviders=false></cfif>
 <cfif !application[request.admintype].preloadedExtensionProviders>
 	<cfinclude template="ext.functions.cfm">
 	<cfset application[request.admintype].preloadedExtensionProviders=true>
@@ -67,7 +67,7 @@ Redirect to entry --->
 
 <cfset lucee_version = "UNKNOWN">
 <cfinclude template="version.cfm">
-<cfif lucee_version neq server.lucee.version>
+<cfif lucee_version neq server.lucee.version && lucee_version neq "UNKNOWN">
 	<cfoutput>
 		<div class="error">Warning Lucee Admin was compiled with version #lucee_version#?</div>
 	</cfoutput>

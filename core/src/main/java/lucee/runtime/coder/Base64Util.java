@@ -18,12 +18,13 @@
  **/
 package lucee.runtime.coder;
 
-import lucee.commons.io.CharsetUtil;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.UUID;
+
+import lucee.commons.io.CharsetUtil;
 
 public final class Base64Util {
 

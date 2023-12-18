@@ -19,7 +19,6 @@ import lucee.runtime.type.Collection;
 import lucee.runtime.type.scope.ScopeContext;
 
 public class IKHandlerCache implements IKHandler {
-	private static final ConcurrentHashMap<String, Object> tokens = new ConcurrentHashMap<String, Object>();
 
 	protected boolean storeEmpty = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.store.empty", null), true);
 
@@ -33,7 +32,7 @@ public class IKHandlerCache implements IKHandler {
 	public IKStorageValue loadData(PageContext pc, String appName, String name, String strType, int type, Log log) throws PageException {
 		Cache cache = getCache(pc, name);
 		String key = getKey(pc.getCFID(), appName, strType);
-		synchronized (getToken(key)) { // sync necessary?
+		synchronized (SystemUtil.createToken("IKHandlerCache", key)) { // sync necessary?
 			Object val = cache.getValue(key, null);
 			if (val instanceof byte[][]) {
 				ScopeContext.info(log,
@@ -58,7 +57,7 @@ public class IKHandlerCache implements IKHandler {
 			Cache cache = getCache(ThreadLocalPageContext.get(pc), name);
 			String key = getKey(pc.getCFID(), appName, storageScope.getTypeAsString());
 
-			synchronized (getToken(key)) {
+			synchronized (SystemUtil.createToken("IKHandlerCache", key)) {
 				Object existingVal = cache.getValue(key, null);
 
 				if (storeEmpty || storageScope.hasContent()) {
@@ -101,7 +100,7 @@ public class IKHandlerCache implements IKHandler {
 			Cache cache = getCache(pc, name);
 			String key = getKey(pc.getCFID(), appName, storageScope.getTypeAsString());
 
-			synchronized (getToken(key)) {
+			synchronized (SystemUtil.createToken("IKHandlerCache", key)) {
 				cache.remove(key);
 			}
 		}
@@ -129,12 +128,4 @@ public class IKHandlerCache implements IKHandler {
 		return new StringBuilder("lucee-storage:").append(type).append(":").append(cfid).append(":").append(appName).toString().toUpperCase();
 	}
 
-	public static Object getToken(String key) {
-		Object newLock = new Object();
-		Object lock = tokens.putIfAbsent(key, newLock);
-		if (lock == null) {
-			lock = newLock;
-		}
-		return lock;
-	}
 }

@@ -273,7 +273,7 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 	@Override
 	public void releaseLuceePageContext(PageContext pc, boolean unregisterFromThread) {
 		if (pc.getId() < 0) return;
-		boolean isChild = pc.getParentPageContext() != null; // we need to get this check before release is executed
+		PageContext parent = pc.getParentPageContext();
 
 		// when pc was registered with an other thread, we register with this thread when calling release
 		PageContext beforePC = ThreadLocalPageContext.get();
@@ -295,8 +295,11 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 		if (unregisterFromThread) ThreadLocalPageContext.release();
 
 		runningPcs.remove(Integer.valueOf(pc.getId()));
-		if (isChild) {
+		if (parent != null) {
 			runningChildPcs.remove(Integer.valueOf(pc.getId()));
+			if (parent instanceof PageContextImpl) {
+				((PageContextImpl) parent).removeChildPageContext(pc);
+			}
 		}
 		if (pcs.size() < 100 && ((PageContextImpl) pc).getTimeoutStackTrace() == null && reuse)// not more than 100 PCs
 			pcs.push((PageContextImpl) pc);

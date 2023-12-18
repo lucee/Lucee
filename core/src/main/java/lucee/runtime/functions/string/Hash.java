@@ -24,15 +24,12 @@ package lucee.runtime.functions.string;
 import java.security.MessageDigest;
 
 import lucee.commons.digest.HashUtil;
-import lucee.commons.io.log.Log;
-import lucee.commons.io.log.LogUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.config.Config;
-import lucee.runtime.engine.ThreadLocalPageContext;
-import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.ExpressionException;
+import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.op.Caster;
 

@@ -297,7 +297,7 @@ list all mappings and display necessary edit fields --->
 							<td class="tblContent#css# longwords"><input type="hidden" name="name_#srcLocal.currentrow#" value="#srcLocal.name#">#srcLocal.name#</td>
 							<td class="tblContent#css# longwords">#label#
 								<cfif !hasDriver><div class="commentError">#stText.Settings.noDriver#</div></cfif>
-								<cfif isDefined( "stVerifyMessages[srcLocal.name].dbInfo" ) && stVerifyMessages[srcLocal.name].dbInfo.recordCount>
+								<cfif !isNull( stVerifyMessages[srcLocal.name].dbInfo ) && stVerifyMessages[srcLocal.name].dbInfo.recordCount>
 									<cfset qDbInfo = stVerifyMessages[srcLocal.name].dbInfo>
 									<div class="comment">#stText.settings.datasource.databaseName#: #qDbInfo.DATABASE_PRODUCTNAME# #qDbInfo.DATABASE_VERSION#</div>
 									<div class="comment">#stText.settings.datasource.driverName#: #qDbInfo.DRIVER_NAME# #qDbInfo.DRIVER_VERSION# (JDBC #qDbInfo.JDBC_MAJOR_VERSION#.#qDbInfo.JDBC_MINOR_VERSION#)</div>

@@ -76,10 +76,6 @@ public class BundleFile extends BundleInfo {
 		return new FileInputStream(file);
 	}
 
-	public File getFile() {
-		return file;
-	}
-
 	public boolean hasClass(String className) throws IOException {
 		className = className.replace('.', '/') + ".class";
 		SoftReference<Boolean> tmp = classes.get(className);
@@ -96,17 +92,24 @@ public class BundleFile extends BundleInfo {
 		}
 	}
 
-	/**
-	 * only return an instance if the Resource is a valid bundle, otherwise it returns null
-	 * 
-	 * @param res
-	 * @return
-	 * 
-	 *         public static BundleFile newInstance(Resource res) {
-	 * 
-	 *         try { BundleFile bf = new BundleFile(res); if (bf.isBundle()) return bf; } catch
-	 *         (Throwable t) { ExceptionUtil.rethrowIfNecessary(t); }
-	 * 
-	 *         return null; }
-	 */
+	@Override
+	public String toString() {
+		return file.toString();
+	}
+
+	public String getAbsolutePath() {
+		return file.getAbsolutePath();
+	}
+
+	public boolean delete() {
+		return file.delete();
+	}
+
+	public void deleteOnExit() {
+		file.deleteOnExit();
+	}
+
+	public File getFile() {
+		return file;
+	}
 }

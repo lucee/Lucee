@@ -142,9 +142,15 @@ class MultiContextConfigWeb extends ConfigImpl implements ServletConfig, ConfigW
 	}
 
 	@Override
+	@Deprecated
 	public ConfigServer getConfigServer(String password) throws ExpressionException {
+		return getConfigServer((ConfigWebImpl) ThreadLocalPageContext.getConfig(), password);
+	}
+
+	@Override
+	public ConfigServer getConfigServer(ConfigWebImpl outer, String password) throws ExpressionException {
 		Password pw = isServerPasswordEqual(password);
-		if (pw == null) pw = PasswordImpl.passwordToCompare(this, true, password);
+		if (pw == null) pw = PasswordImpl.passwordToCompare(outer, true, password);
 		return getConfigServer(pw);
 	}
 
@@ -383,18 +389,24 @@ class MultiContextConfigWeb extends ConfigImpl implements ServletConfig, ConfigW
 	}
 
 	@Override
+	@Deprecated
 	public void updatePassword(boolean server, String passwordOld, String passwordNew) throws PageException {
+		updatePassword((ConfigWebImpl) ThreadLocalPageContext.getConfig(), server, passwordOld, passwordNew);
+	}
+
+	@Override
+	public void updatePassword(ConfigWebImpl outer, boolean server, String passwordOld, String passwordNew) throws PageException {
 		try {
-			PasswordImpl.updatePassword(server ? configServer : this, passwordOld, passwordNew);
+			PasswordImpl.updatePassword(server ? configServer : outer, passwordOld, passwordNew);
 		}
 		catch (Exception e) {
 			throw Caster.toPageException(e);
 		}
 	}
 
-	public void updatePassword(boolean server, Password passwordOld, Password passwordNew) throws PageException {
+	public void updatePassword(ConfigWebImpl outer, boolean server, Password passwordOld, Password passwordNew) throws PageException {
 		try {
-			PasswordImpl.updatePassword(server ? configServer : this, passwordOld, passwordNew);
+			PasswordImpl.updatePassword(server ? configServer : outer, passwordOld, passwordNew);
 		}
 		catch (Exception e) {
 			throw Caster.toPageException(e);
@@ -439,7 +451,12 @@ class MultiContextConfigWeb extends ConfigImpl implements ServletConfig, ConfigW
 
 	@Override
 	public boolean hasIndividualSecurityManager() {
-		return helper.hasIndividualSecurityManager(this);
+		return hasIndividualSecurityManager((ConfigWebImpl) ThreadLocalPageContext.getConfig());
+	}
+
+	@Override
+	public boolean hasIndividualSecurityManager(ConfigWebImpl outer) {
+		return helper.hasIndividualSecurityManager(outer);
 	}
 
 	@Override

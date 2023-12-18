@@ -25,6 +25,7 @@ import java.util.Comparator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import lucee.commons.io.SystemUtil;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.KeyImpl;
@@ -34,7 +35,6 @@ import lucee.runtime.type.KeyImpl;
  */
 public final class SoftMethodStorage {
 
-	private final ConcurrentHashMap<String, Object> tokens = new ConcurrentHashMap<String, Object>();
 	private Map<Class, SoftReference<Map<Key, Map<Integer, Method[]>>>> map = new ConcurrentHashMap<Class, SoftReference<Map<Key, Map<Integer, Method[]>>>>();
 
 	/**
@@ -94,7 +94,7 @@ public final class SoftMethodStorage {
 	 * @return returns stored struct
 	 */
 	private Map<Key, Map<Integer, Method[]>> store(Class clazz) {
-		synchronized (getToken(clazz)) {
+		synchronized (SystemUtil.createToken("SoftMethodStorage", clazz.getName())) {
 			Method[] methods = clazz.getMethods();
 			Map<Key, Map<Integer, Method[]>> methodsMap = new ConcurrentHashMap<Key, Map<Integer, Method[]>>();
 			for (int i = 0; i < methods.length; i++) {
@@ -103,15 +103,6 @@ public final class SoftMethodStorage {
 			map.put(clazz, new SoftReference<Map<Key, Map<Integer, Method[]>>>(methodsMap));
 			return methodsMap;
 		}
-	}
-
-	private Object getToken(Class clazz) {
-		Object newLock = new Object();
-		Object lock = tokens.putIfAbsent(clazz.getName(), newLock);
-		if (lock == null) {
-			lock = newLock;
-		}
-		return lock;
 	}
 
 	/**

@@ -35,6 +35,7 @@ import lucee.commons.lang.StringUtil;
 import lucee.commons.net.http.HTTPEngine;
 import lucee.commons.net.http.HTTPResponse;
 import lucee.commons.net.http.Header;
+import lucee.commons.net.http.httpclient.HTTPEngine4Impl;
 import lucee.commons.security.Credentials;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.Constants;
@@ -117,14 +118,16 @@ class ExecutionThread extends ParentThreasRefThread {
 		HTTPResponse rsp = null;
 
 		// execute
-		log.info(logName, "calling URL [" + url + "]");
+		log.info(logName, "calling URL ->[" + url + "]");
 		try {
-			rsp = HTTPEngine.get(new URL(url), user, pass, task.getTimeout(), true, charset, null, proxy, headers.toArray(new Header[headers.size()]));
+			rsp = HTTPEngine4Impl.get(new URL(url), user, pass, task.getTimeout(), true, charset, null, proxy, headers.toArray(new Header[headers.size()]));
 			if (rsp != null) {
 				int sc = rsp.getStatusCode();
+
 				if (sc >= 200 && sc < 300) log.info(logName, "successfully called URL [" + url + "], response code " + sc);
 				else log.warn(logName, "called URL [" + url + "] returned response code " + sc);
 			}
+			else log.error(logName, "called URL [" + url + "] with no response!");
 
 		}
 		catch (Exception e) {

@@ -8,7 +8,6 @@ import lucee.runtime.PageContext;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.engine.ThreadLocalPageContext;
-import lucee.runtime.exp.CatchBlockImpl;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.spooler.mail.MailSpoolerTask;
@@ -67,7 +66,7 @@ public abstract class CFMLSpoolerTaskListener extends SpoolerTaskListener {
 			args.set("remainingtries", e == null ? 0 : task.getPlans().length - task.tries());
 			args.set("closed", task.closed());
 			if (!before) args.set("passed", e == null);
-			if (e != null) args.set("exception", new CatchBlockImpl(Caster.toPageException(e)));
+			if (e != null) args.set("exception", Caster.toPageException(e).getCatchBlock(cw));
 
 			Struct curr = new StructImpl();
 			args.set("caller", curr);

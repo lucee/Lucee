@@ -30,9 +30,19 @@ public class LitNumberImpl extends ExpressionBase implements LitNumber, ExprNumb
 	private static final Method CONSTR_STRING = new Method("<init>", Types.VOID, new Type[] { Types.STRING });
 	private static final Method VALUE_OF = new Method("valueOf", Types.BIG_DECIMAL, new Type[] { Types.LONG_VALUE });
 	private static final Method TO_NUMBER_LONG_VALUE_1 = new Method("toNumber", Types.NUMBER, new Type[] { Types.LONG_VALUE });
-	private static final Method TO_NUMBER_STRING_1 = new Method("toNumber", Types.NUMBER, new Type[] { Types.STRING });
 	private static final Method TO_NUMBER_LONG_VALUE_2 = new Method("toNumber", Types.NUMBER, new Type[] { Types.PAGE_CONTEXT, Types.LONG_VALUE });
+	private static final Method TO_NUMBER_STRING_1 = new Method("toNumber", Types.NUMBER, new Type[] { Types.STRING });
 	private static final Method TO_NUMBER_STRING_2 = new Method("toNumber", Types.NUMBER, new Type[] { Types.PAGE_CONTEXT, Types.STRING });
+
+	private static final Method[] CONSTANTS_0 = new Method[11];
+	private static final Method[] CONSTANTS_1 = new Method[11];
+
+	static {
+		for (int i = 0; i <= 10; i++) {
+			CONSTANTS_0[i] = new Method("l" + i, Types.NUMBER, new Type[] {});
+			CONSTANTS_1[i] = new Method("l" + i, Types.NUMBER, new Type[] { Types.PAGE_CONTEXT });
+		}
+	}
 
 	private String number;
 	private BigDecimal bd;
@@ -110,8 +120,14 @@ public class LitNumberImpl extends ExpressionBase implements LitNumber, ExprNumb
 		if (l != null && Caster.toString(l).equals(number)) {
 			if (firstIsPC) adapter.loadArg(0);
 
-			adapter.push(l.longValue());
-			adapter.invokeStatic(LITERAL_VALUE, firstIsPC ? TO_NUMBER_LONG_VALUE_2 : TO_NUMBER_LONG_VALUE_1);
+			if (l.longValue() >= 0L && l.longValue() <= 10L) {
+				int idx = (int) l.longValue();
+				adapter.invokeStatic(LITERAL_VALUE, firstIsPC ? CONSTANTS_1[idx] : CONSTANTS_0[idx]);
+			}
+			else {
+				adapter.push(l.longValue());
+				adapter.invokeStatic(LITERAL_VALUE, firstIsPC ? TO_NUMBER_LONG_VALUE_2 : TO_NUMBER_LONG_VALUE_1);
+			}
 		}
 		else {
 			if (firstIsPC) adapter.loadArg(0);
@@ -125,8 +141,10 @@ public class LitNumberImpl extends ExpressionBase implements LitNumber, ExprNumb
 	}
 
 	private static boolean justNumberDigits(String number) {
+		int idx = 0;
 		for (char c: number.toCharArray()) {
 			if (c >= '0' && c <= '9') continue;
+			if (idx++ == 0 && c == '-') continue;
 			return false;
 		}
 

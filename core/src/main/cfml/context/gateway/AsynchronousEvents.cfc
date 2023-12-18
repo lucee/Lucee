@@ -1,4 +1,4 @@
-component accessors=true{
+component accessors=true {
 	
 	this.logfile    = "AsyncGateWay";
 	variables.state = "stopped";
@@ -26,8 +26,8 @@ component accessors=true{
 				variables.state == "error";
 				log text="Event Gateway #variables.id# error: #e.message#" file=this.logfile type="error";
 			}
-			if ( variables.state == "running" && len(variables.config.interval) gt 0 )
-				sleep( variables.config.interval );
+			if ( variables.state == "running" && len(variables.config.interval?:1000) gt 0 )
+				sleep(variables.config.interval?:1000);
 		}
 		variables.state = "stopped";
 		log text="Event Gateway #variables.id# stopped" file=this.logfile;

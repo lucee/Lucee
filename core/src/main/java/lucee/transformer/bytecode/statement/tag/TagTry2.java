@@ -39,7 +39,6 @@ import lucee.transformer.bytecode.statement.FlowControlFinal;
 import lucee.transformer.bytecode.statement.FlowControlFinalImpl;
 import lucee.transformer.bytecode.statement.FlowControlRetry;
 import lucee.transformer.bytecode.statement.TryCatchFinally;
-import lucee.transformer.bytecode.util.ExpressionUtil;
 import lucee.transformer.bytecode.util.Types;
 import lucee.transformer.bytecode.visitor.OnFinally;
 import lucee.transformer.bytecode.visitor.TryCatchFinallyVisitor;
@@ -126,7 +125,7 @@ public final class TagTry2 extends TagBase implements FlowControlRetry {
 			public void _writeOut(BytecodeContext bc) throws TransformerException {
 				if (_finally != null) {
 
-					ExpressionUtil.visitLine(bc, _finally.getStart());
+					bc.visitLine(_finally.getStart());
 					BodyBase.writeOut(bc, _finally.getBody());
 					// ExpressionUtil.writeOut(_finally.getBody(), bc);
 				}
@@ -186,7 +185,7 @@ public final class TagTry2 extends TagBase implements FlowControlRetry {
 				continue;
 			}
 
-			ExpressionUtil.visitLine(bc, tag.getStart());
+			bc.visitLine(tag.getStart());
 
 			// if(pe.typeEqual(@type)
 			adapter.loadLocal(pe);

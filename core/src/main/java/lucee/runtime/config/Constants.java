@@ -70,6 +70,7 @@ public class Constants {
 		catch (MalformedURLException e) {
 		}
 	}
+	public static String DEFAULT_UPDATE_TYPE = "manual";
 
 	public static final RHExtensionProvider[] RH_EXTENSION_PROVIDERS = new RHExtensionProvider[] {
 			new RHExtensionProvider(HTTPUtil.toURL("https://extension.lucee.org", HTTPUtil.ENCODED_NO, null), true),

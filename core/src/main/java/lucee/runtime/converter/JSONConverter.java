@@ -81,15 +81,16 @@ import lucee.runtime.type.dt.TimeSpan;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.CollectionUtil;
 import lucee.runtime.type.util.ComponentUtil;
+import lucee.runtime.type.util.KeyConstants;
 
 /**
  * class to serialize and desirilize WDDX Packes
  */
 public final class JSONConverter extends ConverterSupport {
 
-	private static final Collection.Key REMOTING_FETCH = KeyImpl.getInstance("remotingFetch");
+	private static final Collection.Key REMOTING_FETCH = KeyConstants._remotingFetch;
 
-	private static final Key TO_JSON = KeyImpl.getInstance("_toJson");
+	private static final Key TO_JSON = KeyConstants.__toJson;
 	private static final String NULL_STRING = "";
 
 	private boolean ignoreRemotingFetch;
@@ -380,7 +381,7 @@ public final class JSONConverter extends ConverterSupport {
 					else if (!remotingFetch.booleanValue()) continue;
 
 				}
-				Key key = KeyImpl.getInstance(props[i].getName());
+				Key key = KeyImpl.init(props[i].getName());
 				value = scope.get(key, null);
 				if (!addUDFs && (value instanceof UDF || value == null)) continue;
 				if (doIt) sb.append(',');

@@ -374,44 +374,4 @@ public class QueryParamConverter {
 			return item;
 		}
 	}
-
-	/*
-	 *
-	 * public static void main(String[] args) throws PageException { List<SQLItem> one=new
-	 * ArrayList<SQLItem>(); one.add(new SQLItemImpl("aaa",1)); one.add(new SQLItemImpl("bbb",1));
-	 *
-	 * List<NamedSQLItem> two=new ArrayList<NamedSQLItem>(); two.add(new
-	 * NamedSQLItem("susi","sorglos",1)); two.add(new NamedSQLItem("peter","Petrus",1));
-	 *
-	 * SQL sql = convert(
-	 * "select ? as x, 'aa:a' as x from test where a=:susi and b=:peter and c=? and d=:susi", one, two);
-	 *
-	 * print.e(sql);
-	 *
-	 * // array with simple values Array arr=new ArrayImpl(); arr.appendEL("aaa"); arr.appendEL("bbb");
-	 * sql = convert( "select * from test where a=? and b=?", arr); print.e(sql);
-	 *
-	 * // array with complex values arr=new ArrayImpl(); Struct val1=new StructImpl(); val1.set("value",
-	 * "Susi Sorglos"); Struct val2=new StructImpl(); val2.set("value", "123"); val2.set("type",
-	 * "integer"); arr.append(val1); arr.append(val2); sql = convert(
-	 * "select * from test where a=? and b=?", arr); print.e(sql);
-	 *
-	 * // array with mixed values arr.appendEL("ccc"); arr.appendEL("ddd"); sql = convert(
-	 * "select * from test where a=? and b=? and c=? and d=?", arr); print.e(sql);
-	 *
-	 * // array mixed with named values Struct val3=new StructImpl(); val3.set("value", "456");
-	 * val3.set("type", "integer"); val3.set("name", "susi"); arr.append(val3); sql = convert(
-	 * "select :susi as name from test where a=? and b=? and c=? and d=?", arr); print.e(sql);
-	 *
-	 *
-	 * // struct with simple values Struct sct=new StructImpl(); sct.set("abc", "Sorglos"); sql =
-	 * convert( "select * from test where a=:abc", sct); print.e(sql);
-	 *
-	 * // struct with mixed values sct.set("peter", val1); sct.set("susi", val3); sql = convert(
-	 * "select :peter as p, :susi as s from test where a=:abc", sct); print.e(sql);
-	 *
-	 *
-	 * }
-	 */
-
 }

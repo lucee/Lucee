@@ -19,14 +19,13 @@
 
 package lucee.runtime.functions.other;
 
+import java.util.concurrent.atomic.AtomicLong;
+
 import lucee.runtime.PageContext;
 import lucee.runtime.coder.Base64Util;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
-import lucee.runtime.ext.function.Function;
 import lucee.runtime.ext.function.BIF;
-
-import java.util.concurrent.atomic.AtomicLong;
 
 public final class CreateUniqueId extends BIF {
 

@@ -47,11 +47,6 @@ public final class XmlParse extends BIF implements Function {
 		return call(pc, string, caseSensitive, null, false);
 	}
 
-	// FUTURE remove this method, only exist for backward compatibility for older archive mappings
-	public static Node call(PageContext pc, String string, boolean caseSensitive, String strValidator) throws PageException {
-		return call(pc, string, caseSensitive, strValidator, false);
-	}
-
 	public static Node call(PageContext pc, String string, boolean caseSensitive, Object strValidator) throws PageException {
 		return call(pc, string, caseSensitive, strValidator, false);
 	}

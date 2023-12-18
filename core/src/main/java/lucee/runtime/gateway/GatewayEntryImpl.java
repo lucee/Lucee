@@ -171,6 +171,12 @@ public class GatewayEntryImpl implements GatewayEntry {
 	}
 
 	@Override
+	public String toString() {
+		return new StringBuilder().append(id).append(';').append(classDefintion.toString()).append(';').append(cfcPath).append(';').append(listenerCfcPath).append(';')
+				.append(startupMode).append(';').append(custom.toString()).append(';').toString();
+	}
+
+	@Override
 	public boolean equals(Object obj) {
 		if (obj == this) return true;
 		if (!(obj instanceof GatewayEntryImpl)) return false;

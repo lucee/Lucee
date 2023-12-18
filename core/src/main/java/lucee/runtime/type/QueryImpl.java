@@ -123,8 +123,8 @@ public class QueryImpl implements Query, Objects, QueryResult {
 
 	private static final long serialVersionUID = 1035795427320192551L; // do not chnage
 
-	public static final Collection.Key GENERATED_KEYS = KeyImpl.getInstance("GENERATED_KEYS");
-	public static final Collection.Key GENERATEDKEYS = KeyImpl.getInstance("GENERATEDKEYS");
+	public static final Collection.Key GENERATED_KEYS = KeyConstants._GENERATED_KEYS;
+	public static final Collection.Key GENERATEDKEYS = KeyConstants._GENERATEDKEYS;
 
 	private static boolean useMSSQLModern;
 
@@ -3378,7 +3378,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 			}
 			if (qry instanceof QueryImpl) newResult.templateLine = ((QueryImpl) qry).getTemplateLine();
 			else newResult.templateLine = new TemplateLine(qry.getTemplate(), 0);
-			newResult.recordcount = new AtomicInteger( ((QueryImpl) qry).recordcount.intValue() );
+			newResult.recordcount = new AtomicInteger(((QueryImpl) qry).recordcount.intValue());
 			newResult.columncount = newResult.columnNames.length;
 			newResult.cacheType = qry.getCacheType();
 			newResult.name = qry.getName();

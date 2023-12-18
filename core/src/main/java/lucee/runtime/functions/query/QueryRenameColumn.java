@@ -22,8 +22,8 @@
 package lucee.runtime.functions.query;
 
 import lucee.runtime.PageContext;
-import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.FunctionException;
+import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.BIF;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.KeyImpl;

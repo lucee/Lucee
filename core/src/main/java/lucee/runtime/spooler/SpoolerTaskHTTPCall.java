@@ -20,6 +20,7 @@ package lucee.runtime.spooler;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.security.GeneralSecurityException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -90,6 +91,9 @@ public abstract class SpoolerTaskHTTPCall extends SpoolerTaskSupport {
 		}
 		catch (ConverterException ce) {
 			throw Caster.toPageException(ce);
+		}
+		catch (GeneralSecurityException e) {
+			throw Caster.toPageException(e);
 		}
 
 	}

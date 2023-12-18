@@ -43,7 +43,7 @@ import lucee.runtime.type.util.ListUtil;
  */
 public final class DeserializeJSON implements Function {
 
-	private static final Key ROWCOUNT = KeyImpl.getInstance("ROWCOUNT");
+	private static final Key ROWCOUNT = KeyConstants._ROWCOUNT;
 
 	public static Object call(PageContext pc, String JSONVar) throws PageException {
 		return call(pc, JSONVar, true);
@@ -178,7 +178,7 @@ public final class DeserializeJSON implements Function {
 			while (it.hasNext()) {
 				column = Caster.toString(it.next(), null);
 				if (StringUtil.isEmpty(column)) return null;
-				columns[index++] = KeyImpl.getInstance(column);
+				columns[index++] = KeyImpl.init(column);
 			}
 			return columns;
 		}

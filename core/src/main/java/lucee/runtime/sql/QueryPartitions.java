@@ -21,10 +21,9 @@ package lucee.runtime.sql;
 import java.io.IOException;
 import java.sql.Types;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import lucee.commons.digest.MD5;
 import lucee.runtime.PageContext;

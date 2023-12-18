@@ -390,7 +390,8 @@ public final class HSQLDBHandler {
 					DBUtil.setReadOnlyEL(conn, true);
 					try {
 						nqr = new QueryImpl(pc, dc, sql, maxrows, fetchsize, timeout, "query", null, false, false, null);
-					} catch (PageException pe) {
+					}
+					catch (PageException pe) {
 						throw pe;
 					}
 					finally {
@@ -401,8 +402,7 @@ public final class HSQLDBHandler {
 
 				}
 				catch (SQLException e) {
-					throw (IllegalQoQException) (new IllegalQoQException("QoQ HSQLDB: error executing sql statement on query.", e.getMessage(), sql, null)
-							.initCause(e));
+					throw (IllegalQoQException) (new IllegalQoQException("QoQ HSQLDB: error executing sql statement on query.", e.getMessage(), sql, null).initCause(e));
 				}
 
 			}

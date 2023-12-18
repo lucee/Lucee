@@ -41,6 +41,7 @@ import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.CFMLFactory;
 import lucee.runtime.converter.ConverterException;
 import lucee.runtime.engine.CFMLEngineImpl;
+import lucee.runtime.engine.ThreadLocalConfigServer;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
@@ -119,7 +120,7 @@ public final class ConfigServerFactory extends ConfigFactory {
 						"has " + (hasConfigOld ? "" : "no ") + "xml server context config [" + configFileOld + "]");
 			}
 			ConfigServerImpl config = existing != null ? existing : new ConfigServerImpl(engine, initContextes, contextes, configDir, configFileNew, ui, essentialOnly);
-
+			ThreadLocalConfigServer.register(config);
 			// translate to new
 			if (!hasConfigNew) {
 				if (hasConfigOld) {
@@ -164,6 +165,7 @@ public final class ConfigServerFactory extends ConfigFactory {
 		}
 		finally {
 			ThreadLocalPageContext.insideServerNewInstance(false);
+			ThreadLocalConfigServer.release();
 		}
 	}
 
@@ -189,7 +191,7 @@ public final class ConfigServerFactory extends ConfigFactory {
 		}
 		int iDoNew = getNew(engine, configServer.getConfigDir(), quick, UpdateInfo.NEW_NONE).updateType;
 		boolean doNew = iDoNew != NEW_NONE;
-		load(configServer, loadDocument(configFile), true, doNew, quick);
+		load(configServer, loadDocumentCreateIfFails(configFile, "server"), true, doNew, quick);
 		((CFMLEngineImpl) ConfigWebUtil.getEngine(configServer)).onStart(configServer, true);
 	}
 

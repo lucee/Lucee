@@ -326,19 +326,16 @@ public class BytecodeFactory extends FactoryBase {
 				bc.getAdapter().getStatic(KEY_CONSTANTS, key, Types.COLLECTION_KEY);
 				return;
 			}
+
 			int index = bc.registerKey(ls);
-			bc.getAdapter().visitVarInsn(Opcodes.ALOAD, 0);
-			bc.getAdapter().visitFieldInsn(Opcodes.GETFIELD, bc.getClassName(), "keys", Types.COLLECTION_KEY_ARRAY.toString());
+			bc.getAdapter().visitFieldInsn(Opcodes.GETSTATIC, bc.getClassName(), "keys", Types.COLLECTION_KEY_ARRAY.toString());
 			bc.getAdapter().push(index);
 			bc.getAdapter().visitInsn(Opcodes.AALOAD);
-
-			// ExpressionUtil.writeOutSilent(lit,bc, Expression.MODE_REF);
-			// bc.getAdapter().invokeStatic(Page.KEY_IMPL, Page.KEY_INTERN);
 
 			return;
 		}
 		name.writeOut(bc, Expression.MODE_REF);
-		bc.getAdapter().invokeStatic(Page.KEY_IMPL, Page.KEY_INTERN);
+		bc.getAdapter().invokeStatic(Page.KEY_IMPL, Page.KEY_SOURCE);
 		// bc.getAdapter().invokeStatic(Types.CASTER, TO_KEY);
 		return;
 	}

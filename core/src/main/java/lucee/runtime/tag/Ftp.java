@@ -39,7 +39,6 @@ import lucee.runtime.net.ftp.FTPPath;
 import lucee.runtime.net.ftp.FTPPoolImpl;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Collection.Key;
-import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.QueryImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
@@ -61,10 +60,10 @@ public final class Ftp extends TagImpl {
 	private static final int PORT_SFTP = 22;
 
 	private static final Key SUCCEEDED = KeyConstants._succeeded;
-	private static final Key ERROR_CODE = KeyImpl.getInstance("errorCode");
-	private static final Key ERROR_TEXT = KeyImpl.getInstance("errorText");
-	private static final Key RETURN_VALUE = KeyImpl.getInstance("returnValue");
-	private static final Key CFFTP = KeyImpl.getInstance("cfftp");
+	private static final Key ERROR_CODE = KeyConstants._errorCode;
+	private static final Key ERROR_TEXT = KeyConstants._errorText;
+	private static final Key RETURN_VALUE = KeyConstants._returnValue;
+	private static final Key CFFTP = KeyConstants._cfftp;
 
 	/*
 	 * private static final Key = KeyImpl.getInstance(); private static final Key =

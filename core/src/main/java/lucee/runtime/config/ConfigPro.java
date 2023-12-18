@@ -157,7 +157,7 @@ public interface ConfigPro extends Config {
 
 	public boolean closeConnection();
 
-	public PageSource getBaseComponentPageSource(int dialect, PageContext pc);
+	public PageSource getBaseComponentPageSource(int dialect, PageContext pc, boolean force);
 
 	public TimeSpan getCachedAfterTimeRange();
 
@@ -358,5 +358,10 @@ public interface ConfigPro extends Config {
 
 	public void setLastModified();
 
-	public boolean limitIsDefined();
+	public boolean limitEvaluation();
+
+	public String getMainLogger();
+
+	public Resource[] getResources(PageContext pc, Mapping[] mappings, String realPath, boolean onlyTopLevel, boolean useSpecialMappings, boolean useDefaultMapping,
+			boolean useComponentMappings, boolean onlyFirstMatch);
 }

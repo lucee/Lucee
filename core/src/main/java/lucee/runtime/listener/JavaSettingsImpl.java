@@ -34,9 +34,9 @@ import lucee.runtime.op.Decision;
 import lucee.runtime.osgi.BundleFile;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
-import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.util.ArrayUtil;
+import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.ListUtil;
 
 public class JavaSettingsImpl implements JavaSettings {
@@ -95,7 +95,13 @@ public class JavaSettingsImpl implements JavaSettings {
 			List<Resource> list = new ArrayList<Resource>();
 			_getBundlesTranslated(list, bundles, true, true);
 			bundlesTranslated = list;
-			if (bundlesTranslated != null && bundlesTranslated.isEmpty()) bundlesTranslated = null;
+			if (bundlesTranslated != null) {
+				synchronized (this) {
+					if (bundlesTranslated != null && bundlesTranslated.isEmpty()) {
+						bundlesTranslated = null;
+					}
+				}
+			}
 			hasBundlesTranslated = true;
 		}
 		return bundlesTranslated;
@@ -152,7 +158,7 @@ public class JavaSettingsImpl implements JavaSettings {
 		// load paths
 		List<Resource> paths;
 		{
-			Object obj = sct.get(KeyImpl.getInstance("loadPaths"), null);
+			Object obj = sct.get(KeyConstants._loadPaths, null);
 			if (obj != null) {
 				paths = loadPaths(ThreadLocalPageContext.get(), obj);
 			}
@@ -162,28 +168,28 @@ public class JavaSettingsImpl implements JavaSettings {
 		// bundles paths
 		List<Resource> bundles;
 		{
-			Object obj = sct.get(KeyImpl.getInstance("bundlePaths"), null);
-			if (obj == null) obj = sct.get(KeyImpl.getInstance("bundles"), null);
-			if (obj == null) obj = sct.get(KeyImpl.getInstance("bundleDirectory"), null);
-			if (obj == null) obj = sct.get(KeyImpl.getInstance("bundleDirectories"), null);
+			Object obj = sct.get(KeyConstants._bundlePaths, null);
+			if (obj == null) obj = sct.get(KeyConstants._bundles, null);
+			if (obj == null) obj = sct.get(KeyConstants._bundleDirectory, null);
+			if (obj == null) obj = sct.get(KeyConstants._bundleDirectories, null);
 			if (obj != null) {
 				bundles = loadPaths(ThreadLocalPageContext.get(), obj);
 			}
 			else bundles = new ArrayList<Resource>();
 		}
 		// loadCFMLClassPath
-		Boolean loadCFMLClassPath = Caster.toBoolean(sct.get(KeyImpl.getInstance("loadCFMLClassPath"), null), null);
-		if (loadCFMLClassPath == null) loadCFMLClassPath = Caster.toBoolean(sct.get(KeyImpl.getInstance("loadColdFusionClassPath"), null), null);
+		Boolean loadCFMLClassPath = Caster.toBoolean(sct.get(KeyConstants._loadCFMLClassPath, null), null);
+		if (loadCFMLClassPath == null) loadCFMLClassPath = Caster.toBoolean(sct.get(KeyConstants._loadColdFusionClassPath, null), null);
 		if (loadCFMLClassPath == null) loadCFMLClassPath = base.loadCFMLClassPath();
 
 		// reloadOnChange
-		boolean reloadOnChange = Caster.toBooleanValue(sct.get(KeyImpl.getInstance("reloadOnChange"), null), base.reloadOnChange());
+		boolean reloadOnChange = Caster.toBooleanValue(sct.get(KeyConstants._reloadOnChange, null), base.reloadOnChange());
 
 		// watchInterval
-		int watchInterval = Caster.toIntValue(sct.get(KeyImpl.getInstance("watchInterval"), null), base.watchInterval());
+		int watchInterval = Caster.toIntValue(sct.get(KeyConstants._watchInterval, null), base.watchInterval());
 
 		// watchExtensions
-		Object obj = sct.get(KeyImpl.getInstance("watchExtensions"), null);
+		Object obj = sct.get(KeyConstants._watchExtensions, null);
 		List<String> extensions = new ArrayList<String>();
 		if (obj != null) {
 			Array arr;
