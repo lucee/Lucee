@@ -5069,6 +5069,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		ApplicationListener appListener = config.getApplicationListener();
 		sct.set("type", AppListenerUtil.toStringType(appListener));
 		sct.set("mode", AppListenerUtil.toStringMode(appListener.getMode()));
+		sct.set("applicationPathTimeout", TimeSpanImpl.fromMillis(config.getApplicationPathCacheTimeout()));
 		// replaced with encoding outputsct.set("defaultencoding", config.get DefaultEncoding());
 	}
 
