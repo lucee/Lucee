@@ -25,7 +25,6 @@ import javax.script.ScriptEngineFactory;
 import lucee.commons.lang.StringUtil;
 import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.config.ConfigPro;
-import lucee.runtime.config.ConfigWebUtil;
 import lucee.runtime.config.Constants;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.type.util.ListUtil;
@@ -35,7 +34,7 @@ public class ScriptEngineFactoryImpl implements ScriptEngineFactory {
 	final CFMLEngine engine;
 	final boolean tag;
 
-	public ScriptEngineFactoryImpl(CFMLEngine engine, boolean tag, int dialect) {
+	public ScriptEngineFactoryImpl(CFMLEngine engine, boolean tag) {
 		this.engine = engine;
 		this.tag = tag;
 	}
@@ -58,7 +57,7 @@ public class ScriptEngineFactoryImpl implements ScriptEngineFactory {
 	@Override
 	public Object getParameter(String key) {
 
-		if (key.equalsIgnoreCase(ScriptEngine.NAME)) return ConfigWebUtil.toDialect(CFMLEngine.DIALECT_CFML, "");
+		if (key.equalsIgnoreCase(ScriptEngine.NAME)) return "CFML";
 
 		if (key.equalsIgnoreCase(ScriptEngine.ENGINE)) return Constants.NAME;
 

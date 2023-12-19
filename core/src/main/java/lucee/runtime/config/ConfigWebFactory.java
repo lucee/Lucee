@@ -5084,7 +5084,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 
 			}
 			else if (configServer != null) {
-				config.setBaseComponentTemplate(configServer.getBaseComponentTemplate(CFMLEngine.DIALECT_CFML));
+				config.setBaseComponentTemplate(((ConfigPro) configServer).getBaseComponentTemplate());
 				config.setComponentDumpTemplate(configServer.getComponentDumpTemplate());
 				if (mode == ConfigPro.MODE_STRICT) {
 					config.setComponentDataMemberDefaultAccess(Component.ACCESS_PRIVATE);

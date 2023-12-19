@@ -29,8 +29,6 @@ import java.util.Map.Entry;
 
 import lucee.runtime.PageContext;
 import lucee.runtime.config.ConfigPro;
-import lucee.runtime.config.ConfigWebUtil;
-import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.type.Struct;
@@ -41,23 +39,9 @@ import lucee.transformer.library.tag.TagLib;
 
 public final class GetFunctionList implements Function {
 
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = -7313412061811118382L;
 
 	public static lucee.runtime.type.Struct call(PageContext pc) throws PageException {
-		return _call(pc);
-	}
-
-	public static lucee.runtime.type.Struct call(PageContext pc, String strDialect) throws PageException {
-		int dialect = ConfigWebUtil.toDialect(strDialect, -1);
-		if (dialect == -1) throw new FunctionException(pc, "GetFunctionList", 1, "dialect", "value [" + strDialect + "] is invalid, valid values are [cfml,lucee]");
-
-		return _call(pc);
-	}
-
-	private static lucee.runtime.type.Struct _call(PageContext pc) throws PageException {
 
 		Struct sct = new StructImpl(StructImpl.TYPE_LINKED);
 		// synchronized(sct) {

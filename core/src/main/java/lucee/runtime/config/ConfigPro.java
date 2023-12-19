@@ -168,6 +168,8 @@ public interface ConfigPro extends Config {
 
 	public PageSource getBaseComponentPageSource(PageContext pc, boolean force);
 
+	public String getBaseComponentTemplate();
+
 	public TimeSpan getCachedAfterTimeRange();
 
 	public Log getLog(String name, boolean createIfNecessary) throws PageException;

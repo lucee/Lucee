@@ -173,7 +173,7 @@ class SingleContextConfigWeb extends ConfigBase implements ConfigWebInner {
 	}
 
 	@Override
-	public FunctionLib[] getFLDs(int dialect) {
+	public FunctionLib[] getFLDs(int dialect) { // used in image extension
 		return cs.getFLDs(dialect);
 	}
 
@@ -453,6 +453,11 @@ class SingleContextConfigWeb extends ConfigBase implements ConfigWebInner {
 	@Override
 	public String getBaseComponentTemplate(int dialect) {
 		return cs.getBaseComponentTemplate(dialect);
+	}
+
+	@Override
+	public String getBaseComponentTemplate() {
+		return cs.getBaseComponentTemplate();
 	}
 
 	@Override

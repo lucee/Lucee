@@ -213,10 +213,8 @@ public final class CFMLEngineImpl implements CFMLEngine {
 
 	private BundleCollection bundleCollection;
 
-	private ScriptEngineFactory cfmlScriptEngine;
-	private ScriptEngineFactory cfmlTagEngine;
-	private ScriptEngineFactory luceeScriptEngine;
-	private ScriptEngineFactory luceeTagEngine;
+	private ScriptEngineFactory scriptEngine;
+	private ScriptEngineFactory tagEngine;
 	private Controler controler;
 	private CFMLServletContextListener scl;
 	private Boolean asyncReqHandle;
@@ -1728,26 +1726,14 @@ public final class CFMLEngineImpl implements CFMLEngine {
 
 	@Override
 	public ScriptEngineFactory getScriptEngineFactory(int dialect) {
-
-		if (dialect == CFMLEngine.DIALECT_CFML) {
-			if (cfmlScriptEngine == null) cfmlScriptEngine = new ScriptEngineFactoryImpl(this, false, dialect);
-			return cfmlScriptEngine;
-		}
-
-		if (luceeScriptEngine == null) luceeScriptEngine = new ScriptEngineFactoryImpl(this, false, dialect);
-		return luceeScriptEngine;
+		if (scriptEngine == null) scriptEngine = new ScriptEngineFactoryImpl(this, false);
+		return scriptEngine;
 	}
 
 	@Override
 	public ScriptEngineFactory getTagEngineFactory(int dialect) {
-
-		if (dialect == CFMLEngine.DIALECT_CFML) {
-			if (cfmlTagEngine == null) cfmlTagEngine = new ScriptEngineFactoryImpl(this, true, dialect);
-			return cfmlTagEngine;
-		}
-
-		if (luceeTagEngine == null) luceeTagEngine = new ScriptEngineFactoryImpl(this, true, dialect);
-		return luceeTagEngine;
+		if (tagEngine == null) tagEngine = new ScriptEngineFactoryImpl(this, true);
+		return tagEngine;
 	}
 
 	@Override

@@ -150,7 +150,7 @@ public class ConfigWebImpl implements ConfigWebPro {
 	}
 
 	@Override
-	public lucee.transformer.library.function.FunctionLib[] getFLDs(int dialect) {
+	public lucee.transformer.library.function.FunctionLib[] getFLDs(int dialect) { // used in image extension
 		return instance.getFLDs(dialect);
 	}
 
@@ -491,6 +491,11 @@ public class ConfigWebImpl implements ConfigWebPro {
 	@Override
 	public java.lang.String getBaseComponentTemplate(int arg0) {
 		return instance.getBaseComponentTemplate(arg0);
+	}
+
+	@Override
+	public String getBaseComponentTemplate() {
+		return instance.getBaseComponentTemplate();
 	}
 
 	@Override

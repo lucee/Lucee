@@ -6394,15 +6394,6 @@ The returned number of unallocated bytes is a hint, but not a guarantee, that it
 			<required>Yes</required>
 			<description>The tag name without namespace Example: login,mail aso.</description>
 		</argument>
-		<argument>
-			<name>dialect</name>
-			<type>string</type>
-			<required>no</required>
-			<values>cfml,lucee</values>
-			<default>cfml</default>
-			<introduced>5.0.0.0</introduced>
-			<description>the dialect you need (cfml,lucee)</description>
-		</argument>
 		<return>
 			<type>struct</type>
 		</return>

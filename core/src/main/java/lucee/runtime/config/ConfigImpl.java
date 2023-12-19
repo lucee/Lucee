@@ -1560,7 +1560,13 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	}
 
 	@Override
-	public String getBaseComponentTemplate(int dialect) {
+	@Deprecated
+	public String getBaseComponentTemplate(int dialect) { // FUTURE remove from interface
+		return baseComponentTemplate;
+	}
+
+	@Override
+	public String getBaseComponentTemplate() {
 		return baseComponentTemplate;
 	}
 
@@ -1587,7 +1593,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 					if (StringUtil.isEmpty(pack, true)) pack = "";
 					else if (!pack.endsWith("/")) pack += "";
 					// name
-					String componentName = getBaseComponentTemplate(CFMLEngine.DIALECT_CFML);
+					String componentName = getBaseComponentTemplate();
 
 					Mapping[] mappigs = getComponentMappings();
 					if (!ArrayUtil.isEmpty(mappigs)) {
