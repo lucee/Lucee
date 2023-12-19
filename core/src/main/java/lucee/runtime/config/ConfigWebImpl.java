@@ -276,11 +276,6 @@ public class ConfigWebImpl implements ConfigWebPro {
 	}
 
 	@Override
-	public boolean allowLuceeDialect() {
-		return instance.allowLuceeDialect();
-	}
-
-	@Override
 	public java.util.Enumeration getInitParameterNames() {
 		return instance.getInitParameterNames();
 	}
@@ -1722,10 +1717,6 @@ public class ConfigWebImpl implements ConfigWebPro {
 	@Override
 	public java.util.Collection getAllRHExtensions() {
 		return instance.getAllRHExtensions();
-	}
-
-	public void setAllowLuceeDialect(boolean arg0) {
-		if (instance instanceof MultiContextConfigWeb) ((MultiContextConfigWeb) instance).setAllowLuceeDialect(arg0);
 	}
 
 	@Override

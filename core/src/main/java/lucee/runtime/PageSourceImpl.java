@@ -1087,7 +1087,7 @@ public final class PageSourceImpl implements PageSource {
 	}
 
 	@Override
-	public int getDialect() {
+	public int getDialect() { // FUTURE remove
 		return CFMLEngine.DIALECT_CFML;
 	}
 

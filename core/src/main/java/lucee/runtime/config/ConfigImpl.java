@@ -1574,7 +1574,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	 * @return pagesource of the base component
 	 */
 	@Override
-	public PageSource getBaseComponentPageSource(int dialect) {
+	public PageSource getBaseComponentPageSource(int dialect) {// FUTURE remove from interfaces
 		return getBaseComponentPageSource(ThreadLocalPageContext.get(), false);
 	}
 
@@ -3818,17 +3818,6 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 			}
 		}
 		return deployDir;
-	}
-
-	private boolean allowLuceeDialect = false;
-
-	@Override
-	public boolean allowLuceeDialect() {
-		return allowLuceeDialect;
-	}
-
-	public void setAllowLuceeDialect(boolean allowLuceeDialect) {
-		this.allowLuceeDialect = allowLuceeDialect;
 	}
 
 	/*

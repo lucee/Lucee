@@ -5399,18 +5399,6 @@ public final class ConfigWebFactory extends ConfigFactory {
 				config.setExternalizeStringGTE(configServer.getExternalizeStringGTE());
 			}
 
-			// allow-lucee-dialect
-			if (!hasCS) {
-				str = getAttr(root, "allowLuceeDialect");
-				if (str == null || !Decision.isBoolean(str)) str = SystemUtil.getSystemPropOrEnvVar("lucee.enable.dialect", null);
-				if (str != null && Decision.isBoolean(str)) {
-					config.setAllowLuceeDialect(Caster.toBooleanValue(str, false));
-				}
-			}
-			else {
-				config.setAllowLuceeDialect(configServer.allowLuceeDialect());
-			}
-
 			// Handle Unquoted Attribute Values As String
 			if (mode == ConfigPro.MODE_STRICT) {
 				config.setHandleUnQuotedAttrValueAsString(false);

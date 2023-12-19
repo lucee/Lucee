@@ -664,9 +664,6 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 	@Override
 	@Deprecated
 	public int toDialect(String ext) { // FUTURE remove
-		// MUST improve perfomance
-		if (cfmlExtensions == null) _initExtensions();
-		if (cfmlExtensions.contains(ext.toLowerCase())) return CFMLEngine.DIALECT_CFML;
 		return CFMLEngine.DIALECT_CFML;
 	}
 

@@ -173,16 +173,6 @@ Redirtect to entry --->
 					</td>
 				</tr>
 
-<!---
-			</tbody>
-		</table>
-
-		<h3>#stText.general.dialect.cfml#</h3>
-		<div class="itemintro">#stText.general.dialect.cfmlDesc#</div>
-		
-		<table class="maintbl">
-			<tbody>
---->
 				<!--- Null Support --->
 				<tr>
 					<th scope="row">#stText.compiler.nullSupport#</th>

@@ -90,16 +90,7 @@
 						<div class="comment">#replace(stText.Components.ComponentDumpTemplateDescription,'{url}',"<a href=""#_url#"">#_url#</a>",'all')#</div>
 					</td>
 				</tr>
-<!---			
-			</tbody>
-		</table>
 
-		<h3>#stText.general.dialect.cfml#</h3>
-		<div class="itemintro">#stText.general.dialect.cfmlDesc#</div>
-		
-		<table class="maintbl">
-			<tbody>
---->
 				<!--- Data Member Access Type --->
 				<tr>
 					<th scope="row">#stText.Components.DataMemberAccessType#</th>

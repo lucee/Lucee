@@ -33,9 +33,6 @@ import lucee.runtime.type.UDF;
 import lucee.runtime.type.scope.Application;
 import lucee.runtime.type.scope.Session;
 
-/*
- * only use by CFML dialect so checking for dialect is not necessary
- */
 public final class ClassicAppListener extends AppListenerSupport {
 
 	private int mode = MODE_CURRENT2ROOT;

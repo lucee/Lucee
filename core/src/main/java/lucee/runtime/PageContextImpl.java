@@ -1068,8 +1068,7 @@ public final class PageContextImpl extends PageContext {
 	}
 
 	public static void notSupported() throws ApplicationException {
-		throw new ApplicationException(
-				"The Lucee dialect is disabled, to enable the dialect set the environment variable or system property \"lucee.enable.dialect\" to \"true\" or set the attribute \"allow-lucee-dialect\" to \"true\" with the \"compiler\" tag inside the lucee-server.xml.");
+		throw new ApplicationException("The Lucee dialect is is no longer available!");
 	}
 
 	@Override
@@ -3940,12 +3939,12 @@ public final class PageContextImpl extends PageContext {
 	}
 
 	@Override
-	public int getCurrentTemplateDialect() {
+	public int getCurrentTemplateDialect() {// FUTURE remove
 		return CFMLEngine.DIALECT_CFML;
 	}
 
 	@Override
-	public int getRequestDialect() {
+	public int getRequestDialect() {// FUTURE remove
 		return CFMLEngine.DIALECT_CFML;
 	}
 

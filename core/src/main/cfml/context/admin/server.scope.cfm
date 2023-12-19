@@ -490,19 +490,6 @@ Error Output --->
 						<cfset renderCodingTip( codeSample )>
 					</td>
 				</tr>
-<!---
-			</tbody>
-		</table>
-
-		<h3>#stText.general.dialect.cfml#</h3>
-		<div class="itemintro">#stText.general.dialect.cfmlDesc#</div>
-		
-		<table class="maintbl">
-			<tbody>
---->
-
-
-
 
 				<!--- Local Mode --->
 				<tr>

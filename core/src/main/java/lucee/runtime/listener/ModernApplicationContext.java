@@ -163,7 +163,6 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	private static final Key LIMIT_EVALUATION = KeyConstants._limitEvaluation;
 	private static final Key REGEX = KeyConstants._regex;
 	private static final Key ENGINE = KeyConstants._engine;
-	private static final Key DIALECT = KeyConstants._dialect;
 	private static final Key USE_JAVA_AS_REGEX_ENGINE = KeyConstants._useJavaAsRegexEngine;
 
 	private static Map<String, CacheConnection> initCacheConnections = new ConcurrentHashMap<String, CacheConnection>();
@@ -1944,7 +1943,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 			if (sct != null) {
 				String str = Caster.toString(sct.get(ENGINE, null), null);
 				if (StringUtil.isEmpty(str, true)) str = Caster.toString(sct.get(KeyConstants._type, null), null);
-				if (StringUtil.isEmpty(str, true)) str = Caster.toString(sct.get(DIALECT, null), null);
+				if (StringUtil.isEmpty(str, true)) str = Caster.toString(sct.get(KeyConstants._dialect, null), null);
 				if (!StringUtil.isEmpty(str, true)) {
 					int type = RegexFactory.toType(str, -1);
 					if (type != -1) {

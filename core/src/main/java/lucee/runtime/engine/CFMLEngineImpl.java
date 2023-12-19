@@ -1195,7 +1195,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 
 	@Override
 	public void service(HttpServlet servlet, HttpServletRequest req, HttpServletResponse rsp) throws ServletException, IOException {
-		_service(servlet, req, rsp, Request.TYPE_LUCEE);
+		_service(servlet, req, rsp, Request.TYPE_CFML);
 	}
 
 	@Override
@@ -1210,17 +1210,6 @@ public final class CFMLEngineImpl implements CFMLEngine {
 
 	private void _service(HttpServlet servlet, HttpServletRequest req, HttpServletResponse rsp, short type) throws ServletException, IOException {
 		CFMLFactoryImpl factory = (CFMLFactoryImpl) getCFMLFactory(servlet.getServletConfig(), req);
-		// is Lucee dialect enabled?
-		if (type == Request.TYPE_LUCEE) {
-			if (!((ConfigPro) factory.getConfig()).allowLuceeDialect()) {
-				try {
-					PageContextImpl.notSupported();
-				}
-				catch (ApplicationException e) {
-					throw new PageServletException(e);
-				}
-			}
-		}
 		boolean exeReqAsync = exeRequestAsync();
 		PageContextImpl pc = factory.getPageContextImpl(servlet, req, rsp, null, false, -1, false, !exeReqAsync, false, -1, true, false, false, null);
 		try {
@@ -1725,13 +1714,13 @@ public final class CFMLEngineImpl implements CFMLEngine {
 	}
 
 	@Override
-	public ScriptEngineFactory getScriptEngineFactory(int dialect) {
+	public ScriptEngineFactory getScriptEngineFactory(int dialect) {// FUTURE remove
 		if (scriptEngine == null) scriptEngine = new ScriptEngineFactoryImpl(this, false);
 		return scriptEngine;
 	}
 
 	@Override
-	public ScriptEngineFactory getTagEngineFactory(int dialect) {
+	public ScriptEngineFactory getTagEngineFactory(int dialect) {// FUTURE remove
 		if (tagEngine == null) tagEngine = new ScriptEngineFactoryImpl(this, true);
 		return tagEngine;
 	}

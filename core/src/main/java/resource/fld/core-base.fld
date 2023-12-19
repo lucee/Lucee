@@ -4736,12 +4736,6 @@ EntitySave(entity, [forceInsert])</description>
 			<type>string</type>
 			<required>Yes</required>
 		</argument>
-		<argument>
-			<name>dialect</name>
-			<type>string</type>
-			<values>cfml,lucee</values>
-			<required>no</required>
-		</argument>
 		
 		<return>
 			<type>string</type>

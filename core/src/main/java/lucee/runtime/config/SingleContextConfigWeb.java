@@ -451,7 +451,7 @@ class SingleContextConfigWeb extends ConfigBase implements ConfigWebInner {
 	}
 
 	@Override
-	public String getBaseComponentTemplate(int dialect) {
+	public String getBaseComponentTemplate(int dialect) { // FUTURE remove
 		return cs.getBaseComponentTemplate(dialect);
 	}
 
@@ -461,7 +461,7 @@ class SingleContextConfigWeb extends ConfigBase implements ConfigWebInner {
 	}
 
 	@Override
-	public PageSource getBaseComponentPageSource(int dialect) {
+	public PageSource getBaseComponentPageSource(int dialect) { // FUTURE remove
 		return cs.getBaseComponentPageSource(dialect);
 	}
 
@@ -1308,11 +1308,6 @@ class SingleContextConfigWeb extends ConfigBase implements ConfigWebInner {
 	@Override
 	public Resource getDeployDirectory() {
 		return cs.getDeployDirectory();
-	}
-
-	@Override
-	public boolean allowLuceeDialect() {
-		return cs.allowLuceeDialect();
 	}
 
 	@Override

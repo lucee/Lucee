@@ -17,7 +17,6 @@
  */
 package lucee.runtime.functions.dynamicEvaluation;
 
-import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.compiler.Renderer;
 import lucee.runtime.exp.PageException;
@@ -30,10 +29,4 @@ public final class Render implements Function {
 	public static String call(PageContext pc, String cfml) throws PageException {
 		return Renderer.tag(pc, cfml, false, pc.ignoreScopes()).getOutput();
 	}
-
-	public static String call(PageContext pc, String cfml, String dialect) throws PageException {
-		if (StringUtil.isEmpty(dialect, true)) return call(pc, cfml);
-		return Renderer.tag(pc, cfml, false, pc.ignoreScopes()).getOutput();
-	}
-
 }

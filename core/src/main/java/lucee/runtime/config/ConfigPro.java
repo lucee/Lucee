@@ -196,8 +196,6 @@ public interface ConfigPro extends Config {
 
 	public int getExternalizeStringGTE();
 
-	public boolean allowLuceeDialect();
-
 	public Cluster createClusterScope() throws PageException;
 
 	public ClassLoader getClassLoaderCore();
