@@ -486,7 +486,7 @@ public class OSGiUtil {
 							// load existing
 							Bundle b = exists(loadedBundles, match.getSymbolicName(), pq.getVersionDefinitons());
 							if (b != null) {
-								if (startIfNecessary) _startIfNecessary(b, parents);
+								// if (startIfNecessary) _startIfNecessary(b, parents);
 								return b;
 							}
 							// load new
@@ -708,7 +708,7 @@ public class OSGiUtil {
 		// is it in jar directory but not loaded
 		BundleFile bf = _getBundleFile(factory, bundleRange, addional, versionsFound);
 		if (versionOnlyMattersForDownload && (bf == null || !bf.isBundle())) bf = _getBundleFile(factory, bundleRange.getName(), null, addional, versionsFound);
-		if (bf != null && bf.isBundle()) {
+		if (bf != null && bf.isBundle() && !bundlesThreadLocal.get().contains(toString(bf))) {
 			Bundle b = null;
 			try {
 				b = _loadBundle(bc, bf);
@@ -1393,8 +1393,17 @@ public class OSGiUtil {
 	}
 
 	private static Bundle _startIfNecessary(Bundle bundle, Set<String> parents) throws BundleException {
-		if (bundle.getState() == Bundle.ACTIVE) return bundle;
-		return _start(bundle, parents);
+		if (bundle == null || bundle.getState() == Bundle.ACTIVE) return bundle;
+
+		synchronized (SystemUtil.createToken(bundle.getSymbolicName(), bundle.getVersion().toString())) {
+			if (bundle.getState() != Bundle.ACTIVE) {
+				Bundle result = _start(bundle, parents);
+				return result;
+			}
+			else {
+				return bundle;
+			}
+		}
 	}
 
 	public static Bundle start(Bundle bundle) throws BundleException {
@@ -1409,7 +1418,9 @@ public class OSGiUtil {
 	private static Bundle _start(Bundle bundle, Set<String> parents) throws BundleException {
 		if (bundle == null) return bundle;
 		String bn = toString(bundle);
-		if (bundlesThreadLocal.get().contains(bn)) return bundle;
+		if (bundlesThreadLocal.get().contains(bn)) {
+			return bundle;
+		}
 		bundlesThreadLocal.get().add(bn);
 		String fh = bundle.getHeaders().get("Fragment-Host");
 		// Fragment cannot be started
@@ -1417,7 +1428,6 @@ public class OSGiUtil {
 			log(Log.LEVEL_DEBUG, "Do not start [" + bundle.getSymbolicName() + "], because this is a fragment bundle for [" + fh + "]");
 			return bundle;
 		}
-
 		log(Log.LEVEL_DEBUG, "Start bundle: [" + bundle.getSymbolicName() + ":" + bundle.getVersion().toString() + "]");
 
 		// check if required related bundles are missing and load them if necessary
@@ -1429,7 +1439,7 @@ public class OSGiUtil {
 			BundleUtil.start(bundle);
 		}
 		catch (BundleException be2) {
-			// print.e(be);
+			// print.e(be2);
 			List<PackageQuery> listPackages = getRequiredPackages(bundle);
 			List<PackageQuery> failedPD = new ArrayList<PackageQuery>();
 			try {
@@ -1439,7 +1449,9 @@ public class OSGiUtil {
 			catch (BundleException be3) {
 				try {
 					if (resolveBundleLoadingIssues(bundle.getBundleContext(), ThreadLocalPageContext.getConfig(), be3)) BundleUtil.start(bundle);
-					else throw be3;
+					else {
+						throw be3;
+					}
 				}
 				catch (BundleException be4) {
 					if (failedBD.size() > 0) {
@@ -2506,7 +2518,6 @@ public class OSGiUtil {
 
 		int start = 0, end;
 		int index;
-
 		// loads the bundles defined in the exception message
 		BundleRange br = null;
 		while ((index = msg.indexOf("osgi.wiring.bundle;", start)) != -1) {
