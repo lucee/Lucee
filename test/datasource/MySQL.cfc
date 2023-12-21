@@ -19,6 +19,7 @@
  ---><cfscript>
 component extends="org.lucee.cfml.test.LuceeTestCase"  labels="mysql" 	{
 	
+	processingdirective pageEncoding="UTF-8";
 
 	public function beforeTests(){
 		// stash system timezone
@@ -34,6 +35,68 @@ component extends="org.lucee.cfml.test.LuceeTestCase"  labels="mysql" 	{
 	public function setUp(){
 		variables.has=defineDatasource();
 	}
+
+	public void function testEmojisDefault() {
+		testEmojis();
+	}
+
+	public void function testEmojis8019() {
+		testEmojis("8.0.19");
+	}
+
+	public void function testEmojis8033() {
+		testEmojis("8.0.33");
+	}
+
+
+	/**
+	 * Verify that the MySQL JDBC driver correctly handles, stores, and retrieves emojis in a MySQL database.
+	 */
+	private void function testEmojis(version="") {
+		if(!variables.has) return;
+
+			var datasourceName="ds"&createUniqueID();
+			defineDatasource(arguments.version,datasourceName);
+
+			try {
+				// starting with a clean slate
+				query datasource=datasourceName {```
+					DROP TABLE IF EXISTS emoji_test;
+				```}
+
+				query datasource=datasourceName {```
+					CREATE TABLE IF NOT EXISTS emoji_test (
+						id INT AUTO_INCREMENT PRIMARY KEY,
+						varchar_reg VARCHAR(255) NOT NULL,
+						varchar_utf8mb4 VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL
+					);
+				```}
+			
+
+				var emojis="👋🌍";
+
+				query datasource=datasourceName {
+					echo("INSERT INTO emoji_test (varchar_reg,varchar_utf8mb4) VALUES ('#emojis#','#emojis#');");
+				}
+				
+				query datasource=datasourceName name="local.qry" {```
+					SELECT * FROM emoji_test;
+				```}
+				
+				assertEquals(emojis,qry.varchar_reg);
+				assertEquals(emojis,qry.varchar_utf8mb4);
+				debug(qry);
+			}
+			finally {
+				try { // we don't care if that fails
+					query datasource=datasourceName {```
+						DROP TABLE IF EXISTS emoji_test;
+					```}
+				}
+				catch(e){}
+			}
+	}
+
 
 	public void function testMySQLWithBSTTimezone(){
 		if(!variables.has) return;
@@ -226,7 +289,7 @@ END
 	}
 
 	public void function testType(){
-		if(!defineDatasourceX()) return;
+		if(!defineDatasource("","x")) return;
 		
 		query datasource="x" { 
 			echo("show tables");
@@ -244,32 +307,37 @@ END
 		}).toThrow();
 	}
 
-	private boolean function defineDatasource(){
-		var sct=getDatasource();
+	private boolean function defineDatasource(version="",datasourceName=""){
+		var sct=getDatasource(arguments.version);
 		if(sct.count()==0) return false;
-		application action="update" datasource=sct;
-		return true;
-	}
-	private boolean function defineDatasourceX(){
-		var sct=getDatasource2();
-		if(sct.count()==0) return false;
-		application action="update" datasources={'x':sct};
-		return true;
-	}
 
-
-	private struct function getDatasource(){
-		return server.getDatasource("mysql");
-	}
-
-	private struct function getDatasource2(){
-		var mySQL = server.getDatasource("mysql");
-		if(mySQL.count()==0) 
-			return {};
+		// no specific version, just use whatever is installed
+		if(isEmpty(arguments.datasourceName)) {
+			application action="update" datasource=sct;
+			return true;
+		}
+		// we have a specific version
+		else {
+			var datasources={};
+			datasources[datasourceName]=sct;
+			application action="update" datasources=datasources;
+			return true;
+		}
 		
-		mysql.custom= { useUnicode:true };
-		mysql.type= 'mysql';
-		return mysql
-	}	
+	}
+
+	private struct function getDatasource(version="", useUnicode="") {
+		var data = server.getDatasource("mysql");
+		
+		// let's inject a specific version
+		if(!isEmpty(arguments.version)) {
+			data.bundleVersion=arguments.version;
+		}
+		if(!isEmpty(arguments.useUnicode)) {
+			data.custom= { useUnicode:arguments.useUnicode };
+			data.type= 'mysql';
+		}
+		return data;
+	}
 } 
 </cfscript>
