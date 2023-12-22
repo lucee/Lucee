@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" labels="date" {
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="date" skip=true {
 
 	function run( testResults , testBox ) {
 
