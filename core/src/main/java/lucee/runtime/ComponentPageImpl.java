@@ -22,10 +22,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
-import java.util.ArrayList;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -445,14 +445,15 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 			if ("matrix".equalsIgnoreCase(restArgSource)) setValue(fa[i], args, name, result.getMatrix().get(name, null));
 
 			if ("body".equalsIgnoreCase(restArgSource) || StringUtil.isEmpty(restArgSource, true)) {
-				// cfargument  cannot have the attributes restArgSource and restArgName specified. That is, you can only send data in the body of the request.
-				if (!StringUtil.isEmpty(arrRestArgName.get(i), true)){
+				// cfargument cannot have the attributes restArgSource and restArgName specified. That is, you can
+				// only send data in the body of the request.
+				if (!StringUtil.isEmpty(arrRestArgName.get(i), true)) {
 					continue;
-				} else if (!"body".equalsIgnoreCase(restArgSource)){
-					//There can only be one argument that does not specify the restArgSource attribute.
+				}
+				else if (!"body".equalsIgnoreCase(restArgSource)) {
+					// There can only be one argument that does not specify the restArgSource attribute.
 					for (int j = 0; j < fa.length; j++) {
-						if (StringUtil.isEmpty(arrRestArgSource.get(j)) && i != j )
-							continue; 
+						if (StringUtil.isEmpty(arrRestArgSource.get(j)) && i != j) continue;
 					}
 				}
 				boolean isSimple = CFTypes.isSimpleType(fa[i].getType());

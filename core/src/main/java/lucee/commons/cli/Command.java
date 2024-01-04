@@ -18,6 +18,7 @@
  **/
 package lucee.commons.cli;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -42,11 +43,14 @@ public class Command {
 
 	public static Process createProcess(PageContext pc, String[] commands, String workingDir) throws IOException, ExpressionException {
 		pc = ThreadLocalPageContext.get(pc);
-		FileResource dir = null;
+		File dir = null;
 		if (!StringUtil.isEmpty(workingDir, true)) {
 			Resource res = ResourceUtil.toResourceExisting(pc, workingDir);
 			if (!res.isDirectory()) throw new IOException("CFEXECUTE Directory [" + workingDir + "] is not a existing directory");
 			if (res instanceof FileResource) dir = (FileResource) res;
+			else if ("file".equalsIgnoreCase(res.getResourceProvider().getScheme())) {
+				dir = new File(res.getAbsolutePath());
+			}
 			else throw new IOException(
 					"CFEXECUTE directory [" + workingDir + "] must be a local directory, scheme [" + res.getResourceProvider().getScheme() + "] is not supported in this context.");
 		}
