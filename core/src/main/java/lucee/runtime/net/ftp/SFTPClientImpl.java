@@ -61,10 +61,12 @@ public class SFTPClientImpl extends AFTPClient {
 				}
 			});
 		}
+		// for backward compatibility to previous version used
+		JSch.setConfig("kex", "diffie-hellman-group1-sha1");
+		JSch.setConfig("server_host_key", "ssh-rsa,ssh-dss");
 	}
 
 	SFTPClientImpl() {
-
 		jsch = new JSch();
 	}
 
