@@ -406,7 +406,7 @@ public class GatewayEngineImpl implements GatewayEngine {
 			int dialect = ext == null ? CFMLEngine.DIALECT_CFML : config.getFactory().toDialect(ext);
 			// ThreadLocalPageContext.register(pc);
 			Component cfc = getCFC(pc, requestURI);
-			if (cfc.containsKey(functionName)) {
+			if (cfc != null && cfc.containsKey(functionName)) {
 				if (dialect == CFMLEngine.DIALECT_LUCEE) pc.execute(requestURI, true, false);
 				else pc.executeCFML(requestURI, true, false);
 
