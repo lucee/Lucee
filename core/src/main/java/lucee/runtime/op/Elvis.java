@@ -23,6 +23,7 @@ import lucee.runtime.PageContext;
 import lucee.runtime.interpreter.VariableInterpreter;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.KeyImpl;
+import lucee.runtime.type.QueryColumn;
 import lucee.runtime.type.scope.Scope;
 import lucee.runtime.util.VariableUtilImpl;
 
@@ -73,6 +74,9 @@ public class Elvis {
 			VariableUtilImpl vu = ((VariableUtilImpl) pc.getVariableUtil());
 			for (int i = startIndex; i < varNames.length; i++) {
 				coll = vu.getCollection(pc, coll, varNames[i], defVal);
+				if (i + 1 == varNames.length && coll instanceof QueryColumn) {
+					return !(((QueryColumn) coll).get(pc) == defVal);
+				}
 				if (coll == defVal) return false;
 			}
 		}

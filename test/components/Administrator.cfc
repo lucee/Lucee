@@ -883,12 +883,12 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					assertEquals(isquery(bundles) ,true);
 				});
 
-				it(title="checking getBundle()", skip=true, body=function( currentSpec ) {
+				it(title="checking getBundle()", body=function( currentSpec ) {
 					var bundles = adminWeb.getBundles();
 					var bundle = adminWeb.getBundle( bundles.symbolicName );
 					assertEquals(isStruct(bundle) ,true);
 					// TODO description missing
-					var props = "description,fragment,headers,id,path,state,symbolicName,title,usedBy,version";
+					var props = "description,fragment,headers,id,path,state,symbolicName,title,usedBy,vendor,version";
 					loop list=props item="local.prop"{
 						expect( bundle ).toHaveKey( prop );
 					}

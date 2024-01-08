@@ -362,6 +362,7 @@ public final class PageContextImpl extends PageContext {
 
 	private static final boolean READ_CFID_FROM_URL = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.read.cfid.from.url", "true"), true);
 	private static int _idCounter = 1;
+	private long lastTimeoutNoAction;
 
 	/**
 	 * default Constructor
@@ -743,7 +744,7 @@ public final class PageContextImpl extends PageContext {
 		_psq = null;
 		dummy = false;
 		listenSettings = false;
-
+		if (lastTimeoutNoAction != 0) lastTimeoutNoAction = 0L;
 		if (ormSession != null) {
 			try {
 				releaseORM();
@@ -4109,5 +4110,11 @@ public final class PageContextImpl extends PageContext {
 	public boolean limitEvaluation() {
 		if (applicationContext != null) return applicationContext.getLimitEvaluation();
 		return ((ConfigPro) config).limitEvaluation();
+	}
+
+	public long timeoutNoAction() {
+		long tmp = lastTimeoutNoAction;
+		lastTimeoutNoAction = System.currentTimeMillis();
+		return tmp;
 	}
 }

@@ -24,6 +24,7 @@ import org.apache.felix.framework.BundleWiringImpl.BundleClassLoader;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleException;
 
+import lucee.commons.lang.Pair;
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.FunctionException;
@@ -66,8 +67,9 @@ public class BundleInfo implements Function {
 			sct.setEL(KeyConstants._version, b.getVersion().toString());
 			sct.setEL(KeyConstants._state, OSGiUtil.toState(b.getState(), null));
 			try {
-				sct.setEL("requiredBundles", BundleRange.toArray(OSGiUtil.getRequiredBundles(b)));
-				sct.setEL("requiredPackages", toArray2(OSGiUtil.getRequiredPackages(b)));
+				Pair<List<BundleRange>, List<PackageQuery>> pair = OSGiUtil.getRequiredBundlesAndPackages(b);
+				sct.setEL("requiredBundles", BundleRange.toArray(pair.getName()));
+				sct.setEL("requiredPackages", toArray2(pair.getValue()));
 			}
 			catch (BundleException be) {
 				throw Caster.toPageException(be);

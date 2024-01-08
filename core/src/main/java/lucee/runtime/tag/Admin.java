@@ -3389,7 +3389,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			str = Caster.toString(h.get("Bundle-Description", null), null);
 			if (StringUtil.isEmpty(str)) str = Caster.toString(h.get("Implementation-Description", null), null);
 			if (StringUtil.isEmpty(str)) str = Caster.toString(h.get("Specification-Description", null), null);
-			if (!StringUtil.isEmpty(str)) sct.set(KeyConstants._description, str);
+			sct.set(KeyConstants._description, str);
 
 			// Vendor
 			str = Caster.toString(h.get("Bundle-Vendor", null), null);
@@ -5081,6 +5081,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		ApplicationListener appListener = config.getApplicationListener();
 		sct.set("type", AppListenerUtil.toStringType(appListener));
 		sct.set("mode", AppListenerUtil.toStringMode(appListener.getMode()));
+		sct.set("applicationPathTimeout", TimeSpanImpl.fromMillis(config.getApplicationPathCacheTimeout()));
 		// replaced with encoding outputsct.set("defaultencoding", config.get DefaultEncoding());
 	}
 

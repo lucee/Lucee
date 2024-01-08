@@ -109,6 +109,24 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		assertTrue(isNull(x));
 	}
 
+	public void function testQueryColumn() localmode=true {
+		
+		var fns=getApplicationSettings().nullSupport;
+		var q = queryNew( "nullField", "varchar", [ [ nullValue() ] ] );
+	 
+		try {
+		   cfapplication( action="update", nullSupport=false);
+		   assertEquals('',q.nullField ?: 'is_null');
+	 
+		   cfapplication( action="update", nullSupport=true);
+		   assertEquals('is_null',q.nullField ?: 'is_null');
+		   
+		}
+		finally {
+		   cfapplication( action="update", nullSupport=fns);
+		}
+	}
+
 
 	private function testElvis(){		
 		return "Existing";

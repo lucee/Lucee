@@ -401,7 +401,7 @@ public class GatewayEngineImpl implements GatewayEngine {
 			pc = createPageContext(requestURI, id, functionName, arguments, cfcPeristent, true);
 			// ThreadLocalPageContext.register(pc);
 			Component cfc = getCFC(pc, requestURI);
-			if (cfc.containsKey(functionName)) {
+			if (cfc != null && cfc.containsKey(functionName)) {
 				pc.executeCFML(requestURI, true, false);
 
 				// Result

@@ -363,12 +363,16 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 					else {
 						if (log != null) {
 							PageContext root = pc.getRootPageContext();
-							String msg = "reach request timeout with " + (root != null && root != pc ? "thread" : "request") + " [" + pc.getId()
-									+ "], but the request is not killed because we did not reach all thresholds set. ATM we have " + getActiveRequests() + " active request(s) and "
-									+ getActiveThreads() + " active cfthreads " + getPath(pc) + "." + MonitorState.getBlockedThreads(pc) + RequestTimeoutException.locks(pc);
+							boolean first = pc.timeoutNoAction() > 0;
+
+							String msg = "reach" + (first ? "" : " (again)") + " request timeout with " + (root != null && root != pc ? "thread" : "request") + " ["
+									+ pc.getRequestId() + "], but the request is not killed because we did not reach all thresholds set. ATM we have " + getActiveRequests()
+									+ " active request(s) and " + getActiveThreads() + " active cfthreads " + getPath(pc) + "." + MonitorState.getBlockedThreads(pc)
+									+ RequestTimeoutException.locks(pc);
+
 							Thread thread = pc.getThread();
-							if (thread != null) log.log(Log.LEVEL_WARN, "controller", msg, ExceptionUtil.toThrowable(thread.getStackTrace()));
-							else log.log(Log.LEVEL_WARN, "controller", msg);
+							if (thread != null) log.log(first ? Log.LEVEL_WARN : Log.LEVEL_INFO, "controller", msg, ExceptionUtil.toThrowable(thread.getStackTrace()));
+							else log.log(first ? Log.LEVEL_WARN : Log.LEVEL_INFO, "controller", msg);
 						}
 					}
 				}

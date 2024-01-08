@@ -55,6 +55,7 @@ import lucee.runtime.listener.SessionCookieData;
 import lucee.runtime.listener.SessionCookieDataImpl;
 import lucee.runtime.net.mail.Server;
 import lucee.runtime.net.mail.ServerImpl;
+import lucee.runtime.net.proxy.ProxyData;
 import lucee.runtime.net.s3.Properties;
 import lucee.runtime.op.Caster;
 import lucee.runtime.orm.ORMConfiguration;
@@ -108,6 +109,15 @@ public class GetApplicationSettings extends BIF {
 			sc.setEL("sameSite", SessionCookieDataImpl.toSamesite(sessionCookieData.getSamesite()));
 			sc.setEL("disableUpdate", sessionCookieData.isDisableUpdate());
 			sct.setEL("sessionCookie", sc);
+		}
+		ProxyData ProxyData = acs.getProxyData();
+		if( ProxyData != null) {
+			Struct sc = new StructImpl(Struct.TYPE_LINKED);
+			sc.setEL("server", ProxyData.getServer());
+			sc.setEL("port", ProxyData.getPort());
+			sc.setEL("username", ProxyData.getUsername());
+			sc.setEL("password", ProxyData.getPassword());
+			sct.setEL("proxy", sc);
 		}
 
 		Struct xmlFeatures = acs.getXmlFeatures();

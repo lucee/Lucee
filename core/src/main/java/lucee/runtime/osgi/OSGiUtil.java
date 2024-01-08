@@ -60,6 +60,7 @@ import lucee.commons.io.res.filter.ResourceNameFilter;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ClassUtil;
 import lucee.commons.lang.ExceptionUtil;
+import lucee.commons.lang.Pair;
 import lucee.commons.lang.StringUtil;
 import lucee.loader.engine.CFMLEngine;
 import lucee.loader.engine.CFMLEngineFactory;
@@ -486,7 +487,7 @@ public class OSGiUtil {
 							// load existing
 							Bundle b = exists(loadedBundles, match.getSymbolicName(), pq.getVersionDefinitons());
 							if (b != null) {
-								if (startIfNecessary) _startIfNecessary(b, parents);
+								// if (startIfNecessary) _startIfNecessary(b, parents);
 								return b;
 							}
 							// load new
@@ -632,7 +633,7 @@ public class OSGiUtil {
 		return null;
 	}
 
-	public static Bundle loadBundle(BundleContext bc, final BundleRange bundleRange, Identification id, List<Resource> addional, boolean startIfNecessary,
+	private static Bundle loadBundle(BundleContext bc, final BundleRange bundleRange, Identification id, List<Resource> addional, boolean startIfNecessary,
 			boolean versionOnlyMattersForDownload, boolean downloadIfNecessary, Boolean printExceptions) throws BundleException {
 		try {
 			return _loadBundle(bc == null ? CFMLEngineFactory.getInstance().getBundleContext() : bc, bundleRange, id, addional, startIfNecessary, null,
@@ -641,6 +642,22 @@ public class OSGiUtil {
 		catch (StartFailedException sfe) {
 			throw sfe.bundleException;
 		}
+	}
+
+	public static List<Bundle> loadBundles(BundleContext bc, final List<BundleRange> bundleRanges, Identification id, List<Resource> addional, boolean startIfNecessary,
+			boolean versionOnlyMattersForDownload, boolean downloadIfNecessary, Boolean printExceptions) throws BundleException {
+		List<Bundle> list = new ArrayList<>();
+		try {
+			for (BundleRange br: bundleRanges) {
+				list.add(_loadBundle(bc == null ? CFMLEngineFactory.getInstance().getBundleContext() : bc, br, id, addional, startIfNecessary, null, versionOnlyMattersForDownload,
+						downloadIfNecessary, printExceptions));
+			}
+
+		}
+		catch (StartFailedException sfe) {
+			throw sfe.bundleException;
+		}
+		return list;
 	}
 
 	public static Bundle loadBundle(String name, Version version, Identification id, List<Resource> addional, boolean startIfNecessary) throws BundleException {
@@ -708,7 +725,7 @@ public class OSGiUtil {
 		// is it in jar directory but not loaded
 		BundleFile bf = _getBundleFile(factory, bundleRange, addional, versionsFound);
 		if (versionOnlyMattersForDownload && (bf == null || !bf.isBundle())) bf = _getBundleFile(factory, bundleRange.getName(), null, addional, versionsFound);
-		if (bf != null && bf.isBundle()) {
+		if (bf != null && bf.isBundle() && !bundlesThreadLocal.get().contains(toString(bf))) {
 			Bundle b = null;
 			try {
 				b = _loadBundle(bc, bf);
@@ -1399,8 +1416,17 @@ public class OSGiUtil {
 	}
 
 	private static Bundle _startIfNecessary(Bundle bundle, Set<String> parents) throws BundleException {
-		if (bundle.getState() == Bundle.ACTIVE) return bundle;
-		return _start(bundle, parents);
+		if (bundle == null || bundle.getState() == Bundle.ACTIVE) return bundle;
+
+		synchronized (SystemUtil.createToken(bundle.getSymbolicName(), bundle.getVersion().toString())) {
+			if (bundle.getState() != Bundle.ACTIVE) {
+				Bundle result = _start(bundle, parents);
+				return result;
+			}
+			else {
+				return bundle;
+			}
+		}
 	}
 
 	public static Bundle start(Bundle bundle) throws BundleException {
@@ -1415,7 +1441,9 @@ public class OSGiUtil {
 	private static Bundle _start(Bundle bundle, Set<String> parents) throws BundleException {
 		if (bundle == null) return bundle;
 		String bn = toString(bundle);
-		if (bundlesThreadLocal.get().contains(bn)) return bundle;
+		if (bundlesThreadLocal.get().contains(bn)) {
+			return bundle;
+		}
 		bundlesThreadLocal.get().add(bn);
 		String fh = bundle.getHeaders().get("Fragment-Host");
 		// Fragment cannot be started
@@ -1423,7 +1451,6 @@ public class OSGiUtil {
 			log(Log.LEVEL_DEBUG, "Do not start [" + bundle.getSymbolicName() + "], because this is a fragment bundle for [" + fh + "]");
 			return bundle;
 		}
-
 		log(Log.LEVEL_DEBUG, "Start bundle: [" + bundle.getSymbolicName() + ":" + bundle.getVersion().toString() + "]");
 
 		// check if required related bundles are missing and load them if necessary
@@ -1432,20 +1459,28 @@ public class OSGiUtil {
 		Set<Bundle> loadedBundles = loadBundles(parents, bundle, null, failedBD);
 		try {
 			// startIfNecessary(loadedBundles.toArray(new Bundle[loadedBundles.size()]));
-			BundleUtil.start(bundle);
+			BundleUtil.start(bundle, false);
 		}
 		catch (BundleException be2) {
-			// print.e(be);
-			List<PackageQuery> listPackages = getRequiredPackages(bundle);
+			Pair<List<BundleRange>, List<PackageQuery>> listBundlesPackages = getRequiredBundlesAndPackages(bundle);
 			List<PackageQuery> failedPD = new ArrayList<PackageQuery>();
 			try {
-				loadPackages(bundle.getBundleContext(), parents, loadedBundles, listPackages, bundle, failedPD);
-				BundleUtil.start(bundle);
+				if (!listBundlesPackages.getName().isEmpty()) {
+					loadBundles(bundle.getBundleContext(), listBundlesPackages.getName(), ThreadLocalPageContext.getConfig().getIdentification(), null, true, false, true, null);
+				}
+				if (!listBundlesPackages.getValue().isEmpty()) {
+					loadPackages(bundle.getBundleContext(), parents, loadedBundles, listBundlesPackages.getValue(), bundle, failedPD);
+				}
+				BundleUtil.start(bundle, false);
 			}
 			catch (BundleException be3) {
 				try {
-					if (resolveBundleLoadingIssues(bundle.getBundleContext(), ThreadLocalPageContext.getConfig(), be3)) BundleUtil.start(bundle);
-					else throw be3;
+					if (resolveBundleLoadingIssues(bundle.getBundleContext(), ThreadLocalPageContext.getConfig(), be3)) {
+						BundleUtil.start(bundle, false);
+					}
+					else {
+						throw be3;
+					}
 				}
 				catch (BundleException be4) {
 					if (failedBD.size() > 0) {
@@ -1568,37 +1603,6 @@ public class OSGiUtil {
 		return !StringUtil.isEmpty(bf.getFragementHost(), true);
 	}
 
-	public static List<BundleRange> getRequiredBundles(Bundle bundle) throws BundleException {
-		List<BundleRange> rtn = new ArrayList<BundleRange>();
-		BundleRevision rev = bundle.adapt(BundleRevision.class);
-		List<Requirement> requirements = rev.getRequirements(null);
-		Iterator<Requirement> it = requirements.iterator();
-		Requirement r;
-		Entry<String, String> e;
-		String value, name;
-		int index, start, end;
-		BundleRange br;
-		while (it.hasNext()) {
-			r = it.next();
-			Iterator<Entry<String, String>> iit = r.getDirectives().entrySet().iterator();
-			while (iit.hasNext()) {
-				e = iit.next();
-				if (!"filter".equals(e.getKey())) continue;
-				value = e.getValue();
-				// name
-				index = value.indexOf("(osgi.wiring.bundle");
-				if (index == -1) continue;
-				start = value.indexOf('=', index);
-				end = value.indexOf(')', index);
-				if (start == -1 || end == -1 || end < start) continue;
-				name = value.substring(start + 1, end).trim();
-				rtn.add(br = new BundleRange(name));
-				br.setVersionRange(extractVersionRange(value));
-			}
-		}
-		return rtn;
-	}
-
 	private static BundleRange.VersionRange extractVersionRange(String value) throws BundleException {
 		String strBV = "(bundle-version";
 		int last = 0;
@@ -1644,11 +1648,52 @@ public class OSGiUtil {
 
 	}
 
-	public static List<PackageQuery> getRequiredPackages(Bundle bundle) throws BundleException {
-		List<PackageQuery> rtn = new ArrayList<PackageQuery>();
-		BundleRevision br = bundle.adapt(BundleRevision.class);
-		List<Requirement> requirements = br.getRequirements(null);
+	public static Pair<List<BundleRange>, List<PackageQuery>> getRequiredBundlesAndPackages(Bundle bundle) throws BundleException {
+		List<Requirement> req = bundle.adapt(BundleRevision.class).getRequirements(null);
+		return new Pair<List<BundleRange>, List<PackageQuery>>(getRequiredBundles(bundle, req), getRequiredPackages(bundle, req));
+	}
+
+	public static List<BundleRange> getRequiredBundles(Bundle bundle) throws BundleException {
+		return getRequiredBundles(bundle, bundle.adapt(BundleRevision.class).getRequirements(null));
+	}
+
+	private static List<BundleRange> getRequiredBundles(Bundle bundle, List<Requirement> requirements) throws BundleException {
 		Iterator<Requirement> it = requirements.iterator();
+		List<BundleRange> rtn = new ArrayList<BundleRange>();
+		Requirement r;
+		BundleRange br;
+		while (it.hasNext()) {
+			r = it.next();
+			for (Entry<String, String> e: r.getDirectives().entrySet()) {
+				if (!"filter".equals(e.getKey())) continue;
+				br = toRequiredBundles(e.getValue());
+				if (br != null) rtn.add(br);
+			}
+		}
+		return rtn;
+	}
+
+	private static BundleRange toRequiredBundles(String value) throws BundleException {
+		// name
+		int index = value.indexOf("(osgi.wiring.bundle");
+		if (index == -1) return null;
+		int start = value.indexOf('=', index);
+		int end = value.indexOf(')', index);
+		if (start == -1 || end == -1 || end < start) return null;
+		String name = value.substring(start + 1, end).trim();
+		BundleRange br = new BundleRange(name);
+		br.setVersionRange(extractVersionRange(value));
+		return br;
+	}
+
+	public static List<PackageQuery> getRequiredPackages(Bundle bundle) throws BundleException {
+		return getRequiredPackages(bundle, bundle.adapt(BundleRevision.class).getRequirements(null));
+	}
+
+	private static List<PackageQuery> getRequiredPackages(Bundle bundle, List<Requirement> requirements) throws BundleException {
+		Iterator<Requirement> it = requirements.iterator();
+
+		List<PackageQuery> rtn = new ArrayList<PackageQuery>();
 		Requirement r;
 		Entry<String, String> e;
 		PackageQuery pd;
@@ -2512,7 +2557,6 @@ public class OSGiUtil {
 
 		int start = 0, end;
 		int index;
-
 		// loads the bundles defined in the exception message
 		BundleRange br = null;
 		while ((index = msg.indexOf("osgi.wiring.bundle;", start)) != -1) {
