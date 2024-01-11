@@ -2170,7 +2170,7 @@ public final class Caster {
 		if (d > l && (d - l) < 0.000000000001) return toString(l);
 		if (l > d && (l - d) < 0.000000000001) return toString(l);
 
-		if (n instanceof Double) return toString(n.doubleValue());
+		if (n instanceof Double || n instanceof Float) return toString(n.doubleValue());
 		return n.toString();
 		// return df.format(d);
 	}
