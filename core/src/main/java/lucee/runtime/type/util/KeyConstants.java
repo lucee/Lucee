@@ -494,6 +494,7 @@ public class KeyConstants {
 	public static final Key _maxEvents = KeyImpl._const("maxEvents");
 	public static final Key _memento = KeyImpl._const("memento");
 	public static final Key _message = KeyImpl._const("message");
+	public static final Key _messages = KeyImpl._const("messages");
 	public static final Key _messageid = KeyImpl._const("messageid");
 	public static final Key _meta = KeyImpl._const("meta");
 	public static final Key _metadata = KeyImpl._const("metadata");
@@ -2963,6 +2964,8 @@ public class KeyConstants {
 	public static final Key _callerId = KeyImpl._const("callerId");
 	public static final Key _threadName = KeyImpl._const("threadName");
 	public static final Key _md5 = KeyImpl._const("md5");
+	public static final Key _model = KeyImpl._const("model");
+	public static final Key _role = KeyImpl._const("role");
 	private static Map<String, Key> _____keys;
 
 	static {

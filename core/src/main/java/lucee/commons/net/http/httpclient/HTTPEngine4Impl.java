@@ -186,6 +186,13 @@ public class HTTPEngine4Impl {
 		return invoke(url, post, username, password, timeout, redirect, charset, useragent, proxy, headers, formfields, false);
 	}
 
+	public static HTTPResponse post(URL url, String username, String password, long timeout, boolean redirect, String mimetype, String charset, String useragent, ProxyData proxy,
+			lucee.commons.net.http.Header[] headers, Map<String, String> formfields, Object body) throws IOException, GeneralSecurityException {
+		HttpPost post = new HttpPost(url.toExternalForm());
+		setBody(post, body, mimetype, charset);
+		return invoke(url, post, username, password, timeout, redirect, charset, useragent, proxy, headers, formfields, false);
+	}
+
 	/**
 	 * does a http put request
 	 * 

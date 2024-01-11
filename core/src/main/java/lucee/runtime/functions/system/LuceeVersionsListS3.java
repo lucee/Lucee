@@ -71,7 +71,7 @@ public final class LuceeVersionsListS3 extends BIF {
 					}
 				}
 				Query qry = new QueryImpl(new Key[] { ETAG, KeyConstants._lastModified, KeyConstants._size, KeyConstants._version }, map.size(), "versions");
-				int row = 0;
+				int row = 1;
 				for (Element e: map.values()) {
 					qry.setAt(ETAG, row, e.getETag().toString());
 					qry.setAt(KeyConstants._lastModified, row, e.getLastModifed().toString());
