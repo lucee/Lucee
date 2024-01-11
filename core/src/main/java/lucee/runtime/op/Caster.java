@@ -2310,7 +2310,7 @@ public final class Caster {
 
 	public static String toString(Number n) {
 		if (n instanceof BigDecimal) return df.format(n);
-		if (n instanceof Double) return Caster.toString(n.doubleValue());
+		if (n instanceof Double || n instanceof Float) return Caster.toString(n.doubleValue());
 		if (n instanceof Long) return Caster.toString(n.longValue());
 		return n.toString();
 	}
