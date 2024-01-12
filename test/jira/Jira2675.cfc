@@ -31,7 +31,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	}
 	public void function testFloat(){
 		f=createObject('java','java.lang.Float').parseFloat("0.0905");
-		assertEquals("0.0905",f);
+		assertEquals("0.0905:",f&":");
 		
 	}
 } 
