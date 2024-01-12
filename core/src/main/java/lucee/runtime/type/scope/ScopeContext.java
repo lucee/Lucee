@@ -1005,7 +1005,7 @@ public final class ScopeContext {
 		}
 		catch (Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);
-			ExceptionHandler.log(pc.getCfmlFactory(), Caster.toPageException(t));
+			ExceptionHandler.log(pc.getConfig(), Caster.toPageException(t));
 		}
 
 		// remove Scopes completly
