@@ -112,7 +112,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="session" {
 		expect( result.session.requestCount ).toBe( 2 );
 
 		// now let the session expire, session expiry is 1s
-		sleep( 5*60*1001 );
+		sleep( 1001 );
 
 		systemoutput("purgeExpiredSessions", true);
 		admin
