@@ -999,6 +999,15 @@ public final class ScopeContext {
 		Map<String, Scope> sessionContext = getSubMap(cfSessionContexts, appContext.getName());
 		UserScope oldSession = (UserScope) sessionContext.get(pc.getCFID());
 
+		ApplicationListener listener = factory.getConfig().getApplicationListener();
+		try {
+			listener.onSessionEnd(factory, appContext.getName(), pc.getCFID());
+		}
+		catch (Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
+			ExceptionHandler.log(pc.getCfmlFactory(), Caster.toPageException(t));
+		}
+
 		// remove Scopes completly
 		removeCFSessionScope(pc);
 		removeClientScope(pc);
