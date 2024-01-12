@@ -18,6 +18,7 @@ import java.util.zip.ZipInputStream;
 import org.osgi.framework.Version;
 import org.xml.sax.SAXException;
 
+import lucee.commons.io.SystemUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.net.http.HTTPResponse;
 import lucee.commons.net.http.Header;
@@ -30,20 +31,24 @@ public class MavenUpdateProvider {
 
 	public static final int CONNECTION_TIMEOUT = 10000;
 
-	public static final String DEFAULT_LIST_PROVIDER = "https://oss.sonatype.org/service/local/lucene/search";
+	private static final String DEFAULT_LIST_PROVIDER = "https://oss.sonatype.org/service/local/lucene/search";
 	// public static final String DEFAULT_REPOSITORY = "https://repo1.maven.org/maven2";
 	// public static final String DEFAULT_REPOSITORY_SNAPSHOT =
 	// "https://oss.sonatype.org/service/local/repositories/snapshots/content";
 	// public static final String DEFAULT_REPOSITORY_RELEASES =
 	// "https://oss.sonatype.org/service/local/repositories/releases/content";
 
-	public static final String DEFAULT_REPOSITORY_SNAPSHOT = "https://oss.sonatype.org/content/repositories/snapshots/";
+	private static final String DEFAULT_REPOSITORY_SNAPSHOT = "https://oss.sonatype.org/content/repositories/snapshots/";
 	// public static final String DEFAULT_REPOSITORY_RELEASES =
 	// "https://oss.sonatype.org/content/repositories/releases/";
-	public static final String DEFAULT_REPOSITORY_RELEASES = "https://oss.sonatype.org/service/local/repositories/releases/content/";
+	private static final String DEFAULT_REPOSITORY_RELEASES = "https://oss.sonatype.org/service/local/repositories/releases/content/";
 
 	public static final String DEFAULT_GROUP = "org.lucee";
 	public static final String DEFAULT_ARTIFACT = "lucee";
+
+	private static String defaultListProvider;
+	private static String defaultRepositoryReleases;
+	private static String defaultRepositorySnapshots;
 
 	private String listProvider;
 	private String group;
@@ -51,10 +56,58 @@ public class MavenUpdateProvider {
 	private String repoSnapshots;
 	private String repoReleases;
 
+	public static String getDefaultListProvider() {
+		if (defaultListProvider == null) {
+			String str = SystemUtil.getSystemPropOrEnvVar("lucee.mvn.provider.list", null);
+			if (!StringUtil.isEmpty(str, true)) {
+				try {
+					new URL(str.trim());
+					defaultListProvider = str.trim();
+				}
+				catch (Exception e) {
+				}
+			}
+			if (defaultListProvider == null) defaultListProvider = DEFAULT_LIST_PROVIDER;
+		}
+		return defaultListProvider;
+	}
+
+	public static String getDefaultRepositoryReleases() {
+		if (defaultRepositoryReleases == null) {
+			String str = SystemUtil.getSystemPropOrEnvVar("lucee.mvn.repo.releases", null);
+			if (!StringUtil.isEmpty(str, true)) {
+				try {
+					new URL(str.trim());
+					defaultRepositoryReleases = str.trim();
+				}
+				catch (Exception e) {
+				}
+			}
+			if (defaultRepositoryReleases == null) defaultRepositoryReleases = DEFAULT_REPOSITORY_RELEASES;
+		}
+		return defaultRepositoryReleases;
+	}
+
+	public static String getDefaultRepositorySnapshots() {
+		if (defaultRepositorySnapshots == null) {
+			String str = SystemUtil.getSystemPropOrEnvVar("lucee.mvn.repo.snapshots", null);
+			if (!StringUtil.isEmpty(str, true)) {
+				try {
+					new URL(str.trim());
+					defaultRepositorySnapshots = str.trim();
+				}
+				catch (Exception e) {
+				}
+			}
+			if (defaultRepositorySnapshots == null) defaultRepositorySnapshots = DEFAULT_REPOSITORY_SNAPSHOT;
+		}
+		return defaultRepositorySnapshots;
+	}
+
 	public MavenUpdateProvider() {
-		this.listProvider = DEFAULT_LIST_PROVIDER;
-		this.repoSnapshots = DEFAULT_REPOSITORY_SNAPSHOT;
-		this.repoReleases = DEFAULT_REPOSITORY_RELEASES;
+		this.listProvider = getDefaultListProvider();
+		this.repoSnapshots = getDefaultRepositorySnapshots();
+		this.repoReleases = getDefaultRepositoryReleases();
 		this.group = DEFAULT_GROUP;
 		this.artifact = DEFAULT_ARTIFACT;
 	}

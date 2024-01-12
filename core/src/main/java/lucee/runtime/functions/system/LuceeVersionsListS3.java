@@ -53,7 +53,7 @@ public final class LuceeVersionsListS3 extends BIF {
 		}
 		Key ETAG = KeyImpl.init("etag");
 		try {
-			S3UpdateProvider sup = S3UpdateProvider.getInstance(S3UpdateProvider.DEFAULT_PROVIDER_LIST, S3UpdateProvider.DEFAULT_PROVIDER_DETAILS);
+			S3UpdateProvider sup = S3UpdateProvider.getInstance();
 			String key;
 			// just the latest of every cycle
 			if (latest) {

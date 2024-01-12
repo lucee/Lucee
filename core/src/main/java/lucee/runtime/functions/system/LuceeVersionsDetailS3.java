@@ -25,7 +25,7 @@ public final class LuceeVersionsDetailS3 extends BIF {
 
 		try {
 			Version v = OSGiUtil.toVersion(version);
-			S3UpdateProvider sup = S3UpdateProvider.getInstance(S3UpdateProvider.DEFAULT_PROVIDER_LIST, S3UpdateProvider.DEFAULT_PROVIDER_DETAILS);
+			S3UpdateProvider sup = S3UpdateProvider.getInstance();
 			for (Element e: sup.read()) {
 				if (v.equals(e.getVersion())) {
 					Struct sct = new StructImpl();

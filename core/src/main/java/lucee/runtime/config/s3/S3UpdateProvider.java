@@ -1,6 +1,5 @@
 package lucee.runtime.config.s3;
 
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
@@ -26,6 +25,7 @@ import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.DefaultHandler;
 
 import lucee.commons.io.IOUtil;
+import lucee.commons.io.SystemUtil;
 import lucee.commons.lang.Pair;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.net.http.HTTPResponse;
@@ -43,17 +43,50 @@ import lucee.transformer.library.function.FunctionLibException;
 public final class S3UpdateProvider extends DefaultHandler {
 	public static final int CONNECTION_TIMEOUT = 1000;
 	private static final long MAX_AGE = 10000;
-	// public static URL DEFAULT_PROVIDER = null;
-	public static URL DEFAULT_PROVIDER_LIST = null;
-	public static URL[] DEFAULT_PROVIDER_DETAILS = null;
+
+	private static URL DEFAULT_PROVIDER_LIST = null;
+	private static URL[] DEFAULT_PROVIDER_DETAILS = null;
+
+	private static URL defaultProviderList;
+	private static URL[] defaultProviderDetail;
 
 	static {
 		try {
 			DEFAULT_PROVIDER_LIST = new URL("https://lucee-downloads.s3.amazonaws.com/");
 			DEFAULT_PROVIDER_DETAILS = new URL[] { new URL("https://cdn.lucee.org/"), DEFAULT_PROVIDER_LIST };
 		}
-		catch (MalformedURLException e) {
+		catch (Exception e) {
 		}
+	}
+
+	public static URL getDefaultProviderList() {
+		if (defaultProviderList == null) {
+			String str = SystemUtil.getSystemPropOrEnvVar("lucee.s3.provider.list", null);
+			if (!StringUtil.isEmpty(str, true)) {
+				try {
+					defaultProviderList = new URL(str.trim());
+				}
+				catch (Exception e) {
+				}
+			}
+			if (defaultProviderList == null) defaultProviderList = DEFAULT_PROVIDER_LIST;
+		}
+		return defaultProviderList;
+	}
+
+	public static URL[] getDefaultProviderDetail() {
+		if (defaultProviderDetail == null) {
+			String str = SystemUtil.getSystemPropOrEnvVar("lucee.s3.provider.detail", null);
+			if (!StringUtil.isEmpty(str, true)) {
+				try {
+					defaultProviderDetail = new URL[] { new URL(str.trim()) };
+				}
+				catch (Exception e) {
+				}
+			}
+			if (defaultProviderDetail == null) defaultProviderDetail = DEFAULT_PROVIDER_DETAILS;
+		}
+		return defaultProviderDetail;
 	}
 
 	private XMLReader xmlReader;
@@ -73,7 +106,7 @@ public final class S3UpdateProvider extends DefaultHandler {
 
 	private static Map<String, Pair<Long, S3UpdateProvider>> readers = new HashMap<>();
 
-	public S3UpdateProvider(URL list, URL[] details) throws MalformedURLException {
+	private S3UpdateProvider(URL list, URL[] details) throws MalformedURLException {
 
 		if (!list.toExternalForm().endsWith("/")) this.url = new URL(list.toExternalForm() + "/");
 		else this.url = list;
@@ -82,6 +115,10 @@ public final class S3UpdateProvider extends DefaultHandler {
 			if (!details[i].toExternalForm().endsWith("/")) details[i] = new URL(details[i].toExternalForm() + "/");
 		}
 		this.details = details;
+	}
+
+	public static S3UpdateProvider getInstance() throws MalformedURLException {
+		return getInstance(getDefaultProviderList(), getDefaultProviderDetail());
 	}
 
 	public static S3UpdateProvider getInstance(URL list, URL[] details) throws MalformedURLException {
@@ -101,27 +138,6 @@ public final class S3UpdateProvider extends DefaultHandler {
 			sb.append(';').append(d.toExternalForm());
 		}
 		return sb.toString();
-	}
-
-	/*
-	 * public static void main(String[] args) throws Exception {
-	 * print.e(ListBucketReader.getInstance(DEFAULT_PROVIDER).read().size());
-	 * print.e("-------------------");
-	 * print.e(ListBucketReader.getInstance(DEFAULT_PROVIDER).read().size());
-	 * print.e("-------------------");
-	 * print.e(ListBucketReader.getInstance(DEFAULT_PROVIDER).read().size());
-	 * 
-	 * }
-	 */
-
-	public static void main(String[] args) throws Exception {
-		String path = "/Users/mic/tmp8/eeee/tmp.jar";
-		IOUtil.copy(S3UpdateProvider.getInstance(DEFAULT_PROVIDER_LIST, DEFAULT_PROVIDER_DETAILS).getCore(OSGiUtil.toVersion("5.4.1.8")), new FileOutputStream(path), true, true);
-		String path2 = "/Users/mic/tmp8/eeee/tmp2.jar";
-		IOUtil.copy(S3UpdateProvider.getInstance(DEFAULT_PROVIDER_LIST, DEFAULT_PROVIDER_DETAILS).getCore(OSGiUtil.toVersion("6.0.1.2-SNAPSHOT")), new FileOutputStream(path2),
-				true, true);
-
-		// lucee-6.0.1.2-SNAPSHOT
 	}
 
 	public InputStream getCore(Version version) throws PageException, MalformedURLException, IOException, GeneralSecurityException, SAXException {
