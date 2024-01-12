@@ -1,7 +1,6 @@
 package lucee.runtime.config.maven;
 
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.SequenceInputStream;
@@ -19,7 +18,6 @@ import java.util.zip.ZipInputStream;
 import org.osgi.framework.Version;
 import org.xml.sax.SAXException;
 
-import lucee.commons.io.IOUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.net.http.HTTPResponse;
 import lucee.commons.net.http.Header;
@@ -27,11 +25,10 @@ import lucee.commons.net.http.httpclient.HTTPEngine4Impl;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.date.DateCaster;
-import lucee.runtime.osgi.OSGiUtil;
 
 public class MavenUpdateProvider {
 
-	public static final int CONNECTION_TIMEOUT = 1000;
+	public static final int CONNECTION_TIMEOUT = 10000;
 
 	public static final String DEFAULT_LIST_PROVIDER = "https://oss.sonatype.org/service/local/lucene/search";
 	// public static final String DEFAULT_REPOSITORY = "https://repo1.maven.org/maven2";
@@ -53,20 +50,6 @@ public class MavenUpdateProvider {
 	private String artifact;
 	private String repoSnapshots;
 	private String repoReleases;
-
-	public static void main(String[] args) throws Exception {
-		MavenUpdateProvider provider = new MavenUpdateProvider();
-
-		// print.e(provider.list());
-
-		// print.e(provider.detail(OSGiUtil.toVersion("5.3.8.100-SNAPSHOT")));
-		// print.e(provider.detail(OSGiUtil.toVersion("6.0.0.561-RC")));
-
-		IOUtil.copy(provider.getLoader(OSGiUtil.toVersion("5.3.8.100-SNAPSHOT")), new FileOutputStream("/Users/mic/tmp8/5.3.8.100-SNAPSHOT.jar.zip"), true, true);
-		IOUtil.copy(provider.getLoader(OSGiUtil.toVersion("6.0.0.572-RC")), new FileOutputStream("/Users/mic/tmp8/6.0.0.572-RC.jar.zip"), true, true);
-		IOUtil.copy(provider.getCore(OSGiUtil.toVersion("5.3.8.100-SNAPSHOT")), new FileOutputStream("/Users/mic/tmp8/5.3.8.100-SNAPSHOT.lco.zip"), true, true);
-
-	}
 
 	public MavenUpdateProvider() {
 		this.listProvider = DEFAULT_LIST_PROVIDER;

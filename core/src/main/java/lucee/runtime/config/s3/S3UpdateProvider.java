@@ -49,7 +49,7 @@ public final class S3UpdateProvider extends DefaultHandler {
 
 	static {
 		try {
-			DEFAULT_PROVIDER_LIST = new URL("https://s3.us-west-1.wasabisys.com/lucee-downloads/");
+			DEFAULT_PROVIDER_LIST = new URL("https://lucee-downloads.s3.amazonaws.com/");
 			DEFAULT_PROVIDER_DETAILS = new URL[] { new URL("https://cdn.lucee.org/"), DEFAULT_PROVIDER_LIST };
 		}
 		catch (MalformedURLException e) {
@@ -251,7 +251,7 @@ public final class S3UpdateProvider extends DefaultHandler {
 
 				element.addKey(lastKey);
 
-				if (last3 == null || !last3.equals(element.getVersion().toString().substring(0, 6))) {
+				if (element.getVersion() != null && (last3 == null || !last3.equals(element.getVersion().toString().substring(0, 6)))) {
 					last3P = last3;
 					last3PKey = last3Key;
 					last3 = element.getVersion().toString().substring(0, 6);
