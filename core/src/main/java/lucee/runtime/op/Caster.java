@@ -2293,9 +2293,11 @@ public final class Caster {
 		return str;
 	}
 
-	private static DecimalFormat df = (DecimalFormat) DecimalFormat.getInstance(Locale.US);// ("#.###########");
+	private static DecimalFormat df = (DecimalFormat) DecimalFormat.getInstance(Locale.US);
+	private static DecimalFormat ff = (DecimalFormat) DecimalFormat.getInstance(Locale.US);
 	static {
 		df.applyLocalizedPattern("#.########################");
+		ff.applyLocalizedPattern("#.#######");
 	}
 
 	public static String toString(double d) {
@@ -2308,9 +2310,20 @@ public final class Caster {
 		return df.format(d);
 	}
 
+	public static String toString(float f) {
+		long l = (long) f;
+		if (l == f) return toString(l);
+
+		if (f > l && (f - l) < 0.000000000001) return toString(l);
+		if (l > f && (l - f) < 0.000000000001) return toString(l);
+
+		return ff.format(f);
+	}
+
 	public static String toString(Number n) {
 		if (n instanceof BigDecimal) return df.format(n);
 		if (n instanceof Double) return Caster.toString(n.doubleValue());
+		if (n instanceof Float) return Caster.toString(n.floatValue());
 		if (n instanceof Long) return Caster.toString(n.longValue());
 		return n.toString();
 	}
