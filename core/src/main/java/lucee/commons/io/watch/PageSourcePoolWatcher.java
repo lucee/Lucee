@@ -5,6 +5,7 @@ import java.util.Map;
 
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.LogUtil;
+import lucee.commons.lang.SerializableObject;
 import lucee.runtime.MappingImpl;
 import lucee.runtime.PageSource;
 import lucee.runtime.PageSourceImpl;
@@ -17,6 +18,7 @@ public class PageSourcePoolWatcher {
 	private PageSourcePoolWatcherThread thread;
 	private final MappingImpl mapping;
 	private PageSourcePool pageSourcePool;
+	private SerializableObject token = new SerializableObject();
 
 	public PageSourcePoolWatcher(MappingImpl mapping, PageSourcePool pageSourcePool, Map<String, SoftReference<PageSource>> pageSources) {
 		this.mapping = mapping;
@@ -26,16 +28,26 @@ public class PageSourcePoolWatcher {
 
 	public void startIfNecessary() {
 		if (thread == null || !thread.isAlive()) {
-			thread = new PageSourcePoolWatcherThread();
-			thread.setPriority(Thread.MIN_PRIORITY);
-			thread.start();
+			synchronized (token) {
+				if (thread == null || !thread.isAlive()) {
+					thread = new PageSourcePoolWatcherThread();
+					thread.setPriority(Thread.MIN_PRIORITY);
+					thread.start();
+				}
+			}
+
 		}
 	}
 
 	public void stopIfNecessary() {
 		if (thread != null) {
-			thread.active(false);
-			thread = null;
+			synchronized (token) {
+				if (thread != null) {
+					thread.active(false);
+					thread = null;
+				}
+			}
+
 		}
 	}
 
