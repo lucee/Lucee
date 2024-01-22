@@ -14,8 +14,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase" skip=true {
 				param name="form.myValue" default="LuceeTestCase";
 				param name="form.seqno" default="";
 				expect( function() {
-							cfupdate(tableName = "cfupdatetbl" formFields = "form.id,form.myValue,form.seqno" datasource=str);
-						}).notToThrow();
+					cfupdate(tableName = "cfupdatetbl" formFields = "form.id,form.myValue,form.seqno" datasource=str);
+				}).notToThrow();
 			});
 		});
 	}
