@@ -165,7 +165,7 @@ public final class BundleProvider {
 		put(mappings, "lowagie.itext", new Info[0]);
 		put(mappings, "lucee.image.extension", new Info[0]);
 		put(mappings, "lucene.search.extension", new Info[0]);
-		put(mappings, "memcached", new Info("com.whalin", "Memcached-Java-Client"));
+		put(mappings, "memcached", new Info[0]);// there is one on maven, but that one has no OSGi data
 		put(mappings, "memcached.extension", new Info[0]);
 		put(mappings, "metadata.extractor", new Info("com.drewnoakes", "metadata-extractor"));
 		put(mappings, "microsoft.sqljdbc", new Info[0]);

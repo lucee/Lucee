@@ -219,7 +219,7 @@ public final class BundleProvider extends DefaultHandler {
 		put(mappings, "lowagie.itext", new Info[0]);
 		put(mappings, "lucee.image.extension", new Info[0]);
 		put(mappings, "lucene.search.extension", new Info[0]);
-		put(mappings, "memcached", new Info("com.whalin", "Memcached-Java-Client"));
+		put(mappings, "memcached", new Info[0]); // there is one on maven, but that one has no OSGi data
 		put(mappings, "memcached.extension", new Info[0]);
 		put(mappings, "metadata.extractor", new Info("com.drewnoakes", "metadata-extractor"));
 		put(mappings, "microsoft.sqljdbc", new Info[0]);
@@ -1117,8 +1117,8 @@ public final class BundleProvider extends DefaultHandler {
 	}
 
 	public static void main(String[] args) throws Exception {
-
-		// getInstance().getBundle(new BundleDefinition("org.apache.commons.httpclient", "3.0.1"));
+		// memcached)(bundle-version>=3.0.2
+		print.e(getInstance().getBundleAsURL(new BundleDefinition("org.lucee.spymemcached", "2.12.3.0001"), true));
 		// getInstance().getBundle(new BundleDefinition("com.mysql.cj", "8.0.33"));
 		// getInstance().getBundle(new BundleDefinition("com.mysql.cj", "8.0.27"));
 		getInstance().createOSGiMavenMapping(); // create java code for OSGi to Maven mapping based on
@@ -1295,6 +1295,7 @@ public final class BundleProvider extends DefaultHandler {
 		private String bundleSymbolicName;
 
 		public Info() {
+
 		}
 
 		public Info(String groupId, String artifactId) {
