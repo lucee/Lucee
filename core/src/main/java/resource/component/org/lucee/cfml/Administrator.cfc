@@ -2829,6 +2829,7 @@ component {
 
 	/**
 	* @hint executes and run the update details
+	* @deprecated no longer use this, will no longer be supported in the future
 	*/
 	public void function runUpdate(){
 		admin

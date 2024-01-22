@@ -646,13 +646,6 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 			e.printStackTrace();
 			throw new ServletException(e);
 		}
-
-		// check updates
-		String updateType = singelton.getUpdateType();
-		if (updateType == null || updateType.length() == 0) updateType = "manuell"; // TODO should be manual?
-
-		if (updateType.equalsIgnoreCase("auto")) new UpdateChecker(this, null).start();
-
 	}
 
 	private static String getVersion(File file) throws IOException, BundleException {
@@ -834,9 +827,11 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 
 	}
 
+	// should no longer be used, points to update provider that will no longer be available in the
+	// future
+	@Deprecated
 	public boolean update(final Password password, final Identification id) throws IOException, ServletException {
 		if (!singelton.can(CFMLEngine.CAN_UPDATE, password)) throw new IOException("Access denied to update CFMLEngine");
-		// new RunUpdate(this).start();
 		return _update(id);
 	}
 
@@ -875,13 +870,9 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 		return true;
 	}
 
-	/**
-	 * updates the engine when an update is available
-	 *
-	 * @return has updated
-	 * @throws IOException
-	 * @throws ServletException
-	 */
+	// should no longer be used, points to update provider that will no longer be available in the
+	// future
+	@Deprecated
 	private boolean _update(final Identification id) throws IOException, ServletException {
 
 		final File newLucee = downloadCore(id);
@@ -1167,6 +1158,9 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 		return os.startsWith("windows");
 	}
 
+	// should no longer be used, points to update provider that will no longer be available in the
+	// future
+	@Deprecated
 	private File downloadCore(Identification id) throws IOException {
 		final URL updateProvider = getUpdateLocation();
 
@@ -1724,31 +1718,6 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 		final Method m = clazz.getMethod("getInstance", new Class[] { CFMLEngineFactory.class, BundleCollection.class });
 		return (CFMLEngine) m.invoke(null, new Object[] { this, bc });
 
-	}
-
-	private class UpdateChecker extends Thread {
-		private final CFMLEngineFactory factory;
-		private final Identification id;
-
-		private UpdateChecker(final CFMLEngineFactory factory, final Identification id) {
-			this.factory = factory;
-			this.id = id;
-		}
-
-		@Override
-		public void run() {
-			long time = 10000;
-			while (true)
-				try {
-					sleep(time);
-					time = 1000 * 60 * 60 * 24;
-					factory._update(id);
-
-				}
-				catch (final Exception e) {
-
-				}
-		}
 	}
 
 	public Logger getLogger() {

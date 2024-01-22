@@ -913,6 +913,9 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		return false;
 	}
 
+	// should no longer be used, points to update provider that will no longer be available in the
+	// future
+	@Deprecated
 	private void doRunUpdate() throws PageException {
 		admin.runUpdate(password);
 		adminSync.broadcast(attributes, config);

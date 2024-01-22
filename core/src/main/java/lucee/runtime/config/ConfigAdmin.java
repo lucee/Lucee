@@ -3478,11 +3478,9 @@ public final class ConfigAdmin {
 		}
 	}
 
-	/**
-	 * run update from cfml engine
-	 * 
-	 * @throws PageException
-	 */
+	// should no longer be used, points to update provider that will no longer be available in the
+	// future
+	@Deprecated
 	public void runUpdate(Password password) throws PageException {
 		checkWriteAccess();
 		ConfigServerImpl cs = (ConfigServerImpl) ConfigWebUtil.getConfigServer(config, password);
