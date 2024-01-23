@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" labels="sos"{ 
+component extends="org.lucee.cfml.test.LuceeTestCase" {
 
 	function run( testResults , testBox ) {
 		describe( title="Test suite for LDEV-4781", body=function() {
@@ -15,8 +15,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="sos"{
 				</cfxml>
 				```
 
-				expect( XmlSearch(xml_document,"/office/employee").isEmpty() ).toBeFalse();
-				expect( arrayIndexExists(XmlSearch(xml_document,"/office/employee"), 1) ).toBeTrue();
+				expect( XmlSearch(xml_document, "/office/employee").isEmpty() ).toBeFalse();
+				expect( arrayIndexExists(XmlSearch(xml_document, "/office/employee"), 1) ).toBeTrue();
 			});
 		});
 	}
