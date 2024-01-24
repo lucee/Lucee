@@ -30,7 +30,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="s3" {
 	
 	function run( testResults , testBox ) {
 		describe( title="Test suite for the tag cfmail", body=function() {
-			it(title="send a simple text mail",skip=Util::isBackBlazeNotSupported(), body = function( currentSpec ) {
+			it(title="send a simple text mail", body = function( currentSpec ) {
 				
 				mail to=variables.to from=variables.from subject="simple text mail" spoolEnable=false server="localhost" port=variables.port {
 					echo("This is a text email!");
