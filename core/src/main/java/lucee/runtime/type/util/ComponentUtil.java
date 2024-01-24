@@ -836,6 +836,7 @@ public final class ComponentUtil {
 		else if (format == UDF.RETURN_FORMAT_PLAIN) func.set(KeyConstants._returnFormat, "plain");
 		else if (format == UDF.RETURN_FORMAT_JSON) func.set(KeyConstants._returnFormat, "json");
 		else if (format == UDF.RETURN_FORMAT_SERIALIZE) func.set(KeyConstants._returnFormat, "cfml");
+		else if (format == UDF.RETURN_FORMAT_XML) func.set(KeyConstants._returnFormat, "xml");
 
 		FunctionArgument[] args = udfProps.getFunctionArguments();
 		Array params = new ArrayImpl();
