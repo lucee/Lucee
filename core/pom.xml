@@ -131,12 +131,11 @@
   	  <artifactId>commons-compress</artifactId>
       <version>1.24.0</version>
     </dependency>	 
-    <dependency>
-      <groupId>org.lucee</groupId>
-      <artifactId>commons-email</artifactId>
-      <version>1.2.0</version>
-      <scope>provided</scope>
-    </dependency>
+	<dependency>
+	    <groupId>org.apache.commons</groupId>
+	    <artifactId>commons-email</artifactId>
+	    <version>1.6.0</version>
+	</dependency>
     <dependency>
       <groupId>commons-fileupload</groupId>
        <artifactId>commons-fileupload</artifactId>
@@ -307,12 +306,17 @@
     	<version>1.7.36</version>
       <scope>provided</scope>
     </dependency>
-	<dependency>
-		  <groupId>javax.mail</groupId>
-		  <artifactId>activation</artifactId>
-		  <version>1.6.2.0000L</version>
-      <scope>provided</scope>
-	  </dependency>
+  
+<dependency>
+    <groupId>com.sun.activation</groupId>
+    <artifactId>jakarta.activation</artifactId>
+    <version>1.2.1</version>
+</dependency>
+<dependency>
+    <groupId>com.sun.mail</groupId>
+    <artifactId>jakarta.mail</artifactId>
+    <version>1.6.7</version>
+</dependency>
     <!-- causes conflict with hsqldb LDEV-1526 
     <dependency>
       <groupId>sun.security</groupId>
