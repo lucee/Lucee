@@ -1,6 +1,6 @@
 component extends="org.lucee.cfml.test.LuceeTestCase" labels="s3" {
 	
-	variables.port=3025;
+	variables.port=30250;
 	variables.from="susi@sorglos.de";
 	variables.to="geisse@peter.ch";
 
