@@ -1,190 +1,64 @@
-/*
- * Copyright (c) 2015, Lucee Association Switzerland. All rights reserved.
- *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either 
- * version 2.1 of the License, or (at your option) any later version.
- * 
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public 
- * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
- */
-component extends="org.lucee.cfml.test.LuceeTestCase" {
-
-	variables.PORT=2526;
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="s3" {
+	
+	variables.port=3025;
 	variables.from="susi@sorglos.de";
 	variables.to="geisse@peter.ch";
 
-	public function beforeTests(){
-		admin 
-			action="updateMailServer"
-			type="web"
-			password="#request.WEBADMINPASSWORD#"
-			hostname="localhost"
-			dbusername=""
-			dbpassword=""
-			life="1"
-			idle="1"
-			port="#PORT#"
-			id="123"
-			tls="false"
-			ssl="false"
-			reuseConnection=false;
 
-	}
-	public function afterTests(){
-		admin 
-			action="removeMailServer"
-			type="web"
-			password="#request.WEBADMINPASSWORD#"
-			hostname="localhost";
-
-	}
-
-
-	private array function getMails(smtpServer) localmode=true{
-		arr=[];
-		it=smtpServer.getReceivedEmail();
-		while(it.hasNext()) {
-			email=it.next();
-			names=email.getHeaderNames();
-			sct={};
-			while(names.hasNext()) {
-				name=names.next();
-				sct[name]=email.getHeaderValue(name);
-			}
-			if(StructCount(sct)){
-				sct["body"]=email.getBody();
-				arrayAppend(arr,sct);
-			}
+	function beforeAll() {
+		if(isNull(application.testSMTP)) {
+			var ServerSetup=createObject("java","com.icegreen.greenmail.util.ServerSetup","org.lucee.greenmail","1.6.15");
+			var GreenMail=createObject("java","com.icegreen.greenmail.util.GreenMail","org.lucee.greenmail","1.6.15");
+			application.testSMTP = GreenMail.init(ServerSetup.init(variables.port, nullValue(), ServerSetup.PROTOCOL_SMTP));
+			application.testSMTP.start();
 		}
-		return arr;
-	}
-
-	private function start() {
-		return createObject("java","com.dumbster.smtp.SimpleSmtpServer","smtp.dumbster","1.6.0").start(PORT);
-	}
-
-
-	public function testSimpleMail() localmode="true"{
-		try { 
-			smtpServer=start();
-			mail to=variables.to from=variables.from subject="test mail1" spoolEnable=false {
-				echo("This is a text email!");
-			}
+		else {
+			application.testSMTP.purgeEmailFromAllMailboxes();
 		}
-		finally {
-			smtpServer.stop();
+
+
+    }
+
+    function afterAll() {
+        if(!isNull(application.testSMTP)) {
+			application.testSMTP.purgeEmailFromAllMailboxes();
+			application.testSMTP.stop();
 		}
-		
-		mails=getMails(smtpServer);
-
-		assertEquals(1,mails.len());
-		assertEquals("test mail1",mails[1].subject);
-		assertEquals("This is a text email!",mails[1]["body"]);
-		assertEquals(variables.from,mails[1]["from"]);
-		assertEquals(variables.to,mails[1]["to"]);
-		assertEquals("text/plain; charset=UTF-8",mails[1]["content-type"]);
-	}
-
-
-	public function testHTMLMail() localmode="true"{
-		try { 
-			smtpServer=start();
-			mail type="html" to=variables.to from=variables.from subject="test mail1" spoolEnable=false {
-				echo("This is a HTML email!");
-			}
-		}
-		finally {
-			smtpServer.stop();
-		}
-		mails=getMails(smtpServer);
-
-		assertEquals("text/html; charset=UTF-8",mails[1]["content-type"]);
-	}
-
-	public function testTextMail() localmode="true"{
-		try { 
-			smtpServer=start();
-			mail type="plain" to=variables.to from=variables.from subject="test mail1" spoolEnable=false {
-				echo("This is a text email!");
-			}
-		}
-		finally {
-			smtpServer.stop();
-		}
-		mails=getMails(smtpServer);
-
-		assertEquals("text/plain; charset=UTF-8",mails[1]["content-type"]);
-	}
-
-	public function testTextMailPart() localmode="true"{
-		try { 
-			smtpServer=start();
-			mail to=variables.to from=variables.from subject="test mail1" spoolEnable=false {
-				mailpart type="text" {
-	                echo("This is a text email!");
+    }
+	
+	
+	
+	function run( testResults , testBox ) {
+		describe( title="Test suite for the tag cfmail", body=function() {
+			it(title="send a simple text mail",skip=Util::isBackBlazeNotSupported(), body = function( currentSpec ) {
+				
+				mail to=variables.to from=variables.from subject="simple text mail" spoolEnable=false server="localhost" port=variables.port {
+					echo("This is a text email!");
 				}
-			}
-		}
-		finally {
-			smtpServer.stop();
-		}
-		mails=getMails(smtpServer);
 
-		assertEquals(1,mails.len());
-		assertEquals("test mail1",mails[1].subject);
-		assertEquals("This is a text email!",mails[1]["body"]);
-		assertEquals(variables.from,mails[1]["from"]);
-		assertEquals(variables.to,mails[1]["to"]);
-		assertEquals("text/plain; charset=UTF-8",mails[1]["content-type"]);
+				var messages = mail.getReceivedMessages();
+				expect( len(messages) ).toBe( 1 );
+				
+				var msg=messages[1];
+				
+				// from
+				froms=msg.getFrom();
+				expect( len(froms) ).toBe( 1 );
+				from=froms[1];
+				expect( from ).toBe( variables.from );
+				
+				// to
+				tos=msg.getAllRecipients();
+				expect( len(tos) ).toBe( 1 );
+				to=tos[1];
+				expect( to.toString() ).toBe( variables.to );
+				
+				// subject
+				expect( msg.getSubject() ).toBe( "simple text mail" );
+					
+			});	
+			
+	
+		});
 	}
-
-
-	public function testHTMLMailPart() localmode="true"{
-		try { 
-			smtpServer=start();
-			mail to=variables.to from=variables.from subject="test mail1" spoolEnable=false {
-				mailpart type="html" {
-	                echo("This is a html email!");
-				}
-			}
-		}
-		finally {
-			smtpServer.stop(); 
-		}
-		mails=getMails(smtpServer);
-
-		assertEquals(1,mails.len());
-		// dump(mails);
-	}
-
-	public function testMultiMailPart() localmode="true"{
-		try { 
-			smtpServer=start();
-			mail to=variables.to from=variables.from subject="test mail1" spoolEnable=false {
-				mailpart type="html" {
-	                echo("This is a html email!");
-				}
-				mailpart type="text" {
-	                echo("This is a text email!");
-				}
-			}
-		}
-		finally {
-			smtpServer.stop();
-		}
-		mails=getMails(smtpServer);
-
-		assertEquals(1,mails.len());
-		// dump(mails);
-	}
-
-
-
 }
