@@ -31,33 +31,193 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="s3" {
 	function run( testResults , testBox ) {
 		describe( title="Test suite for the tag cfmail", body=function() {
 			it(title="send a simple text mail", body = function( currentSpec ) {
-				
-				mail to=variables.to from=variables.from subject="simple text mail" spoolEnable=false server="localhost" port=variables.port {
-					echo("This is a text email!");
-				}
+				lock name="test:mail" {
+					application.testSMTP.purgeEmailFromAllMailboxes();
+					mail to=variables.to from=variables.from subject="simple text mail" spoolEnable=false server="localhost" port=variables.port {
+						echo("This is a text email!");
+					}
 
-				var mail=application.testSMTP;
+					var mail=application.testSMTP;
 
-				var messages = mail.getReceivedMessages();
-				expect( len(messages) ).toBe( 1 );
-				var msg=messages[1];
-				
-				// from
-				froms=msg.getFrom();
-				expect( len(froms) ).toBe( 1 );
-				expect( froms[1].getAddress() ).toBe( variables.from );
-				
-				// to
-				tos=msg.getAllRecipients();
-				expect( len(tos) ).toBe( 1 );
-				expect( tos[1].getAddress() ).toBe( variables.to );
-				
-				// subject
-				expect( msg.getSubject().toString() ).toBe( "simple text mail" );
+					var messages = mail.getReceivedMessages();
+					expect( len(messages) ).toBe( 1 );
+					var msg=messages[1];
 					
+					// from
+					froms=msg.getFrom();
+					expect( len(froms) ).toBe( 1 );
+					expect( froms[1].getAddress() ).toBe( variables.from );
+					
+					// to
+					tos=msg.getAllRecipients();
+					expect( len(tos) ).toBe( 1 );
+					expect( tos[1].getAddress() ).toBe( variables.to );
+					
+					// subject
+					expect( msg.getSubject().toString() ).toBe( "simple text mail" );
+					expect( msg. getContent() ).toBe( "This is a text email!" );
+					expect( msg.getContentType() ).toBe( "text/plain; charset=UTF-8" );
+					application.testSMTP.purgeEmailFromAllMailboxes();
+				}
 			});	
+
+			it(title="send a simple html mail", body = function( currentSpec ) {
+				
+				lock name="test:mail" {
+					application.testSMTP.purgeEmailFromAllMailboxes();
+					mail type="html"  to=variables.to from=variables.from subject="simple html mail" spoolEnable=false server="localhost" port=variables.port {
+						echo("This is a html email!");
+					}
+
+					var mail=application.testSMTP;
+
+					var messages = mail.getReceivedMessages();
+					expect( len(messages) ).toBe( 1 );
+					var msg=messages[1];
+					
+					// from
+					froms=msg.getFrom();
+					expect( len(froms) ).toBe( 1 );
+					expect( froms[1].getAddress() ).toBe( variables.from );
+					
+					// to
+					tos=msg.getAllRecipients();
+					expect( len(tos) ).toBe( 1 );
+					expect( tos[1].getAddress() ).toBe( variables.to );
+					
+					// subject
+					expect( msg.getSubject().toString() ).toBe( "simple html mail" );
+					expect( msg. getContent() ).toBe( "This is a html email!" );
+					expect( msg.getContentType()).toBe( "text/html; charset=UTF-8" );
+					application.testSMTP.purgeEmailFromAllMailboxes();
+				}
+				
+			});	
+
+			it(title="send part text mail", body = function( currentSpec ) {
+				
+				lock name="test:mail" {
+					application.testSMTP.purgeEmailFromAllMailboxes();
+					mail to=variables.to from=variables.from subject="part text mail" spoolEnable=false server="localhost" port=variables.port {
+						mailpart type="text" {
+							echo("This is a text email!");
+						}
+					}
+
+					var mail=application.testSMTP;
+
+					var messages = mail.getReceivedMessages();
+					expect( len(messages) ).toBe( 1 );
+					var msg=messages[1];
+					
+					// from
+					froms=msg.getFrom();
+					expect( len(froms) ).toBe( 1 );
+					expect( froms[1].getAddress() ).toBe( variables.from );
+					
+					// to
+					tos=msg.getAllRecipients();
+					expect( len(tos) ).toBe( 1 );
+					expect( tos[1].getAddress() ).toBe( variables.to );
+					
+					// subject
+					expect( msg.getSubject().toString() ).toBe( "part text mail" );
+					expect( msg. getContent() ).toBe( "This is a text email!" );
+					expect( msg.getContentType()).toBe( "text/plain; charset=UTF-8" );
+					application.testSMTP.purgeEmailFromAllMailboxes();
+				}
+				
+			});	
+
+			it(title="send part html mail", body = function( currentSpec ) {
+				
+				lock name="test:mail" {
+					application.testSMTP.purgeEmailFromAllMailboxes();
+					mail to=variables.to from=variables.from subject="part html mail" spoolEnable=false server="localhost" port=variables.port {
+						mailpart type="html" {
+							echo("This is a html email!");
+						}
+					}
+
+					var mail=application.testSMTP;
+
+					var messages = mail.getReceivedMessages();
+					expect( len(messages) ).toBe( 1 );
+					var msg=messages[1];
+					
+					// from
+					froms=msg.getFrom();
+					expect( len(froms) ).toBe( 1 );
+					expect( froms[1].getAddress() ).toBe( variables.from );
+					
+					// to
+					tos=msg.getAllRecipients();
+					expect( len(tos) ).toBe( 1 );
+					expect( tos[1].getAddress() ).toBe( variables.to );
+					
+					// subject
+					expect( msg.getSubject().toString() ).toBe( "part html mail" );
+					expect( msg. getContent() ).toBe( "This is a html email!" );
+					expect( msg.getContentType()).toBe( "text/html; charset=UTF-8" );
+					application.testSMTP.purgeEmailFromAllMailboxes();
+				}
+				
+			});	
+
+			it(title="send muti part (html and text) mail", body = function( currentSpec ) {
+				
+				lock name="test:mail" {
+					application.testSMTP.purgeEmailFromAllMailboxes();
+					mail to=variables.to from=variables.from subject="multi part mail" spoolEnable=false server="localhost" port=variables.port {
+						mailpart type="text" {
+							echo("This is a text email!");
+						}
+						mailpart type="html" {
+							echo("This is a html email!");
+						}
+					}
+
+					var mail=application.testSMTP;
+
+					var messages = mail.getReceivedMessages();
+					expect( len(messages) ).toBe( 1 );
+					var msg=messages[1];
+					
+					// from
+					froms=msg.getFrom();
+					expect( len(froms) ).toBe( 1 );
+					expect( froms[1].getAddress() ).toBe( variables.from );
+					
+					// to
+					tos=msg.getAllRecipients();
+					expect( len(tos) ).toBe( 1 );
+					expect( tos[1].getAddress() ).toBe( variables.to );
+					
+					// subject
+					expect( msg.getSubject().toString() ).toBe( "multi part mail" );
+					
+					expect( left(msg.getContentType(),9) ).toBe( "multipart" );
+					var parts=msg.getContent();
+					expect( parts.getCount() ).toBe( 2 );
+					expect( parts.getBodyPart(0).getContentType() ).toBe( "text/plain; charset=UTF-8" );
+					expect( parts.getBodyPart(0).getContent() ).toBe( trim("This is a text email!") );
+					expect( parts.getBodyPart(1).getContentType() ).toBe( "text/html; charset=UTF-8" );
+					expect( parts.getBodyPart(1).getContent() ).toBe( trim("This is a html email!") );
+					
+					
+					application.testSMTP.purgeEmailFromAllMailboxes();
+				}
+				
+			});	
+
 			
-	
+
 		});
+
+
+
+
+
+
 	}
 }
