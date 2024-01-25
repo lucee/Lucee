@@ -481,6 +481,10 @@ public final class BundleProvider extends DefaultHandler {
 		put(mappings, "org.apache.felix.main", new Info("org.apache.felix", "org.apache.felix.framework"));
 		put(mappings, "org.lucee.janinocc", new Info("org.lucee", "janino-commons-compiler"));
 		put(mappings, "org.apache.commons.commons-fileupload", new Info("commons-fileupload", "commons-fileupload"));
+		put(mappings, "jakarta.activation-api", new Info("jakarta.activation-api", "jakarta.activation"));
+		put(mappings, "jakarta.mail-api", new Info("jakarta.mail-api", "jakarta.mail"));
+		put(mappings, "com.sun.activation.jakarta.activation", new Info("com.sun.activation", "jakarta.activation"));
+		put(mappings, "com.sun.mail.jakarta.mail", new Info("com.sun.mail", "jakarta.mail"));
 
 		/**
 		 * ATTENTION we have the same mappings in the loader, ad them there as well
