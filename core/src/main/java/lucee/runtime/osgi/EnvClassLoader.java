@@ -154,8 +154,6 @@ public class EnvClassLoader extends URLClassLoader {
 	}
 
 	private synchronized Object load(String name, short type, boolean doLog, List<ClassLoader> listContext, boolean useCache) {
-		double start = SystemUtil.millis();
-
 		StringBuilder id = new StringBuilder(name).append(';').append(type).append(';');
 		String _id = id.toString();
 		Set<String> cache = checking.get();
@@ -206,7 +204,7 @@ public class EnvClassLoader extends URLClassLoader {
 			}
 
 			// PATCH for com.sun
-			if ((name + "").startsWith("com.sun.")) {
+			if ((name + "").startsWith("com.sun.") && !(name + "").startsWith("com.sun.mail")) {
 				Object obj;
 				ClassLoader loader = CFMLEngineFactory.class.getClassLoader();
 				obj = _load(loader, name, type);

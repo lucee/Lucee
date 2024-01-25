@@ -634,16 +634,12 @@
     <version>1.2.4</version>
     <scope>provided</scope>
   </dependency>
-<dependency>
-    <groupId>com.sun.activation</groupId>
-    <artifactId>jakarta.activation</artifactId>
-    <version>1.2.1</version>
-</dependency>
-<dependency>
-    <groupId>com.sun.mail</groupId>
-    <artifactId>jakarta.mail</artifactId>
-    <version>1.6.7</version>
-</dependency>
+   <dependency>
+      <groupId>org.lucee</groupId>
+      <artifactId>jakarta-activation-mail</artifactId>
+      <version>1.2.1</version>
+      <scope>provided</scope>
+    </dependency>
 
 
   <!-- causes conflict with hsqldb LDEV-1526 

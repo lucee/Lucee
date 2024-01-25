@@ -36,25 +36,24 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="s3" {
 					echo("This is a text email!");
 				}
 
+				var mail=application.testSMTP;
+
 				var messages = mail.getReceivedMessages();
 				expect( len(messages) ).toBe( 1 );
-				
 				var msg=messages[1];
 				
 				// from
 				froms=msg.getFrom();
 				expect( len(froms) ).toBe( 1 );
-				from=froms[1];
-				expect( from ).toBe( variables.from );
+				expect( froms[1].getAddress() ).toBe( variables.from );
 				
 				// to
 				tos=msg.getAllRecipients();
 				expect( len(tos) ).toBe( 1 );
-				to=tos[1];
-				expect( to.toString() ).toBe( variables.to );
+				expect( tos[1].getAddress() ).toBe( variables.to );
 				
 				// subject
-				expect( msg.getSubject() ).toBe( "simple text mail" );
+				expect( msg.getSubject().toString() ).toBe( "simple text mail" );
 					
 			});	
 			
