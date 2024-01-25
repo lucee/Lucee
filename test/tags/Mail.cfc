@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" labels="s3" {
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="mail" {
 	
 	variables.port=30250;
 	variables.from="susi@sorglos.de";
