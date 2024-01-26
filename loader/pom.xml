@@ -3,7 +3,7 @@
 
   <groupId>org.lucee</groupId>
   <artifactId>lucee</artifactId>
-  <version>6.1.0.22-ALPHA</version>
+  <version>6.1.0.23-ALPHA</version>
   <packaging>jar</packaging>
 
   <name>Lucee Loader Build</name>
@@ -368,9 +368,9 @@
     <scope>provided</scope>
   </dependency>
   	<dependency>
-  		<groupId>org.lucee</groupId>
+  		<groupId>com.github.mwiede</groupId>
   		<artifactId>jsch</artifactId>
-  		<version>0.1.55</version>
+  		<version>0.2.11</version>
     	<scope>provided</scope>
   	</dependency>
   <dependency>
@@ -396,12 +396,12 @@
     <artifactId>commons-compress</artifactId>
     <version>1.24.0</version>
   </dependency>
-  <dependency>
-    <groupId>org.lucee</groupId>
-    <artifactId>commons-email</artifactId>
-    <version>1.2.0</version>
+	<dependency>
+	    <groupId>org.apache.commons</groupId>
+	    <artifactId>commons-email</artifactId>
+	    <version>1.6.0</version>
     <scope>provided</scope>
-  </dependency>
+	</dependency>
   <dependency>
     <groupId>commons-fileupload</groupId>
     <artifactId>commons-fileupload</artifactId>
@@ -485,12 +485,12 @@
     <version>1.4.1</version>
     <scope>provided</scope>
   </dependency>
-  <dependency>
-    <groupId>org.lucee</groupId>
-    <artifactId>jta</artifactId>
-    <version>1.1.0</version>
-    <scope>provided</scope>
-  </dependency>
+    <dependency>
+    	<groupId>org.lucee</groupId>
+    	<artifactId>jta</artifactId>
+    	<version>1.1.0</version>
+      <scope>provided</scope>
+    </dependency>
   <dependency>
     <groupId>fusiondebug.api</groupId>
     <artifactId>server</artifactId>
@@ -570,20 +570,12 @@
     <version>1.7.36</version>
     <scope>provided</scope>
   </dependency>
-  <dependency>
-    <groupId>javax.mail</groupId>
-    <artifactId>activation</artifactId>
-    <version>1.6.2.0000L</version>
-    <scope>provided</scope>
-  </dependency>
-  <!-- causes conflict with hsqldb LDEV-1526 
-  <dependency>
-    <groupId>sun.security</groupId>
-    <artifactId>jaas</artifactId>
-    <version>1.2.4</version>
-    <scope>provided</scope>
-  </dependency>
-  -->
+   <dependency>
+      <groupId>org.lucee</groupId>
+      <artifactId>jakarta-activation-mail</artifactId>
+      <version>1.2.1</version>
+      <scope>provided</scope>
+    </dependency>
   <dependency>
     <groupId>tagsoup</groupId>
     <artifactId>tagsoup</artifactId>
