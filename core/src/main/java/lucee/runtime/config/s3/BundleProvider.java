@@ -485,6 +485,9 @@ public final class BundleProvider extends DefaultHandler {
 		put(mappings, "jakarta.mail-api", new Info("jakarta.mail-api", "jakarta.mail"));
 		put(mappings, "com.sun.activation.jakarta.activation", new Info("com.sun.activation", "jakarta.activation"));
 		put(mappings, "com.sun.mail.jakarta.mail", new Info("com.sun.mail", "jakarta.mail"));
+		put(mappings, "com.icegreen.greenmail", new Info("com.icegreen", "greenmail"));
+		put(mappings, "org.lucee.greenmail", new Info("org.lucee", "com.icegreen"));
+		put(mappings, "org.lucee.jakarta-activation-mail", new Info("com.sun.mail", "jakarta.mail"));
 
 		/**
 		 * ATTENTION we have the same mappings in the loader, ad them there as well
