@@ -50,7 +50,7 @@ public abstract class StorageScopeCookie extends StorageScopeImpl {
 	private static final long serialVersionUID = -3509170569488448183L;
 
 	private static ScriptConverter serializer = new ScriptConverter();
-	protected static CFMLExpressionInterpreter evaluator = new CFMLExpressionInterpreter(false);
+	protected static CFMLExpressionInterpreter evaluator = new CFMLExpressionInterpreter(true);
 	// private Cookie cookie;
 	private String cookieName;
 
