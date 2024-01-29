@@ -18,6 +18,7 @@
  */
 package lucee.runtime.interpreter;
 
+import lucee.commons.io.SystemUtil;
 import lucee.commons.lang.ParserString;
 import lucee.commons.lang.StringList;
 import lucee.commons.lang.StringUtil;
@@ -484,7 +485,8 @@ public final class VariableInterpreter {
 				list.add(id);
 			}
 			else if (ps.forwardIfCurrent('[')) {
-				if (interpreter == null) interpreter = new CFMLExpressionInterpreter(false);
+				if (interpreter == null)
+					interpreter = new CFMLExpressionInterpreter(Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.security.limitEvaluation", null), false));
 				try {
 					list.add(Caster.toString(interpreter.interpretPart(pc, ps)));
 				}
