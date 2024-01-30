@@ -200,9 +200,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mail" {
 					var parts=msg.getContent();
 					expect( parts.getCount() ).toBe( 2 );
 					expect( parts.getBodyPart(0).getContentType() ).toBe( "text/plain; charset=UTF-8" );
-					expect( parts.getBodyPart(0).getContent() ).toBe( trim("This is a text email!") );
+					expect( trim(parts.getBodyPart(0).getContent()) ).toBe( "This is a text email!" );
 					expect( parts.getBodyPart(1).getContentType() ).toBe( "text/html; charset=UTF-8" );
-					expect( parts.getBodyPart(1).getContent() ).toBe( trim("This is a html email!") );
+					expect( trim(parts.getBodyPart(1).getContent()) ).toBe( "This is a html email!" );
 					
 					
 					application.testSMTP.purgeEmailFromAllMailboxes();
