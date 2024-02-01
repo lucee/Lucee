@@ -210,8 +210,13 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mail" {
 				
 			});	
 
+			it(title="verify mail server", body = function( currentSpec ) {
+				lock name="test:mail" {
+					var SMTPVerifier=createObject("java","lucee.runtime.net.mail.SMTPVerifier");
+        			expect( SMTPVerifier.verify("localhost", nullValue(), nullValue(), variables.port) ).toBeTrue();
+				}
+			});	
 			
-
 		});
 
 
