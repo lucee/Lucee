@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" labels="asa"{
+component extends="org.lucee.cfml.test.LuceeTestCase" {
     public function run( testResults, textbox ) {
         describe(title="Testcase for Cfwhile tag", body=function() {
             it(title="Checking the Cfwhile tag", body=function( currentSpec ) {
