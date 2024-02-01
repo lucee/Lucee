@@ -152,7 +152,8 @@ public abstract class PageExceptionImpl extends PageException {
 						if (index != -1) {
 							secretAccessKey = secretAccessKey.substring(0, index);
 						}
-						msg = filterSecrets(StringUtil.replace(msg, secretAccessKey, "{SECRET_ACCESS_KEY}"), atIndex);
+						msg = StringUtil.replace(msg, secretAccessKey, "{SECRET_ACCESS_KEY}");
+						return msg;
 					}
 				}
 				if (slashIndex != -1) {
@@ -161,7 +162,7 @@ public abstract class PageExceptionImpl extends PageException {
 					if (index != -1) {
 						secretAccessKey = secretAccessKey.substring(0, index);
 					}
-					msg = filterSecrets(StringUtil.replace(msg, secretAccessKey, "{SECRET_ACCESS_KEY}"), slashIndex);
+					msg = StringUtil.replace(msg, secretAccessKey, "{SECRET_ACCESS_KEY}");
 				}
 			}
 		}
