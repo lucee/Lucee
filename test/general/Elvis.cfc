@@ -18,7 +18,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				var server.a.b.c={};
 
 				loop from=1 to=max index="local.i" {
-					var name="t"&i;
+					var name="testelvis"&i;
 					arrayAppend(names, name);
 					// threads that do the elvis on a variable that is set and removed all the time
 					thread name=name  {
