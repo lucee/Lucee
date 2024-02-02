@@ -3,7 +3,7 @@
 
   <groupId>org.lucee</groupId>
   <artifactId>lucee</artifactId>
-  <version>5.4.5.9-SNAPSHOT</version>
+  <version>5.4.5.10-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>Lucee Loader Build</name>
@@ -400,8 +400,8 @@
   -->
 
 	<dependency>
-	    <groupId>org.apache.commons</groupId>
-	    <artifactId>commons-email</artifactId>
+        <groupId>org.lucee</groupId>
+        <artifactId>commons-email-all</artifactId>
 	    <version>1.6.0</version>
     <scope>provided</scope>
 	</dependency>
