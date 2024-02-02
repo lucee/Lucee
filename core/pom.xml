@@ -132,8 +132,8 @@
       <version>1.24.0</version>
     </dependency>
 	<dependency>
-	    <groupId>org.apache.commons</groupId>
-	    <artifactId>commons-email</artifactId>
+        <groupId>org.lucee</groupId>
+        <artifactId>commons-email-all</artifactId>
 	    <version>1.6.0</version>
     <scope>provided</scope>
 	</dependency>

@@ -28,7 +28,6 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Properties;
 
-import javax.mail.Authenticator;
 import javax.mail.BodyPart;
 import javax.mail.Flags;
 import javax.mail.Folder;
@@ -37,13 +36,14 @@ import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.Multipart;
 import javax.mail.Part;
-import javax.mail.PasswordAuthentication;
 import javax.mail.Session;
 import javax.mail.Store;
 import javax.mail.UIDFolder;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
 import javax.mail.internet.MimeUtility;
+
+import org.apache.commons.mail.DefaultAuthenticator;
 
 import lucee.commons.digest.HashUtil;
 import lucee.commons.io.CharsetUtil;
@@ -97,26 +97,6 @@ public abstract class MailClient implements PoolItem {
 	private static final Collection.Key PARENT = KeyConstants._PARENT;
 	private static final Collection.Key TOTALMESSAGES = KeyConstants._TOTALMESSAGES;
 	private static final Collection.Key NEW = KeyConstants._NEW;
-
-	/**
-	 * Simple authenicator implmentation
-	 */
-	private final class _Authenticator extends Authenticator {
-
-		private String _fldif = null;
-		private String a = null;
-
-		@Override
-		protected PasswordAuthentication getPasswordAuthentication() {
-			return new PasswordAuthentication(_fldif, a);
-		}
-
-		public _Authenticator(String s, String s1) {
-			_fldif = s;
-			a = s1;
-		}
-	}
-
 	private static final Collection.Key DATE = KeyConstants._date;
 	private static final Collection.Key SUBJECT = KeyConstants._subject;
 	private static final Collection.Key SIZE = KeyConstants._size;
@@ -297,7 +277,7 @@ public abstract class MailClient implements PoolItem {
 			}
 		}
 		// if(TYPE_POP3==getType()){}
-		_session = username != null ? Session.getInstance(properties, new _Authenticator(username, password)) : Session.getInstance(properties);
+		_session = username != null ? Session.getInstance(properties, new DefaultAuthenticator(username, password)) : Session.getInstance(properties);
 
 		Thread t = Thread.currentThread();
 		ClassLoader ccl = t.getContextClassLoader();
