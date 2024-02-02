@@ -1152,7 +1152,7 @@ public final class Http extends BodyTagImpl {
 			Struct responseHeader = new StructImpl();
 			Struct cookie;
 			Array setCookie = new ArrayImpl();
-			Query cookies = new QueryImpl(new String[] { "name", "value", "path", "domain", "expires", "secure", "httpOnly", "samesite" }, 0, "cookies");
+			Query cookies = new QueryImpl(new String[] { "name", "value", "path", "domain", "expires", "secure", "httpOnly", "samesite", "partitioned" }, 0, "cookies");
 
 			for (int i = 0; i < headers.length; i++) {
 				lucee.commons.net.http.Header header = headers[i];
@@ -1502,6 +1502,7 @@ public final class Http extends BodyTagImpl {
 		String n, v;
 		cookies.setAtEL("secure", row, Boolean.FALSE);
 		cookies.setAtEL("httpOnly", row, Boolean.FALSE);
+		cookies.setAtEL("partitioned", row, Boolean.FALSE);
 		for (int i = 1; i < arr.length; i++) {
 			item = arr[i];
 			index = item.indexOf('=');

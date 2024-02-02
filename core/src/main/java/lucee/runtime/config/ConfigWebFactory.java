@@ -4078,8 +4078,10 @@ public final class ConfigWebFactory extends ConfigFactory {
 				config.setLimitEvaluation(true);
 			}
 			else {
-				Boolean limitEvaluation = Caster.toBoolean(SystemUtil.getSystemPropOrEnvVar("lucee.isdefined.limit", null), null);
+				Boolean limitEvaluation = Caster.toBoolean(SystemUtil.getSystemPropOrEnvVar("lucee.security.limitEvaluation", null), null);
 				if (limitEvaluation == null) limitEvaluation = Caster.toBoolean(SystemUtil.getSystemPropOrEnvVar("lucee.security.isdefined", null), null);
+				if (limitEvaluation == null) limitEvaluation = Caster.toBoolean(SystemUtil.getSystemPropOrEnvVar("lucee.isdefined.limit", null), null);
+
 				if (limitEvaluation == null) {
 					Struct security = ConfigWebUtil.getAsStruct("security", root);
 					if (security != null) {

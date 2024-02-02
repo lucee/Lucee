@@ -9,6 +9,7 @@ Multi-Release: true
 Require-Bundle-Fragment: slf4j.nop;bundle-version=1.7.36
 Bundle-ManifestVersion: 2
 Bundle-SymbolicName: lucee.core
+Bundle-ClassPath: .,META-INF/
 Import-Package: coldfusion.xml.rpc,com.allaire.cfx,
  com.intergral.fusiondebug.server,com.sun.management,com.sun.net.ssl.internal.ssl,
  javax.el,javax.servlet,javax.servlet.jsp,javax.servlet.http,javax.script,javax.activation,
@@ -346,8 +347,7 @@ Require-Bundle: org.apache.commons.commons-codec;bundle-version=1.15.0,
  org.objectweb.asm.all;bundle-version=4.2,
  org.lucee.xml.resolver;bundle-version=1.2.0,
  slf4j.api;bundle-version=1.7.36,
- org.lucee.jakarta-activation-mail;bundle-version=1.2.1,
- org.apache.commons.commons-email;bundle-version=1.6.0,
+ org.lucee.commons-email-all;bundle-version=1.6.0,
  tagsoup;bundle-version=1.2.1.0002L,
  w3c.dom;bundle-version=1.1.0,
  com.github.mwiede.jsch;bundle-version=0.2.11,

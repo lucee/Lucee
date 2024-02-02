@@ -2963,6 +2963,7 @@ public final class PageContextImpl extends PageContext {
 		boolean secure = SessionCookieDataImpl.DEFAULT.isSecure();
 		short samesite = SessionCookieDataImpl.DEFAULT.getSamesite();
 		String path = SessionCookieDataImpl.DEFAULT.getPath();
+		boolean partitioned = SessionCookieDataImpl.DEFAULT.isPartitioned();
 
 		ApplicationContext ac = getApplicationContext();
 
@@ -2985,6 +2986,8 @@ public final class PageContextImpl extends PageContext {
 				// path
 				String tmp2 = data.getPath();
 				if (!StringUtil.isEmpty(tmp2, true)) path = tmp2.trim();
+				// partitioned
+				partitioned = data.isPartitioned();
 			}
 		}
 		int expires;
@@ -2992,8 +2995,8 @@ public final class PageContextImpl extends PageContext {
 		if (Integer.MAX_VALUE < tmp) expires = Integer.MAX_VALUE;
 		else expires = (int) tmp;
 
-		((CookieImpl) cookieScope()).setCookieEL(KeyConstants._cfid, cfid, expires, secure, path, domain, httpOnly, true, false, samesite);
-		((CookieImpl) cookieScope()).setCookieEL(KeyConstants._cftoken, cftoken, expires, secure, path, domain, httpOnly, true, false, samesite);
+		((CookieImpl) cookieScope()).setCookieEL(KeyConstants._cfid, cfid, expires, secure, path, domain, httpOnly, true, false, samesite, partitioned);
+		((CookieImpl) cookieScope()).setCookieEL(KeyConstants._cftoken, cftoken, expires, secure, path, domain, httpOnly, true, false, samesite, partitioned);
 
 	}
 

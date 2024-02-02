@@ -979,6 +979,15 @@ A return value from the CreateTimeSpan function, for example, "#CreateTimeSpan(0
 			<description>It will help to prevent Cross-Site Request Forgeries. Enabling this attribute on the cookie will instruct the browser to afford this cookie certain protections.</description>
 			<introduced>5.3.7.33</introduced>
 		</attribute>
+		<attribute>
+			<type>boolean</type>
+			<name>partitioned</name>
+			<alias>encode</alias>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>Used to isolate third party cookies, requires path="/" and secure="true".</description>
+			<introduced>6.0.1.28</introduced>
+		</attribute>
 	</tag>
 	<!-- DBInfo -->
 	<tag>

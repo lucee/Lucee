@@ -749,7 +749,8 @@ public final class AppListenerUtil {
 				Caster.toString(data.get(KeyConstants._domain, null), SessionCookieDataImpl.DEFAULT.getDomain()),
 				Caster.toBooleanValue(data.get(DISABLE_UPDATE, null), SessionCookieDataImpl.DEFAULT.isDisableUpdate()),
 				SessionCookieDataImpl.toSamesite(Caster.toString(data.get(KeyConstants._SameSite, null), null), SessionCookieDataImpl.DEFAULT.getSamesite()),
-				Caster.toString(data.get(KeyConstants._path, null), SessionCookieDataImpl.DEFAULT.getPath())
+				Caster.toString(data.get(KeyConstants._path, null), SessionCookieDataImpl.DEFAULT.getPath()),
+				Caster.toBooleanValue(data.get(KeyConstants._partitioned, null), SessionCookieDataImpl.DEFAULT.isPartitioned())
 
 		);
 	}

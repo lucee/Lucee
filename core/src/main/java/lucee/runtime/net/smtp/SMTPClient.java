@@ -51,6 +51,8 @@ import javax.mail.internet.MimeMultipart;
 import javax.mail.internet.MimePart;
 import javax.mail.internet.MimeUtility;
 
+import org.apache.commons.mail.DefaultAuthenticator;
+
 import com.sun.mail.smtp.SMTPMessage;
 
 import lucee.commons.activation.ResourceDataSource;
@@ -476,7 +478,7 @@ public final class SMTPClient implements Serializable {
 			props.put("mail.smtp.user", username);
 			props.put("mail.smtp.password", password);
 			props.put("password", password);
-			auth = new SMTPAuthenticator(username, password);
+			auth = new DefaultAuthenticator(username, password);
 		}
 		else {
 			props.put("mail.smtp.auth", "false");

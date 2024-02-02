@@ -108,6 +108,7 @@ public class GetApplicationSettings extends BIF {
 			sc.setEL("httpOnly", sessionCookieData.isHttpOnly());
 			sc.setEL("sameSite", SessionCookieDataImpl.toSamesite(sessionCookieData.getSamesite()));
 			sc.setEL("disableUpdate", sessionCookieData.isDisableUpdate());
+			sc.setEL("partitioned", sessionCookieData.isPartitioned());
 			sct.setEL("sessionCookie", sc);
 		}
 		ProxyData ProxyData = acs.getProxyData();
