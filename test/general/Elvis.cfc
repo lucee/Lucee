@@ -10,6 +10,75 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 	function run( testResults , testBox ) {
 		describe( "test suite for the elvis operator", function() {
 
+			it(title="test not existing variable", body=function() {
+				expect(not_.existing_.var_?:'NotExisting').toBe("NotExisting");
+				expect(not_existing_var?:"NotExisting").toBe("NotExisting");
+			});
+
+			it(title="test existing variable", body=function() {
+				var notexa.b.c.d="Existing";
+				expect(notexa.b.c.d?:'NotExisting').toBe("Existing");
+				expect(notexa?:"NotExisting").toBeTypeOf("struct");
+			});
+
+			it(title="test number default", body=function() {
+				expect(not_.existing_.var_?:0).toBe(0);
+				expect(not_existing_var?:0).toBe(0);
+				expect(not_existing_var?:0).toBeTypeOf("numeric");
+			});
+
+			it(title="test boolean default", body=function() {
+				expect(not_.existing_.var_?:true).toBe(true);
+				expect(not_existing_var?:true).toBe(true);
+				expect(not_existing_var?:true).toBeTypeOf("boolean");
+			});
+
+			it(title="test boolean default", body=function() {
+				var d=now();
+				expect(not_.existing_.var_?:d).toBe(d);
+				expect(not_existing_var?:d).toBe(d);
+				expect(not_existing_var?:d).toBeTypeOf("datetime");
+			});
+
+			it(title="test UDF default", body=function() {
+				expect(not_.existing_.var_?:_test()).toBe(123);
+			});
+
+			it(title="test null", body=function() {
+				expect( nullValue()?:1 ).toBe(1);
+			});
+
+			it(title="test use result as a math operant", body=function() {
+				expect( (not_.existing_.var_?:1)+1  ).toBe(2);
+			});
+
+			it(title="test if a function does not exist", body=function() {
+				expect( ljkl.jljl.ghu()?:'NotExisting'  ).toBe('NotExisting');
+				expect( ljklkju()?:'NotExisting'  ).toBe('NotExisting');
+			});
+
+			it(title="test if a function does not exist", body=function() {
+				var notexa.b.c.d=testElvis;
+				expect( notexa.b.c.d()?:'NotExisting'  ).toBe('Existing');
+				expect( testElvis()?:'NotExisting'  ).toBe('Existing');
+			});
+
+			it(title="test if a key is null", body=function() {
+				var notexa.b.c.d=rtnNull;
+				expect( notexa.b.c.d()?:'NotExisting'  ).toBe('NotExisting');
+				expect( notexa.b.c.d(a:1)?:'NotExisting'  ).toBe('NotExisting');
+				expect( notexa.b.c.d(a=1)?:'NotExisting'  ).toBe('NotExisting');
+				expect( rtnNull()?:'NotExisting'  ).toBe('NotExisting');
+				expect( rtnNull(a:1)?:'NotExisting'  ).toBe('NotExisting');
+				expect( nullValue()?:'NotExisting'  ).toBe('NotExisting');
+			});
+
+			it(title="test if a key is null", body=function() {
+				var a.b.c.d=rtnNull;
+				expect( a.b.c.d()?:'NotExisting'  ).toBe('NotExisting');
+			});
+
+
 			it(title="testing a load test with multithreading", body=function(){
 				
 				var max=20; //how many concurrent threads to run
@@ -51,5 +120,13 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 
 
 
+	private function testElvis(){		
+		return "Existing";
+	}
 
+	private function _test(){
+		return 123;
+	}
+	private function rtnNull(){	
+	}
 }
