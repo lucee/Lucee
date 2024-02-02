@@ -433,6 +433,7 @@ public final class BundleProvider {
 		put(mappings, "com.sun.mail.jakarta.mail", new Info("com.sun.mail", "jakarta.mail"));
 		put(mappings, "org.lucee.greenmail", new Info("org.lucee", "com.icegreen"));
 		put(mappings, "org.lucee.jakarta-activation-mail", new Info("com.sun.mail", "jakarta.mail"));
+		put(mappings, "org.lucee.commons-email-all", new Info("org.lucee", "commons-email-all"));
 	}
 
 	private static void put(Map<String, Info[]> mappings, String name, Info... value) {
