@@ -16,59 +16,57 @@
  * You should have received a copy of the GNU Lesser General Public 
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  * 
- ---><cfcomponent extends="org.lucee.cfml.test.LuceeTestCase">
+ --->
+ component extends="org.lucee.cfml.test.LuceeTestCase" {
 
-	<cffunction name="beforeTests">
-		<cfset variables.name=ListFirst(ListLast(getCurrentTemplatePath(),"\/"),".")>
-		<cfset variables.parent=getDirectoryFromPath(getCurrentTemplatePath()) & name & Server.separator.file>
-	</cffunction>
+	public function beforeAll() {
+		variables.name=ListFirst(ListLast(getCurrentTemplatePath(),"\/"),".");
+		variables.parent=getDirectoryFromPath(getCurrentTemplatePath()) & name & Server.separator.file;
+	}
 
-	<cffunction name="afterTests">
-		<cfset directorydelete(parent,true)>
-	</cffunction>
+	public function afterAll() {
+		directorydelete(parent,true);
+	}
 
-	<cffunction name="testDirectoryList" localMode="modern">
-		<cfset var SEP = Server.separator.file>
-		<cflock name="testdirectoryList" timeout="1" throwontimeout="no" type="exclusive">
-			<cfset path=parent&createUUID()>
-			<cfset path2=path&"#SEP#a">
-			<cfset directoryCreate(path2)>
-			<cffile action="write" addnewline="yes" file="#path##SEP#b.txt" output="aaa" fixnewline="no">
-			<cffile action="write" addnewline="yes" file="#path2##SEP#c.txt" output="aaa" fixnewline="no">
+	public function testDirectoryList() localMode="modern" {
+		var SEP = Server.separator.file;
+		lock name="testdirectoryList" timeout="1" throwontimeout="no" type="exclusive" {
+			path = parent&createUUID();
+			path2 = path&"#SEP#a";
+			directoryCreate(path2);
+			cffile( fixnewline=false, output="aaa", file="#path##SEP#b.txt", addnewline=true, action="write" );
+			cffile( fixnewline=false, output="aaa", file="#path2##SEP#c.txt", addnewline=true, action="write" );
 
-			<!--- recursive false --->
-			<cfset dir=directoryList(path)>
-			<cfset assertEquals(2,arrayLen(dir))>
-			<cfset assertEquals("#path##SEP#a,#path##SEP#b.txt",listSort(arrayToList(dir),'textnocase'))>
+			//  recursive false 
+			dir = directoryList(path);
+			assertEquals(2,arrayLen(dir));
+			assertEquals("#path##SEP#a,#path##SEP#b.txt",listSort(arrayToList(dir),'textnocase'));
 
-			<!--- recursive true --->
-			<cfset dir=directoryList(path,true)>
-			<cfset assertEquals(3,arrayLen(dir))>
-			<cfset assertEquals("#path##SEP#a,#path##SEP#a#SEP#c.txt,#path##SEP#b.txt",listSort(arrayToList(dir),'textnocase'))>
+			//  recursive true 
+			dir = directoryList(path,true);
+			assertEquals(3,arrayLen(dir));
+			assertEquals("#path##SEP#a,#path##SEP#a#SEP#c.txt,#path##SEP#b.txt",listSort(arrayToList(dir),'textnocase'));
 
-			<!--- type:directory --->
-			<cfset dir=directoryList(path:path,type:'directory')>
-			<cfset assertEquals(1,arrayLen(dir))>
-			<cfset assertEquals("#path##SEP#a",arrayToList(dir))>
+			//  type:directory 
+			dir = directoryList(path:path,type:'directory');
+			assertEquals(1,arrayLen(dir));
+			assertEquals("#path##SEP#a",arrayToList(dir));
 			
-			<!--- type:file --->
-			<cfset dir=directoryList(path:path,type:'file')>
-			<cfset assertEquals(1,arrayLen(dir))>
-			<cfset assertEquals("#path##SEP#b.txt",arrayToList(dir))>
+			//  type:file 
+			dir = directoryList(path:path,type:'file');
+			assertEquals(1,arrayLen(dir));
+			assertEquals("#path##SEP#b.txt",arrayToList(dir));
+			
+			//  list info 
+			dir = directoryList(path,true,"name");
+			assertEquals(3,arrayLen(dir));
+			assertEquals("a,b.txt,c.txt",listSort(arrayToList(dir),'textnocase'));
+			dir = directoryList(path,true,"path");
+			assertEquals(3,arrayLen(dir));
+			assertEquals("#path##SEP#a,#path##SEP#a#SEP#c.txt,#path##SEP#b.txt",listSort(arrayToList(dir),'textnocase'));
+			dir = directoryList(path,true,"query");
+			directoryDelete(path,true);
+		}
+	}
 
-
-			<!--- list info --->
-			<cfset dir=directoryList(path,true,"name")>
-			<cfset assertEquals(3,arrayLen(dir))>
-			<cfset assertEquals("a,b.txt,c.txt",listSort(arrayToList(dir),'textnocase'))>
-
-			<cfset dir=directoryList(path,true,"path")>
-			<cfset assertEquals(3,arrayLen(dir))>
-			<cfset assertEquals("#path##SEP#a,#path##SEP#a#SEP#c.txt,#path##SEP#b.txt",listSort(arrayToList(dir),'textnocase'))>
-
-			<cfset dir=directoryList(path,true,"query")>
-			<cfset directoryDelete(path,true)>
-		</cflock>
-
-	</cffunction>
-</cfcomponent>
+}
