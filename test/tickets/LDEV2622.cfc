@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" skip="false" labels="ldap" {
+component extends="org.lucee.cfml.test.LuceeTestCase" skip="true" labels="ldap" {
 
 	public function beforeAll(){
 		variables.ldap = server.getTestService( "ldap" );

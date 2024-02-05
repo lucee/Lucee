@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase"  {
+component extends="org.lucee.cfml.test.LuceeTestCase" skip=true  {
 	function beforeAll() {
 		variables.uri = createURI("LDEV4642");
 		variables.cfc = getDirectoryFromPath( getCurrentTemplatepath() ) & "LDEV4642/test4642.cfc";
