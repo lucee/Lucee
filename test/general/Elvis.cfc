@@ -44,40 +44,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				expect(not_.existing_.var_?:_test()).toBe(123);
 			});
 
-			it(title="test null",skip=true, body=function() {
-				expect( nullValue()?:1 ).toBe(1);
-			});
-
 			it(title="test use result as a math operant", body=function() {
 				expect( (not_.existing_.var_?:1)+1  ).toBe(2);
 			});
-
-			it(title="test if a function does not exist",skip=true, body=function() {
-				expect( ljkl.jljl.ghu()?:'NotExisting'  ).toBe('NotExisting');
-				expect( ljklkju()?:'NotExisting'  ).toBe('NotExisting');
-			});
-
-			it(title="test if a function does not exist",skip=true, body=function() {
-				var notexa.b.c.d=testElvis;
-				expect( notexa.b.c.d()?:'NotExisting'  ).toBe('Existing');
-				expect( testElvis()?:'NotExisting'  ).toBe('Existing');
-			});
-
-			it(title="test if a key is null",skip=true, body=function() {
-				var notexa.b.c.d=rtnNull;
-				expect( notexa.b.c.d()?:'NotExisting'  ).toBe('NotExisting');
-				expect( notexa.b.c.d(a:1)?:'NotExisting'  ).toBe('NotExisting');
-				expect( notexa.b.c.d(a=1)?:'NotExisting'  ).toBe('NotExisting');
-				expect( rtnNull()?:'NotExisting'  ).toBe('NotExisting');
-				expect( rtnNull(a:1)?:'NotExisting'  ).toBe('NotExisting');
-				expect( nullValue()?:'NotExisting'  ).toBe('NotExisting');
-			});
-
-			it(title="test if a key is null",skip=true, body=function() {
-				var a.b.c.d=rtnNull;
-				expect( a.b.c.d()?:'NotExisting'  ).toBe('NotExisting');
-			});
-
 
 			it(title="testing a load test with multithreading", body=function(){
 				

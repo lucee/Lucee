@@ -112,7 +112,12 @@ public class Elvis {
 			// Object coll =pc.scope((int)scope);
 			VariableUtilImpl vu = ((VariableUtilImpl) pc.getVariableUtil());
 			for (int i = startIndex; i < varNames.length; i++) {
-				coll = vu.getCollection(pc, coll, varNames[i], defaultValue);
+				if (i + 1 == varNames.length) {
+					coll = vu.get(pc, coll, varNames[i], defaultValue);
+				}
+				else {
+					coll = vu.getCollection(pc, coll, varNames[i], defaultValue);
+				}
 				if (coll == defaultValue) return defaultValue;
 			}
 		}

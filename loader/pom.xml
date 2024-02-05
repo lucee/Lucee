@@ -3,7 +3,7 @@
 
   <groupId>org.lucee</groupId>
   <artifactId>lucee</artifactId>
-  <version>5.4.5.10-SNAPSHOT</version>
+  <version>5.4.5.11-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>Lucee Loader Build</name>
@@ -634,22 +634,6 @@
     <version>1.2.4</version>
     <scope>provided</scope>
   </dependency>
-   <dependency>
-      <groupId>org.lucee</groupId>
-      <artifactId>jakarta-activation-mail</artifactId>
-      <version>1.2.1</version>
-      <scope>provided</scope>
-    </dependency>
-
-
-  <!-- causes conflict with hsqldb LDEV-1526 
-  <dependency>
-    <groupId>sun.security</groupId>
-    <artifactId>jaas</artifactId>
-    <version>1.2.4</version>
-    <scope>provided</scope>
-  </dependency>
-  -->
   <dependency>
     <groupId>tagsoup</groupId>
     <artifactId>tagsoup</artifactId>
