@@ -7,14 +7,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="syntax" skip=true 
     function run( testResults , testBox ) {
         describe( "Testcase for LDEV-4268", function() {
             it( title="continue without a semicolon inside the script", body=function() {
-                try {
-                    var res = _internalRequest(
+                var res = _internalRequest(
                         template: "#variables.uri#/LDEV4268.cfm"
                     ).filecontent.trim();
-                }
-                catch(any e) {
-                    var res = e.message;
-                }
+                
 
                 expect(res).toBe(9);
             });
