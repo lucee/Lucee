@@ -44,9 +44,9 @@ import lucee.transformer.expression.var.Variable;
 public final class OpElvis extends ExpressionBase {
 
 	private static final Type ELVIS = Type.getType(Elvis.class);
-	public static final Method INVOKE_STR = new Method("operate", Types.BOOLEAN_VALUE, new Type[] { Types.PAGE_CONTEXT, Types.DOUBLE_VALUE, Types.STRING_ARRAY });
+	public static final Method INVOKE_STR = new Method("load", Types.OBJECT, new Type[] { Types.PAGE_CONTEXT, Types.DOUBLE_VALUE, Types.STRING_ARRAY });
 
-	public static final Method INVOKE_KEY = new Method("operate", Types.BOOLEAN_VALUE, new Type[] { Types.PAGE_CONTEXT, Types.DOUBLE_VALUE, Types.COLLECTION_KEY_ARRAY });
+	public static final Method INVOKE_KEY = new Method("load", Types.OBJECT, new Type[] { Types.PAGE_CONTEXT, Types.DOUBLE_VALUE, Types.COLLECTION_KEY_ARRAY });
 
 	private Variable left;
 	private Expression right;
@@ -88,8 +88,8 @@ public final class OpElvis extends ExpressionBase {
 		// TODO use function isNull for this
 		GeneratorAdapter adapter = bc.getAdapter();
 
-		Label yes = new Label();
 		Label end = new Label();
+		Label elseLabel = adapter.newLabel();
 
 		List<Member> members = left.getMembers();
 
@@ -137,29 +137,26 @@ public final class OpElvis extends ExpressionBase {
 		}
 		av.visitEnd();
 
-		// allowNull
-		// adapter.push(false);
-
-		// ASMConstants.NULL(adapter);
-
-		// call IsDefined.invoke
 		adapter.invokeStatic(ELVIS, allLiteral ? INVOKE_KEY : INVOKE_STR);
+		adapter.dup(); // duplicate the result on the stack
 		bc.visitLine(left.getEnd());
 
-		adapter.visitJumpInsn(Opcodes.IFEQ, yes);
+		// If the result is null, jump to 'elseLabel'
+		adapter.visitJumpInsn(Opcodes.IFNULL, elseLabel);
 
-		// left
-		bc.visitLine(left.getStart());
-		left.writeOut(bc, MODE_REF);
-		bc.visitLine(left.getEnd());
-		adapter.visitJumpInsn(Opcodes.GOTO, end);
+		// bcause we did a dup above there is no further action needed
+
+		// Jump to 'endLabel', skipping the 'else' part
+		adapter.goTo(end);
 
 		// right
+		adapter.mark(elseLabel);
+		adapter.pop(); // Remove the duplicated null value from the stack
 		bc.visitLine(right.getStart());
-		adapter.visitLabel(yes);
 		right.writeOut(bc, MODE_REF);
 		bc.visitLine(right.getEnd());
-		adapter.visitLabel(end);
+
+		adapter.mark(end);
 
 		return Types.OBJECT;
 
