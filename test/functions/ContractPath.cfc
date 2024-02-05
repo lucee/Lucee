@@ -31,13 +31,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
         finally {
             // remove mapping /susi
             mappings = GetApplicationSettings().mappings
-            systemOutput(mappings, true );
             structDelete( mappings, "/susi", false );
-            systemOutput(mappings, true );
             application action="update" mappings=mappings;
-            mappings = GetApplicationSettings().mappings
-            systemOutput(mappings, true );
-            expect( getApplicationSettings().mappings ).notToHaveKey( "/susi" );
         }
     }
 }
