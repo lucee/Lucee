@@ -17,6 +17,14 @@
  */
  component extends="org.lucee.cfml.test.LuceeTestCase" {
 
+	
+	function beforeAll(){
+		if ( getJavaVersion() >= 19 )
+			variables.narrowNBSP = chr(8239);
+		else
+			variables.narrowNBSP = chr(32); // space
+	};
+
  	public function testTimeFormatTimeZone_lz() localMode="modern" {
 
 		dt=createDateTime(2000);
@@ -139,16 +147,16 @@
 		assertEquals("#timeFormat(dt,"hh:HH:h:H")#", "02:14:2:14");
 
 		assertEquals("#timeFormat(dt,"short")#x", "2:00 PMx");
-		assertEquals("#timeFormat(dt,"medium")#x", "2:00:00 PMx");
-		assertEquals("#timeFormat(dt,"long")#x", "2:00:00 PM CETx");
+		assertEquals("#timeFormat(dt,"medium")#x", "2:00:00#narrowNBSP#PMx");
+		assertEquals("#timeFormat(dt,"long")#x", "2:00:00#narrowNBSP#PM CETx");
 
 		// Java 10 changed the timezone output for full, what actually makes more sense than before
 		if(getJavaVersion()>=9)
-			assertEquals("#timeFormat(dt,"full")#x", "2:00:00 PM Central European Timex");
+			assertEquals("#timeFormat(dt,"full")#x", "2:00:00#narrowNBSP#PM Central European Timex");
 		else
-			assertEquals("#timeFormat(dt,"full")#x", "2:00:00 PM CETx");
+			assertEquals("#timeFormat(dt,"full")#x", "2:00:00#narrowNBSP#PM CETx");
 
-		assertEquals("#timeFormat(dt)#x", "02:00 PMx");
+		assertEquals("#timeFormat(dt)#x", "02:00#narrowNBSP#PMx");
 		assertEquals("#timeFormat('')#", "");
 
 		assertEquals("#timeFormat('','hh:mm')#x", "x");
@@ -213,15 +221,15 @@
 		assertEquals("#TimeFormat(CreateDateTime( 2009, 6, 29, 12, 15, 26),"H")#x", "12x");
 		assertEquals("#TimeFormat(CreateDateTime( 2009, 6, 29, 12, 15, 26),"HH")#x", "12x");
 
-		assertEquals("#TimeFormat(CreateDateTime( 2009, 6, 29, 0, 15, 26),"h TT")#", "12 AM");
-		assertEquals("#TimeFormat(CreateDateTime( 2009, 6, 29, 0, 15, 26),"hh TT")#", "12 AM");
-		assertEquals("#TimeFormat(CreateDateTime( 2009, 6, 29, 12, 15, 26),"h TT")#", "12 PM");
-		assertEquals("#TimeFormat(CreateDateTime( 2009, 6, 29, 12, 15, 26),"hh TT")#", "12 PM");
+		assertEquals("#TimeFormat(CreateDateTime( 2009, 6, 29, 0, 15, 26),"h TT")#", "12#narrowNBSP#AM");
+		assertEquals("#TimeFormat(CreateDateTime( 2009, 6, 29, 0, 15, 26),"hh TT")#", "12#narrowNBSP#AM");
+		assertEquals("#TimeFormat(CreateDateTime( 2009, 6, 29, 12, 15, 26),"h TT")#", "12#narrowNBSP#PM");
+		assertEquals("#TimeFormat(CreateDateTime( 2009, 6, 29, 12, 15, 26),"hh TT")#", "12#narrowNBSP#PM");
 
 
 		// only supported by lucee
-		assertEquals("#TimeFormat(CreateDateTime( 2009, 6, 29, 24, 0, 0),"h TT")#", "12 AM");
-		assertEquals("#TimeFormat(CreateDateTime( 2009, 6, 29, 24, 0, 0),"hh TT")#", "12 AM");
+		assertEquals("#TimeFormat(CreateDateTime( 2009, 6, 29, 24, 0, 0),"h TT")#", "12#narrowNBSP#AM");
+		assertEquals("#TimeFormat(CreateDateTime( 2009, 6, 29, 24, 0, 0),"hh TT")#", "12#narrowNBSP#AM");
 
 
 		assertEquals("#timeFormat(0.9583333275462,"HH:mm:ss:ll")#x", "22:59:59:999x");
