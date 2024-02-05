@@ -113,7 +113,14 @@ public class Elvis {
 
 			VariableUtilImpl vu = ((VariableUtilImpl) pc.getVariableUtil());
 			for (int i = startIndex; i < varNames.length; i++) {
-				coll = vu.getCollection(pc, coll, varNames[i], defaultValue);
+				// last
+				if (i + 1 == varNames.length) {
+					coll = vu.get(pc, coll, varNames[i], defaultValue);
+				}
+				else {
+					coll = vu.getCollection(pc, coll, varNames[i], defaultValue);
+				}
+
 				if (i + 1 == varNames.length && coll instanceof QueryColumn) {
 					if (((QueryColumn) coll).get(pc) == defaultValue) return defaultValue;
 					return coll;
