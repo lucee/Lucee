@@ -28,6 +28,7 @@ import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.GeneratorAdapter;
 import org.objectweb.asm.commons.Method;
 
+import lucee.runtime.exp.TemplateException;
 import lucee.runtime.op.Elvis;
 import lucee.transformer.TransformerException;
 import lucee.transformer.bytecode.BytecodeContext;
@@ -65,19 +66,21 @@ public final class OpElvis extends ExpressionBase {
 
 		Label notNull = new Label();
 		Label end = new Label();
-
-		GeneratorAdapter ga = bc.getAdapter();
-
-		checkFunction(bc);
-
 		Label labelMatch = new Label();
 		Label labelEnd = new Label();
 
-		ga.visitJumpInsn(Opcodes.IFNONNULL, labelMatch);
+		GeneratorAdapter ga = bc.getAdapter();
+		try {
+			checkFunction(bc);
 
-		ASMConstants.NULL(ga);
-		ga.goTo(labelEnd);
+			ga.visitJumpInsn(Opcodes.IFNONNULL, labelMatch);
 
+			ASMConstants.NULL(ga);
+			ga.goTo(labelEnd);
+		}
+		catch (TemplateException te) {
+
+		}
 		// Label for test1()
 		ga.visitLabel(labelMatch);
 
