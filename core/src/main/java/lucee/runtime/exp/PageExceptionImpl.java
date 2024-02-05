@@ -152,7 +152,7 @@ public abstract class PageExceptionImpl extends PageException {
 						if (index != -1) {
 							secretAccessKey = secretAccessKey.substring(0, index);
 						}
-						msg = StringUtil.replace(msg, secretAccessKey, "{SECRET_ACCESS_KEY}");
+						msg = StringUtil.replace(msg, secretAccessKey, "{SECRET_ACCESS_KEY}", false, true);
 						return msg;
 					}
 				}
@@ -162,7 +162,7 @@ public abstract class PageExceptionImpl extends PageException {
 					if (index != -1) {
 						secretAccessKey = secretAccessKey.substring(0, index);
 					}
-					msg = StringUtil.replace(msg, secretAccessKey, "{SECRET_ACCESS_KEY}");
+					msg = StringUtil.replace(msg, secretAccessKey, "{SECRET_ACCESS_KEY}", false, true);
 				}
 			}
 		}
