@@ -28,7 +28,6 @@ import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.GeneratorAdapter;
 import org.objectweb.asm.commons.Method;
 
-import lucee.runtime.exp.TemplateException;
 import lucee.runtime.op.Elvis;
 import lucee.transformer.TransformerException;
 import lucee.transformer.bytecode.BytecodeContext;
@@ -70,17 +69,13 @@ public final class OpElvis extends ExpressionBase {
 		Label labelEnd = new Label();
 
 		GeneratorAdapter ga = bc.getAdapter();
-		try {
-			checkFunction(bc);
-
+		if (checkFunction(bc)) {
 			ga.visitJumpInsn(Opcodes.IFNONNULL, labelMatch);
 
 			ASMConstants.NULL(ga);
 			ga.goTo(labelEnd);
 		}
-		catch (TemplateException te) {
 
-		}
 		// Label for test1()
 		ga.visitLabel(labelMatch);
 
@@ -185,26 +180,32 @@ public final class OpElvis extends ExpressionBase {
 
 	}
 
-	private void checkFunction(BytecodeContext bc) throws TransformerException {
+	private boolean checkFunction(BytecodeContext bc) throws TransformerException {
 		GeneratorAdapter adapter = bc.getAdapter();
 
-		Label end = new Label();
-		Label elseLabel = adapter.newLabel();
-
 		List<Member> members = left.getMembers();
-
+		int len = members.size();
 		// to array
 		Iterator<Member> it = members.iterator();
 
 		List<NamedMember> list = new ArrayList<NamedMember>();
 		Member m;
+		int index = 0;
 		while (it.hasNext()) {
 			m = it.next();
+			index++;
 			if (!(m instanceof NamedMember)) {
-				throw new TransformerException(bc, "The Elvis Operator is not compatible with the given expression type: [" + m.getClass().getName() + "]", getEnd());
+				return false;// throw new TransformerException(bc, "The Elvis Operator is not compatible with the given
+								// expression type: [" + m.getClass().getName() + "]", getEnd());
+			}
+			// we only allow for this code that a function is at the end
+			if (index < len && !(m instanceof DataMember)) {
+				return false;
 			}
 			if (m instanceof BIF) {
-				throw new TransformerException(bc, "Built-in function [" + ((BIF) m).getName() + "] cannot be used as the left operand in an Elvis operation.", getEnd());
+				return false;
+				// throw new TransformerException(bc, "Built-in function [" + ((BIF) m).getName() + "] cannot be
+				// used as the left operand in an Elvis operation.", getEnd());
 			}
 			list.add((NamedMember) m);
 		}
@@ -249,7 +250,7 @@ public final class OpElvis extends ExpressionBase {
 		adapter.invokeStatic(ELVIS, allLiteral ? INVOKE_KEY : INVOKE_STR);
 
 		bc.visitLine(left.getEnd());
-
+		return true;
 	}
 
 	private OpElvis(Variable left, Expression right) {
