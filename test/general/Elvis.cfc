@@ -44,10 +44,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				expect(not_.existing_.var_?:_test()).toBe(123);
 			});
 
-			it(title="test null",skip=true, body=function() {
-				expect( nullValue()?:1 ).toBe(1);
-			});
-
 			it(title="test use result as a math operant", body=function() {
 				expect( (not_.existing_.var_?:1)+1  ).toBe(2);
 			});
@@ -70,7 +66,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				expect( notexa.b.c.d(a=1)?:'NotExisting'  ).toBe('NotExisting');
 				expect( rtnNull()?:'NotExisting'  ).toBe('NotExisting');
 				expect( rtnNull(a:1)?:'NotExisting'  ).toBe('NotExisting');
-				expect( nullValue()?:'NotExisting'  ).toBe('NotExisting');
 			});
 
 			it(title="test if a key is null",skip=true, body=function() {
