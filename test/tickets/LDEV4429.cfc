@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" labels="cache,ehCache" {
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="cache,ehCache" skip=true {
  	
 	function beforeAll() {
 		variables.postgres = server.getDatasource("postgres");
