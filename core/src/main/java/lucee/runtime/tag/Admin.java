@@ -2628,11 +2628,11 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			cn = "com.microsoft.sqlserver.jdbc.SQLServerDriver";
 		}
 
-		Pattern pattern = Pattern.compile("[a-zA-Z0-9_]*");
+		Pattern pattern = Pattern.compile("[a-zA-Z0-9_-]*");
 		Matcher matcher = pattern.matcher(getString("admin", action, "newName"));
 
 		if (matcher.matches() == false) {
-			throw new ExpressionException("Trying to create a data source with a name that is invalid. Data source Names must match proper variable naming conventions");
+			throw new ExpressionException("Creating a datasource name was invalid; valid formats include alphanumeric characters, underscores and hyphens");
 		}
 
 		ClassDefinition cd = new ClassDefinitionImpl(cn, getString("bundleName", null), getString("bundleVersion", null), config.getIdentification());
