@@ -749,13 +749,18 @@ public final class SMTPClient implements Serializable {
 		else mbp.setDataHandler(new DataHandler(new URLDataSource2(att.getURL())));
 		//
 		String fileName = att.getFileName();
-		if (!StringUtil.isAscii(fileName)) {
-			try {
-				fileName = MimeUtility.encodeText(fileName, "UTF-8", null);
-			}
-			catch (UnsupportedEncodingException e) {
-			} // that should never happen!
-		}
+
+		//  Set to comment for LDEV-4249 because of JavaMail choosing best encoding by itself,
+		//  as specified in https://javaee.github.io/javamail/FAQ#encodefilename and it should be
+		//  set in very special cases for legacy purpose.
+		//  if (!StringUtil.isAscii(fileName)) {
+		//  	try {
+		//  		fileName = MimeUtility.encodeText(fileName, "UTF-8", null);
+		//  	}
+		//  	catch (UnsupportedEncodingException e) {
+		//  	} // that should never happen!
+		//  }
+
 		mbp.setFileName(fileName);
 		if (!StringUtil.isEmpty(att.getType())) mbp.setHeader("Content-Type", att.getType());
 
