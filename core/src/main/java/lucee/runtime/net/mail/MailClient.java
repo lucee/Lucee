@@ -28,7 +28,6 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Properties;
 
-import javax.mail.Authenticator;
 import javax.mail.BodyPart;
 import javax.mail.Flags;
 import javax.mail.Folder;
@@ -37,11 +36,12 @@ import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.Multipart;
 import javax.mail.Part;
-import javax.mail.PasswordAuthentication;
 import javax.mail.Session;
 import javax.mail.Store;
 import javax.mail.internet.MimeMultipart;
 import javax.mail.internet.MimeUtility;
+
+import org.apache.commons.mail.DefaultAuthenticator;
 
 import lucee.commons.digest.HashUtil;
 import lucee.commons.io.CharsetUtil;
@@ -94,26 +94,6 @@ public abstract class MailClient implements PoolItem {
 	private static final Collection.Key PARENT = KeyImpl.getInstance("PARENT");
 	private static final Collection.Key TOTALMESSAGES = KeyImpl.getInstance("TOTALMESSAGES");
 	private static final Collection.Key NEW = KeyImpl.getInstance("NEW");
-
-	/**
-	 * Simple authenicator implmentation
-	 */
-	private final class _Authenticator extends Authenticator {
-
-		private String _fldif = null;
-		private String a = null;
-
-		@Override
-		protected PasswordAuthentication getPasswordAuthentication() {
-			return new PasswordAuthentication(_fldif, a);
-		}
-
-		public _Authenticator(String s, String s1) {
-			_fldif = s;
-			a = s1;
-		}
-	}
-
 	private static final Collection.Key DATE = KeyImpl.getInstance("date");
 	private static final Collection.Key SUBJECT = KeyImpl.getInstance("subject");
 	private static final Collection.Key SIZE = KeyImpl.getInstance("size");
@@ -259,7 +239,7 @@ public abstract class MailClient implements PoolItem {
 			properties.put("mail.imap.partialfetch", "false");
 		}
 		// if(TYPE_POP3==getType()){}
-		_session = username != null ? Session.getInstance(properties, new _Authenticator(username, password)) : Session.getInstance(properties);
+		_session = username != null ? Session.getInstance(properties, new DefaultAuthenticator(username, password)) : Session.getInstance(properties);
 		_store = _session.getStore(type);
 		if (!StringUtil.isEmpty(username)) _store.connect(server, port, username, password);
 		else _store.connect();

@@ -3,7 +3,7 @@
 
   <groupId>org.lucee</groupId>
   <artifactId>lucee</artifactId>
-  <version>5.4.4.43-SNAPSHOT</version>
+  <version>5.4.4.44-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>Lucee Loader Build</name>
@@ -390,18 +390,10 @@
   	<version>1.24.0</version>
     <scope>provided</scope>
   </dependency>
-	<!--Axis?
-    <dependency>
-		<groupId>commons-discovery</groupId>
-		<artifactId>commons-discovery</artifactId>
-		<version>0.5</version>
-    <scope>provided</scope>
-  </dependency>
-  -->
   <dependency>
     <groupId>org.lucee</groupId>
-    <artifactId>commons-email</artifactId>
-    <version>1.2.0</version>
+    <artifactId>commons-email-all</artifactId>
+    <version>1.6.0</version>
     <scope>provided</scope>
   </dependency>
   <dependency>
@@ -633,20 +625,6 @@
     <version>1.2.4</version>
     <scope>provided</scope>
   </dependency>
-  <dependency>
-	  <groupId>javax.mail</groupId>
-	  <artifactId>activation</artifactId>
-	  <version>1.6.2.0000L</version>
-    <scope>provided</scope>
-  </dependency>
-  <!-- causes conflict with hsqldb LDEV-1526 
-  <dependency>
-    <groupId>sun.security</groupId>
-    <artifactId>jaas</artifactId>
-    <version>1.2.4</version>
-    <scope>provided</scope>
-  </dependency>
-  -->
   <dependency>
     <groupId>tagsoup</groupId>
     <artifactId>tagsoup</artifactId>
