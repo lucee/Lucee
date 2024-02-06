@@ -226,9 +226,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mail" {
 			
 			try{
 				lock name="test:mail" {
-					application.testSMTP.purgeEmailFromAllMailboxes();
+					var mail=application.testSMTP;
 					
-					server.testSMTP.purgeEmailFromAllMailboxes();
 					var subject="öäüéàè€";
 					var filename="Das ist ein sehr langer sehr langer sehr langer sehr
 					langer Filename mit ä Ä ü Ü ß und Ös und andere Leerzeichen.txt";
