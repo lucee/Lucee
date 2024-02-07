@@ -506,7 +506,6 @@ public final class ScriptConverter extends ConverterSupport {
 		}
 
 		done.add(raw);
-		String serializeError = "";
 		try {
 			// Component
 			if (object instanceof Component) {
@@ -556,18 +555,16 @@ public final class ScriptConverter extends ConverterSupport {
 				deep--;
 				return;
 			}
-		} catch (Exception e){
-			serializeError = e.getMessage();
+		}
+		catch (Exception e) {
+			ConverterException ce = new ConverterException("can't serialize Object of type [ " + Caster.toClassName(object) + " ]");
+			ce.initCause(e);
+			throw e;
 		}
 		finally {
 			done.remove(raw);
 		}
-		throw new ConverterException("can't serialize Object of type [ " + Caster.toClassName(object) + " ]"
-			+ ((serializeError.length() > 0) ? ", exception thrown was [" +  serializeError + "]" : ""));
-		// deep--;
-		/*
-		 * } catch(StackOverflowError soe){ throw soe; }
-		 */
+		throw new ConverterException("can't serialize Object of type [ " + Caster.toClassName(object) + " ]");
 	}
 
 	private void _serializeXML(Node node, StringBuilder sb) {
