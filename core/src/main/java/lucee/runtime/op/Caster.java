@@ -2894,7 +2894,7 @@ public final class Caster {
 		if (Decision.isSimpleValue(o) || Decision.isArray(o)) throw new CasterException(o, "Struct");
 		if (o instanceof Collection) return new CollectionStruct((Collection) o);
 
-		if (o == null) throw new CasterException("null can not be casted to a Struct");
+		if (o == null) throw new CasterException("null cannot be cast to a Struct");
 
 		return new ObjectStruct(o);
 	}
