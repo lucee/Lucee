@@ -27,6 +27,7 @@ import org.apache.commons.net.ftp.FTPFile;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
+import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
@@ -104,7 +105,7 @@ public final class Ftp extends TagImpl {
 	private String proxyuser;
 	private String proxypassword = "";
 	private String fingerprint;
-	private String secure;
+	private String secure = "FALSE";
 
 	private boolean recursive;
 	private String key;
@@ -146,7 +147,7 @@ public final class Ftp extends TagImpl {
 		this.result = null;
 
 		this.fingerprint = null;
-		this.secure = "";
+		this.secure = "FALSE";
 		this.recursive = false;
 		this.key = null;
 		this.passphrase = "";
@@ -162,6 +163,7 @@ public final class Ftp extends TagImpl {
 	 * @param secure
 	 */
 	public void setSecure(String secure) {
+		if (StringUtil.isEmpty(secure, true)) return;
 		this.secure = secure.trim().toUpperCase();
 	}
 
@@ -652,17 +654,16 @@ public final class Ftp extends TagImpl {
 		required("actionParams", actionParams); // SIZE filename, etc
 		String params = "";
 		String command = ListUtil.first(actionParams, " ", false);
-		
+
 		if (ListUtil.len(actionParams, " ", false) > 1) { // avoid duplicating single commands like "SYSTEM"
 			params = ListUtil.rest(actionParams, " ", false);
 		}
 
 		AFTPClient client = getClient();
 		client.sendCommand(command, params);
-		
+
 		Struct cfftp = writeCfftp(client);
-		if (cfftp.get(SUCCEEDED) == Boolean.FALSE) 
-			cfftp.setEL(RETURN_VALUE, (command + " " + params)); // otherwise errortext and returnValue are the same
+		if (cfftp.get(SUCCEEDED) == Boolean.FALSE) cfftp.setEL(RETURN_VALUE, (command + " " + params)); // otherwise errortext and returnValue are the same
 		stoponerror = false;
 
 		return client;
@@ -700,7 +701,7 @@ public final class Ftp extends TagImpl {
 		}
 
 		int repCode = client.getReplyCode();
-		String repStr = client.getReplyString();  // there's a trailing NL in the reply string
+		String repStr = client.getReplyString(); // there's a trailing NL in the reply string
 		if (repStr == null) repStr = ""; // no nulls for cfml
 		else repStr = repStr.trim(); // trim coz I was always seeing a trailing new line
 		cfftp.setEL(ERROR_CODE, Double.valueOf(repCode));
@@ -807,12 +808,9 @@ public final class Ftp extends TagImpl {
 
 	public int getPort() {
 		if (port != -1) return port;
-		if (secure.equals("FTPS")) 
-			return PORT_FTPS;
-		else if (secure.equals("TRUE")) 
-			return PORT_SFTP;
-		else 
-			return PORT_FTP;
+		if (secure.equals("FTPS")) return PORT_FTPS;
+		else if (secure.equals("TRUE")) return PORT_SFTP;
+		else return PORT_FTP;
 	}
 
 	/**

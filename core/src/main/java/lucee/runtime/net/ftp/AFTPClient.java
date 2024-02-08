@@ -7,10 +7,10 @@ import java.net.InetAddress;
 import java.net.Socket;
 import java.net.SocketException;
 
-import lucee.runtime.op.Caster;
-
 import org.apache.commons.net.ftp.FTPConnectionClosedException;
 import org.apache.commons.net.ftp.FTPFile;
+
+import lucee.runtime.op.Caster;
 
 public abstract class AFTPClient {
 
@@ -22,9 +22,9 @@ public abstract class AFTPClient {
 		AFTPClient client;
 
 		if (secure.equals("FTPS")) client = new FTPSClientImpl(); // FTPS
-		else if (secure.toUpperCase().equals("TRUE")) client = new SFTPClientImpl(); // SFTP
+		else if (Caster.toBooleanValue(secure, false)) client = new SFTPClientImpl(); // SFTP
 		else client = new FTPClientImpl(); // FTP
-		 
+
 		client.init(host, port, username, password, fingerprint, stopOnError);
 		return client;
 	}

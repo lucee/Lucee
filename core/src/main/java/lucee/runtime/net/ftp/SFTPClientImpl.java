@@ -14,13 +14,13 @@ import java.util.Vector;
 import org.apache.commons.net.ftp.FTPFile;
 
 import com.jcraft.jsch.Channel;
+import com.jcraft.jsch.ChannelExec;
 import com.jcraft.jsch.ChannelSftp;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
 import com.jcraft.jsch.SftpATTRS;
 import com.jcraft.jsch.SftpException;
-import com.jcraft.jsch.ChannelExec;
 
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.Log;
@@ -53,12 +53,12 @@ public class SFTPClientImpl extends AFTPClient {
 			JSch.setLogger(new com.jcraft.jsch.Logger() {
 				@Override
 				public boolean isEnabled(int i) {
-					return true; // log all levels 
+					return true; // log all levels
 				}
 
 				@Override
 				public void log(int i, String s) {
-					System. out.println("JSch: " + s);
+					// System. out.println("JSch: " + s);
 				}
 			});
 		}
@@ -120,8 +120,7 @@ public class SFTPClientImpl extends AFTPClient {
 
 			if (timeout > 0) session.setTimeout(timeout);
 
-			if (password != null && sshKey == null)
-				session.setConfig("PreferredAuthentications", "password");
+			if (password != null && sshKey == null) session.setConfig("PreferredAuthentications", "password");
 
 			session.connect();
 
@@ -278,8 +277,7 @@ public class SFTPClientImpl extends AFTPClient {
 
 	@Override
 	public void sendCommand(String command, String params) throws IOException {
-		try
-		{
+		try {
 			StringBuilder outputBuffer = new StringBuilder();
 
 			Channel channel = session.openChannel("exec");
@@ -297,13 +295,16 @@ public class SFTPClientImpl extends AFTPClient {
 
 			replyCode = channel.getExitStatus();
 			replyString = outputBuffer.toString();
-			
-			if (replyCode == -1){
+
+			if (replyCode == -1) {
 				positiveCompletion = false;
-				throw new IOException("SFTP Error, action [quote], actionParams [" + command + " " + params + "]"
-					+ " server returned code [" + replyCode + "], " +  replyString );
-			} else { positiveCompletion = true; }
-		} catch (JSchException ioe) {
+				throw new IOException("SFTP Error, action [quote], actionParams [" + command + " " + params + "]" + " server returned code [" + replyCode + "], " + replyString);
+			}
+			else {
+				positiveCompletion = true;
+			}
+		}
+		catch (JSchException ioe) {
 			handleFail(ioe, stopOnError);
 		}
 	}
