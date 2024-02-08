@@ -22,14 +22,15 @@
 package lucee.runtime.functions.math;
 
 import lucee.runtime.PageContext;
-import lucee.runtime.op.Decision;
-import lucee.runtime.exp.FunctionException;
+import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.ext.function.Function;
+import lucee.runtime.op.Caster;
 
 public final class BitAnd implements Function {
-	public static double call(PageContext pc, double number, double number2) throws FunctionException {
-		if (!Decision.isInteger(number)) throw new FunctionException(pc, "bitAnd", 1, "number1", "value [" + number + "] must be between the integer range");
-		if (!Decision.isInteger(number2)) throw new FunctionException(pc, "bitAnd", 2, "number2", "value [" + number + "] must be between the integer range");
-		return (int) number & (int) number2;
+	private static final long serialVersionUID = -8252049909001223678L;
+
+	public static double call(PageContext pc, double number, double number2) throws ExpressionException {
+
+		return Caster.toIntValueLossless(number) & Caster.toIntValueLossless(number2);
 	}
 }

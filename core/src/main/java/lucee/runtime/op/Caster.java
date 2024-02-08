@@ -848,6 +848,21 @@ public final class Caster {
 		return n.intValue();
 	}
 
+	public static int toIntValueLossless(double d) throws ExpressionException {
+		// Check if d is within the int range
+		if (d < Integer.MIN_VALUE || d > Integer.MAX_VALUE) {
+			throw new ExpressionException("The value " + d + " is outside the range that can be represented as an int.");
+		}
+		// Check if the absolute value of the fractional part is smaller than the acceptable threshold
+		double fractionPart = d % 1;
+		double acceptableFraction = 1e-24;
+		if (Math.abs(fractionPart) >= acceptableFraction) {
+			throw new ExpressionException("The value " + d + " cannot be converted to int without significant data loss.");
+		}
+		return (int) Math.round(d); // Use Math.round to properly handle values very close to the next integer
+
+	}
+
 	/**
 	 * cast an int value to an int value (do nothing)
 	 * 
