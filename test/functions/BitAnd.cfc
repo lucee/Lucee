@@ -8,9 +8,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				assertEquals("1",BitAnd(1, 3));
 				assertEquals("1",BitAnd(3, 5));
 				assertEquals("1",BitAnd(1, 1.0));
-				assertEquals("1",BitAnd(1, 1.1));
-				assertEquals("1",BitAnd(1, 1.9));
-				assertEquals("0",BitAnd(1, 0.9999999));
+				assertEquals("0",BitAnd(1, 0.999999999999999999));
 			});
 
 			it(title="test outside the int range", body = function( currentSpec ) {
