@@ -7,6 +7,8 @@ import java.net.InetAddress;
 import java.net.Socket;
 import java.net.SocketException;
 
+import lucee.runtime.op.Caster;
+
 import org.apache.commons.net.ftp.FTPConnectionClosedException;
 import org.apache.commons.net.ftp.FTPFile;
 
@@ -15,9 +17,14 @@ public abstract class AFTPClient {
 	public final static int FILE_TYPE_BINARY = 1;
 	public final static int FILE_TYPE_TEXT = 2;
 
-	public static AFTPClient getInstance(boolean secure, InetAddress host, int port, String username, String password, String fingerprint, boolean stopOnError) throws IOException {
+	public static AFTPClient getInstance(String secure, InetAddress host, int port, String username, String password, String fingerprint, boolean stopOnError) throws IOException {
 
-		AFTPClient client = secure ? new SFTPClientImpl() : new FTPClientImpl();
+		AFTPClient client;
+
+		if (secure.equals("FTPS")) client = new FTPSClientImpl(); // FTPS
+		else if (secure.toUpperCase().equals("TRUE")) client = new SFTPClientImpl(); // SFTP
+		else client = new FTPClientImpl(); // FTP
+		 
 		client.init(host, port, username, password, fingerprint, stopOnError);
 		return client;
 	}
@@ -346,4 +353,6 @@ public abstract class AFTPClient {
 	public abstract boolean isPositiveCompletion();
 
 	public abstract boolean directoryExists(String pathname) throws IOException;
+
+	public abstract void sendCommand(String command, String params) throws IOException;
 }

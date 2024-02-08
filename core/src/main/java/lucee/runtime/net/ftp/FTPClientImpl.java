@@ -179,4 +179,8 @@ public class FTPClientImpl extends AFTPClient {
 		}
 	}
 
+	@Override
+	public void sendCommand(String command, String params) throws IOException {
+		client.sendCommand(command, params);
+	}
 }

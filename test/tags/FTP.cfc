@@ -17,14 +17,47 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  * 
  ---><cfscript>
-component extends="org.lucee.cfml.test.LuceeTestCase" labels="ftp,sftp"	{
-	
-	
-	//public function afterTests(){}
-	
-	public function setUp(){}
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="ftp" {
 
+	public void function testSFTP() {
+		var sftp=getSFTPCredentials();
+		if (!structCount(sftp)) return;
+		_test(
+			secure: true,
+			host: sftp.server,
+			user: sftp.username,
+			pass: sftp.password,
+			port: sftp.port,
+			base: sftp.base_path
+		);
+	}
+	
+	public void function testFTPS() {
+		var ftps=getFTPSCredentials();
+		if (!structCount(ftps)) return;
+		_test(
+			secure: true,
+			host: ftps.server,
+			user: ftps.username,
+			pass: ftps.password,
+			port: ftps.port,
+			base: ftps.base_path
+		);
+	}
 
+	public void function testFTP() {
+		var ftp=getFTPCredentials();
+		if (!structCount(ftp)) return;
+		_test(
+			secure: false,
+			host: ftp.server,
+			user: ftp.username,
+			pass: ftp.password,
+			port: ftp.port,
+			base: ftp.base_path
+		);
+	}
+	
 	private function _test(required boolean secure,required string host,required number port=21,required string user,required string pass,required string base){
 
 		ftp action = "open" 
@@ -81,6 +114,28 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ftp,sftp"	{
 			assertEquals(list3.name,fileName);
 			assertEquals(list3.path,file);
 			assertEquals(list3.type,"file");
+
+			//systemOutput("SFTP #secure#", true);
+
+			if ( arguments.secure eq true && arguments.secure neq "FTPS" ){ // ftp and sftp are rather different 
+				ftp action="quote" actionParams="ls" connection = "conn";
+				expect( trim( cfftp.returnValue ) ).NotToBeEmpty();
+				//systemOutput(cfftp, true);
+			} else {
+				ftp action="quote" actionParams="SYST" connection = "conn";
+				expect( trim( cfftp.returnValue ) ).NotToBeEmpty();
+				//systemOutput(cfftp, true);
+
+					// test action="quote", custom command
+				ftp action="quote" actionParams="SIZE #file#" connection = "conn";
+				expect( trim( cfftp.returnValue ) ).toBe( "213 " & Len( FileRead( getCurrentTemplatePath( ) ) ) );
+				//systemOutput(cfftp, true);
+
+				// test action="quote", custom command, trigger a 550 file not found exception
+				ftp action="quote" actionParams="SIZE #file#-missing" connection = "conn";
+				expect( trim( cfftp.errorCode ) ).toBe( "550" );
+				//systemOutput(cfftp, true);
+			}
 			
 			// we read the file
 			var src=getCurrentTemplatePath();
@@ -122,7 +177,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ftp,sftp"	{
 			// we add again a file and directory to be sure we can delete a folder with content
 			ftp action="createdir" directory=subdir connection = "conn";
 			ftp action="putFile"  localfile=getCurrentTemplatePath() remoteFile=subfile connection= "conn";
-			
 
 		}
 		finally {
@@ -131,44 +185,18 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ftp,sftp"	{
 			ftp action="listdir" directory=base connection = "conn" name="local.list20";
 			assertEquals(list1.recordcount,list20.recordcount);
 		}
-
-	}
-
-	public function testSFTP() {
-		var sftp=getSFTPCredentials();
-		if(!structCount(sftp)) return;
-		return; //disable failing test
-		_test(
-			secure: true,
-			host: sftp.server,
-			user: sftp.username,
-			pass: sftp.password,
-			port: sftp.port,
-			base: sftp.base_path
-		);
-	}
-
-	public function testFTP() {
-		var ftp=getFTPCredentials();
-		if(!structCount(ftp)) return;
-		return; //disable failing test
-		_test(
-			secure: false,
-			host: ftp.server,
-			user: ftp.username,
-			pass: ftp.password,
-			port: ftp.port,
-			base: ftp.base_path
-		);
 	}
 
 	private struct function getFTPCredentials() {
-		return server.getTestService("ftp");
+		return creds = server.getTestService("ftp");
+	}
+
+	private struct function getFTPSCredentials() {
+		return creds = server.getTestService("ftps");
 	}
 
 	private struct function getSFTPCredentials() {
-		// getting the credentials from the environment variables
-		return server.getTestService("sftp");
+		return creds = server.getTestService("sftp");
 	}
 } 
 </cfscript>
