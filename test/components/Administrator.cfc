@@ -71,14 +71,14 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				});
 
 				it(title="testResetRegional()", body=function( currentSpec ) {
-					var adminReginals=admin.getRegional();
+					var adminRegionals=admin.getRegional();
 					adminweb.resetRegional();
-					var adminWebReginals=adminweb.getRegional();
+					var adminWebRegionals=adminweb.getRegional();
 
-					assertEquals(adminWebReginals.locale EQ adminReginals.locale,true);
-					assertEquals(adminWebReginals.timeserver EQ adminReginals.timeserver,true);
-					assertEquals(adminWebReginals.timezone EQ adminReginals.timezone,true);
-					assertEquals(adminWebReginals.usetimeserver EQ adminReginals.usetimeserver,true);
+					assertEquals(adminWebRegionals.locale EQ adminRegionals.locale,true);
+					assertEquals(adminWebRegionals.timeserver EQ adminRegionals.timeserver,true);
+					assertEquals(adminWebRegionals.timezone EQ adminRegionals.timezone,true);
+					assertEquals(adminWebRegionals.usetimeserver EQ adminRegionals.usetimeserver,true);
 				});
 			});
 

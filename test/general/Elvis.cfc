@@ -1,138 +1,127 @@
-<!--- 
- *
- * Copyright (c) 2015, Lucee Assosication Switzerland. All rights reserved.
- *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either 
- * version 2.1 of the License, or (at your option) any later version.
- * 
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public 
- * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
- * 
- ---><cfscript>
-component extends="org.lucee.cfml.test.LuceeTestCase"	{
-
-	public void function testVarNotExisting(){
-		assertEquals('NotExisting',ljkl.jljl.ghu?:'NotExisting');
-		assertEquals('NotExisting',ljklkju?:'NotExisting');
-	}
-
-	public void function testVarExisting(){
-		var a.b.c.d="Existing";
-		assertEquals('Existing',a.b.c.d?:'NotExisting');
-		assertTrue(isStruct(a?:'NotExisting'));
-	}
-
-
-	public void function testNumberDefault(){
-		assertEquals(0,ssfih?:0);
-	}
-	public void function testBooleanDefault(){
-		assertEquals(true,ssfih?:true);
-	}
-	public void function testDateDefault(){
-		var d=now();
-		assertEquals(d,ssfih?:d);
-	}
-
-	public void function testUseResultAsPrimitiveValue(){
-		assertEquals(2, (ssfih?:1)+1 );
-	}
-
-	public void function testDefaultUDF(){
-		assertEquals(123, ddjhwedkjewh?:_test() );
-	}
-	private function _test(){
-		return 123;
-	}
-
-
-
-	public void function testNullValue(){
-		assertEquals(1, nullValue()?:1 );
-	}
-
-
-
-	public void function testFuncNotExisting() skip="true" {
-		assertEquals('NotExisting',ljkl.jljl.ghu()?:'NotExisting');
-		assertEquals('NotExisting',ljklkju()?:'NotExisting');
-	}
-
-	public void function testFuncExisting(){
-		var a.b.c.d=testElvis;
-		assertEquals('Existing',a.b.c.d()?:'NotExisting');
-		assertEquals('Existing',testElvis()?:'NotExisting');
-	}
-
-	public void function testFuncExistingRtnNull1(){
-		var a.b.c.d=rtnNull;
-		assertEquals('NotExisting',a.b.c.d()?:'NotExisting');
-	}
-
-	public void function testFuncExistingRtnNull2(){
-		assertEquals('NotExisting',rtnNull()?:'NotExisting');
-	}
-
-	public void function testFuncExistingRtnNull3(){
-		var a.b.c.d=rtnNull;
-		assertEquals('NotExisting',a.b.c.d(a:1)?:'NotExisting');
-	}
-
-	public void function testFuncExistingRtnNull4(){
-		assertEquals('NotExisting',rtnNull(a:1)?:'NotExisting');
-	}
-
-	public void function testSaveNavOp() localmode=true {
-		assertTrue(isNull(myvar?.firstlevel()));
-		assertTrue(isNull(myvar?.firstlevel?.nextlevel()));
-		assertTrue(isNull(myvar?.firstlevel?.nextlevel?.udf()));
-
-		x=myvar?.firstlevel();
-		assertTrue(isNull(x));
-		x=myvar?.firstlevel?.nextlevel();
-		assertTrue(isNull(x));
-		x=myvar?.firstlevel?.nextlevel?.udf();
-		assertTrue(isNull(x));
-
-		x=myvar?.firstlevel;
-		assertTrue(isNull(x));
-		x=myvar?.firstlevel?.nextlevel;
-		assertTrue(isNull(x));
-		x=myvar?.firstlevel?.nextlevel?.udf;
-		assertTrue(isNull(x));
-	}
-
-	public void function testQueryColumn() localmode=true {
+component extends="org.lucee.cfml.test.LuceeTestCase"{
+	function beforeAll(){
 		
-		var fns=getApplicationSettings().nullSupport;
-		var q = queryNew( "nullField", "varchar", [ [ nullValue() ] ] );
-	 
-		try {
-		   cfapplication( action="update", nullSupport=false);
-		   assertEquals('',q.nullField ?: 'is_null');
-	 
-		   cfapplication( action="update", nullSupport=true);
-		   assertEquals('is_null',q.nullField ?: 'is_null');
-		   
-		}
-		finally {
-		   cfapplication( action="update", nullSupport=fns);
-		}
 	}
+
+	function afterAll(){
+		
+	}
+
+	function run( testResults , testBox ) {
+		describe( "test suite for the elvis operator", function() {
+
+			it(title="test not existing variable", body=function() {
+				expect(not_.existing_.var_?:'NotExisting').toBe("NotExisting");
+				expect(not_existing_var?:"NotExisting").toBe("NotExisting");
+			});
+
+			it(title="test existing variable", body=function() {
+				var notexa.b.c.d="Existing";
+				expect(notexa.b.c.d?:'NotExisting').toBe("Existing");
+				expect(notexa?:"NotExisting").toBeTypeOf("struct");
+			});
+
+			it(title="test number default", body=function() {
+				expect(not_.existing_.var_?:0).toBe(0);
+				expect(not_existing_var?:0).toBe(0);
+				expect(not_existing_var?:0).toBeTypeOf("numeric");
+			});
+
+			it(title="test boolean default", body=function() {
+				expect(not_.existing_.var_?:true).toBe(true);
+				expect(not_existing_var?:true).toBe(true);
+				expect(not_existing_var?:true).toBeTypeOf("boolean");
+			});
+
+			it(title="test boolean default", body=function() {
+				var d=now();
+				expect(not_.existing_.var_?:d).toBe(d);
+				expect(not_existing_var?:d).toBe(d);
+				expect(not_existing_var?:d).toBeTypeOf("datetime");
+			});
+
+			it(title="test UDF default", body=function() {
+				expect(not_.existing_.var_?:_test()).toBe(123);
+			});
+
+			it(title="test use result as a math operant", body=function() {
+				expect( (not_.existing_.var_?:1)+1  ).toBe(2);
+			});
+
+			it(title="test if a function does not exist",skip=true, body=function() {
+				expect( ljkl.jljl.ghu()?:'NotExisting'  ).toBe('NotExisting');
+				expect( ljklkju()?:'NotExisting'  ).toBe('NotExisting');
+			});
+
+			it(title="test if a function does not exist",skip=true, body=function() {
+				var notexa.b.c.d=testElvis;
+				expect( notexa.b.c.d()?:'NotExisting'  ).toBe('Existing');
+				expect( testElvis()?:'NotExisting'  ).toBe('Existing');
+			});
+
+			it(title="test if a key is null",skip=true, body=function() {
+				var notexa.b.c.d=rtnNull;
+				expect( notexa.b.c.d()?:'NotExisting'  ).toBe('NotExisting');
+				expect( notexa.b.c.d(a:1)?:'NotExisting'  ).toBe('NotExisting');
+				expect( notexa.b.c.d(a=1)?:'NotExisting'  ).toBe('NotExisting');
+				expect( rtnNull()?:'NotExisting'  ).toBe('NotExisting');
+				expect( rtnNull(a:1)?:'NotExisting'  ).toBe('NotExisting');
+			});
+
+			it(title="test if a key is null",skip=true, body=function() {
+				var a.b.c.d=rtnNull;
+				expect( a.b.c.d()?:'NotExisting'  ).toBe('NotExisting');
+			});
+
+
+			it(title="testing a load test with multithreading", body=function(){
+				
+				var max=20; //how many concurrent threads to run
+
+				var names=[];
+				var server.a.b.c={};
+
+				loop from=1 to=max index="local.i" {
+					var name="testelvis"&i;
+					arrayAppend(names, name);
+					// threads that do the elvis on a variable that is set and removed all the time
+					thread name=name  {
+						loop times=100 {
+							thread.test=server.a.b.c.d?:nullValue(); 
+						}
+					}
+					// threads that set and remove the variable all the time
+					thread name=name&"x" sleeptime=i-1 {
+						loop times=20 {
+							server.a.b.c.d="";
+							structDelete(server.a.b.c, "d",false);
+							if(sleeptime>0) sleep(sleeptime); 
+						}
+					}
+				}
+				// wait that all test threads do finish (we dn't care about the threads set/unset the variable)
+				thread action="join" name=arrayToList(names);
+				
+				// check if there is a thread that did not complete (means failed)
+				loop array=names item="local.name" {
+					if(cfthread[name].STATUS!="COMPLETED" && !isNull(cfthread[name].ERROR)) {
+						throw cfthread[name].ERROR; // rethrow the exception from inside the thread (lot of fun)
+					}
+				}
+			});
+
+		});
+	}
+
 
 
 	private function testElvis(){		
 		return "Existing";
 	}
+
+	private function _test(){
+		return 123;
+	}
 	private function rtnNull(){	
 	}
-
-} 
-</cfscript>
+}

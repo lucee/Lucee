@@ -181,6 +181,7 @@ jobs:
         POP_PASSWORD: doesntmatter
         LDAP_SERVER: localhost
         LDAP_PORT: 10389
+        LDAP_PORT_SECURE: 10636
         LDAP_BASE_DN: dc=planetexpress,dc=com
         LDAP_USERNAME: cn=admin,dc=planetexpress,dc=com
         LDAP_PASSWORD: GoodNewsEveryone

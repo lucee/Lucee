@@ -848,6 +848,22 @@ public final class Caster {
 		return n.intValue();
 	}
 
+	public static int toIntValueLossless(double d) throws ExpressionException {
+		long l = Math.round(d);
+		// Check if d is within the int range
+		if (l < Integer.MIN_VALUE || l > Integer.MAX_VALUE) {
+			throw new ExpressionException("The value [" + Caster.toStringPercise(d) + "] is outside the range that can be represented as an int.");
+		}
+		int i = (int) l; // safe to do because of the test above
+
+		if (l == d) return i;
+
+		if (d > l && (d - l) < 0.000000000001) return i;
+		if (l > d && (l - d) < 0.000000000001) return i;
+
+		throw new ExpressionException("The value [" + Caster.toStringPercise(d) + "] cannot be converted to int without significant data loss.");
+	}
+
 	/**
 	 * cast an int value to an int value (do nothing)
 	 * 
@@ -2293,9 +2309,11 @@ public final class Caster {
 		return str;
 	}
 
+	private static DecimalFormat pf = (DecimalFormat) DecimalFormat.getInstance(Locale.US);
 	private static DecimalFormat df = (DecimalFormat) DecimalFormat.getInstance(Locale.US);
 	private static DecimalFormat ff = (DecimalFormat) DecimalFormat.getInstance(Locale.US);
 	static {
+		pf.applyLocalizedPattern("#.################################################");
 		df.applyLocalizedPattern("#.########################");
 		ff.applyLocalizedPattern("#.#######");
 	}
@@ -2308,6 +2326,10 @@ public final class Caster {
 		if (l > d && (l - d) < 0.000000000001) return toString(l);
 
 		return df.format(d);
+	}
+
+	public static String toStringPercise(double d) {
+		return pf.format(d);
 	}
 
 	public static String toString(float f) {
@@ -2894,7 +2916,7 @@ public final class Caster {
 		if (Decision.isSimpleValue(o) || Decision.isArray(o)) throw new CasterException(o, "Struct");
 		if (o instanceof Collection) return new CollectionStruct((Collection) o);
 
-		if (o == null) throw new CasterException("null can not be casted to a Struct");
+		if (o == null) throw new CasterException("null cannot be cast to a Struct");
 
 		return new ObjectStruct(o);
 	}

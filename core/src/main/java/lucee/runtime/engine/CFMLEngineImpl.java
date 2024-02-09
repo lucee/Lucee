@@ -1477,7 +1477,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 	}
 
 	@Override
-	public Operation getOperatonUtil() {
+	public Operation getOperatonUtil() { // FUTURE rename to getOperationUtil()
 		return OperationImpl.getInstance();
 	}
 

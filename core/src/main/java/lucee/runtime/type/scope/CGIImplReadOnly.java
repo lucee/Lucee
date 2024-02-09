@@ -191,6 +191,7 @@ public final class CGIImplReadOnly extends ReadOnlyStruct implements CGI, Script
 		try {
 			if (first == 'a') {
 				if (key.equals(KeyConstants._auth_type)) return toString(req.getAuthType());
+				if (key.equals(KeyConstants._auth_user)) return toString(req.getRemoteUser());
 			}
 			else if (first == 'c') {
 				if (key.equals(KeyConstants._context_path)) return toString(req.getContextPath());

@@ -27,6 +27,7 @@ import org.apache.commons.net.ftp.FTPFile;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
+import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
@@ -58,6 +59,7 @@ public final class Ftp extends TagImpl {
 	private static final String ASCCI_EXT_LIST = "txt;htm;html;cfm;cfml;shtm;shtml;css;asp;asa";
 	private static final int PORT_FTP = 21;
 	private static final int PORT_SFTP = 22;
+	private static final int PORT_FTPS = 990;
 
 	private static final Key SUCCEEDED = KeyConstants._succeeded;
 	private static final Key ERROR_CODE = KeyConstants._errorCode;
@@ -75,6 +77,7 @@ public final class Ftp extends TagImpl {
 	private FTPPoolImpl pool;
 
 	private String action;
+	private String actionParams;
 	private String username;
 	private String password;
 	private String server;
@@ -102,7 +105,7 @@ public final class Ftp extends TagImpl {
 	private String proxyuser;
 	private String proxypassword = "";
 	private String fingerprint;
-	private boolean secure;
+	private String secure = "FALSE";
 
 	private boolean recursive;
 	private String key;
@@ -116,6 +119,7 @@ public final class Ftp extends TagImpl {
 		this.pool = null;
 
 		this.action = null;
+		this.actionParams = null;
 		this.username = null;
 		this.password = null;
 		this.server = null;
@@ -143,7 +147,7 @@ public final class Ftp extends TagImpl {
 		this.result = null;
 
 		this.fingerprint = null;
-		this.secure = false;
+		this.secure = "FALSE";
 		this.recursive = false;
 		this.key = null;
 		this.passphrase = "";
@@ -154,12 +158,13 @@ public final class Ftp extends TagImpl {
 	}
 
 	/**
-	 * sets the attribute action
+	 * sets the secure flag, true / false / sftp
 	 * 
-	 * @param action
+	 * @param secure
 	 */
-	public void setSecure(boolean secure) {
-		this.secure = secure;
+	public void setSecure(String secure) {
+		if (StringUtil.isEmpty(secure, true)) return;
+		this.secure = secure.trim().toUpperCase();
 	}
 
 	@Override
@@ -190,11 +195,12 @@ public final class Ftp extends TagImpl {
 				else if (action.equals("existsdir")) client = actionExistsDir();
 				else if (action.equals("existsfile")) client = actionExistsFile();
 				else if (action.equals("exists")) client = actionExists();
+				else if (action.equals("quote")) client = actionQuote();
 				// else if(action.equals("copy")) client=actionCopy();
 
-				else throw new ApplicationException("Attribute [action] has an invalid value [" + action + "]",
+				else throw new ApplicationException("Tag [ftp] attribute [action] has an invalid value [" + action + "]",
 						"valid values are [open, close, listDir, createDir, removeDir, changeDir, getCurrentDir, "
-								+ "getCurrentURL, existsFile, existsDir, exists, getFile, putFile, rename, remove]");
+								+ "getCurrentURL, existsFile, existsDir, exists, getFile, putFile, quote, rename, remove]");
 
 			}
 			catch (IOException ioe) {
@@ -634,7 +640,32 @@ public final class Ftp extends TagImpl {
 		AFTPClient client = pool.remove(conn);
 
 		Struct cfftp = writeCfftp(client);
-		cfftp.setEL("succeeded", Caster.toBoolean(client != null));
+		cfftp.setEL(SUCCEEDED, Caster.toBoolean(client != null));
+		return client;
+	}
+
+	/**
+	 * send a custom command to the FTP server
+	 * 
+	 * @return FTPCLient
+	 * @throws IOException, PageException
+	 */
+	private AFTPClient actionQuote() throws IOException, PageException {
+		required("actionParams", actionParams); // SIZE filename, etc
+		String params = "";
+		String command = ListUtil.first(actionParams, " ", false);
+
+		if (ListUtil.len(actionParams, " ", false) > 1) { // avoid duplicating single commands like "SYSTEM"
+			params = ListUtil.rest(actionParams, " ", false);
+		}
+
+		AFTPClient client = getClient();
+		client.sendCommand(command, params);
+
+		Struct cfftp = writeCfftp(client);
+		if (cfftp.get(SUCCEEDED) == Boolean.FALSE) cfftp.setEL(RETURN_VALUE, (command + " " + params)); // otherwise errortext and returnValue are the same
+		stoponerror = false;
+
 		return client;
 	}
 
@@ -670,10 +701,11 @@ public final class Ftp extends TagImpl {
 		}
 
 		int repCode = client.getReplyCode();
-		String repStr = client.getReplyString();
+		String repStr = client.getReplyString(); // there's a trailing NL in the reply string
+		if (repStr == null) repStr = ""; // no nulls for cfml
+		else repStr = repStr.trim(); // trim coz I was always seeing a trailing new line
 		cfftp.setEL(ERROR_CODE, Double.valueOf(repCode));
 		cfftp.setEL(ERROR_TEXT, repStr);
-
 		cfftp.setEL(SUCCEEDED, Caster.toBoolean(client.isPositiveCompletion()));
 		cfftp.setEL(RETURN_VALUE, repStr);
 		return cfftp;
@@ -776,7 +808,9 @@ public final class Ftp extends TagImpl {
 
 	public int getPort() {
 		if (port != -1) return port;
-		return secure ? PORT_SFTP : PORT_FTP;
+		if (secure.equals("FTPS")) return PORT_FTPS;
+		else if (secure.equals("TRUE")) return PORT_SFTP;
+		else return PORT_FTP;
 	}
 
 	/**
@@ -929,5 +963,12 @@ public final class Ftp extends TagImpl {
 
 	public void setFingerprint(String fingerprint) {
 		this.fingerprint = fingerprint;
+	}
+
+	/**
+	 * @param actionParams a custom ftp command, used with action="quote"
+	 */
+	public void setActionparams(String actionParams) {
+		this.actionParams = actionParams;
 	}
 }

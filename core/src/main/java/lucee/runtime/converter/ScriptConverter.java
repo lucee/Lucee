@@ -556,14 +556,15 @@ public final class ScriptConverter extends ConverterSupport {
 				return;
 			}
 		}
+		catch (Exception e) {
+			ConverterException ce = new ConverterException("can't serialize Object of type [ " + Caster.toClassName(object) + " ]");
+			ce.initCause(e);
+			throw e;
+		}
 		finally {
 			done.remove(raw);
 		}
 		throw new ConverterException("can't serialize Object of type [ " + Caster.toClassName(object) + " ]");
-		// deep--;
-		/*
-		 * } catch(StackOverflowError soe){ throw soe; }
-		 */
 	}
 
 	private void _serializeXML(Node node, StringBuilder sb) {

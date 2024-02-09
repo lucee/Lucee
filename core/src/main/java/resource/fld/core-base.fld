@@ -2989,6 +2989,39 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<type>string</type>
 		</return>
 	</function>
+	
+	<!-- createULID -->
+<function>
+    <name>createULID</name>
+    <class>lucee.runtime.functions.other.CreateULID</class>
+    <description>Generates a ULID (Universally Unique Lexicographically Sortable Identifier), a 128-bit identifier where the first 48 bits are a timestamp representing milliseconds since the Unix Epoch (1970-01-01), ensuring temporal ordering. The remaining 80 bits are populated by a secure random number generator, contributing to the identifier's uniqueness. The output is a 26-character string in its canonical representation. This function can operate in three modes specified by the 'type' argument: 'empty' for standard ULID generation, 'monotonic' to ensure sequential IDs even in rapid succession, and 'hash' to generate a ULID based on hashed input values.</description>
+	<argument>
+	    <name>type</name>
+	    <type>string</type>
+	    <required>false</required>
+	    <default></default>
+	    <values>monotonic,hash</values>
+	    <description>Specifies the generation mode of the ULID. If not defined, a standard ULID is generated. 'monotonic' ensures ULIDs increase monotonically, suitable for ensuring order in rapid generation scenarios. 'hash' mode generates a ULID based on hashing the provided inputs, useful for creating deterministic identifiers.</description>
+	</argument>
+    <argument>
+        <name>input1</name>
+        <type>number</type>
+        <required>false</required>
+        <default></default>
+        <description>Used in conjunction with the 'hash' type, this numeric input contributes to the generation of a deterministic ULID by influencing its random component.</description>
+    </argument>
+    <argument>
+        <name>input2</name>
+        <type>string</type>
+        <required>false</required>
+        <default></default>
+        <description>Similar to 'input1', this string input is utilized only in the 'hash' mode to further seed the ULID's random component, enabling the creation of a deterministic ULID based on the hash of the inputs.</description>
+    </argument>
+    <return>
+        <type>string</type>
+        <description>Returns a 26-character string representing the ULID, which is globally unique and sortable based on generation time.</description>
+    </return>
+</function>
 
 	<!-- CreateUniqueId -->
 	<function>

@@ -44,7 +44,8 @@ public class Elvis extends RefSupport implements Ref {
 		if (left instanceof Variable) {
 			Variable var = (Variable) left;
 			String[] arr = LFunctionValue.toStringArray(pc, var);
-			return lucee.runtime.op.Elvis.operate(pc, arr) ? left.getValue(pc) : right.getValue(pc);
+			Object val = lucee.runtime.op.Elvis.load(pc, arr);
+			return val != null ? val : right.getValue(pc);
 		}
 
 		Object val = left.getValue(pc);
