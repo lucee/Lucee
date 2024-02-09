@@ -338,6 +338,7 @@ public class KeyConstants {
 	public static final Key _clone = KeyImpl._const("clone");
 	public static final Key _close = KeyImpl._const("close");
 	public static final Key _code = KeyImpl._const("code");
+	public static final Key _symbol = KeyImpl._const("symbol");
 	public static final Key _coldfusion = KeyImpl._const("coldfusion");
 	public static final Key _collection = KeyImpl._const("collection");
 	public static final Key _column = KeyImpl._const("column");
