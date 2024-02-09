@@ -92,7 +92,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				// we need to make this in a separate file because this creates a template exception (comppiler)
 				var uri=createURI("Struct/invalid1.cfm");
 				local.res=_InternalRequest(
-					template:uri,
+					template:uri
 				);
 				expect(res.filecontent.trim()).toBe("");
 			});
@@ -101,7 +101,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				// we need to make this in a separate file because this creates a template exception (comppiler)
 				var uri=createURI("Struct/invalid2.cfm");
 				local.res=_InternalRequest(
-					template:uri,
+					template:uri
 				);
 				expect(res.filecontent.trim()).toBe("");
 			});
@@ -110,7 +110,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				// we need to make this in a separate file because this creates a template exception (comppiler)
 				var uri=createURI("Struct/invalid3.cfm");
 				local.res=_InternalRequest(
-					template:uri,
+					template:uri
 				);
 				expect(res.filecontent.trim()).toBe("");
 			});
