@@ -73,7 +73,7 @@ public class Some extends BIF implements ClosureFunc {
 
 		ExecutorService execute = null;
 		List<Future<Data<Object>>> futures = null;
-		if (parallel) {
+		if (parallel && maxThreads > 1) {
 			execute = Executors.newFixedThreadPool(maxThreads);
 			futures = new ArrayList<Future<Data<Object>>>();
 		}
@@ -128,7 +128,7 @@ public class Some extends BIF implements ClosureFunc {
 		else if (obj instanceof StringListData) {
 			res = invoke(pc, (StringListData) obj, udf, execute, futures);
 		}
-		else throw new FunctionException(pc, "Some", 1, "data", "cannot iterate througth this type " + Caster.toTypeName(obj.getClass()));
+		else throw new FunctionException(pc, "Some", 1, "data", "Cannot iterate over this type [" + Caster.toTypeName(obj.getClass()) + "]");
 
 		if (parallel) res = afterCall(pc, futures, execute);
 
