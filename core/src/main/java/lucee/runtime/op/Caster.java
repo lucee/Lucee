@@ -849,18 +849,19 @@ public final class Caster {
 	}
 
 	public static int toIntValueLossless(double d) throws ExpressionException {
+		long l = Math.round(d);
 		// Check if d is within the int range
-		if (d < Integer.MIN_VALUE || d > Integer.MAX_VALUE) {
-			throw new ExpressionException("The value " + d + " is outside the range that can be represented as an int.");
+		if (l < Integer.MIN_VALUE || l > Integer.MAX_VALUE) {
+			throw new ExpressionException("The value [" + Caster.toStringPercise(d) + "] is outside the range that can be represented as an int.");
 		}
-		// Check if the absolute value of the fractional part is smaller than the acceptable threshold
-		double fractionPart = d % 1;
-		double acceptableFraction = 1e-24;
-		if (Math.abs(fractionPart) >= acceptableFraction) {
-			throw new ExpressionException("The value " + d + " cannot be converted to int without significant data loss.");
-		}
-		return (int) Math.round(d); // Use Math.round to properly handle values very close to the next integer
+		int i = (int) l; // safe to do because of the test above
 
+		if (l == d) return i;
+
+		if (d > l && (d - l) < 0.000000000001) return i;
+		if (l > d && (l - d) < 0.000000000001) return i;
+
+		throw new ExpressionException("The value [" + Caster.toStringPercise(d) + "] cannot be converted to int without significant data loss.");
 	}
 
 	/**
@@ -2308,9 +2309,11 @@ public final class Caster {
 		return str;
 	}
 
+	private static DecimalFormat pf = (DecimalFormat) DecimalFormat.getInstance(Locale.US);
 	private static DecimalFormat df = (DecimalFormat) DecimalFormat.getInstance(Locale.US);
 	private static DecimalFormat ff = (DecimalFormat) DecimalFormat.getInstance(Locale.US);
 	static {
+		pf.applyLocalizedPattern("#.################################################");
 		df.applyLocalizedPattern("#.########################");
 		ff.applyLocalizedPattern("#.#######");
 	}
@@ -2323,6 +2326,10 @@ public final class Caster {
 		if (l > d && (l - d) < 0.000000000001) return toString(l);
 
 		return df.format(d);
+	}
+
+	public static String toStringPercise(double d) {
+		return pf.format(d);
 	}
 
 	public static String toString(float f) {
