@@ -91,29 +91,25 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 			it(title="short hand literal struct invalid 1", body=function(){
 				// we need to make this in a separate file because this creates a template exception (comppiler)
 				var uri=createURI("Struct/invalid1.cfm");
-				local.res=_InternalRequest(
-					template:uri
-				);
-				expect(res.filecontent.trim()).toBe("");
+				expect(function() {
+					_InternalRequest(template:uri);
+				}).toThrow(type="Template");
 			});
-
 			it(title="short hand literal struct invalid 2", body=function(){
 				// we need to make this in a separate file because this creates a template exception (comppiler)
 				var uri=createURI("Struct/invalid2.cfm");
-				local.res=_InternalRequest(
-					template:uri
-				);
-				expect(res.filecontent.trim()).toBe("");
+				expect(function() {
+					_InternalRequest(template:uri);
+				}).toThrow(type="Template");
 			});
-
 			it(title="short hand literal struct invalid 3", body=function(){
 				// we need to make this in a separate file because this creates a template exception (comppiler)
 				var uri=createURI("Struct/invalid3.cfm");
-				local.res=_InternalRequest(
-					template:uri
-				);
-				expect(res.filecontent.trim()).toBe("");
+				expect(function() {
+					_InternalRequest(template:uri);
+				}).toThrow(type="Template");
 			});
+
 
 		});
 	}
