@@ -12619,6 +12619,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 	<function>
 		<name>_literalStruct</name>
 		<class>lucee.runtime.functions.struct.LiteralStruct</class>
+		<tte-class>lucee.transformer.cfml.evaluator.func.impl.LiteralStruct</tte-class>
 		<status>hidden</status>
 		<description>internal function used as for literal struct definition.</description>
 		<argument-type>dynamic</argument-type>

@@ -1115,7 +1115,7 @@ public final class ASMUtil {
 	}
 
 	public static BIF createBif(Data data, FunctionLibFunction flf) {
-		BIF bif = new BIF(data.factory, data.settings, flf);
+		BIF bif = new BIF(data.factory, data.settings, flf, data);
 		data.ep.add(flf, bif, data.srcCode);
 		bif.setArgType(flf.getArgType());
 		try {

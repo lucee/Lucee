@@ -1257,7 +1257,7 @@ public abstract class AbstrCFMLExprTransformer {
 		// [:|=]
 		if (data.srcCode.forwardIfCurrent(':', ']') || data.srcCode.forwardIfCurrent('=', ']')) {
 			flf = flf.getFunctionLib().getFunction("_literalOrderedStruct");
-			BIF bif = new BIF(data.factory, data.settings, flf);
+			BIF bif = new BIF(data.factory, data.settings, flf, data);
 			bif.setArgType(flf.getArgType());
 			try {
 				bif.setClassDefinition(flf.getFunctionClassDefinition());
@@ -1274,7 +1274,7 @@ public abstract class AbstrCFMLExprTransformer {
 			return var;
 		}
 
-		BIF bif = new BIF(data.factory, data.settings, flf);
+		BIF bif = new BIF(data.factory, data.settings, flf, data);
 		bif.setArgType(flf.getArgType());
 		try {
 			bif.setClassDefinition(flf.getFunctionClassDefinition());
@@ -1764,7 +1764,7 @@ public abstract class AbstrCFMLExprTransformer {
 			int pos = data.srcCode.getPos();
 			// Element Function
 			if (checkLibrary) {
-				BIF bif = new BIF(data.factory, data.settings, flf);
+				BIF bif = new BIF(data.factory, data.settings, flf, data);
 				// TODO data.ep.add(flf, bif, data.srcCode);
 
 				bif.setArgType(flf.getArgType());

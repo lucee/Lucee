@@ -43,6 +43,83 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				expect(msg).toBe("sorry but we cannot help!");
 			});
 
+
+			it(title="literal struct valid", body=function() {
+				var x={susi="Sorglos",peter="Lustig"};
+				expect(structCount(x)).toBe(2);
+				expect(x.susi).toBe("Sorglos");
+				expect(x.peter).toBe("Lustig");
+
+				var x={"susi"="Sorglos","peter"="Lustig"};
+				expect(structCount(x)).toBe(2);
+				expect(x.susi).toBe("Sorglos");
+				expect(x.peter).toBe("Lustig");
+
+				var x={'susi'="Sorglos",'peter'="Lustig"};
+				expect(structCount(x)).toBe(2);
+				expect(x.susi).toBe("Sorglos");
+				expect(x.peter).toBe("Lustig");
+
+				var x={susi:"Sorglos",peter:"Lustig"};
+				expect(structCount(x)).toBe(2);
+				expect(x.susi).toBe("Sorglos");
+				expect(x.peter).toBe("Lustig");
+
+				var x={"susi":"Sorglos","peter":"Lustig"};
+				expect(structCount(x)).toBe(2);
+				expect(x.susi).toBe("Sorglos");
+				expect(x.peter).toBe("Lustig");
+
+				var x={'susi':"Sorglos",'peter':"Lustig"};
+				expect(structCount(x)).toBe(2);
+				expect(x.susi).toBe("Sorglos");
+				expect(x.peter).toBe("Lustig");
+
+			});
+
+			it(title="short hand literal struct valid", body=function(){
+				var susi="Sorglos";
+				var peter="Lustig";
+				var x={susi,peter};
+
+				expect(structCount(x)).toBe(2);
+				expect(x.susi).toBe("Sorglos");
+				expect(x.peter).toBe("Lustig");
+			});
+
+
+			it(title="short hand literal struct invalid 1", body=function(){
+				// we need to make this in a separate file because this creates a template exception (comppiler)
+				var uri=createURI("Struct/invalid1.cfm");
+				local.res=_InternalRequest(
+					template:uri,
+				);
+				expect(res.filecontent.trim()).toBe("");
+			});
+
+			it(title="short hand literal struct invalid 2", body=function(){
+				// we need to make this in a separate file because this creates a template exception (comppiler)
+				var uri=createURI("Struct/invalid2.cfm");
+				local.res=_InternalRequest(
+					template:uri,
+				);
+				expect(res.filecontent.trim()).toBe("");
+			});
+
+			it(title="short hand literal struct invalid 3", body=function(){
+				// we need to make this in a separate file because this creates a template exception (comppiler)
+				var uri=createURI("Struct/invalid3.cfm");
+				local.res=_InternalRequest(
+					template:uri,
+				);
+				expect(res.filecontent.trim()).toBe("");
+			});
+
 		});
+	}
+
+	private string function createURI(string calledName){
+		var baseURI="/test/#listLast(getDirectoryFromPath(getCurrenttemplatepath()),"\/")#/";
+		return baseURI&""&calledName;
 	}
 }
