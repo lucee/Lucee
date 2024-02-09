@@ -3,7 +3,7 @@
 
   <groupId>org.lucee</groupId>
   <artifactId>lucee</artifactId>
-  <version>6.1.0.27-BETA</version>
+  <version>6.1.0.28-BETA</version>
   <packaging>jar</packaging>
 
   <name>Lucee Loader Build</name>
@@ -637,6 +637,12 @@
     <version>2.3.3</version> 
     <scope>provided</scope>
 </dependency>
+    <dependency>
+      <groupId>com.github.f4b6a3</groupId>
+      <artifactId>ulid-creator</artifactId>
+      <version>5.2.3</version>
+    <scope>provided</scope>
+    </dependency>
 
 
 
