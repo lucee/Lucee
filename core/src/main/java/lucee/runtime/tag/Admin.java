@@ -1640,11 +1640,15 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	}
 
 	private void doUpdateDefaultSecurityManager() throws PageException {
-
-		admin.updateDefaultSecurity(fb("setting"), SecurityManagerImpl.toShortAccessValue(getString("admin", action, "file")), getFileAcces(), fb("direct_java_access"), fb("mail"),
-				SecurityManagerImpl.toShortAccessValue(getString("admin", action, "datasource")), fb("mapping"), fb("remote"), fb("custom_tag"), fb("cfx_setting"), fb("cfx_usage"),
-				fb("debugging"), fb("search"), fb("scheduled_task"), fb("tag_execute"), fb("tag_import"), fb("tag_object"), fb("tag_registry"), fb("cache"), fb("gateway"),
-				fb("orm"), fb2("access_read"), fb2("access_write"));
+		if (singleMode) {
+			admin.updateDefaultSecurity(fb2("access_read"), fb2("access_write"));
+		}
+		else {
+			admin.updateDefaultSecurity(fb("setting"), SecurityManagerImpl.toShortAccessValue(getString("admin", action, "file")), getFileAcces(), fb("direct_java_access"),
+					fb("mail"), SecurityManagerImpl.toShortAccessValue(getString("admin", action, "datasource")), fb("mapping"), fb("remote"), fb("custom_tag"), fb("cfx_setting"),
+					fb("cfx_usage"), fb("debugging"), fb("search"), fb("scheduled_task"), fb("tag_execute"), fb("tag_import"), fb("tag_object"), fb("tag_registry"), fb("cache"),
+					fb("gateway"), fb("orm"), fb2("access_read"), fb2("access_write"));
+		}
 		store();
 		adminSync.broadcast(attributes, config);
 	}
