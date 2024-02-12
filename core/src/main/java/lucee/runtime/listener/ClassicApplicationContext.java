@@ -157,6 +157,7 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 	private Regex regex;
 
 	private boolean preciseMath;
+	private boolean formUrlAsStruct;
 
 	/**
 	 * constructor of the class
@@ -211,7 +212,7 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 		this.antiSamyPolicy = ((ConfigPro) config).getAntiSamyPolicy();
 		this.regex = ((ConfigPro) config).getRegex();
 		this.preciseMath = ((ConfigPro) config).getPreciseMath();
-
+		this.formUrlAsStruct = ((ConfigPro) config).getFormUrlAsStruct();
 	}
 
 	/**
@@ -294,6 +295,7 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 		dbl.antiSamyPolicy = antiSamyPolicy;
 		dbl.sessionCookie = sessionCookie;
 		dbl.authCookie = authCookie;
+		dbl.formUrlAsStruct = formUrlAsStruct;
 		return dbl;
 	}
 
@@ -812,6 +814,20 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 		Boolean b = sameFieldAsArrays.get(scope);
 		if (b == null) return false;
 		return b.booleanValue();
+	}
+
+	public void setFormUrlAsStruct(PageContext pc, boolean formUrlAsStruct) {
+		boolean changed = this.formUrlAsStruct != formUrlAsStruct;
+		this.formUrlAsStruct = formUrlAsStruct;
+		if (changed) {
+			pc.urlScope().reinitialize(this);
+			pc.formScope().reinitialize(this);
+		}
+	}
+
+	@Override
+	public boolean getFormUrlAsStruct() {
+		return formUrlAsStruct;
 	}
 
 	@Override

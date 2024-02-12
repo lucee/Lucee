@@ -4187,6 +4187,10 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		admin.updateSessionType(getString("admin", action, "sessionType"));
 		admin.updateLocalMode(getString("admin", action, "localMode"));
 		admin.updateCGIReadonly(getBoolObject("admin", action, "cgiReadonly"));
+		admin.updateFormUrlAsStruct(getBoolObject("admin", action, "formUrlAsStruct"));
+
+		config.getFormUrlAsStruct();
+
 		store();
 		adminSync.broadcast(attributes, config);
 	}
@@ -4527,6 +4531,9 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		if (config.getScopeCascadingType() == Config.SCOPE_STRICT) sct.set("scopeCascadingType", "strict");
 		else if (config.getScopeCascadingType() == Config.SCOPE_SMALL) sct.set("scopeCascadingType", "small");
 		else if (config.getScopeCascadingType() == Config.SCOPE_STANDARD) sct.set("scopeCascadingType", "standard");
+
+		sct.set("formUrlAsStruct", config.getFormUrlAsStruct());
+
 	}
 
 	/**

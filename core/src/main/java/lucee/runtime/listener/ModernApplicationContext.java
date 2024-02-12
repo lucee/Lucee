@@ -207,6 +207,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	private Map<Collection.Key, CacheConnection> cacheConnections;
 	private boolean sameFormFieldAsArray;
 	private boolean sameURLFieldAsArray;
+	private boolean formUrlAsStruct;
 	private Map<String, CustomType> customTypes;
 	private boolean cgiScopeReadonly;
 	private boolean preciseMath;
@@ -355,7 +356,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 		this.component = cfc;
 		this.regex = ci.getRegex();
 		this.preciseMath = ci.getPreciseMath();
-
+		this.formUrlAsStruct = ci.getFormUrlAsStruct();
 		initAntiSamyPolicyResource(pc);
 		if (antiSamyPolicyResource == null) this.antiSamyPolicyResource = ((ConfigPro) config).getAntiSamyPolicy();
 		// read scope cascading
@@ -752,8 +753,10 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	}
 
 	public void initSameFieldAsArray(PageContext pc) {
-		boolean oldForm = pc.getApplicationContext().getSameFieldAsArray(Scope.SCOPE_FORM);
-		boolean oldURL = pc.getApplicationContext().getSameFieldAsArray(Scope.SCOPE_URL);
+		ApplicationContextSupport ac = (ApplicationContextSupport) pc.getApplicationContext();
+		boolean oldForm = ac.getSameFieldAsArray(Scope.SCOPE_FORM);
+		boolean oldURL = ac.getSameFieldAsArray(Scope.SCOPE_URL);
+		boolean oldMerge = ac.getFormUrlAsStruct();
 
 		// Form
 		Object o = get(component, KeyConstants._sameformfieldsasarray, null);
@@ -763,8 +766,15 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 		o = get(component, KeyConstants._sameurlfieldsasarray, null);
 		if (o != null && Decision.isBoolean(o)) sameURLFieldAsArray = Caster.toBooleanValue(o, false);
 
-		if (oldForm != sameFormFieldAsArray) pc.formScope().reinitialize(this);
-		if (oldURL != sameURLFieldAsArray) pc.urlScope().reinitialize(this);
+		// merge
+		o = get(component, KeyConstants._formUrlAsStruct, null);
+		if (o != null && Decision.isBoolean(o)) {
+			formUrlAsStruct = Caster.toBooleanValue(o, true);
+		}
+
+		if (oldForm != sameFormFieldAsArray || oldMerge != formUrlAsStruct) pc.formScope().reinitialize(this);
+		if (oldURL != sameURLFieldAsArray || oldMerge != formUrlAsStruct) pc.urlScope().reinitialize(this);
+
 	}
 
 	public void initWebCharset(PageContext pc) {
@@ -1693,6 +1703,11 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	public void setCGIScopeReadonly(boolean cgiScopeReadonly) {
 		initCGIScopeReadonly = true;
 		this.cgiScopeReadonly = cgiScopeReadonly;
+	}
+
+	@Override
+	public boolean getFormUrlAsStruct() {
+		return formUrlAsStruct;
 	}
 
 	@Override

@@ -4201,6 +4201,15 @@ public final class ConfigWebFactory extends ConfigFactory {
 				config.setDomainCookies(toBoolean(strDomainCookies, false));
 			}
 			else if (hasCS) config.setDomainCookies(configServer.isDomainCookies());
+
+			// FormUrlAsStruct
+			String formUrlAsStruct = getAttr(root, "formUrlAsStruct");
+
+			if (hasAccess && !StringUtil.isEmpty(formUrlAsStruct)) {
+				config.setFormUrlAsStruct(toBoolean(formUrlAsStruct, true));
+			}
+			else if (hasCS) config.setFormUrlAsStruct(configServer.getFormUrlAsStruct());
+
 		}
 		catch (Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);

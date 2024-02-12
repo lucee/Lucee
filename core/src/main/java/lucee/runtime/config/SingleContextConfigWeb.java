@@ -2045,4 +2045,9 @@ class SingleContextConfigWeb extends ConfigBase implements ConfigWebInner {
 		return cs.getInspectTemplateAutoInterval(slow);
 	}
 
+	@Override
+	public boolean getFormUrlAsStruct() {
+		return cs.getFormUrlAsStruct();
+	}
+
 }

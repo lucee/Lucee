@@ -489,4 +489,6 @@ public abstract class ApplicationContextSupport implements ApplicationContext {
 
 	public abstract void setLimitEvaluation(boolean limitEvaluation);
 
+	public abstract boolean getFormUrlAsStruct();
+
 }

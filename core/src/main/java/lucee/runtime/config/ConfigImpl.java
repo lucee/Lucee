@@ -424,6 +424,8 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 
 	private int inspectTemplateAutoIntervalFast = ConfigPro.INSPECT_INTERVAL_FAST;
 
+	private boolean formUrlAsStruct = true;
+
 	/**
 	 * @return the allowURLRequestTimeout
 	 */
@@ -3942,5 +3944,14 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	@Override
 	public String getMainLogger() {
 		return this.mainLoggerName;
+	}
+
+	@Override
+	public boolean getFormUrlAsStruct() {
+		return formUrlAsStruct;
+	}
+
+	protected void setFormUrlAsStruct(boolean formUrlAsStruct) {
+		this.formUrlAsStruct = formUrlAsStruct;
 	}
 }

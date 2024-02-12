@@ -6691,6 +6691,14 @@ public final class ConfigAdmin {
 		root.setEL("cgiScopeReadOnly", Caster.toString(cgiReadonly, ""));
 	}
 
+	public void updateFormUrlAsStruct(Boolean formUrlAsStruct) throws SecurityException {
+		checkWriteAccess();
+		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
+		if (!hasAccess) throw new SecurityException("Accces Denied to update scope setting");
+
+		root.setEL("formUrlAsStruct", Caster.toString(formUrlAsStruct, ""));
+	}
+
 	public void updateConfig(Struct data, boolean flushExistingData) throws SecurityException {
 		checkWriteAccess();
 		if (flushExistingData) root.clear();

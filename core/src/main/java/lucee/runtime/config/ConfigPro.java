@@ -373,4 +373,6 @@ public interface ConfigPro extends Config {
 
 	public Resource[] getResources(PageContext pc, Mapping[] mappings, String realPath, boolean onlyTopLevel, boolean useSpecialMappings, boolean useDefaultMapping,
 			boolean useComponentMappings, boolean onlyFirstMatch);
+
+	public boolean getFormUrlAsStruct();
 }

@@ -1883,4 +1883,9 @@ public class ConfigWebImpl implements ConfigWebPro {
 	public int getInspectTemplateAutoInterval(boolean slow) {
 		return instance.getInspectTemplateAutoInterval(slow);
 	}
+
+	@Override
+	public boolean getFormUrlAsStruct() {
+		return instance.getFormUrlAsStruct();
+	}
 }

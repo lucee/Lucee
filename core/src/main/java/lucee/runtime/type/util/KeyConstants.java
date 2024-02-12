@@ -2969,6 +2969,7 @@ public class KeyConstants {
 	public static final Key _md5 = KeyImpl._const("md5");
 	public static final Key _model = KeyImpl._const("model");
 	public static final Key _role = KeyImpl._const("role");
+	public static final Key _formUrlAsStruct = KeyImpl._const("formUrlAsStruct");
 	private static Map<String, Key> _____keys;
 
 	static {
