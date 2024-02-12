@@ -1201,37 +1201,38 @@ public final class ConfigWebFactory extends ConfigFactory {
 			SecurityManager securityManager = null;
 			if (config instanceof ConfigServerImpl) {
 				ConfigServerImpl cs = (ConfigServerImpl) config;
+				boolean isSingle = cs.getAdminMode() == ConfigImpl.ADMINMODE_SINGLE;
 				Struct security = ConfigWebUtil.getAsStruct("security", root);
-
 				// Default SecurityManager
-				SecurityManagerImpl sm = _toSecurityManager(security);
-
-				// additional file access directories
-				Array elFileAccesses = ConfigWebUtil.getAsArray("fileAccess", security);
-				sm.setCustomFileAccess(_loadFileAccess(config, elFileAccesses, log));
+				SecurityManagerImpl sm = isSingle ? _toSecurityManagerSingle(security) : _toSecurityManager(security);
 				cs.setDefaultSecurityManager(sm);
+				// additional file access directories
+				if (!isSingle) {
+					Array elFileAccesses = ConfigWebUtil.getAsArray("fileAccess", security);
+					sm.setCustomFileAccess(_loadFileAccess(config, elFileAccesses, log));
 
-				// Web SecurityManager
-				Array accessors = ConfigWebUtil.getAsArray("", security);
-				Iterator<?> it = accessors.getIterator();
-				Struct ac;
-				while (it.hasNext()) {
-					try {
-						ac = Caster.toStruct(it.next(), null);
-						if (ac == null) continue;
+					// Web SecurityManager
+					Array accessors = ConfigWebUtil.getAsArray("", security);
+					Iterator<?> it = accessors.getIterator();
+					Struct ac;
+					while (it.hasNext()) {
+						try {
+							ac = Caster.toStruct(it.next(), null);
+							if (ac == null) continue;
 
-						String id = getAttr(ac, "id");
-						if (id != null) {
-							sm = _toSecurityManager(ac);
+							String id = getAttr(ac, "id");
+							if (id != null) {
+								sm = _toSecurityManager(ac);
 
-							elFileAccesses = ConfigWebUtil.getAsArray("fileAccess", ac);
-							sm.setCustomFileAccess(_loadFileAccess(config, elFileAccesses, log));
-							cs.setSecurityManager(id, sm);
+								elFileAccesses = ConfigWebUtil.getAsArray("fileAccess", ac);
+								sm.setCustomFileAccess(_loadFileAccess(config, elFileAccesses, log));
+								cs.setSecurityManager(id, sm);
+							}
 						}
-					}
-					catch (Throwable t) {
-						ExceptionUtil.rethrowIfNecessary(t);
-						log(config, log, t);
+						catch (Throwable t) {
+							ExceptionUtil.rethrowIfNecessary(t);
+							log(config, log, t);
+						}
 					}
 				}
 			}
@@ -1300,6 +1301,14 @@ public final class ConfigWebFactory extends ConfigFactory {
 				_attr(el, "tag_import", SecurityManager.VALUE_YES), _attr(el, "tag_object", SecurityManager.VALUE_YES), _attr(el, "tag_registry", SecurityManager.VALUE_YES),
 				_attr(el, "cache", SecurityManager.VALUE_YES), _attr(el, "gateway", SecurityManager.VALUE_YES), _attr(el, "orm", SecurityManager.VALUE_YES),
 				_attr2(el, "access_read", SecurityManager.ACCESS_PROTECTED), _attr2(el, "access_write", SecurityManager.ACCESS_PROTECTED));
+		return sm;
+	}
+
+	private static SecurityManagerImpl _toSecurityManagerSingle(Struct el) {
+		SecurityManagerImpl sm = (SecurityManagerImpl) SecurityManagerImpl.getOpenSecurityManager();
+		sm.setAccess(SecurityManager.TYPE_ACCESS_READ, _attr2(el, "access_read", SecurityManager.ACCESS_PROTECTED));
+		sm.setAccess(SecurityManager.TYPE_ACCESS_WRITE, _attr2(el, "access_write", SecurityManager.ACCESS_PROTECTED));
+		sm.setAccess(SecurityManager.TYPE_REMOTE, _attr(el, "remote", SecurityManager.VALUE_YES));
 		return sm;
 	}
 

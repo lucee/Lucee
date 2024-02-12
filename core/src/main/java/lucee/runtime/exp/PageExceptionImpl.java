@@ -448,11 +448,12 @@ public abstract class PageExceptionImpl extends PageException {
 
 	private static String getCodePrint(String[] content, int line, boolean asHTML) {
 		StringBuilder sb = new StringBuilder();
-		// bad Line
 		for (int i = line - 2; i < line + 3; i++) {
 			if (i > 0 && i <= content.length) {
 				if (asHTML && i == line) sb.append("<b>");
-				if (asHTML) sb.append(i + ": " + StringUtil.escapeHTML(content[i - 1]));
+				if (asHTML) {
+					sb.append(i + ": " + StringUtil.replace(StringUtil.replace(StringUtil.escapeHTML(content[i - 1]), " ", "&nbsp;"), "\t", "&nbsp;&nbsp;&nbsp;"));
+				}
 				else sb.append(i + ": " + (content[i - 1]));
 				if (asHTML && i == line) sb.append("</b>");
 				if (asHTML) sb.append("<br>");

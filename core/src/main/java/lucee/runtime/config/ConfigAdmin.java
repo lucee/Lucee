@@ -3213,6 +3213,17 @@ public final class ConfigAdmin {
 
 	}
 
+	public void updateDefaultSecurity(short accessRead, short accessWrite) throws SecurityException {
+		checkWriteAccess();
+		if (!(config instanceof ConfigServer)) throw new SecurityException("can't change security settings from this context");
+
+		Struct security = _getRootElement("security");
+
+		security.setEL("access_read", SecurityManagerImpl.toStringAccessRWValue(accessRead));
+		security.setEL("access_write", SecurityManagerImpl.toStringAccessRWValue(accessWrite));
+
+	}
+
 	private void removeSecurityFileAccess(Struct parent) {
 		Array children = ConfigWebUtil.getAsArray("fileAccess", parent);
 		Key[] keys = children.keys();
