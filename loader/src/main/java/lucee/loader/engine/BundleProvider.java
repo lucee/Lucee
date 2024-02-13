@@ -435,6 +435,12 @@ public final class BundleProvider {
 		put(mappings, "org.lucee.jakarta-activation-mail", new Info("com.sun.mail", "jakarta.mail"));
 		put(mappings, "org.lucee.commons-email-all", new Info("org.lucee", "commons-email-all"));
 		put(mappings, "com.github.f4b6a3.ulid", new Info("com.github.f4b6a3", "ulid-creator"));
+		put(mappings, "org.objectweb.asm.tree.analysis", new Info("org.ow2.asm", "asm-analysis"));
+		put(mappings, "org.objectweb.asm.commons", new Info("org.ow2.asm", "asm-commons"));
+		put(mappings, "org.objectweb.asm.util", new Info("org.ow2.asm", "asm-util"));
+		put(mappings, "org.objectweb.asm", new Info("org.ow2.asm", "asm"));
+		put(mappings, "org.objectweb.asm.tree", new Info("org.ow2.asm", "asm-tree"));
+
 	}
 
 	private static void put(Map<String, Info[]> mappings, String name, Info... value) {

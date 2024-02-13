@@ -214,12 +214,16 @@ public final class BundleProvider extends DefaultHandler {
 		return sb.toString();
 	}
 
-	public URL getBundleAsURL(BundleDefinition bd, boolean includeS3) throws PageException, MalformedURLException, IOException {
-		URL url = _getBundleAsURL(bd, includeS3);
-		return url;
+	public URL getBundleAsURL(BundleDefinition bd, boolean includeS3, URL defaultValue) {
+		try {
+			return getBundleAsURL(bd, includeS3);
+		}
+		catch (Exception e) {
+			return defaultValue;
+		}
 	}
 
-	public URL _getBundleAsURL(BundleDefinition bd, boolean includeS3) throws PageException, MalformedURLException, IOException {
+	public URL getBundleAsURL(BundleDefinition bd, boolean includeS3) throws PageException, MalformedURLException, IOException {
 		URL url = null;
 
 		// MAVEN: looking for a matching mapping, so we can get from maven
@@ -798,17 +802,18 @@ public final class BundleProvider extends DefaultHandler {
 	}
 
 	public static void main(String[] args) throws Exception {
-
 		// memcached)(bundle-version>=3.0.2
 		// print.e(getInstance().getBundleAsURL(new BundleDefinition("org.lucee.spymemcached",
 		// "2.12.3.0001"), true));
 		// getInstance().getBundle(new BundleDefinition("com.mysql.cj", "8.0.33"));
 		// getInstance().getBundle(new BundleDefinition("com.mysql.cj", "8.0.27"));
+		print.e("------- MAVEN -> OSGi Mappings -------");
 		getInstance().createOSGiMavenMapping(); // create java code for OSGi to Maven mapping based on
+		print.e("------- What can be removed from S3? -------");
+		getInstance().whatcanBeRemovedFromS3(); // create java code for OSGi to Maven mapping based on
 		// what is in the S3 bucket
 		// getInstance().whatcanBeRemovedFromS3(); // show what records can be removed from S3 bucket
 		// because we have a working link to Maven
-
 	}
 
 	public void createOSGiMavenMapping() throws PageException, IOException, GeneralSecurityException, SAXException {
@@ -819,6 +824,7 @@ public final class BundleProvider extends DefaultHandler {
 		for (Element e: read()) {
 			infos = mappings.get(e.bd.getName());
 			if (infos != null) continue;
+
 			try {
 				info = extractMavenInfoFromZip(getBundleAsStream(e.bd));
 				if (!info.isOSGi()) {
@@ -829,7 +835,6 @@ public final class BundleProvider extends DefaultHandler {
 							+ "] in the Manifest.MF");
 
 				}
-
 				if (!has.contains(info.bundleSymbolicName) && info.isComplete()) {
 					has.add(info.bundleSymbolicName);
 					print.e("\nput(mappings,\"" + info.bundleSymbolicName + "\", new Info(\"" + info.groupId + "\", \"" + info.artifactId + "\"));");
@@ -854,7 +859,7 @@ public final class BundleProvider extends DefaultHandler {
 	public void whatcanBeRemovedFromS3() throws PageException, IOException, GeneralSecurityException, SAXException {
 		URL url;
 		for (Element e: read()) {
-			url = getBundleAsURL(e.bd, false);
+			url = getBundleAsURL(e.bd, false, null);
 
 			if (url != null) {
 				print.e("// " + (url.toExternalForm()));

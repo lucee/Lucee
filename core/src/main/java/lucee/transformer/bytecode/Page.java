@@ -966,7 +966,7 @@ public final class Page extends BodyBase implements Root {
 				ga.newInstance(Types.STATIC_STRUCT);
 				ga.dup();
 				ga.invokeConstructor(Types.STATIC_STRUCT, CONSTR_STATIC_STRUCT);
-				ga.putStatic(Type.getType(name), "staticStruct", Types.STATIC_STRUCT);
+				ga.putStatic(Type.getObjectType(name), "staticStruct", Types.STATIC_STRUCT);
 			}
 
 			// Array initialization
@@ -983,7 +983,7 @@ public final class Page extends BodyBase implements Root {
 				ga.invokeStatic(KEY_IMPL, KEY_INIT_KEYS);
 				ga.arrayStore(Types.COLLECTION_KEY);
 			}
-			ga.putStatic(Type.getType(name), "keys", Types.COLLECTION_KEY_ARRAY);
+			ga.putStatic(Type.getObjectType(name), "keys", Types.COLLECTION_KEY_ARRAY);
 
 			/////////////////
 			ga.returnValue();
@@ -994,7 +994,7 @@ public final class Page extends BodyBase implements Root {
 		// public StaticStruct getStaticStruct() {return _static;}
 		{
 			final GeneratorAdapter ga = new GeneratorAdapter(Opcodes.ACC_PUBLIC + Opcodes.ACC_FINAL, GET_STATIC_STRUCT, null, null, cw);
-			ga.getStatic(Type.getType(name), "staticStruct", Types.STATIC_STRUCT);
+			ga.getStatic(Type.getObjectType(name), "staticStruct", Types.STATIC_STRUCT);
 			ga.returnValue();
 			ga.endMethod();
 		}
@@ -1511,7 +1511,7 @@ public final class Page extends BodyBase implements Root {
 		GeneratorAdapter adapter = bc.getAdapter();
 		if ((attrs == null || attrs.size() == 0) && (meta == null || meta.size() == 0)) {
 			ASMConstants.NULL(bc.getAdapter());
-			bc.getAdapter().cast(Types.OBJECT, Types.STRUCT_IMPL);
+			bc.getAdapter().checkCast(Types.STRUCT_IMPL);
 			return;
 		}
 

@@ -242,7 +242,7 @@ public final class TagHelper {
 				// TagUtil.setAttributeCollection(Tag, Struct)
 				adapter.loadArg(0);
 				adapter.loadLocal(currLocal);
-				if (currType != TAG) adapter.cast(currType, TAG);
+				if (currType != TAG) adapter.checkCast(TAG);
 
 				///
 				TagLibTagAttr[] missings = tag.getMissingAttributes();
