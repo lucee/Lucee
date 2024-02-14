@@ -27,7 +27,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
                 expect(res.country).toBe("US");
                 expect(res.currency.code).toBe("USD");
                 expect(res.currency.symbol).toBe("$"); // $
-                expect(res.dateTimeFormat.date).toBe("EEEE, MMMM d, y");
+                expect(res.dateTimeFormat.date).toBe("EEEE, MMMM d, yyyy");
                 expect(res.dateTimeFormat.time).toBe("h:mm:ss a");
 
                 // jpn
@@ -44,7 +44,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
                 expect(res.country).toBe("BE");
                 expect(res.currency.code).toBe("EUR");
                 expect(Asc(res.currency.symbol)).toBe("8364"); // €
-                expect(res.dateTimeFormat.date).toBe("EEEE d MMMM y");
+                expect(res.dateTimeFormat.date).toBe("EEEE d MMMM yyyy");
                 expect(res.dateTimeFormat.time).toBe("HH:mm:ss");
 
                 // spanish (argentina)
@@ -53,7 +53,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
                 expect(res.country).toBe("AR");
                 expect(res.currency.code).toBe("ARS");
                 expect(Asc(res.currency.symbol)).toBe("36"); // $
-                expect(res.dateTimeFormat.date).toBe("EEEE, d 'de' MMMM 'de' y");
+                expect(res.dateTimeFormat.date).toBe("EEEE, d 'de' MMMM 'de' yyyy");
                 expect(res.dateTimeFormat.time).toBe("HH:mm:ss");
 
                 setLocale(origLocale);
