@@ -78,13 +78,13 @@ jobs:
       if: ${{ inputs.LUCEE_TEST_JAVA_VERSION != '' }}
       run: echo "LUCEE_TEST_JAVA_VERSION=${{ inputs.LUCEE_TEST_JAVA_VERSION }}" >> $GITHUB_ENV
 
-    - uses: szenius/set-timezone@v1.1
+    - uses: szenius/set-timezone@v1.2
       with:
         timezoneLinux: "UTC"
-    - uses: actions/checkout@v3.1.0
+    - uses: actions/checkout@v4
 
     - name: Set up Test Java Version ${{ env.LUCEE_TEST_JAVA_VERSION }}
-      uses: actions/setup-java@v3
+      uses: actions/setup-java@v4
       if: ${{ env.LUCEE_TEST_JAVA_VERSION != '' }}
       with:
         java-version: ${{ env.LUCEE_TEST_JAVA_VERSION }}
@@ -95,7 +95,7 @@ jobs:
       run: echo "LUCEE_TEST_JAVA_EXEC=${{ env.JAVA_HOME }}/bin/java" >> $GITHUB_ENV
 
     - name: Set up build JDK '${{ env.LUCEE_BUILD_JAVA_VERSION }}'
-      uses: actions/setup-java@v3
+      uses: actions/setup-java@v4
       if: ${{ env.LUCEE_TEST_JAVA_VERSION != env.LUCEE_BUILD_JAVA_VERSION }}
       with:
         java-version: '${{ env.LUCEE_BUILD_JAVA_VERSION }}'
@@ -106,13 +106,13 @@ jobs:
       run: echo "DO_DEPLOY=false" >> $GITHUB_ENV
 
     - name: Cache Lucee extensions
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: ~/work/Lucee/Lucee/cache/
         key: lucee-extensions
         restore-keys: lucee-extensions
     - name: Cache Maven packages
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: |
           ~/.m2/repository/*
@@ -208,7 +208,7 @@ jobs:
           mvn -B -e -f loader/pom.xml clean install -DtestJavaVersionExec="${{ env.LUCEE_TEST_JAVA_EXEC }}"
         fi
     - name: clean github.ref_name
-      uses: mad9000/actions-find-and-replace-string@3
+      uses: mad9000/actions-find-and-replace-string@5
       id: cleanrefname
       if: always()
       with:
@@ -216,7 +216,7 @@ jobs:
           find: '/'
           replace: '-'
     - name: Upload Artifact (junit-test-results)
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: always()
       with:
         name: Lucee-${{ steps.cleanrefname.outputs.value }}-junit-test-results-${{ github.run_number }}
