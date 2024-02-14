@@ -44,7 +44,6 @@ import lucee.commons.io.IOUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.compiler.JavaFunction;
-import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.Component;
 import lucee.runtime.ComponentPageImpl;
 import lucee.runtime.InterfacePageImpl;
@@ -108,13 +107,13 @@ public final class Page extends BodyBase implements Root {
 
 	public static final Method KEY_INIT = new Method("init", Types.COLLECTION_KEY, new Type[] { Types.STRING });
 
-	public static final Method KEY_INTERN = new Method("intern", Types.COLLECTION_KEY, new Type[] { Types.STRING });
+	public static final Method KEY_INIT_KEYS = new Method("initKeys", Types.COLLECTION_KEY, new Type[] { Types.STRING });
+	public static final Method KEY_SOURCE = new Method("source", Types.COLLECTION_KEY, new Type[] { Types.STRING });
 
 	// public static ImportDefintion getInstance(String fullname,ImportDefintion defaultValue)
 	private static final Method ID_GET_INSTANCE = new Method("getInstance", Types.IMPORT_DEFINITIONS, new Type[] { Types.STRING, Types.IMPORT_DEFINITIONS });
 
-	public final static Method STATIC_CONSTRUCTOR = Method.getMethod("void <clinit> ()V");
-	// public final static Method CONSTRUCTOR = Method.getMethod("void <init> ()V");
+	private static final Method CINIT = new Method("<clinit>", Types.VOID, new Type[] {});
 
 	private static final Method CONSTRUCTOR = new Method("<init>", Types.VOID, new Type[] {});
 
@@ -138,7 +137,6 @@ public final class Page extends BodyBase implements Root {
 	// int getVersion()
 	private final static Method VERSION = new Method("getVersion", Types.LONG_VALUE, new Type[] {});
 	// void _init()
-	private final static Method INIT_KEYS = new Method("initKeys", Types.VOID, new Type[] {});
 
 	private final static Method SET_PAGE_SOURCE = new Method("setPageSource", Types.VOID, new Type[] { Types.PAGE_SOURCE });
 
@@ -170,9 +168,6 @@ public final class Page extends BodyBase implements Root {
 	private static final Method NEW_INTERFACE_IMPL_INSTANCE = new Method("newInstance", Types.INTERFACE_IMPL, new Type[] { Types.PAGE_CONTEXT, Types.STRING, Types.BOOLEAN_VALUE });
 
 	private static final Method STATIC_COMPONENT_CONSTR = new Method("staticConstructor", Types.VOID, new Type[] { Types.PAGE_CONTEXT, Types.COMPONENT_IMPL });
-
-	// MethodVisitor mv = cw.visitMethod(Opcodes.ACC_STATIC, "<clinit>", "()V", null, null);
-	private static final Method CINIT = new Method("<clinit>", Types.VOID, new Type[] {});
 
 	// public StaticStruct getStaticStruct()
 	private static final Method GET_STATIC_STRUCT = new Method("getStaticStruct", Types.STATIC_STRUCT, new Type[] {});
@@ -352,14 +347,6 @@ public final class Page extends BodyBase implements Root {
 			// cw.visitSource("","rel:");
 		}
 
-		// static constructor
-		// GeneratorAdapter statConstrAdapter = new
-		// GeneratorAdapter(Opcodes.ACC_PUBLIC,STATIC_CONSTRUCTOR,null,null,cw);
-		// StaticConstrBytecodeContext statConstr = null;//new
-		// BytecodeContext(null,null,this,externalizer,keys,cw,name,statConstrAdapter,STATIC_CONSTRUCTOR,writeLog(),suppressWSbeforeArg);
-
-		/// boolean isSub = comp != null && !comp.isMain();
-
 		// constructor
 		GeneratorAdapter constrAdapter = new GeneratorAdapter(Opcodes.ACC_PUBLIC, CONSTRUCTOR_PS, null, null, cw);
 		ConstrBytecodeContext constr = new ConstrBytecodeContext(optionalPS, this, keys, cw, className, constrAdapter, CONSTRUCTOR_PS, writeLog(), suppressWSbeforeArg, output,
@@ -388,7 +375,6 @@ public final class Page extends BodyBase implements Root {
 
 		// call _init()
 		constrAdapter.visitVarInsn(Opcodes.ALOAD, 0);
-		constrAdapter.visitMethodInsn(Opcodes.INVOKEVIRTUAL, constr.getClassName(), "initKeys", "()V");
 
 		// private static ImportDefintion[] test=new ImportDefintion[]{...};
 		{
@@ -495,13 +481,13 @@ public final class Page extends BodyBase implements Root {
 		List<IFunction> funcs;
 		// newInstance/initComponent/call
 		if (isComponent()) {
-			writeOutGetStaticStruct(constr, keys, cw, comp, className);
+			// writeOutGetStaticStructX(constr, keys, cw, comp, className);
 			writeOutNewComponent(constr, keys, cw, comp, className);
 			funcs = writeOutInitComponent(constr, functions, keys, cw, comp, className);
 
 		}
 		else if (isInterface()) {
-			writeOutGetStaticStruct(constr, keys, cw, comp, className);
+			// writeOutGetStaticStructX(constr, keys, cw, comp, className);
 			writeOutNewInterface(constr, keys, cw, comp, className);
 			funcs = writeOutInitInterface(constr, keys, cw, comp, className);
 		}
@@ -527,9 +513,9 @@ public final class Page extends BodyBase implements Root {
 			if (functions.length == 0) {
 			}
 			else if (functions.length == 1) {
-				ExpressionUtil.visitLine(bc, functions[0].getStart());
+				bc.visitLine(functions[0].getStart());
 				functions[0].getBody().writeOut(bc);
-				ExpressionUtil.visitLine(bc, functions[0].getEnd());
+				bc.visitLine(functions[0].getEnd());
 			}
 			else writeOutUdfCallInner(bc, functions, 0, functions.length);
 			adapter.visitInsn(Opcodes.ACONST_NULL);
@@ -695,15 +681,8 @@ public final class Page extends BodyBase implements Root {
 		constrAdapter.returnValue();
 		constrAdapter.endMethod();
 
-		// INIT KEYS
-		BytecodeContext bcInit = null;
-		{
-			GeneratorAdapter aInit = new GeneratorAdapter(Opcodes.ACC_PRIVATE + Opcodes.ACC_FINAL, INIT_KEYS, null, null, cw);
-			bcInit = new BytecodeContext(optionalPS, constr, this, keys, cw, className, aInit, INIT_KEYS, writeLog(), suppressWSbeforeArg, output, returnValue);
-			registerFields(bcInit, keys);
-			aInit.returnValue();
-			aInit.endMethod();
-		}
+		// newInstance/initComponent/call
+		writeOutStatic(optionalPS, constr, keys, cw, comp, className);
 
 		// set field subs
 		FieldVisitor fv = cw.visitField(Opcodes.ACC_PRIVATE + Opcodes.ACC_FINAL, "subs", "[Llucee/runtime/CIPage;", null, null);
@@ -718,9 +697,9 @@ public final class Page extends BodyBase implements Root {
 				while (_it.hasNext()) {
 					tc = _it.next();
 
-					tc.writeOut(bcInit, this);
+					tc.writeOut(constr, this);
 				}
-				writeGetSubPages(cw, className, subs, sourceCode.getDialect());
+				writeGetSubPages(cw, className, subs);
 			}
 		}
 		return cw.toByteArray();
@@ -739,10 +718,10 @@ public final class Page extends BodyBase implements Root {
 	 * d.function; } return functions; }
 	 */
 
-	public static String createSubClass(String name, String subName, int dialect) {
+	public static String createSubClass(String name, String subName) {
 		// TODO handle special characters
 		if (!StringUtil.isEmpty(subName)) {
-			String suffix = (dialect == CFMLEngine.DIALECT_CFML ? Constants.CFML_CLASS_SUFFIX : Constants.LUCEE_CLASS_SUFFIX);
+			String suffix = (Constants.CFML_CLASS_SUFFIX);
 			subName = subName.toLowerCase();
 			if (name.endsWith(suffix)) name = name.substring(0, name.length() - 3) + "$" + subName + suffix;
 			else name += "$" + subName;
@@ -750,7 +729,7 @@ public final class Page extends BodyBase implements Root {
 		return name;
 	}
 
-	private void writeGetSubPages(ClassWriter cw, String name, List<TagCIObject> subs, int dialect) {
+	private void writeGetSubPages(ClassWriter cw, String name, List<TagCIObject> subs) {
 		// pageSource.getFullClassName().replace('.', '/');
 		GeneratorAdapter adapter = new GeneratorAdapter(Opcodes.ACC_PUBLIC + Opcodes.ACC_FINAL, GET_SUB_PAGES, null, null, cw);
 		Label endIF = new Label();
@@ -768,15 +747,13 @@ public final class Page extends BodyBase implements Root {
 		while (it.hasNext()) {
 			TagCIObject ci = it.next();
 			av.visitBeginItem(adapter, index++);
-			className = createSubClass(name, ci.getName(), dialect);
-			// ASMConstants.NULL(adapter);
-			adapter.visitTypeInsn(Opcodes.NEW, className);
-			adapter.visitInsn(Opcodes.DUP);
+			className = createSubClass(name, ci.getName());
 
 			adapter.visitVarInsn(Opcodes.ALOAD, 0);
 			adapter.visitMethodInsn(Opcodes.INVOKEVIRTUAL, name, "getPageSource", "()Llucee/runtime/PageSource;");
+			adapter.push(className);
+			adapter.visitMethodInsn(Opcodes.INVOKESTATIC, "lucee/runtime/MappingImpl", "loadCIPage", "(Llucee/runtime/PageSource;Ljava/lang/String;)Llucee/runtime/CIPage;");
 
-			adapter.visitMethodInsn(Opcodes.INVOKESPECIAL, className, "<init>", "(Llucee/runtime/PageSource;)V");
 			av.visitEndItem(adapter);
 		}
 		av.visitEnd();
@@ -810,7 +787,7 @@ public final class Page extends BodyBase implements Root {
 			else {
 				TagCIObject comp = getTagCFObject(null);
 				if (comp != null) {
-					className = createSubClass(className, comp.getName(), sourceCode.getDialect());
+					className = createSubClass(className, comp.getName());
 				}
 			}
 			if (className != null) className = className.replace('.', '/');
@@ -895,7 +872,7 @@ public final class Page extends BodyBase implements Root {
 			ga.push(index++);
 			// value.setExternalize(false);
 			ExpressionUtil.writeOutSilent(value, bc, Expression.MODE_REF);
-			ga.invokeStatic(KEY_IMPL, KEY_INTERN);
+			ga.invokeStatic(KEY_IMPL, KEY_INIT_KEYS);
 			ga.visitInsn(Opcodes.AASTORE);
 		}
 		ga.visitFieldInsn(Opcodes.PUTFIELD, bc.getClassName(), "keys", Types.COLLECTION_KEY_ARRAY.toString());
@@ -935,9 +912,9 @@ public final class Page extends BodyBase implements Root {
 			adapter.push(i);
 			div.visitEnd(bc);
 			cv.visitWhenAfterExprBeforeBody(bc);
-			ExpressionUtil.visitLine(bc, functions[i].getStart());
+			bc.visitLine(functions[i].getStart());
 			functions[i].getBody().writeOut(bc);
-			ExpressionUtil.visitLine(bc, functions[i].getEnd());
+			bc.visitLine(functions[i].getEnd());
 			cv.visitWhenAfterBody(bc);
 		}
 		cv.visitAfter(bc);
@@ -973,19 +950,45 @@ public final class Page extends BodyBase implements Root {
 		cv.visitAfter(bc);
 	}
 
-	private void writeOutGetStaticStruct(ConstrBytecodeContext constr, List<LitString> keys, ClassWriter cw, TagCIObject component, String name) throws TransformerException {
-		// public final static StaticStruct _static = new StaticStruct();
-		FieldVisitor fv = cw.visitField(Opcodes.ACC_PRIVATE + Opcodes.ACC_STATIC + Opcodes.ACC_FINAL, "staticStruct", "Llucee/runtime/component/StaticStruct;", null, null);
-		fv.visitEnd();
+	private void writeOutStatic(PageSource optionalPS, ConstrBytecodeContext constr, List<LitString> keys, ClassWriter cw, TagCIObject component, String name)
+			throws TransformerException {
+
+		boolean addStatic = isComponent() || isInterface();
+
+		if (addStatic) cw.visitField(Opcodes.ACC_PRIVATE + Opcodes.ACC_STATIC + Opcodes.ACC_FINAL, "staticStruct", "Llucee/runtime/component/StaticStruct;", null, null).visitEnd();
+
+		cw.visitField(Opcodes.ACC_PRIVATE + Opcodes.ACC_STATIC + Opcodes.ACC_FINAL, "keys", Types.COLLECTION_KEY_ARRAY.toString(), null, null).visitEnd();
 
 		{
 			final GeneratorAdapter ga = new GeneratorAdapter(Opcodes.ACC_STATIC, CINIT, null, null, cw);
-			ga.newInstance(Types.STATIC_STRUCT);
-			ga.dup();
-			ga.invokeConstructor(Types.STATIC_STRUCT, CONSTR_STATIC_STRUCT);
-			ga.putStatic(Type.getType(name), "staticStruct", Types.STATIC_STRUCT);
+
+			if (addStatic) {
+				ga.newInstance(Types.STATIC_STRUCT);
+				ga.dup();
+				ga.invokeConstructor(Types.STATIC_STRUCT, CONSTR_STATIC_STRUCT);
+				ga.putStatic(Type.getType(name), "staticStruct", Types.STATIC_STRUCT);
+			}
+
+			// Array initialization
+			ga.push(keys.size()); // Array size
+			ga.newArray(Types.COLLECTION_KEY);
+
+			int index = 0;
+			for (LitString ls: keys) {
+				ga.dup();
+				ga.push(index++);
+				ga.push(ls.getString());
+
+				// ExpressionUtil.writeOutSilent(ls, bc, Expression.MODE_REF);
+				ga.invokeStatic(KEY_IMPL, KEY_INIT_KEYS);
+				ga.arrayStore(Types.COLLECTION_KEY);
+			}
+			ga.putStatic(Type.getType(name), "keys", Types.COLLECTION_KEY_ARRAY);
+
+			/////////////////
 			ga.returnValue();
 			ga.endMethod();
+
 		}
 
 		// public StaticStruct getStaticStruct() {return _static;}
@@ -1182,11 +1185,11 @@ public final class Page extends BodyBase implements Root {
 		adapter.loadArg(0);
 		adapter.invokeVirtual(Types.COMPONENT_IMPL, BEFORE_CALL);
 		adapter.storeLocal(oldData);
-		ExpressionUtil.visitLine(bc, component.getStart());
+		bc.visitLine(component.getStart());
 
 		List<IFunction> funcs = writeOutCallBody(bc, component.getBody(), IFunction.PAGE_TYPE_COMPONENT);
 
-		ExpressionUtil.visitLine(bc, component.getEnd());
+		bc.visitLine(component.getEnd());
 		int t = tcf.visitTryEndCatchBeging(bc);
 		// BodyContentUtil.flushAndPop(pc,bc);
 		adapter.loadArg(0);
@@ -1219,9 +1222,9 @@ public final class Page extends BodyBase implements Root {
 		adapter.visitLocalVariable("this", "L" + name + ";", null, methodBegin, methodEnd, 0);
 		adapter.visitLabel(methodBegin);
 
-		ExpressionUtil.visitLine(bc, interf.getStart());
+		bc.visitLine(interf.getStart());
 		List<IFunction> funcs = writeOutCallBody(bc, interf.getBody(), IFunction.PAGE_TYPE_INTERFACE);
-		ExpressionUtil.visitLine(bc, interf.getEnd());
+		bc.visitLine(interf.getEnd());
 
 		adapter.returnValue();
 		adapter.visitLabel(methodEnd);
@@ -1306,7 +1309,7 @@ public final class Page extends BodyBase implements Root {
 		Label methodEnd = new Label();
 
 		adapter.visitLocalVariable("this", "L" + name + ";", null, methodBegin, methodEnd, 0);
-		ExpressionUtil.visitLine(bc, component.getStart());
+		bc.visitLine(component.getStart());
 		adapter.visitLabel(methodBegin);
 
 		int comp = adapter.newLocal(Types.COMPONENT_IMPL);
@@ -1432,7 +1435,7 @@ public final class Page extends BodyBase implements Root {
 		Label methodEnd = new Label();
 
 		adapter.visitLocalVariable("this", "L" + name + ";", null, methodBegin, methodEnd, 0);
-		ExpressionUtil.visitLine(bc, interf.getStart());
+		bc.visitLine(interf.getStart());
 		adapter.visitLabel(methodBegin);
 
 		// ExpressionUtil.visitLine(adapter, interf.getStartLine());
@@ -1852,7 +1855,7 @@ public final class Page extends BodyBase implements Root {
 	}
 
 	public void doFinalize(BytecodeContext bc) {
-		ExpressionUtil.visitLine(bc, getEnd());
+		bc.visitLine(getEnd());
 	}
 
 	public void registerJavaFunction(JavaFunction javaFunction) {

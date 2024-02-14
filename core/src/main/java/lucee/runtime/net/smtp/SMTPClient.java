@@ -51,6 +51,8 @@ import javax.mail.internet.MimeMultipart;
 import javax.mail.internet.MimePart;
 import javax.mail.internet.MimeUtility;
 
+import org.apache.commons.mail.DefaultAuthenticator;
+
 import com.sun.mail.smtp.SMTPMessage;
 
 import lucee.commons.activation.ResourceDataSource;
@@ -163,6 +165,7 @@ public final class SMTPClient implements Serializable {
 	private Object listener;
 
 	private boolean debug;
+	private int priority = 0;
 
 	public static String getNow(TimeZone tz) {
 		tz = ThreadLocalPageContext.getTimeZone(tz);
@@ -196,6 +199,15 @@ public final class SMTPClient implements Serializable {
 	 */
 	public void setDebug(boolean debug) {
 		this.debug = debug;
+	}
+
+	/**
+	 * set the mail priority
+	 * 
+	 * @param priority
+	 */
+	public void setPriority(int priority) {
+		this.priority = priority;
 	}
 
 	/**
@@ -466,7 +478,7 @@ public final class SMTPClient implements Serializable {
 			props.put("mail.smtp.user", username);
 			props.put("mail.smtp.password", password);
 			props.put("password", password);
-			auth = new SMTPAuthenticator(username, password);
+			auth = new DefaultAuthenticator(username, password);
 		}
 		else {
 			props.put("mail.smtp.auth", "false");
@@ -479,7 +491,7 @@ public final class SMTPClient implements Serializable {
 
 		SessionAndTransport sat = newConnection ? new SessionAndTransport(hash(props), props, auth, lifeTimesan, idleTimespan)
 				: SMTPConnectionPool.getSessionAndTransport(props, hash(props), auth, lifeTimesan, idleTimespan);
-		
+
 		if (debug) sat.session.setDebug(true); // enable logging mail debug output to console
 
 		// Contacts
@@ -522,6 +534,8 @@ public final class SMTPClient implements Serializable {
 			throw new MessagingException("the encoding " + charset + " is not supported");
 		}
 		msg.setHeader("X-Mailer", xmailer);
+
+		if (priority > 0) msg.setHeader("X-Priority", Caster.toString(priority));
 
 		msg.setHeader("Date", getNow(timeZone));
 
@@ -735,13 +749,18 @@ public final class SMTPClient implements Serializable {
 		else mbp.setDataHandler(new DataHandler(new URLDataSource2(att.getURL())));
 		//
 		String fileName = att.getFileName();
-		if (!StringUtil.isAscii(fileName)) {
-			try {
-				fileName = MimeUtility.encodeText(fileName, "UTF-8", null);
-			}
-			catch (UnsupportedEncodingException e) {
-			} // that should never happen!
-		}
+
+		//  Set to comment for LDEV-4249 because of JavaMail choosing best encoding by itself,
+		//  as specified in https://javaee.github.io/javamail/FAQ#encodefilename and it should be
+		//  set in very special cases for legacy purpose.
+		//  if (!StringUtil.isAscii(fileName)) {
+		//  	try {
+		//  		fileName = MimeUtility.encodeText(fileName, "UTF-8", null);
+		//  	}
+		//  	catch (UnsupportedEncodingException e) {
+		//  	} // that should never happen!
+		//  }
+
 		mbp.setFileName(fileName);
 		if (!StringUtil.isEmpty(att.getType())) mbp.setHeader("Content-Type", att.getType());
 
@@ -990,24 +1009,24 @@ public final class SMTPClient implements Serializable {
 		return html;
 	}
 
-
 	/*
-	 * Users can opt-in to the old Lucee behavior of allowing HTML emails to be sent
-	 * using 7bit encoding. When 7bit transfer encoding is used, content must be
-	 * wrapped to less than 1,000 characters per line.
+	 * Users can opt-in to the old Lucee behavior of allowing HTML emails to be sent using 7bit
+	 * encoding. When 7bit transfer encoding is used, content must be wrapped to less than 1,000
+	 * characters per line.
 	 * 
-	 * The new default behavior for sending HTML emails is to use "quoted-printable"
-	 * encoding, encodings non-ASCII characters and automatically wraps lines to 76
-	 * characters wide, but encodes word breaks. This allows for strings longer than
-	 * 1000 characters to be included in the output and still have the output
-	 * conform to the SMTP RFCs.
+	 * The new default behavior for sending HTML emails is to use "quoted-printable" encoding, encodings
+	 * non-ASCII characters and automatically wraps lines to 76 characters wide, but encodes word
+	 * breaks. This allows for strings longer than 1000 characters to be included in the output and
+	 * still have the output conform to the SMTP RFCs.
 	 * 
-	 * https://stackoverflow.com/questions/25710599/content-transfer-encoding-7bit-or-8-bit/28531705#28531705
+	 * https://stackoverflow.com/questions/25710599/content-transfer-encoding-7bit-or-8-bit/28531705#
+	 * 28531705
 	 */
 	private boolean isUse7bitHtmlEncoding() {
 		try {
 			return Caster.toBoolean(SystemUtil.getSystemPropOrEnvVar("lucee.mail.use.7bit.transfer.encoding.for.html.parts", "false"));
-		} catch (Throwable t){
+		}
+		catch (Throwable t) {
 			return false;
 		}
 	}
@@ -1018,24 +1037,25 @@ public final class SMTPClient implements Serializable {
 		String transferEncoding;
 
 		/*
-		 * Set the "lucee.mail.use.7bit.transfer.encoding.for.html.parts" system property to "false"
-		 * to force the previous behavior of using 7bit transfer encoding.
+		 * Set the "lucee.mail.use.7bit.transfer.encoding.for.html.parts" system property to "false" to
+		 * force the previous behavior of using 7bit transfer encoding.
 		 */
-		if( isUse7bitHtmlEncoding() ){
+		if (isUse7bitHtmlEncoding()) {
 			transferEncoding = "7bit";
 			// when using 7bit, we must always wrap lines
 			mp.setDataHandler(new DataHandler(new StringDataSource(htmlText, TEXT_HTML, htmlTextCharset, 998)));
-		/*
-		 * The default behavior is to using "quoted-printable" for HTML emails. This will force
-		 * wrapping of lines to 76 characters and encoded any non-ASCII characters.
-		 * 
-		 * ACF uses this encoded for all HTML parts.
-		 */
-	} else {
+			/*
+			 * The default behavior is to using "quoted-printable" for HTML emails. This will force wrapping of
+			 * lines to 76 characters and encoded any non-ASCII characters.
+			 * 
+			 * ACF uses this encoded for all HTML parts.
+			 */
+		}
+		else {
 			transferEncoding = "quoted-printable";
 			mp.setDataHandler(new DataHandler(new StringDataSource(htmlText, TEXT_HTML, htmlTextCharset)));
 		}
-		
+
 		// headers must always be set after data handler is set or the headers will be replaced
 		mp.setHeader("Content-Transfer-Encoding", transferEncoding);
 		mp.setHeader("Content-Type", TEXT_HTML + "; charset=" + htmlTextCharset);
@@ -1062,15 +1082,15 @@ public final class SMTPClient implements Serializable {
 
 		StringDataSource partSource = null;
 		/*
-		 * HTML parts are encoded as "quoted-printable", which is automatically wrapped to 76 characters
-		 * per line, so we do not need to wrap these lines.
+		 * HTML parts are encoded as "quoted-printable", which is automatically wrapped to 76 characters per
+		 * line, so we do not need to wrap these lines.
 		 */
-		if( (part.getType() == "text/html") && !isUse7bitHtmlEncoding() ){
+		if ((part.getType() == "text/html") && !isUse7bitHtmlEncoding()) {
 			partSource = new StringDataSource(part.getBody(), part.getType(), cs);
-		} else {
+		}
+		else {
 			partSource = new StringDataSource(part.getBody(), part.getType(), cs, 998);
 		}
-
 
 		mbp.setDataHandler(new DataHandler(partSource));
 		return mbp;

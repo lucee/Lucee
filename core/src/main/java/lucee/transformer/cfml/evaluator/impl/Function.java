@@ -55,7 +55,7 @@ import lucee.transformer.util.SourceCode;
 public final class Function extends EvaluatorSupport {
 
 	@Override
-	public void evaluate(Tag tag, TagLibTag libTag, FunctionLib[] flibs) throws EvaluatorException {
+	public void evaluate(Tag tag, TagLibTag libTag, FunctionLib flibs) throws EvaluatorException {
 		// Body p=(Body) tag.getParent();
 		// Statement pp = p.getParent();
 
@@ -160,19 +160,17 @@ public final class Function extends EvaluatorSupport {
 		}
 	}
 
-	public static void checkFunctionName(String name, FunctionLib[] flibs, PageSource ps) throws EvaluatorException {
+	public static void checkFunctionName(String name, FunctionLib flib, PageSource ps) throws EvaluatorException {
 		FunctionLibFunction flf;
-		for (int i = 0; i < flibs.length; i++) {
-			flf = flibs[i].getFunction(name);
-			if (flf != null && flf.getFunctionClassDefinition().getClazz(null) != CFFunction.class) {
-				String path = null;
-				if (ps != null) {
-					path = ps.getDisplayPath();
-					path = path.replace('\\', '/');
-				}
-				if (path == null || path.indexOf("/library/function/") == -1)// TODO make better
-					throw new EvaluatorException("The name [" + name + "] is already used by a built in Function");
+		flf = flib.getFunction(name);
+		if (flf != null && flf.getFunctionClassDefinition().getClazz(null) != CFFunction.class) {
+			String path = null;
+			if (ps != null) {
+				path = ps.getDisplayPath();
+				path = path.replace('\\', '/');
 			}
+			if (path == null || path.indexOf("/library/function/") == -1)// TODO make better
+				throw new EvaluatorException("The name [" + name + "] is already used by a built in Function");
 		}
 	}
 

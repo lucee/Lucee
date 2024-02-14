@@ -25,7 +25,6 @@ import javax.script.ScriptEngineFactory;
 import lucee.commons.lang.StringUtil;
 import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.config.ConfigPro;
-import lucee.runtime.config.ConfigWebUtil;
 import lucee.runtime.config.Constants;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.type.util.ListUtil;
@@ -34,41 +33,37 @@ public class ScriptEngineFactoryImpl implements ScriptEngineFactory {
 
 	final CFMLEngine engine;
 	final boolean tag;
-	final int dialect;
-	final boolean isCFML;
 
-	public ScriptEngineFactoryImpl(CFMLEngine engine, boolean tag, int dialect) {
+	public ScriptEngineFactoryImpl(CFMLEngine engine, boolean tag) {
 		this.engine = engine;
 		this.tag = tag;
-		this.dialect = dialect;
-		this.isCFML = dialect == CFMLEngine.DIALECT_CFML;
 	}
 
 	@Override
 	public List<String> getExtensions() {
-		return ListUtil.arrayToList(isCFML ? Constants.getCFMLExtensions() : Constants.getLuceeExtensions());
+		return ListUtil.arrayToList(Constants.getCFMLExtensions());
 	}
 
 	@Override
 	public List<String> getMimeTypes() {
-		return ListUtil.arrayToList(isCFML ? Constants.CFML_MIMETYPES : Constants.LUCEE_MIMETYPES);
+		return ListUtil.arrayToList(Constants.CFML_MIMETYPES);
 	}
 
 	@Override
 	public List<String> getNames() {
-		return ListUtil.arrayToList(dialect == CFMLEngine.DIALECT_CFML ? Constants.CFML_ALIAS_NAMES : Constants.LUCEE_ALIAS_NAMES);
+		return ListUtil.arrayToList(Constants.CFML_ALIAS_NAMES);
 	}
 
 	@Override
 	public Object getParameter(String key) {
 
-		if (key.equalsIgnoreCase(ScriptEngine.NAME)) return ConfigWebUtil.toDialect(dialect, "");
+		if (key.equalsIgnoreCase(ScriptEngine.NAME)) return "CFML";
 
-		if (key.equalsIgnoreCase(ScriptEngine.ENGINE)) return Constants.NAME + " (dialect:" + ConfigWebUtil.toDialect(dialect, "") + ")";
+		if (key.equalsIgnoreCase(ScriptEngine.ENGINE)) return Constants.NAME;
 
 		if (key.equalsIgnoreCase(ScriptEngine.ENGINE_VERSION) || key.equalsIgnoreCase(ScriptEngine.LANGUAGE_VERSION)) return engine.getInfo().getVersion().toString();
 
-		if (key.equalsIgnoreCase(ScriptEngine.LANGUAGE)) return (isCFML ? Constants.CFML_NAME : Constants.LUCEE_NAME).toLowerCase() + (tag ? "-tag" : "");
+		if (key.equalsIgnoreCase(ScriptEngine.LANGUAGE)) return (Constants.CFML_NAME).toLowerCase() + (tag ? "-tag" : "");
 
 		if (key.equalsIgnoreCase("THREADING")) return "THREAD-ISOLATED";
 		throw new IllegalArgumentException("Invalid key");
@@ -123,15 +118,9 @@ public class ScriptEngineFactoryImpl implements ScriptEngineFactory {
 		return sb.toString();
 	}
 
-	private String getScriptTagName() {
-		String prefix = ((ConfigPro) ThreadLocalPageContext.getConfig()).getCoreTagLib(dialect).getNameSpaceAndSeparator();
-		return prefix + (dialect == CFMLEngine.DIALECT_CFML ? Constants.CFML_SCRIPT_TAG_NAME : Constants.LUCEE_SCRIPT_TAG_NAME);
-
-	}
-
 	private String getSetTagName() {
-		String prefix = ((ConfigPro) ThreadLocalPageContext.getConfig()).getCoreTagLib(dialect).getNameSpaceAndSeparator();
-		return prefix + (dialect == CFMLEngine.DIALECT_CFML ? Constants.CFML_SET_TAG_NAME : Constants.LUCEE_SET_TAG_NAME);
+		String prefix = ((ConfigPro) ThreadLocalPageContext.getConfig()).getCoreTagLib().getNameSpaceAndSeparator();
+		return prefix + (Constants.CFML_SET_TAG_NAME);
 
 	}
 

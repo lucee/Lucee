@@ -36,9 +36,9 @@ import lucee.runtime.op.Caster;
 import lucee.runtime.op.date.DateCaster;
 import lucee.runtime.schedule.ScheduleTask;
 import lucee.runtime.schedule.ScheduleTaskImpl;
+import lucee.runtime.schedule.ScheduleTaskPro;
 import lucee.runtime.schedule.Scheduler;
 import lucee.runtime.schedule.SchedulerImpl;
-import lucee.runtime.schedule.ScheduleTaskPro;
 import lucee.runtime.type.QueryImpl;
 import lucee.runtime.type.dt.Date;
 import lucee.runtime.type.dt.DateImpl;
@@ -598,7 +598,7 @@ public final class Schedule extends TagImpl {
 		int port = HTTPUtil.getPort(url);
 		boolean isNonStandardPort = ("https".equalsIgnoreCase(protocol) && port != 443) || ("http".equalsIgnoreCase(protocol) && port != 80);
 
-		String str = protocol + "://" + url.getHost() + (isNonStandardPort ? ":" + port : "") + url.getPath() + qs; 
+		String str = protocol + "://" + url.getHost() + (isNonStandardPort ? ":" + port : "") + url.getPath() + qs;
 		return str;
 	}
 

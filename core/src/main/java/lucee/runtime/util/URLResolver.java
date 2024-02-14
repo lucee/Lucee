@@ -27,7 +27,6 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import lucee.commons.lang.StringUtil;
-import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.text.xml.XMLUtil;
@@ -101,7 +100,7 @@ public final class URLResolver {
 	 */
 	public String transform(String html, URL url, boolean setBaseTag) throws PageException {
 		StringBuffer target = new StringBuffer();
-		SourceCode cfml = new SourceCode(null, html, false, CFMLEngine.DIALECT_CFML);
+		SourceCode cfml = new SourceCode(null, html, false);
 		while (!cfml.isAfterLast()) {
 			if (cfml.forwardIfCurrent('<')) {
 				target.append('<');

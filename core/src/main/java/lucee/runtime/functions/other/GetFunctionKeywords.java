@@ -42,25 +42,21 @@ public class GetFunctionKeywords {
 		synchronized (token) {
 			if (keywords == null) {
 				Set<String> set = new HashSet<String>();
-				FunctionLib[] flds;
-				flds = ((ConfigPro) pc.getConfig()).getFLDs(pc.getCurrentTemplateDialect());
+				FunctionLib flds = ((ConfigPro) pc.getConfig()).getFLDs();
 				Map<String, FunctionLibFunction> functions;
 				Iterator<FunctionLibFunction> it;
 				FunctionLibFunction flf;
 				String[] arr;
-				for (int i = 0; i < flds.length; i++) {
-					functions = flds[i].getFunctions();
-					it = functions.values().iterator();
-
-					while (it.hasNext()) {
-						flf = it.next();
-						if (flf.getStatus() != TagLib.STATUS_HIDDEN && flf.getStatus() != TagLib.STATUS_UNIMPLEMENTED && !ArrayUtil.isEmpty(flf.getKeywords())) {
-							arr = flf.getKeywords();
-							if (arr != null) for (int y = 0; y < arr.length; y++) {
-								set.add(arr[y].toLowerCase());
-							}
-
+				functions = flds.getFunctions();
+				it = functions.values().iterator();
+				while (it.hasNext()) {
+					flf = it.next();
+					if (flf.getStatus() != TagLib.STATUS_HIDDEN && flf.getStatus() != TagLib.STATUS_UNIMPLEMENTED && !ArrayUtil.isEmpty(flf.getKeywords())) {
+						arr = flf.getKeywords();
+						if (arr != null) for (int y = 0; y < arr.length; y++) {
+							set.add(arr[y].toLowerCase());
 						}
+
 					}
 				}
 				keywords = Caster.toArray(set);

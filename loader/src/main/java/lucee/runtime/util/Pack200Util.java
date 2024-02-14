@@ -81,22 +81,28 @@ public class Pack200Util {
 		/**
 		 * Constructor of the class
 		 */
-		private DevNullOutputStream() {}
+		private DevNullOutputStream() {
+		}
 
 		@Override
-		public void close() {}
+		public void close() {
+		}
 
 		@Override
-		public void flush() {}
+		public void flush() {
+		}
 
 		@Override
-		public void write(byte[] b, int off, int len) {}
+		public void write(byte[] b, int off, int len) {
+		}
 
 		@Override
-		public void write(byte[] b) {}
+		public void write(byte[] b) {
+		}
 
 		@Override
-		public void write(int b) {}
+		public void write(int b) {
+		}
 
 	}
 

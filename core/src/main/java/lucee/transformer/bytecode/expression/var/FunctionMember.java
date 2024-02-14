@@ -20,9 +20,10 @@ package lucee.transformer.bytecode.expression.var;
 
 import lucee.transformer.expression.Expression;
 import lucee.transformer.expression.var.Member;
+import lucee.transformer.expression.var.NamedMember;
 import lucee.transformer.expression.var.Variable;
 
-public abstract class FunctionMember implements Member, Func {
+public abstract class FunctionMember implements NamedMember, Member, Func {
 	private Argument[] arguments = new Argument[0];
 	private boolean _hasNamedArgs;
 	private Variable parent;

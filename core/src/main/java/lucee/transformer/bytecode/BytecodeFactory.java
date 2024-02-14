@@ -89,7 +89,7 @@ public class BytecodeFactory extends FactoryBase {
 	private final LitBoolean TRUE;
 	private final LitBoolean FALSE;
 	private final LitString EMPTY;
-	private final LitString NULL;
+	private final Expression NULL;
 	private final LitNumber NUMBER_ZERO;
 	private final LitNumber NUMBER_ONE;
 
@@ -99,7 +99,7 @@ public class BytecodeFactory extends FactoryBase {
 		TRUE = createLitBoolean(true);
 		FALSE = createLitBoolean(false);
 		EMPTY = createLitString("");
-		NULL = createLitString("NULL");
+		NULL = Null.getSingleInstance(this);
 		NUMBER_ZERO = createLitNumber(0);
 		NUMBER_ONE = createLitNumber(1);
 		this.config = config;
@@ -231,7 +231,7 @@ public class BytecodeFactory extends FactoryBase {
 	}
 
 	@Override
-	public LitString NULL() {
+	public Expression NULL() {
 		return NULL;
 	}
 
@@ -326,19 +326,16 @@ public class BytecodeFactory extends FactoryBase {
 				bc.getAdapter().getStatic(KEY_CONSTANTS, key, Types.COLLECTION_KEY);
 				return;
 			}
+
 			int index = bc.registerKey(ls);
-			bc.getAdapter().visitVarInsn(Opcodes.ALOAD, 0);
-			bc.getAdapter().visitFieldInsn(Opcodes.GETFIELD, bc.getClassName(), "keys", Types.COLLECTION_KEY_ARRAY.toString());
+			bc.getAdapter().visitFieldInsn(Opcodes.GETSTATIC, bc.getClassName(), "keys", Types.COLLECTION_KEY_ARRAY.toString());
 			bc.getAdapter().push(index);
 			bc.getAdapter().visitInsn(Opcodes.AALOAD);
-
-			// ExpressionUtil.writeOutSilent(lit,bc, Expression.MODE_REF);
-			// bc.getAdapter().invokeStatic(Page.KEY_IMPL, Page.KEY_INTERN);
 
 			return;
 		}
 		name.writeOut(bc, Expression.MODE_REF);
-		bc.getAdapter().invokeStatic(Page.KEY_IMPL, Page.KEY_INTERN);
+		bc.getAdapter().invokeStatic(Page.KEY_IMPL, Page.KEY_SOURCE);
 		// bc.getAdapter().invokeStatic(Types.CASTER, TO_KEY);
 		return;
 	}

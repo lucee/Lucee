@@ -45,6 +45,44 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 			});
 
 
+			it( title='test default mappings', body=function( currentSpec ) {
+				var pc=getPageContext();
+				var c=pc.getConfig();
+
+				// validate mappings
+				var mappings=c.getMappings();
+				expect(len(mappings)>2).toBeTrue();
+				//expect(mappings[1].virtual).toBe("/lucee-server");
+				//expect(directoryExists(mappings[1].getPhysical())).toBeTrue();
+
+				expect(mappings[len(mappings)].virtual).toBe("/");
+				expect(directoryExists(mappings[len(mappings)].getPhysical())).toBeTrue();
+			});
+
+			it( title='test default mappings', body=function( currentSpec ) {
+				
+				var pc=getPageContext();
+				var c=pc.getConfig();
+
+				// validate component mappings
+				var componentMappings=c.getComponentMappings();
+				expect(len(componentMappings)>0).toBeTrue();
+				expect(componentMappings[1].getStrPhysical()).toBe("{lucee-config}/components/");
+				expect(directoryExists(componentMappings[1].getPhysical())).toBeTrue();
+			});
+
+			it( title='test default mappings', body=function( currentSpec ) {				
+				var pc=getPageContext();
+				var c=pc.getConfig();
+
+				// validate custom tag mappings
+				var customTagMappings=c.getCustomTagMappings();
+				expect(len(customTagMappings)>0).toBeTrue();
+				expect(customTagMappings[1].getStrPhysical()).toBe("{lucee-config}/customtags/");
+				expect(directoryExists(customTagMappings[1].getPhysical())).toBeTrue();
+			});
+
+
 		});
 	}
 

@@ -38,7 +38,14 @@ import java.io.UnsupportedEncodingException;
 import java.io.Writer;
 import java.lang.reflect.Method;
 import java.net.URL;
+import java.nio.ByteBuffer;
+import java.nio.channels.Channels;
+import java.nio.channels.ReadableByteChannel;
+import java.nio.channels.WritableByteChannel;
 import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -61,6 +68,8 @@ import lucee.runtime.exp.PageException;
  */
 public final class IOUtil {
 
+	private static final int DEFAULT_BLOCK_SIZE = 0xffff;// 65535
+
 	/**
 	 * copy an inputstream to an outputstream
 	 * 
@@ -72,7 +81,7 @@ public final class IOUtil {
 	 */
 	public static final void copy(InputStream in, OutputStream out, boolean closeIS, boolean closeOS) throws IOException {
 		try {
-			copy(in, out, 0xffff);// 65535
+			copy(in, out, DEFAULT_BLOCK_SIZE);
 		}
 		finally {
 			if (closeIS && closeOS) close(in, out);
@@ -85,7 +94,7 @@ public final class IOUtil {
 
 	public static final void copy(InputStream in, OutputStream out, int blockSize, boolean closeIS, boolean closeOS) throws IOException {
 		try {
-			copy(in, out, blockSize);// 65535
+			copy(in, out, blockSize);
 		}
 		finally {
 			if (closeIS && closeOS) close(in, out);
@@ -107,7 +116,7 @@ public final class IOUtil {
 	 */
 	public static final void merge(InputStream in1, InputStream in2, OutputStream out, boolean closeIS1, boolean closeIS2, boolean closeOS) throws IOException {
 		try {
-			merge(in1, in2, out, 0xffff);
+			merge(in1, in2, out, DEFAULT_BLOCK_SIZE);
 		}
 		finally {
 			if (closeIS1) closeEL(in1);
@@ -197,13 +206,13 @@ public final class IOUtil {
 	}
 
 	public static final void copy(InputStream in, OutputStream out, int offset, int length) throws IOException {
-		copy(in, out, offset, length, 0xffff);
+		copy(in, out, offset, length, DEFAULT_BLOCK_SIZE);
 	}
 
 	public static final void copy(InputStream in, OutputStream out, long offset, long length) throws IOException {
 		int len;
 		byte[] buffer;
-		int block = 0xffff;
+		int block = DEFAULT_BLOCK_SIZE;
 
 		// first offset to start
 		if (offset > 0) {
@@ -250,7 +259,7 @@ public final class IOUtil {
 
 		int len;
 		byte[] buffer;
-		int block;// 0xffff;
+		int block;
 
 		// first offset to start
 		if (offset > 0) {
@@ -264,7 +273,7 @@ public final class IOUtil {
 			}
 
 			if (skipped <= 0) {
-				block = blockSize;// 0xffff;
+				block = blockSize;
 				while (true) {
 					if (block > offset) block = offset;
 					buffer = new byte[block];
@@ -282,7 +291,7 @@ public final class IOUtil {
 			copy(in, out, blockSize);
 			return;
 		}
-		block = blockSize;// 0xffff;
+		block = blockSize;
 		while (true) {
 			if (block > length) block = length;
 			buffer = new byte[block];
@@ -295,18 +304,41 @@ public final class IOUtil {
 	}
 
 	/**
-	 * copy an inputstream to an outputstream
+	 * Copies data from the given input stream to the output stream using Java NIO.
 	 * 
-	 * @param in
-	 * @param out
-	 * @param blockSize
-	 * @throws IOException
+	 * This method uses NIO channels and buffers for efficient data transfer, especially beneficial for
+	 * handling large amounts of data. It reads data from the input stream into a buffer and then writes
+	 * it to the output stream, continuing this process until all data is transferred.
+	 *
+	 * Note: This method does not close the provided InputStream and OutputStream; it is the
+	 * responsibility of the caller to close these resources.
+	 *
+	 * @param in The input stream from which data is to be read. Must not be null.
+	 * @param out The output stream to which data is to be written. Must not be null.
+	 * @param blockSize The size of the buffer used for transferring data. This size can significantly
+	 *            affect the performance of the data transfer. A larger buffer size may improve
+	 *            performance, especially for large data transfers, but will also require more memory.
+	 * @throws IOException If an I/O error occurs during the copy operation.
 	 */
 	private static final void copy(InputStream in, OutputStream out, int blockSize) throws IOException {
-		byte[] buffer = new byte[blockSize];
-		int len;
-		while ((len = in.read(buffer)) != -1) {
-			out.write(buffer, 0, len);
+		// Creating channels from the input and output streams
+		ReadableByteChannel sourceChannel = Channels.newChannel(in);
+		WritableByteChannel destChannel = Channels.newChannel(out);
+
+		// Allocate a ByteBuffer of the given block size
+		ByteBuffer buffer = ByteBuffer.allocate(blockSize);
+
+		// Read from the source channel into the buffer, and then write from the buffer to the destination
+		// channel
+		while (sourceChannel.read(buffer) != -1) {
+			// Flip the buffer to prepare for writing
+			buffer.flip();
+
+			// Write to the destination channel
+			destChannel.write(buffer);
+
+			// Clear the buffer for the next read
+			buffer.clear();
 		}
 	}
 
@@ -321,7 +353,7 @@ public final class IOUtil {
 	 * @throws IOException
 	 */
 	public static final boolean copyMax(InputStream in, OutputStream out, long max) throws IOException {
-		byte[] buffer = new byte[0xffff];
+		byte[] buffer = new byte[DEFAULT_BLOCK_SIZE];
 		int len;
 		long total = 0;
 		while ((len = in.read(buffer)) != -1) {
@@ -348,7 +380,7 @@ public final class IOUtil {
 	 * @throws IOException
 	 */
 	private static final void copy(Reader r, Writer w, long timeout) throws IOException {
-		copy(r, w, 0xffff, timeout);
+		copy(r, w, DEFAULT_BLOCK_SIZE, timeout);
 	}
 
 	/**
@@ -362,7 +394,7 @@ public final class IOUtil {
 	 */
 	public static final void copy(Reader reader, Writer writer, boolean closeReader, boolean closeWriter) throws IOException {
 		try {
-			copy(reader, writer, 0xffff, -1);
+			copy(reader, writer, DEFAULT_BLOCK_SIZE, -1);
 		}
 		finally {
 			if (closeReader && closeWriter) close(reader, writer);
@@ -412,17 +444,7 @@ public final class IOUtil {
 	 * @throws IOException
 	 */
 	public void copy(File in, File out) throws IOException {
-		InputStream is = null;
-		OutputStream os = null;
-		try {
-			is = new BufferedFileInputStream(in);
-			os = new BufferedFileOutputStream(out);
-		}
-		catch (IOException ioe) {
-			close(is, os);
-			throw ioe;
-		}
-		copy(is, os, true, true);
+		Files.copy(in.toPath(), out.toPath(), StandardCopyOption.REPLACE_EXISTING);
 	}
 
 	/**
@@ -655,6 +677,7 @@ public final class IOUtil {
 	 * @param obj
 	 */
 	public static void closeEL(Object obj) {
+		if (obj == null) return;
 		if (obj instanceof InputStream) IOUtil.closeEL((InputStream) obj);
 		else if (obj instanceof OutputStream) IOUtil.closeEL((OutputStream) obj);
 		else if (obj instanceof Writer) IOUtil.closeEL((Writer) obj);
@@ -1414,6 +1437,16 @@ public final class IOUtil {
 			}
 			finally {
 				finished = true;
+			}
+		}
+	}
+
+	public static void deleteEL(Path path) {
+		if (path != null) {
+			try {
+				Files.delete(path);
+			}
+			catch (Exception e) {
 			}
 		}
 	}

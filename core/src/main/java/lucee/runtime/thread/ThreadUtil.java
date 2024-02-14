@@ -32,6 +32,7 @@ import lucee.commons.io.DevNullOutputStream;
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.Pair;
+import lucee.commons.lang.StringUtil;
 import lucee.runtime.CFMLFactory;
 import lucee.runtime.CFMLFactoryImpl;
 import lucee.runtime.PageContext;
@@ -84,9 +85,18 @@ public class ThreadUtil {
 
 	public static PageContextImpl createPageContext(ConfigWeb config, OutputStream os, String serverName, String requestURI, String queryString, Cookie[] cookies, Pair[] headers,
 			byte[] body, Pair[] parameters, Struct attributes, boolean register, long timeout, HttpSession session) {
+
+		return createPageContext(config, os, serverName, requestURI, queryString, cookies, headers, body, parameters, attributes, register, timeout, session, null);
+	}
+
+	public static PageContextImpl createPageContext(ConfigWeb config, OutputStream os, String serverName, String requestURI, String queryString, Cookie[] cookies, Pair[] headers,
+			byte[] body, Pair[] parameters, Struct attributes, boolean register, long timeout, HttpSession session, String method) {
+
 		CFMLFactory factory = config.getFactory();
 		HttpServletRequest req = new HttpServletRequestDummy(config.getRootDirectory(), serverName, requestURI, queryString, cookies, headers, parameters, attributes, session,
 				body);
+
+		if (!StringUtil.isEmpty(method, true)) ((HttpServletRequestDummy) req).setMethod(method);
 
 		req = new HTTPServletRequestWrap(req);
 		HttpServletResponse rsp = createHttpServletResponse(os);

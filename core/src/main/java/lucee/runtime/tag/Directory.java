@@ -24,6 +24,7 @@ import static lucee.runtime.tag.util.FileUtil.NAMECONFLICT_UNDEFINED;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Date;
 
@@ -240,10 +241,10 @@ public final class Directory extends TagImpl {
 	}
 
 	public static String improveStorage(String storage) throws ApplicationException {
-		storage = improveStorage(storage, null);
+		storage = improveStorage(storage, storage == null ? null : storage.trim());
 		if (storage != null) return storage;
 
-		throw new ApplicationException("Invalid storage value, valid values are [eu, us, us-west]");
+		throw new ApplicationException("Invalid storageLocation value");
 	}
 
 	public static String improveStorage(String storage, String defaultValue) {
@@ -546,6 +547,39 @@ public final class Directory extends TagImpl {
 	}
 
 	private static int _fillQueryAll(Query query, Resource directory, ResourceFilter filter, int count, boolean hasMeta, boolean recurse) throws PageException, IOException {
+		if (!recurse && filter != null) {
+			Resource[] list = directory.listResources(filter);
+
+			if (list == null || list.length == 0) return count;
+			String dir = directory.getCanonicalPath();
+			// fill data to query
+			// query.addRow(list.length);
+			boolean isDir;
+			boolean modeSupported = directory.getResourceProvider().isModeSupported();
+			for (int i = 0; i < list.length; i++) {
+				isDir = list[i].isDirectory();
+				query.addRow(1);
+				count++;
+				query.setAt(KeyConstants._name, count, list[i].getName());
+				query.setAt(KeyConstants._size, count, Double.valueOf(isDir ? 0 : list[i].length()));
+				query.setAt(KeyConstants._type, count, isDir ? "Dir" : "File");
+				if (modeSupported) {
+					query.setAt(MODE, count, new ModeObjectWrap(list[i]));
+				}
+				query.setAt(DATE_LAST_MODIFIED, count, new Date(list[i].lastModified()));
+				// TODO File Attributes are Windows only...
+				// this is slow as it fetches each the attributes one at a time
+				query.setAt(ATTRIBUTES, count, getFileAttribute(list[i], true));
+
+				if (hasMeta) {
+					query.setAt(META, count, ((ResourceMetaData) list[i]).getMetaData());
+				}
+
+				query.setAt(DIRECTORY, count, dir);
+			}
+			return count;
+		}
+
 		Resource[] list = directory.listResources();
 
 		if (list == null || list.length == 0) return count;
@@ -585,14 +619,12 @@ public final class Directory extends TagImpl {
 	private static int _fillQueryNames(Query query, Resource directory, ResourceFilter filter, int count) throws PageException {
 		if (filter == null || filter instanceof ResourceNameFilter) {
 			ResourceNameFilter rnf = filter == null ? null : (ResourceNameFilter) filter;
-			String[] list = directory.list();
+			String[] list = filter == null ? directory.list() : directory.list(rnf);
 			if (list == null || list.length == 0) return count;
 			for (int i = 0; i < list.length; i++) {
-				if (rnf == null || rnf.accept(directory, list[i])) {
-					query.addRow(1);
-					count++;
-					query.setAt(KeyConstants._name, count, list[i]);
-				}
+				query.addRow(1);
+				count++;
+				query.setAt(KeyConstants._name, count, list[i]);
 			}
 		}
 		else {
@@ -625,6 +657,16 @@ public final class Directory extends TagImpl {
 	}
 
 	private static int _fillArrayPathOrName(Array arr, Resource directory, ResourceFilter filter, int count, boolean recurse, boolean onlyName) throws PageException {
+		if (!recurse && filter != null) {
+			Resource[] list = directory.listResources(filter);
+			if (list == null || list.length == 0) return count;
+			for (int i = 0; i < list.length; i++) {
+				arr.appendEL(onlyName ? list[i].getName() : list[i].getAbsolutePath());
+				count++;
+			}
+			return count;
+		}
+
 		Resource[] list = directory.listResources();
 		if (list == null || list.length == 0) return count;
 		for (int i = 0; i < list.length; i++) {
@@ -685,6 +727,8 @@ public final class Directory extends TagImpl {
 		// if(!directory.mkdirs()) throw new ApplicationException("can't create directory
 		// ["+directory.toString()+"]");
 		try {
+			// set S3 region before creation
+			setS3region(pc, directory, storage);
 			directory.createDirectory(createPath);
 		}
 		catch (IOException ioe) {
@@ -692,7 +736,7 @@ public final class Directory extends TagImpl {
 		}
 
 		// set S3 stuff
-		setS3Attrs(pc, directory, acl, storage);
+		setS3acl(pc, directory, acl);
 
 		// Set Mode
 		if (mode != -1) {
@@ -706,7 +750,25 @@ public final class Directory extends TagImpl {
 		}
 	}
 
+	// for backwards compat
 	public static void setS3Attrs(PageContext pc, Resource res, Object acl, String storage) throws PageException {
+		setS3acl(pc, res, acl);
+		setS3region(pc, res, storage);
+	}
+
+	public static boolean setS3region(PageContext pc, Resource res, String storage) throws PageException {
+		String scheme = res.getResourceProvider().getScheme();
+
+		if ("s3".equalsIgnoreCase(scheme)) {
+			if (storage != null) {
+				Reflector.callMethod(res, "setStorage", new Object[] { storage });
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public static void setS3acl(PageContext pc, Resource res, Object acl) throws PageException {
 		String scheme = res.getResourceProvider().getScheme();
 
 		if ("s3".equalsIgnoreCase(scheme)) {
@@ -721,11 +783,8 @@ public final class Directory extends TagImpl {
 					throw Caster.toPageException(e);
 				}
 			}
-			// STORAGE
-			if (storage != null) {
-				Reflector.callMethod(res, "setStorage", new Object[] { storage });
-			}
 		}
+
 	}
 
 	public static String improveACL(String acl) throws ApplicationException {
@@ -803,9 +862,11 @@ public final class Directory extends TagImpl {
 
 		securityManager.checkFileLocation(pc.getConfig(), newdirectory, serverPassword);
 		if (newdirectory.exists()) throw new ApplicationException("New directory [" + newdirectory.toString() + "] already exists");
+
+		setS3region(pc, newdirectory, storage);
+
 		if (createPath) {
 			newdirectory.getParentResource().mkdirs();
-
 		}
 		try {
 			directory.moveTo(newdirectory);
@@ -815,8 +876,8 @@ public final class Directory extends TagImpl {
 			throw Caster.toPageException(t);
 		}
 
-		// set S3 stuff
-		setS3Attrs(pc, newdirectory, acl, storage);
+		// set S3 ACL
+		setS3acl(pc, newdirectory, acl);
 		return newdirectory.toString();
 
 	}
@@ -856,9 +917,12 @@ public final class Directory extends TagImpl {
 			else {
 				if (!recurse) f = new NotResourceFilter(DirectoryResourceFilter.FILTER);
 			}
-			if (!createPath) {
+			if (createPath && storage != null) setS3region(pc, newdirectory, storage); // can only set region when creating a buckets
+			else if (!createPath || storage != null) {
 				Resource p = newdirectory.getParentResource();
 				if (p != null && !p.exists()) throw new ApplicationException("parent directory for [" + newdirectory + "] doesn't exist");
+				if (p != null && p.exists() && storage != null)
+					throw new ApplicationException("parent s3 bucket [" + newdirectory + "] already exists, cannot change region for existing buckets");
 			}
 			ResourceUtil.copyRecursive(directory, newdirectory, f);
 			if (clearEmpty) ResourceUtil.removeEmptyFolders(newdirectory, f == null ? null : new NotResourceFilter(filter));
@@ -869,8 +933,8 @@ public final class Directory extends TagImpl {
 			throw new ApplicationException(t.getMessage());
 		}
 
-		// set S3 stuff
-		setS3Attrs(pc, newdirectory, acl, storage);
+		// set S3 ACL
+		setS3acl(pc, newdirectory, acl);
 
 	}
 
@@ -882,10 +946,21 @@ public final class Directory extends TagImpl {
 		return ResourceUtil.toResourceNotExisting(pageContext, path);
 	}
 
-	private static String getFileAttribute(Resource file, boolean exists) {
+	public static String getFileAttribute(Resource file, boolean exists) {
 		// TODO this is slow as it fetches attributes one at a time
 		// also Windows only!
 		return exists && !file.isWriteable() ? "R".concat(file.isHidden() ? "H" : "") : file.isHidden() ? "H" : "";
+	}
+
+	public static String getFileAttribute(Path path, boolean exists) {
+		String hidden;
+		try {
+			hidden = Files.isHidden(path) ? "H" : "";
+		}
+		catch (IOException e) {
+			hidden = "";
+		}
+		return exists && !Files.isWritable(path) ? "R".concat(hidden) : hidden;
 	}
 
 	/**

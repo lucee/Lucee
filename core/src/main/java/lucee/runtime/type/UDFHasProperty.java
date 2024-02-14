@@ -54,10 +54,10 @@ public final class UDFHasProperty extends UDFGSProperty {
 		String t = PropertyFactory.getType(prop);
 
 		if ("struct".equalsIgnoreCase(t)) {
-			FunctionArgument key = new FunctionArgumentLight(KeyConstants._key, "string", CFTypes.TYPE_STRING, false);
+			FunctionArgument key = new FuncArgLite(KeyConstants._key, "string", CFTypes.TYPE_STRING, false);
 			return new FunctionArgument[] { key };
 		}
-		FunctionArgument value = new FunctionArgumentLight(KeyImpl.init(PropertyFactory.getSingularName(prop)), "any", CFTypes.TYPE_ANY, false);
+		FunctionArgument value = new FuncArgLite(KeyImpl.init(PropertyFactory.getSingularName(prop)), "any", CFTypes.TYPE_ANY, false);
 		return new FunctionArgument[] { value };
 	}
 
@@ -126,7 +126,7 @@ public final class UDFHasProperty extends UDFGSProperty {
 			// if(strKey==NULL) throw new ;
 
 			if (propValue instanceof Struct) {
-				return ((Struct) propValue).containsKey(KeyImpl.getInstance(strKey));
+				return ((Struct) propValue).containsKey(KeyImpl.init(strKey));
 			}
 			else if (propValue instanceof Map) {
 				return ((Map) propValue).containsKey(strKey);

@@ -2,20 +2,23 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="cache,ehCache" {
 	function run( testResults , testBox ) {
 		describe( title="Test suite for CacheCount()", body=function() {
 			variables.cacheName="Test"&ListFirst(ListLast(getCurrentTemplatePath(),"\/"),".");
-			afterEach(function( currentSpec ){
-				testCacheCount();
-				deleteCache();
-			});
+			
 			it(title="Checking testCacheCountEHCache()", body = function( currentSpec ) {
 				createEHCache();
+				testCacheCount();
+				deleteCache();
 			});
 			it(title="Checking testCacheCountJBossCache()", body = function( currentSpec ) {
 				if(!isNull(request.testJBossExtension) and request.testJBossExtension){
 					createJBossCache();
+					testCacheCount();
+					deleteCache();
 				}
 			});
 			it(title="Checking testCacheCountRAMCache()", body = function( currentSpec ) {
 				createRAMCache();
+				testCacheCount();
+				deleteCache();
 			});
 		});
 	}

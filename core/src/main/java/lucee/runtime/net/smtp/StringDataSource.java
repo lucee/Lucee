@@ -26,7 +26,7 @@ import java.util.Scanner;
 
 import javax.activation.DataSource;
 
-import org.apache.commons.lang.WordUtils;
+import org.apache.commons.text.WordUtils;
 
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.lang.CharSet;
@@ -42,9 +42,8 @@ public final class StringDataSource implements DataSource {
 	public final static char LF = (char) 10;
 
 	/*
-	 * Some types of transfer encoding such as "quoted-printable" and "base64"
-	 * do not require wrapping of lines, because it's handled automatically
-	 * in the encoding.
+	 * Some types of transfer encoding such as "quoted-printable" and "base64" do not require wrapping
+	 * of lines, because it's handled automatically in the encoding.
 	 */
 	public StringDataSource(String text, String ct, CharSet charset) {
 		this.text = text;

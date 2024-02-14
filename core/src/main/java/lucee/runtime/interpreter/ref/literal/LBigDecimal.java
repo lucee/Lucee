@@ -24,6 +24,7 @@ import lucee.runtime.PageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.interpreter.ref.Ref;
 import lucee.runtime.interpreter.ref.util.RefUtil;
+import lucee.runtime.op.Caster;
 
 /**
  * Literal Number
@@ -51,7 +52,7 @@ public final class LBigDecimal implements Ref {
 	 * @throws PageException
 	 */
 	public LBigDecimal(String literal) throws PageException {
-		this.literal = new BigDecimal(literal);
+		this.literal = Caster.toBigDecimal(literal);
 	}
 
 	public BigDecimal getBigDecimal() {

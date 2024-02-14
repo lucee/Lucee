@@ -160,10 +160,12 @@ Defaults --->
 					password="#session["password"&request.adminType]#"
 					cachedAfter="#cachedAfter#"
 					inspectTemplate="#form.inspectTemplate#"
+					inspectTemplateIntervalSlow="#form.inspectTemplateIntervalSlow?:'10000'#"
+					inspectTemplateIntervalFast="#form.inspectTemplateIntervalFast?:'100'#"
 					typeChecking="#!isNull(form.typeChecking) and form.typeChecking EQ true#"
 					remoteClients="#request.getRemoteClients()#"
 					>
-				<cfif request.adminType EQ "server">
+				<cfif not request.singlemode and request.adminType EQ "server">
 
 					<cfadmin
 						action="updateDevelopMode"
@@ -183,6 +185,8 @@ Defaults --->
 					
 					cachedAfter=""
 					inspectTemplate=""
+					inspectTemplateIntervalSlow=""
+					inspectTemplateIntervalFast=""
 					typeChecking=""
 					
 					remoteClients="#request.getRemoteClients()#"
@@ -226,40 +230,35 @@ Create Datasource --->
 	<cfformClassic onerror="customError" action="#request.self#?action=#url.action#" method="post">
 		<table class="maintbl">
 			<tbody>
-				<!--- Template Cache for Request --->
 				<tr>
 					<th scope="row">#stText.setting.inspectTemplate#</th>
 					<td>
+						
 						<cfif hasAccess>
-							<ul class="radiolist">
-								<li>
-									<!--- never --->
-									<label>
-										<input class="radio" type="radio" name="inspectTemplate" value="never"<cfif settings.inspectTemplate EQ "never"> checked="checked"</cfif>>
-										<b>#stText.setting.inspectTemplateNever#</b>
-									</label>
-									<div class="comment">#stText.setting.inspectTemplateNeverDesc#</div>
-								</li>
-								<li>
-									<!--- once --->
-									<label>
-										<input class="radio" type="radio" name="inspectTemplate" value="once"<cfif settings.inspectTemplate EQ "once"> checked="checked"</cfif>>
-										<b>#stText.setting.inspectTemplateOnce#</b>
-									</label>
-									<div class="comment">#stText.setting.inspectTemplateOnceDesc#</div>
-								</li>
-								<li>
-									<!--- always --->
-									<label>
-										<input class="radio" type="radio" name="inspectTemplate" value="always"<cfif settings.inspectTemplate EQ "always"> checked="checked"</cfif>>
-										<b>#stText.setting.inspectTemplateAlways#</b>
-									</label>
-									<div class="comment">#stText.setting.inspectTemplateAlwaysDesc#</div>
-								</li>
-							</ul>
+							<table>
+							<cfloop list="auto,never,once,always" item="item">
+								<tr >
+									<td style="border:0;padding:0px;margin:0px"><input class="radio" type="radio" name="inspectTemplate" value="#item#"<cfif settings.inspectTemplate EQ item> checked="checked"</cfif>></td>
+									<td style="border:0;padding:3px;margin:0px">
+										<h3>#stText.setting["inspectTemplate"&item]#</h3>
+										<div>#stText.setting["inspectTemplate"&item&"Desc"]#</div>
+										<cfif item EQ "auto">
+											<br><b>#stText.setting.inspectTemplateInterval#</b>
+											<div class="comment">#stText.setting.inspectTemplateIntervalDesc#</div>
+
+											<input type="text" name="inspectTemplateIntervalSlow" value="#settings.inspectTemplateIntervalSlow?:"10000"#" size="6"> #stText.setting.inspectTemplateIntervalSlow#<br>
+											<input type="text" name="inspectTemplateIntervalFast" value="#settings.inspectTemplateIntervalFast?:"100"#" size="6"> #stText.setting.inspectTemplateIntervalFast#<br>
+										</cfif>
+									</td>
+								</tr>
+							</cfloop>
+							</table>
+							
 						<cfelse>
-							<cfif ListFindNoCase("never,once,always",settings.inspectTemplate)>
+							<cfif ListFindNoCase("never,once,always,auto",settings.inspectTemplate)>
 								<input type="hidden" name="inspectTemplate" value="#settings.inspectTemplate#">
+								<input type="hidden" name="inspectTemplateIntervalSlow" value="#settings.inspectTemplateIntervalSlow?:"10000"#">
+								<input type="hidden" name="inspectTemplateIntervalFast" value="#settings.inspectTemplateIntervalFast?:"100"#">
 								<b>#stText.setting["inspectTemplate"& settings.inspectTemplate]#</b><br />
 								<div class="comment">#stText.setting["inspectTemplate#settings.inspectTemplate#Desc"]#</div>
 							</cfif>
@@ -413,7 +412,7 @@ Create Datasource --->
 						<cfset renderCodingTip( codeSample, stText.settings.codetip )>
 					</td>
 				</tr>
-				<cfif request.adminType EQ "server">
+				<cfif not request.singlemode and  request.adminType EQ "server">
 					<cfadmin
 						action="getDevelopMode"
 						type="#request.adminType#"
@@ -442,7 +441,7 @@ Create Datasource --->
 						<td colspan="2">
 							<input class="bl button submit" type="submit" name="mainAction" value="#stText.Buttons.update#">
 							<input class="<cfif request.adminType EQ "web">bm<cfelse>br</cfif> button reset" type="reset" name="cancel" value="#stText.Buttons.Cancel#">
-							<cfif request.adminType EQ "web"><input class="br button submit" type="submit" name="mainAction" value="#stText.Buttons.resetServerAdmin#"></cfif>
+							<cfif not request.singleMode && request.adminType EQ "web"><input class="br button submit" type="submit" name="mainAction" value="#stText.Buttons.resetServerAdmin#"></cfif>
 						</td>
 					</tr>
 				</tfoot>

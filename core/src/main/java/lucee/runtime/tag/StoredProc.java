@@ -41,7 +41,6 @@ import lucee.commons.io.log.Log;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.sql.SQLUtil;
-import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.cache.tag.CacheHandler;
 import lucee.runtime.cache.tag.CacheHandlerCollectionImpl;
@@ -90,12 +89,12 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 	private static final int TYPE_NAME = 7;
 	// |PRECISION|LENGTH|SCALE|RADIX|NULLABLE|REMARKS|SEQUENCE|OVERLOAD|DEFAULT_VALUE
 
-	private static final lucee.runtime.type.Collection.Key KEY_SC = KeyImpl.getInstance("StatusCode");
+	private static final lucee.runtime.type.Collection.Key KEY_SC = KeyConstants._StatusCode;
 
-	private static final lucee.runtime.type.Collection.Key COUNT = KeyImpl.getInstance("count_afsdsfgdfgdsfsdfsgsdgsgsdgsasegfwef");
+	private static final lucee.runtime.type.Collection.Key COUNT = KeyConstants._count_afsdsfgdfgdsfsdfsgsdgsgsdgsasegfwef;
 
 	private static final ProcParamBean STATUS_CODE;
-	private static final lucee.runtime.type.Collection.Key STATUSCODE = KeyImpl.getInstance("StatusCode");
+	private static final lucee.runtime.type.Collection.Key STATUSCODE = KeyConstants._StatusCode;
 
 	static {
 		STATUS_CODE = new ProcParamBean();
@@ -546,11 +545,9 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 		if (datasource == null) {
 			ds = pageContext.getApplicationContext().getDefDataSource();
 			if (StringUtil.isEmpty(ds)) {
-				boolean isCFML = pageContext.getRequestDialect() == CFMLEngine.DIALECT_CFML;
 				throw new ApplicationException("attribute [datasource] is required, when no default datasource is defined",
-						"you can define a default datasource as attribute [defaultdatasource] of the tag "
-								+ (isCFML ? Constants.CFML_APPLICATION_TAG_NAME : Constants.LUCEE_APPLICATION_TAG_NAME) + " or as data member of the "
-								+ (isCFML ? Constants.CFML_APPLICATION_EVENT_HANDLER : Constants.LUCEE_APPLICATION_EVENT_HANDLER) + " (this.defaultdatasource=\"mydatasource\";)");
+						"you can define a default datasource as attribute [defaultdatasource] of the tag " + (Constants.CFML_APPLICATION_TAG_NAME) + " or as data member of the "
+								+ (Constants.CFML_APPLICATION_EVENT_HANDLER) + " (this.defaultdatasource=\"mydatasource\";)");
 			}
 		}
 
@@ -644,7 +641,7 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 									count += q.getRecordcount();
 									setVariable(result.getName(), q);
 
-									if (useCache) cacheStruct.set(KeyImpl.getInstance(result.getName()), q);
+									if (useCache) cacheStruct.set(KeyImpl.init(result.getName()), q);
 								}
 							}
 							finally {
@@ -673,7 +670,7 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 							if (param == STATUS_CODE) res.set(STATUSCODE, value);
 							else setVariable(param.getVariable(), value);
 
-							if (useCache) cacheStruct.set(KeyImpl.getInstance(param.getVariable()), value);
+							if (useCache) cacheStruct.set(KeyImpl.init(param.getVariable()), value);
 						}
 					}
 				}

@@ -16,7 +16,7 @@
 		</copy>  -->
 	</target>
 
-	<scriptdef name="addBundles" language="javascript" loaderRef="sharedbuild-loaderRef">
+	<scriptdef name="addBundles" language="javascript" classpath="${nashorn_classpath}">
 		<attribute name="bundles" />
 		<attribute name="target" />
 		<attribute name="coremanifest" />

@@ -51,8 +51,11 @@ import lucee.runtime.listener.ApplicationContextSupport;
 import lucee.runtime.listener.ClassicApplicationContext;
 import lucee.runtime.listener.JavaSettings;
 import lucee.runtime.listener.ModernApplicationContext;
+import lucee.runtime.listener.SessionCookieData;
+import lucee.runtime.listener.SessionCookieDataImpl;
 import lucee.runtime.net.mail.Server;
 import lucee.runtime.net.mail.ServerImpl;
+import lucee.runtime.net.proxy.ProxyData;
 import lucee.runtime.net.s3.Properties;
 import lucee.runtime.op.Caster;
 import lucee.runtime.orm.ORMConfiguration;
@@ -75,10 +78,14 @@ import lucee.runtime.type.util.ListUtil;
 public class GetApplicationSettings extends BIF {
 
 	public static Struct call(PageContext pc) throws PageException {
-		return call(pc, false);
+		return call(pc, false, false);
 	}
 
 	public static Struct call(PageContext pc, boolean suppressFunctions) throws PageException {
+		return call(pc, suppressFunctions, false);
+	}
+
+	public static Struct call(PageContext pc, boolean suppressFunctions, boolean onlySupported) throws PageException {
 		ApplicationContext ac = pc.getApplicationContext();
 		ApplicationContextSupport acs = (ApplicationContextSupport) ac;
 		Component cfc = null;
@@ -90,6 +97,46 @@ public class GetApplicationSettings extends BIF {
 		sct.setEL("clientManagement", Caster.toBoolean(ac.isSetClientManagement()));
 		sct.setEL("clientStorage", ac.getClientstorage());
 		sct.setEL("sessionStorage", ac.getSessionstorage());
+
+		SessionCookieData sessionCookieData = acs.getSessionCookie();
+		if (sessionCookieData != null) {
+			Struct sc = new StructImpl(Struct.TYPE_LINKED);
+			if (!StringUtil.isEmpty(sessionCookieData.getPath())) sc.setEL("path", sessionCookieData.getPath());
+			if (!StringUtil.isEmpty(sessionCookieData.getDomain())) sc.setEL("domain", sessionCookieData.getDomain());
+			sc.setEL("timeout", sessionCookieData.getTimeout());
+			sc.setEL("secure", sessionCookieData.isSecure());
+			sc.setEL("httpOnly", sessionCookieData.isHttpOnly());
+			sc.setEL("sameSite", SessionCookieDataImpl.toSamesite(sessionCookieData.getSamesite()));
+			sc.setEL("disableUpdate", sessionCookieData.isDisableUpdate());
+			sc.setEL("partitioned", sessionCookieData.isPartitioned());
+			sct.setEL("sessionCookie", sc);
+		}
+		ProxyData ProxyData = acs.getProxyData();
+		if (ProxyData != null) {
+			Struct sc = new StructImpl(Struct.TYPE_LINKED);
+			sc.setEL("server", ProxyData.getServer());
+			sc.setEL("port", ProxyData.getPort());
+			sc.setEL("username", ProxyData.getUsername());
+			sc.setEL("password", ProxyData.getPassword());
+			sct.setEL("proxy", sc);
+		}
+
+		Struct xmlFeatures = acs.getXmlFeatures();
+		if (xmlFeatures == null) xmlFeatures = new StructImpl();
+		Struct sxml = new StructImpl(Struct.TYPE_LINKED);
+		sxml.setEL("secure", xmlFeatures.get("secure", true));
+		sxml.setEL("disallowDoctypeDecl", xmlFeatures.get("disallowDoctypeDecl", true));
+		sxml.setEL("externalGeneralEntities", xmlFeatures.get("externalGeneralEntities", false));
+		if (!xmlFeatures.isEmpty()) { // pass thru other values
+			Iterator<Key> it = xmlFeatures.keySet().iterator();
+			Key name;
+			while (it.hasNext()) {
+				name = KeyImpl.toKey(it.next());
+				if (!sxml.containsKey(name)) sxml.setEL(name, xmlFeatures.get(name));
+			}
+		}
+		sct.setEL("xmlFeatures", sxml);
+
 		sct.setEL("customTagPaths", toArray(ac.getCustomTagMappings()));
 		sct.setEL("componentPaths", toArray(ac.getComponentMappings()));
 		sct.setEL("loginStorage", AppListenerUtil.translateLoginStorage(ac.getLoginStorage()));
@@ -107,9 +154,12 @@ public class GetApplicationSettings extends BIF {
 		sct.setEL("setDomainCookies", Caster.toBoolean(ac.isSetDomainCookies()));
 		sct.setEL(KeyConstants._name, ac.getName());
 		sct.setEL("localMode", ac.getLocalMode() == Undefined.MODE_LOCAL_OR_ARGUMENTS_ALWAYS ? Boolean.TRUE : Boolean.FALSE);
-		sct.setEL(KeyConstants._locale, LocaleFactory.toString(pc.getLocale()));
-		sct.setEL(KeyConstants._timezone, TimeZoneUtil.toString(pc.getTimeZone()));
+		sct.setEL(KeyConstants._locale, LocaleFactory.toString(ThreadLocalPageContext.getLocale(pc)));
+		sct.setEL(KeyConstants._timezone, TimeZoneUtil.toString(ThreadLocalPageContext.getTimeZone(pc)));
 		// sct.setEL(KeyConstants._timeout,TimeZoneUtil.toString(pc.getRequestTimeout()));
+
+		sct.setEL("bufferOutput", Caster.toBoolean(ac.getBufferOutput()));
+		sct.setEL("suppressContent", Caster.toBoolean(ac.getSuppressContent()));
 
 		sct.setEL("nullSupport", ((ApplicationContextSupport) ac).getFullNullSupport());
 		sct.setEL("enableNullSupport", ((ApplicationContextSupport) ac).getFullNullSupport());
@@ -130,6 +180,11 @@ public class GetApplicationSettings extends BIF {
 		sct.setEL("charset", cs);
 
 		sct.setEL("sessionType", AppListenerUtil.toSessionType(((PageContextImpl) pc).getSessionType(), "application"));
+
+		Struct rt = new StructImpl(Struct.TYPE_LINKED);
+		if (ac instanceof ModernApplicationContext) rt.setEL("type", ((ModernApplicationContext) ac).getRegex().getTypeName());
+		sct.setEL("regex", rt);
+
 		sct.setEL("serverSideFormValidation", Boolean.FALSE); // TODO impl
 
 		sct.setEL("clientCluster", Caster.toBoolean(ac.getClientCluster()));
@@ -139,6 +194,7 @@ public class GetApplicationSettings extends BIF {
 		sct.setEL("triggerDataMember", Caster.toBoolean(ac.getTriggerComponentDataMember()));
 		sct.setEL("sameformfieldsasarray", Caster.toBoolean(ac.getSameFieldAsArray(Scope.SCOPE_FORM)));
 		sct.setEL("sameurlfieldsasarray", Caster.toBoolean(ac.getSameFieldAsArray(Scope.SCOPE_URL)));
+		sct.setEL("formUrlAsStruct", Caster.toBoolean(acs.getFormUrlAsStruct()));
 
 		Object ds = ac.getDefDataSource();
 		if (ds instanceof DataSource) ds = _call((DataSource) ds);
@@ -337,6 +393,7 @@ public class GetApplicationSettings extends BIF {
 					key = it.next();
 					value = cw.get(key);
 					if (suppressFunctions && value instanceof UDF) continue;
+					if (onlySupported) continue;
 					if (!sct.containsKey(key)) sct.setEL(key, value);
 				}
 			}
@@ -353,6 +410,7 @@ public class GetApplicationSettings extends BIF {
 				while (it.hasNext()) {
 					e = it.next();
 					if (suppressFunctions && e.getValue() instanceof UDF) continue;
+					if (onlySupported) continue;
 					if (!sct.containsKey(e.getKey())) sct.setEL(e.getKey(), e.getValue());
 				}
 			}
@@ -374,8 +432,8 @@ public class GetApplicationSettings extends BIF {
 		s.setEL(KeyConstants._username, source.getUsername());
 		s.setEL(KeyConstants._password, source.getPassword());
 		if (source.getTimeZone() != null) s.setEL(KeyConstants._timezone, source.getTimeZone().getID());
-		if (source.isBlob()) s.setEL(AppListenerUtil.BLOB, source.isBlob());
-		if (source.isClob()) s.setEL(AppListenerUtil.CLOB, source.isClob());
+		if (source.isBlob()) s.setEL(KeyConstants._blob, source.isBlob());
+		if (source.isClob()) s.setEL(KeyConstants._clob, source.isClob());
 		if (source.isReadOnly()) s.setEL(KeyConstants._readonly, source.isReadOnly());
 		if (source.isStorage()) s.setEL(KeyConstants._storage, source.isStorage());
 		s.setEL(KeyConstants._validate, source.validate());
@@ -430,8 +488,9 @@ public class GetApplicationSettings extends BIF {
 
 	@Override
 	public Object invoke(PageContext pc, Object[] args) throws PageException {
+		if (args.length == 2) return call(pc, Caster.toBooleanValue(args[0]), Caster.toBooleanValue(args[1]));
 		if (args.length == 1) return call(pc, Caster.toBooleanValue(args[0]));
 		if (args.length == 0) return call(pc);
-		throw new FunctionException(pc, "GetApplicationSettings", 0, 1, args.length);
+		throw new FunctionException(pc, "GetApplicationSettings", 0, 2, args.length);
 	}
 }

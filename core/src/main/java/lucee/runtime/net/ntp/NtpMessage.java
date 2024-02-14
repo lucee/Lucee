@@ -19,9 +19,8 @@
 package lucee.runtime.net.ntp;
 
 import java.text.DecimalFormat;
-import java.util.concurrent.ThreadLocalRandom;
 import java.util.Date;
-
+import java.util.concurrent.ThreadLocalRandom;
 
 import lucee.commons.i18n.DateFormatPool;
 

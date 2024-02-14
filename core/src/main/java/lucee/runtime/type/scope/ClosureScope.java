@@ -160,16 +160,25 @@ public class ClosureScope extends ScopeSupport implements Variables, Externaliza
 
 	@Override
 	public Object get(Key key) throws PageException {
-		return get((PageContext) null, key);
+		Object value = local.get(key, CollectionUtil.NULL);
+		if (value != CollectionUtil.NULL) return value;
+		value = arg.get(key, CollectionUtil.NULL);
+		if (value != CollectionUtil.NULL) {
+			if (debug) UndefinedImpl.debugCascadedAccess(ThreadLocalPageContext.get(), arg.getTypeAsString(), key);
+			return value;
+		}
+
+		value = var.get(key);
+		if (debug) UndefinedImpl.debugCascadedAccess(ThreadLocalPageContext.get(), var.getTypeAsString(), key);
+		return value;
 	}
 
 	@Override
 	public Object get(PageContext pc, Key key) throws PageException {
-		Object _null = CollectionUtil.NULL;
-		Object value = local.get(pc, key, _null);
-		if (value != _null) return value;
-		value = arg.get(pc, key, _null);
-		if (value != _null) {
+		Object value = local.get(pc, key, CollectionUtil.NULL);
+		if (value != CollectionUtil.NULL) return value;
+		value = arg.get(pc, key, CollectionUtil.NULL);
+		if (value != CollectionUtil.NULL) {
 			if (debug) UndefinedImpl.debugCascadedAccess(ThreadLocalPageContext.get(pc), arg.getTypeAsString(), key);
 			return value;
 		}
@@ -181,27 +190,42 @@ public class ClosureScope extends ScopeSupport implements Variables, Externaliza
 
 	@Override
 	public Object get(Key key, Object defaultValue) {
-		return get(null, key, defaultValue);
+		// local
+		Object value = local.get(key, CollectionUtil.NULL);
+		if (value != CollectionUtil.NULL) return value;
+
+		// arg
+		value = arg.get(key, CollectionUtil.NULL);
+		if (value != CollectionUtil.NULL) {
+			if (debug) UndefinedImpl.debugCascadedAccess(ThreadLocalPageContext.get(), arg.getTypeAsString(), key);
+			return value;
+		}
+
+		// var
+		value = var.get(key, CollectionUtil.NULL);
+		if (value != CollectionUtil.NULL) {
+			if (debug) UndefinedImpl.debugCascadedAccess(ThreadLocalPageContext.get(), var.getTypeAsString(), key);
+			return value;
+		}
+		return defaultValue;
 	}
 
 	@Override
 	public Object get(PageContext pc, Key key, Object defaultValue) {
-		Object _null = CollectionUtil.NULL;
-
 		// local
-		Object value = local.get(pc, key, _null);
-		if (value != _null) return value;
+		Object value = local.get(pc, key, CollectionUtil.NULL);
+		if (value != CollectionUtil.NULL) return value;
 
 		// arg
-		value = arg.get(pc, key, _null);
-		if (value != _null) {
+		value = arg.get(pc, key, CollectionUtil.NULL);
+		if (value != CollectionUtil.NULL) {
 			if (debug) UndefinedImpl.debugCascadedAccess(ThreadLocalPageContext.get(pc), arg.getTypeAsString(), key);
 			return value;
 		}
 
 		// var
-		value = var.get(pc, key, _null);
-		if (value != _null) {
+		value = var.get(pc, key, CollectionUtil.NULL);
+		if (value != CollectionUtil.NULL) {
 			if (debug) UndefinedImpl.debugCascadedAccess(ThreadLocalPageContext.get(pc), var.getTypeAsString(), key);
 			return value;
 		}

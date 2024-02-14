@@ -18,8 +18,12 @@
  **/
 package lucee.commons.io;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
@@ -29,6 +33,7 @@ import java.nio.file.StandardOpenOption;
 
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
+import lucee.loader.util.Util;
 
 /**
  * Helper methods for file objects
@@ -209,6 +214,22 @@ public final class FileUtil {
 		Resource temp = SystemUtil.getTempFile("." + ResourceUtil.getExtension(res, "obj"), true);
 		IOUtil.copy(is, temp, true);
 		return temp;
+	}
+
+	public static void move(File src, File dest) throws IOException {
+		boolean moved = src.renameTo(dest);
+		if (!moved) {
+			BufferedInputStream is = new BufferedInputStream(new FileInputStream(src));
+			BufferedOutputStream os = new BufferedOutputStream(new FileOutputStream(dest));
+			try {
+				Util.copy(is, os, false, false); // is set false here, because copy does not close in case of an exception
+			}
+			finally {
+				IOUtil.closeEL(is);
+				IOUtil.closeEL(os);
+			}
+			if (!src.delete()) src.deleteOnExit();
+		}
 	}
 
 }

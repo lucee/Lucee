@@ -94,4 +94,9 @@ public class ResourceProviderWrapper implements ResourceProviderPro {
 		return ResourceUtil.getSeparator(provider);
 	}
 
+	@Override
+	public boolean allowMatching() {
+		return ResourceUtil.allowMatching(provider, false);
+	}
+
 }

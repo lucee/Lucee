@@ -22,10 +22,15 @@
 package lucee.runtime.functions.math;
 
 import lucee.runtime.PageContext;
+import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.ext.function.Function;
+import lucee.runtime.op.Caster;
 
 public final class BitAnd implements Function {
-	public static double call(PageContext pc, double number, double number2) {
-		return (int) number & (int) number2;
+	private static final long serialVersionUID = -8252049909001223678L;
+
+	public static double call(PageContext pc, double number, double number2) throws ExpressionException {
+
+		return Caster.toIntValueLossless(number) & Caster.toIntValueLossless(number2);
 	}
 }

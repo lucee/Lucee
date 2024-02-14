@@ -23,6 +23,7 @@ import static org.apache.commons.collections4.map.AbstractReferenceMap.Reference
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -52,12 +53,14 @@ import lucee.runtime.type.util.StructUtil;
  */
 public class StructImpl extends StructSupport {
 	private static final long serialVersionUID = 1421746759512286393L;
-	private static final int TYPE_LINKED_NOT_SYNC = 100;
-	private static final int DEFAULT_INITIAL_CAPACITY = 32;
+	public static final int TYPE_LINKED_NOT_SYNC = 100;
+	public static final int TYPE_LINKED_CASESENSITIVE = 256;
+	public static final int TYPE_CASESENSITIVE = 512;
+	public static final int DEFAULT_INITIAL_CAPACITY = 32;
 	public static final Object NULL = new Object();
 
 	private Map<Collection.Key, Object> map;
-	private final int type;
+	private int type;
 
 	/**
 	 * default constructor
@@ -86,12 +89,31 @@ public class StructImpl extends StructSupport {
 	 * @param initialCapacity initial capacity - MUST be a power of two.
 	 */
 	public StructImpl(int type, int initialCapacity) {
-		if (type == TYPE_WEAKED) map = Collections.synchronizedMap(new WeakHashMap<Collection.Key, Object>(initialCapacity));
+		if (type == TYPE_SYNC) map = MapFactory.getConcurrentMap(initialCapacity);
+		else if (type == TYPE_REGULAR) map = new HashMap<Collection.Key, Object>(initialCapacity);
+		else if (type == TYPE_WEAKED) map = Collections.synchronizedMap(new WeakHashMap<Collection.Key, Object>(initialCapacity));
 		else if (type == TYPE_SOFT) map = Collections.synchronizedMap(new ReferenceMap<Collection.Key, Object>(HARD, SOFT, initialCapacity, 0.75f));
 		else if (type == TYPE_LINKED) map = Collections.synchronizedMap(new LinkedHashMap<Collection.Key, Object>(initialCapacity));
 		else if (type == TYPE_LINKED_NOT_SYNC) map = new LinkedHashMap<Collection.Key, Object>(initialCapacity);
 		else map = MapFactory.getConcurrentMap(initialCapacity);
 		this.type = type;
+	}
+
+	public boolean makeSynchronized() {
+		// only HashMap is not sync
+		if (map instanceof HashMap) {
+			if (isEmpty()) map = MapFactory.getConcurrentMap(4); // TODO set initialCapacity from above
+			else map = Collections.synchronizedMap(map);
+			this.type = TYPE_SYNC;
+			return true;
+		}
+		// linked
+		if (map instanceof LinkedHashMap) {
+			map = Collections.synchronizedMap(map);
+			this.type = TYPE_SYNC;
+			return true;
+		}
+		return false;
 	}
 
 	@Override

@@ -86,7 +86,7 @@ public interface DataSource extends Cloneable {
 
 	/**
 	 * @deprecated use instead <code>getConnectionString()</code>
-	 * @return orginal DSN
+	 * @return original DSN
 	 */
 	@Deprecated
 	public abstract String getDsnOriginal();

@@ -18,14 +18,22 @@
  **/
 package lucee.runtime.type.scope;
 
+import lucee.runtime.PageContext;
 import lucee.runtime.type.Struct;
 
 public final class LocalImpl extends ScopeSupport implements Scope, Local {
 
+	private static final long serialVersionUID = -7155406303949924403L;
 	private boolean bind;
 
 	public LocalImpl() {
-		super("local", Scope.SCOPE_LOCAL, Struct.TYPE_SYNC);
+		// super("local", Scope.SCOPE_LOCAL, Struct.TYPE_SYNC, 4);
+		super("local", Scope.SCOPE_LOCAL, Struct.TYPE_REGULAR, 4);
+	}
+
+	@Override
+	public void release(PageContext pc) {
+		super.release(pc);
 	}
 
 	@Override
@@ -35,7 +43,9 @@ public final class LocalImpl extends ScopeSupport implements Scope, Local {
 
 	@Override
 	public void setBind(boolean bind) {
+		if (bind) {
+			makeSynchronized();
+		}
 		this.bind = bind;
 	}
-
 }

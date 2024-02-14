@@ -220,16 +220,23 @@ public final class Log extends TagImpl {
 				if ("console".equalsIgnoreCase(log))
 					logger = ((ConfigPro) pageContext.getConfig()).getLogEngine().getConsoleLog(false, "cflog", lucee.commons.io.log.Log.LEVEL_INFO);
 				else {
-					java.util.Collection<String> set = pci.getLogNames();
-					Iterator<String> it = set.iterator();
-					lucee.runtime.type.Collection.Key[] keys = new lucee.runtime.type.Collection.Key[set.size()];
-					int index = 0;
-					while (it.hasNext()) {
-						keys[index++] = KeyImpl.init(it.next());
+
+					String mainLogger = ((ConfigPro) pageContext.getConfig()).getMainLogger();
+					if (!StringUtil.isEmpty(mainLogger)) {
+						logger = pci.getLog(mainLogger, false);
 					}
-					String msg = ExceptionUtil.similarKeyMessage(keys, log, "attribute log", "log names", null, true);
-					String detail = ExceptionUtil.similarKeyMessage(keys, log, "log names", null, true);
-					throw new ApplicationException(msg, detail);
+					if (logger == null) {
+						java.util.Collection<String> set = pci.getLogNames();
+						Iterator<String> it = set.iterator();
+						lucee.runtime.type.Collection.Key[] keys = new lucee.runtime.type.Collection.Key[set.size()];
+						int index = 0;
+						while (it.hasNext()) {
+							keys[index++] = KeyImpl.init(it.next());
+						}
+						String msg = ExceptionUtil.similarKeyMessage(keys, log, "attribute log", "log names", null, true);
+						String detail = ExceptionUtil.similarKeyMessage(keys, log, "log names", null, true);
+						throw new ApplicationException(msg, detail);
+					}
 				}
 			}
 		}
@@ -251,10 +258,10 @@ public final class Log extends TagImpl {
 				logger.log(type, contextName, text, exception);
 			}
 		}
-		else if (!StringUtil.isEmpty(text)) {
+		else {
 			logger.log(type, contextName, text);
 		}
-		else throw new ApplicationException("Tag [log] requires one of the following attributes [text, exception]");
+		// else throw new ApplicationException("Tag [log] requires one of the following attributes [text, exception]");
 		// logger.write(toStringType(type),contextName,text);
 		return SKIP_BODY;
 	}

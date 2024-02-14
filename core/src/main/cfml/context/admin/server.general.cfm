@@ -10,7 +10,6 @@
 	returnVariable="component">
 <cfset setting.component={
 	compatibility:{
-		baseComponentTemplate:component.strBaseComponentTemplateCFML,
 		componentDumpTemplate:component.strComponentDumpTemplate,
 		
 		componentDataMemberDefaultAccess:'public',
@@ -19,12 +18,9 @@
 		componentLocalSearch:false,
 		componentPathCache:false,
 		deepSearch:false,
-		baseComponentTemplateCFML:component.strBaseComponentTemplateCFML,
-		baseComponentTemplateLucee:component.baseComponentTemplateLucee,
 		componentDefaultImport:component.ComponentDefaultImport
 	},
 	strict:{
-		baseComponentTemplate:component.strBaseComponentTemplateCFML,
 		componentDumpTemplate:component.strComponentDumpTemplate,
 		
 		componentDataMemberDefaultAccess:'private',
@@ -33,12 +29,9 @@
 		componentLocalSearch:false,
 		componentPathCache:false,
 		deepSearch:false,
-		baseComponentTemplateCFML:component.strBaseComponentTemplateCFML,
-		baseComponentTemplateLucee:component.baseComponentTemplateLucee,
 		componentDefaultImport:component.ComponentDefaultImport
 	},
 	speed:{
-		baseComponentTemplate:component.strBaseComponentTemplateCFML,
 		componentDumpTemplate:component.strComponentDumpTemplate,
 		
 		componentDataMemberDefaultAccess:'private',
@@ -47,8 +40,6 @@
 		componentLocalSearch:false,
 		componentPathCache:false,
 		deepSearch:false,
-		baseComponentTemplateCFML:component.strBaseComponentTemplateCFML,
-		baseComponentTemplateLucee:component.baseComponentTemplateLucee,
 		componentDefaultImport:component.ComponentDefaultImport
 	}
 }>

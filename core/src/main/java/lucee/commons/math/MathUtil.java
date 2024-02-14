@@ -84,4 +84,14 @@ public final class MathUtil {
 			return left.multiply(right, MathContext.DECIMAL128);
 		}
 	}
+
+	public static BigDecimal pow(BigDecimal left, int right) {
+		if (right < 0) return left.pow(right, MathContext.DECIMAL128); // negative exponent always throws
+		try {
+			return left.pow(right, MathContext.UNLIMITED);
+		}
+		catch (ArithmeticException ex) {
+			return left.pow(right, MathContext.DECIMAL128);
+		}
+	}
 }

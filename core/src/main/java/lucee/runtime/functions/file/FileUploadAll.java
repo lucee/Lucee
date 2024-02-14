@@ -53,19 +53,23 @@ public class FileUploadAll extends BIF implements Function {
 		return call(pc, destination, accept, nameConflict, strict, allowedExtensions, null, null, null, null);
 	}
 
-	public static Array call(PageContext pc, String destination, String accept, String nameConflict, boolean strict, Object allowedExtensions, Object blockedExtensions) throws PageException {
+	public static Array call(PageContext pc, String destination, String accept, String nameConflict, boolean strict, Object allowedExtensions, Object blockedExtensions)
+			throws PageException {
 		return call(pc, destination, accept, nameConflict, strict, allowedExtensions, blockedExtensions, null, null, null);
 	}
 
-	public static Array call(PageContext pc, String destination, String accept, String nameConflict, boolean strict, Object allowedExtensions, Object blockedExtensions, String mode) throws PageException {
+	public static Array call(PageContext pc, String destination, String accept, String nameConflict, boolean strict, Object allowedExtensions, Object blockedExtensions,
+			String mode) throws PageException {
 		return call(pc, destination, accept, nameConflict, strict, allowedExtensions, blockedExtensions, mode, null, null);
 	}
 
-	public static Array call(PageContext pc, String destination, String accept, String nameConflict, boolean strict, Object allowedExtensions, Object blockedExtensions, String mode, String attributes) throws PageException {
+	public static Array call(PageContext pc, String destination, String accept, String nameConflict, boolean strict, Object allowedExtensions, Object blockedExtensions,
+			String mode, String attributes) throws PageException {
 		return call(pc, destination, accept, nameConflict, strict, allowedExtensions, blockedExtensions, mode, attributes, null);
 	}
 
-	public static Array call(PageContext pc, String destination, String accept, String nameConflict, boolean strict, Object allowedExtensions, Object blockedExtensions, String mode, String attributes, Object acl) throws PageException {
+	public static Array call(PageContext pc, String destination, String accept, String nameConflict, boolean strict, Object allowedExtensions, Object blockedExtensions,
+			String mode, String attributes, Object acl) throws PageException {
 		SecurityManager securityManager = pc.getConfig().getSecurityManager();
 		int nc = FileUtil.toNameConflict(nameConflict);
 
@@ -80,7 +84,7 @@ public class FileUploadAll extends BIF implements Function {
 
 		// blocked extensions
 		ExtensionResourceFilter blockedFilter = null;
-		if (!StringUtil.isEmpty(blockedFilter)) {
+		if (!StringUtil.isEmpty(blockedExtensions)) {
 			blockedFilter = FileUtil.toExtensionFilter(blockedExtensions);
 		}
 
@@ -93,16 +97,15 @@ public class FileUploadAll extends BIF implements Function {
 		else if (args.length == 2) return call(pc, Caster.toString(args[0]), Caster.toString(args[1]));
 		else if (args.length == 3) return call(pc, Caster.toString(args[0]), Caster.toString(args[1]), Caster.toString(args[2]));
 		else if (args.length == 4) return call(pc, Caster.toString(args[0]), Caster.toString(args[1]), Caster.toString(args[2]), Caster.toBooleanValue(args[3]));
-		else if (args.length == 5) return call(pc, Caster.toString(args[0]), Caster.toString(args[1]), Caster.toString(args[2]), Caster.toBooleanValue(args[3]), 
-			args[4]);
-		else if (args.length == 6) return call(pc, Caster.toString(args[0]), Caster.toString(args[1]), Caster.toString(args[2]), Caster.toBooleanValue(args[3]), 
-			args[4], Caster.toString(args[5]));
-		else if (args.length == 7)
-			return call(pc, Caster.toString(args[0]), Caster.toString(args[1]), Caster.toString(args[2]), Caster.toBooleanValue(args[3]), args[4], Caster.toString(args[5]), Caster.toString(args[6]));
-		else if (args.length == 8) return call(pc, Caster.toString(args[0]), Caster.toString(args[1]), Caster.toString(args[2]), Caster.toBooleanValue(args[3]), 
-			args[4], Caster.toString(args[5]), Caster.toString(args[6]),Caster.toString(args[7]));
-		else if (args.length == 9) return call(pc, Caster.toString(args[0]), Caster.toString(args[1]), Caster.toString(args[2]), Caster.toBooleanValue(args[3]), 
-			args[4], Caster.toString(args[5]), Caster.toString(args[6]), Caster.toString(args[7]), args[8]);
+		else if (args.length == 5) return call(pc, Caster.toString(args[0]), Caster.toString(args[1]), Caster.toString(args[2]), Caster.toBooleanValue(args[3]), args[4]);
+		else if (args.length == 6)
+			return call(pc, Caster.toString(args[0]), Caster.toString(args[1]), Caster.toString(args[2]), Caster.toBooleanValue(args[3]), args[4], Caster.toString(args[5]));
+		else if (args.length == 7) return call(pc, Caster.toString(args[0]), Caster.toString(args[1]), Caster.toString(args[2]), Caster.toBooleanValue(args[3]), args[4],
+				Caster.toString(args[5]), Caster.toString(args[6]));
+		else if (args.length == 8) return call(pc, Caster.toString(args[0]), Caster.toString(args[1]), Caster.toString(args[2]), Caster.toBooleanValue(args[3]), args[4],
+				Caster.toString(args[5]), Caster.toString(args[6]), Caster.toString(args[7]));
+		else if (args.length == 9) return call(pc, Caster.toString(args[0]), Caster.toString(args[1]), Caster.toString(args[2]), Caster.toBooleanValue(args[3]), args[4],
+				Caster.toString(args[5]), Caster.toString(args[6]), Caster.toString(args[7]), args[8]);
 		else throw new FunctionException(pc, "FileUploadAll", 1, 9, args.length);
 	}
 }

@@ -8,15 +8,17 @@ import java.util.HashSet;
 // of "hashing arrays which contain themselves causing a stackoverflow" 
 
 public class ObjectIdentityHashSet {
-    private HashSet<Integer> elements = new HashSet<Integer>();
+	private HashSet<Integer> elements = new HashSet<Integer>();
 
-    public boolean contains(Object object) {
-        return elements.contains(System.identityHashCode(object));
-    }
-    public boolean add(Object object) {
-        return elements.add(System.identityHashCode(object));
-    }
-    public boolean remove(Object object) {
-        return elements.remove(System.identityHashCode(object));
-    }
+	public boolean contains(Object object) {
+		return elements.contains(System.identityHashCode(object));
+	}
+
+	public boolean add(Object object) {
+		return elements.add(System.identityHashCode(object));
+	}
+
+	public boolean remove(Object object) {
+		return elements.remove(System.identityHashCode(object));
+	}
 }

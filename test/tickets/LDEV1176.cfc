@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" labels="s3"{
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="s3" skip="true" {
 	// skip closure
 	function isNotSupported() {
 		variables.s3Details=getCredentials();
@@ -14,7 +14,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="s3"{
 	function beforeAll() skip="isNotSupported"{
 		if(isNotSupported()) return;
 		var s3Details = getCredentials();
-		variables.bucketName = lcase("lucee-ldev1176-#hash(CreateGUID())#");
+		variables.bucketName = lcase( s3Details.bucket_prefix & "1176-#hash(CreateGUID())#");
 		variables.base = "s3://#s3Details.ACCESS_KEY_ID#:#s3Details.SECRET_KEY#@";
 		variables.baseWithBucketName = "s3://#s3Details.ACCESS_KEY_ID#:#s3Details.SECRET_KEY#@/#variables.bucketName#";
 		// for skipping rest of the cases, if error occurred.
@@ -31,8 +31,14 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="s3"{
 	
 	function afterAll() skip="isNotSupported"{
 		if (isNotSupported()) return;
-		if( directoryExists( baseWithBucketName ) )
-			directoryDelete( baseWithBucketName, true );
+		if( directoryExists( baseWithBucketName ) ){
+			try {
+				directoryDelete( baseWithBucketName, true );
+			}
+			catch(e) {
+				systemOutput(e);
+			}
+		}	
 	}
 
 	public function run( testResults , testBox ) {

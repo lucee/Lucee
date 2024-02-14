@@ -1347,18 +1347,22 @@ public final class StringUtil {
 		Map<Pos, String> positions = new LinkedHashMap<>();
 		String k, v;
 		List<Pos> tmp;
+		boolean foundMatch = false;
 		while (it.hasNext()) {
 			e = it.next();
 			k = e.getKey().getString();
 			v = Caster.toString(e.getValue());
 			tmp = new ArrayList<Pos>();
 			result = _replace(result.toString(), k, placeholder(k), false, ignoreCase, tmp);
+			if (!foundMatch && result instanceof StringBuilder) foundMatch = true;
 			for (Pos pos: tmp) {
 				positions.put(pos, v);
 			}
 		}
-		if (result instanceof StringBuilder) {
-			StringBuilder sb = (StringBuilder) result;
+		if (foundMatch) {
+			StringBuilder sb;
+			if (!(result instanceof StringBuilder)) sb = new StringBuilder().append(result);
+			else sb = (StringBuilder) result;
 			List<Map.Entry<Pos, String>> list = new ArrayList<Map.Entry<Pos, String>>(positions.entrySet());
 			// <Map.Entry<Integer,String>>
 			Collections.sort(list, new Comparator<Map.Entry<Pos, String>>() {
@@ -1388,19 +1392,6 @@ public final class StringUtil {
 		}
 		return new String(carr);
 	}
-
-	/*
-	 * public static void main(String[] args) throws PageException { Map<String, String> map = new
-	 * HashMap<>(); map.put("target", "!target!"); map.put("replace", "er"); map.put("susi", "Susanne");
-	 * print.e(
-	 * replaceMap("I want replace replace to add 1 underscore with struct-replace... 'target' replace",
-	 * map, false));
-	 *
-	 * map = new HashMap<>(); map.put("Susi", "Sorglos"); map.put("Sorglos", "Susi");
-	 * print.e(replaceMap("Susi Sorglos foehnte ihr Haar", map, false));
-	 *
-	 * }
-	 */
 
 	public static String unwrap(String str) {
 		if (StringUtil.isEmpty(str)) return "";

@@ -12,4 +12,6 @@ public interface SessionCookieData extends CookieData {
 	public abstract short getSamesite();
 
 	public abstract String getPath();
+
+	public abstract boolean isPartitioned();
 }

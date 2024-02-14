@@ -134,7 +134,7 @@
 			<cfcatch></cfcatch>
 		</cftry> --->
 		
-		<cfset datasource._password=datasource.password>
+		<cfset datasource._password=datasource.password ?: "">
 		<cfset datasource.password="****************">
 		<cfset dbdriver = datasource.dbdriver ?: "">
 
@@ -613,20 +613,21 @@ if(datasource.requestExclusive)
 if(datasource.alwaysResetConnections) 
 	optional.append('alwaysResetConnections:true // default: false');
 
-
 optional.append('validate:#truefalseformat(datasource.validate?:false)# // default: false');
 </cfscript>
+
+
 <cfsavecontent variable="codeSample">
-	this.datasources["#datasource.name#"] = {
-	  class: '#datasource.classname#'#isNull(datasource.bundleName)?"":"
-	, bundleName: '"&datasource.bundleName&"'"##isNull(datasource.bundleVersion)?"":"
-	, bundleVersion: '"&datasource.bundleVersion&"'"#
-	, connectionString: '#replace(datasource.dsnTranslated,"'","''","all")#'
-	, username: '#replace(datasource.username,"'","''","all")#'
-	, password: "#datasource.passwordEncrypted#"<cfif optional.len()>
+this.datasources["#datasource.name#"] = {
+	class: "#datasource.classname#", #isNull(datasource.bundleName) ? '' : '
+	bundleName: "' & datasource.bundleName & '",'# #isNull(datasource.bundleVersion) ? '' : '
+	bundleVersion: "' & datasource.bundleVersion & '",'#
+	connectionString: "#escapeDoubleQuotes(datasource.dsnTranslated)#",
+	username: "#escapeDoubleQuotes(datasource.username)#",
+	password: "#datasource.passwordEncrypted#",<cfif optional.len()>
 	
 	// optional settings
-	<cfloop array="#optional#" index="i" item="value">, #value#<cfif i LT optional.len()>
+	<cfloop array="#optional#" index="i" item="value">#replace(value, " // default", ", // default")#<cfif i LT optional.len()>
 	</cfif></cfloop></cfif>
 };
 </cfsavecontent>

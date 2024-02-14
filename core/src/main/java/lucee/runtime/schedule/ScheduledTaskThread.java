@@ -239,7 +239,7 @@ public class ScheduledTaskThread extends ParentThreasRefThread {
 			if (millis > 0) {
 				while (true) {
 					SystemUtil.wait(this, millis);
-					if (stop) break;
+					if (stop || this.engine != null && !this.engine.isRunning()) break;
 					millis = when - System.currentTimeMillis();
 					if (millis <= 0) break;
 					millis = 10;

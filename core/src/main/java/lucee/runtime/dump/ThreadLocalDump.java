@@ -51,7 +51,8 @@ public class ThreadLocalDump {
 		return set;
 	}
 
-	// LDEV-3731 - use System.identityHashCode to avoid problems with hashing "arrays that contain themselves"
+	// LDEV-3731 - use System.identityHashCode to avoid problems with hashing "arrays that contain
+	// themselves"
 	private static Integer hash(Object o) {
 		return System.identityHashCode(o);
 	}

@@ -160,7 +160,7 @@ public interface CFMLEngine {
 	 * 
 	 * @return operaton util
 	 */
-	public Operation getOperatonUtil();
+	public Operation getOperatonUtil();// FUTURE rename to getOperationUtil()
 
 	/**
 	 * returns the decision util

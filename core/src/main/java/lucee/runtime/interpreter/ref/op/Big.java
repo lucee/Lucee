@@ -50,7 +50,7 @@ public abstract class Big extends RefSupport implements Ref {
 
 	protected static BigDecimal toBigDecimal(PageContext pc, Ref ref) throws PageException {
 		if (ref instanceof LBigDecimal) return ((LBigDecimal) ref).getBigDecimal();
-		return new BigDecimal(Caster.toString(ref.getValue(pc)));
+		return Caster.toBigDecimal(ref.getValue(pc));
 	}
 
 	protected final BigDecimal getLeft(PageContext pc) throws PageException {

@@ -23,11 +23,12 @@ import java.io.UnsupportedEncodingException;
 import lucee.commons.net.URLItem;
 import lucee.runtime.PageContext;
 import lucee.runtime.listener.ApplicationContext;
+import lucee.runtime.listener.ApplicationContextSupport;
 import lucee.runtime.net.http.ReqRspUtil;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Collection;
-import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
+import lucee.runtime.type.util.KeyConstants;
 
 /**
  * Implements URL Scope
@@ -37,7 +38,7 @@ public final class URLImpl extends ScopeSupport implements URL, ScriptProtected 
 	private String encoding = null;
 	private int scriptProtected = ScriptProtected.UNDEFINED;
 	private static final URLItem[] empty = new URLItem[0];
-	private static final Collection.Key REQUEST_TIMEOUT = KeyImpl.getInstance("RequestTimeout");
+	private static final Collection.Key REQUEST_TIMEOUT = KeyConstants._RequestTimeout;
 	private URLItem[] raw = empty;
 
 	/**
@@ -57,7 +58,7 @@ public final class URLImpl extends ScopeSupport implements URL, ScriptProtected 
 		encoding = encoding.trim().toUpperCase();
 		if (encoding.equals(this.encoding)) return;
 		this.encoding = encoding;
-		if (isInitalized()) fillDecoded(raw, encoding, isScriptProtected(), ac.getSameFieldAsArray(SCOPE_URL));
+		if (isInitalized()) fillDecoded(raw, encoding, isScriptProtected(), ac.getSameFieldAsArray(SCOPE_URL), ((ApplicationContextSupport) ac).getFormUrlAsStruct());
 	}
 
 	@Override
@@ -71,7 +72,8 @@ public final class URLImpl extends ScopeSupport implements URL, ScriptProtected 
 			super.initialize(pc);
 			raw = setFromQueryString(ReqRspUtil.getQueryString(pc.getHttpServletRequest()));
 
-			fillDecoded(raw, encoding, isScriptProtected(), pc.getApplicationContext().getSameFieldAsArray(SCOPE_URL));
+			fillDecoded(raw, encoding, isScriptProtected(), pc.getApplicationContext().getSameFieldAsArray(SCOPE_URL),
+					((ApplicationContextSupport) pc.getApplicationContext()).getFormUrlAsStruct());
 
 			if (raw.length > 0 && pc.getConfig().isAllowURLRequestTimeout()) {
 				Object o = get(REQUEST_TIMEOUT, null);
@@ -93,7 +95,7 @@ public final class URLImpl extends ScopeSupport implements URL, ScriptProtected 
 				scriptProtected = ((ac.getScriptProtect() & ApplicationContext.SCRIPT_PROTECT_URL) > 0) ? ScriptProtected.YES : ScriptProtected.NO;
 			}
 
-			fillDecodedEL(raw, encoding, isScriptProtected(), ac.getSameFieldAsArray(SCOPE_URL));
+			fillDecodedEL(raw, encoding, isScriptProtected(), ac.getSameFieldAsArray(SCOPE_URL), ((ApplicationContextSupport) ac).getFormUrlAsStruct());
 		}
 	}
 
@@ -111,7 +113,7 @@ public final class URLImpl extends ScopeSupport implements URL, ScriptProtected 
 		int _scriptProtected = scriptProtected ? ScriptProtected.YES : ScriptProtected.NO;
 		// print.out(isInitalized()+"x"+(_scriptProtected+"!="+this.scriptProtected));
 		if (isInitalized() && _scriptProtected != this.scriptProtected) {
-			fillDecodedEL(raw, encoding, scriptProtected, ac.getSameFieldAsArray(SCOPE_URL));
+			fillDecodedEL(raw, encoding, scriptProtected, ac.getSameFieldAsArray(SCOPE_URL), ((ApplicationContextSupport) ac).getFormUrlAsStruct());
 		}
 		this.scriptProtected = _scriptProtected;
 	}

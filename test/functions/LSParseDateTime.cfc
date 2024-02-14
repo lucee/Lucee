@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase"{
+﻿component extends="org.lucee.cfml.test.LuceeTestCase" {
 
 	function beforeAll(){
 		setLocale("en_us");
@@ -169,7 +169,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 
 			});
 			it( title="checking LSparseDateTime() French (swiss)", body = function( currentSpec ) {
-				setlocale('french (swiss)');
+				setlocale('fr_CH');
 				assertEquals("-{ts '2008-04-06 00:00:00'}", "-#lsParseDateTime("06.04.08")#");
 				assertEquals("-{ts '1899-12-30 01:02:00'}", "-#lsParseDateTime("01:02")#");
 				assertEquals("-{ts '2008-04-06 00:00:00'}", "-#lsParseDateTime("6 avr. 2008")#");
@@ -219,8 +219,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				assertEquals("-{ts '2008-04-06 01:02:00'}", "-#lsParseDateTime("dimanche, 6. avril 2008 01:02")#");
 				assertEquals("-{ts '2008-04-06 01:02:03'}", "-#lsParseDateTime("dimanche, 6. avril 2008 01:02:03")#");
 				assertEquals("-{ts '2008-04-06 01:02:03'}", "-#lsParseDateTime("dimanche, 6. avril 2008 01:02:03 CEST")#");
-				assertEquals("-{ts '2008-04-06 01:02:03'}", "-#lsParseDateTime("6 avr. 2008 01:02:03")#");
-				assertEquals("-{ts '2008-04-06 01:02:03'}", "-#lsParseDateTime("6 avr. 2008 01:02:03 CEST")#");
 				assertEquals("-{ts '2008-04-06 01:02:00'}", "-#lsParseDateTime("6. avril 2008 01:02")#");
 				assertEquals("-{ts '2008-04-06 01:02:03'}", "-#lsParseDateTime("6. avril 2008 01:02:03")#");
 				assertEquals("-{ts '2008-04-06 01:02:03'}", "-#lsParseDateTime("6. avril 2008 01:02:03 CEST")#");

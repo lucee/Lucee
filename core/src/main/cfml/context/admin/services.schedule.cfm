@@ -1,4 +1,4 @@
-<cfif request.admintype EQ "server"><cflocation url="#request.self#" addtoken="no"></cfif>
+<cfif not request.singlemode and request.admintype EQ "server"><cflocation url="#request.self#" addtoken="no"></cfif>
 <cfscript>
 	
 	
@@ -66,7 +66,7 @@
 	error.detail="";
 </cfscript>
 
-<cfif request.adminType EQ "web">
+<cfif request.adminType EQ "web" OR request.singlemode>
 <!--- 
 Defaults --->
 <cfparam name="url.action2" default="list">

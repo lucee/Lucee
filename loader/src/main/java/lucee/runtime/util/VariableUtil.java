@@ -157,7 +157,7 @@ public interface VariableUtil {
 	 * remove value from Collection
 	 * 
 	 * @param coll Collection
-	 * @param key key 
+	 * @param key key
 	 * @return has cleared or not
 	 */
 	@Deprecated
@@ -169,7 +169,7 @@ public interface VariableUtil {
 	 * clear value from Collection
 	 * 
 	 * @param coll Collection
-	 * @param key key 
+	 * @param key key
 	 * @return has cleared or not
 	 * @throws PageException Page Context
 	 */

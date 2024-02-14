@@ -2,9 +2,9 @@
 <cfscript>
 	this.name="cfmail-test-ldev-4052";
 	this.mailservers = [ {
-		host: "localhost"
-		port: 25
-		username: "demo"
+		host: "localhost",
+		port: 25,
+		username: "demo",
 		password: "meh",
 		ssl: false,
 		tls: false,

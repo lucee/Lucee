@@ -119,6 +119,6 @@ public class NumberUtil {
 	}
 
 	public static int randomRange(int min, int max) {
-		return min + (int) (ThreadLocalRandom.current().nextInt(max-min+1));
+		return min + (int) (ThreadLocalRandom.current().nextInt(max - min + 1));
 	}
 }

@@ -22,6 +22,7 @@ import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -31,7 +32,6 @@ import java.util.regex.Pattern;
 import lucee.commons.io.IOUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.sql.SQLUtil;
-import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.PageContext;
 import lucee.runtime.config.Constants;
 import lucee.runtime.db.DataSource;
@@ -47,7 +47,6 @@ import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.Collection.Key;
-import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Query;
 import lucee.runtime.type.QueryColumn;
 import lucee.runtime.type.QueryImpl;
@@ -66,30 +65,30 @@ import lucee.runtime.type.util.KeyConstants;
  **/
 public final class DBInfo extends TagImpl {
 
-	private static final Key TABLE_NAME = KeyImpl.getInstance("TABLE_NAME");
-	private static final Key COLUMN_NAME = KeyImpl.getInstance("COLUMN_NAME");
-	private static final Key IS_PRIMARYKEY = KeyImpl.getInstance("IS_PRIMARYKEY");
-	private static final Key IS_FOREIGNKEY = KeyImpl.getInstance("IS_FOREIGNKEY");
-	private static final Key COLUMN_DEF = KeyImpl.getInstance("COLUMN_DEF");
-	private static final Key COLUMN_DEFAULT_VALUE = KeyImpl.getInstance("COLUMN_DEFAULT_VALUE");
-	private static final Key COLUMN_DEFAULT = KeyImpl.getInstance("COLUMN_DEFAULT");
-	private static final Key REFERENCED_PRIMARYKEY = KeyImpl.getInstance("REFERENCED_PRIMARYKEY");
-	private static final Key REFERENCED_PRIMARYKEY_TABLE = KeyImpl.getInstance("REFERENCED_PRIMARYKEY_TABLE");
+	private static final Key TABLE_NAME = KeyConstants._TABLE_NAME;
+	private static final Key COLUMN_NAME = KeyConstants._COLUMN_NAME;
+	private static final Key IS_PRIMARYKEY = KeyConstants._IS_PRIMARYKEY;
+	private static final Key IS_FOREIGNKEY = KeyConstants._IS_FOREIGNKEY;
+	private static final Key COLUMN_DEF = KeyConstants._COLUMN_DEF;
+	private static final Key COLUMN_DEFAULT_VALUE = KeyConstants._COLUMN_DEFAULT_VALUE;
+	private static final Key COLUMN_DEFAULT = KeyConstants._COLUMN_DEFAULT;
+	private static final Key REFERENCED_PRIMARYKEY = KeyConstants._REFERENCED_PRIMARYKEY;
+	private static final Key REFERENCED_PRIMARYKEY_TABLE = KeyConstants._REFERENCED_PRIMARYKEY_TABLE;
 	private static final Key USER = KeyConstants._USER;
-	private static final Key TABLE_SCHEM = KeyImpl.getInstance("TABLE_SCHEM");
-	private static final Key DECIMAL_DIGITS = KeyImpl.getInstance("DECIMAL_DIGITS");
+	private static final Key TABLE_SCHEM = KeyConstants._TABLE_SCHEM;
+	private static final Key DECIMAL_DIGITS = KeyConstants._DECIMAL_DIGITS;
 
-	private static final Key DATABASE_NAME = KeyImpl.getInstance("database_name");
-	private static final Key TABLE_CAT = KeyImpl.getInstance("TABLE_CAT");
-	private static final Key PROCEDURE = KeyImpl.getInstance("procedure");
+	private static final Key DATABASE_NAME = KeyConstants._database_name;
+	private static final Key TABLE_CAT = KeyConstants._TABLE_CAT;
+	private static final Key PROCEDURE = KeyConstants._procedure;
 	private static final Key CATALOG = KeyConstants._catalog;
 	private static final Key SCHEMA = KeyConstants._schema;
-	private static final Key DATABASE_PRODUCTNAME = KeyImpl.getInstance("DATABASE_PRODUCTNAME");
-	private static final Key DATABASE_VERSION = KeyImpl.getInstance("DATABASE_VERSION");
-	private static final Key DRIVER_NAME = KeyImpl.getInstance("DRIVER_NAME");
-	private static final Key DRIVER_VERSION = KeyImpl.getInstance("DRIVER_VERSION");
-	private static final Key JDBC_MAJOR_VERSION = KeyImpl.getInstance("JDBC_MAJOR_VERSION");
-	private static final Key JDBC_MINOR_VERSION = KeyImpl.getInstance("JDBC_MINOR_VERSION");
+	private static final Key DATABASE_PRODUCTNAME = KeyConstants._DATABASE_PRODUCTNAME;
+	private static final Key DATABASE_VERSION = KeyConstants._DATABASE_VERSION;
+	private static final Key DRIVER_NAME = KeyConstants._DRIVER_NAME;
+	private static final Key DRIVER_VERSION = KeyConstants._DRIVER_VERSION;
+	private static final Key JDBC_MAJOR_VERSION = KeyConstants._JDBC_MAJOR_VERSION;
+	private static final Key JDBC_MINOR_VERSION = KeyConstants._JDBC_MINOR_VERSION;
 
 	private static final int TYPE_NONE = 0;
 	private static final int TYPE_DBNAMES = 1;
@@ -102,7 +101,7 @@ public final class DBInfo extends TagImpl {
 	private static final int TYPE_INDEX = 8;
 	private static final int TYPE_USERS = 9;
 	private static final int TYPE_TERMS = 10;
-	private static final Collection.Key CARDINALITY = KeyImpl.getInstance("CARDINALITY");
+	private static final Collection.Key CARDINALITY = KeyConstants._CARDINALITY;
 
 	private DataSource datasource;
 	private String name;
@@ -306,9 +305,7 @@ public final class DBInfo extends TagImpl {
 		Query qry = new QueryImpl(metaData.getColumns(_dbName, schema, table, StringUtil.isEmpty(pattern) ? "%" : pattern), "query", pageContext.getTimeZone());
 
 		int len = qry.getRecordcount();
-
-		if (len == 0)
-			checkTable(metaData, _dbName); // only check if no columns get returned, otherwise it exists
+		if (len == 0) checkTable(metaData, _dbName); // only check if no columns get returned, otherwise it exists
 
 		if (qry.getColumn(COLUMN_DEF, null) != null) qry.rename(COLUMN_DEF, COLUMN_DEFAULT_VALUE);
 		else if (qry.getColumn(COLUMN_DEFAULT, null) != null) qry.rename(COLUMN_DEFAULT, COLUMN_DEFAULT_VALUE);
@@ -323,7 +320,7 @@ public final class DBInfo extends TagImpl {
 			qry.addColumn(DECIMAL_DIGITS, arr);
 		}
 
-		if (!"columns_minimal".equals(this.strType)){
+		if (!"columns_minimal".equals(this.strType)) {
 			// add is primary
 			Map<String, Set<String>> primaries = new HashMap<>();
 			Array isPrimary = new ArrayImpl();
@@ -346,7 +343,8 @@ public final class DBInfo extends TagImpl {
 						set = toSet(metaData.getPrimaryKeys(tblCat, tblScheme, tblName), true, "COLUMN_NAME");
 						primaries.put(tblName, set);
 					}
-					catch (Exception e) {}
+					catch (Exception e) {
+					}
 				}
 				isPrimary.append(set != null && set.contains(qry.getAt(COLUMN_NAME, i)) ? "YES" : "NO");
 			}
@@ -499,9 +497,9 @@ public final class DBInfo extends TagImpl {
 			table = table.substring(index + 1);
 		}
 
-		checkTable(metaData, _dbName);
-
 		lucee.runtime.type.Query qry = new QueryImpl(metaData.getExportedKeys(_dbName, schema, table), "query", pageContext.getTimeZone());
+		if (qry.getRecordcount() == 0) checkTable(metaData, _dbName); // only check if no columns get returned, otherwise it exists
+
 		qry.setExecutionTime(stopwatch.time());
 
 		pageContext.setVariable(name, qry);
@@ -512,7 +510,7 @@ public final class DBInfo extends TagImpl {
 		if (StringUtil.isEmpty(table)) return;
 		try {
 			tables = metaData.getTables(_dbName, null, setCase(metaData, table), null);
-			if (!tables.next()) throw new ApplicationException("there is no table that match the following pattern [" + table + "]");
+			if (!tables.next()) throw new ApplicationException("there is no table that match the following pattern [" + setCase(metaData, table) + "]");
 		}
 		finally {
 			if (tables != null) tables.close();
@@ -522,10 +520,14 @@ public final class DBInfo extends TagImpl {
 
 	private String setCase(DatabaseMetaData metaData, String id) throws SQLException {
 		if (StringUtil.isEmpty(id)) return "%";
-
 		if (metaData.storesLowerCaseIdentifiers()) return id.toLowerCase();
 		if (metaData.storesUpperCaseIdentifiers()) return id.toUpperCase();
 		return id;
+	}
+
+	private String setFilterCase(DatabaseMetaData metaData, String id) throws SQLException {
+		if (StringUtil.isEmpty(id)) return null;
+		else return id.toUpperCase();
 	}
 
 	private void typeIndex(Connection conn) throws PageException, SQLException {
@@ -543,13 +545,13 @@ public final class DBInfo extends TagImpl {
 			table = table.substring(index + 1);
 		}
 
-		checkTable(metaData, _dbName);
-
 		ResultSet tables = metaData.getIndexInfo(_dbName, schema, table, false, true);
 		lucee.runtime.type.Query qry = new QueryImpl(tables, "query", pageContext.getTimeZone());
 
 		// type int 2 string
 		int rows = qry.getRecordcount();
+		if (rows == 0) checkTable(metaData, _dbName); // only check if no columns get returned, otherwise it exists
+
 		String strType;
 		int type, card;
 		for (int row = 1; row <= rows; row++) {
@@ -638,10 +640,31 @@ public final class DBInfo extends TagImpl {
 		stopwatch.start();
 
 		pattern = setCase(metaData, pattern);
-		lucee.runtime.type.Query qry = new QueryImpl(metaData.getTables(dbname(conn), null, StringUtil.isEmpty(pattern) ? "%" : pattern, 
-			StringUtil.isEmpty(filter) ? null : new String[] { filter }), "query", pageContext.getTimeZone());
+		filter = setFilterCase(metaData, filter);
+		lucee.runtime.type.Query qry = new QueryImpl(
+				metaData.getTables(dbname(conn), null, StringUtil.isEmpty(pattern) ? "%" : pattern, StringUtil.isEmpty(filter) ? null : new String[] { filter }), "query",
+				pageContext.getTimeZone());
 		qry.setExecutionTime(stopwatch.time());
 
+		if (filter != null && qry.getRecordcount() == 0) {
+			// validate if the filter was a valid table type for this jdbc connnection, delayed for better
+			// performance
+			ResultSet tableTypes = metaData.getTableTypes();
+			boolean validType = false;
+			ArrayList<String> allowedTypes = new ArrayList<String>();
+			while (tableTypes.next()) {
+				if (tableTypes.getString(1).equals(filter)) {
+					validType = true;
+					tableTypes.close();
+					break;
+				}
+				allowedTypes.add(tableTypes.getString(1));
+			}
+			tableTypes.close();
+			if (!validType) {
+				throw new ApplicationException("Invalid [dbinfo] type=table filter [" + filter + "]. Supported table types are " + allowedTypes.toString() + ".");
+			}
+		}
 		pageContext.setVariable(name, qry);
 	}
 
@@ -713,11 +736,9 @@ public final class DBInfo extends TagImpl {
 			Object ds = pageContext.getApplicationContext().getDefDataSource();
 
 			if (StringUtil.isEmpty(ds)) {
-				boolean isCFML = pageContext.getRequestDialect() == CFMLEngine.DIALECT_CFML;
 				throw new ApplicationException("attribute [datasource] is required, when no default datasource is defined",
-						"you can define a default datasource as attribute [defaultdatasource] of the tag "
-								+ (isCFML ? Constants.CFML_APPLICATION_TAG_NAME : Constants.LUCEE_APPLICATION_TAG_NAME) + " or as data member of the "
-								+ (isCFML ? Constants.CFML_APPLICATION_EVENT_HANDLER : Constants.LUCEE_APPLICATION_EVENT_HANDLER) + " (this.defaultdatasource=\"mydatasource\";)");
+						"you can define a default datasource as attribute [defaultdatasource] of the tag " + (Constants.CFML_APPLICATION_TAG_NAME) + " or as data member of the "
+								+ (Constants.CFML_APPLICATION_EVENT_HANDLER) + " (this.defaultdatasource=\"mydatasource\";)");
 			}
 			return ds;
 		}

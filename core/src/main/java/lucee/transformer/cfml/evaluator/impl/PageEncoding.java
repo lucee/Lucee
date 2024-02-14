@@ -35,7 +35,7 @@ import lucee.transformer.util.PageSourceCode;
 public final class PageEncoding extends EvaluatorSupport {
 
 	@Override
-	public TagLib execute(Config config, Tag tag, TagLibTag libTag, FunctionLib[] flibs, Data data) throws TemplateException {
+	public TagLib execute(Config config, Tag tag, TagLibTag libTag, FunctionLib flibs, Data data) throws TemplateException {
 
 		// encoding
 		String str = ASMUtil.getAttributeString(tag, "charset", null);

@@ -19,7 +19,6 @@
 package lucee.transformer.cfml.evaluator.impl;
 
 import lucee.commons.lang.StringUtil;
-import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigPro;
 import lucee.runtime.exp.TemplateException;
@@ -46,7 +45,7 @@ import lucee.transformer.util.SourceCode;
 public final class Loop extends EvaluatorSupport {
 
 	@Override
-	public TagLib execute(Config config, Tag tag, TagLibTag libTag, FunctionLib[] flibs, Data data) throws TemplateException {
+	public TagLib execute(Config config, Tag tag, TagLibTag libTag, FunctionLib flibs, Data data) throws TemplateException {
 		TagLoop loop = (TagLoop) tag;
 		// label
 		try {
@@ -66,7 +65,7 @@ public final class Loop extends EvaluatorSupport {
 	}
 
 	@Override
-	public void evaluate(Tag tag, TagLibTag tagLibTag, FunctionLib[] flibs) throws EvaluatorException {
+	public void evaluate(Tag tag, TagLibTag tagLibTag, FunctionLib flibs) throws EvaluatorException {
 		TagLoop loop = (TagLoop) tag;
 
 		// attribute maxrows and endrow not allowd at the same time
@@ -191,10 +190,9 @@ public final class Loop extends EvaluatorSupport {
 				transformer = tagLib.getExprTransfomer();
 				Page page = ASMUtil.getAncestorPage(null, tag);
 				ConfigPro config = (ConfigPro) page.getConfig();
-				Data data = new Data(BytecodeFactory.getInstance(config), page, new SourceCode(null, text, false, page.getSourceCode().getDialect()), new EvaluatorPool(),
-						new TransfomerSettings(page.getSourceCode().getDialect() == CFMLEngine.DIALECT_CFML && config.getDotNotationUpperCase(),
-								page.getSourceCode().getDialect() == CFMLEngine.DIALECT_CFML && config.getHandleUnQuotedAttrValueAsString(), page.ignoreScopes),
-						null, flibs, config.getCoreTagLib(page.getSourceCode().getDialect()).getScriptTags(), false);
+				Data data = new Data(BytecodeFactory.getInstance(config), page, new SourceCode(null, text, false), new EvaluatorPool(),
+						new TransfomerSettings(config.getDotNotationUpperCase(), config.getHandleUnQuotedAttrValueAsString(), page.ignoreScopes), null, flibs,
+						config.getCoreTagLib().getScriptTags(), false);
 				Expression expr = transformer.transform(data);
 
 				tag.addAttribute(new Attribute(false, "condition", page.getFactory().toExprBoolean(expr), "boolean"));

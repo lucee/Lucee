@@ -29,7 +29,6 @@ import javax.servlet.jsp.tagext.BodyContent;
 
 import lucee.commons.lang.CFTypes;
 import lucee.commons.lang.ExceptionUtil;
-import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.Component;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
@@ -112,8 +111,8 @@ public class UDFImpl extends MemberSupport implements UDFPlus, Externalizable {
 		return properties.getPage(pageContext).udfCall(pageContext, this, properties.getIndex());
 	}
 
-	private final Object castToAndClone(PageContext pc, FunctionArgument arg, Object value, int index) throws PageException {
-		if (value == null && ((PageContextImpl) pc).getFullNullSupport()) return value;
+	private final Object castToAndClone(PageContext pc, FunctionArgument arg, Object value, int index, boolean fns) throws PageException {
+		if (value == null && fns) return value;
 
 		if (!((PageContextImpl) pc).getTypeChecking() || Decision.isCastableTo(pc, arg.getType(), arg.getTypeAsString(), value))
 			return arg.isPassByReference() ? value : Duplicator.duplicate(value, true);
@@ -125,15 +124,15 @@ public class UDFImpl extends MemberSupport implements UDFPlus, Externalizable {
 		throw new UDFCasterException(this, arg, value, index);
 	}
 
-	private void defineArguments(PageContext pc, FunctionArgument[] funcArgs, Object[] args, Argument newArgs) throws PageException {
+	private void defineArguments(PageContextImpl pc, FunctionArgument[] funcArgs, Object[] args, Argument newArgs) throws PageException {
 		// define argument scope
-		boolean fns = NullSupportHelper.full(pc);
+		boolean fns = pc.getFullNullSupport();
 		Object _null = NullSupportHelper.NULL(fns);
 
 		for (int i = 0; i < funcArgs.length; i++) {
 			// argument defined
 			if (args.length > i && (args[i] != null || fns)) {
-				newArgs.setEL(funcArgs[i].getName(), castToAndClone(pc, funcArgs[i], args[i], i + 1));
+				newArgs.setEL(funcArgs[i].getName(), castToAndClone(pc, funcArgs[i], args[i], i + 1, fns));
 			}
 			// argument not defined
 			else {
@@ -154,37 +153,38 @@ public class UDFImpl extends MemberSupport implements UDFPlus, Externalizable {
 		}
 	}
 
-	private void defineArguments(PageContext pageContext, FunctionArgument[] funcArgs, Struct values, Argument newArgs) throws PageException {
+	private void defineArguments(PageContextImpl pc, FunctionArgument[] funcArgs, Struct values, Argument newArgs) throws PageException {
 		// argumentCollection
 		UDFUtil.argumentCollection(values, funcArgs);
 		// print.out(values.size());
 		Object value;
 		Collection.Key name;
-		Object _null = NullSupportHelper.NULL(pageContext);
+		boolean fns = pc.getFullNullSupport();
+		Object _null = NullSupportHelper.NULL(fns);
 
 		for (int i = 0; i < funcArgs.length; i++) {
 			// argument defined
 			name = funcArgs[i].getName();
 			value = values.remove(name, _null);
 			if (value != _null) {
-				newArgs.set(name, castToAndClone(pageContext, funcArgs[i], value, i + 1));
+				newArgs.set(name, castToAndClone(pc, funcArgs[i], value, i + 1, fns));
 				continue;
 			}
 			value = values.remove(ArgumentIntKey.init(i + 1), _null);
 			if (value != _null) {
-				newArgs.set(name, castToAndClone(pageContext, funcArgs[i], value, i + 1));
+				newArgs.set(name, castToAndClone(pc, funcArgs[i], value, i + 1, fns));
 				continue;
 			}
 
 			// default argument or exception
-			Object defaultValue = getDefaultValue(pageContext, i, _null);// funcArgs[i].getDefaultValue();
+			Object defaultValue = getDefaultValue(pc, i, _null);// funcArgs[i].getDefaultValue();
 			if (defaultValue == _null) {
 				if (funcArgs[i].isRequired()) {
 					throw new ExpressionException("The parameter [" + funcArgs[i].getName() + "] to function [" + getFunctionName() + "] is required but was not passed in.");
 				}
-				if (pageContext.getCurrentTemplateDialect() == CFMLEngine.DIALECT_CFML && !pageContext.getConfig().getFullNullSupport()) newArgs.set(name, Argument.NULL);
+				if (!fns) newArgs.set(name, Argument.NULL);
 			}
-			else newArgs.set(name, castTo(pageContext, funcArgs[i], defaultValue, i + 1));
+			else newArgs.set(name, castTo(pc, funcArgs[i], defaultValue, i + 1));
 		}
 
 		Iterator<Entry<Key, Object>> it = values.entryIterator();
@@ -205,22 +205,22 @@ public class UDFImpl extends MemberSupport implements UDFPlus, Externalizable {
 
 	@Override
 	public Object callWithNamedValues(PageContext pc, Struct values, boolean doIncludePath) throws PageException {
-		return hasCachedWithin(pc) ? _callCachedWithin(pc, null, null, values, doIncludePath) : _call(pc, null, null, values, doIncludePath);
+		return hasCachedWithin(pc) ? _callCachedWithin(pc, null, null, values, doIncludePath) : _call(pc, null, null, values, doIncludePath, null);
 	}
 
 	@Override
 	public Object callWithNamedValues(PageContext pc, Collection.Key calledName, Struct values, boolean doIncludePath) throws PageException {
-		return hasCachedWithin(pc) ? _callCachedWithin(pc, calledName, null, values, doIncludePath) : _call(pc, calledName, null, values, doIncludePath);
+		return hasCachedWithin(pc) ? _callCachedWithin(pc, calledName, null, values, doIncludePath) : _call(pc, calledName, null, values, doIncludePath, null);
 	}
 
 	@Override
 	public Object call(PageContext pc, Object[] args, boolean doIncludePath) throws PageException {
-		return hasCachedWithin(pc) ? _callCachedWithin(pc, null, args, null, doIncludePath) : _call(pc, null, args, null, doIncludePath);
+		return hasCachedWithin(pc) ? _callCachedWithin(pc, null, args, null, doIncludePath) : _call(pc, null, args, null, doIncludePath, null);
 	}
 
 	@Override
 	public Object call(PageContext pc, Collection.Key calledName, Object[] args, boolean doIncludePath) throws PageException {
-		return hasCachedWithin(pc) ? _callCachedWithin(pc, calledName, args, null, doIncludePath) : _call(pc, calledName, args, null, doIncludePath);
+		return hasCachedWithin(pc) ? _callCachedWithin(pc, calledName, args, null, doIncludePath) : _call(pc, calledName, args, null, doIncludePath, null);
 	}
 
 	private boolean hasCachedWithin(PageContext pc) {
@@ -235,11 +235,14 @@ public class UDFImpl extends MemberSupport implements UDFPlus, Externalizable {
 	}
 
 	private Object _callCachedWithin(PageContext pc, Collection.Key calledName, Object[] args, Struct values, boolean doIncludePath) throws PageException {
-
 		PageContextImpl pci = (PageContextImpl) pc;
 
+		Argument newArgs = pci.getScopeFactory().getArgumentInstance();
+		if (args != null) defineArguments(pci, getFunctionArguments(), args, newArgs);
+		else defineArguments(pci, getFunctionArguments(), values, newArgs);
+
 		Object cachedWithin = getCachedWithin(pc);
-		String cacheId = CacheHandlerCollectionImpl.createId(this, args, values);
+		String cacheId = CacheHandlerCollectionImpl.createId(this, null, newArgs);
 		CacheHandler cacheHandler = pc.getConfig().getCacheHandlerCollection(Config.CACHE_TYPE_FUNCTION, null).getInstanceMatchingObject(getCachedWithin(pc), null);
 
 		if (cacheHandler instanceof CacheHandlerPro) {
@@ -248,11 +251,14 @@ public class UDFImpl extends MemberSupport implements UDFPlus, Externalizable {
 				UDFCacheItem entry = (UDFCacheItem) cacheItem;
 				try {
 					pc.write(entry.output);
+					return entry.returnValue;
 				}
 				catch (IOException e) {
 					throw Caster.toPageException(e);
 				}
-				return entry.returnValue;
+				finally {
+					if (newArgs != null) pci.getScopeFactory().recycle(pci, newArgs);
+				}
 			}
 		}
 		else if (cacheHandler != null) { // TODO this else block can be removed when all cache handlers implement CacheHandlerPro
@@ -262,13 +268,14 @@ public class UDFImpl extends MemberSupport implements UDFPlus, Externalizable {
 				// if(entry.creationdate+properties.cachedWithin>=System.currentTimeMillis()) {
 				try {
 					pc.write(entry.output);
+					return entry.returnValue;
 				}
 				catch (IOException e) {
 					throw Caster.toPageException(e);
 				}
-				return entry.returnValue;
-				// }
-				// cache.remove(id);
+				finally {
+					if (newArgs != null) pci.getScopeFactory().recycle(pci, newArgs);
+				}
 			}
 		}
 
@@ -279,7 +286,7 @@ public class UDFImpl extends MemberSupport implements UDFPlus, Externalizable {
 		BodyContent bc = pci.pushBody();
 
 		try {
-			Object rtn = _call(pci, calledName, args, values, doIncludePath);
+			Object rtn = _call(pci, calledName, args, values, doIncludePath, newArgs);
 
 			if (cacheHandler != null) {
 				String out = bc.getString();
@@ -292,9 +299,10 @@ public class UDFImpl extends MemberSupport implements UDFPlus, Externalizable {
 		}
 	}
 
-	private Object _call(PageContext pc, Collection.Key calledName, Object[] args, Struct values, boolean doIncludePath) throws PageException {
+	private Object _call(PageContext pc, Collection.Key calledName, Object[] args, Struct values, boolean doIncludePath, Argument newArgs) throws PageException {
 		PageContextImpl pci = (PageContextImpl) pc;
-		Argument newArgs = pci.getScopeFactory().getArgumentInstance();
+		boolean existingNewArgs = newArgs != null;
+		if (!existingNewArgs) newArgs = pci.getScopeFactory().getArgumentInstance();
 		newArgs.setFunctionArgumentNames(properties.getArgumentsSet());
 		LocalImpl newLocal = pci.getScopeFactory().getLocalInstance();
 
@@ -306,19 +314,19 @@ public class UDFImpl extends MemberSupport implements UDFPlus, Externalizable {
 		pc.setFunctionScopes(newLocal, newArgs);
 		pci.setActiveUDFCalledName(calledName);
 
-		int oldCheckArgs = undefined.setMode(pc.getCurrentTemplateDialect() == CFMLEngine.DIALECT_CFML
-				? (properties.getLocalMode() == null ? pc.getApplicationContext().getLocalMode() : properties.getLocalMode().intValue())
-				: Undefined.MODE_LOCAL_OR_ARGUMENTS_ALWAYS);
+		int oldCheckArgs = undefined.setMode((properties.getLocalMode() == null ? pc.getApplicationContext().getLocalMode() : properties.getLocalMode().intValue()));
 
 		PageSource ps = null;
 		PageSource psInc = null;
 		try {
 			ps = properties.getPageSource();
-			if (doIncludePath) psInc = ps;
-			if (doIncludePath && getOwnerComponent() != null) {
-				psInc = ComponentUtil.getPageSource(getOwnerComponent());
-				if (psInc == pci.getCurrentTemplatePageSource()) {
-					psInc = null;
+			if (doIncludePath) {
+				psInc = ps;
+				if (getOwnerComponent() != null) {
+					psInc = ComponentUtil.getPageSource(getOwnerComponent());
+					if (psInc == pci.getCurrentTemplatePageSource()) {
+						psInc = null;
+					}
 				}
 			}
 			if (ps != null) pci.addPageSource(ps, psInc);
@@ -341,10 +349,10 @@ public class UDFImpl extends MemberSupport implements UDFPlus, Externalizable {
 			Object returnValue = null;
 
 			try {
-
-				if (args != null) defineArguments(pc, getFunctionArguments(), args, newArgs);
-				else defineArguments(pc, getFunctionArguments(), values, newArgs);
-
+				if (!existingNewArgs) {
+					if (args != null) defineArguments(pci, getFunctionArguments(), args, newArgs);
+					else defineArguments(pci, getFunctionArguments(), values, newArgs);
+				}
 				returnValue = implementation(pci);
 				if (ownerComponent != null) pci.setActiveUDF(parent);
 			}
@@ -364,8 +372,8 @@ public class UDFImpl extends MemberSupport implements UDFPlus, Externalizable {
 			}
 			// BodyContentUtil.clearAndPop(pc,bc);
 
-			if (returnValue == null && ((PageContextImpl) pc).getFullNullSupport()) return returnValue;
-			if (properties.getReturnType() == CFTypes.TYPE_ANY || !((PageContextImpl) pc).getTypeChecking()) return returnValue;
+			if (returnValue == null && pci.getFullNullSupport()) return returnValue;
+			if (properties.getReturnType() == CFTypes.TYPE_ANY || !pci.getTypeChecking()) return returnValue;
 			if (Decision.isCastableTo(properties.getReturnTypeAsString(), returnValue, false, false, -1)) return returnValue;
 			throw new UDFCasterException(this, properties.getReturnTypeAsString(), returnValue);
 
@@ -414,7 +422,7 @@ public class UDFImpl extends MemberSupport implements UDFPlus, Externalizable {
 
 	@Override
 	public Struct getMetaData(PageContext pc) throws PageException {
-		return ComponentUtil.getMetaData(pc, properties, null);
+		return ComponentUtil.getMetaData(pc, this, properties, null);
 		// return getMetaData(pc, this);
 	}
 

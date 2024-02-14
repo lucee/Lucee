@@ -13,7 +13,6 @@ import java.util.TimeZone;
 import lucee.commons.db.DBUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
-import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.PageContext;
 import lucee.runtime.config.Constants;
 import lucee.runtime.config.NullSupportHelper;
@@ -58,9 +57,9 @@ public class QueryLazy extends BIF {
 	private static int RETURN_TYPE_STRUCT = 3;
 
 	private static final long serialVersionUID = 2886504786460447165L;
-	private static final Key BLOCKFACTOR = KeyImpl.getInstance("blockfactor");
-	private static final Key MAXROWS = KeyImpl.getInstance("maxrows");
-	private static final Key COLUMNKEY = KeyImpl.getInstance("columnkey");
+	private static final Key BLOCKFACTOR = KeyConstants._blockfactor;
+	private static final Key MAXROWS = KeyConstants._maxrows;
+	private static final Key COLUMNKEY = KeyConstants._columnkey;
 
 	public static String call(PageContext pc, String sql, UDF listener) throws PageException {
 		return call(pc, sql, listener, null, null);
@@ -374,11 +373,9 @@ public class QueryLazy extends BIF {
 		if (ds == null) {
 			obj = pc.getApplicationContext().getDefDataSource();
 			if (StringUtil.isEmpty(obj)) {
-				boolean isCFML = pc.getRequestDialect() == CFMLEngine.DIALECT_CFML;
 				throw new ApplicationException("option [datasource] is required when option [dbtype] is not [query] and no default datasource is defined",
-						"you can define a default datasource as attribute [defaultdatasource] of the tag "
-								+ (isCFML ? Constants.CFML_APPLICATION_TAG_NAME : Constants.LUCEE_APPLICATION_TAG_NAME) + " or as data member of the "
-								+ (isCFML ? Constants.CFML_APPLICATION_EVENT_HANDLER : Constants.LUCEE_APPLICATION_EVENT_HANDLER) + " (this.defaultdatasource=\"mydatasource\";)");
+						"you can define a default datasource as attribute [defaultdatasource] of the tag " + (Constants.CFML_APPLICATION_TAG_NAME) + " or as data member of the "
+								+ (Constants.CFML_APPLICATION_EVENT_HANDLER) + " (this.defaultdatasource=\"mydatasource\";)");
 			}
 			ds = obj instanceof DataSource ? (DataSource) obj : Query.toDatasource(pc, obj);
 		}

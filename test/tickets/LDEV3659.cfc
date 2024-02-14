@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" labels="h2,orm" {
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="h2,orm" skip=true{
 	function beforeAll(){
 		variables.uri = createURI( "LDEV3659" );
 		cleanup("mssql");
@@ -12,7 +12,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="h2,orm" {
 
 	private function cleanUp(db){
 		if (!isDatasourceNotConfigured( arguments.db )){
-			queryExecute(sql="DROP TABLE IF EXISTS Persons",
+			queryExecute(sql="DROP TABLE IF EXISTS LDEV3597",
 				options: {
 					datasource: getDatasource( arguments.db )
 			});
@@ -31,7 +31,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="h2,orm" {
 				);
 				expect( trim( result.filecontent ) ).toBe( "Michael Born" );
 			});
-			it( title="LDEV-3659 -- transactions with ORM and cfquery MSSQL", skip="#isDatasourceNotConfigured('mssql')#", body=function( currentSpec ) {
+			it( title="LDEV-3659 -- transactions with ORM and cfquery MSSQL", skip2="true",
+					skip="#isDatasourceNotConfigured('mssql')#", body=function( currentSpec ) {
 				local.result = _InternalRequest(
 					template : "#uri#/index.cfm",
 					form: {

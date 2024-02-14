@@ -4,15 +4,15 @@
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either 
+ * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public 
+ *
+ * You should have received a copy of the GNU Lesser General Public
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  */
  component extends="org.lucee.cfml.test.LuceeTestCase" {
@@ -51,7 +51,7 @@
 
 
  	public function testDateFormatTimeZone_UZ() localMode="modern" {
- 		
+
 		dt=createDateTime(2000);
 		org=getTimeZone();
 		try{
@@ -75,7 +75,7 @@
  	}
 
  	public function testDateFormatTimeZone_X() localMode="modern" {
- 		
+
 		dt=createDateTime(2000);
 		org=getTimeZone();
 		try{
@@ -100,7 +100,7 @@
  	public function testDateFormatMember() localMode="modern" {
  		dt=CreateDateTime(2004,1,2,4,5,6);
 		assertEquals("2004",dt.dateFormat("yyyy"));
-		
+
  	}
  	public function testDateFormat() localMode="modern" {
 
@@ -139,7 +139,7 @@
 		x='susi';
 		try {
 			assertEquals("x",dateFormat(x,'dd.mm.yyyy')&"x");
-		    fail("must throw:The value of the parameter 1, which is currently ""susi"", must be a class java.util.Date value. "); 
+		    fail("must throw:The value of the parameter 1, which is currently ""susi"", must be a class java.util.Date value. ");
 		}
 		catch(e){}
 
@@ -160,4 +160,9 @@
 
 		assertEquals("080901013455123",DateFormat(date, "yymmdd") & Timeformat(date, "HHmmsslll"));
 	}
+
+	public void function testEmpty(){
+		expect( dateFormat( "" ) ).toBe( "" );
+	}
+
 }

@@ -201,9 +201,9 @@ public final class Invoke extends BodyTagImpl implements DynamicAttributes {
 	 * @throws PageException
 	 */
 	private void doComponent(Object oComponent) throws PageException {
-		
+
 		if (StringUtil.isEmpty(method, true)) throw new ApplicationException("Attribute [method] for tag [invoke] is required.");
-		
+
 		lucee.runtime.Component component = null;
 		if (oComponent instanceof lucee.runtime.Component) component = (lucee.runtime.Component) oComponent;
 		else component = pageContext.loadComponent(Caster.toString(oComponent));

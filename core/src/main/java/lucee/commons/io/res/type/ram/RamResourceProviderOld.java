@@ -167,4 +167,9 @@ public final class RamResourceProviderOld implements ResourceProviderPro {
 	public char getSeparator() {
 		return '/';
 	}
+
+	@Override
+	public boolean allowMatching() {
+		return false;
+	}
 }

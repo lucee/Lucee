@@ -32,7 +32,6 @@ import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.lang.ClassException;
 import lucee.commons.lang.StringUtil;
-import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.Component;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
@@ -61,7 +60,6 @@ import lucee.runtime.debug.DebuggerImpl;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.CasterException;
-import lucee.runtime.exp.CatchBlockImpl;
 import lucee.runtime.exp.DatabaseException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.tag.BodyTagTryCatchFinallyImpl;
@@ -101,17 +99,16 @@ import lucee.runtime.type.scope.Argument;
 import lucee.runtime.type.util.CollectionUtil;
 import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.ListUtil;
-import lucee.runtime.util.PageContextUtil;
 
 /**
  * Passes SQL statements to a data source. Not limited to queries.
  **/
 public final class Query extends BodyTagTryCatchFinallyImpl {
 
-	private static final Collection.Key SQL_PARAMETERS = KeyImpl.getInstance("sqlparameters");
-	private static final Collection.Key CFQUERY = KeyImpl.getInstance("cfquery");
-	private static final Collection.Key GENERATEDKEY = KeyImpl.getInstance("generatedKey");
-	private static final Collection.Key MAX_RESULTS = KeyImpl.getInstance("maxResults");
+	private static final Collection.Key SQL_PARAMETERS = KeyConstants._sqlparameters;
+	private static final Collection.Key CFQUERY = KeyConstants._cfquery;
+	private static final Collection.Key GENERATEDKEY = KeyConstants._generatedKey;
+	private static final Collection.Key MAX_RESULTS = KeyConstants._maxResults;
 	private static final Collection.Key TIMEOUT = KeyConstants._timeout;
 
 	public static final int RETURN_TYPE_UNDEFINED = 0;
@@ -476,20 +473,15 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 		if (data.datasource == null && (data.dbtype == null || !data.dbtype.equals("query"))) {
 			Object obj = pageContext.getApplicationContext().getDefDataSource();
 			if (StringUtil.isEmpty(obj)) {
-				boolean isCFML = pageContext.getRequestDialect() == CFMLEngine.DIALECT_CFML;
 				throw new ApplicationException("Attribute [datasource] is required when attribute [dbtype] is not [query] and no default datasource is defined",
-						"you can define a default datasource as attribute [defaultdatasource] of the tag "
-								+ (isCFML ? Constants.CFML_APPLICATION_TAG_NAME : Constants.LUCEE_APPLICATION_TAG_NAME) + " or as data member of the "
-								+ (isCFML ? Constants.CFML_APPLICATION_EVENT_HANDLER : Constants.LUCEE_APPLICATION_EVENT_HANDLER) + " (this.defaultdatasource=\"mydatasource\";)");
+						"you can define a default datasource as attribute [defaultdatasource] of the tag " + (Constants.CFML_APPLICATION_TAG_NAME) + " or as data member of the "
+								+ (Constants.CFML_APPLICATION_EVENT_HANDLER) + " (this.defaultdatasource=\"mydatasource\";)");
 			}
 			data.datasource = obj instanceof DataSource ? (DataSource) obj : pageContext.getDataSource(Caster.toString(obj));
 		}
 		// timeout
 		if (data.datasource instanceof DataSourceImpl && ((DataSourceImpl) data.datasource).getAlwaysSetTimeout()) {
-			TimeSpan remaining = PageContextUtil.remainingTime(pageContext, true);
-			if (data.timeout == null || ((int) data.timeout.getSeconds()) <= 0 || data.timeout.getSeconds() > remaining.getSeconds()) { // not set
-				data.timeout = remaining;
-			}
+			data.timeout = Http.checkRemainingTimeout(pageContext, data.timeout);
 		}
 
 		// timezone
@@ -787,7 +779,7 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 			if (data.listener != null && data.listener.hasError()) {
 				long addExe = System.nanoTime();
 				Struct args = createArgStruct(data, strSQL, tl);
-				args.set(KeyConstants._exception, new CatchBlockImpl(pe));
+				args.set(KeyConstants._exception, pe.getCatchBlock(pageContext.getConfig()));
 				ResMeta rm = writeBackResult(pageContext, data, data.listener.error(pageContext, args), setVars);
 				if (data.result == null || (rm.meta == null && rm.asQueryResult() != null))
 					rm.meta = createMetaData(pageContext, data, rm.asQueryResult(), null, setVars, exe + (System.nanoTime() - addExe));
@@ -891,11 +883,6 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 		Struct args = new StructImpl(Struct.TYPE_LINKED);
 
 		// TODO add missing attrs
-		/*
-		 * TagLibTag tlt = TagUtil.getTagLibTag(pageContext, CFMLEngine.DIALECT_CFML, "cf", "query");
-		 * Iterator<Entry<String, TagLibTagAttr>> it = tlt.getAttributes().entrySet().iterator();
-		 * Entry<String, TagLibTagAttr> e; while(it.hasNext()) { e=it.next(); e.getValue().get(this); }
-		 */
 		set(args, "cachedAfter", data.cachedAfter);
 		set(args, "cachedWithin", data.cachedWithin);
 		if (data.columnName != null) set(args, "columnName", data.columnName.getString());

@@ -12,9 +12,9 @@ public class SerializationSettings {
 	public static int SERIALIZE_AS_COLUMN = 2;
 	public static int SERIALIZE_AS_STRUCT = 4;
 
-	private boolean preserveCaseForStructKey = true;
-	private boolean preserveCaseForQueryColumn = false;
-	private int serializeQueryAs = SERIALIZE_AS_ROW;
+	private final boolean preserveCaseForStructKey;
+	private final boolean preserveCaseForQueryColumn;
+	private final int serializeQueryAs;
 
 	public static final SerializationSettings DEFAULT = new SerializationSettings(true, true, SERIALIZE_AS_ROW);
 

@@ -26,8 +26,8 @@
 		driver=drivers[session.debug.template];
 		template=session.debug.template;		
 	} else if ( IsEmpty(entries.type) || !StructKeyExists(drivers, entries.type) ) {
-		driver=drivers["lucee-modern"];
-		template= "lucee-modern";
+		driver=drivers["lucee-simple"];
+		template= "lucee-simple";
 	} else {
 		driver=drivers["#entries.type#"];
 		template=entries.type;
@@ -100,7 +100,16 @@
 					<cfset c=structKeyExists(entry,'custom')?entry.custom:{}>
 				</cfif>
 				<cfset c.scopes=false>
-				<cfset driver.output(c,duplicate(log),"admin")>
+				<cftry>
+					<cfset driver.output(c,duplicate(log),"admin")>
+					<cfcatch>
+						<cfset error.message = cfcatch.message>
+						<cfset error.detail = cfcatch.Detail>
+						<cfset error.exception = cfcatch>
+						<cfset error.cfcatch = cfcatch>
+						<cfset printError(error)>
+					</cfcatch>
+				</cftry>
 			<cfelse>
 				Debug Data no longer available
 			</cfif> 

@@ -22,4 +22,6 @@ public interface ResourceProviderPro extends ResourceProvider {
 
 	public char getSeparator();
 
+	public boolean allowMatching();
+
 }

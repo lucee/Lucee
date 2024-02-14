@@ -1,10 +1,3 @@
-/*
-green:8bbf36;darker:81b72d;comment:c4de99;
-red:bf4f36;darker:b7492e;comment:dea598;
-blue:36afbf;darker:2da5b7;comment:99d6de;
-blue2:3399cc;darker:39c;comment:9acae5;
-*/
-
 html, body {
 	min-height: 450px;
 	height: 100%;
@@ -24,7 +17,7 @@ body, td, th {
 h1, h2, h3, h4, h5 {
 	font-weight:normal;
 	font-size : 18px;
-	color:#666;
+	color:#5f8731;
 	margin:0;
 	padding:0 0 4px 0;
 }
@@ -52,7 +45,7 @@ table + h3, div + h3 {
 	padding-top: 10px;
 }
 a {
-	color:#36c;
+	color:#5f8731;
 	text-decoration:underline
 }
 
@@ -64,7 +57,7 @@ tr > th > a {
 	color:#bf4f36;
 }
 .admin-single a {
-	color:#36c;
+	color:#5f8731;
 }
 
 
@@ -85,7 +78,8 @@ pre {
 .left { text-align:left; }
 .center { text-align:center }
 
-
+.disp-flex { display: flex; }
+.flex-pull-right { margin-left: auto; }
 
 
 
@@ -159,7 +153,7 @@ body.server td#navtd {
 	box-shadow: 0px 0px 4px 1px #BF4F36;
 }
 body.single td#navtd {
-	box-shadow: 0px 0px 4px 0px #9b99a3;
+	box-shadow: 0px 0px 4px 0px #5f8731;
 }
 
 td#logintd {
@@ -213,7 +207,7 @@ body.server #contenttd {
 	box-shadow: 0px 0px 4px 1px #BF4F36;
 }
 body.single #contenttd {
-	box-shadow: 0px 0px 4px 0px #9b99a3;
+	box-shadow: 0px 0px 4px 1px #5f8731;
 }
 
 #content {
@@ -230,10 +224,10 @@ body.single #contenttd {
 	padding: 0px 0px 0px 0px;
 	text-align:center;
 	font-size : 8pt;
-	color:#efede5;
+	color:#000;
 }
 #copyright a {
-	color:#efede5;
+	color:#000;
 }
 .linkContext a {
 	color:#36c;
@@ -282,7 +276,7 @@ body.single #contenttd {
 	background-color: #C25201;
 }
 .admin-single #favorites:hover, .admin-server #favorites:focus {
-	background-color: #36c;
+	background-color: #5f8731;
 }
 
 #favorites ul {
@@ -301,7 +295,7 @@ body.single #contenttd {
 	background-color: #C25201;
 }
 .admin-single #favorites ul {
-	background-color: #36c;
+	background-color: #5f8731;
 }
 #favorites li {
 	list-style: none;
@@ -480,7 +474,7 @@ td.fieldPadded {
 
 .admin-single th .comment,
 .admin-single .extensionthumb .comment
-{color:#333;}
+{color:#5f8731;}
 
 .important {
 	color:red !important;
@@ -534,13 +528,17 @@ div.ok {
 .coding-tip {
 	display: none;
 	box-sizing: border-box;
-	margin: 0.25em;
-	padding: 0.5em;
-	border:1px solid #e8e7ec;
-	border-radius: 4px;
+	margin: 4rem 0.25rem 1rem 0.25rem;
+	padding: 0.5rem;
+	border: 0px;
+	border-radius: 0.5em;
 	max-width: 680px;
 	background-color: #f1f0f5;
 	color: #666;
+}
+
+.coding-tip .copy {
+	cursor: pointer;
 }
 
 .coding-tip.expanded {
@@ -548,7 +546,6 @@ div.ok {
 }
 
 .coding-tip code {
-
 	white-space: pre-wrap;
 	tab-size: 4;
 	margin: 0.5em;
@@ -556,8 +553,6 @@ div.ok {
 	background-color: #000;
 	color: #66ccff;
 	display: block;
-	cursor: pointer;
-	border-radius: 3px;
 }
 
 /* unorganized */
@@ -565,7 +560,7 @@ div.ok {
 	font-weight:normal;
 	font-family:Lato, Arial, Helvetica, sans-serif;
 	font-size : 18pt;
-	color:#666;
+	color:#5f8731;
 	padding-top:40px;
 }
 
@@ -636,7 +631,7 @@ input,select,textarea {
 	font-weight:bold;
 	font-size: 11px;
 
-	background: #36c;
+	background: #5f8731;
 	
 	box-shadow: 0px 2px 2px 0px #d9dade,
 	0px -2px 2px 0px #fcfcfc ;
@@ -780,7 +775,7 @@ label:hover {
 }
 
 .admin-single .radio {
-	border-color:#36c;
+	border-color:#5f8731;
 }
 
 .radio:checked:after {
@@ -798,7 +793,7 @@ label:hover {
 	background: #b7492e;
 }
 .admin-single .radio:checked:after {
-	background: #36c;
+	background: #5f8731;
 }
 
 
@@ -817,7 +812,7 @@ label:hover {
 	border: 2px solid #b7492e;
 }
 .admin-single .checkbox {
-	border: 2px solid #36c;
+	border: 2px solid #5f8731;
 }
 
 .checkbox:checked:after {
@@ -836,7 +831,7 @@ label:hover {
 	background: #b7492e;
 }
 .admin-single .checkbox:checked:after {
-	background: #36c;
+	background: #5f8731;
 }
 
 
@@ -962,7 +957,7 @@ body.server .box, body.server h1, body.server h2, body.server h3, body.server h4
 {color:#999}
 
  body.server #menu li ul li a:hover, body.server #menu li ul li a.menu_active
-{color:#36c}
+{color:#5f8731}
  */
 
 
@@ -1127,7 +1122,7 @@ tbody#extproviderlist td {
 	background-color:#BF4F36;
 }
 .admin-single .ribbon{
-	background-color:#36c;
+	background-color:#5f8731;
 }
 
 .ribbon-left-wrapper {
@@ -1161,7 +1156,7 @@ tbody#extproviderlist td {
 	background-color:#BF4F36;
 }
 .admin-single .ribbon-left{
-	background-color:#36c;
+	background-color:#5f8731;
 }
 
 .fLeft{
@@ -1344,7 +1339,7 @@ body.full #tr-header	{ height: 63px; }
 #header			{ position: relative; height: 100px; -padding: 0 22px; -margin: 0 22px 0 22px; }
 body.full #header { height: 68px; }
 
-#logo			{ display: block; position: absolute; top: -16px; left: 0; width: 186px; height: 68px; 
+#logo			{ display: block; position: absolute; top: -16px; left: 0; width: 310px; height: 68px; 
 	padding: 0;background-position: 0px -252px; }
 body.full #logo { display: block; position: absolute; top: 0px; left: 0; width: 166px; height: 68px; padding: 0;
 	background-position: 0px -252px;width: 186px; }

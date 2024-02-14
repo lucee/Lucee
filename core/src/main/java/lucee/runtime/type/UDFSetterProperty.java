@@ -41,7 +41,7 @@ public final class UDFSetterProperty extends UDFGSProperty {
 	 */
 	private static final long serialVersionUID = 378348754607851563L;
 
-	private static final Collection.Key VALIDATE_PARAMS = KeyImpl.getInstance("validateParams");
+	private static final Collection.Key VALIDATE_PARAMS = KeyConstants._validateParams;
 	private final Property prop;
 	private final Key propName;
 	private String validate;
@@ -50,7 +50,7 @@ public final class UDFSetterProperty extends UDFGSProperty {
 	private UDFSetterProperty(Component component, Property prop, String validate, Struct validateParams) {
 		super(component, "set" + StringUtil.ucFirst(prop.getName()),
 				new FunctionArgument[] {
-						new FunctionArgumentLight(KeyImpl.init(prop.getName()), prop.getType(), CFTypes.toShortStrict(prop.getType(), CFTypes.TYPE_UNKNOW), true) },
+						new FuncArgLite(KeyImpl.init(prop.getName()), prop.getType(), CFTypes.toShortStrict(prop.getType(), CFTypes.TYPE_UNKNOW), true) },
 				CFTypes.TYPE_ANY);
 		this.prop = prop;
 		this.propName = KeyImpl.init(prop.getName());
@@ -61,7 +61,7 @@ public final class UDFSetterProperty extends UDFGSProperty {
 	public UDFSetterProperty(Component component, Property prop) throws PageException {
 		super(component, "set" + StringUtil.ucFirst(prop.getName()),
 				new FunctionArgument[] {
-						new FunctionArgumentLight(KeyImpl.init(prop.getName()), prop.getType(), CFTypes.toShortStrict(prop.getType(), CFTypes.TYPE_UNKNOW), true) },
+						new FuncArgLite(KeyImpl.init(prop.getName()), prop.getType(), CFTypes.toShortStrict(prop.getType(), CFTypes.TYPE_UNKNOW), true) },
 				CFTypes.TYPE_ANY);
 
 		this.prop = prop;

@@ -66,7 +66,8 @@ public class VersionInfo {
 				System.err.println("lucee/version not found");
 			}
 		}
-		catch (final IOException e) {}
+		catch (final IOException e) {
+		}
 
 		final int index = content.indexOf(':');
 		version = CFMLEngineFactorySupport.toVersion(content.substring(0, index), CFMLEngineFactory.VERSION_ZERO);

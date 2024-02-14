@@ -1,7 +1,7 @@
 component extends="org.lucee.cfml.test.LuceeTestCase" labels="xml" {
 	function run( testResults , testBox ) {
 		describe( "Test suite for LDEV-1339", function() {
-			it(title="Checking XMLTransform(), with xml paramater", body = function( currentSpec ) {
+			it(title="Checking XMLTransform(), with xml parameter", body = function( currentSpec ) {
 				var uri=createURI("LDEV1339/test.cfm");
 				local.result = _InternalRequest(
 					template:uri,
@@ -10,7 +10,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="xml" {
 				expect(result.filecontent.trim()).toBe("false");
 			});
 
-			it(title="Checking XMLTransform(), with xml paramater as empty string", body = function( currentSpec ) {
+			it(title="Checking XMLTransform(), with xml parameter as empty string", body = function( currentSpec ) {
 				var uri=createURI("LDEV1339/test.cfm");
 				local.result = _InternalRequest(
 					template:uri,

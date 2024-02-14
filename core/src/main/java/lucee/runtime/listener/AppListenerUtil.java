@@ -83,22 +83,20 @@ import lucee.transformer.library.ClassDefinitionImpl;
 
 public final class AppListenerUtil {
 
-	public static final Collection.Key ACCESS_KEY_ID = KeyImpl.getInstance("accessKeyId");
-	public static final Collection.Key AWS_SECRET_KEY = KeyImpl.getInstance("awsSecretKey");
-	public static final Collection.Key SECRET_KEY = KeyImpl.getInstance("secretKey");
-	public static final Collection.Key DEFAULT_LOCATION = KeyImpl.getInstance("defaultLocation");
+	public static final Collection.Key ACCESS_KEY_ID = KeyConstants._accessKeyId;
+	public static final Collection.Key AWS_SECRET_KEY = KeyConstants._awsSecretKey;
+	public static final Collection.Key SECRET_KEY = KeyConstants._secretKey;
+	public static final Collection.Key DEFAULT_LOCATION = KeyConstants._defaultLocation;
 	public static final Collection.Key ACL = KeyConstants._acl;
 	public static final Collection.Key CONNECTION_STRING = KeyConstants._connectionString;
 
-	public static final Collection.Key BLOB = KeyImpl.getInstance("blob");
-	public static final Collection.Key CLOB = KeyImpl.getInstance("clob");
-	public static final Collection.Key CONNECTION_LIMIT = KeyImpl.getInstance("connectionLimit");
-	public static final Collection.Key CONNECTION_TIMEOUT = KeyImpl.getInstance("connectionTimeout");
-	public static final Collection.Key IDLE_TIMEOUT = KeyImpl.getInstance("idleTimeout");
-	public static final Collection.Key LIVE_TIMEOUT = KeyImpl.getInstance("liveTimeout");
-	public static final Collection.Key META_CACHE_TIMEOUT = KeyImpl.getInstance("metaCacheTimeout");
-	public static final Collection.Key ALLOW = KeyImpl.getInstance("allow");
-	public static final Collection.Key DISABLE_UPDATE = KeyImpl.getInstance("disableUpdate");
+	public static final Collection.Key CONNECTION_LIMIT = KeyConstants._connectionLimit;
+	public static final Collection.Key CONNECTION_TIMEOUT = KeyConstants._connectionTimeout;
+	public static final Collection.Key IDLE_TIMEOUT = KeyConstants._idleTimeout;
+	public static final Collection.Key LIVE_TIMEOUT = KeyConstants._liveTimeout;
+	public static final Collection.Key META_CACHE_TIMEOUT = KeyConstants._metaCacheTimeout;
+	public static final Collection.Key ALLOW = KeyConstants._allow;
+	public static final Collection.Key DISABLE_UPDATE = KeyConstants._disableUpdate;
 
 	private static final TimeSpan FIVE_MINUTES = new TimeSpanImpl(0, 0, 5, 0);
 	private static final TimeSpan ONE_MINUTE = new TimeSpanImpl(0, 0, 1, 0);
@@ -158,7 +156,7 @@ public final class AppListenerUtil {
 	}
 
 	public static String toStringMode(int mode) {
-		if (mode == ApplicationListener.MODE_CURRENT) return "curr";
+		if (mode == ApplicationListener.MODE_CURRENT) return "current";
 		if (mode == ApplicationListener.MODE_ROOT) return "root";
 		if (mode == ApplicationListener.MODE_CURRENT2ROOT) return "curr2root";
 		if (mode == ApplicationListener.MODE_CURRENT_OR_ROOT) return "currorroot";
@@ -196,6 +194,7 @@ public final class AppListenerUtil {
 	}
 
 	public static DataSource toDataSource(Config config, String name, Struct data, Log log) throws PageException {
+		if (data.isEmpty()) throw new ApplicationException("Datasource config for [" + name + "] was empty");
 		String user = Caster.toString(data.get(KeyConstants._username, null), null);
 		String pass = Caster.toString(data.get(KeyConstants._password, ""), "");
 		if (StringUtil.isEmpty(user)) {
@@ -232,14 +231,14 @@ public final class AppListenerUtil {
 			try {
 				int idle = Caster.toIntValue(data.get(IDLE_TIMEOUT, null), -1);
 				if (idle == -1) idle = Caster.toIntValue(data.get(CONNECTION_TIMEOUT, null), 1);
-				return ApplicationDataSource.getInstance(config, name, cd, Caster.toString(oConnStr), user, pass, listener, Caster.toBooleanValue(data.get(BLOB, null), false),
-						Caster.toBooleanValue(data.get(CLOB, null), false), Caster.toIntValue(data.get(CONNECTION_LIMIT, null), -1), idle,
-						Caster.toIntValue(data.get(LIVE_TIMEOUT, null), 60), Caster.toIntValue(data.get("minIdle", null), 60), Caster.toIntValue(data.get("maxIdle", null), 60),
-						Caster.toIntValue(data.get("maxTotal", null), 60), Caster.toLongValue(data.get(META_CACHE_TIMEOUT, null), 60000L), timezone,
-						Caster.toIntValue(data.get(ALLOW, null), DataSource.ALLOW_ALL), Caster.toBooleanValue(data.get(KeyConstants._storage, null), false),
-						Caster.toBooleanValue(data.get(KeyConstants._readonly, null), false), Caster.toBooleanValue(data.get(KeyConstants._validate, null), false),
-						Caster.toBooleanValue(data.get("requestExclusive", null), false), Caster.toBooleanValue(data.get("alwaysResetConnections", null), false),
-						readliteralTimestampWithTSOffset(data), log);
+				return ApplicationDataSource.getInstance(config, name, cd, Caster.toString(oConnStr), user, pass, listener,
+						Caster.toBooleanValue(data.get(KeyConstants._blob, null), false), Caster.toBooleanValue(data.get(KeyConstants._clob, null), false),
+						Caster.toIntValue(data.get(CONNECTION_LIMIT, null), -1), idle, Caster.toIntValue(data.get(LIVE_TIMEOUT, null), 60),
+						Caster.toIntValue(data.get("minIdle", null), 60), Caster.toIntValue(data.get("maxIdle", null), 60), Caster.toIntValue(data.get("maxTotal", null), 60),
+						Caster.toLongValue(data.get(META_CACHE_TIMEOUT, null), 60000L), timezone, Caster.toIntValue(data.get(ALLOW, null), DataSource.ALLOW_ALL),
+						Caster.toBooleanValue(data.get(KeyConstants._storage, null), false), Caster.toBooleanValue(data.get(KeyConstants._readonly, null), false),
+						Caster.toBooleanValue(data.get(KeyConstants._validate, null), false), Caster.toBooleanValue(data.get("requestExclusive", null), false),
+						Caster.toBooleanValue(data.get("alwaysResetConnections", null), false), readliteralTimestampWithTSOffset(data), log);
 			}
 			catch (Exception cnfe) {
 				throw Caster.toPageException(cnfe);
@@ -258,8 +257,8 @@ public final class AppListenerUtil {
 					Caster.toString(data.get(KeyConstants._database)), Caster.toIntValue(data.get(KeyConstants._port, null), -1), user, pass, listener,
 					Caster.toIntValue(data.get(CONNECTION_LIMIT, null), -1), idle, Caster.toIntValue(data.get(LIVE_TIMEOUT, null), 1),
 					Caster.toIntValue(data.get("minIdle", null), 0), Caster.toIntValue(data.get("maxIdle", null), 0), Caster.toIntValue(data.get("maxTotal", null), 0),
-					Caster.toLongValue(data.get(META_CACHE_TIMEOUT, null), 60000L), Caster.toBooleanValue(data.get(BLOB, null), false),
-					Caster.toBooleanValue(data.get(CLOB, null), false), DataSource.ALLOW_ALL, Caster.toStruct(data.get(KeyConstants._custom, null), null, false),
+					Caster.toLongValue(data.get(META_CACHE_TIMEOUT, null), 60000L), Caster.toBooleanValue(data.get(KeyConstants._blob, null), false),
+					Caster.toBooleanValue(data.get(KeyConstants._clob, null), false), DataSource.ALLOW_ALL, Caster.toStruct(data.get(KeyConstants._custom, null), null, false),
 					Caster.toBooleanValue(data.get(KeyConstants._readonly, null), false), true, Caster.toBooleanValue(data.get(KeyConstants._storage, null), false), timezone, "",
 					ParamSyntax.toParamSyntax(data, ParamSyntax.DEFAULT), readliteralTimestampWithTSOffset(data), Caster.toBooleanValue(data.get("alwaysSetTimeout", null), false),
 					Caster.toBooleanValue(data.get("requestExclusive", null), false), Caster.toBooleanValue(data.get("alwaysResetConnections", null), false), log);
@@ -288,16 +287,6 @@ public final class AppListenerUtil {
 		return literalTimestampWithTSOffset == null ? false : literalTimestampWithTSOffset;
 	}
 
-	public static Mapping[] toMappings(ConfigWeb cw, Object o, Mapping[] defaultValue, Resource source) {
-		try {
-			return toMappings(cw, o, source);
-		}
-		catch (Throwable t) {
-			ExceptionUtil.rethrowIfNecessary(t);
-			return defaultValue;
-		}
-	}
-
 	public static Mapping[] toMappings(ConfigWeb cw, Object o, Resource source) throws PageException {
 		Struct sct = Caster.toStruct(o);
 		Iterator<Entry<Key, Object>> it = sct.entryIterator();
@@ -310,6 +299,30 @@ public final class AppListenerUtil {
 			virtual = translateMappingVirtual(e.getKey().getString());
 			MappingData md = toMappingData(e.getValue(), source);
 			mappings.add(config.getApplicationMapping("application", virtual, md.physical, md.archive, md.physicalFirst, false, !md.physicalMatch, !md.archiveMatch));
+		}
+		return ConfigWebUtil.sort(mappings.toArray(new Mapping[mappings.size()]));
+	}
+
+	public static Mapping[] toMappingsIgnoreInvalid(ConfigWeb cw, Object o, Resource source) {
+		Struct sct = Caster.toStruct(o, null);
+		if (sct == null) return new Mapping[0];
+
+		Iterator<Entry<Key, Object>> it = sct.entryIterator();
+		Entry<Key, Object> e;
+		java.util.List<Mapping> mappings = new ArrayList<Mapping>();
+		ConfigWebPro config = (ConfigWebPro) cw;
+		String virtual;
+		while (it.hasNext()) {
+			e = it.next();
+			virtual = translateMappingVirtual(e.getKey().getString());
+			try {
+				MappingData md = toMappingData(e.getValue(), source);
+				mappings.add(config.getApplicationMapping("application", virtual, md.physical, md.archive, md.physicalFirst, false, !md.physicalMatch, !md.archiveMatch));
+			}
+			catch (Exception ex) {
+
+			}
+
 		}
 		return ConfigWebUtil.sort(mappings.toArray(new Mapping[mappings.size()]));
 	}
@@ -736,7 +749,8 @@ public final class AppListenerUtil {
 				Caster.toString(data.get(KeyConstants._domain, null), SessionCookieDataImpl.DEFAULT.getDomain()),
 				Caster.toBooleanValue(data.get(DISABLE_UPDATE, null), SessionCookieDataImpl.DEFAULT.isDisableUpdate()),
 				SessionCookieDataImpl.toSamesite(Caster.toString(data.get(KeyConstants._SameSite, null), null), SessionCookieDataImpl.DEFAULT.getSamesite()),
-				Caster.toString(data.get(KeyConstants._path, null), SessionCookieDataImpl.DEFAULT.getPath())
+				Caster.toString(data.get(KeyConstants._path, null), SessionCookieDataImpl.DEFAULT.getPath()),
+				Caster.toBooleanValue(data.get(KeyConstants._partitioned, null), SessionCookieDataImpl.DEFAULT.isPartitioned())
 
 		);
 	}
@@ -971,7 +985,12 @@ public final class AppListenerUtil {
 
 	public static boolean getPreciseMath(PageContext pc, Config config) {
 		pc = ThreadLocalPageContext.get(pc);
-		if (pc != null) return ((ApplicationContextSupport) pc.getApplicationContext()).getPreciseMath();
+		if (pc != null) {
+			ApplicationContext ac = pc.getApplicationContext();
+			if (ac != null) return ((ApplicationContextSupport) pc.getApplicationContext()).getPreciseMath();
+			if (config == null) config = pc.getConfig();
+
+		}
 		config = ThreadLocalPageContext.getConfig(config);
 		if (config != null) return ((ConfigPro) config).getPreciseMath();
 		return false;

@@ -1,6 +1,7 @@
 component extends="org.lucee.cfml.test.LuceeTestCase"{
 	function run( testResults , testBox ) {
 		describe( title="checking dateAndTimeFormat()", body=function() {
+
 			it(title='dateAndTimeFormat() function with arguments', body=function( currentSpec ) {
 				var d = CreateDateTime(2000,1,2,3,4,5,0,"CET");
 				application action="update" timezone="CET";
@@ -20,6 +21,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				assertEquals("Sun, 2 Jan 2000 03:04:05 +0100", d.format("EEE, d MMM yyyy HH:nn:ss Z"));
 				assertEquals("2000.01.02 03-04", d.format("y.mm.dd hh-nn"));
 				assertEquals("2 Jan 2000 03:04:05", d.format("d MMM yyyy HH:nn:ss"));
+			});
+
+			it(title = "Checking empty string with DateTimeFormat", body = function( currentSpec ) {
+				expect( DateTimeFormat( "" ) ).toBe( "" );
 			});
 
 		});

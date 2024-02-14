@@ -24,12 +24,15 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.security.GeneralSecurityException;
 
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.net.URLDecoder;
 import lucee.commons.net.URLEncoder;
 import lucee.commons.net.http.HTTPEngine;
 import lucee.commons.net.http.HTTPResponse;
 import lucee.commons.net.http.Header;
+import lucee.commons.net.http.httpclient.HTTPEngine4Impl;
 import lucee.runtime.net.proxy.ProxyDataImpl;
 
 public class HTTPUtilImpl implements lucee.runtime.util.HTTPUtil {
@@ -59,7 +62,13 @@ public class HTTPUtilImpl implements lucee.runtime.util.HTTPUtil {
 	@Override
 	public HTTPResponse delete(URL url, String username, String password, int timeout, String charset, String useragent, String proxyserver, int proxyport, String proxyuser,
 			String proxypassword, Header[] headers) throws IOException {
-		return HTTPEngine.delete(url, username, password, timeout, true, charset, useragent, ProxyDataImpl.getInstance(proxyserver, proxyport, proxyuser, proxypassword), headers);
+		try {
+			return HTTPEngine4Impl.delete(url, username, password, timeout, true, charset, useragent, ProxyDataImpl.getInstance(proxyserver, proxyport, proxyuser, proxypassword),
+					headers);
+		}
+		catch (GeneralSecurityException e) {
+			throw ExceptionUtil.toIOException(e);
+		}
 	}
 
 	/**
@@ -81,7 +90,13 @@ public class HTTPUtilImpl implements lucee.runtime.util.HTTPUtil {
 	@Override
 	public HTTPResponse head(URL url, String username, String password, int timeout, String charset, String useragent, String proxyserver, int proxyport, String proxyuser,
 			String proxypassword, Header[] headers) throws IOException {
-		return HTTPEngine.head(url, username, password, timeout, true, charset, useragent, ProxyDataImpl.getInstance(proxyserver, proxyport, proxyuser, proxypassword), headers);
+		try {
+			return HTTPEngine4Impl.head(url, username, password, timeout, true, charset, useragent, ProxyDataImpl.getInstance(proxyserver, proxyport, proxyuser, proxypassword),
+					headers);
+		}
+		catch (GeneralSecurityException e) {
+			throw ExceptionUtil.toIOException(e);
+		}
 	}
 
 	/**
@@ -92,7 +107,13 @@ public class HTTPUtilImpl implements lucee.runtime.util.HTTPUtil {
 	@Override
 	public HTTPResponse get(URL url, String username, String password, int timeout, String charset, String useragent, String proxyserver, int proxyport, String proxyuser,
 			String proxypassword, Header[] headers) throws IOException {
-		return HTTPEngine.get(url, username, password, timeout, true, charset, useragent, ProxyDataImpl.getInstance(proxyserver, proxyport, proxyuser, proxypassword), headers);
+		try {
+			return HTTPEngine4Impl.get(url, username, password, timeout, true, charset, useragent, ProxyDataImpl.getInstance(proxyserver, proxyport, proxyuser, proxypassword),
+					headers);
+		}
+		catch (GeneralSecurityException e) {
+			throw ExceptionUtil.toIOException(e);
+		}
 	}
 
 	@Override
@@ -104,8 +125,13 @@ public class HTTPUtilImpl implements lucee.runtime.util.HTTPUtil {
 	@Override
 	public HTTPResponse put(URL url, String username, String password, int timeout, String mimetype, String charset, String useragent, String proxyserver, int proxyport,
 			String proxyuser, String proxypassword, Header[] headers, Object body) throws IOException {
-		return HTTPEngine.put(url, username, password, timeout, true, mimetype, charset, useragent, ProxyDataImpl.getInstance(proxyserver, proxyport, proxyuser, proxypassword),
-				headers, body);
+		try {
+			return HTTPEngine4Impl.put(url, username, password, timeout, true, mimetype, charset, useragent,
+					ProxyDataImpl.getInstance(proxyserver, proxyport, proxyuser, proxypassword), headers, body);
+		}
+		catch (GeneralSecurityException e) {
+			throw ExceptionUtil.toIOException(e);
+		}
 	}
 
 	@Override

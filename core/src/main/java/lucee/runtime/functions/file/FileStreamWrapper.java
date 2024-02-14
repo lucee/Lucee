@@ -18,6 +18,7 @@
  **/
 package lucee.runtime.functions.file;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.util.Date;
 import java.util.Iterator;
@@ -38,7 +39,7 @@ import lucee.runtime.type.dt.DateTimeImpl;
 import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.StructSupport;
 
-public abstract class FileStreamWrapper extends StructSupport implements Struct {
+public abstract class FileStreamWrapper extends StructSupport implements Struct, Closeable {
 
 	public static final String STATE_OPEN = "open";
 	public static final String STATE_CLOSE = "close";
@@ -111,6 +112,7 @@ public abstract class FileStreamWrapper extends StructSupport implements Struct 
 
 	public abstract String getMode();
 
+	@Override
 	public abstract void close() throws IOException;
 
 	private IOException notSupported(String method) {

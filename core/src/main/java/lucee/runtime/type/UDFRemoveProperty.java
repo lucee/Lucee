@@ -54,10 +54,10 @@ public final class UDFRemoveProperty extends UDFGSProperty {
 		String t = PropertyFactory.getType(prop);
 
 		if ("struct".equalsIgnoreCase(t)) {
-			FunctionArgument key = new FunctionArgumentLight(KeyConstants._key, "string", CFTypes.TYPE_STRING, true);
+			FunctionArgument key = new FuncArgLite(KeyConstants._key, "string", CFTypes.TYPE_STRING, true);
 			return new FunctionArgument[] { key };
 		}
-		FunctionArgument value = new FunctionArgumentLight(KeyImpl.init(PropertyFactory.getSingularName(prop)), "any", CFTypes.TYPE_ANY, true);
+		FunctionArgument value = new FuncArgLite(KeyImpl.init(PropertyFactory.getSingularName(prop)), "any", CFTypes.TYPE_ANY, true);
 		return new FunctionArgument[] { value };
 	}
 
@@ -111,7 +111,7 @@ public final class UDFRemoveProperty extends UDFGSProperty {
 			if (strKey == null) return false;
 
 			if (propValue instanceof Struct) {
-				return ((Struct) propValue).removeEL(KeyImpl.getInstance(strKey)) != null;
+				return ((Struct) propValue).removeEL(KeyImpl.init(strKey)) != null;
 			}
 			else if (propValue instanceof Map) {
 				return ((Map) propValue).remove(strKey) != null;

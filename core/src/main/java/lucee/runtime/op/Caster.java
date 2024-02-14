@@ -32,6 +32,7 @@ import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.math.MathContext;
 import java.net.MalformedURLException;
 import java.nio.charset.Charset;
 import java.sql.Blob;
@@ -74,6 +75,7 @@ import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.PhysicalClassLoader;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.net.HTTPUtil;
+import lucee.loader.util.Util;
 import lucee.runtime.Component;
 import lucee.runtime.ComponentScope;
 import lucee.runtime.ComponentSpecificAccess;
@@ -446,7 +448,7 @@ public final class Caster {
 			return ((Number) o).doubleValue();
 		}
 		else if (o instanceof Boolean) return ((Boolean) o).booleanValue() ? 1 : 0;
-		else if (o instanceof CharSequence) return toDoubleValue(o.toString(), true);
+		else if (o instanceof CharSequence) return toDoubleValue(o.toString(), false);
 		// else if(o instanceof Clob) return toDoubleValue(toString(o));
 		else if (o instanceof Castable) return ((Castable) o).castToDoubleValue();
 		else if (o == null) return 0;// toDoubleValue("");
@@ -462,6 +464,11 @@ public final class Caster {
 		return d.doubleValue();
 	}
 
+	// do not remove, this is used by the transformer (generated code)
+	public static double toDoubleValue(PageContext pc, String str) throws CasterException {
+		return toDoubleValue(str, true);
+	}
+
 	/**
 	 * cast an Object to a double value (primitive value Type)
 	 * 
@@ -470,7 +477,7 @@ public final class Caster {
 	 * @throws CasterException
 	 */
 	public static double toDoubleValue(String str) throws CasterException {
-		return toDoubleValue(str, true);
+		return toDoubleValue(str, false);
 	}
 
 	public static double toDoubleValue(String strNumber, int radix, boolean alsoFromDate, double defaultValue) {
@@ -519,6 +526,7 @@ public final class Caster {
 						if (!alsoFromDate) throw new CasterException("cannot cast [" + str + "] string to a number value");
 						return toDoubleValueViaDate(str);
 					}
+					else if (len == 1) throw new CasterException("cannot cast [" + str + "] string to a number value");
 					hasDot = true;
 				}
 				else {
@@ -658,6 +666,7 @@ public final class Caster {
 						if (!alsoFromDate) return defaultValue;
 						return toDoubleValueViaDate(str, defaultValue);
 					}
+					else if (len == 1) return defaultValue;
 					hasDot = true;
 				}
 				else {
@@ -711,7 +720,7 @@ public final class Caster {
 	 * @param d double value to cast
 	 * @return casted double value
 	 */
-	public static double toDoubleValue(double d) {
+	public static double toDoubleValue(double d) {// do not remove, this is used by the transformer (generated code)
 		return d;
 	}
 
@@ -839,6 +848,22 @@ public final class Caster {
 		return n.intValue();
 	}
 
+	public static int toIntValueLossless(double d) throws ExpressionException {
+		long l = Math.round(d);
+		// Check if d is within the int range
+		if (l < Integer.MIN_VALUE || l > Integer.MAX_VALUE) {
+			throw new ExpressionException("The value [" + Caster.toStringPercise(d) + "] is outside the range that can be represented as an int.");
+		}
+		int i = (int) l; // safe to do because of the test above
+
+		if (l == d) return i;
+
+		if (d > l && (d - l) < 0.000000000001) return i;
+		if (l > d && (l - d) < 0.000000000001) return i;
+
+		throw new ExpressionException("The value [" + Caster.toStringPercise(d) + "] cannot be converted to int without significant data loss.");
+	}
+
 	/**
 	 * cast an int value to an int value (do nothing)
 	 * 
@@ -949,7 +974,7 @@ public final class Caster {
 
 	private static String toDecimal(double value, char decDel, char thsDel) {
 		// TODO Caster toDecimal bessere impl.
-		String str = new BigDecimal((StrictMath.round(value * 100) / 100D)).toString();
+		String str = Caster.toBigDecimal((StrictMath.round(value * 100) / 100D)).toString();
 		// str=toDouble(value).toString();
 		String[] arr = str.split("\\.");
 
@@ -1566,7 +1591,7 @@ public final class Caster {
 		try {
 			// float
 			if (str.indexOf('.') != -1) {
-				return new BigDecimal(str);
+				return Caster.toBigDecimal(str);
 			}
 			// integer
 			BigInteger bi = new BigInteger(str);
@@ -2284,9 +2309,13 @@ public final class Caster {
 		return str;
 	}
 
-	private static DecimalFormat df = (DecimalFormat) DecimalFormat.getInstance(Locale.US);// ("#.###########");
+	private static DecimalFormat pf = (DecimalFormat) DecimalFormat.getInstance(Locale.US);
+	private static DecimalFormat df = (DecimalFormat) DecimalFormat.getInstance(Locale.US);
+	private static DecimalFormat ff = (DecimalFormat) DecimalFormat.getInstance(Locale.US);
 	static {
+		pf.applyLocalizedPattern("#.################################################");
 		df.applyLocalizedPattern("#.########################");
+		ff.applyLocalizedPattern("#.#######");
 	}
 
 	public static String toString(double d) {
@@ -2299,18 +2328,26 @@ public final class Caster {
 		return df.format(d);
 	}
 
+	public static String toStringPercise(double d) {
+		return pf.format(d);
+	}
+
+	public static String toString(float f) {
+		long l = (long) f;
+		if (l == f) return toString(l);
+
+		if (f > l && (f - l) < 0.000000000001) return toString(l);
+		if (l > f && (l - f) < 0.000000000001) return toString(l);
+
+		return ff.format(f);
+	}
+
 	public static String toString(Number n) {
 		if (n instanceof BigDecimal) return df.format(n);
-		double d = n.doubleValue();
-		long l = (long) d;
-		if (l == d) return toString(l);
-
-		if (d > l && (d - l) < 0.000000000001) return toString(l);
-		if (l > d && (l - d) < 0.000000000001) return toString(l);
-
-		if (n instanceof Double) return toString(n.doubleValue());
+		if (n instanceof Double) return Caster.toString(n.doubleValue());
+		if (n instanceof Float) return Caster.toString(n.floatValue());
+		if (n instanceof Long) return Caster.toString(n.longValue());
 		return n.toString();
-		// return df.format(d);
 	}
 
 	public static String toString(BigDecimal bd) {
@@ -2879,7 +2916,7 @@ public final class Caster {
 		if (Decision.isSimpleValue(o) || Decision.isArray(o)) throw new CasterException(o, "Struct");
 		if (o instanceof Collection) return new CollectionStruct((Collection) o);
 
-		if (o == null) throw new CasterException("null can not be casted to a Struct");
+		if (o == null) throw new CasterException("null cannot be cast to a Struct");
 
 		return new ObjectStruct(o);
 	}
@@ -4986,11 +5023,9 @@ public final class Caster {
 
 	public static BigDecimal toBigDecimal(Object o) throws PageException {
 		if (o instanceof BigDecimal) return (BigDecimal) o;
-		if (o instanceof Number) {
-			return BigDecimal.valueOf(((Number) o).doubleValue());
-		}
+		if (o instanceof Number) return toBigDecimal((Number) o);
+		else if (o instanceof CharSequence) return toBigDecimal(o.toString());
 		else if (o instanceof Boolean) return new BigDecimal(((Boolean) o).booleanValue() ? 1 : 0);
-		else if (o instanceof CharSequence) return new BigDecimal(o.toString());
 		else if (o instanceof Character) return new BigDecimal((((Character) o).charValue()));
 		else if (o instanceof Castable) return new BigDecimal(((Castable) o).castToDoubleValue());
 		else if (o == null) return BigDecimal.ZERO;
@@ -5000,16 +5035,31 @@ public final class Caster {
 
 	public static BigDecimal toBigDecimal(Number n) {
 		if (n instanceof BigDecimal) return (BigDecimal) n;
-		return BigDecimal.valueOf(n.doubleValue());
+		if (n instanceof BigInteger) return new BigDecimal((BigInteger) n);
+		if (n instanceof Double) return toBigDecimal(n.doubleValue());
+		if (n instanceof Long) return BigDecimal.valueOf(n.longValue());
+
+		return toBigDecimal(n.doubleValue());
+	}
+
+	public static BigDecimal toBigDecimal(double d) {
+		if (Double.isNaN(d)) throw new NumberFormatException("Not a Number");
+		return BigDecimal.valueOf(d);
 	}
 
 	public static BigDecimal toBigDecimal(String str) throws CasterException {
-		return new BigDecimal(str);
+		try {
+			if (Util.isEmpty(str, true)) throw new CasterException("cannot convert string[" + str + "] to a number, the string is empty");
+			return new BigDecimal(str.trim(), MathContext.DECIMAL128);
+		}
+		catch (NumberFormatException nfe) {
+			throw new CasterException("cannot convert string[" + str + "] to a number; " + nfe.getMessage());
+		}
 	}
 
 	public static BigDecimal toBigDecimal(String str, BigDecimal defaultValue) {
 		try {
-			return new BigDecimal(str);
+			return toBigDecimal(str);
 		}
 		catch (Exception e) {
 		}

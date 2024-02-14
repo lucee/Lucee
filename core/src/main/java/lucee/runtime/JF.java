@@ -89,7 +89,7 @@ public abstract class JF implements UDF {
 
 	@Override
 	public Struct getMetaData(PageContext pc) throws PageException {
-		return ComponentUtil.getMetaData(pc, getUDFProperties(), null);
+		return ComponentUtil.getMetaData(pc, this, getUDFProperties(), null);
 	}
 
 	private UDFPropertiesImpl getUDFProperties() throws PageException {

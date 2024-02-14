@@ -9,7 +9,6 @@
 		</cfif>
 	</cfloop>
 </cfsilent>
-
 <cfoutput>
 	<div class="pageintro">#stText.Mappings.editDesc#</div>
 	<cfformClassic onerror="customError" action="#request.self#?virtual=#mapping.virtual#&action=#url.action#&action2=#url.action2#" method="post">
@@ -48,11 +47,70 @@
 						<option value="archive" <cfif not mapping.PhysicalFirst>selected</cfif>>#stText.Mappings.Archive#</option>
 					</select></cfif></td>
 				</tr>
+				<!--- listener type --->
+				<tr>
+					<th scope="row">
+						#stText.application.listenerType#
+						<cfif hasAccess>
+							<div class="comment">#stText.application.listenerTypeDescription#</div>
+						</cfif>
+					</th>
+					<td>
+						<cfif hasAccess>
+							<ul class="radiolist">
+								<cfloop index="key" list="none,classic,modern,mixed,inherit">
+									<li>
+										<label>
+											<input type="radio" class="radio" name="listenertype_#mapping.id#" value="#key#" 
+												<cfif key EQ mapping.listenerType or (key eq "inherit" and mapping.listenerType eq "") >checked="checked"</cfif>>
+											<b>#stText.application['listenerType_' & key]#</b>
+										</label>
+										<div class="comment">#stText.application['listenerTypeDescription_' & key]#</div>
+									</li>
+								</cfloop>
+							</ul>
+						<cfelse>
+							<!---<input type="hidden" name="type" value="#listener.type#">--->
+							<b>#listener.type#</b>
+							<div class="comment">#stText.application['listenerTypeDescription_' & listener.type]#</div>
+						</cfif>
+					</td>
+				</tr>
+
+				<!--- listener mode --->
+				<tr>
+					<th>#stText.application.listenerMode#
+						<cfif hasAccess>
+							<div class="comment">#stText.application.listenerModeDescription#</div>
+						</cfif>
+					</th>
+					<td>
+						<cfif hasAccess>
+							<ul class="radiolist">
+								<cfloop index="key" list="curr2root,currorroot,root,current,inherit">
+									<li>
+										<label>
+											<input type="radio" class="radio" name="listenermode_#mapping.id#" value="#key#" 
+												<cfif key EQ mapping.listenerMode or (key eq "inherit" and mapping.listenerMode eq "") >checked="checked"</cfif>>
+											<b>#stText.application['listenerMode_' & key]#</b>
+										</label>
+										<div class="comment">#stText.application['listenerModeDescription_' & key]#</div>
+									</li>
+								</cfloop>
+							</ul>
+						<cfelse>
+							<!---<input type="hidden" name="type" value="#listener.mode#">--->
+							<b>#listener.mode#</b>
+							<div class="comment">#stText.application['listenerModeDescription_' & listener.mode]#</div>
+						</cfif>
+					</td>
+				</tr>
+				
 				<tr>
 					<th scope="row">#stText.setting.inspecttemplate#</th>
 					<td>
 						<cfif mapping.readOnly>
-							<cfloop list="never,once,always,inherit" item="type">
+							<cfloop list="auto,never,once,always,inherit" item="type">
 							<cfif mapping.inspect EQ type or (type EQ "inherit" and mapping.inspect EQ "")>
 							#stText.setting['inspectTemplate'&type]#
 							<div class="comment">#stText.setting['inspectTemplate'&type&"Desc"]#</div>
@@ -60,12 +118,20 @@
 							</cfloop>
 						<cfelse>
 							<ul class="radiolist">
-								<cfloop list="never,once,always,inherit" item="type">
+								<cfloop list="auto,never,once,always,inherit" item="type">
 									<li><label>
 										<input class="radio" type="radio" name="inspect_#mapping.id#" value="#type EQ "inherit"?"":type#" <cfif mapping.inspect EQ type or (type EQ "inherit" and mapping.inspect EQ "")> checked="checked"</cfif>>
 										<b>#stText.setting['inspectTemplate'&type]#</b>
 									</label>
 									<div class="comment">#stText.setting['inspectTemplate'&type&"Desc"]#</div>
+									<cfif type EQ "auto">
+										<div class="comment">
+											<b>#stText.setting.inspectTemplateInterval#</b><br>
+											#stText.setting.inspectTemplateIntervalDesc#<br>
+										<input type="text" name="inspectTemplateIntervalSlow_#mapping.id#" value="#mapping.inspectTemplateIntervalSlow?:performancesettings.inspectTemplateIntervalSlow#" size="6"> #stText.setting.inspectTemplateIntervalSlow#<br>
+										<input type="text" name="inspectTemplateIntervalFast_#mapping.id#" value="#mapping.inspectTemplateIntervalFast?:performancesettings.inspectTemplateIntervalFast#" size="6"> #stText.setting.inspectTemplateIntervalFast#<br>
+										</div>
+									</cfif>
 									</li>
 								</cfloop>
 							</ul>
@@ -103,10 +169,14 @@
 
 <cfsavecontent variable="codeSample"><cfset count=0><cfset del="">
 this.mappings["#mapping.virtual#"]=<cfif len(mapping.strPhysical) && !len(mapping.strArchive)>
-&nbsp;&nbsp;&nbsp;"#mapping.strPhysical#"<cfelse>{<cfif len(mapping.strPhysical)><cfset count++>
+&nbsp;&nbsp;&nbsp;<span class="overflow">"#mapping.strPhysical#"</span><cfelse>{<cfif len(mapping.strPhysical)><cfset count++>
 &nbsp;&nbsp;&nbsp;physical:"#mapping.strPhysical#"<cfset del=","></cfif><cfif len(mapping.strArchive)><cfset count++>
 &nbsp;&nbsp;&nbsp;#del#archive:"#mapping.strArchive#"<cfset del=","></cfif><cfif count==2 && !mapping.PhysicalFirst>
-&nbsp;&nbsp;&nbsp;#del#primary:"<cfif mapping.PhysicalFirst>physical<cfelse>archive</cfif>"<cfset del=","></cfif>}</cfif>;
+&nbsp;&nbsp;&nbsp;#del#primary:"<cfif mapping.PhysicalFirst>physical<cfelse>archive</cfif>"<cfset del=","></cfif>
+<cfif len(mapping.listenerMode)><cfset count++>&nbsp;&nbsp;&nbsp;#del#listenerMode:"#mapping.listenerMode#"<cfset del=","></cfif>
+<cfif len(mapping.listenerType)><cfset count++>&nbsp;&nbsp;&nbsp;#del#listenerType:"#mapping.listenerType#"<cfset del=","></cfif>
+
+}</cfif>;
 &nbsp;
 // "#stText.setting.inspecttemplate#"/"#stText.Mappings.ToplevelHead#" setting not supported with application type mappings
 </cfsavecontent>

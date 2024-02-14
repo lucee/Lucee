@@ -20,6 +20,8 @@
  */
 package lucee.runtime.functions.displayFormatting;
 
+import java.text.SimpleDateFormat;
+import java.util.Currency;
 import java.util.Locale;
 
 import lucee.runtime.PageContext;
@@ -66,7 +68,28 @@ public final class GetLocaleInfo implements Function {
 		iso.setEL(KeyConstants._country, locale.getISO3Country());
 		iso.setEL(KeyConstants._language, locale.getISO3Language());
 
+		// currency
+		Struct sctCurr = new StructImpl();
+		sct.setEL(KeyConstants._currency, sctCurr);
+		Currency curr = Currency.getInstance(locale);
+		sctCurr.setEL(KeyConstants._code, curr.getCurrencyCode());
+		sctCurr.setEL(KeyConstants._symbol, curr.getSymbol(locale));
+
+		// date time
+		Struct sctDT = new StructImpl();
+		sct.setEL("dateTimeFormat", sctDT);
+		java.text.DateFormat dateFormat = java.text.DateFormat.getDateInstance(java.text.DateFormat.FULL, locale);
+		if (dateFormat instanceof SimpleDateFormat) {
+			String datePattern = ((SimpleDateFormat) dateFormat).toPattern();
+			sctDT.setEL(KeyConstants._date, datePattern);
+		}
+
+		java.text.DateFormat timeFormat = java.text.DateFormat.getTimeInstance(java.text.DateFormat.DEFAULT, locale);
+		if (timeFormat instanceof SimpleDateFormat) {
+			String timePattern = ((SimpleDateFormat) timeFormat).toPattern();
+			sctDT.setEL(KeyConstants._time, timePattern);
+		}
+
 		return sct;
 	}
-
 }

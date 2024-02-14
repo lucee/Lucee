@@ -35,7 +35,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase" skip=true{
 		}
 		thread action="join" name=names;
 		var results="";
-		loop struct=cfthread index="local.name" item="local.threadsct" {
+		loop array=listToArray(names) item="local.name" {
+			var threadsct=cfthread[name];
 			if(listFind(names, threadsct.name)==0) continue;
 			if(threadsct.keyExists("test")) results &= threadsct.test;
 			else if(threadsct.keyExists("error")) results &= threadsct.error["message"];

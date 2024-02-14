@@ -19,17 +19,9 @@
  ---><cfscript>
 component extends="org.lucee.cfml.test.LuceeTestCase" labels="s3" {
 		  
-	public function setUp(){
-		/*  note, we're testing a range of s3 functions in a single test so we can re-use buckets,
-			rather than creating and deleting lots of buckets with a test suite for each individual s3Function
-		*/
-
-		variables.bucket = "lucee-s3func1-#lcase(hash(CreateGUID()))#";
-		variables.bucket2 = "lucee-s3func2-#lcase(hash(CreateGUID()))#";
-
-		variables.dir = "s3://#bucket#";
-		variables.dir2 = "s3://#bucket2#";
-	}
+	/*  note, we're testing a range of s3 functions in a single test so we can re-use buckets,
+		rather than creating and deleting lots of buckets with a test suite for each individual s3Function
+	*/
 
 	public void function testS3functions() skip="isNotSupported"{
 		var s3=getCredentials("s3");
@@ -37,7 +29,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="s3" {
 			accessKeyId: s3.ACCESS_KEY_ID,
 			awsSecretKey: s3.SECRET_KEY
 		};
-		testfunctions("s3");
+		testfunctions("s3", s3);
 	}
 	
 	public void function testS3functionsCustom() skip="isNotSupportedCustom"{
@@ -47,7 +39,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="s3" {
 			awsSecretKey: s3.SECRET_KEY,
 			host: s3.HOST
 		};
-		testfunctions("s3_custom");
+		testfunctions("s3_custom", s3);
 	}
 
 	public void function testS3functionsGoogle() skip="isNotSupportedGoogle"{
@@ -57,16 +49,33 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="s3" {
 			awsSecretKey: s3.SECRET_KEY,
 			host: s3.HOST
 		};
-		testfunctions("s3_google");
+		testfunctions("s3_google", s3);
 	}
 
-	private function testfunctions() localMode=true {
+	public void function testS3functionsBackBlaze() skip="isNotSupportedBackblaze"{
+		var s3=getCredentials("s3_backblaze");
+		application action="update" s3={
+			accessKeyId: s3.ACCESS_KEY_ID,
+			awsSecretKey: s3.SECRET_KEY,
+			host: s3.HOST
+		};
+		return; // backblaze doesn't support deleting for 24 hours due to versioning
+		testfunctions("s3_backblaze", s3);
+	}
+
+	private function testfunctions(service, s3) localMode=true {
 		
-		if ( directoryExists( dir ) ) 
+		variables.bucket = s3.bucket_prefix & "s3func1-#lcase(hash(CreateGUID()))#";
+		variables.bucket2 = s3.bucket_prefix & "s3func2-#lcase(hash(CreateGUID()))#";
+
+		variables.dir = "s3://#bucket#";
+		variables.dir2 = "s3://#bucket2#";
+		
+		if ( directoryExists( dir ) )
 			directoryDelete( dir, true );
 		directoryCreate( dir  );
 
-		if ( directoryExists( dir2 ) ) 
+		if ( directoryExists( dir2 ) )
 			directoryDelete( dir2, true );
 		directoryCreate( dir2 );
 
@@ -116,6 +125,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="s3" {
 
 	public boolean function isNotSupportedGoogle() {
 		return structCount( getCredentials("s3_google") ) == 0 ;
+	}
+
+	public boolean function isNotSupportedBackblaze() {
+		return structCount( getCredentials("s3_backblaze") ) == 0 ;
 	}
 
 	private struct function getCredentials(s3_cfg) {

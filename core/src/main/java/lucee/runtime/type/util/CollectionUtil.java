@@ -18,12 +18,14 @@
  **/
 package lucee.runtime.type.util;
 
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import lucee.commons.digest.Hash;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.op.OpUtil;
@@ -149,5 +151,16 @@ public class CollectionUtil {
 			ExceptionUtil.rethrowIfNecessary(t);
 			return defaultValue;
 		}
+	}
+
+	/**
+	 * creates a md5 hash for the given Array
+	 * 
+	 * @param array
+	 * @return
+	 * @throws NoSuchAlgorithmException
+	 */
+	public static String md5(Collection coll) throws NoSuchAlgorithmException {
+		return Hash.md5(coll.toString());
 	}
 }
