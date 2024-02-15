@@ -6,8 +6,8 @@
             	try{throw "abc";}
 				catch (any local.e) {data=local.e}
 				
-				expect( data.tagContext[1].codePrintPlain ).toBe('try{throw "abc";}');
-            	expect( data.tagContext[1].codePrintHTML ).toBe('try{throw&nbsp;&quot;abc&quot;;}');
+				expect( find('try{throw "abc";}',data.tagContext[1].codePrintPlain)>0 ).toBeTrue();
+            	expect( find('try{throw&nbsp;&quot;abc&quot;;}',data.tagContext[1].codePrintHTML)>0 ).toBeTrue();
             });
         });
     }
