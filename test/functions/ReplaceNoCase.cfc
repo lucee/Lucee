@@ -19,6 +19,15 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 				expect("xxabcxxabcxx".ReplaceNocase("ABC", "def", "all")).toBe("xxdefxxdefxx");
 				expect("xxabcxxabcxx".ReplaceNocase("AbC", "def", "all")).toBe("xxdefxxdefxx");
 			});
+
+
+            it(title = "test non ascii characters", body = function( currentSpec ) {
+                var input = 'aaa bbb & İkra';
+                var toReplace = 'aaa bbb & İkra';
+                var newStr="aaa bbb;İkra";
+                assertEquals(newStr,ReplaceNocase(input,toReplace,newStr));
+
+            });
 		});
 	}
 }

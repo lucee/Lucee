@@ -218,6 +218,7 @@ public class BundleRange implements Serializable {
 	}
 
 	public BundleDefinition toBundleDefintion() {
+		if (getVersionRange() == null || getVersionRange().from == null) return new BundleDefinition(name);
 		return new BundleDefinition(name, getVersionRange().from);
 	}
 }
