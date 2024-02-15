@@ -14276,6 +14276,58 @@ _- asc (default): ascending (a to z) sort order
 			<type>string</type>
 		</return>
 	</function>
+	
+		<!-- lSUCase -->
+	<function>
+    <name>lSUCase</name>
+    <class>lucee.runtime.functions.international.LSUCase</class>
+    <description>Converts the alphabetic characters in a specified string to uppercase, 
+    respecting locale-specific casing rules. This is particularly important for languages where the standard lowercase conversion rules do not apply, 
+    ensuring accurate and culturally correct text processing. The function defaults to the current page's locale if no locale is specified.</description>
+    <argument>
+        <name>string</name>
+        <type>string</type>
+        <required>Yes</required>
+        <description>The string to be converted to uppercase. This can be a direct string value or a variable that contains the string.</description>
+    </argument>
+    <argument>
+        <name>locale</name>
+        <type>locale</type>
+        <required>No</required>
+        <description>Optional. Specifies the locale to use for the conversion, overriding the default locale of the page. This should be a locale code string (e.g., "en-US" for American English or "tr-TR" for Turkish).</description>
+    </argument>
+    <return>
+        <type>string</type>
+        <description>Returns the original string converted to uppercase according to the specified or page's locale.</description>
+    </return>
+</function>
+	
+		<!-- LSLCase -->
+<function>
+    <name>LSLCase</name>
+    <class>lucee.runtime.functions.international.LSLCase</class>
+    <description>Converts the alphabetic characters in a specified string to lowercase, respecting locale-specific casing rules. This is particularly important for languages where the standard lowercase conversion rules do not apply, ensuring accurate and culturally correct text processing. The function defaults to the current page's locale if no locale is specified.</description>
+    <argument>
+        <name>string</name>
+        <type>string</type>
+        <required>Yes</required>
+        <description>The string to be converted to lowercase. This parameter can accept either a string literal or a variable that holds the string content.</description>
+    </argument>
+    <argument>
+        <name>locale</name>
+        <type>locale</type>
+        <required>No</required>
+        <description>Optional. Allows specifying a different locale for the conversion, superseding the page's default locale. This argument accepts a locale identifier, such as "fr-CA" for Canadian French or "de-DE" for German in Germany.</description>
+    </argument>
+    <return>
+        <type>string</type>
+        <description>Returns the original string converted to lowercase as per the specified or the page's default locale.</description>
+    </return>
+</function>
+	
+	
+	
+	
 	<!-- ucFirst -->
 	<function>
 		<name>ucFirst</name>
