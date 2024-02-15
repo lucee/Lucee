@@ -1472,10 +1472,10 @@ public class OSGiUtil {
 				end = value.indexOf(')', index);
 				if (start == -1 || end == -1 || end < start) continue;
 				name = value.substring(start + 1, end).trim();
-				rtn.add(br = new BundleRange(name));
-
-				br.setVersionRange(extractVersionRange(value));
-
+				if (!StringUtil.isEmpty(name)) {
+					rtn.add(br = new BundleRange(name));
+					br.setVersionRange(extractVersionRange(value));
+				}
 			}
 		}
 		return rtn;
