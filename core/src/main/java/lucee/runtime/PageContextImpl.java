@@ -37,6 +37,7 @@ import java.util.Set;
 import java.util.Stack;
 import java.util.TimeZone;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.el.ELContext;
 import javax.servlet.Servlet;
@@ -361,7 +362,7 @@ public final class PageContextImpl extends PageContext {
 	private boolean fullNullSupport;
 
 	private static final boolean READ_CFID_FROM_URL = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.read.cfid.from.url", "true"), true);
-	private static int _idCounter = 1;
+	private static AtomicInteger _idCounter = new AtomicInteger(1);
 	private long lastTimeoutNoAction;
 
 	/**
@@ -4104,10 +4105,10 @@ public final class PageContextImpl extends PageContext {
 		return config.getRegex();
 	}
 
-	private static synchronized int getIdCounter() {
-		_idCounter++;
-		if (_idCounter < 0) _idCounter = 1;
-		return _idCounter;
+	private static int getIdCounter() {
+		int id = _idCounter.incrementAndGet();
+		if (id < 0) _idCounter.set(1);
+		return id;
 	}
 
 	public boolean limitEvaluation() {
