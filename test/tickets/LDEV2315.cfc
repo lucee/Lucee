@@ -74,9 +74,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
                 expect(res.country).toBe("AR");
                 expect(res.currency.code).toBe("ARS");
                 expect(Asc(res.currency.symbol)).toBe("36"); // $
-                expect(res.dateTimeFormat.date).toBe("EEEE, d 'de' MMMM 'de' yyyy");
+                expect(res.dateTimeFormat.date).toBe("EEEE d' de 'MMMM' de 'yyyy");
                 expect(res.dateTimeFormat.time).toBe("HH:mm:ss");
-
+                
                 setLocale(origLocale);
             });
 
