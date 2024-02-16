@@ -22,7 +22,6 @@
 package lucee.runtime.functions.system;
 
 import java.io.IOException;
-import java.util.concurrent.ThreadLocalRandom;
 
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.res.Resource;
@@ -32,11 +31,12 @@ import lucee.runtime.PageContext;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
+import lucee.runtime.functions.other.CreateUniqueId;
 
 public final class GetTempFile implements Function {
 
 	private static final long serialVersionUID = -166719554831864953L;
-	private static char[] CHARS = "abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ".toCharArray();;
+	private static final int MAX_RETRY = 3;
 
 	public static String call(PageContext pc, String strDir, String prefix) throws PageException {
 		return call(pc, strDir, prefix, ".tmp");
@@ -48,7 +48,6 @@ public final class GetTempFile implements Function {
 		if (!dir.isDirectory()) throw new ExpressionException("[" + strDir + "] is not a directory");
 		Resource file;
 
-		final int MAX_RETRY = 3;
 		if (StringUtil.isEmpty(extension, true)) {
 			extension = ".tmp";
 		}
@@ -56,28 +55,25 @@ public final class GetTempFile implements Function {
 			extension = "." + extension;
 		}
 
-		String randomPart = "" + getRandomChar();
 		IOException ioe = null;
-		do {
-			file = dir.getRealResource(prefix + pc.getId() + randomPart + extension);
+		int max = MAX_RETRY;
+		while (max-- > 0) {
+			file = dir.getRealResource(prefix + pc.getId() + CreateUniqueId.invoke() + extension);
 			synchronized (SystemUtil.createToken("", file.getAbsolutePath())) {
 				try {
+					if (file.exists()) continue;
 					file.createFile(true);
 					return file.getCanonicalPath();
 				}
 				catch (IOException e) {
 					ioe = e;
 				}
-				randomPart += getRandomChar();
 			}
 		}
-		while (randomPart.length() < MAX_RETRY);
+
 		ExpressionException ee = new ExpressionException("Unable to create temporary file in [" + strDir + "] after " + MAX_RETRY + " tries");
 		ee.initCause(ioe);
 		throw ee;
 	}
 
-	private static char getRandomChar() {
-		return CHARS[ThreadLocalRandom.current().nextInt(CHARS.length)];
-	}
 }
