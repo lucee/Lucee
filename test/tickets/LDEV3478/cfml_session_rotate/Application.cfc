@@ -1,5 +1,5 @@
 component {
-	this.name="onsessionend_cfml_sessionRotate";
+	this.name="ldev3478_onsessionend_cfml_sessionRotate-";
 	this.sessionManagement = true;
 	this.sessionStorage="memory";
 	this.sessiontimeout="#createTimeSpan(0,0,0,1)#";
@@ -21,7 +21,6 @@ component {
 	}
 
 	function onSessionEnd(SessionScope, ApplicationScope) {
-		// systemOutput("#now()# session ended #cgi.SCRIPT_NAME# #sessionScope.sessionid#", true);
 		server.LDEV3478_ended_CFML_Sessions[ arguments.sessionScope.sessionid ] = now();
 	}
 	

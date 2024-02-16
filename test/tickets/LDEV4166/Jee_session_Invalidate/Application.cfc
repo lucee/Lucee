@@ -1,5 +1,5 @@
 component {
-	this.name="onsessionend_jee_sessionInvalidate";
+	this.name="onsessionend_jee_sessionInvalidate-";
 	this.sessionManagement = true;
 	this.sessionStorage="memory";
 	this.sessiontimeout="#createTimeSpan(0,0,0,1)#";

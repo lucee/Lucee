@@ -1,4 +1,5 @@
 <cfscript>
-	sessionRotate(); // make session Rotate
-	echo( session.sessionid );
+	initialSessionId = session.sessionid;
+	sessionRotate();
+	echo( initialSessionId );
 </cfscript>
