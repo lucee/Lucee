@@ -22,8 +22,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
-import java.util.Arrays;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
@@ -60,6 +60,7 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.gateway.GatewayEngineImpl;
 import lucee.runtime.interpreter.CFMLExpressionInterpreter;
 import lucee.runtime.interpreter.JSONExpressionInterpreter;
+import lucee.runtime.listener.ApplicationContextSupport;
 import lucee.runtime.listener.SerializationSettings;
 import lucee.runtime.net.http.ReqRspUtil;
 import lucee.runtime.op.Caster;
@@ -574,7 +575,9 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 
 		// convert result
 		if (rtn != null && !hasContent) {
-			Props props = new Props();
+
+			ApplicationContextSupport acs = (ApplicationContextSupport) pc.getApplicationContext();
+			Props props = new Props(acs != null ? acs.getReturnFormat() : UDF.RETURN_FORMAT_WDDX);
 			props.format = result.getFormat();
 			Charset cs = getCharset(pc);
 			if (result.hasFormatExtension()) {
@@ -813,7 +816,9 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 	}
 
 	private static Props getProps(PageContext pc, Object o, int urlReturnFormat, int headerReturnFormat) {
-		Props props = new Props();
+
+		ApplicationContextSupport acs = (ApplicationContextSupport) pc.getApplicationContext();
+		Props props = new Props(acs != null ? acs.getReturnFormat() : UDF.RETURN_FORMAT_WDDX);
 
 		props.strType = "any";
 		props.secureJson = pc.getApplicationContext().getSecureJson();
@@ -827,11 +832,15 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 			if (udf.getSecureJson() != null) props.secureJson = udf.getSecureJson().booleanValue();
 		}
 
+		// returnformat
+
 		// format
 		if (isValid(urlReturnFormat)) props.format = urlReturnFormat;
 		else if (isValid(udfReturnFormat)) props.format = udfReturnFormat;
 		else if (isValid(headerReturnFormat)) props.format = headerReturnFormat;
-		else props.format = UDF.RETURN_FORMAT_WDDX;
+		else {
+			props.format = acs == null ? UDF.RETURN_FORMAT_WDDX : acs.getReturnFormat();
+		}
 
 		// return type XML ignore WDDX
 		if (props.type == CFTypes.TYPE_XML) {
@@ -841,7 +850,7 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 		return props;
 	}
 
-	private static boolean isValid(int returnFormat) {
+	public static boolean isValid(int returnFormat) {
 		return returnFormat != -1 && returnFormat != UDF.RETURN_FORMAT_XML;
 	}
 
@@ -1118,5 +1127,9 @@ class Props {
 	public int type = CFTypes.TYPE_ANY;
 	public int format = UDF.RETURN_FORMAT_WDDX;
 	public boolean output = true;
+
+	public Props(int format) {
+		this.format = format;
+	}
 
 }

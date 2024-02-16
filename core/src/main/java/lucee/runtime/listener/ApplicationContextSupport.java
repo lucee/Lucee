@@ -491,4 +491,8 @@ public abstract class ApplicationContextSupport implements ApplicationContext {
 
 	public abstract boolean getFormUrlAsStruct();
 
+	public abstract int getReturnFormat();
+
+	public abstract void setReturnFormat(int rf);
+
 }

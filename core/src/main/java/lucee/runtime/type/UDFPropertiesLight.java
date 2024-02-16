@@ -9,9 +9,13 @@ import java.util.Set;
 import lucee.commons.lang.CFTypes;
 import lucee.runtime.Component;
 import lucee.runtime.Page;
+import lucee.runtime.PageContext;
 import lucee.runtime.PageSource;
+import lucee.runtime.engine.ThreadLocalPageContext;
+import lucee.runtime.listener.ApplicationContextSupport;
 import lucee.runtime.op.Constants;
 import lucee.runtime.type.Collection.Key;
+import lucee.runtime.type.util.UDFUtil;
 
 public class UDFPropertiesLight extends UDFPropertiesBase {
 
@@ -81,12 +85,17 @@ public class UDFPropertiesLight extends UDFPropertiesBase {
 
 	@Override
 	public int getReturnFormat() {
+		PageContext pc = ThreadLocalPageContext.get();
+		if (pc != null) {
+			ApplicationContextSupport acs = (ApplicationContextSupport) pc.getApplicationContext();
+			if (acs != null) return acs.getReturnFormat();
+		}
 		return UDF.RETURN_FORMAT_WDDX;
 	}
 
 	@Override
 	public String getReturnFormatAsString() {
-		return "wddx";
+		return UDFUtil.toReturnFormat(getReturnFormat(), "wddx");
 	}
 
 	@Override

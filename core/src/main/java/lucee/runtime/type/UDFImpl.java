@@ -43,6 +43,7 @@ import lucee.runtime.config.Config;
 import lucee.runtime.config.NullSupportHelper;
 import lucee.runtime.dump.DumpData;
 import lucee.runtime.dump.DumpProperties;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.UDFCasterException;
@@ -536,7 +537,14 @@ public class UDFImpl extends MemberSupport implements UDFPlus, Externalizable {
 
 	@Override
 	public int getReturnFormat() {
-		if (properties.getReturnFormat() < 0) return UDF.RETURN_FORMAT_WDDX;
+		if (properties.getReturnFormat() < 0) {
+			PageContext pc = ThreadLocalPageContext.get();
+			if (pc != null) {
+				ApplicationContextSupport acs = (ApplicationContextSupport) pc.getApplicationContext();
+				if (acs != null) return acs.getReturnFormat();
+			}
+			return UDF.RETURN_FORMAT_WDDX;
+		}
 		return properties.getReturnFormat();
 	}
 
@@ -547,7 +555,7 @@ public class UDFImpl extends MemberSupport implements UDFPlus, Externalizable {
 	}
 
 	public final String getReturnFormatAsString() {
-		return properties.getReturnFormatAsString();
+		return UDFUtil.toReturnFormat(getReturnFormat(), "wddx");
 	}
 
 	@Override

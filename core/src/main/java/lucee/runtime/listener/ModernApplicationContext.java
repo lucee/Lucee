@@ -48,6 +48,7 @@ import lucee.commons.lang.Pair;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.types.RefBoolean;
 import lucee.runtime.Component;
+import lucee.runtime.ComponentPageImpl;
 import lucee.runtime.ComponentSpecificAccess;
 import lucee.runtime.Mapping;
 import lucee.runtime.PageContext;
@@ -93,6 +94,7 @@ import lucee.runtime.type.UDFCustomType;
 import lucee.runtime.type.dt.TimeSpan;
 import lucee.runtime.type.scope.Scope;
 import lucee.runtime.type.util.KeyConstants;
+import lucee.runtime.type.util.UDFUtil;
 import lucee.transformer.library.ClassDefinitionImpl;
 
 /**
@@ -211,6 +213,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	private Map<String, CustomType> customTypes;
 	private boolean cgiScopeReadonly;
 	private boolean preciseMath;
+	private int returnFormat = UDF.RETURN_FORMAT_WDDX;
 	private SessionCookieData sessionCookie;
 	private AuthCookieData authCookie;
 	private Object mailListener;
@@ -280,6 +283,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	private boolean initResourceCharset;
 	private boolean initCGIScopeReadonly;
 	private boolean initPreciseMath;
+	private boolean initReturnFormat;
 	private boolean initSessionCookie;
 	private boolean initAuthCookie;
 	private boolean initSerializationSettings;
@@ -1836,6 +1840,26 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	public void setPreciseMath(boolean preciseMath) {
 		this.preciseMath = preciseMath;
 		this.initPreciseMath = true;
+	}
+
+	@Override
+	public int getReturnFormat() {
+		if (!initReturnFormat) {
+			String str = Caster.toString(get(component, KeyConstants._returnFormat, null), null);
+			if (!StringUtil.isEmpty(str, true)) {
+				setReturnFormat(UDFUtil.toReturnFormat(str.trim(), -1));
+			}
+			initReturnFormat = true;
+		}
+		return returnFormat;
+	}
+
+	public void setReturnFormat(int returnFormat) {
+		if (ComponentPageImpl.isValid(returnFormat)) {
+			this.returnFormat = returnFormat;
+			this.initReturnFormat = true;
+		}
+
 	}
 
 	@Override

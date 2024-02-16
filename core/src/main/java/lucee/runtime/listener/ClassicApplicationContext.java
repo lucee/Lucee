@@ -159,6 +159,8 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 	private boolean preciseMath;
 	private boolean formUrlAsStruct;
 
+	private int returnFormat = UDF.RETURN_FORMAT_WDDX;
+
 	/**
 	 * constructor of the class
 	 * 
@@ -1154,5 +1156,14 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 	@Override
 	public void setPreciseMath(boolean preciseMath) {
 		this.preciseMath = preciseMath;
+	}
+
+	@Override
+	public int getReturnFormat() {
+		return returnFormat;
+	}
+
+	public void setReturnFormat(int returnFormat) {
+		this.returnFormat = returnFormat;
 	}
 }
