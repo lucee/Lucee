@@ -52,6 +52,11 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		setLocale(org);
 	}
 
+	public void function testNegative(){
+		expect( dollarFormat( -1 ) ).toBe( "($1.00)" ); // LDEV-3743 java 11 different to Java 8 and 14+
+		expect( dollarFormat( -0 ) ).toBe( "$0.00" ); // LDEV-3743 java 11 different to Java 8 and 14+
+	}
+
 	public void function testEmpty(){
 		expect( dollarFormat( "" ) ).toBe( "$0.00" );
 	}
