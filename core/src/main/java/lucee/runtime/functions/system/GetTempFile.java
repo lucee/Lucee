@@ -32,7 +32,6 @@ import lucee.runtime.PageContext;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
-import lucee.runtime.op.Caster;
 
 public final class GetTempFile implements Function {
 
@@ -49,8 +48,7 @@ public final class GetTempFile implements Function {
 		if (!dir.isDirectory()) throw new ExpressionException("[" + strDir + "] is not a directory");
 		Resource file;
 
-		final int MAX_RETRY = 2;
-		boolean fileCreated = false;
+		final int MAX_RETRY = 3;
 		if (StringUtil.isEmpty(extension, true)) {
 			extension = ".tmp";
 		}
@@ -59,24 +57,24 @@ public final class GetTempFile implements Function {
 		}
 
 		String randomPart = "" + getRandomChar();
+		IOException ioe = null;
 		do {
 			file = dir.getRealResource(prefix + pc.getId() + randomPart + extension);
 			synchronized (SystemUtil.createToken("", file.getAbsolutePath())) {
-				fileCreated = file.createNewFile();
-				if (fileCreated) {
-					try {
-						return file.getCanonicalPath();
-					}
-					catch (IOException e) {
-						// File was created, yet, we have an exception this is probably pretty bad
-						throw Caster.toPageException(e);
-					}
+				try {
+					file.createFile(true);
+					return file.getCanonicalPath();
+				}
+				catch (IOException e) {
+					ioe = e;
 				}
 				randomPart += getRandomChar();
 			}
 		}
 		while (randomPart.length() < MAX_RETRY);
-		throw new ExpressionException("Unable to create temporary file in [" + strDir + "] after " + MAX_RETRY + " tries", "IOException");
+		ExpressionException ee = new ExpressionException("Unable to create temporary file in [" + strDir + "] after " + MAX_RETRY + " tries");
+		ee.initCause(ioe);
+		throw ee;
 	}
 
 	private static char getRandomChar() {
