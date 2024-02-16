@@ -838,7 +838,15 @@ public final class StringUtil {
 
 	public static int indexOfIgnoreCase(String haystack, String needle, int offset) {
 		if (StringUtil.isEmpty(haystack) || StringUtil.isEmpty(needle)) return -1;
-		return offset > 0 ? haystack.toLowerCase().indexOf(needle.toLowerCase(), offset) : haystack.toLowerCase().indexOf(needle.toLowerCase());
+
+		String modHaystack = haystack.toUpperCase();
+		String modNeedle = needle.toUpperCase();
+
+		if (modHaystack.length() > haystack.length() || modNeedle.length() > needle.length()) {
+			modHaystack = haystack.toLowerCase();
+			modNeedle = needle.toLowerCase();
+		}
+		return offset > 0 ? modHaystack.indexOf(modNeedle, offset) : modHaystack.indexOf(modNeedle);
 	}
 
 	/**
