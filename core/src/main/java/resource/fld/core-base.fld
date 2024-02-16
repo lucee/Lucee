@@ -5862,6 +5862,13 @@ Example Values:
 		<name>GenerateRSAKeys</name>
 		<class>lucee.runtime.functions.other.GenerateRSAKeys</class>
 		<description>Generates a secure keys (private and public) for use in the encrypt function with the RSA algorithm.</description>
+		<argument>
+			<name>key_size</name>
+			<type>number</type>
+			<required>no</required>
+			<default>1024</default>
+			<description>Number of bits to use for the generated Keys.</description>
+		</argument>
 		<return>
 			<type>struct</type>
 		</return>

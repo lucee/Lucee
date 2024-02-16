@@ -22,7 +22,7 @@ import javax.crypto.NoSuchPaddingException;
 
 public class RSA {
 
-	private static final int KEY_SIZE = 1024;
+	public static final int KEY_SIZE = 1024;
 	private Cipher encCipher;
 	private Cipher decCipher;
 
@@ -70,8 +70,12 @@ public class RSA {
 	}
 
 	public static KeyPair createKeyPair() throws NoSuchAlgorithmException {
+		return createKeyPair(KEY_SIZE);
+	}
+
+	public static KeyPair createKeyPair(int keySize) throws NoSuchAlgorithmException {
 		KeyPairGenerator kpg = KeyPairGenerator.getInstance("RSA");
-		kpg.initialize(KEY_SIZE);
+		kpg.initialize(keySize);
 		return kpg.genKeyPair();
 	}
 
@@ -79,10 +83,10 @@ public class RSA {
 			throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
 		return new RSA(privateKeyToEncrypt, null).encrypt(data);
 	}
-
+	
 	public byte[] encrypt(byte[] data) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
 		if (encCipher == null) throw new RuntimeException("Cipher is not initialized!");
-		int max = (KEY_SIZE / 8) - 11;
+		int max = (KEY_SIZE / 8) - 11; // TODO?
 
 		// we need to split in pieces, because RSA cannot handle pieces bigger than the key size
 		List<byte[]> list = new ArrayList<byte[]>();
@@ -118,7 +122,7 @@ public class RSA {
 	public byte[] decrypt(byte[] data, int offset) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
 		if (decCipher == null) throw new RuntimeException("Cipher is not initialized!");
 
-		int max = (KEY_SIZE / 8);
+		int max = (KEY_SIZE / 8); // TODO?? 
 
 		// we need to split in pieces, because RSA cannot handle pieces bigger than the key size
 		List<byte[]> list = new ArrayList<byte[]>();
