@@ -22,8 +22,10 @@
 package lucee.runtime.functions.system;
 
 import java.io.IOException;
+import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
+import lucee.commons.digest.HashUtil;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
@@ -57,10 +59,11 @@ public final class GetTempFile implements Function {
 		else if (extension.charAt(0) != '.') {
 			extension = "." + extension;
 		}
-
+		
+		String randomHash = HashUtil.create64BitHashAsString(UUID.randomUUID().toString(), 16);
 		String randomPart = "" + getRandomChar();
 		do {
-			file = dir.getRealResource(prefix + pc.getId() + randomPart + extension);
+			file = dir.getRealResource(prefix + "-" + randomHash + "-" + randomPart + extension);
 			synchronized (SystemUtil.createToken("", file.getAbsolutePath())) {
 				fileCreated = file.createNewFile();
 				if (fileCreated) {
