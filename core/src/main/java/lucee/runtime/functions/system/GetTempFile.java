@@ -58,7 +58,7 @@ public final class GetTempFile implements Function {
 		IOException ioe = null;
 		int max = MAX_RETRY;
 		while (max-- > 0) {
-			file = dir.getRealResource(prefix + pc.getId() + CreateUniqueId.invoke() + extension);
+			file = dir.getRealResource(prefix + "-" + Long.toString(System.currentTimeMillis(), Character.MAX_RADIX) + "_" + CreateUniqueId.invoke() + extension);
 			synchronized (SystemUtil.createToken("", file.getAbsolutePath())) {
 				try {
 					if (file.exists()) continue;
@@ -75,5 +75,4 @@ public final class GetTempFile implements Function {
 		ee.initCause(ioe);
 		throw ee;
 	}
-
 }
