@@ -17,7 +17,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
                 expect(res).toHaveKey("variant");
             });
 
-            it( title='Checking getLocaleInfo() function with different timeZone', body=function( currentSpec ) {
+            it( title='Checking getLocaleInfo() function with en_US timeZone', body=function( currentSpec ) {
 
                 origLocale = getLocale();
 
@@ -30,6 +30,13 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
                 expect(res.dateTimeFormat.date).toBe("EEEE, MMMM d, yyyy");
                 expect(res.dateTimeFormat.time).toBe("h:mm:ss a");
 
+                setLocale(origLocale);
+            });
+
+            it( title='Checking getLocaleInfo() function with ja_JP_JP timeZone', body=function( currentSpec ) {
+
+                origLocale = getLocale();
+
                 // jpn
                 setLocale("ja_JP_JP");
                 res = getLocaleInfo();
@@ -38,6 +45,13 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
                 expect(Asc(res.currency.symbol)).toBe("65509"); // د.ج.
                 expect(res.dateTimeFormat.time).toBe("H:mm:ss");
 
+                setLocale(origLocale);
+            });
+
+            it( title='Checking getLocaleInfo() function with dutch (belgium) timeZone', body=function( currentSpec ) {
+
+                origLocale = getLocale();
+
                 // dutch (belgium)
                 setLocale("dutch (belgium)");
                 res = getLocaleInfo();
@@ -45,7 +59,14 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
                 expect(res.currency.code).toBe("EUR");
                 expect(Asc(res.currency.symbol)).toBe("8364"); // €
                 expect(res.dateTimeFormat.date).toBe("EEEE d MMMM yyyy");
-                expect(res.dateTimeFormat.time).toBe("HH:mm:ss");
+                expect(res.dateTimeFormat.time).toBe("H:mm:ss");
+
+                setLocale(origLocale);
+            });
+
+            it( title='Checking getLocaleInfo() function with spanish (argentina) timeZone', body=function( currentSpec ) {
+
+                origLocale = getLocale();
 
                 // spanish (argentina)
                 setLocale("spanish (argentina)");
@@ -58,6 +79,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 
                 setLocale(origLocale);
             });
+
         });
     }
 
