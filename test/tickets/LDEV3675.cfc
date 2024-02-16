@@ -33,15 +33,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="file" {
 			});
 
 			it(title="create 1,000 random files using getTempFile (unthreaded) (local file system)", body = function( currentSpec ) {
-				var failed = 0;
 				loop times=1000 {
-					try {
-						getTempFile( variables.testDir, "ldev3675-file-unthreaded", "jpg" );
-					} catch( e ){
-						failed++;
-					}
-				};
-				expect( failed ).toBe( 0 );
+					getTempFile( variables.testDir, "ldev3675-file-unthreaded", "jpg" );
+					
+				}
 			});
 		});
 
@@ -63,13 +58,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="file" {
 			it(title="create 100,000 random files using getTempFile (unthreaded) (ram drive) ", body = function( currentSpec ) {
 				var failed = 0;
 				loop times=100000 {
-					try {
-						getTempFile( variables.testRamDir, "ldev3675-ram-unthreaded", "jpg" );
-					} catch( e ){
-						failed++;
-					}
-				};
-				expect( failed ).toBe( 0 );
+					getTempFile( variables.testRamDir, "ldev3675-ram-unthreaded", "jpg" );
+				}
 			});
 		});
 	}
