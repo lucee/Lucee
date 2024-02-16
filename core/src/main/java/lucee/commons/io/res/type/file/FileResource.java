@@ -279,12 +279,9 @@ public final class FileResource extends File implements Resource {
 		try {
 			if (createParentWhenNotExists) {
 				File p = super.getParentFile();
-				if (!p.exists()) p.mkdirs();
+				if (!p.exists()) Files.createDirectories(p.toPath());
 			}
-			if (!super.createNewFile()) {
-				if (super.isFile()) throw new IOException("Can't create file [" + this + "], file already exists");
-				throw new IOException("Can't create file [" + this + "]");
-			}
+			Files.createFile(toPath());
 		}
 		finally {
 			provider.unlock(this);
@@ -342,10 +339,8 @@ public final class FileResource extends File implements Resource {
 	public void createDirectory(boolean createParentWhenNotExists) throws IOException {
 		provider.lock(this);
 		try {
-			if (createParentWhenNotExists ? !_mkdirs() : !super.mkdir()) {
-				if (super.isDirectory()) throw new IOException("Can't create directory [" + this + "], directory already exists");
-				throw new IOException("Can't create directory [" + this + "]");
-			}
+			if (createParentWhenNotExists) Files.createDirectories(toPath());
+			else Files.createDirectory(toPath());
 		}
 		finally {
 			provider.unlock(this);
