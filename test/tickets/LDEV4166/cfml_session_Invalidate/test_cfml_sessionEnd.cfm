@@ -1,4 +1,5 @@
 <cfscript>
-	sessionInvalidate(); // make sessionInvalidate
-	echo( session.sessionid );
+	initialSessionId = session.sessionid;
+	sessionInvalidate();
+	echo( initialSessionId );
 </cfscript>
