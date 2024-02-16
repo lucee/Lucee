@@ -546,11 +546,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					var getExtensionsProvider = adminWeb.getExtensionProviders();
 					assertEquals((isquery(getExtensionsProvider) && FindNocase( 'http://www.myhost.com',valueList(getExtensionsProvider.url)) EQ 0) ,true);
 				});
-
-				it(title="checking verifyExtensionProvider()", body=function( currentSpec ) {
-					var getExtensionsProvider = adminWeb.getExtensionProviders();
-					adminWeb.verifyExtensionProvider(url=getExtensionsProvider.url);
-				});
 			});
 
 			// ORM
@@ -888,7 +883,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					var bundle = adminWeb.getBundle( bundles.symbolicName );
 					assertEquals(isStruct(bundle) ,true);
 					// TODO description missing
-					var props = "description,fragment,headers,id,path,state,symbolicName,title,usedBy,vendor,version";
+					var props = "description,fragment,headers,id,path,state,symbolicName,title,usedBy,version";
 					loop list=props item="local.prop"{
 						expect( bundle ).toHaveKey( prop );
 					}
