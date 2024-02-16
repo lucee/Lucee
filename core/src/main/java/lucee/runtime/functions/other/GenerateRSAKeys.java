@@ -16,18 +16,22 @@ public class GenerateRSAKeys extends BIF {
 	private static final long serialVersionUID = 8436907807706520039L;
 
 	public static Struct call(PageContext pc) throws PageException {
-		return createKeyPair();
+		return createKeyPair(Caster.toIntValue(RSA.KEY_SIZE));
+	}
+	public static Struct call(PageContext pc, double keySize) throws PageException {
+		return createKeyPair(Caster.toIntValue(keySize));
 	}
 
 	@Override
 	public Object invoke(PageContext pc, Object[] args) throws PageException {
-		if (args.length == 0) return createKeyPair();
-		else throw new FunctionException(pc, "GenerateRSAKey", 0, 0, args.length);
+		if (args.length == 0) return createKeyPair(RSA.KEY_SIZE);
+		else if (args.length == 1) return createKeyPair(Caster.toIntValue(args[1]));
+		else throw new FunctionException(pc, "GenerateRSAKey", 2, 2, args.length);
 	}
 
-	private static Struct createKeyPair() throws PageException {
+	private static Struct createKeyPair(int keySize) throws PageException {
 		try {
-			KeyPair keyPair = RSA.createKeyPair();
+			KeyPair keyPair = RSA.createKeyPair(keySize);
 			Struct sct = new StructImpl();
 			sct.set("private", RSA.toString(keyPair.getPrivate()));
 			sct.set("public", RSA.toString(keyPair.getPublic()));

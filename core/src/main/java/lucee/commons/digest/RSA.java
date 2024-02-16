@@ -86,7 +86,7 @@ public class RSA {
 		Cipher cipher = Cipher.getInstance("RSA");
 
 		cipher.init(Cipher.ENCRYPT_MODE, key);
-		int max = (KEY_SIZE / 8) - 11;
+		int max = cipher.getOutputSize(0) - 11;
 
 		// we need to split in pieces, because RSA cannot handle pices bigger than the key size
 		List<byte[]> list = new ArrayList<byte[]>();
@@ -121,9 +121,9 @@ public class RSA {
 
 	public static byte[] decrypt(byte[] data, Key key, int offset)
 			throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
-		int max = (KEY_SIZE / 8);
 		Cipher cipher = Cipher.getInstance("RSA");
 		cipher.init(Cipher.DECRYPT_MODE, key);
+		int max = cipher.getOutputSize(0);
 
 		// we need to split in pieces, because RSA cannot handle pieces bigger than the key size
 		List<byte[]> list = new ArrayList<byte[]>();
