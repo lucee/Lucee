@@ -368,6 +368,8 @@ public final class JSONConverter extends ConverterSupport {
 			Component comp = (Component) struct;
 			boolean isPeristent = false;
 			isPeristent = comp.isPersistent();
+			ApplicationContextSupport acs = (ApplicationContextSupport) pc.getApplicationContext();
+			boolean triggerDataMember = acs.getTriggerComponentDataMember();
 
 			Property[] props = comp.getProperties(false, true, false, false);
 			ComponentScope scope = comp.getComponentScope();
@@ -381,7 +383,9 @@ public final class JSONConverter extends ConverterSupport {
 
 				}
 				Key key = KeyImpl.init(props[i].getName());
-				value = scope.get(key, null);
+				if (triggerDataMember) value = comp.get(pc, key, null);
+				else value = scope.get(key, null);
+
 				if (!addUDFs && (value instanceof UDF || value == null)) continue;
 				if (doIt) sb.append(',');
 				doIt = true;
