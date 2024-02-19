@@ -5018,7 +5018,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 				if (!StringUtil.isEmpty(strRF, true)) config.setReturnFormat(UDFUtil.toReturnFormat(strRF, UDF.RETURN_FORMAT_WDDX));
 				else if (configServer != null) {
 					ConfigServerImpl csi = (ConfigServerImpl) configServer;
-					csi.setReturnFormat(csi.getReturnFormat());
+					config.setReturnFormat(csi.getReturnFormat());
 				}
 
 				// component-default-import
