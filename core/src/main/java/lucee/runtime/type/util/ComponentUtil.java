@@ -840,12 +840,12 @@ public final class ComponentUtil {
 		}
 
 		int format = udfProps.getReturnFormat();
-		if (format < 0 || format == UDF.RETURN_FORMAT_JSON) func.set(KeyConstants._returnFormat, "json");
+		if (format == UDF.RETURN_FORMAT_JSON) func.set(KeyConstants._returnFormat, "json");
 		else if (format == UDF.RETURN_FORMAT_PLAIN) func.set(KeyConstants._returnFormat, "plain");
 		else if (format == UDF.RETURN_FORMAT_WDDX) func.set(KeyConstants._returnFormat, "wddx");
 		else if (format == UDF.RETURN_FORMAT_SERIALIZE) func.set(KeyConstants._returnFormat, "cfml");
 		else if (format == UDF.RETURN_FORMAT_XML) func.set(KeyConstants._returnFormat, "xml");
-		if (format < 0) func.set(KeyConstants._returnFormat, new ReturnFormatValue());
+		else func.set(KeyConstants._returnFormat, new ReturnFormatValue()); // we use this reference because this value data get cached and can change independent of the cache
 
 		FunctionArgument[] args = udfProps.getFunctionArguments();
 		Array params = new ArrayImpl();
