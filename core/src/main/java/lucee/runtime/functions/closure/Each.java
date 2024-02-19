@@ -32,6 +32,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
+import lucee.print;
 import lucee.runtime.PageContext;
 import lucee.runtime.concurrency.Data;
 import lucee.runtime.concurrency.UDFCaller2;
@@ -213,6 +214,7 @@ public final class Each extends BIF implements ClosureFunc {
 			udf.call(pc, args, true);
 			return;
 		}
+		print.ds();
 		futures.add(es.submit(new UDFCaller2<Object>(pc, udf, args, null, true)));
 	}
 

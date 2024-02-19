@@ -61,7 +61,6 @@ import lucee.runtime.engine.MonitorState;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageExceptionImpl;
-import lucee.runtime.exp.ParentException;
 import lucee.runtime.exp.RequestTimeoutException;
 import lucee.runtime.functions.string.Hash;
 import lucee.runtime.op.Caster;
@@ -289,7 +288,6 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 		}
 		catch (Exception e) {
 			reuse = false;
-			if (parent != null) e.initCause(new ParentException(parent));
 			ThreadLocalPageContext.getLog(config, "application").error("release page context", e);
 		}
 		if (tmpRegister) ThreadLocalPageContext.register(beforePC);
