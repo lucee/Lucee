@@ -26,7 +26,7 @@ import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.PageSourcePool;
-import lucee.runtime.exp.FunctionException;
+import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 
@@ -52,18 +52,19 @@ public class FileWrite {
 				pc.getConfig().getSecurityManager().checkFileLocation(res);
 				// validate parent only works when you have access to the parent, that is not necessary a given for
 				// all FS
-				// if ("file".equalsIgnoreCase(res.getResourceProvider().getScheme())) {
-				Resource parent = res.getParentResource();
-				if (parent != null && parent.canRead() && !parent.exists())
-					throw new FunctionException(pc, "FileWrite", 1, "source", "parent directory for [" + res + "] doesn't exist");
-				// }
+				if ("file".equalsIgnoreCase(res.getResourceProvider().getScheme())) {
+					Resource parent = res.getParentResource();
+					if (parent != null && parent.canRead() && !parent.exists()) throw new ApplicationException("parent directory for [" + res + "] doesn't exist");
+				}
 
 				fsw = new FileStreamWrapperWrite(res, charset, false, false);
 			}
 			fsw.write(data);
 		}
 		catch (IOException e) {
-			throw Caster.toPageException(e);
+			ApplicationException ae = new ApplicationException("Invalid file [" + Caster.toResource(pc, obj, false) + "]");
+			ae.initCause(e);
+			throw ae;
 		}
 		finally {
 			if (close) IOUtil.closeEL(fsw);
