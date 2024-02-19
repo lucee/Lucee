@@ -26,7 +26,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 
 				file action="copy"  source="#newDir#\testmakeunique.txt" destination=newDir nameconflict="makeunique";
 				directory action="list" directory=newDir name="list" listinfo="name";
-
+				
+				if(find("testmakeunique_",serializeJson(list))==0) throw serializeJson(list);
+				
 				expect(find("testmakeunique_",serializeJson(list))).toBeGT(0);
 				expect(list.recordcount).toBe("2");
 			});
