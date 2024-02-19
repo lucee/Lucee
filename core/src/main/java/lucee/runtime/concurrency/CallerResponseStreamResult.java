@@ -29,6 +29,7 @@ import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.exp.ParentException;
 import lucee.runtime.net.http.HttpServletResponseDummy;
 import lucee.runtime.net.http.ReqRspUtil;
 import lucee.runtime.thread.ThreadUtil;
@@ -66,6 +67,7 @@ public abstract class CallerResponseStreamResult implements Callable<String> {
 				str = IOUtil.toString((new ByteArrayInputStream(baos.toByteArray())), cs); // TODO add support for none string content
 			}
 			catch (Exception e) {
+				if (parent != null) e.initCause(new ParentException(parent.getThread().getStackTrace()));
 				LogUtil.log(pc, "concurrency", e);
 			}
 		}

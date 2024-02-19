@@ -29,6 +29,7 @@ import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.exp.ParentException;
 import lucee.runtime.net.http.HttpServletResponseDummy;
 import lucee.runtime.net.http.ReqRspUtil;
 import lucee.runtime.thread.ThreadUtil;
@@ -83,6 +84,10 @@ public class UDFCaller2<P> implements Callable<Data<P>> {
 			if (namedArguments != null) result = udf.callWithNamedValues(pc, namedArguments, doIncludePath);
 			else result = udf.call(pc, arguments, doIncludePath);
 
+		}
+		catch (PageException pe) {
+			if (parent != null) pe.initCause(new ParentException(parent.getThread().getStackTrace()));
+			throw pe;
 		}
 		finally {
 			try {
