@@ -1,6 +1,6 @@
 component extends="org.lucee.cfml.test.LuceeTestCase" {
 
-	function beforeAll(){
+	function beforeAllX() {
 		variables.base = GetDirectoryFromPath(getcurrentTemplatepath()) & "LDEV2152\";
 		if( directoryExists( base ) ){
 			directoryDelete (base, true );
@@ -32,6 +32,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 	}
 
 	function run( testResults , testBox ) {
+
+		beforeAllX();
+
 		describe( "test suite for LDEV-2152", function() {
 			it(title = "recursive directorylist() with attribute listinfo = 'query'", skip=true, body = function( currentSpec ) {
 				var dirList = directorylist( base, true, 'query', '*.txt', 'directory ASC');
