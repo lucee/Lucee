@@ -248,11 +248,11 @@ public final class StringUtil {
 	 * @return repeated string
 	 */
 	public static String repeatString(String str, int count) {
-		int len = (int) count;
-		if (len <= 0) return "";
+		if (count <= 0) return "";
+
 		char[] chars = str.toCharArray();
-		StringBuilder cb = new StringBuilder(chars.length * len);
-		for (int i = 0; i < len; i++)
+		StringBuilder cb = new StringBuilder(chars.length * count);
+		for (int i = 0; i < count; i++)
 			cb.append(chars);
 		return cb.toString();
 	}
