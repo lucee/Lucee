@@ -26,8 +26,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.Date;
 import java.util.Comparator;
+import java.util.Date;
+import java.util.Iterator;
 
 import lucee.commons.io.ModeUtil;
 import lucee.commons.io.SystemUtil;
@@ -57,7 +58,6 @@ import lucee.runtime.op.Caster;
 import lucee.runtime.reflection.Reflector;
 import lucee.runtime.security.SecurityManager;
 import lucee.runtime.tag.util.FileUtil;
-import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.Collection.Key;
@@ -67,8 +67,9 @@ import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.UDF;
 import lucee.runtime.type.dt.DateTimeImpl;
+import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.KeyConstants;
-import lucee.aprint;
+import lucee.runtime.type.util.ListUtil;
 
 /**
  * Handles interactions with directories.
@@ -468,30 +469,30 @@ public final class Directory extends TagImpl {
 		String[] sortArr = null;
 		String[] arraySortCol = null;
 		if (sort != null) {
-			sortArr = sort.toLowerCase().split(",");
+			sortArr = ListUtil.listToStringArray(sort.toLowerCase(), ',');
 			if (typeArray && sortArr.length > 1) {
 				canFastArraySort = false;
 			}
 			else if (typeArray) {
 				arraySortCol = sortArr[0].trim().split("\\s+");
 				// only "column sortOrder" supported
-				if (arraySortCol.length > 2) throw new ApplicationException("Invalid sort [" + sort + "]"); 
+				if (arraySortCol.length > 2) throw new ApplicationException("Invalid sort [" + sort + "]");
 				// check if sorting on just the array result
-				if ( ! (arraySortCol[0].toLowerCase().trim().equals("name") 
-						|| arraySortCol[0].toLowerCase().trim().equals("path"))  )
-					canFastArraySort = false;  // fall back on query approach, then convert after complex sort to array
+				if (!(arraySortCol[0].toLowerCase().trim().equals("name") || arraySortCol[0].toLowerCase().trim().equals("path"))) canFastArraySort = false; // fall back on query
+																																								// approach, then
+																																								// convert after
+																																								// complex sort to
+																																								// array
 			}
 		}
-
-		aprint.e("canFastArraySort: " + canFastArraySort);
 
 		try {
 
 			if (namesOnly) {
 				if (typeArray) {
-					if ( canFastArraySort ) {
+					if (canFastArraySort) {
 						_fillArrayPathOrName(array, directory, filter, 0, recurse, namesOnly);
-						if (sort != null ) { 
+						if (sort != null) {
 							// this is fast path, only sorting on the result, otherwise fall back on the sorted query result
 							String sortOrder = "asc";
 							if (arraySortCol.length == 2) sortOrder = arraySortCol[1];
@@ -537,8 +538,7 @@ public final class Directory extends TagImpl {
 		query.setExecutionTime(System.nanoTime() - startNS);
 
 		if (typeArray) {
-			java.util.Iterator it = query.getIterator();
-			aprint.e("namesOnly: " + namesOnly);
+			Iterator<?> it = query.getIterator();
 			while (it.hasNext()) {
 				Struct row = (Struct) it.next();
 				if (namesOnly) array.appendEL(row.get("name"));
@@ -565,7 +565,7 @@ public final class Directory extends TagImpl {
 		sct.setEL(KeyConstants._size, Long.valueOf(directory.length()));
 		sct.setEL("isReadable", directory.isReadable());
 		sct.setEL(KeyConstants._path, directory.getAbsolutePath());
-		sct.setEL("dateLastModified", new DateTimeImpl(pc.getConfig()));
+		sct.setEL(KeyConstants._dateLastModified, new DateTimeImpl(pc.getConfig()));
 		if (SystemUtil.isUnix()) sct.setEL(KeyConstants._mode, new ModeObjectWrap(directory));
 		File file = new File(Caster.toString(directory));
 		BasicFileAttributes attr;
