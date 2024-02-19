@@ -241,23 +241,20 @@ public final class StringUtil {
 	}
 
 	/**
-	 * reapeats a string
+	 * repeats a string
 	 *
 	 * @param str string to repeat
-	 * @param count how many time string will be repeated
-	 * @return reapted string
+	 * @param count how many times string should be repeated
+	 * @return repeated string
 	 */
 	public static String repeatString(String str, int count) {
-		if (count <= 0) return "";
+		int len = (int) count;
+		if (len <= 0) return "";
 		char[] chars = str.toCharArray();
-		char[] rtn = new char[chars.length * count];
-		int pos = 0;
-		for (int i = 0; i < count; i++) {
-			for (int y = 0; y < chars.length; y++)
-				rtn[pos++] = chars[y];
-			// rtn.append(str);
-		}
-		return new String(rtn);
+		StringBuilder cb = new StringBuilder(chars.length * len);
+		for (int i = 0; i < len; i++)
+			cb.append(chars);
+		return cb.toString();
 	}
 
 	/**
