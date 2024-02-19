@@ -246,7 +246,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 
 	private int mailTimeout = 30;
 
-	private int returnFormat;
+	private int returnFormat = UDF.RETURN_FORMAT_WDDX;
 
 	private TimeZone timeZone;
 
