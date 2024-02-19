@@ -1,4 +1,3 @@
-
 <cfset obj = new objects.objectWithFalseGetter() />
 <cfset obj.setName("Test Name") />
 <cfset obj.setPassword("testPassword1234") />
