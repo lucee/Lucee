@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -56,15 +57,20 @@ import lucee.runtime.component.AbstractFinal.UDFB;
 import lucee.runtime.component.ImportDefintion;
 import lucee.runtime.component.Property;
 import lucee.runtime.config.Config;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.listener.AppListenerUtil;
+import lucee.runtime.listener.ApplicationContext;
+import lucee.runtime.listener.ApplicationContextSupport;
 import lucee.runtime.net.rpc.server.WSServer;
 import lucee.runtime.net.rpc.server.WSUtil;
+import lucee.runtime.op.Castable;
 import lucee.runtime.op.Caster;
+import lucee.runtime.op.OpUtil;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.Collection;
@@ -72,10 +78,12 @@ import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.FunctionArgument;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Pojo;
+import lucee.runtime.type.SimpleValue;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.UDF;
 import lucee.runtime.type.UDFPropertiesBase;
+import lucee.runtime.type.dt.DateTime;
 import lucee.transformer.bytecode.BytecodeContext;
 import lucee.transformer.bytecode.ConstrBytecodeContext;
 import lucee.transformer.bytecode.util.ASMProperty;
@@ -837,6 +845,7 @@ public final class ComponentUtil {
 		else if (format == UDF.RETURN_FORMAT_WDDX) func.set(KeyConstants._returnFormat, "wddx");
 		else if (format == UDF.RETURN_FORMAT_SERIALIZE) func.set(KeyConstants._returnFormat, "cfml");
 		else if (format == UDF.RETURN_FORMAT_XML) func.set(KeyConstants._returnFormat, "xml");
+		if (format < 0) func.set(KeyConstants._returnFormat, new ReturnFormatValue());
 
 		FunctionArgument[] args = udfProps.getFunctionArguments();
 		Array params = new ArrayImpl();
@@ -909,5 +918,119 @@ public final class ComponentUtil {
 			if (!onlyUnused || !udfb.used) list.add(udfb.udf);
 		}
 		return list;
+	}
+
+	private static class ReturnFormatValue implements Castable, SimpleValue, CharSequence {
+
+		@Override
+		public Boolean castToBoolean(Boolean defaultValue) {
+			return Caster.toBoolean(getReturnFormat(ThreadLocalPageContext.get()), defaultValue);
+
+		}
+
+		@Override
+		public boolean castToBooleanValue() throws PageException {
+			PageContext pc = ThreadLocalPageContext.get();
+			return Caster.toBooleanValue(getReturnFormat(pc));
+		}
+
+		@Override
+		public DateTime castToDateTime() throws PageException {
+			PageContext pc = ThreadLocalPageContext.get();
+			return Caster.toDatetime(getReturnFormat(pc), ThreadLocalPageContext.getTimeZone(pc));
+		}
+
+		@Override
+		public DateTime castToDateTime(DateTime defaultValue) {
+			PageContext pc = ThreadLocalPageContext.get();
+			try {
+				return Caster.toDatetime(getReturnFormat(pc), ThreadLocalPageContext.getTimeZone(pc));
+			}
+			catch (PageException e) {
+				return defaultValue;
+			}
+		}
+
+		@Override
+		public double castToDoubleValue() throws PageException {
+			PageContext pc = ThreadLocalPageContext.get();
+			return Caster.toDoubleValue(getReturnFormat(pc));
+		}
+
+		@Override
+		public double castToDoubleValue(double defaultValue) {
+			return Caster.toDoubleValue(getReturnFormat(ThreadLocalPageContext.get()), false, defaultValue);
+		}
+
+		@Override
+		public String castToString() throws PageException {
+			return getReturnFormat(ThreadLocalPageContext.get());
+		}
+
+		@Override
+		public String castToString(String defaultValue) {
+			return getReturnFormat(ThreadLocalPageContext.get());
+		}
+
+		@Override
+		public int compareTo(String other) throws PageException {
+			PageContext pc = ThreadLocalPageContext.get();
+			return OpUtil.compare(pc, getReturnFormat(pc), other);
+		}
+
+		@Override
+		public int compareTo(boolean other) throws PageException {
+			PageContext pc = ThreadLocalPageContext.get();
+			return OpUtil.compare(pc, getReturnFormat(pc), other);
+		}
+
+		@Override
+		public int compareTo(double other) throws PageException {
+			PageContext pc = ThreadLocalPageContext.get();
+			return OpUtil.compare(pc, getReturnFormat(pc), other);
+		}
+
+		@Override
+		public int compareTo(DateTime other) throws PageException {
+			PageContext pc = ThreadLocalPageContext.get();
+			return OpUtil.compare(pc, getReturnFormat(pc), (Date) other);
+		}
+
+		@Override
+		public String toString() {
+			PageContext pc = ThreadLocalPageContext.get();
+			return getReturnFormat(pc);
+
+		}
+
+		private String getReturnFormat(PageContext pc) {
+			if (pc != null) {
+				ApplicationContext ac = pc.getApplicationContext();
+				if (ac instanceof ApplicationContextSupport) {
+					return UDFUtil.toReturnFormat(((ApplicationContextSupport) ac).getReturnFormat(), "wddx");
+				}
+			}
+			Config c = ThreadLocalPageContext.getConfig();
+			if (c instanceof ConfigPro) {
+				return UDFUtil.toReturnFormat(((ConfigPro) c).getReturnFormat(), "wddx");
+			}
+
+			return "wddx";
+		}
+
+		@Override
+		public int length() {
+			return toString().length();
+		}
+
+		@Override
+		public char charAt(int index) {
+			return toString().charAt(index);
+		}
+
+		@Override
+		public CharSequence subSequence(int start, int end) {
+			return toString().subSequence(start, end);
+		}
 	}
 }

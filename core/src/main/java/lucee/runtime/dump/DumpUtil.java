@@ -138,8 +138,8 @@ public class DumpUtil {
 			return dt;
 		}
 		// String
-		if (o instanceof String) {
-			String str = (String) o;
+		if (o instanceof CharSequence) {
+			String str = o.toString();
 			if (str.trim().startsWith("<wddxPacket ")) {
 				try {
 					WDDXConverter converter = new WDDXConverter(pageContext.getTimeZone(), false, true);
@@ -158,8 +158,9 @@ public class DumpUtil {
 					// don't do it
 				}
 			}
-			DumpTable table = new DumpTable("string", "#ff6600", "#ffcc99", "#000000");
-			table.appendRow(1, new SimpleDumpData("string"), new SimpleDumpData(str));
+			String name = o instanceof String ? "string" : "CharSequence";
+			DumpTable table = new DumpTable(name, "#ff6600", "#ffcc99", "#000000");
+			table.appendRow(1, new SimpleDumpData(name), new SimpleDumpData(str));
 			return table;
 		}
 		// Character
