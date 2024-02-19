@@ -1,6 +1,6 @@
 component extends="org.lucee.cfml.test.LuceeTestCase" {
 
-	function beforeAllX() {
+	function beforeAll() {
 		variables.base = GetDirectoryFromPath(getcurrentTemplatepath()) & "LDEV2152\";
 		if( directoryExists( base ) ){
 			directoryDelete (base, true );
@@ -8,21 +8,23 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 		directoryCreate( base );
 
 		var dirList = "b,n";
-		dirlist.listEach(function( index ){
+		loop list="b,n" item="local.index" {
 			directorycreate( base & index );
 			if( index is "b" ){
 				directoryCreate (base & 'b\d' );
 			}
-		});
-		var fileList = "a.txt,c.txt,j.txt";
-		var fileList.listEach( function( index ){
-			fileWrite( base & index, "" );
-			fileWrite( base & 'b\e.txt', "" );
-			filewrite( base & 'b\d\g.txt', "" );
-			filewrite( base & 'b\d\p.txt', "" );
-			filewrite( base & 'n\h.txt', "" );
-			filewrite( base & 'n\o.txt', "" );
-		});
+		}
+
+		loop list="a.txt,c.txt,j.txt" item="local.fn" {
+			fileWrite( base & fn, "" );
+		}
+		fileWrite( base & 'b\e.txt', "" );
+		filewrite( base & 'b\d\g.txt', "" );
+		filewrite( base & 'b\d\p.txt', "" );
+		filewrite( base & 'n\h.txt', "" );
+		filewrite( base & 'n\o.txt', "" );
+		
+	
 		systemOutput("----testdata -----", true );
 		var dirList = directorylist( base, true, 'path', '*.txt', 'directory ASC');
 		loop array=dirList item="local.dir" index="local.i" {
@@ -32,9 +34,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 	}
 
 	function run( testResults , testBox ) {
-
-		beforeAllX();
-
 		describe( "test suite for LDEV-2152", function() {
 			it(title = "recursive directorylist() with attribute listinfo = 'query'", skip=true, body = function( currentSpec ) {
 				var dirList = directorylist( base, true, 'query', '*.txt', 'directory ASC');
