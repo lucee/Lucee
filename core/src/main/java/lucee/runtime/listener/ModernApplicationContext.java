@@ -361,6 +361,8 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 		this.regex = ci.getRegex();
 		this.preciseMath = ci.getPreciseMath();
 		this.formUrlAsStruct = ci.getFormUrlAsStruct();
+		this.returnFormat = ci.getReturnFormat();
+
 		initAntiSamyPolicyResource(pc);
 		if (antiSamyPolicyResource == null) this.antiSamyPolicyResource = ((ConfigPro) config).getAntiSamyPolicy();
 		// read scope cascading
@@ -1854,6 +1856,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 		return returnFormat;
 	}
 
+	@Override
 	public void setReturnFormat(int returnFormat) {
 		if (ComponentPageImpl.isValid(returnFormat)) {
 			this.returnFormat = returnFormat;

@@ -288,6 +288,7 @@ public class UDFUtil {
 		else if (UDF.RETURN_FORMAT_PLAIN == returnFormat) return "plain";
 		else if (UDF.RETURN_FORMAT_SERIALIZE == returnFormat) return "cfml";
 		else if (UDF.RETURN_FORMAT_JAVA == returnFormat) return "java";
+		else if (UDF.RETURN_FORMAT_XML == returnFormat) return "xml";
 		else throw new ExpressionException("Invalid returnFormat definition, valid values are [wddx,plain,json,cfml]");
 	}
 

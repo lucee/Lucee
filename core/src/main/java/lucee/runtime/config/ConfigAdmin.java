@@ -152,6 +152,7 @@ import lucee.runtime.type.util.ComponentUtil;
 import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.ListUtil;
 import lucee.runtime.type.util.StructUtil;
+import lucee.runtime.type.util.UDFUtil;
 import lucee.transformer.library.ClassDefinitionImpl;
 import lucee.transformer.library.function.FunctionLibException;
 import lucee.transformer.library.tag.TagLibException;
@@ -2982,6 +2983,13 @@ public final class ConfigAdmin {
 		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 		if (!hasAccess) throw new SecurityException("no access to update component setting");
 		root.setEL("componentAutoImport", componentDefaultImport);
+	}
+
+	public void updateReturnFormat(String returnFormat) throws SecurityException, ExpressionException {
+		checkWriteAccess();
+		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
+		if (!hasAccess) throw new SecurityException("no access to update component setting");
+		root.setEL("returnFormat", UDFUtil.toReturnFormat(UDFUtil.toReturnFormat(returnFormat))); // i make a double toReturnFormat to validate the input
 	}
 
 	/**

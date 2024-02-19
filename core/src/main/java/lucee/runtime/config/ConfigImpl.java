@@ -246,6 +246,8 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 
 	private int mailTimeout = 30;
 
+	private int returnFormat;
+
 	private TimeZone timeZone;
 
 	private String timeServer = "";
@@ -3953,5 +3955,14 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 
 	protected void setFormUrlAsStruct(boolean formUrlAsStruct) {
 		this.formUrlAsStruct = formUrlAsStruct;
+	}
+
+	@Override
+	public int getReturnFormat() {
+		return returnFormat;
+	}
+
+	protected void setReturnFormat(int returnFormat) {
+		this.returnFormat = returnFormat;
 	}
 }

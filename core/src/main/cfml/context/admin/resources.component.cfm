@@ -210,6 +210,7 @@ Defaults --->
                     componentLocalSearch="#isDefined('form.componentLocalSearch')#"
                     componentPathCache="#isDefined('form.componentPathCache')#"
                     deepSearch="#isDefined('form.componentDeepSearchDesc') and form.componentDeepSearchDesc EQ true#"
+					returnformat="#form.returnformat?:"wddx"#"
 						
                     
                     remoteClients="#request.getRemoteClients()#"

@@ -215,6 +215,8 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 		this.regex = ((ConfigPro) config).getRegex();
 		this.preciseMath = ((ConfigPro) config).getPreciseMath();
 		this.formUrlAsStruct = ((ConfigPro) config).getFormUrlAsStruct();
+
+		this.returnFormat = ((ConfigPro) config).getReturnFormat();
 	}
 
 	/**
@@ -1163,6 +1165,7 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 		return returnFormat;
 	}
 
+	@Override
 	public void setReturnFormat(int returnFormat) {
 		this.returnFormat = returnFormat;
 	}

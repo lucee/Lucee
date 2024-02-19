@@ -1888,4 +1888,9 @@ public class ConfigWebImpl implements ConfigWebPro {
 	public boolean getFormUrlAsStruct() {
 		return instance.getFormUrlAsStruct();
 	}
+
+	@Override
+	public int getReturnFormat() {
+		return instance.getReturnFormat();
+	}
 }

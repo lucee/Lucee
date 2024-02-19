@@ -195,6 +195,7 @@ import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.ComponentUtil;
 import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.ListUtil;
+import lucee.runtime.type.util.UDFUtil;
 import lucee.transformer.library.ClassDefinitionImpl;
 import lucee.transformer.library.function.FunctionLib;
 import lucee.transformer.library.tag.TagLib;
@@ -4560,6 +4561,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		admin.updateComponentDefaultImport(getString("admin", action, "componentDefaultImport"));
 		admin.updateComponentLocalSearch(getBoolObject("admin", action, "componentLocalSearch"));
 		admin.updateComponentPathCache(getBoolObject("admin", action, "componentPathCache"));
+		admin.updateReturnFormat(getString("admin", action, "returnFormat"));
 		store();
 		adminSync.broadcast(attributes, config);
 	}
@@ -4591,6 +4593,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		sct.set("ComponentDefaultImport", config.getComponentDefaultImport());
 		sct.set("componentLocalSearch", config.getComponentLocalSearch());
 		sct.set("componentPathCache", config.useComponentPathCache());
+		sct.set(KeyConstants._returnFormat, UDFUtil.toReturnFormat(config.getReturnFormat(), "wddx"));
 
 	}
 

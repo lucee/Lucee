@@ -2050,4 +2050,9 @@ class SingleContextConfigWeb extends ConfigBase implements ConfigWebInner {
 		return cs.getFormUrlAsStruct();
 	}
 
+	@Override
+	public int getReturnFormat() {
+		return cs.getReturnFormat();
+	}
+
 }

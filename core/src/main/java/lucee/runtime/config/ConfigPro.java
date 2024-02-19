@@ -375,4 +375,6 @@ public interface ConfigPro extends Config {
 			boolean useComponentMappings, boolean onlyFirstMatch);
 
 	public boolean getFormUrlAsStruct();
+
+	public int getReturnFormat();
 }

@@ -178,12 +178,14 @@ import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
+import lucee.runtime.type.UDF;
 import lucee.runtime.type.dt.TimeSpan;
 import lucee.runtime.type.scope.Undefined;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.CollectionUtil;
 import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.ListUtil;
+import lucee.runtime.type.util.UDFUtil;
 import lucee.transformer.library.ClassDefinitionImpl;
 import lucee.transformer.library.function.FunctionLib;
 import lucee.transformer.library.function.FunctionLibException;
@@ -5011,6 +5013,13 @@ public final class ConfigWebFactory extends ConfigFactory {
 			boolean hasCS = configServer != null;
 
 			if (hasAccess) {
+				// component default return format
+				String strRF = getAttr(root, "returnFormat");
+				if (!StringUtil.isEmpty(strRF, true)) config.setReturnFormat(UDFUtil.toReturnFormat(strRF, UDF.RETURN_FORMAT_WDDX));
+				else if (configServer != null) {
+					ConfigServerImpl csi = (ConfigServerImpl) configServer;
+					csi.setReturnFormat(csi.getReturnFormat());
+				}
 
 				// component-default-import
 				String strCDI = getAttr(root, "componentAutoImport");
