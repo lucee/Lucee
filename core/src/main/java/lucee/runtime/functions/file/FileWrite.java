@@ -26,7 +26,6 @@ import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.PageSourcePool;
-import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 
@@ -51,15 +50,14 @@ public class FileWrite {
 				res = Caster.toResource(pc, obj, false);
 				pc.getConfig().getSecurityManager().checkFileLocation(res);
 				Resource parent = res.getParentResource();
-				if (parent != null && !parent.exists()) throw new FunctionException(pc, "FileWrite", 1, "source", "parent directory for [" + res + "] doesn't exist");
+				// if (parent != null && !parent.exists()) throw new FunctionException(pc, "FileWrite", 1, "source",
+				// "parent directory for [" + res + "] doesn't exist");
 				fsw = new FileStreamWrapperWrite(res, charset, false, false);
 			}
-			try {
-				fsw.write(data);
-			}
-			catch (IOException e) {
-				throw new FunctionException(pc, "FileWrite", 1, "source", "Invalid file [" + Caster.toResource(pc, obj, false) + "]", e.getMessage());
-			}
+			fsw.write(data);
+		}
+		catch (IOException e) {
+			throw Caster.toPageException(e);
 		}
 		finally {
 			if (close) IOUtil.closeEL(fsw);
