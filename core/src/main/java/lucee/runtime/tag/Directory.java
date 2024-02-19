@@ -27,6 +27,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Date;
+import java.util.Comparator;
 
 import lucee.commons.io.ModeUtil;
 import lucee.commons.io.SystemUtil;
@@ -56,6 +57,7 @@ import lucee.runtime.op.Caster;
 import lucee.runtime.reflection.Reflector;
 import lucee.runtime.security.SecurityManager;
 import lucee.runtime.tag.util.FileUtil;
+import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.Collection.Key;
@@ -66,6 +68,7 @@ import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.UDF;
 import lucee.runtime.type.dt.DateTimeImpl;
 import lucee.runtime.type.util.KeyConstants;
+import lucee.aprint;
 
 /**
  * Handles interactions with directories.
@@ -461,13 +464,42 @@ public final class Directory extends TagImpl {
 		}
 
 		long startNS = System.nanoTime();
+		boolean canFastArraySort = true;
+		String[] sortArr = null;
+		String[] arraySortCol = null;
+		if (sort != null) {
+			sortArr = sort.toLowerCase().split(",");
+			if (typeArray && sortArr.length > 1) {
+				canFastArraySort = false;
+			}
+			else if (typeArray) {
+				arraySortCol = sortArr[0].trim().split("\\s+");
+				// only "column sortOrder" supported
+				if (arraySortCol.length > 2) throw new ApplicationException("Invalid sort [" + sort + "]"); 
+				// check if sorting on just the array result
+				if ( ! (arraySortCol[0].toLowerCase().trim().equals("name") 
+						|| arraySortCol[0].toLowerCase().trim().equals("path"))  )
+					canFastArraySort = false;  // fall back on query approach, then convert after complex sort to array
+			}
+		}
+
+		aprint.e("canFastArraySort: " + canFastArraySort);
 
 		try {
 
 			if (namesOnly) {
 				if (typeArray) {
-					_fillArrayPathOrName(array, directory, filter, 0, recurse, (listInfo == LIST_INFO_ARRAY_NAME));
-					return array;
+					if ( canFastArraySort ) {
+						_fillArrayPathOrName(array, directory, filter, 0, recurse, namesOnly);
+						if (sort != null ) { 
+							// this is fast path, only sorting on the result, otherwise fall back on the sorted query result
+							String sortOrder = "asc";
+							if (arraySortCol.length == 2) sortOrder = arraySortCol[1];
+							Comparator comp = ArrayUtil.toComparator(null, "text", sortOrder, false);
+							array.sortIt(comp);
+						}
+						return array;
+					}
 				}
 
 				// Query Name, available via the cfdirectory tag but not via directoryList()
@@ -485,10 +517,9 @@ public final class Directory extends TagImpl {
 
 		// sort
 		if (sort != null && query != null) {
-			String[] arr = sort.toLowerCase().split(",");
-			for (int i = arr.length - 1; i >= 0; i--) {
+			for (int i = sortArr.length - 1; i >= 0; i--) {
 				try {
-					String[] col = arr[i].trim().split("\\s+");
+					String[] col = sortArr[i].trim().split("\\s+");
 					if (col.length == 1) query.sort(col[0].trim());
 					else if (col.length == 2) {
 						String order = col[1].toLowerCase().trim();
@@ -507,11 +538,13 @@ public final class Directory extends TagImpl {
 
 		if (typeArray) {
 			java.util.Iterator it = query.getIterator();
+			aprint.e("namesOnly: " + namesOnly);
 			while (it.hasNext()) {
 				Struct row = (Struct) it.next();
 				if (namesOnly) array.appendEL(row.get("name"));
 				else array.appendEL(row.get("directory") + lucee.commons.io.FileUtil.FILE_SEPERATOR_STRING + row.get("name"));
 			}
+			return array;
 		}
 
 		return rtn;
@@ -588,6 +621,7 @@ public final class Directory extends TagImpl {
 		// query.addRow(list.length);
 		boolean isDir;
 		boolean modeSupported = directory.getResourceProvider().isModeSupported();
+		boolean isWindows = SystemUtil.isWindows();
 		for (int i = 0; i < list.length; i++) {
 			isDir = list[i].isDirectory();
 			if (filter == null || filter.accept(list[i])) {
@@ -602,7 +636,9 @@ public final class Directory extends TagImpl {
 				query.setAt(DATE_LAST_MODIFIED, count, new Date(list[i].lastModified()));
 				// TODO File Attributes are Windows only...
 				// this is slow as it fetches each the attributes one at a time
-				query.setAt(ATTRIBUTES, count, getFileAttribute(list[i], true));
+				if (isWindows) {
+					query.setAt(ATTRIBUTES, count, getFileAttribute(list[i], true));
+				}
 
 				if (hasMeta) {
 					query.setAt(META, count, ((ResourceMetaData) list[i]).getMetaData());
