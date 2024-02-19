@@ -35,6 +35,7 @@ import lucee.runtime.concurrency.UDFCaller2;
 import lucee.runtime.exp.CasterException;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.exp.ParentException;
 import lucee.runtime.ext.function.BIF;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Array;
@@ -150,9 +151,10 @@ public class Map extends BIF implements ClosureFunc {
 		Entry e;
 		boolean async = es != null;
 		Object res;
+		ParentException parentException = new ParentException();
 		while (it.hasNext()) {
 			e = (Entry) it.next();
-			res = _inv(pc, udf, new Object[] { e.getValue(), Caster.toDoubleValue(e.getKey()), sld.list, sld.delimiter }, e.getKey(), es, futures);
+			res = _inv(pc, parentException, udf, new Object[] { e.getValue(), Caster.toDoubleValue(e.getKey()), sld.list, sld.delimiter }, e.getKey(), es, futures);
 			if (!async) rtn.set(Caster.toString(e.getKey()), res);
 		}
 		return rtn;
@@ -164,9 +166,10 @@ public class Map extends BIF implements ClosureFunc {
 		Entry e;
 		boolean async = es != null;
 		Object res;
+		ParentException parentException = new ParentException();
 		while (it.hasNext()) {
 			e = (Entry) it.next();
-			res = _inv(pc, udf, new Object[] { e.getValue(), Caster.toDoubleValue(e.getKey()), arr }, e.getKey(), es, futures);
+			res = _inv(pc, parentException, udf, new Object[] { e.getValue(), Caster.toDoubleValue(e.getKey()), arr }, e.getKey(), es, futures);
 			if (!async) rtn.set(Caster.toString(e.getKey()), res);
 		}
 		return rtn;
@@ -179,11 +182,12 @@ public class Map extends BIF implements ClosureFunc {
 		Object res, v;
 		int index;
 		ArgumentIntKey k;
+		ParentException parentException = new ParentException();
 		while (it.hasNext()) {
 			index = it.nextIndex();
 			k = ArgumentIntKey.init(index);
 			v = it.next();
-			res = _inv(pc, udf, new Object[] { v, Caster.toDoubleValue(k.getString()), list }, k, es, futures);
+			res = _inv(pc, parentException, udf, new Object[] { v, Caster.toDoubleValue(k.getString()), list }, k, es, futures);
 			if (!async) rtn.set(k, res);
 		}
 		return rtn;
@@ -195,9 +199,10 @@ public class Map extends BIF implements ClosureFunc {
 		Entry<Key, Object> e;
 		boolean async = es != null;
 		Object res;
+		ParentException parentException = new ParentException();
 		while (it.hasNext()) {
 			e = it.next();
-			res = _inv(pc, udf, new Object[] { e.getKey().getString(), e.getValue(), sct }, e.getKey(), es, futures);
+			res = _inv(pc, parentException, udf, new Object[] { e.getKey().getString(), e.getValue(), sct }, e.getKey(), es, futures);
 			if (!async) rtn.set(e.getKey(), res);
 		}
 		return rtn;
@@ -223,12 +228,13 @@ public class Map extends BIF implements ClosureFunc {
 		int rowNbr;
 		Object row, res;
 
+		ParentException parentException = new ParentException();
 		boolean async = es != null;
 		while (it.hasNext()) {
 			row = it.next();
 			rowNbr = qry.getCurrentrow(pid);
 
-			res = _inv(pc, udf, new Object[] { row, rowNbr, qry }, rowNbr, es, futures);
+			res = _inv(pc, parentException, udf, new Object[] { row, rowNbr, qry }, rowNbr, es, futures);
 			if (!async) {
 				addRow(Caster.toStruct(res), rtn);
 			}
@@ -252,9 +258,10 @@ public class Map extends BIF implements ClosureFunc {
 		Entry e;
 		boolean async = es != null;
 		Object res;
+		ParentException parentException = new ParentException();
 		while (it.hasNext()) {
 			e = it.next();
-			res = _inv(pc, udf, new Object[] { e.getKey(), e.getValue(), map }, e.getKey(), es, futures);
+			res = _inv(pc, parentException, udf, new Object[] { e.getKey(), e.getValue(), map }, e.getKey(), es, futures);
 			if (!async) {
 				rtn.set(KeyImpl.toKey(e.getKey()), res);
 			}
@@ -269,9 +276,10 @@ public class Map extends BIF implements ClosureFunc {
 		Entry<Key, Object> e;
 		boolean async = es != null;
 		Object res;
+		ParentException parentException = new ParentException();
 		while (it.hasNext()) {
 			e = it.next();
-			res = _inv(pc, udf, new Object[] { e.getKey().getString(), e.getValue() }, e.getKey(), es, futures);
+			res = _inv(pc, parentException, udf, new Object[] { e.getKey().getString(), e.getValue() }, e.getKey(), es, futures);
 			if (!async) rtn.set(e.getKey(), res);
 		}
 		return rtn;
@@ -285,10 +293,11 @@ public class Map extends BIF implements ClosureFunc {
 		Object res;
 		int count = 0;
 		ArgumentIntKey k;
+		ParentException parentException = new ParentException();
 		while (it.hasNext()) {
 			v = it.next();
 			k = ArgumentIntKey.init(++count);
-			res = _inv(pc, udf, new Object[] { v }, k, es, futures);
+			res = _inv(pc, parentException, udf, new Object[] { v }, k, es, futures);
 			if (!async) rtn.set(k, res);
 		}
 		return rtn;
@@ -302,20 +311,22 @@ public class Map extends BIF implements ClosureFunc {
 		Object res;
 		int count = 0;
 		ArgumentIntKey k;
+		ParentException parentException = new ParentException();
 		while (e.hasMoreElements()) {
 			v = e.nextElement();
 			k = ArgumentIntKey.init(++count);
-			res = _inv(pc, udf, new Object[] { v }, k, es, futures);
+			res = _inv(pc, parentException, udf, new Object[] { v }, k, es, futures);
 			if (!async) rtn.set(k, res);
 		}
 		return rtn;
 	}
 
-	private static Object _inv(PageContext pc, UDF udf, Object[] args, Object key, ExecutorService es, List<Future<Data<Object>>> futures) throws PageException {
+	private static Object _inv(PageContext pc, ParentException pe, UDF udf, Object[] args, Object key, ExecutorService es, List<Future<Data<Object>>> futures)
+			throws PageException {
 		if (es == null) {
 			return udf.call(pc, args, true);
 		}
-		futures.add(es.submit(new UDFCaller2<Object>(pc, udf, args, key, true)));
+		futures.add(es.submit(new UDFCaller2<Object>(pc, pe, udf, args, key, true)));
 		return null;
 	}
 
