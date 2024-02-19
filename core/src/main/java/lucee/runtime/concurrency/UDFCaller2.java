@@ -86,7 +86,7 @@ public class UDFCaller2<P> implements Callable<Data<P>> {
 
 		}
 		catch (PageException pe) {
-			if (parent != null) pe.initCause(new ParentException(parent.getThread().getStackTrace()));
+			if (parent != null) pe.initCause(new ParentException(parent));
 			throw pe;
 		}
 		finally {

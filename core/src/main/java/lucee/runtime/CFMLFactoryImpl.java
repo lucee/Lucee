@@ -289,7 +289,7 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 		}
 		catch (Exception e) {
 			reuse = false;
-			if (parent != null) e.initCause(new ParentException(parent.getThread().getStackTrace()));
+			if (parent != null) e.initCause(new ParentException(parent));
 			ThreadLocalPageContext.getLog(config, "application").error("release page context", e);
 		}
 		if (tmpRegister) ThreadLocalPageContext.register(beforePC);
