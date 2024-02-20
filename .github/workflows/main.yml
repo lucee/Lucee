@@ -9,7 +9,7 @@ on:
       LUCEE_BUILD_JAVA_VERSION:
         required: true
         type: string
-        default: '8'
+        default: '11'
   push:
     branches:
       - '**' # thus ignoring tagging
@@ -26,7 +26,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       DO_DEPLOY: "${{ github.event_name == 'push' && github.ref == 'refs/heads/5.4' }}"
-      LUCEE_BUILD_JAVA_VERSION: 8
+      LUCEE_BUILD_JAVA_VERSION: 11
       LUCEE_TEST_JAVA_VERSION: ''
     services:
       sql-server:
