@@ -123,6 +123,22 @@ public final class StringUtil {
 		return false;
 	}
 
+	public static String concat(String l, String r) {
+		return new StringBuilder(l.length() + r.length()).append(l).append(r).toString();
+	}
+
+	public static String concat(String l, String m, String r) {
+		return new StringBuilder(l.length() + m.length() + r.length()).append(l).append(m).append(r).toString();
+	}
+
+	public static String concat(String s1, String s2, String s3, String s4) {
+		return new StringBuilder(s1.length() + s2.length() + s3.length() + s4.length()).append(s1).append(s2).append(s3).append(s4).toString();
+	}
+
+	public static String concat(String s1, String s2, String s3, String s4, String s5) {
+		return new StringBuilder(s1.length() + s2.length() + s3.length() + s4.length() + s5.length()).append(s1).append(s2).append(s3).append(s4).append(s5).toString();
+	}
+
 	/**
 	 * do first Letter Upper case
 	 *
