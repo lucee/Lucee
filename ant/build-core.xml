@@ -313,8 +313,8 @@
     <!-- compie the source -->
     <javac 
       srcdir="${srcInst}" 
-      source="1.8" 
-      target="1.8" 
+      source="1.8"
+      target="1.8"
       destdir="${temp}/agent"
       debug="true" debuglevel="lines,vars,source" classpath="${dependencies}">
     </javac>
