@@ -316,9 +316,7 @@
     
     <!-- compie the source -->
     <javac 
-      srcdir="${srcInst}" 
-      source="1.8"
-      target="1.8"
+      srcdir="${srcInst}"  
       destdir="${temp}/agent"
       debug="true" debuglevel="lines,vars,source" classpath="${dependencies}">
     </javac>
@@ -336,9 +334,7 @@
     <echots message="compile loader"/>
     <!-- compie the source -->
     <javac 
-      srcdir="${srcLoader}" 
-      source="1.8" 
-      target="1.8" 
+      srcdir="${srcLoader}"   
       destdir="${temp}/loader"
       debug="true" debuglevel="lines,vars,source" classpath="${dependencies}">
     </javac>
@@ -368,9 +364,7 @@
    <echo level="info" message="Using Java version ${ant.java.version}."/>
     <!-- compile the core -->
     <javac 
-      srcdir="${srcCore}" 
-      source="1.8" 
-      target="1.8" 
+      srcdir="${srcCore}"   
       destdir="${core}"
       debug="true" debuglevel="lines,vars,source">
        <classpath refid="classpath" />
