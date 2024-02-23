@@ -13,8 +13,8 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-    <maven.compiler.source>1.8</maven.compiler.source>
-    <maven.compiler.target>1.8</maven.compiler.target>
+    <maven.compiler.source>11</maven.compiler.source>
+    <maven.compiler.target>11</maven.compiler.target>
     <timestamp>${maven.build.timestamp}</timestamp>
     <maven.build.timestamp.format>yyyy/MM/dd HH:mm:ss z</maven.build.timestamp.format>
     <maven.build.timestamp.zone>UTC</maven.build.timestamp.zone>
@@ -199,7 +199,7 @@
                     <pathconvert property="nashorn_classpath_tmp" refid="nashorn.classpath"/>
                     <!-- java 15 doesn't bundle a javascript engine, nashorn is compiled for java 11, i.e. don't use for jdk 8 -->
                     <condition property="nashorn_classpath" value="${nashorn_classpath_tmp}" else="">
-                      <javaversion atleast="15"/>
+                      <javaversion atleast="11"/>
                     </condition>
 
                     <property name="version" value="${project.version}" />
