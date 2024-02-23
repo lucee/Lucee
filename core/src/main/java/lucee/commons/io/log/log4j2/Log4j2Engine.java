@@ -410,7 +410,7 @@ public class Log4j2Engine extends LogEngine {
 					path = path.trim();
 					path = ConfigWebUtil.translateOldPath(path);
 					res = ConfigWebUtil.getFile(config, config.getConfigDir(), path, ResourceUtil.TYPE_FILE);
-					if (res.isDirectory()) {
+					if (res != null && res.isDirectory()) {
 						res = res.getRealResource(name + ".log");
 					}
 				}

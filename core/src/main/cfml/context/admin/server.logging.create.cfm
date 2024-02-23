@@ -6,6 +6,7 @@
     <cfreturn arguments.str>
 </cffunction>
 
+
 <cfset goto="list">
 <cftry>
 	<cfset stVeritfyMessages = StructNew()>
@@ -39,7 +40,7 @@
 
 				</cfif>
 			</cfloop>
-
+			
 			<cfif structKeyExists(form,'custom_2_appender_table') and !structKeyExists(form,'custom_2_appender_datasource')>
 				<cfset error.message = "No Datasource has been defined">
 			<cfelseif structKeyExists(form,"custom_3_appender_path")>
@@ -49,7 +50,7 @@
 				</cfif>
 			
 				<cfif !directoryExists(path)>
-					<cfset error.message = "Path [#form.custom_3_appender_path#] doesn't exist">
+					<cfset error.message = "directory [#path#] doesn't exist">
 				</cfif>
 			</cfif>
 			
@@ -76,7 +77,7 @@
 
 		</cfcase>
 	</cfswitch>
-	<cfcatch><cfrethrow>
+	<cfcatch>
 		<cfset error.message=cfcatch.message>
 		<cfset error.detail=cfcatch.Detail>
 		<cfset error.cfcatch=cfcatch>

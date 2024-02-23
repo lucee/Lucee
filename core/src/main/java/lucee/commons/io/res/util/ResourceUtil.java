@@ -97,6 +97,7 @@ public final class ResourceUtil {
 	 * Field <code>LEVEL_GRAND_PARENT_FILE</code>
 	 */
 	public static final short LEVEL_GRAND_PARENT_FILE = 2;
+	public static final short LEVEL_ALL = 4;
 
 	public static final HashMap<String, String> EXT_MT = new HashMap<String, String>();
 	static {
@@ -467,6 +468,16 @@ public final class ResourceUtil {
 				else {
 					if (parent.mkdirs() && createNewResourceEL(res)) return getCanonicalResourceEL(res);
 				}
+			}
+		}
+
+		// All
+		if (level >= LEVEL_ALL && parent != null) {
+			if (asDir) {
+				if (res.mkdirs()) return getCanonicalResourceEL(res);
+			}
+			else {
+				if (parent.mkdirs() && createNewResourceEL(res)) return getCanonicalResourceEL(res);
 			}
 		}
 		return null;
