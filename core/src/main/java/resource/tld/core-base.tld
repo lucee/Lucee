@@ -2100,6 +2100,7 @@ To use cached data, the tag must be called with the exact same arguments. Only u
 		<attribute>
 			<type>string</type>
 			<name>actionParams</name>
+			<alias>actionParam</alias>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>used with action="quote" to execute custom ftp commands</description>
