@@ -487,7 +487,7 @@ public final class BundleProvider extends DefaultHandler {
 			}
 		}
 		catch (Throwable t) {
-			if (t instanceof ThreadDeath) throw (ThreadDeath) t;
+			ExceptionUtil.rethrowIfNecessary(t);
 		}
 		finally {
 			Util.closeEL(zis);

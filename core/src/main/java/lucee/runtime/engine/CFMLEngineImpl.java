@@ -1249,12 +1249,10 @@ public final class CFMLEngineImpl implements CFMLEngine {
 					if (rte.getThreadDeath() != null) throw rte.getThreadDeath();
 				}
 				catch (NativeException ne) {
-					if (ne.getCause() instanceof ThreadDeath) throw (ThreadDeath) ne.getCause();
-				}
-				catch (ThreadDeath td) {
-					throw td;
+					ExceptionUtil.rethrowIfNecessary(ne.getCause());
 				}
 				catch (Throwable t) {
+					ExceptionUtil.rethrowIfNecessary(t);
 					if (t instanceof Exception && !Abort.isSilentAbort(t))
 						LogUtil.log(configServer, "application", "controller", t, t instanceof MissingIncludeException ? Log.LEVEL_WARN : Log.LEVEL_ERROR);
 				}
