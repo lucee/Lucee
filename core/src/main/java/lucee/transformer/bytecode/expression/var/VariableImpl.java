@@ -645,7 +645,11 @@ public class VariableImpl extends ExpressionBase implements Variable {
 			}
 		}
 
-		if (member.getSafeNavigated()) adapter.loadArg(0);
+		// LDEV3496
+		final boolean needsAndWillConsumePageContextForSafeNavigationResolution = member.getSafeNavigated() && !doOnlyScope;
+		if (needsAndWillConsumePageContextForSafeNavigationResolution) {
+			adapter.loadArg(0);
+		}
 
 		// collection
 		Type rtn;
