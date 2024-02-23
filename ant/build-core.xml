@@ -313,10 +313,13 @@
     <!-- compie the source -->
     <javac 
       srcdir="${srcInst}" 
-      source="1.8" 
-      target="1.8" 
+      source="11" 
+      target="11" 
       destdir="${temp}/agent"
-      debug="true" debuglevel="lines,vars,source" classpath="${dependencies}">
+      includeantruntime="false"
+      debug="true" 
+      debuglevel="lines,vars,source" 
+      classpath="${dependencies}">
     </javac>
 
     <!-- create the manifest file -->
@@ -333,10 +336,13 @@
     <!-- compie the source -->
     <javac 
       srcdir="${srcLoader}" 
-      source="1.8" 
-      target="1.8" 
+      source="11" 
+      target="11" 
       destdir="${temp}/loader"
-      debug="true" debuglevel="lines,vars,source" classpath="${dependencies}">
+      debug="true" 
+      includeantruntime="false"
+      debuglevel="lines,vars,source" 
+      classpath="${dependencies}">
     </javac>
     
     <!-- copy all non java files -->
@@ -365,26 +371,15 @@
     <!-- compile the core -->
     <javac 
       srcdir="${srcCore}" 
-      source="1.8" 
-      target="1.8" 
+      source="11" 
+      target="11" 
       destdir="${core}"
-      debug="true" debuglevel="lines,vars,source">
+      includeantruntime="false"
+      debug="true" 
+      debuglevel="lines,vars,source">
        <classpath refid="classpath" />
        <classpath path="${temp}/loader"/>
     </javac>
-
-    <!--
-<javac 
-      fork="yes"
-      executable="/Library/Java/JavaVirtualMachines/jdk-17.0.5.jdk/Contents/Home/bin/javac"
-      srcdir="${srcCore}" 
-      destdir="${core}"
-      debug="true" debuglevel="lines,vars,source">
-       <classpath refid="classpath" />
-    </javac>
-
-    -->
-
 
     <!-- copy all non java files from src -->
     <copy todir="${core}">
