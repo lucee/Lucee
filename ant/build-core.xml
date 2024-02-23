@@ -313,8 +313,8 @@
     <!-- compie the source -->
     <javac 
       srcdir="${srcInst}" 
-      source="11" 
-      target="11" 
+      source="1.8" 
+      target="1.8" 
       destdir="${temp}/agent"
       includeantruntime="false"
       debug="true" 
@@ -336,8 +336,8 @@
     <!-- compie the source -->
     <javac 
       srcdir="${srcLoader}" 
-      source="11" 
-      target="11" 
+      source="1.8" 
+      target="1.8" 
       destdir="${temp}/loader"
       debug="true" 
       includeantruntime="false"
@@ -371,8 +371,8 @@
     <!-- compile the core -->
     <javac 
       srcdir="${srcCore}" 
-      source="11" 
-      target="11" 
+      source="1.8" 
+      target="1.8" 
       destdir="${core}"
       includeantruntime="false"
       debug="true" 
