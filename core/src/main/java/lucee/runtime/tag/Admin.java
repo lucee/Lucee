@@ -4180,8 +4180,8 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		// admin.updateRequestTimeout(getTimespan("admin",action,"requestTimeout"));
 		admin.updateClientTimeout(getTimespan("admin", action, "clientTimeout"));
 		admin.updateSessionTimeout(getTimespan("admin", action, "sessionTimeout"));
-		admin.updateClientStorage(getString("admin", action, "clientStorage"));
-		admin.updateSessionStorage(getString("admin", action, "sessionStorage"));
+		admin.updateClientStorage(getString("admin", action, "clientStorage"), true);
+		admin.updateSessionStorage(getString("admin", action, "sessionStorage"), true);
 		admin.updateApplicationTimeout(getTimespan("admin", action, "applicationTimeout"));
 		admin.updateSessionType(getString("admin", action, "sessionType"));
 		admin.updateLocalMode(getString("admin", action, "localMode"));

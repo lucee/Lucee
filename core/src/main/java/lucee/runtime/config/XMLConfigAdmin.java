@@ -2739,27 +2739,27 @@ public final class XMLConfigAdmin {
 		else scope.removeAttribute("sessiontimeout");
 	}
 
-	public void updateClientStorage(String storage) throws SecurityException, ApplicationException {
-		updateStorage("client", storage);
+	public void updateClientStorage(String storage, boolean validate) throws SecurityException, ApplicationException {
+		updateStorage("client", storage, validate);
 	}
 
-	public void updateSessionStorage(String storage) throws SecurityException, ApplicationException {
-		updateStorage("session", storage);
+	public void updateSessionStorage(String storage, boolean validate) throws SecurityException, ApplicationException {
+		updateStorage("session", storage, validate);
 	}
 
-	private void updateStorage(String storageName, String storage) throws SecurityException, ApplicationException {
+	private void updateStorage(String storageName, String storage, boolean validate) throws SecurityException, ApplicationException {
 		checkWriteAccess();
 		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 
 		if (!hasAccess) throw new SecurityException("no access to update scope setting");
-		storage = validateStorage(storage);
+		if (validate) storage = validateStorage(storage);
 
 		Element scope = _getRootElement("scope");
 		if (!StringUtil.isEmpty(storage, true)) scope.setAttribute(storageName + "storage", storage);
 		else scope.removeAttribute(storageName + "storage");
 	}
 
-	private String validateStorage(String storage) throws ApplicationException {
+	public String validateStorage(String storage) throws ApplicationException {
 		storage = storage.trim().toLowerCase();
 
 		// empty

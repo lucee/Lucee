@@ -1201,19 +1201,19 @@ public class CFConfigImport {
 					handleException(pc, t);
 				}
 			}
-			str = getAsString(json, "clientstorage");
-			if (str != null) {
+			String clientStorage = getAsString(json, "clientstorage");
+			if (!StringUtil.isEmpty(clientStorage, true)) {
 				try {
-					admin.updateClientStorage(str);
+					admin.updateClientStorage(clientStorage.trim(), false);
 				}
 				catch (Throwable t) {
 					handleException(pc, t);
 				}
 			}
-			str = getAsString(json, "sessionstorage");
-			if (str != null) {
+			String sessionStorage = getAsString(json, "sessionstorage");
+			if (!StringUtil.isEmpty(sessionStorage, true)) {
 				try {
-					admin.updateSessionStorage(str);
+					admin.updateSessionStorage(sessionStorage.trim(), false);
 				}
 				catch (Throwable t) {
 					handleException(pc, t);
@@ -1248,6 +1248,15 @@ public class CFConfigImport {
 			}
 
 			admin.storeAndReload();
+
+			// validate
+			if (!StringUtil.isEmpty(sessionStorage, true)) {
+				admin.validateStorage(sessionStorage.trim());
+			}
+			if (!StringUtil.isEmpty(clientStorage, true)) {
+				admin.validateStorage(clientStorage.trim());
+			}
+
 		}
 		catch (Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);
