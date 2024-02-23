@@ -55,6 +55,7 @@ import lucee.runtime.component.ImportDefintion;
 import lucee.runtime.component.ImportDefintionImpl;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.Constants;
+import lucee.runtime.exp.TemplateException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.tag.Property;
 import lucee.runtime.type.KeyImpl;
@@ -702,7 +703,12 @@ public final class Page extends BodyBase implements Root {
 				writeGetSubPages(cw, className, subs);
 			}
 		}
-		return ASMUtil.verify(cw.toByteArray());
+		try {
+			return ASMUtil.verify(cw.toByteArray());
+		}
+		catch (TemplateException e) {
+			throw new TransformerException(null, e, getStart());
+		}
 	}
 
 	private Data getMatchingData(Function func, List<Data> datas) {
@@ -1782,7 +1788,7 @@ public final class Page extends BodyBase implements Root {
 		return threads.size() - 1;
 	}
 
-	public static byte[] setSourceLastModified(byte[] barr, long lastModified) {
+	public static byte[] setSourceLastModified(byte[] barr, long lastModified) throws TemplateException {
 		ClassReader cr = new ClassReader(barr);
 		ClassWriter cw = ASMUtil.getClassWriter();
 		ClassVisitor ca = new SourceLastModifiedClassAdapter(cw, lastModified);

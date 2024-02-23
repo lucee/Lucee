@@ -19,6 +19,8 @@
 package lucee.transformer.bytecode.util;
 
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -35,6 +37,7 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.GeneratorAdapter;
 import org.objectweb.asm.commons.Method;
+import org.objectweb.asm.util.CheckClassAdapter;
 
 import lucee.aprint;
 import lucee.commons.digest.MD5;
@@ -47,9 +50,11 @@ import lucee.commons.lang.StringUtil;
 import lucee.runtime.component.Property;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigWebPro;
+import lucee.runtime.engine.CFMLEngineImpl;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageRuntimeException;
+import lucee.runtime.exp.TemplateException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 import lucee.runtime.reflection.Reflector;
@@ -116,6 +121,7 @@ public final class ASMUtil {
 	// private static final String VERSION_MESSAGE = "you use an invalid version of the ASM Jar, please
 	// update your jar files";
 	private static long id = 0;
+	private static Boolean verifyBytecode = null;
 
 	/**
 	 * Gibt zurueck ob das direkt uebergeordnete Tag mit dem uebergebenen Full-Name (Namespace und Name)
@@ -1173,12 +1179,27 @@ public final class ASMUtil {
 		return firstIsPC;
 	}
 
-	public static byte[] verify(byte[] bytecode) {
-		// print.e("------------------------------------------------");
-		// PrintWriter pw = new PrintWriter(System.err, true);
-		// CheckClassAdapter.verify(new ClassReader(bytecode), CFMLEngineImpl.class.getClassLoader(), false,
-		// pw);
-		// print.e("------------------------------------------------");
+	public static byte[] verify(byte[] bytecode) throws TemplateException {
+
+		if (verifyBytecode == null) {
+			synchronized (token) {
+				if (verifyBytecode == null) {
+					verifyBytecode = Caster.toBoolean(SystemUtil.getSystemPropOrEnvVar("lucee.compiler.debug", null), Boolean.FALSE);
+				}
+			}
+		}
+
+		if (verifyBytecode.booleanValue()) {
+			StringWriter sw = new StringWriter();
+			PrintWriter pw = new PrintWriter(sw, true);
+			CheckClassAdapter.verify(new ClassReader(bytecode), CFMLEngineImpl.class.getClassLoader(), false, pw);
+			String result = sw.toString();
+			if (!StringUtil.isEmpty(result, true)) {
+				// Throw an exception with the verification errors
+				throw new TemplateException("Bytecode verification failed:\n" + result);
+			}
+		}
+
 		return bytecode;
 	}
 

@@ -43,6 +43,7 @@ import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ExtendableClassLoader;
 import lucee.commons.lang.StringUtil;
+import lucee.runtime.exp.TemplateException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.transformer.bytecode.util.ASMConstants;
@@ -101,7 +102,7 @@ public class ASMProxyFactory {
 	private static final Map<String, SoftReference<ASMMethod>> methods = new ConcurrentHashMap<String, SoftReference<ASMMethod>>();
 
 	public static ASMClass getClass(ExtendableClassLoader pcl, Resource classRoot, Class clazz) throws IOException, InstantiationException, IllegalAccessException,
-			IllegalArgumentException, SecurityException, InvocationTargetException, NoSuchMethodException, UnmodifiableClassException {
+			IllegalArgumentException, SecurityException, InvocationTargetException, NoSuchMethodException, UnmodifiableClassException, TemplateException {
 		Type type = Type.getType(clazz);
 
 		// Fields
@@ -129,7 +130,7 @@ public class ASMProxyFactory {
 	}
 
 	public static ASMMethod getMethod(ExtendableClassLoader pcl, Resource classRoot, Class clazz, String methodName, Class[] parameters) throws IOException, InstantiationException,
-			IllegalAccessException, SecurityException, NoSuchMethodException, IllegalArgumentException, InvocationTargetException, UnmodifiableClassException {
+			IllegalAccessException, SecurityException, NoSuchMethodException, IllegalArgumentException, InvocationTargetException, UnmodifiableClassException, TemplateException {
 		String className = createMethodName(clazz, methodName, parameters);
 
 		// check if already in memory cache
@@ -159,7 +160,7 @@ public class ASMProxyFactory {
 	}
 
 	private static ASMMethod getMethod(ExtendableClassLoader pcl, Resource classRoot, Type type, Class clazz, Method method) throws IOException, InstantiationException,
-			IllegalAccessException, IllegalArgumentException, SecurityException, InvocationTargetException, NoSuchMethodException, UnmodifiableClassException {
+			IllegalAccessException, IllegalArgumentException, SecurityException, InvocationTargetException, NoSuchMethodException, UnmodifiableClassException, TemplateException {
 		String className = createMethodName(clazz, method.getName(), method.getParameterTypes());
 
 		// check if already in memory cache
@@ -198,7 +199,7 @@ public class ASMProxyFactory {
 		return sb.toString();
 	}
 
-	private static byte[] _createMethod(Type type, Class clazz, Method method, Resource classRoot, String className) throws IOException {
+	private static byte[] _createMethod(Type type, Class clazz, Method method, Resource classRoot, String className) throws IOException, TemplateException {
 		Class<?> rtn = method.getReturnType();
 		Type rtnType = Type.getType(rtn);
 

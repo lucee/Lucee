@@ -40,6 +40,8 @@ import lucee.runtime.PageSourcePool;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigPro;
 import lucee.runtime.exp.ApplicationException;
+import lucee.runtime.exp.PageRuntimeException;
+import lucee.runtime.exp.TemplateException;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.transformer.bytecode.util.ClassRenamer;
 
@@ -192,11 +194,16 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 			 * "compilation", e); }
 			 */
 			// in case instrumentation fails, we rename it
-			return rename(clazz, barr);
+			try {
+				return rename(clazz, barr);
+			}
+			catch (TemplateException e) {
+				throw new PageRuntimeException(e);
+			}
 		}
 	}
 
-	private Class<?> rename(Class<?> clazz, byte[] barr) {
+	private Class<?> rename(Class<?> clazz, byte[] barr) throws TemplateException {
 		String newName = clazz.getName() + "$" + uid();
 		return _loadClass(newName, ClassRenamer.rename(barr, newName), true);
 	}

@@ -25,6 +25,7 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 
 import lucee.commons.lang.StringUtil;
+import lucee.runtime.exp.TemplateException;
 import lucee.runtime.type.util.ListUtil;
 
 public class ClassRenamer extends ClassVisitor implements Opcodes {
@@ -111,7 +112,7 @@ public class ClassRenamer extends ClassVisitor implements Opcodes {
 		return str;
 	}
 
-	public static byte[] rename(byte[] src, String newName) {
+	public static byte[] rename(byte[] src, String newName) throws TemplateException {
 		ClassReader cr = new ClassReader(src);
 		ClassWriter cw = ASMUtil.getClassWriter();
 		ClassRenamer ca = new ClassRenamer(cw, newName);
