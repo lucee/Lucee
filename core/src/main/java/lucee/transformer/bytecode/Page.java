@@ -334,7 +334,7 @@ public final class Page extends BodyBase implements Root {
 		else if (isInterface(comp)) parent = InterfacePageImpl.class.getName();// "lucee/runtime/InterfacePage";
 		parent = parent.replace('.', '/');
 
-		cw.visit(Opcodes.V1_6, Opcodes.ACC_PUBLIC + Opcodes.ACC_FINAL, className, null, parent, interfaces);
+		cw.visit(ASMUtil.getJavaVersionForBytecodeGeneration(), Opcodes.ACC_PUBLIC + Opcodes.ACC_FINAL, className, null, parent, interfaces);
 		if (optionalPS != null) {
 			// we use full path when FD is enabled
 			String path = config.allowRequestTimeout() ? optionalPS.getRealpathWithVirtual() : optionalPS.getPhyscalFile().getAbsolutePath();
@@ -702,7 +702,7 @@ public final class Page extends BodyBase implements Root {
 				writeGetSubPages(cw, className, subs);
 			}
 		}
-		return cw.toByteArray();
+		return ASMUtil.verify(cw.toByteArray());
 	}
 
 	private Data getMatchingData(Function func, List<Data> datas) {
@@ -1787,7 +1787,7 @@ public final class Page extends BodyBase implements Root {
 		ClassWriter cw = ASMUtil.getClassWriter();
 		ClassVisitor ca = new SourceLastModifiedClassAdapter(cw, lastModified);
 		cr.accept(ca, 0);
-		return cw.toByteArray();
+		return ASMUtil.verify(cw.toByteArray());
 	}
 
 	/**

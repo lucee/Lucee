@@ -57,10 +57,12 @@ public class MethodCleaner extends ClassVisitor implements Opcodes {
 		this.msg = StringUtil.isEmpty(msg) ? null : msg;
 	}
 
+	@Override
 	public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
 		cv.visit(version, access, name, signature, superName, interfaces);
 	}
 
+	@Override
 	public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
 		if (name.equals(methodName) && desc.equals(strArgs)) {
 
@@ -128,7 +130,7 @@ public class MethodCleaner extends ClassVisitor implements Opcodes {
 		ClassWriter cw = ASMUtil.getClassWriter();
 		ClassVisitor ca = new MethodCleaner(cw, methodName, args, rtn, msg);
 		cr.accept(ca, 0);
-		return cw.toByteArray();
+		return ASMUtil.verify(cw.toByteArray());
 	}
 
 	public static void modifie(String path, String methodName, String[] argNames, String rtnName, String msg) throws IOException, ExpressionException {

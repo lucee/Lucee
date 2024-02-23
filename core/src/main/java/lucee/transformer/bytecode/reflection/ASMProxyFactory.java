@@ -204,7 +204,7 @@ public class ASMProxyFactory {
 
 		className = className.replace('.', File.separatorChar);
 		ClassWriter cw = ASMUtil.getClassWriter();
-		cw.visit(Opcodes.V1_6, Opcodes.ACC_PUBLIC, className, null, ASM_METHOD.getInternalName(), null);
+		cw.visit(ASMUtil.getJavaVersionForBytecodeGeneration(), Opcodes.ACC_PUBLIC, className, null, ASM_METHOD.getInternalName(), null);
 
 		// CONSTRUCTOR
 
@@ -331,9 +331,9 @@ public class ASMProxyFactory {
 
 		if (classRoot != null) {
 			Resource classFile = classRoot.getRealResource(className + ".class");
-			return store(cw.toByteArray(), classFile);
+			return store(ASMUtil.verify(cw.toByteArray()), classFile);
 		}
-		return cw.toByteArray();
+		return ASMUtil.verify(cw.toByteArray());
 	}
 
 	private static Type toReferenceType(Class<?> clazz, Type defaultValue) {
@@ -387,14 +387,5 @@ public class ASMProxyFactory {
 		IOUtil.copy(new ByteArrayInputStream(barr), classFile, true);
 		return barr;
 	}
-	/*
-	 * private void store(ClassWriter cw) { // create class file byte[] barr = cw.toByteArray();
-	 * 
-	 * try { ResourceUtil.touch(classFile); IOUtil.copy(new ByteArrayInputStream(barr), classFile,true);
-	 * 
-	 * cl = (PhysicalClassLoader) mapping.getConfig().getRPCClassLoader(true); Class<?> clazz =
-	 * cl.loadClass(className, barr); return newInstance(clazz, config,cfc); } catch(Throwable t) {
-	 * throw Caster.toPageException(t); } }
-	 */
 
 }

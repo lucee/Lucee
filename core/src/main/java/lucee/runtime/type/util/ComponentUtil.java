@@ -146,7 +146,7 @@ public final class ComponentUtil {
 		// print.out("new");
 		// CREATE CLASS
 		ClassWriter cw = ASMUtil.getClassWriter();
-		cw.visit(Opcodes.V1_6, Opcodes.ACC_PUBLIC, real, null, "java/lang/Object", null);
+		cw.visit(ASMUtil.getJavaVersionForBytecodeGeneration(), Opcodes.ACC_PUBLIC, real, null, "java/lang/Object", null);
 
 		// GeneratorAdapter ga = new
 		// GeneratorAdapter(Opcodes.ACC_PUBLIC,Page.STATIC_CONSTRUCTOR,null,null,cw);

@@ -39,8 +39,10 @@ import org.objectweb.asm.commons.Method;
 import lucee.aprint;
 import lucee.commons.digest.MD5;
 import lucee.commons.io.IOUtil;
+import lucee.commons.io.SystemUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.ExceptionUtil;
+import lucee.commons.lang.SerializableObject;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.component.Property;
 import lucee.runtime.config.Config;
@@ -95,6 +97,10 @@ import lucee.transformer.expression.var.Variable;
 import lucee.transformer.library.function.FunctionLibFunction;
 
 public final class ASMUtil {
+
+	public static final int DEFAULT_JAVA_BYTECODE_VERSION = Opcodes.V11;
+	private static int javaBytecodeVersion = -1;
+	private static SerializableObject token = new SerializableObject();
 
 	public static final short TYPE_ALL = 0;
 	public static final short TYPE_BOOLEAN = 1;
@@ -545,7 +551,7 @@ public final class ASMUtil {
 		}
 		// CREATE CLASS
 		ClassWriter cw = ASMUtil.getClassWriter();
-		cw.visit(Opcodes.V1_6, Opcodes.ACC_PUBLIC, className, null, parent.getName().replace('.', '/'), inter);
+		cw.visit(getJavaVersionForBytecodeGeneration(), Opcodes.ACC_PUBLIC, className, null, parent.getName().replace('.', '/'), inter);
 		String md5;
 		try {
 			md5 = createMD5(properties);
@@ -579,7 +585,7 @@ public final class ASMUtil {
 		}
 
 		cw.visitEnd();
-		return cw.toByteArray();
+		return ASMUtil.verify(cw.toByteArray());
 	}
 
 	private static void createProperty(ClassWriter cw, String classType, ASMProperty property) throws PageException {
@@ -751,7 +757,7 @@ public final class ASMUtil {
 	}
 
 	public static ClassWriter getClassWriter() {
-		return new ClassWriter(ClassWriter.COMPUTE_MAXS);// |ClassWriter.COMPUTE_FRAMES);
+		return new ClassWriter(ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES);// |ClassWriter.COMPUTE_FRAMES);
 	}
 
 	public static String createOverfowMethod(String prefix, int id) { // pattern is used in function callstackget
@@ -1165,6 +1171,51 @@ public final class ASMUtil {
 			firstIsPC = Reflector.isInstaneOf(types[0].getClassName(), PageContext.class);
 		}
 		return firstIsPC;
+	}
+
+	public static byte[] verify(byte[] bytecode) {
+		// print.e("------------------------------------------------");
+		// PrintWriter pw = new PrintWriter(System.err, true);
+		// CheckClassAdapter.verify(new ClassReader(bytecode), CFMLEngineImpl.class.getClassLoader(), false,
+		// pw);
+		// print.e("------------------------------------------------");
+		return bytecode;
+	}
+
+	public static int getJavaVersionForBytecodeGeneration() {
+		if (javaBytecodeVersion == -1) {
+			synchronized (token) {
+				if (javaBytecodeVersion == -1) {
+					javaBytecodeVersion = DEFAULT_JAVA_BYTECODE_VERSION;
+					String vs = Caster.toString(SystemUtil.getSystemPropOrEnvVar("lucee.compiler.java.version", null));
+					if (!StringUtil.isEmpty(vs, true)) {
+						vs = vs.trim();
+						if ("1.1".equals(vs)) javaBytecodeVersion = Opcodes.V1_1;
+						else if ("1.2".equals(vs)) javaBytecodeVersion = Opcodes.V1_2;
+						else if ("1.3".equals(vs)) javaBytecodeVersion = Opcodes.V1_3;
+						else if ("1.4".equals(vs)) javaBytecodeVersion = Opcodes.V1_4;
+						else if ("1.5".equals(vs)) javaBytecodeVersion = Opcodes.V1_5;
+						else if ("1.6".equals(vs)) javaBytecodeVersion = Opcodes.V1_6;
+						else if ("1.7".equals(vs)) javaBytecodeVersion = Opcodes.V1_7;
+						else if ("1.8".equals(vs)) javaBytecodeVersion = Opcodes.V1_8;
+						else if ("10".equals(vs) || "10.0".equals(vs)) javaBytecodeVersion = Opcodes.V10;
+						else if ("11".equals(vs) || "11.0".equals(vs)) javaBytecodeVersion = Opcodes.V11;
+						else if ("12".equals(vs) || "12.0".equals(vs)) javaBytecodeVersion = Opcodes.V12;
+						else if ("13".equals(vs) || "13.0".equals(vs)) javaBytecodeVersion = Opcodes.V13;
+						else if ("14".equals(vs) || "13.0".equals(vs)) javaBytecodeVersion = Opcodes.V14;
+						else if ("15".equals(vs) || "13.0".equals(vs)) javaBytecodeVersion = Opcodes.V15;
+						else if ("16".equals(vs) || "13.0".equals(vs)) javaBytecodeVersion = Opcodes.V16;
+						else if ("17".equals(vs) || "13.0".equals(vs)) javaBytecodeVersion = Opcodes.V17;
+						else if ("18".equals(vs) || "13.0".equals(vs)) javaBytecodeVersion = Opcodes.V18;
+						else if ("19".equals(vs) || "13.0".equals(vs)) javaBytecodeVersion = Opcodes.V19;
+						else if ("20".equals(vs) || "20.0".equals(vs)) javaBytecodeVersion = Opcodes.V20;
+						else if ("21".equals(vs) || "21.0".equals(vs)) javaBytecodeVersion = Opcodes.V21;
+						else if ("22".equals(vs) || "22.0".equals(vs)) javaBytecodeVersion = Opcodes.V22;
+					}
+				}
+			}
+		}
+		return javaBytecodeVersion;
 	}
 
 }
