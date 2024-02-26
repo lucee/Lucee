@@ -360,9 +360,9 @@ Require-Bundle: org.apache.commons.commons-codec;bundle-version=1.15.0,
  com.sun.jna;bundle-version=5.13.0,
  org.lucee.txtmark;bundle-version=0.16.0,
  com.github.f4b6a3.ulid;bundle-version=5.2.3,
+ com.sun.xml.bind.jaxb-core;bundle-version=2.3.0.1,
  org.lucee.janino;bundle-version=3.1.9,
- org.lucee.janinocc;bundle-version=3.1.9,
- com.sun.xml.bind.jaxb-c;bundle-version=2.3.0.1
+ org.lucee.janinocc;bundle-version=3.1.9
 Require-Extension: 7E673D15-D87C-41A6-8B5F1956528C605F;name=MySQL;label=MySQL;version=8.1.0,
  99A4EF8D-F2FD-40C8-8FB8C2E67A4EEEB6;name=MSSQL;label=MS SQL Server;version=12.2.0.jre8,
  671B01B8-B3B3-42B9-AC055A356BED5281;name=PostgreSQL;label=PostgreSQL;version=42.6.0,

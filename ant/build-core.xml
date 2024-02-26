@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project default="susi" basedir="${rootDir}" name="luceeCore"
+<project default="lucee" basedir="${rootDir}" name="luceeCore"
     xmlns:if="ant:if"
     xmlns:resolver="antlib:org.apache.maven.resolver.ant">
   <description>
