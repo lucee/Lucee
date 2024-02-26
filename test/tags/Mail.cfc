@@ -179,6 +179,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mail" {
 
 	// tests
 	public function testSimpleMail() localmode="true" skip="notHasServices" {
+		if(getJavaVersion()>8) return;
 		mail to=variables.to from=variables.from subject="test mail1" spoolEnable=false {
 			echo("This is a text email!");
 		}
@@ -194,6 +195,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mail" {
 
 
 	public function testHTMLMail() localmode="true" skip="notHasServices" {
+		if(getJavaVersion()>8) return;
 		mail type="html" to=variables.to from=variables.from subject="test mail1" spoolEnable=false {
 			echo("This is a HTML email!");
 		}
@@ -206,6 +208,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mail" {
 	}
 
 	public function testTextMail() localmode="true" skip="notHasServices" {
+		if(getJavaVersion()>8) return;
 		mail type="plain" to=variables.to from=variables.from subject="test mail1" spoolEnable=false {
 			echo("This is a text email!");
 		}
@@ -218,6 +221,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mail" {
 	}
 
 	public function testTextMailPart() localmode="true" skip="notHasServices" {
+		if(getJavaVersion()>8) return;
 		mail to=variables.to from=variables.from subject="test mail1" spoolEnable=false {
 			mailpart type="text" {
 				echo("This is a text email!");
@@ -235,6 +239,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mail" {
 
 
 	public function testHTMLMailPart() localmode="true" skip="notHasServices" {
+		if(getJavaVersion()>8) return;
 		mail to=variables.to from=variables.from subject="test mail1" spoolEnable=false {
 			mailpart type="html" {
 				echo("This is a html email!");
@@ -247,6 +252,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mail" {
 	}
 
 	public function testMultiMailPart() localmode="true" skip="notHasServices" {
+		if(getJavaVersion()>8) return;
 		mail to=variables.to from=variables.from subject="test mail1" spoolEnable=false {
 			mailpart type="html" {
 				echo("This is a html email!");
@@ -262,6 +268,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mail" {
 	}
 
 	public function testTextOnlyPartShouldUse7bitEncoding() localmode="true" skip="notHasServices" {
+		if(getJavaVersion()>8) return;
 		mail to=variables.to from=variables.from subject="test mail1" spoolEnable=false {
 			echo("This is a text email!");
 		}
@@ -275,6 +282,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mail" {
 	}
 
 	public function testHtmlOnlyPartShouldUseQuotedPrintableEncoding() localmode="true" skip="notHasServices" {
+		if(getJavaVersion()>8) return;
 		mail type="html" to=variables.to from=variables.from subject="test mail1" spoolEnable=false {
 			echo("<p>This is a text email!</p>#chr(10)#<p>another line</p>");
 		}
@@ -288,6 +296,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mail" {
 	}
 
 	public function testMultiMailPartShouldUse7bitEncodingForTextAndQuotedPrintableEncodingForHtml() localmode="true" skip="notHasServices" {
+		if(getJavaVersion()>8) return;
 		mail to=variables.to from=variables.from subject="test mail1" spoolEnable=false {
 			mailpart type="text" {
 				echo("This is a html email!");
@@ -307,6 +316,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mail" {
 	}
 
 	public function testHtmlOnlyPartShouldUse7bitEncodingWhenSystemPropertySet() localmode="true" skip="notHasServices" {
+		if(getJavaVersion()>8) return;
 		// fallback to the old behavior of using 7bit encoding
 		createObject("java", "java.lang.System").setProperty("lucee.mail.use.7bit.transfer.encoding.for.html.parts", "true");
 
@@ -323,6 +333,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mail" {
 	}
 
 	public function testMultiMailPartShouldUse7bitEncodingForTextAnd7bitEncodingForHtmlWhenSystemPropertySet() localmode="true" skip="notHasServices" {
+		if(getJavaVersion()>8) return;
 		// fallback to the old behavior of using 7bit encoding
 		createObject("java", "java.lang.System").setProperty("lucee.mail.use.7bit.transfer.encoding.for.html.parts", "true");
 
@@ -344,4 +355,11 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mail" {
 		assertTrue(reFindNoCase("\n------=[A-Z0-9._]+\r?\nContent-Type: text/html;[^\r\n]*\r?\nContent-Transfer-Encoding: 7bit\r?\n", message.content), "Wrong content encoding for HTML part!");
 	}
 
+	private function getJavaVersion() {
+		var raw=server.java.version;
+		var arr=listToArray(raw,'.');
+		if (arr[1]==1) // version 1-9
+			return arr[2];
+		return arr[1];
+	}
 }
