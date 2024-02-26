@@ -303,7 +303,7 @@ try {
 	systemOutput( NL & NL & "=============================================================", true );
 	arrayAppend( results, "Lucee Version: #server.lucee.version#");
 	arrayAppend( results, "Java Version: #server.java.version#");
-	arrayAppend( results, "Java Compiler Version: #server.java.javaCompilerVersion?'unknown'#");
+	arrayAppend( results, "Java Compiler Version: #server.java.javaCompilerVersion?:'unknown'#");
 	arrayAppend( results, "TestBox Version: #tb.getVersion()#");
 	arrayAppend( results, "Total Execution time: (#NumberFormat( ( getTickCount()-request._start) / 1000 )# s)");
 	arrayAppend( results, "Test Execution time: (#NumberFormat( result.getTotalDuration() /1000 )# s)");
