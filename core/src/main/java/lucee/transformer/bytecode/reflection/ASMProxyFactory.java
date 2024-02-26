@@ -43,7 +43,6 @@ import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ExtendableClassLoader;
 import lucee.commons.lang.StringUtil;
-import lucee.runtime.exp.TemplateException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.transformer.bytecode.util.ASMConstants;
@@ -102,7 +101,7 @@ public class ASMProxyFactory {
 	private static final Map<String, SoftReference<ASMMethod>> methods = new ConcurrentHashMap<String, SoftReference<ASMMethod>>();
 
 	public static ASMClass getClass(ExtendableClassLoader pcl, Resource classRoot, Class clazz) throws IOException, InstantiationException, IllegalAccessException,
-			IllegalArgumentException, SecurityException, InvocationTargetException, NoSuchMethodException, UnmodifiableClassException, TemplateException {
+			IllegalArgumentException, SecurityException, InvocationTargetException, NoSuchMethodException, UnmodifiableClassException {
 		Type type = Type.getType(clazz);
 
 		// Fields
@@ -130,7 +129,7 @@ public class ASMProxyFactory {
 	}
 
 	public static ASMMethod getMethod(ExtendableClassLoader pcl, Resource classRoot, Class clazz, String methodName, Class[] parameters) throws IOException, InstantiationException,
-			IllegalAccessException, SecurityException, NoSuchMethodException, IllegalArgumentException, InvocationTargetException, UnmodifiableClassException, TemplateException {
+			IllegalAccessException, SecurityException, NoSuchMethodException, IllegalArgumentException, InvocationTargetException, UnmodifiableClassException {
 		String className = createMethodName(clazz, methodName, parameters);
 
 		// check if already in memory cache
@@ -160,7 +159,7 @@ public class ASMProxyFactory {
 	}
 
 	private static ASMMethod getMethod(ExtendableClassLoader pcl, Resource classRoot, Type type, Class clazz, Method method) throws IOException, InstantiationException,
-			IllegalAccessException, IllegalArgumentException, SecurityException, InvocationTargetException, NoSuchMethodException, UnmodifiableClassException, TemplateException {
+			IllegalAccessException, IllegalArgumentException, SecurityException, InvocationTargetException, NoSuchMethodException, UnmodifiableClassException {
 		String className = createMethodName(clazz, method.getName(), method.getParameterTypes());
 
 		// check if already in memory cache
@@ -199,13 +198,13 @@ public class ASMProxyFactory {
 		return sb.toString();
 	}
 
-	private static byte[] _createMethod(Type type, Class clazz, Method method, Resource classRoot, String className) throws IOException, TemplateException {
+	private static byte[] _createMethod(Type type, Class clazz, Method method, Resource classRoot, String className) throws IOException {
 		Class<?> rtn = method.getReturnType();
 		Type rtnType = Type.getType(rtn);
 
 		className = className.replace('.', File.separatorChar);
 		ClassWriter cw = ASMUtil.getClassWriter();
-		cw.visit(ASMUtil.getJavaVersionForBytecodeGeneration(), Opcodes.ACC_PUBLIC, className, null, ASM_METHOD.getInternalName(), null);
+		cw.visit(Opcodes.V1_6, Opcodes.ACC_PUBLIC, className, null, ASM_METHOD.getInternalName(), null);
 
 		// CONSTRUCTOR
 
@@ -332,9 +331,9 @@ public class ASMProxyFactory {
 
 		if (classRoot != null) {
 			Resource classFile = classRoot.getRealResource(className + ".class");
-			return store(ASMUtil.verify(cw.toByteArray()), classFile);
+			return store(cw.toByteArray(), classFile);
 		}
-		return ASMUtil.verify(cw.toByteArray());
+		return cw.toByteArray();
 	}
 
 	private static Type toReferenceType(Class<?> clazz, Type defaultValue) {
@@ -388,5 +387,14 @@ public class ASMProxyFactory {
 		IOUtil.copy(new ByteArrayInputStream(barr), classFile, true);
 		return barr;
 	}
+	/*
+	 * private void store(ClassWriter cw) { // create class file byte[] barr = cw.toByteArray();
+	 * 
+	 * try { ResourceUtil.touch(classFile); IOUtil.copy(new ByteArrayInputStream(barr), classFile,true);
+	 * 
+	 * cl = (PhysicalClassLoader) mapping.getConfig().getRPCClassLoader(true); Class<?> clazz =
+	 * cl.loadClass(className, barr); return newInstance(clazz, config,cfc); } catch(Throwable t) {
+	 * throw Caster.toPageException(t); } }
+	 */
 
 }
