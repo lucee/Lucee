@@ -1209,7 +1209,22 @@ public final class ASMUtil {
 		if (javaBytecodeVersion == -1) {
 			synchronized (token) {
 				if (javaBytecodeVersion == -1) {
-					javaBytecodeVersion = DEFAULT_JAVA_BYTECODE_VERSION;
+					// first we define the java compiler version based on the current java version
+					if (SystemUtil.JAVA_VERSION >= 11) {
+						javaBytecodeVersion = Opcodes.V11;
+					}
+					else if (SystemUtil.JAVA_VERSION == 10) {
+						javaBytecodeVersion = Opcodes.V10;
+					}
+					else if (SystemUtil.JAVA_VERSION == 9) {
+						javaBytecodeVersion = Opcodes.V9;
+					}
+					else if (SystemUtil.JAVA_VERSION == 8) {
+						javaBytecodeVersion = Opcodes.V1_8;
+					}
+					else {
+						javaBytecodeVersion = DEFAULT_JAVA_BYTECODE_VERSION;
+					}
 					String vs = Caster.toString(SystemUtil.getSystemPropOrEnvVar("lucee.compiler.java.version", null));
 					if (!StringUtil.isEmpty(vs, true)) {
 						vs = vs.trim();
@@ -1221,6 +1236,8 @@ public final class ASMUtil {
 						else if ("1.6".equals(vs)) javaBytecodeVersion = Opcodes.V1_6;
 						else if ("1.7".equals(vs)) javaBytecodeVersion = Opcodes.V1_7;
 						else if ("1.8".equals(vs)) javaBytecodeVersion = Opcodes.V1_8;
+						else if ("1.9".equals(vs)) javaBytecodeVersion = Opcodes.V9;
+						else if ("9".equals(vs)) javaBytecodeVersion = Opcodes.V9;
 						else if ("10".equals(vs) || "10.0".equals(vs)) javaBytecodeVersion = Opcodes.V10;
 						else if ("11".equals(vs) || "11.0".equals(vs)) javaBytecodeVersion = Opcodes.V11;
 						else if ("12".equals(vs) || "12.0".equals(vs)) javaBytecodeVersion = Opcodes.V12;
@@ -1235,10 +1252,60 @@ public final class ASMUtil {
 						else if ("21".equals(vs) || "21.0".equals(vs)) javaBytecodeVersion = Opcodes.V21;
 						else if ("22".equals(vs) || "22.0".equals(vs)) javaBytecodeVersion = Opcodes.V22;
 					}
+
+					LogUtil.log(Log.LEVEL_INFO, "compiler", "templates get compiled to java " + toStringVersion(javaBytecodeVersion));
 				}
 			}
 		}
 		return javaBytecodeVersion;
+	}
+
+	public static String toStringVersion(int javaBytecodeVersion) {
+		switch (javaBytecodeVersion) {
+		case Opcodes.V1_2:
+			return "1.2";
+		case Opcodes.V1_3:
+			return "1.3";
+		case Opcodes.V1_4:
+			return "1.4";
+		case Opcodes.V1_5:
+			return "1.5";
+		case Opcodes.V1_6:
+			return "1.6";
+		case Opcodes.V1_7:
+			return "1.7";
+		case Opcodes.V1_8:
+			return "1.8";
+		case Opcodes.V9:
+			return "9";
+		case Opcodes.V10:
+			return "10";
+		case Opcodes.V11:
+			return "11";
+		case Opcodes.V12:
+			return "12";
+		case Opcodes.V13:
+			return "13";
+		case Opcodes.V14:
+			return "14";
+		case Opcodes.V15:
+			return "15";
+		case Opcodes.V16:
+			return "16";
+		case Opcodes.V17:
+			return "17";
+		case Opcodes.V18:
+			return "18";
+		case Opcodes.V19:
+			return "19";
+		case Opcodes.V20:
+			return "20";
+		case Opcodes.V21:
+			return "21";
+		case Opcodes.V22:
+			return "22";
+		}
+		return "unknown";
 	}
 
 }

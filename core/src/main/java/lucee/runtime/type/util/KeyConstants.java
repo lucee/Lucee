@@ -2530,6 +2530,7 @@ public class KeyConstants {
 	public static final Key _archModel = KeyImpl._const("archModel");
 	public static final Key _executionPath = KeyImpl._const("executionPath");
 	public static final Key _javaAgentSupported = KeyImpl._const("javaAgentSupported");
+	public static final Key _javaCompilerVersion = KeyImpl._const("javaCompilerVersion");
 	public static final Key _loaderVersion = KeyImpl._const("loaderVersion");
 	public static final Key _loaderPath = KeyImpl._const("loaderPath");
 	public static final Key _additionalinformation = KeyImpl._const("additionalinformation");
