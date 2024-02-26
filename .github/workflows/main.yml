@@ -9,7 +9,7 @@ on:
       LUCEE_BUILD_JAVA_VERSION:
         required: true
         type: string
-        default: '8'
+        default: '11'
   push:
     branches:
       - '**' # thus ignoring tagging
