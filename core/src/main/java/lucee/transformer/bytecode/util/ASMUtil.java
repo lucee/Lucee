@@ -104,7 +104,9 @@ import lucee.transformer.library.function.FunctionLibFunction;
 
 public final class ASMUtil {
 
-	public static final int DEFAULT_JAVA_BYTECODE_VERSION = Opcodes.V1_6;
+	public static final int DEFAULT_JAVA_BYTECODE_VERSION = Opcodes.V1_8;
+	private static final int CLASSWRITER_ARGS = ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES;
+
 	private static int javaBytecodeVersion = -1;
 	private static SerializableObject token = new SerializableObject();
 
@@ -764,7 +766,7 @@ public final class ASMUtil {
 	}
 
 	public static ClassWriter getClassWriter() {
-		return new ClassWriter(ClassWriter.COMPUTE_MAXS);// |ClassWriter.COMPUTE_FRAMES);
+		return new ClassWriter(CLASSWRITER_ARGS);
 	}
 
 	public static String createOverfowMethod(String prefix, int id) { // pattern is used in function callstackget
