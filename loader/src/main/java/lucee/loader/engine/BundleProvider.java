@@ -440,7 +440,10 @@ public final class BundleProvider {
 		put(mappings, "org.objectweb.asm.util", new Info("org.ow2.asm", "asm-util"));
 		put(mappings, "org.objectweb.asm", new Info("org.ow2.asm", "asm"));
 		put(mappings, "org.objectweb.asm.tree", new Info("org.ow2.asm", "asm-tree"));
-		put(mappings, "com.sun.xml.bind.jaxb-c", new Info("com.sun.xml.bind", "jaxb-core"));
+		put(mappings, "jaxb-api", new Info("com.sun.xml.bind", "jaxb-api"));
+		put(mappings, "com.sun.xml.bind.jaxb-core", new Info("com.sun.xml.bind", "jaxb-core"));
+		put(mappings, "com.sun.xml.bind.jaxb-impl", new Info("com.sun.xml.bind", "jaxb-impl"));
+		put(mappings, "javassist", new Info("org.javassist", "javassists"));
 
 	}
 
