@@ -27,7 +27,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
                 expect(res.country).toBe("US");
                 expect(res.currency.code).toBe("USD");
                 expect(res.currency.symbol).toBe("$"); // $
-                expect(res.dateTimeFormat.date).toBe("EEEE, MMMM d, yyyy");
+                // this differs in different java versions
+                expect(res.dateTimeFormat.date).toBe(getJavaVersion()<9?"EEEE, MMMM d, yyyy":"EEEE, MMMM d, y");
                 expect(res.dateTimeFormat.time).toBe("h:mm:ss a");
 
                 setLocale(origLocale);
@@ -58,8 +59,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
                 expect(res.country).toBe("BE");
                 expect(res.currency.code).toBe("EUR");
                 expect(Asc(res.currency.symbol)).toBe("8364"); // €
-                expect(res.dateTimeFormat.date).toBe("EEEE d MMMM yyyy");
-                expect(res.dateTimeFormat.time).toBe("H:mm:ss");
+                // this differs in different java versions
+                expect(res.dateTimeFormat.date).toBe(getJavaVersion()<9?"EEEE d MMMM yyyy":"EEEE d MMMM y");
+                expect(res.dateTimeFormat.time).toBe(getJavaVersion()<9?"H:mm:ss":"HH:mm:ss");
 
                 setLocale(origLocale);
             });
@@ -74,7 +76,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
                 expect(res.country).toBe("AR");
                 expect(res.currency.code).toBe("ARS");
                 expect(Asc(res.currency.symbol)).toBe("36"); // $
-                expect(res.dateTimeFormat.date).toBe("EEEE d' de 'MMMM' de 'yyyy");
+                // this differs in different java versions
+                expect(res.dateTimeFormat.date).toBe(getJavaVersion()<9?"EEEE d' de 'MMMM' de 'yyyy":"EEEE, d 'de' MMMM 'de' y");
                 expect(res.dateTimeFormat.time).toBe("HH:mm:ss");
                 
                 setLocale(origLocale);
@@ -83,4 +86,11 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
         });
     }
 
+    private function getJavaVersion() {
+		var raw=server.java.version;
+		var arr=listToArray(raw,'.');
+		if (arr[1]==1) // version 1-9
+			return arr[2];
+		return arr[1];
+	}
 }

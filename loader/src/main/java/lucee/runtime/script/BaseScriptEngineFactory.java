@@ -80,6 +80,10 @@ public abstract class BaseScriptEngineFactory implements ScriptEngineFactory {
 			re.printStackTrace();
 			throw re;
 		}
+		catch (Exception e) {
+			e.printStackTrace();
+			throw e;
+		}
 	}
 
 	@Override

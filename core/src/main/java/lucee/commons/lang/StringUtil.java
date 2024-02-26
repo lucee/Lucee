@@ -64,6 +64,22 @@ public final class StringUtil {
 			, 0x205F // medium mathematical space
 			, 0x3000 // ideographic space
 	};
+	private static final boolean[] WHITESPACES;
+
+	static {
+		// first get the lowest and highest number, so we have the offset of the array and the size
+		int highest = 0;
+		for (char c: SPECIAL_WHITE_SPACE_CHARS) {
+			if (c > highest) highest = c;
+		}
+		WHITESPACES = new boolean[highest + 1];
+		for (int i = 0; i < WHITESPACES.length; i++) {
+			WHITESPACES[i] = false;
+		}
+		for (char c: SPECIAL_WHITE_SPACE_CHARS) {
+			WHITESPACES[c] = true;
+		}
+	}
 
 	private static char[] QUOTE_8220 = new char[] { (char) 226, (char) 8364, (char) 339 };
 	private static char[] QUOTE_8221 = new char[] { (char) 226, (char) 8364, (char) 65533 };
@@ -562,6 +578,24 @@ public final class StringUtil {
 			}
 		}
 		return false;
+	}
+
+	public static boolean hasSpecialWhiteSpace(String str) {
+		for (char c: str.toCharArray()) {
+			if (c < WHITESPACES.length && WHITESPACES[c]) return true;
+		}
+		return false;
+	}
+
+	public static String replaceSpecialWhiteSpace(String str) {
+		if (!hasSpecialWhiteSpace(str)) return str;
+
+		StringBuilder sb = new StringBuilder();
+		for (char c: str.toCharArray()) {
+			if (c < WHITESPACES.length && WHITESPACES[c]) sb.append(" ");
+			else sb.append(c);
+		}
+		return sb.toString();
 	}
 
 	public static boolean isWhiteSpace(char c) {

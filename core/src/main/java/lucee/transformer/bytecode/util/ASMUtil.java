@@ -43,6 +43,8 @@ import lucee.aprint;
 import lucee.commons.digest.MD5;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
+import lucee.commons.io.log.Log;
+import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.SerializableObject;
@@ -54,7 +56,6 @@ import lucee.runtime.engine.CFMLEngineImpl;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageRuntimeException;
-import lucee.runtime.exp.TemplateException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 import lucee.runtime.reflection.Reflector;
@@ -103,7 +104,7 @@ import lucee.transformer.library.function.FunctionLibFunction;
 
 public final class ASMUtil {
 
-	public static final int DEFAULT_JAVA_BYTECODE_VERSION = Opcodes.V1_8;
+	public static final int DEFAULT_JAVA_BYTECODE_VERSION = Opcodes.V1_6;
 	private static int javaBytecodeVersion = -1;
 	private static SerializableObject token = new SerializableObject();
 
@@ -763,7 +764,7 @@ public final class ASMUtil {
 	}
 
 	public static ClassWriter getClassWriter() {
-		return new ClassWriter(ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES);// |ClassWriter.COMPUTE_FRAMES);
+		return new ClassWriter(ClassWriter.COMPUTE_MAXS);// |ClassWriter.COMPUTE_FRAMES);
 	}
 
 	public static String createOverfowMethod(String prefix, int id) { // pattern is used in function callstackget
@@ -1179,7 +1180,7 @@ public final class ASMUtil {
 		return firstIsPC;
 	}
 
-	public static byte[] verify(byte[] bytecode) throws TemplateException {
+	public static byte[] verify(byte[] bytecode) {
 
 		if (verifyBytecode == null) {
 			synchronized (token) {
@@ -1195,8 +1196,7 @@ public final class ASMUtil {
 			CheckClassAdapter.verify(new ClassReader(bytecode), CFMLEngineImpl.class.getClassLoader(), false, pw);
 			String result = sw.toString();
 			if (!StringUtil.isEmpty(result, true)) {
-				// Throw an exception with the verification errors
-				throw new TemplateException("Bytecode verification failed:\n" + result);
+				LogUtil.log(Log.LEVEL_ERROR, "compiler", "Bytecode verification failed:\n" + result);
 			}
 		}
 

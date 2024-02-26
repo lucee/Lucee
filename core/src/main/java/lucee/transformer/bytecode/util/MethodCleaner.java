@@ -32,7 +32,6 @@ import lucee.commons.lang.ClassUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ExpressionException;
-import lucee.runtime.exp.TemplateException;
 
 public class MethodCleaner extends ClassVisitor implements Opcodes {
 
@@ -126,7 +125,7 @@ public class MethodCleaner extends ClassVisitor implements Opcodes {
 		}
 	}
 
-	public static byte[] modifie(byte[] src, String methodName, Class[] args, Class rtn, String msg) throws TemplateException {
+	public static byte[] modifie(byte[] src, String methodName, Class[] args, Class rtn, String msg) {
 		ClassReader cr = new ClassReader(src);
 		ClassWriter cw = ASMUtil.getClassWriter();
 		ClassVisitor ca = new MethodCleaner(cw, methodName, args, rtn, msg);
@@ -134,7 +133,7 @@ public class MethodCleaner extends ClassVisitor implements Opcodes {
 		return ASMUtil.verify(cw.toByteArray());
 	}
 
-	public static void modifie(String path, String methodName, String[] argNames, String rtnName, String msg) throws IOException, ExpressionException, TemplateException {
+	public static void modifie(String path, String methodName, String[] argNames, String rtnName, String msg) throws IOException, ExpressionException {
 		Resource res = ResourceUtil.toResourceExisting(ThreadLocalPageContext.getConfig(), path);
 		Class[] args = new Class[argNames.length];
 		for (int i = 0; i < argNames.length; i++) {

@@ -24,6 +24,7 @@ import java.text.SimpleDateFormat;
 import java.util.Currency;
 import java.util.Locale;
 
+import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.type.Struct;
@@ -81,13 +82,13 @@ public final class GetLocaleInfo implements Function {
 		java.text.DateFormat dateFormat = java.text.DateFormat.getDateInstance(java.text.DateFormat.FULL, locale);
 		if (dateFormat instanceof SimpleDateFormat) {
 			String datePattern = ((SimpleDateFormat) dateFormat).toPattern();
-			sctDT.setEL(KeyConstants._date, datePattern);
+			sctDT.setEL(KeyConstants._date, StringUtil.replaceSpecialWhiteSpace(datePattern));
 		}
 
 		java.text.DateFormat timeFormat = java.text.DateFormat.getTimeInstance(java.text.DateFormat.DEFAULT, locale);
 		if (timeFormat instanceof SimpleDateFormat) {
 			String timePattern = ((SimpleDateFormat) timeFormat).toPattern();
-			sctDT.setEL(KeyConstants._time, timePattern);
+			sctDT.setEL(KeyConstants._time, StringUtil.replaceSpecialWhiteSpace(timePattern));
 		}
 
 		return sct;

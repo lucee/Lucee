@@ -14,7 +14,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" labels="xml" {
 				expect( trim( result ) ).toInclude("http://update.lucee.org/rest/update/provider/echoGet/cgi");
 			});
 
-			it( title="Check xmlFeatures externalGeneralEntities=false",body = function ( currentSpec ) {
+			it( title="Check xmlFeatures externalGeneralEntities=false", skip=getJavaVersion()>8, body = function ( currentSpec ) {
 				local.result = _InternalRequest(
 					template : "#uri#/LDEV1676.cfm",
 					forms :	{ scene: "externalGeneralEntities-False" }
@@ -142,5 +142,13 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" labels="xml" {
 	private string function createURI(string calledName){
 		var baseURI="/test/#listLast(getDirectoryFromPath(getCurrenttemplatepath()),"\/")#/";
 		return baseURI&""&calledName;
+	}
+
+	private function getJavaVersion() {
+		var raw=server.java.version;
+		var arr=listToArray(raw,'.');
+		if(arr[1]==1) // version 1-9
+			return arr[2];
+		return arr[1];
 	}
 }

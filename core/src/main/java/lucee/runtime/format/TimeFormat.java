@@ -82,7 +82,7 @@ public final class TimeFormat extends BaseFormat implements Format {
 			else if (lcMask.equals("long")) return getAsString(calendar, DateFormat.LONG, tz);
 			else if (lcMask.equals("full")) return getAsString(calendar, DateFormat.FULL, tz);
 			else if (lcMask.equals("beat")) {
-				return Caster.toString(Beat.format(time));
+				return StringUtil.replaceSpecialWhiteSpace(Caster.toString(Beat.format(time)));
 			}
 
 			int len = mask.length();
@@ -231,7 +231,7 @@ public final class TimeFormat extends BaseFormat implements Format {
 					formated.append(c);
 				}
 			}
-			return formated.toString();
+			return StringUtil.replaceSpecialWhiteSpace(formated.toString());
 		}
 		finally {
 			if (def != null) TimeZone.setDefault(def);
@@ -241,6 +241,6 @@ public final class TimeFormat extends BaseFormat implements Format {
 	private String getAsString(Calendar c, int style, TimeZone tz) {
 		DateFormat df = DateFormat.getTimeInstance(style, getLocale());
 		df.setTimeZone(tz);
-		return df.format(c.getTime());
+		return StringUtil.replaceSpecialWhiteSpace(df.format(c.getTime()));
 	}
 }

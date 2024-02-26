@@ -154,6 +154,8 @@ public class EnvClassLoader extends URLClassLoader {
 	}
 
 	private synchronized Object load(String name, short type, boolean doLog, List<ClassLoader> listContext, boolean useCache) {
+		double start = SystemUtil.millis();
+
 		StringBuilder id = new StringBuilder(name).append(';').append(type).append(';');
 		String _id = id.toString();
 		Set<String> cache = checking.get();
@@ -239,19 +241,13 @@ public class EnvClassLoader extends URLClassLoader {
 			if (useCache) callerCache.put(id.toString(), new SoftReference<Object[]>(new Object[] { null }));
 
 			// PATCH for com.sun
-			if ((name + "").startsWith("com.sun.")) {
-				if ("com.sun.xml.internal.bind.v2.ContextFactory".equals(name)) {
-					return com.sun.xml.bind.v2.ContextFactory.class;
-				}
-
-				if (!(name + "").startsWith("com.sun.mail")) {
-					ClassLoader loader = CFMLEngineFactory.class.getClassLoader();
-					obj = _load(loader, name, type);
-					if (obj != null) {
-						if (trace != null) trace.trace("EnvClassLoader", "found [" + name + "] in loader ClassLoader");
-						if (useCache) callerCache.put(id.toString(), new SoftReference<Object[]>(new Object[] { obj }));
-						return obj;
-					}
+			if ((name + "").startsWith("com.sun.") && !(name + "").startsWith("com.sun.mail")) {
+				ClassLoader loader = CFMLEngineFactory.class.getClassLoader();
+				obj = _load(loader, name, type);
+				if (obj != null) {
+					if (trace != null) trace.trace("EnvClassLoader", "found [" + name + "] in loader ClassLoader");
+					if (useCache) callerCache.put(id.toString(), new SoftReference<Object[]>(new Object[] { obj }));
+					return obj;
 				}
 			}
 

@@ -22,8 +22,6 @@ import java.lang.instrument.UnmodifiableClassException;
 
 import lucee.commons.io.SystemUtil;
 import lucee.runtime.config.Config;
-import lucee.runtime.exp.PageRuntimeException;
-import lucee.runtime.exp.TemplateException;
 import lucee.transformer.bytecode.util.ClassRenamer;
 
 /**
@@ -95,21 +93,14 @@ public final class MemoryClassLoader extends ExtendableClassLoader {
 
 			// if class already exists
 			if (clazz != null) {
-
-				// in case instrumentation fails, we rename it
-				try {
-					return rename(clazz, barr);
-				}
-				catch (TemplateException e) {
-					throw new PageRuntimeException(e);
-				}
+				return rename(clazz, barr);
 			}
 			// class not exists yet
 			return _loadClass(name, barr);
 		}
 	}
 
-	private Class<?> rename(Class<?> clazz, byte[] barr) throws TemplateException {
+	private Class<?> rename(Class<?> clazz, byte[] barr) {
 		String newName = clazz.getName() + "$" + PhysicalClassLoader.uid();
 		return _loadClass(newName, ClassRenamer.rename(barr, newName));
 	}

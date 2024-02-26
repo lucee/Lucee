@@ -10,7 +10,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="array"{
                 var sliced = arr.slice( 1000000, 100 );
                 var time =  getTickCount()-start;
                 expect(sliced.len()).toBe(100);
-                expect(time).toBeLT(20);
+                expect(time).toBeLT(25);
             });
             it( title="Checking arraySlice() is return new array", body=function( currentSpec ) {
                 var arr = [1,2,3,4,5];

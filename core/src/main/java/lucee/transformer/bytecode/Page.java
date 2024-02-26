@@ -55,7 +55,6 @@ import lucee.runtime.component.ImportDefintion;
 import lucee.runtime.component.ImportDefintionImpl;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.Constants;
-import lucee.runtime.exp.TemplateException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.tag.Property;
 import lucee.runtime.type.KeyImpl;
@@ -335,7 +334,7 @@ public final class Page extends BodyBase implements Root {
 		else if (isInterface(comp)) parent = InterfacePageImpl.class.getName();// "lucee/runtime/InterfacePage";
 		parent = parent.replace('.', '/');
 
-		cw.visit(ASMUtil.getJavaVersionForBytecodeGeneration(), Opcodes.ACC_PUBLIC + Opcodes.ACC_FINAL, className, null, parent, interfaces);
+		cw.visit(Opcodes.V1_6, Opcodes.ACC_PUBLIC + Opcodes.ACC_FINAL, className, null, parent, interfaces);
 		if (optionalPS != null) {
 			// we use full path when FD is enabled
 			String path = config.allowRequestTimeout() ? optionalPS.getRealpathWithVirtual() : optionalPS.getPhyscalFile().getAbsolutePath();
@@ -703,12 +702,7 @@ public final class Page extends BodyBase implements Root {
 				writeGetSubPages(cw, className, subs);
 			}
 		}
-		try {
-			return ASMUtil.verify(cw.toByteArray());
-		}
-		catch (TemplateException e) {
-			throw new TransformerException(null, e, getStart());
-		}
+		return ASMUtil.verify(cw.toByteArray());
 	}
 
 	private Data getMatchingData(Function func, List<Data> datas) {
@@ -1788,12 +1782,12 @@ public final class Page extends BodyBase implements Root {
 		return threads.size() - 1;
 	}
 
-	public static byte[] setSourceLastModified(byte[] barr, long lastModified) throws TemplateException {
+	public static byte[] setSourceLastModified(byte[] barr, long lastModified) {
 		ClassReader cr = new ClassReader(barr);
 		ClassWriter cw = ASMUtil.getClassWriter();
 		ClassVisitor ca = new SourceLastModifiedClassAdapter(cw, lastModified);
 		cr.accept(ca, 0);
-		return ASMUtil.verify(cw.toByteArray());
+		return cw.toByteArray();
 	}
 
 	/**
