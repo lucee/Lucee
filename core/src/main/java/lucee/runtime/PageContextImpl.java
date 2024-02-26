@@ -2713,7 +2713,7 @@ public final class PageContextImpl extends PageContext {
 				}
 			}
 			PageException pe;
-			if (t instanceof ThreadDeath && getTimeoutStackTrace() != null) {
+			if (ExceptionUtil.isThreadDeath(t) && getTimeoutStackTrace() != null) {
 				t = pe = new RequestTimeoutException(this, (ThreadDeath) t);
 			}
 			else pe = Caster.toPageException(t, false);
@@ -4107,7 +4107,7 @@ public final class PageContextImpl extends PageContext {
 
 	private static int getIdCounter() {
 		int id = _idCounter.incrementAndGet();
-		if (id < 0){ 
+		if (id < 0) {
 			_idCounter.set(1);
 			id = 1;
 		}

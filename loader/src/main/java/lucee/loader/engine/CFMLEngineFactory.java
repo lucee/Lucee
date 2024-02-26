@@ -1128,7 +1128,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 			}
 		}
 		catch (Throwable t) {
-			if (t instanceof ThreadDeath) throw (ThreadDeath) t;
+			Util.rethrowIfNecessary(t);
 		}
 		finally {
 			Util.closeEL(zis);

@@ -21,6 +21,7 @@ package lucee.runtime.tag;
 import java.util.Iterator;
 import java.util.Map.Entry;
 
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.CatchBlock;
@@ -122,7 +123,8 @@ public final class Throw extends TagImpl {
 
 	public void setCause(Object cause) throws PageException {
 		if (cause == null) return;
-		if (cause instanceof ThreadDeath) throw new ApplicationException("cannot set this kind [" + cause.getClass().getName() + "] of exception as caused by");
+		if (cause instanceof Throwable && ExceptionUtil.isThreadDeath((Throwable) cause))
+			throw new ApplicationException("cannot set this kind [" + cause.getClass().getName() + "] of exception as caused by");
 		this.cause = toPageException(cause, null);
 		if (this.cause == null) throw new ApplicationException("cannot cast this type [" + cause.getClass().getName() + "] to an exception");
 
