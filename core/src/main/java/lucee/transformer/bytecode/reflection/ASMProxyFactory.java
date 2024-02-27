@@ -204,7 +204,7 @@ public class ASMProxyFactory {
 
 		className = className.replace('.', File.separatorChar);
 		ClassWriter cw = ASMUtil.getClassWriter();
-		cw.visit(Opcodes.V1_6, Opcodes.ACC_PUBLIC, className, null, ASM_METHOD.getInternalName(), null);
+		cw.visit(ASMUtil.getJavaVersionForBytecodeGeneration(), Opcodes.ACC_PUBLIC, className, null, ASM_METHOD.getInternalName(), null);
 
 		// CONSTRUCTOR
 
