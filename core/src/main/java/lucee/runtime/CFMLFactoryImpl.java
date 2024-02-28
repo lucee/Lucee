@@ -341,7 +341,7 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 			while (it.hasNext()) {
 				e = it.next();
 				pc = e.getValue();
-
+				if (pc == null) continue;
 				long timeout = pc.getRequestTimeout();
 				// reached timeout
 				if (pc.getStartTime() + timeout < System.currentTimeMillis() && Long.MAX_VALUE != timeout) {
@@ -377,7 +377,7 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 					}
 				}
 				// after 10 seconds downgrade priority of the thread
-				else if (pc.getStartTime() + 10000 < System.currentTimeMillis() && pc.getThread().getPriority() != Thread.MIN_PRIORITY) {
+				else if (pc.getStartTime() + 10000 < System.currentTimeMillis() && pc.getThread() != null && pc.getThread().getPriority() != Thread.MIN_PRIORITY) {
 					Log log = ThreadLocalPageContext.getLog(pc, "requesttimeout");
 					if (log != null) {
 						PageContext root = pc.getRootPageContext();
