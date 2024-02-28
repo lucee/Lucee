@@ -685,7 +685,7 @@ public final class Page extends BodyBase implements Root {
 		writeOutStatic(optionalPS, constr, keys, cw, comp, className);
 
 		// set field subs
-		FieldVisitor fv = cw.visitField(Opcodes.ACC_PRIVATE + Opcodes.ACC_FINAL, "subs", "[Llucee/runtime/CIPage;", null, null);
+		FieldVisitor fv = cw.visitField(Opcodes.ACC_PRIVATE, "subs", "[Llucee/runtime/CIPage;", null, null);
 		fv.visitEnd();
 
 		// create sub components/interfaces
