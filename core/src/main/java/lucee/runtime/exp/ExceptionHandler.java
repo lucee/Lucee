@@ -32,10 +32,7 @@ import lucee.runtime.op.Caster;
 public final class ExceptionHandler {
 
 	public static void log(Config config, Throwable t) {
-
 		PageException pe = Caster.toPageException(t);
-		pe.printStackTrace(config.getErrWriter());
-
 		int ll = t instanceof MissingIncludeException ? Log.LEVEL_WARN : Log.LEVEL_ERROR;
 		ThreadLocalPageContext.getLog(config, "exception").log(ll, "", pe);
 
