@@ -49,7 +49,7 @@
 				</cfif>
 			
 				<cfif !directoryExists(path)>
-					<cfset error.message = "Path [#form.custom_3_appender_path#] doesn't exist">
+					<cfset error.message = "directory [#path#] doesn't exist">
 				</cfif>
 			</cfif>
 			

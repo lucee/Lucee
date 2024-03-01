@@ -22,6 +22,7 @@ package lucee.runtime.op.date;
 import java.text.DateFormat;
 import java.text.ParsePosition;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
@@ -78,6 +79,7 @@ public final class DateCaster {
 			if (o instanceof DateTime) return (DateTime) o;
 			return new DateTimeImpl((Date) o);
 		}
+		else if (o instanceof Instant) return new DateTimeImpl(Date.from((Instant) o));
 		else if (o instanceof Castable) return ((Castable) o).castToDateTime();
 		else if (o instanceof String) {
 			DateTime dt = toDateAdvanced((String) o, timezone, null);
