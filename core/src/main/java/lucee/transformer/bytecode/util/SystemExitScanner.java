@@ -22,6 +22,8 @@ import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 
+import lucee.commons.io.IOUtil;
+
 public class SystemExitScanner {
 
 	private static final String MSG = "found a match";
@@ -136,12 +138,12 @@ public class SystemExitScanner {
 					}
 					else {
 						// For classes not in the list, simply copy the content
-						jis.transferTo(jos);
+						IOUtil.copy(jis, jos, false, false);
 					}
 				}
 				else {
 					// For non-class entries, simply copy the content
-					jis.transferTo(jos);
+					IOUtil.copy(jis, jos, false, false);
 				}
 				jis.closeEntry();
 				jos.closeEntry();
