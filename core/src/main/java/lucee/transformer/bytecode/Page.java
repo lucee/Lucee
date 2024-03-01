@@ -333,7 +333,7 @@ public final class Page extends BodyBase implements Root {
 		else if (isInterface(comp)) parent = InterfacePageImpl.class.getName();// "lucee/runtime/InterfacePage";
 		parent = parent.replace('.', '/');
 
-		cw.visit(Opcodes.V1_6, Opcodes.ACC_PUBLIC + Opcodes.ACC_FINAL, className, null, parent, null);
+		cw.visit(ASMUtil.JAVA_VERSION, Opcodes.ACC_PUBLIC, className, null, parent, null);
 		if (optionalPS != null) {
 			// we use full path when FD is enabled
 			String path = config.allowRequestTimeout() ? optionalPS.getRealpathWithVirtual() : optionalPS.getPhyscalFile().getAbsolutePath();
@@ -662,7 +662,7 @@ public final class Page extends BodyBase implements Root {
 		}
 
 		// set field subs
-		FieldVisitor fv = cw.visitField(Opcodes.ACC_PRIVATE + Opcodes.ACC_FINAL, "subs", "[Llucee/runtime/CIPage;", null, null);
+		FieldVisitor fv = cw.visitField(Opcodes.ACC_PRIVATE, "subs", "[Llucee/runtime/CIPage;", null, null);
 		fv.visitEnd();
 
 		// create sub components/interfaces

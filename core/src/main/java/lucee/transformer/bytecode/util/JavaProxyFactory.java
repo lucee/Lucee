@@ -159,7 +159,7 @@ public class JavaProxyFactory {
 		 */
 		ClassWriter cw = ASMUtil.getClassWriter();
 
-		cw.visit(Opcodes.V1_6, Opcodes.ACC_PUBLIC, className, null, typeExtends.getInternalName(), strInterfaces);
+		cw.visit(ASMUtil.JAVA_VERSION, Opcodes.ACC_PUBLIC, className, null, typeExtends.getInternalName(), strInterfaces);
 		// BytecodeContext statConstr = null;//new
 		// BytecodeContext(null,null,null,cw,real,ga,Page.STATIC_CONSTRUCTOR);
 		// BytecodeContext constr = null;//new BytecodeContext(null,null,null,cw,real,ga,Page.CONSTRUCTOR);

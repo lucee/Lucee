@@ -104,6 +104,9 @@ public final class ASMUtil {
 
 	private final static Method CONSTRUCTOR_OBJECT = Method.getMethod("void <init> ()");
 	private static final Method _SRC_NAME = new Method("_srcName", Types.STRING, new Type[] {});
+	private static final int CLASSWRITER_ARG = ClassWriter.COMPUTE_MAXS;// | ClassWriter.COMPUTE_FRAMES
+	public static final int JAVA_VERSION = Opcodes.V1_6;
+
 	// private static final String VERSION_MESSAGE = "you use an invalid version of the ASM Jar, please
 	// update your jar files";
 	private static long id = 0;
@@ -533,7 +536,7 @@ public final class ASMUtil {
 		}
 		// CREATE CLASS
 		ClassWriter cw = ASMUtil.getClassWriter();
-		cw.visit(Opcodes.V1_6, Opcodes.ACC_PUBLIC, className, null, parent.getName().replace('.', '/'), inter);
+		cw.visit(ASMUtil.JAVA_VERSION, Opcodes.ACC_PUBLIC, className, null, parent.getName().replace('.', '/'), inter);
 		String md5;
 		try {
 			md5 = createMD5(properties);
@@ -736,7 +739,7 @@ public final class ASMUtil {
 	}
 
 	public static ClassWriter getClassWriter() {
-		return new ClassWriter(ClassWriter.COMPUTE_MAXS);// |ClassWriter.COMPUTE_FRAMES);
+		return new ClassWriter(CLASSWRITER_ARG);
 	}
 
 	public static String createOverfowMethod(String prefix, int id) { // pattern is used in function callstackget
