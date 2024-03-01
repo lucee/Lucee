@@ -68,7 +68,7 @@ public final class ExpandPath implements Function {
 			if (!ArrayUtil.isEmpty(sources)) {
 				// first check for existing
 				for (int i = 0; i < sources.length; i++) {
-					if (sources[i].exists()) {
+					if (sources[i] != null && sources[i].exists()) {
 						return toReturnValue(relPath, sources[i]);
 					}
 				}
