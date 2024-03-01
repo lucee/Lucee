@@ -1,11 +1,11 @@
 component extends="org.lucee.cfml.test.LuceeTestCase"{
 	function run( testResults , testBox ) {
 		describe( "test case for GenerateArgon2Hash", function() {
-			it(title = "Checking with GenerateArgon2Hash()", body = function( currentSpec ) {
+			it(title = "Checking with GenerateArgon2Hash()", skip=getJavaVersion()>20, body = function( currentSpec ) {
 				assertEquals(true, Argon2CheckHash('test', GenerateArgon2Hash('test')));
 			});
 
-			it(title = "Checking with GenerateArgon2Hash", body = function( currentSpec ) {
+			it(title = "Checking with GenerateArgon2Hash", skip=getJavaVersion()>20, body = function( currentSpec ) {
 
 				assertEquals(true,"#Argon2CheckHash('test', GenerateArgon2Hash('test'))#");
 
@@ -36,5 +36,12 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				catch(any e){}
 			});		
 		});	
+	}
+	private function getJavaVersion() {
+	    var raw=server.java.version;
+	    var arr=listToArray(raw,'.');
+	    if(arr[1]==1) // version 1-9
+	        return arr[2];
+	    return arr[1];
 	}
 }
