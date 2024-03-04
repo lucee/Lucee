@@ -528,7 +528,7 @@ div.ok {
 .coding-tip {
 	display: none;
 	box-sizing: border-box;
-	margin: 4rem 0.25rem 1rem 0.25rem;
+	margin: 0.25rem 0.25rem 1rem 0.25rem;
 	padding: 0.5rem;
 	border: 0px;
 	border-radius: 0.5em;

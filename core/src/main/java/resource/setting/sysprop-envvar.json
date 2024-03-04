@@ -1,0 +1,372 @@
+[
+    {
+        "sysprop": "lucee.queue.enable",
+        "envvar": "LUCEE_QUEUE_ENABLE",
+        "desc": "boolean value to enable or disable the Lucee request queue, default is false"
+    },
+    {
+        "sysprop": "lucee.loginstorage.iterations",
+        "envvar": "LUCEE_LOGINSTORAGE_ITERATIONS",
+        "desc": "numeric value for salt iterations for credentials done for the tag cflogin, by default the value is 10"
+    },
+    {
+        "sysprop": "lucee.datasource.pool.validate",
+        "envvar": "LUCEE_DATASOURCE_POOL_VALIDATE",
+        "desc": ""
+    },
+    {
+        "sysprop": "lucee.task.directory",
+        "envvar": "LUCEE_TASK_DIRECTORY",
+        "desc": ""
+    },
+    {
+        "sysprop": "lucee.type.checking",
+        "envvar": "LUCEE_TYPE_CHECKING",
+        "desc": ""
+    },
+    {
+        "sysprop": "lucee.mail.use.7bit.transfer.encoding.for.html.parts",
+        "envvar": "LUCEE_MAIL_USE_7BIT_TRANSFER_ENCODING_FOR_HTML_PARTS",
+        "desc": ""
+    },
+    {
+        "sysprop": "lucee-extensions",
+        "envvar": "LUCEE-EXTENSIONS",
+        "desc": ""
+    },
+    {
+        "sysprop": "lucee.qoq.hsqldb.disable",
+        "envvar": "LUCEE_QOQ_HSQLDB_DISABLE",
+        "desc": ""
+    },
+    {
+        "sysprop": "lucee.loginstorage.salt",
+        "envvar": "LUCEE_LOGINSTORAGE_SALT",
+        "desc": ""
+    },
+    {
+        "sysprop": "lucee.request.limit.concurrent.maxnosleep",
+        "envvar": "LUCEE_REQUEST_LIMIT_CONCURRENT_MAXNOSLEEP",
+        "desc": ""
+    },
+    {
+        "sysprop": "lucee.request.limit.concurrent.maxnormprio",
+        "envvar": "LUCEE_REQUEST_LIMIT_CONCURRENT_MAXNORMPRIO",
+        "desc": ""
+    },
+    {
+        "sysprop": "lucee.loginstorage.privatekey",
+        "envvar": "LUCEE_LOGINSTORAGE_PRIVATEKEY",
+        "desc": ""
+    },
+    {
+        "sysprop": "lucee.timeserver",
+        "envvar": "LUCEE_TIMESERVER",
+        "desc": ""
+    },
+    {
+        "sysprop": "lucee.precise.math",
+        "envvar": "LUCEE_PRECISE_MATH",
+        "desc": ""
+    },
+    {
+        "sysprop": "lucee.library.default.tld",
+        "envvar": "LUCEE_LIBRARY_DEFAULT_TLD",
+        "desc": ""
+    },
+    {
+        "sysprop": "lucee.library.default.tag",
+        "envvar": "LUCEE_LIBRARY_DEFAULT_TAG",
+        "desc": ""
+    },
+    {
+        "sysprop": "lucee.log.reflection",
+        "envvar": "LUCEE_LOG_REFLECTION",
+        "desc": ""
+    },
+    {
+        "sysprop": "lucee.system.out",
+        "envvar": "LUCEE_SYSTEM_OUT",
+        "desc": ""
+    },
+    {
+        "sysprop": "lucee.status.code",
+        "envvar": "LUCEE_STATUS_CODE",
+        "desc": ""
+    },
+    {
+        "sysprop": "lucee.application.mode",
+        "envvar": "LUCEE_APPLICATION_MODE",
+        "desc": ""
+    },
+    {
+        "sysprop": "lucee.requesttimeout.concurrentrequestthreshold",
+        "envvar": "LUCEE_REQUESTTIMEOUT_CONCURRENTREQUESTTHRESHOLD",
+        "desc": ""
+    },
+    {
+        "sysprop": "lucee.datasource.mssql.modern",
+        "envvar": "LUCEE_DATASOURCE_MSSQL_MODERN",
+        "desc": ""
+    },
+    {
+        "sysprop": "lucee.library.fld",
+        "envvar": "LUCEE_LIBRARY_FLD",
+        "desc": ""
+    },
+    {
+        "sysprop": "lucee.logging.main",
+        "envvar": "LUCEE_LOGGING_MAIN",
+        "desc": ""
+    },
+    {
+        "sysprop": "lucee.admin.enabled",
+        "envvar": "LUCEE_ADMIN_ENABLED",
+        "desc": ""
+    },
+    {
+        "sysprop": "lucee.requesttimeout.cputhreshold",
+        "envvar": "LUCEE_REQUESTTIMEOUT_CPUTHRESHOLD",
+        "desc": ""
+    },
+    {
+        "sysprop": "lucee.async.request.handle",
+        "envvar": "LUCEE_ASYNC_REQUEST_HANDLE",
+        "desc": ""
+    },
+    {
+        "sysprop": "lucee.resource.charset",
+        "envvar": "LUCEE_RESOURCE_CHARSET",
+        "desc": ""
+    },
+    {
+        "sysprop": "lucee.system.err",
+        "envvar": "LUCEE_SYSTEM_ERR",
+        "desc": ""
+    },
+    {
+        "sysprop": "lucee.enable.dialect",
+        "envvar": "LUCEE_ENABLE_DIALECT",
+        "desc": ""
+    },
+    {
+        "sysprop": "lucee.controller.disabled",
+        "envvar": "LUCEE_CONTROLLER_DISABLED",
+        "desc": ""
+    },
+    {
+        "sysprop": "lucee.library.tld",
+        "envvar": "LUCEE_LIBRARY_TLD",
+        "desc": ""
+    },
+    {
+        "sysprop": "lucee.ignore.scopes",
+        "envvar": "LUCEE_IGNORE_SCOPES",
+        "desc": ""
+    },
+    {
+        "sysprop": "lucee.enable.warmup",
+        "envvar": "LUCEE_ENABLE_WARMUP",
+        "desc": ""
+    },
+    {
+        "sysprop": "lucee.qoq.hsqldb.debug",
+        "envvar": "LUCEE_QOQ_HSQLDB_DEBUG",
+        "desc": ""
+    },
+    {
+        "sysprop": "lucee.allow.compression",
+        "envvar": "LUCEE_ALLOW_COMPRESSION",
+        "desc": ""
+    },
+    {
+        "sysprop": "lucee.script.protect",
+        "envvar": "LUCEE_SCRIPT_PROTECT",
+        "desc": ""
+    },
+    {
+        "sysprop": "lucee.requesttimeout.memorythreshold",
+        "envvar": "LUCEE_REQUESTTIMEOUT_MEMORYTHRESHOLD",
+        "desc": ""
+    },
+    {
+        "sysprop": "lucee.qoq.parallelism",
+        "envvar": "LUCEE_QOQ_PARALLELISM",
+        "desc": ""
+    },
+    {
+        "sysprop": "lucee.use.lucee.SSL.TrustStore",
+        "envvar": "LUCEE_USE_LUCEE_SSL_TRUSTSTORE",
+        "desc": ""
+    },
+    {
+        "sysprop": "lucee.read.cfid.from.url",
+        "envvar": "LUCEE_READ_CFID_FROM_URL",
+        "desc": ""
+    },
+    {
+        "sysprop": "startlogdirectory",
+        "envvar": "STARTLOGDIRECTORY",
+        "desc": ""
+    },
+    {
+        "sysprop": "lucee.cfml.writer",
+        "envvar": "LUCEE_CFML_WRITER",
+        "desc": ""
+    },
+    {
+        "sysprop": "lucee.library.function",
+        "envvar": "LUCEE_LIBRARY_FUNCTION",
+        "desc": ""
+    },
+    {
+        "sysprop": "lucee.request.limit.concurrent.sleeptime",
+        "envvar": "LUCEE_REQUEST_LIMIT_CONCURRENT_SLEEPTIME",
+        "desc": ""
+    },
+    {
+        "sysprop": "lucee.queue.max",
+        "envvar": "LUCEE_QUEUE_MAX",
+        "desc": ""
+    },
+    {
+        "sysprop": "lucee.preserve.case",
+        "envvar": "LUCEE_PRESERVE_CASE",
+        "desc": ""
+    },
+    {
+        "sysprop": "lucee.library.tag",
+        "envvar": "LUCEE_LIBRARY_TAG",
+        "desc": ""
+    },
+    {
+        "sysprop": "lucee.cascade.to.resultset",
+        "envvar": "LUCEE_CASCADE_TO_RESULTSET",
+        "desc": ""
+    },
+    {
+        "sysprop": "lucee.library.default.fld",
+        "envvar": "LUCEE_LIBRARY_DEFAULT_FLD",
+        "desc": ""
+    },
+    {
+        "sysprop": "lucee.queue.timeout",
+        "envvar": "LUCEE_QUEUE_TIMEOUT",
+        "desc": ""
+    },
+    {
+        "sysprop": "lucee.listener.mode",
+        "envvar": "LUCEE_LISTENER_MODE",
+        "desc": ""
+    },
+    {
+        "sysprop": "lucee.disable.systemProxies",
+        "envvar": "LUCEE_DISABLE_SYSTEMPROXIES",
+        "desc": ""
+    },
+    {
+        "sysprop": "lucee.security.limitEvaluation",
+        "envvar": "LUCEE_SECURITY_LIMITEVALUATION",
+        "desc": ""
+    },
+    {
+        "sysprop": "lucee.store.empty",
+        "envvar": "LUCEE_STORE_EMPTY",
+        "desc": ""
+    },
+    {
+        "sysprop": "lucee.cli.printExceptions",
+        "envvar": "LUCEE_CLI_PRINTEXCEPTIONS",
+        "desc": ""
+    },
+    {
+        "sysprop": "lucee.security.isdefined",
+        "envvar": "LUCEE_SECURITY_ISDEFINED",
+        "desc": ""
+    },
+    {
+        "sysprop": "lucee.debugging.options",
+        "envvar": "LUCEE_DEBUGGING_OPTIONS",
+        "desc": ""
+    },
+    {
+        "sysprop": "lucee.xmlfeatures.override.disable",
+        "envvar": "LUCEE_XMLFEATURES_OVERRIDE_DISABLE",
+        "desc": ""
+    },
+    {
+        "sysprop": "lucee.extensions.install",
+        "envvar": "LUCEE_EXTENSIONS_INSTALL",
+        "desc": ""
+    },
+    {
+        "sysprop": "lucee.isdefined.limit",
+        "envvar": "LUCEE_ISDEFINED_LIMIT",
+        "desc": ""
+    },
+    {
+        "sysprop": "lucee.library.additional.tag",
+        "envvar": "LUCEE_LIBRARY_ADDITIONAL_TAG",
+        "desc": ""
+    },
+    {
+        "sysprop": "lucee.full.null.support",
+        "envvar": "LUCEE_FULL_NULL_SUPPORT",
+        "desc": ""
+    },
+    {
+        "sysprop": "lucee.pagePool.maxSize",
+        "envvar": "LUCEE_PAGEPOOL_MAXSIZE",
+        "desc": ""
+    },
+    {
+        "sysprop": "lucee.application.path.cache.timeout",
+        "envvar": "LUCEE_APPLICATION_PATH_CACHE_TIMEOUT",
+        "desc": ""
+    },
+    {
+        "sysprop": "lucee.application.listener",
+        "envvar": "LUCEE_APPLICATION_LISTENER",
+        "desc": ""
+    },
+    {
+        "sysprop": "lucee.library.default.function",
+        "envvar": "LUCEE_LIBRARY_DEFAULT_FUNCTION",
+        "desc": ""
+    },
+    {
+        "sysprop": "lucee.library.additional.function",
+        "envvar": "LUCEE_LIBRARY_ADDITIONAL_FUNCTION",
+        "desc": ""
+    },
+    {
+        "sysprop": "lucee.suppress.ws.before.arg",
+        "envvar": "LUCEE_SUPPRESS_WS_BEFORE_ARG",
+        "desc": ""
+    },
+    {
+        "sysprop": "lucee.udf.type.checking",
+        "envvar": "LUCEE_UDF_TYPE_CHECKING",
+        "desc": ""
+    },
+    {
+        "sysprop": "lucee.listener.type",
+        "envvar": "LUCEE_LISTENER_TYPE",
+        "desc": ""
+    },
+    {
+        "sysprop": "lucee.requesttimeout",
+        "envvar": "LUCEE_REQUESTTIMEOUT",
+        "desc": ""
+    },
+    {
+        "sysprop": "lucee.mapping.first",
+        "envvar": "LUCEE_MAPPING_FIRST",
+        "desc": ""
+    },
+    {
+        "sysprop": "lucee.template.charset",
+        "envvar": "LUCEE_TEMPLATE_CHARSET",
+        "desc": ""
+    }
+]

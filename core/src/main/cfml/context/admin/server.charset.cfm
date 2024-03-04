@@ -99,6 +99,7 @@ Error Output --->
 &lt;cfscript>processingdirective pageEncoding="#charset.templateCharset#";&lt;/cfscript>
 						</cfsavecontent>
 						<cfset renderCodingTip( codeSample, stText.settings.codetip)>
+						<cfset renderSysPropEnvVar( "lucee.template.charset",charset.templateCharset )>
 					</td>
 				</tr>
 				
@@ -117,6 +118,7 @@ Error Output --->
 							this.charset.web="#charset.webCharset#";
 						</cfsavecontent>
 						<cfset renderCodingTip( codeSample)>
+						<cfset renderSysPropEnvVar( "lucee.web.charset",charset.webCharset )>
 					</td>
 				</tr>
 				
@@ -135,6 +137,7 @@ Error Output --->
 							this.charset.resource="#charset.resourceCharset#";
 						</cfsavecontent>
 						<cfset renderCodingTip( codeSample)>
+						<cfset renderSysPropEnvVar( "lucee.resource.charset",charset.resourceCharset )>
 					</td>
 				</tr>
 				<cfif hasAccess>
