@@ -129,6 +129,7 @@ Error Output --->
 							this.security.limitEvaluation=#security.limitEvaluation?:true#;
 						</cfsavecontent>
 						<cfset renderCodingTip( codeSample)>
+						<cfset renderSysPropEnvVar( "lucee.security.limitEvaluation",security.limitEvaluation?:true)>
 					</td>
 				</tr>
 

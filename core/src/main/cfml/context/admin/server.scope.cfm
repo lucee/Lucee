@@ -581,6 +581,7 @@ function test() localMode="#scope.LocalMode#" {}
 							this.searchResults = #trueFalseFormat(scope.allowImplicidQueryCall)#;
 						</cfsavecontent>
 						<cfset renderCodingTip( codeSample)>
+						<cfset renderSysPropEnvVar( "lucee.cascade.to.resultset",scope.allowImplicidQueryCall)>
 					</td>
 				</tr>
 				
