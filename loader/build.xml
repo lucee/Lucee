@@ -2,7 +2,7 @@
 <project default="core" basedir="." name="Lucee" 
   xmlns:resolver="antlib:org.apache.maven.resolver.ant">
 
-  <property name="version" value="6.0.1.75-SNAPSHOT"/>
+  <property name="version" value="6.0.1.76-SNAPSHOT"/>
 
   <taskdef uri="antlib:org.apache.maven.resolver.ant" resource="org/apache/maven/resolver/ant/antlib.xml">
     <classpath>
