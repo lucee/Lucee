@@ -42,6 +42,7 @@ import lucee.runtime.listener.JavaSettingsImpl;
 import lucee.runtime.op.Caster;
 import lucee.runtime.security.SecurityManager;
 import lucee.runtime.type.util.ListUtil;
+import lucee.transformer.bytecode.util.SystemExitScanner;
 
 public final class JavaProxy implements Function {
 
@@ -112,13 +113,14 @@ public final class JavaProxy implements Function {
 					}
 				}
 				else {
-
 					resources.add(res);
 				}
 			}
 			// throw new FunctionException(pc, "JavaProxy", 2, "path", "argument path has to be an array of
 			// strings or a single string, where every string is defining a path");
 		}
+
+		SystemExitScanner.validate(resources);
 
 		// load class
 		try {

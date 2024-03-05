@@ -38,6 +38,7 @@ import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.ListUtil;
+import lucee.transformer.bytecode.util.SystemExitScanner;
 
 public class JavaSettingsImpl implements JavaSettings {
 
@@ -60,13 +61,15 @@ public class JavaSettingsImpl implements JavaSettings {
 		this.watchedExtensions = new String[] { "jar", "class" };
 	}
 
-	public JavaSettingsImpl(Resource[] resources, Resource[] bundles, Boolean loadCFMLClassPath, boolean reloadOnChange, int watchInterval, String[] watchedExtensions) {
+	public JavaSettingsImpl(Resource[] resources, Resource[] bundles, Boolean loadCFMLClassPath, boolean reloadOnChange, int watchInterval, String[] watchedExtensions)
+			throws PageException {
 		this.resources = resources;
 		this.bundles = bundles;
 		this.loadCFMLClassPath = loadCFMLClassPath;
 		this.reloadOnChange = reloadOnChange;
 		this.watchInterval = watchInterval;
 		this.watchedExtensions = watchedExtensions;
+		SystemExitScanner.validate(resources);
 	}
 
 	@Override
@@ -154,7 +157,7 @@ public class JavaSettingsImpl implements JavaSettings {
 		return watchedExtensions;
 	}
 
-	public static JavaSettingsImpl newInstance(JavaSettings base, Struct sct) {
+	public static JavaSettingsImpl newInstance(JavaSettings base, Struct sct) throws PageException {
 		// load paths
 		List<Resource> paths;
 		{

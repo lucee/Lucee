@@ -3,6 +3,7 @@ package lucee.transformer.bytecode.util;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Enumeration;
@@ -23,12 +24,21 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 
 import lucee.commons.io.IOUtil;
+import lucee.commons.io.SystemUtil;
+import lucee.commons.io.res.Resource;
+import lucee.commons.io.res.util.FileWrapper;
+import lucee.commons.lang.SerializableObject;
+import lucee.runtime.exp.ApplicationException;
+import lucee.runtime.exp.PageException;
+import lucee.runtime.op.Caster;
 
 public class SystemExitScanner {
 
 	private static final String MSG = "found a match";
+	private static Boolean validateSystemExit;
+	private static final SerializableObject token = new SerializableObject();
 
-	public static boolean has(File file) throws Exception {
+	public static boolean has(File file) throws IOException {
 		JarFile jarFile = new JarFile(file);
 		Enumeration<JarEntry> entries = jarFile.entries();
 		try {
@@ -184,6 +194,45 @@ public class SystemExitScanner {
 					// For any other method call, just delegate to parent method visitor
 					super.visitMethodInsn(opcode, owner, name, descriptor);
 				}
+			}
+		}
+	}
+
+	public static void validate(Resource[] resources) throws PageException {
+		if (resources != null && resources.length > 0 && Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.validate.systemexit", null), false)) {
+			for (Resource r: resources) {
+				validate(r);
+			}
+		}
+	}
+
+	public static void validate(List<Resource> resources) throws PageException {
+		if (resources != null && resources.size() > 0 && Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.validate.systemexit", null), false)) {
+			for (Resource r: resources) {
+				validate(r);
+			}
+		}
+	}
+
+	public static void validate(Resource res) throws PageException {
+
+		if (validateSystemExit == null) {
+			synchronized (token) {
+				if (validateSystemExit == null) {
+					validateSystemExit = Caster.toBoolean(SystemUtil.getSystemPropOrEnvVar("lucee.validate.systemexit", null), Boolean.FALSE);
+				}
+			}
+		}
+
+		if (validateSystemExit && res != null && res.exists()) {
+			try {
+				if (has(FileWrapper.toFile(res))) {
+					throw new ApplicationException("The JAR file [" + res + "] has been blocked due to a detected 'System.exit' call. "
+							+ "This action is restricted when the environment variable or system property 'LUCEE_VALIDATE_SYSTEMEXIT' or 'lucee.validate.systemexit' is enabled.");
+				}
+			}
+			catch (IOException ioe) {
+				throw Caster.toPageException(ioe);
 			}
 		}
 	}

@@ -78,6 +78,7 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.osgi.BundleRange.VersionRange;
 import lucee.runtime.type.util.ListUtil;
+import lucee.transformer.bytecode.util.SystemExitScanner;
 
 public class OSGiUtil {
 
@@ -646,6 +647,7 @@ public class OSGiUtil {
 				else {
 					// MUST find out why this breaks at startup with commandbox if version exists
 					Resource r = downloadBundle(factory, bundleRange.getName(), null, id);
+					SystemExitScanner.validate(r);
 					b = _loadBundle(bc, r);
 				}
 
