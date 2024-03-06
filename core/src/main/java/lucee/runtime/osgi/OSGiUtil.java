@@ -78,6 +78,7 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.osgi.BundleRange.VersionRange;
 import lucee.runtime.type.util.ListUtil;
+import lucee.transformer.bytecode.util.SystemExitScanner;
 
 public class OSGiUtil {
 	private static boolean[] checkBundleRanges = new boolean[] { true, false };
@@ -759,6 +760,7 @@ public class OSGiUtil {
 				}
 				else {
 					Resource r = downloadBundle(factory, bundleRange.getName(), null, id);
+					SystemExitScanner.validate(r);
 					BundleFile src = BundleFile.getInstance(r);
 					BundleFile trg = improveFileName(factory.getBundleDirectory(), src);
 					if (src != trg) r = ResourceUtil.toResource(trg.getFile());
