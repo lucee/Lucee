@@ -126,6 +126,10 @@ public class SystemExitScanner {
 		return matches;
 	}
 
+	public static void main(String[] args) throws Exception {
+		clean(new File("...."), new File("...."));
+	}
+
 	public static void clean(File existingJar, File newJar) throws Exception {
 		Map<String, List<Integer>> matches = scan(existingJar, false);
 		if (matches.size() == 0) return;
