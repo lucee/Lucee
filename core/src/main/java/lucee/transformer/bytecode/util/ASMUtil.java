@@ -95,6 +95,7 @@ import lucee.transformer.expression.var.Variable;
 import lucee.transformer.library.function.FunctionLibFunction;
 
 public final class ASMUtil {
+	public static final int CLASSWRITER_ARG = ClassWriter.COMPUTE_MAXS;// | ClassWriter.COMPUTE_FRAMES
 
 	public static final short TYPE_ALL = 0;
 	public static final short TYPE_BOOLEAN = 1;

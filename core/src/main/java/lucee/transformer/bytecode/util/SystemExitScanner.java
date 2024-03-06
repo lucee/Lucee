@@ -139,7 +139,7 @@ public class SystemExitScanner {
 					if (classes.contains(name)) {
 						// If the class is in the list, modify it
 						ClassReader cr = new ClassReader(jis);
-						ClassWriter cw = new ClassWriter(ClassReader.EXPAND_FRAMES);
+						ClassWriter cw = new ClassWriter(ASMUtil.CLASSWRITER_ARG);
 						ExitReplacerClassVisitor cv = new ExitReplacerClassVisitor(cw);
 						cr.accept(cv, 0);
 
