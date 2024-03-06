@@ -105,7 +105,7 @@ import lucee.transformer.library.function.FunctionLibFunction;
 public final class ASMUtil {
 
 	public static final int DEFAULT_JAVA_BYTECODE_VERSION = Opcodes.V1_8;
-	private static final int CLASSWRITER_ARGS = ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES;
+	public static final int CLASSWRITER_ARGS = ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES;
 
 	private static int javaBytecodeVersion = -1;
 	private static SerializableObject token = new SerializableObject();
