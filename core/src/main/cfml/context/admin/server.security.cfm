@@ -14,7 +14,7 @@
 	returnVariable="hasAccess"
 	secType="setting"
 	secValue="yes">
-
+	
 
 <!--- 
 Defaults --->
@@ -32,7 +32,7 @@ Defaults --->
 					action="updateSecurity"
 					type="#request.adminType#"
 					password="#session["password"&request.adminType]#"
-					
+					limitEvaluation="#form.limitEvaluation?:false#"
 					varUsage="#form.varUsage#"
 					remoteClients="#request.getRemoteClients()#">
 			
@@ -44,7 +44,7 @@ Defaults --->
 					action="updateSecurity"
 					type="#request.adminType#"
 					password="#session["password"&request.adminType]#"
-					
+					limitEvaluation=""
 					varUsage=""
 					remoteClients="#request.getRemoteClients()#">
 			
@@ -68,16 +68,13 @@ Redirtect to entry --->
 Error Output --->
 <cfset printError(error)>
 <cfscript>
-
-
-	stText.security.desc="All settings that concerns security in Lucee.";
+	stText.security.desc="All settings that concern security in Lucee.";
 	stText.security.varUsage="Variable Usage in Queries";
-	stText.security.varUsageDesc="With this setting you can control how Lucee handles variables used within queries.";
+	stText.security.varUsageDesc="With this setting, you can control how Lucee handles variables used within queries.";
 
 	stText.security.varUsageIgnore="Allow variables within a query";
 	stText.security.varUsageWarn="Add a warning to debug output";
 	stText.security.varUsageError="Throw an exception";
-
 </cfscript>
 <cfoutput>
 	<cfif not hasAccess>
@@ -85,12 +82,11 @@ Error Output --->
 	</cfif>
 	
 	<div class="pageintro">#stText.security.desc#</div>
-	
 	<cfformClassic onerror="customError" action="#request.self#?action=#url.action#" method="post">
 		<table class="maintbl">
 			<tbody>
 				
-				<!--- Web --->
+				<!--- Variable Usage in Queries --->
 				<tr>
 					<th scope="row">#stText.security.varUsage#</th>
 					<td>
@@ -106,9 +102,34 @@ Error Output --->
 						</cfif>
 						<div class="comment">#stText.security.varUsageDesc#</div>
 						<cfsavecontent variable="codeSample">
-							this.query.variableUsage="#security.varusage#";
+							this.security.variableUsage="#security.varusage#";
 						</cfsavecontent>
 						<cfset renderCodingTip( codeSample)>
+					</td>
+				</tr>
+				<cfscript>
+
+					stText.security.limitEvaluation="Limit variable evaluation in functions/tags";
+					stText.security.limitEvaluationDesc="If enable you cannot use expression within ""[ ]"" like this susi[getVariableName()] . 
+					This affects the following functions [IsDefined, structGet, empty] and the following tags [savecontent attribute ""variable""].";
+				
+				</cfscript>
+				<!--- limit function isDefined --->
+				<tr>
+					<th scope="row">#stText.security.limitEvaluation#</th>
+					<td>
+						<cfif hasAccess>
+							<input type="checkbox" class="checkbox" <cfif (security.limitEvaluation?:true)> checked="checked"</cfif> name="limitEvaluation" value="true" />
+						<cfelse>
+							<input type="hidden" name="limitEvaluation" value="#security.limitEvaluation?:true#">
+							<b>#yesNoFormat(security.limitEvaluation)#</b>
+						</cfif>
+						<div class="comment">#stText.security.limitEvaluationDesc#</div>
+						<cfsavecontent variable="codeSample">
+							this.security.limitEvaluation=#security.limitEvaluation?:true#;
+						</cfsavecontent>
+						<cfset renderCodingTip( codeSample)>
+						<cfset renderSysPropEnvVar( "lucee.security.limitEvaluation",security.limitEvaluation?:true)>
 					</td>
 				</tr>
 

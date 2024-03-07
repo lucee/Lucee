@@ -34,6 +34,7 @@ import lucee.runtime.concurrency.UDFCaller2;
 import lucee.runtime.exp.CasterException;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.exp.ParentException;
 import lucee.runtime.ext.function.BIF;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Array;
@@ -73,7 +74,7 @@ public class Every extends BIF implements ClosureFunc {
 
 		ExecutorService execute = null;
 		List<Future<Data<Object>>> futures = null;
-		if (parallel) {
+		if (parallel && maxThreads > 1) {
 			execute = Executors.newFixedThreadPool(maxThreads);
 			futures = new ArrayList<Future<Data<Object>>>();
 		}
@@ -131,7 +132,7 @@ public class Every extends BIF implements ClosureFunc {
 		else if (obj instanceof StringListData) {
 			res = invoke(pc, (StringListData) obj, udf, execute, futures);
 		}
-		else throw new FunctionException(pc, "Every", 1, "data", "cannot iterate througth this type " + Caster.toTypeName(obj.getClass()));
+		else throw new FunctionException(pc, "Every", 1, "data", "Cannot iterate over this type [" + Caster.toTypeName(obj.getClass()) + "]");
 
 		if (parallel) res = afterCall(pc, futures, execute);
 
@@ -147,9 +148,10 @@ public class Every extends BIF implements ClosureFunc {
 
 		boolean async = es != null;
 		Object res;
+		ParentException parentException = new ParentException();
 		while (it.hasNext()) {
 			e = (Entry) it.next();
-			res = _inv(pc, udf, new Object[] { e.getValue(), Caster.toDoubleValue(e.getKey()), arr }, e.getKey(), e.getValue(), es, futures);
+			res = _inv(pc, parentException, udf, new Object[] { e.getValue(), Caster.toDoubleValue(e.getKey()), arr }, e.getKey(), e.getValue(), es, futures);
 			if (!async && !Caster.toBooleanValue(res)) {
 				return false;
 			}
@@ -163,11 +165,12 @@ public class Every extends BIF implements ClosureFunc {
 		boolean async = es != null;
 		double r;
 		Object res, row;
+		ParentException parentException = new ParentException();
 		try {
 			while (it.hasNext()) {
 				row = it.next();
 				r = Caster.toDoubleValue(qry.getCurrentrow(pid));
-				res = _inv(pc, udf, new Object[] { row, r, qry }, r, row, es, futures);
+				res = _inv(pc, parentException, udf, new Object[] { row, r, qry }, r, row, es, futures);
 				if (!async && !Caster.toBooleanValue(res)) {
 					return false;
 				}
@@ -186,9 +189,10 @@ public class Every extends BIF implements ClosureFunc {
 		Entry e;
 		boolean async = es != null;
 		Object res;
+		ParentException parentException = new ParentException();
 		while (it.hasNext()) {
 			e = (Entry) it.next();
-			res = _inv(pc, udf, new Object[] { e.getValue(), Caster.toDoubleValue(e.getKey()), sld.list, sld.delimiter }, e.getKey(), e.getValue(), es, futures);
+			res = _inv(pc, parentException, udf, new Object[] { e.getValue(), Caster.toDoubleValue(e.getKey()), sld.list, sld.delimiter }, e.getKey(), e.getValue(), es, futures);
 			if (!async && !Caster.toBooleanValue(res)) {
 				return false;
 			}
@@ -202,11 +206,12 @@ public class Every extends BIF implements ClosureFunc {
 		Object res, v;
 		int index;
 		ArgumentIntKey k;
+		ParentException parentException = new ParentException();
 		while (it.hasNext()) {
 			index = it.nextIndex();
 			k = ArgumentIntKey.init(index);
 			v = it.next();
-			res = _inv(pc, udf, new Object[] { v, Caster.toDoubleValue(k.getString()), list }, k, v, es, futures);
+			res = _inv(pc, parentException, udf, new Object[] { v, Caster.toDoubleValue(k.getString()), list }, k, v, es, futures);
 			if (!async && !Caster.toBooleanValue(res)) return false;
 		}
 		return true;
@@ -217,9 +222,10 @@ public class Every extends BIF implements ClosureFunc {
 		Entry<Key, Object> e;
 		boolean async = es != null;
 		Object res;
+		ParentException parentException = new ParentException();
 		while (it.hasNext()) {
 			e = it.next();
-			res = _inv(pc, udf, new Object[] { e.getKey().getString(), e.getValue(), sct }, e.getKey(), e.getValue(), es, futures);
+			res = _inv(pc, parentException, udf, new Object[] { e.getKey().getString(), e.getValue(), sct }, e.getKey(), e.getValue(), es, futures);
 			if (!async && !Caster.toBooleanValue(res)) return false;
 		}
 		return true;
@@ -230,9 +236,10 @@ public class Every extends BIF implements ClosureFunc {
 		Entry e;
 		boolean async = es != null;
 		Object res;
+		ParentException parentException = new ParentException();
 		while (it.hasNext()) {
 			e = it.next();
-			res = _inv(pc, udf, new Object[] { e.getKey(), e.getValue(), map }, e.getKey(), e.getValue(), es, futures);
+			res = _inv(pc, parentException, udf, new Object[] { e.getKey(), e.getValue(), map }, e.getKey(), e.getValue(), es, futures);
 			if (!async && !Caster.toBooleanValue(res)) return false;
 		}
 		return true;
@@ -244,9 +251,10 @@ public class Every extends BIF implements ClosureFunc {
 		Entry<Key, Object> e;
 		boolean async = es != null;
 		Object res;
+		ParentException parentException = new ParentException();
 		while (it.hasNext()) {
 			e = it.next();
-			res = _inv(pc, udf, new Object[] { e.getKey().getString(), e.getValue() }, e.getKey(), e.getValue(), es, futures);
+			res = _inv(pc, parentException, udf, new Object[] { e.getKey().getString(), e.getValue() }, e.getKey(), e.getValue(), es, futures);
 			if (!async && !Caster.toBooleanValue(res)) return false;
 		}
 		return true;
@@ -259,10 +267,11 @@ public class Every extends BIF implements ClosureFunc {
 		Object res;
 		int count = 0;
 		ArgumentIntKey k;
+		ParentException parentException = new ParentException();
 		while (it.hasNext()) {
 			v = it.next();
 			k = ArgumentIntKey.init(++count);
-			res = _inv(pc, udf, new Object[] { v }, k, v, es, futures);
+			res = _inv(pc, parentException, udf, new Object[] { v }, k, v, es, futures);
 			if (!async && !Caster.toBooleanValue(res)) return false;
 		}
 		return true;
@@ -275,20 +284,22 @@ public class Every extends BIF implements ClosureFunc {
 		Object res;
 		int count = 0;
 		ArgumentIntKey k;
+		ParentException parentException = new ParentException();
 		while (e.hasMoreElements()) {
 			v = e.nextElement();
 			k = ArgumentIntKey.init(++count);
-			res = _inv(pc, udf, new Object[] { v }, k, v, es, futures);
+			res = _inv(pc, parentException, udf, new Object[] { v }, k, v, es, futures);
 			if (!async && !Caster.toBooleanValue(res)) return false;
 		}
 		return true;
 	}
 
-	private static Object _inv(PageContext pc, UDF udf, Object[] args, Object key, Object value, ExecutorService es, List<Future<Data<Object>>> futures) throws PageException {
+	private static Object _inv(PageContext pc, ParentException parentException, UDF udf, Object[] args, Object key, Object value, ExecutorService es,
+			List<Future<Data<Object>>> futures) throws PageException {
 		if (es == null) {
 			return udf.call(pc, args, true);
 		}
-		futures.add(es.submit(new UDFCaller2<Object>(pc, udf, args, null, true)));
+		futures.add(es.submit(new UDFCaller2<Object>(pc, parentException, udf, args, null, true)));
 		return null;
 	}
 

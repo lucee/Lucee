@@ -23,6 +23,7 @@ package lucee.runtime.functions.system;
 
 import java.io.IOException;
 
+import lucee.commons.io.SystemUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.StringUtil;
@@ -30,9 +31,13 @@ import lucee.runtime.PageContext;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
-import lucee.runtime.op.Caster;
+import lucee.runtime.functions.other.CreateUniqueId;
 
 public final class GetTempFile implements Function {
+
+	private static final long serialVersionUID = -166719554831864953L;
+	private static final int MAX_RETRY = 3;
+
 	public static String call(PageContext pc, String strDir, String prefix) throws PageException {
 		return call(pc, strDir, prefix, ".tmp");
 	}
@@ -41,20 +46,33 @@ public final class GetTempFile implements Function {
 		Resource dir = ResourceUtil.toResourceExisting(pc, strDir);
 		pc.getConfig().getSecurityManager().checkFileLocation(dir);
 		if (!dir.isDirectory()) throw new ExpressionException("[" + strDir + "] is not a directory");
-		int count = 1;
 		Resource file;
-		if (StringUtil.isEmpty(extension, true)) extension = ".tmp";
-		if (extension.charAt(0) != '.') extension = "." + extension;
-		while ((file = dir.getRealResource(prefix + pc.getId() + count + extension)).exists()) {
-			count++;
+
+		if (StringUtil.isEmpty(extension, true)) {
+			extension = ".tmp";
 		}
-		try {
-			file.createFile(false);
-			// file.createNewFile();
-			return file.getCanonicalPath();
+		else if (extension.charAt(0) != '.') {
+			extension = "." + extension;
 		}
-		catch (IOException e) {
-			throw Caster.toPageException(e);
+
+		IOException ioe = null;
+		int max = MAX_RETRY;
+		while (max-- > 0) {
+			file = dir.getRealResource(prefix + "-" + Long.toString(System.currentTimeMillis(), Character.MAX_RADIX) + "_" + CreateUniqueId.invoke() + extension);
+			synchronized (SystemUtil.createToken("", file.getAbsolutePath())) {
+				try {
+					if (file.exists()) continue;
+					file.createFile(true);
+					return file.getCanonicalPath();
+				}
+				catch (IOException e) {
+					ioe = e;
+				}
+			}
 		}
+
+		ExpressionException ee = new ExpressionException("Unable to create temporary file in [" + strDir + "] after " + MAX_RETRY + " tries");
+		ee.initCause(ioe);
+		throw ee;
 	}
 }

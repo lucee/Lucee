@@ -80,7 +80,13 @@ public abstract class ScopeSupport extends StructImpl implements Scope {
 		super(mapType);
 		this.name = name;
 		this.type = type;
+		id = ++_id;
+	}
 
+	public ScopeSupport(String name, int type, int mapType, int initalCapacity) {
+		super(mapType, initalCapacity);
+		this.name = name;
+		this.type = type;
 		id = ++_id;
 	}
 
@@ -149,13 +155,13 @@ public abstract class ScopeSupport extends StructImpl implements Scope {
 		}
 	}
 
-	protected void fillDecodedEL(URLItem[] raw, String encoding, boolean scriptProteced, boolean sameAsArray) {
+	protected void fillDecodedEL(URLItem[] raw, String encoding, boolean scriptProteced, boolean sameAsArray, boolean formUrlAsStruct) {
 		try {
-			fillDecoded(raw, encoding, scriptProteced, sameAsArray);
+			fillDecoded(raw, encoding, scriptProteced, sameAsArray, formUrlAsStruct);
 		}
 		catch (UnsupportedEncodingException e) {
 			try {
-				fillDecoded(raw, "iso-8859-1", scriptProteced, sameAsArray);
+				fillDecoded(raw, "iso-8859-1", scriptProteced, sameAsArray, formUrlAsStruct);
 			}
 			catch (UnsupportedEncodingException e1) {
 			}
@@ -169,7 +175,7 @@ public abstract class ScopeSupport extends StructImpl implements Scope {
 	 * @param encoding
 	 * @throws UnsupportedEncodingException
 	 */
-	protected void fillDecoded(URLItem[] raw, String encoding, boolean scriptProteced, boolean sameAsArray) throws UnsupportedEncodingException {
+	protected void fillDecoded(URLItem[] raw, String encoding, boolean scriptProteced, boolean sameAsArray, boolean formUrlAsStruct) throws UnsupportedEncodingException {
 		clear();
 		String name, value;
 		// Object curr;
@@ -180,8 +186,8 @@ public abstract class ScopeSupport extends StructImpl implements Scope {
 				name = URLDecoder.decode(name, encoding, true);
 				value = URLDecoder.decode(value, encoding, true);
 			}
-			// MUST valueStruct
-			if (name.indexOf('.') != -1) {
+
+			if (formUrlAsStruct && name.indexOf('.') != -1) {
 
 				StringList list = ListUtil.listToStringListRemoveEmpty(name, '.');
 				if (list.size() > 0) {
@@ -210,7 +216,7 @@ public abstract class ScopeSupport extends StructImpl implements Scope {
 		if (name.length() > 2 && name.endsWith("[]")) {
 			isArrayDef = true;
 			name = name.substring(0, name.length() - 2);
-			key = KeyImpl.getInstance(name);
+			key = KeyImpl.init(name);
 			curr = parent.get(key, null);
 		}
 		else {

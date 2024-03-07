@@ -131,21 +131,7 @@ Redirtect to entry  --->
 						</cfif>
 					</td>
 				</tr>
-				
-				<!--- dialect
-				
-				makes no sense to define this here
-				<tr>
-					<th scope="row">#stText.Settings.orm.dialect#</th>
-					<td>
-							<input type="text" name="dialect" size="80" value="#settings.dialect#" /><br />
-							<span class="comment">#stText.Settings.orm.dialectDesc#</span>
-						
-						
-					</td>
-				</tr>
-				 ---> 
-				
+
 				<!--- eventHandling --->
 				<tr>
 					<th scope="row">#stText.Settings.orm.eventHandling#</th>

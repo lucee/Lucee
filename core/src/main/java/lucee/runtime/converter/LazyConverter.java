@@ -20,7 +20,8 @@ package lucee.runtime.converter;
 
 import java.io.IOException;
 import java.io.Writer;
-import java.util.HashSet;
+import java.util.Collections;
+import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.Set;
 
@@ -35,7 +36,7 @@ import lucee.runtime.type.Struct;
 public class LazyConverter extends ConverterSupport {
 
 	public static String serialize(Object o) {
-		return serialize(o, new HashSet<Object>());
+		return serialize(o, Collections.newSetFromMap(new IdentityHashMap<>()));
 	}
 
 	@Override

@@ -33,7 +33,6 @@ public class InitFile {
 		this.ps = ps;
 		this.filename = filename;
 
-		// the lucee dialect has not different extension for component and templates, but this dialect also
 		// only supports components
 		isCFC = false;
 		String[] extensions = Constants.getComponentExtensions();// CustomTagUtil.getComponentExtension(pc,ps);

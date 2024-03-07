@@ -48,7 +48,7 @@ public final class StructDelete extends BIF {
 			boolean indicatenotexisting = Caster.toBooleanValue(args[2]);
 			Struct struct = Caster.toStruct(args[0]);
 			String key = Caster.toString(args[1]);
-			if(indicatenotexisting && !struct.containsKey(key)) throw new TemplateException("Cannot delete item with key " + key, "The key doesn't exist.");
+			if (indicatenotexisting && !struct.containsKey(key)) throw new TemplateException("Cannot delete item with key " + key, "The key doesn't exist.");
 			return call(pc, struct, key, indicatenotexisting);
 		}
 		if (args.length == 2) return call(pc, Caster.toStruct(args[0]), Caster.toString(args[1]));

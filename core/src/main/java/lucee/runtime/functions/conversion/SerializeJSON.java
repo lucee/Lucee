@@ -42,14 +42,18 @@ public final class SerializeJSON implements Function {
 	private static final long serialVersionUID = -4632952919389635891L;
 
 	public static String call(PageContext pc, Object var) throws PageException {
-		return _call(pc, var, "", pc.getWebCharset(), false);
+		return _call(pc, var, "", pc.getWebCharset(), false, true);
 	}
 
 	public static String call(PageContext pc, Object var, Object queryFormat) throws PageException {
-		return _call(pc, var, queryFormat, pc.getWebCharset(), false);
+		return _call(pc, var, queryFormat, pc.getWebCharset(), false, true);
 	}
 
 	public static String call(PageContext pc, Object var, Object queryFormat, Object useSecureJSONPrefixOrCharset) throws PageException {
+		return call(pc, var, queryFormat, useSecureJSONPrefixOrCharset, true);
+	}
+
+	public static String call(PageContext pc, Object var, Object queryFormat, Object useSecureJSONPrefixOrCharset, boolean compact) throws PageException {
 		// TODO all options to be a struct
 
 		// useSecureJSONPrefix
@@ -62,16 +66,16 @@ public final class SerializeJSON implements Function {
 		else if (!StringUtil.isEmpty(useSecureJSONPrefixOrCharset)) {
 			cs = CharsetUtil.toCharset(Caster.toString(useSecureJSONPrefixOrCharset));
 		}
-		return _call(pc, var, queryFormat, cs, useSecureJSONPrefix);
+		return _call(pc, var, queryFormat, cs, useSecureJSONPrefix, compact);
 	}
 
-	private static String _call(PageContext pc, Object var, Object queryFormat, Charset charset, boolean useSecureJSONPrefix) throws PageException {
+	private static String _call(PageContext pc, Object var, Object queryFormat, Charset charset, boolean useSecureJSONPrefix, boolean compact) throws PageException {
 		try {
-			JSONConverter json = new JSONConverter(true, charset, JSONDateFormat.PATTERN_CF);
+			JSONConverter json = new JSONConverter(false, charset, JSONDateFormat.PATTERN_CF, compact);
 
 			int qf = JSONConverter.toQueryFormat(queryFormat, SerializationSettings.SERIALIZE_AS_UNDEFINED);
 			if (qf == SerializationSettings.SERIALIZE_AS_UNDEFINED) {
-				if (!StringUtil.isEmpty(queryFormat)) throw new FunctionException(pc, SerializeJSON.class.getSimpleName(), 2, "queryFormat",
+				if (!StringUtil.isEmpty(queryFormat)) throw new FunctionException(pc, SerializeJSON.class.getSimpleName(), 3, "queryFormat",
 						"When var is a Query, argument [queryFormat] must be either a boolean value or a string with the value of [struct], [row], or [column]");
 				ApplicationContextSupport acs = (ApplicationContextSupport) pc.getApplicationContext();
 				SerializationSettings settings = acs.getSerializationSettings();
@@ -79,7 +83,7 @@ public final class SerializeJSON implements Function {
 			}
 
 			// TODO get secure prefix from application.cfc
-			return useSecureJSONPrefix ? "// " + json.serialize(pc, var, qf) : json.serialize(pc, var, qf);
+			return useSecureJSONPrefix ? "// " + json.serialize(pc, var, qf, null) : json.serialize(pc, var, qf, null);
 		}
 		catch (ConverterException e) {
 			throw Caster.toPageException(e);

@@ -39,6 +39,7 @@ import lucee.runtime.PageContextImpl;
 import lucee.runtime.PageSource;
 import lucee.runtime.PageSourceImpl;
 import lucee.runtime.config.Config;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.config.Constants;
 import lucee.runtime.dump.DumpData;
@@ -103,7 +104,7 @@ public abstract class PageExceptionImpl extends PageException {
 	 * @param customType CUstom Type as String
 	 */
 	public PageExceptionImpl(String message, String type, String customType) {
-		super(message == null ? "" : message);
+		super(filterSecrets(message == null ? "" : message, 0));
 		// rootCause=this;
 		this.type = type.toLowerCase().trim();
 		this.customType = customType;
@@ -117,7 +118,7 @@ public abstract class PageExceptionImpl extends PageException {
 	 * @param type Type as String
 	 */
 	public PageExceptionImpl(Throwable e, String type) {
-		super(StringUtil.isEmpty(e.getMessage(), true) ? e.getClass().getName() : e.getMessage());
+		super(filterSecrets(StringUtil.isEmpty(e.getMessage(), true) ? e.getClass().getName() : e.getMessage(), 0));
 		if (e instanceof InvocationTargetException) e = ((InvocationTargetException) e).getTargetException();
 
 		// Throwable cause = e.getCause();
@@ -133,6 +134,39 @@ public abstract class PageExceptionImpl extends PageException {
 			this.setExtendedInfo(pe.getExtendedInfo());
 		}
 		this.type = type.trim();
+	}
+
+	private static String filterSecrets(String msg, int startIndex) {
+		if (!StringUtil.isEmpty(msg)) {
+			// S3 secret
+			startIndex = StringUtil.indexOfIgnoreCase(msg, "s3://", startIndex);
+			if (startIndex != -1) {
+				startIndex += 5;
+				int atIndex = msg.indexOf('@', startIndex + 1);
+				int colonIndex = msg.indexOf(':', startIndex + 1);
+				int slashIndex = msg.indexOf('/', startIndex + 1);
+				if (atIndex != -1) {
+					if (colonIndex != -1 && colonIndex < atIndex) {
+						String secretAccessKey = msg.substring(colonIndex + 1, atIndex);
+						int index = secretAccessKey.indexOf(':');
+						if (index != -1) {
+							secretAccessKey = secretAccessKey.substring(0, index);
+						}
+						msg = StringUtil.replace(msg, secretAccessKey, "{SECRET_ACCESS_KEY}", false, true);
+						return msg;
+					}
+				}
+				if (slashIndex != -1) {
+					String secretAccessKey = msg.substring(colonIndex + 1, slashIndex);
+					int index = secretAccessKey.indexOf(':');
+					if (index != -1) {
+						secretAccessKey = secretAccessKey.substring(0, index);
+					}
+					msg = StringUtil.replace(msg, secretAccessKey, "{SECRET_ACCESS_KEY}", false, true);
+				}
+			}
+		}
+		return msg;
 	}
 
 	@Override
@@ -177,7 +211,7 @@ public abstract class PageExceptionImpl extends PageException {
 
 	@Override
 	public CatchBlock getCatchBlock(Config config) {
-		return new CatchBlockImpl(this);
+		return new CatchBlockImpl(this, 0);
 	}
 
 	public Array getTagContext(Config config) {
@@ -239,9 +273,10 @@ public abstract class PageExceptionImpl extends PageException {
 						dspPath = si.relativePath;
 						res = ResourceUtil.toResourceNotExisting(ThreadLocalPageContext.get(), si.relativePath, true, true);
 						if (!res.exists()) {
-							PageSource _ps = PageSourceImpl.best(config.getPageSources(ThreadLocalPageContext.get(), null, si.relativePath, false, false, true));
-							if (_ps != null && _ps.exists()) {
-								res = _ps.getResource();
+							Resource _res = PageSourceImpl
+									.best(((ConfigPro) config).getResources(ThreadLocalPageContext.get(), null, si.relativePath, false, false, true, false, true));
+							if (_res != null && _res.exists()) {
+								res = _res;
 								if (res != null && res.exists()) dspPath = res.getAbsolutePath();
 							}
 							else dspPath = res.getAbsolutePath();
@@ -413,11 +448,12 @@ public abstract class PageExceptionImpl extends PageException {
 
 	private static String getCodePrint(String[] content, int line, boolean asHTML) {
 		StringBuilder sb = new StringBuilder();
-		// bad Line
 		for (int i = line - 2; i < line + 3; i++) {
 			if (i > 0 && i <= content.length) {
 				if (asHTML && i == line) sb.append("<b>");
-				if (asHTML) sb.append(i + ": " + StringUtil.escapeHTML(content[i - 1]));
+				if (asHTML) {
+					sb.append(i + ": " + StringUtil.replace(StringUtil.replace(StringUtil.escapeHTML(content[i - 1]), " ", "&nbsp;"), "\t", "&nbsp;&nbsp;&nbsp;"));
+				}
 				else sb.append(i + ": " + (content[i - 1]));
 				if (asHTML && i == line) sb.append("</b>");
 				if (asHTML) sb.append("<br>");
@@ -559,25 +595,36 @@ public abstract class PageExceptionImpl extends PageException {
 		if (trace.getFileName() == null || trace.getFileName().endsWith(".java")) return trace.toString();
 		Config config = ThreadLocalPageContext.getConfig(pc);
 		if (config != null) {
-			Resource res = pc.getConfig().getResource(trace.getFileName());
-			if (res.exists()) path = trace.getFileName();
-
-			// get path from source
-			if (path == null) {
-				SourceInfo si = MappingUtil.getMatch(pc, trace);
-				if (si != null) {
-					if (si.absolutePath(pc) != null) {
-						res = pc.getConfig().getResource(si.absolutePath(pc));
-						if (res.exists()) path = si.absolutePath(pc);
-					}
-					if (path == null && si.relativePath != null) path = si.relativePath;
-				}
-				if (path == null) path = trace.getFileName();
-			}
+			path = abs((PageContextImpl) pc, config, trace.getFileName());
+			/*
+			 * Resource res = pc.getConfig().getResource(trace.getFileName()); if (res.exists()) path =
+			 * trace.getFileName();
+			 * 
+			 * // get path from source if (path == null) { SourceInfo si = MappingUtil.getMatch(pc, trace); if
+			 * (si != null) { if (si.absolutePath(pc) != null) { res =
+			 * pc.getConfig().getResource(si.absolutePath(pc)); if (res.exists()) path = si.absolutePath(pc); }
+			 * if (path == null && si.relativePath != null) path = si.relativePath; } if (path == null) path =
+			 * trace.getFileName(); }
+			 */
 		}
 		return trace.getClassName() + "." + trace.getMethodName() + (trace.isNativeMethod() ? "(Native Method)"
 				: (path != null && trace.getLineNumber() >= 0 ? "(" + path + ":" + trace.getLineNumber() + ")" : (path != null ? "(" + path + ")" : "(Unknown Source)")));
 
+	}
+
+	private static String abs(PageContextImpl pci, Config config, String template) {
+
+		Resource res = config.getResource(template);
+		if (res.exists()) return template;
+
+		PageSource ps = pci == null ? null : pci.getPageSource(template);
+		res = ps == null ? null : ps.getPhyscalFile();
+		if (res == null || !res.exists()) {
+			res = config.getResource(ps.getDisplayPath());
+			if (res != null && res.exists()) return res.getAbsolutePath();
+		}
+		else return res.getAbsolutePath();
+		return template;
 	}
 
 	private static StackTraceElement[] getStackTraceElements(Throwable t) {

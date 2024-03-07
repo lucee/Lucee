@@ -30,7 +30,7 @@ import lucee.transformer.library.tag.TagLibTag;
 
 public final class While extends EvaluatorSupport {
 	@Override
-	public void evaluate(Tag tag, TagLibTag tagLibTag, FunctionLib[] flibs) throws EvaluatorException {
+	public void evaluate(Tag tag, TagLibTag tagLibTag, FunctionLib flibs) throws EvaluatorException {
 		TagWhile whil = (TagWhile) tag;
 
 		// label

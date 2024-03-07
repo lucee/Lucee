@@ -10,50 +10,7 @@
 	<cfformClassic onerror="customError" action="#request.self#?action=#url.action#" method="post">
 		<table class="maintbl">
 			<tbody>
-				<!--- Base Component ---->
-				
-				<tr>
-					<th scope="row">#stText.Components.BaseComponent# </th>
-<cfset css=iif(len(component["baseComponentTemplateCFML"]) EQ 0 and len(component["strBaseComponentTemplateCFML"]) NEQ 0,de('Red'),de(''))>
-					<td class="tblContent#css#" title="#component["strBaseComponentTemplateCFML"]#
-#component["BaseComponentTemplateCFML"]#">
-						
-
-
-						<!---<table class="maintbl">
-						<cfloop list="CFML,Lucee" item="dialect">
-					<cfset css=iif(len(component["baseComponentTemplate"&dialect]) EQ 0 and
-					 len(component["strBaseComponentTemplate"&dialect]) NEQ 0,de('Red'),de(''))>
-							<tr>
-							<th scope="row">Dialect #dialect#</th>
-							<td class="tblContent#css#" title="#component["strBaseComponentTemplate"&dialect]#
-#component["BaseComponentTemplate"&dialect]#">
-							<cfif hasAccess>
-								<cfinputClassic type="text" name="baseComponentTemplate#dialect#" value="#component["strBaseComponentTemplate"&dialect]#" style="width:350px" 
-									required="no" 
-									message="#stText.Components.BaseComponentMissing#">
-							<cfelse>
-								<b>#component["strBaseComponentTemplate"&dialect]#</b>
-							</cfif>
-							</td>
-							</tr>
-						</cfloop>--->
-
-
-							<cfif hasAccess>
-								<cfinputClassic type="text" name="baseComponentTemplateCFML" value="#component["strBaseComponentTemplateCFML"]#" style="width:350px" 
-									required="no" 
-									message="#stText.Components.BaseComponentMissing#">
-							<cfelse>
-								<b>#component["strBaseComponentTemplateCFML"]#</b>
-							</cfif>
-							
-						<cfoutput><input type="hidden" name="baseComponentTemplateLucee" value="#component["strBaseComponentTemplateLucee"]#" ></cfoutput>
-
-
-						<div class="comment">#stText.Components.BaseComponentDescription#</div>
-					</td>
-				</tr>
+			
 				<!--- Auto Import ---->
 				<tr>
 					<th scope="row">#stText.Components.AutoImport#</th>
@@ -133,16 +90,7 @@
 						<div class="comment">#replace(stText.Components.ComponentDumpTemplateDescription,'{url}',"<a href=""#_url#"">#_url#</a>",'all')#</div>
 					</td>
 				</tr>
-<!---			
-			</tbody>
-		</table>
 
-		<h3>#stText.general.dialect.cfml#</h3>
-		<div class="itemintro">#stText.general.dialect.cfmlDesc#</div>
-		
-		<table class="maintbl">
-			<tbody>
---->
 				<!--- Data Member Access Type --->
 				<tr>
 					<th scope="row">#stText.Components.DataMemberAccessType#</th>
@@ -189,6 +137,30 @@
 							<b>#iif(component.useShadow,de('Yes'),de('No'))#</b>
 						</cfif>
 						<div class="comment">#stText.Components.useShadowDescription#</div>
+					</td>
+				</tr>
+				<!--- default return format --->
+				<cfset stText.Components.returnFormat="Default return format">
+				<cfset stText.Components.returnFormatDesc="This setting allows you to define the return format for data from remote function calls, 
+				ensuring compatibility with various client-side requirements. 
+				Available formats include CFML, JSON, WDDX, XML, and plain text, catering to different data parsing and presentation needs. Additionally, this global setting can be overridden in the application.cfc using the this.returnFormat setting or directly within the function itself via the returnFormat attribute, providing flexibility for specific use cases.">
+				<tr>
+					<th scope="row">#stText.Components.returnFormat#</th>
+					<td>
+						<cfset access=component.componentDataMemberDefaultAccess>
+						<cfif hasAccess>
+							<cfset df=component.returnFormat?:"wddx">
+							<select name="returnformat" class="medium">
+								<cfloop list="cfml,json,wddx,xml,pLain" item="format">
+								<option value="#format#" <cfif format EQ df>selected</cfif>>#Ucase(format)#</option>
+								</cfloop>
+							</select>
+						<cfelse>
+							<b>#ucase(df)#</b>
+						</cfif>
+						<div class="comment">#stText.Components.returnFormatDesc#</div>
+						<!--- Tip --->
+						<cfset renderCodingTip( "this.returnformat = """&(component.returnFormat?:"wddx")&""";" )>
 					</td>
 				</tr>
 				<cfif hasAccess>
@@ -252,59 +224,29 @@
 						</td>
 						<cfset css=iif(len(mappings.physical) EQ 0 and len(mappings.strPhysical) NEQ 0,de('Red'),de(''))>
 						<td class="tblContent#css# longwords">
-							<cfif mappings.ReadOnly>
-								#mappings.strphysical#
-							<cfelse>
-								<cfinputClassic onKeyDown="checkTheBox(this)" type="text"
-								name="physical_#mappings.currentrow#" value="#mappings.strphysical#" required="no"
-								class="xlarge"
-								message="#stText.Components.PhysicalMissing##mappings.currentrow#)">
-							</cfif>
+							#mappings.strphysical#
 						</td>
 						
 						<cfset css=iif(len(mappings.archive) EQ 0 and len(mappings.strArchive) NEQ 0,de('Red'),de(''))>
 						<td class="tblContent#css# longwords">
-							<cfif mappings.ReadOnly>
-								#mappings.strarchive#
-							<cfelse>
-								<cfinputClassic onKeyDown="checkTheBox(this)" type="text"
-								name="archive_#mappings.currentrow#" value="#mappings.strarchive#" required="no"
-								class="xlarge"
-								message="#stText.Components.ArchiveMissing##mappings.currentrow#)">
-							</cfif>
+							#mappings.strarchive#
 						</td>
 						
-						<td><cfif mappings.ReadOnly>
+						<td>
 							<cfif mappings.PhysicalFirst>
 									#stText.Mappings.Physical#
 								<cfelse>
 									#stText.Mappings.Archive#
 								</cfif>
-							<cfelse><select name="primary_#mappings.currentrow#" onchange="checkTheBox(this)">
-							<option value="physical" <cfif mappings.physicalFirst>selected</cfif>>#stText.Components.physical#</option>
-							<option value="archive" <cfif not mappings.physicalFirst>selected</cfif>>#stText.Components.archive#</option>
-						</select></cfif></td>
+						</td>
 						
 						<td>
 						<!--- inspect --->
-						<cfif mappings.readOnly>
 							<cfif len(mappings.inspect)>
 								#stText.setting['inspecttemplate'&mappings.inspect&'Short']#
 							<cfelse>
-								#stText.setting['inspecttemplateInheritShort']#
+								#stText.setting['inspecttemplateInheritShort']#&nbsp;(#stText.setting['inspecttemplate'&performanceSettings.inspectTemplate&'Short']?:''#)
 							</cfif>
-						
-						
-							<cfelse>
-							<select name="inspect_#mappings.currentrow#" onchange="checkTheBox(this)">
-							<cfloop list="never,once,always,inherit" item="type">
-									<option value="#type EQ "inherit"?"":type#" <cfif mappings.inspect EQ type or (type EQ "inherit" and mappings.inspect EQ "")>selected</cfif>>
-										#stText.setting['inspecttemplate#type#Short']#
-									</option>
-							</cfloop>
-							</select>
-							</cfif>
-						
 						</td>
 						<!--- edit --->
 						<td>
@@ -323,8 +265,7 @@
 					<tr>
 						<td colspan="7">
 							<input type="hidden" name="mainAction" value="#stText.Buttons.Update#">
-							<input type="submit" class="bl button submit" name="subAction" value="#stText.Buttons.Update#">
-							<input type="reset" class="bm button reset" name="cancel" value="#stText.Buttons.Cancel#">
+							<input type="reset" class="bl button reset" name="cancel" value="#stText.Buttons.Cancel#">
 							<input type="submit" class="br button submit" name="subAction" value="#stText.Buttons.Delete#">
 						</td>	
 					</tr>
@@ -374,14 +315,21 @@
 					<tr>
 						<th scope="row">#stText.Mappings.TrustedHead#</th>
 						<td>
-							#stText.Components.trustedDesc#
 							<ul class="radiolist">
-							<cfloop list="never,once,always,inherit" item="type">
+							<cfloop list="auto,never,once,always,inherit" item="type">
 								<li><label>
 									<input class="radio" type="radio" name="inspect_1" value="#type EQ "inherit"?"":type#" <cfif type EQ "inherit"> checked="checked"</cfif>>
 									<b>#stText.setting['inspectTemplate'&type]#</b>
 								</label>
 								<div class="comment">#stText.setting['inspectTemplate'&type&"Desc"]#</div>
+								<cfif type EQ "auto">
+									<div class="comment">
+										<b>#stText.setting.inspectTemplateInterval#</b><br>
+										#stText.setting.inspectTemplateIntervalDesc#<br>
+									<input type="text" name="inspectTemplateIntervalSlow_1" value="#performancesettings.inspectTemplateIntervalSlow#" size="6"> #stText.setting.inspectTemplateIntervalSlow#<br>
+									<input type="text" name="inspectTemplateIntervalFast_1" value="#performancesettings.inspectTemplateIntervalFast#" size="6"> #stText.setting.inspectTemplateIntervalFast#<br>
+									</div>
+								</cfif>
 								</li>
 							</cfloop>
 							</ul>

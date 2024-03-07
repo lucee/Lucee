@@ -236,9 +236,6 @@ public class MySQL extends CoreSupport {
 	}
 
 	private void writeUpdate(DatasourceConnection dc, String prefix, Attr attr, InputStream is, boolean append) throws SQLException {
-
-		// update rdr_data set rdr_data = concat(rdr_data,'susi') where rdr_id = 1
-
 		String sql = append ? "update " + prefix + "data set rdr_data=concat(rdr_data,?) where rdr_id=?" : "update " + prefix + "data set rdr_data=? where rdr_id=?";
 		log(sql);
 		PreparedStatement stat1 = null;

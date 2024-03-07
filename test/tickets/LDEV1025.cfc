@@ -5,6 +5,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 			TZ: dateTimeFormat(dateandtime, "z"),
 			Offset: dateTimeFormat(dateandtime, "Z")
 		};
+		variables.narrowNBSP = chr(8239);
 	}
 
 	private function getJavaVersion() {
@@ -252,12 +253,13 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 						dfu_SHORT : DateTimeFormat(dateandtime, "SHORT")
 					};
 					
-					if(getJavaVersion()>=9) {
+					if (getJavaVersion()>=19) {
+						expect(ds_predefined.df_short) .toBe('8/9/09, 11:22#narrowNBSP#AM');
+						expect(ds_predefined.dfu_SHORT).toBe('8/9/09, 11:22#narrowNBSP#AM');
+					} else if (getJavaVersion()>=9) {
 						expect(ds_predefined.df_short) .toBe('8/9/09, 11:22 AM');
 						expect(ds_predefined.dfu_SHORT).toBe('8/9/09, 11:22 AM');
-
-					}
-					else {	
+					} else {
 						expect(ds_predefined.df_short) .toBe('8/9/09 11:22 AM');
 						expect(ds_predefined.dfu_SHORT).toBe('8/9/09 11:22 AM');
 					}
@@ -269,11 +271,13 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 						dfu_MEDIUM : DateTimeFormat(dateandtime, "MEDIUM")
 					};
 					
-					if(getJavaVersion()>=9) {
+					if (getJavaVersion()>=19) {
+						expect(ds_predefined.df_medium) .toBe('Aug 9, 2009, 11:22:33#narrowNBSP#AM');
+						expect(ds_predefined.dfu_MEDIUM).toBe('Aug 9, 2009, 11:22:33#narrowNBSP#AM');
+					} else if (getJavaVersion()>=9) {
 						expect(ds_predefined.df_medium) .toBe('Aug 9, 2009, 11:22:33 AM');
-						expect(ds_predefined.dfu_MEDIUM).toBe('Aug 9, 2009, 11:22:33 AM');	
-					}
-					else {	
+						expect(ds_predefined.dfu_MEDIUM).toBe('Aug 9, 2009, 11:22:33 AM');
+					} else {
 						expect(ds_predefined.df_medium) .toBe('Aug 9, 2009 11:22:33 AM');
 						expect(ds_predefined.dfu_MEDIUM).toBe('Aug 9, 2009 11:22:33 AM');
 					}
@@ -285,11 +289,13 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 						dfu_LONG : DateTimeFormat(dateandtime, "LONG")
 					};
 					
-					if(getJavaVersion()>=9) {
+					if(getJavaVersion()>=19 ) {
+						expect(ds_predefined.df_long) .toBe('August 9, 2009, 11:22:33#narrowNBSP#AM #serverTZ.TZ#');
+						expect(ds_predefined.dfu_LONG).toBe('August 9, 2009, 11:22:33#narrowNBSP#AM #serverTZ.TZ#');
+					} else if (getJavaVersion()>=9 ) {
 						expect(ds_predefined.df_long) .toBe('August 9, 2009 at 11:22:33 AM #serverTZ.TZ#');
 						expect(ds_predefined.dfu_LONG).toBe('August 9, 2009 at 11:22:33 AM #serverTZ.TZ#');
-					}
-					else {	
+					} else {
 						expect(ds_predefined.df_long) .toBe('August 9, 2009 11:22:33 AM #serverTZ.TZ#');
 						expect(ds_predefined.dfu_LONG).toBe('August 9, 2009 11:22:33 AM #serverTZ.TZ#');
 					}
@@ -300,11 +306,13 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 						dfu_FULL : DateTimeFormat(dateandtime, "full")
 					};
 					var tzi=getTimeZoneInfo();
-					if(getJavaVersion()>=9) {
+					if ( getJavaVersion()>=19 ) {
+						expect(ds_predefined.df_full) .toBe('Sunday, August 9, 2009, 11:22:33#narrowNBSP#AM Central European Summer Time');
+						expect(ds_predefined.dfu_FULL).toBe('Sunday, August 9, 2009, 11:22:33#narrowNBSP#AM Central European Summer Time');
+					} else if (getJavaVersion()>=9 ) {
 						expect(ds_predefined.df_full) .toBe('Sunday, August 9, 2009 at 11:22:33 AM Central European Summer Time');
 						expect(ds_predefined.dfu_FULL).toBe('Sunday, August 9, 2009 at 11:22:33 AM Central European Summer Time');
-					}
-					else {	
+					} else {
 						expect(ds_predefined.df_full) .toBe('Sunday, August 9, 2009 11:22:33 AM CEST');
 						expect(ds_predefined.dfu_FULL).toBe('Sunday, August 9, 2009 11:22:33 AM CEST');
 					}

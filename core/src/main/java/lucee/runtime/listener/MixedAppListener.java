@@ -31,9 +31,6 @@ import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.type.Array;
 
-/**
- * this class is only used by the CFML dialect, so checking for the dialect is not necessary
- */
 public final class MixedAppListener extends ModernAppListener {
 
 	@Override

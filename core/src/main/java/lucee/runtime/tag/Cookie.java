@@ -68,6 +68,7 @@ public final class Cookie extends TagImpl {
 	private boolean httponly;
 	private boolean preservecase;
 	private Boolean encode = null;
+	private boolean partitioned;
 
 	private short samesite = SessionCookieData.SAMESITE_EMPTY;
 
@@ -84,6 +85,7 @@ public final class Cookie extends TagImpl {
 		preservecase = false;
 		encode = null;
 		samesite = SessionCookieData.SAMESITE_EMPTY;
+		partitioned = false;
 	}
 
 	/**
@@ -176,9 +178,13 @@ public final class Cookie extends TagImpl {
 		this.samesite = SessionCookieDataImpl.toSamesite(samesite);
 	}
 
+	public void setPartitioned(boolean partitioned) {
+		this.partitioned = partitioned;
+	}
+
 	@Override
 	public int doStartTag() throws PageException {
-		Key key = KeyImpl.getInstance(name);
+		Key key = KeyImpl.init(name);
 		String appName = Login.getApplicationName(pageContext.getApplicationContext());
 		boolean isAppName = false;
 		if (KeyConstants._CFID.equalsIgnoreCase(key) || KeyConstants._CFTOKEN.equalsIgnoreCase(key) || (isAppName = key.equals(appName))) {
@@ -190,7 +196,7 @@ public final class Cookie extends TagImpl {
 
 			}
 		}
-		((CookieImpl) pageContext.cookieScope()).setCookie(key, value, expires, secure, path, domain, httponly, preservecase, encode, samesite);
+		((CookieImpl) pageContext.cookieScope()).setCookie(key, value, expires, secure, path, domain, httponly, preservecase, encode, samesite, partitioned);
 		return SKIP_BODY;
 	}
 

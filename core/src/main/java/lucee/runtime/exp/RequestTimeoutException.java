@@ -32,9 +32,9 @@ public class RequestTimeoutException extends Abort implements Stop {
 
 	private StackTraceElement[] stacktrace;
 
-	private ThreadDeath threadDeath;
+	private Error threadDeath; // ThreadDeath type but not stored as such
 
-	public RequestTimeoutException(PageContextImpl pc, ThreadDeath td) {
+	public RequestTimeoutException(PageContextImpl pc, Error td) {
 		this(pc, pc.getTimeoutStackTrace());
 		this.threadDeath = td;
 	}
@@ -80,7 +80,7 @@ public class RequestTimeoutException extends Abort implements Stop {
 		}
 	}
 
-	public ThreadDeath getThreadDeath() {
+	public Error getThreadDeath() {
 		return threadDeath;
 	}
 }

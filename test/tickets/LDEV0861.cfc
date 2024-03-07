@@ -3,7 +3,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
     function run( testResults , testBox ) {
 
         describe( 'LDEV-861' , function() {
-            it( 'Able to invoke class via Java URL Class Loader' , function() {
+            it( 'Able to invoke class via Java URL Class Loader', function()  {
+				if(getJavaVersion()>8) return; // java version 9 and higher no longer allow "setAccessible" 
 				var urls = [];
 				var file = createObject( "java", "java.io.File" ).init( '/tmp/' );
 			    arrayAppend( urls, file.toURI().toURL() );
@@ -28,5 +29,13 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 	    var arrayType = createObject( "java", "java.lang.reflect.Array" );
 	    var arrayInstance = arrayType.newInstance( classType.getClass(), result.size() );
 	    return result.toArray( arrayInstance );
+	}
+
+	private function getJavaVersion() {
+		var raw=server.java.version;
+		var arr=listToArray(raw,'.');
+		if (arr[1]==1) // version 1-9
+			return arr[2];
+		return arr[1];
 	}
 }

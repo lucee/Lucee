@@ -10,7 +10,7 @@ import lucee.transformer.library.tag.TagLibTag;
 public final class TagTimeout extends EvaluatorSupport {
 
 	@Override
-	public void evaluate(Tag tag, TagLibTag tagLibTag, FunctionLib[] flibs) throws EvaluatorException {
+	public void evaluate(Tag tag, TagLibTag tagLibTag, FunctionLib flibs) throws EvaluatorException {
 		lucee.transformer.bytecode.statement.tag.TagTimeout tt = (lucee.transformer.bytecode.statement.tag.TagTimeout) tag;
 		try {
 			tt.init();

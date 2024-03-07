@@ -6,7 +6,7 @@
 
 	function test() {
 		var props  = getCredentials();	
-		var id="b"&lcase(left(replace(createUUID(),"-","","all"),10));
+		var id= props.BUCKET_PREFIX & "b"&lcase(left(replace(createUUID(),"-","","all"),10));
 		var  dir="s3://#props.ACCESS_KEY_ID#:#props.SECRET_KEY#@/"&id&"/";
 		var  file=dir&"test.txt";
 		var hasAllRead=false;

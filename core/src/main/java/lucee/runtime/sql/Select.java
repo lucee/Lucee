@@ -4,17 +4,17 @@
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either 
+ * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public 
+ *
+ * You should have received a copy of the GNU Lesser General Public
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  **/
 package lucee.runtime.sql;
 
@@ -35,7 +35,7 @@ import lucee.runtime.type.Query;
 
 public class Select {
 	private List selects = new ArrayList();
-	private Set<String> additionalColumns = new HashSet();
+	private Set<Key> additionalColumns = new HashSet();
 	private List froms = new ArrayList();
 	private Operation where;
 	private List groupbys = new ArrayList();
@@ -45,7 +45,8 @@ public class Select {
 	private boolean unionDistinct;
 
 	public void addSelectExpression(Expression select) {
-		// Make sure there isn't already a column or alias of the same name. This will just cause issues down the road since our
+		// Make sure there isn't already a column or alias of the same name. This will just cause issues
+		// down the road since our
 		// column counts in the final query won't match the index in the expression
 		for (Expression col: getSelects()) {
 			if (col.getAlias().equalsIgnoreCase(select.getAlias())) {
@@ -94,12 +95,12 @@ public class Select {
 		this.top = top;
 	}
 
-	public void calcAdditionalColumns(Set<String> allColumns) {
+	public void calcAdditionalColumns(Set<Key> allColumns) {
 		// Remove any columns we are explicitly selecting
 		for (Expression expSelect: getSelects()) {
 			if (expSelect instanceof ColumnExpression) {
 				ColumnExpression ce = (ColumnExpression) expSelect;
-				allColumns.remove(ce.getColumnName());
+				allColumns.remove(ce.getColumn());
 			}
 		}
 		// What's left are columns used by functions and aggregates,
@@ -107,7 +108,7 @@ public class Select {
 		this.additionalColumns = allColumns;
 	}
 
-	public Set<String> getAdditionalColumns() {
+	public Set<Key> getAdditionalColumns() {
 		return this.additionalColumns;
 	}
 

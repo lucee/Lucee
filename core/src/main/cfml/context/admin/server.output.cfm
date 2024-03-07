@@ -126,6 +126,7 @@ Defaults --->
 							this.compression = #setting.AllowCompression#;
 						</cfsavecontent>
 						<cfset renderCodingTip( codeSample )>
+						<cfset renderSysPropEnvVar( name:"lucee.allow.compression",value:setting.AllowCompression)>
 					</td>
 				</tr>
 
@@ -148,16 +149,6 @@ Defaults --->
 					</td>
 				</tr>
 
-<!---				
-			</tbody>
-		</table>
-
-		<h3>#stText.general.dialect.cfml#</h3>
-		<div class="itemintro">#stText.general.dialect.cfmlDesc#</div>
-		
-		<table class="maintbl">
-			<tbody>
---->
 				<!--- Buffer Output --->
 				<tr>
 					<th scope="row">#stText.setting.bufferOutput#</th>

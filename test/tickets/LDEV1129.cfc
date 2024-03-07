@@ -8,7 +8,7 @@
 
 		function beforeAll() skip="isNotSupported"{
 			if ( isNotSupported() ) return;
-			variables.bucketName = lcase("lucee-ldev1129-#CreateGUID()#");
+			variables.bucketName = lcase( s3Details.bucket_prefix & "1129-#CreateGUID()#");
 			variables.testFolder = createURI( variables.bucketName );
 
 			if (not directoryExists(testFolder) ){

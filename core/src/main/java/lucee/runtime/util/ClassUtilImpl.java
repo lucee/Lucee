@@ -76,12 +76,9 @@ public class ClassUtilImpl implements ClassUtil {
 			return new BIFProxy(res);
 		}
 
-		FunctionLib[] flds = ((ConfigWebPro) pc.getConfig()).getFLDs(pc.getCurrentTemplateDialect());
-		FunctionLibFunction flf;
-		for (int i = 0; i < flds.length; i++) {
-			flf = flds[i].getFunction(name);
-			if (flf != null) return flf.getBIF();
-		}
+		FunctionLib flds = ((ConfigWebPro) pc.getConfig()).getFLDs();
+		FunctionLibFunction flf = flds.getFunction(name);
+		if (flf != null) return flf.getBIF();
 		return null;
 	}
 
@@ -196,7 +193,7 @@ public class ClassUtilImpl implements ClassUtil {
 
 	@Override
 	public Object callStaticMethod(Class<?> clazz, String methodName, Object[] args) throws PageException {
-		return Reflector.callStaticMethod(clazz, KeyImpl.getInstance(methodName), args);
+		return Reflector.callStaticMethod(clazz, KeyImpl.init(methodName), args);
 	}
 
 	@Override

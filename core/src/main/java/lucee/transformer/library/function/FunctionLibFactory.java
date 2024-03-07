@@ -43,7 +43,6 @@ import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.filter.ExtensionResourceFilter;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.io.sax.SaxUtil;
-import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.config.Identification;
 import lucee.runtime.op.Caster;
 import lucee.runtime.text.xml.XMLUtil;
@@ -64,7 +63,7 @@ public final class FunctionLibFactory extends DefaultHandler {
 	private StringBuilder content = new StringBuilder();
 
 	private static Map<String, FunctionLib> hashLib = new HashMap<String, FunctionLib>();
-	private static FunctionLib[] systemFLDs = new FunctionLib[2];
+	private static FunctionLib systemFLD;
 	private final FunctionLib lib;
 	private FunctionLibFunction function;
 
@@ -75,8 +74,6 @@ public final class FunctionLibFactory extends DefaultHandler {
 
 	// private final static String FLD_1_0= "/resource/fld/web-cfmfunctionlibrary_1_0";
 	private final static String FLD_BASE = "/resource/fld/core-base.fld";
-	private final static String FLD_CFML = "/resource/fld/core-cfml.fld";
-	private final static String FLD_LUCEE = "/resource/fld/core-lucee.fld";
 
 	/**
 	 * Privater Konstruktor, der als Eingabe die FLD als InputStream erhaelt.
@@ -414,18 +411,11 @@ public final class FunctionLibFactory extends DefaultHandler {
 	 * @return FunctionLib
 	 * @throws FunctionLibException
 	 */
-	public static FunctionLib[] loadFromSystem(Identification id) throws FunctionLibException {
-		if (systemFLDs[CFMLEngine.DIALECT_CFML] == null) {
-			FunctionLib cfml = new FunctionLibFactory(null, FLD_BASE, id, true).getLib();
-			FunctionLib lucee = cfml.duplicate(false);
-			systemFLDs[CFMLEngine.DIALECT_CFML] = new FunctionLibFactory(cfml, FLD_CFML, id, true).getLib();
-			systemFLDs[CFMLEngine.DIALECT_LUCEE] = new FunctionLibFactory(lucee, FLD_LUCEE, id, true).getLib();
+	public static FunctionLib loadFromSystem(Identification id) throws FunctionLibException {
+		if (systemFLD == null) {
+			systemFLD = new FunctionLibFactory(null, FLD_BASE, id, true).getLib();
 		}
-		return systemFLDs;
-	}
-
-	public static FunctionLib loadFromSystem(int dialect, Identification id) throws FunctionLibException {
-		return loadFromSystem(id)[dialect];
+		return systemFLD;
 	}
 
 	/**

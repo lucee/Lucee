@@ -145,7 +145,8 @@ public abstract class Page implements Serializable {
 		return null;
 	}
 
-	public void threadCall(final PageContext pageContext, final int threadIndex) throws Throwable {}
+	public void threadCall(final PageContext pageContext, final int threadIndex) throws Throwable {
+	}
 
 	public Object udfDefaultValue(final PageContext pc, final int functionIndex, final int argumentIndex, final Object defaultValue) {
 		return null;

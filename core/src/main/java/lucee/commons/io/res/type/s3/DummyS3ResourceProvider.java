@@ -100,4 +100,9 @@ public final class DummyS3ResourceProvider implements ResourceProviderPro {
 		return new PageRuntimeException(notInstalled());
 	}
 
+	@Override
+	public boolean allowMatching() {
+		throw notInstalledEL();
+	}
+
 }

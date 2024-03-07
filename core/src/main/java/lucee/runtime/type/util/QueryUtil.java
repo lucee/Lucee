@@ -177,7 +177,7 @@ public class QueryUtil {
 		String[] strNames = qry.getColumns();
 		Key[] names = new Key[strNames.length];
 		for (int i = 0; i < names.length; i++) {
-			names[i] = KeyImpl.getInstance(strNames[i]);
+			names[i] = KeyImpl.init(strNames[i]);
 		}
 		return names;
 	}
@@ -236,7 +236,7 @@ public class QueryUtil {
 			}
 		}
 		DumpData[] heads = new DumpData[columnCount + 1];
-		int columnInc=0;
+		int columnInc = 0;
 		heads[0] = new SimpleDumpData("");
 		for (int i = 0; i < keys.length; i++) {
 			if (showColumn[i]) {
@@ -269,9 +269,9 @@ public class QueryUtil {
 			comment.append("Cache Type: ").append(query.getCacheType()).append("\n");
 		}
 
-		if(query instanceof QueryImpl) {
+		if (query instanceof QueryImpl) {
 			String datasourceName = ((QueryImpl) query).getDatasourceName();
-			if(datasourceName != null) comment.append("Datasource: ").append(datasourceName).append("\n");
+			if (datasourceName != null) comment.append("Datasource: ").append(datasourceName).append("\n");
 		}
 
 		comment.append("Lazy: ").append(query instanceof SimpleQuery ? "Yes\n" : "No\n");
@@ -297,7 +297,7 @@ public class QueryUtil {
 		for (int i = 0; i < recordcount; i++) {
 			items = new DumpData[columnCount + 1];
 			items[0] = new SimpleDumpData(i + 1);
-			columnInc=0;
+			columnInc = 0;
 			for (int y = 0; y < keys.length; y++) {
 				if (showColumn[y]) {
 					try {

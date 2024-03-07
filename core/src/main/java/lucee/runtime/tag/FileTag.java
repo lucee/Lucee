@@ -34,7 +34,6 @@ import java.nio.file.Files;
 import java.nio.file.attribute.BasicFileAttributes;
 
 import lucee.commons.digest.Hash;
-import lucee.commons.digest.HashUtil;
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.ModeUtil;
@@ -51,6 +50,7 @@ import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.mimetype.MimeType;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
+import lucee.runtime.PageSourcePool;
 import lucee.runtime.cache.tag.CacheHandler;
 import lucee.runtime.cache.tag.CacheHandlerCollectionImpl;
 import lucee.runtime.cache.tag.CacheHandlerPro;
@@ -63,7 +63,7 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.tag.BodyTagImpl;
 import lucee.runtime.functions.list.ListFirst;
 import lucee.runtime.functions.list.ListLast;
-import lucee.runtime.functions.other.CreateUUID;
+import lucee.runtime.functions.other.CreateUniqueId;
 import lucee.runtime.listener.ApplicationContext;
 import lucee.runtime.listener.ApplicationContextSupport;
 import lucee.runtime.op.Caster;
@@ -104,7 +104,6 @@ public final class FileTag extends BodyTagImpl {
 	private static final int ACTION_TOUCH = 9;
 	private static final int ACTION_DELETE = 10;
 	private static final int ACTION_READ_BINARY = 11;
-	// private static final Key SET_ACL = KeyImpl.intern("setACL");
 	private static final String DETAIL = "You can set a [allowedExtension] and a [blockedExtension] list as an argument/attribute with the tag [cffile] and the functions [fileUpload] and [fileUploadAll]. "
 			+ "In addition you can configure this via the Application.cfc, [this.blockedExtForFileUpload] property, the [" + SystemUtil.SETTING_UPLOAD_EXT_BLOCKLIST
 			+ "] System property or the [" + SystemUtil.convertSystemPropToEnvVar(SystemUtil.SETTING_UPLOAD_EXT_BLOCKLIST)
@@ -517,15 +516,14 @@ public final class FileTag extends BodyTagImpl {
 
 		// destination
 		if (destination.isDirectory()) destination = destination.getRealResource(source.getName());
-		if (destination.exists()) {
+		if (nameconflict == NAMECONFLICT_FORCEUNIQUE) destination = forceUnique(destination);
+		else if (destination.exists()) {
 			// SKIP
 			if (nameconflict == NAMECONFLICT_SKIP) return;
 			// OVERWRITE
 			else if (nameconflict == NAMECONFLICT_OVERWRITE) destination.delete();
 			// MAKEUNIQUE
 			else if (nameconflict == NAMECONFLICT_MAKEUNIQUE) destination = makeUnique(destination);
-			// FORCEUNIQUE
-			else if (nameconflict == NAMECONFLICT_FORCEUNIQUE) destination = forceUnique(destination);
 			// ERROR
 			else throw new ApplicationException("Destination file [" + destination.toString() + "] already exists");
 		}
@@ -578,15 +576,15 @@ public final class FileTag extends BodyTagImpl {
 
 		// destination
 		if (destination.isDirectory()) destination = destination.getRealResource(source.getName());
-		if (destination.exists()) {
+		// FORCEUNIQUE
+		if (nameconflict == NAMECONFLICT_FORCEUNIQUE) destination = forceUnique(destination);
+		else if (destination.exists()) {
 			// SKIP
 			if (nameconflict == NAMECONFLICT_SKIP) return;
-			// SKIP
+			// OVERWRITE
 			else if (nameconflict == NAMECONFLICT_OVERWRITE) destination.delete();
 			// MAKEUNIQUE
 			else if (nameconflict == NAMECONFLICT_MAKEUNIQUE) destination = makeUnique(destination);
-			// FORCEUNIQUE
-			else if (nameconflict == NAMECONFLICT_FORCEUNIQUE) destination = forceUnique(destination);
 			// ERROR
 			else throw new ApplicationException("Destination file [" + destination.toString() + "] already exists");
 		}
@@ -609,7 +607,7 @@ public final class FileTag extends BodyTagImpl {
 	private static void setACL(PageContext pc, Resource res, Object acl) throws PageException {
 		String scheme = res.getResourceProvider().getScheme();
 		if ("s3".equalsIgnoreCase(scheme)) {
-			Directory.setS3Attrs(pc, res, acl, null);
+			Directory.setS3acl(pc, res, acl);
 		}
 	}
 
@@ -618,7 +616,7 @@ public final class FileTag extends BodyTagImpl {
 		String ext = ResourceUtil.getExtension(res, "");
 		if (!StringUtil.isEmpty(ext)) ext = "." + ext;
 		while (res.exists()) {
-			res = res.getParentResource().getRealResource(name + HashUtil.create64BitHashAsString(CreateUUID.invoke(), Character.MAX_RADIX) + ext);
+			res = res.getParentResource().getRealResource(name + "_" + Long.toString(System.currentTimeMillis(), Character.MAX_RADIX) + "_" + CreateUniqueId.invoke() + ext);
 		}
 
 		return res;
@@ -628,9 +626,11 @@ public final class FileTag extends BodyTagImpl {
 		String name = ResourceUtil.getName(res);
 		String ext = ResourceUtil.getExtension(res, "");
 		if (!StringUtil.isEmpty(ext)) ext = "." + ext;
-		while (res.exists()) {
-			res = res.getParentResource().getRealResource(name + "_" + HashUtil.create64BitHashAsString(CreateUUID.invoke(), Character.MAX_RADIX) + ext);
+		do {
+			// forceunique always create a new name for fileUpload
+			res = res.getParentResource().getRealResource(name + "_" + Long.toString(System.currentTimeMillis(), Character.MAX_RADIX) + "_" + CreateUniqueId.invoke() + ext);
 		}
+		while (res.exists());
 		return res;
 	}
 
@@ -762,6 +762,7 @@ public final class FileTag extends BodyTagImpl {
 		setMode(file, mode);
 		setAttributes(file, attributes);
 		setACL(pageContext, file, acl);
+		PageSourcePool.flush(pageContext, file);
 	}
 
 	/**
@@ -787,6 +788,7 @@ public final class FileTag extends BodyTagImpl {
 		setMode(file, mode);
 		setAttributes(file, attributes);
 		setACL(pageContext, file, acl);
+		PageSourcePool.flush(pageContext, file);
 	}
 
 	/**
@@ -816,6 +818,7 @@ public final class FileTag extends BodyTagImpl {
 		setMode(file, mode);
 		setAttributes(file, attributes);
 		setACL(pageContext, file, acl);
+		PageSourcePool.flush(pageContext, file);
 	}
 
 	private String doFixNewLine(String content) {
@@ -871,8 +874,8 @@ public final class FileTag extends BodyTagImpl {
 		/*
 		 * try { BufferedImage bi = ImageUtil.toBufferedImage(file, null); if(bi!=null) { Struct img =new
 		 * StructImpl(); img.setEL(KeyConstants._width,Double.valueOf(bi.getWidth()));
-		 * img.setEL(KeyConstants._height,Double.valueOf(bi.getHeight())); sct.setEL(KeyConstants._img,img); } }
-		 * catch(Exception e) {}
+		 * img.setEL(KeyConstants._height,Double.valueOf(bi.getHeight())); sct.setEL(KeyConstants._img,img);
+		 * } } catch(Exception e) {}
 		 */
 		return sct;
 	}
@@ -1015,6 +1018,16 @@ public final class FileTag extends BodyTagImpl {
 		cffile.set("attemptedserverfile", destination.getName());
 
 		// check nameconflict
+		if (nameconflict == NAMECONFLICT_FORCEUNIQUE) {
+			destination = forceUnique(destination);
+			fileWasRenamed = true;
+
+			cffile.set("serverdirectory", getParent(destination));
+			cffile.set("serverfile", destination.getName());
+			cffile.set("serverfileext", ResourceUtil.getExtension(destination, ""));
+			cffile.set("serverfilename", ResourceUtil.getName(destination));
+		}
+
 		if (destination.exists()) {
 			fileExisted = true;
 			if (nameconflict == NAMECONFLICT_ERROR) {
@@ -1037,18 +1050,7 @@ public final class FileTag extends BodyTagImpl {
 				cffile.set("serverfile", destination.getName());
 				cffile.set("serverfileext", ResourceUtil.getExtension(destination, ""));
 				cffile.set("serverfilename", ResourceUtil.getName(destination));
-				cffile.set("attemptedserverfile", destination.getName());
 				// }
-			}
-			else if (nameconflict == NAMECONFLICT_FORCEUNIQUE) {
-				destination = forceUnique(destination);
-				fileWasRenamed = true;
-
-				cffile.set("serverdirectory", getParent(destination));
-				cffile.set("serverfile", destination.getName());
-				cffile.set("serverfileext", ResourceUtil.getExtension(destination, ""));
-				cffile.set("serverfilename", ResourceUtil.getName(destination));
-				cffile.set("attemptedserverfile", destination.getName());
 			}
 			else if (nameconflict == NAMECONFLICT_OVERWRITE) {
 				// fileWasAppended=true;
@@ -1124,7 +1126,8 @@ public final class FileTag extends BodyTagImpl {
 					if (StringUtil.isEmpty(blocklistedTypes))
 						blocklistedTypes = SystemUtil.getSystemPropOrEnvVar(SystemUtil.SETTING_UPLOAD_EXT_BLOCKLIST, SystemUtil.DEFAULT_UPLOAD_EXT_BLOCKLIST);
 
-					NotResourceFilter filter = new NotResourceFilter(new ExtensionResourceFilter(ListUtil.trimItems(ListUtil.listToStringArray(blocklistedTypes, ',')), false, true, false));
+					NotResourceFilter filter = new NotResourceFilter(
+							new ExtensionResourceFilter(ListUtil.trimItems(ListUtil.listToStringArray(blocklistedTypes, ',')), false, true, false));
 
 					if (!filter.accept(clientFile)) throw new ApplicationException("Upload of files with extension [" + ext + "] is not permitted.", DETAIL);
 				}

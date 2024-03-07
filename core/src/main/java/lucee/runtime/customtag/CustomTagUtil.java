@@ -24,7 +24,6 @@ import java.util.List;
 
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
-import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.Mapping;
 import lucee.runtime.MappingImpl;
 import lucee.runtime.PageContext;
@@ -33,7 +32,6 @@ import lucee.runtime.PageSource;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigWeb;
-import lucee.runtime.config.Constants;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.type.util.ListUtil;
@@ -168,10 +166,6 @@ public class CustomTagUtil {
 		}
 
 		return defaultValue;
-	}
-
-	public static String getComponentExtension(PageContext pc, PageSource ps) {
-		return ps.getDialect() == CFMLEngine.DIALECT_CFML ? Constants.getCFMLComponentExtension() : Constants.getLuceeComponentExtension();
 	}
 
 	public static String[] getFileNames(Config config, String name) throws ExpressionException {

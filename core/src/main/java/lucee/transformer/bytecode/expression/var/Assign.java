@@ -49,6 +49,34 @@ public class Assign extends ExpressionBase {
 
 	// Object set (Object,String,Object)
 	private final static Method SET_KEY = new Method("set", Types.OBJECT, new Type[] { Types.OBJECT, Types.COLLECTION_KEY, Types.OBJECT });
+	private final static Method US_SET_KEY1 = new Method("us", Types.OBJECT, new Type[] { Types.COLLECTION_KEY, Types.OBJECT });
+	private final static Method US_SET_KEY2 = new Method("us", Types.OBJECT, new Type[] { Types.COLLECTION_KEY, Types.COLLECTION_KEY, Types.OBJECT });
+	private final static Method US_SET_KEY3 = new Method("us", Types.OBJECT, new Type[] { Types.COLLECTION_KEY, Types.COLLECTION_KEY, Types.COLLECTION_KEY, Types.OBJECT });
+	private final static Method US_SET_KEY4 = new Method("us", Types.OBJECT,
+			new Type[] { Types.COLLECTION_KEY, Types.COLLECTION_KEY, Types.COLLECTION_KEY, Types.COLLECTION_KEY, Types.OBJECT });
+	private final static Method[] US_SET_KEYS = new Method[] { US_SET_KEY1, US_SET_KEY2, US_SET_KEY3, US_SET_KEY4 };
+
+	private final static Method VS_SET_KEY1 = new Method("vs", Types.OBJECT, new Type[] { Types.COLLECTION_KEY, Types.OBJECT });
+	private final static Method VS_SET_KEY2 = new Method("vs", Types.OBJECT, new Type[] { Types.COLLECTION_KEY, Types.COLLECTION_KEY, Types.OBJECT });
+	private final static Method VS_SET_KEY3 = new Method("vs", Types.OBJECT, new Type[] { Types.COLLECTION_KEY, Types.COLLECTION_KEY, Types.COLLECTION_KEY, Types.OBJECT });
+	private final static Method VS_SET_KEY4 = new Method("vs", Types.OBJECT,
+			new Type[] { Types.COLLECTION_KEY, Types.COLLECTION_KEY, Types.COLLECTION_KEY, Types.COLLECTION_KEY, Types.OBJECT });
+	private final static Method[] VS_SET_KEYS = new Method[] { VS_SET_KEY1, VS_SET_KEY2, VS_SET_KEY3, VS_SET_KEY4 };
+
+	private final static Method LS_SET_KEY1 = new Method("ls", Types.OBJECT, new Type[] { Types.COLLECTION_KEY, Types.OBJECT });
+	private final static Method LS_SET_KEY2 = new Method("ls", Types.OBJECT, new Type[] { Types.COLLECTION_KEY, Types.COLLECTION_KEY, Types.OBJECT });
+	private final static Method LS_SET_KEY3 = new Method("ls", Types.OBJECT, new Type[] { Types.COLLECTION_KEY, Types.COLLECTION_KEY, Types.COLLECTION_KEY, Types.OBJECT });
+	private final static Method LS_SET_KEY4 = new Method("ls", Types.OBJECT,
+			new Type[] { Types.COLLECTION_KEY, Types.COLLECTION_KEY, Types.COLLECTION_KEY, Types.COLLECTION_KEY, Types.OBJECT });
+	private final static Method[] LS_SET_KEYS = new Method[] { LS_SET_KEY1, LS_SET_KEY2, LS_SET_KEY3, LS_SET_KEY4 };
+
+	private final static Method[][] SET_KEYS = new Method[Scope.SCOPE_COUNT][4];
+
+	static {
+		SET_KEYS[Scope.SCOPE_VARIABLES] = VS_SET_KEYS;
+		SET_KEYS[Scope.SCOPE_LOCAL] = LS_SET_KEYS;
+		SET_KEYS[Scope.SCOPE_UNDEFINED] = US_SET_KEYS;
+	}
 
 	// Object getFunction (Object,String,Object[])
 	private final static Method GET_FUNCTION_KEY = new Method("getFunction", Types.OBJECT, new Type[] { Types.OBJECT, Types.COLLECTION_KEY, Types.OBJECT_ARRAY });
@@ -91,6 +119,49 @@ public class Assign extends ExpressionBase {
 				return Types.VOID;
 			}
 			return _writeOutEmpty(bc);
+		}
+
+		// TOOD make sure the compile key include the loader version and check loader version and if
+		// specific bversion no longer do checkCast
+
+		// supported scopes
+		int scope = -1;
+		switch (variable.getScope()) {
+		case Scope.SCOPE_UNDEFINED:
+			scope = Scope.SCOPE_UNDEFINED;
+			break;
+		case Scope.SCOPE_VARIABLES:
+			scope = Scope.SCOPE_VARIABLES;
+			break;
+		case Scope.SCOPE_LOCAL:
+			scope = Scope.SCOPE_LOCAL;
+			break;
+		}
+
+		// undefined
+		outer: while (count > 0 && scope != -1 && count <= SET_KEYS[scope].length) {
+
+			for (int i = 0; i < count; i++) {
+				if (!(variable.getMembers().get(i) instanceof DataMember)) {
+					break outer;
+				}
+			}
+			// load pc
+			adapter.loadArg(0);
+			adapter.checkCast(Types.PAGE_CONTEXT_IMPL);
+
+			// write keys
+			for (int i = 0; i < count; i++) {
+				Member member = (variable.getMembers().get(i));
+				getFactory().registerKey(bc, ((DataMember) member).getName(), false);
+			}
+
+			// load value
+			writeValue(bc);
+			// call set function
+			adapter.invokeVirtual(Types.PAGE_CONTEXT_IMPL, SET_KEYS[scope][count - 1]);
+
+			return Types.OBJECT;
 		}
 
 		boolean doOnlyScope = variable.getScope() == Scope.SCOPE_LOCAL;

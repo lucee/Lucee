@@ -35,7 +35,6 @@ import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.mimetype.MimeType;
 import lucee.commons.lang.types.RefBoolean;
 import lucee.commons.lang.types.RefBooleanImpl;
-import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.CFMLFactory;
 import lucee.runtime.CFMLFactoryImpl;
 import lucee.runtime.Component;
@@ -44,7 +43,6 @@ import lucee.runtime.Page;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.PageSource;
-import lucee.runtime.PageSourceImpl;
 import lucee.runtime.component.ComponentLoader;
 import lucee.runtime.component.Member;
 import lucee.runtime.config.Constants;
@@ -66,7 +64,6 @@ import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.Collection.Key;
-import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.scope.Application;
 import lucee.runtime.type.scope.ApplicationImpl;
@@ -82,18 +79,18 @@ public class ModernAppListener extends AppListenerSupport {
 
 	public static final ModernAppListener instance = new ModernAppListener();
 
-	private static final Collection.Key ON_REQUEST_START = KeyImpl.getInstance("onRequestStart");
-	private static final Collection.Key ON_CFCREQUEST = KeyImpl.getInstance("onCFCRequest");
-	private static final Collection.Key ON_REQUEST = KeyImpl.getInstance("onRequest");
-	private static final Collection.Key ON_REQUEST_END = KeyImpl.getInstance("onRequestEnd");
-	private static final Collection.Key ON_ABORT = KeyImpl.getInstance("onAbort");
-	private static final Collection.Key ON_APPLICATION_START = KeyImpl.getInstance("onApplicationStart");
-	private static final Collection.Key ON_APPLICATION_END = KeyImpl.getInstance("onApplicationEnd");
-	private static final Collection.Key ON_SESSION_START = KeyImpl.getInstance("onSessionStart");
-	private static final Collection.Key ON_SESSION_END = KeyImpl.getInstance("onSessionEnd");
-	private static final Collection.Key ON_DEBUG = KeyImpl.getInstance("onDebug");
+	private static final Collection.Key ON_REQUEST_START = KeyConstants._onRequestStart;
+	private static final Collection.Key ON_CFCREQUEST = KeyConstants._onCFCRequest;
+	private static final Collection.Key ON_REQUEST = KeyConstants._onRequest;
+	private static final Collection.Key ON_REQUEST_END = KeyConstants._onRequestEnd;
+	private static final Collection.Key ON_ABORT = KeyConstants._onAbort;
+	private static final Collection.Key ON_APPLICATION_START = KeyConstants._onApplicationStart;
+	private static final Collection.Key ON_APPLICATION_END = KeyConstants._onApplicationEnd;
+	private static final Collection.Key ON_SESSION_START = KeyConstants._onSessionStart;
+	private static final Collection.Key ON_SESSION_END = KeyConstants._onSessionEnd;
+	private static final Collection.Key ON_DEBUG = KeyConstants._onDebug;
 	private static final Collection.Key ON_ERROR = KeyConstants._onError;
-	private static final Collection.Key ON_MISSING_TEMPLATE = KeyImpl.getInstance("onMissingTemplate");
+	private static final Collection.Key ON_MISSING_TEMPLATE = KeyConstants._onMissingTemplate;
 
 	// private Map<String,Component> apps=new HashMap<String,Component>();// TODO no longer use this,
 	// find a better way to store components for end methods
@@ -102,9 +99,7 @@ public class ModernAppListener extends AppListenerSupport {
 	@Override
 	public void onRequest(PageContext pc, PageSource requestedPage, RequestListener rl) throws PageException {
 		// on requestStart
-		Page appPS = AppListenerUtil.getApplicationPage(pc, requestedPage,
-				pc.getRequestDialect() == CFMLEngine.DIALECT_CFML ? Constants.CFML_APPLICATION_EVENT_HANDLER : Constants.LUCEE_APPLICATION_EVENT_HANDLER, mode,
-				ApplicationListener.TYPE_MODERN);
+		Page appPS = AppListenerUtil.getApplicationPage(pc, requestedPage, Constants.CFML_APPLICATION_EVENT_HANDLER, mode, ApplicationListener.TYPE_MODERN);
 		_onRequest(pc, requestedPage, appPS, rl);
 	}
 
@@ -250,12 +245,7 @@ public class ModernAppListener extends AppListenerSupport {
 	}
 
 	private boolean isComponent(PageContext pc, PageSource requestedPage) {
-		// CFML
-		if (pc.getRequestDialect() == CFMLEngine.DIALECT_CFML) {
-			return ResourceUtil.getExtension(requestedPage.getRealpath(), "").equalsIgnoreCase(Constants.getCFMLComponentExtension());
-		}
-		// Lucee
-		return !PageSourceImpl.isTemplate(pc, requestedPage, true);
+		return ResourceUtil.getExtension(requestedPage.getRealpath(), "").equalsIgnoreCase(Constants.getCFMLComponentExtension());
 	}
 
 	private PageException handlePageException(PageContextImpl pci, Component app, PageException pe, PageSource requestedPage, String targetPage, RefBoolean goon)
@@ -464,7 +454,7 @@ public class ModernAppListener extends AppListenerSupport {
 		pc.setApplicationContext(appContext);
 
 		// scope cascading
-		if (pc.getRequestDialect() == CFMLEngine.DIALECT_CFML && ((UndefinedImpl) pc.undefinedScope()).getScopeCascadingType() != appContext.getScopeCascading()) {
+		if (((UndefinedImpl) pc.undefinedScope()).getScopeCascadingType() != appContext.getScopeCascading()) {
 			pc.undefinedScope().initialize(pc);
 		}
 

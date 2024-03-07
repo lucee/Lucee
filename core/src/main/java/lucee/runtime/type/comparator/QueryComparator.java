@@ -18,30 +18,23 @@
  **/
 package lucee.runtime.type.comparator;
 
-import java.util.Comparator;
 import java.sql.Types;
+import java.util.Comparator;
 
-import lucee.commons.lang.ComparatorUtil;
 import lucee.runtime.PageContext;
-import lucee.runtime.op.Caster;
-import lucee.runtime.type.QueryImpl;
-import lucee.runtime.sql.exp.Expression;
-import lucee.runtime.exp.PageException;
-import lucee.runtime.exp.DatabaseException;
+import lucee.runtime.db.SQL;
 import lucee.runtime.exp.IllegalQoQException;
+import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.sql.exp.Column;
-import lucee.runtime.sql.exp.ColumnExpression;
 import lucee.runtime.sql.exp.Expression;
-import lucee.runtime.sql.exp.value.ValueNumber;
 import lucee.runtime.sql.exp.Literal;
-import lucee.runtime.functions.other.Dump;
-import lucee.runtime.type.Collection.Key;
-import lucee.runtime.type.Query;
-import lucee.runtime.type.QueryColumn;
-import lucee.runtime.db.SQL;
+import lucee.runtime.sql.exp.value.ValueNumber;
 import lucee.runtime.type.Collection;
+import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.KeyImpl;
+import lucee.runtime.type.Query;
+import lucee.runtime.type.QueryImpl;
 
 /**
  * Implementation of a Comparator that will sort multiple rows of a query all at the same time
@@ -58,7 +51,7 @@ public final class QueryComparator implements Comparator<Integer> {
 	 * constructor of the class
 	 *
 	 */
-	public QueryComparator(PageContext pc, QueryImpl target, Expression[] sortExpressions, boolean isUnion, SQL sql ) throws PageException {
+	public QueryComparator(PageContext pc, QueryImpl target, Expression[] sortExpressions, boolean isUnion, SQL sql) throws PageException {
 		this.sorts = new Comparator[sortExpressions.length];
 		this.cols = new Key[sortExpressions.length];
 		this.target = target;
@@ -75,10 +68,12 @@ public final class QueryComparator implements Comparator<Integer> {
 					if (sortExpression instanceof ValueNumber && (ordinalIndex = Caster.toInteger(((Literal) sortExpression).getValue(), null)) != null && ordinalIndex > 0
 							&& ordinalIndex <= target.getColumnNames().length) {
 						// Sort the column referenced by the ordinal position
-						addSOrt( target.getColumnNames()[ ordinalIndex-1 ], !sortExpression.isDirectionBackward() );
-					} else {
+						addSOrt(target.getColumnNames()[ordinalIndex - 1], !sortExpression.isDirectionBackward());
+					}
+					else {
 						// All other non-integer literals are invalid.
-						throw new IllegalQoQException("ORDER BY item [" + sortExpression.toString(true) + "] in position " + (i+1) + " cannot be a literal value unless it is an integer matching a select column's ordinal position.", null, sql, null);
+						throw new IllegalQoQException("ORDER BY item [" + sortExpression.toString(true) + "] in position " + (i + 1)
+								+ " cannot be a literal value unless it is an integer matching a select column's ordinal position.", null, sql, null);
 					}
 				}
 				else {
@@ -86,14 +81,14 @@ public final class QueryComparator implements Comparator<Integer> {
 					if (sortExpression instanceof Column && ((Column) sortExpression).getColumn().equals(paramKey)) continue;
 
 					// Lookup column in query based on the index stored in the order by expression
-					addSOrt( target.getColumnNames()[sortExpression.getIndex() - 1], !sortExpression.isDirectionBackward() );
+					addSOrt(target.getColumnNames()[sortExpression.getIndex() - 1], !sortExpression.isDirectionBackward());
 				}
 			}
 			else if (sortExpression instanceof Column) {
 				Column c = (Column) sortExpression;
 				// Lookup column in query based on name of column. unions don't allow operations in
 				// the order by
-				addSOrt( c.getColumn(), !sortExpression.isDirectionBackward() );
+				addSOrt(c.getColumn(), !sortExpression.isDirectionBackward());
 			}
 			else {
 				throw new IllegalQoQException("ORDER BY items must be a column name/alias from the first select list if the statement contains a UNION operator", null, sql, null);
@@ -101,17 +96,18 @@ public final class QueryComparator implements Comparator<Integer> {
 		}
 	}
 
-	private void addSOrt( Key columnKey, boolean isAsc ) throws PageException {
+	private void addSOrt(Key columnKey, boolean isAsc) throws PageException {
 		cols[numSorts] = columnKey;
 
-		int type = target.getColumn( columnKey ).getType();
+		int type = target.getColumn(columnKey).getType();
 		// These types use a numeric sort
-		if( type == Types.BIGINT || type == Types.BIT || type == Types.INTEGER || type == Types.SMALLINT || type == Types.TINYINT || type == Types.DECIMAL
-			|| type == Types.DOUBLE || type == Types.NUMERIC || type == Types.REAL ) {
-			sorts[numSorts] = new NumberComparator( isAsc, true );
-		// Everything else is a case-sensitive text sort
-		} else {
-			sorts[numSorts] = new TextComparator( isAsc, false );
+		if (type == Types.BIGINT || type == Types.BIT || type == Types.INTEGER || type == Types.SMALLINT || type == Types.TINYINT || type == Types.DECIMAL || type == Types.DOUBLE
+				|| type == Types.NUMERIC || type == Types.REAL) {
+			sorts[numSorts] = new NumberComparator(isAsc, true);
+			// Everything else is a case-sensitive text sort
+		}
+		else {
+			sorts[numSorts] = new TextComparator(isAsc, false);
 		}
 		numSorts++;
 	}
@@ -120,15 +116,12 @@ public final class QueryComparator implements Comparator<Integer> {
 	public int compare(Integer oLeft, Integer oRight) {
 		int currentResult = 0;
 		try {
-			// Loop over all our sorts.  We'll keep checking until we find a column that sorts above or below,
+			// Loop over all our sorts. We'll keep checking until we find a column that sorts above or below,
 			// or until we run out of sorts to check
 			for (int i = 0; i < numSorts; i++) {
-				currentResult = sorts[i].compare(
-					target.getAt( cols[i], oLeft ),
-					target.getAt( cols[i], oRight )
-				);
+				currentResult = sorts[i].compare(target.getAt(cols[i], oLeft), target.getAt(cols[i], oRight));
 				// Short circuit if one row is already sorted above or below another
-				if( currentResult != 0 ) {
+				if (currentResult != 0) {
 					return currentResult;
 				}
 				// If the current sorts were the same for both rows, we continue to the next sort
@@ -137,7 +130,7 @@ public final class QueryComparator implements Comparator<Integer> {
 			return currentResult;
 		}
 		catch (PageException e) {
-			//throw new RuntimeException(e);
+			// throw new RuntimeException(e);
 			return 0;
 		}
 	}

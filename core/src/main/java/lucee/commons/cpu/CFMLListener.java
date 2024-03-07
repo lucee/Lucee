@@ -16,7 +16,6 @@ import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.thread.ThreadUtil;
 import lucee.runtime.type.Collection.Key;
-import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.QueryImpl;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.util.KeyConstants;
@@ -53,7 +52,7 @@ public abstract class CFMLListener implements Listener {
 		}
 	}
 
-	private static final Key PERCENTAGE = KeyImpl.getInstance("percentage");
+	private static final Key PERCENTAGE = KeyConstants._percentage;
 	private static final Key[] columns = new Key[] { KeyConstants._name, PERCENTAGE, KeyConstants._stacktrace, KeyConstants._time, KeyConstants._total };
 
 	protected Object toQuery(List<StaticData> list) throws PageException {

@@ -28,9 +28,7 @@ import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.config.ConfigPro;
-import lucee.runtime.config.ConfigWebUtil;
 import lucee.runtime.exp.ExpressionException;
-import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.functions.system.CFFunction;
@@ -53,33 +51,17 @@ import lucee.transformer.library.tag.TagLibFactory;
 
 public final class GetFunctionData implements Function {
 	private static final Collection.Key SOURCE = KeyConstants._source;
-	private static final Collection.Key RETURN_TYPE = KeyImpl.getInstance("returnType");
-	private static final Collection.Key ARGUMENT_TYPE = KeyImpl.getInstance("argumentType");
-	private static final Collection.Key ARG_MIN = KeyImpl.getInstance("argMin");
-	private static final Collection.Key ARG_MAX = KeyImpl.getInstance("argMax");
-	static final Collection.Key INTRODUCED = KeyImpl.getInstance("introduced");
+	private static final Collection.Key RETURN_TYPE = KeyConstants._returnType;
+	private static final Collection.Key ARGUMENT_TYPE = KeyConstants._argumentType;
+	private static final Collection.Key ARG_MIN = KeyConstants._argMin;
+	private static final Collection.Key ARG_MAX = KeyConstants._argMax;
+	static final Collection.Key INTRODUCED = KeyConstants._introduced;
 
 	public static Struct call(PageContext pc, String strFunctionName) throws PageException {
-		return _call(pc, strFunctionName, pc.getCurrentTemplateDialect());
-	}
 
-	public static Struct call(PageContext pc, String strFunctionName, String strDialect) throws PageException {
-		int dialect = ConfigWebUtil.toDialect(strDialect, -1);
-		if (dialect == -1) throw new FunctionException(pc, "GetFunctionData", 2, "dialect", "value [" + strDialect + "] is invalid, valid values are [cfml,lucee]");
+		FunctionLib flds = ((ConfigPro) pc.getConfig()).getFLDs();
 
-		return _call(pc, strFunctionName, dialect);
-	}
-
-	private static Struct _call(PageContext pc, String strFunctionName, int dialect) throws PageException {
-
-		FunctionLib[] flds;
-		flds = ((ConfigPro) pc.getConfig()).getFLDs(dialect);
-
-		FunctionLibFunction function = null;
-		for (int i = 0; i < flds.length; i++) {
-			function = flds[i].getFunction(strFunctionName.toLowerCase());
-			if (function != null) break;
-		}
+		FunctionLibFunction function = flds.getFunction(strFunctionName.toLowerCase());
 		if (function == null) throw new ExpressionException("Function [" + strFunctionName + "] is not a built in function");
 
 		// CFML Based Function
@@ -104,7 +86,7 @@ public final class GetFunctionData implements Function {
 		if (function.getIntroduced() != null) sct.set(INTRODUCED, function.getIntroduced().toString());
 		// else if(inside.equals("introduced")) att.setIntroduced(value);
 
-		sct.set(KeyConstants._description, StringUtil.emptyIfNull(function.getDescription()));
+		sct.set(KeyConstants._description, StringUtil.emptyIfNull(function.getDescription()).replaceAll("\\n\\s+", "\n"));
 		if (!ArrayUtil.isEmpty(function.getKeywords())) sct.set("keywords", Caster.toArray(function.getKeywords()));
 
 		sct.set(RETURN_TYPE, StringUtil.emptyIfNull(function.getReturnTypeAsString()));
@@ -138,7 +120,7 @@ public final class GetFunctionData implements Function {
 				if (!StringUtil.isEmpty(arg.getAlias(), true)) _arg.set(KeyConstants._alias, arg.getAlias());
 
 				_arg.set("defaultValue", arg.getDefaultValue());
-				_arg.set(KeyConstants._description, StringUtil.toStringEmptyIfNull(arg.getDescription()));
+				_arg.set(KeyConstants._description, StringUtil.toStringEmptyIfNull(arg.getDescription()).replaceAll("\\n\\s+", "\n"));
 
 				_args.append(_arg);
 			}
@@ -158,7 +140,7 @@ public final class GetFunctionData implements Function {
 
 		sct.set(KeyConstants._name, function.getName());
 		sct.set(ARGUMENT_TYPE, "fixed");
-		sct.set(KeyConstants._description, StringUtil.emptyIfNull(udf.getHint()));
+		sct.set(KeyConstants._description, StringUtil.emptyIfNull(udf.getHint()).replaceAll("\\n\\s+", "\n"));
 		sct.set(RETURN_TYPE, StringUtil.emptyIfNull(udf.getReturnTypeAsString()));
 		sct.set(KeyConstants._type, "cfml");
 		sct.set(SOURCE, udf.getSource());
@@ -178,7 +160,7 @@ public final class GetFunctionData implements Function {
 			_arg.set(KeyConstants._required, fa.isRequired() ? Boolean.TRUE : Boolean.FALSE);
 			_arg.set(KeyConstants._type, StringUtil.emptyIfNull(fa.getTypeAsString()));
 			_arg.set(KeyConstants._name, StringUtil.emptyIfNull(fa.getName()));
-			_arg.set(KeyConstants._description, StringUtil.emptyIfNull(fa.getHint()));
+			_arg.set(KeyConstants._description, StringUtil.emptyIfNull(fa.getHint()).replaceAll("\\n\\s+", "\n"));
 
 			String status;
 			if (meta == null) status = "implemented";

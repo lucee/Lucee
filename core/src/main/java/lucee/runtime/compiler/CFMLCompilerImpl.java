@@ -33,7 +33,6 @@ import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.filter.ResourceNameFilter;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.compiler.JavaFunction;
-import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.PageSource;
 import lucee.runtime.PageSourceImpl;
 import lucee.runtime.config.ConfigPro;
@@ -71,12 +70,12 @@ public final class CFMLCompilerImpl implements CFMLCompiler {
 		cfmlTransformer = new CFMLTransformer();
 	}
 
-	public Result compile(ConfigPro config, PageSource ps, TagLib[] tld, FunctionLib[] fld, Resource classRootDir, boolean returnValue, boolean ignoreScopes)
+	public Result compile(ConfigPro config, PageSource ps, TagLib[] tld, FunctionLib fld, Resource classRootDir, boolean returnValue, boolean ignoreScopes)
 			throws TemplateException, IOException {
 		return _compile(config, ps, null, null, tld, fld, classRootDir, returnValue, ignoreScopes);
 	}
 
-	public Result compile(ConfigPro config, SourceCode sc, TagLib[] tld, FunctionLib[] fld, Resource classRootDir, String className, boolean returnValue, boolean ignoreScopes)
+	public Result compile(ConfigPro config, SourceCode sc, TagLib[] tld, FunctionLib fld, Resource classRootDir, String className, boolean returnValue, boolean ignoreScopes)
 			throws TemplateException, IOException {
 
 		// just to be sure
@@ -85,7 +84,7 @@ public final class CFMLCompilerImpl implements CFMLCompiler {
 		return _compile(config, ps, sc, className, tld, fld, classRootDir, returnValue, ignoreScopes);
 	}
 
-	private Result _compile(ConfigPro config, PageSource ps, SourceCode sc, String className, TagLib[] tld, FunctionLib[] fld, Resource classRootDir, boolean returnValue,
+	private Result _compile(ConfigPro config, PageSource ps, SourceCode sc, String className, TagLib[] tld, FunctionLib fld, Resource classRootDir, boolean returnValue,
 			boolean ignoreScopes) throws TemplateException, IOException {
 		String javaName;
 		if (className == null) {
@@ -102,8 +101,7 @@ public final class CFMLCompilerImpl implements CFMLCompiler {
 		Factory factory = BytecodeFactory.getInstance(config);
 		try {
 			page = sc == null ? cfmlTransformer.transform(factory, config, ps, tld, fld, returnValue, ignoreScopes)
-					: cfmlTransformer.transform(factory, config, sc, tld, fld, System.currentTimeMillis(),
-							sc.getDialect() == CFMLEngine.DIALECT_CFML && config.getDotNotationUpperCase(), returnValue, ignoreScopes);
+					: cfmlTransformer.transform(factory, config, sc, tld, fld, System.currentTimeMillis(), config.getDotNotationUpperCase(), returnValue, ignoreScopes);
 			page.setSplitIfNecessary(false);
 			try {
 				byte[] barr = page.execute(className);
@@ -113,8 +111,7 @@ public final class CFMLCompilerImpl implements CFMLCompiler {
 				String msg = StringUtil.emptyIfNull(re.getMessage());
 				if (StringUtil.indexOfIgnoreCase(msg, "Method code too large!") != -1) {
 					page = sc == null ? cfmlTransformer.transform(factory, config, ps, tld, fld, returnValue, ignoreScopes)
-							: cfmlTransformer.transform(factory, config, sc, tld, fld, System.currentTimeMillis(),
-									sc.getDialect() == CFMLEngine.DIALECT_CFML && config.getDotNotationUpperCase(), returnValue, ignoreScopes);
+							: cfmlTransformer.transform(factory, config, sc, tld, fld, System.currentTimeMillis(), config.getDotNotationUpperCase(), returnValue, ignoreScopes);
 
 					page.setSplitIfNecessary(true);
 					byte[] barr = page.execute(className);
@@ -126,8 +123,7 @@ public final class CFMLCompilerImpl implements CFMLCompiler {
 				String msg = StringUtil.emptyIfNull(cfe.getMessage());
 				if (StringUtil.indexOfIgnoreCase(msg, "Invalid method Code length") != -1) {
 					page = ps != null ? cfmlTransformer.transform(factory, config, ps, tld, fld, returnValue, ignoreScopes)
-							: cfmlTransformer.transform(factory, config, sc, tld, fld, System.currentTimeMillis(),
-									sc.getDialect() == CFMLEngine.DIALECT_CFML && config.getDotNotationUpperCase(), returnValue, ignoreScopes);
+							: cfmlTransformer.transform(factory, config, sc, tld, fld, System.currentTimeMillis(), config.getDotNotationUpperCase(), returnValue, ignoreScopes);
 
 					page.setSplitIfNecessary(true);
 					byte[] barr = page.execute(className);
@@ -171,17 +167,12 @@ public final class CFMLCompilerImpl implements CFMLCompiler {
 			String displayPath = ps != null ? "[" + ps.getDisplayPath() + "] " : "";
 			String srcName = ASMUtil.getClassName(result.barr);
 
-			int dialect = sc == null ? ps.getDialect() : sc.getDialect();
 			// source is cfm and target cfc
-			if (dialect == CFMLEngine.DIALECT_CFML && endsWith(srcName, Constants.getCFMLTemplateExtensions(), dialect) && className
-					.endsWith("_" + Constants.getCFMLComponentExtension() + (dialect == CFMLEngine.DIALECT_CFML ? Constants.CFML_CLASS_SUFFIX : Constants.LUCEE_CLASS_SUFFIX))) {
+			if (endsWith(srcName, Constants.getCFMLTemplateExtensions()) && className.endsWith("_" + Constants.getCFMLComponentExtension() + (Constants.CFML_CLASS_SUFFIX))) {
 				throw new TemplateException("Source file [" + displayPath + "] contains the bytecode for a regular cfm template not for a component");
 			}
 			// source is cfc and target cfm
-			if (dialect == CFMLEngine.DIALECT_CFML
-					&& srcName.endsWith(
-							"_" + Constants.getCFMLComponentExtension() + (dialect == CFMLEngine.DIALECT_CFML ? Constants.CFML_CLASS_SUFFIX : Constants.LUCEE_CLASS_SUFFIX))
-					&& endsWith(className, Constants.getCFMLTemplateExtensions(), dialect))
+			if (srcName.endsWith("_" + Constants.getCFMLComponentExtension() + (Constants.CFML_CLASS_SUFFIX)) && endsWith(className, Constants.getCFMLTemplateExtensions()))
 				throw new TemplateException("Source file [" + displayPath + "] contains a component not a regular cfm template");
 
 			// rename class name when needed
@@ -238,15 +229,15 @@ public final class CFMLCompilerImpl implements CFMLCompiler {
 		return bytes;
 	}
 
-	private boolean endsWith(String name, String[] extensions, int dialect) {
+	private boolean endsWith(String name, String[] extensions) {
 		for (int i = 0; i < extensions.length; i++) {
-			if (name.endsWith("_" + extensions[i] + (dialect == CFMLEngine.DIALECT_CFML ? Constants.CFML_CLASS_SUFFIX : Constants.LUCEE_CLASS_SUFFIX))) return true;
+			if (name.endsWith("_" + extensions[i] + (Constants.CFML_CLASS_SUFFIX))) return true;
 		}
 		return false;
 	}
 
-	public Page transform(ConfigPro config, PageSource source, TagLib[] tld, FunctionLib[] fld, boolean returnValue, boolean ignoreScopes) throws TemplateException, IOException {
-		return cfmlTransformer.transform(BytecodeFactory.getInstance(config), config, source, tld, fld, returnValue, ignoreScopes);
+	public Page transform(ConfigPro config, PageSource source, TagLib[] tld, FunctionLib funcLib, boolean returnValue, boolean ignoreScopes) throws TemplateException, IOException {
+		return cfmlTransformer.transform(BytecodeFactory.getInstance(config), config, source, tld, funcLib, returnValue, ignoreScopes);
 	}
 
 	public class Result {

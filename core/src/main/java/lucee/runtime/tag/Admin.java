@@ -73,6 +73,7 @@ import lucee.commons.lang.ClassUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.IDGenerator;
 import lucee.commons.lang.StringUtil;
+import lucee.commons.lang.types.RefBooleanImpl;
 import lucee.commons.surveillance.HeapDumper;
 import lucee.loader.engine.CFMLEngine;
 import lucee.loader.osgi.BundleCollection;
@@ -103,11 +104,11 @@ import lucee.runtime.config.Constants;
 import lucee.runtime.config.DatasourceConnPool;
 import lucee.runtime.config.DebugEntry;
 import lucee.runtime.config.DeployHandler;
+import lucee.runtime.config.IdentificationWeb;
 import lucee.runtime.config.Password;
 import lucee.runtime.config.PasswordImpl;
 import lucee.runtime.config.RemoteClient;
 import lucee.runtime.config.RemoteClientImpl;
-import lucee.runtime.config.SingleContextConfigWeb;
 import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.db.DataSource;
 import lucee.runtime.db.DataSourceImpl;
@@ -194,6 +195,7 @@ import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.ComponentUtil;
 import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.ListUtil;
+import lucee.runtime.type.util.UDFUtil;
 import lucee.transformer.library.ClassDefinitionImpl;
 import lucee.transformer.library.function.FunctionLib;
 import lucee.transformer.library.tag.TagLib;
@@ -215,29 +217,27 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	private static final short ACCESS_WRITE = 11;
 
 	private static final Collection.Key DEBUG = KeyConstants._debug;
-	// private static final Collection.Key DEBUG_TEMPLATE = KeyImpl.intern("debugTemplate");
-	private static final Collection.Key DEBUG_SHOW_QUERY_USAGE = KeyImpl.getInstance("debugShowQueryUsage");
-	// private static final Collection.Key STR_DEBUG_TEMPLATE = KeyImpl.intern("strdebugTemplate");
+	private static final Collection.Key DEBUG_SHOW_QUERY_USAGE = KeyConstants._debugShowQueryUsage;
 	private static final Collection.Key TEMPLATES = KeyConstants._templates;
 	private static final Collection.Key STR = KeyConstants._str;
-	private static final Collection.Key DO_STATUS_CODE = KeyImpl.getInstance("doStatusCode");
+	private static final Collection.Key DO_STATUS_CODE = KeyConstants._doStatusCode;
 	private static final Collection.Key LABEL = KeyConstants._label;
-	private static final Collection.Key FILE_ACCESS = KeyImpl.getInstance("file_access");
-	private static final Collection.Key IP_RANGE = KeyImpl.getInstance("ipRange");
+	private static final Collection.Key FILE_ACCESS = KeyConstants._file_access;
+	private static final Collection.Key IP_RANGE = KeyConstants._ipRange;
 	private static final Collection.Key CUSTOM = KeyConstants._custom;
 	private static final Collection.Key READONLY = KeyConstants._readOnly;
-	private static final Collection.Key LOG_ENABLED = KeyImpl.getInstance("logEnabled");
+	private static final Collection.Key LOG_ENABLED = KeyConstants._logEnabled;
 	private static final Collection.Key CLASS = KeyConstants._class;
 
-	private static final Key HAS_OWN_SEC_CONTEXT = KeyImpl.getInstance("hasOwnSecContext");
-	private static final Key CONFIG_FILE = KeyImpl.getInstance("config_file");
-	private static final Key PROCEDURE = KeyImpl.getInstance("procedure");
-	private static final Key SERVER_LIBRARY = KeyImpl.getInstance("serverlibrary");
-	private static final Key KEEP_ALIVE = KeyImpl.getInstance("keepalive");
-	private static final Key CLIENT_SIZE = KeyImpl.getInstance("clientSize");
-	private static final Key SESSION_SIZE = KeyImpl.getInstance("sessionSize");
-	private static final Key CLIENT_ELEMENTS = KeyImpl.getInstance("clientElements");
-	private static final Key SESSION_ELEMENTS = KeyImpl.getInstance("sessionElements");
+	private static final Key HAS_OWN_SEC_CONTEXT = KeyConstants._hasOwnSecContext;
+	private static final Key CONFIG_FILE = KeyConstants._config_file;
+	private static final Key PROCEDURE = KeyConstants._procedure;
+	private static final Key SERVER_LIBRARY = KeyConstants._serverlibrary;
+	private static final Key KEEP_ALIVE = KeyConstants._keepalive;
+	private static final Key CLIENT_SIZE = KeyConstants._clientSize;
+	private static final Key SESSION_SIZE = KeyConstants._sessionSize;
+	private static final Key CLIENT_ELEMENTS = KeyConstants._clientElements;
+	private static final Key SESSION_ELEMENTS = KeyConstants._sessionElements;
 
 	private static final short MAPPING_REGULAR = 1;
 	private static final short MAPPING_CT = 2;
@@ -254,11 +254,11 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 	private static final ResourceFilter FILTER_CFML_TEMPLATES = new OrResourceFilter(
 			new ResourceFilter[] { new DirectoryResourceFilter(), new ExtensionResourceFilter(Constants.getExtensions()) });
-	private static final Key FRAGMENT = KeyImpl.getInstance("fragment");
+	private static final Key FRAGMENT = KeyConstants._fragment;
 	private static final Key HEADERS = KeyConstants._headers;
-	private static final Key SYMBOLIC_NAME = KeyImpl.getInstance("symbolicName");
-	private static final Key VENDOR = KeyImpl.getInstance("vendor");
-	private static final Key USED_BY = KeyImpl.getInstance("usedBy");
+	private static final Key SYMBOLIC_NAME = KeyConstants._symbolicName;
+	private static final Key VENDOR = KeyConstants._vendor;
+	private static final Key USED_BY = KeyConstants._usedBy;
 	private static final Key PATH = KeyConstants._path;
 	private AdminSync adminSync;
 
@@ -270,7 +270,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 	@Override
 	public void setDynamicAttribute(String uri, String localName, Object value) {
-		attributes.setEL(KeyImpl.getInstance(localName), value);
+		attributes.setEL(KeyImpl.init(localName), value);
 	}
 
 	@Override
@@ -708,7 +708,6 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		else if (check("getRestMappings", ACCESS_FREE) && check2(ACCESS_READ)) doGetRestMappings();
 		else if (check("getRestSettings", ACCESS_FREE) && check2(ACCESS_READ)) doGetRestSettings();
 		else if ((check("getRHExtensionProviders", ACCESS_FREE) || check("getExtensionProviders", ACCESS_FREE)) && check2(ACCESS_READ)) doGetRHExtensionProviders();
-		else if (check("getExtensionInfo", ACCESS_FREE) && check2(ACCESS_READ)) doGetExtensionInfo();
 
 		else if (check("getCustomTagMappings", ACCESS_FREE) && check2(ACCESS_READ)) doGetCustomTagMappings();
 		else if (check("getComponentMappings", ACCESS_FREE) && check2(ACCESS_READ)) doGetComponentMappings();
@@ -863,8 +862,6 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		else if (check("getAdminSyncClass", ACCESS_FREE) && check2(ACCESS_READ)) doGetAdminSyncClass();
 		else if (check("updateAdminSyncClass", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateAdminSyncClass();
 
-		else if (check("getVideoExecuterClass", ACCESS_FREE) && check2(ACCESS_READ)) doGetVideoExecuterClass();
-		else if (check("updateVideoExecuterClass", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateVideoExecuterClass();
 		else if (check("terminateRunningThread", ACCESS_FREE) && check2(ACCESS_WRITE)) doTerminateRunningThread();
 
 		else if (check("updateLabel", ACCESS_NOT_WHEN_WEB) && check2(ACCESS_WRITE)) doUpdateLabel();
@@ -872,9 +869,10 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		else if (check("runUpdate", ACCESS_NOT_WHEN_WEB) && check2(ACCESS_WRITE)) doRunUpdate();
 		else if (check("removeUpdate", ACCESS_NOT_WHEN_WEB) && check2(ACCESS_WRITE)) doRemoveUpdate();
 		else if (check("changeVersionTo", ACCESS_NOT_WHEN_WEB) && check2(ACCESS_WRITE)) doChangeVersionTo();
+		else if (check("mvnChangeVersionTo", ACCESS_NOT_WHEN_WEB) && check2(ACCESS_WRITE)) doMvnChangeVersionTo();
 		else if (check("getUpdate", ACCESS_NOT_WHEN_WEB) && check2(ACCESS_WRITE)) doGetUpdate();
-		else if (check("getMinVersion", ACCESS_NOT_WHEN_WEB) && check2(ACCESS_READ)) getMinVersion();
-		else if (check("getLoaderInfo", ACCESS_NOT_WHEN_WEB) && check2(ACCESS_READ)) getLoaderInfo();
+		else if (check("getMinVersion", ACCESS_FREE) && check2(ACCESS_READ)) getMinVersion();
+		else if (check("getLoaderInfo", ACCESS_FREE) && check2(ACCESS_READ)) getLoaderInfo();
 		else if (check("listPatches", ACCESS_NOT_WHEN_WEB) && check2(ACCESS_READ)) listPatches();
 		else if (check("updateupdate", ACCESS_NOT_WHEN_WEB) && check2(ACCESS_WRITE)) doUpdateUpdate();
 		else if (check("getSerial", ACCESS_FREE) && check2(ACCESS_READ)) doGetSerial();
@@ -916,6 +914,9 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		return false;
 	}
 
+	// should no longer be used, points to update provider that will no longer be available in the
+	// future
+	@Deprecated
 	private void doRunUpdate() throws PageException {
 		admin.runUpdate(password);
 		adminSync.broadcast(attributes, config);
@@ -933,6 +934,17 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		try {
 			Version version = OSGiUtil.toVersion(getString("admin", "changeVersionTo", "version"));
 			admin.changeVersionTo(version, password, pageContext.getConfig().getIdentification());
+			adminSync.broadcast(attributes, config);
+		}
+		catch (BundleException e) {
+			throw Caster.toPageException(e);
+		}
+	}
+
+	private void doMvnChangeVersionTo() throws PageException {
+		try {
+			Version version = OSGiUtil.toVersion(getString("admin", "changeVersionTo", "version"));
+			admin.mvnChangeVersionTo(version, password, pageContext.getConfig().getIdentification());
 			adminSync.broadcast(attributes, config);
 		}
 		catch (BundleException e) {
@@ -1035,16 +1047,17 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			if (getBoolV("append", false)) {
 				if (mappingType == MAPPING_CFC) {
 					admin.updateComponentMapping(mapping.getVirtual(), mapping.getStrPhysical(), strFile, mapping.isPhysicalFirst() ? "physical" : "archive",
-							mapping.getInspectTemplateRaw());
+							mapping.getInspectTemplateRaw(), mapping.getInspectTemplateAutoIntervalRaw(true), mapping.getInspectTemplateAutoIntervalRaw(false));
 				}
 				else if (mappingType == MAPPING_CT) {
 					admin.updateCustomTag(mapping.getVirtual(), mapping.getStrPhysical(), strFile, mapping.isPhysicalFirst() ? "physical" : "archive",
-							mapping.getInspectTemplateRaw());
+							mapping.getInspectTemplateRaw(), mapping.getInspectTemplateAutoIntervalRaw(true), mapping.getInspectTemplateAutoIntervalRaw(false));
 
 				}
 
 				else admin.updateMapping(mapping.getVirtual(), mapping.getStrPhysical(), strFile, mapping.isPhysicalFirst() ? "physical" : "archive",
-						mapping.getInspectTemplateRaw(), mapping.isTopLevel(), mapping.getListenerMode(), mapping.getListenerType(), mapping.isReadonly());
+						mapping.getInspectTemplateRaw(), mapping.getInspectTemplateAutoIntervalRaw(true), mapping.getInspectTemplateAutoIntervalRaw(false), mapping.isTopLevel(),
+						mapping.getListenerMode(), mapping.getListenerType(), mapping.isReadonly());
 				store();
 			}
 
@@ -1242,8 +1255,8 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 			qry.setAtEL(CONFIG_FILE, row, factory.getConfig().getConfigFile().getAbsolutePath());
 			if (factory.getURL() != null) qry.setAtEL(KeyConstants._url, row, factory.getURL().toExternalForm());
-
-			qry.setAtEL(KeyConstants._id, row, factory.getConfig().getIdentification().getId());
+			IdentificationWeb id = factory.getConfig().getIdentification();
+			qry.setAtEL(KeyConstants._id, row, id == null ? "" : id.getId());
 			qry.setAtEL(KeyConstants._hash, row, SystemUtil.hash(factory.getConfig().getServletContext()));
 			qry.setAtEL(KeyConstants._label, row, factory.getLabel());
 			qry.setAtEL(HAS_OWN_SEC_CONTEXT, row, Caster.toBoolean(cw.hasIndividualSecurityManager()));
@@ -1439,6 +1452,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		pageContext.setVariable(getString("admin", action, "returnVariable"), sct);
 
 		sct.set("varUsage", AppListenerUtil.toVariableUsage(config.getQueryVarUsage(), "ignore"));
+		sct.set("limitEvaluation", config.limitEvaluation());
 	}
 
 	/**
@@ -1523,7 +1537,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		Array data = cw.getDebuggerPool().getData(pageContext);
 
 		if (StringUtil.isEmpty(id)) {
-			pageContext.setVariable(getString("admin", action, "returnVariable"), data);
+			pageContext.setVariable(getString("admin", action, "returnVariable"), Duplicator.duplicate(data, true));
 		}
 		else {
 			Iterator<Object> it = data.valueIterator();
@@ -1531,7 +1545,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			while (it.hasNext()) {
 				sct = (Struct) it.next();
 				if (OpUtil.equalsEL(ThreadLocalPageContext.get(), id, sct.get(KeyConstants._id, ""), false, true)) {
-					pageContext.setVariable(getString("admin", action, "returnVariable"), sct);
+					pageContext.setVariable(getString("admin", action, "returnVariable"), Duplicator.duplicate(sct, true));
 					return;
 				}
 			}
@@ -1561,8 +1575,8 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	private void doGetInfo() throws PageException {
 		Struct sct = new StructImpl();
 		pageContext.setVariable(getString("admin", action, "returnVariable"), sct);
-		if (config instanceof ConfigWebPro || configWeb instanceof SingleContextConfigWeb) {
-			ConfigWebPro cw = configWeb instanceof SingleContextConfigWeb ? configWeb : (ConfigWebPro) config;
+		if (config instanceof ConfigWebPro) {
+			ConfigWebPro cw = (ConfigWebPro) config;
 			sct.setEL(KeyConstants._id, config.getIdentification().getId());
 			sct.setEL(KeyConstants._label, cw.getLabel());
 			sct.setEL(KeyConstants._hash, cw.getHash());
@@ -1631,11 +1645,15 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	}
 
 	private void doUpdateDefaultSecurityManager() throws PageException {
-
-		admin.updateDefaultSecurity(fb("setting"), SecurityManagerImpl.toShortAccessValue(getString("admin", action, "file")), getFileAcces(), fb("direct_java_access"), fb("mail"),
-				SecurityManagerImpl.toShortAccessValue(getString("admin", action, "datasource")), fb("mapping"), fb("remote"), fb("custom_tag"), fb("cfx_setting"), fb("cfx_usage"),
-				fb("debugging"), fb("search"), fb("scheduled_task"), fb("tag_execute"), fb("tag_import"), fb("tag_object"), fb("tag_registry"), fb("cache"), fb("gateway"),
-				fb("orm"), fb2("access_read"), fb2("access_write"));
+		if (singleMode) {
+			admin.updateDefaultSecurity(fb2("access_read"), fb2("access_write"));
+		}
+		else {
+			admin.updateDefaultSecurity(fb("setting"), SecurityManagerImpl.toShortAccessValue(getString("admin", action, "file")), getFileAcces(), fb("direct_java_access"),
+					fb("mail"), SecurityManagerImpl.toShortAccessValue(getString("admin", action, "datasource")), fb("mapping"), fb("remote"), fb("custom_tag"), fb("cfx_setting"),
+					fb("cfx_usage"), fb("debugging"), fb("search"), fb("scheduled_task"), fb("tag_execute"), fb("tag_import"), fb("tag_object"), fb("tag_registry"), fb("cache"),
+					fb("gateway"), fb("orm"), fb2("access_read"), fb2("access_write"));
+		}
 		store();
 		adminSync.broadcast(attributes, config);
 	}
@@ -1758,7 +1776,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	}
 
 	private void doUpdateSecurity() throws PageException {
-		admin.updateSecurity(getString("varUsage", ""));
+		admin.updateSecurity(getString("varUsage", ""), getBool("limitEvaluation", null));
 		store();
 		adminSync.broadcast(attributes, config);
 	}
@@ -1957,7 +1975,8 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	 */
 	private void doUpdateComponentMapping() throws PageException {
 		admin.updateComponentMapping(getString("virtual", ""), getString("physical", ""), getString("archive", ""), getString("primary", "physical"),
-				ConfigWebUtil.inspectTemplate(getString("inspect", ""), ConfigPro.INSPECT_UNDEFINED));
+				ConfigWebUtil.inspectTemplate(getString("inspect", ""), ConfigPro.INSPECT_UNDEFINED), getInt("inspectTemplateIntervalSlow", ConfigPro.INSPECT_INTERVAL_UNDEFINED),
+				getInt("inspectTemplateIntervalFast", ConfigPro.INSPECT_INTERVAL_UNDEFINED));
 		store();
 		adminSync.broadcast(attributes, config);
 	}
@@ -1977,7 +1996,8 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	 */
 	private void doUpdateCustomTag() throws PageException {
 		admin.updateCustomTag(getString("admin", action, "virtual"), getString("admin", action, "physical"), getString("admin", action, "archive"),
-				getString("admin", action, "primary"), ConfigWebUtil.inspectTemplate(getString("inspect", ""), ConfigPro.INSPECT_UNDEFINED));
+				getString("admin", action, "primary"), ConfigWebUtil.inspectTemplate(getString("inspect", ""), ConfigPro.INSPECT_UNDEFINED),
+				getInt("inspectTemplateIntervalSlow", ConfigPro.INSPECT_INTERVAL_UNDEFINED), getInt("inspectTemplateIntervalFast", ConfigPro.INSPECT_INTERVAL_UNDEFINED));
 		store();
 		adminSync.broadcast(attributes, config);
 	}
@@ -1998,8 +2018,8 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	 */
 	private void doGetCustomTagMappings() throws PageException {
 		Mapping[] mappings = config.getCustomTagMappings();
-		lucee.runtime.type.Query qry = new QueryImpl(
-				new String[] { "archive", "strarchive", "physical", "strphysical", "virtual", "hidden", "physicalFirst", "readonly", "inspect" }, mappings.length, "query");
+		lucee.runtime.type.Query qry = new QueryImpl(new String[] { "archive", "strarchive", "physical", "strphysical", "virtual", "hidden", "physicalFirst", "readonly", "inspect",
+				"inspectTemplateIntervalSlow", "inspectTemplateIntervalFast" }, mappings.length, "query");
 
 		for (int i = 0; i < mappings.length; i++) {
 			MappingImpl m = (MappingImpl) mappings[i];
@@ -2013,14 +2033,16 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			qry.setAt("physicalFirst", row, Caster.toBoolean(m.isPhysicalFirst()));
 			qry.setAt("readonly", row, Caster.toBoolean(m.isReadonly()));
 			qry.setAt("inspect", row, ConfigWebUtil.inspectTemplate(m.getInspectTemplateRaw(), ""));
+			qry.setAt("inspectTemplateIntervalSlow", row, m.getInspectTemplateAutoInterval(true));
+			qry.setAt("inspectTemplateIntervalFast", row, m.getInspectTemplateAutoInterval(false));
 		}
 		pageContext.setVariable(getString("admin", action, "returnVariable"), qry);
 	}
 
 	private void doGetComponentMappings() throws PageException {
 		Mapping[] mappings = config.getComponentMappings();
-		lucee.runtime.type.Query qry = new QueryImpl(
-				new String[] { "archive", "strarchive", "physical", "strphysical", "virtual", "hidden", "physicalFirst", "readonly", "inspect" }, mappings.length, "query");
+		lucee.runtime.type.Query qry = new QueryImpl(new String[] { "archive", "strarchive", "physical", "strphysical", "virtual", "hidden", "physicalFirst", "readonly", "inspect",
+				"inspectTemplateIntervalSlow", "inspectTemplateIntervalFast" }, mappings.length, "query");
 
 		for (int i = 0; i < mappings.length; i++) {
 			MappingImpl m = (MappingImpl) mappings[i];
@@ -2034,6 +2056,8 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			qry.setAt("physicalFirst", row, Caster.toBoolean(m.isPhysicalFirst()));
 			qry.setAt("readonly", row, Caster.toBoolean(m.isReadonly()));
 			qry.setAt("inspect", row, ConfigWebUtil.inspectTemplate(m.getInspectTemplateRaw(), ""));
+			qry.setAt("inspectTemplateIntervalSlow", row, m.getInspectTemplateAutoInterval(true));
+			qry.setAt("inspectTemplateIntervalFast", row, m.getInspectTemplateAutoInterval(false));
 		}
 		pageContext.setVariable(getString("admin", action, "returnVariable"), qry);
 	}
@@ -2070,6 +2094,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	private void doUpdateMapping() throws PageException {
 		admin.updateMapping(getString("admin", action, "virtual"), getString("admin", action, "physical"), getString("admin", action, "archive"),
 				getString("admin", action, "primary"), ConfigWebUtil.inspectTemplate(getString("inspect", ""), ConfigPro.INSPECT_UNDEFINED),
+				getInt("inspectTemplateIntervalSlow", ConfigPro.INSPECT_INTERVAL_UNDEFINED), getInt("inspectTemplateIntervalFast", ConfigPro.INSPECT_INTERVAL_UNDEFINED),
 				Caster.toBooleanValue(getString("toplevel", "true")), ConfigWebUtil.toListenerMode(getString("listenerMode", ""), -1),
 				ConfigWebUtil.toListenerType(getString("listenerType", ""), -1), Caster.toBooleanValue(getString("readonly", "false"))
 
@@ -2101,6 +2126,8 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			sct.set("physicalFirst", Caster.toBoolean(m.isPhysicalFirst()));
 			sct.set("readonly", Caster.toBoolean(m.isReadonly()));
 			sct.set("inspect", ConfigWebUtil.inspectTemplate(m.getInspectTemplateRaw(), ""));
+			sct.set("inspectTemplateIntervalSlow", m.getInspectTemplateAutoInterval(true));
+			sct.set("inspectTemplateIntervalFast", m.getInspectTemplateAutoInterval(false));
 			sct.set("toplevel", Caster.toBoolean(m.isTopLevel()));
 
 			pageContext.setVariable(getString("admin", action, "returnVariable"), sct);
@@ -2123,57 +2150,11 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		pageContext.setVariable(getString("admin", action, "returnVariable"), qry);
 	}
 
-	private void doGetExtensionInfo() throws PageException {
-		Resource ed = config.getExtensionDirectory();
-		Struct sct = new StructImpl();
-		sct.set(KeyConstants._directory, ed.getPath());
-		sct.set(KeyConstants._enabled, Caster.toBoolean(config.isExtensionEnabled()));
-
-		pageContext.setVariable(getString("admin", action, "returnVariable"), sct);
-	}
-
-	/*
-	 * private void doGetExtensions() throws PageException { Extension[] extensions =
-	 * config.getExtensions(); lucee.runtime.type.Query qry = new QueryImpl(new String[] { "type",
-	 * "provider", "id", "config", "version", "category", "description", "image", "label", "name",
-	 * "author", "codename", "video", "support", "documentation", "forum", "mailinglist", "network",
-	 * "created" }, 0, "query");
-	 * 
-	 * String provider = getString("provider", null); String id = getString("id", null); Extension
-	 * extension; String extProvider, extId; int row = 0; for (int i = 0; i < extensions.length; i++) {
-	 * extension = extensions[i]; if(!extension.getType().equalsIgnoreCase("all") &&
-	 * toType(extension.getType(), false) != type) continue;
-	 * 
-	 * extProvider = extension.getProvider(); extId = extension.getId(); if(provider != null &&
-	 * !provider.equalsIgnoreCase(extProvider)) continue; if(id != null && !id.equalsIgnoreCase(extId))
-	 * continue;
-	 * 
-	 * qry.addRow(); row++; qry.setAt("provider", row, extProvider); qry.setAt(KeyConstants._id, row,
-	 * extId); qry.setAt(KeyConstants._config, row, extension.getConfig(pageContext));
-	 * qry.setAt(KeyConstants._version, row, extension.getVersion());
-	 * 
-	 * qry.setAt("category", row, extension.getCategory()); qry.setAt(KeyConstants._description, row,
-	 * extension.getDescription()); qry.setAt("image", row, extension.getImage());
-	 * qry.setAt(KeyConstants._label, row, extension.getLabel()); qry.setAt(KeyConstants._name, row,
-	 * extension.getName());
-	 * 
-	 * qry.setAt(KeyConstants._author, row, extension.getAuthor()); qry.setAt("codename", row,
-	 * extension.getCodename()); qry.setAt("video", row, extension.getVideo()); qry.setAt("support",
-	 * row, extension.getSupport()); qry.setAt("documentation", row, extension.getDocumentation());
-	 * qry.setAt("forum", row, extension.getForum()); qry.setAt("mailinglist", row,
-	 * extension.getMailinglist()); qry.setAt("network", row, extension.getNetwork());
-	 * qry.setAt(KeyConstants._created, row, extension.getCreated()); qry.setAt(KeyConstants._type, row,
-	 * extension.getType());
-	 * 
-	 * } pageContext.setVariable(getString("admin", action, "returnVariable"), qry); }
-	 */
-
 	private void doGetMappings() throws PageException {
 
 		Mapping[] mappings = config.getMappings();
-		lucee.runtime.type.Query qry = new QueryImpl(
-				new String[] { "archive", "strarchive", "physical", "strphysical", "virtual", "hidden", "physicalFirst", "readonly", "inspect", "toplevel", "listenerType", "listenerMode" }, mappings.length,
-				"query");
+		lucee.runtime.type.Query qry = new QueryImpl(new String[] { "archive", "strarchive", "physical", "strphysical", "virtual", "hidden", "physicalFirst", "readonly", "inspect",
+				"inspectTemplateIntervalSlow", "inspectTemplateIntervalFast", "toplevel", "listenerType", "listenerMode" }, mappings.length, "query");
 
 		for (int i = 0; i < mappings.length; i++) {
 			MappingImpl m = (MappingImpl) mappings[i];
@@ -2187,6 +2168,8 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			qry.setAt("physicalFirst", row, Caster.toBoolean(m.isPhysicalFirst()));
 			qry.setAt("readonly", row, Caster.toBoolean(m.isReadonly()));
 			qry.setAt("inspect", row, ConfigWebUtil.inspectTemplate(m.getInspectTemplateRaw(), ""));
+			qry.setAt("inspectTemplateIntervalSlow", row, m.getInspectTemplateAutoInterval(true));
+			qry.setAt("inspectTemplateIntervalFast", row, m.getInspectTemplateAutoInterval(false));
 			qry.setAt("toplevel", row, Caster.toBoolean(m.isTopLevel()));
 			qry.setAt("listenerType", row, ConfigWebUtil.toListenerType(m.getListenerType(), "inherit"));
 			qry.setAt("listenerMode", row, ConfigWebUtil.toListenerMode(m.getListenerMode(), "inherit"));
@@ -2234,17 +2217,6 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 	private void doGetAdminSyncClass() throws PageException {
 		pageContext.setVariable(getString("admin", action, "returnVariable"), config.getAdminSyncClass().getName());
-	}
-
-	private void doUpdateVideoExecuterClass() throws PageException {
-		ClassDefinition cd = new ClassDefinitionImpl(getString("admin", action, "class"), getString("bundleName", null), getString("bundleVersion", null),
-				config.getIdentification());
-		admin.updateVideoExecuterClass(cd);
-		store();
-	}
-
-	private void doGetVideoExecuterClass() throws PageException {
-		pageContext.setVariable(getString("admin", action, "returnVariable"), config.getVideoExecuterClass().getName());
 	}
 
 	/**
@@ -2484,9 +2456,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 						"source" },
 				new String[] { "varchar", "varchar", "varchar", "varchar", "varchar", "varchar", "varchar", "varchar", "varchar", "varchar", "varchar" }, 0, "tlds");
 
-		int dialect = "lucee".equalsIgnoreCase(getString("dialect", "cfml")) ? CFMLEngine.DIALECT_LUCEE : CFMLEngine.DIALECT_CFML;
-
-		TagLib[] libs = config.getTLDs(dialect);
+		TagLib[] libs = config.getTLDs();
 		for (int i = 0; i < libs.length; i++) {
 			qry.addRow();
 			qry.setAt("displayname", i + 1, libs[i].getDisplayName());
@@ -2585,19 +2555,15 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		lucee.runtime.type.Query qry = new QueryImpl(new String[] { "displayname", "namespace", "namespaceseparator", "shortname", "description", "uri", "source" },
 				new String[] { "varchar", "varchar", "varchar", "varchar", "varchar", "varchar", "varchar" }, 0, "tlds");
 
-		int dialect = "lucee".equalsIgnoreCase(getString("dialect", "cfml")) ? CFMLEngine.DIALECT_LUCEE : CFMLEngine.DIALECT_CFML;
-
-		FunctionLib[] libs = config.getFLDs(dialect);
-		for (int i = 0; i < libs.length; i++) {
-			qry.addRow();
-			qry.setAt("displayname", i + 1, libs[i].getDisplayName());
-			qry.setAt("namespace", i + 1, "");// TODO support for namespace
-			qry.setAt("namespaceseparator", i + 1, "");
-			qry.setAt("shortname", i + 1, libs[i].getShortName());
-			qry.setAt("description", i + 1, libs[i].getDescription());
-			qry.setAt("uri", i + 1, Caster.toString(libs[i].getUri()));
-			qry.setAt("source", i + 1, StringUtil.emptyIfNull(libs[i].getSource()));
-		}
+		FunctionLib lib = config.getFLDs();
+		qry.addRow();
+		qry.setAt("displayname", 1, lib.getDisplayName());
+		qry.setAt("namespace", 1, "");// TODO support for namespace
+		qry.setAt("namespaceseparator", 1, "");
+		qry.setAt("shortname", 1, lib.getShortName());
+		qry.setAt("description", 1, lib.getDescription());
+		qry.setAt("uri", 1, Caster.toString(lib.getUri()));
+		qry.setAt("source", 1, StringUtil.emptyIfNull(lib.getSource()));
 		pageContext.setVariable(getString("admin", action, "returnVariable"), qry);
 	}
 
@@ -2676,18 +2642,20 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			cn = "com.microsoft.sqlserver.jdbc.SQLServerDriver";
 		}
 
-		Pattern pattern = Pattern.compile("[a-zA-Z0-9_]*");
-		Matcher matcher = pattern.matcher(getString("admin", action, "newName"));
+		String tmp = getString("admin", action, "newName");
+		Pattern pattern = Pattern.compile("[a-zA-Z0-9_-]*");
+		Matcher matcher = pattern.matcher(tmp);
 
 		if (matcher.matches() == false) {
-			throw new ExpressionException("Trying to create a data source with a name that is invalid. Data source Names must match proper variable naming conventions");
+			throw new ExpressionException("Failed to create a datasource name [" + tmp
+					+ "]: only alphanumeric characters, underscores (_), and hyphens (-) are valid. Please ensure the name conforms to these formats.");
 		}
 
 		ClassDefinition cd = new ClassDefinitionImpl(cn, getString("bundleName", null), getString("bundleVersion", null), config.getIdentification());
 
 		// customParameterSyntax
-		Struct sct = getStruct("customParameterSyntax", null);
-		ParamSyntax ps = (sct != null && sct.containsKey("delimiter") && sct.containsKey("separator")) ? ParamSyntax.toParamSyntax(sct) : ParamSyntax.DEFAULT;
+		// Struct sct = getStruct("customParameterSyntax", null);
+		ParamSyntax ps = ParamSyntax.toParamSyntax(attributes, ParamSyntax.DEFAULT);
 
 		//
 		boolean literalTimestampWithTSOffset = getBoolV("literalTimestampWithTSOffset", false);
@@ -3134,7 +3102,9 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	}
 
 	private void doUpdatePerformanceSettings() throws SecurityException, PageException {
-		admin.updateInspectTemplate(getString("admin", action, "inspectTemplate"));
+
+		admin.updateInspectTemplate(getString("admin", action, "inspectTemplate"), getInt("inspectTemplateIntervalSlow", ConfigPro.INSPECT_INTERVAL_UNDEFINED),
+				getInt("inspectTemplateIntervalFast", ConfigPro.INSPECT_INTERVAL_UNDEFINED));
 
 		admin.updateTypeChecking(getBoolObject("admin", action, "typeChecking"));
 
@@ -3254,7 +3224,11 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		String str = "once";
 		if (it == ConfigPro.INSPECT_ALWAYS) str = "always";
 		else if (it == ConfigPro.INSPECT_NEVER) str = "never";
+		else if (it == ConfigPro.INSPECT_AUTO) str = "auto";
 		sct.set("inspectTemplate", str);
+		sct.set("inspectTemplateIntervalSlow", config.getInspectTemplateAutoInterval(true));
+		sct.set("inspectTemplateIntervalFast", config.getInspectTemplateAutoInterval(false));
+
 		sct.set("typeChecking", config.getTypeChecking());
 
 		// cached within
@@ -3425,7 +3399,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			str = Caster.toString(h.get("Bundle-Description", null), null);
 			if (StringUtil.isEmpty(str)) str = Caster.toString(h.get("Implementation-Description", null), null);
 			if (StringUtil.isEmpty(str)) str = Caster.toString(h.get("Specification-Description", null), null);
-			if (!StringUtil.isEmpty(str)) sct.set(KeyConstants._description, str);
+			sct.set(KeyConstants._description, str);
 
 			// Vendor
 			str = Caster.toString(h.get("Bundle-Vendor", null), null);
@@ -3770,7 +3744,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		else if (strType.equals("http")) type = ConfigPro.CACHE_TYPE_HTTP;
 		else if (strType.equals("file")) type = ConfigPro.CACHE_TYPE_FILE;
 		else if (strType.equals("webservice")) type = ConfigPro.CACHE_TYPE_WEBSERVICE;
-		else throw new ApplicationException("inv,query,resource invalid type definition, valid values are [object,template,query,resource,function,include]");
+		else throw new ApplicationException("Unsupported default cache type [" + strType + "], valid values are [object, template, query, resource, function, include]");
 
 		CacheConnection cc = config.getCacheDefaultConnection(type);
 		if (cc != null) {
@@ -4084,8 +4058,8 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		Cluster cluster = pageContext.clusterScope();
 		while (it.hasNext()) {
 			entry = Caster.toStruct(it.next());
-			cluster.setEntry(new ClusterEntryImpl(KeyImpl.getInstance(Caster.toString(entry.get(KeyConstants._key))),
-					Caster.toSerializable(entry.get(KeyConstants._value, null), null), Caster.toLongValue(entry.get(KeyConstants._time))));
+			cluster.setEntry(new ClusterEntryImpl(KeyImpl.init(Caster.toString(entry.get(KeyConstants._key))), Caster.toSerializable(entry.get(KeyConstants._value, null), null),
+					Caster.toLongValue(entry.get(KeyConstants._time))));
 		}
 
 		cluster.broadcast();
@@ -4214,6 +4188,10 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		admin.updateSessionType(getString("admin", action, "sessionType"));
 		admin.updateLocalMode(getString("admin", action, "localMode"));
 		admin.updateCGIReadonly(getBoolObject("admin", action, "cgiReadonly"));
+		admin.updateFormUrlAsStruct(getBoolObject("admin", action, "formUrlAsStruct"));
+
+		config.getFormUrlAsStruct();
+
 		store();
 		adminSync.broadcast(attributes, config);
 	}
@@ -4273,6 +4251,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 	private void doUpdateAdminMode() throws PageException {
 		admin.updateUpdateAdminMode(getString("admin", "updateAdminMode", "mode"), getBool("admin", "updateAdminMode", "merge"), getBool("admin", "updateAdminMode", "keep"));
+		((GatewayEngineImpl) configWeb.getGatewayEngine()).stop();
 		store();
 		adminSync.broadcast(attributes, config);
 	}
@@ -4337,7 +4316,8 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			String version = getString("version", null);
 			if (!StringUtil.isEmpty(version, true) && !"latest".equalsIgnoreCase(version)) ed = new ExtensionDefintion(id, version);
 			else ed = RHExtension.toExtensionDefinition(id);
-			DeployHandler.deployExtension(config, ed, config == null ? null : ThreadLocalPageContext.getLog(pageContext, "application"), true, true, throwOnError);
+			DeployHandler.deployExtension(config, ed, config == null ? null : ThreadLocalPageContext.getLog(pageContext, "application"), true, true, throwOnError,
+					new RefBooleanImpl());
 			return;
 		}
 
@@ -4363,13 +4343,13 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		// path
 		if (obj instanceof String) {
 			Resource src = ResourceUtil.toResourceExisting(config, (String) obj);
-			ConfigAdmin._updateRHExtension(config, src, true, true);
+			ConfigAdmin._updateRHExtension(config, src, true, true, RHExtension.ACTION_MOVE);
 		}
 		else {
 			try {
 				Resource tmp = SystemUtil.getTempFile("lex", true);
 				IOUtil.copy(new ByteArrayInputStream(Caster.toBinary(obj)), tmp, true);
-				ConfigAdmin._updateRHExtension(config, tmp, true, true);
+				ConfigAdmin._updateRHExtension(config, tmp, true, true, RHExtension.ACTION_MOVE);
 			}
 			catch (IOException ioe) {
 				throw Caster.toPageException(ioe);
@@ -4552,6 +4532,9 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		if (config.getScopeCascadingType() == Config.SCOPE_STRICT) sct.set("scopeCascadingType", "strict");
 		else if (config.getScopeCascadingType() == Config.SCOPE_SMALL) sct.set("scopeCascadingType", "small");
 		else if (config.getScopeCascadingType() == Config.SCOPE_STANDARD) sct.set("scopeCascadingType", "standard");
+
+		sct.set("formUrlAsStruct", config.getFormUrlAsStruct());
+
 	}
 
 	/**
@@ -4571,7 +4554,6 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	private void doUpdateComponent() throws PageException {
 
 		admin.updateComponentDeepSearch(getBoolObject("admin", action, "deepSearch"));
-		admin.updateBaseComponent(getString("admin", action, "baseComponentTemplateCFML"), getString("admin", action, "baseComponentTemplateLucee"));
 		admin.updateComponentDumpTemplate(getString("admin", action, "componentDumpTemplate"));
 		admin.updateComponentDataMemberDefaultAccess(getString("admin", action, "componentDataMemberDefaultAccess"));
 		admin.updateTriggerDataMember(getBoolObject("admin", action, "triggerDataMember"));
@@ -4579,6 +4561,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		admin.updateComponentDefaultImport(getString("admin", action, "componentDefaultImport"));
 		admin.updateComponentLocalSearch(getBoolObject("admin", action, "componentLocalSearch"));
 		admin.updateComponentPathCache(getBoolObject("admin", action, "componentPathCache"));
+		admin.updateReturnFormat(getString("admin", action, "returnFormat"));
 		store();
 		adminSync.broadcast(attributes, config);
 	}
@@ -4591,28 +4574,6 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	private void doGetComponent() throws PageException {
 		Struct sct = new StructImpl();
 		pageContext.setVariable(getString("admin", action, "returnVariable"), sct);
-		// Base Component
-		try {
-			PageSource psCFML = config.getBaseComponentPageSource(CFMLEngine.DIALECT_CFML);
-
-			if (psCFML != null && psCFML.exists()) sct.set("baseComponentTemplateCFML", psCFML.getDisplayPath());
-			else sct.set("baseComponentTemplateCFML", "");
-		}
-		catch (PageException e) {
-			sct.set("baseComponentTemplateCFML", "");
-		}
-		try {
-			PageSource psLucee = config.getBaseComponentPageSource(CFMLEngine.DIALECT_LUCEE);
-
-			if (psLucee != null && psLucee.exists()) sct.set("baseComponentTemplateLucee", psLucee.getDisplayPath());
-			else sct.set("baseComponentTemplateLucee", "");
-
-		}
-		catch (PageException e) {
-			sct.set("baseComponentTemplateLucee", "");
-		}
-		sct.set("strBaseComponentTemplateCFML", config.getBaseComponentTemplate(CFMLEngine.DIALECT_CFML));
-		sct.set("strBaseComponentTemplateLucee", config.getBaseComponentTemplate(CFMLEngine.DIALECT_LUCEE));
 
 		// dump template
 		try {
@@ -4632,6 +4593,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		sct.set("ComponentDefaultImport", config.getComponentDefaultImport());
 		sct.set("componentLocalSearch", config.getComponentLocalSearch());
 		sct.set("componentPathCache", config.useComponentPathCache());
+		sct.set(KeyConstants._returnFormat, UDFUtil.toReturnFormat(config.getReturnFormat(), "wddx"));
 
 	}
 
@@ -5138,6 +5100,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		ApplicationListener appListener = config.getApplicationListener();
 		sct.set("type", AppListenerUtil.toStringType(appListener));
 		sct.set("mode", AppListenerUtil.toStringMode(appListener.getMode()));
+		sct.set("applicationPathTimeout", TimeSpanImpl.fromMillis(config.getApplicationPathCacheTimeout()));
 		// replaced with encoding outputsct.set("defaultencoding", config.get DefaultEncoding());
 	}
 

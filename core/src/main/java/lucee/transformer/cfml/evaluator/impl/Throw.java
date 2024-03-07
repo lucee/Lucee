@@ -27,7 +27,7 @@ import lucee.transformer.library.tag.TagLibTag;
 public final class Throw extends EvaluatorSupport {
 
 	@Override
-	public void evaluate(Tag tag, TagLibTag tagLibTag, FunctionLib[] flibs) throws EvaluatorException {
+	public void evaluate(Tag tag, TagLibTag tagLibTag, FunctionLib flibs) throws EvaluatorException {
 
 		// file loop
 		if (tag.containsAttribute("message") && tag.containsAttribute("object")) {

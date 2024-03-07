@@ -162,7 +162,7 @@ public class JavaProxyFactory {
 
 		ClassWriter cw = ASMUtil.getClassWriter();
 
-		cw.visit(Opcodes.V1_6, Opcodes.ACC_PUBLIC, className, null, typeExtends.getInternalName(), new String[] { strInterface });
+		cw.visit(ASMUtil.getJavaVersionForBytecodeGeneration(), Opcodes.ACC_PUBLIC, className, null, typeExtends.getInternalName(), new String[] { strInterface });
 
 		// field Component
 		FieldVisitor _fv = cw.visitField(Opcodes.ACC_PRIVATE, "udf", UDF_NAME, null, null);
@@ -202,7 +202,7 @@ public class JavaProxyFactory {
 		cw.visitEnd();
 
 		// create class file
-		byte[] barr = cw.toByteArray();
+		byte[] barr = ASMUtil.verify(cw.toByteArray());
 
 		try {
 			ResourceUtil.touch(classFile);
@@ -270,7 +270,7 @@ public class JavaProxyFactory {
 		}
 		ClassWriter cw = ASMUtil.getClassWriter();
 
-		cw.visit(Opcodes.V1_6, Opcodes.ACC_PUBLIC, className, null, typeExtends.getInternalName(), strInterfaces);
+		cw.visit(ASMUtil.getJavaVersionForBytecodeGeneration(), Opcodes.ACC_PUBLIC, className, null, typeExtends.getInternalName(), strInterfaces);
 
 		// field Component
 		FieldVisitor _fv = cw.visitField(Opcodes.ACC_PRIVATE, "cfc", COMPONENT_NAME, null, null);
@@ -312,7 +312,7 @@ public class JavaProxyFactory {
 		cw.visitEnd();
 
 		// create class file
-		byte[] barr = cw.toByteArray();
+		byte[] barr = ASMUtil.verify(cw.toByteArray());
 
 		try {
 			ResourceUtil.touch(classFile);

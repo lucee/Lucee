@@ -21,6 +21,7 @@ package lucee.runtime.exp;
 import java.io.PrintWriter;
 
 import lucee.commons.io.log.Log;
+import lucee.commons.io.log.LogUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.config.Config;
 import lucee.runtime.engine.ThreadLocalPageContext;
@@ -32,13 +33,9 @@ import lucee.runtime.op.Caster;
 public final class ExceptionHandler {
 
 	public static void log(Config config, Throwable t) {
-
 		PageException pe = Caster.toPageException(t);
-		pe.printStackTrace(config.getErrWriter());
-
 		int ll = t instanceof MissingIncludeException ? Log.LEVEL_WARN : Log.LEVEL_ERROR;
-		ThreadLocalPageContext.getLog(config, "exception").log(ll, "", pe);
-
+		LogUtil.log(config, "exception", "", t, ll);
 	}
 
 	public static void printStackTrace(PageContext pc, Throwable t) {

@@ -27,9 +27,6 @@ import lucee.runtime.ext.function.BIF;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
-import lucee.runtime.type.KeyImpl;
-import lucee.runtime.type.StructImpl;
-import lucee.runtime.type.util.CollectionUtil;
 
 public final class StructValueArray extends BIF {
 

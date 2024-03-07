@@ -19,21 +19,29 @@
 package lucee.runtime;
 
 import java.lang.ref.SoftReference;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-import lucee.commons.collection.LongKeyList;
-import lucee.commons.io.log.Log;
-import lucee.commons.io.log.LogUtil;
-import lucee.runtime.config.Config;
+import lucee.commons.io.SystemUtil;
+import lucee.commons.io.res.Resource;
+import lucee.commons.io.watch.PageSourcePoolWatcher;
+import lucee.runtime.config.ConfigPro;
+import lucee.runtime.config.ConfigWebUtil;
+import lucee.runtime.config.Constants;
 import lucee.runtime.dump.DumpData;
 import lucee.runtime.dump.DumpProperties;
 import lucee.runtime.dump.DumpTable;
 import lucee.runtime.dump.DumpUtil;
 import lucee.runtime.dump.Dumpable;
 import lucee.runtime.dump.SimpleDumpData;
+import lucee.runtime.listener.ApplicationContext;
+import lucee.runtime.op.Caster;
 import lucee.runtime.type.dt.DateTimeImpl;
 
 /**
@@ -41,18 +49,30 @@ import lucee.runtime.type.dt.DateTimeImpl;
  */
 public final class PageSourcePool implements Dumpable {
 	// TODO must not be thread safe, is used in sync block only
-	private Map<String, SoftReference<PageSource>> pageSources = new ConcurrentHashMap<String, SoftReference<PageSource>>();
-	// timeout timeout for files
-	private long timeout;
+	private final Map<String, SoftReference<PageSource>> pageSources = new ConcurrentHashMap<String, SoftReference<PageSource>>();
+	private int maxSize_min = 1000;
+	private PageSourcePoolWatcher watcher;
+	private MappingImpl mapping;
+
 	// max size of the pool cache
-	private int maxSize;
+	private static final int MAXSIZE;
+	private static final int MAXSIZE_MIN;
+	// timeout timeout for files
+	private static final int TIMEOUT;
+
+	static {
+		MAXSIZE = Caster.toIntValue(SystemUtil.getSystemPropOrEnvVar("lucee.pagePool.maxSize", null), 10000);
+		MAXSIZE_MIN = Math.max(MAXSIZE - 1000, 1000);
+		TIMEOUT = Caster.toIntValue(SystemUtil.getSystemPropOrEnvVar("lucee.pagePool.timeout", null), 10000);
+
+	}
 
 	/**
 	 * constructor of the class
 	 */
-	public PageSourcePool() {
-		this.timeout = 10000;
-		this.maxSize = 1000;
+	public PageSourcePool(MappingImpl mapping) {
+		this.mapping = mapping;
+		// print.ds();
 	}
 
 	/**
@@ -64,8 +84,12 @@ public final class PageSourcePool implements Dumpable {
 	 */
 	public PageSource getPageSource(String key, boolean updateAccesTime) { // DO NOT CHANGE INTERFACE (used by Argus Monitor)
 		SoftReference<PageSource> tmp = pageSources.get(key.toLowerCase());
-		PageSource ps = tmp == null ? null : tmp.get();
-		if (ps == null) return null;
+		if (tmp == null) return null;
+		PageSource ps = tmp.get();
+		if (ps == null) {
+			pageSources.remove(key.toLowerCase());
+			return null;
+		}
 		if (updateAccesTime) ps.setLastAccessTime();
 		return ps;
 	}
@@ -77,8 +101,18 @@ public final class PageSourcePool implements Dumpable {
 	 * @param ps pagesource to store
 	 */
 	public void setPage(String key, PageSource ps) {
-		ps.setLastAccessTime();
+		if (pageSources.size() > MAXSIZE) {
+			cleanLoaders();
+		}
+		if ((mapping.getInspectTemplate() == ConfigPro.INSPECT_AUTO) && (watcher == null || pageSources.size() == 0)) {
+			if (watcher != null) {
+				watcher.stopIfNecessary();
+			}
+			watcher = new PageSourcePoolWatcher(mapping, this, pageSources);
+			watcher.startIfNecessary();
+		}
 
+		ps.setLastAccessTime();
 		pageSources.put(key.toLowerCase(), new SoftReference<PageSource>(ps));
 	}
 
@@ -101,23 +135,18 @@ public final class PageSourcePool implements Dumpable {
 		return set.toArray(new String[set.size()]);
 	}
 
-	/**
-	 * removes a page from the page pool
-	 * 
-	 * @param key key reference to page object
-	 * @return page object matching to key reference
-	 */
-	/*
-	 * private boolean remove(String key) {
-	 * 
-	 * if (pageSources.remove(key.toLowerCase()) != null) return true;
-	 * 
-	 * Set<String> set = pageSources.keySet(); String[] keys = set.toArray(new String[set.size()]); //
-	 * done this way to avoid ConcurrentModificationException SoftReference<PageSource> tmp; PageSource
-	 * ps; for (String k: keys) { tmp = pageSources.get(k); ps = tmp == null ? null : tmp.get(); if (ps
-	 * != null && key.equalsIgnoreCase(ps.getClassName())) { pageSources.remove(k); return true; } }
-	 * return false; }
-	 */
+	public List<PageSource> values(boolean loaded) {
+		List<PageSource> vals = new ArrayList<>();
+		if (pageSources == null) return vals;
+
+		PageSource ps;
+		for (SoftReference<PageSource> sr: pageSources.values()) {
+			ps = sr.get();
+			if (ps != null && (!loaded || ((PageSourceImpl) ps).isLoad())) vals.add(ps);
+
+		}
+		return vals;
+	}
 
 	public boolean flushPage(String key) {
 		SoftReference<PageSource> tmp = pageSources.get(key.toLowerCase());
@@ -142,45 +171,85 @@ public final class PageSourcePool implements Dumpable {
 	 * @return returns the size of the pool
 	 */
 	public int size() {
-		return pageSources.size();
+		int size = 0;
+
+		for (Entry<String, SoftReference<PageSource>> entry: pageSources.entrySet()) {
+			if (entry.getValue().get() != null) size++;
+			else {
+				pageSources.remove(entry.getKey());
+			}
+		}
+		return size;
 	}
 
 	/**
 	 * @return returns if pool is empty or not
 	 */
 	public boolean isEmpty() {
-		return pageSources.isEmpty();
+		return size() > 0;
 	}
 
-	/**
-	 * clear unused pages from page pool
-	 */
-	public void clearUnused(Config config) {
-		if (size() > maxSize) {
-			LogUtil.log(config, Log.LEVEL_INFO, PageSourcePool.class.getName(), "PagePool size [" + size() + "] has exceeded max size [" + maxSize + "]. Clearing unused...");
-			String[] keys = keys();
-			LongKeyList list = new LongKeyList();
-			for (int i = 0; i < keys.length; i++) {
-				PageSource ps = getPageSource(keys[i], false);
-				long updateTime = ps.getLastAccessTime();
-				if (updateTime + timeout < System.currentTimeMillis()) {
-					long add = ((ps.getAccessCount() - 1) * 10000);
-					if (add > timeout) add = timeout;
-					list.add(updateTime + add, keys[i]);
+	public void cleanLoaders() {
+		if (pageSources.size() < MAXSIZE) return;
+		synchronized (pageSources) {
+			{
+				for (Entry<String, SoftReference<PageSource>> e: pageSources.entrySet()) {
+					if (e.getValue() == null || e.getValue().get() == null) pageSources.remove(e.getKey());
 				}
 			}
-			while (size() > maxSize) {
-				Object key = list.shift();
-				if (key == null) break;
-				// remove(key.toString());
+			if (pageSources.size() < MAXSIZE) return;
+			ArrayList<Entry<String, SoftReference<PageSource>>> entryList = new ArrayList<>(pageSources.entrySet());
+
+			// Sort the list by the 'lastModified' timestamp in ascending order
+			entryList.sort(new Comparator<Entry<String, SoftReference<PageSource>>>() {
+
+				@Override
+				public int compare(Entry<String, SoftReference<PageSource>> left, Entry<String, SoftReference<PageSource>> right) {
+					SoftReference<PageSource> l = left.getValue();
+					SoftReference<PageSource> r = right.getValue();
+					if (l == null) return -1;
+					if (r == null) return 1;
+
+					PageSource ll = l.get();
+					PageSource rr = r.get();
+					if (ll == null) return -1;
+					if (rr == null) return 1;
+
+					long lll = ll.getLastAccessTime();
+					long rrr = rr.getLastAccessTime();
+
+					if ((lll) < (rrr)) return -1;
+					else if ((lll) > (rrr)) return 1;
+					else return 0;
+				}
+			});
+			SoftReference<PageSource> ref;
+			PageSource ps;
+			int max = entryList.size() - maxSize_min;
+			for (Entry<String, SoftReference<PageSource>> e: entryList) {
+				if (--max == 0) break;
+				// Remove the entry from the map by its key
+				ref = pageSources.remove(e.getKey());
+				if (ref != null) {
+					ps = ref.get();
+					if (ps instanceof PageSourceImpl) {
+						((PageSourceImpl) ps).clear();
+					}
+				}
 			}
-			LogUtil.log(config, Log.LEVEL_INFO, PageSourcePool.class.getName(), "New pagePool size [" + size() + "].");
+			System.gc();
+		}
+
+		if (pageSources.isEmpty()) {
+			watcher.stopIfNecessary();
+			watcher = null;
 		}
 	}
 
 	@Override
 	public DumpData toDumpData(PageContext pageContext, int maxlevel, DumpProperties dp) {
 		maxlevel--;
+		size(); // calling size because it get rid of all the blanks
 		Iterator<SoftReference<PageSource>> it = pageSources.values().iterator();
 
 		DumpTable table = new DumpTable("#FFCC00", "#FFFF00", "#000000");
@@ -214,6 +283,14 @@ public final class PageSourcePool implements Dumpable {
 			if (cl != null) psi.clear(cl);
 			else psi.clear();
 		}
+
+		if (cl == null) {
+			pageSources.clear();
+		}
+		if (watcher != null && pageSources.isEmpty()) {
+			watcher.stopIfNecessary();
+			watcher = null;
+		}
 	}
 
 	public void resetPages(ClassLoader cl) {
@@ -227,6 +304,21 @@ public final class PageSourcePool implements Dumpable {
 			if (cl != null) psi.clear(cl);
 			else psi.resetLoaded();
 		}
+
+		if (watcher != null && pageSources.isEmpty()) {
+			watcher.stopIfNecessary();
+			watcher = null;
+		}
+	}
+
+	public void stopWatcher() {
+		if (watcher != null) {
+			PageSourcePoolWatcher tmp = watcher;
+			watcher = null;
+			if (tmp != null) {
+				tmp.stopIfNecessary();
+			}
+		}
 	}
 
 	public void clear() {
@@ -235,6 +327,27 @@ public final class PageSourcePool implements Dumpable {
 	}
 
 	public int getMaxSize() {
-		return maxSize;
+		return MAXSIZE;
 	}
+
+	public static void flush(PageContext pc, Resource file) {
+		if (Constants.isCFML(file)) {
+			ApplicationContext ac = pc.getApplicationContext();
+			List<PageSource> sources = ConfigWebUtil.toAllLoadedPageSource((ConfigPro) pc.getConfig(), ac == null ? null : ac.getMappings(), file);
+			for (PageSource ps: sources) {
+				((PageSourceImpl) ps).resetLoaded();
+				((PageSourceImpl) ps).flush();
+			}
+		}
+	}
+
+	public static void flush(PageContext pc, Object file) {
+		try {
+			flush(pc, Caster.toResource(pc, file, false));
+			return;
+		}
+		catch (Exception e) {
+		}
+	}
+
 }

@@ -7,7 +7,6 @@ import java.util.List;
 import org.osgi.framework.Version;
 
 import lucee.commons.lang.StringUtil;
-import lucee.loader.util.Util;
 import lucee.runtime.type.util.ListUtil;
 
 public class VersionRange {
@@ -68,8 +67,8 @@ public class VersionRange {
 		}
 
 		public boolean isWithin(Version version) {
-			if (from != null && Util.isNewerThan(from, version)) return false;
-			if (to != null && Util.isNewerThan(version, to)) return false;
+			if (from != null && OSGiUtil.isNewerThan(from, version)) return false;
+			if (to != null && OSGiUtil.isNewerThan(version, to)) return false;
 
 			return true;
 		}

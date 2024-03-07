@@ -25,6 +25,7 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.security.GeneralSecurityException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -41,6 +42,7 @@ import lucee.commons.lang.mimetype.ContentType;
 import lucee.commons.lang.mimetype.MimeType;
 import lucee.commons.net.http.HTTPEngine;
 import lucee.commons.net.http.HTTPResponse;
+import lucee.commons.net.http.httpclient.HTTPEngine4Impl;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.PageSource;
@@ -530,9 +532,10 @@ public final class HTTPUtil {
 	 * @param dataUrl
 	 * @return
 	 * @throws IOException
+	 * @throws GeneralSecurityException
 	 */
-	public static long length(URL url) throws IOException {
-		HTTPResponse http = HTTPEngine.head(url, null, null, -1, true, null, Constants.NAME, null, null);
+	public static long length(URL url) throws IOException, GeneralSecurityException {
+		HTTPResponse http = HTTPEngine4Impl.head(url, null, null, -1, true, null, Constants.NAME, null, null);
 		long len = http.getContentLength();
 		HTTPEngine.closeEL(http);
 		return len;

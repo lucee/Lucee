@@ -38,7 +38,7 @@ public interface GatewayEntry {
 	 * @throws PageException
 	 * @throws BundleException
 	 */
-	public void createGateway(Config config) throws ClassException, PageException, BundleException;
+	public void createGateway(GatewayEngine engine, Config config) throws ClassException, PageException, BundleException;
 
 	public Gateway getGateway();
 

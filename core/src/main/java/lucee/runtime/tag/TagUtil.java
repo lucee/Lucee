@@ -37,7 +37,6 @@ import lucee.commons.lang.ClassUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.Pair;
 import lucee.commons.lang.StringUtil;
-import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.Component;
 import lucee.runtime.ComponentImpl;
 import lucee.runtime.ComponentSpecificAccess;
@@ -46,8 +45,8 @@ import lucee.runtime.PageContextImpl;
 import lucee.runtime.PageSource;
 import lucee.runtime.component.ComponentLoader;
 import lucee.runtime.config.ConfigPro;
-import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.config.ConfigWebFactory;
+import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
@@ -89,9 +88,7 @@ public class TagUtil {
 			ConfigWebPro cw = (ConfigWebPro) pc.getConfig();
 
 			List<TagLib> allTlds = new ArrayList();
-			// allTlds.addAll(Arrays.asList(cw.getTLDs(CFMLEngine.DIALECT_CFML)));
-			// allTlds.addAll(Arrays.asList(cw.getTLDs(CFMLEngine.DIALECT_LUCEE)));
-			allTlds.addAll(Arrays.asList(cw.getTLDs(CFMLEngine.DIALECT_BOTH)));
+			allTlds.addAll(Arrays.asList(cw.getTLDs()));
 
 			for (TagLib tld: allTlds) {
 				tlt = tld.getTag(tag.getClass());
@@ -253,8 +250,7 @@ public class TagUtil {
 			ThreadLocalPageContext.register(pc);
 
 			// MUST MOST of them are the same, so this is a huge overhead
-			_addTagMetaData(pc, cw, CFMLEngine.DIALECT_CFML);
-			_addTagMetaData(pc, cw, CFMLEngine.DIALECT_LUCEE);
+			_addTagMetaData(pc, cw);
 
 		}
 		catch (Exception e) {
@@ -266,12 +262,12 @@ public class TagUtil {
 		}
 	}
 
-	private static void _addTagMetaData(PageContext pc, ConfigWebPro cw, int dialect) {
+	private static void _addTagMetaData(PageContext pc, ConfigWebPro cw) {
 		TagLibTagAttr attrFileName, attrMapping, attrIsWeb;
 		String filename, mappingName;
 		Boolean isWeb;
 		TagLibTag tlt;
-		TagLib[] tlds = cw.getTLDs(dialect);
+		TagLib[] tlds = cw.getTLDs();
 		for (int i = 0; i < tlds.length; i++) {
 			Map<String, TagLibTag> tags = tlds[i].getTags();
 			Iterator<TagLibTag> it = tags.values().iterator();
@@ -365,9 +361,9 @@ public class TagUtil {
 		Reflector.callMethod(tag, "hasBody", new Object[] { hasBody });
 	}
 
-	public static TagLibTag getTagLibTag(PageContext pc, int dialect, String nameSpace, String strTagName) throws ApplicationException {
+	public static TagLibTag getTagLibTag(PageContext pc, String nameSpace, String strTagName) throws ApplicationException {
 		TagLib[] tlds;
-		tlds = ((ConfigPro) pc.getConfig()).getTLDs(dialect);
+		tlds = ((ConfigPro) pc.getConfig()).getTLDs();
 
 		TagLib tld = null;
 		TagLibTag tag = null;

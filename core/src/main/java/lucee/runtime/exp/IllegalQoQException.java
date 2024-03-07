@@ -24,21 +24,22 @@ package lucee.runtime.exp;
  * continue due to a fatal error and should NOT attempt to fall back to HSQLDB
  */
 import java.sql.SQLException;
-import lucee.runtime.db.SQL;
+
 import lucee.runtime.db.DatasourceConnection;
+import lucee.runtime.db.SQL;
 
 public final class IllegalQoQException extends DatabaseException {
 
 	public IllegalQoQException(SQLException sqle, DatasourceConnection dc) {
-		super( sqle, dc );
+		super(sqle, dc);
 	}
 
 	public IllegalQoQException(String message, String detail, SQL sql, DatasourceConnection dc) {
-		super( message, detail, sql, dc );
+		super(message, detail, sql, dc);
 	}
 
 	public IllegalQoQException(PageException e, SQL sql, DatasourceConnection dc) {
-		super( e.getMessage(), e.getDetail(), sql, dc );
+		super(e.getMessage(), e.getDetail(), sql, dc);
 	}
 
 }

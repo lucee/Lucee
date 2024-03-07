@@ -38,7 +38,6 @@ import lucee.runtime.op.Duplicator;
 import lucee.runtime.op.ThreadLocalDuplication;
 import lucee.runtime.tag.Http;
 import lucee.runtime.type.Collection;
-import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.dt.DateTime;
 import lucee.runtime.type.dt.DateTimeImpl;
@@ -52,13 +51,13 @@ import lucee.runtime.type.util.StructSupport;
 public class ThreadsImpl extends StructSupport implements lucee.runtime.type.scope.Threads {
 
 	private static final Key KEY_ERROR = KeyConstants._ERROR;
-	private static final Key KEY_ELAPSEDTIME = KeyImpl.getInstance("ELAPSEDTIME");
+	private static final Key KEY_ELAPSEDTIME = KeyConstants._ELAPSEDTIME;
 	private static final Key KEY_OUTPUT = KeyConstants._OUTPUT;
-	private static final Key KEY_PRIORITY = KeyImpl.getInstance("PRIORITY");
-	private static final Key KEY_STARTTIME = KeyImpl.getInstance("STARTTIME");
+	private static final Key KEY_PRIORITY = KeyConstants._PRIORITY;
+	private static final Key KEY_STARTTIME = KeyConstants._STARTTIME;
 	private static final Key KEY_STATUS = KeyConstants._STATUS;
 	private static final Key KEY_STACKTRACE = KeyConstants._STACKTRACE;
-	private static final Key KEY_CHILD_THREADS = KeyImpl.getInstance("childThreads");
+	private static final Key KEY_CHILD_THREADS = KeyConstants._childThreads;
 
 	private static final Key[] DEFAULT_KEYS = new Key[] { KEY_ELAPSEDTIME, KeyConstants._NAME, KEY_OUTPUT, KEY_PRIORITY, KEY_STARTTIME, KEY_STATUS, KEY_STACKTRACE,
 			KEY_CHILD_THREADS };

@@ -3,17 +3,17 @@
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either 
+ * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public 
+ *
+ * You should have received a copy of the GNU Lesser General Public
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 package lucee.loader.osgi;
 
@@ -68,7 +68,7 @@ public class BundleLoader {
 			// int version = CFMLEngineFactory.toInVersion(rcv);
 
 			// read the config from default.properties
-			final Map<String, Object> config = new HashMap<String, Object>();
+			final Map<String, Object> config = new HashMap<>();
 			{
 				final Iterator<Entry<Object, Object>> it = defProp.entrySet().iterator();
 				Entry<Object, Object> e;
@@ -108,37 +108,35 @@ public class BundleLoader {
 			// deploys bundled bundles to bundle directory
 			// deployBundledBundles(jarDirectory, availableBundles);
 
+			String doDownload = Util._getSystemPropOrEnvVar("lucee.enable.bundle.download", null);
+			boolean always = "always".equalsIgnoreCase(doDownload);
+
 			// Add Required Bundles
 			Entry<String, String> e;
 			File f;
 			String id;
-			final List<Bundle> bundles = new ArrayList<Bundle>();
+			final List<Bundle> bundles = new ArrayList<>();
 			Iterator<Entry<String, String>> it = requiredBundles.entrySet().iterator();
 			while (it.hasNext()) {
 				e = it.next();
 				id = e.getKey() + "|" + e.getValue();
-				f = availableBundles.get(id);
-				// StringBuilder sb=new StringBuilder();
+				f = always ? null : availableBundles.get(id);
 				if (f == null) {
-					/*
-					 * sb.append(id+"\n"); Iterator<String> _it = availableBundles.keySet().iterator();
-					 * while(_it.hasNext()){ sb.append("- "+_it.next()+"\n"); } throw new
-					 * RuntimeException(sb.toString());
-					 */
+					f = engFac.downloadBundle(e.getKey(), e.getValue(), null);
 				}
-				if (f == null) f = engFac.downloadBundle(e.getKey(), e.getValue(), null);
 				bundles.add(BundleUtil.addBundle(engFac, bc, f, null));
 			}
 
 			// Add Required Bundle Fragments
-			final List<Bundle> fragments = new ArrayList<Bundle>();
+			final List<Bundle> fragments = new ArrayList<>();
 			it = requiredBundleFragments.entrySet().iterator();
 			while (it.hasNext()) {
 				e = it.next();
 				id = e.getKey() + "|" + e.getValue();
-				f = availableBundles.get(id);
-
-				if (f == null) f = engFac.downloadBundle(e.getKey(), e.getValue(), null); // if identification is not defined, it is loaded from the CFMLEngine
+				f = always ? null : availableBundles.get(id);
+				if (f == null) {
+					f = engFac.downloadBundle(e.getKey(), e.getValue(), null); // if identification is not defined, it is loaded from the CFMLEngine
+				}
 				fragments.add(BundleUtil.addBundle(engFac, bc, f, null));
 			}
 
@@ -157,20 +155,21 @@ public class BundleLoader {
 			if (jf != null) try {
 				jf.close();
 			}
-			catch (final IOException ioe) {}
+			catch (final IOException ioe) {
+			}
 		}
 	}
 
 	private static Map<String, File> loadAvailableBundles(final File jarDirectory) {
-		final Map<String, File> rtn = new HashMap<String, File>();
+		final Map<String, File> rtn = new HashMap<>();
 		final File[] jars = jarDirectory.listFiles();
-		if (jars != null) for (int i = 0; i < jars.length; i++) {
-			if (!jars[i].isFile() || !jars[i].getName().endsWith(".jar")) continue;
+		if (jars != null) for (File jar: jars) {
+			if (!jar.isFile() || !jar.getName().endsWith(".jar")) continue;
 			try {
-				rtn.put(loadBundleInfo(jars[i]), jars[i]);
+				rtn.put(loadBundleInfo(jar), jar);
 			}
 			catch (final IOException ioe) {
-				new Exception("Error loading bundle info for [" + jars[i].toString() + "]", ioe).printStackTrace();
+				new Exception("Error loading bundle info for [" + jar.toString() + "]", ioe).printStackTrace();
 			}
 		}
 		return rtn;
@@ -194,7 +193,7 @@ public class BundleLoader {
 	}
 
 	private static Map<String, String> readRequireBundle(final String rb) throws IOException {
-		final HashMap<String, String> rtn = new HashMap<String, String>();
+		final HashMap<String, String> rtn = new HashMap<>();
 		if (Util.isEmpty(rb)) return rtn;
 
 		final StringTokenizer st = new StringTokenizer(rb, ",");

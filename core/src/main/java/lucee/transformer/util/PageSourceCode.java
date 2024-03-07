@@ -32,14 +32,14 @@ public class PageSourceCode extends SourceCode {
 	private final PageSource ps;
 
 	public PageSourceCode(PageSource ps, Charset charset, boolean writeLog) throws IOException {
-		super(null, toString(ps, charset), writeLog, ps.getDialect());
+		super(null, toString(ps, charset), writeLog);
 		this.charset = charset;
 		this.ps = ps;
 		// this.source=ps.getPhyscalFile().getAbsolutePath();
 	}
 
 	public PageSourceCode(PageSource ps, String text, Charset charset, boolean writeLog) {
-		super(null, text, writeLog, ps.getDialect());
+		super(null, text, writeLog);
 		this.charset = charset;
 		this.ps = ps;
 	}

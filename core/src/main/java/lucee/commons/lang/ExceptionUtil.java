@@ -18,10 +18,12 @@
  */
 package lucee.commons.lang;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.lang.reflect.InvocationTargetException;
+import java.nio.file.NoSuchFileException;
 import java.util.Arrays;
 import java.util.Iterator;
 
@@ -190,7 +192,7 @@ public final class ExceptionUtil {
 		if (t instanceof NativeException) return toIOException(((NativeException) t).getCause());
 
 		IOException ioe = new IOException(t.getClass().getName() + ":" + t.getMessage());
-		ioe.setStackTrace(t.getStackTrace());
+		ioe.initCause(t);
 		return ioe;
 	}
 
@@ -220,6 +222,10 @@ public final class ExceptionUtil {
 		return t;
 	}
 
+	public static boolean isThreadDeath(Throwable t) {
+		return (unwrap(t) instanceof ThreadDeath); // never catch a ThreadDeath
+	}
+
 	/**
 	 * A java.lang.ThreadDeath must never be caught, so any catch(Throwable t) must go through this
 	 * method in order to ensure that the throwable is not of type ThreadDeath
@@ -227,7 +233,7 @@ public final class ExceptionUtil {
 	 * @param t the thrown Throwable
 	 */
 	public static void rethrowIfNecessary(Throwable t) {
-		if (unwrap(t) instanceof ThreadDeath) throw (ThreadDeath) t; // never catch a ThreadDeath
+		if (isThreadDeath(t)) throw (Error) t; // never catch a ThreadDeath
 	}
 
 	public static TemplateLine getThrowingPosition(PageContext pc, Throwable t) {
@@ -264,6 +270,12 @@ public final class ExceptionUtil {
 		Throwable t = new Throwable();
 		t.setStackTrace(stackTrace);
 		return t;
+	}
+
+	public static FileNotFoundException toFileNotFoundException(NoSuchFileException nsfe) {
+		FileNotFoundException fnfe = new FileNotFoundException(nsfe.getMessage());
+		fnfe.initCause(nsfe);
+		return fnfe;
 	}
 
 }

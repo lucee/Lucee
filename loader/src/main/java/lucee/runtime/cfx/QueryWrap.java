@@ -1649,7 +1649,8 @@ public class QueryWrap implements Query {
 			final Method m = rst.getClass().getMethod("getObject", new Class[] { int.class, Class.class });
 			return (T) m.invoke(rst, new Object[] { columnIndex, type });
 		}
-		catch (final Throwable t) {}
+		catch (final Throwable t) {
+		}
 		throw notSupported();
 	}
 
@@ -1660,7 +1661,8 @@ public class QueryWrap implements Query {
 			final Method m = rst.getClass().getMethod("getObject", new Class[] { String.class, Class.class });
 			return (T) m.invoke(rst, new Object[] { columnLabel, type });
 		}
-		catch (final Throwable t) {}
+		catch (final Throwable t) {
+		}
 		throw notSupported();
 	}
 

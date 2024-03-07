@@ -32,7 +32,6 @@ import lucee.transformer.TransformerException;
 import lucee.transformer.bytecode.BodyBase;
 import lucee.transformer.bytecode.BytecodeContext;
 import lucee.transformer.bytecode.Statement;
-import lucee.transformer.bytecode.util.ExpressionUtil;
 import lucee.transformer.expression.ExprBoolean;
 import lucee.transformer.expression.Expression;
 
@@ -65,7 +64,7 @@ public final class TagIf extends TagBaseNoFinal {
 				}
 				else if (t.getTagLibTag().getTagClassDefinition().isClassNameEqualTo("lucee.runtime.tag.Else")) {
 					__writeOut(bc, tmp);
-					ExpressionUtil.visitLine(bc, t.getStart());
+					bc.visitLine(t.getStart());
 					hasElse = true;
 					writeOutElseIfEnd(adapter, endIf, end);
 					continue;
@@ -95,7 +94,7 @@ public final class TagIf extends TagBaseNoFinal {
 
 		Label endIf = new Label();
 
-		ExpressionUtil.visitLine(bc, tag.getStart());
+		bc.visitLine(tag.getStart());
 		cont.writeOut(bc, Expression.MODE_VALUE);
 		adapter.ifZCmp(Opcodes.IFEQ, endIf);
 		return endIf;

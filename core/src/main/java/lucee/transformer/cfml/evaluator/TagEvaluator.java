@@ -43,7 +43,7 @@ public interface TagEvaluator {
 	 * @param data data object of the running parser
 	 * @throws TemplateException
 	 */
-	public TagLib execute(Config config, Tag tag, TagLibTag libTag, FunctionLib[] flibs, Data data) throws TemplateException;
+	public TagLib execute(Config config, Tag tag, TagLibTag libTag, FunctionLib flibs, Data data) throws TemplateException;
 
 	/**
 	 * This method is invoked to check the environment of a tag, the method is invoked AFTER the parser
@@ -54,6 +54,6 @@ public interface TagEvaluator {
 	 * @param flibs all fld libraries.
 	 * @throws EvaluatorException
 	 */
-	public void evaluate(Tag tag, TagLibTag libTag, FunctionLib[] flibs) throws EvaluatorException;
+	public void evaluate(Tag tag, TagLibTag libTag, FunctionLib flibs) throws EvaluatorException;
 
 }

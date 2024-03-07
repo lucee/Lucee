@@ -158,6 +158,7 @@ Error Output --->
 						<b>#YesNoFormat(err.doStatusCode)#</b><br />
 						</cfif>
 						<div class="comment">#stText.err.errorStatusCodeDescription#</div><br>
+						<cfset renderSysPropEnvVar( "lucee.status.code",err.doStatusCode)>
 						
 					</td>
 				</tr>

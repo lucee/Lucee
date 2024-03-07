@@ -39,6 +39,7 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.exp.UDFCasterException;
 import lucee.runtime.functions.decision.IsValid;
+import lucee.runtime.listener.ApplicationContextSupport;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 import lucee.runtime.type.Collection.Key;
@@ -51,8 +52,8 @@ public abstract class UDFGSProperty extends MemberSupport implements UDFPlus {
 
 	private static final long serialVersionUID = 285652503901488683L;
 
-	private static final Collection.Key MIN_LENGTH = KeyImpl.getInstance("minLength");
-	private static final Collection.Key MAX_LENGTH = KeyImpl.getInstance("maxLength");
+	private static final Collection.Key MIN_LENGTH = KeyConstants._minLength;
+	private static final Collection.Key MAX_LENGTH = KeyConstants._maxLength;
 
 	protected final FunctionArgument[] arguments;
 	protected final String name;
@@ -169,6 +170,11 @@ public abstract class UDFGSProperty extends MemberSupport implements UDFPlus {
 
 	@Override
 	public int getReturnFormat() {
+		PageContext pc = ThreadLocalPageContext.get();
+		if (pc != null) {
+			ApplicationContextSupport acs = (ApplicationContextSupport) pc.getApplicationContext();
+			if (acs != null) return acs.getReturnFormat();
+		}
 		return UDF.RETURN_FORMAT_WDDX;
 	}
 

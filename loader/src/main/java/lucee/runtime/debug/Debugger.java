@@ -114,7 +114,7 @@ public interface Debugger {
 	 * @param type type
 	 * @param category category
 	 * @param text text
-	 * @param page page 
+	 * @param page page
 	 * @param varName variable name
 	 * @param varValue variable value
 	 * @return debug trace object

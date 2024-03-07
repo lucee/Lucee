@@ -69,8 +69,8 @@ public final class ArgumentImpl extends ScopeSupport implements Argument, ArrayP
 	 * constructor of the class
 	 */
 	public ArgumentImpl() {
-		super("arguments", SCOPE_ARGUMENTS, Struct.TYPE_LINKED);
-		// this(true);
+		// super("arguments", SCOPE_ARGUMENTS, StructImpl.TYPE_LINKED, 4);
+		super("arguments", SCOPE_ARGUMENTS, StructImpl.TYPE_LINKED_NOT_SYNC, 4);
 	}
 
 	@Override
@@ -81,6 +81,9 @@ public final class ArgumentImpl extends ScopeSupport implements Argument, ArrayP
 
 	@Override
 	public void setBind(boolean bind) {
+		if (bind) {
+			makeSynchronized();
+		}
 		this.bind = bind;
 	}
 
@@ -91,7 +94,7 @@ public final class ArgumentImpl extends ScopeSupport implements Argument, ArrayP
 
 	@Override
 	public Object getFunctionArgument(String key, Object defaultValue) {
-		return getFunctionArgument(KeyImpl.getInstance(key), defaultValue);
+		return getFunctionArgument(KeyImpl.init(key), defaultValue);
 	}
 
 	@Override
@@ -106,14 +109,6 @@ public final class ArgumentImpl extends ScopeSupport implements Argument, ArrayP
 
 	@Override
 	public Object get(Collection.Key key, Object defaultValue) {
-		/*
-		 * if(NullSupportHelper.full()) { Object o=super.get(key,NullSupportHelper.NULL());
-		 * if(o!=NullSupportHelper.NULL())return o;
-		 * 
-		 * o=get(Caster.toIntValue(key.getString(),-1),NullSupportHelper.NULL());
-		 * if(o!=NullSupportHelper.NULL())return o; return defaultValue; }
-		 */
-
 		Object o = super.g(key, Null.NULL);
 		if (o != Null.NULL) return o;
 
@@ -124,7 +119,6 @@ public final class ArgumentImpl extends ScopeSupport implements Argument, ArrayP
 				if (o != Null.NULL) return o;
 			}
 		}
-
 		return defaultValue;
 	}
 
@@ -169,7 +163,7 @@ public final class ArgumentImpl extends ScopeSupport implements Argument, ArrayP
 	 */
 	@Override
 	public Object getE(int intKey) throws PageException {
-		Iterator it = valueIterator();// getMap().keySet().iterator();
+		Iterator<Object> it = valueIterator();// getMap().keySet().iterator();
 		int count = 0;
 		Object o;
 		while (it.hasNext()) {

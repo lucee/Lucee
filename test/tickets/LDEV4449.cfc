@@ -1,4 +1,4 @@
-component extends = "org.lucee.cfml.test.LuceeTestCase" skip="true" {
+component extends = "org.lucee.cfml.test.LuceeTestCase" {
 	
 	function run( testResults, textbox ) {
 		describe("Testcase for LDEV-4449 numbers", function() {
@@ -23,6 +23,11 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" skip="true" {
 				);
 				expect( result.filecontent.trim() ).toBe("ok");
 			});
+
+			it(title="checking 2 ^ -1 with preciseMath=true", body=function( currentSpec ) {
+				expect( 2 ^ -1 ).toBe( 0.5 );
+			});
+
 		});
 	}
 

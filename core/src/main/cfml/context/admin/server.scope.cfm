@@ -490,19 +490,6 @@ Error Output --->
 						<cfset renderCodingTip( codeSample )>
 					</td>
 				</tr>
-<!---
-			</tbody>
-		</table>
-
-		<h3>#stText.general.dialect.cfml#</h3>
-		<div class="itemintro">#stText.general.dialect.cfmlDesc#</div>
-		
-		<table class="maintbl">
-			<tbody>
---->
-
-
-
 
 				<!--- Local Mode --->
 				<tr>
@@ -581,6 +568,7 @@ function test() localMode="#scope.LocalMode#" {}
 							this.searchResults = #trueFalseFormat(scope.allowImplicidQueryCall)#;
 						</cfsavecontent>
 						<cfset renderCodingTip( codeSample)>
+						<cfset renderSysPropEnvVar( "lucee.cascade.to.resultset",scope.allowImplicidQueryCall)>
 					</td>
 				</tr>
 				

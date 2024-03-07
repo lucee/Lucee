@@ -68,6 +68,7 @@ import lucee.runtime.type.dt.TimeSpan;
 import lucee.runtime.type.scope.Scope;
 import lucee.runtime.type.scope.UndefinedImpl;
 import lucee.runtime.type.util.KeyConstants;
+import lucee.runtime.type.util.UDFUtil;
 
 /**
  * Defines scoping for a CFML application, enables or disables storing client variables, and
@@ -155,6 +156,7 @@ public final class Application extends TagImpl implements DynamicAttributes {
 	private Boolean suppress;
 	private Boolean cgiReadOnly = null;
 	private Boolean preciseMath = null;
+	private Integer returnFormat = null;
 	private SessionCookieData sessionCookie;
 	private AuthCookieData authCookie;
 	private Object functionpaths;
@@ -248,6 +250,7 @@ public final class Application extends TagImpl implements DynamicAttributes {
 		xmlFeatures = null;
 		dynAttrs = null;
 		regex = null;
+		returnFormat = null;
 	}
 
 	@Override
@@ -329,6 +332,10 @@ public final class Application extends TagImpl implements DynamicAttributes {
 
 	public void setLogs(Struct logs) {
 		this.logs = logs;
+	}
+
+	public void setMailservers(Array mails) {
+		this.mails = mails;
 	}
 
 	public void setMails(Array mails) {
@@ -675,6 +682,10 @@ public final class Application extends TagImpl implements DynamicAttributes {
 		this.preciseMath = preciseMath;
 	}
 
+	public void setReturnformat(String returnFormat) throws PageException {
+		this.returnFormat = UDFUtil.toReturnFormat(returnFormat);
+	}
+
 	public void setXmlfeatures(Struct xmlFeatures) {
 		this.xmlFeatures = xmlFeatures;
 	}
@@ -874,6 +885,7 @@ public final class Application extends TagImpl implements DynamicAttributes {
 		if (sessionCluster != null) ac.setSessionCluster(sessionCluster.booleanValue());
 		if (cgiReadOnly != null) ac.setCGIScopeReadonly(cgiReadOnly.booleanValue());
 		if (preciseMath != null) ((ApplicationContextSupport) ac).setPreciseMath(preciseMath.booleanValue());
+		if (returnFormat != null) ((ApplicationContextSupport) ac).setReturnFormat(returnFormat.intValue());
 		if (s3 != null) ac.setS3(AppListenerUtil.toS3(s3));
 		if (ftp != null) ((ApplicationContextSupport) ac).setFTP(AppListenerUtil.toFTP(ftp));
 

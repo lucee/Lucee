@@ -38,7 +38,6 @@ public final class MethodInstance {
 	public MethodInstance(Method method, Object[] args) {
 		this.method = method;
 		this.args = args;
-		method.setAccessible(true);
 	}
 
 	/**

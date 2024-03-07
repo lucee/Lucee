@@ -153,10 +153,13 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 	private Map<Key, Object> customAttrs;
 
 	private boolean allowImplicidQueryCall;
-
+	private boolean limitEvaluation;
 	private Regex regex;
 
 	private boolean preciseMath;
+	private boolean formUrlAsStruct;
+
+	private int returnFormat = UDF.RETURN_FORMAT_WDDX;
 
 	/**
 	 * constructor of the class
@@ -190,6 +193,7 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 		this.fullNullSupport = config.getFullNullSupport();
 		this.scopeCascading = config.getScopeCascadingType();
 		this.allowImplicidQueryCall = config.allowImplicidQueryCall();
+		this.limitEvaluation = ((ConfigPro) config).limitEvaluation();
 
 		this.webCharset = ((ConfigPro) config).getWebCharSet();
 		this.resourceCharset = ((ConfigPro) config).getResourceCharSet();
@@ -210,7 +214,9 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 		this.antiSamyPolicy = ((ConfigPro) config).getAntiSamyPolicy();
 		this.regex = ((ConfigPro) config).getRegex();
 		this.preciseMath = ((ConfigPro) config).getPreciseMath();
+		this.formUrlAsStruct = ((ConfigPro) config).getFormUrlAsStruct();
 
+		this.returnFormat = ((ConfigPro) config).getReturnFormat();
 	}
 
 	/**
@@ -263,6 +269,7 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 		dbl.fullNullSupport = fullNullSupport;
 		dbl.scopeCascading = scopeCascading;
 		dbl.allowImplicidQueryCall = allowImplicidQueryCall;
+		dbl.limitEvaluation = limitEvaluation;
 		dbl.webCharset = webCharset;
 		dbl.resourceCharset = resourceCharset;
 		dbl.sessionType = sessionType;
@@ -292,6 +299,7 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 		dbl.antiSamyPolicy = antiSamyPolicy;
 		dbl.sessionCookie = sessionCookie;
 		dbl.authCookie = authCookie;
+		dbl.formUrlAsStruct = formUrlAsStruct;
 		return dbl;
 	}
 
@@ -812,6 +820,20 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 		return b.booleanValue();
 	}
 
+	public void setFormUrlAsStruct(PageContext pc, boolean formUrlAsStruct) {
+		boolean changed = this.formUrlAsStruct != formUrlAsStruct;
+		this.formUrlAsStruct = formUrlAsStruct;
+		if (changed) {
+			pc.urlScope().reinitialize(this);
+			pc.formScope().reinitialize(this);
+		}
+	}
+
+	@Override
+	public boolean getFormUrlAsStruct() {
+		return formUrlAsStruct;
+	}
+
 	@Override
 	public RestSettings getRestSettings() {
 		return restSettings;
@@ -876,6 +898,16 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 	@Override
 	public void setAllowImplicidQueryCall(boolean allowImplicidQueryCall) {
 		this.allowImplicidQueryCall = allowImplicidQueryCall;
+	}
+
+	@Override
+	public boolean getLimitEvaluation() {
+		return limitEvaluation;
+	}
+
+	@Override
+	public void setLimitEvaluation(boolean limitEvaluation) {
+		this.limitEvaluation = limitEvaluation;
 	}
 
 	@Override
@@ -1126,5 +1158,15 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 	@Override
 	public void setPreciseMath(boolean preciseMath) {
 		this.preciseMath = preciseMath;
+	}
+
+	@Override
+	public int getReturnFormat() {
+		return returnFormat;
+	}
+
+	@Override
+	public void setReturnFormat(int returnFormat) {
+		this.returnFormat = returnFormat;
 	}
 }

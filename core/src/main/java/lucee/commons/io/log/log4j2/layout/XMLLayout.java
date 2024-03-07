@@ -90,7 +90,7 @@ public class XMLLayout extends AbstractStringLayout { // TODO <Serializable>
 
 		final StringBuilder buf = new StringBuilder();
 		buf.append("	<log4j:event logger=\"");
-		buf.append(event.getLoggerName());
+		buf.append(lucee.commons.io.log.log4j2.layout.Util.getLoggerName(event));
 		buf.append("\" timestamp=\"");
 		buf.append(System.currentTimeMillis());
 		buf.append("\" level=\"");

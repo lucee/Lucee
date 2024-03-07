@@ -22,16 +22,15 @@ import lucee.runtime.config.RemoteClient;
 import lucee.runtime.spooler.ExecutionPlan;
 import lucee.runtime.spooler.SpoolerTaskWS;
 import lucee.runtime.type.Collection;
-import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.util.KeyConstants;
 
 public class RemoteClientTask extends SpoolerTaskWS {
 
-	public static final Collection.Key PASSWORD = KeyImpl.getInstance("password");
-	public static final Collection.Key ATTRIBUTE_COLLECTION = KeyImpl.getInstance("attributeCollection");
-	public static final Collection.Key CALLER_ID = KeyImpl.getInstance("callerId");
+	public static final Collection.Key PASSWORD = KeyConstants._password;
+	public static final Collection.Key ATTRIBUTE_COLLECTION = KeyConstants._attributeCollection;
+	public static final Collection.Key CALLER_ID = KeyConstants._callerId;
 	private StructImpl args;
 	private String action;
 	private String type;

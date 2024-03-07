@@ -22,8 +22,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				var _file = getTempFile( dir, "fileAppend", "txt" );
 				var _fileResource = fileOpen( _file, "write" );
 				fileAppend( _fileResource, "ABCDEFGHI", "UTF-8" );
-				assertEquals( "ABCDEFGHI", trim( fileRead (_fileResource) ) );
 				fileClose( _fileResource );
+				assertEquals( "ABCDEFGHI", trim( fileRead (_fileResource) ) );
 			});
 
 			it(title = "Checking with FileAppend Object - append", body = function( currentSpec ) {
@@ -31,8 +31,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				fileWrite( _file, "abc" );
 				var _fileResource = fileOpen( _file, "append" );
 				fileAppend( _fileResource, "ABCDEFGHI", "UTF-8" );
-				assertEquals( "abcABCDEFGHI", trim( fileRead( _fileResource ) ) );
 				fileClose( _fileResource );
+				assertEquals( "abcABCDEFGHI", trim( fileRead( _fileResource ) ) );
 			});
 
 			it(title = "Checking with FileAppend", body = function( currentSpec ) {

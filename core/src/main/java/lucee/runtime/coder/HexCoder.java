@@ -55,7 +55,8 @@ public final class HexCoder {
 			throw new CoderException("can't decode empty String");
 		}
 		if ((hexa.length() % 2) != 0) {
-			throw new CoderException("invalid hexadecimal String for, [ " + hexa + " ]. The number of characters passed in, must be even, Allowed characters are [0-9], [a-f], [A-F]");
+			throw new CoderException(
+					"invalid hexadecimal String for, [ " + hexa + " ]. The number of characters passed in, must be even, Allowed characters are [0-9], [a-f], [A-F]");
 		}
 		int tamArray = hexa.length() / 2;
 		byte[] retorno = new byte[tamArray];

@@ -51,6 +51,8 @@ import javax.mail.internet.MimeMultipart;
 import javax.mail.internet.MimePart;
 import javax.mail.internet.MimeUtility;
 
+import org.apache.commons.mail.DefaultAuthenticator;
+
 import com.sun.mail.smtp.SMTPMessage;
 
 import lucee.commons.activation.ResourceDataSource;
@@ -163,6 +165,7 @@ public final class SMTPClient implements Serializable {
 	private Object listener;
 
 	private boolean debug;
+	private int priority = 0;
 
 	public static String getNow(TimeZone tz) {
 		tz = ThreadLocalPageContext.getTimeZone(tz);
@@ -196,6 +199,15 @@ public final class SMTPClient implements Serializable {
 	 */
 	public void setDebug(boolean debug) {
 		this.debug = debug;
+	}
+
+	/**
+	 * set the mail priority
+	 * 
+	 * @param priority
+	 */
+	public void setPriority(int priority) {
+		this.priority = priority;
 	}
 
 	/**
@@ -466,7 +478,7 @@ public final class SMTPClient implements Serializable {
 			props.put("mail.smtp.user", username);
 			props.put("mail.smtp.password", password);
 			props.put("password", password);
-			auth = new SMTPAuthenticator(username, password);
+			auth = new DefaultAuthenticator(username, password);
 		}
 		else {
 			props.put("mail.smtp.auth", "false");
@@ -522,6 +534,8 @@ public final class SMTPClient implements Serializable {
 			throw new MessagingException("the encoding " + charset + " is not supported");
 		}
 		msg.setHeader("X-Mailer", xmailer);
+
+		if (priority > 0) msg.setHeader("X-Priority", Caster.toString(priority));
 
 		msg.setHeader("Date", getNow(timeZone));
 
@@ -735,13 +749,18 @@ public final class SMTPClient implements Serializable {
 		else mbp.setDataHandler(new DataHandler(new URLDataSource2(att.getURL())));
 		//
 		String fileName = att.getFileName();
-		if (!StringUtil.isAscii(fileName)) {
-			try {
-				fileName = MimeUtility.encodeText(fileName, "UTF-8", null);
-			}
-			catch (UnsupportedEncodingException e) {
-			} // that should never happen!
-		}
+
+		//  Set to comment for LDEV-4249 because of JavaMail choosing best encoding by itself,
+		//  as specified in https://javaee.github.io/javamail/FAQ#encodefilename and it should be
+		//  set in very special cases for legacy purpose.
+		//  if (!StringUtil.isAscii(fileName)) {
+		//  	try {
+		//  		fileName = MimeUtility.encodeText(fileName, "UTF-8", null);
+		//  	}
+		//  	catch (UnsupportedEncodingException e) {
+		//  	} // that should never happen!
+		//  }
+
 		mbp.setFileName(fileName);
 		if (!StringUtil.isEmpty(att.getType())) mbp.setHeader("Content-Type", att.getType());
 

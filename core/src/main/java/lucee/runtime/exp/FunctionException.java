@@ -102,19 +102,14 @@ public final class FunctionException extends ExpressionException {
 	}
 
 	public FunctionException(PageContext pc, String functionName, int min, int max, int actual) {
-		super(actual < min ? "too few arguments for function [" + functionName+ "] call" : "too many arguments for function [" + functionName+ "] call");
+		super(actual < min ? "too few arguments for function [" + functionName + "] call" : "too many arguments for function [" + functionName + "] call");
 	}
 
 	private static String getFunctionInfo(PageContext pc, String functionName) {
-		FunctionLib[] flds;
-		int dialect = pc.getCurrentTemplateDialect();
-		flds = ((ConfigPro) pc.getConfig()).getFLDs(dialect);
+		FunctionLib flds = ((ConfigPro) pc.getConfig()).getFLDs();
 
 		FunctionLibFunction function = null;
-		for (int i = 0; i < flds.length; i++) {
-			function = flds[i].getFunction(functionName.toLowerCase());
-			if (function != null) break;
-		}
+		function = flds.getFunction(functionName.toLowerCase());
 		if (function == null) return "";
 
 		StringBuilder rtn = new StringBuilder();

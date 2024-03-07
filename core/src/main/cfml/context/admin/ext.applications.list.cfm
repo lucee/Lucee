@@ -69,6 +69,7 @@
 		<div style="text-align:center;background: ##fff;margin:10px 0px 0px 0px;border-radius: 10px;border:1px solid ##bf4f36;">
 				<h3 style="color:##bf4f36;margin-top:5px">#stText.ext.installedInServer#</h3>
 		</cfif>
+		<cfset spev=[]>
 		<div<cfif _type=="web"> style="margin-top:10px"<cfelse>  style="margin:0px 0px 4px 0px"</cfif> class="extensionlist">
 			<cfloop query=_extensions>
 				<cfif _type=="web"><cfset existing[_extensions.id]=true></cfif>
@@ -89,6 +90,7 @@
 				or doFilter(session.extFilter.filter,arrayToList(cat),false)
 				or doFilter(session.extFilter.filter,provTitle,false)
 				><cfscript>
+					arrayAppend(spev, _extensions.id&";bundle-version="&_extensions.version);
 					latest=getLatestVersion(_extensions.id);
 					hasUpdates=latest.vs GT toVersionSortable(_extensions.version);
 					link="#request.self#?action=#url.action#&action2=detail&id=#_extensions.id#";
@@ -140,6 +142,7 @@ Latest version: #latest.v#</cfif>"><cfif hasUpdates>
 	<cfif listinstalled eq 0 and extCount gt 30>
 		<cfoutput><b>#stText.ext.searchbox# [#session.extFilter.filter#]</b></cfoutput>
 	</cfif>
+	<cfset renderSysPropEnvVar( "lucee.extensions",arrayToList(spev,","))>
 
 <!---  Not Installed Applications --->
 <cfoutput>

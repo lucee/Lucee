@@ -187,4 +187,24 @@ public final class LogUtil {
 	public static void logGlobal(Config config, String type, String msg, Throwable t) {
 		logGlobal(config, Log.LEVEL_ERROR, type, msg + ";" + ExceptionUtil.getStacktrace(t, true));
 	}
+
+	public static boolean doesInfo(Log log) {
+		return (log != null && log.getLogLevel() >= Log.LEVEL_INFO);
+	}
+
+	public static boolean doesDebug(Log log) {
+		return (log != null && log.getLogLevel() >= Log.LEVEL_DEBUG);
+	}
+
+	public static boolean doesWarn(Log log) {
+		return (log != null && log.getLogLevel() >= Log.LEVEL_WARN);
+	}
+
+	public static boolean doesError(Log log) {
+		return (log != null && log.getLogLevel() >= Log.LEVEL_ERROR);
+	}
+
+	public static boolean doesFatal(Log log) {
+		return (log != null && log.getLogLevel() >= Log.LEVEL_FATAL);
+	}
 }

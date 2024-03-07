@@ -335,7 +335,7 @@ public final class ArrayImplNS extends ArraySupport implements Array {
 		for (int i = offset; i < offset + size; i++) {
 			Object o = arr[i];
 			count++;
-			if (o != null) lst.add(KeyImpl.getInstance(count + ""));
+			if (o != null) lst.add(KeyImpl.init(count + ""));
 		}
 		return lst.toArray(new Collection.Key[lst.size()]);
 	}

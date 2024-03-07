@@ -60,7 +60,7 @@ public final class Import extends EvaluatorSupport {
 	}
 
 	@Override
-	public TagLib execute(Config config, Tag tag, TagLibTag libTag, FunctionLib[] flibs, Data data) throws TemplateException {
+	public TagLib execute(Config config, Tag tag, TagLibTag libTag, FunctionLib flibs, Data data) throws TemplateException {
 		TagImport ti = (TagImport) tag;
 		Attribute p = tag.getAttribute("prefix");
 		Attribute t = tag.getAttribute("taglib");
@@ -86,7 +86,7 @@ public final class Import extends EvaluatorSupport {
 
 	}
 
-	private TagLib executePT(Config config, Tag tag, TagLibTag libTag, FunctionLib[] flibs, SourceCode sc) throws TemplateException {
+	private TagLib executePT(Config config, Tag tag, TagLibTag libTag, FunctionLib flibs, SourceCode sc) throws TemplateException {
 
 		// Attribute prefix
 		String nameSpace = ASMUtil.getAttributeString(tag, "prefix", null);

@@ -88,9 +88,9 @@ public class CFTag extends BodyTagTryCatchFinallyImpl implements DynamicAttribut
 	private static final Collection.Key ON_START_TAG = KeyConstants._onStartTag;
 	private static final Collection.Key ON_END_TAG = KeyConstants._onEndTag;
 
-	private static final Collection.Key ATTRIBUTE_TYPE = KeyImpl.getInstance("attributetype");
+	private static final Collection.Key ATTRIBUTE_TYPE = KeyConstants._attributetype;
 	private static final Collection.Key SCRIPT = KeyConstants._script;
-	private static final Collection.Key RT_EXPR_VALUE = KeyImpl.getInstance("rtexprvalue");
+	private static final Collection.Key RT_EXPR_VALUE = KeyConstants._rtexprvalue;
 	private static final String MARKER = "2w12801";
 
 	/**

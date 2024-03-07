@@ -10,7 +10,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 
 	function run( testResults , testBox ) {
 		describe( title="Test suite for LDEV-1761", body=function() {
-			it(title = "Checking evaluate() with datetime", body = function( currentSpec ) {
+			it(title = "Checking evaluate() with datetime", skip =getJavaVersion()>8/* TODO improve test case, current version no longer supported because of access restrictions */, body = function( currentSpec ) {
 				
 
 				loop array=getTimeZone().getAvailableIds() item="local.listValue"{
@@ -23,7 +23,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				}
 			});
 
-			it(title = "short and long display name in english", body = function( currentSpec ) {
+			it(title = "short and long display name in english", skip =getJavaVersion()>8/* TODO improve test case, current version no longer supported because of access restrictions */, body = function( currentSpec ) {
 				var Locale=createObject('java','java.util.Locale');
 				loop array=getTimeZone().getAvailableIds() item="local.listValue"{
 					SetTimeZone(listValue);
@@ -35,5 +35,13 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				}
 			});
 		});
+	}
+
+	private function getJavaVersion() {
+		var raw=server.java.version;
+		var arr=listToArray(raw,'.');
+		if(arr[1]==1) // version 1-9
+			return arr[2];
+		return arr[1];
 	}
 } 

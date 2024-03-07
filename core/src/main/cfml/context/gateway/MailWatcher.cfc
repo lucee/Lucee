@@ -29,7 +29,7 @@
 
 	public void function start() output=false localmode=true {
 
-		while ( getState() EQ "stopping" ) {
+		if ( getState() EQ "stopping" ) {
 			sleep(10);
 		}
 		variables.state="running";
@@ -37,7 +37,7 @@
 		var last =now();
 		var mail = "";
 
-		while ( variables.state EQ "running" ){
+		while ( variables.state EQ "running" ) {
 			try {
 				mails = getMailsNewerThan( config.server, config.port, config.username, config.password, config.attachmentpath, last);
 				for ( el in mails ) {
@@ -52,8 +52,10 @@
 			if ( getState() != "running" ) {
 				break;
 			}
-			sleep( variables.config.interval );
+			sleep( variables.config.interval?:10 );
 		}
+		// set to stopped when we leave
+		variables.state =  "stopped";
 	}
 
 	public array function getMailsNewerThan( required string server, required numeric port, required string user, required string pass,
@@ -86,6 +88,12 @@
 	public void function stop() output=false {
 		writeLog ( text="stop", file="MailWatcher", type="information" );
 		variables.state="stopping";
+
+		sleep( (variables.config.interval?:10)+10 );
+		// should be stopped, so we guess it is blockes somehow, because it will not run again, we can ignore it
+		if (getState() EQ "stopping" ) {
+			variables.state="stopped";
+		}
 	}
 
 	public void function restart() output=false {

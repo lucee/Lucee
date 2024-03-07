@@ -59,7 +59,8 @@ public final class DebugQuery extends QueryWrap {
 				try {
 					query.setAt(columns[col], row + 1, data[row][col]);
 				}
-				catch (final Exception e) {}
+				catch (final Exception e) {
+				}
 		}
 		return query;
 	}

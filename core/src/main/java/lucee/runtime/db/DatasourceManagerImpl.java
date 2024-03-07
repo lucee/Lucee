@@ -30,6 +30,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import lucee.commons.db.DBUtil;
 import lucee.commons.digest.HashUtil;
 import lucee.commons.io.IOUtil;
+import lucee.commons.io.SystemUtil;
 import lucee.commons.lang.Pair;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
@@ -55,7 +56,6 @@ public final class DatasourceManagerImpl implements DataSourceManager {
 	private int isolation = Connection.TRANSACTION_NONE;
 	private Map<DataSource, DatasourceConnectionPro> transConnsReg = new HashMap<DataSource, DatasourceConnectionPro>();
 	private Map<DataSource, ORMDatasourceConnection> transConnsORM = new HashMap<DataSource, ORMDatasourceConnection>();
-	private static final ConcurrentHashMap<String, String> tokens = new ConcurrentHashMap<String, String>();
 	private boolean inside;
 
 	private Map<String, Savepoint> savepoints = new ConcurrentHashMap<>();
@@ -86,7 +86,7 @@ public final class DatasourceManagerImpl implements DataSourceManager {
 
 			// first time that datasource is used within this transaction
 			if (existingDC == null) {
-				synchronized (getToken(ds.id())) {
+				synchronized (SystemUtil.createToken("DatasourceManagerImpl", ds.id())) {
 					existingDC = transConnsReg.get(ds);
 					if (existingDC == null) {
 						DatasourceConnectionPro newDC = (DatasourceConnectionPro) config.getDatasourceConnectionPool().getDatasourceConnection(config, ds, user, pass);
@@ -494,13 +494,5 @@ public final class DatasourceManagerImpl implements DataSourceManager {
 
 	private int _size() {
 		return transConnsORM.size() + transConnsReg.size();
-	}
-
-	public static String getToken(String key) {
-		String lock = tokens.putIfAbsent(key, key);
-		if (lock == null) {
-			lock = key;
-		}
-		return lock;
 	}
 }

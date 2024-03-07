@@ -79,10 +79,9 @@ import lucee.runtime.type.util.ListUtil;
 public final class DebuggerImpl implements Debugger {
 	private static final long serialVersionUID = 3957043879267494311L;
 
-	private static final Collection.Key IMPLICIT_ACCESS = KeyImpl.getInstance("implicitAccess");
-	private static final Collection.Key GENERIC_DATA = KeyImpl.getInstance("genericData");
-	private static final Collection.Key PAGE_PARTS = KeyImpl.getInstance("pageParts");
-	// private static final Collection.Key OUTPUT_LOG= KeyImpl.intern("outputLog");
+	private static final Collection.Key IMPLICIT_ACCESS = KeyConstants._implicitAccess;
+	private static final Collection.Key GENERIC_DATA = KeyConstants._genericData;
+	private static final Collection.Key PAGE_PARTS = KeyConstants._pageParts;
 
 	private static final int MAX_PARTS = 100;
 
@@ -120,7 +119,7 @@ public final class DebuggerImpl implements Debugger {
 	final static Comparator DEBUG_ENTRY_TEMPLATE_COMPARATOR = new DebugEntryTemplateComparator();
 	final static Comparator DEBUG_ENTRY_TEMPLATE_PART_COMPARATOR = new DebugEntryTemplatePartComparator();
 
-	private static final Key CACHE_TYPE = KeyImpl.getInstance("cacheType");
+	private static final Key CACHE_TYPE = KeyConstants._cacheType;
 
 	private static final Key[] PAGE_COLUMNS = new Collection.Key[] { KeyConstants._id, KeyConstants._count, KeyConstants._min, KeyConstants._max, KeyConstants._avg,
 			KeyConstants._app, KeyConstants._load, KeyConstants._query, KeyConstants._total, KeyConstants._src };
@@ -184,7 +183,7 @@ public final class DebuggerImpl implements Debugger {
 				historyId.appendEL(Caster.toInteger(de.getId()));
 				historyLevel.appendEL(Caster.toInteger(pc.getCurrentLevel()));
 			}
-			catch(PageException e) {
+			catch (PageException e) {
 				historyId.appendEL(de.getId());
 				historyLevel.appendEL(pc.getCurrentLevel());
 			}
@@ -196,7 +195,7 @@ public final class DebuggerImpl implements Debugger {
 			historyId.appendEL(Caster.toInteger(de.getId()));
 			historyLevel.appendEL(Caster.toInteger(pc.getCurrentLevel()));
 		}
-		catch(PageException e) {
+		catch (PageException e) {
 			historyId.appendEL(de.getId());
 			historyLevel.appendEL(pc.getCurrentLevel());
 		}
@@ -727,8 +726,8 @@ public final class DebuggerImpl implements Debugger {
 						if (!StringUtil.isEmpty(trace.getTemplate())) qryTraces.setAt(KeyConstants._template, row, trace.getTemplate());
 						if (trace.getLine() > 0) qryTraces.setAt(KeyConstants._line, row, Double.valueOf(trace.getLine()));
 						if (!StringUtil.isEmpty(trace.getAction())) qryTraces.setAt(KeyConstants._action, row, trace.getAction());
-						if (!StringUtil.isEmpty(trace.getVarName())) qryTraces.setAt(KeyImpl.getInstance("varname"), row, trace.getVarName());
-						if (!StringUtil.isEmpty(trace.getVarValue())) qryTraces.setAt(KeyImpl.getInstance("varvalue"), row, trace.getVarValue());
+						if (!StringUtil.isEmpty(trace.getVarName())) qryTraces.setAt(KeyConstants._varname, row, trace.getVarName());
+						if (!StringUtil.isEmpty(trace.getVarValue())) qryTraces.setAt(KeyConstants._varvalue, row, trace.getVarValue());
 						qryTraces.setAt(KeyConstants._time, row, Double.valueOf(trace.getTime()));
 					}
 				}
@@ -787,14 +786,14 @@ public final class DebuggerImpl implements Debugger {
 		//////////////////////////////////////////
 		//////// THREAD NAME ////////////////////
 		//////////////////////////////////////////
-		if (threadName != null) debugging.setEL(KeyImpl.getInstance("threadName"), threadName);
+		if (threadName != null) debugging.setEL(KeyConstants._threadName, threadName);
 
 		HttpServletResponse rsp = pc.getHttpServletResponse();
-		debugging.setEL(KeyImpl.getInstance("statusCode"), rsp.getStatus());
-		debugging.setEL(KeyImpl.getInstance("contentType"), rsp.getContentType());
+		debugging.setEL(KeyConstants._statusCode, rsp.getStatus());
+		debugging.setEL(KeyConstants._contentType, rsp.getContentType());
 		// TODO ContentLength ReqRspUtil?
 
-		debugging.setEL(KeyImpl.getInstance("starttime"), new DateTimeImpl(starttime, false));
+		debugging.setEL(KeyConstants._starttime, new DateTimeImpl(starttime, false));
 		debugging.setEL(KeyConstants._id, pci.getRequestId() + "-" + pci.getId());
 
 		return debugging;

@@ -795,7 +795,8 @@ public final class OpUtil {
 	 * @throws PageException
 	 */
 	public static boolean eeq(PageContext pc, Object left, Object right) throws PageException {
-		return left == right;
+		if (compare(pc, left, right) != 0) return false;
+		return Caster.toTypeName(left).equals(Caster.toTypeName(right));
 	}
 
 	/**
@@ -807,7 +808,7 @@ public final class OpUtil {
 	 * @throws PageException
 	 */
 	public static boolean neeq(PageContext pc, Object left, Object right) throws PageException {
-		return left != right;
+		return !eeq(pc, left, right);
 	}
 
 	/**
@@ -820,14 +821,22 @@ public final class OpUtil {
 	 */
 	public static double exponent(PageContext pc, Object left, Object right) throws PageException {
 		if (AppListenerUtil.getPreciseMath(pc, null)) {
-			return Caster.toBigDecimal(left).pow(Caster.toIntValue(right)).doubleValue();
+			try {
+				return Caster.toBigDecimal(left).pow(Caster.toIntValue(right)).doubleValue();
+			}
+			catch (Exception e) {
+			}
 		}
 		return StrictMath.pow(Caster.toDoubleValue(left), Caster.toDoubleValue(right));
 	}
 
 	public static double exponent(PageContext pc, Number left, Number right) throws PageException {
 		if (AppListenerUtil.getPreciseMath(pc, null)) {
-			return Caster.toBigDecimal(left).pow(right.intValue()).doubleValue();
+			try {
+				return Caster.toBigDecimal(left).pow(right.intValue()).doubleValue();
+			}
+			catch (Exception e) {
+			}
 		}
 		return StrictMath.pow(left.doubleValue(), right.doubleValue());
 	}
@@ -1001,8 +1010,13 @@ public final class OpUtil {
 	}
 
 	public static Number exponentRef(PageContext pc, Object left, Object right) throws PageException {
-		if (AppListenerUtil.getPreciseMath(pc, null)) {
-			return Caster.toBigDecimal(left).pow(Caster.toIntValue(right));
+		// TODO better implementation
+		if (AppListenerUtil.getPreciseMath(pc, null) && Decision.isInteger(right)) {
+			try {
+				return MathUtil.pow(Caster.toBigDecimal(left), Caster.toIntValue(right));
+			}
+			catch (Exception e) {
+			}
 		}
 		return Caster.toDouble(StrictMath.pow(Caster.toDoubleValue(left), Caster.toDoubleValue(right)));
 	}
@@ -1036,12 +1050,18 @@ public final class OpUtil {
 	}
 
 	public static Number modulusRef(PageContext pc, Object left, Object right) throws PageException {
+		if (AppListenerUtil.getPreciseMath(pc, null)) {
+			return Caster.toBigDecimal(left).remainder(Caster.toBigDecimal(right));
+		}
 		double rightAsDouble = Caster.toDoubleValue(right);
 		if (rightAsDouble == 0d) throw new ArithmeticException("Division by zero is not possible");
 		return Caster.toDouble(Caster.toDoubleValue(left) % rightAsDouble);
 	}
 
 	public static Number modulusRef(PageContext pc, Number left, Number right) throws PageException {
+		if (AppListenerUtil.getPreciseMath(pc, null)) {
+			return Caster.toBigDecimal(left).remainder(Caster.toBigDecimal(right));
+		}
 		double rightAsDouble = Caster.toDoubleValue(right);
 		if (rightAsDouble == 0d) throw new ArithmeticException("Division by zero is not possible");
 		return Caster.toDouble(Caster.toDoubleValue(left) % rightAsDouble);

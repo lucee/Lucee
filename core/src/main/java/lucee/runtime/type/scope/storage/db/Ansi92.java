@@ -125,7 +125,20 @@ public class Ansi92 extends SQLExecutorSupport {
 				new QueryImpl(pc, dc, sql, -1, -1, null, scopeName + "_storage");
 			}
 			catch (DatabaseException _de) {
-				throw new DatabaseException("Failed to create unique index on " + tableName, null, sql, dc);
+				DatabaseException exp = new DatabaseException("Failed to create unique index on [" + tableName + "]", null, sql, dc);
+				exp.initCause(_de);
+				throw exp;
+			}
+
+			// database table created, now create index
+			try {
+				sql = new SQLImpl("CREATE INDEX ix_" + tableName + "_expires ON " + tableName + "(expires)");
+				new QueryImpl(pc, dc, sql, -1, -1, null, scopeName + "_storage");
+			}
+			catch (DatabaseException _de) {
+				DatabaseException exp = new DatabaseException("Failed to create expires index on [" + tableName + "]", null, sql, dc);
+				exp.initCause(_de);
+				throw exp;
 			}
 
 			query = new QueryImpl(pc, dc, sqlSelect, -1, -1, null, scopeName + "_storage");
@@ -190,7 +203,7 @@ public class Ansi92 extends SQLExecutorSupport {
 		String strType = VariableInterpreter.scopeInt2String(type);
 		// select
 		SQL sqlSelect = new SQLImpl("SELECT cfid, name FROM " + PREFIX + "_" + strType + "_data WHERE expires <= ?",
-				new SQLItem[] { new SQLItemImpl(System.currentTimeMillis(), Types.VARCHAR) });
+				new SQLItem[] { new SQLItemImpl(now(config), Types.VARCHAR) });
 		Query query;
 		try {
 			query = new QueryImpl(ThreadLocalPageContext.get(), dc, sqlSelect, -1, -1, null, strType + "_storage");

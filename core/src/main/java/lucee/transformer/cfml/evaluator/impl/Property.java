@@ -18,7 +18,6 @@
  **/
 package lucee.transformer.cfml.evaluator.impl;
 
-import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.config.Constants;
 import lucee.transformer.TransformerException;
 import lucee.transformer.bytecode.Page;
@@ -54,7 +53,7 @@ public final class Property extends EvaluatorSupport {
 		}
 
 		String ns = tag.getTagLibTag().getTagLib().getNameSpaceAndSeparator();
-		String compName = ns + (page.getSourceCode().getDialect() == CFMLEngine.DIALECT_CFML ? Constants.CFML_COMPONENT_TAG_NAME : Constants.LUCEE_COMPONENT_TAG_NAME);
+		String compName = ns + (Constants.CFML_COMPONENT_TAG_NAME);
 
 		return compName;
 	}

@@ -190,20 +190,20 @@ public abstract class ApplicationContextSupport implements ApplicationContext {
 	@Override
 	public void setTagAttributeDefaultValues(PageContext pc, Struct sct) {
 		if (tagDefaultAttributeValues == null) tagDefaultAttributeValues = new HashMap<Collection.Key, Map<Collection.Key, Object>>();
-		initTagDefaultAttributeValues(config, tagDefaultAttributeValues, sct, pc.getCurrentTemplateDialect());
+		initTagDefaultAttributeValues(config, tagDefaultAttributeValues, sct);
 	}
 
-	public static void initTagDefaultAttributeValues(Config config, Map<Collection.Key, Map<Collection.Key, Object>> tagDefaultAttributeValues, Struct sct, int dialect) {
+	public static void initTagDefaultAttributeValues(Config config, Map<Collection.Key, Map<Collection.Key, Object>> tagDefaultAttributeValues, Struct sct) {
 		if (sct.size() == 0) return;
 		ConfigPro ci = ((ConfigPro) config);
 
 		// first check the core lib without namespace
-		TagLib lib = ci.getCoreTagLib(dialect);
+		TagLib lib = ci.getCoreTagLib();
 		_initTagDefaultAttributeValues(config, lib, tagDefaultAttributeValues, sct, false);
 		if (sct.size() == 0) return;
 
 		// then all the other libs including the namespace
-		TagLib[] tlds = ci.getTLDs(dialect);
+		TagLib[] tlds = ci.getTLDs();
 		for (int i = 0; i < tlds.length; i++) {
 			_initTagDefaultAttributeValues(config, tlds[i], tagDefaultAttributeValues, sct, true);
 			if (sct.size() == 0) return;
@@ -339,7 +339,7 @@ public abstract class ApplicationContextSupport implements ApplicationContext {
 				// level
 
 				String strLevel = Caster.toString(v.get("level", null), null);
-				if (StringUtil.isEmpty(strLevel, true)) Caster.toString(v.get("loglevel", null), null);
+				if (StringUtil.isEmpty(strLevel, true)) strLevel = Caster.toString(v.get("loglevel", null), null);
 				int level = LogUtil.toLevel(StringUtil.trim(strLevel, ""), Log.LEVEL_ERROR);
 
 				Struct sctAppArgs = Caster.toStruct(sctApp.get("arguments", null), null);
@@ -484,5 +484,15 @@ public abstract class ApplicationContextSupport implements ApplicationContext {
 	public abstract boolean getPreciseMath();
 
 	public abstract void setPreciseMath(boolean preciseMath);
+
+	public abstract boolean getLimitEvaluation();
+
+	public abstract void setLimitEvaluation(boolean limitEvaluation);
+
+	public abstract boolean getFormUrlAsStruct();
+
+	public abstract int getReturnFormat();
+
+	public abstract void setReturnFormat(int rf);
 
 }

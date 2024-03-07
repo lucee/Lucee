@@ -63,7 +63,6 @@ import lucee.commons.io.SystemUtil;
 import lucee.commons.io.SystemUtil.TemplateLine;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
-import lucee.loader.engine.CFMLEngine;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.runtime.PageContext;
 import lucee.runtime.config.ConfigWebPro;
@@ -123,8 +122,8 @@ public class QueryImpl implements Query, Objects, QueryResult {
 
 	private static final long serialVersionUID = 1035795427320192551L; // do not chnage
 
-	public static final Collection.Key GENERATED_KEYS = KeyImpl.getInstance("GENERATED_KEYS");
-	public static final Collection.Key GENERATEDKEYS = KeyImpl.getInstance("GENERATEDKEYS");
+	public static final Collection.Key GENERATED_KEYS = KeyConstants._GENERATED_KEYS;
+	public static final Collection.Key GENERATEDKEYS = KeyConstants._GENERATEDKEYS;
 
 	private static boolean useMSSQLModern;
 
@@ -1100,7 +1099,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 
 	private boolean getKeyCase(PageContext pc) {
 		pc = ThreadLocalPageContext.get(pc);
-		return pc != null && pc.getCurrentTemplateDialect() == CFMLEngine.DIALECT_CFML && !((ConfigWebPro) pc.getConfig()).preserveCase();
+		return pc != null && !((ConfigWebPro) pc.getConfig()).preserveCase();
 	}
 
 	@Override
@@ -3372,12 +3371,13 @@ public class QueryImpl implements Query, Objects, QueryResult {
 			newResult.sql = qry.getSql();
 			try {
 				newResult.metadata = qry.getMetaData();
-			} catch (SQLException e) {
+			}
+			catch (SQLException e) {
 				// Do nothing on exception, falls back to null
 			}
 			if (qry instanceof QueryImpl) newResult.templateLine = ((QueryImpl) qry).getTemplateLine();
 			else newResult.templateLine = new TemplateLine(qry.getTemplate(), 0);
-			newResult.recordcount = ((QueryImpl) qry).recordcount;
+			newResult.recordcount = new AtomicInteger(((QueryImpl) qry).recordcount.intValue());
 			newResult.columncount = newResult.columnNames.length;
 			newResult.cacheType = qry.getCacheType();
 			newResult.name = qry.getName();

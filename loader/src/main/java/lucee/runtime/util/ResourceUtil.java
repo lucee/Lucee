@@ -201,7 +201,7 @@ public interface ResourceUtil {
 	 * copy a file or directory recursive (with his content)
 	 * 
 	 * @param src Source Resource
-	 * @param trg Target Resource	 
+	 * @param trg Target Resource
 	 * @throws IOException IO Exception
 	 */
 	public void copyRecursive(Resource src, Resource trg) throws IOException;
@@ -225,8 +225,8 @@ public interface ResourceUtil {
 	public void moveTo(Resource src, Resource dest) throws IOException;
 
 	/**
-	 * return if Resource is empty, means is directory and has no children or an empty file, if not exist
-	 * return false.
+	 * return if Resource is empty, means is directory and has no children or an empty file, if not
+	 * exist return false.
 	 * 
 	 * @param res Resource
 	 * @return if the resource is empty
@@ -453,8 +453,8 @@ public interface ResourceUtil {
 	public int getChildCount(Resource res, ResourceFilter filter);
 
 	/**
-	 * return Boolean. True when directory is empty, Boolean. FALSE when directory is not empty and null if
-	 * directory does not exist
+	 * return Boolean. True when directory is empty, Boolean. FALSE when directory is not empty and null
+	 * if directory does not exist
 	 * 
 	 * @param res Resource
 	 * @param filter Filter

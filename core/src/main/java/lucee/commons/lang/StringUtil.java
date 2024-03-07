@@ -64,6 +64,22 @@ public final class StringUtil {
 			, 0x205F // medium mathematical space
 			, 0x3000 // ideographic space
 	};
+	private static final boolean[] WHITESPACES;
+
+	static {
+		// first get the lowest and highest number, so we have the offset of the array and the size
+		int highest = 0;
+		for (char c: SPECIAL_WHITE_SPACE_CHARS) {
+			if (c > highest) highest = c;
+		}
+		WHITESPACES = new boolean[highest + 1];
+		for (int i = 0; i < WHITESPACES.length; i++) {
+			WHITESPACES[i] = false;
+		}
+		for (char c: SPECIAL_WHITE_SPACE_CHARS) {
+			WHITESPACES[c] = true;
+		}
+	}
 
 	private static char[] QUOTE_8220 = new char[] { (char) 226, (char) 8364, (char) 339 };
 	private static char[] QUOTE_8221 = new char[] { (char) 226, (char) 8364, (char) 65533 };
@@ -121,6 +137,22 @@ public final class StringUtil {
 			if (chars[i] == c) return true;
 		}
 		return false;
+	}
+
+	public static String concat(String l, String r) {
+		return new StringBuilder(l.length() + r.length()).append(l).append(r).toString();
+	}
+
+	public static String concat(String l, String m, String r) {
+		return new StringBuilder(l.length() + m.length() + r.length()).append(l).append(m).append(r).toString();
+	}
+
+	public static String concat(String s1, String s2, String s3, String s4) {
+		return new StringBuilder(s1.length() + s2.length() + s3.length() + s4.length()).append(s1).append(s2).append(s3).append(s4).toString();
+	}
+
+	public static String concat(String s1, String s2, String s3, String s4, String s5) {
+		return new StringBuilder(s1.length() + s2.length() + s3.length() + s4.length() + s5.length()).append(s1).append(s2).append(s3).append(s4).append(s5).toString();
 	}
 
 	/**
@@ -241,23 +273,20 @@ public final class StringUtil {
 	}
 
 	/**
-	 * reapeats a string
+	 * repeats a string
 	 *
 	 * @param str string to repeat
-	 * @param count how many time string will be repeated
-	 * @return reapted string
+	 * @param count how many times string should be repeated
+	 * @return repeated string
 	 */
 	public static String repeatString(String str, int count) {
 		if (count <= 0) return "";
+
 		char[] chars = str.toCharArray();
-		char[] rtn = new char[chars.length * count];
-		int pos = 0;
-		for (int i = 0; i < count; i++) {
-			for (int y = 0; y < chars.length; y++)
-				rtn[pos++] = chars[y];
-			// rtn.append(str);
-		}
-		return new String(rtn);
+		StringBuilder cb = new StringBuilder(chars.length * count);
+		for (int i = 0; i < count; i++)
+			cb.append(chars);
+		return cb.toString();
 	}
 
 	/**
@@ -551,6 +580,24 @@ public final class StringUtil {
 		return false;
 	}
 
+	public static boolean hasSpecialWhiteSpace(String str) {
+		for (char c: str.toCharArray()) {
+			if (c < WHITESPACES.length && WHITESPACES[c]) return true;
+		}
+		return false;
+	}
+
+	public static String replaceSpecialWhiteSpace(String str) {
+		if (!hasSpecialWhiteSpace(str)) return str;
+
+		StringBuilder sb = new StringBuilder();
+		for (char c: str.toCharArray()) {
+			if (c < WHITESPACES.length && WHITESPACES[c]) sb.append(" ");
+			else sb.append(c);
+		}
+		return sb.toString();
+	}
+
 	public static boolean isWhiteSpace(char c) {
 		return isWhiteSpace(c, false);
 	}
@@ -838,26 +885,15 @@ public final class StringUtil {
 
 	public static int indexOfIgnoreCase(String haystack, String needle, int offset) {
 		if (StringUtil.isEmpty(haystack) || StringUtil.isEmpty(needle)) return -1;
-		needle = needle.toLowerCase();
 
-		if (offset > 0) haystack = haystack.substring(offset);
-		else offset = 0;
+		String modHaystack = haystack.toUpperCase();
+		String modNeedle = needle.toUpperCase();
 
-		int lenHaystack = haystack.length();
-		int lenNeedle = needle.length();
-
-		char lastNeedle = needle.charAt(lenNeedle - 1);
-		char c;
-		outer: for (int i = lenNeedle - 1; i < lenHaystack; i++) {
-			c = Character.toLowerCase(haystack.charAt(i));
-			if (c == lastNeedle) {
-				for (int y = 0; y < lenNeedle - 1; y++) {
-					if (needle.charAt(y) != Character.toLowerCase(haystack.charAt(i - (lenNeedle - 1) + y))) continue outer;
-				}
-				return (i - (lenNeedle - 1)) + offset;
-			}
+		if (modHaystack.length() > haystack.length() || modNeedle.length() > needle.length()) {
+			modHaystack = haystack.toLowerCase();
+			modNeedle = needle.toLowerCase();
 		}
-		return -1;
+		return offset > 0 ? modHaystack.indexOf(modNeedle, offset) : modHaystack.indexOf(modNeedle);
 	}
 
 	/**
@@ -1347,18 +1383,22 @@ public final class StringUtil {
 		Map<Pos, String> positions = new LinkedHashMap<>();
 		String k, v;
 		List<Pos> tmp;
+		boolean foundMatch = false;
 		while (it.hasNext()) {
 			e = it.next();
 			k = e.getKey().getString();
 			v = Caster.toString(e.getValue());
 			tmp = new ArrayList<Pos>();
 			result = _replace(result.toString(), k, placeholder(k), false, ignoreCase, tmp);
+			if (!foundMatch && result instanceof StringBuilder) foundMatch = true;
 			for (Pos pos: tmp) {
 				positions.put(pos, v);
 			}
 		}
-		if (result instanceof StringBuilder) {
-			StringBuilder sb = (StringBuilder) result;
+		if (foundMatch) {
+			StringBuilder sb;
+			if (!(result instanceof StringBuilder)) sb = new StringBuilder().append(result);
+			else sb = (StringBuilder) result;
 			List<Map.Entry<Pos, String>> list = new ArrayList<Map.Entry<Pos, String>>(positions.entrySet());
 			// <Map.Entry<Integer,String>>
 			Collections.sort(list, new Comparator<Map.Entry<Pos, String>>() {
@@ -1388,19 +1428,6 @@ public final class StringUtil {
 		}
 		return new String(carr);
 	}
-
-	/*
-	 * public static void main(String[] args) throws PageException { Map<String, String> map = new
-	 * HashMap<>(); map.put("target", "!target!"); map.put("replace", "er"); map.put("susi", "Susanne");
-	 * print.e(
-	 * replaceMap("I want replace replace to add 1 underscore with struct-replace... 'target' replace",
-	 * map, false));
-	 *
-	 * map = new HashMap<>(); map.put("Susi", "Sorglos"); map.put("Sorglos", "Susi");
-	 * print.e(replaceMap("Susi Sorglos foehnte ihr Haar", map, false));
-	 *
-	 * }
-	 */
 
 	public static String unwrap(String str) {
 		if (StringUtil.isEmpty(str)) return "";

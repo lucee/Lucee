@@ -18,8 +18,6 @@
  **/
 package lucee.runtime.debug;
 
-import lucee.runtime.debug.DebugTimerPro;
-
 public final class DebugTimerImpl implements DebugTimerPro {
 
 	private static final long serialVersionUID = -4552972253450654830L;
@@ -62,7 +60,7 @@ public final class DebugTimerImpl implements DebugTimerPro {
 
 	/**
 	 * @return the line number
-	*/	
+	 */
 	public int getLine() {
 		return line;
 	}

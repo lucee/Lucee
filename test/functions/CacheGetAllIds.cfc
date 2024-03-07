@@ -2,20 +2,22 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="cache,ehCache" {
 	function run( testResults , testBox ) {
 		describe( title="Test suite for CacheGetAllIds()", body=function() {
 			variables.cacheName="Test"&ListFirst(ListLast(getCurrentTemplatePath(),"\/"),".");
-			afterEach(function( currentSpec ){
-				testCacheGetAllIds();
-				deleteCache();
-			});
 			it(title="Checking testCacheGetAllIdsEHCache()", body = function( currentSpec ) {
 				createEHCache();
+				testCacheGetAllIds();
+				deleteCache();
 			});
 			it(title="Checking testCacheGetAllIdsJBossCache()", body = function( currentSpec ) {
 				if(!isNull(request.testJBossExtension) and request.testJBossExtension){
 					createJBossCache();
+					testCacheGetAllIds();
+					deleteCache();
 				}
 			});
 			it(title="Checking testCacheGetAllIdsRAMCache()", body = function( currentSpec ) {
 				createRAMCache();
+				testCacheGetAllIds();
+				deleteCache();
 			});
 		});
 	}

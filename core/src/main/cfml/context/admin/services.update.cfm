@@ -21,28 +21,7 @@
 	error.message="";
 	error.detail="";
 </cfscript>
-<cftry>
-<cfswitch expression="#url.action2#">
-	<cfcase value="settings">
-		<cfif !structKeyExists(form, "location") OR !structKeyExists(form, "locationCustom")>
-			<cfset form.locationCustom = "https://update.lucee.org">
-		</cfif>
-		<cfadmin
-			action="UpdateUpdate"
-			type="#request.adminType#"
-			password="#session["password"&request.adminType]#"
 
-			updateType="#form.type#"
-			updateLocation="#form.locationCustom#"
-			remoteClients="#request.getRemoteClients()#">
-	</cfcase>
-</cfswitch>
-<cfcatch>
-		<cfset error.message=cfcatch.message>
-		<cfset error.detail=cfcatch.Detail>
-		<cfset error.cfcatch=cfcatch>
-	</cfcatch>
-</cftry>
 <cfif request.admintype EQ "web"><cflocation url="#request.self#" addtoken="no"></cfif>
 
 <!--- only available for server --->
@@ -51,50 +30,28 @@
     type="#request.adminType#"
     password="#session["password"&request.adminType]#"
     returnVariable="loaderInfo">
-
 <cfset error.message="">
 <cfset error.detail="">
 
  <cfscript>
 	include template="ext.functions.cfm";
-	include template="services.update.functions.cfm";
-	ud=getUpdateData();
+	//include template="services.update.functions.cfm";
 
-	//dump((application.UpdateProvider[ud.location].time?:0)<now());
-	if(
-		isNull(application.UpdateProvider[ud.location]) || 
-		(application.UpdateProvider[ud.location].code?:0)!=200 ||
-		(application.UpdateProvider[ud.location].time?:0)<now())  {
-		//dump("update");
-		application.UpdateProvider[ud.location]=getAvailableVersion();
-		application.UpdateProvider[ud.location].time=dateAdd('s',CACHE_IN_SECONDS,now());
+	hasESAPI = ExtensionExists( "37C61C0A-5D7E-4256-8572639BE0CF5838" );
+	function safeText (str){
+		if (hasESAPI)
+			return encodeForHtml(arguments.str);
+		else
+			return htmlEditFormat(arguments.str);
 	}
-	updateData = application.UpdateProvider[ud.location];
 	
 	hasOptions=false;
 
-	admin
-			action="getUpdate"
-			type="#request.adminType#"
-			password="#session["password"&request.adminType]#"
-			returnvariable="upd";
-	
+
 	stText.services.update.downUpDesc=replace(stText.services.update.downUpDesc,'{version}',server.lucee.version);
 
-		/*if(isNull(providerData.message) || providerData.type == 'warning'){
-			error.message = "Couldn't able to reach the server. Please try after some times";
-			result.otherVersions = [];
-		} else{
-			result = providerData;
-		}
-		updateData=getAvailableVersion();*/
-
-		if(updateData.provider.location EQ "https://update.lucee.org" || updateData.provider.location EQ "http://update.lucee.org"){
-			version = "lucee";
-		} 
-		else{
-			version = "custom";
-		}
+		version = "lucee";
+		
 		versionsStr = {};
 		versionsStr.snapShot = {};
 		versionsStr.pre_Release= {};
@@ -106,8 +63,8 @@
 			versionsStr[type].upgrade = [];
 			versionsStr[type].downgrade = [];
 		}
-		if(version eq 'custom' && structKeyExists(updateData, "otherVersions") && Len(updateData.otherVersions)){
-			for(versions in updateData.otherVersions){
+		if(version eq 'custom' &&  Len(otherVersions)){
+			for(versions in otherVersions){
 				if(toVersionSortable(versions) LTE toVersionSortable(server.lucee.version)){
 					arrayPrepend(versionsStr.custom.downgrade, versions);
 				}
@@ -124,10 +81,11 @@
 			password="#session["password"&request.adminType]#"
 			returnvariable="minVersion";
 		minVs = toVersionSortable(minVersion);
+		otherVersions=LuceeVersionsList();
+		latest=len(otherVersions)?otherVersions[len(otherVersions)]:server.lucee.version;
+		if(!isNull(otherVersions) && len(otherVersions)){
 
-		if(!isNull(updateData.otherVersions) && len(updateData.otherVersions)){
-
-			for(versions in updateData.otherVersions ){
+			for(versions in otherVersions ){
 				if(versions EQ server.lucee.version) cfcontinue;
 				vs=toVersionSortable(versions);
 				if(vs LT minVS) cfcontinue;
@@ -159,9 +117,28 @@
 				}
 			}
 		}
-		//dump(var:versionsStr,expand:false);
-		//dump(var:updateData,expand:false);
 	printError(error);
+
+	currMajor=listFirst(server.lucee.version,".");
+	
+
+	// Jira
+
+	arrChangeLog=[:];
+	try {
+		jira=new Jira("luceeserver.atlassian.net");
+		changelog=jira.listIssues(project:"LDEV",stati:["Deployed","Done","QA"],versionFrom=server.lucee.version,versionTo=latest,includeFrom=false);
+		strChangeLog="";
+		loop query=changelog {
+			strChangeLog=arrChangeLog[changelog.version]?:"";
+			strChangeLog &= '<li><a href="https://luceeserver.atlassian.net/browse/#safeText(changelog.key)#" target="_blank" rel="noopener">#safeText(changelog.key)#</a> - #safeText(changelog.summary)#</li>#chr(10)#';
+			arrChangeLog[changelog.version]=strChangeLog;
+		}
+	}
+	catch(e) {}
+	
+	
+
 </cfscript>
 <cfoutput>
 
@@ -199,7 +176,6 @@
 				type="button"></span>
 		<cfset count++>
 	</cfloop>
-
 	<cfsavecontent variable="tmpContent">
 		<div  class="topBottomSpace">
 			<div class="whitePanel">
@@ -246,57 +222,7 @@
 		#tmpContent#
 	</div>
 </cfif>
-	<!--- for custom --->
-	<cfformClassic onerror="customError" action="#go(url.action,"settings")#" method="post">
-		<h1>#stText.services.update.customProvider#</h1>
-		<table class="maintbl alignLeft">
-			<tbody>
-				<tr>
-					<th scope="row">#stText.services.update.provider#</th>
-					<td>
-						<ul class="radiolist" id="updatelocations">
-							<!--- Release --->
-							<li>
-								<label>
-									<input type="checkbox" id="sp_radio_custom" name="location"<cfif  version EQ 'custom'> checked</cfif> value="cutsomVersion" />
-									<input type="hidden" value="#updateData.provider.location#" name="updatedInfo">
-									<b>#stText.services.update.location_custom#</b>
-								</label>
-								<input id="customtextinput" type="text" class="text" name="locationCustom" size="40" value="<cfif  version EQ 'custom'>#updateData.provider.location#</cfif>" disabled>
-								<div class="comment">#replace("#stText.services.update.location_customDesc#","{url}","<a href=""https://docs.lucee.org"">https://docs.lucee.org</a>")#</div>
-								<cfif version EQ 'custom'>
-									<cfhtmlbody>
-										<script type="text/javascript">
-											$( '##customtextinput' ).attr( 'disabled', false);
-										</script>
-									</cfhtmlbody>
-								</cfif>
-							</li>
-						</ul>
-					</td>
-				</tr>
-				<tr>
-					<th scope="row">#stText.services.update.type#</th>
-					<td>
-						<select name="type">
-							<option value="manual" <cfif upd.type EQ "manual">selected</cfif>>#stText.services.update.type_manually#</option>
-							<option value="auto" <cfif upd.type EQ "auto">selected</cfif>>#stText.services.update.type_auto#</option>
-						</select>
-						<div class="comment">#stText.services.update.typeDesc#</div>
-					</td>
-				</tr>
-			</tbody>
-			<tfoot>
-				<tr>
-					<td colspan="2">
-						<input type="submit" class="bl button submit" id="updateProvider" name="mainAction" value="#stText.Buttons.Update#">
-						<input type="reset" class="br button reset" name="cancel" value="#stText.Buttons.Cancel#">
-					</td>
-				</tr>
-			</tfoot>
-		</table>
-	</cfformClassic>
-
+	
 	<cfhtmlbody>
 		<script type="text/javascript">
 			$(document).ready(function(){
@@ -369,7 +295,7 @@
 				else{
 					submitted = true;
 					$('##group_Connection').hide();
-					url='?action=changeto&adminType=#request.admintype#&version='+frm.value;
+					url='?action=mvnchangeto&adminType=#request.admintype#&version='+frm.value;
 					$(document).ready(function(){
 						$('##updateInfoDesc').html('<img src="../res/img/spinner16.gif.cfm">');
 						disableBlockUI=true;
@@ -409,7 +335,23 @@
 			});
 		</script>
 	</cfhtmlbody>
-	<cfset stText.services.update.titleDesc2 = replaceListNoCase(stText.services.update.titleDesc2,'{min-version},{server.lucee.loaderPath}','<b>#minVersion#</b>,<b>#listDeleteAt(loaderInfo.LoaderPath,listlen(loaderInfo.LoaderPath,"\/"),"\/")#</b>')>
-	<p class="comment">* #replace(stText.services.update.titleDesc2,'{context}',"<b class='error'>"&#expandPath("{lucee-server}\patches")#&"</b>") #</p>
-	
+
+	<cfscript>
+		loaderText = replaceNoCase(stText.services.update.loaderMinVersion,"{min-version}", "<b>#minVersion#</b>");
+		loaderPath = replaceNoCase(stText.services.update.loaderPath,"{loaderPath}", '<b>'& loaderInfo.LoaderPath & '</b>' );
+		//replace(stText.services.update.titleDesc2,'{context}',"<b class='error'>"&#expandPath("{lucee-server}\patches")#&"</b>");
+	</cfscript>
+
+	<cfif len(arrChangeLog)>
+		<h2>#stText.services.update.changeLogsSince# (#server.lucee.version# - #latest#)</h2>
+		<ul><cfloop struct="#arrChangeLog#" index="version" item="values">
+			<!--- #safeText(version)#<br>#chr(10)#<ul>#chr(10)##values#</ul> --->
+			<li>#safeText(version)#<br>#chr(10)##chr(10)#<ul>#values#</ul></li>
+
+		</cfloop></ul>
+	</cfif>
+
+	<h2>Limitation</h2>
+	<p class="comment">#loaderText#</p>
+	<p class="comment">#loaderPath#</p>	
 </cfoutput>

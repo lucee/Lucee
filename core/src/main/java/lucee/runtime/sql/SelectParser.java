@@ -43,7 +43,7 @@ import lucee.runtime.sql.exp.value.ValueDate;
 import lucee.runtime.sql.exp.value.ValueNull;
 import lucee.runtime.sql.exp.value.ValueNumber;
 import lucee.runtime.sql.exp.value.ValueString;
-import lucee.runtime.db.SQL;
+import lucee.runtime.type.Collection.Key;
 
 public class SelectParser {
 
@@ -56,8 +56,8 @@ public class SelectParser {
 	 */
 
 	private int columnIndex = 0;
-	private Set<String> allColumns = new HashSet<String>();
 	private boolean cachingColumn = true;
+	private Set<Key> allColumns = new HashSet<Key>();
 
 	// select <select-statement> from <tables> where <where-statement>
 	public Selects parse(String sql) throws SQLParserException {
@@ -123,7 +123,7 @@ public class SelectParser {
 				}
 			}
 			select.calcAdditionalColumns(allColumns);
-			allColumns = new HashSet<String>();
+			allColumns = new HashSet<Key>();
 			selects.addSelect(select);
 
 			runAgain = false;
@@ -550,18 +550,19 @@ public class SelectParser {
 
 		// If there is a random : laying around like :id where we expected a column or value, it's
 		// likley a named param and the user forgot to pass their params to the query.
-		if (exp == null && raw.isCurrent( ":" ) ) {
+		if (exp == null && raw.isCurrent(":")) {
 			String name = "";
 			int pos = raw.getPos();
 			// Strip out the next word to show the user what was after their errant :
 			do {
-				if( raw.isCurrentWhiteSpace() || raw.isCurrent( ")" ) ) break;
+				if (raw.isCurrentWhiteSpace() || raw.isCurrent(")")) break;
 				name += raw.getCurrent();
 				raw.next();
-			} while( raw.isValidIndex() );
-			throw (SQLParserException)new SQLParserException("Unexpected token [" + name + "] found at position " + pos + ". Did you forget to specify all your named params?" )
-				// Need to sneak this past Java's checked exception types
-				.initCause( new IllegalQoQException("Unsupported SQL", "", null, null) );
+			}
+			while (raw.isValidIndex());
+			throw (SQLParserException) new SQLParserException("Unexpected token [" + name + "] found at position " + pos + ". Did you forget to specify all your named params?")
+					// Need to sneak this past Java's checked exception types
+					.initCause(new IllegalQoQException("Unsupported SQL", "", null, null));
 		}
 
 		return exp;
@@ -588,7 +589,7 @@ public class SelectParser {
 		}
 
 		ColumnExpression column = new ColumnExpression(name, name.equals("?") ? columnIndex++ : 0, cachingColumn);
-		allColumns.add(column.getColumnName());
+
 		raw.removeSpace();
 		while (raw.forwardIfCurrent(".")) {
 			raw.removeSpace();
@@ -596,6 +597,9 @@ public class SelectParser {
 			if (sub == null) throw new SQLParserException("invalid column definition");
 			column.setSub(sub);
 		}
+
+		allColumns.add(column.getColumn());
+
 		raw.removeSpace();
 		if (raw.forwardIfCurrent('(')) {
 			String thisName = column.getFullName().toLowerCase();
@@ -751,18 +755,18 @@ public class SelectParser {
 			hasBracked.setValue(true);
 			return identifierBracked(raw);
 		}
-		else if (!(raw.isCurrentLetter() || raw.isCurrent('*') || raw.isCurrent('?') || raw.isCurrent('_'))) return null;
+		else if (!(raw.isCurrentLetter() || raw.isCurrent('*') || raw.isCurrent('?') || raw.isCurrent('_') || raw.isCurrent('$'))) return null;
 
 		int start = raw.getPos();
 		boolean first = true;
 		do {
 			raw.next();
-			if (first && !(raw.isCurrentLetter() || raw.isCurrentBetween('0', '9') || raw.isCurrent('*') || raw.isCurrent('?') || raw.isCurrent('_'))) {
+			if (first && !(raw.isCurrentLetter() || raw.isCurrentBetween('0', '9') || raw.isCurrent('*') || raw.isCurrent('?') || raw.isCurrent('_') || raw.isCurrent('$'))) {
 				break;
 			}
 			// Don't look for stuff like * after first letter or text like col1*col2 will get read
 			// as one single column name
-			else if (!(raw.isCurrentLetter() || raw.isCurrentBetween('0', '9') || raw.isCurrent('_'))) {
+			else if (!(raw.isCurrentLetter() || raw.isCurrentBetween('0', '9') || raw.isCurrent('_') || raw.isCurrent('$'))) {
 				break;
 			}
 			first = false;

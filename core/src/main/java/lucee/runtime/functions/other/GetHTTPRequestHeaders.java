@@ -17,6 +17,10 @@
 
 package lucee.runtime.functions.other;
 
+import java.util.Enumeration;
+
+import javax.servlet.http.HttpServletRequest;
+
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.BIF;
@@ -24,9 +28,6 @@ import lucee.runtime.net.http.ReqRspUtil;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
-
-import javax.servlet.http.HttpServletRequest;
-import java.util.Enumeration;
 
 /**
  * Returns a Struct with the HTTP Request Headers

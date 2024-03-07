@@ -197,7 +197,7 @@ public interface ORMSession {
 	/**
 	 * @param pc Page Context
 	 * @param name name
-	 * @param id id 
+	 * @param id id
 	 * @param order order
 	 * @return array
 	 * @throws PageException Page Exception
@@ -215,8 +215,8 @@ public interface ORMSession {
 	public Array loadByExampleAsArray(PageContext pc, Object obj) throws PageException;
 
 	/**
-	 * load and return an Object that match given sampleEntity, if there is more than one Object matching
-	 * the id, only the first Object is returned
+	 * load and return an Object that match given sampleEntity, if there is more than one Object
+	 * matching the id, only the first Object is returned
 	 * 
 	 * @param pc Page Context
 	 * @param obj object

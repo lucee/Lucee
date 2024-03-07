@@ -8,13 +8,13 @@
 	  <tstamp>
 		<format property="timestamp" pattern="yyyy-MM-dd HH:mm:ss" />
 	  </tstamp>
-	  <echo leveL="debug" message="---------- ${timestamp} - @{message} ----------" />
+	  <echo level="info" message="---------- ${timestamp} - @{message} ----------" />
 	</sequential>
   </macrodef>
 
 <target name="run">
 
-<echo leveL="debug"><![CDATA[
+<echo level="info"><![CDATA[
   _____         _   ____
  |_   _|__  ___| |_| __ )  _____  __
    | |/ _ \/ __| __|  _ \ / _ \ \/ /
@@ -68,6 +68,31 @@
 		archive=""
 		primary="physical"
 		trusted="no";
+
+		// set deploy and trace logs to TRACE out to console
+	admin
+		action="updateLogSettings"
+		type="server"
+		password="#request.SERVERADMINPASSWORD#"
+		name="deploy"
+		level="TRACE"
+		appenderClass="lucee.commons.io.log.log4j2.appender.ConsoleAppender"
+		appenderArgs={streamType: "output"}
+		layoutClass="lucee.commons.io.log.log4j2.layout.ClassicLayout"
+		layoutArgs={};
+	
+	admin
+		action="updateLogSettings"
+		type="server"
+		password="#request.SERVERADMINPASSWORD#"
+		name="trace"
+		level="TRACE"
+		appenderClass="lucee.commons.io.log.log4j2.appender.ConsoleAppender"
+		appenderArgs={streamType: "output"}
+		layoutClass="lucee.commons.io.log.log4j2.layout.ClassicLayout"
+		layoutArgs={};
+
+
 
 	 include template="/test/run-tests.cfm";
 ]]>

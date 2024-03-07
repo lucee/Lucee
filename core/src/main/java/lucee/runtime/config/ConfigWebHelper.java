@@ -14,21 +14,25 @@ import javax.servlet.http.HttpServletResponse;
 
 import lucee.commons.digest.HashUtil;
 import lucee.commons.io.FileUtil;
+import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
+import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ClassUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.lock.KeyLock;
 import lucee.commons.lock.KeyLockImpl;
-import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.CIPage;
 import lucee.runtime.Mapping;
 import lucee.runtime.MappingImpl;
 import lucee.runtime.PageContext;
+import lucee.runtime.PageSource;
 import lucee.runtime.cache.tag.CacheHandlerCollection;
 import lucee.runtime.cache.tag.CacheHandlerCollections;
 import lucee.runtime.compiler.CFMLCompilerImpl;
+import lucee.runtime.config.gateway.GatewayMap;
 import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.debug.DebuggerPool;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.gateway.GatewayEngineImpl;
@@ -57,7 +61,6 @@ public class ConfigWebHelper {
 	private CacheHandlerCollections cacheHandlerCollections;
 	private Map<String, SoftReference<Mapping>> applicationMappings = new ConcurrentHashMap<String, SoftReference<Mapping>>();
 	private CIPage baseComponentPageCFML;
-	private CIPage baseComponentPageLucee;
 	private final CFMLCompilerImpl compiler = new CFMLCompilerImpl();
 	private WSHandler wsHandler;
 	private GatewayEngineImpl gatewayEngine;
@@ -87,7 +90,6 @@ public class ConfigWebHelper {
 		tagHandlerPool.reset();
 		contextLock = new KeyLockImpl<String>();
 		baseComponentPageCFML = null;
-		baseComponentPageLucee = null;
 	}
 
 	public void setIdentification(IdentificationWeb id) {
@@ -132,7 +134,7 @@ public class ConfigWebHelper {
 				else throw new ApplicationException("class [" + o.getClass().getName() + "] does not implement the interface SearchEngine");
 
 				searchEngine.init(cw, ConfigWebUtil.getFile(cw.getConfigDir(), ConfigWebUtil.translateOldPath(cw.getSearchEngineDirectory()), "search", cw.getConfigDir(),
-						FileUtil.TYPE_DIR, cw));
+						FileUtil.TYPE_DIR, ResourceUtil.LEVEL_GRAND_PARENT_FILE, cw));
 			}
 			catch (Exception e) {
 				throw Caster.toPageException(e);
@@ -185,9 +187,36 @@ public class ConfigWebHelper {
 		serverFunctionMappings = null;
 	}
 
-	public GatewayEngineImpl getGatewayEngineImpl() {
-		if (gatewayEngine == null) {
-			gatewayEngine = new GatewayEngineImpl(cw);
+	public GatewayEngineImpl getGatewayEngineImpl(GatewayMap entries) throws PageException {
+		// already here
+		if (gatewayEngine != null && ThreadLocalPageContext.insideGateway()) return gatewayEngine;
+
+		try {
+			ThreadLocalPageContext.insideGateway(true);
+			// new engine
+			if (gatewayEngine == null) {
+				gatewayEngine = new GatewayEngineImpl(cw);
+				if (entries != null) {
+					try {
+						gatewayEngine.addEntries(cw, entries);
+					}
+					catch (Exception e) {
+						throw Caster.toPageException(e);
+					}
+				}
+			}
+			// update engine
+			else if (entries != null && !entries.getId().equals(gatewayEngine.id())) {
+				try {
+					gatewayEngine.addEntries(cw, entries);
+				}
+				catch (Exception e) {
+					throw Caster.toPageException(e);
+				}
+			}
+		}
+		finally {
+			ThreadLocalPageContext.insideGateway(false);
 		}
 		return gatewayEngine;
 	}
@@ -259,24 +288,34 @@ public class ConfigWebHelper {
 		cacheHandlerCollections.releaseCacheHandlers(pc);
 	}
 
-	public CIPage getBaseComponentPage(int dialect, PageContext pc) throws PageException {
-		// CFML
-		if (dialect == CFMLEngine.DIALECT_CFML) {
-			if (baseComponentPageCFML == null) {
-				baseComponentPageCFML = (CIPage) cw.getBaseComponentPageSource(dialect, pc).loadPage(pc, false);
+	public CIPage getBaseComponentPage(PageContext pc) {
+
+		CIPage base = baseComponentPageCFML;
+		if (base == null) {
+			try {
+				PageSource ps = cw.getBaseComponentPageSource(pc, false);
+				if (ps == null) return null;
+				base = (CIPage) ps.loadPage(pc, false);
 			}
-			return baseComponentPageCFML;
+			catch (PageException pe) {
+				PageSource ps = cw.getBaseComponentPageSource(pc, true);
+				if (ps == null) return null;
+				try {
+					base = (CIPage) ps.loadPage(pc, false);
+				}
+				catch (PageException e) {
+					LogUtil.log("component", e);
+				}
+			}
+			if (base != null) {
+				baseComponentPageCFML = base;
+			}
 		}
-		// Lucee
-		if (baseComponentPageLucee == null) {
-			baseComponentPageLucee = (CIPage) cw.getBaseComponentPageSource(dialect, pc).loadPage(pc, false);
-		}
-		return baseComponentPageLucee;
+		return base;
 	}
 
 	public void resetBaseComponentPage() {
 		baseComponentPageCFML = null;
-		baseComponentPageLucee = null;
 	}
 
 	public Mapping[] getApplicationMappings() {
@@ -300,8 +339,8 @@ public class ConfigWebHelper {
 		Mapping m = t == null ? null : t.get();
 
 		if (m == null) {
-			m = new MappingImpl(cw, virtual, physical, archive, Config.INSPECT_UNDEFINED, physicalFirst, false, false, false, true, ignoreVirtual, null, -1, -1,
-					checkPhysicalFromWebroot, checkArchiveFromWebroot);
+			m = new MappingImpl(cw, virtual, physical, archive, Config.INSPECT_UNDEFINED, ConfigPro.INSPECT_INTERVAL_UNDEFINED, ConfigPro.INSPECT_INTERVAL_UNDEFINED, physicalFirst,
+					false, false, false, true, ignoreVirtual, null, -1, -1, checkPhysicalFromWebroot, checkArchiveFromWebroot);
 			applicationMappings.put(key, new SoftReference<Mapping>(m));
 		}
 		else m.check();

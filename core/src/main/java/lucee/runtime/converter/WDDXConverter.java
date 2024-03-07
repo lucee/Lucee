@@ -21,8 +21,9 @@ package lucee.runtime.converter;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
-import java.util.HashSet;
+import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
@@ -42,7 +43,6 @@ import org.w3c.dom.NodeList;
 import lucee.commons.date.TimeZoneConstants;
 import lucee.commons.lang.NumberUtil;
 import lucee.commons.lang.StringUtil;
-import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.Component;
 import lucee.runtime.ComponentScope;
 import lucee.runtime.ComponentSpecificAccess;
@@ -79,7 +79,7 @@ import lucee.runtime.type.util.KeyConstants;
  */
 public final class WDDXConverter extends ConverterSupport {
 
-	private static final Collection.Key REMOTING_FETCH = KeyImpl.getInstance("remotingFetch");
+	private static final Collection.Key REMOTING_FETCH = KeyConstants._remotingFetch;
 
 	private static final List<String> KNOWN_STRUCT_TYPES = Arrays.asList(new String[] { "coldfusion.server.ConfigMap" });
 
@@ -325,7 +325,7 @@ public final class WDDXConverter extends ConverterSupport {
 		// fieldnames
 		PageContext pc = ThreadLocalPageContext.get();
 		boolean upperCase = false;
-		if (pc != null) upperCase = pc.getCurrentTemplateDialect() == CFMLEngine.DIALECT_CFML && !((ConfigWebPro) pc.getConfig()).preserveCase();
+		if (pc != null) upperCase = !((ConfigWebPro) pc.getConfig()).preserveCase();
 
 		StringBuilder fn = new StringBuilder();
 		Collection.Key[] keys = CollectionUtil.keys(query);
@@ -489,7 +489,7 @@ public final class WDDXConverter extends ConverterSupport {
 		deep++;
 		sb.append(goIn() + "<header/>");
 		sb.append(goIn() + "<data>");
-		sb.append(_serialize(object, new HashSet<Object>()));
+		sb.append(_serialize(object, Collections.newSetFromMap(new IdentityHashMap<>())));
 		sb.append(goIn() + "</data>");
 		deep--;
 		sb.append("</wddxPacket>");
@@ -519,7 +519,8 @@ public final class WDDXConverter extends ConverterSupport {
 				if (node.getNodeName().equalsIgnoreCase("wddxPacket")) {
 					wddxPacket = node;
 					break;
-				} else {
+				}
+				else if (node.getNodeType() != Node.COMMENT_NODE) {
 					throw new IllegalArgumentException("Invalid WDDX packet: root element is not wddxPacket.");
 				}
 			}
@@ -527,21 +528,28 @@ public final class WDDXConverter extends ConverterSupport {
 			NodeList nl = wddxPacket.getChildNodes();
 			int n = nl.getLength();
 
-			if (n ==0) return null;
+			if (n == 0) return null;
+
+			int ignored = 0;
 
 			for (int i = 0; i < n; i++) {
 				Node data = nl.item(i);
 				if (data.getNodeName().equals("data")) {
 					NodeList list = data.getChildNodes();
 					len = list.getLength();
-					if (len ==0) return null;
+					if (len == 0) return null;
 					for (int y = 0; y < len; y++) {
 						Node node = list.item(y);
 						if (node instanceof Element) return _deserialize((Element) node);
 
 					}
 				}
+				else if (data.getNodeType() != Node.ELEMENT_NODE) {
+					ignored++;
+				}
 			}
+
+			if (ignored == n) return null; // only whitespace or comments, thus empty
 
 			throw new IllegalArgumentException("Invalid WDDX Format: node 'data' not found in WDD packet");
 

@@ -18,7 +18,7 @@ Defaults --->
 <cfset error.detail="">
 <cfparam name="form.mainAction" default="none">
 <!--- load asynchron all extension providers  --->
-<cfparam name="application[request.admintype].preloadedExtensionProviders" default="false" type="boolean">
+<cfif isNull(application[request.admintype].preloadedExtensionProviders)><cfset application[request.admintype].preloadedExtensionProviders=false></cfif>
 <cfif !application[request.admintype].preloadedExtensionProviders>
 	<cfinclude template="ext.functions.cfm">
 	<cfset application[request.admintype].preloadedExtensionProviders=true>
@@ -65,36 +65,71 @@ Redirect to entry --->
 	<cflocation url="#request.self#" addtoken="no">
 </cfif>
 
+<cfset lucee_version = "UNKNOWN">
+<cfinclude template="version.cfm">
+<cfif lucee_version neq server.lucee.version && lucee_version neq "UNKNOWN">
+	<cfoutput>
+		<div class="error">Warning Lucee Admin was compiled with version #lucee_version#?</div>
+	</cfoutput>
+</cfif>
+
 <!---
 Error Output --->
 <cfset printError(error)>
 
-<cfset pool['HEAP']="Heap">
-<cfset pool['NON_HEAP']="Non-Heap">
-
-<cfset pool['HEAP_desc']="Memory used for all objects that are allocated.">
-<cfset pool['NON_HEAP_desc']="Memory used to store all cfc/cfm templates, java classes, interned Strings and meta-data.">
-
-<cfset pool["Par Eden Space"]="The pool from which memory is initially allocated for most objects.">
-<cfset pool["Par Survivor Space"]="The pool containing objects that have survived the garbage collection of the Eden space.">
-<cfset pool["CMS Old Gen"]="The pool containing objects that have existed for some time in the survivor space.">
-<cfset pool["CMS Perm Gen"]="The pool containing all the reflective data of the virtual machine itself, such as class and method objects.">
-<cfset pool["Code Cache"]="The HotSpot Java VM also includes a code cache, containing memory that is used for compilation and storage of native code.">
-
-
-<cfset pool["Eden Space"]=pool["Par Eden Space"]>
-<cfset pool["PS Eden Space"]=pool["Par Eden Space"]>
-
-<cfset pool["Survivor Space"]=pool["Par Survivor Space"]>
-<cfset pool["PS Survivor Space"]=pool["Par Survivor Space"]>
-
-<cfset pool["Perm Gen"]=pool["CMS Perm Gen"]>
-
-<cfset pool["Tenured Gen"]=pool["CMS Old Gen"]>
-<cfset pool["PS Old Gen"]=pool["CMS Old Gen"]>
-
 <cfhtmlbody>
     <script src="../res/js/echarts-all.js.cfm" type="text/javascript"></script>
+
+	<cfoutput><script type="text/javascript">
+		var submitted = false;
+		function adminmode(field) {
+			field.disabled = true;
+			submitted = true;
+			url='adminmode.cfm?adminType=#request.admintype#';
+			
+			// adminMode
+			var f=field.form["adminMode"]
+			url+="&adminMode="+$(f).val();
+
+			// switch
+			var f=field.form["switch"]
+			if(f) {
+				url+="&switch="+$(f).val();
+			}
+			// keep
+			var f=field.form["keep"]
+			if(f) {
+				url+="&keep="+$(f).val();
+			}			
+			//disableBlockUI = true;
+			//$('##updateInfoDesc').html('<img src="../res/img/spinner16.gif.cfm">');
+			
+			$.ajax(url )
+				.done(function( data, textStatus, xhr ) {
+					var response = $.trim(data);
+					if (response == ""){
+						setTimeout(function(){
+							// load the admin page to trigger a deploy, so css/js loads correctly
+							$.get("?", function(response) {
+								window.location=('?action=overview');
+							});
+						}, 6500); // LDEV-4568 give Lucee enough time to startup, otherwise, the admin login may show without css/js
+					} else {
+						// $('##updateInfoDesc').addClass("error").attr("style", null).html(response);
+						
+					}
+				})
+				.fail(function( xhr, textStatus, errorThrown ) {
+					// $('##updateInfoDesc').addClass("error").attr("style", null).html( "<b>" + xhr.status + "</b><br>"  + xhr.responseText);
+				})
+				.always(function() {
+					field.disabled = false;
+				});
+			
+		}
+	</script></cfoutput>
+
+
     <script type="text/javascript">
     	var chartTimer;
     	labels={'heap':"Heap",'nonheap':"Non-Heap",'cpuSystem':"Whole System",'cpuProcess':"Lucee Process"};
@@ -103,10 +138,12 @@ Error Output --->
 				type: "POST",
 				<cfoutput>url: "./#request.self#?action=chartAjax",</cfoutput>
 				success: function(result){
+					if (typeof result !== 'object')
+						return;
 					var arr =["heap","nonheap"];
 					$.each(arr,function(index,chrt){
 						window["series_"+chrt] = window[chrt+"Chart"].series[0].data; //*charts*.series[0].data
-						window["series_"+chrt].push(result[chrt]); // push the value into series[0].data
+						window["series_"+chrt].push(result[chrt].PUSED); // push the value into series[0].data
 						window[chrt+"Chart"].series[0].data = window["series_"+chrt];
 						if(window[chrt+"Chart"].series[0].data.length > 60){
 						window[chrt+"Chart"].series[0].data.shift(); //shift the array
@@ -116,6 +153,8 @@ Error Output --->
 						window[chrt+"Chart"].xAxis[0].data.shift(); //shift the Time value
 						}
 						window[chrt].setOption(window[chrt+"Chart"]); // passed the data into the chats
+						var stats = result[chrt];
+						$('#' +chrt +'-label').text( stats.PUSED + "%, " + stats.USED + "Mb / " + stats.MAX + "Mb" );
 					});
 					var arr2 =["cpuSystem"];
 					$.each(arr2,function(index,chrt){
@@ -152,7 +191,7 @@ Error Output --->
 				backgroundColor: ["#ffffff"],
 				tooltip : {'trigger':'axis',
 					formatter : function (params) {
-						return 'Series' + "<br>" + params[0].seriesName + ": " + params[0].value + "%" + '<br>' +params[0].name ;
+						return params[0].seriesName + ": " + params[0].value + "%" + '<br>' +params[0].name ;
 					}
 				},
 
@@ -196,7 +235,7 @@ Error Output --->
 					if(params.length == 2) {
 						series2 =  params[1].seriesName + ": "+ params[1].value + "%" + '<br>' +params[0].name;
 					}
-					return 'Series' + "<br>" + params[0].seriesName + ": " + params[0].value + "%" + '<br>'  + series2;
+					return params[0].seriesName + ": " + params[0].value + "%" + '<br>'  + series2;
 				}
 			},
 			legend: {
@@ -299,17 +338,15 @@ Error Output --->
 <cfadmin
     action="getExtensions"
     type="server"
-    password="#session["password"&request.adminType]#"
     returnVariable="docsServer">
 <cfadmin
     action="getExtensions"
     type="web"
-    password="#session["password"&request.adminType]#"
     returnVariable="docsWeb">
 
 	<cfif request.adminType EQ "server">
 		<cfset names=StructKeyArray(info.servlets)>
-		<cfif !ArrayContainsNoCase(names,"Rest",true)>
+		<cfif len(names) and !ArrayContainsNoCase(names,"Rest",true)>
 			<div class="warning nofocus">
 				#stText.Overview.warning.warningMsg# 
 			</div>
@@ -348,37 +385,14 @@ Error Output --->
 		</cfif>
 	</cfif>
 
-
-
-
-	<cfset stText.Overview.modeMulti="You are in Multi Mode">
-	<cfset stText.Overview.modeSingle="You are in Single Mode">
-	<cfset stText.Overview.modeMultiDesc="You are running Lucee in Multi Mode, this means you have a single Server Administrator where you can set settings for all web contexts/webs and a Web Administrator for every single web context/web.">
-	<cfset stText.Overview.modeSingleDesc="You are running Lucee in Single Mode, this means you only have a single Administrator, one place where you do all your configurations for all web contexts/webs.
-"> 
-	
-	<cfset stText.Overview.modeMultiSwitch="Switch to Single Mode?">
-	<cfset stText.Overview.modeSingleSwitch="Switch to Multi Mode?">
-	<cfset stText.Overview.modeMultiSwitchDesc="You wanna activate Lucee in Single Mode, this means you only have a single Administrator, one place where you do all your configurations for all web contexts/webs.">
-	<cfset stText.Overview.modeSingleSwitchDesc="You wanna activate Multi Mode, mean having a Server Administrator where you can set settings for all web contexts/webs and a Web Administrator for every single web context/web, you can simply switch to Multi Mode here.">
-
-
-	<cfset stText.Overview.switchMerge="Merge and Switch">
-	<cfset stText.Overview.switchMergeDesc="All settings from all web contexts/webs get stored into the server context">
-	<cfset stText.Overview.switchLeave="Just Switch">
-	<cfset stText.Overview.switchLeaveDesc="Switch to single mode and forget all settings done in all web contexts/webs">
-	
-	<cfset stText.Overview.switchKeep="keep all web context/web configuration in place, so i can go back to multi mode">
-
-
-	<cfset stText.Buttons.switch="Switch">
-
-
 <cfif request.adminType=="server">
-	<cfformClassic onerror="customError" action="#request.self#?action=overview" method="post">
+	<form method="post">
 		<input type="hidden" name="adminMode" value="#request.singlemode?"multi":"single"#">
 		<h2>#stText.Overview[request.singlemode?"modeSingle":"modeMulti"]#</h2>
 		<div class="itemintro">#stText.Overview[request.singlemode?"modeSingleDesc":"modeMultiDesc"]#</div>
+		<!--- <div id="updateInfoDesc" style="text-align: center;">
+			<p>#stText.services.update.restartDesc#</p>
+		</div> --->
 		<table class="maintbl">
 		<tbody>
 			<tr>
@@ -415,12 +429,12 @@ Error Output --->
 		<tfoot>
 			<tr>
 				<td colspan="2">
-					<input type="submit" class="b button submit" name="mainAction1" value="#stText.Buttons.switch#">
+					<input type="button" class="b button submit" name="mainAction" value="#stText.Buttons.switch#" onclick="adminmode(this)">
 				</td>
 			</tr>
 		</tfoot>
 		</table>
-</cfformClassic>
+	</form>
 
 </cfif>
 
@@ -455,11 +469,13 @@ Error Output --->
 							</th>
 						</tr>
 						<tr>
-							<td width="50%"><b>#pool['heap']#</b>
+							<td width="50%"><b>#stText.Overview.pool['HEAP']#</b> <span id="heap-label" style="padding-left:10px;"></span>
 								<div id="heap" style="min-width: 100px; height: 150px; margin: 0 auto;"></div>
+								
 							</td>
-							<td width="50%"><b>#pool['non_heap']#</b><br>
+							<td width="50%"><b>#stText.Overview.pool['NON_HEAP']#</b><span id="nonheap-label" style="padding-left:10px;"></span><br>
 								<div id="nonheap" style="min-width: 100px; height: 150px; margin: 0 auto;"></div>
+								
 							</td>
 						</tr>
 
@@ -576,7 +592,7 @@ Error Output --->
 
 		<cfadmin
 		action="getMinVersion"
-		type="server"
+		type="#request.adminType#"
 		password="#session["password"&request.adminType]#"
 		returnVariable="minVersion">
 		<tr>

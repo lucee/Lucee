@@ -11,36 +11,58 @@
 
 	//structDelete(application, "stText");
 	//structDelete(application, "stWebHelp");
+
 	if ( structKeyExists( form, "lang" )
 			|| !structKeyExists( application, "languages" )
+			|| !structKeyExists( application, "stText" ) 
 			|| !structKeyExists( application.stText, session.lucee_admin_lang ) 
-			|| isNull( application.stText[session.lucee_admin_lang].setting.externalizeStringGTE ) 
 			|| structKeyExists( url, "reinit" )){
 
+		
 		cfinclude( template="menu.cfm" );
+
 		langData  = getAvailableLanguages();
 
+		//load languages 
 		languages = {};
 		loop collection=langData item="value" index="key" {
 			languages[key] = value.label;
 		}
-		application.languages = languages;
-
-		if ( !application.languages.keyExists( session.lucee_admin_lang ) ){
+		
+		// if a session has an unknown/unavailable language defined, overwrite with english as default
+		if ( !structKeyExists( languages, session.lucee_admin_lang ) ){
 			session.lucee_admin_lang = "en";
 		}
-		application.stText.en = langData.en.data;
-		StructDelete( application, "notTranslated" );
-
-		//  now read the actual file when not english
+		
+		//  load the selected language data
 		if ( session.lucee_admin_lang != "en" ){
-			// load the translation, using english as the fallback, thus allowing incomplete translations
-			tmp=application.stText[ session.lucee_admin_lang ] = langData[ session.lucee_admin_lang ].data;
-			loop struct=application.stText.en index="k" item="v" {
-				if(not structKeyExists(tmp,k)) tmp[ k ]=v;
+					
+			// load English language as default to a one dimensional struct and use property path names as the unique key 
+			defaultLang=mapStructToDotPathVariable( langData.en.data );
+			
+			// load selected language to a one dimensional struct and use property path names as the unique key 
+			selectedLang[ session.lucee_admin_lang ] = mapStructToDotPathVariable( langData[ session.lucee_admin_lang ].data );
+			
+			// loop trough english and verify if the property is defined within the language
+			for( property in defaultLang ) {
+
+				if( !structKeyExists( selectedLang[ session.lucee_admin_lang ], property )){
+					selectedLang[ session.lucee_admin_lang ][ property ]= defaultLang[ property ];
+				} 
+
 			}
+			// translate struct back to its nested structure.
+			structkeytranslate( selectedLang[ session.lucee_admin_lang ] );
+			
+		}else{
+			selectedLang[ session.lucee_admin_lang ]=langData.en.data;
 		}
-		stText = application.stText[ session.lucee_admin_lang ];
+
+		// assign all languages to all needed variables
+		application.languages = languages;
+		application.stText[ session.lucee_admin_lang ]=selectedLang[ session.lucee_admin_lang ];
+		stText = selectedLang[ session.lucee_admin_lang ];
+
 		
 		// TODO why is this here??
 		try {
@@ -61,6 +83,7 @@
 		languages=application.languages;
 		stText = application.stText[session.lucee_admin_lang];
 	}
+
 </cfscript>
 
 <!--- TODO  what is thios good for? it does not work, URL does not exist
@@ -122,6 +145,9 @@ You can use this code in order to write the structs into an XML file correspondi
 </cffunction>
 --->
 
+
+<!--- the following function isn't necessary and not used anymore, because untranslated data will fallback to english. For seeing/comparing
+untranslated properties from language resource files
 <cffunction name="GetFromXMLNode" returntype="any" output="No">
 	<cfargument name="stXML" required="Yes">
 	<cfargument name="base" required="no" default="#{}#" type="struct">
@@ -148,7 +174,7 @@ You can use this code in order to write the structs into an XML file correspondi
 		</cftry>
 	</cfloop>
 	<cfreturn stRet>
-</cffunction>
+</cffunction--->
 
 <cffunction name="setHidden" output="No">
 	<!--- hides several elements in the menu depending on the configuration --->
@@ -207,3 +233,19 @@ You can use this code in order to write the structs into an XML file correspondi
 	</cfloop>
 	<cfreturn result>
 </cffunction>
+<cfscript>
+	public struct function mapStructToDotPathVariable( struct data, prefix = "", propertyStruct = {}) localmode=true {
+		
+		for( key in arguments.data ) {
+			
+			value = data[ key ];
+			if ( isStruct( value ) ) {
+				mapStructToDotPathVariable( value, prefix & key & ".", propertyStruct );
+			} else {
+				propertyStruct.append( { "#prefix##key#":  value } );
+			}
+		}
+		
+		return propertyStruct;
+		}
+</cfscript>

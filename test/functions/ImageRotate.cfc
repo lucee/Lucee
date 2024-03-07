@@ -1,11 +1,10 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" labels="image" {
+component extends="org.lucee.cfml.test.LuceeTestCase"{
 
 	function beforeAll(){
-		variables.path = server._getTempDir("ImageRotate") & "/";
-		if( directoryExists( path ) ){
-			directoryDelete( path, true );
+		variables.path = "/test/#listLast(getDirectoryFromPath(getCurrenttemplatepath()),"\/")#/" &"ImageRotate/";
+		if(!directoryExists(path)){
+			directorycreate(path);
 		}
-		directoryCreate( path );
 	}
 
 	function run( testResults , testBox ) {

@@ -126,6 +126,7 @@ Redirtect to entry --->
 &lt;cfscript>processingdirective pageEncoding="#setting.templateCharset#";&lt;/cfscript>
 						</cfsavecontent>
 						<cfset renderCodingTip( codeSample ,stText.settings.codetip)>
+						<cfset renderSysPropEnvVar( "lucee.template.charset",setting.templateCharset)>
 					</td>
 				</tr>
 
@@ -173,16 +174,6 @@ Redirtect to entry --->
 					</td>
 				</tr>
 
-<!---
-			</tbody>
-		</table>
-
-		<h3>#stText.general.dialect.cfml#</h3>
-		<div class="itemintro">#stText.general.dialect.cfmlDesc#</div>
-		
-		<table class="maintbl">
-			<tbody>
---->
 				<!--- Null Support --->
 				<tr>
 					<th scope="row">#stText.compiler.nullSupport#</th>
@@ -212,6 +203,7 @@ Redirtect to entry --->
 							<b>#stText.compiler["nullSupport"& strNullSupport]#</b><br />
 							<div class="comment">#stText.compiler["nullSupport"& strNullSupport&"Desc"]#</div>
 						</cfif>
+						<cfset renderSysPropEnvVar( "lucee.full.null.support",setting.nullSupport)>
 					</td>
 				</tr>
 
@@ -251,6 +243,7 @@ Redirtect to entry --->
 &lt;cfscript>processingdirective preserveCase="#!setting.DotNotationUpperCase#";&lt;/cfscript>
 						</cfsavecontent>
 						<cfset renderCodingTip( codeSample ,stText.settings.codetip)>
+						<cfset renderSysPropEnvVar( "lucee.preserve.case",!setting.DotNotationUpperCase)>
 					</td>
 				</tr>
 				
@@ -268,6 +261,7 @@ Redirtect to entry --->
 							this.preciseMath = #setting.preciseMath#;
 						</cfsavecontent>
 						<cfset renderCodingTip( codeSample )>
+						<cfset renderSysPropEnvVar( "lucee.precise.math",setting.preciseMath)>
 					</td>
 				</tr>
 				
@@ -281,6 +275,7 @@ Redirtect to entry --->
 							<b>#yesNoFormat(setting.suppressWSBeforeArg)#</b><br /><input type="hidden" name="suppressWSBeforeArg" value="#setting.suppressWSBeforeArg#">
 						</cfif>
 						<div class="comment">#stText.setting.suppressWSBeforeArgDesc#</div>
+						<cfset renderSysPropEnvVar( "lucee.suppress.ws.before.arg",setting.suppressWSBeforeArg)>
 					</td>
 				</tr>
 				

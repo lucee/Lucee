@@ -8,7 +8,7 @@
 	  <tstamp>
 		<format property="timestamp" pattern="yyyy-MM-dd HH:mm:ss" />
 	  </tstamp>
-	  <echo leveL="debug" message="---------- ${timestamp} - @{message} ----------" />
+	  <echo level="info" message="---------- ${timestamp} - @{message} ----------" />
 	</sequential>
   </macrodef>
 
@@ -54,7 +54,12 @@
 		trusted="no";
 
 	// do all the actual processing inside an include file so we get useful error messages
-	include ( template="/upload/upload_to_s3.cfm" );
+	try {
+		include ( template="/upload/upload_to_s3.cfm" );
+	} catch (e) {
+		systemOutput(e.stacktrace, true);
+		rethrow;
+	}
 
 ]]>
   </script>

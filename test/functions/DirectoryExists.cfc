@@ -15,38 +15,26 @@
  * You should have received a copy of the GNU Lesser General Public 
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  * 
- ---><cfcomponent extends="org.lucee.cfml.test.LuceeTestCase">
-	<!---
-	<cffunction name="beforeTests"></cffunction>
-	<cffunction name="afterTests"></cffunction>
-	<cffunction name="setUp"></cffunction>
-	--->
-	<cffunction name="testRelpath" localMode="modern">
-		<cfscript>
-
-			local.path={};
-			path.abs=GetDirectoryFromPath(GetCurrentTemplatePath());
-			path.real="../"& ListLast(path.abs,"/\");
-			assertEquals(false,evaluate('directoryExists(path.real,false)'));
-			assertEquals(true,evaluate('directoryExists(path.real,true)'));
-		</cfscript>
-	</cffunction>
+ --->
+ component extends="org.lucee.cfml.test.LuceeTestCase" {
 	
-	<cffunction name="testExistingDirectory" localMode="modern">
-		<cfscript>
-			local.path={};
-			path.abs=GetDirectoryFromPath(GetCurrentTemplatePath());
-			path.real="../"& ListLast(path.abs,"/\");
+	public function testRelpath() localMode="modern" {
+		path = {};
+		path.abs = GetDirectoryFromPath(GetCurrentTemplatePath());
+		path.real = "../"& ListLast(path.abs,"/\");
+		assertEquals(false,evaluate('directoryExists(path.real,false)'));
+		assertEquals(true,evaluate('directoryExists(path.real,true)'));
+	}
 
-			assertEquals(true,directoryExists(path.abs));
-			assertEquals(true,directoryExists(path.real));
-		</cfscript>
-	</cffunction>
+	public function testExistingDirectory() localMode="modern" {
+		path = {};
+		path.abs = GetDirectoryFromPath(GetCurrentTemplatePath());
+		path.real = "../"& ListLast(path.abs,"/\");
+		assertEquals(true,directoryExists(path.abs));
+		assertEquals(true,directoryExists(path.real));
+	}
 
-	<cffunction name="testDirectoryNotExists" localMode="modern">
-		<cfscript>
-			assertEquals(false,DirectoryExists("/does/not/exist/"));
-		</cfscript>
-	</cffunction>
-	
-</cfcomponent>
+	public function testDirectoryNotExists() localMode="modern" {
+		assertEquals(false,DirectoryExists("/does/not/exist/"));
+	}
+}

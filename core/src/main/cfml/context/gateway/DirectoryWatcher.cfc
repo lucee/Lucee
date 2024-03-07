@@ -350,9 +350,9 @@ component output="no" {
 	}
 
 	private void function logger( required string text, required string type="information" ) output=false {
-		if ( arguments.type == "information" && !variables.verboseLogging )
+		if ( arguments.type == "information" && !(variables.verboseLogging?:true) )
 			return;
-		local.stack = variables.verboseLogging ? ListLAst(ListGetAt(CallStackGet('string'),2,";"),"/\") : "";
+		local.stack = (variables.verboseLogging?:true) ? ListLAst(ListGetAt(CallStackGet('string'),2,";"),"/\") : "";
 		writeLog (
 			text="[#variables.id#, #getState()#] #arguments.text# #local.stack#",
 			file=variables.logFileName,

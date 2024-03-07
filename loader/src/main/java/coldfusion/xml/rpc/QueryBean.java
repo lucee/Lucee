@@ -30,7 +30,8 @@ public final class QueryBean implements Serializable {
 	private String columnList[];
 	private Object data[][];
 
-	public QueryBean() {}
+	public QueryBean() {
+	}
 
 	/**
 	 * @return Returns the columnList.

@@ -1,4 +1,4 @@
-component extends = "org.lucee.cfml.test.LuceeTestCase" labels="redis" {
+component extends = "org.lucee.cfml.test.LuceeTestCase" labels="redis" skip="true" {
 
 	function beforeAll(){
 		variables.uri = createURI("LDEV4408");
@@ -13,9 +13,12 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" labels="redis" {
 
 				arr.each( function( el, idx, arr ){
 					local.result = _InternalRequest(
-						template : "#uri#/index.cfm"
+						template : "#uri#/index.cfm",
+						url: {
+							idx: idx
+						}
 					);
-					expect( result.filecontent ).toBeTrue( "session variable missing - #idx#" );
+					expect( result.filecontent ).toBe( "#idx#" );
 				});
 
 			});

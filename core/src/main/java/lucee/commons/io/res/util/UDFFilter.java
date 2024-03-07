@@ -28,7 +28,6 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.UDF;
-import lucee.commons.io.res.util.ResourceUtil;
 
 public class UDFFilter extends UDFFilterSupport implements ResourceAndResourceNameFilter {
 
@@ -52,14 +51,14 @@ public class UDFFilter extends UDFFilterSupport implements ResourceAndResourceNa
 		Object[] args1 = new Object[3];
 		boolean isDir = file.isDirectory();
 		args1[0] = file.getAbsolutePath();
-		args1[1] =  file.isDirectory() ? "directory" : "file";
-		args1[2] =  file.isDirectory() ? "" : ResourceUtil.getExtension(file, null);
+		args1[1] = file.isDirectory() ? "directory" : "file";
+		args1[2] = file.isDirectory() ? "" : ResourceUtil.getExtension(file, null);
 		try {
 			return Caster.toBooleanValue(udf.call(ThreadLocalPageContext.get(), args1, true));
 		}
 		catch (PageException e) {
 			throw new PageRuntimeException(e);
-		} 
+		}
 	}
 
 	@Override

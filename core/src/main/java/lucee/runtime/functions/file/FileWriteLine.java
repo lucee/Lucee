@@ -20,6 +20,7 @@ package lucee.runtime.functions.file;
 
 import java.io.IOException;
 
+import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.res.Resource;
 import lucee.runtime.PageContext;
@@ -46,7 +47,7 @@ public class FileWriteLine {
 				fsw.write(text + SystemUtil.lineSeparator());
 			}
 			finally {
-				if (close && fsw != null) fsw.close();
+				if (close) IOUtil.closeEL(fsw);
 			}
 
 		}

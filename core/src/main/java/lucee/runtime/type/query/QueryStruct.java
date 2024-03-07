@@ -60,7 +60,7 @@ public class QueryStruct extends StructImpl implements QueryResult {
 		}
 
 		String datasourceName = getDatasourceName();
-		if(datasourceName != null) comment.append("Datasource: ").append(datasourceName).append("\n");
+		if (datasourceName != null) comment.append("Datasource: ").append(datasourceName).append("\n");
 
 		SQL sql = getSql();
 		if (sql != null) comment.append("SQL: ").append("\n").append(StringUtil.suppressWhiteSpace(sql.toString().trim())).append("\n");

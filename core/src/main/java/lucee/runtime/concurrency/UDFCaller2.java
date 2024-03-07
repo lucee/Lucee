@@ -29,6 +29,7 @@ import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.exp.ParentException;
 import lucee.runtime.net.http.HttpServletResponseDummy;
 import lucee.runtime.net.http.ReqRspUtil;
 import lucee.runtime.thread.ThreadUtil;
@@ -46,6 +47,7 @@ public class UDFCaller2<P> implements Callable<Data<P>> {
 	private Object[] arguments;
 	private Struct namedArguments;
 	private P passed;
+	private ParentException parentException;
 
 	private UDFCaller2(PageContext parent) {
 		this.parent = parent;
@@ -53,17 +55,19 @@ public class UDFCaller2<P> implements Callable<Data<P>> {
 
 	}
 
-	public UDFCaller2(PageContext parent, UDF udf, Object[] arguments, P passed, boolean doIncludePath) {
+	public UDFCaller2(PageContext parent, ParentException parentException, UDF udf, Object[] arguments, P passed, boolean doIncludePath) {
 		this(parent);
 		this.udf = udf;
+		this.parentException = parentException;
 		this.arguments = arguments;
 		this.doIncludePath = doIncludePath;
 		this.passed = passed;
 	}
 
-	public UDFCaller2(PageContext parent, UDF udf, Struct namedArguments, P passed, boolean doIncludePath) {
+	public UDFCaller2(PageContext parent, ParentException parentException, UDF udf, Struct namedArguments, P passed, boolean doIncludePath) {
 		this(parent);
 		this.udf = udf;
+		this.parentException = parentException;
 		this.namedArguments = namedArguments;
 		this.doIncludePath = doIncludePath;
 		this.passed = passed;
@@ -83,6 +87,10 @@ public class UDFCaller2<P> implements Callable<Data<P>> {
 			if (namedArguments != null) result = udf.callWithNamedValues(pc, namedArguments, doIncludePath);
 			else result = udf.call(pc, arguments, doIncludePath);
 
+		}
+		catch (PageException pe) {
+			pe.initCause(parentException);
+			throw pe;
 		}
 		finally {
 			try {

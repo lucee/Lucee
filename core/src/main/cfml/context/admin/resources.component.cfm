@@ -169,6 +169,8 @@ Defaults --->
 				<cfset data.archives=toArrayFromForm("archive")>
 				<cfset data.primaries=toArrayFromForm("primary")>
 				<cfset data.inspects=toArrayFromForm("inspect")>
+				<cfset data.inspectTemplateIntervalSlow=toArrayFromForm("inspectTemplateIntervalSlow")>
+				<cfset data.inspectTemplateIntervalFast=toArrayFromForm("inspectTemplateIntervalFast")>
 				<cfset data.rows=toArrayFromForm("row")>
 				
                 <cfloop index="idx" from="1" to="#arrayLen(data.physicals)#">
@@ -189,6 +191,8 @@ Defaults --->
 						archive="#data.archives[idx]#"
 						primary="#data.primaries[idx]#"
 						inspect="#data.inspects[idx]#"
+						inspectTemplateIntervalSlow="#data.inspectTemplateIntervalSlow[idx]#"
+						inspectTemplateIntervalFast="#data.inspectTemplateIntervalFast[idx]#"
 						remoteClients="#request.getRemoteClients()#">
                 	</cfif>
 				</cfloop>
@@ -198,8 +202,6 @@ Defaults --->
                     type="#request.adminType#"
                     password="#session["password"&request.adminType]#"
                     
-                    baseComponentTemplateCFML="#form.baseComponentTemplateCFML#"
-                    baseComponentTemplateLucee="#form.baseComponentTemplateLucee#"
                     componentDumpTemplate="#form.componentDumpTemplate#"
                     componentDataMemberDefaultAccess="#form.componentDataMemberDefaultAccess#"
                     triggerDataMember="#isDefined('form.triggerDataMember')#"
@@ -208,6 +210,7 @@ Defaults --->
                     componentLocalSearch="#isDefined('form.componentLocalSearch')#"
                     componentPathCache="#isDefined('form.componentPathCache')#"
                     deepSearch="#isDefined('form.componentDeepSearchDesc') and form.componentDeepSearchDesc EQ true#"
+					returnformat="#form.returnformat?:"wddx"#"
 						
                     
                     remoteClients="#request.getRemoteClients()#"
@@ -262,6 +265,11 @@ Redirtect to entry --->
 <cfif not hasAccess><cfset noAccess(stText.setting.noAccess)></cfif>
 <!--- Error Output --->
 <cfset printError(error)>
+<cfadmin 
+	type="#request.adminType#"
+	password="#session["password"&request.adminType]#"
+	action="getPerformanceSettings"
+	returnVariable="performanceSettings">
 
 
 <cfif url.action2 EQ "create">

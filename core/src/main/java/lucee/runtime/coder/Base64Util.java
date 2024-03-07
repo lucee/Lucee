@@ -18,12 +18,13 @@
  **/
 package lucee.runtime.coder;
 
-import lucee.commons.io.CharsetUtil;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.UUID;
+
+import lucee.commons.io.CharsetUtil;
 
 public final class Base64Util {
 
@@ -93,7 +94,6 @@ public final class Base64Util {
 		lookUpBase64Alphabet[62] = 43;
 		lookUpBase64Alphabet[63] = 47;
 	}
-
 
 	/**
 	 * creates a new random UUID and encodes it as a URL-safe Bas64 string
