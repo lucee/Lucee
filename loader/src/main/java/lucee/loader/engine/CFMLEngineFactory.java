@@ -319,9 +319,9 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 
 		String pathJres = Paths.get(pathJava, "resource/").toString();
 
-		// read classes directory, if the compiler output directory is not core/target/classes then set env var, e.g. CLASS_DIRECTORY=/workspace/src/lucee/idea-compiler-output-6/production/core
-		File classesDirectory = load("classes directory", "the directory containg all compiled class files from the core project", "CLASS_DIRECTORY", pathClas, resPrefix + pathClas, true);
-		System.out.println("CLASS_DIRECTORY: " + classesDirectory);
+		// LUCEE_CLASS_DIR allows to set custom compiler output directory for embedded mode if it is not at ${LUCEE_SOURCE_DIR}/core/target/classes, e.g. LUCEE_CLASS_DIR=/workspace/src/lucee/idea-compiler-output-6/production/core
+		File classesDirectory = load("classes directory", "the directory containg all compiled class files from the core project", "LUCEE_CLASS_DIR", pathClas, resPrefix + pathClas, true);
+		System.out.println("LUCEE_CLASS_DIR: " + classesDirectory);
 
 		// read source cfml directory
 		File sourceCfml = load("source directory", "the directory containg all CFML source files from the core project", "SOURCE_DIRECTORY", pathCfml, resPrefix + pathCfml, true);
@@ -511,7 +511,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 		}
 		File lucee = null;
 
-		// create lucee core from source
+		// LUCEE_SOURCE_DIR allows to run core in embeded mode, and should point to the project root which contains the "core" and "loader" directories
 		if (System.getenv("LUCEE_SOURCE_DIR") != null) embedded = true;
 
 		if (embedded) {
