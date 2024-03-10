@@ -7365,6 +7365,15 @@ The following things are considered to be empty:
 		</return>
 	</function>
 	
+	<function>
+		<name>IsFlushed</name>
+		<class>lucee.runtime.functions.other.IsFlushed</class>
+		<description>returns true if the response stream was already flushed.</description>
+		<return>
+			<type>boolean</type>
+		</return>
+	</function>
+
 	<!-- IsIPInRange -->
 	<function>
 		<name>IsIPInRange</name>
