@@ -28,7 +28,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
 
-import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -1049,7 +1048,7 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 		return cs;
 	}
 
-	private void callWSDL(PageContext pc, Component component) throws ServletException, IOException, PageException {
+	private void callWSDL(PageContext pc, Component component) throws IOException, PageException {
 		// take wsdl file defined by user
 		String wsdl = component.getWSDLFile();
 		if (!StringUtil.isEmpty(wsdl)) {
@@ -1074,7 +1073,7 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 		}
 	}
 
-	private void callWebservice(PageContext pc, Component component) throws IOException, ServletException, PageException {
+	private void callWebservice(PageContext pc, Component component) throws IOException, PageException {
 		((ConfigWebPro) ThreadLocalPageContext.getConfig(pc)).getWSHandler().getWSServer(pc).doPost(pc, pc.getHttpServletRequest(), pc.getHttpServletResponse(), component);
 	}
 

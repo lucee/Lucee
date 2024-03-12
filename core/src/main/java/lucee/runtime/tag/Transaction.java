@@ -20,8 +20,6 @@ package lucee.runtime.tag;
 
 import java.sql.Connection;
 
-import javax.servlet.jsp.JspException;
-
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.db.DataSourceManager;
@@ -176,7 +174,7 @@ public final class Transaction extends BodyTagTryCatchFinallyImpl {
 	}
 
 	@Override
-	public int doAfterBody() throws JspException {
+	public int doAfterBody() throws PageException {
 
 		if (!ignore && !innerTag) {
 			pageContext.getDataSourceManager().commit();

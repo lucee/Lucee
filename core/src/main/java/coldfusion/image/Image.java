@@ -23,8 +23,7 @@ import java.awt.Graphics2D;
 import java.awt.RenderingHints.Key;
 import java.awt.image.BufferedImage;
 
-import javax.servlet.jsp.PageContext;
-
+import lucee.runtime.PageContext;
 import lucee.runtime.type.Struct;
 
 public interface Image {

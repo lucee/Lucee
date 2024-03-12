@@ -50,7 +50,6 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-import javax.servlet.jsp.JspException;
 import javax.servlet.jsp.JspWriter;
 import javax.servlet.jsp.el.ExpressionEvaluator;
 import javax.servlet.jsp.el.VariableResolver;
@@ -3116,10 +3115,15 @@ public final class PageContextImpl extends PageContext {
 	}
 
 	@Override
-	public void initBody(BodyTag bodyTag, int state) throws JspException {
+	public void initBody(BodyTag bodyTag, int state) throws PageException {
 		if (state != Tag.EVAL_BODY_INCLUDE) {
 			bodyTag.setBodyContent(pushBody());
-			bodyTag.doInitBody();
+			try {
+				bodyTag.doInitBody();
+			}
+			catch (Exception e) {
+				throw Caster.toPageException(e);
+			}
 		}
 	}
 

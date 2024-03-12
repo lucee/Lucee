@@ -20,8 +20,6 @@ package lucee.commons.color;
 
 import java.awt.Color;
 
-import javax.servlet.ServletException;
-
 import lucee.commons.lang.NumberUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.exp.ExpressionException;
@@ -38,7 +36,7 @@ public final class ColorCaster {
 	 * @return an int between 0 (badest) and 510 (best)
 	 * @throws ServletException
 	 */
-	public static int contrast(Color left, Color right) throws ServletException {
+	public static int contrast(Color left, Color right) {
 		return (Math.max(left.getRed(), right.getRed()) - Math.min(left.getRed(), right.getRed()))
 				+ (Math.max(left.getGreen(), right.getGreen()) - Math.min(left.getGreen(), right.getGreen()))
 				+ (Math.max(left.getBlue(), right.getBlue()) - Math.max(left.getBlue(), right.getBlue()));
