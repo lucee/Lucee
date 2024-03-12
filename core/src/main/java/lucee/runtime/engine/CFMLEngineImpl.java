@@ -60,7 +60,6 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.jsp.JspException;
 
 import org.apache.felix.framework.Felix;
 import org.osgi.framework.BundleContext;
@@ -1610,7 +1609,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 	}
 
 	@Override
-	public void cli(Map<String, String> config, ServletConfig servletConfig) throws IOException, JspException, ServletException {
+	public void cli(Map<String, String> config, ServletConfig servletConfig) throws IOException, ServletException, PageException {
 		ServletContext servletContext = servletConfig.getServletContext();
 		HTTPServletImpl servlet = new HTTPServletImpl(servletConfig, servletContext, servletConfig.getServletName());
 

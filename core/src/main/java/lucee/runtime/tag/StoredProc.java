@@ -34,8 +34,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
-import javax.servlet.jsp.JspException;
-
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.log.Log;
 import lucee.commons.lang.ExceptionUtil;
@@ -268,7 +266,7 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 	}
 
 	@Override
-	public int doStartTag() throws JspException {
+	public int doStartTag() throws PageException {
 
 		// cache within
 		if (StringUtil.isEmpty(cachedWithin)) {

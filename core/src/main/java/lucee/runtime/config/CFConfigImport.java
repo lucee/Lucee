@@ -11,7 +11,6 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 import javax.servlet.http.Cookie;
-import javax.servlet.jsp.JspException;
 
 import org.apache.logging.log4j.core.layout.HtmlLayout;
 import org.apache.logging.log4j.core.layout.PatternLayout;
@@ -70,7 +69,7 @@ public class CFConfigImport {
 	private final boolean setPasswordIfNecessary;
 	private final boolean validatePassword;
 	private final boolean flushExistingData;
-	private JspException exd = null;
+	private PageException exd = null;
 
 	public CFConfigImport(Config config, Resource file, Charset charset, String password, String type, Struct placeHolderData, boolean setPasswordIfNecessary,
 			boolean validatePassword, boolean flushExistingData) throws PageException {
@@ -186,16 +185,9 @@ public class CFConfigImport {
 				pc.getConfig().getFactory().releaseLuceePageContext(pc, true);
 			}
 		}
-		if (throwException && exd != null) throw Caster.toPageException(exd);
+		if (throwException && exd != null) throw exd;
 		return json;
 
-	}
-
-	private void handleException(PageContext pc, Throwable t) {
-		ExceptionUtil.rethrowIfNecessary(t);
-		LogUtil.log(pc, "deploy", t);
-		if (t instanceof JspException) exd = (JspException) t;
-		else exd = Caster.toPageException(t);
 	}
 
 	private static void replacePlaceHolder(Collection coll, Struct placeHolderData) {
