@@ -43,7 +43,6 @@ import javax.el.ELContext;
 import javax.servlet.Servlet;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletContext;
-import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServlet;
@@ -123,6 +122,7 @@ import lucee.runtime.exp.MissingIncludeException;
 import lucee.runtime.exp.NoLongerSupported;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageExceptionBox;
+import lucee.runtime.exp.PageServletException;
 import lucee.runtime.exp.RequestTimeoutException;
 import lucee.runtime.ext.tag.TagImpl;
 import lucee.runtime.functions.dynamicEvaluation.Serialize;
@@ -2797,12 +2797,12 @@ public final class PageContextImpl extends PageContext {
 	}
 
 	@Override
-	public void include(String realPath) throws ServletException, IOException {
+	public void include(String realPath) throws PageServletException, IOException {
 		HTTPUtil.include(this, realPath);
 	}
 
 	@Override
-	public void forward(String realPath) throws ServletException, IOException {
+	public void forward(String realPath) throws PageServletException, IOException {
 		HTTPUtil.forward(this, realPath);
 	}
 
@@ -3958,7 +3958,7 @@ public final class PageContextImpl extends PageContext {
 	}
 
 	@Override
-	public void include(String realPath, boolean flush) throws ServletException, IOException {
+	public void include(String realPath, boolean flush) throws IOException, PageServletException {
 		include(realPath);
 		if (flush) flush();
 	}

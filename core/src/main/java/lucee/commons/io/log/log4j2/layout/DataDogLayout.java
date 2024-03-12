@@ -8,8 +8,6 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-import javax.servlet.http.Cookie;
-
 import org.apache.logging.log4j.core.LogEvent;
 import org.apache.logging.log4j.core.layout.AbstractStringLayout;
 
@@ -128,7 +126,7 @@ public class DataDogLayout extends AbstractStringLayout {
 
 						"",
 
-						new Cookie[0],
+						null,
 
 						null,
 

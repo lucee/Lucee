@@ -1,8 +1,6 @@
 package lucee.commons.digest;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.security.InvalidKeyException;
 import java.security.Key;
 import java.security.KeyFactory;
 import java.security.KeyPair;
@@ -17,13 +15,12 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
 
 import lucee.runtime.coder.CoderException;
 import lucee.runtime.crypt.Cryptor;
+import lucee.runtime.exp.PageException;
+import lucee.runtime.op.Caster;
 
 public class RSA {
 
@@ -76,77 +73,93 @@ public class RSA {
 		return kpg.genKeyPair();
 	}
 
-	public static byte[] encrypt(String data, Key key)
-			throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException, UnsupportedEncodingException {
-		return encrypt(data.getBytes(Cryptor.DEFAULT_CHARSET), key);
+	public static byte[] encrypt(String data, Key key) throws PageException {
+		try {
+			return encrypt(data.getBytes(Cryptor.DEFAULT_CHARSET), key);
+		}
+		catch (Exception e) {
+			throw Caster.toPageException(e);
+		}
 	}
 
-	public static byte[] encrypt(byte[] data, Key key)
-			throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
-		Cipher cipher = Cipher.getInstance("RSA");
+	public static byte[] encrypt(byte[] data, Key key) throws PageException {
+		try {
+			Cipher cipher = Cipher.getInstance("RSA");
 
-		cipher.init(Cipher.ENCRYPT_MODE, key);
-		int max = cipher.getOutputSize(0) - 11;
+			cipher.init(Cipher.ENCRYPT_MODE, key);
+			int max = cipher.getOutputSize(0) - 11;
 
-		// we need to split in pieces, because RSA cannot handle pices bigger than the key size
-		List<byte[]> list = new ArrayList<byte[]>();
-		int offset = 0, len = data.length, l, total = 0;
-		byte[] part;
-		while (offset < len) {
-			l = len - offset < max ? len - offset : max;
-			part = cipher.doFinal(data, offset, l);
-			total += part.length;
-			list.add(part);
-			offset += l;
-		}
-
-		// now we merge to one piece
-		byte[] bytes = new byte[total];
-		Iterator<byte[]> it = list.iterator();
-		int count = 0;
-		while (it.hasNext()) {
-			part = it.next();
-			for (int i = 0; i < part.length; i++) {
-				bytes[count++] = part[i];
+			// we need to split in pieces, because RSA cannot handle pices bigger than the key size
+			List<byte[]> list = new ArrayList<byte[]>();
+			int offset = 0, len = data.length, l, total = 0;
+			byte[] part;
+			while (offset < len) {
+				l = len - offset < max ? len - offset : max;
+				part = cipher.doFinal(data, offset, l);
+				total += part.length;
+				list.add(part);
+				offset += l;
 			}
-		}
 
-		return bytes;
-	}
-
-	public static String decryptAsString(byte[] data, Key key, int offset)
-			throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException, UnsupportedEncodingException {
-		return new String(decrypt(data, key, offset), Cryptor.DEFAULT_CHARSET);
-	}
-
-	public static byte[] decrypt(byte[] data, Key key, int offset)
-			throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
-		Cipher cipher = Cipher.getInstance("RSA");
-		cipher.init(Cipher.DECRYPT_MODE, key);
-		int max = cipher.getOutputSize(0);
-
-		// we need to split in pieces, because RSA cannot handle pieces bigger than the key size
-		List<byte[]> list = new ArrayList<byte[]>();
-		int off = offset, len = data.length, l, total = 0;
-		byte[] part;
-		while (off < len) {
-			l = len - off < max ? len - off : max;
-			part = cipher.doFinal(data, off, l);
-			total += part.length;
-			list.add(part);
-			off += l;
-		}
-
-		// now we merge to one piece
-		byte[] bytes = new byte[total];
-		Iterator<byte[]> it = list.iterator();
-		int count = 0;
-		while (it.hasNext()) {
-			part = it.next();
-			for (int i = 0; i < part.length; i++) {
-				bytes[count++] = part[i];
+			// now we merge to one piece
+			byte[] bytes = new byte[total];
+			Iterator<byte[]> it = list.iterator();
+			int count = 0;
+			while (it.hasNext()) {
+				part = it.next();
+				for (int i = 0; i < part.length; i++) {
+					bytes[count++] = part[i];
+				}
 			}
+			return bytes;
 		}
-		return bytes;
+		catch (Exception e) {
+			throw Caster.toPageException(e);
+		}
+
+	}
+
+	public static String decryptAsString(byte[] data, Key key, int offset) throws PageException {
+		try {
+			return new String(decrypt(data, key, offset), Cryptor.DEFAULT_CHARSET);
+		}
+		catch (Exception e) {
+			throw Caster.toPageException(e);
+		}
+	}
+
+	public static byte[] decrypt(byte[] data, Key key, int offset) throws PageException {
+		try {
+			Cipher cipher = Cipher.getInstance("RSA");
+			cipher.init(Cipher.DECRYPT_MODE, key);
+			int max = cipher.getOutputSize(0);
+
+			// we need to split in pieces, because RSA cannot handle pieces bigger than the key size
+			List<byte[]> list = new ArrayList<byte[]>();
+			int off = offset, len = data.length, l, total = 0;
+			byte[] part;
+			while (off < len) {
+				l = len - off < max ? len - off : max;
+				part = cipher.doFinal(data, off, l);
+				total += part.length;
+				list.add(part);
+				off += l;
+			}
+
+			// now we merge to one piece
+			byte[] bytes = new byte[total];
+			Iterator<byte[]> it = list.iterator();
+			int count = 0;
+			while (it.hasNext()) {
+				part = it.next();
+				for (int i = 0; i < part.length; i++) {
+					bytes[count++] = part[i];
+				}
+			}
+			return bytes;
+		}
+		catch (Exception e) {
+			throw Caster.toPageException(e);
+		}
 	}
 }

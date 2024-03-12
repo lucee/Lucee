@@ -3,8 +3,6 @@ package lucee.commons.cpu;
 import java.util.Iterator;
 import java.util.List;
 
-import javax.servlet.http.Cookie;
-
 import lucee.commons.cpu.CPULogger.StaticData;
 import lucee.commons.io.DevNullOutputStream;
 import lucee.commons.io.log.LogUtil;
@@ -34,8 +32,8 @@ public abstract class CFMLListener implements Listener {
 		boolean release = false;
 		if (pc == null) {
 			release = true;
-			pc = ThreadUtil.createPageContext(config, DevNullOutputStream.DEV_NULL_OUTPUT_STREAM, "localhost", "/", "", new Cookie[0], new Pair[0], null, new Pair[0],
-					new StructImpl(), false, -1);
+			pc = ThreadUtil.createPageContext(config, DevNullOutputStream.DEV_NULL_OUTPUT_STREAM, "localhost", "/", "", null, new Pair[0], null, new Pair[0], new StructImpl(),
+					false, -1);
 		}
 		try {
 			_listen(pc, list);
