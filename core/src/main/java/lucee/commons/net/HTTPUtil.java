@@ -31,7 +31,6 @@ import java.util.Map;
 
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletContext;
-import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 
@@ -54,6 +53,7 @@ import lucee.runtime.exp.PageServletException;
 import lucee.runtime.net.http.HTTPServletRequestWrap;
 import lucee.runtime.net.http.HttpServletResponseWrap;
 import lucee.runtime.net.http.ReqRspUtil;
+import lucee.runtime.op.Caster;
 import lucee.runtime.tag.Http;
 import lucee.runtime.type.util.ListUtil;
 
@@ -406,7 +406,7 @@ public final class HTTPUtil {
 		return requestURI;
 	}
 
-	public static void forward(PageContext pc, String realPath) throws ServletException, IOException {
+	public static void forward(PageContext pc, String realPath) throws PageServletException, IOException {
 		ServletContext context = pc.getServletContext();
 		realPath = HTTPUtil.optimizeRealPath(pc, realPath);
 
@@ -419,6 +419,12 @@ public final class HTTPUtil {
 			// populateRequestAttributes();
 			disp.forward(removeWrap(pc.getHttpServletRequest()), pc.getHttpServletResponse());
 		}
+		catch (IOException e) {
+			throw e;
+		}
+		catch (Exception e) {
+			throw Caster.toPageServletException(e);
+		}
 		finally {
 			ThreadLocalPageContext.register(pc);
 		}
@@ -430,11 +436,11 @@ public final class HTTPUtil {
 		return req;
 	}
 
-	public static void include(PageContext pc, String realPath) throws ServletException, IOException {
+	public static void include(PageContext pc, String realPath) throws PageServletException, IOException {
 		include(pc, pc.getHttpServletRequest(), pc.getHttpServletResponse(), realPath);
 	}
 
-	public static void include(PageContext pc, ServletRequest req, ServletResponse rsp, String realPath) throws ServletException, IOException {
+	public static void include(PageContext pc, ServletRequest req, ServletResponse rsp, String realPath) throws PageServletException, IOException {
 		realPath = optimizeRealPath(pc, realPath);
 		boolean inline = HttpServletResponseWrap.get();
 		// print.out(rsp+":"+pc.getResponse());
@@ -442,7 +448,15 @@ public final class HTTPUtil {
 
 		if (inline) {
 			// RequestDispatcher disp = getRequestDispatcher(pc,realPath);
-			disp.include(req, rsp);
+			try {
+				disp.include(req, rsp);
+			}
+			catch (IOException e) {
+				throw e;
+			}
+			catch (Exception e) {
+				throw Caster.toPageServletException(e);
+			}
 			return;
 		}
 
@@ -456,6 +470,12 @@ public final class HTTPUtil {
 			disp.include(req, hsrw);
 			if (!hsrw.isCommitted()) hsrw.flushBuffer();
 			pc.write(IOUtil.toString(baos.toByteArray(), ReqRspUtil.getCharacterEncoding(pc, hsrw)));
+		}
+		catch (IOException e) {
+			throw e;
+		}
+		catch (Exception e) {
+			throw Caster.toPageServletException(e);
 		}
 		finally {
 			HttpServletResponseWrap.release();

@@ -53,7 +53,6 @@ import javax.script.ScriptEngineFactory;
 import javax.servlet.FilterChain;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletContext;
-import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.Cookie;
@@ -779,13 +778,13 @@ public final class CFMLEngineImpl implements CFMLEngine {
 	 * @param factory
 	 * @return CFMLEngine
 	 */
-	public static synchronized CFMLEngine getInstance() throws ServletException {
+	public static synchronized CFMLEngine getInstance() throws PageServletException {
 		if (engine != null) return engine;
-		throw new ServletException("CFML Engine is not loaded");
+		throw new PageServletException(new ApplicationException("CFML Engine is not loaded"));
 	}
 
 	@Override
-	public void addServletConfig(ServletConfig config) throws ServletException {
+	public void addServletConfig(ServletConfig config) throws PageServletException {
 		if (PageSourceImpl.logAccessDirectory == null) {
 			String str = config.getInitParameter("lucee-log-access-directory");
 			if (!StringUtil.isEmpty(str)) {
@@ -965,7 +964,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 		return frp.getResource(factory.getResourceRoot().getAbsolutePath()).getRealResource("context");
 	}
 
-	private CFMLFactoryImpl loadJSPFactory(ConfigServerImpl configServer, ServletConfig sg, int countExistingContextes) throws ServletException {
+	private CFMLFactoryImpl loadJSPFactory(ConfigServerImpl configServer, ServletConfig sg, int countExistingContextes) throws PageServletException {
 		try {
 			CFMLFactoryImpl factory = new CFMLFactoryImpl(this, sg);
 			if (ConfigWebFactory.LOG) LogUtil.log(configServer, Log.LEVEL_INFO, "startup", "Init factory");
@@ -986,9 +985,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 			return factory;
 		}
 		catch (Exception e) {
-			ServletException se = new ServletException(e.getMessage());
-			se.setStackTrace(e.getStackTrace());
-			throw se;
+			throw Caster.toPageServletException(e);
 		}
 	}
 
@@ -1160,11 +1157,11 @@ public final class CFMLEngineImpl implements CFMLEngine {
 	}
 
 	@Override
-	public CFMLFactory getCFMLFactory(ServletConfig srvConfig, HttpServletRequest req) throws ServletException {
+	public CFMLFactory getCFMLFactory(ServletConfig srvConfig, HttpServletRequest req) throws PageServletException {
 		return getCFMLFactory(null, srvConfig, req);
 	}
 
-	public CFMLFactory getCFMLFactory(ConfigServerImpl cs, ServletConfig srvConfig, HttpServletRequest req) throws ServletException {
+	public CFMLFactory getCFMLFactory(ConfigServerImpl cs, ServletConfig srvConfig, HttpServletRequest req) throws PageServletException {
 		ServletContext srvContext = srvConfig.getServletContext();
 
 		String real = ReqRspUtil.getRootPath(srvContext);
@@ -1195,21 +1192,21 @@ public final class CFMLEngineImpl implements CFMLEngine {
 	}
 
 	@Override
-	public void service(HttpServlet servlet, HttpServletRequest req, HttpServletResponse rsp) throws ServletException, IOException {
+	public void service(HttpServlet servlet, HttpServletRequest req, HttpServletResponse rsp) throws PageServletException, IOException {
 		_service(servlet, req, rsp, Request.TYPE_CFML);
 	}
 
 	@Override
-	public void serviceCFML(HttpServlet servlet, HttpServletRequest req, HttpServletResponse rsp) throws ServletException, IOException {
+	public void serviceCFML(HttpServlet servlet, HttpServletRequest req, HttpServletResponse rsp) throws PageServletException, IOException {
 		_service(servlet, req, rsp, Request.TYPE_CFML);
 	}
 
 	@Override
-	public void serviceRest(HttpServlet servlet, HttpServletRequest req, HttpServletResponse rsp) throws ServletException, IOException {
+	public void serviceRest(HttpServlet servlet, HttpServletRequest req, HttpServletResponse rsp) throws PageServletException, IOException {
 		_service(servlet, new HTTPServletRequestWrap(req), rsp, Request.TYPE_REST);
 	}
 
-	private void _service(HttpServlet servlet, HttpServletRequest req, HttpServletResponse rsp, short type) throws ServletException, IOException {
+	private void _service(HttpServlet servlet, HttpServletRequest req, HttpServletResponse rsp, short type) throws PageServletException, IOException {
 		CFMLFactoryImpl factory = (CFMLFactoryImpl) getCFMLFactory(servlet.getServletConfig(), req);
 		boolean exeReqAsync = exeRequestAsync();
 		PageContextImpl pc = factory.getPageContextImpl(servlet, req, rsp, null, false, -1, false, !exeReqAsync, false, -1, true, false, false, null);
@@ -1265,7 +1262,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 	}
 
 	@Override
-	public void serviceFile(HttpServlet servlet, HttpServletRequest req, HttpServletResponse rsp) throws ServletException, IOException {
+	public void serviceFile(HttpServlet servlet, HttpServletRequest req, HttpServletResponse rsp) throws PageServletException, IOException {
 		req = new HTTPServletRequestWrap(req);
 		CFMLFactory factory = getCFMLFactory(servlet.getServletConfig(), req);
 		ConfigWeb config = factory.getConfig();
@@ -1333,8 +1330,8 @@ public final class CFMLEngineImpl implements CFMLEngine {
 	}
 
 	@Override
-	public void serviceAMF(HttpServlet servlet, HttpServletRequest req, HttpServletResponse rsp) throws ServletException, IOException {
-		throw new ServletException("AMFServlet is no longer supported, use BrokerServlet instead.");
+	public void serviceAMF(HttpServlet servlet, HttpServletRequest req, HttpServletResponse rsp) throws PageServletException, IOException {
+		throw new PageServletException(new ApplicationException("AMFServlet is no longer supported, use BrokerServlet instead."));
 		// req=new HTTPServletRequestWrap(req);
 		// getCFMLFactory(servlet.getServletConfig(), req).getConfig().getAMFEngine().service(servlet,new
 		// HTTPServletRequestWrap(req),rsp);
@@ -1595,7 +1592,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 	}
 
 	@Override
-	public void cli(Map<String, String> config, ServletConfig servletConfig) throws IOException, ServletException, PageException {
+	public void cli(Map<String, String> config, ServletConfig servletConfig) throws IOException, PageServletException, PageException {
 		ServletContext servletContext = servletConfig.getServletContext();
 		HTTPServletImpl servlet = new HTTPServletImpl(servletConfig, servletContext, servletConfig.getServletName());
 
@@ -1726,13 +1723,13 @@ public final class CFMLEngineImpl implements CFMLEngine {
 
 	@Override
 	public PageContext createPageContext(File contextRoot, String host, String scriptName, String queryString, Cookie[] cookies, Map<String, Object> headers,
-			Map<String, String> parameters, Map<String, Object> attributes, OutputStream os, long timeout, boolean register) throws ServletException {
+			Map<String, String> parameters, Map<String, Object> attributes, OutputStream os, long timeout, boolean register) throws PageServletException {
 		// FUTURE add first 2 arguments to interface
 		return PageContextUtil.getPageContext(null, null, contextRoot, host, scriptName, queryString, cookies, headers, parameters, attributes, os, register, timeout, false);
 	}
 
 	@Override
-	public ConfigWeb createConfig(File contextRoot, String host, String scriptName) throws ServletException {
+	public ConfigWeb createConfig(File contextRoot, String host, String scriptName) throws PageServletException {
 		// TODO do a mored rect approach
 		PageContext pc = null;
 		try {

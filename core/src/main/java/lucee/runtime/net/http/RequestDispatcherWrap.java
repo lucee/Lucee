@@ -21,13 +21,14 @@ package lucee.runtime.net.http;
 import java.io.IOException;
 
 import javax.servlet.RequestDispatcher;
-import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 
 import lucee.commons.net.HTTPUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.engine.ThreadLocalPageContext;
+import lucee.runtime.exp.PageServletException;
+import lucee.runtime.op.Caster;
 
 public class RequestDispatcherWrap implements RequestDispatcher {
 
@@ -40,11 +41,19 @@ public class RequestDispatcherWrap implements RequestDispatcher {
 	}
 
 	@Override
-	public void forward(ServletRequest req, ServletResponse rsp) throws ServletException, IOException {
+	public void forward(ServletRequest req, ServletResponse rsp) throws PageServletException, IOException {
 		PageContext pc = ThreadLocalPageContext.get();
 		req = HTTPUtil.removeWrap(req);
 		if (pc == null) {
-			this.req.getOriginalRequestDispatcher(realPath).forward(req, rsp);
+			try {
+				this.req.getOriginalRequestDispatcher(realPath).forward(req, rsp);
+			}
+			catch (IOException e) {
+				throw e;
+			}
+			catch (Exception e) {
+				throw Caster.toPageServletException(e);
+			}
 			return;
 		}
 
@@ -54,16 +63,30 @@ public class RequestDispatcherWrap implements RequestDispatcher {
 			RequestDispatcher disp = this.req.getOriginalRequestDispatcher(realPath);
 			disp.forward(req, rsp);
 		}
+		catch (IOException e) {
+			throw e;
+		}
+		catch (Exception e) {
+			throw Caster.toPageServletException(e);
+		}
 		finally {
 			ThreadLocalPageContext.register(pc);
 		}
 	}
 
 	@Override
-	public void include(ServletRequest req, ServletResponse rsp) throws ServletException, IOException {
+	public void include(ServletRequest req, ServletResponse rsp) throws PageServletException, IOException {
 		PageContext pc = ThreadLocalPageContext.get();
 		if (pc == null) {
-			this.req.getOriginalRequestDispatcher(realPath).include(req, rsp);
+			try {
+				this.req.getOriginalRequestDispatcher(realPath).include(req, rsp);
+			}
+			catch (IOException e) {
+				throw e;
+			}
+			catch (Exception e) {
+				throw Caster.toPageServletException(e);
+			}
 			return;
 		}
 		HTTPUtil.include(pc, req, rsp, realPath);

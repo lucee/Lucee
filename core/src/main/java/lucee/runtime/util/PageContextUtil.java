@@ -24,7 +24,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import javax.servlet.ServletConfig;
-import javax.servlet.ServletException;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -50,7 +49,9 @@ import lucee.runtime.config.ConfigServerImpl;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.engine.CFMLEngineImpl;
 import lucee.runtime.engine.ThreadLocalPageContext;
+import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.exp.PageServletException;
 import lucee.runtime.exp.RequestTimeoutException;
 import lucee.runtime.listener.ApplicationListener;
 import lucee.runtime.net.http.ReqRspUtil;
@@ -124,7 +125,7 @@ public class PageContextUtil {
 
 	public static PageContext getPageContext(Config config, ServletConfig servletConfig, File contextRoot, String host, String scriptName, String queryString, Cookie[] cookies,
 			Map<String, Object> headers, Map<String, String> parameters, Map<String, Object> attributes, OutputStream os, boolean register, long timeout, boolean ignoreScopes)
-			throws ServletException {
+			throws PageServletException {
 		boolean callOnStart = ThreadLocalPageContext.callOnStart.get();
 		try {
 			ThreadLocalPageContext.callOnStart.set(false);
@@ -138,7 +139,7 @@ public class PageContextUtil {
 			catch (Throwable t) {
 				ExceptionUtil.rethrowIfNecessary(t);
 			}
-			if (engine == null) throw new ServletException("there is no ServletContext");
+			if (engine == null) throw new PageServletException(new ApplicationException("there is no ServletContext"));
 
 			if (headers == null) headers = new HashMap<String, Object>();
 			if (parameters == null) parameters = new HashMap<String, String>();
@@ -180,7 +181,14 @@ public class PageContextUtil {
 					e = ((CFMLEngineWrapper) engine).getEngine();
 				}
 				if (e instanceof CFMLEngineImpl && config instanceof ConfigServerImpl) factory = ((CFMLEngineImpl) e).getCFMLFactory((ConfigServerImpl) config, servletConfig, req);
-				else factory = e.getCFMLFactory(servletConfig, req);
+				else {
+					try {
+						factory = e.getCFMLFactory(servletConfig, req);
+					}
+					catch (Exception se) {
+						throw Caster.toPageServletException(se);
+					}
+				}
 
 				servlet = new HTTPServletImpl(servletConfig, servletConfig.getServletContext(), servletConfig.getServletName());
 			}
