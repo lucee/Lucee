@@ -4,8 +4,6 @@ import java.io.File;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import lucee.print;
-
 public class DirectoryWatcher {
 
 	private File root;
@@ -31,8 +29,6 @@ public class DirectoryWatcher {
 			for (File d: directories.keySet()) {
 				// directory change
 				if (lastModified < d.lastModified()) {
-					print.e("directory changed!");
-					print.e(d);
 					recollect(directories, files, d);
 					lastModified = d.lastModified();
 					cleanup = true;
@@ -42,8 +38,6 @@ public class DirectoryWatcher {
 				// List<File> mods = new ArrayList<File>();
 				for (File d: files.keySet()) {
 					if (!d.exists()) {
-						print.e("file removed!");
-						print.e(d);
 						files.remove(d);
 						// mods.add(d);
 					}
@@ -54,14 +48,10 @@ public class DirectoryWatcher {
 			}
 			for (File d: files.keySet()) {
 				if (lastModified < d.lastModified()) {
-					print.e("file changed!");
-					print.e(d);
 					files.put(d, new FileInfo(d));
 					lastModified = d.lastModified();
 				}
 			}
-
-			print.e(directories.size() + ":" + files.size() + " ->" + (System.currentTimeMillis() - start));
 			try {
 				Thread.sleep(pause);
 			}
@@ -84,18 +74,12 @@ public class DirectoryWatcher {
 	private void recollect(Map<File, FileInfo> directories, Map<File, FileInfo> files, File dir) {
 		FileInfo fi = directories.get(dir);
 		if (fi == null) {
-			print.e("new directory!");
-			print.e(dir);
 			directories.put(dir, new FileInfo(dir));
 		}
 		else if (fi.lastModified != dir.lastModified()) {
-			print.e("directory changed (timestamp)");
-			print.e(dir);
 			directories.put(dir, new FileInfo(dir));
 		}
 		else if (fi.length != dir.length()) {
-			print.e("directory changed (length)");
-			print.e(dir);
 			directories.put(dir, new FileInfo(dir));
 		}
 
@@ -104,21 +88,14 @@ public class DirectoryWatcher {
 			else if (f.getName().endsWith(".cfm") || f.getName().endsWith(".cfc")) {
 				fi = files.get(f);
 				if (fi == null) {
-					print.e("new file!!!");
-					print.e(f);
 					files.put(f, new FileInfo(f));
 				}
 				else if (fi.lastModified != f.lastModified()) {
-					print.e("file changed (timestamp)");
-					print.e(f);
 					files.put(f, new FileInfo(f));
 				}
 				else if (fi.length != f.length()) {
-					print.e("file changed (length)");
-					print.e(f);
 					files.put(f, new FileInfo(f));
 				}
-
 			}
 		}
 	}

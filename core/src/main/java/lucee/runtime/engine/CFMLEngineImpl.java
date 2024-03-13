@@ -66,7 +66,6 @@ import org.osgi.framework.Constants;
 import org.osgi.framework.Version;
 
 import lucee.Info;
-import lucee.print;
 import lucee.cli.servlet.HTTPServletImpl;
 import lucee.cli.servlet.ServletContextImpl;
 import lucee.commons.collection.MapFactory;
@@ -388,7 +387,6 @@ public final class CFMLEngineImpl implements CFMLEngine {
 
 			}
 			catch (PageException e) {
-				print.e(e);
 				LogUtil.log("deploy", "controller", e);
 				sucess = false;
 			}

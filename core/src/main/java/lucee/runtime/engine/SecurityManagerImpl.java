@@ -4,33 +4,27 @@ import java.io.FileDescriptor;
 import java.net.InetAddress;
 import java.security.Permission;
 
-import lucee.print;
-
 public class SecurityManagerImpl extends SecurityManager {
 
 	@Override
 	protected Class<?>[] getClassContext() {
-		print.ds();
 		// TODO Auto-generated method stub
 		return super.getClassContext();
 	}
 
 	@Override
 	public Object getSecurityContext() {
-		print.ds();
 		// TODO Auto-generated method stub
 		return super.getSecurityContext();
 	}
 
 	@Override
 	public ThreadGroup getThreadGroup() {
-		print.ds();
 		return super.getThreadGroup();
 	}
 
 	@Override
 	public void checkPermission(Permission perm) {
-		print.e("checkPermission:" + perm.getName());
 		// super.checkPermission(perm);
 		// Check if the permission is to exit the VM
 		if (perm.getName().startsWith("exitVM")) {
@@ -40,8 +34,6 @@ public class SecurityManagerImpl extends SecurityManager {
 
 	@Override
 	public void checkPermission(Permission perm, Object context) {
-		print.e("checkPermission:" + perm.getName());
-		print.e("context:" + context);
 		// super.checkPermission(perm);
 		// Check if the permission is to exit the VM
 		if (perm.getName().startsWith("exitVM")) {
