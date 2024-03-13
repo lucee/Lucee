@@ -19,10 +19,10 @@
 package lucee.runtime.tag;
 
 import java.io.IOException;
+import java.io.Writer;
 import java.util.Iterator;
 import java.util.Map.Entry;
 
-import javax.servlet.jsp.JspWriter;
 import javax.servlet.jsp.tagext.Tag;
 
 import lucee.commons.io.log.LogUtil;
@@ -291,7 +291,7 @@ public class CFTag extends BodyTagTryCatchFinallyImpl implements DynamicAttribut
 		writeEL(bodyContent.getEnclosingWriter(), output);
 	}
 
-	private void writeEL(JspWriter writer, String str) throws PageException {
+	private void writeEL(/* JspWriter */Writer writer, String str) throws PageException {
 		try {
 			writer.write(str);
 		}

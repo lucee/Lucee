@@ -18,7 +18,6 @@ import javax.servlet.ServletConfig;
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.jsp.JspWriter;
 
 import org.osgi.framework.Version;
 
@@ -1528,7 +1527,7 @@ class SingleContextConfigWeb extends ConfigBase implements ConfigWebInner {
 	}
 
 	@Override
-	public JspWriter getWriter(PageContext pc, HttpServletRequest req, HttpServletResponse rsp) {
+	public CFMLWriter getWriter(PageContext pc, HttpServletRequest req, HttpServletResponse rsp) {
 		return getCFMLWriter(pc, req, rsp);
 	}
 

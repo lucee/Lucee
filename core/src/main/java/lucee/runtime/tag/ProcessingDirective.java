@@ -19,8 +19,7 @@
 package lucee.runtime.tag;
 
 import java.io.IOException;
-
-import javax.servlet.jsp.JspWriter;
+import java.io.Writer;
 
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.exp.ApplicationException;
@@ -116,7 +115,7 @@ public final class ProcessingDirective extends BodyTagTryCatchFinallyImpl {
 	public void doFinally() {
 		if (suppresswhitespace != null) {
 			try {
-				JspWriter out = pageContext.getOut();
+				/* JspWriter */Writer out = pageContext.getOut();
 				if (suppresswhitespace.booleanValue()) {
 					if (out instanceof WhiteSpaceWriter) out.write(bodyContent.getString());
 					else out.write(StringUtil.suppressWhiteSpace(bodyContent.getString()));

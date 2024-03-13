@@ -11,6 +11,7 @@ import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.ResourcesImpl.ResourceProviderFactory;
 import lucee.runtime.config.gateway.GatewayMap;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.writer.CFMLWriter;
 
 public class ConfigWebImpl implements ConfigWebPro {
 	private ConfigWebInner instance;
@@ -1636,8 +1637,8 @@ public class ConfigWebImpl implements ConfigWebPro {
 	}
 
 	@Override
-	public javax.servlet.jsp.JspWriter getWriter(lucee.runtime.PageContext arg0, javax.servlet.http.HttpServletRequest arg1, javax.servlet.http.HttpServletResponse arg2) {
-		return instance.getWriter(arg0, arg1, arg2);
+	public CFMLWriter getWriter(lucee.runtime.PageContext arg0, javax.servlet.http.HttpServletRequest arg1, javax.servlet.http.HttpServletResponse arg2) {
+		return instance.getCFMLWriter(arg0, arg1, arg2);
 	}
 
 	@Override

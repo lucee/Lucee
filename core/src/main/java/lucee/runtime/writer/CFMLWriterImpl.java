@@ -79,22 +79,12 @@ public class CFMLWriterImpl extends CFMLWriter {
 		version = pc.getConfig().getFactory().getEngine().getInfo().getVersion().toString();
 	}
 
-	/*
-	 * * constructor of the class
-	 * 
-	 * @param response Response Object / public JspWriterImpl(HttpServletResponse response) {
-	 * this(response, BUFFER_SIZE, false); }
-	 */
-
 	private void _check() throws IOException {
 		if (autoFlush && buffer.length() > bufferSize) {
 			_flush(true);
 		}
 	}
 
-	/**
-	 * @throws IOException
-	 */
 	protected void initOut() throws IOException {
 		if (out == null) {
 			out = getOutputStream(false);
@@ -102,22 +92,12 @@ public class CFMLWriterImpl extends CFMLWriter {
 		}
 	}
 
-	/**
-	 * @see javax.servlet.jsp.JspWriter#print(char[])
-	 */
 	@Override
 	public void print(char[] arg) throws IOException {
 		buffer.append(arg);
 		_check();
 	}
 
-	/**
-	 * reset configuration of buffer
-	 * 
-	 * @param bufferSize size of the buffer
-	 * @param autoFlush does the buffer autoflush
-	 * @throws IOException
-	 */
 	@Override
 	public void setBufferConfig(int bufferSize, boolean autoFlush) throws IOException {
 		this.bufferSize = bufferSize;
@@ -159,20 +139,12 @@ public class CFMLWriterImpl extends CFMLWriter {
 		}
 	}
 
-	/**
-	 * @see lucee.runtime.writer.CFMLWriter#resetHTMLHead()
-	 */
 	@Override
 	public void resetHTMLBody() throws IOException {
 		if (flushed) throw new IOException("Page is already flushed");
 		htmlBody = null;
 	}
 
-	/**
-	 * 
-	 * @param text
-	 * @throws IOException
-	 */
 	@Override
 	public void appendHTMLHead(String text) throws IOException {
 
@@ -191,9 +163,6 @@ public class CFMLWriterImpl extends CFMLWriter {
 		htmlHead = new StringBuilder(text);
 	}
 
-	/**
-	 * @see lucee.runtime.writer.CFMLWriter#getHTMLHead()
-	 */
 	@Override
 	public String getHTMLHead() throws IOException {
 
@@ -212,9 +181,6 @@ public class CFMLWriterImpl extends CFMLWriter {
 		}
 	}
 
-	/**
-	 * @see lucee.runtime.writer.CFMLWriter#resetHTMLHead()
-	 */
 	@Override
 	public void resetHTMLHead() throws IOException {
 		if (flushed) throw new IOException("Page is already flushed");
@@ -230,35 +196,23 @@ public class CFMLWriterImpl extends CFMLWriter {
 		resetHTMLHead();
 	}
 
-	/**
-	 * @see java.io.Writer#write(char[], int, int)
-	 */
 	@Override
 	public void write(char[] cbuf, int off, int len) throws IOException {
 		buffer.append(cbuf, off, len);
 		_check();
 	}
 
-	/**
-	 * @see javax.servlet.jsp.JspWriter#clear()
-	 */
 	@Override
 	public void clear() throws IOException {
 		if (flushed) throw new IOException("Response buffer is already flushed");
 		clearBuffer();
 	}
 
-	/**
-	 * @see javax.servlet.jsp.JspWriter#clearBuffer()
-	 */
 	@Override
 	public void clearBuffer() {
 		buffer = new StringBuilder(BUFFER_SIZE);
 	}
 
-	/**
-	 * @see java.io.Writer#flush()
-	 */
 	@Override
 	public void flush() throws IOException {
 		flushBuffer(true);
@@ -266,9 +220,6 @@ public class CFMLWriterImpl extends CFMLWriter {
 		out.flush();
 	}
 
-	/**
-	 * @see java.io.Writer#flush()
-	 */
 	private void _flush(boolean closeConn) throws IOException {
 		flushBuffer(closeConn);
 		// weil flushbuffer das out erstellt muss ich nicht mehr checken
@@ -348,17 +299,11 @@ public class CFMLWriterImpl extends CFMLWriter {
 		return str;
 	}
 
-	/**
-	 * @see java.lang.Object#toString()
-	 */
 	@Override
 	public String toString() {
 		return _toString(false);
 	}
 
-	/**
-	 * @see java.io.Writer#close()
-	 */
 	@Override
 	public void close() throws IOException {
 		if (response == null || closed) return;
@@ -417,220 +362,138 @@ public class CFMLWriterImpl extends CFMLWriter {
 		return response.getOutputStream();
 	}
 
-	/*
-	 * private void writeCache(byte[] barr,boolean append) throws IOException { cacheItem.store(barr,
-	 * append); //IOUtil.copy(new ByteArrayInputStream(barr),
-	 * cacheItem.getResource().getOutputStream(append),true,true);
-	 * //MetaData.getInstance(cacheItem.getDirectory()).add(cacheItem.getName(), cacheItem.getRaw()); }
-	 */
-
-	/**
-	 * @see javax.servlet.jsp.JspWriter#getRemaining()
-	 */
 	@Override
 	public int getRemaining() {
 		return bufferSize - buffer.length();
 	}
 
-	/**
-	 * @see javax.servlet.jsp.JspWriter#newLine()
-	 */
 	@Override
 	public void newLine() throws IOException {
 		println();
 	}
 
-	/**
-	 * @see javax.servlet.jsp.JspWriter#print(boolean)
-	 */
 	@Override
 	public void print(boolean arg) throws IOException {
 		print(arg ? new char[] { 't', 'r', 'u', 'e' } : new char[] { 'f', 'a', 'l', 's', 'e' });
 	}
 
-	/**
-	 * @see javax.servlet.jsp.JspWriter#print(char)
-	 */
 	@Override
 	public void print(char arg) throws IOException {
 		buffer.append(arg);
 		_check();
 	}
 
-	/**
-	 * @see javax.servlet.jsp.JspWriter#print(int)
-	 */
 	@Override
 	public void print(int arg) throws IOException {
 		_print(String.valueOf(arg));
 	}
 
-	/**
-	 * @see javax.servlet.jsp.JspWriter#print(long)
-	 */
 	@Override
 	public void print(long arg) throws IOException {
 		_print(String.valueOf(arg));
 
 	}
 
-	/**
-	 * @see javax.servlet.jsp.JspWriter#print(float)
-	 */
 	@Override
 	public void print(float arg) throws IOException {
 		_print(String.valueOf(arg));
 	}
 
-	/**
-	 * @see javax.servlet.jsp.JspWriter#print(double)
-	 */
 	@Override
 	public void print(double arg) throws IOException {
 		_print(String.valueOf(arg));
 	}
 
-	/**
-	 * @see javax.servlet.jsp.JspWriter#print(java.lang.String)
-	 */
 	@Override
 	public void print(String arg) throws IOException {
 		buffer.append(arg);
 		_check();
 	}
 
-	/**
-	 * @see javax.servlet.jsp.JspWriter#print(java.lang.Object)
-	 */
 	@Override
 	public void print(Object arg) throws IOException {
 		_print(String.valueOf(arg));
 	}
 
-	/**
-	 * @see javax.servlet.jsp.JspWriter#println()
-	 */
 	@Override
 	public void println() throws IOException {
 		_print("\n");
 
 	}
 
-	/**
-	 * @see javax.servlet.jsp.JspWriter#println(boolean)
-	 */
 	@Override
 	public void println(boolean arg) throws IOException {
 		print(arg ? new char[] { 't', 'r', 'u', 'e', '\n' } : new char[] { 'f', 'a', 'l', 's', 'e', '\n' });
 	}
 
-	/**
-	 * @see javax.servlet.jsp.JspWriter#println(char)
-	 */
 	@Override
 	public void println(char arg) throws IOException {
 		print(new char[] { arg, '\n' });
 	}
 
-	/**
-	 * @see javax.servlet.jsp.JspWriter#println(int)
-	 */
 	@Override
 	public void println(int arg) throws IOException {
 		print(arg);
 		println();
 	}
 
-	/**
-	 * @see javax.servlet.jsp.JspWriter#println(long)
-	 */
 	@Override
 	public void println(long arg) throws IOException {
 		print(arg);
 		println();
 	}
 
-	/**
-	 * @see javax.servlet.jsp.JspWriter#println(float)
-	 */
 	@Override
 	public void println(float arg) throws IOException {
 		print(arg);
 		println();
 	}
 
-	/**
-	 * @see javax.servlet.jsp.JspWriter#println(double)
-	 */
 	@Override
 	public void println(double arg) throws IOException {
 		print(arg);
 		println();
 	}
 
-	/**
-	 * @see javax.servlet.jsp.JspWriter#println(char[])
-	 */
 	@Override
 	public void println(char[] arg) throws IOException {
 		print(arg);
 		println();
 	}
 
-	/**
-	 * @see javax.servlet.jsp.JspWriter#println(java.lang.String)
-	 */
 	@Override
 	public void println(String arg) throws IOException {
 		_print(arg);
 		println();
 	}
 
-	/**
-	 * @see javax.servlet.jsp.JspWriter#println(java.lang.Object)
-	 */
 	@Override
 	public void println(Object arg) throws IOException {
 		print(arg);
 		println();
 	}
 
-	/**
-	 * @see java.io.Writer#write(char[])
-	 */
 	@Override
 	public void write(char[] cbuf) throws IOException {
 		print(cbuf);
 	}
 
-	/**
-	 * @see java.io.Writer#write(int)
-	 */
 	@Override
 	public void write(int c) throws IOException {
 		print(c);
 	}
 
-	/**
-	 * @see java.io.Writer#write(java.lang.String, int, int)
-	 */
 	@Override
 	public void write(String str, int off, int len) throws IOException {
 		write(str.toCharArray(), off, len);
 	}
 
-	/**
-	 * @see java.io.Writer#write(java.lang.String)
-	 */
 	@Override
 	public void write(String str) throws IOException {
 		buffer.append(str);
 		_check();
 	}
 
-	/**
-	 * @see lucee.runtime.writer.CFMLWriter#writeRaw(java.lang.String)
-	 */
 	@Override
 	public void writeRaw(String str) throws IOException {
 		_print(str);
@@ -653,9 +516,6 @@ public class CFMLWriterImpl extends CFMLWriter {
 		_check();
 	}
 
-	/**
-	 * @see lucee.runtime.writer.CFMLWriter#getResponseStream()
-	 */
 	@Override
 	public OutputStream getResponseStream() throws IOException {
 		initOut();
