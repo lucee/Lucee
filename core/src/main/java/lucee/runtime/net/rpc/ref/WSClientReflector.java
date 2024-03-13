@@ -159,9 +159,9 @@ public class WSClientReflector implements WSClient {
 	}
 
 	@Override
-	public void addHeader(Object header) throws PageException { // Object instead of header because Java 11 no longer support javax.xml.soap.SOAPHeaderElement
+	public void addHeader(Object header) throws PageException { // Object instead of header because Java 11 no longer support javjak.xml.soap.SOAPHeaderElement
 		try {
-			if (addHeader == null) addHeader = clazz.getMethod("addHeader", new Class[] { Class.forName("javax.xml.soap.SOAPHeaderElement") });
+			if (addHeader == null) addHeader = clazz.getMethod("addHeader", new Class[] { Class.forName("javax.xml.soap.SOAPHeaderElement") });/* JAVJAK */
 			addHeader.invoke(obj, new Object[] { header });
 		}
 		catch (Exception e) {

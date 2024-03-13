@@ -137,7 +137,7 @@ public final class HTTPServletRequestWrap implements HttpServletRequest, Seriali
 	 * @param max how many is possible to re read
 	 */
 	public HTTPServletRequestWrap(HttpServletRequest req) {
-		this.req = pure(req);
+		this.req = pure(req);/* JAVJAK */
 		if ((servlet_path = attrAsString("javax.servlet.include.servlet_path")) != null) {
 			request_uri = attrAsString("javax.servlet.include.request_uri");
 			context_path = attrAsString("javax.servlet.include.context_path");

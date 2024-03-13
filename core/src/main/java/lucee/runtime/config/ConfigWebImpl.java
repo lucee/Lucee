@@ -3,6 +3,9 @@ package lucee.runtime.config;
 import java.io.IOException;
 
 import javax.servlet.ServletConfig;
+import javax.servlet.ServletContext;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import org.osgi.framework.BundleException;
 import org.xml.sax.SAXException;
@@ -297,7 +300,7 @@ public class ConfigWebImpl implements ConfigWebPro {
 	}
 
 	@Override
-	public javax.servlet.ServletContext getServletContext() {
+	public ServletContext getServletContext() {
 		return instance.getServletContext();
 	}
 
@@ -1637,7 +1640,7 @@ public class ConfigWebImpl implements ConfigWebPro {
 	}
 
 	@Override
-	public CFMLWriter getWriter(lucee.runtime.PageContext arg0, javax.servlet.http.HttpServletRequest arg1, javax.servlet.http.HttpServletResponse arg2) {
+	public CFMLWriter getWriter(lucee.runtime.PageContext arg0, HttpServletRequest arg1, HttpServletResponse arg2) {
 		return instance.getCFMLWriter(arg0, arg1, arg2);
 	}
 
@@ -1662,7 +1665,7 @@ public class ConfigWebImpl implements ConfigWebPro {
 	}
 
 	@Override
-	public lucee.runtime.writer.CFMLWriter getCFMLWriter(lucee.runtime.PageContext arg0, javax.servlet.http.HttpServletRequest arg1, javax.servlet.http.HttpServletResponse arg2) {
+	public lucee.runtime.writer.CFMLWriter getCFMLWriter(lucee.runtime.PageContext arg0, HttpServletRequest arg1, HttpServletResponse arg2) {
 		return instance.getCFMLWriter(arg0, arg1, arg2);
 	}
 

@@ -226,7 +226,7 @@ public final class CGIImplReadOnly extends ReadOnlyStruct implements CGI, Script
 					catch (Exception e) {
 					}
 				}
-				if (key.equals(KeyConstants._request_uri)) return toString(req.getAttribute("javax.servlet.include.request_uri"));
+				if (key.equals(KeyConstants._request_uri)) return toString(req.getAttribute("javax.servlet.include.request_uri"));/* JAVJAK */
 				if (key.getUpperString().startsWith("REDIRECT_")) {
 					// from attributes (key sensitive)
 					Object value = req.getAttribute(key.getString());
@@ -257,7 +257,7 @@ public final class CGIImplReadOnly extends ReadOnlyStruct implements CGI, Script
 			}
 			else if (first == 'p') {
 				if (key.equals(KeyConstants._path_info)) {
-					String pathInfo = Caster.toString(req.getAttribute("javax.servlet.include.path_info"), null);
+					String pathInfo = Caster.toString(req.getAttribute("javax.servlet.include.path_info"), null);/* JAVJAK */
 					if (StringUtil.isEmpty(pathInfo)) pathInfo = Caster.toString(req.getHeader("xajp-path-info"), null);
 					if (StringUtil.isEmpty(pathInfo)) pathInfo = req.getPathInfo();
 					if (StringUtil.isEmpty(pathInfo)) {

@@ -40,6 +40,9 @@ import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
 
+import javax.servlet.Servlet;
+import javax.servlet.jsp.JspException;
+
 import org.apache.felix.framework.BundleWiringImpl.BundleClassLoader;
 import org.apache.felix.framework.Logger;
 import org.osgi.framework.Bundle;
@@ -2340,8 +2343,8 @@ public class OSGiUtil {
 
 		Set<String> set = new HashSet<>();
 		set.add(ClassUtil.getSourcePathForClass(CFMLEngineFactory.class, null));
-		set.add(ClassUtil.getSourcePathForClass(javax.servlet.jsp.JspException.class, null));
-		set.add(ClassUtil.getSourcePathForClass(javax.servlet.Servlet.class, null));
+		set.add(ClassUtil.getSourcePathForClass(JspException.class, null));
+		set.add(ClassUtil.getSourcePathForClass(Servlet.class, null));
 
 		List<File> list = new ArrayList<>();
 		for (String path: set) {

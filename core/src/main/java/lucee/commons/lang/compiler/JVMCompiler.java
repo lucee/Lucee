@@ -7,6 +7,7 @@ import java.util.Locale;
 
 import javax.tools.Diagnostic;
 import javax.tools.DiagnosticCollector;
+import javax.tools.JavaCompiler;
 import javax.tools.JavaFileObject;
 import javax.tools.ToolProvider;
 
@@ -25,7 +26,7 @@ public class JVMCompiler implements Compiler {
 		Collection<SourceCode> compilationUnits = new ArrayList<>();
 		compilationUnits.add(sc);
 		DynamicClassLoader dcl = new DynamicClassLoader(cl);
-		javax.tools.JavaCompiler javac = ToolProvider.getSystemJavaCompiler();
+		JavaCompiler javac = ToolProvider.getSystemJavaCompiler();
 		if (javac == null) {
 			throw new ApplicationException("Java compiling is not suppprted with your current JVM Environment (" + System.getProperty("java.vendor") + " "
 					+ System.getProperty("java.version")
@@ -40,7 +41,7 @@ public class JVMCompiler implements Compiler {
 		DiagnosticCollector<JavaFileObject> collector = new DiagnosticCollector<>();
 
 		ExtendedStandardJavaFileManager fileManager = new ExtendedStandardJavaFileManager(javac.getStandardFileManager(null, null, null), dcl);
-		javax.tools.JavaCompiler.CompilationTask task = javac.getTask(null, fileManager, collector, options, null, compilationUnits);
+		JavaCompiler.CompilationTask task = javac.getTask(null, fileManager, collector, options, null, compilationUnits);
 		boolean result = task.call();
 
 		if (!result || collector.getDiagnostics().size() > 0) {

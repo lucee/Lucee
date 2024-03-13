@@ -31,7 +31,7 @@ import lucee.runtime.type.Struct;
 
 public interface WSClient extends Objects, Iteratorable {
 
-	public void addHeader(Object header) throws PageException; // Object instead of header because Java 11 no longer support javax.xml.soap.SOAPHeaderElement
+	public void addHeader(Object header) throws PageException; // Object instead of header because Java 11 no longer support javjak.xml.soap.SOAPHeaderElement
 
 	public Object callWithNamedValues(Config config, Collection.Key methodName, Struct arguments) throws PageException;
 

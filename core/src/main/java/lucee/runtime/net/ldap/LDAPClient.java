@@ -137,7 +137,7 @@ public final class LDAPClient {
 		// Security
 		if (secureLevel == SECURE_CFSSL_BASIC) {
 			env.put("java.naming.security.protocol", "ssl");
-			env.put("java.naming.ldap.factory.socket", "javax.net.ssl.SSLSocketFactory");
+			env.put("java.naming.ldap.factory.socket", "javax.net.ssl.SSLSocketFactory");/* JAVJAK */
 			Class clazz = ClassUtil.loadClass("com.sun.net.ssl.internal.ssl.Provider");
 
 			try {

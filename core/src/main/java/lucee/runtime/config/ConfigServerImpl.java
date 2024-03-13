@@ -478,8 +478,7 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 	@Override
 	public Resource getSecurityDirectory() {
 		Resource cacerts = null;
-		// javax.net.ssl.trustStore
-		String trustStore = SystemUtil.getPropertyEL("javax.net.ssl.trustStore");
+		String trustStore = SystemUtil.getPropertyEL("javax.net.ssl.trustStore");/* JAVJAK */
 		if (trustStore != null) {
 			cacerts = ResourcesImpl.getFileResourceProvider().getResource(trustStore);
 		}

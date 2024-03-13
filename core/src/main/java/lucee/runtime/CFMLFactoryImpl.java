@@ -149,7 +149,7 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 
 	@Override
 	public javax.servlet.jsp.PageContext getPageContext(Servlet servlet, ServletRequest req, ServletResponse rsp, String errorPageURL, boolean needsSession, int bufferSize,
-			boolean autoflush) {
+			boolean autoflush) {/* JAVJAK */
 		return getPageContextImpl((HttpServlet) servlet, (HttpServletRequest) req, (HttpServletResponse) rsp, errorPageURL, needsSession, bufferSize, autoflush, true, false, -1,
 				true, false, false, null);
 	}
@@ -249,7 +249,7 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 	}
 
 	@Override
-	public void releasePageContext(javax.servlet.jsp.PageContext pc) {
+	public void releasePageContext(javax.servlet.jsp.PageContext pc) {/* JAVJAK */
 		releaseLuceePageContext((PageContext) pc, true);
 	}
 

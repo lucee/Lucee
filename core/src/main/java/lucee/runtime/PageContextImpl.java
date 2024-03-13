@@ -2052,18 +2052,18 @@ public final class PageContextImpl extends PageContext {
 	@Override
 	public void setAttribute(String name, Object value, int scope) {
 		switch (scope) {
-		case javax.servlet.jsp.PageContext.APPLICATION_SCOPE:
+		case PageContext.APPLICATION_SCOPE:
 			if (value == null) getServletContext().removeAttribute(name);
 			else getServletContext().setAttribute(name, value);
 			break;
-		case javax.servlet.jsp.PageContext.PAGE_SCOPE:
+		case PageContext.PAGE_SCOPE:
 			setAttribute(name, value);
 			break;
-		case javax.servlet.jsp.PageContext.REQUEST_SCOPE:
+		case PageContext.REQUEST_SCOPE:
 			if (value == null) req.removeAttribute(name);
 			else setAttribute(name, value);
 			break;
-		case javax.servlet.jsp.PageContext.SESSION_SCOPE:
+		case PageContext.SESSION_SCOPE:
 			HttpSession s = req.getSession(true);
 			if (value == null) s.removeAttribute(name);
 			else s.setAttribute(name, value);
@@ -2084,13 +2084,13 @@ public final class PageContextImpl extends PageContext {
 	@Override
 	public Object getAttribute(String name, int scope) {
 		switch (scope) {
-		case javax.servlet.jsp.PageContext.APPLICATION_SCOPE:
+		case PageContext.APPLICATION_SCOPE:
 			return getServletContext().getAttribute(name);
-		case javax.servlet.jsp.PageContext.PAGE_SCOPE:
+		case PageContext.PAGE_SCOPE:
 			return getAttribute(name);
-		case javax.servlet.jsp.PageContext.REQUEST_SCOPE:
+		case PageContext.REQUEST_SCOPE:
 			return req.getAttribute(name);
-		case javax.servlet.jsp.PageContext.SESSION_SCOPE:
+		case PageContext.SESSION_SCOPE:
 			HttpSession s = req.getSession();
 			if (s != null) return s.getAttribute(name);
 			break;
@@ -2146,13 +2146,13 @@ public final class PageContextImpl extends PageContext {
 	public Enumeration<String> getAttributeNamesInScope(int scope) {
 
 		switch (scope) {
-		case javax.servlet.jsp.PageContext.APPLICATION_SCOPE:
+		case PageContext.APPLICATION_SCOPE:
 			return getServletContext().getAttributeNames();
-		case javax.servlet.jsp.PageContext.PAGE_SCOPE:
+		case PageContext.PAGE_SCOPE:
 			return ItAsEnum.toStringEnumeration(variablesScope().keyIterator());
-		case javax.servlet.jsp.PageContext.REQUEST_SCOPE:
+		case PageContext.REQUEST_SCOPE:
 			return req.getAttributeNames();
-		case javax.servlet.jsp.PageContext.SESSION_SCOPE:
+		case PageContext.SESSION_SCOPE:
 			return req.getSession(true).getAttributeNames();
 		}
 		return null;
@@ -2900,7 +2900,7 @@ public final class PageContextImpl extends PageContext {
 				Charset charset = getWebCharset();
 
 				// check if we have multiple cookies with the name "cfid" and another one is valid
-				javax.servlet.http.Cookie[] cookies = getHttpServletRequest().getCookies();
+				javax.servlet.http.Cookie[] cookies = getHttpServletRequest().getCookies();/* JAVJAK */
 				String name, value;
 				if (cookies != null) {
 					for (int i = 0; i < cookies.length; i++) {

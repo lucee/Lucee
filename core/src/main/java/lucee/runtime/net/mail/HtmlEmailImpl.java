@@ -80,7 +80,6 @@ public final class HtmlEmailImpl extends MultiPartEmail {
 	 *
 	 * @param aText A String.
 	 * @return An HtmlEmail.
-	 * @throws EmailException see javax.mail.internet.MimeBodyPart for definitions
 	 *
 	 */
 	public HtmlEmailImpl setTextMsg(String aText) throws EmailException {
@@ -96,7 +95,6 @@ public final class HtmlEmailImpl extends MultiPartEmail {
 	 *
 	 * @param aHtml A String.
 	 * @return An HtmlEmail.
-	 * @throws EmailException see javax.mail.internet.MimeBodyPart for definitions
 	 *
 	 */
 	public HtmlEmailImpl setHtmlMsg(String aHtml) throws EmailException {
@@ -117,7 +115,6 @@ public final class HtmlEmailImpl extends MultiPartEmail {
 	 *
 	 * @param msg A String.
 	 * @return An Email.
-	 * @throws EmailException see javax.mail.internet.MimeBodyPart for definitions
 	 *
 	 */
 	@Override
@@ -154,8 +151,7 @@ public final class HtmlEmailImpl extends MultiPartEmail {
 	 * @param url The URL of the file.
 	 * @param cid A String with the Content-ID of the file.
 	 * @param name The name that will be set in the filename header field.
-	 * @throws EmailException when URL supplied is invalid also see javax.mail.internet.MimeBodyPart for
-	 *             definitions
+	 * @throws EmailException when URL supplied is invalid
 	 *
 	 */
 	public void embed(URL url, String cid, String name) throws EmailException {

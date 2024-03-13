@@ -192,7 +192,6 @@ public final class ReqRspUtil {
 	}
 
 	public static String getQueryString(HttpServletRequest req) {
-		// String qs = req.getAttribute("javax.servlet.include.query_string");
 		return req.getQueryString();
 	}
 
@@ -622,7 +621,7 @@ public final class ReqRspUtil {
 	}
 
 	public static void removeCookie(HttpServletResponse rsp, String name) {
-		javax.servlet.http.Cookie cookie = new javax.servlet.http.Cookie(name, "");
+		Cookie cookie = new Cookie(name, "");
 		cookie.setMaxAge(0);
 		cookie.setSecure(false);
 		cookie.setPath("/");

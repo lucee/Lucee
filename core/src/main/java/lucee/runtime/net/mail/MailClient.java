@@ -318,7 +318,7 @@ public abstract class MailClient implements PoolItem {
 			amessage[i++] = map.get(iterator.next());
 		}
 		try {
-			folder.setFlags(amessage, new Flags(javax.mail.Flags.Flag.DELETED), true);
+			folder.setFlags(amessage, new Flags(Flags.Flag.DELETED), true);
 		}
 		finally {
 			folder.close(true);
@@ -857,7 +857,7 @@ public abstract class MailClient implements PoolItem {
 				amessage[i++] = map.get(iterator.next());
 			}
 			srcFolder.copyMessages(amessage, trgFolder);
-			srcFolder.setFlags(amessage, new Flags(javax.mail.Flags.Flag.DELETED), true);
+			srcFolder.setFlags(amessage, new Flags(Flags.Flag.DELETED), true);
 		}
 		finally {
 			srcFolder.close(true);
