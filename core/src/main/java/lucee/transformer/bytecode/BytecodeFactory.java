@@ -17,6 +17,9 @@
  */
 package lucee.transformer.bytecode;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.Method;
@@ -79,10 +82,20 @@ public class BytecodeFactory extends FactoryBase {
 
 	private static final Type KEY_CONSTANTS = Type.getType(KeyConstants.class);
 
-	private static BytecodeFactory instance;
+	private static Map<String, BytecodeFactory> instances = new ConcurrentHashMap<>();
 
 	public static Factory getInstance(Config config) {
-		if (instance == null) instance = new BytecodeFactory(config == null ? ThreadLocalPageContext.getConfig() : config);
+		if (config == null) config = ThreadLocalPageContext.getConfig();
+		String key = config.hashCode() + ":" + config.getIdentification().getId();
+		BytecodeFactory instance = instances.get(key);
+		if (instance == null) {
+			synchronized (instances) {
+				instance = instances.get(key);
+				if (instance == null) {
+					instances.put(key, instance = new BytecodeFactory(config));
+				}
+			}
+		}
 		return instance;
 	}
 
