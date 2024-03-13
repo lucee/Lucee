@@ -38,6 +38,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 
 		try {
 			application action="update" searchResults=false;
+			var as = getApplicationSettings();
+			expect( as.searchResults ).toBeFalse();
 			loop query="q" {
 				expect( isNull(a) ).toBeTrue();
 				expect( q.a ).toBe( 'query' );
@@ -47,6 +49,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 			}
 
 			application action="update" searchQueries=true;
+			var as = getApplicationSettings();
+			expect( as.searchResults ).toBeTrue();
 			loop query="q" {
 				expect( isNull( a ) ).toBeFalse();
 				expect( q.a ).toBe( 'query' );
