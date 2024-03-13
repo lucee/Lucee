@@ -34,6 +34,9 @@ this.sessionCookie.path = getAppFolderPath();  // the admin is always in a folde
 this.tag.cookie.sameSite = "strict";
 this.tag.cookie.path = getAppFolderPath();
 this.tag.cookie.httpOnly = true; // prevent access to session cookies from javascript
+this.searchImplicitScopes = false;
+this.searchResults = false;
+this.security.limitEvaluation = true;
 
 this.xmlFeatures = {
 	externalGeneralEntities: false,

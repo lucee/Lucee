@@ -1,4 +1,26 @@
 <cfscript>
+	q = queryNew("id");
+	queryAddRow(q);
+	querySetCell(q, "id", "ooops");
+	a = getapplicationsettings();
+	dump(a);
+	for (aa in a){
+		if (isSimpleValue(aa) && aa contains "search")
+			dump(var=a[aa], label=aa);
+	}
+	loop query="q" {
+		systemOutput("this should crash", true); 
+		systemOutput(id, true); //unscoped, as this.searchResults = false;
+		echo(id);
+	}
+
+	//echo(cgi.remote_Address);
+	//	echo(remote_Address); // unscoped should crash
+
+	url.test =1;
+	//echo(test); // unscoped should crash
+</cfscript>
+<cfscript>
 
 	request.singleMode=getApplicationSettings().singleContext;
 	
