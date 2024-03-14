@@ -41,7 +41,6 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.jsp.JspApplicationContext;
 import javax.servlet.jsp.JspEngineInfo;
 
-import lucee.cli.servlet.HTTPServletImpl;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
@@ -74,6 +73,7 @@ import lucee.runtime.type.scope.ScopeContext;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.ListUtil;
+import lucee.servlet.http.HTTPServletImpl;
 
 /**
  * implements a JSP Factory, this class produces JSP compatible PageContext objects, as well as the

@@ -66,7 +66,6 @@ import org.osgi.framework.Constants;
 import org.osgi.framework.Version;
 
 import lucee.Info;
-import lucee.cli.servlet.HTTPServletImpl;
 import lucee.cli.servlet.ServletContextImpl;
 import lucee.commons.collection.MapFactory;
 import lucee.commons.io.CharsetUtil;
@@ -183,6 +182,7 @@ import lucee.runtime.util.ZipUtil;
 import lucee.runtime.util.ZipUtilImpl;
 import lucee.runtime.video.VideoUtil;
 import lucee.runtime.video.VideoUtilImpl;
+import lucee.servlet.http.HTTPServletImpl;
 
 /**
  * The CFMl Engine
