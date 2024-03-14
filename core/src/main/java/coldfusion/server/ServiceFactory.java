@@ -73,10 +73,6 @@ public class ServiceFactory {
 		throw missingService("XmlRpcService");
 	}
 
-	public static final GraphingService getGraphingService() throws ServiceException {
-		throw missingService("GraphingService");
-	}
-
 	public static final ArchiveDeployService getArchiveDeployService() throws ServiceException {
 		throw missingService("ArchiveDeployService");
 	}
@@ -151,10 +147,6 @@ public class ServiceFactory {
 	}
 
 	public static final void setXmlRpcService(XmlRpcService service) {
-
-	}
-
-	public static final void setGraphingService(GraphingService service) {
 
 	}
 
