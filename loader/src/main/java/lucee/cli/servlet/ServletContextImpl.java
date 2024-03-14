@@ -61,82 +61,52 @@ public class ServletContextImpl implements ServletContext {
 		this.minorVersion = minorVersion;
 	}
 
-	/**
-	 * @see javax.servlet.ServletContext#getAttribute(java.lang.String)
-	 */
 	@Override
 	public Object getAttribute(final String key) {
 		return attributes.get(key);
 	}
 
-	/**
-	 * @see javax.servlet.ServletContext#getAttributeNames()
-	 */
 	@Override
 	public Enumeration<String> getAttributeNames() {
 		return new EnumerationWrapper<String>(attributes);
 	}
 
-	/**
-	 * @see javax.servlet.ServletContext#getInitParameter(java.lang.String)
-	 */
 	@Override
 	public String getInitParameter(final String key) {
 		return parameters.get(key);
 	}
 
-	/**
-	 * @see javax.servlet.ServletContext#getInitParameterNames()
-	 */
 	@Override
 	public Enumeration<String> getInitParameterNames() {
 		return new EnumerationWrapper<String>(parameters);
 	}
 
-	/**
-	 * @see javax.servlet.ServletContext#getMajorVersion()
-	 */
 	@Override
 	public int getMajorVersion() {
 		return majorVersion;
 	}
 
-	/**
-	 * @see javax.servlet.ServletContext#getMinorVersion()
-	 */
 	@Override
 	public int getMinorVersion() {
 		return minorVersion;
 	}
 
-	/**
-	 * @see javax.servlet.ServletContext#getMimeType(java.lang.String)
-	 */
 	@Override
 	public String getMimeType(final String file) {
 		throw notSupported("getMimeType(String file)");
 	}
 
-	/**
-	 * @see javax.servlet.ServletContext#getRealPath(java.lang.String)
-	 */
 	@Override
 	public String getRealPath(final String realpath) {
 		return getRealFile(realpath).getAbsolutePath();
 	}
 
-	/**
-	 * @see javax.servlet.ServletContext#getResource(java.lang.String)
-	 */
 	@Override
 	public URL getResource(final String realpath) throws MalformedURLException {
 		final File file = getRealFile(realpath);
 		return file.toURI().toURL();
 	}
 
-	/**
-	 * @see javax.servlet.ServletContext#getResourceAsStream(java.lang.String)
-	 */
 	@Override
 	public InputStream getResourceAsStream(final String realpath) {
 		try {
@@ -176,9 +146,6 @@ public class ServletContextImpl implements ServletContext {
 		throw notSupported("getNamedDispatcher(String name)");
 	}
 
-	/**
-	 * @see javax.servlet.ServletContext#log(java.lang.String, java.lang.Throwable)
-	 */
 	@Override
 	public void log(final String msg, final Throwable t) {// TODO better
 		if (logger == null) return;
@@ -187,33 +154,21 @@ public class ServletContextImpl implements ServletContext {
 		else logger.log(Logger.LOG_ERROR, msg, t);
 	}
 
-	/**
-	 * @see javax.servlet.ServletContext#log(java.lang.Exception, java.lang.String)
-	 */
 	@Override
 	public void log(final Exception e, final String msg) {
 		log(msg, e);
 	}
 
-	/**
-	 * @see javax.servlet.ServletContext#log(java.lang.String)
-	 */
 	@Override
 	public void log(final String msg) {
 		log(msg, null);
 	}
 
-	/**
-	 * @see javax.servlet.ServletContext#removeAttribute(java.lang.String)
-	 */
 	@Override
 	public void removeAttribute(final String key) {
 		attributes.remove(key);
 	}
 
-	/**
-	 * @see javax.servlet.ServletContext#setAttribute(java.lang.String, java.lang.Object)
-	 */
 	@Override
 	public void setAttribute(final String key, final Object value) {
 		attributes.put(key, value);
@@ -284,17 +239,17 @@ public class ServletContextImpl implements ServletContext {
 	}
 
 	@Override
-	public javax.servlet.ServletRegistration.Dynamic addServlet(final String arg0, final String arg1) {
+	public ServletRegistration.Dynamic addServlet(final String arg0, final String arg1) {
 		throw notSupported("");
 	}
 
 	@Override
-	public javax.servlet.ServletRegistration.Dynamic addServlet(final String arg0, final Servlet arg1) {
+	public ServletRegistration.Dynamic addServlet(final String arg0, final Servlet arg1) {
 		throw notSupported("");
 	}
 
 	@Override
-	public javax.servlet.ServletRegistration.Dynamic addServlet(final String arg0, final Class<? extends Servlet> arg1) {
+	public ServletRegistration.Dynamic addServlet(final String arg0, final Class<? extends Servlet> arg1) {
 		throw notSupported("addServlet");
 	}
 
@@ -404,30 +359,37 @@ public class ServletContextImpl implements ServletContext {
 	}
 
 	/* noop impl for abstract methods added in Servlet 4.0 */
+	@Override
 	public ServletRegistration.Dynamic addJspFile(String s, String s1) {
 		return null;
 	}
 
+	@Override
 	public int getSessionTimeout() {
 		return 0;
 	}
 
+	@Override
 	public void setSessionTimeout(int i) {
 
 	}
 
+	@Override
 	public String getRequestCharacterEncoding() {
 		return null;
 	}
 
+	@Override
 	public void setRequestCharacterEncoding(String s) {
 
 	}
 
+	@Override
 	public String getResponseCharacterEncoding() {
 		return null;
 	}
 
+	@Override
 	public void setResponseCharacterEncoding(String s) {
 
 	}
