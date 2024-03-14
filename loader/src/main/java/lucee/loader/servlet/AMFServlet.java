@@ -33,9 +33,6 @@ public class AMFServlet extends AbsServlet {
 
 	private static final long serialVersionUID = 2545934355390532318L;
 
-	/**
-	 * @see javax.servlet.Servlet#init(javax.servlet.ServletConfig)
-	 */
 	@Override
 	public void init(final ServletConfig sg) throws ServletException {
 		super.init(sg);
@@ -43,10 +40,6 @@ public class AMFServlet extends AbsServlet {
 		// values
 	}
 
-	/**
-	 * @see javax.servlet.http.HttpServlet#service(javax.servlet.http.HttpServletRequest,
-	 *      javax.servlet.http.HttpServletResponse)
-	 */
 	@Override
 	protected void service(final HttpServletRequest req, final HttpServletResponse rsp) throws ServletException, IOException {
 		if (engine == null) engine = CFMLEngineFactory.getInstance(getServletConfig(), this);
