@@ -18,9 +18,9 @@
  **/
 package lucee.cli.servlet;
 
-import javax.servlet.ServletConfig;
-import javax.servlet.ServletContext;
-import javax.servlet.http.HttpServlet;
+import /* JAVJAK */ javax.servlet.ServletConfig;
+import /* JAVJAK */ javax.servlet.ServletContext;
+import /* JAVJAK */ javax.servlet.http.HttpServlet;
 
 public class HTTPServletImpl extends HttpServlet {
 	private static final long serialVersionUID = 3270816399105433603L;

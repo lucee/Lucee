@@ -18,7 +18,7 @@
  */
 package lucee.runtime.exp;
 
-import javax.servlet.ServletException;
+import /* JAVJAK */ javax.servlet.ServletException;
 
 import lucee.runtime.PageContext;
 import lucee.runtime.PageSource;

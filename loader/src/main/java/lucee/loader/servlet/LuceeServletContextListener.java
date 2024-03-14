@@ -3,11 +3,11 @@ package lucee.loader.servlet;
 import java.util.Enumeration;
 import java.util.HashSet;
 
-import javax.servlet.ServletConfig;
-import javax.servlet.ServletContext;
-import javax.servlet.ServletContextEvent;
-import javax.servlet.ServletContextListener;
-import javax.servlet.annotation.WebListener;
+import /* JAVJAK */ javax.servlet.ServletConfig;
+import /* JAVJAK */ javax.servlet.ServletContext;
+import /* JAVJAK */ javax.servlet.ServletContextEvent;
+import /* JAVJAK */ javax.servlet.ServletContextListener;
+import /* JAVJAK */ javax.servlet.annotation.WebListener;
 
 import lucee.cli.util.EnumerationWrapper;
 import lucee.loader.engine.CFMLEngine;

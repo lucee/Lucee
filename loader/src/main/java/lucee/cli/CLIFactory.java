@@ -30,7 +30,7 @@ import java.rmi.server.RemoteServer;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.Map;
 
-import javax.servlet.ServletException;
+import /* JAVJAK */ javax.servlet.ServletException;
 
 //import lucee.cli.servlet.ServletConfigImpl;
 //import lucee.cli.servlet.ServletContextImpl;

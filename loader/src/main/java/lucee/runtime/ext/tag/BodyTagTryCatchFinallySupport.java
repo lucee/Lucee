@@ -18,7 +18,7 @@
  **/
 package lucee.runtime.ext.tag;
 
-import javax.servlet.jsp.tagext.TryCatchFinally;
+import /* JAVJAK */ javax.servlet.jsp.tagext.TryCatchFinally;
 
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.runtime.exp.PageServletException;

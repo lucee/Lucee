@@ -1,6 +1,6 @@
 package lucee.runtime.servlet.jsp;
 
-import javax.servlet.jsp.tagext.Tag;
+import /* JAVJAK */ javax.servlet.jsp.tagext.Tag;
 
 public interface TagPro extends Tag {
 

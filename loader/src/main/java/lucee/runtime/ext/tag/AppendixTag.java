@@ -18,7 +18,7 @@
  **/
 package lucee.runtime.ext.tag;
 
-import javax.servlet.jsp.tagext.Tag;
+import /* JAVJAK */ javax.servlet.jsp.tagext.Tag;
 
 /**
  * for tag with appendix like cfx or customtags

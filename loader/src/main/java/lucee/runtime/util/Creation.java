@@ -23,10 +23,10 @@ import java.io.OutputStream;
 import java.io.Serializable;
 import java.util.Map;
 
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
+import /* JAVJAK */ javax.servlet.http.Cookie;
+import /* JAVJAK */ javax.servlet.http.HttpServletRequest;
+import /* JAVJAK */ javax.servlet.http.HttpServletResponse;
+import /* JAVJAK */ javax.servlet.http.HttpSession;
 
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.types.RefBoolean;

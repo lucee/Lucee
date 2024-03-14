@@ -20,8 +20,8 @@ package lucee.cli.servlet;
 
 import java.util.Enumeration;
 
-import javax.servlet.ServletConfig;
-import javax.servlet.ServletContext;
+import /* JAVJAK */ javax.servlet.ServletConfig;
+import /* JAVJAK */ javax.servlet.ServletContext;
 
 public class ServletConfigImpl implements ServletConfig {
 

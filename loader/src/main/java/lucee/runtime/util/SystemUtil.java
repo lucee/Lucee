@@ -22,7 +22,7 @@ import java.io.PrintWriter;
 import java.net.URL;
 import java.nio.charset.Charset;
 
-import javax.servlet.ServletContext;
+import /* JAVJAK */ javax.servlet.ServletContext;
 
 import org.osgi.framework.Bundle;
 

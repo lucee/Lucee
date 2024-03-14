@@ -29,17 +29,17 @@ import java.util.EventListener;
 import java.util.Map;
 import java.util.Set;
 
-import javax.servlet.Filter;
-import javax.servlet.FilterRegistration;
-import javax.servlet.FilterRegistration.Dynamic;
-import javax.servlet.RequestDispatcher;
-import javax.servlet.Servlet;
-import javax.servlet.ServletContext;
-import javax.servlet.ServletException;
-import javax.servlet.ServletRegistration;
-import javax.servlet.SessionCookieConfig;
-import javax.servlet.SessionTrackingMode;
-import javax.servlet.descriptor.JspConfigDescriptor;
+import /* JAVJAK */ javax.servlet.Filter;
+import /* JAVJAK */ javax.servlet.FilterRegistration;
+import /* JAVJAK */ javax.servlet.FilterRegistration.Dynamic;
+import /* JAVJAK */ javax.servlet.RequestDispatcher;
+import /* JAVJAK */ javax.servlet.Servlet;
+import /* JAVJAK */ javax.servlet.ServletContext;
+import /* JAVJAK */ javax.servlet.ServletException;
+import /* JAVJAK */ javax.servlet.ServletRegistration;
+import /* JAVJAK */ javax.servlet.SessionCookieConfig;
+import /* JAVJAK */ javax.servlet.SessionTrackingMode;
+import /* JAVJAK */ javax.servlet.descriptor.JspConfigDescriptor;
 
 import org.apache.felix.framework.Logger;
 
