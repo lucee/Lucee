@@ -70,10 +70,10 @@ import lucee.runtime.text.xml.XMLCaster;
 import lucee.runtime.text.xml.XMLUtil;
 import lucee.runtime.type.UDF;
 import lucee.runtime.type.util.CollectionUtil;
+import lucee.servlet.ServletContants;
 
 public final class ReqRspUtil {
 
-	private static final Cookie[] EMPTY = new Cookie[0];
 	private static Map<String, String> rootPathes = new ReferenceMap<String, String>(HARD, SOFT);
 
 	public static String get(Pair<String, Object>[] items, String name) {
@@ -175,7 +175,7 @@ public final class ReqRspUtil {
 			}
 		}
 
-		if (cookies == null) return EMPTY;
+		if (cookies == null) return ServletContants.COOKIES0;
 
 		return cookies;
 	}

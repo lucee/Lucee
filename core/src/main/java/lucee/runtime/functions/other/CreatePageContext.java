@@ -43,6 +43,7 @@ import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.util.CollectionUtil;
+import lucee.servlet.ServletContants;
 
 public final class CreatePageContext implements Function {
 
@@ -98,7 +99,7 @@ public final class CreatePageContext implements Function {
 	}
 
 	public static Cookie[] toCookies(Struct sct) throws PageException {
-		if (sct == null) return new Cookie[0];
+		if (sct == null) return ServletContants.COOKIES0;
 		Iterator<Entry<Key, Object>> it = sct.entryIterator();
 		Entry<Key, Object> e;
 		List<Cookie> cookies = new ArrayList<Cookie>();

@@ -77,6 +77,7 @@ import lucee.runtime.type.scope.util.ScopeUtil;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.ListUtil;
 import lucee.runtime.util.EnumerationWrapper;
+import lucee.servlet.ServletContants;
 
 /**
  * extends an existing {@link HttpServletRequest} with the possibility to reread the input as many
@@ -411,7 +412,7 @@ public final class HTTPServletRequestWrap implements HttpServletRequest, Seriali
 				for (int i = 0; i < _cookies.length; i++)
 					disconnectData.cookies[i] = _cookies[i];
 			}
-			else disconnectData.cookies = new Cookie[0];
+			else disconnectData.cookies = ServletContants.COOKIES0;
 		}
 
 		disconnectData.authType = req.getAuthType();

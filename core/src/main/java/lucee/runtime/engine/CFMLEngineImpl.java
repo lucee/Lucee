@@ -182,6 +182,7 @@ import lucee.runtime.util.ZipUtil;
 import lucee.runtime.util.ZipUtilImpl;
 import lucee.runtime.video.VideoUtil;
 import lucee.runtime.video.VideoUtilImpl;
+import lucee.servlet.ServletContants;
 import lucee.servlet.http.HTTPServletImpl;
 
 /**
@@ -1618,7 +1619,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 		// cookie
 		Cookie[] cookies;
 		String strCookie = config.get("cookie");
-		if (StringUtil.isEmpty(strCookie, true)) cookies = new Cookie[0];
+		if (StringUtil.isEmpty(strCookie, true)) cookies = ServletContants.COOKIES0;
 		else {
 			Map<String, String> mapCookies = HTTPUtil.parseParameterList(strCookie, false, null);
 			int index = 0;
@@ -1863,8 +1864,8 @@ public final class CFMLEngineImpl implements CFMLEngine {
 					Struct attrs = new StructImpl();
 					attrs.setEL(KeyConstants._client, "lucee-listener-1-0");
 
-					pc = ThreadUtil.createPageContext((ConfigWeb) config, DevNullOutputStream.DEV_NULL_OUTPUT_STREAM, "localhost", requestURI, queryString, new Cookie[0], headers,
-							null, new Pair[0], attrs, true, Long.MAX_VALUE);
+					pc = ThreadUtil.createPageContext((ConfigWeb) config, DevNullOutputStream.DEV_NULL_OUTPUT_STREAM, "localhost", requestURI, queryString,
+							ServletContants.COOKIES0, headers, null, new Pair[0], attrs, true, Long.MAX_VALUE);
 				}
 				else {
 					Map<String, Object> headers = new HashMap<String, Object>();
@@ -1875,7 +1876,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 					File root = new File(config.getRootDirectory().getAbsolutePath());
 					CreationImpl cr = (CreationImpl) CreationImpl.getInstance(engine);
 					ServletConfig sc = cr.createServletConfig(root, null, null);
-					pc = PageContextUtil.getPageContext(config, sc, root, "localhost", requestURI, queryString, new Cookie[0], headers, null, attrs,
+					pc = PageContextUtil.getPageContext(config, sc, root, "localhost", requestURI, queryString, ServletContants.COOKIES0, headers, null, attrs,
 							DevNullOutputStream.DEV_NULL_OUTPUT_STREAM, true, Long.MAX_VALUE,
 							Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.ignore.scopes", null), false));
 				}

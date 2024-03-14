@@ -26,7 +26,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import javax.servlet.http.Cookie;
 import javax.servlet.jsp.tagext.Tag;
 
 import org.osgi.framework.BundleException;
@@ -65,6 +64,7 @@ import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.KeyConstants;
+import lucee.servlet.ServletContants;
 import lucee.transformer.library.tag.TagLib;
 import lucee.transformer.library.tag.TagLibTag;
 import lucee.transformer.library.tag.TagLibTagAttr;
@@ -237,8 +237,8 @@ public class TagUtil {
 
 		PageContextImpl pc = null;
 		try {
-			pc = ThreadUtil.createPageContext(cw, DevNullOutputStream.DEV_NULL_OUTPUT_STREAM, "localhost", "/", "", new Cookie[0], new Pair[0], null, new Pair[0], new StructImpl(),
-					false, -1);
+			pc = ThreadUtil.createPageContext(cw, DevNullOutputStream.DEV_NULL_OUTPUT_STREAM, "localhost", "/", "", ServletContants.COOKIES0, new Pair[0], null, new Pair[0],
+					new StructImpl(), false, -1);
 
 		}
 		catch (Throwable t) {

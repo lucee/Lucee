@@ -23,6 +23,7 @@ import java.io.Serializable;
 import javax.servlet.http.Cookie;
 
 import lucee.runtime.type.scope.CookieImpl;
+import lucee.servlet.ServletContants;
 
 public class SerializableCookie implements Serializable {
 
@@ -39,7 +40,8 @@ public class SerializableCookie implements Serializable {
 	private boolean httpOnly;
 	private boolean partitioned;
 
-	public SerializableCookie(String comment, String domain, int maxAge, String name, String path, boolean secure, String value, int version, boolean httpOnly, boolean partitioned) {
+	public SerializableCookie(String comment, String domain, int maxAge, String name, String path, boolean secure, String value, int version, boolean httpOnly,
+			boolean partitioned) {
 		this.comment = comment;
 		this.domain = domain;
 		this.maxAge = maxAge;
@@ -155,7 +157,7 @@ public class SerializableCookie implements Serializable {
 	}
 
 	public static Cookie[] toCookies(SerializableCookie[] src) {
-		if (src == null) return new Cookie[0];
+		if (src == null) return ServletContants.COOKIES0;
 		Cookie[] dest = new Cookie[src.length];
 		for (int i = 0; i < src.length; i++) {
 			dest[i] = src[i].toCookie();

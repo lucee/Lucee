@@ -36,7 +36,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 
 import lucee.commons.collection.MapFactory;
@@ -114,6 +113,7 @@ import lucee.runtime.type.util.PropertyFactory;
 import lucee.runtime.type.util.StructSupport;
 import lucee.runtime.type.util.StructUtil;
 import lucee.runtime.type.util.UDFUtil;
+import lucee.servlet.ServletContants;
 
 /**
  * %**% MUST add handling for new attributes (style, namespace, serviceportname, porttypename,
@@ -2230,8 +2230,8 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 				pcCreated = true;
 				ConfigWeb config = (ConfigWeb) ThreadLocalPageContext.getConfig();
 				Pair[] parr = new Pair[0];
-				pc = ThreadUtil.createPageContext(config, DevNullOutputStream.DEV_NULL_OUTPUT_STREAM, "localhost", "/", "", new Cookie[0], parr, null, parr, new StructImpl(), true,
-						-1);
+				pc = ThreadUtil.createPageContext(config, DevNullOutputStream.DEV_NULL_OUTPUT_STREAM, "localhost", "/", "", ServletContants.COOKIES0, parr, null, parr,
+						new StructImpl(), true, -1);
 
 			}
 
