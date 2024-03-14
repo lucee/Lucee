@@ -190,7 +190,7 @@ public final class Loop extends EvaluatorSupport {
 				transformer = tagLib.getExprTransfomer();
 				Page page = ASMUtil.getAncestorPage(null, tag);
 				ConfigPro config = (ConfigPro) page.getConfig();
-				Data data = new Data(BytecodeFactory.getInstance(config), page, new SourceCode(null, text, false), new EvaluatorPool(),
+				Data data = new Data(BytecodeFactory.getInstance(config), config, page, new SourceCode(null, text, false), new EvaluatorPool(),
 						new TransfomerSettings(config.getDotNotationUpperCase(), config.getHandleUnQuotedAttrValueAsString(), page.ignoreScopes), null, flibs,
 						config.getCoreTagLib().getScriptTags(), false);
 				Expression expr = transformer.transform(data);
