@@ -63,6 +63,7 @@ import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageServletException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.date.DateCaster;
+import lucee.runtime.thread.SerializableCookie;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.KeyImpl;
@@ -77,7 +78,6 @@ import lucee.runtime.type.scope.util.ScopeUtil;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.ListUtil;
 import lucee.runtime.util.EnumerationWrapper;
-import lucee.servlet.ServletContants;
 
 /**
  * extends an existing {@link HttpServletRequest} with the possibility to reread the input as many
@@ -412,7 +412,7 @@ public final class HTTPServletRequestWrap implements HttpServletRequest, Seriali
 				for (int i = 0; i < _cookies.length; i++)
 					disconnectData.cookies[i] = _cookies[i];
 			}
-			else disconnectData.cookies = ServletContants.COOKIES0;
+			else disconnectData.cookies = SerializableCookie.COOKIES0;
 		}
 
 		disconnectData.authType = req.getAuthType();

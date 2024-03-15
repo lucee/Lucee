@@ -33,15 +33,15 @@ import lucee.commons.io.DevNullOutputStream;
 import lucee.commons.lang.Pair;
 import lucee.commons.net.URLEncoder;
 import lucee.runtime.op.Caster;
+import lucee.runtime.thread.SerializableCookie;
 import lucee.runtime.type.dt.DateTimeImpl;
-import lucee.servlet.ServletContants;
 
 /**
  * 
  */
 public final class HttpServletResponseWrap extends HttpServletResponseWrapper implements HttpServletResponse, Serializable {
 
-	private Cookie[] cookies = ServletContants.COOKIES0;
+	private Cookie[] cookies = SerializableCookie.COOKIES0;
 	private Pair[] headers = new Pair[0];
 	private int status = 200;
 	private String statusCode = "OK";

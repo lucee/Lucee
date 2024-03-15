@@ -24,8 +24,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
 
-import javax.servlet.http.Cookie;
-
 import lucee.commons.io.DevNullOutputStream;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
@@ -60,6 +58,7 @@ import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 import lucee.runtime.op.Duplicator;
 import lucee.runtime.orm.ORMUtil;
+import lucee.runtime.thread.SerializableCookie;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.Collection;
@@ -374,7 +373,7 @@ public class ModernAppListener extends AppListenerSupport {
 
 		// Request
 		HttpServletRequestDummy req = new HttpServletRequestDummy(root, "localhost", path, "", null, null, null, null, null, null);
-		if (!StringUtil.isEmpty(cfid)) req.setCookies(new Cookie[] { new Cookie("cfid", cfid), new Cookie("cftoken", "0") });
+		if (!StringUtil.isEmpty(cfid)) req.setCookies(SerializableCookie.toCookies(SerializableCookie.toCookie("cfid", cfid), SerializableCookie.toCookie("cftoken", "0")));
 
 		// Response
 		OutputStream os = DevNullOutputStream.DEV_NULL_OUTPUT_STREAM;

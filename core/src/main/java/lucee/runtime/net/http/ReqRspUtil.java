@@ -68,9 +68,9 @@ import lucee.runtime.op.Caster;
 import lucee.runtime.security.ScriptProtect;
 import lucee.runtime.text.xml.XMLCaster;
 import lucee.runtime.text.xml.XMLUtil;
+import lucee.runtime.thread.SerializableCookie;
 import lucee.runtime.type.UDF;
 import lucee.runtime.type.util.CollectionUtil;
-import lucee.servlet.ServletContants;
 
 public final class ReqRspUtil {
 
@@ -175,7 +175,7 @@ public final class ReqRspUtil {
 			}
 		}
 
-		if (cookies == null) return ServletContants.COOKIES0;
+		if (cookies == null) return SerializableCookie.COOKIES0;
 
 		return cookies;
 	}

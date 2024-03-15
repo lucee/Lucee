@@ -6,10 +6,10 @@ import javax.servlet.http.HttpServletRequest;
 
 import lucee.commons.io.DevNullOutputStream;
 import lucee.commons.lang.Pair;
-import lucee.runtime.listener.ApplicationContext;
 import lucee.runtime.PageContext;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.engine.ThreadLocalPageContext;
+import lucee.runtime.listener.ApplicationContext;
 import lucee.runtime.net.http.HttpUtil;
 import lucee.runtime.net.http.ReqRspUtil;
 import lucee.runtime.thread.SerializableCookie;
@@ -43,7 +43,7 @@ public class CallableUDF implements Callable<Object> {
 		headers = HttpUtil.cloneHeaders(req);
 		attributes = HttpUtil.getAttributesAsStruct(req);
 		requestTimeout = parent.getRequestTimeout();
-		
+
 		// ApplicationContext
 		ac = parent.getApplicationContext();
 
@@ -60,7 +60,7 @@ public class CallableUDF implements Callable<Object> {
 		DevNullOutputStream os = DevNullOutputStream.DEV_NULL_OUTPUT_STREAM;
 		pc = ThreadUtil.createPageContext(cw, os, serverName, requestURI, queryString, SerializableCookie.toCookies(cookies), headers, null, parameters, attributes, true, -1);
 		pc.setRequestTimeout(requestTimeout);
-		
+
 		pc.setApplicationContext(ac);
 
 		try {

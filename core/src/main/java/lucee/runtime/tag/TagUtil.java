@@ -56,6 +56,7 @@ import lucee.runtime.listener.JavaSettingsImpl;
 import lucee.runtime.op.Caster;
 import lucee.runtime.reflection.Reflector;
 import lucee.runtime.reflection.pairs.MethodInstance;
+import lucee.runtime.thread.SerializableCookie;
 import lucee.runtime.thread.ThreadUtil;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.Collection.Key;
@@ -64,7 +65,6 @@ import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.KeyConstants;
-import lucee.servlet.ServletContants;
 import lucee.transformer.library.tag.TagLib;
 import lucee.transformer.library.tag.TagLibTag;
 import lucee.transformer.library.tag.TagLibTagAttr;
@@ -237,7 +237,7 @@ public class TagUtil {
 
 		PageContextImpl pc = null;
 		try {
-			pc = ThreadUtil.createPageContext(cw, DevNullOutputStream.DEV_NULL_OUTPUT_STREAM, "localhost", "/", "", ServletContants.COOKIES0, new Pair[0], null, new Pair[0],
+			pc = ThreadUtil.createPageContext(cw, DevNullOutputStream.DEV_NULL_OUTPUT_STREAM, "localhost", "/", "", SerializableCookie.COOKIES0, new Pair[0], null, new Pair[0],
 					new StructImpl(), false, -1);
 
 		}

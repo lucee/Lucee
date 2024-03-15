@@ -30,8 +30,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
-import javax.servlet.http.HttpServletResponse;
-
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.SystemUtil.TemplateLine;
 import lucee.commons.io.res.util.ResourceSnippet;
@@ -788,9 +786,8 @@ public final class DebuggerImpl implements Debugger {
 		//////////////////////////////////////////
 		if (threadName != null) debugging.setEL(KeyConstants._threadName, threadName);
 
-		HttpServletResponse rsp = pc.getHttpServletResponse();
-		debugging.setEL(KeyConstants._statusCode, rsp.getStatus());
-		debugging.setEL(KeyConstants._contentType, rsp.getContentType());
+		debugging.setEL(KeyConstants._statusCode, pc.getHttpServletResponse().getStatus());
+		debugging.setEL(KeyConstants._contentType, pc.getHttpServletResponse().getContentType());
 		// TODO ContentLength ReqRspUtil?
 
 		debugging.setEL(KeyConstants._starttime, new DateTimeImpl(starttime, false));

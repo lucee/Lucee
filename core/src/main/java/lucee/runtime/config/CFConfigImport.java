@@ -32,6 +32,7 @@ import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.interpreter.JSONExpressionInterpreter;
 import lucee.runtime.op.Caster;
+import lucee.runtime.thread.SerializableCookie;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.Collection.Key;
@@ -39,7 +40,6 @@ import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.util.Cast;
 import lucee.runtime.util.PageContextUtil;
-import lucee.servlet.ServletContants;
 
 public class CFConfigImport {
 
@@ -120,7 +120,7 @@ public class CFConfigImport {
 		try {
 			if (pc == null) {
 
-				pc = PageContextUtil.getPageContext(config, null, (File) SystemUtil.getTempDirectory(), "localhost", "/", "", ServletContants.COOKIES0, null, null, null,
+				pc = PageContextUtil.getPageContext(config, null, (File) SystemUtil.getTempDirectory(), "localhost", "/", "", SerializableCookie.COOKIES0, null, null, null,
 						DevNullOutputStream.DEV_NULL_OUTPUT_STREAM, true, 100000, false);
 				unregister = true;
 
