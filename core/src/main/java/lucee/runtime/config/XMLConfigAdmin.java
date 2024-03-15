@@ -1700,8 +1700,8 @@ public final class XMLConfigAdmin {
 		if (!StringUtil.isEmpty(id)) el.setAttribute("id", id);
 		else if (el.hasAttribute("id")) el.removeAttribute("id");
 
-		if (username.length() > 0) el.setAttribute("username", username);
-		if (password.length() > 0) el.setAttribute("password", ConfigWebUtil.encrypt(password));
+		if (!StringUtil.isEmpty(username)) el.setAttribute("username", username);
+		if (!StringUtil.isEmpty(password)) el.setAttribute("password", ConfigWebUtil.encrypt(password));
 
 		el.setAttribute("host", host);
 		if (!StringUtil.isEmpty(timezone)) el.setAttribute("timezone", timezone);
