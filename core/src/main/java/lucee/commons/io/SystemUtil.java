@@ -104,6 +104,7 @@ import lucee.runtime.op.Caster;
 import lucee.runtime.op.OpUtil;
 import lucee.runtime.op.date.DateCaster;
 import lucee.runtime.osgi.OSGiUtil;
+import lucee.runtime.reflection.Reflector;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.KeyImpl;
@@ -705,7 +706,9 @@ public final class SystemUtil {
 
 	public static void resumeEL(Thread t) {
 		try {
-			t.resume();
+			Reflector.callMethod(t, "resume", EMPTY_OBJ);
+			// t.resume(); // Java 23 no longer support this, so we use reflection that will still can compile
+			// it
 		}
 		catch (Exception e) {
 		}
@@ -713,7 +716,10 @@ public final class SystemUtil {
 
 	public static void suspendEL(Thread t) {
 		try {
-			t.suspend();
+			Reflector.callMethod(t, "suspend", EMPTY_OBJ);
+			// t.suspend();// Java 23 no longer support this, so we use reflection that will still can compile
+			// it
+
 		}
 		catch (Exception e) {
 		}
