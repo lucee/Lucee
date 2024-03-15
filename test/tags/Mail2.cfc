@@ -231,6 +231,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mail" {
 					var subject="öäüéàè€";
 					var filename="Das ist ein sehr langer sehr langer sehr langer sehr
 					langer Filename mit ä Ä ü Ü ß und Ös und andere Leerzeichen.txt";
+					if ( server.os.name contains "windows" )
+						filename = ReReplace( filename,"\s", " ", "all" ); // Windows doesn't allow new lines etc in filenames
 					var curr=getDirectoryFromPath(getCurrentTemplatePath());
 					var file=curr&filename;
 					fileWrite(file, subject);
