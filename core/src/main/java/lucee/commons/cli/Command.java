@@ -166,7 +166,7 @@ public class Command {
 
 		String tmp = sb.toString();
 		tmp = tmp.trim();
-		if (tmp.length() > 0) list.add(tmp);
+		if (!StringUtil.isEmpty(tmp)) list.add(tmp);
 		sb.delete(0, sb.length());
 	}
 }

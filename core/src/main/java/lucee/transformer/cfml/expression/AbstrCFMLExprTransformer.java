@@ -23,6 +23,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import lucee.commons.lang.ExceptionUtil;
+import lucee.commons.lang.StringUtil;
 import lucee.runtime.Component;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageRuntimeException;
@@ -1126,7 +1127,7 @@ public abstract class AbstrCFMLExprTransformer {
 		if (data.srcCode.forwardIfCurrent('.')) {
 			rtn.append('.');
 			String rightSite = digit(data);
-			if (rightSite.length() > 0 && data.srcCode.forwardIfCurrent('e')) {
+			if (!StringUtil.isEmpty(rightSite) && data.srcCode.forwardIfCurrent('e')) {
 				Boolean expOp = null;
 				if (data.srcCode.forwardIfCurrent('+')) expOp = Boolean.TRUE;
 				else if (data.srcCode.forwardIfCurrent('-')) expOp = Boolean.FALSE;

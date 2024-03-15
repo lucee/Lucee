@@ -904,11 +904,11 @@ public final class StringUtil {
 	 * @return is first of given type
 	 */
 	public static boolean startsWith(String str, char prefix) {
-		return str != null && str.length() > 0 && str.charAt(0) == prefix;
+		return !StringUtil.isEmpty(str) && str.charAt(0) == prefix;
 	}
 
 	public static boolean startsWith(String str, char prefix1, char prefix2) {
-		return str != null && str.length() > 0 && (str.charAt(0) == prefix1 || str.charAt(0) == prefix2);
+		return !StringUtil.isEmpty(str) && (str.charAt(0) == prefix1 || str.charAt(0) == prefix2);
 	}
 
 	/**

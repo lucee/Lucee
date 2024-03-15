@@ -253,8 +253,7 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 			// DUMP
 			if (!req.getServletPath().equalsIgnoreCase("/Web." + (lucee.runtime.config.Constants.getCFMLComponentExtension()))) {
 				String cdf = pc.getConfig().getComponentDumpTemplate();
-
-				if (cdf != null && cdf.trim().length() > 0) {
+				if (!StringUtil.isEmpty(cdf, true)) {
 					pc.variablesScope().set(KeyConstants._component, component);
 					pc.doInclude(cdf, false);
 				}

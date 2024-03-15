@@ -1216,7 +1216,7 @@ public final class CFMLTransformer {
 				}
 				else expr = transfomer.transform(data);
 			}
-			if (type.length() > 0) {
+			if (!StringUtil.isEmpty(type)) {
 				expr = data.factory.toExpression(expr, type);
 			}
 		}

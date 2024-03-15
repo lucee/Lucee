@@ -1032,7 +1032,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 
 		if (top.properties.modifier != Member.MODIFIER_NONE)
 			table.appendRow(1, new SimpleDumpData("Modifier"), new SimpleDumpData(ComponentUtil.toModifier(top.properties.modifier, "")));
-		if (top.properties.hint.trim().length() > 0) table.appendRow(1, new SimpleDumpData("Hint"), new SimpleDumpData(top.properties.hint));
+		if (!StringUtil.isEmpty(top.properties.hint, true)) table.appendRow(1, new SimpleDumpData("Hint"), new SimpleDumpData(top.properties.hint));
 
 		// this
 		DumpTable thisScope = thisScope(top, pageContext, maxlevel, dp, access);

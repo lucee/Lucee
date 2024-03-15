@@ -584,7 +584,7 @@ public final class ArrayUtil {
 			char[] arr = ((char[]) o);
 			if (arr.length > index) {
 				String str = Caster.toString(value, null);
-				if (str != null && str.length() > 0) {
+				if (!StringUtil.isEmpty(str)) {
 					char c = str.charAt(0);
 					arr[index] = c;
 					return str;
