@@ -10,12 +10,12 @@
 					var latest={'vs':toVersionSortable(external.version),'v':external.version};
 					loop array=external.OtherVersions item="local.v" {
 						var vs=toVersionSortable(v);
-						if(isEmpty(latest.vs) || vs>latest.vs) 
+						if(isEmpty(latest.vs) || vs>latest.vs)
 							latest={'vs':vs,'v':v};
 					}
 					return latest;
 				}
-				break; 
+				break;
 			}
 		}
 		return {'vs':"",'v':""};
@@ -44,17 +44,18 @@
 		<div class="itemintro">#stText.ext.installeddesc#</div>
 
 		<!--- Filter --->
-		<cfif extCount GT 30>
+		<cfif extCount GT 30 or len(session.extFilter.installed)>
 		<div class="filterform">
-	
-			<cfformClassic onerror="customError" action="#request.self#?action=#url.action#" method="post">
+			<cfformClassic onerror="customError" action="#request.self#" method="get">
+				<input type="hidden" name="action" value="#url.action#">
 				<ul>
 					<li>
 						<label for="filter">#stText.search.searchterm#:</label>
-						<input type="text" name="filter" id="filter" class="txt" value="#session.extFilter.filter#" />
+						<input type="text" name="filter" id="filter" class="txt" value="#session.extFilter.installed#" />
 					</li>
 					<li>
 						<input type="submit" class="button submit" name="mainAction" value="#stText.buttons.filter#" />
+						<input type="submit" class="button submit" name="mainAction" value="#stText.Buttons.clearFilter#" />
 					</li>
 				</ul>
 				<div class="clear"></div>
@@ -73,7 +74,7 @@
 		<div<cfif _type=="web"> style="margin-top:10px"<cfelse>  style="margin:0px 0px 4px 0px"</cfif> class="extensionlist">
 			<cfloop query=_extensions>
 				<cfif _type=="web"><cfset existing[_extensions.id]=true></cfif>
-				<cfif session.extFilter.filter neq "">
+				<cfif session.extFilter.installed neq "">
 					<cftry>
 						<cfset prov=getProviderData(_extensions.provider)>
 						<cfset provTitle=prov.info.title>
@@ -82,13 +83,12 @@
 						</cfcatch>
 					</cftry>
 				</cfif>
-				
+
 				<cfset cat=_extensions.categories>
-				<cfif 
-				session.extFilter.filter eq ""
-				or doFilter(session.extFilter.filter,_extensions.name,false)
-				or doFilter(session.extFilter.filter,arrayToList(cat),false)
-				or doFilter(session.extFilter.filter,provTitle,false)
+				<cfif session.extFilter.installed eq ""
+					or doFilter(session.extFilter.installed,_extensions.name,false)
+					or doFilter(session.extFilter.installed,arrayToList(cat),false)
+					or doFilter(session.extFilter.installed,provTitle,false)
 				><cfscript>
 					arrayAppend(spev, _extensions.id&";bundle-version="&_extensions.version);
 					latest=getLatestVersion(_extensions.id);
@@ -106,7 +106,7 @@
 					dn=getDumpNail(img,130,50);
 					</cfscript><div class="extensionthumb">
 
-					
+
 
 						<a <cfif _type=="web">href="#link#"<cfelse>style="border-color: ##E0E0E0;"</cfif> title="#_extensions.name#
 Categories:<cfif isArray(cat)>#arrayToList(cat)#<cfelse>#cat#</cfif>
@@ -116,7 +116,7 @@ Latest version: #latest.v#</cfif>"><cfif hasUpdates>
 </cfif>
 <cfif _extensions.trial>
        <div class="ribbon-left-wrapper"><div class="ribbon-left" <cfif _type=="server">style="background-color:##bf4f36"</cfif>>TRIAL</div></div>
-</cfif>	
+</cfif>
 							<div class="extimg" id="extimg_#_extensions.id#">
 								<cfif len(dn)>
 									<img src="#dn#" style="max-width:130px;max-height:50px" alt="#stText.ext.extThumbnail#" />
@@ -140,7 +140,7 @@ Latest version: #latest.v#</cfif>"><cfif hasUpdates>
 	</cfoutput>
 </cfif>
 	<cfif listinstalled eq 0 and extCount gt 30>
-		<cfoutput><b>#stText.ext.searchbox# [#session.extFilter.filter#]</b></cfoutput>
+		<cfoutput><b>#stText.ext.searchbox# [#session.extFilter.installed#]</b></cfoutput>
 	</cfif>
 	<cfset renderSysPropEnvVar( "lucee.extensions",arrayToList(spev,","))>
 
@@ -178,17 +178,19 @@ Latest version: #latest.v#</cfif>"><cfif hasUpdates>
 
 
 <!--- FILTER --->
-	<cfif unInstalledExt.recordcount GT 30>
+	<cfif unInstalledExt.recordcount GT 30 or len(session.extFilter.available)>
 
 	<div class="filterform">
-		<cfformClassic onerror="customError" action="#request.self#?action=#url.action#" method="post">
+		<cfformClassic onerror="customError" action="#request.self#" method="get">
+			<input type="hidden" name="action" value="#url.action#">
 			<ul>
 				<li>
 					<label for="filter2">#stText.search.searchterm#:</label>
-					<input type="text" name="filter2" id="filter2" class="txt" value="#session.extFilter.filter2#" />
+					<input type="text" name="filter2" id="filter2" class="txt" value="#session.extFilter.available#" />
 				</li>
 				<li>
 					<input type="submit" class="button submit" name="mainAction" value="#stText.buttons.filter#" />
+					<input type="submit" class="button submit" name="mainAction" value="#stText.Buttons.clearFilter#" />
 				</li>
 			</ul>
 			<div class="clear"></div>
@@ -235,7 +237,7 @@ Latest version: #latest.v#</cfif>"><cfif hasUpdates>
 	private function toVersionSortable(required string version) localMode=true {
 		version=unwrap(version.trim());
 		arr=listToArray(arguments.version,'.');
-		
+
 		// OSGi compatible version
 		if(arr.len()==4 && isNumeric(arr[1]) && isNumeric(arr[2]) && isNumeric(arr[3])) {
 			try{ return toOSGiVersion(version).sortable; }catch(local.e){};
@@ -247,7 +249,7 @@ Latest version: #latest.v#</cfif>"><cfif hasUpdates>
 			 rtn&="."&repeatString("0",5-len(v))&v;
 			else
 				rtn&="."&v;
-		} 
+		}
 		return 	rtn;
 	}
 
@@ -261,23 +263,23 @@ Latest version: #latest.v#</cfif>"><cfif hasUpdates>
 	<cfset count = 1>
 
 	<cfloop list="Release,Pre_Release,SnapShot" index="key">
-		<span><input 
+		<span><input
 			<cfif count EQ 1>class="bl button" <cfelseif count EQ 3> class="br button" <cfelse> class="bm button" </cfif>
 			style="width:180px"
-			name="changeConnection" 
-			id="btn_#UcFirst(Lcase(key))#" 
-			value="#stText.services.update.short[key]# (#versionStr[key].RecordCount#)" 
-			onclick="enableVersion('#UcFirst(Lcase(key))#');"  
+			name="changeConnection"
+			id="btn_#UcFirst(Lcase(key))#"
+			value="#stText.services.update.short[key]# (#versionStr[key].RecordCount#)"
+			onclick="enableVersion('#UcFirst(Lcase(key))#');"
 			type="button"></span>
 		<cfsavecontent variable="tmpContent">
 			<div id="div_#UcFirst(Lcase(key))#" >
 
 				<cfloop query="#versionStr[key]#" group="id">
 					<cfif  (
-						session.extFilter.filter2 eq ""
-						or doFilter(session.extFilter.filter2,versionStr[key].name,false)
-						or doFilter(session.extFilter.filter2,versionStr[key].category,false)
-						or doFilter(session.extFilter.filter2,info.title?:'',false)
+						session.extFilter.available eq ""
+						or doFilter(session.extFilter.available,versionStr[key].name,false)
+						or doFilter(session.extFilter.available,versionStr[key].category,false)
+						or doFilter(session.extFilter.available,info.title?:'',false)
 					)
 					>
 							<cfset link="#request.self#?action=#url.action#&action2=detail&id=#versionStr[key].id#">
@@ -310,10 +312,10 @@ Latest version: #latest.v#</cfif>"><cfif hasUpdates>
 		#hiddenFormContents#
 		<div class="clear"></div>
 	</div>
-	
+
 </cfif>
 	<cfif listnotinstalled eq 0 and unInstalledExt.recordcount gt 30>
-		<b>#stText.ext.searchbox# [#session.extFilter.filter2#]</b>
+		<b>#stText.ext.searchbox# [#session.extFilter.available#]</b>
 	</cfif>
 
 <cfif noneLasCounter>
@@ -357,7 +359,7 @@ Latest version: #latest.v#</cfif>"><cfif hasUpdates>
 		</table>
 	</cfformClassic>
 
-	
+
 
 <cfhtmlbody>
 <script type="text/javascript">
@@ -405,6 +407,6 @@ Latest version: #latest.v#</cfif>"><cfif hasUpdates>
 </cfoutput>
 <cfif structKeyExists(request, "refresh") && request.refresh EQ true>
 	<script type="text/javascript">
-		location.reload(); 
+		location.reload();
 	</script>
 </cfif>
