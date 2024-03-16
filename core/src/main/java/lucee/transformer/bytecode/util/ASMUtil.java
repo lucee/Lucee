@@ -104,7 +104,7 @@ import lucee.transformer.library.function.FunctionLibFunction;
 
 public final class ASMUtil {
 
-	public static final int DEFAULT_JAVA_BYTECODE_VERSION = Opcodes.V1_8;
+	public static final int DEFAULT_JAVA_BYTECODE_VERSION = Opcodes.V11;
 	public static final int CLASSWRITER_ARGS = ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES;
 
 	private static int javaBytecodeVersion = -1;
@@ -1210,18 +1210,27 @@ public final class ASMUtil {
 			synchronized (token) {
 				if (javaBytecodeVersion == -1) {
 					// first we define the java compiler version based on the current java version
-					if (SystemUtil.JAVA_VERSION >= 11) {
-						javaBytecodeVersion = Opcodes.V11;
-					}
-					else if (SystemUtil.JAVA_VERSION == 10) {
-						javaBytecodeVersion = Opcodes.V10;
-					}
-					else if (SystemUtil.JAVA_VERSION == 9) {
-						javaBytecodeVersion = Opcodes.V9;
-					}
-					else if (SystemUtil.JAVA_VERSION == 8) {
-						javaBytecodeVersion = Opcodes.V1_8;
-					}
+					if (SystemUtil.JAVA_VERSION >= 22) javaBytecodeVersion = Opcodes.V22;
+					else if (SystemUtil.JAVA_VERSION == 21) javaBytecodeVersion = Opcodes.V21;
+					else if (SystemUtil.JAVA_VERSION == 20) javaBytecodeVersion = Opcodes.V20;
+					else if (SystemUtil.JAVA_VERSION == 19) javaBytecodeVersion = Opcodes.V19;
+					else if (SystemUtil.JAVA_VERSION == 18) javaBytecodeVersion = Opcodes.V18;
+					else if (SystemUtil.JAVA_VERSION == 17) javaBytecodeVersion = Opcodes.V17;
+					else if (SystemUtil.JAVA_VERSION == 16) javaBytecodeVersion = Opcodes.V16;
+					else if (SystemUtil.JAVA_VERSION == 15) javaBytecodeVersion = Opcodes.V15;
+					else if (SystemUtil.JAVA_VERSION == 14) javaBytecodeVersion = Opcodes.V14;
+					else if (SystemUtil.JAVA_VERSION == 13) javaBytecodeVersion = Opcodes.V13;
+					else if (SystemUtil.JAVA_VERSION == 12) javaBytecodeVersion = Opcodes.V12;
+					else if (SystemUtil.JAVA_VERSION == 11) javaBytecodeVersion = Opcodes.V11;
+					else if (SystemUtil.JAVA_VERSION == 10) javaBytecodeVersion = Opcodes.V10;
+					else if (SystemUtil.JAVA_VERSION == 9) javaBytecodeVersion = Opcodes.V9;
+					else if (SystemUtil.JAVA_VERSION == 8) javaBytecodeVersion = Opcodes.V1_8;
+					else if (SystemUtil.JAVA_VERSION == 7) javaBytecodeVersion = Opcodes.V1_7;
+					else if (SystemUtil.JAVA_VERSION == 6) javaBytecodeVersion = Opcodes.V1_6;
+					else if (SystemUtil.JAVA_VERSION == 5) javaBytecodeVersion = Opcodes.V1_5;
+					else if (SystemUtil.JAVA_VERSION == 4) javaBytecodeVersion = Opcodes.V1_4;
+					else if (SystemUtil.JAVA_VERSION == 3) javaBytecodeVersion = Opcodes.V1_3;
+					else if (SystemUtil.JAVA_VERSION == 2) javaBytecodeVersion = Opcodes.V1_2;
 					else {
 						javaBytecodeVersion = DEFAULT_JAVA_BYTECODE_VERSION;
 					}
@@ -1251,6 +1260,7 @@ public final class ASMUtil {
 						else if ("20".equals(vs) || "20.0".equals(vs)) javaBytecodeVersion = Opcodes.V20;
 						else if ("21".equals(vs) || "21.0".equals(vs)) javaBytecodeVersion = Opcodes.V21;
 						else if ("22".equals(vs) || "22.0".equals(vs)) javaBytecodeVersion = Opcodes.V22;
+						else if ("23".equals(vs) || "23.0".equals(vs)) javaBytecodeVersion = 0 << 16 | 67; // FUTURE use constant when exist
 					}
 
 					LogUtil.log(Log.LEVEL_INFO, "compiler", "templates get compiled to java " + toStringVersion(javaBytecodeVersion));
@@ -1304,6 +1314,8 @@ public final class ASMUtil {
 			return "21";
 		case Opcodes.V22:
 			return "22";
+		case (0 << 16 | 67):
+			return "23";
 		}
 		return "unknown";
 	}
