@@ -20,8 +20,10 @@ package lucee.commons.net;
 
 import java.io.UnsupportedEncodingException;
 
+import org.apache.commons.codec.DecoderException;
+import org.apache.commons.codec.net.URLCodec;
+
 import lucee.commons.io.SystemUtil;
-import lucee.runtime.net.http.ReqRspUtil;
 
 public class URLDecoder {
 
@@ -42,48 +44,20 @@ public class URLDecoder {
 	}
 
 	public static String decode(String s, String enc, boolean force) throws UnsupportedEncodingException {
-		if (!force && !ReqRspUtil.needDecoding(s)) return s;
-		// if(true) return java.net.URLDecoder.decode(s, enc);
-
-		byte bytes[] = new byte[s.length()];
-		int pos = 0;
-		int numChars = s.length();
-		boolean needToChange = false;
-		int i = 0;
-		while (i < numChars) {
-			char c = s.charAt(i);
-			switch (c) {
-			case '+':
-				bytes[pos++] = (byte) ' ';
-				i++;
-				needToChange = true;
-				break;
-			case '%':
-				try {
-					if ((i + 2) < numChars) {
-						/* next line may raise an exception */
-						bytes[pos] = (byte) Integer.parseInt(s.substring(i + 1, i + 3), 16);
-						pos++;
-						i += 3;
-						needToChange = true;
-					}
-					else {
-						bytes[pos++] = (byte) c;
-						i++;
-					}
+		try {
+			if (! force) {
+				if (s.indexOf('%') == -1) {
+					// no chance of URL encoding in this string.
+					return s;
 				}
-				catch (NumberFormatException e) {
-					bytes[pos++] = (byte) c;
-					i++;
-				}
-				break;
-			default:
-				bytes[pos++] = (byte) c;
-				i++;
-				break;
 			}
+			URLCodec codec = new URLCodec(enc);
+			String str;
+			str = codec.decode(s);
+			return str;	
 		}
-
-		return (needToChange ? new String(bytes, 0, pos, enc) : s);
+		catch (DecoderException e) {
+			throw new UnsupportedEncodingException(e.getMessage());
+		}
 	}
 }
