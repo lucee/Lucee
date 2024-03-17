@@ -23,8 +23,6 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.Map;
 
-import javax.servlet.http.Cookie;
-
 import lucee.commons.io.DevNullOutputStream;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.ResourceProvider;
@@ -105,7 +103,7 @@ public class CFMLResourceProvider implements ResourceProviderPro {
 					new Pair[0], new StructImpl(), false, -1);
 		}
 		try {
-			return CFMLEngineFactory.getInstance().createPageContext(new File("."), "localhost", "/", "", new Cookie[0], null, null, null,
+			return CFMLEngineFactory.getInstance().createPageContext(new File("."), "localhost", "/", "", SerializableCookie.COOKIES0, null, null, null,
 					DevNullOutputStream.DEV_NULL_OUTPUT_STREAM, -1, false);
 		}
 		catch (Exception e) {

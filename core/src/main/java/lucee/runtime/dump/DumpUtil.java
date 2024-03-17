@@ -37,7 +37,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TimeZone;
 
-import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpSession;
 
 import org.apache.felix.framework.BundleWiringImpl.BundleClassLoader;
@@ -66,6 +65,7 @@ import lucee.runtime.osgi.OSGiUtil;
 import lucee.runtime.osgi.OSGiUtil.PackageQuery;
 import lucee.runtime.osgi.OSGiUtil.VersionDefinition;
 import lucee.runtime.text.xml.XMLCaster;
+import lucee.runtime.thread.SerializableCookie;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.Collection;
@@ -217,20 +217,19 @@ public class DumpUtil {
 			return table;
 		}
 		// Cookie
-		if (o instanceof Cookie) {
-			Cookie c = (Cookie) o;
+		if (SerializableCookie.isCookie(o)) {
 			DumpTable table = new DumpTable("Cookie", "#979EAA", "#DEE9FB", "#000000");
-			table.setTitle("Cookie (" + c.getClass().getName() + ")");
-			table.appendRow(1, new SimpleDumpData("name"), new SimpleDumpData(c.getName()));
-			table.appendRow(1, new SimpleDumpData("value"), new SimpleDumpData(c.getValue()));
-			table.appendRow(1, new SimpleDumpData("path"), new SimpleDumpData(c.getPath()));
-			table.appendRow(1, new SimpleDumpData("secure"), new SimpleDumpData(c.getSecure()));
-			table.appendRow(1, new SimpleDumpData("maxAge"), new SimpleDumpData(c.getMaxAge()));
-			table.appendRow(1, new SimpleDumpData("version"), new SimpleDumpData(c.getVersion()));
-			table.appendRow(1, new SimpleDumpData("domain"), new SimpleDumpData(c.getDomain()));
-			table.appendRow(1, new SimpleDumpData("httpOnly"), new SimpleDumpData(CookieImpl.isHTTPOnly(c)));
-			table.appendRow(1, new SimpleDumpData("comment"), new SimpleDumpData(c.getComment()));
-			table.appendRow(1, new SimpleDumpData("partitioned"), new SimpleDumpData(CookieImpl.isPartitioned(c)));
+			table.setTitle("Cookie (" + SerializableCookie.toCookie(o).getClass().getName() + ")");
+			table.appendRow(1, new SimpleDumpData("name"), new SimpleDumpData(SerializableCookie.toCookie(o).getName()));
+			table.appendRow(1, new SimpleDumpData("value"), new SimpleDumpData(SerializableCookie.toCookie(o).getValue()));
+			table.appendRow(1, new SimpleDumpData("path"), new SimpleDumpData(SerializableCookie.toCookie(o).getPath()));
+			table.appendRow(1, new SimpleDumpData("secure"), new SimpleDumpData(SerializableCookie.toCookie(o).getSecure()));
+			table.appendRow(1, new SimpleDumpData("maxAge"), new SimpleDumpData(SerializableCookie.toCookie(o).getMaxAge()));
+			table.appendRow(1, new SimpleDumpData("version"), new SimpleDumpData(SerializableCookie.toCookie(o).getVersion()));
+			table.appendRow(1, new SimpleDumpData("domain"), new SimpleDumpData(SerializableCookie.toCookie(o).getDomain()));
+			table.appendRow(1, new SimpleDumpData("httpOnly"), new SimpleDumpData(CookieImpl.isHTTPOnly(SerializableCookie.toCookie(o))));
+			table.appendRow(1, new SimpleDumpData("comment"), new SimpleDumpData(SerializableCookie.toCookie(o).getComment()));
+			table.appendRow(1, new SimpleDumpData("partitioned"), new SimpleDumpData(CookieImpl.isPartitioned(SerializableCookie.toCookie(o))));
 			return table;
 		}
 		// Resource
