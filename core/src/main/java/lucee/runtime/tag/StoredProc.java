@@ -34,8 +34,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
-import javax.servlet.jsp.JspException;
-
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.log.Log;
 import lucee.commons.lang.ExceptionUtil;
@@ -90,12 +88,12 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 	private static final int TYPE_NAME = 7;
 	// |PRECISION|LENGTH|SCALE|RADIX|NULLABLE|REMARKS|SEQUENCE|OVERLOAD|DEFAULT_VALUE
 
-	private static final lucee.runtime.type.Collection.Key KEY_SC = KeyImpl.getInstance("StatusCode");
+	private static final lucee.runtime.type.Collection.Key KEY_SC = KeyConstants._StatusCode;
 
-	private static final lucee.runtime.type.Collection.Key COUNT = KeyImpl.getInstance("count_afsdsfgdfgdsfsdfsgsdgsgsdgsasegfwef");
+	private static final lucee.runtime.type.Collection.Key COUNT = KeyConstants._count_afsdsfgdfgdsfsdfsgsdgsgsdgsasegfwef;
 
 	private static final ProcParamBean STATUS_CODE;
-	private static final lucee.runtime.type.Collection.Key STATUSCODE = KeyImpl.getInstance("StatusCode");
+	private static final lucee.runtime.type.Collection.Key STATUSCODE = KeyConstants._StatusCode;
 
 	static {
 		STATUS_CODE = new ProcParamBean();
@@ -268,7 +266,7 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 	}
 
 	@Override
-	public int doStartTag() throws JspException {
+	public int doStartTag() throws PageException {
 
 		// cache within
 		if (StringUtil.isEmpty(cachedWithin)) {
@@ -644,7 +642,7 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 									count += q.getRecordcount();
 									setVariable(result.getName(), q);
 
-									if (useCache) cacheStruct.set(KeyImpl.getInstance(result.getName()), q);
+									if (useCache) cacheStruct.set(KeyImpl.init(result.getName()), q);
 								}
 							}
 							finally {
@@ -673,7 +671,7 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 							if (param == STATUS_CODE) res.set(STATUSCODE, value);
 							else setVariable(param.getVariable(), value);
 
-							if (useCache) cacheStruct.set(KeyImpl.getInstance(param.getVariable()), value);
+							if (useCache) cacheStruct.set(KeyImpl.init(param.getVariable()), value);
 						}
 					}
 				}

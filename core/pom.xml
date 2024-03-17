@@ -111,7 +111,7 @@
   	<dependency>
   		<groupId>com.github.mwiede</groupId>
   		<artifactId>jsch</artifactId>
-  		<version>0.2.8</version>
+  		<version>0.2.11</version>
     	<scope>provided</scope>
   	</dependency>
     <dependency>
@@ -129,14 +129,14 @@
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-compress</artifactId>
-      <version>1.23.0</version>
+      <version>1.24.0</version>
     </dependency>
-    <dependency>
-      <groupId>org.lucee</groupId>
-      <artifactId>commons-email</artifactId>
-      <version>1.2.0</version>
-      <scope>provided</scope>
-    </dependency>
+	<dependency>
+        <groupId>org.lucee</groupId>
+        <artifactId>commons-email-all</artifactId>
+	    <version>1.6.0</version>
+    <scope>provided</scope>
+	</dependency>
     <dependency>
       <groupId>commons-fileupload</groupId>
       <artifactId>commons-fileupload</artifactId>
@@ -312,20 +312,6 @@
       <scope>provided</scope>
     </dependency>
     <dependency>
-		  <groupId>javax.mail</groupId>
-		  <artifactId>activation</artifactId>
-		  <version>1.6.2.0000L</version>
-      <scope>provided</scope>
-	  </dependency>
-    <!-- causes conflict with hsqldb LDEV-1526 
-    <dependency>
-      <groupId>sun.security</groupId>
-      <artifactId>jaas</artifactId>
-      <version>1.2.4</version>
-      <scope>provided</scope>
-    </dependency>
-    -->
-    <dependency>
       <groupId>tagsoup</groupId>
       <artifactId>tagsoup</artifactId>
       <version>1.2.1.0002L</version>
@@ -364,6 +350,17 @@
       <artifactId>janino-commons-compiler</artifactId>
       <version>3.1.9</version>
     </dependency>
+    <dependency>
+      <groupId>com.github.f4b6a3</groupId>
+      <artifactId>ulid-creator</artifactId>
+      <version>5.2.3</version>
+    </dependency>
+    <dependency>
+<groupId>jakarta.platform</groupId>
+<artifactId>jakarta.jakartaee-api</artifactId>
+<version>10.0.0</version>
+<scope>provided</scope>
+</dependency>
   </dependencies>
 
   <repositories>

@@ -24,12 +24,12 @@ import java.util.List;
 
 import lucee.runtime.exp.DatabaseException;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.op.Caster;
 import lucee.runtime.sql.exp.Column;
 import lucee.runtime.sql.exp.Expression;
 import lucee.runtime.sql.exp.Literal;
 import lucee.runtime.sql.exp.op.Operation;
 import lucee.runtime.sql.exp.value.ValueNumber;
-import lucee.runtime.op.Caster;
 
 public class Selects {
 

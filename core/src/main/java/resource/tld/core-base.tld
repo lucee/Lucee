@@ -979,6 +979,15 @@ A return value from the CreateTimeSpan function, for example, "#CreateTimeSpan(0
 			<description>It will help to prevent Cross-Site Request Forgeries. Enabling this attribute on the cookie will instruct the browser to afford this cookie certain protections.</description>
 			<introduced>5.3.7.33</introduced>
 		</attribute>
+		<attribute>
+			<type>boolean</type>
+			<name>partitioned</name>
+			<alias>encode</alias>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>Used to isolate third party cookies, requires path="/" and secure="true".</description>
+			<introduced>6.0.1.28</introduced>
+		</attribute>
 	</tag>
 	<!-- DBInfo -->
 	<tag>
@@ -1079,6 +1088,7 @@ Not used for type="tables", use pattern instead
 		<attribute>
 			<type>string</type>
 			<name>Filter</name>
+			<alias>tableType</alias>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<introduced>6.0.0.73</introduced>
@@ -1091,6 +1101,8 @@ Not used for type="tables", use pattern instead
 - "LOCAL TEMPORARY"
 - "ALIAS"
 - "SYNONYM"
+
+Each Database implementation has it's own supported types
 </description>
 		</attribute>
 	</tag>
@@ -1803,7 +1815,7 @@ To use cached data, the tag must be called with the exact same arguments. Only u
 		<body-content>empty</body-content>
 		<body-rtexprvalue>false</body-rtexprvalue>
 		<script>
-			<type>single</type>
+			<type>multiple</type>
 			<rtexprvalue>true</rtexprvalue>
 		</script>
 		<description>Flushes currently available data to the client.</description>
@@ -1817,6 +1829,15 @@ To use cached data, the tag must be called with the exact same arguments. Only u
 			<description>Flush the output each time at least the specified number of bytes become available. HTML
 		headers, and any data that is already available when you make this call, are not included in
 		the count.</description>
+		</attribute>
+		<attribute>
+			<type>boolean</type>
+			<name>throwonerror</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<default>true</default>
+			<script-support>optional</script-support>
+			<description>If set to false, any exceptions thrown by the servlet engine, such as those resulting from a client disconnection, will be suppressed.</description>
 		</attribute>
 	</tag>
 
@@ -1859,7 +1880,7 @@ To use cached data, the tag must be called with the exact same arguments. Only u
 		<attribute>
 			<type>string</type>
 			<name>action</name>
-			<values>copy,exists,existsFile,existsDir,open,close,changeDir,createDir,listDir,removeDir,getFile,putFile,rename,remove,getCurrentDir,getCurrentUrl</values>
+			<values>copy,exists,existsFile,existsDir,open,close,changeDir,createDir,getCurrentDir,getCurrentUrl,listDir,removeDir,getFile,putFile,quote,rename,remove</values>
 			<required>true</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>the action that should be execute</description>
@@ -2044,11 +2065,14 @@ To use cached data, the tag must be called with the exact same arguments. Only u
 			<description>the ssh fingerprint</description>
 		</attribute>
 		<attribute>
-			<type>boolean</type>
+			<type>string</type>
 			<name>secure</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>Secure connection (sftp|shh) or not.</description>
+			<description>Secure connection
+- false FTP (default)
+- true SFTP
+- sftp FTPS.</description>
 		</attribute>
 		<attribute>
 			<type>boolean</type>
@@ -2073,7 +2097,13 @@ To use cached data, the tag must be called with the exact same arguments. Only u
 			<rtexprvalue>true</rtexprvalue>
 			<description>the passphrase that protects ssh private key</description>
 		</attribute>
-		
+		<attribute>
+			<type>string</type>
+			<name>actionParams</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>used with action="quote" to execute custom ftp commands</description>
+		</attribute>
 		
 	</tag>
 
@@ -4658,6 +4688,14 @@ Permits searching collections by title or displaying a separate title from the k
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Port defaults to the standard LDAP port, 389.</description>
+		</attribute>
+		<attribute>
+			<type>boolean</type>
+			<name>usetls</name>
+			<required>false</required>
+			<default-value>false</default-value>
+			<rtexprvalue>true</rtexprvalue>
+			<description>use a secure connection. (but try secure="CFSSL_BASIC" instead)</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -8020,6 +8058,13 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>a native java exception Object, if this attribute is defined all other will be ignored</description>
+		</attribute>
+		<attribute>
+			<type>any</type>
+			<name>cause</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>the cause of the exception created with this tag. This can be a cfcatch block or a native java exception.</description>
 		</attribute>
 		<attribute>
 			<type>numeric</type>

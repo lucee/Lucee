@@ -126,6 +126,7 @@ Defaults --->
 							this.compression = #setting.AllowCompression#;
 						</cfsavecontent>
 						<cfset renderCodingTip( codeSample )>
+						<cfset renderSysPropEnvVar( name:"lucee.allow.compression",value:setting.AllowCompression)>
 					</td>
 				</tr>
 

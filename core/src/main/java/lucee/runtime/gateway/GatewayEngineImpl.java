@@ -46,6 +46,7 @@ import lucee.runtime.PageContextImpl;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.config.Constants;
+import lucee.runtime.config.gateway.GatewayMap;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
@@ -62,11 +63,12 @@ public class GatewayEngineImpl implements GatewayEngine {
 
 	private static final Object OBJ = new Object();
 
-	private static final Collection.Key AMF_FORWARD = KeyImpl.getInstance("AMF-Forward");
+	private static final Collection.Key AMF_FORWARD = KeyImpl.source("AMF-Forward");
 
 	private Map<String, GatewayEntry> entries = new HashMap<String, GatewayEntry>();
 	private ConfigWeb config;
 	private Log log;
+	private String id;
 
 	public GatewayEngineImpl(ConfigWeb config) {
 		this.config = config;
@@ -74,14 +76,15 @@ public class GatewayEngineImpl implements GatewayEngine {
 
 	}
 
-	public void addEntries(Config config, Map<String, GatewayEntry> entries) throws ClassException, PageException, IOException, BundleException {
+	public void addEntries(Config config, GatewayMap entries) throws ClassException, PageException, IOException, BundleException {
 		Iterator<Entry<String, GatewayEntry>> it = entries.entrySet().iterator();
 		while (it.hasNext()) {
 			addEntry(config, it.next().getValue());
 		}
+		this.id = entries.getId();
 	}
 
-	public void addEntry(Config config, GatewayEntry ge) throws ClassException, PageException, IOException, BundleException {
+	private void addEntry(Config config, GatewayEntry ge) throws ClassException, PageException, IOException, BundleException {
 		String id = ge.getId().toLowerCase().trim();
 		GatewayEntry existing = entries.get(id);
 		Gateway g = null;
@@ -403,7 +406,7 @@ public class GatewayEngineImpl implements GatewayEngine {
 			int dialect = ext == null ? CFMLEngine.DIALECT_CFML : config.getFactory().toDialect(ext);
 			// ThreadLocalPageContext.register(pc);
 			Component cfc = getCFC(pc, requestURI);
-			if (cfc.containsKey(functionName)) {
+			if (cfc != null && cfc.containsKey(functionName)) {
 				if (dialect == CFMLEngine.DIALECT_LUCEE) pc.execute(requestURI, true, false);
 				else pc.executeCFML(requestURI, true, false);
 
@@ -496,7 +499,9 @@ public class GatewayEngineImpl implements GatewayEngine {
 			break;
 		}
 		if (e == null) log.log(l, "Gateway:" + gatewayId, message);
-		else log.log(l, "Gateway:" + gatewayId, message, e);
+		else {
+			log.log(l, "Gateway:" + gatewayId, message, e);
+		}
 	}
 
 	private Map<String, Component> persistentRemoteCFC;
@@ -509,5 +514,9 @@ public class GatewayEngineImpl implements GatewayEngine {
 	public Component setPersistentRemoteCFC(String id, Component cfc) {
 		if (persistentRemoteCFC == null) persistentRemoteCFC = new HashMap<String, Component>();
 		return persistentRemoteCFC.put(id, cfc);
+	}
+
+	public String id() {
+		return this.id;
 	}
 }

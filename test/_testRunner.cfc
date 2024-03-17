@@ -86,6 +86,8 @@ component {
 {
 	 onBundleStart = function( cfc, testResults ){
 		var meta = getComponentMetadata( cfc );
+		systemOutput( "" , true );
+		systemOutput(structKeyList(getApplicationSettings().mappings), true );
 		SystemOut.setOut( out );
 		//SystemOut.setErr(err);
 		//"============================================================="
@@ -104,8 +106,14 @@ component {
 			if ( bundle.totalPass eq 0 && ( bundle.totalFail + bundle.totalError ) eq 0 ){
 				systemOutput( TAB & " (skipped)", true );
 			} else {
-				var skippedSummary = (bundle.totalSkipped gt 0) ? ", #bundle.totalSkipped# skipped" : "";
-				systemOutput( TAB & " (#bundle.totalPass# tests passed in #NumberFormat(bundle.totalDuration)# ms#skippedSummary#)", true );
+				var didntPassSummary = (bundle.totalSkipped gt 0) ? ", #bundle.totalSkipped# skipped" : "";
+				if ( bundle.totalError > 0 ){
+					didntPassSummary &= ", #bundle.totalError# ERRORED";
+				}
+				if ( bundle.totalFail > 0 ){
+					didntPassSummary &= ", #bundle.totalFail# FAILED";
+				}
+				systemOutput( TAB & " (#bundle.totalPass# tests passed in #NumberFormat(bundle.totalDuration)# ms#didntPassSummary#)", true );
 			}
 			//mem("non_heap");
 			//mem("heap");

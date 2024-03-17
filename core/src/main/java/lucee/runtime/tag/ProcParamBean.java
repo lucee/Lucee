@@ -180,10 +180,8 @@ public class ProcParamBean implements SQLItem {
 
 	@Override
 	public boolean isNulls() {
-		return getValue() == null
-				|| (sqlType != Types.VARCHAR && sqlType != Types.LONGVARCHAR && sqlType != Types.NVARCHAR 
-					&& sqlType != Types.NCHAR && sqlType != Types.CHAR
-					&& getValue() instanceof String && StringUtil.isEmpty(getValue()));
+		return getValue() == null || (sqlType != Types.VARCHAR && sqlType != Types.LONGVARCHAR && sqlType != Types.NVARCHAR && sqlType != Types.NCHAR && sqlType != Types.CHAR
+				&& getValue() instanceof String && StringUtil.isEmpty(getValue()));
 	}
 
 	@Override

@@ -21,7 +21,6 @@ package lucee.runtime.functions.file;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.nio.file.attribute.FileTime;
 
 import lucee.commons.io.res.Resource;
 import lucee.runtime.PageContext;

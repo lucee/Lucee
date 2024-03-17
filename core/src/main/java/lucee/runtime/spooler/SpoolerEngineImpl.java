@@ -51,7 +51,6 @@ import lucee.runtime.op.Caster;
 import lucee.runtime.op.Duplicator;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.Collection;
-import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Query;
 import lucee.runtime.type.QueryImpl;
 import lucee.runtime.type.Struct;
@@ -64,12 +63,12 @@ public class SpoolerEngineImpl implements SpoolerEngine {
 
 	private static final TaskFileFilter FILTER = new TaskFileFilter();
 
-	private static final Collection.Key LAST_EXECUTION = KeyImpl.getInstance("lastExecution");
-	private static final Collection.Key NEXT_EXECUTION = KeyImpl.getInstance("nextExecution");
+	private static final Collection.Key LAST_EXECUTION = KeyConstants._lastExecution;
+	private static final Collection.Key NEXT_EXECUTION = KeyConstants._nextExecution;
 
 	private static final Collection.Key CLOSED = KeyConstants._closed;
 	private static final Collection.Key TRIES = KeyConstants._tries;
-	private static final Collection.Key TRIES_MAX = KeyImpl.getInstance("triesmax");
+	private static final Collection.Key TRIES_MAX = KeyConstants._triesmax;
 
 	private String label;
 

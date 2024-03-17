@@ -517,12 +517,12 @@ component {
 
 		var mailServers = getMailservers();
 		if( structKeyExists(arguments, 'username') && arguments.username == ''  ){
-			query name="local.existing" dbtype="query"{
-				echo("SELECT * FROM mailservers WHERE hostName = '#arguments.host#' and port = '#arguments.port#' ")
+			query name="local.existing" dbtype="query" params=[arguments.host,arguments.port]{
+				echo("SELECT * FROM mailservers WHERE hostName = ? AND port = ?")
 			}
 		} else{
-			query name="local.existing" dbtype="query"{
-				echo("SELECT * FROM mailservers WHERE hostName = '#arguments.host#' and port = '#arguments.port#' and username = '#arguments.username#' ")
+			query name="local.existing" dbtype="query" params=[arguments.host,arguments.port,arguments.username]{
+				echo("SELECT * FROM mailservers WHERE hostName = ? AND port = ? AND username = ?")
 			}
 		}
 
@@ -819,18 +819,6 @@ component {
 	}
 
 	/**
-	* @hint returns the extension Info
-	*/
-	public struct function getExtensionInfo(){
-		admin
-			action="getExtensionInfo"
-			type="#variables.type#"
-			password="#variables.password#"
-			returnVariable="local.info";
-		return info;
-	}
-
-	/**
 	* @hint updates(install/upgrade/downgrade) a specific extension.
 	* @id id of the extension
 	* @version version of the extension
@@ -1080,8 +1068,6 @@ component {
 
 	/**
 	* @hint updates component mapping settings
-	* @baseComponentTemplateCFML Every component(CFC) that does not explicitly extend another component (attribute "extends") will by default extend this component.
-	* @baseComponentTemplateLucee Every component(lucee) that does not explicitly extend another component (attribute "extends") will by default extend this component.
 	* @componentDumpTemplate If you call a component directly, this template will be invoked to dump the component.
 	* @componentDataMemberDefaultAccess Define the accessor for the data-members of a component. This defines how variables of the "this" scope of a component can be accessed from outside of the component., values available for this argument are [private,public,package,remote]
 	* @triggerDataMember If there is no accessible data member (property, element of the this scope) inside a component, Lucee searches for available matching "getters" or "setters" for the requested property.
@@ -1091,14 +1077,12 @@ component {
 	* @componentPathCache Component path is cached and not resolved again
 	* @componentDeepSearchDesc Search for CFCs in the subdirectories of the "Additional Resources" below.
 	*/
-	public void function updateComponent(string baseComponentTemplateCFML="", string baseComponentTemplateLucee="", string componentDumpTemplate="", string componentDataMemberDefaultAccess="public", boolean triggerDataMember=false, boolean useShadow=true, string componentDefaultImport="org.lucee.cfml.*", boolean componentLocalSearch=false, boolean componentPathCache=false, boolean componentDeepSearchDesc=false){
+	public void function updateComponent(string componentDumpTemplate="", string componentDataMemberDefaultAccess="public", boolean triggerDataMember=false, boolean useShadow=true, string componentDefaultImport="org.lucee.cfml.*", boolean componentLocalSearch=false, boolean componentPathCache=false, boolean componentDeepSearchDesc=false){
 		admin
 			action="updateComponent"
 			type="#variables.type#"
 			password="#variables.password#"
 
-			baseComponentTemplateCFML="#arguments.baseComponentTemplateCFML#"
-			baseComponentTemplateLucee="#arguments.baseComponentTemplateLucee#"
 			componentDumpTemplate="#arguments.componentDumpTemplate#"
 			componentDataMemberDefaultAccess="#arguments.componentDataMemberDefaultAccess#"
 			triggerDataMember="#arguments.triggerDataMember#"
@@ -1201,8 +1185,8 @@ component {
 		boolean storage
 	){
 		var connections =  getCacheConnections()
-		query name="local.existing" dbtype="query"{
-			echo("SELECT * FROM connections WHERE class = '#arguments.class#' and name = '#arguments.name#' ")
+		query name="local.existing" dbtype="query" params=[arguments.class,arguments.name]{
+			echo("SELECT * FROM connections WHERE class = ? AND name = ?")
 		}
 
 		admin
@@ -1272,7 +1256,7 @@ component {
 	* @handleUnquotedAttrValueAsString Handle unquoted tag attribute values as strings.
 	* @externalizeStringGTE Externalize strings from generated class files to separate files.
 	*/
-	public void function updateCompilerSettings( required string templateCharset, required string dotNotationUpperCase, boolean nullSupport, boolean suppressWSBeforeArg, boolean handleUnquotedAttrValueAsString, numeric externalizeStringGTE){
+	public void function updateCompilerSettings( required string templateCharset, required string dotNotationUpperCase, boolean nullSupport, boolean suppressWSBeforeArg, boolean handleUnquotedAttrValueAsString, numeric externalizeStringGTE, boolean preciseMath){
 		var dotNotUpper=true;
 		if(isDefined('arguments.dotNotationUpperCase') and arguments.dotNotationUpperCase EQ "oc"){
 			dotNotUpper=false;
@@ -1289,6 +1273,7 @@ component {
 			suppressWSBeforeArg=isNull(arguments.suppressWSBeforeArg) || isEmpty(arguments.suppressWSBeforeArg) ? existing.suppressWSBeforeArg : arguments.suppressWSBeforeArg
 			handleUnquotedAttrValueAsString=isNull(arguments.handleUnquotedAttrValueAsString) || isEmpty(arguments.handleUnquotedAttrValueAsString) ? existing.handleUnquotedAttrValueAsString  : arguments.handleUnquotedAttrValueAsString
 			externalizeStringGTE=isNull(arguments.externalizeStringGTE) || isEmpty(arguments.externalizeStringGTE) ? existing.externalizeStringGTE  : arguments.externalizeStringGTE
+			preciseMath=isNull(arguments.preciseMath) || isEmpty(arguments.preciseMath) ? existing.preciseMath  : arguments.preciseMath
 			remoteClients="#variables.remoteClients#";
 	}
 
@@ -1307,6 +1292,7 @@ component {
 			handleUnquotedAttrValueAsString=""
 			templateCharset=""
 			externalizeStringGTE=""
+			preciseMath=""
 			remoteClients="#variables.remoteClients#";
 	}
 
@@ -1392,8 +1378,8 @@ component {
 	*/
 	public void function updateGatewayEntry( required string id, required string startupMode, string class, string cfcPath, string listenerCfcPath,  struct custom ){
 		var getGatewayEntries = getGatewayEntries();
-		query name="local.existing" dbtype="query"{
-			echo("SELECT * FROM getGatewayEntries WHERE id = '#arguments.id#' and startupMode = '#arguments.startupMode#' ")
+		query name="local.existing" dbtype="query"  params=[arguments.id,arguments.startupMode]{
+			echo("SELECT * FROM getGatewayEntries WHERE id = ? AND startupMode = ?")
 		}
 		admin
 			action="updateGatewayEntry"
@@ -1511,11 +1497,13 @@ component {
 			drivers[trim(tmp.getId())]=tmp;
 		}
 
+		SystemOutput(structKeyList(driverNames),1,1);
+		SystemOutput(structKeyList(drivers),1,1);
 		var driver=drivers[trim(arguments.type)];
 		var meta=getMetaData(driver);
 		var debugEntry = getDebugEntry();
-		query name="local.existing" dbtype="query"{
-			echo("SELECT * FROM debugEntry WHERE label = '#arguments.label#' ");
+		query name="local.existing" dbtype="query"  params=[arguments.label]{
+			echo("SELECT * FROM debugEntry WHERE label = ?");
 		}
 		admin
 			action="updateDebugEntry"
@@ -1984,8 +1972,8 @@ component {
 		,          struct layoutArgs={}
 	){
 		var LogSettings = getLogSettings();
-		query name="local.existing" dbtype="query"{
-			echo("SELECT * FROM LogSettings WHERE name = '#arguments.name#' ");
+		query name="local.existing" dbtype="query"  params=[arguments.name]{
+			echo("SELECT * FROM LogSettings WHERE name = ?");
 		}
 
 		admin
@@ -2030,7 +2018,7 @@ component {
 	* @type specifies the type of listener to update
 	* @mode specifies the mode of the listener
 	*/
-	public void function updateApplicationListener( string type, string mode ){
+	public void function updateApplicationListener( string type, string mode, numeric applicationPathTimeout ){
 		var existing = getApplicationListener();
 		admin
 			action="updateApplicationListener"
@@ -2038,6 +2026,7 @@ component {
 			password="#variables.password#"
 			listenerType=isNull(arguments.type) || isEmpty(arguments.type) ? existing.type : arguments.type
 			listenerMode=isNull(arguments.mode) || isEmpty(arguments.mode) ? existing.mode : arguments.mode
+			applicationPathTimeout =isNull(arguments.applicationPathTimeout) || isEmpty(arguments.applicationPathTimeout) ? existing.applicationPathTimeout : arguments.applicationPathTimeout
 			remoteClients="#variables.remoteClients#";
 	}
 
@@ -2051,6 +2040,7 @@ component {
 			password="#variables.password#"
 			listenerType=""
 			listenerMode=""
+			applicationPathTimeout=""
 			remoteClients="#variables.remoteClients#";
 	}
 

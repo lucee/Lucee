@@ -38,7 +38,7 @@ import lucee.runtime.type.UDFSetterProperty;
 
 public class PropertyFactory {
 
-	public static final Collection.Key SINGULAR_NAME = KeyImpl.getInstance("singularName");
+	public static final Collection.Key SINGULAR_NAME = KeyConstants._singularName;
 	public static final Key FIELD_TYPE = KeyConstants._fieldtype;
 
 	public static void createPropertyUDFs(ComponentImpl comp, Property property) throws PageException {

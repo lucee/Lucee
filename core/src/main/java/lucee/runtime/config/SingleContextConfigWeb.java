@@ -53,6 +53,7 @@ import lucee.runtime.cache.tag.CacheHandlerCollection;
 import lucee.runtime.cfx.CFXTagPool;
 import lucee.runtime.compiler.CFMLCompilerImpl;
 import lucee.runtime.component.ImportDefintion;
+import lucee.runtime.config.gateway.GatewayMap;
 import lucee.runtime.customtag.InitFile;
 import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.db.DataSource;
@@ -187,8 +188,8 @@ class SingleContextConfigWeb extends ConfigBase implements ConfigWebInner {
 	}
 
 	@Override
-	public boolean limitIsDefined() {
-		return cs.limitIsDefined();
+	public boolean limitEvaluation() {
+		return cs.limitEvaluation();
 	}
 
 	@Override
@@ -394,6 +395,12 @@ class SingleContextConfigWeb extends ConfigBase implements ConfigWebInner {
 	}
 
 	@Override
+	public Resource[] getResources(PageContext pc, Mapping[] mappings, String realPath, boolean onlyTopLevel, boolean useSpecialMappings, boolean useDefaultMapping,
+			boolean useComponentMappings, boolean onlyFirstMatch) {
+		return ConfigWebUtil.getResources(pc, this, mappings, realPath, onlyTopLevel, useSpecialMappings, useDefaultMapping, useComponentMappings, onlyFirstMatch);
+	}
+
+	@Override
 	public Resource getPhysical(Mapping[] mappings, String realPath, boolean alsoDefaultMapping) {
 		throw new PageRuntimeException(new DeprecatedException("method not supported"));
 	}
@@ -454,8 +461,8 @@ class SingleContextConfigWeb extends ConfigBase implements ConfigWebInner {
 	}
 
 	@Override
-	public PageSource getBaseComponentPageSource(int dialect, PageContext pc) {
-		return cs.getBaseComponentPageSource(dialect, pc);
+	public PageSource getBaseComponentPageSource(int dialect, PageContext pc, boolean force) {
+		return cs.getBaseComponentPageSource(dialect, pc, force);
 	}
 
 	@Override
@@ -1404,6 +1411,11 @@ class SingleContextConfigWeb extends ConfigBase implements ConfigWebInner {
 	}
 
 	@Override
+	public ConfigServer getConfigServer(ConfigWebImpl outer, String password) throws ExpressionException {
+		return cs.getConfigServer(password);
+	}
+
+	@Override
 	public ConfigServer getConfigServer(String arg0, long arg1) throws PageException {
 		return cs.getConfigServer(arg0, arg1);
 	}
@@ -1704,6 +1716,16 @@ class SingleContextConfigWeb extends ConfigBase implements ConfigWebInner {
 	}
 
 	@Override
+	public void updatePassword(ConfigWebImpl outer, boolean server, String passwordOld, String passwordNew) throws PageException {
+		try {
+			PasswordImpl.updatePassword(cs, passwordOld, passwordNew);
+		}
+		catch (Exception e) {
+			throw Caster.toPageException(e);
+		}
+	}
+
+	@Override
 	public Password updatePasswordIfNecessary(boolean server, String passwordRaw) {
 		return PasswordImpl.updatePasswordIfNecessary(cs, cs.password, passwordRaw);
 	}
@@ -1715,6 +1737,11 @@ class SingleContextConfigWeb extends ConfigBase implements ConfigWebInner {
 
 	@Override
 	public boolean hasIndividualSecurityManager() {
+		return false;
+	}
+
+	@Override
+	public boolean hasIndividualSecurityManager(ConfigWebImpl outer) {
 		return false;
 	}
 
@@ -1890,7 +1917,7 @@ class SingleContextConfigWeb extends ConfigBase implements ConfigWebInner {
 		return cs.getDebugOptions();
 	}
 
-	public Map getGatewayEntries() {
+	public GatewayMap getGatewayEntries() {
 		return cs.getGatewayEntries();
 	}
 
@@ -1994,6 +2021,16 @@ class SingleContextConfigWeb extends ConfigBase implements ConfigWebInner {
 	public void setIdentification(IdentificationWeb arg0) {
 		// ignore it, should not happen
 		LogUtil.log(Log.LEVEL_FATAL, "loading", "setting a web id for single context");
+	}
+
+	@Override
+	public void checkMappings() {
+		cs.checkMappings();
+	}
+
+	@Override
+	public String getMainLogger() {
+		return cs.getMainLogger();
 	}
 
 }

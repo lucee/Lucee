@@ -46,7 +46,6 @@ import lucee.transformer.bytecode.expression.type.LiteralStringArray;
 import lucee.transformer.bytecode.statement.FlowControlFinal;
 import lucee.transformer.bytecode.util.ASMConstants;
 import lucee.transformer.bytecode.util.ASMUtil;
-import lucee.transformer.bytecode.util.ExpressionUtil;
 import lucee.transformer.bytecode.util.Types;
 import lucee.transformer.bytecode.visitor.ArrayVisitor;
 import lucee.transformer.bytecode.visitor.OnFinally;
@@ -168,7 +167,7 @@ public final class TagHelper {
 		final int currLocal = adapter.newLocal(currType);
 		Label tagBegin = new Label();
 		Label tagEnd = new Label();
-		ExpressionUtil.visitLine(bc, tag.getStart());
+		bc.visitLine(tag.getStart());
 		// TODO adapter.visitLocalVariable("tag", "L"+currType.getInternalName()+";", null, tagBegin,
 		// tagEnd, currLocal);
 
@@ -398,7 +397,7 @@ public final class TagHelper {
 		}
 
 		adapter.visitLabel(tagEnd);
-		ExpressionUtil.visitLine(bc, tag.getEnd());
+		bc.visitLine(tag.getEnd());
 	}
 
 	private static void setAttributes(BytecodeContext bc, Tag tag, int currLocal, Type currType, boolean doDefault, boolean interf) throws TransformerException {

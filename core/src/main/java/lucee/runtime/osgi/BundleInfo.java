@@ -23,12 +23,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.StringTokenizer;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
@@ -43,9 +43,13 @@ import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.op.Caster;
 import lucee.runtime.osgi.OSGiUtil.BundleDefinition;
+import lucee.runtime.osgi.OSGiUtil.PackageDefinition;
+import lucee.runtime.osgi.OSGiUtil.PackageQuery;
+import lucee.runtime.osgi.OSGiUtil.VersionDefinition;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.util.KeyConstants;
+import lucee.runtime.type.util.ListUtil;
 
 public class BundleInfo implements Serializable {
 
@@ -65,7 +69,7 @@ public class BundleInfo implements Serializable {
 	private String fragementHost;
 	private Map<String, Object> headers;
 
-	private List<String> exportPackageAsList;
+	private Map<String, PackageDefinition> exportPackageAsMap;
 	private static Map<String, BundleInfo> bundles = new HashMap<String, BundleInfo>();
 
 	public static BundleInfo getInstance(String id, InputStream is, boolean closeStream) throws IOException, BundleException {
@@ -153,23 +157,64 @@ public class BundleInfo implements Serializable {
 		return exportPackage;
 	}
 
-	public List<String> getExportPackageAsList() {
-		if (exportPackageAsList == null) {
-			synchronized (token) {
-				if (exportPackageAsList == null) {
-					if (StringUtil.isEmpty(exportPackage, true)) return exportPackageAsList = new ArrayList<>();
-
-					StringTokenizer st = new StringTokenizer(exportPackage.trim(), ",");
-					List<String> list = new ArrayList<String>();
-					String p;
-					while (st.hasMoreTokens()) {
-						p = StringUtil.trim(st.nextToken(), null);
-						if (!StringUtil.isEmpty(p)) list.add(p);
+	public Collection<PackageDefinition> getExportPackageAsCollection() {
+		if (exportPackageAsMap == null) {
+			synchronized (this) {
+				if (exportPackageAsMap == null) {
+					if (StringUtil.isEmpty(exportPackage, true)) {
+						return (exportPackageAsMap = new HashMap<>()).values();
 					}
+
+					exportPackageAsMap = new HashMap<>();
+					int len = exportPackage.length();
+					char c;
+					boolean inline = false;
+					StringBuilder sb = new StringBuilder();
+					PackageDefinition pd;
+					for (int i = 0; i < len; i++) {
+						c = exportPackage.charAt(i);
+						if (c == '"') {
+							sb.append('"');
+							inline = !inline;
+						}
+						else if (!inline && c == ',') {
+							pd = toPackageDefinition(sb.toString());
+							exportPackageAsMap.put(pd.getName(), pd);
+
+							sb = new StringBuilder();
+						}
+						else sb.append(c);
+					}
+					pd = toPackageDefinition(sb.toString());
+					exportPackageAsMap.put(pd.getName(), pd);
 				}
 			}
 		}
-		return exportPackageAsList;
+		return exportPackageAsMap.values();
+	}
+
+	public boolean hasMatchingExportPackage(PackageQuery pq) {
+		getExportPackageAsCollection();
+		PackageDefinition pd = exportPackageAsMap.get(pq.getName());
+		if (pd != null) {
+			if (VersionDefinition.matches(pq.getVersionDefinitons(), pd.getVersion())) return true;
+		}
+
+		return false;
+	}
+
+	private static PackageDefinition toPackageDefinition(String raw) {
+		String[] arr = ListUtil.listToStringArray(raw, ';');
+		PackageDefinition pd = new PackageDefinition(arr[0].trim());
+
+		for (int i = 1; i < arr.length; i++) {
+			if (arr[i].startsWith("version=")) {
+				Version v = OSGiUtil.toVersion(StringUtil.unwrap(arr[i].substring(8)), null);
+				if (v != null) pd.setVersion(v);
+				break;
+			}
+		}
+		return pd;
 	}
 
 	public String getImportPackage() {

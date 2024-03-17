@@ -8,38 +8,35 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.BIF;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.extension.RHExtension;
+import lucee.runtime.op.Caster;
 import lucee.runtime.osgi.BundleInfo;
-import lucee.runtime.type.StructImpl;
-import lucee.runtime.type.Struct;
-import lucee.runtime.type.KeyImpl;
+import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.Query;
 import lucee.runtime.type.QueryImpl;
-import lucee.runtime.type.Collection.Key;
+import lucee.runtime.type.Struct;
+import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.util.KeyConstants;
-import lucee.runtime.op.Caster;
 
 public class ExtensionInfo extends BIF implements Function {
 
 	private static final long serialVersionUID = 2627423175121799118L;
 
-	private static final Key BUNDLES = KeyImpl.getInstance("bundles");
-	private static final Key TLDS = KeyImpl.getInstance("tlds");
-	private static final Key FLDS = KeyImpl.getInstance("flds");
-	private static final Key EVENT_GATEWAYS = KeyImpl.getInstance("eventGateways");
-	private static final Key TAGS = KeyImpl.getInstance("tags");
+	private static final Key TLDS = KeyConstants._tlds;
+	private static final Key FLDS = KeyConstants._flds;
+	private static final Key EVENT_GATEWAYS = KeyConstants._eventGateways;
+	private static final Key TAGS = KeyConstants._tags;
 	private static final Key FUNCTIONS = KeyConstants._functions;
-	private static final Key ARCHIVES = KeyImpl.getInstance("archives");
-	private static final Key CONTEXTS = KeyImpl.getInstance("contexts");
-	private static final Key WEBCONTEXTS = KeyImpl.getInstance("webcontexts");
+	private static final Key ARCHIVES = KeyConstants._archives;
+	private static final Key CONTEXTS = KeyConstants._contexts;
+	private static final Key WEBCONTEXTS = KeyConstants._webcontexts;
 	private static final Key CONFIG = KeyConstants._config;
-	private static final Key COMPONENTS = KeyImpl.getInstance("components");
-	private static final Key APPLICATIONS = KeyImpl.getInstance("applications");
-	private static final Key CATEGORIES = KeyImpl.getInstance("categories");
-	private static final Key PLUGINS = KeyImpl.getInstance("plugins");
-	private static final Key START_BUNDLES = KeyImpl.getInstance("startBundles");
-	private static final Key TRIAL = KeyImpl.getInstance("trial");
-	private static final Key RELEASE_TYPE = KeyImpl.getInstance("releaseType");
-	private static final Key SYMBOLIC_NAME = KeyImpl.getInstance("symbolicName");
+	private static final Key APPLICATIONS = KeyConstants._applications;
+	private static final Key CATEGORIES = KeyConstants._categories;
+	private static final Key PLUGINS = KeyConstants._plugins;
+	private static final Key START_BUNDLES = KeyConstants._startBundles;
+	private static final Key TRIAL = KeyConstants._trial;
+	private static final Key RELEASE_TYPE = KeyConstants._releaseType;
+	private static final Key SYMBOLIC_NAME = KeyConstants._symbolicName;
 
 	public static Struct call(PageContext pc, String id) throws PageException {
 		if (StringUtil.isEmpty(id, true)) return new StructImpl();
@@ -73,7 +70,7 @@ public class ExtensionInfo extends BIF implements Function {
 					sct.set(EVENT_GATEWAYS, Caster.toArray(ext.getEventGateways()));
 					sct.set(CATEGORIES, Caster.toArray(ext.getCategories()));
 					sct.set(APPLICATIONS, Caster.toArray(ext.getApplications()));
-					sct.set(COMPONENTS, Caster.toArray(ext.getComponents()));
+					sct.set(KeyConstants._components, Caster.toArray(ext.getComponents()));
 					sct.set(PLUGINS, Caster.toArray(ext.getPlugins()));
 					sct.set(START_BUNDLES, Caster.toBoolean(ext.getStartBundles()));
 

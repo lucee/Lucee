@@ -221,7 +221,7 @@ public final class VariableInterpreter {
 	 * @throws SecurityInterpreterException
 	 */
 	public static Object getVariableEL(PageContext pc, String var, Object defaultValue) throws SecurityInterpreterException {
-		StringList list = parse(pc, new ParserString(var), false, false);
+		StringList list = parse(pc, new ParserString(var), false, ((PageContextImpl) pc).limitEvaluation());
 		if (list == null) return defaultValue;
 		Object _null = NullSupportHelper.NULL(pc);
 
@@ -427,7 +427,7 @@ public final class VariableInterpreter {
 	 * @throws SecurityInterpreterException
 	 */
 	public static boolean isDefined(PageContext pc, String var) throws SecurityInterpreterException {
-		StringList list = parse(pc, new ParserString(var), false, ((PageContextImpl) pc).limitIsDefined());
+		StringList list = parse(pc, new ParserString(var), false, ((PageContextImpl) pc).limitEvaluation());
 		if (list == null) return false;
 		try {
 			int scope = scopeString2Int(pc.ignoreScopes(), list.next());

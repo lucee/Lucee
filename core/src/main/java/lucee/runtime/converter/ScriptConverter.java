@@ -52,7 +52,6 @@ import lucee.runtime.text.xml.XMLCaster;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.Collection.Key;
-import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.ObjectWrap;
 import lucee.runtime.type.Query;
 import lucee.runtime.type.Struct;
@@ -68,7 +67,7 @@ import lucee.runtime.type.util.KeyConstants;
  * class to serialize and desirilize WDDX Packes
  */
 public final class ScriptConverter extends ConverterSupport {
-	private static final Collection.Key REMOTING_FETCH = KeyImpl.getInstance("remotingFetch");
+	private static final Collection.Key REMOTING_FETCH = KeyConstants._remotingFetch;
 	private static final char QUOTE_CHR = '"';
 	private static final String QUOTE_STR = String.valueOf(QUOTE_CHR);
 
@@ -557,14 +556,15 @@ public final class ScriptConverter extends ConverterSupport {
 				return;
 			}
 		}
+		catch (Exception e) {
+			ConverterException ce = new ConverterException("can't serialize Object of type [ " + Caster.toClassName(object) + " ]");
+			ce.initCause(e);
+			throw e;
+		}
 		finally {
 			done.remove(raw);
 		}
 		throw new ConverterException("can't serialize Object of type [ " + Caster.toClassName(object) + " ]");
-		// deep--;
-		/*
-		 * } catch(StackOverflowError soe){ throw soe; }
-		 */
 	}
 
 	private void _serializeXML(Node node, StringBuilder sb) {

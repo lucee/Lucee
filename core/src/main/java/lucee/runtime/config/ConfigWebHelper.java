@@ -14,7 +14,9 @@ import javax.servlet.http.HttpServletResponse;
 
 import lucee.commons.digest.HashUtil;
 import lucee.commons.io.FileUtil;
+import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
+import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ClassUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.lock.KeyLock;
@@ -24,15 +26,17 @@ import lucee.runtime.CIPage;
 import lucee.runtime.Mapping;
 import lucee.runtime.MappingImpl;
 import lucee.runtime.PageContext;
+import lucee.runtime.PageSource;
 import lucee.runtime.cache.tag.CacheHandlerCollection;
 import lucee.runtime.cache.tag.CacheHandlerCollections;
 import lucee.runtime.compiler.CFMLCompilerImpl;
+import lucee.runtime.config.gateway.GatewayMap;
 import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.debug.DebuggerPool;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.gateway.GatewayEngineImpl;
-import lucee.runtime.gateway.GatewayEntry;
 import lucee.runtime.lock.LockManager;
 import lucee.runtime.lock.LockManagerImpl;
 import lucee.runtime.net.amf.AMFEngine;
@@ -133,7 +137,7 @@ public class ConfigWebHelper {
 				else throw new ApplicationException("class [" + o.getClass().getName() + "] does not implement the interface SearchEngine");
 
 				searchEngine.init(cw, ConfigWebUtil.getFile(cw.getConfigDir(), ConfigWebUtil.translateOldPath(cw.getSearchEngineDirectory()), "search", cw.getConfigDir(),
-						FileUtil.TYPE_DIR, cw));
+						FileUtil.TYPE_DIR, ResourceUtil.LEVEL_GRAND_PARENT_FILE, cw));
 			}
 			catch (Exception e) {
 				throw Caster.toPageException(e);
@@ -186,15 +190,36 @@ public class ConfigWebHelper {
 		serverFunctionMappings = null;
 	}
 
-	public GatewayEngineImpl getGatewayEngineImpl(Map<String, GatewayEntry> entries) throws PageException {
-		if (gatewayEngine == null) {
-			gatewayEngine = new GatewayEngineImpl(cw);
-			try {
-				gatewayEngine.addEntries(cw, entries);
+	public GatewayEngineImpl getGatewayEngineImpl(GatewayMap entries) throws PageException {
+		// already here
+		if (gatewayEngine != null && ThreadLocalPageContext.insideGateway()) return gatewayEngine;
+
+		try {
+			ThreadLocalPageContext.insideGateway(true);
+			// new engine
+			if (gatewayEngine == null) {
+				gatewayEngine = new GatewayEngineImpl(cw);
+				if (entries != null) {
+					try {
+						gatewayEngine.addEntries(cw, entries);
+					}
+					catch (Exception e) {
+						throw Caster.toPageException(e);
+					}
+				}
 			}
-			catch (Exception e) {
-				throw Caster.toPageException(e);
+			// update engine
+			else if (entries != null && !entries.getId().equals(gatewayEngine.id())) {
+				try {
+					gatewayEngine.addEntries(cw, entries);
+				}
+				catch (Exception e) {
+					throw Caster.toPageException(e);
+				}
 			}
+		}
+		finally {
+			ThreadLocalPageContext.insideGateway(false);
 		}
 		return gatewayEngine;
 	}
@@ -266,19 +291,31 @@ public class ConfigWebHelper {
 		cacheHandlerCollections.releaseCacheHandlers(pc);
 	}
 
-	public CIPage getBaseComponentPage(int dialect, PageContext pc) throws PageException {
-		// CFML
-		if (dialect == CFMLEngine.DIALECT_CFML) {
-			if (baseComponentPageCFML == null) {
-				baseComponentPageCFML = (CIPage) cw.getBaseComponentPageSource(dialect, pc).loadPage(pc, false);
+	public CIPage getBaseComponentPage(int dialect, PageContext pc) {
+
+		CIPage base = dialect == CFMLEngine.DIALECT_CFML ? baseComponentPageCFML : baseComponentPageLucee;
+		if (base == null) {
+			try {
+				PageSource ps = cw.getBaseComponentPageSource(dialect, pc, false);
+				if (ps == null) return null;
+				base = (CIPage) ps.loadPage(pc, false);
 			}
-			return baseComponentPageCFML;
+			catch (PageException pe) {
+				PageSource ps = cw.getBaseComponentPageSource(dialect, pc, true);
+				if (ps == null) return null;
+				try {
+					base = (CIPage) ps.loadPage(pc, false);
+				}
+				catch (PageException e) {
+					LogUtil.log("component", e);
+				}
+			}
+			if (base != null) {
+				if (dialect == CFMLEngine.DIALECT_CFML) baseComponentPageCFML = base;
+				else baseComponentPageLucee = base;
+			}
 		}
-		// Lucee
-		if (baseComponentPageLucee == null) {
-			baseComponentPageLucee = (CIPage) cw.getBaseComponentPageSource(dialect, pc).loadPage(pc, false);
-		}
-		return baseComponentPageLucee;
+		return base;
 	}
 
 	public void resetBaseComponentPage() {

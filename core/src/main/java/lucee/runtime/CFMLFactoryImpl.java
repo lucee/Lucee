@@ -273,7 +273,7 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 	@Override
 	public void releaseLuceePageContext(PageContext pc, boolean unregisterFromThread) {
 		if (pc.getId() < 0) return;
-		boolean isChild = pc.getParentPageContext() != null; // we need to get this check before release is executed
+		PageContext parent = pc.getParentPageContext();
 
 		// when pc was registered with an other thread, we register with this thread when calling release
 		PageContext beforePC = ThreadLocalPageContext.get();
@@ -295,8 +295,11 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 		if (unregisterFromThread) ThreadLocalPageContext.release();
 
 		runningPcs.remove(Integer.valueOf(pc.getId()));
-		if (isChild) {
+		if (parent != null) {
 			runningChildPcs.remove(Integer.valueOf(pc.getId()));
+			if (parent instanceof PageContextImpl) {
+				((PageContextImpl) parent).removeChildPageContext(pc);
+			}
 		}
 		if (pcs.size() < 100 && ((PageContextImpl) pc).getTimeoutStackTrace() == null && reuse)// not more than 100 PCs
 			pcs.push((PageContextImpl) pc);
@@ -361,12 +364,16 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 					else {
 						if (log != null) {
 							PageContext root = pc.getRootPageContext();
-							String msg = "reach request timeout with " + (root != null && root != pc ? "thread" : "request") + " [" + pc.getId()
-									+ "], but the request is not killed because we did not reach all thresholds set. ATM we have " + getActiveRequests() + " active request(s) and "
-									+ getActiveThreads() + " active cfthreads " + getPath(pc) + "." + MonitorState.getBlockedThreads(pc) + RequestTimeoutException.locks(pc);
+							boolean first = pc.timeoutNoAction() > 0;
+
+							String msg = "reach" + (first ? "" : " (again)") + " request timeout with " + (root != null && root != pc ? "thread" : "request") + " ["
+									+ pc.getRequestId() + "], but the request is not killed because we did not reach all thresholds set. ATM we have " + getActiveRequests()
+									+ " active request(s) and " + getActiveThreads() + " active cfthreads " + getPath(pc) + "." + MonitorState.getBlockedThreads(pc)
+									+ RequestTimeoutException.locks(pc);
+
 							Thread thread = pc.getThread();
-							if (thread != null) log.log(Log.LEVEL_WARN, "controller", msg, ExceptionUtil.toThrowable(thread.getStackTrace()));
-							else log.log(Log.LEVEL_WARN, "controller", msg);
+							if (thread != null) log.log(first ? Log.LEVEL_WARN : Log.LEVEL_INFO, "controller", msg, ExceptionUtil.toThrowable(thread.getStackTrace()));
+							else log.log(first ? Log.LEVEL_WARN : Log.LEVEL_INFO, "controller", msg);
 						}
 					}
 				}
@@ -549,7 +556,7 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 
 			if (pc.isGatewayContext()) continue;
 			thread = pc.getThread();
-			if (thread == null || thread == Thread.currentThread()) continue;
+			if (thread == null || !thread.isAlive() || thread == Thread.currentThread()) continue;
 
 			data.setEL("startTime", new DateTimeImpl(pc.getStartTime(), false));
 			data.setEL("endTime", new DateTimeImpl(pc.getStartTime() + pc.getRequestTimeout(), false));

@@ -23,7 +23,7 @@
 <html>
 <head>
 	<title>#attributes.title# - Lucee #ucFirst(request.adminType)# Administrator</title>
-	<link rel="stylesheet" href="../res/css/admin6-#resNameAppendix#.css.cfm" type="text/css">
+	<link rel="stylesheet" href="../res/css/admin6.css.cfm" type="text/css">
 	<meta name="robots" content="noindex,nofollow">
 	<cfhtmlhead action="flush">
 </head>
@@ -117,9 +117,9 @@
 
 	<script src="../res/js/base.min.js.cfm" type="text/javascript"></script>
 	<script src="../res/js/jquery.modal.min.js.cfm" type="text/javascript"></script>
-	<script src="../res/js/jquery.blockUI-#resNameAppendix#.js.cfm" type="text/javascript"></script>
-	<script src="../res/js/admin-#resNameAppendix#.js.cfm" type="text/javascript"></script>
-	<script src="../res/js/util-#resNameAppendix#.min.js.cfm"></script>
+	<script src="../res/js/jquery.blockUI.js.cfm" type="text/javascript"></script>
+	<script src="../res/js/admin.js.cfm" type="text/javascript"></script>
+	<script src="../res/js/util.min.js.cfm"></script>
 	<cfinclude template="navigation.cfm">
 	<script>
 		$(function(){

@@ -22,6 +22,7 @@ package lucee.runtime.op.date;
 import java.text.DateFormat;
 import java.text.ParsePosition;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
@@ -31,6 +32,7 @@ import lucee.commons.date.DateTimeUtil;
 import lucee.commons.date.JREDateTimeUtil;
 import lucee.commons.date.TimeZoneConstants;
 import lucee.commons.i18n.FormatUtil;
+import lucee.commons.io.log.LogUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.Component;
 import lucee.runtime.engine.ThreadLocalPageContext;
@@ -77,6 +79,7 @@ public final class DateCaster {
 			if (o instanceof DateTime) return (DateTime) o;
 			return new DateTimeImpl((Date) o);
 		}
+		else if (o instanceof Instant) return new DateTimeImpl(Date.from((Instant) o));
 		else if (o instanceof Castable) return ((Castable) o).castToDateTime();
 		else if (o instanceof String) {
 			DateTime dt = toDateAdvanced((String) o, timezone, null);
@@ -144,6 +147,7 @@ public final class DateCaster {
 		str = str.trim();
 		if (StringUtil.isEmpty(str)) return defaultValue;
 		if (!hasDigits(str)) return defaultValue; // every format has digits
+		str = replaceETCTimezoneDefintions(str);
 		timeZone = ThreadLocalPageContext.getTimeZone(timeZone);
 		DateTime dt = toDateSimple(str, convertingType, true, timeZone, defaultValue);
 		if (dt == null) {
@@ -165,6 +169,32 @@ public final class DateCaster {
 			dt = toDateTime(Locale.US, str, timeZone, defaultValue, false);
 		}
 		return dt;
+	}
+
+	private static String replaceETCTimezoneDefintions(String str) {
+		int index;
+		try {
+			if ((index = StringUtil.indexOfIgnoreCase(str, " Etc/")) != -1) {
+				int indexPlus = str.indexOf('+', index + 1);
+				int indexMinus = str.indexOf('-', index + 1);
+				if (indexPlus == -1 && indexMinus == -1) {
+					str = str.substring(0, index + 1) + str.substring(index + 5);
+				}
+				else {
+					int i = indexPlus == -1 ? indexMinus : indexPlus;
+					String tmp = str.substring(index + 5, i);
+					if ("GMT".equalsIgnoreCase(tmp) || "UTC".equalsIgnoreCase(tmp)) {
+						str = str.substring(0, index) + (indexPlus != -1 ? "-" : "+") + str.substring(i + 1);
+					}
+
+				}
+
+			}
+		}
+		catch (Exception e) {
+			LogUtil.log("datetime", e);
+		}
+		return str;
 	}
 
 	private static boolean hasDigits(String str) {
@@ -196,26 +226,6 @@ public final class DateCaster {
 		}
 		return dt;
 	}
-
-	/*
-	 * public static void main(String[] args) throws PageException {
-	 * 
-	 * Locale[] locales = Locale.getAvailableLocales(); Iterator<Locale> it =
-	 * LocaleFactory.getLocales().values().iterator();
-	 * 
-	 * //print.e(toDateTime(new Locale("de","CH"), "06.02.2008 01:02:01 MEZ",
-	 * TimeZone.getDefault(),null, false)); String str="dimanche, 6. avril 2008 01:02:03";
-	 * str="06.02.2008, 01:02:01 MEZ"; str="01.02. h CEST"; str="6-apr-2008";
-	 * str="Sunday, April 6, 2008 1:02:03 AM CEST"; str="Sunday, April 6, 2008 1:02:03 AM CEST";
-	 * str="01:02:03 o'clock CEST"; str="1:02 Uhr MEZ"; Locale l=new Locale("fr","CH"); l=new
-	 * Locale("it","CH"); l=new Locale("en","US"); l=new Locale("en","UK"); l=new Locale("de","CH");
-	 * //l=new Locale("es","ES"); //l=LocaleConstant.PORTUGUESE_BRASIL;
-	 * //l=LocaleConstant.DUTCH_NETHERLANDS; //l=LocaleConstant.ARABIC_ALGERIA; //l=Locale.CHINA;
-	 * print.e(str); print.e(toDateTime(l, str, TimeZone.getDefault(),null, false));
-	 * 
-	 * 
-	 * }
-	 */
 
 	/**
 	 * parse a string to a Datetime Object, returns null if can't convert

@@ -42,7 +42,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	}
 
 	public void function testComponent() localmode="modern" {
-		src = new "lucee.Component"();
+		src = new "Component"();
 		src["a&1"]=1;
 		wddx action="cfml2wddx" input="#src#" output="wddx" validate='yes';
 		

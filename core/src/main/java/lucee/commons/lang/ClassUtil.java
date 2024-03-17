@@ -173,24 +173,38 @@ public final class ClassUtil {
 		try {
 			if (relatedBundles != null) {
 				for (BundleDefinition rb: relatedBundles) {
-					rb.getBundle(id, addional, true);
+					rb.getBundle(id, addional, true, false);
 				}
 			}
 			return bundle.getBundle(id, addional, true, versionOnlyMattersForDownload).loadClass(className);
 		}
-		catch (ClassNotFoundException e) {
-			String appendix = "";
-			if (!StringUtil.isEmpty(e.getMessage(), true)) appendix = " " + e.getMessage();
-			ClassException ce;
-			if (bundle.getVersion() == null) {
-				ce = new ClassException("In the OSGi Bundle with the name [" + bundle.getName() + "] was no class with name [" + className + "] found." + appendix);
+		catch (ClassNotFoundException outer) {
+			try {
+				if (OSGiUtil.resolveBundleLoadingIssues(null, ThreadLocalPageContext.getConfig(), outer)) {
+					if (relatedBundles != null) {
+						for (BundleDefinition rb: relatedBundles) {
+							rb.getBundle(id, addional, true, false);
+						}
+					}
+					return bundle.getBundle(id, addional, true, versionOnlyMattersForDownload).loadClass(className);
+				}
+				else throw outer;
+
 			}
-			else {
-				ce = new ClassException("In the OSGi Bundle with the name [" + bundle.getName() + "] and the version [" + bundle.getVersion() + "] was no class with name ["
-						+ className + "] found." + appendix);
+			catch (ClassNotFoundException e) {
+				String appendix = "";
+				if (!StringUtil.isEmpty(e.getMessage(), true)) appendix = " " + e.getMessage();
+				ClassException ce;
+				if (bundle.getVersion() == null) {
+					ce = new ClassException("In the OSGi Bundle with the name [" + bundle.getName() + "] was no class with name [" + className + "] found." + appendix);
+				}
+				else {
+					ce = new ClassException("In the OSGi Bundle with the name [" + bundle.getName() + "] and the version [" + bundle.getVersion() + "] was no class with name ["
+							+ className + "] found." + appendix);
+				}
+				ce.initCause(e);
+				throw ce;
 			}
-			ce.initCause(e);
-			throw ce;
 		}
 	}
 

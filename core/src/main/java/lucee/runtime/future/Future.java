@@ -12,7 +12,6 @@ import lucee.runtime.dump.SimpleDumpData;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.CasterException;
-import lucee.runtime.exp.CatchBlockImpl;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
@@ -107,7 +106,7 @@ public class Future implements Objects {
 
 	private Future executeErrorHandler(PageContext pc, UDF udf, long timeout, Exception e) {
 		ExecutorService executor = Executors.newSingleThreadExecutor();
-		return new Future(executor.submit(new CallableUDF(pc, udf, new CatchBlockImpl(Caster.toPageException(e)))), timeout);
+		return new Future(executor.submit(new CallableUDF(pc, udf, Caster.toPageException(e).getCatchBlock(ThreadLocalPageContext.getConfig(pc)))), timeout);
 	}
 
 	public boolean cancel() {

@@ -37,7 +37,7 @@
 		|| session.alwaysNew>
 		<cfinclude template="web_functions.cfm">
 		
-		<cfset self = adminType & ".cfm">
+		<!--- <cfset self = adminType & ".cfm"> --->
 		<cfset stText.services.update.update="There is a Lucee update <b>( {available} )</b> available for your current version <b>( {current} )</b>.">
 
 	<!--- Core --->
@@ -122,7 +122,7 @@
 						uid=extensions.id
 						link="";
 						dn="";
-						link="#self#?action=ext.applications&action2=detail&id=#uid#";
+						link="?action=ext.applications&action2=detail&id=#uid#";
 					</cfscript>
 					<cfoutput>
 						<a href="#link#" style="color:red;text-decoration:none;">- #extensions.name# - <b>#updateVersion#</b> ( #sct.version# ) </a><br>
@@ -173,7 +173,7 @@
 				<!--- Core --->
 				<cfif adminType == "server" and hasUpdate>
 					<div class="error">
-						<a href="server.cfm?action=services.update" style="color:red;text-decoration:none;">
+						<a href="?action=services.update" style="color:red;text-decoration:none;">
 							#replace( stText.services.update.update, { '{available}': available, '{current}': server.lucee.version } )#
 						</a>
 					</div>
@@ -182,7 +182,7 @@
 				<!--- Extension --->
 				<cfif extensions.recordcount and len(ext)>
 				<div class="error">
-					<a href="#self#?action=ext.applications" style="color:red;text-decoration:none;">
+					<a href="?action=ext.applications" style="color:red;text-decoration:none;">
 						There are updates available for your installed Extension(s).<br>
 						#ext#
 					</a>

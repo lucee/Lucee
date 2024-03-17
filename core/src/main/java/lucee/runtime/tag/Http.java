@@ -29,6 +29,7 @@ import java.net.SocketTimeoutException;
 import java.net.URI;
 import java.net.URL;
 import java.nio.charset.Charset;
+import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -39,6 +40,8 @@ import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
+import org.apache.http.client.config.CookieSpecs;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
 import org.apache.http.client.methods.HttpHead;
 import org.apache.http.client.methods.HttpOptions;
@@ -48,7 +51,6 @@ import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.methods.HttpTrace;
 import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.config.SocketConfig;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.entity.mime.FormBodyPart;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
@@ -178,16 +180,15 @@ public final class Http extends BodyTagImpl {
 	private static final Key STATUSCODE = KeyConstants._statuscode;
 	private static final Key CHARSET = KeyConstants._charset;
 
-	private static final Key ERROR_DETAIL = KeyImpl.getInstance("errordetail");
-	private static final Key STATUS_CODE = KeyImpl.getInstance("status_code");
-	private static final Key STATUS_TEXT = KeyImpl.getInstance("status_text");
-	private static final Key HTTP_VERSION = KeyImpl.getInstance("http_version");
-	private static final Key LOCATIONS = KeyImpl.getInstance("locations");
+	private static final Key ERROR_DETAIL = KeyConstants._errordetail;
+	private static final Key STATUS_CODE = KeyConstants._status_code;
+	private static final Key STATUS_TEXT = KeyConstants._status_text;
+	private static final Key HTTP_VERSION = KeyConstants._http_version;
+	private static final Key LOCATIONS = KeyConstants._locations;
 
-	private static final Key EXPLANATION = KeyImpl.getInstance("explanation");
-	private static final Key RESPONSEHEADER = KeyImpl.getInstance("responseheader");
+	private static final Key EXPLANATION = KeyConstants._explanation;
+	private static final Key RESPONSEHEADER = KeyConstants._responseheader;
 	private static final Key SET_COOKIE = KeyImpl.getInstance("set-cookie");
-	private static final Key ERROR = KeyImpl.getInstance("error");
 
 	private static final short AUTH_TYPE_BASIC = 0;
 	private static final short AUTH_TYPE_NTLM = 1;
@@ -685,18 +686,17 @@ public final class Http extends BodyTagImpl {
 			_doEndTag();
 			return EVAL_PAGE;
 		}
-		catch (IOException e) {
+		catch (Exception e) {
 			throw Caster.toPageException(e);
 		}
 	}
 
-	private void _doEndTag() throws PageException, IOException {
+	private void _doEndTag() throws PageException, IOException, GeneralSecurityException {
 
 		long start = System.nanoTime();
 		boolean safeToMemory = !StringUtil.isEmpty(result, true);
 
-		HttpClientBuilder builder = HTTPEngine4Impl.getHttpClientBuilder();
-		HTTPEngine4Impl.setConnectionManager(builder, this.usePool, this.clientCert, this.clientCertPassword);
+		HttpClientBuilder builder = HTTPEngine4Impl.getHttpClientBuilder(this.usePool, this.clientCert, this.clientCertPassword);
 
 		// redirect
 		if (redirect) builder.setRedirectStrategy(DefaultRedirectStrategy.INSTANCE);
@@ -1036,7 +1036,7 @@ public final class Http extends BodyTagImpl {
 			if (!hasHeaderIgnoreCase(req, "User-Agent")) req.setHeader("User-Agent", this.useragent);
 
 			// set timeout
-			setTimeout(builder, checkRemainingTimeout());
+			setTimeout(builder, Http.checkRemainingTimeout(pageContext, this.timeout));
 
 			// set Username and Password
 			if (this.username != null) {
@@ -1067,7 +1067,7 @@ public final class Http extends BodyTagImpl {
 			HTTPEngine4Impl.setProxy(host, builder, req, proxy);
 
 		}
-
+		HTTPResponse4Impl rsp = null;
 		CloseableHttpClient client = null;
 		try {
 			if (httpContext == null) httpContext = new BasicHttpContext();
@@ -1080,7 +1080,6 @@ public final class Http extends BodyTagImpl {
 			/////////////////////////////////////////// /////////////////////////////////////////////////
 			client = builder.build();
 			Executor4 e = new Executor4(pageContext, this, client, httpContext, req, redirect);
-			HTTPResponse4Impl rsp = null;
 
 			if (timeout == null || timeout.getMillis() <= 0) {
 				try {
@@ -1153,7 +1152,7 @@ public final class Http extends BodyTagImpl {
 			Struct responseHeader = new StructImpl();
 			Struct cookie;
 			Array setCookie = new ArrayImpl();
-			Query cookies = new QueryImpl(new String[] { "name", "value", "path", "domain", "expires", "secure", "httpOnly", "samesite" }, 0, "cookies");
+			Query cookies = new QueryImpl(new String[] { "name", "value", "path", "domain", "expires", "secure", "httpOnly", "samesite", "partitioned" }, 0, "cookies");
 
 			for (int i = 0; i < headers.length; i++) {
 				lucee.commons.net.http.Header header = headers[i];
@@ -1198,7 +1197,7 @@ public final class Http extends BodyTagImpl {
 			String[] tmpCharset = HTTPUtil.splitMimeTypeAndCharset(mimetype, null);
 			rspCharset = tmpCharset != null ? tmpCharset[1] : null;
 
-			cfhttp.set(ERROR, Boolean.FALSE); // default
+			cfhttp.set(KeyConstants._error, Boolean.FALSE); // default
 			cfhttp.set(RESPONSEHEADER, responseHeader);
 			cfhttp.set(KeyConstants._cookies, cookies);
 			responseHeader.set(STATUS_CODE, Double.valueOf(statCode = rsp.getStatusCode()));
@@ -1329,7 +1328,7 @@ public final class Http extends BodyTagImpl {
 					String details = getMethodAsVerb(method) + " " + url.toExternalForm();
 					throw new HTTPException(msg, details, rsp.getStatusCode(), rsp.getStatusText(), url);
 				}
-				cfhttp.setEL(ERROR, Boolean.TRUE);
+				cfhttp.setEL(KeyConstants._error, Boolean.TRUE);
 			}
 
 			// TODO: check if we can use statCode instead of rsp.getStatusCode() everywhere and cleanup the code
@@ -1341,6 +1340,7 @@ public final class Http extends BodyTagImpl {
 			logHttpRequest(pageContext, cfhttp, url, req.getMethod(), System.nanoTime() - start, false);
 		}
 		finally {
+			if (rsp != null) rsp.close();
 			if (client != null) client.close();
 		}
 	}
@@ -1418,17 +1418,17 @@ public final class Http extends BodyTagImpl {
 			}
 			try {
 				try {
-					str = is == null ? "" : IOUtil.toString(is, responseCharset, checkRemainingTimeout().getMillis());
+					str = is == null ? "" : IOUtil.toString(is, responseCharset, Http.checkRemainingTimeout(pageContext, this.timeout).getMillis());
 				}
 				catch (EOFException eof) {
 					if (is instanceof CachingGZIPInputStream) {
-						str = IOUtil.toString(is = ((CachingGZIPInputStream) is).getRawData(), responseCharset, checkRemainingTimeout().getMillis());
+						str = IOUtil.toString(is = ((CachingGZIPInputStream) is).getRawData(), responseCharset, Http.checkRemainingTimeout(pageContext, this.timeout).getMillis());
 					}
 					else throw eof;
 				}
 			}
 			catch (UnsupportedEncodingException uee) {
-				str = IOUtil.toString(is, (Charset) null, checkRemainingTimeout().getMillis());
+				str = IOUtil.toString(is, (Charset) null, Http.checkRemainingTimeout(pageContext, this.timeout).getMillis());
 			}
 		}
 		catch (IOException ioe) {
@@ -1446,10 +1446,10 @@ public final class Http extends BodyTagImpl {
 		return str;
 	}
 
-	private TimeSpan checkRemainingTimeout() throws RequestTimeoutException {
-		TimeSpan remaining = PageContextUtil.remainingTime(pageContext, true);
-		if (this.timeout == null || ((int) this.timeout.getSeconds()) <= 0 || timeout.getSeconds() > remaining.getSeconds()) { // not set
-			this.timeout = remaining;
+	public static TimeSpan checkRemainingTimeout(PageContext pc, TimeSpan timeout) throws RequestTimeoutException {
+		TimeSpan remaining = PageContextUtil.remainingTime(pc, true);
+		if (timeout == null || ((int) timeout.getSeconds()) <= 0 || (timeout.getSeconds() > remaining.getSeconds() && remaining.getSeconds() > 0)) { // not set
+			return remaining;
 		}
 		return timeout;
 	}
@@ -1502,6 +1502,7 @@ public final class Http extends BodyTagImpl {
 		String n, v;
 		cookies.setAtEL("secure", row, Boolean.FALSE);
 		cookies.setAtEL("httpOnly", row, Boolean.FALSE);
+		cookies.setAtEL("partitioned", row, Boolean.FALSE);
 		for (int i = 1; i < arr.length; i++) {
 			item = arr[i];
 			index = item.indexOf('=');
@@ -1566,7 +1567,7 @@ public final class Http extends BodyTagImpl {
 		cfhttp.setEL(STATUS_CODE, Double.valueOf(0));
 		cfhttp.setEL(STATUS_TEXT, "Connection Failure");
 		cfhttp.setEL(KeyConstants._text, Boolean.TRUE);
-		cfhttp.setEL(ERROR, Boolean.TRUE);
+		cfhttp.setEL(KeyConstants._error, Boolean.TRUE);
 	}
 
 	private void setRequestTimeout(Struct cfhttp) {
@@ -1580,7 +1581,7 @@ public final class Http extends BodyTagImpl {
 		cfhttp.setEL(STATUS_CODE, Double.valueOf(408));
 		cfhttp.setEL(STATUS_TEXT, "Request Time-out");
 		cfhttp.setEL(KeyConstants._text, Boolean.TRUE);
-		cfhttp.setEL(ERROR, Boolean.TRUE);
+		cfhttp.setEL(KeyConstants._error, Boolean.TRUE);
 	}
 
 	private static boolean hasHeaderIgnoreCase(HttpRequestBase req, String name) {
@@ -1860,9 +1861,10 @@ public final class Http extends BodyTagImpl {
 		int ms = (int) timeout.getMillis();
 		if (ms < 0) ms = Integer.MAX_VALUE;
 
+		builder.setDefaultRequestConfig(
+				RequestConfig.custom().setCookieSpec(CookieSpecs.STANDARD).setConnectionRequestTimeout(ms).setConnectTimeout(ms).setSocketTimeout(ms).build());
+
 		// builder.setConnectionTimeToLive(ms, TimeUnit.MILLISECONDS);
-		SocketConfig sc = SocketConfig.custom().setSoTimeout(ms).build();
-		builder.setDefaultSocketConfig(sc);
 	}
 
 }

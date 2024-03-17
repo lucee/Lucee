@@ -24,7 +24,6 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.type.scope.CSRFTokenSupport;
 import lucee.runtime.type.scope.Session;
-import lucee.runtime.type.scope.storage.StorageScope;
 
 public class CSRFGenerateToken implements Function {
 

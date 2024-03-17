@@ -764,7 +764,7 @@ public final class ComponentUtil {
 		Property[] props = c.getProperties(onlyPersistent, false, false, false);
 		Struct sct = new StructImpl();
 		if (props != null) for (int i = 0; i < props.length; i++) {
-			sct.setEL(KeyImpl.getInstance(props[i].getName()), props[i]);
+			sct.setEL(KeyImpl.init(props[i].getName()), props[i]);
 		}
 		return sct;
 	}
@@ -836,6 +836,7 @@ public final class ComponentUtil {
 		else if (format == UDF.RETURN_FORMAT_PLAIN) func.set(KeyConstants._returnFormat, "plain");
 		else if (format == UDF.RETURN_FORMAT_JSON) func.set(KeyConstants._returnFormat, "json");
 		else if (format == UDF.RETURN_FORMAT_SERIALIZE) func.set(KeyConstants._returnFormat, "cfml");
+		else if (format == UDF.RETURN_FORMAT_XML) func.set(KeyConstants._returnFormat, "xml");
 
 		FunctionArgument[] args = udfProps.getFunctionArguments();
 		Array params = new ArrayImpl();

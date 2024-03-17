@@ -28,7 +28,6 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.UDF;
-import lucee.commons.io.res.util.ResourceUtil;
 
 public class UDFFilter extends UDFFilterSupport implements ResourceAndResourceNameFilter {
 

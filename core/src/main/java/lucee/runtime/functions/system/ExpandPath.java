@@ -61,15 +61,15 @@ public final class ExpandPath implements Function {
 		if (StringUtil.startsWith(relPath, '/')) {
 
 			PageContextImpl pci = (PageContextImpl) pc;
-			ConfigWebPro cwi = (ConfigWebPro) config;
-			PageSource[] sources = cwi.getPageSources(pci, mergeMappings(pc.getApplicationContext().getMappings(), pc.getApplicationContext().getComponentMappings()), relPath,
-					false, pci.useSpecialMappings(), true);
+			ConfigWeb cwi = config;
+			Resource[] sources = ((ConfigWebPro) cwi).getResources(pci, mergeMappings(pc.getApplicationContext().getMappings(), pc.getApplicationContext().getComponentMappings()),
+					relPath, false, pci.useSpecialMappings(), true, false, true);
 
 			if (!ArrayUtil.isEmpty(sources)) {
 				// first check for existing
 				for (int i = 0; i < sources.length; i++) {
 					if (sources[i].exists()) {
-						return toReturnValue(relPath, sources[i].getResource());
+						return toReturnValue(relPath, sources[i]);
 					}
 				}
 
@@ -81,7 +81,7 @@ public final class ExpandPath implements Function {
 					}
 				}
 				for (int i = 0; i < sources.length; i++) {
-					res = sources[i].getResource();
+					res = sources[i];
 					if (res != null) {
 						return toReturnValue(relPath, res);
 					}

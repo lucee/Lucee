@@ -55,6 +55,7 @@ import lucee.runtime.listener.SessionCookieData;
 import lucee.runtime.listener.SessionCookieDataImpl;
 import lucee.runtime.net.mail.Server;
 import lucee.runtime.net.mail.ServerImpl;
+import lucee.runtime.net.proxy.ProxyData;
 import lucee.runtime.net.s3.Properties;
 import lucee.runtime.op.Caster;
 import lucee.runtime.orm.ORMConfiguration;
@@ -98,7 +99,7 @@ public class GetApplicationSettings extends BIF {
 		sct.setEL("sessionStorage", ac.getSessionstorage());
 
 		SessionCookieData sessionCookieData = acs.getSessionCookie();
-		if( sessionCookieData != null) {
+		if (sessionCookieData != null) {
 			Struct sc = new StructImpl(Struct.TYPE_LINKED);
 			if (!StringUtil.isEmpty(sessionCookieData.getPath())) sc.setEL("path", sessionCookieData.getPath());
 			if (!StringUtil.isEmpty(sessionCookieData.getDomain())) sc.setEL("domain", sessionCookieData.getDomain());
@@ -107,7 +108,17 @@ public class GetApplicationSettings extends BIF {
 			sc.setEL("httpOnly", sessionCookieData.isHttpOnly());
 			sc.setEL("sameSite", SessionCookieDataImpl.toSamesite(sessionCookieData.getSamesite()));
 			sc.setEL("disableUpdate", sessionCookieData.isDisableUpdate());
+			sc.setEL("partitioned", sessionCookieData.isPartitioned());
 			sct.setEL("sessionCookie", sc);
+		}
+		ProxyData ProxyData = acs.getProxyData();
+		if( ProxyData != null) {
+			Struct sc = new StructImpl(Struct.TYPE_LINKED);
+			sc.setEL("server", ProxyData.getServer());
+			sc.setEL("port", ProxyData.getPort());
+			sc.setEL("username", ProxyData.getUsername());
+			sc.setEL("password", ProxyData.getPassword());
+			sct.setEL("proxy", sc);
 		}
 
 		Struct xmlFeatures = acs.getXmlFeatures();
@@ -116,17 +127,16 @@ public class GetApplicationSettings extends BIF {
 		sxml.setEL("secure", xmlFeatures.get("secure", true));
 		sxml.setEL("disallowDoctypeDecl", xmlFeatures.get("disallowDoctypeDecl", true));
 		sxml.setEL("externalGeneralEntities", xmlFeatures.get("externalGeneralEntities", false));
-		if (!xmlFeatures.isEmpty()){ // pass thru other values
+		if (!xmlFeatures.isEmpty()) { // pass thru other values
 			Iterator<Key> it = xmlFeatures.keySet().iterator();
 			Key name;
 			while (it.hasNext()) {
 				name = KeyImpl.toKey(it.next());
-				if (!sxml.containsKey( name ) )
-					sxml.setEL(name,xmlFeatures.get(name));
+				if (!sxml.containsKey(name)) sxml.setEL(name, xmlFeatures.get(name));
 			}
 		}
 		sct.setEL("xmlFeatures", sxml);
-		
+
 		sct.setEL("customTagPaths", toArray(ac.getCustomTagMappings()));
 		sct.setEL("componentPaths", toArray(ac.getComponentMappings()));
 		sct.setEL("loginStorage", AppListenerUtil.translateLoginStorage(ac.getLoginStorage()));
@@ -421,8 +431,8 @@ public class GetApplicationSettings extends BIF {
 		s.setEL(KeyConstants._username, source.getUsername());
 		s.setEL(KeyConstants._password, source.getPassword());
 		if (source.getTimeZone() != null) s.setEL(KeyConstants._timezone, source.getTimeZone().getID());
-		if (source.isBlob()) s.setEL(AppListenerUtil.BLOB, source.isBlob());
-		if (source.isClob()) s.setEL(AppListenerUtil.CLOB, source.isClob());
+		if (source.isBlob()) s.setEL(KeyConstants._blob, source.isBlob());
+		if (source.isClob()) s.setEL(KeyConstants._clob, source.isClob());
 		if (source.isReadOnly()) s.setEL(KeyConstants._readonly, source.isReadOnly());
 		if (source.isStorage()) s.setEL(KeyConstants._storage, source.isStorage());
 		s.setEL(KeyConstants._validate, source.validate());

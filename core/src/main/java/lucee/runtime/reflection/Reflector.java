@@ -89,8 +89,8 @@ import lucee.transformer.bytecode.util.JavaProxyFactory;
  */
 public final class Reflector {
 
-	private static final Collection.Key SET_ACCESSIBLE = KeyImpl.getInstance("setAccessible");
-	private static final Collection.Key EXIT = KeyImpl.getInstance("exit");
+	private static final Collection.Key SET_ACCESSIBLE = KeyConstants._setAccessible;
+	private static final Collection.Key EXIT = KeyConstants._exit;
 
 	private static WeakConstructorStorage cStorage = new WeakConstructorStorage();
 	private static WeakFieldStorage fStorage = new WeakFieldStorage();

@@ -57,6 +57,11 @@ Redirtect to entry --->
 </cfloop>
 <cfset querySort(connections,"default")>
 ---->
+
+
+
+
+
 <cfoutput>
 
 	<cfif access NEQ "yes">
@@ -162,6 +167,23 @@ function defaultValue(field) {
 }
 </script>
 
+<!--- Main Logger --->
+<cfoutput>
+	<h2>#stText.Settings.logging.main#</h2>
+	<table class="maintbl">
+		<tbody>
+			<tr>
+				<td>
+					<div class="comment">#stText.Settings.logging.mainDesc#</div>
+					<cfset renderSysPropEnvVar( name:"lucee.logging.main",defaultValue:"")>
+				</td>
+			</tr>
+		</tbody>
+	</table>   
+</cfoutput>
+
+
+
 <!--- 
 	Create Logger --->
 <cfif access EQ "yes">
@@ -216,3 +238,12 @@ function defaultValue(field) {
 		</cfif>
 	</cfoutput>
 </cfif>
+
+
+
+
+
+
+
+
+	

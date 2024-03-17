@@ -18,8 +18,7 @@
  **/
 package lucee.runtime.tag;
 
-import javax.servlet.jsp.JspException;
-
+import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.tag.TagImpl;
 
 /**
@@ -28,7 +27,7 @@ import lucee.runtime.ext.tag.TagImpl;
 public final class Logout extends TagImpl {
 
 	@Override
-	public int doStartTag() throws JspException {
+	public int doStartTag() throws PageException {
 		pageContext.clearRemoteUser();
 		return SKIP_BODY;
 	}

@@ -30,6 +30,7 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.UnknownHostException;
+import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -79,6 +80,7 @@ import lucee.commons.net.IPRange;
 import lucee.commons.net.URLEncoder;
 import lucee.commons.net.http.HTTPEngine;
 import lucee.commons.net.http.HTTPResponse;
+import lucee.commons.net.http.httpclient.HTTPEngine4Impl;
 import lucee.commons.security.Credentials;
 import lucee.loader.engine.CFMLEngine;
 import lucee.loader.engine.CFMLEngineFactory;
@@ -89,6 +91,7 @@ import lucee.runtime.cache.CacheConnection;
 import lucee.runtime.cache.CacheUtil;
 import lucee.runtime.cfx.CFXTagException;
 import lucee.runtime.cfx.CFXTagPool;
+import lucee.runtime.config.maven.MavenUpdateProvider;
 import lucee.runtime.converter.ConverterException;
 import lucee.runtime.converter.JSONConverter;
 import lucee.runtime.converter.JSONDateFormat;
@@ -149,8 +152,6 @@ import lucee.runtime.type.util.ComponentUtil;
 import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.ListUtil;
 import lucee.runtime.type.util.StructUtil;
-import lucee.runtime.video.VideoExecuter;
-import lucee.runtime.video.VideoExecuterNotSupported;
 import lucee.transformer.library.ClassDefinitionImpl;
 import lucee.transformer.library.function.FunctionLibException;
 import lucee.transformer.library.tag.TagLibException;
@@ -2946,20 +2947,6 @@ public final class ConfigAdmin {
 		else rem(root, "useTimeserver");
 	}
 
-	/**
-	 * update the baseComponent
-	 * 
-	 * @param baseComponent
-	 * @throws SecurityException
-	 */
-	public void updateBaseComponent(String baseComponentCFML, String baseComponentLucee) throws SecurityException {
-		checkWriteAccess();
-		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
-		if (!hasAccess) throw new SecurityException("no access to update component setting");
-		root.setEL("componentBase", baseComponentCFML);
-		root.setEL("componentBaseLuceeDialect", baseComponentLucee);
-	}
-
 	public void updateComponentDeepSearch(Boolean deepSearch) throws SecurityException {
 		checkWriteAccess();
 		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
@@ -3046,7 +3033,7 @@ public final class ConfigAdmin {
 		root.setEL("customTagUseCachePath", Caster.toString(ctPathCache, ""));
 	}
 
-	public void updateSecurity(String varUsage, Boolean limitIsDefined) throws SecurityException {
+	public void updateSecurity(String varUsage, Boolean limitEvaluation) throws SecurityException {
 		checkWriteAccess();
 		Struct el = _getRootElement("security");
 
@@ -3054,8 +3041,8 @@ public final class ConfigAdmin {
 			if (!StringUtil.isEmpty(varUsage)) el.setEL("variableUsage", Caster.toString(varUsage));
 			else rem(el, "variableUsage");
 
-			if (limitIsDefined != null) el.setEL("limitIsDefined", limitIsDefined);
-			else rem(el, "limitIsDefined");
+			if (limitEvaluation != null) el.setEL("limitEvaluation", limitEvaluation);
+			else rem(el, "limitEvaluation");
 		}
 
 	}
@@ -3201,6 +3188,17 @@ public final class ConfigAdmin {
 		security.setEL("cache", SecurityManagerImpl.toStringAccessValue(cache));
 		security.setEL("gateway", SecurityManagerImpl.toStringAccessValue(gateway));
 		security.setEL("orm", SecurityManagerImpl.toStringAccessValue(orm));
+
+		security.setEL("access_read", SecurityManagerImpl.toStringAccessRWValue(accessRead));
+		security.setEL("access_write", SecurityManagerImpl.toStringAccessRWValue(accessWrite));
+
+	}
+
+	public void updateDefaultSecurity(short accessRead, short accessWrite) throws SecurityException {
+		checkWriteAccess();
+		if (!(config instanceof ConfigServer)) throw new SecurityException("can't change security settings from this context");
+
+		Struct security = _getRootElement("security");
 
 		security.setEL("access_read", SecurityManagerImpl.toStringAccessRWValue(accessRead));
 		security.setEL("access_write", SecurityManagerImpl.toStringAccessRWValue(accessWrite));
@@ -3576,6 +3574,56 @@ public final class ConfigAdmin {
 		}
 	}
 
+	public void mvnChangeVersionTo(Version version, Password password, IdentificationWeb id) throws PageException {
+		checkWriteAccess();
+		ConfigServerImpl cs = (ConfigServerImpl) ConfigWebUtil.getConfigServer(config, password);
+
+		Log logger = cs.getLog("deploy");
+
+		try {
+			CFMLEngineFactory factory = cs.getCFMLEngine().getCFMLEngineFactory();
+			cleanUp(factory);
+			// do we have the core file?
+			final File patchDir = factory.getPatchDirectory();
+			File localPath = new File(version.toString() + ".lco");
+
+			if (!localPath.isFile()) {
+				localPath = null;
+				Version v;
+				final File[] patches = patchDir.listFiles(new ExtensionFilter(new String[] { ".lco" }));
+				for (final File patch: patches) {
+					v = CFMLEngineFactory.toVersion(patch.getName(), null);
+					// not a valid file get deleted
+					if (v == null) {
+						patch.delete();
+					}
+					else {
+						if (v.equals(version)) { // match!
+							localPath = patch;
+						}
+						// delete newer files
+						else if (OSGiUtil.isNewerThan(v, version)) {
+							patch.delete();
+						}
+					}
+				}
+			}
+
+			// download patch
+			if (localPath == null) {
+
+				mvnDownloadCore(factory, version, id);
+			}
+
+			logger.log(Log.LEVEL_INFO, "Update-Engine", "Installing Lucee version [" + version + "] (previous version was [" + cs.getEngine().getInfo().getVersion() + "])");
+
+			factory.restart(password);
+		}
+		catch (Exception e) {
+			throw Caster.toPageException(e);
+		}
+	}
+
 	private void cleanUp(CFMLEngineFactory factory) throws IOException {
 		final File patchDir = factory.getPatchDirectory();
 		final File[] patches = patchDir.listFiles(new ExtensionFilter(new String[] { ".lco" }));
@@ -3672,6 +3720,28 @@ public final class ConfigAdmin {
 			// log.debug("Admin","File for new Version already exists, won't copy new one");
 			return null;
 		}
+		return newLucee;
+	}
+
+	private File mvnDownloadCore(CFMLEngineFactory factory, Version version, Identification id) throws IOException, PageException {
+		// local resource
+		final File patchDir = factory.getPatchDirectory();
+		final File newLucee = new File(patchDir, version + (".lco"));
+
+		;
+		try {
+			IOUtil.copy(new MavenUpdateProvider().getCore(version), new FileOutputStream(newLucee), true, true);
+		}
+		catch (PageException e) {
+			throw e;
+		}
+		catch (IOException e) {
+			throw e;
+		}
+		catch (Exception e) {
+			throw Caster.toPageException(e);
+		}
+
 		return newLucee;
 	}
 
@@ -3921,10 +3991,25 @@ public final class ConfigAdmin {
 				for (ConfigWeb cw: webs) {
 					try {
 
-						merge(root, ConfigWebFactory.loadDocument(cw.getConfigFile()), EXCLUDE_LIST, ARRAY_INDEX);
+						merge(root, ConfigWebFactory.loadDocumentCreateIfFails(cw.getConfigFile(), "web"), EXCLUDE_LIST, ARRAY_INDEX);
 					}
 					catch (IOException e) {
 						throw Caster.toPageException(e);
+					}
+				}
+			}
+
+			// move all extension in installed in web context to available in server context
+			{
+				ConfigWeb[] webs = ((ConfigServer) config).getConfigWebs();
+				for (ConfigWeb cw: webs) {
+					try {
+						for (RHExtension ext: ((ConfigPro) cw).getRHExtensions()) {
+							ext.addToAvailable();
+						}
+					}
+					catch (Exception e) {
+						LogUtil.log("deploy", "extension", e);
 					}
 				}
 			}
@@ -4288,7 +4373,6 @@ public final class ConfigAdmin {
 		el.setEL("author", extension.getAuthor());
 		el.setEL("type", extension.getType());
 		el.setEL("codename", extension.getCodename());
-		el.setEL("video", extension.getVideo());
 		el.setEL("support", extension.getSupport());
 		el.setEL("documentation", extension.getDocumentation());
 		el.setEL("forum", extension.getForum());
@@ -4363,8 +4447,7 @@ public final class ConfigAdmin {
 			if (child == null) continue;
 
 			try {
-				rhe = new RHExtension(config, Caster.toString(child.get(KeyConstants._id), null), Caster.toString(child.get(KeyConstants._version), null), null,
-						RHExtension.INSTALL_OPTION_NOT);
+				rhe = new RHExtension(config, Caster.toString(child.get(KeyConstants._id), null), Caster.toString(child.get(KeyConstants._version), null));
 			}
 			catch (Throwable t) {
 				ExceptionUtil.rethrowIfNecessary(t);
@@ -4504,34 +4587,56 @@ public final class ConfigAdmin {
 		}
 	}
 
-	public static void _updateRHExtension(ConfigPro config, Resource ext, boolean reload, boolean force, boolean moveIfNecessary) throws PageException {
+	public static RHExtension _updateRHExtension(ConfigPro config, Resource ext, boolean reload, boolean force, short action) throws PageException {
 		try {
 			ConfigAdmin admin = new ConfigAdmin(config, null);
-			admin.updateRHExtension(config, ext, reload, force, moveIfNecessary);
+			return admin.updateRHExtension(config, ext, reload, force, action);
 		}
 		catch (Exception e) {
 			throw Caster.toPageException(e);
 		}
 	}
 
-	public void updateRHExtension(Config config, Resource ext, boolean reload, boolean force, boolean moveIfNecessary) throws PageException {
+	public RHExtension updateRHExtension(Config config, Resource ext, boolean reload, boolean force, short action) throws PageException {
 		RHExtension rhext;
 		try {
-			rhext = new RHExtension(config, ext, moveIfNecessary);
+			rhext = new RHExtension(config, ext);
+			if (RHExtension.ACTION_COPY == action) rhext.copyToInstalled();
+			else if (RHExtension.ACTION_MOVE == action) rhext.moveToInstalled();
 			rhext.validate();
 		}
 		catch (Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);
-			DeployHandler.moveToFailedFolder(ext.getParentResource(), ext);
+			if (ext != null) DeployHandler.moveToFailedFolder(ext.getParentResource(), ext);
 			throw Caster.toPageException(t);
 		}
 		updateRHExtension(config, rhext, reload, force);
+		return rhext;
+	}
+
+	public static void _updateRHExtension(ConfigPro config, RHExtension rhext, boolean reload, boolean force) throws PageException {
+		try {
+			ConfigAdmin admin = new ConfigAdmin(config, null);
+			admin.updateRHExtension(config, rhext, reload, force);
+		}
+		catch (Exception e) {
+			throw Caster.toPageException(e);
+		}
+	}
+
+	public static void _removeRHExtension(ConfigPro config, RHExtension rhext, RHExtension replacementRH, boolean deleteExtension) throws PageException {
+		try {
+			ConfigAdmin admin = new ConfigAdmin(config, null);
+			admin.removeRHExtension(config, rhext, replacementRH, deleteExtension);
+		}
+		catch (Exception e) {
+			throw Caster.toPageException(e);
+		}
 	}
 
 	public void updateRHExtension(Config config, RHExtension rhext, boolean reload, boolean force) throws PageException {
-
 		try {
-			if (!force && ConfigAdmin.hasRHExtensions((ConfigPro) config, rhext.toExtensionDefinition()) != null) {
+			if (!force && ConfigAdmin.hasRHExtensionInstalled((ConfigPro) config, rhext.toExtensionDefinition()) != null) {
 				throw new ApplicationException("the extension " + rhext.getName() + " (id: " + rhext.getId() + ") in version " + rhext.getVersion() + " is already installed");
 			}
 		}
@@ -4549,7 +4654,9 @@ public final class ConfigAdmin {
 			if (existingRH.getVersion().compareTo(rhext.getVersion()) == 0) {
 				removeRHExtension(config, existingRH, rhext, false);
 			}
-			else removeRHExtension(config, existingRH, rhext, true);
+			else {
+				removeRHExtension(config, existingRH, rhext, true);
+			}
 
 		}
 		// INSTALL
@@ -5212,7 +5319,7 @@ public final class ConfigAdmin {
 			ExceptionUtil.rethrowIfNecessary(t);
 			// failed to uninstall, so we install it again
 			try {
-				updateRHExtension(config, rhe.getExtensionFile(), true, true, true);
+				updateRHExtension(config, rhe.getExtensionFile(), true, true, RHExtension.ACTION_MOVE);
 				// RHExtension.install(config, rhe.getExtensionFile());
 			}
 			catch (Throwable t2) {
@@ -5253,13 +5360,22 @@ public final class ConfigAdmin {
 		HTTPResponse method = null;
 		try {
 			URL url = HTTPUtil.toURL(strUrl + "?wsdl", HTTPUtil.ENCODED_AUTO);
-			method = HTTPEngine.get(url, null, null, 2000, true, null, null, null, null);
+			method = HTTPEngine4Impl.get(url, null, null, 2000, true, null, null, null, null);
 		}
 		catch (MalformedURLException e) {
-			throw new ApplicationException("Url definition [" + strUrl + "] is invalid");
+			ApplicationException ae = new ApplicationException("Url definition [" + strUrl + "] is invalid");
+			ae.initCause(e);
+			throw ae;
 		}
 		catch (IOException e) {
-			throw new ApplicationException("Can't invoke [" + strUrl + "]", e.getMessage());
+			ApplicationException ae = new ApplicationException("Can't invoke [" + strUrl + "]");
+			ae.initCause(e);
+			throw ae;
+		}
+		catch (GeneralSecurityException e) {
+			ApplicationException ae = new ApplicationException("Can't invoke [" + strUrl + "]");
+			ae.initCause(e);
+			throw ae;
 		}
 
 		if (method.getStatusCode() != 200) {
@@ -5453,14 +5569,6 @@ public final class ConfigAdmin {
 
 	}
 
-	public void updateVideoExecuterClass(ClassDefinition cd) throws PageException {
-
-		if (cd.getClassName() == null) cd = new ClassDefinitionImpl(VideoExecuterNotSupported.class.getName());
-
-		Struct app = _getRootElement("video");
-		setClass(app, VideoExecuter.class, "videoExecuter", cd);
-	}
-
 	public void updateAdminSyncClass(ClassDefinition cd) throws PageException {
 
 		if (cd.getClassName() == null) cd = new ClassDefinitionImpl(AdminSyncNotSupported.class.getName());
@@ -5470,7 +5578,7 @@ public final class ConfigAdmin {
 
 	public void removeRemoteClientUsage(String code) {
 		Struct usage = config.getRemoteClientUsage();
-		usage.removeEL(KeyImpl.getInstance(code));
+		usage.removeEL(KeyImpl.init(code));
 
 		Struct extensions = _getRootElement("remoteClients");
 		extensions.setEL("usage", toStringURLStyle(usage));
@@ -6140,7 +6248,7 @@ public final class ConfigAdmin {
 				String version = Caster.toString(el.get(KeyConstants._version, null), null);
 				Resource file = RHExtension.getMetaDataFile(config, id, version);
 				if (file.isFile()) file.delete();
-				file = RHExtension.getExtensionFile(config, id, version);
+				file = RHExtension.getExtensionInstalledFile(config, id, version, false);
 				if (file.isFile()) file.delete();
 
 				return bundles;
@@ -6246,16 +6354,57 @@ public final class ConfigAdmin {
 		Struct el;
 		String id;
 		BundleDefinition[] old;
+		boolean hasNoneId = false;
+
+		// update check by id match
 		for (int i = keys.length - 1; i >= 0; i--) {
-			key = keys[i];
-			el = Caster.toStruct(children.get(key, null), null);
-			if (el == null) continue;
-			id = Caster.toString(el.get(KeyConstants._id), null);
-			if (ext.getId().equalsIgnoreCase(id)) {
-				old = RHExtension.toBundleDefinitions(ConfigWebUtil.getAsString("bundles", el, null)); // get existing bundles before populate new ones
-				ext.populate(el, false);
-				old = minus(old, OSGiUtil.toBundleDefinitions(ext.getBundles()));
-				return old;
+			try {
+				key = keys[i];
+				el = Caster.toStruct(children.get(key, null), null);
+				if (el == null) continue;
+				id = Caster.toString(el.get(KeyConstants._id, null), null);
+				if (StringUtil.isEmpty(id)) hasNoneId = true;
+				if (ext.getId().equalsIgnoreCase(id)) {
+					old = RHExtension.toBundleDefinitions(ConfigWebUtil.getAsString("bundles", el, null)); // get existing bundles before populate new ones
+					ext.populate(el, false);
+					old = minus(old, OSGiUtil.toBundleDefinitions(ext.getBundles()));
+					return old;
+				}
+			}
+			catch (Exception e) {
+				throw Caster.toPageException(e);
+			}
+		}
+		// update everything else than id TODO make more streamline
+		if (hasNoneId) {
+			for (int i = keys.length - 1; i >= 0; i--) {
+				try {
+					key = keys[i];
+					el = Caster.toStruct(children.get(key, null), null);
+					if (el == null || el.get(KeyConstants._id, null) != null) continue;
+
+					String res = Caster.toString(el.get(KeyConstants._resource, null), null);
+					if (StringUtil.isEmpty(res)) res = Caster.toString(el.get(KeyConstants._path, null), null);
+					if (StringUtil.isEmpty(res)) res = Caster.toString(el.get(KeyConstants._url, null), null);
+
+					Resource r;
+					if (!StringUtil.isEmpty(res) && (r = ResourceUtil.toResourceExisting(config, res, null)) != null) {
+						try {
+							RHExtension _ext = new RHExtension(config, r);// TODO not load it again!
+							if (_ext != null && ext.getId().equalsIgnoreCase(ext.getId())) {
+								old = RHExtension.toBundleDefinitions(ConfigWebUtil.getAsString("bundles", el, null)); // get existing bundles before populate new ones
+								ext.populate(el, false);
+								old = minus(old, OSGiUtil.toBundleDefinitions(ext.getBundles()));
+								return old;
+							}
+						}
+						catch (Exception ee) {
+						}
+					}
+				}
+				catch (Exception e) {
+					throw Caster.toPageException(e);
+				}
 			}
 		}
 
@@ -6263,6 +6412,7 @@ public final class ConfigAdmin {
 		el = new StructImpl(Struct.TYPE_LINKED);
 		ext.populate(el, false);
 		children.appendEL(el);
+
 		return null;
 	}
 
@@ -6296,7 +6446,7 @@ public final class ConfigAdmin {
 				if (!id.equals(_id)) continue;
 
 				try {
-					return new RHExtension(config, _id, Caster.toString(tmp.get(KeyConstants._version), null), null, RHExtension.INSTALL_OPTION_NOT);
+					return new RHExtension(config, _id, Caster.toString(tmp.get(KeyConstants._version), null));
 				}
 				catch (Exception e) {
 					return defaultValue;
@@ -6316,12 +6466,12 @@ public final class ConfigAdmin {
 	 * @throws IOException
 	 * @throws SAXException
 	 */
-	public static RHExtension hasRHExtensions(ConfigPro config, ExtensionDefintion ed) throws PageException, IOException {
+	public static RHExtension hasRHExtensionInstalled(ConfigPro config, ExtensionDefintion ed) throws PageException, IOException {
 		ConfigAdmin admin = new ConfigAdmin(config, null);
-		return admin._hasRHExtensions(config, ed);
+		return admin._hasRHExtensionInstalled(config, ed);
 	}
 
-	private RHExtension _hasRHExtensions(ConfigPro config, ExtensionDefintion ed) throws PageException {
+	private RHExtension _hasRHExtensionInstalled(ConfigPro config, ExtensionDefintion ed) throws PageException {
 
 		Array children = ConfigWebUtil.getAsArray("extensions", root);
 		int[] keys = children.intKeys();
@@ -6335,7 +6485,7 @@ public final class ConfigAdmin {
 				v = Caster.toString(sct.get(KeyConstants._version, null), null);
 				if (!RHExtension.isInstalled(config, id, v)) continue;
 
-				if (ed.equals(new ExtensionDefintion(id, v))) return new RHExtension(config, id, v, null, RHExtension.INSTALL_OPTION_NOT);
+				if (ed.equals(new ExtensionDefintion(id, v))) return new RHExtension(config, id, v);
 			}
 			return null;
 		}

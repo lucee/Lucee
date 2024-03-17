@@ -2989,6 +2989,39 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<type>string</type>
 		</return>
 	</function>
+	
+	<!-- createULID -->
+<function>
+    <name>createULID</name>
+    <class>lucee.runtime.functions.other.CreateULID</class>
+    <description>Generates a ULID (Universally Unique Lexicographically Sortable Identifier), a 128-bit identifier where the first 48 bits are a timestamp representing milliseconds since the Unix Epoch (1970-01-01), ensuring temporal ordering. The remaining 80 bits are populated by a secure random number generator, contributing to the identifier's uniqueness. The output is a 26-character string in its canonical representation. This function can operate in three modes specified by the 'type' argument: 'empty' for standard ULID generation, 'monotonic' to ensure sequential IDs even in rapid succession, and 'hash' to generate a ULID based on hashed input values.</description>
+	<argument>
+	    <name>type</name>
+	    <type>string</type>
+	    <required>false</required>
+	    <default></default>
+	    <values>monotonic,hash</values>
+	    <description>Specifies the generation mode of the ULID. If not defined, a standard ULID is generated. 'monotonic' ensures ULIDs increase monotonically, suitable for ensuring order in rapid generation scenarios. 'hash' mode generates a ULID based on hashing the provided inputs, useful for creating deterministic identifiers.</description>
+	</argument>
+    <argument>
+        <name>input1</name>
+        <type>number</type>
+        <required>false</required>
+        <default></default>
+        <description>Used in conjunction with the 'hash' type, this numeric input contributes to the generation of a deterministic ULID by influencing its random component.</description>
+    </argument>
+    <argument>
+        <name>input2</name>
+        <type>string</type>
+        <required>false</required>
+        <default></default>
+        <description>Similar to 'input1', this string input is utilized only in the 'hash' mode to further seed the ULID's random component, enabling the creation of a deterministic ULID based on the hash of the inputs.</description>
+    </argument>
+    <return>
+        <type>string</type>
+        <description>Returns a 26-character string representing the ULID, which is globally unique and sortable based on generation time.</description>
+    </return>
+</function>
 
 	<!-- CreateUniqueId -->
 	<function>
@@ -3739,6 +3772,47 @@ Filter to be used to filter the data copied:
 			<type>boolean</type>
 		</return>
 	</function>
+	
+	
+	<!-- DirectoryEvery -->
+	<function>
+	    <name>DirectoryEvery</name>
+	    <class>lucee.runtime.functions.file.DirectoryEvery</class>
+	    <description>Iterates over each element within a specified directory and invokes the provided component for each item.</description>
+	    <status>hidden</status>
+	    <argument>
+	        <name>path</name>
+	        <alias>absolute_path,absolutePath</alias>
+	        <type>string</type>
+	        <required>true</required>
+	        <description>Specifies the absolute path of the directory whose contents need to be processed.</description>
+	    </argument>
+	    
+	    <argument>
+	        <name>component</name>
+	        <alias>cfc,class</alias>
+	        <type>component</type>
+	        <required>true</required>
+	        <description>
+	            An instance of a component that will be invoked for every item in the directory. 
+	            The component should have a function with the signature (string path [, struct info]).
+	            Defining only the "path" argument will	 enhance performance.
+	        </description>
+	    </argument>
+	    
+	    <argument>
+	        <name>recurse</name>
+	        <alias>recursive</alias>
+	        <type>boolean</type>
+	        <required>false</required>
+	        <description>Indicates whether the operation should be performed on subdirectories. If set to true, the contents of all subdirectories will also be processed.</description>
+	    </argument>
+	    
+	    <return>
+	        <type>any</type>
+	    </return>
+	</function>
+	
 	
 	<!-- DirectoryList -->
 	<function>
@@ -7299,6 +7373,15 @@ The following things are considered to be empty:
 		</return>
 	</function>
 	
+	<function>
+		<name>IsFlushed</name>
+		<class>lucee.runtime.functions.other.IsFlushed</class>
+		<description>returns true if the response stream was already flushed.</description>
+		<return>
+			<type>boolean</type>
+		</return>
+	</function>
+
 	<!-- IsIPInRange -->
 	<function>
 		<name>IsIPInRange</name>
@@ -8009,24 +8092,6 @@ The following things are considered to be empty:
 		<introduced>5.3.9.4</introduced>
 		<keywords>decision,query,datasource</keywords>
 		<description>Determines whether the current thread is within a transaction block or not.</description>
-		<return>
-			<type>boolean</type>
-		</return>
-	</function>
-	<!-- IsVideoFile -->
-	<function>
-		<name>IsVideoFile</name>
-		<class>lucee.runtime.functions.video.IsVideoFile</class>
-		<keywords>decision,video</keywords>
-		<description>
-		Check if a String is a Video file
-		</description>
-		<argument>
-			<name>value</name>
-			<type>string</type>
-			<required>Yes</required>
-		<description>file to check</description>
-    </argument>
 		<return>
 			<type>boolean</type>
 		</return>
@@ -9516,7 +9581,124 @@ The following things are considered to be empty:
 			<type>string</type>
 		</return>
 	</function>
-
+	
+	<!-- LuceeVersionsDetail -->
+	<function>
+		<name>LuceeVersionsDetail</name>
+		<status>hidden</status>
+		<class>lucee.runtime.functions.system.LuceeVersionsDetail</class>
+		<description>gives detailed information for a specific version from S3</description>
+		<argument>
+			<name>version</name>
+			<type>string</type>
+			<required>yes</required>
+			<description>version you want information</description>
+		</argument>
+		<return>
+			<type>struct</type>
+		</return>
+	</function>
+	
+	<!-- LuceeVersionsDetailS3 -->
+	<function>
+		<name>LuceeVersionsDetailS3</name>
+		<status>hidden</status>
+		<class>lucee.runtime.functions.system.LuceeVersionsDetailS3</class>
+		<description>gives detailed information for a specific version from S3</description>
+		<argument>
+			<name>version</name>
+			<type>string</type>
+			<required>yes</required>
+			<description>version you want information</description>
+		</argument>
+		<return>
+			<type>struct</type>
+		</return>
+	</function>
+	
+	<!-- LuceeVersionsDetailMvn -->
+	<function>
+		<name>LuceeVersionsDetailMvn</name>
+		<status>hidden</status>
+		<class>lucee.runtime.functions.system.LuceeVersionsDetailMvn</class>
+		<description>gives detailed information for a specific version from Maven</description>
+		<argument>
+			<name>version</name>
+			<type>string</type>
+			<required>yes</required>
+			<description>version you want information</description>
+		</argument>
+		<return>
+			<type>struct</type>
+		</return>
+	</function>
+	
+	<!-- LuceeVersionsList -->
+	<function>
+		<name>LuceeVersionsList</name>
+		<status>hidden</status>
+		<class>lucee.runtime.functions.system.LuceeVersionsList</class>
+		<description>List all Lucee versions (from Maven or S3)</description>
+		<argument>
+			<name>type</name>
+			<type>string</type>
+			<required>No</required>
+			<description>Specifies the type of version to be retrieved based on the following values:
+			all: Fetches all available versions.
+			snapshot: Limits the results to snapshot versions only.
+			release: Limits the results to release versions only.
+			latest: Retrieves the latest version for each development cycle, regardless of whether it's a release or snapshot.
+			latest:release: Fetches the most recent release version for each development cycle.
+			latest:snapshot: Fetches the most recent snapshot version for each development cycle.</description>
+		</argument>
+		<return>
+			<type>array</type>
+		</return>
+	</function>
+	<!-- LuceeVersionsListMvn -->
+	<function>
+		<name>LuceeVersionsListMvn</name>
+		<status>hidden</status>
+		<class>lucee.runtime.functions.system.LuceeVersionsListMvn</class>
+		<description>List all Lucee versions availbale on Maven</description>
+		<argument>
+			<name>type</name>
+			<type>string</type>
+			<required>No</required>
+			<description>Specifies the type of version to be retrieved based on the following values:
+			all: Fetches all available versions.
+			snapshot: Limits the results to snapshot versions only.
+			release: Limits the results to release versions only.
+			latest: Retrieves the latest version for each development cycle, regardless of whether it's a release or snapshot.
+			latest:release: Fetches the most recent release version for each development cycle.
+			latest:snapshot: Fetches the most recent snapshot version for each development cycle.</description>
+		</argument>
+		<return>
+			<type>array</type>
+		</return>
+	</function>
+	<!-- LuceeVersionsListS3 -->
+	<function>
+		<name>LuceeVersionsListS3</name>
+		<status>hidden</status>
+		<class>lucee.runtime.functions.system.LuceeVersionsListS3</class>
+		<description>List all Lucee versions availbale on S3</description>
+		<argument>
+			<name>type</name>
+			<type>string</type>
+			<required>No</required>
+			<description>Specifies the type of version to be retrieved based on the following values:
+			all: Fetches all available versions.
+			snapshot: Limits the results to snapshot versions only.
+			release: Limits the results to release versions only.
+			latest: Retrieves the latest version for each development cycle, regardless of whether it's a release or snapshot.
+			latest:release: Fetches the most recent release version for each development cycle.
+			latest:snapshot: Fetches the most recent snapshot version for each development cycle.</description>
+		</argument>
+		<return>
+			<type>query</type>
+		</return>
+	</function>
 	
 	<!-- metaphone -->
 	<function>

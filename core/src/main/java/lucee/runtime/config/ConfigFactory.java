@@ -21,6 +21,7 @@ package lucee.runtime.config;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Iterator;
 
@@ -37,6 +38,7 @@ import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
+import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.config.XMLConfigReader.NameRule;
@@ -191,6 +193,7 @@ public abstract class ConfigFactory {
 	 * @throws SAXException
 	 * @throws IOException
 	 * @throws PageException
+	 * @throws NoSuchAlgorithmException
 	 */
 	static Struct loadDocument(Resource file) throws IOException, PageException {
 		InputStream is = null;
@@ -202,7 +205,7 @@ public abstract class ConfigFactory {
 		}
 	}
 
-	static Struct loadDocumentCreateIfFails(Resource configFile, String type) throws SAXException, IOException, PageException {
+	static Struct loadDocumentCreateIfFails(Resource configFile, String type) throws IOException, PageException {
 		try {
 			return _loadDocument(configFile);
 		}
@@ -244,7 +247,7 @@ public abstract class ConfigFactory {
 			reader = new XMLConfigReader((InputSource) old, true, new ReadRule(), new NameRule());
 		}
 		else {
-			new ConverterException("inputing data is invalid, cannot cast [" + old.getClass().getName() + "] ro a Resource or an InputSource");
+			new ConverterException("inputing data is invalid, cannot cast [" + old.getClass().getName() + "] to a Resource or an InputSource");
 		}
 		Struct root = ConfigWebUtil.getAsStruct(reader.getData(), "cfLuceeConfiguration", "luceeConfiguration", "lucee-configuration");
 
@@ -375,6 +378,8 @@ public abstract class ConfigFactory {
 			move("base", "componentBase", component, root);// deprecated but still supported
 			move("baseCfml", "componentBase", component, root);
 			move("baseLucee", "componentBaseLuceeDialect", component, root);
+			rem("componentBase", root);
+			rem("componentBaseLuceeDialect", root);
 			moveAsBool("deepSearch", "componentDeepSearch", component, root);
 			move("dumpTemplate", "componentDumpTemplate", component, root);
 			move("dataMemberDefaultAccess", "componentDataMemberAccess", component, root);
@@ -675,7 +680,7 @@ public abstract class ConfigFactory {
 
 			// set scheduler
 			Resource schedulerDir = ConfigWebUtil.getFile(config.getRootDirectory(), ConfigWebFactory.getAttr(scheduler, "directory"), "scheduler", configDir, FileUtil.TYPE_DIR,
-					config);
+					ResourceUtil.LEVEL_GRAND_PARENT_FILE, config);
 			Resource schedulerFile = schedulerDir.getRealResource("scheduler.xml");
 			if (schedulerFile.isFile()) {
 				Struct schedulerRoot = new XMLConfigReader(schedulerFile, true, new ReadRule(), new NameRule()).getData();
@@ -942,6 +947,7 @@ public abstract class ConfigFactory {
 		}
 		try {
 			return Caster.toStruct(new JSONExpressionInterpreter().interpret(null, IOUtil.toString(res, CharsetUtil.UTF8)));
+			// data.set(KeyConstants._md5, Hash.md5(content));
 		}
 		catch (FileNotFoundException fnfe) {
 			Resource dir = res.getParentResource();
@@ -951,10 +957,40 @@ public abstract class ConfigFactory {
 			else if (lw.isFile()) return _loadDocument(lw);
 			else throw fnfe;
 		}
+		/*
+		 * catch (NoSuchAlgorithmException e) { throw ExceptionUtil.toIOException(e); }
+		 */
 	}
 
 	/**
-	 * creates a File and his content froma a resurce
+	 * creates a File and his content from a resource, ignores if it is no able to create the resource,
+	 * it logs if the file exists, but cannot be copy to the target, no logging when not exist as a
+	 * source.
+	 * 
+	 * @param resource
+	 * @param file
+	 * @param password
+	 * @throws IOException
+	 */
+	public static void createFileFromResourceEL(String resource, Resource file) {
+		if (file.exists()) file.delete();
+
+		InputStream is = InfoImpl.class.getResourceAsStream(resource);
+		if (is == null) is = SystemUtil.getResourceAsStream(null, resource);
+		if (is != null) {
+			try {
+				file.createNewFile();
+				IOUtil.copy(is, file, true);
+				LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), Log.LEVEL_DEBUG, ConfigFactory.class.getName(), "Written file: [" + file + "]");
+			}
+			catch (Exception e) {
+				LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), ConfigFactory.class.getName(), e);
+			}
+		}
+	}
+
+	/**
+	 * creates a File and his content from a resource
 	 * 
 	 * @param resource
 	 * @param file
@@ -962,7 +998,6 @@ public abstract class ConfigFactory {
 	 * @throws IOException
 	 */
 	static void createFileFromResource(String resource, Resource file, String password) throws IOException {
-		LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), Log.LEVEL_DEBUG, ConfigFactory.class.getName(), "Write file: [" + file + "]");
 		if (file.exists()) file.delete();
 
 		InputStream is = InfoImpl.class.getResourceAsStream(resource);
@@ -970,6 +1005,8 @@ public abstract class ConfigFactory {
 		if (is == null) throw new IOException("File [" + resource + "] does not exist.");
 		file.createNewFile();
 		IOUtil.copy(is, file, true);
+		LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), Log.LEVEL_DEBUG, ConfigFactory.class.getName(), "Written file: [" + file + "]");
+
 	}
 
 	/**
@@ -981,15 +1018,6 @@ public abstract class ConfigFactory {
 	 */
 	static void createFileFromResource(String resource, Resource file) throws IOException {
 		createFileFromResource(resource, file, null);
-	}
-
-	public static void createFileFromResourceEL(String resource, Resource file) {
-		try {
-			createFileFromResource(resource, file, null);
-		}
-		catch (Exception e) {
-			LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), ConfigFactory.class.getName(), e);
-		}
 	}
 
 	static void create(String srcPath, String[] names, Resource dir, boolean doNew) {

@@ -50,7 +50,7 @@ public abstract class StorageScopeCookie extends StorageScopeImpl {
 	private static final long serialVersionUID = -3509170569488448183L;
 
 	private static ScriptConverter serializer = new ScriptConverter();
-	protected static CFMLExpressionInterpreter evaluator = new CFMLExpressionInterpreter(false);
+	protected static CFMLExpressionInterpreter evaluator = new CFMLExpressionInterpreter(true);
 	// private Cookie cookie;
 	private String cookieName;
 
@@ -104,7 +104,7 @@ public abstract class StorageScopeCookie extends StorageScopeImpl {
 		TimeSpan timespan = (getType() == SCOPE_CLIENT) ? ac.getClientTimeout() : ac.getSessionTimeout();
 		Cookie cookie = pc.cookieScope();
 
-		boolean isHttpOnly = true, isSecure = false;
+		boolean isHttpOnly = true, isSecure = false, isPartitioned = false;
 		String domain = null;
 		short samesite = CookieData.SAMESITE_EMPTY;
 		if (ac instanceof ApplicationContextSupport) {
@@ -114,6 +114,7 @@ public abstract class StorageScopeCookie extends StorageScopeImpl {
 				isSecure = settings.isSecure();
 				domain = settings.getDomain();
 				samesite = settings.getSamesite();
+				isPartitioned = settings.isPartitioned();
 			}
 		}
 
@@ -122,13 +123,13 @@ public abstract class StorageScopeCookie extends StorageScopeImpl {
 			CookieImpl ci = (CookieImpl) cookie;
 			String ser = serializer.serializeStruct(sct, ignoreSet);
 			if (hasChanges()) {
-				ci.setCookie(KeyImpl.init(cookieName), ser, exp, isSecure, "/", domain, isHttpOnly, false, true, samesite);
+				ci.setCookie(KeyImpl.init(cookieName), ser, exp, isSecure, "/", domain, isHttpOnly, false, true, samesite, isPartitioned);
 			}
-			ci.setCookie(KeyImpl.init(cookieName + "_LV"), Caster.toString(_lastvisit.getTime()), exp, isSecure, "/", domain, isHttpOnly, false, true, samesite);
+			ci.setCookie(KeyImpl.init(cookieName + "_LV"), Caster.toString(_lastvisit.getTime()), exp, isSecure, "/", domain, isHttpOnly, false, true, samesite, isPartitioned);
 
 			if (getType() == SCOPE_CLIENT) {
-				ci.setCookie(KeyImpl.init(cookieName + "_TC"), Caster.toString(timecreated.getTime()), exp, isSecure, "/", domain, isHttpOnly, false, true, samesite);
-				ci.setCookie(KeyImpl.init(cookieName + "_HC"), Caster.toString(sct.get(HITCOUNT, "")), exp, isSecure, "/", domain, isHttpOnly, false, true, samesite);
+				ci.setCookie(KeyImpl.init(cookieName + "_TC"), Caster.toString(timecreated.getTime()), exp, isSecure, "/", domain, isHttpOnly, false, true, samesite, isPartitioned);
+				ci.setCookie(KeyImpl.init(cookieName + "_HC"), Caster.toString(sct.get(HITCOUNT, "")), exp, isSecure, "/", domain, isHttpOnly, false, true, samesite, isPartitioned);
 			}
 
 		}

@@ -277,6 +277,7 @@ Create Datasource --->
 						</label>
 						<div class="comment">#stText.setting.typeCheckingDesc#</div>
 						<cfset renderCodingTip( "this.typeChecking = "&settings.typeChecking&";" )>
+						<cfset renderSysPropEnvVar( "lucee.type.checking",settings.typeChecking)>
 					</td>
 				</tr>
 

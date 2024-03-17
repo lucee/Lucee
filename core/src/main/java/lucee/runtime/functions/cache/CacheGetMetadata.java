@@ -30,7 +30,6 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.BIF;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Collection;
-import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.util.KeyConstants;
@@ -42,13 +41,13 @@ public final class CacheGetMetadata extends BIF {
 
 	private static final long serialVersionUID = -470089623854482521L;
 
-	private static final Collection.Key CACHE_HITCOUNT = KeyImpl.getInstance("cache_hitcount");
-	private static final Collection.Key CACHE_MISSCOUNT = KeyImpl.getInstance("cache_misscount");
-	private static final Collection.Key CACHE_CUSTOM = KeyImpl.getInstance("cache_custom");
-	private static final Collection.Key CREATED_TIME = KeyImpl.getInstance("createdtime");
-	private static final Collection.Key IDLE_TIME = KeyImpl.getInstance("idletime");
-	private static final Collection.Key LAST_HIT = KeyImpl.getInstance("lasthit");
-	private static final Collection.Key LAST_UPDATED = KeyImpl.getInstance("lastupdated");
+	private static final Collection.Key CACHE_HITCOUNT = KeyConstants._cache_hitcount;
+	private static final Collection.Key CACHE_MISSCOUNT = KeyConstants._cache_misscount;
+	private static final Collection.Key CACHE_CUSTOM = KeyConstants._cache_custom;
+	private static final Collection.Key CREATED_TIME = KeyConstants._createdtime;
+	private static final Collection.Key IDLE_TIME = KeyConstants._idletime;
+	private static final Collection.Key LAST_HIT = KeyConstants._lasthit;
+	private static final Collection.Key LAST_UPDATED = KeyConstants._lastupdated;
 
 	public static Struct call(PageContext pc, String id) throws PageException {
 		return call(pc, id, null);

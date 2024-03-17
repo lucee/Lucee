@@ -318,11 +318,4 @@ public class InterpreterFactory extends FactoryBase {
 		// TODO Auto-generated method stub
 
 	}
-
-	@Override
-	public Config getConfig() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
 }

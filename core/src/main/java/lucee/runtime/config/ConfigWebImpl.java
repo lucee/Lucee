@@ -9,6 +9,7 @@ import org.xml.sax.SAXException;
 
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.ResourcesImpl.ResourceProviderFactory;
+import lucee.runtime.config.gateway.GatewayMap;
 import lucee.runtime.exp.PageException;
 
 public class ConfigWebImpl implements ConfigWebPro {
@@ -108,8 +109,8 @@ public class ConfigWebImpl implements ConfigWebPro {
 	}
 
 	@Override
-	public lucee.runtime.PageSource getBaseComponentPageSource(int arg0, lucee.runtime.PageContext arg1) {
-		return instance.getBaseComponentPageSource(arg0, arg1);
+	public lucee.runtime.PageSource getBaseComponentPageSource(int arg0, lucee.runtime.PageContext arg1, boolean force) {
+		return instance.getBaseComponentPageSource(arg0, arg1, force);
 	}
 
 	@Override
@@ -418,7 +419,7 @@ public class ConfigWebImpl implements ConfigWebPro {
 
 	@Override
 	public void updatePassword(boolean arg0, java.lang.String arg1, java.lang.String arg2) throws lucee.runtime.exp.PageException, IOException, SAXException, BundleException {
-		instance.updatePassword(arg0, arg1, arg2);
+		instance.updatePassword(this, arg0, arg1, arg2);
 	}
 
 	@Override
@@ -555,7 +556,7 @@ public class ConfigWebImpl implements ConfigWebPro {
 
 	@Override
 	public boolean hasIndividualSecurityManager() {
-		return instance.hasIndividualSecurityManager();
+		return instance.hasIndividualSecurityManager(this);
 	}
 
 	@Override
@@ -614,8 +615,8 @@ public class ConfigWebImpl implements ConfigWebPro {
 	}
 
 	@Override
-	public boolean limitIsDefined() {
-		return instance.limitIsDefined();
+	public boolean limitEvaluation() {
+		return instance.limitEvaluation();
 	}
 
 	@Override
@@ -814,7 +815,7 @@ public class ConfigWebImpl implements ConfigWebPro {
 	}
 
 	public void updatePassword(boolean arg0, lucee.runtime.config.Password arg1, lucee.runtime.config.Password arg2) throws lucee.runtime.exp.PageException {
-		if (instance instanceof MultiContextConfigWeb) ((MultiContextConfigWeb) instance).updatePassword(arg0, arg1, arg2);
+		if (instance instanceof MultiContextConfigWeb) ((MultiContextConfigWeb) instance).updatePassword(this, arg0, arg1, arg2);
 		// TODO what do do here?
 	}
 
@@ -1125,6 +1126,12 @@ public class ConfigWebImpl implements ConfigWebPro {
 	}
 
 	@Override
+	public Resource[] getResources(lucee.runtime.PageContext arg0, lucee.runtime.Mapping[] arg1, java.lang.String arg2, boolean arg3, boolean arg4, boolean arg5, boolean arg6,
+			boolean arg7) {
+		return instance.getResources(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7);
+	}
+
+	@Override
 	public lucee.runtime.engine.ExecutionLogFactory getExecutionLogFactory() {
 		return instance.getExecutionLogFactory();
 	}
@@ -1200,8 +1207,8 @@ public class ConfigWebImpl implements ConfigWebPro {
 	}
 
 	@Override
-	public lucee.runtime.config.ConfigServer getConfigServer(java.lang.String arg0) throws lucee.runtime.exp.PageException {
-		return instance.getConfigServer(arg0);
+	public lucee.runtime.config.ConfigServer getConfigServer(String password) throws lucee.runtime.exp.PageException {
+		return instance.getConfigServer(this, password);
 	}
 
 	public void setCacheMD5(java.lang.String arg0) {
@@ -1469,9 +1476,9 @@ public class ConfigWebImpl implements ConfigWebPro {
 		return instance.getServerPasswordSalt();
 	}
 
-	protected void setGatewayEntries(java.util.Map entries) {
-		if (instance instanceof MultiContextConfigWeb) ((MultiContextConfigWeb) instance).setGatewayEntries(entries);
-
+	protected void setGatewayEntries(GatewayMap entries) {
+		// TODO i think that method is never used
+		if (instance instanceof ConfigImpl) ((ConfigImpl) instance).setGatewayEntries(entries);
 	}
 
 	@Override
@@ -1864,5 +1871,15 @@ public class ConfigWebImpl implements ConfigWebPro {
 	@Override
 	public void setLastModified() {
 		instance.setLastModified();
+	}
+
+	@Override
+	public void checkMappings() {
+		instance.checkMappings();
+	}
+
+	@Override
+	public String getMainLogger() {
+		return instance.getMainLogger();
 	}
 }

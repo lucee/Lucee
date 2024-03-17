@@ -59,6 +59,7 @@ public final class Throw extends TagImpl {
 	private String errorcode = "";
 
 	private Object object;
+	private PageException cause;
 
 	private int level = 1;
 
@@ -72,6 +73,7 @@ public final class Throw extends TagImpl {
 		errorcode = "";
 		object = null;
 		level = 1;
+		cause = null;
 	}
 
 	/**
@@ -116,6 +118,14 @@ public final class Throw extends TagImpl {
 	@Deprecated
 	public void setMessage(String message) {
 		this.message = message;
+	}
+
+	public void setCause(Object cause) throws PageException {
+		if (cause == null) return;
+		if (cause instanceof ThreadDeath) throw new ApplicationException("cannot set this kind [" + cause.getClass().getName() + "] of exception as caused by");
+		this.cause = toPageException(cause, null);
+		if (this.cause == null) throw new ApplicationException("cannot cast this type [" + cause.getClass().getName() + "] to an exception");
+
 	}
 
 	/**
@@ -201,7 +211,9 @@ public final class Throw extends TagImpl {
 		_doStartTag(message);
 		_doStartTag(object);
 
-		throw new CustomTypeException("", detail, errorcode, type, extendedinfo, level);
+		CustomTypeException exception = new CustomTypeException("", detail, errorcode, type, extendedinfo, level);
+		if (cause != null) exception.initCause(cause);
+		throw exception;
 	}
 
 	private void _doStartTag(Object obj) throws PageException {
@@ -210,6 +222,7 @@ public final class Throw extends TagImpl {
 			if (pe != null) throw pe;
 
 			CustomTypeException exception = new CustomTypeException(Caster.toString(obj), detail, errorcode, type, extendedinfo, level);
+			if (cause != null) exception.initCause(cause);
 			throw exception;
 		}
 	}

@@ -113,11 +113,17 @@ component {
 			"FTP_PORT": 21,
 			"FTP_BASE_PATH": "/",
 
-			"SFTP_SERVER"="localhost",
+			"SFTP_SERVER": "127.0.0.1",
 			"SFTP_USERNAME": "lucee",
 			"SFTP_PASSWORD": "",  // DON'T COMMIT
-			"SFTP_PORT": 990,
+			"SFTP_PORT": 22,
 			"SFTP_BASE_PATH": "/",
+
+			"FTPS_SERVER": "127.0.0.1",
+			"FTPS_USERNAME": "lucee",
+			"FTPS_PASSWORD": "",  // DON'T COMMIT
+			"FTPS_PORT": 990,
+			"FTPS_BASE_PATH": "/",
 			
 			"S3_ACCESS_KEY_ID": "",
 			"S3_SECRET_KEY": "", // DON'T COMMIT
@@ -222,6 +228,9 @@ component {
 						case "sftp":
 							verify = verifyFTP(cfg, arguments.service);
 							break;
+						case "ftps":
+							verify = verifyFTP(cfg, service);
+							break;
 						case "mongoDb":
 							verify = verifyMongo(cfg);
 							break;
@@ -323,18 +332,26 @@ component {
 	}
 
 	public function verifyFTP ( ftp, service ) localmode=true {
+		if  ( arguments.service eq "ftps" )
+			secure = "ftps";
+		else
+			secure = ( arguments.service );
 		ftp action = "open" 
-			connection = "conn" 
-			timeout = 5
-			secure= (arguments.service contains "sftp")
+			connection = "checkConn" 
+			timeout = 2
+			secure= secure
 			username = arguments.ftp.username
 			password = arguments.ftp.password
 			server = arguments.ftp.server
 			port= arguments.ftp.port;
+
+		//SystemOutput(cfftp, true);
+		if ( !cfftp.succeeded )
+			throw cfftp.errorText;
+		sig = cfftp.returnValue.trim(); // stash, close changes cfftp
+		ftp action = "close" connection = "checkConn";
 		
-		//ftp action = "close" connection = "conn";
-		
-		return "Connection Verified"; 
+		return sig & ", #arguments.ftp.username#@#arguments.ftp.server#:#arguments.ftp.port#";
 	}
 
 	public function verifyS3 ( s3 ) localmode=true{
@@ -434,17 +451,20 @@ component {
 	}
 
 	public function verifyLDAP ( ldap ) localmode=true {
-		cfldap( server=ldap.server,
-			port=ldap.port,
-			timeout=5000,
-			username=ldap.username,
-			password=ldap.password,
-			action="query",
-			name="local.results",
-			start=ldap.base_dn,
-			filter="(objectClass=inetOrgPerson)",
-			attributes="cn" );
-		return "configured";
+		if ( structCount( LDAP ) eq 6 ){
+			cfldap( server=ldap.server,
+				port=ldap.port,
+				timeout=5000,
+				username=ldap.username,
+				password=ldap.password,
+				action="query",
+				name="local.results",
+				start=ldap.base_dn,
+				filter="(objectClass=inetOrgPerson)",
+				attributes="cn" );
+			return "configured";
+		}	
+		throw "not configured";
 	}
 
 	public function addSupportFunctions() {
@@ -506,7 +526,7 @@ component {
 
 		if ( StructKeyExists( server.test_services, arguments.service ) ){
 			if ( !server.test_services[ arguments.service ].valid ){
-				//SystemOutput("Warning service: [ #arguments.service# ] is not available", true);
+				SystemOutput("Warning service: [ #arguments.service# ] is not available", true);
 				if ( !arguments.verify )
 					server.test_services[ arguments.service ].missedTests++;
 				return {};
@@ -633,6 +653,9 @@ component {
 			case "sftp":
 				sftp = server._getSystemPropOrEnvVars( "SERVER, USERNAME, PASSWORD, PORT, BASE_PATH", "SFTP_");
 				return sftp;
+			case "ftps":
+				ftps = server._getSystemPropOrEnvVars( "SERVER, USERNAME, PASSWORD, PORT, BASE_PATH", "FTPS_");
+				return ftps;
 			case "smtp":
 				smtp = server._getSystemPropOrEnvVars( "SERVER, PORT_SECURE, PORT_INSECURE, USERNAME, PASSWORD", "SMTP_" );
 				return smtp;
@@ -667,8 +690,8 @@ component {
 				}
 				break;
 			case "ldap":
-				ldap = server._getSystemPropOrEnvVars( "SERVER, PORT, USERNAME, PASSWORD, BASE_DN", "LDAP_" );
-				if ( ldap.count() eq 5 ){
+				ldap = server._getSystemPropOrEnvVars( "SERVER, PORT, PORT_SECURE, USERNAME, PASSWORD, BASE_DN", "LDAP_" );
+				if ( ldap.count() eq 6 ){
 					return ldap;
 				}
 				break;

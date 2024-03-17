@@ -32,10 +32,11 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import lucee.commons.digest.HashUtil;
 import lucee.commons.io.IOUtil;
-import lucee.commons.io.SystemUtil;
+import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceClassLoader;
 import lucee.commons.io.res.util.ResourceUtil;
+import lucee.runtime.PageSourcePool;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigPro;
 import lucee.runtime.exp.ApplicationException;
@@ -59,6 +60,7 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 	private Map<String, String> unavaiClasses = new ConcurrentHashMap<String, String>();
 
 	private Map<String, SoftReference<PhysicalClassLoader>> customCLs;
+	private PageSourcePool pageSourcePool;
 
 	private static long counter = 0L;
 	private static long _start = 0L;
@@ -84,14 +86,15 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 	 * @param parent
 	 * @throws IOException
 	 */
-	public PhysicalClassLoader(Config c, Resource directory) throws IOException {
-		this(c, directory, (ClassLoader[]) null, true);
+	public PhysicalClassLoader(Config c, Resource directory, PageSourcePool pageSourcePool) throws IOException {
+		this(c, directory, (ClassLoader[]) null, true, pageSourcePool);
 	}
 
-	public PhysicalClassLoader(Config c, Resource directory, ClassLoader[] parentClassLoaders, boolean includeCoreCL) throws IOException {
+	public PhysicalClassLoader(Config c, Resource directory, ClassLoader[] parentClassLoaders, boolean includeCoreCL, PageSourcePool pageSourcePool) throws IOException {
 		super(parentClassLoaders == null || parentClassLoaders.length == 0 ? c.getClassLoader() : parentClassLoaders[0]);
 		config = (ConfigPro) c;
 
+		this.pageSourcePool = pageSourcePool;
 		// ClassLoader resCL = parent!=null?parent:config.getResourceClassLoader(null);
 
 		List<ClassLoader> tmp = new ArrayList<ClassLoader>();
@@ -122,7 +125,7 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 
 	@Override
 	protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
-		synchronized (SystemUtil.createToken("PhysicalClassLoader", name)) {
+		synchronized (this) {
 			return loadClass(name, resolve, true);
 		}
 	}
@@ -150,7 +153,7 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 
 	@Override
 	protected Class<?> findClass(String name) throws ClassNotFoundException {// if(name.indexOf("sub")!=-1)print.ds(name);
-		synchronized (SystemUtil.createToken("PhysicalClassLoader", name)) {
+		synchronized (this) {
 			Resource res = directory.getRealResource(name.replace('.', '/').concat(".class"));
 
 			ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -172,7 +175,7 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 	public Class<?> loadClass(String name, byte[] barr) throws UnmodifiableClassException {
 		Class<?> clazz = null;
 
-		synchronized (SystemUtil.createToken("PhysicalClassLoader", name)) {
+		synchronized (this) {
 
 			// new class , not in memory yet
 			try {
@@ -274,7 +277,7 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 		SoftReference<PhysicalClassLoader> tmp = customCLs == null ? null : customCLs.get(key);
 		PhysicalClassLoader pcl = tmp == null ? null : tmp.get();
 		if (pcl != null) return pcl;
-		pcl = new PhysicalClassLoader(config, getDirectory(), new ClassLoader[] { new ResourceClassLoader(resources, getParent()) }, true);
+		pcl = new PhysicalClassLoader(config, getDirectory(), new ClassLoader[] { new ResourceClassLoader(resources, getParent()) }, true, pageSourcePool);
 		if (customCLs == null) customCLs = new ConcurrentHashMap<String, SoftReference<PhysicalClassLoader>>();
 		customCLs.put(key, new SoftReference<PhysicalClassLoader>(pcl));
 		return pcl;
@@ -291,6 +294,11 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 	}
 
 	public void clear() {
+		clear(true);
+	}
+
+	public void clear(boolean clearPagePool) {
+		if (clearPagePool && pageSourcePool != null) pageSourcePool.clearPages(this);
 		this.loadedClasses.clear();
 		this.allLoadedClasses.clear();
 		this.unavaiClasses.clear();
@@ -313,4 +321,16 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 		if (name.endsWith("$cf")) return name;
 		throw new ApplicationException("could not remove appendix from [" + name + "]");
 	}
+
+	@Override
+	public void finalize() throws Throwable {
+		try {
+			clear();
+		}
+		catch (Exception e) {
+			LogUtil.log(config, "classloader", e);
+		}
+		super.finalize();
+	}
+
 }

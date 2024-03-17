@@ -49,7 +49,6 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-import javax.servlet.jsp.JspException;
 import javax.servlet.jsp.JspWriter;
 import javax.servlet.jsp.el.ExpressionEvaluator;
 import javax.servlet.jsp.el.VariableResolver;
@@ -167,6 +166,7 @@ import lucee.runtime.type.Collection;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.Iterator;
 import lucee.runtime.type.KeyImpl;
+import lucee.runtime.type.LiteralValue;
 import lucee.runtime.type.Query;
 import lucee.runtime.type.SVArray;
 import lucee.runtime.type.Struct;
@@ -364,6 +364,7 @@ public final class PageContextImpl extends PageContext {
 
 	private static final boolean READ_CFID_FROM_URL = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.read.cfid.from.url", "true"), true);
 	private static int _idCounter = 1;
+	private long lastTimeoutNoAction;
 
 	/**
 	 * default Constructor
@@ -689,8 +690,8 @@ public final class PageContextImpl extends PageContext {
 		timeZone = null;
 		url = null;
 		form = null;
-		currentTemplateDialect = CFMLEngine.DIALECT_LUCEE;
-		requestDialect = CFMLEngine.DIALECT_LUCEE;
+		currentTemplateDialect = CFMLEngine.DIALECT_CFML;
+		requestDialect = CFMLEngine.DIALECT_CFML;
 
 		// Pools
 		errorPagePool.clear();
@@ -749,7 +750,7 @@ public final class PageContextImpl extends PageContext {
 		_psq = null;
 		dummy = false;
 		listenSettings = false;
-
+		if (lastTimeoutNoAction != 0) lastTimeoutNoAction = 0L;
 		if (ormSession != null) {
 			try {
 				releaseORM();
@@ -895,7 +896,7 @@ public final class PageContextImpl extends PageContext {
 	}
 
 	public PageSource[] getPageSources(String realPath) { // to not change, this is used in the flex extension
-		return config.getPageSources(this, applicationContext.getMappings(), realPath, false, useSpecialMappings, true);
+		return config.getPageSources(this, applicationContext.getMappings(), realPath, false, useSpecialMappings, true, false);
 	}
 
 	public PageSource getPageSourceExisting(String realPath) { // do not change, this method is used in flex extension
@@ -1245,7 +1246,91 @@ public final class PageContextImpl extends PageContext {
 		return undefined;
 	}
 
+	public Object us(Collection.Key key) throws PageException {
+		if (!undefined.isInitalized()) undefined.initialize(this);
+		return undefined.get(key);
+	}
+
+	public Object us(Collection.Key key1, Collection.Key key2) throws PageException {
+		if (!undefined.isInitalized()) undefined.initialize(this);
+		return variableUtil.get(this, undefined.getCollection(key1), key2);
+	}
+
+	public Object us(Collection.Key key1, Collection.Key key2, Collection.Key key3) throws PageException {
+		if (!undefined.isInitalized()) undefined.initialize(this);
+		return variableUtil.get(this, variableUtil.getCollection(this, undefined.getCollection(key1), key2), key3);
+	}
+
+	public Object us(Collection.Key key1, Collection.Key key2, Collection.Key key3, Collection.Key key4) throws PageException {
+		if (!undefined.isInitalized()) undefined.initialize(this);
+		return variableUtil.get(this, variableUtil.getCollection(this, variableUtil.getCollection(this, undefined.getCollection(key1), key2), key3), key4);
+	}
+
+	public Object us(Collection.Key key1, Collection.Key key2, Collection.Key key3, Collection.Key key4, Collection.Key key5) throws PageException {
+		if (!undefined.isInitalized()) undefined.initialize(this);
+		return variableUtil.get(this,
+				variableUtil.getCollection(this, variableUtil.getCollection(this, variableUtil.getCollection(this, undefined.getCollection(key1), key2), key3), key4), key5);
+	}
+
+	public Object usc(Collection.Key key1, Collection.Key key2) throws PageException {
+		if (!undefined.isInitalized()) undefined.initialize(this);
+		return variableUtil.getCollection(this, undefined.getCollection(key1), key2);
+	}
+
+	public Object usc(Collection.Key key1, Collection.Key key2, Collection.Key key3) throws PageException {
+		if (!undefined.isInitalized()) undefined.initialize(this);
+		return variableUtil.getCollection(this, variableUtil.getCollection(this, undefined.getCollection(key1), key2), key3);
+	}
+
+	public Object usc(Collection.Key key1, Collection.Key key2, Collection.Key key3, Collection.Key key4) throws PageException {
+		if (!undefined.isInitalized()) undefined.initialize(this);
+		return variableUtil.getCollection(this, variableUtil.getCollection(this, variableUtil.getCollection(this, undefined.getCollection(key1), key2), key3), key4);
+	}
+
+	public Object usc(Collection.Key key1, Collection.Key key2, Collection.Key key3, Collection.Key key4, Collection.Key key5) throws PageException {
+		if (!undefined.isInitalized()) undefined.initialize(this);
+		return variableUtil.getCollection(this,
+				variableUtil.getCollection(this, variableUtil.getCollection(this, variableUtil.getCollection(this, undefined.getCollection(key1), key2), key3), key4), key5);
+	}
+
+	public Object us(Collection.Key key, Object value) throws PageException {
+		if (!undefined.isInitalized()) undefined.initialize(this);
+		undefined.set(key, value);
+		return value;
+	}
+
+	public Object us(Collection.Key key1, Collection.Key key2, Object value) throws PageException {
+		if (!undefined.isInitalized()) undefined.initialize(this);
+
+		Object o = undefined.get(key1, null);
+		if (o == null) {
+			o = undefined.set(key1, new StructImpl());
+		}
+		return set(o, key2, value);
+	}
+
+	public Object us(Collection.Key key1, Collection.Key key2, Collection.Key key3, Object value) throws PageException {
+		if (!undefined.isInitalized()) undefined.initialize(this);
+		// key 1
+		Object o = undefined.get(key1, null);
+		if (o == null) {
+			o = undefined.set(key1, new StructImpl());
+		}
+		return set(touch(o, key2), key3, value);
+	}
+
+	public Object us(Collection.Key key1, Collection.Key key2, Collection.Key key3, Collection.Key key4, Object value) throws PageException {
+		if (!undefined.isInitalized()) undefined.initialize(this);
+		// key 1
+		Object o = undefined.get(key1, null);
+		if (o == null) {
+			o = undefined.set(key1, new StructImpl());
+		}
+		return set(touch(touch(o, key2), key3), key4, value);
+	}
+
 	public Scope usl() {
+
 		if (!undefined.isInitalized()) undefined.initialize(this);
 		if (undefined.getCheckArguments()) return undefined.localScope();
 		return undefined;
@@ -1254,6 +1339,63 @@ public final class PageContextImpl extends PageContext {
 	@Override
 	public Variables variablesScope() {
 		return variables;
+	}
+
+	public Object vs(Collection.Key key) throws PageException {
+		return variables.get(key);
+	}
+
+	public Object vs(Collection.Key key1, Collection.Key key2) throws PageException {
+		return variableUtil.get(this, variables.get(key1), key2);
+	}
+
+	public Object vs(Collection.Key key1, Collection.Key key2, Collection.Key key3) throws PageException {
+		return variableUtil.get(this, variableUtil.getCollection(this, variables.get(key1), key2), key3);
+	}
+
+	public Object vs(Collection.Key key1, Collection.Key key2, Collection.Key key3, Collection.Key key4) throws PageException {
+		return variableUtil.get(this, variableUtil.getCollection(this, variableUtil.getCollection(this, variables.get(key1), key2), key3), key4);
+	}
+
+	public Object vsc(Collection.Key key1, Collection.Key key2) throws PageException {
+		return variableUtil.getCollection(this, variables.get(key1), key2);
+	}
+
+	public Object vsc(Collection.Key key1, Collection.Key key2, Collection.Key key3) throws PageException {
+		return variableUtil.getCollection(this, variableUtil.getCollection(this, variables.get(key1), key2), key3);
+	}
+
+	public Object vsc(Collection.Key key1, Collection.Key key2, Collection.Key key3, Collection.Key key4) throws PageException {
+		return variableUtil.getCollection(this, variableUtil.getCollection(this, variableUtil.getCollection(this, variables.get(key1), key2), key3), key4);
+	}
+
+	public Object vs(Collection.Key key, Object value) throws PageException {
+		variables.set(key, value);
+		return value;
+	}
+
+	public Object vs(Collection.Key key1, Collection.Key key2, Object value) throws PageException {
+		Object o = variables.get(key1, null);
+		if (o == null) {
+			o = variables.set(key1, new StructImpl());
+		}
+		return set(o, key2, value);
+	}
+
+	public Object vs(Collection.Key key1, Collection.Key key2, Collection.Key key3, Object value) throws PageException {
+		Object o = variables.get(key1, null);
+		if (o == null) {
+			o = variables.set(key1, new StructImpl());
+		}
+		return set(touch(o, key2), key3, value);
+	}
+
+	public Object vs(Collection.Key key1, Collection.Key key2, Collection.Key key3, Collection.Key key4, Object value) throws PageException {
+		Object o = variables.get(key1, null);
+		if (o == null) {
+			o = variables.set(key1, new StructImpl());
+		}
+		return set(touch(touch(o, key2), key3), key4, value);
 	}
 
 	@Override
@@ -1317,9 +1459,88 @@ public final class PageContextImpl extends PageContext {
 
 	@Override
 	public Local localScope() {
-		// if(local==localUnsupportedScope)
-		// throw new PageRuntimeException(new ExpressionException("Unsupported Context for Local Scope"));
 		return local;
+	}
+
+	public Object ls(Collection.Key key) throws PageException {
+		if (!undefined.getCheckArguments()) return us(KeyConstants._local, key);
+		return local.get(key);
+	}
+
+	public Object ls(Collection.Key key1, Collection.Key key2) throws PageException {
+		if (!undefined.getCheckArguments()) return us(KeyConstants._local, key1, key2);
+		return variableUtil.get(this, local.get(key1), key2);
+	}
+
+	public Object ls(Collection.Key key1, Collection.Key key2, Collection.Key key3) throws PageException {
+		if (!undefined.getCheckArguments()) return us(KeyConstants._local, key1, key2, key3);
+		return variableUtil.get(this, variableUtil.getCollection(this, local.get(key1), key2), key3);
+	}
+
+	public Object ls(Collection.Key key1, Collection.Key key2, Collection.Key key3, Collection.Key key4) throws PageException {
+		if (!undefined.getCheckArguments()) return us(KeyConstants._local, key1, key2, key3, key4);
+		return variableUtil.get(this, variableUtil.getCollection(this, variableUtil.getCollection(this, local.get(key1), key2), key3), key4);
+	}
+
+	public Object lsc(Collection.Key key1, Collection.Key key2) throws PageException {
+		if (!undefined.getCheckArguments()) return usc(KeyConstants._local, key1, key2);
+		return variableUtil.getCollection(this, local.get(key1), key2);
+	}
+
+	public Object lsc(Collection.Key key1, Collection.Key key2, Collection.Key key3) throws PageException {
+		if (!undefined.getCheckArguments()) return usc(KeyConstants._local, key1, key2, key3);
+		return variableUtil.getCollection(this, variableUtil.getCollection(this, local.get(key1), key2), key3);
+	}
+
+	public Object lsc(Collection.Key key1, Collection.Key key2, Collection.Key key3, Collection.Key key4) throws PageException {
+		if (!undefined.getCheckArguments()) return usc(KeyConstants._local, key1, key2, key3, key4);
+		return variableUtil.getCollection(this, variableUtil.getCollection(this, variableUtil.getCollection(this, local.get(key1), key2), key3), key4);
+	}
+
+	public Object ls(Collection.Key key, Object value) throws PageException {
+		if (!undefined.getCheckArguments()) return us(KeyConstants._local, key, value);
+
+		local.set(key, value);
+		return value;
+	}
+
+	public Object ls(Collection.Key key1, Collection.Key key2, Object value) throws PageException {
+		if (!undefined.getCheckArguments()) return us(KeyConstants._local, key1, key2, value);
+
+		Object o = local.get(key1, null);
+		if (o == null) {
+			o = local.set(key1, new StructImpl());
+		}
+		return set(o, key2, value);
+	}
+
+	public Object ls(Collection.Key key1, Collection.Key key2, Collection.Key key3, Object value) throws PageException {
+		if (!undefined.getCheckArguments()) return us(KeyConstants._local, key1, key2, key3, value);
+
+		Object o = local.get(key1, null);
+		if (o == null) {
+			o = local.set(key1, new StructImpl());
+		}
+		return set(touch(o, key2), key3, value);
+	}
+
+	public Object ls(Collection.Key key1, Collection.Key key2, Collection.Key key3, Collection.Key key4, Object value) throws PageException {
+		LiteralValue.toNumber(this, 1L);
+
+		if (!undefined.getCheckArguments()) {
+			if (!undefined.isInitalized()) undefined.initialize(this);
+			Object o = undefined.get(KeyConstants._local, null);
+			if (o == null) {
+				o = undefined.set(KeyConstants._local, new StructImpl());
+			}
+			return set(touch(touch(touch(o, key1), key2), key3), key4, value);
+		}
+
+		Object o = local.get(key1, null);
+		if (o == null) {
+			o = local.set(key1, new StructImpl());
+		}
+		return set(touch(touch(o, key2), key3), key4, value);
 	}
 
 	@Override
@@ -2473,9 +2694,9 @@ public final class PageContextImpl extends PageContext {
 					base = getPageSource(config.getCustomTagMappings(), realPath.substring(index));
 				}
 			}
-			if (base == null) base = PageSourceImpl.best(config.getPageSources(this, null, realPath, onlyTopLevel, false, true));
+			if (base == null) base = PageSourceImpl.best(config.getPageSources(this, null, realPath, onlyTopLevel, false, true, false));
 		}
-		else base = PageSourceImpl.best(config.getPageSources(this, null, realPath, onlyTopLevel, false, true));
+		else base = PageSourceImpl.best(config.getPageSources(this, null, realPath, onlyTopLevel, false, true, false));
 
 		execute(base, throwExcpetion, onlyTopLevel);
 	}
@@ -2642,16 +2863,16 @@ public final class PageContextImpl extends PageContext {
 
 	@Override
 	public String getURLToken() {
-		if (getConfig().getSessionType() == Config.SESSION_TYPE_JEE) {
+		if (getSessionType() == Config.SESSION_TYPE_JEE) {
 			HttpSession s = getSession();
-			return "CFID=" + getCFID() + "&CFTOKEN=" + getCFToken() + "&jsessionid=" + (s != null ? s.getId() : "");
+			return "CFID=" + getCFID() + "&CFTOKEN=" + getCFToken() + "&jsessionid=" + (s != null ? getSession().getId() : "");
 		}
 		return "CFID=" + getCFID() + "&CFTOKEN=" + getCFToken();
 	}
 
 	@Override
 	public String getJSessionId() {
-		if (getConfig().getSessionType() == Config.SESSION_TYPE_JEE) {
+		if (getSessionType() == Config.SESSION_TYPE_JEE) {
 			return getSession().getId();
 		}
 		return null;
@@ -2759,6 +2980,7 @@ public final class PageContextImpl extends PageContext {
 		boolean secure = SessionCookieDataImpl.DEFAULT.isSecure();
 		short samesite = SessionCookieDataImpl.DEFAULT.getSamesite();
 		String path = SessionCookieDataImpl.DEFAULT.getPath();
+		boolean partitioned = SessionCookieDataImpl.DEFAULT.isPartitioned();
 
 		ApplicationContext ac = getApplicationContext();
 
@@ -2781,6 +3003,8 @@ public final class PageContextImpl extends PageContext {
 				// path
 				String tmp2 = data.getPath();
 				if (!StringUtil.isEmpty(tmp2, true)) path = tmp2.trim();
+				// partitioned
+				partitioned = data.isPartitioned();
 			}
 		}
 		int expires;
@@ -2788,8 +3012,8 @@ public final class PageContextImpl extends PageContext {
 		if (Integer.MAX_VALUE < tmp) expires = Integer.MAX_VALUE;
 		else expires = (int) tmp;
 
-		((CookieImpl) cookieScope()).setCookieEL(KeyConstants._cfid, cfid, expires, secure, path, domain, httpOnly, true, false, samesite);
-		((CookieImpl) cookieScope()).setCookieEL(KeyConstants._cftoken, cftoken, expires, secure, path, domain, httpOnly, true, false, samesite);
+		((CookieImpl) cookieScope()).setCookieEL(KeyConstants._cfid, cfid, expires, secure, path, domain, httpOnly, true, false, samesite, partitioned);
+		((CookieImpl) cookieScope()).setCookieEL(KeyConstants._cftoken, cftoken, expires, secure, path, domain, httpOnly, true, false, samesite, partitioned);
 
 	}
 
@@ -2908,10 +3132,15 @@ public final class PageContextImpl extends PageContext {
 	}
 
 	@Override
-	public void initBody(BodyTag bodyTag, int state) throws JspException {
+	public void initBody(BodyTag bodyTag, int state) throws PageException {
 		if (state != Tag.EVAL_BODY_INCLUDE) {
 			bodyTag.setBodyContent(pushBody());
-			bodyTag.doInitBody();
+			try {
+				bodyTag.doInitBody();
+			}
+			catch (Exception e) {
+				throw Caster.toPageException(e);
+			}
 		}
 	}
 
@@ -3038,11 +3267,11 @@ public final class PageContextImpl extends PageContext {
 			Undefined u = undefinedScope();
 			if (pe == null) {
 				(u.getCheckArguments() ? u.localScope() : u).removeEL(KeyConstants._cfcatch);
-				if (name != null && !StringUtil.isEmpty(name, true)) (u.getCheckArguments() ? u.localScope() : u).removeEL(KeyImpl.getInstance(name.trim()));
+				if (name != null && !StringUtil.isEmpty(name, true)) (u.getCheckArguments() ? u.localScope() : u).removeEL(KeyImpl.init(name.trim()));
 			}
 			else {
 				(u.getCheckArguments() ? u.localScope() : u).setEL(KeyConstants._cfcatch, pe.getCatchBlock(config));
-				if (name != null && !StringUtil.isEmpty(name, true)) (u.getCheckArguments() ? u.localScope() : u).setEL(KeyImpl.getInstance(name.trim()), pe.getCatchBlock(config));
+				if (name != null && !StringUtil.isEmpty(name, true)) (u.getCheckArguments() ? u.localScope() : u).setEL(KeyImpl.init(name.trim()), pe.getCatchBlock(config));
 				if (!gatewayContext && config.debug() && config.hasDebugOptions(ConfigPro.DEBUG_EXCEPTION)) {
 					/*
 					 * print.e("-----------------------"); print.e("msg:" + pe.getMessage()); print.e("caught:" +
@@ -3366,6 +3595,10 @@ public final class PageContextImpl extends PageContext {
 
 	public Queue<PageContext> getChildPageContexts() {
 		return children;
+	}
+
+	public boolean removeChildPageContext(PageContext pc) {
+		return children.remove(pc);
 	}
 
 	@Override
@@ -3903,8 +4136,14 @@ public final class PageContextImpl extends PageContext {
 		return _idCounter;
 	}
 
-	public boolean limitIsDefined() {
-		if (applicationContext != null) return applicationContext.getLimitIsDefined();
-		return ((ConfigPro) config).limitIsDefined();
+	public boolean limitEvaluation() {
+		if (applicationContext != null) return applicationContext.getLimitEvaluation();
+		return ((ConfigPro) config).limitEvaluation();
+	}
+
+	public long timeoutNoAction() {
+		long tmp = lastTimeoutNoAction;
+		lastTimeoutNoAction = System.currentTimeMillis();
+		return tmp;
 	}
 }

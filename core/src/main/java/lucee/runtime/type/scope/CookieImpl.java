@@ -70,9 +70,18 @@ public final class CookieImpl extends ScopeSupport implements Cookie, ScriptProt
 	private static final Class<?>[] SET_HTTP_ONLY_ARGS_CLASSES = new Class[] { boolean.class };
 	private static final Object[] SET_HTTP_ONLY_ARGS = new Object[] { Boolean.TRUE };
 
+	private static final Class<?>[] IS_PARTITIONED_ARGS_CLASSES = new Class[] {};
+	private static final Object[] IS_PARTITIONED_ARGS = new Object[] {};
+
+	private static final Class<?>[] SET_PARTITIONED_ARGS_CLASSES = new Class[] { boolean.class };
+	private static final Object[] SET_PARTITIONED_ARGS = new Object[] { Boolean.TRUE };
+
 	private static final int EXPIRES_NULL = -1;
 	private static Method isHttpOnly;
 	private static Method setHttpOnly;
+	private static Method isPartitioned;
+	private static Method setPartitioned;
+
 
 	/**
 	 * constructor for the Cookie Scope
@@ -107,10 +116,11 @@ public final class CookieImpl extends ScopeSupport implements Cookie, ScriptProt
 			Boolean encode = Caster.toBoolean(sct.get(KeyConstants._encode, null), null);
 			if (encode == null) encode = Caster.toBoolean(sct.get(KeyConstants._encodevalue, Boolean.TRUE), Boolean.TRUE);
 			short samesite = SessionCookieDataImpl.toSamesite(Caster.toString(sct.get(KeyConstants._SameSite, null), ""), CookieData.SAMESITE_EMPTY);
+			boolean partitioned = Caster.toBooleanValue(sct.get(KeyConstants._partitioned, null), false);
 
-			setCookie(key, val, expires, secure, path, domain, httpOnly, preserveCase, encode.booleanValue(), samesite);
+			setCookie(key, val, expires, secure, path, domain, httpOnly, preserveCase, encode.booleanValue(), samesite, partitioned);
 		}
-		else setCookie(key, value, null, false, "/", null, false, false, true, CookieData.SAMESITE_EMPTY);
+		else setCookie(key, value, null, false, "/", null, false, false, true, CookieData.SAMESITE_EMPTY, false);
 		return value;
 	}
 
@@ -167,43 +177,58 @@ public final class CookieImpl extends ScopeSupport implements Cookie, ScriptProt
 
 	@Override
 	public void setCookie(Collection.Key key, Object value, Object expires, boolean secure, String path, String domain) throws PageException {
-		setCookie(key, value, expires, secure, path, domain, false, false, true, CookieData.SAMESITE_EMPTY);
+		setCookie(key, value, expires, secure, path, domain, false, false, true, CookieData.SAMESITE_EMPTY, false);
 	}
 
 	// FUTURE add to interface
 	public void setCookie(Collection.Key key, Object value, Object expires, boolean secure, String path, String domain, short samesite) throws PageException {
-		setCookie(key, value, expires, secure, path, domain, false, false, true, samesite);
+		setCookie(key, value, expires, secure, path, domain, false, false, true, samesite, false);
+	}
+
+	// FUTURE add to interface
+	public void setCookie(Collection.Key key, Object value, Object expires, boolean secure, String path, String domain, short samesite, boolean partitioned) throws PageException {
+		setCookie(key, value, expires, secure, path, domain, false, false, true, samesite, partitioned);
 	}
 
 	@Override
 	public void setCookie(Collection.Key key, Object value, int expires, boolean secure, String path, String domain) throws PageException {
-		setCookie(key, value, expires, secure, path, domain, false, false, true, CookieData.SAMESITE_EMPTY);
+		setCookie(key, value, expires, secure, path, domain, false, false, true, CookieData.SAMESITE_EMPTY, false);
 	}
 
 	// FUTURE add to interface
 	public void setCookie(Collection.Key key, Object value, int expires, boolean secure, String path, String domain, short samesite) throws PageException {
-		setCookie(key, value, expires, secure, path, domain, false, false, true, samesite);
+		setCookie(key, value, expires, secure, path, domain, false, false, true, samesite, false);
+	}
+
+	// FUTURE add to interface
+	public void setCookie(Collection.Key key, Object value, int expires, boolean secure, String path, String domain, short samesite, boolean partitioned) throws PageException {
+		setCookie(key, value, expires, secure, path, domain, false, false, true, samesite, partitioned);
 	}
 
 	@Override
 	public void setCookieEL(Collection.Key key, Object value, int expires, boolean secure, String path, String domain) {
-		setCookieEL(key, value, expires, secure, path, domain, false, false, true, CookieData.SAMESITE_EMPTY);
+		setCookieEL(key, value, expires, secure, path, domain, false, false, true, CookieData.SAMESITE_EMPTY, false);
 	}
 
 	// FUTURE add to interface
 	public void setCookieEL(Collection.Key key, Object value, int expires, boolean secure, String path, String domain, short samesite) {
-		setCookieEL(key, value, expires, secure, path, domain, false, false, true, samesite);
+		setCookieEL(key, value, expires, secure, path, domain, false, false, true, samesite, false);
+	}
+
+	// FUTURE add to interface
+	public void setCookieEL(Collection.Key key, Object value, int expires, boolean secure, String path, String domain, short samesite, boolean partitioned) {
+		setCookieEL(key, value, expires, secure, path, domain, false, false, true, samesite, partitioned);
 	}
 
 	@Override
 	public void setCookie(Collection.Key key, Object value, Object expires, boolean secure, String path, String domain, boolean httpOnly, boolean preserveCase, boolean encode)
 			throws PageException {
-		setCookie(key, value, expires, secure, path, domain, httpOnly, preserveCase, encode, CookieData.SAMESITE_EMPTY);
+		setCookie(key, value, expires, secure, path, domain, httpOnly, preserveCase, encode, CookieData.SAMESITE_EMPTY, false);
 	}
 
 	// FUTURE add to interface
 	public void setCookie(Collection.Key key, Object value, Object expires, boolean secure, String path, String domain, boolean httpOnly, boolean preserveCase, Boolean encode,
-			short samesite) throws PageException {
+			short samesite, boolean partitioned) throws PageException {
 
 		int exp = EXPIRES_NULL;
 
@@ -228,7 +253,7 @@ public final class CookieImpl extends ScopeSupport implements Cookie, ScriptProt
 			throw new ExpressionException("invalid type [" + Caster.toClassName(expires) + "] for expires");
 		}
 
-		_addCookie(key, Caster.toString(value), exp, secure, path, domain, httpOnly, preserveCase, encode, samesite);
+		_addCookie(key, Caster.toString(value), exp, secure, path, domain, httpOnly, preserveCase, encode, samesite, partitioned);
 		super.set(key, value);
 
 	}
@@ -237,32 +262,46 @@ public final class CookieImpl extends ScopeSupport implements Cookie, ScriptProt
 	public void setCookie(Collection.Key key, Object value, int expires, boolean secure, String path, String domain, boolean httpOnly, boolean preserveCase, boolean encode)
 			throws PageException {
 
-		_addCookie(key, Caster.toString(value), expires, secure, path, domain, httpOnly, preserveCase, encode, CookieData.SAMESITE_EMPTY);
+		_addCookie(key, Caster.toString(value), expires, secure, path, domain, httpOnly, preserveCase, encode, CookieData.SAMESITE_EMPTY, false);
 		super.set(key, value);
 	}
 
 	// FUTURE add to interface
 	public void setCookie(Collection.Key key, Object value, int expires, boolean secure, String path, String domain, boolean httpOnly, boolean preserveCase, boolean encode,
 			short samesite) throws PageException {
-		_addCookie(key, Caster.toString(value), expires, secure, path, domain, httpOnly, preserveCase, encode, samesite);
+		_addCookie(key, Caster.toString(value), expires, secure, path, domain, httpOnly, preserveCase, encode, samesite, false);
+		super.set(key, value);
+	}
+
+	// FUTURE add to interface
+	public void setCookie(Collection.Key key, Object value, int expires, boolean secure, String path, String domain, boolean httpOnly, boolean preserveCase, boolean encode,
+			short samesite, boolean partitioned) throws PageException {
+		_addCookie(key, Caster.toString(value), expires, secure, path, domain, httpOnly, preserveCase, encode, samesite, partitioned);
 		super.set(key, value);
 	}
 
 	@Override
 	public void setCookieEL(Collection.Key key, Object value, int expires, boolean secure, String path, String domain, boolean httpOnly, boolean preserveCase, boolean encode) {
-		_addCookie(key, Caster.toString(value, ""), expires, secure, path, domain, httpOnly, preserveCase, encode, CookieData.SAMESITE_EMPTY);
+		_addCookie(key, Caster.toString(value, ""), expires, secure, path, domain, httpOnly, preserveCase, encode, CookieData.SAMESITE_EMPTY, false);
 		super.setEL(key, value);
 	}
 
 	// FUTURE add to interface
 	public void setCookieEL(Collection.Key key, Object value, int expires, boolean secure, String path, String domain, boolean httpOnly, boolean preserveCase, boolean encode,
 			short samesite) {
-		_addCookie(key, Caster.toString(value, ""), expires, secure, path, domain, httpOnly, preserveCase, encode, samesite);
+		_addCookie(key, Caster.toString(value, ""), expires, secure, path, domain, httpOnly, preserveCase, encode, samesite, false);
+		super.setEL(key, value);
+	}
+
+	// FUTURE add to interface
+	public void setCookieEL(Collection.Key key, Object value, int expires, boolean secure, String path, String domain, boolean httpOnly, boolean preserveCase, boolean encode,
+			short samesite, boolean partitioned) {
+		_addCookie(key, Caster.toString(value, ""), expires, secure, path, domain, httpOnly, preserveCase, encode, samesite, partitioned);
 		super.setEL(key, value);
 	}
 
 	private void _addCookie(Key key, String value, int expires, boolean secure, String path, String domain, boolean httpOnly, boolean preserveCase, Boolean encode,
-			short samesite) {
+			short samesite, boolean partitioned) {
 		String name = preserveCase ? key.getString() : key.getUpperString();
 
 		// build the value
@@ -273,6 +312,8 @@ public final class CookieImpl extends ScopeSupport implements Cookie, ScriptProt
 		/* Expires */if (expires != EXPIRES_NULL) sb.append(";Expires=").append(DateTimeUtil.toHTTPTimeString(System.currentTimeMillis() + (expires * 1000L), false));
 		/* Secure */if (secure) sb.append(";Secure");
 		/* HTTPOnly */if (httpOnly) sb.append(";HttpOnly");
+		/* Partitioned */if (partitioned) sb.append(";Partitioned");
+		
 		String tmpSameSite = SessionCookieDataImpl.toSamesite(samesite);
 		/* Samesite */if (!StringUtil.isEmpty(tmpSameSite, true)) sb.append(";SameSite").append('=').append(tmpSameSite);
 		rsp.addHeader("Set-Cookie", sb.toString());
@@ -412,6 +453,31 @@ public final class CookieImpl extends ScopeSupport implements Cookie, ScriptProt
 				isHttpOnly = cookie.getClass().getMethod("isHttpOnly", IS_HTTP_ONLY_ARGS_CLASSES);
 			}
 			return Caster.toBooleanValue(isHttpOnly.invoke(cookie, IS_HTTP_ONLY_ARGS));
+		}
+		catch (Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
+			return false;
+		}
+	}
+
+	public static void setPartitioned(javax.servlet.http.Cookie cookie) {
+		try {
+			if (setPartitioned == null) {
+				setPartitioned = cookie.getClass().getMethod("setPartitioned", SET_PARTITIONED_ARGS_CLASSES);
+			}
+			setPartitioned.invoke(cookie, SET_PARTITIONED_ARGS);
+		}
+		catch (Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
+		}
+	}
+
+	public static boolean isPartitioned(javax.servlet.http.Cookie cookie) {
+		try {
+			if (isPartitioned == null) {
+				isPartitioned = cookie.getClass().getMethod("isPartitioned", IS_PARTITIONED_ARGS_CLASSES);
+			}
+			return Caster.toBooleanValue(isPartitioned.invoke(cookie, IS_PARTITIONED_ARGS));
 		}
 		catch (Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);

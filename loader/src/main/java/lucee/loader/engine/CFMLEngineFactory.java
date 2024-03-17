@@ -21,9 +21,11 @@ package lucee.loader.engine;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -32,9 +34,11 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.net.UnknownHostException;
+import java.nio.file.Paths;
 import java.security.CodeSource;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -46,6 +50,7 @@ import java.util.Map.Entry;
 import java.util.jar.Attributes;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
+import java.util.jar.JarOutputStream;
 import java.util.jar.Manifest;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -117,6 +122,8 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 
 	// do not remove/ranme, grapped by core directly
 	protected ServletConfig config;
+
+	private boolean embedded;
 
 	protected CFMLEngineFactory(final ServletConfig config) {
 		System.setProperty("org.apache.commons.logging.LogFactory.HashtableImpl", ConcurrentHashMapAsHashtable.class.getName());
@@ -219,6 +226,13 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 	void readInitParam(final ServletConfig config) {
 		if (luceeServerRoot != null) return;
 
+		String strEmbedded = config.getInitParameter("embedded");
+		embedded = false;
+		if (!Util.isEmpty(strEmbedded, true)) {
+			strEmbedded.trim().toLowerCase();
+			embedded = strEmbedded.equals("true") || strEmbedded.equals("yes");
+		}
+
 		String initParam = config.getInitParameter("lucee-server-directory");
 		if (Util.isEmpty(initParam)) initParam = config.getInitParameter("lucee-server-root");
 		if (Util.isEmpty(initParam)) initParam = config.getInitParameter("lucee-server-dir");
@@ -281,7 +295,208 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 		BundleUtil.stop(felix, false);
 	}
 
+	public static void main(String[] args) throws IOException {
+		createBundleFromSource();
+
+	}
+
+	public static File createBundleFromSource() throws IOException {
+
+		// Users/mic/Projects/Lucee/Lucee6/core/target/classes/META-INF/MANIFEST.MF
+		String resPrefix = "../../../";
+		String pathClas = "../core/target/classes/";
+		String pathCfml = "../core/src/main/cfml/";
+		String pathJava = "../core/src/main/java/";
+		String pathPom = "./pom.xml";
+
+		String s = System.getenv("LUCEE_SOURCE_DIR");
+		if (s != null) {
+			pathClas = Paths.get(s, "/core/target/classes/").toString();
+			pathCfml = Paths.get(s, "/core/src/main/cfml/").toString();
+			pathJava = Paths.get(s, "/core/src/main/java/").toString();
+			pathPom = Paths.get(s, "/loader/pom.xml").toString();
+		}
+
+		String pathJres = Paths.get(pathJava, "resource/").toString();
+
+		// LUCEE_CLASS_DIR allows to set custom compiler output directory for embedded mode if it is not at ${LUCEE_SOURCE_DIR}/core/target/classes, e.g. LUCEE_CLASS_DIR=/workspace/src/lucee/idea-compiler-output-6/production/core
+		File classesDirectory = load("classes directory", "the directory containg all compiled class files from the core project", "LUCEE_CLASS_DIR", pathClas, resPrefix + pathClas, true);
+		System.out.println("LUCEE_CLASS_DIR: " + classesDirectory);
+
+		// read source cfml directory
+		File sourceCfml = load("source directory", "the directory containg all CFML source files from the core project", "SOURCE_DIRECTORY", pathCfml, resPrefix + pathCfml, true);
+		System.out.println("SOURCE_DIRECTORY: " + sourceCfml);
+
+		// read source java directory
+		File sourceJava = load("source java directory", "the directory containing Java source files from the core project", "SOURCE_JAVA_DIR", pathJava, resPrefix + pathJava, true);
+		System.out.println("SOURCE_JAVA_DIR: " + sourceJava);
+
+		File resourceJava = load("resource java directory", "the directory containing resources in the Java source of the core project", "", pathJres, resPrefix + pathJava + "resource/", true);
+		System.out.println("RESOURCE_JAVA_DIR: " + resourceJava);
+
+		// read POM File
+		File pomFile = load("pom file", "the pom.xml file from the core project", "POM_FILE", pathPom, "../../../pom.xml", false);
+		System.out.println("POM: " + pomFile);
+
+		// if (true) return null;
+		File manifestFile = new File(sourceJava, "META-INF/MANIFEST.MF");
+
+		Manifest manifest = new Manifest();
+		// Assuming the manifest file is correct and fully prepared for OSGi
+		try (InputStream is = new FileInputStream(manifestFile)) {
+			manifest.read(is);
+		}
+		Attributes main = manifest.getMainAttributes();
+		String bundleName = main.getValue("Bundle-SymbolicName");
+		String bundleVersion = readVersionFromPOM(pomFile);
+		System.out.println("VERSION: " + bundleVersion);
+
+		main.put(new Attributes.Name("Bundle-Version"), bundleVersion);
+
+		File bundleFile = File.createTempFile(bundleName + "-", ".lco");
+		bundleFile.deleteOnExit();
+		// bundleFile = new File("/Users/mic/tmp8/" + bundleName + "-" + bundleVersion + "-" +
+		// System.currentTimeMillis() + ".lco");
+
+		System.out.println("LCO: " + bundleFile);
+
+		// Output file for the JAR
+		JarOutputStream jos = null;
+		// FileInputStream fis = null;
+
+		try {
+			jos = new JarOutputStream(new FileOutputStream(bundleFile), manifest);
+			addDirectoryToJar(jos, classesDirectory, "", new FilenameFilter() {
+
+				@Override
+				public boolean accept(File dir, String name) {
+					return !name.equals(".DS_Store");
+					// return !name.equals(".DS_Store") && !name.endsWith(".java");
+				}
+			});
+
+			// TODO this does not all copied in the right place
+			addDirectoryToJar(jos, sourceCfml, "resource/", new FilenameFilter() {
+
+				@Override
+				public boolean accept(File dir, String name) {
+					return !name.endsWith(".DS_Store") && !name.endsWith(".java");
+				}
+			});
+
+			addDirectoryToJar(jos, resourceJava, "resource/", new FilenameFilter() {
+
+				@Override
+				public boolean accept(File dir, String name) {
+					return !name.endsWith(".DS_Store") && !name.endsWith(".java");
+				}
+			});
+
+			File f = new File(sourceJava, "default.properties");
+			addFileToJar(jos, f, "");
+
+			f = new File(sourceJava, "License.txt");
+			addFileToJar(jos, f, "");
+		}
+		finally {
+			// Util.closeEL(fis);
+			Util.closeEL(jos);
+		}
+		return bundleFile;
+	}
+
+	private static File load(String subject, String desc, String envVarName, String relpath, String relResource, boolean dir) throws IOException {
+		String env = System.getenv(envVarName);
+		File file;
+		if (!Util.isEmpty(env)) {
+			file = new File(env.trim());
+			if ((dir && !file.isDirectory()) || (!dir && !file.isFile()))
+				throw new IOException("the " + subject + " [" + file + "] (" + desc + ") you have defined via enviroment variable [" + envVarName + "] does not exist!");
+		}
+		// try to figure out based on current location
+		else {
+			// try to load it relative with java.io.File
+			file = new File(relpath).getCanonicalFile(); // should work
+
+			// try to load via resource
+			if ((dir && !file.isDirectory()) || (!dir && !file.isFile())) {
+				file = null;
+				URL res = new TP().getClass().getClassLoader().getResource("");
+				File f;
+				try {
+					f = new File(res.toURI());
+					if (f.isDirectory()) {
+						file = new File(f, relResource).getCanonicalFile();
+					}
+				}
+				catch (URISyntaxException e) {
+				}
+			}
+			if (file == null || ((dir && !file.isDirectory()) || (!dir && !file.isFile()))) {
+				throw new IOException("could not find the " + subject + " (" + desc + "), please set the enviroment variable [" + envVarName + "] that points to it.");
+			}
+		}
+		return file;
+	}
+
+	private static String readVersionFromPOM(File pomFile) throws IOException {
+		String versionTagStart = "<version>";
+		String versionTagEnd = "</version>";
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		Util.copy(new FileInputStream(pomFile), baos, true, true);
+		String xml = new String(baos.toByteArray());
+		int startIndex = xml.indexOf(versionTagStart) + versionTagStart.length();
+		int endIndex = xml.indexOf(versionTagEnd);
+
+		if (startIndex < versionTagStart.length() || endIndex == -1) {
+			throw new IOException("Version tag not found");
+		}
+
+		return xml.substring(startIndex, endIndex).trim();
+	}
+
+	private static void addFileToJar(JarOutputStream jos, File file, String archivePath) {
+		JarEntry entry = new JarEntry(archivePath + file.getName());
+		entry.setTime(file.lastModified());
+		try {
+			jos.putNextEntry(entry);
+			// Write file to JAR
+			try (BufferedInputStream bis = new BufferedInputStream(new FileInputStream(file))) {
+				byte[] buffer = new byte[4096];
+				int count;
+				while ((count = bis.read(buffer)) != -1) {
+					jos.write(buffer, 0, count);
+				}
+			}
+			jos.closeEntry();
+		}
+		catch (Exception ex) {}
+	}
+
+	private static void addDirectoryToJar(JarOutputStream jos, File folder, String parentEntryName, FilenameFilter filter) throws IOException {
+
+		// Recursively add files to the jar
+		String name;
+		for (File file: folder.listFiles()) {
+			if (file.isDirectory()) {
+				name = (parentEntryName + file.getName() + "/").replace("//", "/");
+				// System.out.println("dir:" + name);
+				addDirectoryToJar(jos, file, name, filter); // Recursive call
+			}
+			else {
+				name = (parentEntryName + file.getName()).replace("//", "/");
+//				System.out.println(name);
+				if ((filter != null && !filter.accept(folder, name)) || name.equals(JarFile.MANIFEST_NAME)) {
+//					System.out.println(" - skipped");
+					continue; // Skip the manifest file since it's already added
+				}
+				addFileToJar(jos, file, parentEntryName);
+			}
+		}
+	}
+
 	private void initEngine() throws ServletException {
+
 		final Version coreVersion = VersionInfo.getIntVersion();
 		final long coreCreated = VersionInfo.getCreateTime();
 
@@ -294,23 +509,37 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 		catch (final IOException e) {
 			throw new ServletException(e);
 		}
-
-		final File[] patches = PATCH_ENABLED ? patcheDir.listFiles(new ExtensionFilter(new String[] { ".lco" })) : null;
 		File lucee = null;
-		if (patches != null) {
-			for (final File patch: patches) {
-				if (patch.getName().startsWith("tmp.lco")) patch.delete();
-				else if (patch.lastModified() < coreCreated) patch.delete();
-				else if (patch.length() < 1000000L) patch.delete();
-				else if (lucee == null || Util.isNewerThan(toVersion(patch.getName(), VERSION_ZERO), toVersion(lucee.getName(), VERSION_ZERO))) lucee = patch;
+
+		// LUCEE_SOURCE_DIR allows to run core in embeded mode, and should point to the project root which contains the "core" and "loader" directories
+		if (System.getenv("LUCEE_SOURCE_DIR") != null) embedded = true;
+
+		if (embedded) {
+			try {
+				lucee = createBundleFromSource();
+			}
+			catch (IOException e) {
+				throw new ServletException(e);
 			}
 		}
-		if (lucee != null && Util.isNewerThan(coreVersion, toVersion(lucee.getName(), VERSION_ZERO))) lucee = null;
 
+		// read lucee core from patch directory
+		if (lucee == null) {
+			final File[] patches = PATCH_ENABLED ? patcheDir.listFiles(new ExtensionFilter(new String[] { ".lco" })) : null;
+			if (patches != null) {
+				for (final File patch: patches) {
+					if (patch.getName().startsWith("tmp.lco")) patch.delete();
+					else if (patch.lastModified() < coreCreated) patch.delete();
+					else if (patch.length() < 1000000L) patch.delete();
+					else if (lucee == null || Util.isNewerThan(toVersion(patch.getName(), VERSION_ZERO), toVersion(lucee.getName(), VERSION_ZERO))) lucee = patch;
+				}
+			}
+			if (lucee != null && Util.isNewerThan(coreVersion, toVersion(lucee.getName(), VERSION_ZERO))) lucee = null;
+		}
 		// Load Lucee
 		// URL url=null;
 		try {
-			// Load core version when no patch available
+			// Load core version from jar when no patch available
 			if (lucee == null) {
 				log(Logger.LOG_DEBUG, "Load built-in Core");
 
@@ -336,9 +565,11 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 						// check for custom path of Lucee core
 						String s = System.getProperty("lucee.core.path");
 						if (s != null) {
+							System.err.println("Searching for Lucee Core at " + s);
 							File dir = new File(s);
 							File[] files = dir.listFiles(new ExtensionFilter(new String[] { coreExt }));
 							if (files.length > 0) {
+								System.err.println("Using Lucee Core from " + files[0].toString());
 								is = new FileInputStream(files[0]);
 							}
 						}
@@ -382,6 +613,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 					engine = _getCore(lucee);
 				}
 				else {
+
 					// TODO: LDEV-2805 set engine's classloader to use local class files
 					// engine =
 				}
@@ -389,7 +621,6 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 				setEngine(engine);
 			}
 			else {
-
 				bundleCollection = BundleLoader.loadBundles(this, getFelixCacheDirectory(), getBundleDirectory(), lucee, bundleCollection);
 				// bundle=loadBundle(lucee);
 				log(Logger.LOG_DEBUG, "Loaded bundle: [" + bundleCollection.core.getSymbolicName() + "]");
@@ -401,11 +632,13 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 			log(Logger.LOG_DEBUG, "Loaded Lucee Version [" + singelton.getInfo().getVersion() + "]");
 		}
 		catch (final InvocationTargetException e) {
+			e.printStackTrace();
 			log(e.getTargetException());
 			// e.getTargetException().printStackTrace();
 			throw new ServletException(e.getTargetException());
 		}
 		catch (final Exception e) {
+			e.printStackTrace();
 			throw new ServletException(e);
 		}
 
