@@ -22,8 +22,6 @@ import lucee.commons.net.HTTPUtil;
 import lucee.commons.net.URLDecoder;
 import lucee.commons.net.URLEncoder;
 import lucee.commons.net.URLItem;
-import lucee.loader.engine.CFMLEngine;
-import lucee.runtime.CFMLFactoryImpl;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.config.Config;
@@ -96,11 +94,6 @@ public class InternalRequest implements Function {
 			throw new FunctionException(pc, "InternalRequest", 1, "template", "template path is invalid");
 		}
 
-		// dialect
-		int dialect = ((CFMLFactoryImpl) pc.getConfig().getFactory()).toDialect(ext, -1);
-		if (dialect == -1) dialect = pc.getCurrentTemplateDialect();
-		// CFMLEngine.DIALECT_LUCEE
-
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
 		byte[] _barr = null;
@@ -138,8 +131,7 @@ public class InternalRequest implements Function {
 
 		try {
 
-			if (CFMLEngine.DIALECT_LUCEE == dialect) _pc.execute(template, true, false);
-			else _pc.executeCFML(template, true, false);
+			_pc.executeCFML(template, true, false);
 			HttpSession s;
 			if (_pc.getSessionType() == Config.SESSION_TYPE_JEE && (s = _pc.getSession()) != null) _pc.cookieScope().set(KeyConstants._JSESSIONID, s.getId());
 		}

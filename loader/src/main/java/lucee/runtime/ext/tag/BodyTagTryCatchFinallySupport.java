@@ -18,7 +18,7 @@
  **/
 package lucee.runtime.ext.tag;
 
-import javax.servlet.jsp.tagext.TryCatchFinally;
+import /* JAVJAK */ javax.servlet.jsp.tagext.TryCatchFinally;
 
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.runtime.exp.PageServletException;
@@ -29,9 +29,6 @@ import lucee.runtime.util.Excepton;
  */
 public abstract class BodyTagTryCatchFinallySupport extends BodyTagSupport implements TryCatchFinally {
 
-	/**
-	 * @see javax.servlet.jsp.tagext.TryCatchFinally#doCatch(java.lang.Throwable)
-	 */
 	@Override
 	public void doCatch(Throwable t) throws Throwable {
 		if (t instanceof PageServletException) {
@@ -46,9 +43,6 @@ public abstract class BodyTagTryCatchFinallySupport extends BodyTagSupport imple
 		throw t;
 	}
 
-	/**
-	 * @see javax.servlet.jsp.tagext.TryCatchFinally#doFinally()
-	 */
 	@Override
 	public void doFinally() {
 

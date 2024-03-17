@@ -32,7 +32,6 @@ import java.util.regex.Pattern;
 import lucee.commons.io.IOUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.sql.SQLUtil;
-import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.PageContext;
 import lucee.runtime.config.Constants;
 import lucee.runtime.db.DataSource;
@@ -737,11 +736,9 @@ public final class DBInfo extends TagImpl {
 			Object ds = pageContext.getApplicationContext().getDefDataSource();
 
 			if (StringUtil.isEmpty(ds)) {
-				boolean isCFML = pageContext.getRequestDialect() == CFMLEngine.DIALECT_CFML;
 				throw new ApplicationException("attribute [datasource] is required, when no default datasource is defined",
-						"you can define a default datasource as attribute [defaultdatasource] of the tag "
-								+ (isCFML ? Constants.CFML_APPLICATION_TAG_NAME : Constants.LUCEE_APPLICATION_TAG_NAME) + " or as data member of the "
-								+ (isCFML ? Constants.CFML_APPLICATION_EVENT_HANDLER : Constants.LUCEE_APPLICATION_EVENT_HANDLER) + " (this.defaultdatasource=\"mydatasource\";)");
+						"you can define a default datasource as attribute [defaultdatasource] of the tag " + (Constants.CFML_APPLICATION_TAG_NAME) + " or as data member of the "
+								+ (Constants.CFML_APPLICATION_EVENT_HANDLER) + " (this.defaultdatasource=\"mydatasource\";)");
 			}
 			return ds;
 		}

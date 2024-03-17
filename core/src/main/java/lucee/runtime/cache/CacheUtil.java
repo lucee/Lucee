@@ -30,7 +30,6 @@ import lucee.commons.io.cache.CacheFilter;
 import lucee.commons.io.cache.exp.CacheException;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
-import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.config.Config;
@@ -394,8 +393,7 @@ public class CacheUtil {
 
 		if (StringUtil.isEmpty(password, true)) throw new lucee.runtime.exp.SecurityException(
 				"A Web Admin Password is required to manipulate Cache connections. " + "You can either pass the password as an argument to this function, or set it in "
-						+ (pc.getRequestDialect() == CFMLEngine.DIALECT_CFML ? Constants.CFML_APPLICATION_EVENT_HANDLER : Constants.LUCEE_APPLICATION_EVENT_HANDLER)
-						+ " with the variable [this.webAdminPassword].");
+						+ (Constants.CFML_APPLICATION_EVENT_HANDLER) + " with the variable [this.webAdminPassword].");
 
 		return PasswordImpl.passwordToCompare(pc.getConfig(), server, password);
 	}

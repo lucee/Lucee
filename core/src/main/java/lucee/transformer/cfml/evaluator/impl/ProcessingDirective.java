@@ -40,7 +40,7 @@ import lucee.transformer.util.PageSourceCode;
 public final class ProcessingDirective extends EvaluatorSupport {
 
 	@Override
-	public TagLib execute(Config config, Tag tag, TagLibTag libTag, FunctionLib[] flibs, Data data) throws TemplateException {
+	public TagLib execute(Config config, Tag tag, TagLibTag libTag, FunctionLib flibs, Data data) throws TemplateException {
 		// dot notation
 		Boolean dotNotationUpperCase = null;
 		if (tag.containsAttribute("preservecase")) {

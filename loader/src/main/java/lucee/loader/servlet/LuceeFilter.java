@@ -4,14 +4,14 @@ import java.io.IOException;
 import java.util.Enumeration;
 import java.util.HashSet;
 
-import javax.servlet.Filter;
-import javax.servlet.FilterChain;
-import javax.servlet.FilterConfig;
-import javax.servlet.ServletConfig;
-import javax.servlet.ServletContext;
-import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
+import /* JAVJAK */ javax.servlet.Filter;
+import /* JAVJAK */ javax.servlet.FilterChain;
+import /* JAVJAK */ javax.servlet.FilterConfig;
+import /* JAVJAK */ javax.servlet.ServletConfig;
+import /* JAVJAK */ javax.servlet.ServletContext;
+import /* JAVJAK */ javax.servlet.ServletException;
+import /* JAVJAK */ javax.servlet.ServletRequest;
+import /* JAVJAK */ javax.servlet.ServletResponse;
 
 import lucee.cli.util.EnumerationWrapper;
 import lucee.loader.engine.CFMLEngine;

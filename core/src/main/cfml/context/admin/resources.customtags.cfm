@@ -167,8 +167,10 @@
 				<cfset data.archives=toArrayFromForm("archive")>
 				<cfset data.primaries=toArrayFromForm("primary")>
 				<cfset data.inspects=toArrayFromForm("inspect")>
+				<cfset data.inspectTemplateIntervalSlow=toArrayFromForm("inspectTemplateIntervalSlow")>
+				<cfset data.inspectTemplateIntervalFast=toArrayFromForm("inspectTemplateIntervalFast")>
 				<cfset data.rows=toArrayFromForm("row")>
-				
+
 				<cfloop index="idx" from="1" to="#arrayLen(data.physicals)#">
 					<cfif isDefined("data.rows[#idx#]")>
 						<cfset data.inspects[idx]=isDefined("data.inspects[#idx#]")?data.inspects[idx]:"">
@@ -189,6 +191,8 @@
 						archive="#data.archives[idx]#"
 						primary="#data.primaries[idx]#"
 						inspect="#data.inspects[idx]#"
+						inspectTemplateIntervalSlow="#data.inspectTemplateIntervalSlow[idx]#"
+						inspectTemplateIntervalFast="#data.inspectTemplateIntervalFast[idx]#"
 			remoteClients="#request.getRemoteClients()#">
 
 					</cfif>
@@ -245,6 +249,11 @@ Redirtect to entry --->
 
 <!--- Error Output --->
 <cfset printError(error)>
+<cfadmin 
+	type="#request.adminType#"
+	password="#session["password"&request.adminType]#"
+	action="getPerformanceSettings"
+	returnVariable="performanceSettings">
 
 <cfif url.action2 EQ "create">
 	<cfinclude template="resources.customtags.edit.cfm">

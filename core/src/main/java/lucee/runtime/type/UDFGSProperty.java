@@ -39,6 +39,7 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.exp.UDFCasterException;
 import lucee.runtime.functions.decision.IsValid;
+import lucee.runtime.listener.ApplicationContextSupport;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 import lucee.runtime.type.Collection.Key;
@@ -169,6 +170,11 @@ public abstract class UDFGSProperty extends MemberSupport implements UDFPlus {
 
 	@Override
 	public int getReturnFormat() {
+		PageContext pc = ThreadLocalPageContext.get();
+		if (pc != null) {
+			ApplicationContextSupport acs = (ApplicationContextSupport) pc.getApplicationContext();
+			if (acs != null) return acs.getReturnFormat();
+		}
 		return UDF.RETURN_FORMAT_WDDX;
 	}
 

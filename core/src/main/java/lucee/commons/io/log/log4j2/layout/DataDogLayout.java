@@ -8,8 +8,6 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-import javax.servlet.http.Cookie;
-
 import org.apache.logging.log4j.core.LogEvent;
 import org.apache.logging.log4j.core.layout.AbstractStringLayout;
 
@@ -62,7 +60,7 @@ public class DataDogLayout extends AbstractStringLayout {
 		data.append(' ');
 		data.append(event.getLevel().toString());
 		data.append(' ');
-		data.append(getLoggerName(event));
+		data.append(lucee.commons.io.log.log4j2.layout.Util.getLoggerName(event));
 		data.append(':');
 		data.append(caster.toString(getLineNumber()));
 		data.append(" - ");
@@ -113,19 +111,6 @@ public class DataDogLayout extends AbstractStringLayout {
 
 	}
 
-	private Object getLoggerName(LogEvent event) {
-		String name = event.getLoggerName();
-		if (name.startsWith("web.")) {
-			int index = name.indexOf('.', 4);
-			if (index != -1) name = name.substring(index + 1);
-		}
-		else if (name.startsWith("server.")) {
-			name = name.substring(7);
-		}
-
-		return name;
-	}
-
 	private String serializeJSON(Struct sct) throws PageException {
 		boolean release = false;
 		PageContext pc = engine.getThreadPageContext();
@@ -141,7 +126,7 @@ public class DataDogLayout extends AbstractStringLayout {
 
 						"",
 
-						new Cookie[0],
+						null,
 
 						null,
 

@@ -37,7 +37,6 @@ public class SourceCode {
 	protected final char[] lcText;
 	protected final Integer[] lines; // TODO to int[]
 	private final boolean writeLog;
-	private final int dialect;
 	private int hash;
 	private SourceCode parent;
 
@@ -49,11 +48,10 @@ public class SourceCode {
 	 * @param text
 	 * @param charset
 	 */
-	public SourceCode(SourceCode parent, String strText, boolean writeLog, int dialect) {
+	public SourceCode(SourceCode parent, String strText, boolean writeLog) {
 		this.parent = parent;
 		this.text = strText.toCharArray();
 		this.hash = strText.hashCode();
-		this.dialect = dialect;
 		lcText = new char[text.length];
 
 		ArrayList<Integer> arr = new ArrayList<Integer>();
@@ -702,7 +700,7 @@ public class SourceCode {
 	 * @return subset of the SourceCode as new SourcCode
 	 */
 	public SourceCode subCFMLString(int start, int count) {
-		return new SourceCode(this, String.valueOf(text, start, count), writeLog, dialect);
+		return new SourceCode(this, String.valueOf(text, start, count), writeLog);
 
 	}
 
@@ -932,10 +930,6 @@ public class SourceCode {
 
 	public String id() {
 		return HashUtil.create64BitHashAsString(getText());
-	}
-
-	public int getDialect() {
-		return dialect;
 	}
 
 	@Override

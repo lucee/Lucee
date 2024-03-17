@@ -20,7 +20,7 @@ package lucee.runtime.type.scope;
 
 import java.io.UnsupportedEncodingException;
 
-import javax.servlet.ServletInputStream;
+import /* JAVJAK */ javax.servlet.ServletInputStream;
 
 import lucee.runtime.exp.PageException;
 import lucee.runtime.listener.ApplicationContext;

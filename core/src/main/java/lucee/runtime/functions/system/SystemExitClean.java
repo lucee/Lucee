@@ -2,6 +2,7 @@ package lucee.runtime.functions.system;
 
 import java.io.File;
 
+import lucee.commons.io.FileUtil;
 import lucee.loader.engine.CFMLEngine;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.loader.util.Util;
@@ -34,7 +35,7 @@ public final class SystemExitClean extends BIF implements Function {
 
 			if (srcEQtrg) {
 				if (fsrc.exists()) fsrc.delete();
-				ftrg.renameTo(fsrc);
+				FileUtil.move(ftrg, fsrc);
 			}
 		}
 		catch (Exception e) {

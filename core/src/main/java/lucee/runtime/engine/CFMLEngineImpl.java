@@ -53,7 +53,6 @@ import javax.script.ScriptEngineFactory;
 import javax.servlet.FilterChain;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletContext;
-import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.Cookie;
@@ -67,8 +66,6 @@ import org.osgi.framework.Constants;
 import org.osgi.framework.Version;
 
 import lucee.Info;
-import lucee.print;
-import lucee.cli.servlet.HTTPServletImpl;
 import lucee.cli.servlet.ServletContextImpl;
 import lucee.commons.collection.MapFactory;
 import lucee.commons.io.CharsetUtil;
@@ -155,6 +152,7 @@ import lucee.runtime.op.OperationImpl;
 import lucee.runtime.op.StringsImpl;
 import lucee.runtime.osgi.OSGiUtil;
 import lucee.runtime.schedule.SchedulerImpl;
+import lucee.runtime.thread.SerializableCookie;
 import lucee.runtime.thread.ThreadUtil;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
@@ -185,6 +183,7 @@ import lucee.runtime.util.ZipUtil;
 import lucee.runtime.util.ZipUtilImpl;
 import lucee.runtime.video.VideoUtil;
 import lucee.runtime.video.VideoUtilImpl;
+import lucee.servlet.http.HTTPServletImpl;
 
 /**
  * The CFMl Engine
@@ -194,6 +193,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 	static {
 		System.setProperty("org.apache.commons.logging.Log", "org.apache.commons.logging.impl.NoOpLog");
 		System.setProperty("javax.xml.bind.context.factory", "com.sun.xml.bind.v2.ContextFactory");
+
 	}
 
 	public static final PrintStream CONSOLE_ERR = System.err;
@@ -213,10 +213,8 @@ public final class CFMLEngineImpl implements CFMLEngine {
 
 	private BundleCollection bundleCollection;
 
-	private ScriptEngineFactory cfmlScriptEngine;
-	private ScriptEngineFactory cfmlTagEngine;
-	private ScriptEngineFactory luceeScriptEngine;
-	private ScriptEngineFactory luceeTagEngine;
+	private ScriptEngineFactory scriptEngine;
+	private ScriptEngineFactory tagEngine;
 	private Controler controler;
 	private CFMLServletContextListener scl;
 	private Boolean asyncReqHandle;
@@ -390,7 +388,6 @@ public final class CFMLEngineImpl implements CFMLEngine {
 
 			}
 			catch (PageException e) {
-				print.e(e);
 				LogUtil.log("deploy", "controller", e);
 				sucess = false;
 			}
@@ -780,13 +777,13 @@ public final class CFMLEngineImpl implements CFMLEngine {
 	 * @param factory
 	 * @return CFMLEngine
 	 */
-	public static synchronized CFMLEngine getInstance() throws ServletException {
+	public static synchronized CFMLEngine getInstance() throws PageServletException {
 		if (engine != null) return engine;
-		throw new ServletException("CFML Engine is not loaded");
+		throw new PageServletException(new ApplicationException("CFML Engine is not loaded"));
 	}
 
 	@Override
-	public void addServletConfig(ServletConfig config) throws ServletException {
+	public void addServletConfig(ServletConfig config) throws PageServletException {
 		if (PageSourceImpl.logAccessDirectory == null) {
 			String str = config.getInitParameter("lucee-log-access-directory");
 			if (!StringUtil.isEmpty(str)) {
@@ -966,7 +963,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 		return frp.getResource(factory.getResourceRoot().getAbsolutePath()).getRealResource("context");
 	}
 
-	private CFMLFactoryImpl loadJSPFactory(ConfigServerImpl configServer, ServletConfig sg, int countExistingContextes) throws ServletException {
+	private CFMLFactoryImpl loadJSPFactory(ConfigServerImpl configServer, ServletConfig sg, int countExistingContextes) throws PageServletException {
 		try {
 			CFMLFactoryImpl factory = new CFMLFactoryImpl(this, sg);
 			if (ConfigWebFactory.LOG) LogUtil.log(configServer, Log.LEVEL_INFO, "startup", "Init factory");
@@ -987,9 +984,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 			return factory;
 		}
 		catch (Exception e) {
-			ServletException se = new ServletException(e.getMessage());
-			se.setStackTrace(e.getStackTrace());
-			throw se;
+			throw Caster.toPageServletException(e);
 		}
 	}
 
@@ -1161,11 +1156,11 @@ public final class CFMLEngineImpl implements CFMLEngine {
 	}
 
 	@Override
-	public CFMLFactory getCFMLFactory(ServletConfig srvConfig, HttpServletRequest req) throws ServletException {
+	public CFMLFactory getCFMLFactory(ServletConfig srvConfig, HttpServletRequest req) throws PageServletException {
 		return getCFMLFactory(null, srvConfig, req);
 	}
 
-	public CFMLFactory getCFMLFactory(ConfigServerImpl cs, ServletConfig srvConfig, HttpServletRequest req) throws ServletException {
+	public CFMLFactory getCFMLFactory(ConfigServerImpl cs, ServletConfig srvConfig, HttpServletRequest req) throws PageServletException {
 		ServletContext srvContext = srvConfig.getServletContext();
 
 		String real = ReqRspUtil.getRootPath(srvContext);
@@ -1196,33 +1191,22 @@ public final class CFMLEngineImpl implements CFMLEngine {
 	}
 
 	@Override
-	public void service(HttpServlet servlet, HttpServletRequest req, HttpServletResponse rsp) throws ServletException, IOException {
-		_service(servlet, req, rsp, Request.TYPE_LUCEE);
-	}
-
-	@Override
-	public void serviceCFML(HttpServlet servlet, HttpServletRequest req, HttpServletResponse rsp) throws ServletException, IOException {
+	public void service(HttpServlet servlet, HttpServletRequest req, HttpServletResponse rsp) throws PageServletException, IOException {
 		_service(servlet, req, rsp, Request.TYPE_CFML);
 	}
 
 	@Override
-	public void serviceRest(HttpServlet servlet, HttpServletRequest req, HttpServletResponse rsp) throws ServletException, IOException {
+	public void serviceCFML(HttpServlet servlet, HttpServletRequest req, HttpServletResponse rsp) throws PageServletException, IOException {
+		_service(servlet, req, rsp, Request.TYPE_CFML);
+	}
+
+	@Override
+	public void serviceRest(HttpServlet servlet, HttpServletRequest req, HttpServletResponse rsp) throws PageServletException, IOException {
 		_service(servlet, new HTTPServletRequestWrap(req), rsp, Request.TYPE_REST);
 	}
 
-	private void _service(HttpServlet servlet, HttpServletRequest req, HttpServletResponse rsp, short type) throws ServletException, IOException {
+	private void _service(HttpServlet servlet, HttpServletRequest req, HttpServletResponse rsp, short type) throws PageServletException, IOException {
 		CFMLFactoryImpl factory = (CFMLFactoryImpl) getCFMLFactory(servlet.getServletConfig(), req);
-		// is Lucee dialect enabled?
-		if (type == Request.TYPE_LUCEE) {
-			if (!((ConfigPro) factory.getConfig()).allowLuceeDialect()) {
-				try {
-					PageContextImpl.notSupported();
-				}
-				catch (ApplicationException e) {
-					throw new PageServletException(e);
-				}
-			}
-		}
 		boolean exeReqAsync = exeRequestAsync();
 		PageContextImpl pc = factory.getPageContextImpl(servlet, req, rsp, null, false, -1, false, !exeReqAsync, false, -1, true, false, false, null);
 		try {
@@ -1262,12 +1246,10 @@ public final class CFMLEngineImpl implements CFMLEngine {
 					if (rte.getThreadDeath() != null) throw rte.getThreadDeath();
 				}
 				catch (NativeException ne) {
-					if (ne.getCause() instanceof ThreadDeath) throw (ThreadDeath) ne.getCause();
-				}
-				catch (ThreadDeath td) {
-					throw td;
+					ExceptionUtil.rethrowIfNecessary(ne.getCause());
 				}
 				catch (Throwable t) {
+					ExceptionUtil.rethrowIfNecessary(t);
 					if (t instanceof Exception && !Abort.isSilentAbort(t))
 						LogUtil.log(configServer, "application", "controller", t, t instanceof MissingIncludeException ? Log.LEVEL_WARN : Log.LEVEL_ERROR);
 				}
@@ -1279,7 +1261,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 	}
 
 	@Override
-	public void serviceFile(HttpServlet servlet, HttpServletRequest req, HttpServletResponse rsp) throws ServletException, IOException {
+	public void serviceFile(HttpServlet servlet, HttpServletRequest req, HttpServletResponse rsp) throws PageServletException, IOException {
 		req = new HTTPServletRequestWrap(req);
 		CFMLFactory factory = getCFMLFactory(servlet.getServletConfig(), req);
 		ConfigWeb config = factory.getConfig();
@@ -1347,8 +1329,8 @@ public final class CFMLEngineImpl implements CFMLEngine {
 	}
 
 	@Override
-	public void serviceAMF(HttpServlet servlet, HttpServletRequest req, HttpServletResponse rsp) throws ServletException, IOException {
-		throw new ServletException("AMFServlet is no longer supported, use BrokerServlet instead.");
+	public void serviceAMF(HttpServlet servlet, HttpServletRequest req, HttpServletResponse rsp) throws PageServletException, IOException {
+		throw new PageServletException(new ApplicationException("AMFServlet is no longer supported, use BrokerServlet instead."));
 		// req=new HTTPServletRequestWrap(req);
 		// getCFMLFactory(servlet.getServletConfig(), req).getConfig().getAMFEngine().service(servlet,new
 		// HTTPServletRequestWrap(req),rsp);
@@ -1609,7 +1591,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 	}
 
 	@Override
-	public void cli(Map<String, String> config, ServletConfig servletConfig) throws IOException, ServletException, PageException {
+	public void cli(Map<String, String> config, ServletConfig servletConfig) throws IOException, PageServletException, PageException {
 		ServletContext servletContext = servletConfig.getServletContext();
 		HTTPServletImpl servlet = new HTTPServletImpl(servletConfig, servletContext, servletConfig.getServletName());
 
@@ -1637,7 +1619,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 		// cookie
 		Cookie[] cookies;
 		String strCookie = config.get("cookie");
-		if (StringUtil.isEmpty(strCookie, true)) cookies = new Cookie[0];
+		if (StringUtil.isEmpty(strCookie, true)) cookies = SerializableCookie.COOKIES0;
 		else {
 			Map<String, String> mapCookies = HTTPUtil.parseParameterList(strCookie, false, null);
 			int index = 0;
@@ -1727,38 +1709,26 @@ public final class CFMLEngineImpl implements CFMLEngine {
 	}
 
 	@Override
-	public ScriptEngineFactory getScriptEngineFactory(int dialect) {
-
-		if (dialect == CFMLEngine.DIALECT_CFML) {
-			if (cfmlScriptEngine == null) cfmlScriptEngine = new ScriptEngineFactoryImpl(this, false, dialect);
-			return cfmlScriptEngine;
-		}
-
-		if (luceeScriptEngine == null) luceeScriptEngine = new ScriptEngineFactoryImpl(this, false, dialect);
-		return luceeScriptEngine;
+	public ScriptEngineFactory getScriptEngineFactory(int dialect) {// FUTURE remove
+		if (scriptEngine == null) scriptEngine = new ScriptEngineFactoryImpl(this, false);
+		return scriptEngine;
 	}
 
 	@Override
-	public ScriptEngineFactory getTagEngineFactory(int dialect) {
-
-		if (dialect == CFMLEngine.DIALECT_CFML) {
-			if (cfmlTagEngine == null) cfmlTagEngine = new ScriptEngineFactoryImpl(this, true, dialect);
-			return cfmlTagEngine;
-		}
-
-		if (luceeTagEngine == null) luceeTagEngine = new ScriptEngineFactoryImpl(this, true, dialect);
-		return luceeTagEngine;
+	public ScriptEngineFactory getTagEngineFactory(int dialect) {// FUTURE remove
+		if (tagEngine == null) tagEngine = new ScriptEngineFactoryImpl(this, true);
+		return tagEngine;
 	}
 
 	@Override
 	public PageContext createPageContext(File contextRoot, String host, String scriptName, String queryString, Cookie[] cookies, Map<String, Object> headers,
-			Map<String, String> parameters, Map<String, Object> attributes, OutputStream os, long timeout, boolean register) throws ServletException {
+			Map<String, String> parameters, Map<String, Object> attributes, OutputStream os, long timeout, boolean register) throws PageServletException {
 		// FUTURE add first 2 arguments to interface
 		return PageContextUtil.getPageContext(null, null, contextRoot, host, scriptName, queryString, cookies, headers, parameters, attributes, os, register, timeout, false);
 	}
 
 	@Override
-	public ConfigWeb createConfig(File contextRoot, String host, String scriptName) throws ServletException {
+	public ConfigWeb createConfig(File contextRoot, String host, String scriptName) throws PageServletException {
 		// TODO do a mored rect approach
 		PageContext pc = null;
 		try {
@@ -1811,45 +1781,31 @@ public final class CFMLEngineImpl implements CFMLEngine {
 		if (!ThreadLocalPageContext.callOnStart.get()) return;
 
 		Resource listenerTemplateCFML = config.getConfigDir().getRealResource("context/" + context + "." + lucee.runtime.config.Constants.getCFMLComponentExtension());
-		Resource listenerTemplateLucee = config.getConfigDir().getRealResource("context/" + context + "." + lucee.runtime.config.Constants.getLuceeComponentExtension());
 
 		Resource listenerTemplateCFMLWebRoot = null;
-		Resource listenerTemplateLuceeWebRoot = null;
 		if (isWeb) {
 			try {
 				Resource rootdir = config.getRootDirectory();
 				listenerTemplateCFMLWebRoot = rootdir.getRealResource(context + "." + lucee.runtime.config.Constants.getCFMLComponentExtension());
-				listenerTemplateLuceeWebRoot = rootdir.getRealResource(context + "." + lucee.runtime.config.Constants.getLuceeComponentExtension());
 			}
 			catch (Exception e) {
 			}
 		}
 
 		// dialect
-		int dialect;
 		boolean inWebRoot;
 		if (listenerTemplateCFMLWebRoot != null && listenerTemplateCFMLWebRoot.isFile()) {
 			inWebRoot = true;
-			dialect = CFMLEngine.DIALECT_CFML;
-		}
-		else if (listenerTemplateLuceeWebRoot != null && listenerTemplateLuceeWebRoot.isFile()) {
-			inWebRoot = true;
-			dialect = CFMLEngine.DIALECT_LUCEE;
 		}
 		else if (listenerTemplateCFML.isFile()) {
 			inWebRoot = false;
-			dialect = CFMLEngine.DIALECT_CFML;
-		}
-		else if (listenerTemplateLucee.isFile()) {
-			inWebRoot = false;
-			dialect = CFMLEngine.DIALECT_LUCEE;
 		}
 		else return;
 
 		if (!StringUtil.emptyIfNull(Thread.currentThread().getName()).startsWith("on-start-")) {
 			long timeout = config.getRequestTimeout().getMillis();
 			if (timeout <= 0) timeout = 50000L;
-			OnStart thread = new OnStart(config, dialect, context, reload, inWebRoot);
+			OnStart thread = new OnStart(config, context, reload, inWebRoot);
 			thread.setName("on-start-" + CreateUniqueId.invoke());
 			long start = System.currentTimeMillis();
 			thread.start();
@@ -1873,14 +1829,12 @@ public final class CFMLEngineImpl implements CFMLEngine {
 	private class OnStart extends Thread {
 
 		private ConfigPro config;
-		private int dialect;
 		private boolean reload;
 		private String context;
 		private boolean inWebRoot;
 
-		public OnStart(ConfigPro config, int dialect, String context, boolean reload, boolean inWebRoot) {
+		public OnStart(ConfigPro config, String context, boolean reload, boolean inWebRoot) {
 			this.config = config;
-			this.dialect = dialect;
 			this.context = context;
 			this.reload = reload;
 			this.inWebRoot = inWebRoot;
@@ -1892,8 +1846,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 
 			String id = CreateUniqueId.invoke();
 			final String requestURI = (inWebRoot ? "" : ("/" + (isWeb ? "lucee" : "lucee-server"))) + "/" + context + "."
-					+ (dialect == CFMLEngine.DIALECT_LUCEE ? lucee.runtime.config.Constants.getLuceeComponentExtension()
-							: lucee.runtime.config.Constants.getCFMLComponentExtension());
+					+ (lucee.runtime.config.Constants.getCFMLComponentExtension());
 
 			// PageContext oldPC = ThreadLocalPageContext.get();
 			PageContext pc = null;
@@ -1911,8 +1864,8 @@ public final class CFMLEngineImpl implements CFMLEngine {
 					Struct attrs = new StructImpl();
 					attrs.setEL(KeyConstants._client, "lucee-listener-1-0");
 
-					pc = ThreadUtil.createPageContext((ConfigWeb) config, DevNullOutputStream.DEV_NULL_OUTPUT_STREAM, "localhost", requestURI, queryString, new Cookie[0], headers,
-							null, new Pair[0], attrs, true, Long.MAX_VALUE);
+					pc = ThreadUtil.createPageContext((ConfigWeb) config, DevNullOutputStream.DEV_NULL_OUTPUT_STREAM, "localhost", requestURI, queryString,
+							SerializableCookie.COOKIES0, headers, null, new Pair[0], attrs, true, Long.MAX_VALUE);
 				}
 				else {
 					Map<String, Object> headers = new HashMap<String, Object>();
@@ -1923,13 +1876,12 @@ public final class CFMLEngineImpl implements CFMLEngine {
 					File root = new File(config.getRootDirectory().getAbsolutePath());
 					CreationImpl cr = (CreationImpl) CreationImpl.getInstance(engine);
 					ServletConfig sc = cr.createServletConfig(root, null, null);
-					pc = PageContextUtil.getPageContext(config, sc, root, "localhost", requestURI, queryString, new Cookie[0], headers, null, attrs,
+					pc = PageContextUtil.getPageContext(config, sc, root, "localhost", requestURI, queryString, SerializableCookie.COOKIES0, headers, null, attrs,
 							DevNullOutputStream.DEV_NULL_OUTPUT_STREAM, true, Long.MAX_VALUE,
 							Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.ignore.scopes", null), false));
 				}
 				((PageContextImpl) pc).setListenerContext(true);
-				if (dialect == CFMLEngine.DIALECT_LUCEE) pc.execute(requestURI, true, false);
-				else pc.executeCFML(requestURI, true, false);
+				pc.executeCFML(requestURI, true, false);
 				((PageContextImpl) pc).setListenerContext(false);
 
 			}

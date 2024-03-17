@@ -29,7 +29,6 @@ import java.util.Set;
 import lucee.commons.lang.CFTypes;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
-import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.PageContext;
 import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.exp.ExpressionException;
@@ -56,29 +55,26 @@ import lucee.transformer.library.function.FunctionLibFunctionArg;
 public class MemberUtil {
 
 	private static final Object DEFAULT = new Object();
-	private static Map<Short, Map<Collection.Key, FunctionLibFunction>> matchesLucee = new HashMap<Short, Map<Collection.Key, FunctionLibFunction>>();
 	private static Map<Short, Map<Collection.Key, FunctionLibFunction>> matchesCFML = new HashMap<Short, Map<Collection.Key, FunctionLibFunction>>();
 
 	public static Map<Collection.Key, FunctionLibFunction> getMembers(PageContext pc, short type) {
-		Map<Short, Map<Key, FunctionLibFunction>> matches = pc.getCurrentTemplateDialect() == CFMLEngine.DIALECT_LUCEE ? matchesLucee : matchesCFML;
+		Map<Short, Map<Key, FunctionLibFunction>> matches = matchesCFML;
 
 		Map<Key, FunctionLibFunction> match = matches.get(type);
 		if (match != null) return match;
 
-		FunctionLib[] flds = ((ConfigWebPro) pc.getConfig()).getFLDs(pc.getCurrentTemplateDialect());
+		FunctionLib flds = ((ConfigWebPro) pc.getConfig()).getFLDs();
 		Iterator<FunctionLibFunction> it;
 		FunctionLibFunction f;
 		match = new HashMap<Collection.Key, FunctionLibFunction>();
 		String[] names;
-		for (int i = 0; i < flds.length; i++) {
-			it = flds[i].getFunctions().values().iterator();
-			while (it.hasNext()) {
-				f = it.next();
-				names = f.getMemberNames();
-				if (!ArrayUtil.isEmpty(names) && f.getMemberType() == type && f.getArgType() == FunctionLibFunction.ARG_FIX) {
-					for (int y = 0; y < names.length; y++)
-						match.put(KeyImpl.init(names[y]), f);
-				}
+		it = flds.getFunctions().values().iterator();
+		while (it.hasNext()) {
+			f = it.next();
+			names = f.getMemberNames();
+			if (!ArrayUtil.isEmpty(names) && f.getMemberType() == type && f.getArgType() == FunctionLibFunction.ARG_FIX) {
+				for (int y = 0; y < names.length; y++)
+					match.put(KeyImpl.init(names[y]), f);
 			}
 		}
 		matches.put(type, match);

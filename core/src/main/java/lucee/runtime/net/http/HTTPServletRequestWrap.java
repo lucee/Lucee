@@ -38,7 +38,6 @@ import javax.servlet.AsyncContext;
 import javax.servlet.DispatcherType;
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletContext;
-import javax.servlet.ServletException;
 import javax.servlet.ServletInputStream;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
@@ -61,8 +60,10 @@ import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.config.Config;
 import lucee.runtime.engine.ThreadLocalPageContext;
+import lucee.runtime.exp.PageServletException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.date.DateCaster;
+import lucee.runtime.thread.SerializableCookie;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.KeyImpl;
@@ -137,7 +138,7 @@ public final class HTTPServletRequestWrap implements HttpServletRequest, Seriali
 	 * @param max how many is possible to re read
 	 */
 	public HTTPServletRequestWrap(HttpServletRequest req) {
-		this.req = pure(req);
+		this.req = pure(req);/* JAVJAK */
 		if ((servlet_path = attrAsString("javax.servlet.include.servlet_path")) != null) {
 			request_uri = attrAsString("javax.servlet.include.request_uri");
 			context_path = attrAsString("javax.servlet.include.context_path");
@@ -411,7 +412,7 @@ public final class HTTPServletRequestWrap implements HttpServletRequest, Seriali
 				for (int i = 0; i < _cookies.length; i++)
 					disconnectData.cookies[i] = _cookies[i];
 			}
-			else disconnectData.cookies = new Cookie[0];
+			else disconnectData.cookies = SerializableCookie.COOKIES0;
 		}
 
 		disconnectData.authType = req.getAuthType();
@@ -822,8 +823,18 @@ public final class HTTPServletRequestWrap implements HttpServletRequest, Seriali
 	}
 
 	@Override
-	public boolean authenticate(HttpServletResponse arg0) throws IOException, ServletException {
-		if (!disconnected) return req.authenticate(arg0);
+	public boolean authenticate(HttpServletResponse arg0) throws IOException, PageServletException {
+		if (!disconnected) {
+			try {
+				return req.authenticate(arg0);
+			}
+			catch (IOException e) {
+				throw e;
+			}
+			catch (Exception e) {
+				throw Caster.toPageServletException(e);
+			}
+		}
 		throw new RuntimeException("not supported!");
 	}
 
@@ -834,32 +845,76 @@ public final class HTTPServletRequestWrap implements HttpServletRequest, Seriali
 	}
 
 	@Override
-	public Part getPart(String arg0) throws IOException, ServletException {
-		if (!disconnected) return req.getPart(arg0);
+	public Part getPart(String arg0) throws IOException, PageServletException {
+		if (!disconnected) {
+			try {
+				return req.getPart(arg0);
+			}
+			catch (IOException e) {
+				throw e;
+			}
+			catch (Exception e) {
+				throw Caster.toPageServletException(e);
+			}
+		}
 		throw new RuntimeException("not supported!");
 	}
 
 	@Override
-	public java.util.Collection<Part> getParts() throws IOException, ServletException {
-		if (!disconnected) return req.getParts();
+	public java.util.Collection<Part> getParts() throws IOException, PageServletException {
+		if (!disconnected) {
+			try {
+				return req.getParts();
+			}
+			catch (IOException e) {
+				throw e;
+			}
+			catch (Exception e) {
+				throw Caster.toPageServletException(e);
+			}
+		}
 		throw new RuntimeException("not supported!");
 	}
 
 	@Override
-	public void login(String arg0, String arg1) throws ServletException {
-		if (!disconnected) req.login(arg0, arg1);
+	public void login(String arg0, String arg1) throws PageServletException {
+		if (!disconnected) {
+			try {
+				req.login(arg0, arg1);
+			}
+			catch (Exception e) {
+				throw Caster.toPageServletException(e);
+			}
+		}
 		throw new RuntimeException("not supported!");
 	}
 
 	@Override
-	public void logout() throws ServletException {
-		if (!disconnected) req.logout();
+	public void logout() throws PageServletException {
+		if (!disconnected) {
+			try {
+				req.logout();
+			}
+			catch (Exception e) {
+				throw Caster.toPageServletException(e);
+			}
+		}
 		throw new RuntimeException("not supported!");
 	}
 
 	@Override
-	public <T extends HttpUpgradeHandler> T upgrade(Class<T> arg0) throws IOException, ServletException {
-		if (!disconnected) return req.upgrade(arg0);
+	public <T extends HttpUpgradeHandler> T upgrade(Class<T> arg0) throws IOException, PageServletException {
+		if (!disconnected) {
+			try {
+				return req.upgrade(arg0);
+			}
+			catch (IOException e) {
+				throw e;
+			}
+			catch (Exception e) {
+				throw Caster.toPageServletException(e);
+			}
+		}
 		throw new RuntimeException("not supported!");
 	}
 

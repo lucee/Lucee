@@ -38,9 +38,14 @@ import java.io.UnsupportedEncodingException;
 import java.io.Writer;
 import java.lang.reflect.Method;
 import java.net.URL;
+import java.nio.ByteBuffer;
+import java.nio.channels.Channels;
+import java.nio.channels.ReadableByteChannel;
+import java.nio.channels.WritableByteChannel;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -299,18 +304,41 @@ public final class IOUtil {
 	}
 
 	/**
-	 * copy an inputstream to an outputstream
+	 * Copies data from the given input stream to the output stream using Java NIO.
 	 * 
-	 * @param in
-	 * @param out
-	 * @param blockSize
-	 * @throws IOException
+	 * This method uses NIO channels and buffers for efficient data transfer, especially beneficial for
+	 * handling large amounts of data. It reads data from the input stream into a buffer and then writes
+	 * it to the output stream, continuing this process until all data is transferred.
+	 *
+	 * Note: This method does not close the provided InputStream and OutputStream; it is the
+	 * responsibility of the caller to close these resources.
+	 *
+	 * @param in The input stream from which data is to be read. Must not be null.
+	 * @param out The output stream to which data is to be written. Must not be null.
+	 * @param blockSize The size of the buffer used for transferring data. This size can significantly
+	 *            affect the performance of the data transfer. A larger buffer size may improve
+	 *            performance, especially for large data transfers, but will also require more memory.
+	 * @throws IOException If an I/O error occurs during the copy operation.
 	 */
 	private static final void copy(InputStream in, OutputStream out, int blockSize) throws IOException {
-		byte[] buffer = new byte[blockSize];
-		int len;
-		while ((len = in.read(buffer)) != -1) {
-			out.write(buffer, 0, len);
+		// Creating channels from the input and output streams
+		ReadableByteChannel sourceChannel = Channels.newChannel(in);
+		WritableByteChannel destChannel = Channels.newChannel(out);
+
+		// Allocate a ByteBuffer of the given block size
+		ByteBuffer buffer = ByteBuffer.allocate(blockSize);
+
+		// Read from the source channel into the buffer, and then write from the buffer to the destination
+		// channel
+		while (sourceChannel.read(buffer) != -1) {
+			// Flip the buffer to prepare for writing
+			buffer.flip();
+
+			// Write to the destination channel
+			destChannel.write(buffer);
+
+			// Clear the buffer for the next read
+			buffer.clear();
 		}
 	}
 
@@ -416,17 +444,7 @@ public final class IOUtil {
 	 * @throws IOException
 	 */
 	public void copy(File in, File out) throws IOException {
-		InputStream is = null;
-		OutputStream os = null;
-		try {
-			is = new BufferedFileInputStream(in);
-			os = new BufferedFileOutputStream(out);
-		}
-		catch (IOException ioe) {
-			close(is, os);
-			throw ioe;
-		}
-		copy(is, os, true, true);
+		Files.copy(in.toPath(), out.toPath(), StandardCopyOption.REPLACE_EXISTING);
 	}
 
 	/**
@@ -659,6 +677,7 @@ public final class IOUtil {
 	 * @param obj
 	 */
 	public static void closeEL(Object obj) {
+		if (obj == null) return;
 		if (obj instanceof InputStream) IOUtil.closeEL((InputStream) obj);
 		else if (obj instanceof OutputStream) IOUtil.closeEL((OutputStream) obj);
 		else if (obj instanceof Writer) IOUtil.closeEL((Writer) obj);

@@ -32,7 +32,6 @@ import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.lang.ClassException;
 import lucee.commons.lang.StringUtil;
-import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.Component;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
@@ -474,11 +473,9 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 		if (data.datasource == null && (data.dbtype == null || !data.dbtype.equals("query"))) {
 			Object obj = pageContext.getApplicationContext().getDefDataSource();
 			if (StringUtil.isEmpty(obj)) {
-				boolean isCFML = pageContext.getRequestDialect() == CFMLEngine.DIALECT_CFML;
 				throw new ApplicationException("Attribute [datasource] is required when attribute [dbtype] is not [query] and no default datasource is defined",
-						"you can define a default datasource as attribute [defaultdatasource] of the tag "
-								+ (isCFML ? Constants.CFML_APPLICATION_TAG_NAME : Constants.LUCEE_APPLICATION_TAG_NAME) + " or as data member of the "
-								+ (isCFML ? Constants.CFML_APPLICATION_EVENT_HANDLER : Constants.LUCEE_APPLICATION_EVENT_HANDLER) + " (this.defaultdatasource=\"mydatasource\";)");
+						"you can define a default datasource as attribute [defaultdatasource] of the tag " + (Constants.CFML_APPLICATION_TAG_NAME) + " or as data member of the "
+								+ (Constants.CFML_APPLICATION_EVENT_HANDLER) + " (this.defaultdatasource=\"mydatasource\";)");
 			}
 			data.datasource = obj instanceof DataSource ? (DataSource) obj : pageContext.getDataSource(Caster.toString(obj));
 		}
@@ -886,11 +883,6 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 		Struct args = new StructImpl(Struct.TYPE_LINKED);
 
 		// TODO add missing attrs
-		/*
-		 * TagLibTag tlt = TagUtil.getTagLibTag(pageContext, CFMLEngine.DIALECT_CFML, "cf", "query");
-		 * Iterator<Entry<String, TagLibTagAttr>> it = tlt.getAttributes().entrySet().iterator();
-		 * Entry<String, TagLibTagAttr> e; while(it.hasNext()) { e=it.next(); e.getValue().get(this); }
-		 */
 		set(args, "cachedAfter", data.cachedAfter);
 		set(args, "cachedWithin", data.cachedWithin);
 		if (data.columnName != null) set(args, "columnName", data.columnName.getString());

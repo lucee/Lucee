@@ -32,10 +32,8 @@ import lucee.runtime.ComponentSpecificAccess;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.component.ComponentLoader;
-import lucee.runtime.config.ConfigWebUtil;
 import lucee.runtime.customtag.InitFile;
 import lucee.runtime.exp.ExpressionException;
-import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.op.Caster;
@@ -57,18 +55,7 @@ public final class GetTagData implements Function {
 	private static final long serialVersionUID = -4928080244340202246L;
 
 	public static Struct call(PageContext pc, String nameSpace, String strTagName) throws PageException {
-		return _call(pc, nameSpace, strTagName, pc.getCurrentTemplateDialect());
-	}
-
-	public static Struct call(PageContext pc, String nameSpace, String strTagName, String strDialect) throws PageException {
-		int dialect = ConfigWebUtil.toDialect(strDialect, -1);
-		if (dialect == -1) throw new FunctionException(pc, "GetTagData", 3, "dialect", "invalid dialect [" + strDialect + "] definition");
-
-		return _call(pc, nameSpace, strTagName, dialect);
-	}
-
-	private static Struct _call(PageContext pc, String nameSpace, String strTagName, int dialect) throws PageException {
-		TagLibTag tlt = TagUtil.getTagLibTag(pc, dialect, nameSpace, strTagName);
+		TagLibTag tlt = TagUtil.getTagLibTag(pc, nameSpace, strTagName);
 		if (tlt == null) throw new ExpressionException("tag [" + nameSpace + strTagName + "] is not a built in tag");
 
 		// CFML Based Function

@@ -104,6 +104,7 @@ import lucee.runtime.op.Caster;
 import lucee.runtime.op.OpUtil;
 import lucee.runtime.op.date.DateCaster;
 import lucee.runtime.osgi.OSGiUtil;
+import lucee.runtime.reflection.Reflector;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.KeyImpl;
@@ -149,6 +150,21 @@ public final class SystemUtil {
 	public static final int JAVA_VERSION_12 = 12; // FUTURE lucee.runtime.util.SystemUtil.JAVA_VERSION_12;
 	public static final int JAVA_VERSION_13 = 13; // FUTURE lucee.runtime.util.SystemUtil.JAVA_VERSION_13;
 	public static final int JAVA_VERSION_14 = 14; // FUTURE lucee.runtime.util.SystemUtil.JAVA_VERSION_14;
+	public static final int JAVA_VERSION_15 = 15; // FUTURE lucee.runtime.util.SystemUtil.JAVA_VERSION_14;
+	public static final int JAVA_VERSION_16 = 16; // FUTURE lucee.runtime.util.SystemUtil.JAVA_VERSION_14;
+	public static final int JAVA_VERSION_17 = 17; // FUTURE lucee.runtime.util.SystemUtil.JAVA_VERSION_14;
+	public static final int JAVA_VERSION_18 = 18; // FUTURE lucee.runtime.util.SystemUtil.JAVA_VERSION_14;
+	public static final int JAVA_VERSION_19 = 19; // FUTURE lucee.runtime.util.SystemUtil.JAVA_VERSION_14;
+	public static final int JAVA_VERSION_20 = 20; // FUTURE lucee.runtime.util.SystemUtil.JAVA_VERSION_14;
+	public static final int JAVA_VERSION_21 = 21; // FUTURE lucee.runtime.util.SystemUtil.JAVA_VERSION_14;
+	public static final int JAVA_VERSION_22 = 22; // FUTURE lucee.runtime.util.SystemUtil.JAVA_VERSION_14;
+	public static final int JAVA_VERSION_23 = 23; // FUTURE lucee.runtime.util.SystemUtil.JAVA_VERSION_14;
+	public static final int JAVA_VERSION_24 = 24; // FUTURE lucee.runtime.util.SystemUtil.JAVA_VERSION_14;
+	public static final int JAVA_VERSION_25 = 25; // FUTURE lucee.runtime.util.SystemUtil.JAVA_VERSION_14;
+	public static final int JAVA_VERSION_26 = 26; // FUTURE lucee.runtime.util.SystemUtil.JAVA_VERSION_14;
+	public static final int JAVA_VERSION_27 = 27; // FUTURE lucee.runtime.util.SystemUtil.JAVA_VERSION_14;
+	public static final int JAVA_VERSION_28 = 28; // FUTURE lucee.runtime.util.SystemUtil.JAVA_VERSION_14;
+	public static final int JAVA_VERSION_29 = 29; // FUTURE lucee.runtime.util.SystemUtil.JAVA_VERSION_14;
 
 	public static final int OUT = lucee.runtime.util.SystemUtil.OUT;
 	public static final int ERR = lucee.runtime.util.SystemUtil.ERR;
@@ -218,6 +234,31 @@ public final class SystemUtil {
 		else if (JAVA_VERSION_STRING.startsWith("1.8.")) JAVA_VERSION = JAVA_VERSION_8;
 		else if (JAVA_VERSION_STRING.startsWith("1.7.")) JAVA_VERSION = JAVA_VERSION_7;
 		else if (JAVA_VERSION_STRING.startsWith("1.6.")) JAVA_VERSION = JAVA_VERSION_6;
+		else if (JAVA_VERSION_STRING.startsWith("1.6.")) JAVA_VERSION = JAVA_VERSION_6;
+
+		else if (JAVA_VERSION_STRING.startsWith("8.")) JAVA_VERSION = JAVA_VERSION_8;
+		else if (JAVA_VERSION_STRING.startsWith("9.")) JAVA_VERSION = JAVA_VERSION_9;
+		else if (JAVA_VERSION_STRING.startsWith("10.")) JAVA_VERSION = JAVA_VERSION_10;
+		else if (JAVA_VERSION_STRING.startsWith("11.")) JAVA_VERSION = JAVA_VERSION_11;
+		else if (JAVA_VERSION_STRING.startsWith("12.")) JAVA_VERSION = JAVA_VERSION_12;
+		else if (JAVA_VERSION_STRING.startsWith("13.")) JAVA_VERSION = JAVA_VERSION_13;
+		else if (JAVA_VERSION_STRING.startsWith("14.")) JAVA_VERSION = JAVA_VERSION_14;
+		else if (JAVA_VERSION_STRING.startsWith("15.")) JAVA_VERSION = JAVA_VERSION_15;
+		else if (JAVA_VERSION_STRING.startsWith("16.")) JAVA_VERSION = JAVA_VERSION_16;
+		else if (JAVA_VERSION_STRING.startsWith("17.")) JAVA_VERSION = JAVA_VERSION_17;
+		else if (JAVA_VERSION_STRING.startsWith("18.")) JAVA_VERSION = JAVA_VERSION_18;
+		else if (JAVA_VERSION_STRING.startsWith("19.")) JAVA_VERSION = JAVA_VERSION_19;
+		else if (JAVA_VERSION_STRING.startsWith("20.")) JAVA_VERSION = JAVA_VERSION_20;
+		else if (JAVA_VERSION_STRING.startsWith("21.")) JAVA_VERSION = JAVA_VERSION_21;
+		else if (JAVA_VERSION_STRING.startsWith("22.")) JAVA_VERSION = JAVA_VERSION_22;
+		else if (JAVA_VERSION_STRING.startsWith("23.")) JAVA_VERSION = JAVA_VERSION_23;
+		else if (JAVA_VERSION_STRING.startsWith("24.")) JAVA_VERSION = JAVA_VERSION_24;
+		else if (JAVA_VERSION_STRING.startsWith("25.")) JAVA_VERSION = JAVA_VERSION_25;
+		else if (JAVA_VERSION_STRING.startsWith("26.")) JAVA_VERSION = JAVA_VERSION_26;
+		else if (JAVA_VERSION_STRING.startsWith("27.")) JAVA_VERSION = JAVA_VERSION_27;
+		else if (JAVA_VERSION_STRING.startsWith("28.")) JAVA_VERSION = JAVA_VERSION_28;
+		else if (JAVA_VERSION_STRING.startsWith("29.")) JAVA_VERSION = JAVA_VERSION_29;
+
 		else JAVA_VERSION = 0;
 	}
 
@@ -705,7 +746,9 @@ public final class SystemUtil {
 
 	public static void resumeEL(Thread t) {
 		try {
-			t.resume();
+			Reflector.callMethod(t, "resume", EMPTY_OBJ);
+			// t.resume(); // Java 23 no longer support this, so we use reflection that will still can compile
+			// it
 		}
 		catch (Exception e) {
 		}
@@ -713,7 +756,10 @@ public final class SystemUtil {
 
 	public static void suspendEL(Thread t) {
 		try {
-			t.suspend();
+			Reflector.callMethod(t, "suspend", EMPTY_OBJ);
+			// t.suspend();// Java 23 no longer support this, so we use reflection that will still can compile
+			// it
+
 		}
 		catch (Exception e) {
 		}

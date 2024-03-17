@@ -26,6 +26,8 @@ import lucee.runtime.type.scope.CookieImpl;
 
 public class SerializableCookie implements Serializable {
 
+	public static final Cookie[] COOKIES0 = new Cookie[0];
+
 	private static final long serialVersionUID = -7167614871212402517L;
 
 	private String comment;
@@ -39,7 +41,8 @@ public class SerializableCookie implements Serializable {
 	private boolean httpOnly;
 	private boolean partitioned;
 
-	public SerializableCookie(String comment, String domain, int maxAge, String name, String path, boolean secure, String value, int version, boolean httpOnly, boolean partitioned) {
+	public SerializableCookie(String comment, String domain, int maxAge, String name, String path, boolean secure, String value, int version, boolean httpOnly,
+			boolean partitioned) {
 		this.comment = comment;
 		this.domain = domain;
 		this.maxAge = maxAge;
@@ -154,8 +157,24 @@ public class SerializableCookie implements Serializable {
 		return c;
 	}
 
+	public static Cookie toCookie(Object o) {
+		return (Cookie) o;
+	}
+
+	public static Cookie toCookie(String name, String value) {
+		return new Cookie(name, value);
+	}
+
+	public static Cookie[] toCookies(Object... cookies) {
+		Cookie[] rtn = new Cookie[cookies.length];
+		for (int i = 0; i < cookies.length; i++) {
+			rtn[i] = (Cookie) cookies[i];
+		}
+		return rtn;
+	}
+
 	public static Cookie[] toCookies(SerializableCookie[] src) {
-		if (src == null) return new Cookie[0];
+		if (src == null) return SerializableCookie.COOKIES0;
 		Cookie[] dest = new Cookie[src.length];
 		for (int i = 0; i < src.length; i++) {
 			dest[i] = src[i].toCookie();
@@ -170,5 +189,9 @@ public class SerializableCookie implements Serializable {
 			dest[i] = new SerializableCookie(src[i]);
 		}
 		return dest;
+	}
+
+	public static boolean isCookie(Object o) {
+		return o instanceof Cookie;
 	}
 }

@@ -31,13 +31,11 @@ import org.osgi.framework.BundleException;
 import lucee.commons.io.DevNullOutputStream;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.Log;
-import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ClassException;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.Md5;
 import lucee.commons.lang.Pair;
 import lucee.commons.lang.StringUtil;
-import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.CFMLFactory;
 import lucee.runtime.Component;
 import lucee.runtime.ComponentPageImpl;
@@ -401,14 +399,10 @@ public class GatewayEngineImpl implements GatewayEngine {
 
 		try {
 			pc = createPageContext(requestURI, id, functionName, arguments, cfcPeristent, true);
-			String ext = ResourceUtil.getExtension(cfcPath, null);
-			ConfigWeb config = (ConfigWeb) ThreadLocalPageContext.getConfig();
-			int dialect = ext == null ? CFMLEngine.DIALECT_CFML : config.getFactory().toDialect(ext);
 			// ThreadLocalPageContext.register(pc);
 			Component cfc = getCFC(pc, requestURI);
 			if (cfc != null && cfc.containsKey(functionName)) {
-				if (dialect == CFMLEngine.DIALECT_LUCEE) pc.execute(requestURI, true, false);
-				else pc.executeCFML(requestURI, true, false);
+				pc.executeCFML(requestURI, true, false);
 
 				// Result
 				return pc.variablesScope().get(AMF_FORWARD, null);
@@ -425,14 +419,9 @@ public class GatewayEngineImpl implements GatewayEngine {
 	private Component getCFC(PageContextImpl pc, String requestURI) throws PageException {
 		HttpServletRequest req = pc.getHttpServletRequest();
 		try {
-			String ext = ResourceUtil.getExtension(requestURI, "");
-			ConfigWeb config = (ConfigWeb) ThreadLocalPageContext.getConfig(pc);
-			int dialect = config.getFactory().toDialect(ext);
-
 			req.setAttribute("client", "lucee-gateway-1-0");
 			req.setAttribute("call-type", "store-only");
-			if (dialect == CFMLEngine.DIALECT_LUCEE) pc.execute(requestURI, true, false);
-			else pc.executeCFML(requestURI, true, false);
+			pc.executeCFML(requestURI, true, false);
 			return (Component) req.getAttribute("component");
 		}
 		finally {

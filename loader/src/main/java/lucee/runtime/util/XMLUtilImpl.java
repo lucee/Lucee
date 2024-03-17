@@ -259,9 +259,7 @@ public final class XMLUtilImpl implements XMLUtil {
 			factory.setAttribute(name, value);
 		}
 		catch (Throwable t) {
-			if (t instanceof ThreadDeath) throw (ThreadDeath) t;
-			// SystemOut.printDate("attribute ["+name+"] is not allowed for
-			// ["+factory.getClass().getName()+"]");
+			Util.rethrowIfNecessary(t);
 		}
 	}
 
@@ -326,7 +324,7 @@ public final class XMLUtilImpl implements XMLUtil {
 				}
 			}
 			catch (Throwable t) {
-				if (t instanceof ThreadDeath) throw (ThreadDeath) t;
+				Util.rethrowIfNecessary(t);
 			}
 		}
 		return rtn;
@@ -345,7 +343,7 @@ public final class XMLUtilImpl implements XMLUtil {
 				}
 			}
 			catch (Throwable t) {
-				if (t instanceof ThreadDeath) throw (ThreadDeath) t;
+				Util.rethrowIfNecessary(t);
 			}
 		}
 		return rtn;
@@ -368,7 +366,7 @@ public final class XMLUtilImpl implements XMLUtil {
 				}
 			}
 			catch (Throwable t) {
-				if (t instanceof ThreadDeath) throw (ThreadDeath) t;
+				Util.rethrowIfNecessary(t);
 			}
 		}
 		return null;
@@ -567,7 +565,7 @@ public final class XMLUtilImpl implements XMLUtil {
 			return XMLReaderFactory.createXMLReader(oprionalDefaultSaxParser);
 		}
 		catch (Throwable t) {
-			if (t instanceof ThreadDeath) throw (ThreadDeath) t;
+			Util.rethrowIfNecessary(t);
 			return XMLReaderFactory.createXMLReader();
 		}
 	}
@@ -692,7 +690,7 @@ public final class XMLUtilImpl implements XMLUtil {
 			writeTo(node, new StreamResult(sw), false, false, null, null, null);
 		}
 		catch (Throwable t) {
-			if (t instanceof ThreadDeath) throw (ThreadDeath) t;
+			Util.rethrowIfNecessary(t);
 			return defaultValue;
 		}
 		finally {
@@ -795,7 +793,7 @@ public final class XMLUtilImpl implements XMLUtil {
 				return new InputSource(engine.getIOUtil().toBufferedInputStream(engine.getHTTPUtil().toURL(systemID).openStream()));
 			}
 			catch (Throwable t) {
-				if (t instanceof ThreadDeath) throw (ThreadDeath) t;
+				Util.rethrowIfNecessary(t);
 				return null;
 			}
 		}

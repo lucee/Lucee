@@ -29,9 +29,7 @@ import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.net.MalformedURLException;
 import java.nio.charset.Charset;
 import java.security.NoSuchAlgorithmException;
@@ -180,12 +178,14 @@ import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
+import lucee.runtime.type.UDF;
 import lucee.runtime.type.dt.TimeSpan;
 import lucee.runtime.type.scope.Undefined;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.CollectionUtil;
 import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.ListUtil;
+import lucee.runtime.type.util.UDFUtil;
 import lucee.transformer.library.ClassDefinitionImpl;
 import lucee.transformer.library.function.FunctionLib;
 import lucee.transformer.library.function.FunctionLibException;
@@ -594,6 +594,9 @@ public final class ConfigWebFactory extends ConfigFactory {
 		_loadApplication(cs, config, root, mode, log);
 		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_DEBUG, ConfigWebFactory.class.getName(), "loaded application");
 
+		_loadJava(cs, config, root, log); // define compile type
+		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_DEBUG, ConfigWebFactory.class.getName(), "loaded java");
+
 		if (!essentialOnly) {
 			_loadMappings(cs, config, root, mode, log); // it is important this runs after
 			if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_DEBUG, ConfigWebFactory.class.getName(), "loaded mappings");
@@ -656,9 +659,6 @@ public final class ConfigWebFactory extends ConfigFactory {
 
 			_loadUpdate(cs, config, root, log);
 			if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_DEBUG, ConfigWebFactory.class.getName(), "loaded update");
-
-			_loadJava(cs, config, root, log); // define compile type
-			if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_DEBUG, ConfigWebFactory.class.getName(), "loaded java");
 
 			_loadSetting(cs, config, root, log);
 			if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_DEBUG, ConfigWebFactory.class.getName(), "loaded setting");
@@ -1593,10 +1593,8 @@ public final class ConfigWebFactory extends ConfigFactory {
 
 	private static void doCheckChangesInLibraries(ConfigImpl config) {
 		// create current hash from libs
-		TagLib[] ctlds = config.getTLDs(CFMLEngine.DIALECT_CFML);
-		TagLib[] ltlds = config.getTLDs(CFMLEngine.DIALECT_LUCEE);
-		FunctionLib[] cflds = config.getFLDs(CFMLEngine.DIALECT_CFML);
-		FunctionLib[] lflds = config.getFLDs(CFMLEngine.DIALECT_LUCEE);
+		TagLib[] tlds = config.getTLDs();
+		FunctionLib flds = config.getFLDs();
 
 		StringBuilder sb = new StringBuilder();
 
@@ -1643,19 +1641,11 @@ public final class ConfigWebFactory extends ConfigFactory {
 		sb.append(';');
 
 		// tld
-		for (int i = 0; i < ctlds.length; i++) {
-			sb.append(ctlds[i].getHash());
-		}
-		for (int i = 0; i < ltlds.length; i++) {
-			sb.append(ltlds[i].getHash());
+		for (int i = 0; i < tlds.length; i++) {
+			sb.append(tlds[i].getHash());
 		}
 		// fld
-		for (int i = 0; i < cflds.length; i++) {
-			sb.append(cflds[i].getHash());
-		}
-		for (int i = 0; i < lflds.length; i++) {
-			sb.append(lflds[i].getHash());
-		}
+		sb.append(flds.getHash());
 
 		if (config instanceof MultiContextConfigWeb) {
 			boolean hasChanged = false;
@@ -1854,15 +1844,18 @@ public final class ConfigWebFactory extends ConfigFactory {
 							if ((physical != null || archive != null)) {
 
 								short insTemp = inspectTemplate(el);
+								int insTempSlow = Caster.toIntValue(getAttr(el, "inspectTemplateIntervalSlow"), ConfigPro.INSPECT_INTERVAL_UNDEFINED);
+								int insTempFast = Caster.toIntValue(getAttr(el, "inspectTemplateIntervalFast"), ConfigPro.INSPECT_INTERVAL_UNDEFINED);
+
 								if ("/lucee/".equalsIgnoreCase(virtual) || "/lucee".equalsIgnoreCase(virtual) || "/lucee-server/".equalsIgnoreCase(virtual)
 										|| "/lucee-server-context".equalsIgnoreCase(virtual))
-									insTemp = ConfigPro.INSPECT_ONCE;
+									insTemp = ConfigPro.INSPECT_AUTO;
 
 								String primary = getAttr(el, "primary");
 								boolean physicalFirst = primary == null || !"archive".equalsIgnoreCase(primary);
 
-								tmp = new MappingImpl(config, virtual, physical, archive, insTemp, physicalFirst, hidden, readonly, toplevel, false, false, listener, listenerMode,
-										listenerType);
+								tmp = new MappingImpl(config, virtual, physical, archive, insTemp, insTempSlow, insTempFast, physicalFirst, hidden, readonly, toplevel, false,
+										false, listener, listenerMode, listenerType);
 								mappings.put(tmp.getVirtualLowerCase(), tmp);
 								if (virtual.equals("/")) {
 									finished = true;
@@ -1883,16 +1876,18 @@ public final class ConfigWebFactory extends ConfigFactory {
 						ApplicationListener listener = ConfigWebUtil.loadListener(ApplicationListener.TYPE_MODERN, null);
 						listener.setMode(ApplicationListener.MODE_CURRENT2ROOT);
 
-						tmp = new MappingImpl(config, "/lucee-server", "{lucee-server}/context/", null, ConfigPro.INSPECT_ONCE, true, false, true, true, false, false, listener,
-								ApplicationListener.MODE_CURRENT2ROOT, ApplicationListener.TYPE_MODERN);
+						tmp = new MappingImpl(config, "/lucee-server", "{lucee-server}/context/", null, ConfigPro.INSPECT_AUTO, ConfigPro.INSPECT_INTERVAL_UNDEFINED,
+								ConfigPro.INSPECT_INTERVAL_UNDEFINED, true, false, true, true, false, false, listener, ApplicationListener.MODE_CURRENT2ROOT,
+								ApplicationListener.TYPE_MODERN);
 						mappings.put(tmp.getVirtualLowerCase(), tmp);
 					}
 					if (!hasWebContext) {
 						ApplicationListener listener = ConfigWebUtil.loadListener(ApplicationListener.TYPE_MODERN, null);
 						listener.setMode(ApplicationListener.MODE_CURRENT2ROOT);
 
-						tmp = new MappingImpl(config, "/lucee", "{lucee-config}/context/", "{lucee-config}/context/lucee-context.lar", ConfigPro.INSPECT_ONCE, true, false, true,
-								true, false, false, listener, ApplicationListener.MODE_CURRENT2ROOT, ApplicationListener.TYPE_MODERN);
+						tmp = new MappingImpl(config, "/lucee", "{lucee-config}/context/", "{lucee-config}/context/lucee-context.lar", ConfigPro.INSPECT_AUTO,
+								ConfigPro.INSPECT_INTERVAL_UNDEFINED, ConfigPro.INSPECT_INTERVAL_UNDEFINED, true, false, true, true, false, false, listener,
+								ApplicationListener.MODE_CURRENT2ROOT, ApplicationListener.TYPE_MODERN);
 						mappings.put(tmp.getVirtualLowerCase(), tmp);
 					}
 				}
@@ -1901,11 +1896,12 @@ public final class ConfigWebFactory extends ConfigFactory {
 			if (!finished) {
 				if ((config instanceof MultiContextConfigWeb) && ResourceUtil.isUNCPath(config.getRootDirectory().getPath())) {
 
-					tmp = new MappingImpl(config, "/", config.getRootDirectory().getPath(), null, ConfigPro.INSPECT_UNDEFINED, true, true, true, true, false, false, null, -1, -1);
+					tmp = new MappingImpl(config, "/", config.getRootDirectory().getPath(), null, ConfigPro.INSPECT_UNDEFINED, ConfigPro.INSPECT_INTERVAL_UNDEFINED,
+							ConfigPro.INSPECT_INTERVAL_UNDEFINED, true, true, true, true, false, false, null, -1, -1);
 				}
 				else {
-
-					tmp = new MappingImpl(config, "/", "/", null, ConfigPro.INSPECT_UNDEFINED, true, true, true, true, false, false, null, -1, -1);
+					tmp = new MappingImpl(config, "/", "/", null, ConfigPro.INSPECT_UNDEFINED, ConfigPro.INSPECT_INTERVAL_UNDEFINED, ConfigPro.INSPECT_INTERVAL_UNDEFINED, true,
+							true, true, true, false, false, null, -1, -1);
 				}
 				mappings.put("/", tmp);
 			}
@@ -1932,7 +1928,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 		if (StringUtil.isEmpty(strInsTemp)) {
 			Boolean trusted = Caster.toBoolean(getAttr(data, "trusted"), null);
 			if (trusted != null) {
-				if (trusted.booleanValue()) return ConfigPro.INSPECT_NEVER;
+				if (trusted.booleanValue()) return ConfigPro.INSPECT_AUTO;
 				return ConfigPro.INSPECT_ALWAYS;
 			}
 			return ConfigPro.INSPECT_UNDEFINED;
@@ -2657,36 +2653,28 @@ public final class ConfigWebFactory extends ConfigFactory {
 						}
 					}
 				}
-				// call
-				Iterator<Entry<ClassDefinition, List<CacheConnection>>> it = _caches.entrySet().iterator();
-				Entry<ClassDefinition, List<CacheConnection>> entry;
-				List<CacheConnection> list;
-				ClassDefinition _cd;
-				while (it.hasNext()) {
-					entry = it.next();
-					list = entry.getValue();
-					_cd = entry.getKey();
-					try {
-						Method m = _cd.getClazz().getMethod("init", new Class[] { Config.class, String[].class, Struct[].class });
-						if (Modifier.isStatic(m.getModifiers())) m.invoke(null, new Object[] { config, _toCacheNames(list), _toArguments(list) });
-						else LogUtil.logGlobal(ThreadLocalPageContext.getConfig(configServer == null ? config : configServer), Log.LEVEL_ERROR, ConfigWebFactory.class.getName(),
-								"method [init(Config,String[],Struct[]):void] for class [" + _cd.toString() + "] is not static");
-
-					}
-					catch (InvocationTargetException e) {
-						log.error("Cache", e.getTargetException());
-					}
-					catch (RuntimeException e) {
-						log.error("Cache", e);
-					}
-					catch (NoSuchMethodException e) {
-						log.error("Cache", "missing method [public static init(Config,String[],Struct[]):void] for class [" + _cd.toString() + "] ");
-					}
-					catch (Throwable e) {
-						ExceptionUtil.rethrowIfNecessary(e);
-						log.error("Cache", e);
-					}
-				}
+				// call static init
+				// Iterator<Entry<ClassDefinition, List<CacheConnection>>> it = _caches.entrySet().iterator();
+				// Entry<ClassDefinition, List<CacheConnection>> entry;
+				// List<CacheConnection> list;
+				// ClassDefinition _cd;
+				/*
+				 * while (it.hasNext()) { entry = it.next(); list = entry.getValue(); _cd = entry.getKey();
+				 * 
+				 * try { Method m = _cd.getClazz().getMethod("init", new Class[] { Config.class, String[].class,
+				 * Struct[].class }); if (Modifier.isStatic(m.getModifiers())) m.invoke(null, new Object[] { config,
+				 * _toCacheNames(list), _toArguments(list) }); else
+				 * LogUtil.logGlobal(ThreadLocalPageContext.getConfig(configServer == null ? config : configServer),
+				 * Log.LEVEL_ERROR, ConfigWebFactory.class.getName(),
+				 * "method [init(Config,String[],Struct[]):void] for class [" + _cd.toString() + "] is not static");
+				 * } catch (InvocationTargetException e) { log.error("Cache", e.getTargetException()); } catch
+				 * (RuntimeException e) { log.error("Cache", e); } catch (NoSuchMethodException e) {
+				 * log.error("Cache",
+				 * "missing method [public static init(Config,String[],Struct[]):void] for class [" + _cd.toString()
+				 * + "] "); } catch (Throwable e) { ExceptionUtil.rethrowIfNecessary(e); log.error("Cache", e); }
+				 * 
+				 * }
+				 */
 			}
 
 			// Copy Parent caches as readOnly
@@ -2947,12 +2935,15 @@ public final class ConfigWebFactory extends ConfigFactory {
 							boolean readonly = toBoolean(getAttr(ctMapping, "readonly"), false);
 							boolean hidden = toBoolean(getAttr(ctMapping, "hidden"), false);
 							short inspTemp = inspectTemplate(ctMapping);
+							int insTempSlow = Caster.toIntValue(getAttr(ctMapping, "inspectTemplateIntervalSlow"), -1);
+							int insTempFast = Caster.toIntValue(getAttr(ctMapping, "inspectTemplateIntervalFast"), -1);
 
 							String primary = getAttr(ctMapping, "primary");
 
 							boolean physicalFirst = StringUtil.isEmpty(archive, true) || !"archive".equalsIgnoreCase(primary);
 							hasSet = true;
-							list.add(new MappingImpl(config, virtual, physical, archive, inspTemp, physicalFirst, hidden, readonly, true, false, true, null, -1, -1));
+							list.add(new MappingImpl(config, virtual, physical, archive, inspTemp, insTempSlow, insTempFast, physicalFirst, hidden, readonly, true, false, true,
+									null, -1, -1));
 						}
 						catch (Throwable t) {
 							ExceptionUtil.rethrowIfNecessary(t);
@@ -2965,7 +2956,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 				else if (!hasCS) {
 					// we make sure we always have that mapping
 					config.setCustomTagMappings(new Mapping[] { new MappingImpl(config, "/default-customtags", "{lucee-config}/customtags/", null, ConfigPro.INSPECT_UNDEFINED,
-							true, true, true, true, false, true, null, -1, -1) });
+							ConfigPro.INSPECT_INTERVAL_UNDEFINED, ConfigPro.INSPECT_INTERVAL_UNDEFINED, true, true, true, true, false, true, null, -1, -1) });
 				}
 			}
 
@@ -3126,7 +3117,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 							nss = getAttr(tag, "namespaceSeperator");
 							n = getAttr(tag, "name");
 							cd = getClassDefinition(tag, "", config.getIdentification());
-							config.addTag(ns, nss, n, CFMLEngine.DIALECT_BOTH, cd);
+							config.addTag(ns, nss, n, cd);
 						}
 						catch (Throwable t) {
 							ExceptionUtil.rethrowIfNecessary(t);
@@ -3283,19 +3274,17 @@ public final class ConfigWebFactory extends ConfigFactory {
 
 			// init TLDS
 			if (hasCS) {
-				config.setTLDs(ConfigWebUtil.duplicate(configServer.getTLDs(CFMLEngine.DIALECT_CFML), false), CFMLEngine.DIALECT_CFML);
-				config.setTLDs(ConfigWebUtil.duplicate(configServer.getTLDs(CFMLEngine.DIALECT_LUCEE), false), CFMLEngine.DIALECT_LUCEE);
+				config.setTLDs(ConfigWebUtil.duplicate(configServer.getTLDs(), false));
 			}
 			else {
 				ConfigServerImpl cs = (ConfigServerImpl) config;
-				config.setTLDs(ConfigWebUtil.duplicate(new TagLib[] { cs.cfmlCoreTLDs }, false), CFMLEngine.DIALECT_CFML);
-				config.setTLDs(ConfigWebUtil.duplicate(new TagLib[] { cs.luceeCoreTLDs }, false), CFMLEngine.DIALECT_LUCEE);
+				config.setTLDs(ConfigWebUtil.duplicate(new TagLib[] { cs.coreTLDs }, false));
 			}
 
 			// TLD Dir
 			if (!StringUtil.isEmpty(strDefaultTLDDirectory)) {
 				Resource tld = ConfigWebUtil.getFile(config, configDir, strDefaultTLDDirectory, FileUtil.TYPE_DIR);
-				if (tld != null) config.setTldFile(tld, CFMLEngine.DIALECT_BOTH);
+				if (tld != null) config.setTldFile(tld);
 			}
 
 			// Tag Directory
@@ -3353,19 +3342,18 @@ public final class ConfigWebFactory extends ConfigFactory {
 
 			// Init flds
 			if (hasCS) {
-				config.setFLDs(ConfigWebUtil.duplicate(configServer.getFLDs(CFMLEngine.DIALECT_CFML), false), CFMLEngine.DIALECT_CFML);
-				config.setFLDs(ConfigWebUtil.duplicate(configServer.getFLDs(CFMLEngine.DIALECT_LUCEE), false), CFMLEngine.DIALECT_LUCEE);
+				config.setFLDs(configServer.getFLDs().duplicate(false));
 			}
 			else {
 				ConfigServerImpl cs = (ConfigServerImpl) config;
-				config.setFLDs(ConfigWebUtil.duplicate(new FunctionLib[] { cs.cfmlCoreFLDs }, false), CFMLEngine.DIALECT_CFML);
-				config.setFLDs(ConfigWebUtil.duplicate(new FunctionLib[] { cs.luceeCoreFLDs }, false), CFMLEngine.DIALECT_LUCEE);
+				config.setFLDs(cs.coreFLDs.duplicate(false));
+
 			}
 
 			// FLDs
 			if (!StringUtil.isEmpty(strDefaultFLDDirectory)) {
 				Resource fld = ConfigWebUtil.getFile(config, configDir, strDefaultFLDDirectory, FileUtil.TYPE_DIR);
-				if (fld != null) config.setFldFile(fld, CFMLEngine.DIALECT_BOTH);
+				if (fld != null) config.setFldFile(fld);
 			}
 
 			// Function files (CFML)
@@ -4215,6 +4203,15 @@ public final class ConfigWebFactory extends ConfigFactory {
 				config.setDomainCookies(toBoolean(strDomainCookies, false));
 			}
 			else if (hasCS) config.setDomainCookies(configServer.isDomainCookies());
+
+			// FormUrlAsStruct
+			String formUrlAsStruct = getAttr(root, "formUrlAsStruct");
+
+			if (hasAccess && !StringUtil.isEmpty(formUrlAsStruct)) {
+				config.setFormUrlAsStruct(toBoolean(formUrlAsStruct, true));
+			}
+			else if (hasCS) config.setFormUrlAsStruct(configServer.getFormUrlAsStruct());
+
 		}
 		catch (Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);
@@ -4225,13 +4222,18 @@ public final class ConfigWebFactory extends ConfigFactory {
 	private static void _loadJava(ConfigServerImpl configServer, ConfigImpl config, Struct root, Log log) {
 		try {
 			boolean hasCS = configServer != null;
-
 			String strInspectTemplate = getAttr(root, "inspectTemplate");
+			int inspectTemplateAutoIntervalSlow = Caster.toIntValue(getAttr(root, "inspectTemplateIntervalSlow"), ConfigPro.INSPECT_INTERVAL_SLOW);
+			int inspectTemplateAutoIntervalFast = Caster.toIntValue(getAttr(root, "inspectTemplateIntervalFast"), ConfigPro.INSPECT_INTERVAL_FAST);
+
 			if (!StringUtil.isEmpty(strInspectTemplate, true)) {
-				config.setInspectTemplate(ConfigWebUtil.inspectTemplate(strInspectTemplate, ConfigPro.INSPECT_ONCE));
+				config.setInspectTemplate(ConfigWebUtil.inspectTemplate(strInspectTemplate, ConfigPro.INSPECT_AUTO));
+				config.setInspectTemplateAutoInterval(inspectTemplateAutoIntervalSlow, inspectTemplateAutoIntervalFast);
+
 			}
 			else if (hasCS) {
 				config.setInspectTemplate(configServer.getInspectTemplate());
+				config.setInspectTemplateAutoInterval(configServer.getInspectTemplateAutoInterval(true), configServer.getInspectTemplateAutoInterval(false));
 			}
 
 			String strCompileType = getAttr(root, "compileType");
@@ -4865,7 +4867,6 @@ public final class ConfigWebFactory extends ConfigFactory {
 	private static void _loadExtensionBundles(ConfigServerImpl cs, ConfigImpl config, Struct root, Log log) {
 		Log deployLog = config.getLog("deploy");
 		if (deployLog != null) log = deployLog;
-
 		try {
 			boolean changed = false;
 			if (config instanceof ConfigServer) {
@@ -5012,6 +5013,13 @@ public final class ConfigWebFactory extends ConfigFactory {
 			boolean hasCS = configServer != null;
 
 			if (hasAccess) {
+				// component default return format
+				String strRF = getAttr(root, "returnFormat");
+				if (!StringUtil.isEmpty(strRF, true)) config.setReturnFormat(UDFUtil.toReturnFormat(strRF, UDF.RETURN_FORMAT_WDDX));
+				else if (configServer != null) {
+					ConfigServerImpl csi = (ConfigServerImpl) configServer;
+					config.setReturnFormat(csi.getReturnFormat());
+				}
 
 				// component-default-import
 				String strCDI = getAttr(root, "componentAutoImport");
@@ -5021,7 +5029,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 				if (!StringUtil.isEmpty(strCDI, true)) config.setComponentDefaultImport(strCDI);
 
 				// Base CFML
-				config.setBaseComponentTemplate(CFMLEngine.DIALECT_CFML, "Component.cfc");
+				config.setBaseComponentTemplate("Component.cfc");
 
 				// deep search
 				if (mode == ConfigPro.MODE_STRICT) {
@@ -5107,8 +5115,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 
 			}
 			else if (configServer != null) {
-				config.setBaseComponentTemplate(CFMLEngine.DIALECT_CFML, configServer.getBaseComponentTemplate(CFMLEngine.DIALECT_CFML));
-				config.setBaseComponentTemplate(CFMLEngine.DIALECT_LUCEE, configServer.getBaseComponentTemplate(CFMLEngine.DIALECT_LUCEE));
+				config.setBaseComponentTemplate(((ConfigPro) configServer).getBaseComponentTemplate());
 				config.setComponentDumpTemplate(configServer.getComponentDumpTemplate());
 				if (mode == ConfigPro.MODE_STRICT) {
 					config.setComponentDataMemberDefaultAccess(Component.ACCESS_PRIVATE);
@@ -5160,12 +5167,15 @@ public final class ConfigWebFactory extends ConfigFactory {
 							int listType = ConfigWebUtil.toListenerType(strListType, -1);
 
 							short inspTemp = inspectTemplate(cMapping);
+							int insTempSlow = Caster.toIntValue(getAttr(cMapping, "inspectTemplateIntervalSlow"), -1);
+							int insTempFast = Caster.toIntValue(getAttr(cMapping, "inspectTemplateIntervalFast"), -1);
 
 							String primary = getAttr(cMapping, "primary");
 
 							boolean physicalFirst = archive == null || !"archive".equalsIgnoreCase(primary);
 							hasSet = true;
-							list.add(new MappingImpl(config, virtual, physical, archive, inspTemp, physicalFirst, hidden, readonly, true, false, true, null, listMode, listType));
+							list.add(new MappingImpl(config, virtual, physical, archive, inspTemp, insTempSlow, insTempFast, physicalFirst, hidden, readonly, true, false, true,
+									null, listMode, listType));
 						}
 						catch (Throwable t) {
 							ExceptionUtil.rethrowIfNecessary(t);
@@ -5177,8 +5187,8 @@ public final class ConfigWebFactory extends ConfigFactory {
 				}
 				else if (!hasCS) {
 					// we make sure we always have that mapping
-					config.setComponentMappings(new Mapping[] { new MappingImpl(config, "/default-component", "{lucee-config}/components/", null, ConfigPro.INSPECT_UNDEFINED, true,
-							true, true, true, false, true, null, -1, -1) });
+					config.setComponentMappings(new Mapping[] { new MappingImpl(config, "/default-component", "{lucee-config}/components/", null, ConfigPro.INSPECT_UNDEFINED,
+							ConfigPro.INSPECT_INTERVAL_UNDEFINED, ConfigPro.INSPECT_INTERVAL_UNDEFINED, true, true, true, true, false, true, null, -1, -1) });
 				}
 			}
 
@@ -5221,8 +5231,8 @@ public final class ConfigWebFactory extends ConfigFactory {
 			}
 
 			if (!hasSet) {
-				MappingImpl m = new MappingImpl(config, "/default", "{lucee-web}/components/", null, ConfigPro.INSPECT_UNDEFINED, true, false, false, true, false, true, null, -1,
-						-1);
+				MappingImpl m = new MappingImpl(config, "/default", "{lucee-web}/components/", null, ConfigPro.INSPECT_UNDEFINED, ConfigPro.INSPECT_INTERVAL_UNDEFINED,
+						ConfigPro.INSPECT_INTERVAL_UNDEFINED, true, false, false, true, false, true, null, -1, -1);
 				config.setComponentMappings(new Mapping[] { m.cloneReadOnly(config) });
 			}
 
@@ -5418,18 +5428,6 @@ public final class ConfigWebFactory extends ConfigFactory {
 			}
 			else if (hasCS) {
 				config.setExternalizeStringGTE(configServer.getExternalizeStringGTE());
-			}
-
-			// allow-lucee-dialect
-			if (!hasCS) {
-				str = getAttr(root, "allowLuceeDialect");
-				if (str == null || !Decision.isBoolean(str)) str = SystemUtil.getSystemPropOrEnvVar("lucee.enable.dialect", null);
-				if (str != null && Decision.isBoolean(str)) {
-					config.setAllowLuceeDialect(Caster.toBooleanValue(str, false));
-				}
-			}
-			else {
-				config.setAllowLuceeDialect(configServer.allowLuceeDialect());
 			}
 
 			// Handle Unquoted Attribute Values As String

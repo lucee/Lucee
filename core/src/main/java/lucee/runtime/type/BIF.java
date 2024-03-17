@@ -44,6 +44,7 @@ import lucee.runtime.interpreter.ref.cast.Casting;
 import lucee.runtime.interpreter.ref.func.BIFCall;
 import lucee.runtime.interpreter.ref.literal.LFunctionValue;
 import lucee.runtime.interpreter.ref.literal.LString;
+import lucee.runtime.listener.ApplicationContextSupport;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.CollectionUtil;
@@ -60,20 +61,28 @@ public class BIF extends MemberSupport implements UDFPlus {
 	private final ConfigPro cp;
 	private FunctionArgument[] args;
 	private String id;
+	private int returnFormat = UDF.RETURN_FORMAT_WDDX;
 
 	public static BIF getInstance(PageContext pc, String name, BIF defaultValue) {
-		FunctionLib fl = ((ConfigPro) pc.getConfig()).getCombinedFLDs(pc.getCurrentTemplateDialect());
+		FunctionLib fl = ((ConfigPro) pc.getConfig()).getFLDs();
 		FunctionLibFunction flf = fl.getFunction(name);
 
 		// BIF not found
 		if (flf == null) return defaultValue;
-		return new BIF(pc.getConfig(), flf);
+		BIF bif = new BIF(pc.getConfig(), flf);
+		ApplicationContextSupport acs = (ApplicationContextSupport) pc.getApplicationContext();
+		if (acs != null) bif.returnFormat = acs.getReturnFormat();
+		return bif;
 	}
 
 	public BIF(PageContext pc, String name) throws ApplicationException {
 		super(Component.ACCESS_PUBLIC);
+
+		ApplicationContextSupport acs = (ApplicationContextSupport) pc.getApplicationContext();
+		if (acs != null) returnFormat = acs.getReturnFormat();
+
 		cp = (ConfigPro) pc.getConfig();
-		FunctionLib fl = cp.getCombinedFLDs(pc.getCurrentTemplateDialect());
+		FunctionLib fl = cp.getFLDs();
 		flf = fl.getFunction(name);
 
 		// BIF not found
@@ -244,7 +253,7 @@ public class BIF extends MemberSupport implements UDFPlus {
 
 	@Override
 	public int getReturnFormat() {
-		return UDF.RETURN_FORMAT_WDDX;
+		return returnFormat;
 	}
 
 	@Override

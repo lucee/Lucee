@@ -39,7 +39,6 @@ import lucee.commons.io.log.Log;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.sql.SQLUtil;
-import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.cache.tag.CacheHandler;
 import lucee.runtime.cache.tag.CacheHandlerCollectionImpl;
@@ -544,11 +543,9 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 		if (datasource == null) {
 			ds = pageContext.getApplicationContext().getDefDataSource();
 			if (StringUtil.isEmpty(ds)) {
-				boolean isCFML = pageContext.getRequestDialect() == CFMLEngine.DIALECT_CFML;
 				throw new ApplicationException("attribute [datasource] is required, when no default datasource is defined",
-						"you can define a default datasource as attribute [defaultdatasource] of the tag "
-								+ (isCFML ? Constants.CFML_APPLICATION_TAG_NAME : Constants.LUCEE_APPLICATION_TAG_NAME) + " or as data member of the "
-								+ (isCFML ? Constants.CFML_APPLICATION_EVENT_HANDLER : Constants.LUCEE_APPLICATION_EVENT_HANDLER) + " (this.defaultdatasource=\"mydatasource\";)");
+						"you can define a default datasource as attribute [defaultdatasource] of the tag " + (Constants.CFML_APPLICATION_TAG_NAME) + " or as data member of the "
+								+ (Constants.CFML_APPLICATION_EVENT_HANDLER) + " (this.defaultdatasource=\"mydatasource\";)");
 			}
 		}
 

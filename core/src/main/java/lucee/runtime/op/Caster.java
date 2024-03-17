@@ -97,6 +97,7 @@ import lucee.runtime.exp.NativeException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageExceptionBox;
 import lucee.runtime.exp.PageRuntimeException;
+import lucee.runtime.exp.PageServletException;
 import lucee.runtime.exp.RequestTimeoutException;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.functions.file.FileStreamWrapper;
@@ -3503,6 +3504,13 @@ public final class Caster {
 		if (ts != null) return ts;
 
 		throw new CasterException(o, "timespan");
+	}
+
+	public static PageServletException toPageServletException(Throwable t) {
+		if (t instanceof PageServletException) return (PageServletException) t;
+
+		// FUTURE more direct approach in case it is a ServletException already
+		return new PageServletException(toPageException(t));
 	}
 
 	/**

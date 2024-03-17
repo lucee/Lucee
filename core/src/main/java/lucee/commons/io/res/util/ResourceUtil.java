@@ -437,12 +437,18 @@ public final class ResourceUtil {
 			Resource op = parent;
 			parent = _check(parent);
 			if (op == parent) return file;
-			if ((file = parent.getRealResource(file.getName())).exists()) return file;
+			if ((file = parent.getRealResource(file.getName())).exists()) {
+				LogUtil.log(ThreadLocalPageContext.getConfig(), Log.LEVEL_DEBUG, "application", "resources",
+						"Found a case-insensitive match for directory [" + op + "] with the name [" + parent.getName() + "].");
+				return file;
+			}
 		}
 		// we filter so the VFS Resource must not provide all the entries in the directory
 		String[] names = parent.list(new ExactMatchFilter(file.getName()));
 		if (names == null) return file;
 		for (String name: names) {
+			LogUtil.log(ThreadLocalPageContext.getConfig(), Log.LEVEL_DEBUG, "application", "resources",
+					"Found a case-insensitive match for file [" + file + "] with the name [" + name + "].");
 			return parent.getRealResource(name);
 		}
 		return file;

@@ -18,8 +18,8 @@
  **/
 package lucee.runtime.ext.tag;
 
-import javax.servlet.jsp.JspException;
-import javax.servlet.jsp.tagext.Tag;
+import /* JAVJAK */ javax.servlet.jsp.JspException;
+import /* JAVJAK */ javax.servlet.jsp.tagext.Tag;
 
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.runtime.PageContext;
@@ -47,49 +47,31 @@ public abstract class TagSupport implements Tag {
 		this.pageContext = pageContext;
 	}
 
-	/**
-	 * @see javax.servlet.jsp.tagext.Tag#setPageContext(javax.servlet.jsp.PageContext)
-	 */
 	@Override
-	public void setPageContext(final javax.servlet.jsp.PageContext pageContext) {
+	public void setPageContext(final /* JAVJAK */ javax.servlet.jsp.PageContext pageContext) {
 		this.pageContext = (PageContext) pageContext;
 	}
 
-	/**
-	 * @see javax.servlet.jsp.tagext.Tag#setParent(javax.servlet.jsp.tagext.Tag)
-	 */
 	@Override
 	public void setParent(final Tag parent) {
 		this.parent = parent;
 	}
 
-	/**
-	 * @see javax.servlet.jsp.tagext.Tag#getParent()
-	 */
 	@Override
 	public Tag getParent() {
 		return parent;
 	}
 
-	/**
-	 * @see javax.servlet.jsp.tagext.Tag#doStartTag()
-	 */
 	@Override
 	public int doStartTag() throws JspException {
 		return SKIP_BODY;
 	}
 
-	/**
-	 * @see javax.servlet.jsp.tagext.Tag#doEndTag()
-	 */
 	@Override
 	public int doEndTag() throws JspException {
 		return EVAL_PAGE;
 	}
 
-	/**
-	 * @see javax.servlet.jsp.tagext.Tag#release()
-	 */
 	@Override
 	public void release() {
 		pageContext = null;

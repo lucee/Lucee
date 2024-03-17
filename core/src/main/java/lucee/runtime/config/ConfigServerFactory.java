@@ -293,7 +293,8 @@ public final class ConfigServerFactory extends ConfigFactory {
 		Resource secDir = configDir.getRealResource("security");
 		if (!secDir.exists()) secDir.mkdirs();
 		Resource res = create("/resource/security/", "cacerts", secDir, false);
-		if (SystemUtil.getSystemPropOrEnvVar("lucee.use.lucee.SSL.TrustStore", "").equalsIgnoreCase("true")) System.setProperty("javax.net.ssl.trustStore", res.toString());
+		if (SystemUtil.getSystemPropOrEnvVar("lucee.use.lucee.SSL.TrustStore", "").equalsIgnoreCase("true"))
+			System.setProperty("javax.net.ssl.trustStore", res.toString());/* JAVJAK */
 		// Allow using system proxies
 		if (!SystemUtil.getSystemPropOrEnvVar("lucee.disable.systemProxies", "").equalsIgnoreCase("true")) System.setProperty("java.net.useSystemProxies", "true"); // it defaults
 																																									// to false

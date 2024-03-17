@@ -80,6 +80,12 @@ public interface ConfigPro extends Config {
 	public static final int QUERY_VAR_USAGE_WARN = 2;
 	public static final int QUERY_VAR_USAGE_ERROR = 4;
 
+	public static final short INSPECT_AUTO = 8;
+
+	public final static int INSPECT_INTERVAL_SLOW = 2000;
+	public final static int INSPECT_INTERVAL_FAST = 100;
+	public final static int INSPECT_INTERVAL_UNDEFINED = -1;
+
 	public static final String[] STRING_CACHE_TYPES = new String[] { "function", "include", "query", "resource", "http", "file", "webservice" };
 	public static final int[] CACHE_TYPES = new int[] { Config.CACHEDWITHIN_FUNCTION, Config.CACHEDWITHIN_INCLUDE, Config.CACHEDWITHIN_QUERY, Config.CACHEDWITHIN_RESOURCE,
 			Config.CACHEDWITHIN_HTTP, Config.CACHEDWITHIN_FILE, Config.CACHEDWITHIN_WEBSERVICE };
@@ -98,11 +104,14 @@ public interface ConfigPro extends Config {
 
 	public boolean getDefaultFunctionOutput();
 
-	public TagLib getCoreTagLib(int dialect);
+	public TagLib getCoreTagLib();
 
-	public TagLib[] getTLDs(int dialect);
+	public TagLib[] getTLDs();
 
-	public FunctionLib[] getFLDs(int dialect);
+	public FunctionLib getFLDs();
+
+	@Deprecated
+	public FunctionLib[] getFLDs(int dialect); // only exists because used with the image extension
 
 	public Collection<Mapping> getFunctionMappings();
 
@@ -157,7 +166,9 @@ public interface ConfigPro extends Config {
 
 	public boolean closeConnection();
 
-	public PageSource getBaseComponentPageSource(int dialect, PageContext pc, boolean force);
+	public PageSource getBaseComponentPageSource(PageContext pc, boolean force);
+
+	public String getBaseComponentTemplate();
 
 	public TimeSpan getCachedAfterTimeRange();
 
@@ -184,10 +195,6 @@ public interface ConfigPro extends Config {
 	public boolean debugLogOutput();
 
 	public int getExternalizeStringGTE();
-
-	public boolean allowLuceeDialect();
-
-	public FunctionLib getCombinedFLDs(int dialect);
 
 	public Cluster createClusterScope() throws PageException;
 
@@ -362,6 +369,12 @@ public interface ConfigPro extends Config {
 
 	public String getMainLogger();
 
+	public int getInspectTemplateAutoInterval(boolean slow);
+
 	public Resource[] getResources(PageContext pc, Mapping[] mappings, String realPath, boolean onlyTopLevel, boolean useSpecialMappings, boolean useDefaultMapping,
 			boolean useComponentMappings, boolean onlyFirstMatch);
+
+	public boolean getFormUrlAsStruct();
+
+	public int getReturnFormat();
 }

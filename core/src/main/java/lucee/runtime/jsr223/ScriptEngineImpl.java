@@ -30,6 +30,7 @@ import javax.script.SimpleScriptContext;
 
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.SerializableObject;
 import lucee.runtime.PageContext;
 import lucee.runtime.compiler.Renderer;
@@ -62,7 +63,7 @@ public class ScriptEngineImpl implements ScriptEngine {
 		PageContext oldPC = ThreadLocalPageContext.get();
 		PageContext pc = getPageContext(context);
 		try {
-			Result res = factory.tag ? Renderer.tag(pc, script, factory.dialect, false, true) : Renderer.script(pc, script, factory.dialect, false, true);
+			Result res = factory.tag ? Renderer.tag(pc, script, false, true) : Renderer.script(pc, script, false, true);
 			return res.getValue();
 		}
 		catch (PageException pe) {
@@ -79,7 +80,7 @@ public class ScriptEngineImpl implements ScriptEngine {
 		}
 		catch (Throwable t) {
 			if (printExceptions) {
-				if (t instanceof ThreadDeath) throw (ThreadDeath) t;
+				ExceptionUtil.rethrowIfNecessary(t);
 				t.printStackTrace();
 			}
 			throw new RuntimeException(t);

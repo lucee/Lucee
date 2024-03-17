@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project default="susi" basedir="${rootDir}" name="luceeCore"
+<project default="lucee" basedir="${rootDir}" name="luceeCore"
     xmlns:if="ant:if"
     xmlns:resolver="antlib:org.apache.maven.resolver.ant">
   <description>
@@ -26,6 +26,7 @@
   <property name="extHibernate"          value="FAD1E8CB-4F45-4184-86359145767C29DE;version=5.4.29.27-BETA"/>
 
   <property name="stableLoader" value="lucee-5.3.7.48"/>
+  <property name="javaVersion" value="11"/>
   <property name="cdnUrl" value="https://cdn.lucee.org/"/>
   
   <import file="../ant/build-utils.xml"/>
@@ -258,7 +259,6 @@
       <fileset dir="${srcCFML}/context/gateway">
         <include name="*.cfm"/>
         <include name="*.cfc"/>
-        <include name="*.lucee"/>
         <include name="*.xml"/>
         <include name="*.json"/>
       </fileset>
@@ -268,7 +268,6 @@
       <fileset dir="${srcCFML}/context/templates/error">
         <include name="*.cfm"/>
         <include name="*.cfc"/>
-        <include name="*.lucee"/>
         <include name="*.xml"/>
         <include name="*.json"/>
       </fileset>
@@ -278,7 +277,6 @@
       <fileset dir="${srcCFML}/context/admin/plugin">
         <include name="**/*.cfm"/>
         <include name="**/*.cfc"/>
-        <include name="**/*.lucee"/>
         <include name="**/*.xml"/>
         <include name="**/*.json"/>
       </fileset>
@@ -303,7 +301,6 @@
       <fileset dir="${srcCFML}/context/admin/plugin">
         <include name="**/*.cfm"/>
         <include name="**/*.cfc"/>
-        <include name="**/*.lucee"/>
         <include name="**/*.xml"/>
         <include name="**/*.json"/>
       </fileset>
@@ -317,10 +314,13 @@
     <!-- compie the source -->
     <javac 
       srcdir="${srcInst}" 
-      source="1.8" 
-      target="1.8" 
+      source="${javaVersion}" 
+      target="${javaVersion}" 
       destdir="${temp}/agent"
-      debug="true" debuglevel="lines,vars,source" classpath="${dependencies}">
+      includeantruntime="false"
+      debug="true" 
+      debuglevel="lines,vars,source" 
+      classpath="${dependencies}">
     </javac>
 
     <!-- create the manifest file -->
@@ -337,10 +337,13 @@
     <!-- compie the source -->
     <javac 
       srcdir="${srcLoader}" 
-      source="1.8" 
-      target="1.8" 
+      source="${javaVersion}" 
+      target="${javaVersion}" 
       destdir="${temp}/loader"
-      debug="true" debuglevel="lines,vars,source" classpath="${dependencies}">
+      debug="true" 
+      includeantruntime="false"
+      debuglevel="lines,vars,source" 
+      classpath="${dependencies}">
     </javac>
     
     <!-- copy all non java files -->
@@ -369,26 +372,15 @@
     <!-- compile the core -->
     <javac 
       srcdir="${srcCore}" 
-      source="1.8" 
-      target="1.8" 
+      source="${javaVersion}" 
+      target="${javaVersion}" 
       destdir="${core}"
-      debug="true" debuglevel="lines,vars,source">
+      includeantruntime="false"
+      debug="true" 
+      debuglevel="lines,vars,source">
        <classpath refid="classpath" />
        <classpath path="${temp}/loader"/>
     </javac>
-
-    <!--
-<javac 
-      fork="yes"
-      executable="/Library/Java/JavaVirtualMachines/jdk-17.0.5.jdk/Contents/Home/bin/javac"
-      srcdir="${srcCore}" 
-      destdir="${core}"
-      debug="true" debuglevel="lines,vars,source">
-       <classpath refid="classpath" />
-    </javac>
-
-    -->
-
 
     <!-- copy all non java files from src -->
     <copy todir="${core}">
@@ -492,7 +484,7 @@
       <jvmarg value="-Dlucee.extensions.install=true"/>
       <jvmarg value="-Dlucee.full.null.support=false"/>
       <!-- this checks to see that all the required bundles are provided, so that none are missing -->
-      <jvmarg value="-Dlucee.enable.bundle.download=false"/>
+      <jvmarg value="-Dlucee.enable.bundle.download=false"/><!-- we do always download to make sure this is available -->
       <jvmarg value="-Dlucee.cli.printExceptions=true"/>
       <jvmarg value="-Dlucee.ssl.checkserveridentity=false"/>
     </java>
@@ -556,6 +548,7 @@
       <jvmarg value="-Dlucee.cli.printExceptions=true"/>
       <jvmarg value="-Dlucee.ssl.checkserveridentity=false"/>
       <jvmarg value="-DLUCEE_BUILD_ENV=${LUCEE_BUILD_ENV}"/>
+      <jvmarg value="-Dlucee.enable.bundle.download=always"/>
       <!--
       <jvmarg value="-XX:StartFlightRecording=disk=true,dumponexit=true,filename=${temp}/../lucee-testcases.jfr,maxsize=1024m,maxage=1d,settings=profile,path-to-gc-roots=true"/>
       <jvmarg value="-Dlucee.system.out=file:.../out.txt"/>

@@ -3,6 +3,9 @@ package lucee.runtime.config;
 import java.io.IOException;
 
 import javax.servlet.ServletConfig;
+import javax.servlet.ServletContext;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import org.osgi.framework.BundleException;
 import org.xml.sax.SAXException;
@@ -11,6 +14,7 @@ import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.ResourcesImpl.ResourceProviderFactory;
 import lucee.runtime.config.gateway.GatewayMap;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.writer.CFMLWriter;
 
 public class ConfigWebImpl implements ConfigWebPro {
 	private ConfigWebInner instance;
@@ -109,8 +113,8 @@ public class ConfigWebImpl implements ConfigWebPro {
 	}
 
 	@Override
-	public lucee.runtime.PageSource getBaseComponentPageSource(int arg0, lucee.runtime.PageContext arg1, boolean force) {
-		return instance.getBaseComponentPageSource(arg0, arg1, force);
+	public lucee.runtime.PageSource getBaseComponentPageSource(lucee.runtime.PageContext arg1, boolean force) {
+		return instance.getBaseComponentPageSource(arg1, force);
 	}
 
 	@Override
@@ -145,8 +149,13 @@ public class ConfigWebImpl implements ConfigWebPro {
 	}
 
 	@Override
-	public lucee.transformer.library.function.FunctionLib[] getFLDs(int arg0) {
-		return instance.getFLDs(arg0);
+	public lucee.transformer.library.function.FunctionLib getFLDs() {
+		return instance.getFLDs();
+	}
+
+	@Override
+	public lucee.transformer.library.function.FunctionLib[] getFLDs(int dialect) { // used in image extension
+		return instance.getFLDs(dialect);
 	}
 
 	@Override
@@ -271,11 +280,6 @@ public class ConfigWebImpl implements ConfigWebPro {
 	}
 
 	@Override
-	public boolean allowLuceeDialect() {
-		return instance.allowLuceeDialect();
-	}
-
-	@Override
 	public java.util.Enumeration getInitParameterNames() {
 		return instance.getInitParameterNames();
 	}
@@ -296,7 +300,7 @@ public class ConfigWebImpl implements ConfigWebPro {
 	}
 
 	@Override
-	public javax.servlet.ServletContext getServletContext() {
+	public ServletContext getServletContext() {
 		return instance.getServletContext();
 	}
 
@@ -373,8 +377,8 @@ public class ConfigWebImpl implements ConfigWebPro {
 	}
 
 	@Override
-	public lucee.runtime.CIPage getBaseComponentPage(int arg0, lucee.runtime.PageContext arg1) throws lucee.runtime.exp.PageException {
-		return instance.getBaseComponentPage(arg0, arg1);
+	public lucee.runtime.CIPage getBaseComponentPage(lucee.runtime.PageContext arg1) throws lucee.runtime.exp.PageException {
+		return instance.getBaseComponentPage(arg1);
 	}
 
 	@Override
@@ -390,11 +394,6 @@ public class ConfigWebImpl implements ConfigWebPro {
 	@Override
 	public boolean getSuppressWSBeforeArg() {
 		return instance.getSuppressWSBeforeArg();
-	}
-
-	@Override
-	public lucee.transformer.library.function.FunctionLib getCombinedFLDs(int arg0) {
-		return instance.getCombinedFLDs(arg0);
 	}
 
 	@Override
@@ -491,6 +490,11 @@ public class ConfigWebImpl implements ConfigWebPro {
 	@Override
 	public java.lang.String getBaseComponentTemplate(int arg0) {
 		return instance.getBaseComponentTemplate(arg0);
+	}
+
+	@Override
+	public String getBaseComponentTemplate() {
+		return instance.getBaseComponentTemplate();
 	}
 
 	@Override
@@ -1532,8 +1536,8 @@ public class ConfigWebImpl implements ConfigWebPro {
 	}
 
 	@Override
-	public lucee.transformer.library.tag.TagLib[] getTLDs(int arg0) {
-		return instance.getTLDs(arg0);
+	public lucee.transformer.library.tag.TagLib[] getTLDs() {
+		return instance.getTLDs();
 	}
 
 	public lucee.runtime.Mapping getApplicationMapping(java.lang.String arg0, java.lang.String arg1) {
@@ -1636,8 +1640,8 @@ public class ConfigWebImpl implements ConfigWebPro {
 	}
 
 	@Override
-	public javax.servlet.jsp.JspWriter getWriter(lucee.runtime.PageContext arg0, javax.servlet.http.HttpServletRequest arg1, javax.servlet.http.HttpServletResponse arg2) {
-		return instance.getWriter(arg0, arg1, arg2);
+	public CFMLWriter getWriter(lucee.runtime.PageContext arg0, HttpServletRequest arg1, HttpServletResponse arg2) {
+		return instance.getCFMLWriter(arg0, arg1, arg2);
 	}
 
 	@Override
@@ -1661,7 +1665,7 @@ public class ConfigWebImpl implements ConfigWebPro {
 	}
 
 	@Override
-	public lucee.runtime.writer.CFMLWriter getCFMLWriter(lucee.runtime.PageContext arg0, javax.servlet.http.HttpServletRequest arg1, javax.servlet.http.HttpServletResponse arg2) {
+	public lucee.runtime.writer.CFMLWriter getCFMLWriter(lucee.runtime.PageContext arg0, HttpServletRequest arg1, HttpServletResponse arg2) {
 		return instance.getCFMLWriter(arg0, arg1, arg2);
 	}
 
@@ -1717,10 +1721,6 @@ public class ConfigWebImpl implements ConfigWebPro {
 	@Override
 	public java.util.Collection getAllRHExtensions() {
 		return instance.getAllRHExtensions();
-	}
-
-	public void setAllowLuceeDialect(boolean arg0) {
-		if (instance instanceof MultiContextConfigWeb) ((MultiContextConfigWeb) instance).setAllowLuceeDialect(arg0);
 	}
 
 	@Override
@@ -1820,8 +1820,8 @@ public class ConfigWebImpl implements ConfigWebPro {
 	}
 
 	@Override
-	public lucee.transformer.library.tag.TagLib getCoreTagLib(int arg0) {
-		return instance.getCoreTagLib(arg0);
+	public lucee.transformer.library.tag.TagLib getCoreTagLib() {
+		return instance.getCoreTagLib();
 	}
 
 	protected void setMode(int mode) {
@@ -1881,5 +1881,20 @@ public class ConfigWebImpl implements ConfigWebPro {
 	@Override
 	public String getMainLogger() {
 		return instance.getMainLogger();
+	}
+
+	@Override
+	public int getInspectTemplateAutoInterval(boolean slow) {
+		return instance.getInspectTemplateAutoInterval(slow);
+	}
+
+	@Override
+	public boolean getFormUrlAsStruct() {
+		return instance.getFormUrlAsStruct();
+	}
+
+	@Override
+	public int getReturnFormat() {
+		return instance.getReturnFormat();
 	}
 }

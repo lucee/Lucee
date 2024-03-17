@@ -71,7 +71,7 @@ public final class SerializeJSON implements Function {
 
 	private static String _call(PageContext pc, Object var, Object queryFormat, Charset charset, boolean useSecureJSONPrefix, boolean compact) throws PageException {
 		try {
-			JSONConverter json = new JSONConverter(true, charset, JSONDateFormat.PATTERN_CF, compact);
+			JSONConverter json = new JSONConverter(false, charset, JSONDateFormat.PATTERN_CF, compact);
 
 			int qf = JSONConverter.toQueryFormat(queryFormat, SerializationSettings.SERIALIZE_AS_UNDEFINED);
 			if (qf == SerializationSettings.SERIALIZE_AS_UNDEFINED) {

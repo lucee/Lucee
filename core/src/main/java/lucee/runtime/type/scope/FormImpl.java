@@ -50,6 +50,7 @@ import lucee.runtime.PageContext;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.listener.ApplicationContext;
+import lucee.runtime.listener.ApplicationContextSupport;
 import lucee.runtime.net.http.ServletInputStreamDummy;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Array;
@@ -104,7 +105,8 @@ public final class FormImpl extends ScopeSupport implements Form, ScriptProtecte
 		if (encoding.equals(this.encoding)) return;
 		this.encoding = encoding;
 		if (!isInitalized()) return;
-		fillDecoded(raw, encoding, isScriptProtected(), ac.getSameFieldAsArray(Scope.SCOPE_FORM));
+
+		fillDecoded(raw, encoding, isScriptProtected(), ac.getSameFieldAsArray(Scope.SCOPE_FORM), ((ApplicationContextSupport) ac).getFormUrlAsStruct());
 		setFieldNames();
 	}
 
@@ -143,7 +145,7 @@ public final class FormImpl extends ScopeSupport implements Form, ScriptProtecte
 			if (scriptProtected == ScriptProtected.UNDEFINED) {
 				scriptProtected = ((ac.getScriptProtect() & ApplicationContext.SCRIPT_PROTECT_FORM) > 0) ? ScriptProtected.YES : ScriptProtected.NO;
 			}
-			fillDecodedEL(raw, encoding, isScriptProtected(), ac.getSameFieldAsArray(SCOPE_FORM));
+			fillDecodedEL(raw, encoding, isScriptProtected(), ac.getSameFieldAsArray(SCOPE_FORM), ((ApplicationContextSupport) ac).getFormUrlAsStruct());
 			setFieldNames();
 		}
 	}
@@ -219,12 +221,14 @@ public final class FormImpl extends ScopeSupport implements Form, ScriptProtecte
 			}
 
 			raw = list.toArray(new URLItem[list.size()]);
-			fillDecoded(raw, encoding, scriptProteced, pc.getApplicationContext().getSameFieldAsArray(SCOPE_FORM));
+			fillDecoded(raw, encoding, scriptProteced, pc.getApplicationContext().getSameFieldAsArray(SCOPE_FORM),
+					((ApplicationContextSupport) pc.getApplicationContext()).getFormUrlAsStruct());
 		}
 		catch (Exception e) {
 			Log log = ThreadLocalPageContext.getLog(pc, "application");
 			if (log != null) log.error("form.scope", e);
-			fillDecodedEL(new URLItem[0], encoding, scriptProteced, pc.getApplicationContext().getSameFieldAsArray(SCOPE_FORM));
+			fillDecodedEL(new URLItem[0], encoding, scriptProteced, pc.getApplicationContext().getSameFieldAsArray(SCOPE_FORM),
+					((ApplicationContextSupport) pc.getApplicationContext()).getFormUrlAsStruct());
 			initException = e;
 		}
 	}
@@ -276,12 +280,14 @@ public final class FormImpl extends ScopeSupport implements Form, ScriptProtecte
 		try {
 			reader = pc.getHttpServletRequest().getReader();
 			raw = setFrom___(IOUtil.toString(reader, false), delimiter);
-			fillDecoded(raw, encoding, scriptProteced, pc.getApplicationContext().getSameFieldAsArray(SCOPE_FORM));
+			fillDecoded(raw, encoding, scriptProteced, pc.getApplicationContext().getSameFieldAsArray(SCOPE_FORM),
+					((ApplicationContextSupport) pc.getApplicationContext()).getFormUrlAsStruct());
 		}
 		catch (Exception e) {
 			Log log = ThreadLocalPageContext.getLog(pc, "application");
 			if (log != null) log.error("form.scope", e);
-			fillDecodedEL(new URLItem[0], encoding, scriptProteced, pc.getApplicationContext().getSameFieldAsArray(SCOPE_FORM));
+			fillDecodedEL(new URLItem[0], encoding, scriptProteced, pc.getApplicationContext().getSameFieldAsArray(SCOPE_FORM),
+					((ApplicationContextSupport) pc.getApplicationContext()).getFormUrlAsStruct());
 			initException = e;
 		}
 		finally {
@@ -382,7 +388,7 @@ public final class FormImpl extends ScopeSupport implements Form, ScriptProtecte
 	public void setScriptProtecting(ApplicationContext ac, boolean scriptProtected) {
 		int _scriptProtected = scriptProtected ? ScriptProtected.YES : ScriptProtected.NO;
 		if (isInitalized() && _scriptProtected != this.scriptProtected) {
-			fillDecodedEL(raw, encoding, scriptProtected, ac.getSameFieldAsArray(SCOPE_FORM));
+			fillDecodedEL(raw, encoding, scriptProtected, ac.getSameFieldAsArray(SCOPE_FORM), ((ApplicationContextSupport) ac).getFormUrlAsStruct());
 			setFieldNames();
 		}
 		this.scriptProtected = _scriptProtected;
@@ -411,7 +417,8 @@ public final class FormImpl extends ScopeSupport implements Form, ScriptProtecte
 		this.raw = nr;
 
 		if (!isInitalized()) return;
-		fillDecodedEL(this.raw, encoding, isScriptProtected(), ac != null ? ac.getSameFieldAsArray(SCOPE_FORM) : false);
+		fillDecodedEL(this.raw, encoding, isScriptProtected(), ac != null ? ac.getSameFieldAsArray(SCOPE_FORM) : false,
+				ac != null ? ((ApplicationContextSupport) ac).getFormUrlAsStruct() : true);
 		setFieldNames();
 	}
 

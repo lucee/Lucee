@@ -546,11 +546,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					var getExtensionsProvider = adminWeb.getExtensionProviders();
 					assertEquals((isquery(getExtensionsProvider) && FindNocase( 'http://www.myhost.com',valueList(getExtensionsProvider.url)) EQ 0) ,true);
 				});
-
-				it(title="checking verifyExtensionProvider()", body=function( currentSpec ) {
-					var getExtensionsProvider = adminWeb.getExtensionProviders();
-					adminWeb.verifyExtensionProvider(url=getExtensionsProvider.url);
-				});
 			});
 
 			// ORM
@@ -799,7 +794,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					var performanceSettings = adminWeb.getPerformanceSettings();
 					assertEquals(isstruct(performanceSettings) ,true);
 					var props = "cachedAfter,cachedAfter_second,cachedAfter_minute,cachedAfter_hour,cachedAfter_day," // new in 6
-						& "inspectTemplate,typeChecking";
+						& "inspectTemplate,inspectTemplateIntervalFast,inspectTemplateIntervalSlow,typeChecking";
 
 					loop list=props item="local.prop" {
 						expect( performanceSettings ).toHaveKey( prop );
@@ -888,7 +883,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					var bundle = adminWeb.getBundle( bundles.symbolicName );
 					assertEquals(isStruct(bundle) ,true);
 					// TODO description missing
-					var props = "description,fragment,headers,id,path,state,symbolicName,title,usedBy,vendor,version";
+					var props = "description,fragment,headers,id,path,state,symbolicName,title,usedBy,version";
 					loop list=props item="local.prop"{
 						expect( bundle ).toHaveKey( prop );
 					}
@@ -1287,19 +1282,27 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					adminWeb.updateScope(argumentCollection = getScope);
 				});
 
-				it(title="checking getscope()", body=function( currentSpec ) {
+				it(title="checking getScope()", body=function( currentSpec ) {
 					var scope = adminWeb.getScope();
-					assertEquals(isstruct(scope) ,true);
+					assertEquals(isStruct(scope) ,true);
 					var props="allowImplicidQueryCall,applicationTimeout,applicationTimeout_day,applicationTimeout_hour,"
 						& "applicationTimeout_minute,applicationTimeout_second,cgiReadonly,clientCookies,clientManagement,"
 						& "clientStorage,clientTimeout,clientTimeout_day,clientTimeout_hour,clientTimeout_minute,"
-						& "clientTimeout_second,domainCookies,localmode,mergeFormAndUrl,scopeCascadingType,"
+						& "clientTimeout_second,domainCookies,formUrlAsStruct,localmode,mergeFormAndUrl,scopeCascadingType,"
 						& "sessionManagement,sessionStorage,sessionTimeout,sessionTimeout_day,sessionTimeout_hour,"
 						& "sessionTimeout_minute,sessionTimeout_second,sessiontype";
-					loop list=props item="local.prop" {
+					props = listToArray( props );
+					var stProps = arrayToStruct( props, true );
+					var stScope = duplicate( scope );
+					loop array=props item="local.prop" {
 						expect( scope ).toHaveKey( prop );
+						structDelete( stProps, prop );
+						structDelete( stScope, prop );
 					}
-					expect( structCount( scope ) ).toBe( listLen( props ), props );
+					expect( structKeyList( stProps ) ).toBe( "" );
+					expect( structKeyList( stScope ) ).toBe( "" );
+					expect( arrayLen( props ) ).toBe( structCount( scope ) );
+
 				});
 
 				it(title="checking updateScope()", body=function( currentSpec ) {

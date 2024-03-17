@@ -556,4 +556,20 @@ public class Util {
 
 		return defaultValue;
 	}
+
+	public static boolean isThreadDeath(Throwable t) {
+		return (unwrap(t) instanceof ThreadDeath); // never catch a ThreadDeath
+	}
+
+	public static void rethrowIfNecessary(Throwable t) {
+		if (isThreadDeath(t)) throw (Error) t; // never catch a ThreadDeath
+	}
+
+	private static Throwable unwrap(Throwable t) {
+		if (t == null) return t;
+		// if (t instanceof NativeException) return unwrap(((NativeException) t).getException());
+		Throwable cause = t.getCause();
+		if (cause != null && cause != t) return unwrap(cause);
+		return t;
+	}
 }

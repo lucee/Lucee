@@ -157,6 +157,9 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 	private Regex regex;
 
 	private boolean preciseMath;
+	private boolean formUrlAsStruct;
+
+	private int returnFormat = UDF.RETURN_FORMAT_WDDX;
 
 	/**
 	 * constructor of the class
@@ -211,7 +214,9 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 		this.antiSamyPolicy = ((ConfigPro) config).getAntiSamyPolicy();
 		this.regex = ((ConfigPro) config).getRegex();
 		this.preciseMath = ((ConfigPro) config).getPreciseMath();
+		this.formUrlAsStruct = ((ConfigPro) config).getFormUrlAsStruct();
 
+		this.returnFormat = ((ConfigPro) config).getReturnFormat();
 	}
 
 	/**
@@ -294,6 +299,7 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 		dbl.antiSamyPolicy = antiSamyPolicy;
 		dbl.sessionCookie = sessionCookie;
 		dbl.authCookie = authCookie;
+		dbl.formUrlAsStruct = formUrlAsStruct;
 		return dbl;
 	}
 
@@ -814,6 +820,20 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 		return b.booleanValue();
 	}
 
+	public void setFormUrlAsStruct(PageContext pc, boolean formUrlAsStruct) {
+		boolean changed = this.formUrlAsStruct != formUrlAsStruct;
+		this.formUrlAsStruct = formUrlAsStruct;
+		if (changed) {
+			pc.urlScope().reinitialize(this);
+			pc.formScope().reinitialize(this);
+		}
+	}
+
+	@Override
+	public boolean getFormUrlAsStruct() {
+		return formUrlAsStruct;
+	}
+
 	@Override
 	public RestSettings getRestSettings() {
 		return restSettings;
@@ -1138,5 +1158,15 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 	@Override
 	public void setPreciseMath(boolean preciseMath) {
 		this.preciseMath = preciseMath;
+	}
+
+	@Override
+	public int getReturnFormat() {
+		return returnFormat;
+	}
+
+	@Override
+	public void setReturnFormat(int returnFormat) {
+		this.returnFormat = returnFormat;
 	}
 }

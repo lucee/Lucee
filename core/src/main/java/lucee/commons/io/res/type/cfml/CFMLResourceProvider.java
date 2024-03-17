@@ -23,8 +23,6 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.Map;
 
-import javax.servlet.http.Cookie;
-
 import lucee.commons.io.DevNullOutputStream;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.ResourceProvider;
@@ -45,6 +43,7 @@ import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.op.Caster;
+import lucee.runtime.thread.SerializableCookie;
 import lucee.runtime.thread.ThreadUtil;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.StructImpl;
@@ -100,11 +99,11 @@ public class CFMLResourceProvider implements ResourceProviderPro {
 
 		Config c = ThreadLocalPageContext.getConfig();
 		if (c instanceof ConfigWeb) {
-			return ThreadUtil.createPageContext((ConfigWeb) c, DevNullOutputStream.DEV_NULL_OUTPUT_STREAM, "localhost", "/", "", new Cookie[0], new Pair[0], null, new Pair[0],
-					new StructImpl(), false, -1);
+			return ThreadUtil.createPageContext((ConfigWeb) c, DevNullOutputStream.DEV_NULL_OUTPUT_STREAM, "localhost", "/", "", SerializableCookie.COOKIES0, new Pair[0], null,
+					new Pair[0], new StructImpl(), false, -1);
 		}
 		try {
-			return CFMLEngineFactory.getInstance().createPageContext(new File("."), "localhost", "/", "", new Cookie[0], null, null, null,
+			return CFMLEngineFactory.getInstance().createPageContext(new File("."), "localhost", "/", "", SerializableCookie.COOKIES0, null, null, null,
 					DevNullOutputStream.DEV_NULL_OUTPUT_STREAM, -1, false);
 		}
 		catch (Exception e) {

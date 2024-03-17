@@ -23,7 +23,6 @@ import java.util.List;
 
 import lucee.commons.lang.CFTypes;
 import lucee.commons.lang.ParserString;
-import lucee.loader.engine.CFMLEngine;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.runtime.MappingImpl;
 import lucee.runtime.PageContext;
@@ -248,10 +247,8 @@ public class CFMLExpressionInterpreter {
 	private void init(PageContext pc) {
 		this.pc = pc = ThreadLocalPageContext.get(pc);
 
-		int dialect = CFMLEngine.DIALECT_CFML;
 		if (this.pc != null) {
 			this.config = (ConfigPro) this.pc.getConfig();
-			dialect = this.pc.getCurrentTemplateDialect();
 		}
 		else {
 			this.config = (ConfigPro) ThreadLocalPageContext.getConfig();
@@ -264,7 +261,7 @@ public class CFMLExpressionInterpreter {
 				}
 			}
 		}
-		fld = config == null ? null : config.getCombinedFLDs(dialect);
+		fld = config == null ? null : config.getFLDs();
 	}
 
 	/*
@@ -1421,7 +1418,7 @@ public class CFMLExpressionInterpreter {
 		}
 		boolean doUpper;
 		PageSource ps = pc == null ? null : pc.getCurrentPageSource();
-		if (ps != null) doUpper = !isJson && ps.getDialect() == CFMLEngine.DIALECT_CFML && ((MappingImpl) ps.getMapping()).getDotNotationUpperCase();
+		if (ps != null) doUpper = !isJson && ((MappingImpl) ps.getMapping()).getDotNotationUpperCase();
 		else doUpper = !isJson && ((ConfigWebPro) config).getDotNotationUpperCase(); // MUST .lucee should not be upper case
 
 		StringBuilder sb = new StringBuilder();

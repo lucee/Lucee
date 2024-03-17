@@ -29,12 +29,18 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import lucee.commons.io.SystemUtil;
+import lucee.commons.io.res.Resource;
+import lucee.commons.io.watch.PageSourcePoolWatcher;
+import lucee.runtime.config.ConfigPro;
+import lucee.runtime.config.ConfigWebUtil;
+import lucee.runtime.config.Constants;
 import lucee.runtime.dump.DumpData;
 import lucee.runtime.dump.DumpProperties;
 import lucee.runtime.dump.DumpTable;
 import lucee.runtime.dump.DumpUtil;
 import lucee.runtime.dump.Dumpable;
 import lucee.runtime.dump.SimpleDumpData;
+import lucee.runtime.listener.ApplicationContext;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.dt.DateTimeImpl;
 
@@ -44,19 +50,29 @@ import lucee.runtime.type.dt.DateTimeImpl;
 public final class PageSourcePool implements Dumpable {
 	// TODO must not be thread safe, is used in sync block only
 	private final Map<String, SoftReference<PageSource>> pageSources = new ConcurrentHashMap<String, SoftReference<PageSource>>();
-	// timeout timeout for files
-	private long timeout;
-	// max size of the pool cache
-	private int maxSize = 10000;
 	private int maxSize_min = 1000;
+	private PageSourcePoolWatcher watcher;
+	private MappingImpl mapping;
+
+	// max size of the pool cache
+	private static final int MAXSIZE;
+	private static final int MAXSIZE_MIN;
+	// timeout timeout for files
+	private static final int TIMEOUT;
+
+	static {
+		MAXSIZE = Caster.toIntValue(SystemUtil.getSystemPropOrEnvVar("lucee.pagePool.maxSize", null), 10000);
+		MAXSIZE_MIN = Math.max(MAXSIZE - 1000, 1000);
+		TIMEOUT = Caster.toIntValue(SystemUtil.getSystemPropOrEnvVar("lucee.pagePool.timeout", null), 10000);
+
+	}
 
 	/**
 	 * constructor of the class
 	 */
-	public PageSourcePool() {
-		this.timeout = 10000;
-		this.maxSize = Caster.toIntValue(SystemUtil.getSystemPropOrEnvVar("lucee.pagePool.maxSize", null), maxSize);
-		maxSize_min = Math.max(this.maxSize - 1000, 1000);
+	public PageSourcePool(MappingImpl mapping) {
+		this.mapping = mapping;
+		// print.ds();
 	}
 
 	/**
@@ -85,9 +101,17 @@ public final class PageSourcePool implements Dumpable {
 	 * @param ps pagesource to store
 	 */
 	public void setPage(String key, PageSource ps) {
-		if (pageSources.size() > maxSize) {
+		if (pageSources.size() > MAXSIZE) {
 			cleanLoaders();
 		}
+		if ((mapping.getInspectTemplate() == ConfigPro.INSPECT_AUTO) && (watcher == null || pageSources.size() == 0)) {
+			if (watcher != null) {
+				watcher.stopIfNecessary();
+			}
+			watcher = new PageSourcePoolWatcher(mapping, this, pageSources);
+			watcher.startIfNecessary();
+		}
+
 		ps.setLastAccessTime();
 		pageSources.put(key.toLowerCase(), new SoftReference<PageSource>(ps));
 	}
@@ -166,14 +190,14 @@ public final class PageSourcePool implements Dumpable {
 	}
 
 	public void cleanLoaders() {
-		if (pageSources.size() < maxSize) return;
+		if (pageSources.size() < MAXSIZE) return;
 		synchronized (pageSources) {
 			{
 				for (Entry<String, SoftReference<PageSource>> e: pageSources.entrySet()) {
 					if (e.getValue() == null || e.getValue().get() == null) pageSources.remove(e.getKey());
 				}
 			}
-			if (pageSources.size() < maxSize) return;
+			if (pageSources.size() < MAXSIZE) return;
 			ArrayList<Entry<String, SoftReference<PageSource>>> entryList = new ArrayList<>(pageSources.entrySet());
 
 			// Sort the list by the 'lastModified' timestamp in ascending order
@@ -216,6 +240,10 @@ public final class PageSourcePool implements Dumpable {
 			System.gc();
 		}
 
+		if (pageSources.isEmpty()) {
+			watcher.stopIfNecessary();
+			watcher = null;
+		}
 	}
 
 	@Override
@@ -255,6 +283,14 @@ public final class PageSourcePool implements Dumpable {
 			if (cl != null) psi.clear(cl);
 			else psi.clear();
 		}
+
+		if (cl == null) {
+			pageSources.clear();
+		}
+		if (watcher != null && pageSources.isEmpty()) {
+			watcher.stopIfNecessary();
+			watcher = null;
+		}
 	}
 
 	public void resetPages(ClassLoader cl) {
@@ -268,6 +304,21 @@ public final class PageSourcePool implements Dumpable {
 			if (cl != null) psi.clear(cl);
 			else psi.resetLoaded();
 		}
+
+		if (watcher != null && pageSources.isEmpty()) {
+			watcher.stopIfNecessary();
+			watcher = null;
+		}
+	}
+
+	public void stopWatcher() {
+		if (watcher != null) {
+			PageSourcePoolWatcher tmp = watcher;
+			watcher = null;
+			if (tmp != null) {
+				tmp.stopIfNecessary();
+			}
+		}
 	}
 
 	public void clear() {
@@ -276,6 +327,27 @@ public final class PageSourcePool implements Dumpable {
 	}
 
 	public int getMaxSize() {
-		return maxSize;
+		return MAXSIZE;
 	}
+
+	public static void flush(PageContext pc, Resource file) {
+		if (Constants.isCFML(file)) {
+			ApplicationContext ac = pc.getApplicationContext();
+			List<PageSource> sources = ConfigWebUtil.toAllLoadedPageSource((ConfigPro) pc.getConfig(), ac == null ? null : ac.getMappings(), file);
+			for (PageSource ps: sources) {
+				((PageSourceImpl) ps).resetLoaded();
+				((PageSourceImpl) ps).flush();
+			}
+		}
+	}
+
+	public static void flush(PageContext pc, Object file) {
+		try {
+			flush(pc, Caster.toResource(pc, file, false));
+			return;
+		}
+		catch (Exception e) {
+		}
+	}
+
 }

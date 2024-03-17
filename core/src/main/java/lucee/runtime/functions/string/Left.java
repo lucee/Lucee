@@ -34,7 +34,7 @@ public final class Left extends BIF {
 
 	public static String call(PageContext pc, String str, double number) throws ExpressionException {
 		int len = (int) number;
-		if (len == 0) throw new ExpressionException("parameter 2 of the function left can not be 0");
+		if (len == 0) throw new ExpressionException("parameter 2 of the function left can not be 0 for the string [" + str + "]");
 		if (Math.abs(len) >= str.length()) return str;
 		if (len < 0) len = str.length() + len;
 		return str.substring(0, len);

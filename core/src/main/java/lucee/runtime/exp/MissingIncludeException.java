@@ -29,6 +29,8 @@ import lucee.runtime.type.util.KeyConstants;
  */
 public final class MissingIncludeException extends PageExceptionImpl {
 
+	private static final long serialVersionUID = -5254296461674334440L;
+
 	private static final Collection.Key MISSING_FILE_NAME = KeyConstants._MissingFileName;
 	private static final Collection.Key MISSING_FILE_NAME_REL = KeyConstants._MissingFileName_rel;
 	private static final Collection.Key MISSING_FILE_NAME_ABS = KeyConstants._MissingFileName_abs;
@@ -42,6 +44,7 @@ public final class MissingIncludeException extends PageExceptionImpl {
 	 */
 	public MissingIncludeException(PageSource pageSource) {
 		super(createMessage(pageSource), "missinginclude");
+		setMapping(pageSource);
 		setDetail(pageSource);
 		this.pageSource = pageSource;
 
@@ -49,13 +52,18 @@ public final class MissingIncludeException extends PageExceptionImpl {
 
 	public MissingIncludeException(PageSource pageSource, String msg) {
 		super(msg, "missinginclude");
+		setMapping(pageSource);
 		setDetail(pageSource);
 		this.pageSource = pageSource;
 
 	}
 
-	private void setDetail(PageSource ps) {
+	private void setMapping(PageSource ps) {
 		setAdditional(KeyConstants._Mapping, ps.getMapping().getVirtual());
+	}
+
+	private void setDetail(PageSource ps) {
+		setAdditional(KeyConstants._Detail, "File not found: " + ps.getDisplayPath());
 	}
 
 	/**

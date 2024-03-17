@@ -24,7 +24,7 @@ import java.util.Map;
 
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineFactory;
-import javax.servlet.ServletException;
+import /* JAVJAK */ javax.servlet.ServletException;
 
 import lucee.cli.servlet.ServletConfigImpl;
 import lucee.cli.servlet.ServletContextImpl;

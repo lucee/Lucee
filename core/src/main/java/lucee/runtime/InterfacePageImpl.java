@@ -18,6 +18,7 @@
 package lucee.runtime;
 
 import lucee.commons.lang.ExceptionUtil;
+import lucee.commons.lang.StringUtil;
 import lucee.runtime.dump.DumpUtil;
 import lucee.runtime.dump.DumpWriter;
 import lucee.runtime.exp.ApplicationException;
@@ -31,10 +32,12 @@ import lucee.runtime.type.util.KeyConstants;
  */
 public abstract class InterfacePageImpl extends InterfacePage implements PagePro {
 
+	@Override
 	public int getHash() {
 		return 0;
 	}
 
+	@Override
 	public long getSourceLength() {
 		return 0;
 	}
@@ -76,7 +79,7 @@ public abstract class InterfacePageImpl extends InterfacePage implements PagePro
 			// DUMP
 			// TODO component.setAccess(pc,Component.ACCESS_PUBLIC);
 			String cdf = pc.getConfig().getComponentDumpTemplate();
-			if (cdf != null && cdf.trim().length() > 0) {
+			if (!StringUtil.isEmpty(cdf)) {
 				pc.variablesScope().set(KeyConstants._component, interf);
 				pc.doInclude(cdf, false);
 			}

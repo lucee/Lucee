@@ -2,19 +2,14 @@ package lucee.runtime.vault;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
 
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
-
 import lucee.commons.digest.RSA;
 import lucee.loader.engine.CFMLEngineFactory;
-import lucee.runtime.coder.CoderException;
 import lucee.runtime.crypt.Cryptor;
+import lucee.runtime.exp.PageException;
 import lucee.runtime.util.Excepton;
 
 public class Credential {
@@ -36,14 +31,12 @@ public class Credential {
 		}
 	}
 
-	String getUsername(PublicKey decryptKey) throws InvalidKeyException, UnsupportedEncodingException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException,
-			BadPaddingException, CoderException {
+	String getUsername(PublicKey decryptKey) throws PageException, UnsupportedEncodingException {
 		validate();
 		return new String(RSA.decrypt(username, decryptKey, 0), Cryptor.DEFAULT_CHARSET);
 	}
 
-	String getPassword(PublicKey decryptKey) throws InvalidKeyException, UnsupportedEncodingException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException,
-			BadPaddingException, CoderException {
+	String getPassword(PublicKey decryptKey) throws PageException, UnsupportedEncodingException {
 		validate();
 		return new String(RSA.decrypt(password, decryptKey, 0), Cryptor.DEFAULT_CHARSET);
 	}

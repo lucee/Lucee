@@ -46,7 +46,6 @@ import lucee.commons.io.log.LogUtil;
 import lucee.commons.lang.CFTypes;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
-import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.Component;
 import lucee.runtime.ComponentScope;
 import lucee.runtime.ComponentSpecificAccess;
@@ -369,6 +368,8 @@ public final class JSONConverter extends ConverterSupport {
 			Component comp = (Component) struct;
 			boolean isPeristent = false;
 			isPeristent = comp.isPersistent();
+			ApplicationContextSupport acs = (ApplicationContextSupport) pc.getApplicationContext();
+			boolean triggerDataMember = acs.getTriggerComponentDataMember();
 
 			Property[] props = comp.getProperties(false, true, false, false);
 			ComponentScope scope = comp.getComponentScope();
@@ -382,7 +383,9 @@ public final class JSONConverter extends ConverterSupport {
 
 				}
 				Key key = KeyImpl.init(props[i].getName());
-				value = scope.get(key, null);
+				if (triggerDataMember) value = comp.get(pc, key, null);
+				else value = scope.get(key, null);
+
 				if (!addUDFs && (value instanceof UDF || value == null)) continue;
 				if (doIt) sb.append(',');
 				doIt = true;
@@ -580,7 +583,7 @@ public final class JSONConverter extends ConverterSupport {
 			int len = query.getRecordcount();
 			pc = ThreadLocalPageContext.get(pc);
 			boolean upperCase = false;
-			if (pc != null) upperCase = pc.getCurrentTemplateDialect() == CFMLEngine.DIALECT_CFML && ((ConfigWebPro) pc.getConfig()).getDotNotationUpperCase();
+			if (pc != null) upperCase = ((ConfigWebPro) pc.getConfig()).getDotNotationUpperCase();
 
 			for (int i = 0; i < _keys.length; i++) {
 				if (oDoIt) {

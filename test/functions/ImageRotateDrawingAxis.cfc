@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" labels="image" {
+component extends="org.lucee.cfml.test.LuceeTestCase"{
 
 	function beforeAll(){
 		variables.path = "/test/#listLast(getDirectoryFromPath(getCurrenttemplatepath()),"\/")#/" &"imageRotateDrawingAxis/";

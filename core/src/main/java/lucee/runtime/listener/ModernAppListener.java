@@ -24,8 +24,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
 
-import javax.servlet.http.Cookie;
-
 import lucee.commons.io.DevNullOutputStream;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
@@ -35,7 +33,6 @@ import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.mimetype.MimeType;
 import lucee.commons.lang.types.RefBoolean;
 import lucee.commons.lang.types.RefBooleanImpl;
-import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.CFMLFactory;
 import lucee.runtime.CFMLFactoryImpl;
 import lucee.runtime.Component;
@@ -44,7 +41,6 @@ import lucee.runtime.Page;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.PageSource;
-import lucee.runtime.PageSourceImpl;
 import lucee.runtime.component.ComponentLoader;
 import lucee.runtime.component.Member;
 import lucee.runtime.config.Constants;
@@ -62,6 +58,7 @@ import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 import lucee.runtime.op.Duplicator;
 import lucee.runtime.orm.ORMUtil;
+import lucee.runtime.thread.SerializableCookie;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.Collection;
@@ -101,9 +98,7 @@ public class ModernAppListener extends AppListenerSupport {
 	@Override
 	public void onRequest(PageContext pc, PageSource requestedPage, RequestListener rl) throws PageException {
 		// on requestStart
-		Page appPS = AppListenerUtil.getApplicationPage(pc, requestedPage,
-				pc.getRequestDialect() == CFMLEngine.DIALECT_CFML ? Constants.CFML_APPLICATION_EVENT_HANDLER : Constants.LUCEE_APPLICATION_EVENT_HANDLER, mode,
-				ApplicationListener.TYPE_MODERN);
+		Page appPS = AppListenerUtil.getApplicationPage(pc, requestedPage, Constants.CFML_APPLICATION_EVENT_HANDLER, mode, ApplicationListener.TYPE_MODERN);
 		_onRequest(pc, requestedPage, appPS, rl);
 	}
 
@@ -249,12 +244,7 @@ public class ModernAppListener extends AppListenerSupport {
 	}
 
 	private boolean isComponent(PageContext pc, PageSource requestedPage) {
-		// CFML
-		if (pc.getRequestDialect() == CFMLEngine.DIALECT_CFML) {
-			return ResourceUtil.getExtension(requestedPage.getRealpath(), "").equalsIgnoreCase(Constants.getCFMLComponentExtension());
-		}
-		// Lucee
-		return !PageSourceImpl.isTemplate(pc, requestedPage, true);
+		return ResourceUtil.getExtension(requestedPage.getRealpath(), "").equalsIgnoreCase(Constants.getCFMLComponentExtension());
 	}
 
 	private PageException handlePageException(PageContextImpl pci, Component app, PageException pe, PageSource requestedPage, String targetPage, RefBoolean goon)
@@ -383,7 +373,7 @@ public class ModernAppListener extends AppListenerSupport {
 
 		// Request
 		HttpServletRequestDummy req = new HttpServletRequestDummy(root, "localhost", path, "", null, null, null, null, null, null);
-		if (!StringUtil.isEmpty(cfid)) req.setCookies(new Cookie[] { new Cookie("cfid", cfid), new Cookie("cftoken", "0") });
+		if (!StringUtil.isEmpty(cfid)) req.setCookies(SerializableCookie.toCookies(SerializableCookie.toCookie("cfid", cfid), SerializableCookie.toCookie("cftoken", "0")));
 
 		// Response
 		OutputStream os = DevNullOutputStream.DEV_NULL_OUTPUT_STREAM;
@@ -463,7 +453,7 @@ public class ModernAppListener extends AppListenerSupport {
 		pc.setApplicationContext(appContext);
 
 		// scope cascading
-		if (pc.getRequestDialect() == CFMLEngine.DIALECT_CFML && ((UndefinedImpl) pc.undefinedScope()).getScopeCascadingType() != appContext.getScopeCascading()) {
+		if (((UndefinedImpl) pc.undefinedScope()).getScopeCascadingType() != appContext.getScopeCascading()) {
 			pc.undefinedScope().initialize(pc);
 		}
 

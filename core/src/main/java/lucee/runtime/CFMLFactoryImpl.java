@@ -41,7 +41,6 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.jsp.JspApplicationContext;
 import javax.servlet.jsp.JspEngineInfo;
 
-import lucee.cli.servlet.HTTPServletImpl;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
@@ -74,6 +73,7 @@ import lucee.runtime.type.scope.ScopeContext;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.ListUtil;
+import lucee.servlet.http.HTTPServletImpl;
 
 /**
  * implements a JSP Factory, this class produces JSP compatible PageContext objects, as well as the
@@ -98,7 +98,6 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 	private URL url = null;
 	private CFMLEngineImpl engine;
 	private ArrayList<String> cfmlExtensions;
-	private ArrayList<String> luceeExtensions;
 	private ServletConfig servletConfig;
 	private float memoryThreshold;
 	private float cpuThreshold;
@@ -150,7 +149,7 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 
 	@Override
 	public javax.servlet.jsp.PageContext getPageContext(Servlet servlet, ServletRequest req, ServletResponse rsp, String errorPageURL, boolean needsSession, int bufferSize,
-			boolean autoflush) {
+			boolean autoflush) {/* JAVJAK */
 		return getPageContextImpl((HttpServlet) servlet, (HttpServletRequest) req, (HttpServletResponse) rsp, errorPageURL, needsSession, bufferSize, autoflush, true, false, -1,
 				true, false, false, null);
 	}
@@ -250,7 +249,7 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 	}
 
 	@Override
-	public void releasePageContext(javax.servlet.jsp.PageContext pc) {
+	public void releasePageContext(javax.servlet.jsp.PageContext pc) {/* JAVJAK */
 		releaseLuceePageContext((PageContext) pc, true);
 	}
 
@@ -342,7 +341,7 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 			while (it.hasNext()) {
 				e = it.next();
 				pc = e.getValue();
-
+				if (pc == null) continue;
 				long timeout = pc.getRequestTimeout();
 				// reached timeout
 				if (pc.getStartTime() + timeout < System.currentTimeMillis() && Long.MAX_VALUE != timeout) {
@@ -378,7 +377,7 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 					}
 				}
 				// after 10 seconds downgrade priority of the thread
-				else if (pc.getStartTime() + 10000 < System.currentTimeMillis() && pc.getThread().getPriority() != Thread.MIN_PRIORITY) {
+				else if (pc.getStartTime() + 10000 < System.currentTimeMillis() && pc.getThread() != null && pc.getThread().getPriority() != Thread.MIN_PRIORITY) {
 					Log log = ThreadLocalPageContext.getLog(pc, "requesttimeout");
 					if (log != null) {
 						PageContext root = pc.getRootPageContext();
@@ -667,25 +666,13 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 	}
 
 	@Override
-	public int toDialect(String ext) {
-		// MUST improve perfomance
-		if (cfmlExtensions == null) _initExtensions();
-		if (cfmlExtensions.contains(ext.toLowerCase())) return CFMLEngine.DIALECT_CFML;
+	@Deprecated
+	public int toDialect(String ext) { // FUTURE remove
 		return CFMLEngine.DIALECT_CFML;
-	}
-
-	// FUTURE add to loader
-	public int toDialect(String ext, int defaultValue) {
-		if (ext == null) return defaultValue;
-		if (cfmlExtensions == null) _initExtensions();
-		if (cfmlExtensions.contains(ext = ext.toLowerCase())) return CFMLEngine.DIALECT_CFML;
-		if (luceeExtensions.contains(ext)) return CFMLEngine.DIALECT_LUCEE;
-		return defaultValue;
 	}
 
 	private void _initExtensions() {
 		cfmlExtensions = new ArrayList<String>();
-		luceeExtensions = new ArrayList<String>();
 		try {
 
 			Iterator<?> it = getServlet().getServletContext().getServletRegistrations().entrySet().iterator();
@@ -695,10 +682,7 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 				e = (Entry<String, ? extends ServletRegistration>) it.next();
 				cn = e.getValue().getClassName();
 
-				if (cn != null && cn.indexOf("LuceeServlet") != -1) {
-					setExtensions(luceeExtensions, e.getValue().getMappings().iterator());
-				}
-				else if (cn != null && cn.indexOf("CFMLServlet") != -1) {
+				if (cn != null && cn.indexOf("CFMLServlet") != -1) {
 					setExtensions(cfmlExtensions, e.getValue().getMappings().iterator());
 				}
 			}
@@ -706,7 +690,6 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 		catch (Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);
 			ArrayUtil.addAll(cfmlExtensions, Constants.getCFMLExtensions());
-			ArrayUtil.addAll(luceeExtensions, Constants.getLuceeExtensions());
 		}
 	}
 
@@ -731,8 +714,7 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 
 	@Override
 	public Iterator<String> getLuceeExtensions() {
-		if (luceeExtensions == null) _initExtensions();
-		return luceeExtensions.iterator();
+		return null;
 	}
 
 	public static RequestTimeoutException createRequestTimeoutException(PageContext pc) {

@@ -68,12 +68,12 @@ import lucee.runtime.op.Caster;
 import lucee.runtime.security.ScriptProtect;
 import lucee.runtime.text.xml.XMLCaster;
 import lucee.runtime.text.xml.XMLUtil;
+import lucee.runtime.thread.SerializableCookie;
 import lucee.runtime.type.UDF;
 import lucee.runtime.type.util.CollectionUtil;
 
 public final class ReqRspUtil {
 
-	private static final Cookie[] EMPTY = new Cookie[0];
 	private static Map<String, String> rootPathes = new ReferenceMap<String, String>(HARD, SOFT);
 
 	public static String get(Pair<String, Object>[] items, String name) {
@@ -175,7 +175,7 @@ public final class ReqRspUtil {
 			}
 		}
 
-		if (cookies == null) return EMPTY;
+		if (cookies == null) return SerializableCookie.COOKIES0;
 
 		return cookies;
 	}
@@ -192,7 +192,6 @@ public final class ReqRspUtil {
 	}
 
 	public static String getQueryString(HttpServletRequest req) {
-		// String qs = req.getAttribute("javax.servlet.include.query_string");
 		return req.getQueryString();
 	}
 
@@ -622,7 +621,7 @@ public final class ReqRspUtil {
 	}
 
 	public static void removeCookie(HttpServletResponse rsp, String name) {
-		javax.servlet.http.Cookie cookie = new javax.servlet.http.Cookie(name, "");
+		Cookie cookie = new Cookie(name, "");
 		cookie.setMaxAge(0);
 		cookie.setSecure(false);
 		cookie.setPath("/");

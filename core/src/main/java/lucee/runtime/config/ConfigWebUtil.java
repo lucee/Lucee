@@ -54,6 +54,7 @@ import lucee.runtime.MappingImpl;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.PageSource;
+import lucee.runtime.PageSourceImpl;
 import lucee.runtime.crypt.BlowfishEasy;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
@@ -657,7 +658,8 @@ public final class ConfigWebUtil {
 	public static short inspectTemplate(String str, short defaultValue) {
 		if (str == null) return defaultValue;
 		str = str.trim().toLowerCase();
-		if (str.equals("always")) return Config.INSPECT_ALWAYS;
+		if (str.equals("auto")) return ConfigPro.INSPECT_AUTO;
+		else if (str.equals("always")) return Config.INSPECT_ALWAYS;
 		else if (str.equals("never")) return Config.INSPECT_NEVER;
 		else if (str.equals("once")) return Config.INSPECT_ONCE;
 		return defaultValue;
@@ -665,6 +667,8 @@ public final class ConfigWebUtil {
 
 	public static String inspectTemplate(short s, String defaultValue) {
 		switch (s) {
+		case ConfigPro.INSPECT_AUTO:
+			return "auto";
 		case Config.INSPECT_ALWAYS:
 			return "always";
 		case Config.INSPECT_NEVER:
@@ -740,21 +744,6 @@ public final class ConfigWebUtil {
 		if (!ArrayUtil.isEmpty(mappings)) for (int i = 0; i < mappings.length; i++) {
 			list.add(mappings[i]);
 		}
-	}
-
-	public static int toDialect(String strDialect, int defaultValue) {
-		if ("cfml".equalsIgnoreCase(strDialect)) return CFMLEngine.DIALECT_CFML;
-		if ("cfm".equalsIgnoreCase(strDialect)) return CFMLEngine.DIALECT_CFML;
-		if ("cfc".equalsIgnoreCase(strDialect)) return CFMLEngine.DIALECT_CFML;
-		if ("lucee".equalsIgnoreCase(strDialect)) return CFMLEngine.DIALECT_LUCEE;
-
-		return defaultValue;
-	}
-
-	public static String toDialect(int dialect, String defaultValue) {
-		if (dialect == CFMLEngine.DIALECT_CFML) return "cfml";
-		if (dialect == CFMLEngine.DIALECT_LUCEE) return "lucee";
-		return defaultValue;
 	}
 
 	public static int toMonitorType(String type, int defaultValue) {
@@ -1303,6 +1292,76 @@ public final class ConfigWebUtil {
 		// Archive
 		// MUST check archive
 		return defaultValue;
+	}
+
+	public static List<PageSource> toAllLoadedPageSource(ConfigPro config, Mapping[] mappings, Resource res) {
+		Mapping mapping;
+		String path;
+		List<PageSource> results = new ArrayList<>();
+		PageSource ps;
+		// app mappings
+		if (mappings != null) {
+			for (int i = 0; i < mappings.length; i++) {
+				mapping = mappings[i];
+				if (mapping.hasPhysical()) {
+					path = ResourceUtil.getPathToChild(res, mapping.getPhysical());
+					if (path != null) {
+						ps = mapping.getPageSource(path);
+						if (ps instanceof PageSourceImpl && ((PageSourceImpl) ps).isLoad()) {
+							results.add(ps);
+							continue;
+						}
+
+					}
+				}
+			}
+		}
+		Mapping[] thisMappings = config.getMappings();
+		// config mappings
+		for (int i = 0; i < thisMappings.length; i++) {
+			mapping = thisMappings[i];
+			if (mapping.hasPhysical()) {
+				path = ResourceUtil.getPathToChild(res, mapping.getPhysical());
+				if (path != null) {
+					ps = mapping.getPageSource(path);
+					if (ps instanceof PageSourceImpl && ((PageSourceImpl) ps).isLoad()) {
+						results.add(ps);
+						continue;
+					}
+				}
+			}
+		}
+
+		// map resource to root mapping when same filesystem
+		Mapping rootMapping = thisMappings[thisMappings.length - 1];
+		Resource root;
+		if (rootMapping.hasPhysical() && res.getResourceProvider().getScheme().equals((root = rootMapping.getPhysical()).getResourceProvider().getScheme())) {
+
+			String realpath = "";
+			while (root != null && !ResourceUtil.isChildOf(res, root)) {
+				root = root.getParentResource();
+				realpath += "../";
+			}
+			String p2c = ResourceUtil.getPathToChild(res, root);
+			if (StringUtil.startsWith(p2c, '/') || StringUtil.startsWith(p2c, '\\')) p2c = p2c.substring(1);
+			realpath += p2c;
+			ps = rootMapping.getPageSource(realpath);
+			if (ps instanceof PageSourceImpl && ((PageSourceImpl) ps).isLoad()) {
+				results.add(ps);
+			}
+		}
+		// MUST better impl than this
+		if (config instanceof ConfigWebPro) {
+			Resource parent = res.getParentResource();
+			if (parent != null && !parent.equals(res)) {
+				Mapping m = ((ConfigWebPro) config).getApplicationMapping("application", "/", parent.getAbsolutePath(), null, true, false);
+				ps = m.getPageSource(res.getName());
+				if (ps instanceof PageSourceImpl && ((PageSourceImpl) ps).isLoad()) {
+					results.add(ps);
+				}
+			}
+		}
+		return results;
 	}
 
 	public static ConfigWeb toConfigWeb(Config config) {

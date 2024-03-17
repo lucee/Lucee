@@ -64,6 +64,22 @@ public final class StringUtil {
 			, 0x205F // medium mathematical space
 			, 0x3000 // ideographic space
 	};
+	private static final boolean[] WHITESPACES;
+
+	static {
+		// first get the lowest and highest number, so we have the offset of the array and the size
+		int highest = 0;
+		for (char c: SPECIAL_WHITE_SPACE_CHARS) {
+			if (c > highest) highest = c;
+		}
+		WHITESPACES = new boolean[highest + 1];
+		for (int i = 0; i < WHITESPACES.length; i++) {
+			WHITESPACES[i] = false;
+		}
+		for (char c: SPECIAL_WHITE_SPACE_CHARS) {
+			WHITESPACES[c] = true;
+		}
+	}
 
 	private static char[] QUOTE_8220 = new char[] { (char) 226, (char) 8364, (char) 339 };
 	private static char[] QUOTE_8221 = new char[] { (char) 226, (char) 8364, (char) 65533 };
@@ -121,6 +137,22 @@ public final class StringUtil {
 			if (chars[i] == c) return true;
 		}
 		return false;
+	}
+
+	public static String concat(String l, String r) {
+		return new StringBuilder(l.length() + r.length()).append(l).append(r).toString();
+	}
+
+	public static String concat(String l, String m, String r) {
+		return new StringBuilder(l.length() + m.length() + r.length()).append(l).append(m).append(r).toString();
+	}
+
+	public static String concat(String s1, String s2, String s3, String s4) {
+		return new StringBuilder(s1.length() + s2.length() + s3.length() + s4.length()).append(s1).append(s2).append(s3).append(s4).toString();
+	}
+
+	public static String concat(String s1, String s2, String s3, String s4, String s5) {
+		return new StringBuilder(s1.length() + s2.length() + s3.length() + s4.length() + s5.length()).append(s1).append(s2).append(s3).append(s4).append(s5).toString();
 	}
 
 	/**
@@ -241,23 +273,20 @@ public final class StringUtil {
 	}
 
 	/**
-	 * reapeats a string
+	 * repeats a string
 	 *
 	 * @param str string to repeat
-	 * @param count how many time string will be repeated
-	 * @return reapted string
+	 * @param count how many times string should be repeated
+	 * @return repeated string
 	 */
 	public static String repeatString(String str, int count) {
 		if (count <= 0) return "";
+
 		char[] chars = str.toCharArray();
-		char[] rtn = new char[chars.length * count];
-		int pos = 0;
-		for (int i = 0; i < count; i++) {
-			for (int y = 0; y < chars.length; y++)
-				rtn[pos++] = chars[y];
-			// rtn.append(str);
-		}
-		return new String(rtn);
+		StringBuilder cb = new StringBuilder(chars.length * count);
+		for (int i = 0; i < count; i++)
+			cb.append(chars);
+		return cb.toString();
 	}
 
 	/**
@@ -549,6 +578,24 @@ public final class StringUtil {
 			}
 		}
 		return false;
+	}
+
+	public static boolean hasSpecialWhiteSpace(String str) {
+		for (char c: str.toCharArray()) {
+			if (c < WHITESPACES.length && WHITESPACES[c]) return true;
+		}
+		return false;
+	}
+
+	public static String replaceSpecialWhiteSpace(String str) {
+		if (!hasSpecialWhiteSpace(str)) return str;
+
+		StringBuilder sb = new StringBuilder();
+		for (char c: str.toCharArray()) {
+			if (c < WHITESPACES.length && WHITESPACES[c]) sb.append(" ");
+			else sb.append(c);
+		}
+		return sb.toString();
 	}
 
 	public static boolean isWhiteSpace(char c) {
@@ -857,11 +904,11 @@ public final class StringUtil {
 	 * @return is first of given type
 	 */
 	public static boolean startsWith(String str, char prefix) {
-		return str != null && str.length() > 0 && str.charAt(0) == prefix;
+		return !StringUtil.isEmpty(str) && str.charAt(0) == prefix;
 	}
 
 	public static boolean startsWith(String str, char prefix1, char prefix2) {
-		return str != null && str.length() > 0 && (str.charAt(0) == prefix1 || str.charAt(0) == prefix2);
+		return !StringUtil.isEmpty(str) && (str.charAt(0) == prefix1 || str.charAt(0) == prefix2);
 	}
 
 	/**

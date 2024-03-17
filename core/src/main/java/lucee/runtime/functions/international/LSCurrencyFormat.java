@@ -73,23 +73,30 @@ public final class LSCurrencyFormat extends BIF {
 
 	public static String none(Locale locale, double number) {
 		NumberFormat nf = NumberFormat.getCurrencyInstance(locale);
-		return clean(StringUtil.replace(nf.format(number), nf.getCurrency().getSymbol(locale), "", false));
+		return clean(StringUtil.replace(nf.format(number), nf.getCurrency().getSymbol(locale), "", false), number);
 	}
 
 	public static String local(Locale locale, double number) {
-		return clean(NumberFormat.getCurrencyInstance(locale).format(number));
+		return clean(NumberFormat.getCurrencyInstance(locale).format(number), number);
 	}
 
 	public static String international(Locale locale, double number) {
 		NumberFormat nf = NumberFormat.getCurrencyInstance(locale);
 		Currency currency = nf.getCurrency();
-		String str = clean(StringUtil.replace(nf.format(number), nf.getCurrency().getSymbol(locale), "", false));
+		String str = clean(StringUtil.replace(nf.format(number), nf.getCurrency().getSymbol(locale), "", false), number);
 		return currency.getCurrencyCode() + " " + str;
 	}
 
-	private static String clean(String str) {
+	private static String clean(String str, double number) {
 		// Java 10 returns nbsp instead of a regular space
-		return str.replace(NBSP, ' ').trim();
+		if (number < 0 && str.length() > 1 && str.charAt(0) == '-') {
+			// java 11 returns -$1.00, instead of ($1.00), java 14 reverts this change
+			char[] chars = str.replace(NBSP, ' ').trim().toCharArray();
+			chars[0] = '(';
+			return String.valueOf(chars) + ')';
+		} else {
+			return str.replace(NBSP, ' ').trim();
+		}
 	}
 
 	public static double toDouble(Object number) throws PageException {

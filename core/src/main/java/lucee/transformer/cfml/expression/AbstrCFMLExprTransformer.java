@@ -23,6 +23,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import lucee.commons.lang.ExceptionUtil;
+import lucee.commons.lang.StringUtil;
 import lucee.runtime.Component;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageRuntimeException;
@@ -1126,7 +1127,7 @@ public abstract class AbstrCFMLExprTransformer {
 		if (data.srcCode.forwardIfCurrent('.')) {
 			rtn.append('.');
 			String rightSite = digit(data);
-			if (rightSite.length() > 0 && data.srcCode.forwardIfCurrent('e')) {
+			if (!StringUtil.isEmpty(rightSite) && data.srcCode.forwardIfCurrent('e')) {
 				Boolean expOp = null;
 				if (data.srcCode.forwardIfCurrent('+')) expOp = Boolean.TRUE;
 				else if (data.srcCode.forwardIfCurrent('-')) expOp = Boolean.FALSE;
@@ -1257,7 +1258,7 @@ public abstract class AbstrCFMLExprTransformer {
 		// [:|=]
 		if (data.srcCode.forwardIfCurrent(':', ']') || data.srcCode.forwardIfCurrent('=', ']')) {
 			flf = flf.getFunctionLib().getFunction("_literalOrderedStruct");
-			BIF bif = new BIF(data.factory, data.settings, flf);
+			BIF bif = new BIF(data.factory, data.settings, flf, data);
 			bif.setArgType(flf.getArgType());
 			try {
 				bif.setClassDefinition(flf.getFunctionClassDefinition());
@@ -1274,7 +1275,7 @@ public abstract class AbstrCFMLExprTransformer {
 			return var;
 		}
 
-		BIF bif = new BIF(data.factory, data.settings, flf);
+		BIF bif = new BIF(data.factory, data.settings, flf, data);
 		bif.setArgType(flf.getArgType());
 		try {
 			bif.setClassDefinition(flf.getFunctionClassDefinition());
@@ -1396,12 +1397,7 @@ public abstract class AbstrCFMLExprTransformer {
 	protected abstract ArrayList<lucee.transformer.bytecode.statement.Argument> getScriptFunctionArguments(Data data) throws TemplateException;
 
 	protected FunctionLibFunction getFLF(Data data, String name) {
-		FunctionLibFunction flf = null;
-		for (int i = 0; i < data.flibs.length; i++) {
-			flf = data.flibs[i].getFunction(name);
-			if (flf != null) break;
-		}
-		return flf;
+		return data.flibs.getFunction(name);
 	}
 
 	private Expression subDynamic(Data data, Expression expr, boolean tryStatic, boolean isStaticChild) throws TemplateException {
@@ -1758,10 +1754,7 @@ public abstract class AbstrCFMLExprTransformer {
 		if (checkLibrary) {
 			if (!(name instanceof Literal)) throw new TemplateException(data.srcCode, "Syntax error"); // should never happen!
 
-			for (int i = 0; i < data.flibs.length; i++) {
-				flf = data.flibs[i].getFunction(((Literal) name).getString());
-				if (flf != null) break;
-			}
+			flf = data.flibs.getFunction(((Literal) name).getString());
 			if (flf == null) {
 				checkLibrary = false;
 			}
@@ -1772,7 +1765,7 @@ public abstract class AbstrCFMLExprTransformer {
 			int pos = data.srcCode.getPos();
 			// Element Function
 			if (checkLibrary) {
-				BIF bif = new BIF(data.factory, data.settings, flf);
+				BIF bif = new BIF(data.factory, data.settings, flf, data);
 				// TODO data.ep.add(flf, bif, data.srcCode);
 
 				bif.setArgType(flf.getArgType());

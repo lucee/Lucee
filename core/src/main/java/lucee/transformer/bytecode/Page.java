@@ -44,7 +44,6 @@ import lucee.commons.io.IOUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.compiler.JavaFunction;
-import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.Component;
 import lucee.runtime.ComponentPageImpl;
 import lucee.runtime.InterfacePageImpl;
@@ -335,7 +334,7 @@ public final class Page extends BodyBase implements Root {
 		else if (isInterface(comp)) parent = InterfacePageImpl.class.getName();// "lucee/runtime/InterfacePage";
 		parent = parent.replace('.', '/');
 
-		cw.visit(Opcodes.V1_6, Opcodes.ACC_PUBLIC + Opcodes.ACC_FINAL, className, null, parent, interfaces);
+		cw.visit(ASMUtil.getJavaVersionForBytecodeGeneration(), Opcodes.ACC_PUBLIC + Opcodes.ACC_FINAL, className, null, parent, interfaces);
 		if (optionalPS != null) {
 			// we use full path when FD is enabled
 			String path = config.allowRequestTimeout() ? optionalPS.getRealpathWithVirtual() : optionalPS.getPhyscalFile().getAbsolutePath();
@@ -686,7 +685,7 @@ public final class Page extends BodyBase implements Root {
 		writeOutStatic(optionalPS, constr, keys, cw, comp, className);
 
 		// set field subs
-		FieldVisitor fv = cw.visitField(Opcodes.ACC_PRIVATE + Opcodes.ACC_FINAL, "subs", "[Llucee/runtime/CIPage;", null, null);
+		FieldVisitor fv = cw.visitField(Opcodes.ACC_PRIVATE, "subs", "[Llucee/runtime/CIPage;", null, null);
 		fv.visitEnd();
 
 		// create sub components/interfaces
@@ -700,10 +699,10 @@ public final class Page extends BodyBase implements Root {
 
 					tc.writeOut(constr, this);
 				}
-				writeGetSubPages(cw, className, subs, sourceCode.getDialect());
+				writeGetSubPages(cw, className, subs);
 			}
 		}
-		return cw.toByteArray();
+		return ASMUtil.verify(cw.toByteArray());
 	}
 
 	private Data getMatchingData(Function func, List<Data> datas) {
@@ -719,10 +718,10 @@ public final class Page extends BodyBase implements Root {
 	 * d.function; } return functions; }
 	 */
 
-	public static String createSubClass(String name, String subName, int dialect) {
+	public static String createSubClass(String name, String subName) {
 		// TODO handle special characters
 		if (!StringUtil.isEmpty(subName)) {
-			String suffix = (dialect == CFMLEngine.DIALECT_CFML ? Constants.CFML_CLASS_SUFFIX : Constants.LUCEE_CLASS_SUFFIX);
+			String suffix = (Constants.CFML_CLASS_SUFFIX);
 			subName = subName.toLowerCase();
 			if (name.endsWith(suffix)) name = name.substring(0, name.length() - 3) + "$" + subName + suffix;
 			else name += "$" + subName;
@@ -730,7 +729,7 @@ public final class Page extends BodyBase implements Root {
 		return name;
 	}
 
-	private void writeGetSubPages(ClassWriter cw, String name, List<TagCIObject> subs, int dialect) {
+	private void writeGetSubPages(ClassWriter cw, String name, List<TagCIObject> subs) {
 		// pageSource.getFullClassName().replace('.', '/');
 		GeneratorAdapter adapter = new GeneratorAdapter(Opcodes.ACC_PUBLIC + Opcodes.ACC_FINAL, GET_SUB_PAGES, null, null, cw);
 		Label endIF = new Label();
@@ -748,7 +747,7 @@ public final class Page extends BodyBase implements Root {
 		while (it.hasNext()) {
 			TagCIObject ci = it.next();
 			av.visitBeginItem(adapter, index++);
-			className = createSubClass(name, ci.getName(), dialect);
+			className = createSubClass(name, ci.getName());
 
 			adapter.visitVarInsn(Opcodes.ALOAD, 0);
 			adapter.visitMethodInsn(Opcodes.INVOKEVIRTUAL, name, "getPageSource", "()Llucee/runtime/PageSource;");
@@ -788,7 +787,7 @@ public final class Page extends BodyBase implements Root {
 			else {
 				TagCIObject comp = getTagCFObject(null);
 				if (comp != null) {
-					className = createSubClass(className, comp.getName(), sourceCode.getDialect());
+					className = createSubClass(className, comp.getName());
 				}
 			}
 			if (className != null) className = className.replace('.', '/');
@@ -967,7 +966,7 @@ public final class Page extends BodyBase implements Root {
 				ga.newInstance(Types.STATIC_STRUCT);
 				ga.dup();
 				ga.invokeConstructor(Types.STATIC_STRUCT, CONSTR_STATIC_STRUCT);
-				ga.putStatic(Type.getType(name), "staticStruct", Types.STATIC_STRUCT);
+				ga.putStatic(Type.getObjectType(name), "staticStruct", Types.STATIC_STRUCT);
 			}
 
 			// Array initialization
@@ -984,7 +983,7 @@ public final class Page extends BodyBase implements Root {
 				ga.invokeStatic(KEY_IMPL, KEY_INIT_KEYS);
 				ga.arrayStore(Types.COLLECTION_KEY);
 			}
-			ga.putStatic(Type.getType(name), "keys", Types.COLLECTION_KEY_ARRAY);
+			ga.putStatic(Type.getObjectType(name), "keys", Types.COLLECTION_KEY_ARRAY);
 
 			/////////////////
 			ga.returnValue();
@@ -995,7 +994,7 @@ public final class Page extends BodyBase implements Root {
 		// public StaticStruct getStaticStruct() {return _static;}
 		{
 			final GeneratorAdapter ga = new GeneratorAdapter(Opcodes.ACC_PUBLIC + Opcodes.ACC_FINAL, GET_STATIC_STRUCT, null, null, cw);
-			ga.getStatic(Type.getType(name), "staticStruct", Types.STATIC_STRUCT);
+			ga.getStatic(Type.getObjectType(name), "staticStruct", Types.STATIC_STRUCT);
 			ga.returnValue();
 			ga.endMethod();
 		}
@@ -1512,7 +1511,7 @@ public final class Page extends BodyBase implements Root {
 		GeneratorAdapter adapter = bc.getAdapter();
 		if ((attrs == null || attrs.size() == 0) && (meta == null || meta.size() == 0)) {
 			ASMConstants.NULL(bc.getAdapter());
-			bc.getAdapter().cast(Types.OBJECT, Types.STRUCT_IMPL);
+			bc.getAdapter().checkCast(Types.STRUCT_IMPL);
 			return;
 		}
 

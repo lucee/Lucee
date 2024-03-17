@@ -37,12 +37,12 @@ import java.util.Set;
 import java.util.Stack;
 import java.util.TimeZone;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.el.ELContext;
 import javax.servlet.Servlet;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletContext;
-import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServlet;
@@ -122,6 +122,7 @@ import lucee.runtime.exp.MissingIncludeException;
 import lucee.runtime.exp.NoLongerSupported;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageExceptionBox;
+import lucee.runtime.exp.PageServletException;
 import lucee.runtime.exp.RequestTimeoutException;
 import lucee.runtime.ext.tag.TagImpl;
 import lucee.runtime.functions.dynamicEvaluation.Serialize;
@@ -133,7 +134,6 @@ import lucee.runtime.listener.ApplicationContextSupport;
 import lucee.runtime.listener.ApplicationListener;
 import lucee.runtime.listener.ClassicApplicationContext;
 import lucee.runtime.listener.JavaSettingsImpl;
-import lucee.runtime.listener.ModernAppListener;
 import lucee.runtime.listener.ModernAppListenerException;
 import lucee.runtime.listener.NoneAppListener;
 import lucee.runtime.listener.SessionCookieData;
@@ -350,8 +350,6 @@ public final class PageContextImpl extends PageContext {
 	private PageException pe;
 	// private Throwable requestTimeoutException;
 
-	private int currentTemplateDialect = CFMLEngine.DIALECT_CFML;
-	private int requestDialect = CFMLEngine.DIALECT_CFML;
 	private boolean ignoreScopes = false;
 
 	private int appListenerType = ApplicationListener.TYPE_NONE;
@@ -363,7 +361,7 @@ public final class PageContextImpl extends PageContext {
 	private boolean fullNullSupport;
 
 	private static final boolean READ_CFID_FROM_URL = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.read.cfid.from.url", "true"), true);
-	private static int _idCounter = 1;
+	private static AtomicInteger _idCounter = new AtomicInteger(1);
 	private long lastTimeoutNoAction;
 
 	/**
@@ -560,8 +558,6 @@ public final class PageContextImpl extends PageContext {
 			this.fdEnabled = tmplPC.fdEnabled;
 			this.useSpecialMappings = tmplPC.useSpecialMappings;
 			this.serverPassword = tmplPC.serverPassword;
-			this.requestDialect = tmplPC.requestDialect;
-			this.currentTemplateDialect = tmplPC.currentTemplateDialect;
 
 			tmplPC.hasFamily = true;
 
@@ -690,8 +686,6 @@ public final class PageContextImpl extends PageContext {
 		timeZone = null;
 		url = null;
 		form = null;
-		currentTemplateDialect = CFMLEngine.DIALECT_CFML;
-		requestDialect = CFMLEngine.DIALECT_CFML;
 
 		// Pools
 		errorPagePool.clear();
@@ -1018,7 +1012,6 @@ public final class PageContextImpl extends PageContext {
 			long time = System.nanoTime();
 
 			Page currentPage = PageSourceImpl.loadPage(this, sources);
-			notSupported(config, currentPage.getPageSource());
 			if (runOnce && includeOnce.contains(currentPage.getPageSource())) return;
 			DebugEntryTemplate debugEntry = debugger.getEntry(this, currentPage.getPageSource());
 			try {
@@ -1052,7 +1045,6 @@ public final class PageContextImpl extends PageContext {
 		// no debug
 		else {
 			Page currentPage = PageSourceImpl.loadPage(this, sources);
-			notSupported(config, currentPage.getPageSource());
 			if (runOnce && includeOnce.contains(currentPage.getPageSource())) return;
 			try {
 				addPageSource(currentPage.getPageSource(), true);
@@ -1076,13 +1068,8 @@ public final class PageContextImpl extends PageContext {
 		}
 	}
 
-	public static void notSupported(Config config, PageSource ps) throws ApplicationException {
-		if (ps.getDialect() == CFMLEngine.DIALECT_LUCEE && config instanceof ConfigPro && !((ConfigPro) config).allowLuceeDialect()) notSupported();
-	}
-
 	public static void notSupported() throws ApplicationException {
-		throw new ApplicationException(
-				"The Lucee dialect is disabled, to enable the dialect set the environment variable or system property \"lucee.enable.dialect\" to \"true\" or set the attribute \"allow-lucee-dialect\" to \"true\" with the \"compiler\" tag inside the lucee-server.xml.");
+		throw new ApplicationException("The Lucee dialect is is no longer available!");
 	}
 
 	@Override
@@ -1439,9 +1426,8 @@ public final class PageContextImpl extends PageContext {
 	}
 
 	private String hintAplication(String prefix) {
-		boolean isCFML = getRequestDialect() == CFMLEngine.DIALECT_CFML;
-		return prefix + " with the tag " + (isCFML ? lucee.runtime.config.Constants.CFML_APPLICATION_TAG_NAME : lucee.runtime.config.Constants.LUCEE_APPLICATION_TAG_NAME)
-				+ " or with the " + (isCFML ? lucee.runtime.config.Constants.CFML_APPLICATION_EVENT_HANDLER : lucee.runtime.config.Constants.LUCEE_APPLICATION_EVENT_HANDLER);
+		return prefix + " with the tag " + (lucee.runtime.config.Constants.CFML_APPLICATION_TAG_NAME) + " or with the "
+				+ (lucee.runtime.config.Constants.CFML_APPLICATION_EVENT_HANDLER);
 
 	}
 
@@ -2066,18 +2052,18 @@ public final class PageContextImpl extends PageContext {
 	@Override
 	public void setAttribute(String name, Object value, int scope) {
 		switch (scope) {
-		case javax.servlet.jsp.PageContext.APPLICATION_SCOPE:
+		case PageContext.APPLICATION_SCOPE:
 			if (value == null) getServletContext().removeAttribute(name);
 			else getServletContext().setAttribute(name, value);
 			break;
-		case javax.servlet.jsp.PageContext.PAGE_SCOPE:
+		case PageContext.PAGE_SCOPE:
 			setAttribute(name, value);
 			break;
-		case javax.servlet.jsp.PageContext.REQUEST_SCOPE:
+		case PageContext.REQUEST_SCOPE:
 			if (value == null) req.removeAttribute(name);
 			else setAttribute(name, value);
 			break;
-		case javax.servlet.jsp.PageContext.SESSION_SCOPE:
+		case PageContext.SESSION_SCOPE:
 			HttpSession s = req.getSession(true);
 			if (value == null) s.removeAttribute(name);
 			else s.setAttribute(name, value);
@@ -2098,13 +2084,13 @@ public final class PageContextImpl extends PageContext {
 	@Override
 	public Object getAttribute(String name, int scope) {
 		switch (scope) {
-		case javax.servlet.jsp.PageContext.APPLICATION_SCOPE:
+		case PageContext.APPLICATION_SCOPE:
 			return getServletContext().getAttribute(name);
-		case javax.servlet.jsp.PageContext.PAGE_SCOPE:
+		case PageContext.PAGE_SCOPE:
 			return getAttribute(name);
-		case javax.servlet.jsp.PageContext.REQUEST_SCOPE:
+		case PageContext.REQUEST_SCOPE:
 			return req.getAttribute(name);
-		case javax.servlet.jsp.PageContext.SESSION_SCOPE:
+		case PageContext.SESSION_SCOPE:
 			HttpSession s = req.getSession();
 			if (s != null) return s.getAttribute(name);
 			break;
@@ -2160,13 +2146,13 @@ public final class PageContextImpl extends PageContext {
 	public Enumeration<String> getAttributeNamesInScope(int scope) {
 
 		switch (scope) {
-		case javax.servlet.jsp.PageContext.APPLICATION_SCOPE:
+		case PageContext.APPLICATION_SCOPE:
 			return getServletContext().getAttributeNames();
-		case javax.servlet.jsp.PageContext.PAGE_SCOPE:
+		case PageContext.PAGE_SCOPE:
 			return ItAsEnum.toStringEnumeration(variablesScope().keyIterator());
-		case javax.servlet.jsp.PageContext.REQUEST_SCOPE:
+		case PageContext.REQUEST_SCOPE:
 			return req.getAttributeNames();
-		case javax.servlet.jsp.PageContext.SESSION_SCOPE:
+		case PageContext.SESSION_SCOPE:
 			return req.getSession(true).getAttributeNames();
 		}
 		return null;
@@ -2660,14 +2646,12 @@ public final class PageContextImpl extends PageContext {
 
 	@Override
 	public final void execute(String realPath, boolean throwExcpetion, boolean onlyTopLevel) throws PageException {
-		requestDialect = currentTemplateDialect = CFMLEngine.DIALECT_LUCEE;
 		setFullNullSupport();
 		_execute(realPath, throwExcpetion, onlyTopLevel);
 	}
 
 	@Override
 	public final void executeCFML(String realPath, boolean throwExcpetion, boolean onlyTopLevel) throws PageException {
-		requestDialect = currentTemplateDialect = CFMLEngine.DIALECT_CFML;
 		setFullNullSupport();
 		_execute(realPath, throwExcpetion, onlyTopLevel);
 	}
@@ -2705,7 +2689,6 @@ public final class PageContextImpl extends PageContext {
 		ApplicationListener listener;
 		// if a listener is called (Web.cfc/Server.cfc we don't wanna any Application.cfc to be executed)
 		if (listenerContext) listener = new NoneAppListener();
-		else if (getRequestDialect() == CFMLEngine.DIALECT_LUCEE) listener = ModernAppListener.getInstance();
 		else if (gatewayContext) listener = config.getApplicationListener();
 		else listener = ((MappingImpl) ps.getMapping()).getApplicationListener();
 
@@ -2729,7 +2712,7 @@ public final class PageContextImpl extends PageContext {
 				}
 			}
 			PageException pe;
-			if (t instanceof ThreadDeath && getTimeoutStackTrace() != null) {
+			if (ExceptionUtil.isThreadDeath(t) && getTimeoutStackTrace() != null) {
 				t = pe = new RequestTimeoutException(this, (ThreadDeath) t);
 			}
 			else pe = Caster.toPageException(t, false);
@@ -2814,12 +2797,12 @@ public final class PageContextImpl extends PageContext {
 	}
 
 	@Override
-	public void include(String realPath) throws ServletException, IOException {
+	public void include(String realPath) throws PageServletException, IOException {
 		HTTPUtil.include(this, realPath);
 	}
 
 	@Override
-	public void forward(String realPath) throws ServletException, IOException {
+	public void forward(String realPath) throws PageServletException, IOException {
 		HTTPUtil.forward(this, realPath);
 	}
 
@@ -2917,7 +2900,7 @@ public final class PageContextImpl extends PageContext {
 				Charset charset = getWebCharset();
 
 				// check if we have multiple cookies with the name "cfid" and another one is valid
-				javax.servlet.http.Cookie[] cookies = getHttpServletRequest().getCookies();
+				javax.servlet.http.Cookie[] cookies = getHttpServletRequest().getCookies();/* JAVJAK */
 				String name, value;
 				if (cookies != null) {
 					for (int i = 0; i < cookies.length; i++) {
@@ -3301,14 +3284,12 @@ public final class PageContextImpl extends PageContext {
 
 	@Override
 	public void addPageSource(PageSource ps, boolean alsoInclude) {
-		currentTemplateDialect = ps.getDialect();
 		setFullNullSupport();
 		pathList.add(ps);
 		if (alsoInclude) includePathList.add(ps);
 	}
 
 	public void addPageSource(PageSource ps, PageSource psInc) {
-		currentTemplateDialect = ps.getDialect();
 		setFullNullSupport();
 		pathList.add(ps);
 		if (psInc != null) includePathList.add(psInc);
@@ -3318,7 +3299,6 @@ public final class PageContextImpl extends PageContext {
 	public void removeLastPageSource(boolean alsoInclude) {
 		if (!pathList.isEmpty()) pathList.removeLast();
 		if (!pathList.isEmpty()) {
-			currentTemplateDialect = pathList.getLast().getDialect();
 			setFullNullSupport();
 		}
 		if (alsoInclude && !includePathList.isEmpty()) includePathList.removeLast();
@@ -3499,10 +3479,8 @@ public final class PageContextImpl extends PageContext {
 	@Override
 	public void compile(PageSource pageSource) throws PageException {
 		Resource classRootDir = pageSource.getMapping().getClassRootDirectory();
-		int dialect = getCurrentTemplateDialect();
-
 		try {
-			config.getCompiler().compile(config, pageSource, config.getTLDs(dialect), config.getFLDs(dialect), classRootDir, false, ignoreScopes());
+			config.getCompiler().compile(config, pageSource, config.getTLDs(), config.getFLDs(), classRootDir, false, ignoreScopes());
 		}
 		catch (Exception e) {
 			throw Caster.toPageException(e);
@@ -3720,6 +3698,7 @@ public final class PageContextImpl extends PageContext {
 
 		short it = ((MappingImpl) page.getPageSource().getMapping()).getInspectTemplate();
 		if (it == ConfigPro.INSPECT_NEVER) return true;
+		if (it == ConfigPro.INSPECT_AUTO) return true;
 		if (it == ConfigPro.INSPECT_ALWAYS) return false;
 
 		return pagesUsed.contains("" + page.hashCode());
@@ -3960,7 +3939,7 @@ public final class PageContextImpl extends PageContext {
 	}
 
 	private void setFullNullSupport() {
-		fullNullSupport = currentTemplateDialect != CFMLEngine.DIALECT_CFML || (applicationContext != null && applicationContext.getFullNullSupport());
+		fullNullSupport = (applicationContext != null && applicationContext.getFullNullSupport());
 	}
 
 	public void registerLazyStatement(Statement s) {
@@ -3969,17 +3948,17 @@ public final class PageContextImpl extends PageContext {
 	}
 
 	@Override
-	public int getCurrentTemplateDialect() {
-		return currentTemplateDialect;
+	public int getCurrentTemplateDialect() {// FUTURE remove
+		return CFMLEngine.DIALECT_CFML;
 	}
 
 	@Override
-	public int getRequestDialect() {
-		return requestDialect;
+	public int getRequestDialect() {// FUTURE remove
+		return CFMLEngine.DIALECT_CFML;
 	}
 
 	@Override
-	public void include(String realPath, boolean flush) throws ServletException, IOException {
+	public void include(String realPath, boolean flush) throws IOException, PageServletException {
 		include(realPath);
 		if (flush) flush();
 	}
@@ -4130,10 +4109,13 @@ public final class PageContextImpl extends PageContext {
 		return config.getRegex();
 	}
 
-	private static synchronized int getIdCounter() {
-		_idCounter++;
-		if (_idCounter < 0) _idCounter = 1;
-		return _idCounter;
+	private static int getIdCounter() {
+		int id = _idCounter.incrementAndGet();
+		if (id < 0) {
+			_idCounter.set(1);
+			id = 1;
+		}
+		return id;
 	}
 
 	public boolean limitEvaluation() {

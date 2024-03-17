@@ -15,6 +15,6 @@
         }
     }
     catch(any e) {
-        writeoutput(e.message);
+        writeoutput(e.message&";main:"&structKeyList(main)&";sub:"&structKeyList(sub));
     }
 </cfscript>

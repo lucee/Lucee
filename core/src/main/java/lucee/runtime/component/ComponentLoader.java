@@ -30,7 +30,6 @@ import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.MappingUtil;
 import lucee.commons.lang.PhysicalClassLoader;
 import lucee.commons.lang.StringUtil;
-import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.CIObject;
 import lucee.runtime.CIPage;
 import lucee.runtime.Component;
@@ -146,9 +145,7 @@ public class ComponentLoader {
 		Object obj = _search(pc, loadingLocation, rawPath, searchLocal, searchRoot, false, RETURN_TYPE_PAGE, false, validate);
 
 		if (obj instanceof ComponentPageImpl) return (ComponentPageImpl) obj;
-		int dialect = pc.getCurrentTemplateDialect();
-		throw new ExpressionException(
-				"invalid " + toStringType(RETURN_TYPE_PAGE, dialect) + " definition, can't find " + toStringType(RETURN_TYPE_PAGE, dialect) + " [" + rawPath + "]");
+		throw new ExpressionException("invalid " + toStringType(RETURN_TYPE_PAGE) + " definition, can't find " + toStringType(RETURN_TYPE_PAGE) + " [" + rawPath + "]");
 	}
 
 	public static InterfaceImpl searchInterface(PageContext pc, PageSource loadingLocation, String rawPath) throws PageException {
@@ -186,26 +183,16 @@ public class ComponentLoader {
 				importDefintions = currP.getImportDefintions();
 			}
 		}
-
-		int dialect = currPS == null ? pc.getCurrentTemplateDialect() : currPS.getDialect();
 		// first try for the current dialect
-		Object obj = _search(pc, loadingLocation, rawPath, searchLocal, searchRoot, executeConstr, returnType, currPS, importDefintions, dialect, isExtendedComponent, validate);
-		// then we try the opposite dialect
-		if (obj == null && ((ConfigPro) pc.getConfig()).allowLuceeDialect()) { // only when the lucee dialect is enabled we have to check the opposite
-			obj = _search(pc, loadingLocation, rawPath, searchLocal, searchRoot, executeConstr, returnType, currPS, importDefintions,
-					dialect == CFMLEngine.DIALECT_CFML ? CFMLEngine.DIALECT_LUCEE : CFMLEngine.DIALECT_CFML, isExtendedComponent, validate);
-		}
+		Object obj = _search(pc, loadingLocation, rawPath, searchLocal, searchRoot, executeConstr, returnType, currPS, importDefintions, isExtendedComponent, validate);
 
-		if (obj == null)
-			throw new ExpressionException("invalid " + toStringType(returnType, dialect) + " definition, can't find " + toStringType(returnType, dialect) + " [" + rawPath + "]");
+		if (obj == null) throw new ExpressionException("invalid " + toStringType(returnType) + " definition, can't find " + toStringType(returnType) + " [" + rawPath + "]");
 		return obj;
 	}
 
 	private static Object _search(PageContext pc, PageSource loadingLocation, String rawPath, Boolean searchLocal, Boolean searchRoot, boolean executeConstr, short returnType,
-			PageSource currPS, ImportDefintion[] importDefintions, int dialect, final boolean isExtendedComponent, boolean validate) throws PageException {
+			PageSource currPS, ImportDefintion[] importDefintions, final boolean isExtendedComponent, boolean validate) throws PageException {
 		ConfigPro config = (ConfigPro) pc.getConfig();
-
-		if (dialect == CFMLEngine.DIALECT_LUCEE && !config.allowLuceeDialect()) PageContextImpl.notSupported();
 
 		boolean doCache = config.useComponentPathCache();
 		String sub = null;
@@ -220,7 +207,7 @@ public class ComponentLoader {
 
 		// app-String appName=pc.getApplicationContext().getName();
 		rawPath = rawPath.trim().replace('\\', '/');
-		String ext = "." + (dialect == CFMLEngine.DIALECT_CFML ? Constants.getCFMLComponentExtension() : Constants.getLuceeComponentExtension());
+		String ext = "." + Constants.getCFMLComponentExtension();
 		final String path = (rawPath.indexOf("./") == -1 && !rawPath.endsWith(ext)) ? rawPath.replace('.', '/') : rawPath;
 		boolean isRealPath = !StringUtil.startsWith(path, '/');
 		// PageSource currPS = pc.getCurrentPageSource();
@@ -423,7 +410,7 @@ public class ComponentLoader {
 		if (StringUtil.startsWithIgnoreCase(rawPath, "cfide.")) {
 			String rpm = Constants.DEFAULT_PACKAGE + "." + rawPath.substring(6);
 			try {
-				return _search(pc, loadingLocation, rpm, searchLocal, searchRoot, executeConstr, returnType, currPS, importDefintions, dialect, false, validate);
+				return _search(pc, loadingLocation, rpm, searchLocal, searchRoot, executeConstr, returnType, currPS, importDefintions, false, validate);
 			}
 			catch (ExpressionException ee) {
 				return null;
@@ -452,8 +439,8 @@ public class ComponentLoader {
 		// "+toStringType(returnType)+" ["+rawPath+"]");
 	}
 
-	private static String toStringType(short returnType, int dialect) {
-		if (RETURN_TYPE_COMPONENT == returnType) return dialect == CFMLEngine.DIALECT_LUCEE ? "class" : "component";
+	private static String toStringType(short returnType) {
+		if (RETURN_TYPE_COMPONENT == returnType) return "component";
 		if (RETURN_TYPE_INTERFACE == returnType) return "interface";
 		return "component/interface";
 	}
@@ -519,7 +506,7 @@ public class ComponentLoader {
 
 	private static CIPage loadSub(CIPage page, String sub) throws ApplicationException {
 		// TODO find a better way to create that class name
-		String subClassName = lucee.transformer.bytecode.Page.createSubClass(page.getPageSource().getClassName(), sub, page.getPageSource().getDialect());
+		String subClassName = lucee.transformer.bytecode.Page.createSubClass(page.getPageSource().getClassName(), sub);
 
 		CIPage[] subs = page.getSubPages();
 		for (int i = 0; i < subs.length; i++) {

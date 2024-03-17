@@ -1,7 +1,6 @@
 package lucee.runtime.config.maven;
 
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.SequenceInputStream;
@@ -19,7 +18,7 @@ import java.util.zip.ZipInputStream;
 import org.osgi.framework.Version;
 import org.xml.sax.SAXException;
 
-import lucee.commons.io.IOUtil;
+import lucee.commons.io.SystemUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.net.http.HTTPResponse;
 import lucee.commons.net.http.Header;
@@ -27,26 +26,29 @@ import lucee.commons.net.http.httpclient.HTTPEngine4Impl;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.date.DateCaster;
-import lucee.runtime.osgi.OSGiUtil;
 
 public class MavenUpdateProvider {
 
-	public static final int CONNECTION_TIMEOUT = 1000;
+	public static final int CONNECTION_TIMEOUT = 10000;
 
-	public static final String DEFAULT_LIST_PROVIDER = "https://oss.sonatype.org/service/local/lucene/search";
+	private static final String DEFAULT_LIST_PROVIDER = "https://oss.sonatype.org/service/local/lucene/search";
 	// public static final String DEFAULT_REPOSITORY = "https://repo1.maven.org/maven2";
 	// public static final String DEFAULT_REPOSITORY_SNAPSHOT =
 	// "https://oss.sonatype.org/service/local/repositories/snapshots/content";
 	// public static final String DEFAULT_REPOSITORY_RELEASES =
 	// "https://oss.sonatype.org/service/local/repositories/releases/content";
 
-	public static final String DEFAULT_REPOSITORY_SNAPSHOT = "https://oss.sonatype.org/content/repositories/snapshots/";
+	private static final String DEFAULT_REPOSITORY_SNAPSHOT = "https://oss.sonatype.org/content/repositories/snapshots/";
 	// public static final String DEFAULT_REPOSITORY_RELEASES =
 	// "https://oss.sonatype.org/content/repositories/releases/";
-	public static final String DEFAULT_REPOSITORY_RELEASES = "https://oss.sonatype.org/service/local/repositories/releases/content/";
+	private static final String DEFAULT_REPOSITORY_RELEASES = "https://oss.sonatype.org/service/local/repositories/releases/content/";
 
 	public static final String DEFAULT_GROUP = "org.lucee";
 	public static final String DEFAULT_ARTIFACT = "lucee";
+
+	private static String defaultListProvider;
+	private static String defaultRepositoryReleases;
+	private static String defaultRepositorySnapshots;
 
 	private String listProvider;
 	private String group;
@@ -54,24 +56,58 @@ public class MavenUpdateProvider {
 	private String repoSnapshots;
 	private String repoReleases;
 
-	public static void main(String[] args) throws Exception {
-		MavenUpdateProvider provider = new MavenUpdateProvider();
+	public static String getDefaultListProvider() {
+		if (defaultListProvider == null) {
+			String str = SystemUtil.getSystemPropOrEnvVar("lucee.mvn.provider.list", null);
+			if (!StringUtil.isEmpty(str, true)) {
+				try {
+					new URL(str.trim());
+					defaultListProvider = str.trim();
+				}
+				catch (Exception e) {
+				}
+			}
+			if (defaultListProvider == null) defaultListProvider = DEFAULT_LIST_PROVIDER;
+		}
+		return defaultListProvider;
+	}
 
-		// print.e(provider.list());
+	public static String getDefaultRepositoryReleases() {
+		if (defaultRepositoryReleases == null) {
+			String str = SystemUtil.getSystemPropOrEnvVar("lucee.mvn.repo.releases", null);
+			if (!StringUtil.isEmpty(str, true)) {
+				try {
+					new URL(str.trim());
+					defaultRepositoryReleases = str.trim();
+				}
+				catch (Exception e) {
+				}
+			}
+			if (defaultRepositoryReleases == null) defaultRepositoryReleases = DEFAULT_REPOSITORY_RELEASES;
+		}
+		return defaultRepositoryReleases;
+	}
 
-		// print.e(provider.detail(OSGiUtil.toVersion("5.3.8.100-SNAPSHOT")));
-		// print.e(provider.detail(OSGiUtil.toVersion("6.0.0.561-RC")));
-
-		IOUtil.copy(provider.getLoader(OSGiUtil.toVersion("5.3.8.100-SNAPSHOT")), new FileOutputStream("/Users/mic/tmp8/5.3.8.100-SNAPSHOT.jar.zip"), true, true);
-		IOUtil.copy(provider.getLoader(OSGiUtil.toVersion("6.0.0.572-RC")), new FileOutputStream("/Users/mic/tmp8/6.0.0.572-RC.jar.zip"), true, true);
-		IOUtil.copy(provider.getCore(OSGiUtil.toVersion("5.3.8.100-SNAPSHOT")), new FileOutputStream("/Users/mic/tmp8/5.3.8.100-SNAPSHOT.lco.zip"), true, true);
-
+	public static String getDefaultRepositorySnapshots() {
+		if (defaultRepositorySnapshots == null) {
+			String str = SystemUtil.getSystemPropOrEnvVar("lucee.mvn.repo.snapshots", null);
+			if (!StringUtil.isEmpty(str, true)) {
+				try {
+					new URL(str.trim());
+					defaultRepositorySnapshots = str.trim();
+				}
+				catch (Exception e) {
+				}
+			}
+			if (defaultRepositorySnapshots == null) defaultRepositorySnapshots = DEFAULT_REPOSITORY_SNAPSHOT;
+		}
+		return defaultRepositorySnapshots;
 	}
 
 	public MavenUpdateProvider() {
-		this.listProvider = DEFAULT_LIST_PROVIDER;
-		this.repoSnapshots = DEFAULT_REPOSITORY_SNAPSHOT;
-		this.repoReleases = DEFAULT_REPOSITORY_RELEASES;
+		this.listProvider = getDefaultListProvider();
+		this.repoSnapshots = getDefaultRepositorySnapshots();
+		this.repoReleases = getDefaultRepositoryReleases();
 		this.group = DEFAULT_GROUP;
 		this.artifact = DEFAULT_ARTIFACT;
 	}

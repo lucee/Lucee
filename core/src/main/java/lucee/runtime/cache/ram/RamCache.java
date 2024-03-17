@@ -83,9 +83,6 @@ public class RamCache extends CacheSupport {
 		}
 	}
 
-	public static void init(Config config, String[] cacheNames, Struct[] arguments) {// print.ds();
-	}
-
 	@Override
 	public void init(Config config, String cacheName, Struct arguments) throws IOException {
 		// RamCache is also used without calling init, because of that we have this test in constructor and

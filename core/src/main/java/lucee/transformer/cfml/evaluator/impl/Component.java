@@ -23,7 +23,6 @@ import java.util.List;
 import java.util.Map;
 
 import lucee.commons.io.res.util.ResourceUtil;
-import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.PageSource;
 import lucee.runtime.config.Constants;
 import lucee.runtime.type.util.ComponentUtil;
@@ -77,8 +76,7 @@ public class Component extends EvaluatorSupport {
 			else {
 				// is in script
 				Tag p = ASMUtil.getParentTag(tag);
-				if ((pPage = p.getParent()) instanceof Page && p.getTagLibTag().getName().equalsIgnoreCase(
-						((Page) pPage).getSourceCode().getDialect() == CFMLEngine.DIALECT_CFML ? Constants.CFML_SCRIPT_TAG_NAME : Constants.LUCEE_SCRIPT_TAG_NAME)) { // chnaged
+				if ((pPage = p.getParent()) instanceof Page && p.getTagLibTag().getName().equalsIgnoreCase(Constants.CFML_SCRIPT_TAG_NAME)) { // chnaged
 
 					page = (Page) pPage;
 					// move imports from script to component body
@@ -109,7 +107,7 @@ public class Component extends EvaluatorSupport {
 		// is a full grown component or an inline component
 		if (!inline && isInsideCITemplate(page) == Boolean.FALSE) {
 			throw new EvaluatorException("Wrong Context, [" + tlt.getFullName() + "] tag must be inside a file with the extension [" + Constants.getCFMLComponentExtension()
-					+ "] or [" + Constants.getLuceeComponentExtension() + "], only inline components are allowed outside ");
+					+ "], only inline components are allowed outside ");
 		}
 
 		boolean isComponent = tlt.getTagClassDefinition().isClassNameEqualTo("lucee.runtime.tag.Component");

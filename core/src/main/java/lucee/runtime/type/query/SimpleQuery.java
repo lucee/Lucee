@@ -647,7 +647,7 @@ public class SimpleQuery implements Query, ResultSet, Objects, QueryResult {
 	@Override
 
 	public QueryColumn getColumn(Key key, QueryColumn defaultValue) {
-		if (key.getString().length() > 0) {
+		if (!StringUtil.isEmpty(key.getString())) {
 			char c = key.lowerCharAt(0);
 			if (c == 'r') {
 				if (key.equals(KeyConstants._RECORDCOUNT)) return new QueryColumnRef(this, key, Types.INTEGER);

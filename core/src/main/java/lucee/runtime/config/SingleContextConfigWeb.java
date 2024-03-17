@@ -18,7 +18,6 @@ import javax.servlet.ServletConfig;
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.jsp.JspWriter;
 
 import org.osgi.framework.Version;
 
@@ -168,18 +167,18 @@ class SingleContextConfigWeb extends ConfigBase implements ConfigWebInner {
 	}
 
 	@Override
-	public FunctionLib[] getFLDs(int dialect) {
+	public FunctionLib getFLDs() {
+		return cs.getFLDs();
+	}
+
+	@Override
+	public FunctionLib[] getFLDs(int dialect) { // used in image extension
 		return cs.getFLDs(dialect);
 	}
 
 	@Override
-	public FunctionLib getCombinedFLDs(int dialect) {
-		return cs.getCombinedFLDs(dialect);
-	}
-
-	@Override
-	public TagLib[] getTLDs(int dialect) {
-		return cs.getTLDs(dialect);
+	public TagLib[] getTLDs() {
+		return cs.getTLDs();
 	}
 
 	@Override
@@ -431,8 +430,8 @@ class SingleContextConfigWeb extends ConfigBase implements ConfigWebInner {
 	}
 
 	@Override
-	public TagLib getCoreTagLib(int dialect) {
-		return cs.getCoreTagLib(dialect);
+	public TagLib getCoreTagLib() {
+		return cs.getCoreTagLib();
 	}
 
 	@Override
@@ -451,18 +450,23 @@ class SingleContextConfigWeb extends ConfigBase implements ConfigWebInner {
 	}
 
 	@Override
-	public String getBaseComponentTemplate(int dialect) {
+	public String getBaseComponentTemplate(int dialect) { // FUTURE remove
 		return cs.getBaseComponentTemplate(dialect);
 	}
 
 	@Override
-	public PageSource getBaseComponentPageSource(int dialect) {
+	public String getBaseComponentTemplate() {
+		return cs.getBaseComponentTemplate();
+	}
+
+	@Override
+	public PageSource getBaseComponentPageSource(int dialect) { // FUTURE remove
 		return cs.getBaseComponentPageSource(dialect);
 	}
 
 	@Override
-	public PageSource getBaseComponentPageSource(int dialect, PageContext pc, boolean force) {
-		return cs.getBaseComponentPageSource(dialect, pc, force);
+	public PageSource getBaseComponentPageSource(PageContext pc, boolean force) {
+		return cs.getBaseComponentPageSource(pc, force);
 	}
 
 	@Override
@@ -1306,11 +1310,6 @@ class SingleContextConfigWeb extends ConfigBase implements ConfigWebInner {
 	}
 
 	@Override
-	public boolean allowLuceeDialect() {
-		return cs.allowLuceeDialect();
-	}
-
-	@Override
 	public Map<String, ClassDefinition> getCacheDefinitions() {
 		return cs.getCacheDefinitions();
 	}
@@ -1528,7 +1527,7 @@ class SingleContextConfigWeb extends ConfigBase implements ConfigWebInner {
 	}
 
 	@Override
-	public JspWriter getWriter(PageContext pc, HttpServletRequest req, HttpServletResponse rsp) {
+	public CFMLWriter getWriter(PageContext pc, HttpServletRequest req, HttpServletResponse rsp) {
 		return getCFMLWriter(pc, req, rsp);
 	}
 
@@ -1655,8 +1654,8 @@ class SingleContextConfigWeb extends ConfigBase implements ConfigWebInner {
 	}
 
 	@Override
-	public CIPage getBaseComponentPage(int dialect, PageContext pc) throws PageException {
-		return helper.getBaseComponentPage(dialect, pc);
+	public CIPage getBaseComponentPage(PageContext pc) throws PageException {
+		return helper.getBaseComponentPage(pc);
 	}
 
 	@Override
@@ -1808,7 +1807,6 @@ class SingleContextConfigWeb extends ConfigBase implements ConfigWebInner {
 	}
 
 	private void createMapping() {
-
 		Map<String, Mapping> existing = getExistingMappings();
 
 		// Mapping
@@ -1824,6 +1822,7 @@ class SingleContextConfigWeb extends ConfigBase implements ConfigWebInner {
 					ex = existing.get(sm[i].getVirtualLowerCase());
 					if (ex != null && ex.equals(sm[i])) {
 						mappings.put(ex.getVirtualLowerCase(), ex);
+						continue;
 					}
 					else if (sm[i] instanceof MappingImpl) {
 						tmp = ((MappingImpl) sm[i]).cloneReadOnly(this);
@@ -1834,16 +1833,23 @@ class SingleContextConfigWeb extends ConfigBase implements ConfigWebInner {
 						tmp = sm[i];
 						mappings.put(tmp.getVirtualLowerCase(), tmp);
 					}
+
+					if (ex instanceof MappingImpl) {
+						((MappingImpl) ex).flush();
+					}
+
 				}
 			}
 		}
 		if (!finished) {
 			Mapping m;
 			if (ResourceUtil.isUNCPath(getRootDirectory().getPath())) {
-				m = new MappingImpl(this, "/", getRootDirectory().getPath(), null, ConfigPro.INSPECT_UNDEFINED, true, true, true, true, false, false, null, -1, -1);
+				m = new MappingImpl(this, "/", getRootDirectory().getPath(), null, ConfigPro.INSPECT_UNDEFINED, ConfigPro.INSPECT_INTERVAL_UNDEFINED,
+						ConfigPro.INSPECT_INTERVAL_UNDEFINED, true, true, true, true, false, false, null, -1, -1);
 			}
 			else {
-				m = new MappingImpl(this, "/", "/", null, ConfigPro.INSPECT_UNDEFINED, true, true, true, true, false, false, null, -1, -1, true, true);
+				m = new MappingImpl(this, "/", "/", null, ConfigPro.INSPECT_UNDEFINED, ConfigPro.INSPECT_INTERVAL_UNDEFINED, ConfigPro.INSPECT_INTERVAL_UNDEFINED, true, true, true,
+						true, false, false, null, -1, -1, true, true);
 			}
 			ex = existing.get("/");
 			if (ex != null && ex.equals(m)) {
@@ -2031,6 +2037,21 @@ class SingleContextConfigWeb extends ConfigBase implements ConfigWebInner {
 	@Override
 	public String getMainLogger() {
 		return cs.getMainLogger();
+	}
+
+	@Override
+	public int getInspectTemplateAutoInterval(boolean slow) {
+		return cs.getInspectTemplateAutoInterval(slow);
+	}
+
+	@Override
+	public boolean getFormUrlAsStruct() {
+		return cs.getFormUrlAsStruct();
+	}
+
+	@Override
+	public int getReturnFormat() {
+		return cs.getReturnFormat();
 	}
 
 }

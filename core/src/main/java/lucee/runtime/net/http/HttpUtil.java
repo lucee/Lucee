@@ -30,6 +30,7 @@ import lucee.commons.lang.Pair;
 import lucee.runtime.PageContext;
 import lucee.runtime.config.Config;
 import lucee.runtime.engine.ThreadLocalPageContext;
+import lucee.runtime.thread.SerializableCookie;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 
@@ -103,7 +104,7 @@ public class HttpUtil {
 
 	public static Cookie[] cloneCookies(Config config, HttpServletRequest req) {
 		Cookie[] src = ReqRspUtil.getCookies(req, CharsetUtil.getWebCharset());
-		if (src == null) return new Cookie[0];
+		if (src == null) return SerializableCookie.COOKIES0;
 
 		Cookie[] dest = new Cookie[src.length];
 		for (int i = 0; i < src.length; i++) {

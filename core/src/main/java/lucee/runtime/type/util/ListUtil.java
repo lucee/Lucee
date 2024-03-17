@@ -378,7 +378,7 @@ public final class ListUtil {
 		char c;
 
 		// remove at start
-		outer: while (list.length() > 0) {
+		outer: while (!StringUtil.isEmpty(list)) {
 			c = list.charAt(0);
 			for (int i = 0; i < del.length; i++) {
 				if (c == del[i]) {
@@ -390,7 +390,7 @@ public final class ListUtil {
 		}
 
 		int len;
-		outer: while (list.length() > 0) {
+		outer: while (!StringUtil.isEmpty(list)) {
 			c = list.charAt(list.length() - 1);
 			for (int i = 0; i < del.length; i++) {
 				if (c == del[i]) {
@@ -420,7 +420,7 @@ public final class ListUtil {
 		char c;
 
 		// remove at start
-		outer: while (list.length() > 0) {
+		outer: while (!StringUtil.isEmpty(list)) {
 			c = list.charAt(0);
 			for (int i = 0; i < del.length; i++) {
 				if (c == del[i]) {
@@ -433,7 +433,7 @@ public final class ListUtil {
 		}
 
 		int len;
-		outer: while (list.length() > 0) {
+		outer: while (!StringUtil.isEmpty(list)) {
 			c = list.charAt(list.length() - 1);
 			for (int i = 0; i < del.length; i++) {
 				if (c == del[i]) {
@@ -543,7 +543,7 @@ public final class ListUtil {
 
 		// remove at start
 		if (ignoreEmpty) {
-			outer: while (list.length() > 0) {
+			outer: while (!StringUtil.isEmpty(list)) {
 				c = list.charAt(0);
 				for (int i = 0; i < del.length; i++) {
 					if (c == del[i]) {

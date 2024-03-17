@@ -16,7 +16,7 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  * 
  ---><cfscript>
-component extends="org.lucee.cfml.test.LuceeTestCase" labels="image" {
+component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	
 
 	public void function testImageAddBorder() localmode="true" {

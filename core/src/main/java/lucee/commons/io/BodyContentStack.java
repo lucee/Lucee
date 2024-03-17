@@ -71,11 +71,11 @@ public final class BodyContentStack {
 	 */
 	public BodyContent push() {
 		if (current.after == null) {
-			current.after = new Entry(current, new BodyContentImpl(current.body == null ? (JspWriter) base : current.body));
+			current.after = new Entry(current, new BodyContentImpl(current.body == null ? base : current.body));
 		}
 		else {
 			current.after.doDevNull = false;
-			current.after.body.init(current.body == null ? (JspWriter) base : current.body);
+			current.after.body.init(current.body == null ? base : current.body);
 		}
 		current = current.after;
 		return current.body;

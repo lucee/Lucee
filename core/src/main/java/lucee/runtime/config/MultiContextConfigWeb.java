@@ -28,7 +28,6 @@ import javax.servlet.ServletConfig;
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.jsp.JspWriter;
 
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.res.Resource;
@@ -224,8 +223,8 @@ class MultiContextConfigWeb extends ConfigImpl implements ServletConfig, ConfigW
 	}
 
 	@Override
-	public CIPage getBaseComponentPage(int dialect, PageContext pc) throws PageException {
-		return helper.getBaseComponentPage(dialect, pc);
+	public CIPage getBaseComponentPage(PageContext pc) throws PageException {
+		return helper.getBaseComponentPage(pc);
 	}
 
 	@Override
@@ -440,7 +439,7 @@ class MultiContextConfigWeb extends ConfigImpl implements ServletConfig, ConfigW
 	}
 
 	@Override
-	public JspWriter getWriter(PageContext pc, HttpServletRequest req, HttpServletResponse rsp) {
+	public CFMLWriter getWriter(PageContext pc, HttpServletRequest req, HttpServletResponse rsp) {
 		return getCFMLWriter(pc, req, rsp);
 	}
 

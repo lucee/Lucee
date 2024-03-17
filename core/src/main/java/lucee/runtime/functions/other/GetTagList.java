@@ -28,8 +28,6 @@ import java.util.Map;
 
 import lucee.runtime.PageContext;
 import lucee.runtime.config.ConfigPro;
-import lucee.runtime.config.ConfigWebUtil;
-import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.type.Struct;
@@ -42,23 +40,10 @@ public final class GetTagList implements Function {
 	private static final long serialVersionUID = -5143967669895264247L;
 
 	public static lucee.runtime.type.Struct call(PageContext pc) throws PageException {
-		return _call(pc, pc.getCurrentTemplateDialect());
-	}
-
-	public static lucee.runtime.type.Struct call(PageContext pc, String strDialect) throws PageException {
-		int dialect = ConfigWebUtil.toDialect(strDialect, -1);
-		if (dialect == -1) throw new FunctionException(pc, "GetTagList", 1, "dialect", "invalid dialect [" + strDialect + "] definition");
-
-		return _call(pc, dialect);
-	}
-
-	private static lucee.runtime.type.Struct _call(PageContext pc, int dialect) throws PageException {
 		Struct sct = new StructImpl(StructImpl.TYPE_LINKED);
-		// synchronized(sct) {
-		// hasSet=true;
 		TagLib[] tlds;
 		TagLibTag tag;
-		tlds = ((ConfigPro) pc.getConfig()).getTLDs(dialect);
+		tlds = ((ConfigPro) pc.getConfig()).getTLDs();
 
 		for (int i = 0; i < tlds.length; i++) {
 			String ns = tlds[i].getNameSpaceAndSeparator();
@@ -81,8 +66,6 @@ public final class GetTagList implements Function {
 				inner.put(t, "");
 			}
 		}
-		// }
-		// }
 		return sct;
 	}
 }

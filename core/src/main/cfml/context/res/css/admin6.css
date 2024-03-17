@@ -230,7 +230,7 @@ body.single #contenttd {
 	color:#000;
 }
 .linkContext a {
-	color:#36c;
+	color:#000 !important;
 	text-decoration:none;
 
 }

@@ -1,6 +1,6 @@
 package lucee.runtime.servlet.jsp;
 
-import javax.servlet.jsp.tagext.BodyTag;
+import /* JAVJAK */ javax.servlet.jsp.tagext.BodyTag;
 
 public interface BodyTagPro extends BodyTag, TagPro {
 

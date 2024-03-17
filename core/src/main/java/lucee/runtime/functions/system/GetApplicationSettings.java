@@ -112,7 +112,7 @@ public class GetApplicationSettings extends BIF {
 			sct.setEL("sessionCookie", sc);
 		}
 		ProxyData ProxyData = acs.getProxyData();
-		if( ProxyData != null) {
+		if (ProxyData != null) {
 			Struct sc = new StructImpl(Struct.TYPE_LINKED);
 			sc.setEL("server", ProxyData.getServer());
 			sc.setEL("port", ProxyData.getPort());
@@ -194,6 +194,7 @@ public class GetApplicationSettings extends BIF {
 		sct.setEL("triggerDataMember", Caster.toBoolean(ac.getTriggerComponentDataMember()));
 		sct.setEL("sameformfieldsasarray", Caster.toBoolean(ac.getSameFieldAsArray(Scope.SCOPE_FORM)));
 		sct.setEL("sameurlfieldsasarray", Caster.toBoolean(ac.getSameFieldAsArray(Scope.SCOPE_URL)));
+		sct.setEL("formUrlAsStruct", Caster.toBoolean(acs.getFormUrlAsStruct()));
 
 		Object ds = ac.getDefDataSource();
 		if (ds instanceof DataSource) ds = _call((DataSource) ds);

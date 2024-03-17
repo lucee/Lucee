@@ -18,10 +18,10 @@
  **/
 package lucee.runtime.config;
 
-import javax.servlet.ServletConfig;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.jsp.JspWriter;
+import /* JAVJAK */ javax.servlet.ServletConfig;
+import /* JAVJAK */ javax.servlet.http.HttpServletRequest;
+import /* JAVJAK */ javax.servlet.http.HttpServletResponse;
+import /* JAVJAK */ javax.servlet.jsp.JspWriter;
 
 import lucee.commons.io.res.Resource;
 import lucee.runtime.CFMLFactory;

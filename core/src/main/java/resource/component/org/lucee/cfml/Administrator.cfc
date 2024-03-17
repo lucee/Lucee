@@ -2074,7 +2074,9 @@ component {
 	* @localMode Defines how the local scope of a function is invoked when a variable with no scope definition is used, can be either [classic,modern]
 	* @cgiReadonly Defines whether the CGI Scope is read only or not.
 	*/
-	public void function updateScope( string scopeCascadingType, boolean allowImplicidQueryCall, boolean mergeFormAndUrl, boolean sessionManagement, boolean clientManagement, boolean domainCookies, boolean clientCookies, timespan clientTimeout, timespan sessionTimeout, string clientStorage, string sessionStorage, timespan applicationTimeout, string sessionType, string localMode, boolean cgiReadonly ){
+	public void function updateScope( string scopeCascadingType, boolean allowImplicidQueryCall, boolean mergeFormAndUrl, boolean sessionManagement, boolean clientManagement, 
+		boolean domainCookies, boolean clientCookies, timespan clientTimeout, timespan sessionTimeout, string clientStorage, string sessionStorage, 
+		timespan applicationTimeout, string sessionType, string localMode, boolean cgiReadonly, boolean formUrlAsStruct){
 		var existing = getScope();
 		admin
 			action="updateScope"
@@ -2095,6 +2097,7 @@ component {
 			sessionType=isNull(arguments.sessionType) || isEmpty(arguments.sessionType) ? existing.sessionType : arguments.sessionType
 			localMode=isNull(arguments.localMode) || isEmpty(arguments.localMode) ? existing.localMode : arguments.localMode
 			cgiReadonly=isNull(arguments.cgiReadonly) || isEmpty(arguments.cgiReadonly) ? existing.cgiReadonly : arguments.cgiReadonly
+			formUrlAsStruct=isNull(arguments.formUrlAsStruct) || isEmpty(arguments.formUrlAsStruct) ? existing.formUrlAsStruct : arguments.formUrlAsStruct
 			remoteClients="#variables.remoteClients#";
 	}
 
@@ -2121,6 +2124,7 @@ component {
 			sessionType=""
 			localMode=""
 			cgiReadonly=""
+			formUrlAsStruct=""
 			remoteClients="#variables.remoteClients#";
 	}
 
@@ -2829,6 +2833,7 @@ component {
 
 	/**
 	* @hint executes and run the update details
+	* @deprecated no longer use this, will no longer be supported in the future
 	*/
 	public void function runUpdate(){
 		admin

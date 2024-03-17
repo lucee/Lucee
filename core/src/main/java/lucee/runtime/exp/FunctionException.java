@@ -106,15 +106,10 @@ public final class FunctionException extends ExpressionException {
 	}
 
 	private static String getFunctionInfo(PageContext pc, String functionName) {
-		FunctionLib[] flds;
-		int dialect = pc.getCurrentTemplateDialect();
-		flds = ((ConfigPro) pc.getConfig()).getFLDs(dialect);
+		FunctionLib flds = ((ConfigPro) pc.getConfig()).getFLDs();
 
 		FunctionLibFunction function = null;
-		for (int i = 0; i < flds.length; i++) {
-			function = flds[i].getFunction(functionName.toLowerCase());
-			if (function != null) break;
-		}
+		function = flds.getFunction(functionName.toLowerCase());
 		if (function == null) return "";
 
 		StringBuilder rtn = new StringBuilder();

@@ -222,6 +222,10 @@ public final class ExceptionUtil {
 		return t;
 	}
 
+	public static boolean isThreadDeath(Throwable t) {
+		return (unwrap(t) instanceof ThreadDeath); // never catch a ThreadDeath
+	}
+
 	/**
 	 * A java.lang.ThreadDeath must never be caught, so any catch(Throwable t) must go through this
 	 * method in order to ensure that the throwable is not of type ThreadDeath
@@ -229,7 +233,7 @@ public final class ExceptionUtil {
 	 * @param t the thrown Throwable
 	 */
 	public static void rethrowIfNecessary(Throwable t) {
-		if (unwrap(t) instanceof ThreadDeath) throw (ThreadDeath) t; // never catch a ThreadDeath
+		if (isThreadDeath(t)) throw (Error) t; // never catch a ThreadDeath
 	}
 
 	public static TemplateLine getThrowingPosition(PageContext pc, Throwable t) {

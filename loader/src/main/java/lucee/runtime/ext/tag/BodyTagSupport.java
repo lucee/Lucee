@@ -18,9 +18,9 @@
  **/
 package lucee.runtime.ext.tag;
 
-import javax.servlet.jsp.JspException;
-import javax.servlet.jsp.tagext.BodyContent;
-import javax.servlet.jsp.tagext.BodyTag;
+import /* JAVJAK */ javax.servlet.jsp.JspException;
+import /* JAVJAK */ javax.servlet.jsp.tagext.BodyContent;
+import /* JAVJAK */ javax.servlet.jsp.tagext.BodyTag;
 
 /**
  * Implementation of the BodyTag
@@ -32,33 +32,21 @@ public abstract class BodyTagSupport extends TagSupport implements BodyTag {
 	 */
 	protected BodyContent bodyContent = null;
 
-	/**
-	 * @see javax.servlet.jsp.tagext.BodyTag#setBodyContent(javax.servlet.jsp.tagext.BodyContent)
-	 */
 	@Override
 	public void setBodyContent(final BodyContent bodyContent) {
 		this.bodyContent = bodyContent;
 	}
 
-	/**
-	 * @see javax.servlet.jsp.tagext.BodyTag#doInitBody()
-	 */
 	@Override
 	public void doInitBody() throws JspException {
 
 	}
 
-	/**
-	 * @see javax.servlet.jsp.tagext.IterationTag#doAfterBody()
-	 */
 	@Override
 	public int doAfterBody() throws JspException {
 		return SKIP_BODY;
 	}
 
-	/**
-	 * @see javax.servlet.jsp.tagext.Tag#release()
-	 */
 	@Override
 	public void release() {
 		super.release();

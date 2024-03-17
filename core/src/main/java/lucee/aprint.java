@@ -33,8 +33,6 @@ import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
 
-import javax.servlet.http.Cookie;
-
 import org.w3c.dom.Attr;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
@@ -50,6 +48,7 @@ import lucee.commons.lang.SystemOut;
 import lucee.runtime.engine.CFMLEngineImpl;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
+import lucee.runtime.thread.SerializableCookie;
 import lucee.runtime.type.QueryImpl;
 
 /**
@@ -309,10 +308,11 @@ public class aprint {
 		else if (o instanceof Node) _eo(ps, (Node) o);
 		else if (o instanceof Throwable) _eo(ps, (Throwable) o);
 		else if (o instanceof Attributes) _eo(ps, (Attributes) o);
-		else if (o instanceof Cookie) {
-			Cookie c = (Cookie) o;
-			ps.println("Cookie(name:" + c.getName() + ";domain:" + c.getDomain() + ";maxage:" + c.getMaxAge() + ";path:" + c.getPath() + ";value:" + c.getValue() + ";version:"
-					+ c.getVersion() + ";secure:" + c.getSecure() + ")");
+		else if (SerializableCookie.isCookie(o)) {
+
+			ps.println("Cookie(name:" + SerializableCookie.toCookie(o).getName() + ";domain:" + SerializableCookie.toCookie(o).getDomain() + ";maxage:"
+					+ SerializableCookie.toCookie(o).getMaxAge() + ";path:" + SerializableCookie.toCookie(o).getPath() + ";value:" + SerializableCookie.toCookie(o).getValue()
+					+ ";version:" + SerializableCookie.toCookie(o).getVersion() + ";secure:" + SerializableCookie.toCookie(o).getSecure() + ")");
 		}
 		else if (o instanceof InputSource) {
 			InputSource is = (InputSource) o;

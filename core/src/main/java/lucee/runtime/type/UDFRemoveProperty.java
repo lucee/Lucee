@@ -54,10 +54,10 @@ public final class UDFRemoveProperty extends UDFGSProperty {
 		String t = PropertyFactory.getType(prop);
 
 		if ("struct".equalsIgnoreCase(t)) {
-			FunctionArgument key = new FunctionArgumentLight(KeyConstants._key, "string", CFTypes.TYPE_STRING, true);
+			FunctionArgument key = new FuncArgLite(KeyConstants._key, "string", CFTypes.TYPE_STRING, true);
 			return new FunctionArgument[] { key };
 		}
-		FunctionArgument value = new FunctionArgumentLight(KeyImpl.init(PropertyFactory.getSingularName(prop)), "any", CFTypes.TYPE_ANY, true);
+		FunctionArgument value = new FuncArgLite(KeyImpl.init(PropertyFactory.getSingularName(prop)), "any", CFTypes.TYPE_ANY, true);
 		return new FunctionArgument[] { value };
 	}
 

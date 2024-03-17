@@ -17,7 +17,7 @@
  */
 package lucee.runtime.script;
 
-import javax.servlet.ServletException;
+import /* JAVJAK */ javax.servlet.ServletException;
 
 import lucee.loader.engine.CFMLEngine;
 

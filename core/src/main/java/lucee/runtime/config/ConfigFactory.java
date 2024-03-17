@@ -366,7 +366,6 @@ public abstract class ConfigFactory {
 			moveAsBool("fullNullSupport", "nullSupport", compiler, root);
 			move("defaultFunctionOutput", compiler, root);
 			move("externalizeStringGte", compiler, root);
-			moveAsBool("allowLuceeDialect", "allowLuceeDialect", compiler, root);
 			moveAsBool("handleUnquotedAttributeValueAsString", "handleUnquotedAttributeValueAsString", compiler, root);
 			rem("compiler", root);
 		}

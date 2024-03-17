@@ -9,7 +9,6 @@
 		</cfif>
 	</cfloop>
 </cfsilent>
-
 <cfoutput>
 	<div class="pageintro">#stText.Mappings.editDesc#</div>
 	<cfformClassic onerror="customError" action="#request.self#?virtual=#mapping.virtual#&action=#url.action#&action2=#url.action2#" method="post">
@@ -82,7 +81,7 @@
 					<th scope="row">#stText.setting.inspecttemplate#</th>
 					<td>
 						<cfif mapping.readOnly>
-							<cfloop list="never,once,always,inherit" item="type">
+							<cfloop list="auto,never,once,always,inherit" item="type">
 							<cfif mapping.inspect EQ type or (type EQ "inherit" and mapping.inspect EQ "")>
 							#stText.setting['inspectTemplate'&type]#
 							<div class="comment">#stText.setting['inspectTemplate'&type&"Desc"]#</div>
@@ -90,12 +89,20 @@
 							</cfloop>
 						<cfelse>
 							<ul class="radiolist">
-								<cfloop list="never,once,always,inherit" item="type">
+								<cfloop list="auto,never,once,always,inherit" item="type">
 									<li><label>
 										<input class="radio" type="radio" name="inspect_#mapping.id#" value="#type EQ "inherit"?"":type#" <cfif mapping.inspect EQ type or (type EQ "inherit" and mapping.inspect EQ "")> checked="checked"</cfif>>
 										<b>#stText.setting['inspectTemplate'&type]#</b>
 									</label>
 									<div class="comment">#stText.setting['inspectTemplate'&type&"Desc"]#</div>
+									<cfif type EQ "auto">
+										<div class="comment">
+											<b>#stText.setting.inspectTemplateInterval#</b><br>
+											#stText.setting.inspectTemplateIntervalDesc#<br>
+										<input type="text" name="inspectTemplateIntervalSlow_#mapping.id#" value="#mapping.inspectTemplateIntervalSlow?:performancesettings.inspectTemplateIntervalSlow#" size="6"> #stText.setting.inspectTemplateIntervalSlow#<br>
+										<input type="text" name="inspectTemplateIntervalFast_#mapping.id#" value="#mapping.inspectTemplateIntervalFast?:performancesettings.inspectTemplateIntervalFast#" size="6"> #stText.setting.inspectTemplateIntervalFast#<br>
+										</div>
+									</cfif>
 									</li>
 								</cfloop>
 							</ul>

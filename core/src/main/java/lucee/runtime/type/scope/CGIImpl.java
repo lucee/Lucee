@@ -258,7 +258,7 @@ public final class CGIImpl extends StructSupport implements CGI, ScriptProtected
 					if (key.equals(KeyConstants._remote_host)) return store(key, toString(req.getRemoteHost()));
 					if (key.equals(KeyConstants._request_method)) return store(key, req.getMethod());
 					if (key.equals(KeyConstants._request_url)) return store(key, ReqRspUtil.getRequestURL(req, true));
-					if (key.equals(KeyConstants._request_uri)) return store(key, toString(req.getAttribute("javax.servlet.include.request_uri")));
+					if (key.equals(KeyConstants._request_uri)) return store(key, toString(req.getAttribute("javax.servlet.include.request_uri")));/* JAVJAK */
 					// we do not store this, to be as backward compatible as possible.
 					if (key.getUpperString().startsWith("REDIRECT_")) {
 						// from attributes (key sensitive)
@@ -289,7 +289,7 @@ public final class CGIImpl extends StructSupport implements CGI, ScriptProtected
 				}
 				else if (first == 'p') {
 					if (key.equals(KeyConstants._path_info)) {
-						String pathInfo = Caster.toString(req.getAttribute("javax.servlet.include.path_info"), null);
+						String pathInfo = Caster.toString(req.getAttribute("javax.servlet.include.path_info"), null);/* JAVJAK */
 						if (StringUtil.isEmpty(pathInfo)) pathInfo = Caster.toString(req.getHeader("xajp-path-info"), null);
 						if (StringUtil.isEmpty(pathInfo)) pathInfo = req.getPathInfo();
 						if (StringUtil.isEmpty(pathInfo)) {

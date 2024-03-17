@@ -18,6 +18,7 @@
  **/
 package lucee.runtime.exp;
 
+import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.config.Constants;
 import lucee.runtime.dump.DumpData;
@@ -62,8 +63,7 @@ public class NativeException extends PageExceptionImpl {
 	}
 
 	public static NativeException newInstance(Throwable t, boolean rethrowIfNecessary) {
-		if (rethrowIfNecessary && t instanceof ThreadDeath) // never ever catch this
-			throw (ThreadDeath) t;
+		if (rethrowIfNecessary) ExceptionUtil.rethrowIfNecessary(t);
 		return new NativeException(t);
 	}
 

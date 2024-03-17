@@ -82,7 +82,6 @@ public final class CookieImpl extends ScopeSupport implements Cookie, ScriptProt
 	private static Method isPartitioned;
 	private static Method setPartitioned;
 
-
 	/**
 	 * constructor for the Cookie Scope
 	 */
@@ -124,7 +123,7 @@ public final class CookieImpl extends ScopeSupport implements Cookie, ScriptProt
 		return value;
 	}
 
-	private void set(Config config, javax.servlet.http.Cookie cookie) {
+	private void set(Config config, javax.servlet.http.Cookie cookie) {/* JAVJAK */
 
 		String name = StringUtil.toLowerCase(ReqRspUtil.decode(cookie.getName(), charset, false));
 		if (!raw.containsKey(name) || !StringUtil.isEmpty(cookie.getPath())) {
@@ -300,8 +299,8 @@ public final class CookieImpl extends ScopeSupport implements Cookie, ScriptProt
 		super.setEL(key, value);
 	}
 
-	private void _addCookie(Key key, String value, int expires, boolean secure, String path, String domain, boolean httpOnly, boolean preserveCase, Boolean encode,
-			short samesite, boolean partitioned) {
+	private void _addCookie(Key key, String value, int expires, boolean secure, String path, String domain, boolean httpOnly, boolean preserveCase, Boolean encode, short samesite,
+			boolean partitioned) {
 		String name = preserveCase ? key.getString() : key.getUpperString();
 
 		// build the value
@@ -313,26 +312,12 @@ public final class CookieImpl extends ScopeSupport implements Cookie, ScriptProt
 		/* Secure */if (secure) sb.append(";Secure");
 		/* HTTPOnly */if (httpOnly) sb.append(";HttpOnly");
 		/* Partitioned */if (partitioned) sb.append(";Partitioned");
-		
+
 		String tmpSameSite = SessionCookieDataImpl.toSamesite(samesite);
 		/* Samesite */if (!StringUtil.isEmpty(tmpSameSite, true)) sb.append(";SameSite").append('=').append(tmpSameSite);
 		rsp.addHeader("Set-Cookie", sb.toString());
 
 	}
-
-	/*
-	 * private void _addCookieOld(Key key, String value, int expires, boolean secure, String path,
-	 * String domain, boolean httpOnly, boolean preserveCase, boolean encode) { String
-	 * name=preserveCase?key.getString():key.getUpperString(); if(encode) { name=enc(name);
-	 * value=enc(value); }
-	 * 
-	 * javax.servlet.http.Cookie cookie = new javax.servlet.http.Cookie(name,value);
-	 * cookie.setMaxAge(expires); cookie.setSecure(secure); cookie.setPath(path);
-	 * if(!StringUtil.isEmpty(domain,true))cookie.setDomain(domain); if(httpOnly) setHTTPOnly(cookie);
-	 * rsp.addCookie(cookie);
-	 * 
-	 * }
-	 */
 
 	private int toExpires(String expires) throws ExpressionException {
 		String str = StringUtil.toLowerCase(expires.toString());
@@ -435,7 +420,7 @@ public final class CookieImpl extends ScopeSupport implements Cookie, ScriptProt
 	public void touchAfterRequest(PageContext pc) {
 	}
 
-	public static void setHTTPOnly(javax.servlet.http.Cookie cookie) {
+	public static void setHTTPOnly(javax.servlet.http.Cookie cookie) {/* JAVJAK */
 		try {
 			if (setHttpOnly == null) {
 				setHttpOnly = cookie.getClass().getMethod("setHttpOnly", SET_HTTP_ONLY_ARGS_CLASSES);
@@ -447,7 +432,7 @@ public final class CookieImpl extends ScopeSupport implements Cookie, ScriptProt
 		}
 	}
 
-	public static boolean isHTTPOnly(javax.servlet.http.Cookie cookie) {
+	public static boolean isHTTPOnly(javax.servlet.http.Cookie cookie) {/* JAVJAK */
 		try {
 			if (isHttpOnly == null) {
 				isHttpOnly = cookie.getClass().getMethod("isHttpOnly", IS_HTTP_ONLY_ARGS_CLASSES);
@@ -460,7 +445,7 @@ public final class CookieImpl extends ScopeSupport implements Cookie, ScriptProt
 		}
 	}
 
-	public static void setPartitioned(javax.servlet.http.Cookie cookie) {
+	public static void setPartitioned(javax.servlet.http.Cookie cookie) {/* JAVJAK */
 		try {
 			if (setPartitioned == null) {
 				setPartitioned = cookie.getClass().getMethod("setPartitioned", SET_PARTITIONED_ARGS_CLASSES);
@@ -472,7 +457,7 @@ public final class CookieImpl extends ScopeSupport implements Cookie, ScriptProt
 		}
 	}
 
-	public static boolean isPartitioned(javax.servlet.http.Cookie cookie) {
+	public static boolean isPartitioned(javax.servlet.http.Cookie cookie) {/* JAVJAK */
 		try {
 			if (isPartitioned == null) {
 				isPartitioned = cookie.getClass().getMethod("isPartitioned", IS_PARTITIONED_ARGS_CLASSES);

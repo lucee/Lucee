@@ -30,7 +30,7 @@ import lucee.runtime.type.util.ListUtil;
 public final class ZipUtil {
 
 	public static void unzip(Resource zip, Resource dir) throws IOException {
-		if (zip.length() > 0 && (dir.exists() || dir.mkdirs())) {
+		if (zip != null && zip.length() > 0 && (dir.exists() || dir.mkdirs())) {
 			if ("Mac OS X".equalsIgnoreCase(System.getProperty("os.name"))) {
 				try {
 					// Command.execute("unzip "+zip+" -d "+dir);

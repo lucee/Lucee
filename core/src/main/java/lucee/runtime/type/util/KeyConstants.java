@@ -338,6 +338,7 @@ public class KeyConstants {
 	public static final Key _clone = KeyImpl._const("clone");
 	public static final Key _close = KeyImpl._const("close");
 	public static final Key _code = KeyImpl._const("code");
+	public static final Key _symbol = KeyImpl._const("symbol");
 	public static final Key _coldfusion = KeyImpl._const("coldfusion");
 	public static final Key _collection = KeyImpl._const("collection");
 	public static final Key _column = KeyImpl._const("column");
@@ -494,6 +495,7 @@ public class KeyConstants {
 	public static final Key _maxEvents = KeyImpl._const("maxEvents");
 	public static final Key _memento = KeyImpl._const("memento");
 	public static final Key _message = KeyImpl._const("message");
+	public static final Key _messages = KeyImpl._const("messages");
 	public static final Key _messageid = KeyImpl._const("messageid");
 	public static final Key _meta = KeyImpl._const("meta");
 	public static final Key _metadata = KeyImpl._const("metadata");
@@ -2528,6 +2530,7 @@ public class KeyConstants {
 	public static final Key _archModel = KeyImpl._const("archModel");
 	public static final Key _executionPath = KeyImpl._const("executionPath");
 	public static final Key _javaAgentSupported = KeyImpl._const("javaAgentSupported");
+	public static final Key _javaCompilerVersion = KeyImpl._const("javaCompilerVersion");
 	public static final Key _loaderVersion = KeyImpl._const("loaderVersion");
 	public static final Key _loaderPath = KeyImpl._const("loaderPath");
 	public static final Key _additionalinformation = KeyImpl._const("additionalinformation");
@@ -2965,6 +2968,9 @@ public class KeyConstants {
 	public static final Key _callerId = KeyImpl._const("callerId");
 	public static final Key _threadName = KeyImpl._const("threadName");
 	public static final Key _md5 = KeyImpl._const("md5");
+	public static final Key _model = KeyImpl._const("model");
+	public static final Key _role = KeyImpl._const("role");
+	public static final Key _formUrlAsStruct = KeyImpl._const("formUrlAsStruct");
 	private static Map<String, Key> _____keys;
 
 	static {

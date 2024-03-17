@@ -60,8 +60,8 @@ public final class TagHelper {
 	private static final Type MISSING_ATTRIBUTE = Type.getType(MissingAttribute.class);
 	private static final Type MISSING_ATTRIBUTE_ARRAY = Type.getType(MissingAttribute[].class);
 	private static final Type BODY_TAG = Type.getType(BodyTag.class);
-	private static final Type TAG = Type.getType(javax.servlet.jsp.tagext.Tag.class);
-	private static final Type TRY_CATCH_FINALLY_TAG = Type.getType(javax.servlet.jsp.tagext.TryCatchFinally.class);
+	private static final Type TAG = Type.getType(javax.servlet.jsp.tagext.Tag.class);/* JAVJAK */
+	private static final Type TRY_CATCH_FINALLY_TAG = Type.getType(javax.servlet.jsp.tagext.TryCatchFinally.class);/* JAVJAK */
 	private static final Type TAG_UTIL = Type.getType(lucee.runtime.tag.TagUtil.class);
 
 	// TagUtil.setAttributeCollection(Tag, Struct)
@@ -242,7 +242,7 @@ public final class TagHelper {
 				// TagUtil.setAttributeCollection(Tag, Struct)
 				adapter.loadArg(0);
 				adapter.loadLocal(currLocal);
-				if (currType != TAG) adapter.cast(currType, TAG);
+				if (currType != TAG) adapter.checkCast(TAG);
 
 				///
 				TagLibTagAttr[] missings = tag.getMissingAttributes();
@@ -307,7 +307,7 @@ public final class TagHelper {
 			// if (state!=Tag.SKIP_BODY)
 			Label endBody = new Label();
 			adapter.loadLocal(state);
-			adapter.push(javax.servlet.jsp.tagext.Tag.SKIP_BODY);
+			adapter.push(javax.servlet.jsp.tagext.Tag.SKIP_BODY);/* JAVJAK */
 			adapter.visitJumpInsn(Opcodes.IF_ICMPEQ, endBody);
 			// pc.initBody(tag, state);
 			adapter.loadArg(0);
@@ -325,7 +325,7 @@ public final class TagHelper {
 					 * ASMUtil.visitLabel(adapter, fcf.getFinalEntryLabel()); }
 					 */
 					adapter.loadLocal(state);
-					adapter.push(javax.servlet.jsp.tagext.Tag.EVAL_BODY_INCLUDE);
+					adapter.push(javax.servlet.jsp.tagext.Tag.EVAL_BODY_INCLUDE);/* JAVJAK */
 					adapter.visitJumpInsn(Opcodes.IF_ICMPEQ, endIf);
 					// ... pc.popBody();
 					adapter.loadArg(0);
@@ -384,7 +384,7 @@ public final class TagHelper {
 		adapter.loadLocal(currLocal);
 		ASMUtil.invoke(fromBundle ? ASMUtil.INTERFACE : ASMUtil.VIRTUAL, adapter, currType, DO_END_TAG);
 		// adapter.invokeVirtual(currType, DO_END_TAG);
-		adapter.push(javax.servlet.jsp.tagext.Tag.SKIP_PAGE);
+		adapter.push(javax.servlet.jsp.tagext.Tag.SKIP_PAGE);/* JAVJAK */
 		adapter.visitJumpInsn(Opcodes.IF_ICMPNE, endDoEndTag);
 		adapter.push(Abort.SCOPE_PAGE);
 		adapter.invokeStatic(ABORT, NEW_INSTANCE);

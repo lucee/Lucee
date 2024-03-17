@@ -38,6 +38,7 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.net.http.ReqRspUtil;
 import lucee.runtime.op.Caster;
+import lucee.runtime.thread.SerializableCookie;
 import lucee.runtime.thread.ThreadUtil;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.Struct;
@@ -98,7 +99,7 @@ public final class CreatePageContext implements Function {
 	}
 
 	public static Cookie[] toCookies(Struct sct) throws PageException {
-		if (sct == null) return new Cookie[0];
+		if (sct == null) return SerializableCookie.COOKIES0;
 		Iterator<Entry<Key, Object>> it = sct.entryIterator();
 		Entry<Key, Object> e;
 		List<Cookie> cookies = new ArrayList<Cookie>();

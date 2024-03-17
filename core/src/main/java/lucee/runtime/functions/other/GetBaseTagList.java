@@ -58,7 +58,7 @@ public final class GetBaseTagList implements Function {
 		Class clazz = tag.getClass();
 		if (clazz == CFImportTag.class) clazz = CFTag.class;
 		String className = clazz.getName();
-		TagLib[] tlds = ((ConfigPro) pc.getConfig()).getTLDs(pc.getCurrentTemplateDialect());
+		TagLib[] tlds = ((ConfigPro) pc.getConfig()).getTLDs();
 		TagLibTag tlt;
 
 		for (int i = 0; i < tlds.length; i++) {

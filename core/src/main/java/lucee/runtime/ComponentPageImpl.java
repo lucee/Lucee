@@ -40,7 +40,6 @@ import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.HTMLEntities;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.mimetype.MimeType;
-import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.component.StaticStruct;
 import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.converter.BinaryConverter;
@@ -60,6 +59,7 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.gateway.GatewayEngineImpl;
 import lucee.runtime.interpreter.CFMLExpressionInterpreter;
 import lucee.runtime.interpreter.JSONExpressionInterpreter;
+import lucee.runtime.listener.ApplicationContextSupport;
 import lucee.runtime.listener.SerializationSettings;
 import lucee.runtime.net.http.ReqRspUtil;
 import lucee.runtime.op.Caster;
@@ -172,7 +172,7 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 
 			boolean isPost = pc.getHttpServletRequest().getMethod().equalsIgnoreCase("POST");
 
-			boolean suppressContent = pc.getRequestDialect() == CFMLEngine.DIALECT_LUCEE || ((PageContextImpl) pc).getSuppressContent();
+			boolean suppressContent = ((PageContextImpl) pc).getSuppressContent();
 			if (suppressContent) pc.clear();
 
 			if (fromRest) {
@@ -224,9 +224,8 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 			// Include MUST
 			Array path = pc.getTemplatePath();
 			// if(path.size()>1 ) {
-			if (path.size() > 1 && !(path.size() == 3 && ListUtil.last(path.getE(2).toString(), "/\\", true)
-					.equalsIgnoreCase(pc.getRequestDialect() == CFMLEngine.DIALECT_CFML ? lucee.runtime.config.Constants.CFML_APPLICATION_EVENT_HANDLER
-							: lucee.runtime.config.Constants.LUCEE_APPLICATION_EVENT_HANDLER))) {// MUSTMUST
+			if (path.size() > 1
+					&& !(path.size() == 3 && ListUtil.last(path.getE(2).toString(), "/\\", true).equalsIgnoreCase(lucee.runtime.config.Constants.CFML_APPLICATION_EVENT_HANDLER))) {// MUSTMUST
 				// bad
 				// impl
 				// ->
@@ -252,11 +251,9 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 			}
 
 			// DUMP
-			if (!req.getServletPath().equalsIgnoreCase("/Web." + (pc.getRequestDialect() == CFMLEngine.DIALECT_CFML ? lucee.runtime.config.Constants.getCFMLComponentExtension()
-					: lucee.runtime.config.Constants.getLuceeComponentExtension()))) {
+			if (!req.getServletPath().equalsIgnoreCase("/Web." + (lucee.runtime.config.Constants.getCFMLComponentExtension()))) {
 				String cdf = pc.getConfig().getComponentDumpTemplate();
-
-				if (cdf != null && cdf.trim().length() > 0) {
+				if (!StringUtil.isEmpty(cdf, true)) {
 					pc.variablesScope().set(KeyConstants._component, component);
 					pc.doInclude(cdf, false);
 				}
@@ -576,7 +573,9 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 
 		// convert result
 		if (rtn != null && !hasContent) {
-			Props props = new Props();
+
+			ApplicationContextSupport acs = (ApplicationContextSupport) pc.getApplicationContext();
+			Props props = new Props(acs != null ? acs.getReturnFormat() : UDF.RETURN_FORMAT_WDDX);
 			props.format = result.getFormat();
 			Charset cs = getCharset(pc);
 			if (result.hasFormatExtension()) {
@@ -815,7 +814,9 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 	}
 
 	private static Props getProps(PageContext pc, Object o, int urlReturnFormat, int headerReturnFormat) {
-		Props props = new Props();
+
+		ApplicationContextSupport acs = (ApplicationContextSupport) pc.getApplicationContext();
+		Props props = new Props(acs != null ? acs.getReturnFormat() : UDF.RETURN_FORMAT_WDDX);
 
 		props.strType = "any";
 		props.secureJson = pc.getApplicationContext().getSecureJson();
@@ -829,11 +830,15 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 			if (udf.getSecureJson() != null) props.secureJson = udf.getSecureJson().booleanValue();
 		}
 
+		// returnformat
+
 		// format
 		if (isValid(urlReturnFormat)) props.format = urlReturnFormat;
 		else if (isValid(udfReturnFormat)) props.format = udfReturnFormat;
 		else if (isValid(headerReturnFormat)) props.format = headerReturnFormat;
-		else props.format = UDF.RETURN_FORMAT_WDDX;
+		else {
+			props.format = acs == null ? UDF.RETURN_FORMAT_WDDX : acs.getReturnFormat();
+		}
 
 		// return type XML ignore WDDX
 		if (props.type == CFTypes.TYPE_XML) {
@@ -843,7 +848,7 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 		return props;
 	}
 
-	private static boolean isValid(int returnFormat) {
+	public static boolean isValid(int returnFormat) {
 		return returnFormat != -1 && returnFormat != UDF.RETURN_FORMAT_XML;
 	}
 
@@ -1120,5 +1125,9 @@ class Props {
 	public int type = CFTypes.TYPE_ANY;
 	public int format = UDF.RETURN_FORMAT_WDDX;
 	public boolean output = true;
+
+	public Props(int format) {
+		this.format = format;
+	}
 
 }

@@ -40,6 +40,9 @@ import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
 
+import javax.servlet.Servlet;
+import javax.servlet.jsp.JspException;
+
 import org.apache.felix.framework.BundleWiringImpl.BundleClassLoader;
 import org.apache.felix.framework.Logger;
 import org.osgi.framework.Bundle;
@@ -68,12 +71,11 @@ import lucee.loader.osgi.BundleCollection;
 import lucee.loader.osgi.BundleUtil;
 import lucee.loader.util.Util;
 import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigServer;
 import lucee.runtime.config.ConfigWebFactory;
 import lucee.runtime.config.ConfigWebUtil;
 import lucee.runtime.config.Identification;
+import lucee.runtime.config.s3.BundleProvider;
 import lucee.runtime.engine.CFMLEngineImpl;
-import lucee.runtime.engine.ThreadLocalConfigServer;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
@@ -754,13 +756,12 @@ public class OSGiUtil {
 				if (bundleRange.getVersionRange() != null && !bundleRange.getVersionRange().isEmpty()) {
 					// TODO not only check for from version, request a range, but that needs an adjustment with the
 					// provider
-					BundleFile _bf = improveFileName(factory.getBundleDirectory(),
-							BundleFile.getInstance(factory.downloadBundle(bundleRange.getName(), bundleRange.getVersionRange().getFrom().getVersion().toString(), id)));
+					File f = BundleProvider.getInstance().downloadBundle(new BundleDefinition(bundleRange.getName(), bundleRange.getVersionRange().getFrom().getVersion()));
+					BundleFile _bf = improveFileName(factory.getBundleDirectory(), BundleFile.getInstance(f));
 					resetJarsFromBundleDirectory(factory);
 					b = _loadBundle(bc, _bf);
 				}
 				else {
-					// MUST find out why this breaks at startup with commandbox if version exists
 					Resource r = downloadBundle(factory, bundleRange.getName(), null, id);
 					SystemExitScanner.validate(r);
 					BundleFile src = BundleFile.getInstance(r);
@@ -807,15 +808,16 @@ public class OSGiUtil {
 		String parentBundle = parents == null ? " " : String.join(",", parents);
 		String downloadText = downloadIfNecessary ? " or from the update provider [" + upLoc + "]" : "";
 		if (versionsFound.length() > 0) {
-			bundleError = "The OSGi Bundle with name [" + bundleRange.getName() + "] for [" + parentBundle + "] is not available in version [" + bundleRange.getVersionRange()
-					+ "] locally [" + localDir + "]" + downloadText + ", the following versions are available locally [" + versionsFound + "].";
+			bundleError = "The OSGi Bundle with name [" + bundleRange.getName() + "] " + parentBundleText(parentBundle) + "is not available in version ["
+					+ bundleRange.getVersionRange() + "] locally [" + localDir + "]" + downloadText + ", the following versions are available locally [" + versionsFound + "].";
 		}
 		else if (bundleRange.getVersionRange() != null) {
-			bundleError = "The OSGi Bundle with name [" + bundleRange.getName() + "] in version [" + bundleRange.getVersionRange() + "] for [" + parentBundle
-					+ "] is not available locally [" + localDir + "]" + downloadText + ".";
+			bundleError = "The OSGi Bundle with name [" + bundleRange.getName() + "] in version [" + bundleRange.getVersionRange() + "] " + parentBundleText(parentBundle)
+					+ "is not available locally [" + localDir + "]" + downloadText + ".";
 		}
 		else {
-			bundleError = "The OSGi Bundle with name [" + bundleRange.getName() + "] for [" + parentBundle + "] is not available locally [" + localDir + "]" + downloadText + ".";
+			bundleError = "The OSGi Bundle with name [" + bundleRange.getName() + "] " + parentBundleText(parentBundle) + "is not available locally [" + localDir + "]"
+					+ downloadText + ".";
 		}
 
 		if (printExceptions == null) printExceptions = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.cli.printExceptions", null), false);
@@ -828,9 +830,17 @@ public class OSGiUtil {
 		}
 	}
 
-	private static Resource downloadBundle(CFMLEngineFactory factory, final String symbolicName, String symbolicVersion, Identification id) throws IOException, BundleException {
+	private static String parentBundleText(String parentBundle) {
+		if (StringUtil.isEmpty(parentBundle, true)) return "";
+		return "for [" + parentBundle + "] ";
+	}
+
+	private static Resource downloadBundle(CFMLEngineFactory factory, final String symbolicName, String symbolicVersion, Identification id)
+			throws IOException, BundleException, PageException {
 		resetJarsFromBundleDirectory(factory);
-		if (!Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.enable.bundle.download", null), true)) {
+
+		String strDownload = SystemUtil.getSystemPropOrEnvVar("lucee.enable.bundle.download", null);
+		if (!Caster.toBooleanValue(strDownload, true)) {
 			boolean printExceptions = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.cli.printExceptions", null), false);
 			String bundleError = "Lucee is missing the Bundle jar [" + (symbolicVersion != null ? symbolicName + ":" + symbolicVersion : symbolicName)
 					+ "], and has been prevented from downloading it. If this jar is not a core jar,"
@@ -844,20 +854,11 @@ public class OSGiUtil {
 			}
 		}
 		final Resource jarDir = ResourceUtil.toResource(factory.getBundleDirectory());
-		final URL updateProvider;
-		if (ThreadLocalPageContext.insideServerNewInstance()) {
-			ConfigServer cs = ThreadLocalConfigServer.get();
-			updateProvider = cs != null ? cs.getUpdateLocation() : factory.getUpdateLocation();
-		}
-		else {
-			updateProvider = factory.getUpdateLocation();
-		}
 
 		if (symbolicVersion == null) symbolicVersion = "latest";
-		final URL updateUrl = new URL(updateProvider, "/rest/update/provider/download/" + symbolicName + "/" + symbolicVersion + "/" + (id != null ? id.toQueryString() : "")
-				+ (id == null ? "?" : "&") + "allowRedirect=true"
 
-		);
+		final URL updateUrl = BundleProvider.getInstance().getBundleAsURL(new BundleDefinition(symbolicName, symbolicVersion), true);
+
 		log(Logger.LOG_INFO, "Downloading bundle [" + symbolicName + ":" + symbolicVersion + "] from [" + updateUrl + "]");
 
 		int code;
@@ -961,7 +962,7 @@ public class OSGiUtil {
 		if (downloadIfNecessary && version != null) {
 			try {
 				resetJarsFromBundleDirectory(factory);
-				bf = BundleFile.getInstance(factory.downloadBundle(name, version.toString(), id));
+				bf = BundleFile.getInstance(BundleProvider.getInstance().downloadBundle(new BundleDefinition(name, version)));
 				if (bf.isBundle()) return bf;
 			}
 			catch (Throwable t) {
@@ -1060,7 +1061,7 @@ public class OSGiUtil {
 		if (downloadIfNecessary && version != null) {
 			try {
 				resetJarsFromBundleDirectory(factory);
-				bf = BundleFile.getInstance(factory.downloadBundle(name, version.toString(), id));
+				bf = BundleFile.getInstance(BundleProvider.getInstance().downloadBundle(new BundleDefinition(name, version)));
 				if (bf.isBundle()) return bf;
 			}
 			catch (Throwable t) {
@@ -2342,8 +2343,8 @@ public class OSGiUtil {
 
 		Set<String> set = new HashSet<>();
 		set.add(ClassUtil.getSourcePathForClass(CFMLEngineFactory.class, null));
-		set.add(ClassUtil.getSourcePathForClass(javax.servlet.jsp.JspException.class, null));
-		set.add(ClassUtil.getSourcePathForClass(javax.servlet.Servlet.class, null));
+		set.add(ClassUtil.getSourcePathForClass(JspException.class, null));
+		set.add(ClassUtil.getSourcePathForClass(Servlet.class, null));
 
 		List<File> list = new ArrayList<>();
 		for (String path: set) {

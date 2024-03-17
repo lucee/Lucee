@@ -48,6 +48,7 @@ import lucee.commons.lang.Pair;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.types.RefBoolean;
 import lucee.runtime.Component;
+import lucee.runtime.ComponentPageImpl;
 import lucee.runtime.ComponentSpecificAccess;
 import lucee.runtime.Mapping;
 import lucee.runtime.PageContext;
@@ -93,6 +94,7 @@ import lucee.runtime.type.UDFCustomType;
 import lucee.runtime.type.dt.TimeSpan;
 import lucee.runtime.type.scope.Scope;
 import lucee.runtime.type.util.KeyConstants;
+import lucee.runtime.type.util.UDFUtil;
 import lucee.transformer.library.ClassDefinitionImpl;
 
 /**
@@ -163,7 +165,6 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	private static final Key LIMIT_EVALUATION = KeyConstants._limitEvaluation;
 	private static final Key REGEX = KeyConstants._regex;
 	private static final Key ENGINE = KeyConstants._engine;
-	private static final Key DIALECT = KeyConstants._dialect;
 	private static final Key USE_JAVA_AS_REGEX_ENGINE = KeyConstants._useJavaAsRegexEngine;
 
 	private static Map<String, CacheConnection> initCacheConnections = new ConcurrentHashMap<String, CacheConnection>();
@@ -208,9 +209,11 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	private Map<Collection.Key, CacheConnection> cacheConnections;
 	private boolean sameFormFieldAsArray;
 	private boolean sameURLFieldAsArray;
+	private boolean formUrlAsStruct;
 	private Map<String, CustomType> customTypes;
 	private boolean cgiScopeReadonly;
 	private boolean preciseMath;
+	private int returnFormat = UDF.RETURN_FORMAT_WDDX;
 	private SessionCookieData sessionCookie;
 	private AuthCookieData authCookie;
 	private Object mailListener;
@@ -280,6 +283,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	private boolean initResourceCharset;
 	private boolean initCGIScopeReadonly;
 	private boolean initPreciseMath;
+	private boolean initReturnFormat;
 	private boolean initSessionCookie;
 	private boolean initAuthCookie;
 	private boolean initSerializationSettings;
@@ -356,6 +360,8 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 		this.component = cfc;
 		this.regex = ci.getRegex();
 		this.preciseMath = ci.getPreciseMath();
+		this.formUrlAsStruct = ci.getFormUrlAsStruct();
+		this.returnFormat = ci.getReturnFormat();
 
 		initAntiSamyPolicyResource(pc);
 		if (antiSamyPolicyResource == null) this.antiSamyPolicyResource = ((ConfigPro) config).getAntiSamyPolicy();
@@ -753,8 +759,10 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	}
 
 	public void initSameFieldAsArray(PageContext pc) {
-		boolean oldForm = pc.getApplicationContext().getSameFieldAsArray(Scope.SCOPE_FORM);
-		boolean oldURL = pc.getApplicationContext().getSameFieldAsArray(Scope.SCOPE_URL);
+		ApplicationContextSupport ac = (ApplicationContextSupport) pc.getApplicationContext();
+		boolean oldForm = ac.getSameFieldAsArray(Scope.SCOPE_FORM);
+		boolean oldURL = ac.getSameFieldAsArray(Scope.SCOPE_URL);
+		boolean oldMerge = ac.getFormUrlAsStruct();
 
 		// Form
 		Object o = get(component, KeyConstants._sameformfieldsasarray, null);
@@ -764,8 +772,15 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 		o = get(component, KeyConstants._sameurlfieldsasarray, null);
 		if (o != null && Decision.isBoolean(o)) sameURLFieldAsArray = Caster.toBooleanValue(o, false);
 
-		if (oldForm != sameFormFieldAsArray) pc.formScope().reinitialize(this);
-		if (oldURL != sameURLFieldAsArray) pc.urlScope().reinitialize(this);
+		// merge
+		o = get(component, KeyConstants._formUrlAsStruct, null);
+		if (o != null && Decision.isBoolean(o)) {
+			formUrlAsStruct = Caster.toBooleanValue(o, true);
+		}
+
+		if (oldForm != sameFormFieldAsArray || oldMerge != formUrlAsStruct) pc.formScope().reinitialize(this);
+		if (oldURL != sameURLFieldAsArray || oldMerge != formUrlAsStruct) pc.urlScope().reinitialize(this);
+
 	}
 
 	public void initWebCharset(PageContext pc) {
@@ -1702,6 +1717,11 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	}
 
 	@Override
+	public boolean getFormUrlAsStruct() {
+		return formUrlAsStruct;
+	}
+
+	@Override
 	public String getBlockedExtForFileUpload() {
 		if (!initBlockedExtForFileUpload) {
 			Object o = get(component, BLOCKED_EXT_FOR_FILE_UPLOAD, null);
@@ -1830,6 +1850,27 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	}
 
 	@Override
+	public int getReturnFormat() {
+		if (!initReturnFormat) {
+			String str = Caster.toString(get(component, KeyConstants._returnFormat, null), null);
+			if (!StringUtil.isEmpty(str, true)) {
+				setReturnFormat(UDFUtil.toReturnFormat(str.trim(), -1));
+			}
+			initReturnFormat = true;
+		}
+		return returnFormat;
+	}
+
+	@Override
+	public void setReturnFormat(int returnFormat) {
+		if (ComponentPageImpl.isValid(returnFormat)) {
+			this.returnFormat = returnFormat;
+			this.initReturnFormat = true;
+		}
+
+	}
+
+	@Override
 	public boolean getQueryPSQ() {
 		if (!initQueryPSQ) {
 			Struct qry = Caster.toStruct(get(component, KeyConstants._query, null), null);
@@ -1949,7 +1990,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 			if (sct != null) {
 				String str = Caster.toString(sct.get(ENGINE, null), null);
 				if (StringUtil.isEmpty(str, true)) str = Caster.toString(sct.get(KeyConstants._type, null), null);
-				if (StringUtil.isEmpty(str, true)) str = Caster.toString(sct.get(DIALECT, null), null);
+				if (StringUtil.isEmpty(str, true)) str = Caster.toString(sct.get(KeyConstants._dialect, null), null);
 				if (!StringUtil.isEmpty(str, true)) {
 					int type = RegexFactory.toType(str, -1);
 					if (type != -1) {

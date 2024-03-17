@@ -49,7 +49,6 @@ import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
 import javax.mail.internet.MimePart;
-import javax.mail.internet.MimeUtility;
 
 import org.apache.commons.mail.DefaultAuthenticator;
 
@@ -461,12 +460,12 @@ public final class SMTPClient implements Serializable {
 			props.put("mail.smtp.port", Caster.toString(port));
 		}
 		if (ssl) {
-			props.put("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
+			props.put("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");/* JAVJAK */
 			props.put("mail.smtp.socketFactory.port", Caster.toString(port));
 			props.put("mail.smtp.socketFactory.fallback", "false");
 		}
 		else {
-			props.put("mail.smtp.socketFactory.class", "javax.net.SocketFactory");
+			props.put("mail.smtp.socketFactory.class", "javax.net.SocketFactory");/* JAVJAK */
 			props.remove("mail.smtp.socketFactory.port");
 			props.remove("mail.smtp.socketFactory.fallback");
 		}
@@ -604,29 +603,6 @@ public final class SMTPClient implements Serializable {
 		return new MimeMessageAndSession(msg, sat, messageId);
 	}
 
-	/*
-	 * private static void addMailcaps(ClassLoader cl) { try { Class<?> cCM =
-	 * cl.loadClass("javax.activation.CommandMap"); Method getDefaultCommandMap =
-	 * cCM.getMethod("getDefaultCommandMap", CLASS_EMPTY); Object oMCM =
-	 * getDefaultCommandMap.invoke(null, OBJECT_EMPTY);
-	 * 
-	 * Method getMimeTypes = oMCM.getClass().getMethod("getMimeTypes", CLASS_EMPTY);
-	 * 
-	 * Method addMailcap = oMCM.getClass().getMethod("addMailcap", CLASS_STRING); addMailcap(oMCM,
-	 * addMailcap,"text/plain;;		x-java-content-handler=com.sun.mail.handlers.text_plain");
-	 * addMailcap(oMCM,
-	 * addMailcap,"text/html;;		x-java-content-handler=com.sun.mail.handlers.text_html");
-	 * addMailcap(oMCM,
-	 * addMailcap,"text/xml;;		x-java-content-handler=com.sun.mail.handlers.text_xml");
-	 * addMailcap(oMCM,
-	 * addMailcap,"multipart/*;;		x-java-content-handler=com.sun.mail.handlers.multipart_mixed; x-java-fallback-entry=true"
-	 * ); addMailcap(oMCM,
-	 * addMailcap,"message/rfc822;;	x-java-content-handler=com.sun.mail.handlers.message_rfc822"); }
-	 * catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);} } private static void addMailcap(Object
-	 * oMCM, Method addMailcap, String value) throws IllegalAccessException, IllegalArgumentException,
-	 * InvocationTargetException { addMailcap.invoke(oMCM, new Object[]{value}); }
-	 */
-
 	private static String hash(Properties props) {
 		Enumeration<?> e = props.propertyNames();
 		java.util.List<String> names = new ArrayList<String>();
@@ -750,16 +726,16 @@ public final class SMTPClient implements Serializable {
 		//
 		String fileName = att.getFileName();
 
-		//  Set to comment for LDEV-4249 because of JavaMail choosing best encoding by itself,
-		//  as specified in https://javaee.github.io/javamail/FAQ#encodefilename and it should be
-		//  set in very special cases for legacy purpose.
-		//  if (!StringUtil.isAscii(fileName)) {
-		//  	try {
-		//  		fileName = MimeUtility.encodeText(fileName, "UTF-8", null);
-		//  	}
-		//  	catch (UnsupportedEncodingException e) {
-		//  	} // that should never happen!
-		//  }
+		// Set to comment for LDEV-4249 because of JavaMail choosing best encoding by itself,
+		// as specified in https://javaee.github.io/javamail/FAQ#encodefilename and it should be
+		// set in very special cases for legacy purpose.
+		// if (!StringUtil.isAscii(fileName)) {
+		// try {
+		// fileName = MimeUtility.encodeText(fileName, "UTF-8", null);
+		// }
+		// catch (UnsupportedEncodingException e) {
+		// } // that should never happen!
+		// }
 
 		mbp.setFileName(fileName);
 		if (!StringUtil.isEmpty(att.getType())) mbp.setHeader("Content-Type", att.getType());

@@ -43,6 +43,7 @@ import lucee.runtime.type.dt.DateTimeImpl;
 import lucee.runtime.type.scope.util.EnvStruct;
 import lucee.runtime.type.scope.util.SystemPropStruct;
 import lucee.runtime.type.util.KeyConstants;
+import lucee.transformer.bytecode.util.ASMUtil;
 
 /**
  * Server Scope
@@ -177,6 +178,8 @@ public final class ServerImpl extends ScopeSupport implements Server, SharedScop
 
 		ReadOnlyStruct java = new ReadOnlyStruct();
 		java.setEL(KeyConstants._version, System.getProperty("java.version"));
+
+		java.setEL(KeyConstants._javaCompilerVersion, ASMUtil.toStringVersion(ASMUtil.getJavaVersionForBytecodeGeneration()));
 		java.setEL(VENDOR, System.getProperty("java.vendor"));
 		arch = SystemUtil.getJREArch();
 		if (arch != SystemUtil.ARCH_UNKNOW) java.setEL(ARCH_MODEL, Double.valueOf(arch));

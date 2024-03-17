@@ -28,7 +28,6 @@ import lucee.commons.io.FileUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.filter.AndResourceFilter;
 import lucee.commons.io.res.filter.ExtensionResourceFilter;
-import lucee.commons.io.res.filter.OrResourceFilter;
 import lucee.commons.io.res.filter.ResourceFilter;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.mimetype.MimeType;
@@ -57,16 +56,7 @@ public class Mapping {
 				}
 			} });
 
-	private static final ResourceFilter _FILTER_LUCEE = new AndResourceFilter(
-			new ResourceFilter[] { new ExtensionResourceFilter(Constants.getLuceeComponentExtension()), new ResourceFilter() {
-
-				@Override
-				public boolean accept(Resource res) {
-					return !Constants.LUCEE_APPLICATION_EVENT_HANDLER.equalsIgnoreCase(res.getName());
-				}
-			} });
-
-	private static final ResourceFilter FILTER = new OrResourceFilter(new ResourceFilter[] { _FILTER_CFML, _FILTER_LUCEE });
+	private static final ResourceFilter FILTER = _FILTER_CFML;
 
 	private String virtual;
 	private Resource physical;

@@ -28,9 +28,7 @@ import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.config.ConfigPro;
-import lucee.runtime.config.ConfigWebUtil;
 import lucee.runtime.exp.ExpressionException;
-import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.functions.system.CFFunction;
@@ -60,26 +58,10 @@ public final class GetFunctionData implements Function {
 	static final Collection.Key INTRODUCED = KeyConstants._introduced;
 
 	public static Struct call(PageContext pc, String strFunctionName) throws PageException {
-		return _call(pc, strFunctionName, pc.getCurrentTemplateDialect());
-	}
 
-	public static Struct call(PageContext pc, String strFunctionName, String strDialect) throws PageException {
-		int dialect = ConfigWebUtil.toDialect(strDialect, -1);
-		if (dialect == -1) throw new FunctionException(pc, "GetFunctionData", 2, "dialect", "value [" + strDialect + "] is invalid, valid values are [cfml,lucee]");
+		FunctionLib flds = ((ConfigPro) pc.getConfig()).getFLDs();
 
-		return _call(pc, strFunctionName, dialect);
-	}
-
-	private static Struct _call(PageContext pc, String strFunctionName, int dialect) throws PageException {
-
-		FunctionLib[] flds;
-		flds = ((ConfigPro) pc.getConfig()).getFLDs(dialect);
-
-		FunctionLibFunction function = null;
-		for (int i = 0; i < flds.length; i++) {
-			function = flds[i].getFunction(strFunctionName.toLowerCase());
-			if (function != null) break;
-		}
+		FunctionLibFunction function = flds.getFunction(strFunctionName.toLowerCase());
 		if (function == null) throw new ExpressionException("Function [" + strFunctionName + "] is not a built in function");
 
 		// CFML Based Function

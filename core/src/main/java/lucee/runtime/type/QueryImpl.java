@@ -63,7 +63,6 @@ import lucee.commons.io.SystemUtil;
 import lucee.commons.io.SystemUtil.TemplateLine;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
-import lucee.loader.engine.CFMLEngine;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.runtime.PageContext;
 import lucee.runtime.config.ConfigWebPro;
@@ -1100,7 +1099,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 
 	private boolean getKeyCase(PageContext pc) {
 		pc = ThreadLocalPageContext.get(pc);
-		return pc != null && pc.getCurrentTemplateDialect() == CFMLEngine.DIALECT_CFML && !((ConfigWebPro) pc.getConfig()).preserveCase();
+		return pc != null && !((ConfigWebPro) pc.getConfig()).preserveCase();
 	}
 
 	@Override

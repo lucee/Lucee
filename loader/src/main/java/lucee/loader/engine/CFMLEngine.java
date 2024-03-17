@@ -27,13 +27,13 @@ import java.util.Map;
 import java.util.TimeZone;
 
 import javax.script.ScriptEngineFactory;
-import javax.servlet.ServletConfig;
-import javax.servlet.ServletException;
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.jsp.JspException;
+import /* JAVJAK */ javax.servlet.ServletConfig;
+import /* JAVJAK */ javax.servlet.ServletException;
+import /* JAVJAK */ javax.servlet.http.Cookie;
+import /* JAVJAK */ javax.servlet.http.HttpServlet;
+import /* JAVJAK */ javax.servlet.http.HttpServletRequest;
+import /* JAVJAK */ javax.servlet.http.HttpServletResponse;
+import /* JAVJAK */ javax.servlet.jsp.JspException;
 
 import org.osgi.framework.BundleContext;
 

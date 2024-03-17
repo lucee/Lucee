@@ -43,7 +43,6 @@ import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.config.ConfigWebPro;
-import lucee.runtime.config.ConfigWebUtil;
 import lucee.runtime.config.Constants;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ExpressionException;
@@ -89,6 +88,7 @@ public final class PageSourceImpl implements PageSource {
 	private long lastAccess;
 	private RefIntegerSync accessCount = new RefIntegerSync();
 	private boolean flush = false;
+	private Log log;
 
 	private PageSourceImpl() {
 		mapping = null;
@@ -117,8 +117,9 @@ public final class PageSourceImpl implements PageSource {
 	 * @param mapping
 	 * @param realPath
 	 */
-	PageSourceImpl(MappingImpl mapping, String realPath) {
+	PageSourceImpl(MappingImpl mapping, String realPath, Log log) {
 		this.mapping = mapping;
+		this.log = log;
 		realPath = realPath.replace('\\', '/');
 		if (realPath.indexOf("//") != -1) {
 			realPath = StringUtil.replace(realPath, "//", "/", false);
@@ -205,8 +206,8 @@ public final class PageSourceImpl implements PageSource {
 
 	public PageSource getParent() {
 		if (relPath.equals("/")) return null;
-		if (StringUtil.endsWith(relPath, '/')) return new PageSourceImpl(mapping, GetDirectoryFromPath.invoke(relPath.substring(0, relPath.length() - 1)));
-		return new PageSourceImpl(mapping, GetDirectoryFromPath.invoke(relPath));
+		if (StringUtil.endsWith(relPath, '/')) return new PageSourceImpl(mapping, GetDirectoryFromPath.invoke(relPath.substring(0, relPath.length() - 1)), log);
+		return new PageSourceImpl(mapping, GetDirectoryFromPath.invoke(relPath), log);
 	}
 
 	@Override
@@ -306,7 +307,8 @@ public final class PageSourceImpl implements PageSource {
 		if (!mapping.hasPhysical()) return null;
 		ConfigWeb config = pc.getConfig();
 		PageContextImpl pci = (PageContextImpl) pc;
-		if ((mapping.getInspectTemplate() == Config.INSPECT_NEVER || pci.isTrusted(page)) && isLoad(LOAD_PHYSICAL)) return page;
+		if ((mapping.getInspectTemplate() == Config.INSPECT_NEVER || mapping.getInspectTemplate() == ConfigPro.INSPECT_AUTO || pci.isTrusted(page)) && isLoad(LOAD_PHYSICAL))
+			return page;
 		Resource srcFile = getPhyscalFile();
 
 		long srcLastModified = srcFile.lastModified();
@@ -406,7 +408,31 @@ public final class PageSourceImpl implements PageSource {
 		return page;
 	}
 
+	public boolean releaseWhenOutdatted() {
+		if (!mapping.hasPhysical() || !isLoad(LOAD_PHYSICAL)) return false;
+		Page page = pcn.page;
+		Resource srcFile = getPhyscalFile();
+		long srcLastModified = srcFile.lastModified();
+		// Page exists
+		if (page != null) {
+			// if(page!=null && !recompileAlways) {
+			if (srcLastModified == 0 || srcLastModified != page.getSourceLastModified() || (page instanceof PagePro && ((PagePro) page).getSourceLength() != srcFile.length())) {
+				synchronized (this) {
+					if (srcLastModified == 0 || srcLastModified != page.getSourceLastModified()
+							|| (page instanceof PagePro && ((PagePro) page).getSourceLength() != srcFile.length())) {
+						if (LogUtil.doesDebug(log)) log.debug("page-source", "release [" + getDisplayPath() + "] from page source pool");
+						resetLoaded();
+						flush();
+						return true;
+					}
+				}
+			}
+		}
+		return false;
+	}
+
 	public void flush() {
+		if (LogUtil.doesDebug(log)) log.debug("page-source", "flush [" + getDisplayPath() + "]");
 		pcn.page = null;
 		flush = true;
 	}
@@ -446,12 +472,11 @@ public final class PageSourceImpl implements PageSource {
 	private Page _compile(ConfigWeb config, Resource classRootDir, Page existing, boolean returnValue, boolean ignoreScopes, boolean split)
 			throws IOException, SecurityException, IllegalArgumentException, PageException {
 		ConfigWebPro cwi = (ConfigWebPro) config;
-		int dialect = getDialect();
 
 		long now;
 		if ((getPhyscalFile().lastModified() + 10000) > (now = System.currentTimeMillis())) cwi.getCompiler().watch(this, now);// SystemUtil.get
 		Result result;
-		result = cwi.getCompiler().compile(cwi, this, cwi.getTLDs(dialect), cwi.getFLDs(dialect), classRootDir, returnValue, ignoreScopes);
+		result = cwi.getCompiler().compile(cwi, this, cwi.getTLDs(), cwi.getFLDs(), classRootDir, returnValue, ignoreScopes);
 
 		try {
 			Class<?> clazz = mapping.getPhysicalClass(getClassName(), result.barr);
@@ -525,8 +550,7 @@ public final class PageSourceImpl implements PageSource {
 
 	public boolean isComponent() {
 		String ext = ResourceUtil.getExtension(getRealpath(), "");
-		if (getDialect() == CFMLEngine.DIALECT_CFML) return Constants.isCFMLComponentExtension(ext);
-		return Constants.isLuceeComponentExtension(ext);
+		return Constants.isCFMLComponentExtension(ext);
 	}
 
 	/**
@@ -745,7 +769,7 @@ public final class PageSourceImpl implements PageSource {
 					varName = StringUtil.toVariableName(arr[i].substring(0, index) + "_" + ext);
 				}
 				else varName = StringUtil.toVariableName(arr[i]);
-				varName = varName + (getDialect() == CFMLEngine.DIALECT_CFML ? Constants.CFML_CLASS_SUFFIX : Constants.LUCEE_CLASS_SUFFIX);
+				varName = varName + (Constants.CFML_CLASS_SUFFIX);
 				className = varName.toLowerCase();
 				fileName = arr[i];
 			}
@@ -1063,24 +1087,8 @@ public final class PageSourceImpl implements PageSource {
 	}
 
 	@Override
-	public int getDialect() {
-		Config c = getMapping().getConfig();
-		if (!((ConfigPro) c).allowLuceeDialect()) return CFMLEngine.DIALECT_CFML;
-		// MUST improve performance on this
-		ConfigWeb cw = null;
-
-		String ext = ResourceUtil.getExtension(relPath, Constants.getCFMLComponentExtension());
-
-		if (c instanceof ConfigWeb) cw = (ConfigWeb) c;
-		else {
-			c = ThreadLocalPageContext.getConfig();
-			if (c instanceof ConfigWeb) cw = (ConfigWeb) c;
-		}
-		if (cw != null) {
-			return ((CFMLFactoryImpl) cw.getFactory()).toDialect(ext, CFMLEngine.DIALECT_CFML);
-		}
-
-		return ConfigWebUtil.toDialect(ext, CFMLEngine.DIALECT_CFML);
+	public int getDialect() { // FUTURE remove
+		return CFMLEngine.DIALECT_CFML;
 	}
 
 	/**
@@ -1103,10 +1111,11 @@ public final class PageSourceImpl implements PageSource {
 
 	@Override
 	public boolean executable() {
-		return (getMapping().getInspectTemplate() == Config.INSPECT_NEVER && isLoad()) || exists();
+		return ((getMapping().getInspectTemplate() == Config.INSPECT_NEVER || getMapping().getInspectTemplate() == ConfigPro.INSPECT_AUTO) && isLoad()) || exists();
 	}
 
 	public void resetLoaded() {
+		if (LogUtil.doesDebug(log)) log.debug("page-source", "reset loaded [" + getDisplayPath() + "]");
 		Page p = pcn.page;
 		if (p != null) p.setLoadType((byte) 0);
 	}
