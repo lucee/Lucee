@@ -69,7 +69,9 @@ public final class Each extends BIF implements ClosureFunc {
 	private static String _call(PageContext pc, Object obj, UDF udf, boolean parallel, int maxThreads, short type) throws PageException {
 		ExecutorService execute = null;
 		List<Future<Data<Object>>> futures = null;
-		if (parallel && maxThreads > 1) {
+		if (maxThreads < 1) maxThreads = 20;
+		else if (maxThreads == 1) parallel = false;
+		if (parallel) {
 			execute = Executors.newFixedThreadPool(maxThreads);
 			futures = new ArrayList<Future<Data<Object>>>();
 		}

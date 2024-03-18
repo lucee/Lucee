@@ -79,7 +79,9 @@ public class Filter extends BIF implements ClosureFunc {
 
 		ExecutorService execute = null;
 		List<Future<Data<Pair<Object, Object>>>> futures = null;
-		if (parallel && maxThreads > 1) {
+		if (maxThreads < 1) maxThreads = 20;
+		else if (maxThreads == 1) parallel = false;
+		if (parallel) {
 			execute = Executors.newFixedThreadPool(maxThreads);
 			futures = new ArrayList<Future<Data<Pair<Object, Object>>>>();
 		}
