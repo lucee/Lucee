@@ -79,9 +79,7 @@ public class Some extends BIF implements ClosureFunc {
 			execute = Executors.newFixedThreadPool(maxThreads);
 			futures = new ArrayList<Future<Data<Object>>>();
 		}
-
 		boolean res;
-
 		// Array
 		if (type == TYPE_ARRAY) {
 			res = invoke(pc, (Array) obj, udf, execute, futures);
