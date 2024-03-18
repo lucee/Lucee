@@ -53,14 +53,15 @@ import lucee.runtime.type.util.StringListData;
 
 public final class Each extends BIF implements ClosureFunc {
 
+	public static final int DEFAULT_MAX_THREAD = 20;
 	private static final long serialVersionUID = 1955185705863596525L;
 
 	public static String call(PageContext pc, Object obj, UDF udf) throws PageException {
-		return _call(pc, obj, udf, false, 20, TYPE_UNDEFINED);
+		return _call(pc, obj, udf, false, DEFAULT_MAX_THREAD, TYPE_UNDEFINED);
 	}
 
 	public static String call(PageContext pc, Object obj, UDF udf, boolean parallel) throws PageException {
-		return _call(pc, obj, udf, parallel, 20, TYPE_UNDEFINED);
+		return _call(pc, obj, udf, parallel, DEFAULT_MAX_THREAD, TYPE_UNDEFINED);
 	}
 
 	public static String call(PageContext pc, Object obj, UDF udf, boolean parallel, double maxThreads) throws PageException {
@@ -70,7 +71,12 @@ public final class Each extends BIF implements ClosureFunc {
 	private static String _call(PageContext pc, Object obj, UDF udf, boolean parallel, int maxThreads, short type) throws PageException {
 		ExecutorService execute = null;
 		List<Future<Data<Object>>> futures = null;
-		if (parallel && maxThreads > 1) {
+		// 0 or less == default
+		if (maxThreads < 1) maxThreads = DEFAULT_MAX_THREAD;
+		// 1 == not parallel
+		else if (maxThreads == 1) parallel = false;
+
+		if (parallel) {
 			execute = Executors.newFixedThreadPool(maxThreads);
 			futures = new ArrayList<Future<Data<Object>>>();
 		}
