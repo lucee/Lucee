@@ -60,11 +60,11 @@ public class Map extends BIF implements ClosureFunc {
 	private static final long serialVersionUID = -1435100019820996876L;
 
 	public static Object call(PageContext pc, Object obj, UDF udf) throws PageException {
-		return _call(pc, obj, udf, false, 20, null, TYPE_UNDEFINED);
+		return _call(pc, obj, udf, false, Each.DEFAULT_MAX_THREAD, null, TYPE_UNDEFINED);
 	}
 
 	public static Object call(PageContext pc, Object obj, UDF udf, boolean parallel) throws PageException {
-		return _call(pc, obj, udf, parallel, 20, null, TYPE_UNDEFINED);
+		return _call(pc, obj, udf, parallel, Each.DEFAULT_MAX_THREAD, null, TYPE_UNDEFINED);
 	}
 
 	public static Object call(PageContext pc, Object obj, UDF udf, boolean parallel, double maxThreads) throws PageException {
@@ -79,7 +79,11 @@ public class Map extends BIF implements ClosureFunc {
 
 		ExecutorService execute = null;
 		List<Future<Data<Object>>> futures = null;
-		if (parallel && maxThreads > 1) {
+		// 0 or less == default
+		if (maxThreads < 1) maxThreads = Each.DEFAULT_MAX_THREAD;
+		// 1 == not parallel
+		else if (maxThreads == 1) parallel = false;
+		if (parallel) {
 			execute = Executors.newFixedThreadPool(maxThreads);
 			futures = new ArrayList<Future<Data<Object>>>();
 		}
