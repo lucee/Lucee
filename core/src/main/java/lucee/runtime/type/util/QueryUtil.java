@@ -286,7 +286,7 @@ public class QueryUtil {
 		// table.appendRow(1, new SimpleDumpData("recordcount"), new SimpleDumpData(getRecordcount()));
 		// table.appendRow(1, new SimpleDumpData("cached"), new SimpleDumpData(isCached()?"Yes":"No"));
 
-		DumpTable recs = new DumpTable("query", "#cc99cc", "#ffccff", "#000000");
+		DumpTable recs = new DumpTable("query", "#9c89b8", "#efc3e6", "#000000");
 		recs.setTitle("Query");
 		if (dp.getMetainfo()) recs.setComment(comment.toString());
 		recs.appendRow(new DumpRow(-1, heads));

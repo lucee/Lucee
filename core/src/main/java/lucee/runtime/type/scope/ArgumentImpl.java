@@ -183,7 +183,7 @@ public final class ArgumentImpl extends ScopeSupport implements Argument, ArrayP
 
 	@Override
 	public DumpData toDumpData(PageContext pageContext, int maxlevel, DumpProperties dp) {
-		DumpTable htmlBox = new DumpTable("struct", "#9999ff", "#ccccff", "#000000");
+		DumpTable htmlBox = new DumpTable("struct", "#468faf", "#89c2d9", "#000000");
 		htmlBox.setTitle("Scope Arguments");
 		if (size() > 10 && dp.getMetainfo()) htmlBox.setComment("Entries:" + size());
 
