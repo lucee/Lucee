@@ -36,8 +36,7 @@ Defaults --->
 					scopeCascadingType="#form.scopeCascadingType#"
 					allowImplicidQueryCall="#isDefined("form.allowImplicidQueryCall") and form.allowImplicidQueryCall#"
 					mergeFormAndUrl="#isDefined("form.mergeFormAndUrl") and form.mergeFormAndUrl#"
-					
-					
+					formUrlAsStruct="#isDefined("form.formUrlAsStruct") and form.formUrlAsStruct#"
 					
 					clientTimeout="#CreateTimeSpan(form.client_days,form.client_hours,form.client_minutes,form.client_seconds)#"
 					sessionTimeout="#CreateTimeSpan(form.session_days,form.session_hours,form.session_minutes,form.session_seconds)#"
@@ -64,6 +63,7 @@ Defaults --->
 					scopeCascadingType=""
 					allowImplicidQueryCall=""
 					mergeFormAndUrl=""
+					formUrlAsStruct=""
 					sessionTimeout=""
 					applicationTimeout=""
 					sessionManagement=""
@@ -148,8 +148,34 @@ Error Output --->
 							<b>#iif(scope.mergeFormAndUrl,de('Yes'),de('No'))#</b>
 						</cfif>
 						<div class="comment">#stText.Scopes.mergeUrlFormDescription#</div>
+
+						<cfsavecontent variable="codeSample">
+							this.mergeFormAndUrl = #scope.mergeFormAndUrl#;
+						</cfsavecontent>
+						<cfset renderCodingTip( codeSample )>
 					</td>
 				</tr>
+
+				<!---
+					Whether or not to merge form and url variables into structs --->
+					<tr>
+						<th scope="row">#stText.Scopes.formUrlAsStruct#</th>
+						<td>
+							<cfif hasAccess>
+								<input type="checkbox" class="checkbox" name="formUrlAsStruct" value="yes" 
+								<cfif scope.formUrlAsStruct>checked</cfif>>
+							<cfelse>
+								<b>#iif(scope.formUrlAsStruct,de('Yes'),de('No'))#</b>
+							</cfif>
+							<div class="comment">#stText.Scopes.formUrlAsStructDescription#</div>
+
+							<cfsavecontent variable="codeSample">
+								this.formUrlAsStruct = #scope.formUrlAsStruct#;
+							</cfsavecontent>
+							<cfset renderCodingTip( codeSample )>
+						</td>
+					</tr>
+
 
 				<!--- Session Management --->
 				<tr>
