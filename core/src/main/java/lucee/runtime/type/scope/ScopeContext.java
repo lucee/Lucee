@@ -993,15 +993,24 @@ public final class ScopeContext {
 		ApplicationContext appContext = pc.getApplicationContext();
 		RefBoolean isNew = new RefBooleanImpl();
 
+		boolean hasClientManagment = appContext.isSetClientManagement();
+		boolean hasSessionManagment = appContext.isSetSessionManagement();
+
 		// get in memory scopes
-		Map<String, Scope> clientContext = getSubMap(cfClientContexts, appContext.getName());
-		UserScope oldClient = (UserScope) clientContext.get(pc.getCFID());
-		Map<String, Scope> sessionContext = getSubMap(cfSessionContexts, appContext.getName());
-		UserScope oldSession = (UserScope) sessionContext.get(pc.getCFID());
+		UserScope oldClient = null;
+		if (hasClientManagment) {
+			Map<String, Scope> clientContext = getSubMap(cfClientContexts, appContext.getName());
+			oldClient = (UserScope) clientContext.get(pc.getCFID());
+		}
+		UserScope oldSession = null;
+		if (hasSessionManagment) {
+			Map<String, Scope> sessionContext = getSubMap(cfSessionContexts, appContext.getName());
+			oldSession = (UserScope) sessionContext.get(pc.getCFID());
+		}
 
 		// remove Scopes completly
-		removeCFSessionScope(pc);
-		removeClientScope(pc);
+		if (hasSessionManagment) removeCFSessionScope(pc);
+		if (hasClientManagment) removeClientScope(pc);
 
 		pc.resetIdAndToken();
 		pc.resetSession();
