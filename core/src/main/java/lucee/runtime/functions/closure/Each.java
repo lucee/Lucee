@@ -162,7 +162,7 @@ public final class Each extends BIF implements ClosureFunc {
 			throw Caster.toPageException(e);
 		}
 		finally {
-			es.shutdown();
+			if (es != null) es.shutdown();
 		}
 	}
 

@@ -292,7 +292,7 @@ public class ThreadsImpl extends StructSupport implements lucee.runtime.type.sco
 	@Override
 	public DumpData toDumpData(PageContext pageContext, int maxlevel, DumpProperties dp) {
 		Key[] keys = keys();
-		DumpTable table = new DumpTable("struct", "#9999ff", "#ccccff", "#000000");
+		DumpTable table = new DumpTable("struct", "#468faf", "#89c2d9", "#000000");
 		table.setTitle("Struct");
 		maxlevel--;
 		int maxkeys = dp.getMaxKeys();
