@@ -677,9 +677,8 @@
        <fileset dir="${temp}/stable/temp"/>
     </jar>
 
-
+    <!-- does not work with newer java version
     <echots message="try running the new core build with an older stable loader"/>
-    <!-- build the lucee-context.lar -->
     <java classname="org.apache.tools.ant.launch.Launcher" dir="${ant}" fork="true" failonerror="true" errorproperty="exc">
       <classpath path="${java.class.path}">
           <pathelement location="${temp}/stable/loader.jar"/>
@@ -695,15 +694,10 @@
       <jvmarg value="-Dlucee.enable.dialect=true"/>
       <jvmarg value="-Dlucee.extensions.install=true"/>
       <jvmarg value="-Dlucee.full.null.support=false"/>
-      <!-- older loader can dynamically download required bundles from the update provider -->
       <jvmarg value="-Dlucee.enable.bundle.download=true"/>
       <jvmarg value="-Dlucee.cli.printExceptions=true"/>
-      <!--
-      <jvmarg value="-Xdebug"/>
-      <jvmarg value="-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5000"/>
-      -->
     </java>
-    <outputTrimmedString str="${exc}"/>
+    <outputTrimmedString str="${exc}"/> -->
 </target>
 
 
