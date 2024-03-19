@@ -294,7 +294,7 @@
                           <artifacts>
                               <artifact>
                                   <file>${project.build.directory}/${project.version}.jvm11.lco</file>
-                                  <type>lco</type>
+                                  <type>lcojvm11</type>
                               </artifact>
                           </artifacts>
                       </configuration>
@@ -318,7 +318,7 @@
                           <artifacts>
                               <artifact>
                                   <file>${project.build.directory}/${project.version}.jvm17.lco</file>
-                                  <type>lco</type>
+                                  <type>lcojvm17</type>
                               </artifact>
                           </artifacts>
                       </configuration>
@@ -341,7 +341,7 @@
                           <artifacts>
                               <artifact>
                                   <file>${project.build.directory}/${project.version}.jvm21.lco</file>
-                                  <type>lco</type>
+                                  <type>lcojvm21</type>
                               </artifact>
                           </artifacts>
                       </configuration>
