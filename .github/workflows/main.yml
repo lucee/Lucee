@@ -101,10 +101,6 @@ jobs:
         java-version: '${{ env.LUCEE_BUILD_JAVA_VERSION }}'
         distribution: 'temurin'
 
-    - name: Disable DEPLOY if not building with Java 8 (Lucee default)
-      if: ${{ env.LUCEE_BUILD_JAVA_VERSION != '8' }}
-      run: echo "DO_DEPLOY=false" >> $GITHUB_ENV
-
     - name: Cache Lucee extensions
       uses: actions/cache@v4
       with:
@@ -188,7 +184,6 @@ jobs:
         S3_ACCESS_KEY_ID: ${{ secrets.S3_ACCESS_ID_TEST }}
         S3_SECRET_KEY: ${{ secrets.S3_SECRET_KEY_TEST }}
         S3_BUCKET_PREFIX: lucee-ldev-6-
-        # DO_DEPLOY: ${{ github.event_name == 'push' }}
         # for uploading successful builds
         S3_ACCESS_ID_DOWNLOAD: ${{ secrets.S3_ACCESS_ID_DOWNLOAD }}
         S3_SECRET_KEY_DOWNLOAD: ${{ secrets.S3_SECRET_KEY_DOWNLOAD }}
@@ -200,6 +195,7 @@ jobs:
         LUCEE_BUILD_FAIL_CONFIGURED_SERVICES_FATAL: true
       #run: ant -noinput -buildfile loader/build.xml
       run: |
+        echo "-------DO_DEPLOY: ${{ env.DO_DEPLOY }} -------";
         if [ "${{ env.DO_DEPLOY }}" == "true" ]; then
           echo "------- Maven Deploy on ${{ github.event_name }} -------";
           mvn -B -e -f loader/pom.xml clean deploy --settings travis-settings.xml -DtestJavaVersionExec="${{ env.LUCEE_TEST_JAVA_EXEC }}";
@@ -239,3 +235,4 @@ jobs:
         echo "Trigger Docker Build on Travis https://travis-ci.com/github/lucee/lucee-dockerfiles"
         chmod +x travis-docker-build.sh
         ./travis-docker-build.sh
+ 
