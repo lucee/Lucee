@@ -26,6 +26,7 @@
   <property name="extHibernate"          value="FAD1E8CB-4F45-4184-86359145767C29DE;version=5.4.29.27-BETA"/>
 
   <property name="stableLoader" value="lucee-5.3.7.48"/>
+  <property name="javaVersionCoreDefault" value="11"/>
   <property name="javaVersionAgent" value="11"/>
   <property name="javaVersionLoader" value="11"/>
   <property name="cdnUrl" value="https://cdn.lucee.org/"/>
@@ -772,12 +773,9 @@
     <!-- create the lucee core with the default Java version -->
     <jar 
         basedir="${core}" 
-        jarfile="${trgLoader}/${version}.lco" 
+        jarfile="${trgLoader}/${version}.jvm11.lco" 
         manifest="${core}/META-INF/MANIFEST.MF"/>
-    <copy 
-        file="${trgLoader}/${version}.lco" 
-        tofile="${trgLoader}/${version}.jvm11.lco"/>
-    <echots message="create lco:${trgLoader}/${version}.lco"/>  
+    <echots message="create lco:${trgLoader}/${version}.jvm11.lco"/>  
 
     <!--- copy Java 17 in place -->
      <copy todir="${core}" overwrite="true">
@@ -805,15 +803,16 @@
         manifest="${core}/META-INF/MANIFEST.MF"/>
     <echots message="create lco:${trgLoader}/${version}.jvm21.lco"/> 
 
+    <copy 
+        file="${trgLoader}/${version}.jvm${javaVersionCoreDefault}.lco" 
+        tofile="${trgLoader}/${version}.lco"/>
+
     <!-- copy to core to the classes folder -->
     <copy 
-        file="${trgLoader}/${version}.lco" 
+        file="${trgLoader}/${version}.jvm${javaVersionCoreDefault}.lco" 
         tofile="${outputDir}/core/core.lco"/>
-    <echots message="copy to:${outputDir}/core/core.lco"/> 
+    <echots message="copy ${trgLoader}/${version}.jvm${javaVersionCoreDefault}.lco to ${outputDir}/core/core.lco"/> 
 
-    <copy 
-        file="${trgLoader}/${version}.lco" 
-        tofile="${temp}/loader/core/core.lco"/>
 
     <!-- optionally copy lco file to an existing Lucee install -->
     <deployLco
