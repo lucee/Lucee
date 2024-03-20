@@ -50,7 +50,7 @@ a {
 }
 
 tr > th > a {
-    color: #ffffff !important;
+	color: #ffffff;
 }
 
 .admin-server a {
@@ -59,7 +59,9 @@ tr > th > a {
 .admin-single a {
 	color:#5f8731;
 }
-
+.admin-web a {
+	color:#39c;
+}
 
 img, a img { border:0; }
 form, div { margin:0; padding:0; }
@@ -230,7 +232,7 @@ body.single #contenttd {
 	color:#000;
 }
 .linkContext a {
-	color:#000 !important;
+	/* color:#36c;  */
 	text-decoration:none;
 
 }
