@@ -31,6 +31,7 @@ import lucee.runtime.type.scope.LocalNotSupportedScope;
 import lucee.runtime.type.scope.Scope;
 import lucee.runtime.type.scope.Undefined;
 import lucee.runtime.type.scope.Variables;
+import lucee.runtime.util.PageContextUtil;
 
 /**
  * Implements the CFML Function evaluate
@@ -40,7 +41,8 @@ public final class Evaluate implements Function {
 	private static final long serialVersionUID = 2259041678381553989L;
 
 	public static Object call(PageContext pc, Object[] objs) throws PageException {
-		return call(pc, objs, false);
+
+		return call(pc, objs, PageContextUtil.preciseMath(pc));
 	}
 
 	public static Object call(PageContext pc, Object[] objs, boolean preciseMath) throws PageException {

@@ -52,6 +52,8 @@ import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageServletException;
 import lucee.runtime.exp.RequestTimeoutException;
+import lucee.runtime.listener.ApplicationContext;
+import lucee.runtime.listener.ApplicationContextSupport;
 import lucee.runtime.listener.ApplicationListener;
 import lucee.runtime.net.http.ReqRspUtil;
 import lucee.runtime.op.Caster;
@@ -259,5 +261,13 @@ public class PageContextUtil {
 
 	public static Object getFunctionWithNamedValues(PageContext pc, Object coll, Object[] args) throws PageException {
 		return Caster.toFunction(coll).callWithNamedValues(pc, Caster.toFunctionValues(args), true);
+	}
+
+	public static boolean preciseMath(PageContext pc) {
+		ApplicationContext ac = ThreadLocalPageContext.get(pc).getApplicationContext();
+		if (ac instanceof ApplicationContextSupport) return ((ApplicationContextSupport) ac).getPreciseMath();
+		Config c = ThreadLocalPageContext.getConfig();
+		if (c instanceof ConfigPro) return ((ConfigPro) c).getPreciseMath();
+		return true;
 	}
 }
