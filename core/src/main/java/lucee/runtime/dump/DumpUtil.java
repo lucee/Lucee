@@ -100,7 +100,7 @@ public class DumpUtil {
 
 		// null
 		if (o == null) {
-			DumpTable table = new DumpTable("null", "#F77E21", "#FAC213", "#000000");
+			DumpTable table = new DumpTable("null", "#ff6600", "#ffcc99", "#000000");
 			table.appendRow(new DumpRow(0, new SimpleDumpData("Empty:null")));
 			return table;
 		}
@@ -147,7 +147,7 @@ public class DumpUtil {
 					Object rst = converter.deserialize(str, false);
 					DumpData data = toDumpData(rst, pageContext, maxlevel, props);
 
-					DumpTable table = new DumpTable("string", "#cfbaf0", "#f1c0e8", "#000000");
+					DumpTable table = new DumpTable("string", "#ff6600", "#ffcc99", "#000000");
 					table.setTitle("WDDX");
 					table.appendRow(1, new SimpleDumpData("encoded"), data);
 					table.appendRow(1, new SimpleDumpData("raw"), new SimpleDumpData(str));
@@ -158,31 +158,31 @@ public class DumpUtil {
 					// don't do it
 				}
 			}
-			DumpTable table = new DumpTable("string", "#F77E21", "#FAC213", "#000000");
+			DumpTable table = new DumpTable("string", "#ff6600", "#ffcc99", "#000000");
 			table.appendRow(1, new SimpleDumpData("string"), new SimpleDumpData(str));
 			return table;
 		}
 		// Character
 		if (o instanceof Character) {
-			DumpTable table = new DumpTable("character", "#F77E21", "#FAC213", "#000000");
+			DumpTable table = new DumpTable("character", "#ff6600", "#ffcc99", "#000000");
 			table.appendRow(1, new SimpleDumpData("character"), new SimpleDumpData(o.toString()));
 			return table;
 		}
 		// Number
 		if (o instanceof Number) {
-			DumpTable table = new DumpTable("numeric", "#F77E21", "#FAC213", "#000000");
+			DumpTable table = new DumpTable("numeric", "#ff6600", "#ffcc99", "#000000");
 			table.appendRow(1, new SimpleDumpData("number"), new SimpleDumpData(Caster.toString(((Number) o))));
 			return table;
 		}
 		// Charset
 		if (o instanceof Charset) {
-			DumpTable table = new DumpTable("charset", "#F77E21", "#FAC213", "#000000");
+			DumpTable table = new DumpTable("charset", "#ff6600", "#ffcc99", "#000000");
 			table.appendRow(1, new SimpleDumpData("charset"), new SimpleDumpData(((Charset) o).name()));
 			return table;
 		}
 		// CharSet
 		if (o instanceof CharSet) {
-			DumpTable table = new DumpTable("charset", "#F77E21", "#FAC213", "#000000");
+			DumpTable table = new DumpTable("charset", "#ff6600", "#ffcc99", "#000000");
 			table.appendRow(1, new SimpleDumpData("charset"), new SimpleDumpData(((CharSet) o).name()));
 			return table;
 		}
@@ -190,7 +190,7 @@ public class DumpUtil {
 		if (o instanceof Locale) {
 			Locale l = (Locale) o;
 			Locale env = ThreadLocalPageContext.getLocale();
-			DumpTable table = new DumpTable("locale", "#F77E21", "#FAC213", "#000000");
+			DumpTable table = new DumpTable("locale", "#ff6600", "#ffcc99", "#000000");
 			table.setTitle("Locale " + LocaleFactory.getDisplayName(l));
 			table.appendRow(1, new SimpleDumpData("Code (ISO-3166)"), new SimpleDumpData(l.toString()));
 			table.appendRow(1, new SimpleDumpData("Country"), new SimpleDumpData(l.getDisplayCountry(env)));
@@ -199,13 +199,13 @@ public class DumpUtil {
 		}
 		// TimeZone
 		if (o instanceof TimeZone) {
-			DumpTable table = new DumpTable("numeric", "#F77E21", "#FAC213", "#000000");
+			DumpTable table = new DumpTable("numeric", "#ff6600", "#ffcc99", "#000000");
 			table.appendRow(1, new SimpleDumpData("TimeZone"), new SimpleDumpData(TimeZoneUtil.toString(((TimeZone) o))));
 			return table;
 		}
 		// Boolean
 		if (o instanceof Boolean) {
-			DumpTable table = new DumpTable("boolean", "#F77E21", "#FAC213", "#000000");
+			DumpTable table = new DumpTable("boolean", "#ff6600", "#ffcc99", "#000000");
 			table.appendRow(1, new SimpleDumpData("boolean"), new SimpleDumpData(((Boolean) o).booleanValue()));
 			return table;
 		}
@@ -272,7 +272,7 @@ public class DumpUtil {
 		// Collection.Key
 		if (o instanceof Collection.Key) {
 			Collection.Key key = (Collection.Key) o;
-			DumpTable table = new DumpTable("string", "#F77E21", "#FAC213", "#000000");
+			DumpTable table = new DumpTable("string", "#ff6600", "#ffcc99", "#000000");
 			table.appendRow(1, new SimpleDumpData("Collection.Key"), new SimpleDumpData(key.getString()));
 			return table;
 		}

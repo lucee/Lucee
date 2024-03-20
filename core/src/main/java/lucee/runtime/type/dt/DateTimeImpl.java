@@ -95,7 +95,7 @@ public final class DateTimeImpl extends DateTime implements SimpleValue, Objects
 	@Override
 	public DumpData toDumpData(PageContext pageContext, int maxlevel, DumpProperties dp) {
 		String str = castToString(pageContext.getTimeZone());
-		DumpTable table = new DumpTable("date", "#F77E21", "#FAC213", "#000000");
+		DumpTable table = new DumpTable("date", "#ff6600", "#ffcc99", "#000000");
 		if (dp.getMetainfo()) table.appendRow(1, new SimpleDumpData("Date Time (" + pageContext.getTimeZone().getID() + ")"));
 		else table.appendRow(1, new SimpleDumpData("Date Time"));
 		table.appendRow(0, new SimpleDumpData(str));
