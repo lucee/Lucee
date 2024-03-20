@@ -76,7 +76,6 @@ public class Filter extends BIF implements ClosureFunc {
 	}
 
 	private static Collection _call(PageContext pc, Object obj, UDF udf, boolean parallel, int maxThreads, short type) throws PageException {
-
 		ExecutorService execute = null;
 		List<Future<Data<Pair<Object, Object>>>> futures = null;
 		if (maxThreads < 1) maxThreads = 20;
