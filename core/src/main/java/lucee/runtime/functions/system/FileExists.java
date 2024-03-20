@@ -23,7 +23,6 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
 
 /**
- * Implements the CFML Function fileexists
  * 
  * @deprecated replace with <code>lucee.runtime.functions.file.FileExists</code>
  */
