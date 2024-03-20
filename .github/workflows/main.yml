@@ -25,7 +25,7 @@ jobs:
 
     runs-on: ubuntu-latest
     env:
-      DO_DEPLOY: "${{ github.event_name == 'push' && github.ref == 'refs/heads/6.1' }}"
+      DO_DEPLOY: "${{ github.event_name == 'push' && startsWith(github.ref, 'refs/heads/6.1') }}"
       LUCEE_BUILD_JAVA_VERSION: 21
       LUCEE_TEST_JAVA_VERSION: ''
     services:
