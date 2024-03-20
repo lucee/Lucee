@@ -29,6 +29,8 @@ import lucee.runtime.op.date.DateCaster;
 
 public class MavenUpdateProvider {
 
+	private static final String[] LCOS = new String[] { "lco", "lcojvm11", "lcojvm17", "lcojvm21" };
+
 	public static final int CONNECTION_TIMEOUT = 10000;
 
 	private static final String DEFAULT_LIST_PROVIDER = "https://oss.sonatype.org/service/local/lucene/search";
@@ -131,6 +133,14 @@ public class MavenUpdateProvider {
 		}
 	}
 
+	/*
+	 * public static void main(String[] args) throws PageException, IOException,
+	 * GeneralSecurityException, SAXException, BundleException {
+	 * 
+	 * MavenUpdateProvider mup = new MavenUpdateProvider(); Map<String, Object> map =
+	 * mup.detail(OSGiUtil.toVersion("6.1.0.719-SNAPSHOT")); print.e(map); }
+	 */
+
 	public Map<String, Object> detail(Version version) throws IOException, GeneralSecurityException, SAXException, PageException {
 		// SNAPSHOT - snapshot have a more complicated structure, ebcause there can be udaptes/multiple
 		// versions
@@ -141,11 +151,6 @@ public class MavenUpdateProvider {
 				Map<String, Map<String, Object>> result = repoReader.read();
 				String urlPom = Caster.toString(result.get("pom").get("url"));
 				String urlJar = Caster.toString(result.get("jar").get("url"));
-				Map<String, Object> lco = result.get("lco");
-				String urlLco = null;
-				if (lco != null) {
-					urlLco = Caster.toString(lco.get("url"), null);
-				}
 
 				Object lastModified = result.get("jar").get("lastModified");
 
@@ -154,8 +159,17 @@ public class MavenUpdateProvider {
 				Map<String, Object> res = new LinkedHashMap<>();
 				res.put("pom", urlPom);
 				res.put("jar", urlJar);
-				if (!StringUtil.isEmpty(urlLco)) res.put("lco", urlLco);
 				res.put("lastModified", lastModified);
+
+				// LCOS
+				for (String lcoName: LCOS) {
+					Map<String, Object> lco = result.get(lcoName);
+					String urlLco = null;
+					if (lco != null) {
+						urlLco = Caster.toString(lco.get("url"), null);
+					}
+					if (!StringUtil.isEmpty(urlLco)) res.put(lcoName, urlLco);
+				}
 
 				return res;
 			}
