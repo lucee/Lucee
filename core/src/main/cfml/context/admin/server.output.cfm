@@ -107,6 +107,7 @@ Defaults --->
 							<b>#desc[setting.cfmlWriter]#
 							<input type="hidden" name="cfmlWriter" value="#setting.cfmlWriter#">
 						</cfif>
+						<cfset renderSysPropEnvVar( name:"lucee.cfml.writer",value:setting.cfmlWriter)>
 					</td>
 				</tr>
 				<!--- Allow Compression --->
