@@ -1,4 +1,4 @@
-﻿component extends="org.lucee.cfml.test.LuceeTestCase" skip=true {
+﻿component extends="org.lucee.cfml.test.LuceeTestCase" {
 
 	function beforeAll(){
 		setLocale("en_us");
@@ -295,8 +295,21 @@
 				assertEquals("-{ts '2008-04-06 00:00:00'}", "-#lsParseDateTime("Sunday, April 6, 2008")#");
 				assertEquals("-{ts '2008-04-06 01:02:00'}", "-#lsParseDateTime("4/6/08 1:02 AM")#");
 				assertEquals("-{ts '2008-04-06 01:02:03'}", "-#lsParseDateTime("4/6/08 1:02:03 AM")#");
-				{ // TODO make it work with Java 9
-					assertEquals("-{ts '2008-04-06 01:02:03'}", "-#lsParseDateTime("4/6/08 1:02:03 AM CEST")#");
+				
+				
+				assertEquals("-{ts '2008-04-06 01:02:03'}", "-#lsParseDateTime("4/6/08 1:02:03")#");
+				assertEquals("-{ts '2008-04-06 01:02:03'}", "-#lsParseDateTime("4/6/08 1:02:03 AM CEST")#");
+				assertEquals("-{ts '2008-04-06 00:00:00'}", "-#lsParseDateTime("4/6/08")#");
+				assertEquals("-{ts '1899-12-30 01:02:00'}", "-#lsParseDateTime("1:02 AM")#");
+				assertEquals("-{ts '2008-04-06 00:00:00'}", "-#lsParseDateTime("Apr 6, 2008")#");
+				assertEquals("-{ts '1899-12-30 01:02:03'}", "-#lsParseDateTime("1:02:03 AM")#");
+				assertEquals("-{ts '2008-04-06 00:00:00'}", "-#lsParseDateTime("April 6, 2008")#");
+				assertEquals("-{ts '2008-04-06 00:00:00'}", "-#lsParseDateTime("Sunday, April 6, 2008")#");
+				assertEquals("-{ts '2008-04-06 01:02:00'}", "-#lsParseDateTime("4/6/08 1:02 AM")#");
+				assertEquals("-{ts '2008-04-06 01:02:03'}", "-#lsParseDateTime("4/6/08 1:02:03 AM")#");
+					
+				
+				if(getJavaVersion()<=9) { 
 					assertEquals("-{ts '2008-04-06 01:02:03'}", "-#lsParseDateTime("4/6/08 1:02:03 AM CEST")#");
 					assertEquals("-{ts '2008-04-06 01:02:00'}", "-#lsParseDateTime("Apr 6, 2008 1:02 AM")#");
 					assertEquals("-{ts '2008-04-06 01:02:03'}", "-#lsParseDateTime("Apr 6, 2008 1:02:03 AM")#");
@@ -311,16 +324,8 @@
 					assertEquals("-{ts '2008-04-06 01:02:03'}", "-#lsParseDateTime("Sunday, April 6, 2008 1:02:03 AM CEST")#");
 					assertEquals("-{ts '2008-04-06 01:02:03'}", "-#lsParseDateTime("Sunday, April 6, 2008 1:02:03 AM CEST")#");
 				
-					assertEquals("-{ts '2008-04-06 00:00:00'}", "-#lsParseDateTime("4/6/08")#");
-					assertEquals("-{ts '1899-12-30 01:02:00'}", "-#lsParseDateTime("1:02 AM")#");
-					assertEquals("-{ts '2008-04-06 00:00:00'}", "-#lsParseDateTime("Apr 6, 2008")#");
-					assertEquals("-{ts '1899-12-30 01:02:03'}", "-#lsParseDateTime("1:02:03 AM")#");
-					assertEquals("-{ts '2008-04-06 00:00:00'}", "-#lsParseDateTime("April 6, 2008")#");
 					assertEquals("-{ts '1899-12-30 00:02:03'}", "-#lsParseDateTime("1:02:03 AM CEST")#");
-					assertEquals("-{ts '2008-04-06 00:00:00'}", "-#lsParseDateTime("Sunday, April 6, 2008")#");
 					assertEquals("-{ts '1899-12-30 00:02:03'}", "-#lsParseDateTime("1:02:03 AM CEST")#");
-					assertEquals("-{ts '2008-04-06 01:02:00'}", "-#lsParseDateTime("4/6/08 1:02 AM")#");
-					assertEquals("-{ts '2008-04-06 01:02:03'}", "-#lsParseDateTime("4/6/08 1:02:03 AM")#");
 					assertEquals("-{ts '2008-04-06 01:02:03'}", "-#lsParseDateTime("4/6/08 1:02:03 AM CEST")#");
 					assertEquals("-{ts '2008-04-06 01:02:03'}", "-#lsParseDateTime("4/6/08 1:02:03 AM CEST")#");
 					assertEquals("-{ts '2008-04-06 01:02:00'}", "-#lsParseDateTime("Apr 6, 2008 1:02 AM")#");
