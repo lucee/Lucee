@@ -25,6 +25,10 @@ public final class LuceeVersionsListMvn extends BIF {
 	private static final int TYPE_RELEASE = 2;
 
 	public static Array call(PageContext pc, String type) throws PageException {
+		return invoke("LuceeVersionsListMvn", pc, type);
+	}
+
+	public static Array invoke(String functionName, PageContext pc, String type) throws PageException {
 		// validate type
 		int t = TYPE_ALL;
 		boolean latest = false;
@@ -45,7 +49,7 @@ public final class LuceeVersionsListMvn extends BIF {
 				latest = true;
 				t = TYPE_SNAPSHOT;
 			}
-			else throw new FunctionException(pc, "MavenListVersions", 1, "type",
+			else throw new FunctionException(pc, functionName, 1, "type",
 					"type name [" + type + "] is invalid, valid types names are [all,snapshot,relase,latest,latest:release,latest:snapshot]");
 		}
 		MavenUpdateProvider mup = new MavenUpdateProvider();
@@ -86,8 +90,8 @@ public final class LuceeVersionsListMvn extends BIF {
 
 	@Override
 	public Object invoke(PageContext pc, Object[] args) throws PageException {
-		if (args.length == 1) return call(pc, Caster.toString(args[0]));
-		if (args.length == 0) return call(pc, null);
+		if (args.length == 1) return invoke("LuceeVersionsListMvn", pc, Caster.toString(args[0]));
+		if (args.length == 0) return invoke("LuceeVersionsListMvn", pc, null);
 
 		throw new FunctionException(pc, "LuceeVersionsListMvn", 0, 1, args.length);
 	}
