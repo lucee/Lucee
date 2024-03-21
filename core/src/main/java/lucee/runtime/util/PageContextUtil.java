@@ -264,7 +264,7 @@ public class PageContextUtil {
 	}
 
 	public static boolean preciseMath(PageContext pc) {
-		ApplicationContext ac = ThreadLocalPageContext.get(pc).getApplicationContext();
+		ApplicationContext ac = (pc = ThreadLocalPageContext.get(pc)) == null ? null : pc.getApplicationContext();
 		if (ac instanceof ApplicationContextSupport) return ((ApplicationContextSupport) ac).getPreciseMath();
 		Config c = ThreadLocalPageContext.getConfig();
 		if (c instanceof ConfigPro) return ((ConfigPro) c).getPreciseMath();
