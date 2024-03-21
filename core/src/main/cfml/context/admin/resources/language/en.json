@@ -260,6 +260,7 @@
         "serverTitle": "Readonly Debug Templates",
         "serverTitleDesc": "Readonly debug templates are generated within the \"\"server administrator\"\" for all web instances and can not be modified by the \"\"web administrator\"\".",
         "webTitle": "Debug Templates",
+        "Templates": "Debugging Templates",
         "webTitleDesc": "list of existing debug templates defined."
       },
       "logmemoryusage": "Log memory usage",

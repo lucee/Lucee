@@ -20,8 +20,6 @@
 	<cfset entry.custom=struct()>
 </cfif>
 
-
-
 <cftry>
 	<cfset stVeritfyMessages = StructNew()>
 	<cfswitch expression="#form.mainAction#">
@@ -73,9 +71,8 @@
 <!--- 
 Redirtect to entry --->
 <cfif cgi.request_method EQ "POST" and error.message EQ "" and form.mainAction neq "none">
-	<cflocation url="#request.self#?action=#url.action#" addtoken="no">
+	<cflocation url="#request.self#?action=debugging.settings" addtoken="no">
 </cfif>
-
 
 <cfoutput>
 	<script type="text/javascript">
@@ -111,12 +108,27 @@ Redirtect to entry --->
 				<tr>
 					<th scope="row">#stText.debug.iprange#</th>
 					<td>
-						<cfinputClassic type="text" 
-							name="iprange" 
-							value="#entry.iprange#" class="large" required="yes"
-							message="#stText.debug.iprangeMissing#">
-						<input type="button" name="addmyip" value="#stText.debug.addMyIp#" onclick="add(this)" class="button" />
-						<div class="comment">#rereplace(stText.debug.iprangeDesc, '[\r\n]+',"<br />","all")#</div>
+						<ul class="radiolist" id="ip_range">
+							<li>
+								<label for="">
+									<input class="radio ip_range" type="radio" name="ip_range" value="false" <cfif entry.iprange eq "*">checked="checked"</cfif>>
+									Default (*)
+								</label>
+							</li>
+							<li>
+								<label for="">
+									<input class="radio" type="radio" name="ip_range" id="ip_range_custom" value="true" <cfif entry.iprange neq "*">checked="true"</cfif>> Custom
+								</label>
+								<div class="custom_ip">
+									<cfinputClassic type="text" 
+									name="iprange" 
+									value="#entry.iprange#" class="large" required="yes"
+									message="#stText.debug.iprangeMissing#">
+									<input type="button" name="addmyip" value="#stText.debug.addMyIp#" onclick="add(this)" class="button" />
+									<div class="comment">#rereplace(stText.debug.iprangeDesc, '[\r\n]+',"<br />","all")#</div>
+								</div>
+							</li>
+						</ul>
 					</td>
 				</tr>
 			</tbody>
