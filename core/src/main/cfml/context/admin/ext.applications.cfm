@@ -3,17 +3,10 @@
 <cfparam name="inc" default="">
 <cfparam name="url.action2" default="list">
 <cfparam name="form.mainAction" default="none">
+<cfparam name="url.mainAction" default="">
 <cfparam name="form.subAction" default="none">
-<cfif not isDefined('session.extFilter2')>
-	<cfset session.extFilter.filter="">
-	<cfset session.extFilter.filter2="">
-	<cfset session.extFilter.category="">
-	<cfset session.extFilter.name="">
-	<cfset session.extFilter.provider="">
-	<cfset session.extFilter2.category="">
-	<cfset session.extFilter2.name="">
-	<cfset session.extFilter2.provider="">
-</cfif>
+<cfparam name="session.extFilter.installed" default="">
+<cfparam name="session.extFilter.available" default="">
 
 <cfadmin
 	action="getRHExtensionProviders"
@@ -54,31 +47,14 @@
 			}
 		}
 	}
-
 </cfscript>
 	<cfswitch expression="#form.mainAction#">
-	<!--- Filter --->
-		<cfcase value="#stText.Buttons.filter#">
-        	<cfif StructKeyExists(form,"filter")>
-				<cfset session.extFilter.filter=trim(form.filter)>
-            <cfelseif StructKeyExists(form,"filter2")>
-				<cfset session.extFilter.filter2=trim(form.filter2)>
-            <cfelseif StructKeyExists(form,"categoryFilter")>
-				<cfset session.extFilter.category=trim(form.categoryFilter)>
-                <cfset session.extFilter.name=trim(form.nameFilter)>
-                <cfset session.extFilter.provider=trim(form.providerFilter)>
-            <cfelse>
-				<cfset session.extFilter2.category=trim(form.categoryFilter2)>
-                <cfset session.extFilter2.name=trim(form.nameFilter2)>
-                <cfset session.extFilter2.provider=trim(form.providerFilter2)>
-            </cfif>
-		</cfcase>
 		<cfcase value="#stText.Buttons.install#">
         	<cfadmin
 			    action="updateRHExtension"
 			    type="#request.adminType#"
 			    password="#session["password"&request.adminType]#"
-				source="#downloadFull(form.provider,form.id,form.version)#">			
+				source="#downloadFull(form.provider,form.id,form.version)#">
 			<cfset application.reloadPlugins = true>
 		</cfcase>
 		<cfcase value="#stText.Buttons.upDown#">
@@ -97,15 +73,39 @@
 				id="#form.id#">
 			<cfset application.reloadPlugins = true>
 		</cfcase>
+		<cfdefaultcase>
+			<cfswitch expression="#url.mainAction#">
+				<!--- Filter --->
+				<cfcase value="#stText.Buttons.filter#">
+					<cfif StructKeyExists(url,"filter")
+						and htmleditformat(url.filter) eq url.filter>
+						<cfset session.extFilter.installed=trim(url.filter)>
+					<cfelseif StructKeyExists(url,"filter2")
+						and htmleditformat(url.filter2) eq url.filter2>
+						<cfset session.extFilter.available=trim(url.filter2)>
+					</cfif>
+				</cfcase>
+				<cfcase value="#stText.Buttons.clearFilter#">
+					<cfif StructKeyExists(url,"filter")>
+						<cfset session.extFilter.installed="">
+					</cfif>
+					<cfif StructKeyExists(url,"filter2")>
+						<cfset session.extFilter.available="">
+					</cfif>
+				</cfcase>
+			</cfswitch>
+		</cfdefaultcase>
 	</cfswitch>
+
 	<cfscript>
+		dump(session.extfilter);
 		if (structKeyExists(application, "reloadPlugins")){
 			inspectTemplates(); // flag page pool to be re-inspected for changes
 			lock name="lucee_admin_plugins_last_updated"{
-				application.plugin = {}; // clear plugin cache			
+				application.plugin = {}; // clear plugin cache
 				server.lucee_admin_plugins_last_updated = now(); // used to trigger plugin refresh accross different contexts
 			}
-		}	
+		}
 	</cfscript>
 
 

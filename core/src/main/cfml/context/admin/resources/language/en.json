@@ -76,6 +76,7 @@
       "back": "back",
       "cancel": "cancel",
       "change": "change",
+      "clearFilter": "clear filter",
       "compileall": "compile",
       "create": "create",
       "delete": "delete",
