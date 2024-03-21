@@ -4415,6 +4415,24 @@ public final class Caster {
 		return ForEachUtil.forEach(o);
 	}
 
+	public static Iterator<?> toEntryIterator(Object o) throws PageException {
+		if (o instanceof Collection) return ((Collection) o).entryIterator();
+		else if (o instanceof Node) return XMLCaster.toXMLStruct((Node) o, false).entryIterator();
+		else if (o instanceof Map) return ((Map) o).entrySet().iterator();
+		else if (o instanceof ObjectWrap) {
+			return toEntryIterator(((ObjectWrap) o).getEmbededObject());
+		}
+		else if (Decision.isCastableToArray(o)) {
+			return toArray(o).entryIterator();
+		}
+		throw new CasterException("cannot cast object of type [" + toTypeName(o) + "] to a entry iterator (Iterator<Entry>)");
+	}
+
+	public static Object toStringWhenKey(Object o) throws PageException {
+		if (o instanceof Key) return ((Key) o).getString();
+		return o;
+	}
+
 	/**
 	 * cast an Object to a Collection
 	 * 
