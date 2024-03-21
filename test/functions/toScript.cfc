@@ -14,8 +14,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
                 Struct = {};
                 Struct[1] = "lucee";
                 jsVar = serializeJson(Struct);
-                res = ToScript(Array, "jsVar");
-                expect(res).toBe('jsVar=new Array();jsVar[0]="lucee";');
+                res = ToScript(Struct, "jsVar");
+                expect(res).toBe('jsVar=new Object();jsVar["1"]="lucee";');
             });
 
             it( title = "checking toScript function for query", body = function( currentSpec ) {
