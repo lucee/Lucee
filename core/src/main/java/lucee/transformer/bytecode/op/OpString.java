@@ -18,7 +18,10 @@
  */
 package lucee.transformer.bytecode.op;
 
+import lucee.transformer.bytecode.literal.LitStringImpl;
+import lucee.transformer.bytecode.cast.CastString;
 import org.objectweb.asm.Type;
+import org.objectweb.asm.commons.GeneratorAdapter;
 import org.objectweb.asm.commons.Method;
 
 import lucee.transformer.TransformerException;
@@ -33,9 +36,15 @@ public final class OpString extends ExpressionBase implements ExprString {
 
 	private ExprString right;
 	private ExprString left;
-
+	
 	// String concat (String)
 	private final static Method METHOD_CONCAT = new Method("concat", Types.STRING, new Type[] { Types.STRING });
+	private static final Method CONSTR_NO_STRING = new Method("<init>", Types.VOID, new Type[] { });
+	private static final Method CONSTR_STRING = new Method("<init>", Types.VOID, new Type[] { Types.STRING });
+	private static final Method APPEND_OBJECT = new Method("append", Types.STRING_BUILDER, new Type[] { Types.OBJECT });
+	private static final Method APPEND_STRING = new Method("append", Types.STRING_BUILDER, new Type[] { Types.STRING });
+	private static final Method TO_STRING = new Method("toString", Types.STRING, new Type[] {});
+
 	private static final int MAX_SIZE = 65535;
 
 	private OpString(Expression left, Expression right) {
@@ -55,9 +64,40 @@ public final class OpString extends ExpressionBase implements ExprString {
 
 	@Override
 	public Type _writeOut(BytecodeContext bc, int mode) throws TransformerException {
-		left.writeOut(bc, MODE_REF);
-		right.writeOut(bc, MODE_REF);
-		bc.getAdapter().invokeVirtual(Types.STRING, METHOD_CONCAT);
+		GeneratorAdapter adapter=bc.getAdapter();
+		// new bytecode generation that does the same optimization for string concatenation that the Java compiler does.
+
+		// only creates the stringbuilder object once
+		adapter.newInstance(Types.STRING_BUILDER);
+		adapter.dup();
+		adapter.invokeConstructor(Types.STRING_BUILDER, CONSTR_NO_STRING); // TODO pass left into constructor
+		_writeOutAppend(adapter, bc, mode, left);
+		_writeOutAppend(adapter, bc, mode, right);
+
+		// only runs toString once at the end
+		adapter.invokeVirtual(Types.STRING_BUILDER, TO_STRING);
 		return Types.STRING;
+	}
+
+	public void _writeOutAppend(GeneratorAdapter adapter, BytecodeContext bc, int mode, ExprString exprString) throws TransformerException {
+		// we append all the expressions based on their type
+		// stringbuilder is able to convert to string from other types when you pass object, so Lucee doesn't need to do that anymore
+		if(exprString instanceof CastString) {
+			CastString exprStringCastString = ((CastString) exprString);
+//			exprStringCastString._writeOutRef(bc, MODE_REF);
+			exprStringCastString._writeOut(bc, MODE_REF);
+			adapter.invokeVirtual(Types.STRING_BUILDER, APPEND_STRING);
+		}else if(exprString instanceof LitStringImpl) {
+			LitStringImpl exprStringLit = ((LitStringImpl) exprString);
+			exprStringLit._writeOut(bc, MODE_REF);
+			adapter.invokeVirtual(Types.STRING_BUILDER, APPEND_STRING);
+		}else if(exprString instanceof OpString){
+			// the OpString is left & right pairs of expressions, so this code handles the recursion through this structure correctly without making duplicate objects/strings
+			OpString op=((OpString) exprString);
+//			op._writeOut(bc, MODE_REF);
+			op._writeOutAppend(adapter, bc, mode, op.left); 
+			op._writeOutAppend(adapter, bc, mode, op.right);
+		}
+		// TODO else required
 	}
 }
