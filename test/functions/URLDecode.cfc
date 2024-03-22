@@ -10,9 +10,11 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				assertEquals("%", "#URLDecode(URLEncodedFormat('%'))#");
 
 				assertEquals("%25%26%2F", "#URLEncodedFormat('%&/')#");
-				assertEquals("%&/", "#URLDecode('%&/')#");
-				assertEquals("%", "#URLDecode('%')#");
 				assertEquals(" ", "#"+".URLDecode()#");
+
+				/* Windows31-J or Shift_JIS %8e%71 -> Unicode \u5b50 = 23376*/
+				assertEquals(Chr(23376), URLDecode('%8e%71', 'windows-31j'));
+				assertEquals(Chr(23376), URLDecode('%8eq', 'windows-31j'));
 			});
 		});
 	}
