@@ -26,7 +26,9 @@
   <property name="extHibernate"          value="FAD1E8CB-4F45-4184-86359145767C29DE;version=5.4.29.27-BETA"/>
 
   <property name="stableLoader" value="lucee-5.3.7.48"/>
-  <property name="javaVersion" value="11"/>
+  <property name="javaVersionCoreDefault" value="21"/>
+  <property name="javaVersionAgent" value="11"/>
+  <property name="javaVersionLoader" value="11"/>
   <property name="cdnUrl" value="https://cdn.lucee.org/"/>
   
   <import file="../ant/build-utils.xml"/>
@@ -105,6 +107,9 @@
     <property name="temp" location="${rootDir}/temp"/>
     <property name="loader" location="${temp}/loader"/>
     <property name="core" location="${temp}/core"/>
+    <property name="core11" location="${temp}/corejvm11"/>
+    <property name="core17" location="${temp}/corejvm17"/>
+    <property name="core21" location="${temp}/corejvm21"/>
     <property name="tmpContext" location="${temp}/context"/>
     <property name="deployLco" value=""/>    
     <!-- <property file="${rootDir}/build.properties"/> -->
@@ -198,6 +203,9 @@
 
     <!-- Create the  directory structure needed -->
     <mkdir dir="${core}"/>
+    <mkdir dir="${core11}"/>
+    <mkdir dir="${core17}"/>
+    <mkdir dir="${core21}"/>
     <mkdir dir="${loader}"/>
     <mkdir dir="${temp}/agent"/>
     <mkdir dir="${cache}"/>
@@ -314,8 +322,8 @@
     <!-- compie the source -->
     <javac 
       srcdir="${srcInst}" 
-      source="${javaVersion}" 
-      target="${javaVersion}" 
+      source="${javaVersionAgent}" 
+      target="${javaVersionAgent}" 
       destdir="${temp}/agent"
       includeantruntime="false"
       debug="true" 
@@ -337,8 +345,8 @@
     <!-- compie the source -->
     <javac 
       srcdir="${srcLoader}" 
-      source="${javaVersion}" 
-      target="${javaVersion}" 
+      source="${javaVersionLoader}" 
+      target="${javaVersionLoader}" 
       destdir="${temp}/loader"
       debug="true" 
       includeantruntime="false"
@@ -369,12 +377,39 @@
     </path>
     <!-- <pathconvert property="classpathProp" refid="classpath"/> -->
    <echo level="info" message="Using Java version ${ant.java.version}."/>
-    <!-- compile the core -->
+    
+    <!-- compile the core for Java 11 -->
     <javac 
       srcdir="${srcCore}" 
-      source="${javaVersion}" 
-      target="${javaVersion}" 
+      source="11" 
+      target="11" 
       destdir="${core}"
+      includeantruntime="false"
+      debug="true" 
+      debuglevel="lines,vars,source">
+       <classpath refid="classpath" />
+       <classpath path="${temp}/loader"/>
+    </javac>
+
+    <!-- compile the core for Java 17 -->
+    <javac 
+      srcdir="${srcCore}" 
+      source="17" 
+      target="17" 
+      destdir="${core17}"
+      includeantruntime="false"
+      debug="true" 
+      debuglevel="lines,vars,source">
+       <classpath refid="classpath" />
+       <classpath path="${temp}/loader"/>
+    </javac>
+
+    <!-- compile the core for Java 21 -->
+    <javac 
+      srcdir="${srcCore}" 
+      source="21" 
+      target="21" 
+      destdir="${core21}"
       includeantruntime="false"
       debug="true" 
       debuglevel="lines,vars,source">
@@ -642,9 +677,8 @@
        <fileset dir="${temp}/stable/temp"/>
     </jar>
 
-
+    <!-- does not work with newer java version
     <echots message="try running the new core build with an older stable loader"/>
-    <!-- build the lucee-context.lar -->
     <java classname="org.apache.tools.ant.launch.Launcher" dir="${ant}" fork="true" failonerror="true" errorproperty="exc">
       <classpath path="${java.class.path}">
           <pathelement location="${temp}/stable/loader.jar"/>
@@ -660,15 +694,10 @@
       <jvmarg value="-Dlucee.enable.dialect=true"/>
       <jvmarg value="-Dlucee.extensions.install=true"/>
       <jvmarg value="-Dlucee.full.null.support=false"/>
-      <!-- older loader can dynamically download required bundles from the update provider -->
       <jvmarg value="-Dlucee.enable.bundle.download=true"/>
       <jvmarg value="-Dlucee.cli.printExceptions=true"/>
-      <!--
-      <jvmarg value="-Xdebug"/>
-      <jvmarg value="-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5000"/>
-      -->
     </java>
-    <outputTrimmedString str="${exc}"/>
+    <outputTrimmedString str="${exc}"/> -->
 </target>
 
 
@@ -680,17 +709,6 @@
     <copy file="${temp}/archive/lucee-context.lar" tofile="${core}/resource/context/lucee-context.lar"/>
     <copy file="${temp}/archive/lucee-admin.lar" tofile="${core}/resource/context/lucee-admin.lar"/> 
     <copy file="${temp}/archive/lucee-doc.lar" tofile="${core}/resource/context/lucee-doc.lar"/> 
-  </target>
-
-  <!-- not used -->
-  <target name="buildCore" depends="__build">
-    <!-- copy all the source to the classes folder -->
-    <echots message="copy everything to the classes folder"/>
-    <copy todir="${outputDir}">
-      <fileset dir="${core}">
-        <exclude name=".*"/>
-      </fileset>
-    </copy>
   </target>
 
   <target name="addFelix" if="buildLoaderJar">
@@ -746,26 +764,56 @@
     <echots message="output dir ${outputDir}"/>
     <echots message="temp dir ${temp}"/>
 
-    <!-- create the lucee core -->
+    <!-- create the lucee core with the default Java version -->
     <jar 
         basedir="${core}" 
-        jarfile="${trgLoader}/${version}.lco" 
+        jarfile="${trgLoader}/${version}.jvm11.lco" 
         manifest="${core}/META-INF/MANIFEST.MF"/>
+    <echots message="create lco:${trgLoader}/${version}.jvm11.lco"/>  
+
+    <!--- copy Java 17 in place -->
+     <copy todir="${core}" overwrite="true">
+      <fileset dir="${core17}">
+      </fileset>
+    </copy>
+
+    <!-- create the lucee core with the Java 17 version -->
+    <jar 
+        basedir="${core}" 
+        jarfile="${trgLoader}/${version}.jvm17.lco" 
+        manifest="${core}/META-INF/MANIFEST.MF"/>
+    <echots message="create lco:${trgLoader}/${version}.jvm17.lco"/>   
+
+    <!--- copy Java 21 in place -->
+     <copy todir="${core}" overwrite="true">
+      <fileset dir="${core21}">
+      </fileset>
+    </copy>
+
+    <!-- create the lucee core with the Java 21 version -->
+    <jar 
+        basedir="${core}" 
+        jarfile="${trgLoader}/${version}.jvm21.lco" 
+        manifest="${core}/META-INF/MANIFEST.MF"/>
+    <echots message="create lco:${trgLoader}/${version}.jvm21.lco"/> 
+
+    <copy 
+        file="${trgLoader}/${version}.jvm${javaVersionCoreDefault}.lco" 
+        tofile="${trgLoader}/${version}.lco"/>
 
     <!-- copy to core to the classes folder -->
     <copy 
-        file="${trgLoader}/${version}.lco" 
+        file="${trgLoader}/${version}.jvm${javaVersionCoreDefault}.lco" 
         tofile="${outputDir}/core/core.lco"/>
+    <echots message="copy ${trgLoader}/${version}.jvm${javaVersionCoreDefault}.lco to ${outputDir}/core/core.lco"/> 
 
-    <copy 
-        file="${trgLoader}/${version}.lco" 
-        tofile="${temp}/loader/core/core.lco"/>
 
     <!-- optionally copy lco file to an existing Lucee install -->
     <deployLco
       srcdir="${trgLoader}" 
       deploydir="${deployLco}"
       name="${version}.lco"/>
+    <echots message="deployLco:${deployLco}"/> 
 
   </target>
 
@@ -811,7 +859,7 @@
     <currentTime property="ct" />
     <echo file="${temp}/loader/lucee/version" message="${version}:${ct}" encoding="UTF-8"/>
     
-    <delete dir="${temp}"/>
+    <!-- <delete dir="${temp}"/> -->
     <echots message="done"/>
   </target>
 

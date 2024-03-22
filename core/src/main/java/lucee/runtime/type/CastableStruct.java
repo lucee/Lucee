@@ -152,7 +152,7 @@ public final class CastableStruct extends StructImpl {
 	@Override
 	public DumpData toDumpData(PageContext pageContext, int maxlevel, DumpProperties dp) {
 		if (value == null) return super.toDumpData(pageContext, maxlevel, dp);
-		DumpTable table = new DumpTable("struct", "#9999ff", "#ccccff", "#000000");
+		DumpTable table = new DumpTable("struct", "#468faf", "#89c2d9", "#000000");
 		table.setTitle("Value Struct");
 		maxlevel--;
 		table.appendRow(1, new SimpleDumpData("value"), DumpUtil.toDumpData(value, pageContext, maxlevel, dp));

@@ -16,7 +16,7 @@ public final class LuceeVersionsList extends BIF {
 
 	public static Array call(PageContext pc, String type) throws PageException {
 		try {
-			return LuceeVersionsListMvn.call(pc, type);
+			return LuceeVersionsListMvn.invoke("LuceeVersionsList", pc, type);
 		}
 		catch (Exception e) {
 			Query qry = LuceeVersionsListS3.call(pc, type);

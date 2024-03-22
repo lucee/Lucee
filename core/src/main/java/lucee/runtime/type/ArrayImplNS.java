@@ -567,7 +567,7 @@ public final class ArrayImplNS extends ArraySupport implements Array {
 
 	@Override
 	public DumpData toDumpData(PageContext pageContext, int maxlevel, DumpProperties dp) {
-		DumpTable table = new DumpTable("array", "#ff9900", "#ffcc00", "#000000");
+		DumpTable table = new DumpTable("array", "#52b788", "#b7e4c7", "#000000");
 		table.setTitle("Array");
 
 		int length = size();

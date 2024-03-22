@@ -253,7 +253,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 
 		boolean doNew = getNew(engine, configDir, false, UpdateInfo.NEW_NONE).updateType != NEW_NONE;
 		Resource configFileOld = configDir.getRealResource("lucee-web.xml." + TEMPLATE_EXTENSION);
-		Resource configFileNew = configDir.getRealResource(".CFConfig.json");
+		Resource configFileNew = configDir.getRealResource(ConfigServerFactory.CONFIG_FILE_NAME);
 		String strPath = servletConfig.getServletContext().getRealPath("/WEB-INF");
 		Resource path = ResourcesImpl.getFileResourceProvider().getResource(strPath);
 		boolean hasConfigOld = false;

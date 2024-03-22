@@ -11,6 +11,7 @@ import lucee.commons.io.res.Resource;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.config.ConfigPro;
+import lucee.runtime.config.ConfigServerFactory;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.config.ConfigWebFactory;
 import lucee.runtime.config.ConfigWebPro;
@@ -54,10 +55,10 @@ public class ConfigTranslate extends BIF {
 			if (!StringUtil.isEmpty(target, true)) {
 				if ("web".equalsIgnoreCase(target.trim())) {
 					Resource dir = ((ConfigWebPro) config).getWebConfigDir();
-					trg = dir.getRealResource(".CFConfig.json");
+					trg = dir.getRealResource(ConfigServerFactory.CONFIG_FILE_NAME);
 				}
 				else if ("server".equalsIgnoreCase(target.trim())) {
-					trg = pc.getConfig().getConfigServerDir().getRealResource(".CFConfig.json");
+					trg = ConfigServerFactory.getConfigFile(pc.getConfig().getConfigServerDir());
 				}
 				if (trg == null) trg = Caster.toResource(pc, target, false);
 				if (!trg.getParentResource().isDirectory())

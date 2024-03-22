@@ -34,13 +34,55 @@
 		<table class="maintbl checkboxtbl">
 			<thead>
 				<tr>
-					<th class="linkContext"><a href="#request.self#?action=#url.action#&col=title&dir=#url.col=='title'?(url.dir=='asc'?'desc':'asc'):'asc'#">#stText.info.bundles.subject#</a></th>
-					<th class="linkContext"><a href="#request.self#?action=#url.action#&col=version&dir=#url.col=='version'?(url.dir=='asc'?'desc':'asc'):'asc'#">#stText.info.bundles.version#</a></th>
-					<th class="linkContext"><a href="#request.self#?action=#url.action#&col=created&dir=#url.col=='created'?(url.dir=='asc'?'desc':'asc'):'asc'#">#stText.info.bundles.created#</a></th>
-					<th class="linkContext"><a href="#request.self#?action=#url.action#&col=size&dir=#url.col=='size'?(url.dir=='asc'?'desc':'asc'):'asc'#">#stText.info.bundles.size?:"Size"#</a></th>
-					<th class="linkContext"><a href="#request.self#?action=#url.action#&col=vendor&dir=#url.col=='vendor'?(url.dir=='asc'?'desc':'asc'):'asc'#">#stText.info.bundles.vendor#</a></th>
-					<th class="linkContext"><a href="#request.self#?action=#url.action#&col=usedBy&dir=#url.col=='usedBy'?(url.dir=='asc'?'desc':'asc'):'asc'#">#stText.info.bundles.usedBy#</a></th>
-					<th class="linkContext"><a href="#request.self#?action=#url.action#&col=state&dir=#url.col=='state'?(url.dir=='asc'?'desc':'asc'):'asc'#">#stText.info.bundles.state#</a></th>
+					<th class="linkContext">
+						<a href="#request.self#?action=#url.action#&col=title&dir=#url.col=='title'?(url.dir=='asc'?'desc':'asc'):'asc'#">#stText.info.bundles.subject#
+							<cfif url.col=='title'>
+								<img src="../res/img/arrow-#url.dir=='asc' ? 'up':'down'#.gif.cfm" hspace="4" vspace="4" border="0">
+							</cfif>
+						</a>
+					</th>
+					<th class="linkContext">
+						<a href="#request.self#?action=#url.action#&col=version&dir=#url.col=='version'?(url.dir=='asc'?'desc':'asc'):'asc'#">#stText.info.bundles.version#
+							<cfif url.col=='version'>
+								<img src="../res/img/arrow-#url.dir=='asc' ? 'up':'down'#.gif.cfm" hspace="4" vspace="4" border="0">
+							</cfif>
+						</a>
+					</th>
+					<th class="linkContext">
+						<a href="#request.self#?action=#url.action#&col=created&dir=#url.col=='created'?(url.dir=='asc'?'desc':'asc'):'asc'#">#stText.info.bundles.created#
+							<cfif url.col=='created'>
+								<img src="../res/img/arrow-#url.dir=='asc' ? 'up':'down'#.gif.cfm" hspace="4" vspace="4" border="0">
+							</cfif>
+						</a>
+					</th>
+					<th class="linkContext">
+						<a href="#request.self#?action=#url.action#&col=size&dir=#url.col=='size'?(url.dir=='asc'?'desc':'asc'):'asc'#">#stText.info.bundles.size?:"Size"#
+							<cfif url.col=='size'>
+								<img src="../res/img/arrow-#url.dir=='asc' ? 'up':'down'#.gif.cfm" hspace="4" vspace="4" border="0">
+							</cfif>
+						</a>
+					</th>
+					<th class="linkContext">
+						<a href="#request.self#?action=#url.action#&col=vendor&dir=#url.col=='vendor'?(url.dir=='asc'?'desc':'asc'):'asc'#">#stText.info.bundles.vendor#
+							<cfif url.col=='vendor'>
+								<img src="../res/img/arrow-#url.dir=='asc' ? 'up':'down'#.gif.cfm" hspace="4" vspace="4" border="0">
+							</cfif>
+						</a>
+					</th>
+					<th class="linkContext">
+						<a href="#request.self#?action=#url.action#&col=usedBy&dir=#url.col=='usedBy'?(url.dir=='asc'?'desc':'asc'):'asc'#">#stText.info.bundles.usedBy#
+							<cfif url.col=='usedBy'>
+								<img src="../res/img/arrow-#url.dir=='asc' ? 'up':'down'#.gif.cfm" hspace="4" vspace="4" border="0">
+							</cfif>
+						</a>
+					</th>
+					<th class="linkContext">
+						<a href="#request.self#?action=#url.action#&col=state&dir=#url.col=='state'?(url.dir=='asc'?'desc':'asc'):'asc'#">#stText.info.bundles.state#
+							<cfif url.col=='state'>
+								<img src="../res/img/arrow-#url.dir=='asc' ? 'up':'down'#.gif.cfm" hspace="4" vspace="4" border="0">
+							</cfif>
+						</a>
+					</th>
 					<th></th>
 				</tr>
 			</thead>

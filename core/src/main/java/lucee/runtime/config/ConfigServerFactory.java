@@ -34,9 +34,11 @@ import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
+import lucee.commons.io.res.ResourcesImpl;
 import lucee.commons.io.res.type.file.FileResource;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ClassException;
+import lucee.commons.lang.StringUtil;
 import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.CFMLFactory;
 import lucee.runtime.converter.ConverterException;
@@ -55,6 +57,8 @@ import lucee.transformer.library.tag.TagLibException;
  * 
  */
 public final class ConfigServerFactory extends ConfigFactory {
+
+	public static final String CONFIG_FILE_NAME = ".CFConfig.json";
 
 	/**
 	 * creates a new ServletConfig Impl Object
@@ -107,7 +111,9 @@ public final class ConfigServerFactory extends ConfigFactory {
 			boolean doNew = ui.updateType != NEW_NONE;
 
 			Resource configFileOld = configDir.getRealResource("lucee-server.xml");
-			Resource configFileNew = configDir.getRealResource(".CFConfig.json");
+
+			// config file
+			Resource configFileNew = getConfigFile(configDir);
 
 			boolean hasConfigOld = false;
 			boolean hasConfigNew = configFileNew.exists() && configFileNew.length() > 0;
@@ -167,6 +173,42 @@ public final class ConfigServerFactory extends ConfigFactory {
 			ThreadLocalPageContext.insideServerNewInstance(false);
 			ThreadLocalConfigServer.release();
 		}
+	}
+
+	public static Resource getConfigFile(Resource configDir) {
+
+		// lucee.base.config
+		String customCFConfig = SystemUtil.getSystemPropOrEnvVar("lucee.base.config", null);
+		Resource configFile = null, parent;
+		if (!StringUtil.isEmpty(customCFConfig, true)) {
+			try {
+				configFile = ResourcesImpl.getFileResourceProvider().getResource(customCFConfig.trim());
+				// at least the directory must exists
+				parent = configFile.getParentResource();
+				if (parent != null && !parent.isDirectory()) return configFile;
+			}
+			catch (Exception e) {
+			}
+		}
+
+		// config
+		customCFConfig = SystemUtil.getSystemPropOrEnvVar("config", null);
+		if (!StringUtil.isEmpty(customCFConfig, true)) {
+			if (customCFConfig.trim().endsWith(CONFIG_FILE_NAME)) {
+				try {
+					configFile = ResourcesImpl.getFileResourceProvider().getResource(customCFConfig.trim());
+					// at least the directory must exists
+					parent = configFile.getParentResource();
+					if (parent != null && !parent.isDirectory()) return configFile;
+				}
+				catch (Exception e) {
+					configFile = null;
+				}
+			}
+		}
+
+		// default location
+		return configDir.getRealResource(CONFIG_FILE_NAME);
 	}
 
 	/**

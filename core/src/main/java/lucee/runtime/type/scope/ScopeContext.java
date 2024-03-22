@@ -993,24 +993,35 @@ public final class ScopeContext {
 		ApplicationContext appContext = pc.getApplicationContext();
 		RefBoolean isNew = new RefBooleanImpl();
 
-		// get in memory scopes
-		Map<String, Scope> clientContext = getSubMap(cfClientContexts, appContext.getName());
-		UserScope oldClient = (UserScope) clientContext.get(pc.getCFID());
-		Map<String, Scope> sessionContext = getSubMap(cfSessionContexts, appContext.getName());
-		UserScope oldSession = (UserScope) sessionContext.get(pc.getCFID());
+		boolean hasClientManagment = appContext.isSetClientManagement();
+		boolean hasSessionManagment = appContext.isSetSessionManagement();
 
-		ApplicationListener listener = factory.getConfig().getApplicationListener();
-		try {
-			listener.onSessionEnd(factory, appContext.getName(), pc.getCFID());
+		// get in memory scopes
+		UserScope oldClient = null;
+		if (hasClientManagment) {
+			Map<String, Scope> clientContext = getSubMap(cfClientContexts, appContext.getName());
+			oldClient = (UserScope) clientContext.get(pc.getCFID());
 		}
-		catch (Throwable t) {
-			ExceptionUtil.rethrowIfNecessary(t);
-			ExceptionHandler.log(pc.getConfig(), Caster.toPageException(t));
+		UserScope oldSession = null;
+		if (hasSessionManagment) {
+			Map<String, Scope> sessionContext = getSubMap(cfSessionContexts, appContext.getName());
+			oldSession = (UserScope) sessionContext.get(pc.getCFID());
+		}
+
+		if (hasSessionManagment) {
+			ApplicationListener listener = factory.getConfig().getApplicationListener();
+			try {
+				listener.onSessionEnd(factory, appContext.getName(), pc.getCFID());
+			}
+			catch (Throwable t) {
+				ExceptionUtil.rethrowIfNecessary(t);
+				ExceptionHandler.log(pc.getConfig(), Caster.toPageException(t));
+			}
 		}
 
 		// remove Scopes completly
-		removeCFSessionScope(pc);
-		removeClientScope(pc);
+		if (hasSessionManagment) removeCFSessionScope(pc);
+		if (hasClientManagment) removeClientScope(pc);
 
 		pc.resetIdAndToken();
 		pc.resetSession();
