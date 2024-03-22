@@ -67,6 +67,12 @@
 
 	<dependencies>
     <dependency>
+      <groupId>org.lucee</groupId>
+      <artifactId>lucee</artifactId>
+      <version>[6.0,)</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
       <groupId>org.apache.felix</groupId>
       <artifactId>org.apache.felix.framework</artifactId>
       <version>7.0.5</version>
