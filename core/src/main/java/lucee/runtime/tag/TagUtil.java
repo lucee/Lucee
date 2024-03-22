@@ -175,14 +175,18 @@ public class TagUtil {
 
 	public static void setAttribute(PageContext pc, boolean doDynamic, boolean silently, Tag tag, String name, Object value) throws PageException {
 		MethodInstance setter = Reflector.getSetter(tag, name.toLowerCase(), value, null);
+
 		if (setter != null) {
+			if (value == null) {
+				Class<?>[] types = setter.getMethod().getParameterTypes();
+				if (types[0].isPrimitive()) return; // full null support should allow null, because of that i only suppress when primitive type, then
+													// that will not work
+			}
 			try {
 				setter.invoke(tag);
 			}
 			catch (Exception _e) {
-				if (!(value == null && _e instanceof IllegalArgumentException)) // TODO full null support should allow null, because of that i only suppress in
-					// case of an exception
-					throw Caster.toPageException(_e);
+				throw Caster.toPageException(_e);
 			}
 		}
 		else if (doDynamic) {
