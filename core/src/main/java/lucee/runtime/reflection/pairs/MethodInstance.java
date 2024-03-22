@@ -18,25 +18,51 @@
  **/
 package lucee.runtime.reflection.pairs;
 
+import java.io.IOException;
+import java.lang.instrument.UnmodifiableClassException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
+
+import lucee.print;
+import lucee.commons.lang.Pair;
+import lucee.runtime.exp.ApplicationException;
+import lucee.runtime.exp.PageException;
+import lucee.runtime.ext.function.BIF;
+import lucee.runtime.op.Caster;
+import lucee.runtime.type.Collection.Key;
+import lucee.runtime.type.util.ListUtil;
+import lucee.transformer.direct.DirectCallEngine;
+import lucee.transformer.direct.PageContextDummy;
 
 /**
  * class holds a Method and the parameter to call it
  */
 public final class MethodInstance {
 
-	private Method method;
+	private Class clazz;
+	private Key methodName;
 	private Object[] args;
+	private Pair<Method, Class> result;
 
 	/**
 	 * constructor of the class
 	 * 
 	 * @param method
 	 * @param args
+	 * 
+	 *            public MethodInstance(Method method, Object[] args) { this.method = method; this.args
+	 *            = args; }
+	 * @throws UnmodifiableClassException
+	 * @throws IOException
+	 * @throws ClassNotFoundException
+	 * @throws NoSuchMethodException
 	 */
-	public MethodInstance(Method method, Object[] args) {
-		this.method = method;
+
+	public MethodInstance(Class clazz, Key methodName, Object[] args) {
+		this.clazz = clazz;
+		this.methodName = methodName;
 		this.args = args;
 	}
 
@@ -50,9 +76,71 @@ public final class MethodInstance {
 	 * @throws IllegalAccessException
 	 * @throws InvocationTargetException
 	 * @throws InvocationTargetException
+	 * @throws UnmodifiableClassException
+	 * @throws IOException
+	 * @throws SecurityException
+	 * @throws InstantiationException
+	 * @throws ClassNotFoundException
+	 * @throws NoSuchMethodException
 	 */
-	public Object invoke(Object o) throws IllegalAccessException, InvocationTargetException {
-		return method.invoke(o, args);
+
+	public Object invoke(Object o)
+			throws PageException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
+
+		/*
+		 * if (o == null && "identityHashCode".equals(methodName.getString()) && args.length == 1) {
+		 * print.ds("------ identityHashCode --------"); return System.identityHashCode(args[0]); }
+		 */
+
+		if (o != null) {
+			if ("toString".equals(methodName.getString()) && args.length == 0) {
+				return o.toString();
+			}
+			else if ("equals".equals(methodName.getString()) && args.length == 1) {
+				return o.equals(args[0]);
+			}
+		}
+		PageContextDummy dummy = null;
+		BIF instance = (BIF) getResult().getValue().getConstructor().newInstance(); // TODO only load that instance onces
+		try {
+
+			if (o == null) {
+				return instance.invoke(null, args);
+			}
+			else {
+				dummy = PageContextDummy.getDummy(o);
+				return instance.invoke(dummy, args);
+			}
+
+		}
+		catch (Exception e) {
+			print.e("---------");
+			if (o != null) print.e(o.getClass().getName());
+			print.e(clazz.getName());
+			print.e(methodName);
+			print.e(args);
+
+			List<String> listArgs = new ArrayList<>();
+			for (Object arg: args) {
+				listArgs.add(Caster.toTypeName(arg));
+			}
+			String msg;
+			if (o == null) msg = "exception while invoking the static method [" + methodName + "] of the class [" + clazz.getName() + "] with the arguments ["
+					+ ListUtil.listToList(listArgs, ", ") + "]";
+			else {
+				msg = "exception while invoking the instance method [" + methodName + "] of the class [" + clazz.getName() + "|" + o.getClass().getName() + "] with the arguments ["
+						+ ListUtil.listToList(listArgs, ", ") + "]";
+			}
+
+			ApplicationException ae = new ApplicationException(msg);
+			ae.initCause(e);
+
+			throw ae;
+		}
+		finally {
+			if (dummy != null) PageContextDummy.returnDummy(dummy);
+		}
+
 	}
 
 	/**
@@ -62,14 +150,27 @@ public final class MethodInstance {
 		return args;
 	}
 
-	/**
-	 * @return Returns the method.
-	 */
-	public Method getMethod() {
-		return method;
+	public Method getMethod() throws PageException {
+		return getResult().getName();
 	}
 
-	public void setAccessible(boolean b) {
-		method.setAccessible(b);
+	private Pair<Method, Class> getResult() throws PageException {
+		if (result == null) {
+			try {
+				result = DirectCallEngine.getInstance(null).createClass(clazz, methodName, args);
+			}
+			catch (Exception e) {
+				throw Caster.toPageException(e);
+			}
+		}
+		return result;
 	}
+
+	/**
+	 * @return Returns the method.
+	 * 
+	 *         public Method getMethod() { return method; }
+	 * 
+	 *         public void setAccessible(boolean b) { method.setAccessible(b); }
+	 */
 }

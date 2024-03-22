@@ -65,6 +65,7 @@ import lucee.commons.lang.ClassUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.Md5;
 import lucee.commons.lang.PhysicalClassLoader;
+import lucee.commons.lang.SerializableObject;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.types.RefBoolean;
 import lucee.commons.net.IPRange;
@@ -175,6 +176,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	private int mode = MODE_CUSTOM;
 
 	private final Map<String, PhysicalClassLoader> rpcClassLoaders = new ConcurrentHashMap<String, PhysicalClassLoader>();
+	private PhysicalClassLoader directClassLoader;
 	private Map<String, DataSource> datasources = new HashMap<String, DataSource>();
 	private Map<String, CacheConnection> caches = new HashMap<String, CacheConnection>();
 
@@ -2250,6 +2252,23 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 			}
 		}
 		return rpccl;
+	}
+
+	private static final Object dclt = new SerializableObject();
+
+	public PhysicalClassLoader getDirectClassLoader(boolean reload) throws IOException {
+		if (directClassLoader == null || reload) {
+			synchronized (dclt) {
+				if (directClassLoader == null || reload) {
+					Resource dir = getClassDirectory().getRealResource("direct/");
+					if (!dir.exists()) {
+						ResourceUtil.createDirectoryEL(dir, true);
+					}
+					directClassLoader = new PhysicalClassLoader(this, dir, null);
+				}
+			}
+		}
+		return directClassLoader;
 	}
 
 	private String toKey(ClassLoader[] parents) {

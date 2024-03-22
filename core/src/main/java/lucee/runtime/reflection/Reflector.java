@@ -18,6 +18,8 @@
  */
 package lucee.runtime.reflection;
 
+import java.io.IOException;
+import java.lang.instrument.UnmodifiableClassException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -43,6 +45,7 @@ import java.util.Vector;
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.ClassUtil;
 import lucee.commons.lang.ExceptionUtil;
+import lucee.commons.lang.Pair;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.types.RefInteger;
 import lucee.commons.lang.types.RefIntegerImpl;
@@ -692,14 +695,80 @@ public final class Reflector {
 		// "+clazz.getName()+"("+getDspMethods(getClasses(args))+") found");
 	}
 
-	/**
-	 * gets the MethodInstance matching given Parameter @param objMaybeNull maybe null @param clazz
-	 * Class Of the Method to get @param methodName Name of the Method to get @param args Arguments of
-	 * the Method to get @return return Matching Method @throws
-	 */
-	public static MethodInstance getMethodInstanceEL(Object objMaybeNull, Class clazz, final Collection.Key methodName, Object[] args) {
-		checkAccessibility(objMaybeNull, clazz, methodName);
+	public static Constructor getConstructor(Class clazz, Object[] args, boolean convertArgument) throws NoSuchMethodException {
 		args = cleanArgs(args);
+		Constructor[] constructors = cStorage.getConstructors(clazz, args.length);// getConstructors(clazz);
+		if (constructors != null) {
+			Class[] clazzArgs = getClasses(args);
+			// exact comparsion
+			outer: for (int i = 0; i < constructors.length; i++) {
+				if (constructors[i] != null) {
+
+					Class[] parameterTypes = constructors[i].getParameterTypes();
+					for (int y = 0; y < parameterTypes.length; y++) {
+						if (toReferenceClass(parameterTypes[y]) != clazzArgs[y]) continue outer;
+					}
+					return constructors[i];
+				}
+			}
+			// like comparsion
+			outer: for (int i = 0; i < constructors.length; i++) {
+				if (constructors[i] != null) {
+					Class[] parameterTypes = constructors[i].getParameterTypes();
+					for (int y = 0; y < parameterTypes.length; y++) {
+						if (!like(clazzArgs[y], toReferenceClass(parameterTypes[y]))) continue outer;
+					}
+					return constructors[i];
+				}
+			}
+			// convert comparsion
+			Pair<Constructor, Object[]> result = null;
+			int _rating = 0;
+			outer: for (int i = 0; i < constructors.length; i++) {
+				if (constructors[i] != null) {
+					RefInteger rating = (constructors.length > 1) ? new RefIntegerImpl(0) : null;
+					Class[] parameterTypes = constructors[i].getParameterTypes();
+					Object[] newArgs = new Object[args.length];
+					for (int y = 0; y < parameterTypes.length; y++) {
+						try {
+							newArgs[y] = convert(args[y], toReferenceClass(parameterTypes[y]), rating);
+						}
+						catch (PageException e) {
+							continue outer;
+						}
+					}
+					if (result == null || rating.toInt() > _rating) {
+						if (rating != null) _rating = rating.toInt();
+						result = new Pair<Constructor, Object[]>(constructors[i], newArgs);
+					}
+					// return new ConstructorInstance(constructors[i],newArgs);
+				}
+			}
+			if (result != null) {
+				if (convertArgument) {
+					Object[] newArgs = result.getValue();
+					for (int x = 0; x < args.length; x++) {
+						args[x] = newArgs[x];
+					}
+				}
+				return result.getName();
+			}
+		}
+		throw new NoSuchMethodException("No matching Constructor for " + clazz.getName() + "(" + getDspMethods(getClasses(args)) + ") found");
+	}
+
+	/**
+	 * ATTENTION!!!! this method may will rewrite the arguments array
+	 * 
+	 * @param clazz
+	 * @param methodName
+	 * @param args
+	 * @param conversionNeeded
+	 * @return
+	 * @throws NoSuchMethodException
+	 */
+	public static Method getMethod(Class clazz, final Collection.Key methodName, final Object[] args, boolean convertArgument) throws NoSuchMethodException {
+		checkAccessibility(clazz, methodName);
 		Method[] methods = mStorage.getMethods(clazz, methodName, args.length);// getDeclaredMethods(clazz);
 
 		if (methods != null) {
@@ -712,7 +781,7 @@ public final class Reflector {
 					for (int y = 0; y < parameterTypes.length; y++) {
 						if (toReferenceClass(parameterTypes[y]) != clazzArgs[y]) continue outer;
 					}
-					return new MethodInstance(methods[i], args);
+					return methods[i];
 				}
 			}
 			// like comparsion
@@ -724,40 +793,79 @@ public final class Reflector {
 					for (int y = 0; y < parameterTypes.length; y++) {
 						if (!like(clazzArgs[y], toReferenceClass(parameterTypes[y]))) continue outer;
 					}
-					return new MethodInstance(methods[i], args);
+					return methods[i];
 				}
 			}
 
 			// convert comparsion
 			// print.e("convert:" + methodName);
-			MethodInstance mi = null;
+			Pair<Method, Object[]> result = null;
 			int _rating = 0;
 			outer: for (int i = 0; i < methods.length; i++) {
 				if (methods[i] != null) {
 					RefInteger rating = (methods.length > 1) ? new RefIntegerImpl(0) : null;
 					Class[] parameterTypes = methods[i].getParameterTypes();
 					Object[] newArgs = new Object[args.length];
+
 					for (int y = 0; y < parameterTypes.length; y++) {
 						try {
 							newArgs[y] = convert(args[y], toReferenceClass(parameterTypes[y]), rating);
+
 						}
 						catch (PageException e) {
 							continue outer;
 						}
 					}
-					if (mi == null || rating.toInt() > _rating) {
+					if (result == null || rating.toInt() > _rating) {
 						if (rating != null) _rating = rating.toInt();
-						mi = new MethodInstance(methods[i], newArgs);
+						result = new Pair<Method, Object[]>(methods[i], newArgs);
 					}
-					// return new MethodInstance(methods[i],newArgs);
 				}
 			}
-			return mi;
+
+			if (result != null) {
+				if (convertArgument) {
+					Object[] newArgs = result.getValue();
+					for (int x = 0; x < args.length; x++) {
+						args[x] = newArgs[x];
+					}
+				}
+				return result.getName();
+			}
 		}
-		return null;
+		Class[] classes = getClasses(args);
+		// StringBuilder sb=null;
+		JavaObject jo;
+		Class c;
+		ConstructorInstance ci;
+		for (int i = 0; i < classes.length; i++) {
+			if (args[i] instanceof JavaObject) {
+				jo = (JavaObject) args[i];
+				c = jo.getClazz();
+				ci = Reflector.getConstructorInstance(c, new Object[0], null);
+				if (ci == null) {
+
+					throw new NoSuchMethodException("The " + pos(i + 1) + " parameter of " + methodName + "(" + getDspMethods(classes) + ") ia an object created "
+							+ "by the createObject function (JavaObject/JavaProxy). This object has not been instantiated because it does not have a constructor "
+							+ "that takes zero arguments. " + Constants.NAME
+							+ " cannot instantiate it for you, please use the .init(...) method to instantiate it with the correct parameters first");
+
+				}
+			}
+		}
+		/*
+		 * the argument list contains objects created by createObject, that are no instantiated
+		 * (first,third,10th) and because this object have no constructor taking no arguments, Lucee cannot
+		 * instantiate them. you need first to instantiate this objects.
+		 */
+		throw new NoSuchMethodException("No matching Method for " + methodName + "(" + getDspMethods(classes) + ") found for " + Caster.toTypeName(clazz));
 	}
 
-	private static Object[] cleanArgs(Object[] args) {
+	public static MethodInstance getMethodInstanceEL(Class clazz, final Collection.Key methodName, Object[] args) {
+		return new MethodInstance(clazz, methodName, args);
+	}
+
+	public static Object[] cleanArgs(Object[] args) {
 		if (args == null) return args;
 
 		ObjectIdentityHashSet done = new ObjectIdentityHashSet();
@@ -885,10 +993,14 @@ public final class Reflector {
 	 * @param args Arguments of the Method to get
 	 * @return return Matching Method
 	 * @throws NoSuchMethodException
+	 * @throws UnmodifiableClassException
+	 * @throws IOException
+	 * @throws ClassNotFoundException
 	 * @throws PageException
 	 */
-	public static MethodInstance getMethodInstance(Object obj, Class clazz, Collection.Key methodName, Object[] args) throws NoSuchMethodException {
-		MethodInstance mi = getMethodInstanceEL(obj, clazz, methodName, args);
+	public static MethodInstance getMethodInstance(Class clazz, Collection.Key methodName, Object[] args)
+			throws NoSuchMethodException, ClassNotFoundException, IOException, UnmodifiableClassException {
+		MethodInstance mi = getMethodInstanceEL(clazz, methodName, args);
 		if (mi != null) return mi;
 
 		Class[] classes = getClasses(args);
@@ -1053,11 +1165,18 @@ public final class Reflector {
 		return callMethod(obj, KeyImpl.init(methodName), args);
 	}
 
-	public static Object callMethod(Object obj, Collection.Key methodName, Object[] args) throws PageException {
+	public static Object callMethod(final Object obj, Collection.Key methodName, Object[] args) throws PageException {
 		if (obj == null) {
 			throw new ExpressionException("can't call method [" + methodName + "] on object, object is null");
 		}
-		MethodInstance mi = getMethodInstanceEL(obj, obj.getClass(), methodName, args);
+
+		MethodInstance mi;
+		try {
+			mi = getMethodInstanceEL(obj.getClass(), methodName, args);
+		}
+		catch (Exception e) {
+			throw Caster.toPageException(e);
+		}
 		if (mi == null) throw throwCall(obj, methodName, args);
 		try {
 			return mi.invoke(obj);
@@ -1089,6 +1208,12 @@ public final class Reflector {
 		}
 	}
 
+	private static void checkAccessibility(Class clazz, Key methodName) {
+		if (methodName.equals(EXIT) && (clazz == System.class || clazz == Runtime.class)) { // TODO better implementation
+			throw new PageRuntimeException(new SecurityException("Calling the exit method is not allowed"));
+		}
+	}
+
 	/*
 	 * private static void checkAccesibilityx(Object obj, Key methodName) {
 	 * if(methodName.equals(SET_ACCESSIBLE) && obj instanceof Member) { if(true) return; Member
@@ -1104,7 +1229,13 @@ public final class Reflector {
 		}
 		// checkAccesibility(obj,methodName);
 
-		MethodInstance mi = getMethodInstanceEL(obj, obj.getClass(), methodName, args);
+		MethodInstance mi;
+		try {
+			mi = getMethodInstanceEL(obj.getClass(), methodName, args);
+		}
+		catch (Exception e) {
+			return defaultValue;
+		}
 		if (mi == null) return defaultValue;
 		try {
 			return mi.invoke(obj);
@@ -1134,7 +1265,7 @@ public final class Reflector {
 	 */
 	public static Object callStaticMethod(Class clazz, Collection.Key methodName, Object[] args) throws PageException {
 		try {
-			return getMethodInstance(null, clazz, methodName, args).invoke(null);
+			return getMethodInstance(clazz, methodName, args).invoke(null);
 		}
 		catch (InvocationTargetException e) {
 			Throwable target = e.getTargetException();
@@ -1157,11 +1288,11 @@ public final class Reflector {
 	 */
 	public static MethodInstance getGetter(Class clazz, String prop) throws PageException, NoSuchMethodException {
 		String getterName = "get" + StringUtil.ucFirst(prop);
-		MethodInstance mi = getMethodInstanceEL(null, clazz, KeyImpl.init(getterName), ArrayUtil.OBJECT_EMPTY);
+		MethodInstance mi = getMethodInstanceEL(clazz, KeyImpl.init(getterName), ArrayUtil.OBJECT_EMPTY);
 
 		if (mi == null) {
 			String isName = "is" + StringUtil.ucFirst(prop);
-			mi = getMethodInstanceEL(null, clazz, KeyImpl.init(isName), ArrayUtil.OBJECT_EMPTY);
+			mi = getMethodInstanceEL(clazz, KeyImpl.init(isName), ArrayUtil.OBJECT_EMPTY);
 			if (mi != null) {
 				Method m = mi.getMethod();
 				Class rtn = m.getReturnType();
@@ -1187,9 +1318,14 @@ public final class Reflector {
 	 */
 	public static MethodInstance getGetterEL(Class clazz, String prop) {
 		prop = "get" + StringUtil.ucFirst(prop);
-		MethodInstance mi = getMethodInstanceEL(null, clazz, KeyImpl.init(prop), ArrayUtil.OBJECT_EMPTY);
+		MethodInstance mi = getMethodInstanceEL(clazz, KeyImpl.init(prop), ArrayUtil.OBJECT_EMPTY);
 		if (mi == null) return null;
-		if (mi.getMethod().getReturnType() == void.class) return null;
+		try {
+			if (mi.getMethod().getReturnType() == void.class) return null;
+		}
+		catch (PageException e) {
+			return null;
+		}
 		return mi;
 	}
 
@@ -1224,10 +1360,14 @@ public final class Reflector {
 	 * @return MethodInstance
 	 * @throws NoSuchMethodException
 	 * @throws PageException
+	 * @throws UnmodifiableClassException
+	 * @throws IOException
+	 * @throws ClassNotFoundException
 	 */
-	public static MethodInstance getSetter(Object obj, String prop, Object value) throws NoSuchMethodException {
+	public static MethodInstance getSetter(Object obj, String prop, Object value)
+			throws NoSuchMethodException, PageException, ClassNotFoundException, IOException, UnmodifiableClassException {
 		prop = "set" + StringUtil.ucFirst(prop);
-		MethodInstance mi = getMethodInstance(obj, obj.getClass(), KeyImpl.init(prop), new Object[] { value });
+		MethodInstance mi = getMethodInstance(obj.getClass(), KeyImpl.init(prop), new Object[] { value });
 		Method m = mi.getMethod();
 
 		if (m.getReturnType() != void.class)
@@ -1267,9 +1407,15 @@ public final class Reflector {
 	 */
 	public static MethodInstance getSetter(Object obj, String prop, Object value, MethodInstance defaultValue) {
 		prop = "set" + StringUtil.ucFirst(prop);
-		MethodInstance mi = getMethodInstanceEL(obj, obj.getClass(), KeyImpl.init(prop), new Object[] { value });
+		MethodInstance mi = getMethodInstanceEL(obj.getClass(), KeyImpl.init(prop), new Object[] { value });
 		if (mi == null) return defaultValue;
-		Method m = mi.getMethod();
+		Method m;
+		try {
+			m = mi.getMethod();
+		}
+		catch (PageException e) {
+			return defaultValue;
+		}
 
 		if (m.getReturnType() != void.class) return defaultValue;
 		return mi;

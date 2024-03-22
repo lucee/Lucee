@@ -18,6 +18,7 @@ import lucee.commons.io.res.type.compress.Compress;
 import lucee.commons.io.res.util.ResourceClassLoader;
 import lucee.commons.lang.CharSet;
 import lucee.commons.lang.ClassException;
+import lucee.commons.lang.PhysicalClassLoader;
 import lucee.commons.lang.types.RefBoolean;
 import lucee.runtime.CIPage;
 import lucee.runtime.Mapping;
@@ -377,4 +378,6 @@ public interface ConfigPro extends Config {
 	public boolean getFormUrlAsStruct();
 
 	public int getReturnFormat();
+
+	public PhysicalClassLoader getDirectClassLoader(boolean reload) throws IOException;
 }

@@ -695,7 +695,7 @@ public class QueryColumnImpl implements QueryColumnPro, Objects {
 
 	@Override
 	public Object call(PageContext pc, Key methodName, Object[] arguments) throws PageException {
-		MethodInstance mi = Reflector.getMethodInstanceEL(this, this.getClass(), methodName, arguments);
+		MethodInstance mi = Reflector.getMethodInstanceEL(this.getClass(), methodName, arguments);
 		if (mi != null) {
 			try {
 				return mi.invoke(this);

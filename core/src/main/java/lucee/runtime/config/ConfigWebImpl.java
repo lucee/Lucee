@@ -12,6 +12,7 @@ import org.xml.sax.SAXException;
 
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.ResourcesImpl.ResourceProviderFactory;
+import lucee.commons.lang.PhysicalClassLoader;
 import lucee.runtime.config.gateway.GatewayMap;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.writer.CFMLWriter;
@@ -776,6 +777,11 @@ public class ConfigWebImpl implements ConfigWebPro {
 	@Override
 	public java.lang.ClassLoader getRPCClassLoader(boolean arg0, java.lang.ClassLoader[] arg1) throws java.io.IOException {
 		return instance.getRPCClassLoader(arg0, arg1);
+	}
+
+	@Override
+	public PhysicalClassLoader getDirectClassLoader(boolean reload) throws IOException {
+		return instance.getDirectClassLoader(reload);
 	}
 
 	@Override

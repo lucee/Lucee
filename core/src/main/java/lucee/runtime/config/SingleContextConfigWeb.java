@@ -37,6 +37,7 @@ import lucee.commons.io.res.util.ResourceClassLoader;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.CharSet;
 import lucee.commons.lang.ClassException;
+import lucee.commons.lang.PhysicalClassLoader;
 import lucee.commons.lang.types.RefBoolean;
 import lucee.commons.lock.KeyLock;
 import lucee.runtime.CFMLFactory;
@@ -706,6 +707,11 @@ class SingleContextConfigWeb extends ConfigBase implements ConfigWebInner {
 	@Override
 	public ClassLoader getRPCClassLoader(boolean reload, ClassLoader[] parents) throws IOException {
 		return cs.getRPCClassLoader(reload, parents);
+	}
+
+	@Override
+	public PhysicalClassLoader getDirectClassLoader(boolean reload) throws IOException {
+		return cs.getDirectClassLoader(reload);
 	}
 
 	@Override

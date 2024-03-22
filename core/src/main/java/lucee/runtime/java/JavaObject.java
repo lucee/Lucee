@@ -26,6 +26,7 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
+import lucee.print;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
 import lucee.runtime.PageContext;
@@ -104,11 +105,11 @@ public class JavaObject implements Objects, ObjectWrap {
 				try {
 					return mi.invoke(null);
 				}
-				catch (IllegalAccessException e) {
-					throw Caster.toPageException(e);
-				}
 				catch (InvocationTargetException e) {
 					throw Caster.toPageException(e.getTargetException());
+				}
+				catch (Exception e) {
+					throw Caster.toPageException(e);
 				}
 			}
 		}
@@ -144,12 +145,17 @@ public class JavaObject implements Objects, ObjectWrap {
 		// Getter
 		MethodInstance mi = Reflector.getGetterEL(clazz, propertyName);
 		if (mi != null) {
-			if (Modifier.isStatic(mi.getMethod().getModifiers())) {
-				try {
-					return mi.invoke(null);
+			try {
+				if (Modifier.isStatic(mi.getMethod().getModifiers())) {
+					try {
+						return mi.invoke(null);
+					}
+					catch (Exception e) {
+					}
 				}
-				catch (Exception e) {
-				}
+			}
+			catch (PageException e) {
+				return defaultValue;
 			}
 		}
 		try {
@@ -191,11 +197,11 @@ public class JavaObject implements Objects, ObjectWrap {
 				try {
 					return mi.invoke(null);
 				}
-				catch (IllegalAccessException e) {
-					throw Caster.toPageException(e);
-				}
 				catch (InvocationTargetException e) {
 					throw Caster.toPageException(e.getTargetException());
+				}
+				catch (Exception e) {
+					throw Caster.toPageException(e);
 				}
 			}
 		}
@@ -224,12 +230,12 @@ public class JavaObject implements Objects, ObjectWrap {
 		// Getter
 		MethodInstance mi = Reflector.getSetter(clazz, propertyName.getString(), value, null);
 		if (mi != null) {
-			if (Modifier.isStatic(mi.getMethod().getModifiers())) {
-				try {
+			try {
+				if (Modifier.isStatic(mi.getMethod().getModifiers())) {
 					return mi.invoke(null);
 				}
-				catch (Exception e) {
-				}
+			}
+			catch (Exception e) {
 			}
 		}
 
@@ -259,7 +265,8 @@ public class JavaObject implements Objects, ObjectWrap {
 
 		try {
 			// get method
-			MethodInstance mi = Reflector.getMethodInstance(this, clazz, KeyImpl.init(methodName), arguments);
+			// if ("toHexString".equals(methodName)) print.ds();
+			MethodInstance mi = Reflector.getMethodInstance(clazz, KeyImpl.init(methodName), arguments);
 			// call static method if exist
 			if (Modifier.isStatic(mi.getMethod().getModifiers())) {
 				return mi.invoke(null);
@@ -270,7 +277,8 @@ public class JavaObject implements Objects, ObjectWrap {
 			}
 
 			// invoke constructor and call instance method
-			return mi.invoke(init());
+			Object obj = init();
+			return mi.invoke(obj);
 		}
 		catch (InvocationTargetException e) {
 			Throwable target = e.getTargetException();
@@ -278,6 +286,11 @@ public class JavaObject implements Objects, ObjectWrap {
 			throw Caster.toPageException(e.getTargetException());
 		}
 		catch (Exception e) {
+			print.e("------------------------------");
+			print.e(methodName);
+			print.e(clazz.getName());
+			print.e(arguments);
+
 			throw Caster.toPageException(e);
 		}
 	}

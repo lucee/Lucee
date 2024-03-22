@@ -19,16 +19,24 @@
 package lucee.runtime.functions.struct;
 
 import lucee.runtime.PageContext;
+import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.ext.function.BIF;
 import lucee.runtime.ext.function.Function;
+import lucee.runtime.op.Caster;
 import lucee.runtime.type.Struct;
 
-public class LiteralStruct implements Function {
+public class LiteralStruct extends BIF implements Function {
 
 	private static final long serialVersionUID = 3030769464899375329L;
 
 	public static Struct call(PageContext pc, Object[] objArr) throws PageException {
 		return Struct_._call(objArr, "invalid argument for literal struct, only named arguments are allowed like {name:\"value\",name2:\"value2\"}", -1);
+	}
 
+	@Override
+	public Object invoke(PageContext pc, Object[] args) throws PageException {
+		if (args.length < 1 || args.length > 1) throw new FunctionException(pc, "LiteralStruct", 1, 1, args.length);
+		return Struct_._call(Caster.toNativeArray(args[0]), "invalid argument for literal struct, only named arguments are allowed like {name:\"value\",name2:\"value2\"}", -1);
 	}
 }

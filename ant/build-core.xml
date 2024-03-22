@@ -26,7 +26,7 @@
   <property name="extHibernate"          value="FAD1E8CB-4F45-4184-86359145767C29DE;version=5.4.29.27-BETA"/>
 
   <property name="stableLoader" value="lucee-5.3.7.48"/>
-  <property name="javaVersionCoreDefault" value="21"/>
+  <property name="javaVersionCoreDefault" value="11"/>
   <property name="javaVersionAgent" value="11"/>
   <property name="javaVersionLoader" value="11"/>
   <property name="cdnUrl" value="https://cdn.lucee.org/"/>

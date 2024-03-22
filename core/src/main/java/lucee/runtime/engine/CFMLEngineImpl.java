@@ -184,6 +184,7 @@ import lucee.runtime.util.ZipUtilImpl;
 import lucee.runtime.video.VideoUtil;
 import lucee.runtime.video.VideoUtilImpl;
 import lucee.servlet.http.HTTPServletImpl;
+import lucee.transformer.direct.DirectCallEngine;
 
 /**
  * The CFMl Engine
@@ -931,6 +932,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 			}
 			try {
 				Resource context = getSeverContextConfigDirectory(factory);
+				DirectCallEngine.getInstance(context);
 				ConfigServerImpl tmp = ConfigServerFactory.newInstance(this, initContextes, contextes, context, existing, essentialOnly);
 				if (essentialOnly) {
 					return tmp;
