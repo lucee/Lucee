@@ -22,17 +22,12 @@ import java.io.IOException;
 import java.lang.instrument.UnmodifiableClassException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.List;
 
-import lucee.print;
 import lucee.commons.lang.Pair;
-import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.BIF;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Collection.Key;
-import lucee.runtime.type.util.ListUtil;
 import lucee.transformer.direct.DirectCallEngine;
 import lucee.transformer.direct.PageContextDummy;
 
@@ -44,7 +39,7 @@ public final class MethodInstance {
 	private Class clazz;
 	private Key methodName;
 	private Object[] args;
-	private Pair<Method, Class> result;
+	private Pair<Method, Object> result;
 
 	/**
 	 * constructor of the class
@@ -101,7 +96,7 @@ public final class MethodInstance {
 			}
 		}
 		PageContextDummy dummy = null;
-		BIF instance = (BIF) getResult().getValue().getConstructor().newInstance(); // TODO only load that instance onces
+		BIF instance = (BIF) getResult().getValue();
 		try {
 
 			if (o == null) {
@@ -113,30 +108,22 @@ public final class MethodInstance {
 			}
 
 		}
-		catch (Exception e) {
-			print.e("---------");
-			if (o != null) print.e(o.getClass().getName());
-			print.e(clazz.getName());
-			print.e(methodName);
-			print.e(args);
-
-			List<String> listArgs = new ArrayList<>();
-			for (Object arg: args) {
-				listArgs.add(Caster.toTypeName(arg));
-			}
-			String msg;
-			if (o == null) msg = "exception while invoking the static method [" + methodName + "] of the class [" + clazz.getName() + "] with the arguments ["
-					+ ListUtil.listToList(listArgs, ", ") + "]";
-			else {
-				msg = "exception while invoking the instance method [" + methodName + "] of the class [" + clazz.getName() + "|" + o.getClass().getName() + "] with the arguments ["
-						+ ListUtil.listToList(listArgs, ", ") + "]";
-			}
-
-			ApplicationException ae = new ApplicationException(msg);
-			ae.initCause(e);
-
-			throw ae;
-		}
+		/*
+		 * catch (ClassCastException e) { print.e("---------"); if (o != null)
+		 * print.e(o.getClass().getName()); print.e(clazz.getName()); print.e(methodName); print.e(args);
+		 * 
+		 * List<String> listArgs = new ArrayList<>(); for (Object arg: args) {
+		 * listArgs.add(Caster.toTypeName(arg)); } String msg; if (o == null) msg =
+		 * "exception while invoking the static method [" + methodName + "] of the class [" +
+		 * clazz.getName() + "] with the arguments [" + ListUtil.listToList(listArgs, ", ") + "]"; else {
+		 * msg = "exception while invoking the instance method [" + methodName + "] of the class [" +
+		 * clazz.getName() + "|" + o.getClass().getName() + "] with the arguments [" +
+		 * ListUtil.listToList(listArgs, ", ") + "]"; }
+		 * 
+		 * ApplicationException ae = new ApplicationException(msg); ae.initCause(e);
+		 * 
+		 * throw ae; }
+		 */
 		finally {
 			if (dummy != null) PageContextDummy.returnDummy(dummy);
 		}
@@ -154,10 +141,10 @@ public final class MethodInstance {
 		return getResult().getName();
 	}
 
-	private Pair<Method, Class> getResult() throws PageException {
+	private Pair<Method, Object> getResult() throws PageException {
 		if (result == null) {
 			try {
-				result = DirectCallEngine.getInstance(null).createClass(clazz, methodName, args);
+				result = DirectCallEngine.getInstance(null).createInstance(clazz, methodName, args);
 			}
 			catch (Exception e) {
 				throw Caster.toPageException(e);

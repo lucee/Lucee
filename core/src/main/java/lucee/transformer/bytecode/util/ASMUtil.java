@@ -1263,7 +1263,8 @@ public final class ASMUtil {
 						else if ("23".equals(vs) || "23.0".equals(vs)) javaBytecodeVersion = 0 << 16 | 67; // FUTURE use constant when exist
 					}
 
-					LogUtil.log(Log.LEVEL_INFO, "compiler", "templates get compiled to java " + toStringVersion(javaBytecodeVersion));
+					// LogUtil.log(Log.LEVEL_INFO, "compiler", "templates get compiled to java " +
+					// toStringVersion(javaBytecodeVersion));
 				}
 			}
 		}
