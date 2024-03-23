@@ -266,7 +266,7 @@ public class JavaObject implements Objects, ObjectWrap {
 		try {
 			// get method
 			// if ("toHexString".equals(methodName)) print.ds();
-			MethodInstance mi = Reflector.getMethodInstance(clazz, KeyImpl.init(methodName), arguments);
+			MethodInstance mi = Reflector.getMethodInstanceValidate(clazz, KeyImpl.init(methodName), arguments);
 			// call static method if exist
 			if (Modifier.isStatic(mi.getMethod().getModifiers())) {
 				return mi.invoke(null);

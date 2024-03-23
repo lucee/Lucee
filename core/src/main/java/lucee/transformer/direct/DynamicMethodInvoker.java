@@ -2,6 +2,8 @@ package lucee.transformer.direct;
 
 import java.io.IOException;
 import java.lang.instrument.UnmodifiableClassException;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Executable;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -35,6 +37,7 @@ import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.util.ListUtil;
 import lucee.transformer.bytecode.util.ASMUtil;
+import lucee.transformer.bytecode.util.Types;
 
 public class DynamicMethodInvoker {
 
@@ -80,6 +83,10 @@ public class DynamicMethodInvoker {
 		return invoke(obj, obj.getClass(), KeyImpl.init(methodName), arguments);
 	}
 
+	public Object invokeConstructor(Class<?> clazz, Object[] arguments) throws Exception {
+		return invoke(null, clazz, null, arguments);
+	}
+
 	// TODO handles isStatic better with proper exceptions
 	/*
 	 * executes a instance method of the given object
@@ -97,18 +104,26 @@ public class DynamicMethodInvoker {
 		}
 	}
 
-	public Pair<Method, Object> createInstance(Class<?> clazz, Key methodName, Object[] arguments) throws NoSuchMethodException, IOException, ClassNotFoundException,
+	public Pair<Executable, Object> createInstance(Class<?> clazz, Key methodName, Object[] arguments) throws NoSuchMethodException, IOException, ClassNotFoundException,
 			UnmodifiableClassException, PageException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, SecurityException {
 
 		arguments = Reflector.cleanArgs(arguments);
-		Method method = Reflector.getMethod(clazz, methodName, arguments, true);
-		// constr = Reflector.getConstructorInstance(clazz, methodName, arguments, true);
+		boolean isConstr = methodName == null;
+		Method method = null;
+		Constructor constr = null;
+		// <init>
+		if (isConstr) {
+			constr = Reflector.getConstructor(clazz, arguments, true);
+		}
+		else {
+			method = Reflector.getMethod(clazz, methodName, arguments, true);
+		}
 
-		Parameter[] parameters = method.getParameters();
-		clazz = method.getDeclaringClass(); // we wanna go as low as possible, to be as open as possible also this avoid not allow to access
+		Parameter[] parameters = isConstr ? constr.getParameters() : method.getParameters();
+		clazz = isConstr ? constr.getDeclaringClass() : method.getDeclaringClass(); // we wanna go as low as possible, to be as open as possible also this avoid not allow to access
 
 		StringBuilder sbClassPath = new StringBuilder();
-		sbClassPath.append(clazz.getName().replace('.', '/')).append('/').append(method.getName());
+		sbClassPath.append(clazz.getName().replace('.', '/')).append('/').append(isConstr ? "____init____" : method.getName());
 		StringBuilder sbArgs = new StringBuilder();
 		for (int i = 0; i < parameters.length; i++) {
 			sbArgs.append(':').append(parameters[i].getType().getName().replace('.', '_'));
@@ -121,12 +136,12 @@ public class DynamicMethodInvoker {
 		DynamicClassLoader loader = getCL(clazz);
 		if (loader.hasClass(className)) {
 			// print.e("existing!!!" + className);
-			return new Pair<Method, Object>(method, loader.loadInstance(className));
+			return new Pair<Executable, Object>(isConstr ? constr : method, loader.loadInstance(className));
 		}
 
 		ClassWriter cw = ASMUtil.getClassWriter();
 		MethodVisitor mv;
-
+		print.e(classPath);
 		String abstractClassPath = "java/lang/Object";
 		cw.visit(ASMUtil.getJavaVersionForBytecodeGeneration(), Opcodes.ACC_PUBLIC + Opcodes.ACC_SUPER, classPath,
 				"Ljava/lang/Object;Ljava/util/function/BiFunction<Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;>;", "java/lang/Object",
@@ -145,13 +160,20 @@ public class DynamicMethodInvoker {
 		// public abstract Object invoke(PageContext pc, Object[] args) throws PageException;
 		mv = cw.visitMethod(Opcodes.ACC_PUBLIC, "apply", "(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;", null, null);
 		mv.visitCode();
+		boolean isStatic = true;
+		if (isConstr) {
+			mv.visitTypeInsn(Opcodes.NEW, Type.getType(clazz).getInternalName());
+			mv.visitInsn(Opcodes.DUP); // Duplicate the top operand stack value
 
-		boolean isStatic = Modifier.isStatic(method.getModifiers());
-		if (!isStatic) {
-			// Load the instance to call the method on
-			mv.visitVarInsn(Opcodes.ALOAD, 1); // Load the first method argument (instance)
-			if (!clazz.equals(Object.class)) { // Only cast if clazz is not java.lang.Object
-				mv.visitTypeInsn(Opcodes.CHECKCAST, Type.getInternalName(clazz));
+		}
+		else {
+			isStatic = Modifier.isStatic(method.getModifiers());
+			if (!isStatic) {
+				// Load the instance to call the method on
+				mv.visitVarInsn(Opcodes.ALOAD, 1); // Load the first method argument (instance)
+				if (!clazz.equals(Object.class)) { // Only cast if clazz is not java.lang.Object
+					mv.visitTypeInsn(Opcodes.CHECKCAST, Type.getInternalName(clazz));
+				}
 			}
 		}
 		// Assuming no arguments are needed for the invoked method, i.e., toString()
@@ -162,9 +184,9 @@ public class DynamicMethodInvoker {
 
 		StringBuilder methodDesc = new StringBuilder();
 		String del = "(";
-		if (method.getParameterCount() > 0) {
+		if ((isConstr ? constr : method).getParameterCount() > 0) {
 			// Load method arguments from the args array
-			Type[] args = Type.getArgumentTypes(method);
+			Type[] args = isConstr ? getArgumentTypes(constr) : Type.getArgumentTypes(method);
 			// TODO if args!=arguments throw !
 			for (int i = 0; i < args.length; i++) {
 
@@ -194,26 +216,34 @@ public class DynamicMethodInvoker {
 		else {
 			methodDesc.append('(');
 		}
-		Type rt = Type.getReturnType(method);
-		methodDesc.append(')').append(rt.getDescriptor());
-		// print.e(methodDesc);
-		mv.visitMethodInsn(isStatic ? Opcodes.INVOKESTATIC : Opcodes.INVOKEVIRTUAL, Type.getInternalName(clazz), method.getName(), methodDesc.toString(), false); // Dynamically
-																																									// invoke
-																																									// the
+		Type rt = isConstr ? Type.getType(clazz) : Type.getReturnType(method);
+		methodDesc.append(')').append(isConstr ? Types.VOID : rt.getDescriptor());
+		print.e(methodDesc);
+		if (isConstr) {
+			// Create a new instance of java/lang/String
+			print.e("new " + rt.getInternalName());
+			print.e(methodDesc);
+			mv.visitMethodInsn(Opcodes.INVOKESPECIAL, rt.getInternalName(), "<init>", methodDesc.toString(), false); // Call the constructor of String
+		}
+		else {
+			print.e(methodDesc);
+			mv.visitMethodInsn(isStatic ? Opcodes.INVOKESTATIC : Opcodes.INVOKEVIRTUAL, Type.getInternalName(clazz), method.getName(), methodDesc.toString(), false);
+
+		}
 
 		boxIfPrimitive(mv, rt);
 		// method on the
 		// instance
 		mv.visitInsn(Opcodes.ARETURN); // Return the result of the method call
-
-		mv.visitMaxs(1, 3); // Compute automatically
+		if (isConstr) mv.visitMaxs(2, 1);
+		else mv.visitMaxs(1, 3); // Compute automatically
 		mv.visitEnd();
 
 		cw.visitEnd();
 		byte[] barr = cw.toByteArray();
 		Object result = loader.loadInstance(className, barr);
 
-		return new Pair<Method, Object>(method, result);
+		return new Pair<Executable, Object>(isConstr ? constr : method, result);
 	}
 
 	private static void boxIfPrimitive(MethodVisitor mv, Type returnType) {
@@ -267,6 +297,23 @@ public class DynamicMethodInvoker {
 		return cl;
 	}
 
+	/**
+	 * Gets the argument types for a given constructor.
+	 *
+	 * @param constructor The constructor for which to get argument types.
+	 * @return An array of Type objects representing the argument types of the constructor.
+	 */
+	public static Type[] getArgumentTypes(Constructor<?> constructor) {
+		Class<?>[] parameterTypes = constructor.getParameterTypes();
+		StringBuilder descriptor = new StringBuilder("(");
+		for (Class<?> paramType: parameterTypes) {
+			descriptor.append(Type.getDescriptor(paramType));
+		}
+		descriptor.append(")V"); // Constructors always return void, denoted as 'V'
+
+		return Type.getArgumentTypes(descriptor.toString());
+	}
+
 	public static void main(String[] args) throws Exception {
 		Resource classes = ResourcesImpl.getFileResourceProvider().getResource("/Users/mic/tmp8/classes/");
 		ResourceUtil.deleteContent(classes, null);
@@ -278,6 +325,11 @@ public class DynamicMethodInvoker {
 
 		TimeZone tz = java.util.TimeZone.getDefault();
 		ArrayList arr = new ArrayList<>();
+
+		String str = new String("Susi exclusive");
+		print.e(str);
+		print.e(e.invokeConstructor(String.class, new Object[] { "Susi exclusive" }));
+		System.exit(0);
 
 		// instance ():String
 		{

@@ -18,8 +18,7 @@
  **/
 package lucee.runtime.reflection.pairs;
 
-import java.io.IOException;
-import java.lang.instrument.UnmodifiableClassException;
+import java.lang.reflect.Executable;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.function.BiFunction;
@@ -41,45 +40,13 @@ public final class MethodInstance {
 	private Class clazz;
 	private Key methodName;
 	private Object[] args;
-	private Pair<Method, Object> result;
-
-	/**
-	 * constructor of the class
-	 * 
-	 * @param method
-	 * @param args
-	 * 
-	 *            public MethodInstance(Method method, Object[] args) { this.method = method; this.args
-	 *            = args; }
-	 * @throws UnmodifiableClassException
-	 * @throws IOException
-	 * @throws ClassNotFoundException
-	 * @throws NoSuchMethodException
-	 */
+	private Pair<Executable, Object> result;
 
 	public MethodInstance(Class clazz, Key methodName, Object[] args) {
 		this.clazz = clazz;
 		this.methodName = methodName;
 		this.args = args;
 	}
-
-	/**
-	 * Invokes the method
-	 * 
-	 * @param o Object to invoke Method on it
-	 * @return return value of the Method
-	 * @throws IllegalAccessException
-	 * @throws IllegalArgumentException
-	 * @throws IllegalAccessException
-	 * @throws InvocationTargetException
-	 * @throws InvocationTargetException
-	 * @throws UnmodifiableClassException
-	 * @throws IOException
-	 * @throws SecurityException
-	 * @throws InstantiationException
-	 * @throws ClassNotFoundException
-	 * @throws NoSuchMethodException
-	 */
 
 	public Object invoke(Object o)
 			throws PageException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
@@ -111,10 +78,19 @@ public final class MethodInstance {
 	}
 
 	public Method getMethod() throws PageException {
-		return getResult().getName();
+		return (Method) getResult().getName();
 	}
 
-	private Pair<Method, Object> getResult() throws PageException {
+	public Method getMethod(Method defaultValue) {
+		try {
+			return (Method) getResult().getName();
+		}
+		catch (PageException e) {
+			return defaultValue;
+		}
+	}
+
+	private Pair<Executable, Object> getResult() throws PageException {
 		if (result == null) {
 			try {
 				result = DynamicMethodInvoker.getInstance(null).createInstance(clazz, methodName, args);
@@ -125,12 +101,4 @@ public final class MethodInstance {
 		}
 		return result;
 	}
-
-	/**
-	 * @return Returns the method.
-	 * 
-	 *         public Method getMethod() { return method; }
-	 * 
-	 *         public void setAccessible(boolean b) { method.setAccessible(b); }
-	 */
 }

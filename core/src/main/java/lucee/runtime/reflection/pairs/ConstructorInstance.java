@@ -19,15 +19,25 @@
 package lucee.runtime.reflection.pairs;
 
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Executable;
 import java.lang.reflect.InvocationTargetException;
+import java.util.function.BiFunction;
+
+import lucee.commons.io.log.LogUtil;
+import lucee.commons.lang.Pair;
+import lucee.runtime.exp.PageException;
+import lucee.runtime.op.Caster;
+import lucee.runtime.reflection.Reflector;
+import lucee.transformer.direct.DynamicMethodInvoker;
 
 /**
  * class holds a Constructor and the parameter to call it
  */
 public final class ConstructorInstance {
 
-	private Constructor constructor;
+	private Class clazz;
 	private Object[] args;
+	private Pair<Executable, Object> result;
 
 	/**
 	 * constructor of the class
@@ -35,22 +45,22 @@ public final class ConstructorInstance {
 	 * @param constructor
 	 * @param args
 	 */
-	public ConstructorInstance(Constructor constructor, Object[] args) {
-		this.constructor = constructor;
+	public ConstructorInstance(Class clazz, Object[] args) {
+		this.clazz = clazz;
 		this.args = args;
 	}
 
-	/**
-	 * Invokes the method
-	 * 
-	 * @return return value of the Method
-	 * @throws InvocationTargetException
-	 * @throws IllegalAccessException
-	 * @throws InstantiationException
-	 * @throws IllegalArgumentException
-	 */
-	public Object invoke() throws IllegalArgumentException, InstantiationException, IllegalAccessException, InvocationTargetException {
-		return constructor.newInstance(args);
+	public Object invoke()
+			throws PageException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
+
+		try {
+			return ((BiFunction<Object, Object, Object>) getResult().getValue()).apply(null, args);
+		}
+		catch (IncompatibleClassChangeError | IllegalStateException e) {
+			LogUtil.log("direct", e);
+			Constructor constr = Reflector.getConstructor(clazz, args, true);
+			return constr.newInstance(args);
+		}
 	}
 
 	/**
@@ -60,10 +70,28 @@ public final class ConstructorInstance {
 		return args;
 	}
 
-	/**
-	 * @return Returns the constructor.
-	 */
-	public Constructor getConstructor() {
-		return constructor;
+	public Constructor getConstructor() throws PageException {
+		return (Constructor) getResult().getName();
+	}
+
+	public Constructor getConstructor(Constructor defaultValue) {
+		try {
+			return (Constructor) getResult().getName();
+		}
+		catch (Exception e) {
+			return defaultValue;
+		}
+	}
+
+	private Pair<Executable, Object> getResult() throws PageException {
+		if (result == null) {
+			try {
+				result = DynamicMethodInvoker.getInstance(null).createInstance(clazz, null, args);
+			}
+			catch (Exception e) {
+				throw Caster.toPageException(e);
+			}
+		}
+		return result;
 	}
 }
