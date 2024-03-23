@@ -209,6 +209,7 @@ public final class DirectClassLoader extends ExtendableClassLoader {
 	}
 
 	private Class<?> _loadClass(String name, byte[] barr, boolean rename) {
+		print.e(">>>>" + name);
 		Class<?> clazz = defineClass(name, barr, 0, barr.length);
 		if (clazz != null) {
 			if (!rename) loadedClasses.put(name, "");
