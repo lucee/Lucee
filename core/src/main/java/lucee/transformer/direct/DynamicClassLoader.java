@@ -19,7 +19,7 @@ import lucee.transformer.bytecode.util.ClassRenamer;
 /**
  * Directory ClassLoader
  */
-public final class DirectClassLoader extends ExtendableClassLoader {
+public final class DynamicClassLoader extends ExtendableClassLoader {
 
 	static {
 		boolean res = registerAsParallelCapable();
@@ -57,11 +57,11 @@ public final class DirectClassLoader extends ExtendableClassLoader {
 	 * @param parent
 	 * @throws IOException
 	 */
-	public DirectClassLoader(Resource directory) throws IOException {
+	public DynamicClassLoader(Resource directory) throws IOException {
 		this(directory, (ClassLoader[]) null, true);
 	}
 
-	public DirectClassLoader(ClassLoader parent, Resource directory) {
+	public DynamicClassLoader(ClassLoader parent, Resource directory) {
 		super(parent);
 
 		try {
@@ -75,7 +75,7 @@ public final class DirectClassLoader extends ExtendableClassLoader {
 		}
 	}
 
-	public DirectClassLoader(Resource directory, ClassLoader[] parentClassLoaders, boolean includeCoreCL) throws IOException {
+	public DynamicClassLoader(Resource directory, ClassLoader[] parentClassLoaders, boolean includeCoreCL) throws IOException {
 		super(parentClassLoaders == null || parentClassLoaders.length == 0 ? directory.getClass().getClassLoader() : parentClassLoaders[0]);
 
 		// parents.add(new TP().getClass().getClassLoader());
@@ -209,7 +209,7 @@ public final class DirectClassLoader extends ExtendableClassLoader {
 	}
 
 	private Class<?> _loadClass(String name, byte[] barr, boolean rename) {
-		print.e(">>>>" + name);
+		// print.e(">>>>" + name);
 		Class<?> clazz = defineClass(name, barr, 0, barr.length);
 		if (clazz != null) {
 			if (!rename) loadedClasses.put(name, "");

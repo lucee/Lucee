@@ -22,17 +22,16 @@ import java.io.IOException;
 import java.lang.instrument.UnmodifiableClassException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.function.BiFunction;
 
 import lucee.print;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.lang.Pair;
 import lucee.runtime.exp.PageException;
-import lucee.runtime.ext.function.BIF;
 import lucee.runtime.op.Caster;
 import lucee.runtime.reflection.Reflector;
 import lucee.runtime.type.Collection.Key;
-import lucee.transformer.direct.DirectCallEngine;
-import lucee.transformer.direct.PageContextDummy;
+import lucee.transformer.direct.DynamicMethodInvoker;
 
 /**
  * class holds a Method and the parameter to call it
@@ -93,30 +92,14 @@ public final class MethodInstance {
 				return o.equals(args[0]);
 			}
 		}
-		PageContextDummy dummy = null;
 		try {
-			BIF instance = (BIF) getResult().getValue();
-			if (o == null) {
-				return instance.invoke(null, args);
-			}
-			else {
-				dummy = PageContextDummy.getDummy(o);
-				return instance.invoke(dummy, args);
-			}
+			return ((BiFunction<Object, Object, Object>) getResult().getValue()).apply(o, args);
 		}
 		catch (IncompatibleClassChangeError | IllegalStateException e) {
 			print.e(e);
 			LogUtil.log("direct", e);
 			Method method = Reflector.getMethod(clazz, methodName, args, true);
-			if (o == null) {
-				return method.invoke(null, args);
-			}
-			else {
-				return method.invoke(o, args);
-			}
-		}
-		finally {
-			if (dummy != null) PageContextDummy.returnDummy(dummy);
+			return method.invoke(o, args);
 		}
 	}
 
@@ -134,7 +117,7 @@ public final class MethodInstance {
 	private Pair<Method, Object> getResult() throws PageException {
 		if (result == null) {
 			try {
-				result = DirectCallEngine.getInstance(null).createInstance(clazz, methodName, args);
+				result = DynamicMethodInvoker.getInstance(null).createInstance(clazz, methodName, args);
 			}
 			catch (Exception e) {
 				throw Caster.toPageException(e);

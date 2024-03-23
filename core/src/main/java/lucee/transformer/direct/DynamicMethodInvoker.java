@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
+import java.util.function.BiFunction;
 
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.MethodVisitor;
@@ -24,25 +25,25 @@ import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.ResourcesImpl;
+import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.Pair;
 import lucee.commons.lang.SerializableObject;
 import lucee.commons.lang.SystemOut;
 import lucee.runtime.exp.PageException;
-import lucee.runtime.ext.function.BIF;
 import lucee.runtime.reflection.Reflector;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.util.ListUtil;
 import lucee.transformer.bytecode.util.ASMUtil;
 
-public class DirectCallEngine {
+public class DynamicMethodInvoker {
 
-	private static DirectCallEngine engine;
-	private Map<Integer, DirectClassLoader> loaders = new HashMap<>();
+	private static DynamicMethodInvoker engine;
+	private Map<Integer, DynamicClassLoader> loaders = new HashMap<>();
 	private Resource root;
 	private static final Object token = new SerializableObject();
 
-	public DirectCallEngine(Resource configDir) {
+	public DynamicMethodInvoker(Resource configDir) {
 		try {
 			print.e(configDir);
 			this.root = configDir.getRealResource("reflection");
@@ -56,9 +57,9 @@ public class DirectCallEngine {
 		}
 	}
 
-	public static DirectCallEngine getInstance(Resource configDir) {
+	public static DynamicMethodInvoker getInstance(Resource configDir) {
 		if (engine == null) {
-			engine = new DirectCallEngine(configDir);
+			engine = new DynamicMethodInvoker(configDir);
 		}
 		return engine;
 	}
@@ -85,31 +86,14 @@ public class DirectCallEngine {
 	 * 
 	 */
 	private Object invoke(Object objMaybeNull, Class<?> objClass, Key methodName, Object[] arguments) throws Exception {
-		PageContextDummy dummy = null;
 		try {
-			BIF instance = (BIF) createInstance(objClass, methodName, arguments).getValue();
-			if (objMaybeNull == null) {
-				return instance.invoke(null, arguments);
-			}
-			else {
-				dummy = PageContextDummy.getDummy(objMaybeNull);
-				return instance.invoke(dummy, arguments);
-
-			}
+			return ((BiFunction<Object, Object[], Object>) createInstance(objClass, methodName, arguments).getValue()).apply(objMaybeNull, arguments);
 		}
 		catch (IncompatibleClassChangeError | IllegalStateException e) {
+			print.e(e);
 			LogUtil.log("direct", e);
 			Method method = Reflector.getMethod(objClass, methodName, arguments, true);
-			if (objMaybeNull == null) {
-
-				return method.invoke(null, arguments);
-			}
-			else {
-				return method.invoke(objMaybeNull, arguments);
-			}
-		}
-		finally {
-			if (dummy != null) PageContextDummy.returnDummy(dummy);
+			return method.invoke(null, arguments);
 		}
 	}
 
@@ -134,7 +118,7 @@ public class DirectCallEngine {
 		String className = classPath.replace('/', '.');
 		// print.e("classPath: " + classPath);
 		// print.e("className: " + className);
-		DirectClassLoader loader = getCL(clazz);
+		DynamicClassLoader loader = getCL(clazz);
 		if (loader.hasClass(className)) {
 			// print.e("existing!!!" + className);
 			return new Pair<Method, Object>(method, loader.loadInstance(className));
@@ -143,8 +127,10 @@ public class DirectCallEngine {
 		ClassWriter cw = ASMUtil.getClassWriter();
 		MethodVisitor mv;
 
-		String abstractClassPath = "lucee/runtime/ext/function/BIF";
-		cw.visit(ASMUtil.getJavaVersionForBytecodeGeneration(), Opcodes.ACC_PUBLIC + Opcodes.ACC_SUPER, classPath, null, abstractClassPath, null);
+		String abstractClassPath = "java/lang/Object";
+		cw.visit(ASMUtil.getJavaVersionForBytecodeGeneration(), Opcodes.ACC_PUBLIC + Opcodes.ACC_SUPER, classPath,
+				"Ljava/lang/Object;Ljava/util/function/BiFunction<Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;>;", "java/lang/Object",
+				new String[] { "java/util/function/BiFunction" });
 
 		// Constructor
 		mv = cw.visitMethod(Opcodes.ACC_PUBLIC, "<init>", "()V", null, null);
@@ -157,14 +143,13 @@ public class DirectCallEngine {
 
 		// Dynamic invoke method
 		// public abstract Object invoke(PageContext pc, Object[] args) throws PageException;
-		mv = cw.visitMethod(Opcodes.ACC_PUBLIC, "invoke", "(Llucee/runtime/PageContext;[Ljava/lang/Object;)Ljava/lang/Object;", null, null);
+		mv = cw.visitMethod(Opcodes.ACC_PUBLIC, "apply", "(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;", null, null);
 		mv.visitCode();
 
 		boolean isStatic = Modifier.isStatic(method.getModifiers());
 		if (!isStatic) {
 			// Load the instance to call the method on
 			mv.visitVarInsn(Opcodes.ALOAD, 1); // Load the first method argument (instance)
-			mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "lucee/runtime/PageContext", "getPage", "()Ljava/lang/Object;", false);
 			if (!clazz.equals(Object.class)) { // Only cast if clazz is not java.lang.Object
 				mv.visitTypeInsn(Opcodes.CHECKCAST, Type.getInternalName(clazz));
 			}
@@ -187,6 +172,8 @@ public class DirectCallEngine {
 				del = "";
 
 				mv.visitVarInsn(Opcodes.ALOAD, 2); // Load the args array
+				mv.visitTypeInsn(Opcodes.CHECKCAST, "[Ljava/lang/Object;"); // Cast it to Object[]
+
 				mv.visitIntInsn(Opcodes.BIPUSH, i); // Index of the argument in the array
 				mv.visitInsn(Opcodes.AALOAD); // Load the argument from the array
 
@@ -263,17 +250,17 @@ public class DirectCallEngine {
 		}
 	}
 
-	private DirectClassLoader getCL(Class<?> clazz) {
+	private DynamicClassLoader getCL(Class<?> clazz) {
 		ClassLoader parent = clazz.getClassLoader();
 		if (parent == null) parent = getClass().getClassLoader();// core classloader
 
-		DirectClassLoader cl = loaders.get(parent.hashCode());
+		DynamicClassLoader cl = loaders.get(parent.hashCode());
 		if (cl == null) {
 			synchronized (token) {
 				cl = loaders.get(parent.getName());
 				if (cl == null) {
 					print.e("---- newnewnewnewnewnew ---- " + parent.toString());
-					loaders.put(parent.hashCode(), cl = new DirectClassLoader(parent, root));
+					loaders.put(parent.hashCode(), cl = new DynamicClassLoader(parent, root));
 				}
 			}
 		}
@@ -281,7 +268,9 @@ public class DirectCallEngine {
 	}
 
 	public static void main(String[] args) throws Exception {
-		DirectCallEngine e = new DirectCallEngine(ResourcesImpl.getFileResourceProvider().getResource("/Users/mic/tmp8/classes/"));
+		Resource classes = ResourcesImpl.getFileResourceProvider().getResource("/Users/mic/tmp8/classes/");
+		ResourceUtil.deleteContent(classes, null);
+		DynamicMethodInvoker e = new DynamicMethodInvoker(classes);
 		StringBuilder sb = new StringBuilder("Susi");
 		Test t = new Test();
 		Integer i = Integer.valueOf(3);
@@ -289,12 +278,42 @@ public class DirectCallEngine {
 
 		TimeZone tz = java.util.TimeZone.getDefault();
 		ArrayList arr = new ArrayList<>();
-		System.identityHashCode(arr);
 
-		print.e(tz.getID());
-		print.e(e.invokeInstanceMethod(tz, "getID", new Object[] {}));
+		// instance ():String
+		{
+			Object reflection = tz.getID();
+			Object dynamic = e.invokeInstanceMethod(tz, "getID", new Object[] {});
+			if (!reflection.equals(dynamic)) {
+				print.e("direct:");
+				print.e(reflection);
+				print.e("dynamic:");
+				print.e(dynamic);
+			}
+		}
 
-		print.e(e.invokeInstanceMethod(t, "test", new Object[] { 134D }));
+		// instance (double->int):String
+		{
+			Object reflection = t.test(134);
+			Object dynamic = e.invokeInstanceMethod(t, "test", new Object[] { 134D });
+			if (!reflection.equals(dynamic)) {
+				print.e("direct:");
+				print.e(reflection);
+				print.e("dynamic:");
+				print.e(dynamic);
+			}
+		}
+
+		// instance (double->int):String
+		{
+			Object reflection = t.test(134);
+			Object dynamic = e.invokeInstanceMethod(t, "test", new Object[] { 134D });
+			if (!reflection.equals(dynamic)) {
+				print.e("direct:");
+				print.e(reflection);
+				print.e("dynamic:");
+				print.e(dynamic);
+			}
+		}
 
 		print.e(t.complete("", 1, null));
 		print.e(e.invokeInstanceMethod(t, "complete", new Object[] { "", i, null }));
@@ -317,7 +336,7 @@ public class DirectCallEngine {
 
 	}
 
-	private static class Test {
+	public static class Test {
 		public final int complete(String var1, int var2, List var3) {
 			return 5;
 		}
