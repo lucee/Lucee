@@ -23,10 +23,13 @@ import java.lang.instrument.UnmodifiableClassException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
+import lucee.print;
+import lucee.commons.io.log.LogUtil;
 import lucee.commons.lang.Pair;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.BIF;
 import lucee.runtime.op.Caster;
+import lucee.runtime.reflection.Reflector;
 import lucee.runtime.type.Collection.Key;
 import lucee.transformer.direct.DirectCallEngine;
 import lucee.transformer.direct.PageContextDummy;
@@ -82,11 +85,6 @@ public final class MethodInstance {
 	public Object invoke(Object o)
 			throws PageException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
 
-		/*
-		 * if (o == null && "identityHashCode".equals(methodName.getString()) && args.length == 1) {
-		 * print.ds("------ identityHashCode --------"); return System.identityHashCode(args[0]); }
-		 */
-
 		if (o != null) {
 			if ("toString".equals(methodName.getString()) && args.length == 0) {
 				return o.toString();
@@ -96,9 +94,8 @@ public final class MethodInstance {
 			}
 		}
 		PageContextDummy dummy = null;
-		BIF instance = (BIF) getResult().getValue();
 		try {
-
+			BIF instance = (BIF) getResult().getValue();
 			if (o == null) {
 				return instance.invoke(null, args);
 			}
@@ -106,28 +103,21 @@ public final class MethodInstance {
 				dummy = PageContextDummy.getDummy(o);
 				return instance.invoke(dummy, args);
 			}
-
 		}
-		/*
-		 * catch (ClassCastException e) { print.e("---------"); if (o != null)
-		 * print.e(o.getClass().getName()); print.e(clazz.getName()); print.e(methodName); print.e(args);
-		 * 
-		 * List<String> listArgs = new ArrayList<>(); for (Object arg: args) {
-		 * listArgs.add(Caster.toTypeName(arg)); } String msg; if (o == null) msg =
-		 * "exception while invoking the static method [" + methodName + "] of the class [" +
-		 * clazz.getName() + "] with the arguments [" + ListUtil.listToList(listArgs, ", ") + "]"; else {
-		 * msg = "exception while invoking the instance method [" + methodName + "] of the class [" +
-		 * clazz.getName() + "|" + o.getClass().getName() + "] with the arguments [" +
-		 * ListUtil.listToList(listArgs, ", ") + "]"; }
-		 * 
-		 * ApplicationException ae = new ApplicationException(msg); ae.initCause(e);
-		 * 
-		 * throw ae; }
-		 */
+		catch (IncompatibleClassChangeError | IllegalStateException e) {
+			print.e(e);
+			LogUtil.log("direct", e);
+			Method method = Reflector.getMethod(clazz, methodName, args, true);
+			if (o == null) {
+				return method.invoke(null, args);
+			}
+			else {
+				return method.invoke(o, args);
+			}
+		}
 		finally {
 			if (dummy != null) PageContextDummy.returnDummy(dummy);
 		}
-
 	}
 
 	/**

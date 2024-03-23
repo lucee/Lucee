@@ -21,6 +21,7 @@ import org.objectweb.asm.Type;
 import lucee.print;
 import lucee.commons.digest.HashUtil;
 import lucee.commons.io.SystemUtil;
+import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.ResourcesImpl;
 import lucee.commons.lang.Pair;
@@ -28,7 +29,6 @@ import lucee.commons.lang.SerializableObject;
 import lucee.commons.lang.SystemOut;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.BIF;
-import lucee.runtime.op.Caster;
 import lucee.runtime.reflection.Reflector;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.KeyImpl;
@@ -85,26 +85,32 @@ public class DirectCallEngine {
 	 * 
 	 */
 	private Object invoke(Object objMaybeNull, Class<?> objClass, Key methodName, Object[] arguments) throws Exception {
-		if (objMaybeNull != null && objMaybeNull.getClass() != objClass) {
-			String a = Caster.toTypeName(objMaybeNull.getClass());
-			String b = Caster.toTypeName(objClass);
-			if (a.equals(b)) throw new NoSuchMethodException("given object from type [" + a + "] is loaded by a different classloader than the given class");
-			else throw new NoSuchMethodException("given object from type [" + a + "] from given class [" + b + "]");
-		}
-		BIF instance = (BIF) createInstance(objClass, methodName, arguments).getValue();
-		if (objMaybeNull == null) {
-			return instance.invoke(null, arguments);
-		}
-		else {
-			PageContextDummy dummy = PageContextDummy.getDummy(objMaybeNull);
-			try {
+		PageContextDummy dummy = null;
+		try {
+			BIF instance = (BIF) createInstance(objClass, methodName, arguments).getValue();
+			if (objMaybeNull == null) {
+				return instance.invoke(null, arguments);
+			}
+			else {
+				dummy = PageContextDummy.getDummy(objMaybeNull);
 				return instance.invoke(dummy, arguments);
-			}
-			finally {
-				PageContextDummy.returnDummy(dummy);
+
 			}
 		}
+		catch (IncompatibleClassChangeError | IllegalStateException e) {
+			LogUtil.log("direct", e);
+			Method method = Reflector.getMethod(objClass, methodName, arguments, true);
+			if (objMaybeNull == null) {
 
+				return method.invoke(null, arguments);
+			}
+			else {
+				return method.invoke(objMaybeNull, arguments);
+			}
+		}
+		finally {
+			if (dummy != null) PageContextDummy.returnDummy(dummy);
+		}
 	}
 
 	public Pair<Method, Object> createInstance(Class<?> clazz, Key methodName, Object[] arguments) throws NoSuchMethodException, IOException, ClassNotFoundException,
