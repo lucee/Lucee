@@ -56,7 +56,7 @@ public class DynamicInvoker {
 	public DynamicInvoker(Resource configDir) {
 		try {
 			print.e(configDir);
-			this.root = configDir.getRealResource("reflection");
+			this.root = configDir.getRealResource("dynclasses");
 			// loader = new DirectClassLoader(configDir.getRealResource("reflection"));
 		}
 		catch (Exception e) {
