@@ -36,7 +36,6 @@ import java.io.Reader;
 import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.io.Writer;
-import java.lang.reflect.Method;
 import java.net.URL;
 import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
@@ -62,6 +61,7 @@ import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.types.RefBoolean;
 import lucee.commons.net.URLEncoder;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.reflection.Reflector;
 
 /**
  * I/O Util
@@ -662,8 +662,7 @@ public final class IOUtil {
 		else if (obj instanceof Connection) IOUtil.close((Connection) obj);
 		else {
 			try {
-				Method method = obj.getClass().getMethod("close", new Class[0]);
-				method.invoke(obj, new Object[0]);
+				Reflector.callMethod(obj, "close", new Object[0]);
 			}
 			catch (Throwable e) {
 				ExceptionUtil.rethrowIfNecessary(e);
@@ -688,8 +687,7 @@ public final class IOUtil {
 		else if (obj instanceof Connection) IOUtil.closeEL((Connection) obj);
 		else {
 			try {
-				Method method = obj.getClass().getMethod("close", new Class[0]);
-				method.invoke(obj, new Object[0]);
+				Reflector.callMethod(obj, "close", new Object[0]);
 			}
 			catch (Throwable e) {
 				ExceptionUtil.rethrowIfNecessary(e);

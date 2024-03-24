@@ -20,7 +20,6 @@ package lucee.commons.lang;
 
 import java.io.ByteArrayOutputStream;
 import java.io.ObjectOutputStream;
-import java.lang.reflect.Method;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -31,6 +30,7 @@ import lucee.commons.io.IOUtil;
 import lucee.commons.io.log.LogUtil;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.reflection.Reflector;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.Query;
 import lucee.runtime.util.Creation;
@@ -66,8 +66,7 @@ public class SizeAndCount {
 		// classes)
 		if (isInstaneOf(obj.getClass(), "lucee.runtime.text.xml.struct.XMLStruct")) {
 			try {
-				Method toNode = raw.getClass().getMethod("toNode", new Class[0]);
-				raw = toNode.invoke(obj, new Object[0]);
+				raw = Reflector.callMethod(obj, "toNode", new Object[0]);
 			}
 			catch (Exception e) {
 				LogUtil.log("lang", e);

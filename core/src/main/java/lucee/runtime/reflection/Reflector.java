@@ -1099,6 +1099,16 @@ public final class Reflector {
 		}
 	}
 
+	public static boolean hasMethod(Class<?> clazz, String methodName, Object[] args) throws PageException {
+		MethodInstance mi = getMethodInstance(clazz, KeyImpl.init(methodName), args);
+		return mi.getMethod(null) != null;
+	}
+
+	public static boolean hasMethod(Class<?> clazz, Collection.Key methodName, Object[] args) throws PageException {
+		MethodInstance mi = getMethodInstance(clazz, methodName, args);
+		return mi.getMethod(null) != null;
+	}
+
 	private static void checkAccessibility(Object objMaybeNull, Class clazz, Key methodName) {
 		if (methodName.equals(EXIT) && (clazz == System.class || clazz == Runtime.class)) { // TODO better implementation
 			throw new PageRuntimeException(new SecurityException("Calling the exit method is not allowed"));
@@ -1159,6 +1169,10 @@ public final class Reflector {
 
 	public static ExpressionException throwCall(Object obj, Collection.Key methodName, Object[] args) {
 		return throwCall(obj, methodName.getString(), args);
+	}
+
+	public static Object callStaticMethod(Class clazz, String methodName, Object[] args) throws PageException {
+		return callStaticMethod(clazz, KeyImpl.init(methodName), args);
 	}
 
 	/**

@@ -22,7 +22,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.reflect.Method;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -64,6 +63,7 @@ import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.functions.system.ExpandPath;
 import lucee.runtime.op.Caster;
+import lucee.runtime.reflection.Reflector;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.ListUtil;
 
@@ -1648,8 +1648,7 @@ public final class ResourceUtil {
 				am = allowMatchings.get(key);
 				if (am == null) {
 					try {
-						Method m = provider.getClass().getMethod("allowMatching", new Class[] {});
-						boolean res = Caster.toBooleanValue(m.invoke(provider, new Object[] {}), defaultValue);
+						boolean res = Caster.toBooleanValue(Reflector.callMethod(provider, "allowMatching", new Object[0]), defaultValue);
 						allowMatchings.put(key, res);
 						return res;
 					}

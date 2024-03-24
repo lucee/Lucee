@@ -29,7 +29,6 @@ import java.lang.management.MemoryPoolMXBean;
 import java.lang.management.MemoryType;
 import java.lang.management.MemoryUsage;
 import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.net.NetworkInterface;
@@ -885,11 +884,7 @@ public final class SystemUtil {
 
 			Field unsafeField = unsafe.getDeclaredField("theUnsafe");
 			unsafeField.setAccessible(true);
-			Object obj = unsafeField.get(null);
-			Method addressSize = unsafe.getMethod("addressSize", new Class[0]);
-
-			Object res = addressSize.invoke(obj, new Object[0]);
-			return Caster.toIntValue(res, 0);
+			return Caster.toIntValue(Reflector.callMethod(unsafeField.get(null), "addressSize", new Object[0]), 0);
 		}
 		catch (Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);
@@ -1745,9 +1740,7 @@ public final class SystemUtil {
 
 		if (clazz != null) {
 			try {
-				Method m = clazz.getMethod("isBooted", EMPTY_CLASS);
-				booted = Caster.toBoolean(m.invoke(null, EMPTY_OBJ));
-				return booted.booleanValue();
+				return Caster.toBoolean(Reflector.callStaticMethod(clazz, "isBooted", EMPTY_OBJ)).booleanValue();
 			}
 			catch (Exception e) {
 			}
@@ -1779,8 +1772,7 @@ public final class SystemUtil {
 		Object joisa = null;
 		if (clazz != null) {
 			try {
-				Method m = clazz.getMethod("getJavaObjectInputStreamAccess", EMPTY_CLASS);
-				joisa = m.invoke(null, EMPTY_OBJ);
+				joisa = Reflector.callStaticMethod(clazz, "getJavaObjectInputStreamAccess", EMPTY_OBJ);
 			}
 			catch (Exception e) {
 			}
@@ -1789,8 +1781,7 @@ public final class SystemUtil {
 		if (joisa != null) {
 			clazz = joisa.getClass();
 			try {
-				Method m = clazz.getMethod("checkArray", new Class[] { ObjectInputStream.class, Class.class, int.class });
-				m.invoke(joisa, new Object[] { s, class1, cap });
+				Reflector.callMethod(joisa, "checkArray", new Object[] { s, class1, cap });
 				return true;
 			}
 			catch (Exception e) {

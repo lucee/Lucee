@@ -65,6 +65,7 @@ import lucee.runtime.osgi.BundleRange;
 import lucee.runtime.osgi.OSGiUtil;
 import lucee.runtime.osgi.OSGiUtil.PackageQuery;
 import lucee.runtime.osgi.OSGiUtil.VersionDefinition;
+import lucee.runtime.reflection.Reflector;
 import lucee.runtime.text.xml.XMLCaster;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
@@ -647,8 +648,7 @@ public class DumpUtil {
 
 	private static Bundle getBundle(ClassLoader cl) {
 		try {
-			Method m = cl.getClass().getMethod("getBundle", new Class[0]);
-			return (Bundle) m.invoke(cl, new Object[0]);
+			return (Bundle) Reflector.callMethod(cl, "getBundle", new Object[0]);
 		}
 		catch (Exception e) {
 			return null;

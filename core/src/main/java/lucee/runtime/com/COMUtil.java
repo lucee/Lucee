@@ -18,13 +18,12 @@
  **/
 package lucee.runtime.com;
 
-import java.lang.reflect.Method;
-
 import com.jacob.com.Variant;
 
 import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.op.Caster;
+import lucee.runtime.reflection.Reflector;
 import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.dt.DateTimeImpl;
 
@@ -82,11 +81,8 @@ public final class COMUtil {
 			catch (Throwable t) {
 				ExceptionUtil.rethrowIfNecessary(t);
 				try {
-					Method toCurrency = variant.getClass().getMethod("toCurrency", new Class[0]);
-					Object curreny = toCurrency.invoke(variant, new Object[0]);
-
-					Method longValue = curreny.getClass().getMethod("longValue", new Class[0]);
-					l = Caster.toLongValue(longValue.invoke(curreny, new Object[0]), 0);
+					Object curreny = Reflector.callMethod(variant, "toCurrency", new Object[0]);
+					l = Caster.toLongValue(Reflector.callMethod(curreny, "longValue", new Object[0]), 0);
 				}
 				catch (Throwable t2) {
 					ExceptionUtil.rethrowIfNecessary(t2);

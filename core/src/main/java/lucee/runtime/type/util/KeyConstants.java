@@ -2971,6 +2971,7 @@ public class KeyConstants {
 	public static final Key _model = KeyImpl._const("model");
 	public static final Key _role = KeyImpl._const("role");
 	public static final Key _formUrlAsStruct = KeyImpl._const("formUrlAsStruct");
+	public static final Key _hasBody = KeyImpl._const("hasBody");
 	private static Map<String, Key> _____keys;
 
 	static {

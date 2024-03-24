@@ -20,7 +20,6 @@ package lucee.runtime.cache;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.Iterator;
 
 import lucee.commons.io.cache.Cache;
@@ -42,6 +41,9 @@ import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.listener.ApplicationContext;
 import lucee.runtime.listener.ModernApplicationContext;
 import lucee.runtime.op.Caster;
+import lucee.runtime.reflection.Reflector;
+import lucee.runtime.reflection.pairs.MethodInstance;
+import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.dt.TimeSpan;
@@ -267,19 +269,15 @@ public class CacheUtil {
 	public static void remove(ConfigWeb config, CacheConnection cc) throws Throwable {
 		Cache c = cc.getInstance(config);
 		// FUTURE no reflection needed
-
-		Method remove = null;
-		try {
-			remove = c.getClass().getMethod("remove", new Class[0]);
-
-		}
-		catch (Exception ioe) {
+		Object[] empty = new Object[0];
+		MethodInstance remove = Reflector.getMethodInstance(c.getClass(), KeyImpl.init("remove"), empty);
+		if (remove.getMethod(null) == null) {
 			c.remove((CacheEntryFilter) null);
 			return;
 		}
 
 		try {
-			remove.invoke(c, new Object[0]);
+			remove.invoke(c);
 		}
 		catch (InvocationTargetException e) {
 			throw e.getTargetException();
@@ -299,17 +297,14 @@ public class CacheUtil {
 		if (c == null) return;
 
 		// FUTURE no reflection needed
-		Method release = null;
-		try {
-			release = c.getClass().getMethod("release", new Class[] {});
-
-		}
-		catch (Exception e) {
+		Object[] empty = new Object[0];
+		MethodInstance release = Reflector.getMethodInstance(c.getClass(), KeyImpl.init("release"), empty);
+		if (release.getMethod(null) == null) {
 			return;
 		}
 
 		try {
-			if (release != null) release.invoke(c, new Object[] {});
+			release.invoke(c);
 		}
 		catch (Exception e) {
 			throw ExceptionUtil.toIOException(e);
