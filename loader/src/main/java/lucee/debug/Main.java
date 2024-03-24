@@ -12,7 +12,7 @@ public class Main {
 	public static final String ARG_HOST = "LUCEE_DEBUG_HOST";
 	public static final String ARG_PORT = "LUCEE_DEBUG_PORT";
 	public static final String ARG_BASE = "LUCEE_DEBUG_BASE";
-	public static final String ARG_WEBXML = "LUCEE_DEBUG_BASE";
+	public static final String ARG_WEBXML = "LUCEE_DEBUG_WEBXML";
 
 	public static final String DEF_HOST = "localhost";
 	public static final String DEF_PORT = "48080";
