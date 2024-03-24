@@ -14,6 +14,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiFunction;
 
 import org.objectweb.asm.ClassWriter;
@@ -45,6 +47,8 @@ public class DynamicInvoker {
 	private Map<Integer, DynamicClassLoader> loaders = new HashMap<>();
 	private Resource root;
 	private static final Object token = new SerializableObject();
+
+	private static Map<String, AtomicInteger> observer = new ConcurrentHashMap<>();
 
 	public DynamicInvoker(Resource configDir) {
 		try {
@@ -106,6 +110,7 @@ public class DynamicInvoker {
 
 	public Pair<Executable, Object> createInstance(Class<?> clazz, Key methodName, Object[] arguments) throws NoSuchMethodException, IOException, ClassNotFoundException,
 			UnmodifiableClassException, PageException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, SecurityException {
+		observe(clazz, methodName);
 
 		arguments = Reflector.cleanArgs(arguments);
 		boolean isConstr = methodName == null;
@@ -244,6 +249,21 @@ public class DynamicInvoker {
 		Object result = loader.loadInstance(className, barr);
 
 		return new Pair<Executable, Object>(isConstr ? constr : method, result);
+	}
+
+	private static void observe(Class<?> clazz, Key methodName) {
+		String key = clazz.getName() + ":" + methodName;
+		AtomicInteger count = observer.get(key);
+		if (count == null) {
+			observer.put(key, new AtomicInteger(1));
+		}
+		else {
+			count.incrementAndGet();
+		}
+	}
+
+	public static Map<String, AtomicInteger> observeData() {
+		return observer;
 	}
 
 	private static void boxIfPrimitive(MethodVisitor mv, Type returnType) {

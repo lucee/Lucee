@@ -6,6 +6,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 				xmlelem = XmlElemNew(xml_document,"Lucee");
 				expect(isxmldoc(xml_document)).toBeTrue();
 				expect(IsXmlElem(xmlelem)).toBeTrue();
+
+
+				SystemOutput(createObject("java","lucee.transformer.dynamic.DynamicInvoker")observeData(),1,1);
 			});
 		});
 	}
