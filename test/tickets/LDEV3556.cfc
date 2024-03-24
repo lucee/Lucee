@@ -12,7 +12,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
                 catch(any e) {
                     var eMessage = e.message;
                 }
-                expect(eMessage).toInclude("No matching Method for toBase64() found for struct");
+                expect(eMessage).toInclude("The function [toBase64] does not exist in the Struct");
             });
             it(title="Checking error for Using struct with hash() member function", body=function( currentSpec ){
                 try {
