@@ -30,7 +30,7 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.reflection.Reflector;
 import lucee.runtime.type.Collection.Key;
-import lucee.transformer.direct.DynamicMethodInvoker;
+import lucee.transformer.dynamic.DynamicInvoker;
 
 /**
  * class holds a Method and the parameter to call it
@@ -93,7 +93,7 @@ public final class MethodInstance {
 	private Pair<Executable, Object> getResult() throws PageException {
 		if (result == null) {
 			try {
-				result = DynamicMethodInvoker.getInstance(null).createInstance(clazz, methodName, args);
+				result = DynamicInvoker.getInstance(null).createInstance(clazz, methodName, args);
 			}
 			catch (Exception e) {
 				throw Caster.toPageException(e);

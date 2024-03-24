@@ -28,7 +28,7 @@ import lucee.commons.lang.Pair;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.reflection.Reflector;
-import lucee.transformer.direct.DynamicMethodInvoker;
+import lucee.transformer.dynamic.DynamicInvoker;
 
 /**
  * class holds a Constructor and the parameter to call it
@@ -86,7 +86,7 @@ public final class ConstructorInstance {
 	private Pair<Executable, Object> getResult() throws PageException {
 		if (result == null) {
 			try {
-				result = DynamicMethodInvoker.getInstance(null).createInstance(clazz, null, args);
+				result = DynamicInvoker.getInstance(null).createInstance(clazz, null, args);
 			}
 			catch (Exception e) {
 				throw Caster.toPageException(e);

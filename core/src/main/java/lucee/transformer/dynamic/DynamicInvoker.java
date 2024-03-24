@@ -1,4 +1,4 @@
-package lucee.transformer.direct;
+package lucee.transformer.dynamic;
 
 import java.io.IOException;
 import java.lang.instrument.UnmodifiableClassException;
@@ -39,14 +39,14 @@ import lucee.runtime.type.util.ListUtil;
 import lucee.transformer.bytecode.util.ASMUtil;
 import lucee.transformer.bytecode.util.Types;
 
-public class DynamicMethodInvoker {
+public class DynamicInvoker {
 
-	private static DynamicMethodInvoker engine;
+	private static DynamicInvoker engine;
 	private Map<Integer, DynamicClassLoader> loaders = new HashMap<>();
 	private Resource root;
 	private static final Object token = new SerializableObject();
 
-	public DynamicMethodInvoker(Resource configDir) {
+	public DynamicInvoker(Resource configDir) {
 		try {
 			print.e(configDir);
 			this.root = configDir.getRealResource("reflection");
@@ -60,9 +60,9 @@ public class DynamicMethodInvoker {
 		}
 	}
 
-	public static DynamicMethodInvoker getInstance(Resource configDir) {
+	public static DynamicInvoker getInstance(Resource configDir) {
 		if (engine == null) {
-			engine = new DynamicMethodInvoker(configDir);
+			engine = new DynamicInvoker(configDir);
 		}
 		return engine;
 	}
@@ -317,7 +317,7 @@ public class DynamicMethodInvoker {
 	public static void main(String[] args) throws Exception {
 		Resource classes = ResourcesImpl.getFileResourceProvider().getResource("/Users/mic/tmp8/classes/");
 		ResourceUtil.deleteContent(classes, null);
-		DynamicMethodInvoker e = new DynamicMethodInvoker(classes);
+		DynamicInvoker e = new DynamicInvoker(classes);
 		StringBuilder sb = new StringBuilder("Susi");
 		Test t = new Test();
 		Integer i = Integer.valueOf(3);
