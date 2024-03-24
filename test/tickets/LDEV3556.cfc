@@ -21,7 +21,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
                 catch(any e) {
                     var eMessage = e.message;
                 }
-                expect(eMessage).toInclude("No matching Method for hash() found for struct");
+                expect(eMessage).toInclude("The function [hash] does not exist in the Struct");
             });
             it(title="Checking error for Using array with toBase64() member function", body=function( currentSpec ){
                 try {
@@ -30,7 +30,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
                 catch(any e) {
                     var eMessage = e.message;
                 }
-                expect(eMessage).toInclude("No matching Method for toBase64() found for array");
+                expect(eMessage).toInclude("The function [toBase64] does not exist in the Array");
             });
             it(title="Checking error for Using array with hash() member function", body=function( currentSpec ){
                 try {
@@ -39,7 +39,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
                 catch(any e) {
                     var eMessage = e.message;
                 }
-                expect(eMessage).toInclude("No matching Method for hash() found for array");
+                expect(eMessage).toInclude("The function [hash] does not exist in the Array");
             });
         });
      };
