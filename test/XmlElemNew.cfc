@@ -8,7 +8,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 				expect(IsXmlElem(xmlelem)).toBeTrue();
 
 
-				SystemOutput(createObject("java","lucee.transformer.dynamic.DynamicInvoker")observeData(),1,1);
+				SystemOutput(createObject("java","lucee.transformer.dynamic.DynamicInvoker").observeData(),1,1);
 			});
 		});
 	}

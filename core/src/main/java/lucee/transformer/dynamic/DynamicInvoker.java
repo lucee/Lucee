@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.TimeZone;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -37,6 +38,8 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.reflection.Reflector;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.KeyImpl;
+import lucee.runtime.type.Struct;
+import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.util.ListUtil;
 import lucee.transformer.bytecode.util.ASMUtil;
 import lucee.transformer.bytecode.util.Types;
@@ -262,8 +265,12 @@ public class DynamicInvoker {
 		}
 	}
 
-	public static Map<String, AtomicInteger> observeData() {
-		return observer;
+	public static Struct observeData() {
+		Struct sct = new StructImpl();
+		for (Entry<String, AtomicInteger> e: observer.entrySet()) {
+			sct.put(e.getKey(), e.getValue().doubleValue());
+		}
+		return sct;
 	}
 
 	private static void boxIfPrimitive(MethodVisitor mv, Type returnType) {
