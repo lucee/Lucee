@@ -175,6 +175,11 @@
         "desc": ""
     },
     {
+        "sysprop": "lucee.cfml.writer",
+        "envvar": "LUCEE.CFML.WRITER",
+        "desc": ""
+    },
+    {
         "sysprop": "lucee.allow.compression",
         "envvar": "LUCEE_ALLOW_COMPRESSION",
         "desc": ""
