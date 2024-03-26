@@ -3,11 +3,7 @@ package lucee.transformer.dynamic;
 import java.io.IOException;
 import java.lang.instrument.UnmodifiableClassException;
 import java.lang.reflect.Constructor;
-import java.lang.reflect.Executable;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.lang.reflect.Parameter;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -27,6 +23,7 @@ import org.objectweb.asm.Type;
 import lucee.print;
 import lucee.commons.digest.HashUtil;
 import lucee.commons.io.SystemUtil;
+import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.ResourcesImpl;
@@ -34,6 +31,7 @@ import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.Pair;
 import lucee.commons.lang.SerializableObject;
 import lucee.commons.lang.SystemOut;
+import lucee.loader.engine.CFMLEngineFactory;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.reflection.Reflector;
 import lucee.runtime.type.Collection.Key;
@@ -43,28 +41,39 @@ import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.util.ListUtil;
 import lucee.transformer.bytecode.util.ASMUtil;
 import lucee.transformer.bytecode.util.Types;
+import lucee.transformer.dynamic.meta.Clazz;
+import lucee.transformer.dynamic.meta.FunctionMember;
+import lucee.transformer.dynamic.meta.MethodReflection;
 
 public class DynamicInvoker {
 
 	private static DynamicInvoker engine;
 	private Map<Integer, DynamicClassLoader> loaders = new HashMap<>();
 	private Resource root;
+	private Log log;
 	private static final Object token = new SerializableObject();
 
 	private static Map<String, AtomicInteger> observer = new ConcurrentHashMap<>();
 
 	public DynamicInvoker(Resource configDir) {
 		try {
-			print.e(configDir);
+			this.log = CFMLEngineFactory.getInstance().getThreadConfig().getLog("application");
+		}
+		catch (Exception e) {
+
+		}
+		try {
 			this.root = configDir.getRealResource("dynclasses");
 			// loader = new DirectClassLoader(configDir.getRealResource("reflection"));
 		}
 		catch (Exception e) {
+			if (log != null) log.error("dynamic", e);
 			this.root = SystemUtil.getTempDirectory();
 			// loader = new DirectClassLoader(SystemUtil.getTempDirectory());
 
 			// e.printStackTrace();
 		}
+
 	}
 
 	public static DynamicInvoker getInstance(Resource configDir) {
@@ -106,35 +115,47 @@ public class DynamicInvoker {
 		catch (IncompatibleClassChangeError | IllegalStateException e) {
 			print.e(e);
 			LogUtil.log("direct", e);
-			Method method = Reflector.getMethod(objClass, methodName, arguments, true);
-			return method.invoke(null, arguments);
+			lucee.transformer.dynamic.meta.Method method = Clazz.getMethodMatch(getClazz(objClass, true), methodName, arguments, true);
+			return ((MethodReflection) method).getMethod().invoke(objClass, arguments);
 		}
 	}
 
-	public Pair<Executable, Object> createInstance(Class<?> clazz, Key methodName, Object[] arguments) throws NoSuchMethodException, IOException, ClassNotFoundException,
+	public Clazz getClazz(Class<?> clazz) throws IOException {
+		return Clazz.getClazz(clazz, root, log);
+	}
+
+	public Clazz getClazz(Class<?> clazz, boolean useReflection) throws IOException {
+		return Clazz.getClazz(clazz, root, log, useReflection);
+	}
+
+	public Pair<FunctionMember, Object> createInstance(Class<?> clazz, Key methodName, Object[] arguments) throws NoSuchMethodException, IOException, ClassNotFoundException,
 			UnmodifiableClassException, PageException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, SecurityException {
 		observe(clazz, methodName);
 
 		arguments = Reflector.cleanArgs(arguments);
 		boolean isConstr = methodName == null;
-		Method method = null;
-		Constructor constr = null;
+		Clazz clazzz = getClazz(clazz);
+		lucee.transformer.dynamic.meta.Method method = null;
+		lucee.transformer.dynamic.meta.Constructor constr = null;
 		// <init>
 		if (isConstr) {
-			constr = Reflector.getConstructor(clazz, arguments, true);
+			constr = Clazz.getConstructorMatch(clazzz, arguments, true);
 		}
 		else {
-			method = Reflector.getMethod(clazz, methodName, arguments, true);
+			// Clazz clazz, final Collection.Key methodName, final Object[] args, boolean convertArgument
+			method = Clazz.getMethodMatch(clazzz, methodName, arguments, true);
+
 		}
 
-		Parameter[] parameters = isConstr ? constr.getParameters() : method.getParameters();
+		Type[] parameterTypes = isConstr ? constr.getArgumentTypes() : method.getArgumentTypes();
+		Class[] parameterClasses = isConstr ? constr.getArgumentClasses() : method.getArgumentClasses();
 		clazz = isConstr ? constr.getDeclaringClass() : method.getDeclaringClass(); // we wanna go as low as possible, to be as open as possible also this avoid not allow to access
 
 		StringBuilder sbClassPath = new StringBuilder();
 		sbClassPath.append(clazz.getName().replace('.', '/')).append('/').append(isConstr ? "____init____" : method.getName());
 		StringBuilder sbArgs = new StringBuilder();
-		for (int i = 0; i < parameters.length; i++) {
-			sbArgs.append(':').append(parameters[i].getType().getName().replace('.', '_'));
+		for (int i = 0; i < parameterTypes.length; i++) {
+			sbArgs.append(':').append(parameterTypes[i].getClassName().replace('.', '_'));
 		}
 		sbClassPath.append('_').append(HashUtil.create64BitHashAsString(sbArgs, Character.MAX_RADIX));
 		String classPath = "lucee/invoc/wrap/" + sbClassPath.toString();// StringUtil.replace(sbClassPath.toString(), "javae/lang/", "java_lang/", false);
@@ -144,7 +165,7 @@ public class DynamicInvoker {
 		DynamicClassLoader loader = getCL(clazz);
 		if (loader.hasClass(className)) {
 			// print.e("existing!!!" + className);
-			return new Pair<Executable, Object>(isConstr ? constr : method, loader.loadInstance(className));
+			return new Pair<FunctionMember, Object>(isConstr ? constr : method, loader.loadInstance(className));
 		}
 
 		ClassWriter cw = ASMUtil.getClassWriter();
@@ -175,7 +196,7 @@ public class DynamicInvoker {
 
 		}
 		else {
-			isStatic = Modifier.isStatic(method.getModifiers());
+			isStatic = method.isStatic();
 			if (!isStatic) {
 				// Load the instance to call the method on
 				mv.visitVarInsn(Opcodes.ALOAD, 1); // Load the first method argument (instance)
@@ -192,9 +213,9 @@ public class DynamicInvoker {
 
 		StringBuilder methodDesc = new StringBuilder();
 		String del = "(";
-		if ((isConstr ? constr : method).getParameterCount() > 0) {
+		if ((isConstr ? constr : method).getArguments().length > 0) {
 			// Load method arguments from the args array
-			Type[] args = isConstr ? getArgumentTypes(constr) : Type.getArgumentTypes(method);
+			Type[] args = isConstr ? constr.getArgumentTypes() : method.getArgumentTypes();
 			// TODO if args!=arguments throw !
 			for (int i = 0; i < args.length; i++) {
 
@@ -209,7 +230,7 @@ public class DynamicInvoker {
 
 				// Cast or unbox the argument as necessary
 				// TOOD Caster.castTo(null, clazz, methodDesc)
-				Class<?> argType = parameters[i].getType(); // TODO get the class from args
+				Class<?> argType = parameterClasses[i]; // TODO get the class from args
 				if (argType.isPrimitive()) {
 					Type type = Type.getType(argType);
 					Class<?> wrapperType = Reflector.toReferenceClass(argType);
@@ -224,7 +245,7 @@ public class DynamicInvoker {
 		else {
 			methodDesc.append('(');
 		}
-		Type rt = isConstr ? Type.getType(clazz) : Type.getReturnType(method);
+		Type rt = isConstr ? Type.getType(clazz) : method.getReturnType();
 		methodDesc.append(')').append(isConstr ? Types.VOID : rt.getDescriptor());
 		print.e(methodDesc);
 		if (isConstr) {
@@ -251,7 +272,7 @@ public class DynamicInvoker {
 		byte[] barr = cw.toByteArray();
 		Object result = loader.loadInstance(className, barr);
 
-		return new Pair<Executable, Object>(isConstr ? constr : method, result);
+		return new Pair<FunctionMember, Object>(isConstr ? constr : method, result);
 	}
 
 	private static void observe(Class<?> clazz, Key methodName) {
@@ -356,7 +377,7 @@ public class DynamicInvoker {
 		String str = new String("Susi exclusive");
 		print.e(str);
 		print.e(e.invokeConstructor(String.class, new Object[] { "Susi exclusive" }));
-		System.exit(0);
+		// System.exit(0);
 
 		// instance ():String
 		{

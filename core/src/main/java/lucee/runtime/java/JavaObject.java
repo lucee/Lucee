@@ -101,7 +101,7 @@ public class JavaObject implements Objects, ObjectWrap {
 		// Getter
 		MethodInstance mi = Reflector.getGetterEL(clazz, propertyName);
 		if (mi != null) {
-			if (Modifier.isStatic(mi.getMethod().getModifiers())) {
+			if (mi.getMethod().isStatic()) {
 				try {
 					return mi.invoke(null);
 				}
@@ -146,7 +146,7 @@ public class JavaObject implements Objects, ObjectWrap {
 		MethodInstance mi = Reflector.getGetterEL(clazz, propertyName);
 		if (mi != null) {
 			try {
-				if (Modifier.isStatic(mi.getMethod().getModifiers())) {
+				if (mi.getMethod().isStatic()) {
 					try {
 						return mi.invoke(null);
 					}
@@ -193,7 +193,7 @@ public class JavaObject implements Objects, ObjectWrap {
 		// Getter
 		MethodInstance mi = Reflector.getSetter(clazz, propertyName.getString(), value, null);
 		if (mi != null) {
-			if (Modifier.isStatic(mi.getMethod().getModifiers())) {
+			if (mi.getMethod().isStatic()) {
 				try {
 					return mi.invoke(null);
 				}
@@ -231,7 +231,7 @@ public class JavaObject implements Objects, ObjectWrap {
 		MethodInstance mi = Reflector.getSetter(clazz, propertyName.getString(), value, null);
 		if (mi != null) {
 			try {
-				if (Modifier.isStatic(mi.getMethod().getModifiers())) {
+				if (mi.getMethod().isStatic()) {
 					return mi.invoke(null);
 				}
 			}
@@ -268,7 +268,7 @@ public class JavaObject implements Objects, ObjectWrap {
 			// if ("toHexString".equals(methodName)) print.ds();
 			MethodInstance mi = Reflector.getMethodInstanceValidate(clazz, KeyImpl.init(methodName), arguments);
 			// call static method if exist
-			if (Modifier.isStatic(mi.getMethod().getModifiers())) {
+			if (mi.getMethod().isStatic()) {
 				return mi.invoke(null);
 			}
 

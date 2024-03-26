@@ -18,8 +18,7 @@
  **/
 package lucee.runtime.reflection.pairs;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Executable;
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.function.BiFunction;
 
@@ -27,8 +26,11 @@ import lucee.commons.io.log.LogUtil;
 import lucee.commons.lang.Pair;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
-import lucee.runtime.reflection.Reflector;
 import lucee.transformer.dynamic.DynamicInvoker;
+import lucee.transformer.dynamic.meta.Clazz;
+import lucee.transformer.dynamic.meta.Constructor;
+import lucee.transformer.dynamic.meta.ConstructorReflection;
+import lucee.transformer.dynamic.meta.FunctionMember;
 
 /**
  * class holds a Constructor and the parameter to call it
@@ -37,7 +39,7 @@ public final class ConstructorInstance {
 
 	private Class clazz;
 	private Object[] args;
-	private Pair<Executable, Object> result;
+	private Pair<FunctionMember, Object> result;
 
 	/**
 	 * constructor of the class
@@ -50,16 +52,18 @@ public final class ConstructorInstance {
 		this.args = args;
 	}
 
-	public Object invoke()
-			throws PageException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
+	public Object invoke() throws PageException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException,
+			SecurityException, IOException {
 
 		try {
 			return ((BiFunction<Object, Object, Object>) getResult().getValue()).apply(null, args);
 		}
 		catch (IncompatibleClassChangeError | IllegalStateException e) {
 			LogUtil.log("direct", e);
-			Constructor constr = Reflector.getConstructor(clazz, args, true);
-			return constr.newInstance(args);
+
+			DynamicInvoker di = DynamicInvoker.getInstance(null);
+			lucee.transformer.dynamic.meta.Constructor constr = Clazz.getConstructorMatch(di.getClazz(clazz, true), args, true);
+			return ((ConstructorReflection) constr).getConstructor().newInstance(args);
 		}
 	}
 
@@ -83,7 +87,7 @@ public final class ConstructorInstance {
 		}
 	}
 
-	private Pair<Executable, Object> getResult() throws PageException {
+	private Pair<FunctionMember, Object> getResult() throws PageException {
 		if (result == null) {
 			try {
 				result = DynamicInvoker.getInstance(null).createInstance(clazz, null, args);

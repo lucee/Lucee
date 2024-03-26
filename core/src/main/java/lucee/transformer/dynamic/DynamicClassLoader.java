@@ -12,6 +12,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import lucee.print;
 import lucee.commons.io.IOUtil;
+import lucee.commons.io.SystemUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.ExtendableClassLoader;
 import lucee.transformer.bytecode.util.ClassRenamer;
@@ -189,7 +190,7 @@ public final class DynamicClassLoader extends ExtendableClassLoader {
 				e.printStackTrace();
 			}
 		}
-		synchronized (this) {
+		synchronized (SystemUtil.createToken("dcl", className)) {
 
 			// new class , not in memory yet
 			try {

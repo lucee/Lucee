@@ -18,9 +18,8 @@
  **/
 package lucee.runtime.reflection.pairs;
 
-import java.lang.reflect.Executable;
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.function.BiFunction;
 
 import lucee.print;
@@ -28,9 +27,12 @@ import lucee.commons.io.log.LogUtil;
 import lucee.commons.lang.Pair;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
-import lucee.runtime.reflection.Reflector;
 import lucee.runtime.type.Collection.Key;
 import lucee.transformer.dynamic.DynamicInvoker;
+import lucee.transformer.dynamic.meta.Clazz;
+import lucee.transformer.dynamic.meta.FunctionMember;
+import lucee.transformer.dynamic.meta.Method;
+import lucee.transformer.dynamic.meta.MethodReflection;
 
 /**
  * class holds a Method and the parameter to call it
@@ -40,7 +42,7 @@ public final class MethodInstance {
 	private Class clazz;
 	private Key methodName;
 	private Object[] args;
-	private Pair<Executable, Object> result;
+	private Pair<FunctionMember, Object> result;
 
 	public MethodInstance(Class clazz, Key methodName, Object[] args) {
 		this.clazz = clazz;
@@ -48,8 +50,8 @@ public final class MethodInstance {
 		this.args = args;
 	}
 
-	public Object invoke(Object o)
-			throws PageException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
+	public Object invoke(Object o) throws PageException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException,
+			SecurityException, IOException {
 
 		if (o != null) {
 			if ("toString".equals(methodName.getString()) && args.length == 0) {
@@ -65,8 +67,9 @@ public final class MethodInstance {
 		catch (IncompatibleClassChangeError | IllegalStateException e) {
 			print.e(e);
 			LogUtil.log("direct", e);
-			Method method = Reflector.getMethod(clazz, methodName, args, true);
-			return method.invoke(o, args);
+			DynamicInvoker di = DynamicInvoker.getInstance(null);
+			lucee.transformer.dynamic.meta.Method method = Clazz.getMethodMatch(di.getClazz(clazz, true), methodName, args, true);
+			return ((MethodReflection) method).getMethod().invoke(o, args);
 		}
 	}
 
@@ -90,7 +93,18 @@ public final class MethodInstance {
 		}
 	}
 
-	private Pair<Executable, Object> getResult() throws PageException {
+	public boolean hasMethod() {
+		try {
+			FunctionMember fm = getResult().getName();
+			return fm != null;
+		}
+		catch (PageException e) {
+			print.e(e);
+			return false;
+		}
+	}
+
+	private Pair<FunctionMember, Object> getResult() throws PageException {
 		if (result == null) {
 			try {
 				result = DynamicInvoker.getInstance(null).createInstance(clazz, methodName, args);

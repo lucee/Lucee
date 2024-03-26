@@ -271,7 +271,7 @@ public class CacheUtil {
 		// FUTURE no reflection needed
 		Object[] empty = new Object[0];
 		MethodInstance remove = Reflector.getMethodInstance(c.getClass(), KeyImpl.init("remove"), empty);
-		if (remove.getMethod(null) == null) {
+		if (!remove.hasMethod()) {
 			c.remove((CacheEntryFilter) null);
 			return;
 		}
@@ -299,7 +299,7 @@ public class CacheUtil {
 		// FUTURE no reflection needed
 		Object[] empty = new Object[0];
 		MethodInstance release = Reflector.getMethodInstance(c.getClass(), KeyImpl.init("release"), empty);
-		if (release.getMethod(null) == null) {
+		if (!release.hasMethod()) {
 			return;
 		}
 

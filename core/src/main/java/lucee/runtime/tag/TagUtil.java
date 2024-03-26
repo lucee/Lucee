@@ -178,7 +178,7 @@ public class TagUtil {
 
 		if (setter != null) {
 			if (value == null) {
-				Class<?>[] types = setter.getMethod().getParameterTypes();
+				Class<?>[] types = setter.getMethod().getArgumentClasses();
 				if (types[0].isPrimitive()) return; // full null support should allow null, because of that i only suppress when primitive type, then
 													// that will not work
 			}

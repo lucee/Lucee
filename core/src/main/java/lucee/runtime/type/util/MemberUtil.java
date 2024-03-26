@@ -179,7 +179,7 @@ public class MemberUtil {
 
 	private static Object callMethod(Object obj, Collection.Key methodName, Object[] args) throws PageException {
 		MethodInstance mi = Reflector.getMethodInstance(obj.getClass(), methodName, args);
-		if (mi.getMethod(null) == null) return DEFAULT;
+		if (!mi.hasMethod()) return DEFAULT;
 		try {
 			return mi.invoke(obj);
 		}
