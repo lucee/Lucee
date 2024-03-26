@@ -38,6 +38,7 @@ public final class ArrayToList extends BIF {
 
 	public static String call(PageContext pc, Array array, String delimiter) throws PageException {
 		if (delimiter.length() == 1) return call(pc, array, delimiter.charAt(0));
+		else if (delimiter.length() == 0) return _call(pc, array);
 		if (array instanceof QueryColumn) array = unwrap(pc, (QueryColumn) array);
 		int len = array.size();
 		if (len == 0) return "";
@@ -45,6 +46,7 @@ public final class ArrayToList extends BIF {
 
 		Object o = array.get(1, null);
 		StringBuilder sb = new StringBuilder(o == null ? "" : Caster.toString(o));
+		sb.ensureCapacity( len*2 );
 		for (int i = 2; i <= len; i++) {
 			sb.append(delimiter);
 			o = array.get(i, null);
@@ -61,8 +63,25 @@ public final class ArrayToList extends BIF {
 
 		Object o = array.get(1, null);
 		StringBuilder sb = new StringBuilder(o == null ? "" : Caster.toString(o));
+		sb.ensureCapacity( len*2 );
 		for (int i = 2; i <= len; i++) {
 			sb.append(delimiter);
+			o = array.get(i, null);
+			sb.append(o == null ? "" : Caster.toString(o));
+		}
+		return sb.toString();
+	}
+
+	public static String _call(PageContext pc, Array array) throws PageException {
+		if (array instanceof QueryColumn) array = unwrap(pc, (QueryColumn) array);
+		int len = array.size();
+		if (len == 0) return "";
+		if (len == 1) return Caster.toString(array.get(1, ""));
+
+		Object o = array.get(1, null);
+		StringBuilder sb = new StringBuilder(o == null ? "" : Caster.toString(o));
+		sb.ensureCapacity( len );
+		for (int i = 2; i <= len; i++) {
 			o = array.get(i, null);
 			sb.append(o == null ? "" : Caster.toString(o));
 		}
