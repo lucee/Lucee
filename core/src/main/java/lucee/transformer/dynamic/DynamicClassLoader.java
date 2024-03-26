@@ -10,9 +10,9 @@ import java.net.URL;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import lucee.print;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
+import lucee.commons.io.log.Log;
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.ExtendableClassLoader;
 import lucee.transformer.bytecode.util.ClassRenamer;
@@ -58,11 +58,11 @@ public final class DynamicClassLoader extends ExtendableClassLoader {
 	 * @param parent
 	 * @throws IOException
 	 */
-	public DynamicClassLoader(Resource directory) throws IOException {
-		this(directory, (ClassLoader[]) null, true);
+	public DynamicClassLoader(Resource directory, Log log) throws IOException {
+		this(directory, (ClassLoader[]) null, true, log);
 	}
 
-	public DynamicClassLoader(ClassLoader parent, Resource directory) {
+	public DynamicClassLoader(ClassLoader parent, Resource directory, Log log) {
 		super(parent);
 
 		try {
@@ -72,11 +72,11 @@ public final class DynamicClassLoader extends ExtendableClassLoader {
 			this.directory = directory; // we only store it when okay
 		}
 		catch (Exception e) {
-			print.e(e);
+			if (log != null) log.error("dynamic", e);
 		}
 	}
 
-	public DynamicClassLoader(Resource directory, ClassLoader[] parentClassLoaders, boolean includeCoreCL) throws IOException {
+	public DynamicClassLoader(Resource directory, ClassLoader[] parentClassLoaders, boolean includeCoreCL, Log log) throws IOException {
 		super(parentClassLoaders == null || parentClassLoaders.length == 0 ? directory.getClass().getClassLoader() : parentClassLoaders[0]);
 
 		// parents.add(new TP().getClass().getClassLoader());
@@ -90,8 +90,7 @@ public final class DynamicClassLoader extends ExtendableClassLoader {
 			this.directory = directory; // we only store it when okay
 		}
 		catch (Exception e) {
-			// TODO log
-			print.e(e);
+			if (log != null) log.error("dynamic", e);
 		}
 	}
 

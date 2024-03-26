@@ -26,7 +26,6 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
-import lucee.print;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
 import lucee.runtime.PageContext;
@@ -286,11 +285,6 @@ public class JavaObject implements Objects, ObjectWrap {
 			throw Caster.toPageException(e.getTargetException());
 		}
 		catch (Exception e) {
-			print.e("------------------------------");
-			print.e(methodName);
-			print.e(clazz.getName());
-			print.e(arguments);
-
 			throw Caster.toPageException(e);
 		}
 	}

@@ -19,7 +19,6 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 
-import lucee.print;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.res.Resource;
@@ -52,7 +51,6 @@ public class ClazzDynamic extends Clazz {
 							classes.put(clazz.getName(), new SoftReference<ClazzDynamic>(cd));
 						}
 						catch (Exception e) {
-							print.e(e);
 							if (log != null) log.error("dynamic", e);
 						}
 					}
@@ -213,7 +211,6 @@ public class ClazzDynamic extends Clazz {
 							_getFunctionMembers(cl.loadClass(Type.getObjectType(interf).getClassName()), members, log);
 						}
 						catch (Exception e) {
-							print.e(e);
 							if (log != null) log.error("dynamic", e);
 						}
 					}
@@ -223,7 +220,6 @@ public class ClazzDynamic extends Clazz {
 						_getFunctionMembers(cl.loadClass(Type.getObjectType(superName).getClassName()), members, log);
 					}
 					catch (Exception e) {
-						print.e(e);
 						if (log != null) log.error("dynamic", e);
 					}
 				}

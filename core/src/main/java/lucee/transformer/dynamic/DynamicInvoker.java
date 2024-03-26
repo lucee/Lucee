@@ -24,7 +24,6 @@ import lucee.print;
 import lucee.commons.digest.HashUtil;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.Log;
-import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.ResourcesImpl;
 import lucee.commons.io.res.util.ResourceUtil;
@@ -113,8 +112,7 @@ public class DynamicInvoker {
 			return ((BiFunction<Object, Object[], Object>) createInstance(objClass, methodName, arguments).getValue()).apply(objMaybeNull, arguments);
 		}
 		catch (IncompatibleClassChangeError | IllegalStateException e) {
-			print.e(e);
-			LogUtil.log("direct", e);
+			if (log != null) log.error("dynamic", e);
 			lucee.transformer.dynamic.meta.Method method = Clazz.getMethodMatch(getClazz(objClass, true), methodName, arguments, true);
 			return ((MethodReflection) method).getMethod().invoke(objClass, arguments);
 		}
@@ -164,13 +162,11 @@ public class DynamicInvoker {
 		// print.e("className: " + className);
 		DynamicClassLoader loader = getCL(clazz);
 		if (loader.hasClass(className)) {
-			// print.e("existing!!!" + className);
 			return new Pair<FunctionMember, Object>(isConstr ? constr : method, loader.loadInstance(className));
 		}
 
 		ClassWriter cw = ASMUtil.getClassWriter();
 		MethodVisitor mv;
-		print.e(classPath);
 		String abstractClassPath = "java/lang/Object";
 		cw.visit(ASMUtil.getJavaVersionForBytecodeGeneration(), Opcodes.ACC_PUBLIC + Opcodes.ACC_SUPER, classPath,
 				"Ljava/lang/Object;Ljava/util/function/BiFunction<Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;>;", "java/lang/Object",
@@ -247,15 +243,11 @@ public class DynamicInvoker {
 		}
 		Type rt = isConstr ? Type.getType(clazz) : method.getReturnType();
 		methodDesc.append(')').append(isConstr ? Types.VOID : rt.getDescriptor());
-		print.e(methodDesc);
 		if (isConstr) {
 			// Create a new instance of java/lang/String
-			print.e("new " + rt.getInternalName());
-			print.e(methodDesc);
 			mv.visitMethodInsn(Opcodes.INVOKESPECIAL, rt.getInternalName(), "<init>", methodDesc.toString(), false); // Call the constructor of String
 		}
 		else {
-			print.e(methodDesc);
 			mv.visitMethodInsn(isStatic ? Opcodes.INVOKESTATIC : Opcodes.INVOKEVIRTUAL, Type.getInternalName(clazz), method.getName(), methodDesc.toString(), false);
 
 		}
@@ -337,8 +329,8 @@ public class DynamicInvoker {
 			synchronized (token) {
 				cl = loaders.get(parent.getName());
 				if (cl == null) {
-					print.e("---- newnewnewnewnewnew ---- " + parent.toString());
-					loaders.put(parent.hashCode(), cl = new DynamicClassLoader(parent, root));
+					// print.e("---- newnewnewnewnewnew ---- " + parent.hashCode() + ":" + parent.toString());
+					loaders.put(parent.hashCode(), cl = new DynamicClassLoader(parent, root, log));
 				}
 			}
 		}

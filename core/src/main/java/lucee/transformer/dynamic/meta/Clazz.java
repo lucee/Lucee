@@ -6,7 +6,6 @@ import java.util.List;
 
 import org.objectweb.asm.Type;
 
-import lucee.print;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.ClassException;
@@ -57,7 +56,6 @@ public abstract class Clazz implements Serializable {
 			return ClazzDynamic.getInstance(clazz, root, log);
 		}
 		catch (Exception e) {
-			print.e(e);
 			if (log != null) log.error("dynamic", e);
 			return new ClazzReflection(clazz);
 		}
@@ -67,24 +65,6 @@ public abstract class Clazz implements Serializable {
 		Reflector.checkAccessibility(clazz.getDeclaringClass(), methodName);
 		List<Method> methods = clazz.getMethods(methodName.getString(), false, args.length);
 
-		if ("getDialect".equals(methodName.getString())) {
-			print.e("++++++++++++++++++++++++++++++++++++++");
-			print.e(methods);
-			print.e(clazz.getMethods(methodName.getString(), false, -1));
-			print.e(clazz.getDeclaredMethods(methodName.getString(), false, -1));
-			print.e(clazz.getMethods(null, false, -1));
-			print.e(clazz.getDeclaredMethods(null, false, -1));
-			print.e("-----------------------------------------------");
-
-			Clazz clazzRef = Clazz.getClazzReflection(clazz.getDeclaringClass());
-			print.e(clazzRef.getMethods(methodName.getString(), false, args.length));
-			print.e(clazzRef.getMethods(methodName.getString(), false, -1));
-			print.e(clazzRef.getDeclaredMethods(methodName.getString(), false, -1));
-			print.e(clazzRef.getMethods(null, false, -1));
-			print.e(clazzRef.getDeclaredMethods(null, false, -1));
-			print.e("-----------------------------------------------");
-		}
-
 		if (methods != null && methods.size() > 0) {
 			Class[] clazzArgs = Reflector.getClasses(args);
 			// exact comparsion
@@ -92,7 +72,6 @@ public abstract class Clazz implements Serializable {
 			outer: for (Method m: methods) {
 				if (m != null) {
 					Class[] parameterTypes = m.getArgumentClasses();
-					print.e(parameterTypes);
 					for (int y = 0; y < parameterTypes.length; y++) {
 						if (Reflector.toReferenceClass(parameterTypes[y]) != clazzArgs[y]) continue outer;
 					}

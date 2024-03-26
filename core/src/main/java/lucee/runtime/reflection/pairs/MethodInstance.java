@@ -22,7 +22,6 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.function.BiFunction;
 
-import lucee.print;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.lang.Pair;
 import lucee.runtime.exp.PageException;
@@ -64,9 +63,8 @@ public final class MethodInstance {
 		try {
 			return ((BiFunction<Object, Object, Object>) getResult().getValue()).apply(o, args);
 		}
-		catch (IncompatibleClassChangeError | IllegalStateException e) {
-			print.e(e);
-			LogUtil.log("direct", e);
+		catch (IncompatibleClassChangeError | IllegalStateException | ClassCastException e) { // java.lang.ClassCastException
+			LogUtil.log("dynamic", e);
 			DynamicInvoker di = DynamicInvoker.getInstance(null);
 			lucee.transformer.dynamic.meta.Method method = Clazz.getMethodMatch(di.getClazz(clazz, true), methodName, args, true);
 			return ((MethodReflection) method).getMethod().invoke(o, args);
@@ -99,7 +97,7 @@ public final class MethodInstance {
 			return fm != null;
 		}
 		catch (PageException e) {
-			print.e(e);
+			LogUtil.log("dynamic", e);
 			return false;
 		}
 	}
