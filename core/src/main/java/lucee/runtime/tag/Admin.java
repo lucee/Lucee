@@ -1468,7 +1468,13 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		sct.set("implicitAccess", Caster.toBoolean(config.hasDebugOptions(ConfigPro.DEBUG_IMPLICIT_ACCESS)));
 		sct.set("queryUsage", Caster.toBoolean(config.hasDebugOptions(ConfigPro.DEBUG_QUERY_USAGE)));
 		sct.set("thread", Caster.toBoolean(config.hasDebugOptions(ConfigPro.DEBUG_THREAD)));
-	}
+		sct.set("threadThresholdMs", Caster.toDouble(config.getDebugThreadThreshold()));
+		sct.set("pageParts", Caster.toBoolean(config.hasDebugOptions(ConfigPro.DEBUG_PAGE_PARTS)));
+		sct.set("snippetsEnabled", Caster.toBoolean(config.hasDebugOptions(ConfigPro.DEBUG_SNIPPETS_ENABLED)));
+		sct.set("debugLogs", Caster.toBoolean(config.hasDebugOptions(ConfigPro.DEBUG_DEBUG_LOGS)));
+		sct.set("traceLog", Caster.toBoolean(config.hasDebugOptions(ConfigPro.DEBUG_TRACE_LOG)));
+		sct.set("thresholdMs", Caster.toDouble(config.getDebugThreshold()));
+	}        
 
 	private void doGetError() throws PageException {
 		Struct sct = new StructImpl();
@@ -1784,7 +1790,8 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		admin.updateDebug(Caster.toBoolean(getString("debug", ""), null), Caster.toBoolean(getString("template", ""), null), Caster.toBoolean(getString("database", ""), null),
 				Caster.toBoolean(getString("exception", ""), null), Caster.toBoolean(getString("tracing", ""), null), Caster.toBoolean(getString("dump", ""), null),
 				Caster.toBoolean(getString("timer", ""), null), Caster.toBoolean(getString("implicitAccess", ""), null), Caster.toBoolean(getString("queryUsage", ""), null),
-				Caster.toBoolean(getString("thread", ""), null));
+				Caster.toBoolean(getString("thread", ""), null), new Double(getDouble("threadThresholdMs", 100)), Caster.toBoolean(getString("pageParts", ""), null),
+				Caster.toBoolean(getString("snippetsEnabled", ""), null),Caster.toBoolean(getString("debugLogs", ""), null),Caster.toBoolean(getString("traceLog", ""), null), new Double(getDouble("thresholdMs", 100)));
 
 		// TODO?admin.updateDebugTemplate(getString("admin", action, "debugTemplate"));
 		store();
