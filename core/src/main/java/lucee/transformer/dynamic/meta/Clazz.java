@@ -6,6 +6,7 @@ import java.util.List;
 
 import org.objectweb.asm.Type;
 
+import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.ClassException;
@@ -19,10 +20,13 @@ import lucee.runtime.java.JavaObject;
 import lucee.runtime.op.Caster;
 import lucee.runtime.reflection.Reflector;
 import lucee.runtime.type.Collection;
+import lucee.transformer.dynamic.meta.dynamic.ClazzDynamic;
+import lucee.transformer.dynamic.meta.reflection.ClazzReflection;
 
 public abstract class Clazz implements Serializable {
 
 	private static final long serialVersionUID = 4236939474343760825L;
+	private static Boolean allowReflection = null;
 
 	public abstract List<Method> getMethods(String methodName, boolean nameCaseSensitive, int argumentLength) throws IOException;
 
@@ -42,6 +46,13 @@ public abstract class Clazz implements Serializable {
 
 	public abstract Class getDeclaringClass();
 
+	public static boolean allowReflection() {
+		if (allowReflection == null) {
+			allowReflection = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.allow.reflection", null), true);
+		}
+		return allowReflection;
+	}
+
 	public static Clazz getClazzReflection(Class clazz) {
 		return new ClazzReflection(clazz);
 	}
@@ -57,7 +68,8 @@ public abstract class Clazz implements Serializable {
 		}
 		catch (Exception e) {
 			if (log != null) log.error("dynamic", e);
-			return new ClazzReflection(clazz);
+			if (allowReflection()) return new ClazzReflection(clazz);
+			else throw new RuntimeException(e);
 		}
 	}
 

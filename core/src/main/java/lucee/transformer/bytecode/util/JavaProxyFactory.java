@@ -137,8 +137,6 @@ public class JavaProxyFactory {
 		Type typeInterface = Type.getType(interf);
 		String strInterface = typeInterface.getInternalName();
 
-		String className = createClassName("udf", Object.class, interf);
-
 		// get ClassLoader
 		PhysicalClassLoader pcl = null;
 		try {
@@ -147,6 +145,8 @@ public class JavaProxyFactory {
 		catch (IOException e) {
 			throw Caster.toPageException(e);
 		}
+		String className = createClassName("udf", pcl.getDirectory(), Object.class, interf);
+
 		Resource classFile = pcl.getDirectory().getRealResource(className.concat(".class"));
 
 		// check if already exists, if yes return
@@ -227,7 +227,7 @@ public class JavaProxyFactory {
 		}
 	}
 
-	public static Object createProxy(PageContext pc, Component cfc, Class extendz, Class... interfaces) throws PageException, IOException {
+	public static Object createProxy(PageContext pc, final Component cfc, Class extendz, Class... interfaces) throws PageException, IOException {
 		PageContextImpl pci = (PageContextImpl) pc;
 		ClassLoader[] parents = extractClassLoaders(null, interfaces);
 
@@ -246,8 +246,6 @@ public class JavaProxyFactory {
 			strInterfaces[i] = typeInterfaces[i].getInternalName();
 		}
 
-		String className = createClassName("cfc", extendz, interfaces);
-
 		// get ClassLoader
 		PhysicalClassLoader pcl = null;
 		try {
@@ -256,6 +254,8 @@ public class JavaProxyFactory {
 		catch (IOException e) {
 			throw Caster.toPageException(e);
 		}
+
+		String className = createClassName("cfc", pcl.getDirectory(), extendz, interfaces);
 		Resource classFile = pcl.getDirectory().getRealResource(className.concat(".class"));
 
 		// check if already exists, if yes return
@@ -524,7 +524,7 @@ public class JavaProxyFactory {
 		return constr.newInstance(new Object[] { config, cfc });
 	}
 
-	private static String createClassName(String appendix, Class extendz, Class... interfaces) throws IOException {
+	private static String createClassName(String appendix, Resource resource, Class extendz, Class... interfaces) throws IOException {
 		if (extendz == null) extendz = Object.class;
 
 		StringBuilder sb = new StringBuilder(extendz.getName());
@@ -539,8 +539,7 @@ public class JavaProxyFactory {
 
 			sb.append(lucee.runtime.type.util.ListUtil.arrayToList(arr, ";"));
 		}
-		sb.append(appendix).append(';');
-
+		sb.append(appendix).append(';').append(resource.getAbsolutePath()).append(';');
 		String key = KeyGenerator.createVariable(sb.toString());
 
 		return key;
