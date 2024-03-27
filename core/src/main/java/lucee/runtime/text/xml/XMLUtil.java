@@ -1455,7 +1455,7 @@ public final class XMLUtil {
 		return toInputSource(pc, res);
 	}
 
-	public static boolean isPath(String xml) throws IOException, ExpressionException {
+	public static boolean isPath(String xml) {
 		// xml text
 		xml = xml.trim();
 		return !xml.startsWith("<") && xml.length() < 2000 && !StringUtil.isEmpty(xml, true);
@@ -1569,7 +1569,7 @@ public final class XMLUtil {
 		throw new IOException("can't cast object of type [" + value + "] to an Input for xml parser");
 	}
 
-	public static InputSource toInputSource(String xml) throws IOException {
+	public static InputSource toInputSource(String xml) {
 		return new InputSource(new StringReader(xml.trim()));
 	}
 

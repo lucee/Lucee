@@ -22,7 +22,6 @@ import lucee.commons.io.IOUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.net.http.HTTPResponse;
 import lucee.commons.net.http.httpclient.HTTPEngine4Impl;
-import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.text.xml.XMLUtil;
 import lucee.runtime.type.dt.DateTime;
@@ -53,7 +52,7 @@ public final class RepoReader extends DefaultHandler {
 		this.key = repo + ":" + group + ":" + artifact + ":" + version;
 	}
 
-	public Map<String, Map<String, Object>> read() throws IOException, GeneralSecurityException, SAXException, PageException {
+	public Map<String, Map<String, Object>> read() throws IOException, GeneralSecurityException, SAXException {
 
 		String g = group.replace('.', '/');
 		String a = artifact.replace('.', '/');

@@ -73,7 +73,7 @@ import lucee.runtime.type.query.SimpleQuery;
 
 public class QueryUtil {
 
-	public static Cast toCast(ResultSet result, int type) throws SQLException {
+	public static Cast toCast(ResultSet result, int type) {
 		if (type == Types.TIMESTAMP) {
 			if (isTeradata(result)) return Cast.TIMESTAMP_NOTZ;
 			return Cast.TIMESTAMP;
@@ -265,7 +265,7 @@ public class QueryUtil {
 		if (query.getRecordcount() > top) comment.append(" (showing top ").append(Caster.toString(top)).append(")");
 		comment.append("\n");
 		comment.append("Cached: ").append(query.isCached() ? "Yes\n" : "No\n");
-		if (query.isCached() && query instanceof Query) {
+		if (query.isCached() && query != null) {
 			comment.append("Cache Type: ").append(query.getCacheType()).append("\n");
 		}
 

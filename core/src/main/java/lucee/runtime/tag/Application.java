@@ -351,7 +351,7 @@ public final class Application extends TagImpl implements DynamicAttributes {
 
 	}
 
-	public void setMaillistener(Object mailListener) throws ApplicationException {
+	public void setMaillistener(Object mailListener) {
 		this.mailListener = mailListener;
 	}
 
@@ -359,7 +359,7 @@ public final class Application extends TagImpl implements DynamicAttributes {
 		this.queryListener = Query.toTagListener(listener);
 	}
 
-	public void setSerializationsettings(Struct sct) throws ApplicationException {
+	public void setSerializationsettings(Struct sct) {
 		if (sct == null) return;
 		this.serializationSettings = SerializationSettings.toSerializationSettings(sct);
 	}
@@ -382,7 +382,7 @@ public final class Application extends TagImpl implements DynamicAttributes {
 		this.queryVarUsage = AppListenerUtil.toVariableUsage(varUsage);
 	}
 
-	public void setCachedafter(TimeSpan ts) throws ApplicationException {
+	public void setCachedafter(TimeSpan ts) {
 		this.queryCachedAfter = ts;
 	}
 
@@ -398,11 +398,11 @@ public final class Application extends TagImpl implements DynamicAttributes {
 		this.scopeCascading = tmp;
 	}
 
-	public void setSearchQueries(boolean searchQueries) throws ApplicationException {
+	public void setSearchQueries(boolean searchQueries) {
 		this.searchQueries = searchQueries;
 	}
 
-	public void setSearchimplicitscopes(boolean searchImplicitScopes) throws ApplicationException {
+	public void setSearchimplicitscopes(boolean searchImplicitScopes) {
 		short tmp = ConfigWebUtil.toScopeCascading(searchImplicitScopes);
 		this.scopeCascading = tmp;
 	}

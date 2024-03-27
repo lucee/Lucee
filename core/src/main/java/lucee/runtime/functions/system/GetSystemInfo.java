@@ -30,7 +30,6 @@ import lucee.runtime.CFMLFactoryImpl;
 import lucee.runtime.PageContext;
 import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.config.DatasourceConnPool;
-import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
@@ -40,7 +39,7 @@ public final class GetSystemInfo implements Function {
 
 	private static final long serialVersionUID = 1L;
 
-	public static Struct call(PageContext pc) throws PageException {
+	public static Struct call(PageContext pc) {
 		Struct sct = new StructImpl();
 		ConfigWebPro config = (ConfigWebPro) pc.getConfig();
 		CFMLFactoryImpl factory = (CFMLFactoryImpl) config.getFactory();

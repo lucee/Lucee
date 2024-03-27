@@ -1523,11 +1523,11 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		}
 	}
 
-	private void doPurgeDebugPool() throws PageException {
+	private void doPurgeDebugPool() {
 		configWeb.getDebuggerPool().purge();
 	}
 
-	private void doPurgeExpiredSessions() throws PageException {
+	private void doPurgeExpiredSessions() {
 		ConfigServer cs = (ConfigServer) config;
 		ConfigWeb[] webs = cs.getConfigWebs();
 

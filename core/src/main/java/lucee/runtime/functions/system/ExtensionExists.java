@@ -14,11 +14,11 @@ public class ExtensionExists extends BIF implements Function {
 
 	private static final long serialVersionUID = 2627423175121799118L;
 
-	public static boolean call(PageContext pc, String id) throws PageException {
+	public static boolean call(PageContext pc, String id) {
 		return call(pc, id, null);
 	}
 
-	public static boolean call(PageContext pc, String id, String version) throws PageException {
+	public static boolean call(PageContext pc, String id, String version) {
 		if (find(id, version, ((ConfigWebPro) pc.getConfig()).getServerRHExtensions())) return true;
 		if (find(id, version, ((ConfigWebPro) pc.getConfig()).getRHExtensions())) return true;
 		return false;

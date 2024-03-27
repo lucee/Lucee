@@ -749,8 +749,7 @@ public final class Reflector {
 		return new MethodInstance(clazz, methodName, args);
 	}
 
-	public static MethodInstance getMethodInstanceValidate(Class clazz, Collection.Key methodName, Object[] args)
-			throws NoSuchMethodException, ClassNotFoundException, IOException, UnmodifiableClassException {
+	public static MethodInstance getMethodInstanceValidate(Class clazz, Collection.Key methodName, Object[] args) throws NoSuchMethodException {
 		MethodInstance mi = getMethodInstance(clazz, methodName, args);
 		if (mi.hasMethod()) return mi;
 
@@ -931,12 +930,12 @@ public final class Reflector {
 		}
 	}
 
-	public static boolean hasMethod(Class<?> clazz, String methodName, Object[] args) throws PageException {
+	public static boolean hasMethod(Class<?> clazz, String methodName, Object[] args) {
 		MethodInstance mi = getMethodInstance(clazz, KeyImpl.init(methodName), args);
 		return mi.hasMethod();
 	}
 
-	public static boolean hasMethod(Class<?> clazz, Collection.Key methodName, Object[] args) throws PageException {
+	public static boolean hasMethod(Class<?> clazz, Collection.Key methodName, Object[] args) {
 		MethodInstance mi = getMethodInstance(clazz, methodName, args);
 		return mi.hasMethod();
 	}

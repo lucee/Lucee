@@ -36,7 +36,7 @@ public final class InputBaseN implements Function {
 		if (string.length() > 32) throw new FunctionException(pc, "inputBaseN", 1, "string", "argument is too large, it can only be a maximum of 32 digits (-0x at start)");
 
 		// print.ln(string+"-"+radix);
-		return (double) Long.parseLong(string, (int) radix);
+		return Long.parseLong(string, (int) radix);
 
 	}
 

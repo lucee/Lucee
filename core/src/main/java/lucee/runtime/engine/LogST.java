@@ -65,7 +65,7 @@ public class LogST extends ParentThreasRefThread {
 		}
 	}
 
-	private File createFile() throws IOException {
+	private File createFile() {
 		File f;
 		int count = 0;
 		while ((f = new File(logDirectory, logName + "-" + (++count) + ".log")).isFile()) {

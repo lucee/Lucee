@@ -60,7 +60,7 @@ public final class NumberFormat {
 		return format(locale, number, convertMask(mask));
 	}
 
-	public String format(Locale locale, double number, Mask mask) throws InvalidMaskException {
+	public String format(Locale locale, double number, Mask mask) {
 		int maskLen = mask.str.length();
 		DecimalFormat df = getDecimalFormat(locale);// (mask);
 		int gs = df.getGroupingSize();

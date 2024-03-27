@@ -36,7 +36,7 @@ public class IKStorageValue implements Serializable {
 		this.lastModified = lastModified;
 	}
 
-	public IKStorageValue(byte[][] barrr) throws PageException {
+	public IKStorageValue(byte[][] barrr) {
 		this.barr = barrr[0];
 		this.lastModified = toLong(barrr[1]);
 	}
@@ -45,7 +45,7 @@ public class IKStorageValue implements Serializable {
 		return new byte[][] { serialize(value), NumberUtil.longToByteArray(System.currentTimeMillis()) };
 	}
 
-	public static byte[][] toByteRepresentation(IKStorageValue val) throws PageException {
+	public static byte[][] toByteRepresentation(IKStorageValue val) {
 		return new byte[][] { val.barr, NumberUtil.longToByteArray(val.lastModified) };
 	}
 

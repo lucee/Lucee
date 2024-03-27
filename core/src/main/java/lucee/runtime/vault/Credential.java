@@ -1,10 +1,7 @@
 package lucee.runtime.vault;
 
-import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
-import java.security.spec.InvalidKeySpecException;
 
 import lucee.commons.digest.RSA;
 import lucee.loader.engine.CFMLEngineFactory;
@@ -18,7 +15,7 @@ public class Credential {
 	private byte[] username;
 	private byte[] password;
 
-	public Credential(String key, byte[] username, byte[] password) throws NoSuchAlgorithmException, InvalidKeySpecException, IOException {
+	public Credential(String key, byte[] username, byte[] password) {
 		this.username = username;
 		this.password = password;
 	}

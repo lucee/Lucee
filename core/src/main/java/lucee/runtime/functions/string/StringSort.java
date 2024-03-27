@@ -20,7 +20,7 @@ public class StringSort extends BIF implements Function {
 		return call(pc, Caster.toString(args[0]));
 	}
 
-	public static String call(PageContext pc, String input) throws PageException {
+	public static String call(PageContext pc, String input) {
 		char inputArray[] = input.toCharArray();
 		Arrays.sort(inputArray);
 		return new String(inputArray);

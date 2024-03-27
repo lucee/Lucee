@@ -49,7 +49,7 @@ public class Hash {
 	}
 
 	// MD5
-	public static String md5(Resource res) throws NoSuchAlgorithmException, IOException {
+	public static String md5(Resource res) throws IOException {
 		InputStream is = res.getInputStream();
 		try {
 			return DigestUtils.md5Hex(is);

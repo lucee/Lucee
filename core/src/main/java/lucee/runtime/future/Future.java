@@ -51,7 +51,7 @@ public class Future implements Objects {
 		this.timeout = timeout;
 	}
 
-	public static Future _then(PageContext pc, UDF udf, long timeout) throws PageException {
+	public static Future _then(PageContext pc, UDF udf, long timeout) {
 		ExecutorService executor = Executors.newSingleThreadExecutor();
 		return new Future(executor.submit(new CallableUDF(pc, udf, ARG_NULL)), timeout);
 	}

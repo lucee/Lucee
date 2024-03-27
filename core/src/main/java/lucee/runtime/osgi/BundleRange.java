@@ -27,7 +27,7 @@ public class BundleRange implements Serializable {
 		this.name = name == null ? name : name.trim();
 	}
 
-	public BundleRange(String name, VersionRange version) throws BundleException {
+	public BundleRange(String name, VersionRange version) {
 		this.name = name == null ? name : name.trim();
 		if (name == null) throw new IllegalArgumentException("Name cannot be null");
 		setVersionRange(version);

@@ -830,7 +830,7 @@ public final class OpUtil {
 		return StrictMath.pow(Caster.toDoubleValue(left), Caster.toDoubleValue(right));
 	}
 
-	public static double exponent(PageContext pc, Number left, Number right) throws PageException {
+	public static double exponent(PageContext pc, Number left, Number right) {
 		if (AppListenerUtil.getPreciseMath(pc, null)) {
 			try {
 				return Caster.toBigDecimal(left).pow(right.intValue()).doubleValue();
@@ -977,7 +977,7 @@ public final class OpUtil {
 		return left.intValue() | right.intValue();
 	}
 
-	public static Number divideRef(PageContext pc, Number left, Number right) throws PageException {
+	public static Number divideRef(PageContext pc, Number left, Number right) {
 		if (AppListenerUtil.getPreciseMath(pc, null)) {
 			BigDecimal bd = Caster.toBigDecimal(right);
 			if (bd.equals(BigDecimal.ZERO)) throw new ArithmeticException("Division by zero is not possible");
@@ -1005,7 +1005,7 @@ public final class OpUtil {
 		return Caster.toDouble(Caster.toIntValue(left) / Caster.toIntValue(right));
 	}
 
-	public static Number intdivRef(PageContext pc, Number left, Number right) throws PageException {
+	public static Number intdivRef(PageContext pc, Number left, Number right) {
 		return Caster.toDouble(Caster.toIntValue(left) / Caster.toIntValue(right));
 	}
 
@@ -1028,7 +1028,7 @@ public final class OpUtil {
 		return Caster.toDouble(Caster.toDoubleValue(left) + Caster.toDoubleValue(right));
 	}
 
-	public static Number plusRef(PageContext pc, Number left, Number right) throws PageException {
+	public static Number plusRef(PageContext pc, Number left, Number right) {
 		if (AppListenerUtil.getPreciseMath(pc, null)) {
 			return Caster.toBigDecimal(left).add(Caster.toBigDecimal(right));
 		}
@@ -1042,7 +1042,7 @@ public final class OpUtil {
 		return Caster.toDouble(Caster.toDoubleValue(left) - Caster.toDoubleValue(right));
 	}
 
-	public static Number minusRef(PageContext pc, Number left, Number right) throws PageException {
+	public static Number minusRef(PageContext pc, Number left, Number right) {
 		if (AppListenerUtil.getPreciseMath(pc, null)) {
 			return Caster.toBigDecimal(left).subtract(Caster.toBigDecimal(right));
 		}
@@ -1058,7 +1058,7 @@ public final class OpUtil {
 		return Caster.toDouble(Caster.toDoubleValue(left) % rightAsDouble);
 	}
 
-	public static Number modulusRef(PageContext pc, Number left, Number right) throws PageException {
+	public static Number modulusRef(PageContext pc, Number left, Number right) {
 		if (AppListenerUtil.getPreciseMath(pc, null)) {
 			return Caster.toBigDecimal(left).remainder(Caster.toBigDecimal(right));
 		}
@@ -1074,7 +1074,7 @@ public final class OpUtil {
 		return Caster.toDouble(Caster.toDoubleValue(left) * Caster.toDoubleValue(right));
 	}
 
-	public static Number multiplyRef(PageContext pc, Number left, Number right) throws PageException {
+	public static Number multiplyRef(PageContext pc, Number left, Number right) {
 		if (AppListenerUtil.getPreciseMath(pc, null)) {
 			return Caster.toBigDecimal(left).multiply(Caster.toBigDecimal(right));
 		}

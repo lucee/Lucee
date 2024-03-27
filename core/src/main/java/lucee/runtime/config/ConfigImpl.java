@@ -2076,14 +2076,9 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 		return cacheHandlerClasses.entrySet().iterator();
 	}
 
-	protected void addResourceProvider(String strProviderScheme, ClassDefinition cd, Map arguments) throws ClassException, BundleException {
+	protected void addResourceProvider(String strProviderScheme, ClassDefinition cd, Map arguments) {
 		((ResourcesImpl) resources).registerResourceProvider(strProviderScheme, cd, arguments);
 	}
-
-	/*
-	 * protected void addResourceProvider(ResourceProvider provider) {
-	 * ((ResourcesImpl)resources).registerResourceProvider(provider); }
-	 */
 
 	public void clearResourceProviders() {
 		resources.reset();

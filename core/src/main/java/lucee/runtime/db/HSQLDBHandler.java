@@ -258,7 +258,7 @@ public final class HSQLDBHandler {
 		try {
 			SelectParser parser = new SelectParser();
 			selects = parser.parse(sql.getSQLString());
-			QueryImpl q = (QueryImpl) qoq.execute(pc, sql, selects, maxrows);
+			QueryImpl q = qoq.execute(pc, sql, selects, maxrows);
 			q.setExecutionTime(stopwatch.time());
 			return q;
 		}

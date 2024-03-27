@@ -263,7 +263,7 @@ public final class ConfigAdmin {
 	 * @throws PageException
 	 * @throws BundleException
 	 */
-	public void removePassword(String contextPath) throws PageException, ClassException, IOException, TagLibException, FunctionLibException, BundleException, SAXException {
+	public void removePassword(String contextPath) throws PageException, IOException, TagLibException, FunctionLibException, BundleException, SAXException {
 		checkWriteAccess();
 		if (contextPath == null || contextPath.length() == 0 || !(config instanceof ConfigServerImpl)) {
 			// config.setPassword(password); do nothing!
@@ -324,7 +324,7 @@ public final class ConfigAdmin {
 		_reload();
 	}
 
-	private synchronized void _store() throws PageException, ConverterException, IOException {
+	private synchronized void _store() throws ConverterException, IOException {
 		JSONConverter json = new JSONConverter(true, CharsetUtil.UTF8, JSONDateFormat.PATTERN_CF, false);
 		String str = json.serialize(null, root, SerializationSettings.SERIALIZE_AS_ROW, true);
 		IOUtil.write(config.getConfigFile(), str, CharsetUtil.UTF8, false);
@@ -598,7 +598,7 @@ public final class ConfigAdmin {
 		return admin._getScheduledTasks();
 	}
 
-	private void _updateScheduledTask(ScheduleTask task) throws ExpressionException, SecurityException {
+	private void _updateScheduledTask(ScheduleTask task) throws ExpressionException {
 		Struct data = _getScheduledTask(task.getTask(), false);
 
 		data.setEL(KeyConstants._name, task.getTask());
@@ -959,7 +959,7 @@ public final class ConfigAdmin {
 		}
 	}
 
-	private void _removeScheduledTask(String name) throws SecurityException, ExpressionException {
+	private void _removeScheduledTask(String name) throws ExpressionException {
 		Array tasks = ConfigWebUtil.getAsArray("scheduledTasks", root);
 		Key[] keys = tasks.keys();
 		Struct data;
@@ -2035,7 +2035,7 @@ public final class ConfigAdmin {
 		_removeResourceProvider(scheme);
 	}
 
-	public void _removeResourceProvider(String scheme) throws PageException {
+	public void _removeResourceProvider(String scheme) {
 
 		Array children = ConfigWebUtil.getAsArray("resourceProviders", root);
 		Key[] keys = children.keys();
@@ -4265,7 +4265,7 @@ public final class ConfigAdmin {
 		}
 	}
 
-	public void removeCacheHandler(String id) throws PageException {
+	public void removeCacheHandler(String id) {
 		Struct handlers = ConfigWebUtil.getAsStruct("cacheHandlers", root);
 		Key[] keys = handlers.keys();
 		for (Key key: keys) {
@@ -6227,7 +6227,7 @@ public final class ConfigAdmin {
 		return null;
 	}
 
-	public static void cleanBundles(RHExtension rhe, ConfigPro config, BundleDefinition[] candiatesToRemove) throws BundleException, ApplicationException, IOException {
+	public static void cleanBundles(RHExtension rhe, ConfigPro config, BundleDefinition[] candiatesToRemove) {
 		if (ArrayUtil.isEmpty(candiatesToRemove)) return;
 
 		BundleCollection coreBundles = ConfigWebUtil.getEngine(config).getBundleCollection();

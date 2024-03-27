@@ -12,7 +12,7 @@ public class QueryClear extends BIF implements Function {
 
 	private static final long serialVersionUID = 3755794610970965992L;
 
-	public static Query call(PageContext pc, Query qry) throws PageException {
+	public static Query call(PageContext pc, Query qry) {
 		qry.clear();
 		return qry;
 	}

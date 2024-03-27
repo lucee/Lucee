@@ -348,13 +348,13 @@ public final class Caster {
 
 	}
 
-	public static Number toNumber(boolean b) throws PageException {
+	public static Number toNumber(boolean b) {
 		if (AppListenerUtil.getPreciseMath(null, null)) return b ? BigDecimal.ONE : BigDecimal.ZERO;
 		return Double.valueOf(b ? 1d : 0d);
 
 	}
 
-	public static Number toNumber(double d) throws PageException {
+	public static Number toNumber(double d) {
 		if (AppListenerUtil.getPreciseMath(null, null)) return BigDecimal.valueOf(d);
 		return Double.valueOf(d);
 
@@ -4436,7 +4436,7 @@ public final class Caster {
 		throw new CasterException("cannot cast object of type [" + toTypeName(o) + "] to a entry iterator (Iterator<Entry>)");
 	}
 
-	public static Object toStringWhenKey(Object o) throws PageException {
+	public static Object toStringWhenKey(Object o) {
 		if (o instanceof Key) return ((Key) o).getString();
 		return o;
 	}

@@ -76,7 +76,7 @@ public final class DynamicClassLoader extends ExtendableClassLoader {
 		}
 	}
 
-	public DynamicClassLoader(Resource directory, ClassLoader[] parentClassLoaders, boolean includeCoreCL, Log log) throws IOException {
+	public DynamicClassLoader(Resource directory, ClassLoader[] parentClassLoaders, boolean includeCoreCL, Log log) {
 		super(parentClassLoaders == null || parentClassLoaders.length == 0 ? directory.getClass().getClassLoader() : parentClassLoaders[0]);
 
 		// parents.add(new TP().getClass().getClassLoader());
@@ -159,8 +159,8 @@ public final class DynamicClassLoader extends ExtendableClassLoader {
 		}
 	}
 
-	public Object loadInstance(String name, byte[] barr) throws ClassNotFoundException, InstantiationException, IllegalAccessException, IllegalArgumentException,
-			InvocationTargetException, NoSuchMethodException, SecurityException, UnmodifiableClassException {
+	public Object loadInstance(String name, byte[] barr) throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException,
+			NoSuchMethodException, SecurityException, UnmodifiableClassException {
 		SoftReference<Object> ref = instances.get(name);
 		Object value;
 		if (ref != null && (value = ref.get()) != null) {

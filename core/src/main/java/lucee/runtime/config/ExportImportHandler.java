@@ -24,7 +24,6 @@ import lucee.runtime.MappingImpl;
 import lucee.runtime.PageContext;
 import lucee.runtime.converter.ConverterException;
 import lucee.runtime.converter.JSONConverter;
-import lucee.runtime.exp.PageException;
 import lucee.runtime.extension.RHExtension;
 import lucee.runtime.functions.other.CreateUniqueId;
 
@@ -36,7 +35,7 @@ public class ExportImportHandler {
 	public static final short TYPE_ALL = TYPE_CONFIGURATION + TYPE_EXTENSION + TYPE_CORE + TYPE_FILES;
 
 	public static void export(PageContext pc, ConfigServer cs, short types, String target, boolean addOptionalArtifacts, String regularMappingFilter, String componentMappingFilter,
-			String customtagMappingFilter) throws IOException, PageException, ConverterException {
+			String customtagMappingFilter) throws IOException, ConverterException {
 
 		Resource tmp = SystemUtil.getTempDirectory();
 		Resource dir;

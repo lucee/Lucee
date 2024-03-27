@@ -34,7 +34,7 @@ public final class ArrayContainsNoCase extends BIF {
 
 	private static final long serialVersionUID = 4394078979692450076L;
 
-	public static double call(PageContext pc, Array array, Object value) throws PageException {
+	public static double call(PageContext pc, Array array, Object value) {
 		return ArrayFindNoCase.call(pc, array, value);
 	}
 

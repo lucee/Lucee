@@ -42,16 +42,16 @@ public abstract class Clazz implements Serializable {
 
 	public abstract Class getDeclaringClass();
 
-	public static Clazz getClazzReflection(Class clazz) throws IOException {
+	public static Clazz getClazzReflection(Class clazz) {
 		return new ClazzReflection(clazz);
 	}
 
-	public static Clazz getClazz(Class clazz, Resource root, Log log, boolean useReflection) throws IOException {
+	public static Clazz getClazz(Class clazz, Resource root, Log log, boolean useReflection) {
 		if (useReflection) return new ClazzReflection(clazz);
 		return getClazz(clazz, root, log);
 	}
 
-	public static Clazz getClazz(Class clazz, Resource root, Log log) throws IOException {
+	public static Clazz getClazz(Class clazz, Resource root, Log log) {
 		try {
 			return ClazzDynamic.getInstance(clazz, root, log);
 		}

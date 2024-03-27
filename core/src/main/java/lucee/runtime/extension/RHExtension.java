@@ -275,7 +275,7 @@ public class RHExtension implements Serializable {
 		return new RHExtension(config, res);
 	}
 
-	public static boolean isInstalled(Config config, String id, String version) throws PageException, IOException, BundleException, ConverterException {
+	public static boolean isInstalled(Config config, String id, String version) throws PageException {
 		Resource res = getExtensionInstalledFile(config, id, version, false);
 		return res != null && res.isFile();
 	}
@@ -402,7 +402,7 @@ public class RHExtension implements Serializable {
 		}
 	}
 
-	public static Manifest getManifestFromFile(Config config, Resource file) throws IOException, BundleException, ApplicationException {
+	public static Manifest getManifestFromFile(Config config, Resource file) throws IOException {
 		ZipInputStream zis = new ZipInputStream(IOUtil.toBufferedInputStream(file.getInputStream()));
 		ZipEntry entry;
 		Manifest manifest = null;
@@ -719,7 +719,7 @@ public class RHExtension implements Serializable {
 		if (amfs == null) amfs = new ArrayList<Map<String, String>>();
 	}
 
-	private void readLoaderVersion(String label, String str) throws ApplicationException {
+	private void readLoaderVersion(String label, String str) {
 		minLoaderVersion = Caster.toDoubleValue(str, 0);
 		/*
 		 * if (minLoaderVersion > SystemUtil.getLoaderVersion()) { throw new InvalidVersion(
@@ -728,7 +728,7 @@ public class RHExtension implements Serializable {
 		 */
 	}
 
-	private void readCoreVersion(String label, String str, Info info) throws ApplicationException {
+	private void readCoreVersion(String label, String str, Info info) {
 
 		minCoreVersion = StringUtil.isEmpty(str, true) ? null : new VersionRange(str);
 		/*
@@ -811,7 +811,7 @@ public class RHExtension implements Serializable {
 		name = str.trim();
 	}
 
-	private void readSymbolicName(String label, String str) throws ApplicationException {
+	private void readSymbolicName(String label, String str) {
 		str = StringUtil.unwrap(str);
 		if (!StringUtil.isEmpty(str, true)) symbolicName = str.trim();
 	}
@@ -855,7 +855,7 @@ public class RHExtension implements Serializable {
 		return res;
 	}
 
-	private Struct getMetaData(Config config, String id, String version, Struct defaultValue) throws PageException, IOException, BundleException {
+	private Struct getMetaData(Config config, String id, String version, Struct defaultValue) throws PageException, IOException {
 		Resource file = getMetaDataFile(config, id, version);
 		if (file.isFile()) return Caster.toStruct(new JSONExpressionInterpreter().interpret(null, IOUtil.toString(file, CharsetUtil.UTF8)));
 		return defaultValue;

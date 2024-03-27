@@ -26,6 +26,6 @@ public class StringSome extends BIF implements Function {
 
 	public static boolean call(PageContext pc, String str, UDF udf) throws PageException {
 		StringListData stringList = new StringListData(str, "", false, false);
-		return Some.call(pc, (Object) stringList, udf);
+		return Some.call(pc, stringList, udf);
 	}
 }

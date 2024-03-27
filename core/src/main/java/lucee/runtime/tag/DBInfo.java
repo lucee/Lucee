@@ -525,7 +525,7 @@ public final class DBInfo extends TagImpl {
 		return id;
 	}
 
-	private String setFilterCase(DatabaseMetaData metaData, String id) throws SQLException {
+	private String setFilterCase(DatabaseMetaData metaData, String id) {
 		if (StringUtil.isEmpty(id)) return null;
 		else return id.toUpperCase();
 	}

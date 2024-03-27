@@ -58,13 +58,13 @@ public final class JavaCast implements Function {
 	public static Object toArray(PageContext pc, String type, String lcType, Object obj) throws PageException {
 		// byte
 		if ("byte[]".equals(lcType)) {
-			if (obj instanceof byte[]) return (byte[]) obj;
+			if (obj instanceof byte[]) return obj;
 			if (Decision.isBinary(obj)) return Caster.toBinary(obj);
 		}
 
 		// char
 		else if ("char[]".equals(lcType)) {
-			if (obj instanceof char[]) return (char[]) obj;
+			if (obj instanceof char[]) return obj;
 			if (obj instanceof CharSequence) return obj.toString().toCharArray();
 		}
 

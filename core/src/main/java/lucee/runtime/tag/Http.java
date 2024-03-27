@@ -1382,7 +1382,7 @@ public final class Http extends BodyTagImpl {
 		return barr;
 	}
 
-	private void storeTo(HTTPResponse4Impl rsp, String contentEncoding, Resource target) throws PageException, IOException {
+	private void storeTo(HTTPResponse4Impl rsp, String contentEncoding, Resource target) throws IOException {
 		InputStream is = null;
 		if (target != null && isGzipEncoded(contentEncoding)) {
 			if (method != METHOD_HEAD) {

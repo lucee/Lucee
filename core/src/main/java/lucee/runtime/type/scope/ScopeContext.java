@@ -502,7 +502,7 @@ public final class ScopeContext {
 		return true;
 	}
 
-	public Session getExistingCFSessionScope(String applicationName, String cfid) throws PageException {
+	public Session getExistingCFSessionScope(String applicationName, String cfid) {
 		Map<String, Scope> context = getSubMap(cfSessionContexts, applicationName);
 		if (context != null) {
 			return (Session) context.get(cfid);
@@ -599,7 +599,7 @@ public final class ScopeContext {
 		removeJSessionScope(pc);
 	}
 
-	public void removeJSessionScope(PageContext pc) throws PageException {
+	public void removeJSessionScope(PageContext pc) {
 		HttpSession httpSession = pc.getSession();
 		if (httpSession != null) {
 			ApplicationContext appContext = pc.getApplicationContext();

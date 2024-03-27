@@ -127,7 +127,7 @@ public class FileUtil {
 		return new ExtensionResourceFilter(list.toArray(new String[list.size()]), false, true, false);
 	}
 
-	public static String toExtensions(String str) throws PageException {
+	public static String toExtensions(String str) {
 		if (StringUtil.isEmpty(str, true)) return null;
 		str = str.trim();
 		if (str.startsWith("*.")) return str.substring(2).toLowerCase();

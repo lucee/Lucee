@@ -1113,7 +1113,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 		_service(servlet, new HTTPServletRequestWrap(req), rsp, Request.TYPE_REST);
 	}
 
-	private void _service(HttpServlet servlet, HttpServletRequest req, HttpServletResponse rsp, short type) throws PageServletException, IOException {
+	private void _service(HttpServlet servlet, HttpServletRequest req, HttpServletResponse rsp, short type) throws PageServletException {
 		CFMLFactoryImpl factory = (CFMLFactoryImpl) getCFMLFactory(servlet.getServletConfig(), req);
 		boolean exeReqAsync = exeRequestAsync();
 		PageContextImpl pc = factory.getPageContextImpl(servlet, req, rsp, null, false, -1, false, !exeReqAsync, false, -1, true, false, false, null);

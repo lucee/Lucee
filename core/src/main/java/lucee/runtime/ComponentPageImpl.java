@@ -1072,7 +1072,7 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 		}
 	}
 
-	private void callWebservice(PageContext pc, Component component) throws IOException, PageException {
+	private void callWebservice(PageContext pc, Component component) throws PageException {
 		((ConfigWebPro) ThreadLocalPageContext.getConfig(pc)).getWSHandler().getWSServer(pc).doPost(pc, pc.getHttpServletRequest(), pc.getHttpServletResponse(), component);
 	}
 

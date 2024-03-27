@@ -23,7 +23,7 @@ public class ValueRef extends BIF {
 
 	private static final long serialVersionUID = 1195300110252570841L;
 
-	public static Object call(PageContext pc, UDF ref) throws PageException {
+	public static Object call(PageContext pc, UDF ref) {
 		return new UDFValue(ref);
 	}
 

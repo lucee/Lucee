@@ -716,9 +716,7 @@ public final class PageContextImpl extends PageContext {
 		currentTag = null;
 
 		// Req/Rsp
-		if (req instanceof HTTPServletRequestWrap) {
-			req.close();
-		}
+		if (req != null) req.close();
 		req = null;
 		rsp = null;
 		servlet = null;
@@ -1649,7 +1647,7 @@ public final class PageContextImpl extends PageContext {
 		return session;
 	}
 
-	public boolean hasCFSession() throws PageException {
+	public boolean hasCFSession() {
 		if (session != null) return true;
 		if (!applicationContext.hasName() || !applicationContext.isSetSessionManagement()) return false;
 		return scopeContext.hasExistingSessionScope(this);

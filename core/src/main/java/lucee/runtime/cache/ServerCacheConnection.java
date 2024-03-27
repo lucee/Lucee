@@ -44,7 +44,7 @@ public class ServerCacheConnection implements CacheConnectionPlus {
 
 	@Override
 	public CacheConnection duplicate(Config config) throws IOException {
-		return new ServerCacheConnection(cs, (CacheConnectionPlus) cc.duplicate(config));
+		return new ServerCacheConnection(cs, cc.duplicate(config));
 	}
 
 	@Override

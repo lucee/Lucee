@@ -261,7 +261,7 @@ public final class DebuggerImpl implements Debugger {
 	}
 
 	public static boolean debugQueryUsage(PageContext pageContext, Query qry) {
-		if (pageContext.getConfig().debug() && qry instanceof Query) {
+		if (pageContext.getConfig().debug() && qry != null) {
 			if (((ConfigWebPro) pageContext.getConfig()).hasDebugOptions(ConfigPro.DEBUG_QUERY_USAGE)) {
 				qry.enableShowQueryUsage();
 				return true;

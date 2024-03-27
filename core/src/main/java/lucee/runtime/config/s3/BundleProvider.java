@@ -208,7 +208,7 @@ public final class BundleProvider extends DefaultHandler {
 		}
 	}
 
-	public URL getBundleAsURL(BundleDefinition bd, boolean includeS3) throws PageException, MalformedURLException, IOException {
+	public URL getBundleAsURL(BundleDefinition bd, boolean includeS3) throws MalformedURLException, IOException {
 		URL url = null;
 
 		// MAVEN: looking for a matching mapping, so we can get from maven
@@ -260,7 +260,7 @@ public final class BundleProvider extends DefaultHandler {
 		throw new IOException("no URL found for bundle [" + bd + "]");
 	}
 
-	public InputStream getBundleAsStream(BundleDefinition bd) throws PageException, MalformedURLException, IOException, GeneralSecurityException, SAXException {
+	public InputStream getBundleAsStream(BundleDefinition bd) throws MalformedURLException, IOException, GeneralSecurityException {
 		URL url = getBundleAsURL(bd, true);
 
 		if (url != null) {
@@ -278,7 +278,7 @@ public final class BundleProvider extends DefaultHandler {
 
 	}
 
-	public File downloadBundle(BundleDefinition bd) throws IOException, PageException {
+	public File downloadBundle(BundleDefinition bd) throws IOException {
 		CFMLEngine eng = CFMLEngineFactory.getInstance();
 		final File jarDir = eng.getCFMLEngineFactory().getBundleDirectory();
 
@@ -483,7 +483,7 @@ public final class BundleProvider extends DefaultHandler {
 	// 1146:size:305198;bundle:name:xmlgraphics.batik.awt.util;version:version EQ 1.8.0;;last-mod:{ts
 	// '2024-01-14 22:32:05'};
 
-	public List<Element> read() throws IOException, GeneralSecurityException, SAXException, PageException {
+	public List<Element> read() throws IOException, GeneralSecurityException, SAXException {
 		int count = 100;
 		URL url = null;
 
@@ -801,7 +801,7 @@ public final class BundleProvider extends DefaultHandler {
 		// because we have a working link to Maven
 	}
 
-	public void createOSGiMavenMapping() throws PageException, IOException, GeneralSecurityException, SAXException {
+	public void createOSGiMavenMapping() throws IOException, GeneralSecurityException, SAXException {
 		Struct sct = new StructImpl();
 		Set<String> has = new HashSet<>();
 		List<Info> infos;
@@ -841,7 +841,7 @@ public final class BundleProvider extends DefaultHandler {
 		}
 	}
 
-	public void whatcanBeRemovedFromS3() throws PageException, IOException, GeneralSecurityException, SAXException {
+	public void whatcanBeRemovedFromS3() throws IOException, GeneralSecurityException, SAXException {
 		URL url;
 		for (Element e: read()) {
 			url = getBundleAsURL(e.bd, false, null);

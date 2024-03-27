@@ -31,18 +31,14 @@ import java.util.Set;
 import java.util.TimeZone;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.osgi.framework.BundleException;
-
 import lucee.commons.date.TimeZoneUtil;
 import lucee.commons.io.CharsetUtil;
-import lucee.commons.io.cache.exp.CacheException;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.type.ftp.FTPConnectionData;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.CharSet;
-import lucee.commons.lang.ClassException;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.Pair;
 import lucee.commons.lang.StringUtil;
@@ -976,7 +972,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 		}
 	}
 
-	public static CacheConnection toCacheConnection(Config config, String name, Struct data) throws ApplicationException, CacheException, ClassException, BundleException {
+	public static CacheConnection toCacheConnection(Config config, String name, Struct data) throws ApplicationException {
 		// class definition
 		String className = Caster.toString(data.get(KeyConstants._class, null), null);
 		if (StringUtil.isEmpty(className)) throw new ApplicationException("missing key class in struct the defines a cachec connection");

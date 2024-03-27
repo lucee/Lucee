@@ -29,7 +29,6 @@ import java.util.Map.Entry;
 
 import lucee.runtime.PageContext;
 import lucee.runtime.config.ConfigPro;
-import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
@@ -41,7 +40,7 @@ public final class GetFunctionList implements Function {
 
 	private static final long serialVersionUID = -7313412061811118382L;
 
-	public static lucee.runtime.type.Struct call(PageContext pc) throws PageException {
+	public static lucee.runtime.type.Struct call(PageContext pc) {
 
 		Struct sct = new StructImpl(StructImpl.TYPE_LINKED);
 		// synchronized(sct) {

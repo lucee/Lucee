@@ -96,7 +96,7 @@ public class CreateDynamicProxy implements Function {
 		return _call(pc, cfc, interfaces);
 	}
 
-	public static Object _call(PageContext pc, Component cfc, Class[] interfaces) throws PageException, IOException, BundleException {
+	public static Object _call(PageContext pc, Component cfc, Class[] interfaces) throws PageException, IOException {
 
 		// check if all classes are interfaces
 		for (int i = 0; i < interfaces.length; i++) {

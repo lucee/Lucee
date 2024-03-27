@@ -320,8 +320,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 	}
 
 	public static ConfigWebPro newInstanceSingle(CFMLEngine engine, CFMLFactoryImpl factory, ConfigServerImpl configServer, Resource configDirWeb, ServletConfig servletConfig,
-			ConfigWebImpl existingToUpdate)
-			throws SAXException, ClassException, PageException, IOException, TagLibException, FunctionLibException, NoSuchAlgorithmException, BundleException, ConverterException {
+			ConfigWebImpl existingToUpdate) throws ClassException, PageException, IOException, TagLibException, FunctionLibException {
 
 		Resource configDir = configServer.getConfigDir();
 
@@ -420,20 +419,8 @@ public final class ConfigWebFactory extends ConfigFactory {
 
 		// changed from multi to single
 		if (isSingle != isWebSingle) {
-			try {
-				newInstanceSingle(engine, (CFMLFactoryImpl) cwi.getFactory(), cs, cwi.getWebConfigDir(), cwi.getServletConfig(), cwi);
-				return;
-			}
-			catch (NoSuchAlgorithmException e) {
-				throw Caster.toPageException(e);
-			}
-			catch (SAXException e) {
-				throw Caster.toPageException(e);
-			}
-			catch (ConverterException e) {
-				throw Caster.toPageException(e);
-			}
-
+			newInstanceSingle(engine, (CFMLFactoryImpl) cwi.getFactory(), cs, cwi.getWebConfigDir(), cwi.getServletConfig(), cwi);
+			return;
 		}
 
 		MultiContextConfigWeb mcw = (MultiContextConfigWeb) cwi.getInstance();
@@ -1553,7 +1540,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 		if (!pluginDir.exists()) pluginDir.mkdirs();
 
 		// deploy org.lucee.cfml components
-		if (config instanceof ConfigWeb) {
+		if (config != null) {
 			ImportDefintion _import = config.getComponentDefaultImport();
 			String path = _import.getPackageAsPath();
 			Resource components = config.getConfigDir().getRealResource("components");

@@ -32,7 +32,7 @@ public class ArraySplice extends BIF implements Function {
 
 		// check len
 		int len = (int) length;
-		if (len == -1) len = (int) arr.size() - idx + 1;
+		if (len == -1) len = arr.size() - idx + 1;
 		else if (len < -1) len = 0; // stupid ut how acf works
 		else {
 			int size = arr.size();

@@ -49,8 +49,8 @@ public final class MethodInstance {
 		this.args = args;
 	}
 
-	public Object invoke(Object o) throws PageException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException,
-			SecurityException, IOException {
+	public Object invoke(Object o)
+			throws PageException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException, IOException {
 
 		if (o != null) {
 			if ("toString".equals(methodName.getString()) && args.length == 0) {

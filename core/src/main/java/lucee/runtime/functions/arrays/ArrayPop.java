@@ -16,7 +16,7 @@ public final class ArrayPop extends BIF {
 		return ArrayUtil.toArrayPro(array).pop();
 	}
 
-	public static Object call(PageContext pc, Array array, Object defaultValue) throws PageException {
+	public static Object call(PageContext pc, Array array, Object defaultValue) {
 		return ArrayUtil.toArrayPro(array).pop(defaultValue);
 	}
 

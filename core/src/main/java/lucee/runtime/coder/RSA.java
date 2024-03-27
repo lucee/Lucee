@@ -79,7 +79,7 @@ public class RSA {
 		return kpg.genKeyPair();
 	}
 
-	public byte[] encrypt(byte[] data) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
+	public byte[] encrypt(byte[] data) throws IllegalBlockSizeException, BadPaddingException {
 		if (encCipher == null) throw new RuntimeException("Cipher is not initialized!");
 		int max = (KEY_SIZE / 8) - 11; // TODO?
 
@@ -109,7 +109,7 @@ public class RSA {
 		return bytes;
 	}
 
-	public byte[] decrypt(byte[] data, int offset) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
+	public byte[] decrypt(byte[] data, int offset) throws IllegalBlockSizeException, BadPaddingException {
 		if (decCipher == null) throw new RuntimeException("Cipher is not initialized!");
 
 		int max = (KEY_SIZE / 8); // TODO??

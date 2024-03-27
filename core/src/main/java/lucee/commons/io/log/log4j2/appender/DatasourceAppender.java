@@ -42,8 +42,7 @@ public class DatasourceAppender extends AbstractAppender {
 	private boolean isInit;
 	private Object token = new Object();
 
-	public DatasourceAppender(Config config, Appender fallback, String name, Filter filter, String datasource, String username, String password, String tableName, String custom)
-			throws PageException {
+	public DatasourceAppender(Config config, Appender fallback, String name, Filter filter, String datasource, String username, String password, String tableName, String custom) {
 		super(name, filter, null);
 		this.datasourceName = datasource;
 		this.username = username;

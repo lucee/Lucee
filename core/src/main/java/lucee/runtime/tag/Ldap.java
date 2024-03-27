@@ -172,12 +172,12 @@ public final class Ldap extends TagImpl {
 	}
 
 	/**
-	 * UseTLs defaults to false 
+	 * UseTLs defaults to false
 	 * 
 	 * @param usetls Whether to use TLS or not
 	 */
 	public void setUsetls(boolean usetls) {
-		this.usetls = (boolean) usetls;
+		this.usetls = usetls;
 	}
 
 	/**

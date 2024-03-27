@@ -774,7 +774,7 @@ public final class UndefinedImpl extends StructSupport implements Undefined, Obj
 			return ((UDF) obj).call(pc, methodName, args, false);
 		}
 		UDF udf = getUDF(pc, methodName);
-		if (udf instanceof UDF) {
+		if (udf != null) {
 			return udf.call(pc, methodName, args, false);
 		}
 		BIF bif = BIF.getInstance(pc, methodName.getLowerString(), null);
@@ -792,7 +792,7 @@ public final class UndefinedImpl extends StructSupport implements Undefined, Obj
 			return ((UDF) obj).callWithNamedValues(pc, methodName, args, false);
 		}
 		UDF udf = getUDF(pc, methodName);
-		if (udf instanceof UDF) {
+		if (udf != null) {
 			return udf.callWithNamedValues(pc, methodName, args, false);
 		}
 		BIF bif = BIF.getInstance(pc, methodName.getLowerString(), null);

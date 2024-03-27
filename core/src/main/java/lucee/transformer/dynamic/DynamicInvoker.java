@@ -31,7 +31,6 @@ import lucee.commons.lang.Pair;
 import lucee.commons.lang.SerializableObject;
 import lucee.commons.lang.SystemOut;
 import lucee.loader.engine.CFMLEngineFactory;
-import lucee.runtime.exp.PageException;
 import lucee.runtime.reflection.Reflector;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.KeyImpl;
@@ -118,16 +117,16 @@ public class DynamicInvoker {
 		}
 	}
 
-	public Clazz getClazz(Class<?> clazz) throws IOException {
+	public Clazz getClazz(Class<?> clazz) {
 		return Clazz.getClazz(clazz, root, log);
 	}
 
-	public Clazz getClazz(Class<?> clazz, boolean useReflection) throws IOException {
+	public Clazz getClazz(Class<?> clazz, boolean useReflection) {
 		return Clazz.getClazz(clazz, root, log, useReflection);
 	}
 
 	public Pair<FunctionMember, Object> createInstance(Class<?> clazz, Key methodName, Object[] arguments) throws NoSuchMethodException, IOException, ClassNotFoundException,
-			UnmodifiableClassException, PageException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, SecurityException {
+			UnmodifiableClassException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, SecurityException {
 		observe(clazz, methodName);
 
 		arguments = Reflector.cleanArgs(arguments);

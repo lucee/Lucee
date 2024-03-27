@@ -193,7 +193,7 @@ public class HTTPResponse4Impl extends HTTPResponseSupport implements HTTPRespon
 		return trg;
 	}
 
-	public void close() throws IOException {
+	public void close() {
 		/*
 		 * if(rsp instanceof CloseableHttpResponse) { ((CloseableHttpResponse)rsp).close(); }
 		 */

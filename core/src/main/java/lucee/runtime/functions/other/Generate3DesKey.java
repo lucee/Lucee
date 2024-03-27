@@ -12,12 +12,14 @@ import lucee.runtime.ext.function.Function;
  */
 public class Generate3DesKey implements Function {
 
+	private static final long serialVersionUID = 8540648635721649340L;
+
 	public static String call(PageContext pc) throws PageException {
 
 		return GenerateSecretKey.call(pc, "DESede");
 	}
 
-	public static String call(PageContext pc, String input) throws PageException {
+	public static String call(PageContext pc, String input) {
 
 		SecretKeySpec keySpec = new SecretKeySpec(input.getBytes(), "DESede");
 

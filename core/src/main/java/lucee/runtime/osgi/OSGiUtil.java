@@ -598,7 +598,7 @@ public class OSGiUtil {
 		return tmp;
 	}
 
-	private static void resetJarsFromBundleDirectory(CFMLEngineFactory factory) throws IOException {
+	private static void resetJarsFromBundleDirectory(CFMLEngineFactory factory) {
 		if (bundleDirectoryJars != null) {
 			synchronized (bundleDirectoryJarsToken) {
 				if (bundleDirectoryJars != null) {
@@ -835,8 +835,7 @@ public class OSGiUtil {
 		return "for [" + parentBundle + "] ";
 	}
 
-	private static Resource downloadBundle(CFMLEngineFactory factory, final String symbolicName, String symbolicVersion, Identification id)
-			throws IOException, BundleException, PageException {
+	private static Resource downloadBundle(CFMLEngineFactory factory, final String symbolicName, String symbolicVersion, Identification id) throws IOException, BundleException {
 		resetJarsFromBundleDirectory(factory);
 
 		String strDownload = SystemUtil.getSystemPropOrEnvVar("lucee.enable.bundle.download", null);

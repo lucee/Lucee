@@ -1754,7 +1754,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 		registerUDF(key, jf);
 	}
 
-	public void registerStaticUDF(Key key, UDFProperties prop) throws ApplicationException {
+	public void registerStaticUDF(Key key, UDFProperties prop) {
 		_static.put(key, new UDFImpl(prop, this));
 	}
 

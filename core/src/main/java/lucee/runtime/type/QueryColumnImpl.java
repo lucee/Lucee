@@ -904,7 +904,7 @@ public class QueryColumnImpl implements QueryColumnPro, Objects {
 		throwNotAllowedToAlter();
 	}
 
-	protected void sort(int[] rows) throws PageException {
+	protected void sort(int[] rows) {
 		query.disableIndex();
 		Object[] tmp = new Object[data.length];
 		for (int i = 0; i < size(); i++) {

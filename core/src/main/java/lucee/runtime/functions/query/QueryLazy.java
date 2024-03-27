@@ -295,14 +295,14 @@ public class QueryLazy extends BIF {
 		}
 	}
 
-	private static String getString(PageContext pc, Struct options, Collection.Key key, String defaultValue) throws PageException {
+	private static String getString(PageContext pc, Struct options, Collection.Key key, String defaultValue) {
 		if (options == null) return defaultValue;
 		String str = Caster.toString(options.get(key, null), null);
 		if (StringUtil.isEmpty(str)) return defaultValue;
 		return str;
 	}
 
-	private static Collection.Key getKey(PageContext pc, Struct options, Collection.Key key, Collection.Key defaultValue) throws PageException {
+	private static Collection.Key getKey(PageContext pc, Struct options, Collection.Key key, Collection.Key defaultValue) {
 		if (options == null) return defaultValue;
 		Collection.Key str = Caster.toKey(options.get(key, null), null);
 		if (StringUtil.isEmpty(str)) return defaultValue;

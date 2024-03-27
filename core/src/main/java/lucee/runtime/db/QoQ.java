@@ -157,7 +157,7 @@ public final class QoQ {
 		}
 		// Choppy chop
 		if (maxrows > -1) {
-			((QueryImpl) target).cutRowsTo(maxrows);
+			target.cutRowsTo(maxrows);
 		}
 
 		// New query is populated and ready to go!
@@ -176,7 +176,7 @@ public final class QoQ {
 	private static void order(PageContext pc, QueryImpl target, Expression[] columns, boolean isUnion, SQL sql) throws PageException {
 		Expression col;
 		// Build up a int[] that represents where each row needs to be in the final query
-		int[] sortedIndexes = getStream(target).boxed().sorted(new QueryComparator(pc, target, columns, isUnion, sql)).mapToInt(i -> ((Integer) i).intValue()).toArray();
+		int[] sortedIndexes = getStream(target).boxed().sorted(new QueryComparator(pc, target, columns, isUnion, sql)).mapToInt(i -> i.intValue()).toArray();
 
 		// Move the data around to match
 		target.sort(sortedIndexes);
@@ -252,7 +252,7 @@ public final class QoQ {
 		// individual selects of a union. You can only order the final result. So any top on an
 		// individual select is just blindly applied to whatever order the records may be in
 		if (isUnion && top > -1) {
-			((QueryImpl) target).cutRowsTo(top);
+			target.cutRowsTo(top);
 		}
 
 		// For a union all, we just slam all the rows together, keeping any duplicate record

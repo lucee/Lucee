@@ -31,7 +31,6 @@ import lucee.commons.lang.StringUtil;
 import lucee.commons.net.http.HTTPResponse;
 import lucee.commons.net.http.httpclient.HTTPEngine4Impl;
 import lucee.runtime.config.maven.MavenUpdateProvider;
-import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.date.DateCaster;
 import lucee.runtime.osgi.OSGiUtil;
@@ -140,7 +139,7 @@ public final class S3UpdateProvider extends DefaultHandler {
 		return sb.toString();
 	}
 
-	public InputStream getCore(Version version) throws PageException, MalformedURLException, IOException, GeneralSecurityException, SAXException {
+	public InputStream getCore(Version version) throws MalformedURLException, IOException, GeneralSecurityException, SAXException {
 		for (Element e: read()) {
 			if (version.equals(e.getVersion())) {
 				URL url = e.getLCO();
@@ -169,7 +168,7 @@ public final class S3UpdateProvider extends DefaultHandler {
 		throw new IOException("no core file found for version [" + version + "]");
 	}
 
-	public List<Element> read() throws IOException, GeneralSecurityException, SAXException, PageException {
+	public List<Element> read() throws IOException, GeneralSecurityException, SAXException {
 		int count = 100;
 		URL url = null;
 
@@ -335,21 +334,21 @@ public final class S3UpdateProvider extends DefaultHandler {
 			return this.size;
 		}
 
-		public URL getJAR() throws MalformedURLException {
+		public URL getJAR() {
 			if (jar == null) {
 				initFiles();
 			}
 			return jar;
 		}
 
-		public URL getLCO() throws MalformedURLException {
+		public URL getLCO() {
 			if (lco == null) {
 				initFiles();
 			}
 			return lco;
 		}
 
-		private void initFiles() throws MalformedURLException {
+		private void initFiles() {
 			for (String k: keys) {
 				if (k.endsWith(".lco")) lco = validate(k);
 				else if (k.endsWith(".jar")) jar = validate(k);

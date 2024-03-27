@@ -92,7 +92,7 @@ public abstract class JF implements UDF {
 		return ComponentUtil.getMetaData(pc, this, getUDFProperties(), null);
 	}
 
-	private UDFPropertiesImpl getUDFProperties() throws PageException {
+	private UDFPropertiesImpl getUDFProperties() {
 		if (props.arguments == null) {
 			props.arguments = getFunctionArguments();
 			props.argumentsSet = new HashSet<Key>();

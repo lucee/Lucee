@@ -1,6 +1,5 @@
 package lucee.runtime.vault;
 
-import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
@@ -23,7 +22,7 @@ public class CredentialFactory {
 
 	}
 
-	public static Credential getCredential(String key, String username, String password) throws PageException, IOException {
+	public static Credential getCredential(String key, String username, String password) throws PageException {
 		byte[] usr = RSA.encrypt(username, kp.getPrivate());
 		byte[] pw = RSA.encrypt(password, kp.getPrivate());
 		try {

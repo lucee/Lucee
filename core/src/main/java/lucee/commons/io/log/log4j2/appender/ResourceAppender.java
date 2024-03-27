@@ -37,7 +37,7 @@ public final class ResourceAppender extends AbstractAppender {
 	private long size = 0;
 
 	public ResourceAppender(String name, Filter filter, Layout layout, Resource res, Charset charset, boolean append, int timeout, long maxFileSize, int maxfiles,
-			RetireListener listener) throws IOException {
+			RetireListener listener) {
 		super(name, filter, layout);
 		this.res = res;
 		this.charset = charset;

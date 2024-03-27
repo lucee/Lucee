@@ -126,7 +126,7 @@ public class CacheComplex implements Cache {
 		return values(cache.values(filter));
 	}
 
-	public List<Object> values(List<Object> values) throws IOException {
+	public List<Object> values(List<Object> values) {
 		if (values == null || values.size() == 0) return values;
 
 		ArrayList<Object> list = new ArrayList<Object>();
