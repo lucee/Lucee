@@ -1,4 +1,4 @@
-package lucee.transformer.dynamic.meta;
+package lucee.transformer.dynamic.meta.dynamic;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -10,6 +10,8 @@ import org.objectweb.asm.Type;
 import lucee.commons.lang.ClassException;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.exp.PageRuntimeException;
+import lucee.transformer.dynamic.meta.Clazz;
+import lucee.transformer.dynamic.meta.FunctionMember;
 
 public abstract class FunctionMemberDynamic implements FunctionMember {
 

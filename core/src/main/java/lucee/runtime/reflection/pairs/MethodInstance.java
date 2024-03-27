@@ -31,7 +31,7 @@ import lucee.transformer.dynamic.DynamicInvoker;
 import lucee.transformer.dynamic.meta.Clazz;
 import lucee.transformer.dynamic.meta.FunctionMember;
 import lucee.transformer.dynamic.meta.Method;
-import lucee.transformer.dynamic.meta.MethodReflection;
+import lucee.transformer.dynamic.meta.reflection.MethodReflection;
 
 /**
  * class holds a Method and the parameter to call it
@@ -64,6 +64,7 @@ public final class MethodInstance {
 			return ((BiFunction<Object, Object, Object>) getResult().getValue()).apply(o, args);
 		}
 		catch (IncompatibleClassChangeError | IllegalStateException | ClassCastException e) { // java.lang.ClassCastException
+			if (!Clazz.allowReflection()) throw e;
 			LogUtil.log("dynamic", e);
 			DynamicInvoker di = DynamicInvoker.getInstance(null);
 			lucee.transformer.dynamic.meta.Method method = Clazz.getMethodMatch(di.getClazz(clazz, true), methodName, args, true);

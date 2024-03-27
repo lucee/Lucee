@@ -41,7 +41,7 @@ import lucee.transformer.bytecode.util.ASMUtil;
 import lucee.transformer.bytecode.util.Types;
 import lucee.transformer.dynamic.meta.Clazz;
 import lucee.transformer.dynamic.meta.FunctionMember;
-import lucee.transformer.dynamic.meta.MethodReflection;
+import lucee.transformer.dynamic.meta.reflection.MethodReflection;
 
 public class DynamicInvoker {
 
@@ -112,6 +112,7 @@ public class DynamicInvoker {
 		}
 		catch (IncompatibleClassChangeError | IllegalStateException e) {
 			if (log != null) log.error("dynamic", e);
+			if (!Clazz.allowReflection()) throw e;
 			lucee.transformer.dynamic.meta.Method method = Clazz.getMethodMatch(getClazz(objClass, true), methodName, arguments, true);
 			return ((MethodReflection) method).getMethod().invoke(objClass, arguments);
 		}
@@ -160,7 +161,8 @@ public class DynamicInvoker {
 		// print.e("classPath: " + classPath);
 		// print.e("className: " + className);
 		DynamicClassLoader loader = getCL(clazz);
-		if (loader.hasClass(className)) {
+		if (false && loader.hasClass(className)) {
+
 			return new Pair<FunctionMember, Object>(isConstr ? constr : method, loader.loadInstance(className));
 		}
 

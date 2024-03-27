@@ -1,8 +1,10 @@
-package lucee.transformer.dynamic.meta;
+package lucee.transformer.dynamic.meta.dynamic;
 
 import org.objectweb.asm.Type;
 
 import lucee.commons.lang.StringUtil;
+import lucee.transformer.dynamic.meta.Clazz;
+import lucee.transformer.dynamic.meta.Constructor;
 
 public class ConstructorDynamic extends FunctionMemberDynamic implements Constructor {
 

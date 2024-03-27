@@ -1,10 +1,12 @@
-package lucee.transformer.dynamic.meta;
+package lucee.transformer.dynamic.meta.reflection;
 
 import java.lang.reflect.Executable;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Parameter;
 
 import org.objectweb.asm.Type;
+
+import lucee.transformer.dynamic.meta.FunctionMember;
 
 public abstract class FunctionMemberReflection implements FunctionMember {
 	private static final long serialVersionUID = 6812458458981023205L;

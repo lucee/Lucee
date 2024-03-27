@@ -1,4 +1,6 @@
-package lucee.transformer.dynamic.meta;
+package lucee.transformer.dynamic.meta.dynamic;
+
+import lucee.transformer.dynamic.meta.Method;
 
 public class MethodDynamic extends FunctionMemberDynamic implements Method {
 

@@ -29,8 +29,8 @@ import lucee.runtime.op.Caster;
 import lucee.transformer.dynamic.DynamicInvoker;
 import lucee.transformer.dynamic.meta.Clazz;
 import lucee.transformer.dynamic.meta.Constructor;
-import lucee.transformer.dynamic.meta.ConstructorReflection;
 import lucee.transformer.dynamic.meta.FunctionMember;
+import lucee.transformer.dynamic.meta.reflection.ConstructorReflection;
 
 /**
  * class holds a Constructor and the parameter to call it
@@ -59,8 +59,8 @@ public final class ConstructorInstance {
 			return ((BiFunction<Object, Object, Object>) getResult().getValue()).apply(null, args);
 		}
 		catch (IncompatibleClassChangeError | IllegalStateException e) {
+			if (!Clazz.allowReflection()) throw e;
 			LogUtil.log("direct", e);
-
 			DynamicInvoker di = DynamicInvoker.getInstance(null);
 			lucee.transformer.dynamic.meta.Constructor constr = Clazz.getConstructorMatch(di.getClazz(clazz, true), args, true);
 			return ((ConstructorReflection) constr).getConstructor().newInstance(args);

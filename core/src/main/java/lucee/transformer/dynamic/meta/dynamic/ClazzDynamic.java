@@ -1,4 +1,4 @@
-package lucee.transformer.dynamic.meta;
+package lucee.transformer.dynamic.meta.dynamic;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -23,6 +23,10 @@ import lucee.commons.io.IOUtil;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.res.Resource;
 import lucee.runtime.converter.JavaConverter.ObjectInputStreamImpl;
+import lucee.transformer.dynamic.meta.Clazz;
+import lucee.transformer.dynamic.meta.Constructor;
+import lucee.transformer.dynamic.meta.FunctionMember;
+import lucee.transformer.dynamic.meta.Method;
 
 public class ClazzDynamic extends Clazz {
 
@@ -31,7 +35,7 @@ public class ClazzDynamic extends Clazz {
 	private static Map<String, SoftReference<ClazzDynamic>> classes = new ConcurrentHashMap<>();
 	private Map<String, FunctionMember> members;
 
-	protected static ClazzDynamic getInstance(Class clazz, Resource dir, Log log) throws IOException {
+	public static ClazzDynamic getInstance(Class clazz, Resource dir, Log log) throws IOException {
 
 		ClazzDynamic cd = null;
 		SoftReference<ClazzDynamic> sr = classes.get(clazz.getName());

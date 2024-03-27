@@ -15,7 +15,6 @@ import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.ExtendableClassLoader;
-import lucee.transformer.bytecode.util.ClassRenamer;
 
 /**
  * Directory ClassLoader
@@ -155,7 +154,7 @@ public final class DynamicClassLoader extends ExtendableClassLoader {
 
 			byte[] barr = baos.toByteArray();
 			IOUtil.closeEL(baos);
-			return _loadClass(name, barr, false);
+			return _loadClass(name, barr);
 		}
 	}
 
@@ -175,12 +174,12 @@ public final class DynamicClassLoader extends ExtendableClassLoader {
 	@Override
 	public Class<?> loadClass(String className, byte[] barr) throws UnmodifiableClassException {
 		Class<?> clazz = null;
+
+		// store file
 		if (directory != null) {
 
 			Resource classFile = directory.getRealResource(className.replace('.', '/') + ".class");
 			classFile.getParentResource().mkdirs();
-			// TODO store at the end
-
 			try {
 				IOUtil.write(classFile, barr);
 			}
@@ -190,29 +189,27 @@ public final class DynamicClassLoader extends ExtendableClassLoader {
 			}
 		}
 		synchronized (SystemUtil.createToken("dcl", className)) {
+			try {
+				return _loadClass(className, barr);
+			}
+			catch (Exception | LinkageError e) {
+			}
 
 			// new class , not in memory yet
 			try {
-				clazz = loadClass(className, false, false); // we do not load existing class from disk
+				return loadClass(className, false, true);
 			}
-			catch (ClassNotFoundException cnf) {
+			catch (ClassNotFoundException e) {
+				throw new RuntimeException(e);
 			}
-			if (clazz == null) return _loadClass(className, barr, false);
-
-			return rename(clazz, barr);
 		}
 	}
 
-	private Class<?> rename(Class<?> clazz, byte[] barr) {
-		String newName = clazz.getName() + "$" + uid();
-		return _loadClass(newName, ClassRenamer.rename(barr, newName), true);
-	}
-
-	private Class<?> _loadClass(String name, byte[] barr, boolean rename) {
+	private Class<?> _loadClass(String name, byte[] barr) {
 		// print.e(">>>>" + name);
 		Class<?> clazz = defineClass(name, barr, 0, barr.length);
 		if (clazz != null) {
-			if (!rename) loadedClasses.put(name, "");
+			loadedClasses.put(name, "");
 			allLoadedClasses.put(name, "");
 
 			resolveClass(clazz);

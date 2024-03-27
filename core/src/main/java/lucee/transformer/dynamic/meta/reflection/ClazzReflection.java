@@ -1,8 +1,12 @@
-package lucee.transformer.dynamic.meta;
+package lucee.transformer.dynamic.meta.reflection;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+
+import lucee.transformer.dynamic.meta.Clazz;
+import lucee.transformer.dynamic.meta.Constructor;
+import lucee.transformer.dynamic.meta.Method;
 
 public class ClazzReflection extends Clazz {
 

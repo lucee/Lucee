@@ -1,4 +1,6 @@
-package lucee.transformer.dynamic.meta;
+package lucee.transformer.dynamic.meta.reflection;
+
+import lucee.transformer.dynamic.meta.Constructor;
 
 public class ConstructorReflection extends FunctionMemberReflection implements Constructor {
 

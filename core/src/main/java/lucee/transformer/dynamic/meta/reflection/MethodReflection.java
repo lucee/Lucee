@@ -1,6 +1,8 @@
-package lucee.transformer.dynamic.meta;
+package lucee.transformer.dynamic.meta.reflection;
 
 import org.objectweb.asm.Type;
+
+import lucee.transformer.dynamic.meta.Method;
 
 public class MethodReflection extends FunctionMemberReflection implements Method {
 
