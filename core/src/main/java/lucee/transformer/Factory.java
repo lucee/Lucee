@@ -19,7 +19,6 @@ package lucee.transformer;
 
 import java.math.BigDecimal;
 
-import lucee.runtime.config.Config;
 import lucee.runtime.exp.PageException;
 import lucee.transformer.expression.ExprBoolean;
 import lucee.transformer.expression.ExprInt;
@@ -181,8 +180,6 @@ public abstract class Factory {
 	// TODO more removes?
 
 	public abstract void registerKey(Context bc, Expression name, boolean doUpperCase) throws TransformerException;
-
-	public abstract Config getConfig();
 
 	public static boolean canRegisterKey(Expression name) {
 		return name instanceof LitString;

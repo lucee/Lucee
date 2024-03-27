@@ -27,7 +27,6 @@ import lucee.transformer.TransformerException;
 import lucee.transformer.bytecode.Body;
 import lucee.transformer.bytecode.BytecodeContext;
 import lucee.transformer.bytecode.Statement;
-import lucee.transformer.bytecode.util.ExpressionUtil;
 import lucee.transformer.bytecode.visitor.ConditionVisitor;
 import lucee.transformer.expression.ExprBoolean;
 import lucee.transformer.expression.Expression;
@@ -113,13 +112,13 @@ public final class Condition extends StatementBaseNoFinal implements HasBodies {
 		// ifs
 		while (it.hasNext()) {
 			pair = it.next();
-			ExpressionUtil.visitLine(bc, pair.start);
+			bc.visitLine(pair.start);
 			cv.visitWhenBeforeExpr();
 			pair.condition.writeOut(bc, Expression.MODE_VALUE);
 			cv.visitWhenAfterExprBeforeBody(bc);
 			pair.body.writeOut(bc);
 			cv.visitWhenAfterBody(bc);
-			if (pair.end != null) ExpressionUtil.visitLine(bc, pair.end);
+			if (pair.end != null) bc.visitLine(pair.end);
 		}
 		// else
 		if (_else != null && _else.body != null) {

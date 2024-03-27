@@ -46,6 +46,7 @@ public final class Ldap extends TagImpl {
 	private String delimiter = ";";
 	private String server;
 	private int port = 389;
+	private boolean usetls = false;
 	private short secureLevel = LDAPClient.SECURE_NONE;
 	private String[] returnAsBinary = new String[0];
 	private String attributes = null;
@@ -75,6 +76,7 @@ public final class Ldap extends TagImpl {
 		action = "query";
 		delimiter = ";";
 		port = 389;
+		usetls = false;
 		secureLevel = LDAPClient.SECURE_NONE;
 		returnAsBinary = new String[0];
 		username = null;
@@ -144,8 +146,8 @@ public final class Ldap extends TagImpl {
 	}
 
 	/**
-	 * Specifies the maximum amount of time, in milliseconds, to wait for LDAP processing. Defaults to 60
-	 * seconds.
+	 * Specifies the maximum amount of time, in milliseconds, to wait for LDAP processing. Defaults to
+	 * 60 seconds.
 	 * 
 	 * @param timeout The timeout to set.
 	 */
@@ -167,6 +169,15 @@ public final class Ldap extends TagImpl {
 	 */
 	public void setPort(double port) {
 		this.port = (int) port;
+	}
+
+	/**
+	 * UseTLs defaults to false 
+	 * 
+	 * @param usetls Whether to use TLS or not
+	 */
+	public void setUsetls(boolean usetls) {
+		this.usetls = (boolean) usetls;
 	}
 
 	/**

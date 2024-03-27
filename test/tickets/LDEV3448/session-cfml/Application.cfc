@@ -7,10 +7,12 @@ component {
 	this.applicationtimeout="#createTimeSpan(0,0,0,10)#";
 	this.sessionType="cfml";
 
-	// these should be  the new defaults for 6.0
-	// TODO remove once the changes are made
-	this.sessionCookie.httpOnly = true; // prevent access to session cookies from javascript
-	this.sessionCookie.sameSite = "lax";
+	// these are the new defaults for 6.0, sameSite="lax" and httponly
+	
+	if ( structKeyExists( url, "httpOnly" ) )
+		this.sessionCookie.httpOnly = url.httpOnly; // prevent access to session cookies from javascript
+	if ( structKeyExists( url, "sameSite" ) )
+		this.sessionCookie.sameSite = url.sameSite;
 
 	function onApplicationStart(){
 		//systemOutput("application start #cgi.SCRIPT_NAME#", true);

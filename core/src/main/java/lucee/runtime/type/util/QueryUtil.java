@@ -177,7 +177,7 @@ public class QueryUtil {
 		String[] strNames = qry.getColumns();
 		Key[] names = new Key[strNames.length];
 		for (int i = 0; i < names.length; i++) {
-			names[i] = KeyImpl.getInstance(strNames[i]);
+			names[i] = KeyImpl.init(strNames[i]);
 		}
 		return names;
 	}
@@ -236,7 +236,7 @@ public class QueryUtil {
 			}
 		}
 		DumpData[] heads = new DumpData[columnCount + 1];
-		int columnInc=0;
+		int columnInc = 0;
 		heads[0] = new SimpleDumpData("");
 		for (int i = 0; i < keys.length; i++) {
 			if (showColumn[i]) {
@@ -269,9 +269,9 @@ public class QueryUtil {
 			comment.append("Cache Type: ").append(query.getCacheType()).append("\n");
 		}
 
-		if(query instanceof QueryImpl) {
+		if (query instanceof QueryImpl) {
 			String datasourceName = ((QueryImpl) query).getDatasourceName();
-			if(datasourceName != null) comment.append("Datasource: ").append(datasourceName).append("\n");
+			if (datasourceName != null) comment.append("Datasource: ").append(datasourceName).append("\n");
 		}
 
 		comment.append("Lazy: ").append(query instanceof SimpleQuery ? "Yes\n" : "No\n");
@@ -286,7 +286,7 @@ public class QueryUtil {
 		// table.appendRow(1, new SimpleDumpData("recordcount"), new SimpleDumpData(getRecordcount()));
 		// table.appendRow(1, new SimpleDumpData("cached"), new SimpleDumpData(isCached()?"Yes":"No"));
 
-		DumpTable recs = new DumpTable("query", "#cc99cc", "#ffccff", "#000000");
+		DumpTable recs = new DumpTable("query", "#9c89b8", "#efc3e6", "#000000");
 		recs.setTitle("Query");
 		if (dp.getMetainfo()) recs.setComment(comment.toString());
 		recs.appendRow(new DumpRow(-1, heads));
@@ -297,7 +297,7 @@ public class QueryUtil {
 		for (int i = 0; i < recordcount; i++) {
 			items = new DumpData[columnCount + 1];
 			items[0] = new SimpleDumpData(i + 1);
-			columnInc=0;
+			columnInc = 0;
 			for (int y = 0; y < keys.length; y++) {
 				if (showColumn[y]) {
 					try {

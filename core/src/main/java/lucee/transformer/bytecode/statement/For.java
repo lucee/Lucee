@@ -28,7 +28,6 @@ import lucee.transformer.TransformerException;
 import lucee.transformer.bytecode.Body;
 import lucee.transformer.bytecode.BytecodeContext;
 import lucee.transformer.bytecode.util.ASMUtil;
-import lucee.transformer.bytecode.util.ExpressionUtil;
 import lucee.transformer.expression.Expression;
 
 public final class For extends StatementBaseNoFinal implements FlowControlBreak, FlowControlContinue, HasBody {
@@ -71,7 +70,7 @@ public final class For extends StatementBaseNoFinal implements FlowControlBreak,
 		Label afterInit = new Label();
 		Label afterUpdate = new Label();
 
-		ExpressionUtil.visitLine(bc, getStart());
+		bc.visitLine(getStart());
 		adapter.visitLabel(beforeInit);
 		if (init != null) {
 			init.writeOut(bc, Expression.MODE_VALUE);

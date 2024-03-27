@@ -30,7 +30,7 @@ import java.util.Map.Entry;
 import lucee.commons.lang.ClassException;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
-import lucee.commons.lang.compiler.JavaCCompiler;
+import lucee.commons.lang.compiler.CompilerFactory;
 import lucee.commons.lang.compiler.JavaCompilerException;
 import lucee.commons.lang.compiler.JavaFunction;
 import lucee.commons.lang.types.RefBoolean;
@@ -39,6 +39,7 @@ import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.Component;
 import lucee.runtime.PageSource;
 import lucee.runtime.component.Member;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.Constants;
 import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.exp.TemplateException;
@@ -1240,22 +1241,25 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 		String javaCode = sc.substring(start.pos, end.pos - start.pos);
 		try {
 			String id = data.page.registerJavaFunctionName(functionName);
+			lucee.commons.lang.compiler.SourceCode _sc = fd.createSourceCode(ps, javaCode, id, functionName, access, modifier, hint, args, output, bufferOutput, displayName,
+					description, returnFormat, secureJson, verifyClient, localMode);
+			JavaFunction jf = new JavaFunction(ps, _sc, CompilerFactory.getInstance().compile((ConfigPro) data.config, _sc));
 
-			JavaFunction jf = JavaCCompiler.compile(ps, fd.createSourceCode(ps, javaCode, id, functionName, access, modifier, hint, args, output, bufferOutput, displayName,
-					description, returnFormat, secureJson, verifyClient, localMode));
-			// print.e("-->" + (jf.byteCode == null ? -1 : jf.byteCode.length));
-			// jf.setTemplateName(ps.getRealpathWithVirtual());
-			// jf.setFunctionName(fn);
 			return jf;
 		}
 		catch (JavaCompilerException e) {
-			TemplateException te = new TemplateException(data.srcCode, (int) (start.line + e.getLineNumber()), (int) e.getColumnNumber(), e.getMessage());
-			te.setStackTrace(e.getStackTrace());
+			Throwable cause = e.getCause();
+			TemplateException te = new TemplateException(data.srcCode, (int) (start.line + (e.getLineNumber() - 24/* 24 lines of generated java code in front of it */)), 0,
+					e.getMessage());
+			// te.setStackTrace(e.getStackTrace());
+			if (cause != null) te.initCause(cause);
 			throw te;
 		}
 		catch (Exception e) {
+			Throwable cause = e.getCause();
 			TemplateException te = new TemplateException(data.srcCode, start.line, 0, e.getMessage());
-			te.setStackTrace(e.getStackTrace());
+			// te.setStackTrace(e.getStackTrace());
+			if (cause != null) te.initCause(cause);
 			throw te;
 		}
 
@@ -1421,7 +1425,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 
 			}
 
-			boolean isValid = (data.srcCode.isCurrent(' ') || (tlt.getHasBody() && data.srcCode.isCurrent('{')));
+			boolean isValid = (data.srcCode.isCurrent(' ') || data.srcCode.isCurrent(';') || (tlt.getHasBody() && data.srcCode.isCurrent('{')));
 			if (isValid && (data.srcCode.isCurrent(" ", "=") || data.srcCode.isCurrent(" ", "("))) { // simply avoid a later exception
 				isValid = false;
 			}
@@ -1432,7 +1436,6 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 			}
 		}
 		else return null;
-
 		Position line = data.srcCode.getPosition(pos);
 
 		TagLibTagScript script = tlt.getScript();

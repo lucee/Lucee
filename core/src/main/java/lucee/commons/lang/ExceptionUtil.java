@@ -18,10 +18,12 @@
  */
 package lucee.commons.lang;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.lang.reflect.InvocationTargetException;
+import java.nio.file.NoSuchFileException;
 import java.util.Arrays;
 import java.util.Iterator;
 
@@ -190,7 +192,7 @@ public final class ExceptionUtil {
 		if (t instanceof NativeException) return toIOException(((NativeException) t).getCause());
 
 		IOException ioe = new IOException(t.getClass().getName() + ":" + t.getMessage());
-		ioe.setStackTrace(t.getStackTrace());
+		ioe.initCause(t);
 		return ioe;
 	}
 
@@ -264,6 +266,12 @@ public final class ExceptionUtil {
 		Throwable t = new Throwable();
 		t.setStackTrace(stackTrace);
 		return t;
+	}
+
+	public static FileNotFoundException toFileNotFoundException(NoSuchFileException nsfe) {
+		FileNotFoundException fnfe = new FileNotFoundException(nsfe.getMessage());
+		fnfe.initCause(nsfe);
+		return fnfe;
 	}
 
 }

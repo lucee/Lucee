@@ -24,8 +24,10 @@ import org.osgi.framework.Version;
 
 import lucee.commons.collection.MapFactory;
 import lucee.commons.io.SystemUtil;
+import lucee.commons.io.cache.Cache;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogEngine;
+import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.log.LoggerAndSourceData;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.ResourceProvider;
@@ -51,12 +53,14 @@ import lucee.runtime.cache.tag.CacheHandlerCollection;
 import lucee.runtime.cfx.CFXTagPool;
 import lucee.runtime.compiler.CFMLCompilerImpl;
 import lucee.runtime.component.ImportDefintion;
+import lucee.runtime.config.gateway.GatewayMap;
 import lucee.runtime.customtag.InitFile;
 import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.db.DataSource;
 import lucee.runtime.db.JDBCDriver;
 import lucee.runtime.debug.DebuggerPool;
 import lucee.runtime.dump.DumpWriter;
+import lucee.runtime.dump.DumpWriterEntry;
 import lucee.runtime.engine.ExecutionLogFactory;
 import lucee.runtime.engine.ThreadQueue;
 import lucee.runtime.exp.DatabaseException;
@@ -103,7 +107,7 @@ import lucee.runtime.writer.CFMLWriter;
 import lucee.transformer.library.function.FunctionLib;
 import lucee.transformer.library.tag.TagLib;
 
-public class SingleContextConfigWeb extends ConfigBase implements ConfigWebPro {
+class SingleContextConfigWeb extends ConfigBase implements ConfigWebInner {
 
 	private ConfigServerImpl cs;
 	protected Password password;
@@ -113,14 +117,15 @@ public class SingleContextConfigWeb extends ConfigBase implements ConfigWebPro {
 	private SCCWIdentificationWeb id;
 	private Resource rootDir;
 	private Mapping[] mappings;
+	private Resource configDirWeb;
 	// private Resource remoteClientDirectory;
 	// private SpoolerEngineImpl spoolerEngine;
 
-	public SingleContextConfigWeb(CFMLFactoryImpl factory, ConfigServerImpl cs, ServletConfig config) {
-		factory.setConfig(cs, this);
+	public SingleContextConfigWeb(CFMLFactoryImpl factory, ConfigServerImpl cs, ServletConfig config, Resource configDirWeb) {
 		this.factory = factory;
 		this.cs = cs;
 		this.config = config;
+		this.configDirWeb = configDirWeb;
 
 		ResourceProvider frp = ResourcesImpl.getFileResourceProvider();
 		this.rootDir = frp.getResource(ReqRspUtil.getRootPath(config.getServletContext()));
@@ -180,6 +185,11 @@ public class SingleContextConfigWeb extends ConfigBase implements ConfigWebPro {
 	@Override
 	public boolean allowImplicidQueryCall() {
 		return cs.allowImplicidQueryCall();
+	}
+
+	@Override
+	public boolean limitEvaluation() {
+		return cs.limitEvaluation();
 	}
 
 	@Override
@@ -385,6 +395,12 @@ public class SingleContextConfigWeb extends ConfigBase implements ConfigWebPro {
 	}
 
 	@Override
+	public Resource[] getResources(PageContext pc, Mapping[] mappings, String realPath, boolean onlyTopLevel, boolean useSpecialMappings, boolean useDefaultMapping,
+			boolean useComponentMappings, boolean onlyFirstMatch) {
+		return ConfigWebUtil.getResources(pc, this, mappings, realPath, onlyTopLevel, useSpecialMappings, useDefaultMapping, useComponentMappings, onlyFirstMatch);
+	}
+
+	@Override
 	public Resource getPhysical(Mapping[] mappings, String realPath, boolean alsoDefaultMapping) {
 		throw new PageRuntimeException(new DeprecatedException("method not supported"));
 	}
@@ -445,8 +461,8 @@ public class SingleContextConfigWeb extends ConfigBase implements ConfigWebPro {
 	}
 
 	@Override
-	public PageSource getBaseComponentPageSource(int dialect, PageContext pc) {
-		return cs.getBaseComponentPageSource(dialect, pc);
+	public PageSource getBaseComponentPageSource(int dialect, PageContext pc, boolean force) {
+		return cs.getBaseComponentPageSource(dialect, pc, force);
 	}
 
 	@Override
@@ -602,6 +618,10 @@ public class SingleContextConfigWeb extends ConfigBase implements ConfigWebPro {
 	@Override
 	public Charset getMailDefaultCharset() {
 		return cs.getMailDefaultCharset();
+	}
+
+	public CharSet getMailDefaultCharSet() {
+		return cs.getMailDefaultCharSet();
 	}
 
 	@Override
@@ -1401,6 +1421,11 @@ public class SingleContextConfigWeb extends ConfigBase implements ConfigWebPro {
 	}
 
 	@Override
+	public ConfigServer getConfigServer(ConfigWebImpl outer, String password) throws ExpressionException {
+		return cs.getConfigServer(password);
+	}
+
+	@Override
 	public ConfigServer getConfigServer(String arg0, long arg1) throws PageException {
 		return cs.getConfigServer(arg0, arg1);
 	}
@@ -1609,8 +1634,8 @@ public class SingleContextConfigWeb extends ConfigBase implements ConfigWebPro {
 	}
 
 	@Override
-	public GatewayEngine getGatewayEngine() {
-		return helper.getGatewayEngineImpl();
+	public GatewayEngine getGatewayEngine() throws PageException {
+		return helper.getGatewayEngineImpl(getGatewayEntries());
 	}
 
 	@Override
@@ -1701,6 +1726,16 @@ public class SingleContextConfigWeb extends ConfigBase implements ConfigWebPro {
 	}
 
 	@Override
+	public void updatePassword(ConfigWebImpl outer, boolean server, String passwordOld, String passwordNew) throws PageException {
+		try {
+			PasswordImpl.updatePassword(cs, passwordOld, passwordNew);
+		}
+		catch (Exception e) {
+			throw Caster.toPageException(e);
+		}
+	}
+
+	@Override
 	public Password updatePasswordIfNecessary(boolean server, String passwordRaw) {
 		return PasswordImpl.updatePasswordIfNecessary(cs, cs.password, passwordRaw);
 	}
@@ -1716,8 +1751,13 @@ public class SingleContextConfigWeb extends ConfigBase implements ConfigWebPro {
 	}
 
 	@Override
+	public boolean hasIndividualSecurityManager(ConfigWebImpl outer) {
+		return false;
+	}
+
+	@Override
 	public short getPasswordSource() {
-		return ConfigWebImpl.PASSWORD_ORIGIN_SERVER;
+		return MultiContextConfigWeb.PASSWORD_ORIGIN_SERVER;
 	}
 
 	@Override
@@ -1854,4 +1894,153 @@ public class SingleContextConfigWeb extends ConfigBase implements ConfigWebPro {
 	public void resetServerFunctionMappings() {
 
 	}
+
+	@Override
+	public boolean isSingle() {
+		return true;
+	}
+
+	@Override
+	public Resource getWebConfigDir() {
+		return this.configDirWeb;
+	}
+
+	@Override
+	public ServletConfig getServletConfig() {
+		return config;
+	}
+
+	@Override
+	public void setLastModified() {
+		cs.setLastModified();
+	}
+
+	public Object[] getConsoleLayouts() throws PageException {
+		return cs.getConsoleLayouts();
+	}
+
+	public String getServerSalt() {
+		return cs.getSalt();
+	}
+
+	public int getDebugOptions() {
+		return cs.getDebugOptions();
+	}
+
+	public GatewayMap getGatewayEntries() {
+		return cs.getGatewayEntries();
+	}
+
+	public Mapping getScriptMapping() {
+		return cs.getScriptMapping();
+	}
+
+	public void resetRPCClassLoader() {
+		cs.resetRPCClassLoader();
+	}
+
+	public PageSource[] getPageSources(PageContext arg0, Mapping[] arg1, String arg2, boolean arg3, boolean arg4, boolean arg5, boolean arg6, boolean arg7) {
+		return cs.getPageSources(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7);
+	}
+
+	public Object[] getResourceLayouts() throws PageException {
+		return cs.getResourceLayouts();
+	}
+
+	public void clearComponentMetadata() {
+		cs.clearComponentMetadata();
+	}
+
+	public void flushComponentPathCache() {
+		cs.flushApplicationPathCache();
+	}
+
+	public String createSecurityToken() {
+		return cs.createSecurityToken();
+	}
+
+	public Resource getServerConfigDir() {
+		return cs.getConfigDir();
+	}
+
+	public String getCacheMD5() {
+		return cs.getCacheMD5();
+	}
+
+	public ComponentMetaData getComponentMetadata(String arg0) {
+		return cs.getComponentMetadata(arg0);
+	}
+
+	public Cache createRAMCache(Struct arg0) throws IOException {
+		return cs.createRAMCache(arg0);
+	}
+
+	public void setAllowURLRequestTimeout(boolean arg0) {
+		cs.setAllowURLRequestTimeout(arg0);
+	}
+
+	public Mapping getDefaultServerFunctionMapping() {
+		return cs.getDefaultFunctionMapping();
+	}
+
+	public void flushApplicationPathCache() {
+		cs.flushApplicationPathCache();
+	}
+
+	public void createTag(TagLib arg0, String arg1, String arg2) {
+		cs.createTag(arg0, arg1, arg2);
+	}
+
+	public CharSet getTemplateCharSet() {
+		return cs.getTemplateCharSet();
+	}
+
+	public void flushCTPathCache() {
+		cs.flushCTPathCache();
+	}
+
+	public void putComponentMetadata(String arg0, ComponentMetaData arg1) {
+		cs.putComponentMetadata(arg0, arg1);
+	}
+
+	public String[] getLogNames() {
+		return cs.getLogNames();
+	}
+
+	public long getSessionScopeDirSize() {
+		return cs.getSessionScopeDirSize();
+	}
+
+	public int getMode() {
+		return cs.getMode();
+	}
+
+	public ClassDefinition getORMEngineClass() {
+		return cs.getORMEngineClass();
+	}
+
+	public DumpWriterEntry[] getDumpWritersEntries() {
+		return cs.getDumpWritersEntries();
+	}
+
+	public Password getPassword() {
+		return cs.getPassword();
+	}
+
+	@Override
+	public void setIdentification(IdentificationWeb arg0) {
+		// ignore it, should not happen
+		LogUtil.log(Log.LEVEL_FATAL, "loading", "setting a web id for single context");
+	}
+
+	@Override
+	public void checkMappings() {
+		cs.checkMappings();
+	}
+
+	@Override
+	public String getMainLogger() {
+		return cs.getMainLogger();
+	}
+
 }

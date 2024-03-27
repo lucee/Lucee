@@ -18,12 +18,12 @@
  **/
 package lucee.runtime.ext.tag;
 
-import javax.servlet.jsp.JspException;
 import javax.servlet.jsp.tagext.Tag;
 
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.ApplicationException;
+import lucee.runtime.exp.PageException;
 
 /**
  * Implementation of the Tag
@@ -63,12 +63,12 @@ public abstract class TagImpl implements Tag {
 	}
 
 	@Override
-	public int doStartTag() throws JspException {
+	public int doStartTag() throws PageException {
 		return SKIP_BODY;
 	}
 
 	@Override
-	public int doEndTag() throws JspException {
+	public int doEndTag() throws PageException {
 		return EVAL_PAGE;
 	}
 

@@ -230,7 +230,7 @@ if(structKeyExists(arguments.custom, "metrics_Charts")) {
 	padding : 5px 16px 5px 16px !important; 
 	margin: 4px 0px 4px 0px !important; 
 	border-bottom-width: 0px !important; 
-	border-color:white;
+	border: 1px solid white; 
 	font-size: 15px !important; 
 	font-weight: 500 !important;
   	outline: none;
@@ -240,7 +240,7 @@ if(structKeyExists(arguments.custom, "metrics_Charts")) {
   background-color: #666;
 }
 .ldTab button.active {
-  background-color: #3399cc !important;
+  background-color: #5f8731 !important;
   color: #FFF !important;
   outline: none;
 }
@@ -256,7 +256,15 @@ if(structKeyExists(arguments.custom, "metrics_Charts")) {
 
 
 
-	.ldTabContent { margin: 2.5em 1em 0 1em; padding: 1em; background-color: #FFF; color: #222; border: 1px solid #CCC; border-radius: 5px; text-shadow: none; }
+	.ldTabContent { 
+		margin: 2.5em 1em 0 1em; padding: 1em; 
+		background-color: #FFF; 
+		color: #222; 
+		border: 1px solid #CCC; 
+		border-radius: 7px; 
+		box-shadow: 0px 0px 4px 0px #5f8731;
+		text-shadow: none; 
+	}
 	.ldTabContent.collapsed	{ padding: 0; border-width: 0; }
 	.ldTabContent legend 	{ padding: 0 1em; background-color: #FFF; color: #222; }
 	.ldTabContent legend span { font-weight: normal; }
@@ -272,7 +280,7 @@ if(structKeyExists(arguments.custom, "metrics_Charts")) {
 	#-lucee-debugging-ExecTime table.details th::after, #-lucee-debugging-ImpAccess table.details th::after { content: '\00A0\21E9';}
 	#-lucee-debugging-ExecTime table.details th, #-lucee-debugging-ImpAccess table.details th { cursor:pointer; } 
 
-	.ldTabContent .title	{ margin-top: 1.25em; font-size: 2.5em; font-weight: normal; color:#3399cc; }
+	.ldTabContent .title	{ margin-top: 1.25em; font-size: 2.5em; font-weight: normal; color:#5f8731; }
 	
 	.ldTabContent .section-title	{ margin-top: 1.25em; font-size: 1.75em; font-weight: normal; color:#555; }
 
@@ -534,7 +542,7 @@ function ldConfigureCharts() {
 	labels={'heap':"Heap",'nonheap':"Non-Heap",'cpuSystem':"Whole System",'cpuProcess':"Lucee Process"};
 	
 	var bg="#FFF";
-	var blue="#3399CC";
+	var green="#5f8731";
 	var red="#BF4F36";
 
 	var yAxis = [{
@@ -559,7 +567,7 @@ function ldConfigureCharts() {
 					return 'Series' + "<br>" + params[0].seriesName + ": " + params[0].value + "%" + '<br>' +params[0].name ;
 				}
 			},
-			color: [blue],
+			color: [green],
 			grid : {
 				width: '82%',
 				height: '65%',
@@ -602,7 +610,7 @@ function ldConfigureCharts() {
 		legend: {
 			data:['System CPU', 'Lucee CPU']
 		},
-		color: [blue, red],
+		color: [green, red],
 		grid : {
 			width: '82%',
 			height: '65%',
@@ -833,9 +841,7 @@ Reference Button
 										<tr>
 											<td class="label" colspan="2">
 												#server.coldfusion.productname#
-												<cfif StructKeyExists(server.lucee,'versionName')>(<a href="#server.lucee.versionNameExplanation#" target="_blank">#server.lucee.versionName#</a>)
-												</cfif>
-												#ucFirst(server.coldfusion.productlevel)# #server.lucee.version# (CFML Version #server.ColdFusion.ProductVersion#)
+												 #server.lucee.version# (Loader Verison #server.lucee.loaderVersion#)
 											</td>
 										</tr>
 										<tr>
@@ -1119,7 +1125,6 @@ Reference Button
 											<th align="center">Label</th>
 											<th>Time (ms)</th>
 											<th>Template</th>
-											<th>Line</th>
 										</tr>
 									<tbody>
 										<cfloop query="timers">
@@ -1127,7 +1132,6 @@ Reference Button
 												<td class="txt-r">#timers.label#</td>
 												<td class="txt-r">#unitFormat( arguments.custom.unit, timers.time * 1000000,prettify )#</td>
 												<td class="txt-r">#timers.template#</td>
-												<td class="txt-r">#timers.line#</td>
 											</tr>
 										</cfloop>
 									</tbody>

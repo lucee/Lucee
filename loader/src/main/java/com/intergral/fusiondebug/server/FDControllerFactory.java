@@ -41,7 +41,8 @@ public class FDControllerFactory {
 	 * Constructor of the class should never be invoked but still public to be sure that we do not run
 	 * into problems
 	 */
-	public FDControllerFactory() {}
+	public FDControllerFactory() {
+	}
 
 	public static void notifyPageComplete() {
 		complete++;

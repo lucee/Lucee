@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project default="all" basedir="." name="LuceeBuildUtils">
     
-  <scriptdef name="readManifestEntry" language="javascript" loaderRef="sharedbuild-loaderRef">
+  <scriptdef name="readManifestEntry" language="javascript" classpath="${nashorn_classpath}">
     <attribute name="file" />
     <attribute name="variable" />
     <attribute name="key" />
@@ -22,7 +22,7 @@
     ]]>
 </scriptdef>
 
-  <scriptdef name="listDirectory" language="javascript" loaderRef="sharedbuild-loaderRef">
+  <scriptdef name="listDirectory" language="javascript" classpath="${nashorn_classpath}">
     <attribute name="directory" />
     <attribute name="delimiter" />
     <attribute name="returnvalue" />
@@ -42,7 +42,8 @@
         project.setProperty(rtn, sb.toString());
     ]]>
   </scriptdef>
-  <scriptdef name="unwrap" language="javascript" loaderRef="sharedbuild-loaderRef">
+
+  <scriptdef name="unwrap" language="javascript" classpath="${nashorn_classpath}">
      <attribute name="text" />
      <attribute name="property" />
      <![CDATA[
@@ -55,7 +56,7 @@
      ]]>
   </scriptdef>
 
-  <scriptdef name="updatedate" language="javascript" loaderRef="sharedbuild-loaderRef">
+  <scriptdef name="updatedate" language="javascript" classpath="${nashorn_classpath}">
      <attribute name="text" />
      <attribute name="date" />
      <attribute name="property" />
@@ -76,7 +77,7 @@
      ]]>
   </scriptdef>
 
-  <scriptdef name="felix" language="javascript" loaderRef="sharedbuild-loaderRef">
+  <scriptdef name="felix" language="javascript" classpath="${nashorn_classpath}">
      <attribute name="property" />
      <attribute name="dependencies" />
      <attribute name="separator" />
@@ -98,14 +99,14 @@
      ]]>
   </scriptdef>
   
-  <scriptdef name="currentTime" language="javascript" loaderRef="sharedbuild-loaderRef">
+  <scriptdef name="currentTime" language="javascript" classpath="${nashorn_classpath}">
      <attribute name="property" />
      <![CDATA[
       project.setProperty(attributes.get("property"), new Date().getTime());
      ]]>
   </scriptdef>
 
-  <scriptdef name="outputTrimmedString" language="javascript" loaderRef="sharedbuild-loaderRef">
+  <scriptdef name="outputTrimmedString" language="javascript" classpath="${nashorn_classpath}">
      <attribute name="str" />
      <![CDATA[
         var trimmed = String( attributes.get( "str" ) ).trim();
@@ -117,7 +118,7 @@
      ]]>
   </scriptdef>
   
-  <scriptdef name="deployLco" language="javascript" loaderRef="sharedbuild-loaderRef">
+  <scriptdef name="deployLco" language="javascript" classpath="${nashorn_classpath}"> 
      <attribute name="srcdir" />
      <attribute name="deploydir" />
      <attribute name="name" />
@@ -141,7 +142,7 @@
      ]]>
   </scriptdef>
 
-  <scriptdef name="deployTestExtensions" language="javascript" loaderRef="sharedbuild-loaderRef">
+  <scriptdef name="deployTestExtensions" language="javascript" classpath="${nashorn_classpath}">
      <attribute name="srcdir" />
      <attribute name="deploydir" />
      <![CDATA[

@@ -456,7 +456,7 @@ The following masks can be used to format the full date and time and may not be 
 - long: medium followed by three-letter time zone; i.e. "mmmm d, yyyy h:nn:ss tt zzz"
 - full: equivalent to "dddd, mmmm d, yyyy h:nn:ss tt zz"
 - ISO8601/ISO: equivalent to "yyyy-mm-dd'T'HH:nn:ssXXX"
-- ISOMillis/ISOMs/javascirpt: Javascript style ISO date, equivalent to "yyyy-mm-dd'T'HH:nn:ss.SSSXXX" 
+- ISOMillis/ISOMs/javascript: Javascript style ISO date, equivalent to "yyyy-mm-dd'T'HH:nn:ss.SSSXXX" 
 - epoch: Total seconds of a given date (Example:1567517664)
 - epochms: Total millseconds of a given date (Example:1567517664000)
 </description>
@@ -1760,7 +1760,7 @@ The following masks can be used to format the full date and time and may not be 
 - long: medium followed by three-letter time zone; i.e. "mmmm d, yyyy h:mm:ss tt zzz"
 - full: equivalent to "dddd, mmmm d, yyyy h:mm:ss tt zz"
 - ISO8601: equivalent to "yyyy-mm-dd'T'HH:nn:ss'Z'Z"
-- ISOMillis/ISOMs/javascirpt: Javascript style ISO date, equivalent to "yyyy-mm-dd'T'HH:nn:ss.SSS'Z'Z" 
+- ISOMillis/ISOMs/javascript: Javascript style ISO date, equivalent to "yyyy-mm-dd'T'HH:nn:ss.SSS'Z'Z" 
 </description>
     	</argument>
     	
@@ -1987,7 +1987,67 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<type>void</type>
 		</return>
 	</function>
+	<!-- SystemExitScan -->
+	<function>
+		<name>SystemExitScan</name>
+		<class>lucee.runtime.functions.system.SystemExitScan</class>
+		<description>looks and list all occurences of System.exit in a jar</description>
+		<status>hidden</status>
+		<argument>
+			<name>jar</name>
+			<alias>file,path</alias>
+			<type>string</type>
+			<required>Yes</required>
+		<description>Jar to test for System.exit</description>
+    </argument>
+		<return>
+			<type>struct</type>
+		</return>
+	</function>
 	
+		<!-- SystemExitHas -->
+	<function>
+		<name>SystemExitHas</name>
+		<class>lucee.runtime.functions.system.SystemExitHas</class>
+		<description>looks if System.exit in a jar</description>
+		<status>hidden</status>
+		<argument>
+			<name>jar</name>
+			<alias>file,path</alias>
+			<type>string</type>
+			<required>Yes</required>
+		<description>Jar to test for System.exit</description>
+    </argument>
+		<return>
+			<type>boolean</type>
+		</return>
+	</function>
+	
+	
+		<!-- SystemExitClean -->
+	<function>
+		<name>SystemExitClean</name>
+		<class>lucee.runtime.functions.system.SystemExitClean</class>
+		<description>looks if System.exit in a jar and removes it</description>
+		<status>hidden</status>
+		<argument>
+			<name>source</name>
+			<alias>src</alias>
+			<type>string</type>
+			<required>Yes</required>
+		<description>Jar to check for System.exit</description>
+    </argument>
+    		<argument>
+			<name>target</name>
+			<alias>trg</alias>
+			<type>string</type>
+			<required>No</required>
+		<description>new corrected jar, if not exist, the source jar is overwritten.</description>
+    </argument>
+		<return>
+			<type>void</type>
+		</return>
+	</function>
 	<!-- timeFormat -->
 	<function>
 		<name>timeFormat</name>
@@ -2697,7 +2757,7 @@ The following masks can be used to format the full date and time and may not be 
 - long: medium followed by three-letter time zone; i.e. "mmmm d, yyyy h:nn:ss tt zzz"
 - full: equivalent to "dddd, mmmm d, yyyy h:nn:ss tt zz"
 - ISO8601/ISO: equivalent to "yyyy-mm-dd'T'HH:nn:ssXXX"
-- ISOMillis/ISOMs/javascirpt: Javascript style ISO date, equivalent to "yyyy-mm-dd'T'HH:nn:ss.SSSXXX" 
+- ISOMillis/ISOMs/javascript: Javascript style ISO date, equivalent to "yyyy-mm-dd'T'HH:nn:ss.SSSXXX" 
 - epoch: Total seconds of a given date (Example:1567517664)
 - epochms: Total millseconds of a given date (Example:1567517664000)
 </description>

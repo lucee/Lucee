@@ -25,12 +25,14 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="imap" {
 						secure = true,
 						name = "local.messages"
 					);
-					//systemOutput("-------getHeaderOnly", true);
-					//systemOutput(local.messages, true);
-					//systemOutput(local.messages.columnList, true);
-					//systemOutput("", true);
-					// query column checks for LDEV-4115
-					var cols= "DATE,FROM,MESSAGENUMBER,MESSAGEID,REPLYTO,SUBJECT,CC,TO,SIZE,HEADER,UID";
+					/*
+					systemOutput("-------getHeaderOnly", true);
+					systemOutput(local.messages, true);
+					systemOutput(local.messages.columnList, true);
+					systemOutput("", true);
+					*/
+					var cols= "DATE,FROM,MESSAGENUMBER,MESSAGEID,REPLYTO,SUBJECT,CC,TO,SIZE,HEADER,UID,"
+						& "ANSWERED,DELETED,DRAFT,FLAGGED,RECENT,SEEN"; // imap flags query column checks for LDEV-4115;
 					loop list=cols item="local.col" {
 						expect ( queryColumnExists( messages, col ) ).toBeTrue( col );
 					}
@@ -48,14 +50,15 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="imap" {
 						secure = true,
 						name = "local.messages"
 					);
-
-					//systemOutput("----------getAll", true);
-					//systemOutput(local.messages, true);
-					//systemOutput(local.messages.columnList, true);
-					//systemOutput("", true);
-					// query column checks for LDEV-4115
+					/*
+					systemOutput("----------getAll", true);
+					systemOutput(local.messages, true);
+					systemOutput(local.messages.columnList, true);
+					systemOutput("", true);
+					*/
 					var cols= "DATE,FROM,MESSAGENUMBER,MESSAGEID,REPLYTO,SUBJECT,CC,TO,"
-						& "SIZE,HEADER,UID,BODY,TEXTBODY,HTMLBODY,ATTACHMENTS,ATTACHMENTFILES,CIDS";
+						& "SIZE,HEADER,UID,BODY,TEXTBODY,HTMLBODY,ATTACHMENTS,ATTACHMENTFILES,CIDS,"
+						& "ANSWERED,DELETED,DRAFT,FLAGGED,RECENT,SEEN"; // imap flags query column checks for LDEV-4115
 
 					loop list=cols item="local.col" {
 						expect ( queryColumnExists( messages, col ) ).toBeTrue( col );

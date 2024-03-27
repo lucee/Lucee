@@ -40,7 +40,7 @@ public final class QueryAddRow extends BIF {
 	public static double call(PageContext pc, Query query, Object numberOrData) throws PageException {
 		if (numberOrData == null) return call(pc, query);
 		else if (Decision.isNumber(numberOrData)) {
-			return ((QueryImpl)query).addRowAndGet(Caster.toIntValue(numberOrData));
+			return ((QueryImpl) query).addRowAndGet(Caster.toIntValue(numberOrData));
 		}
 		else {
 			QueryNew.populate(pc, query, numberOrData, false);

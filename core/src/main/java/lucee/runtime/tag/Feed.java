@@ -46,11 +46,10 @@ import lucee.runtime.text.feed.FeedHandler;
 import lucee.runtime.text.feed.FeedQuery;
 import lucee.runtime.text.xml.XMLUtil;
 import lucee.runtime.type.Array;
+import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.Query;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.util.ListUtil;
-import lucee.runtime.type.Collection;
-import lucee.runtime.type.Collection.Key;
 
 public final class Feed extends TagImpl {
 

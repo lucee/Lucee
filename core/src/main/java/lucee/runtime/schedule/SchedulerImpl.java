@@ -21,6 +21,10 @@ package lucee.runtime.schedule;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
+
+import org.xml.sax.SAXException;
 
 import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
@@ -44,7 +48,7 @@ import lucee.runtime.type.Struct;
  */
 public final class SchedulerImpl implements Scheduler {
 
-	private ScheduleTaskImpl[] tasks;
+	private Queue<TaskRef> tasks;
 	private Resource schedulerFile;
 	private StorageUtil su = new StorageUtil();
 	private String charset;
@@ -84,7 +88,7 @@ public final class SchedulerImpl implements Scheduler {
 	public SchedulerImpl(CFMLEngine engine, String xml, Config config) {
 		this.engine = (CFMLEngineImpl) engine;
 		this.config = config;
-		tasks = new ScheduleTaskImpl[0];
+		tasks = new ConcurrentLinkedQueue<>();
 		init();
 	}
 
@@ -92,24 +96,24 @@ public final class SchedulerImpl implements Scheduler {
 	 * initialize all tasks
 	 */
 	private void init() {
-		for (int i = 0; i < tasks.length; i++) {
-			init(tasks[i]);
+		for (TaskRef ref: tasks) {
+			init(ref.task);
 		}
 	}
 
 	public void startIfNecessary() {
-		for (int i = 0; i < tasks.length; i++) {
-			init(tasks[i]);
+		for (TaskRef ref: tasks) {
+			init(ref.task);
 		}
 	}
 
-	private void init(ScheduleTask task) {
-		((ScheduleTaskImpl) task).startIfNecessary(engine);
+	private void init(ScheduleTaskImpl task) {
+		task.startIfNecessary(engine);
 	}
 
 	public void stop() {
-		for (int i = 0; i < tasks.length; i++) {
-			tasks[i].stop();
+		for (TaskRef ref: tasks) {
+			ref.task.stop();
 		}
 	}
 
@@ -121,13 +125,13 @@ public final class SchedulerImpl implements Scheduler {
 	 * @return all schedule tasks
 	 * @throws PageException
 	 */
-	private ScheduleTaskImpl[] readInAllTasks(Array tasks) throws PageException {
-		ArrayList<ScheduleTaskImpl> list = new ArrayList<ScheduleTaskImpl>();
+	private Queue<TaskRef> readInAllTasks(Array tasks) throws PageException {
+		Queue<TaskRef> queue = new ConcurrentLinkedQueue<>();
 		Iterator<?> it = tasks.getIterator();
 		while (it.hasNext()) {
-			list.add(readInTask((Struct) it.next()));
+			queue.add(new TaskRef(readInTask((Struct) it.next())));
 		}
-		return list.toArray(new ScheduleTaskImpl[list.size()]);
+		return queue;
 	}
 
 	/**
@@ -157,38 +161,33 @@ public final class SchedulerImpl implements Scheduler {
 	}
 
 	private void addTask(ScheduleTaskImpl task) {
-		for (int i = 0; i < tasks.length; i++) {
-			if (!tasks[i].getTask().equals(task.getTask())) continue;
-			if (!tasks[i].md5().equals(task.md5())) {
-				tasks[i].log(Log.LEVEL_INFO, "invalidate task because the task is replaced with a new one");
-				tasks[i].setValid(false);
-				tasks[i] = task;
+		for (TaskRef ref: tasks) {
+			if (!ref.task.getTask().equals(task.getTask())) continue;
+			if (!ref.task.md5().equals(task.md5())) {
+				ref.task.log(Log.LEVEL_INFO, "invalidate task because the task is replaced with a new one");
+				ref.task.setValid(false);
+				ref.task = task;
 				init(task);
 			}
 			return;
 		}
 
-		ScheduleTaskImpl[] tmp = new ScheduleTaskImpl[tasks.length + 1];
-		for (int i = 0; i < tasks.length; i++) {
-			tmp[i] = tasks[i];
-		}
-		tmp[tasks.length] = task;
-		tasks = tmp;
+		tasks.add(new TaskRef(task));
 		init(task);
 	}
 
 	@Override
 	public ScheduleTask getScheduleTask(String name) throws ScheduleException {
-		for (int i = 0; i < tasks.length; i++) {
-			if (tasks[i].getTask().equalsIgnoreCase(name)) return tasks[i];
+		for (TaskRef ref: tasks) {
+			if (ref.task.getTask().equalsIgnoreCase(name)) return ref.task;
 		}
 		throw new ScheduleException("schedule task with name " + name + " doesn't exist");
 	}
 
 	@Override
 	public ScheduleTask getScheduleTask(String name, ScheduleTask defaultValue) {
-		for (int i = 0; i < tasks.length; i++) {
-			if (tasks[i] != null && tasks[i].getTask().equalsIgnoreCase(name)) return tasks[i];
+		for (TaskRef ref: tasks) {
+			if (ref.task.getTask().equalsIgnoreCase(name)) return ref.task;
 		}
 		return defaultValue;
 	}
@@ -196,8 +195,8 @@ public final class SchedulerImpl implements Scheduler {
 	@Override
 	public ScheduleTask[] getAllScheduleTasks() {
 		ArrayList<ScheduleTask> list = new ArrayList<ScheduleTask>();
-		for (int i = 0; i < tasks.length; i++) {
-			if (!tasks[i].isHidden()) list.add(tasks[i]);
+		for (TaskRef ref: tasks) {
+			if (!ref.task.isHidden()) list.add(ref.task);
 		}
 		return list.toArray(new ScheduleTask[list.size()]);
 	}
@@ -222,41 +221,24 @@ public final class SchedulerImpl implements Scheduler {
 			throw ExceptionUtil.toIOException(e);
 		}
 
-		for (int i = 0; i < tasks.length; i++) {
-			if (tasks[i].getTask().equalsIgnoreCase(name)) {
-				tasks[i].setPaused(pause);
+		for (TaskRef ref: tasks) {
+			if (ref.task.getTask().equalsIgnoreCase(name)) {
+				ref.task.setPaused(pause);
 			}
 		}
 	}
 
 	@Override
 	public void removeScheduleTask(String name, boolean throwWhenNotExist) throws IOException, ScheduleException {
-		synchronized (sync) {
-			int pos = -1;
-			for (int i = 0; i < tasks.length; i++) {
-				if (tasks[i].getTask().equalsIgnoreCase(name)) {
-					tasks[i].log(Log.LEVEL_INFO, "task gets removed");
-					tasks[i].setValid(false);
-					pos = i;
-				}
-			}
-			if (pos != -1) {
-				ScheduleTaskImpl[] newTasks = new ScheduleTaskImpl[tasks.length - 1];
-				int count = 0;
-				for (int i = 0; i < tasks.length; i++) {
-					if (i != pos) newTasks[count++] = tasks[i];
 
-				}
-				tasks = newTasks;
-			}
-
-			try {
-				ConfigAdmin.removeScheduledTask((ConfigPro) config, name, true);
-			}
-			catch (Exception e) {
-				throw ExceptionUtil.toIOException(e);
-			}
+		tasks.removeIf(ref -> ref.task.getTask().equalsIgnoreCase(name));
+		try {
+			ConfigAdmin.removeScheduledTask((ConfigPro) config, name, true);
 		}
+		catch (Exception e) {
+			throw ExceptionUtil.toIOException(e);
+		}
+
 	}
 
 	public void removeIfNoLonerValid(ScheduleTask task) throws IOException {
@@ -297,5 +279,13 @@ public final class SchedulerImpl implements Scheduler {
 
 	public boolean active() {
 		return engine == null || engine.active();
+	}
+
+	private static class TaskRef {
+		private ScheduleTaskImpl task;
+
+		public TaskRef(ScheduleTaskImpl task) {
+			this.task = task;
+		}
 	}
 }

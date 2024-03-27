@@ -28,13 +28,17 @@ Please read our docs on working with the Lucee source code: https://docs.lucee.o
 
 6.0 is the active development branch, any new cool stuff should be done against this branch
 
-5.3 is our LTS branch, mainly only bugfixes
+5.4 is our LTS branch, mainly only bugfixes
+
+5.3 is EOL
 
 4.5 is totally EOL
 
 # Java Version
 
 Java 8 is still our base line, we recommend Java 11 for production, but as long as we can support Java 8, we will.
+
+Java 17 is a work in progress, it's mostly working, see https://luceeserver.atlassian.net/browse/LDEV-3807
 
 # Submission guidelines
 

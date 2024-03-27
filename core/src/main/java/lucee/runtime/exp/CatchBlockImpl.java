@@ -29,6 +29,7 @@ import lucee.commons.lang.CFTypes;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
+import lucee.runtime.config.Config;
 import lucee.runtime.dump.DumpData;
 import lucee.runtime.dump.DumpProperties;
 import lucee.runtime.engine.ThreadLocalPageContext;
@@ -58,21 +59,18 @@ public class CatchBlockImpl extends StructImpl implements CatchBlock, Castable, 
 
 	private static final long serialVersionUID = -3680961614605720352L;
 
-	public static final Key ERROR_CODE = KeyImpl.getInstance("ErrorCode");
+	public static final Key ERROR_CODE = KeyConstants._ErrorCode;
 	public static final Key CAUSE = KeyConstants._Cause;
-	public static final Key EXTENDEDINFO = KeyImpl.getInstance("ExtendedInfo");
-	public static final Key EXTENDED_INFO = KeyImpl.getInstance("Extended_Info");
-	public static final Key TAG_CONTEXT = KeyImpl.getInstance("TagContext");
-	public static final Key STACK_TRACE = KeyImpl.getInstance("StackTrace");
-	public static final Key ADDITIONAL = KeyImpl.getInstance("additional");
+	public static final Key EXTENDEDINFO = KeyConstants._ExtendedInfo;
+	public static final Key EXTENDED_INFO = KeyConstants._Extended_Info;
+	public static final Key TAG_CONTEXT = KeyConstants._TagContext;
+	public static final Key STACK_TRACE = KeyConstants._StackTrace;
+	public static final Key ADDITIONAL = KeyConstants._additional;
 
 	private final PageException exception;
 
-	public CatchBlockImpl(PageException pe) {
-		this(pe, 0);
-	}
-
-	private CatchBlockImpl(PageException pe, int level) {
+	CatchBlockImpl(PageException pe, int level) {
+		if (level < 0) level = 0;
 		this.exception = pe;
 
 		setEL(KeyConstants._Message, new SpecialItem(KeyConstants._Message, level));
@@ -121,7 +119,7 @@ public class CatchBlockImpl extends StructImpl implements CatchBlock, Castable, 
 
 		public Object get() {
 			if (level < MAX) {
-				if (key == CAUSE) return getCauseAsCatchBlock();
+				if (key == CAUSE) return getCauseAsCatchBlock(ThreadLocalPageContext.getConfig());
 				if (key == ADDITIONAL) return exception.getAdditional();
 
 			}
@@ -136,11 +134,11 @@ public class CatchBlockImpl extends StructImpl implements CatchBlock, Castable, 
 			return null;
 		}
 
-		private CatchBlock getCauseAsCatchBlock() {
+		private CatchBlock getCauseAsCatchBlock(Config config) {
 			Throwable cause = exception.getCause();
 			if (cause == null || exception == cause) return null;
 			if (exception instanceof NativeException && ((NativeException) exception).getException() == cause) return null;
-			return new CatchBlockImpl(NativeException.newInstance(cause), level + 1);
+			return Caster.toPageException(cause).getCatchBlock(config);
 		}
 
 		public void set(Object o) {

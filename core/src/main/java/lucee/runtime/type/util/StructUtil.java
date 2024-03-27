@@ -131,7 +131,7 @@ public final class StructUtil {
 	public static DumpTable toDumpTable(Struct sct, String title, PageContext pageContext, int maxlevel, DumpProperties dp) {
 		Key[] keys = CollectionUtil.keys(sct);
 		if (!(sct instanceof StructSupport) || ((StructSupport) sct).getType() != Struct.TYPE_LINKED) keys = order(sct, CollectionUtil.keys(sct));
-		DumpTable table = new DumpTable("struct", "#9999ff", "#ccccff", "#000000");// "#9999ff","#ccccff","#000000"
+		DumpTable table = new DumpTable("struct", "#468faf", "#89c2d9", "#000000");// "#9999ff","#ccccff","#000000"
 
 		int maxkeys = dp.getMaxKeys();
 		if (maxkeys < sct.size()) {
@@ -230,10 +230,10 @@ public final class StructUtil {
 		}
 	}
 
-	public static Struct merge(Struct[] scts) {
-		Struct sct = new StructImpl();
+	public static Struct merge(boolean intoFirst, Struct... scts) {
+		Struct sct = intoFirst ? scts[0] : new StructImpl();
 
-		for (int i = scts.length - 1; i >= 0; i--) {
+		for (int i = intoFirst ? 1 : 0; i < scts.length; i++) {
 			Iterator<Entry<Key, Object>> it = scts[i].entryIterator();
 			Entry<Key, Object> e;
 			while (it.hasNext()) {

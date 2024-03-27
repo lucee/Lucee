@@ -45,11 +45,13 @@ import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.config.DatasourceConnPool;
 import lucee.runtime.config.DeployHandler;
+import lucee.runtime.config.maven.MavenUpdateProvider;
 import lucee.runtime.extension.RHExtension;
 import lucee.runtime.functions.system.PagePoolClear;
 import lucee.runtime.lock.LockManagerImpl;
 import lucee.runtime.net.smtp.SMTPConnectionPool;
 import lucee.runtime.op.Caster;
+import lucee.runtime.schedule.Scheduler;
 import lucee.runtime.schedule.SchedulerImpl;
 import lucee.runtime.type.scope.ScopeContext;
 import lucee.runtime.type.scope.storage.StorageScopeFile;
@@ -66,6 +68,7 @@ public final class Controler extends ParentThreasRefThread {
 
 	private int interval;
 	private long lastMinuteInterval = System.currentTimeMillis() - (1000 * 59); // first after a second
+	private long last5MinuteInterval = System.currentTimeMillis() - (1000 * 299); // first after a second
 	private long last10SecondsInterval = System.currentTimeMillis() - (1000 * 9); // first after a second
 	private long lastHourInterval = System.currentTimeMillis();
 
@@ -194,6 +197,9 @@ public final class Controler extends ParentThreasRefThread {
 		boolean doMinute = lastMinuteInterval + 60000 < now;
 		if (doMinute) lastMinuteInterval = now;
 
+		boolean do5Minute = last5MinuteInterval + 300000 < now;
+		if (do5Minute) last5MinuteInterval = now;
+
 		boolean doHour = (lastHourInterval + (1000 * 60 * 60)) < now;
 		if (doHour) lastHourInterval = now;
 
@@ -207,8 +213,17 @@ public final class Controler extends ParentThreasRefThread {
 		}
 
 		if (firstRun) {
+
 			try {
 				RHExtension.correctExtensions(configServer);
+			}
+			catch (Exception e) {
+				if (log != null) log.error("controler", e);
+			}
+
+			// loading all versions from Maven (if it can be reached)
+			try {
+				new MavenUpdateProvider().list();
 			}
 			catch (Exception e) {
 				if (log != null) log.error("controler", e);
@@ -242,6 +257,18 @@ public final class Controler extends ParentThreasRefThread {
 				if (log != null) log.error("controler", t);
 			}
 		}
+
+		// every 5 minutes
+		if (do5Minute) {
+			try {
+				System.gc();
+			}
+			catch (Throwable t) {
+				ExceptionUtil.rethrowIfNecessary(t);
+				if (log != null) log.error("controler", t);
+			}
+		}
+
 		// every hour
 		if (doHour) {
 			try {
@@ -332,7 +359,8 @@ public final class Controler extends ParentThreasRefThread {
 				LogUtil.log(ThreadLocalPageContext.getConfig(config), Log.LEVEL_TRACE, Controler.class.getName(), "Running background Controller maintenance (every minute).");
 
 				try {
-					((SchedulerImpl) config.getScheduler()).startIfNecessary();
+					Scheduler scheduler = config.getScheduler();
+					if (scheduler != null) ((SchedulerImpl) scheduler).startIfNecessary();
 				}
 				catch (Exception e) {
 					if (log != null) log.error("controler", e);
@@ -375,6 +403,7 @@ public final class Controler extends ParentThreasRefThread {
 					HTTPEngine4Impl.closeIdleConnections();
 				}
 				catch (Exception e) {
+					if (log != null) log.error("controler", e);
 				}
 
 				// clear all unused scopes
@@ -394,15 +423,7 @@ public final class Controler extends ParentThreasRefThread {
 				 * //cfmlFactory.getDefaultQueryCache().clearUnused(null); }catch(Throwable
 				 * t){ExceptionUtil.rethrowIfNecessary(t);}
 				 */
-				// contract Page Pool
-				try {
-					doClearPagePools(config);
-				}
-				catch (Exception e) {
-					if (log != null) log.error("controler", e);
-				}
-				// try{checkPermGenSpace((ConfigWebPro) config);}catch(Throwable t)
-				// {ExceptionUtil.rethrowIfNecessary(t);}
+
 				try {
 					doCheckMappings(config);
 				}
@@ -514,6 +535,7 @@ public final class Controler extends ParentThreasRefThread {
 		try {
 			Resource dir = config.getClientScopeDir(), trgres;
 			Resource[] children = dir.listResources(filter);
+			if (children == null) return;
 			String src, trg;
 			int index;
 			for (int i = 0; i < children.length; i++) {
@@ -546,7 +568,7 @@ public final class Controler extends ParentThreasRefThread {
 	}
 
 	private void checkSize(ConfigWeb config, Resource dir, long maxSize, ResourceFilter filter) {
-		if (!dir.exists()) return;
+		if (dir == null || !dir.exists()) return;
 		Resource res = null;
 		int count = ArrayUtil.size(filter == null ? dir.list() : dir.list(filter));
 		long size = ResourceUtil.getRealSize(dir, filter);
@@ -586,10 +608,14 @@ public final class Controler extends ParentThreasRefThread {
 	}
 
 	private void doCheckMappings(ConfigWeb config) {
-		Mapping[] mappings = config.getMappings();
-		for (int i = 0; i < mappings.length; i++) {
-			Mapping mapping = mappings[i];
-			mapping.check();
+		lucee.runtime.config.ConfigWebImpl d;
+		if (config instanceof ConfigWebPro) {
+			((ConfigWebPro) config).checkMappings();
+		}
+		else {
+			for (Mapping mapping: config.getMappings()) {
+				mapping.check();
+			}
 		}
 	}
 

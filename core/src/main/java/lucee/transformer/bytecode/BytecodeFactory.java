@@ -18,6 +18,8 @@
 package lucee.transformer.bytecode;
 
 import java.math.BigDecimal;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
@@ -79,10 +81,20 @@ public class BytecodeFactory extends FactoryBase {
 
 	private static final Type KEY_CONSTANTS = Type.getType(KeyConstants.class);
 
-	private static BytecodeFactory instance;
+	private static Map<String, BytecodeFactory> instances = new ConcurrentHashMap<>();
 
 	public static Factory getInstance(Config config) {
-		if (instance == null) instance = new BytecodeFactory(config == null ? ThreadLocalPageContext.getConfig() : config);
+		if (config == null) config = ThreadLocalPageContext.getConfig();
+		String key = config.hashCode() + ":" + config.getIdentification().getId();
+		BytecodeFactory instance = instances.get(key);
+		if (instance == null) {
+			synchronized (instances) {
+				instance = instances.get(key);
+				if (instance == null) {
+					instances.put(key, instance = new BytecodeFactory());
+				}
+			}
+		}
 		return instance;
 	}
 
@@ -93,16 +105,13 @@ public class BytecodeFactory extends FactoryBase {
 	private final LitNumber NUMBER_ZERO;
 	private final LitNumber NUMBER_ONE;
 
-	private final Config config;
-
-	public BytecodeFactory(Config config) {
+	public BytecodeFactory() {
 		TRUE = createLitBoolean(true);
 		FALSE = createLitBoolean(false);
 		EMPTY = createLitString("");
 		NULL = Null.getSingleInstance(this);
 		NUMBER_ZERO = createLitNumber(0);
 		NUMBER_ONE = createLitNumber(1);
-		this.config = config;
 	}
 
 	@Override
@@ -326,26 +335,18 @@ public class BytecodeFactory extends FactoryBase {
 				bc.getAdapter().getStatic(KEY_CONSTANTS, key, Types.COLLECTION_KEY);
 				return;
 			}
+
 			int index = bc.registerKey(ls);
-			bc.getAdapter().visitVarInsn(Opcodes.ALOAD, 0);
-			bc.getAdapter().visitFieldInsn(Opcodes.GETFIELD, bc.getClassName(), "keys", Types.COLLECTION_KEY_ARRAY.toString());
+			bc.getAdapter().visitFieldInsn(Opcodes.GETSTATIC, bc.getClassName(), "keys", Types.COLLECTION_KEY_ARRAY.toString());
 			bc.getAdapter().push(index);
 			bc.getAdapter().visitInsn(Opcodes.AALOAD);
-
-			// ExpressionUtil.writeOutSilent(lit,bc, Expression.MODE_REF);
-			// bc.getAdapter().invokeStatic(Page.KEY_IMPL, Page.KEY_INTERN);
 
 			return;
 		}
 		name.writeOut(bc, Expression.MODE_REF);
-		bc.getAdapter().invokeStatic(Page.KEY_IMPL, Page.KEY_INTERN);
+		bc.getAdapter().invokeStatic(Page.KEY_IMPL, Page.KEY_SOURCE);
 		// bc.getAdapter().invokeStatic(Types.CASTER, TO_KEY);
 		return;
-	}
-
-	@Override
-	public Config getConfig() {
-		return config;
 	}
 
 	@Override

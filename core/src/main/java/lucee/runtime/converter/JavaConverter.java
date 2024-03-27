@@ -24,12 +24,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.ObjectStreamClass;
 import java.io.OutputStream;
 import java.io.Serializable;
 import java.io.Writer;
 
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.res.Resource;
+import lucee.loader.engine.CFMLEngineFactory;
 import lucee.runtime.PageContext;
 import lucee.runtime.coder.Base64Coder;
 import lucee.runtime.coder.CoderException;
@@ -107,7 +109,7 @@ public final class JavaConverter extends ConverterSupport implements BinaryConve
 		ObjectInputStream ois = null;
 		Object o = null;
 		try {
-			ois = new ObjectInputStream(is);
+			ois = new ObjectInputStreamImpl(CFMLEngineFactory.getInstance().getClass().getClassLoader(), is);
 			o = ois.readObject();
 		}
 		finally {
@@ -118,6 +120,30 @@ public final class JavaConverter extends ConverterSupport implements BinaryConve
 
 	public static Object deserialize(Resource res) throws IOException, ClassNotFoundException {
 		return deserialize(res.getInputStream());
+	}
+
+	public static class ObjectInputStreamImpl extends ObjectInputStream {
+
+		private ClassLoader cl;
+
+		public ObjectInputStreamImpl(ClassLoader cl, InputStream in) throws IOException {
+			super(in);
+			this.cl = cl;
+		}
+
+		@Override
+		protected Class<?> resolveClass(ObjectStreamClass desc) throws IOException, ClassNotFoundException {
+			if (cl == null) return super.resolveClass(desc);
+
+			String name = desc.getName();
+			try {
+				return Class.forName(name, false, cl);
+			}
+			catch (ClassNotFoundException ex) {
+				return super.resolveClass(desc);
+			}
+		}
+
 	}
 
 }

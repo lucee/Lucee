@@ -57,6 +57,7 @@ import java.util.zip.ZipInputStream;
 
 import javax.servlet.ServletContext;
 
+import org.apache.felix.framework.BundleWiringImpl.BundleClassLoader;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleReference;
 
@@ -1388,10 +1389,19 @@ public final class SystemUtil {
 	public static InputStream getResourceAsStream(Bundle bundle, String path) {
 		// check the bundle for the resource
 		InputStream is;
+		if (bundle == null) {
+			ClassLoader cl = PageSourceImpl.class.getClassLoader();
+			if (cl instanceof BundleClassLoader) {
+				bundle = ((BundleClassLoader) cl).getBundle();
+			}
+		}
 		if (bundle != null) {
 			try {
 				is = bundle.getEntry(path).openStream();
 				if (is != null) return is;
+				if (path.startsWith("/")) is = bundle.getEntry(path.substring(1)).openStream();
+				if (is != null) return is;
+
 			}
 			catch (Throwable t) {
 				ExceptionUtil.rethrowIfNecessary(t);
@@ -1403,6 +1413,8 @@ public final class SystemUtil {
 		try {
 			is = cl.getResourceAsStream(path);
 			if (is != null) return is;
+			if (path.startsWith("/")) is = cl.getResourceAsStream(path.substring(1));
+			if (is != null) return is;
 		}
 		catch (Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);
@@ -1413,6 +1425,8 @@ public final class SystemUtil {
 		try {
 			is = cl.getResourceAsStream(path);
 			if (is != null) return is;
+			if (path.startsWith("/")) is = cl.getResourceAsStream(path.substring(1));
+			if (is != null) return is;
 		}
 		catch (Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);
@@ -1422,6 +1436,8 @@ public final class SystemUtil {
 		cl = ClassLoader.getSystemClassLoader();
 		try {
 			is = cl.getResourceAsStream(path);
+			if (is != null) return is;
+			if (path.startsWith("/")) is = cl.getResourceAsStream(path.substring(1));
 			if (is != null) return is;
 		}
 		catch (Throwable t) {

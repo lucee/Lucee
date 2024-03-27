@@ -572,4 +572,9 @@ public final class DatasourceResourceProvider implements ResourceProviderPro {
 		return '/';
 	}
 
+	@Override
+	public boolean allowMatching() {
+		return false;
+	}
+
 }

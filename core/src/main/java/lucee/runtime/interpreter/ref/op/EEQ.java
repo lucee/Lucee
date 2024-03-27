@@ -20,7 +20,7 @@ package lucee.runtime.interpreter.ref.op;
 
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.PageException;
-import lucee.runtime.interpreter.InterpreterException;
+import lucee.runtime.interpreter.SecurityInterpreterException;
 import lucee.runtime.interpreter.ref.Ref;
 import lucee.runtime.interpreter.ref.RefSupport;
 
@@ -47,7 +47,7 @@ public final class EEQ extends RefSupport implements Ref {
 
 	@Override
 	public Object getValue(PageContext pc) throws PageException {
-		if (limited) throw new InterpreterException("invalid syntax, boolean operations are not supported in a json string.");
+		if (limited) throw new SecurityInterpreterException("invalid syntax, boolean operations are not supported.");
 		return left.eeq(pc, right) ? Boolean.TRUE : Boolean.FALSE;
 		// return (left.getValue()==right.getValue())?Boolean.TRUE:Boolean.FALSE;
 	}

@@ -79,6 +79,35 @@
 			password="#session["password"&request.adminType]#"
 			returnvariable="upd";
 	
+	changeLogs= [];
+
+	try {
+		if ( structKeyExists( updateData, "changelog" ) ){
+			hasESAPI = ExtensionExists( "37C61C0A-5D7E-4256-8572639BE0CF5838" );
+			function safeText (str){
+				if (hasESAPI)
+					return encodeForHtml(arguments.str);
+				else
+					return htmlEditFormat(arguments.str);
+			}
+
+			changelog_versions = toVersionsSorted( updateData.changelog.keyArray() );
+			loop collection=#changelog_versions# key="cl_k" value="cl_tickets" {
+				cl_v = changelog_versions[cl_k];
+				cl_tickets= updateData.changelog[cl_v];
+				changeLog = "";
+				loop collection=#cl_tickets# key="ticket" value="title" {
+					changeLog &= '<li><a href="https://luceeserver.atlassian.net/browse/#safeText(ticket)#" target="_blank" rel="noopener">#safeText(ticket)#</a> - #safeText(title)#</li>#chr(10)#';
+				}
+				if (len(changeLog)){
+					ArrayAppend(changeLogs, "#safeText(cl_v)#<br>#chr(10)#<ul>#chr(10)##changelog#</ul>");
+				}
+			}
+		}
+	} catch(e) {
+		changelogs = ['<span class="CheckError">Error rendering changelogs</span><br> #e.message#'];
+	}
+
 	stText.services.update.downUpDesc=replace(stText.services.update.downUpDesc,'{version}',server.lucee.version);
 
 		/*if(isNull(providerData.message) || providerData.type == 'warning'){
@@ -162,6 +191,13 @@
 		//dump(var:versionsStr,expand:false);
 		//dump(var:updateData,expand:false);
 	printError(error);
+
+	currMajor=listFirst(server.lucee.version,".");
+	if ( structKeyExists( updateData, "otherVersions" ) )
+		selectedUpdate = getUpdateForMajorVersion( updateData.otherVersions, currMajor );
+	else
+		selectedUpdate = "";
+
 </cfscript>
 <cfoutput>
 
@@ -210,7 +246,9 @@
 							<cfif len(versionsStr[key].upgrade) gt 0|| len(versionsStr[key].downgrade) gt 0>
 								<optgroup class="td_#UcFirst(Lcase(key))#" label="#stText.services.update.short[key]#">
 									<cfloop array="#versionsStr[key].upgrade#" index="i">
-										<option class="td_#UcFirst(Lcase(key))#" value="#i#">#stText.services.update.upgradeTo# #i#</option>
+										<option class="td_#UcFirst(Lcase(key))#" value="#i#"
+											<cfif i eq selectedUpdate>selected</cfif>
+										>#stText.services.update.upgradeTo# #i#</option>
 									</cfloop>
 
 									<cfloop array="#versionsStr[key].downgrade#" index="i">
@@ -409,7 +447,19 @@
 			});
 		</script>
 	</cfhtmlbody>
-	<cfset stText.services.update.titleDesc2 = replaceListNoCase(stText.services.update.titleDesc2,'{min-version},{server.lucee.loaderPath}','<b>#minVersion#</b>,<b>#listDeleteAt(loaderInfo.LoaderPath,listlen(loaderInfo.LoaderPath,"\/"),"\/")#</b>')>
-	<p class="comment">* #replace(stText.services.update.titleDesc2,'{context}',"<b class='error'>"&#expandPath("{lucee-server}\patches")#&"</b>") #</p>
+
+	<cfscript>
+		loaderText = replaceNoCase(stText.services.update.loaderMinVersion,"{min-version}", "<b>#minVersion#</b>");
+		loaderPath = replaceNoCase(stText.services.update.loaderPath,"{loaderPath}", '<b>'& loaderInfo.LoaderPath & '</b>' );
+		//replace(stText.services.update.titleDesc2,'{context}',"<b class='error'>"&#expandPath("{lucee-server}\patches")#&"</b>");
+	</cfscript>
+	<p class="comment">#loaderText#</p>
+	<p class="comment">#loaderPath#</p>	
 	
+	<cfif len(changeLogs)>
+		<h1>#stText.services.update.changeLogsSince# (#server.lucee.version#)</h1>
+		<div class="whitePanel">
+			<p>#changeLogs.toList("")#</p>
+		</div>
+	</cfif>
 </cfoutput>

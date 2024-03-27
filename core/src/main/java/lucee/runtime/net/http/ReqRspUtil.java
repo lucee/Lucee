@@ -21,7 +21,6 @@ package lucee.runtime.net.http;
 import static org.apache.commons.collections4.map.AbstractReferenceMap.ReferenceStrength.HARD;
 import static org.apache.commons.collections4.map.AbstractReferenceMap.ReferenceStrength.SOFT;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -58,7 +57,6 @@ import lucee.commons.net.URLDecoder;
 import lucee.commons.net.URLEncoder;
 import lucee.runtime.PageContext;
 import lucee.runtime.config.Config;
-import lucee.runtime.converter.JavaConverter;
 import lucee.runtime.converter.WDDXConverter;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
@@ -584,13 +582,6 @@ public final class ReqRspUtil {
 				InputSource xml = XMLUtil.toInputSource(pc, toString(data, charset));
 				InputSource validator = null;
 				return XMLCaster.toXMLStruct(XMLUtil.parse(xml, validator, false), true);
-			}
-			catch (Exception pe) {
-			}
-			break;
-		case UDF.RETURN_FORMAT_JAVA:
-			try {
-				return JavaConverter.deserialize(new ByteArrayInputStream(data));
 			}
 			catch (Exception pe) {
 			}

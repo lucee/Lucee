@@ -77,7 +77,7 @@ public final class GetTagList implements Function {
 				}
 			}
 			Collections.sort(tagList);
-			for(String t : tagList) {
+			for (String t: tagList) {
 				inner.put(t, "");
 			}
 		}

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project default="all" basedir="." name="LuceeExtensions">
 
-<scriptdef name="readRequiredExtensions" language="javascript" loaderRef="sharedbuild-loaderRef">
+<scriptdef name="readRequiredExtensions" language="javascript" classpath="${nashorn_classpath}">
 	<attribute name="file" />
 	<![CDATA[
 		var filename = attributes.get( "file" );
@@ -69,8 +69,8 @@
 		//
 	]]>
 	</scriptdef>
-
-	<scriptdef name="splitIdVersion" language="javascript" loaderRef="sharedbuild-loaderRef">
+	<!--
+	<scriptdef name="splitIdVersion" language="javascript">
 		<attribute name="prefix" />
 		<attribute name="value" />
 		<![CDATA[
@@ -87,12 +87,13 @@
 				id = value.substring( 0, index );
 				version = value.substring( index + 1 );
 			}
-			project.setProperty( prefi x+ "id", id );
+			project.setProperty( prefix + "id", id );
 			project.setProperty( prefix + "version", version );
 		]]>
 	</scriptdef>
+	-->
 
-	<scriptdef name="toFileName" language="javascript" loaderRef="sharedbuild-loaderRef">
+	<scriptdef name="toFileName" language="javascript" classpath="${nashorn_classpath}">
 		<attribute name="id" />
 		<attribute name="name" />
 		<attribute name="version" />
@@ -151,7 +152,6 @@
 		<available file="${cache}/${extEHCache}-${extEHCacheVersion}.lex" property="ehcache.present"/>
 		<available file="${cache}/${extAdmin}-${extAdminVersion}.lex" property="admin.present"/>
 		<available file="${cache}/${extDoc}-${extDocVersion}.lex" property="doc.present"/>
-		<available file="${cache}/${extHibernate}-${extHibernateVersion}.lex" property="hibernate.present"/>
 		<available file="${cache}/${extPDF}-${extPDFVersion}.lex" property="pdf.present"/>
 		<available file="${cache}/${extImage}-${extImageVersion}.lex" property="image.present"/>
 		<available file="${cache}/${extEsapi}-${extEsapiVersion}.lex" property="esapi.present"/>
@@ -175,9 +175,6 @@
 	</target>
 	<target name="check-ehcache" depends="check-cache" unless="ehcache.present">
 		<get src="${extURL}${extEHCache}?version=${extEHCacheVersion}" dest="${cache}/${extEHCache}-${extEHCacheVersion}.lex"/>
-	</target>
-	<target name="check-hibernate" depends="check-cache" unless="hibernate.present">
-		<get src="${extURL}${extHibernate}?version=${extHibernateVersion}" dest="${cache}/${extHibernate}-${extHibernateVersion}.lex"/>
 	</target>
 	<target name="check-pdf" depends="check-cache" unless="pdf.present">
 		<get src="${extURL}${extPDF}?version=${extPDFVersion}" dest="${cache}/${extPDF}-${extPDFVersion}.lex"/>
@@ -215,7 +212,7 @@
 		<move 
 			file="${goal}/extensions/${extMySQL}-${extMySQLVersion}.lex" 
 			tofile="${goal}/extensions/${ext_mysql.filename}"/>
-		<echo leveL="debug">add:${goal}/extensions/${ext_mysql.filename}</echo>
+		<echo level="info">add:${goal}/extensions/${ext_mysql.filename}</echo>
 		<echo file="${goal}/extensions/.index">${ext_mysql.filename};</echo>
 		
 
@@ -228,7 +225,7 @@
 		<move 
 			file="${goal}/extensions/${extMSSQL}-${extMSSQLVersion}.lex" 
 			tofile="${goal}/extensions/${ext_mssql.filename}"/>
-		<echo leveL="debug">add:${goal}/extensions/${ext_mssql.filename}</echo>
+		<echo level="info">add:${goal}/extensions/${ext_mssql.filename}</echo>
 		<echo file="${goal}/extensions/.index" append="true">${ext_mssql.filename};</echo>
 		
 		<!-- add extension Postgre -->
@@ -240,7 +237,7 @@
 		<move 
 			file="${goal}/extensions/${extPostgreSQL}-${extPostgreSQLVersion}.lex" 
 			tofile="${goal}/extensions/${ext_postgre.filename}"/>
-		<echo leveL="debug">add:${goal}/extensions/${ext_postgre.filename}</echo>
+		<echo level="info">add:${goal}/extensions/${ext_postgre.filename}</echo>
 		<echo file="${goal}/extensions/.index" append="true">${ext_postgre.filename};</echo>
 		
 		<!-- add extension JDTS -->
@@ -252,7 +249,7 @@
 		<move 
 			file="${goal}/extensions/${extJDTsSQL}-${extJDTsSQLVersion}.lex" 
 			tofile="${goal}/extensions/${ext_jdts.filename}"/>
-		<echo leveL="debug">add:${goal}/extensions/${ext_jdts.filename}</echo>
+		<echo level="info">add:${goal}/extensions/${ext_jdts.filename}</echo>
 		<echo file="${goal}/extensions/.index" append="true">${ext_jdts.filename};</echo>
 
 		<!-- add extension S3 -->
@@ -264,7 +261,7 @@
 		<move 
 			file="${goal}/extensions/${extS3}-${extS3Version}.lex" 
 			tofile="${goal}/extensions/${ext_s3.filename}"/>
-		<echo leveL="debug">add:${goal}/extensions/${ext_s3.filename}</echo>
+		<echo level="info">add:${goal}/extensions/${ext_s3.filename}</echo>
 		<echo file="${goal}/extensions/.index" append="true">${ext_s3.filename};</echo>
 		
 		<!-- add extension EHCache -->
@@ -276,20 +273,8 @@
 		<move 
 			file="${goal}/extensions/${extEHCache}-${extEHCacheVersion}.lex" 
 			tofile="${goal}/extensions/${ext_ehcache.filename}"/>
-		<echo leveL="debug">add:${goal}/extensions/${ext_ehcache.filename}</echo>
+		<echo level="info">add:${goal}/extensions/${ext_ehcache.filename}</echo>
 		<echo file="${goal}/extensions/.index" append="true">${ext_ehcache.filename};</echo>
-		
-		<!-- add extension Hibernate -->
-		<loadmf jar="${cache}/${extHibernate}-${extHibernateVersion}.lex" prefix="ext_hibernate."/>
-		<toFileName id="${ext_hibernate.id}" name="${ext_hibernate.name}" version="${ext_hibernate.version}" property="ext_hibernate.filename"/>
-		<copy 
-			file="${cache}/${extHibernate}-${extHibernateVersion}.lex" 
-			todir="${goal}/extensions/"/>
-		<move 
-			file="${goal}/extensions/${extHibernate}-${extHibernateVersion}.lex" 
-			tofile="${goal}/extensions/${ext_hibernate.filename}"/>
-		<echo leveL="debug">add:${goal}/extensions/${ext_hibernate.filename}</echo>
-		<echo file="${goal}/extensions/.index" append="true">${ext_hibernate.filename};</echo>
 
 		<!-- add extension PDF -->
 		<loadmf jar="${cache}/${extPDF}-${extPDFVersion}.lex" prefix="ext_pdf."/>
@@ -300,7 +285,7 @@
 		<move 
 			file="${goal}/extensions/${extPDF}-${extPDFVersion}.lex" 
 			tofile="${goal}/extensions/${ext_pdf.filename}"/>
-		<echo leveL="debug">add:${goal}/extensions/${ext_pdf.filename}</echo>
+		<echo level="info">add:${goal}/extensions/${ext_pdf.filename}</echo>
 		<echo file="${goal}/extensions/.index" append="true">${ext_pdf.filename};</echo>
 		
 		<!-- add extension Admin -->
@@ -312,7 +297,7 @@
 		<move 
 			file="${goal}/extensions/${extAdmin}-${extAdminVersion}.lex" 
 			tofile="${goal}/extensions/${ext_admin.filename}"/>
-		<echo leveL="debug">add:${goal}/extensions/${ext_admin.filename}</echo>
+		<echo level="info">add:${goal}/extensions/${ext_admin.filename}</echo>
 		<echo file="${goal}/extensions/.index" append="true">${ext_admin.filename};</echo>
 		
 		<!-- add extension Doc -->
@@ -324,7 +309,7 @@
 		<move 
 			file="${goal}/extensions/${extDoc}-${extDocVersion}.lex" 
 			tofile="${goal}/extensions/${ext_doc.filename}"/>
-		<echo leveL="debug">add:${goal}/extensions/${ext_doc.filename}</echo>
+		<echo level="info">add:${goal}/extensions/${ext_doc.filename}</echo>
 		<echo file="${goal}/extensions/.index" append="true">${ext_doc.filename};</echo>
 
 		<!-- add extension Image -->
@@ -336,7 +321,7 @@
 		<move 
 			file="${goal}/extensions/${extImage}-${extImageVersion}.lex" 
 			tofile="${goal}/extensions/${ext_image.filename}"/>
-		<echo leveL="debug">add:${goal}/extensions/${ext_image.filename}</echo>
+		<echo level="info">add:${goal}/extensions/${ext_image.filename}</echo>
 		<echo file="${goal}/extensions/.index" append="true">${ext_image.filename};</echo>
 
 		<!-- add extension Esapi -->
@@ -348,7 +333,7 @@
 		<move 
 			file="${goal}/extensions/${extEsapi}-${extEsapiVersion}.lex" 
 			tofile="${goal}/extensions/${ext_esapi.filename}"/>
-		<echo leveL="debug">add:${goal}/extensions/${ext_esapi.filename}</echo>
+		<echo level="info">add:${goal}/extensions/${ext_esapi.filename}</echo>
 		<echo file="${goal}/extensions/.index" append="true">${ext_esapi.filename};</echo>
 
 		<!-- add extension Compress -->
@@ -360,7 +345,7 @@
 		<move 
 			file="${goal}/extensions/${extCompress}-${extCompressVersion}.lex" 
 			tofile="${goal}/extensions/${ext_compress.filename}"/>
-		<echo leveL="debug">add:${goal}/extensions/${ext_compress.filename}</echo>
+		<echo level="info">add:${goal}/extensions/${ext_compress.filename}</echo>
 		<echo file="${goal}/extensions/.index" append="true">${ext_compress.filename};</echo>
 
 	</target>
@@ -374,7 +359,7 @@
 		<get src="${cdnUrl}${stableLoader}.jar" dest="${cache}/${stableLoader}.jar"/>
 	</target>
 
-	<scriptdef name="copyExtensions" language="javascript" loaderRef="sharedbuild-loaderRef">
+	<scriptdef name="copyExtensions" language="javascript" classpath="${nashorn_classpath}">
 		<attribute name="source" />
 		<attribute name="target" />
 		<attribute name="extensions" />

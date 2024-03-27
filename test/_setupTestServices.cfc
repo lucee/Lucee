@@ -18,7 +18,8 @@ component {
 		"MAIL_PASSWORD": "top-secret",
 		"S3_SECRET_KEY": "top-secret",
 		"MONGODB_PORT": 27017,
-		"MEMCACHED_PORT": 11211
+		"MEMCACHED_PORT": 11211,
+		"UPDATE_PROVIDER_URL": http://update.localhost"
 	}
 
 	then add an ENV var pointing to the .json file
@@ -112,23 +113,31 @@ component {
 			"FTP_PORT": 21,
 			"FTP_BASE_PATH": "/",
 
-			"SFTP_SERVER"="localhost",
+			"SFTP_SERVER": "127.0.0.1",
 			"SFTP_USERNAME": "lucee",
 			"SFTP_PASSWORD": "",  // DON'T COMMIT
-			"SFTP_PORT": 990,
+			"SFTP_PORT": 22,
 			"SFTP_BASE_PATH": "/",
+
+			"FTPS_SERVER": "127.0.0.1",
+			"FTPS_USERNAME": "lucee",
+			"FTPS_PASSWORD": "",  // DON'T COMMIT
+			"FTPS_PORT": 990,
+			"FTPS_BASE_PATH": "/",
 			
 			"S3_ACCESS_KEY_ID": "",
 			"S3_SECRET_KEY": "", // DON'T COMMIT
+			"S3_BUCKET_PREFIX": "lucee-ldev-",
 
 			"S3_CUSTOM_ACCESS_KEY_ID": "",
 			"S3_CUSTOM_SECRET_KEY": "", // DON'T COMMIT
 			"S3_CUSTOM_HOST": "http://localhost:9000", // i.e. minio
+			"S3_CUSTOM_BUCKET_PREFIX": "lucee-ldev-",
 
 			"S3_GOOGLE_ACCESS_KEY_ID": "",
 			"S3_GOOGLE_SECRET_KEY": "", // DON'T COMMIT
 			"S3_GOOGLE_HOST": "storage.googleapis.com",
-
+			"S3_GOOGLE_BUCKET_PREFIX": "lucee-ldev-",
 			// imap, pop and smtp rely on MAIL_PASSWORD being defined
 
 			"IMAP_SERVER": "localhost",
@@ -164,10 +173,11 @@ component {
 	}
 
 	public void function loadServiceConfig() localmode=true {
-		systemOutput( "", true) ;		
+		systemOutput( "", true) ;
 		systemOutput("-------------- Test Services ------------", true );
-		services = ListToArray("oracle,MySQL,MSsql,postgres,h2,mongoDb,smtp,pop,imap,s3,s3_custom,s3_google,ftp,sftp,memcached,redis,ldap");
+		services = ListToArray("oracle,MySQL,MSsql,postgres,h2,mongoDb,smtp,pop,imap,s3,s3_custom,s3_google,s3_backblaze,ftp,sftp,memcached,redis,ldap");
 		// can take a while, so we check them them in parallel
+
 		services.each( function( service ) localmode=true {
 			if (! isTestServiceAllowed( arguments.service )){
 				systemOutput( "Service [ #arguments.service# ] disabled, not found in testServices", true) ;
@@ -202,6 +212,9 @@ component {
 						case "s3_google":
 							verify = verifyS3Custom(cfg);
 							break;
+						case "s3_backblaze":
+							verify = verifyS3Custom(cfg);
+							break;
 						case "imap":
 							verify = verifyImap(cfg);
 							break;
@@ -214,6 +227,9 @@ component {
 							break;
 						case "sftp":
 							verify = verifyFTP(cfg, arguments.service);
+							break;
+						case "ftps":
+							verify = verifyFTP(cfg, service);
 							break;
 						case "mongoDb":
 							verify = verifyMongo(cfg);
@@ -234,7 +250,10 @@ component {
 					systemOutput( "Service [ #arguments.service# ] is [ #verify# ]", true) ;
 					server.test_services[arguments.service].valid = true;
 				} catch (e) {
-					systemOutput( "ERROR Service [ #arguments.service# ] threw [ #cfcatch.message# ]", true);
+					st = test._testRunner::trimJavaStackTrace( cfcatch.stacktrace );
+					if ( isEmpty( st ) or ( arrayLen( st ) eq 1 and trim( st [ 1 ] ) eq "" ) )
+						st = [ cfcatch.message ];
+					systemOutput( "ERROR Service [ #arguments.service# ] threw [ #arrayToList(st, chr(10))# ]", true);
 					if ( cfcatch.message contains "NullPointerException" || request.testDebug )
 						systemOutput(cfcatch, true);
 					if ( len( request.testServices) gt 0 ){
@@ -242,6 +261,7 @@ component {
 						systemOutput(cfcatch, true);
 						throw "Requested Test Service [ #arguments.service# ] not available";
 					}
+					server.test_services[arguments.service].stacktrace = st;
 				}
 			}
 		}, true, 4);
@@ -257,6 +277,25 @@ component {
 			}
 		}
 		return skipped;
+	}
+
+	public array function reportServiceFailed() localmode=true {
+		failed = [];
+		for ( s in server.test_services ){
+			service = server.test_services[ s ];
+			if ( !service.valid and structKeyExists( service, "stacktrace" ) ){
+				ArrayAppend( failed, "-> Service [ #s# ] #chr( 9 )# threw" );
+				for ( st in service.stacktrace ) {
+					ArrayAppend( failed, st );
+				}
+			}
+		}
+		return failed;
+	}
+	
+	public boolean function failOnConfiguredServiceError() localmode=true{
+		buildCfg = server._getSystemPropOrEnvVars( "LUCEE_BUILD_FAIL_CONFIGURED_SERVICES_FATAL", "", false );
+		return buildCfg.LUCEE_BUILD_FAIL_CONFIGURED_SERVICES_FATAL ?: false;
 	}
 
 	public string function verifyDatasource ( struct datasource ) localmode=true{
@@ -293,37 +332,55 @@ component {
 	}
 
 	public function verifyFTP ( ftp, service ) localmode=true {
+		if  ( arguments.service eq "ftps" )
+			secure = "ftps";
+		else
+			secure = ( arguments.service );
 		ftp action = "open" 
-			connection = "conn" 
-			timeout = 5
-			secure= (arguments.service contains "sftp")
+			connection = "checkConn" 
+			timeout = 2
+			secure= secure
 			username = arguments.ftp.username
 			password = arguments.ftp.password
 			server = arguments.ftp.server
 			port= arguments.ftp.port;
+
+		//SystemOutput(cfftp, true);
+		if ( !cfftp.succeeded )
+			throw cfftp.errorText;
+		sig = cfftp.returnValue.trim(); // stash, close changes cfftp
+		ftp action = "close" connection = "checkConn";
 		
-		//ftp action = "close" connection = "conn";
-		
-		return "Connection Verified"; 
+		return sig & ", #arguments.ftp.username#@#arguments.ftp.server#:#arguments.ftp.port#";
 	}
 
 	public function verifyS3 ( s3 ) localmode=true{
-		bucketName = "lucee-testsuite";
+		bucketName = arguments.s3.BUCKET_PREFIX & "verify";
 		base = "s3://#arguments.s3.ACCESS_KEY_ID#:#arguments.s3.SECRET_KEY#@/#bucketName#";
-		DirectoryExists( base );
-		return "s3 Connection Verified";
+		try {
+			directoryExists( base );
+		} catch ( e ){
+			throw listFirst( replaceNoCase( e.message, arguments.s3.SECRET_KEY, "***", "all" ), "." );
+		}
+		return "s3 Connection Verified [#bucketName#]";
 	}
 
 	public function verifyS3Custom ( s3 ) localmode=true{
-		bucketName = "lucee-testsuite";
+		bucketName = arguments.s3.BUCKET_PREFIX & "verify";
 		base = "s3://#arguments.s3.ACCESS_KEY_ID#:#arguments.s3.SECRET_KEY#@#arguments.s3.HOST#/#bucketName#";
-		if ( ! DirectoryExists( base ) )
-			DirectoryCreate( base ); // for GHA, the local service starts empty
-		return "s3 custom Connection verified";
+		try {
+			if ( ! directoryExists( base ) )
+				directoryCreate( base ); // for GHA, the local service starts empty
+		} catch ( e ) {
+			throw listFirst( replaceNoCase( e.message, arguments.s3.SECRET_KEY, "***", "all" ), "." );
+		}
+		return "s3 custom Connection verified [#bucketName#]";
 	}
 
 	public function verifyMemcached ( memcached ) localmode=true{
 		if ( structCount( memcached ) eq 2 ){
+			if ( !isRemotePortOpen( memcached.server, memcached.port ) )
+				throw "MemCached port closed #memcached.server#:#memcached.port#"; // otherwise the cache keeps trying and logging
 			try {
 				testCacheName = "testMemcached";
 				application 
@@ -332,7 +389,7 @@ component {
 						testMemcached: {
 							class: 'org.lucee.extension.cache.mc.MemcachedCache'
 							, bundleName: 'memcached.extension'
-							, bundleVersion: '4.0.0.7-SNAPSHOT'
+							, bundleVersion: '4.0.0.10-SNAPSHOT'
 							, storage: false
 							, custom: {
 								"socket_timeout": "3",
@@ -394,17 +451,20 @@ component {
 	}
 
 	public function verifyLDAP ( ldap ) localmode=true {
-		cfldap( server=ldap.server,
-			port=ldap.port,
-			timeout=5000,
-			username=ldap.username,
-			password=ldap.password,
-			action="query",
-			name="local.results",
-			start=ldap.base_dn,
-			filter="(objectClass=inetOrgPerson)",
-			attributes="cn" );
-		return "configured";
+		if ( structCount( LDAP ) eq 6 ){
+			cfldap( server=ldap.server,
+				port=ldap.port,
+				timeout=5000,
+				username=ldap.username,
+				password=ldap.password,
+				action="query",
+				name="local.results",
+				start=ldap.base_dn,
+				filter="(objectClass=inetOrgPerson)",
+				attributes="cn" );
+			return "configured";
+		}	
+		throw "not configured";
 	}
 
 	public function addSupportFunctions() {
@@ -466,7 +526,7 @@ component {
 
 		if ( StructKeyExists( server.test_services, arguments.service ) ){
 			if ( !server.test_services[ arguments.service ].valid ){
-				//SystemOutput("Warning service: [ #arguments.service# ] is not available", true);
+				SystemOutput("Warning service: [ #arguments.service# ] is not available", true);
 				if ( !arguments.verify )
 					server.test_services[ arguments.service ].missedTests++;
 				return {};
@@ -474,6 +534,13 @@ component {
 		}
 
 		switch ( arguments.service ){
+			case "updateProvider":
+				updateProvider = server._getSystemPropOrEnvVars( "URL", "UPDATE_PROVIDER_" );
+				if ( structCount( updateProvider ) eq 1 ){
+					return updateProvider;
+				} else {
+					return {url: "https://update.lucee.org" };
+				}
 			case "mssql":
 				mssql = server._getSystemPropOrEnvVars( "SERVER, USERNAME, PASSWORD, PORT, DATABASE", "MSSQL_" );
 				if ( structCount( msSql ) gt 0){
@@ -482,8 +549,8 @@ component {
 					return {
 						class: 'com.microsoft.sqlserver.jdbc.SQLServerDriver'
 						, bundleName: 'org.lucee.mssql'
-						, bundleVersion: server.getDefaultBundleVersion( 'org.lucee.mssql', '7.2.2.jre8' )
-						, connectionString: 'jdbc:sqlserver://#msSQL.SERVER#:#msSQL.PORT#;DATABASENAME=#msSQL.DATABASE#;sendStringParametersAsUnicode=true;SelectMethod=direct' & arguments.connectionString
+						, bundleVersion: server.getDefaultBundleVersion('org.lucee.mssql', '12.2.0.jre8')
+						, connectionString: 'jdbc:sqlserver://#msSQL.SERVER#:#msSQL.PORT#;DATABASENAME=#msSQL.DATABASE#;sendStringParametersAsUnicode=true;SelectMethod=direct;trustServerCertificate=true'
 						, username: msSQL.username
 						, password: msSQL.password
 					}.append( arguments.options );
@@ -497,7 +564,7 @@ component {
 					return {
 						class: 'com.mysql.cj.jdbc.Driver'
 						, bundleName: 'com.mysql.cj'
-						, bundleVersion: server.getDefaultBundleVersion( 'com.mysql.cj', '8.0.19' )
+						, bundleVersion: server.getDefaultBundleVersion( 'com.mysql.cj', '8.0.33' )
 						, connectionString: 'jdbc:mysql://#mySQL.server#:#mySQL.port#/#mySQL.database#?useUnicode=true&characterEncoding=UTF-8&useLegacyDatetimeCode=true&useSSL=false' & arguments.connectionString
 						, username: mySQL.username
 						, password: mySQL.password
@@ -512,7 +579,7 @@ component {
 					return {
 						class: 'org.postgresql.Driver'
 						, bundleName: 'org.postgresql.jdbc'
-						, bundleVersion: server.getDefaultBundleVersion( 'org.postgresql.jdbc', '42.2.20' )
+						, bundleVersion: server.getDefaultBundleVersion( 'org.postgresql.jdbc', '42.6.0' )
 						, connectionString: 'jdbc:postgresql://#pgsql.server#:#pgsql.port#/#pgsql.database#' & arguments.connectionString
 						, username: pgsql.username
 						, password: pgsql.password
@@ -526,13 +593,29 @@ component {
 						DirectoryCreate( tempDb );
 					arguments.dbFile = tempDb;
 				}
-				if ( Len( arguments.dbFile ) ){
+				if ( len( arguments.dbFile ) ){
 					return {
 						class: 'org.h2.Driver'
 						, bundleName: 'org.lucee.h2'
 						, bundleVersion: server.getDefaultBundleVersion( 'org.lucee.h2', '2.1.214.0001L' )
 						, connectionString: 'jdbc:h2:#arguments.dbFile#/db;MODE=MySQL' & arguments.connectionString
 					}.append( arguments.options );
+				}
+				break;
+			case "hsqldb":
+				if ( arguments.verify ){
+					tempDb = "#getTempDirectory()#/hsqldb-#createUUID()#";
+					if (! DirectoryExists( tempDb ) )
+						DirectoryCreate( tempDb );
+					arguments.dbFile = tempDb;
+				}
+				if ( len( arguments.dbFile ) ){
+					return {
+						class: 'org.hsqldb.jdbcDriver'
+						, bundleName: 'org.lucee.hsqldb'
+						, bundleVersion: server.getDefaultBundleVersion( 'org.lucee.hsqldb', '2.7.2.jdk8' )
+						, connectionString: 'jdbc:hsqldb:#arguments.dbFile#/datasource/db;MODE=MySQL'
+					};
 				}
 				break;
 			case "mongoDB":
@@ -570,6 +653,9 @@ component {
 			case "sftp":
 				sftp = server._getSystemPropOrEnvVars( "SERVER, USERNAME, PASSWORD, PORT, BASE_PATH", "SFTP_");
 				return sftp;
+			case "ftps":
+				ftps = server._getSystemPropOrEnvVars( "SERVER, USERNAME, PASSWORD, PORT, BASE_PATH", "FTPS_");
+				return ftps;
 			case "smtp":
 				smtp = server._getSystemPropOrEnvVars( "SERVER, PORT_SECURE, PORT_INSECURE, USERNAME, PASSWORD", "SMTP_" );
 				return smtp;
@@ -580,13 +666,16 @@ component {
 				pop = server._getSystemPropOrEnvVars( "SERVER, PORT_SECURE, PORT_INSECURE, USERNAME, PASSWORD", "POP_" );
 				return pop;
 			case "s3":
-				s3 = server._getSystemPropOrEnvVars( "ACCESS_KEY_ID, SECRET_KEY", "S3_" );
+				s3 = server._getSystemPropOrEnvVars( "ACCESS_KEY_ID, SECRET_KEY, BUCKET_PREFIX", "S3_" );
 				return s3;
 			case "s3_custom":
-				s3 = server._getSystemPropOrEnvVars( "ACCESS_KEY_ID, SECRET_KEY, HOST", "S3_CUSTOM_" );
+				s3 = server._getSystemPropOrEnvVars( "ACCESS_KEY_ID, SECRET_KEY, HOST, BUCKET_PREFIX", "S3_CUSTOM_" );
 				return s3;
 			case "s3_google":
-				s3 = server._getSystemPropOrEnvVars( "ACCESS_KEY_ID, SECRET_KEY, HOST", "S3_GOOGLE_" );
+				s3 = server._getSystemPropOrEnvVars( "ACCESS_KEY_ID, SECRET_KEY, HOST, BUCKET_PREFIX", "S3_GOOGLE_" );
+				return s3;
+			case "s3_backblaze":
+				s3 = server._getSystemPropOrEnvVars( "ACCESS_KEY_ID, SECRET_KEY, HOST, BUCKET_PREFIX", "S3_BACKBLAZE_" );
 				return s3;
 			case "memcached":
 				memcached = server._getSystemPropOrEnvVars( "SERVER, PORT", "MEMCACHED_" );
@@ -601,8 +690,8 @@ component {
 				}
 				break;
 			case "ldap":
-				ldap = server._getSystemPropOrEnvVars( "SERVER, PORT, USERNAME, PASSWORD, BASE_DN", "LDAP_" );
-				if ( ldap.count() eq 5 ){
+				ldap = server._getSystemPropOrEnvVars( "SERVER, PORT, PORT_SECURE, USERNAME, PASSWORD, BASE_DN", "LDAP_" );
+				if ( ldap.count() eq 6 ){
 					return ldap;
 				}
 				break;
@@ -649,6 +738,22 @@ component {
 				return true;
 		}
 		return false;
+	}
+
+	boolean function isRemotePortOpen( string host, numeric port, numeric timeout=2000 ) {
+		var socket = createObject( "java", "java.net.Socket").init();
+		var address = createObject( "java", "java.net.InetSocketAddress" ).init(
+			javaCast( "string", arguments.host ),
+			javaCast( "int", arguments.port )
+		);
+
+		try {
+			socket.connect( address, javaCast( "int", arguments.timeout ));
+			socket.close();
+			return true;
+		} catch (e) {
+			return false;
+		}
 	}
 }
 

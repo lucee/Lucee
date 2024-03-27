@@ -104,7 +104,6 @@ public final class FileTag extends BodyTagImpl {
 	private static final int ACTION_TOUCH = 9;
 	private static final int ACTION_DELETE = 10;
 	private static final int ACTION_READ_BINARY = 11;
-	// private static final Key SET_ACL = KeyImpl.intern("setACL");
 	private static final String DETAIL = "You can set a [allowedExtension] and a [blockedExtension] list as an argument/attribute with the tag [cffile] and the functions [fileUpload] and [fileUploadAll]. "
 			+ "In addition you can configure this via the Application.cfc, [this.blockedExtForFileUpload] property, the [" + SystemUtil.SETTING_UPLOAD_EXT_BLOCKLIST
 			+ "] System property or the [" + SystemUtil.convertSystemPropToEnvVar(SystemUtil.SETTING_UPLOAD_EXT_BLOCKLIST)
@@ -609,7 +608,7 @@ public final class FileTag extends BodyTagImpl {
 	private static void setACL(PageContext pc, Resource res, Object acl) throws PageException {
 		String scheme = res.getResourceProvider().getScheme();
 		if ("s3".equalsIgnoreCase(scheme)) {
-			Directory.setS3Attrs(pc, res, acl, null);
+			Directory.setS3acl(pc, res, acl);
 		}
 	}
 
@@ -871,8 +870,8 @@ public final class FileTag extends BodyTagImpl {
 		/*
 		 * try { BufferedImage bi = ImageUtil.toBufferedImage(file, null); if(bi!=null) { Struct img =new
 		 * StructImpl(); img.setEL(KeyConstants._width,Double.valueOf(bi.getWidth()));
-		 * img.setEL(KeyConstants._height,Double.valueOf(bi.getHeight())); sct.setEL(KeyConstants._img,img); } }
-		 * catch(Exception e) {}
+		 * img.setEL(KeyConstants._height,Double.valueOf(bi.getHeight())); sct.setEL(KeyConstants._img,img);
+		 * } } catch(Exception e) {}
 		 */
 		return sct;
 	}
@@ -1037,7 +1036,6 @@ public final class FileTag extends BodyTagImpl {
 				cffile.set("serverfile", destination.getName());
 				cffile.set("serverfileext", ResourceUtil.getExtension(destination, ""));
 				cffile.set("serverfilename", ResourceUtil.getName(destination));
-				cffile.set("attemptedserverfile", destination.getName());
 				// }
 			}
 			else if (nameconflict == NAMECONFLICT_FORCEUNIQUE) {
@@ -1048,7 +1046,6 @@ public final class FileTag extends BodyTagImpl {
 				cffile.set("serverfile", destination.getName());
 				cffile.set("serverfileext", ResourceUtil.getExtension(destination, ""));
 				cffile.set("serverfilename", ResourceUtil.getName(destination));
-				cffile.set("attemptedserverfile", destination.getName());
 			}
 			else if (nameconflict == NAMECONFLICT_OVERWRITE) {
 				// fileWasAppended=true;
@@ -1124,7 +1121,8 @@ public final class FileTag extends BodyTagImpl {
 					if (StringUtil.isEmpty(blocklistedTypes))
 						blocklistedTypes = SystemUtil.getSystemPropOrEnvVar(SystemUtil.SETTING_UPLOAD_EXT_BLOCKLIST, SystemUtil.DEFAULT_UPLOAD_EXT_BLOCKLIST);
 
-					NotResourceFilter filter = new NotResourceFilter(new ExtensionResourceFilter(ListUtil.trimItems(ListUtil.listToStringArray(blocklistedTypes, ',')), false, true, false));
+					NotResourceFilter filter = new NotResourceFilter(
+							new ExtensionResourceFilter(ListUtil.trimItems(ListUtil.listToStringArray(blocklistedTypes, ',')), false, true, false));
 
 					if (!filter.accept(clientFile)) throw new ApplicationException("Upload of files with extension [" + ext + "] is not permitted.", DETAIL);
 				}

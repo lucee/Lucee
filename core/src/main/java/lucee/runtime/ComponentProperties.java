@@ -24,12 +24,12 @@ import java.util.Map;
 import lucee.runtime.component.Property;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.type.Collection;
-import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
+import lucee.runtime.type.util.KeyConstants;
 
 public class ComponentProperties implements Serializable {
 
-	private static final Collection.Key WSDL_FILE = KeyImpl.getInstance("wsdlfile");
+	private static final Collection.Key WSDL_FILE = KeyConstants._wsdlfile;
 	final String dspName;
 	final String extend;
 	final String hint;

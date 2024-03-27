@@ -63,6 +63,12 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 				);
 				expect( result.filecontent.trim() ).toBeTrue();
 			});
+
+			it( title="getApplicationSettings()", body=function( currentSpec ) {
+				var as = getApplicationSettings(onlySupported=true);
+				expect( as ).toHaveKey("bufferoutput");
+				expect( as ).toHaveKey("suppresscontent");
+			});
 		});
 	}
 

@@ -38,6 +38,30 @@ try {
 		primary="physical"
 		trusted="no";
 
+	admin
+		action="updateMapping"
+		type="web"
+		password="#request.WEBADMINPASSWORD#"
+		virtual="/test-once"
+		physical="#request.testFolder#"
+		toplevel="true"
+		archive=""
+		primary="physical"
+		trusted="no"
+		inspect="once";
+	
+	admin
+		action="updateMapping"
+		type="web"
+		password="#request.WEBADMINPASSWORD#"
+		virtual="/test-never"
+		physical="#request.testFolder#"
+		toplevel="true"
+		archive=""
+		primary="physical"
+		trusted="no"
+		inspect="never";
+
 	systemOutput("set /test mapping #dateTimeFormat(now())#", true);
 
 	param name="testDebug" default="false";
@@ -52,18 +76,39 @@ try {
 	if ( len( request.testServices ) )
 		SystemOutput( "Test Services restricted to [#request.testServices#]", true );
 
+	struct function reportMem( string type, struct prev={}, string name="" ) {
+		var qry = getMemoryUsage( type );
+		var report = [];
+		var used = { name: arguments.name };
+		querySort(qry,"type,name");
+		loop query=qry {
+			if (qry.max == -1)
+				var perc = 0;
+			else 
+				var perc = int( ( qry.used / qry.max ) * 100 );
+			//if(qry.max<0 || qry.used<0 || perc<90) 	continue;
+			//if(qry.max<0 || qry.used<0 || perc<90) 	continue;
+			var rpt = replace(ucFirst(qry.type), '_', ' ')
+				& " " & qry.name & ": " & numberFormat(perc) & "%, " & numberFormat( qry.used / 1024 / 1024 ) & " Mb";
+			if ( structKeyExists( arguments.prev, qry.name ) ) {
+				rpt &= ", (+ " & numberFormat( (qry.used - arguments.prev[ qry.name ] ) / 1024 / 1024 ) & " Mb)";
+			}
+			arrayAppend( report, rpt );
+			used[ qry.name ] = qry.used;
+		}
+		return {
+			report: report,
+			usage: used
+		};
+	}
+
+	// report current memory usage
+	_reportMemStat = reportMem( "", {}, "bootup" );
+	//for ( stat in _reportMemStat.report )
+	//	systemOutput( stat, true );
+
 	// you can also provide a json file with your environment variables, i.e. just set LUCEE_BUILD_ENV="c:\work\lucee\loader\env.json"
 	setupTestServices = new test._setupTestServices().setup();
-
-	function mem(type) {
-		var qry = getMemoryUsage(type);
-		loop query=qry {
-			var perc = int(100 / qry.max * qry.used);
-			if(qry.max<0 || qry.used<0 || perc<90)
-				continue;
-			systemOutput(TAB & replace(ucFirst(type), '_', ' ') & " " & qry.name & ": " & perc & "%", true);
-		}
-	}
 
 	// set a password for the admin
 	try {
@@ -229,6 +274,11 @@ try {
 			& (len(mappings.inspect) ? "(#mappings.inspect#)" : ""), true);
 	}
 
+	//systemOutput("-------------- Memory after services configured", true);
+	_reportMemStat2 = reportMem( "", _reportMemStat.usage, "configured" );
+	//for ( stat in _reportMemStat2.report )
+	//	systemOutput( stat, true );
+
 	systemOutput(NL & "-------------- Start Tests -----------", true);
 	silent {
 		testResults = new test._testRunner().runTests();
@@ -240,24 +290,26 @@ try {
 	tb = testResults.tb;
 
 	jUnitReporter = new testbox.system.reports.JUnitReporter();
-	resultPath = ExpandPath( "/test") & "/reports/";
+	resultPath = ExpandPath( "/test" ) & "/reports/";
 	if ( !DirectoryExists( resultPath ) )
 		DirectoryCreate( resultPath );
 	JUnitReportFile = resultPath & "junit-test-results-#server.lucee.version#.xml";
-	FileWrite( JUnitReportFile, jUnitReporter.runReport(results=result, testbox=tb, justReturn=true) );
+	FileWrite( JUnitReportFile, jUnitReporter.runReport( results=result, testbox=tb, justReturn=true ) );
 
 	// load errors into an array, so we can dump them out to $GITHUB_STEP_SUMMARY
 	results = [];
 	results_md = ["## Lucee #server.lucee.version#", ""];
 
 	systemOutput( NL & NL & "=============================================================", true );
-	arrayAppend( results, "TestBox Version: #tb.getVersion()#");
 	arrayAppend( results, "Lucee Version: #server.lucee.version#");
 	arrayAppend( results, "Java Version: #server.java.version#");
+	arrayAppend( results, "TestBox Version: #tb.getVersion()#");
 	arrayAppend( results, "Total Execution time: (#NumberFormat( ( getTickCount()-request._start) / 1000 )# s)");
 	arrayAppend( results, "Test Execution time: (#NumberFormat( result.getTotalDuration() /1000 )# s)");
 	arrayAppend( results, "Average Test Overhead: (#NumberFormat( ArrayAvg( request.overhead ) )# ms)");
 	arrayAppend( results, "Total Test Overhead: (#NumberFormat( ArraySum( request.overhead ) )# ms)");
+	arrayAppend( results, "");
+	arrayAppend( results, reportMem( "", _reportMemStat.usage ).report, true );
 	arrayAppend( results, "");
 	arrayAppend( results, "=============================================================" & NL);
 	arrayAppend( results, "-> Bundles/Suites/Specs: #result.getTotalBundles()#/#result.getTotalSuites()#/#result.getTotalSpecs()#");
@@ -268,8 +320,8 @@ try {
 	arrayAppend( results, "-> JUnitReport: #JUnitReportFile#");
 
 	servicesReport = new test._setupTestServices().reportServiceSkipped();
-	for ( s in servicesReport ){
-		arrayAppend( results, s );
+	for ( service in servicesReport ){
+		arrayAppend( results, service );
 	}
 	arrayAppend( results_md, "" );
 	loop array=results item="summary"{
@@ -278,6 +330,17 @@ try {
 	}
 	arrayAppend( results_md, "" );
 
+	failedServices = new test._setupTestServices().reportServiceFailed();
+	if ( len( failedServices ) gt 0 ){
+		systemOutput( "", true );
+		loop array=failedServices item="failure"{
+			systemOutput( failure, true );
+			arrayAppend( results_md, failure );
+		}
+		systemOutput( "", true );
+		arrayAppend( results_md, "" );
+	}
+	
 	if ( structKeyExists( server.system.environment, "GITHUB_STEP_SUMMARY" ) ){
 		github_commit_base_href=  "/" & server.system.environment.GITHUB_REPOSITORY
 			& "/blob/" & server.system.environment.GITHUB_SHA & "/";
@@ -351,6 +414,11 @@ try {
 		systemOutput( "ERROR: No tests were run", true );
 		systemOutput( "", true );
 		throw "ERROR: No tests were run";
+	}
+
+	if ( len( new test._setupTestServices().reportServiceFailed() ) gt 0 
+			&& new test._setupTestServices().failOnConfiguredServiceError() ) {
+		throw "ERROR: test service(s) failed";
 	}
 
 } catch( e ){

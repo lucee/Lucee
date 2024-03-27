@@ -1,4 +1,4 @@
-component extends = "org.lucee.cfml.test.LuceeTestCase" skip=true{
+component extends = "org.lucee.cfml.test.LuceeTestCase" skip=false {
     function run( testResults, textbox ) {
         describe("testcase for LDEV-3729", function(){
             it(title="Checking precision with 16 digit number", body=function( currentSpec ){

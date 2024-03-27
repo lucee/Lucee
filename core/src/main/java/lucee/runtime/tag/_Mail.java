@@ -29,8 +29,6 @@ import lucee.runtime.ext.tag.TagImpl;
 import lucee.runtime.functions.other.CreateUniqueId;
 import lucee.runtime.net.mail.MailClient;
 import lucee.runtime.op.Caster;
-import lucee.runtime.type.util.ArrayUtil;
-import lucee.runtime.type.util.ListUtil;
 
 /**
  * Retrieves and deletes e-mail messages from a POP mail server.

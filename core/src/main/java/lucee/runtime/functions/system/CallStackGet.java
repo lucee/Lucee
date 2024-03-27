@@ -29,6 +29,7 @@ import lucee.runtime.PageContextImpl;
 import lucee.runtime.PageSource;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.converter.JSONConverter;
+import lucee.runtime.converter.JSONDateFormat;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
@@ -38,7 +39,6 @@ import lucee.runtime.op.Caster;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.Collection;
-import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.UDF;
@@ -50,7 +50,7 @@ import lucee.runtime.type.util.KeyConstants;
 public final class CallStackGet implements Function {
 
 	private static final long serialVersionUID = -5853145189662102420L;
-	static final Collection.Key LINE_NUMBER = KeyImpl.getInstance("LineNumber");
+	static final Collection.Key LINE_NUMBER = KeyConstants._LineNumber;
 
 	public static Object call(PageContext pc) {
 		Array arr = new ArrayImpl();
@@ -79,7 +79,7 @@ public final class CallStackGet implements Function {
 
 		if (type.equalsIgnoreCase("json")) {
 			try {
-				return new JSONConverter(true, null).serialize(pc, arr, SerializationSettings.SERIALIZE_AS_ROW);
+				return new JSONConverter(true, null, JSONDateFormat.PATTERN_CF, false).serialize(pc, arr, SerializationSettings.SERIALIZE_AS_ROW, false);
 			}
 			catch (Throwable t) {
 				ExceptionUtil.rethrowIfNecessary(t);

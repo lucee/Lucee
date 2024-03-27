@@ -336,6 +336,7 @@ component {
 	* @customJdbcCompliantTruncation If set to false then values for table fields are automatically truncated so that they fit into the field.
 	* @customTinyInt1isBit if set to "true" (default) tinyInt(1) is converted to a bit value otherwise as integer.
 	* @customUseLegacyDatetimeCode Use code for DATE/TIME/DATETIME/TIMESTAMP handling in result sets and statements
+	* @requestExclusive Use to keep DB connections open, using 'Exclusive connections for request' checkbox, in the Lucee Server Admin
 	* @verify whether connection needs to be verified
 	*/
 	public void function updateDatasource(
@@ -379,7 +380,8 @@ component {
 		boolean customAutoReconnect=false,
 		boolean customJdbcCompliantTruncation=false,
 		boolean customTinyInt1isBit=false,
-		boolean customUseLegacyDatetimeCode=false
+		boolean customUseLegacyDatetimeCode=false,
+		boolean requestExclusive=false
 	){
 
 		var driverNames=structnew("linked");
@@ -442,7 +444,8 @@ component {
 			verify="#arguments.verify#"
 			custom="#arguments.custom#"
 			dbdriver="#arguments.type#"
-			remoteClients="#variables.remoteClients#";
+			remoteClients="#variables.remoteClients#"
+			requestExclusive="#getArguments(arguments, 'requestExclusive',false)#";
 	}
 
 	/**
@@ -514,12 +517,12 @@ component {
 
 		var mailServers = getMailservers();
 		if( structKeyExists(arguments, 'username') && arguments.username == ''  ){
-			query name="local.existing" dbtype="query"{
-				echo("SELECT * FROM mailservers WHERE hostName = '#arguments.host#' and port = '#arguments.port#' ")
+			query name="local.existing" dbtype="query" params=[arguments.host,arguments.port]{
+				echo("SELECT * FROM mailservers WHERE hostName = ? AND port = ?")
 			}
 		} else{
-			query name="local.existing" dbtype="query"{
-				echo("SELECT * FROM mailservers WHERE hostName = '#arguments.host#' and port = '#arguments.port#' and username = '#arguments.username#' ")
+			query name="local.existing" dbtype="query" params=[arguments.host,arguments.port,arguments.username]{
+				echo("SELECT * FROM mailservers WHERE hostName = ? AND port = ? AND username = ?")
 			}
 		}
 
@@ -591,7 +594,7 @@ component {
 	/**
 	* @hint updates the mail settings for current context
 	* @defaultEncoding Default encoding used for mail servers
-	* @spoolenable If enabled the mails are sent in a background thread and the main request does not have to wait until the mails are sent.
+	* @spoolenable If enabled, the mails are sent in a background thread and the main request does not have to wait until the mails are sent.
 	* @timeout Time in seconds that the Task Manager waits to send a single mail, when the time is reached the Task Manager stops the thread and the mail gets moved to unsent folder, where the Task Manager will pick it up later to try to send it again.
 	*/
 	public void function updateMailSetting( string defaultEncoding="UTF-8", boolean spoolEnable, numeric timeOut ){
@@ -813,18 +816,6 @@ component {
 			password="#variables.password#"
 			returnVariable="local.extensions";
 		return local.extensions;
-	}
-
-	/**
-	* @hint returns the extension Info
-	*/
-	public struct function getExtensionInfo(){
-		admin
-			action="getExtensionInfo"
-			type="#variables.type#"
-			password="#variables.password#"
-			returnVariable="local.info";
-		return info;
 	}
 
 	/**
@@ -1077,25 +1068,21 @@ component {
 
 	/**
 	* @hint updates component mapping settings
-	* @baseComponentTemplateCFML Every component(CFC) that does not explicitly extend another component (attribute "extends") will by default extend this component.
-	* @baseComponentTemplateLucee Every component(lucee) that does not explicitly extend another component (attribute "extends") will by default extend this component.
 	* @componentDumpTemplate If you call a component directly, this template will be invoked to dump the component.
 	* @componentDataMemberDefaultAccess Define the accessor for the data-members of a component. This defines how variables of the "this" scope of a component can be accessed from outside of the component., values available for this argument are [private,public,package,remote]
 	* @triggerDataMember If there is no accessible data member (property, element of the this scope) inside a component, Lucee searches for available matching "getters" or "setters" for the requested property.
 	* @useShadow Defines whether a component has an independent variables scope parallel to the "this" scope (CFML standard) or not.
 	* @componentDefaultImport this package definition is imported into every template.
 	* @componentLocalSearch Search relative to the caller directory for the component
-	* @componentPathCache component path is cached and not resolved again
+	* @componentPathCache Component path is cached and not resolved again
 	* @componentDeepSearchDesc Search for CFCs in the subdirectories of the "Additional Resources" below.
 	*/
-	public void function updateComponent(string baseComponentTemplateCFML="", string baseComponentTemplateLucee="", string componentDumpTemplate="", string componentDataMemberDefaultAccess="public", boolean triggerDataMember=false, boolean useShadow=true, string componentDefaultImport="org.lucee.cfml.*", boolean componentLocalSearch=false, boolean componentPathCache=false, boolean componentDeepSearchDesc=false){
+	public void function updateComponent(string componentDumpTemplate="", string componentDataMemberDefaultAccess="public", boolean triggerDataMember=false, boolean useShadow=true, string componentDefaultImport="org.lucee.cfml.*", boolean componentLocalSearch=false, boolean componentPathCache=false, boolean componentDeepSearchDesc=false){
 		admin
 			action="updateComponent"
 			type="#variables.type#"
 			password="#variables.password#"
 
-			baseComponentTemplateCFML="#arguments.baseComponentTemplateCFML#"
-			baseComponentTemplateLucee="#arguments.baseComponentTemplateLucee#"
 			componentDumpTemplate="#arguments.componentDumpTemplate#"
 			componentDataMemberDefaultAccess="#arguments.componentDataMemberDefaultAccess#"
 			triggerDataMember="#arguments.triggerDataMember#"
@@ -1198,8 +1185,8 @@ component {
 		boolean storage
 	){
 		var connections =  getCacheConnections()
-		query name="local.existing" dbtype="query"{
-			echo("SELECT * FROM connections WHERE class = '#arguments.class#' and name = '#arguments.name#' ")
+		query name="local.existing" dbtype="query" params=[arguments.class,arguments.name]{
+			echo("SELECT * FROM connections WHERE class = ? AND name = ?")
 		}
 
 		admin
@@ -1269,7 +1256,7 @@ component {
 	* @handleUnquotedAttrValueAsString Handle unquoted tag attribute values as strings.
 	* @externalizeStringGTE Externalize strings from generated class files to separate files.
 	*/
-	public void function updateCompilerSettings( required string templateCharset, required string dotNotationUpperCase, boolean nullSupport, boolean suppressWSBeforeArg, boolean handleUnquotedAttrValueAsString, numeric externalizeStringGTE){
+	public void function updateCompilerSettings( required string templateCharset, required string dotNotationUpperCase, boolean nullSupport, boolean suppressWSBeforeArg, boolean handleUnquotedAttrValueAsString, numeric externalizeStringGTE, boolean preciseMath){
 		var dotNotUpper=true;
 		if(isDefined('arguments.dotNotationUpperCase') and arguments.dotNotationUpperCase EQ "oc"){
 			dotNotUpper=false;
@@ -1286,6 +1273,7 @@ component {
 			suppressWSBeforeArg=isNull(arguments.suppressWSBeforeArg) || isEmpty(arguments.suppressWSBeforeArg) ? existing.suppressWSBeforeArg : arguments.suppressWSBeforeArg
 			handleUnquotedAttrValueAsString=isNull(arguments.handleUnquotedAttrValueAsString) || isEmpty(arguments.handleUnquotedAttrValueAsString) ? existing.handleUnquotedAttrValueAsString  : arguments.handleUnquotedAttrValueAsString
 			externalizeStringGTE=isNull(arguments.externalizeStringGTE) || isEmpty(arguments.externalizeStringGTE) ? existing.externalizeStringGTE  : arguments.externalizeStringGTE
+			preciseMath=isNull(arguments.preciseMath) || isEmpty(arguments.preciseMath) ? existing.preciseMath  : arguments.preciseMath
 			remoteClients="#variables.remoteClients#";
 	}
 
@@ -1304,6 +1292,7 @@ component {
 			handleUnquotedAttrValueAsString=""
 			templateCharset=""
 			externalizeStringGTE=""
+			preciseMath=""
 			remoteClients="#variables.remoteClients#";
 	}
 
@@ -1322,7 +1311,7 @@ component {
 	/**
 	* @hint updates server caching settings
 	* @inspectTemplate sets the type of inspection for files inside the template cache
-	* @typeChecking If disabled Lucee ignores type definitions with function arguments and return values
+	* @typeChecking If disabled, Lucee ignores type definitions with function arguments and return values
 	*/
 	public void function updatePerformanceSettings( required string inspectTemplate, boolean typeChecking){
 		var existing = getPerformanceSettings();
@@ -1389,8 +1378,8 @@ component {
 	*/
 	public void function updateGatewayEntry( required string id, required string startupMode, string class, string cfcPath, string listenerCfcPath,  struct custom ){
 		var getGatewayEntries = getGatewayEntries();
-		query name="local.existing" dbtype="query"{
-			echo("SELECT * FROM getGatewayEntries WHERE id = '#arguments.id#' and startupMode = '#arguments.startupMode#' ")
+		query name="local.existing" dbtype="query"  params=[arguments.id,arguments.startupMode]{
+			echo("SELECT * FROM getGatewayEntries WHERE id = ? AND startupMode = ?")
 		}
 		admin
 			action="updateGatewayEntry"
@@ -1508,11 +1497,13 @@ component {
 			drivers[trim(tmp.getId())]=tmp;
 		}
 
+		SystemOutput(structKeyList(driverNames),1,1);
+		SystemOutput(structKeyList(drivers),1,1);
 		var driver=drivers[trim(arguments.type)];
 		var meta=getMetaData(driver);
 		var debugEntry = getDebugEntry();
-		query name="local.existing" dbtype="query"{
-			echo("SELECT * FROM debugEntry WHERE label = '#arguments.label#' ");
+		query name="local.existing" dbtype="query"  params=[arguments.label]{
+			echo("SELECT * FROM debugEntry WHERE label = ?");
 		}
 		admin
 			action="updateDebugEntry"
@@ -1981,8 +1972,8 @@ component {
 		,          struct layoutArgs={}
 	){
 		var LogSettings = getLogSettings();
-		query name="local.existing" dbtype="query"{
-			echo("SELECT * FROM LogSettings WHERE name = '#arguments.name#' ");
+		query name="local.existing" dbtype="query"  params=[arguments.name]{
+			echo("SELECT * FROM LogSettings WHERE name = ?");
 		}
 
 		admin
@@ -2027,7 +2018,7 @@ component {
 	* @type specifies the type of listener to update
 	* @mode specifies the mode of the listener
 	*/
-	public void function updateApplicationListener( string type, string mode ){
+	public void function updateApplicationListener( string type, string mode, numeric applicationPathTimeout ){
 		var existing = getApplicationListener();
 		admin
 			action="updateApplicationListener"
@@ -2035,6 +2026,7 @@ component {
 			password="#variables.password#"
 			listenerType=isNull(arguments.type) || isEmpty(arguments.type) ? existing.type : arguments.type
 			listenerMode=isNull(arguments.mode) || isEmpty(arguments.mode) ? existing.mode : arguments.mode
+			applicationPathTimeout =isNull(arguments.applicationPathTimeout) || isEmpty(arguments.applicationPathTimeout) ? existing.applicationPathTimeout : arguments.applicationPathTimeout
 			remoteClients="#variables.remoteClients#";
 	}
 
@@ -2048,6 +2040,7 @@ component {
 			password="#variables.password#"
 			listenerType=""
 			listenerMode=""
+			applicationPathTimeout=""
 			remoteClients="#variables.remoteClients#";
 	}
 
@@ -2373,7 +2366,7 @@ component {
 	* @hint returns the details of custom tag settings
 	* @deepSearch Search for custom tags in subdirectories.
 	* @localSearch Search in the caller directory for the custom tag
-	* @component path is cached and not resolved again
+	* @Component path is cached and not resolved again
 	* @extensions These are the extensions used for Custom Tags, in the order they are searched.
 	*/
 	public void function updateCustomTagSetting( required boolean deepSearch, required boolean localSearch, required boolean customTagPathCache, required string extensions ) {

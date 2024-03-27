@@ -18,8 +18,6 @@
  **/
 package lucee.runtime.tag;
 
-import java.io.IOException;
-
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.tag.TagImpl;
@@ -39,10 +37,13 @@ public final class Flush extends TagImpl {
 	 */
 	private double interval = -1;
 
+	private boolean throwonerror = true;
+
 	@Override
 	public void release() {
 		super.release();
 		interval = -1;
+		throwonerror = true;
 	}
 
 	/**
@@ -56,14 +57,18 @@ public final class Flush extends TagImpl {
 		this.interval = interval;
 	}
 
+	public void setThrowonerror(boolean throwonerror) {
+		this.throwonerror = throwonerror;
+	}
+
 	@Override
 	public int doStartTag() throws PageException {
 		try {
 			if (interval == -1) ((PageContextImpl) pageContext).getRootOut().flush();
 			else((PageContextImpl) pageContext).getRootOut().setBufferConfig((int) interval, true);
 		}
-		catch (IOException e) {
-			throw Caster.toPageException(e);
+		catch (Exception e) {
+			if (throwonerror) throw Caster.toPageException(e);
 		}
 		return SKIP_BODY;
 	}

@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" skip="true" {
+component extends="org.lucee.cfml.test.LuceeTestCase" skip="false" {
 	function run( testResults, testBox ) {
 		describe( title="Testcase for LDEV-4409", body=function() {
 			it( title = "Checking numberFormat() with mask argument", body=function( currentSpec ) {

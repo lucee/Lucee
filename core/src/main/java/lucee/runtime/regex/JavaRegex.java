@@ -46,7 +46,7 @@ class JavaRegex implements Regex {
 			if (offset > strLen) return 0;
 
 			Matcher matcher = toPattern(strPattern, caseSensitive, multiLine).matcher(strInput);
-			if (offset > 1) matcher.region(offset-1, strLen);
+			if (offset > 1) matcher.region(offset - 1, strLen);
 			if (!matcher.find()) return 0;
 
 			return matcher.start() + 1;
@@ -63,7 +63,7 @@ class JavaRegex implements Regex {
 			if (offset > strLen) return 0;
 
 			Matcher matcher = toPattern(strPattern, caseSensitive, multiLine).matcher(strInput);
-			if (offset > 1) matcher.region(offset-1, strLen);
+			if (offset > 1) matcher.region(offset - 1, strLen);
 
 			ArrayImpl arr = null;
 			while (matcher.find()) {
@@ -84,7 +84,7 @@ class JavaRegex implements Regex {
 			if (offset > strLen) return findEmpty();
 
 			Matcher matcher = toPattern(strPattern, caseSensitive, multiLine).matcher(strInput);
-			if (offset > 1) matcher.region(offset-1, strLen);
+			if (offset > 1) matcher.region(offset - 1, strLen);
 			if (!matcher.find()) return findEmpty();
 
 			return toStruct(matcher, strInput);
@@ -98,16 +98,16 @@ class JavaRegex implements Regex {
 	public Array findAll(String strPattern, String strInput, int offset, boolean caseSensitive, boolean multiLine) throws PageException {
 		try {
 			ArrayImpl arr = new ArrayImpl();
-			
+
 			int strLen = strInput.length();
-			if (offset > strLen){
+			if (offset > strLen) {
 				arr.add(findEmpty());
-				return arr;	
+				return arr;
 			}
 
 			Matcher matcher = toPattern(strPattern, caseSensitive, multiLine).matcher(strInput);
-			if (offset > 1 ) matcher.region(offset-1, strLen);
-			
+			if (offset > 1) matcher.region(offset - 1, strLen);
+
 			while (matcher.find()) {
 				arr.append(toStruct(matcher, strInput));
 			}
@@ -188,7 +188,7 @@ class JavaRegex implements Regex {
 		Array posArray = new ArrayImpl();
 		Array matchArray = new ArrayImpl();
 
-		for(int i=0; i<=matcher.groupCount();i++) {
+		for (int i = 0; i <= matcher.groupCount(); i++) {
 			lenArray.appendEL(matcher.end(i) - matcher.start(i));
 			posArray.appendEL(matcher.start(i) + 1);
 			matchArray.appendEL(matcher.group(i));

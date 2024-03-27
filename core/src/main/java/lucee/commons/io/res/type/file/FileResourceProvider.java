@@ -117,4 +117,9 @@ public final class FileResourceProvider implements ResourceProviderPro {
 	public char getSeparator() {
 		return File.separatorChar;
 	}
+
+	@Override
+	public boolean allowMatching() {
+		return true;
+	}
 }

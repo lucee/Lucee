@@ -96,6 +96,7 @@ public interface TagMetaData {
 
 	/**
 	 * get attributes of the tag
+	 * 
 	 * @return attributes of the tag
 	 */
 	public TagMetaDataAttr[] getAttributes();

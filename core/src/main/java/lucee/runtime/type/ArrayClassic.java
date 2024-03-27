@@ -356,7 +356,7 @@ public class ArrayClassic extends ArraySupport {
 		for (int i = offset; i < offset + size; i++) {
 			Object o = arr[i];
 			count++;
-			if (o != null) lst.add(KeyImpl.getInstance(count + ""));
+			if (o != null) lst.add(KeyImpl.init(count + ""));
 		}
 		return lst.toArray(new Collection.Key[lst.size()]);
 	}
@@ -600,7 +600,7 @@ public class ArrayClassic extends ArraySupport {
 
 	@Override
 	public DumpData toDumpData(PageContext pageContext, int maxlevel, DumpProperties dp) {
-		DumpTable table = new DumpTable("array", "#99cc33", "#ccff33", "#000000");
+		DumpTable table = new DumpTable("array", "#52b788", "#b7e4c7", "#000000");
 		table.setTitle("Array");
 
 		int top = dp.getMaxlevel();

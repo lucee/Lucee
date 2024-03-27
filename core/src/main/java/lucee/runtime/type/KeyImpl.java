@@ -23,6 +23,8 @@ import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 import lucee.commons.digest.WangJenkins;
 import lucee.commons.lang.StringUtil;
@@ -44,6 +46,8 @@ public class KeyImpl implements Collection.Key, Castable, Comparable, Externaliz
 	private static final long HSTART = 0xBB40E64DA205B064L;
 	private static final long HMULT = 7664345821815920749L;
 
+	private static final int MAX = 5000;
+
 	// private boolean intern;
 	private String key;
 	private transient String lcKey;
@@ -51,9 +55,22 @@ public class KeyImpl implements Collection.Key, Castable, Comparable, Externaliz
 	private transient int wjh;
 	private transient int sfm = -1;
 	private transient long h64;
+	private static Map<String, Key> keys = new HashMap<String, Key>();
 
 	public KeyImpl() {
 		// DO NOT USE, JUST FOR UNSERIALIZE
+
+	}
+
+	public KeyImpl(String key) {
+		this.key = key;
+		this.ucKey = key.toUpperCase();
+		h64 = createHash64(ucKey);
+		// print.e(key + ":" + (++count) + ":" + keys.size());
+	}
+
+	public static Map<String, Key> getKeys() {
+		return keys;
 	}
 
 	private static final long[] createLookupTable() {
@@ -119,10 +136,36 @@ public class KeyImpl implements Collection.Key, Castable, Comparable, Externaliz
 		h64 = createHash64(ucKey);
 	}
 
-	public KeyImpl(String key) {
-		this.key = key;
-		this.ucKey = key.toUpperCase();
-		h64 = createHash64(ucKey);
+	/**
+	 * only used in KeyConstants
+	 * 
+	 * @param key
+	 * @return
+	 */
+	public static Collection.Key _const(String key) {
+		return new KeyImpl(key);
+	}
+
+	/**
+	 * literal values set in source code
+	 * 
+	 * @param key
+	 * @return
+	 */
+	public static Collection.Key getInstance(String key) {
+		return initKeys(key);
+	}
+
+	/**
+	 * 
+	 * used to create the keys for the method initKeys()
+	 */
+	public static Collection.Key initKeys(String key) {
+		Key k = keys.get(key);
+		if (k == null) {
+			keys.put(key, k = new KeyImpl(key));
+		}
+		return k;
 	}
 
 	/**
@@ -132,19 +175,20 @@ public class KeyImpl implements Collection.Key, Castable, Comparable, Externaliz
 	 * @return
 	 */
 	public static Collection.Key init(String key) {
-		return new KeyImpl(key);
+		return source(key);
 	}
 
-	public static Collection.Key _const(String key) {
-		return new KeyImpl(key);
-	}
-
-	public static Collection.Key getInstance(String key) {
-		return new KeyImpl(key);
-	}
-
-	public static Collection.Key intern(String key) {
-		return new KeyImpl(key);
+	/**
+	 * 
+	 * used to inside the rest of the source created, can be dynamic values, so a lot
+	 */
+	public static Collection.Key source(String key) {
+		Key k = keys.get(key);
+		if (k == null) {
+			if (keys.size() > MAX) return new KeyImpl(key);
+			keys.put(key, k = new KeyImpl(key));
+		}
+		return k;
 	}
 
 	@Override
@@ -187,7 +231,7 @@ public class KeyImpl implements Collection.Key, Castable, Comparable, Externaliz
 	public boolean equals(Object other) {
 		if (this == other) return true;
 		if (other instanceof KeyImpl) {
-			return hash() == ((KeyImpl) other).hash();
+			return h64 == ((KeyImpl) other).h64;
 		}
 		if (other instanceof String) {
 			return key.equalsIgnoreCase((String) other);
@@ -412,4 +456,34 @@ public class KeyImpl implements Collection.Key, Castable, Comparable, Externaliz
 	public CharSequence subSequence(int start, int end) {
 		return getString().subSequence(start, end);
 	}
+
+	/*
+	 * public static void main(String[] args) throws Exception { // KeyConstants._percentage
+	 * 
+	 * modify(ResourcesImpl.getFileResourceProvider().getResource(
+	 * "/Users/mic/Projects/Lucee/Lucee6/core/src/main/java/lucee"));
+	 * 
+	 * }
+	 * 
+	 * private static void modify(Resource resource) throws IOException { boolean stop = false; for
+	 * (Resource r: resource.listResources()) { if (r.isDirectory()) modify(r); if
+	 * (r.getAbsolutePath().endsWith(".java")) {
+	 * 
+	 * String content = IOUtil.toString(r, "UTF-8"); String result = null; int start = -1, end; while
+	 * ((start = content.indexOf("KeyImpl.getInstance(\"", start + 1)) != -1) { end =
+	 * content.indexOf("\")", start + 22); if (end > start) { String k = content.substring(start + 21,
+	 * end); if (KeyConstants.getFieldName(k) == null) print.e("public static final Key _" + k +
+	 * " = KeyImpl._const(\"" + k + "\");"); result = content = content.substring(0, start) +
+	 * "KeyConstants._" + k + content.substring(end + 2);
+	 * 
+	 * stop = true;
+	 * 
+	 * // print.e(content);
+	 * 
+	 * start = end; } else break;
+	 * 
+	 * } if (result != null) IOUtil.write(r, result, "UTF-8", false); // if (stop) throw new
+	 * IOException("www"); } } }
+	 */
+
 }

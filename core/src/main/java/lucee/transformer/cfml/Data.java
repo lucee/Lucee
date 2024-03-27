@@ -57,8 +57,8 @@ public class Data {
 	private Body parent;
 	public ExprTransformer transformer;
 
-	public Data(Factory factory, Page page, SourceCode srcCode, EvaluatorPool ep, TransfomerSettings settings, TagLib[][] tlibs, FunctionLib[] flibs, TagLibTag[] scriptTags,
-			boolean allowLowerThan) {
+	public Data(Factory factory, Config config, Page page, SourceCode srcCode, EvaluatorPool ep, TransfomerSettings settings, TagLib[][] tlibs, FunctionLib[] flibs,
+			TagLibTag[] scriptTags, boolean allowLowerThan) {
 		this.page = page;
 		this.srcCode = srcCode;
 		this.settings = settings;
@@ -67,7 +67,7 @@ public class Data {
 		this.scriptTags = scriptTags;
 		this.ep = ep;
 		this.factory = factory;
-		this.config = factory.getConfig();
+		this.config = config;
 		this.allowLowerThan = allowLowerThan;
 	}
 

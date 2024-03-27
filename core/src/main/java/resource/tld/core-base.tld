@@ -979,6 +979,15 @@ A return value from the CreateTimeSpan function, for example, "#CreateTimeSpan(0
 			<description>It will help to prevent Cross-Site Request Forgeries. Enabling this attribute on the cookie will instruct the browser to afford this cookie certain protections.</description>
 			<introduced>5.3.7.33</introduced>
 		</attribute>
+		<attribute>
+			<type>boolean</type>
+			<name>partitioned</name>
+			<alias>encode</alias>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>Used to isolate third party cookies, requires path="/" and secure="true".</description>
+			<introduced>6.0.1.28</introduced>
+		</attribute>
 	</tag>
 	<!-- DBInfo -->
 	<tag>
@@ -1015,17 +1024,15 @@ A return value from the CreateTimeSpan function, for example, "#CreateTimeSpan(0
 			<description>Type of information to get:
 - dbNames: database name and type
 - tables: information to all tables
-- columns: column information to a table/view, accepts wildcards like '%''
-- columns_minimal: column information to a single table/view, but no FK / PK information (faster)
+- columns: column information for tables/views, accepts wildcards like '%''
+- columns_minimal: column information for tables/views, but no FK / PK information (faster)
 - version: version information of the database
 - procedures: information to all procedures
 - procedure_columns: column information to a single procedure
 - foreignKeys: information to all foreignKeys
 - index: information to all indexes
-
-,tables,columns,version,procedures,foreignKeys,index,users
-
-
+- users: list database users
+- terms: vendor preferred term for PROCEDURE, CATALOG and SCHEMA
 </description>
 		</attribute>
 		<attribute>
@@ -1055,7 +1062,7 @@ A return value from the CreateTimeSpan function, for example, "#CreateTimeSpan(0
 			<name>pattern</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>Specifies a filter to retrieve information about specific tables, columns, or stored procedures</description>
+			<description>Specifies a sql filter, i.e 'sys%' to retrieve information about specific tables, columns, or stored procedures</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -1067,6 +1074,8 @@ A return value from the CreateTimeSpan function, for example, "#CreateTimeSpan(0
 Patterns are also supported, i.e. 
 - use % to fetch all columns, from every table.
 - use SCHEMA.% to fetch all columns, from every table, from a scheme.
+
+Not used for type="tables", use pattern instead
 </description>
 		</attribute>
 		<attribute>
@@ -1079,9 +1088,11 @@ Patterns are also supported, i.e.
 		<attribute>
 			<type>string</type>
 			<name>Filter</name>
+			<alias>tableType</alias>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>Filter for type="tables" with a wildcard, defaults to all types when empty.
+			<introduced>6.0.0.73</introduced>
+			<description>Filter for type="tables" with a wildcard, defaults to all types when empty (slow, especially oracle).
 
 - "TABLE"
 - "VIEW"
@@ -1090,6 +1101,8 @@ Patterns are also supported, i.e.
 - "LOCAL TEMPORARY"
 - "ALIAS"
 - "SYNONYM"
+
+Each Database implementation has it's own supported types
 </description>
 		</attribute>
 	</tag>
@@ -1802,7 +1815,7 @@ To use cached data, the tag must be called with the exact same arguments. Only u
 		<body-content>empty</body-content>
 		<body-rtexprvalue>false</body-rtexprvalue>
 		<script>
-			<type>single</type>
+			<type>multiple</type>
 			<rtexprvalue>true</rtexprvalue>
 		</script>
 		<description>Flushes currently available data to the client.</description>
@@ -1816,6 +1829,15 @@ To use cached data, the tag must be called with the exact same arguments. Only u
 			<description>Flush the output each time at least the specified number of bytes become available. HTML
 		headers, and any data that is already available when you make this call, are not included in
 		the count.</description>
+		</attribute>
+		<attribute>
+			<type>boolean</type>
+			<name>throwonerror</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<default>true</default>
+			<script-support>optional</script-support>
+			<description>If set to false, any exceptions thrown by the servlet engine, such as those resulting from a client disconnection, will be suppressed.</description>
 		</attribute>
 	</tag>
 
@@ -1858,7 +1880,7 @@ To use cached data, the tag must be called with the exact same arguments. Only u
 		<attribute>
 			<type>string</type>
 			<name>action</name>
-			<values>copy,exists,existsFile,existsDir,open,close,changeDir,createDir,listDir,removeDir,getFile,putFile,rename,remove,getCurrentDir,getCurrentUrl</values>
+			<values>copy,exists,existsFile,existsDir,open,close,changeDir,createDir,getCurrentDir,getCurrentUrl,listDir,removeDir,getFile,putFile,quote,rename,remove</values>
 			<required>true</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>the action that should be execute</description>
@@ -2043,11 +2065,14 @@ To use cached data, the tag must be called with the exact same arguments. Only u
 			<description>the ssh fingerprint</description>
 		</attribute>
 		<attribute>
-			<type>boolean</type>
+			<type>string</type>
 			<name>secure</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>Secure connection (sftp|shh) or not.</description>
+			<description>Secure connection
+- false FTP (default)
+- true SFTP
+- sftp FTPS.</description>
 		</attribute>
 		<attribute>
 			<type>boolean</type>
@@ -2072,7 +2097,13 @@ To use cached data, the tag must be called with the exact same arguments. Only u
 			<rtexprvalue>true</rtexprvalue>
 			<description>the passphrase that protects ssh private key</description>
 		</attribute>
-		
+		<attribute>
+			<type>string</type>
+			<name>actionParam</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>used with action="quote" to execute custom ftp commands</description>
+		</attribute>
 		
 	</tag>
 
@@ -4659,6 +4690,14 @@ Permits searching collections by title or displaying a separate title from the k
 			<description>Port defaults to the standard LDAP port, 389.</description>
 		</attribute>
 		<attribute>
+			<type>boolean</type>
+			<name>usetls</name>
+			<required>false</required>
+			<default-value>false</default-value>
+			<rtexprvalue>true</rtexprvalue>
+			<description>use a secure connection. (but try secure="CFSSL_BASIC" instead)</description>
+		</attribute>
+		<attribute>
 			<type>string</type>
 			<name>username</name>
 			<required>false</required>
@@ -4991,6 +5030,7 @@ Permits searching collections by title or displaying a separate title from the k
 		<attribute>
 			<type>string</type>
 			<name>text</name>
+			<alias>message</alias>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>an exception to log.</description>
@@ -5539,7 +5579,6 @@ Lucee uses the number of characters in the file.</description>
 			<name>priority</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-		    <status>unimplemented</status>
 			<description>The message priority level. Can be one of the following values:
     * An integer in the range 1-5; 1 represents the highest priority.
     * One of the following string values, which correspond to the numeric values: highest or urgent, high, normal, low, and lowest or non-urgent.</description>
@@ -8019,6 +8058,13 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>a native java exception Object, if this attribute is defined all other will be ignored</description>
+		</attribute>
+		<attribute>
+			<type>any</type>
+			<name>cause</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>the cause of the exception created with this tag. This can be a cfcatch block or a native java exception.</description>
 		</attribute>
 		<attribute>
 			<type>numeric</type>

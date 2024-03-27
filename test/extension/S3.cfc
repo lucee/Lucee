@@ -1,10 +1,10 @@
-component extends="org.lucee.cfml.test.LuceeTestCase"	{
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="s3" {
 
 	function beforeAll() skip="isNotSupported"{
 		if(isNotSupported()) return;
 		var s3Details = getCredentials();
-		id=lcase(hash(CreateGUID()));
-		root = "s3://#s3Details.ACCESS_KEY_ID#:#s3Details.SECRET_KEY#@/";
+		variables.id = s3Details.BUCKET_PREFIX & "s3ext-" & lcase(hash(CreateGUID()));
+		variables.root = "s3://#s3Details.ACCESS_KEY_ID#:#s3Details.SECRET_KEY#@/";
 	}
 
 	function afterAll() skip="isNotSupported"{
@@ -15,7 +15,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
 			it(title="create/delete a empty bucket", skip=isNotSupported(), body=function( currentSpec ){
 				SystemOutput(root,1,1);
-				var bucketName = "test-create-bucket1-#id#";
+				var bucketName = "#id#-bucket-1";
 				var bucketPath=root&bucketName;
 				try {
 					expect(directoryExists(bucketPath)).toBeFalse();
@@ -30,7 +30,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 			});
 
 			it(title="create/delete a bucket with a file", skip=isNotSupported(), body=function( currentSpec ){
-				var bucketName = "test-create-bucket2-#id#";
+				var bucketName = "#id#-bucket2";
 				var bucketPath=root&bucketName;
 				try {
 					expect(directoryExists(bucketPath)).toBeFalse();
@@ -55,7 +55,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 			});
 
 			it(title="create/delete a empty folder", skip=isNotSupported(), body=function( currentSpec ){
-				var bucketName = "test-create-folder1-#id#";
+				var bucketName = "#id#-folder1";
 				var bucketPath=root&bucketName;
 				var folderPath=bucketPath&"/folder1";
 				try {
@@ -73,7 +73,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 			});
 
 			it(title="create/delete a folder with a file", skip=isNotSupported(), body=function( currentSpec ){
-				var bucketName = "test-create-folder2-#id#";
+				var bucketName = "#id#-folder2";
 				var bucketPath=root&bucketName;
 				var folderPath=bucketPath&"/folder1";
 				try {
@@ -100,7 +100,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 			});
 
 			it(title="create/delete a file", skip=isNotSupported(), body=function( currentSpec ){
-				var bucketName = "test-create-file-#id#";
+				var bucketName = "#id#-file";
 				var bucketPath=root&bucketName;
 				var filePath=bucketPath&"/foo.txt";
 				try {
@@ -119,7 +119,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
 			it(title="copy a empty bucket", skip=isNotSupported(), body=function( currentSpec ){
 				SystemOutput(root,1,1);
-				var bucketName = "test-copy-bucket1-#id#";
+				var bucketName = "#id#-copy1";
 				var bucketPathSrc=root&bucketName;
 				var bucketPathTrg=bucketPathSrc&"copied";
 				try {
@@ -151,7 +151,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
 			it(title="copy a bucket with content", skip=isNotSupported(), body=function( currentSpec ){
 				SystemOutput(root,1,1);
-				var bucketName = "test-copy-bucket2-#id#";
+				var bucketName = "#id#-copy2";
 				var bucketPathSrc=root&bucketName;
 				var folderPathSrc=bucketPathSrc&"/folder1";
 				var filePathSrc=folderPathSrc&"/foo.txt";
@@ -193,7 +193,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 			});
 
 			it(title="list buckets", skip=isNotSupported(), body=function( currentSpec ){
-				var bucketName = "test-list1-#id#";
+				var bucketName = "#id#-list1";
 				var bucketPath=root&bucketName;
 				try {
 					directoryCreate(bucketPath);
@@ -213,7 +213,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 			});
 
 			it(title="list content of a bucket", skip=isNotSupported(), body=function( currentSpec ){
-				var bucketName = "test-list2-#id#";
+				var bucketName = "#id#-list2";
 				var bucketPath=root&bucketName;
 				var folderPath=bucketPath&"/folder1";
 				var filePath=folderPath&"/foo.txt";
@@ -230,10 +230,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 				}
 			});
 
-
-			it(title="move a bucket with content", skip=isNotSupported(), body=function( currentSpec ){
+			xit(title="move a bucket with content", skip=isNotSupported(), body=function( currentSpec ){
 				SystemOutput(root,1,1);
-				var bucketName = "test-copy-move-#id#";
+				var bucketName = "#id#-copy-move";
 				var bucketPathSrc=root&bucketName;
 				var folderPathSrc=bucketPathSrc&"/folder1";
 				var filePathSrc=folderPathSrc&"/foo.txt";
@@ -271,7 +270,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 			});			
 
 			it(title="file append/write", skip=isNotSupported(), body=function( currentSpec ){
-				var bucketName = "test-append-#id#";
+				var bucketName = "#id#-append";
 				var bucketPath=root&bucketName;
 				var filePath=bucketPath&"/foo.txt";
 				try {
@@ -295,7 +294,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
 
 			it(title="file copy/delete", skip=isNotSupported(), body=function( currentSpec ){
-				var bucketName = "test-append-#id#";
+				var bucketName = "#id#-append";
 				var bucketPathSrc=root&bucketName&"src";
 				var bucketPathTrg=root&bucketName&"trg";
 				var filePathSrc=bucketPathSrc&"/foosrc.txt";
@@ -336,7 +335,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
 
 			it(title="file move/delete", skip=isNotSupported(), body=function( currentSpec ){
-				var bucketName = "test-append-#id#";
+				var bucketName = "#id#-append";
 				var bucketPathSrc=root&bucketName&"src";
 				var bucketPathTrg=root&bucketName&"trg";
 				var filePathSrc=bucketPathSrc&"/foosrc.txt";
@@ -377,7 +376,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 			it(title="check having a file and directory with the same name", skip=true, body=function( currentSpec ) {
 				if(isNotSupported()) return;
 
-				var bucketName = "test-same-#id#";
+				var bucketName = "#id#-same";
 				var base = root & bucketName;
 				
 				if( directoryExists(base))

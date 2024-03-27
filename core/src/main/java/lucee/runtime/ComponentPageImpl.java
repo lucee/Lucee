@@ -22,11 +22,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
 
-import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -45,6 +46,7 @@ import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.converter.BinaryConverter;
 import lucee.runtime.converter.ConverterException;
 import lucee.runtime.converter.JSONConverter;
+import lucee.runtime.converter.JSONDateFormat;
 import lucee.runtime.converter.JavaConverter;
 import lucee.runtime.converter.ScriptConverter;
 import lucee.runtime.converter.WDDXConverter;
@@ -53,6 +55,7 @@ import lucee.runtime.dump.DumpUtil;
 import lucee.runtime.dump.DumpWriter;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
+import lucee.runtime.exp.CustomTypeException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.gateway.GatewayEngineImpl;
 import lucee.runtime.interpreter.CFMLExpressionInterpreter;
@@ -87,11 +90,11 @@ import lucee.runtime.type.util.UDFUtil;
  */
 public abstract class ComponentPageImpl extends ComponentPage implements PagePro {
 
-	public static final Collection.Key ACCEPT_ARG_COLL_FORMATS = KeyImpl.getInstance("acceptedArgumentCollectionFormats");
+	public static final Collection.Key ACCEPT_ARG_COLL_FORMATS = KeyConstants._acceptedArgumentCollectionFormats;
 
 	private static final long serialVersionUID = -3483642653131058030L;
 
-	public static final lucee.runtime.type.Collection.Key REMOTE_PERSISTENT_ID = KeyImpl.getInstance("Id16hohohh");
+	public static final lucee.runtime.type.Collection.Key REMOTE_PERSISTENT_ID = KeyConstants._Id16hohohh;
 
 	private long lastCheck = -1;
 
@@ -313,9 +316,11 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 				try {
 					meta = udf.getMetaData(pc);
 
-					// check if http method match
+					// check if http method either match or is unspecified
 					String httpMethod = Caster.toString(meta.get(KeyConstants._httpmethod, null), null);
-					if (StringUtil.isEmpty(httpMethod) || !httpMethod.equalsIgnoreCase(method)) continue;
+					boolean hasHttpMethod = !StringUtil.isEmpty(httpMethod);
+					boolean httpMethodMatches = hasHttpMethod && httpMethod.equalsIgnoreCase(method);
+					if (hasHttpMethod && !httpMethodMatches) continue;
 
 					// get consumes mimetype
 					MimeType[] consumes;
@@ -336,7 +341,7 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 					String restPath = Caster.toString(meta.get(KeyConstants._restPath, null), null);
 
 					// no rest path
-					if (StringUtil.isEmpty(restPath)) {
+					if (httpMethodMatches && StringUtil.isEmpty(restPath)) {
 						if (ArrayUtil.isEmpty(subPath)) {
 							bestC = best(consumes, result.getContentType());
 							bestP = best(produces, result.getAccept());
@@ -352,7 +357,15 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 					else {
 						Struct var = result.getVariables();
 						int index = RestUtil.matchPath(var, Path.init(restPath)/* TODO cache this */, result.getPath());
-						if (index >= 0 && index + 1 == result.getPath().length) {
+
+						if (!hasHttpMethod && index >= 0) {
+							Result subResult = makeSubResult(result, index + 1);
+							status = 200;
+							_callThroughSubresourceLocator(pc, component, udf, path, var, subResult, suppressContent, e.getKey());
+							break;
+						}
+
+						if (httpMethodMatches && index >= 0 && index + 1 == result.getPath().length) {
 							bestC = best(consumes, result.getContentType());
 							bestP = best(produces, result.getAccept());
 
@@ -364,6 +377,22 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 								break;
 							}
 						}
+					}
+				}
+				catch (CustomTypeException cte) {
+					ThreadLocalPageContext.getLog(pc, "rest").error("REST", cte);
+					if (cte.getCustomTypeAsString() == "RestError") {
+						try {
+							status = Integer.parseInt(cte.getErrorCode());
+						}
+						catch (NumberFormatException ne) {
+							status = 500;
+						}
+						RestUtil.setStatus(pc, status, cte.getMessage());
+						return;
+					}
+					else {
+						throw cte;
 					}
 				}
 				catch (PageException pe) {
@@ -388,6 +417,29 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 
 	}
 
+	private Result makeSubResult(Result r, int pathElemsToSkip) {
+		int n = r.getPath().length - pathElemsToSkip;
+		String pathElems[] = new String[n];
+		for (int i = 0; i < n; i++) {
+			pathElems[i] = r.getPath()[pathElemsToSkip + i];
+		}
+		List<MimeType> acceptList = Arrays.asList(r.getAccept());
+		Result subResult = new Result(r.getSource(), r.getVariables(), pathElems, r.getMatrix(), r.getFormat(), r.hasFormatExtension(), acceptList, r.getContentType());
+		return subResult;
+	}
+
+	private void _callThroughSubresourceLocator(PageContext pc, Component component, UDF udf, String path, Struct variables, Result result, boolean suppressContent, Key methodName)
+			throws PageException, IOException, ConverterException {
+		Object rtn = _callUDF(pc, component, udf, variables, result, suppressContent, methodName);
+		if (rtn instanceof Component) {
+			Component subcomp = (Component) rtn;
+			callRest(pc, subcomp, path, result, suppressContent);
+		}
+		else {
+			RestUtil.setStatus(pc, 500, "Subresource locator error.");
+		}
+	}
+
 	private MimeType best(MimeType[] produces, MimeType... accept) {
 		if (ArrayUtil.isEmpty(produces)) {
 			if (accept.length > 0) return accept[0];
@@ -408,24 +460,32 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 		return best;
 	}
 
-	private void _callRest(PageContext pc, Component component, UDF udf, String path, Struct variables, Result result, MimeType best, MimeType[] produces, boolean suppressContent,
-			Key methodName) throws PageException, IOException, ConverterException {
+	private Object _callUDF(PageContext pc, Component component, UDF udf, Struct variables, Result result, boolean suppressContent, Key methodName) throws PageException {
 		FunctionArgument[] fa = udf.getFunctionArguments();
 		Struct args = new StructImpl(), meta;
 
 		Key name;
+		List<Key> arrName = new ArrayList<Key>();
+		List<String> arrRestArgSource = new ArrayList<String>();
+		List<String> arrRestArgName = new ArrayList<String>();
 		String restArgName, restArgSource, value;
 		for (int i = 0; i < fa.length; i++) {
-			name = fa[i].getName();
-			meta = fa[i].getMetaData();
-			restArgSource = meta == null ? "" : Caster.toString(meta.get(KeyConstants._restArgSource, ""), "");
 
+			arrName.add(fa[i].getName());
+			meta = fa[i].getMetaData();
+			arrRestArgSource.add(meta == null ? "" : Caster.toString(meta.get(KeyConstants._restArgSource, ""), ""));
+			arrRestArgName.add(meta == null ? "" : Caster.toString(meta.get(KeyConstants._restArgName, ""), ""));
+		}
+
+		for (int i = 0; i < fa.length; i++) {
+			name = arrName.get(i);
+			restArgSource = arrRestArgSource.get(i);
 			if ("path".equalsIgnoreCase(restArgSource)) setValue(fa[i], args, name, variables.get(name, null));
 			if ("query".equalsIgnoreCase(restArgSource) || "url".equalsIgnoreCase(restArgSource)) setValue(fa[i], args, name, pc.urlScope().get(name, null));
 			if ("form".equalsIgnoreCase(restArgSource)) setValue(fa[i], args, name, pc.formScope().get(name, null));
 			if ("cookie".equalsIgnoreCase(restArgSource)) setValue(fa[i], args, name, pc.cookieScope().get(name, null));
 			if ("header".equalsIgnoreCase(restArgSource) || "head".equalsIgnoreCase(restArgSource)) {
-				restArgName = meta == null ? "" : Caster.toString(meta.get(KeyConstants._restArgName, ""), "");
+				restArgName = arrRestArgName.get(i);
 				if (StringUtil.isEmpty(restArgName)) restArgName = name.getString();
 				value = ReqRspUtil.getHeaderIgnoreCase(pc, restArgName, null);
 				setValue(fa[i], args, name, value);
@@ -433,9 +493,21 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 			if ("matrix".equalsIgnoreCase(restArgSource)) setValue(fa[i], args, name, result.getMatrix().get(name, null));
 
 			if ("body".equalsIgnoreCase(restArgSource) || StringUtil.isEmpty(restArgSource, true)) {
+				// cfargument cannot have the attributes restArgSource and restArgName specified. That is, you can
+				// only send data in the body of the request.
+				if (!StringUtil.isEmpty(arrRestArgName.get(i), true)) {
+					continue;
+				}
+				else if (!"body".equalsIgnoreCase(restArgSource)) {
+					// There can only be one argument that does not specify the restArgSource attribute.
+					for (int j = 0; j < fa.length; j++) {
+						if (StringUtil.isEmpty(arrRestArgSource.get(j)) && i != j) continue;
+					}
+				}
 				boolean isSimple = CFTypes.isSimpleType(fa[i].getType());
-				Object body = ReqRspUtil.getRequestBody(pc, true, null);
-				if (isSimple && !Decision.isSimpleValue(body)) body = ReqRspUtil.getRequestBody(pc, false, null);
+				Object body;
+				if (isSimple) body = ReqRspUtil.getRequestBody(pc, false, null);
+				else body = ReqRspUtil.getRequestBody(pc, true, null);
 				setValue(fa[i], args, name, body);
 			}
 		}
@@ -452,6 +524,13 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 		finally {
 			if (suppressContent) pc.unsetSilent();
 		}
+		return rtn;
+	}
+
+	private void _callRest(PageContext pc, Component component, UDF udf, String path, Struct variables, Result result, MimeType best, MimeType[] produces, boolean suppressContent,
+			Key methodName) throws PageException, IOException, ConverterException {
+
+		Object rtn = _callUDF(pc, component, udf, variables, result, suppressContent, methodName);
 
 		// custom response
 		Struct sct = result.getCustomResponse();
@@ -592,7 +671,7 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 	private void callWDDX(PageContext pc, Component component, Collection.Key methodName, boolean suppressContent) throws PageException {
 		try {
 			// Struct url = StructUtil.duplicate(pc.urlFormScope(),true);
-			Struct url = StructUtil.merge(new Struct[] { pc.formScope(), pc.urlScope() });
+			Struct url = StructUtil.merge(false, new Struct[] { pc.formScope(), pc.urlScope() });
 			// define args
 			url.removeEL(KeyConstants._fieldnames);
 			url.removeEL(KeyConstants._method);
@@ -801,13 +880,13 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 				if (qf == SerializationSettings.SERIALIZE_AS_UNDEFINED)
 					throw new ApplicationException("invalid queryformat definition [" + queryFormat + "], valid formats are [row,column,struct]");
 			}
-			JSONConverter converter = new JSONConverter(false, cs);
+			JSONConverter converter = new JSONConverter(false, cs, JSONDateFormat.PATTERN_CF, true);
 			String prefix = "";
 			if (props.secureJson) {
 				prefix = pc.getApplicationContext().getSecureJsonPrefix();
 				if (prefix == null) prefix = "";
 			}
-			pc.forceWrite(prefix + converter.serialize(pc, rtn, qf));
+			pc.forceWrite(prefix + converter.serialize(pc, rtn, qf, true));
 		}
 		// CFML
 		else if (UDF.RETURN_FORMAT_SERIALIZE == props.format) {
@@ -908,8 +987,8 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 		else if (UDF.RETURN_FORMAT_JSON == format) {
 			int qf = SerializationSettings.SERIALIZE_AS_ROW;
 			cs = getCharset(pc);
-			JSONConverter converter = new JSONConverter(false, cs);
-			String str = converter.serialize(pc, rtn, qf);
+			JSONConverter converter = new JSONConverter(false, cs, JSONDateFormat.PATTERN_CF, false);
+			String str = converter.serialize(pc, rtn, qf, true);
 			is = new ByteArrayInputStream(str.getBytes(cs));
 
 		}
@@ -963,7 +1042,7 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 		return cs;
 	}
 
-	private void callWSDL(PageContext pc, Component component) throws ServletException, IOException, PageException {
+	private void callWSDL(PageContext pc, Component component) throws IOException, PageException {
 		// take wsdl file defined by user
 		String wsdl = component.getWSDLFile();
 		if (!StringUtil.isEmpty(wsdl)) {
@@ -988,7 +1067,7 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 		}
 	}
 
-	private void callWebservice(PageContext pc, Component component) throws IOException, ServletException, PageException {
+	private void callWebservice(PageContext pc, Component component) throws IOException, PageException {
 		((ConfigWebPro) ThreadLocalPageContext.getConfig(pc)).getWSHandler().getWSServer(pc).doPost(pc, pc.getHttpServletRequest(), pc.getHttpServletResponse(), component);
 	}
 

@@ -92,14 +92,14 @@ public final class GetSystemInfo implements Function {
 			if (list.size() >= 1) {
 				Attribute attr = (Attribute) list.get(0);
 				Object obj = attr.getValue();
-				if (obj instanceof Double) process = obj;
+				if (obj instanceof Double && !Double.isNaN(((Double) obj).doubleValue())) process = obj;
 			}
 
 			// System
 			if (list.size() >= 2) {
 				Attribute attr = (Attribute) list.get(1);
 				Object obj = attr.getValue();
-				if (obj instanceof Double) system = obj;
+				if (obj instanceof Double && !Double.isNaN(((Double) obj).doubleValue())) system = obj;
 			}
 		}
 		catch (Exception e) {

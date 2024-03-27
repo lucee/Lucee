@@ -113,7 +113,7 @@ public final class FTPPath implements Dumpable {
 
 	@Override
 	public DumpData toDumpData(PageContext pageContext, int maxlevel, DumpProperties dp) {
-		DumpTable table = new DumpTable("string", "#ff6600", "#ffcc99", "#000000");
+		DumpTable table = new DumpTable("string", "#f4845f", "#f79d65", "#000000");
 		table.appendRow(1, new SimpleDumpData("FTPPath"), new SimpleDumpData(toString()));
 		return table;
 	}

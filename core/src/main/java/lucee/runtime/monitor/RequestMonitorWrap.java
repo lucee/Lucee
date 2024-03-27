@@ -72,8 +72,8 @@ public class RequestMonitorWrap extends MonitorWrap implements RequestMonitor {
 	 * public Query getData(ConfigWeb config,long minAge, long maxAge, int maxrows) throws IOException{
 	 * try { if(getData==null) { getData=monitor.getClass().getMethod("getData", new
 	 * Class[]{long.class,long.class,int.class}); } return (Query) getData.invoke(monitor, new
-	 * Object[]{Long.valueOf(minAge),Long.valueOf(maxAge),Integer.valueOf(maxrows)}); } catch (Exception e) { throw
-	 * ExceptionUtil.toIOException(e); } }
+	 * Object[]{Long.valueOf(minAge),Long.valueOf(maxAge),Integer.valueOf(maxrows)}); } catch (Exception
+	 * e) { throw ExceptionUtil.toIOException(e); } }
 	 * 
 	 * public Query getDataRaw(ConfigWeb config, long minAge, long maxAge) throws IOException { try {
 	 * if(getDataRaw==null) { getDataRaw=monitor.getClass().getMethod("getDataRaw", new

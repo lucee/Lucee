@@ -12,7 +12,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="s3" skip="true"{
 		variables.path = server._getTempDir( "LDEV3196" );
 		if(!directoryExists(path)) directoryCreate(path)
 
-		variables.bucketName = "lucee-ldev3196-#lcase(hash(CreateGUID()))#";
+		variables.bucketName = s3Details.bucket_prefix & "3196-#lcase(hash(CreateGUID()))#";
 		variables.base = "s3://#s3Details.ACCESS_KEY_ID#:#s3Details.SECRET_KEY#@";
 		variables.baseWithBucketName = "s3://#s3Details.ACCESS_KEY_ID#:#s3Details.SECRET_KEY#@/#bucketName#";
 

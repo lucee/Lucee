@@ -47,11 +47,18 @@ public final class ResourceAppender extends AbstractAppender {
 		this.maxFileSize = maxFileSize;
 		this.maxfiles = maxfiles;
 		this.token = SystemUtil.createToken("ResourceAppender", res.getAbsolutePath());
-		setFile(append, true);
+
 	}
 
 	@Override
 	public void append(LogEvent event) {
+		try {
+			setFile(append, true);
+		}
+		catch (IOException ioe) {
+			LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), "log-loading", "Unable to write to" + res, ioe);
+		}
+
 		start();
 		// check file length
 		if (size > maxFileSize) {
@@ -96,6 +103,12 @@ public final class ResourceAppender extends AbstractAppender {
 		}
 	}
 
+	@Override
+	public void stop() {
+		closeFile();
+		super.stop();
+	}
+
 	/**
 	 * <p>
 	 * Sets and <i>opens</i> the file where the log output will go. The specified file must be writable.
@@ -113,20 +126,23 @@ public final class ResourceAppender extends AbstractAppender {
 	 * @param append If true will append to fileName. Otherwise will truncate fileName.
 	 */
 	private void setFile(boolean append, boolean onlyWhenNull) throws IOException {
-		synchronized (token) {
-			if (onlyWhenNull && writer != null) return;
-			closeFile();
-			Resource parent = res.getParentResource();
-			if (!parent.exists()) parent.createDirectory(true);
-			boolean writeHeader = !append || res.length() == 0;// this must happen before we open the stream
-			size = res.length();
-			writer = new OutputStreamWriter(new RetireOutputStream(res, append, timeout, listener), charset);
-			if (writeHeader) {
-				String header = new String(getLayout().getHeader(), charset);
-				size += header.length();
-				writer.write(header);
-				writer.flush();
-				// TODO new line?
+		if (!onlyWhenNull || writer == null) {
+			synchronized (token) {
+				if (!onlyWhenNull || writer == null) {
+					closeFile();
+					Resource parent = res.getParentResource();
+					if (!parent.exists()) parent.createDirectory(true);
+					boolean writeHeader = !append || res.length() == 0;// this must happen before we open the stream
+					size = res.length();
+					writer = new OutputStreamWriter(new RetireOutputStream(res, append, timeout, listener), charset);
+					if (writeHeader) {
+						String header = new String(getLayout().getHeader(), charset);
+						size += header.length();
+						writer.write(header);
+						writer.flush();
+						// TODO new line?
+					}
+				}
 			}
 		}
 	}

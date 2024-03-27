@@ -30,7 +30,6 @@ import lucee.transformer.TransformerException;
 import lucee.transformer.bytecode.Body;
 import lucee.transformer.bytecode.BytecodeContext;
 import lucee.transformer.bytecode.expression.var.VariableRef;
-import lucee.transformer.bytecode.util.ExpressionUtil;
 import lucee.transformer.bytecode.util.Types;
 import lucee.transformer.bytecode.visitor.OnFinally;
 import lucee.transformer.bytecode.visitor.TryFinallyVisitor;
@@ -113,7 +112,7 @@ public final class ForEach extends StatementBase implements FlowControlBreak, Fl
 		adapter.storeLocal(item);
 
 		// while
-		ExpressionUtil.visitLine(bc, getStart());
+		bc.visitLine(getStart());
 		adapter.visitLabel(begin);
 
 		// hasNext

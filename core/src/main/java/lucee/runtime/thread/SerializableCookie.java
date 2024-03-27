@@ -37,8 +37,9 @@ public class SerializableCookie implements Serializable {
 	private String value;
 	private int version;
 	private boolean httpOnly;
+	private boolean partitioned;
 
-	public SerializableCookie(String comment, String domain, int maxAge, String name, String path, boolean secure, String value, int version, boolean httpOnly) {
+	public SerializableCookie(String comment, String domain, int maxAge, String name, String path, boolean secure, String value, int version, boolean httpOnly, boolean partitioned) {
 		this.comment = comment;
 		this.domain = domain;
 		this.maxAge = maxAge;
@@ -48,6 +49,7 @@ public class SerializableCookie implements Serializable {
 		this.value = value;
 		this.version = version;
 		this.httpOnly = httpOnly;
+		this.partitioned = partitioned;
 	}
 
 	public SerializableCookie(Cookie cookie) {
@@ -60,6 +62,7 @@ public class SerializableCookie implements Serializable {
 		this.value = cookie.getValue();
 		this.version = cookie.getVersion();
 		this.httpOnly = CookieImpl.isHTTPOnly(cookie);
+		this.partitioned = CookieImpl.isPartitioned(cookie);
 	}
 
 	public String getComment() {
@@ -98,6 +101,10 @@ public class SerializableCookie implements Serializable {
 		return httpOnly;
 	}
 
+	public boolean isPartitioned() {
+		return partitioned;
+	}
+
 	public void setComment(String purpose) {
 		this.comment = purpose;
 	}
@@ -130,6 +137,10 @@ public class SerializableCookie implements Serializable {
 		this.httpOnly = httpOnly;
 	}
 
+	public void setPartitioned(boolean partitioned) {
+		this.partitioned = partitioned;
+	}
+
 	public Cookie toCookie() {
 		Cookie c = new Cookie(name, value);
 		if (comment != null) c.setComment(comment);
@@ -139,6 +150,7 @@ public class SerializableCookie implements Serializable {
 		c.setSecure(secure);
 		c.setVersion(version);
 		if (httpOnly) CookieImpl.setHTTPOnly(c);
+		if (partitioned) CookieImpl.setPartitioned(c);
 		return c;
 	}
 

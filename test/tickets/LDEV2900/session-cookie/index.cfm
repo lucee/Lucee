@@ -1,0 +1,1 @@
+<cfoutput>#serializeJSON(getApplicationSettings().sessioncookie)#</cfoutput>

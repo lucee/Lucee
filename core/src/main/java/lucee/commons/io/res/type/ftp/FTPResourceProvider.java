@@ -256,4 +256,9 @@ public final class FTPResourceProvider implements ResourceProviderPro {
 		return '/';
 	}
 
+	@Override
+	public boolean allowMatching() {
+		return false;
+	}
+
 }

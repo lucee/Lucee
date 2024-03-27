@@ -52,17 +52,19 @@ import lucee.runtime.CFMLFactoryImpl;
 import lucee.runtime.Mapping;
 import lucee.runtime.MappingImpl;
 import lucee.runtime.config.ConfigFactory.UpdateInfo;
+import lucee.runtime.config.gateway.GatewayMap;
 import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.engine.CFMLEngineImpl;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.engine.ThreadQueue;
+import lucee.runtime.engine.ThreadQueueImpl;
+import lucee.runtime.engine.ThreadQueuePro;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.extension.ExtensionDefintion;
 import lucee.runtime.extension.RHExtension;
 import lucee.runtime.functions.system.IsZipFile;
-import lucee.runtime.gateway.GatewayEntry;
 import lucee.runtime.monitor.ActionMonitor;
 import lucee.runtime.monitor.ActionMonitorCollector;
 import lucee.runtime.monitor.IntervallMonitor;
@@ -377,7 +379,7 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 		return labels;
 	}
 
-	private ThreadQueue threadQueue;
+	private ThreadQueue threadQueue = new ThreadQueueImpl(ThreadQueuePro.MODE_BLOCKING, null); // before the queue is loaded we block all requests
 
 	public ThreadQueue setThreadQueue(ThreadQueue threadQueue) {
 		return this.threadQueue = threadQueue;
@@ -574,8 +576,6 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 
 	private static int shrink(Mapping mapping, boolean force) {
 		try {
-			// PCLCollection pcl = ((MappingImpl)mapping).getPCLCollection();
-			// if(pcl!=null)return pcl.shrink(force);
 			((MappingImpl) mapping).shrink();
 		}
 		catch (Throwable t) {
@@ -681,7 +681,7 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 	private long localExtHash;
 	private int localExtSize = -1;
 
-	private Map<String, GatewayEntry> gatewayEntries;
+	private GatewayMap gatewayEntries;
 
 	private short adminMode = ADMINMODE_SINGLE;
 
@@ -842,7 +842,7 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 				}
 				if (ed == null) {
 					try {
-						ext = new RHExtension(this, locReses[i], false);
+						ext = new RHExtension(this, locReses[i]);
 						ed = new ExtensionDefintion(ext.getId(), ext.getVersion());
 						ed.setSource(ext);
 
@@ -886,24 +886,13 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 	}
 
 	@Override
-	protected void setGatewayEntries(Map<String, GatewayEntry> gatewayEntries) {
-		this.gatewayEntries = gatewayEntries;
-	}
-
-	@Override
-	public Map<String, GatewayEntry> getGatewayEntries() {
-		return gatewayEntries;
-	}
-
-	@Override
 	public void checkPassword() throws PageException {
 		CFMLEngine engine = ConfigWebUtil.getEngine(this);
 		ConfigWeb[] webs = getConfigWebs();
 		try {
 			ConfigServerFactory.reloadInstance(engine, this);
 			for (ConfigWeb web: webs) {
-				if (web instanceof ConfigWebImpl) ConfigWebFactory.reloadInstance(engine, this, (ConfigWebImpl) web, true);
-				else if (web instanceof SingleContextConfigWeb) ((SingleContextConfigWeb) web).reload();
+				ConfigWebFactory.reloadInstance(engine, this, (ConfigWebImpl) web, true);
 			}
 
 		}

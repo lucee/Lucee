@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project default="susi" basedir="${rootDir}" name="luceeCore" ><!-- TODO maybe there is a better way for this -->
+<project default="susi" basedir="${rootDir}" name="luceeCore"
+    xmlns:if="ant:if"
+    xmlns:resolver="antlib:org.apache.maven.resolver.ant">
   <description>
     Build Lucee Core
   </description>
@@ -18,9 +20,10 @@
   <property name="extH2"          value="465E1E35-2425-4F4E-8B3FAB638BD7280A;version=2.1.214.0001L"/>
   <property name="extOracle"          value="D4EDFDBD-A9A3-E9AF-597322D767E0C949;version=19.12.0.0-ojdbc8"/>
   <property name="extLucene"          value="EFDEB172-F52E-4D84-9CD1A1F561B3DFC8;version=2.4.2.4"/>
-  <property name="extAxis"          value="DF28D0A4-6748-44B9-A2FDC12E4E2E4D38;version=1.4.0.37"/>
+  <property name="extAxis"          value="DF28D0A4-6748-44B9-A2FDC12E4E2E4D38;version=1.4.0.38-SNAPSHOT"/>
   <property name="extChart"          value="D46B46A9-A0E3-44E1-D972A04AC3A8DC10;version=1.0.19.24"/>
-  <property name="extRedis"          value="60772C12-F179-D555-8E2CD2B4F7428718;version=3.0.0.48"/>
+  <property name="extRedis"          value="60772C12-F179-D555-8E2CD2B4F7428718;version=3.0.0.54-SNAPSHOT"/>
+  <property name="extHibernate"          value="FAD1E8CB-4F45-4184-86359145767C29DE;version=5.4.29.27-BETA"/>
 
   <property name="stableLoader" value="lucee-5.3.7.48"/>
   <property name="cdnUrl" value="https://cdn.lucee.org/"/>
@@ -43,7 +46,7 @@
       <tstamp>
         <format property="timestamp" pattern="yyyy-MM-dd HH:mm:ss" />
       </tstamp>
-      <echo leveL="debug" message="---------- ${timestamp} - @{message} ----------" />
+      <echo level="info" message="---------- ${timestamp} - @{message} ----------" />
     </sequential>
   </macrodef>
 
@@ -91,6 +94,9 @@
     <property name="testSuiteExtends" value=""/>
     <!-- allow running tests with a different java version (ant needs the exe not java home)  -->    
     <property name="testJavaVersionExec" value=""/>
+    <!-- enable jpda / java debugging when running test cases  -->
+    <property name="testDebugger" value=""/>
+    
     <!-- specify the build file to use  -->
     <property name="LUCEE_BUILD_ENV" value=""/>
     
@@ -109,9 +115,6 @@
     <fail message="Missing data from [Require-Extension] inside ${coreManifest}">
     <condition>
         <or>
-        <!-- Hibernate -->
-        <not><isset property="extHibernate"/></not>
-        <not><isset property="extHibernateVersion"/></not>
         <!-- PDF -->
         <not><isset property="extPDF"/></not>
         <not><isset property="extPDFVersion"/></not>
@@ -152,55 +155,40 @@
     </condition>
     </fail>
 
-<echo leveL="debug">                                                              
-           `@@@@                                                               
-           @@@@@@                                                              
-          ``#@@@@#                                                             
-          '@`@@@@@                                                             
-          +@@+@@@@.                                                            
-          ,@@.@@@@'                                                            
-           @@ @@@@#                                                            
-           ;@ @@@@#                                                            
-            ; @@@@+                                                            
-              @@@@'                                                            
-             .@@@@,                                                            
-             ;@@@@                                                             
-             #@@@@                                                             
-             @@@@@                                                             
-             @@@@#                                                             
-            ,@@@@`                                                             
-            @@@@@                                                              
-            @@@@#             `'@`     ,+@       :@@@#      ;@@@'       #@@@`  
-           ;@@@@`            @@@@    .@@@@      @@:@@@@    @@.+@@#    +@#`@@@` 
-           @@@@@            ,@@@#    @@@@,     @@   @@@  `@@   @@@   #@#  :@@# 
-          ;@@@@,            @@@@`    @@@@     @@:   @@@  @@:   @@@  ;@@   ;@@' 
-          @@@@@             @@@@    `@@@@    @@@    @:  @@@   .@@#  @@@   @@@  
-         @@@@@..`          .@@@@    #@@@;    @@@       `@@@   @@@  #@@'  `@@#  
-      +@.@@@@@:@@@@+       +@@@,    @@@@    #@@#       #@@@  @@@   @@@,  @@@   
-    +@@ @@@@@ @@@@@@@`     @@@@     @@@@    @@@#       @@@@ @@@    @@@.,@@;    
-    @@`@@@@@'@@@@@@@@,@'   @@@@    +@@@@   @@@@@       @@@@@@'    .@@@@@@     ;
-  @; @@@@@@@'###@@@@@`@@@  @@@@    @@@@'  .@@@@@       @@@@#      ,@@@@`     '#
- ,@@@@@@@@@       .@@:@@@: @@@@   @'@@@#  @`@@@@@     `@@@@       ;@@@@     @@,
- :@@@@@@@@          +@@@@@ @@@@,:@;`@@@@@@@ @@@@@@,`+@@@@@@@.   '@@@@@@@,.#@@, 
-  @@@@@@#            @@@@@ @@@@@@:  @@@@@@   @@@@@@@@@  @@@@@@@@@# `@@@@@@@@`  
-   +@@#              #@@@:  @@@@    ;@@@;     @@@@@@`    @@@@@@#    `@@@@@#    
-                      .+.    `                                                 
-                                                                               
+<echo level="info">  
+
+                             ▄▄▄▄
+                           ██████▌
+                         ███████▀
+                       ▄██████▀
+                     ▄██████╙
+                    █████▀
+                  █████╙         ▄▄        ▄▄                                    
+                ▄████          ████▌    ╓████▌        ▄███████    ▄██████    ▄██████▌
+               ████          ███▀╙    ▄█████       ▄███▀       ▄███▀╓▄██▀  ▄███▀▄▄██▀
+             ╓███▀         ▄██▀    ▄█▀╙▐███      ▓██▀─       ▄██████▀╙   ▄███████▀
+            ▄███▀         ███▌  ▄█▀─   ███▌    ▄███─      ,▄███▀▀└     ▄███▀▀▀        █
+           ████▌         ██████▀└     ▐████▓██████▄,╓▄▄███████  ,▄▄██▀█████       ▄▄█▀
+          █████          ▀██▀╙         ▀██▀▀  ╙█████▀▀╙   ▀█████▀╙     ▀████████▀▀╙
+         ▐█████                 ▄▄▄▄▄▄▄▄
+         ███████    ▄▄▄▓██████████▀▀▀▀▀▀▀
+         ███████████████▀▀╙└
+          ▀███████▀▀╙ 
 
 
-          In every job that must be done. There is an element of fun!                  
+                  Failure is not the opposite of success: it’s part of success.
     </echo>
 
-    <echo leveL="debug" message="${version}"/>
+    <echo level="info" message="${version}"/>
     <!-- used for docker build -->
-    <echo leveL="debug" file="${rootDir}/buildVersionNumber.txt" message="${version}" append="false"/>
+    <echo level="info" file="${rootDir}/buildVersionNumber.txt" message="${version}" append="false"/>
     <!-- <echo message="${name}"/>
     <echo message="${name.explanation}"/> -->
-    <echo leveL="debug" message="Root: ${rootDir}"/>
-    <echo leveL="debug" message="Required-Extensions: ${reqExt.labels}"/>
-    <echo leveL="debug" message="Java: ${java.version}" />
-    <echo leveL="debug" message="Java: ${java.home}" />
-    <echo leveL="debug" message="Optional Java Version for tests: ${testJavaVersionExec}" />
+    <echo level="info" message="Root: ${rootDir}"/>
+    <echo level="info" message="Required-Extensions: ${reqExt.labels}"/>
+    <echo level="info" message="Java: ${java.version}" />
+    <echo level="info" message="Java: ${java.home}" />
+    <echo level="info" message="Optional Java Version for tests: ${testJavaVersionExec}" />
 
     <!-- Create the time stamp -->
     <tstamp/>
@@ -233,7 +221,7 @@
         </sequential>
     </macrodef>
 
-    <target name="check" depends="check-mysql,check-mssql,check-postgre,check-jdts,check-s3,check-ehcache,check-hibernate,check-pdf,check-admin,check-doc,check-image,check-esapi,check-compress,check-testbox,check-lucee-loader-jar,download-lucee-loader-jar">
+    <target name="check" depends="check-mysql,check-mssql,check-postgre,check-jdts,check-s3,check-ehcache,check-pdf,check-admin,check-doc,check-image,check-esapi,check-compress,check-testbox,check-lucee-loader-jar,download-lucee-loader-jar">
       <mkdir dir="${temp}/loader/extensions/"/>
     </target> 
 
@@ -376,9 +364,8 @@
       <pathelement location="${temp}/loader" />
       <pathelement path="${dependencies}"/>
     </path>
-
     <!-- <pathconvert property="classpathProp" refid="classpath"/> -->
-   <echo leveL="debug" message="Using Java version ${ant.java.version}."/>
+   <echo level="info" message="Using Java version ${ant.java.version}."/>
     <!-- compile the core -->
     <javac 
       srcdir="${srcCore}" 
@@ -387,6 +374,7 @@
       destdir="${core}"
       debug="true" debuglevel="lines,vars,source">
        <classpath refid="classpath" />
+       <classpath path="${temp}/loader"/>
     </javac>
 
     <!--
@@ -448,13 +436,15 @@
     -->
     <jar 
         basedir="${core}" 
+        compress="false"
         jarfile="${temp}/loader/core/core.lco" 
         manifest="${core}/META-INF/MANIFEST.MF"/> 
 
 
     <!-- generates the jar from the loader -->
     <jar 
-      basedir="${temp}/loader" 
+      basedir="${temp}/loader"
+      compress="false"
       jarfile="${temp}/lucee.jar" 
       manifest="${srcLoader}/META-INF/MANIFEST.MF"/>
 
@@ -464,8 +454,8 @@
 <target name="__build_archives" depends="buildJars,__extract_testbox">
     <!-- first we copy the jars in place otherwise, Lucee downloads them  -->
     <echots message="copy bundles in place"/>
-    <addBundles 
-      bundles="${dependencies}" 
+    <addBundles
+      bundles="${dependencies}"
       target="${temp}/archive/base/lucee-server/bundles"
       coremanifest="${coreManifest}"/>
 
@@ -527,7 +517,7 @@
       deploydir="${temp}/archive/base/lucee-server/deploy/"/>
 
     <listDirectory directory="${test}/lib" delimiter=":" returnvalue="test_jars"/>
-    <echots message="execute testcases ${testcases} with java ${testJavaVersionExec}"/>
+    <echots message="execute testcases with java ${testJavaVersionExec}"/>
     <!-- execute CFML testcases -->
     <java classname="org.apache.tools.ant.launch.Launcher" dir="${ant}" fork="true" failonerror="true" errorproperty="exc2" jvm="${testJavaVersionExec}">
       <classpath path="${java.class.path}">
@@ -559,7 +549,7 @@
       <jvmarg value="-Dlucee.base.dir=${temp}/archive/base"/>
       <jvmarg value="-Dlucee.web.dir=${temp}/archive/webroot"/>
       <!-- TODO remove axis, lucene -->
-      <jvmarg value="-Dlucee-extensions=${extH2},${extMongo},${extOracle},${extLucene},${extAxis},${extChart},${extRedis}"/>
+      <jvmarg value="-Dlucee-extensions=${extH2},${extMongo},${extOracle},${extLucene},${extAxis},${extChart},${extRedis},${extHibernate}"/>
       <jvmarg value="-Dlucee.enable.dialect=true"/>
       <jvmarg value="-Dlucee.extensions.install=true"/>
       <jvmarg value="-Dlucee.full.null.support=false"/>
@@ -571,11 +561,8 @@
       <jvmarg value="-Dlucee.system.out=file:.../out.txt"/>
       <jvmarg value="-Dlucee.system.err=file:.../err.txt"/>
       -->
-      <!--
-      <jvmarg value="-Xdebug"/>
-      <jvmarg value="-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5000"/>
-      -->
-
+      <jvmarg value="-Xdebug" if:true="${testDebugger}"/>
+      <jvmarg value="-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5000" if:true="${testDebugger}"/>
       <!--
         felix.log.level
         lucee.controller.disabled
@@ -642,7 +629,7 @@
       <jvmarg value="-Dlucee.web.dir=${temp}/warmup/webroot"/>
       <jvmarg value="-Dlucee.enable.warmup=true"/>
     </java>
-    <echo leveL="debug">${exc4}</echo>
+    <echo level="info">${exc4}</echo>
 </target>
 
 <target name="test_stable_loader">
@@ -658,7 +645,7 @@
     <copy file="${cache}/${stableLoader}.jar" tofile="${temp}/stable/loader.jar"/>
     <copy file="${trgLoader}/${version}.lco" tofile="${temp}/stable/temp/core/core.lco"/>
     <!-- update the fat jar with the current core .lco -->
-    <jar destfile="${temp}/stable/loader.jar" update="true">
+    <jar destfile="${temp}/stable/loader.jar" update="true" compress="false">
        <fileset dir="${temp}/stable/temp"/>
     </jar>
 
@@ -763,7 +750,10 @@
 
   <target name="createCore">
     <echots message="build core .lco"/>
-    <!-- create the luce core -->
+    <echots message="output dir ${outputDir}"/>
+    <echots message="temp dir ${temp}"/>
+
+    <!-- create the lucee core -->
     <jar 
         basedir="${core}" 
         jarfile="${trgLoader}/${version}.lco" 
@@ -773,6 +763,10 @@
     <copy 
         file="${trgLoader}/${version}.lco" 
         tofile="${outputDir}/core/core.lco"/>
+
+    <copy 
+        file="${trgLoader}/${version}.lco" 
+        tofile="${temp}/loader/core/core.lco"/>
 
     <!-- optionally copy lco file to an existing Lucee install -->
     <deployLco
@@ -784,7 +778,7 @@
 
   <target name="createLoader" if="buildLoaderJar">
      <!-- generates the jar from the loader -->
-    <echots message="build loader .jar"/>
+    <echots message="build loader .jar - ${goal}"/>
     
     <jar 
       basedir="${temp}/loader" 
@@ -804,9 +798,9 @@
   </target>
 
   <target name="setAntEnv" description="set the variable right for ant">
-    <echo leveL="debug">before:${goal}</echo>
+    <echo level="info">before:${goal}</echo>
     <property name="goal" location="${temp}/loader"/>
-    <echo leveL="debug">after:${goal}</echo>  
+    <echo level="info">after:${goal}</echo>  
   </target>
 
   <target name="buildLoaderAnt" depends="__build,setAntEnv,addExtensions,addBundles,addFelix,createCore,createLoader,test_warmup,test_stable_loader" description="generate the loader jar" >

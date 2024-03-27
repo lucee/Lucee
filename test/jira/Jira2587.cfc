@@ -21,6 +21,13 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	public function setUp(){
 		setTimeZone("CET");
 		date=createDateTime(2009,6,9,14,30,3);
+		if ( getJavaVersion() >= 19 ) {
+			variables.narrowNBSP = chr(8239);
+			variables.dateAt = ",";
+		} else {
+			variables.narrowNBSP = chr(32); // space
+			variables.dateAt = " at";
+		}
 	}
 	
 	public void function testA(){
@@ -191,7 +198,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		assertEquals("PM",DateTimeFormat(date,"TTT"));
 		assertEquals("PM",DateTimeFormat(date,"TTTT"));
 		assertEquals("PM",DateTimeFormat(date,"TTTTT"));
-		
 	}
 	
 	public void function testW(){
@@ -223,8 +229,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		assertEquals("2009",DateTimeFormat(date,"YYY"));
 		assertEquals("2009",DateTimeFormat(date,"YYYY"));
 		assertEquals("02009",DateTimeFormat(date,"YYYYY"));
-		
-			
 	}
 	
 	public void function testZ(){
@@ -245,16 +249,16 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	
 	public void function testPredefined(){
 		if(getJavaVersion()>=9) {
-			assertEquals("6/9/09, 2:30 PM",DateTimeFormat(date,"short"));
-			assertEquals("Jun 9, 2009, 2:30:03 PM",DateTimeFormat(date,"medium"));
-			assertEquals("June 9, 2009 at 2:30:03 PM CEST",DateTimeFormat(date,"long"));
-			assertEquals("Tuesday, June 9, 2009 at 2:30:03 PM Central European Summer Time",DateTimeFormat(date,"full"));
+			assertEquals("6/9/09, 2:30#variables.narrowNBSP#PM",DateTimeFormat(date,"short"));
+			assertEquals("Jun 9, 2009, 2:30:03#variables.narrowNBSP#PM",DateTimeFormat(date,"medium"));
+			assertEquals("June 9, 2009#variables.dateAt# 2:30:03#variables.narrowNBSP#PM CEST",DateTimeFormat(date,"long"));
+			assertEquals("Tuesday, June 9, 2009#variables.dateAt# 2:30:03#variables.narrowNBSP#PM Central European Summer Time",DateTimeFormat(date,"full"));
 		}
 		else {
-			assertEquals("6/9/09 2:30 PM",DateTimeFormat(date,"short"));
-			assertEquals("Jun 9, 2009 2:30:03 PM",DateTimeFormat(date,"medium"));
-			assertEquals("June 9, 2009 2:30:03 PM CEST",DateTimeFormat(date,"long"));
-			assertEquals("Tuesday, June 9, 2009 2:30:03 PM CEST",DateTimeFormat(date,"full"));
+			assertEquals("6/9/09 2:30#variables.narrowNBSP#PM",DateTimeFormat(date,"short"));
+			assertEquals("Jun 9, 2009 2:30:03#variables.narrowNBSP#PM",DateTimeFormat(date,"medium"));
+			assertEquals("June 9, 2009 2:30:03#variables.narrowNBSP#PM CEST",DateTimeFormat(date,"long"));
+			assertEquals("Tuesday, June 9, 2009 2:30:03#variables.narrowNBSP#PM CEST",DateTimeFormat(date,"full"));
 		}
 		assertEquals("09-Jun-2009 14:30:03",DateTimeFormat(date));
 		
@@ -266,11 +270,11 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	}
 
 	private function getJavaVersion() {
-	    var raw=server.java.version;
-	    var arr=listToArray(raw,'.');
-	    if(arr[1]==1) // version 1-9
-	        return arr[2];
-	    return arr[1];
+		var raw=server.java.version;
+		var arr=listToArray(raw,'.');
+		if (arr[1]==1) // version 1-9
+			return arr[2];
+		return arr[1];
 	}
 
 }

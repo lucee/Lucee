@@ -4,11 +4,31 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" labels="wddx" {
         
             it(title="checking cfwddx tag with empty data", body=function( currentSpec ) {
                 expect( function(){
-                    cfwddx(action="wddx2cfml", input="<wddxPacket version='1.0'></wddxPacket>", output="variables.foo");
+                    cfwddx(action="wddx2cfml", input="<!--lucee--><wddxPacket version='1.0'></wddxPacket>", output="variables.foo");
+                }).notToThrow();
+
+                expect( function(){
+                    cfwddx(action="wddx2cfml", input=" <wddxPacket version='1.0'> </wddxPacket> ", output="variables.foo");
+                }).notToThrow();
+
+                expect( function(){
+                    cfwddx(action="wddx2cfml", input=" <wddxPacket version='1.0'> <!--lucee--> </wddxPacket> ", output="variables.foo");
+                }).notToThrow();
+
+                expect( function(){
+                    cfwddx(action="wddx2cfml", input=" <wddxPacket version='1.0'> <!--lucee--> </wddxPacket> <!--lucee-->", output="variables.foo");
                 }).notToThrow();
 
                 expect( function(){
                     cfwddx(action="wddx2cfml", input="<wddxPacket version='1.0'><data/></wddxPacket>", output="variables.foo");
+                }).notToThrow();
+
+                expect( function(){
+                    cfwddx(action="wddx2cfml", input="<wddxPacket version='1.0'><data/></wddxPacket>", output="variables.foo");
+                }).notToThrow();
+
+                expect( function(){
+                    cfwddx(action="wddx2cfml", input="<wddxPacket version='1.0'><!--lucee--><data/></wddxPacket>", output="variables.foo");
                 }).notToThrow();
             });
 

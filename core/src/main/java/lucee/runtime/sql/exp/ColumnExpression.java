@@ -131,54 +131,56 @@ public class ColumnExpression extends ExpressionSupport implements Column {
 	// MUST handle null correctly
 	@Override
 	public Object getValue(PageContext pc, Query qr, int row) throws PageException {
-		return QueryUtil.getValue(pc, getCol( qr ), row);
+		return QueryUtil.getValue(pc, getCol(qr), row);
 	}
 
 	@Override
 	public Object getValue(PageContext pc, Query qr, int row, Object defaultValue) {
 		try {
-			return getCol( qr ).get(row, defaultValue);
-		// Per the interface, methods accepting a default value cannot throw an exception,
-		// so we must return the default value if any exceptions happen.
-		} catch( PageException e ) {
+			return getCol(qr).get(row, defaultValue);
+			// Per the interface, methods accepting a default value cannot throw an exception,
+			// so we must return the default value if any exceptions happen.
+		}
+		catch (PageException e) {
 			return defaultValue;
 		}
 	}
 
 	/**
-		Tells this column expression to not cache the column reference back to the original query
-	*/
+	 * Tells this column expression to not cache the column reference back to the original query
+	 */
 	public void setCacheColumn(boolean cacheColumn) {
 		this.cacheColumn = cacheColumn;
 	}
 
 	/**
-		Acquire the actual query column reference, taking caching into account
-		We cache the lookup of the column for basic selects because we run the same thing
-		over and over on the same query object.  But for partitioned selects, we have multiple query
-		objects we run this on, so we can't cache the column reference
+	 * Acquire the actual query column reference, taking caching into account We cache the lookup of the
+	 * column for basic selects because we run the same thing over and over on the same query object.
+	 * But for partitioned selects, we have multiple query objects we run this on, so we can't cache the
+	 * column reference
 	 */
 	private QueryColumn getCol(Query qr) throws PageException {
 		// If we're not caching the query column, get it fresh
-		if( !cacheColumn ) {
+		if (!cacheColumn) {
 			return qr.getColumn(getColumn());
-		// If we are caching and we have no reference, create it and return it
-		} else if (col == null) {
+			// If we are caching and we have no reference, create it and return it
+		}
+		else if (col == null) {
 			// This behavior needs to be thread safe.
-			synchronized( this ) {
+			synchronized (this) {
 				// Double check lock pattern in case another thread beat us
 				if (col != null) {
 					return col;
 				}
 				return col = qr.getColumn(getColumn());
 			}
-		// If we are caching and we have the reference already, just return it!
-		} else {
+			// If we are caching and we have the reference already, just return it!
+		}
+		else {
 			return col;
 		}
 
 	}
-
 
 	@Override
 	public void reset() {

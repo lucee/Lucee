@@ -21,10 +21,9 @@ package lucee.runtime.sql;
 import java.io.IOException;
 import java.sql.Types;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import lucee.commons.digest.MD5;
 import lucee.runtime.PageContext;
@@ -74,7 +73,7 @@ public class QueryPartitions {
 	 * @param qoQ
 	 * @throws PageException
 	 */
-	public QueryPartitions(SQL sql, Expression[] columns, Expression[] groupbys, QueryImpl target, Set<String> additionalColumns, QoQ qoQ) throws PageException {
+	public QueryPartitions(SQL sql, Expression[] columns, Expression[] groupbys, QueryImpl target, Set<Key> additionalColumns, QoQ qoQ) throws PageException {
 		this.sql = sql;
 		this.qoQ = qoQ;
 		this.columns = columns;
@@ -94,8 +93,8 @@ public class QueryPartitions {
 
 		// Convert these strings to Keys now so we don't do it over and over later
 		this.additionalColumns = new HashSet<Collection.Key>();
-		for (String col: additionalColumns) {
-			this.additionalColumns.add(Caster.toKey(col));
+		for (Key col: additionalColumns) {
+			this.additionalColumns.add(col);
 		}
 		// Convert these Expression aliases to Keys now so we don't do it over and over later
 		this.columnKeys = new Collection.Key[columns.length];
@@ -111,7 +110,7 @@ public class QueryPartitions {
 	 * @param target target query (for column reference)
 	 * @throws PageException
 	 */
-	public void addEmptyPartition( QueryImpl source, QueryImpl target ) throws PageException {
+	public void addEmptyPartition(QueryImpl source, QueryImpl target) throws PageException {
 		partitions.put("default", createPartition(target, source, false));
 	}
 
@@ -133,10 +132,11 @@ public class QueryPartitions {
 		QueryImpl targetPartition = partitions.computeIfAbsent(partitionKey, k -> {
 			try {
 				return createPartition(target, source, finalizedColumnVals);
-			} catch( Exception e ) {
-				throw new RuntimeException( e );
 			}
-		} );
+			catch (Exception e) {
+				throw new RuntimeException(e);
+			}
+		});
 
 		int newRow = targetPartition.addRow();
 
@@ -269,9 +269,8 @@ public class QueryPartitions {
 	 *
 	 * @param target Query for target data (for column refernces)
 	 * @param source source query we're getting data from
-	 * @param finalizedColumnVals If we're adding finalized data, just copy it
-	 *            across. Easy. This applies when distincting a result set after it's already been
-	 *            processed
+	 * @param finalizedColumnVals If we're adding finalized data, just copy it across. Easy. This
+	 *            applies when distincting a result set after it's already been processed
 	 * @return Empty Query with all the needed columns
 	 * @throws PageException
 	 */
