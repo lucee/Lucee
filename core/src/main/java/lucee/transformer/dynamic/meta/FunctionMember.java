@@ -35,4 +35,6 @@ public interface FunctionMember extends Serializable {
 	public abstract Type[] getArgumentTypes();
 
 	public abstract String[] getExceptions();
+
+	public abstract boolean inInterface();
 }

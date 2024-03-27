@@ -19,6 +19,7 @@ public abstract class FunctionMemberDynamic implements FunctionMember {
 
 	protected String name;
 	protected int access;
+	protected boolean inInterface;
 	protected transient Type declaringType;
 	protected transient Class declaringClass;
 	protected transient Type rtnType;
@@ -41,6 +42,7 @@ public abstract class FunctionMemberDynamic implements FunctionMember {
 
 		out.writeObject(name);
 		out.writeInt(access);
+		out.writeBoolean(inInterface);
 
 		// declaring class
 		out.writeObject(declaringType.getDescriptor());
@@ -75,6 +77,8 @@ public abstract class FunctionMemberDynamic implements FunctionMember {
 		this.name = (String) in.readObject();
 		// access
 		this.access = in.readInt();
+		// inInterface
+		this.inInterface = in.readBoolean();
 
 		// declaring class
 		this.declaringType = Type.getType((String) in.readObject());
@@ -101,7 +105,7 @@ public abstract class FunctionMemberDynamic implements FunctionMember {
 		return name;
 	}
 
-	public static FunctionMember createInstance(Class declaringClass, String name, int access, String descriptor, String[] exceptions) {
+	public static FunctionMember createInstance(Class declaringClass, String name, int access, String descriptor, String[] exceptions, boolean inInterface) {
 		FunctionMemberDynamic fm;
 		if ("<init>".equals(name)) {
 			fm = new ConstructorDynamic();
@@ -109,6 +113,8 @@ public abstract class FunctionMemberDynamic implements FunctionMember {
 		else {
 			fm = new MethodDynamic(declaringClass, name);
 		}
+
+		fm.inInterface = inInterface;
 
 		// declaring class
 		fm.declaringClass = declaringClass;
@@ -188,6 +194,11 @@ public abstract class FunctionMemberDynamic implements FunctionMember {
 	@Override
 	public boolean isNative() {
 		return (access & Opcodes.ACC_NATIVE) != 0;
+	}
+
+	@Override
+	public boolean inInterface() {
+		return inInterface;
 	}
 
 	public String getReturn() {

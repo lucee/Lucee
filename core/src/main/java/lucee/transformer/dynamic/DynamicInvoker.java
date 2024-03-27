@@ -128,11 +128,12 @@ public class DynamicInvoker {
 
 	public Pair<FunctionMember, Object> createInstance(Class<?> clazz, Key methodName, Object[] arguments) throws NoSuchMethodException, IOException, ClassNotFoundException,
 			UnmodifiableClassException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, SecurityException {
-		observe(clazz, methodName);
+		// observe(clazz, methodName);
 
 		arguments = Reflector.cleanArgs(arguments);
 		boolean isConstr = methodName == null;
 		Clazz clazzz = getClazz(clazz);
+
 		lucee.transformer.dynamic.meta.Method method = null;
 		lucee.transformer.dynamic.meta.Constructor constr = null;
 		// <init>
@@ -146,7 +147,6 @@ public class DynamicInvoker {
 		}
 
 		Type[] parameterTypes = isConstr ? constr.getArgumentTypes() : method.getArgumentTypes();
-		Class[] parameterClasses = isConstr ? constr.getArgumentClasses() : method.getArgumentClasses();
 		clazz = isConstr ? constr.getDeclaringClass() : method.getDeclaringClass(); // we wanna go as low as possible, to be as open as possible also this avoid not allow to access
 
 		StringBuilder sbClassPath = new StringBuilder();
@@ -161,10 +161,10 @@ public class DynamicInvoker {
 		// print.e("classPath: " + classPath);
 		// print.e("className: " + className);
 		DynamicClassLoader loader = getCL(clazz);
-		if (false && loader.hasClass(className)) {
-
+		if (loader.hasClass(className)) {
 			return new Pair<FunctionMember, Object>(isConstr ? constr : method, loader.loadInstance(className));
 		}
+		Class[] parameterClasses = isConstr ? constr.getArgumentClasses() : method.getArgumentClasses();
 
 		ClassWriter cw = ASMUtil.getClassWriter();
 		MethodVisitor mv;
@@ -249,7 +249,8 @@ public class DynamicInvoker {
 			mv.visitMethodInsn(Opcodes.INVOKESPECIAL, rt.getInternalName(), "<init>", methodDesc.toString(), false); // Call the constructor of String
 		}
 		else {
-			mv.visitMethodInsn(isStatic ? Opcodes.INVOKESTATIC : Opcodes.INVOKEVIRTUAL, Type.getInternalName(clazz), method.getName(), methodDesc.toString(), false);
+			mv.visitMethodInsn(isStatic ? Opcodes.INVOKESTATIC : (method.inInterface() ? Opcodes.INVOKEINTERFACE : Opcodes.INVOKEVIRTUAL), Type.getInternalName(clazz),
+					method.getName(), methodDesc.toString(), method.inInterface());
 
 		}
 

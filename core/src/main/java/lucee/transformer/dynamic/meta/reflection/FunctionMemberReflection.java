@@ -72,6 +72,11 @@ public abstract class FunctionMemberReflection implements FunctionMember {
 	}
 
 	@Override
+	public boolean inInterface() {
+		return executable.getDeclaringClass().isInterface();
+	}
+
+	@Override
 	public String[] getArguments() {
 		Parameter[] params = executable.getParameters();
 		String[] arguments = new String[params.length];

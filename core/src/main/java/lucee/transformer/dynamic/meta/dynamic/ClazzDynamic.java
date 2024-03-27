@@ -22,6 +22,8 @@ import org.objectweb.asm.Type;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.res.Resource;
+import lucee.commons.lang.types.RefBoolean;
+import lucee.commons.lang.types.RefBooleanImpl;
 import lucee.runtime.converter.JavaConverter.ObjectInputStreamImpl;
 import lucee.transformer.dynamic.meta.Clazz;
 import lucee.transformer.dynamic.meta.Constructor;
@@ -202,6 +204,7 @@ public class ClazzDynamic extends Clazz {
 
 		final String classPath = clazz.getName().replace('.', '/') + ".class";
 		final ClassLoader cl = getClassLoader(clazz);
+		final RefBoolean isInterface = new RefBooleanImpl();
 		ClassReader classReader = new ClassReader(cl.getResourceAsStream(classPath));
 
 		// Create a ClassVisitor to visit the methods
@@ -209,6 +212,7 @@ public class ClazzDynamic extends Clazz {
 
 			@Override
 			public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
+				isInterface.setValue((access & Opcodes.ACC_INTERFACE) != 0);
 				if (interfaces != null && interfaces.length > 0) {
 					for (String interf: interfaces) {
 						try {
@@ -233,7 +237,7 @@ public class ClazzDynamic extends Clazz {
 
 			@Override
 			public MethodVisitor visitMethod(int access, String name, String descriptor, String signature, String[] exceptions) {
-				FunctionMember fm = FunctionMemberDynamic.createInstance(clazz, name, access, descriptor, exceptions);
+				FunctionMember fm = FunctionMemberDynamic.createInstance(clazz, name, access, descriptor, exceptions, isInterface.toBooleanValue());
 
 				// if ((!onlyPublic || fm.isPublic()) && ((includeConstructor && fm instanceof Constructor) ||
 				// (includeMethods && fm instanceof Method))) {
