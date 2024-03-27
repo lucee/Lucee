@@ -58,6 +58,7 @@
 
 	<cffunction name="testArraySyncNamed" localMode="modern">
 		<cfset arr=arrayNew(dimension=1,synchronized=true)>
+		<cfset arr=arrayNew(dimensions=1,synchronized=true)>
 		<cfset arr=arrayNew(dimension=1,isSynchronized=true)>
 		<cfset arr=arrayNew(dimension=1,type="string",isSynchronized=true)>
 		<cfset arr=arrayNew(dimension=1,typename="string",isSynchronized=true)>

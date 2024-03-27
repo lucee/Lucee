@@ -15274,6 +15274,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<description>create a new array</description>
 		<argument>
 			<name>dimension</name>
+			<alias>dimensions</alias>
 			<type>number</type>
 			<required>no</required>
 			<default>1</default>
