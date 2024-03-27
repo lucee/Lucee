@@ -814,6 +814,16 @@ public class ConfigWebImpl implements ConfigWebPro {
 		return instance.getHash();
 	}
 
+	@Override
+	public long getDebugThreshold() {
+		return instance.getDebugThreshold();
+	}
+
+	@Override
+	public long getDebugThreadThreshold() {
+		return instance.getDebugThreadThreshold();
+	}
+
 	public void updatePassword(boolean arg0, lucee.runtime.config.Password arg1, lucee.runtime.config.Password arg2) throws lucee.runtime.exp.PageException {
 		if (instance instanceof MultiContextConfigWeb) ((MultiContextConfigWeb) instance).updatePassword(this, arg0, arg1, arg2);
 		// TODO what do do here?
