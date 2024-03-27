@@ -1,5 +1,6 @@
 package lucee.transformer.cfml.evaluator.impl;
 
+import lucee.commons.lang.ExceptionUtil;
 import lucee.transformer.TransformerException;
 import lucee.transformer.bytecode.statement.tag.Tag;
 import lucee.transformer.cfml.evaluator.EvaluatorException;
@@ -17,7 +18,7 @@ public final class TagTimeout extends EvaluatorSupport {
 		}
 		catch (TransformerException te) {
 			EvaluatorException ee = new EvaluatorException(te.getMessage());
-			ee.initCause(te);
+			ExceptionUtil.initCauseEL(ee, te);
 			throw ee;
 		}
 	}

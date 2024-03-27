@@ -214,7 +214,7 @@ public final class Throw extends TagImpl {
 		_doStartTag(object);
 
 		CustomTypeException exception = new CustomTypeException("", detail, errorcode, type, extendedinfo, level);
-		if (cause != null) exception.initCause(cause);
+		ExceptionUtil.initCauseEL(exception, cause);
 		throw exception;
 	}
 
@@ -224,7 +224,7 @@ public final class Throw extends TagImpl {
 			if (pe != null) throw pe;
 
 			CustomTypeException exception = new CustomTypeException(Caster.toString(obj), detail, errorcode, type, extendedinfo, level);
-			if (cause != null) exception.initCause(cause);
+			ExceptionUtil.initCauseEL(exception, cause);
 			throw exception;
 		}
 	}

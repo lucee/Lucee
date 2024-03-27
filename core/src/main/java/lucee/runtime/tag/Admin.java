@@ -4261,7 +4261,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 				}
 				catch (CoderException e) {
 					CasterException ce = new CasterException(e.getMessage());
-					ce.initCause(e);
+					ExceptionUtil.initCauseEL(ce, e);
 					throw ce;
 				}
 			}

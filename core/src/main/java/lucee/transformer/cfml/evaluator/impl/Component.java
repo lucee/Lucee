@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 
 import lucee.commons.io.res.util.ResourceUtil;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.PageSource;
 import lucee.runtime.config.Constants;
 import lucee.runtime.type.util.ComponentUtil;
@@ -64,7 +65,7 @@ public class Component extends EvaluatorSupport {
 			}
 			catch (TransformerException te) {
 				EvaluatorException ee = new EvaluatorException(te.getMessage());
-				ee.initCause(te);
+				ExceptionUtil.initCauseEL(ee, te);
 				throw ee;
 			}
 		}

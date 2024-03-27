@@ -402,7 +402,9 @@ public final class HSQLDBHandler {
 
 				}
 				catch (SQLException e) {
-					throw (IllegalQoQException) (new IllegalQoQException("QoQ HSQLDB: error executing sql statement on query.", e.getMessage(), sql, null).initCause(e));
+					IllegalQoQException iqe = new IllegalQoQException("QoQ HSQLDB: error executing sql statement on query.", e.getMessage(), sql, null);
+					ExceptionUtil.initCauseEL(iqe, e);
+					throw iqe;
 				}
 
 			}

@@ -106,13 +106,13 @@ public class Ansi92 extends SQLExecutorSupport {
 							new QueryImpl(pc, dc, sql, -1, -1, null, scopeName + "_storage");
 						}
 						catch (DatabaseException ____de) {
-							___de.initCause(__de);
-							__de.initCause(_de);
-							_de.initCause(de);
+							ExceptionUtil.initCauseEL(___de, __de);
+							ExceptionUtil.initCauseEL(__de, _de);
+							ExceptionUtil.initCauseEL(_de, de);
 							// we could not create the table, so there seem to be an other exception we cannot solve
 							DatabaseException exp = new DatabaseException("Unable to select " + scopeName + " information from database, and/or to create the table.", null, null,
 									dc);
-							exp.initCause(de);
+							ExceptionUtil.initCauseEL(exp, de);
 							throw exp;
 						}
 					}
@@ -126,7 +126,7 @@ public class Ansi92 extends SQLExecutorSupport {
 			}
 			catch (DatabaseException _de) {
 				DatabaseException exp = new DatabaseException("Failed to create unique index on [" + tableName + "]", null, sql, dc);
-				exp.initCause(_de);
+				ExceptionUtil.initCauseEL(exp, _de);
 				throw exp;
 			}
 
@@ -137,7 +137,7 @@ public class Ansi92 extends SQLExecutorSupport {
 			}
 			catch (DatabaseException _de) {
 				DatabaseException exp = new DatabaseException("Failed to create expires index on [" + tableName + "]", null, sql, dc);
-				exp.initCause(_de);
+				ExceptionUtil.initCauseEL(exp, _de);
 				throw exp;
 			}
 
@@ -202,8 +202,7 @@ public class Ansi92 extends SQLExecutorSupport {
 			throws PageException {
 		String strType = VariableInterpreter.scopeInt2String(type);
 		// select
-		SQL sqlSelect = new SQLImpl("SELECT cfid, name FROM " + PREFIX + "_" + strType + "_data WHERE expires <= ?",
-				new SQLItem[] { new SQLItemImpl(now(config), Types.VARCHAR) });
+		SQL sqlSelect = new SQLImpl("SELECT cfid, name FROM " + PREFIX + "_" + strType + "_data WHERE expires <= ?", new SQLItem[] { new SQLItemImpl(now(config), Types.VARCHAR) });
 		Query query;
 		try {
 			query = new QueryImpl(ThreadLocalPageContext.get(), dc, sqlSelect, -1, -1, null, strType + "_storage");

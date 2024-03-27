@@ -11,6 +11,8 @@ import java.net.SocketException;
 import java.net.SocketImpl;
 import java.net.SocketOptions;
 
+import lucee.commons.lang.ExceptionUtil;
+
 /**
  * The Java-part of the {@link UNIXSocket} implementation.
  */
@@ -170,7 +172,9 @@ class UNIXSocketImpl extends SocketImpl {
 				return NativeUnixSocket.read(fd, buf, off, len);
 			}
 			catch (final IOException e) {
-				throw (IOException) new IOException(e.getMessage() + " at " + UNIXSocketImpl.this.toString()).initCause(e);
+				IOException ioe = new IOException(e.getMessage() + " at " + UNIXSocketImpl.this.toString());
+				ExceptionUtil.initCauseEL(ioe, e);
+				throw ioe;
 			}
 		}
 
@@ -235,7 +239,9 @@ class UNIXSocketImpl extends SocketImpl {
 				}
 			}
 			catch (final IOException e) {
-				throw (IOException) new IOException(e.getMessage() + " at " + UNIXSocketImpl.this.toString()).initCause(e);
+				IOException ioe = new IOException(e.getMessage() + " at " + UNIXSocketImpl.this.toString());
+				ExceptionUtil.initCauseEL(ioe, e);
+				throw ioe;
 			}
 		}
 

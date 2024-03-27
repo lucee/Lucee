@@ -28,11 +28,13 @@ import java.util.Arrays;
 import java.util.Iterator;
 
 import lucee.commons.io.SystemUtil.TemplateLine;
+import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.PageSource;
+import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.exp.NativeException;
 import lucee.runtime.exp.PageException;
@@ -192,7 +194,7 @@ public final class ExceptionUtil {
 		if (t instanceof NativeException) return toIOException(((NativeException) t).getCause());
 
 		IOException ioe = new IOException(t.getClass().getName() + ":" + t.getMessage());
-		ioe.initCause(t);
+		ExceptionUtil.initCauseEL(ioe, t);
 		return ioe;
 	}
 
@@ -274,8 +276,18 @@ public final class ExceptionUtil {
 
 	public static FileNotFoundException toFileNotFoundException(NoSuchFileException nsfe) {
 		FileNotFoundException fnfe = new FileNotFoundException(nsfe.getMessage());
-		fnfe.initCause(nsfe);
+		ExceptionUtil.initCauseEL(fnfe, nsfe);
 		return fnfe;
+	}
+
+	public static void initCauseEL(Throwable e, Throwable cause) {
+		if (cause == null) return;
+		try {
+			e.initCause(cause);
+		}
+		catch (IllegalStateException ise) { // avoid: Can't overwrite cause with ...
+			LogUtil.log((Config) null, "exception", cause);
+		}
 	}
 
 }

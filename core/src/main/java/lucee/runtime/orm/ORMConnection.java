@@ -245,11 +245,6 @@ public class ORMConnection implements Connection {
 		throw notSupported();
 	}
 
-	/*
-	 * private SQLException toSQLException(PageException pe) { SQLException e = new
-	 * SQLException(pe.getMessage()); e.initCause(pe); return e; }
-	 */
-
 	@Override
 	public <T> T unwrap(Class<T> iface) throws SQLException {
 		throw notSupported();
@@ -324,26 +319,31 @@ public class ORMConnection implements Connection {
 	}
 
 	// used only with java 7, do not set @Override
+	@Override
 	public void setSchema(String schema) throws SQLException {
 		throw notSupported();
 	}
 
 	// used only with java 7, do not set @Override
+	@Override
 	public String getSchema() throws SQLException {
 		throw notSupported();
 	}
 
 	// used only with java 7, do not set @Override
+	@Override
 	public void abort(Executor executor) throws SQLException {
 		throw notSupported();
 	}
 
 	// used only with java 7, do not set @Override
+	@Override
 	public void setNetworkTimeout(Executor executor, int milliseconds) throws SQLException {
 		throw notSupported();
 	}
 
 	// used only with java 7, do not set @Override
+	@Override
 	public int getNetworkTimeout() throws SQLException {
 		throw notSupported();
 	}

@@ -25,6 +25,7 @@ import java.util.concurrent.Callable;
 
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.log.LogUtil;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.engine.ThreadLocalPageContext;
@@ -89,7 +90,8 @@ public class UDFCaller2<P> implements Callable<Data<P>> {
 
 		}
 		catch (PageException pe) {
-			pe.initCause(parentException);
+			ExceptionUtil.initCauseEL(pe, parentException);
+
 			throw pe;
 		}
 		finally {

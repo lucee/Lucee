@@ -906,8 +906,7 @@ public final class SMTPClient implements Serializable {
 
 							listener(config, server, log, e, System.nanoTime() - start);
 							MailException me = new MailException(server.getHostName() + " " + e.getMessage() + ":" + i);
-							me.initCause((e.getCause()));
-
+							ExceptionUtil.initCauseEL(me, e.getCause());
 							throw me;
 						}
 					}

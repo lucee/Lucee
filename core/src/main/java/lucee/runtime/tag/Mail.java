@@ -26,6 +26,7 @@ import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.CharSet;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.ExpressionException;
@@ -193,7 +194,7 @@ public final class Mail extends BodyTagImpl {
 		}
 		catch (Exception e) {
 			ApplicationException ae = new ApplicationException("Attribute [from] of the tag [mail] is invalid", e.getMessage());
-			ae.initCause(e);
+			ExceptionUtil.initCauseEL(ae, e);
 			throw ae;
 		}
 	}
@@ -211,7 +212,7 @@ public final class Mail extends BodyTagImpl {
 		}
 		catch (Exception e) {
 			ApplicationException ae = new ApplicationException("Attribute [to] of the tag [mail] is invalid", e.getMessage());
-			ae.initCause(e);
+			ExceptionUtil.initCauseEL(ae, e);
 			throw ae;
 		}
 	}
@@ -230,7 +231,7 @@ public final class Mail extends BodyTagImpl {
 		}
 		catch (Exception e) {
 			ApplicationException ae = new ApplicationException("Attribute [cc] of the tag [mail] is invalid", e.getMessage());
-			ae.initCause(e);
+			ExceptionUtil.initCauseEL(ae, e);
 			throw ae;
 		}
 	}
@@ -249,7 +250,7 @@ public final class Mail extends BodyTagImpl {
 		}
 		catch (Exception e) {
 			ApplicationException ae = new ApplicationException("Attribute [bcc] of the tag [mail] is invalid", e.getMessage());
-			ae.initCause(e);
+			ExceptionUtil.initCauseEL(ae, e);
 			throw ae;
 		}
 	}
@@ -265,7 +266,7 @@ public final class Mail extends BodyTagImpl {
 		}
 		catch (Exception e) {
 			ApplicationException ae = new ApplicationException("Attribute [failto] of the tag [mail] is invalid", e.getMessage());
-			ae.initCause(e);
+			ExceptionUtil.initCauseEL(ae, e);
 			throw ae;
 		}
 	}
@@ -281,7 +282,7 @@ public final class Mail extends BodyTagImpl {
 		}
 		catch (Exception e) {
 			ApplicationException ae = new ApplicationException("Attribute [replyto] of the tag [mail] is invalid", e.getMessage());
-			ae.initCause(e);
+			ExceptionUtil.initCauseEL(ae, e);
 			throw ae;
 		}
 	}

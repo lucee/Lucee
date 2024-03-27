@@ -26,6 +26,7 @@ import java.io.IOException;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.ExpressionException;
@@ -72,7 +73,7 @@ public final class GetTempFile implements Function {
 		}
 
 		ExpressionException ee = new ExpressionException("Unable to create temporary file in [" + strDir + "] after " + MAX_RETRY + " tries");
-		ee.initCause(ioe);
+		ExceptionUtil.initCauseEL(ee, ioe);
 		throw ee;
 	}
 }

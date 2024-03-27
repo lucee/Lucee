@@ -35,6 +35,7 @@ import java.util.TimeZone;
 
 import org.w3c.dom.Node;
 
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.Component;
 import lucee.runtime.ComponentScope;
@@ -558,7 +559,7 @@ public final class ScriptConverter extends ConverterSupport {
 		}
 		catch (Exception e) {
 			ConverterException ce = new ConverterException("can't serialize Object of type [ " + Caster.toClassName(object) + " ]");
-			ce.initCause(e);
+			ExceptionUtil.initCauseEL(ce, e);
 			throw e;
 		}
 		finally {

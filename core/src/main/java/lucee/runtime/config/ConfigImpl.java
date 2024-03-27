@@ -3086,7 +3086,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 
 			if (t != null) {
 				ApplicationException ae = new ApplicationException("cannot initialize ORM Engine [" + cdORMEngine + "], make sure you have added all the required jar files");
-				ae.initCause(t);
+				ExceptionUtil.initCauseEL(ae, t);
 				throw ae;
 
 			}

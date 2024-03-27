@@ -202,7 +202,7 @@ public final class ClassUtil {
 					ce = new ClassException("In the OSGi Bundle with the name [" + bundle.getName() + "] and the version [" + bundle.getVersion() + "] was no class with name ["
 							+ className + "] found." + appendix);
 				}
-				ce.initCause(e);
+				ExceptionUtil.initCauseEL(ce, e);
 				throw ce;
 			}
 		}
@@ -426,13 +426,13 @@ public final class ClassUtil {
 		}
 		catch (InstantiationException e) {
 			ClassException ce = new ClassException("the specified class object [" + clazz.getName() + "()] cannot be instantiated");
-			ce.initCause(e);
+			ExceptionUtil.initCauseEL(ce, e);
 			throw ce;
 		}
 		catch (IllegalAccessException e) {
 			ClassException ce = new ClassException(
 					"can't load class [" + clazz.getName() + "] because the currently executing method does not have access to the definition of the specified class");
-			ce.initCause(e);
+			ExceptionUtil.initCauseEL(ce, e);
 			throw ce;
 		}
 		catch (Exception e) {
@@ -443,7 +443,7 @@ public final class ClassUtil {
 			message += e.getClass().getName() + " while creating an instance of " + clazz.getName();
 			ClassException ce = new ClassException(message);
 			ce.setStackTrace(e.getStackTrace());
-			ce.initCause(e);
+			ExceptionUtil.initCauseEL(ce, e);
 			throw ce;
 		}
 	}
@@ -509,7 +509,7 @@ public final class ClassUtil {
 		}
 		catch (SecurityException e) {
 			ClassException ce = new ClassException("there is a security violation (thrown by security manager)");
-			ce.initCause(e);
+			ExceptionUtil.initCauseEL(ce, e);
 			throw ce;
 		}
 		catch (NoSuchMethodException e) {
@@ -524,23 +524,23 @@ public final class ClassUtil {
 			sb.append(')');
 
 			ClassException ce = new ClassException("there is no constructor with the [" + sb + "] signature for the class [" + clazz.getName() + "]");
-			ce.initCause(e);
+			ExceptionUtil.initCauseEL(ce, e);
 			throw ce;
 		}
 		catch (IllegalArgumentException e) {
 			ClassException ce = new ClassException("has been passed an illegal or inappropriate argument");
-			ce.initCause(e);
+			ExceptionUtil.initCauseEL(ce, e);
 			throw ce;
 		}
 		catch (InstantiationException e) {
 			ClassException ce = new ClassException(
 					"the specified class object [" + clazz.getName() + "] cannot be instantiated because it is an interface or is an abstract class");
-			ce.initCause(e);
+			ExceptionUtil.initCauseEL(ce, e);
 			throw ce;
 		}
 		catch (IllegalAccessException e) {
 			ClassException ce = new ClassException("can't load class because the currently executing method does not have access to the definition of the specified class");
-			ce.initCause(e);
+			ExceptionUtil.initCauseEL(ce, e);
 			throw ce;
 		}
 	}

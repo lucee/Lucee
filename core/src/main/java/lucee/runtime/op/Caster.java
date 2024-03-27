@@ -2985,7 +2985,7 @@ public final class Caster {
 		}
 		catch (CoderException e) {
 			CasterException ce = new CasterException(e.getMessage());
-			ce.initCause(e);
+			ExceptionUtil.initCauseEL(ce, e);
 			throw ce;
 		}
 	}

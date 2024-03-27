@@ -5334,18 +5334,17 @@ public final class ConfigAdmin {
 		}
 		catch (MalformedURLException e) {
 			ApplicationException ae = new ApplicationException("Url definition [" + strUrl + "] is invalid");
-			ae.initCause(e);
+			ExceptionUtil.initCauseEL(ae, e);
 			throw ae;
 		}
 		catch (IOException e) {
 			ApplicationException ae = new ApplicationException("Can't invoke [" + strUrl + "]");
-			ae.initCause(e);
+			ExceptionUtil.initCauseEL(ae, e);
 			throw ae;
 		}
 		catch (GeneralSecurityException e) {
 			ApplicationException ae = new ApplicationException("Can't invoke [" + strUrl + "]");
-			ae.initCause(e);
-			throw ae;
+			ExceptionUtil.initCauseEL(ae, e);
 		}
 
 		if (method.getStatusCode() != 200) {

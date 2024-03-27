@@ -34,6 +34,7 @@ import java.util.stream.Stream;
 
 import lucee.commons.io.SystemUtil;
 import lucee.commons.lang.CFTypes;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.math.MathUtil;
 import lucee.runtime.PageContext;
@@ -1483,12 +1484,15 @@ public final class QoQ {
 			catch (PageException e) {
 				// Create best error message based on whether param was defined as ? or :name
 				if (param instanceof NamedSQLItem) {
-					throw (IllegalQoQException) (new IllegalQoQException("Parameter [:" + ((NamedSQLItem) param).getName() + "] is invalid.", e.getMessage(), sql, null)
-							.initCause(e));
+					IllegalQoQException iqe = new IllegalQoQException("Parameter [:" + ((NamedSQLItem) param).getName() + "] is invalid.", e.getMessage(), sql, null);
+					ExceptionUtil.initCauseEL(iqe, e);
+					throw iqe;
 				}
 				else {
-					throw (IllegalQoQException) (new IllegalQoQException(new DBUtilImpl().toStringType(param.getType()) + " parameter in position " + (pos + 1) + " is invalid.",
-							e.getMessage(), sql, null).initCause(e));
+					IllegalQoQException iqe = new IllegalQoQException(new DBUtilImpl().toStringType(param.getType()) + " parameter in position " + (pos + 1) + " is invalid.",
+							e.getMessage(), sql, null);
+					ExceptionUtil.initCauseEL(iqe, e);
+					throw iqe;
 				}
 			}
 		}

@@ -23,6 +23,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.ParserString;
 import lucee.commons.lang.types.RefBoolean;
 import lucee.commons.lang.types.RefBooleanImpl;
@@ -560,9 +561,10 @@ public class SelectParser {
 				raw.next();
 			}
 			while (raw.isValidIndex());
-			throw (SQLParserException) new SQLParserException("Unexpected token [" + name + "] found at position " + pos + ". Did you forget to specify all your named params?")
-					// Need to sneak this past Java's checked exception types
-					.initCause(new IllegalQoQException("Unsupported SQL", "", null, null));
+
+			SQLParserException spe = new SQLParserException("Unexpected token [" + name + "] found at position " + pos + ". Did you forget to specify all your named params?");
+			ExceptionUtil.initCauseEL(spe, new IllegalQoQException("Unsupported SQL", "", null, null));
+			throw spe;
 		}
 
 		return exp;

@@ -22,6 +22,7 @@ import java.io.IOException;
 
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.res.Resource;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
@@ -63,7 +64,7 @@ public class FileWrite {
 		}
 		catch (IOException e) {
 			ApplicationException ae = new ApplicationException("Invalid file [" + Caster.toResource(pc, obj, false) + "]");
-			ae.initCause(e);
+			ExceptionUtil.initCauseEL(ae, e);
 			throw ae;
 		}
 		finally {

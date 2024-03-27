@@ -13,6 +13,7 @@ import org.codehaus.commons.compiler.util.resource.StringResource;
 import org.codehaus.janino.ClassLoaderIClassLoader;
 import org.codehaus.janino.CompilerFactory;
 
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.compiler.janino.ResourceCreatorImpl;
 import lucee.runtime.config.ConfigPro;
 import lucee.runtime.exp.PageException;
@@ -105,7 +106,7 @@ public class JaninoCompiler implements Compiler {
 			int index = msg.indexOf(':');
 			if (index != -1) msg = msg.substring(index + 1); // TODO is there a better way to do this?
 			JavaCompilerException jce = new JavaCompilerException(msg, loc.getLineNumber(), loc.getColumnNumber(), null);
-			if (cause != null) jce.initCause(cause);
+			ExceptionUtil.initCauseEL(jce, cause);
 			throw jce;
 		}
 		catch (Exception e) {

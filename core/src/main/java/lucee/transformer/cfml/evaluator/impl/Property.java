@@ -18,6 +18,7 @@
  **/
 package lucee.transformer.cfml.evaluator.impl;
 
+import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.config.Constants;
 import lucee.transformer.TransformerException;
 import lucee.transformer.bytecode.Page;
@@ -48,7 +49,7 @@ public final class Property extends EvaluatorSupport {
 		}
 		catch (TransformerException te) {
 			EvaluatorException ee = new EvaluatorException(te.getMessage());
-			ee.initCause(te);
+			ExceptionUtil.initCauseEL(ee, te);
 			throw ee;
 		}
 
