@@ -140,19 +140,11 @@ public class CPULogger {
 			return this.time;
 		}
 
-		public long getTime() {
-			return time;
-		}
-
 		public double getPercentage() {
 			if (total == null) return 0;
 			double percentage = time == 0 ? 0 : 1D / total.toLongValue() * time;
 			int tmp = (int) (percentage * 100D);
 			return tmp / 100D;
-		}
-
-		public Thread getThread() {
-			return thread;
 		}
 	}
 

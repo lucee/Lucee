@@ -149,7 +149,6 @@ import lucee.runtime.monitor.RequestMonitor;
 import lucee.runtime.monitor.RequestMonitorPro;
 import lucee.runtime.monitor.RequestMonitorProImpl;
 import lucee.runtime.monitor.RequestMonitorWrap;
-import lucee.runtime.net.amf.AMFEngine;
 import lucee.runtime.net.http.ReqRspUtil;
 import lucee.runtime.net.mail.Server;
 import lucee.runtime.net.mail.ServerImpl;
@@ -1166,32 +1165,6 @@ public final class ConfigWebFactory extends ConfigFactory {
 		}
 	}
 
-	private static boolean equal(Resource[] srcs, Resource[] trgs) {
-		if (srcs.length != trgs.length) return false;
-		Resource src;
-		outer: for (int i = 0; i < srcs.length; i++) {
-			src = srcs[i];
-			for (int y = 0; y < trgs.length; y++) {
-				if (src.equals(trgs[y])) continue outer;
-			}
-			return false;
-		}
-		return true;
-	}
-
-	private static Resource[] getNewResources(Resource[] srcs, Resource[] trgs) {
-		Resource trg;
-		java.util.List<Resource> list = new ArrayList<Resource>();
-		outer: for (int i = 0; i < trgs.length; i++) {
-			trg = trgs[i];
-			for (int y = 0; y < srcs.length; y++) {
-				if (trg.equals(srcs[y])) continue outer;
-			}
-			list.add(trg);
-		}
-		return list.toArray(new Resource[list.size()]);
-	}
-
 	/**
 	 * @param configServer
 	 * @param config
@@ -2009,23 +1982,6 @@ public final class ConfigWebFactory extends ConfigFactory {
 		}
 	}
 
-	private static AMFEngine toAMFEngine(Config config, ClassDefinition<AMFEngine> cd, AMFEngine defaultValue) {
-		Log log = ThreadLocalPageContext.getLog(config, "application");
-		try {
-			Class<AMFEngine> clazz = cd.getClazz(null);
-			if (clazz != null) {
-				Object obj = ClassUtil.newInstance(clazz);
-				if ((obj instanceof AMFEngine)) return (AMFEngine) obj;
-				log.error("Flex", "object [" + Caster.toClassName(obj) + "] must implement the interface " + AMFEngine.class.getName());
-			}
-		}
-		catch (Throwable t) {
-			ExceptionUtil.rethrowIfNecessary(t);
-			log.error("Flex", t);
-		}
-		return defaultValue;
-	}
-
 	private static void _loadLoggers(ConfigServerImpl configServer, ConfigImpl config, Struct root, boolean isReload) {
 		config.clearLoggers(Boolean.FALSE);
 		boolean hasCS = configServer != null;
@@ -2791,26 +2747,6 @@ public final class ConfigWebFactory extends ConfigFactory {
 		else if (hasCS) {
 			((GatewayEngineImpl) ((ConfigWebPro) config).getGatewayEngine()).clear();
 		}
-	}
-
-	private static Struct[] _toArguments(List<CacheConnection> list) {
-		Iterator<CacheConnection> it = list.iterator();
-		Struct[] args = new Struct[list.size()];
-		int index = 0;
-		while (it.hasNext()) {
-			args[index++] = it.next().getCustom();
-		}
-		return args;
-	}
-
-	private static String[] _toCacheNames(List<CacheConnection> list) {
-		Iterator<CacheConnection> it = list.iterator();
-		String[] names = new String[list.size()];
-		int index = 0;
-		while (it.hasNext()) {
-			names[index++] = it.next().getName();
-		}
-		return names;
 	}
 
 	private static Struct toStruct(String str) {

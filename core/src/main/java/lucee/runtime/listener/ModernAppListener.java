@@ -42,7 +42,6 @@ import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.PageSource;
 import lucee.runtime.component.ComponentLoader;
-import lucee.runtime.component.Member;
 import lucee.runtime.config.Constants;
 import lucee.runtime.debug.DebuggerImpl;
 import lucee.runtime.engine.ThreadLocalPageContext;
@@ -469,12 +468,6 @@ public class ModernAppListener extends AppListenerSupport {
 			}
 		}
 		return appContext;
-	}
-
-	private static Object get(Component app, Key name, String defaultValue) {
-		Member mem = app.getMember(Component.ACCESS_PRIVATE, name, true, false);
-		if (mem == null) return defaultValue;
-		return mem.getValue();
 	}
 
 	@Override

@@ -242,15 +242,6 @@ public final class ArtifactReader extends DefaultHandler {
 		return versionss.get(key);
 	}
 
-	private static Version[] toArray(List<Version> data) {
-		Version[] arr = new Version[data.size()];
-		int index = 0;
-		for (Version v: data) {
-			arr[index++] = v;
-		}
-		return arr;
-	}
-
 	private static class Repository {
 		private String id;
 		private String name;

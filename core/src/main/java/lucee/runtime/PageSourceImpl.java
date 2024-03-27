@@ -90,11 +90,6 @@ public final class PageSourceImpl implements PageSource {
 	private boolean flush = false;
 	private Log log;
 
-	private PageSourceImpl() {
-		mapping = null;
-		relPath = null;
-	}
-
 	private static class PageAndClassName {
 		private Page page;
 		private String className;

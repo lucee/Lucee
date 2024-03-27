@@ -56,7 +56,6 @@ import lucee.runtime.component.ImportDefintionImpl;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.Constants;
 import lucee.runtime.op.Caster;
-import lucee.runtime.tag.Property;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.UDF;
 import lucee.runtime.type.scope.Undefined;
@@ -78,7 +77,6 @@ import lucee.transformer.bytecode.statement.tag.TagCIObject;
 import lucee.transformer.bytecode.statement.tag.TagComponent;
 import lucee.transformer.bytecode.statement.tag.TagImport;
 import lucee.transformer.bytecode.statement.tag.TagInterface;
-import lucee.transformer.bytecode.statement.tag.TagOther;
 import lucee.transformer.bytecode.statement.udf.Function;
 import lucee.transformer.bytecode.util.ASMConstants;
 import lucee.transformer.bytecode.util.ASMUtil;
@@ -92,7 +90,6 @@ import lucee.transformer.bytecode.visitor.TryCatchFinallyVisitor;
 import lucee.transformer.expression.Expression;
 import lucee.transformer.expression.literal.LitString;
 import lucee.transformer.expression.literal.Literal;
-import lucee.transformer.library.tag.TagLibTag;
 import lucee.transformer.util.PageSourceCode;
 import lucee.transformer.util.SourceCode;
 
@@ -898,28 +895,6 @@ public final class Page extends BodyBase implements Root {
 		cv.visitAfter(bc);
 	}
 
-	private void writeOutUdfCallInnerIf(BytecodeContext bc, Function[] functions, int offset, int length) throws TransformerException {
-		GeneratorAdapter adapter = bc.getAdapter();
-		ConditionVisitor cv = new ConditionVisitor();
-		DecisionIntVisitor div;
-		cv.visitBefore();
-		for (int i = offset; i < length; i++) {
-			cv.visitWhenBeforeExpr();
-			div = new DecisionIntVisitor();
-			div.visitBegin();
-			adapter.loadArg(2);
-			div.visitEQ();
-			adapter.push(i);
-			div.visitEnd(bc);
-			cv.visitWhenAfterExprBeforeBody(bc);
-			bc.visitLine(functions[i].getStart());
-			functions[i].getBody().writeOut(bc);
-			bc.visitLine(functions[i].getEnd());
-			cv.visitWhenAfterBody(bc);
-		}
-		cv.visitAfter(bc);
-	}
-
 	private void writeOutUdfCallInner(BytecodeContext bc, Function[] functions, int offset, int length) throws TransformerException {
 		NativeSwitch ns = new NativeSwitch(bc.getFactory(), 2, NativeSwitch.ARG_REF, null, null);
 
@@ -1611,15 +1586,6 @@ public final class Page extends BodyBase implements Root {
 		}
 	}
 
-	private void writeTags(BytecodeContext bc, List<TagOther> tags) throws TransformerException {
-		if (tags == null) return;
-
-		Iterator<TagOther> it = tags.iterator();
-		while (it.hasNext()) {
-			it.next().writeOut(bc);
-		}
-	}
-
 	private static void getImports(List<String> list, Body body) throws TransformerException {
 		if (ASMUtil.isEmpty(body)) return;
 		Statement stat;
@@ -1676,28 +1642,6 @@ public final class Page extends BodyBase implements Root {
 				}
 			}
 		}
-	}
-
-	private static List<TagOther> extractProperties(Body body) throws TransformerException {
-		if (ASMUtil.isEmpty(body)) return null;
-
-		Statement stat;
-		List<TagOther> properties = null;
-		List<Statement> stats = body.getStatements();
-		for (int i = stats.size() - 1; i >= 0; i--) {
-			stat = stats.get(i);
-
-			if (stat instanceof TagOther) {
-				TagLibTag tlt = ((TagOther) stat).getTagLibTag();
-				if (Property.class.getName().equals(tlt.getTagClassDefinition().getClassName())) {
-					if (properties == null) properties = new ArrayList<TagOther>();
-					properties.add(0, (TagOther) stat);
-					stats.remove(i);
-				}
-
-			}
-		}
-		return properties;
 	}
 
 	/**
@@ -1865,15 +1809,6 @@ public final class Page extends BodyBase implements Root {
 
 	public List<JavaFunction> getJavaFunctions() {
 		return javaFunctions;
-	}
-
-	private static Function[] toArray(List<IFunction> funcs) {
-		Function[] arr = new Function[funcs.size()];
-		int index = 0;
-		for (IFunction f: funcs) {
-			arr[index++] = (Function) f;
-		}
-		return arr;
 	}
 }
 

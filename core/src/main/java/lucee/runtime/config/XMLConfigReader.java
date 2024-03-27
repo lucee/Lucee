@@ -18,12 +18,6 @@ import lucee.commons.io.IOUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.ResourcesImpl;
 import lucee.commons.lang.StringUtil;
-import lucee.runtime.converter.ConverterException;
-import lucee.runtime.converter.JSONConverter;
-import lucee.runtime.converter.JSONDateFormat;
-import lucee.runtime.exp.PageException;
-import lucee.runtime.listener.SerializationSettings;
-import lucee.runtime.op.Caster;
 import lucee.runtime.text.xml.XMLUtil;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
@@ -202,28 +196,6 @@ public final class XMLConfigReader extends DefaultHandler implements LexicalHand
 		src.delete();
 		src = ResourcesImpl.getFileResourceProvider().getResource("/Users/mic/Test/test/lucee-server/context/.CFConfig.json");
 		src.delete();
-
-		/*
-		 * XMLConfigReader reader = new XMLConfigReader(res, true, new ReadRule(), new NameRule()); String
-		 * str = ser(reader.getData().get("cfLuceeConfiguration")); IOUtil.write(trg, str, CharsetUtil.UTF8,
-		 * false); print.e(str);
-		 */
-
-		// Object result = new JSONExpressionInterpreter().interpret(null, str);
-		// print.e(result);
-
-	}
-
-	private static String ser(Object var) throws PageException {
-		try {
-			JSONConverter json = new JSONConverter(true, Charset.forName("UTF-8"), JSONDateFormat.PATTERN_CF, false);
-
-			// TODO get secure prefix from application.cfc
-			return json.serialize(null, var, SerializationSettings.SERIALIZE_AS_ROW, true);
-		}
-		catch (ConverterException e) {
-			throw Caster.toPageException(e);
-		}
 	}
 
 	public static class ReadRule {

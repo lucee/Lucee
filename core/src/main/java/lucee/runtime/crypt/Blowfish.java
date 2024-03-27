@@ -28,7 +28,7 @@ import lucee.runtime.exp.ExceptionHandler;
  * implementation of the Blowfish encryption
  */
 public final class Blowfish {
-	private static class BlowfishCBC extends BlowfishECB {
+	public static class BlowfishCBC extends BlowfishECB {
 
 		long m_lCBCIV;
 
@@ -204,7 +204,7 @@ public final class Blowfish {
 		}
 	}
 
-	private static class BlowfishECB {
+	public static class BlowfishECB {
 
 		// public static final int MAXKEYLENGTH = 56;
 		// public static final int BLOCKSIZE = 8;

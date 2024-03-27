@@ -178,33 +178,6 @@ public final class MailPart implements Externalizable {
 		this.wraptext = wraptext;
 	}
 
-	/**
-	 * wrap a single line
-	 * 
-	 * @param str
-	 * @return wraped Line
-	 */
-	private String wrapLine(String str) {
-		int wtl = wraptext;
-
-		if (str.length() <= wtl) return str;
-
-		String sub = str.substring(0, wtl);
-		String rest = str.substring(wtl);
-		char firstR = rest.charAt(0);
-		String ls = System.getProperty("line.separator");
-
-		if (firstR == ' ' || firstR == '\t') return sub + ls + wrapLine(rest.length() > 1 ? rest.substring(1) : "");
-
-		int indexSpace = sub.lastIndexOf(' ');
-		int indexTab = sub.lastIndexOf('\t');
-		int index = indexSpace <= indexTab ? indexTab : indexSpace;
-
-		if (index == -1) return sub + ls + wrapLine(rest);
-		return sub.substring(0, index) + ls + wrapLine(sub.substring(index + 1) + rest);
-
-	}
-
 	@Override
 	public String toString() {
 		return "lucee.runtime.mail.MailPart(wraptext:" + wraptext + ";type:" + type + ";charset:" + charset + ";body:" + body + ";)";

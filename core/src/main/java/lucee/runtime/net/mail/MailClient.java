@@ -743,21 +743,6 @@ public abstract class MailClient implements PoolItem {
 	}
 
 	/**
-	 * checks if a String Array (ids) has one element that is equal to id
-	 * 
-	 * @param ids
-	 * @param id
-	 * @return has element found or not
-	 * @throws PageException
-	 */
-	private boolean contains(String ids[], int id) throws PageException {
-		for (int i = 0; i < ids.length; i++) {
-			if (OpUtil.compare(ThreadLocalPageContext.get(), ids[i], id) == 0) return true;
-		}
-		return false;
-	}
-
-	/**
 	 * translate a String Array to String List
 	 * 
 	 * @param arr Array to translate

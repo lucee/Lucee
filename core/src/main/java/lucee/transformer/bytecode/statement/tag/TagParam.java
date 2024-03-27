@@ -24,9 +24,7 @@ import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.GeneratorAdapter;
 import org.objectweb.asm.commons.Method;
 
-import lucee.runtime.PageContext;
 import lucee.runtime.config.NullSupportHelper;
-import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.interpreter.VariableInterpreter;
 import lucee.transformer.Factory;
 import lucee.transformer.Position;
@@ -42,15 +40,6 @@ public final class TagParam extends TagBaseNoFinal {
 	public static final Type NULL_SUPPORT_HELPER = Type.getType(NullSupportHelper.class);
 	public static final Type VARIABLE_INTERPRETER = Type.getType(VariableInterpreter.class);
 
-	// void param(String type, String name, Object defaultValue)
-	private static final Method PARAM_TYPE_NAME_DEFAULTVALUE = new Method("param", Types.VOID, new Type[] { Types.STRING, Types.STRING, Types.OBJECT });
-	private static final Method PARAM_TYPE_NAME_DEFAULTVALUE_REGEX = new Method("param", Types.VOID, new Type[] { Types.STRING, Types.STRING, Types.OBJECT, Types.STRING });
-	private static final Method PARAM_TYPE_NAME_DEFAULTVALUE_MIN_MAX = new Method("param", Types.VOID,
-			new Type[] { Types.STRING, Types.STRING, Types.OBJECT, Types.DOUBLE_VALUE, Types.DOUBLE_VALUE });
-	private static final Method PARAM_TYPE_NAME_DEFAULTVALUE_MAXLENGTH = new Method("param", Types.VOID, new Type[] { Types.STRING, Types.STRING, Types.OBJECT, Types.INT_VALUE });
-
-	private static final Method IS_EMPTY = new Method("isEmpty", Types.BOOLEAN_VALUE, new Type[] { Types.STRING });
-
 	private static final Method CONSTR_STRING = new Method("<init>", Types.VOID, new Type[] { Types.STRING }//
 	);
 
@@ -63,30 +52,9 @@ public final class TagParam extends TagBaseNoFinal {
 	private static final Method TO_STRING = new Method("toString", Types.STRING, new Type[] {});
 	private static final Method SUB_PARAM = new Method("subparam", Types.VOID,
 			new Type[] { Types.STRING, Types.STRING, Types.OBJECT, Types.DOUBLE_VALUE, Types.DOUBLE_VALUE, Types.STRING, Types.INT_VALUE, Types.BOOLEAN_VALUE });
-	private static final Method T = new Method("t", Types.VOID, new Type[] { Types.STRING, Types.STRING, Types.OBJECT, Types.DOUBLE_VALUE, Types.DOUBLE_VALUE
-
-	});
 
 	public TagParam(Factory f, Position start, Position end) {
 		super(f, start, end);
-	}
-
-	private double t(PageContext pc) throws ExpressionException {
-
-		// if(StringUtil.isEmpty(name)) throw new ExpressionException("The attribute name is required");
-
-		// String name="kkk";
-		// Object value=VariableInterpreter.getVariableEL(pc,name,NullSupportHelper.NULL(pc));
-
-		/*
-		 * Object value=null; Object defaultValue=null; boolean isNew=false;
-		 * 
-		 * if(NullSupportHelper.NULL(pc)==value) { if(defaultValue==null) throw new
-		 * ExpressionException("The required parameter ["+name+"] was not provided."); value=defaultValue;
-		 * isNew=true; }
-		 */
-
-		return Double.NaN;
 	}
 
 	@Override

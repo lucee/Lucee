@@ -1605,19 +1605,6 @@ public final class Http extends BodyTagImpl {
 		return value;
 	}
 
-	private static String toQueryString(NameValuePair[] qsPairs) {
-		StringBuffer sb = new StringBuffer();
-		for (int i = 0; i < qsPairs.length; i++) {
-			if (sb.length() > 0) sb.append('&');
-			sb.append(qsPairs[i].getName());
-			if (qsPairs[i].getValue() != null) {
-				sb.append('=');
-				sb.append(qsPairs[i].getValue());
-			}
-		}
-		return sb.toString();
-	}
-
 	private static String urlenc(String str, String charset, boolean checkIfNeeded) throws UnsupportedEncodingException {
 		if (checkIfNeeded && !ReqRspUtil.needEncoding(str, false)) return str;
 		return URLEncoder.encode(str, CharsetUtil.toCharset(charset));

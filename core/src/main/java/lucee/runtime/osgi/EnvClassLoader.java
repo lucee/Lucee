@@ -298,12 +298,6 @@ public class EnvClassLoader extends URLClassLoader {
 		return obj;
 	}
 
-	private String toType(short type) {
-		if (CLASS == type) return "class";
-		if (STREAM == type) return "stream";
-		return "url";
-	}
-
 	@Override
 	protected Class<?> findClass(String name) throws ClassNotFoundException {
 		throw new ClassNotFoundException("class " + name + " not found in the core, the loader and all the extension bundles");

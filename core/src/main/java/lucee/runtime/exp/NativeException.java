@@ -67,24 +67,6 @@ public class NativeException extends PageExceptionImpl {
 		return new NativeException(t);
 	}
 
-	private static Throwable getRootCause(Throwable t) {
-		Throwable c;
-		do {
-			c = t.getCause();
-			if (c == null || c == t) return t;
-			t = c;
-
-		}
-		while (true);
-	}
-
-	private boolean hasLuceeRuntime(StackTraceElement[] st) {
-		if (st != null) for (int i = 0; i < st.length; i++) {
-			if (st[i].getClassName().indexOf("lucee.runtime") != -1) return true;
-		}
-		return false;
-	}
-
 	@Override
 	public DumpData toDumpData(PageContext pageContext, int maxlevel, DumpProperties dp) {
 		DumpData data = super.toDumpData(pageContext, maxlevel, dp);

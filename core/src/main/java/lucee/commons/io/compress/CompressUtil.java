@@ -25,13 +25,11 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
@@ -284,47 +282,6 @@ public final class CompressUtil {
 		}
 		finally {
 			IOUtil.close(zis);
-		}
-	}
-
-	/*
-	 * private static void listZipp(Resource zipFile) throws IOException { if (!zipFile.exists()) throw
-	 * new IOException(zipFile + " is not an existing file");
-	 * 
-	 * if (zipFile.isDirectory()) { throw new IOException(zipFile + " is a directory"); }
-	 * 
-	 * ZipInputStream zis = null; try { zis = new
-	 * ZipInputStream(IOUtil.toBufferedInputStream(zipFile.getInputStream())); ZipEntry entry; while
-	 * ((entry = zis.getNextEntry()) != null) { if (!entry.isDirectory()) { ByteArrayOutputStream baos =
-	 * new ByteArrayOutputStream(); IOUtil.copy(zis, baos, false, false); byte[] barr =
-	 * baos.toByteArray(); ap rint.o(entry.getName() + ":" + barr.length); } } } finally {
-	 * IOUtil.closeEL(zis); } }
-	 */
-
-	private static void unzip2(File zipFile, Resource targetDir) throws IOException {
-		ZipFile zf = null;
-		try {
-			zf = new ZipFile(zipFile);
-
-			ZipEntry entry;
-			Enumeration en = zf.entries();
-			while (en.hasMoreElements()) {
-				entry = (ZipEntry) en.nextElement();
-				Resource target = ZipUtil.toResource(targetDir, entry);
-				if (entry.isDirectory()) {
-					target.mkdirs();
-				}
-				else {
-					Resource parent = target.getParentResource();
-					if (!parent.exists()) parent.mkdirs();
-					InputStream is = zf.getInputStream(entry);
-					if (!target.exists()) IOUtil.copy(is, target, true);
-				}
-				target.setLastModified(entry.getTime());
-			}
-		}
-		finally {
-			IOUtil.closeEL(zf);
 		}
 	}
 

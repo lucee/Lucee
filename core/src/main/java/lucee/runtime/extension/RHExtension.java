@@ -861,16 +861,6 @@ public class RHExtension implements Serializable {
 		return defaultValue;
 	}
 
-	private Struct getMetaData(Config config, String id, String version, Resource exFile) throws PageException, IOException, BundleException {
-		Resource file = getMetaDataFile(config, id, version);
-		if (file.isFile()) return Caster.toStruct(new JSONExpressionInterpreter().interpret(null, IOUtil.toString(file, CharsetUtil.UTF8)));
-		if (exFile != null && exFile.isFile()) load(exFile);
-		else load(getExtensionInstalledFile(config, id, version, false));
-		Struct data = new StructImpl();
-		populate(data, true);
-		return data;
-	}
-
 	public static Resource getMetaDataFile(Config config, String id, String version) {
 		String fileName = toHash(id, version, "mf");
 		return getExtensionInstalledDir(config).getRealResource(fileName);
@@ -1348,20 +1338,6 @@ public class RHExtension implements Serializable {
 		int index = name.indexOf('/');
 		if (index == -1) return name;
 		return name.substring(index + 1);
-	}
-
-	private static BundleDefinition toBundleDefinition(InputStream is, String name, String extensionVersion, boolean closeStream)
-			throws IOException, BundleException, ApplicationException {
-		Resource tmp = SystemUtil.getTempDirectory().getRealResource(name);
-		try {
-			IOUtil.copy(is, tmp, closeStream);
-			BundleFile bf = BundleFile.getInstance(tmp);
-			if (bf.isBundle()) throw new ApplicationException("Jar [" + name + "] is not a valid OSGi Bundle");
-			return new BundleDefinition(bf.getSymbolicName(), bf.getVersion());
-		}
-		finally {
-			tmp.delete();
-		}
 	}
 
 	public String getName() {

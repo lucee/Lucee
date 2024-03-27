@@ -709,10 +709,6 @@ public final class MappingImpl implements Mapping {
 			this.lastModified = System.currentTimeMillis();
 			return super.get();
 		}
-
-		public long lastModified() {
-			return lastModified;
-		}
 	}
 
 }

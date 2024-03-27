@@ -23,7 +23,6 @@ import java.util.Iterator;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import lucee.commons.lang.StringUtil;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.text.xml.struct.XMLStruct;
@@ -137,9 +136,5 @@ public class UDFArgConverter {
 		}
 
 		return sb.append("}").toString();
-	}
-
-	private static String escape(String str) {
-		return StringUtil.replace(str, "'", "''", false);
 	}
 }

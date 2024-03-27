@@ -149,24 +149,6 @@ public final class WDDXConverter extends ConverterSupport {
 	}
 
 	/**
-	 * @param dateTime
-	 * @return returns the time zone info
-	 */
-	private String getTimeZoneInfo(DateTime dateTime) {
-		timeZone = ThreadLocalPageContext.getTimeZone(timeZone);
-		// if(timeZone==null) return "";
-
-		int minutes = timeZone.getOffset(dateTime.getTime()) / 1000 / 60;
-		String operator = (minutes >= 0) ? "+" : "-";
-		if (operator.equals("-")) minutes = minutes - (minutes + minutes);
-		int hours = minutes / 60;
-		minutes = minutes % 60;
-
-		return operator + hours + ":" + minutes;
-
-	}
-
-	/**
 	 * serialize an Array
 	 * 
 	 * @param array Array to serialize

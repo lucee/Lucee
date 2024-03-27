@@ -348,28 +348,6 @@ public class ASMProxyFactory {
 		return defaultValue;
 	}
 
-	private static void loadClass(GeneratorAdapter adapter, Class<?> clazz) {
-		if (void.class == clazz) adapter.visitFieldInsn(Opcodes.GETSTATIC, "java/lang/Void", "TYPE", "Ljava/lang/Class;");
-
-		// primitive types
-		else if (int.class == clazz) adapter.visitFieldInsn(Opcodes.GETSTATIC, "java/lang/Integer", "TYPE", "Ljava/lang/Class;");
-		else if (long.class == clazz) adapter.visitFieldInsn(Opcodes.GETSTATIC, "java/lang/Long", "TYPE", "Ljava/lang/Class;");
-		else if (char.class == clazz) adapter.visitFieldInsn(Opcodes.GETSTATIC, "java/lang/Character", "TYPE", "Ljava/lang/Class;");
-		else if (byte.class == clazz) adapter.visitFieldInsn(Opcodes.GETSTATIC, "java/lang/Byte", "TYPE", "Ljava/lang/Class;");
-		else if (float.class == clazz) adapter.visitFieldInsn(Opcodes.GETSTATIC, "java/lang/Float", "TYPE", "Ljava/lang/Class;");
-		else if (double.class == clazz) adapter.visitFieldInsn(Opcodes.GETSTATIC, "java/lang/Double", "TYPE", "Ljava/lang/Class;");
-		else if (boolean.class == clazz) adapter.visitFieldInsn(Opcodes.GETSTATIC, "java/lang/Boolean", "TYPE", "Ljava/lang/Class;");
-		else if (short.class == clazz) adapter.visitFieldInsn(Opcodes.GETSTATIC, "java/lang/Short", "TYPE", "Ljava/lang/Class;");
-
-		// TODO ref types
-
-		else {
-			adapter.visitVarInsn(Opcodes.ALOAD, 1);
-			adapter.push(clazz.getName());
-			adapter.invokeVirtual(Types.CLASS_LOADER, LOAD_CLASS);
-		}
-	}
-
 	private static void paramNames(StringBuilder sb, Class<?>[] params) {
 		if (ArrayUtil.isEmpty(params)) return;
 

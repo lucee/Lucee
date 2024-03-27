@@ -113,21 +113,6 @@ public final class BundleProvider extends DefaultHandler {
 		return defaultProviderList;
 	}
 
-	private static void put(Map<String, List<Info>> mappings, String name, Info... values) {
-		if (mappings.containsKey(name)) throw new RuntimeException(name + " already set");
-		List<Info> list = new ArrayList<>();
-		for (Info i: values) {
-			list.add(i);
-		}
-		mappings.put(name, list);
-	}
-
-	private static void put(Map<String, List<Info>> mappings, String name, List<Info> values) {
-		if (mappings.containsKey(name)) throw new RuntimeException(name + " already set");
-
-		mappings.put(name, values);
-	}
-
 	public static URL[] getDefaultProviderDetail() {
 		if (defaultProviderDetail == null) {
 			String str = SystemUtil.getSystemPropOrEnvVar("lucee.s3.bundle.detail", null);
@@ -988,16 +973,6 @@ public final class BundleProvider extends DefaultHandler {
 
 		public Info() {
 
-		}
-
-		public Info(String groupId, String artifactId) {
-			this.groupId = groupId;
-			this.artifactId = artifactId;
-		}
-
-		public Info(String groupId, String artifactId, String version) {
-			this.groupId = groupId;
-			this.artifactId = artifactId;
 		}
 
 		public String getGroupId() {

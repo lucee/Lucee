@@ -256,11 +256,6 @@ public final class InfoImpl implements Info {
 		return null;
 	}
 
-	private static boolean valid(Manifest manifest) {
-
-		return false;
-	}
-
 	/**
 	 * @return the level
 	 */

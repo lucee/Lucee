@@ -40,29 +40,6 @@ public class ImageUtil {
 		}
 	}
 
-	private static Object toImage(PageContext pc, Object obj, boolean checkForVariables, Object defaultValue) {
-		try {
-			return toImage(pc, obj, checkForVariables);
-		}
-		catch (Exception e) {
-			return defaultValue;
-		}
-	}
-
-	private static Object toImage(PageContext pc, Object obj, boolean checkForVariables) throws PageException {
-		try {
-			Class clazz = getImageClass();
-			if (clazz != null) {
-				Method m = clazz.getMethod("toImage", new Class[] { PageContext.class, Object.class, boolean.class });
-				return m.invoke(null, new Object[] { pc, obj, checkForVariables });
-			}
-		}
-		catch (Exception e) {
-			throw Caster.toPageException(e);
-		}
-		throw new ApplicationException("Cannot convert Object to an Image, you need to install the Image Extension to do so.");
-	}
-
 	public static byte[] getImageBytes(Object o, String format) throws PageException {
 		try {
 			Method m = o.getClass().getMethod("getImageBytes", new Class[] { String.class, boolean.class });

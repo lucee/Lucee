@@ -101,10 +101,6 @@ public final class LitLongImpl extends ExpressionBase implements LitLong {
 		return Types.LONG_VALUE;
 	}
 
-	private Double getDouble() {
-		return Double.valueOf(l);
-	}
-
 	@Override
 	public Boolean getBoolean(Boolean defaultValue) {
 		return getBoolean();

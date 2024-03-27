@@ -69,38 +69,6 @@ public class IPRange implements Serializable {
 			return from.getHostAddress() + "-" + to.getHostAddress();
 		}
 
-		private String toString(short[] sarr) {
-			if (sarr.length == 4) return new StringBuilder().append(sarr[0]).append(".").append(sarr[1]).append(".").append(sarr[2]).append(".").append(sarr[3]).toString();
-
-			return new StringBuilder().append(toHex(sarr[0], sarr[1], false)).append(":").append(toHex(sarr[2], sarr[3], true)).append(":").append(toHex(sarr[4], sarr[5], true))
-					.append(":").append(toHex(sarr[6], sarr[7], true)).append(":").append(toHex(sarr[8], sarr[9], true)).append(":").append(toHex(sarr[10], sarr[11], true))
-					.append(":").append(toHex(sarr[12], sarr[13], true)).append(":").append(toHex(sarr[14], sarr[15], false)).toString();
-
-		}
-
-		private String toHex(int first, int second, boolean allowEmpty) {
-			String str1 = Integer.toString(first, 16);
-			while (str1.length() < 2)
-				str1 = "0" + str1;
-			String str2 = Integer.toString(second, 16);
-			while (str2.length() < 2)
-				str2 = "0" + str2;
-			str1 += str2;
-			if (allowEmpty && str1.equals("0000")) return "";
-
-			while (str1.length() > 1 && str1.charAt(0) == '0')
-				str1 = str1.substring(1);
-
-			return str1;
-		}
-
-		private boolean equal(short[] left, short[] right) {
-			for (int i = 0; i < left.length; i++) {
-				if (left[i] != right[i]) return false;
-			}
-			return true;
-		}
-
 	}
 
 	private void add(String ip) throws IOException {

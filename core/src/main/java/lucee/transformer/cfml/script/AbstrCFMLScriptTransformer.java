@@ -54,13 +54,11 @@ import lucee.transformer.Position;
 import lucee.transformer.TransformerException;
 import lucee.transformer.bytecode.Body;
 import lucee.transformer.bytecode.BodyBase;
-import lucee.transformer.bytecode.BytecodeContext;
 import lucee.transformer.bytecode.FunctionBody;
 import lucee.transformer.bytecode.ScriptBody;
 import lucee.transformer.bytecode.Statement;
 import lucee.transformer.bytecode.expression.FunctionAsExpression;
 import lucee.transformer.bytecode.expression.var.Assign;
-import lucee.transformer.bytecode.expression.var.VariableString;
 import lucee.transformer.bytecode.literal.Null;
 import lucee.transformer.bytecode.statement.Argument;
 import lucee.transformer.bytecode.statement.Condition;
@@ -728,16 +726,6 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 			return new ForEach((Variable) left, value, body, line, data.srcCode.getPosition(), id);
 		}
 		else throw new TemplateException(data.srcCode, "invalid syntax in for statement");
-	}
-
-	private String toVariableName(BytecodeContext bc, Expression variable) {
-		if (!(variable instanceof Variable)) return null;
-		try {
-			return VariableString.variableToString(bc, (Variable) variable, false);
-		}
-		catch (TransformerException e) {
-			return null;
-		}
 	}
 
 	/**

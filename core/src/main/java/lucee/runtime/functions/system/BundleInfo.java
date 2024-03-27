@@ -34,7 +34,6 @@ import lucee.runtime.java.JavaObject;
 import lucee.runtime.op.Caster;
 import lucee.runtime.osgi.BundleRange;
 import lucee.runtime.osgi.OSGiUtil;
-import lucee.runtime.osgi.OSGiUtil.BundleDefinition;
 import lucee.runtime.osgi.OSGiUtil.PackageQuery;
 import lucee.runtime.osgi.OSGiUtil.VersionDefinition;
 import lucee.runtime.type.Array;
@@ -77,26 +76,6 @@ public class BundleInfo implements Function {
 			return sct;
 		}
 		throw new ApplicationException("object [" + clazz + "] is not from an OSGi bundle");
-	}
-
-	private static Array toArray1(List<BundleDefinition> list) {
-		Struct sct;
-		Array arr = new ArrayImpl();
-		Iterator<BundleDefinition> it = list.iterator();
-		BundleDefinition bd;
-		VersionDefinition vd;
-		while (it.hasNext()) {
-			bd = it.next();
-			sct = new StructImpl();
-			sct.setEL(KeyConstants._bundleName, bd.getName());
-			vd = bd.getVersionDefiniton();
-			if (vd != null) {
-				sct.setEL(KeyConstants._bundleVersion, vd.getVersionAsString());
-				sct.setEL("operator", vd.getOpAsString());
-			}
-			arr.appendEL(sct);
-		}
-		return arr;
 	}
 
 	private static Array toArray2(List<PackageQuery> list) {

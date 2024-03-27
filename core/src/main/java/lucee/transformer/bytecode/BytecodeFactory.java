@@ -23,7 +23,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
-import org.objectweb.asm.commons.Method;
 
 import lucee.runtime.config.Config;
 import lucee.runtime.engine.ThreadLocalPageContext;
@@ -77,7 +76,6 @@ import lucee.transformer.expression.var.DataMember;
 import lucee.transformer.expression.var.Variable;
 
 public class BytecodeFactory extends FactoryBase {
-	private final static Method INIT = new Method("init", Types.COLLECTION_KEY, new Type[] { Types.STRING });
 
 	private static final Type KEY_CONSTANTS = Type.getType(KeyConstants.class);
 

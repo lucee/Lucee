@@ -50,7 +50,6 @@ import org.osgi.framework.BundleException;
 import org.osgi.framework.Version;
 
 import lucee.VersionInfo;
-import lucee.aprint;
 import lucee.commons.collection.MapFactory;
 import lucee.commons.digest.Base64Encoder;
 import lucee.commons.digest.HashUtil;
@@ -157,7 +156,6 @@ import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 import lucee.runtime.op.Duplicator;
 import lucee.runtime.op.OpUtil;
-import lucee.runtime.op.date.DateCaster;
 import lucee.runtime.orm.ORMConfiguration;
 import lucee.runtime.orm.ORMConfigurationImpl;
 import lucee.runtime.orm.ORMEngine;
@@ -171,10 +169,8 @@ import lucee.runtime.osgi.OSGiUtil.BundleDefinition;
 import lucee.runtime.rest.RestUtil;
 import lucee.runtime.security.SecurityManager;
 import lucee.runtime.security.SecurityManagerImpl;
-import lucee.runtime.spooler.ExecutionPlan;
 import lucee.runtime.spooler.SpoolerEngine;
 import lucee.runtime.spooler.SpoolerEngineImpl;
-import lucee.runtime.spooler.SpoolerTask;
 import lucee.runtime.spooler.remote.RemoteClientTask;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
@@ -185,7 +181,6 @@ import lucee.runtime.type.Query;
 import lucee.runtime.type.QueryImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
-import lucee.runtime.type.dt.DateTime;
 import lucee.runtime.type.dt.DateTimeImpl;
 import lucee.runtime.type.dt.TimeSpan;
 import lucee.runtime.type.dt.TimeSpanImpl;
@@ -217,7 +212,6 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	private static final short ACCESS_WRITE = 11;
 
 	private static final Collection.Key DEBUG = KeyConstants._debug;
-	private static final Collection.Key DEBUG_SHOW_QUERY_USAGE = KeyConstants._debugShowQueryUsage;
 	private static final Collection.Key TEMPLATES = KeyConstants._templates;
 	private static final Collection.Key STR = KeyConstants._str;
 	private static final Collection.Key DO_STATUS_CODE = KeyConstants._doStatusCode;
@@ -231,9 +225,6 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 	private static final Key HAS_OWN_SEC_CONTEXT = KeyConstants._hasOwnSecContext;
 	private static final Key CONFIG_FILE = KeyConstants._config_file;
-	private static final Key PROCEDURE = KeyConstants._procedure;
-	private static final Key SERVER_LIBRARY = KeyConstants._serverlibrary;
-	private static final Key KEEP_ALIVE = KeyConstants._keepalive;
 	private static final Key CLIENT_SIZE = KeyConstants._clientSize;
 	private static final Key SESSION_SIZE = KeyConstants._sessionSize;
 	private static final Key CLIENT_ELEMENTS = KeyConstants._clientElements;
@@ -369,27 +360,6 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		}
 
 		return Tag.SKIP_BODY;
-	}
-
-	private void print() {
-		String action = Caster.toString(attributes.get(KeyConstants._action, ""), "");
-		if (action.toLowerCase().indexOf("update") == -1) return;
-
-		StringBuilder sb = new StringBuilder("set(json, \"");
-		sb.append(action);
-		sb.append('"');
-		Entry<Key, Object> e;
-		Iterator<Entry<Key, Object>> it = attributes.entryIterator();
-		while (it.hasNext()) {
-			e = it.next();
-			if (KeyConstants._password.equals(e.getKey()) || KeyConstants._remoteclients.equals(e.getKey()) || KeyConstants._type.equals(e.getKey())
-					|| KeyConstants._action.equals(e.getKey()))
-				continue;
-			sb.append(", new Item(\"").append(e.getKey()).append("\")");
-		}
-		sb.append(");");
-		aprint.e(sb);
-
 	}
 
 	private void doAddDump() throws ApplicationException {
@@ -3968,49 +3938,6 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 	}
 
-	private int doGetRemoteClientTasks(lucee.runtime.type.Query qry, SpoolerTask[] tasks, int row) {
-		SpoolerTask task;
-		for (int i = 0; i < tasks.length; i++) {
-			row++;
-			task = tasks[i];
-			try {
-				qry.setAt("type", row, task.getType());
-				qry.setAt("name", row, task.subject());
-				qry.setAt("detail", row, task.detail());
-				qry.setAt("id", row, task.getId());
-
-				qry.setAt("lastExecution", row, new DateTimeImpl(pageContext, task.lastExecution(), true));
-				qry.setAt("nextExecution", row, new DateTimeImpl(pageContext, task.nextExecution(), true));
-				qry.setAt("closed", row, Caster.toBoolean(task.closed()));
-				qry.setAt("tries", row, Caster.toDouble(task.tries()));
-				qry.setAt("triesmax", row, Caster.toDouble(task.tries()));
-				qry.setAt("exceptions", row, translateTime(task.getExceptions()));
-
-				int triesMax = 0;
-				ExecutionPlan[] plans = task.getPlans();
-				for (int y = 0; y < plans.length; y++) {
-					triesMax += plans[y].getTries();
-				}
-				qry.setAt("triesmax", row, Caster.toDouble(triesMax));
-			}
-			catch (Throwable t) {
-				ExceptionUtil.rethrowIfNecessary(t);
-			}
-		}
-		return row;
-	}
-
-	private Array translateTime(Array exp) {
-		exp = (Array) Duplicator.duplicate(exp, true);
-		Iterator<Object> it = exp.valueIterator();
-		Struct sct;
-		while (it.hasNext()) {
-			sct = (Struct) it.next();
-			sct.setEL("time", new DateTimeImpl(pageContext, Caster.toLongValue(sct.get("time", null), 0), true));
-		}
-		return exp;
-	}
-
 	private void doGetRemoteClients() throws PageException {
 		RemoteClient[] clients = config.getRemoteClients();
 		RemoteClient client;
@@ -5272,23 +5199,10 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		return trim ? value.trim() : value;
 	}
 
-	private double getDouble(String tagName, String actionName, String attributeName) throws ApplicationException {
-		double value = getDouble(attributeName, Double.NaN);
-		if (!Decision.isValid(value))
-			throw new ApplicationException("Attribute [" + attributeName + "] for tag [" + tagName + "] is required if attribute action has the value [" + actionName + "]");
-		return value;
-	}
-
 	private String getString(String attributeName, String defaultValue) {
 		Object value = attributes.get(attributeName, null);
 		if (value == null) return defaultValue;
 		return Caster.toString(value, null);
-	}
-
-	private DateTime getDateTime(String attributeName, DateTime defaultValue) {
-		Object value = attributes.get(attributeName, null);
-		if (value == null) return defaultValue;
-		return DateCaster.toDateAdvanced(value, null, defaultValue);
 	}
 
 	private Object getObject(String attributeName, Object defaultValue) {

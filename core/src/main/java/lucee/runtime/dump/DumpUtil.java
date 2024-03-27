@@ -63,12 +63,9 @@ import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 import lucee.runtime.osgi.BundleRange;
 import lucee.runtime.osgi.OSGiUtil;
-import lucee.runtime.osgi.OSGiUtil.PackageQuery;
 import lucee.runtime.osgi.OSGiUtil.VersionDefinition;
-import lucee.runtime.reflection.Reflector;
 import lucee.runtime.text.xml.XMLCaster;
 import lucee.runtime.type.Array;
-import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.ObjectWrap;
 import lucee.runtime.type.Pojo;
@@ -646,15 +643,6 @@ public class DumpUtil {
 		}
 	}
 
-	private static Bundle getBundle(ClassLoader cl) {
-		try {
-			return (Bundle) Reflector.callMethod(cl, "getBundle", new Object[0]);
-		}
-		catch (Exception e) {
-			return null;
-		}
-	}
-
 	private static void requiredBundles(DumpTable parent, Bundle b) {
 		try {
 			List<BundleRange> list = OSGiUtil.getRequiredBundles(b);
@@ -697,32 +685,6 @@ public class DumpUtil {
 		catch (Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);
 		}
-	}
-
-	private static Array toArray2(List<PackageQuery> list) {
-		Struct sct, _sct;
-		Array arr = new ArrayImpl(), _arr;
-		Iterator<PackageQuery> it = list.iterator();
-		PackageQuery pd;
-		Iterator<VersionDefinition> _it;
-		VersionDefinition vd;
-		while (it.hasNext()) {
-			pd = it.next();
-			sct = new StructImpl();
-			sct.setEL(KeyConstants._package, pd.getName());
-			sct.setEL("versions", _arr = new ArrayImpl());
-
-			_it = pd.getVersionDefinitons().iterator();
-			while (_it.hasNext()) {
-				vd = _it.next();
-				_sct = new StructImpl();
-				_sct.setEL(KeyConstants._bundleVersion, vd.getVersion().toString());
-				_sct.setEL("operator", vd.getOpAsString());
-				_arr.appendEL(_sct);
-			}
-			arr.appendEL(sct);
-		}
-		return arr;
 	}
 
 	private static DumpData setId(String id, DumpData data) {

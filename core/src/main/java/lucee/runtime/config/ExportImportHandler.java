@@ -175,8 +175,4 @@ public class ExportImportHandler {
 		}
 		return list;
 	}
-
-	private static byte[] toBinary(Resource res) throws IOException {
-		return IOUtil.toBytes(res);
-	}
 }

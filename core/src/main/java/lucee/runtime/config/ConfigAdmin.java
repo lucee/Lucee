@@ -105,12 +105,10 @@ import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.HTTPException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.SecurityException;
-import lucee.runtime.extension.Extension;
 import lucee.runtime.extension.ExtensionDefintion;
 import lucee.runtime.extension.RHExtension;
 import lucee.runtime.functions.other.CreateObject;
 import lucee.runtime.functions.other.URLEncodedFormat;
-import lucee.runtime.functions.string.Hash;
 import lucee.runtime.functions.system.IsZipFile;
 import lucee.runtime.gateway.GatewayEngineImpl;
 import lucee.runtime.gateway.GatewayEntry;
@@ -306,34 +304,6 @@ public final class ConfigAdmin {
 		catch (Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);
 		}
-	}
-
-	private void addResourceProvider(String scheme, ClassDefinition cd, String arguments) throws PageException {
-		checkWriteAccess();
-
-		Array rpElements = ConfigWebUtil.getAsArray("resourceProviders", root);
-		// Element[] rpElements = ConfigWebFactory.getChildren(resources, "resource-provider");
-		String s;
-		// update
-		if (rpElements != null) {
-			Struct rpElement;
-			for (int i = 1; i <= rpElements.size(); i++) {
-				rpElement = Caster.toStruct(rpElements.getE(i));
-				s = Caster.toString(rpElement.get("scheme"));
-				if (!StringUtil.isEmpty(s) && s.equalsIgnoreCase(scheme)) {
-					setClass(rpElement, null, "", cd);
-					rpElement.setEL("scheme", scheme);
-					rpElement.setEL("arguments", arguments);
-					return;
-				}
-			}
-		}
-		// Insert
-		Struct el = new StructImpl(Struct.TYPE_LINKED);
-		setClass(el, null, "", cd);
-		el.setEL("scheme", scheme);
-		el.setEL("arguments", arguments);
-		rpElements.appendEL(el);
 	}
 
 	public static synchronized void _storeAndReload(ConfigPro config)
@@ -3770,22 +3740,6 @@ public final class ConfigAdmin {
 		return newLucee;
 	}
 
-	private String getCoreExtension() {
-		return "lco";
-	}
-
-	private boolean isNewerThan(int left, int right) {
-		return left > right;
-	}
-
-	/*
-	 * private Resource getPatchDirectory(CFMLEngine engine) throws IOException { //File
-	 * f=engine.getCFMLEngineFactory().getResourceRoot(); Resource res =
-	 * ResourcesImpl.getFileResourceProvider().getResource(engine.getCFMLEngineFactory().getResourceRoot
-	 * ().getAbsolutePath()); Resource pd = res.getRealResource("patches"); if(!pd.exists())pd.mkdirs();
-	 * return pd; }
-	 */
-
 	/**
 	 * run update from cfml engine
 	 * 
@@ -4374,37 +4328,6 @@ public final class ConfigAdmin {
 
 	public void removeRHExtensionProvider(String strUrl) {
 		removeExtensionProvider(strUrl);
-	}
-
-	private String createUid(PageContext pc, String provider, String id) throws PageException {
-		if (Decision.isUUId(id)) {
-			return Hash.invoke(pc.getConfig(), id, null, null, 1);
-		}
-		return Hash.invoke(pc.getConfig(), provider + id, null, null, 1);
-	}
-
-	private void setExtensionAttrs(Struct el, Extension extension) {
-		el.setEL("version", extension.getVersion());
-
-		el.setEL("config", extension.getStrConfig());
-		// el.setEL("config",new ScriptConverter().serialize(extension.getConfig()));
-
-		el.setEL("category", extension.getCategory());
-		el.setEL("description", extension.getDescription());
-		el.setEL("image", extension.getImage());
-		el.setEL("label", extension.getLabel());
-		el.setEL("name", extension.getName());
-
-		el.setEL("author", extension.getAuthor());
-		el.setEL("type", extension.getType());
-		el.setEL("codename", extension.getCodename());
-		el.setEL("support", extension.getSupport());
-		el.setEL("documentation", extension.getDocumentation());
-		el.setEL("forum", extension.getForum());
-		el.setEL("mailinglist", extension.getMailinglist());
-		el.setEL("network", extension.getNetwork());
-		el.setEL("created", Caster.toString(extension.getCreated(), null));
-
 	}
 
 	public void resetORMSetting() throws SecurityException {

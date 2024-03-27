@@ -23,7 +23,6 @@ import java.lang.instrument.UnmodifiableClassException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Member;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Parameter;
@@ -940,28 +939,6 @@ public final class Reflector {
 	public static boolean hasMethod(Class<?> clazz, Collection.Key methodName, Object[] args) throws PageException {
 		MethodInstance mi = getMethodInstance(clazz, methodName, args);
 		return mi.hasMethod();
-	}
-
-	private static void checkAccessibility(Object objMaybeNull, Class clazz, Key methodName) {
-		if (methodName.equals(EXIT) && (clazz == System.class || clazz == Runtime.class)) { // TODO better implementation
-			throw new PageRuntimeException(new SecurityException("Calling the exit method is not allowed"));
-		}
-
-		// change the accessibility of Lucee methods is not allowed
-		else if (methodName.equals(SET_ACCESSIBLE)) {
-			if (objMaybeNull instanceof JavaObject) objMaybeNull = ((JavaObject) objMaybeNull).getEmbededObject(null);
-			if (objMaybeNull instanceof Member) {
-				Member member = (Member) objMaybeNull;
-				Class<?> cls = member.getDeclaringClass();
-				if (cls != null) {
-					String name = cls.getName();
-					if (name != null && name.startsWith("lucee.")) {
-						throw new PageRuntimeException(new SecurityException("Changing the accessibility of an object's members in the lucee.* package is not allowed"));
-					}
-				}
-
-			}
-		}
 	}
 
 	public static void checkAccessibility(Class clazz, Key methodName) {

@@ -276,30 +276,6 @@ public class FunctionDefFactory {
 				break;
 			}
 		}
-
-		// array
-		/*
-		 * if (type.endsWith("[]")) { Class clazz = toClass(type.substring(0, type.length() - 2)); clazz =
-		 * ClassUtil.toArrayClass(clazz); return clazz; }
-		 */
-
 		return ClassUtil.loadClass(CFMLEngineFactory.class.getClassLoader(), type);
-	}
-
-	private static Class<?> toJavaFunctionType(Class<?> clazz, Class<?> defaultValue) {
-		if (void.class == clazz) return void.class;
-		if (double.class == clazz) return double.class;
-		if (Double.class == clazz) return double.class;
-		if (int.class == clazz) return int.class;
-		if (Integer.class == clazz) return int.class;
-		if (long.class == clazz) return long.class;
-		if (Long.class == clazz) return long.class;
-		if (boolean.class == clazz) return boolean.class;
-		if (Boolean.class == clazz) return boolean.class;
-		if (Object.class == clazz) return Object.class;
-
-		return defaultValue;
-		// throw new JavaSourceException("invalid type definition [" + clazz.getName() + "],valid types are
-		// [void,boolean,double,int,long,Object]");
 	}
 }

@@ -488,16 +488,6 @@ public abstract class Function extends StatementBaseNoFinal implements Opcodes, 
 		return false;
 	}
 
-	private final void writeOutAccess(BytecodeContext bc, ExprString expr) {
-
-		// write short type
-		if (expr instanceof LitString) {
-			int access = ComponentUtil.toIntAccess(((LitString) expr).getString(), Component.ACCESS_PUBLIC);
-			bc.getAdapter().push(access);
-		}
-		else bc.getAdapter().push(Component.ACCESS_PUBLIC);
-	}
-
 	private final void writeOutAccess(BytecodeContext bc, int access) {
 		bc.getAdapter().push(access);
 	}
@@ -608,12 +598,6 @@ public abstract class Function extends StatementBaseNoFinal implements Opcodes, 
 		ExprBoolean eb = value.getFactory().toExprBoolean(value);
 		if (!(eb instanceof LitBoolean)) throw new TransformerException(bc, "Value of attribute [" + name + "] must have a literal/constant value", getStart());
 		return (LitBoolean) eb;
-	}
-
-	private final ExprInt toLitInt(BytecodeContext bc, String name, Expression value) throws TransformerException {
-		ExprInt eb = value.getFactory().toExprInt(value);
-		if (!(eb instanceof Literal)) throw new TransformerException(bc, "Value of attribute [" + name + "] must have a literal/constant value", getStart());
-		return eb;
 	}
 
 	public void setJavaFunction(JavaFunction jf) {

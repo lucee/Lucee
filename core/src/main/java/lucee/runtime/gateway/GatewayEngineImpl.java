@@ -292,12 +292,6 @@ public class GatewayEngineImpl implements GatewayEngine {
 		throw new ExpressionException("there is no gateway instance with id [" + gatewayId + "], available gateway instances are [" + sb + "]");
 	}
 
-	private GatewayEntry getGatewayEntry(Gateway gateway) {
-		String gatewayId = gateway.getId();
-		// it must exist, because it only can come from here
-		return entries.get(gatewayId);
-	}
-
 	private void executeThread(String gatewayId, int action) throws PageException {
 		new GatewayThread(this, getGateway(gatewayId), action).start();
 	}

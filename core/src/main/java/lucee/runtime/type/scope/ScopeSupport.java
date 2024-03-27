@@ -60,16 +60,6 @@ public abstract class ScopeSupport extends StructImpl implements Scope {
 	private int type;
 
 	/**
-	 * constructor for the Simple class
-	 * 
-	 * @param name name of the scope
-	 * @param type scope type (SCOPE_APPLICATION,SCOPE_COOKIE use)
-	 */
-	private ScopeSupport(String name, int type) {
-		this(name, type, Struct.TYPE_LINKED);
-	}
-
-	/**
 	 * constructor for ScopeSupport
 	 * 
 	 * @param name name of the scope

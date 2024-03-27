@@ -680,31 +680,6 @@ public final class Directory extends TagImpl {
 		return count;
 	}
 
-	// this method only exists for performance reason
-	private static int _fillArrayName(Array arr, Resource directory, ResourceFilter filter, int count) {
-		if (filter == null || filter instanceof ResourceNameFilter) {
-			ResourceNameFilter rnf = filter == null ? null : (ResourceNameFilter) filter;
-			String[] list = directory.list();
-			if (list == null || list.length == 0) return count;
-			for (int i = 0; i < list.length; i++) {
-				if (rnf == null || rnf.accept(directory, list[i])) {
-					arr.appendEL(list[i]);
-				}
-			}
-		}
-		else {
-			Resource[] list = directory.listResources();
-			if (list == null || list.length == 0) return count;
-			for (int i = 0; i < list.length; i++) {
-				if (filter.accept(list[i])) {
-					arr.appendEL(list[i].getName());
-				}
-			}
-		}
-
-		return count;
-	}
-
 	/**
 	 * create a directory
 	 * 

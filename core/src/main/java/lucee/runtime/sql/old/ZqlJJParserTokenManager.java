@@ -1315,11 +1315,6 @@ public final class ZqlJJParserTokenManager implements ZqlJJParserConstants {
 		while (i++ != j);
 	}
 
-	private final void jjCheckNAddStates(int i) {
-		jjCheckNAdd(jjnextStates[i]);
-		jjCheckNAdd(jjnextStates[i + 1]);
-	}
-
 	private final int jjMoveNfa_0(int i, int j) {
 		int k = 0;
 		jjnewStateCnt = 47;

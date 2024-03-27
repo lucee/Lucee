@@ -1043,11 +1043,6 @@ public final class ResourceUtil {
 		return res != null && res.exists();
 	}
 
-	private static boolean parentExists(PageSource ps) {
-		PageSource p = ((PageSourceImpl) ps).getParent();
-		return p != null && p.exists();
-	}
-
 	public static void removeChildren(Resource res) throws IOException {
 		removeChildren(res, (ResourceFilter) null);
 	}

@@ -32,7 +32,6 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.security.CodeSource;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -46,15 +45,10 @@ import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
 import java.util.TimeZone;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
 
 import javax.script.ScriptEngineFactory;
-import javax.servlet.FilterChain;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletContext;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -677,70 +671,6 @@ public final class CFMLEngineImpl implements CFMLEngine {
 		return count;
 	}
 
-	private void deployBundledExtensionZip(ConfigServerImpl cs) {
-		Resource dir = cs.getLocalExtensionProviderDirectory();
-		List<ExtensionDefintion> existing = DeployHandler.getLocalExtensions(cs, false);
-		String sub = "extensions/";
-		// MUST this does not work on windows! we need to add an index
-		ZipEntry entry;
-		ZipInputStream zis = null;
-		try {
-			CodeSource src = CFMLEngineFactory.class.getProtectionDomain().getCodeSource();
-			if (src == null) return;
-			URL loc = src.getLocation();
-
-			zis = new ZipInputStream(loc.openStream());
-			String path, name;
-			int index;
-			Resource temp;
-			RHExtension rhe;
-			Iterator<ExtensionDefintion> it;
-			ExtensionDefintion exist;
-			while ((entry = zis.getNextEntry()) != null) {
-				path = entry.getName();
-				if (path.startsWith(sub) && path.endsWith(".lex")) { // ignore non lex files or file from else where
-					index = path.lastIndexOf('/') + 1;
-					if (index == sub.length()) { // ignore sub directories
-						name = path.substring(index);
-						temp = null;
-						try {
-							temp = SystemUtil.getTempDirectory().getRealResource(name);
-							ResourceUtil.touch(temp);
-							Util.copy(zis, temp.getOutputStream(), false, true);
-							rhe = new RHExtension(cs, temp);
-							rhe.validate();
-							boolean alreadyExists = false;
-							it = existing.iterator();
-							while (it.hasNext()) {
-								exist = it.next();
-								if (exist.equals(rhe)) {
-									alreadyExists = true;
-									break;
-								}
-							}
-							if (!alreadyExists) {
-								temp.moveTo(dir.getRealResource(name));
-							}
-
-						}
-						finally {
-							if (temp != null && temp.exists()) temp.delete();
-						}
-
-					}
-				}
-				zis.closeEntry();
-			}
-		}
-		catch (Exception e) {
-			LogUtil.log(cs, "deploy-bundle-extension", e);
-		}
-		finally {
-			Util.closeEL(zis);
-		}
-		return;
-	}
-
 	public void touchMonitor(ConfigServerImpl cs) {
 		if (monitor != null && monitor.isAlive()) return;
 		monitor = new Monitor(cs, controlerState);
@@ -818,20 +748,6 @@ public final class CFMLEngineImpl implements CFMLEngine {
 		if (!initContextes.containsKey(real)) {
 			CFMLFactory jspFactory = loadJSPFactory(getConfigServerImpl(null, false, false), config, initContextes.size());
 			initContextes.put(real, jspFactory);
-		}
-	}
-
-	private void filter(ServletRequest req, ServletResponse rsp, FilterChain fc) {
-		// TODO get filter defined in Config
-	}
-
-	private Object _get(Object obj, String msg) throws PageException {
-		try {
-			Method m = obj.getClass().getMethod(msg, new Class[0]);
-			return m.invoke(obj, new Object[0]);
-		}
-		catch (Exception e) {
-			throw Caster.toPageException(e);
 		}
 	}
 
@@ -1080,16 +996,6 @@ public final class CFMLEngineImpl implements CFMLEngine {
 			}
 		}
 		return configDir;
-	}
-
-	private File getDirectoryByProp(String name) {
-		String value = System.getProperty(name);
-		if (Util.isEmpty(value, true)) return null;
-
-		File dir = new File(value);
-		dir.mkdirs();
-		if (dir.isDirectory()) return dir;
-		return null;
 	}
 
 	private static void copyRecursiveAndRename(Resource src, Resource trg) throws IOException {

@@ -554,15 +554,6 @@ public final class CFMLTransformer {
 		}
 	}
 
-	private Object p(Data data) {
-		try {
-			return data.srcCode.getPosition();
-		}
-		catch (Exception e) {
-			return data.srcCode.getPos();
-		}
-	}
-
 	/**
 	 * Liest einen Tag ein, prueft hierbei ob das Tag innerhalb einer der geladenen Tag-Lib existiert,
 	 * ansonsten wird ein Tag einfach als literal-string aufgenommen. <br />

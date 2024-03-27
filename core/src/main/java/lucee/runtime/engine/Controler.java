@@ -47,7 +47,6 @@ import lucee.runtime.config.DatasourceConnPool;
 import lucee.runtime.config.DeployHandler;
 import lucee.runtime.config.maven.MavenUpdateProvider;
 import lucee.runtime.extension.RHExtension;
-import lucee.runtime.functions.system.PagePoolClear;
 import lucee.runtime.lock.LockManagerImpl;
 import lucee.runtime.net.smtp.SMTPConnectionPool;
 import lucee.runtime.op.Caster;
@@ -512,10 +511,6 @@ public final class Controler extends ParentThreasRefThread {
 		finally {
 			ThreadLocalConfig.release();
 		}
-	}
-
-	private void doClearPagePools(ConfigWeb config) {
-		PagePoolClear.clear(null, config, true);
 	}
 
 	private CFMLFactoryImpl[] toFactories(CFMLFactoryImpl[] factories, Map contextes) {

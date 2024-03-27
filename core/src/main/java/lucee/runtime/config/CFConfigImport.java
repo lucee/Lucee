@@ -1,27 +1,13 @@
 package lucee.runtime.config;
 
 import java.io.File;
-import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.Iterator;
 import java.util.Map.Entry;
-import java.util.jar.Attributes;
-import java.util.jar.Manifest;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
-
-import org.apache.logging.log4j.core.layout.HtmlLayout;
-import org.apache.logging.log4j.core.layout.PatternLayout;
 
 import lucee.commons.io.DevNullOutputStream;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.LogUtil;
-import lucee.commons.io.log.log4j2.appender.ConsoleAppender;
-import lucee.commons.io.log.log4j2.appender.DatasourceAppender;
-import lucee.commons.io.log.log4j2.appender.ResourceAppender;
-import lucee.commons.io.log.log4j2.layout.ClassicLayout;
-import lucee.commons.io.log.log4j2.layout.DataDogLayout;
-import lucee.commons.io.log.log4j2.layout.XMLLayout;
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.loader.engine.CFMLEngine;
@@ -33,7 +19,6 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.interpreter.JSONExpressionInterpreter;
 import lucee.runtime.op.Caster;
 import lucee.runtime.thread.SerializableCookie;
-import lucee.runtime.type.Array;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.KeyImpl;
@@ -236,68 +221,6 @@ public class CFConfigImport {
 		if (modified) e.setValue(str);
 	}
 
-	private void optimizeExtensions(Config config, Struct json) throws IOException {
-		Cast cast = engine.getCastUtil();
-		Array arr = cast.toArray(json.get("extensions", null), null);
-		if (arr == null) return;
-		Struct data;
-		String path;
-		Resource src;
-		Iterator<Object> it = arr.valueIterator();
-		while (it.hasNext()) {
-			data = cast.toStruct(it.next(), null);
-			if (data == null) continue;
-			path = cast.toString(data.get("source", null), null);
-			if (Util.isEmpty(path)) continue;
-			src = cast.toResource(path, null);
-			if (!src.isFile()) continue;
-			String[] idAndVersion = extractExtesnionInfoFromManifest(src);
-			if (idAndVersion == null) continue;
-			Resource extDir = config.getLocalExtensionProviderDirectory();
-			Resource trg = extDir.getRealResource(idAndVersion[0] + "-" + idAndVersion[1] + ".lex");
-			if (!trg.isFile()) {
-				engine.getIOUtil().copy(src, trg);
-			}
-			data.setEL("id", idAndVersion[0]);
-			data.setEL("version", idAndVersion[1]);
-		}
-
-	}
-
-	private static Manifest extractManifest(Resource src) throws IOException {
-
-		ZipInputStream zis = null;
-		try {
-			zis = new ZipInputStream(Util.toBufferedInputStream(src.getInputStream()));
-			ZipEntry entry;
-			Manifest mf = null;
-			while ((entry = zis.getNextEntry()) != null) {
-				if (!entry.isDirectory()) {
-					if (entry.getName().indexOf("META-INF/MANIFEST.MF") != -1) {
-						mf = new Manifest(zis);
-					}
-				}
-				zis.closeEntry();
-				if (mf != null) return mf;
-			}
-		}
-		finally {
-			Util.closeEL(zis);
-		}
-		return null;
-	}
-
-	private static String[] extractExtesnionInfoFromManifest(Resource src) throws IOException {
-		Manifest mf = extractManifest(src);
-		if (mf != null) {
-			Attributes attrs = mf.getMainAttributes();
-			String id = unwrap(attrs.getValue("id"));
-			String version = unwrap(attrs.getValue("version"));
-			return new String[] { id, version };
-		}
-		return null;
-	}
-
 	private boolean setPasswordIfNecessary(ConfigPro config) throws PageException {
 		if (!setPasswordIfNecessary) return false;
 		boolean isServer = "server".equalsIgnoreCase(type);
@@ -321,179 +244,4 @@ public class CFConfigImport {
 		}
 		return false;
 	}
-
-	private static class Item {
-		private String[] srcKeyNames;
-		private final String trgAttrName;
-		private CFMLEngine e;
-		private Modifier modifier;
-		private Object def = "";
-
-		public Item(String name) {
-			this(name, (Modifier) null);
-		}
-
-		public Item(String name, Modifier modifier) {
-			this.srcKeyNames = new String[] { name };
-			this.trgAttrName = name;
-			this.e = CFMLEngineFactory.getInstance();
-			this.modifier = modifier;
-		}
-
-		public Item(String srcKeyName, String trgAttrName) {
-			this(srcKeyName, trgAttrName, (Modifier) null);
-		}
-
-		public Item(String srcKeyName, String trgAttrName, Modifier modifier) {
-			this.srcKeyNames = new String[] { srcKeyName, trgAttrName };
-			this.trgAttrName = trgAttrName;
-			this.e = CFMLEngineFactory.getInstance();
-			this.modifier = modifier;
-		}
-
-		public Item(String[] srcKeyNames, String trgAttrName, Modifier modifier) {
-			this.srcKeyNames = srcKeyNames;
-			this.trgAttrName = trgAttrName;
-			this.e = CFMLEngineFactory.getInstance();
-			this.modifier = modifier;
-		}
-
-		public Item setDefault(Object def) {
-			this.def = def;
-			return this;
-		}
-
-		public Item addName(String name) {
-			String[] tmp = new String[srcKeyNames.length + 1];
-			for (int i = 0; i < srcKeyNames.length; i++) {
-				tmp[i] = srcKeyNames[i];
-			}
-			tmp[tmp.length - 1] = name;
-			srcKeyNames = tmp;
-			return this;
-		}
-
-		public Object getDefault() {
-			return def;
-		}
-
-		public Key getTargetAttrName() {
-			return e.getCastUtil().toKey(trgAttrName);
-		}
-
-		private Object getValue(Struct json) {
-			if (modifier != null) {
-				return modifier.getValue(json);
-			}
-			Object obj = null;
-			for (String srcKeyName: srcKeyNames) {
-				obj = json.get(e.getCastUtil().toKey(srcKeyName), null);
-				if (obj == null) continue;
-				if (!(obj instanceof String)) break;
-				if (!Util.isEmpty((String) obj, true)) break;
-				obj = null;
-			}
-			return obj;
-		}
-
-	}
-
-	private static String unwrap(String str) {
-		if (str == null) return null;
-		if (Util.isEmpty(str)) return "";
-		str = str.trim();
-		if (str.startsWith("\"") && str.endsWith("\"")) return str.substring(1, str.length() - 1).trim();
-		return str;
-	}
-
-	private static interface Modifier {
-
-		String getValue(Struct json);
-
-	}
-
-	private abstract static class ALModifier implements Modifier {
-
-		public String getValue(Struct json, String name) {
-			// to we have the main key?
-			CFMLEngine e = CFMLEngineFactory.getInstance();
-			String data = null;
-			data = e.getCastUtil().toString(json.get(e.getCastUtil().toKey(name), null), null);
-			if (!Util.isEmpty(data, true)) return data;
-			return null;
-		}
-
-	}
-
-	private static class AppenderModifier extends ALModifier {
-
-		@Override
-		public String getValue(Struct json) {
-			String val = getValue(json, "appenderclass");
-			if (val != null) return val;
-			val = getValue(json, "appender");
-
-			if ("console".equalsIgnoreCase(val)) return ConsoleAppender.class.getName();
-			if ("resource".equalsIgnoreCase(val)) return ResourceAppender.class.getName();
-			if ("datasource".equalsIgnoreCase(val)) return DatasourceAppender.class.getName();
-
-			return val;
-		}
-
-	}
-
-	private static class LayoutModifier extends ALModifier {
-
-		@Override
-		public String getValue(Struct json) {
-			String val = getValue(json, "layoutclass");
-			if (val != null) return val;
-			val = getValue(json, "layout");
-
-			if ("classic".equalsIgnoreCase(val)) return ClassicLayout.class.getName();
-			;
-			if ("datasource".equalsIgnoreCase(val)) return ClassicLayout.class.getName();
-			if ("html".equalsIgnoreCase(val)) return HtmlLayout.class.getName();
-			if ("xml".equalsIgnoreCase(val)) return XMLLayout.class.getName();
-			if ("pattern".equalsIgnoreCase(val)) return PatternLayout.class.getName();
-			if ("datadog".equalsIgnoreCase(val)) return DataDogLayout.class.getName();
-
-			return val;
-		}
-
-	}
-
-	private static class CreateHashModifier implements Modifier {
-
-		private String[] keysToHash;
-		private String[] mains;
-
-		public CreateHashModifier(String[] mains, String... keysToHash) {
-			this.mains = mains;
-			this.keysToHash = keysToHash;
-		}
-
-		@Override
-		public String getValue(Struct json) {
-			// to we have the main key?
-			CFMLEngine e = CFMLEngineFactory.getInstance();
-			String data = null;
-			for (String main: mains) {
-				data = e.getCastUtil().toString(json.get(e.getCastUtil().toKey(main), null), null);
-				if (!Util.isEmpty(data, true)) break;
-			}
-			if (!Util.isEmpty(data, true)) return data;
-
-			// if not we create a hash instead
-			StringBuilder sb = new StringBuilder();
-			for (String keyToHash: keysToHash) {
-				data = e.getCastUtil().toString(json.get(e.getCastUtil().toKey(keyToHash), null), null);
-				if (!Util.isEmpty(data, true)) sb.append(data).append(';');
-			}
-
-			return e.getSystemUtil().hash64b(sb.toString());
-		}
-
-	}
-
 }

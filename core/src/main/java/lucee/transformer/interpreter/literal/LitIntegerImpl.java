@@ -84,10 +84,6 @@ public final class LitIntegerImpl extends ExpressionBase implements LitInteger, 
 		return Caster.toBooleanValue(i);
 	}
 
-	private Double getDouble() {
-		return Double.valueOf(i);
-	}
-
 	/**
 	 * @see lucee.transformer.expression.literal.Literal#getBoolean(java.lang.Boolean)
 	 */

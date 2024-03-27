@@ -1735,14 +1735,6 @@ public class QueryImpl implements Query, Objects, QueryResult {
 		}
 	}
 
-	private int getIndexFromKey(String key) {
-		String lc = StringUtil.toLowerCase(key);
-		for (int i = 0; i < columnNames.length; i++) {
-			if (columnNames[i].getLowerString().equals(lc)) return i;
-		}
-		return -1;
-	}
-
 	private int getIndexFromKey(Collection.Key key) {
 		for (int i = 0; i < columnNames.length; i++) {
 			if (columnNames[i].equalsIgnoreCase(key)) return i;
@@ -3023,10 +3015,6 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	@Override
 	public ResultSetMetaData getMetaData() {
 		return this.metadata;
-	}
-
-	private void setMetaData(ResultSetMetaData metadata) {
-		this.metadata = metadata;
 	}
 
 	@Override

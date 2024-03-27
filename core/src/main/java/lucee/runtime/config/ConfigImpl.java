@@ -1232,10 +1232,6 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 		}
 	}
 
-	private String getKey(FunctionLib functionLib) {
-		return functionLib.getDisplayName().toLowerCase();
-	}
-
 	/**
 	 * sets if it is allowed to implict query call, call a query member without define name of the
 	 * query.
@@ -2256,6 +2252,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 
 	private static final Object dclt = new SerializableObject();
 
+	@Override
 	public PhysicalClassLoader getDirectClassLoader(boolean reload) throws IOException {
 		if (directClassLoader == null || reload) {
 			synchronized (dclt) {

@@ -79,11 +79,6 @@ public class RSA {
 		return kpg.genKeyPair();
 	}
 
-	private static byte[] encrypt(byte[] data, PrivateKey privateKeyToEncrypt)
-			throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
-		return new RSA(privateKeyToEncrypt, null).encrypt(data);
-	}
-	
 	public byte[] encrypt(byte[] data) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
 		if (encCipher == null) throw new RuntimeException("Cipher is not initialized!");
 		int max = (KEY_SIZE / 8) - 11; // TODO?
@@ -114,15 +109,10 @@ public class RSA {
 		return bytes;
 	}
 
-	private static byte[] decrypt(byte[] data, PublicKey publicKeyToDecrypt, int offset)
-			throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
-		return new RSA(null, publicKeyToDecrypt).decrypt(data, offset);
-	}
-
 	public byte[] decrypt(byte[] data, int offset) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
 		if (decCipher == null) throw new RuntimeException("Cipher is not initialized!");
 
-		int max = (KEY_SIZE / 8); // TODO?? 
+		int max = (KEY_SIZE / 8); // TODO??
 
 		// we need to split in pieces, because RSA cannot handle pieces bigger than the key size
 		List<byte[]> list = new ArrayList<byte[]>();

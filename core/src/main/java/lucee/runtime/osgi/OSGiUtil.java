@@ -2404,46 +2404,6 @@ public class OSGiUtil {
 		return true;
 	}
 
-	private static List<PackageDefinition> getExportPackages(Bundle b) {
-		Dictionary<String, String> headers = b.getHeaders();
-		String raw = headers.get("Export-Package");
-		List<PackageDefinition> records = new ArrayList<>();
-		int len = raw.length();
-		char c;
-		boolean inline = false;
-		StringBuilder sb = new StringBuilder();
-		for (int i = 0; i < len; i++) {
-			c = raw.charAt(i);
-			if (c == '"') {
-				sb.append('"');
-				inline = !inline;
-			}
-			else if (!inline && c == ',') {
-				records.add(_toPackageQuery(sb.toString()));
-				sb = new StringBuilder();
-			}
-			else sb.append(c);
-		}
-		records.add(_toPackageQuery(sb.toString()));
-
-		return records;
-	}
-
-	private static PackageDefinition _toPackageQuery(String raw) {
-		String[] arr = ListUtil.listToStringArray(raw, ';');
-		PackageDefinition pd = new PackageDefinition(arr[0].trim());
-
-		for (int i = 1; i < arr.length; i++) {
-			if (arr[i].startsWith("version=")) {
-				Version v = OSGiUtil.toVersion(StringUtil.unwrap(arr[i].substring(8)), null);
-				if (v != null) pd.setVersion(v);
-				break;
-			}
-		}
-
-		return pd;
-	}
-
 	public static boolean resolveBundleLoadingIssues(BundleContext bc, Config config, BundleException be) {
 		try {
 			loadBundlesAndPackagesFromMessage(bc, config, be.getMessage());
