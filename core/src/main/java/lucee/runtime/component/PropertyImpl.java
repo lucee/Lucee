@@ -34,8 +34,6 @@ import lucee.runtime.type.util.StructUtil;
 import lucee.transformer.bytecode.util.ASMProperty;
 import lucee.transformer.bytecode.util.ASMUtil;
 
-/**
- */
 public final class PropertyImpl extends MemberSupport implements Property, ASMProperty {
 
 	private static final long serialVersionUID = 3206074213415946902L;

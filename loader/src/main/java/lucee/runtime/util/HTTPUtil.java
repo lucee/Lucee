@@ -84,8 +84,6 @@ public interface HTTPUtil {
 	 * @return resulting inputstream
 	 * @throws IOException IO Exception
 	 * @deprecated use instead
-	 * @see #put(URL, String, String, int, String, String, String, String, int, String, String,
-	 *      Header[], Object)
 	 */
 	@Deprecated
 	public HTTPResponse put(URL url, String username, String password, int timeout, String charset, String useragent, String proxyserver, int proxyport, String proxyuser,
@@ -108,7 +106,6 @@ public interface HTTPUtil {
 	 * @return url from string
 	 * @throws MalformedURLException Malformed URL Exception
 	 * @deprecated use instead
-	 * @see #toURL(String, int, boolean)
 	 * 
 	 */
 	@Deprecated

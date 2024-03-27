@@ -24,7 +24,10 @@ import java.util.Map;
 import java.util.Set;
 
 /**
+ * 
  * class to make an enumaration from a ser, map or iterator
+ * 
+ * @param <E> type hold by the enumeration
  */
 public final class EnumerationWrapper<E> implements Enumeration<E> {
 
