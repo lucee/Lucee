@@ -34,11 +34,11 @@ public final class StructDelete extends BIF {
 
 	private static final long serialVersionUID = 6670961245029356618L;
 
-	public static boolean call(PageContext pc, Struct struct, String key) throws TemplateException {
+	public static boolean call(PageContext pc, Struct struct, String key) {
 		return call(pc, struct, key, false);
 	}
 
-	public static boolean call(PageContext pc, Struct struct, String key, boolean indicatenotexisting) throws TemplateException {
+	public static boolean call(PageContext pc, Struct struct, String key, boolean indicatenotexisting) {
 		return struct.removeEL(KeyImpl.init(key)) != null || !indicatenotexisting;
 	}
 

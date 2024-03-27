@@ -65,7 +65,7 @@ public class DebuggerUtil {
 	}
 
 	public static boolean debugQueryUsage(PageContext pageContext, Query query) {
-		if (pageContext.getConfig().debug() && query instanceof Query) {
+		if (pageContext.getConfig().debug() && query != null) {
 			if (((ConfigWebPro) pageContext.getConfig()).hasDebugOptions(ConfigPro.DEBUG_QUERY_USAGE)) {
 				query.enableShowQueryUsage();
 				return true;

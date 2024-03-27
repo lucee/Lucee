@@ -188,7 +188,7 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 		throw new ApplicationException("Attribute [returntype] of tag [query] has an invalid value", "valid values are [query,array] but value was [" + strReturntype + "]");
 	}
 
-	public static String toReturnType(int rt) throws ApplicationException {
+	public static String toReturnType(int rt) {
 		if (RETURN_TYPE_QUERY == rt) return "query";
 		if (RETURN_TYPE_STRUCT == rt) return "struct";
 		if (RETURN_TYPE_ARRAY == rt) return "array";

@@ -28,7 +28,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import javax.xml.XMLConstants;
 import javax.xml.namespace.NamespaceContext;
-import javax.xml.transform.TransformerException;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpression;
@@ -146,15 +145,12 @@ public final class XmlSearch implements Function {
 			}
 			throw Caster.toPageException(e);
 		}
-		catch (TransformerException e) {
-			throw Caster.toPageException(e);
-		}
 		finally {
 			tmp.unr.setDocument(null); // we remove the doc to keep the cache size small
 		}
 	}
 
-	private static Array nodelist(NodeList list, boolean caseSensitive) throws TransformerException, PageException {
+	private static Array nodelist(NodeList list, boolean caseSensitive) throws PageException {
 		// NodeList list = rs.nodelist();
 		int len = list.getLength();
 		Array rtn = new ArrayImpl();

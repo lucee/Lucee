@@ -30,7 +30,6 @@ import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigPro;
-import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.config.Constants;
 import lucee.runtime.config.NullSupportHelper;
 import lucee.runtime.debug.DebuggerImpl;
@@ -829,7 +828,7 @@ public final class UndefinedImpl extends StructSupport implements Undefined, Obj
 					}
 				}
 				if (file != null) {
-					return CFFunction.loadUDF(pc, file, methodName, pc.getConfig() instanceof ConfigWeb, false);
+					return CFFunction.loadUDF(pc, file, methodName, true, false);
 				}
 			}
 		}

@@ -526,7 +526,7 @@ public final class Mail extends BodyTagImpl {
 		this.startrow = startrow;
 	}
 
-	public void setListener(Object listener) throws ApplicationException {
+	public void setListener(Object listener) {
 		this.listener = listener;
 	}
 

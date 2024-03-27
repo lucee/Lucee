@@ -22,7 +22,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -1588,7 +1587,7 @@ public final class ResourceUtil {
 		return filename.substring(0, index);
 	}
 
-	public static String checksum(Resource res) throws NoSuchAlgorithmException, IOException {
+	public static String checksum(Resource res) throws IOException {
 		return Hash.md5(res);
 	}
 

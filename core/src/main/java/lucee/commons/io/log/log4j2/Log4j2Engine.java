@@ -1,6 +1,5 @@
 package lucee.commons.io.log.log4j2;
 
-import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
@@ -571,8 +570,7 @@ public class Log4j2Engine extends LogEngine {
 		return new ClassicLayout();
 	}
 
-	private static Appender getDatasourceAppender(Config config, String name, String dsn, String user, String pass, String table, String custom, boolean start)
-			throws PageException {
+	private static Appender getDatasourceAppender(Config config, String name, String dsn, String user, String pass, String table, String custom, boolean start) {
 
 		DatasourceAppender appender = new DatasourceAppender(config, getFallback(config), name, null, dsn, user, pass, table, custom);
 
@@ -594,16 +592,11 @@ public class Log4j2Engine extends LogEngine {
 		return appender;
 	}
 
-	private Appender toResourceAppender(String name, Resource res, Layout<?> layout, Charset charset, int maxfiles, long maxFileSize, int timeout, boolean start)
-			throws PageException {
-		try {
-			ResourceAppender appender = new ResourceAppender(name, null, layout, res, charset, true, timeout, maxFileSize, maxfiles, null);
-			if (start) appender.start();
-			return appender;
-		}
-		catch (IOException e) {
-			throw Caster.toPageException(e);
-		}
+	private Appender toResourceAppender(String name, Resource res, Layout<?> layout, Charset charset, int maxfiles, long maxFileSize, int timeout, boolean start) {
+		ResourceAppender appender = new ResourceAppender(name, null, layout, res, charset, true, timeout, maxFileSize, maxfiles, null);
+		if (start) appender.start();
+		return appender;
+
 	}
 
 	private FontSize toFontSize(String str) {

@@ -925,8 +925,7 @@ public final class Page extends BodyBase implements Root {
 		cv.visitAfter(bc);
 	}
 
-	private void writeOutStatic(PageSource optionalPS, ConstrBytecodeContext constr, List<LitString> keys, ClassWriter cw, TagCIObject component, String name)
-			throws TransformerException {
+	private void writeOutStatic(PageSource optionalPS, ConstrBytecodeContext constr, List<LitString> keys, ClassWriter cw, TagCIObject component, String name) {
 
 		boolean addStatic = isComponent() || isInterface();
 

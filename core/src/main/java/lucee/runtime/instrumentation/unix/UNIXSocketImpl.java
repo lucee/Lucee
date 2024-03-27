@@ -73,7 +73,7 @@ class UNIXSocketImpl extends SocketImpl {
 		throw new SocketException("Cannot bind to this type of address: " + InetAddress.class);
 	}
 
-	private void checkClose() throws IOException {
+	private void checkClose() {
 		if (closedInputStream && closedOutputStream) {
 			// close();
 		}

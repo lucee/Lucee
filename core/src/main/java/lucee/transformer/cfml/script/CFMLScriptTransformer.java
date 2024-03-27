@@ -20,7 +20,6 @@ package lucee.transformer.cfml.script;
 
 import lucee.runtime.exp.TemplateException;
 import lucee.transformer.bytecode.Body;
-import lucee.transformer.bytecode.Page;
 import lucee.transformer.cfml.Data;
 import lucee.transformer.cfml.tag.TagDependentBodyTransformer;
 import lucee.transformer.expression.Expression;
@@ -29,8 +28,8 @@ public class CFMLScriptTransformer extends AbstrCFMLScriptTransformer implements
 	@Override
 	public Body transform(Data data, String surroundingTagName) throws TemplateException {
 
-		boolean isCFC = data.page instanceof Page && data.page.isComponent();
-		boolean isInterface = data.page instanceof Page && data.page.isInterface();
+		boolean isCFC = data.page != null && data.page.isComponent();
+		boolean isInterface = data.page != null && data.page.isInterface();
 
 		Data ed = init(data);
 

@@ -19,7 +19,6 @@
 package lucee.runtime.util;
 
 import lucee.runtime.PageContext;
-import lucee.runtime.exp.PageException;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.Null;
 
@@ -41,7 +40,7 @@ public class CallerUtil {
 	}
 
 	// TODO work in progress
-	public static Object get(PageContext pc, Object coll, int[] types, Key[] keys, Object[][] args, Object defaultValue) throws PageException {
+	public static Object get(PageContext pc, Object coll, int[] types, Key[] keys, Object[][] args, Object defaultValue) {
 		if (coll == null) return defaultValue;
 		int to = keys.length - 1;
 		VariableUtilImpl vu = (VariableUtilImpl) pc.getVariableUtil();

@@ -64,7 +64,7 @@ public final class DatasourceManagerImpl implements DataSourceManager {
 		this.config = c;
 	}
 
-	public long getOpenConnections(PageContext pc, DataSource ds, String user, String pass) throws PageException {
+	public long getOpenConnections(PageContext pc, DataSource ds, String user, String pass) {
 		return config.getDatasourceConnectionPool(ds, user, pass).getBorrowedCount();
 	}
 

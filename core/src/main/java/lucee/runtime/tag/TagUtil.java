@@ -365,7 +365,7 @@ public class TagUtil {
 		Reflector.callMethod(tag, "hasBody", new Object[] { hasBody });
 	}
 
-	public static TagLibTag getTagLibTag(PageContext pc, String nameSpace, String strTagName) throws ApplicationException {
+	public static TagLibTag getTagLibTag(PageContext pc, String nameSpace, String strTagName) {
 		TagLib[] tlds;
 		tlds = ((ConfigPro) pc.getConfig()).getTLDs();
 
