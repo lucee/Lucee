@@ -139,7 +139,7 @@ public final class DynamicClassLoader extends ExtendableClassLoader {
 
 	@Override
 	protected Class<?> findClass(String name) throws ClassNotFoundException {// if(name.indexOf("sub")!=-1)print.ds(name);
-		synchronized (this) {
+		synchronized (SystemUtil.createToken("dcl", name)) {
 			if (directory == null) throw new ClassNotFoundException("Class [" + name + "] not found (memory mode)");
 			Resource res = directory.getRealResource(name.replace('.', '/').concat(".class"));
 

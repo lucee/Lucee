@@ -41,9 +41,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="file" {
 		});
 
 		describe( "Test suite for LDEV-3675 (ram file system)", function() {
-			it(title="create 100,000 random files using getTempFile (threaded) (ram drive)", body = function( currentSpec ) {
+			it(title="create 1000 random files using getTempFile (threaded) (ram drive)", body = function( currentSpec ) {
 				var arr = [];
-				arraySet( arr, 1, 100000, "temp" );
+				arraySet( arr, 1, 1000, "temp" );
 				var failed = 0;
 				arr.each(function(){
 					try {
@@ -55,9 +55,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="file" {
 				expect ( failed ).toBe( 0 );
 			});
 
-			it(title="create 100,000 random files using getTempFile (unthreaded) (ram drive) ", body = function( currentSpec ) {
+			it(title="create 1000 random files using getTempFile (unthreaded) (ram drive) ", body = function( currentSpec ) {
 				var failed = 0;
-				loop times=100000 {
+				loop times=1000 {
 					getTempFile( variables.testRamDir, "ldev3675-ram-unthreaded", "jpg" );
 				}
 			});

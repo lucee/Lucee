@@ -73,7 +73,8 @@ public abstract class Clazz implements Serializable {
 		}
 	}
 
-	public static Method getMethodMatch(Clazz clazz, final Collection.Key methodName, final Object[] args, boolean convertArgument) throws NoSuchMethodException, IOException {
+	public static Method getMethodMatch(Clazz clazz, final Collection.Key methodName, Object[] args, boolean convertArgument) throws NoSuchMethodException, IOException {
+		args = Reflector.cleanArgs(args);
 		Reflector.checkAccessibility(clazz.getDeclaringClass(), methodName);
 		List<Method> methods = clazz.getMethods(methodName.getString(), false, args.length);
 

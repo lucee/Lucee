@@ -626,7 +626,22 @@ public final class Reflector {
 	}
 
 	public static Object[] cleanArgs(Object[] args) {
-		if (args == null) return args;
+		if (args == null) {
+			return new Object[0];
+		}
+
+		boolean digg = false;
+		for (int i = 0; i < args.length; i++) {
+			if (args[i] instanceof ObjectWrap) {
+				args[i] = ((ObjectWrap) args[i]).getEmbededObject(args[i]);
+			}
+			else if (args[i] instanceof Collection) {
+				digg = ((Collection) args[i]).size() > 0;
+				if (digg) break;
+			}
+		}
+
+		if (!digg) return args;
 
 		ObjectIdentityHashSet done = new ObjectIdentityHashSet();
 		for (int i = 0; i < args.length; i++) {
@@ -640,17 +655,13 @@ public final class Reflector {
 		done.add(obj);
 		try {
 			if (obj instanceof ObjectWrap) {
-				try {
-					return ((ObjectWrap) obj).getEmbededObject();
-				}
-				catch (PageException e) {
-					return obj;
-				}
+
+				return ((ObjectWrap) obj).getEmbededObject(obj);
 			}
 			if (obj instanceof Collection) return _clean(done, (Collection) obj);
-			if (obj instanceof Map) return _clean(done, (Map) obj);
-			if (obj instanceof List) return _clean(done, (List) obj);
-			if (obj instanceof Object[]) return _clean(done, (Object[]) obj);
+			// if (obj instanceof Map) return _clean(done, (Map) obj); 913913
+			// if (obj instanceof List) return _clean(done, (List) obj);
+			// if (obj instanceof Object[]) return _clean(done, (Object[]) obj);
 		}
 		finally {
 			done.remove(obj);
@@ -875,7 +886,6 @@ public final class Reflector {
 	 * @throws PageException
 	 */
 	public static Object callConstructor(Class clazz, Object[] args) throws PageException {
-		args = cleanArgs(args);
 		try {
 			return getConstructorInstance(clazz, args).invoke();
 		}
@@ -890,7 +900,6 @@ public final class Reflector {
 	}
 
 	public static Object callConstructor(Class clazz, Object[] args, Object defaultValue) {
-		args = cleanArgs(args);
 		try {
 			ConstructorInstance ci = getConstructorInstance(clazz, args);
 			if (ci.getConstructor(null) == null) return defaultValue;

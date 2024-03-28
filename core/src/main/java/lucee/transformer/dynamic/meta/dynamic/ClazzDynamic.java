@@ -45,11 +45,11 @@ public class ClazzDynamic extends Clazz {
 			synchronized (clazz) {
 				sr = classes.get(clazz.getName());
 				if (sr == null || (cd = sr.get()) == null) {
-
 					StringBuilder sbClassPath = new StringBuilder();
 					sbClassPath.append(clazz.getName().replace('.', '/')).append(".ser");
 					Resource ser = dir.getRealResource("lucee/invoc/wrap/" + sbClassPath.toString());
 					if (ser.isFile()) {
+						if (log != null) log.info("dynamic", "found metadata for [" + clazz.getName() + "]in from serialized file:" + ser);
 						try {
 							cd = (ClazzDynamic) deserialize(getClassLoader(clazz), ser.getInputStream());
 							cd.clazz = clazz;
@@ -61,7 +61,7 @@ public class ClazzDynamic extends Clazz {
 						}
 					}
 					if (cd == null) {
-						if (log != null) log.info("dynamic", "read metadata from [" + clazz.getName() + "]");
+						if (log != null) log.info("dynamic", "extract metadata from [" + clazz.getName() + "]");
 						cd = new ClazzDynamic(clazz, log);
 						ser.getParentResource().mkdirs();
 						serialize(cd, ser.getOutputStream());
@@ -71,6 +71,9 @@ public class ClazzDynamic extends Clazz {
 					}
 				}
 			}
+		}
+		else {
+			if (log != null) log.info("dynamic", "found metadata for [" + clazz.getName() + "]in memory.");
 		}
 		return cd;
 	}

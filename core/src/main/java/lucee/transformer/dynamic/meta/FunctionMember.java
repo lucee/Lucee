@@ -30,6 +30,8 @@ public interface FunctionMember extends Serializable {
 
 	public abstract String[] getArguments();
 
+	public abstract int getArgumentCount();
+
 	public abstract Class[] getArgumentClasses();
 
 	public abstract Type[] getArgumentTypes();

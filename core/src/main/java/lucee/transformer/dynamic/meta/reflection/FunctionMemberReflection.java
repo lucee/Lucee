@@ -87,6 +87,11 @@ public abstract class FunctionMemberReflection implements FunctionMember {
 	}
 
 	@Override
+	public int getArgumentCount() {
+		return executable.getParameterCount();
+	}
+
+	@Override
 	public Type[] getArgumentTypes() {
 		Parameter[] params = executable.getParameters();
 		Type[] arguments = new Type[params.length];

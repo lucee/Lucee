@@ -251,6 +251,11 @@ public abstract class FunctionMemberDynamic implements FunctionMember {
 	}
 
 	@Override
+	public int getArgumentCount() {
+		return argTypes.length;
+	}
+
+	@Override
 	public String[] getExceptions() {
 		String[] exceptions = new String[expTypes.length];
 		for (int i = 0; i < expTypes.length; i++) {

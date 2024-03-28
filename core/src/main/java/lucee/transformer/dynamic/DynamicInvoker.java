@@ -126,31 +126,49 @@ public class DynamicInvoker {
 		return Clazz.getClazz(clazz, root, log, useReflection);
 	}
 
+	/*
+	 * private static double loadClassTotal = 0; private static double getMatchTotal = 0; private static
+	 * double hasMatchTotal = 0; private static double create1Total = 0; private static double
+	 * create2Total = 0;
+	 * 
+	 * private static int loadClassCount = 0; private static int getMatchCount = 0; private static int
+	 * hasMatchCount = 0; private static int create1Count = 0; private static int create2Count = 0;
+	 */
 	public Pair<FunctionMember, Object> createInstance(Class<?> clazz, Key methodName, Object[] arguments) throws NoSuchMethodException, IOException, ClassNotFoundException,
 			UnmodifiableClassException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, SecurityException {
 		// observe(clazz, methodName);
+		// double start = SystemUtil.millis();
 
-		arguments = Reflector.cleanArgs(arguments);
 		boolean isConstr = methodName == null;
 		Clazz clazzz = getClazz(clazz);
-
+		/*
+		 * { loadClassCount++; loadClassTotal += (SystemUtil.millis() - start); print.e("loadClass(" +
+		 * loadClassCount + "):" + Caster.toString(loadClassTotal / loadClassCount)); start =
+		 * SystemUtil.millis(); }
+		 */
+		lucee.transformer.dynamic.meta.FunctionMember fm = null;
 		lucee.transformer.dynamic.meta.Method method = null;
 		lucee.transformer.dynamic.meta.Constructor constr = null;
 		// <init>
 		if (isConstr) {
-			constr = Clazz.getConstructorMatch(clazzz, arguments, true);
+			fm = constr = Clazz.getConstructorMatch(clazzz, arguments, true);
 		}
 		else {
 			// Clazz clazz, final Collection.Key methodName, final Object[] args, boolean convertArgument
-			method = Clazz.getMethodMatch(clazzz, methodName, arguments, true);
+			fm = method = Clazz.getMethodMatch(clazzz, methodName, arguments, true);
 
 		}
+		/*
+		 * { getMatchCount++; getMatchTotal += (SystemUtil.millis() - start); print.e("get match(" +
+		 * getMatchCount + "):" + Caster.toString(getMatchTotal / getMatchCount)); start =
+		 * SystemUtil.millis(); }
+		 */
 
-		Type[] parameterTypes = isConstr ? constr.getArgumentTypes() : method.getArgumentTypes();
-		clazz = isConstr ? constr.getDeclaringClass() : method.getDeclaringClass(); // we wanna go as low as possible, to be as open as possible also this avoid not allow to access
+		Type[] parameterTypes = fm.getArgumentTypes();
+		clazz = fm.getDeclaringClass(); // we wanna go as low as possible, to be as open as possible also this avoid not allow to access
 
 		StringBuilder sbClassPath = new StringBuilder();
-		sbClassPath.append(clazz.getName().replace('.', '/')).append('/').append(isConstr ? "____init____" : method.getName());
+		sbClassPath.append(clazz.getName().replace('.', '/')).append('/').append(isConstr ? "____init____" : fm.getName());
 		StringBuilder sbArgs = new StringBuilder();
 		for (int i = 0; i < parameterTypes.length; i++) {
 			sbArgs.append(':').append(parameterTypes[i].getClassName().replace('.', '_'));
@@ -158,13 +176,18 @@ public class DynamicInvoker {
 		sbClassPath.append('_').append(HashUtil.create64BitHashAsString(sbArgs, Character.MAX_RADIX));
 		String classPath = "lucee/invoc/wrap/" + sbClassPath.toString();// StringUtil.replace(sbClassPath.toString(), "javae/lang/", "java_lang/", false);
 		String className = classPath.replace('/', '.');
-		// print.e("classPath: " + classPath);
-		// print.e("className: " + className);
+
 		DynamicClassLoader loader = getCL(clazz);
 		if (loader.hasClass(className)) {
-			return new Pair<FunctionMember, Object>(isConstr ? constr : method, loader.loadInstance(className));
+			// try {
+			return new Pair<FunctionMember, Object>(fm, loader.loadInstance(className));
+			/*
+			 * } finally { hasMatchCount++; hasMatchTotal += (SystemUtil.millis() - start); print.e("has match("
+			 * + hasMatchCount + "):" + Caster.toString(hasMatchTotal / hasMatchCount)); start =
+			 * SystemUtil.millis(); }
+			 */
 		}
-		Class[] parameterClasses = isConstr ? constr.getArgumentClasses() : method.getArgumentClasses();
+		Class[] parameterClasses = fm.getArgumentClasses();
 
 		ClassWriter cw = ASMUtil.getClassWriter();
 		MethodVisitor mv;
@@ -193,7 +216,7 @@ public class DynamicInvoker {
 
 		}
 		else {
-			isStatic = method.isStatic();
+			isStatic = fm.isStatic();
 			if (!isStatic) {
 				// Load the instance to call the method on
 				mv.visitVarInsn(Opcodes.ALOAD, 1); // Load the first method argument (instance)
@@ -210,9 +233,9 @@ public class DynamicInvoker {
 
 		StringBuilder methodDesc = new StringBuilder();
 		String del = "(";
-		if ((isConstr ? constr : method).getArguments().length > 0) {
+		if (fm.getArgumentCount() > 0) {
 			// Load method arguments from the args array
-			Type[] args = isConstr ? constr.getArgumentTypes() : method.getArgumentTypes();
+			Type[] args = fm.getArgumentTypes();
 			// TODO if args!=arguments throw !
 			for (int i = 0; i < args.length; i++) {
 
@@ -264,9 +287,19 @@ public class DynamicInvoker {
 
 		cw.visitEnd();
 		byte[] barr = cw.toByteArray();
-		Object result = loader.loadInstance(className, barr);
 
-		return new Pair<FunctionMember, Object>(isConstr ? constr : method, result);
+		/*
+		 * { create1Count++; create1Total += (SystemUtil.millis() - start); print.e("create 1(" +
+		 * create1Count + "):" + Caster.toString(create1Total / create1Count)); start = SystemUtil.millis();
+		 * }
+		 */
+		Object result = loader.loadInstance(className, barr);
+		/*
+		 * { create2Count++; create2Total += (SystemUtil.millis() - start); print.e("create 2(" +
+		 * create2Count + "):" + Caster.toString(create2Total / create2Count)); start = SystemUtil.millis();
+		 * }
+		 */
+		return new Pair<FunctionMember, Object>(fm, result);
 	}
 
 	private static void observe(Class<?> clazz, Key methodName) {
@@ -373,6 +406,10 @@ public class DynamicInvoker {
 		print.e(e.invokeConstructor(String.class, new Object[] { "Susi exclusive" }));
 		// System.exit(0);
 
+		Object eee = e.invokeInstanceMethod(t, "setSource", new Object[] { "" });
+		System.exit(0);
+
+		// source
 		// instance ():String
 		{
 			Object reflection = tz.getID();
@@ -433,6 +470,10 @@ public class DynamicInvoker {
 	public static class Test {
 		public final int complete(String var1, int var2, List var3) {
 			return 5;
+		}
+
+		public final void setSource(Object o) {
+
 		}
 
 		public final String testb(Boolean b1, boolean b2) {
