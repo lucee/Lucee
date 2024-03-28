@@ -9,6 +9,7 @@ import org.objectweb.asm.Type;
 
 import lucee.commons.lang.ClassException;
 import lucee.commons.lang.StringUtil;
+import lucee.runtime.converter.JavaConverter.ObjectInputStreamImpl;
 import lucee.runtime.exp.PageRuntimeException;
 import lucee.transformer.dynamic.meta.Clazz;
 import lucee.transformer.dynamic.meta.FunctionMember;
@@ -19,14 +20,15 @@ public abstract class FunctionMemberDynamic implements FunctionMember {
 
 	protected String name;
 	protected int access;
-	protected boolean inInterface;
+	protected int classAccess;
 	protected transient Type declaringType;
 	protected transient Class declaringClass;
+	protected transient Type declaringProviderType;
+	protected transient Class declaringProviderClass;
 	protected transient Type rtnType;
 	protected transient Type[] argTypes;
 	protected transient Class[] argClasses;
 	protected transient Type[] expTypes;
-	protected transient Class[] expClasses;
 
 	public FunctionMemberDynamic(String name) {
 		this.name = name;
@@ -42,10 +44,12 @@ public abstract class FunctionMemberDynamic implements FunctionMember {
 
 		out.writeObject(name);
 		out.writeInt(access);
-		out.writeBoolean(inInterface);
+		out.writeInt(classAccess);
 
 		// declaring class
 		out.writeObject(declaringType.getDescriptor());
+		// declaring provider class
+		out.writeObject(declaringProviderType == null ? null : declaringProviderType.getDescriptor());
 		// return
 		out.writeObject(rtnType.getDescriptor());
 
@@ -70,7 +74,7 @@ public abstract class FunctionMemberDynamic implements FunctionMember {
 	// protected transient Type[] argTypes;
 	// protected transient Type[] expTypes;
 	private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
-
+		ClassLoader cl = ((ObjectInputStreamImpl) in).getClassLoader();
 		in.defaultReadObject();
 
 		// name
@@ -78,10 +82,17 @@ public abstract class FunctionMemberDynamic implements FunctionMember {
 		// access
 		this.access = in.readInt();
 		// inInterface
-		this.inInterface = in.readBoolean();
+		this.classAccess = in.readInt();
 
 		// declaring class
 		this.declaringType = Type.getType((String) in.readObject());
+		this.declaringClass = Clazz.toClass(cl, this.declaringType);
+		// declaring class provider
+		Object obj = in.readObject();
+		if (obj != null) {
+			this.declaringProviderType = Type.getType((String) obj);
+			this.declaringProviderClass = Clazz.toClass(cl, this.declaringProviderType);
+		}
 		// declaring class
 		this.rtnType = Type.getType((String) in.readObject());
 
@@ -105,7 +116,7 @@ public abstract class FunctionMemberDynamic implements FunctionMember {
 		return name;
 	}
 
-	public static FunctionMember createInstance(Class declaringClass, String name, int access, String descriptor, String[] exceptions, boolean inInterface) {
+	public static FunctionMember createInstance(Class declaringClass, String name, int access, String descriptor, String[] exceptions, int classAccess) {
 		FunctionMemberDynamic fm;
 		if ("<init>".equals(name)) {
 			fm = new ConstructorDynamic();
@@ -114,7 +125,7 @@ public abstract class FunctionMemberDynamic implements FunctionMember {
 			fm = new MethodDynamic(declaringClass, name);
 		}
 
-		fm.inInterface = inInterface;
+		fm.classAccess = classAccess;
 
 		// declaring class
 		fm.declaringClass = declaringClass;
@@ -153,6 +164,28 @@ public abstract class FunctionMemberDynamic implements FunctionMember {
 	@Override
 	public Class getDeclaringClass() {
 		return declaringClass;
+	}
+
+	@Override
+	public String getDeclaringProviderClassName() {
+		return getDeclaringProviderClass().getName();
+	}
+
+	@Override
+	public Class getDeclaringProviderClass() {
+		return getDeclaringProviderClass(false);
+	}
+
+	public Class getDeclaringProviderClass(boolean onlyPublic) {
+		if (declaringProviderClass == null && (!onlyPublic || isDeclaringClassPublic())) {
+			return getDeclaringClass();
+		}
+		return declaringProviderClass;
+	}
+
+	@Override
+	public void setDeclaringProviderClass(Class declaringProviderClass) {
+		this.declaringProviderClass = declaringProviderClass;
 	}
 
 	@Override
@@ -198,7 +231,20 @@ public abstract class FunctionMemberDynamic implements FunctionMember {
 
 	@Override
 	public boolean inInterface() {
-		return inInterface;
+		return (classAccess & Opcodes.ACC_INTERFACE) != 0;
+	}
+
+	public boolean isDeclaringClassPublic() {
+		return (classAccess & Opcodes.ACC_PUBLIC) != 0;
+	}
+
+	public int classAccess() {
+		/*
+		 * print.e("private:" + ((access & Opcodes.ACC_PRIVATE) != 0)); print.e("protected:" + ((access &
+		 * Opcodes.ACC_PROTECTED) != 0)); print.e("public:" + ((access & Opcodes.ACC_PUBLIC) != 0));
+		 * isInterface.setValue((access & Opcodes.ACC_INTERFACE) != 0);
+		 */
+		return classAccess;
 	}
 
 	public String getReturn() {

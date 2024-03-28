@@ -25,6 +25,8 @@ import lucee.transformer.dynamic.meta.reflection.ClazzReflection;
 
 public abstract class Clazz implements Serializable {
 
+	public static final int VERSION = 1;
+
 	private static final long serialVersionUID = 4236939474343760825L;
 	private static Boolean allowReflection = null;
 
@@ -307,5 +309,9 @@ public abstract class Clazz implements Serializable {
 
 	public static Class toClass(ClassLoader cl, Type type) throws ClassException {
 		return ClassUtil.loadClass(cl, type.getClassName());
+	}
+
+	public static String getPackagePrefix() {
+		return "lucee/invoc/wrap/v" + VERSION + "/";
 	}
 }

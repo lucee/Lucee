@@ -174,7 +174,7 @@ public class DynamicInvoker {
 			sbArgs.append(':').append(parameterTypes[i].getClassName().replace('.', '_'));
 		}
 		sbClassPath.append('_').append(HashUtil.create64BitHashAsString(sbArgs, Character.MAX_RADIX));
-		String classPath = "lucee/invoc/wrap/" + sbClassPath.toString();// StringUtil.replace(sbClassPath.toString(), "javae/lang/", "java_lang/", false);
+		String classPath = Clazz.getPackagePrefix() + sbClassPath.toString();// StringUtil.replace(sbClassPath.toString(), "javae/lang/", "java_lang/", false);
 		String className = classPath.replace('/', '.');
 
 		DynamicClassLoader loader = getCL(clazz);
@@ -220,8 +220,8 @@ public class DynamicInvoker {
 			if (!isStatic) {
 				// Load the instance to call the method on
 				mv.visitVarInsn(Opcodes.ALOAD, 1); // Load the first method argument (instance)
-				if (!clazz.equals(Object.class)) { // Only cast if clazz is not java.lang.Object
-					mv.visitTypeInsn(Opcodes.CHECKCAST, Type.getInternalName(clazz));
+				if (!fm.getDeclaringProviderClass().equals(Object.class)) { // Only cast if clazz is not java.lang.Object
+					mv.visitTypeInsn(Opcodes.CHECKCAST, Type.getInternalName(fm.getDeclaringProviderClass()));
 				}
 			}
 		}
@@ -272,8 +272,8 @@ public class DynamicInvoker {
 			mv.visitMethodInsn(Opcodes.INVOKESPECIAL, rt.getInternalName(), "<init>", methodDesc.toString(), false); // Call the constructor of String
 		}
 		else {
-			mv.visitMethodInsn(isStatic ? Opcodes.INVOKESTATIC : (method.inInterface() ? Opcodes.INVOKEINTERFACE : Opcodes.INVOKEVIRTUAL), Type.getInternalName(clazz),
-					method.getName(), methodDesc.toString(), method.inInterface());
+			mv.visitMethodInsn(isStatic ? Opcodes.INVOKESTATIC : (fm.getDeclaringProviderClass().isInterface() ? Opcodes.INVOKEINTERFACE : Opcodes.INVOKEVIRTUAL),
+					Type.getInternalName(fm.getDeclaringProviderClass()), method.getName(), methodDesc.toString(), fm.getDeclaringProviderClass().isInterface());
 
 		}
 
@@ -401,13 +401,21 @@ public class DynamicInvoker {
 		TimeZone tz = java.util.TimeZone.getDefault();
 		ArrayList arr = new ArrayList<>();
 
+		Object sadas1 = e.invokeInstanceMethod(sb, "append", new Object[] { "sss" });
+		print.e(sadas1);
+
+		// java.util.HashMap.EntrySet
+		Thread.getAllStackTraces().entrySet().iterator();
+		Object sadasd = e.invokeInstanceMethod(Thread.getAllStackTraces().entrySet(), "iterator", new Object[] {});
+		// System.exit(0);
 		String str = new String("Susi exclusive");
 		print.e(str);
 		print.e(e.invokeConstructor(String.class, new Object[] { "Susi exclusive" }));
+
 		// System.exit(0);
 
 		Object eee = e.invokeInstanceMethod(t, "setSource", new Object[] { "" });
-		System.exit(0);
+		// System.exit(0);
 
 		// source
 		// instance ():String
@@ -491,6 +499,7 @@ public class DynamicInvoker {
 		public final String test(int i) {
 			return "int:" + i;
 		}
+
 	}
 
 }

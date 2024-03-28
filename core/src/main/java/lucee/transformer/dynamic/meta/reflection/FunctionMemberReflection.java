@@ -32,6 +32,22 @@ public abstract class FunctionMemberReflection implements FunctionMember {
 	}
 
 	@Override
+	public String getDeclaringProviderClassName() {
+		return getDeclaringProviderClass().getName();
+	}
+
+	@Override
+	public Class getDeclaringProviderClass() {
+		// TODO this is not correct
+		return getDeclaringClass();
+	}
+
+	@Override
+	public void setDeclaringProviderClass(Class declaringProviderClass) {
+		// TODO this is not correct
+	}
+
+	@Override
 	public boolean isPublic() {
 		return Modifier.isPublic(executable.getModifiers());
 	}

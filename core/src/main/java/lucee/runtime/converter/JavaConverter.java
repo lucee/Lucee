@@ -144,6 +144,9 @@ public final class JavaConverter extends ConverterSupport implements BinaryConve
 			}
 		}
 
+		public ClassLoader getClassLoader() {
+			return cl;
+		}
 	}
 
 }
