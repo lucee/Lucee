@@ -889,11 +889,6 @@ public final class Reflector {
 		try {
 			return getConstructorInstance(clazz, args).invoke();
 		}
-		catch (InvocationTargetException e) {
-			Throwable target = e.getTargetException();
-			if (target instanceof PageException) throw (PageException) target;
-			throw Caster.toPageException(e.getTargetException());
-		}
 		catch (Exception e) {
 			throw Caster.toPageException(e);
 		}
@@ -905,8 +900,7 @@ public final class Reflector {
 			if (ci.getConstructor(null) == null) return defaultValue;
 			return ci.invoke();
 		}
-		catch (Throwable t) {
-			ExceptionUtil.rethrowIfNecessary(t);
+		catch (Exception e) {
 			return defaultValue;
 		}
 	}
@@ -930,7 +924,7 @@ public final class Reflector {
 		}
 
 		MethodInstance mi = getMethodInstance(obj.getClass(), methodName, args);
-		if (!mi.hasMethod()) throw throwCall(obj, methodName.getString(), args);
+		// if (!mi.hasMethod()) throw throwCall(obj, methodName.getString(), args);
 		try {
 			return mi.invoke(obj);
 		}
@@ -975,8 +969,7 @@ public final class Reflector {
 		try {
 			return mi.invoke(obj);
 		}
-		catch (Throwable t) {
-			ExceptionUtil.rethrowIfNecessary(t);
+		catch (Exception e) {
 			return defaultValue;
 		}
 	}
@@ -1005,11 +998,6 @@ public final class Reflector {
 	public static Object callStaticMethod(Class clazz, Collection.Key methodName, Object[] args) throws PageException {
 		try {
 			return getMethodInstance(clazz, methodName, args).invoke(null);
-		}
-		catch (InvocationTargetException e) {
-			Throwable target = e.getTargetException();
-			if (target instanceof PageException) throw (PageException) target;
-			throw Caster.toPageException(e.getTargetException());
 		}
 		catch (Exception e) {
 			throw Caster.toPageException(e);
@@ -1143,11 +1131,6 @@ public final class Reflector {
 		try {
 			getSetter(obj, prop, value).invoke(obj);
 		}
-		catch (InvocationTargetException e) {
-			Throwable target = e.getTargetException();
-			if (target instanceof PageException) throw (PageException) target;
-			throw Caster.toPageException(e.getTargetException());
-		}
 		catch (Exception e) {
 			throw Caster.toPageException(e);
 		}
@@ -1165,11 +1148,6 @@ public final class Reflector {
 		try {
 			MethodInstance setter = getSetter(obj, prop, value, null);
 			if (setter != null) setter.invoke(obj);
-		}
-		catch (InvocationTargetException e) {
-			Throwable target = e.getTargetException();
-			if (target instanceof PageException) throw (PageException) target;
-			throw Caster.toPageException(e.getTargetException());
 		}
 		catch (Exception e) {
 			throw Caster.toPageException(e);
