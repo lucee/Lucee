@@ -522,7 +522,7 @@ public class aprint {
 			}
 		}
 		catch (Exception e) {
-			ps.println(map.toString());
+			ps.println("error");
 		}
 	}
 
