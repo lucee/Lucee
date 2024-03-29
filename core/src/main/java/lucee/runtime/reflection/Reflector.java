@@ -760,7 +760,7 @@ public final class Reflector {
 		return new MethodInstance(clazz, methodName, args);
 	}
 
-	public static MethodInstance getMethodInstanceValidate(Class clazz, Collection.Key methodName, Object[] args) throws NoSuchMethodException {
+	public static MethodInstance getMethodInstanceValidateX(Class clazz, Collection.Key methodName, Object[] args) throws NoSuchMethodException {
 		MethodInstance mi = getMethodInstance(clazz, methodName, args);
 		if (mi.hasMethod()) return mi;
 
@@ -1004,7 +1004,7 @@ public final class Reflector {
 	 */
 	public static Object callStaticMethod(Class clazz, Collection.Key methodName, Object[] args) throws PageException {
 		try {
-			return getMethodInstanceValidate(clazz, methodName, args).invoke(null);
+			return getMethodInstance(clazz, methodName, args).invoke(null);
 		}
 		catch (InvocationTargetException e) {
 			Throwable target = e.getTargetException();
