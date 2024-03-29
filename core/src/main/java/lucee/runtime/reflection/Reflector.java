@@ -659,7 +659,7 @@ public final class Reflector {
 				return ((ObjectWrap) obj).getEmbededObject(obj);
 			}
 			if (obj instanceof Collection) return _clean(done, (Collection) obj);
-			// if (obj instanceof Map) return _clean(done, (Map) obj); 913913
+			// if (obj instanceof Map) return _clean(done, (Map) obj);
 			// if (obj instanceof List) return _clean(done, (List) obj);
 			// if (obj instanceof Object[]) return _clean(done, (Object[]) obj);
 		}
@@ -1103,38 +1103,15 @@ public final class Reflector {
 	 * @throws IOException
 	 * @throws ClassNotFoundException
 	 */
-	public static MethodInstance getSetter(Object obj, String prop, Object value)
-			throws NoSuchMethodException, PageException, ClassNotFoundException, IOException, UnmodifiableClassException {
+	public static MethodInstance getSetter(Object obj, String prop, Object value) throws PageException {
 		prop = "set" + StringUtil.ucFirst(prop);
-		MethodInstance mi = getMethodInstanceValidate(obj.getClass(), KeyImpl.init(prop), new Object[] { value });
+		MethodInstance mi = getMethodInstance(obj.getClass(), KeyImpl.init(prop), new Object[] { value });
 		lucee.transformer.dynamic.meta.Method m = mi.getMethod();
 
 		if (m.getReturnClass() != void.class)
-			throw new NoSuchMethodException("invalid return Type, method [" + m.getName() + "] must have return type void, now [" + m.getReturn() + "]");
+			throw Caster.toPageException(new NoSuchMethodException("invalid return Type, method [" + m.getName() + "] must have return type void, now [" + m.getReturn() + "]"));
 		return mi;
 	}
-
-	/*
-	 * to invoke a setter Method of an Object
-	 * 
-	 * @param obj Object to invoke method from
-	 * 
-	 * @param prop Name of the Method without get
-	 * 
-	 * @param value Value to set to the Method
-	 * 
-	 * @return MethodInstance
-	 * 
-	 * @deprecated use instead <code>getSetter(Object obj, String prop,Object value, MethodInstance
-	 * defaultValue)</code>
-	 * 
-	 * public static MethodInstance getSetterEL(Object obj, String prop,Object value) {
-	 * prop="set"+StringUtil.ucFirst(prop); MethodInstance mi =
-	 * getMethodInstanceEL(obj.getClass(),KeyImpl.init(prop),new Object[]{value}); if(mi==null) return
-	 * null; Method m=mi.getMethod();
-	 * 
-	 * if(m.getReturnType()!=void.class) return null; return mi; }
-	 */
 
 	/**
 	 * to invoke a setter Method of an Object

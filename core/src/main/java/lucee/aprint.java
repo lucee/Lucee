@@ -494,30 +494,35 @@ public class aprint {
 			ps.println("null");
 			return;
 		}
-		Iterator it = map.keySet().iterator();
+		try {
+			Iterator it = map.keySet().iterator();
 
-		if (map.size() < 2) {
-			ps.print(map.getClass().getName() + " {");
-			while (it.hasNext()) {
-				Object key = it.next();
+			if (map.size() < 2) {
+				ps.print(map.getClass().getName() + " {");
+				while (it.hasNext()) {
+					Object key = it.next();
 
-				_eo(ps, key);
-				ps.print(":");
-				_eo(ps, map.get(key));
+					_eo(ps, key);
+					ps.print(":");
+					_eo(ps, map.get(key));
+				}
+				ps.println("}");
 			}
-			ps.println("}");
+			else {
+				ps.println(map.getClass().getName() + " {");
+				while (it.hasNext()) {
+					Object key = it.next();
+					ps.print("	");
+					_eo(ps, key);
+					ps.print(":");
+					_eo(ps, map.get(key));
+					ps.println(";");
+				}
+				ps.println("}");
+			}
 		}
-		else {
-			ps.println(map.getClass().getName() + " {");
-			while (it.hasNext()) {
-				Object key = it.next();
-				ps.print("	");
-				_eo(ps, key);
-				ps.print(":");
-				_eo(ps, map.get(key));
-				ps.println(";");
-			}
-			ps.println("}");
+		catch (Exception e) {
+			ps.println(map.toString());
 		}
 	}
 

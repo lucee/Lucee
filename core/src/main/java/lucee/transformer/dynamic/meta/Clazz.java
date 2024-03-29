@@ -6,6 +6,7 @@ import java.util.List;
 
 import org.objectweb.asm.Type;
 
+import lucee.print;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.res.Resource;
@@ -76,6 +77,9 @@ public abstract class Clazz implements Serializable {
 	}
 
 	public static Method getMethodMatch(Clazz clazz, final Collection.Key methodName, Object[] args, boolean convertArgument) throws NoSuchMethodException, IOException {
+		print.e("------ " + methodName + " -------");
+		print.e(clazz.getDeclaringClass());
+		print.e(args);
 		args = Reflector.cleanArgs(args);
 		Reflector.checkAccessibility(clazz.getDeclaringClass(), methodName);
 		List<Method> methods = clazz.getMethods(methodName.getString(), false, args.length);
@@ -90,6 +94,7 @@ public abstract class Clazz implements Serializable {
 					for (int y = 0; y < parameterTypes.length; y++) {
 						if (Reflector.toReferenceClass(parameterTypes[y]) != clazzArgs[y]) continue outer;
 					}
+					print.e("exact match");
 					return m;
 				}
 			}
@@ -102,6 +107,7 @@ public abstract class Clazz implements Serializable {
 					for (int y = 0; y < parameterTypes.length; y++) {
 						if (!Reflector.like(clazzArgs[y], Reflector.toReferenceClass(parameterTypes[y]))) continue outer;
 					}
+					print.e("like match");
 					return m;
 				}
 			}
@@ -139,6 +145,7 @@ public abstract class Clazz implements Serializable {
 						args[x] = newArgs[x];
 					}
 				}
+				print.e("conv match");
 				return result.getName();
 			}
 		}
