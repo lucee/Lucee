@@ -43,11 +43,13 @@ public class ClazzDynamic extends Clazz {
 	private transient Class clazz;
 	private static Map<String, SoftReference<ClazzDynamic>> classes = new ConcurrentHashMap<>();
 	private Map<String, FunctionMember> members;
+
+	private String clid;
 	private static Map<ClassLoader, SoftReference<String>> clids = new ConcurrentHashMap<>();
 	private static String systemId;
 
 	public static ClazzDynamic getInstance(Class clazz, Resource dir, Log log) throws IOException {
-		String id = generateUniqueId(clazz);
+		String id = generateClassLoderId(clazz);
 		String key = id == null ? clazz.getName() : (id + ":" + clazz.getName());
 		ClazzDynamic cd = null;
 		SoftReference<ClazzDynamic> sr = classes.get(key);
@@ -72,7 +74,7 @@ public class ClazzDynamic extends Clazz {
 					}
 					if (cd == null) {
 						if (log != null) log.info("dynamic", "extract metadata from [" + clazz.getName() + "]");
-						cd = new ClazzDynamic(clazz, log);
+						cd = new ClazzDynamic(clazz, id, log);
 						if (id != null) {
 							ser.getParentResource().mkdirs();
 							serialize(cd, ser.getOutputStream());
@@ -90,7 +92,7 @@ public class ClazzDynamic extends Clazz {
 		return cd;
 	}
 
-	public static String generateUniqueId(Class<?> clazz) {
+	public static String generateClassLoderId(Class<?> clazz) {
 		ClassLoader cl = clazz.getClassLoader();
 
 		if (cl == null) {
@@ -127,8 +129,9 @@ public class ClazzDynamic extends Clazz {
 		return null;
 	}
 
-	private ClazzDynamic(Class clazz, Log log) throws IOException {
+	private ClazzDynamic(Class clazz, String clid, Log log) throws IOException {
 		this.clazz = clazz;
+		this.clid = clid;
 		this.members = new LinkedHashMap<>();
 		_getFunctionMembers(clazz, members, log);
 	}
@@ -136,6 +139,11 @@ public class ClazzDynamic extends Clazz {
 	@Override
 	public Class getDeclaringClass() {
 		return this.clazz;
+	}
+
+	@Override
+	public String id() {
+		return clid + ":" + clazz.getName();
 	}
 
 	@Override

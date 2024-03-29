@@ -31,6 +31,7 @@ import lucee.commons.lang.Pair;
 import lucee.commons.lang.SerializableObject;
 import lucee.commons.lang.SystemOut;
 import lucee.loader.engine.CFMLEngineFactory;
+import lucee.runtime.exp.PageException;
 import lucee.runtime.reflection.Reflector;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.KeyImpl;
@@ -135,7 +136,7 @@ public class DynamicInvoker {
 	 * hasMatchCount = 0; private static int create1Count = 0; private static int create2Count = 0;
 	 */
 	public Pair<FunctionMember, Object> createInstance(Class<?> clazz, Key methodName, Object[] arguments) throws NoSuchMethodException, IOException, ClassNotFoundException,
-			UnmodifiableClassException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, SecurityException {
+			UnmodifiableClassException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, SecurityException, PageException {
 		// observe(clazz, methodName);
 		// double start = SystemUtil.millis();
 

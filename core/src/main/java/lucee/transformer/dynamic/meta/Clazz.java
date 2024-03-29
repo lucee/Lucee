@@ -2,11 +2,13 @@ package lucee.transformer.dynamic.meta;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.lang.ref.SoftReference;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.objectweb.asm.Type;
 
-import lucee.print;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.res.Resource;
@@ -49,6 +51,8 @@ public abstract class Clazz implements Serializable {
 
 	public abstract Class getDeclaringClass();
 
+	protected abstract String id();
+
 	public static boolean allowReflection() {
 		if (allowReflection == null) {
 			allowReflection = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.allow.reflection", null), false);
@@ -76,44 +80,72 @@ public abstract class Clazz implements Serializable {
 		}
 	}
 
-	public static Method getMethodMatch(Clazz clazz, final Collection.Key methodName, Object[] args, boolean convertArgument) throws NoSuchMethodException, IOException {
-		print.e("------ " + methodName + " -------");
-		print.e(clazz.getDeclaringClass());
-		print.e(args.length);
+	private static Map<String, SoftReference<Pair<Method, Boolean>>> cachedMethods = new ConcurrentHashMap<>();
+
+	public static Method getMethodMatch(Clazz clazz, final Collection.Key methodName, Object[] args, boolean convertArgument)
+			throws NoSuchMethodException, IOException, PageException {
+		// print.e("------ " + methodName + " -------");
+		// print.e(clazz.getDeclaringClass());
+		// print.e(args.length);
 		args = Reflector.cleanArgs(args);
 		Reflector.checkAccessibility(clazz.getDeclaringClass(), methodName);
 		List<Method> methods = clazz.getMethods(methodName.getString(), false, args.length);
 
 		if (methods != null && methods.size() > 0) {
 			Class[] clazzArgs = Reflector.getClasses(args);
+
+			// cache
+			StringBuilder sb = new StringBuilder(clazz.id()).append(methodName).append(';');
+			for (Class cls: clazzArgs) {
+				sb.append(cls.getName()).append(';');
+			}
+			String key = sb.toString();
+
+			SoftReference<Pair<Method, Boolean>> sr = cachedMethods.get(key);
+			if (sr != null) {
+				Pair<Method, Boolean> p = sr.get();
+				if (p != null) {
+					// print.e("used cached match(" + p.getValue() + "):" + key + ":" + cachedMethods.size());
+					// convert arguments
+					if (p.getValue()) {
+						Class[] trgArgs = p.getName().getArgumentClasses();
+						for (int x = 0; x < trgArgs.length; x++) {
+							if (args[x] != null) args[x] = Caster.castTo(null, trgArgs[x], args[x]);
+							// print.e("- " + clazzArgs[x].getName() + "->" + trgArgs[x].getName());
+						}
+
+					}
+					return p.getName();
+				}
+			}
+
 			// exact comparsion
-			// print.e("exact:" + methodName);
 			outer: for (Method m: methods) {
 				if (m != null) {
 					Class[] parameterTypes = m.getArgumentClasses();
 					for (int y = 0; y < parameterTypes.length; y++) {
 						if (Reflector.toReferenceClass(parameterTypes[y]) != clazzArgs[y]) continue outer;
 					}
-					print.e("exact match");
+					// print.e("exact match:" + key + ":");
+					cachedMethods.put(key, new SoftReference<Pair<Method, Boolean>>(new Pair<Method, Boolean>(m, Boolean.FALSE)));
 					return m;
 				}
 			}
+
 			// like comparsion
-			// MethodInstance mi=null;
-			// print.e("like:" + methodName);
 			outer: for (Method m: methods) {
 				if (m != null) {
 					Class[] parameterTypes = m.getArgumentClasses();
 					for (int y = 0; y < parameterTypes.length; y++) {
 						if (!Reflector.like(clazzArgs[y], Reflector.toReferenceClass(parameterTypes[y]))) continue outer;
 					}
-					print.e("like match");
+					// print.e("like match:" + key + ":");
+					cachedMethods.put(key, new SoftReference<Pair<Method, Boolean>>(new Pair<Method, Boolean>(m, Boolean.FALSE)));
 					return m;
 				}
 			}
 
 			// convert comparsion
-			// print.e("convert:" + methodName);
 			Pair<Method, Object[]> result = null;
 			int _rating = 0;
 			outer: for (Method m: methods) {
@@ -145,7 +177,8 @@ public abstract class Clazz implements Serializable {
 						args[x] = newArgs[x];
 					}
 				}
-				print.e("conv match");
+				// print.e("conv match:" + key + ":");
+				cachedMethods.put(key, new SoftReference<Pair<Method, Boolean>>(new Pair<Method, Boolean>(result.getName(), Boolean.TRUE)));
 				return result.getName();
 			}
 		}

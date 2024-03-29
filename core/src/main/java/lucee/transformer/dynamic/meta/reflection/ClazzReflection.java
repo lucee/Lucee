@@ -12,6 +12,7 @@ public class ClazzReflection extends Clazz {
 
 	private static final long serialVersionUID = -9046348146944695783L;
 	private Class clazz;
+	private String id;
 
 	public ClazzReflection(Class clazz) {
 		this.clazz = clazz;
@@ -20,6 +21,14 @@ public class ClazzReflection extends Clazz {
 	@Override
 	public Class getDeclaringClass() {
 		return clazz;
+	}
+
+	@Override
+	public String id() {
+		if (id == null) {
+			id = clazz.getClassLoader() + ":" + clazz.getName();
+		}
+		return id;
 	}
 
 	@Override

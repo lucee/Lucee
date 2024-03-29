@@ -3828,10 +3828,10 @@ public final class Caster {
 				break;
 			case 'd':
 				if (lctype.equals("date")) {
-					return DateCaster.toDateAdvanced(o, pc.getTimeZone());
+					return DateCaster.toDateAdvanced(o, ThreadLocalPageContext.getTimeZone(pc));
 				}
 				else if (lctype.equals("datetime")) {
-					return DateCaster.toDateAdvanced(o, pc.getTimeZone());
+					return DateCaster.toDateAdvanced(o, ThreadLocalPageContext.getTimeZone(pc));
 				}
 				else if (lctype.equals("double")) {
 					return toDouble(o);
@@ -3842,7 +3842,7 @@ public final class Caster {
 				break;
 			case 'e':
 				if (lctype.equals("eurodate")) {
-					return DateCaster.toEuroDate(o, pc.getTimeZone());
+					return DateCaster.toEuroDate(o, ThreadLocalPageContext.getTimeZone(pc));
 				}
 				else if (alsoPattern && lctype.equals("email")) {
 					return toEmail(o);
@@ -3922,7 +3922,7 @@ public final class Caster {
 					return toTimespan(o);
 				}
 				if (lctype.equals("time")) {
-					return DateCaster.toDateAdvanced(o, pc.getTimeZone());
+					return DateCaster.toDateAdvanced(o, ThreadLocalPageContext.getTimeZone(pc));
 				}
 				if (alsoPattern && lctype.equals("telephone")) {
 					return toPhone(o);
@@ -3936,7 +3936,7 @@ public final class Caster {
 					return toURL(o);
 				}
 				if (lctype.equals("usdate")) {
-					return DateCaster.toUSDate(o, pc.getTimeZone());
+					return DateCaster.toUSDate(o, ThreadLocalPageContext.getTimeZone(pc));
 					// return DateCaster.toDate(o,pc.getTimeZone());
 				}
 				break;
@@ -3980,7 +3980,7 @@ public final class Caster {
 			return trg;
 		}
 
-		return _castTo(pc, type, o);
+		return _castTo(ThreadLocalPageContext.get(pc), type, o);
 	}
 
 	public static String toZip(Object o) throws PageException {
@@ -5027,6 +5027,8 @@ public final class Caster {
 
 		else if (trgClass == Object.class) return obj;
 		else if (trgClass == String.class) return Caster.toString(obj);
+		else if (trgClass == Locale.class) return Caster.toLocale(obj);
+		else if (trgClass == TimeZone.class) return Caster.toTimeZone(obj);
 
 		if (Reflector.isInstaneOf(obj.getClass(), trgClass, false)) return obj;
 
