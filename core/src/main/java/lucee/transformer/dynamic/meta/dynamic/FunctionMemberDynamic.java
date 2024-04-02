@@ -14,7 +14,7 @@ import lucee.runtime.exp.PageRuntimeException;
 import lucee.transformer.dynamic.meta.Clazz;
 import lucee.transformer.dynamic.meta.FunctionMember;
 
-public abstract class FunctionMemberDynamic implements FunctionMember {
+abstract class FunctionMemberDynamic implements FunctionMember {
 
 	private static final long serialVersionUID = 4596750766856217930L;
 

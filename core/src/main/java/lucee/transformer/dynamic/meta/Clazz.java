@@ -108,6 +108,7 @@ public abstract class Clazz implements Serializable {
 					// print.e("used cached match(" + p.getValue() + "):" + key + ":" + cachedMethods.size());
 					// convert arguments
 					if (p.getValue()) {
+						// print.e("------- " + clazz.getDeclaringClass().getName() + ":" + methodName + " -----");
 						Class[] trgArgs = p.getName().getArgumentClasses();
 						for (int x = 0; x < trgArgs.length; x++) {
 							if (args[x] != null) args[x] = Caster.castTo(null, trgArgs[x], args[x]);
@@ -157,7 +158,6 @@ public abstract class Clazz implements Serializable {
 					for (int y = 0; y < parameterTypes.length; y++) {
 						try {
 							newArgs[y] = Reflector.convert(args[y], Reflector.toReferenceClass(parameterTypes[y]), rating);
-
 						}
 						catch (PageException e) {
 							continue outer;

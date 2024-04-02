@@ -42,7 +42,7 @@ import lucee.transformer.bytecode.util.ASMUtil;
 import lucee.transformer.bytecode.util.Types;
 import lucee.transformer.dynamic.meta.Clazz;
 import lucee.transformer.dynamic.meta.FunctionMember;
-import lucee.transformer.dynamic.meta.reflection.MethodReflection;
+import lucee.transformer.dynamic.meta.LegacyMethod;
 
 public class DynamicInvoker {
 
@@ -115,7 +115,7 @@ public class DynamicInvoker {
 			if (log != null) log.error("dynamic", e);
 			if (!Clazz.allowReflection()) throw e;
 			lucee.transformer.dynamic.meta.Method method = Clazz.getMethodMatch(getClazz(objClass, true), methodName, arguments, true);
-			return ((MethodReflection) method).getMethod().invoke(objClass, arguments);
+			return ((LegacyMethod) method).getMethod().invoke(objClass, arguments);
 		}
 	}
 

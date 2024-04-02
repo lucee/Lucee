@@ -5006,21 +5006,21 @@ public final class Caster {
 		if (trgClass == null) return Caster.toNull(obj);
 		else if (obj.getClass() == trgClass) return obj;
 
-		else if (trgClass == byte[].class) return Caster.toBinary(obj);
 		else if (trgClass == boolean.class) return Caster.toBoolean(obj);
-		else if (trgClass == byte.class) return Caster.toByte(obj);
-		else if (trgClass == short.class) return Caster.toShort(obj);
 		else if (trgClass == int.class) return Caster.toInteger(obj);
 		else if (trgClass == long.class) return Caster.toLong(obj);
-		else if (trgClass == float.class) return Caster.toFloat(obj);
 		else if (trgClass == double.class) return Caster.toDouble(obj);
+		else if (trgClass == byte[].class) return Caster.toBinary(obj);
+		else if (trgClass == byte.class) return Caster.toByte(obj);
+		else if (trgClass == short.class) return Caster.toShort(obj);
+		else if (trgClass == float.class) return Caster.toFloat(obj);
 		else if (trgClass == char.class) return Caster.toCharacter(obj);
 
 		else if (trgClass == Boolean.class) return Caster.toBoolean(obj);
-		else if (trgClass == Byte.class) return Caster.toByte(obj);
-		else if (trgClass == Short.class) return Caster.toShort(obj);
 		else if (trgClass == Integer.class) return Caster.toInteger(obj);
 		else if (trgClass == Long.class) return Caster.toLong(obj);
+		else if (trgClass == Byte.class) return Caster.toByte(obj);
+		else if (trgClass == Short.class) return Caster.toShort(obj);
 		else if (trgClass == Float.class) return Caster.toFloat(obj);
 		else if (trgClass == Double.class) return Caster.toDouble(obj);
 		else if (trgClass == Character.class) return Caster.toCharacter(obj);

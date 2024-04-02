@@ -8,7 +8,7 @@ import org.objectweb.asm.Type;
 
 import lucee.transformer.dynamic.meta.FunctionMember;
 
-public abstract class FunctionMemberReflection implements FunctionMember {
+abstract class FunctionMemberReflection implements FunctionMember {
 	private static final long serialVersionUID = 6812458458981023205L;
 	private Executable executable;
 

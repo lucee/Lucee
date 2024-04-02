@@ -6,7 +6,9 @@ import lucee.commons.lang.StringUtil;
 import lucee.transformer.dynamic.meta.Clazz;
 import lucee.transformer.dynamic.meta.Constructor;
 
-public class ConstructorDynamic extends FunctionMemberDynamic implements Constructor {
+class ConstructorDynamic extends FunctionMemberDynamic implements Constructor {
+
+	private static final long serialVersionUID = 1788921105081153549L;
 
 	public ConstructorDynamic() {
 		super("<init>");

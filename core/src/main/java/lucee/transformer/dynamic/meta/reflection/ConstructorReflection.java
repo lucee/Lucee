@@ -1,8 +1,9 @@
 package lucee.transformer.dynamic.meta.reflection;
 
 import lucee.transformer.dynamic.meta.Constructor;
+import lucee.transformer.dynamic.meta.LegacyConstuctor;
 
-public class ConstructorReflection extends FunctionMemberReflection implements Constructor {
+class ConstructorReflection extends FunctionMemberReflection implements Constructor, LegacyConstuctor {
 
 	private java.lang.reflect.Constructor constructor;
 
@@ -11,6 +12,7 @@ public class ConstructorReflection extends FunctionMemberReflection implements C
 		this.constructor = constructor;
 	}
 
+	@Override
 	public java.lang.reflect.Constructor getConstructor() {
 		return constructor;
 	}

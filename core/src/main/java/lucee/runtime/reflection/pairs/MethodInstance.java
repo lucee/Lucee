@@ -30,8 +30,8 @@ import lucee.runtime.type.Collection.Key;
 import lucee.transformer.dynamic.DynamicInvoker;
 import lucee.transformer.dynamic.meta.Clazz;
 import lucee.transformer.dynamic.meta.FunctionMember;
+import lucee.transformer.dynamic.meta.LegacyMethod;
 import lucee.transformer.dynamic.meta.Method;
-import lucee.transformer.dynamic.meta.reflection.MethodReflection;
 
 /**
  * class holds a Method and the parameter to call it
@@ -68,7 +68,7 @@ public final class MethodInstance {
 			LogUtil.log("dynamic", e);
 			DynamicInvoker di = DynamicInvoker.getInstance(null);
 			lucee.transformer.dynamic.meta.Method method = Clazz.getMethodMatch(di.getClazz(clazz, true), methodName, args, true);
-			return ((MethodReflection) method).getMethod().invoke(o, args);
+			return ((LegacyMethod) method).getMethod().invoke(o, args);
 		}
 	}
 
