@@ -263,7 +263,7 @@ public final class FileResource extends File implements Resource {
 		provider.lock(this);
 		try {
 			if (!super.exists() && !super.createNewFile()) {
-				throw new IOException("Can't create file [" + this + "]");
+				Files.createFile(toPath());
 			}
 			return new BufferedOutputStream(new ResourceOutputStream(this, new FileOutputStream(this, append)));
 		}

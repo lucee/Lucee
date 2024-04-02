@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.net.SocketTimeoutException;
 
 import lucee.commons.io.IOUtil;
 import lucee.commons.lang.ExceptionUtil;
@@ -77,6 +78,11 @@ public final class NtpClient {
 			double localClockOffset = ((msg.receiveTimestamp - msg.originateTimestamp) + (msg.transmitTimestamp - destinationTimestamp)) / 2;
 
 			return (long) (localClockOffset * 1000);
+		}
+		catch (SocketTimeoutException ste) {
+			SocketTimeoutException e = new SocketTimeoutException("failed to get time offset from server [" + serverName + "]");
+			e.initCause(ste);
+			throw e;
 		}
 		finally {
 			IOUtil.close(socket);
