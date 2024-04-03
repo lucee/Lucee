@@ -147,10 +147,11 @@ public class ClazzDynamic extends Clazz {
 	}
 
 	@Override
-	public Method getDeclaredMethod(String methodName, Class[] arguments) throws IOException, NoSuchMethodException {
+	public Method getDeclaredMethod(String methodName, Class[] arguments, boolean nameCaseSensitive) throws IOException, NoSuchMethodException {
 		Type[] types = toTypes(arguments);
 		outer: for (FunctionMember fm: members.values()) {
-			if (fm instanceof Method && clazz.getName().equals(fm.getDeclaringClassName()) && methodName.equals(fm.getName())) {
+			if (fm instanceof Method && clazz.getName().equals(fm.getDeclaringClassName())
+					&& (nameCaseSensitive ? methodName.equals(fm.getName()) : methodName.equalsIgnoreCase(fm.getName()))) {
 				Type[] args = ((FunctionMemberDynamic) fm).getArgumentTypes();
 				if (types.length == args.length) {
 					for (int i = 0; i < args.length; i++) {
@@ -164,10 +165,10 @@ public class ClazzDynamic extends Clazz {
 	}
 
 	@Override
-	public Method getMethod(String methodName, Class[] arguments) throws IOException, NoSuchMethodException {
+	public Method getMethod(String methodName, Class[] arguments, boolean nameCaseSensitive) throws IOException, NoSuchMethodException {
 		Type[] types = toTypes(arguments);
 		outer: for (FunctionMember fm: members.values()) {
-			if (fm.isPublic() && fm instanceof Method && methodName.equals(fm.getName())) {
+			if (fm.isPublic() && fm instanceof Method && (nameCaseSensitive ? methodName.equals(fm.getName()) : methodName.equalsIgnoreCase(fm.getName()))) {
 				Type[] args = ((FunctionMemberDynamic) fm).getArgumentTypes();
 				if (types.length == types.length) {
 					for (int i = 0; i < args.length; i++) {

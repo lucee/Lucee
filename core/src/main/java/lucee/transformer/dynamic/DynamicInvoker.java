@@ -157,7 +157,6 @@ public class DynamicInvoker {
 		else {
 			// Clazz clazz, final Collection.Key methodName, final Object[] args, boolean convertArgument
 			fm = method = Clazz.getMethodMatch(clazzz, methodName, arguments, true);
-
 		}
 		/*
 		 * { getMatchCount++; getMatchTotal += (SystemUtil.millis() - start); print.e("get match(" +

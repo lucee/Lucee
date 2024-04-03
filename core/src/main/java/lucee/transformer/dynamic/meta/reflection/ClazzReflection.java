@@ -72,13 +72,19 @@ public class ClazzReflection extends Clazz {
 	}
 
 	@Override
-	public Method getDeclaredMethod(String methodName, Class[] arguments) throws IOException, NoSuchMethodException {
+	public Method getDeclaredMethod(String methodName, Class[] arguments, boolean nameCaseSensitive) throws IOException, NoSuchMethodException {
+		if (!nameCaseSensitive) {
+			throw new IOException("not supported yet!"); // TODO
+		} // (nameCaseSensitive ? methodName.equals(fm.getName()) : methodName.equalsIgnoreCase(fm.getName()))
 		return new MethodReflection(clazz.getDeclaredMethod(methodName, arguments));
 
 	}
 
 	@Override
-	public Method getMethod(String methodName, Class[] arguments) throws IOException, NoSuchMethodException {
+	public Method getMethod(String methodName, Class[] arguments, boolean nameCaseSensitive) throws IOException, NoSuchMethodException {
+		if (!nameCaseSensitive) {
+			throw new IOException("not supported yet!"); // TODO
+		}
 		return new MethodReflection(clazz.getMethod(methodName, arguments));
 
 	}

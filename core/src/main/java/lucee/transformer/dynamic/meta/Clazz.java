@@ -41,9 +41,9 @@ public abstract class Clazz implements Serializable {
 
 	public abstract List<Constructor> getDeclaredConstructors(int argumentLength) throws IOException;
 
-	public abstract Method getDeclaredMethod(String methodName, Class[] arguments) throws IOException, NoSuchMethodException;
+	public abstract Method getDeclaredMethod(String methodName, Class[] arguments, boolean nameCaseSensitive) throws IOException, NoSuchMethodException;
 
-	public abstract Method getMethod(String methodName, Class[] arguments) throws IOException, NoSuchMethodException;
+	public abstract Method getMethod(String methodName, Class[] arguments, boolean nameCaseSensitive) throws IOException, NoSuchMethodException;
 
 	public abstract Constructor getConstructor(Class[] arguments) throws IOException, NoSuchMethodException;
 

@@ -220,8 +220,16 @@ public abstract class DataSourceSupport implements DataSourcePro, Cloneable, Ser
 		return blob;
 	}
 
+	public final boolean getBlob() {
+		return blob;
+	}
+
 	@Override
 	public final boolean isClob() {
+		return clob;
+	}
+
+	public final boolean getClob() {
 		return clob;
 	}
 
@@ -267,6 +275,10 @@ public abstract class DataSourceSupport implements DataSourcePro, Cloneable, Ser
 
 	@Override
 	public final boolean isStorage() {
+		return storage;
+	}
+
+	public final boolean getStorage() {
 		return storage;
 	}
 
@@ -325,8 +337,16 @@ public abstract class DataSourceSupport implements DataSourcePro, Cloneable, Ser
 		return requestExclusive;
 	}
 
+	public boolean getRequestExclusive() {
+		return requestExclusive;
+	}
+
 	@Override
 	public boolean isAlwaysResetConnections() {
+		return alwaysResetConnections;
+	}
+
+	public boolean getAlwaysResetConnections() {
 		return alwaysResetConnections;
 	}
 

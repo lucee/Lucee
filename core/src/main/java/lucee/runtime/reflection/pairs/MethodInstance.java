@@ -98,7 +98,6 @@ public final class MethodInstance {
 			return fm != null;
 		}
 		catch (PageException e) {
-			LogUtil.log("dynamic", e);
 			return false;
 		}
 	}
