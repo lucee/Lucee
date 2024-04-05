@@ -10,9 +10,13 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 
 	function run( testResults , testBox ) {
 		describe( title="Test suite for LDEV-4772", body=function() {
-			it(title = "Checking evaluate() with datetime", body = function( currentSpec ) {
+			it(title = "checking if we can load a component from an old lar file", body = function( currentSpec ) {
 				
 				// set old archive as mapping
+				var curr=getDirectoryFromPath(getCurrentTemplatePath());
+				var parent=getDirectoryFromPath(mid(curr,1,len(curr)-1));
+				var art=parent&"artifacts/lars/lucee-5.lar"; 
+				expect( fileExists(art) ).toBeTrue();	
 				admin 
 						action="updateComponentMapping"
 						type="web"
@@ -20,10 +24,11 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 						virtual="/test4772"
 						primary="archive"
 						physical=""
-						archive=expandPath("../artifacts/lars/lucee-5.lar");
-						
-				var ss=new org.cfpoi.spreadsheet.Spreadsheet();
+						archive=art;
 				
+				
+				var test=new org.lucee.test.Test();
+				expect( test.foo() ).toBe("bar");	
 			});
 
 		});
