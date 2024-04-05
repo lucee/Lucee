@@ -987,8 +987,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				it(title="checking getDebug()", body=function( currentSpec ) {
 					var debuggingSetting = admin.getDebug();
 					assertEquals(isstruct(debuggingSetting) ,true);
-					var props="database,debug,dump,exception,implicitAccess,queryUsage,timer,tracing,"
-						& "template,thread"; // new in 6
+					var props="database,debug,debugLogs,dump,exception,implicitAccess,pageParts,queryUsage,snippetsEnabled,template,thread,threadThresholdMs,thresholdMs,timer,traceLog,tracing";
 					loop list=props item="local.prop"{
 						expect( debuggingSetting ).toHaveKey( prop );
 					}
