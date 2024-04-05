@@ -16,7 +16,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				admin 
 						action="updateComponentMapping"
 						type="web"
-						password="#variables.webAdminPassword#"
+						password=request.WEBADMINPASSWORD
 						virtual="/test4772"
 						physical=""
 						archive=expandPath("../artifacts/lars/lucee-5.lar");
