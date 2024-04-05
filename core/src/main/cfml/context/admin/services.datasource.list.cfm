@@ -156,8 +156,8 @@ list all mappings and display necessary edit fields --->
 	</cfif>
 </cfloop> --->
 <cfset querySort(datasources,"name")>
-<cfset srcLocal=queryNew("name,classname,dsn,username,password,readonly,storage,openConnections,host,port")>
-<cfset srcGlobal=queryNew("name,classname,dsn,username,password,readonly,storage,openConnections,host,port")>
+<cfset srcLocal=queryNew("name,classname,dsn,username,password,readonly,storage,openConnections,idleConnections,activeConnections,waitingForConnection,host,port")>
+<cfset srcGlobal=queryNew("name,classname,dsn,username,password,readonly,storage,openConnections,idleConnections,activeConnections,waitingForConnection,host,port")>
 <cfloop query="datasources">
 	<cfif not datasources.readOnly>
 		<cfset QueryAddRow(srcLocal)>
@@ -167,6 +167,9 @@ list all mappings and display necessary edit fields --->
 		<cfset QuerySetCell(srcLocal,"username",datasources.username)>
 		<cfset QuerySetCell(srcLocal,"password",datasources.password)>
 		<cfset QuerySetCell(srcLocal,"openConnections",datasources.openConnections)>
+		<cfset QuerySetCell(srcLocal,"idleConnections",datasources.idleConnections)>
+		<cfset QuerySetCell(srcLocal,"activeConnections",datasources.activeConnections)>
+		<cfset QuerySetCell(srcLocal,"waitingForConnection",datasources.waitingForConnection)>
 		<cfset QuerySetCell(srcLocal,"readonly",datasources.readonly)>
 		<cfset QuerySetCell(srcLocal,"storage",datasources.storage)>
 		<cfset QuerySetCell(srcLocal,"host",datasources.host?:'')>
@@ -179,13 +182,19 @@ list all mappings and display necessary edit fields --->
 		<cfset QuerySetCell(srcGlobal,"username",datasources.username)>
 		<cfset QuerySetCell(srcGlobal,"password",datasources.password)>
 		<cfset QuerySetCell(srcGlobal,"openConnections",datasources.openConnections)>
+		<cfset QuerySetCell(srcLocal,"idleConnections",datasources.idleConnections)>
+		<cfset QuerySetCell(srcLocal,"activeConnections",datasources.activeConnections)>
+		<cfset QuerySetCell(srcLocal,"waitingForConnection",datasources.waitingForConnection)>
 		<cfset QuerySetCell(srcGlobal,"readonly",datasources.readonly)>
 		<cfset QuerySetCell(srcGlobal,"storage",datasources.storage)>
 		<cfset QuerySetCell(srcGlobal,"host",datasources.host?:'')>
 		<cfset QuerySetCell(srcGlobal,"port",datasources.port?:'')>
 	</cfif>
 </cfloop>
-
+<cfset stText.Settings.active="Active">
+<cfset stText.Settings.idle="Idle">
+<cfset stText.Settings.activeConn="Active Connections">
+<cfset stText.Settings.idleConn="Idle Connections">
 
 <cfif request.adminType EQ "web" and srcGlobal.recordcount>
 	<cfoutput>
@@ -199,7 +208,8 @@ list all mappings and display necessary edit fields --->
 						<th>#stText.Settings.Name#</th>
 						<th>#stText.Settings.Type#</th>
 						<th>#stText.Settings.dbHost#:#stText.Settings.dbPort#</th>
-						<th width="8%">#stText.Settings.openConn#</th>
+						<th title="#stText.Settings.activeConn#" width="8%">#stText.Settings.active#</th>
+						<th title="#stText.Settings.idleConn#" width="8%">#stText.Settings.idle#</th>
 						<th width="8%">#stText.Settings.dbStorage#</th>
 						<th width="6%">#stText.Settings.DBCheck#</th>
 					</tr>
@@ -223,7 +233,8 @@ list all mappings and display necessary edit fields --->
 							</cfif>
 							</td>
 							<td>#listCompact("#srcGlobal.host?:''#:#srcGlobal.port?:''#",":")#</td>
-							<td>#srcGlobal.openConnections#</td>
+							<td>#srcGlobal.activeConnections#</td>
+							<td>#srcGlobal.idleConnections#</td>
 							<td>#yesNoFormat(srcGlobal.storage)#</td>
 							<td>
 								<cfif StructKeyExists(stVerifyMessages, srcGlobal.name)>
@@ -265,14 +276,15 @@ list all mappings and display necessary edit fields --->
 				<thead>
 					<tr>
 						<th width="3%"><input type="checkbox" class="checkbox" name="rowread" onclick="selectAll(this)" /></th>
-						<th>#stText.Settings.Name#</th>
-						<th>#stText.Settings.Type#</th>
-						<th>#stText.Settings.dbHost#:#stText.Settings.dbPort#</th>
-						<th width="8%">#stText.Settings.openConn#</th>
+						<th >#stText.Settings.Name#</th>
+						<th >#stText.Settings.Type#</th>
+						<th >#stText.Settings.dbHost#:#stText.Settings.dbPort#</th>
+						<th title="#stText.Settings.activeConn#" width="8%">#stText.Settings.active#</th>
+						<th title="#stText.Settings.idleConn#" width="8%">#stText.Settings.idle#</th>
 						<th width="8%">#stText.Settings.dbStorage#</th>
 						<th width="6%">#stText.Settings.DBCheck#</th>
 						<th width="3%">&nbsp;</th>
-					</tr>
+					</tr>	
 				</thead>
 				<tbody>
 					<cfloop query="srcLocal">
@@ -306,7 +318,8 @@ list all mappings and display necessary edit fields --->
 								</cfif>
 							</td>
 							<td class="tblContent#css# longwords">#listCompact("#srcLocal.host?:''#:#srcLocal.port?:''#",":")#</td>
-							<td class="tblContent#css# longwords">#srcLocal.openConnections#</td>
+							<td class="tblContent#css# longwords">#srcLocal.activeConnections# </td>
+							<td class="tblContent#css# longwords">#srcLocal.idleConnections# </td>
 							<td class="tblContent#css# longwords">#yesNoFormat(srcLocal.storage)#</td>
 							<td class="tblContent#css# longwords">
 								<cfif StructKeyExists(stVerifyMessages, srcLocal.name)>
@@ -326,7 +339,7 @@ list all mappings and display necessary edit fields --->
 							<td class="tblContent#css# longwords"><cfif hasDriver>#renderEditButton("#request.self#?action=#url.action#&action2=create&name=#srcLocal.name#")#</cfif>
 					
 
-						</tr>						
+						</tr>			
 					</cfloop>
 					<cfmodule template="remoteclients.cfm" colspan="6" line="true">
 				</tbody>
