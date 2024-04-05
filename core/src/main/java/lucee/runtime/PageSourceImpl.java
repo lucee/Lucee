@@ -284,7 +284,11 @@ public final class PageSourceImpl implements PageSource {
 				pcn.set(page);
 				return page;
 			}
+			catch (ClassNotFoundException cnfe) {
+				return null;
+			}
 			catch (Exception e) {
+				LogUtil.log("compiler", e);
 				print.e("---- load archive ---");
 				print.e(e);
 				// MUST print.e(e); is there a better way?
