@@ -43,6 +43,11 @@ public abstract class InterfacePageImpl extends InterfacePage implements PagePro
 	}
 
 	@Override
+	public String getSubname() {
+		return null;
+	}
+
+	@Override
 	public Object call(PageContext pc) throws PageException {
 		try {
 			pc.setSilent();

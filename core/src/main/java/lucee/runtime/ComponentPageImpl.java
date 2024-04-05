@@ -116,6 +116,11 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 	}
 
 	@Override
+	public String getSubname() {
+		return null;
+	}
+
+	@Override
 	public Object call(PageContext pc) throws PageException {
 		// remote persistent (only type server is supported)
 		String strRemotePersisId = Caster.toString(getURLorForm(pc, REMOTE_PERSISTENT_ID, null), null);// Caster.toString(pc.urlFormScope().get(REMOTE_PERSISTENT_ID,null),null);
