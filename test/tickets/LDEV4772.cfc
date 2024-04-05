@@ -18,6 +18,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 						type="web"
 						password=request.WEBADMINPASSWORD
 						virtual="/test4772"
+						primary="archive"
 						physical=""
 						archive=expandPath("../artifacts/lars/lucee-5.lar");
 						
