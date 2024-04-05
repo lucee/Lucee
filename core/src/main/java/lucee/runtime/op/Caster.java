@@ -137,6 +137,7 @@ import lucee.runtime.type.dt.DateTimeImpl;
 import lucee.runtime.type.dt.Time;
 import lucee.runtime.type.dt.TimeSpan;
 import lucee.runtime.type.dt.TimeSpanImpl;
+import lucee.runtime.type.it.CollectionAsEntryIterator;
 import lucee.runtime.type.scope.ObjectStruct;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.ComponentUtil;
@@ -4433,6 +4434,13 @@ public final class Caster {
 		else if (Decision.isCastableToArray(o)) {
 			return toArray(o).entryIterator();
 		}
+		else if (o instanceof java.util.Collection) {
+			return new CollectionAsEntryIterator((java.util.Collection) o);
+		}
+		else if (o instanceof Iterator) {
+			return new CollectionAsEntryIterator((Iterator) o);
+		}
+
 		throw new CasterException("cannot cast object of type [" + toTypeName(o) + "] to a entry iterator (Iterator<Entry>)");
 	}
 
