@@ -25,6 +25,7 @@ import java.io.InputStream;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 
+import lucee.print;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
@@ -284,6 +285,8 @@ public final class PageSourceImpl implements PageSource {
 				return page;
 			}
 			catch (Exception e) {
+				print.e("---- load archive ---");
+				print.e(e);
 				// MUST print.e(e); is there a better way?
 				return null;
 			}
