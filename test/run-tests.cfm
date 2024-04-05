@@ -1,4 +1,63 @@
 <cfscript>
+/*thread {
+	try {
+		Thread=createObject("java","java.lang.Thread");
+		threads=Thread.getAllStackTraces().keySet();
+		ignores=[
+			"org.apache.tomcat.util.net.NioEndpoint.serverSocketAccept"
+			,"java.lang.Thread.getStackTrace(Thread.java:1559)"
+			,"org.apache.tomcat.util.net.NioBlockingSelector$BlockPoller.run"
+			,"org.apache.tomcat.util.net.NioEndpoint$Poller.run"
+			,"org.apache.catalina.startup.Bootstrap.start"
+		];
+		
+		
+		while(true) {
+			NL="
+	";	
+			data="";
+			// loop threads
+			loop collection=threads index="k" item="t" label="outer" {
+				
+				st=t.getStackTrace();
+				state=t.getState().toString();
+				str="";
+				// loop stacktraces
+				loop array=st item="ste" {
+					str&=ste;
+					str&=NL&"	";
+				}
+
+				loop array=ignores item="ignore" {
+					if(find(ignore,str))continue "outer";
+				}
+				if(isEmpty(str)) continue;
+				index=find("_testRunner.cfc",str);
+				if(index==0) continue;
+				if(isEmpty(str) || find("_testRunner.cfc",str)==0) continue;
+				data&="#t.name# (#state#)#NL##mid(str,1,index)##NL##NL#";
+			}
+			dir=getDirectoryFromPath(getCurrentTemplatePath()) ;
+			path=dir & "/threads.txt";
+			// compare with old one
+			if(fileExists(path)) {
+				old=fileRead(path);
+				old=mid(old,find("<<<<",old)+4);
+				if(trim(old)==trim(data)) 	{
+					fileWrite(dir & "/threads-#dateTimeFormat(now(),"yyyy-mm-dd-hh-nn-ss")#.txt",">>>>#now()#<<<<#NL##data#");
+				}
+			}
+			if(len(trim(data)))
+				fileWrite(path,">>>>#now()#<<<<#NL##data#");
+			sleep(3000);
+		}
+	}
+	catch(e) {
+		systemOutput("**************",1,1);
+		systemOutput(e,1,1);
+	}
+}*/
+
 request._start = getTickCount();
 if (execute) {
 
