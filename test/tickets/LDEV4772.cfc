@@ -13,6 +13,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 			it(title = "Checking evaluate() with datetime", body = function( currentSpec ) {
 				
 				// set old archive as mapping
+				var curr=getDirectoryFromPath(getCurrentTemplatePath());
+				var parent=getDirectoryFromPath(mid(curr,1,len(curr)-1));
+				var art=parent&"artifacts/lars/lucee-5.lar"; 
+				expect( fileExists(art) ).toBeTrue();	
 				admin 
 						action="updateComponentMapping"
 						type="web"
@@ -20,8 +24,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 						virtual="/test4772"
 						primary="archive"
 						physical=""
-						archive=expandPath("../artifacts/lars/lucee-5.lar");
-						
+						archive=art;
+				
+				
 				var ss=new org.cfpoi.spreadsheet.Spreadsheet();
 				
 			});
