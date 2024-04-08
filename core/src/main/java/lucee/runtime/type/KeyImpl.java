@@ -156,6 +156,12 @@ public class KeyImpl implements Collection.Key, Castable, Comparable, Externaliz
 		return initKeys(key);
 	}
 
+	// this method is only used by old lucee archives byte code loading their keys via this method
+	public static Collection.Key intern(String key) {
+		// log(key);
+		return new KeyImpl(key);
+	}
+
 	/**
 	 * 
 	 * used to create the keys for the method initKeys()

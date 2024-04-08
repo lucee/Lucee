@@ -732,6 +732,12 @@ public final class DateCaster {
 			msSeconds = ds.readDigits();
 			ds.removeWhitespace();
 			if (msSeconds == -1) return defaultValue;
+
+			double divisor = 1;
+			while (msSeconds / divisor >= 1) {
+				divisor *= 10;
+			}
+			msSeconds = (int) ((msSeconds / divisor) * 1000);
 		}
 
 		if (ds.isAfterLast()) {
