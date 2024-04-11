@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" skip=true labels="qoq" {
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="qoq" {
 
     function beforeAll() {
         myQuery = queryNew("number,id,name,amount","Varchar,Integer,Varchar,Integer",

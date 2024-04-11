@@ -33,7 +33,7 @@ import lucee.runtime.op.Caster;
  */
 class LikeCompareJRE {
 
-	private static final String specials = "{}[]().?+\\^$";
+	private static final String specials = "{}[]().?+\\^$*";
 	private static Map patterns = new WeakHashMap();
 	private static Object sync = new Object();
 
