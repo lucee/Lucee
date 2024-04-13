@@ -196,6 +196,14 @@
     <echo level="info" message="Java: ${java.home}" />
     <echo level="info" message="Optional Java Version for tests: ${testJavaVersionExec}" />
 
+    <fail message="Unsupported Java version: ${ant.java.version} for building Lucee 6.1 onwards. Ensure that the Java version is 21 or greater."> 
+      <condition>
+        <not>
+          <javaversion atleast="21"/>
+        </not>
+      </condition> 
+    </fail>
+
     <!-- Create the time stamp -->
     <tstamp/>
 
