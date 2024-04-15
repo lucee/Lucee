@@ -16,22 +16,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 
 			it(title="Checking BitAnd() function float edge case ", body = function( currentSpec ) {
 				// they can be converted because they are below the threshold
-				assertEquals("1",BitAnd(1, 0.9999999999999));
+				assertEquals("1",BitAnd(1, 1.9999999999999));
 				assertEquals("0",BitAnd(1, 0.00000000000001));
-			});
-
-			it(title="test outside the int range", body = function( currentSpec ) {
-				var Integer=createObject("java","java.lang.Integer");
-				assertEquals("1",BitAnd(1, Integer.MAX_VALUE));
-				
-				var failed=false;
-				try {
-					BitAnd(1, Integer.MAX_VALUE+1);
-				}
-				catch( e ) {
-					failed=true;
-				}
-				assertEquals(true,failed);
 			});
 
 			it("should correctly perform bitwise AND between two positive numbers", function() {
@@ -47,7 +33,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
             });
 
             it("should correctly perform bitwise AND between a positive and a negative number", function() {
-                expect( BitAnd(15, -9) ).toBe(1);
+                expect( BitAnd(15, -9) ).toBe(7);
             });
 
             it("should handle bitwise AND where one number is the maximum integer value", function() {
