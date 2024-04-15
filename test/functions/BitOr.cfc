@@ -29,8 +29,11 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				expect( BitOr(0, 0) ).toBe(0);
 			});
 			
-			it("should correctly perform bitwise OR between two large BigInteger values", function() {
-				expect( BitOr(9223372036854775808, 9223372036854775807) ).toBe(9223372036854775807);
+			it("should correctly perform bitwise OR between two large String values", function() {
+				expect( BitOr("9223372036854775808", "9223372036854775807") ).toBe("18446744073709551615");
+			});
+			it("should correctly perform bitwise OR between two large Number values", function() {
+				expect( BitOr(9223372036854775808, 9223372036854775807) ).toBe(18446744073709551615);
 			});
 			
 			it("should correctly perform bitwise OR between a BigInteger and a smaller integer", function() {
