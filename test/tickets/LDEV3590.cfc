@@ -46,7 +46,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 		var results="";
 		loop struct=cfthread index="local.name" item="local.thread" {
 			if(listFind(names, thread.name)==0) continue;
-			results=listAppend(results,thread.result);
+			results=listAppend(results,thread.result?:"");
 		}
 		return results;
 	}
