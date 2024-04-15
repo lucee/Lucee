@@ -142,6 +142,11 @@ public class ClazzDynamic extends Clazz {
 	}
 
 	@Override
+	public Type getDeclaringType() {
+		return Type.getType(this.clazz);
+	}
+
+	@Override
 	public String id() {
 		return clid + ":" + clazz.getName();
 	}

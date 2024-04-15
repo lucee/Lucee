@@ -486,9 +486,10 @@ public class VariableImpl extends ExpressionBase implements Variable {
 		adapter.loadArg(0);
 		// class
 		ClassDefinition bifCD = bif.getClassDefinition();
-		Class clazz = null;
+		Clazz clazzz = null;
 		try {
-			clazz = bifCD.getClazz();
+			DynamicInvoker di = DynamicInvoker.getInstance(null);
+			clazzz = di.getClazz(bifCD.getClazz());
 		}
 		catch (Exception e) {
 			LogUtil.log(VariableImpl.class.getName(), e);
@@ -502,10 +503,30 @@ public class VariableImpl extends ExpressionBase implements Variable {
 		boolean core = bif.getFlf().isCore();
 		if (core) {
 			try {
-				Clazz clazzz = DynamicInvoker.getInstance(null).getClazz(bif.getClassDefinition().getClazz());
 				if (clazzz.getMethods("call", true, -1).size() == 0) core = false;
 			}
 			catch (Exception e) {
+			}
+		}
+		// load method
+		lucee.transformer.dynamic.meta.Method m = null;
+		if (core) {
+			try {
+				List<lucee.transformer.dynamic.meta.Method> _methods = clazzz.getMethods("call", true, args.length + 1);
+				if (_methods != null && _methods.size() == 1) {
+					m = _methods.iterator().next();
+				}
+			}
+			catch (Exception e) {
+			}
+		}
+
+		if (m != null) {
+			// is return type defined a number but not a double?
+			if (Types.DOUBLE_VALUE.equals(rtnType)) {
+				if (Types.NUMBER.equals(m.getReturnType())) {
+					rtnType = Types.NUMBER;
+				}
 			}
 		}
 
@@ -531,7 +552,7 @@ public class VariableImpl extends ExpressionBase implements Variable {
 					flfa = it.next();
 					vt = getMatchingValueAndType(bc, bc.getFactory(), flfa, nargs, names, line);
 					if (vt.index != -1) names[vt.index] = null;
-					argTypes[++index] = Types.toType(bc, vt.type);
+					argTypes[++index] = toNumberIfNeeded(Types.toType(bc, vt.type), m, index);
 					if (vt.value == null) ASMConstants.NULL(bc.getAdapter());
 					else vt.value.writeOut(bc, Types.isPrimitiveType(argTypes[index]) ? MODE_VALUE : MODE_REF);
 				}
@@ -550,12 +571,12 @@ public class VariableImpl extends ExpressionBase implements Variable {
 				argTypes[0] = Types.PAGE_CONTEXT;
 
 				for (int y = 0; y < args.length; y++) {
-					argTypes[y + 1] = Types.toType(bc, args[y].getStringType());
+					argTypes[y + 1] = toNumberIfNeeded(Types.toType(bc, args[y].getStringType()), m, y + 1);
 					args[y].writeOutValue(bc, Types.isPrimitiveType(argTypes[y + 1]) ? MODE_VALUE : MODE_REF);
 				}
 				// if no method exists for the exact match of arguments, call the method with all arguments (when
 				// exists)
-				if (methodExists(clazz, "call", argTypes, rtnType) == Boolean.FALSE) {
+				if (methodExists(clazzz.getDeclaringClass(), "call", argTypes, rtnType) == Boolean.FALSE) {
 					ArrayList<FunctionLibFunctionArg> _args = bif.getFlf().getArg();
 
 					Type[] tmp = new Type[_args.size() + 1];
@@ -570,7 +591,7 @@ public class VariableImpl extends ExpressionBase implements Variable {
 					VT def;
 					for (int i = argTypes.length; i < tmp.length; i++) {
 						flfa = _args.get(i - 1);
-						tmp[i] = Types.toType(bc, flfa.getTypeAsString());
+						tmp[i] = toNumberIfNeeded(Types.toType(bc, flfa.getTypeAsString()), m, i);
 						def = getDefaultValue(bc.getFactory(), flfa);
 
 						if (def.value != null) def.value.writeOut(bc, Types.isPrimitiveType(tmp[i]) ? MODE_VALUE : MODE_REF);
@@ -631,7 +652,7 @@ public class VariableImpl extends ExpressionBase implements Variable {
 
 		// core
 		if (core && !bifCD.isBundle()) {
-			adapter.invokeStatic(Type.getType(clazz), new Method("call", rtnType, argTypes));
+			adapter.invokeStatic(clazzz.getDeclaringType(), new Method("call", rtnType, argTypes));
 		}
 		// external
 		else {
@@ -657,6 +678,16 @@ public class VariableImpl extends ExpressionBase implements Variable {
 		return rtnType;
 	}
 
+	private static Type toNumberIfNeeded(Type type, lucee.transformer.dynamic.meta.Method m, int index) {
+		if (m != null && Types.DOUBLE_VALUE.equals(type)) {
+			Type[] types = m.getArgumentTypes();
+			if (types.length > index && Types.NUMBER.equals(types[index])) {
+				return Types.NUMBER;
+			}
+		}
+		return type;
+	}
+
 	/**
 	 * checks if a method exists
 	 * 
@@ -673,6 +704,7 @@ public class VariableImpl extends ExpressionBase implements Variable {
 			for (int i = 0; i < _args.length; i++) {
 				_args[i] = Types.toClass(args[i]);
 			}
+
 			Class<?> rtn = Types.toClass(returnType);
 			try {
 				java.lang.reflect.Method m = clazz.getMethod(methodName, _args);

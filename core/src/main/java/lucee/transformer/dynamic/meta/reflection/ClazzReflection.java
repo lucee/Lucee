@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.objectweb.asm.Type;
+
 import lucee.transformer.dynamic.meta.Clazz;
 import lucee.transformer.dynamic.meta.Constructor;
 import lucee.transformer.dynamic.meta.Method;
@@ -21,6 +23,11 @@ public class ClazzReflection extends Clazz {
 	@Override
 	public Class getDeclaringClass() {
 		return clazz;
+	}
+
+	@Override
+	public Type getDeclaringType() {
+		return Type.getType(this.clazz);
 	}
 
 	@Override

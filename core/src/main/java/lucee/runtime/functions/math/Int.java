@@ -26,14 +26,18 @@ import lucee.runtime.PageContext;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.BIF;
+import lucee.runtime.listener.AppListenerUtil;
 import lucee.runtime.op.Caster;
 
 public final class Int extends BIF {
 
 	private static final long serialVersionUID = -1735948763737802886L;
 
-	public static double call(PageContext pc, double number) {
-		return Math.floor(number);
+	public static Number call(PageContext pc, Number number) {
+		if (AppListenerUtil.getPreciseMath(pc, null)) {
+			return Caster.toBigDecimal(number).toBigInteger();
+		}
+		return (int) Caster.toDoubleValue(number);
 	}
 
 	@Override

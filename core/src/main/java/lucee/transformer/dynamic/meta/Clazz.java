@@ -51,6 +51,8 @@ public abstract class Clazz implements Serializable {
 
 	public abstract Class getDeclaringClass();
 
+	public abstract Type getDeclaringType();
+
 	protected abstract String id();
 
 	public static boolean allowReflection() {
@@ -99,6 +101,7 @@ public abstract class Clazz implements Serializable {
 			for (Class cls: clazzArgs) {
 				sb.append(cls.getName()).append(';');
 			}
+
 			String key = sb.toString();
 
 			SoftReference<Pair<Method, Boolean>> sr = cachedMethods.get(key);

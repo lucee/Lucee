@@ -25,21 +25,21 @@ import java.math.BigDecimal;
 
 import lucee.runtime.PageContext;
 import lucee.runtime.ext.function.Function;
+import lucee.runtime.listener.AppListenerUtil;
 import lucee.runtime.op.Caster;
 
 public final class Round implements Function {
 
 	private static final long serialVersionUID = 3955271203445975609L;
 
-	public static double call(PageContext pc, double number) {
+	public static Number call(PageContext pc, Number number) {
 		return call(pc, number, 0);
 	}
 
-	public static double call(PageContext pc, double number, double precision) {
-		if (precision <= 0) return StrictMath.round(number);
-
-		BigDecimal bd = Caster.toBigDecimal(number);
-		bd = bd.setScale((int) precision, BigDecimal.ROUND_HALF_UP);
-		return bd.doubleValue();
+	public static Number call(PageContext pc, Number number, Number precision) {
+		if (AppListenerUtil.getPreciseMath(pc, null) && precision.intValue() > 0) {
+			return Caster.toBigDecimal(number).setScale((int) precision, BigDecimal.ROUND_HALF_UP);
+		}
+		return StrictMath.round(number.doubleValue());
 	}
 }

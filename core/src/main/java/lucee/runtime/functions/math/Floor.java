@@ -18,18 +18,24 @@
  **/
 package lucee.runtime.functions.math;
 
+import java.math.RoundingMode;
+
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.BIF;
+import lucee.runtime.listener.AppListenerUtil;
 import lucee.runtime.op.Caster;
 
 public class Floor extends BIF {
 
 	private static final long serialVersionUID = 8816436870378089996L;
 
-	public static double call(PageContext pc, double number) {
-		return Math.floor(number);
+	public static Number call(PageContext pc, Number number) {
+		if (AppListenerUtil.getPreciseMath(pc, null)) {
+			return Caster.toBigDecimal(number).setScale(0, RoundingMode.FLOOR);
+		}
+		return Math.floor(Caster.toDoubleValue(number));
 	}
 
 	@Override

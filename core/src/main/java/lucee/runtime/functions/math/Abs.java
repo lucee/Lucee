@@ -24,10 +24,11 @@ package lucee.runtime.functions.math;
 import lucee.commons.math.MathUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.ext.function.Function;
+import lucee.runtime.op.Caster;
 
 public final class Abs implements Function {
 
-	public static double call(PageContext pc, double number) {
-		return MathUtil.abs(number);
+	public static Number call(PageContext pc, Number n) {
+		return MathUtil.abs(Caster.toDoubleValue(n));
 	}
 }
