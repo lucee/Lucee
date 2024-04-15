@@ -130,7 +130,8 @@ public final class MathUtil {
 		}
 		else {
 			// Otherwise, throw an exception as the number is not close enough to an integer
-			throw new CasterException(String.format("The decimal value %s is not close enough to any integer. Values must be within %s of an integer to round.",
+			throw new CasterException(String.format("The value [" + Caster.toString(decimal)
+					+ "] cannot be converted to long without significant data loss. The decimal value %s is not close enough to any integer. Values must be within %s of an integer to round.",
 					decimal.toPlainString(), new BigDecimal("1E-" + threshold).toPlainString()));
 		}
 	}
