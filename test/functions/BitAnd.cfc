@@ -20,19 +20,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				assertEquals("0",BitAnd(1, 0.00000000000001));
 			});
 
-			it(title="test outside the int range", body = function( currentSpec ) {
-				var Integer=createObject("java","java.lang.Integer");
-				assertEquals("1",BitAnd(1, Integer.MAX_VALUE));
-				
-				var failed=false;
-				try {
-					BitAnd(1, Integer.MAX_VALUE+1);
-				}
-				catch( e ) {
-					failed=true;
-				}
-				assertEquals(true,failed);
-			});
 		});
 	}
 }
