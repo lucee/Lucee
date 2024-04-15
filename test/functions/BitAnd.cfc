@@ -16,8 +16,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 
 			it(title="Checking BitAnd() function float edge case ", body = function( currentSpec ) {
 				// they can be converted because they are below the threshold
-				assertEquals("1",BitAnd(1, 0.999999999999999));
 				assertEquals("0",BitAnd(1, 0.00000000000001));
+				assertEquals("1",BitAnd(1, 0.999999999999999));
 			});
 
 			it("should correctly perform bitwise AND between two positive numbers", function() {

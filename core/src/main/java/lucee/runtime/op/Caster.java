@@ -867,6 +867,17 @@ public final class Caster {
 		throw new ExpressionException("The value [" + Caster.toStringPercise(d) + "] cannot be converted to int without significant data loss.");
 	}
 
+	public static long toLongValueLossless(double d) throws ExpressionException {
+		long l = Math.round(d);
+		// Check if d is within the int range
+		if (l == d) return l;
+
+		if (d > l && (d - l) < 0.000000000001) return l;
+		if (l > d && (l - d) < 0.000000000001) return l;
+
+		throw new ExpressionException("The value [" + Caster.toStringPercise(d) + "] cannot be converted to long without significant data loss.");
+	}
+
 	/**
 	 * cast an int value to an int value (do nothing)
 	 * 
@@ -1536,7 +1547,11 @@ public final class Caster {
 	 */
 	public static long toLongValue(Object o) throws PageException {
 		if (o instanceof Boolean) return ((((Boolean) o).booleanValue()) ? 1L : 0L);
-		else if (o instanceof Number) return (((Number) o).longValue());
+		else if (o instanceof Number) {
+			if (o instanceof BigDecimal) return toLongValueLossless((((BigDecimal) o).doubleValue()));
+			if (o instanceof Double) return toLongValueLossless((((Number) o).doubleValue()));
+			return (((Number) o).longValue());
+		}
 		else if (o instanceof CharSequence) {
 			String str = o.toString();
 			try {
