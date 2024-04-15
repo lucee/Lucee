@@ -37,7 +37,7 @@ public final class BitSHRN extends BIF implements Function {
 	public Object invoke(PageContext pc, Object[] args) throws PageException {
 
 		int count = Caster.toIntValue(args[1]);
-		if (count > 31 || count < 0) throw new FunctionException(pc, "bitSHRN", 2, "count", "must be between 0 and 31 now " + count);
+		if (count < 0) throw new FunctionException(pc, "bitSHRN", 2, "count", "Invalid shift value [" + count + "], value must be a positive integer");
 
 		if (AppListenerUtil.getPreciseMath(pc, null)) {
 			return Caster.toBigDecimal(Caster.toBigInteger(args[0]).shiftRight(count));

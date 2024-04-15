@@ -23,7 +23,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
             });
 
             it(title="Checking BitSHRN() function with extreme shift values", body = function(currentSpec) {
-                assertEquals("0", BitSHRN(128, 64));  // 128 >> 64 = 0 (all bits shifted out)
+                assertEquals("8", BitSHRN(147573952589676412928, 64));  // 128 >> 64 = 0 (all bits shifted out)
             });
 		});
 	}
