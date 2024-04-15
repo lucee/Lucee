@@ -33,7 +33,7 @@ public final class BitSHLN implements Function {
 		int count = (int) dcount;
 		if (count > 31 || count < 0) throw new FunctionException(pc, "bitSHLN", 2, "count", "must be between 0 and 31 now " + Caster.toString(dcount));
 		if (!Decision.isInteger(dnumber)) {
-			return Caster.toLongValue(dnumber) << count;
+			return Caster.toLongValueLossless(dnumber) << count;
 		}
 		return Caster.toIntValueLossless(dnumber) << count;
 	}

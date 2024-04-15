@@ -32,7 +32,7 @@ public final class BitXor implements Function {
 
 	public static double call(PageContext pc, double number, double number2) throws PageException {
 		if (!Decision.isInteger(number) || !Decision.isInteger(number2)) {
-			return Caster.toLongValue(number) ^ Caster.toLongValue(number2);
+			return Caster.toLongValueLossless(number) ^ Caster.toLongValueLossless(number2);
 		}
 		return Caster.toIntValueLossless(number) ^ Caster.toIntValueLossless(number2);
 	}

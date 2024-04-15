@@ -865,6 +865,17 @@ public final class Caster {
 		throw new ExpressionException("The value [" + Caster.toStringPercise(d) + "] cannot be converted to int without significant data loss.");
 	}
 
+	public static long toLongValueLossless(double d) throws ExpressionException {
+		long l = Math.round(d);
+		// Check if d is within the int range
+		if (l == d) return l;
+
+		if (d > l && (d - l) < 0.000000000001) return l;
+		if (l > d && (l - d) < 0.000000000001) return l;
+
+		throw new ExpressionException("The value [" + Caster.toStringPercise(d) + "] cannot be converted to long without significant data loss.");
+	}
+
 	/**
 	 * cast an int value to an int value (do nothing)
 	 * 
