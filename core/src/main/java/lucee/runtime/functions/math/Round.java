@@ -32,13 +32,10 @@ public final class Round implements Function {
 
 	private static final long serialVersionUID = 3955271203445975609L;
 
-	public static Number call(PageContext pc, Number number) {
-		return call(pc, number, 0);
-	}
-
 	public static Number call(PageContext pc, Number number, Number precision) {
-		if (AppListenerUtil.getPreciseMath(pc, null) && precision.intValue() > 0) {
-			return Caster.toBigDecimal(number).setScale((int) precision, BigDecimal.ROUND_HALF_UP);
+		int p;
+		if (AppListenerUtil.getPreciseMath(pc, null) && (p = precision.intValue()) > 0) {
+			return Caster.toBigDecimal(number).setScale(p, BigDecimal.ROUND_HALF_UP);
 		}
 		return StrictMath.round(number.doubleValue());
 	}
