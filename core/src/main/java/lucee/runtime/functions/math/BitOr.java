@@ -22,14 +22,21 @@
 package lucee.runtime.functions.math;
 
 import lucee.runtime.PageContext;
-import lucee.runtime.op.Decision;
-import lucee.runtime.exp.FunctionException;
+import lucee.runtime.exp.PageException;
+import lucee.runtime.ext.function.BIF;
 import lucee.runtime.ext.function.Function;
+import lucee.runtime.listener.AppListenerUtil;
+import lucee.runtime.op.Caster;
 
-public final class BitOr implements Function {
-	public static double call(PageContext pc, double number, double number2) throws FunctionException {
-		if (!Decision.isInteger(number)) throw new FunctionException(pc, "bitOr", 1, "number1", "value [" + number + "] must be between the integer range");
-		if (!Decision.isInteger(number2)) throw new FunctionException(pc, "bitOr", 2, "number2", "value [" + number + "] must be between the integer range");
-		return (int) number | (int) number2;
+public final class BitOr extends BIF implements Function {
+
+	private static final long serialVersionUID = 1411262187973210022L;
+
+	@Override
+	public Object invoke(PageContext pc, Object[] args) throws PageException {
+		if (AppListenerUtil.getPreciseMath(pc, null)) {
+			return Caster.toBigDecimal(Caster.toBigInteger(args[0]).or(Caster.toBigInteger(args[1])));
+		}
+		return Caster.toDouble(Caster.toLongValue(args[0]) | Caster.toLongValue(args[1]));
 	}
 }

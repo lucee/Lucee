@@ -1508,12 +1508,6 @@ public final class Caster {
 		return (b ? 1L : 0L);
 	}
 
-	/**
-	 * cast a double value to a long value (primitive value type)
-	 * 
-	 * @param d double value to cast
-	 * @return casted long value
-	 */
 	public static long toLongValue(double d) {
 		return (long) d;
 	}
@@ -5105,7 +5099,8 @@ public final class Caster {
 	public static BigInteger toBigInteger(Object o) throws PageException {
 		if (o instanceof BigInteger) return (BigInteger) o;
 		if (o instanceof Number) {
-			return new BigInteger(((Number) o).toString());
+			if (o instanceof BigDecimal) return ((BigDecimal) o).toBigInteger();
+			return BigInteger.valueOf(((Number) o).longValue());
 		}
 		else if (o instanceof Boolean) return new BigInteger(((Boolean) o).booleanValue() ? "1" : "0");
 		else if (o instanceof CharSequence) return new BigInteger(o.toString());

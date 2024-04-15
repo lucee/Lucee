@@ -33,6 +33,45 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				}
 				assertEquals(true,failed);
 			});
+
+			it("should correctly perform bitwise AND between two positive numbers", function() {
+                expect( BitAnd(15, 9) ).toBe(9);
+            });
+
+            it("should correctly perform bitwise AND between a positive and a zero number", function() {
+                expect( BitAnd(15, 0) ).toBe(0);
+            });
+
+            it("should correctly perform bitwise AND between two negative numbers", function() {
+                expect( BitAnd(-15, -9) ).toBe(-15);
+            });
+
+            it("should correctly perform bitwise AND between a positive and a negative number", function() {
+                expect( BitAnd(15, -9) ).toBe(1);
+            });
+
+            it("should handle bitwise AND where one number is the maximum integer value", function() {
+                expect( BitAnd(2147483647, 1) ).toBe(1);
+            });
+
+            it("should return 0 when both numbers are zero", function() {
+                expect( BitAnd(0, 0) ).toBe(0);
+            });
+
+			it("should correctly perform bitwise AND between two large BigInteger values", function() {
+                expect( BitAnd(9223372036854775808, 9223372036854775807) ).toBe(0);
+            });
+
+            it("should correctly perform bitwise AND between a BigInteger and a smaller integer", function() {
+                // Expect zero because 255 does not overlap with high bits of largeNumber
+				expect( BitAnd(9223372036854775808, 255) ).toBe(0);
+            });
+            it("should correctly perform bitwise AND between a BigInteger and a smaller integer", function() {
+                // Expect 255 because the left number is all 1 in bit representaion
+				expect( BitAnd(9223372036854775807, 255) ).toBe(255);
+            });
 		});
 	}
 }
+
+

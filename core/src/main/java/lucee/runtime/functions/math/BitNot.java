@@ -22,13 +22,21 @@
 package lucee.runtime.functions.math;
 
 import lucee.runtime.PageContext;
-import lucee.runtime.op.Decision;
-import lucee.runtime.exp.FunctionException;
+import lucee.runtime.exp.PageException;
+import lucee.runtime.ext.function.BIF;
 import lucee.runtime.ext.function.Function;
+import lucee.runtime.listener.AppListenerUtil;
+import lucee.runtime.op.Caster;
 
-public final class BitNot implements Function {
-	public static double call(PageContext pc, double number) throws FunctionException {
-		if (!Decision.isInteger(number)) throw new FunctionException(pc, "bitNot", 1, "number", "value [" + number + "] must be between the integer range");
-		return ~(int) number;
+public final class BitNot extends BIF implements Function {
+
+	private static final long serialVersionUID = 5762882485653530918L;
+
+	@Override
+	public Object invoke(PageContext pc, Object[] args) throws PageException {
+		if (AppListenerUtil.getPreciseMath(pc, null)) {
+			return Caster.toBigDecimal(Caster.toBigInteger(args[0]).not());
+		}
+		return ~Caster.toLongValue(Caster.toLongValue(args[0]));
 	}
 }

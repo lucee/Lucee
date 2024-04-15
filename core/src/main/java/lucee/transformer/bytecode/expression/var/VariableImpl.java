@@ -48,6 +48,8 @@ import lucee.transformer.bytecode.util.ExpressionUtil;
 import lucee.transformer.bytecode.util.TypeScope;
 import lucee.transformer.bytecode.util.Types;
 import lucee.transformer.bytecode.visitor.ArrayVisitor;
+import lucee.transformer.dynamic.DynamicInvoker;
+import lucee.transformer.dynamic.meta.Clazz;
 import lucee.transformer.expression.ExprString;
 import lucee.transformer.expression.Expression;
 import lucee.transformer.expression.literal.LitString;
@@ -497,7 +499,15 @@ public class VariableImpl extends ExpressionBase implements Variable {
 		// arguments
 		Argument[] args = bif.getArguments();
 		Type[] argTypes;
-		boolean core = bif.getFlf().isCore(); // MUST setting this to false need to work !!!
+		boolean core = bif.getFlf().isCore();
+		if (core) {
+			try {
+				Clazz clazzz = DynamicInvoker.getInstance(null).getClazz(bif.getClassDefinition().getClazz());
+				if (clazzz.getMethods("call", true, -1).size() == 0) core = false;
+			}
+			catch (Exception e) {
+			}
+		}
 
 		if (bif.getArgType() == FunctionLibFunction.ARG_FIX && !bifCD.isBundle() && core) {
 			if (isNamed(bc, bif.getFlf().getName(), args)) {

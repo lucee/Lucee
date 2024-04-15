@@ -22,16 +22,26 @@
 package lucee.runtime.functions.math;
 
 import lucee.runtime.PageContext;
-import lucee.runtime.op.Decision;
 import lucee.runtime.exp.FunctionException;
+import lucee.runtime.exp.PageException;
+import lucee.runtime.ext.function.BIF;
 import lucee.runtime.ext.function.Function;
+import lucee.runtime.listener.AppListenerUtil;
+import lucee.runtime.op.Caster;
 
-public final class BitSHLN implements Function {
-	public static double call(PageContext pc, double dnumber, double dcount) throws FunctionException {
-		int number = (int) dnumber, count = (int) dcount;
-		if(!Decision.isInteger(dnumber)) throw new FunctionException(pc, "bitSHLN", 1, "number", "value [" + dnumber + "] must be between the integer range");
+public final class BitSHLN extends BIF implements Function {
+
+	private static final long serialVersionUID = 4982926056387520343L;
+
+	@Override
+	public Object invoke(PageContext pc, Object[] args) throws PageException {
+
+		int count = Caster.toIntValue(args[1]);
 		if (count > 31 || count < 0) throw new FunctionException(pc, "bitSHLN", 2, "count", "must be between 0 and 31 now " + count);
-		// TODO use bigInteger to shift further
-		return number << count;
+
+		if (AppListenerUtil.getPreciseMath(pc, null)) {
+			return Caster.toBigDecimal(Caster.toBigInteger(args[0]).shiftLeft(count));
+		}
+		return Caster.toDouble(Caster.toLongValue(args[0]) << count);
 	}
 }
