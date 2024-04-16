@@ -37,6 +37,6 @@ public class LiteralOrderedStruct extends BIF implements Function {
 	public Object invoke(PageContext pc, Object[] args) throws PageException {
 		if (args.length < 1 || args.length > 1) throw new FunctionException(pc, "LiteralOrderedStruct", 1, 1, args.length);
 		return Struct_._call(Caster.toNativeArray(args[0]), "invalid argument for literal ordered struct, only named arguments are allowed like {name:\"value\",name2:\"value2\"}",
-				-1);
+				Struct.TYPE_LINKED);
 	}
 }
