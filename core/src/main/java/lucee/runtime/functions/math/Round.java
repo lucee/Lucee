@@ -39,4 +39,16 @@ public final class Round implements Function {
 		}
 		return StrictMath.round(number.doubleValue());
 	}
+
+	public static double call(PageContext pc, double number, double precision) {
+		int p;
+		if (AppListenerUtil.getPreciseMath(pc, null) && (p = (int) precision) > 0) {
+			return Caster.toBigDecimal(number).setScale(p, BigDecimal.ROUND_HALF_UP).doubleValue();
+		}
+		return StrictMath.round(number);
+	}
+
+	public static double call(PageContext pc, double number) {
+		return StrictMath.round(number);
+	}
 }
