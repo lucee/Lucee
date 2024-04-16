@@ -28,6 +28,7 @@ import lucee.runtime.converter.JSONConverter;
 import lucee.runtime.converter.JSONDateFormat;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.ext.function.BIF;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.listener.ApplicationContextSupport;
 import lucee.runtime.listener.SerializationSettings;
@@ -37,7 +38,7 @@ import lucee.runtime.op.Decision;
 /**
  * Decodes Binary Data that are encoded as String
  */
-public final class SerializeJSON implements Function {
+public final class SerializeJSON extends BIF implements Function {
 
 	private static final long serialVersionUID = -4632952919389635891L;
 
@@ -67,6 +68,15 @@ public final class SerializeJSON implements Function {
 			cs = CharsetUtil.toCharset(Caster.toString(useSecureJSONPrefixOrCharset));
 		}
 		return _call(pc, var, queryFormat, cs, useSecureJSONPrefix, compact);
+	}
+
+	@Override
+	public Object invoke(PageContext pc, Object[] args) throws PageException {
+		if (args.length == 4) return call(pc, args[0], args[1], args[2], Caster.toBooleanValue(args[3]));
+		if (args.length == 3) return call(pc, args[0], args[1], args[2]);
+		if (args.length == 2) return call(pc, args[0], args[1]);
+		if (args.length == 1) return call(pc, args[0]);
+		throw new FunctionException(pc, "SerializeJSON", 1, 4, args.length);
 	}
 
 	private static String _call(PageContext pc, Object var, Object queryFormat, Charset charset, boolean useSecureJSONPrefix, boolean compact) throws PageException {

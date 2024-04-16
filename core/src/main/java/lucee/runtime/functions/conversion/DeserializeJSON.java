@@ -24,6 +24,7 @@ import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.ext.function.BIF;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.interpreter.JSONExpressionInterpreter;
 import lucee.runtime.op.Caster;
@@ -41,8 +42,9 @@ import lucee.runtime.type.util.ListUtil;
 /**
  * Decodes Binary Data that are encoded as String
  */
-public final class DeserializeJSON implements Function {
+public final class DeserializeJSON extends BIF implements Function {
 
+	private static final long serialVersionUID = -4847186239512149277L;
 	private static final Key ROWCOUNT = KeyConstants._ROWCOUNT;
 
 	public static Object call(PageContext pc, String JSONVar) throws PageException {
@@ -55,6 +57,13 @@ public final class DeserializeJSON implements Function {
 		Object result = new JSONExpressionInterpreter().interpret(pc, JSONVar);
 		if (!strictMapping) return toQuery(result);
 		return result;
+	}
+
+	@Override
+	public Object invoke(PageContext pc, Object[] args) throws PageException {
+		if (args.length == 2) return call(pc, Caster.toString(args[0]), Caster.toBooleanValue(args[1]));
+		if (args.length == 1) return call(pc, Caster.toString(args[0]));
+		throw new FunctionException(pc, "DeserializeJSON", 1, 2, args.length);
 	}
 
 	// {"COLUMNS":["AAA","BBB"],"DATA":[["a","b"],["c","d"]]}

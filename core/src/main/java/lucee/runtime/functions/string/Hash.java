@@ -29,11 +29,13 @@ import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.config.Config;
 import lucee.runtime.exp.ExpressionException;
+import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.ext.function.BIF;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.op.Caster;
 
-public final class Hash implements Function {
+public final class Hash extends BIF implements Function {
 
 	private static final long serialVersionUID = 1161445102079248547L;
 
@@ -64,6 +66,15 @@ public final class Hash implements Function {
 
 	public static String call(PageContext pc, Object input, String algorithm, String encoding, double numIterations) throws PageException {
 		return invoke(pc.getConfig(), input, algorithm, encoding, (int) numIterations);
+	}
+
+	@Override
+	public Object invoke(PageContext pc, Object[] args) throws PageException {
+		if (args.length == 4) return call(pc, args[0], Caster.toString(args[1]), Caster.toString(args[2]), Caster.toDoubleValue(args[3]));
+		if (args.length == 3) return call(pc, args[0], Caster.toString(args[1]), Caster.toString(args[2]));
+		if (args.length == 2) return call(pc, args[0], Caster.toString(args[1]));
+		if (args.length == 1) return call(pc, args[0]);
+		throw new FunctionException(pc, "Hash", 1, 4, args.length);
 	}
 
 	public static String invoke(Config config, Object input, String algorithm, String encoding, int numIterations) throws PageException {

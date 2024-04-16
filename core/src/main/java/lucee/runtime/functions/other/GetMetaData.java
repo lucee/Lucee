@@ -27,6 +27,7 @@ import lucee.runtime.Component;
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.ext.function.BIF;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.java.JavaObject;
 import lucee.runtime.op.Caster;
@@ -40,7 +41,7 @@ import lucee.runtime.type.UDF;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.StructUtil;
 
-public final class GetMetaData implements Function {
+public final class GetMetaData extends BIF implements Function {
 
 	private static final long serialVersionUID = -3787469574373656167L;
 
@@ -105,6 +106,14 @@ public final class GetMetaData implements Function {
 		if (str == null) throw new FunctionException(pc, "GetMetaData", 1, "object", "must be a string when second argument is true");
 		return pc.undefinedScope().getScope(KeyImpl.init(str));
 
+	}
+
+	@Override
+	public Object invoke(PageContext pc, Object[] args) throws PageException {
+		if (args.length == 2) return call(pc, args[0], Caster.toBooleanValue(args[1]));
+		if (args.length == 1) return call(pc, args[0]);
+		if (args.length == 0) return call(pc);
+		throw new FunctionException(pc, "GetMetaData", 0, 2, args.length);
 	}
 
 	public static Struct getMetaData(Component cfc, PageContext pc) throws PageException {

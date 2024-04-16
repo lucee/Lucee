@@ -27,7 +27,10 @@ import lucee.runtime.Component;
 import lucee.runtime.ComponentScope;
 import lucee.runtime.ComponentSpecificAccess;
 import lucee.runtime.PageContext;
+import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.ext.function.BIF;
+import lucee.runtime.ext.function.Function;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.Collection.Key;
@@ -37,13 +40,22 @@ import lucee.runtime.type.util.CollectionUtil;
 import lucee.runtime.type.util.ComponentUtil;
 import lucee.runtime.type.util.KeyConstants;
 
-public final class EvaluateComponent {
+public final class EvaluateComponent extends BIF implements Function {
+	private static final long serialVersionUID = 8572846076151862258L;
+
 	public static Object call(PageContext pc, String name, String md5, Struct sctThis) throws PageException {
 		return invoke(pc, name, md5, sctThis, null);
 	}
 
 	public static Object call(PageContext pc, String name, String md5, Struct sctThis, Struct sctVariables) throws PageException {
 		return invoke(pc, name, md5, sctThis, sctVariables);
+	}
+
+	@Override
+	public Object invoke(PageContext pc, Object[] args) throws PageException {
+		if (args.length == 4) return call(pc, Caster.toString(args[0]), Caster.toString(args[1]), Caster.toStruct(args[2]), Caster.toStruct(args[3]));
+		if (args.length == 3) return call(pc, Caster.toString(args[0]), Caster.toString(args[1]), Caster.toStruct(args[2]));
+		throw new FunctionException(pc, "EvaluateComponent", 3, 4, args.length);
 	}
 
 	public static Component invoke(PageContext pc, String name, String md5, Struct sctThis, Struct sctVariables) throws PageException {
