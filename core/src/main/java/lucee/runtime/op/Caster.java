@@ -74,6 +74,7 @@ import lucee.commons.lang.ClassUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.PhysicalClassLoader;
 import lucee.commons.lang.StringUtil;
+import lucee.commons.math.MathUtil;
 import lucee.commons.net.HTTPUtil;
 import lucee.loader.util.Util;
 import lucee.runtime.Component;
@@ -862,6 +863,17 @@ public final class Caster {
 		if (l > d && (l - d) < 0.000000000001) return i;
 
 		throw new ExpressionException("The value [" + Caster.toStringPercise(d) + "] cannot be converted to int without significant data loss.");
+	}
+
+	public static long toLongValueLossless(double d) throws ExpressionException {
+		long l = Math.round(d);
+		// Check if d is within the int range
+		if (l == d) return l;
+
+		if (d > l && (d - l) < 0.000000000001) return l;
+		if (l > d && (l - d) < 0.000000000001) return l;
+
+		throw new ExpressionException("The value [" + Caster.toStringPercise(d) + "] cannot be converted to long without significant data loss.");
 	}
 
 	/**
@@ -5087,7 +5099,9 @@ public final class Caster {
 	public static BigInteger toBigInteger(Object o) throws PageException {
 		if (o instanceof BigInteger) return (BigInteger) o;
 		if (o instanceof Number) {
-			return new BigInteger(((Number) o).toString());
+			if (o instanceof BigDecimal) return MathUtil.roundToBigInteger((BigDecimal) o, 13);
+			if (o instanceof Double) return MathUtil.roundToBigInteger(toBigDecimal(((Double) o).doubleValue()), 13);
+			return BigInteger.valueOf(((Number) o).longValue());
 		}
 		else if (o instanceof Boolean) return new BigInteger(((Boolean) o).booleanValue() ? "1" : "0");
 		else if (o instanceof CharSequence) return new BigInteger(o.toString());

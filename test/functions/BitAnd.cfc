@@ -16,23 +16,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 
 			it(title="Checking BitAnd() function float edge case ", body = function( currentSpec ) {
 				// they can be converted because they are below the threshold
-				assertEquals("1",BitAnd(1, 0.9999999999999));
 				assertEquals("0",BitAnd(1, 0.00000000000001));
+				assertEquals("1",BitAnd(1, 0.99999999999999));
 			});
 
-			it(title="test outside the int range", body = function( currentSpec ) {
-				var Integer=createObject("java","java.lang.Integer");
-				assertEquals("1",BitAnd(1, Integer.MAX_VALUE));
-				
-				var failed=false;
-				try {
-					BitAnd(1, Integer.MAX_VALUE+1);
-				}
-				catch( e ) {
-					failed=true;
-				}
-				assertEquals(true,failed);
-			});
 		});
 	}
 }

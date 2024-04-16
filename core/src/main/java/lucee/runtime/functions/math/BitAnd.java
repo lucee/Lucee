@@ -25,12 +25,15 @@ import lucee.runtime.PageContext;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.op.Caster;
+import lucee.runtime.op.Decision;
 
 public final class BitAnd implements Function {
 	private static final long serialVersionUID = -8252049909001223678L;
 
 	public static double call(PageContext pc, double number, double number2) throws ExpressionException {
-
+		if (!Decision.isInteger(number) || !Decision.isInteger(number2)) {
+			return Caster.toLongValueLossless(number) & Caster.toLongValueLossless(number2);
+		}
 		return Caster.toIntValueLossless(number) & Caster.toIntValueLossless(number2);
 	}
 }
