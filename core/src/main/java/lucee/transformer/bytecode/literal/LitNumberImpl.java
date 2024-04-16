@@ -34,11 +34,12 @@ public class LitNumberImpl extends ExpressionBase implements LitNumber, ExprNumb
 	private static final Method TO_NUMBER_STRING_1 = new Method("toNumber", Types.NUMBER, new Type[] { Types.STRING });
 	private static final Method TO_NUMBER_STRING_2 = new Method("toNumber", Types.NUMBER, new Type[] { Types.PAGE_CONTEXT, Types.STRING });
 
-	private static final Method[] CONSTANTS_0 = new Method[11];
-	private static final Method[] CONSTANTS_1 = new Method[11];
+	private static final int CONSTANT_LENGTH = 21;
+	private static final Method[] CONSTANTS_0 = new Method[CONSTANT_LENGTH];
+	private static final Method[] CONSTANTS_1 = new Method[CONSTANT_LENGTH];
 
 	static {
-		for (int i = 0; i <= 10; i++) {
+		for (int i = 0; i < CONSTANT_LENGTH; i++) {
 			CONSTANTS_0[i] = new Method("l" + i, Types.NUMBER, new Type[] {});
 			CONSTANTS_1[i] = new Method("l" + i, Types.NUMBER, new Type[] { Types.PAGE_CONTEXT });
 		}
@@ -120,7 +121,7 @@ public class LitNumberImpl extends ExpressionBase implements LitNumber, ExprNumb
 		if (l != null && Caster.toString(l).equals(number)) {
 			if (firstIsPC) adapter.loadArg(0);
 
-			if (l.longValue() >= 0L && l.longValue() <= 10L) {
+			if (l.longValue() >= 0L && l.longValue() < CONSTANT_LENGTH) {
 				int idx = (int) l.longValue();
 				adapter.invokeStatic(LITERAL_VALUE, firstIsPC ? CONSTANTS_1[idx] : CONSTANTS_0[idx]);
 			}

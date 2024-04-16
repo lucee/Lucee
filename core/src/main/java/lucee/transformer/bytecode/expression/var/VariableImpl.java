@@ -110,7 +110,8 @@ public class VariableImpl extends ExpressionBase implements Variable {
 	private static final Method STATIC_TOUCH0 = new Method("staticTouch", Types.OBJECT, new Type[] {});
 	private static final Method STATIC_GET1 = new Method("staticGet", Types.OBJECT, new Type[] { Types.OBJECT });
 	private static final Method STATIC_TOUCH1 = new Method("staticTouch", Types.OBJECT, new Type[] { Types.OBJECT });
-	private static final Method INVOKE = new Method("invoke", Types.OBJECT, new Type[] { Types.PAGE_CONTEXT, Types.OBJECT_ARRAY, Types.STRING, Types.STRING, Types.STRING });
+	private static final Method INVOKE3 = new Method("invoke", Types.OBJECT, new Type[] { Types.PAGE_CONTEXT, Types.OBJECT_ARRAY, Types.STRING });
+	private static final Method INVOKE5 = new Method("invoke", Types.OBJECT, new Type[] { Types.PAGE_CONTEXT, Types.OBJECT_ARRAY, Types.STRING, Types.STRING, Types.STRING });
 
 	// GET
 	private final static Method US_GET_KEY1 = new Method("us", Types.OBJECT, new Type[] { Types.COLLECTION_KEY });
@@ -660,12 +661,16 @@ public class VariableImpl extends ExpressionBase implements Variable {
 			// className
 			if (bifCD.getClassName() != null) adapter.push(bifCD.getClassName());
 			else ASMConstants.NULL(adapter);
-			if (bifCD.getName() != null) adapter.push(bifCD.getName());// bundle name
-			else ASMConstants.NULL(adapter);
-			if (bifCD.getVersionAsString() != null) adapter.push(bifCD.getVersionAsString());// bundle version
-			else ASMConstants.NULL(adapter);
+			// bundle info
+			if (bifCD.isBundle()) {
+				if (bifCD.getName() != null) adapter.push(bifCD.getName());// bundle name
+				else ASMConstants.NULL(adapter);
+				if (bifCD.getVersionAsString() != null) adapter.push(bifCD.getVersionAsString());// bundle version
+				else ASMConstants.NULL(adapter);
 
-			adapter.invokeStatic(Types.FUNCTION_HANDLER_POOL, INVOKE);
+				adapter.invokeStatic(Types.FUNCTION_HANDLER_POOL, INVOKE5);
+			}
+			else adapter.invokeStatic(Types.FUNCTION_HANDLER_POOL, INVOKE3);
 			rtnType = Types.OBJECT;
 		}
 

@@ -111,6 +111,7 @@ public final class CastNumber extends ExpressionBase implements ExprNumber, Cast
 						adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_DOUBLE_VALUE);
 					}
 					else {
+
 						adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_NUMBER);
 					}
 				}
@@ -128,6 +129,7 @@ public final class CastNumber extends ExpressionBase implements ExprNumber, Cast
 			if (Types.LONG.equals(rtn)) return Types.NUMBER;
 			if (Types.INTEGER.equals(rtn)) return Types.NUMBER;
 			if (Types.SHORT.equals(rtn)) return Types.NUMBER;
+			if (Types.NUMBER.equals(rtn)) return Types.NUMBER;
 
 			adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_NUMBER);
 			return Types.NUMBER;

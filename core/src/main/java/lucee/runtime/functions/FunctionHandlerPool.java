@@ -40,6 +40,10 @@ public final class FunctionHandlerPool {
 		return use(pc, className, bundleName, bundleVersion).invoke(pc, args);
 	}
 
+	public static Object invoke(PageContext pc, Object[] args, String className) throws PageException {
+		return use(pc, className).invoke(pc, args);
+	}
+
 	/**
 	 * return a tag to use from a class
 	 * 
@@ -67,6 +71,23 @@ public final class FunctionHandlerPool {
 			throw Caster.toPageException(e);
 		}
 		map.put(id, bif);
+		return bif;
+	}
+
+	public static BIF use(PageContext pc, String className) throws PageException {
+		BIF bif = map.get(className);
+		if (bif != null) return bif;
+
+		try {
+			Class<?> clazz = ClassUtil.loadClass(className);
+
+			if (Reflector.isInstaneOf(clazz, BIF.class, false)) bif = (BIF) ClassUtil.newInstance(clazz);
+			else bif = new BIFProxy(clazz);
+		}
+		catch (Exception e) {
+			throw Caster.toPageException(e);
+		}
+		map.put(className, bif);
 		return bif;
 	}
 
