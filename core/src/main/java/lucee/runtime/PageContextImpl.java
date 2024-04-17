@@ -212,6 +212,7 @@ import lucee.runtime.type.scope.VariablesImpl;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.CollectionUtil;
 import lucee.runtime.type.util.KeyConstants;
+import lucee.runtime.util.CFIDUtil;
 import lucee.runtime.util.PageContextUtil;
 import lucee.runtime.util.VariableUtil;
 import lucee.runtime.util.VariableUtilImpl;
@@ -2906,7 +2907,7 @@ public final class PageContextImpl extends PageContext {
 						// CFID
 						if ("cfid".equalsIgnoreCase(name)) {
 							value = ReqRspUtil.decode(cookies[i].getValue(), charset.name(), false);
-							if (Decision.isGUIdSimple(value)) oCfid = value;
+							if (CFIDUtil.isCFID(this, value)) oCfid = value;
 							ReqRspUtil.removeCookie(getHttpServletResponse(), name);
 						}
 						// CFToken
@@ -2927,7 +2928,7 @@ public final class PageContextImpl extends PageContext {
 		// New One
 		if (oCfid == null || oCftoken == null) {
 			setCookie = true;
-			cfid = ScopeContext.getNewCFId();
+			cfid = CFIDUtil.createCFID(this);
 			cftoken = ScopeContext.getNewCFToken();
 		}
 		else {
@@ -2948,7 +2949,7 @@ public final class PageContextImpl extends PageContext {
 	}
 
 	public void resetIdAndToken() {
-		cfid = ScopeContext.getNewCFId();
+		cfid = CFIDUtil.createCFID(this);
 		cftoken = ScopeContext.getNewCFToken();
 
 		if (applicationContext.isSetClientCookies()) setClientCookies();
