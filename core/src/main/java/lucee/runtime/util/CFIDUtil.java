@@ -18,7 +18,7 @@ import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.op.Caster;
 
 public class CFIDUtil {
-	public static Boolean IDENTIFY_CLIENT_DEFAULT = Boolean.FALSE;
+	public static Boolean IDENTIFY_CLIENT_DEFAULT = Boolean.TRUE;
 	private static Boolean identifyClient;
 
 	private static Map<String, String> clients = new ReferenceMap<String, String>(HARD, SOFT, 100, 0.75f);
