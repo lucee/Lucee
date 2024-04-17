@@ -68,6 +68,9 @@ public class ForEachUtil {
 		if (o instanceof Iterator) {
 			return (Iterator) o;
 		}
+		if (o instanceof java.util.Collection) {
+			return ((java.util.Collection) o).iterator();
+		}
 		if (o instanceof Enumeration) {
 			return new EnumAsIt((Enumeration) o);
 		}
