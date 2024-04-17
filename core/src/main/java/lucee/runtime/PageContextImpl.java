@@ -25,8 +25,8 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Enumeration;
-import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
@@ -3657,6 +3657,7 @@ public final class PageContextImpl extends PageContext {
 	public void setThreadScope(Collection.Key name, Threads ct) {
 		hasFamily = true;
 		if (threads == null) threads = new CFThread();
+		else if (threads.size() >= CFThread.getThreadLimit()) threads.removeOldest();
 		threads.setEL(name, ct);
 	}
 
@@ -3667,7 +3668,10 @@ public final class PageContextImpl extends PageContext {
 	 */
 	public void setAllThreadScope(Collection.Key name, Threads ct) {
 		hasFamily = true;
-		if (allThreads == null) allThreads = new HashMap<Collection.Key, Threads>();
+		if (allThreads == null) allThreads = new LinkedHashMap<Collection.Key, Threads>();
+		else if (allThreads.size() >= CFThread.getThreadLimit()) {
+			CFThread.removeOldest(allThreads);
+		}
 		allThreads.put(name, ct);
 	}
 
