@@ -198,7 +198,7 @@ list all mappings and display necessary edit fields --->
 									<input type="checkbox" class="checkbox" name="row_#rest.currentrow#" value="#rest.currentrow#">
 								</cfif>
 							</td>
-							<cfset css=iif(len(rest.physical) EQ 0 and len(rest.strPhysical) NEQ 0,de('Red'),de(''))>
+							<cfset css=iif(len(rest.physical) EQ 0 and len(rest.strPhysical) NEQ 0,de(''),de(''))>
 							<!--- virtual --->
 							<td class="tblContent#css#">
 								<input type="hidden" name="virtual_#rest.currentrow#" value="#rest.virtual#">
