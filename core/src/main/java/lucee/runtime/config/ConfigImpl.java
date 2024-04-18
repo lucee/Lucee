@@ -535,11 +535,23 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	@Override
 	public FunctionLib getCombinedFLDs(int dialect) {
 		if (dialect == CFMLEngine.DIALECT_CFML) {
-			if (combinedCFMLFLDs == null) combinedCFMLFLDs = FunctionLibFactory.combineFLDs(cfmlFlds);
+			if (combinedCFMLFLDs == null) {
+				synchronized (SystemUtil.createToken("combine", "cfmlfld")) {
+					if (combinedCFMLFLDs == null) {
+						combinedCFMLFLDs = FunctionLibFactory.combineFLDs(cfmlFlds);
+					}
+				}
+			}
 			return combinedCFMLFLDs;
 		}
 
-		if (combinedLuceeFLDs == null) combinedLuceeFLDs = FunctionLibFactory.combineFLDs(luceeFlds);
+		if (combinedLuceeFLDs == null) {
+			synchronized (SystemUtil.createToken("combine", "luceefld")) {
+				if (combinedLuceeFLDs == null) {
+					combinedLuceeFLDs = FunctionLibFactory.combineFLDs(luceeFlds);
+				}
+			}
+		}
 		return combinedLuceeFLDs;
 	}
 
