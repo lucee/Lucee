@@ -52,7 +52,9 @@ public abstract class UDFPropertiesBase implements UDFProperties {
 				pe = e;
 			}
 			Log log = pc.getConfig().getLog("application");
-			if (log != null) log.error("compiler", "UDFPropertiesBase does not have a page defintion for " + getPageSource().getDisplayPath());
+			if (log != null) {
+				log.error("compiler", "UDFPropertiesBase does not have a page defintion for " + getPageSource().getDisplayPath(), pe);
+			}
 		}
 
 		if (pe != null) throw pe;
