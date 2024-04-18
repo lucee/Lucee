@@ -150,7 +150,12 @@ try {
 			var rpt = replace(ucFirst(qry.type), '_', ' ')
 				& " " & qry.name & ": " & numberFormat(perc) & "%, " & numberFormat( qry.used / 1024 / 1024 ) & " Mb";
 			if ( structKeyExists( arguments.prev, qry.name ) ) {
-				rpt &= ", (+ " & numberFormat( (qry.used - arguments.prev[ qry.name ] ) / 1024 / 1024 ) & " Mb)";
+				var change = numberFormat( (qry.used - arguments.prev[ qry.name ] ) / 1024 / 1024 );
+				if ( change gt 0 ) {
+					rpt &= ", (+ " & change & "Mb )";
+				} else if ( change lt 0 ) {
+					rpt &= ", ( " & change & "Mb )";
+				}
 			}
 			arrayAppend( report, rpt );
 			used[ qry.name ] = qry.used;
@@ -373,8 +378,24 @@ try {
 	arrayAppend( results, "Active Threads: #NumberFormat( threadCount )#");
 	arrayAppend( results, "CFTHREADS: #NumberFormat( ThreadData().len() )#");
 	
+	postTestMeM = reportMem( "", _reportMemStat.usage );
+	arrayAppend( results, postTestMeM.report, true );
+	arrayAppend( results, "Force GC");
+	createObject( "java", "java.lang.System" ).gc();
+	
+	postTestGC = reportMem( "", postTestMeM.usage )
 	arrayAppend( results, "");
-	arrayAppend( results, reportMem( "", _reportMemStat.usage ).report, true );
+	arrayAppend( results, postTestGC.report, true );
+	
+	structClear( CFTHREAD );
+	arrayAppend( results, "");
+	arrayAppend( results, "Force GC after structClear(cfthread)");
+	createObject( "java", "java.lang.System" ).gc();
+	arrayAppend( results, "CFTHREADS: #NumberFormat( ThreadData().len() )#");
+	arrayAppend( results, "Active Threads: #NumberFormat( threadCount )#");
+	arrayAppend( results, "");
+	arrayAppend( results, reportMem( "", postTestGC.usage ).report, true );
+	
 	arrayAppend( results, "");
 	arrayAppend( results, "=============================================================" & NL);
 	arrayAppend( results, "-> Bundles/Suites/Specs: #result.getTotalBundles()#/#result.getTotalSuites()#/#result.getTotalSpecs()#");
