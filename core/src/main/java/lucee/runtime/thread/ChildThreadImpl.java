@@ -57,7 +57,6 @@ import lucee.runtime.type.scope.Argument;
 import lucee.runtime.type.scope.ArgumentThreadImpl;
 import lucee.runtime.type.scope.Local;
 import lucee.runtime.type.scope.LocalImpl;
-import lucee.runtime.type.scope.Threads;
 import lucee.runtime.type.scope.Undefined;
 import lucee.runtime.type.util.KeyConstants;
 
@@ -75,7 +74,7 @@ public class ChildThreadImpl extends ChildThread implements Serializable {
 	private final String tagName;
 	private long start;
 	private long endTime;
-	private Threads scope;
+	private ThreadsImpl scope;
 
 	// accesible from scope
 	Struct content = new StructImpl();
@@ -244,6 +243,7 @@ public class ChildThreadImpl extends ChildThread implements Serializable {
 						if (_headers[i].getName().equalsIgnoreCase("Content-Encoding")) contentEncoding = Caster.toString(_headers[i].getValue(), null);
 					}
 				}
+				if (scope != null) scope.uncouple();
 			}
 		}
 		finally {
@@ -290,6 +290,10 @@ public class ChildThreadImpl extends ChildThread implements Serializable {
 	 */
 	public String getTemplate() {
 		return template;
+	}
+
+	public void setScope(ThreadsImpl scope) {
+		this.scope = scope;
 	}
 
 }

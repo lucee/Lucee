@@ -13,7 +13,7 @@ import lucee.runtime.type.StructImpl;
 
 public class CFThread extends StructImpl {
 
-	private static final int MAX_THREADS_STORED_DEFAULT = 500;
+	private static final int MAX_THREADS_STORED_DEFAULT = 10000;
 	private static int maxThreadStored = -1;
 
 	static {

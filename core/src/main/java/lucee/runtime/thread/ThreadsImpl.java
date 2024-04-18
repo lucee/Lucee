@@ -23,6 +23,7 @@ import java.io.InputStream;
 import java.lang.Thread.State;
 import java.util.Iterator;
 
+import lucee.commons.io.SystemUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.config.NullSupportHelper;
@@ -63,9 +64,22 @@ public class ThreadsImpl extends StructSupport implements lucee.runtime.type.sco
 			KEY_CHILD_THREADS };
 
 	private ChildThreadImpl ct;
+	private StructImpl uncoupled = null;
 
 	public ThreadsImpl(ChildThreadImpl ct) {
 		this.ct = ct;
+		ct.setScope(this);
+	}
+
+	public void uncouple() {
+		if (uncoupled == null) {
+			synchronized (SystemUtil.createToken("thread", "uncoupling")) {
+				if (uncoupled == null) {
+					uncoupled = duplicate(false);
+					ct = null;
+				}
+			}
+		}
 	}
 
 	@Override
@@ -111,11 +125,12 @@ public class ThreadsImpl extends StructSupport implements lucee.runtime.type.sco
 
 	@Override
 	public void clear() {
-		ct.content.clear();
+		if (uncoupled != null) uncoupled.clear();
+		else ct.content.clear();
 	}
 
 	@Override
-	public Collection duplicate(boolean deepCopy) {
+	public StructImpl duplicate(boolean deepCopy) {
 		StructImpl sct = new StructImpl();
 		boolean inside = deepCopy ? ThreadLocalDuplication.set(this, sct) : true;
 		try {
@@ -174,12 +189,6 @@ public class ThreadsImpl extends StructSupport implements lucee.runtime.type.sco
 	}
 
 	private Object getState() {
-		/*
-		 * 
-		 * 
-		 * The current status of the thread; one of the following values:
-		 * 
-		 */
 		try {
 			State state = ct.getState();
 			if (State.NEW.equals(state)) return "NOT_STARTED";
@@ -204,11 +213,13 @@ public class ThreadsImpl extends StructSupport implements lucee.runtime.type.sco
 
 	@Override
 	public final Object get(Key key, Object defaultValue) {
+		if (uncoupled != null) return uncoupled.get(key, defaultValue);
 		return get((PageContext) null, key, defaultValue);
 	}
 
 	@Override
 	public final Object get(PageContext pc, Key key, Object defaultValue) {
+		if (uncoupled != null) return uncoupled.get(pc, key, defaultValue);
 		Object _null = NullSupportHelper.NULL(pc);
 		Object meta = getMeta(key, _null);
 		if (meta != _null) return meta;
@@ -222,6 +233,7 @@ public class ThreadsImpl extends StructSupport implements lucee.runtime.type.sco
 
 	@Override
 	public final Object get(PageContext pc, Key key) throws PageException {
+		if (uncoupled != null) return uncoupled.get(key);
 		Object _null = NullSupportHelper.NULL(pc);
 		Object meta = getMeta(key, _null);
 		if (meta != _null) return meta;
@@ -230,6 +242,7 @@ public class ThreadsImpl extends StructSupport implements lucee.runtime.type.sco
 
 	@Override
 	public Key[] keys() {
+		if (uncoupled != null) return uncoupled.keys();
 		Key[] skeys = CollectionUtil.keys(ct.content);
 
 		if (skeys.length == 0 && ct.catchBlock == null) return DEFAULT_KEYS;
@@ -252,6 +265,7 @@ public class ThreadsImpl extends StructSupport implements lucee.runtime.type.sco
 
 	@Override
 	public Object remove(Key key) throws PageException {
+		if (uncoupled != null) return uncoupled.remove(key);
 		Object _null = NullSupportHelper.NULL();
 		if (isReadonly()) throw errorOutside();
 		Object meta = getMeta(key, _null);
@@ -261,12 +275,14 @@ public class ThreadsImpl extends StructSupport implements lucee.runtime.type.sco
 
 	@Override
 	public Object removeEL(Key key) {
+		if (uncoupled != null) return uncoupled.removeEL(key);
 		if (isReadonly()) return null;
 		return ct.content.removeEL(key);
 	}
 
 	@Override
 	public Object set(Key key, Object value) throws PageException {
+		if (uncoupled != null) return uncoupled.set(key, value);
 
 		if (isReadonly()) throw errorOutside();
 		Object _null = NullSupportHelper.NULL();
@@ -277,6 +293,7 @@ public class ThreadsImpl extends StructSupport implements lucee.runtime.type.sco
 
 	@Override
 	public Object setEL(Key key, Object value) {
+		if (uncoupled != null) return uncoupled.setEL(key, value);
 		if (isReadonly()) return null;
 		Object _null = NullSupportHelper.NULL();
 		Object meta = getMeta(key, _null);
@@ -286,6 +303,7 @@ public class ThreadsImpl extends StructSupport implements lucee.runtime.type.sco
 
 	@Override
 	public int size() {
+		if (uncoupled != null) return uncoupled.size();
 		return ct.content.size() + DEFAULT_KEYS.length + (ct.catchBlock == null ? 0 : 1);
 	}
 
@@ -327,65 +345,78 @@ public class ThreadsImpl extends StructSupport implements lucee.runtime.type.sco
 
 	@Override
 	public boolean castToBooleanValue() throws PageException {
+		if (uncoupled != null) return uncoupled.castToBooleanValue();
 		return ct.content.castToBooleanValue();
 	}
 
 	@Override
 	public Boolean castToBoolean(Boolean defaultValue) {
+		if (uncoupled != null) return uncoupled.castToBoolean(defaultValue);
 		return ct.content.castToBoolean(defaultValue);
 	}
 
 	@Override
 	public DateTime castToDateTime() throws PageException {
+		if (uncoupled != null) return uncoupled.castToDateTime();
 		return ct.content.castToDateTime();
 	}
 
 	@Override
 	public DateTime castToDateTime(DateTime defaultValue) {
+		if (uncoupled != null) return uncoupled.castToDateTime(defaultValue);
 		return ct.content.castToDateTime(defaultValue);
 	}
 
 	@Override
 	public double castToDoubleValue() throws PageException {
+		if (uncoupled != null) return uncoupled.castToDoubleValue();
 		return ct.content.castToDoubleValue();
 	}
 
 	@Override
 	public double castToDoubleValue(double defaultValue) {
+		if (uncoupled != null) return uncoupled.castToDoubleValue(defaultValue);
 		return ct.content.castToDoubleValue(defaultValue);
 	}
 
 	@Override
 	public String castToString() throws PageException {
+		if (uncoupled != null) return uncoupled.castToString();
 		return ct.content.castToString();
 	}
 
 	@Override
 	public String castToString(String defaultValue) {
+		if (uncoupled != null) return uncoupled.castToString(defaultValue);
 		return ct.content.castToString(defaultValue);
 	}
 
 	@Override
 	public int compareTo(String str) throws PageException {
+		if (uncoupled != null) return uncoupled.compareTo(str);
 		return ct.content.compareTo(str);
 	}
 
 	@Override
 	public int compareTo(boolean b) throws PageException {
+		if (uncoupled != null) return uncoupled.compareTo(b);
 		return ct.content.compareTo(b);
 	}
 
 	@Override
 	public int compareTo(double d) throws PageException {
+		if (uncoupled != null) return uncoupled.compareTo(d);
 		return ct.content.compareTo(d);
 	}
 
 	@Override
 	public int compareTo(DateTime dt) throws PageException {
+		if (uncoupled != null) return uncoupled.compareTo(dt);
 		return ct.content.compareTo(dt);
 	}
 
 	private boolean isReadonly() {
+		if (uncoupled != null) return false;
 		PageContext pc = ThreadLocalPageContext.get();
 		if (pc == null) return true;
 		return pc.getThread() != ct;
@@ -398,4 +429,5 @@ public class ThreadsImpl extends StructSupport implements lucee.runtime.type.sco
 	private ApplicationException errorMeta(Key key) {
 		return new ApplicationException("the metadata " + key.getString() + " of the thread scope are readonly");
 	}
+
 }
