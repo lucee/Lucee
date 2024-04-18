@@ -25,8 +25,8 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Enumeration;
-import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
@@ -212,6 +212,7 @@ import lucee.runtime.type.scope.VariablesImpl;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.CollectionUtil;
 import lucee.runtime.type.util.KeyConstants;
+import lucee.runtime.util.CFIDUtil;
 import lucee.runtime.util.PageContextUtil;
 import lucee.runtime.util.VariableUtil;
 import lucee.runtime.util.VariableUtilImpl;
@@ -2925,7 +2926,7 @@ public final class PageContextImpl extends PageContext {
 						// CFID
 						if ("cfid".equalsIgnoreCase(name)) {
 							value = ReqRspUtil.decode(cookies[i].getValue(), charset.name(), false);
-							if (Decision.isGUIdSimple(value)) oCfid = value;
+							if (CFIDUtil.isCFID(this, value)) oCfid = value;
 							ReqRspUtil.removeCookie(getHttpServletResponse(), name);
 						}
 						// CFToken
@@ -2946,7 +2947,7 @@ public final class PageContextImpl extends PageContext {
 		// New One
 		if (oCfid == null || oCftoken == null) {
 			setCookie = true;
-			cfid = ScopeContext.getNewCFId();
+			cfid = CFIDUtil.createCFID(this);
 			cftoken = ScopeContext.getNewCFToken();
 		}
 		else {
@@ -2967,7 +2968,7 @@ public final class PageContextImpl extends PageContext {
 	}
 
 	public void resetIdAndToken() {
-		cfid = ScopeContext.getNewCFId();
+		cfid = CFIDUtil.createCFID(this);
 		cftoken = ScopeContext.getNewCFToken();
 
 		if (applicationContext.isSetClientCookies()) setClientCookies();
@@ -3656,6 +3657,7 @@ public final class PageContextImpl extends PageContext {
 	public void setThreadScope(Collection.Key name, Threads ct) {
 		hasFamily = true;
 		if (threads == null) threads = new CFThread();
+		else if (threads.size() >= CFThread.getThreadLimit()) threads.removeOldest();
 		threads.setEL(name, ct);
 	}
 
@@ -3666,7 +3668,10 @@ public final class PageContextImpl extends PageContext {
 	 */
 	public void setAllThreadScope(Collection.Key name, Threads ct) {
 		hasFamily = true;
-		if (allThreads == null) allThreads = new HashMap<Collection.Key, Threads>();
+		if (allThreads == null) allThreads = new LinkedHashMap<Collection.Key, Threads>();
+		else if (allThreads.size() >= CFThread.getThreadLimit()) {
+			CFThread.removeOldest(allThreads);
+		}
 		allThreads.put(name, ct);
 	}
 
