@@ -256,6 +256,11 @@ public final class CredentialImpl implements Credential {
 		}
 	}
 
+	// keep this because it is used in existing CFML code out there
+	public static Credential decode(Object encoded, Resource rolesDir) {
+		return decode(encoded, rolesDir, false);
+	}
+
 	public static Credential decode(Object encoded, Resource rolesDir, boolean precise) {
 		try {
 			return decode(encoded, rolesDir, null, null, 0, precise);
