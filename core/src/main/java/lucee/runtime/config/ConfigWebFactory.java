@@ -1915,6 +1915,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 			Array _mappings = ConfigWebUtil.getAsArray("mapping", el);
 
 			// first get mapping defined in server admin (read-only)
+			boolean hasDefault = false;
 			Map<String, lucee.runtime.rest.Mapping> mappings = new HashMap<String, lucee.runtime.rest.Mapping>();
 			lucee.runtime.rest.Mapping tmp;
 			if (configServer != null && config instanceof ConfigWeb) {
@@ -1924,6 +1925,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 						try {
 							if (!sm[i].isHidden()) {
 								tmp = sm[i].duplicate(config, Boolean.TRUE);
+								if (tmp.isDefault()) hasDefault = true;
 								mappings.put(tmp.getVirtual(), tmp);
 							}
 						}
@@ -1950,6 +1952,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 						boolean _default = toBoolean(getAttr(el, "default"), false);
 						if (physical != null) {
 							tmp = new lucee.runtime.rest.Mapping(config, virtual, physical, hidden, readonly, _default);
+							if (_default) hasDefault = true;
 							mappings.put(tmp.getVirtual(), tmp);
 						}
 
@@ -1959,6 +1962,14 @@ public final class ConfigWebFactory extends ConfigFactory {
 						log(config, log, t);
 					}
 				}
+			}
+
+			// set default if not exist
+			if (!hasDefault) {
+				Resource rest = config.getConfigDir().getRealResource("rest");
+				rest.mkdirs();
+				tmp = new lucee.runtime.rest.Mapping(config, "/default-set-by-lucee", rest.getAbsolutePath(), true, true, true);
+				mappings.put(tmp.getVirtual(), tmp);
 			}
 
 			config.setRestMappings(mappings.values().toArray(new lucee.runtime.rest.Mapping[mappings.size()]));

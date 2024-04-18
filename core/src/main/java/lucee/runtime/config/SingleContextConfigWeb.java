@@ -117,6 +117,7 @@ class SingleContextConfigWeb extends ConfigBase implements ConfigWebInner {
 	private SCCWIdentificationWeb id;
 	private Resource rootDir;
 	private Mapping[] mappings;
+	private lucee.runtime.rest.Mapping[] restMappings;
 	private Resource configDirWeb;
 	// private Resource remoteClientDirectory;
 	// private SpoolerEngineImpl spoolerEngine;
@@ -369,7 +370,12 @@ class SingleContextConfigWeb extends ConfigBase implements ConfigWebInner {
 
 	@Override
 	public lucee.runtime.rest.Mapping[] getRestMappings() {
-		return cs.getRestMappings();
+		if (restMappings == null) {
+			synchronized (this) {
+				if (restMappings == null) createRestMapping();
+			}
+		}
+		return restMappings;
 	}
 
 	@Override
@@ -1809,6 +1815,7 @@ class SingleContextConfigWeb extends ConfigBase implements ConfigWebInner {
 	public void reload() {
 		synchronized (this) {
 			createMapping();
+			createRestMapping();
 		}
 	}
 
@@ -1864,6 +1871,26 @@ class SingleContextConfigWeb extends ConfigBase implements ConfigWebInner {
 			mappings.put("/", m);
 		}
 		this.mappings = ConfigWebUtil.sort(mappings.values().toArray(new Mapping[mappings.size()]));
+	}
+
+	private void createRestMapping() {
+		Map<String, lucee.runtime.rest.Mapping> mappings = MapFactory.<String, lucee.runtime.rest.Mapping>getConcurrentMap();
+		lucee.runtime.rest.Mapping[] sm = cs.getRestMappings();
+		lucee.runtime.rest.Mapping tmp;
+		if (sm != null) {
+			for (int i = 0; i < sm.length; i++) {
+				try {
+					// if (!sm[i].isHidden()) {
+					tmp = sm[i].duplicate(this, Boolean.TRUE);
+					mappings.put(tmp.getVirtual(), tmp);
+					// }
+				}
+				catch (Exception e) {
+
+				}
+			}
+		}
+		this.restMappings = mappings.values().toArray(new lucee.runtime.rest.Mapping[mappings.size()]);
 	}
 
 	private Map<String, Mapping> getExistingMappings() {
