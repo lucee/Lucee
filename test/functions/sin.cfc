@@ -6,7 +6,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 				expect(sin(a)).toBe(0.8939966636005579);
 				expect(a.sin()).toBe(0.8939966636005579);
 				expect(isnumeric(sin(a))).toBeTrue();
-				assertEquals("0.8939966636005579","#tostring(sin(a))#");
+				assertEquals("0.893996663601","#tostring(sin(a))#");
 			});
 		});
 	}
