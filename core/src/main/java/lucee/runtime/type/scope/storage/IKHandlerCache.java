@@ -32,7 +32,7 @@ public class IKHandlerCache implements IKHandler {
 	public IKStorageValue loadData(PageContext pc, String appName, String name, String strType, int type, Log log) throws PageException {
 		Cache cache = getCache(pc, name);
 		String key = StorageScopeCache.getKey(pc.getCFID(), appName, strType);
-		synchronized (StorageScopeCache.getToken(key)) { // sync necessary?
+		synchronized (SystemUtil.createToken("ikc", key)) { // sync necessary?
 			Object val = cache.getValue(key, null);
 			if (val instanceof byte[][]) {
 				ScopeContext.debug(log,
@@ -57,7 +57,7 @@ public class IKHandlerCache implements IKHandler {
 			Cache cache = getCache(ThreadLocalPageContext.get(pc), name);
 			String key = StorageScopeCache.getKey(pc.getCFID(), appName, storageScope.getTypeAsString());
 
-			synchronized (StorageScopeCache.getToken(key)) {
+			synchronized (SystemUtil.createToken("ikc", key)) {
 				Object existingVal = cache.getValue(key, null);
 
 				if (storeEmpty || storageScope.hasContent()) {
@@ -100,7 +100,7 @@ public class IKHandlerCache implements IKHandler {
 			Cache cache = getCache(pc, name);
 			String key = StorageScopeCache.getKey(pc.getCFID(), appName, storageScope.getTypeAsString());
 
-			synchronized (StorageScopeCache.getToken(key)) {
+			synchronized (SystemUtil.createToken("ikc", key)) {
 				cache.remove(key);
 			}
 		}
