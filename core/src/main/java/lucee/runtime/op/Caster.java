@@ -2330,8 +2330,8 @@ public final class Caster {
 	private static DecimalFormat df = (DecimalFormat) DecimalFormat.getInstance(Locale.US);
 	private static DecimalFormat ff = (DecimalFormat) DecimalFormat.getInstance(Locale.US);
 	static {
-		pf.applyLocalizedPattern("#.################################################");
-		df.applyLocalizedPattern("#.########################");
+		pf.applyLocalizedPattern("#.###############");
+		df.applyLocalizedPattern("#.############");
 		ff.applyLocalizedPattern("#.#######");
 	}
 
@@ -2341,7 +2341,6 @@ public final class Caster {
 
 		if (d > l && (d - l) < 0.000000000001) return toString(l);
 		if (l > d && (l - d) < 0.000000000001) return toString(l);
-
 		return df.format(d);
 	}
 
@@ -2356,7 +2355,14 @@ public final class Caster {
 		if (f > l && (f - l) < 0.000000000001) return toString(l);
 		if (l > f && (l - f) < 0.000000000001) return toString(l);
 
-		return ff.format(f);
+		String str = Float.toString(f);
+		// test for science notation
+		char c;
+		for (int x = str.length() - 1; x >= 0; x--) {
+			c = str.charAt(x);
+			if (c == 'E' || c == 'e') return ff.format(f);
+		}
+		return str;
 	}
 
 	public static String toString(Number n) {
@@ -5088,6 +5094,7 @@ public final class Caster {
 		if (n instanceof BigDecimal) return (BigDecimal) n;
 		if (n instanceof BigInteger) return new BigDecimal((BigInteger) n);
 		if (n instanceof Double) return toBigDecimal(n.doubleValue());
+		if (n instanceof Float) return toBigDecimal(n.floatValue());
 		if (n instanceof Long) return BigDecimal.valueOf(n.longValue());
 
 		return toBigDecimal(n.doubleValue());
