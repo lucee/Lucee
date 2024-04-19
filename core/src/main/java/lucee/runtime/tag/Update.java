@@ -257,7 +257,10 @@ public final class Update extends TagImpl {
 				return new QueryImpl(meta.getBestRowIdentifier(tablequalifier, tableowner, tablename, 0, false), -1, "query", pageContext.getTimeZone());
 			}
 			catch (SQLException sqle) {
-				throw new DatabaseException("can't find primary keys of table [" + tablename + "] (" + ExceptionUtil.getMessage(sqle) + ")", null, null, dc);
+				DatabaseException de = new DatabaseException("can't find primary keys of table [" + tablename + "] (" + ExceptionUtil.getMessage(sqle, false) + ")", null, null,
+						dc);
+				ExceptionUtil.initCauseEL(de, sqle);
+				throw de;
 			}
 		}
 	}

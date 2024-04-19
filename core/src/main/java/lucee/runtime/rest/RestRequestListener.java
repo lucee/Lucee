@@ -30,6 +30,7 @@ import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.listener.RequestListener;
 import lucee.runtime.type.Struct;
+import lucee.runtime.type.util.ListUtil;
 
 public class RestRequestListener implements RequestListener {
 
@@ -64,8 +65,24 @@ public class RestRequestListener implements RequestListener {
 		req.setAttribute("rest-result", result);
 
 		if (result == null) {
-			RestUtil.setStatus(pc, 404, "no rest service for [" + HTMLEntities.escapeHTML(path) + "] found in mapping [" + mapping.getVirtual() + "]");
-			ThreadLocalPageContext.getLog(pc, "rest").error("REST", "no rest service for [" + path + "] found in mapping [" + mapping.getVirtual() + "]");
+			List<String> sources = mapping.listSources(pc);
+
+			String msg = "no rest service for [" + path + "] found";
+			String addDetail;
+			if (mapping.isDefault()) addDetail = " in the matching default mapping at [" + mapping.getPhysical().getAbsolutePath() + "], available targets are ["
+					+ ListUtil.listToListEL(sources, ", ") + "]";
+			else addDetail = " in the matching mapping [" + mapping.getVirtual() + "] at [" + mapping.getPhysical().getAbsolutePath() + "], available targets are ["
+					+ ListUtil.listToListEL(sources, ", ") + "]";
+
+			if (pc.getConfig().debug()) {
+				RestUtil.setStatus(pc, 404, HTMLEntities.escapeHTML(msg + addDetail));
+
+			}
+			else {
+				RestUtil.setStatus(pc, 404, HTMLEntities.escapeHTML(msg));
+
+			}
+			ThreadLocalPageContext.getLog(pc, "rest").info("REST", msg + addDetail);
 			return null;
 		}
 

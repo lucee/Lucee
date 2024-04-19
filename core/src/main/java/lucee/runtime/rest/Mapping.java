@@ -216,6 +216,15 @@ public class Mapping {
 		return defaultValue;
 	}
 
+	public List<String> listSources(PageContext pc) throws PageException {
+		List<String> list = new ArrayList<>();
+		for (Source src: init(pc, false)) {
+			list.add(src.getRawPath());
+		}
+
+		return list;
+	}
+
 	public void setDefault(boolean _default) {
 		this._default = _default;
 	}

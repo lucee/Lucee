@@ -103,7 +103,9 @@ public abstract class TagCIObject extends TagBase {
 			IOUtil.copy(new ByteArrayInputStream(barr), classFile, true);
 		}
 		catch (IOException e) {
-			new TransformerException(bc, ExceptionUtil.getMessage(e), getStart());
+			TransformerException te = new TransformerException(bc, ExceptionUtil.getMessage(e, false), getStart());
+			ExceptionUtil.initCauseEL(te, e);
+			throw te;
 		}
 	}
 

@@ -67,6 +67,7 @@ import lucee.runtime.op.Constants;
 import lucee.runtime.op.Decision;
 import lucee.runtime.rest.RestUtil;
 import lucee.runtime.rest.Result;
+import lucee.runtime.rest.Source;
 import lucee.runtime.rest.path.Path;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
@@ -404,17 +405,44 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 			}
 		}
 
+		Source src = result.getSource();
+		lucee.runtime.rest.Mapping mapping = src.getMapping();
+
+		String addDetail = " the matching component [" + src.getPageSource().getDisplayPath() + "] with the rest path [" + src.getRawPath() + "]";
+		String msg;
+
 		if (status == 404) {
-			RestUtil.setStatus(pc, 404, "no rest service for [" + HTMLEntities.escapeHTML(path) + "] found");
-			ThreadLocalPageContext.getLog(pc, "rest").error("REST", "404; no rest service for [" + path + "] found");
+			String prefix = "no rest service for [" + path + "] found";
+			if (pc.getConfig().debug()) {
+				msg = prefix + " in" + addDetail;
+			}
+			else {
+				msg = prefix;
+			}
+			RestUtil.setStatus(pc, 404, HTMLEntities.escapeHTML(msg));
+			ThreadLocalPageContext.getLog(pc, "rest").info("REST", prefix + " in" + addDetail);
 		}
 		else if (status == 405) {
-			RestUtil.setStatus(pc, 405, "Unsupported Media Type");
-			ThreadLocalPageContext.getLog(pc, "rest").error("REST", "405; Unsupported Media Type");
+			String prefix = "Unsupported Media Type";
+			if (pc.getConfig().debug()) {
+				msg = prefix + " for" + addDetail;
+			}
+			else {
+				msg = prefix;
+			}
+			RestUtil.setStatus(pc, 405, HTMLEntities.escapeHTML(msg));
+			ThreadLocalPageContext.getLog(pc, "rest").info("REST", prefix + " for" + addDetail);
 		}
 		else if (status == 406) {
-			RestUtil.setStatus(pc, 406, "Not Acceptable");
-			ThreadLocalPageContext.getLog(pc, "rest").error("REST", "406; Not Acceptable");
+			String prefix = "Not Acceptable";
+			if (pc.getConfig().debug()) {
+				msg = prefix + " for" + addDetail;
+			}
+			else {
+				msg = prefix;
+			}
+			RestUtil.setStatus(pc, 406, HTMLEntities.escapeHTML(msg));
+			ThreadLocalPageContext.getLog(pc, "rest").info("REST", prefix + " for" + addDetail);
 		}
 
 	}
@@ -519,9 +547,14 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 			rtn = component.callWithNamedValues(pc, methodName, args);
 		}
 		catch (PageException e) {
-			RestUtil.setStatus(pc, 500, ExceptionUtil.getMessage(e));
-			ThreadLocalPageContext.getLog(pc, "rest").error("REST", e);
-			throw e;
+			if (pc.getConfig().debug()) {
+				throw e;
+			}
+			else {
+				ThreadLocalPageContext.getLog(pc, "rest").error("REST", e);
+				RestUtil.setStatus(pc, 500, ExceptionUtil.getMessage(e, true));
+				return null;
+			}
 		}
 		finally {
 			if (suppressContent) pc.unsetSilent();

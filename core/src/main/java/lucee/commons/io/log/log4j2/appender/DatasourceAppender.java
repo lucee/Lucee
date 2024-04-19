@@ -93,7 +93,7 @@ public class DatasourceAppender extends AbstractAppender {
 			String exception = "";
 			Throwable t = event.getThrown();
 			if (t != null) {
-				String em = ExceptionUtil.getMessage(t);
+				String em = ExceptionUtil.getMessage(t, true);
 				if (StringUtil.isEmpty(msg)) msg = em;
 				else msg += ";" + em;
 

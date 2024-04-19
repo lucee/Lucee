@@ -2477,6 +2477,7 @@ public final class PageContextImpl extends PageContext {
 				}
 			}
 			catch (Exception e) {
+				LogUtil.log("rest", e);
 			}
 
 			// Service mapping
@@ -2585,15 +2586,17 @@ public final class PageContextImpl extends PageContext {
 			lucee.runtime.rest.Mapping[] restMappings = config.getRestMappings();
 			lucee.runtime.rest.Mapping m, mapping = null, defaultMapping = null;
 			// String callerPath=null;
-			if (restMappings != null) for (int i = 0; i < restMappings.length; i++) {
-				m = restMappings[i];
-				if (m.isDefault()) defaultMapping = m;
-				if (pathInfo.startsWith(m.getVirtualWithSlash(), 0) && m.getPhysical() != null) {
-					mapping = m;
-					// result =
-					// m.getResult(this,callerPath=pathInfo.substring(m.getVirtual().length()),format,matrix,null);
-					rl = new RestRequestListener(m, pathInfo.substring(m.getVirtual().length()), matrix, format, hasFormatExtension, accept, contentType, null);
-					break;
+			if (restMappings != null) {
+				for (int i = 0; i < restMappings.length; i++) {
+					m = restMappings[i];
+					if (m.isDefault()) defaultMapping = m;
+					if (pathInfo.startsWith(m.getVirtualWithSlash(), 0) && m.getPhysical() != null) {
+						mapping = m;
+						// result =
+						// m.getResult(this,callerPath=pathInfo.substring(m.getVirtual().length()),format,matrix,null);
+						rl = new RestRequestListener(m, pathInfo.substring(m.getVirtual().length()), matrix, format, hasFormatExtension, accept, contentType, null);
+						break;
+					}
 				}
 			}
 

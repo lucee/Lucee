@@ -36,9 +36,12 @@ import lucee.runtime.PageContextImpl;
 import lucee.runtime.PageSource;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigWeb;
+import lucee.runtime.exp.ApplicationException;
+import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.NativeException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageExceptionImpl;
+import lucee.runtime.exp.TemplateException;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.util.CollectionUtil;
 import lucee.runtime.type.util.KeyConstants;
@@ -83,11 +86,16 @@ public final class ExceptionUtil {
 
 	}
 
-	public static String getMessage(Throwable t) {
+	public static String getMessage(Throwable t, boolean includeCause) {
+		return _getMessage(new StringBuilder(), t, includeCause).toString();
+
+	}
+
+	private static StringBuilder _getMessage(StringBuilder sb, Throwable t, boolean includeCause) {
+		if (sb.length() > 0) sb.append(";");
 		String msg = t.getMessage();
 		if (StringUtil.isEmpty(msg, true)) msg = t.getClass().getName();
-
-		StringBuilder sb = new StringBuilder(msg);
+		sb.append(msg);
 
 		if (t instanceof PageException) {
 			PageException pe = (PageException) t;
@@ -97,7 +105,14 @@ public final class ExceptionUtil {
 				sb.append(detail);
 			}
 		}
-		return sb.toString();
+		if (includeCause) {
+			Throwable cause = t.getCause();
+			if (includeCause && cause != null && cause != t) {
+				_getMessage(sb, cause, includeCause);
+			}
+
+		}
+		return sb;
 	}
 
 	public static PageException addHint(PageExceptionImpl pe, String hint) {
@@ -288,6 +303,22 @@ public final class ExceptionUtil {
 		catch (IllegalStateException ise) { // avoid: Can't overwrite cause with ...
 			LogUtil.log((Config) null, "exception", cause);
 		}
+	}
+
+	public static PageException cause(String msg, PageException cause) {
+		PageException pe;
+		if (cause instanceof ExpressionException) {
+			pe = new ExpressionException(msg);
+
+		}
+		else if (cause instanceof TemplateException) {
+			pe = new TemplateException(msg);
+		}
+		else {
+			pe = new ApplicationException(msg);
+		}
+		initCauseEL(pe, cause);
+		return pe;
 	}
 
 }
