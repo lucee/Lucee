@@ -693,6 +693,9 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 						if (args != null) rtn = udf.call(pc, calledName, args, true);
 						else rtn = udf.callWithNamedValues(pc, calledName, namedArgs, true);
 					}
+					catch (PageException pe) {
+						throw ExceptionUtil.cause("failed to execute function [" + udf.getFunctionName() + "] from component [" + getAbsName() + " : " + getAbsName() + "]", pe);
+					}
 					finally {
 						if (parent != null) pc.setVariablesScope(parent);
 					}
@@ -705,6 +708,9 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 					parent = beforeCall(pc);
 					if (args != null) rtn = udf.call(pc, calledName, args, true);
 					else rtn = udf.callWithNamedValues(pc, calledName, namedArgs, true);
+				}
+				catch (PageException pe) {
+					throw ExceptionUtil.cause("failed to execute function [" + udf.getFunctionName() + "] from component [" + getAbsName() + " : " + getAbsName() + "]", pe);
 				}
 				finally {
 					if (parent != null) pc.setVariablesScope(parent);
