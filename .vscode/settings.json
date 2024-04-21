@@ -8,5 +8,6 @@
     "cflint.exclude": [
         "loader/**",
         "temp/**"
-    ]
+    ],
+    "cfml.engine.name": "lucee"
 }
