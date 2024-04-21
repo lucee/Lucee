@@ -75,6 +75,12 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="http" {
 		assertEquals(data,res.httpRequestData.content);
 	}
 
+	public void function testQuery(){
+		http url="#variables.updateProvider#/rest/update/provider/echoGet" result="local.res" method="query"{
+			httpparam name="susi" value="Sorglos";
+		}
+	}
+
 	public void function testExplicit() skip=true {
 		var data=chr(228)&chr(246)&chr(252); // äöü
 		data="{aaa:'#data#'}";
