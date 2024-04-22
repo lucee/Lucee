@@ -27,6 +27,7 @@ import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.GeneratorAdapter;
 import org.objectweb.asm.commons.Method;
 
+import lucee.aprint;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.lang.ClassException;
 import lucee.commons.lang.StringUtil;
@@ -522,6 +523,8 @@ public class VariableImpl extends ExpressionBase implements Variable {
 		}
 
 		if (bif.getArgType() == FunctionLibFunction.ARG_FIX && !bifCD.isBundle() && core) {
+
+			// named arguments
 			if (isNamed(bc, bif.getFlf().getName(), args)) {
 				NamedArgument[] nargs = toNamedArguments(args);
 
@@ -531,11 +534,13 @@ public class VariableImpl extends ExpressionBase implements Variable {
 					names[i] = getName(bc, nargs[i].getName());
 				}
 				ArrayList<FunctionLibFunctionArg> list = bif.getFlf().getArg();
+				lucee.transformer.dynamic.meta.Method method = getMethod(clazzz, list, rtnType, bc, line);
+				if (method == null) throw new TransformerException(bc, "not matching method founf for function [" + bif.getName() + "]", line);
+
 				Iterator<FunctionLibFunctionArg> it = list.iterator();
 
-				argTypes = new Type[list.size() + 1];
-				argTypes[0] = Types.PAGE_CONTEXT;
-
+				argTypes = method.getArgumentTypes();
+				rtnType = method.getReturnType();
 				FunctionLibFunctionArg flfa;
 				int index = 0;
 				VT vt;
@@ -543,7 +548,12 @@ public class VariableImpl extends ExpressionBase implements Variable {
 					flfa = it.next();
 					vt = getMatchingValueAndType(bc, bc.getFactory(), flfa, nargs, names, line);
 					if (vt.index != -1) names[vt.index] = null;
-					argTypes[++index] = Types.toType(bc, vt.type);
+					index++;
+					// if (!Types.toType(bc, vt.type).equals(argTypes[index]))
+					// throw new TransformerException(bc, "argument type missmatch[" + vt.type + "->" + Types.toType(bc,
+					// vt.type) + "!=" + argTypes[index] + "]", line);
+					if (!Types.toType(bc, vt.type).equals(argTypes[index]))
+						aprint.e("argument type missmatch[" + vt.type + "->" + Types.toType(bc, vt.type) + "!=" + argTypes[index] + "]");
 					if (vt.value == null) ASMConstants.NULL(bc.getAdapter());
 					else vt.value.writeOut(bc, Types.isPrimitiveType(argTypes[index]) ? MODE_VALUE : MODE_REF);
 				}
@@ -674,38 +684,6 @@ public class VariableImpl extends ExpressionBase implements Variable {
 			}
 		}
 		return rtnType;
-	}
-
-	/**
-	 * checks if a method exists
-	 * 
-	 * @param clazz
-	 * @param methodName
-	 * @param args
-	 * @param returnType
-	 * @return returns null when checking fi
-	 */
-
-	private static Boolean methodExists(Class clazz, String methodName, Type[] args, Type returnType) {
-		try {
-			Class<?>[] _args = new Class[args.length];
-			for (int i = 0; i < _args.length; i++) {
-				_args[i] = Types.toClass(args[i]);
-			}
-
-			Class<?> rtn = Types.toClass(returnType);
-			try {
-				java.lang.reflect.Method m = clazz.getMethod(methodName, _args);
-				return m.getReturnType() == rtn;
-			}
-			catch (Exception e) {
-				return false;
-			}
-		}
-		catch (Exception e) {
-			LogUtil.log(VariableImpl.class.getName(), e);
-			return null;
-		}
 	}
 
 	private static lucee.transformer.dynamic.meta.Method getMethod(Clazz clazz, ArrayList<FunctionLibFunctionArg> _args, Type returnType, BytecodeContext bc, Position pos)
