@@ -1,12 +1,12 @@
 component extends="org.lucee.cfml.test.LuceeTestCase" {
 
     function beforeAll() {
-        variables.mssql= getCredentials();
+        variables.mssql = getCredentials();
     }
 
     function run( testResults , testBox ) {
         describe( "Test suite for LDEV-4827", function() {
-            it( title='Checking Query with real result on mssql',body = function( currentSpec ) {
+            it( title='Checking Query with real result on mssql', skip=checkMySqlEnvVarsAvailable(), body=function( currentSpec ) {
                 adm = new Administrator('server', request.SERVERADMINPASSWORD?:server.SERVERADMINPASSWORD);
                 adm.updateDatasource(
                     name: 'datasource4827',
@@ -34,6 +34,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
             });
 
         });
+    }
+
+    private boolean function checkMySqlEnvVarsAvailable() {
+        return (StructCount(server.getDatasource("mssql")) eq 0);
     }
 
     private struct function getCredentials() {
