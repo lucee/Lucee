@@ -28,6 +28,7 @@ import org.objectweb.asm.commons.GeneratorAdapter;
 import org.objectweb.asm.commons.Method;
 
 import lucee.aprint;
+import lucee.print;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.lang.ClassException;
 import lucee.commons.lang.StringUtil;
@@ -596,7 +597,14 @@ public class VariableImpl extends ExpressionBase implements Variable {
 					VT def;
 					for (int i = 1; i < argTypes.length; i++) {
 						// we do have an argument for it
-						if (args.length < i - 2) args[i - 1].writeOutValue(bc, Types.isPrimitiveType(argTypes[i]) ? MODE_VALUE : MODE_REF);
+						if (args.length >= i) {
+							print.e("-------------------------");
+							print.e("- " + i);
+							print.e("- " + args.length);
+							args[i - 1]
+
+									.writeOutValue(bc, Types.isPrimitiveType(argTypes[i]) ? MODE_VALUE : MODE_REF);
+						}
 						else {
 							def = getDefaultValue(bc.getFactory(), fargs.get(i - 1));
 							if (def.value != null) def.value.writeOut(bc, Types.isPrimitiveType(argTypes[i]) ? MODE_VALUE : MODE_REF);
