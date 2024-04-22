@@ -66,7 +66,7 @@ public class InternalRequest implements Function {
 
 	private static final Key CONTENT_TYPE = KeyImpl.getInstance("content-type");
 	private static final Key CONTENT_LENGTH = KeyImpl.getInstance("content-length");
-	private static final List<String> methods = Arrays.asList(new String[] { "GET", "POST", "HEAD", "PUT", "DELETE", "OPTIONS", "TRACE", "PATCH" });
+	private static final List<String> methods = Arrays.asList(new String[] { "GET", "POST", "HEAD", "PUT", "DELETE", "OPTIONS", "TRACE", "PATCH", "QUERY" });
 
 	public static Struct call(final PageContext pc, String template, String method, Object oUrls, Object oForms, Struct cookies, Struct headers, Object body, String strCharset,
 			boolean addToken, boolean throwonerror) throws PageException {
