@@ -17,6 +17,7 @@
  */
 package lucee.transformer.bytecode.expression.var;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -510,24 +511,13 @@ public class VariableImpl extends ExpressionBase implements Variable {
 			}
 		}
 		// load method
-		lucee.transformer.dynamic.meta.Method m = null;
+		List<lucee.transformer.dynamic.meta.Method> methods = null;
 		if (core) {
 			try {
-				List<lucee.transformer.dynamic.meta.Method> _methods = clazzz.getMethods("call", true, args.length + 1);
-				if (_methods != null && _methods.size() == 1) {
-					m = _methods.iterator().next();
-				}
+				methods = clazzz.getMethods("call", true, args.length + 1);
+				if (methods != null && methods.size() == 0) methods = null;
 			}
 			catch (Exception e) {
-			}
-		}
-
-		if (m != null) {
-			// is return type defined a number but not a double?
-			if (Types.DOUBLE_VALUE.equals(rtnType)) {
-				if (Types.NUMBER.equals(m.getReturnType())) {
-					rtnType = Types.NUMBER;
-				}
 			}
 		}
 
@@ -553,7 +543,7 @@ public class VariableImpl extends ExpressionBase implements Variable {
 					flfa = it.next();
 					vt = getMatchingValueAndType(bc, bc.getFactory(), flfa, nargs, names, line);
 					if (vt.index != -1) names[vt.index] = null;
-					argTypes[++index] = toNumberIfNeeded(Types.toType(bc, vt.type), m, index);
+					argTypes[++index] = Types.toType(bc, vt.type);
 					if (vt.value == null) ASMConstants.NULL(bc.getAdapter());
 					else vt.value.writeOut(bc, Types.isPrimitiveType(argTypes[index]) ? MODE_VALUE : MODE_REF);
 				}
@@ -567,39 +557,42 @@ public class VariableImpl extends ExpressionBase implements Variable {
 					}
 				}
 			}
+			// non names arguments
 			else {
-				argTypes = new Type[args.length + 1];
-				argTypes[0] = Types.PAGE_CONTEXT;
 
-				for (int y = 0; y < args.length; y++) {
-					argTypes[y + 1] = toNumberIfNeeded(Types.toType(bc, args[y].getStringType()), m, y + 1);
-					args[y].writeOutValue(bc, Types.isPrimitiveType(argTypes[y + 1]) ? MODE_VALUE : MODE_REF);
+				lucee.transformer.dynamic.meta.Method m = getMethod(clazzz, args, rtnType, bc, line);
+				// match with current arguments
+				if (m != null) {
+					argTypes = m.getArgumentTypes();
+					rtnType = m.getReturnType();
+					// first argument is PC that is already written
+					for (int i = 1; i < argTypes.length; i++) {
+						args[i - 1].writeOutValue(bc, Types.isPrimitiveType(argTypes[i]) ? MODE_VALUE : MODE_REF);
+					}
 				}
+
 				// if no method exists for the exact match of arguments, call the method with all arguments (when
 				// exists)
-				if (methodExists(clazzz.getDeclaringClass(), "call", argTypes, rtnType) == Boolean.FALSE) {
-					ArrayList<FunctionLibFunctionArg> _args = bif.getFlf().getArg();
-
-					Type[] tmp = new Type[_args.size() + 1];
-
-					// fill the existing
-					for (int i = 0; i < argTypes.length; i++) {
-						tmp[i] = argTypes[i];
+				else {
+					ArrayList<FunctionLibFunctionArg> fargs = bif.getFlf().getArg();
+					m = getMethod(clazzz, fargs, rtnType, bc, line);
+					if (m == null) {
+						throw new TransformerException(bc, "no matching implementation for the BIF [" + bif.toString() + "] found", line);
 					}
 
-					// get the rest with default values
-					FunctionLibFunctionArg flfa;
+					argTypes = m.getArgumentTypes();
+					rtnType = m.getReturnType();
+					// first argument is PC that is already written
 					VT def;
-					for (int i = argTypes.length; i < tmp.length; i++) {
-						flfa = _args.get(i - 1);
-						tmp[i] = toNumberIfNeeded(Types.toType(bc, flfa.getTypeAsString()), m, i);
-						def = getDefaultValue(bc.getFactory(), flfa);
-
-						if (def.value != null) def.value.writeOut(bc, Types.isPrimitiveType(tmp[i]) ? MODE_VALUE : MODE_REF);
-						else ASMConstants.NULL(bc.getAdapter());
-
+					for (int i = 1; i < argTypes.length; i++) {
+						// we do have an argument for it
+						if (args.length < i - 2) args[i - 1].writeOutValue(bc, Types.isPrimitiveType(argTypes[i]) ? MODE_VALUE : MODE_REF);
+						else {
+							def = getDefaultValue(bc.getFactory(), fargs.get(i - 1));
+							if (def.value != null) def.value.writeOut(bc, Types.isPrimitiveType(argTypes[i]) ? MODE_VALUE : MODE_REF);
+							else ASMConstants.NULL(bc.getAdapter());
+						}
 					}
-					argTypes = tmp;
 				}
 			}
 		}
@@ -683,16 +676,6 @@ public class VariableImpl extends ExpressionBase implements Variable {
 		return rtnType;
 	}
 
-	private static Type toNumberIfNeeded(Type type, lucee.transformer.dynamic.meta.Method m, int index) {
-		if (m != null && Types.DOUBLE_VALUE.equals(type)) {
-			Type[] types = m.getArgumentTypes();
-			if (types.length > index && Types.NUMBER.equals(types[index])) {
-				return Types.NUMBER;
-			}
-		}
-		return type;
-	}
-
 	/**
 	 * checks if a method exists
 	 * 
@@ -723,6 +706,65 @@ public class VariableImpl extends ExpressionBase implements Variable {
 			LogUtil.log(VariableImpl.class.getName(), e);
 			return null;
 		}
+	}
+
+	private static lucee.transformer.dynamic.meta.Method getMethod(Clazz clazz, ArrayList<FunctionLibFunctionArg> _args, Type returnType, BytecodeContext bc, Position pos)
+			throws TransformerException {
+		Type[] args = new Type[_args.size() + 1];
+		args[0] = Types.PAGE_CONTEXT;
+		int i = 0;
+		for (FunctionLibFunctionArg arg: _args) {
+			args[++i] = Types.toType(bc, arg.getTypeAsString());
+		}
+		return getMethod(clazz, args, returnType, bc, pos);
+	}
+
+	private static lucee.transformer.dynamic.meta.Method getMethod(Clazz clazz, Argument[] _args, Type returnType, BytecodeContext bc, Position pos) throws TransformerException {
+
+		Type[] args = new Type[_args.length + 1];
+		args[0] = Types.PAGE_CONTEXT;
+		for (int i = 0; i < _args.length; i++) {
+			args[i + 1] = Types.toType(bc, _args[i].getStringType());
+		}
+
+		return getMethod(clazz, args, returnType, bc, pos);
+	}
+
+	private static lucee.transformer.dynamic.meta.Method getMethod(Clazz clazz, Type[] args, Type returnType, BytecodeContext bc, Position pos) throws TransformerException {
+
+		List<lucee.transformer.dynamic.meta.Method> all;
+		try {
+			all = clazz.getMethods("call", true, args.length);
+		}
+		catch (IOException e) {
+			throw new TransformerException(bc, e, pos);
+		}
+
+		// we prefer methods using Number, so we search look for them (no mix of number and double)
+		Type preferedRtn = Types.DOUBLE_VALUE.equals(returnType) ? Types.NUMBER : returnType;
+		Type[] trgTypes;
+		outer: for (lucee.transformer.dynamic.meta.Method m: all) {
+			Type pref;
+			trgTypes = m.getArgumentTypes();
+			for (int i = 0; i < trgTypes.length; i++) {
+				pref = Types.DOUBLE_VALUE.equals(args[i]) ? Types.NUMBER : args[i];
+				if (!trgTypes[i].equals(pref)) continue outer;
+			}
+			// if we arrive here we are happy with the method arguments
+			if (m.getReturnType().equals(preferedRtn)) return m;
+		}
+
+		// for backward compatibility we also allow old style methods still using double
+		outer: for (lucee.transformer.dynamic.meta.Method m: all) {
+			trgTypes = m.getArgumentTypes();
+			for (int i = 0; i < trgTypes.length; i++) {
+				if (!trgTypes[i].equals(args[i])) continue outer;
+			}
+			// if we arrive here we are happy with the method arguments
+			if (m.getReturnType().equals(returnType)) return m;
+		}
+
+		return null;
 	}
 
 	static Type _writeOutFirstUDF(BytecodeContext bc, UDF udf, int scope, boolean doOnlyScope) throws TransformerException {

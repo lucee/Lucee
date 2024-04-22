@@ -24,10 +24,18 @@ package lucee.runtime.functions.math;
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.ext.function.Function;
+import lucee.runtime.op.Caster;
 
 public final class ACos implements Function {
+	private static final long serialVersionUID = -7453640128079472952L;
+
 	public static double call(PageContext pc, double number) throws ExpressionException {
 		if (number >= -1d && number <= 1d) return StrictMath.acos(number);
+		throw new ExpressionException("invalid range of argument for function aCos, argument range must be between -1 and 1, now is [" + number + "]");
+	}
+
+	public static Number call(PageContext pc, Number number) throws ExpressionException {
+		if (number.doubleValue() >= -1d && number.doubleValue() <= 1d) return Caster.toBigDecimal(StrictMath.acos(Caster.toDoubleValue(number)));
 		throw new ExpressionException("invalid range of argument for function aCos, argument range must be between -1 and 1, now is [" + number + "]");
 	}
 }
