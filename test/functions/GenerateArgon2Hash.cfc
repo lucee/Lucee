@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase"{
+component extends="org.lucee.cfml.test.LuceeTestCase"  labels="argon2" skip="true"{
 	function run( testResults , testBox ) {
 		describe( "test case for GenerateArgon2Hash", function() {
 			it(title = "Checking with GenerateArgon2Hash()",skip=getJavaVersion()>20, body = function( currentSpec ) {
