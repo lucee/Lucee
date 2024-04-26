@@ -297,21 +297,22 @@ public final class PageSourceImpl implements PageSource {
 	private Page loadArchive(Page page, Page defaultValue) {
 		if (!mapping.hasArchive()) return defaultValue;
 		if (page != null && page.getLoadType() == LOAD_ARCHIVE) return page;
-		if (!getArchiveClass().isFile()) {
-			return defaultValue;
+		synchronized (this) {
+			if (!getArchiveClass().isFile()) {
+				return defaultValue;
+			}
+			try {
+				Class clazz = mapping.getArchiveClass(getClassName());
+				page = newInstance(clazz);
+				page.setPageSource(this);
+				page.setLoadType(LOAD_ARCHIVE);
+				pcn.set(page);
+				return page;
+			}
+			catch (Exception e) {
+				return defaultValue;
+			}
 		}
-		try {
-			Class clazz = mapping.getArchiveClass(getClassName());
-			page = newInstance(clazz);
-			page.setPageSource(this);
-			page.setLoadType(LOAD_ARCHIVE);
-			pcn.set(page);
-			return page;
-		}
-		catch (Exception e) {
-			return defaultValue;
-		}
-
 	}
 
 	/**
