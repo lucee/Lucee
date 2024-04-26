@@ -275,21 +275,20 @@ public final class PageSourceImpl implements PageSource {
 	private Page loadArchive(Page page) throws PageException {
 		if (!mapping.hasArchive()) return null;
 		if (page != null && page.getLoadType() == LOAD_ARCHIVE) return page;
+
 		if (!getArchiveClass().isFile()) {
 			return null;
 		}
-		synchronized (this) {
-			try {
-				Class clazz = mapping.getArchiveClass(getClassName());
-				page = newInstance(clazz);
-				page.setPageSource(this);
-				page.setLoadType(LOAD_ARCHIVE);
-				pcn.set(page);
-				return page;
-			}
-			catch (Exception e) {
-				throw Caster.toPageException(e);
-			}
+		try {
+			Class clazz = mapping.getArchiveClass(getClassName());
+			page = newInstance(clazz);
+			page.setPageSource(this);
+			page.setLoadType(LOAD_ARCHIVE);
+			pcn.set(page);
+			return page;
+		}
+		catch (Exception e) {
+			throw Caster.toPageException(e);
 		}
 	}
 
@@ -299,19 +298,18 @@ public final class PageSourceImpl implements PageSource {
 		if (!getArchiveClass().isFile()) {
 			return defaultValue;
 		}
-		synchronized (this) {
-			try {
-				Class clazz = mapping.getArchiveClass(getClassName());
-				page = newInstance(clazz);
-				page.setPageSource(this);
-				page.setLoadType(LOAD_ARCHIVE);
-				pcn.set(page);
-				return page;
-			}
-			catch (Exception e) {
-				return defaultValue;
-			}
+		try {
+			Class clazz = mapping.getArchiveClass(getClassName());
+			page = newInstance(clazz);
+			page.setPageSource(this);
+			page.setLoadType(LOAD_ARCHIVE);
+			pcn.set(page);
+			return page;
 		}
+		catch (Exception e) {
+			return defaultValue;
+		}
+
 	}
 
 	/**
@@ -610,19 +608,23 @@ public final class PageSourceImpl implements PageSource {
 	 */
 	@Override
 	public Resource getPhyscalFile() {
+		if (!mapping.hasPhysical()) {
+			return null;
+		}
 		if (physcalSource == null) {
-			if (!mapping.hasPhysical()) {
-				return null;
-			}
-			Resource tmp = mapping.getPhysical().getRealResource(relPath);
-			physcalSource = ResourceUtil.toExactResource(tmp);
-			// fix if the case not match
-			if (!tmp.getAbsolutePath().equals(physcalSource.getAbsolutePath())) {
-				String relpath = extractRealpath(relPath, physcalSource.getAbsolutePath());
-				// just a security!
-				if (relPath.equalsIgnoreCase(relpath)) {
-					this.relPath = relpath;
-					createClassAndPackage();
+			synchronized (this) {
+				if (physcalSource == null) {
+					Resource tmp = mapping.getPhysical().getRealResource(relPath);
+					physcalSource = ResourceUtil.toExactResource(tmp);
+					// fix if the case not match
+					if (!tmp.getAbsolutePath().equals(physcalSource.getAbsolutePath())) {
+						String relpath = extractRealpath(relPath, physcalSource.getAbsolutePath());
+						// just a security!
+						if (relPath.equalsIgnoreCase(relpath)) {
+							this.relPath = relpath;
+							createClassAndPackage();
+						}
+					}
 				}
 			}
 		}
@@ -630,10 +632,14 @@ public final class PageSourceImpl implements PageSource {
 	}
 
 	public Resource getArchiveFile() {
+		if (!mapping.hasArchive()) return null;
 		if (archiveSource == null) {
-			if (!mapping.hasArchive()) return null;
-			String path = "zip://" + mapping.getArchive().getAbsolutePath() + "!" + relPath;
-			archiveSource = ThreadLocalPageContext.getConfig().getResource(path);
+			synchronized (this) {
+				if (archiveSource == null) {
+					String path = "zip://" + mapping.getArchive().getAbsolutePath() + "!" + relPath;
+					archiveSource = ThreadLocalPageContext.getConfig().getResource(path);
+				}
+			}
 		}
 		return archiveSource;
 	}
