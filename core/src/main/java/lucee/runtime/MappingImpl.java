@@ -151,20 +151,31 @@ public final class MappingImpl implements Mapping {
 	}
 
 	private void initPhysical() {
-		ServletContext cs = (config instanceof ConfigWeb) ? ((ConfigWeb) config).getServletContext() : null;
-		physical = ConfigWebUtil.getResource(cs, strPhysical, config.getConfigDir(), FileUtil.TYPE_DIR, config, checkPhysicalFromWebroot, false);
-		if (archive == null) this.physicalFirst = true;
-		else if (physical == null) this.physicalFirst = false;
-
+		if (physical == null && strPhysical != null) {
+			synchronized (this) {
+				if (physical == null && strPhysical != null) {
+					ServletContext cs = (config instanceof ConfigWeb) ? ((ConfigWeb) config).getServletContext() : null;
+					physical = ConfigWebUtil.getResource(cs, strPhysical, config.getConfigDir(), FileUtil.TYPE_DIR, config, checkPhysicalFromWebroot, false);
+					if (archive == null) this.physicalFirst = true;
+					else if (physical == null) this.physicalFirst = false;
+				}
+			}
+		}
 	}
 
 	private void initArchive() {
-		ServletContext cs = (config instanceof ConfigWeb) ? ((ConfigWeb) config).getServletContext() : null;
-		archive = ConfigWebUtil.getResource(cs, strArchive, config.getConfigDir(), FileUtil.TYPE_FILE, config, checkArchiveFromWebroot, true);
-		loadArchive();
+		if (archive == null && strArchive != null) {
+			synchronized (this) {
+				if (archive == null && strArchive != null) {
+					ServletContext cs = (config instanceof ConfigWeb) ? ((ConfigWeb) config).getServletContext() : null;
+					archive = ConfigWebUtil.getResource(cs, strArchive, config.getConfigDir(), FileUtil.TYPE_FILE, config, checkArchiveFromWebroot, true);
+					loadArchive();
 
-		if (archive == null) this.physicalFirst = true;
-		else if (physical == null) this.physicalFirst = false;
+					if (archive == null) this.physicalFirst = true;
+					else if (physical == null) this.physicalFirst = false;
+				}
+			}
+		}
 	}
 
 	private void loadArchive() {
