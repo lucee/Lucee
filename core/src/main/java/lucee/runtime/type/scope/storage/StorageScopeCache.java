@@ -20,8 +20,8 @@
 package lucee.runtime.type.scope.storage;
 
 import java.io.IOException;
-import java.util.concurrent.ConcurrentHashMap;
 
+import lucee.commons.io.SystemUtil;
 import lucee.commons.io.cache.Cache;
 import lucee.commons.io.log.Log;
 import lucee.runtime.PageContext;
@@ -42,8 +42,6 @@ import lucee.runtime.type.util.StructUtil;
  * client scope that store it's data in a datasource
  */
 public abstract class StorageScopeCache extends StorageScopeImpl {
-
-	private static final ConcurrentHashMap<String, Object> tokens = new ConcurrentHashMap<String, Object>();
 
 	private static final long serialVersionUID = 6234854552927320080L;
 
@@ -141,7 +139,7 @@ public abstract class StorageScopeCache extends StorageScopeImpl {
 		try {
 			Cache cache = getCache(ThreadLocalPageContext.get(pc), cacheName);
 			String key = getKey(cfid, appName, getTypeAsString());
-			synchronized (getToken(key)) {
+			synchronized (SystemUtil.createToken("iks", key)) {
 				Object existingVal = cache.getValue(key, null);
 				// cached data changed in meantime
 
@@ -165,7 +163,7 @@ public abstract class StorageScopeCache extends StorageScopeImpl {
 		try {
 			Cache cache = getCache(ThreadLocalPageContext.get(pc), cacheName);
 			String key = getKey(cfid, appName, getTypeAsString());
-			synchronized (getToken(key)) {
+			synchronized (SystemUtil.createToken("iks", key)) {
 				cache.remove(key);
 			}
 		}
@@ -189,14 +187,5 @@ public abstract class StorageScopeCache extends StorageScopeImpl {
 
 	public static String getKey(String cfid, String appName, String type) {
 		return new StringBuilder("lucee-storage:").append(type).append(":").append(cfid).append(":").append(appName).toString().toUpperCase();
-	}
-
-	public static Object getToken(String key) {
-		Object newLock = new Object();
-		Object lock = tokens.putIfAbsent(key, newLock);
-		if (lock == null) {
-			lock = newLock;
-		}
-		return lock;
 	}
 }

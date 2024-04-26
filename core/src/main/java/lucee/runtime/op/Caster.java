@@ -2166,7 +2166,14 @@ public final class Caster {
 		if (f > l && (f - l) < 0.000000000001) return toString(l);
 		if (l > f && (l - f) < 0.000000000001) return toString(l);
 
-		return ff.format(f);
+		String str = Float.toString(f);
+		// test for science notation
+		char c;
+		for (int x = str.length() - 1; x >= 0; x--) {
+			c = str.charAt(x);
+			if (c == 'E' || c == 'e') return ff.format(f);
+		}
+		return str;
 	}
 
 	public static String toString(BigDecimal bd) {
