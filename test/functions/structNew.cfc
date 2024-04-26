@@ -16,6 +16,31 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 				assertEquals( sct.keyList(),"a,b,c,A,B");
 			});
 		});
+
+		describe("testcase for StructNew('max:3')", function() {
+			
+			it(title="check structnew max", body=function( currentSpec ) {
+				
+				var sct=structNew("max:3");
+				loop list="a,b,c,d,e,f" item="local.i" {
+					sct[ i ] = true;
+				}
+
+				expect( structCount( sct ) ).toBe( 3 );
+				expect( listSort ( structKeyList( sct ) ) ).toBe( "d,e,f" );
+
+				var tmp = sct[ "d" ]; // being last accessed means it will not be purged
+				sct [ "g" ] = true; // ths will remove 5 as it's the oldest / last accessed
+
+				expect( structCount( sct ) ).toBe( 3 );
+				expect( listSort (structKeyList( sct ) ) ).toBe( "d,f,g" ); // but is key order fixed?
+				expect( structKeyList( sct ) ).toBe( "f,d,g" );  // i expected perhaps "d,f,g"
+
+				tmp = sct [ "g" ];
+				expect( structKeyList( sct ) ).toBe( "f,d,g" );  // i expected perhaps "g,d,f"
+			});
+
+		});
 	}
 }
 
