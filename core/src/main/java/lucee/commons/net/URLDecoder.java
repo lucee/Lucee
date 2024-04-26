@@ -24,6 +24,7 @@ import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.net.URLCodec;
 
 import lucee.commons.io.SystemUtil;
+import lucee.runtime.net.http.ReqRspUtil;
 
 public class URLDecoder {
 
@@ -44,13 +45,8 @@ public class URLDecoder {
 	}
 
 	public static String decode(String s, String enc, boolean force) throws UnsupportedEncodingException {
+		if (!force && !ReqRspUtil.needDecoding(s)) return s;
 		try {
-			if (! force) {
-				if (s.indexOf('%') == -1) {
-					// no chance of URL encoding in this string.
-					return s;
-				}
-			}
 			URLCodec codec = new URLCodec(enc);
 			String str;
 			str = codec.decode(s);
