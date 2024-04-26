@@ -18,6 +18,15 @@
  ---><cfscript>
 
 component extends="org.lucee.cfml.test.LuceeTestCase" {
+
+    function beforeAll(){
+		variables.settings= getApplicationSettings();
+	};
+
+	function afterAll(){
+		application action="update" mappings=variables.settings.mappings;
+	};
+
     // taken from expandPath()
     public void function testMapping() localmode=true {
         mappings = getApplicationSettings().mappings;
