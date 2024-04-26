@@ -639,10 +639,14 @@ public final class PageSourceImpl implements PageSource {
 	}
 
 	public Resource getArchiveClass() {
+		if (!mapping.hasArchive()) return null;
 		if (archiveClass == null) {
-			if (!mapping.hasArchive()) return null;
-			String path = "zip://" + mapping.getArchive().getAbsolutePath() + "!" + getJavaName() + ".class";
-			archiveClass = ThreadLocalPageContext.getConfig().getResource(path);
+			synchronized (this) {
+				if (archiveClass == null) {
+					String path = "zip://" + mapping.getArchive().getAbsolutePath() + "!" + getJavaName() + ".class";
+					archiveClass = ThreadLocalPageContext.getConfig().getResource(path);
+				}
+			}
 		}
 		return archiveClass;
 	}
@@ -783,39 +787,45 @@ public final class PageSourceImpl implements PageSource {
 	}
 
 	private void createClassAndPackage() {
-		String str = relPath;
-		StringBuilder packageName = new StringBuilder();
-		StringBuilder javaName = new StringBuilder();
-		String[] arr = ListUtil.toStringArrayEL(ListUtil.listToArrayRemoveEmpty(str, '/'));
+		if (className == null) {
+			synchronized (this) {
+				if (className == null) {
+					String str = relPath;
+					StringBuilder packageName = new StringBuilder();
+					StringBuilder javaName = new StringBuilder();
+					String[] arr = ListUtil.toStringArrayEL(ListUtil.listToArrayRemoveEmpty(str, '/'));
 
-		String varName, className = null, fileName = null;
-		for (int i = 0; i < arr.length; i++) {
-			if (i == (arr.length - 1)) {
-				int index = arr[i].lastIndexOf('.');
-				if (index != -1) {
-					String ext = arr[i].substring(index + 1);
-					varName = StringUtil.toVariableName(arr[i].substring(0, index) + "_" + ext);
+					String varName, className = null, fileName = null;
+					for (int i = 0; i < arr.length; i++) {
+						if (i == (arr.length - 1)) {
+							int index = arr[i].lastIndexOf('.');
+							if (index != -1) {
+								String ext = arr[i].substring(index + 1);
+								varName = StringUtil.toVariableName(arr[i].substring(0, index) + "_" + ext);
+							}
+							else varName = StringUtil.toVariableName(arr[i]);
+							varName = varName + (Constants.CFML_CLASS_SUFFIX);
+							className = varName.toLowerCase();
+							fileName = arr[i];
+						}
+						else {
+							varName = StringUtil.toVariableName(arr[i]);
+							if (i != 0) {
+								packageName.append('.');
+							}
+							packageName.append(varName);
+						}
+						javaName.append('/');
+						javaName.append(varName);
+					}
+
+					this.packageName = packageName.toString().toLowerCase();
+					this.javaName = javaName.toString().toLowerCase();
+					this.fileName = fileName;
+					this.className = className;
 				}
-				else varName = StringUtil.toVariableName(arr[i]);
-				varName = varName + (Constants.CFML_CLASS_SUFFIX);
-				className = varName.toLowerCase();
-				fileName = arr[i];
 			}
-			else {
-				varName = StringUtil.toVariableName(arr[i]);
-				if (i != 0) {
-					packageName.append('.');
-				}
-				packageName.append(varName);
-			}
-			javaName.append('/');
-			javaName.append(varName);
 		}
-
-		this.packageName = packageName.toString().toLowerCase();
-		this.javaName = javaName.toString().toLowerCase();
-		this.fileName = fileName;
-		this.className = className;
 	}
 
 	private void createComponentName() {
