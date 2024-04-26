@@ -32,6 +32,7 @@ import java.util.WeakHashMap;
 
 import org.apache.commons.collections4.map.ReferenceMap;
 
+import lucee.commons.collection.AccessOrderLimitedSizeMap;
 import lucee.commons.collection.MapFactory;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.PageContext;
@@ -56,6 +57,8 @@ public class StructImpl extends StructSupport {
 	public static final int TYPE_LINKED_NOT_SYNC = 100;
 	public static final int TYPE_LINKED_CASESENSITIVE = 256;
 	public static final int TYPE_CASESENSITIVE = 512;
+	public static final int TYPE_MAX = 1024;
+
 	public static final int DEFAULT_INITIAL_CAPACITY = 32;
 	public static final Object NULL = new Object();
 
@@ -89,12 +92,17 @@ public class StructImpl extends StructSupport {
 	 * @param initialCapacity initial capacity - MUST be a power of two.
 	 */
 	public StructImpl(int type, int initialCapacity) {
+		this(type, initialCapacity, -1);
+	}
+
+	public StructImpl(int type, int initialCapacity, int max) {
 		if (type == TYPE_SYNC) map = MapFactory.getConcurrentMap(initialCapacity);
 		else if (type == TYPE_REGULAR) map = new HashMap<Collection.Key, Object>(initialCapacity);
 		else if (type == TYPE_WEAKED) map = Collections.synchronizedMap(new WeakHashMap<Collection.Key, Object>(initialCapacity));
 		else if (type == TYPE_SOFT) map = Collections.synchronizedMap(new ReferenceMap<Collection.Key, Object>(HARD, SOFT, initialCapacity, 0.75f));
 		else if (type == TYPE_LINKED) map = Collections.synchronizedMap(new LinkedHashMap<Collection.Key, Object>(initialCapacity));
 		else if (type == TYPE_LINKED_NOT_SYNC) map = new LinkedHashMap<Collection.Key, Object>(initialCapacity);
+		else if (type == TYPE_MAX) map = new AccessOrderLimitedSizeMap<Collection.Key, Object>(max, initialCapacity);
 		else map = MapFactory.getConcurrentMap(initialCapacity);
 		this.type = type;
 	}

@@ -45,16 +45,22 @@ public final class StructNew extends BIF {
 		return new StructImpl();
 	}
 
-	public static Struct call(PageContext pc, String type) throws ApplicationException {
+	public static Struct call(PageContext pc, String type) throws PageException {
 		return call(pc, type, null);
 	}
 
-	public static Struct call(PageContext pc, String type, UDF onMissingKey) throws ApplicationException {
+	public static Struct call(PageContext pc, String type, UDF onMissingKey) throws PageException {
 		int t = toType(type);
 		if (t == StructImpl.TYPE_LINKED_CASESENSITIVE || t == StructImpl.TYPE_CASESENSITIVE) {
 			if (onMissingKey != null) throw new ApplicationException("type [" + type + "] is not supported in combination with onMissingKey listener");
 			return MapAsStruct.toStruct(t == StructImpl.TYPE_LINKED_CASESENSITIVE ? Collections.synchronizedMap(new LinkedHashMap<>()) : new ConcurrentHashMap<>(), true);
 		}
+		if (t == StructImpl.TYPE_MAX) {
+			int max = Caster.toIntValue(type.substring(type.indexOf(':') + 1));
+			if (max < 1) throw new ApplicationException("Invalid size for [max] type: [" + max + "]. The size must be at least 1.");
+			return new StructImpl(t, StructImpl.DEFAULT_INITIAL_CAPACITY, max);
+		}
+
 		if (onMissingKey != null) {
 			return new StructListenerImpl(t, onMissingKey);
 		}
@@ -75,7 +81,8 @@ public final class StructNew extends BIF {
 		else if (type.equals("regular")) return Struct.TYPE_REGULAR;
 		else if (type.equals("ordered-casesensitive")) return StructImpl.TYPE_LINKED_CASESENSITIVE;
 		else if (type.equals("casesensitive")) return StructImpl.TYPE_CASESENSITIVE;
-		else throw new ApplicationException("valid struct types are [normal, weak, linked, soft, synchronized,ordered-casesensitive,casesensitive]");
+		else if (type.startsWith("max:")) return StructImpl.TYPE_MAX;
+		else throw new ApplicationException("valid struct types are [normal, weak, linked, soft, synchronized,ordered-casesensitive,casesensitive,max:<number>]");
 
 	}
 
