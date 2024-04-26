@@ -84,6 +84,7 @@ public final class PageSourceImpl implements PageSource {
 
 	private Resource physcalSource;
 	private Resource archiveSource;
+	private Resource archiveClass;
 	private String compName;
 	private PageAndClassName pcn = new PageAndClassName();
 	private long lastAccess;
@@ -229,7 +230,7 @@ public final class PageSourceImpl implements PageSource {
 	}
 
 	@Override
-	public Page loadPageThrowTemplateException(PageContext pc, boolean forceReload, Page defaultValue) throws TemplateException {
+	public Page loadPageThrowTemplateException(PageContext pc, boolean forceReload, Page defaultValue) throws PageException {
 		if (forceReload) pcn.reset();
 
 		Page page = pcn.page;
@@ -258,11 +259,11 @@ public final class PageSourceImpl implements PageSource {
 			catch (TemplateException e) {
 				page = null;
 			}
-			if (page == null) page = loadArchive(page);
+			if (page == null) page = loadArchive(page, null);
 			if (page != null) return page;
 		}
 		else {
-			page = loadArchive(page);
+			page = loadArchive(page, null);
 			if (page == null) {
 				try {
 					page = loadPhysical(pc, page);
@@ -275,9 +276,12 @@ public final class PageSourceImpl implements PageSource {
 		return defaultValue;
 	}
 
-	private Page loadArchive(Page page) {
+	private Page loadArchive(Page page) throws PageException {
 		if (!mapping.hasArchive()) return null;
 		if (page != null && page.getLoadType() == LOAD_ARCHIVE) return page;
+		if (!getArchiveClass().isFile()) {
+			return null;
+		}
 		synchronized (this) {
 			try {
 				Class clazz = mapping.getArchiveClass(getClassName());
@@ -288,8 +292,28 @@ public final class PageSourceImpl implements PageSource {
 				return page;
 			}
 			catch (Exception e) {
-				// MUST print.e(e); is there a better way?
-				return null;
+				throw Caster.toPageException(e);
+			}
+		}
+	}
+
+	private Page loadArchive(Page page, Page defaultValue) {
+		if (!mapping.hasArchive()) return defaultValue;
+		if (page != null && page.getLoadType() == LOAD_ARCHIVE) return page;
+		if (!getArchiveClass().isFile()) {
+			return defaultValue;
+		}
+		synchronized (this) {
+			try {
+				Class clazz = mapping.getArchiveClass(getClassName());
+				page = newInstance(clazz);
+				page.setPageSource(this);
+				page.setLoadType(LOAD_ARCHIVE);
+				pcn.set(page);
+				return page;
+			}
+			catch (Exception e) {
+				return defaultValue;
 			}
 		}
 	}
@@ -593,6 +617,15 @@ public final class PageSourceImpl implements PageSource {
 			archiveSource = ThreadLocalPageContext.getConfig().getResource(path);
 		}
 		return archiveSource;
+	}
+
+	public Resource getArchiveClass() {
+		if (archiveClass == null) {
+			if (!mapping.hasArchive()) return null;
+			String path = "zip://" + mapping.getArchive().getAbsolutePath() + "!" + getJavaName() + ".class";
+			archiveClass = ThreadLocalPageContext.getConfig().getResource(path);
+		}
+		return archiveClass;
 	}
 
 	/**
