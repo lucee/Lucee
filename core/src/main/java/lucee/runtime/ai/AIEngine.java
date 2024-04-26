@@ -1,6 +1,5 @@
 package lucee.runtime.ai;
 
-// FUTURE add to interface
 import lucee.runtime.exp.PageException;
 import lucee.runtime.type.Struct;
 

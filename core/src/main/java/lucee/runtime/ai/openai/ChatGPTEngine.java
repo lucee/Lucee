@@ -1,4 +1,4 @@
-package lucee.runtime.ai;
+package lucee.runtime.ai.openai;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -9,6 +9,7 @@ import lucee.print;
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.log.LogUtil;
+import lucee.commons.io.res.ContentType;
 import lucee.commons.io.res.ResourcesImpl;
 import lucee.commons.net.HTTPUtil;
 import lucee.commons.net.http.HTTPResponse;
@@ -16,9 +17,14 @@ import lucee.commons.net.http.Header;
 import lucee.commons.net.http.httpclient.HTTPEngine4Impl;
 import lucee.commons.net.http.httpclient.HeaderImpl;
 import lucee.loader.util.Util;
+import lucee.runtime.ai.AIEngine;
+import lucee.runtime.ai.Request;
+import lucee.runtime.ai.Response;
 import lucee.runtime.converter.JSONConverter;
+import lucee.runtime.converter.JSONDateFormat;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.interpreter.JSONExpressionInterpreter;
 import lucee.runtime.listener.SerializationSettings;
 import lucee.runtime.net.proxy.ProxyData;
 import lucee.runtime.op.Caster;
@@ -96,21 +102,21 @@ public class ChatGPTEngine implements AIEngine {
 	@Override
 	public Response invoke(Request req) throws PageException {
 		Struct sct = new StructImpl();
-		sct.set(KeyConstants._model, model);
-		Array arr = new ArrayImpl();
-		Struct msg;
-		for (String q: req.getQuestions()) {
-			msg = new StructImpl();
-			msg.set(KeyConstants._role, "user");
-			msg.set(KeyConstants._content, q);
-			arr.append(msg);
-		}
-		sct.set(KeyConstants._messages, arr);
-
 		try {
-			JSONConverter json = new JSONConverter(true, CharsetUtil.UTF8);// TODO better charset
+			sct.set(KeyConstants._model, model);
+			Array arr = new ArrayImpl();
+			Struct msg;
+			for (String q: req.getQuestions()) {
+				msg = new StructImpl();
+				msg.set(KeyConstants._role, "user");
+				msg.set(KeyConstants._content, q);
+				arr.append(msg);
+			}
+			sct.set(KeyConstants._messages, arr);
+
+			JSONConverter json = new JSONConverter(true, CharsetUtil.UTF8, JSONDateFormat.PATTERN_CF, false);
 			String str = json.serialize(null, sct, SerializationSettings.SERIALIZE_AS_COLUMN, null);
-			print.e(str);
+			// print.e(str);
 
 			HTTPResponse rsp = HTTPEngine4Impl.post(url, null, null, timeout, false, mimetype, charset, DEFAULT_USERAGENT, proxy, new Header[] {
 
@@ -121,15 +127,28 @@ public class ChatGPTEngine implements AIEngine {
 					, new HeaderImpl("Content-Type", "application/json")
 
 			}, formfields, str);
+			ContentType ct = rsp.getContentType();
+			if ("application/json".equals(ct.getMimeType())) {
+				String cs = ct.getCharset();
+				if (Util.isEmpty(cs, true)) cs = charset;
 
-			print.e(rsp.getContentAsString(charset));
+				Struct raw = Caster.toStruct(new JSONExpressionInterpreter().interpret(null, rsp.getContentAsString(cs)));
+				Struct err = Caster.toStruct(raw.get(KeyConstants._error, null), null);
+				if (err != null) {
+					throw ChatGPTUtil.toException(Caster.toString(err.get(KeyConstants._message)), Caster.toString(err.get(KeyConstants._type, null), null),
+							Caster.toString(err.get(KeyConstants._code, null), null));
+				}
+				return new ChatGPTResponse(raw, cs);
 
+			}
+			else {
+				throw new ApplicationException("Chat GPT did answer with the mime type [" + ct.getMimeType() + "] that is not supported, only [application/json] is supported");
+			}
 		}
 		catch (Exception e) {
 			throw Caster.toPageException(e);
 		}
 
-		return null;
 	}
 
 	private static void log(MalformedURLException e) {
@@ -138,14 +157,20 @@ public class ChatGPTEngine implements AIEngine {
 
 	public static void main(String[] args) throws PageException, IOException {
 		Struct props = new StructImpl();
+
 		props.set(KeyConstants._secretKey, "");
+		// props.set(KeyConstants._model, "gpt-4");
+
 		AIEngine ai = new ChatGPTEngine().init(props);
 
 		String code = IOUtil.toString(ResourcesImpl.getFileResourceProvider().getResource("/Users/mic/Test/test-cfconfig/webapps/ROOT/test3.cfm"), CharsetUtil.UTF8);
 
 		Request req = new Request(new String[] { "Please analyze the following Lucee (CFML) code for best practices, performance, and security improvements",
 				" give me suggestions for doc comments", "The code is intended for Lucee version 5.4.4.42.", "keep it as short as possible", "Here is the code:", code });
-
-		ai.invoke(req);
+		Response rsp = ai.invoke(req);
+		//
+		print.e(rsp.getAnswer());
+		print.e("-----------------------------------");
+		print.e(rsp);
 	}
 }
