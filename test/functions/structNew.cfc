@@ -19,7 +19,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 
 		describe("testcase for StructNew('max:3')", function() {
 			
-			it(title="check structnew max", body=function( currentSpec ) {
+			it(title="check structnew max LRU", body=function( currentSpec ) {
 				
 				var sct=structNew("max:3");
 				loop list="a,b,c,d,e,f" item="local.i" {
@@ -28,16 +28,19 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 
 				expect( structCount( sct ) ).toBe( 3 );
 				expect( listSort ( structKeyList( sct ) ) ).toBe( "d,e,f" );
+				expect( structKeyList( sct ) ).toBe( "d,e,f" );
 
 				var tmp = sct[ "d" ]; // being last accessed means it will not be purged
+				expect( structKeyList( sct ) ).toBe( "e,f,d" ); // key order is oldest to newest/most recent accessed
+				
 				sct [ "g" ] = true; // ths will remove 5 as it's the oldest / last accessed
 
 				expect( structCount( sct ) ).toBe( 3 );
-				expect( listSort (structKeyList( sct ) ) ).toBe( "d,f,g" ); // but is key order fixed?
-				expect( structKeyList( sct ) ).toBe( "f,d,g" );  // i expected perhaps "d,f,g"
+				expect( listSort (structKeyList( sct ) ) ).toBe( "d,f,g" );
+				expect( structKeyList( sct ) ).toBe( "f,d,g" );
 
-				tmp = sct [ "g" ];
-				expect( structKeyList( sct ) ).toBe( "f,d,g" );  // i expected perhaps "g,d,f"
+				tmp = sct [ "f" ];
+				expect( structKeyList( sct ) ).toBe( "d,g,f" );
 			});
 
 		});
