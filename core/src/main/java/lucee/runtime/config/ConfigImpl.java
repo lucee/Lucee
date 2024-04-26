@@ -456,7 +456,6 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 		componentDumpTemplate = "";
 		// resources.reset();
 		ormengines.clear();
-		compressResources.clear();
 		clearFunctionCache();
 		clearCTCache();
 		clearComponentCache();
@@ -3320,17 +3319,9 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 		this.componentRootSearch = componentRootSearch;
 	}
 
-	private final Map<String, SoftReference<Compress>> compressResources = new ConcurrentHashMap<String, SoftReference<Compress>>();
-
 	@Override
 	public Compress getCompressInstance(Resource zipFile, int format, boolean caseSensitive) throws IOException {
-		SoftReference<Compress> tmp = compressResources.get(zipFile.getPath());
-		Compress compress = tmp == null ? null : tmp.get();
-		if (compress == null) {
-			compress = new Compress(zipFile, format, caseSensitive);
-			compressResources.put(zipFile.getPath(), new SoftReference<Compress>(compress));
-		}
-		return compress;
+		return Compress.getInstance(zipFile, format, caseSensitive);
 	}
 
 	@Override

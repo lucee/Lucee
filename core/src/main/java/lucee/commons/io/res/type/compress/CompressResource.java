@@ -26,7 +26,6 @@ import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.ResourceProvider;
 import lucee.commons.io.res.util.ResourceSupport;
 import lucee.commons.io.res.util.ResourceUtil;
-import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 
 public final class CompressResource extends ResourceSupport {
@@ -70,12 +69,7 @@ public final class CompressResource extends ResourceSupport {
 	 * @throws IOException
 	 */
 	private Resource getRamResource() {
-		try {
-			return zip.getRamProviderResource(path);
-		}
-		catch (IOException e) {
-			throw ExceptionUtil.toRuntimeException(e);
-		}
+		return zip.getRamProviderResource(path);
 	}
 
 	@Override
