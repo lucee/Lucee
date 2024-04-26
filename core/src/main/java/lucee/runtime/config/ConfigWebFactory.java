@@ -319,7 +319,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 		return configWeb;
 	}
 
-	public static ConfigWebPro newInstanceSingle(CFMLEngine engine, CFMLFactoryImpl factory, ConfigServerImpl configServer, Resource configDirWeb, ServletConfig servletConfig,
+	public static ConfigWebPro newInstanceSingle(CFMLEngine engine, CFMLFactoryImpl factory, ConfigServerImpl configServer, ServletConfig servletConfig,
 			ConfigWebImpl existingToUpdate) throws ClassException, PageException, IOException, TagLibException, FunctionLibException {
 
 		Resource configDir = configServer.getConfigDir();
@@ -333,7 +333,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 		);
 
 		boolean doNew = configServer.getUpdateInfo().updateType != NEW_NONE;
-		SingleContextConfigWeb sccw = new SingleContextConfigWeb(factory, configServer, servletConfig, configDirWeb);
+		SingleContextConfigWeb sccw = new SingleContextConfigWeb(factory, configServer, servletConfig);
 		ConfigWebPro configWeb = existingToUpdate != null ? existingToUpdate.setInstance(sccw) : new ConfigWebImpl(sccw);
 		factory.setConfig(configServer, configWeb);
 
@@ -419,7 +419,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 
 		// changed from multi to single
 		if (isSingle != isWebSingle) {
-			newInstanceSingle(engine, (CFMLFactoryImpl) cwi.getFactory(), cs, cwi.getWebConfigDir(), cwi.getServletConfig(), cwi);
+			newInstanceSingle(engine, (CFMLFactoryImpl) cwi.getFactory(), cs, cwi.getServletConfig(), cwi);
 			return;
 		}
 
