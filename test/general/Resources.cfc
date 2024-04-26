@@ -6,6 +6,14 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="s3,zip" {
 
 	//public function setUp(){}
 
+	function beforeAll(){
+		variables.settings= getApplicationSettings();
+	};
+
+	function afterAll(){
+		application action="update" mappings=variables.settings.mappings;
+	};
+
 	private void function directoryCreateDelete(string label,string dir){
 		var sub=arguments.dir&"test1/";
 		var subsub=sub&"test2/";

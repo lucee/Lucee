@@ -171,6 +171,7 @@ public class GetApplicationSettings extends BIF {
 			sct.setEL("searchImplicitScopes", ac.getScopeCascading() == Config.SCOPE_STANDARD);
 		}
 		sct.setEL("searchResults", Caster.toBoolean(acs.getAllowImplicidQueryCall()));
+		sct.setEL("preciseMath", Caster.toBoolean(acs.getPreciseMath()));
 
 		// adminMode
 		sct.setEL("singleContext", ConfigWebUtil.toAdminMode(((ConfigPro) pc.getConfig()).getAdminMode(), "single") == "single");

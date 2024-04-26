@@ -69,6 +69,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 				expect( as ).toHaveKey("bufferoutput");
 				expect( as ).toHaveKey("suppresscontent");
 				expect( as ).toHaveKey("searchResults");
+				expect( as ).toHaveKey("preciseMath");
 			});
 		});
 	}
