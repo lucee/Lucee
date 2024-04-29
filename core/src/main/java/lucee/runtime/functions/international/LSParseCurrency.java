@@ -39,8 +39,8 @@ import lucee.runtime.op.Caster;
 public final class LSParseCurrency implements Function {
 
 	private static final long serialVersionUID = -7023441119083818436L;
-	private static Map<SoftReference<Locale>, SoftReference<NumberFormat>> currFormatter = new ConcurrentHashMap<>();
-	private static Map<SoftReference<Locale>, SoftReference<NumberFormat>> numbFormatter = new ConcurrentHashMap<>();
+	private static Map<Locale, SoftReference<NumberFormat>> currFormatter = new ConcurrentHashMap<>();
+	private static Map<Locale, SoftReference<NumberFormat>> numbFormatter = new ConcurrentHashMap<>();
 
 	public static String call(PageContext pc, String string) throws PageException {
 		return Caster.toString(toDoubleValue(pc.getLocale(), string, false));
@@ -81,8 +81,8 @@ public final class LSParseCurrency implements Function {
 			return n.doubleValue();
 		}
 		finally {
-			if (cnf != null) currFormatter.put(new SoftReference<Locale>(locale), new SoftReference<NumberFormat>(cnf));
-			if (nf != null) numbFormatter.put(new SoftReference<Locale>(locale), new SoftReference<NumberFormat>(nf));
+			if (cnf != null) currFormatter.put(locale, new SoftReference<NumberFormat>(cnf));
+			if (nf != null) numbFormatter.put(locale, new SoftReference<NumberFormat>(nf));
 		}
 	}
 
