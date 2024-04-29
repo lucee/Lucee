@@ -279,10 +279,11 @@ public final class PageSourceImpl implements PageSource {
 	private Page loadArchive(Page page) throws PageException {
 		if (!mapping.hasArchive()) return null;
 		if (page != null && page.getLoadType() == LOAD_ARCHIVE) return page;
-		if (!getArchiveClass().isFile()) {
-			return null;
-		}
 		synchronized (this) {
+			if (!getArchiveClass().isFile()) {
+				return null;
+			}
+
 			try {
 				Class clazz = mapping.getArchiveClass(getClassName());
 				page = newInstance(clazz);
@@ -300,10 +301,10 @@ public final class PageSourceImpl implements PageSource {
 	private Page loadArchive(Page page, Page defaultValue) {
 		if (!mapping.hasArchive()) return defaultValue;
 		if (page != null && page.getLoadType() == LOAD_ARCHIVE) return page;
-		if (!getArchiveClass().isFile()) {
-			return defaultValue;
-		}
 		synchronized (this) {
+			if (!getArchiveClass().isFile()) {
+				return defaultValue;
+			}
 			try {
 				Class clazz = mapping.getArchiveClass(getClassName());
 				page = newInstance(clazz);
@@ -591,19 +592,22 @@ public final class PageSourceImpl implements PageSource {
 	 */
 	@Override
 	public Resource getPhyscalFile() {
+		if (!mapping.hasPhysical()) return null;
+
 		if (physcalSource == null) {
-			if (!mapping.hasPhysical()) {
-				return null;
-			}
-			Resource tmp = mapping.getPhysical().getRealResource(relPath);
-			physcalSource = ResourceUtil.toExactResource(tmp);
-			// fix if the case not match
-			if (!tmp.getAbsolutePath().equals(physcalSource.getAbsolutePath())) {
-				String relpath = extractRealpath(relPath, physcalSource.getAbsolutePath());
-				// just a security!
-				if (relPath.equalsIgnoreCase(relpath)) {
-					this.relPath = relpath;
-					createClassAndPackage();
+			synchronized (this) {
+				if (physcalSource == null) {
+					Resource tmp = mapping.getPhysical().getRealResource(relPath);
+					physcalSource = ResourceUtil.toExactResource(tmp);
+					// fix if the case not match
+					if (!tmp.getAbsolutePath().equals(physcalSource.getAbsolutePath())) {
+						String relpath = extractRealpath(relPath, physcalSource.getAbsolutePath());
+						// just a security!
+						if (relPath.equalsIgnoreCase(relpath)) {
+							this.relPath = relpath;
+							createClassAndPackage();
+						}
+					}
 				}
 			}
 		}
@@ -611,19 +615,27 @@ public final class PageSourceImpl implements PageSource {
 	}
 
 	public Resource getArchiveFile() {
+		if (!mapping.hasArchive()) return null;
 		if (archiveSource == null) {
-			if (!mapping.hasArchive()) return null;
-			String path = "zip://" + mapping.getArchive().getAbsolutePath() + "!" + relPath;
-			archiveSource = ThreadLocalPageContext.getConfig().getResource(path);
+			synchronized (this) {
+				if (archiveSource == null) {
+					String path = "zip://" + mapping.getArchive().getAbsolutePath() + "!" + relPath;
+					archiveSource = ThreadLocalPageContext.getConfig().getResource(path);
+				}
+			}
 		}
 		return archiveSource;
 	}
 
 	public Resource getArchiveClass() {
+		if (!mapping.hasArchive()) return null;
 		if (archiveClass == null) {
-			if (!mapping.hasArchive()) return null;
-			String path = "zip://" + mapping.getArchive().getAbsolutePath() + "!" + getJavaName() + ".class";
-			archiveClass = ThreadLocalPageContext.getConfig().getResource(path);
+			synchronized (this) {
+				if (archiveClass == null) {
+					String path = "zip://" + mapping.getArchive().getAbsolutePath() + "!" + getJavaName() + ".class";
+					archiveClass = ThreadLocalPageContext.getConfig().getResource(path);
+				}
+			}
 		}
 		return archiveClass;
 	}
@@ -764,39 +776,45 @@ public final class PageSourceImpl implements PageSource {
 	}
 
 	private void createClassAndPackage() {
-		String str = relPath;
-		StringBuilder packageName = new StringBuilder();
-		StringBuilder javaName = new StringBuilder();
-		String[] arr = ListUtil.toStringArrayEL(ListUtil.listToArrayRemoveEmpty(str, '/'));
+		if (this.className == null) {
+			synchronized (this) {
+				if (this.className == null) {
+					String str = relPath;
+					StringBuilder packageName = new StringBuilder();
+					StringBuilder javaName = new StringBuilder();
+					String[] arr = ListUtil.toStringArrayEL(ListUtil.listToArrayRemoveEmpty(str, '/'));
 
-		String varName, className = null, fileName = null;
-		for (int i = 0; i < arr.length; i++) {
-			if (i == (arr.length - 1)) {
-				int index = arr[i].lastIndexOf('.');
-				if (index != -1) {
-					String ext = arr[i].substring(index + 1);
-					varName = StringUtil.toVariableName(arr[i].substring(0, index) + "_" + ext);
+					String varName, className = null, fileName = null;
+					for (int i = 0; i < arr.length; i++) {
+						if (i == (arr.length - 1)) {
+							int index = arr[i].lastIndexOf('.');
+							if (index != -1) {
+								String ext = arr[i].substring(index + 1);
+								varName = StringUtil.toVariableName(arr[i].substring(0, index) + "_" + ext);
+							}
+							else varName = StringUtil.toVariableName(arr[i]);
+							varName = varName + (getDialect() == CFMLEngine.DIALECT_CFML ? Constants.CFML_CLASS_SUFFIX : Constants.LUCEE_CLASS_SUFFIX);
+							className = varName.toLowerCase();
+							fileName = arr[i];
+						}
+						else {
+							varName = StringUtil.toVariableName(arr[i]);
+							if (i != 0) {
+								packageName.append('.');
+							}
+							packageName.append(varName);
+						}
+						javaName.append('/');
+						javaName.append(varName);
+					}
+
+					this.packageName = packageName.toString().toLowerCase();
+					this.javaName = javaName.toString().toLowerCase();
+					this.fileName = fileName;
+					this.className = className;
 				}
-				else varName = StringUtil.toVariableName(arr[i]);
-				varName = varName + (getDialect() == CFMLEngine.DIALECT_CFML ? Constants.CFML_CLASS_SUFFIX : Constants.LUCEE_CLASS_SUFFIX);
-				className = varName.toLowerCase();
-				fileName = arr[i];
 			}
-			else {
-				varName = StringUtil.toVariableName(arr[i]);
-				if (i != 0) {
-					packageName.append('.');
-				}
-				packageName.append(varName);
-			}
-			javaName.append('/');
-			javaName.append(varName);
 		}
-
-		this.packageName = packageName.toString().toLowerCase();
-		this.javaName = javaName.toString().toLowerCase();
-		this.fileName = fileName;
-		this.className = className;
 	}
 
 	private void createComponentName() {

@@ -151,35 +151,44 @@ public final class MappingImpl implements Mapping {
 	}
 
 	private void initPhysical() {
-		ServletContext cs = (config instanceof ConfigWeb) ? ((ConfigWeb) config).getServletContext() : null;
-		physical = ConfigWebUtil.getResource(cs, strPhysical, config.getConfigDir(), FileUtil.TYPE_DIR, config, checkPhysicalFromWebroot, false);
-		if (archive == null) this.physicalFirst = true;
-		else if (physical == null) this.physicalFirst = false;
-
+		if (physical == null && strPhysical != null) {
+			synchronized (this) {
+				if (physical == null && strPhysical != null) {
+					ServletContext cs = (config instanceof ConfigWeb) ? ((ConfigWeb) config).getServletContext() : null;
+					physical = ConfigWebUtil.getResource(cs, strPhysical, config.getConfigDir(), FileUtil.TYPE_DIR, config, checkPhysicalFromWebroot, false);
+					if (archive == null) this.physicalFirst = true;
+					else if (physical == null) this.physicalFirst = false;
+				}
+			}
+		}
 	}
 
 	private void initArchive() {
-		ServletContext cs = (config instanceof ConfigWeb) ? ((ConfigWeb) config).getServletContext() : null;
-		archive = ConfigWebUtil.getResource(cs, strArchive, config.getConfigDir(), FileUtil.TYPE_FILE, config, checkArchiveFromWebroot, true);
-		loadArchive();
+		if (archive == null && strArchive != null) {
+			synchronized (this) {
+				if (archive == null && strArchive != null) {
+					ServletContext cs = (config instanceof ConfigWeb) ? ((ConfigWeb) config).getServletContext() : null;
+					Resource tmp = ConfigWebUtil.getResource(cs, strArchive, config.getConfigDir(), FileUtil.TYPE_FILE, config, checkArchiveFromWebroot, true);
 
-		if (archive == null) this.physicalFirst = true;
-		else if (physical == null) this.physicalFirst = false;
-	}
+					if (tmp == null || archMod == tmp.lastModified()) return;
 
-	private void loadArchive() {
-		if (archive == null || archMod == archive.lastModified()) return;
+					CFMLEngine engine = ConfigWebUtil.getEngine(config);
+					BundleContext bc = engine.getBundleContext();
+					try {
+						archiveBundle = OSGiUtil.installBundle(bc, tmp, true);
+					}
+					catch (Throwable t) {
+						ExceptionUtil.rethrowIfNecessary(t);
+						archMod = tmp.lastModified();
+						LogUtil.log(config, "OSGi", t);
+						tmp = null;
+					}
 
-		CFMLEngine engine = ConfigWebUtil.getEngine(config);
-		BundleContext bc = engine.getBundleContext();
-		try {
-			archiveBundle = OSGiUtil.installBundle(bc, getArchive(), true);
-		}
-		catch (Throwable t) {
-			ExceptionUtil.rethrowIfNecessary(t);
-			archMod = archive.lastModified();
-			LogUtil.log(config, "OSGi", t);
-			archive = null;
+					if (tmp == null) this.physicalFirst = true;
+					else if (physical == null) this.physicalFirst = false;
+					archive = tmp;
+				}
+			}
 		}
 	}
 
