@@ -19,9 +19,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"  {
 					template:"#variables.uri#/LDEV4531.cfm",
 					forms:{ Scene=2 } 
 				);
-				expect( function() {
-					result.filecontent
-				}).toThrow(); // acf throws the error
+				expect(result.filecontent).toBe("{SUBKEY={Lucee}}");
 			})
 		});
 	}
