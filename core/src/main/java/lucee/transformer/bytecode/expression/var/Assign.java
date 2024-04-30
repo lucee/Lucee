@@ -37,37 +37,34 @@ import lucee.transformer.expression.var.Member;
 import lucee.transformer.expression.var.Variable;
 
 public class Assign extends ExpressionBase {
-
+	private static final Type CK = Types.COLLECTION_KEY;
 	// java.lang.Object set(String,Object)
-	private final static Method METHOD_SCOPE_SET_KEY = new Method("set", Types.OBJECT, new Type[] { Types.COLLECTION_KEY, Types.OBJECT });
+	private final static Method METHOD_SCOPE_SET_KEY = new Method("set", Types.OBJECT, new Type[] { CK, Types.OBJECT });
 
 	// .setArgument(obj)
 	private final static Method SET_ARGUMENT = new Method("setArgument", Types.OBJECT, new Type[] { Types.OBJECT });
 
 	// Object touch (Object,String)
-	private final static Method TOUCH_KEY = new Method("touch", Types.OBJECT, new Type[] { Types.OBJECT, Types.COLLECTION_KEY });
+	private final static Method TOUCH_KEY = new Method("touch", Types.OBJECT, new Type[] { Types.OBJECT, CK });
 
 	// Object set (Object,String,Object)
-	private final static Method SET_KEY = new Method("set", Types.OBJECT, new Type[] { Types.OBJECT, Types.COLLECTION_KEY, Types.OBJECT });
-	private final static Method US_SET_KEY1 = new Method("us", Types.OBJECT, new Type[] { Types.COLLECTION_KEY, Types.OBJECT });
-	private final static Method US_SET_KEY2 = new Method("us", Types.OBJECT, new Type[] { Types.COLLECTION_KEY, Types.COLLECTION_KEY, Types.OBJECT });
-	private final static Method US_SET_KEY3 = new Method("us", Types.OBJECT, new Type[] { Types.COLLECTION_KEY, Types.COLLECTION_KEY, Types.COLLECTION_KEY, Types.OBJECT });
-	private final static Method US_SET_KEY4 = new Method("us", Types.OBJECT,
-			new Type[] { Types.COLLECTION_KEY, Types.COLLECTION_KEY, Types.COLLECTION_KEY, Types.COLLECTION_KEY, Types.OBJECT });
+	private final static Method SET_KEY = new Method("set", Types.OBJECT, new Type[] { Types.OBJECT, CK, Types.OBJECT });
+	private final static Method US_SET_KEY1 = new Method("us", Types.OBJECT, new Type[] { CK, Types.OBJECT });
+	private final static Method US_SET_KEY2 = new Method("us", Types.OBJECT, new Type[] { CK, CK, Types.OBJECT });
+	private final static Method US_SET_KEY3 = new Method("us", Types.OBJECT, new Type[] { CK, CK, CK, Types.OBJECT });
+	private final static Method US_SET_KEY4 = new Method("us", Types.OBJECT, new Type[] { CK, CK, CK, CK, Types.OBJECT });
 	private final static Method[] US_SET_KEYS = new Method[] { US_SET_KEY1, US_SET_KEY2, US_SET_KEY3, US_SET_KEY4 };
 
-	private final static Method VS_SET_KEY1 = new Method("vs", Types.OBJECT, new Type[] { Types.COLLECTION_KEY, Types.OBJECT });
-	private final static Method VS_SET_KEY2 = new Method("vs", Types.OBJECT, new Type[] { Types.COLLECTION_KEY, Types.COLLECTION_KEY, Types.OBJECT });
-	private final static Method VS_SET_KEY3 = new Method("vs", Types.OBJECT, new Type[] { Types.COLLECTION_KEY, Types.COLLECTION_KEY, Types.COLLECTION_KEY, Types.OBJECT });
-	private final static Method VS_SET_KEY4 = new Method("vs", Types.OBJECT,
-			new Type[] { Types.COLLECTION_KEY, Types.COLLECTION_KEY, Types.COLLECTION_KEY, Types.COLLECTION_KEY, Types.OBJECT });
+	private final static Method VS_SET_KEY1 = new Method("vs", Types.OBJECT, new Type[] { CK, Types.OBJECT });
+	private final static Method VS_SET_KEY2 = new Method("vs", Types.OBJECT, new Type[] { CK, CK, Types.OBJECT });
+	private final static Method VS_SET_KEY3 = new Method("vs", Types.OBJECT, new Type[] { CK, CK, CK, Types.OBJECT });
+	private final static Method VS_SET_KEY4 = new Method("vs", Types.OBJECT, new Type[] { CK, CK, CK, CK, Types.OBJECT });
 	private final static Method[] VS_SET_KEYS = new Method[] { VS_SET_KEY1, VS_SET_KEY2, VS_SET_KEY3, VS_SET_KEY4 };
 
-	private final static Method LS_SET_KEY1 = new Method("ls", Types.OBJECT, new Type[] { Types.COLLECTION_KEY, Types.OBJECT });
-	private final static Method LS_SET_KEY2 = new Method("ls", Types.OBJECT, new Type[] { Types.COLLECTION_KEY, Types.COLLECTION_KEY, Types.OBJECT });
-	private final static Method LS_SET_KEY3 = new Method("ls", Types.OBJECT, new Type[] { Types.COLLECTION_KEY, Types.COLLECTION_KEY, Types.COLLECTION_KEY, Types.OBJECT });
-	private final static Method LS_SET_KEY4 = new Method("ls", Types.OBJECT,
-			new Type[] { Types.COLLECTION_KEY, Types.COLLECTION_KEY, Types.COLLECTION_KEY, Types.COLLECTION_KEY, Types.OBJECT });
+	private final static Method LS_SET_KEY1 = new Method("ls", Types.OBJECT, new Type[] { CK, Types.OBJECT });
+	private final static Method LS_SET_KEY2 = new Method("ls", Types.OBJECT, new Type[] { CK, CK, Types.OBJECT });
+	private final static Method LS_SET_KEY3 = new Method("ls", Types.OBJECT, new Type[] { CK, CK, CK, Types.OBJECT });
+	private final static Method LS_SET_KEY4 = new Method("ls", Types.OBJECT, new Type[] { CK, CK, CK, CK, Types.OBJECT });
 	private final static Method[] LS_SET_KEYS = new Method[] { LS_SET_KEY1, LS_SET_KEY2, LS_SET_KEY3, LS_SET_KEY4 };
 
 	private final static Method[][] SET_KEYS = new Method[Scope.SCOPE_COUNT][4];
@@ -79,11 +76,10 @@ public class Assign extends ExpressionBase {
 	}
 
 	// Object getFunction (Object,String,Object[])
-	private final static Method GET_FUNCTION_KEY = new Method("getFunction", Types.OBJECT, new Type[] { Types.OBJECT, Types.COLLECTION_KEY, Types.OBJECT_ARRAY });
+	private final static Method GET_FUNCTION_KEY = new Method("getFunction", Types.OBJECT, new Type[] { Types.OBJECT, CK, Types.OBJECT_ARRAY });
 
 	// Object getFunctionWithNamedValues (Object,String,Object[])
-	private final static Method GET_FUNCTION_WITH_NAMED_ARGS_KEY = new Method("getFunctionWithNamedValues", Types.OBJECT,
-			new Type[] { Types.OBJECT, Types.COLLECTION_KEY, Types.OBJECT_ARRAY });
+	private final static Method GET_FUNCTION_WITH_NAMED_ARGS_KEY = new Method("getFunctionWithNamedValues", Types.OBJECT, new Type[] { Types.OBJECT, CK, Types.OBJECT_ARRAY });
 
 	private static final Method DATA_MEMBER_INIT = new Method("<init>", Types.VOID, new Type[] { Types.INT_VALUE, Types.INT_VALUE, Types.OBJECT });
 

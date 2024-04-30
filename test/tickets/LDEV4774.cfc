@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" labels="date" skip=true {
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="date" {
 
 	function run( testResults , testBox ) {
 
@@ -28,6 +28,18 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="date" skip=true {
 			});
 			it( title="string format 'dd/mm/yyyy' should be treated as a date", body=function( currentSpec ) {
 				expect( isDate("01/01/2024") ).toBeTrue();
+			});
+
+			it( title="string '5 6' should NOT be treated as a date", body=function( currentSpec ) {
+				var failed=false;
+				try {
+					dateAdd("d", 0, "5 6");
+				}
+				catch(e) {
+					failed=true;
+				}
+				
+				expect( failed ).toBeTrue();
 			});
 		});
 
