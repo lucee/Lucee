@@ -103,6 +103,7 @@ import lucee.runtime.type.cfc.ComponentValueIterator;
 import lucee.runtime.type.dt.DateTime;
 import lucee.runtime.type.it.ComponentIterator;
 import lucee.runtime.type.it.StringIterator;
+import lucee.runtime.type.scope.AccessModifier;
 import lucee.runtime.type.scope.Argument;
 import lucee.runtime.type.scope.ArgumentImpl;
 import lucee.runtime.type.scope.ArgumentIntKey;
@@ -120,7 +121,7 @@ import lucee.runtime.type.util.UDFUtil;
  * %**% MUST add handling for new attributes (style, namespace, serviceportname, porttypename,
  * wsdlfile, bindingname, and output)
  */
-public final class ComponentImpl extends StructSupport implements Externalizable, Component, coldfusion.runtime.TemplateProxy {
+public final class ComponentImpl extends StructSupport implements Externalizable, Component, coldfusion.runtime.TemplateProxy, AccessModifier {
 	private static final long serialVersionUID = -245618330485511484L; // do not change this
 
 	private static final Interface[] EMPTY = new Interface[0];
@@ -1720,7 +1721,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 	 * @return value set
 	 * @throws ExpressionException
 	 */
-	private Object _set(PageContext pc, Collection.Key key, Object value) throws ExpressionException {
+	private Object _set(PageContext pc, Collection.Key key, Object value, int access, int modifier) throws ExpressionException {
 		if (value instanceof Member) {
 			Member m = (Member) value;
 			if (m instanceof UDF) {
@@ -1737,8 +1738,17 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 			if (loaded && !isAccessible(pc, existing != null ? existing.getAccess() : dataMemberDefaultAccess))
 				throw new ExpressionException("Component [" + getCallName() + "] has no accessible Member with name [" + key + "]",
 						"enable [trigger data member] in administrator to also invoke getters and setters");
-			_data.put(key,
-					new DataMember(existing != null ? existing.getAccess() : dataMemberDefaultAccess, existing != null ? existing.getModifier() : Member.MODIFIER_NONE, value));
+			if (existing != null) {
+				if (existing.getModifier() == Member.MODIFIER_FINAL) {
+					throw new ExpressionException("Attempt to modify a 'final' member [" + key + "] within the 'this' scope of the component [" + cp.getComponentName()
+							+ "]. This member is declared as 'final' in the base component [" + base.cp.getComponentName()
+							+ "] or a component extended by it, and cannot be overridden.");
+				}
+
+			}
+
+			_data.put(key, new DataMember(existing != null ? existing.getAccess() : access, existing != null ? existing.getModifier() : modifier, value));
+
 		}
 		return value;
 	}
@@ -1817,7 +1827,18 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 				return callSetter(pc, key, value);
 			}
 		}
-		return _set(pc, key, value);
+		return _set(pc, key, value, dataMemberDefaultAccess, Member.MODIFIER_NONE);
+	}
+
+	@Override
+	public Object set(PageContext pc, Collection.Key key, Object value, int access, int modifier) throws PageException {
+		if (pc == null) pc = ThreadLocalPageContext.get();
+		if (triggerDataMember(pc) && isInit) {
+			if (!isPrivate(pc)) {
+				return callSetter(pc, key, value);
+			}
+		}
+		return _set(pc, key, value, access, modifier);
 	}
 
 	@Override
@@ -1903,7 +1924,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 				return _call(pc, setterName, udf, null, new Object[] { value });
 			}
 		}
-		return _set(pc, key, value);
+		return _set(pc, key, value, dataMemberDefaultAccess, Member.MODIFIER_NONE);
 	}
 
 	/**
