@@ -101,6 +101,7 @@ import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.exp.RequestTimeoutException;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.functions.file.FileStreamWrapper;
+import lucee.runtime.functions.international.GetTimeZoneInfo;
 import lucee.runtime.i18n.LocaleFactory;
 import lucee.runtime.image.ImageUtil;
 import lucee.runtime.interpreter.CFMLExpressionInterpreter;
@@ -2931,7 +2932,11 @@ public final class Caster {
 			}
 			return toStruct(((ObjectWrap) o).getEmbededObject(), caseSensitive);
 		}
-		if (Decision.isSimpleValue(o) || Decision.isArray(o)) throw new CasterException(o, "Struct");
+		if (Decision.isSimpleValue(o)) {
+			if (o instanceof TimeZone) return GetTimeZoneInfo.call(null, (TimeZone) o);
+			throw new CasterException(o, "Struct");
+		}
+		if (Decision.isArray(o)) throw new CasterException(o, "Struct");
 		if (o instanceof Collection) return new CollectionStruct((Collection) o);
 
 		if (o == null) throw new CasterException("null cannot be cast to a Struct");

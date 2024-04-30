@@ -27,6 +27,7 @@ import java.util.TimeZone;
 
 import lucee.commons.date.JREDateTimeUtil;
 import lucee.runtime.PageContext;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
@@ -45,8 +46,8 @@ public final class GetTimeZoneInfo implements Function {
 	}
 
 	public static lucee.runtime.type.Struct call(PageContext pc, TimeZone tz, Locale dspLocale) {
-		if (tz == null) tz = pc.getTimeZone();
-		if (dspLocale == null) dspLocale = pc.getLocale();
+		if (tz == null) tz = ThreadLocalPageContext.getTimeZone(pc);
+		if (dspLocale == null) dspLocale = ThreadLocalPageContext.getLocale(pc);
 		// Date date = ;
 		Calendar c = JREDateTimeUtil.getThreadCalendar(tz);
 		c.setTimeInMillis(System.currentTimeMillis());
@@ -71,9 +72,6 @@ public final class GetTimeZoneInfo implements Function {
 		struct.setEL(KeyConstants._timezone, tz.getID());
 		struct.setEL(KeyConstants._offset, Double.valueOf(-total));
 		struct.setEL("DSTOffset", Double.valueOf(dstOffset / 1000));
-
 		return struct;
-
-		// return new StructImpl();
 	}
 }

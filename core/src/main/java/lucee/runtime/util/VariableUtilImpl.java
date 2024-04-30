@@ -37,6 +37,7 @@ import lucee.runtime.PageContext;
 import lucee.runtime.config.NullSupportHelper;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.functions.international.GetTimeZoneInfo;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 import lucee.runtime.reflection.Reflector;
@@ -336,11 +337,11 @@ public final class VariableUtilImpl implements VariableUtil {
 				}
 			}
 		}
-		// HTTPSession
-		/*
-		 * else if(coll instanceof HttpSession) { return ((HttpSession)coll).getAttribute(key.getString());
-		 * }
-		 */
+		// TimeZone
+		else if (coll instanceof TimeZone) {
+			Object res = GetTimeZoneInfo.call(pc, (TimeZone) coll).get(key, null);
+			if (res != null) return res; // for backward compatibility (to support reflection), this is optional
+		}
 
 		// Direct Object Access
 		if (coll != null && pc.getConfig().getSecurityManager().getAccess(SecurityManager.TYPE_DIRECT_JAVA_ACCESS) == SecurityManager.VALUE_YES) {
