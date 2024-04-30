@@ -52,6 +52,7 @@ import lucee.runtime.type.Query;
 import lucee.runtime.type.QueryColumn;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.UDF;
+import lucee.runtime.type.scope.AccessModifier;
 import lucee.runtime.type.scope.Undefined;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.KeyConstants;
@@ -415,6 +416,14 @@ public final class VariableUtilImpl implements VariableUtil {
 			sb.append(StringUtil.toStringNative(it.next(), ""));
 		}
 		return sb.toString();
+	}
+
+	public Object set(PageContext pc, Object coll, Collection.Key key, Object value, int access, int modifier) throws PageException {
+		if (coll instanceof AccessModifier) {
+			((AccessModifier) coll).set(pc, key, value, access, modifier);
+			return value;
+		}
+		return set(pc, coll, key, value);
 	}
 
 	@Override
