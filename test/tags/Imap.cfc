@@ -57,7 +57,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="imap" {
 					systemOutput("", true);
 					*/
 					var cols= "DATE,FROM,MESSAGENUMBER,MESSAGEID,REPLYTO,SUBJECT,CC,TO,"
-						& "SIZE,HEADER,UID,BODY,TEXTBODY,HTMLBODY,ATTACHMENTS,ATTACHMENTFILES,CIDS,"
+						& "SIZE,HEADER,UID,BODY,TEXTBODY,HTMLBODY,ATTACHMENTS,ATTACHMENTFILES,CIDS,DELIVERYSTATUS,"
 						& "ANSWERED,DELETED,DRAFT,FLAGGED,RECENT,SEEN"; // imap flags query column checks for LDEV-4115
 
 					loop list=cols item="local.col" {

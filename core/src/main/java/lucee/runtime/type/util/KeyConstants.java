@@ -2826,6 +2826,7 @@ public class KeyConstants {
 	public static final Key _HTMLBody = KeyImpl._const("HTMLBody");
 	public static final Key _attachments = KeyImpl._const("attachments");
 	public static final Key _attachmentfiles = KeyImpl._const("attachmentfiles");
+	public static final Key _deliverystatus = KeyImpl._const("deliverystatus");
 	public static final Key _answered = KeyImpl._const("answered");
 	public static final Key _deleted = KeyImpl._const("deleted");
 	public static final Key _draft = KeyImpl._const("draft");
