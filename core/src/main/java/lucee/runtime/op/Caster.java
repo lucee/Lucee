@@ -3534,7 +3534,7 @@ public final class Caster {
 	 * @param t Throwable to cast
 	 * @return casted PageException Object
 	 */
-	public static PageException toPageException(Throwable t) {
+	public static PageException toPageException(final Throwable t) {
 		return toPageException(t, true);
 	}
 
@@ -3543,7 +3543,7 @@ public final class Caster {
 		return new PageRuntimeException(toPageException(t, true));
 	}
 
-	public static PageException toPageException(Throwable t, boolean rethrowIfNecessary) {
+	public static PageException toPageException(final Throwable t, boolean rethrowIfNecessary) {
 		if (t instanceof PageException) {
 			return (PageException) t;
 		}
@@ -3551,13 +3551,16 @@ public final class Caster {
 			return ((PageExceptionBox) t).getPageException();
 		}
 		if (t instanceof InvocationTargetException) {
-			return toPageException(((InvocationTargetException) t).getTargetException());
+			Throwable target = ((InvocationTargetException) t).getTargetException();
+			if (target != null) return toPageException(target);
 		}
 		if (t instanceof ExceptionInInitializerError) {
-			return toPageException(((ExceptionInInitializerError) t).getCause());
+			Throwable cause = ((ExceptionInInitializerError) t).getCause();
+			if (cause != null) return toPageException(cause);
 		}
 		if (t instanceof ExecutionException) {
-			return toPageException(((ExecutionException) t).getCause());
+			Throwable cause = ((ExecutionException) t).getCause();
+			if (cause != null) return toPageException(cause);
 		}
 		if (t instanceof InterruptedException) {
 			PageContext pc = ThreadLocalPageContext.get();
