@@ -3271,7 +3271,7 @@ public final class ConfigAdmin {
 				accessor = tmp;
 			}
 		}
-		if (accessor == null) throw new ApplicationException("there is noc Security Manager for id [" + id + "]");
+		if (accessor == null) throw new ApplicationException("there is no Security Manager for id [" + id + "]");
 		updateSecurityFileAccess(accessor, fileAccess, file);
 
 		accessor.setEL("setting", SecurityManagerImpl.toStringAccessValue(setting));

@@ -1297,6 +1297,7 @@
         "alertMessage": "Currently no update available for your version",
         "alphaBetaRelease": "Alpha, Beta, Release Candidate",
         "chkInternet": "Unable to connect to the update server to get the list of Available Extensions. Please check your Internet Connection",
+        "downgradeCheck": "Lucee 6 uses a different configuration storage mechanism (.json) than Lucee 5 (.xml). If you downgrade to Lucee 5.x, any configuration changes you have made in Lucee 6 will not be available. Lucee will revert back to the configuration before you upgraded to Lucee 6.",
         "custom": "Custom",
         "customDesc": "Versions came from custom URL given by the user",
         "customProvider": "Custom Update Provider",

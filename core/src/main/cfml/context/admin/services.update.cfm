@@ -180,7 +180,8 @@
 		<div  class="topBottomSpace">
 			<div class="whitePanel">
 				<cfformClassic onerror="customError" action="#request.self#?action=#url.action#" method="post">
-					<select name="UPDATE" id="upt_version"  class="large">
+					<input type="hidden" name="installedVer" id="installedVersion" value="#server.lucee.version#">
+					<select name="UPDATE" id="upt_version"  class="large" onchange="alertWarning()">
 						<!--- <option value="">--- select the version ---</option> --->
 						<cfloop list="#listVrs#" index="key">
 							<cfif len(versionsStr[key].upgrade) gt 0|| len(versionsStr[key].downgrade) gt 0>
@@ -283,12 +284,23 @@
 						$("##btn_"+v).addClass('btn');
 					}
 				}
+				alertWarning();
+			}
+
+			function alertWarning() {
+				var insVer = $("##installedVersion").val();
+				var chngVer = $(".large").val();
+				if(insVer.split(".")[0] == 6 && chngVer.split(".")[0] == 5) {
+					$( ".msg" ).empty().append( "<div class='error'>#stText.services.update.downgradeCheck#</p>" );
+				}
+				else {
+					$( ".msg" ).empty();
+				}
 			}
 
 			function changeVersion(field, frm) {
 				if(frm.value == "") {
-					$(".msg").text("");
-					$( ".msg" ).append( "<div class='error'>Please Choose any version</p>" );
+					$( ".msg" ).empty().append( "<div class='error'>Please Choose any version</p>" );
 					disableBlockUI=true;
 					return false;
 				}
