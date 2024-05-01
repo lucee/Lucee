@@ -77,7 +77,7 @@ public class Component extends EvaluatorSupport {
 			else {
 				// is in script
 				Tag p = ASMUtil.getParentTag(tag);
-				if ((pPage = p.getParent()) instanceof Page && p.getTagLibTag().getName().equalsIgnoreCase(Constants.CFML_SCRIPT_TAG_NAME)) { // chnaged
+				if (p != null && (pPage = p.getParent()) instanceof Page && p.getTagLibTag().getName().equalsIgnoreCase(Constants.CFML_SCRIPT_TAG_NAME)) { // chnaged
 
 					page = (Page) pPage;
 					// move imports from script to component body
@@ -99,7 +99,7 @@ public class Component extends EvaluatorSupport {
 
 					// if(!inline)ASMUtil.replace(p, tag, false);
 				}
-				else throw new EvaluatorException("Wrong Context, tag [" + tlt.getFullName() + "] can't be inside other tags, tag is inside tag [" + p.getFullname() + "]");
+				else throw new EvaluatorException("Wrong Context, tag [" + tlt.getFullName() + "] can't be inside other tags" + ((p != null) ? ", tag is inside tag ["+p.getFullname()+"]":""));
 			}
 		}
 
