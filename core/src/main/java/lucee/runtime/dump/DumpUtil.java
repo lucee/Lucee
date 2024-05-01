@@ -57,6 +57,7 @@ import lucee.runtime.coder.Base64Coder;
 import lucee.runtime.converter.WDDXConverter;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.functions.international.GetTimeZoneInfo;
 import lucee.runtime.functions.system.BundleInfo;
 import lucee.runtime.i18n.LocaleFactory;
 import lucee.runtime.op.Caster;
@@ -197,9 +198,15 @@ public class DumpUtil {
 		}
 		// TimeZone
 		if (o instanceof TimeZone) {
-			DumpTable table = new DumpTable("numeric", "#ff6600", "#ffcc99", "#000000");
-			table.appendRow(1, new SimpleDumpData("TimeZone"), new SimpleDumpData(TimeZoneUtil.toString(((TimeZone) o))));
-			return table;
+
+			Struct data = GetTimeZoneInfo.call(pageContext, (TimeZone) o);
+			DumpTable dt = (DumpTable) data.toDumpData(pageContext, maxlevel, props);
+			dt.setTitle("TimeZone (" + Caster.toString((TimeZone) o) + ")");
+			dt.setComment("can be used as a simple value or a struct");
+			dt.setHighLightColor("#ff6600");
+			dt.setNormalColor("#ffcc99");
+			dt.setBorderColor("#000000");
+			return dt;
 		}
 		// Boolean
 		if (o instanceof Boolean) {

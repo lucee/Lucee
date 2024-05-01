@@ -629,6 +629,7 @@ public final class DateCaster {
 	private static DateTime parseDateTime(String str, DateString ds, short convertingType, boolean alsoMonthString, TimeZone timeZone, DateTime defaultValue) {
 		int month = 0;
 		int first = ds.readDigits();
+
 		// first
 		if (first == -1) {
 			if (!alsoMonthString) return defaultValue;
@@ -659,6 +660,7 @@ public final class DateCaster {
 		}
 
 		if (ds.isAfterLast()) {
+			if (month == 0 && del == ' ') return defaultValue;
 			return toDate(month, timeZone, first, second, defaultValue);
 		}
 

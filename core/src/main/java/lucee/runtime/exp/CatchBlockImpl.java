@@ -135,9 +135,13 @@ public class CatchBlockImpl extends StructImpl implements CatchBlock, Castable, 
 		}
 
 		private CatchBlock getCauseAsCatchBlock(Config config) {
-			Throwable cause = exception.getCause();
-			if (cause == null || exception == cause) return null;
-			if (exception instanceof NativeException && ((NativeException) exception).getException() == cause) return null;
+			Throwable exp;
+			if (exception instanceof NativeException) exp = ((NativeException) exception).getException();
+			else exp = exception;
+
+			Throwable cause = exp.getCause();
+			if (cause == null || exp == cause) return null;
+
 			return Caster.toPageException(cause).getCatchBlock(config);
 		}
 

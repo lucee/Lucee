@@ -37,37 +37,36 @@ import lucee.transformer.expression.var.Member;
 import lucee.transformer.expression.var.Variable;
 
 public class Assign extends ExpressionBase {
-
+	private static final Type CK = Types.COLLECTION_KEY;
 	// java.lang.Object set(String,Object)
-	private final static Method METHOD_SCOPE_SET_KEY = new Method("set", Types.OBJECT, new Type[] { Types.COLLECTION_KEY, Types.OBJECT });
+	private final static Method METHOD_SCOPE_SET_KEY = new Method("set", Types.OBJECT, new Type[] { CK, Types.OBJECT });
 
 	// .setArgument(obj)
 	private final static Method SET_ARGUMENT = new Method("setArgument", Types.OBJECT, new Type[] { Types.OBJECT });
 
 	// Object touch (Object,String)
-	private final static Method TOUCH_KEY = new Method("touch", Types.OBJECT, new Type[] { Types.OBJECT, Types.COLLECTION_KEY });
+	private final static Method TOUCH_KEY = new Method("touch", Types.OBJECT, new Type[] { Types.OBJECT, CK });
+	private final static Method TOUCH_KEY_AM = new Method("touch", Types.OBJECT, new Type[] { Types.OBJECT, CK, Types.INT_VALUE, Types.INT_VALUE });
 
 	// Object set (Object,String,Object)
-	private final static Method SET_KEY = new Method("set", Types.OBJECT, new Type[] { Types.OBJECT, Types.COLLECTION_KEY, Types.OBJECT });
-	private final static Method US_SET_KEY1 = new Method("us", Types.OBJECT, new Type[] { Types.COLLECTION_KEY, Types.OBJECT });
-	private final static Method US_SET_KEY2 = new Method("us", Types.OBJECT, new Type[] { Types.COLLECTION_KEY, Types.COLLECTION_KEY, Types.OBJECT });
-	private final static Method US_SET_KEY3 = new Method("us", Types.OBJECT, new Type[] { Types.COLLECTION_KEY, Types.COLLECTION_KEY, Types.COLLECTION_KEY, Types.OBJECT });
-	private final static Method US_SET_KEY4 = new Method("us", Types.OBJECT,
-			new Type[] { Types.COLLECTION_KEY, Types.COLLECTION_KEY, Types.COLLECTION_KEY, Types.COLLECTION_KEY, Types.OBJECT });
+	private final static Method SET_KEY = new Method("set", Types.OBJECT, new Type[] { Types.OBJECT, CK, Types.OBJECT });
+	private final static Method SET_KEY_AM = new Method("set", Types.OBJECT, new Type[] { Types.OBJECT, CK, Types.OBJECT, Types.INT_VALUE, Types.INT_VALUE });
+	private final static Method US_SET_KEY1 = new Method("us", Types.OBJECT, new Type[] { CK, Types.OBJECT });
+	private final static Method US_SET_KEY2 = new Method("us", Types.OBJECT, new Type[] { CK, CK, Types.OBJECT });
+	private final static Method US_SET_KEY3 = new Method("us", Types.OBJECT, new Type[] { CK, CK, CK, Types.OBJECT });
+	private final static Method US_SET_KEY4 = new Method("us", Types.OBJECT, new Type[] { CK, CK, CK, CK, Types.OBJECT });
 	private final static Method[] US_SET_KEYS = new Method[] { US_SET_KEY1, US_SET_KEY2, US_SET_KEY3, US_SET_KEY4 };
 
-	private final static Method VS_SET_KEY1 = new Method("vs", Types.OBJECT, new Type[] { Types.COLLECTION_KEY, Types.OBJECT });
-	private final static Method VS_SET_KEY2 = new Method("vs", Types.OBJECT, new Type[] { Types.COLLECTION_KEY, Types.COLLECTION_KEY, Types.OBJECT });
-	private final static Method VS_SET_KEY3 = new Method("vs", Types.OBJECT, new Type[] { Types.COLLECTION_KEY, Types.COLLECTION_KEY, Types.COLLECTION_KEY, Types.OBJECT });
-	private final static Method VS_SET_KEY4 = new Method("vs", Types.OBJECT,
-			new Type[] { Types.COLLECTION_KEY, Types.COLLECTION_KEY, Types.COLLECTION_KEY, Types.COLLECTION_KEY, Types.OBJECT });
+	private final static Method VS_SET_KEY1 = new Method("vs", Types.OBJECT, new Type[] { CK, Types.OBJECT });
+	private final static Method VS_SET_KEY2 = new Method("vs", Types.OBJECT, new Type[] { CK, CK, Types.OBJECT });
+	private final static Method VS_SET_KEY3 = new Method("vs", Types.OBJECT, new Type[] { CK, CK, CK, Types.OBJECT });
+	private final static Method VS_SET_KEY4 = new Method("vs", Types.OBJECT, new Type[] { CK, CK, CK, CK, Types.OBJECT });
 	private final static Method[] VS_SET_KEYS = new Method[] { VS_SET_KEY1, VS_SET_KEY2, VS_SET_KEY3, VS_SET_KEY4 };
 
-	private final static Method LS_SET_KEY1 = new Method("ls", Types.OBJECT, new Type[] { Types.COLLECTION_KEY, Types.OBJECT });
-	private final static Method LS_SET_KEY2 = new Method("ls", Types.OBJECT, new Type[] { Types.COLLECTION_KEY, Types.COLLECTION_KEY, Types.OBJECT });
-	private final static Method LS_SET_KEY3 = new Method("ls", Types.OBJECT, new Type[] { Types.COLLECTION_KEY, Types.COLLECTION_KEY, Types.COLLECTION_KEY, Types.OBJECT });
-	private final static Method LS_SET_KEY4 = new Method("ls", Types.OBJECT,
-			new Type[] { Types.COLLECTION_KEY, Types.COLLECTION_KEY, Types.COLLECTION_KEY, Types.COLLECTION_KEY, Types.OBJECT });
+	private final static Method LS_SET_KEY1 = new Method("ls", Types.OBJECT, new Type[] { CK, Types.OBJECT });
+	private final static Method LS_SET_KEY2 = new Method("ls", Types.OBJECT, new Type[] { CK, CK, Types.OBJECT });
+	private final static Method LS_SET_KEY3 = new Method("ls", Types.OBJECT, new Type[] { CK, CK, CK, Types.OBJECT });
+	private final static Method LS_SET_KEY4 = new Method("ls", Types.OBJECT, new Type[] { CK, CK, CK, CK, Types.OBJECT });
 	private final static Method[] LS_SET_KEYS = new Method[] { LS_SET_KEY1, LS_SET_KEY2, LS_SET_KEY3, LS_SET_KEY4 };
 
 	private final static Method[][] SET_KEYS = new Method[Scope.SCOPE_COUNT][4];
@@ -79,11 +78,10 @@ public class Assign extends ExpressionBase {
 	}
 
 	// Object getFunction (Object,String,Object[])
-	private final static Method GET_FUNCTION_KEY = new Method("getFunction", Types.OBJECT, new Type[] { Types.OBJECT, Types.COLLECTION_KEY, Types.OBJECT_ARRAY });
+	private final static Method GET_FUNCTION_KEY = new Method("getFunction", Types.OBJECT, new Type[] { Types.OBJECT, CK, Types.OBJECT_ARRAY });
 
 	// Object getFunctionWithNamedValues (Object,String,Object[])
-	private final static Method GET_FUNCTION_WITH_NAMED_ARGS_KEY = new Method("getFunctionWithNamedValues", Types.OBJECT,
-			new Type[] { Types.OBJECT, Types.COLLECTION_KEY, Types.OBJECT_ARRAY });
+	private final static Method GET_FUNCTION_WITH_NAMED_ARGS_KEY = new Method("getFunctionWithNamedValues", Types.OBJECT, new Type[] { Types.OBJECT, CK, Types.OBJECT_ARRAY });
 
 	private static final Method DATA_MEMBER_INIT = new Method("<init>", Types.VOID, new Type[] { Types.INT_VALUE, Types.INT_VALUE, Types.OBJECT });
 
@@ -139,29 +137,32 @@ public class Assign extends ExpressionBase {
 		}
 
 		// undefined
-		outer: while (count > 0 && scope != -1 && count <= SET_KEYS[scope].length) {
+		boolean doHaveAccessOrModifier = (access > -1 || modifier > 0);
+		if (!doHaveAccessOrModifier) {
+			outer: while (count > 0 && scope != -1 && count <= SET_KEYS[scope].length) {
 
-			for (int i = 0; i < count; i++) {
-				if (!(variable.getMembers().get(i) instanceof DataMember)) {
-					break outer;
+				for (int i = 0; i < count; i++) {
+					if (!(variable.getMembers().get(i) instanceof DataMember)) {
+						break outer;
+					}
 				}
+				// load pc
+				adapter.loadArg(0);
+				adapter.checkCast(Types.PAGE_CONTEXT_IMPL);
+
+				// write keys
+				for (int i = 0; i < count; i++) {
+					Member member = (variable.getMembers().get(i));
+					getFactory().registerKey(bc, ((DataMember) member).getName(), false);
+				}
+
+				// load value
+				value.writeOut(bc, MODE_REF);
+				// call set function
+				adapter.invokeVirtual(Types.PAGE_CONTEXT_IMPL, SET_KEYS[scope][count - 1]);
+
+				return Types.OBJECT;
 			}
-			// load pc
-			adapter.loadArg(0);
-			adapter.checkCast(Types.PAGE_CONTEXT_IMPL);
-
-			// write keys
-			for (int i = 0; i < count; i++) {
-				Member member = (variable.getMembers().get(i));
-				getFactory().registerKey(bc, ((DataMember) member).getName(), false);
-			}
-
-			// load value
-			writeValue(bc);
-			// call set function
-			adapter.invokeVirtual(Types.PAGE_CONTEXT_IMPL, SET_KEYS[scope][count - 1]);
-
-			return Types.OBJECT;
 		}
 
 		boolean doOnlyScope = variable.getScope() == Scope.SCOPE_LOCAL;
@@ -170,10 +171,15 @@ public class Assign extends ExpressionBase {
 		// boolean last;
 		for (int i = doOnlyScope ? 0 : 1; i < count; i++) {
 			adapter.loadArg(0);
+			if (doHaveAccessOrModifier) {
+				boolean last = (i + 1) == count;
+				if (last) adapter.checkCast(Types.PAGE_CONTEXT_IMPL);
+			}
 		}
 		rtn = _writeOutFirst(bc, (variable.getMembers().get(0)), mode, count == 1, doOnlyScope);
 
-		// pc.get(
+		boolean first = true;
+		boolean doAM;
 		for (int i = doOnlyScope ? 0 : 1; i < count; i++) {
 			Member member = (variable.getMembers().get(i));
 			boolean last = (i + 1) == count;
@@ -182,9 +188,17 @@ public class Assign extends ExpressionBase {
 			if (member instanceof DataMember) {
 				// ((DataMember)member).getName().writeOut(bc, MODE_REF);
 				getFactory().registerKey(bc, ((DataMember) member).getName(), false);
+				doAM = first && doHaveAccessOrModifier;
 
-				if (last) writeValue(bc);
-				adapter.invokeVirtual(Types.PAGE_CONTEXT, last ? SET_KEY : TOUCH_KEY);
+				if (last) value.writeOut(bc, MODE_REF);
+
+				if (doAM) {
+					GeneratorAdapter ga = bc.getAdapter();
+					ga.push(access);
+					ga.push(modifier);
+				}
+
+				adapter.invokeVirtual(doAM ? Types.PAGE_CONTEXT_IMPL : Types.PAGE_CONTEXT, last ? (doAM ? SET_KEY_AM : SET_KEY) : (doAM ? TOUCH_KEY_AM : TOUCH_KEY));
 				rtn = Types.OBJECT;
 			}
 
@@ -197,6 +211,7 @@ public class Assign extends ExpressionBase {
 				adapter.invokeVirtual(Types.PAGE_CONTEXT, udf.hasNamedArgs() ? GET_FUNCTION_WITH_NAMED_ARGS_KEY : GET_FUNCTION_KEY);
 				rtn = Types.OBJECT;
 			}
+			first = false;
 		}
 		return rtn;
 	}
@@ -268,14 +283,14 @@ public class Assign extends ExpressionBase {
 		if (variable.getScope() == Scope.SCOPE_ARGUMENTS) {
 			adapter.loadArg(0);
 			TypeScope.invokeScope(adapter, Scope.SCOPE_ARGUMENTS);
-			writeValue(bc);
+			value.writeOut(bc, MODE_REF);
 			adapter.invokeInterface(TypeScope.SCOPE_ARGUMENT, SET_ARGUMENT);
 		}
 		else {
 			adapter.loadArg(0);
 			TypeScope.invokeScope(adapter, Scope.SCOPE_UNDEFINED);
 			getFactory().registerKey(bc, bc.getFactory().createLitString(ScopeFactory.toStringScope(variable.getScope(), "undefined")), false);
-			writeValue(bc);
+			value.writeOut(bc, MODE_REF);
 			adapter.invokeInterface(TypeScope.SCOPES[Scope.SCOPE_UNDEFINED], METHOD_SCOPE_SET_KEY);
 		}
 

@@ -102,6 +102,7 @@ import lucee.runtime.exp.PageServletException;
 import lucee.runtime.exp.RequestTimeoutException;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.functions.file.FileStreamWrapper;
+import lucee.runtime.functions.international.GetTimeZoneInfo;
 import lucee.runtime.i18n.LocaleFactory;
 import lucee.runtime.image.ImageUtil;
 import lucee.runtime.interpreter.CFMLExpressionInterpreter;
@@ -451,7 +452,7 @@ public final class Caster {
 			return ((Number) o).doubleValue();
 		}
 		else if (o instanceof Boolean) return ((Boolean) o).booleanValue() ? 1 : 0;
-		else if (o instanceof CharSequence) return toDoubleValue(o.toString(), false);
+		else if (o instanceof CharSequence) return toDoubleValue(o.toString(), true);
 		// else if(o instanceof Clob) return toDoubleValue(toString(o));
 		else if (o instanceof Castable) return ((Castable) o).castToDoubleValue();
 		else if (o == null) return 0;// toDoubleValue("");
@@ -480,7 +481,7 @@ public final class Caster {
 	 * @throws CasterException
 	 */
 	public static double toDoubleValue(String str) throws CasterException {
-		return toDoubleValue(str, false);
+		return toDoubleValue(str, true);
 	}
 
 	public static double toDoubleValue(String strNumber, int radix, boolean alsoFromDate, double defaultValue) {
@@ -2937,7 +2938,11 @@ public final class Caster {
 			}
 			return toStruct(((ObjectWrap) o).getEmbededObject(), caseSensitive);
 		}
-		if (Decision.isSimpleValue(o) || Decision.isArray(o)) throw new CasterException(o, "Struct");
+		if (Decision.isSimpleValue(o)) {
+			if (o instanceof TimeZone) return GetTimeZoneInfo.call(null, (TimeZone) o);
+			throw new CasterException(o, "Struct");
+		}
+		if (Decision.isArray(o)) throw new CasterException(o, "Struct");
 		if (o instanceof Collection) return new CollectionStruct((Collection) o);
 
 		if (o == null) throw new CasterException("null cannot be cast to a Struct");
@@ -3542,7 +3547,7 @@ public final class Caster {
 	 * @param t Throwable to cast
 	 * @return casted PageException Object
 	 */
-	public static PageException toPageException(Throwable t) {
+	public static PageException toPageException(final Throwable t) {
 		return toPageException(t, true);
 	}
 
@@ -3551,7 +3556,7 @@ public final class Caster {
 		return new PageRuntimeException(toPageException(t, true));
 	}
 
-	public static PageException toPageException(Throwable t, boolean rethrowIfNecessary) {
+	public static PageException toPageException(final Throwable t, boolean rethrowIfNecessary) {
 		if (t instanceof PageException) {
 			return (PageException) t;
 		}
@@ -3559,13 +3564,16 @@ public final class Caster {
 			return ((PageExceptionBox) t).getPageException();
 		}
 		if (t instanceof InvocationTargetException) {
-			return toPageException(((InvocationTargetException) t).getTargetException());
+			Throwable target = ((InvocationTargetException) t).getTargetException();
+			if (target != null) return toPageException(target);
 		}
 		if (t instanceof ExceptionInInitializerError) {
-			return toPageException(((ExceptionInInitializerError) t).getCause());
+			Throwable cause = ((ExceptionInInitializerError) t).getCause();
+			if (cause != null) return toPageException(cause);
 		}
 		if (t instanceof ExecutionException) {
-			return toPageException(((ExecutionException) t).getCause());
+			Throwable cause = ((ExecutionException) t).getCause();
+			if (cause != null) return toPageException(cause);
 		}
 		if (t instanceof InterruptedException) {
 			PageContext pc = ThreadLocalPageContext.get();

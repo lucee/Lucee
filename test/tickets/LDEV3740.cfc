@@ -1,4 +1,4 @@
-component extends = "org.lucee.cfml.test.LuceeTestCase" skip=true{
+component extends = "org.lucee.cfml.test.LuceeTestCase" {
     function run( testResults, textbox ) {
         describe("testcase for LDEV-3740", function(){
             it(title="Checking UDF in tag island within callback", body=function( currentSpec ){

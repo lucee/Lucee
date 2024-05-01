@@ -161,10 +161,9 @@ public final class Throw extends TagImpl {
 			CatchBlock cb = (CatchBlock) object;
 			return cb.getPageException();
 		}
-		if (object instanceof PageException) return (PageException) object;
 		if (object instanceof Throwable) {
-			Throwable t = (Throwable) object;
-			return new CustomTypeException(t.getMessage(), "", "", t.getClass().getName(), "");
+			ExceptionUtil.rethrowIfNecessary((Throwable) object);
+			return Caster.toPageException((Throwable) object);
 		}
 		if (object instanceof Struct) {
 			Struct sct = (Struct) object;

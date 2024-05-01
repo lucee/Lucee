@@ -1728,10 +1728,9 @@ public final class PageContextImpl extends PageContext {
 		return variableUtil.set(this, coll, key, value);
 	}
 
-	/*
-	 * public Object touch(Object coll, String key) throws PageException { Object
-	 * o=getCollection(coll,key,null); if(o!=null) return o; return set(coll,key,new StructImpl()); }
-	 */
+	public Object set(Object coll, Collection.Key key, Object value, int access, int modifier) throws PageException {
+		return variableUtil.set(this, coll, key, value, access, modifier);
+	}
 
 	@Override
 	public Object touch(Object coll, Collection.Key key) throws PageException {
@@ -1740,10 +1739,11 @@ public final class PageContextImpl extends PageContext {
 		return set(coll, key, new StructImpl());
 	}
 
-	/*
-	 * private Object _touch(Scope scope, String key) throws PageException { Object
-	 * o=scope.get(key,null); if(o!=null) return o; return scope.set(key, new StructImpl()); }
-	 */
+	public Object touch(Object coll, Collection.Key key, int access, int modifier) throws PageException {
+		Object o = getCollection(coll, key, null);
+		if (o != null) return o;
+		return set(coll, key, new StructImpl(), access, modifier);
+	}
 
 	@Override
 	public Object getCollection(Object coll, String key) throws PageException {
