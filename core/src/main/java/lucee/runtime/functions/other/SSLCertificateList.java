@@ -18,6 +18,7 @@
  **/
 package lucee.runtime.functions.other;
 
+import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
@@ -28,12 +29,22 @@ public final class SSLCertificateList implements Function {
 
 	private static final long serialVersionUID = 1114950592159155566L;
 
+	public static Query call(PageContext pc) throws PageException {
+		return Admin.getAllSSLCertificate(pc.getConfig());
+	}
+
 	public static Query call(PageContext pc, String host) throws PageException {
+		if (StringUtil.isEmpty(host, true)) return call(pc);
 		return call(pc, host, 443);
 	}
 
 	public static Query call(PageContext pc, String host, double port) throws PageException {
+		if (StringUtil.isEmpty(host, true)) return call(pc);
 		return Admin.getSSLCertificate(pc.getConfig(), host, (int) port);
 	}
 
+	public static Query call(PageContext pc, String host, Number port) throws PageException {
+		if (StringUtil.isEmpty(host, true)) return call(pc);
+		return Admin.getSSLCertificate(pc.getConfig(), host, port.intValue());
+	}
 }

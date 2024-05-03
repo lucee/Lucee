@@ -25,8 +25,12 @@ import java.security.GeneralSecurityException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.List;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocket;
@@ -76,8 +80,7 @@ public class CertificateInstaller {
 		tm = new SavingTrustManager(defaultTrustManager);
 		context.init(null, new TrustManager[] { tm }, null);
 
-		IOException e = checkCertificate();
-
+		IOException e = checkCertificate(context, host, port);
 		if (tm.chain == null) {
 			if (e == null) {
 				throw new IOException("Could not obtain server certificate chain");
@@ -117,7 +120,7 @@ public class CertificateInstaller {
 	 * @param port
 	 * @return
 	 */
-	public IOException checkCertificate() {
+	public static IOException checkCertificate(SSLContext context, String host, int port) {
 		SSLSocketFactory factory = context.getSocketFactory();
 
 		try {
@@ -134,6 +137,29 @@ public class CertificateInstaller {
 
 	public X509Certificate[] getCertificates() {
 		return tm.chain;
+	}
+
+	public static List<X509Certificate> getAllCertificates(Resource source) throws GeneralSecurityException, IOException {
+		KeyStore ks = null;
+		InputStream in = source.getInputStream();
+		try {
+			ks = KeyStore.getInstance(KeyStore.getDefaultType());
+			ks.load(in, "changeit".toCharArray());
+		}
+		finally {
+			IOUtil.close(in);
+		}
+
+		List<X509Certificate> list = new ArrayList<>();
+		Enumeration<String> aliases = ks.aliases();
+		while (aliases.hasMoreElements()) {
+			String alias = aliases.nextElement();
+			Certificate cert = ks.getCertificate(alias);
+			if (cert instanceof X509Certificate) {
+				list.add((X509Certificate) cert);
+			}
+		}
+		return list; // Adjust return based on method implementation
 	}
 
 	private static class SavingTrustManager implements X509TrustManager {

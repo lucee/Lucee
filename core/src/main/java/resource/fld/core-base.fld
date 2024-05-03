@@ -12539,28 +12539,31 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<type>void</type>
 		</return>
 	</function>
+
 	<!-- SSLCertificateList -->
 	<function>
-		<name>SSLCertificateList</name>
-		<class>lucee.runtime.functions.other.SSLCertificateList</class>
-		<description>list all Certificates available on a specific host</description>
-		<argument>
-			<name>host</name>
-			<type>string</type>
-			<required>Yes</required>
-			<description>host to get Certificates from</description>
-		</argument>
-		<argument>
-			<name>port</name>
-			<type>number</type>
-			<required>no</required>
-			<default>443</default>
-			<description>port of the host, default is 443</description>
-		</argument>
-		<return>
-			<type>query</type>
-		</return>
+	    <name>SSLCertificateList</name>
+	    <class>lucee.runtime.functions.other.SSLCertificateList</class>
+	    <description>Returns a list of SSL certificates. If a host is specified, it lists the certificates available for that specific host. If no host is specified, it lists all certificates stored in the KeyStore.</description>
+	    <argument>
+	        <name>host</name>
+	        <type>string</type>
+	        <required>No</required>
+	        <description>Optional. The host from which to retrieve SSL certificates. If not provided, the function lists all certificates in the KeyStore.</description>
+	    </argument>
+	    <argument>
+	        <name>port</name>
+	        <type>number</type>
+	        <required>No</required>
+	        <default>443</default>
+	        <description>Optional. The port of the host, default is 443. This argument is ignored if the host is not specified.</description>
+	    </argument>
+	    <return>
+	        <type>query</type>
+	        <description>Returns a query object containing details of the SSL certificates. Each row represents a certificate with details such as subject, issuer, valid from, valid to, etc.</description>
+	    </return>
 	</function>
+
 	<!-- SSLCertificateInstall -->
 	<function>
 		<name>SSLCertificateInstall</name>

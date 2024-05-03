@@ -4691,11 +4691,31 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		X509Certificate[] certs = installer.getCertificates();
 		X509Certificate cert;
 
-		Query qry = new QueryImpl(new String[] { "subject", "issuer" }, certs.length, "certificates");
+		Query qry = new QueryImpl(new Key[] { KeyConstants._subject, KeyConstants._issuer, KeyConstants._raw }, certs.length, "certificates");
 		for (int i = 0; i < certs.length; i++) {
 			cert = certs[i];
-			qry.setAtEL("subject", i + 1, cert.getSubjectDN().getName());
-			qry.setAtEL("issuer", i + 1, cert.getIssuerDN().getName());
+			qry.setAtEL(KeyConstants._subject, i + 1, cert.getSubjectDN().getName());
+			qry.setAtEL(KeyConstants._issuer, i + 1, cert.getIssuerDN().getName());
+			qry.setAtEL(KeyConstants._raw, i + 1, cert);
+		}
+		return qry;
+	}
+
+	public static Query getAllSSLCertificate(Config config) throws PageException {
+		List<X509Certificate> certs;
+		try {
+			certs = CertificateInstaller.getAllCertificates(config.getSecurityDirectory());
+		}
+		catch (Exception e) {
+			throw Caster.toPageException(e);
+		}
+		Query qry = new QueryImpl(new Key[] { KeyConstants._subject, KeyConstants._issuer, KeyConstants._raw }, certs.size(), "certificates");
+		int row = 0;
+		for (X509Certificate cert: certs) {
+			row++;
+			qry.setAtEL(KeyConstants._subject, row, cert.getSubjectDN().getName());
+			qry.setAtEL(KeyConstants._issuer, row, cert.getIssuerDN().getName());
+			qry.setAtEL(KeyConstants._raw, row, cert);
 		}
 		return qry;
 	}
