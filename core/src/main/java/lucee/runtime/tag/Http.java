@@ -100,6 +100,7 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.RequestTimeoutException;
 import lucee.runtime.ext.tag.BodyTagImpl;
 import lucee.runtime.functions.system.CallStackGet;
+import lucee.runtime.net.http.CertificateInstaller;
 import lucee.runtime.net.http.MultiPartResponseUtils;
 import lucee.runtime.net.http.ReqRspUtil;
 import lucee.runtime.net.proxy.ProxyData;
@@ -323,6 +324,7 @@ public final class Http extends BodyTagImpl {
 	private String clientCert;
 	/** Password used to decrypt the client certificate. */
 	private String clientCertPassword;
+	private boolean autoCert = false;
 
 	@Override
 	public void release() {
@@ -369,6 +371,7 @@ public final class Http extends BodyTagImpl {
 		clientCertPassword = null;
 		cachedWithin = null;
 		usePool = true;
+		autoCert = false;
 	}
 
 	/**
@@ -489,6 +492,15 @@ public final class Http extends BodyTagImpl {
 	 **/
 	public void setCharset(String charset) {
 		this.charset = charset;
+	}
+
+	/**
+	 * set the value charset set the charset for the call.
+	 * 
+	 * @param charset value to set
+	 **/
+	public void setAutocert(boolean autoCert) {
+		this.autoCert = autoCert;
 	}
 
 	/**
@@ -760,6 +772,17 @@ public final class Http extends BodyTagImpl {
 						url += "&" + sbQS;
 					}
 				}
+
+				// check certificate
+				if (autoCert && "https".equalsIgnoreCase(_url.getProtocol())) {
+					int port = _url.getPort();
+
+					Resource cacerts = pageContext.getConfig().getSecurityDirectory();
+
+					CertificateInstaller installer = new CertificateInstaller(cacerts, _url.getHost(), port < 1 ? 443 : port);
+					installer.installAll(false);
+				}
+
 			}
 			catch (MalformedURLException mue) {
 				throw Caster.toPageException(mue);

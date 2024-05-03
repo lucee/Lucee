@@ -31,6 +31,8 @@ import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
+import java.util.Map;
+import java.util.WeakHashMap;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocket;
@@ -40,9 +42,12 @@ import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509TrustManager;
 
 import lucee.commons.io.IOUtil;
+import lucee.commons.io.SystemUtil;
 import lucee.commons.io.res.Resource;
 
 public class CertificateInstaller {
+
+	private static Map<String, String> installed = new WeakHashMap();
 
 	private String host;
 	private int port;
@@ -91,13 +96,21 @@ public class CertificateInstaller {
 		}
 	}
 
-	public void installAll() throws IOException, KeyStoreException, NoSuchAlgorithmException, CertificateException {
-		for (int i = 0; i < tm.chain.length; i++) {
-			install(i);
+	public void installAll(boolean force) throws IOException, KeyStoreException, NoSuchAlgorithmException, CertificateException {
+		String key = host + ":" + port;
+		if (force || !installed.containsKey(key)) {
+			synchronized (SystemUtil.createToken("CertificateInstaller", key)) {
+				if (force || !installed.containsKey(key)) {
+					for (int i = 0; i < tm.chain.length; i++) {
+						install(i);
+					}
+					installed.put(key, "");
+				}
+			}
 		}
 	}
 
-	public void install(int index) throws IOException, KeyStoreException, NoSuchAlgorithmException, CertificateException {
+	private void install(int index) throws IOException, KeyStoreException, NoSuchAlgorithmException, CertificateException {
 
 		X509Certificate cert = tm.chain[index];
 		String alias = host + "-" + (index + 1);

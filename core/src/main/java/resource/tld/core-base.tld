@@ -2387,6 +2387,17 @@ a timeSpan (created with function CreateTimeSpan): If original content date fall
 
 To use cached data, the tag must be called with the exact same arguments.</description>
     	</attribute>
+    	<attribute>
+			<type>boolean</type>
+			<name>autoCert</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<introduced>6.1.0.132</introduced>
+			<description>When set to true, this attribute enables the automatic installation of SSL certificates for HTTPS connections, 
+			ensuring the request can proceed without SSL certificate errors. 
+			This is particularly useful for environments where certificates may not be pre-installed or are dynamically updated.</description>
+
+		</attribute>
 	</tag>
 	<!-- HttpParam -->
 	<tag>

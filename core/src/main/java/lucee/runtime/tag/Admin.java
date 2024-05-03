@@ -4666,7 +4666,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 		try {
 			CertificateInstaller installer = new CertificateInstaller(cacerts, host, port);
-			installer.installAll();
+			installer.installAll(true);
 		}
 		catch (Exception e) {
 			throw Caster.toPageException(e);
