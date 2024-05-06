@@ -4806,7 +4806,6 @@ public final class ConfigWebFactory extends ConfigFactory {
 			if (config instanceof ConfigServer) {
 				changed = ConfigFactory.modeChange(config.getConfigDir(), config.getAdminMode() == ConfigImpl.ADMINMODE_MULTI ? "multi" : "single", false);
 			}
-
 			Array children = ConfigWebUtil.getAsArray("extensions", root);
 			String md5 = CollectionUtil.md5(children);
 			if (!changed) {
@@ -4814,6 +4813,9 @@ public final class ConfigWebFactory extends ConfigFactory {
 					return;
 				}
 			}
+
+			boolean firstLoad = config.getExtensionsMD5() == null;
+
 			try {
 				RHExtension.removeDuplicates(children);
 			}
@@ -4837,7 +4839,6 @@ public final class ConfigWebFactory extends ConfigFactory {
 				child = Caster.toStruct(it.next(), null);
 				if (child == null) continue;
 				id = Caster.toString(child.get(KeyConstants._id, null), null);
-
 				BundleInfo[] bfsq;
 				try {
 					String res = Caster.toString(child.get(KeyConstants._resource, null), null);
@@ -4849,7 +4850,25 @@ public final class ConfigWebFactory extends ConfigFactory {
 					// we force a new installation if we have switched from single to multi mode, because extension can
 					// act completely different if that is the case
 					rhe = RHExtension.installExtension(config, id, Caster.toString(child.get(KeyConstants._version, null), null), res, changed);
-					if (rhe.getStartBundles()) rhe.deployBundles(config);
+					if (rhe.getStartBundles()) {
+						if (!firstLoad) {
+							rhe.deployBundles(config, true);
+						}
+						else {
+							try {
+								BundleInfo[] bundles = rhe.getBundles();
+								if (bundles != null) {
+									for (BundleInfo bi: bundles) {
+										OSGiUtil.loadBundleFromLocal(bi.getSymbolicName(), bi.getVersion(), null, false, null);
+									}
+								}
+							}
+							catch (Exception ex) {
+								rhe.deployBundles(config, true);
+							}
+						}
+					}
+
 					extensions.add(rhe);
 					installedFiles.add(rhe.getExtensionFile());
 					installedIds.add(rhe.getId());

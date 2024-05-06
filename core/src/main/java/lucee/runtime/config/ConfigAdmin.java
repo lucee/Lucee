@@ -4749,7 +4749,8 @@ public final class ConfigAdmin {
 
 			// load the bundles
 			if (rhext.getStartBundles()) {
-				rhext.deployBundles(ci);
+				rhext.deployBundles(ci, true);
+
 				BundleInfo[] bfs = rhext.getBundles();
 				if (bfs != null) {
 					for (BundleInfo bf: bfs) {

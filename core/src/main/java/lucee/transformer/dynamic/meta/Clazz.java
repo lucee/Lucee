@@ -57,7 +57,7 @@ public abstract class Clazz implements Serializable {
 
 	public static boolean allowReflection() {
 		if (allowReflection == null) {
-			allowReflection = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.allow.reflection", null), false);
+			allowReflection = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.allow.reflection", null), true);
 		}
 		return allowReflection;
 	}

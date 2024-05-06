@@ -816,7 +816,7 @@ public class RHExtension implements Serializable {
 		if (!StringUtil.isEmpty(str, true)) symbolicName = str.trim();
 	}
 
-	public void deployBundles(Config config) throws IOException, BundleException {
+	public void deployBundles(Config config, boolean load) throws IOException, BundleException {
 		// no we read the content of the zip
 		ZipInputStream zis = new ZipInputStream(IOUtil.toBufferedInputStream(extensionFile.getInputStream()));
 		ZipEntry entry;
@@ -837,6 +837,9 @@ public class RHExtension implements Serializable {
 						Resource tmpJar = tmp.getParentResource().getRealResource(ListUtil.last(path, "\\/"));
 						tmp.moveTo(tmpJar);
 						ConfigAdmin.updateJar(config, tmpJar, false);
+					}
+					else if (load) {
+						OSGiUtil.loadBundle((BundleFile) obj);
 					}
 				}
 

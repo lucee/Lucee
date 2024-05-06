@@ -27,6 +27,7 @@ import lucee.commons.digest.HashUtil;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.res.Resource;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.PhysicalClassLoader;
 import lucee.commons.lang.types.RefInteger;
 import lucee.commons.lang.types.RefIntegerImpl;
@@ -271,7 +272,18 @@ public class ClazzDynamic extends Clazz {
 		final String classPath = clazz.getName().replace('.', '/') + ".class";
 		final ClassLoader cl = getClassLoader(clazz);
 		final RefInteger classAccess = new RefIntegerImpl();
-		ClassReader classReader = new ClassReader(cl.getResourceAsStream(classPath));
+		ClassReader classReader;
+		try {
+			classReader = new ClassReader(cl.getResourceAsStream(classPath));
+		}
+		catch (IOException ioe) {
+			if ("Class not found".equals(ioe.getMessage())) {
+				IOException tmp = new IOException("unable to load class path [" + classPath + "]");
+				ExceptionUtil.initCauseEL(tmp, ioe);
+				ioe = tmp;
+			}
+			throw ioe;
+		}
 
 		// Create a ClassVisitor to visit the methods
 		ClassVisitor visitor = new ClassVisitor(Opcodes.ASM9) {
