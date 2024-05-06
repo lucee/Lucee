@@ -1866,7 +1866,10 @@ public final class Http extends BodyTagImpl {
 	}
 
 	public static void setTimeout(HttpClientBuilder builder, TimeSpan timeout) {
-		if (timeout == null || timeout.getMillis() <= 0) return;
+		if (timeout == null || timeout.getMillis() <= 0) {
+			builder.setDefaultRequestConfig(RequestConfig.custom().setCookieSpec(CookieSpecs.STANDARD).build());
+			return;
+		}
 
 		int ms = (int) timeout.getMillis();
 		if (ms < 0) ms = Integer.MAX_VALUE;
