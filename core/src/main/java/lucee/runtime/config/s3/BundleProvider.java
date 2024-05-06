@@ -43,7 +43,7 @@ import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.DefaultHandler;
 
-import lucee.print;
+import lucee.aprint;
 import lucee.commons.io.FileUtil;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
@@ -792,9 +792,9 @@ public final class BundleProvider extends DefaultHandler {
 		// "2.12.3.0001"), true));
 		// getInstance().getBundle(new BundleDefinition("com.mysql.cj", "8.0.33"));
 		// getInstance().getBundle(new BundleDefinition("com.mysql.cj", "8.0.27"));
-		print.e("------- MAVEN -> OSGi Mappings -------");
+		aprint.e("------- MAVEN -> OSGi Mappings -------");
 		getInstance().createOSGiMavenMapping(); // create java code for OSGi to Maven mapping based on
-		print.e("------- What can be removed from S3? -------");
+		aprint.e("------- What can be removed from S3? -------");
 		getInstance().whatcanBeRemovedFromS3(); // create java code for OSGi to Maven mapping based on
 		// what is in the S3 bucket
 		// getInstance().whatcanBeRemovedFromS3(); // show what records can be removed from S3 bucket
@@ -816,17 +816,17 @@ public final class BundleProvider extends DefaultHandler {
 					info.setBundleSymbolicName(e.bd.getName());
 				}
 				else if (!e.bd.getName().equals(info.getBundleSymbolicName())) {
-					print.e("!!! file name [" + e.bd.getName() + "-" + e.bd.getVersionAsString() + ".jar] differs from symbolic name [" + info.getBundleSymbolicName()
+					aprint.e("!!! file name [" + e.bd.getName() + "-" + e.bd.getVersionAsString() + ".jar] differs from symbolic name [" + info.getBundleSymbolicName()
 							+ "] in the Manifest.MF");
 
 				}
 				if (!has.contains(info.bundleSymbolicName) && info.isComplete()) {
 					has.add(info.bundleSymbolicName);
-					print.e("\nput(mappings,\"" + info.bundleSymbolicName + "\", new Info(\"" + info.groupId + "\", \"" + info.artifactId + "\"));");
+					aprint.e("\nput(mappings,\"" + info.bundleSymbolicName + "\", new Info(\"" + info.groupId + "\", \"" + info.artifactId + "\"));");
 
-					print.e("\n[" + info.bundleSymbolicName + "]");
-					print.e("groupId=" + info.getGroupId());
-					print.e("artifactId=" + info.getArtifactId());
+					aprint.e("\n[" + info.bundleSymbolicName + "]");
+					aprint.e("groupId=" + info.getGroupId());
+					aprint.e("artifactId=" + info.getArtifactId());
 
 					info.add(sct);
 				}
@@ -835,7 +835,7 @@ public final class BundleProvider extends DefaultHandler {
 				}
 			}
 			catch (Exception ex) {
-				print.e(e.bd.getName() + ":" + e.bd.getVersionAsString());
+				aprint.e(e.bd.getName() + ":" + e.bd.getVersionAsString());
 				ex.printStackTrace();
 			}
 		}
@@ -847,8 +847,8 @@ public final class BundleProvider extends DefaultHandler {
 			url = getBundleAsURL(e.bd, false, null);
 
 			if (url != null) {
-				print.e("// " + (url.toExternalForm()));
-				print.e("print.e(getInstance().getBundleAsURL(new BundleDefinition(\"" + e.bd.getName() + "\", \"" + e.bd.getVersion() + "\"),null,true));");
+				aprint.e("// " + (url.toExternalForm()));
+				aprint.e("print.e(getInstance().getBundleAsURL(new BundleDefinition(\"" + e.bd.getName() + "\", \"" + e.bd.getVersion() + "\"),null,true));");
 
 				getInstance().getBundleAsStream(new BundleDefinition(e.bd.getName(), e.bd.getVersion()));
 			}

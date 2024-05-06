@@ -4,7 +4,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 
-import lucee.print;
+import lucee.aprint;
 import lucee.commons.io.IOUtil;
 
 public class FileList {
@@ -16,7 +16,7 @@ public class FileList {
 			// (file.toString().endsWith(".cfm") || file.toString().endsWith(".cfc"))
 			if ((file.toString().endsWith(".cfm") || file.toString().endsWith(".cfc") || file.toString().endsWith(".js") || file.toString().endsWith(".css"))
 					&& file.toString().indexOf("/old_") == -1) {
-				if (file.getName().toLowerCase().startsWith("application.cf")) print.e(file);
+				if (file.getName().toLowerCase().startsWith("application.cf")) aprint.e(file);
 			}
 		}
 		else if (file.isDirectory()) {
@@ -41,7 +41,7 @@ public class FileList {
 					// if (str.indexOf("filenameArray[filenameArray.length-1].toLowerCase() != 'jpg'") != -1)
 					// print.e((++count) + " " + file);
 					// if (str.indexOf("emailDuplicateArtworkError") != -1) print.e((++count) + " " + file);
-					if (str.indexOf("Invalid image format") != -1) print.e((++count) + " " + file);
+					if (str.indexOf("Invalid image format") != -1) aprint.e((++count) + " " + file);
 				}
 				finally {
 					IOUtil.close(fis);

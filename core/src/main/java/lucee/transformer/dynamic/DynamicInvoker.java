@@ -20,7 +20,7 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 
-import lucee.print;
+import lucee.aprint;
 import lucee.commons.digest.HashUtil;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.Log;
@@ -402,15 +402,15 @@ public class DynamicInvoker {
 		ArrayList arr = new ArrayList<>();
 
 		Object sadas1 = e.invokeInstanceMethod(sb, "append", new Object[] { "sss" });
-		print.e(sadas1);
+		aprint.e(sadas1);
 
 		// java.util.HashMap.EntrySet
 		Thread.getAllStackTraces().entrySet().iterator();
 		Object sadasd = e.invokeInstanceMethod(Thread.getAllStackTraces().entrySet(), "iterator", new Object[] {});
 		// System.exit(0);
 		String str = new String("Susi exclusive");
-		print.e(str);
-		print.e(e.invokeConstructor(String.class, new Object[] { "Susi exclusive" }));
+		aprint.e(str);
+		aprint.e(e.invokeConstructor(String.class, new Object[] { "Susi exclusive" }));
 
 		// System.exit(0);
 
@@ -423,10 +423,10 @@ public class DynamicInvoker {
 			Object reflection = tz.getID();
 			Object dynamic = e.invokeInstanceMethod(tz, "getID", new Object[] {});
 			if (!reflection.equals(dynamic)) {
-				print.e("direct:");
-				print.e(reflection);
-				print.e("dynamic:");
-				print.e(dynamic);
+				aprint.e("direct:");
+				aprint.e(reflection);
+				aprint.e("dynamic:");
+				aprint.e(dynamic);
 			}
 		}
 
@@ -435,10 +435,10 @@ public class DynamicInvoker {
 			Object reflection = t.test(134);
 			Object dynamic = e.invokeInstanceMethod(t, "test", new Object[] { 134D });
 			if (!reflection.equals(dynamic)) {
-				print.e("direct:");
-				print.e(reflection);
-				print.e("dynamic:");
-				print.e(dynamic);
+				aprint.e("direct:");
+				aprint.e(reflection);
+				aprint.e("dynamic:");
+				aprint.e(dynamic);
 			}
 		}
 
@@ -447,31 +447,31 @@ public class DynamicInvoker {
 			Object reflection = t.test(134);
 			Object dynamic = e.invokeInstanceMethod(t, "test", new Object[] { 134D });
 			if (!reflection.equals(dynamic)) {
-				print.e("direct:");
-				print.e(reflection);
-				print.e("dynamic:");
-				print.e(dynamic);
+				aprint.e("direct:");
+				aprint.e(reflection);
+				aprint.e("dynamic:");
+				aprint.e(dynamic);
 			}
 		}
 
-		print.e(t.complete("", 1, null));
-		print.e(e.invokeInstanceMethod(t, "complete", new Object[] { "", i, null }));
-		print.e(e.invokeInstanceMethod(t, "complete", new Object[] { "", bd, null }));
+		aprint.e(t.complete("", 1, null));
+		aprint.e(e.invokeInstanceMethod(t, "complete", new Object[] { "", i, null }));
+		aprint.e(e.invokeInstanceMethod(t, "complete", new Object[] { "", bd, null }));
 
-		print.e(t.testb(true, true));
-		print.e(e.invokeInstanceMethod(t, "testb", new Object[] { null, true }));
+		aprint.e(t.testb(true, true));
+		aprint.e(e.invokeInstanceMethod(t, "testb", new Object[] { null, true }));
 
-		print.e(t.testStr(1, "string", 1L));
-		print.e(e.invokeInstanceMethod(t, "testStr", new Object[] { "1", 1, Double.valueOf(1D) }));
+		aprint.e(t.testStr(1, "string", 1L));
+		aprint.e(e.invokeInstanceMethod(t, "testStr", new Object[] { "1", 1, Double.valueOf(1D) }));
 
-		print.e(e.invokeInstanceMethod(t, "test", new Object[] { "1" }));
-		print.e(e.invokeInstanceMethod(t, "test", new Object[] { 1D }));
+		aprint.e(e.invokeInstanceMethod(t, "test", new Object[] { "1" }));
+		aprint.e(e.invokeInstanceMethod(t, "test", new Object[] { 1D }));
 
-		print.e(e.invokeInstanceMethod(new SystemOut(), "setOut", new Object[] { null }));
+		aprint.e(e.invokeInstanceMethod(new SystemOut(), "setOut", new Object[] { null }));
 		System.setProperty("a.b.c", "- value -");
-		print.e(e.invokeInstanceMethod(sb, "toSTring", new Object[] {}));
-		print.e(e.invokeStaticMethod(SystemUtil.class, "getSystemPropOrEnvVar", new Object[] { "a.b.c", "default-value" }));
-		print.e(e.invokeStaticMethod(ListUtil.class, "arrayToList", new Object[] { new String[] { "a", "b" }, "," }));
+		aprint.e(e.invokeInstanceMethod(sb, "toSTring", new Object[] {}));
+		aprint.e(e.invokeStaticMethod(SystemUtil.class, "getSystemPropOrEnvVar", new Object[] { "a.b.c", "default-value" }));
+		aprint.e(e.invokeStaticMethod(ListUtil.class, "arrayToList", new Object[] { new String[] { "a", "b" }, "," }));
 
 	}
 
