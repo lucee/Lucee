@@ -1132,7 +1132,7 @@ public final class Http extends BodyTagImpl {
 				if (e.t != null) {
 					if (!throwonerror) {
 						setUnknownHost(cfhttp, e.t);
-						logHttpRequest(pageContext, cfhttp, url, req.getMethod(), System.nanoTime() - start, false, null);
+						logHttpRequest(pageContext, cfhttp, url, req.getMethod(), System.nanoTime() - start, false, e.t);
 						return;
 					}
 					throw toPageException(e.t, rsp);
