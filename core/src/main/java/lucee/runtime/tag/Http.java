@@ -692,8 +692,6 @@ public final class Http extends BodyTagImpl {
 
 	@Override
 	public int doEndTag() throws PageException {
-
-		// because commons
 		try {
 			_doEndTag();
 			return EVAL_PAGE;
@@ -800,7 +798,7 @@ public final class Http extends BodyTagImpl {
 					CacheItem cacheItem = ((CacheHandlerPro) cacheHandler).get(pageContext, cacheId, cachedWithin);
 
 					if (cacheItem instanceof HTTPCacheItem) {
-						logHttpRequest(pageContext, ((HTTPCacheItem) cacheItem).getData(), url, getMethodAsVerb(method), System.nanoTime() - start, true);
+						logHttpRequest(pageContext, ((HTTPCacheItem) cacheItem).getData(), url, getMethodAsVerb(method), System.nanoTime() - start, true, null);
 						pageContext.setVariable(result, ((HTTPCacheItem) cacheItem).getData());
 						return;
 					}
@@ -810,7 +808,7 @@ public final class Http extends BodyTagImpl {
 					CacheItem cacheItem = cacheHandler.get(pageContext, cacheId);
 
 					if (cacheItem instanceof HTTPCacheItem) {
-						logHttpRequest(pageContext, ((HTTPCacheItem) cacheItem).getData(), url, getMethodAsVerb(method), System.nanoTime() - start, true);
+						logHttpRequest(pageContext, ((HTTPCacheItem) cacheItem).getData(), url, getMethodAsVerb(method), System.nanoTime() - start, true, null);
 						pageContext.setVariable(result, ((HTTPCacheItem) cacheItem).getData());
 						return;
 					}
@@ -1114,7 +1112,7 @@ public final class Http extends BodyTagImpl {
 					if (!throwonerror) {
 						if (t instanceof SocketTimeoutException) setRequestTimeout(cfhttp);
 						else setUnknownHost(cfhttp, t);
-						logHttpRequest(pageContext, cfhttp, url, req.getMethod(), System.nanoTime() - start, false);
+						logHttpRequest(pageContext, cfhttp, url, req.getMethod(), System.nanoTime() - start, false, t);
 						return;
 					}
 					throw toPageException(t, rsp);
@@ -1134,7 +1132,7 @@ public final class Http extends BodyTagImpl {
 				if (e.t != null) {
 					if (!throwonerror) {
 						setUnknownHost(cfhttp, e.t);
-						logHttpRequest(pageContext, cfhttp, url, req.getMethod(), System.nanoTime() - start, false);
+						logHttpRequest(pageContext, cfhttp, url, req.getMethod(), System.nanoTime() - start, false, null);
 						return;
 					}
 					throw toPageException(e.t, rsp);
@@ -1146,7 +1144,7 @@ public final class Http extends BodyTagImpl {
 					req.abort();
 					if (throwonerror) throw new HTTPException("408 Request Time-out", "a timeout occurred in tag http", 408, "Time-out", rsp == null ? null : rsp.getURL());
 					setRequestTimeout(cfhttp);
-					logHttpRequest(pageContext, cfhttp, url, req.getMethod(), System.nanoTime() - start, false);
+					logHttpRequest(pageContext, cfhttp, url, req.getMethod(), System.nanoTime() - start, false, null);
 					return;
 					// throw new ApplicationException("timeout");
 				}
@@ -1360,7 +1358,7 @@ public final class Http extends BodyTagImpl {
 				cacheHandler.set(pageContext, cacheId, cachedWithin, new HTTPCacheItem(cfhttp, url, System.nanoTime() - start));
 			}
 
-			logHttpRequest(pageContext, cfhttp, url, req.getMethod(), System.nanoTime() - start, false);
+			logHttpRequest(pageContext, cfhttp, url, req.getMethod(), System.nanoTime() - start, false, null);
 		}
 		finally {
 			if (rsp != null) rsp.close();
@@ -1633,10 +1631,17 @@ public final class Http extends BodyTagImpl {
 		return URLEncoder.encode(str, CharsetUtil.toCharset(charset));
 	}
 
-	private static void logHttpRequest(PageContext pc, Struct data, String url, String method, long executionTimeNS, boolean cached) throws PageException {
-		Log log = ThreadLocalPageContext.getLog(pc, "application");
-		if (log != null) log.log(Log.LEVEL_TRACE, "cftrace", "httpRequest [" + method + "] to [" + url + "], returned [" + data.get(STATUSCODE) + "] in "
-				+ (executionTimeNS / 1000000) + "ms, " + (cached ? "(cached response)" : "") + " at " + CallStackGet.call(pc, "text"));
+	private static void logHttpRequest(PageContext pc, Struct data, String url, String method, long executionTimeNS, boolean cached, Throwable t) throws PageException {
+		Log log = ThreadLocalPageContext.getLog(pc, "http");
+		if (log == null) log = ThreadLocalPageContext.getLog(pc, "application");
+		if (log != null) {
+			String msg = "httpRequest [" + method + "] to [" + url + "], returned [" + data.get(STATUSCODE) + "] in " + (executionTimeNS / 1000000) + "ms, "
+					+ (cached ? "(cached response)" : "") + " at " + CallStackGet.call(pc, "text");
+
+			if (t != null) log.error("cfhttp", msg, t);
+			else log.info("cfhttp", msg);
+
+		}
 	}
 
 	@Override

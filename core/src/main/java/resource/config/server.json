@@ -197,6 +197,18 @@
 			,"level":"error"
 			,"layout":"classic"
 		}
+		,"execute":{
+			"appender":"resource"
+			,"appenderArguments":"path:{lucee-config}/logs/execute.log"
+			,"level":"error"
+			,"layout":"classic"
+		}
+		,"http":{
+			"appender":"resource"
+			,"appenderArguments":"path:{lucee-config}/logs/http.log"
+			,"level":"error"
+			,"layout":"classic"
+		}
 	}
 	,"mappings":{
 		"/lucee/":{
