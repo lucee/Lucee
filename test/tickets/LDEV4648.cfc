@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" skip=true {
+component extends="org.lucee.cfml.test.LuceeTestCase" {
 	function run( testResults , testBox ) {
 		describe( title="Test case for non UTF-8 characters in LDEV-4648", body=function() {
 			it(title="checking URLDecode() function", body = function( currentSpec ) {
