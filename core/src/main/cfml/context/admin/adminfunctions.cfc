@@ -49,13 +49,7 @@
 		<cfif !StructKeyExists(session,"password"&request.adminType)>
 			<cfreturn false>
 		</cfif>
-		<cfset var smAction=(request.adminType != "web") ? "getDefaultSecurityManager" : "getSecurityManager">
-		<cfadmin 
-			action="#smAction#"
-			type="#request.adminType#"
-			password="#session["password"&request.adminType]#"
-			returnVariable="local.access">
-		<cfreturn (access.file eq "all")>
+		<cfreturn getApplicationSettings().security.file>
 	</cffunction>
 	
 	<cffunction name="getdata" returntype="any" output="no">

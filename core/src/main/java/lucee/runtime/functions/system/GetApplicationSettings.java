@@ -59,6 +59,8 @@ import lucee.runtime.net.proxy.ProxyData;
 import lucee.runtime.net.s3.Properties;
 import lucee.runtime.op.Caster;
 import lucee.runtime.orm.ORMConfiguration;
+import lucee.runtime.security.SecurityManager;
+import lucee.runtime.security.SecurityManagerImpl;
 import lucee.runtime.tag.listener.TagListener;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
@@ -417,6 +419,15 @@ public class GetApplicationSettings extends BIF {
 				}
 			}
 		}
+		
+		StructImpl secSct = new StructImpl(Struct.TYPE_LINKED);
+		SecurityManager sm = pc.getConfig().getSecurityManager();
+		short access = sm.getAccess(SecurityManager.TYPE_FILE);
+		boolean hasAccess = access == SecurityManager.VALUE_YES;
+		secSct.set(KeyConstants._file, hasAccess);
+		sct.put("security", secSct);
+		// TODO re-use of_fillSecData()_from admin.java / move to sm?
+
 		return sct;
 	}
 
