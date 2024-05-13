@@ -45,10 +45,26 @@
 		<cfset setdata('favorites', data) />
 	</cffunction>
 	
+	<cffunction name="canAccessContext" returntype="boolean">
+		<cfif !StructKeyExists(session,"password"&request.adminType)>
+			<cfreturn false>
+		</cfif>
+		<cfset var smAction=(request.adminType != "web") ? "getDefaultSecurityManager" : "getSecurityManager">
+		<cfadmin 
+			action="#smAction#"
+			type="#request.adminType#"
+			password="#session["password"&request.adminType]#"
+			returnVariable="local.access">
+		<cfreturn (access.file eq "all")>
+	</cffunction>
 	
 	<cffunction name="getdata" returntype="any" output="no">
 		<cfargument name="key" type="string" required="yes" />
 		<cfargument name="defaultvalue" type="any" required="no" default="" />
+		<cfif !canAccessContext()>
+			<!-- file systen access is restricted -->
+			<cfreturn arguments.defaultvalue />
+		</cfif>
 		<cfset var data = loadData() />
 		<cfif structKeyExists(data, arguments.key)>
 			<cfreturn data[arguments.key] />

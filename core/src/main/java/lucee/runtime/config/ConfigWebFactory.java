@@ -1251,6 +1251,8 @@ public final class ConfigWebFactory extends ConfigFactory {
 				log(config, log, t);
 			}
 		}
+		// temp directory should be always accessible, even when access is local
+		reses.add(config.getTempDirectory());
 		return reses.toArray(new Resource[reses.size()]);
 	}
 

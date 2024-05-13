@@ -234,7 +234,9 @@
 <cfset navigation = stText.MenuStruct[request.adminType]>
 
 <cfset plugins = []>
-<cfif structKeyExists(session, "password" & request.adminType)>
+<!--- plugins aren't accessible when file access is restricted to local --->
+<cfif structKeyExists(session, "password" & request.adminType) 
+		and application.adminfunctions.canAccessContext()>
 	<cftry>
 	<cfadmin action="getPluginDirectory"
 		type="#request.adminType#"

@@ -67,7 +67,7 @@
 					<td id="<cfif !hasNavigation>logintd<cfelse>contenttd</cfif>" class="lotd">
 						<div id="content">
 							 <div id="maintitle">
-								<cfif hasNavigation>
+								<cfif hasNavigation && application.adminfunctions.canAccessContext()>
 									<div id="logouts">
 									<a class="sprite tooltipMe logout" href="#request.self#?action=logout" title="Logout"></a>
 									</div>
