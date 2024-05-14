@@ -1,6 +1,6 @@
 /**
  * Copyright (c) 2014, the Railo Company Ltd.
- * Copyright (c) 2015, Lucee Assosication Switzerland
+ * Copyright (c) 2015, Lucee Association Switzerland
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -28,12 +28,11 @@ import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.GeneratorAdapter;
 import org.objectweb.asm.commons.Method;
 
+import lucee.runtime.functions.other.CreateUniqueId;
 import lucee.runtime.op.Elvis;
 import lucee.transformer.TransformerException;
 import lucee.transformer.bytecode.BytecodeContext;
 import lucee.transformer.bytecode.expression.ExpressionBase;
-import lucee.transformer.bytecode.expression.var.BIF;
-import lucee.transformer.bytecode.util.ASMConstants;
 import lucee.transformer.bytecode.util.ASMUtil;
 import lucee.transformer.bytecode.util.Types;
 import lucee.transformer.bytecode.visitor.ArrayVisitor;
@@ -41,7 +40,6 @@ import lucee.transformer.expression.Expression;
 import lucee.transformer.expression.literal.Literal;
 import lucee.transformer.expression.var.DataMember;
 import lucee.transformer.expression.var.Member;
-import lucee.transformer.expression.var.NamedMember;
 import lucee.transformer.expression.var.Variable;
 
 public final class OpElvis extends ExpressionBase {
@@ -54,52 +52,59 @@ public final class OpElvis extends ExpressionBase {
 	private Variable left;
 	private Expression right;
 
-	/**
-	 *
-	 * @see lucee.transformer.bytecode.expression.ExpressionBase#_writeOut(org.objectweb.asm.commons.GeneratorAdapter,
-	 *      int)
-	 */
 	@Override
 	public Type _writeOut(BytecodeContext bc, int mode) throws TransformerException {
 		if (ASMUtil.hasOnlyDataMembers(left)) return _writeOutPureDataMember(bc, mode);
 
-		Label notNull = new Label();
-		Label end = new Label();
-		Label labelMatch = new Label();
-		Label labelEnd = new Label();
-
+		String name = createRandom(bc);
 		GeneratorAdapter ga = bc.getAdapter();
-		if (checkFunction(bc)) {
-			ga.visitJumpInsn(Opcodes.IFNONNULL, labelMatch);
+		ga.loadThis(); // Load 'this' onto the stack
+		ga.loadArg(0);
+		ga.visitMethodInsn(Opcodes.INVOKEVIRTUAL, bc.getClassName(), name, "(Llucee/runtime/PageContext;)Ljava/lang/Object;");
 
-			ASMConstants.NULL(ga);
-			ga.goTo(labelEnd);
-		}
+		return Types.OBJECT;
+	}
 
-		// Label for test1()
-		ga.visitLabel(labelMatch);
+	private String createRandom(BytecodeContext parent) throws TransformerException {
+		String name = "el" + CreateUniqueId.invoke().toUpperCase() + Long.toString(System.currentTimeMillis(), Character.MAX_RADIX);
 
-		int l = ga.newLocal(Types.OBJECT);
+		Method m = new Method(name, Types.OBJECT, new Type[] { Types.PAGE_CONTEXT });
+		GeneratorAdapter ga = new GeneratorAdapter(Opcodes.ACC_PRIVATE + Opcodes.ACC_FINAL, m, null, new Type[] { Types.THROWABLE }, parent.getClassWriter());
+		BytecodeContext bc = new BytecodeContext(parent.getConstructor(), parent.getKeys(), parent, ga, m);
+
+		Label tryStart = new Label();
+		Label tryEnd = new Label();
+		Label catchBlock = new Label();
+		Label returnDefault = new Label();
+
+		ga.mark(tryStart);
+		// left
 		bc.visitLine(left.getStart());
 		left.writeOut(bc, MODE_REF);
 		bc.visitLine(left.getEnd());
 
-		// End label
-		ga.visitLabel(labelEnd);
-
 		ga.dup();
-		ga.storeLocal(l);
+		ga.visitJumpInsn(Opcodes.IFNULL, catchBlock);
+		// ga.loadLocal(localVal);
+		ga.returnValue();
+		ga.mark(tryEnd);
+		ga.goTo(returnDefault);
 
-		ga.visitJumpInsn(Opcodes.IFNONNULL, notNull);
+		ga.mark(catchBlock);
+		ga.pop();
+		ga.goTo(returnDefault);
+
+		ga.visitTryCatchBlock(tryStart, tryEnd, catchBlock, "java/lang/Exception");
+
+		ga.mark(returnDefault);
 		bc.visitLine(right.getStart());
 		right.writeOut(bc, MODE_REF);
 		bc.visitLine(right.getEnd());
-		ga.visitJumpInsn(Opcodes.GOTO, end);
-		ga.visitLabel(notNull);
-		ga.loadLocal(l);
-		ga.visitLabel(end);
+		ga.returnValue();
 
-		return Types.OBJECT;
+		ga.endMethod();
+
+		return name;
 	}
 
 	public Type _writeOutPureDataMember(BytecodeContext bc, int mode) throws TransformerException {
@@ -178,79 +183,6 @@ public final class OpElvis extends ExpressionBase {
 
 		return Types.OBJECT;
 
-	}
-
-	private boolean checkFunction(BytecodeContext bc) throws TransformerException {
-		GeneratorAdapter adapter = bc.getAdapter();
-
-		List<Member> members = left.getMembers();
-		int len = members.size();
-		// to array
-		Iterator<Member> it = members.iterator();
-
-		List<NamedMember> list = new ArrayList<NamedMember>();
-		Member m;
-		int index = 0;
-		while (it.hasNext()) {
-			m = it.next();
-			index++;
-			if (!(m instanceof NamedMember)) {
-				return false;// throw new TransformerException(bc, "The Elvis Operator is not compatible with the given
-								// expression type: [" + m.getClass().getName() + "]", getEnd());
-			}
-			// we only allow for this code that a function is at the end
-			if (index < len && !(m instanceof DataMember)) {
-				return false;
-			}
-			if (m instanceof BIF) {
-				return false;
-				// throw new TransformerException(bc, "Built-in function [" + ((BIF) m).getName() + "] cannot be
-				// used as the left operand in an Elvis operation.", getEnd());
-			}
-			list.add((NamedMember) m);
-		}
-		NamedMember[] arr = list.toArray(new NamedMember[members.size()]);
-
-		bc.visitLine(left.getStart());
-
-		// public static boolean call(PageContext pc , double scope,String[] varNames)
-		// pc
-		adapter.loadArg(0);
-		// scope
-		adapter.push((double) left.getScope());
-		// varNames
-
-		// all literal string?
-		boolean allLiteral = true;
-		for (int i = 0; i < arr.length; i++) {
-			if (!(arr[i].getName() instanceof Literal)) allLiteral = false;
-		}
-
-		ArrayVisitor av = new ArrayVisitor();
-		if (!allLiteral) {
-			// String Array
-			av.visitBegin(adapter, Types.STRING, arr.length);
-			for (int i = 0; i < arr.length; i++) {
-				av.visitBeginItem(adapter, i);
-				arr[i].getName().writeOut(bc, MODE_REF);
-				av.visitEndItem(adapter);
-			}
-		}
-		else {
-			// Collection.Key Array
-			av.visitBegin(adapter, Types.COLLECTION_KEY, arr.length);
-			for (int i = 0; i < arr.length; i++) {
-				av.visitBeginItem(adapter, i);
-				getFactory().registerKey(bc, arr[i].getName(), false);
-				av.visitEndItem(adapter);
-			}
-		}
-		av.visitEnd();
-
-		adapter.invokeStatic(ELVIS, allLiteral ? INVOKE_KEY : INVOKE_STR);
-
-		bc.visitLine(left.getEnd());
-		return true;
 	}
 
 	private OpElvis(Variable left, Expression right) {
