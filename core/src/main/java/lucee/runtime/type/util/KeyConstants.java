@@ -344,6 +344,7 @@ public class KeyConstants {
 	public static final Key _column = KeyImpl._const("column");
 	public static final Key _comment = KeyImpl._const("comment");
 	public static final Key _compareTo = KeyImpl._const("compareTo");
+	public static final Key _Component = KeyImpl._const("Component");
 	public static final Key _component = KeyImpl._const("component");
 	public static final Key _cond = KeyImpl._const("cond");
 	public static final Key _condition = KeyImpl._const("condition");
@@ -621,6 +622,7 @@ public class KeyConstants {
 	public static final Key _table = KeyImpl._const("table");
 	public static final Key _tagname = KeyImpl._const("tagname");
 	public static final Key _tc = KeyImpl._const("tc");
+	public static final Key _Template = KeyImpl._const("Template");
 	public static final Key _template = KeyImpl._const("template");
 	public static final Key _templates = KeyImpl._const("templates");
 	public static final Key _test = KeyImpl._const("test");
@@ -696,6 +698,7 @@ public class KeyConstants {
 	public static final Key _local = KeyImpl._const("local");
 	public static final Key _exceptions = KeyImpl._const("exceptions");
 	public static final Key _closure = KeyImpl._const("closure");
+	public static final Key _Function = KeyImpl._const("Function");
 	public static final Key _function = KeyImpl._const("function");
 	public static final Key _cgi = KeyImpl._const("cgi");
 	public static final Key _all = KeyImpl._const("all");

@@ -651,8 +651,9 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 						else rtn = udf.callWithNamedValues(pc, calledName, namedArgs, true);
 					}
 					catch (ExpressionException ee) {
-						throw ExceptionUtil.cause(
-								"failed to execute function [" + udf.getFunctionName() + "] from component [" + getPageSource().getDisplayPath() + " : " + getAbsName() + "]", ee);
+						ExceptionUtil.addContext(ee, udf);
+						ExceptionUtil.addContext(ee, this);
+						throw ee;
 					}
 					finally {
 						if (parent != null) pc.setVariablesScope(parent);
@@ -671,7 +672,9 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 					else rtn = udf.callWithNamedValues(pc, calledName, namedArgs, true);
 				}
 				catch (ExpressionException ee) {
-					throw ExceptionUtil.cause("failed to execute function [" + udf.getFunctionName() + "] from component [" + getPageSource().getDisplayPath() + "]", ee);
+					ExceptionUtil.addContext(ee, udf);
+					ExceptionUtil.addContext(ee, this);
+					throw ee;
 				}
 				finally {
 					if (parent != null) pc.setVariablesScope(parent);
@@ -695,7 +698,9 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 						else rtn = udf.callWithNamedValues(pc, calledName, namedArgs, true);
 					}
 					catch (ExpressionException ee) {
-						throw ExceptionUtil.cause("failed to execute function [" + udf.getFunctionName() + "] from component [" + getAbsName() + " : " + getAbsName() + "]", ee);
+						ExceptionUtil.addContext(ee, udf);
+						ExceptionUtil.addContext(ee, this);
+						throw ee;
 					}
 					finally {
 						if (parent != null) pc.setVariablesScope(parent);
@@ -711,7 +716,9 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 					else rtn = udf.callWithNamedValues(pc, calledName, namedArgs, true);
 				}
 				catch (ExpressionException ee) {
-					throw ExceptionUtil.cause("failed to execute function [" + udf.getFunctionName() + "] from component [" + getAbsName() + " : " + getAbsName() + "]", ee);
+					ExceptionUtil.addContext(ee, udf);
+					ExceptionUtil.addContext(ee, this);
+					throw ee;
 				}
 				finally {
 					if (parent != null) pc.setVariablesScope(parent);

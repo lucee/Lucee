@@ -1256,6 +1256,10 @@ public final class CFMLTransformer {
 	}
 
 	public static TemplateException setAddional(TemplateException te, TagLibTag tlt) {
+		PageSource ps = te.getPageSource();
+		if (ps != null) {
+			te.setAdditional(KeyConstants._Template, ps.getDisplayPath());
+		}
 		setAddional((PageExceptionImpl) te, tlt);
 		return te;
 	}
@@ -1341,6 +1345,7 @@ public final class CFMLTransformer {
 		if (opt.length() > 0) doc.append("\nOptional:\n").append(opt);
 
 		pe.setAdditional(KeyConstants._Documentation, doc);
+
 	}
 
 }

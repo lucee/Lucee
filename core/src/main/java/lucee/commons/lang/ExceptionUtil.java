@@ -31,6 +31,7 @@ import lucee.commons.io.SystemUtil.TemplateLine;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
+import lucee.runtime.ComponentImpl;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.PageSource;
@@ -43,6 +44,7 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageExceptionImpl;
 import lucee.runtime.exp.TemplateException;
 import lucee.runtime.type.Collection;
+import lucee.runtime.type.UDF;
 import lucee.runtime.type.util.CollectionUtil;
 import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.ListUtil;
@@ -319,6 +321,14 @@ public final class ExceptionUtil {
 		}
 		initCauseEL(pe, cause);
 		return pe;
+	}
+
+	public static void addContext(PageException pe, UDF udf) {
+		if (pe instanceof PageExceptionImpl) ((PageExceptionImpl) pe).setAdditional(KeyConstants._Function, udf.getFunctionName());
+	}
+
+	public static void addContext(PageException pe, ComponentImpl cfc) {
+		if (pe instanceof PageExceptionImpl) ((PageExceptionImpl) pe).setAdditional(KeyConstants._Component, cfc.getAbsName());
 	}
 
 }
