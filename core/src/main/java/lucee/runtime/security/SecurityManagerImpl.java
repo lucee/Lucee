@@ -322,12 +322,12 @@ public final class SecurityManagerImpl implements Cloneable, SecurityManager {
 		if (res == null || !(res.getResourceProvider() instanceof FileResourceProvider)) {
 			return;
 		}
-		cw = (ConfigWeb) ThreadLocalPageContext.getConfig(cw);
-
-		Password serverPassword = PasswordImpl.passwordToCompare(cw, true, strServerPassword);
-
 		// All
 		if (getAccess(TYPE_FILE) == VALUE_ALL) return;
+
+		cw = (ConfigWeb) ThreadLocalPageContext.getConfig(cw);
+		Password serverPassword = PasswordImpl.passwordToCompare(cw, true, strServerPassword);
+
 		// Local
 		if (getAccess(TYPE_FILE) == VALUE_LOCAL) {
 			res = ResourceUtil.getCanonicalResourceEL(res);
@@ -341,7 +341,7 @@ public final class SecurityManagerImpl implements Cloneable, SecurityManager {
 				}
 			}
 			if (isValid(cw, serverPassword) || isAdminContext()) return;
-			throw new SecurityException(createExceptionMessage(res, true), "access is prohibited by security manager");
+			throw new SecurityException(createExceptionMessage(res, true), "Access is prohibited by Security Manager");
 		}
 		// None
 		if (isValid(cw, serverPassword)) return;
@@ -356,7 +356,7 @@ public final class SecurityManagerImpl implements Cloneable, SecurityManager {
 		}
 
 		if (isAdminContext()) return;
-		throw new SecurityException(createExceptionMessage(res, false), "access is prohibited by security manager");
+		throw new SecurityException(createExceptionMessage(res, false), "Access is prohibited by Security Manager");
 	}
 
 	private boolean isAdminContext() {
@@ -382,7 +382,7 @@ public final class SecurityManagerImpl implements Cloneable, SecurityManager {
 			}
 		}
 
-		StringBuffer rtn = new StringBuffer("can't access [");
+		StringBuffer rtn = new StringBuffer("Can't access [");
 		rtn.append(res.getAbsolutePath());
 		rtn.append("]");
 		if (sb.length() > 0) {
