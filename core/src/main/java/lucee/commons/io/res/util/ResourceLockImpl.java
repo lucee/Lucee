@@ -36,7 +36,7 @@ import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.net.http.ReqRspUtil;
 
 public final class ResourceLockImpl implements ResourceLock {
-
+	// MUST LDEV-4568
 	private static final long serialVersionUID = 6888529579290798651L;
 
 	private long lockTimeout;
@@ -52,12 +52,11 @@ public final class ResourceLockImpl implements ResourceLock {
 
 	@Override
 	public void lock(Resource res) {
-		String path = getPath(res);
-
-		synchronized (token) {
-			_read(path);
-			resources.put(path, Thread.currentThread());
-		}
+		/*
+		 * String path = getPath(res);
+		 * 
+		 * synchronized (token) { _read(path); resources.put(path, Thread.currentThread()); }
+		 */
 	}
 
 	private String getPath(Resource res) {
@@ -66,21 +65,16 @@ public final class ResourceLockImpl implements ResourceLock {
 
 	@Override
 	public void unlock(Resource res) {
-		String path = getPath(res);
-		// if(path.endsWith(".dmg"))print.err("unlock:"+path);
-		synchronized (token) {
-			resources.remove(path);
-			token.notifyAll();
-		}
+		/*
+		 * String path = getPath(res); synchronized (token) { resources.remove(path); token.notifyAll(); }
+		 */
 	}
 
 	@Override
 	public void read(Resource res) {
-		String path = getPath(res);
-		synchronized (token) {
-			// print.ln(".......");
-			_read(path);
-		}
+		/*
+		 * String path = getPath(res); synchronized (token) { _read(path); }
+		 */
 	}
 
 	private void _read(String path) {

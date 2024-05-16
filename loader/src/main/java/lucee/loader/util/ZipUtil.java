@@ -86,6 +86,7 @@ public class ZipUtil {
 		try {
 			is.close();
 		}
-		catch (final Throwable t) {}
+		catch (final Throwable t) {
+		}
 	}
 }

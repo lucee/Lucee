@@ -76,7 +76,6 @@ import lucee.runtime.MappingImpl;
 import lucee.runtime.Page;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageSource;
-import lucee.runtime.PageSourceImpl;
 import lucee.runtime.cache.CacheConnection;
 import lucee.runtime.cache.ram.RamCache;
 import lucee.runtime.cache.tag.CacheHandler;
@@ -84,7 +83,9 @@ import lucee.runtime.cfx.CFXTagPool;
 import lucee.runtime.cfx.customtag.CFXTagPoolImpl;
 import lucee.runtime.component.ImportDefintion;
 import lucee.runtime.component.ImportDefintionImpl;
+import lucee.runtime.config.ConfigWebFactory.Path;
 import lucee.runtime.config.ConfigWebUtil.CacheElement;
+import lucee.runtime.config.gateway.GatewayMap;
 import lucee.runtime.customtag.InitFile;
 import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.db.DataSource;
@@ -109,8 +110,6 @@ import lucee.runtime.extension.ExtensionProvider;
 import lucee.runtime.extension.RHExtension;
 import lucee.runtime.extension.RHExtensionProvider;
 import lucee.runtime.functions.other.CreateUniqueId;
-import lucee.runtime.functions.system.ContractPath;
-import lucee.runtime.gateway.GatewayEntry;
 import lucee.runtime.listener.AppListenerUtil;
 import lucee.runtime.listener.ApplicationContext;
 import lucee.runtime.listener.ApplicationListener;
@@ -146,6 +145,7 @@ import lucee.runtime.type.dt.TimeSpan;
 import lucee.runtime.type.dt.TimeSpanImpl;
 import lucee.runtime.type.scope.ClusterNotSupported;
 import lucee.runtime.type.scope.Undefined;
+import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.video.VideoExecuterNotSupported;
 import lucee.transformer.library.function.FunctionLib;
@@ -209,6 +209,8 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 
 	private short type = SCOPE_STANDARD;
 	private boolean _allowImplicidQueryCall = true;
+	private boolean _limitEvaluation = false;
+
 	private boolean _mergeFormAndURL = false;
 
 	private Map<String, LoggerAndSourceData> loggers = new HashMap<String, LoggerAndSourceData>();
@@ -269,8 +271,11 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	protected Password password;
 	private String salt;
 
+	private Mapping[] uncheckedMappings = null;
 	private Mapping[] mappings = new Mapping[0];
+	private Mapping[] uncheckedCustomTagMappings = null;
 	private Mapping[] customTagMappings = new Mapping[0];
+	private Mapping[] uncheckedComponentMappings = null;
 	private Mapping[] componentMappings = new Mapping[0];
 
 	private SchedulerImpl scheduler;
@@ -354,6 +359,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	private RHExtensionProvider[] rhextensionProviders = Constants.RH_EXTENSION_PROVIDERS;
 
 	private RHExtension[] rhextensions = RHEXTENSIONS_EMPTY;
+	private String extensionsMD5;
 	private boolean allowRealPath = true;
 
 	private DumpWriterEntry[] dmpWriterEntries;
@@ -419,6 +425,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 
 	private boolean preciseMath = true;
 	private static Object token = new Object();
+	private String mainLoggerName;
 
 	/**
 	 * @return the allowURLRequestTimeout
@@ -451,7 +458,11 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 		clearCTCache();
 		clearComponentCache();
 		clearApplicationCache();
-		// clearComponentMetadata();
+		clearLoggers(null);
+		clearComponentMetadata();
+		clearResourceProviders();
+		baseComponentPageSourceCFML = null;
+		baseComponentPageSourceLucee = null;
 	}
 
 	@Override
@@ -479,7 +490,8 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 		return configFileLastModified;
 	}
 
-	protected void setLastModified() {
+	@Override
+	public void setLastModified() {
 		this.configFileLastModified = configFile.lastModified();
 	}
 
@@ -523,11 +535,23 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	@Override
 	public FunctionLib getCombinedFLDs(int dialect) {
 		if (dialect == CFMLEngine.DIALECT_CFML) {
-			if (combinedCFMLFLDs == null) combinedCFMLFLDs = FunctionLibFactory.combineFLDs(cfmlFlds);
+			if (combinedCFMLFLDs == null) {
+				synchronized (SystemUtil.createToken("combine", "cfmlfld")) {
+					if (combinedCFMLFLDs == null) {
+						combinedCFMLFLDs = FunctionLibFactory.combineFLDs(cfmlFlds);
+					}
+				}
+			}
 			return combinedCFMLFLDs;
 		}
 
-		if (combinedLuceeFLDs == null) combinedLuceeFLDs = FunctionLibFactory.combineFLDs(luceeFlds);
+		if (combinedLuceeFLDs == null) {
+			synchronized (SystemUtil.createToken("combine", "luceefld")) {
+				if (combinedLuceeFLDs == null) {
+					combinedLuceeFLDs = FunctionLibFactory.combineFLDs(luceeFlds);
+				}
+			}
+		}
 		return combinedLuceeFLDs;
 	}
 
@@ -549,6 +573,11 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	@Override
 	public boolean allowImplicidQueryCall() {
 		return _allowImplicidQueryCall;
+	}
+
+	@Override
+	public boolean limitEvaluation() {
+		return _limitEvaluation;
 	}
 
 	@Override
@@ -729,6 +758,15 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	 */
 	@Override
 	public Scheduler getScheduler() {
+		// TODO make sure that there is always a scheduler
+
+		if (scheduler == null) {
+			try {
+				return new SchedulerImpl(ConfigWebUtil.getEngine(this), this, new ArrayImpl());
+			}
+			catch (PageException e) {
+			}
+		}
 		return scheduler;
 	}
 
@@ -759,6 +797,49 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	@Override
 	public Mapping[] getMappings() {
 		return mappings;
+	}
+
+	protected void setMappings(Mapping[] mappings) {
+		this.mappings = initMappings(this.uncheckedMappings = ConfigWebUtil.sort(mappings));
+	}
+
+	@Override
+	public Mapping[] getCustomTagMappings() {
+		return customTagMappings;
+	}
+
+	protected void setCustomTagMappings(Mapping[] customTagMappings) {
+		this.customTagMappings = initMappings(this.uncheckedCustomTagMappings = customTagMappings);
+	}
+
+	@Override
+	public Mapping[] getComponentMappings() {
+		return componentMappings;
+	}
+
+	protected void setComponentMappings(Mapping[] componentMappings) {
+		this.componentMappings = initMappings(this.uncheckedComponentMappings = componentMappings);
+	}
+
+	public void checkMappings() {
+		mappings = initMappings(uncheckedMappings);
+		customTagMappings = initMappings(uncheckedCustomTagMappings);
+		componentMappings = initMappings(uncheckedComponentMappings);
+	}
+
+	private Mapping[] initMappings(Mapping[] mappings) {
+		if (mappings == null) return null;
+		List<Mapping> list = new ArrayList<Mapping>();
+		for (Mapping m: mappings) {
+			try {
+				m.check();
+				list.add(m);
+			}
+			catch (Exception e) {
+				LogUtil.log(this, "mappings", e);
+			}
+		}
+		return list.toArray(new Mapping[list.size()]);
 	}
 
 	@Override
@@ -807,8 +888,13 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 
 	public PageSource[] getPageSources(PageContext pc, Mapping[] appMappings, String realPath, boolean onlyTopLevel, boolean useSpecialMappings, boolean useDefaultMapping,
 			boolean useComponentMappings, boolean onlyFirstMatch) {
-
 		return ConfigWebUtil.getPageSources(pc, this, appMappings, realPath, onlyTopLevel, useSpecialMappings, useDefaultMapping, useComponentMappings, onlyFirstMatch);
+	}
+
+	@Override
+	public Resource[] getResources(PageContext pc, Mapping[] mappings, String realPath, boolean onlyTopLevel, boolean useSpecialMappings, boolean useDefaultMapping,
+			boolean useComponentMappings, boolean onlyFirstMatch) {
+		return ConfigWebUtil.getResources(pc, this, mappings, realPath, onlyTopLevel, useSpecialMappings, useDefaultMapping, useComponentMappings, onlyFirstMatch);
 	}
 
 	/**
@@ -964,20 +1050,21 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 		throw new RuntimeException("no core taglib found"); // this should never happen
 	}
 
-	protected void setTagDirectory(List<Resource> listTagDirectory) {
-		Iterator<Resource> it = listTagDirectory.iterator();
+	protected void setTagDirectory(List<Path> listTagDirectory) {
+		Iterator<Path> it = listTagDirectory.iterator();
 		int index = -1;
 		String mappingName;
-		Resource tagDirectory;
+		Path path;
 		Mapping m;
 		boolean isDefault;
 		while (it.hasNext()) {
-			tagDirectory = it.next();
+			path = it.next();
 			index++;
 			isDefault = index == 0;
 			mappingName = "/mapping-tag" + (isDefault ? "" : index) + "";
 
-			m = new MappingImpl(this, mappingName, tagDirectory.getAbsolutePath(), null, ConfigPro.INSPECT_NEVER, true, true, true, true, false, true, null, -1, -1);
+			m = new MappingImpl(this, mappingName, path.isValidDirectory() ? path.res.getAbsolutePath() : path.str, null, ConfigPro.INSPECT_NEVER, true, true, true, true, false,
+					true, null, -1, -1);
 			if (isDefault) defaultTagMapping = m;
 			tagMappings.put(mappingName, m);
 
@@ -985,9 +1072,8 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 			TagLib tll = getCoreTagLib(CFMLEngine.DIALECT_LUCEE);
 
 			// now overwrite with new data
-			if (tagDirectory.isDirectory()) {
-				String[] files = tagDirectory
-						.list(new ExtensionResourceFilter(getMode() == ConfigPro.MODE_STRICT ? Constants.getComponentExtensions() : Constants.getExtensions()));
+			if (path.res.isDirectory()) {
+				String[] files = path.res.list(new ExtensionResourceFilter(getMode() == ConfigPro.MODE_STRICT ? Constants.getComponentExtensions() : Constants.getExtensions()));
 				for (int i = 0; i < files.length; i++) {
 					if (tlc != null) createTag(tlc, files[i], mappingName);
 					if (tll != null) createTag(tll, files[i], mappingName);
@@ -1052,19 +1138,19 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 		tl.setTag(tlt);
 	}
 
-	protected void setFunctionDirectory(List<Resource> listFunctionDirectory) {
-		Iterator<Resource> it = listFunctionDirectory.iterator();
+	protected void setFunctionDirectory(List<Path> listFunctionDirectory) {
+		Iterator<Path> it = listFunctionDirectory.iterator();
 		int index = -1;
 		String mappingName;
-		Resource functionDirectory;
+		Path path;
 		boolean isDefault;
 		while (it.hasNext()) {
-			functionDirectory = it.next();
+			path = it.next();
 			index++;
 			isDefault = index == 0;
 			mappingName = "/mapping-function" + (isDefault ? "" : index) + "";
-			MappingImpl mapping = new MappingImpl(this, mappingName, functionDirectory.getAbsolutePath(), null, ConfigPro.INSPECT_NEVER, true, true, true, true, false, true, null,
-					-1, -1);
+			MappingImpl mapping = new MappingImpl(this, mappingName, (path.isValidDirectory() ? path.res.getAbsolutePath() : path.str), null, ConfigPro.INSPECT_NEVER, true, true,
+					true, true, false, true, null, -1, -1);
 			if (isDefault) defaultFunctionMapping = mapping;
 			this.functionMappings.put(mappingName, mapping);
 
@@ -1072,8 +1158,8 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 			FunctionLib fll = luceeFlds[luceeFlds.length - 1];
 
 			// now overwrite with new data
-			if (functionDirectory.isDirectory()) {
-				String[] files = functionDirectory.list(new ExtensionResourceFilter(Constants.getTemplateExtensions()));
+			if (path.res != null && path.res.isDirectory()) {
+				String[] files = path.res.list(new ExtensionResourceFilter(Constants.getTemplateExtensions()));
 
 				for (String file: files) {
 					if (flc != null) createFunction(flc, file, mappingName);
@@ -1213,6 +1299,10 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	 */
 	protected void setAllowImplicidQueryCall(boolean _allowImplicidQueryCall) {
 		this._allowImplicidQueryCall = _allowImplicidQueryCall;
+	}
+
+	protected void setLimitEvaluation(boolean _limitEvaluation) {
+		this._limitEvaluation = _limitEvaluation;
 	}
 
 	/**
@@ -1464,29 +1554,10 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	}
 
 	/**
-	 * @param mappings The mappings to set.
-	 */
-	protected void setMappings(Mapping[] mappings) {
-		this.mappings = ConfigWebUtil.sort(mappings);
-	}
-
-	/**
 	 * @param datasources The datasources to set
 	 */
 	protected void setDataSources(Map<String, DataSource> datasources) {
 		this.datasources = datasources;
-	}
-
-	/**
-	 * @param customTagMappings The customTagMapping to set.
-	 */
-	protected void setCustomTagMappings(Mapping[] customTagMappings) {
-		this.customTagMappings = customTagMappings;
-	}
-
-	@Override
-	public Mapping[] getCustomTagMappings() {
-		return customTagMappings;
 	}
 
 	/**
@@ -1560,25 +1631,99 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	 */
 	@Override
 	public PageSource getBaseComponentPageSource(int dialect) {
-		return getBaseComponentPageSource(dialect, ThreadLocalPageContext.get());
+		return getBaseComponentPageSource(dialect, ThreadLocalPageContext.get(), false);
 	}
 
 	@Override
-	public PageSource getBaseComponentPageSource(int dialect, PageContext pc) {
-		PageSource base = dialect == CFMLEngine.DIALECT_CFML ? baseComponentPageSourceCFML : baseComponentPageSourceLucee;
+	public PageSource getBaseComponentPageSource(int dialect, PageContext pc, boolean force) {
+		PageSource base = force ? null : (dialect == CFMLEngine.DIALECT_CFML ? baseComponentPageSourceCFML : baseComponentPageSourceLucee);
 
 		if (base == null) {
-			base = PageSourceImpl.best(getPageSources(pc, null, getBaseComponentTemplate(dialect), false, false, true));
-			if (!base.exists()) {
-				String baseTemplate = getBaseComponentTemplate(dialect);
-				String mod = ContractPath.call(pc, baseTemplate, false);
-				if (!mod.equals(baseTemplate)) {
-					base = PageSourceImpl.best(getPageSources(pc, null, mod, false, false, true));
+			synchronized (SystemUtil.createToken("dialect", "" + dialect)) {
+				base = force ? null : (dialect == CFMLEngine.DIALECT_CFML ? baseComponentPageSourceCFML : baseComponentPageSourceLucee);
+				if (base == null) {
 
+					// package
+					ImportDefintion di = getComponentDefaultImport();
+					String pack = di == null ? null : di.getPackageAsPath();
+					if (StringUtil.isEmpty(pack, true)) pack = "";
+					else if (!pack.endsWith("/")) pack += "";
+					// name
+					String componentName = getBaseComponentTemplate(dialect);
+
+					Mapping[] mappigs = getComponentMappings();
+					if (!ArrayUtil.isEmpty(mappigs)) {
+						PageSource ps;
+						outer: do {
+							for (Mapping m: mappigs) {
+								ps = m.getPageSource(pack + componentName);
+								if (ps.exists()) {
+									base = ps;
+									break outer;
+								}
+							}
+							for (Mapping m: mappigs) {
+								ps = m.getPageSource(componentName);
+								if (ps.exists()) {
+									base = ps;
+									break outer;
+								}
+							}
+							for (Mapping m: mappigs) {
+								ps = m.getPageSource("org/lucee/cfml/" + componentName);
+								if (ps.exists()) {
+									base = ps;
+									break outer;
+								}
+							}
+						}
+						while (false);
+					}
+					if (base == null) {
+						StringBuilder detail;
+						if (ArrayUtil.isEmpty(mappigs)) {
+							detail = new StringBuilder("There are no components mappings available!");
+						}
+						else {
+							detail = new StringBuilder();
+							for (Mapping m: mappigs) {
+								if (detail.length() > 0) detail.append(", ");
+								else detail.append("The following component mappings are available [");
+
+								Resource p = m.getPhysical();
+								String physical = m.getStrPhysical();
+								if (p != null) {
+									try {
+										physical = p.getCanonicalPath() + " (" + m.getStrPhysical() + ")";
+									}
+									catch (IOException e) {
+									}
+								}
+
+								Resource a = m.getArchive();
+								String archive = m.getStrArchive();
+								if (p != null) {
+									try {
+										archive = a.getCanonicalPath() + " (" + m.getStrArchive() + ")";
+									}
+									catch (IOException e) {
+									}
+								}
+
+								detail.append(physical).append(':').append(archive);
+							}
+							detail.append("]");
+						}
+						LogUtil.log(Log.LEVEL_ERROR, "component",
+								"could not load the base component Component, it was not found in any of the component mappings." + detail.toString());
+
+					}
+					else {
+						if (dialect == CFMLEngine.DIALECT_CFML) this.baseComponentPageSourceCFML = base;
+						else this.baseComponentPageSourceLucee = base;
+					}
 				}
 			}
-			if (dialect == CFMLEngine.DIALECT_CFML) this.baseComponentPageSourceCFML = base;
-			else this.baseComponentPageSourceLucee = base;
 		}
 		return base;
 	}
@@ -2161,7 +2306,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 					if (!dir.exists()) {
 						ResourceUtil.createDirectoryEL(dir, true);
 					}
-					rpcClassLoaders.put(key, rpccl = new PhysicalClassLoader(this, dir, parents != null && parents.length == 0 ? null : parents, false));
+					rpcClassLoaders.put(key, rpccl = new PhysicalClassLoader(this, dir, parents != null && parents.length == 0 ? null : parents, false, null));
 				}
 			}
 		}
@@ -2338,9 +2483,16 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 				pool = pools.get(id);
 				if (pool == null) {// TODO add config but from where?
 					DataSourcePro dsp = (DataSourcePro) ds;
+					// MUST merge ConnectionLimit and MaxTotal
+					int mt = 0;
+					if (dsp.getMaxTotal() > 0) mt = dsp.getMaxTotal();
+					else {
+						mt = dsp.getConnectionLimit();
+						if (mt <= 0) mt = Integer.MAX_VALUE;
+					}
 
 					pool = new DatasourceConnPool(this, ds, user, pass, "datasource",
-							DatasourceConnPool.createPoolConfig(null, null, null, dsp.getMinIdle(), dsp.getMaxIdle(), dsp.getMaxTotal(), 0, 0, 0, 0, 0, null));
+							DatasourceConnPool.createPoolConfig(null, null, null, dsp.getMinIdle(), dsp.getMaxIdle(), mt, 0, 0, 0, 0, 0, null));
 					pools.put(id, pool);
 				}
 			}
@@ -2503,7 +2655,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	@Override
 	public Resource getRemoteClientDirectory() {
 		if (remoteClientDirectory == null) {
-			return ConfigWebUtil.getFile(getRootDirectory(), "client-task", "client-task", getConfigDir(), FileUtil.TYPE_DIR, this);
+			return ConfigWebUtil.getFile(getRootDirectory(), "client-task", "client-task", getConfigDir(), FileUtil.TYPE_DIR, ResourceUtil.LEVEL_GRAND_PARENT_FILE, this);
 		}
 
 		return remoteClientDirectory;
@@ -2601,8 +2753,13 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 		return rhextensions;
 	}
 
-	protected void setExtensions(RHExtension[] extensions) {
+	public String getExtensionsMD5() {
+		return extensionsMD5;
+	}
+
+	protected void setExtensions(RHExtension[] extensions, String md5) {
 		this.rhextensions = extensions;
+		this.extensionsMD5 = md5;
 	}
 
 	@Override
@@ -2779,6 +2936,8 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	}
 
 	protected void setCaches(Map<String, CacheConnection> caches) {
+		// TOD find a better way for this ethos
+
 		this.caches = caches;
 		Iterator<Entry<String, CacheConnection>> it = caches.entrySet().iterator();
 		Entry<String, CacheConnection> entry;
@@ -2814,6 +2973,36 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 				defaultCacheWebservice = cc;
 			}
 		}
+
+		// when default was set to null
+		if (StringUtil.isEmpty(cacheDefaultConnectionNameTemplate) && defaultCacheTemplate != null) {
+			defaultCacheTemplate = null;
+		}
+		else if (StringUtil.isEmpty(cacheDefaultConnectionNameFunction) && defaultCacheFunction != null) {
+			defaultCacheFunction = null;
+		}
+		else if (StringUtil.isEmpty(cacheDefaultConnectionNameQuery) && defaultCacheQuery != null) {
+			defaultCacheQuery = null;
+		}
+		else if (StringUtil.isEmpty(cacheDefaultConnectionNameResource) && defaultCacheResource != null) {
+			defaultCacheResource = null;
+		}
+		else if (StringUtil.isEmpty(cacheDefaultConnectionNameObject) && defaultCacheObject != null) {
+			defaultCacheObject = null;
+		}
+		else if (StringUtil.isEmpty(cacheDefaultConnectionNameInclude) && defaultCacheInclude != null) {
+			defaultCacheInclude = null;
+		}
+		else if (StringUtil.isEmpty(cacheDefaultConnectionNameHTTP) && defaultCacheHTTP != null) {
+			defaultCacheHTTP = null;
+		}
+		else if (StringUtil.isEmpty(cacheDefaultConnectionNameFile) && defaultCacheFile != null) {
+			defaultCacheFile = null;
+		}
+		else if (StringUtil.isEmpty(cacheDefaultConnectionNameWebservice) && defaultCacheWebservice != null) {
+			defaultCacheWebservice = null;
+		}
+
 	}
 
 	@Override
@@ -2953,18 +3142,6 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	@Override
 	public ClassDefinition<? extends ORMEngine> getORMEngineClassDefintion() {
 		return cdORMEngine;
-	}
-
-	@Override
-	public Mapping[] getComponentMappings() {
-		return componentMappings;
-	}
-
-	/**
-	 * @param componentMappings the componentMappings to set
-	 */
-	protected void setComponentMappings(Mapping[] componentMappings) {
-		this.componentMappings = componentMappings;
 	}
 
 	protected void setORMEngineClass(ClassDefinition<? extends ORMEngine> cd) {
@@ -3239,17 +3416,6 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	public void clearComponentMetadata() {
 		if (componentMetaData == null) return;
 		componentMetaData.clear();
-	}
-
-	public static class ComponentMetaData {
-
-		public final Struct meta;
-		public final long lastMod;
-
-		public ComponentMetaData(Struct meta, long lastMod) {
-			this.meta = meta;
-			this.lastMod = lastMod;
-		}
 	}
 
 	private DebugEntry[] debugEntries;
@@ -3727,6 +3893,8 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 
 	private Map<String, ClassDefinition> cacheDefinitions;
 
+	private GatewayMap gatewayEntries;
+
 	public void setCacheDefinitions(Map<String, ClassDefinition> caches) {
 		this.cacheDefinitions = caches;
 	}
@@ -3746,9 +3914,13 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 		return getConfigDir().getRealResource("security/antisamy-basic.xml");
 	}
 
-	protected abstract void setGatewayEntries(Map<String, GatewayEntry> gatewayEntries);
+	public void setGatewayEntries(GatewayMap gatewayEntries) {
+		this.gatewayEntries = gatewayEntries;
+	}
 
-	public abstract Map<String, GatewayEntry> getGatewayEntries();
+	public GatewayMap getGatewayEntries() {
+		return gatewayEntries;
+	}
 
 	private ClassDefinition wsHandlerCD;
 	protected WSHandler wsHandler = null;
@@ -3827,5 +3999,14 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 
 	protected void setPreciseMath(boolean preciseMath) {
 		this.preciseMath = preciseMath;
+	}
+
+	protected void setMainLogger(String mainLoggerName) {
+		if (!StringUtil.isEmpty(mainLoggerName, true)) this.mainLoggerName = mainLoggerName.trim();
+	}
+
+	@Override
+	public String getMainLogger() {
+		return this.mainLoggerName;
 	}
 }

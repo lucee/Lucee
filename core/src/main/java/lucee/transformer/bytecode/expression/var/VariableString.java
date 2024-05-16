@@ -48,7 +48,7 @@ public final class VariableString extends ExpressionBase implements ExprString {
 
 	@Override
 	public Type _writeOut(BytecodeContext bc, int mode) throws TransformerException {
-		return ((ExpressionBase) translateVariableToExprString(expr, false)).writeOutAsType(bc, mode);
+		return ((ExpressionBase) translateVariableToExprString(bc, expr, false)).writeOutAsType(bc, mode);
 	}
 
 	public static ExprString toExprString(Expression expr) {
@@ -56,21 +56,21 @@ public final class VariableString extends ExpressionBase implements ExprString {
 		return new VariableString(expr);
 	}
 
-	public static ExprString translateVariableToExprString(Expression expr, boolean rawIfPossible) throws TransformerException {
+	public static ExprString translateVariableToExprString(BytecodeContext bc, Expression expr, boolean rawIfPossible) throws TransformerException {
 		if (expr instanceof ExprString) return (ExprString) expr;
-		return expr.getFactory().createLitString(translateVariableToString(expr, rawIfPossible), expr.getStart(), expr.getEnd());
+		return expr.getFactory().createLitString(translateVariableToString(bc, expr, rawIfPossible), expr.getStart(), expr.getEnd());
 	}
 
-	private static String translateVariableToString(Expression expr, boolean rawIfPossible) throws TransformerException {
-		if (!(expr instanceof Variable)) throw new TransformerException("can't translate value to a string", expr.getStart());
-		return variableToString((Variable) expr, rawIfPossible);
+	private static String translateVariableToString(BytecodeContext bc, Expression expr, boolean rawIfPossible) throws TransformerException {
+		if (!(expr instanceof Variable)) throw new TransformerException(bc, "can't translate value to a string", expr.getStart());
+		return variableToString(bc, (Variable) expr, rawIfPossible);
 	}
 
-	public static String variableToString(Variable var, boolean rawIfPossible) throws TransformerException {
-		return lucee.runtime.type.util.ListUtil.arrayToList(variableToStringArray(var, rawIfPossible), ".");
+	public static String variableToString(BytecodeContext bc, Variable var, boolean rawIfPossible) throws TransformerException {
+		return lucee.runtime.type.util.ListUtil.arrayToList(variableToStringArray(bc, var, rawIfPossible), ".");
 	}
 
-	public static String[] variableToStringArray(Variable var, boolean rawIfPossible) throws TransformerException {
+	public static String[] variableToStringArray(BytecodeContext bc, Variable var, boolean rawIfPossible) throws TransformerException {
 		List<Member> members = var.getMembers();
 
 		List<String> arr = new ArrayList<String>();
@@ -80,7 +80,7 @@ public final class VariableString extends ExpressionBase implements ExprString {
 		Expression n;
 		while (it.hasNext()) {
 			Object o = it.next();
-			if (!(o instanceof DataMember)) throw new TransformerException("can't translate Variable to a String", var.getStart());
+			if (!(o instanceof DataMember)) throw new TransformerException(bc, "can't translate Variable to a String", var.getStart());
 			dm = (DataMember) o;
 			n = dm.getName();
 			if (n instanceof Literal) {
@@ -91,12 +91,12 @@ public final class VariableString extends ExpressionBase implements ExprString {
 					arr.add(((Literal) n).getString());
 				}
 			}
-			else throw new TransformerException("argument name must be a constant value", var.getStart());
+			else throw new TransformerException(bc, "argument name must be a constant value", var.getStart());
 		}
 		return arr.toArray(new String[arr.size()]);
 	}
 
-	public String castToString() throws TransformerException {
-		return translateVariableToString(expr, false);
+	public String castToString(BytecodeContext bc) throws TransformerException {
+		return translateVariableToString(bc, expr, false);
 	}
 }

@@ -8,7 +8,9 @@
 		param name="attributes.right"         default="";
 		param name="attributes.width"         default="780";
 
-		variables.stText = application.stText[session.lucee_admin_lang];
+		// make sure that any unavaliable language falls back to English
+		variables.stText = ( application.stText[ session.lucee_admin_lang ] )?:application.stText.en;
+
 		ad=request.adminType;
 		hasNavigation = len(attributes.navigation) GT 0;
 		home = request.adminType & ".cfm";
@@ -21,7 +23,7 @@
 <html>
 <head>
 	<title>#attributes.title# - Lucee #ucFirst(request.adminType)# Administrator</title>
-	<link rel="stylesheet" href="../res/css/admin6-#resNameAppendix#.css.cfm" type="text/css">
+	<link rel="stylesheet" href="../res/css/admin6.css.cfm" type="text/css">
 	<meta name="robots" content="noindex,nofollow">
 	<cfhtmlhead action="flush">
 </head>
@@ -115,9 +117,9 @@
 
 	<script src="../res/js/base.min.js.cfm" type="text/javascript"></script>
 	<script src="../res/js/jquery.modal.min.js.cfm" type="text/javascript"></script>
-	<script src="../res/js/jquery.blockUI-#resNameAppendix#.js.cfm" type="text/javascript"></script>
-	<script src="../res/js/admin-#resNameAppendix#.js.cfm" type="text/javascript"></script>
-	<script src="../res/js/util-#resNameAppendix#.min.js.cfm"></script>
+	<script src="../res/js/jquery.blockUI.js.cfm" type="text/javascript"></script>
+	<script src="../res/js/admin.js.cfm" type="text/javascript"></script>
+	<script src="../res/js/util.min.js.cfm"></script>
 	<cfinclude template="navigation.cfm">
 	<script>
 		$(function(){
@@ -130,11 +132,23 @@
 				}
 			);
 
-			$(".coding-tip code").click(
-				function(){
-					__LUCEE.util.selectText(this);
+			$(".coding-tip .copy").on("click", function(evt){
+				var $this = $(this);
+				var textToCopy = $this.parents(".coding-tip").find("code").text();
+				var textarea = document.createElement('textarea');
+				
+				textarea.value = textToCopy;
+				document.body.appendChild(textarea);
+				textarea.select();
+
+				if(document.execCommand('copy')) {
+					$this.text("copied!");
+					document.body.removeChild(textarea);
+					setTimeout(() => { $this.text("copy"); }, 3000);
+				} else {
+					console.log("error copying to clipboard")
 				}
-			).prop("title", "Click to select the text");
+			});
 		});
 	</script>
 

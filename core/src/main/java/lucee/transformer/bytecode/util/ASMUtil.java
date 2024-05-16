@@ -24,6 +24,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import javax.servlet.jsp.PageContext;
+
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.FieldVisitor;
@@ -48,6 +50,7 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
+import lucee.runtime.reflection.Reflector;
 import lucee.runtime.type.dt.TimeSpanImpl;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.ListUtil;
@@ -92,6 +95,7 @@ import lucee.transformer.expression.var.Variable;
 import lucee.transformer.library.function.FunctionLibFunction;
 
 public final class ASMUtil {
+	public static final int CLASSWRITER_ARG = ClassWriter.COMPUTE_MAXS;// | ClassWriter.COMPUTE_FRAMES
 
 	public static final short TYPE_ALL = 0;
 	public static final short TYPE_BOOLEAN = 1;
@@ -236,7 +240,7 @@ public final class ASMUtil {
 			name = "retry";
 		}
 
-		if (fc == null) throw new TransformerException(name + " must be inside a loop (for,while,do-while,<cfloop>,<cfwhile> ...)", stat.getStart());
+		if (fc == null) throw new TransformerException(bc, name + " must be inside a loop (for,while,do-while,<cfloop>,<cfwhile> ...)", stat.getStart());
 
 		GeneratorAdapter adapter = bc.getAdapter();
 
@@ -303,6 +307,15 @@ public final class ASMUtil {
 				tag = (Tag) parent;
 				if (tag.getFullname().equalsIgnoreCase(fullName)) return tag;
 			}
+		}
+	}
+
+	public static TagComponent getAncestorComponent(Statement stat) {
+		Statement parent = stat;
+		while (true) {
+			parent = parent.getParent();
+			if (parent == null) return null;
+			if (parent instanceof TagComponent) return (TagComponent) parent;
 		}
 	}
 
@@ -492,12 +505,12 @@ public final class ASMUtil {
 		}
 	}
 
-	public static Page getAncestorPage(Statement stat) throws TransformerException {
+	public static Page getAncestorPage(BytecodeContext bc, Statement stat) throws TransformerException {
 		Statement parent = stat;
 		while (true) {
 			parent = parent.getParent();
 			if (parent == null) {
-				throw new TransformerException("missing parent Statement of Statement", stat.getStart());
+				throw new TransformerException(bc, "missing parent Statement of Statement", stat.getStart());
 				// return null;
 			}
 			if (parent instanceof Page) return (Page) parent;
@@ -756,21 +769,21 @@ public final class ASMUtil {
 		return expr instanceof LitString && !((LitString) expr).fromBracket();
 	}
 
-	public static String toString(Expression exp, String defaultValue) {
+	public static String toString(BytecodeContext bc, Expression exp, String defaultValue) {
 		try {
-			return toString(exp);
+			return toString(bc, exp);
 		}
 		catch (TransformerException e) {
 			return defaultValue;
 		}
 	}
 
-	public static String toString(Expression exp) throws TransformerException {
+	public static String toString(BytecodeContext bc, Expression exp) throws TransformerException {
 		if (exp instanceof Variable) {
-			return toString(VariableString.toExprString(exp));
+			return toString(bc, VariableString.toExprString(exp));
 		}
 		else if (exp instanceof VariableString) {
-			return ((VariableString) exp).castToString();
+			return ((VariableString) exp).castToString(bc);
 		}
 		else if (exp instanceof Literal) {
 			return ((Literal) exp).toString();
@@ -778,14 +791,14 @@ public final class ASMUtil {
 		return null;
 	}
 
-	public static Boolean toBoolean(Attribute attr, Position start) throws TransformerException {
-		if (attr == null) throw new TransformerException("attribute does not exist", start);
+	public static Boolean toBoolean(BytecodeContext bc, Attribute attr, Position start) throws TransformerException {
+		if (attr == null) throw new TransformerException(bc, "attribute does not exist", start);
 
 		if (attr.getValue() instanceof Literal) {
 			Boolean b = ((Literal) attr.getValue()).getBoolean(null);
 			if (b != null) return b;
 		}
-		throw new TransformerException("attribute [" + attr.getName() + "] must be a constant boolean value", start);
+		throw new TransformerException(bc, "attribute [" + attr.getName() + "] must be a constant boolean value", start);
 
 	}
 
@@ -953,6 +966,15 @@ public final class ASMUtil {
 
 		}
 		return name.toString();
+	}
+
+	public static Literal cachedWithinValue(Expression val, Literal dv) {
+		try {
+			return cachedWithinValue(val);
+		}
+		catch (Exception e) {
+			return dv;
+		}
 	}
 
 	public static Literal cachedWithinValue(Expression val) throws EvaluatorException {
@@ -1134,6 +1156,16 @@ public final class ASMUtil {
 		adapter.newInstance(Types.ARRAY_IMPL);
 		adapter.dup();
 		adapter.invokeConstructor(Types.ARRAY_IMPL, Switch.INIT);
+	}
+
+	public static boolean isFirstArgumentPageContext(BytecodeContext bc) {
+		boolean firstIsPC = false;
+		Method m = bc.getMethod();
+		Type[] types;
+		if (m != null && (types = m.getArgumentTypes()) != null && types.length > 0) {
+			firstIsPC = Reflector.isInstaneOf(types[0].getClassName(), PageContext.class);
+		}
+		return firstIsPC;
 	}
 
 }

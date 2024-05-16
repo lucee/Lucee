@@ -110,6 +110,62 @@ public class VariableImpl extends ExpressionBase implements Variable {
 	private static final Method STATIC_TOUCH1 = new Method("staticTouch", Types.OBJECT, new Type[] { Types.OBJECT });
 	private static final Method INVOKE = new Method("invoke", Types.OBJECT, new Type[] { Types.PAGE_CONTEXT, Types.OBJECT_ARRAY, Types.STRING, Types.STRING, Types.STRING });
 
+	// GET
+	private final static Method US_GET_KEY1 = new Method("us", Types.OBJECT, new Type[] { Types.COLLECTION_KEY });
+	private final static Method US_GET_KEY2 = new Method("us", Types.OBJECT, new Type[] { Types.COLLECTION_KEY, Types.COLLECTION_KEY });
+	private final static Method US_GET_KEY3 = new Method("us", Types.OBJECT, new Type[] { Types.COLLECTION_KEY, Types.COLLECTION_KEY, Types.COLLECTION_KEY });
+	private final static Method US_GET_KEY4 = new Method("us", Types.OBJECT, new Type[] { Types.COLLECTION_KEY, Types.COLLECTION_KEY, Types.COLLECTION_KEY, Types.COLLECTION_KEY });
+	private final static Method US_GET_KEY5 = new Method("us", Types.OBJECT,
+			new Type[] { Types.COLLECTION_KEY, Types.COLLECTION_KEY, Types.COLLECTION_KEY, Types.COLLECTION_KEY, Types.COLLECTION_KEY });
+	private final static Method[] US_GET_KEYS = new Method[] { US_GET_KEY1, US_GET_KEY2, US_GET_KEY3, US_GET_KEY4, US_GET_KEY5 };
+
+	private final static Method VS_GET_KEY1 = new Method("vs", Types.OBJECT, new Type[] { Types.COLLECTION_KEY });
+	private final static Method VS_GET_KEY2 = new Method("vs", Types.OBJECT, new Type[] { Types.COLLECTION_KEY, Types.COLLECTION_KEY });
+	private final static Method VS_GET_KEY3 = new Method("vs", Types.OBJECT, new Type[] { Types.COLLECTION_KEY, Types.COLLECTION_KEY, Types.COLLECTION_KEY });
+	private final static Method VS_GET_KEY4 = new Method("vs", Types.OBJECT, new Type[] { Types.COLLECTION_KEY, Types.COLLECTION_KEY, Types.COLLECTION_KEY, Types.COLLECTION_KEY });
+	private final static Method[] VS_GET_KEYS = new Method[] { VS_GET_KEY1, VS_GET_KEY2, VS_GET_KEY3, VS_GET_KEY4 };
+
+	private final static Method LS_GET_KEY1 = new Method("ls", Types.OBJECT, new Type[] { Types.COLLECTION_KEY });
+	private final static Method LS_GET_KEY2 = new Method("ls", Types.OBJECT, new Type[] { Types.COLLECTION_KEY, Types.COLLECTION_KEY });
+	private final static Method LS_GET_KEY3 = new Method("ls", Types.OBJECT, new Type[] { Types.COLLECTION_KEY, Types.COLLECTION_KEY, Types.COLLECTION_KEY });
+	private final static Method LS_GET_KEY4 = new Method("ls", Types.OBJECT, new Type[] { Types.COLLECTION_KEY, Types.COLLECTION_KEY, Types.COLLECTION_KEY, Types.COLLECTION_KEY });
+	private final static Method[] LS_GET_KEYS = new Method[] { LS_GET_KEY1, LS_GET_KEY2, LS_GET_KEY3, LS_GET_KEY4 };
+
+	private final static Method[][] GET_KEYS = new Method[Scope.SCOPE_COUNT][4];
+
+	// GET COLUMN
+	private final static Method USC_GET_KEY2 = new Method("usc", Types.OBJECT, new Type[] { Types.COLLECTION_KEY, Types.COLLECTION_KEY });
+	private final static Method USC_GET_KEY3 = new Method("usc", Types.OBJECT, new Type[] { Types.COLLECTION_KEY, Types.COLLECTION_KEY, Types.COLLECTION_KEY });
+	private final static Method USC_GET_KEY4 = new Method("usc", Types.OBJECT,
+			new Type[] { Types.COLLECTION_KEY, Types.COLLECTION_KEY, Types.COLLECTION_KEY, Types.COLLECTION_KEY });
+	private final static Method USC_GET_KEY5 = new Method("usc", Types.OBJECT,
+			new Type[] { Types.COLLECTION_KEY, Types.COLLECTION_KEY, Types.COLLECTION_KEY, Types.COLLECTION_KEY, Types.COLLECTION_KEY });
+	private final static Method[] USC_GET_KEYS = new Method[] { US_GET_KEY1, USC_GET_KEY2, USC_GET_KEY3, USC_GET_KEY4, USC_GET_KEY5 };
+
+	private final static Method VSC_GET_KEY2 = new Method("vsc", Types.OBJECT, new Type[] { Types.COLLECTION_KEY, Types.COLLECTION_KEY });
+	private final static Method VSC_GET_KEY3 = new Method("vsc", Types.OBJECT, new Type[] { Types.COLLECTION_KEY, Types.COLLECTION_KEY, Types.COLLECTION_KEY });
+	private final static Method VSC_GET_KEY4 = new Method("vsc", Types.OBJECT,
+			new Type[] { Types.COLLECTION_KEY, Types.COLLECTION_KEY, Types.COLLECTION_KEY, Types.COLLECTION_KEY });
+	private final static Method[] VSC_GET_KEYS = new Method[] { VS_GET_KEY1, VSC_GET_KEY2, VSC_GET_KEY3, VSC_GET_KEY4 };
+
+	private final static Method LSC_GET_KEY2 = new Method("lsc", Types.OBJECT, new Type[] { Types.COLLECTION_KEY, Types.COLLECTION_KEY });
+	private final static Method LSC_GET_KEY3 = new Method("lsc", Types.OBJECT, new Type[] { Types.COLLECTION_KEY, Types.COLLECTION_KEY, Types.COLLECTION_KEY });
+	private final static Method LSC_GET_KEY4 = new Method("lsc", Types.OBJECT,
+			new Type[] { Types.COLLECTION_KEY, Types.COLLECTION_KEY, Types.COLLECTION_KEY, Types.COLLECTION_KEY });
+	private final static Method[] LSC_GET_KEYS = new Method[] { LS_GET_KEY1, LSC_GET_KEY2, LSC_GET_KEY3, LSC_GET_KEY4 };
+
+	private final static Method[][] GETC_KEYS = new Method[Scope.SCOPE_COUNT][4];
+
+	static {
+		GET_KEYS[Scope.SCOPE_VARIABLES] = VS_GET_KEYS;
+		GET_KEYS[Scope.SCOPE_LOCAL] = LS_GET_KEYS;
+		GET_KEYS[Scope.SCOPE_UNDEFINED] = US_GET_KEYS;
+
+		GETC_KEYS[Scope.SCOPE_VARIABLES] = VSC_GET_KEYS;
+		GETC_KEYS[Scope.SCOPE_LOCAL] = LSC_GET_KEYS;
+		GETC_KEYS[Scope.SCOPE_UNDEFINED] = USC_GET_KEYS;
+	}
+
 	private int scope = Scope.SCOPE_UNDEFINED;
 	List<Member> members = new ArrayList<Member>();
 	int countDM = 0;
@@ -184,15 +240,15 @@ public class VariableImpl extends ExpressionBase implements Variable {
 			return Types.toClass(writeOutCollectionAsType(c, mode));
 		}
 		catch (ClassException e) {
-			throw new TransformerException(e, null);
+			throw new TransformerException(c, e, null);
 		}
 	}
 
 	public final Type writeOutCollectionAsType(Context c, int mode) throws TransformerException {
 		BytecodeContext bc = (BytecodeContext) c;
-		ExpressionUtil.visitLine(bc, getStart());
+		bc.visitLine(getStart());
 		Type type = _writeOut(bc, mode, Boolean.TRUE);
-		ExpressionUtil.visitLine(bc, getEnd());
+		bc.visitLine(getEnd());
 		return type;
 	}
 
@@ -209,6 +265,66 @@ public class VariableImpl extends ExpressionBase implements Variable {
 
 		// count 0
 		if (count == 0) return _writeOutEmpty(bc);
+
+		boolean supported = false;
+
+		switch (scope) {
+		case Scope.SCOPE_UNDEFINED:
+			supported = true;
+			break;
+		case Scope.SCOPE_VARIABLES:
+			supported = true;
+			break;
+		case Scope.SCOPE_LOCAL:
+			supported = true;
+			break;
+		}
+
+		outer: while (count > 0 && supported && count <= GET_KEYS[scope].length) {
+			// check if rules aply
+			{
+				boolean last;
+				Member member;
+				for (int i = 0; i < count; i++) {
+					last = (i + 1) == count;
+					member = members.get(i);
+					if (!(member instanceof DataMember) || member.getSafeNavigated()) {
+						break outer;
+					}
+					//
+
+					ExprString name = ((DataMember) member).getName();
+					if (last && ASMUtil.isDotKey(name)) {
+						LitString ls = (LitString) name;
+						if (ls.getString().equalsIgnoreCase("RECORDCOUNT")) {
+							break outer;
+						}
+						else if (ls.getString().equalsIgnoreCase("CURRENTROW")) {
+							break outer;
+						}
+						else if (ls.getString().equalsIgnoreCase("COLUMNLIST")) {
+							break outer;
+						}
+					}
+
+				}
+			}
+			// load pc
+			adapter.loadArg(0);
+			adapter.checkCast(Types.PAGE_CONTEXT_IMPL);
+
+			// write keys
+			Member member;
+			for (int i = 0; i < count; i++) {
+				member = members.get(i);
+				getFactory().registerKey(bc, ((DataMember) member).getName(), false);
+			}
+
+			// call get function
+			adapter.invokeVirtual(Types.PAGE_CONTEXT_IMPL, asCollection(asCollection, true) ? GETC_KEYS[scope][count - 1] : GET_KEYS[scope][count - 1]);
+
+			return Types.OBJECT;
+		}
 
 		boolean doOnlyScope = scope == Scope.SCOPE_LOCAL;
 
@@ -375,7 +491,7 @@ public class VariableImpl extends ExpressionBase implements Variable {
 		catch (Exception e) {
 			LogUtil.log(VariableImpl.class.getName(), e);
 		}
-		Type rtnType = Types.toType(bif.getReturnType());
+		Type rtnType = Types.toType(bc, bif.getReturnType());
 		if (rtnType == Types.VOID) rtnType = Types.STRING;
 
 		// arguments
@@ -384,13 +500,13 @@ public class VariableImpl extends ExpressionBase implements Variable {
 		boolean core = bif.getFlf().isCore(); // MUST setting this to false need to work !!!
 
 		if (bif.getArgType() == FunctionLibFunction.ARG_FIX && !bifCD.isBundle() && core) {
-			if (isNamed(bif.getFlf().getName(), args)) {
+			if (isNamed(bc, bif.getFlf().getName(), args)) {
 				NamedArgument[] nargs = toNamedArguments(args);
 
 				String[] names = new String[nargs.length];
 				// get all names
 				for (int i = 0; i < nargs.length; i++) {
-					names[i] = getName(nargs[i].getName());
+					names[i] = getName(bc, nargs[i].getName());
 				}
 				ArrayList<FunctionLibFunctionArg> list = bif.getFlf().getArg();
 				Iterator<FunctionLibFunctionArg> it = list.iterator();
@@ -403,16 +519,16 @@ public class VariableImpl extends ExpressionBase implements Variable {
 				VT vt;
 				while (it.hasNext()) {
 					flfa = it.next();
-					vt = getMatchingValueAndType(bc.getFactory(), flfa, nargs, names, line);
+					vt = getMatchingValueAndType(bc, bc.getFactory(), flfa, nargs, names, line);
 					if (vt.index != -1) names[vt.index] = null;
-					argTypes[++index] = Types.toType(vt.type);
+					argTypes[++index] = Types.toType(bc, vt.type);
 					if (vt.value == null) ASMConstants.NULL(bc.getAdapter());
 					else vt.value.writeOut(bc, Types.isPrimitiveType(argTypes[index]) ? MODE_VALUE : MODE_REF);
 				}
 
 				for (int y = 0; y < names.length; y++) {
 					if (names[y] != null) {
-						TransformerException bce = new TransformerException("argument [" + names[y] + "] is not allowed for function [" + bif.getFlf().getName() + "]",
+						TransformerException bce = new TransformerException(bc, "argument [" + names[y] + "] is not allowed for function [" + bif.getFlf().getName() + "]",
 								args[y].getStart());
 						UDFUtil.addFunctionDoc(bce, bif.getFlf());
 						throw bce;
@@ -424,7 +540,7 @@ public class VariableImpl extends ExpressionBase implements Variable {
 				argTypes[0] = Types.PAGE_CONTEXT;
 
 				for (int y = 0; y < args.length; y++) {
-					argTypes[y + 1] = Types.toType(args[y].getStringType());
+					argTypes[y + 1] = Types.toType(bc, args[y].getStringType());
 					args[y].writeOutValue(bc, Types.isPrimitiveType(argTypes[y + 1]) ? MODE_VALUE : MODE_REF);
 				}
 				// if no method exists for the exact match of arguments, call the method with all arguments (when
@@ -444,7 +560,7 @@ public class VariableImpl extends ExpressionBase implements Variable {
 					VT def;
 					for (int i = argTypes.length; i < tmp.length; i++) {
 						flfa = _args.get(i - 1);
-						tmp[i] = Types.toType(flfa.getTypeAsString());
+						tmp[i] = Types.toType(bc, flfa.getTypeAsString());
 						def = getDefaultValue(bc.getFactory(), flfa);
 
 						if (def.value != null) def.value.writeOut(bc, Types.isPrimitiveType(tmp[i]) ? MODE_VALUE : MODE_REF);
@@ -459,9 +575,9 @@ public class VariableImpl extends ExpressionBase implements Variable {
 		else {
 			///////////////////////////////////////////////////////////////
 			if (bif.getArgType() == FunctionLibFunction.ARG_FIX) {
-				if (isNamed(bif.getFlf().getName(), args)) {
+				if (isNamed(bc, bif.getFlf().getName(), args)) {
 					NamedArgument[] nargs = toNamedArguments(args);
-					String[] names = getNames(nargs);
+					String[] names = getNames(bc, nargs);
 					ArrayList<FunctionLibFunctionArg> list = bif.getFlf().getArg();
 					Iterator<FunctionLibFunctionArg> it = list.iterator();
 					LinkedList<Argument> tmpArgs = new LinkedList<Argument>();
@@ -471,7 +587,7 @@ public class VariableImpl extends ExpressionBase implements Variable {
 					VT vt;
 					while (it.hasNext()) {
 						flfa = it.next();
-						vt = getMatchingValueAndType(bc.getFactory(), flfa, nargs, names, line);
+						vt = getMatchingValueAndType(bc, bc.getFactory(), flfa, nargs, names, line);
 						if (vt.index != -1) names[vt.index] = null;
 						if (vt.value == null) tmpArgs.add(new Argument(bif.getFactory().createNull(), "any")); // has to by any otherwise a caster is set
 						else tmpArgs.add(new Argument(vt.value, vt.type));
@@ -481,7 +597,7 @@ public class VariableImpl extends ExpressionBase implements Variable {
 
 					for (int y = 0; y < names.length; y++) {
 						if (names[y] != null) {
-							TransformerException bce = new TransformerException("argument [" + names[y] + "] is not allowed for function [" + bif.getFlf().getName() + "]",
+							TransformerException bce = new TransformerException(bc, "argument [" + names[y] + "] is not allowed for function [" + bif.getFlf().getName() + "]",
 									args[y].getStart());
 							UDFUtil.addFunctionDoc(bce, bif.getFlf());
 							throw bce;
@@ -716,7 +832,8 @@ public class VariableImpl extends ExpressionBase implements Variable {
 		return ignoredFirstMember;
 	}
 
-	private static VT getMatchingValueAndType(Factory factory, FunctionLibFunctionArg flfa, NamedArgument[] nargs, String[] names, Position line) throws TransformerException {
+	private static VT getMatchingValueAndType(BytecodeContext bc, Factory factory, FunctionLibFunctionArg flfa, NamedArgument[] nargs, String[] names, Position line)
+			throws TransformerException {
 		String flfan = flfa.getName();
 
 		// first search if an argument match
@@ -745,7 +862,7 @@ public class VariableImpl extends ExpressionBase implements Variable {
 		if (!flfa.getRequired()) {
 			return getDefaultValue(factory, flfa);
 		}
-		TransformerException be = new TransformerException("missing required argument [" + flfan + "] for function [" + flfa.getFunction().getName() + "]", line);
+		TransformerException be = new TransformerException(bc, "missing required argument [" + flfan + "] for function [" + flfa.getFunction().getName() + "]", line);
 		UDFUtil.addFunctionDoc(be, flfa.getFunction());
 		throw be;
 	}
@@ -761,16 +878,16 @@ public class VariableImpl extends ExpressionBase implements Variable {
 		return new VT(factory.toExpression(factory.createLitString(defaultValue), type), type, -1);
 	}
 
-	private static String getName(Expression expr) throws TransformerException {
-		String name = ASMUtil.toString(expr);
-		if (name == null) throw new TransformerException("cannot extract a string from an object of type [" + expr.getClass().getName() + "]", null);
+	private static String getName(BytecodeContext bc, Expression expr) throws TransformerException {
+		String name = ASMUtil.toString(bc, expr);
+		if (name == null) throw new TransformerException(bc, "cannot extract a string from an object of type [" + expr.getClass().getName() + "]", null);
 		return name;
 	}
 
-	private static String[] getNames(NamedArgument[] args) throws TransformerException {
+	private static String[] getNames(BytecodeContext bc, NamedArgument[] args) throws TransformerException {
 		String[] names = new String[args.length];
 		for (int i = 0; i < args.length; i++) {
-			names[i] = getName(args[i].getName());
+			names[i] = getName(bc, args[i].getName());
 		}
 		return names;
 	}
@@ -800,7 +917,7 @@ public class VariableImpl extends ExpressionBase implements Variable {
 	 * @return
 	 * @throws TransformerException
 	 */
-	private static boolean isNamed(String funcName, Argument[] args) throws TransformerException {
+	private static boolean isNamed(BytecodeContext bc, String funcName, Argument[] args) throws TransformerException {
 		if (ArrayUtil.isEmpty(args)) return false;
 		boolean named = false;
 		boolean unNamed = false;
@@ -808,7 +925,7 @@ public class VariableImpl extends ExpressionBase implements Variable {
 			if (args[i] instanceof NamedArgument) named = true;
 			else unNamed = true;
 			if (named && unNamed)
-				throw new TransformerException("Invalid argument for function [ " + funcName + " ], You can't mix named and unNamed arguments", args[i].getStart());
+				throw new TransformerException(bc, "Invalid argument for function [ " + funcName + " ], You can't mix named and unNamed arguments", args[i].getStart());
 		}
 		return named;
 	}

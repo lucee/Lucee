@@ -46,7 +46,6 @@ import lucee.transformer.bytecode.expression.type.LiteralStringArray;
 import lucee.transformer.bytecode.statement.FlowControlFinal;
 import lucee.transformer.bytecode.util.ASMConstants;
 import lucee.transformer.bytecode.util.ASMUtil;
-import lucee.transformer.bytecode.util.ExpressionUtil;
 import lucee.transformer.bytecode.util.Types;
 import lucee.transformer.bytecode.visitor.ArrayVisitor;
 import lucee.transformer.bytecode.visitor.OnFinally;
@@ -157,18 +156,18 @@ public final class TagHelper {
 			}
 			catch (Exception e) {
 				if (e instanceof TransformerException) throw (TransformerException) e;
-				throw new TransformerException(e, tag.getStart());
+				throw new TransformerException(bc, e, tag.getStart());
 			}
 		}
 		else {
-			currDoFinallyType = currType = getTagType(tag);
+			currDoFinallyType = currType = getTagType(bc, tag);
 
 		}
 
 		final int currLocal = adapter.newLocal(currType);
 		Label tagBegin = new Label();
 		Label tagEnd = new Label();
-		ExpressionUtil.visitLine(bc, tag.getStart());
+		bc.visitLine(tag.getStart());
 		// TODO adapter.visitLocalVariable("tag", "L"+currType.getInternalName()+";", null, tagBegin,
 		// tagEnd, currLocal);
 
@@ -398,7 +397,7 @@ public final class TagHelper {
 		}
 
 		adapter.visitLabel(tagEnd);
-		ExpressionUtil.visitLine(bc, tag.getEnd());
+		bc.visitLine(tag.getEnd());
 	}
 
 	private static void setAttributes(BytecodeContext bc, Tag tag, int currLocal, Type currType, boolean doDefault, boolean interf) throws TransformerException {
@@ -434,7 +433,7 @@ public final class TagHelper {
 
 				}
 				else {
-					Type type = CastOther.getType(attr.getType());
+					Type type = CastOther.getType(bc, attr.getType());
 					methodName = tag.getTagLibTag().getSetter(attr, type == null ? null : type.getClassName());
 					adapter.loadLocal(currLocal);
 
@@ -446,7 +445,7 @@ public final class TagHelper {
 	}
 
 	private static void writeNumberAsDouble(BytecodeContext bc, Attribute attr, int i) throws TransformerException {
-		Type type = CastOther.getType(attr.getType());
+		Type type = CastOther.getType(bc, attr.getType());
 		Expression expr = attr.getValue();
 		if (type.equals(Types.DOUBLE_VALUE) && !(attr.getValue() instanceof ExprNumber)) {
 			expr = CastNumber.toExprNumber(attr.getValue());
@@ -470,7 +469,7 @@ public final class TagHelper {
 		adapter.visitJumpInsn(Opcodes.IF_ICMPEQ, beginDoWhile);
 	}
 
-	private static Type getTagType(Tag tag) throws TransformerException {
+	private static Type getTagType(BytecodeContext bc, Tag tag) throws TransformerException {
 		TagLibTag tlt = tag.getTagLibTag();
 		try {
 			return Type.getType(tlt.getTagClassDefinition().getClazz());
@@ -478,7 +477,7 @@ public final class TagHelper {
 		}
 		catch (Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);
-			throw new TransformerException(t, tag.getStart());
+			throw new TransformerException(bc, t, tag.getStart());
 		}
 	}
 }

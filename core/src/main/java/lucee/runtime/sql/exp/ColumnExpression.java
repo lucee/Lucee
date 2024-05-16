@@ -4,17 +4,17 @@
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either 
+ * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public 
+ *
+ * You should have received a copy of the GNU Lesser General Public
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 package lucee.runtime.sql.exp;
 
@@ -36,6 +36,7 @@ public class ColumnExpression extends ExpressionSupport implements Column {
 	private boolean isParam;
 	private int columnIndex;
 	private QueryColumn col;
+	private boolean cacheColumn;
 
 	@Override
 	public String toString() {
@@ -43,12 +44,17 @@ public class ColumnExpression extends ExpressionSupport implements Column {
 
 	}
 
-	public ColumnExpression(String value, int columnIndex) {
+	public ColumnExpression(String value, int columnIndex, boolean cacheColumn) {
 		this.column = value;
+		this.cacheColumn = cacheColumn;
 		this.columnIndex = columnIndex;
 		if (value.equals("?")) {
 			this.isParam = true;
 		}
+	}
+
+	public ColumnExpression(String value, int columnIndex) {
+		this(value, columnIndex, true);
 	}
 
 	public void setSub(String sub) {
@@ -125,17 +131,55 @@ public class ColumnExpression extends ExpressionSupport implements Column {
 	// MUST handle null correctly
 	@Override
 	public Object getValue(PageContext pc, Query qr, int row) throws PageException {
-		if (col == null) col = qr.getColumn(getColumn());
-		return QueryUtil.getValue(pc, col, row);
+		return QueryUtil.getValue(pc, getCol(qr), row);
 	}
 
 	@Override
 	public Object getValue(PageContext pc, Query qr, int row, Object defaultValue) {
-		if (col == null) {
-			col = qr.getColumn(getColumn(), null);
-			if (col == null) return defaultValue;
+		try {
+			return getCol(qr).get(row, defaultValue);
+			// Per the interface, methods accepting a default value cannot throw an exception,
+			// so we must return the default value if any exceptions happen.
 		}
-		return col.get(row, defaultValue);
+		catch (PageException e) {
+			return defaultValue;
+		}
+	}
+
+	/**
+	 * Tells this column expression to not cache the column reference back to the original query
+	 */
+	public void setCacheColumn(boolean cacheColumn) {
+		this.cacheColumn = cacheColumn;
+	}
+
+	/**
+	 * Acquire the actual query column reference, taking caching into account We cache the lookup of the
+	 * column for basic selects because we run the same thing over and over on the same query object.
+	 * But for partitioned selects, we have multiple query objects we run this on, so we can't cache the
+	 * column reference
+	 */
+	private QueryColumn getCol(Query qr) throws PageException {
+		// If we're not caching the query column, get it fresh
+		if (!cacheColumn) {
+			return qr.getColumn(getColumn());
+			// If we are caching and we have no reference, create it and return it
+		}
+		else if (col == null) {
+			// This behavior needs to be thread safe.
+			synchronized (this) {
+				// Double check lock pattern in case another thread beat us
+				if (col != null) {
+					return col;
+				}
+				return col = qr.getColumn(getColumn());
+			}
+			// If we are caching and we have the reference already, just return it!
+		}
+		else {
+			return col;
+		}
+
 	}
 
 	@Override

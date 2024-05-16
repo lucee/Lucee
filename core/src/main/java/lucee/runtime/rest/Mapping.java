@@ -91,7 +91,7 @@ public class Mapping {
 		if (!(config instanceof ConfigWeb)) return;
 		ConfigWeb cw = (ConfigWeb) config;
 
-		this.physical = ConfigWebUtil.getExistingResource(cw.getServletContext(), physical, null, cw.getConfigDir(), FileUtil.TYPE_DIR, cw, true);
+		this.physical = ConfigWebUtil.getResource(cw.getServletContext(), physical, cw.getConfigDir(), FileUtil.TYPE_DIR, cw, true, true);
 
 	}
 

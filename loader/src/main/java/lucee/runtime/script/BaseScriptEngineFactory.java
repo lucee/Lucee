@@ -46,21 +46,22 @@ public abstract class BaseScriptEngineFactory implements ScriptEngineFactory {
 			try {
 				engine = CFMLEngineFactory.getInstance();
 			}
-			catch (final RuntimeException re) {}
+			catch (final RuntimeException re) {
+			}
 
 			// create Engine
 			if (engine == null) {
 				final String servletName = "";
 				final Map<String, Object> attributes = new HashMap<String, Object>();
 				final Map<String, String> initParams = new HashMap<String, String>();
-				
+
 				// Allow override of context root
 				String rootPath = System.getProperty("lucee.cli.contextRoot");
-				if( Util.isEmpty(rootPath) ) {
+				if (Util.isEmpty(rootPath)) {
 					// working directory that the java command was called from
 					rootPath = ".";
 				}
-				final File root = new File(rootPath); 
+				final File root = new File(rootPath);
 
 				final ServletContextImpl servletContext = new ServletContextImpl(root, attributes, initParams, 1, 0);
 				final ServletConfigImpl servletConfig = new ServletConfigImpl(servletContext, servletName);

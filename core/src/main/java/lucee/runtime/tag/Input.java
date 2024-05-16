@@ -639,10 +639,11 @@ public class Input extends TagImpl {
 	}
 
 	/**
-	 * @param encodeValue Encode value using HTMLEntities.escapeHTML, or allow using htmlEncodeForAttribute()
+	 * @param encodeValue Encode value using HTMLEntities.escapeHTML, or allow using
+	 *            htmlEncodeForAttribute()
 	 */
 	public void setEncodevalue(boolean encodeValue) {
-		this.encodeValue = encodeValue; 
+		this.encodeValue = encodeValue;
 	}
 
 	@Override

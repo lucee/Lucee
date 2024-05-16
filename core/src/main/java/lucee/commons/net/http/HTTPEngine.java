@@ -18,8 +18,6 @@
  **/
 package lucee.commons.net.http;
 
-import java.io.IOException;
-import java.net.URL;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -30,8 +28,8 @@ import lucee.commons.io.TemporaryStream;
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.net.http.httpclient.HTTPEngine4Impl;
+import lucee.commons.net.http.httpclient.HTTPResponse4Impl;
 import lucee.commons.net.http.httpclient.HeaderImpl;
-import lucee.runtime.net.proxy.ProxyData;
 import lucee.runtime.type.util.CollectionUtil;
 
 public class HTTPEngine {
@@ -69,58 +67,6 @@ public class HTTPEngine {
 	 */
 	public static final int STATUS_REDIRECT_SEE_OTHER = 303;
 
-	public static HTTPResponse get(URL url) throws IOException {
-		// if(use4)
-		return HTTPEngine4Impl.get(url, null, null, -1, true, null, null, null, null);
-		// return HTTPEngine3Impl.get(url, null, null, -1,MAX_REDIRECT, null, null, null, null);
-	}
-
-	public static HTTPResponse post(URL url) throws IOException {
-		// if(use4)
-		return HTTPEngine4Impl.post(url, null, null, -1, true, null, null, null, null);
-		// return HTTPEngine3Impl.post(url, null, null, -1,MAX_REDIRECT, null, null, null, null,null);
-	}
-
-	public static HTTPResponse get(URL url, String username, String password, long timeout, boolean followRedirect, String charset, String useragent, ProxyData proxy,
-			Header[] headers) throws IOException {
-		// if(use4)
-		return HTTPEngine4Impl.get(url, username, password, timeout, followRedirect, charset, useragent, proxy, headers);
-		// return HTTPEngine3Impl.get(url, username, password, timeout, followRedirect?MAX_REDIRECT:0,
-		// charset, useragent, proxy, headers);
-	}
-
-	public static HTTPResponse post(URL url, String username, String password, long timeout, boolean followRedirect, String charset, String useragent, ProxyData proxy,
-			Map<String, String> headers, Map<String, String> params) throws IOException {
-		// if(use4)
-		return HTTPEngine4Impl.post(url, username, password, timeout, followRedirect, charset, useragent, proxy, toHeaders(headers), params);
-		// return HTTPEngine3Impl.post(url, username, password, timeout, followRedirect?MAX_REDIRECT:0,
-		// charset, useragent, proxy, toHeaders(headers),params);
-	}
-
-	public static HTTPResponse head(URL url, String username, String password, int timeout, boolean followRedirect, String charset, String useragent, ProxyData proxy,
-			Header[] headers) throws IOException {
-		// if(use4)
-		return HTTPEngine4Impl.head(url, username, password, timeout, followRedirect, charset, useragent, proxy, headers);
-		// return HTTPEngine3Impl.head(url, username, password, timeout, followRedirect?MAX_REDIRECT:0,
-		// charset, useragent, proxy, headers);
-	}
-
-	public static HTTPResponse put(URL url, String username, String password, int timeout, boolean followRedirect, String mimetype, String charset, String useragent,
-			ProxyData proxy, Header[] headers, Object body) throws IOException {
-		// if(use4)
-		return HTTPEngine4Impl.put(url, username, password, timeout, followRedirect, mimetype, charset, useragent, proxy, headers, body);
-		// return HTTPEngine3Impl.put(url, username, password, timeout, followRedirect?MAX_REDIRECT:0,
-		// mimetype,charset, useragent, proxy, headers,body);
-	}
-
-	public static HTTPResponse delete(URL url, String username, String password, int timeout, boolean followRedirect, String charset, String useragent, ProxyData proxy,
-			Header[] headers) throws IOException {
-		// if(use4)
-		return HTTPEngine4Impl.delete(url, username, password, timeout, followRedirect, charset, useragent, proxy, headers);
-		// return HTTPEngine3Impl.delete(url, username, password, timeout, followRedirect?MAX_REDIRECT:0,
-		// charset, useragent, proxy, headers);
-	}
-
 	public static Header header(String name, String value) {
 		// if(use4)
 		return HTTPEngine4Impl.header(name, value);
@@ -155,7 +101,7 @@ public class HTTPEngine {
 		// return HTTPEngine3Impl.getResourceEntity(res,ct==null?null:ct.toString());
 	}
 
-	private static Header[] toHeaders(Map<String, String> headers) {
+	public static Header[] toHeaders(Map<String, String> headers) {
 		if (CollectionUtil.isEmpty(headers)) return null;
 		Header[] rtn = new Header[headers.size()];
 		Iterator<Entry<String, String>> it = headers.entrySet().iterator();
@@ -178,10 +124,13 @@ public class HTTPEngine {
 	}
 
 	public static void closeEL(HTTPResponse rsp) {
-		/*
-		 * DISBALED BECAUSE THIS SEEM TO CAUSE PROBLEM WITH MULTITHREADING, THIS NEEDS MORE INVESTIGATION
-		 * if(rsp instanceof HTTPResponse4Impl) { try { ((HTTPResponse4Impl)rsp).close(); } catch (Exception
-		 * e) {} }
-		 */
+		if (rsp instanceof HTTPResponse4Impl) {
+			try {
+				((HTTPResponse4Impl) rsp).close();
+			}
+			catch (Exception e) {
+			}
+		}
+
 	}
 }

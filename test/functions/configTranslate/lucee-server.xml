@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<cfLuceeConfiguration version="5.3">
+	<mapping inspect-template="" physical="C:\work\lucee\core\src\main\cfml\context\admin"
+		primary="physical" readonly="false" toplevel="true" virtual="/lucee/admin5" />
+	
+	<orm engine-bundle-name="hibernate.extension" engine-bundle-version="5.4.29.20-BETA"
+		engine-class="org.lucee.extension.orm.hibernate.HibernateORMEngine" />
+</cfLuceeConfiguration>

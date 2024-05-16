@@ -8,7 +8,6 @@ import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.exp.Abort;
 import lucee.runtime.exp.ApplicationException;
-import lucee.runtime.exp.CatchBlockImpl;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.tag.BodyTagImpl;
 import lucee.runtime.op.Caster;
@@ -114,9 +113,12 @@ public final class Timeout extends BodyTagImpl {
 	}
 
 	private void handleException(ThreadImpl thread2) throws PageException {
-		PageException ex = CFMLEngineFactory.getInstance().getCastUtil().toPageException(new Exception(thread.getException()));
+		PageException ex = thread.getException();
+
 		if (ex != null) {
-			if (onError != null) onError.call(pc, new Object[] { new CatchBlockImpl(ex) }, true);
+			ex = CFMLEngineFactory.getInstance().getCastUtil().toPageException(new Exception(ex));
+
+			if (onError != null) onError.call(pc, new Object[] { ex.getCatchBlock(pageContext.getConfig()) }, true);
 			else throw ex;
 		}
 	}

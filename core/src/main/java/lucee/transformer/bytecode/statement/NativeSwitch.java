@@ -31,7 +31,6 @@ import lucee.transformer.TransformerException;
 import lucee.transformer.bytecode.Body;
 import lucee.transformer.bytecode.BytecodeContext;
 import lucee.transformer.bytecode.Statement;
-import lucee.transformer.bytecode.util.ExpressionUtil;
 
 public final class NativeSwitch extends StatementBaseNoFinal implements FlowControlBreak, FlowControlContinue, HasBodies {
 
@@ -70,9 +69,9 @@ public final class NativeSwitch extends StatementBaseNoFinal implements FlowCont
 		while (it.hasNext()) {
 			c = it.next();
 			adapter.visitLabel(c.label);
-			ExpressionUtil.visitLine(bc, c.startPos);
+			bc.visitLine(c.startPos);
 			c.body.writeOut(bc);
-			ExpressionUtil.visitLine(bc, c.endPos);
+			bc.visitLine(c.endPos);
 			if (c.doBreak) {
 				adapter.goTo(end);
 			}

@@ -20,7 +20,8 @@ public class ConfigImport extends BIF {
 
 	private static final long serialVersionUID = 2877661269574331695L;
 
-	public static Struct call(PageContext pc, Object pathOrData, String type, String password, Struct placeHolderData, String charset) throws PageException {
+	public static Struct call(PageContext pc, Object pathOrData, String type, String password, Struct placeHolderData, boolean flushExistingData, String charset)
+			throws PageException {
 
 		// path
 		Resource res = null;
@@ -47,17 +48,20 @@ public class ConfigImport extends BIF {
 		// charset
 		Charset cs = StringUtil.isEmpty(charset, true) ? pc.getResourceCharset() : CharsetUtil.toCharset(charset);
 
-		return (res != null ? new CFConfigImport(pc.getConfig(), res, cs, password, type, placeHolderData)
-				: new CFConfigImport(pc.getConfig(), data, cs, password, type, placeHolderData)).execute();
+		return (res != null ? new lucee.runtime.config.CFConfigImport(pc.getConfig(), res, cs, password, type, placeHolderData, true, true, flushExistingData)
+				: new CFConfigImport(pc.getConfig(), data, cs, password, type, placeHolderData, true, true, flushExistingData)).execute(true);
 	}
 
 	@Override
 	public Object invoke(PageContext pc, Object[] args) throws PageException {
-		if (args.length == 1) return call(pc, Caster.toString(args[0]), null, null, null, null);
-		if (args.length == 2) return call(pc, Caster.toString(args[0]), Caster.toString(args[1]), null, null, null);
-		if (args.length == 3) return call(pc, Caster.toString(args[0]), Caster.toString(args[1]), Caster.toString(args[2]), null, null);
-		if (args.length == 4) return call(pc, Caster.toString(args[0]), Caster.toString(args[1]), Caster.toString(args[2]), Caster.toStruct(args[3]), null);
-		if (args.length == 4) return call(pc, Caster.toString(args[0]), Caster.toString(args[1]), Caster.toString(args[2]), Caster.toStruct(args[3]), Caster.toString(args[4]));
-		else throw new FunctionException(pc, "ConfigFileImport", 1, 5, args.length);
+		if (args.length == 1) return call(pc, Caster.toString(args[0]), null, null, null, false, null);
+		if (args.length == 2) return call(pc, Caster.toString(args[0]), Caster.toString(args[1]), null, null, false, null);
+		if (args.length == 3) return call(pc, Caster.toString(args[0]), Caster.toString(args[1]), Caster.toString(args[2]), null, false, null);
+		if (args.length == 4) return call(pc, Caster.toString(args[0]), Caster.toString(args[1]), Caster.toString(args[2]), Caster.toStruct(args[3]), false, null);
+		if (args.length == 4)
+			return call(pc, Caster.toString(args[0]), Caster.toString(args[1]), Caster.toString(args[2]), Caster.toStruct(args[3]), Caster.toBooleanValue(args[4]), null);
+		if (args.length == 4) return call(pc, Caster.toString(args[0]), Caster.toString(args[1]), Caster.toString(args[2]), Caster.toStruct(args[3]),
+				Caster.toBooleanValue(args[4]), Caster.toString(args[5]));
+		else throw new FunctionException(pc, "ConfigFileImport", 1, 6, args.length);
 	}
 }

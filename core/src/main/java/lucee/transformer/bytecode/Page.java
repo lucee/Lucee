@@ -51,6 +51,7 @@ import lucee.runtime.InterfacePageImpl;
 import lucee.runtime.Mapping;
 import lucee.runtime.PageImpl;
 import lucee.runtime.PageSource;
+import lucee.runtime.SubPage;
 import lucee.runtime.component.ImportDefintion;
 import lucee.runtime.component.ImportDefintionImpl;
 import lucee.runtime.config.Config;
@@ -80,7 +81,6 @@ import lucee.transformer.bytecode.statement.tag.TagImport;
 import lucee.transformer.bytecode.statement.tag.TagInterface;
 import lucee.transformer.bytecode.statement.tag.TagOther;
 import lucee.transformer.bytecode.statement.udf.Function;
-import lucee.transformer.bytecode.statement.udf.FunctionImpl;
 import lucee.transformer.bytecode.util.ASMConstants;
 import lucee.transformer.bytecode.util.ASMUtil;
 import lucee.transformer.bytecode.util.ExpressionUtil;
@@ -108,13 +108,13 @@ public final class Page extends BodyBase implements Root {
 
 	public static final Method KEY_INIT = new Method("init", Types.COLLECTION_KEY, new Type[] { Types.STRING });
 
-	public static final Method KEY_INTERN = new Method("intern", Types.COLLECTION_KEY, new Type[] { Types.STRING });
+	public static final Method KEY_INIT_KEYS = new Method("initKeys", Types.COLLECTION_KEY, new Type[] { Types.STRING });
+	public static final Method KEY_SOURCE = new Method("source", Types.COLLECTION_KEY, new Type[] { Types.STRING });
 
 	// public static ImportDefintion getInstance(String fullname,ImportDefintion defaultValue)
 	private static final Method ID_GET_INSTANCE = new Method("getInstance", Types.IMPORT_DEFINITIONS, new Type[] { Types.STRING, Types.IMPORT_DEFINITIONS });
 
-	public final static Method STATIC_CONSTRUCTOR = Method.getMethod("void <clinit> ()V");
-	// public final static Method CONSTRUCTOR = Method.getMethod("void <init> ()V");
+	private static final Method CINIT = new Method("<clinit>", Types.VOID, new Type[] {});
 
 	private static final Method CONSTRUCTOR = new Method("<init>", Types.VOID, new Type[] {});
 
@@ -138,7 +138,6 @@ public final class Page extends BodyBase implements Root {
 	// int getVersion()
 	private final static Method VERSION = new Method("getVersion", Types.LONG_VALUE, new Type[] {});
 	// void _init()
-	private final static Method INIT_KEYS = new Method("initKeys", Types.VOID, new Type[] {});
 
 	private final static Method SET_PAGE_SOURCE = new Method("setPageSource", Types.VOID, new Type[] { Types.PAGE_SOURCE });
 
@@ -170,9 +169,6 @@ public final class Page extends BodyBase implements Root {
 	private static final Method NEW_INTERFACE_IMPL_INSTANCE = new Method("newInstance", Types.INTERFACE_IMPL, new Type[] { Types.PAGE_CONTEXT, Types.STRING, Types.BOOLEAN_VALUE });
 
 	private static final Method STATIC_COMPONENT_CONSTR = new Method("staticConstructor", Types.VOID, new Type[] { Types.PAGE_CONTEXT, Types.COMPONENT_IMPL });
-
-	// MethodVisitor mv = cw.visitMethod(Opcodes.ACC_STATIC, "<clinit>", "()V", null, null);
-	private static final Method CINIT = new Method("<clinit>", Types.VOID, new Type[] {});
 
 	// public StaticStruct getStaticStruct()
 	private static final Method GET_STATIC_STRUCT = new Method("getStaticStruct", Types.STATIC_STRUCT, new Type[] {});
@@ -327,13 +323,19 @@ public final class Page extends BodyBase implements Root {
 			className = getClassName();
 		}
 
+		boolean isSub = comp != null && !comp.isMain();
+
 		// parent
 		String parent = PageImpl.class.getName();// "lucee/runtime/Page";
-		if (isComponent(comp)) parent = ComponentPageImpl.class.getName();// "lucee/runtime/ComponentPage";
+		String[] interfaces = null;
+		if (isComponent(comp)) {
+			parent = ComponentPageImpl.class.getName();// "lucee/runtime/ComponentPage";
+			if (isSub) interfaces = new String[] { SubPage.class.getName().replace('.', '/') };
+		}
 		else if (isInterface(comp)) parent = InterfacePageImpl.class.getName();// "lucee/runtime/InterfacePage";
 		parent = parent.replace('.', '/');
 
-		cw.visit(Opcodes.V1_6, Opcodes.ACC_PUBLIC + Opcodes.ACC_FINAL, className, null, parent, null);
+		cw.visit(Opcodes.V1_6, Opcodes.ACC_PUBLIC + Opcodes.ACC_FINAL, className, null, parent, interfaces);
 		if (optionalPS != null) {
 			// we use full path when FD is enabled
 			String path = config.allowRequestTimeout() ? optionalPS.getRealpathWithVirtual() : optionalPS.getPhyscalFile().getAbsolutePath();
@@ -345,14 +347,6 @@ public final class Page extends BodyBase implements Root {
 		else {
 			// cw.visitSource("","rel:");
 		}
-
-		// static constructor
-		// GeneratorAdapter statConstrAdapter = new
-		// GeneratorAdapter(Opcodes.ACC_PUBLIC,STATIC_CONSTRUCTOR,null,null,cw);
-		// StaticConstrBytecodeContext statConstr = null;//new
-		// BytecodeContext(null,null,this,externalizer,keys,cw,name,statConstrAdapter,STATIC_CONSTRUCTOR,writeLog(),suppressWSbeforeArg);
-
-		boolean isSub = comp != null && !comp.isMain();
 
 		// constructor
 		GeneratorAdapter constrAdapter = new GeneratorAdapter(Opcodes.ACC_PUBLIC, CONSTRUCTOR_PS, null, null, cw);
@@ -382,7 +376,6 @@ public final class Page extends BodyBase implements Root {
 
 		// call _init()
 		constrAdapter.visitVarInsn(Opcodes.ALOAD, 0);
-		constrAdapter.visitMethodInsn(Opcodes.INVOKEVIRTUAL, constr.getClassName(), "initKeys", "()V");
 
 		// private static ImportDefintion[] test=new ImportDefintion[]{...};
 		{
@@ -470,16 +463,32 @@ public final class Page extends BodyBase implements Root {
 			writeOutStaticConstructor(constr, keys, cw, comp, className);
 		}
 
+		List<Function> tmpFunctions = getFunctions();
+		if (false && _comp instanceof TagComponent) {
+			TagComponent tc;
+			List<Function> tmps = new ArrayList<>();
+			for (Function f: tmpFunctions) {
+				tc = ASMUtil.getAncestorComponent(f);
+				// function from another component
+				if (tc != null && tc != _comp) {
+					continue;
+				}
+				tmps.add(f);
+			}
+			tmpFunctions = tmps;
+		}
+		Function[] functions = tmpFunctions.toArray(new Function[tmpFunctions.size()]);
+
 		List<IFunction> funcs;
 		// newInstance/initComponent/call
 		if (isComponent()) {
-			writeOutGetStaticStruct(constr, keys, cw, comp, className);
+			// writeOutGetStaticStructX(constr, keys, cw, comp, className);
 			writeOutNewComponent(constr, keys, cw, comp, className);
-			funcs = writeOutInitComponent(constr, keys, cw, comp, className);
+			funcs = writeOutInitComponent(constr, functions, keys, cw, comp, className);
 
 		}
 		else if (isInterface()) {
-			writeOutGetStaticStruct(constr, keys, cw, comp, className);
+			// writeOutGetStaticStructX(constr, keys, cw, comp, className);
 			writeOutNewInterface(constr, keys, cw, comp, className);
 			funcs = writeOutInitInterface(constr, keys, cw, comp, className);
 		}
@@ -491,22 +500,23 @@ public final class Page extends BodyBase implements Root {
 		// writeUDFProperties(bc,funcs,pageType);
 
 		// udfCall
-		Function[] functions = getFunctions();// toArray(funcs);
 
 		ConditionVisitor cv;
 		DecisionIntVisitor div;
+		// Function[] functions = extractFunctions(constr.getUDFProperties());
 		// less/equal than 10 functions
 		if (isInterface()) {
 		}
 		else if (functions.length <= 10) {
 			adapter = new GeneratorAdapter(Opcodes.ACC_PUBLIC + Opcodes.ACC_FINAL, UDF_CALL, null, new Type[] { Types.THROWABLE }, cw);
 			BytecodeContext bc = new BytecodeContext(optionalPS, constr, this, keys, cw, className, adapter, UDF_CALL, writeLog(), suppressWSbeforeArg, output, returnValue);
+
 			if (functions.length == 0) {
 			}
 			else if (functions.length == 1) {
-				ExpressionUtil.visitLine(bc, functions[0].getStart());
+				bc.visitLine(functions[0].getStart());
 				functions[0].getBody().writeOut(bc);
-				ExpressionUtil.visitLine(bc, functions[0].getEnd());
+				bc.visitLine(functions[0].getEnd());
 			}
 			else writeOutUdfCallInner(bc, functions, 0, functions.length);
 			adapter.visitInsn(Opcodes.ACONST_NULL);
@@ -638,21 +648,29 @@ public final class Page extends BodyBase implements Root {
 
 		// CONSTRUCTOR
 		List<Data> udfProperties = constr.getUDFProperties();
-
 		String udfpropsClassName = Types.UDF_PROPERTIES_ARRAY.toString();
 
 		// new UDFProperties Array
 		constrAdapter.visitVarInsn(Opcodes.ALOAD, 0);
-		constrAdapter.push(udfProperties.size());
+		constrAdapter.push(functions.length);// MUST6 ATM the array is to big, it has empty spaces for every closure, this is not necessary
 		constrAdapter.newArray(Types.UDF_PROPERTIES);
 		constrAdapter.visitFieldInsn(Opcodes.PUTFIELD, getClassName(), "udfs", udfpropsClassName);
 
 		// set item
-		for (Data data: udfProperties) {
+		Data data;
+		int index = -1;
+		for (Function f: functions) {
+			index++;
+			data = getMatchingData(f, udfProperties);
+			if (data == null) continue;
+
+			// for (Data data: udfProperties) {
 			constrAdapter.visitVarInsn(Opcodes.ALOAD, 0);
 			constrAdapter.visitFieldInsn(Opcodes.GETFIELD, constr.getClassName(), "udfs", Types.UDF_PROPERTIES_ARRAY.toString());
-			constrAdapter.push(data.arrayIndex);
-			data.function.createUDFProperties(constr, data.valueIndex, data.type);
+			// constrAdapter.push(data.arrayIndex);
+			constrAdapter.push(index);
+			// data.function.createUDFProperties(constr, data.valueIndex, data.type);
+			data.function.createUDFProperties(constr, index, data.type);
 			constrAdapter.visitInsn(Opcodes.AASTORE);
 		}
 
@@ -664,14 +682,8 @@ public final class Page extends BodyBase implements Root {
 		constrAdapter.returnValue();
 		constrAdapter.endMethod();
 
-		// INIT KEYS
-		{
-			GeneratorAdapter aInit = new GeneratorAdapter(Opcodes.ACC_PRIVATE + Opcodes.ACC_FINAL, INIT_KEYS, null, null, cw);
-			BytecodeContext bcInit = new BytecodeContext(optionalPS, constr, this, keys, cw, className, aInit, INIT_KEYS, writeLog(), suppressWSbeforeArg, output, returnValue);
-			registerFields(bcInit, keys);
-			aInit.returnValue();
-			aInit.endMethod();
-		}
+		// newInstance/initComponent/call
+		writeOutStatic(optionalPS, constr, keys, cw, comp, className);
 
 		// set field subs
 		FieldVisitor fv = cw.visitField(Opcodes.ACC_PRIVATE + Opcodes.ACC_FINAL, "subs", "[Llucee/runtime/CIPage;", null, null);
@@ -686,13 +698,26 @@ public final class Page extends BodyBase implements Root {
 				while (_it.hasNext()) {
 					tc = _it.next();
 
-					tc.writeOut(this);
+					tc.writeOut(constr, this);
 				}
 				writeGetSubPages(cw, className, subs, sourceCode.getDialect());
 			}
 		}
 		return cw.toByteArray();
 	}
+
+	private Data getMatchingData(Function func, List<Data> datas) {
+		for (Data d: datas) {
+			if (d.function == func) return d;
+		}
+		return null;
+	}
+
+	/*
+	 * private static Function[] extractFunctions(List<Data> udfProperties) { Function[] functions = new
+	 * Function[udfProperties.size()]; int index = 0; for (Data d: udfProperties) { functions[index++] =
+	 * d.function; } return functions; }
+	 */
 
 	public static String createSubClass(String name, String subName, int dialect) {
 		// TODO handle special characters
@@ -710,9 +735,10 @@ public final class Page extends BodyBase implements Root {
 		GeneratorAdapter adapter = new GeneratorAdapter(Opcodes.ACC_PUBLIC + Opcodes.ACC_FINAL, GET_SUB_PAGES, null, null, cw);
 		Label endIF = new Label();
 
-		// adapter.visitVarInsn(Opcodes.ALOAD, 0);
-		// adapter.visitFieldInsn(Opcodes.GETFIELD, name, "subs", "[Llucee/runtime/CIPage;");
-		// adapter.visitJumpInsn(Opcodes.IFNONNULL, endIF);
+		adapter.visitVarInsn(Opcodes.ALOAD, 0);
+		adapter.visitFieldInsn(Opcodes.GETFIELD, name, "subs", "[Llucee/runtime/CIPage;");
+		adapter.visitJumpInsn(Opcodes.IFNONNULL, endIF);
+
 		adapter.visitVarInsn(Opcodes.ALOAD, 0);
 		ArrayVisitor av = new ArrayVisitor();
 		av.visitBegin(adapter, Types.CI_PAGE, subs.size());
@@ -723,21 +749,19 @@ public final class Page extends BodyBase implements Root {
 			TagCIObject ci = it.next();
 			av.visitBeginItem(adapter, index++);
 			className = createSubClass(name, ci.getName(), dialect);
-			// ASMConstants.NULL(adapter);
-			adapter.visitTypeInsn(Opcodes.NEW, className);
-			adapter.visitInsn(Opcodes.DUP);
 
 			adapter.visitVarInsn(Opcodes.ALOAD, 0);
 			adapter.visitMethodInsn(Opcodes.INVOKEVIRTUAL, name, "getPageSource", "()Llucee/runtime/PageSource;");
+			adapter.push(className);
+			adapter.visitMethodInsn(Opcodes.INVOKESTATIC, "lucee/runtime/MappingImpl", "loadCIPage", "(Llucee/runtime/PageSource;Ljava/lang/String;)Llucee/runtime/CIPage;");
 
-			adapter.visitMethodInsn(Opcodes.INVOKESPECIAL, className, "<init>", "(Llucee/runtime/PageSource;)V");
 			av.visitEndItem(adapter);
 		}
 		av.visitEnd();
 
 		adapter.visitFieldInsn(Opcodes.PUTFIELD, name, "subs", "[Llucee/runtime/CIPage;");
 
-		// adapter.visitLabel(endIF);
+		adapter.visitLabel(endIF);
 
 		adapter.visitVarInsn(Opcodes.ALOAD, 0);
 		adapter.visitFieldInsn(Opcodes.GETFIELD, name, "subs", "[Llucee/runtime/CIPage;");
@@ -849,7 +873,7 @@ public final class Page extends BodyBase implements Root {
 			ga.push(index++);
 			// value.setExternalize(false);
 			ExpressionUtil.writeOutSilent(value, bc, Expression.MODE_REF);
-			ga.invokeStatic(KEY_IMPL, KEY_INTERN);
+			ga.invokeStatic(KEY_IMPL, KEY_INIT_KEYS);
 			ga.visitInsn(Opcodes.AASTORE);
 		}
 		ga.visitFieldInsn(Opcodes.PUTFIELD, bc.getClassName(), "keys", Types.COLLECTION_KEY_ARRAY.toString());
@@ -889,9 +913,9 @@ public final class Page extends BodyBase implements Root {
 			adapter.push(i);
 			div.visitEnd(bc);
 			cv.visitWhenAfterExprBeforeBody(bc);
-			ExpressionUtil.visitLine(bc, functions[i].getStart());
+			bc.visitLine(functions[i].getStart());
 			functions[i].getBody().writeOut(bc);
-			ExpressionUtil.visitLine(bc, functions[i].getEnd());
+			bc.visitLine(functions[i].getEnd());
 			cv.visitWhenAfterBody(bc);
 		}
 		cv.visitAfter(bc);
@@ -927,19 +951,45 @@ public final class Page extends BodyBase implements Root {
 		cv.visitAfter(bc);
 	}
 
-	private void writeOutGetStaticStruct(ConstrBytecodeContext constr, List<LitString> keys, ClassWriter cw, TagCIObject component, String name) throws TransformerException {
-		// public final static StaticStruct _static = new StaticStruct();
-		FieldVisitor fv = cw.visitField(Opcodes.ACC_PRIVATE + Opcodes.ACC_STATIC + Opcodes.ACC_FINAL, "staticStruct", "Llucee/runtime/component/StaticStruct;", null, null);
-		fv.visitEnd();
+	private void writeOutStatic(PageSource optionalPS, ConstrBytecodeContext constr, List<LitString> keys, ClassWriter cw, TagCIObject component, String name)
+			throws TransformerException {
+
+		boolean addStatic = isComponent() || isInterface();
+
+		if (addStatic) cw.visitField(Opcodes.ACC_PRIVATE + Opcodes.ACC_STATIC + Opcodes.ACC_FINAL, "staticStruct", "Llucee/runtime/component/StaticStruct;", null, null).visitEnd();
+
+		cw.visitField(Opcodes.ACC_PRIVATE + Opcodes.ACC_STATIC + Opcodes.ACC_FINAL, "keys", Types.COLLECTION_KEY_ARRAY.toString(), null, null).visitEnd();
 
 		{
 			final GeneratorAdapter ga = new GeneratorAdapter(Opcodes.ACC_STATIC, CINIT, null, null, cw);
-			ga.newInstance(Types.STATIC_STRUCT);
-			ga.dup();
-			ga.invokeConstructor(Types.STATIC_STRUCT, CONSTR_STATIC_STRUCT);
-			ga.putStatic(Type.getType(name), "staticStruct", Types.STATIC_STRUCT);
+
+			if (addStatic) {
+				ga.newInstance(Types.STATIC_STRUCT);
+				ga.dup();
+				ga.invokeConstructor(Types.STATIC_STRUCT, CONSTR_STATIC_STRUCT);
+				ga.putStatic(Type.getType(name), "staticStruct", Types.STATIC_STRUCT);
+			}
+
+			// Array initialization
+			ga.push(keys.size()); // Array size
+			ga.newArray(Types.COLLECTION_KEY);
+
+			int index = 0;
+			for (LitString ls: keys) {
+				ga.dup();
+				ga.push(index++);
+				ga.push(ls.getString());
+
+				// ExpressionUtil.writeOutSilent(ls, bc, Expression.MODE_REF);
+				ga.invokeStatic(KEY_IMPL, KEY_INIT_KEYS);
+				ga.arrayStore(Types.COLLECTION_KEY);
+			}
+			ga.putStatic(Type.getType(name), "keys", Types.COLLECTION_KEY_ARRAY);
+
+			/////////////////
 			ga.returnValue();
 			ga.endMethod();
+
 		}
 
 		// public StaticStruct getStaticStruct() {return _static;}
@@ -1050,7 +1100,8 @@ public final class Page extends BodyBase implements Root {
 		}
 	}
 
-	private List<IFunction> writeOutInitComponent(ConstrBytecodeContext constr, List<LitString> keys, ClassWriter cw, Tag component, String name) throws TransformerException {
+	private List<IFunction> writeOutInitComponent(ConstrBytecodeContext constr, Function[] functions, List<LitString> keys, ClassWriter cw, Tag component, String name)
+			throws TransformerException {
 		final GeneratorAdapter adapter = new GeneratorAdapter(Opcodes.ACC_PUBLIC + Opcodes.ACC_FINAL, INIT_COMPONENT3, null, new Type[] { Types.PAGE_EXCEPTION }, cw);
 		BytecodeContext bc = new BytecodeContext(null, constr, this, keys, cw, name, adapter, INIT_COMPONENT3, writeLog(), suppressWSbeforeArg, output, returnValue);
 		Label methodBegin = new Label();
@@ -1135,11 +1186,11 @@ public final class Page extends BodyBase implements Root {
 		adapter.loadArg(0);
 		adapter.invokeVirtual(Types.COMPONENT_IMPL, BEFORE_CALL);
 		adapter.storeLocal(oldData);
-		ExpressionUtil.visitLine(bc, component.getStart());
+		bc.visitLine(component.getStart());
 
 		List<IFunction> funcs = writeOutCallBody(bc, component.getBody(), IFunction.PAGE_TYPE_COMPONENT);
 
-		ExpressionUtil.visitLine(bc, component.getEnd());
+		bc.visitLine(component.getEnd());
 		int t = tcf.visitTryEndCatchBeging(bc);
 		// BodyContentUtil.flushAndPop(pc,bc);
 		adapter.loadArg(0);
@@ -1172,9 +1223,9 @@ public final class Page extends BodyBase implements Root {
 		adapter.visitLocalVariable("this", "L" + name + ";", null, methodBegin, methodEnd, 0);
 		adapter.visitLabel(methodBegin);
 
-		ExpressionUtil.visitLine(bc, interf.getStart());
+		bc.visitLine(interf.getStart());
 		List<IFunction> funcs = writeOutCallBody(bc, interf.getBody(), IFunction.PAGE_TYPE_INTERFACE);
-		ExpressionUtil.visitLine(bc, interf.getEnd());
+		bc.visitLine(interf.getEnd());
 
 		adapter.returnValue();
 		adapter.visitLabel(methodEnd);
@@ -1229,12 +1280,10 @@ public final class Page extends BodyBase implements Root {
 		cv.visitAfter(bc);
 	}
 
-	private Function[] getFunctions() {
-		Function[] funcs = new Function[functions.size()];
-		Iterator it = functions.iterator();
-		int count = 0;
-		while (it.hasNext()) {
-			funcs[count++] = (Function) it.next();
+	public List<Function> getFunctions() {
+		List<Function> funcs = new ArrayList<>();
+		for (IFunction f: functions) {
+			funcs.add((Function) f);
 		}
 		return funcs;
 	}
@@ -1261,7 +1310,7 @@ public final class Page extends BodyBase implements Root {
 		Label methodEnd = new Label();
 
 		adapter.visitLocalVariable("this", "L" + name + ";", null, methodBegin, methodEnd, 0);
-		ExpressionUtil.visitLine(bc, component.getStart());
+		bc.visitLine(component.getStart());
 		adapter.visitLabel(methodBegin);
 
 		int comp = adapter.newLocal(Types.COMPONENT_IMPL);
@@ -1328,14 +1377,14 @@ public final class Page extends BodyBase implements Root {
 		attr = component.removeAttribute("persistent");
 		boolean persistent = false;
 		if (attr != null) {
-			persistent = ASMUtil.toBoolean(attr, component.getStart()).booleanValue();
+			persistent = ASMUtil.toBoolean(constr, attr, component.getStart()).booleanValue();
 		}
 
 		// accessors
 		attr = component.removeAttribute("accessors");
 		boolean accessors = false;
 		if (attr != null) {
-			accessors = ASMUtil.toBoolean(attr, component.getStart()).booleanValue();
+			accessors = ASMUtil.toBoolean(constr, attr, component.getStart()).booleanValue();
 		}
 
 		// modifier
@@ -1387,7 +1436,7 @@ public final class Page extends BodyBase implements Root {
 		Label methodEnd = new Label();
 
 		adapter.visitLocalVariable("this", "L" + name + ";", null, methodBegin, methodEnd, 0);
-		ExpressionUtil.visitLine(bc, interf.getStart());
+		bc.visitLine(interf.getStart());
 		adapter.visitLabel(methodBegin);
 
 		// ExpressionUtil.visitLine(adapter, interf.getStartLine());
@@ -1555,8 +1604,11 @@ public final class Page extends BodyBase implements Root {
 	private void writeUDFProperties(BytecodeContext bc, List<IFunction> funcs, int pageType) throws TransformerException {
 		// set items
 		Iterator<IFunction> it = funcs.iterator();
+		int index = 0;
+		IFunction f;
 		while (it.hasNext()) {
-			it.next().writeOut(bc, pageType);
+			f = it.next();
+			f.writeOut(bc, pageType);
 		}
 	}
 
@@ -1699,15 +1751,16 @@ public final class Page extends BodyBase implements Root {
 	}
 
 	@Override
-	public int[] addFunction(IFunction function) {
-		int[] indexes = new int[2];
-		Iterator<IFunction> it = functions.iterator();
-		while (it.hasNext()) {
-			if (it.next() instanceof FunctionImpl) indexes[IFunction.ARRAY_INDEX]++;
-		}
-		indexes[IFunction.VALUE_INDEX] = functions.size();
+	public int addFunction(IFunction function) {
 		functions.add(function);
-		return indexes;
+		if (function instanceof Function) {
+			((Function) function).setIndex(functions.size() - 1);
+		}
+		return functions.size() - 1;
+	}
+
+	public void removeFunction(IFunction function) {
+		functions.remove(function);
 	}
 
 	@Override
@@ -1803,7 +1856,7 @@ public final class Page extends BodyBase implements Root {
 	}
 
 	public void doFinalize(BytecodeContext bc) {
-		ExpressionUtil.visitLine(bc, getEnd());
+		bc.visitLine(getEnd());
 	}
 
 	public void registerJavaFunction(JavaFunction javaFunction) {

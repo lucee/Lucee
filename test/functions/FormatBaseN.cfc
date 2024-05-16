@@ -25,6 +25,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase" skip=true {
                 assertEquals('4d2',formatBaseN(1234,16));
                 assertEquals('fffffb2e',formatBaseN(-1234,16));
             });
+            it( title="test for LDEV-3776", body=function( currentSpec ){
+                assertEquals('11111110111011010101111000001111',FormatBaseN( -17998321, 2 ));
+                
+            });
         });
     }
 }

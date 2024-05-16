@@ -39,6 +39,8 @@ import java.io.Writer;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -61,6 +63,8 @@ import lucee.runtime.exp.PageException;
  */
 public final class IOUtil {
 
+	private static final int DEFAULT_BLOCK_SIZE = 0xffff;// 65535
+
 	/**
 	 * copy an inputstream to an outputstream
 	 * 
@@ -72,7 +76,7 @@ public final class IOUtil {
 	 */
 	public static final void copy(InputStream in, OutputStream out, boolean closeIS, boolean closeOS) throws IOException {
 		try {
-			copy(in, out, 0xffff);// 65535
+			copy(in, out, DEFAULT_BLOCK_SIZE);
 		}
 		finally {
 			if (closeIS && closeOS) close(in, out);
@@ -85,7 +89,7 @@ public final class IOUtil {
 
 	public static final void copy(InputStream in, OutputStream out, int blockSize, boolean closeIS, boolean closeOS) throws IOException {
 		try {
-			copy(in, out, blockSize);// 65535
+			copy(in, out, blockSize);
 		}
 		finally {
 			if (closeIS && closeOS) close(in, out);
@@ -107,7 +111,7 @@ public final class IOUtil {
 	 */
 	public static final void merge(InputStream in1, InputStream in2, OutputStream out, boolean closeIS1, boolean closeIS2, boolean closeOS) throws IOException {
 		try {
-			merge(in1, in2, out, 0xffff);
+			merge(in1, in2, out, DEFAULT_BLOCK_SIZE);
 		}
 		finally {
 			if (closeIS1) closeEL(in1);
@@ -197,13 +201,13 @@ public final class IOUtil {
 	}
 
 	public static final void copy(InputStream in, OutputStream out, int offset, int length) throws IOException {
-		copy(in, out, offset, length, 0xffff);
+		copy(in, out, offset, length, DEFAULT_BLOCK_SIZE);
 	}
 
 	public static final void copy(InputStream in, OutputStream out, long offset, long length) throws IOException {
 		int len;
 		byte[] buffer;
-		int block = 0xffff;
+		int block = DEFAULT_BLOCK_SIZE;
 
 		// first offset to start
 		if (offset > 0) {
@@ -250,7 +254,7 @@ public final class IOUtil {
 
 		int len;
 		byte[] buffer;
-		int block;// 0xffff;
+		int block;
 
 		// first offset to start
 		if (offset > 0) {
@@ -264,7 +268,7 @@ public final class IOUtil {
 			}
 
 			if (skipped <= 0) {
-				block = blockSize;// 0xffff;
+				block = blockSize;
 				while (true) {
 					if (block > offset) block = offset;
 					buffer = new byte[block];
@@ -282,7 +286,7 @@ public final class IOUtil {
 			copy(in, out, blockSize);
 			return;
 		}
-		block = blockSize;// 0xffff;
+		block = blockSize;
 		while (true) {
 			if (block > length) block = length;
 			buffer = new byte[block];
@@ -321,7 +325,7 @@ public final class IOUtil {
 	 * @throws IOException
 	 */
 	public static final boolean copyMax(InputStream in, OutputStream out, long max) throws IOException {
-		byte[] buffer = new byte[0xffff];
+		byte[] buffer = new byte[DEFAULT_BLOCK_SIZE];
 		int len;
 		long total = 0;
 		while ((len = in.read(buffer)) != -1) {
@@ -348,7 +352,7 @@ public final class IOUtil {
 	 * @throws IOException
 	 */
 	private static final void copy(Reader r, Writer w, long timeout) throws IOException {
-		copy(r, w, 0xffff, timeout);
+		copy(r, w, DEFAULT_BLOCK_SIZE, timeout);
 	}
 
 	/**
@@ -362,7 +366,7 @@ public final class IOUtil {
 	 */
 	public static final void copy(Reader reader, Writer writer, boolean closeReader, boolean closeWriter) throws IOException {
 		try {
-			copy(reader, writer, 0xffff, -1);
+			copy(reader, writer, DEFAULT_BLOCK_SIZE, -1);
 		}
 		finally {
 			if (closeReader && closeWriter) close(reader, writer);
@@ -1414,6 +1418,16 @@ public final class IOUtil {
 			}
 			finally {
 				finished = true;
+			}
+		}
+	}
+
+	public static void deleteEL(Path path) {
+		if (path != null) {
+			try {
+				Files.delete(path);
+			}
+			catch (Exception e) {
 			}
 		}
 	}

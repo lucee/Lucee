@@ -41,7 +41,7 @@ public final class Closure extends Function {
 
 	@Override
 	public final void _writeOut(BytecodeContext bc, int pageType) throws TransformerException {
-		createFunction(bc, valueIndex, TYPE_CLOSURE);
+		createFunction(bc, index, TYPE_CLOSURE);
 	}
 
 	@Override

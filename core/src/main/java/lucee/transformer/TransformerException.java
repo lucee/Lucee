@@ -17,7 +17,10 @@
  */
 package lucee.transformer;
 
+import lucee.runtime.PageSource;
 import lucee.runtime.exp.TemplateException;
+import lucee.runtime.type.util.KeyConstants;
+import lucee.transformer.bytecode.BytecodeContext;
 
 public final class TransformerException extends TemplateException {
 
@@ -25,18 +28,28 @@ public final class TransformerException extends TemplateException {
 
 	private Position pos;
 
-	public TransformerException(String message, Position pos) {
+	public TransformerException(Context c, String message, Position pos) {
 		super(message);
 		this.pos = pos;
+		setAddional(c);
+
 	}
 
-	public TransformerException(Throwable cause, Position start) {
-		this(cause.getMessage(), start);
+	public TransformerException(Context c, Throwable cause, Position start) {
+		this(c, cause.getMessage(), start);
 		initCause(cause);
+		setAddional(c);
 	}
 
 	public Position getPosition() {
 		return pos;
 	}
 
+	private void setAddional(Context c) {
+		if (c instanceof BytecodeContext) {
+			BytecodeContext bc = (BytecodeContext) c;
+			PageSource ps = bc.getPageSource();
+			if (ps != null) setAdditional(KeyConstants._source, ps.getDisplayPath());
+		}
+	}
 }

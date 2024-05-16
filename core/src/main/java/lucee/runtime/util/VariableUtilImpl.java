@@ -37,6 +37,7 @@ import lucee.runtime.PageContext;
 import lucee.runtime.config.NullSupportHelper;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.functions.international.GetTimeZoneInfo;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 import lucee.runtime.reflection.Reflector;
@@ -52,6 +53,7 @@ import lucee.runtime.type.Query;
 import lucee.runtime.type.QueryColumn;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.UDF;
+import lucee.runtime.type.scope.AccessModifier;
 import lucee.runtime.type.scope.Undefined;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.KeyConstants;
@@ -335,11 +337,11 @@ public final class VariableUtilImpl implements VariableUtil {
 				}
 			}
 		}
-		// HTTPSession
-		/*
-		 * else if(coll instanceof HttpSession) { return ((HttpSession)coll).getAttribute(key.getString());
-		 * }
-		 */
+		// TimeZone
+		else if (coll instanceof TimeZone) {
+			Object res = GetTimeZoneInfo.call(pc, (TimeZone) coll).get(key, null);
+			if (res != null) return res; // for backward compatibility (to support reflection), this is optional
+		}
 
 		// Direct Object Access
 		if (coll != null && pc.getConfig().getSecurityManager().getAccess(SecurityManager.TYPE_DIRECT_JAVA_ACCESS) == SecurityManager.VALUE_YES) {
@@ -415,6 +417,14 @@ public final class VariableUtilImpl implements VariableUtil {
 			sb.append(StringUtil.toStringNative(it.next(), ""));
 		}
 		return sb.toString();
+	}
+
+	public Object set(PageContext pc, Object coll, Collection.Key key, Object value, int access, int modifier) throws PageException {
+		if (coll instanceof AccessModifier) {
+			((AccessModifier) coll).set(pc, key, value, access, modifier);
+			return value;
+		}
+		return set(pc, coll, key, value);
 	}
 
 	@Override

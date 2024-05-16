@@ -33,19 +33,14 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 			echo("CREATE TABLE T"&suffix&" (");
 			echo("id int NOT NULL,");
 			echo("i int,");		
-			echo("dec DECIMAL");		
+			echo("dec DECIMAL");
 			echo(") ");
 		}
 	}
 
 	private string function defineDatasource(){
 		application action="update" 
-			datasource="#{
-	  		class: 'org.h2.Driver'
-	  		,bundleName:'org.h2'
-	  		,bundleVersion:'1.3.172'
-			, connectionString: 'jdbc:h2:#getDirectoryFromPath(getCurrentTemplatePath())#/datasource/update;MODE=MySQL'
-		}#";
+			datasource="#server.getDatasource( "h2", server._getTempDir( "queryExecute" ) )#";
 	}
 
 
@@ -98,18 +93,5 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		assertEquals("qry1",qry1.getName());
 
 	} 
-	function afterTests() {
-		var javaIoFile=createObject("java","java.io.File");
-		loop array=DirectoryList(
-			path=getDirectoryFromPath(getCurrentTemplatePath()), 
-			recurse=true, filter="*.db") item="local.path"  {
-			fileDeleteOnExit(javaIoFile,path);
-		}
-	}
 
-	private function fileDeleteOnExit(required javaIoFile, required string path) {
-		var file=javaIoFile.init(arguments.path);
-		if(!file.isFile())file=javaIoFile.init(expandPath(arguments.path));
-		if(file.isFile()) file.deleteOnExit();
-	}
 } 

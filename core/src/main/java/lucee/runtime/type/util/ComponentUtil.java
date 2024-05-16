@@ -764,7 +764,7 @@ public final class ComponentUtil {
 		Property[] props = c.getProperties(onlyPersistent, false, false, false);
 		Struct sct = new StructImpl();
 		if (props != null) for (int i = 0; i < props.length; i++) {
-			sct.setEL(KeyImpl.getInstance(props[i].getName()), props[i]);
+			sct.setEL(KeyImpl.init(props[i].getName()), props[i]);
 		}
 		return sct;
 	}
@@ -774,46 +774,71 @@ public final class ComponentUtil {
 	}
 
 	public static Struct getMetaData(PageContext pc, UDFPropertiesBase udf, Boolean isStatic) throws PageException {
+		return getMetaData(pc, null, udf, isStatic);
+	}
+
+	public static Struct getMetaData(PageContext pc, UDF udf, UDFPropertiesBase udfProps, Boolean isStatic) throws PageException {
 		StructImpl func = new StructImpl();
 		pc = ThreadLocalPageContext.get(pc);
 		// TODO func.set("roles", value);
 		// TODO func.set("userMetadata", value); neo unterstuetzt irgendwelche a
 		// meta data
-		Struct meta = udf.getMeta();
+		Struct meta = udfProps.getMeta();
 		if (meta != null) StructUtil.copy(meta, func, true);
 
+		boolean isJava = false;
+		boolean isJavaLambda = false;
+		String lavaLambda = null;
+
+		if (udf != null) {
+			isJava = udf instanceof lucee.runtime.JF;
+			Class<? extends UDF> clazz = udf.getClass();
+
+			Class<?>[] interfaces = clazz.getInterfaces();
+			if (interfaces != null) {
+				for (Class<?> interf: interfaces) {
+					if (interf.getName().startsWith("java.util.function.")) {
+						isJavaLambda = true;
+						lavaLambda = interf.getName();
+					}
+				}
+			}
+		}
+		if (isJavaLambda) func.setEL("javaLambdaInterface", lavaLambda);
+		func.setEL(KeyConstants._java, (isJava ? Boolean.TRUE : Boolean.FALSE));
 		func.setEL(KeyConstants._closure, Boolean.FALSE);
 
-		func.set(KeyConstants._access, ComponentUtil.toStringAccess(udf.getAccess()));
-		String hint = udf.getHint();
+		func.set(KeyConstants._access, ComponentUtil.toStringAccess(udfProps.getAccess()));
+		String hint = udfProps.getHint();
 		if (!StringUtil.isEmpty(hint)) func.set(KeyConstants._hint, hint);
-		String displayname = udf.getDisplayName();
+		String displayname = udfProps.getDisplayName();
 		if (!StringUtil.isEmpty(displayname)) func.set(KeyConstants._displayname, displayname);
-		func.set(KeyConstants._name, udf.getFunctionName());
-		func.set(KeyConstants._output, Caster.toBoolean(udf.getOutput()));
-		func.set(KeyConstants._returntype, udf.getReturnTypeAsString());
-		func.set(KeyConstants._modifier, udf.getModifier() == Component.MODIFIER_NONE ? "" : ComponentUtil.toModifier(udf.getModifier(), ""));
-		func.set(KeyConstants._description, udf.getDescription());
+		func.set(KeyConstants._name, udfProps.getFunctionName());
+		func.set(KeyConstants._output, Caster.toBoolean(udfProps.getOutput()));
+		func.set(KeyConstants._returntype, udfProps.getReturnTypeAsString());
+		func.set(KeyConstants._modifier, udfProps.getModifier() == Component.MODIFIER_NONE ? "" : ComponentUtil.toModifier(udfProps.getModifier(), ""));
+		func.set(KeyConstants._description, udfProps.getDescription());
 		if (isStatic != null) func.set(KeyConstants._static, isStatic);
 
-		if (udf.getLocalMode() != null) func.set("localMode", AppListenerUtil.toLocalMode(udf.getLocalMode().intValue(), ""));
+		if (udfProps.getLocalMode() != null) func.set("localMode", AppListenerUtil.toLocalMode(udfProps.getLocalMode().intValue(), ""));
 
-		if (udf.getPageSource() != null) func.set(KeyConstants._owner, udf.getPageSource().getDisplayPath());
+		if (udfProps.getPageSource() != null) func.set(KeyConstants._owner, udfProps.getPageSource().getDisplayPath());
 
-		if (udf.getStartLine() > 0 && udf.getEndLine() > 0) {
+		if (udfProps.getStartLine() > 0 && udfProps.getEndLine() > 0) {
 			Struct pos = new StructImpl();
-			pos.set(KeyConstants._start, udf.getStartLine());
-			pos.set(KeyConstants._end, udf.getEndLine());
+			pos.set(KeyConstants._start, udfProps.getStartLine());
+			pos.set(KeyConstants._end, udfProps.getEndLine());
 			func.setEL(KeyConstants._position, pos);
 		}
 
-		int format = udf.getReturnFormat();
+		int format = udfProps.getReturnFormat();
 		if (format < 0 || format == UDF.RETURN_FORMAT_WDDX) func.set(KeyConstants._returnFormat, "wddx");
 		else if (format == UDF.RETURN_FORMAT_PLAIN) func.set(KeyConstants._returnFormat, "plain");
 		else if (format == UDF.RETURN_FORMAT_JSON) func.set(KeyConstants._returnFormat, "json");
 		else if (format == UDF.RETURN_FORMAT_SERIALIZE) func.set(KeyConstants._returnFormat, "cfml");
+		else if (format == UDF.RETURN_FORMAT_XML) func.set(KeyConstants._returnFormat, "xml");
 
-		FunctionArgument[] args = udf.getFunctionArguments();
+		FunctionArgument[] args = udfProps.getFunctionArguments();
 		Array params = new ArrayImpl();
 		// Object defaultValue;
 		Struct m;
@@ -831,8 +856,8 @@ public final class ComponentUtil {
 				param.set(KeyConstants._default, "[runtime expression]");
 			}
 			else if (defType == FunctionArgument.DEFAULT_TYPE_LITERAL) {
-				Page p = udf.getPage(pc);
-				param.set(KeyConstants._default, p.udfDefaultValue(pc, udf.getIndex(), y, null));
+				Page p = udfProps.getPage(pc);
+				param.set(KeyConstants._default, p.udfDefaultValue(pc, udfProps.getIndex(), y, null));
 			}
 
 			hint = args[y].getHint();

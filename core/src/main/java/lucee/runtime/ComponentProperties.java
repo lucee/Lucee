@@ -24,12 +24,12 @@ import java.util.Map;
 import lucee.runtime.component.Property;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.type.Collection;
-import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
+import lucee.runtime.type.util.KeyConstants;
 
 public class ComponentProperties implements Serializable {
 
-	private static final Collection.Key WSDL_FILE = KeyImpl.getInstance("wsdlfile");
+	private static final Collection.Key WSDL_FILE = KeyConstants._wsdlfile;
 	final String dspName;
 	final String extend;
 	final String hint;
@@ -46,6 +46,7 @@ public class ComponentProperties implements Serializable {
 	final int modifier;
 	final String subName;
 	final String name;
+	public boolean inline;
 
 	public ComponentProperties(String name, String dspName, String extend, String implement, String hint, Boolean output, String callPath, boolean realPath, String subName,
 			boolean _synchronized, Class javaAccessClass, boolean persistent, boolean accessors, int modifier, Struct meta) {
@@ -70,6 +71,7 @@ public class ComponentProperties implements Serializable {
 		ComponentProperties cp = new ComponentProperties(name, dspName, extend, implement, hint, output, callPath, realPath, subName, _synchronized, javaAccessClass, persistent,
 				accessors, modifier, meta);
 		cp.properties = properties;
+		cp.inline = inline;
 		return cp;
 	}
 

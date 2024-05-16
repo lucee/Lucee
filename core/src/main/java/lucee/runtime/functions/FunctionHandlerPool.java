@@ -56,7 +56,7 @@ public final class FunctionHandlerPool {
 			Class<?> clazz;
 			// OSGi bundle
 			if (!StringUtil.isEmpty(bundleName))
-				clazz = ClassUtil.loadClassByBundle(className, bundleName, bundleVersion, pc.getConfig().getIdentification(), JavaSettingsImpl.getBundleDirectories(pc));
+				clazz = ClassUtil.loadClassByBundle(className, bundleName, bundleVersion, pc.getConfig().getIdentification(), JavaSettingsImpl.getBundleDirectories(pc), true);
 			// JAR
 			else clazz = ClassUtil.loadClass(className);
 

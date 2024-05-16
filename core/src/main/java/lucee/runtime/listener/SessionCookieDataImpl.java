@@ -8,8 +8,8 @@ import lucee.runtime.type.scope.CookieImpl;
 
 public class SessionCookieDataImpl implements SessionCookieData {
 
-	public static final SessionCookieData DEFAULT = new SessionCookieDataImpl(true, false, TimeSpanImpl.fromMillis(CookieImpl.NEVER * 1000), null, false, CookieData.SAMESITE_EMPTY,
-			"/");
+	public static final SessionCookieData DEFAULT = new SessionCookieDataImpl(true, false, TimeSpanImpl.fromMillis(CookieImpl.NEVER * 1000L), null, false, CookieData.SAMESITE_LAX,
+			"/", false);
 
 	private final boolean httpOnly;
 	private final boolean secure;
@@ -18,8 +18,9 @@ public class SessionCookieDataImpl implements SessionCookieData {
 	private final String path;
 	private final boolean disableUpdate;
 	private final short samesite;
+	private final boolean partitioned;
 
-	public SessionCookieDataImpl(boolean httpOnly, boolean secure, TimeSpan timeout, String domain, boolean disableUpdate, short samesite, String path) {
+	public SessionCookieDataImpl(boolean httpOnly, boolean secure, TimeSpan timeout, String domain, boolean disableUpdate, short samesite, String path, boolean partitioned) {
 		this.httpOnly = httpOnly;
 		this.secure = secure;
 		this.timeout = timeout;
@@ -27,6 +28,7 @@ public class SessionCookieDataImpl implements SessionCookieData {
 		this.path = StringUtil.isEmpty(path, true) ? null : path.trim();
 		this.disableUpdate = disableUpdate;
 		this.samesite = samesite;
+		this.partitioned = partitioned;
 	}
 
 	@Override
@@ -62,6 +64,11 @@ public class SessionCookieDataImpl implements SessionCookieData {
 	@Override
 	public short getSamesite() {
 		return samesite;
+	}
+
+	@Override
+	public boolean isPartitioned() {
+		return partitioned;
 	}
 
 	public static short toSamesite(String str) throws ApplicationException {

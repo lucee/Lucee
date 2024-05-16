@@ -61,7 +61,6 @@ import lucee.runtime.debug.DebuggerImpl;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.CasterException;
-import lucee.runtime.exp.CatchBlockImpl;
 import lucee.runtime.exp.DatabaseException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.tag.BodyTagTryCatchFinallyImpl;
@@ -101,17 +100,16 @@ import lucee.runtime.type.scope.Argument;
 import lucee.runtime.type.util.CollectionUtil;
 import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.ListUtil;
-import lucee.runtime.util.PageContextUtil;
 
 /**
  * Passes SQL statements to a data source. Not limited to queries.
  **/
 public final class Query extends BodyTagTryCatchFinallyImpl {
 
-	private static final Collection.Key SQL_PARAMETERS = KeyImpl.getInstance("sqlparameters");
-	private static final Collection.Key CFQUERY = KeyImpl.getInstance("cfquery");
-	private static final Collection.Key GENERATEDKEY = KeyImpl.getInstance("generatedKey");
-	private static final Collection.Key MAX_RESULTS = KeyImpl.getInstance("maxResults");
+	private static final Collection.Key SQL_PARAMETERS = KeyConstants._sqlparameters;
+	private static final Collection.Key CFQUERY = KeyConstants._cfquery;
+	private static final Collection.Key GENERATEDKEY = KeyConstants._generatedKey;
+	private static final Collection.Key MAX_RESULTS = KeyConstants._maxResults;
 	private static final Collection.Key TIMEOUT = KeyConstants._timeout;
 
 	public static final int RETURN_TYPE_UNDEFINED = 0;
@@ -486,10 +484,7 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 		}
 		// timeout
 		if (data.datasource instanceof DataSourceImpl && ((DataSourceImpl) data.datasource).getAlwaysSetTimeout()) {
-			TimeSpan remaining = PageContextUtil.remainingTime(pageContext, true);
-			if (data.timeout == null || ((int) data.timeout.getSeconds()) <= 0 || data.timeout.getSeconds() > remaining.getSeconds()) { // not set
-				data.timeout = remaining;
-			}
+			data.timeout = Http.checkRemainingTimeout(pageContext, data.timeout);
 		}
 
 		// timezone
@@ -787,7 +782,7 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 			if (data.listener != null && data.listener.hasError()) {
 				long addExe = System.nanoTime();
 				Struct args = createArgStruct(data, strSQL, tl);
-				args.set(KeyConstants._exception, new CatchBlockImpl(pe));
+				args.set(KeyConstants._exception, pe.getCatchBlock(pageContext.getConfig()));
 				ResMeta rm = writeBackResult(pageContext, data, data.listener.error(pageContext, args), setVars);
 				if (data.result == null || (rm.meta == null && rm.asQueryResult() != null))
 					rm.meta = createMetaData(pageContext, data, rm.asQueryResult(), null, setVars, exe + (System.nanoTime() - addExe));
@@ -1083,8 +1078,8 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 		}
 
 		// query options
-		if (data.maxrows != -1 && !ormoptions.containsKey(MAX_RESULTS)) ormoptions.setEL(MAX_RESULTS, new Double(data.maxrows));
-		if (data.timeout != null && ((int) data.timeout.getSeconds()) > 0 && !ormoptions.containsKey(TIMEOUT)) ormoptions.setEL(TIMEOUT, new Double(data.timeout.getSeconds()));
+		if (data.maxrows != -1 && !ormoptions.containsKey(MAX_RESULTS)) ormoptions.setEL(MAX_RESULTS, Double.valueOf(data.maxrows));
+		if (data.timeout != null && ((int) data.timeout.getSeconds()) > 0 && !ormoptions.containsKey(TIMEOUT)) ormoptions.setEL(TIMEOUT, Double.valueOf(data.timeout.getSeconds()));
 		/*
 		 * MUST offset: Specifies the start index of the resultset from where it has to start the retrieval.
 		 * cacheable: Whether the result of this query is to be cached in the secondary cache. Default is

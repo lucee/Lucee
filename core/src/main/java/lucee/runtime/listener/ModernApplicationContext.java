@@ -105,67 +105,66 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 
 	private static final Collection.Key APPLICATION_TIMEOUT = KeyConstants._applicationTimeout;
 	private static final Collection.Key CLIENT_MANAGEMENT = KeyConstants._clientManagement;
-	private static final Collection.Key CLIENT_STORAGE = KeyImpl.getInstance("clientStorage");
-	private static final Collection.Key SESSION_STORAGE = KeyImpl.getInstance("sessionStorage");
-	private static final Collection.Key LOGIN_STORAGE = KeyImpl.getInstance("loginStorage");
-	private static final Collection.Key SESSION_TYPE = KeyImpl.getInstance("sessionType");
-	private static final Collection.Key WS_SETTINGS = KeyImpl.getInstance("wssettings");
-	private static final Collection.Key WS_SETTING = KeyImpl.getInstance("wssetting");
-	private static final Collection.Key TRIGGER_DATA_MEMBER = KeyImpl.getInstance("triggerDataMember");
-	private static final Collection.Key INVOKE_IMPLICIT_ACCESSOR = KeyImpl.getInstance("InvokeImplicitAccessor");
-	private static final Collection.Key SESSION_MANAGEMENT = KeyImpl.getInstance("sessionManagement");
-	private static final Collection.Key SESSION_TIMEOUT = KeyImpl.getInstance("sessionTimeout");
-	private static final Collection.Key CLIENT_TIMEOUT = KeyImpl.getInstance("clientTimeout");
-	private static final Collection.Key REQUEST_TIMEOUT = KeyImpl.getInstance("requestTimeout");
-	private static final Collection.Key SET_CLIENT_COOKIES = KeyImpl.getInstance("setClientCookies");
-	private static final Collection.Key SET_DOMAIN_COOKIES = KeyImpl.getInstance("setDomainCookies");
-	private static final Collection.Key SCRIPT_PROTECT = KeyImpl.getInstance("scriptProtect");
-	private static final Collection.Key CUSTOM_TAG_PATHS = KeyImpl.getInstance("customtagpaths");
-	private static final Collection.Key COMPONENT_PATHS = KeyImpl.getInstance("componentpaths");
-	private static final Collection.Key FUNCTION_PATHS = KeyImpl.getInstance("functionpaths");
-	private static final Collection.Key SECURE_JSON_PREFIX = KeyImpl.getInstance("secureJsonPrefix");
-	private static final Collection.Key SECURE_JSON = KeyImpl.getInstance("secureJson");
-	private static final Collection.Key LOCAL_MODE = KeyImpl.getInstance("localMode");
-	private static final Collection.Key BUFFER_OUTPUT = KeyImpl.getInstance("bufferOutput");
-	private static final Collection.Key SESSION_CLUSTER = KeyImpl.getInstance("sessionCluster");
-	private static final Collection.Key CLIENT_CLUSTER = KeyImpl.getInstance("clientCluster");
+	private static final Collection.Key CLIENT_STORAGE = KeyConstants._clientStorage;
+	private static final Collection.Key SESSION_STORAGE = KeyConstants._sessionStorage;
+	private static final Collection.Key LOGIN_STORAGE = KeyConstants._loginStorage;
+	private static final Collection.Key SESSION_TYPE = KeyConstants._sessionType;
+	private static final Collection.Key WS_SETTINGS = KeyConstants._wssettings;
+	private static final Collection.Key WS_SETTING = KeyConstants._wssetting;
+	private static final Collection.Key TRIGGER_DATA_MEMBER = KeyConstants._triggerDataMember;
+	private static final Collection.Key INVOKE_IMPLICIT_ACCESSOR = KeyConstants._InvokeImplicitAccessor;
+	private static final Collection.Key SESSION_MANAGEMENT = KeyConstants._sessionManagement;
+	private static final Collection.Key SESSION_TIMEOUT = KeyConstants._sessionTimeout;
+	private static final Collection.Key CLIENT_TIMEOUT = KeyConstants._clientTimeout;
+	private static final Collection.Key REQUEST_TIMEOUT = KeyConstants._requestTimeout;
+	private static final Collection.Key SET_CLIENT_COOKIES = KeyConstants._setClientCookies;
+	private static final Collection.Key SET_DOMAIN_COOKIES = KeyConstants._setDomainCookies;
+	private static final Collection.Key SCRIPT_PROTECT = KeyConstants._scriptProtect;
+	private static final Collection.Key CUSTOM_TAG_PATHS = KeyConstants._customtagpaths;
+	private static final Collection.Key COMPONENT_PATHS = KeyConstants._componentpaths;
+	private static final Collection.Key FUNCTION_PATHS = KeyConstants._functionpaths;
+	private static final Collection.Key SECURE_JSON_PREFIX = KeyConstants._secureJsonPrefix;
+	private static final Collection.Key SECURE_JSON = KeyConstants._secureJson;
+	private static final Collection.Key LOCAL_MODE = KeyConstants._localMode;
+	private static final Collection.Key BUFFER_OUTPUT = KeyConstants._bufferOutput;
+	private static final Collection.Key SESSION_CLUSTER = KeyConstants._sessionCluster;
+	private static final Collection.Key CLIENT_CLUSTER = KeyConstants._clientCluster;
 
-	private static final Collection.Key DEFAULT_DATA_SOURCE = KeyImpl.getInstance("defaultdatasource");
-	private static final Collection.Key DEFAULT_CACHE = KeyImpl.getInstance("defaultcache");
+	private static final Collection.Key DEFAULT_DATA_SOURCE = KeyConstants._defaultdatasource;
+	private static final Collection.Key DEFAULT_CACHE = KeyConstants._defaultcache;
 
-	private static final Collection.Key ORM_ENABLED = KeyImpl.getInstance("ormenabled");
-	private static final Collection.Key ORM_SETTINGS = KeyImpl.getInstance("ormsettings");
-	private static final Collection.Key IN_MEMORY_FILESYSTEM = KeyImpl.getInstance("inmemoryfilesystem");
-	private static final Collection.Key REST_SETTING = KeyImpl.getInstance("restsettings");
-	private static final Collection.Key JAVA_SETTING = KeyImpl.getInstance("javasettings");
-	private static final Collection.Key SCOPE_CASCADING = KeyImpl.getInstance("scopeCascading");
-	private static final Collection.Key SEARCH_IMPLICIT_SCOPES = KeyImpl.getInstance("searchImplicitScopes");
-	private static final Collection.Key TYPE_CHECKING = KeyImpl.getInstance("typeChecking");
-	private static final Collection.Key CGI_READONLY = KeyImpl.getInstance("CGIReadOnly");
-	private static final Collection.Key SUPPRESS_CONTENT = KeyImpl.getInstance("suppressRemoteComponentContent");
-	private static final Collection.Key LOGS = KeyImpl.getInstance("logs");
-	private static final Collection.Key LOG = KeyImpl.getInstance("log");
+	private static final Collection.Key ORM_ENABLED = KeyConstants._ormenabled;
+	private static final Collection.Key ORM_SETTINGS = KeyConstants._ormsettings;
+	private static final Collection.Key IN_MEMORY_FILESYSTEM = KeyConstants._inmemoryfilesystem;
+	private static final Collection.Key REST_SETTING = KeyConstants._restsettings;
+	private static final Collection.Key JAVA_SETTING = KeyConstants._javasettings;
+	private static final Collection.Key SCOPE_CASCADING = KeyConstants._scopeCascading;
+	private static final Collection.Key SEARCH_IMPLICIT_SCOPES = KeyConstants._searchImplicitScopes;
+	private static final Collection.Key TYPE_CHECKING = KeyConstants._typeChecking;
+	private static final Collection.Key CGI_READONLY = KeyConstants._CGIReadOnly;
+	private static final Collection.Key SUPPRESS_CONTENT = KeyConstants._suppressRemoteComponentContent;
 
-	private static final Collection.Key SESSION_COOKIE = KeyImpl.getInstance("sessioncookie");
-	private static final Collection.Key AUTH_COOKIE = KeyImpl.getInstance("authcookie");
+	private static final Collection.Key SESSION_COOKIE = KeyConstants._sessioncookie;
+	private static final Collection.Key AUTH_COOKIE = KeyConstants._authcookie;
 
-	private static final Key ENABLE_NULL_SUPPORT = KeyImpl.getInstance("enableNULLSupport");
-	private static final Key NULL_SUPPORT = KeyImpl.getInstance("nullSupport");
-	private static final Key PRECISE_MATH = KeyImpl.getInstance("preciseMath");
-	private static final Key PRECISION_EVAL = KeyImpl.getInstance("precisionEvaluate");
-	private static final Key PSQ = KeyImpl.getInstance("psq");
-	private static final Key PSQ_LONG = KeyImpl.getInstance("preservesinglequote");
-	private static final Key VAR_USAGE = KeyImpl.getInstance("varusage");
-	private static final Key VARIABLE_USAGE = KeyImpl.getInstance("variableusage");
-	private static final Key CACHED_AFTER = KeyImpl.getInstance("cachedAfter");
-	private static final Key BLOCKED_EXT_FOR_FILE_UPLOAD = KeyImpl.getInstance("blockedExtForFileUpload");
-	private static final Key XML_FEATURES = KeyImpl.getInstance("xmlFeatures");
-	private static final Key SEARCH_QUERIES = KeyImpl.getInstance("searchQueries");
-	private static final Key SEARCH_RESULTS = KeyImpl.getInstance("searchResults");
-	private static final Key REGEX = KeyImpl.getInstance("regex");
-	private static final Key ENGINE = KeyImpl.getInstance("engine");
+	private static final Key ENABLE_NULL_SUPPORT = KeyConstants._enableNULLSupport;
+	private static final Key NULL_SUPPORT = KeyConstants._nullSupport;
+	private static final Key PRECISE_MATH = KeyConstants._preciseMath;
+	private static final Key PRECISION_EVAL = KeyConstants._precisionEvaluate;
+	private static final Key PSQ = KeyConstants._psq;
+	private static final Key PSQ_LONG = KeyConstants._preservesinglequote;
+	private static final Key VAR_USAGE = KeyConstants._varusage;
+	private static final Key VARIABLE_USAGE = KeyConstants._variableusage;
+	private static final Key CACHED_AFTER = KeyConstants._cachedAfter;
+	private static final Key BLOCKED_EXT_FOR_FILE_UPLOAD = KeyConstants._blockedExtForFileUpload;
+	private static final Key XML_FEATURES = KeyConstants._xmlFeatures;
+	private static final Key SEARCH_QUERIES = KeyConstants._searchQueries;
+	private static final Key SEARCH_RESULTS = KeyConstants._searchResults;
+	private static final Key LIMIT_EVALUATION = KeyConstants._limitEvaluation;
+	private static final Key REGEX = KeyConstants._regex;
+	private static final Key ENGINE = KeyConstants._engine;
 	private static final Key DIALECT = KeyConstants._dialect;
-	private static final Key USE_JAVA_AS_REGEX_ENGINE = KeyImpl.getInstance("useJavaAsRegexEngine");
+	private static final Key USE_JAVA_AS_REGEX_ENGINE = KeyConstants._useJavaAsRegexEngine;
 
 	private static Map<String, CacheConnection> initCacheConnections = new ConcurrentHashMap<String, CacheConnection>();
 
@@ -311,7 +310,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	private boolean initFuncDirs = false;
 
 	private boolean allowImplicidQueryCall;
-
+	private boolean limitEvaluation;
 	private Regex regex;
 
 	public ModernApplicationContext(PageContext pc, Component cfc, RefBoolean throwsErrorWhileInit) {
@@ -350,12 +349,13 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 		this.sessionStorage = ci.getSessionStorage();
 		this.clientStorage = ci.getClientStorage();
 		this.allowImplicidQueryCall = config.allowImplicidQueryCall();
-
+		this.limitEvaluation = ci.limitEvaluation();
 		this.triggerComponentDataMember = config.getTriggerComponentDataMember();
 		this.restSetting = config.getRestSetting();
 		this.javaSettings = new JavaSettingsImpl();
 		this.component = cfc;
 		this.regex = ci.getRegex();
+		this.preciseMath = ci.getPreciseMath();
 
 		initAntiSamyPolicyResource(pc);
 		if (antiSamyPolicyResource == null) this.antiSamyPolicyResource = ((ConfigPro) config).getAntiSamyPolicy();
@@ -364,6 +364,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 		initSameFieldAsArray(pc);
 		initWebCharset(pc);
 		initAllowImplicidQueryCall();
+		initLimitEvaluation();
 
 		pc.addPageSource(component.getPageSource(), true);
 		try {
@@ -397,6 +398,17 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 		if (o == null) o = get(component, SEARCH_RESULTS, null);
 
 		if (o != null) allowImplicidQueryCall = Caster.toBooleanValue(o, allowImplicidQueryCall);
+	}
+
+	private void initLimitEvaluation() {
+		Object o = get(component, KeyConstants._security, null);
+
+		if (o instanceof Struct) {
+			Struct sct = (Struct) o;
+			o = sct.get(LIMIT_EVALUATION, null);
+			if (o != null) limitEvaluation = Caster.toBooleanValue(o, limitEvaluation);
+
+		}
 	}
 
 	@Override
@@ -1033,7 +1045,9 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	public Mapping[] getMappings() {
 		if (!initMappings) {
 			Object o = get(component, KeyConstants._mappings, null);
-			if (o != null) mappings = AppListenerUtil.toMappings(config, o, mappings, getSource());
+			if (o != null) {
+				mappings = AppListenerUtil.toMappingsIgnoreInvalid(config, o, getSource());
+			}
 			initMappings = true;
 		}
 		return mappings;
@@ -1570,7 +1584,12 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 		if (!initJavaSettings) {
 			Object o = get(component, JAVA_SETTING, null);
 			if (o != null && Decision.isStruct(o)) {
-				javaSettings = JavaSettingsImpl.newInstance(javaSettings, Caster.toStruct(o, null));
+				try {
+					javaSettings = JavaSettingsImpl.newInstance(javaSettings, Caster.toStruct(o, null));
+				}
+				catch (PageException e) {
+					throw new PageRuntimeException(e);
+				}
 
 			}
 			initJavaSettings = true;
@@ -1755,8 +1774,8 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	private void initLog() {
 		try {
 			// appender
-			Object oLogs = get(component, LOGS, null);
-			if (oLogs == null) oLogs = get(component, LOG, null);
+			Object oLogs = get(component, KeyConstants._logs, null);
+			if (oLogs == null) oLogs = get(component, KeyConstants._log, null);
 			Struct sct = Caster.toStruct(oLogs, null);
 			logs = initLog(ThreadLocalPageContext.getConfig(config), sct);
 			initLog = true;
@@ -1852,10 +1871,11 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	@Override
 	public int getQueryVarUsage() {
 		if (!initQueryVarUsage) {
-			Struct qry = Caster.toStruct(get(component, KeyConstants._query, null), null);
-			if (qry != null) {
-				String str = Caster.toString(qry.get(VAR_USAGE, null), null);
-				if (StringUtil.isEmpty(str)) str = Caster.toString(qry.get(VARIABLE_USAGE, null), null);
+			Struct sct = Caster.toStruct(get(component, KeyConstants._query, null), null);
+			if (sct == null) sct = Caster.toStruct(get(component, KeyConstants._security, null), null);
+			if (sct != null) {
+				String str = Caster.toString(sct.get(VAR_USAGE, null), null);
+				if (StringUtil.isEmpty(str)) str = Caster.toString(sct.get(VARIABLE_USAGE, null), null);
 				if (!StringUtil.isEmpty(str)) queryVarUsage = AppListenerUtil.toVariableUsage(str, queryVarUsage);
 			}
 			initQueryVarUsage = true;
@@ -1898,6 +1918,16 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	@Override
 	public void setXmlFeatures(Struct xmlFeatures) {
 		this.xmlFeatures = xmlFeatures;
+	}
+
+	@Override
+	public boolean getLimitEvaluation() {
+		return limitEvaluation;
+	}
+
+	@Override
+	public void setLimitEvaluation(boolean limitEvaluation) {
+		this.limitEvaluation = limitEvaluation;
 	}
 
 	@Override

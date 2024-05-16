@@ -8,7 +8,6 @@ import lucee.runtime.PageContext;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.engine.ThreadLocalPageContext;
-import lucee.runtime.exp.CatchBlockImpl;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.spooler.mail.MailSpoolerTask;
@@ -54,17 +53,25 @@ public abstract class CFMLSpoolerTaskListener extends SpoolerTaskListener {
 			args.set("created", new DateTimeImpl(pc, task.getCreation(), true));
 			args.set(KeyConstants._id, task.getId());
 			args.set(KeyConstants._type, task.getType());
-			args.set(KeyConstants._detail, task.detail());
+
+			Struct details = task.detail();
+			if (task instanceof MailSpoolerTask) {
+				details.set(KeyConstants._charset, ((MailSpoolerTask) task).getCharset());
+				details.set(KeyConstants._replyto, ((MailSpoolerTask) task).getReplyTos());
+				details.set("failto", ((MailSpoolerTask) task).getFailTos());
+			}
+			args.set(KeyConstants._detail, details);
+
 			args.set(KeyConstants._tries, task.tries());
 			args.set("remainingtries", e == null ? 0 : task.getPlans().length - task.tries());
 			args.set("closed", task.closed());
 			if (!before) args.set("passed", e == null);
-			if (e != null) args.set("exception", new CatchBlockImpl(Caster.toPageException(e)));
+			if (e != null) args.set("exception", Caster.toPageException(e).getCatchBlock(cw));
 
 			Struct curr = new StructImpl();
 			args.set("caller", curr);
 			curr.set("template", currTemplate.template);
-			curr.set("line", new Double(currTemplate.line));
+			curr.set("line", Double.valueOf(currTemplate.line));
 
 			Struct adv = new StructImpl();
 			args.set("advanced", adv);

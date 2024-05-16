@@ -50,7 +50,6 @@ import lucee.runtime.lock.LockManager;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.Collection.Key;
-import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Query;
 import lucee.runtime.type.QueryImpl;
 import lucee.runtime.type.Struct;
@@ -61,16 +60,16 @@ import lucee.runtime.type.util.KeyConstants;
 
 public final class GetUsageData implements Function {
 
-	private static final Key START_TIME = KeyImpl.getInstance("starttime");
-	private static final Key CACHED_QUERIES = KeyImpl.getInstance("cachedqueries");
-	private static final Key OPEN_CONNECTIONS = KeyImpl.getInstance("openconnections");
-	private static final Key ACTIVE_CONNECTIONS = KeyImpl.getInstance("activeconnections");
-	private static final Key IDLE_CONNECTIONS = KeyImpl.getInstance("idleconnections");
-	private static final Key WAITING_FOR_CONNECTION = KeyImpl.getInstance("waitingForConnection");
-	private static final Key ELEMENTS = KeyImpl.getInstance("elements");
-	private static final Key USERS = KeyImpl.getInstance("users");
-	private static final Key QUERIES = KeyImpl.getInstance("queries");
-	private static final Key LOCKS = KeyImpl.getInstance("locks");
+	private static final Key START_TIME = KeyConstants._starttime;
+	private static final Key CACHED_QUERIES = KeyConstants._cachedqueries;
+	private static final Key OPEN_CONNECTIONS = KeyConstants._openconnections;
+	private static final Key ACTIVE_CONNECTIONS = KeyConstants._activeconnections;
+	private static final Key IDLE_CONNECTIONS = KeyConstants._idleconnections;
+	private static final Key WAITING_FOR_CONNECTION = KeyConstants._waitingForConnection;
+	private static final Key ELEMENTS = KeyConstants._elements;
+	private static final Key USERS = KeyConstants._users;
+	private static final Key QUERIES = KeyConstants._queries;
+	private static final Key LOCKS = KeyConstants._locks;
 
 	public static Struct call(PageContext pc) throws PageException {
 		ConfigWeb cw = pc.getConfig();
@@ -95,7 +94,7 @@ public final class GetUsageData implements Function {
 
 		// Template Cache
 		Query tc = new QueryImpl(new Collection.Key[] { KeyConstants._web, ELEMENTS, KeyConstants._size }, 0, "templateCache");
-		sct.setEL(KeyImpl.getInstance("templateCache"), tc);
+		sct.setEL(KeyConstants._templateCache, tc);
 
 		// Scopes
 		Struct scopes = new StructImpl();
@@ -140,7 +139,7 @@ public final class GetUsageData implements Function {
 				req.setAt(KeyConstants._web, row, web.getLabel());
 				req.setAt(KeyConstants._uri, row, getPath(_pc.getHttpServletRequest()));
 				req.setAt(START_TIME, row, new DateTimeImpl(pc.getStartTime(), false));
-				req.setAt(KeyConstants._timeout, row, new Double(pc.getRequestTimeout()));
+				req.setAt(KeyConstants._timeout, row, Double.valueOf(pc.getRequestTimeout()));
 
 				// Query
 				queries = _pc.getActiveQueries();
@@ -182,8 +181,8 @@ public final class GetUsageData implements Function {
 			long[] tce = templateCacheElements(mappings);
 			row = tc.addRow();
 			tc.setAt(KeyConstants._web, row, web.getLabel());
-			tc.setAt(KeyConstants._size, row, new Double(tce[1]));
-			tc.setAt(ELEMENTS, row, new Double(tce[0]));
+			tc.setAt(KeyConstants._size, row, Double.valueOf(tce[1]));
+			tc.setAt(ELEMENTS, row, Double.valueOf(tce[0]));
 
 			// Scope Application
 			getAllApplicationScopes(web, factory.getScopeContext(), app);
@@ -232,8 +231,8 @@ public final class GetUsageData implements Function {
 			sac = SizeAndCount.sizeOf(e.getValue());
 			app.setAt(KeyConstants._web, row, web.getLabel());
 			app.setAt(KeyConstants._application, row, e.getKey().getString());
-			app.setAt(KeyConstants._size, row, new Double(sac.size));
-			app.setAt(ELEMENTS, row, new Double(sac.count));
+			app.setAt(KeyConstants._size, row, Double.valueOf(sac.size));
+			app.setAt(ELEMENTS, row, Double.valueOf(sac.count));
 
 		}
 	}
@@ -261,10 +260,10 @@ public final class GetUsageData implements Function {
 			row = sess.addRow();
 
 			sess.setAt(KeyConstants._web, row, web.getLabel());
-			sess.setAt(USERS, row, new Double(users));
+			sess.setAt(USERS, row, Double.valueOf(users));
 			sess.setAt(KeyConstants._application, row, e.getKey().toString());
-			sess.setAt(KeyConstants._size, row, new Double(size));
-			sess.setAt(ELEMENTS, row, new Double(count));
+			sess.setAt(KeyConstants._size, row, Double.valueOf(size));
+			sess.setAt(ELEMENTS, row, Double.valueOf(count));
 		}
 	}
 

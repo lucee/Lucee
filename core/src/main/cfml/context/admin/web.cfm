@@ -1,4 +1,6 @@
 <cfscript>
+
+	request.singleMode=getApplicationSettings().singleContext;
 	
 	if(request.singleMode && right(cgi.script_name,9)!="index.cfm") {
 		location url="index.cfm" addtoken=false;
@@ -46,7 +48,11 @@
 <cfparam name="form.rememberMe" default="s">
 <cfset ad = request.adminType>
 <cfset request.self = (request.singleMode?"index": request.adminType )& ".cfm">
-
+<cfscript>
+	if(structKeyExists(url, "reinit") && (url.action?:"") != "logout") {
+		location url="#cgi.SCRIPT_NAME#?action=logout&full=true" addtoken="No";
+	}
+</cfscript>
 <cfparam name="cookie.lucee_admin_lang" default="en">
 <cfset session.lucee_admin_lang = cookie.lucee_admin_lang>
 
@@ -65,11 +71,11 @@
 		returnVariable="loginSettings">
 
 	<cfset loginPause = loginSettings.delay>
-
-	<cfif loginPause && structKeyExists(application, "lastTryToLogin") && isDate(application.lastTryToLogin) && DateDiff("s", application.lastTryToLogin, now()) LT loginPause>
-		<cfset login_error = "Login disabled until #lsDateFormat(dateAdd("s", loginPause, application.lastTryToLogin))# #lsTimeFormat(dateAdd("s", loginPause, application.lastTryToLogin),'hh:mm:ss')#">
+	<cfset keyLTL="lastTryToLogin"&":"& request.adminType&":"&(cgi.context_path?:"")>
+	<cfif loginPause && structKeyExists(application, keyLTL) && isDate(application[keyLTL]) && DateDiff("s", application[keyLTL], now()) LT loginPause>
+		<cfset login_error = "Login disabled until #lsDateFormat(dateAdd("s", loginPause, application[keyLTL]))# #lsTimeFormat(dateAdd("s", loginPause, application[keyLTL]),'hh:mm:ss')#">
 	<cfelse>
-		<cfset application.lastTryToLogin = now()>
+		<cfset application[keyLTL] = now()>
 		<cfparam name="form.captcha" default="">
 
 		<cfif loginSettings.captcha && structKeyExists(session, "cap") && compare(form.captcha,session.cap) != 0>
@@ -552,20 +558,3 @@
 <cfelseif current.action == "services.restart">
 	<cfcookie name="lucee_admin_lastpage" value="services.restart" expires="NEVER">
 </cfif>
-
-
-<!--- <cftry>
-<cfscript>
-if (request.adminType == 'server'){
-	include "services.update.functions.cfm";
-	ud=getUpdateData();
-	if (isNull(application.UpdateProvider[ud.location])) {
-		thread name="providers" action="run" location=ud.location {
-			application.UpdateProvider[ud.location]=getAvailableVersion();
-			systemOutput("done!",1,1);
-		}
-	}
-}
-</cfscript>
-<cfcatch></cfcatch>
-</cftry> --->

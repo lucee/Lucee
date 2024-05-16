@@ -1,6 +1,6 @@
 /**
  * Copyright (c) 2014, the Railo Company Ltd.
- * Copyright (c) 2015, Lucee Assosication Switzerland
+ * Copyright (c) 2015, Lucee Association Switzerland
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -28,12 +28,12 @@ import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.GeneratorAdapter;
 import org.objectweb.asm.commons.Method;
 
+import lucee.runtime.functions.other.CreateUniqueId;
 import lucee.runtime.op.Elvis;
 import lucee.transformer.TransformerException;
 import lucee.transformer.bytecode.BytecodeContext;
 import lucee.transformer.bytecode.expression.ExpressionBase;
 import lucee.transformer.bytecode.util.ASMUtil;
-import lucee.transformer.bytecode.util.ExpressionUtil;
 import lucee.transformer.bytecode.util.Types;
 import lucee.transformer.bytecode.visitor.ArrayVisitor;
 import lucee.transformer.expression.Expression;
@@ -45,52 +45,74 @@ import lucee.transformer.expression.var.Variable;
 public final class OpElvis extends ExpressionBase {
 
 	private static final Type ELVIS = Type.getType(Elvis.class);
-	public static final Method INVOKE_STR = new Method("operate", Types.BOOLEAN_VALUE, new Type[] { Types.PAGE_CONTEXT, Types.DOUBLE_VALUE, Types.STRING_ARRAY });
 
-	public static final Method INVOKE_KEY = new Method("operate", Types.BOOLEAN_VALUE, new Type[] { Types.PAGE_CONTEXT, Types.DOUBLE_VALUE, Types.COLLECTION_KEY_ARRAY });
+	public static final Method INVOKE_STR = new Method("load", Types.OBJECT, new Type[] { Types.PAGE_CONTEXT, Types.DOUBLE_VALUE, Types.STRING_ARRAY });
+	public static final Method INVOKE_KEY = new Method("load", Types.OBJECT, new Type[] { Types.PAGE_CONTEXT, Types.DOUBLE_VALUE, Types.COLLECTION_KEY_ARRAY });
 
 	private Variable left;
 	private Expression right;
 
-	/**
-	 *
-	 * @see lucee.transformer.bytecode.expression.ExpressionBase#_writeOut(org.objectweb.asm.commons.GeneratorAdapter,
-	 *      int)
-	 */
 	@Override
 	public Type _writeOut(BytecodeContext bc, int mode) throws TransformerException {
 		if (ASMUtil.hasOnlyDataMembers(left)) return _writeOutPureDataMember(bc, mode);
 
-		Label notNull = new Label();
-		Label end = new Label();
-
+		String name = createRandom(bc);
 		GeneratorAdapter ga = bc.getAdapter();
-
-		int l = ga.newLocal(Types.OBJECT);
-		ExpressionUtil.visitLine(bc, left.getStart());
-		left.writeOut(bc, MODE_REF);
-		ExpressionUtil.visitLine(bc, left.getEnd());
-		ga.dup();
-		ga.storeLocal(l);
-
-		ga.visitJumpInsn(Opcodes.IFNONNULL, notNull);
-		ExpressionUtil.visitLine(bc, right.getStart());
-		right.writeOut(bc, MODE_REF);
-		ExpressionUtil.visitLine(bc, right.getEnd());
-		ga.visitJumpInsn(Opcodes.GOTO, end);
-		ga.visitLabel(notNull);
-		ga.loadLocal(l);
-		ga.visitLabel(end);
+		ga.loadThis(); // Load 'this' onto the stack
+		ga.loadArg(0);
+		ga.visitMethodInsn(Opcodes.INVOKEVIRTUAL, bc.getClassName(), name, "(Llucee/runtime/PageContext;)Ljava/lang/Object;");
 
 		return Types.OBJECT;
+	}
+
+	private String createRandom(BytecodeContext parent) throws TransformerException {
+		String name = "el" + CreateUniqueId.invoke().toUpperCase() + Long.toString(System.currentTimeMillis(), Character.MAX_RADIX);
+
+		Method m = new Method(name, Types.OBJECT, new Type[] { Types.PAGE_CONTEXT });
+		GeneratorAdapter ga = new GeneratorAdapter(Opcodes.ACC_PRIVATE + Opcodes.ACC_FINAL, m, null, new Type[] { Types.THROWABLE }, parent.getClassWriter());
+		BytecodeContext bc = new BytecodeContext(parent.getConstructor(), parent.getKeys(), parent, ga, m);
+
+		Label tryStart = new Label();
+		Label tryEnd = new Label();
+		Label catchBlock = new Label();
+		Label returnDefault = new Label();
+
+		ga.mark(tryStart);
+		// left
+		bc.visitLine(left.getStart());
+		left.writeOut(bc, MODE_REF);
+		bc.visitLine(left.getEnd());
+
+		ga.dup();
+		ga.visitJumpInsn(Opcodes.IFNULL, catchBlock);
+		// ga.loadLocal(localVal);
+		ga.returnValue();
+		ga.mark(tryEnd);
+		ga.goTo(returnDefault);
+
+		ga.mark(catchBlock);
+		ga.pop();
+		ga.goTo(returnDefault);
+
+		ga.visitTryCatchBlock(tryStart, tryEnd, catchBlock, "java/lang/Exception");
+
+		ga.mark(returnDefault);
+		bc.visitLine(right.getStart());
+		right.writeOut(bc, MODE_REF);
+		bc.visitLine(right.getEnd());
+		ga.returnValue();
+
+		ga.endMethod();
+
+		return name;
 	}
 
 	public Type _writeOutPureDataMember(BytecodeContext bc, int mode) throws TransformerException {
 		// TODO use function isNull for this
 		GeneratorAdapter adapter = bc.getAdapter();
 
-		Label yes = new Label();
 		Label end = new Label();
+		Label elseLabel = adapter.newLabel();
 
 		List<Member> members = left.getMembers();
 
@@ -102,7 +124,7 @@ public final class OpElvis extends ExpressionBase {
 		}
 		DataMember[] arr = list.toArray(new DataMember[members.size()]);
 
-		ExpressionUtil.visitLine(bc, left.getStart());
+		bc.visitLine(left.getStart());
 
 		// public static boolean call(PageContext pc , double scope,String[] varNames)
 		// pc
@@ -138,29 +160,26 @@ public final class OpElvis extends ExpressionBase {
 		}
 		av.visitEnd();
 
-		// allowNull
-		// adapter.push(false);
-
-		// ASMConstants.NULL(adapter);
-
-		// call IsDefined.invoke
 		adapter.invokeStatic(ELVIS, allLiteral ? INVOKE_KEY : INVOKE_STR);
-		ExpressionUtil.visitLine(bc, left.getEnd());
+		adapter.dup(); // duplicate the result on the stack
+		bc.visitLine(left.getEnd());
 
-		adapter.visitJumpInsn(Opcodes.IFEQ, yes);
+		// If the result is null, jump to 'elseLabel'
+		adapter.visitJumpInsn(Opcodes.IFNULL, elseLabel);
 
-		// left
-		ExpressionUtil.visitLine(bc, left.getStart());
-		left.writeOut(bc, MODE_REF);
-		ExpressionUtil.visitLine(bc, left.getEnd());
-		adapter.visitJumpInsn(Opcodes.GOTO, end);
+		// bcause we did a dup above there is no further action needed
+
+		// Jump to 'endLabel', skipping the 'else' part
+		adapter.goTo(end);
 
 		// right
-		ExpressionUtil.visitLine(bc, right.getStart());
-		adapter.visitLabel(yes);
+		adapter.mark(elseLabel);
+		adapter.pop(); // Remove the duplicated null value from the stack
+		bc.visitLine(right.getStart());
 		right.writeOut(bc, MODE_REF);
-		ExpressionUtil.visitLine(bc, right.getEnd());
-		adapter.visitLabel(end);
+		bc.visitLine(right.getEnd());
+
+		adapter.mark(end);
 
 		return Types.OBJECT;
 

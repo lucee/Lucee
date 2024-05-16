@@ -18,12 +18,12 @@
  **/
 package lucee.runtime.query.caster;
 
+import java.net.InetAddress;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
 import java.util.TimeZone;
 import java.util.UUID;
-import java.net.InetAddress;
 
 public class OtherCast implements Cast {
 
@@ -37,20 +37,21 @@ public class OtherCast implements Cast {
 	public Object toCFType(TimeZone tz, ResultSet rst, int columnIndex) throws SQLException {
 		if (type != Types.SMALLINT) {
 			Object value = rst.getObject(columnIndex);
-			
-			// Drivers like Postgres like to return java.util.UUID instances instead of the string GUID 
-			if( value instanceof UUID ) {
-				return ((UUID)value).toString();
+
+			// Drivers like Postgres like to return java.util.UUID instances instead of the string GUID
+			if (value instanceof UUID) {
+				return ((UUID) value).toString();
 			}
 
-			// Drivers like Postgres have a custom type that returns java.net.InetAddress 
-			if( value instanceof InetAddress ) {
-				return ((InetAddress)value).toString();
+			// Drivers like Postgres have a custom type that returns java.net.InetAddress
+			if (value instanceof InetAddress) {
+				return ((InetAddress) value).toString();
 			}
-			
+
 			return value;
-				
-		} else {
+
+		}
+		else {
 
 			try {
 				return rst.getObject(columnIndex);

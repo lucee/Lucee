@@ -7,10 +7,10 @@ component {
 	this.applicationtimeout="#createTimeSpan(0,0,0,10)#";
 	this.sessionType="j2ee";
 
-	// these are the new defaults
-	// TODO remove once the changes are made
-	this.sessionCookie.httpOnly = true; // prevent access to session cookies from javascript
-	this.sessionCookie.sameSite = "lax";
+	// these are the new defaults for 6.0, sameSite="lax" and httponly
+	
+	//this.sessionCookie.httpOnly = true; // prevent access to session cookies from javascript
+	//this.sessionCookie.sameSite = "lax";
 
 	function onApplicationStart(){
 		//systemOutput("application start #cgi.SCRIPT_NAME#", true);

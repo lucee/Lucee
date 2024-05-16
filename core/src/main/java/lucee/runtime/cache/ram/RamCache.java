@@ -51,6 +51,9 @@ import lucee.runtime.type.Struct;
 public class RamCache extends CacheSupport {
 
 	public static final int DEFAULT_CONTROL_INTERVAL = 60;
+
+	private static Map<RamCache, String> ramCaches = new ConcurrentHashMap<>();
+
 	private Map<String, Ref<RamCacheEntry>> entries = new ConcurrentHashMap<String, Ref<RamCacheEntry>>();
 	private long missCount;
 	private int hitCount;
@@ -61,6 +64,12 @@ public class RamCache extends CacheSupport {
 	private boolean decouple;
 	private Thread controller;
 	private boolean outOfMemory;
+
+	public static void doNotifyAll(CFMLEngineImpl cfmlEngineImpl) {
+		for (RamCache rc: ramCaches.keySet()) {
+			SystemUtil.notify(rc);
+		}
+	}
 
 	// this is used by the config by reflection
 	public RamCache() {
@@ -232,7 +241,9 @@ public class RamCache extends CacheSupport {
 		public void run() {
 			while (engine.isRunning()) {
 				try {
-					SystemUtil.sleep(ramCache.controlInterval);
+					ramCaches.put(ramCache, "");
+					SystemUtil.wait(ramCache, ramCache.controlInterval);
+					ramCaches.remove(ramCache);
 					_run();
 				}
 				catch (Exception e) {

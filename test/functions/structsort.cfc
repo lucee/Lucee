@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" {
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="struct" {
 
 	function run( testResults , testBox ) {
 		animals = {
@@ -33,6 +33,11 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 				
 				assertEquals('["COW","PIG","CAT","BAT"]',serialize(structsort(animals,"textnocase","asc","size")));
 				assertEquals('["CAT","BAT","PIG","COW"]',serialize(structsort(animals,"textnocase","desc","size")));
+
+				// with named args
+				assertEquals('["CAT","BAT","PIG","COW"]',serialize(structsort(base=animals,sortType="textnocase",sortOrder="desc",pathToSubElement="size")));
+				// path alias for pathToSubElement
+				assertEquals('["CAT","BAT","PIG","COW"]',serialize(structsort(base=animals,sortType="textnocase",sortOrder="desc",path="size")));
 			});
 
 			it( title = 'Checking with struct.sort() member function',body = function( currentSpec ) {

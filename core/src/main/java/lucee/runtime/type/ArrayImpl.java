@@ -90,7 +90,7 @@ public class ArrayImpl extends ListAsArray {
 
 	@Override
 	public DumpData toDumpData(PageContext pageContext, int maxlevel, DumpProperties dp) {
-		DumpTable table = new DumpTable("array", "#99cc33", "#ccff33", "#000000");
+		DumpTable table = new DumpTable("array", "#52b788", "#b7e4c7", "#000000");
 		table.setTitle("Array");
 
 		int top = dp.getMaxlevel();

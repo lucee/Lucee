@@ -18,9 +18,8 @@
  **/
 package lucee.runtime.tag;
 
-import javax.servlet.jsp.JspException;
-
 import lucee.runtime.exp.ApplicationException;
+import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.TagNotSupported;
 import lucee.runtime.ext.tag.TagImpl;
 import lucee.runtime.type.dt.DateTime;
@@ -81,7 +80,7 @@ public final class Calendar extends TagImpl {
 	}
 
 	@Override
-	public int doStartTag() throws JspException {
+	public int doStartTag() throws PageException {
 		return super.doStartTag();
 	}
 

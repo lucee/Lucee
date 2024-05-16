@@ -20,7 +20,7 @@ package lucee.runtime.interpreter.ref.op;
 
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.PageException;
-import lucee.runtime.interpreter.InterpreterException;
+import lucee.runtime.interpreter.SecurityInterpreterException;
 import lucee.runtime.interpreter.ref.Ref;
 import lucee.runtime.interpreter.ref.RefSupport;
 import lucee.runtime.op.Caster;
@@ -48,8 +48,8 @@ public final class IntDiv extends RefSupport implements Ref {
 
 	@Override
 	public Object getValue(PageContext pc) throws PageException {
-		if (limited) throw new InterpreterException("invalid syntax, math operations are not supported in a json string.");
-		return new Double(Caster.toIntValue(left.getValue(pc)) / Caster.toIntValue(right.getValue(pc)));
+		if (limited) throw new SecurityInterpreterException("invalid syntax, math operations are not supported.");
+		return Double.valueOf(Caster.toIntValue(left.getValue(pc)) / Caster.toIntValue(right.getValue(pc)));
 	}
 
 	@Override

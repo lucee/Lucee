@@ -33,7 +33,6 @@ import lucee.runtime.search.SearchData;
 import lucee.runtime.search.SearchEngine;
 import lucee.runtime.search.SearchException;
 import lucee.runtime.search.SuggestionItem;
-import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.QueryImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
@@ -47,10 +46,10 @@ public final class Search extends TagImpl {
 	private static final int SUGGESTIONS_ALWAYS = Integer.MAX_VALUE;
 	private static final int SUGGESTIONS_NEVER = -1;
 
-	private static final lucee.runtime.type.Collection.Key FOUND = KeyImpl.getInstance("found");
-	private static final lucee.runtime.type.Collection.Key SEARCHED = KeyImpl.getInstance("searched");
-	private static final lucee.runtime.type.Collection.Key KEYWORDS = KeyImpl.getInstance("keywords");
-	private static final lucee.runtime.type.Collection.Key KEYWORD_SCORE = KeyImpl.getInstance("keywordScore");
+	private static final lucee.runtime.type.Collection.Key FOUND = KeyConstants._found;
+	private static final lucee.runtime.type.Collection.Key SEARCHED = KeyConstants._searched;
+	private static final lucee.runtime.type.Collection.Key KEYWORDS = KeyConstants._keywords;
+	private static final lucee.runtime.type.Collection.Key KEYWORD_SCORE = KeyConstants._keywordScore;
 
 	/** Specifies the criteria type for the search. */
 	private short type = SearchCollection.SEARCH_TYPE_SIMPLE;
@@ -328,7 +327,7 @@ public final class Search extends TagImpl {
 		}
 
 		time = System.currentTimeMillis() - time;
-		Double recSearched = new Double(data.getRecordsSearched());
+		Double recSearched = Double.valueOf(data.getRecordsSearched());
 		int len = qry.getRecordcount();
 		for (int i = 1; i <= len; i++) {
 			qry.setAt("recordssearched", i, recSearched);
@@ -338,9 +337,9 @@ public final class Search extends TagImpl {
 		if (status != null) {
 			Struct sct = new StructImpl();
 			pageContext.setVariable(status, sct);
-			sct.set(FOUND, new Double(qry.getRecordcount()));
+			sct.set(FOUND, Double.valueOf(qry.getRecordcount()));
 			sct.set(SEARCHED, recSearched);
-			sct.set(KeyConstants._time, new Double(time));
+			sct.set(KeyConstants._time, Double.valueOf(time));
 
 			// TODO impl this values
 

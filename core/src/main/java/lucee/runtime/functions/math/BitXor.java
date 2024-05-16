@@ -22,10 +22,19 @@
 package lucee.runtime.functions.math;
 
 import lucee.runtime.PageContext;
+import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
+import lucee.runtime.op.Caster;
+import lucee.runtime.op.Decision;
 
 public final class BitXor implements Function {
-	public static double call(PageContext pc, double number, double number2) {
-		return (int) number ^ (int) number2;
+	private static final long serialVersionUID = -8542953468910888215L;
+
+	public static double call(PageContext pc, double number, double number2) throws PageException {
+		if (!Decision.isInteger(number) || !Decision.isInteger(number2)) {
+			return Caster.toLongValueLossless(number) ^ Caster.toLongValueLossless(number2);
+		}
+		return Caster.toIntValueLossless(number) ^ Caster.toIntValueLossless(number2);
 	}
+
 }

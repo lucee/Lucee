@@ -165,7 +165,7 @@ list all mappings and display necessary edit fields --->
 						<td colspan="2">
 							<input type="submit" class="bl button submit" name="mainAction" value="#stText.Buttons.Update#">
 							<input type="reset" class="<cfif request.adminType EQ "web">bm<cfelse>br</cfif> button reset" name="cancel" value="#stText.Buttons.Cancel#">
-							<cfif request.adminType EQ "web"><input class="br button submit" type="submit" name="mainAction" value="#stText.Buttons.resetServerAdmin#"></cfif>
+							<cfif not request.singleMode && request.adminType EQ "web"><input class="br button submit" type="submit" name="mainAction" value="#stText.Buttons.resetServerAdmin#"></cfif>
 						</td>
 					</tr>
 				</tfoot>
@@ -198,7 +198,7 @@ list all mappings and display necessary edit fields --->
 									<input type="checkbox" class="checkbox" name="row_#rest.currentrow#" value="#rest.currentrow#">
 								</cfif>
 							</td>
-							<cfset css=iif(len(rest.physical) EQ 0 and len(rest.strPhysical) NEQ 0,de('Red'),de(''))>
+							<cfset css=iif(len(rest.physical) EQ 0 and len(rest.strPhysical) NEQ 0,de(''),de(''))>
 							<!--- virtual --->
 							<td class="tblContent#css#">
 								<input type="hidden" name="virtual_#rest.currentrow#" value="#rest.virtual#">

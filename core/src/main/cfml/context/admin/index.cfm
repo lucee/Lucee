@@ -3,6 +3,6 @@
 		include "web.cfm";
 	}
 	else {
-		location url="web.cfm" addtoken="no";
+		location url="server.cfm?reinit=true" addtoken="no";
 	}
 </cfscript>

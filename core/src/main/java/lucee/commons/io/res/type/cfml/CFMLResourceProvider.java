@@ -285,4 +285,14 @@ public class CFMLResourceProvider implements ResourceProviderPro {
 		return '/';
 	}
 
+	@Override
+	public boolean allowMatching() {
+		try {
+			return callboolean(null, null, "allowMatching", ZERO_ARGS);
+		}
+		catch (Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
+			return true;
+		}
+	}
 }

@@ -8,19 +8,17 @@ import org.apache.logging.log4j.core.Filter;
 import org.apache.logging.log4j.core.Layout;
 import org.apache.logging.log4j.core.LogEvent;
 import org.apache.logging.log4j.core.appender.AbstractAppender;
-import org.apache.logging.log4j.status.StatusLogger;
 
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.retirement.RetireListener;
 import lucee.commons.io.retirement.RetireOutputStream;
-import lucee.commons.lang.SerializableObject;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.op.Caster;
 
-public class ResourceAppender extends AbstractAppender {
+public final class ResourceAppender extends AbstractAppender {
 
 	public static final long DEFAULT_MAX_FILE_SIZE = 10 * 1024 * 1024;
 	public static final int DEFAULT_MAX_BACKUP_INDEX = 10;
@@ -28,13 +26,12 @@ public class ResourceAppender extends AbstractAppender {
 	private final long maxFileSize;
 	private final int maxfiles;
 
-	private final Object sync = new SerializableObject();
 	private final Resource res;
 	private final Charset charset;
 	private final boolean append;
 	private final int timeout;
 	private final RetireListener listener;
-	private OutputStreamWriter writer;
+	private OutputStreamWriter writer = null;
 	private String token;
 
 	private long size = 0;
@@ -49,17 +46,24 @@ public class ResourceAppender extends AbstractAppender {
 		this.listener = listener;
 		this.maxFileSize = maxFileSize;
 		this.maxfiles = maxfiles;
-		setFile(append);
 		this.token = SystemUtil.createToken("ResourceAppender", res.getAbsolutePath());
+
 	}
 
 	@Override
 	public void append(LogEvent event) {
+		try {
+			setFile(append, true);
+		}
+		catch (IOException ioe) {
+			LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), "log-loading", "Unable to write to" + res, ioe);
+		}
+
 		start();
 		// check file length
 		if (size > maxFileSize) {
 			synchronized (token) {
-				if (res.length() > maxFileSize) { // we do not trust size to much because of multi threading issues we do not avoid setting this var
+				if (size > maxFileSize) { // we do not trust size to much because of multi threading issues we do not avoid setting this var
 					try {
 						rollOver();
 					}
@@ -73,33 +77,36 @@ public class ResourceAppender extends AbstractAppender {
 		try {
 			final String str = Caster.toString(getLayout().toSerializable(event));
 			if (!StringUtil.isEmpty(str)) {
-				try {
-					if (writer == null) setFile(append);
-					writer.write(str);
-					size += str.length();
-					writer.flush();
-				}
-				catch (IOException ioe) {
-					LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), "log-loading", "Unable to write to" + res, ioe);
-					closeFile();
-					setFile(append);
-					writer.write(str);
-					size += str.length();
-					writer.flush();
+				synchronized (token) {
+					try {
+						if (writer == null) setFile(append, true);
+						writer.write(str);
+						writer.flush();
+						size += str.length();
+					}
+					catch (IOException ioe) {
+						LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), "log-loading", "Unable to write to" + res, ioe);
+						closeFile();
+						setFile(append, true);
+						writer.write(str);
+						writer.flush();
+						size += str.length();
+					}
 				}
 			}
 		}
 		catch (Exception e) {
 			LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), "log-loading", "Unable to write to log [" + res + "]", e);
-			closeFile();
-		}
-		finally {
-
+			synchronized (token) {
+				closeFile();
+			}
 		}
 	}
 
-	public Resource getResource() {
-		return res;
+	@Override
+	public void stop() {
+		closeFile();
+		super.stop();
 	}
 
 	/**
@@ -118,107 +125,108 @@ public class ResourceAppender extends AbstractAppender {
 	 * @param fileName The path to the log file.
 	 * @param append If true will append to fileName. Otherwise will truncate fileName.
 	 */
-	protected void setFile(boolean append) throws IOException {
-		synchronized (sync) {
-			StatusLogger.getLogger().debug("setFile called: [" + res + "], " + append);
-			reset();
-			Resource parent = res.getParentResource();
-			if (!parent.exists()) parent.createDirectory(true);
-			boolean writeHeader = !append || res.length() == 0;// this must happen before we open the stream
-			size = res.length();
-			writer = new OutputStreamWriter(new RetireOutputStream(res, append, timeout, listener), charset);
-			if (writeHeader) {
-				String header = new String(getLayout().getHeader(), charset);
-				size += header.length();
-				writer.write(header);
-				writer.flush();
-				// TODO new line?
+	private void setFile(boolean append, boolean onlyWhenNull) throws IOException {
+		if (!onlyWhenNull || writer == null) {
+			synchronized (token) {
+				if (!onlyWhenNull || writer == null) {
+					closeFile();
+					Resource parent = res.getParentResource();
+					if (!parent.exists()) parent.createDirectory(true);
+					boolean writeHeader = !append || res.length() == 0;// this must happen before we open the stream
+					size = res.length();
+					writer = new OutputStreamWriter(new RetireOutputStream(res, append, timeout, listener), charset);
+					if (writeHeader) {
+						String header = new String(getLayout().getHeader(), charset);
+						size += header.length();
+						writer.write(header);
+						writer.flush();
+						// TODO new line?
+					}
+				}
 			}
-			StatusLogger.getLogger().debug("setFile ended");
 		}
 	}
 
 	private void rollOver() throws IOException {
+		synchronized (token) {
+			setFile(append, true);
+			String footer = new String(getLayout().getFooter(), charset);
+			size += footer.length();
+			writer.write(footer);
+			closeFile();
 
-		setFile(append);
-		String footer = new String(getLayout().getFooter(), charset);
-		size += footer.length();
-		writer.write(footer);
-		closeFile();
+			Resource target;
+			Resource file;
 
-		Resource target;
-		Resource file;
+			boolean renameSucceeded = true;
+			Resource parent = res.getParentResource();
 
-		boolean renameSucceeded = true;
-		Resource parent = res.getParentResource();
+			// If maxBackups <= 0, then there is no file renaming to be done.
+			if (maxfiles > 0) {
+				// Delete the oldest file, to keep Windows happy.
+				file = parent.getRealResource(res.getName() + "." + maxfiles + ".bak");
 
-		// If maxBackups <= 0, then there is no file renaming to be done.
-		if (maxfiles > 0) {
-			// Delete the oldest file, to keep Windows happy.
-			file = parent.getRealResource(res.getName() + "." + maxfiles + ".bak");
+				if (file.exists()) renameSucceeded = file.delete();
 
-			if (file.exists()) renameSucceeded = file.delete();
+				// Map {(maxBackupIndex - 1), ..., 2, 1} to {maxBackupIndex, ..., 3, 2}
+				for (int i = maxfiles - 1; i >= 1 && renameSucceeded; i--) {
+					file = parent.getRealResource(res.getName() + "." + i + ".bak");
+					if (file.exists()) {
+						target = parent.getRealResource(res.getName() + "." + (i + 1) + ".bak");
+						renameSucceeded = file.renameTo(target);
+					}
+				}
 
-			// Map {(maxBackupIndex - 1), ..., 2, 1} to {maxBackupIndex, ..., 3, 2}
-			for (int i = maxfiles - 1; i >= 1 && renameSucceeded; i--) {
-				file = parent.getRealResource(res.getName() + "." + i + ".bak");
-				if (file.exists()) {
-					target = parent.getRealResource(res.getName() + "." + (i + 1) + ".bak");
-					StatusLogger.getLogger().debug("Renaming log file [" + file + "] to [" + target + "]");
+				if (renameSucceeded) {
+					// Rename fileName to fileName.1
+					target = parent.getRealResource(res.getName() + ".1.bak");
+
+					file = res;
 					renameSucceeded = file.renameTo(target);
+
+					// if file rename failed, reopen file with append = true
+
+					if (!renameSucceeded) {
+						try {
+							this.setFile(true, false);
+						}
+						catch (IOException e) {
+							LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), "log-loading", "setFile([" + res + "], true) call failed.", e);
+						}
+					}
 				}
 			}
+
+			// if all renames were successful, then
 
 			if (renameSucceeded) {
-				// Rename fileName to fileName.1
-				target = parent.getRealResource(res.getName() + ".1.bak");
-
-				file = res;
-				StatusLogger.getLogger().debug("Renaming log file [" + file + "] to [" + target + "]");
-				renameSucceeded = file.renameTo(target);
-
-				// if file rename failed, reopen file with append = true
-
-				if (!renameSucceeded) {
-					try {
-						this.setFile(true);
-					}
-					catch (IOException e) {
-						LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), "log-loading", "setFile([" + res + "], true) call failed.", e);
-					}
+				try {
+					// This will also close the file. This is OK since multiple
+					// close operations are safe.
+					this.setFile(false, false);
+				}
+				catch (IOException e) {
+					LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), "log-loading", "setFile([" + res + "], false) call failed.", e);
 				}
 			}
 		}
-
-		// if all renames were successful, then
-
-		if (renameSucceeded) {
-			try {
-				// This will also close the file. This is OK since multiple
-				// close operations are safe.
-				this.setFile(false);
-			}
-			catch (IOException e) {
-				LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), "log-loading", "setFile([" + res + "], false) call failed.", e);
-			}
-		}
 	}
 
-	protected void reset() {
-		closeFile();
-	}
-
-	protected void closeFile() {
+	private void closeFile() {
 		size = 0;
 		if (writer != null) {
+			synchronized (token) {
+				if (writer != null) {
 
-			try {
-				writer.flush();
-				writer.close();
-				writer = null;
-			}
-			catch (java.io.IOException e) {
-				LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), "log-loading", "Could not close [" + res + "]", e);
+					try {
+						writer.flush();
+						writer.close();
+						writer = null;
+					}
+					catch (java.io.IOException e) {
+						LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), "log-loading", "Could not close [" + res + "]", e);
+					}
+				}
 			}
 		}
 	}

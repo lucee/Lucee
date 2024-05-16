@@ -158,4 +158,9 @@ public class HTTPResourceProvider implements ResourceProviderPro {
 	public char getSeparator() {
 		return '/';
 	}
+
+	@Override
+	public boolean allowMatching() {
+		return false;
+	}
 }

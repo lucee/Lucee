@@ -27,7 +27,6 @@ import lucee.transformer.Factory;
 import lucee.transformer.Position;
 import lucee.transformer.TransformerException;
 import lucee.transformer.bytecode.BytecodeContext;
-import lucee.transformer.bytecode.util.ExpressionUtil;
 import lucee.transformer.bytecode.util.Types;
 import lucee.transformer.expression.Expression;
 
@@ -52,15 +51,15 @@ public abstract class ExpressionBase implements Expression {
 			return Types.toClass(writeOutAsType(c, mode));
 		}
 		catch (ClassException e) {
-			throw new TransformerException(e, null);
+			throw new TransformerException(c, e, null);
 		}
 	}
 
 	public final Type writeOutAsType(Context c, int mode) throws TransformerException {
 		BytecodeContext bc = (BytecodeContext) c;
-		ExpressionUtil.visitLine(bc, start);
+		bc.visitLine(start);
 		Type type = _writeOut(bc, mode);
-		ExpressionUtil.visitLine(bc, end);
+		bc.visitLine(end);
 		return type;
 	}
 

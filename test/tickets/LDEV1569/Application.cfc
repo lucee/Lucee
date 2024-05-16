@@ -7,6 +7,7 @@ component {
 		this.datasource=mySql;
 	}
 
+	this.nullSupport = url.nullSupport;
 	this.ormEnabled = true;
 	this.ormSettings = {
 		dbcreate = "update",

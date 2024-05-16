@@ -11,14 +11,13 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 import javax.servlet.http.Cookie;
-import javax.servlet.jsp.JspException;
-import javax.servlet.jsp.tagext.Tag;
 
 import org.apache.logging.log4j.core.layout.HtmlLayout;
 import org.apache.logging.log4j.core.layout.PatternLayout;
 
 import lucee.commons.io.DevNullOutputStream;
 import lucee.commons.io.SystemUtil;
+import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.log.log4j2.appender.ConsoleAppender;
 import lucee.commons.io.log.log4j2.appender.DatasourceAppender;
 import lucee.commons.io.log.log4j2.appender.ResourceAppender;
@@ -26,13 +25,13 @@ import lucee.commons.io.log.log4j2.layout.ClassicLayout;
 import lucee.commons.io.log.log4j2.layout.DataDogLayout;
 import lucee.commons.io.log.log4j2.layout.XMLLayout;
 import lucee.commons.io.res.Resource;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.loader.engine.CFMLEngine;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.loader.util.Util;
 import lucee.runtime.PageContext;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
-import lucee.runtime.ext.tag.DynamicAttributes;
 import lucee.runtime.interpreter.JSONExpressionInterpreter;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Array;
@@ -41,9 +40,11 @@ import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.util.Cast;
+import lucee.runtime.util.PageContextUtil;
 
 public class CFConfigImport {
 
+	private static Key FROM_CFCONFIG;
 	private static Key ACTION;
 	private static Key TYPE;
 	private static Key PASSWORD;
@@ -56,61 +57,76 @@ public class CFConfigImport {
 	private Resource file;
 	private Charset charset;
 	private String password;
-	private Tag tag;
-	private DynamicAttributes dynAttr;
+	// private Tag tag;
+	// private DynamicAttributes dynAttr;
 	private String type = "server";
 	private CFMLEngine engine;
-	private ConfigPro config;
+	private final ConfigPro config;
 	private Struct placeHolderData;
 	private Struct data;
 	private boolean pwCheckedServer = false;
 	private boolean pwCheckedWeb = false;
+	private final boolean setPasswordIfNecessary;
+	private final boolean validatePassword;
+	private final boolean flushExistingData;
+	private PageException exd = null;
 
-	public CFConfigImport(Config config, Resource file, Charset charset, String password, String type, Struct placeHolderData) throws PageException {
+	public CFConfigImport(Config config, Resource file, Charset charset, String password, String type, Struct placeHolderData, boolean setPasswordIfNecessary,
+			boolean validatePassword, boolean flushExistingData) throws PageException {
+
 		this.file = file;
 		this.charset = charset;
 		this.password = password;
 		this.type = type;
 		this.placeHolderData = placeHolderData;
+		this.setPasswordIfNecessary = setPasswordIfNecessary;
+		this.validatePassword = validatePassword;
+		this.flushExistingData = flushExistingData;
 		this.engine = CFMLEngineFactory.getInstance();
 		if ("web".equalsIgnoreCase(type) && !(config instanceof ConfigWeb))
 			throw engine.getExceptionUtil().createApplicationException("cannot manipulate a web context when you pass in a server config to the constructor!");
 
 		if ("server".equalsIgnoreCase(type) && config instanceof ConfigWeb) {
-			setPasswordIfNecessary((ConfigWeb) config);
+			setPasswordIfNecessary((ConfigPro) config);
 			this.config = (ConfigPro) config.getConfigServer(password);
 		}
 		else this.config = (ConfigPro) config;
 	}
 
-	public CFConfigImport(Config config, Struct data, Charset charset, String password, String type, Struct placeHolderData) throws PageException {
+	public CFConfigImport(Config config, Struct data, Charset charset, String password, String type, Struct placeHolderData, boolean setPasswordIfNecessary,
+			boolean validatePassword, boolean flushExistingData) throws PageException {
 		this.data = data;
 		this.charset = charset;
 		this.password = password;
+		this.validatePassword = validatePassword;
 		this.type = type;
 		this.placeHolderData = placeHolderData;
+		this.flushExistingData = flushExistingData;
 		this.engine = CFMLEngineFactory.getInstance();
+		this.setPasswordIfNecessary = setPasswordIfNecessary;
 		if ("web".equalsIgnoreCase(type) && !(config instanceof ConfigWeb))
 			throw engine.getExceptionUtil().createApplicationException("cannot manipulate a web context when you pass in a server config to the constructor!");
 		if ("server".equalsIgnoreCase(type) && config instanceof ConfigWeb) {
-			setPasswordIfNecessary((ConfigWeb) config);
+			setPasswordIfNecessary((ConfigPro) config);
 			this.config = (ConfigPro) config.getConfigServer(password);
 		}
 		else this.config = (ConfigPro) config;
 	}
 
-	public Struct execute() throws PageException {
+	public Struct execute(boolean throwException) throws PageException {
 		boolean unregister = false;
 		PageContext pc = ThreadLocalPageContext.get();
+		Struct json = null;
 
 		try {
 			if (pc == null) {
-				pc = engine.createPageContext((File) SystemUtil.getTempDirectory(), "localhost", "/", "", new Cookie[0], null, null, null,
-						DevNullOutputStream.DEV_NULL_OUTPUT_STREAM, 100000, true);
+
+				pc = PageContextUtil.getPageContext(config, null, (File) SystemUtil.getTempDirectory(), "localhost", "/", "", new Cookie[0], null, null, null,
+						DevNullOutputStream.DEV_NULL_OUTPUT_STREAM, true, 100000, false);
 				unregister = true;
 
 			}
-			if (Util.isEmpty(password)) {
+			if (validatePassword && Util.isEmpty(password)) {
 				String sysprop = "lucee." + type.toUpperCase() + ".admin.password";
 				String envVarName = sysprop.replace('.', '_').toUpperCase();
 				password = SystemUtil.getSystemPropOrEnvVar(sysprop, null);
@@ -128,8 +144,8 @@ public class CFConfigImport {
 			if (DATASOURCES == null) DATASOURCES = cast.toKey("datasources");
 			if (NAME == null) NAME = cast.toKey("name");
 			if (DATABASE == null) DATABASE = cast.toKey("database");
+			if (FROM_CFCONFIG == null) FROM_CFCONFIG = cast.toKey("fromCFConfig");
 
-			Struct json;
 			if (data != null) {
 				json = data;
 			}
@@ -139,120 +155,39 @@ public class CFConfigImport {
 			}
 
 			replacePlaceHolder(json, placeHolderData);
-			tag = (Tag) engine.getClassUtil().loadClass("lucee.runtime.tag.Admin").newInstance();
-			dynAttr = (DynamicAttributes) tag;
 
-			set(pc, json, "updateCharset", new Item("webcharset"), new Item("resourcecharset"), new Item("templatecharset"));
+			// dynAttr = (DynamicAttributes) tag;
+			boolean isServer = "server".equalsIgnoreCase(type);
+			String strPW = ConfigWebUtil.decrypt(password);
+			Password pw; // hash password if
+			if (isServer && config instanceof ConfigWebPro) {
+				pw = ((ConfigWebPro) config).isServerPasswordEqual(strPW);
+			}
+			else {
+				pw = config.isPasswordEqual(strPW);
+			}
 
-			set(pc, json, "updateRegional", new Item("usetimeserver").setDefault(true), new Item("locale").setDefault(config.getLocale()),
-					new Item("timeserver").setDefault(config.getTimeServer()), new Item("timezone").setDefault(config.getTimeZone()));
+			boolean updated = setPasswordIfNecessary(config);
+			ConfigAdmin admin = ConfigAdmin.newInstance(config, pw, updated || !validatePassword);
 
-			set(pc, json, "updateApplicationListener", new Item(new String[] { "applicationMode" }, "listenermode", null),
-					new Item(new String[] { "applicationListener", "applicationType", "listenertype" }, "listenertype", null)
-							.setDefault(config.getApplicationListener().getType()));
-
-			set(pc, json, "updatePerformanceSettings", new Item("inspecttemplate"), new Item("cachedafter"), new Item("typechecking"));
-
-			set(pc, json, "updateApplicationSetting", new Item("applicationpathtimeout"), new Item("requesttimeout"), new Item("scriptprotect"),
-					new Item("requestTimeoutInURL", "allowurlrequesttimeout"));
-
-			set(pc, json, "updateCompilerSettings", new Item("nullsupport"), new Item("handleunquotedattrvalueasstring"), new Item("externalizestringgte"),
-					new Item("dotnotationuppercase", "dotNotationUpperCase"), new Item("suppressWhitespaceBeforeArgument", "suppresswsbeforearg"), new Item("templatecharset"));
-
-			set(pc, json, "updateSecurity", new Item("varusage"));
-
-			set(pc, json, "updateOutputSetting", new Item("allowcompression"), new Item("whitespaceManagement", "cfmlwriter"), new Item("suppresscontent"),
-					new Item("bufferTagBodyOutput", "bufferoutput"), new Item("showContentLength", "contentlength"));
-
-			set(pc, json, "updateRegex", new Item("regextype"));
-
-			set(pc, json, "updateORMSetting", new Item("ormconfig"), new Item("ormsqlscript", "sqlscript"), new Item("ormusedbformapping", "usedbformapping"),
-					new Item("ormeventhandling", "eventhandling"), new Item("ormsecondarycacheenabled", "secondarycacheenabled"), new Item("ormautogenmap", "autogenmap"),
-					new Item("ormlogsql", "logsql"), new Item("ormcacheconfig", "cacheconfig"), new Item("ormsavemapping", "savemapping"), new Item("ormschema", "schema"),
-					new Item("ormdbcreate", "dbcreate"), new Item("ormcfclocation", "cfclocation"), new Item("ormflushatrequestend", "flushatrequestend"),
-					new Item("ormcacheprovider", "cacheprovider"), new Item("ormcatalog", "catalog"));
-
-			set(pc, json, "updateMailSetting", new Item(new String[] { "mailDefaultEncoding" }, "defaultencoding", null),
-					new Item(new String[] { "mailConnectionTimeout" }, "timeout", null), new Item("mailSpoolEnable", "spoolenable"));
-
-			set(pc, json, "updateRestSettings", new Item(new String[] { "Restlist" }, "list", null));
-
-			set(pc, json, "updateComponent", new Item("componentUseVariablesScope", "useshadow"), new Item("componentdumptemplate"),
-					new Item(new String[] { "componentDeepSearch" }, "deepsearch", null).setDefault(false), new Item("basecomponenttemplatelucee"), new Item("componentpathcache"),
-					new Item("componentdatamemberdefaultaccess"), new Item("basecomponenttemplatecfml"), new Item("componentlocalsearch"), new Item("componentdefaultimport"),
-					new Item("componentImplicitNotation", "triggerdatamember"));
-
-			set(pc, json, "updateCustomTagSetting", new Item(new String[] { "customTagLocalSearch" }, "localsearch", null).setDefault(config.doLocalCustomTag()),
-					new Item(new String[] { "customTagDeepSearch" }, "deepsearch", null).setDefault(config.doCustomTagDeepSearch()),
-					new Item(new String[] { "customTagExtensions" }, "extensions", null).setDefault(config.getCustomTagExtensions()),
-					new Item("customtagpathcache").setDefault(true));
-
-			set(pc, json, "updateDebug", new Item(new String[] { "debuggingException" }, "exception", null),
-					new Item(new String[] { "debuggingImplicitAccess" }, "implicitaccess", null), new Item(new String[] { "debuggingTracing" }, "tracing", null),
-					new Item(new String[] { "debuggingQueryUsage" }, "queryusage", null), new Item(new String[] { "debuggingTemplate" }, "template", null),
-					new Item(new String[] { "debuggingDatabase" }, "database", null), new Item(new String[] { "debuggingDump" }, "dump", null), new Item("debugtemplate"),
-					new Item(new String[] { "debuggingEnable", "debuggingEnabled" }, "debug", null), new Item(new String[] { "debuggingTimer" }, "timer", null));
-
-			set(pc, json, "updatemailsetting", new Item(new String[] { "mailSpoolEnable", "mailSpoolEnabled" }, "spoolenable", null),
-					new Item(new String[] { "mailConnectionTimeout", "mailTimeout" }, "timeout", null),
-					new Item(new String[] { "maildefaultencoding", "mailencoding" }, "defaultencoding", null));
-
-			set(pc, json, "updateError", new Item(new String[] { "generalErrorTemplate" }, "template500", null),
-					new Item(new String[] { "missingErrorTemplate" }, "template404", null), new Item(new String[] { "errorStatusCode" }, "statuscode", null).setDefault(true));
-
-			setGroup(pc, json, "updateDatasource", "datasources", new String[] { "name", "databases" }, new Item("class", "classname"), new Item("bundleName"),
-					new Item("bundleVersion"), new Item("connectionlimit").setDefault(-1), new Item("connectiontimeout").setDefault(-1), new Item("livetimeout").setDefault(-1),
-					new Item("custom"), new Item("validate").setDefault(false), new Item("verify").setDefault(true), new Item("host"), new Item("port").setDefault(-1),
-					new Item("connectionString", "dsn"), new Item("username", "dbusername"), new Item("password", "dbpassword"), new Item("storage").setDefault(false),
-					new Item("metacachetimeout").setDefault(60000), new Item("alwayssettimeout").setDefault(false), new Item("dbdriver"), new Item("database"),
-					new Item("blob").setDefault(false), new Item("name"), new Item("requestexclusive").setDefault(false), new Item("customparametersyntax"),
-					new Item("alwaysresetconnections").setDefault(false), new Item("timezone"), new Item("clob").setDefault(false),
-					new Item("literaltimestampwithtsoffset").setDefault(false), new Item("newname")
-
-			);
-			setGroup(pc, json, "updateCacheConnection", "caches", new String[] { "name" }, new Item("bundlename"), new Item("default"), new Item("storage").setDefault(false),
-					new Item("bundleversion"), new Item("name"), new Item("custom"), new Item("class"));
-			setGroup(pc, json, "updateGatewayEntry", "gateways", new String[] { "id" }, new Item("startupmode"), new Item("listenercfcpath"), new Item("cfcpath"), new Item("id"),
-					new Item("custom"), new Item("class"));
-
-			setGroup(pc, json, "updateLogSettings", "loggers", new String[] { "name" }, new Item("layoutbundlename"), new Item("level"),
-					new Item("appenderArguments", "appenderargs").setDefault(engine.getCreationUtil().createStruct()), new Item("name"),
-					new Item("layoutArguments", "layoutargs").setDefault(engine.getCreationUtil().createStruct()), new Item("appenderClass", new AppenderModifier()),
-					new Item("appender"), new Item("layoutClass", new LayoutModifier()), new Item("layout"));
-
-			setGroup(pc, json, "updateMailServer", "mailServers", new String[] {}, new Item("life").setDefault(60), new Item("tls").setDefault(false),
-					new Item("idle").setDefault(10), new Item("username", "dbusername"), new Item(new String[] { "smtp", "host", "server" }, "hostname", null), new Item("id"),
-					new Item("port").setDefault(-1), new Item("password", "dbpassword"), new Item("ssl").setDefault(false));
-
-			setGroup(pc, json, "updateMapping", new String[] { "mappings", "cfmappings" }, new String[] { "virtual" }, new Item("virtual"),
-					new Item("inspect").addName("inspectTemplate"), new Item("physical"), new Item("primary"), new Item("toplevel").setDefault(true), new Item("archive"));
-
-			setGroup(pc, json, "updateCustomTag", new String[] { "customTagMappings", "customTagPaths" }, new String[] { "virtual" },
-					new Item("virtual", new CreateHashModifier(new String[] { "virtual", "name", "label" }, "physical")), new Item("inspect").addName("inspectTemplate"),
-					new Item("physical"), new Item("primary"), new Item("archive"));
-
-			setGroup(pc, json, "updateComponentMapping", new String[] { "componentMappings", "componentPaths" }, new String[] { "virtual" },
-					new Item("virtual", new CreateHashModifier(new String[] { "virtual", "name", "label" }, "physical")), new Item("inspect").addName("inspectTemplate"),
-					new Item("physical"), new Item("primary"), new Item("archive"));
-
-			optimizeExtensions(config, json);
-			setGroup(pc, json, "updateRHExtension", "extensions", new String[] {}, new Item("source"), new Item("id"), new Item("version"));
-
-			// need to be at the end
-			set(pc, json, "updateScope", new Item("sessiontype"), new Item("sessionmanagement"), new Item("setdomaincookies", "domaincookies"), new Item("allowimplicidquerycall"),
-					new Item("setclientcookies", "clientcookies"), new Item("mergeformandurl"), new Item("localScopeMode", "localmode"),
-					new Item("cgiScopeReadonly", "cgireadonly"), new Item("scopecascadingtype"), new Item("sessiontimeout"), new Item("clienttimeout"), new Item("clientstorage"),
-					new Item("clientmanagement"), new Item("applicationtimeout"), new Item("sessionstorage"));
-
-			return json;
-			// TODO cacheDefaultQuery
+			admin.updateConfig(json, flushExistingData);
+			admin.storeAndReload();
 		}
-		catch (Exception e) {
-			throw engine.getCastUtil().toPageException(e);
+		catch (Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
+			if (throwException) {
+				throw Caster.toPageException(t);
+			}
+			else LogUtil.log(pc, "deploy", t);
 		}
 		finally {
-			if (unregister) pc.getConfig().getFactory().releaseLuceePageContext(pc, false);
+			if (unregister) {
+				pc.getConfig().getFactory().releaseLuceePageContext(pc, true);
+			}
 		}
+		if (throwException && exd != null) throw exd;
+		return json;
+
 	}
 
 	private static void replacePlaceHolder(Collection coll, Struct placeHolderData) {
@@ -270,28 +205,36 @@ public class CFConfigImport {
 
 	private static void replacePlaceHolder(Entry<Key, Object> e, Struct placeHolderData) {
 		String str = (String) e.getValue();
+		String res;
+		boolean modified = false;
+		int startIndex = -1;
+		while (true) {
+			startIndex = str.indexOf("${", startIndex + 1);
+			if (startIndex == -1) break;
+			int endIndex = str.indexOf("}", startIndex + 1);
+			if (endIndex == -1) break;
+			modified = true;
+			String content = str.substring(startIndex + 2, endIndex);
+			String envVarName, defaultValue = "";
+			int index = content.indexOf(':');
+			if (index == -1) {
+				envVarName = content;
+			}
+			else {
+				envVarName = content.substring(0, index);
+				defaultValue = content.substring(index + 1);
+			}
 
-		int startIndex = str.indexOf("${");
-		if (startIndex == -1) return;
-		int endIndex = str.indexOf("}", startIndex + 1);
-		if (endIndex == -1) return;
-		String content = str.substring(startIndex + 2, endIndex);
-		String envVarName, defaultValue = "";
-		int index = content.indexOf(':');
-		if (index == -1) {
-			envVarName = content;
+			Object val = null;
+			if (placeHolderData != null) val = placeHolderData.get(KeyImpl.init(envVarName), null);
+			if (val == null) val = SystemUtil.getSystemPropOrEnvVar(envVarName, null);
+
+			if (val != null) res = Caster.toString(val, "");
+			else res = defaultValue;
+
+			str = str.substring(0, startIndex) + res + str.substring(endIndex + 1);
 		}
-		else {
-			envVarName = content.substring(0, index);
-			defaultValue = content.substring(index + 1);
-		}
-
-		Object val = null;
-		if (placeHolderData != null) val = placeHolderData.get(KeyImpl.init(envVarName), null);
-		if (val == null) val = SystemUtil.getSystemPropOrEnvVar(envVarName, null);
-		if (val != null) e.setValue(val);
-		else e.setValue(defaultValue);
-
+		if (modified) e.setValue(str);
 	}
 
 	private void optimizeExtensions(Config config, Struct json) throws IOException {
@@ -316,7 +259,6 @@ public class CFConfigImport {
 			if (!trg.isFile()) {
 				engine.getIOUtil().copy(src, trg);
 			}
-			data.remove("source");
 			data.setEL("id", idAndVersion[0]);
 			data.setEL("version", idAndVersion[1]);
 		}
@@ -357,44 +299,19 @@ public class CFConfigImport {
 		return null;
 	}
 
-	private void setGroup(PageContext pc, final Struct json, String trgActionName, String srcGroupName, String[] keyNames, Item... items) throws JspException {
-		setGroup(pc, json, trgActionName, new String[] { srcGroupName }, keyNames, items);
-	}
-
-	private void setGroup(PageContext pc, final Struct json, String trgActionName, String[] srcGroupNames, String[] keyNames, Item... items) throws JspException {
-		Cast cast = engine.getCastUtil();
-		Collection group = null;
-		for (String srcGroupName: srcGroupNames) {
-			group = cast.toCollection(json.get(cast.toKey(srcGroupName), null), null);
-			if (group != null) break;
-		}
-
-		if (group != null) {
-			Iterator<Entry<Key, Object>> it = group.entryIterator();
-			Entry<Key, Object> e;
-			Struct data;
-			while (it.hasNext()) {
-				e = it.next();
-				data = cast.toStruct(e.getValue(), null);
-				if (data == null) continue;
-				if (!(group instanceof Array)) {
-					for (String keyName: keyNames) {
-						data.set(cast.toKey(keyName), e.getKey().getString());
-					}
-				}
-				set(pc, data, trgActionName, items);
-			}
-		}
-	}
-
-	private void setPasswordIfNecessary(ConfigWeb config) throws PageException {
+	private boolean setPasswordIfNecessary(ConfigPro config) throws PageException {
+		if (!setPasswordIfNecessary) return false;
 		boolean isServer = "server".equalsIgnoreCase(type);
 		if ((isServer && !pwCheckedServer) || (!isServer && !pwCheckedWeb)) {
 			boolean hasPassword = isServer ? config.hasServerPassword() : config.hasPassword();
 			if (!hasPassword) {
 				// create password
 				try {
-					((ConfigWebPro) config).updatePassword(isServer, null, password);
+					if (config instanceof ConfigWebPro && isServer) ((ConfigWebPro) config).updatePassword(isServer, null, password);
+					else {
+						PasswordImpl.updatePassword(config, null, password);
+					}
+					return true;
 				}
 				catch (Exception e) {
 					throw Caster.toPageException(e);
@@ -403,36 +320,7 @@ public class CFConfigImport {
 			if (isServer) pwCheckedServer = true;
 			else pwCheckedWeb = true;
 		}
-
-	}
-
-	private void set(PageContext pc, final Struct json, String trgActionName, Item... items) throws JspException {
-		setPasswordIfNecessary(pc.getConfig());
-
-		Object val;
-		try {
-			tag.setPageContext(pc);
-			boolean empty = true;
-			for (Item item: items) {
-				val = item.getValue(json);
-				if (val != null) empty = false;
-				else val = item.getDefault();
-				dynAttr.setDynamicAttribute(null, item.getTargetAttrName(), val);
-			}
-			if (empty) {
-				tag.release();
-				return;
-			}
-			dynAttr.setDynamicAttribute(null, ACTION, trgActionName);
-			dynAttr.setDynamicAttribute(null, TYPE, type);
-			dynAttr.setDynamicAttribute(null, PASSWORD, password);
-
-			tag.doStartTag();
-			tag.doEndTag();
-		}
-		finally {
-			tag.release();
-		}
+		return false;
 	}
 
 	private static class Item {

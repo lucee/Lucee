@@ -241,4 +241,9 @@ public final class CacheResourceProvider implements ResourceProviderPro {
 		return '/';
 	}
 
+	@Override
+	public boolean allowMatching() {
+		return false;
+	}
+
 }

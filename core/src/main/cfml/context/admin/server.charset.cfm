@@ -99,6 +99,7 @@ Error Output --->
 &lt;cfscript>processingdirective pageEncoding="#charset.templateCharset#";&lt;/cfscript>
 						</cfsavecontent>
 						<cfset renderCodingTip( codeSample, stText.settings.codetip)>
+						<cfset renderSysPropEnvVar( "lucee.template.charset",charset.templateCharset )>
 					</td>
 				</tr>
 				
@@ -117,6 +118,7 @@ Error Output --->
 							this.charset.web="#charset.webCharset#";
 						</cfsavecontent>
 						<cfset renderCodingTip( codeSample)>
+						<cfset renderSysPropEnvVar( "lucee.web.charset",charset.webCharset )>
 					</td>
 				</tr>
 				
@@ -135,6 +137,7 @@ Error Output --->
 							this.charset.resource="#charset.resourceCharset#";
 						</cfsavecontent>
 						<cfset renderCodingTip( codeSample)>
+						<cfset renderSysPropEnvVar( "lucee.resource.charset",charset.resourceCharset )>
 					</td>
 				</tr>
 				<cfif hasAccess>
@@ -149,7 +152,7 @@ Error Output --->
 						<td colspan="2">
 							<input class="bl button submit" type="submit" name="mainAction" value="#stText.Buttons.Update#">
 							<input class="<cfif request.adminType EQ "web">bm<cfelse>br</cfif> button reset" type="reset" name="cancel" value="#stText.Buttons.Cancel#">
-							<cfif request.adminType EQ "web"><input class="br button submit" type="submit" name="mainAction" value="#stText.Buttons.resetServerAdmin#"></cfif>
+							<cfif not request.singleMode && request.adminType EQ "web"><input class="br button submit" type="submit" name="mainAction" value="#stText.Buttons.resetServerAdmin#"></cfif>
 						</td>
 					</tr>
 				</tfoot>

@@ -36,8 +36,11 @@ import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.PageSourceImpl;
 import lucee.runtime.config.Config;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.config.ConfigWebPro;
+import lucee.runtime.debug.DebugEntryTemplate;
+import lucee.runtime.debug.DebuggerImpl;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.Abort;
 import lucee.runtime.exp.PageException;
@@ -151,6 +154,8 @@ public class ChildThreadImpl extends ChildThread implements Serializable {
 		PageContext oldPc = ThreadLocalPageContext.get();
 		Page p = page;
 		PageContextImpl pc = null;
+		DebugEntryTemplate debugEntry = null;
+		long time = System.nanoTime();
 		try {
 			// daemon
 			if (this.pc != null) {
@@ -174,6 +179,12 @@ public class ChildThreadImpl extends ChildThread implements Serializable {
 					return e;
 				}
 				pc.addPageSource(p.getPageSource(), true);
+			}
+
+			ConfigWebPro ci = (ConfigWebPro) pc.getConfig();
+			if (!pc.isGatewayContext() && ci.debug()) {
+				((DebuggerImpl) pc.getDebugger()).setThreadName(tagName);
+				if (ci.hasDebugOptions(ConfigPro.DEBUG_TEMPLATE)) debugEntry = pc.getDebugger().getEntry(pc, page.getPageSource());
 			}
 
 			threadScope = pc.getCFThreadScope();
@@ -236,6 +247,8 @@ public class ChildThreadImpl extends ChildThread implements Serializable {
 			}
 		}
 		finally {
+			if (debugEntry != null) debugEntry.updateExeTime(System.nanoTime() - time);
+			pc.setEndTimeNS(System.nanoTime());
 			endTime = System.currentTimeMillis();
 			pc.getConfig().getFactory().releaseLuceePageContext(pc, true);
 			pc = null;

@@ -157,7 +157,8 @@ public class BundleLoader {
 			if (jf != null) try {
 				jf.close();
 			}
-			catch (final IOException ioe) {}
+			catch (final IOException ioe) {
+			}
 		}
 	}
 

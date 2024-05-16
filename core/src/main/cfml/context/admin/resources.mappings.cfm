@@ -134,6 +134,8 @@ Defaults --->
 				<cfset data.primaries=toArrayFromForm("primary")>
 				<cfset data.inspects=toArrayFromForm("inspect")>
 				<cfset data.toplevels=toArrayFromForm("toplevel")>
+				<cfset data.listenerMode=toArrayFromForm("listenerMode")>
+				<cfset data.listenerType=toArrayFromForm("listenerType")>
 				<cfset data.rows=toArrayFromForm("row")>
 				
 				<cfloop index="idx" from="1" to="#arrayLen(data.virtuals)#">
@@ -151,6 +153,8 @@ Defaults --->
 						primary="#data.primaries[idx]#"
 						inspect="#data.inspects[idx]#"
 						toplevel="#data.toplevels[idx]#"
+						listenerMode="#data.listenerMode[idx]#"
+						listenerType="#data.listenerType[idx]#"
 			remoteClients="#request.getRemoteClients()#">
 						
 					</cfif>

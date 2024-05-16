@@ -38,7 +38,7 @@ public abstract class UDFFilterSupport {
 
 		// check UDF arguments
 		FunctionArgument[] args = udf.getFunctionArguments();
-		if (args.length > 1) throw new ExpressionException("UDF filter has too many arguments [" + args.length + "], should have at maximum 1 argument");
+		if (args.length > 3) throw new ExpressionException("UDF filter has too many arguments [" + args.length + "], should have at maximum 3 argument");
 
 		if (args.length == 1) {
 			type = args[0].getType();

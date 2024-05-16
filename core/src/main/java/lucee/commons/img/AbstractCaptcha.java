@@ -18,8 +18,6 @@
  **/
 package lucee.commons.img;
 
-import java.util.concurrent.ThreadLocalRandom;
-
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -33,6 +31,7 @@ import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * Abstract template class for captcha generation

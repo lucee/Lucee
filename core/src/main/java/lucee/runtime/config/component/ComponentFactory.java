@@ -19,8 +19,8 @@
 package lucee.runtime.config.component;
 
 import lucee.commons.io.res.Resource;
-import lucee.runtime.config.Constants;
 import lucee.runtime.config.ConfigFactory;
+import lucee.runtime.config.Constants;
 
 public class ComponentFactory {
 
@@ -42,6 +42,7 @@ public class ComponentFactory {
 		deploy(dir, path, doNew, "Query");
 		deploy(dir, path, doNew, "Result");
 		deploy(dir, path, doNew, "Administrator");
+		deploy(dir, path, doNew, "Component");
 
 		// orm
 		{
@@ -60,6 +61,7 @@ public class ComponentFactory {
 			deploy(testDir, testPath, doNew, "LuceeTestSuite");
 			deploy(testDir, testPath, doNew, "LuceeTestSuiteRunner");
 			deploy(testDir, testPath, doNew, "LuceeTestCase");
+			deploy(testDir, testPath, doNew, "LuceeTestCaseParallel");
 		}
 
 	}

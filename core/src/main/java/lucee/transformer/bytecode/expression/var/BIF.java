@@ -21,6 +21,7 @@ package lucee.transformer.bytecode.expression.var;
 import lucee.runtime.db.ClassDefinition;
 import lucee.transformer.Factory;
 import lucee.transformer.cfml.TransfomerSettings;
+import lucee.transformer.expression.ExprString;
 import lucee.transformer.library.function.FunctionLibFunction;
 
 public final class BIF extends FunctionMember {
@@ -99,5 +100,10 @@ public final class BIF extends FunctionMember {
 	 */
 	public void setFlf(FunctionLibFunction flf) {
 		this.flf = flf;
+	}
+
+	@Override
+	public ExprString getName() {
+		return factory.createLitString(flf.getName());
 	}
 }

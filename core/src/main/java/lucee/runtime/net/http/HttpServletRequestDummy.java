@@ -37,7 +37,6 @@ import javax.servlet.AsyncContext;
 import javax.servlet.DispatcherType;
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletContext;
-import javax.servlet.ServletException;
 import javax.servlet.ServletInputStream;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
@@ -800,7 +799,7 @@ public final class HttpServletRequestDummy implements HttpServletRequest, Serial
 	}
 
 	@Override
-	public boolean authenticate(HttpServletResponse arg0) throws IOException, ServletException {
+	public boolean authenticate(HttpServletResponse arg0) throws IOException {
 		throw new RuntimeException("not supported!");
 	}
 
@@ -810,27 +809,27 @@ public final class HttpServletRequestDummy implements HttpServletRequest, Serial
 	}
 
 	@Override
-	public Part getPart(String arg0) throws IOException, ServletException {
+	public Part getPart(String arg0) throws IOException {
 		throw new RuntimeException("not supported!");
 	}
 
 	@Override
-	public Collection<Part> getParts() throws IOException, ServletException {
+	public Collection<Part> getParts() throws IOException {
 		throw new RuntimeException("not supported!");
 	}
 
 	@Override
-	public void login(String arg0, String arg1) throws ServletException {
+	public void login(String arg0, String arg1) {
 		throw new RuntimeException("not supported!");
 	}
 
 	@Override
-	public void logout() throws ServletException {
+	public void logout() {
 		throw new RuntimeException("not supported!");
 	}
 
 	@Override
-	public <T extends HttpUpgradeHandler> T upgrade(Class<T> arg0) throws IOException, ServletException {
+	public <T extends HttpUpgradeHandler> T upgrade(Class<T> arg0) throws IOException {
 		throw new RuntimeException("not supported!");
 	}
 

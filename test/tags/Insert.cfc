@@ -2,7 +2,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"  labels="mysql" {
 	function beforeAll(){
 		if(isNotSupported()) return;
 		request.mySQL = getCredentials();
-		request.mySQL.storate = true;
+		request.mySQL.storage = true;
 		variables.str = request.mySQL;
 		tableCreation();
 	}

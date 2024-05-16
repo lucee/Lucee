@@ -1,7 +1,7 @@
 <cfscript>
 	theCust = new cust();
 	wequery = new Query();
-	sql = "INSERT INTO users (uid,uName) VALUES ('acf')";
+	sql = "INSERT INTO users (uName) VALUES ('acf')";
 	wequery.setSQL(sql);
 	try{
 		transaction{
@@ -11,7 +11,7 @@
 		}
 	}
 	catch( any e){
-		writeOutput(e.Detail);
+		writeOutput(e.message);
 	}
 	
 </cfscript>

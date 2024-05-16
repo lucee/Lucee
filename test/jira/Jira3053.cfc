@@ -58,11 +58,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	}
 	
 	private string function defineDatasource(){
-		application action="update" 
-			datasource="#{
-	  		class: 'org.hsqldb.jdbcDriver'
-			, connectionString: 'jdbc:hsqldb:file:#getDirectoryFromPath(getCurrentTemplatePath())#/datasource/db'
-		}#";
+		var dbFile = getTempDirectory() & "hsqldb-" & listFirst( listLast( getCurrentTemplatePath(), "/\" ), ".");
+		var ds = server.getDatasource("hsqldb", dbfile);
+		application action="update" datasource="#ds#";
 	}
 
 } 

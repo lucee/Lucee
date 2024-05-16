@@ -34,7 +34,6 @@ import javax.servlet.FilterRegistration.Dynamic;
 import javax.servlet.RequestDispatcher;
 import javax.servlet.Servlet;
 import javax.servlet.ServletContext;
-import javax.servlet.ServletException;
 import javax.servlet.ServletRegistration;
 import javax.servlet.SessionCookieConfig;
 import javax.servlet.SessionTrackingMode;
@@ -194,7 +193,7 @@ public class ServletContextDummy implements ServletContext {
 	}
 
 	@Override
-	public Servlet getServlet(String arg0) throws ServletException {
+	public Servlet getServlet(String arg0) {
 		throw new RuntimeException("not supported");
 	}
 
@@ -256,17 +255,17 @@ public class ServletContextDummy implements ServletContext {
 	}
 
 	@Override
-	public <T extends Filter> T createFilter(Class<T> arg0) throws ServletException {
+	public <T extends Filter> T createFilter(Class<T> arg0) {
 		throw new RuntimeException("not supported");
 	}
 
 	@Override
-	public <T extends EventListener> T createListener(Class<T> arg0) throws ServletException {
+	public <T extends EventListener> T createListener(Class<T> arg0) {
 		throw new RuntimeException("not supported");
 	}
 
 	@Override
-	public <T extends Servlet> T createServlet(Class<T> arg0) throws ServletException {
+	public <T extends Servlet> T createServlet(Class<T> arg0) {
 		throw new RuntimeException("not supported");
 	}
 

@@ -27,6 +27,7 @@ import java.util.TimeZone;
 
 import lucee.commons.date.JREDateTimeUtil;
 import lucee.runtime.PageContext;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
@@ -45,8 +46,8 @@ public final class GetTimeZoneInfo implements Function {
 	}
 
 	public static lucee.runtime.type.Struct call(PageContext pc, TimeZone tz, Locale dspLocale) {
-		if (tz == null) tz = pc.getTimeZone();
-		if (dspLocale == null) dspLocale = pc.getLocale();
+		if (tz == null) tz = ThreadLocalPageContext.getTimeZone(pc);
+		if (dspLocale == null) dspLocale = ThreadLocalPageContext.getLocale(pc);
 		// Date date = ;
 		Calendar c = JREDateTimeUtil.getThreadCalendar(tz);
 		c.setTimeInMillis(System.currentTimeMillis());
@@ -59,21 +60,18 @@ public final class GetTimeZoneInfo implements Function {
 		int minutes = j % 60;
 
 		Struct struct = new StructImpl();
-		struct.setEL("utcTotalOffset", new Double(total));
-		struct.setEL("utcHourOffset", new Double(hour));
-		struct.setEL("utcMinuteOffset", new Double(minutes));
+		struct.setEL("utcTotalOffset", Double.valueOf(total));
+		struct.setEL("utcHourOffset", Double.valueOf(hour));
+		struct.setEL("utcMinuteOffset", Double.valueOf(minutes));
 		struct.setEL("isDSTon", (dstOffset > 0) ? Boolean.TRUE : Boolean.FALSE);
 		struct.setEL(KeyConstants._name, tz.getDisplayName(dspLocale));
 		struct.setEL("nameDST", tz.getDisplayName(Boolean.TRUE, TimeZone.LONG, dspLocale));
 		struct.setEL(KeyConstants._shortName, tz.getDisplayName(Boolean.FALSE, TimeZone.SHORT, dspLocale));
 		struct.setEL("shortNameDST", tz.getDisplayName(Boolean.TRUE, TimeZone.SHORT, dspLocale));
 		struct.setEL(KeyConstants._id, tz.getID());
-		struct.setEL(KeyConstants._timezone, tz.getID()); 
-		struct.setEL(KeyConstants._offset, new Double(-total));
-		struct.setEL("DSTOffset", new Double(dstOffset / 1000));
-
+		struct.setEL(KeyConstants._timezone, tz.getID());
+		struct.setEL(KeyConstants._offset, Double.valueOf(-total));
+		struct.setEL("DSTOffset", Double.valueOf(dstOffset / 1000));
 		return struct;
-
-		// return new StructImpl();
 	}
 }

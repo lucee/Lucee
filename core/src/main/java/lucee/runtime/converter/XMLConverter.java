@@ -48,7 +48,6 @@ import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.Collection.Key;
-import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Query;
 import lucee.runtime.type.QueryImpl;
 import lucee.runtime.type.Struct;
@@ -64,7 +63,7 @@ import lucee.runtime.type.util.KeyConstants;
  * class to serialize and desirilize WDDX Packes
  */
 public final class XMLConverter extends ConverterSupport {
-	private static final Collection.Key REMOTING_FETCH = KeyImpl.getInstance("remotingFetch");
+	private static final Collection.Key REMOTING_FETCH = KeyConstants._remotingFetch;
 
 	private int deep = 1;
 	private char del = '"';
@@ -493,7 +492,7 @@ public final class XMLConverter extends ConverterSupport {
 		else if (nodeName.equals("number")) {
 			try {
 				Node data = element.getFirstChild();
-				if (data == null) return new Double(0);
+				if (data == null) return Double.valueOf(0);
 				return Caster.toDouble(data.getNodeValue());
 			}
 			catch (Exception e) {

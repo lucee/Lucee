@@ -134,7 +134,7 @@ public final class GetTagData implements Function {
 		scp.set(KeyConstants._type, "none");
 
 		if (metadata != null) {
-			sct.set(KeyConstants._description, metadata.get("hint", ""));
+			sct.set(KeyConstants._description, Caster.toString(metadata.get("hint", "")).replaceAll("\\n\\s+", "\n"));
 			sct.set("attributeType", metadata.get("attributeType", ""));
 			sct.set("parseBody", Caster.toBoolean(metadata.get("parseBody", Boolean.FALSE), Boolean.FALSE));
 
@@ -153,7 +153,7 @@ public final class GetTagData implements Function {
 					if (Caster.toBooleanValue(src.get(KeyConstants._hidden, null), false)) continue;
 					Struct _attr = new StructImpl(StructImpl.TYPE_LINKED);
 					_attr.set(KeyConstants._status, "implemented");
-					_attr.set(KeyConstants._description, src.get(KeyConstants._hint, ""));
+					_attr.set(KeyConstants._description, Caster.toString(src.get(KeyConstants._hint, "")).replaceAll("\\n\\s+", "\n"));
 					_attr.set(KeyConstants._type, src.get(KeyConstants._type, "any"));
 					_attr.set(KeyConstants._required, Caster.toBoolean(src.get(KeyConstants._required, ""), null));
 					_attr.set("scriptSupport", "none");
@@ -170,7 +170,7 @@ public final class GetTagData implements Function {
 		sct.set("nameSpaceSeperator", tld.getNameSpaceSeparator());
 		sct.set("nameSpace", tld.getNameSpace());
 		sct.set(KeyConstants._name, tag.getName());
-		sct.set(KeyConstants._description, tag.getDescription());
+		sct.set(KeyConstants._description, tag.getDescription().replaceAll("\\n\\s+", "\n"));
 		sct.set(KeyConstants._status, TagLibFactory.toStatus(tag.getStatus()));
 
 		sct.set("attributeType", getAttributeType(tag));
@@ -211,7 +211,7 @@ public final class GetTagData implements Function {
 			// for(int i=0;i<args.size();i++) {
 			Struct _arg = new StructImpl(StructImpl.TYPE_LINKED);
 			_arg.set(KeyConstants._status, TagLibFactory.toStatus(attr.getStatus()));
-			_arg.set(KeyConstants._description, attr.getDescription());
+			_arg.set(KeyConstants._description, attr.getDescription().replaceAll("\\n\\s+", "\n"));
 			_arg.set(KeyConstants._type, attr.getType());
 			if (attr.getAlias() != null) _arg.set(KeyConstants._alias, ListUtil.arrayToList(attr.getAlias(), ","));
 			if (attr.getValues() != null) _arg.set(KeyConstants._values, Caster.toArray(attr.getValues()));

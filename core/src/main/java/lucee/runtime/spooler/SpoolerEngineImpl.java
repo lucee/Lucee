@@ -38,9 +38,11 @@ import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.SerializableObject;
 import lucee.commons.lang.StringUtil;
+import lucee.loader.engine.CFMLEngineFactory;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.config.ConfigWebUtil;
+import lucee.runtime.converter.JavaConverter;
 import lucee.runtime.engine.ThreadLocalConfig;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.DatabaseException;
@@ -49,7 +51,6 @@ import lucee.runtime.op.Caster;
 import lucee.runtime.op.Duplicator;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.Collection;
-import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Query;
 import lucee.runtime.type.QueryImpl;
 import lucee.runtime.type.Struct;
@@ -62,12 +63,12 @@ public class SpoolerEngineImpl implements SpoolerEngine {
 
 	private static final TaskFileFilter FILTER = new TaskFileFilter();
 
-	private static final Collection.Key LAST_EXECUTION = KeyImpl.getInstance("lastExecution");
-	private static final Collection.Key NEXT_EXECUTION = KeyImpl.getInstance("nextExecution");
+	private static final Collection.Key LAST_EXECUTION = KeyConstants._lastExecution;
+	private static final Collection.Key NEXT_EXECUTION = KeyConstants._nextExecution;
 
 	private static final Collection.Key CLOSED = KeyConstants._closed;
 	private static final Collection.Key TRIES = KeyConstants._tries;
-	private static final Collection.Key TRIES_MAX = KeyImpl.getInstance("triesmax");
+	private static final Collection.Key TRIES_MAX = KeyConstants._triesmax;
 
 	private String label;
 
@@ -201,7 +202,8 @@ public class SpoolerEngineImpl implements SpoolerEngine {
 		SpoolerTask task = defaultValue;
 		try {
 			is = res.getInputStream();
-			ois = new ObjectInputStream(is);
+			ois = new JavaConverter.ObjectInputStreamImpl(CFMLEngineFactory.getInstance().getClass().getClassLoader(), is);
+
 			task = (SpoolerTask) ois.readObject();
 		}
 		catch (Exception e) {

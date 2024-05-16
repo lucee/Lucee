@@ -113,7 +113,8 @@ class XMLValidator extends XMLEntityResolverDefaultHandler {
 			if (!Util.isEmpty(strSchema)) parser.setProperty("http://apache.org/xml/properties/schema/external-noNamespaceSchemaLocation", strSchema);
 			parser.parse(xml);
 		}
-		catch (SAXException e) {}
+		catch (SAXException e) {
+		}
 		catch (IOException e) {
 			throw engine.getExceptionUtil().createXMLException(e.getMessage());
 		}

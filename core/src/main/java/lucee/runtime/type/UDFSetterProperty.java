@@ -41,7 +41,7 @@ public final class UDFSetterProperty extends UDFGSProperty {
 	 */
 	private static final long serialVersionUID = 378348754607851563L;
 
-	private static final Collection.Key VALIDATE_PARAMS = KeyImpl.getInstance("validateParams");
+	private static final Collection.Key VALIDATE_PARAMS = KeyConstants._validateParams;
 	private final Property prop;
 	private final Key propName;
 	private String validate;

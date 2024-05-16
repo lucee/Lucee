@@ -59,6 +59,8 @@ import lucee.runtime.component.ComponentLoader;
 import lucee.runtime.component.DataMember;
 import lucee.runtime.component.ImportDefintion;
 import lucee.runtime.component.Member;
+import lucee.runtime.component.MetaDataSoftReference;
+import lucee.runtime.component.MetadataUtil;
 import lucee.runtime.component.Property;
 import lucee.runtime.component.StaticStruct;
 import lucee.runtime.config.Config;
@@ -98,10 +100,10 @@ import lucee.runtime.type.UDFPlus;
 import lucee.runtime.type.UDFProperties;
 import lucee.runtime.type.cfc.ComponentEntryIterator;
 import lucee.runtime.type.cfc.ComponentValueIterator;
-import lucee.runtime.type.comparator.ArrayOfStructComparator;
 import lucee.runtime.type.dt.DateTime;
 import lucee.runtime.type.it.ComponentIterator;
 import lucee.runtime.type.it.StringIterator;
+import lucee.runtime.type.scope.AccessModifier;
 import lucee.runtime.type.scope.Argument;
 import lucee.runtime.type.scope.ArgumentImpl;
 import lucee.runtime.type.scope.ArgumentIntKey;
@@ -119,7 +121,7 @@ import lucee.runtime.type.util.UDFUtil;
  * %**% MUST add handling for new attributes (style, namespace, serviceportname, porttypename,
  * wsdlfile, bindingname, and output)
  */
-public final class ComponentImpl extends StructSupport implements Externalizable, Component, coldfusion.runtime.TemplateProxy {
+public final class ComponentImpl extends StructSupport implements Externalizable, Component, coldfusion.runtime.TemplateProxy, AccessModifier {
 	private static final long serialVersionUID = -245618330485511484L; // do not change this
 
 	private static final Interface[] EMPTY = new Interface[0];
@@ -382,7 +384,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 		}
 		else {
 			CIPage p = ((ConfigWebPro) pageContext.getConfig()).getBaseComponentPage(pageSource.getDialect(), pageContext);
-			if (!componentPage.getPageSource().equals(p.getPageSource())) {
+			if (p != null && !componentPage.getPageSource().equals(p.getPageSource())) {
 				base = ComponentLoader.loadComponent(pageContext, p, "Component", false, false, true, executeConstr);
 			}
 		}
@@ -412,10 +414,10 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 			// abstrCollection.implement(pageContext,getPageSource(),properties.implement);
 		}
 
-		/*
-		 * print.e("--------------------------------------"); print.e(_getPageSource().getDisplayPath());
-		 * print.e(abstrCollection.getUdfs());
-		 */
+		long indexBase = 0;
+		if (base != null) {
+			indexBase = base.cp.getStaticStruct().index();
+		}
 
 		// scope
 		useShadow = base == null ? (pageSource.getDialect() == CFMLEngine.DIALECT_CFML ? pageContext.getConfig().useComponentShadow() : false) : base.useShadow;
@@ -427,11 +429,12 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 			scope = new ComponentScopeThis(this);
 		}
 		initProperties();
-		StaticStruct ss = componentPage.getStaticStruct();
-		if (!ss.isInit()) {
+		StaticStruct ss = componentPage.getStaticStruct(); // this method get overwritten by the compiled componentpage
+		if (!ss.isInit() || indexBase > ss.index()) {
 			synchronized (ss) {
 				// invoke static constructor
-				if (!ss.isInit()) {
+				boolean baseChanged = false;
+				if (!ss.isInit() || (baseChanged = (indexBase > ss.index()))) {
 					Map<String, Boolean> map = statConstr.get();
 					String id = "" + componentPage.getHash();
 					if (!Caster.toBooleanValue(map.get(id), false)) {
@@ -439,6 +442,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 
 						// this needs to happen before the call
 						try {
+							if (baseChanged) ss.clear();
 							componentPage.staticConstructor(pageContext, this);
 						}
 						catch (Throwable t) {
@@ -1004,9 +1008,24 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 
 	@Override
 	public DumpData toDumpData(PageContext pageContext, int maxlevel, DumpProperties dp, int access) {
+
+		if (pageContext != null) {
+			Member member = getMember(pageContext, KeyConstants.__toDumpData, true, false);
+			if (member instanceof UDF) {
+				UDF udf = (UDF) member;
+				if (udf.getFunctionArguments().length == 0) {
+					try {
+						return DumpUtil.toDumpData(_call(pageContext, KeyConstants.__toDumpData, udf, null, new Object[0]), pageContext, maxlevel, dp);
+					}
+					catch (PageException e) {
+					}
+				}
+			}
+		}
+
 		boolean isCFML = getPageSource().getDialect() == CFMLEngine.DIALECT_CFML;
-		DumpTable table = isCFML ? new DumpTable("component", "#ff4542", "#ff9aad", "#000000") : new DumpTable("component", "#ca6b50", "#e9bcac", "#000000");
-		table.setTitle((isCFML ? "Component" : "Class") + " " + getCallPath() + (" " + StringUtil.escapeHTML(top.properties.dspName)));
+		DumpTable table = isCFML ? new DumpTable("component", "#48d8d8", "#68dfdf", "#000000") : new DumpTable("component", "#48d8d8", "#68dfdf", "#000000");
+		table.setTitle((isCFML ? "Component" : "Class") + " " + getCallPath() + (top.properties.inline ? "" : " " + StringUtil.escapeHTML(top.properties.dspName)));
 		table.setComment("Only the functions and data members that are accessible from your location are displayed");
 
 		// Extends
@@ -1131,10 +1150,10 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 	 * @return return call path
 	 */
 	protected String getCallPath() {
+		if (top.properties.inline) return "(inline)";
 		if (StringUtil.isEmpty(top.properties.callPath)) return getName();
 		try {
-			return "(" + ListUtil.arrayToList(ListUtil.listToArrayTrim(top.properties.callPath.replace('/', '.').replace('\\', '.'), "."), ".")
-					+ (top.properties.subName == null ? "" : "$" + top.properties.subName) + ")";
+			return "(" + ListUtil.arrayToList(ListUtil.listToArrayTrim(top.properties.callPath.replace('/', '.').replace('\\', '.'), "."), ".") + ")";
 		}
 		catch (PageException e) {
 			return top.properties.callPath;
@@ -1497,11 +1516,17 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 	}
 
 	protected static Struct getMetaData(int access, PageContext pc, ComponentImpl comp, boolean ignoreCache) throws PageException {
+		Struct existingMetaData = null;
 		// Cache
-		/*
-		 * final Page page = MetadataUtil.getPageWhenMetaDataStillValid(pc, comp, ignoreCache); if (page !=
-		 * null && page.metaData != null && page.metaData.get() != null) { eturn page.metaData.get(); }
-		 */
+		final Page page = MetadataUtil.getPageWhenMetaDataStillValid(pc, comp, ignoreCache);
+		if (page != null && page.metaData != null && page.metaData.get() != null) {
+			existingMetaData = page.metaData.get();
+			if (existingMetaData != null) {
+				Struct data = Caster.toStruct(existingMetaData.get(comp.getName() + "", null), null);
+				if (data != null) return data;
+			}
+		}
+
 		long creationTime = System.currentTimeMillis();
 		final StructImpl sct = new StructImpl();
 
@@ -1520,6 +1545,8 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 		sct.set(KeyConstants._hashCode, comp.hashCode());
 		sct.set(KeyConstants._accessors, comp.properties.accessors);
 		sct.set(KeyConstants._synchronized, comp.properties._synchronized);
+		sct.set(KeyConstants._inline, comp.properties.inline);
+		sct.set(KeyConstants._sub, !comp.properties.inline && !StringUtil.isEmpty(comp.properties.subName));
 
 		if (comp.properties.output != null) sct.set(KeyConstants._output, comp.properties.output);
 		if (comp.properties.modifier == MODIFIER_ABSTRACT) sct.set(KeyConstants._abstract, true);
@@ -1548,9 +1575,9 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 
 		// PageSource
 		PageSource ps = comp.pageSource;
-		sct.set(KeyConstants._fullname, comp.properties.name);
-		sct.set(KeyConstants._name, comp.properties.name);
-		sct.set(KeyConstants._subname, comp.properties.subName);
+		sct.set(KeyConstants._fullname, comp.properties.inline ? "" : comp.properties.name);
+		sct.set(KeyConstants._name, comp.properties.inline ? "" : comp.properties.name);
+		sct.set(KeyConstants._subname, comp.properties.inline || StringUtil.isEmpty(comp.properties.subName) ? "" : comp.properties.subName);
 		sct.set(KeyConstants._path, ps.getDisplayPath());
 		sct.set(KeyConstants._type, "component");
 		int dialect = comp.getPageSource().getDialect();
@@ -1584,7 +1611,15 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 			sct.set(KeyConstants._properties, parr);
 		}
 
-		// if (page != null) page.metaData = new MetaDataSoftReference<Struct>(sct, creationTime);
+		if (page != null) {
+			if (existingMetaData != null) existingMetaData.setEL(comp.getName() + "", sct);
+			else {
+				Struct coll = new StructImpl();
+				coll.setEL(comp.getName() + "", sct);
+				page.metaData = new MetaDataSoftReference<Struct>(coll, creationTime);
+			}
+
+		}
 		return sct;
 	}
 
@@ -1686,7 +1721,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 	 * @return value set
 	 * @throws ExpressionException
 	 */
-	private Object _set(PageContext pc, Collection.Key key, Object value) throws ExpressionException {
+	private Object _set(PageContext pc, Collection.Key key, Object value, int access, int modifier) throws ExpressionException {
 		if (value instanceof Member) {
 			Member m = (Member) value;
 			if (m instanceof UDF) {
@@ -1703,8 +1738,17 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 			if (loaded && !isAccessible(pc, existing != null ? existing.getAccess() : dataMemberDefaultAccess))
 				throw new ExpressionException("Component [" + getCallName() + "] has no accessible Member with name [" + key + "]",
 						"enable [trigger data member] in administrator to also invoke getters and setters");
-			_data.put(key,
-					new DataMember(existing != null ? existing.getAccess() : dataMemberDefaultAccess, existing != null ? existing.getModifier() : Member.MODIFIER_NONE, value));
+			if (existing != null) {
+				if (existing.getModifier() == Member.MODIFIER_FINAL) {
+					throw new ExpressionException("Attempt to modify a 'final' member [" + key + "] within the 'this' scope of the component [" + cp.getComponentName()
+							+ "]. This member is declared as 'final' in the base component [" + base.cp.getComponentName()
+							+ "] or a component extended by it, and cannot be overridden.");
+				}
+
+			}
+
+			_data.put(key, new DataMember(existing != null ? existing.getAccess() : access, existing != null ? existing.getModifier() : modifier, value));
+
 		}
 		return value;
 	}
@@ -1733,6 +1777,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 	 * @deprecated injected is not used
 	 */
 	public void registerUDF(Key key, UDF udf, boolean useShadow, boolean injected) throws ApplicationException {
+
 		if (udf instanceof UDFPlus) ((UDFPlus) udf).setOwnerComponent(this);
 
 		if (insideStaticConstrThread.get()) {
@@ -1782,7 +1827,18 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 				return callSetter(pc, key, value);
 			}
 		}
-		return _set(pc, key, value);
+		return _set(pc, key, value, dataMemberDefaultAccess, Member.MODIFIER_NONE);
+	}
+
+	@Override
+	public Object set(PageContext pc, Collection.Key key, Object value, int access, int modifier) throws PageException {
+		if (pc == null) pc = ThreadLocalPageContext.get();
+		if (triggerDataMember(pc) && isInit) {
+			if (!isPrivate(pc)) {
+				return callSetter(pc, key, value);
+			}
+		}
+		return _set(pc, key, value, access, modifier);
 	}
 
 	@Override
@@ -1831,7 +1887,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 	}
 
 	private Object callGetter(PageContext pc, Collection.Key key) throws PageException {
-		Key getterName = KeyImpl.getInstance("get" + key.getLowerString());
+		Key getterName = KeyImpl.init("get" + key.getLowerString());
 		Member member = getMember(pc, getterName, false, false);
 		if (member instanceof UDF) {
 			UDF udf = (UDF) member;
@@ -1843,7 +1899,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 	}
 
 	private Object callGetter(PageContext pc, Collection.Key key, Object defaultValue) {
-		Key getterName = KeyImpl.getInstance("get" + key.getLowerString());
+		Key getterName = KeyImpl.init("get" + key.getLowerString());
 		Member member = getMember(pc, getterName, false, false);
 		if (member instanceof UDF) {
 			UDF udf = (UDF) member;
@@ -1860,7 +1916,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 	}
 
 	private Object callSetter(PageContext pc, Collection.Key key, Object value) throws PageException {
-		Collection.Key setterName = KeyImpl.getInstance("set" + key.getLowerString());
+		Collection.Key setterName = KeyImpl.init("set" + key.getLowerString());
 		Member member = getMember(pc, setterName, false, false);
 		if (member instanceof UDF) {
 			UDF udf = (UDF) member;
@@ -1868,7 +1924,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 				return _call(pc, setterName, udf, null, new Object[] { value });
 			}
 		}
-		return _set(pc, key, value);
+		return _set(pc, key, value, dataMemberDefaultAccess, Member.MODIFIER_NONE);
 	}
 
 	/**
@@ -2441,5 +2497,10 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 			return Boolean.FALSE;
 		}
 
+	}
+
+	public ComponentImpl setInline() {
+		this.properties.inline = true;
+		return this;
 	}
 }

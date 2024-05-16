@@ -339,7 +339,7 @@ public abstract class ApplicationContextSupport implements ApplicationContext {
 				// level
 
 				String strLevel = Caster.toString(v.get("level", null), null);
-				if (StringUtil.isEmpty(strLevel, true)) Caster.toString(v.get("loglevel", null), null);
+				if (StringUtil.isEmpty(strLevel, true)) strLevel = Caster.toString(v.get("loglevel", null), null);
 				int level = LogUtil.toLevel(StringUtil.trim(strLevel, ""), Log.LEVEL_ERROR);
 
 				Struct sctAppArgs = Caster.toStruct(sctApp.get("arguments", null), null);
@@ -484,5 +484,9 @@ public abstract class ApplicationContextSupport implements ApplicationContext {
 	public abstract boolean getPreciseMath();
 
 	public abstract void setPreciseMath(boolean preciseMath);
+
+	public abstract boolean getLimitEvaluation();
+
+	public abstract void setLimitEvaluation(boolean limitEvaluation);
 
 }

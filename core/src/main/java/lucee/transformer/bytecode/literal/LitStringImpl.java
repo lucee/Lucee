@@ -85,8 +85,7 @@ public class LitStringImpl extends ExpressionBase implements LitString, ExprStri
 		// str(0,10);
 		// print.ds(str);
 		int externalizeStringGTE = ((ConfigPro) bc.getConfig()).getExternalizeStringGTE();
-
-		if (externalizeStringGTE > -1 && str.length() > externalizeStringGTE && StringUtil.indexOfIgnoreCase(bc.getMethod().getName(), "call") != -1) {
+		if (externalizeStringGTE > 0 && str.length() > externalizeStringGTE && StringUtil.indexOfIgnoreCase(bc.getMethod().getName(), "call") != -1) {
 			try {
 				GeneratorAdapter ga = bc.getAdapter();
 				Page page = bc.getPage();
@@ -126,7 +125,7 @@ public class LitStringImpl extends ExpressionBase implements LitString, ExprStri
 	}
 
 	private static boolean toBig(String str) {
-		if (str.length() < (MAX_SIZE / 2)) return false; // a char is max 2 bytes
+		if (str == null || str.length() < (MAX_SIZE / 2)) return false; // a char is max 2 bytes
 		return str.getBytes(CharsetUtil.UTF8).length > MAX_SIZE;
 	}
 

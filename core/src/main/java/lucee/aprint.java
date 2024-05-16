@@ -46,6 +46,7 @@ import lucee.commons.io.SystemUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.ResourcesImpl;
 import lucee.commons.io.res.util.ResourceUtil;
+import lucee.commons.lang.SystemOut;
 import lucee.runtime.engine.CFMLEngineImpl;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
@@ -55,10 +56,12 @@ import lucee.runtime.type.QueryImpl;
  *  
  */
 public class aprint {
+	public static void edate(String value) {
+		e(SystemOut.FORMAT.format(new Date(System.currentTimeMillis())) + " " + value);
+	}
 
 	public static void date(String value) {
-		long millis = System.currentTimeMillis();
-		o(new Date(millis) + "-" + (millis - (millis / 1000 * 1000)) + " " + value);
+		o(SystemOut.FORMAT.format(new Date(System.currentTimeMillis())) + " " + value);
 	}
 
 	public static void ds(boolean useOutStream) {

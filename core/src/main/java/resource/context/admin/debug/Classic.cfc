@@ -27,7 +27,7 @@
 		,field("Scope Variables","scopes","Application,CGI,Client,Cookie,Form,Request,Server,Session,URL",true,"Enable Scope reporting","checkbox","Application,CGI,Client,Cookie,Form,Request,Server,Session,URL")
 		
 		
-		,group("Output Format","Define details to the fomrat of the debug output",3)
+		,group("Output Format","Define details for the format of the debug output",3)
 		,field("Background Color","bgcolor","white",true,"Color in the back, ","text80")
 		,field("Font Color","color","black",true,"Color used for the Font, ","text80")
 		,field("Font Family","font","Times New Roman, Times, serif",true,"What kind of Font is used, ","text200")

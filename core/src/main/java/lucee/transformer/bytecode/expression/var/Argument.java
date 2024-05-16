@@ -23,7 +23,6 @@ import org.objectweb.asm.Type;
 import lucee.transformer.TransformerException;
 import lucee.transformer.bytecode.BytecodeContext;
 import lucee.transformer.bytecode.expression.ExpressionBase;
-import lucee.transformer.bytecode.util.ExpressionUtil;
 import lucee.transformer.expression.Expression;
 
 public class Argument extends ExpressionBase {
@@ -70,9 +69,9 @@ public class Argument extends ExpressionBase {
 	}
 
 	public Type writeOutValue(BytecodeContext bc, int mode) throws TransformerException {
-		ExpressionUtil.visitLine(bc, getStart());
+		bc.visitLine(getStart());
 		Type t = ((ExpressionBase) getValue()).writeOutAsType(bc, mode);
-		ExpressionUtil.visitLine(bc, getEnd());
+		bc.visitLine(getEnd());
 		return t;
 	}
 

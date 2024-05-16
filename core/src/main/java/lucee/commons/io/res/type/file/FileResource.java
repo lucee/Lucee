@@ -27,6 +27,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.CopyOption;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
+import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
 import java.nio.file.attribute.DosFileAttributes;
@@ -239,9 +241,11 @@ public final class FileResource extends File implements Resource {
 		// provider.lock(this);
 		provider.read(this);
 		try {
-
 			return new BufferedInputStream(Files.newInputStream(toPath(), StandardOpenOption.READ));
 			// return new BufferedInputStream(new FileInputStream(this));
+		}
+		catch (NoSuchFileException nsfe) {
+			throw ExceptionUtil.toFileNotFoundException(nsfe);
 		}
 		catch (IOException ioe) {
 			// provider.unlock(this);
@@ -275,12 +279,9 @@ public final class FileResource extends File implements Resource {
 		try {
 			if (createParentWhenNotExists) {
 				File p = super.getParentFile();
-				if (!p.exists()) p.mkdirs();
+				if (!p.exists()) Files.createDirectories(p.toPath());
 			}
-			if (!super.createNewFile()) {
-				if (super.isFile()) throw new IOException("Can't create file [" + this + "], file already exists");
-				throw new IOException("Can't create file [" + this + "]");
-			}
+			Files.createFile(toPath());
 		}
 		finally {
 			provider.unlock(this);
@@ -338,10 +339,8 @@ public final class FileResource extends File implements Resource {
 	public void createDirectory(boolean createParentWhenNotExists) throws IOException {
 		provider.lock(this);
 		try {
-			if (createParentWhenNotExists ? !_mkdirs() : !super.mkdir()) {
-				if (super.isDirectory()) throw new IOException("Can't create directory [" + this + "], directory already exists");
-				throw new IOException("Can't create directory [" + this + "]");
-			}
+			if (createParentWhenNotExists) Files.createDirectories(toPath());
+			else Files.createDirectory(toPath());
 		}
 		finally {
 			provider.unlock(this);
@@ -405,6 +404,29 @@ public final class FileResource extends File implements Resource {
 		int mode = SystemUtil.isWindows() && exists() ? 0111 : 0;
 		if (super.canRead()) mode += 0444;
 		if (super.canWrite()) mode += 0222;
+		return mode;
+	}
+
+	public static int getMode(Path path) {
+		if (!Files.exists(path)) return 0;
+		if (SystemUtil.isUnix()) {
+			try {
+				// TODO geht nur fuer file
+				String line = Command.execute("ls -ld " + path.toAbsolutePath().toString(), false).getOutput();
+
+				line = line.trim();
+				line = line.substring(0, line.indexOf(' '));
+				// print.ln(getPath());
+				return ModeUtil.toOctalMode(line);
+
+			}
+			catch (Exception e) {
+			}
+
+		}
+		int mode = SystemUtil.isWindows() ? 0111 : 0;
+		if (Files.isReadable(path)) mode += 0444;
+		if (Files.isWritable(path)) mode += 0222;
 		return mode;
 	}
 

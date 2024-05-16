@@ -15,55 +15,43 @@
  * You should have received a copy of the GNU Lesser General Public 
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  * 
- ---><cfcomponent extends="org.lucee.cfml.test.LuceeTestCase">
-	<cffunction name="beforeTests">
-		<cfset variables.name=ListFirst(ListLast(getCurrentTemplatePath(),"\/"),".")>
-		<cfset variables.parent=getDirectoryFromPath(getCurrentTemplatePath())&name&"/">
-		
-	</cffunction>
-	<cffunction name="afterTests">
-		<cfset directorydelete(parent,true)>
-	</cffunction>
-	<cffunction name="testDirectoryDelete" localMode="modern">
+ --->
+ component extends="org.lucee.cfml.test.LuceeTestCase" {
 
-<!--- begin old test code --->
-<cflock name="testdirectoryDelete" timeout="1" throwontimeout="no" type="exclusive">
-<cfset dir=parent&createUUID()>
+	public function beforeAll() {
+		variables.name=ListFirst(ListLast(getCurrentTemplatePath(),"\/"),".");
+		variables.parent=getDirectoryFromPath(getCurrentTemplatePath())&name&"/";
+	}
 
-<cfset directoryCreate(dir)>
-<cfset directorydelete(dir)>
+	public function afterAll() {
+		directorydelete(parent,true);
+	}
 
-<cftry>
-	<cfset directorydelete(dir)>
-	<cfset fail("must throw:does not exist")>
-	<cfcatch></cfcatch>
-</cftry>
-   
+	public function testDirectoryDelete() localMode="modern" {
+		//  begin old test code 
+		lock name="testdirectoryDelete" timeout="1" throwontimeout="no" type="exclusive" {
+			dir = parent&createUUID();
+			directoryCreate(dir);
+			directorydelete(dir);
+			try {
+				directorydelete(dir);
+				fail("must throw:does !exist");
+			} catch (any cfcatch) {
+			}
+			dir2 = dir&"/a/b/c/";
+			directoryCreate(dir2);
+			try {
+				directorydelete(dir);
+				fail("must throw:The specified directory ... could !be deleted.");
+			} catch (any cfcatch) {
+			}
+			try {
+				directorydelete(dir,false);
+				fail("must throw:The specified directory ... could !be deleted.");
+			} catch (any cfcatch) {
+			}
+			directorydelete(dir,true);
+		}
+	}
 
-<cfset dir2=dir&"/a/b/c/">
-<cfset directoryCreate(dir2)>
-<cftry>
-	<cfset directorydelete(dir)>
-	<cfset fail("must throw:The specified directory ... could not be deleted.")>
-	<cfcatch></cfcatch>
-</cftry>
-<cftry>
-	<cfset directorydelete(dir,false)>
-	<cfset fail("must throw:The specified directory ... could not be deleted.")>
-	<cfcatch></cfcatch>
-</cftry>
-<cfset directorydelete(dir,true)>
-
-</cflock>
-<!--- end old test code --->
-	
-		
-		<!--- <cfset assertEquals("","")> --->
-	</cffunction>
-	
-	<cffunction access="private" name="valueEquals">
-		<cfargument name="left">
-		<cfargument name="right">
-		<cfset assertEquals(arguments.right,arguments.left)>
-	</cffunction>
-</cfcomponent>
+}

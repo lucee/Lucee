@@ -27,7 +27,7 @@ public class QueryExecute implements FunctionEvaluator {
 			Assign ass = var.assign();
 			if (ass != null) {
 				try {
-					String str = VariableString.variableToString(ass.getVariable(), false);
+					String str = VariableString.variableToString(null, ass.getVariable(), false);
 					addArgument(bif, str);
 				}
 				catch (TransformerException e) {

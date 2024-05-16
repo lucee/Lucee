@@ -37,7 +37,6 @@ import lucee.transformer.bytecode.BytecodeContext;
 import lucee.transformer.bytecode.expression.var.VariableRef;
 import lucee.transformer.bytecode.expression.var.VariableString;
 import lucee.transformer.bytecode.statement.tag.TagTry;
-import lucee.transformer.bytecode.util.ExpressionUtil;
 import lucee.transformer.bytecode.util.Types;
 import lucee.transformer.bytecode.visitor.OnFinally;
 import lucee.transformer.bytecode.visitor.TryCatchFinallyVisitor;
@@ -175,7 +174,7 @@ public final class TryCatchFinally extends StatementBase implements Opcodes, Has
 
 		// if(fcf!=null &&
 		// fcf.getAfterFinalGOTOLabel()!=null)ASMUtil.visitLabel(adapter,fcf.getFinalEntryLabel());
-		ExpressionUtil.visitLine(bc, finallyLine);
+		bc.visitLine(finallyLine);
 
 		// if (reference != null)
 		// reference.removeEL(pagecontext);
@@ -234,7 +233,7 @@ public final class TryCatchFinally extends StatementBase implements Opcodes, Has
 				continue;
 			}
 
-			ExpressionUtil.visitLine(bc, ct.line);
+			bc.visitLine(ct.line);
 
 			// pe.typeEqual(type)
 			if (ct.type == null) {
@@ -320,7 +319,7 @@ public final class TryCatchFinally extends StatementBase implements Opcodes, Has
 	 * @param line
 	 * @throws TransformerException
 	 */
-	public void addCatch(Expression type, Expression name, Body b, Position line) throws TransformerException {
+	public void addCatch(BytecodeContext bc, Expression type, Expression name, Body b, Position line) throws TransformerException {
 		// MUSTMUST
 		// type
 		if (type == null || type instanceof ExprString) {
@@ -328,7 +327,7 @@ public final class TryCatchFinally extends StatementBase implements Opcodes, Has
 		else if (type instanceof Variable) {
 			type = VariableString.toExprString(type);
 		}
-		else throw new TransformerException("type from catch statement is invalid", type.getStart());
+		else throw new TransformerException(bc, "type from catch statement is invalid", type.getStart());
 
 		// name
 		if (name instanceof LitString) {
@@ -337,7 +336,7 @@ public final class TryCatchFinally extends StatementBase implements Opcodes, Has
 			name = new VariableRef(v, true);
 		}
 		else if (name instanceof Variable) name = new VariableRef((Variable) name, true);
-		else throw new TransformerException("name from catch statement is invalid", name.getStart());
+		else throw new TransformerException(bc, "name from catch statement is invalid", name.getStart());
 
 		addCatch((ExprString) type, (VariableRef) name, b, line);
 	}

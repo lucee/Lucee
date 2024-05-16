@@ -65,7 +65,7 @@ public final class FunctionImpl extends Function {
 				adapter.invokeVirtual(Types.COMPONENT_IMPL, REG_JAVA_FUNCTION);
 			}
 			else {
-				loadUDFProperties(bc, valueIndex, arrayIndex, TYPE_UDF);
+				loadUDFProperties(bc, index, TYPE_UDF);
 				adapter.invokeVirtual(Types.COMPONENT_IMPL, "staticConstructor".equals(bc.getMethod().getName()) ? REG_STATIC_UDF_KEY : REG_UDF_KEY);
 			}
 		}
@@ -76,7 +76,7 @@ public final class FunctionImpl extends Function {
 				adapter.invokeVirtual(Types.INTERFACE_IMPL, REG_JAVA_FUNCTION);
 			}
 			else {
-				loadUDFProperties(bc, valueIndex, arrayIndex, TYPE_UDF);
+				loadUDFProperties(bc, index, TYPE_UDF);
 				adapter.invokeVirtual(Types.INTERFACE_IMPL, "staticConstructor".equals(bc.getMethod().getName()) ? REG_STATIC_UDF_KEY : REG_UDF_KEY);
 			}
 		}
@@ -92,7 +92,7 @@ public final class FunctionImpl extends Function {
 			else {
 				adapter.newInstance(Types.UDF_IMPL);
 				adapter.dup();
-				loadUDFProperties(bc, valueIndex, arrayIndex, TYPE_UDF);
+				loadUDFProperties(bc, index, TYPE_UDF);
 				adapter.invokeConstructor(Types.UDF_IMPL, INIT_UDF_IMPL_PROP);
 			}
 			// loadUDF(bc, index);

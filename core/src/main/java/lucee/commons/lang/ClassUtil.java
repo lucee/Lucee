@@ -140,36 +140,71 @@ public final class ClassUtil {
 	}
 
 	public static Class<?> loadClassByBundle(String className, String name, String strVersion, Identification id, List<Resource> addional) throws ClassException, BundleException {
+		return loadClassByBundle(className, name, strVersion, id, addional, false);
+	}
+
+	public static Class<?> loadClassByBundle(String className, String name, String strVersion, Identification id, List<Resource> addional, boolean versionOnlyMattersForDownload)
+			throws ClassException, BundleException {
 		// version
 		Version version = null;
 		if (!StringUtil.isEmpty(strVersion, true)) {
 			version = OSGiUtil.toVersion(strVersion.trim(), null);
 			if (version == null) throw new ClassException("Version definition [" + strVersion + "] is invalid.");
 		}
-		return loadClassByBundle(className, new BundleDefinition(name, version), null, id, addional);
+		return loadClassByBundle(className, new BundleDefinition(name, version), null, id, addional, versionOnlyMattersForDownload);
 	}
 
 	public static Class loadClassByBundle(String className, String name, Version version, Identification id, List<Resource> addional) throws BundleException, ClassException {
 		return loadClassByBundle(className, new BundleDefinition(name, version), null, id, addional);
 	}
 
+	public static Class loadClassByBundle(String className, String name, Version version, Identification id, List<Resource> addional, boolean versionOnlyMattersForDownload)
+			throws BundleException, ClassException {
+		return loadClassByBundle(className, new BundleDefinition(name, version), null, id, addional, versionOnlyMattersForDownload);
+	}
+
 	public static Class<?> loadClassByBundle(String className, BundleDefinition bundle, BundleDefinition[] relatedBundles, Identification id, List<Resource> addional)
 			throws BundleException, ClassException {
+		return loadClassByBundle(className, bundle, relatedBundles, id, addional, false);
+	}
+
+	public static Class<?> loadClassByBundle(String className, BundleDefinition bundle, BundleDefinition[] relatedBundles, Identification id, List<Resource> addional,
+			boolean versionOnlyMattersForDownload) throws BundleException, ClassException {
 		try {
 			if (relatedBundles != null) {
 				for (BundleDefinition rb: relatedBundles) {
-					rb.getBundle(id, addional, true);
+					rb.getBundle(id, addional, true, false);
 				}
 			}
-			return bundle.getBundle(id, addional, true).loadClass(className);
+			return bundle.getBundle(id, addional, true, versionOnlyMattersForDownload).loadClass(className);
 		}
-		catch (ClassNotFoundException e) {
-			String appendix = "";
-			if (!StringUtil.isEmpty(e.getMessage(), true)) appendix = " " + e.getMessage();
-			if (bundle.getVersion() == null)
-				throw new ClassException("In the OSGi Bundle with the name [" + bundle.getName() + "] was no class with name [" + className + "] found." + appendix);
-			throw new ClassException("In the OSGi Bundle with the name [" + bundle.getName() + "] and the version [" + bundle.getVersion() + "] was no class with name ["
-					+ className + "] found." + appendix);
+		catch (ClassNotFoundException outer) {
+			try {
+				if (OSGiUtil.resolveBundleLoadingIssues(null, ThreadLocalPageContext.getConfig(), outer)) {
+					if (relatedBundles != null) {
+						for (BundleDefinition rb: relatedBundles) {
+							rb.getBundle(id, addional, true, false);
+						}
+					}
+					return bundle.getBundle(id, addional, true, versionOnlyMattersForDownload).loadClass(className);
+				}
+				else throw outer;
+
+			}
+			catch (ClassNotFoundException e) {
+				String appendix = "";
+				if (!StringUtil.isEmpty(e.getMessage(), true)) appendix = " " + e.getMessage();
+				ClassException ce;
+				if (bundle.getVersion() == null) {
+					ce = new ClassException("In the OSGi Bundle with the name [" + bundle.getName() + "] was no class with name [" + className + "] found." + appendix);
+				}
+				else {
+					ce = new ClassException("In the OSGi Bundle with the name [" + bundle.getName() + "] and the version [" + bundle.getVersion() + "] was no class with name ["
+							+ className + "] found." + appendix);
+				}
+				ce.initCause(e);
+				throw ce;
+			}
 		}
 	}
 
@@ -390,11 +425,15 @@ public final class ClassUtil {
 			return newInstance(clazz);
 		}
 		catch (InstantiationException e) {
-			throw new ClassException("the specified class object [" + clazz.getName() + "()] cannot be instantiated");
+			ClassException ce = new ClassException("the specified class object [" + clazz.getName() + "()] cannot be instantiated");
+			ce.initCause(e);
+			throw ce;
 		}
 		catch (IllegalAccessException e) {
-			throw new ClassException(
+			ClassException ce = new ClassException(
 					"can't load class [" + clazz.getName() + "] because the currently executing method does not have access to the definition of the specified class");
+			ce.initCause(e);
+			throw ce;
 		}
 		catch (Exception e) {
 			String message = "";
@@ -404,6 +443,7 @@ public final class ClassUtil {
 			message += e.getClass().getName() + " while creating an instance of " + clazz.getName();
 			ClassException ce = new ClassException(message);
 			ce.setStackTrace(e.getStackTrace());
+			ce.initCause(e);
 			throw ce;
 		}
 	}
@@ -468,7 +508,9 @@ public final class ClassUtil {
 
 		}
 		catch (SecurityException e) {
-			throw new ClassException("there is a security violation (thrown by security manager)");
+			ClassException ce = new ClassException("there is a security violation (thrown by security manager)");
+			ce.initCause(e);
+			throw ce;
 		}
 		catch (NoSuchMethodException e) {
 
@@ -481,16 +523,25 @@ public final class ClassUtil {
 			}
 			sb.append(')');
 
-			throw new ClassException("there is no constructor with the [" + sb + "] signature for the class [" + clazz.getName() + "]");
+			ClassException ce = new ClassException("there is no constructor with the [" + sb + "] signature for the class [" + clazz.getName() + "]");
+			ce.initCause(e);
+			throw ce;
 		}
 		catch (IllegalArgumentException e) {
-			throw new ClassException("has been passed an illegal or inappropriate argument");
+			ClassException ce = new ClassException("has been passed an illegal or inappropriate argument");
+			ce.initCause(e);
+			throw ce;
 		}
 		catch (InstantiationException e) {
-			throw new ClassException("the specified class object [" + clazz.getName() + "] cannot be instantiated because it is an interface or is an abstract class");
+			ClassException ce = new ClassException(
+					"the specified class object [" + clazz.getName() + "] cannot be instantiated because it is an interface or is an abstract class");
+			ce.initCause(e);
+			throw ce;
 		}
 		catch (IllegalAccessException e) {
-			throw new ClassException("can't load class because the currently executing method does not have access to the definition of the specified class");
+			ClassException ce = new ClassException("can't load class because the currently executing method does not have access to the definition of the specified class");
+			ce.initCause(e);
+			throw ce;
 		}
 	}
 

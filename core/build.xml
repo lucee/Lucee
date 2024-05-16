@@ -7,21 +7,18 @@
            classpathref="maven-ant-tasks.classpath" />
 
   <import file="ant/build-core.xml"/>
-  
+ 
   <target name="setEnv">
       <artifact:pom id="pom" file="pom.xml" />
-      
       <!-- dependecies -->
       <artifact:dependencies filesetId="mydeps" pomRefId="pom" />
       <pathconvert property="dependencies" refid="mydeps"/>
-
-    
       <property name="version" value="${project.version}"/>
       <property name="runtime_classpath" value="${java.class.path}:${dependencies}"/>
       <property name="outputDir" location="target/classes"/>
       <property name="baseDir" location="."/>
   </target>
 
-	  <target name="core,build" depends="setEnv" description="build only Lucee itself"> </target>
-	   
+  <target name="core,build" depends="setEnv" description="build only Lucee itself"> </target>
+
 </project>

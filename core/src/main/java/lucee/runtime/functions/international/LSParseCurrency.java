@@ -21,12 +21,14 @@
  */
 package lucee.runtime.functions.international;
 
+import java.lang.ref.SoftReference;
 import java.text.NumberFormat;
 import java.text.ParseException;
 import java.text.ParsePosition;
 import java.util.Currency;
 import java.util.Locale;
-import java.util.WeakHashMap;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.ExpressionException;
@@ -37,8 +39,8 @@ import lucee.runtime.op.Caster;
 public final class LSParseCurrency implements Function {
 
 	private static final long serialVersionUID = -7023441119083818436L;
-	private static WeakHashMap currFormatter = new WeakHashMap();
-	private static WeakHashMap numbFormatter = new WeakHashMap();
+	private static Map<Locale, SoftReference<NumberFormat>> currFormatter = new ConcurrentHashMap<>();
+	private static Map<Locale, SoftReference<NumberFormat>> numbFormatter = new ConcurrentHashMap<>();
 
 	public static String call(PageContext pc, String string) throws PageException {
 		return Caster.toString(toDoubleValue(pc.getLocale(), string, false));
@@ -55,7 +57,7 @@ public final class LSParseCurrency implements Function {
 	public static double toDoubleValue(Locale locale, String str, boolean strict) throws PageException {
 
 		str = str.trim();
-
+		NumberFormat nf = null;
 		NumberFormat cnf = getCurrencyInstance(locale);
 		Currency currency = cnf.getCurrency();
 
@@ -69,7 +71,7 @@ public final class LSParseCurrency implements Function {
 
 			String stripped = str.replace(currency.getSymbol(locale), "").replace(currency.getCurrencyCode(), "");
 
-			NumberFormat nf = getInstance(locale);
+			nf = getInstance(locale);
 			ParsePosition pp = new ParsePosition(0);
 			Number n = nf.parse(stripped, pp);
 
@@ -78,23 +80,31 @@ public final class LSParseCurrency implements Function {
 
 			return n.doubleValue();
 		}
+		finally {
+			if (cnf != null) currFormatter.put(locale, new SoftReference<NumberFormat>(cnf));
+			if (nf != null) numbFormatter.put(locale, new SoftReference<NumberFormat>(nf));
+		}
 	}
 
 	private static NumberFormat getInstance(Locale locale) {
-		Object o = numbFormatter.get(locale);
-		if (o != null) return (NumberFormat) o;
+		SoftReference<NumberFormat> ref = numbFormatter.remove(locale);
+		NumberFormat nf;
+		if (ref != null) {
+			nf = ref.get();
+			if (nf != null) return nf;
+		}
 
-		NumberFormat nf = NumberFormat.getInstance(locale);
-		numbFormatter.put(locale, nf);
-		return nf;
+		return NumberFormat.getInstance(locale);
 	}
 
 	private static NumberFormat getCurrencyInstance(Locale locale) {
-		Object o = currFormatter.get(locale);
-		if (o != null) return (NumberFormat) o;
+		SoftReference<NumberFormat> ref = currFormatter.remove(locale);
+		NumberFormat nf;
+		if (ref != null) {
+			nf = ref.get();
+			if (nf != null) return nf;
+		}
 
-		NumberFormat nf = NumberFormat.getCurrencyInstance(locale);
-		currFormatter.put(locale, nf);
-		return nf;
+		return NumberFormat.getCurrencyInstance(locale);
 	}
 }

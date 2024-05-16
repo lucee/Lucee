@@ -55,6 +55,7 @@ import lucee.transformer.bytecode.statement.PrintOut;
 import lucee.transformer.bytecode.statement.StatementBase;
 import lucee.transformer.bytecode.statement.tag.Attribute;
 import lucee.transformer.bytecode.statement.tag.Tag;
+import lucee.transformer.bytecode.statement.tag.TagFunction;
 import lucee.transformer.bytecode.util.ASMUtil;
 import lucee.transformer.cfml.Data;
 import lucee.transformer.cfml.ExprTransformer;
@@ -313,9 +314,8 @@ public final class CFMLTransformer {
 		Page page = new Page(factory, config, sc, null, ConfigWebUtil.getEngine(config).getInfo().getFullVersionInfo(), sourceLastModified, sc.getWriteLog(),
 				sc.getDialect() == CFMLEngine.DIALECT_LUCEE || config.getSuppressWSBeforeArg(), config.getDefaultFunctionOutput(), returnValue, ignoreScope);
 
-		TransfomerSettings settings = new TransfomerSettings(dnuc, sc.getDialect() == CFMLEngine.DIALECT_CFML && factory.getConfig().getHandleUnQuotedAttrValueAsString(),
-				ignoreScope);
-		Data data = new Data(factory, page, sc, new EvaluatorPool(), settings, _tlibs, flibs, config.getCoreTagLib(sc.getDialect()).getScriptTags(), false);
+		TransfomerSettings settings = new TransfomerSettings(dnuc, sc.getDialect() == CFMLEngine.DIALECT_CFML && config.getHandleUnQuotedAttrValueAsString(), ignoreScope);
+		Data data = new Data(factory, config, page, sc, new EvaluatorPool(), settings, _tlibs, flibs, config.getCoreTagLib(sc.getDialect()).getScriptTags(), false);
 		transform(data, page);
 		return page;
 
@@ -661,6 +661,7 @@ public final class CFMLTransformer {
 			catch (Exception e) {
 				throw new TemplateException(data.srcCode, e);
 			}
+
 			parent.addStatement(tag);
 
 			// get tag from tag library
@@ -848,6 +849,7 @@ public final class CFMLTransformer {
 				}
 			}
 			if (tag instanceof StatementBase) ((StatementBase) tag).setEnd(data.srcCode.getPosition());
+			if (tag instanceof TagFunction) ((TagFunction) tag).register(data.factory, data.page);// MUST6 more general solution
 			// Tag Translator Evaluator
 
 			return executeEvaluator(data, tagLibTag, tag);

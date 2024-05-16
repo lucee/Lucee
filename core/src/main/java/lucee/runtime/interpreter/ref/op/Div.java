@@ -20,7 +20,7 @@ package lucee.runtime.interpreter.ref.op;
 
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.PageException;
-import lucee.runtime.interpreter.InterpreterException;
+import lucee.runtime.interpreter.SecurityInterpreterException;
 import lucee.runtime.interpreter.ref.Ref;
 import lucee.runtime.interpreter.ref.RefSupport;
 import lucee.runtime.op.Caster;
@@ -48,10 +48,10 @@ public final class Div extends RefSupport implements Ref {
 
 	@Override
 	public Object getValue(PageContext pc) throws PageException {
-		if (limited) throw new InterpreterException("invalid syntax, math operations are not supported in a json string.");
+		if (limited) throw new SecurityInterpreterException("invalid syntax, math operations are not supported.");
 		double r = Caster.toDoubleValue(right.getValue(pc));
 		if (r == 0d) throw new ArithmeticException("Division by zero is not possible");
-		return new Double(Caster.toDoubleValue(left.getValue(pc)) / r);
+		return Double.valueOf(Caster.toDoubleValue(left.getValue(pc)) / r);
 	}
 
 	@Override

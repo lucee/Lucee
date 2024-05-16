@@ -23,12 +23,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.core.Appender;
-
 import lucee.commons.io.CharsetUtil;
-import lucee.commons.io.log.log4j2.LogAdapter;
-import lucee.commons.io.log.log4j2.appender.ResourceAppender;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.retirement.RetireListener;
 import lucee.commons.io.retirement.RetireOutputStream;
@@ -225,16 +220,23 @@ public final class Log extends TagImpl {
 				if ("console".equalsIgnoreCase(log))
 					logger = ((ConfigPro) pageContext.getConfig()).getLogEngine().getConsoleLog(false, "cflog", lucee.commons.io.log.Log.LEVEL_INFO);
 				else {
-					java.util.Collection<String> set = pci.getLogNames();
-					Iterator<String> it = set.iterator();
-					lucee.runtime.type.Collection.Key[] keys = new lucee.runtime.type.Collection.Key[set.size()];
-					int index = 0;
-					while (it.hasNext()) {
-						keys[index++] = KeyImpl.init(it.next());
+
+					String mainLogger = ((ConfigPro) pageContext.getConfig()).getMainLogger();
+					if (!StringUtil.isEmpty(mainLogger)) {
+						logger = pci.getLog(mainLogger, false);
 					}
-					String msg = ExceptionUtil.similarKeyMessage(keys, log, "attribute log", "log names", null, true);
-					String detail = ExceptionUtil.similarKeyMessage(keys, log, "log names", null, true);
-					throw new ApplicationException(msg, detail);
+					if (logger == null) {
+						java.util.Collection<String> set = pci.getLogNames();
+						Iterator<String> it = set.iterator();
+						lucee.runtime.type.Collection.Key[] keys = new lucee.runtime.type.Collection.Key[set.size()];
+						int index = 0;
+						while (it.hasNext()) {
+							keys[index++] = KeyImpl.init(it.next());
+						}
+						String msg = ExceptionUtil.similarKeyMessage(keys, log, "attribute log", "log names", null, true);
+						String detail = ExceptionUtil.similarKeyMessage(keys, log, "log names", null, true);
+						throw new ApplicationException(msg, detail);
+					}
 				}
 			}
 		}
@@ -243,25 +245,7 @@ public final class Log extends TagImpl {
 			// if we do have a log with the same name, we use the log
 			String tmpName = file.toLowerCase();
 			if (tmpName.endsWith(".log")) tmpName = tmpName.substring(0, tmpName.length() - 4);
-			lucee.commons.io.log.Log tmp = pci.getLog(tmpName, false);
-
-			// it has to be a resource appender
-			if (tmp instanceof LogAdapter) {
-				LogAdapter la = (LogAdapter) tmp;
-				Logger ll = la.getLogger();
-				if (ll instanceof org.apache.logging.log4j.core.Logger) {
-					Map<String, Appender> appenders = ((org.apache.logging.log4j.core.Logger) ll).getAppenders();
-					if (appenders != null) {
-						for (Appender a: appenders.values()) {
-							if (a instanceof ResourceAppender) {
-								logger = tmp;
-								break;
-							}
-						}
-					}
-				}
-
-			}
+			logger = pci.getLog(tmpName, false);
 			if (logger == null) logger = getFileLog(pageContext, file, charset, async);
 		}
 		String contextName = pageContext.getApplicationContext().getName();
@@ -274,10 +258,10 @@ public final class Log extends TagImpl {
 				logger.log(type, contextName, text, exception);
 			}
 		}
-		else if (!StringUtil.isEmpty(text)) {
+		else {
 			logger.log(type, contextName, text);
 		}
-		else throw new ApplicationException("Tag [log] requires one of the following attributes [text, exception]");
+		// else throw new ApplicationException("Tag [log] requires one of the following attributes [text, exception]");
 		// logger.write(toStringType(type),contextName,text);
 		return SKIP_BODY;
 	}

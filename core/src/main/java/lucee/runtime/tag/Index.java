@@ -520,9 +520,9 @@ public final class Index extends TagImpl {
 
 	private Struct toStruct(IndexResult result) {
 		Struct sct = new StructImpl();
-		sct.setEL("deleted", new Double(result.getCountDeleted()));
-		sct.setEL("inserted", new Double(result.getCountInserted()));
-		sct.setEL("updated", new Double(result.getCountUpdated()));
+		sct.setEL("deleted", Double.valueOf(result.getCountDeleted()));
+		sct.setEL("inserted", Double.valueOf(result.getCountInserted()));
+		sct.setEL("updated", Double.valueOf(result.getCountUpdated()));
 		return sct;
 	}
 

@@ -59,6 +59,17 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="syntax" skip=true 
                 }
                 expect(trim(result.fileContent)).notToInclude("java.lang.NullPointerException");
             });
+            it( title="checking Nested try/finally block LDEV-4451", body=function( currentSpec ){
+                try {
+                    local.result = _InternalRequest(
+                        template : "#uri#\nestedFinallyBlock.cfm"
+                    );
+                }
+                catch(any e){
+                    result.fileContent = e.message;
+                }
+                expect(trim(result.fileContent)).notToInclude("java.lang.NullPointerException");
+            });
         });
     }
     private string function createURI(string calledName){

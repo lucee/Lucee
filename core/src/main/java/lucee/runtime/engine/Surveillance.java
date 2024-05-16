@@ -29,7 +29,6 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.DoubleStruct;
-import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.scope.Scope;
@@ -38,10 +37,10 @@ import lucee.runtime.type.util.KeyConstants;
 
 class Surveillance {
 
-	private static final Collection.Key PAGE_POOL = KeyImpl.getInstance("pagePool");
-	private static final Collection.Key CLASS_LOADER = KeyImpl.getInstance("classLoader");
-	private static final Collection.Key QUERY_CACHE = KeyImpl.getInstance("queryCache");
-	private static final Collection.Key PAGE_CONTEXT_STACK = KeyImpl.getInstance("pageContextStack");
+	private static final Collection.Key PAGE_POOL = KeyConstants._pagePool;
+	private static final Collection.Key CLASS_LOADER = KeyConstants._classLoader;
+	private static final Collection.Key QUERY_CACHE = KeyConstants._queryCache;
+	private static final Collection.Key PAGE_CONTEXT_STACK = KeyConstants._pageContextStack;
 
 	public static Struct getInfo(Config config) throws PageException {
 

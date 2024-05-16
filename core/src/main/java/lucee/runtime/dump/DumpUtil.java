@@ -22,6 +22,7 @@ import java.io.File;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.nio.charset.Charset;
 import java.sql.ResultSet;
 import java.text.SimpleDateFormat;
@@ -56,11 +57,13 @@ import lucee.runtime.coder.Base64Coder;
 import lucee.runtime.converter.WDDXConverter;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.functions.international.GetTimeZoneInfo;
+import lucee.runtime.functions.system.BundleInfo;
 import lucee.runtime.i18n.LocaleFactory;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
+import lucee.runtime.osgi.BundleRange;
 import lucee.runtime.osgi.OSGiUtil;
-import lucee.runtime.osgi.OSGiUtil.BundleDefinition;
 import lucee.runtime.osgi.OSGiUtil.PackageQuery;
 import lucee.runtime.osgi.OSGiUtil.VersionDefinition;
 import lucee.runtime.text.xml.XMLCaster;
@@ -86,6 +89,10 @@ public class DumpUtil {
 
 		MAX_LEVEL_REACHED = new DumpTable("Max Level Reached", "#e0e0e0", "#ffcc99", "#888888");
 		((DumpTable) MAX_LEVEL_REACHED).appendRow(new DumpRow(1, new SimpleDumpData("[Max Dump Level Reached]")));
+	}
+
+	public static void main(String[] args) {
+		toDumpData(new BundleInfo(), null, 1, DumpProperties.DEFAULT);
 	}
 
 	// FUTURE add to interface
@@ -141,7 +148,7 @@ public class DumpUtil {
 					Object rst = converter.deserialize(str, false);
 					DumpData data = toDumpData(rst, pageContext, maxlevel, props);
 
-					DumpTable table = new DumpTable("string", "#cc9999", "#ffffff", "#000000");
+					DumpTable table = new DumpTable("string", "#ff6600", "#ffcc99", "#000000");
 					table.setTitle("WDDX");
 					table.appendRow(1, new SimpleDumpData("encoded"), data);
 					table.appendRow(1, new SimpleDumpData("raw"), new SimpleDumpData(str));
@@ -193,9 +200,15 @@ public class DumpUtil {
 		}
 		// TimeZone
 		if (o instanceof TimeZone) {
-			DumpTable table = new DumpTable("numeric", "#ff6600", "#ffcc99", "#000000");
-			table.appendRow(1, new SimpleDumpData("TimeZone"), new SimpleDumpData(TimeZoneUtil.toString(((TimeZone) o))));
-			return table;
+
+			Struct data = GetTimeZoneInfo.call(pageContext, (TimeZone) o);
+			DumpTable dt = (DumpTable) data.toDumpData(pageContext, maxlevel, props);
+			dt.setTitle("TimeZone (" + Caster.toString((TimeZone) o) + ")");
+			dt.setComment("can be used as a simple value or a struct");
+			dt.setHighLightColor("#ff6600");
+			dt.setNormalColor("#ffcc99");
+			dt.setBorderColor("#000000");
+			return dt;
 		}
 		// Boolean
 		if (o instanceof Boolean) {
@@ -205,14 +218,14 @@ public class DumpUtil {
 		}
 		// File
 		if (o instanceof File) {
-			DumpTable table = new DumpTable("file", "#ffcc00", "#ffff66", "#000000");
+			DumpTable table = new DumpTable("file", "#da9f93", "#ebd4cb", "#000000");
 			table.appendRow(1, new SimpleDumpData("File"), new SimpleDumpData(o.toString()));
 			return table;
 		}
 		// Cookie
 		if (o instanceof Cookie) {
 			Cookie c = (Cookie) o;
-			DumpTable table = new DumpTable("Cookie", "#979EAA", "#DEE9FB", "#000000");
+			DumpTable table = new DumpTable("Cookie", "#cfbaf0", "#f1c0e8", "#000000");
 			table.setTitle("Cookie (" + c.getClass().getName() + ")");
 			table.appendRow(1, new SimpleDumpData("name"), new SimpleDumpData(c.getName()));
 			table.appendRow(1, new SimpleDumpData("value"), new SimpleDumpData(c.getValue()));
@@ -223,11 +236,12 @@ public class DumpUtil {
 			table.appendRow(1, new SimpleDumpData("domain"), new SimpleDumpData(c.getDomain()));
 			table.appendRow(1, new SimpleDumpData("httpOnly"), new SimpleDumpData(CookieImpl.isHTTPOnly(c)));
 			table.appendRow(1, new SimpleDumpData("comment"), new SimpleDumpData(c.getComment()));
+			table.appendRow(1, new SimpleDumpData("partitioned"), new SimpleDumpData(CookieImpl.isPartitioned(c)));
 			return table;
 		}
 		// Resource
 		if (o instanceof Resource) {
-			DumpTable table = new DumpTable("resource", "#ffcc00", "#ffff66", "#000000");
+			DumpTable table = new DumpTable("resource", "#da9f93", "#ebd4cb", "#000000");
 			table.appendRow(1, new SimpleDumpData("Resource"), new SimpleDumpData(o.toString()));
 			return table;
 		}
@@ -235,7 +249,7 @@ public class DumpUtil {
 		if (o instanceof byte[]) {
 			byte[] bytes = (byte[]) o;
 			int max = 5000;
-			DumpTable table = new DumpTable("array", "#ff9900", "#ffcc00", "#000000");
+			DumpTable table = new DumpTable("array", "#52b788", "#b7e4c7", "#000000");
 			table.setTitle("Native Array  (" + Caster.toClassName(o) + ")");
 			StringBuilder sb = new StringBuilder("[");
 			for (int i = 0; i < bytes.length; i++) {
@@ -297,7 +311,7 @@ public class DumpUtil {
 				Map map = (Map) o;
 				Iterator it = map.keySet().iterator();
 
-				DumpTable table = new DumpTable("struct", "#ff9900", "#ffcc00", "#000000");
+				DumpTable table = new DumpTable("struct", "#468faf", "#89c2d9", "#000000");
 				table.setTitle("Map (" + Caster.toClassName(o) + ")");
 
 				while (it.hasNext()) {
@@ -312,7 +326,7 @@ public class DumpUtil {
 				List list = (List) o;
 				ListIterator it = list.listIterator();
 
-				DumpTable table = new DumpTable("array", "#ff9900", "#ffcc00", "#000000");
+				DumpTable table = new DumpTable("array", "#52b788", "#b7e4c7", "#000000");
 				table.setTitle("Array (List)");
 				if (list.size() > top) table.setComment("Rows: " + list.size() + " (showing top " + top + ")");
 
@@ -328,7 +342,7 @@ public class DumpUtil {
 				Set set = (Set) o;
 				Iterator it = set.iterator();
 
-				DumpTable table = new DumpTable("array", "#ff9900", "#ffcc00", "#000000");
+				DumpTable table = new DumpTable("array", "#98c9a3", "#dde7c7", "#000000");
 				table.setTitle("Set (" + set.getClass().getName() + ")");
 
 				int i = 0;
@@ -367,7 +381,7 @@ public class DumpUtil {
 				Array arr;
 				try {
 					arr = Caster.toArray(o);
-					DumpTable htmlBox = new DumpTable("array", "#ff9900", "#ffcc00", "#000000");
+					DumpTable htmlBox = new DumpTable("array", "#52b788", "#b7e4c7", "#000000");
 					htmlBox.setTitle("Native Array (" + Caster.toClassName(o) + ")");
 
 					int length = arr.size();
@@ -411,7 +425,7 @@ public class DumpUtil {
 			if (o instanceof NamedNodeMap) {
 				NamedNodeMap attr = (NamedNodeMap) o;
 				int len = attr.getLength();
-				DumpTable dt = new DumpTable("array", "#ff9900", "#ffcc00", "#000000");
+				DumpTable dt = new DumpTable("array", "#52b788", "#b7e4c7", "#000000");
 				dt.setTitle("NamedNodeMap (" + Caster.toClassName(o) + ")");
 
 				for (int i = 0; i < len; i++) {
@@ -497,7 +511,7 @@ public class DumpUtil {
 
 			// reflect
 			// else {
-			DumpTable table = new DumpTable(o.getClass().getName(), "#6289a3", "#dee3e9", "#000000");
+			DumpTable table = new DumpTable(o.getClass().getName(), "#d6ccc2", "#f5ebe0", "#000000");
 
 			Class clazz = o.getClass();
 			if (o instanceof Class) clazz = (Class) o;
@@ -505,12 +519,12 @@ public class DumpUtil {
 			int pos = fullClassName.lastIndexOf('.');
 			String className = pos == -1 ? fullClassName : fullClassName.substring(pos + 1);
 
-			table.setTitle(className);
-			table.appendRow(1, new SimpleDumpData("class"), new SimpleDumpData(fullClassName));
+			table.setTitle("Class " + className);
 
 			// Fields
 			Field[] fields = clazz.getFields();
-			DumpTable fieldDump = new DumpTable("#6289a3", "#dee3e9", "#000000");
+			DumpTable fieldDump = new DumpTable("#d6ccc2", "#f5ebe0", "#000000");
+			fieldDump.setTitle("Fields");
 			fieldDump.appendRow(-1, new SimpleDumpData("name"), new SimpleDumpData("pattern"), new SimpleDumpData("value"));
 			for (int i = 0; i < fields.length; i++) {
 				Field field = fields[i];
@@ -523,12 +537,14 @@ public class DumpUtil {
 				}
 				fieldDump.appendRow(0, new SimpleDumpData(field.getName()), new SimpleDumpData(field.toString()), value);
 			}
-			if (fields.length > 0) table.appendRow(1, new SimpleDumpData("fields"), fieldDump);
+			if (fields.length > 0) table.appendRow(0, fieldDump);
 
 			// Constructors
 			Constructor[] constructors = clazz.getConstructors();
-			DumpTable constrDump = new DumpTable("#6289a3", "#dee3e9", "#000000");
+			DumpTable constrDump = new DumpTable("#d6ccc2", "#f5ebe0", "#000000");
 			constrDump.appendRow(-1, new SimpleDumpData("interface"), new SimpleDumpData("exceptions"));
+			constrDump.setTitle("Constructors");
+
 			for (int i = 0; i < constructors.length; i++) {
 				Constructor constr = constructors[i];
 
@@ -549,53 +565,57 @@ public class DumpUtil {
 					sbParams.append(Caster.toClassName(parameters[p]));
 				}
 				sbParams.append(')');
-
 				constrDump.appendRow(0, new SimpleDumpData(sbParams.toString()), new SimpleDumpData(sbExp.toString()));
 			}
-			if (constructors.length > 0) table.appendRow(1, new SimpleDumpData("constructors"), constrDump);
+			if (constructors.length > 0) table.appendRow(0, constrDump);
 
 			// Methods
 			StringBuilder objMethods = new StringBuilder();
 			Method[] methods = clazz.getMethods();
-			DumpTable methDump = new DumpTable("#6289a3", "#dee3e9", "#000000");
-			methDump.appendRow(-1, new SimpleDumpData("return"), new SimpleDumpData("interface"), new SimpleDumpData("exceptions"));
-			for (int i = 0; i < methods.length; i++) {
-				Method method = methods[i];
+			DumpTable methDump = new DumpTable("#d6ccc2", "#f5ebe0", "#000000");
+			methDump.appendRow(-1, new SimpleDumpData("type"), new SimpleDumpData("interface"), new SimpleDumpData("exceptions"));
+			methDump.setTitle("Methods");
+			boolean isStatic;
+			for (int i = 0; i < 2; i++) {
+				for (Method method: methods) {
 
-				if (Object.class == method.getDeclaringClass()) {
-					if (objMethods.length() > 0) objMethods.append(", ");
-					objMethods.append(method.getName());
-					continue;
+					isStatic = Modifier.isStatic(method.getModifiers());
+					if ((i == 0 && !isStatic) || (i == 1 && isStatic)) continue;
+					if (Object.class == method.getDeclaringClass()) {
+						if (objMethods.length() > 0) objMethods.append(", ");
+						objMethods.append(method.getName());
+						continue;
+					}
+
+					// exceptions
+					StringBuilder sbExp = new StringBuilder();
+					Class[] exceptions = method.getExceptionTypes();
+					for (int p = 0; p < exceptions.length; p++) {
+						if (p > 0) sbExp.append("\n");
+						sbExp.append(Caster.toClassName(exceptions[p]));
+					}
+
+					// parameters
+					StringBuilder sbParams = new StringBuilder(method.getName());
+					sbParams.append('(');
+					Class[] parameters = method.getParameterTypes();
+					for (int p = 0; p < parameters.length; p++) {
+						if (p > 0) sbParams.append(", ");
+						sbParams.append(Caster.toClassName(parameters[p]));
+					}
+					sbParams.append("):").append(Caster.toClassName(method.getReturnType()));
+
+					methDump.appendRow(0, new SimpleDumpData(isStatic ? "static" : "instance"), new SimpleDumpData(sbParams.toString()), new SimpleDumpData(sbExp.toString()));
+
 				}
-
-				// exceptions
-				StringBuilder sbExp = new StringBuilder();
-				Class[] exceptions = method.getExceptionTypes();
-				for (int p = 0; p < exceptions.length; p++) {
-					if (p > 0) sbExp.append("\n");
-					sbExp.append(Caster.toClassName(exceptions[p]));
-				}
-
-				// parameters
-				StringBuilder sbParams = new StringBuilder(method.getName());
-				sbParams.append('(');
-				Class[] parameters = method.getParameterTypes();
-				for (int p = 0; p < parameters.length; p++) {
-					if (p > 0) sbParams.append(", ");
-					sbParams.append(Caster.toClassName(parameters[p]));
-				}
-				sbParams.append(')');
-
-				methDump.appendRow(0, new SimpleDumpData(Caster.toClassName(method.getReturnType())),
-
-						new SimpleDumpData(sbParams.toString()), new SimpleDumpData(sbExp.toString()));
 			}
-			if (methods.length > 0) table.appendRow(1, new SimpleDumpData("methods"), methDump);
 
-			DumpTable inherited = new DumpTable("#6289a3", "#dee3e9", "#000000");
-			inherited.appendRow(7, new SimpleDumpData("Methods inherited from java.lang.Object"));
+			if (methods.length > 0) table.appendRow(0, methDump);
+
+			DumpTable inherited = new DumpTable("#d6ccc2", "#f5ebe0", "#000000");
+			inherited.setTitle("java.lang.Object methods");
 			inherited.appendRow(0, new SimpleDumpData(objMethods.toString()));
-			table.appendRow(1, new SimpleDumpData(""), inherited);
+			table.appendRow(0, inherited);
 
 			// Bundle Info
 			ClassLoader cl = clazz.getClassLoader();
@@ -610,13 +630,14 @@ public class DumpUtil {
 						sct.setEL(KeyConstants._location, b.getLocation());
 						sct.setEL(KeyConstants._version, b.getVersion().toString());
 
-						DumpTable bd = new DumpTable("#6289a3", "#dee3e9", "#000000");
-						bd.appendRow(1, new SimpleDumpData("id"), new SimpleDumpData(b.getBundleId()));
-						bd.appendRow(1, new SimpleDumpData("symbolic-name"), new SimpleDumpData(b.getSymbolicName()));
-						bd.appendRow(1, new SimpleDumpData("version"), new SimpleDumpData(b.getVersion().toString()));
-						bd.appendRow(1, new SimpleDumpData("location"), new SimpleDumpData(b.getLocation()));
+						DumpTable bd = new DumpTable("#d6ccc2", "#f5ebe0", "#000000");
+						bd.setTitle("Bundle Info");
+						bd.appendRow(0, new SimpleDumpData("id: " + b.getBundleId()));
+						bd.appendRow(0, new SimpleDumpData("symbolic-name: " + b.getSymbolicName()));
+						bd.appendRow(0, new SimpleDumpData("version: " + b.getVersion().toString()));
+						bd.appendRow(0, new SimpleDumpData("location: " + b.getLocation()));
 						requiredBundles(bd, b);
-						table.appendRow(1, new SimpleDumpData("bundle-info"), bd);
+						table.appendRow(0, bd);
 					}
 				}
 				catch (NoSuchMethodError e) {
@@ -643,30 +664,41 @@ public class DumpUtil {
 
 	private static void requiredBundles(DumpTable parent, Bundle b) {
 		try {
-			List<BundleDefinition> list = OSGiUtil.getRequiredBundles(b);
+			List<BundleRange> list = OSGiUtil.getRequiredBundles(b);
 			if (list.isEmpty()) return;
-			DumpTable dt = new DumpTable("#6289a3", "#dee3e9", "#000000");
-			dt.appendRow(-1, new SimpleDumpData("name"), new SimpleDumpData("version"), new SimpleDumpData("operator"));
+			DumpTable dt = new DumpTable("#d6ccc2", "#f5ebe0", "#000000");
+			dt.setTitle("Required Bundles");
 
-			Iterator<BundleDefinition> it = list.iterator();
-			BundleDefinition bd;
+			dt.appendRow(-1, new SimpleDumpData("name"), new SimpleDumpData("version from"), new SimpleDumpData("operator from"), new SimpleDumpData("version to"),
+					new SimpleDumpData("operator to"));
+
+			Iterator<BundleRange> it = list.iterator();
+			BundleRange br;
+			BundleRange.VersionRange vr;
 			VersionDefinition vd;
-			String v, op;
+			String fromV = "", fromOP = "", toV = "", toOP = "";
 			while (it.hasNext()) {
-				bd = it.next();
-				vd = bd.getVersionDefiniton();
-				if (vd != null) {
-					v = vd.getVersionAsString();
-					op = vd.getOpAsString();
+				br = it.next();
+				vr = br.getVersionRange();
+				if (vr != null) {
+					// from
+					vd = vr.getFrom();
+					if (vd != null) {
+						fromV = vd.getVersionAsString();
+						fromOP = vd.getOpAsString();
+					}
+					// to
+					vd = vr.getTo();
+					if (vd != null) {
+						toV = vd.getVersionAsString();
+						toOP = vd.getOpAsString();
+					}
 				}
-				else {
-					v = "";
-					op = "";
-				}
-				dt.appendRow(0, new SimpleDumpData(bd.getName()), new SimpleDumpData(v), new SimpleDumpData(op));
+
+				dt.appendRow(0, new SimpleDumpData(br.getName()), new SimpleDumpData(fromV), new SimpleDumpData(fromOP), new SimpleDumpData(toV), new SimpleDumpData(toOP));
 
 			}
-			parent.appendRow(1, new SimpleDumpData("required-bundles"), dt);
+			parent.appendRow(0, dt);
 
 		}
 		catch (Throwable t) {

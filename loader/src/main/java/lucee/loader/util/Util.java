@@ -46,6 +46,7 @@ import lucee.runtime.exp.PageException;
  * Util class for different little jobs
  */
 public class Util {
+	private static final int DEFAULT_BLOCK_SIZE = 0xffff;// 65535
 
 	private static File tempFile;
 	// private static File homeFile;
@@ -64,7 +65,7 @@ public class Util {
 
 	@Deprecated
 	public final static void copy(final InputStream in, final OutputStream out) throws IOException {
-		final byte[] buffer = new byte[0xffff];
+		final byte[] buffer = new byte[DEFAULT_BLOCK_SIZE];
 		int len;
 		while ((len = in.read(buffer)) != -1)
 			out.write(buffer, 0, len);
@@ -74,7 +75,7 @@ public class Util {
 	}
 
 	public final static void copy(final InputStream in, final OutputStream out, final boolean closeIS, final boolean closeOS) throws IOException {
-		final byte[] buffer = new byte[0xffff];
+		final byte[] buffer = new byte[DEFAULT_BLOCK_SIZE];
 		int len;
 		while ((len = in.read(buffer)) != -1)
 			out.write(buffer, 0, len);
@@ -127,7 +128,8 @@ public class Util {
 		try {
 			if (zf != null) zf.close();
 		}
-		catch (final Throwable e) {}
+		catch (final Throwable e) {
+		}
 	}
 
 	@Deprecated
@@ -135,7 +137,8 @@ public class Util {
 		try {
 			if (is != null) is.close();
 		}
-		catch (final Throwable e) {}
+		catch (final Throwable e) {
+		}
 	}
 
 	@Deprecated
@@ -143,7 +146,8 @@ public class Util {
 		try {
 			if (r != null) r.close();
 		}
-		catch (final Throwable e) {}
+		catch (final Throwable e) {
+		}
 	}
 
 	@Deprecated
@@ -151,7 +155,8 @@ public class Util {
 		try {
 			if (w != null) w.close();
 		}
-		catch (final Throwable e) {}
+		catch (final Throwable e) {
+		}
 	}
 
 	@Deprecated
@@ -159,7 +164,8 @@ public class Util {
 		try {
 			if (os != null) os.close();
 		}
-		catch (final Throwable e) {}
+		catch (final Throwable e) {
+		}
 	}
 
 	@Deprecated
@@ -202,7 +208,7 @@ public class Util {
 	/**
 	 * @deprecated no replacement
 	 * @param str input string
-	 * @return length of  String
+	 * @return length of String
 	 */
 	@Deprecated
 	public static int length(final String str) {
@@ -272,7 +278,8 @@ public class Util {
 			tempFile = getCanonicalFileEL(tempFile);
 			tmp.delete();
 		}
-		catch (final IOException ioe) {}
+		catch (final IOException ioe) {
+		}
 
 		return tempFile;
 	}
@@ -494,7 +501,8 @@ public class Util {
 					try {
 						src.remove(false);
 					}
-					catch (IOException e) {}
+					catch (IOException e) {
+					}
 				}
 			}
 

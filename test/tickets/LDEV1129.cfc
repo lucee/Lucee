@@ -8,7 +8,7 @@
 
 		function beforeAll() skip="isNotSupported"{
 			if ( isNotSupported() ) return;
-			variables.bucketName = lcase("lucee-ldev1129-#CreateGUID()#");
+			variables.bucketName = lcase( s3Details.bucket_prefix & "1129-#CreateGUID()#");
 			variables.testFolder = createURI( variables.bucketName );
 
 			if (not directoryExists(testFolder) ){
@@ -28,11 +28,11 @@
 		}
 
 		function afterAll() skip="isNotSupported"{
-			if (isNotSupported()) return;
-			if (directoryExists(baseWithBucketName) )
+			if (!isNull(baseWithBucketName) && directoryExists(baseWithBucketName) )
 			 	directoryDelete(baseWithBucketName, true);
-			if (directoryExists(testFolder) )
+			if (!isNull(testFolder) && directoryExists(testFolder) )
 			 	directoryDelete(testFolder, true);
+			if (isNotSupported()) return;
 		}
 
 		public function run( testResults , testBox ) {

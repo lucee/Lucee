@@ -43,6 +43,7 @@ import java.nio.charset.Charset;
 import java.security.CodeSource;
 import java.security.ProtectionDomain;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -57,6 +58,7 @@ import java.util.zip.ZipInputStream;
 
 import javax.servlet.ServletContext;
 
+import org.apache.felix.framework.BundleWiringImpl.BundleClassLoader;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleReference;
 
@@ -64,6 +66,7 @@ import com.jezhumble.javasysmon.CpuTimes;
 import com.jezhumble.javasysmon.JavaSysMon;
 import com.jezhumble.javasysmon.MemoryStats;
 
+import lucee.commons.collection.AccessOrderLimitedSizeMap;
 import lucee.commons.digest.MD5;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.res.Resource;
@@ -82,6 +85,7 @@ import lucee.commons.lang.types.RefInteger;
 import lucee.commons.lang.types.RefIntegerImpl;
 import lucee.loader.TP;
 import lucee.loader.engine.CFMLEngineFactory;
+import lucee.loader.util.Util;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.PageSource;
@@ -219,7 +223,7 @@ public final class SystemUtil {
 		else JAVA_VERSION = 0;
 	}
 
-	private static final ConcurrentHashMap<String, String> tokens = new ConcurrentHashMap<String, String>();
+	private static final Map<String, String> tokens = Collections.synchronizedMap(new AccessOrderLimitedSizeMap<String, String>(10000, 100));
 	private static ClassLoader loaderCL;
 	private static ClassLoader coreCL;
 
@@ -1067,7 +1071,7 @@ public final class SystemUtil {
 		public Object toStruct() {
 			Struct caller = new StructImpl(Struct.TYPE_LINKED);
 			caller.setEL(KeyConstants._template, template);
-			caller.setEL(KeyConstants._line, new Double(line));
+			caller.setEL(KeyConstants._line, Double.valueOf(line));
 			return caller;
 		}
 	}
@@ -1387,10 +1391,19 @@ public final class SystemUtil {
 	public static InputStream getResourceAsStream(Bundle bundle, String path) {
 		// check the bundle for the resource
 		InputStream is;
+		if (bundle == null) {
+			ClassLoader cl = PageSourceImpl.class.getClassLoader();
+			if (cl instanceof BundleClassLoader) {
+				bundle = ((BundleClassLoader) cl).getBundle();
+			}
+		}
 		if (bundle != null) {
 			try {
 				is = bundle.getEntry(path).openStream();
 				if (is != null) return is;
+				if (path.startsWith("/")) is = bundle.getEntry(path.substring(1)).openStream();
+				if (is != null) return is;
+
 			}
 			catch (Throwable t) {
 				ExceptionUtil.rethrowIfNecessary(t);
@@ -1402,6 +1415,8 @@ public final class SystemUtil {
 		try {
 			is = cl.getResourceAsStream(path);
 			if (is != null) return is;
+			if (path.startsWith("/")) is = cl.getResourceAsStream(path.substring(1));
+			if (is != null) return is;
 		}
 		catch (Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);
@@ -1412,6 +1427,8 @@ public final class SystemUtil {
 		try {
 			is = cl.getResourceAsStream(path);
 			if (is != null) return is;
+			if (path.startsWith("/")) is = cl.getResourceAsStream(path.substring(1));
+			if (is != null) return is;
 		}
 		catch (Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);
@@ -1421,6 +1438,8 @@ public final class SystemUtil {
 		cl = ClassLoader.getSystemClassLoader();
 		try {
 			is = cl.getResourceAsStream(path);
+			if (is != null) return is;
+			if (path.startsWith("/")) is = cl.getResourceAsStream(path.substring(1));
 			if (is != null) return is;
 		}
 		catch (Throwable t) {
@@ -1743,6 +1762,18 @@ public final class SystemUtil {
 			lock = str;
 		}
 		return lock;
+	}
+
+	public static String lineSeparator() {
+		if (Util.isEmpty(lineSeparator)) {
+			synchronized (createToken("line", "separator")) {
+				if (Util.isEmpty(lineSeparator)) {
+					lineSeparator = System.lineSeparator();
+					if (Util.isEmpty(lineSeparator)) lineSeparator = "\n";
+				}
+			}
+		}
+		return lineSeparator;
 	}
 }
 

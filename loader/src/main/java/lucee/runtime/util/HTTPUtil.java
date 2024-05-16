@@ -52,7 +52,7 @@ public interface HTTPUtil {
 	 * 
 	 * @param url url
 	 * @param username username
-	 * @param password password 
+	 * @param password password
 	 * @param timeout timeoute
 	 * @param charset charset
 	 * @param useragent user agent
