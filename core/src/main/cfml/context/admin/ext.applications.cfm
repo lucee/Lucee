@@ -98,7 +98,6 @@
 	</cfswitch>
 
 	<cfscript>
-		dump(session.extfilter);
 		if (structKeyExists(application, "reloadPlugins")){
 			inspectTemplates(); // flag page pool to be re-inspected for changes
 			lock name="lucee_admin_plugins_last_updated"{
