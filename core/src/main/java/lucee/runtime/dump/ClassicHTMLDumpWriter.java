@@ -57,7 +57,8 @@ public class ClassicHTMLDumpWriter implements DumpWriter {
 			Color color = ColorCaster.toColor(table.getHighLightColor());
 			borderColor = ColorCaster.toHexString(color.darker().darker());
 		}
-		catch (ExpressionException e) {}
+		catch (ExpressionException e) {
+		}
 
 		String id = "_classic" + (count++);
 		// prepare data

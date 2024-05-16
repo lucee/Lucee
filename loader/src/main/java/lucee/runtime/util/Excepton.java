@@ -98,7 +98,7 @@ public interface Excepton {
 	/**
 	 * create exception "AbortException"
 	 * 
-	 * @param showError
+	 * @param showError show error
 	 * @return AbortException
 	 */
 	public PageException createAbortException(String showError);
@@ -106,7 +106,7 @@ public interface Excepton {
 	/**
 	 * create exception "ApplicationException"
 	 * 
-	 * @param message
+	 * @param message Message
 	 * @return ApplicationException
 	 */
 	public PageException createApplicationException(String message);
@@ -114,8 +114,8 @@ public interface Excepton {
 	/**
 	 * create exception "ApplicationException"
 	 * 
-	 * @param message
-	 * @param detail
+	 * @param message Message
+	 * @param detail Detail
 	 * @return ApplicationException
 	 */
 	public PageException createApplicationException(String message, String detail);
@@ -123,7 +123,7 @@ public interface Excepton {
 	/**
 	 * create exception "CasterException"
 	 * 
-	 * @param message
+	 * @param message Message
 	 * @return CasterException
 	 */
 	public PageException createCasterException(String message);
@@ -135,10 +135,10 @@ public interface Excepton {
 	/**
 	 * create exception "CustomTypeException"
 	 * 
-	 * @param message
-	 * @param detail
-	 * @param errorcode
-	 * @param customType
+	 * @param message Message
+	 * @param detail Detail
+	 * @param errorcode Error Code
+	 * @param customType Custom Type
 	 * @return CustomTypeException
 	 * @deprecated use instead
 	 *             <code>createCustomTypeException(String message, String detail, String errorcode, String customType, String extendedInfo);</code>
@@ -151,7 +151,7 @@ public interface Excepton {
 	/**
 	 * create exception "DatabaseException"
 	 * 
-	 * @param message
+	 * @param message Message
 	 * @return DatabaseException
 	 */
 	public PageException createDatabaseException(String message);
@@ -159,8 +159,8 @@ public interface Excepton {
 	/**
 	 * create exception "DatabaseException"
 	 * 
-	 * @param message
-	 * @param detail
+	 * @param message Message
+	 * @param detail Detail
 	 * @return DatabaseException
 	 */
 	public PageException createDatabaseException(String message, String detail);
@@ -168,8 +168,8 @@ public interface Excepton {
 	/**
 	 * create exception "DatabaseException"
 	 * 
-	 * @param message
-	 * @param sql
+	 * @param message Message
+	 * @param sql SQL
 	 * @return DatabaseException
 	 */
 	public PageException createDatabaseException(String message, SQL sql);
@@ -177,7 +177,7 @@ public interface Excepton {
 	/**
 	 * create exception "ExpressionException"
 	 * 
-	 * @param message
+	 * @param message Message
 	 * @return ExpressionException
 	 */
 	public PageException createExpressionException(String message);
@@ -185,8 +185,8 @@ public interface Excepton {
 	/**
 	 * create exception "ExpressionException"
 	 * 
-	 * @param message
-	 * @param detail
+	 * @param message Message
+	 * @param detail Detail
 	 * @return ExpressionException
 	 */
 	public PageException createExpressionException(String message, String detail);
@@ -194,11 +194,11 @@ public interface Excepton {
 	/**
 	 * create exception "FunctionException"
 	 * 
-	 * @param pc
-	 * @param functionName
-	 * @param badArgumentPosition
-	 * @param badArgumentName
-	 * @param message
+	 * @param pc Page Context
+	 * @param functionName Function Name
+	 * @param badArgumentPosition Bad Argument Position
+	 * @param badArgumentName Bad Argument Name
+	 * @param message Message
 	 * @return FunctionException
 	 * @deprecated use instead
 	 *             <code>createFunctionException(PageContext pc,String functionName, int badArgumentPosition, String badArgumentName, String message, String detail))</code>
@@ -209,11 +209,12 @@ public interface Excepton {
 	/**
 	 * create exception "FunctionException"
 	 * 
-	 * @param pc
-	 * @param functionName
-	 * @param badArgumentPosition
-	 * @param badArgumentName
-	 * @param message
+	 * @param pc Page Context
+	 * @param functionName Function Name
+	 * @param badArgumentPosition Bad Argument Position
+	 * @param badArgumentName Bad Argument Name
+	 * @param message Message
+	 * @param detail Detail
 	 * @return FunctionException
 	 */
 	public PageException createFunctionException(PageContext pc, String functionName, int badArgumentPosition, String badArgumentName, String message, String detail);
@@ -221,9 +222,9 @@ public interface Excepton {
 	/**
 	 * create exception "LockException"
 	 * 
-	 * @param operation
-	 * @param name
-	 * @param message
+	 * @param operation operation
+	 * @param name name
+	 * @param message Message
 	 * @return LockException
 	 */
 	public PageException createLockException(String operation, String name, String message);
@@ -231,7 +232,7 @@ public interface Excepton {
 	/**
 	 * create exception "LockException"
 	 * 
-	 * @param ps
+	 * @param ps Page Source
 	 * @return LockException
 	 */
 	public PageException createMissingIncludeException(PageSource ps);
@@ -239,7 +240,7 @@ public interface Excepton {
 	/**
 	 * create exception "NativeException"
 	 * 
-	 * @param t
+	 * @param t Throwable
 	 * @return NativeException
 	 */
 	public PageException createNativeException(Throwable t);
@@ -247,7 +248,7 @@ public interface Excepton {
 	/**
 	 * create exception "SecurityException"
 	 * 
-	 * @param message
+	 * @param message Message
 	 * @return SecurityException
 	 */
 	public PageException createSecurityException(String message);
@@ -255,8 +256,8 @@ public interface Excepton {
 	/**
 	 * create exception "SecurityException"
 	 * 
-	 * @param message
-	 * @param detail
+	 * @param message Message
+	 * @param detail Detail
 	 * @return SecurityException
 	 */
 	public PageException createSecurityException(String message, String detail);
@@ -264,7 +265,7 @@ public interface Excepton {
 	/**
 	 * create exception "TemplateException"
 	 * 
-	 * @param message
+	 * @param message Message
 	 * @return TemplateException
 	 */
 	public PageException createTemplateException(String message);
@@ -272,8 +273,8 @@ public interface Excepton {
 	/**
 	 * create exception "TemplateException"
 	 * 
-	 * @param message
-	 * @param detail
+	 * @param message Message
+	 * @param detail Detail
 	 * @return TemplateException
 	 */
 	public PageException createTemplateException(String message, String detail);
@@ -281,7 +282,7 @@ public interface Excepton {
 	/**
 	 * create exception "XMLException"
 	 * 
-	 * @param message
+	 * @param message Message
 	 * @return XMLException
 	 */
 	public PageException createXMLException(String message);
@@ -289,8 +290,8 @@ public interface Excepton {
 	/**
 	 * create exception "XMLException"
 	 * 
-	 * @param message
-	 * @param detail
+	 * @param message Message
+	 * @param detail Detail
 	 * @return XMLException
 	 */
 	public PageException createXMLException(String message, String detail);

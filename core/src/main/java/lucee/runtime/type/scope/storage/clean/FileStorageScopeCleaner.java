@@ -28,7 +28,7 @@ import lucee.commons.io.res.filter.ExtensionResourceFilter;
 import lucee.commons.io.res.filter.ResourceFilter;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ExceptionUtil;
-import lucee.runtime.config.ConfigWebImpl;
+import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.dt.DateTimeImpl;
 import lucee.runtime.type.scope.Scope;
@@ -52,7 +52,7 @@ public class FileStorageScopeCleaner extends StorageScopeCleanerSupport {
 
 	@Override
 	protected void _clean() {
-		ConfigWebImpl cwi = (ConfigWebImpl) engine.getFactory().getConfig();
+		ConfigWebPro cwi = (ConfigWebPro) engine.getFactory().getConfig();
 		Resource dir = type == Scope.SCOPE_CLIENT ? cwi.getClientScopeDir() : cwi.getSessionScopeDir();
 
 		// for old files only the definition from admin can be used

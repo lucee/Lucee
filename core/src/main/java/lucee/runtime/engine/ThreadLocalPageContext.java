@@ -21,10 +21,12 @@ package lucee.runtime.engine;
 import java.util.Locale;
 import java.util.TimeZone;
 
+import lucee.commons.io.log.Log;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigPro;
+import lucee.runtime.config.ConfigWeb;
 
 /**
  * class to handle thread local PageContext, do use pagecontext in classes that have no method
@@ -36,6 +38,8 @@ public final class ThreadLocalPageContext {
 	private static final TimeZone DEFAULT_TIMEZONE = TimeZone.getDefault();
 	private static ThreadLocal<PageContext> pcThreadLocal = new ThreadLocal<PageContext>();
 	public final static CallOnStart callOnStart = new CallOnStart();
+	private static ThreadLocal<Boolean> insideServerNewInstance = new ThreadLocal<Boolean>();
+	private static ThreadLocal<Boolean> insideGateway = new ThreadLocal<Boolean>();
 
 	/**
 	 * register a pagecontext for he current thread
@@ -46,7 +50,7 @@ public final class ThreadLocalPageContext {
 		if (pc == null) return; // TODO happens with Gateway, but should not!
 		// TODO should i set the old one by "release"?
 		Thread t = Thread.currentThread();
-		t.setContextClassLoader(((ConfigImpl) pc.getConfig()).getClassLoaderEnv());
+		t.setContextClassLoader(((ConfigPro) pc.getConfig()).getClassLoaderEnv());
 		((PageContextImpl) pc).setThread(t);
 		pcThreadLocal.set(pc);
 	}
@@ -101,6 +105,53 @@ public final class ThreadLocalPageContext {
 			return config.getTimeZone();
 		}
 		return DEFAULT_TIMEZONE;
+	}
+
+	public static Log getLog(PageContext pc, String logName) {
+		// pc
+		pc = get(pc);
+		if (pc instanceof PageContextImpl) {
+			return ((PageContextImpl) pc).getLog(logName);
+		}
+
+		// config
+		Config config = getConfig(pc);
+		if (config != null) {
+			return config.getLog(logName);
+		}
+		return null;
+	}
+
+	public static Log getLog(Config config, String logName) {
+		// pc
+		if (config instanceof ConfigWeb) {
+			PageContext pc = get(config);
+			if (pc instanceof PageContextImpl) {
+				return ((PageContextImpl) pc).getLog(logName);
+			}
+		}
+
+		// config
+		config = getConfig(config);
+		if (config != null) {
+			return config.getLog(logName);
+		}
+		return null;
+	}
+
+	public static Log getLog(String logName) {
+		// pc
+		PageContext pc = get();
+		if (pc instanceof PageContextImpl) {
+			return ((PageContextImpl) pc).getLog(logName);
+		}
+
+		// config
+		Config config = getConfig();
+		if (config != null) {
+			return config.getLog(logName);
+		}
+		return null;
 	}
 
 	public static Locale getLocale() {
@@ -168,4 +219,26 @@ public final class ThreadLocalPageContext {
 
 	}
 
+	public static long getThreadId(PageContext pc) {
+		if (pc != null) return pc.getThread().getId();
+		return Thread.currentThread().getId();
+	}
+
+	public static boolean insideServerNewInstance() {
+		Boolean b = insideServerNewInstance.get();
+		return b != null && b.booleanValue();
+	}
+
+	public static void insideServerNewInstance(boolean inside) {
+		insideServerNewInstance.set(inside);
+	}
+
+	public static boolean insideGateway() {
+		Boolean b = insideGateway.get();
+		return b != null && b.booleanValue();
+	}
+
+	public static void insideGateway(boolean inside) {
+		insideGateway.set(inside);
+	}
 }

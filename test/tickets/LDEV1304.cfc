@@ -79,20 +79,11 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 			echo("select * from T1304 where id=1");
 		}
 		assertEquals(4,q.i);
-
-
-
-
 	}
 
 	private void function defineDatasource(){
 		application action="update" 
-			datasource={
-	  		class: 'org.hsqldb.jdbcDriver'
-			, bundleName: 'org.hsqldb.hsqldb'
-			//, bundleVersion: arguments.version
-			, connectionString: 'jdbc:hsqldb:file:#getDirectoryFromPath(getCurrentTemplatePath())#/LDEV1304/db'
-		};
+			datasource=#server.getDatasource( "h2", server._getTempDir( "LDEV1304" ) )#;
 	}
-} 
+}
 </cfscript>

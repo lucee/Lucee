@@ -24,9 +24,10 @@ package lucee.runtime.functions.other;
 import lucee.runtime.PageContext;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.functions.decision.IsDefined;
+import lucee.runtime.interpreter.SecurityInterpreterException;
 
 public final class ParameterExists implements Function {
-	public static boolean call(PageContext pc, String string) {
+	public static boolean call(PageContext pc, String string) throws SecurityInterpreterException {
 		return IsDefined.call(pc, string);
 	}
 }

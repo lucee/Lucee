@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase"{
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="esapi"{
 	function run( testResults , testBox ) {
 		describe( "test case for EncodeForHTML", function() {
 			it(title = "Checking with EncodeForHTML", body = function( currentSpec ) {

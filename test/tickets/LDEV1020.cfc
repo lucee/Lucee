@@ -16,13 +16,15 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  * 
  ---><cfscript>
-component extends="org.lucee.cfml.test.LuceeTestCase"	{
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="http"	{
+
+	variables.updateProvider = server.getTestService("updateProvider").url;
 
 	public void function testImplicit(){
 		
 		local.http = new http(); 
 		local.http.setMethod('put'); 
-		local.http.setURL('http://snapshot.lucee.org/rest/update/provider/echoPut'); 
+		local.http.setURL('#variables.updateProvider#/rest/update/provider/echoPut'); 
 		local.http.addParam(type="formfield",name='email',value='test@test.com'); 
 		local.httpSendResult = local.http.send(); 
 		local.httpResult = httpSendResult.getPrefix(); 

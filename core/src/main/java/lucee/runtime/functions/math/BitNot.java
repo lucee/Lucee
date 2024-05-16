@@ -22,10 +22,16 @@
 package lucee.runtime.functions.math;
 
 import lucee.runtime.PageContext;
+import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
+import lucee.runtime.op.Caster;
+import lucee.runtime.op.Decision;
 
 public final class BitNot implements Function {
-	public static double call(PageContext pc, double number) {
-		return ~(int) number;
+	public static double call(PageContext pc, double number) throws PageException {
+		if (!Decision.isInteger(number)) {
+			return ~Caster.toLongValueLossless(number);
+		}
+		return ~Caster.toIntValueLossless(number);
 	}
 }

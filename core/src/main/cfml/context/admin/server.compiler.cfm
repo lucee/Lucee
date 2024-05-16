@@ -16,11 +16,6 @@ Defaults --->
 <cfparam name="form.mainAction" default="none">
 <cfparam name="form.subAction" default="none">
 
-<cfset stText.setting.handleUnquotedAttrValueAsStringDesc='Handle unquoted tag attribute values as strings.
-<br>Example:<br>
-&lt;cfmail subject=sub from="##f##" to="##t##"/><br>
-<br>The value from attribute "subject" is not quoted, in that case if enabled the string "sub" submitted to the tag, if not enabled Lucee looks for a variable "sub".'>
-
 <cftry>
 	<cfswitch expression="#form.mainAction#">
 	<!--- UPDATE --->
@@ -34,6 +29,9 @@ Defaults --->
             </cfif>
             <cfif not isDefined('form.nullSupport')>
             	<cfset form.nullSupport=false>
+            </cfif>
+            <cfif not isDefined('form.preciseMath')>
+            	<cfset form.preciseMath=false>
             </cfif>
 			<cfif not isDefined('form.handleUnquotedAttrValueAsString')>
             	<cfset form.handleUnquotedAttrValueAsString=false>
@@ -50,6 +48,7 @@ Defaults --->
                 handleUnquotedAttrValueAsString="#form.handleUnquotedAttrValueAsString#"
 				templateCharset="#form.templateCharset#"
 				externalizeStringGTE="#form.externalizeStringGTE#"
+				preciseMath="#form.preciseMath#"
 				remoteClients="#request.getRemoteClients()#">
 	
 		</cfcase>
@@ -67,6 +66,7 @@ Defaults --->
 				templateCharset=""
 				handleUnquotedAttrValueAsString=""
 				externalizeStringGTE=""
+				preciseMath=""
 
 				remoteClients="#request.getRemoteClients()#">
 	
@@ -117,7 +117,7 @@ Redirtect to entry --->
 							<input type="text" class="small" name="templateCharset" value="#setting.templateCharset#" />
 						<cfelse>
 							<input type="hidden" name="templateCharset" value="#setting.templateCharset#">
-							<b>#charset.templateCharset#</b>
+							<b>#setting.templateCharset#</b>
 						</cfif>
 						<div class="comment">#stText.charset.templateCharsetDescription#</div>
 						<cfsavecontent variable="codeSample">
@@ -126,18 +126,11 @@ Redirtect to entry --->
 &lt;cfscript>processingdirective pageEncoding="#setting.templateCharset#";&lt;/cfscript>
 						</cfsavecontent>
 						<cfset renderCodingTip( codeSample ,stText.settings.codetip)>
+						<cfset renderSysPropEnvVar( "lucee.template.charset",setting.templateCharset)>
 					</td>
 				</tr>
 
 				<!--- Externalize Strings --->
-				<cfset stText.settings.externalizeStringGTE="Externalize strings">
-				<cfset stText.settings.externalizeStringGTEDesc="Externalize strings from generated class files to separate files. This can drastically reduce the memory footprint for templates but can have a negative impact on execution times. A lower ""breakpoint"" will cause slower execution than a higher breakpoint.">
-
-				<cfset stText.settings.externalizeString_1="do not externalize any strings">
-				<cfset stText.settings.externalizeString10="externalize strings larger than 10 characters">
-				<cfset stText.settings.externalizeString100="externalize strings larger than 100 characters">
-				<cfset stText.settings.externalizeString1000="externalize strings larger than 1000 characters">
-				<cfset stText.settings.externalizeStringDisabled="disabled">
 				<cfscript>
 					if(setting.externalizeStringGTE < 10)setting.externalizeStringGTE=-1;
 					else if(setting.externalizeStringGTE < 100)setting.externalizeStringGTE=10;
@@ -146,13 +139,13 @@ Redirtect to entry --->
 				</cfscript>
 				
 				<tr>
-					<th scope="row">#stText.settings.externalizeStringGTE#</th>
+					<th scope="row">#stText.setting.externalizeStringGTE?:""#</th>
 					<td>
 						<!---<div class="warning nofocus">
 					This feature is experimental.
 					If you have any problems while using this functionality,
 					please post the bugs and errors in our
-					<a href="http://issues.lucee.org" target="_blank">bugtracking system</a>. 
+					<a href="https://issues.lucee.org" target="_blank">bugtracking system</a>. 
 				</div>--->
 
 						<cfif hasAccess>
@@ -165,7 +158,7 @@ Redirtect to entry --->
 									<li>
 										<label>
 											<input class="radio" type="radio" name="externalizeStringGTE" value="#val#"<cfif setting.externalizeStringGTE == val> checked="checked"</cfif>>
-											<b>#stText.settings["externalizeString"&replace(val,"-","_")]#</b>
+											<b>#stText.setting["externalizeString"&replace(val,"-","_")]#</b>
 										</label>
 									</li>
 								</cfloop>
@@ -174,9 +167,9 @@ Redirtect to entry --->
 							</ul>
 						<cfelse>
 							<input type="hidden" name="externalizeStringGTE" value="#setting.externalizeStringGTE#">
-							<b><cfif setting.externalizeStringGTE==-1>#yesNoFormat(false)#<cfelse>#stText.settings["externalizeString"&replace(setting.externalizeStringGTE,"-","_")]#</cfif></b>
+							<b><cfif setting.externalizeStringGTE==-1>#yesNoFormat(false)#<cfelse>#stText.setting["externalizeString"&replace(setting.externalizeStringGTE,"-","_")]#</cfif></b>
 						</cfif>
-						<div class="comment">#stText.settings.externalizeStringGTEDesc#</div>
+						<div class="comment">#stText.setting.externalizeStringGTEDesc#</div>
 						
 					</td>
 				</tr>
@@ -220,6 +213,7 @@ Redirtect to entry --->
 							<b>#stText.compiler["nullSupport"& strNullSupport]#</b><br />
 							<div class="comment">#stText.compiler["nullSupport"& strNullSupport&"Desc"]#</div>
 						</cfif>
+						<cfset renderSysPropEnvVar( "lucee.full.null.support",setting.nullSupport)>
 					</td>
 				</tr>
 
@@ -259,6 +253,25 @@ Redirtect to entry --->
 &lt;cfscript>processingdirective preserveCase="#!setting.DotNotationUpperCase#";&lt;/cfscript>
 						</cfsavecontent>
 						<cfset renderCodingTip( codeSample ,stText.settings.codetip)>
+						<cfset renderSysPropEnvVar( "lucee.preserve.case",!setting.DotNotationUpperCase)>
+					</td>
+				</tr>
+				
+				<!--- precise math --->
+				<tr>
+					<th scope="row">#stText.setting.preciseMath#</th>
+					<td>
+						<cfif hasAccess>
+        					<input class="checkbox" type="checkbox" name="preciseMath" value="true" <cfif setting.preciseMath>checked="checked"</cfif> />
+						<cfelse>
+							<b>#yesNoFormat(setting.preciseMath)#</b><br /><input type="hidden" name="suppresspreciseMathWSBeforeArg" value="#setting.preciseMath#">
+						</cfif>
+						<div class="comment">#stText.setting.preciseMathDesc#</div>
+						<cfsavecontent variable="codeSample">
+							this.preciseMath = #setting.preciseMath#;
+						</cfsavecontent>
+						<cfset renderCodingTip( codeSample )>
+						<cfset renderSysPropEnvVar( "lucee.precise.math",setting.preciseMath)>
 					</td>
 				</tr>
 				
@@ -272,6 +285,7 @@ Redirtect to entry --->
 							<b>#yesNoFormat(setting.suppressWSBeforeArg)#</b><br /><input type="hidden" name="suppressWSBeforeArg" value="#setting.suppressWSBeforeArg#">
 						</cfif>
 						<div class="comment">#stText.setting.suppressWSBeforeArgDesc#</div>
+						<cfset renderSysPropEnvVar( "lucee.suppress.ws.before.arg",setting.suppressWSBeforeArg)>
 					</td>
 				</tr>
 				
@@ -299,7 +313,7 @@ Redirtect to entry --->
 						<td colspan="2">
 							<input type="submit" class="bl submit" name="mainAction" value="#stText.Buttons.Update#">
 							<input type="reset" class="<cfif request.adminType EQ "web">bm<cfelse>br</cfif> button reset" name="cancel" value="#stText.Buttons.Cancel#">
-							<cfif request.adminType EQ "web"><input class="br submit" type="submit" class="submit" name="mainAction" value="#stText.Buttons.resetServerAdmin#"></cfif>
+							<cfif not request.singleMode and request.adminType EQ "web"><input class="br submit" type="submit" class="submit" name="mainAction" value="#stText.Buttons.resetServerAdmin#"></cfif>
 						</td>
 					</tr>
 				</tfoot>

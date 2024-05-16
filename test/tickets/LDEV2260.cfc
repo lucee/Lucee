@@ -1,11 +1,7 @@
 component extends="org.lucee.cfml.test.LuceeTestCase"{
 	function beforeAll(){
 		application action="update" 
-			datasource={
-	  		class: 'org.hsqldb.jdbcDriver'
-			, bundleName: "org.hsqldb.hsqldb"
-			, connectionString: 'jdbc:hsqldb:file:#getDirectoryFromPath(getCurrentTemplatePath())#/datasource/db'
-		};
+				datasource=#server.getDatasource( "h2", server._getTempDir( "LDEV2260" ) )#;
 
 		try{
 			query {
@@ -34,6 +30,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				}
 			}
 			catch(local.e){}
+			afterTests();
 		}
 
 	function run( testResults , testBox ) {
@@ -50,7 +47,5 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 			});
 		});
 	}
-		
-
 
 }

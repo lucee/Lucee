@@ -1,0 +1,30 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+        "configurations": [{
+            "type": "java",
+            "name": "Attach java debugger on port 5000 for tests",
+            "request": "attach",
+            "hostName": "localhost",
+            "port": "5000",
+            "sourcePaths" :[
+                "${workspaceFolder}/core",
+                "${workspaceFolder}/loader",
+            ]
+        },
+        {
+            "type": "java",
+            "name": "Build and attach java debugger on port 5000 for tests",
+            "request": "attach",
+            "hostName": "localhost",
+            "port": "5000",
+            "sourcePaths" :[
+                "${workspaceFolder}/core",
+                "${workspaceFolder}/loader",
+            ],
+            "preLaunchTask": "buildLucee"
+        }
+    ]
+}

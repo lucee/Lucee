@@ -19,9 +19,12 @@
  */
 package lucee.runtime.functions.system;
 
+import java.util.Iterator;
+
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigPro;
+import lucee.runtime.config.DatasourceConnPool;
 import lucee.runtime.ext.function.Function;
 
 public final class DBPoolClear implements Function {
@@ -31,8 +34,15 @@ public final class DBPoolClear implements Function {
 	}
 
 	public static boolean call(PageContext pc, String dataSourceName) {
-		if (StringUtil.isEmpty(dataSourceName)) ((ConfigImpl) pc.getConfig()).getDatasourceConnectionPool().clear(true);
-		else((ConfigImpl) pc.getConfig()).getDatasourceConnectionPool().clear(dataSourceName, true);
+		Iterator<DatasourceConnPool> it = ((ConfigPro) pc.getConfig()).getDatasourceConnectionPools().iterator();
+		while (it.hasNext()) {
+			DatasourceConnPool dcp = it.next();
+			if (StringUtil.isEmpty(dataSourceName) || dataSourceName.equalsIgnoreCase(dcp.getFactory().getDatasource().getName())) clear(dcp);
+		}
 		return true;
+	}
+
+	private static void clear(DatasourceConnPool dcp) {
+		dcp.clear();
 	}
 }

@@ -51,18 +51,8 @@ public final class CacheClear extends BIF implements Function, CacheKeyFilter {
 		return _call(pc, null, null);
 	}
 
-	// FUTURE remove, only exist for code in Lucee archives using that function
-	public static double call(PageContext pc, String strFilter) throws PageException {
-		return _call(pc, strFilter, null);
-	}
-
 	public static double call(PageContext pc, Object filterOrTags) throws PageException {
 		return _call(pc, filterOrTags, null);
-	}
-
-	// FUTURE remove, only exist for code in Lucee archives using that function
-	public static double call(PageContext pc, String filter, String cacheName) throws PageException {
-		return _call(pc, filter, cacheName);
 	}
 
 	public static double call(PageContext pc, Object filterOrTags, String cacheName) throws PageException {

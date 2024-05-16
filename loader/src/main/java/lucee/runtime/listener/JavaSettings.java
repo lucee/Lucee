@@ -23,9 +23,9 @@ import lucee.commons.io.res.Resource;
 public interface JavaSettings {
 
 	/**
-	 * pathes to the directories that contain Java classes or JAR files.
+	 * paths to the directories that contain Java classes or JAR files.
 	 * 
-	 * @return resource pathes
+	 * @return resource paths
 	 */
 	public Resource[] getResources();
 
@@ -34,7 +34,7 @@ public interface JavaSettings {
 	/**
 	 * Indicates whether to load the classes from the default lib directory. The default value is false
 	 * 
-	 * @return
+	 * @return Returns whether load classes from the default lib directory.
 	 */
 	public boolean loadCFMLClassPath();
 
@@ -42,7 +42,7 @@ public interface JavaSettings {
 	 * Indicates whether to reload the updated classes and JARs dynamically, without restarting
 	 * ColdFusion. The default value is false
 	 * 
-	 * @return
+	 * @return Returns whether to reload on change.
 	 */
 	public boolean reloadOnChange();
 
@@ -50,7 +50,7 @@ public interface JavaSettings {
 	 * Specifies the time interval in seconds after which to verify any change in the class files or JAR
 	 * files. The default value is 60seconds
 	 * 
-	 * @return
+	 * @return Returns the Watch Interval.
 	 */
 	public int watchInterval();
 
@@ -58,7 +58,7 @@ public interface JavaSettings {
 	 * Specifies the extensions of the files to monitor for changes. By default, only .class and .jar
 	 * files aremonitored.
 	 * 
-	 * @return
+	 * @return Returns the Watched File Extensions.
 	 */
 	public String[] watchedExtensions();
 

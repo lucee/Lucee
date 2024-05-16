@@ -56,6 +56,7 @@
 		*/
 		function output(struct custom, struct debugging, string context="web") {
 			var NL=variables.NL;
+			var _cgi = arguments?.debugging?.scope?.cgi ?: cgi;
 			if (not StructKeyExists(arguments.custom, "unit"))
 				 arguments.custom["unit"] = "millisecond";
 			writeOutput("<!--"&NL);
@@ -73,7 +74,7 @@
 				echo(' (CFML Version '&server.ColdFusion.ProductVersion&')');
 				echo(NL);
 				
-				echo("Template: #htmlEditFormat(cgi.SCRIPT_NAME)# (#htmlEditFormat(getBaseTemplatePath())#)");
+				echo("Template: #encodeForHtml(_cgi.REQUEST_URL)# (#encodeForHtml(getBaseTemplatePath())#)");
 				echo(NL);
 				
 				echo("Time Stamp: #LSDateFormat(now())# #LSTimeFormat(now())#");
@@ -85,13 +86,13 @@
 				echo("Locale: #ucFirst(getLocale())#");
 				echo(NL);
 				
-				echo("User Agent: #cgi.http_user_agent#");
+				echo("User Agent: #_cgi.http_user_agent#");
 				echo(NL);
 				
-				echo("Remote IP: #cgi.remote_addr#");
+				echo("Remote IP: #_cgi.remote_addr#");
 				echo(NL);
 				
-				echo("Host Name: #cgi.server_name#");
+				echo("Host Name: #_cgi.server_name#");
 				echo(NL);
 				
 				if(StructKeyExists(server.os,"archModel") and StructKeyExists(server.java,"archModel")) {
@@ -103,44 +104,92 @@
 					echo(NL);
 				}
 			 }
+
+			if(isNull(arguments.debugging.pages)) 
+				local.pages=queryNew('id,count,min,max,avg,app,load,query,total,src');
+			else local.pages=arguments.debugging.pages;
+
+			var hasQueries=!isNull(arguments.debugging.queries);
+			if(!hasQueries) 
+				local.queries=queryNew('name,time,sql,src,line,count,datasource,usage,cacheTypes');
+			else local.queries=arguments.debugging.queries;
+
+			if(isNull(arguments.debugging.exceptions)) 
+				local.exceptions=[];
+			else local.exceptions=arguments.debugging.exceptions;
+
+			if(isNull(arguments.debugging.timers)) 
+				local.timers=queryNew('label,time,template');
+			else local.timers=arguments.debugging.timers;
+
+			if(isNull(arguments.debugging.traces)) 
+				local.traces=queryNew('type,category,text,template,line,var,total,trace');
+			else local.traces=arguments.debugging.traces;
+
+			if(isNull(arguments.debugging.dumps)) 
+				local.dumps=queryNew('output,template,line');
+			else local.dumps=arguments.debugging.dumps;
+
+			if(isNull(arguments.debugging.implicitAccess)) 
+				local.implicitAccess=queryNew('template,line,scope,count,name');
+			else local.implicitAccess=arguments.debugging.implicitAccess;
+
+			if(isNull(arguments.debugging.dumps)) 
+				local.dumps=queryNew('output,template,line');
+			else local.dumps=arguments.debugging.dumps;
+
+			local.times=arguments.debugging.times;
+
+
 			
 		// Pages
-			var pages=duplicate(arguments.debugging.pages);
 			if(structKeyExists(arguments.custom,"minimal") && arguments.custom.minimal>0) {
 				for(var row=pages.recordcount;row>0;row--){
 					if(pages.total[row]<custom.minimal*1000)
 						queryDeleteRow(pages,row);
 				}
 			}
-			formatUnits(pages,['load','query','app','total'],arguments.custom.unit);
-			print("Pages",array('src','count','load','query','app','total'),pages);
-			 
+			if(pages.recordcount) {
+				
+				if(hasQueries)local.cols=array('src','count','load','query','app','total');
+				else local.cols=array('src','count','load','app','total');
+
+				formatUnits(pages,['load','query','app','total'],arguments.custom.unit);
+				print("Pages",cols,pages);
+			}
+			else {
+				var times=arguments.debugging.times;
+				var exe=query('application':[times.total-times.query],'query':[times.query],'total':[times.total]);
+				var cols=['application','query','total'];
+				formatUnits(exe,cols,arguments.custom.unit);
+				print("Execution Time",cols,exe);
+			}
 		// DATABASE
-			if(arguments.debugging.queries.recordcount)
-				print("Queries",array('src','line','datasource','name','sql','time','count'),arguments.debugging.queries);
+			if(queries.recordcount)
+				print("Queries",array('src','line','datasource','name','sql','time','count'),queries);
 				
 		// TIMER
-			 if(arguments.debugging.timers.recordcount)
-				print("Timers",array('template','label','time'),arguments.debugging.timers);
+			 if(timers.recordcount)
+				print("Timers",array('template','label','time'),timers);
 		
 		// TRACING
-			 if(arguments.debugging.traces.recordcount)
-				print("Trace Points",array('template','type','category','text','line','action','varname','varvalue','time'),arguments.debugging.traces);
+			 if(traces.recordcount)
+				print("Trace Points",array('template','type','category','text','line','action','varname','varvalue','time'),traces);
 			
 		// EXCEPTION
-			if(arrayLen(arguments.debugging.exceptions)) {
+			if(arrayLen(exceptions)) {
 				var qry=queryNew("type,message,detail,template")
-				var len=arrayLen(arguments.debugging.exceptions);
+				var len=arrayLen(exceptions);
 				QueryAddRow(qry,len);
 				for(var row=1;row<=len;row++){
-					local.sct=arguments.debugging.exceptions[row];
+					local.sct=exceptions[row];
 					QuerySetCell(qry,"type",sct.type,row);
 					QuerySetCell(qry,"message",sct.message,row);
 					QuerySetCell(qry,"detail",sct.detail,row);
 					QuerySetCell(qry,"template",sct.tagcontext[1].template&":"&sct.tagcontext[1].line,row);
 				}
 				//dump(qry);
-				print("Caught Exceptions",array('type','message','detail','template'),qry);
+				print("Exceptions",array('type','message','detail','template'),qry);
 			}
 			
 			
@@ -242,10 +291,10 @@
  	}   
     
 function formatUnits(query data,array columns, string unit){
-	loop query="data" {
-    	loop array="#columns#" index="local.col" {
-        	if(listfirst(formatUnit(unit,data[col])," ") gt 0)data[col]=formatUnit(unit,data[col]);
-    		else data[col]='-';
+	loop query="arguments.data" {
+    	loop array="#arguments.columns#" index="local.col" {
+        	if(listfirst(formatUnit(arguments.unit,arguments.data[col])," ") gt 0)data[col]=formatUnit(arguments.unit,arguments.data[col]);
+    		else arguments.data[col]='-';
         }
     }
 }

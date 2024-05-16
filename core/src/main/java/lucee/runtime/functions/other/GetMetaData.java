@@ -30,12 +30,15 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.java.JavaObject;
 import lucee.runtime.op.Caster;
+import lucee.runtime.type.Array;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.ObjectWrap;
 import lucee.runtime.type.Query;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.UDF;
+import lucee.runtime.type.util.ArrayUtil;
+import lucee.runtime.type.util.StructUtil;
 
 public final class GetMetaData implements Function {
 
@@ -77,13 +80,22 @@ public final class GetMetaData implements Function {
 			else if (object instanceof Query) {
 				return ((Query) object).getMetaDataSimple();
 			}
+			// Array
+			else if (object instanceof Array) {
+				return ArrayUtil.getMetaData((Array) object);
+			}
+			// Struct
+			else if (object instanceof Struct) {
+				return StructUtil.getMetaData((Struct) object);
+			}
 
 			// FUTURE add interface with getMetaData
 			try {
 				Method m = object.getClass().getMethod("info", new Class[] {});
 				return m.invoke(object, new Object[] {});
 			}
-			catch (Exception e) {}
+			catch (Exception e) {
+			}
 
 			if (object == null) throw new FunctionException(pc, "GetMetaData", 1, "object", "value is null");
 			return object.getClass();

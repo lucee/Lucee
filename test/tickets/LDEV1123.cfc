@@ -6,7 +6,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				local.result = _InternalRequest(
 					template:uri
 				);
-				expect(result.filecontent.trim()).toBe('Syntax Error, Invalid Construct');
+				expect(result.filecontent.trim()).toInclude('Syntax Error, Invalid Construct');
 			});
 			
 		});

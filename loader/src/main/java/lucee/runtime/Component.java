@@ -67,8 +67,9 @@ public interface Component extends Struct, Objects, CIObject {
 	 * returns java class to the component interface (all UDFs), this class is generated dynamic when
 	 * used
 	 * 
-	 * @param isNew
-	 * @throws PageException
+	 * @param isNew is new
+	 * @return Java Class
+	 * @throws PageException Page Exception
 	 * @deprecated use instead
 	 *             <code>getJavaAccessClass(PageContext pc,RefBoolean isNew,boolean writeLog, boolean takeTop, boolean create, boolean supressWSbeforeArg,boolean output)</code>
 	 */
@@ -79,8 +80,14 @@ public interface Component extends Struct, Objects, CIObject {
 	 * returns java class to the component interface (all UDFs), this class is generated dynamic when
 	 * used
 	 * 
-	 * @param isNew
-	 * @throws PageException
+	 * @param pc page context
+	 * @param isNew is new
+	 * @param writeLog write log
+	 * @param takeTop take top
+	 * @param create create
+	 * @param supressWSbeforeArg suppress whitesapce before argument
+	 * @return Java Class
+	 * @throws PageException Page Exception
 	 * @deprecated use instead
 	 *             <code>getJavaAccessClass(PageContext pc,RefBoolean isNew,boolean writeLog, boolean takeTop, boolean create, boolean supressWSbeforeArg, boolean output, boolean returnValue)</code>
 	 */
@@ -138,27 +145,31 @@ public interface Component extends Struct, Objects, CIObject {
 	/**
 	 * check if value is a valid access modifier constant
 	 * 
-	 * @param access
+	 * @param access access
 	 * @return is valid access
 	 */
 	public abstract boolean isValidAccess(int access);
 
 	/**
 	 * is a persistent component (orm)
+	 * 
+	 * @return is a persistent component
 	 */
 	public boolean isPersistent();
 
 	/**
 	 * has accessors set
+	 * 
+	 * @return are accessors enabled
 	 */
 	public boolean isAccessors();
 
 	/**
 	 * returns Meta Data to the Component
 	 * 
-	 * @param pc
+	 * @param pc page context
 	 * @return meta data to component
-	 * @throws PageException
+	 * @throws PageException Page Exception
 	 */
 	public Struct getMetaData(PageContext pc) throws PageException;
 
@@ -171,7 +182,7 @@ public interface Component extends Struct, Objects, CIObject {
 	 * @param key name of the method
 	 * @param args Arguments for the method
 	 * @return return result of the method
-	 * @throws PageException
+	 * @throws PageException Page Exception
 	 */
 	public abstract Object call(PageContext pc, String key, Object[] args) throws PageException;
 
@@ -182,7 +193,7 @@ public interface Component extends Struct, Objects, CIObject {
 	 * @param key name of the method
 	 * @param args Named Arguments for the method
 	 * @return return result of the method
-	 * @throws PageException
+	 * @throws PageException Page Exception
 	 */
 	public abstract Object callWithNamedValues(PageContext pc, String key, Struct args) throws PageException;
 
@@ -190,6 +201,7 @@ public interface Component extends Struct, Objects, CIObject {
 	 * return all properties from component
 	 * 
 	 * @param onlyPeristent if true return only columns where attribute persistent is not set to false
+	 * @return all component properties
 	 * @deprecated use instead
 	 *             <code>getProperties(boolean onlyPeristent, boolean includeBaseProperties, boolean preferBaseProperties, boolean inheritedMappedSuperClassOnly)</code>
 	 */
@@ -200,9 +212,19 @@ public interface Component extends Struct, Objects, CIObject {
 	 * return all properties from component
 	 * 
 	 * @param onlyPeristent if true return only columns where attribute persistent is not set to false
+	 * @param includeBaseProperties include base properties
+	 * @param preferBaseProperties prefer base properties
+	 * @param inheritedMappedSuperClassOnly inherited Mapped Super Class Only
+	 * @return all component properties
 	 */
 	public Property[] getProperties(boolean onlyPeristent, boolean includeBaseProperties, boolean preferBaseProperties, boolean inheritedMappedSuperClassOnly);
 
+	/**
+	 * set component property
+	 * 
+	 * @param property property
+	 * @throws PageException Page Exception
+	 */
 	public void setProperty(Property property) throws PageException;
 
 	public ComponentScope getComponentScope();
@@ -227,6 +249,13 @@ public interface Component extends Struct, Objects, CIObject {
 
 	public Component getBaseComponent();
 
+	/**
+	 * register UDF
+	 * 
+	 * @param key key
+	 * @param udf User Defined Function
+	 * @throws PageException Page Exception
+	 */
 	public void registerUDF(Collection.Key key, UDF udf) throws PageException;
 
 	public void registerUDF(Collection.Key key, UDFProperties props) throws PageException;

@@ -21,21 +21,12 @@ component {
 	this.name = hash( getCurrentTemplatePath() );
     request.baseURL="http://#cgi.HTTP_HOST##GetDirectoryFromPath(cgi.SCRIPT_NAME)#";
 	request.currentPath=GetDirectoryFromPath(getCurrentTemplatePath());
-
+	
  	this.datasources ={ 
- 		"ds1":{
-	  		class: 'org.hsqldb.jdbcDriver', 
-	  		connectionString: 'jdbc:hsqldb:file:#getDirectoryFromPath(getCurrentTemplatePath())#/datasources/ds1/db'}
-	  	,"ds2":{
-	  		class: 'org.hsqldb.jdbcDriver', 
-	  		connectionString: 'jdbc:hsqldb:file:#getDirectoryFromPath(getCurrentTemplatePath())#/datasources/ds2/db'}
-	  	,"ds3":{
-	  		class: 'org.hsqldb.jdbcDriver', 
-	  		connectionString: 'jdbc:hsqldb:file:#getDirectoryFromPath(getCurrentTemplatePath())#/datasources/ds3/db'}
-	  	,"ds4":{
-	  		class: 'org.hsqldb.jdbcDriver', 
-	  		connectionString: 'jdbc:hsqldb:file:#getDirectoryFromPath(getCurrentTemplatePath())#/datasources/ds4/db'}
-	  	
+ 		"ds1":  server.getDatasource( "h2", server._getTempDir( "LDEV0405_1" ) )
+	  	,"ds2": server.getDatasource( "h2", server._getTempDir( "LDEV0405_2" ) )
+	  	,"ds3": server.getDatasource( "h2", server._getTempDir( "LDEV0405_3" ) )
+	  	,"ds4": server.getDatasource( "h2", server._getTempDir( "LDEV0405_1" ) )
 	};
 
 	this.ormEnabled = true; 
@@ -46,5 +37,9 @@ component {
 		logSQL=false,
 		datasource="ds1"
 	};
-    
+	
+	public function onRequestStart() {
+		setting requesttimeout=10;
+	}
+
 } 

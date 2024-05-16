@@ -32,21 +32,21 @@ public interface ErrorPage {
 	/**
 	 * sets the mailto attribute
 	 * 
-	 * @param mailto
+	 * @param mailto mail to address
 	 */
 	public abstract void setMailto(String mailto);
 
 	/**
 	 * sets the template attribute
 	 * 
-	 * @param template
+	 * @param template template
 	 */
 	public abstract void setTemplate(PageSource template);
 
 	/**
 	 * sets the exception attribute
 	 * 
-	 * @param exception
+	 * @param exception exception
 	 * @deprecated use instead <code>setException(String exception);</code>
 	 */
 	@Deprecated
@@ -55,7 +55,7 @@ public interface ErrorPage {
 	/**
 	 * sets the exception attribute
 	 * 
-	 * @param exception
+	 * @param exception exception
 	 */
 	public abstract void setException(String exception);
 

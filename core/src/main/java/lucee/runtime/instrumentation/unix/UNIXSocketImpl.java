@@ -122,7 +122,8 @@ class UNIXSocketImpl extends SocketImpl {
 	}
 
 	@Override
-	protected void create(boolean stream) throws IOException {}
+	protected void create(boolean stream) throws IOException {
+	}
 
 	@Override
 	protected InputStream getInputStream() throws IOException {

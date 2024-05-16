@@ -18,9 +18,6 @@
  **/
 package lucee.runtime.exp;
 
-import org.w3c.dom.DOMException;
-import org.xml.sax.SAXException;
-
 /**
  * XmL Exception
  */
@@ -49,7 +46,7 @@ public final class XMLException extends ExpressionException {
 	/**
 	 * @param e
 	 */
-	public XMLException(SAXException e) {
+	public XMLException(Exception e) {
 		super(e.getMessage());
 		this.setStackTrace(e.getStackTrace());
 	}
@@ -57,8 +54,8 @@ public final class XMLException extends ExpressionException {
 	/**
 	 * @param e
 	 */
-	public XMLException(DOMException e) {
-		super(e.getMessage());
+	public XMLException(String msg, Exception e) {
+		super(msg);
 		this.setStackTrace(e.getStackTrace());
 	}
 }

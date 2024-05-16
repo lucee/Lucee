@@ -64,7 +64,7 @@ public interface DatasourceConnection extends Connection {
 	/**
 	 * is life cycle timeout
 	 * 
-	 * @return
+	 * @return Returns if Life Cycle Timeout.
 	 */
 	public abstract boolean isLifecycleTimeout();
 

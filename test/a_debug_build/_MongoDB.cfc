@@ -17,7 +17,7 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  *
  ---><cfscript>
-component extends="org.lucee.cfml.test.LuceeTestCase"	{
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="mongodb"	{
 
 	// skip closure
 	function isNotSupported() {
@@ -32,28 +32,11 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	}
 
 	private struct function getCredentials() {
-		// getting the credetials from the enviroment variables
-		var mongoDB={};
-		if(!isNull(server.system.environment.MONGODB_SERVER) && !isNull(server.system.environment.MONGODB_PORT) && !isNull(server.system.environment.MONGODB_USERNAME) && !isNull(server.system.environment.MONGODB_PASSWORD)) {
-			mongoDB.server=server.system.environment.MONGODB_SERVER;
-			mongoDB.port=server.system.environment.MONGODB_PORT;
-			mongoDB.db=server.system.environment.MONGODB_DATABASE;
-
-			// mongoDB.user=server.system.environment.MONGODB_USERNAME;
-			// mongoDB.pass=server.system.environment.MONGODB_PASSWORD;
-			mongoDB.user="";
-			mongoDB.pass="";
-		}
-		// getting the credetials from the system variables
-		else if(!isNull(server.system.properties.MONGODB_SERVER) && !isNull(server.system.properties.MONGODB_PORT) && !isNull(server.system.properties.MONGODB_USERNAME) && !isNull(server.system.properties.MONGODB_PASSWORD)) {
-			mongoDB.server=server.system.properties.MONGODB_SERVER;
-			mongoDB.port=server.system.properties.MONGODB_PORT;
-			mongoDB.db=server.system.properties.MONGODB_DATABASE;
-
-			// mongoDB.user=server.system.properties.MONGODB_USERNAME;
-			// mongoDB.pass=server.system.properties.MONGODB_PASSWORD;
-			mongoDB.user="";
-			mongoDB.pass="";
+		// getting the credentials from the environment variables
+		var mongoDB = server.getDatasource("mongoDB");
+		if ( structCount(mongoDB) ){
+			mongoDB.user=mongoDB.username;
+			mongoDB.pass=mongoDB.password;
 		}
 		return mongoDB;
 	}

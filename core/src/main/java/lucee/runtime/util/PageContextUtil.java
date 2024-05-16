@@ -36,6 +36,7 @@ import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.loader.engine.CFMLEngine;
 import lucee.loader.engine.CFMLEngineFactory;
+import lucee.loader.engine.CFMLEngineWrapper;
 import lucee.runtime.CFMLFactory;
 import lucee.runtime.CFMLFactoryImpl;
 import lucee.runtime.Mapping;
@@ -44,11 +45,15 @@ import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.PageSource;
 import lucee.runtime.config.Config;
+import lucee.runtime.config.ConfigPro;
+import lucee.runtime.config.ConfigServerImpl;
 import lucee.runtime.config.ConfigWeb;
+import lucee.runtime.engine.CFMLEngineImpl;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.RequestTimeoutException;
 import lucee.runtime.listener.ApplicationListener;
+import lucee.runtime.net.http.ReqRspUtil;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.CreationImpl;
 import lucee.runtime.type.dt.TimeSpan;
@@ -162,7 +167,7 @@ public class PageContextUtil {
 					String rootDir = contextRoot.getAbsolutePath();
 
 					for (ServletConfig conf: configs) {
-						if (lucee.commons.io.SystemUtil.arePathsSame(rootDir, conf.getServletContext().getRealPath("/"))) {
+						if (lucee.commons.io.SystemUtil.arePathsSame(rootDir, ReqRspUtil.getRootPath(conf.getServletContext()))) {
 							servletConfig = conf;
 							break;
 						}
@@ -170,8 +175,13 @@ public class PageContextUtil {
 
 					if (servletConfig == null) servletConfig = configs[0];
 				}
+				CFMLEngine e = engine;
+				if (engine instanceof CFMLEngineWrapper) {
+					e = ((CFMLEngineWrapper) engine).getEngine();
+				}
+				if (e instanceof CFMLEngineImpl && config instanceof ConfigServerImpl) factory = ((CFMLEngineImpl) e).getCFMLFactory((ConfigServerImpl) config, servletConfig, req);
+				else factory = e.getCFMLFactory(servletConfig, req);
 
-				factory = engine.getCFMLFactory(servletConfig, req);
 				servlet = new HTTPServletImpl(servletConfig, servletConfig.getServletContext(), servletConfig.getServletName());
 			}
 
@@ -190,7 +200,8 @@ public class PageContextUtil {
 	public static TimeSpan remainingTime(PageContext pc, boolean throwWhenAlreadyTimeout) throws RequestTimeoutException {
 		long ms = pc.getRequestTimeout() - (System.currentTimeMillis() - pc.getStartTime());
 		if (ms > 0) {
-			if (ms < 5) {}
+			if (ms < 5) {
+			}
 			else if (ms < 10) ms = ms - 1;
 			else if (ms < 50) ms = ms - 5;
 			else if (ms < 200) ms = ms - 10;
@@ -200,9 +211,20 @@ public class PageContextUtil {
 			return TimeSpanImpl.fromMillis(ms);
 		}
 
-		if (throwWhenAlreadyTimeout) throw CFMLFactoryImpl.createRequestTimeoutException(pc);
+		if (throwWhenAlreadyTimeout && allowRequestTimeout(pc) && ((PageContextImpl) pc).getTimeoutStackTrace() == null) throw CFMLFactoryImpl.createRequestTimeoutException(pc);
 
 		return TimeSpanImpl.fromMillis(0);
+	}
+
+	public static void checkRequestTimeout(PageContext pc) throws RequestTimeoutException {
+		if ((pc.getRequestTimeout() - (System.currentTimeMillis() - pc.getStartTime()) > 0) || ((PageContextImpl) pc).getTimeoutStackTrace() != null) return;
+		if (allowRequestTimeout(pc)) throw CFMLFactoryImpl.createRequestTimeoutException(pc);
+	}
+
+	private static boolean allowRequestTimeout(PageContext pc) {
+		if (!((ConfigPro) ThreadLocalPageContext.getConfig(pc)).allowRequestTimeout()) return false;
+		CFMLFactoryImpl factory = (CFMLFactoryImpl) pc.getConfig().getFactory();
+		return factory.reachedConcurrentReqThreshold() && factory.reachedCPUThreshold() && factory.reachedMemoryThreshold();
 	}
 
 	public static String getHandlePageException(PageContextImpl pc, PageException pe) throws PageException {

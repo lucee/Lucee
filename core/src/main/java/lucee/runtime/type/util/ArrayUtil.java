@@ -38,11 +38,14 @@ import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
-import lucee.runtime.op.Operator;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayClassic;
 import lucee.runtime.type.ArrayImpl;
+import lucee.runtime.type.ArrayPro;
+import lucee.runtime.type.ArrayTyped;
 import lucee.runtime.type.QueryColumn;
+import lucee.runtime.type.Struct;
+import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.comparator.SortRegister;
 
 /**
@@ -67,7 +70,7 @@ public final class ArrayUtil {
 	 * @param arr
 	 * @return trimmed array
 	 */
-	public static String[] trim(String[] arr) {
+	public static String[] trimItems(String[] arr) {
 		for (int i = 0; i < arr.length; i++) {
 			arr[i] = arr[i].trim();
 		}
@@ -164,9 +167,10 @@ public final class ArrayUtil {
 		for (int i = 1; i <= len; i++) {
 			Object tmp = array.get(i, null);
 			try {
-				if (tmp != null && Operator.compare(object, tmp) == 0) return i;
+				if (tmp != null && lucee.runtime.op.OpUtil.compare(ThreadLocalPageContext.get(), object, tmp) == 0) return i;
 			}
-			catch (PageException e) {}
+			catch (PageException e) {
+			}
 		}
 		return 0;
 	}
@@ -348,7 +352,7 @@ public final class ArrayUtil {
 	public static Byte[] toReferenceType(byte[] primArr) {
 		Byte[] refArr = new Byte[primArr.length];
 		for (int i = 0; i < primArr.length; i++)
-			refArr[i] = new Byte(primArr[i]);
+			refArr[i] = Byte.valueOf(primArr[i]);
 		return refArr;
 	}
 
@@ -361,7 +365,7 @@ public final class ArrayUtil {
 	public static Character[] toReferenceType(char[] primArr) {
 		Character[] refArr = new Character[primArr.length];
 		for (int i = 0; i < primArr.length; i++)
-			refArr[i] = new Character(primArr[i]);
+			refArr[i] = Character.valueOf(primArr[i]);
 		return refArr;
 	}
 
@@ -413,7 +417,7 @@ public final class ArrayUtil {
 	public static Float[] toReferenceType(float[] primArr) {
 		Float[] refArr = new Float[primArr.length];
 		for (int i = 0; i < primArr.length; i++)
-			refArr[i] = new Float(primArr[i]);
+			refArr[i] = Float.valueOf(primArr[i]);
 		return refArr;
 	}
 
@@ -426,7 +430,7 @@ public final class ArrayUtil {
 	public static Double[] toReferenceType(double[] primArr) {
 		Double[] refArr = new Double[primArr.length];
 		for (int i = 0; i < primArr.length; i++)
-			refArr[i] = new Double(primArr[i]);
+			refArr[i] = Double.valueOf(primArr[i]);
 		return refArr;
 	}
 
@@ -463,7 +467,7 @@ public final class ArrayUtil {
 		}
 		else if (o instanceof byte[]) {
 			byte[] arr = ((byte[]) o);
-			if (arr.length > index) return new Byte(arr[index]);
+			if (arr.length > index) return Byte.valueOf(arr[index]);
 		}
 		else if (o instanceof char[]) {
 			char[] arr = ((char[]) o);
@@ -483,11 +487,11 @@ public final class ArrayUtil {
 		}
 		else if (o instanceof float[]) {
 			float[] arr = ((float[]) o);
-			if (arr.length > index) return new Float(arr[index]);
+			if (arr.length > index) return Float.valueOf(arr[index]);
 		}
 		else if (o instanceof double[]) {
 			double[] arr = ((double[]) o);
-			if (arr.length > index) return new Double(arr[index]);
+			if (arr.length > index) return Double.valueOf(arr[index]);
 		}
 		return defaultValue;
 	}
@@ -521,7 +525,7 @@ public final class ArrayUtil {
 			if (arr.length > index) {
 				double v = Caster.toDoubleValue(value, true, Double.NaN);
 				if (Decision.isValid(v)) {
-					return new Byte(arr[index] = (byte) v);
+					return Byte.valueOf(arr[index] = (byte) v);
 				}
 			}
 			throw invalidIndex(index, arr.length);
@@ -561,7 +565,7 @@ public final class ArrayUtil {
 			if (arr.length > index) {
 				double v = Caster.toDoubleValue(value, true, Double.NaN);
 				if (Decision.isValid(v)) {
-					return new Float(arr[index] = (float) v);
+					return Float.valueOf(arr[index] = (float) v);
 				}
 			}
 			throw invalidIndex(index, arr.length);
@@ -571,7 +575,7 @@ public final class ArrayUtil {
 			if (arr.length > index) {
 				double v = Caster.toDoubleValue(value, true, Double.NaN);
 				if (Decision.isValid(v)) {
-					return new Double(arr[index] = v);
+					return Double.valueOf(arr[index] = v);
 				}
 			}
 			throw invalidIndex(index, arr.length);
@@ -1009,5 +1013,18 @@ public final class ArrayUtil {
 		for (int i = 0; i < arr.length; i++) {
 			list.add(arr[i]);
 		}
+	}
+
+	public static ArrayPro toArrayPro(Array array) {
+		if (array instanceof ArrayPro) return (ArrayPro) array;
+		return new ArrayAsArrayPro(array);
+	}
+
+	public static Struct getMetaData(Array arr) throws PageException {
+		Struct sct = new StructImpl();
+		sct.set(KeyConstants._type, arr instanceof ArrayImpl && ((ArrayImpl) arr).sync() ? "synchronized" : "unsynchronized");
+		sct.set("dimensions", arr.getDimension());
+		sct.set("datatype", arr instanceof ArrayTyped ? ((ArrayTyped) arr).getTypeAsString() : "any");
+		return sct;
 	}
 }

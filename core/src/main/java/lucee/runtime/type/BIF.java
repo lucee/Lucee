@@ -32,7 +32,7 @@ import lucee.runtime.PageContext;
 import lucee.runtime.PageSource;
 import lucee.runtime.component.MemberSupport;
 import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.dump.DumpData;
 import lucee.runtime.dump.DumpProperties;
 import lucee.runtime.dump.DumpTable;
@@ -57,20 +57,31 @@ public class BIF extends MemberSupport implements UDFPlus {
 	private final FunctionLibFunction flf;
 	private short rtnType = CFTypes.TYPE_UNKNOW;
 	private Component owner;
-	private final ConfigImpl ci;
+	private final ConfigPro cp;
 	private FunctionArgument[] args;
 	private String id;
 
+	public static BIF getInstance(PageContext pc, String name, BIF defaultValue) {
+		FunctionLib fl = ((ConfigPro) pc.getConfig()).getCombinedFLDs(pc.getCurrentTemplateDialect());
+		FunctionLibFunction flf = fl.getFunction(name);
+
+		// BIF not found
+		if (flf == null) return defaultValue;
+		return new BIF(pc.getConfig(), flf);
+	}
+
 	public BIF(PageContext pc, String name) throws ApplicationException {
 		super(Component.ACCESS_PUBLIC);
-		ci = (ConfigImpl) pc.getConfig();
-		FunctionLib fl = ci.getCombinedFLDs(pc.getCurrentTemplateDialect());
+		cp = (ConfigPro) pc.getConfig();
+		FunctionLib fl = cp.getCombinedFLDs(pc.getCurrentTemplateDialect());
 		flf = fl.getFunction(name);
 
 		// BIF not found
 		if (flf == null) {
 			Key[] keys = CollectionUtil.toKeys(fl.getFunctions().keySet());
-			throw new ApplicationException(ExceptionUtil.similarKeyMessage(keys, name, "build in function", "build in functions", null, false));
+			String msg = ExceptionUtil.similarKeyMessage(keys, name, "Built in function", "Built in functions", null, false);
+			String detail = ExceptionUtil.similarKeyMessage(keys, name, "Built in functions", null, false);
+			throw new ApplicationException(msg, detail);
 		}
 		try {
 			this.id = Hash.md5(name);
@@ -82,7 +93,7 @@ public class BIF extends MemberSupport implements UDFPlus {
 
 	public BIF(Config config, FunctionLibFunction flf) {
 		super(Component.ACCESS_PUBLIC);
-		ci = (ConfigImpl) config;
+		cp = (ConfigPro) config;
 		this.flf = flf;
 	}
 
@@ -137,7 +148,7 @@ public class BIF extends MemberSupport implements UDFPlus {
 				if (arg.getRequired()) {
 					String[] names = flf.getMemberNames();
 					String n = ArrayUtil.isEmpty(names) ? "" : names[0];
-					throw new ExpressionException("missing required argument [" + arg.getName() + "] for build in function call [" + n + "]");
+					throw new ExpressionException("Missing required argument [" + arg.getName() + "] for built in function call [" + n + "]");
 				}
 			}
 			else {
@@ -155,7 +166,7 @@ public class BIF extends MemberSupport implements UDFPlus {
 		FunctionLibFunctionArg flfa;
 		List<Ref> refs = new ArrayList<Ref>();
 		for (int i = 0; i < args.length; i++) {
-			if (i >= flfas.size()) throw new ApplicationException("too many Attributes in function call [" + flf.getName() + "]");
+			if (i >= flfas.size()) throw new ApplicationException("Too many Attributes in function call [" + flf.getName() + "]");
 			flfa = flfas.get(i);
 			refs.add(new Casting(flfa.getTypeAsString(), flfa.getType(), args[i]));
 		}
@@ -182,7 +193,7 @@ public class BIF extends MemberSupport implements UDFPlus {
 
 	@Override
 	public UDF duplicate() {
-		return new BIF(ci, flf);
+		return new BIF(cp, flf);
 	}
 
 	@Override

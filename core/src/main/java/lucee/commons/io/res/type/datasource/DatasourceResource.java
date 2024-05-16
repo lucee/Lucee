@@ -101,12 +101,12 @@ public final class DatasourceResource extends ResourceSupport {
 	@Override
 	public void remove(boolean force) throws IOException {
 		ResourceUtil.checkRemoveOK(this);
-		if (isRoot()) throw new IOException("can't remove root resource [" + getPath() + "]");
+		if (isRoot()) throw new IOException("Can't remove root resource [" + getPath() + "]");
 
 		Resource[] children = listResources();
 		if (children != null && children.length > 0) {
 			if (!force) {
-				throw new IOException("can't delete directory [" + getPath() + "], directory is not empty");
+				throw new IOException("Can't delete directory [" + getPath() + "], directory is not empty");
 			}
 			for (int i = 0; i < children.length; i++) {
 				children[i].remove(true);

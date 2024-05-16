@@ -26,7 +26,7 @@ public interface Operation extends Expression {
 	public static final int OPERATION2_MINUS = 1;
 	public static final int OPERATION2_MULTIPLY = 2;
 	public static final int OPERATION2_DIVIDE = 3;
-	public static final int OPERATION2_EXP = 4;
+	public static final int OPERATION2_BITWISE = 4;
 	public static final int OPERATION2_MOD = 5;
 
 	public static final int OPERATION2_XOR = 10;
@@ -51,4 +51,7 @@ public interface Operation extends Expression {
 
 	public static final int OPERATION3_BETWEEN = 50;
 	public static final int OPERATION3_LIKE = 51;
+
+	public boolean hasAggregate();
+
 }

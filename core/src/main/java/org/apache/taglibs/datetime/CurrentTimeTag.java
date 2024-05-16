@@ -20,21 +20,24 @@ package org.apache.taglibs.datetime;
 
 import java.util.Date;
 
-import javax.servlet.jsp.JspException;
 import javax.servlet.jsp.tagext.TagSupport;
+
+import lucee.runtime.exp.ApplicationException;
+import lucee.runtime.exp.PageException;
 
 public final class CurrentTimeTag extends TagSupport {
 
-	public CurrentTimeTag() {}
+	public CurrentTimeTag() {
+	}
 
 	@Override
-	public final int doEndTag() throws JspException {
+	public final int doEndTag() throws PageException {
 		Date date = new Date();
 		try {
 			super.pageContext.getOut().write("" + date.getTime());
 		}
 		catch (Exception e) {
-			throw new JspException("IO Error: " + e.getMessage());
+			throw new ApplicationException("IO Error: " + e.getMessage());
 		}
 		return 6;
 	}

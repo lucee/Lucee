@@ -31,7 +31,7 @@ import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.PageSource;
 import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.config.Constants;
 import lucee.runtime.exp.ExpressionException;
@@ -95,7 +95,7 @@ public class CustomTagUtil {
 	}
 
 	public static InitFile loadInitFile(PageContext pc, String name, InitFile defaultValue) throws PageException {
-		ConfigImpl config = (ConfigImpl) pc.getConfig();
+		ConfigPro config = (ConfigPro) pc.getConfig();
 		String[] filenames = getFileNames(config, name);
 		boolean doCache = config.useCTPathCache();
 

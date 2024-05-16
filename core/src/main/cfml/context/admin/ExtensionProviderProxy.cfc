@@ -64,7 +64,6 @@
 	        <cfset attributes.sess.getInfo=attributes.req.getInfo>
 	        
 		</cfthread>
-		<!--- <cfset systemOutput('<print-stack-trace>',true,true)>--->
 		<cfif arguments.timeout GT 0>
 			<cfthread action="join" name="#name#" timeout="#arguments.timeout#"/>
 		</cfif>
@@ -86,9 +85,9 @@
         <cfargument name="serverId" required="yes" type="string">
         <cfargument name="webId" required="yes" type="string">
         <cfargument name="appId" required="yes" type="string">
-    	<cfargument name="addional" required="no" type="struct">
+    	<cfargument name="additional" required="no" type="struct">
     	
     	<cfset cfc = createObject('webservice',this.cfcName&"?wsdl")>
-        <cfreturn cfc.getDownloadDetails(type,serverId,webId,appId,serialize(arguments.addional))>
+        <cfreturn cfc.getDownloadDetails(type,serverId,webId,appId,serialize(arguments.additional))>
     </cffunction>
 </cfcomponent>

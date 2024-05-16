@@ -27,7 +27,7 @@
 		,field("Scope Variables","scopes","Application,CGI,Client,Cookie,Form,Request,Server,Session,URL",true,"Enable Scope reporting","checkbox","Application,CGI,Client,Cookie,Form,Request,Server,Session,URL")
 		
 		
-		,group("Output Format","Define details to the fomrat of the debug output",3)
+		,group("Output Format","Define details for the format of the debug output",3)
 		,field("Background Color","bgcolor","white",true,"Color in the back, ","text80")
 		,field("Font Color","color","black",true,"Color used for the Font, ","text80")
 		,field("Font Family","font","Times New Roman, Times, serif",true,"What kind of Font is used, ","text200")
@@ -81,21 +81,46 @@ private function isColumnEmpty(query query, string columnName){
     	<cfargument name="custom" type="struct" required="yes">
 		<cfargument name="debugging" required="true" type="struct">
 		<cfargument name="context" type="string" default="web"><cfsilent>
-<cfset var time=getTickCount()>
-<cfset var _cgi=structKeyExists(arguments.debugging,'cgi')?arguments.debugging.cgi:cgi>
+<cfscript>
+	var time=getTickCount();
+	var _cgi = arguments?.debugging?.scope?.cgi ?: cgi;
 
-<cfset var pages=arguments.debugging.pages>
-<cfset var queries=arguments.debugging.queries>
-<cfif not isDefined('arguments.debugging.timers')>
-	<cfset arguments.debugging.timers=queryNew('label,time,template')>
-</cfif>
-<cfif not isDefined('arguments.debugging.traces')>
-	<cfset arguments.debugging.traces=queryNew('type,category,text,template,line,var,total,trace')>
-</cfif>
-<cfset var timers=arguments.debugging.timers>
-<cfset var traces=arguments.debugging.traces>
+	if(isNull(arguments.debugging.pages)) 
+		local.pages=queryNew('id,count,min,max,avg,app,load,query,total,src');
+	else local.pages=arguments.debugging.pages;
+
+	var hasQueries=!isNull(arguments.debugging.queries);
+	if(!hasQueries) 
+		local.queries=queryNew('name,time,sql,src,line,count,datasource,usage,cacheTypes');
+	else local.queries=arguments.debugging.queries;
+
+	if(isNull(arguments.debugging.exceptions)) 
+		local.exceptions=[];
+	else local.exceptions=arguments.debugging.exceptions;
+
+	if(isNull(arguments.debugging.timers)) 
+		local.timers=queryNew('label,time,template');
+	else local.timers=arguments.debugging.timers;
+
+	if(isNull(arguments.debugging.traces)) 
+		local.traces=queryNew('type,category,text,template,line,var,total,trace');
+	else local.traces=arguments.debugging.traces;
+
+	if(isNull(arguments.debugging.dumps)) 
+		local.dumps=queryNew('output,template,line');
+	else local.dumps=arguments.debugging.dumps;
+
+	if(isNull(arguments.debugging.implicitAccess)) 
+		local.implicitAccess=queryNew('template,line,scope,count,name');
+	else local.implicitAccess=arguments.debugging.implicitAccess;
+
+	if(isNull(arguments.debugging.dumps)) 
+		local.dumps=queryNew('output,template,line');
+	else local.dumps=arguments.debugging.dumps;
+
+	local.times=arguments.debugging.times;
+</cfscript>
 <cfset querySort(pages,"avg","desc")>
-<cfset var implicitAccess=arguments.debugging.implicitAccess>
 <cfset querySort(implicitAccess,"template,line,count","asc,asc,desc")>
 
 <cfparam name="arguments.custom.unit" default="millisecond">
@@ -106,7 +131,7 @@ private function isColumnEmpty(query query, string columnName){
 
 <cfset var unit={
 millisecond:"ms"
-,microsecond:"�s"
+,microsecond:"μs"
 ,nanosecond:"ns"
 
 }>
@@ -128,9 +153,9 @@ millisecond:"ms"
 
 <table class="cfdebug" bgcolor="#arguments.custom.bgcolor#" style="border-color:#arguments.custom.color#">
 <tr>
+    <cfif isEnabled(arguments.custom,"general")>
 	<td>
  <!--- General --->
-    <cfif isEnabled(arguments.custom,"general")>
 		<p class="cfdebug"><hr/>
 		<b class="cfdebuglge"><a name="cfdebug_top">Debugging Information</a></b>
 		<table class="cfdebug">
@@ -145,7 +170,7 @@ millisecond:"ms"
 		</tr>
 		<tr>
 			<td class="cfdebug" nowrap> Template </td>
-			<td class="cfdebug">#HTMLEditFormat(_cgi.SCRIPT_NAME)# (#HTMLEditFormat(expandPath(_cgi.SCRIPT_NAME))#)</td>
+			<td class="cfdebug">#encodeForHtml(_cgi.REQUEST_URL)# <br> #encodeForHtml(expandPath(_cgi.SCRIPT_NAME))#</td>
 		</tr>
 		<tr>
 			<td class="cfdebug" nowrap> Time Stamp </td>
@@ -177,20 +202,22 @@ millisecond:"ms"
 		</tr></cfif>
 		</table>
 		</p>
-	</cfif>
 <!--- Execution Time --->
 	<p class="cfdebug"><hr/><b class="cfdebuglge"><a name="cfdebug_execution">Execution Time</a></b></p>
 	<a name="cfdebug_templates">
 		<table border="1" cellpadding="2" cellspacing="0" class="cfdebug">
+		<cfif pages.recordcount>
 		<tr>
 			<td class="cfdebug" align="center"><b>Total Time</b></td>
 			<td class="cfdebug" align="center"><b>Avg Time</b></td>
 			<td class="cfdebug" align="center"><b>Count</b></td>
 			<td class="cfdebug"><b>Template</b></td>
-		</tr>
+		</tr></cfif>
 <cfset var loa=0>
 <cfset var tot=0>
 <cfset var q=0>
+<cfparam name="arguments.custom.minimal" default="0">
+<cfparam name="arguments.custom.highlight" default="250000">
 <cfloop query="pages">
 		<cfset tot=tot+pages.total><cfset q=q+pages.query>
 		<cfif pages.avg LT arguments.custom.minimal*1000><cfcontinue></cfif>
@@ -202,23 +229,33 @@ millisecond:"ms"
 			<td align="left" class="cfdebug" nowrap><cfif bad><font color="red"><span class="template_overage"></cfif>#pages.src#<cfif bad></span></font></cfif></td>
 		</tr>
 </cfloop>                
-            
+<cfscript>
+if(!pages.recordcount || !hasQueries) {
+	tot=arguments.debugging.times.total;
+	q=arguments.debugging.times.query;
+	loa=0;
+		
+}
+</cfscript>     
+<cfif pages.recordcount>
+	
 <tr>
-	<td align="right" class="cfdebug" nowrap><i>#formatUnit(arguments.custom.unit, loa)#</i></td><td colspan=2>&nbsp;</td>
+	<td align="right" class="cfdebug" nowrap><i>#formatUnit(arguments.custom.unit, loa)#</i></td><cfif pages.recordcount><td colspan=2>&nbsp;</td></cfif>
 	<td align="left" class="cfdebug"><i>STARTUP, PARSING, COMPILING, LOADING, &amp; SHUTDOWN</i></td>
 </tr>
+</cfif>
 <tr>
-	<td align="right" class="cfdebug" nowrap><i>#formatUnit(arguments.custom.unit, tot-q-loa)#</i></td><td colspan=2>&nbsp;</td>
+	<td align="right" class="cfdebug" nowrap><i>#formatUnit(arguments.custom.unit, tot-q-loa)#</i></td><cfif pages.recordcount><td colspan=2>&nbsp;</td></cfif>
 	<td align="left" class="cfdebug"><i>APPLICATION EXECUTION TIME</i></td>
 </tr>
-<cfif listfirst(formatUnit(custom.unit, q)," ") gt 0>
+<cfif listfirst(formatUnit(arguments.custom.unit, q)," ") gt 0>
 	<tr>
-		<td align="right" class="cfdebug" nowrap><i>#formatUnit(arguments.custom.unit, q)#</i></td><td colspan=2>&nbsp;</td>
+		<td align="right" class="cfdebug" nowrap><i>#formatUnit(arguments.custom.unit, q)#</i></td><cfif pages.recordcount><td colspan=2>&nbsp;</td></cfif>
 		<td align="left" class="cfdebug"><i>QUERY EXECUTION TIME</i></td>
 	</tr>
 </cfif>	
 <tr>
-	<td align="right" class="cfdebug" nowrap><i><b>#formatUnit(arguments.custom.unit, tot)#</i></b></td><td colspan=2>&nbsp;</td>
+	<td align="right" class="cfdebug" nowrap><i><b>#formatUnit(arguments.custom.unit, tot)#</i></b></td><cfif pages.recordcount><td colspan=2>&nbsp;</td></cfif>
 	<td align="left" class="cfdebug"><i><b>TOTAL EXECUTION TIME</b></i></td>
 </tr>
 </table>
@@ -231,7 +268,7 @@ millisecond:"ms"
 <cfif structKeyExists(arguments.debugging,"exceptions")  and arrayLen(arguments.debugging.exceptions)>
 	<cfset var exceptions=arguments.debugging.exceptions>
     
-	<p class="cfdebug"><hr/><b class="cfdebuglge">Caught Exceptions</b></p>
+	<p class="cfdebug"><hr/><b class="cfdebuglge">Exceptions</b></p>
 		<table border="1" cellpadding="2" cellspacing="0" class="cfdebug">
 		<tr>
 			<td class="cfdebug"><b>Type</b></td>
@@ -239,7 +276,7 @@ millisecond:"ms"
 			<td class="cfdebug"><b>Detail</b></td>
 			<td class="cfdebug"><b>Template</b></td>
 		</tr>
-<Cfset var exp="">		
+<cfset var exp="">
 <cfloop array="#exceptions#" index="exp">
 		<tr>
 			<td class="cfdebug" nowrap>#exp.type#</td>
@@ -336,7 +373,7 @@ millisecond:"ms"
 <cfif queries.recordcount>
 <p class="cfdebug"><hr/><b class="cfdebuglge"><a name="cfdebug_sql">SQL Queries</a></b></p>
 <cfloop query="queries">	
-<code><b>#queries.name#</b> (Datasource=#queries.datasource#, Time=#formatUnit(custom.unit, queries.time)#, Records=#queries.count#) in <cfif len(queries.src)>#queries.src#:#queries.line#</cfif></code><br />
+<code><b>#queries.name#</b> (Datasource=#queries.datasource#, Time=#formatUnit(arguments.custom.unit, queries.time)#, Records=#queries.count#) in <cfif len(queries.src)>#queries.src#:#queries.line#</cfif></code><br />
 <cfif ListFindNoCase(queries.columnlist,'usage') and IsStruct(queries.usage)><cfset var usage=queries.usage><cfset var lstNeverRead="">
 <cfloop collection="#usage#" index="local.item" item="local._val"><cfif not _val><cfset lstNeverRead=ListAppend(lstNeverRead,item,', ')></cfif></cfloop>
 <cfif len(lstNeverRead)><font color="red">the following colum(s) are never read within the request:#lstNeverRead#</font><br /></cfif>
@@ -372,6 +409,7 @@ millisecond:"ms"
 </cfif>
 <font size="-1" class="cfdebug"><i>Debug Rendering Time: #formatUnit(arguments.custom.unit, getTickCount()-time)#</i></font><br />
 	</td>
+	</cfif>
 </tr>
 </table>
 </cfoutput>
@@ -381,20 +419,38 @@ millisecond:"ms"
 <cffunction name="formatUnit" output="no" returntype="string">
 	<cfargument name="unit" type="string" required="yes">
 	<cfargument name="time" type="numeric" required="yes">
-    
-    <cfif arguments.time GTE 100000000><!--- 1000ms --->
-    	<cfreturn int(arguments.time/1000000)&" ms">
-    <cfelseif arguments.time GTE 10000000><!--- 100ms --->
-    	<cfreturn (int(arguments.time/100000)/10)&" ms">
-    <cfelseif arguments.time GTE 1000000><!--- 10ms --->
-    	<cfreturn (int(arguments.time/10000)/100)&" ms">
-    <cfelse><!--- 0ms --->
-    	<cfreturn (int(arguments.time/1000)/1000)&" ms">
-    </cfif>
-    
-    
-    <cfreturn (arguments.time/1000000)&" ms">
-</cffunction>   
+	<cfscript>
+		var _unit = arguments.unit;
+		switch (unit){
+			case "seconds":	
+				_unit = "s"
+				break;
+			case "millisecond":
+				_unit = "ms";
+				break;
+			default:
+				break;
+		}
+		var n = 0;
+		
+		if ( arguments.time >= 100000000 ){ 
+			// display 0 digits right to the point when more or equal to 100ms
+			n = int( arguments.time / 1000000 );		
+		} else if ( arguments.time >=  10000000 ) {
+			// display 1 digit right to the point when more or equal to 10ms
+			n = ( int( arguments.time / 100000 ) / 100 );		
+		} else if ( arguments.time >=   1000000 ) {
+			// display 2 digits right to the point when more or equal to 1ms
+			n = ( int( arguments.time / 10000 ) / 100 );
+		} else {
+			// display 3 digits right to the point
+			n = ( int( arguments.time / 1000 ) / 1000 );
+		}
+
+		return DecimalFormat(n) & _unit;
+	</cfscript>
+</cffunction>
+
 <!---<cffunction name="formatUnit2" output="no" returntype="string">
 	<cfargument name="unit" type="string" required="yes">
 	<cfargument name="time" type="numeric" required="yes">

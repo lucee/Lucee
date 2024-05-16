@@ -22,7 +22,6 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.Map.Entry;
 
-import javax.servlet.jsp.JspException;
 import javax.servlet.jsp.tagext.BodyContent;
 import javax.servlet.jsp.tagext.BodyTag;
 
@@ -205,10 +204,11 @@ public final class Textarea extends Input implements BodyTag {
 	}
 
 	@Override
-	public void doInitBody() throws JspException {}
+	public void doInitBody() throws PageException {
+	}
 
 	@Override
-	public int doAfterBody() throws JspException {
+	public int doAfterBody() throws PageException {
 		return SKIP_BODY;
 	}
 

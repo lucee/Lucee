@@ -37,16 +37,16 @@ public class QueryRowByIndex extends BIF {
 
 	public static int getIndex(Query query, String index) throws ApplicationException {
 		Map<Key, Integer> indexes = ((QueryImpl) query).getIndexes();
-		if (indexes == null) throw new ApplicationException("the query does not have no index table defined [" + index + "]");
-		Integer indx = indexes.get(KeyImpl.getInstance(index));
-		if (indx == null) throw new ApplicationException("there is no index with the value [" + index + "]");
+		if (indexes == null) throw new ApplicationException("Query is not indexed, index [" + index + "] not found");
+		Integer indx = indexes.get(KeyImpl.init(index));
+		if (indx == null) throw new ApplicationException("Query does not have an index for the column [" + index + "]");
 		return indx;
 	}
 
 	public static int getIndex(Query query, String index, int defaultValue) {
 		Map<Key, Integer> indexes = ((QueryImpl) query).getIndexes();
 		if (indexes == null) return defaultValue;
-		Integer indx = indexes.get(KeyImpl.getInstance(index));
+		Integer indx = indexes.get(KeyImpl.init(index));
 		if (indx == null) return defaultValue;
 		return indx;
 	}

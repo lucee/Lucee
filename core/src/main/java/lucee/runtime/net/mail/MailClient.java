@@ -28,7 +28,6 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Properties;
 
-import javax.mail.Authenticator;
 import javax.mail.BodyPart;
 import javax.mail.Flags;
 import javax.mail.Folder;
@@ -37,11 +36,14 @@ import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.Multipart;
 import javax.mail.Part;
-import javax.mail.PasswordAuthentication;
 import javax.mail.Session;
 import javax.mail.Store;
+import javax.mail.UIDFolder;
+import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
 import javax.mail.internet.MimeUtility;
+
+import org.apache.commons.mail.DefaultAuthenticator;
 
 import lucee.commons.digest.HashUtil;
 import lucee.commons.io.CharsetUtil;
@@ -52,12 +54,13 @@ import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.Md5;
 import lucee.commons.lang.StringUtil;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.net.imap.ImapClient;
 import lucee.runtime.net.pop.PopClient;
 import lucee.runtime.op.Caster;
-import lucee.runtime.op.Operator;
+import lucee.runtime.op.OpUtil;
 import lucee.runtime.pool.Pool;
 import lucee.runtime.pool.PoolItem;
 import lucee.runtime.type.Array;
@@ -76,7 +79,7 @@ public abstract class MailClient implements PoolItem {
 
 	@Override
 	public boolean isValid() {
-		if (_store == null && !_store.isConnected()) {
+		if (_store != null && !_store.isConnected()) {
 			// goal is to be valid if requested so we try to be
 			try {
 				start();
@@ -89,56 +92,48 @@ public abstract class MailClient implements PoolItem {
 		return _store != null && _store.isConnected();
 	}
 
-	private static final Collection.Key FULLNAME = KeyImpl.init("FULLNAME");
-	private static final Collection.Key UNREAD = KeyImpl.init("UNREAD");
-	private static final Collection.Key PARENT = KeyImpl.init("PARENT");
-	private static final Collection.Key TOTALMESSAGES = KeyImpl.init("TOTALMESSAGES");
-	private static final Collection.Key NEW = KeyImpl.init("NEW");
-
-	/**
-	 * Simple authenicator implmentation
-	 */
-	private final class _Authenticator extends Authenticator {
-
-		private String _fldif = null;
-		private String a = null;
-
-		@Override
-		protected PasswordAuthentication getPasswordAuthentication() {
-			return new PasswordAuthentication(_fldif, a);
-		}
-
-		public _Authenticator(String s, String s1) {
-			_fldif = s;
-			a = s1;
-		}
-	}
-
-	private static final Collection.Key DATE = KeyImpl.init("date");
-	private static final Collection.Key SUBJECT = KeyImpl.init("subject");
-	private static final Collection.Key SIZE = KeyImpl.init("size");
-	private static final Collection.Key FROM = KeyImpl.init("from");
-	private static final Collection.Key MESSAGE_NUMBER = KeyImpl.init("messagenumber");
-	private static final Collection.Key MESSAGE_ID = KeyImpl.init("messageid");
-	private static final Collection.Key REPLYTO = KeyImpl.init("replyto");
-	private static final Collection.Key CC = KeyImpl.init("cc");
-	private static final Collection.Key BCC = KeyImpl.init("bcc");
-	private static final Collection.Key TO = KeyImpl.init("to");
-	private static final Collection.Key UID = KeyImpl.init("uid");
-	private static final Collection.Key HEADER = KeyImpl.init("header");
-	private static final Collection.Key BODY = KeyImpl.init("body");
-	private static final Collection.Key CIDS = KeyImpl.init("cids");
-	private static final Collection.Key TEXT_BODY = KeyImpl.init("textBody");
-	private static final Collection.Key HTML_BODY = KeyImpl.init("HTMLBody");
-	private static final Collection.Key ATTACHMENTS = KeyImpl.init("attachments");
-	private static final Collection.Key ATTACHMENT_FILES = KeyImpl.init("attachmentfiles");
+	private static final Collection.Key FULLNAME = KeyConstants._FULLNAME;
+	private static final Collection.Key UNREAD = KeyConstants._UNREAD;
+	private static final Collection.Key PARENT = KeyConstants._PARENT;
+	private static final Collection.Key TOTALMESSAGES = KeyConstants._TOTALMESSAGES;
+	private static final Collection.Key NEW = KeyConstants._NEW;
+	private static final Collection.Key DATE = KeyConstants._date;
+	private static final Collection.Key SUBJECT = KeyConstants._subject;
+	private static final Collection.Key SIZE = KeyConstants._size;
+	private static final Collection.Key FROM = KeyConstants._from;
+	private static final Collection.Key MESSAGE_NUMBER = KeyConstants._messagenumber;
+	private static final Collection.Key MESSAGE_ID = KeyConstants._messageid;
+	private static final Collection.Key REPLYTO = KeyConstants._replyto;
+	private static final Collection.Key CC = KeyConstants._cc;
+	private static final Collection.Key BCC = KeyConstants._bcc;
+	private static final Collection.Key TO = KeyConstants._to;
+	private static final Collection.Key UID = KeyConstants._uid;
+	private static final Collection.Key HEADER = KeyConstants._header;
+	private static final Collection.Key BODY = KeyConstants._body;
+	private static final Collection.Key CIDS = KeyConstants._cids;
+	private static final Collection.Key TEXT_BODY = KeyConstants._textBody;
+	private static final Collection.Key HTML_BODY = KeyConstants._HTMLBody;
+	private static final Collection.Key ATTACHMENTS = KeyConstants._attachments;
+	private static final Collection.Key ATTACHMENT_FILES = KeyConstants._attachmentfiles;
+	private static final Collection.Key ANSWERED = KeyConstants._answered;
+	private static final Collection.Key DELETED = KeyConstants._deleted;
+	private static final Collection.Key DRAFT = KeyConstants._draft;
+	private static final Collection.Key FLAGGED = KeyConstants._flagged;
+	private static final Collection.Key RECENT = KeyConstants._recent;
+	private static final Collection.Key SEEN = KeyConstants._seen;
 
 	public static final int TYPE_POP3 = 0;
 	public static final int TYPE_IMAP = 1;
 
-	private String _flddo[] = { "date", "from", "messagenumber", "messageid", "replyto", "subject", "cc", "to", "size", "header", "uid" };
-	private String _fldnew[] = { "date", "from", "messagenumber", "messageid", "replyto", "subject", "cc", "to", "size", "header", "uid", "body", "textBody", "HTMLBody",
-			"attachments", "attachmentfiles", "cids" };
+	private String _popHeaders[] = { "date", "from", "messagenumber", "messageid", "replyto", "subject", "cc", "to", "size", "header", "uid" };
+	private String _popAll[] = { "date", "from", "messagenumber", "messageid", "replyto", "subject", "cc", "to", "size", "header", "uid", "answered", "deleted", "draft", "flagged",
+			"recent", "seen", "body", "textBody", "HTMLBody", "attachments", "attachmentfiles", "cids" };
+
+	private String _imapHeaders[] = { "date", "from", "messagenumber", "messageid", "replyto", "subject", "cc", "to", "size", "header", "uid", "answered", "deleted", "draft",
+			"flagged", "recent", "seen" };
+	private String _imapAll[] = { "date", "from", "messagenumber", "messageid", "replyto", "subject", "cc", "to", "size", "header", "uid", "answered", "deleted", "draft",
+			"flagged", "recent", "seen", "body", "textBody", "HTMLBody", "attachments", "attachmentfiles", "cids" };
+
 	private String server = null;
 	private String username = null;
 	private String password = null;
@@ -152,6 +147,7 @@ public abstract class MailClient implements PoolItem {
 	private Resource attachmentDirectory = null;
 	private final boolean secure;
 	private static Pool pool = new Pool(60000, 100, 5000);
+	private String delimiter = ",";
 
 	public static MailClient getInstance(int type, String server, int port, String username, String password, boolean secure, String name, String id) throws Exception {
 		String uid;
@@ -162,8 +158,8 @@ public abstract class MailClient implements PoolItem {
 		PoolItem item = pool.get(uid);
 		if (item == null) {
 			if (StringUtil.isEmpty(server)) {
-				if (StringUtil.isEmpty(name)) throw new ApplicationException("missing server information");
-				else throw new ApplicationException("there is no connection available with name [" + name + "]");
+				if (StringUtil.isEmpty(name)) throw new ApplicationException("missing mail server information");
+				else throw new ApplicationException("There is no connection available with name [" + name + "]");
 			}
 			if (TYPE_POP3 == type) pool.put(uid, item = new PopClient(server, port, username, password, secure));
 			if (TYPE_IMAP == type) pool.put(uid, item = new ImapClient(server, port, username, password, secure));
@@ -193,6 +189,7 @@ public abstract class MailClient implements PoolItem {
 		timeout = 60000;
 		startrow = 0;
 		maxrows = -1;
+		delimiter = ",";
 		uniqueFilenames = false;
 		this.server = server;
 		this.port = port;
@@ -237,6 +234,13 @@ public abstract class MailClient implements PoolItem {
 	}
 
 	/**
+	 * @param delimiter The delimiter to set.
+	 */
+	public void setDelimiter(String delimiter) {
+		this.delimiter = delimiter;
+	}
+
+	/**
 	 * connects to pop server
 	 * 
 	 * @throws MessagingException
@@ -245,24 +249,47 @@ public abstract class MailClient implements PoolItem {
 	public void start() throws MessagingException {
 		Properties properties = new Properties();
 		String type = getTypeAsString();
-		properties.put("mail." + type + ".host", server);
-		properties.put("mail." + type + ".port", new Double(port));
-		properties.put("mail." + type + ".connectiontimeout", String.valueOf(timeout));
-		properties.put("mail." + type + ".timeout", String.valueOf(timeout));
-		// properties.put("mail.mime.charset", "UTF-8");
+		properties.setProperty("mail." + type + ".host", server);
+		properties.setProperty("mail." + type + ".port", String.valueOf(port));
+		properties.setProperty("mail." + type + ".connectiontimeout", String.valueOf(timeout));
+		properties.setProperty("mail." + type + ".timeout", String.valueOf(timeout));
+		// properties.setProperty("mail.mime.charset", "UTF-8");
 		if (secure) {
-			properties.put("mail." + type + ".ssl.enable", "true");
-			// properties.put("mail."+type+".starttls.enable", "true" );
+			properties.setProperty("mail." + type + ".ssl.enable", "true");
+			// properties.setProperty("mail."+type+".starttls.enable", "true" );
+			// allow using untrusted certs, good for CI
+			if (!Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.ssl.checkserveridentity", null), true)) {
+				properties.setProperty("mail." + type + ".ssl.trust", "*");
+				properties.setProperty("mail." + type + ".ssl.checkserveridentity", "false");
+			}
 		}
 
 		if (TYPE_IMAP == getType()) {
-			properties.put("mail.imap.partialfetch", "false");
+			if (secure) {
+				properties.put("mail.store.protocol", "imaps");
+				properties.put("mail.imaps.partialfetch", "false");
+				properties.put("mail.imaps.fetchsize", "1048576");
+			}
+			else {
+				properties.put("mail.store.protocol", "imap");
+				properties.put("mail.imap.partialfetch", "false");
+				properties.put("mail.imap.fetchsize", "1048576");
+			}
 		}
 		// if(TYPE_POP3==getType()){}
-		_session = username != null ? Session.getInstance(properties, new _Authenticator(username, password)) : Session.getInstance(properties);
-		_store = _session.getStore(type);
-		if (!StringUtil.isEmpty(username)) _store.connect(server, username, password);
-		else _store.connect();
+		_session = username != null ? Session.getInstance(properties, new DefaultAuthenticator(username, password)) : Session.getInstance(properties);
+
+		Thread t = Thread.currentThread();
+		ClassLoader ccl = t.getContextClassLoader();
+		t.setContextClassLoader(_session.getClass().getClassLoader());
+		try {
+			_store = _session.getStore(type);
+			if (!StringUtil.isEmpty(username)) _store.connect(server, port, username, password);
+			else _store.connect();
+		}
+		finally {
+			t.setContextClassLoader(ccl);
+		}
 	}
 
 	protected abstract String getTypeAsString();
@@ -276,13 +303,14 @@ public abstract class MailClient implements PoolItem {
 	 * @param uIds
 	 * @throws MessagingException
 	 * @throws IOException
+	 * @throws PageException
 	 */
-	public void deleteMails(String as[], String as1[]) throws MessagingException, IOException {
+	public void deleteMails(String messageNumber, String uid) throws MessagingException, IOException, PageException {
 		Folder folder;
 		Message amessage[];
 		folder = _store.getFolder("INBOX");
 		folder.open(2);
-		Map<String, Message> map = getMessages(null, folder, as1, as, startrow, maxrows, false);
+		Map<String, Message> map = getMessages(null, folder, uid, messageNumber, startrow, maxrows, false);
 		Iterator<String> iterator = map.keySet().iterator();
 		amessage = new Message[map.size()];
 		int i = 0;
@@ -306,9 +334,17 @@ public abstract class MailClient implements PoolItem {
 	 * @return all messages from inbox
 	 * @throws MessagingException
 	 * @throws IOException
+	 * @throws PageException
 	 */
-	public Query getMails(String[] messageNumbers, String[] uids, boolean all, String folderName) throws MessagingException, IOException {
-		Query qry = new QueryImpl(all ? _fldnew : _flddo, 0, "query");
+	public Query getMails(String messageNumbers, String uids, boolean all, String folderName) throws MessagingException, IOException, PageException {
+		Query qry;
+		if (getType() == TYPE_IMAP) {
+			qry = new QueryImpl(all ? _imapAll : _imapHeaders, 0, "query");
+		}
+		else {
+			qry = new QueryImpl(all ? _popAll : _popHeaders, 0, "query");
+		}
+
 		if (StringUtil.isEmpty(folderName, true)) folderName = "INBOX";
 		else folderName = folderName.trim();
 
@@ -329,7 +365,8 @@ public abstract class MailClient implements PoolItem {
 		try {
 			qry.setAtEL(DATE, row, Caster.toDate(message.getSentDate(), true, null, null));
 		}
-		catch (MessagingException e) {}
+		catch (MessagingException e) {
+		}
 
 		// subject
 		try {
@@ -341,12 +378,13 @@ public abstract class MailClient implements PoolItem {
 
 		// size
 		try {
-			qry.setAtEL(SIZE, row, new Double(message.getSize()));
+			qry.setAtEL(SIZE, row, Double.valueOf(message.getSize()));
 		}
-		catch (MessagingException e) {}
+		catch (MessagingException e) {
+		}
 
 		qry.setAtEL(FROM, row, toList(getHeaderEL(message, "from")));
-		qry.setAtEL(MESSAGE_NUMBER, row, new Double(message.getMessageNumber()));
+		qry.setAtEL(MESSAGE_NUMBER, row, Double.valueOf(message.getMessageNumber()));
 		qry.setAtEL(MESSAGE_ID, row, toList(getHeaderEL(message, "Message-ID")));
 		String s = toList(getHeaderEL(message, "reply-to"));
 		if (s.length() == 0) {
@@ -357,6 +395,15 @@ public abstract class MailClient implements PoolItem {
 		qry.setAtEL(BCC, row, toList(getHeaderEL(message, "bcc")));
 		qry.setAtEL(TO, row, toList(getHeaderEL(message, "to")));
 		qry.setAtEL(UID, row, uid);
+		if (getType() == TYPE_IMAP) {
+			qry.setAtEL(ANSWERED, row, isSetEL(message, Flags.Flag.ANSWERED));
+			qry.setAtEL(DELETED, row, isSetEL(message, Flags.Flag.DELETED));
+			qry.setAtEL(DRAFT, row, isSetEL(message, Flags.Flag.DRAFT));
+			qry.setAtEL(FLAGGED, row, isSetEL(message, Flags.Flag.FLAGGED));
+			qry.setAtEL(RECENT, row, isSetEL(message, Flags.Flag.RECENT));
+			qry.setAtEL(SEEN, row, isSetEL(message, Flags.Flag.SEEN));
+		}
+
 		StringBuffer content = new StringBuffer();
 		try {
 			for (Enumeration enumeration = message.getAllHeaders(); enumeration.hasMoreElements(); content.append('\n')) {
@@ -366,7 +413,8 @@ public abstract class MailClient implements PoolItem {
 				content.append(header.getValue());
 			}
 		}
-		catch (MessagingException e) {}
+		catch (MessagingException e) {
+		}
 		qry.setAtEL(HEADER, row, content.toString());
 
 		if (all) {
@@ -383,6 +431,15 @@ public abstract class MailClient implements PoolItem {
 		}
 	}
 
+	private boolean isSetEL(Message message, Flags.Flag flag) {
+		try {
+			return message.isSet(flag);
+		}
+		catch (MessagingException e) {
+			return false;
+		}
+	}
+
 	/**
 	 * gets all messages from given Folder that match given criteria
 	 * 
@@ -396,26 +453,44 @@ public abstract class MailClient implements PoolItem {
 	 * @return
 	 * @return matching Messages
 	 * @throws MessagingException
+	 * @throws PageException
 	 */
-	private Map<String, Message> getMessages(Query qry, Folder folder, String[] uids, String[] messageNumbers, int startRow, int maxRow, boolean all) throws MessagingException {
+	private Map<String, Message> getMessages(Query qry, Folder folder, String uids, String messageNumbers, int startRow, int maxRow, boolean all)
+			throws MessagingException, PageException {
 
-		Message[] messages = folder.getMessages();
+		Message[] messages = null;
+		String[] uidsStringArray = null;
 		Map<String, Message> map = qry == null ? new HashMap<String, Message>() : null;
 		int k = 0;
 		if (uids != null || messageNumbers != null) {
 			startRow = 0;
 			maxRow = -1;
 		}
+		if (uids != null) {
+			if (getType() == TYPE_IMAP) {
+				messages = ((UIDFolder) folder).getMessagesByUID(ListUtil.listToLongArray(uids, delimiter));
+			}
+			else { // POP3 folder doesn't supports the getMessagesByUID method from UIDFolder
+				uidsStringArray = ArrayUtil.trimItems(ListUtil.toStringArray(ListUtil.listToArrayRemoveEmpty(uids, delimiter)));
+			}
+		}
+		else if (messageNumbers != null) {
+			messages = folder.getMessages(ListUtil.listToIntArrayWithMaxRange(messageNumbers, ',', folder.getMessageCount()));
+		}
+
+		if (messages == null) messages = folder.getMessages();
+
 		Message message;
 		for (int l = startRow; l < messages.length; l++) {
 			if (maxRow != -1 && k == maxRow) {
 				break;
 			}
 			message = messages[l];
-			int messageNumber = message.getMessageNumber();
+			if (message == null) continue; // because the message can be a null for non existing messageNumbers
+
 			String id = getId(folder, message);
 
-			if (uids == null ? messageNumbers == null || contains(messageNumbers, messageNumber) : contains(uids, id)) {
+			if (uidsStringArray == null || (uidsStringArray != null && contains(uidsStringArray, id))) {
 				k++;
 				if (qry != null) {
 					toQuery(qry, message, id, all);
@@ -477,13 +552,15 @@ public abstract class MailClient implements PoolItem {
 					try {
 						query.setAtEL(ATTACHMENTS, row, ListUtil.arrayToList(attachments, "\t"));
 					}
-					catch (PageException pageexception) {}
+					catch (PageException pageexception) {
+					}
 				}
 				if (attachmentFiles.size() > 0) {
 					try {
 						query.setAtEL(ATTACHMENT_FILES, row, ListUtil.arrayToList(attachmentFiles, "\t"));
 					}
-					catch (PageException pageexception1) {}
+					catch (PageException pageexception1) {
+					}
 				}
 
 			}
@@ -566,6 +643,10 @@ public abstract class MailClient implements PoolItem {
 
 				cids.setEL(KeyImpl.init(filename), cid);
 			}
+			else if ((content = bodypart.getContent()) instanceof MimeMessage) {
+				content = getConent(bodypart);
+				if (body.length() == 0) body.append(content);
+			}
 		}
 	}
 
@@ -597,15 +678,22 @@ public abstract class MailClient implements PoolItem {
 		InputStream is = null;
 
 		try {
-			return getContent(is = bp.getInputStream(), CharsetUtil.toCharset(getCharsetFromContentType(bp.getContentType())));
+			if ((bp.getContent()) instanceof MimeMessage) {
+				MimeMessage mimeContent = (MimeMessage) bp.getContent();
+				is = mimeContent.getInputStream();
+			}
+			else {
+				is = bp.getInputStream();
+			}
+			return getContent(is, CharsetUtil.toCharset(getCharsetFromContentType(bp.getContentType())));
 		}
 		catch (IOException mie) {
 			IOUtil.closeEL(is);
 			try {
-				return getContent(is = bp.getInputStream(), SystemUtil.getCharset());
+				return getContent(is, SystemUtil.getCharset());
 			}
 			catch (IOException e) {
-				return "Can't read body of this message:" + e.getMessage();
+				return "Cannot read body of this message: " + e.getMessage();
 			}
 		}
 		finally {
@@ -645,10 +733,11 @@ public abstract class MailClient implements PoolItem {
 	 * @param ids
 	 * @param id
 	 * @return has element found or not
+	 * @throws PageException
 	 */
-	private boolean contains(String ids[], String id) {
+	private boolean contains(String ids[], String id) throws PageException {
 		for (int i = 0; i < ids.length; i++) {
-			if (Operator.compare(ids[i], id) == 0) return true;
+			if (OpUtil.compare(ThreadLocalPageContext.get(), ids[i], id) == 0) return true;
 		}
 		return false;
 	}
@@ -659,10 +748,11 @@ public abstract class MailClient implements PoolItem {
 	 * @param ids
 	 * @param id
 	 * @return has element found or not
+	 * @throws PageException
 	 */
-	private boolean contains(String ids[], int id) {
+	private boolean contains(String ids[], int id) throws PageException {
 		for (int i = 0; i < ids.length; i++) {
-			if (Operator.compare(ids[i], id) == 0) return true;
+			if (OpUtil.compare(ThreadLocalPageContext.get(), ids[i], id) == 0) return true;
 		}
 		return false;
 	}
@@ -686,12 +776,13 @@ public abstract class MailClient implements PoolItem {
 		try {
 			if (_store != null) _store.close();
 		}
-		catch (Exception exception) {}
+		catch (Exception exception) {
+		}
 	}
 
 	// IMAP only
 	public void createFolder(String folderName) throws MessagingException, ApplicationException {
-		if (folderExists(folderName)) throw new ApplicationException("cannot create folder [" + folderName + "], folder already exists.");
+		if (folderExists(folderName)) throw new ApplicationException("Cannot create imap folder [" + folderName + "], the folder already exists.");
 
 		Folder folder = getFolder(folderName, null, false, true);
 		if (!folder.exists()) folder.create(Folder.HOLDS_MESSAGES);
@@ -715,26 +806,26 @@ public abstract class MailClient implements PoolItem {
 	public void deleteFolder(String folderName) throws MessagingException, ApplicationException {
 
 		if (folderName.equalsIgnoreCase("INBOX") || folderName.equalsIgnoreCase("OUTBOX"))
-			throw new ApplicationException("cannot delete folder [" + folderName + "], this folder is protected.");
+			throw new ApplicationException("Cannot delete folder [" + folderName + "], this folder is protected.");
 
 		String[] folderNames = toFolderNames(folderName);
 		Folder folder = _store.getFolder(folderNames[0]);
 		if (!folder.exists()) {
-			throw new ApplicationException("there is no folder with name [" + folderName + "].");
+			throw new ApplicationException("There is no folder with name [" + folderName + "].");
 		}
 		folder.delete(true);
 	}
 
 	public void renameFolder(String srcFolderName, String trgFolderName) throws MessagingException, ApplicationException {
 		if (srcFolderName.equalsIgnoreCase("INBOX") || srcFolderName.equalsIgnoreCase("OUTBOX"))
-			throw new ApplicationException("cannot rename folder [" + srcFolderName + "], this folder is protected.");
+			throw new ApplicationException("Cannot rename folder [" + srcFolderName + "], this folder is protected.");
 		if (trgFolderName.equalsIgnoreCase("INBOX") || trgFolderName.equalsIgnoreCase("OUTBOX"))
-			throw new ApplicationException("cannot rename folder to [" + trgFolderName + "], this folder name is protected.");
+			throw new ApplicationException("Cannot rename folder to [" + trgFolderName + "], this folder name is protected.");
 
 		Folder src = getFolder(srcFolderName, true, true, false);
 		Folder trg = getFolder(trgFolderName, null, false, true);
 
-		if (!src.renameTo(trg)) throw new ApplicationException("cannot rename folder [" + srcFolderName + "] to [" + trgFolderName + "].");
+		if (!src.renameTo(trg)) throw new ApplicationException("Cannot rename folder [" + srcFolderName + "] to [" + trgFolderName + "].");
 	}
 
 	public Query listAllFolder(String folderName, boolean recurse, int startrow, int maxrows) throws MessagingException, PageException {
@@ -742,13 +833,13 @@ public abstract class MailClient implements PoolItem {
 		// if(StringUtil.isEmpty(folderName)) folderName="INBOX";
 		Folder folder = (StringUtil.isEmpty(folderName)) ? _store.getDefaultFolder() : _store.getFolder(folderName);
 		// Folder folder=_store.getFolder(folderName);
-		if (!folder.exists()) throw new ApplicationException("there is no folder with name [" + folderName + "].");
+		if (!folder.exists()) throw new ApplicationException("There is no folder with name [" + folderName + "].");
 
 		list(folder, qry, recurse, startrow, maxrows, 0);
 		return qry;
 	}
 
-	public void moveMail(String srcFolderName, String trgFolderName, String as[], String as1[]) throws MessagingException, ApplicationException {
+	public void moveMail(String srcFolderName, String trgFolderName, String messageNumber, String uid) throws MessagingException, PageException {
 		if (StringUtil.isEmpty(srcFolderName, true)) srcFolderName = "INBOX";
 
 		Folder srcFolder = getFolder(srcFolderName, true, true, false);
@@ -758,7 +849,7 @@ public abstract class MailClient implements PoolItem {
 			srcFolder.open(2);
 			trgFolder.open(2);
 			Message amessage[];
-			Map<String, Message> map = getMessages(null, srcFolder, as1, as, startrow, maxrows, false);
+			Map<String, Message> map = getMessages(null, srcFolder, uid, messageNumber, startrow, maxrows, false);
 			Iterator<String> iterator = map.keySet().iterator();
 			amessage = new Message[map.size()];
 			int i = 0;
@@ -785,7 +876,7 @@ public abstract class MailClient implements PoolItem {
 			folder.setFlags(msgs, new Flags(Flags.Flag.SEEN), true);
 		}
 		finally {
-			IOUtil.closeEL(folder);
+			if (folder != null) folder.close(false);
 		}
 	}
 
@@ -800,16 +891,16 @@ public abstract class MailClient implements PoolItem {
 			// top
 			if (i + 1 == folderNames.length) {
 				if (existing != null) {
-					if (existing.booleanValue() && !folder.exists()) throw new ApplicationException("there is no folder with name [" + folderName + "].");
-					if (!existing.booleanValue() && folder.exists()) throw new ApplicationException("there is alredy a folder with name [" + folderName + "].");
+					if (existing.booleanValue() && !folder.exists()) throw new ApplicationException("There is no folder with name [" + folderName + "].");
+					if (!existing.booleanValue() && folder.exists()) throw new ApplicationException("There is already a folder with name [" + folderName + "].");
 				}
 			}
 			// parent
 			else {
 				if (existingParent != null) {
-					if (existingParent.booleanValue() && !folder.exists()) throw new ApplicationException("there is no parent folder for folder with name [" + folderName + "].");
+					if (existingParent.booleanValue() && !folder.exists()) throw new ApplicationException("There is no parent folder for folder with name [" + folderName + "].");
 					if (!existingParent.booleanValue() && folder.exists())
-						throw new ApplicationException("there is alredy a parent folder for folder with name [" + folderName + "].");
+						throw new ApplicationException("There is already a parent folder for folder with name [" + folderName + "].");
 				}
 				if (createParentIfNotExists && !folder.exists()) {
 					folder.create(Folder.HOLDS_MESSAGES);
@@ -831,14 +922,15 @@ public abstract class MailClient implements PoolItem {
 			}
 			// max rows
 			if (maxrows > 0 && qry.getRecordcount() >= maxrows) break;
-
+			if ((f.getType() & Folder.HOLDS_MESSAGES) == 0) continue;
 			int row = qry.addRow();
 
 			Folder p = null;
 			try {
 				p = f.getParent();
 			}
-			catch (MessagingException me) {}
+			catch (MessagingException me) {
+			}
 
 			qry.setAt(KeyConstants._NAME, row, f.getName());
 			qry.setAt(FULLNAME, row, f.getFullName());

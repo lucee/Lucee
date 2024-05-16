@@ -45,7 +45,7 @@ public interface Credential extends ScriptConvertable {
 	 * encode rhe Credential to a Base64 String value
 	 * 
 	 * @return base64 encoded string
-	 * @throws PageException
+	 * @throws PageException Page Exception
 	 */
 	public abstract String encode() throws PageException;
 

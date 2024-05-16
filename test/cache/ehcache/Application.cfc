@@ -59,4 +59,7 @@
 	THIS.clientStorage = "perAppCache";
 
 	
+	public function onRequestStart() {
+		setting requesttimeout=10;
+	}
 }

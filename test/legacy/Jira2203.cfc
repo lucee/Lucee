@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU Lesser General Public 
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  * 
- ---><cfcomponent extends="org.lucee.cfml.test.LuceeTestCase">
+ ---><cfcomponent extends="org.lucee.cfml.test.LuceeTestCase" labels="qoq">
 	<!---
 	<cffunction name="afterTests"></cffunction>
 	<cffunction name="setUp"></cffunction>

@@ -46,10 +46,10 @@ public class GeneratePBKDFKey extends BIF {
 
 	public static String call(PageContext pc, String algorithm, String passPhrase, String salt, double iterations, double keySize) throws PageException {
 		// algo
-		if (StringUtil.isEmpty(algorithm)) throw new FunctionException(pc, "GeneratePBKDFKey", 1, "algorithm", "algorithm argument is empty.");
+		if (StringUtil.isEmpty(algorithm)) throw new FunctionException(pc, "GeneratePBKDFKey", 1, "algorithm", "Argument [algorithm] is empty.");
 		algorithm = algorithm.trim();
 		if (!StringUtil.startsWithIgnoreCase(algorithm, "PBK"))
-			throw new FunctionException(pc, "GeneratePBKDFKey", 1, "algorithm", "algorithm [" + algorithm + "] is not supported.");
+			throw new FunctionException(pc, "GeneratePBKDFKey", 1, "algorithm", "Algorithm [" + algorithm + "] is not supported.");
 
 		// TODO add provider to support addional keys by addin a provider that is supporting it
 		SecretKeyFactory key = null;
@@ -58,7 +58,7 @@ public class GeneratePBKDFKey extends BIF {
 		}
 		catch (NoSuchAlgorithmException e) {
 			if (!algorithm.equalsIgnoreCase("PBKDF2WithHmacSHA1"))
-				throw new FunctionException(pc, "GeneratePBKDFKey", 1, "algorithm", "only the algorithm [PBKDF2WithHmacSHA1] is supported by the build in .");
+				throw new FunctionException(pc, "GeneratePBKDFKey", 1, "algorithm", "The only supported algorithm is [PBKDF2WithHmacSHA1].");
 			else throw Caster.toPageException(e);
 
 		}

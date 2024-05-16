@@ -34,8 +34,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
-import javax.servlet.jsp.JspException;
-
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.log.Log;
 import lucee.commons.lang.ExceptionUtil;
@@ -49,7 +47,7 @@ import lucee.runtime.cache.tag.CacheHandlerPro;
 import lucee.runtime.cache.tag.CacheItem;
 import lucee.runtime.cache.tag.query.StoredProcCacheItem;
 import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.config.Constants;
 import lucee.runtime.db.CFTypes;
@@ -63,6 +61,7 @@ import lucee.runtime.db.ProcMetaCollection;
 import lucee.runtime.db.SQLCaster;
 import lucee.runtime.db.SQLImpl;
 import lucee.runtime.db.SQLItemImpl;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.DatabaseException;
 import lucee.runtime.exp.PageException;
@@ -89,12 +88,12 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 	private static final int TYPE_NAME = 7;
 	// |PRECISION|LENGTH|SCALE|RADIX|NULLABLE|REMARKS|SEQUENCE|OVERLOAD|DEFAULT_VALUE
 
-	private static final lucee.runtime.type.Collection.Key KEY_SC = KeyImpl.intern("StatusCode");
+	private static final lucee.runtime.type.Collection.Key KEY_SC = KeyConstants._StatusCode;
 
-	private static final lucee.runtime.type.Collection.Key COUNT = KeyImpl.intern("count_afsdsfgdfgdsfsdfsgsdgsgsdgsasegfwef");
+	private static final lucee.runtime.type.Collection.Key COUNT = KeyConstants._count_afsdsfgdfgdsfsdfsgsdgsgsdgsasegfwef;
 
 	private static final ProcParamBean STATUS_CODE;
-	private static final lucee.runtime.type.Collection.Key STATUSCODE = KeyImpl.intern("StatusCode");
+	private static final lucee.runtime.type.Collection.Key STATUSCODE = KeyConstants._StatusCode;
 
 	static {
 		STATUS_CODE = new ProcParamBean();
@@ -267,7 +266,7 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 	}
 
 	@Override
-	public int doStartTag() throws JspException {
+	public int doStartTag() throws PageException {
 
 		// cache within
 		if (StringUtil.isEmpty(cachedWithin)) {
@@ -490,7 +489,7 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 			}
 		}
 		finally {
-			IOUtil.closeEL(rsProcColumns);
+			IOUtil.close(rsProcColumns);
 		}
 
 		if (getLog().getLogLevel() >= Log.LEVEL_DEBUG) {
@@ -606,7 +605,7 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 
 			if (useCache) {
 
-				cacheId = CacheHandlerCollectionImpl.createId(_sql, dsn, username, password, Query.RETURN_TYPE_STORED_PROC);
+				cacheId = CacheHandlerCollectionImpl.createId(_sql, dsn, username, password, Query.RETURN_TYPE_STORED_PROC, 0);
 				cacheHandler = pageContext.getConfig().getCacheHandlerCollection(Config.CACHE_TYPE_QUERY, null).getInstanceMatchingObject(cachedWithin, null);
 
 				if (cacheHandler instanceof CacheHandlerPro) {
@@ -643,11 +642,11 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 									count += q.getRecordcount();
 									setVariable(result.getName(), q);
 
-									if (useCache) cacheStruct.set(KeyImpl.getInstance(result.getName()), q);
+									if (useCache) cacheStruct.set(KeyImpl.init(result.getName()), q);
 								}
 							}
 							finally {
-								IOUtil.closeEL(rs);
+								IOUtil.close(rs);
 							}
 						}
 					}
@@ -672,7 +671,7 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 							if (param == STATUS_CODE) res.set(STATUSCODE, value);
 							else setVariable(param.getVariable(), value);
 
-							if (useCache) cacheStruct.set(KeyImpl.getInstance(param.getVariable()), value);
+							if (useCache) cacheStruct.set(KeyImpl.init(param.getVariable()), value);
 						}
 					}
 				}
@@ -704,7 +703,7 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 			res.set(KeyConstants._cached, Caster.toBoolean(isFromCache));
 
 			if (pageContext.getConfig().debug() && debug) {
-				boolean logdb = ((ConfigImpl) pageContext.getConfig()).hasDebugOptions(ConfigImpl.DEBUG_DATABASE);
+				boolean logdb = ((ConfigPro) pageContext.getConfig()).hasDebugOptions(ConfigPro.DEBUG_DATABASE);
 				if (logdb) pageContext.getDebugger().addQuery(null, dsn, procedure, _sql, count, pageContext.getCurrentPageSource(), (int) exe);
 			}
 
@@ -728,7 +727,8 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 				try {
 					callStat.close();
 				}
-				catch (SQLException e) {}
+				catch (SQLException e) {
+				}
 			}
 			manager.releaseConnection(pageContext, dc);
 		}
@@ -783,7 +783,7 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 	}
 
 	private Log getLog() {
-		return pageContext.getConfig().getLog("datasource");
+		return ThreadLocalPageContext.getLog(pageContext, "datasource");
 	}
 
 	private String getParamTypesPassed() {

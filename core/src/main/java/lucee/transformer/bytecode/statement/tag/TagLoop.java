@@ -133,9 +133,10 @@ public final class TagLoop extends TagGroup implements FlowControlBreak, FlowCon
 
 	static final Method GET_ID = new Method("getId", Types.INT_VALUE, new Type[] {});
 	private static final Method READ = new Method("read", Types.STRING, new Type[] { Types.READER, Types.INT_VALUE });
-	private static final Method ENTRY_ITERATOR = new Method("entryIterator", Types.ITERATOR, new Type[] {});
+	private static final Method TO_ENTRY_ITERATOR = new Method("toEntryIterator", Types.ITERATOR, new Type[] { Types.OBJECT });
 	private static final Method GET_KEY = new Method("getKey", Types.OBJECT, new Type[] {});
 	private static final Method GET_VALUE = new Method("getValue", Types.OBJECT, new Type[] {});
+	final public static Method METHOD_TO_STRING_WHEN_KEY = new Method("toStringWhenKey", Types.OBJECT, new Type[] { Types.OBJECT });
 
 	private int type;
 	private LoopVisitor loopVisitor;
@@ -218,7 +219,7 @@ public final class TagLoop extends TagGroup implements FlowControlBreak, FlowCon
 			break;
 
 		default:
-			throw new TransformerException("invalid type", getStart());
+			throw new TransformerException(bc, "invalid type", getStart());
 		}
 	}
 
@@ -287,9 +288,7 @@ public final class TagLoop extends TagGroup implements FlowControlBreak, FlowCon
 		if (hasIndexAndItem) {
 			entry = adapter.newLocal(Types.MAP_ENTRY);
 			// Caster.toCollection(collection)
-			adapter.invokeStatic(Types.CASTER, Methods_Caster.TO_COLLECTION);
-			// coll.entryIterator();
-			adapter.invokeInterface(Types.COLLECTION, ENTRY_ITERATOR);
+			adapter.invokeStatic(Types.CASTER, TO_ENTRY_ITERATOR);
 		}
 		else {
 			// if(hasItem) adapter.invokeStatic(ForEach.FOR_EACH_UTIL,ForEach.FOR_EACH);
@@ -316,7 +315,7 @@ public final class TagLoop extends TagGroup implements FlowControlBreak, FlowCon
 			adapter.loadArg(0);
 			adapter.loadLocal(entry);
 			adapter.invokeInterface(Types.MAP_ENTRY, GET_KEY);
-			adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_STRING);
+			adapter.invokeStatic(Types.CASTER, METHOD_TO_STRING_WHEN_KEY);
 			adapter.invokeVirtual(Types.VARIABLE_REFERENCE, SET);
 			adapter.pop();
 
@@ -547,7 +546,7 @@ public final class TagLoop extends TagGroup implements FlowControlBreak, FlowCon
 			adapter.loadArg(0);
 			adapter.loadLocal(count);
 			adapter.cast(Types.INT_VALUE, Types.DOUBLE_VALUE);
-			adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_DOUBLE_FROM_DOUBLE);
+			adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_DOUBLE_FROM_DOUBLE_VALUE);
 
 			adapter.invokeVirtual(Types.VARIABLE_REFERENCE, SET);
 			adapter.pop();

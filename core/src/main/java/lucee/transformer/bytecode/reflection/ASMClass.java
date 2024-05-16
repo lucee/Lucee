@@ -522,7 +522,7 @@ public final class ASMClass implements java.io.Serializable {
 	 */
 	public ASMMethod[] getMethods() throws SecurityException {
 		_throw();
-		return methods.entrySet().toArray(new ASMMethod[methods.size()]);
+		return methods.values().toArray(new ASMMethod[methods.size()]);
 	}
 
 	/**

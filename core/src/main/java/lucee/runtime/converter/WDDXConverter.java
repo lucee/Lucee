@@ -21,8 +21,9 @@ package lucee.runtime.converter;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
-import java.util.HashSet;
+import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
@@ -50,7 +51,7 @@ import lucee.runtime.PageContext;
 import lucee.runtime.coder.Base64Coder;
 import lucee.runtime.coder.CoderException;
 import lucee.runtime.component.Property;
-import lucee.runtime.config.ConfigWebImpl;
+import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
@@ -79,7 +80,7 @@ import lucee.runtime.type.util.KeyConstants;
  */
 public final class WDDXConverter extends ConverterSupport {
 
-	private static final Collection.Key REMOTING_FETCH = KeyImpl.intern("remotingFetch");
+	private static final Collection.Key REMOTING_FETCH = KeyConstants._remotingFetch;
 
 	private static final List<String> KNOWN_STRUCT_TYPES = Arrays.asList(new String[] { "coldfusion.server.ConfigMap" });
 
@@ -325,7 +326,7 @@ public final class WDDXConverter extends ConverterSupport {
 		// fieldnames
 		PageContext pc = ThreadLocalPageContext.get();
 		boolean upperCase = false;
-		if (pc != null) upperCase = pc.getCurrentTemplateDialect() == CFMLEngine.DIALECT_CFML && !((ConfigWebImpl) pc.getConfig()).preserveCase();
+		if (pc != null) upperCase = pc.getCurrentTemplateDialect() == CFMLEngine.DIALECT_CFML && !((ConfigWebPro) pc.getConfig()).preserveCase();
 
 		StringBuilder fn = new StringBuilder();
 		Collection.Key[] keys = CollectionUtil.keys(query);
@@ -383,7 +384,7 @@ public final class WDDXConverter extends ConverterSupport {
 		}
 		// Number
 		if (object instanceof Number) {
-			rtn = goIn() + "<number>" + ((Number) object).doubleValue() + "</number>";
+			rtn = goIn() + "<number>" + Caster.toString((Number) object) + "</number>";
 			deep--;
 			return rtn;
 		}
@@ -489,7 +490,7 @@ public final class WDDXConverter extends ConverterSupport {
 		deep++;
 		sb.append(goIn() + "<header/>");
 		sb.append(goIn() + "<data>");
-		sb.append(_serialize(object, new HashSet<Object>()));
+		sb.append(_serialize(object, Collections.newSetFromMap(new IdentityHashMap<>())));
 		sb.append(goIn() + "</data>");
 		deep--;
 		sb.append("</wddxPacket>");
@@ -520,23 +521,36 @@ public final class WDDXConverter extends ConverterSupport {
 					wddxPacket = node;
 					break;
 				}
+				else if (node.getNodeType() != Node.COMMENT_NODE) {
+					throw new IllegalArgumentException("Invalid WDDX packet: root element is not wddxPacket.");
+				}
 			}
 
 			NodeList nl = wddxPacket.getChildNodes();
 			int n = nl.getLength();
+
+			if (n == 0) return null;
+
+			int ignored = 0;
 
 			for (int i = 0; i < n; i++) {
 				Node data = nl.item(i);
 				if (data.getNodeName().equals("data")) {
 					NodeList list = data.getChildNodes();
 					len = list.getLength();
+					if (len == 0) return null;
 					for (int y = 0; y < len; y++) {
 						Node node = list.item(y);
 						if (node instanceof Element) return _deserialize((Element) node);
 
 					}
 				}
+				else if (data.getNodeType() != Node.ELEMENT_NODE) {
+					ignored++;
+				}
 			}
+
+			if (ignored == n) return null; // only whitespace or comments, thus empty
 
 			throw new IllegalArgumentException("Invalid WDDX Format: node 'data' not found in WDD packet");
 
@@ -575,7 +589,7 @@ public final class WDDXConverter extends ConverterSupport {
 		else if (nodeName.equals("number")) {
 			try {
 				Node data = element.getFirstChild();
-				if (data == null) return new Double(0);
+				if (data == null) return Double.valueOf(0);
 				return Caster.toDouble(data.getNodeValue());
 			}
 			catch (Exception e) {
@@ -682,7 +696,7 @@ public final class WDDXConverter extends ConverterSupport {
 		if (node instanceof CharacterData) {
 			String data = ((CharacterData) node).getData();
 			try {
-				return Base64Coder.decode(data);
+				return Base64Coder.decode(data, true);
 			}
 			catch (CoderException e) {
 				throw new ConverterException(e.getMessage());
@@ -735,7 +749,7 @@ public final class WDDXConverter extends ConverterSupport {
 			comp = pc.loadComponent(name);
 			if (!ComponentUtil.md5(comp).equals(md5)) {
 				throw new ConverterException("component [" + name
-						+ "] in this enviroment has not the same interface as the component to load, it is possible that one off the components has Functions added dynamicly.");
+						+ "] in this environment has not the same interface as the component to load, it is possible that one off the components has Functions added dynamically.");
 			}
 		}
 		catch (ConverterException e) {

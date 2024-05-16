@@ -36,7 +36,7 @@ import lucee.commons.io.res.ResourceProvider;
 import lucee.commons.io.res.type.ram.RamResourceProviderOld;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.op.Caster;
 
@@ -88,7 +88,7 @@ public final class Compress {
 	 * @throws IOException
 	 */
 	public static Compress getInstance(Resource zipFile, int format, boolean caseSensitive) throws IOException {
-		ConfigImpl config = (ConfigImpl) ThreadLocalPageContext.getConfig();
+		ConfigPro config = (ConfigPro) ThreadLocalPageContext.getConfig();
 		return config.getCompressInstance(zipFile, format, caseSensitive);
 	}
 
@@ -137,13 +137,15 @@ public final class Compress {
 			try {
 				CompressUtil.extract(format, ffile, root);
 			}
-			catch (IOException e) {}
+			catch (IOException e) {
+			}
 		}
 		else {
 			try {
 				ffile.createFile(false);
 			}
-			catch (IOException e) {}
+			catch (IOException e) {
+			}
 			lastMod = ffile.lastModified();
 		}
 	}
@@ -186,7 +188,8 @@ public final class Compress {
 			CompressUtil.compress(format, root.listResources(), ffile, 777);
 			// ramProvider=null;
 		}
-		catch (IOException e) {}
+		catch (IOException e) {
+		}
 	}
 
 	class Synchronizer extends Thread {
@@ -223,7 +226,8 @@ public final class Compress {
 				CompressUtil.compressTar(root.listResources(), tmp, -1);
 				CompressUtil.compressGZip(tmpis, gos);
 			}
-			catch (IOException e) {}
+			catch (IOException e) {
+			}
 			finally {
 				IOUtil.closeEL(gos);
 				IOUtil.closeEL(tmpis);
@@ -245,7 +249,8 @@ public final class Compress {
 				// sync
 				CompressUtil.compressTar(root.listResources(), tos, -1);
 			}
-			catch (IOException e) {}
+			catch (IOException e) {
+			}
 			finally {
 				IOUtil.closeEL(tos);
 				running = false;
@@ -264,7 +269,8 @@ public final class Compress {
 				// sync
 				CompressUtil.compressZip(root.listResources(), zos, null);
 			}
-			catch (IOException e) {}
+			catch (IOException e) {
+			}
 			finally {
 				IOUtil.closeEL(zos);
 				running = false;
@@ -275,7 +281,8 @@ public final class Compress {
 			try {
 				sleep(interval);
 			}
-			catch (InterruptedException e) {}
+			catch (InterruptedException e) {
+			}
 		}
 
 		public boolean isRunning() {

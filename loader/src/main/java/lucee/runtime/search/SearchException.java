@@ -28,14 +28,14 @@ public final class SearchException extends Exception {
 	/**
 	 * constructor o the class
 	 * 
-	 * @param message
+	 * @param message message
 	 */
 	public SearchException(final String message) {
 		super(message);
 	}
 
 	/**
-	 * @param e
+	 * @param e exception
 	 */
 	public SearchException(final Exception e) {
 		super(e.getMessage());

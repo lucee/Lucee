@@ -98,7 +98,8 @@ public final class FTPPoolImpl {
 				client.disconnect();
 			}
 		}
-		catch (IOException ioe) {}
+		catch (IOException ioe) {
+		}
 	}
 
 	public AFTPClient remove(FTPConnection conn) {
@@ -123,7 +124,8 @@ public final class FTPPoolImpl {
 					FTPWrap wrap = entry.getValue();
 					if (wrap != null && wrap.getClient().isConnected()) wrap.getClient().disconnect();
 				}
-				catch (IOException e) {}
+				catch (IOException e) {
+				}
 			}
 			wraps.clear();
 		}

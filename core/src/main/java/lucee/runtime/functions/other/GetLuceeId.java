@@ -25,7 +25,6 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Collection;
-import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.util.KeyConstants;
@@ -37,8 +36,8 @@ public final class GetLuceeId implements Function {
 
 	private static final long serialVersionUID = 105306626462365773L;
 
-	private static final Collection.Key SECURITY_KEY = KeyImpl.intern("securityKey");
-	private static final Collection.Key API_KEY = KeyImpl.intern("apiKey");
+	private static final Collection.Key SECURITY_KEY = KeyConstants._securityKey;
+	private static final Collection.Key API_KEY = KeyConstants._apiKey;
 
 	public static Struct call(PageContext pc) throws PageException {
 		Struct sct = new StructImpl();

@@ -47,7 +47,7 @@ public final class Form extends BodyTagImpl {
 	public static final int FORMAT_HTML = 0;
 	public static final int FORMAT_FLASH = 1;
 	public static final int FORMAT_XML = 2;
-	private static final String DEFAULT_ARCHIVE = "/lucee/lucee-applet.cfm";
+	private static final String DEFAULT_ARCHIVE = "";
 
 	private static final int WMODE_WINDOW = 0;
 	private static final int WMODE_TRANSPARENT = 1;
@@ -186,32 +186,32 @@ public final class Form extends BodyTagImpl {
 	 * @param cssclass The cssclass to set.
 	 */
 	public void setClass(String cssclass) {
-		attributes.setEL("class", cssclass);
+		attributes.setEL(KeyConstants._class, cssclass);
 	}
 
 	/**
 	 * @param cssstyle The cssstyle to set.
 	 */
 	public void setStyle(String cssstyle) {
-		attributes.setEL("style", cssstyle);
+		attributes.setEL(KeyConstants._style, cssstyle);
 	}
 
 	/**
 	 * @param enctype The enctype to set.
 	 */
 	public void setEnctype(String enctype) {
-		attributes.setEL("enctype", enctype);
+		attributes.setEL(KeyConstants._enctype, enctype);
 	}
 
 	/**
 	 * @param id The id to set.
 	 */
 	public void setId(String id) {
-		attributes.setEL("id", id);
+		attributes.setEL(KeyConstants._id, id);
 	}
 
 	public void setAccept(String accept) {
-		attributes.setEL("accept", accept);
+		attributes.setEL(KeyConstants._accept, accept);
 	}
 
 	public void setAcceptcharset(String accept_charset) {
@@ -339,19 +339,19 @@ public final class Form extends BodyTagImpl {
 	 * @param target The target to set.
 	 */
 	public void setTarget(String target) {
-		attributes.setEL("target", target);
+		attributes.setEL(KeyConstants._target, target);
 	}
 
 	public void setTitle(String title) {
-		attributes.setEL("title", title);
+		attributes.setEL(KeyConstants._title, title);
 	}
 
 	public void setDir(String dir) {
-		attributes.setEL("dir", dir);
+		attributes.setEL(KeyConstants._dir, dir);
 	}
 
 	public void setLang(String lang) {
-		attributes.setEL("lang", lang);
+		attributes.setEL(KeyConstants._lang, lang);
 	}
 
 	/**
@@ -417,9 +417,6 @@ public final class Form extends BodyTagImpl {
 	private int _doStartTag() throws PageException, IOException {
 		String contextPath = pageContext.getHttpServletRequest().getContextPath();
 		if (contextPath == null) contextPath = "";
-		if (archive == null) {
-			archive = contextPath + DEFAULT_ARCHIVE;
-		}
 		count = IDGenerator.intId();
 
 		if (name == null) {
@@ -453,7 +450,7 @@ public final class Form extends BodyTagImpl {
 		}
 
 		if (scriptSrc == null) scriptSrc = contextPath + "/lucee/form.cfm";
-		attributes.setEL("method", method);
+		attributes.setEL(KeyConstants._method, method);
 
 		pageContext.forceWrite("<script language = \"JavaScript\" type=\"text/javascript\" src=\"" + scriptSrc + "\"></script>");
 		// if(hasListener) {

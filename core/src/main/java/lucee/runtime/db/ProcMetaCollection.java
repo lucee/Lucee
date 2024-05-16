@@ -28,13 +28,11 @@ public class ProcMetaCollection {
 	public long created = System.currentTimeMillis();
 
 	public ProcMetaCollection(String name, List<ProcMeta> metas) {
-		this.name  = name;
+		this.name = name;
 		this.metas = metas;
 	}
 
 	public static String getParamTypeList(List<ProcMeta> metas) {
-		return metas.stream()
-				.map(pm -> SQLCaster.toStringType(pm.dataType, "?"))
-				.collect(Collectors.joining(", "));
+		return metas.stream().map(pm -> SQLCaster.toStringType(pm.dataType, "?")).collect(Collectors.joining(", "));
 	}
 }

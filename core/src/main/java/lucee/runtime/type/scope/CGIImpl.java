@@ -91,7 +91,8 @@ public final class CGIImpl extends StructSupport implements CGI, ScriptProtected
 			localAddress = addr.getHostAddress();
 			localHost = addr.getHostName();
 		}
-		catch (UnknownHostException uhe) {}
+		catch (UnknownHostException uhe) {
+		}
 	}
 
 	private transient HttpServletRequest req;
@@ -232,9 +233,14 @@ public final class CGIImpl extends StructSupport implements CGI, ScriptProtected
 			try {
 				if (first == 'a') {
 					if (key.equals(KeyConstants._auth_type)) return store(key, toString(req.getAuthType()));
+					if (key.equals(KeyConstants._auth_user)) return store(key, toString(req.getRemoteUser()));
 				}
 				else if (first == 'c') {
 					if (key.equals(KeyConstants._context_path)) return store(key, toString(req.getContextPath()));
+					if (key.equals(KeyConstants._cfid)) {
+						if (pc == null) pc = ThreadLocalPageContext.get();
+						return pc.getCFID();
+					}
 					if (key.equals(KeyConstants._cf_template_path)) return store(key, getPathTranslated());
 				}
 				else if (first == 'h') {

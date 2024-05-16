@@ -19,8 +19,16 @@
 package lucee.commons.io;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.StandardOpenOption;
+
+import lucee.commons.io.res.Resource;
+import lucee.commons.io.res.util.ResourceUtil;
 
 /**
  * Helper methods for file objects
@@ -139,6 +147,68 @@ public final class FileUtil {
 		// handle platform dependent strings
 		str = str.replace('/', java.io.File.separatorChar);
 		return str;
+	}
+
+	/**
+	 * check if there is a windows lock on the given file, on non windows this simply returns false
+	 * 
+	 * @param res
+	 * @return
+	 */
+	public static boolean isLocked(Resource res) {
+
+		if (!(res instanceof File) || !SystemUtil.isWindows() || !res.exists()) return false;
+		try {
+			InputStream is = res.getInputStream();
+			is.close();
+		}
+		catch (FileNotFoundException e) {
+			return true;
+		}
+		catch (Exception e) {
+		}
+
+		return false;
+	}
+
+	/**
+	 * create a temp file from given file if the file is locked, if the file is not locked it returns
+	 * the original file unless the argument force is set
+	 */
+	public static Resource createTempResourceFromLockedResource(Resource res, boolean force) throws IOException {
+		if (!res.isFile()) throw new IOException("file [" + res + "] is not a file");
+		if (!isLocked(res) && !force) return res;
+
+		return _createTempResourceFromLockedResource(res, force);
+	}
+
+	/**
+	 * create a temp file from given file if the file is locked, if the file is not locked it returns
+	 * the original file unless the argument force is set
+	 */
+	public static Resource createTempResourceFromLockedResource(Resource res, boolean force, Resource defaultValue) {
+		if (!res.isFile()) return defaultValue;
+		if (!isLocked(res) && !force) return res;
+
+		try {
+			return _createTempResourceFromLockedResource(res, force);
+		}
+		catch (Exception e) {
+			return defaultValue;
+		}
+	}
+
+	private static Resource _createTempResourceFromLockedResource(Resource res, boolean force) throws IOException {
+		InputStream is;
+		if (res instanceof File) {
+			is = Files.newInputStream(((File) res).toPath(), StandardOpenOption.READ);
+		}
+		else {
+			is = res.getInputStream();
+		}
+		Resource temp = SystemUtil.getTempFile("." + ResourceUtil.getExtension(res, "obj"), true);
+		IOUtil.copy(is, temp, true);
+		return temp;
 	}
 
 }

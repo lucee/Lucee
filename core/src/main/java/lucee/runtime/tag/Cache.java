@@ -353,7 +353,7 @@ public final class Cache extends BodyTagImpl {
 			}
 			finally {
 				IOUtil.flushEL(os);
-				IOUtil.closeEL(os);
+				IOUtil.close(os);
 				((PageContextImpl) pageContext).getRootOut().setClosed(true);
 			}
 			throw new Abort(Abort.SCOPE_REQUEST);

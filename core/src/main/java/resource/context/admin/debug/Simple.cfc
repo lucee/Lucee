@@ -101,23 +101,50 @@
 		<cfif !structKeyExists(arguments.custom,'scopes')><cfset arguments.custom.scopes=false></cfif>
 		<cfif !structKeyExists(arguments.custom,'general')><cfset arguments.custom.general="Enabled"></cfif>
 
-		<cfset var time=getTickCount() />
-		<cfset var _cgi=structKeyExists(arguments.debugging,'cgi')?arguments.debugging.cgi:cgi />
-		<cfset var pages=arguments.debugging.pages />
-		<cfset var queries=arguments.debugging.queries />
-		<cfif not isDefined('arguments.debugging.timers')>
-			<cfset arguments.debugging.timers=queryNew('label,time,template') />
-		</cfif>
-		<cfif not isDefined('arguments.debugging.traces')>
-			<cfset arguments.debugging.traces=queryNew('type,category,text,template,line,var,total,trace') />
-		</cfif>
-		<cfif not isDefined('arguments.debugging.dumps')>
-			<cfset arguments.debugging.traces=queryNew('output,template,line') />
-		</cfif>
-		<cfset var timers=arguments.debugging.timers />
-		<cfset var traces=arguments.debugging.traces />
-		<cfset var dumps=arguments.debugging.dumps />
+		<cfscript>
+			var time=getTickCount();
+			var _cgi = arguments?.debugging?.scope?.cgi ?: cgi;
 
+			if(isNull(arguments.debugging.pages)) 
+				local.pages=queryNew('id,count,min,max,avg,app,load,query,total,src');
+			else local.pages=arguments.debugging.pages;
+
+			var hasQueries=!isNull(arguments.debugging.queries);
+			if(!hasQueries) 
+				local.queries=queryNew('name,time,sql,src,line,count,datasource,usage,cacheTypes');
+			else local.queries=arguments.debugging.queries;
+
+			if(isNull(arguments.debugging.exceptions)) 
+				local.exceptions=[];
+			else local.exceptions=arguments.debugging.exceptions;
+
+			if(isNull(arguments.debugging.timers)) 
+				local.timers=queryNew('label,time,template');
+			else local.timers=arguments.debugging.timers;
+
+			if(isNull(arguments.debugging.traces)) 
+				local.traces=queryNew('type,category,text,template,line,var,total,trace');
+			else local.traces=arguments.debugging.traces;
+
+			if(isNull(arguments.debugging.dumps)) 
+				local.dumps=queryNew('output,template,line');
+			else local.dumps=arguments.debugging.dumps;
+
+			if(isNull(arguments.debugging.implicitAccess)) 
+				local.implicitAccess=queryNew('template,line,scope,count,name');
+			else local.implicitAccess=arguments.debugging.implicitAccess;
+
+			if(isNull(arguments.debugging.dumps)) 
+				local.dumps=queryNew('output,template,line');
+			else local.dumps=arguments.debugging.dumps;
+
+			local.times=arguments.debugging.times;
+		</cfscript>
+
+
+
+
+		
 		<cfset this.allSections = this.buildSectionStruct()>
 		<cfset var isExecOrder  = this.isSectionOpen( "ExecOrder" )>
 
@@ -129,7 +156,6 @@
 			<cfset querySort(pages,"avg","desc") />
 		</cfif>
 
-		<cfset var implicitAccess=arguments.debugging.implicitAccess />
 		<cfset querySort(implicitAccess,"template,line,count","asc,asc,desc") />
 		<cfparam name="arguments.custom.unit" default="millisecond">
 		<cfparam name="arguments.custom.color" default="black">
@@ -185,7 +211,9 @@
 			#-lucee-debug tr.nowrap td { white-space: nowrap; }
 			#-lucee-debug tr.red td, #-lucee-debug .red 	{ background-color: #FDD; }
 
-			#-lucee-debug .sortby.selected, #-lucee-debug .sortby:hover { background-color: #25A; color: #FFF; }
+			#-lucee-debug .sortby.selected, #-lucee-debug .sortby:hover { background-color: #25A; color: #FFF !important; cursor: pointer; text-decoration: none;}
+			.sortby { text-decoration: underline; font-weight: bold; }
+			#-lucee-debug table.details tr > th > a { color: #25A !important; text-decoration: underline; }
 			#-lucee-debug .pad 	{ padding-left: 16px; }
 			#-lucee-debug a 	{ cursor: pointer; }
 			#-lucee-debug td a 	{ color: #25A; }
@@ -280,7 +308,7 @@
 					</cfif>
 
 					<!--- Abort --->
-					<cfif structKeyExists(debugging,"abort")>
+					<cfif structKeyExists(arguments.debugging,"abort")>
 						<div class="section-title">Abort</div>
 						<table>
 							<tr>
@@ -307,36 +335,47 @@
 						<cfset local.bad=pages.avg GTE arguments.custom.highlight*1000>
 						<cfset loa=loa+pages.load />
 					</cfloop>
+					<cfif !hasQueries>
+						<cfset q=arguments.debugging.times.query>
+					</cfif>
+					<cfif pages.recordcount EQ 0>
+						<cfset tot=arguments.debugging.times.total>
+						<cfset q=arguments.debugging.times.query>
+						<cfset loa=0>
+					</cfif>
 
 					<table>
 						<cfset renderSectionHeadTR( sectionId
-							, "#unitFormat( arguments.custom.unit, tot-q-loa, prettify )# ms
-								&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Application" )>
+							, "#unitFormat( arguments.custom.unit, tot, prettify )# ms
+								&nbsp;&nbsp;&nbsp; Total" )>
 
-						<tr><td><table>
+						<tr><td <cfif !pages.recordcount>  id="-lucee-debug-#sectionId#" class="#isOpen ? '' : 'collapsed'#"</cfif>><table>
 							<tr>
 								<td class="pad txt-r">#unitFormat( arguments.custom.unit, loa,prettify )# ms</td>
 								<td class="pad">Startup/Compilation</td>
 							</tr>
 							<tr>
+								<td class="pad txt-r bold">#unitFormat( arguments.custom.unit, tot-q-loa, prettify )# ms</td>
+								<td class="pad bold">Application</td>
+							</tr>
+							<tr>
 								<td class="pad txt-r">#unitFormat( arguments.custom.unit, q,prettify )# ms</td>
 								<td class="pad">Query</td>
 							</tr>
-							<tr>
-								<td class="pad txt-r bold">#unitFormat( arguments.custom.unit, tot, prettify )# ms</td>
-								<td class="pad bold">Total</td>
-							</tr>
 						</table></td></tr>
+						<cfif pages.recordcount>
 						<tr>
 							<td id="-lucee-debug-#sectionId#" class="#isOpen ? '' : 'collapsed'#">
 								<table class="details">
-									<tr>
-										<th>Total Time (ms)</th>
-										<th>Count</th>
-										<th><cfif isExecOrder><a onclick="__LUCEE.debug.clearFlag( 'ExecOrder' ); __LUCEE.util.addClass( this, 'selected' );" class="sortby" title="Order by Avg Time (starting with the next request)">Avg Time</a><cfelse>Avg Time</cfif> (ms)</th>
-										<th>Template</th>
-										<th><cfif isExecOrder>Order<cfelse><a onclick="__LUCEE.debug.setFlag( 'ExecOrder' ); __LUCEE.util.addClass( this, 'selected' );" class="sortby" title="Order by ID (starting with the next request)">Order</a></cfif></th>
-									</tr>
+									<thead>
+										<tr>
+											<th>Total Time (ms)</th>
+											<th>Count</th>
+											<th><cfif isExecOrder><a onclick="__LUCEE.debug.clearFlag( 'ExecOrder' ); __LUCEE.util.addClass( this, 'selected' );" class="sortby" title="Order by Avg Time (starting with the next request)">Avg Time</a><cfelse>Avg Time</cfif> (ms)</th>
+											<th>Template</th>
+											<th><cfif isExecOrder>Order<cfelse><a onclick="__LUCEE.debug.setFlag( 'ExecOrder' ); __LUCEE.util.addClass( this, 'selected' );" class="sortby" title="Order by ID (starting with the next request)">Order</a></cfif></th>
+										</tr>
+									</thead>
 									<cfset loa=0>
 									<cfset tot=0>
 									<cfset q=0>
@@ -365,7 +404,7 @@
 									</cfif>
 								</table>
 							</td><!--- #-lucee-debug-#sectionId# !--->
-						</tr>
+						</tr></cfif>
 					</table>
 
 
@@ -373,28 +412,29 @@
 
 
 					<!--- Exceptions --->
-					<cfif structKeyExists( arguments.debugging, "exceptions" ) && arrayLen( arguments.debugging.exceptions )>
+					<cfif structKeyExists( arguments.debugging, "exceptions" ) && arrayLen( exceptions )>
 
 						<cfset sectionId = "Exceptions">
 						<cfset isOpen = this.isSectionOpen( sectionId )>
 
-						<div class="section-title">Caught Exceptions</div>
+						<div class="section-title">Exceptions</div>
 						<table>
 
-							<cfset renderSectionHeadTR( sectionId, "#arrayLen(arguments.debugging.exceptions)# Exception#arrayLen( arguments.debugging.exceptions ) GT 1 ? 's' : ''# Caught" )>
+							<cfset renderSectionHeadTR( sectionId, "#arrayLen(exceptions)# Exception#arrayLen( exceptions ) GT 1 ? 's' : ''# Caught" )>
 
 							<tr>
 								<td id="-lucee-debug-#sectionId#" class="#isOpen ? '' : 'collapsed'#">
 									<table class="details">
-
-										<tr>
-											<th>Type</th>
-											<th>Message</th>
-											<th>Detail</th>
-											<th>Template</th>
-											<th>Line</th>
-										</tr>
-										<cfloop array="#arguments.debugging.exceptions#" index="local.exp">
+										<thead>
+											<tr>
+												<th>Type</th>
+												<th>Message</th>
+												<th>Detail</th>
+												<th>Template</th>
+												<th>Line</th>
+											</tr>
+										</thead>
+										<cfloop array="#exceptions#" index="local.exp">
 											<tr>
 												<td>#exp.type#</td>
 												<td>#exp.message#</td>
@@ -424,14 +464,15 @@
 							<tr>
 								<td id="-lucee-debug-#sectionId#" class="#isOpen ? '' : 'collapsed'#">
 									<table class="details">
-
-										<tr>
-											<th>Template</th>
-											<th>Line</th>
-											<th>Scope</th>
-											<th>Var</th>
-											<th>Count</th>
-										</tr>
+										<thead>
+											<tr>
+												<th>Template</th>
+												<th>Line</th>
+												<th>Scope</th>
+												<th>Var</th>
+												<th>Count</th>
+											</tr>
+										</thead>
 										<cfset total=0 />
 										<cfloop query="implicitAccess">
 											<tr>
@@ -464,12 +505,13 @@
 							<tr>
 								<td id="-lucee-debug-#sectionId#" class="#isOpen ? '' : 'collapsed'#">
 									<table class="details">
-
-										<tr>
-											<th align="center">Label</th>
-											<th>Time (ms)</th>
-											<th>Template</th>
-										</tr>
+										<thead>
+											<tr>
+												<th align="center">Label</th>
+												<th>Time (ms)</th>
+												<th>Template</th>
+											</tr>
+										</thead>
 										<cfloop query="timers">
 											<tr>
 												<td class="txt-r">#timers.label#</td>
@@ -502,21 +544,23 @@
 							<tr>
 								<td id="-lucee-debug-#sectionId#" class="#isOpen ? '' : 'collapsed'#">
 									<table class="details">
-										<tr>
-											<th>Type</th>
-											<cfif hasCategory>
-												<th>Category</th>
-											</cfif>
-											<th>Text</th>
-											<th>Template</th>
-											<th>Line</th>
-											<cfif hasAction>
-												<th>Action</th>
-											</cfif>
-											<th>Var</th>
-											<th>Total Time (ms)</th>
-											<th>Trace Slot Time (ms)</th>
-										</tr>
+										<thead>
+											<tr>
+												<th>Type</th>
+												<cfif hasCategory>
+													<th>Category</th>
+												</cfif>
+												<th>Text</th>
+												<th>Template</th>
+												<th>Line</th>
+												<cfif hasAction>
+													<th>Action</th>
+												</cfif>
+												<th>Var</th>
+												<th>Total Time (ms)</th>
+												<th>Trace Slot Time (ms)</th>
+											</tr>
+										</thead>
 										<cfset total=0 />
 										<cfloop query="traces">
 											<cfset total=total+traces.time />
@@ -569,11 +613,13 @@
 							<tr>
 								<td id="-lucee-debug-#sectionId#" class="#isOpen ? '' : 'collapsed'#">
 									<table class="details">
-										<tr>
-											<th>Output</th>
-											<th>Template</th>
-											<th>Line</th>
-										</tr>
+										<thead>
+											<tr>
+												<th>Output</th>
+												<th>Template</th>
+												<th>Line</th>
+											</tr>
+										</thead>
 										<cfset total=0 />
 										<cfloop query="dumps">
 											<tr>
@@ -597,7 +643,7 @@
 						<cfset local.total  =0>
 						<cfset local.records=0>
 						<cfset local.openConns=0>
-						<cfloop struct="#debugging.datasources#" index="dsn" item="item">
+						<cfloop struct="#arguments.debugging.datasources#" index="dsn" item="item">
 							<cfset local.openConns=item.openConnections>
 						</cfloop>
 
@@ -616,12 +662,14 @@
 									<table><tr><td>
 										<b>General</b>
 										<table class="details">
-										<tr>
-											<th>Name</th>
-											<th>Open Connections</th>
-											<th>Max Connections</th>
-										</tr>
-										<cfloop struct="#debugging.datasources#" index="local.dsName" item="local.dsData">
+										<thead>
+											<tr>
+												<th>Name</th>
+												<th>Open Connections</th>
+												<th>Max Connections</th>
+											</tr>
+										</thead>
+										<cfloop struct="#arguments.debugging.datasources#" index="local.dsName" item="local.dsData">
 										<tr>
 											<td class="txt-r">#dsData.name#</td>
 											<td class="txt-r">#dsData.openConnections#</td>
@@ -631,19 +679,21 @@
 										</table>
 									<cfset hasCachetype=ListFindNoCase(queries.columnlist,"cachetype") gt 0>
 									<br><b>SQL Queries</b>
+									<table class="details">
+										<thead>
+											<tr>
+												<th></th>
+												<th>Name</th>
+												<th>Records</th>
+												<th>Time (ms)</th>
+												<th>Datasource</th>
+												<th>Source</th>
+												<cfif hasCachetype><th>Cache Type</th></cfif>
+											</tr>
+										</thead>
+										
 										<cfloop query="queries">
-
-											<table class="details">
-												<tr>
-													<th></th>
-													<th>Name</th>
-													<th>Records</th>
-													<th>Time (ms)</th>
-													<th>Datasource</th>
-													<th>Source</th>
-													<cfif hasCachetype><th>Cache Type</th></cfif>
-
-												</tr>
+											<tbody>
 												<tr>
 													<th></th>
 													<td>#queries.name#</td>
@@ -653,7 +703,7 @@
 													<td>#queries.src#</td>
 													<cfif hasCachetype><td>#isEmpty(queries.cacheType)?"none":queries.cacheType#</td></cfif>
 												</tr>
-												<tr>
+												<tr class="sort-group">
 													<th class="label">SQL:</th>
 													<td id="-lucee-debug-query-sql-#queries.currentRow#" colspan="6" oncontextmenu="__LUCEE.debug.selectText( this.id );"><pre>#trim( queries.sql )#</pre></td>
 												</tr>
@@ -704,9 +754,10 @@
 													</cfif>
 												</cfif>
 
-											</table>
+											</tbody>
 
 										</cfloop>
+									</table>
 
 									</tr></td></table>
 								</td><!--- #-lucee-debug-#sectionId# !--->
@@ -800,7 +851,7 @@
 
 				<cfoutput>
 				  cookieName: 	"#variables.cookieName#"
-				, bitmaskAll: 	#bitmaskAll#
+				, bitmaskAll: 	#variables.bitmaskAll#
 				, allSections: 	#serializeJSON( this.allSections )#
 				</cfoutput>
 
@@ -842,16 +893,175 @@
 				}
 
 				, selectText:	__LUCEE.util.selectText
-			};
+				, sortTable:		function (th, sortDefault){					
+					var tr = th.parentElement;
+					var table = tr.parentElement.parentElement; // table;
+					var tbodys = table.getElementsByTagName("tbody");
+					var theads = table.getElementsByTagName("thead");
+					var rowspans = (table.dataset.rowspan !== "false");
 
-			<cfif !structKeyExists(Cookie, variables.cookieName) || (Cookie[variables.cookieName] == bitmaskAll)>
+					if (!th.dataset.type)
+						th.dataset.type = sortDefault; // otherwise text
+					if (!th.dataset.dir){
+						th.dataset.dir = "asc";
+					} else {
+						if (th.dataset.dir == "desc")
+							th.dataset.dir = "asc";
+						else
+							th.dataset.dir = "desc";
+					}
+					for (var h = 0; h < tr.children.length; h++){
+						var cell = tr.children[h].style;
+						if (h === th.cellIndex){
+							cell.fontWeight = 700;
+							cell.fontStyle = (th.dataset.dir == "desc") ? "normal" : "italic";
+						} else {
+							cell.fontWeight = 300;
+							cell.fontStyle = "normal";
+						}
+					}
+					var sortGroup = false;
+					var localeCompare = "test".localeCompare ? true : false;
+					var data = [];
+
+					for ( var b = 0; b < tbodys.length; b++ ){
+						var tbody =tbodys[b];
+						for ( var r = 0; r < tbody.children.length; r++ ){
+							var row = tbody.children[r];
+							var group = false;
+							if (row.classList.length > 0){
+								// check for class sort-group
+								group = row.classList.contains("sort-group");
+							}
+							// this is to handle secondary rows with rowspans, but this stops two column tables from sorting
+							if (group){
+								data[data.length-1][1].push(row);
+							} else {
+								switch (row.childElementCount){
+									case 0:
+									case 1:
+										continue;
+									case 2:
+										if (!rowspans)
+											break;
+										if (data.length > 1)
+											data[data.length-1][1].push(row);
+										continue;
+									default:
+										break;
+								}
+								var cell = row.children[th.cellIndex];
+								var val = cell.innerText;
+								if (localeCompare){
+									// hack to handle formatted numbers with commas for thousand separtors
+									var tmpNum = val.split(",");
+									if (tmpNum.length > 1){
+										tmpNum = Number(tmpNum.join(""));
+										if (tmpNum !== NaN)
+											val = String(tmpNum);
+									}
+								} else {
+									switch (th.dataset.type){
+										case "text":
+											val = val.toLowerCase();
+											break;
+										case "numeric":
+										case "number":
+											switch (val){
+												case "":
+												case "-":
+													val = -1;
+													break;
+												default:
+													val = Number(val);
+												break;
+											}
+											break;
+									}
+								}
+								var _row = row;
+								if (r === 0 && 
+										theads.length > 1 &&
+										tbody.previousElementSibling.nodeName === "THEAD" && 
+										tbody.previousElementSibling.children.length){
+									data.push([val, [tbody.previousElementSibling, row], tbody]);
+									sortGroup = true;
+								} else {
+									data.push([val, [row]]);
+								}
+								
+							}
+						}
+					}
+
+					switch (th.dataset.type){
+						case "text":
+							data = data.sort(function(a,b){
+								if (localeCompare){
+									return a[0].localeCompare(b[0],"kn",{numeric:true});
+								} else {
+									if (a[0] < b[0])
+										return -1;
+									if (a[0] > b[0])
+										return 1;
+									return 0;
+								}                    
+							});
+							break;
+						case "numeric": 
+						case "number":
+							data = data.sort(function(a,b){
+								return a[0] - b[0];
+							}); 
+					}
+					
+					//console.log(data);
+					if (th.dataset.dir === "asc")
+						data.reverse();
+					if (!sortGroup){
+						for (r = 0; r < data.length; r++){
+							for (var rr = 0; rr < data[r][1].length; rr++)
+								tbody.appendChild(data[r][1][rr]);
+						}						
+					} else {
+						for (r = 0; r < data.length; r++){
+						
+							if (data[r].length === 3){
+								var _rows = data[r];
+								table.appendChild(_rows[1][0]); // thead
+								table.appendChild(_rows[2]); // tbody
+								var _tbody = _rows[2];
+								for (var rr = 1; rr < _rows[1].length; rr++)
+									_tbody.appendChild(_rows[1][rr]); // tr
+								
+							} else {
+								for (var rr = 0; rr < data[r][1].length; rr++)
+									table.appendChild(data[r][1][rr]); 
+							}
+						}
+					}
+			}
+		};
+
+			var ldTableSorter = function (ev){
+				__LUCEE.debug.sortTable(ev.target, 'text');
+			};
+			function ldAttachTableSorters(){
+				var sortTables = document.querySelectorAll('.details THEAD TH');
+				for (var st = 0; st < sortTables.length; st++) {		
+					sortTables[st].addEventListener('click', ldTableSorter);	
+				}
+			}
+
+			ldAttachTableSorters();
+
+			<cfif !structKeyExists(Cookie, variables.cookieName) || (Cookie[variables.cookieName] == variables.bitmaskAll)>
 				var luceeStyle = document.createElement("style");
 				luceeStyle.type = 'text/css';
 				luceeStyle.innerHTML = "#-lucee-debug .collapsed { display: none; }";
 				document.getElementById("-lucee-debug").prepend(luceeStyle);
 			</cfif>
 		</script>
-<cfdump var="##">
 	</cffunction><!--- output() !--->
 
 

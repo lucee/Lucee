@@ -5,7 +5,7 @@ qry = queryNew("id,name,mail,showtime", "integer,varchar,varchar,timestamp", [
     [3, "soft", "soft@test.com", now()]
 ]);
 
-cacheAfterThis = dateAdd("s", 2, now());
+cacheAfterThis = dateAdd("s", 1, now());
 
 qryToCache = queryExecute(
     "SELECT * FROM qry",
@@ -13,7 +13,7 @@ qryToCache = queryExecute(
     {dbtype="query", qry=qry, cachedAfter=cacheAfterThis}
 );
 
-sleep(5000);
+sleep(1500);
 
 qryFrmCache = queryExecute(
     "SELECT * FROM qry",

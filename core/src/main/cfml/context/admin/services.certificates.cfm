@@ -23,7 +23,22 @@ Defaults --->
 <cfset _host=session.certHost>
 <cfset _port=session.certPort>
 
+<cfscript>
+	LuceeTrustStore = false;
+	if ((server.system.properties["lucee.use.lucee.SSL.TrustStore"]?: false)
+			|| (server.system.environment["lucee_use_lucee_SSL_TrustStore"]?: false)){
+		LuceeTrustStore = true;
+	};
+	
+</cfscript>
 
+<cfif !LuceeTrustStore>
+	<p>
+	<b>As Lucee is currently using the JVM TrustStore/cacerts file, this functionality isn't available.</b>
+	<br><br>
+	Set the following System or Environment variables to enable: <code>lucee.use.lucee.SSL.TrustStore = true;</code>
+	</p>
+</cfif>
 
 <cftry>
 	<cfswitch expression="#form.mainAction#">
@@ -82,7 +97,7 @@ Error Output --->
 						<input class="bl button submit" type="submit" name="mainAction" value="#stText.services.certificate.list#">
 						<input class="bm button submit" type="submit" name="mainAction" value="#stText.services.certificate.install#">
 						<input class="<cfif request.adminType EQ "web">bm<cfelse>br</cfif> button reset" type="reset" name="cancel" value="#stText.Buttons.Cancel#">
-						<cfif request.adminType EQ "web"><input class="br button submit" type="submit" name="mainAction" value="#stText.Buttons.resetServerAdmin#"></cfif>
+						<cfif not request.singleMode and request.adminType EQ "web"><input class="br button submit" type="submit" name="mainAction" value="#stText.Buttons.resetServerAdmin#"></cfif>
 					</td>
 				</tr>
 			</tfoot>
@@ -115,12 +130,16 @@ Error Output --->
 					</tbody>
 				</table>
 			<cfelse>
-				<div class="error">#stText.services.certificate.noCert#</div>
+				<cfif error.message EQ "">
+					<div class="error">#stText.services.certificate.noCert#</div>
+				</cfif>
 			</cfif>
 			<cfcatch>
 				<cfset session.certHost = "">
 				<cfset session.certPort = "443">
-				<div class="error">#cfcatch.message# #cfcatch.detail#</div>
+				<cfif error.message EQ "">
+					<div class="error">#cfcatch.message# #cfcatch.detail#</div>
+				</cfif>
 			</cfcatch>
 		</cftry>
 	</cfif>

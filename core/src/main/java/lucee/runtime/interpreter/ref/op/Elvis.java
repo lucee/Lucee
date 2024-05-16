@@ -20,7 +20,7 @@ package lucee.runtime.interpreter.ref.op;
 
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.PageException;
-import lucee.runtime.interpreter.InterpreterException;
+import lucee.runtime.interpreter.SecurityInterpreterException;
 import lucee.runtime.interpreter.ref.Ref;
 import lucee.runtime.interpreter.ref.RefSupport;
 import lucee.runtime.interpreter.ref.literal.LFunctionValue;
@@ -40,11 +40,12 @@ public class Elvis extends RefSupport implements Ref {
 
 	@Override
 	public Object getValue(PageContext pc) throws PageException {
-		if (limited) throw new InterpreterException("invalid syntax, this operation is not supported in a json string.");
+		if (limited) throw new SecurityInterpreterException("invalid syntax, this operation is not supported.");
 		if (left instanceof Variable) {
 			Variable var = (Variable) left;
 			String[] arr = LFunctionValue.toStringArray(pc, var);
-			return lucee.runtime.op.Elvis.operate(pc, arr) ? left.getValue(pc) : right.getValue(pc);
+			Object val = lucee.runtime.op.Elvis.load(pc, arr);
+			return val != null ? val : right.getValue(pc);
 		}
 
 		Object val = left.getValue(pc);

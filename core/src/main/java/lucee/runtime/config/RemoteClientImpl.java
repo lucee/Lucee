@@ -117,7 +117,7 @@ public class RemoteClientImpl implements RemoteClient {
 	@Override
 	public String getAdminPasswordEncrypted() {
 		try {
-			return Encrypt.invoke(getAdminPassword(), getSecurityKey(), CFMXCompat.ALGORITHM_NAME, "uu", null, 0);
+			return Encrypt.invoke(getAdminPassword(), getSecurityKey(), CFMXCompat.ALGORITHM_NAME, "uu", null, 0, true);
 		}
 		catch (PageException e) {
 			return null;
@@ -154,7 +154,7 @@ public class RemoteClientImpl implements RemoteClient {
 		args.setEL(RemoteClientTask.ATTRIBUTE_COLLECTION, attrColl);
 
 		try {
-			WSClient rpc = ((ConfigImpl) ThreadLocalPageContext.getConfig(config)).getWSHandler().getWSClient(getUrl(), getServerUsername(), getServerPassword(), getProxyData());
+			WSClient rpc = ((ConfigWebPro) ThreadLocalPageContext.getConfig(config)).getWSHandler().getWSClient(getUrl(), getServerUsername(), getServerPassword(), getProxyData());
 
 			Object result = rpc.callWithNamedValues(config, KeyConstants._invoke, args);
 			return id = IdentificationImpl.createId(securityKey, Caster.toString(result, null), false, null);

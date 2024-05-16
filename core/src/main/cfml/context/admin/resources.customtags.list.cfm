@@ -390,9 +390,9 @@
 					<tr>
 						<td colspan="7">
 							<input type="hidden" name="mainAction" value="#stText.Buttons.Update#">
-							<input type="submit" class="bl button submit" name="subAction" value="#stText.Buttons.Update#">
-							<input type="reset" class="bm reset" name="cancel" value="#stText.Buttons.Cancel#">
-							<input type="submit" class="br button submit" name="subAction" value="#stText.Buttons.Delete#">
+							<input type="submit" class="bl button submit enablebutton" name="subAction" value="#stText.Buttons.Update#">
+							<input type="reset" class="bm reset enablebutton" name="cancel" id="clickCancel" value="#stText.Buttons.Cancel#">
+							<input type="submit" class="br button submit enablebutton" name="subAction" value="#stText.Buttons.Delete#">
 						</td>	
 					</tr>
 				</cfif>

@@ -85,6 +85,7 @@ public interface IPageException extends Dumpable {
 	/**
 	 * return detailed catch block of the error
 	 * 
+	 * @param pc page context
 	 * @return catch block
 	 * @deprecated use instead <code>getCatchBlock(Config config);</code>
 	 */
@@ -94,6 +95,7 @@ public interface IPageException extends Dumpable {
 	/**
 	 * return detailed catch block of the error
 	 * 
+	 * @param config config
 	 * @return catch block
 	 */
 	public CatchBlock getCatchBlock(Config config);
@@ -113,6 +115,7 @@ public interface IPageException extends Dumpable {
 	 * @param pageSource new template context
 	 * @param line line of the error
 	 * @param column column of the error
+	 * @param element stack trace element
 	 */
 	public void addContext(PageSource pageSource, int line, int column, StackTraceElement element);
 
@@ -127,21 +130,21 @@ public interface IPageException extends Dumpable {
 	/**
 	 * sets detailed error message
 	 * 
-	 * @param detail
+	 * @param detail detail
 	 */
 	public void setDetail(String detail);
 
 	/**
 	 * sets the Error Code
 	 * 
-	 * @param errorCode
+	 * @param errorCode error code
 	 */
 	public void setErrorCode(String errorCode);
 
 	/**
 	 * sets extended info to the error
 	 * 
-	 * @param extendedInfo
+	 * @param extendedInfo extended info
 	 */
 	public void setExtendedInfo(String extendedInfo);
 

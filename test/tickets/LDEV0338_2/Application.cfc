@@ -27,9 +27,11 @@ component {
 		savemapping=true,
 		dbcreate = 'dropcreate' ,
 		logSQL=true,
-		datasource = {
-	  		class: 'org.hsqldb.jdbcDriver'
-			, connectionString: 'jdbc:hsqldb:file:#getDirectoryFromPath(getCurrentTemplatePath())#/datasource/db'
-		}
+		datasource = server.getDatasource( "h2", server._getTempDir( "LDEV0338_2" ) )
 	}; 
+	
+	public function onRequestStart() {
+		setting requesttimeout=10;
+	}
+
 } 

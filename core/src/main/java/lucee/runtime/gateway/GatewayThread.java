@@ -19,8 +19,9 @@
 package lucee.runtime.gateway;
 
 import lucee.commons.lang.ExceptionUtil;
+import lucee.commons.lang.ParentThreasRefThread;
 
-public class GatewayThread extends Thread {
+public class GatewayThread extends ParentThreasRefThread {
 
 	public static final int START = 0;
 	public static final int STOP = 1;
@@ -34,12 +35,13 @@ public class GatewayThread extends Thread {
 		this.engine = engine;
 		this.gateway = gateway;
 		this.action = action;
+		this.setName("EventGateway-" + gateway.getId()); // name the thread
 		if (gateway instanceof GatewaySupport) ((GatewaySupport) gateway).setThread(this);
 	}
 
 	@Override
 	public void run() {
-		// MUST handle timout
+		// MUST handle timeout
 		try {
 			if (action == START) gateway.doStart();
 			else if (action == STOP) gateway.doStop();
@@ -47,6 +49,7 @@ public class GatewayThread extends Thread {
 		}
 		catch (Throwable ge) {
 			ExceptionUtil.rethrowIfNecessary(ge);
+			addParentStacktrace(ge);
 			engine.log(gateway, GatewayEngine.LOGLEVEL_ERROR, ge.getMessage());
 		}
 	}

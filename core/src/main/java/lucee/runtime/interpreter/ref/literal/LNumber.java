@@ -18,10 +18,13 @@
  **/
 package lucee.runtime.interpreter.ref.literal;
 
+import java.math.BigDecimal;
+
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.interpreter.ref.Ref;
 import lucee.runtime.interpreter.ref.util.RefUtil;
+import lucee.runtime.listener.AppListenerUtil;
 import lucee.runtime.op.Caster;
 
 /**
@@ -29,17 +32,13 @@ import lucee.runtime.op.Caster;
  */
 public final class LNumber implements Literal {
 
-	public static final LNumber ZERO = new LNumber(new Double(0));
-	public static final LNumber ONE = new LNumber(new Double(1));
+	public static final LNumber ZERO = new LNumber(BigDecimal.ZERO);
+	public static final LNumber ONE = new LNumber(BigDecimal.ONE);
+	public static final LNumber MINUS_ONE = new LNumber(BigDecimal.valueOf(Double.valueOf(-1)));
 
-	private Object literal;
+	private BigDecimal literal;
 
-	/**
-	 * constructor of the class
-	 * 
-	 * @param literal
-	 */
-	public LNumber(Double literal) {
+	public LNumber(BigDecimal literal) {
 		this.literal = literal;
 	}
 
@@ -50,15 +49,12 @@ public final class LNumber implements Literal {
 	 * @throws PageException
 	 */
 	public LNumber(String literal) throws PageException {
-		this.literal = Caster.toDouble(literal);
-		// in theory this filter (>10) makes not really sense, just better for performance!!!
-		if (literal.length() > 10) {
-			if (!Caster.toString(this.literal).equals(literal)) this.literal = literal;
-		}
+		this.literal = Caster.toBigDecimal(literal);
 	}
 
 	@Override
 	public Object getValue(PageContext pc) {
+		if (!AppListenerUtil.getPreciseMath(pc, null)) return Double.valueOf(literal.doubleValue());
 		return literal;
 	}
 
@@ -84,27 +80,13 @@ public final class LNumber implements Literal {
 
 	@Override
 	public String toString() {
-		return literal instanceof String ? (String) literal : Caster.toString((Double) literal);
+		return Caster.toString(literal);
 	}
 
 	@Override
 	public boolean eeq(PageContext pc, Ref other) throws PageException {
 		if (other instanceof LNumber) {
-			if (literal instanceof Double) {
-				// Double|Double
-				if (((LNumber) other).literal instanceof Double) {
-					return ((Double) literal).doubleValue() == ((Double) ((LNumber) other).literal).doubleValue();
-				}
-				// Double|String
-				return Caster.toString(((Double) literal).doubleValue()).equals(((LNumber) other).literal);
-			}
-			// String|Double
-			if (((LNumber) other).literal instanceof Double) {
-				return ((String) literal).equals(Caster.toString(((Double) ((LNumber) other).literal).doubleValue()));
-			}
-			// String|String
-			return ((String) literal).equals((((LNumber) other).literal));
-
+			return getValue(pc).equals(((LNumber) other).getValue(pc)); // doing the methods here to have precisemath flag
 		}
 		return RefUtil.eeq(pc, this, other);
 	}

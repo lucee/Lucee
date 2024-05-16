@@ -24,6 +24,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import javax.servlet.jsp.PageContext;
+
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.FieldVisitor;
@@ -42,12 +44,13 @@ import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.component.Property;
 import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
+import lucee.runtime.reflection.Reflector;
 import lucee.runtime.type.dt.TimeSpanImpl;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.ListUtil;
@@ -79,11 +82,11 @@ import lucee.transformer.bytecode.util.SourceNameClassVisitor.SourceInfo;
 import lucee.transformer.cast.Cast;
 import lucee.transformer.cfml.Data;
 import lucee.transformer.cfml.evaluator.EvaluatorException;
-import lucee.transformer.expression.ExprDouble;
+import lucee.transformer.expression.ExprNumber;
 import lucee.transformer.expression.ExprString;
 import lucee.transformer.expression.Expression;
 import lucee.transformer.expression.literal.LitBoolean;
-import lucee.transformer.expression.literal.LitDouble;
+import lucee.transformer.expression.literal.LitNumber;
 import lucee.transformer.expression.literal.LitString;
 import lucee.transformer.expression.literal.Literal;
 import lucee.transformer.expression.var.DataMember;
@@ -92,6 +95,7 @@ import lucee.transformer.expression.var.Variable;
 import lucee.transformer.library.function.FunctionLibFunction;
 
 public final class ASMUtil {
+	public static final int CLASSWRITER_ARG = ClassWriter.COMPUTE_MAXS;// | ClassWriter.COMPUTE_FRAMES
 
 	public static final short TYPE_ALL = 0;
 	public static final short TYPE_BOOLEAN = 1;
@@ -236,7 +240,7 @@ public final class ASMUtil {
 			name = "retry";
 		}
 
-		if (fc == null) throw new TransformerException(name + " must be inside a loop (for,while,do-while,<cfloop>,<cfwhile> ...)", stat.getStart());
+		if (fc == null) throw new TransformerException(bc, name + " must be inside a loop (for,while,do-while,<cfloop>,<cfwhile> ...)", stat.getStart());
 
 		GeneratorAdapter adapter = bc.getAdapter();
 
@@ -303,6 +307,15 @@ public final class ASMUtil {
 				tag = (Tag) parent;
 				if (tag.getFullname().equalsIgnoreCase(fullName)) return tag;
 			}
+		}
+	}
+
+	public static TagComponent getAncestorComponent(Statement stat) {
+		Statement parent = stat;
+		while (true) {
+			parent = parent.getParent();
+			if (parent == null) return null;
+			if (parent instanceof TagComponent) return (TagComponent) parent;
 		}
 	}
 
@@ -492,12 +505,12 @@ public final class ASMUtil {
 		}
 	}
 
-	public static Page getAncestorPage(Statement stat) throws TransformerException {
+	public static Page getAncestorPage(BytecodeContext bc, Statement stat) throws TransformerException {
 		Statement parent = stat;
 		while (true) {
 			parent = parent.getParent();
 			if (parent == null) {
-				throw new TransformerException("missing parent Statement of Statement", stat.getStart());
+				throw new TransformerException(bc, "missing parent Statement of Statement", stat.getStart());
 				// return null;
 			}
 			if (parent instanceof Page) return (Page) parent;
@@ -656,7 +669,7 @@ public final class ASMUtil {
 	 * @throws PageException
 	 */
 	public static Type toType(Class type, boolean axistype) throws PageException {
-		if (axistype) type = ((ConfigImpl) ThreadLocalPageContext.getConfig()).getWSHandler().toWSTypeClass(type);
+		if (axistype) type = ((ConfigWebPro) ThreadLocalPageContext.getConfig()).getWSHandler().toWSTypeClass(type);
 		return Type.getType(type);
 	}
 
@@ -673,7 +686,8 @@ public final class ASMUtil {
 					sb.append("type:" + props[i].getASMType() + ";");
 
 				}
-				catch (PageException e) {}
+				catch (PageException e) {
+				}
 			}
 		}
 		try {
@@ -723,13 +737,17 @@ public final class ASMUtil {
 	 * @param mode
 	 */
 	public static void pop(GeneratorAdapter adapter, Expression expr, int mode) {
-		if (mode == Expression.MODE_VALUE && (expr instanceof ExprDouble)) adapter.pop2();
+
+		if (mode == Expression.MODE_VALUE && (expr instanceof ExprNumber)) {
+			adapter.pop2();
+		}
 		else adapter.pop();
 	}
 
 	public static void pop(GeneratorAdapter adapter, Type type) {
 		if (type.equals(Types.DOUBLE_VALUE)) adapter.pop2();
-		else if (type.equals(Types.VOID)) {}
+		else if (type.equals(Types.VOID)) {
+		}
 		else adapter.pop();
 	}
 
@@ -751,21 +769,21 @@ public final class ASMUtil {
 		return expr instanceof LitString && !((LitString) expr).fromBracket();
 	}
 
-	public static String toString(Expression exp, String defaultValue) {
+	public static String toString(BytecodeContext bc, Expression exp, String defaultValue) {
 		try {
-			return toString(exp);
+			return toString(bc, exp);
 		}
 		catch (TransformerException e) {
 			return defaultValue;
 		}
 	}
 
-	public static String toString(Expression exp) throws TransformerException {
+	public static String toString(BytecodeContext bc, Expression exp) throws TransformerException {
 		if (exp instanceof Variable) {
-			return toString(VariableString.toExprString(exp));
+			return toString(bc, VariableString.toExprString(exp));
 		}
 		else if (exp instanceof VariableString) {
-			return ((VariableString) exp).castToString();
+			return ((VariableString) exp).castToString(bc);
 		}
 		else if (exp instanceof Literal) {
 			return ((Literal) exp).toString();
@@ -773,14 +791,14 @@ public final class ASMUtil {
 		return null;
 	}
 
-	public static Boolean toBoolean(Attribute attr, Position start) throws TransformerException {
-		if (attr == null) throw new TransformerException("attribute does not exist", start);
+	public static Boolean toBoolean(BytecodeContext bc, Attribute attr, Position start) throws TransformerException {
+		if (attr == null) throw new TransformerException(bc, "attribute does not exist", start);
 
 		if (attr.getValue() instanceof Literal) {
 			Boolean b = ((Literal) attr.getValue()).getBoolean(null);
 			if (b != null) return b;
 		}
-		throw new TransformerException("attribute [" + attr.getName() + "] must be a constant boolean value", start);
+		throw new TransformerException(bc, "attribute [" + attr.getName() + "] must be a constant boolean value", start);
 
 	}
 
@@ -820,7 +838,7 @@ public final class ASMUtil {
 				strType = " boolean";
 				break;
 			case TYPE_NUMERIC:
-				if (tag.getFactory().toExprDouble(attr.getValue()) instanceof LitDouble) return true;
+				if (tag.getFactory().toExprNumber(attr.getValue()) instanceof LitNumber) return true;
 				strType = " numeric";
 				break;
 			case TYPE_STRING:
@@ -950,14 +968,23 @@ public final class ASMUtil {
 		return name.toString();
 	}
 
+	public static Literal cachedWithinValue(Expression val, Literal dv) {
+		try {
+			return cachedWithinValue(val);
+		}
+		catch (Exception e) {
+			return dv;
+		}
+	}
+
 	public static Literal cachedWithinValue(Expression val) throws EvaluatorException {
 		if (val instanceof Literal) {
 			Literal l = (Literal) val;
 
 			// double == days
-			Double d = l.getDouble(null);
-			if (d != null) {
-				return val.getFactory().createLitLong(TimeSpanImpl.fromDays(d.doubleValue()).getMillis(), null, null);
+			Number n = l.getNumber(null);
+			if (n != null) {
+				return val.getFactory().createLitLong(TimeSpanImpl.fromDays(n.doubleValue()).getMillis(), null, null);
 			}
 			return l;
 		}
@@ -993,10 +1020,10 @@ public final class ASMUtil {
 
 	private static double toDouble(Expression e) throws EvaluatorException {
 		if (!(e instanceof Literal)) throw new EvaluatorException("Paremeters of the function createTimeSpan have to be literal numeric values in this context");
-		Double d = ((Literal) e).getDouble(null);
-		if (d == null) throw new EvaluatorException("Paremeters of the function createTimeSpan have to be literal numeric values in this context");
+		Number n = ((Literal) e).getNumber(null);
+		if (n == null) throw new EvaluatorException("Paremeters of the function createTimeSpan have to be literal numeric values in this context");
 
-		return d.doubleValue();
+		return n.doubleValue();
 	}
 
 	public static void visitLabel(GeneratorAdapter ga, Label label) {
@@ -1129,6 +1156,16 @@ public final class ASMUtil {
 		adapter.newInstance(Types.ARRAY_IMPL);
 		adapter.dup();
 		adapter.invokeConstructor(Types.ARRAY_IMPL, Switch.INIT);
+	}
+
+	public static boolean isFirstArgumentPageContext(BytecodeContext bc) {
+		boolean firstIsPC = false;
+		Method m = bc.getMethod();
+		Type[] types;
+		if (m != null && (types = m.getArgumentTypes()) != null && types.length > 0) {
+			firstIsPC = Reflector.isInstaneOf(types[0].getClassName(), PageContext.class);
+		}
+		return firstIsPC;
 	}
 
 }

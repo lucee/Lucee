@@ -34,7 +34,7 @@ public abstract class IdentificationImpl implements Identification, Serializable
 	private final String securityKey;
 	private final String securityToken;
 
-	public IdentificationImpl(ConfigImpl c, String securityKey, String apiKey) {
+	public IdentificationImpl(ConfigPro c, String securityKey, String apiKey) {
 		this.apiKey = apiKey;
 		this.securityKey = securityKey;
 		this.securityToken = createSecurityToken(c.getConfigDir());

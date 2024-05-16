@@ -26,6 +26,7 @@ import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.GeneratorAdapter;
 import org.objectweb.asm.commons.Method;
 
+import lucee.commons.io.SystemUtil;
 import lucee.commons.lang.CFTypes;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
@@ -48,7 +49,7 @@ public final class ExpressionUtil {
 
 	public static final Method CURRENT_LINE = new Method("currentLine", Types.VOID, new Type[] { Types.INT_VALUE });
 
-	private static Map<String, String> last = new HashMap<String, String>();
+	private Map<String, String> last = new HashMap<String, String>();
 
 	public static void writeOutExpressionArray(BytecodeContext bc, Type arrayType, Expression[] array) throws TransformerException {
 		GeneratorAdapter adapter = bc.getAdapter();
@@ -69,15 +70,15 @@ public final class ExpressionUtil {
 	 * @param line
 	 * @param silent id silent this is ignored for log
 	 */
-	public static void visitLine(BytecodeContext bc, Position pos) {
+	public void visitLine(BytecodeContext bc, Position pos) {
 		if (pos != null) {
 			visitLine(bc, pos.line);
 		}
 	}
 
-	private static void visitLine(BytecodeContext bc, int line) {
+	private void visitLine(BytecodeContext bc, int line) {
 		if (line > 0) {
-			synchronized (last) {
+			synchronized (SystemUtil.createToken("ExpressionUtil", bc.getClassName())) {
 				if (!("" + line).equals(last.get(bc.getClassName() + ":" + bc.getId()))) {
 					bc.visitLineNumber(line);
 					last.put(bc.getClassName() + ":" + bc.getId(), "" + line);
@@ -87,8 +88,8 @@ public final class ExpressionUtil {
 		}
 	}
 
-	public static synchronized void lastLine(BytecodeContext bc) {
-		synchronized (last) {
+	public void lastLine(BytecodeContext bc) {
+		synchronized (SystemUtil.createToken("ExpressionUtil", bc.getClassName())) {
 			int line = Caster.toIntValue(last.get(bc.getClassName()), -1);
 			visitLine(bc, line);
 		}

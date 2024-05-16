@@ -29,7 +29,8 @@ public final class ArrayNodeList extends ArrayList<Node> implements org.w3c.dom.
 
 	private static final long serialVersionUID = 8355573954254967533L;
 
-	public ArrayNodeList() {}
+	public ArrayNodeList() {
+	}
 
 	@Override
 	public int getLength() {

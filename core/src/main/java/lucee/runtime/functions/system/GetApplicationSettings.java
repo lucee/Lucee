@@ -33,7 +33,8 @@ import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.cache.CacheConnection;
 import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigPro;
+import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.config.ConfigWebUtil;
 import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.db.DataSource;
@@ -50,11 +51,15 @@ import lucee.runtime.listener.ApplicationContextSupport;
 import lucee.runtime.listener.ClassicApplicationContext;
 import lucee.runtime.listener.JavaSettings;
 import lucee.runtime.listener.ModernApplicationContext;
+import lucee.runtime.listener.SessionCookieData;
+import lucee.runtime.listener.SessionCookieDataImpl;
 import lucee.runtime.net.mail.Server;
 import lucee.runtime.net.mail.ServerImpl;
+import lucee.runtime.net.proxy.ProxyData;
 import lucee.runtime.net.s3.Properties;
 import lucee.runtime.op.Caster;
 import lucee.runtime.orm.ORMConfiguration;
+import lucee.runtime.tag.listener.TagListener;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.Collection;
@@ -73,10 +78,14 @@ import lucee.runtime.type.util.ListUtil;
 public class GetApplicationSettings extends BIF {
 
 	public static Struct call(PageContext pc) throws PageException {
-		return call(pc, false);
+		return call(pc, false, false);
 	}
 
 	public static Struct call(PageContext pc, boolean suppressFunctions) throws PageException {
+		return call(pc, suppressFunctions, false);
+	}
+
+	public static Struct call(PageContext pc, boolean suppressFunctions, boolean onlySupported) throws PageException {
 		ApplicationContext ac = pc.getApplicationContext();
 		ApplicationContextSupport acs = (ApplicationContextSupport) ac;
 		Component cfc = null;
@@ -88,6 +97,46 @@ public class GetApplicationSettings extends BIF {
 		sct.setEL("clientManagement", Caster.toBoolean(ac.isSetClientManagement()));
 		sct.setEL("clientStorage", ac.getClientstorage());
 		sct.setEL("sessionStorage", ac.getSessionstorage());
+
+		SessionCookieData sessionCookieData = acs.getSessionCookie();
+		if (sessionCookieData != null) {
+			Struct sc = new StructImpl(Struct.TYPE_LINKED);
+			if (!StringUtil.isEmpty(sessionCookieData.getPath())) sc.setEL("path", sessionCookieData.getPath());
+			if (!StringUtil.isEmpty(sessionCookieData.getDomain())) sc.setEL("domain", sessionCookieData.getDomain());
+			sc.setEL("timeout", sessionCookieData.getTimeout());
+			sc.setEL("secure", sessionCookieData.isSecure());
+			sc.setEL("httpOnly", sessionCookieData.isHttpOnly());
+			sc.setEL("sameSite", SessionCookieDataImpl.toSamesite(sessionCookieData.getSamesite()));
+			sc.setEL("disableUpdate", sessionCookieData.isDisableUpdate());
+			sc.setEL("partitioned", sessionCookieData.isPartitioned());
+			sct.setEL("sessionCookie", sc);
+		}
+		ProxyData ProxyData = acs.getProxyData();
+		if( ProxyData != null) {
+			Struct sc = new StructImpl(Struct.TYPE_LINKED);
+			sc.setEL("server", ProxyData.getServer());
+			sc.setEL("port", ProxyData.getPort());
+			sc.setEL("username", ProxyData.getUsername());
+			sc.setEL("password", ProxyData.getPassword());
+			sct.setEL("proxy", sc);
+		}
+
+		Struct xmlFeatures = acs.getXmlFeatures();
+		if (xmlFeatures == null) xmlFeatures = new StructImpl();
+		Struct sxml = new StructImpl(Struct.TYPE_LINKED);
+		sxml.setEL("secure", xmlFeatures.get("secure", true));
+		sxml.setEL("disallowDoctypeDecl", xmlFeatures.get("disallowDoctypeDecl", true));
+		sxml.setEL("externalGeneralEntities", xmlFeatures.get("externalGeneralEntities", false));
+		if (!xmlFeatures.isEmpty()) { // pass thru other values
+			Iterator<Key> it = xmlFeatures.keySet().iterator();
+			Key name;
+			while (it.hasNext()) {
+				name = KeyImpl.toKey(it.next());
+				if (!sxml.containsKey(name)) sxml.setEL(name, xmlFeatures.get(name));
+			}
+		}
+		sct.setEL("xmlFeatures", sxml);
+
 		sct.setEL("customTagPaths", toArray(ac.getCustomTagMappings()));
 		sct.setEL("componentPaths", toArray(ac.getComponentMappings()));
 		sct.setEL("loginStorage", AppListenerUtil.translateLoginStorage(ac.getLoginStorage()));
@@ -105,9 +154,12 @@ public class GetApplicationSettings extends BIF {
 		sct.setEL("setDomainCookies", Caster.toBoolean(ac.isSetDomainCookies()));
 		sct.setEL(KeyConstants._name, ac.getName());
 		sct.setEL("localMode", ac.getLocalMode() == Undefined.MODE_LOCAL_OR_ARGUMENTS_ALWAYS ? Boolean.TRUE : Boolean.FALSE);
-		sct.setEL(KeyConstants._locale, LocaleFactory.toString(pc.getLocale()));
-		sct.setEL(KeyConstants._timezone, TimeZoneUtil.toString(pc.getTimeZone()));
+		sct.setEL(KeyConstants._locale, LocaleFactory.toString(ThreadLocalPageContext.getLocale(pc)));
+		sct.setEL(KeyConstants._timezone, TimeZoneUtil.toString(ThreadLocalPageContext.getTimeZone(pc)));
 		// sct.setEL(KeyConstants._timeout,TimeZoneUtil.toString(pc.getRequestTimeout()));
+
+		sct.setEL("bufferOutput", Caster.toBoolean(ac.getBufferOutput()));
+		sct.setEL("suppressContent", Caster.toBoolean(ac.getSuppressContent()));
 
 		sct.setEL("nullSupport", ((ApplicationContextSupport) ac).getFullNullSupport());
 		sct.setEL("enableNullSupport", ((ApplicationContextSupport) ac).getFullNullSupport());
@@ -119,12 +171,20 @@ public class GetApplicationSettings extends BIF {
 			sct.setEL("searchImplicitScopes", ac.getScopeCascading() == Config.SCOPE_STANDARD);
 		}
 
+		// adminMode
+		sct.setEL("singleContext", ConfigWebUtil.toAdminMode(((ConfigPro) pc.getConfig()).getAdminMode(), "single") == "single");
+
 		Struct cs = new StructImpl(Struct.TYPE_LINKED);
 		cs.setEL("web", pc.getWebCharset().name());
 		cs.setEL("resource", ((PageContextImpl) pc).getResourceCharset().name());
 		sct.setEL("charset", cs);
 
 		sct.setEL("sessionType", AppListenerUtil.toSessionType(((PageContextImpl) pc).getSessionType(), "application"));
+
+		Struct rt = new StructImpl(Struct.TYPE_LINKED);
+		if (ac instanceof ModernApplicationContext) rt.setEL("type", ((ModernApplicationContext) ac).getRegex().getTypeName());
+		sct.setEL("regex", rt);
+
 		sct.setEL("serverSideFormValidation", Boolean.FALSE); // TODO impl
 
 		sct.setEL("clientCluster", Caster.toBoolean(ac.getClientCluster()));
@@ -158,11 +218,12 @@ public class GetApplicationSettings extends BIF {
 		// ws settings
 		try {
 			Struct wssettings = new StructImpl(Struct.TYPE_LINKED);
-			wssettings.setEL(KeyConstants._type, AppListenerUtil.toWSType(ac.getWSType(), ((ConfigImpl) ThreadLocalPageContext.getConfig(pc)).getWSHandler().getTypeAsString()));
+			wssettings.setEL(KeyConstants._type, AppListenerUtil.toWSType(ac.getWSType(), ((ConfigWebPro) ThreadLocalPageContext.getConfig(pc)).getWSHandler().getTypeAsString()));
 			sct.setEL("wssettings", wssettings);
 		}
-		catch (Exception e) {} // in case the extension is not loaded this will fail // TODO check if the extension is installed
-		// query
+		catch (Exception e) {
+		} // in case the extension is not loaded this will fail // TODO check if the extension is installed
+			// query
 		{
 			Struct query = new StructImpl(Struct.TYPE_LINKED);
 			query.setEL("varusage", AppListenerUtil.toVariableUsage(acs.getQueryVarUsage(), "ignore"));
@@ -192,6 +253,10 @@ public class GetApplicationSettings extends BIF {
 				_logs.setEL(name, acs.getLogMetaData(name.getString()));
 			}
 		}
+
+		Struct log4j = new StructImpl(Struct.TYPE_LINKED);
+		log4j.setEL(KeyConstants._version, ((ConfigWebPro) pc.getConfig()).getLogEngine().getVersion());
+		sct.setEL("log4j", log4j);
 
 		// mails
 		Array _mails = new ArrayImpl();
@@ -237,7 +302,6 @@ public class GetApplicationSettings extends BIF {
 			Iterator<Entry<Collection.Key, Object>> iit;
 			Entry<Collection.Key, Object> ee;
 			Struct tmp;
-			// TagLib lib = ((ConfigImpl)pc.getConfig()).getCoreTagLib();
 			while (it.hasNext()) {
 				e = it.next();
 				iit = e.getValue().entrySet().iterator();
@@ -303,7 +367,7 @@ public class GetApplicationSettings extends BIF {
 		StructImpl jsSct = new StructImpl(Struct.TYPE_LINKED);
 		jsSct.put("loadCFMLClassPath", js.loadCFMLClassPath());
 		jsSct.put("reloadOnChange", js.reloadOnChange());
-		jsSct.put("watchInterval", new Double(js.watchInterval()));
+		jsSct.put("watchInterval", Double.valueOf(js.watchInterval()));
 		jsSct.put("watchExtensions", ListUtil.arrayToList(js.watchedExtensions(), ","));
 		Resource[] reses = js.getResources();
 		StringBuilder sb = new StringBuilder();
@@ -328,11 +392,12 @@ public class GetApplicationSettings extends BIF {
 					key = it.next();
 					value = cw.get(key);
 					if (suppressFunctions && value instanceof UDF) continue;
+					if (onlySupported) continue;
 					if (!sct.containsKey(key)) sct.setEL(key, value);
 				}
 			}
 			catch (PageException e) {
-				LogUtil.log(ThreadLocalPageContext.getConfig(pc), GetApplicationSettings.class.getName(), e);
+				LogUtil.log(pc, GetApplicationSettings.class.getName(), e);
 			}
 		}
 		// application tag custom attributes
@@ -344,6 +409,7 @@ public class GetApplicationSettings extends BIF {
 				while (it.hasNext()) {
 					e = it.next();
 					if (suppressFunctions && e.getValue() instanceof UDF) continue;
+					if (onlySupported) continue;
 					if (!sct.containsKey(e.getKey())) sct.setEL(e.getKey(), e.getValue());
 				}
 			}
@@ -359,19 +425,24 @@ public class GetApplicationSettings extends BIF {
 
 		if (source.getConnectionLimit() >= 0) s.setEL(AppListenerUtil.CONNECTION_LIMIT, Caster.toDouble(source.getConnectionLimit()));
 		if (source.getConnectionTimeout() != 1) s.setEL(AppListenerUtil.CONNECTION_TIMEOUT, Caster.toDouble(source.getConnectionTimeout()));
+
 		s.setEL(AppListenerUtil.CONNECTION_STRING, source.getDsnTranslated());
 		if (source.getMetaCacheTimeout() != 60000) s.setEL(AppListenerUtil.META_CACHE_TIMEOUT, Caster.toDouble(source.getMetaCacheTimeout()));
 		s.setEL(KeyConstants._username, source.getUsername());
 		s.setEL(KeyConstants._password, source.getPassword());
 		if (source.getTimeZone() != null) s.setEL(KeyConstants._timezone, source.getTimeZone().getID());
-		if (source.isBlob()) s.setEL(AppListenerUtil.BLOB, source.isBlob());
-		if (source.isClob()) s.setEL(AppListenerUtil.CLOB, source.isClob());
+		if (source.isBlob()) s.setEL(KeyConstants._blob, source.isBlob());
+		if (source.isClob()) s.setEL(KeyConstants._clob, source.isClob());
 		if (source.isReadOnly()) s.setEL(KeyConstants._readonly, source.isReadOnly());
 		if (source.isStorage()) s.setEL(KeyConstants._storage, source.isStorage());
 		s.setEL(KeyConstants._validate, source.validate());
 		if (source instanceof DataSourcePro) {
 			DataSourcePro dsp = (DataSourcePro) source;
 			if (dsp.isRequestExclusive()) s.setEL("requestExclusive", dsp.isRequestExclusive());
+			if (dsp.isRequestExclusive()) s.setEL("alwaysResetConnections", dsp.isAlwaysResetConnections());
+			Object res = TagListener.toCFML(dsp.getListener(), null);
+			if (res != null) s.setEL("listener", res);
+			if (dsp.getLiveTimeout() != 1) s.setEL(AppListenerUtil.LIVE_TIMEOUT, Caster.toDouble(dsp.getLiveTimeout()));
 		}
 		if (source instanceof DataSourceImpl) {
 			DataSourceImpl di = ((DataSourceImpl) source);
@@ -416,8 +487,9 @@ public class GetApplicationSettings extends BIF {
 
 	@Override
 	public Object invoke(PageContext pc, Object[] args) throws PageException {
+		if (args.length == 2) return call(pc, Caster.toBooleanValue(args[0]), Caster.toBooleanValue(args[1]));
 		if (args.length == 1) return call(pc, Caster.toBooleanValue(args[0]));
 		if (args.length == 0) return call(pc);
-		throw new FunctionException(pc, "GetApplicationSettings", 0, 1, args.length);
+		throw new FunctionException(pc, "GetApplicationSettings", 0, 2, args.length);
 	}
 }

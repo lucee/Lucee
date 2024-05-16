@@ -34,7 +34,7 @@ import lucee.commons.lang.types.RefBooleanImpl;
 import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.MappingImpl;
 import lucee.runtime.PageSource;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigWebUtil;
 import lucee.runtime.config.Constants;
 import lucee.runtime.config.Identification;
@@ -42,7 +42,6 @@ import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageExceptionImpl;
 import lucee.runtime.exp.TemplateException;
 import lucee.runtime.op.Caster;
-import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.ListUtil;
@@ -56,6 +55,7 @@ import lucee.transformer.bytecode.statement.PrintOut;
 import lucee.transformer.bytecode.statement.StatementBase;
 import lucee.transformer.bytecode.statement.tag.Attribute;
 import lucee.transformer.bytecode.statement.tag.Tag;
+import lucee.transformer.bytecode.statement.tag.TagFunction;
 import lucee.transformer.bytecode.util.ASMUtil;
 import lucee.transformer.cfml.Data;
 import lucee.transformer.cfml.ExprTransformer;
@@ -145,7 +145,7 @@ public final class CFMLTransformer {
 	 * @throws TemplateException
 	 * @throws IOException
 	 */
-	public Page transform(Factory factory, ConfigImpl config, PageSource ps, TagLib[] tlibs, FunctionLib[] flibs, boolean returnValue, boolean ignoreScopes)
+	public Page transform(Factory factory, ConfigPro config, PageSource ps, TagLib[] tlibs, FunctionLib[] flibs, boolean returnValue, boolean ignoreScopes)
 			throws TemplateException, IOException {
 		Page p;
 		SourceCode sc;
@@ -294,7 +294,7 @@ public final class CFMLTransformer {
 	 * @return uebersetztes CFXD Dokument Element.
 	 * @throws TemplateException
 	 */
-	public Page transform(Factory factory, ConfigImpl config, SourceCode sc, TagLib[] tlibs, FunctionLib[] flibs, long sourceLastModified, Boolean dotNotationUpperCase,
+	public Page transform(Factory factory, ConfigPro config, SourceCode sc, TagLib[] tlibs, FunctionLib[] flibs, long sourceLastModified, Boolean dotNotationUpperCase,
 			boolean returnValue, boolean ignoreScope) throws TemplateException {
 		boolean dnuc;
 		if (dotNotationUpperCase == null) {
@@ -314,9 +314,8 @@ public final class CFMLTransformer {
 		Page page = new Page(factory, config, sc, null, ConfigWebUtil.getEngine(config).getInfo().getFullVersionInfo(), sourceLastModified, sc.getWriteLog(),
 				sc.getDialect() == CFMLEngine.DIALECT_LUCEE || config.getSuppressWSBeforeArg(), config.getDefaultFunctionOutput(), returnValue, ignoreScope);
 
-		TransfomerSettings settings = new TransfomerSettings(dnuc, sc.getDialect() == CFMLEngine.DIALECT_CFML && factory.getConfig().getHandleUnQuotedAttrValueAsString(),
-				ignoreScope);
-		Data data = new Data(factory, page, sc, new EvaluatorPool(), settings, _tlibs, flibs, config.getCoreTagLib(sc.getDialect()).getScriptTags(), false);
+		TransfomerSettings settings = new TransfomerSettings(dnuc, sc.getDialect() == CFMLEngine.DIALECT_CFML && config.getHandleUnQuotedAttrValueAsString(), ignoreScope);
+		Data data = new Data(factory, config, page, sc, new EvaluatorPool(), settings, _tlibs, flibs, config.getCoreTagLib(sc.getDialect()).getScriptTags(), false);
 		transform(data, page);
 		return page;
 
@@ -662,6 +661,7 @@ public final class CFMLTransformer {
 			catch (Exception e) {
 				throw new TemplateException(data.srcCode, e);
 			}
+
 			parent.addStatement(tag);
 
 			// get tag from tag library
@@ -849,6 +849,7 @@ public final class CFMLTransformer {
 				}
 			}
 			if (tag instanceof StatementBase) ((StatementBase) tag).setEnd(data.srcCode.getPosition());
+			if (tag instanceof TagFunction) ((TagFunction) tag).register(data.factory, data.page);// MUST6 more general solution
 			// Tag Translator Evaluator
 
 			return executeEvaluator(data, tagLibTag, tag);
@@ -1379,7 +1380,7 @@ public final class CFMLTransformer {
 		if (req.length() > 0) doc.append("\nRequired:\n").append(req);
 		if (opt.length() > 0) doc.append("\nOptional:\n").append(opt);
 
-		pe.setAdditional(KeyImpl.init("Documentation"), doc);
+		pe.setAdditional(KeyConstants._Documentation, doc);
 	}
 
 }

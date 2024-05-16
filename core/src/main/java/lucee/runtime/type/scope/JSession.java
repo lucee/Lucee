@@ -22,19 +22,19 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 import javax.servlet.http.HttpSession;
 import javax.servlet.http.HttpSessionBindingEvent;
 import javax.servlet.http.HttpSessionBindingListener;
 
 import lucee.commons.lang.ExceptionUtil;
+import lucee.runtime.Component;
 import lucee.runtime.PageContext;
 import lucee.runtime.listener.ApplicationContext;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.Struct;
+import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.scope.storage.MemoryScope;
 import lucee.runtime.type.scope.util.ScopeUtil;
 import lucee.runtime.type.util.KeyConstants;
@@ -57,7 +57,8 @@ public final class JSession extends ScopeSupport implements Session, HttpSession
 	private transient HttpSession httpSession;
 	private long lastAccess;
 	private long created;
-	private final Map<Collection.Key, String> tokens = new ConcurrentHashMap<Collection.Key, String>();
+	private final Struct _tokens = new StructImpl();
+	private Component component;
 
 	/**
 	 * constructor of the class
@@ -177,11 +178,19 @@ public final class JSession extends ScopeSupport implements Session, HttpSession
 
 	@Override
 	public String generateToken(String key, boolean forceNew) {
-		return ScopeUtil.generateCsrfToken(tokens, key, forceNew);
+		return ScopeUtil.generateCsrfToken(_tokens, key, forceNew);
 	}
 
 	@Override
 	public boolean verifyToken(String token, String key) {
-		return ScopeUtil.verifyCsrfToken(tokens, token, key);
+		return ScopeUtil.verifyCsrfToken(_tokens, token, key);
+	}
+
+	public void setComponent(Component component) {
+		this.component = component;
+	}
+
+	public Component getComponent() {
+		return component;
 	}
 }

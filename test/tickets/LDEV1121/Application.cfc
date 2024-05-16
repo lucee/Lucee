@@ -11,4 +11,8 @@ component {
     	watchInterval = 10000, 
     	watchExtensions = "jar,class,xml"
 	};
+
+	public function onRequestStart() {
+		setting requesttimeout=10;
+	}
 }

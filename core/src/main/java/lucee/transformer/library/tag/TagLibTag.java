@@ -27,10 +27,8 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
-//import org.objectweb.asm.Type;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Version;
-import org.xml.sax.Attributes;
 
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.lang.ClassException;
@@ -286,7 +284,7 @@ public final class TagLibTag {
 
 	}
 
-	public void setTagClassDefinition(String tagClass, Identification id, Attributes attributes) {
+	public void setTagClassDefinition(String tagClass, Identification id, Map<String, String> attributes) {
 		this.tagCD = ClassDefinitionImpl.toClassDefinition(tagClass, id, attributes);
 	}
 
@@ -341,7 +339,7 @@ public final class TagLibTag {
 		if (!hasTTE()) return null;
 		if (eval != null) return eval;
 		try {
-			eval = (TagEvaluator) getTTEClassDefinition().getClazz().newInstance();
+			eval = (TagEvaluator) ClassUtil.newInstance(getTTEClassDefinition().getClazz());
 		}
 		catch (Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);
@@ -361,7 +359,7 @@ public final class TagLibTag {
 		if (!hasTDBTClassDefinition()) return null;
 		if (tdbt != null) return tdbt;
 		try {
-			tdbt = (TagDependentBodyTransformer) tdbtCD.getClazz().newInstance();
+			tdbt = (TagDependentBodyTransformer) ClassUtil.newInstance(tdbtCD.getClazz());
 		}
 		catch (Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);
@@ -581,7 +579,7 @@ public final class TagLibTag {
 	 * 
 	 * @param tteClass Klassendefinition der Evaluator-Implementation.
 	 */
-	protected void setTTEClassDefinition(String tteClass, Identification id, Attributes attr) {
+	protected void setTTEClassDefinition(String tteClass, Identification id, Map<String, String> attr) {
 		this.tteCD = ClassDefinitionImpl.toClassDefinition(tteClass, id, attr);
 	}
 
@@ -595,7 +593,7 @@ public final class TagLibTag {
 	 * 
 	 * @param tteClass Klassendefinition der Evaluator-Implementation.
 	 */
-	public void setTTTClassDefinition(String tttClass, Identification id, Attributes attr) {
+	public void setTTTClassDefinition(String tttClass, Identification id, Map<String, String> attr) {
 		this.tttCD = ClassDefinitionImpl.toClassDefinition(tttClass, id, attr);
 		this.tttConstructor = null;
 	}
@@ -606,7 +604,7 @@ public final class TagLibTag {
 	 * 
 	 * @param tdbtClass Klassendefinition der TagDependentBodyTransformer-Implementation.
 	 */
-	public void setTDBTClassDefinition(String tdbtClass, Identification id, Attributes attr) {
+	public void setTDBTClassDefinition(String tdbtClass, Identification id, Map<String, String> attr) {
 		this.tdbtCD = ClassDefinitionImpl.toClassDefinition(tdbtClass, id, attr);
 		this.tdbt = null;
 	}
@@ -661,7 +659,8 @@ public final class TagLibTag {
 			if (method == null) return false;
 			return method.getReturnType() == void.class;
 		}
-		catch (Exception e) {}
+		catch (Exception e) {
+		}
 		return false;
 	}
 
@@ -692,7 +691,7 @@ public final class TagLibTag {
 	 * 
 	 * @param value Name der AttributeEvaluator Klassse
 	 */
-	public void setAttributeEvaluatorClassDefinition(String className, Identification id, Attributes attr) {
+	public void setAttributeEvaluatorClassDefinition(String className, Identification id, Map<String, String> attr) {
 		cdAttributeEvaluator = ClassDefinitionImpl.toClassDefinition(className, id, attr);
 	}
 
@@ -767,7 +766,7 @@ public final class TagLibTag {
 		Iterator<String> it = attributes.keySet().iterator();
 		StringBuffer sb = new StringBuffer();
 		while (it.hasNext()) {
-			if (sb.length() > 0) sb.append(",");
+			if (sb.length() > 0) sb.append(", ");
 			sb.append(it.next());
 		}
 		return sb.toString();
@@ -781,13 +780,13 @@ public final class TagLibTag {
 		setter = "set" + StringUtil.ucFirst(attr.getName());
 		Class clazz;
 		try {
-			if (StringUtil.isEmpty(typeClassName)) typeClassName = CastOther.getType(attr.getType()).getClassName();
+			if (StringUtil.isEmpty(typeClassName)) typeClassName = CastOther.getType(null, attr.getType()).getClassName();
 			clazz = getTagClassDefinition().getClazz();
 			java.lang.reflect.Method m = ClassUtil.getMethodIgnoreCase(clazz, setter, new Class[] { ClassUtil.loadClass(typeClassName) });
 			setter = m.getName();
 		}
 		catch (Exception e) {
-			LogUtil.log(null, TagLibTag.class.getName(), e);
+			LogUtil.log(TagLibTag.class.getName(), e);
 		}
 		setters.put(attr.getName(), setter);
 		return setter;

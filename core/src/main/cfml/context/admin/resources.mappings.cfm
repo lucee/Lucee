@@ -10,6 +10,11 @@ Defaults --->
 <cfparam name="url.action2" default="list">
 <cfparam name="form.subAction" default="none">
 <cfparam name="error" default="#struct(message:"",detail:"")#">
+<cfadmin 
+	action="getMappings"
+	type="#request.adminType#"
+	password="#session["password"&request.adminType]#"
+	returnVariable="mappings">
 
 <cfadmin 
 	action="securityManager"
@@ -115,7 +120,7 @@ Defaults --->
 							toplevel="#mapping.toplevel#"
 			remoteClients="#request.getRemoteClients()#">--->
 						
-						<cfelse><CFHEADER NAME="Content-Disposition" VALUE="inline; filename=#filename#"><!--- 
+						<cfelse><cfheader name="Content-Disposition" value="inline; filename=#filename#"><!---
 						 ---><cfcontent file="#target#" deletefile="yes" type="application/unknow"></cfif>
 					</cfif>
 				</cfloop>
@@ -129,6 +134,8 @@ Defaults --->
 				<cfset data.primaries=toArrayFromForm("primary")>
 				<cfset data.inspects=toArrayFromForm("inspect")>
 				<cfset data.toplevels=toArrayFromForm("toplevel")>
+				<cfset data.listenerMode=toArrayFromForm("listenerMode")>
+				<cfset data.listenerType=toArrayFromForm("listenerType")>
 				<cfset data.rows=toArrayFromForm("row")>
 				
 				<cfloop index="idx" from="1" to="#arrayLen(data.virtuals)#">
@@ -146,6 +153,8 @@ Defaults --->
 						primary="#data.primaries[idx]#"
 						inspect="#data.inspects[idx]#"
 						toplevel="#data.toplevels[idx]#"
+						listenerMode="#data.listenerMode[idx]#"
+						listenerType="#data.listenerType[idx]#"
 			remoteClients="#request.getRemoteClients()#">
 						
 					</cfif>
@@ -158,7 +167,10 @@ Defaults --->
 				<cfloop index="idx" from="1" to="#arrayLen(data.virtuals)#">
 					
 					<cfif isDefined("data.rows[#idx#]") and data.virtuals[idx] NEQ "">
-					
+						<cfif false && fileExists(mappings.archive[#idx#])>
+							<!--- TODO see LDEV-2379 --->
+							<cfset filedelete(mappings.archive[#idx#])>
+						</cfif>
 					<cfadmin 
 						action="removeMapping"
 						type="#request.adminType#"
@@ -198,11 +210,6 @@ Error Output--->
 </span><br><br></cfoutput>
 </cfif>
 
-<cfadmin 
-	action="getMappings"
-	type="#request.adminType#"
-	password="#session["password"&request.adminType]#"
-	returnVariable="mappings">
 
 <cfif url.action2 EQ "create">
 	<cfinclude template="resources.mappings.edit.cfm">

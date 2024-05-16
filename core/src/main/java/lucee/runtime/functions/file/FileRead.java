@@ -85,7 +85,12 @@ public class FileRead {
 			throw Caster.toPageException(e);
 		}
 		finally {
-			IOUtil.closeEL(is);
+			try {
+				IOUtil.close(is);
+			}
+			catch (IOException e) {
+				throw Caster.toPageException(e);
+			}
 		}
 
 		// TODO Auto-generated method stub

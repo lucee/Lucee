@@ -73,8 +73,6 @@ component {
 		} else {
 			header statuscode='404' statustext='Not Found';
 		//	header statuscode='404' statustext='Not Found @ #resInfo.path#';
-
-			systemOutput( "static resource #arguments.target# was not found @ #resInfo.path#", true, true );
 		}
 
 		return resInfo.exists;

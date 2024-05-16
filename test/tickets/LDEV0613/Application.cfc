@@ -4,10 +4,7 @@ component {
 	request.currentPath=GetDirectoryFromPath(getCurrentTemplatePath());
 
 
- 	this.datasource = {
-	  class: 'org.hsqldb.jdbcDriver'
-	, connectionString: 'jdbc:hsqldb:file:#getDirectoryFromPath(getCurrentTemplatePath())#/datasource/db'
-	};
+ 	this.datasource = server.getDatasource( "h2", server._getTempDir( "LDEV0613" ) );
 
 	this.ormEnabled = true;
 	this.ormSettings = {
@@ -15,4 +12,9 @@ component {
 		dbcreate = 'dropcreate',
 		logSQL=true
 	};
+	
+	public function onRequestStart() {
+		setting requesttimeout=10;
+	}
+
 }

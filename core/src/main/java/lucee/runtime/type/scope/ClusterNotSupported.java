@@ -37,7 +37,7 @@ import lucee.runtime.type.util.StructSupport;
  */
 public final class ClusterNotSupported extends StructSupport implements Cluster {
 
-	private static final String NOT_SUPPORTED = "to enable the cluster scope please install a cluster scope impementation with the help of the extenson manager";
+	private static final String NOT_SUPPORTED = "to enable the cluster scope, please install a cluster scope implementation with the help of the extension manager";
 
 	@Override
 	public int size() {
@@ -60,7 +60,8 @@ public final class ClusterNotSupported extends StructSupport implements Cluster 
 	}
 
 	@Override
-	public void clear() {}
+	public void clear() {
+	}
 
 	@Override
 	public final Object get(Collection.Key key) throws ExpressionException {
@@ -93,7 +94,8 @@ public final class ClusterNotSupported extends StructSupport implements Cluster 
 	}
 
 	@Override
-	public void setEntry(ClusterEntry entry) {}
+	public void setEntry(ClusterEntry entry) {
+	}
 
 	@Override
 	public Iterator<Collection.Key> keyIterator() {
@@ -121,10 +123,12 @@ public final class ClusterNotSupported extends StructSupport implements Cluster 
 	}
 
 	@Override
-	public void initialize(PageContext pc) {}
+	public void initialize(PageContext pc) {
+	}
 
 	@Override
-	public void release(PageContext pc) {}
+	public void release(PageContext pc) {
+	}
 
 	@Override
 	public DumpData toDumpData(PageContext pageContext, int maxlevel, DumpProperties dp) {
@@ -233,6 +237,7 @@ public final class ClusterNotSupported extends StructSupport implements Cluster 
 	}
 
 	@Override
-	public void init(ConfigServer configServer) {}
+	public void init(ConfigServer configServer) {
+	}
 
 }

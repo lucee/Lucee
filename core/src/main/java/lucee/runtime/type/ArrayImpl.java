@@ -19,9 +19,9 @@
 package lucee.runtime.type;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.Map.Entry;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 import lucee.runtime.PageContext;
 import lucee.runtime.dump.DumpData;
@@ -44,15 +44,15 @@ public class ArrayImpl extends ListAsArray {
 	public static final int DEFAULT_CAP = 32;
 
 	public ArrayImpl() {
-		this(DEFAULT_CAP);
+		this(DEFAULT_CAP, true);
 	}
 
 	public ArrayImpl(int initalCap) {
-		this(initalCap, false);
+		this(initalCap, true);
 	}
 
 	public ArrayImpl(int initalCap, boolean sync) {
-		super(sync ? new CopyOnWriteArrayList() : new ArrayList(initalCap));
+		super(sync ? Collections.synchronizedList(new ArrayList(initalCap)) : new ArrayList(initalCap));
 	}
 
 	public ArrayImpl(Object[] objects) {
@@ -79,7 +79,8 @@ public class ArrayImpl extends ListAsArray {
 				else arr.set(e.getKey(), e.getValue());
 			}
 		}
-		catch (PageException ee) {} // MUST habdle this
+		catch (PageException ee) {
+		} // MUST habdle this
 		finally {
 			if (!inside) ThreadLocalDuplication.reset();
 		}
@@ -89,7 +90,7 @@ public class ArrayImpl extends ListAsArray {
 
 	@Override
 	public DumpData toDumpData(PageContext pageContext, int maxlevel, DumpProperties dp) {
-		DumpTable table = new DumpTable("array", "#99cc33", "#ccff33", "#000000");
+		DumpTable table = new DumpTable("array", "#52b788", "#b7e4c7", "#000000");
 		table.setTitle("Array");
 
 		int top = dp.getMaxlevel();
@@ -104,7 +105,8 @@ public class ArrayImpl extends ListAsArray {
 			try {
 				o = getE(i);
 			}
-			catch (Exception e) {}
+			catch (Exception e) {
+			}
 
 			table.appendRow(1, new SimpleDumpData(i), DumpUtil.toDumpData(o, pageContext, maxlevel, dp));
 
@@ -112,5 +114,9 @@ public class ArrayImpl extends ListAsArray {
 		}
 
 		return table;
+	}
+
+	public boolean sync() {
+		return list.getClass().getName().indexOf("SynchronizedList") != -1;
 	}
 }

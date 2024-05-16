@@ -51,10 +51,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		
 		// set and read
 		admin type="server" password="#variables.serverAdminPassword#" action="updateAPIKey" key="#serverKey#";
-		admin type="web" password="#variables.webAdminPassword#" action="updateAPIKey" key="#webKey#";
-
 		admin type="server" password="#variables.serverAdminPassword#" action="getAPIKey" returnvariable="local.k";
 		assertEquals(serverKey,k);
+		
+		admin type="web" password="#variables.webAdminPassword#" action="updateAPIKey" key="#webKey#";
 		admin type="web" password="#variables.webAdminPassword#" action="getAPIKey" returnvariable="local.k";
 		assertEquals(webKey,k);
 		
@@ -63,20 +63,21 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		
 		// reset and read
 		admin type="server" password="#variables.serverAdminPassword#" action="updateAPIKey" key="#serverKey#";
-		admin type="web" password="#variables.webAdminPassword#" action="updateAPIKey" key="#webKey#";
-
 		admin type="server" password="#variables.serverAdminPassword#" action="getAPIKey" returnvariable="local.k";
 		assertEquals(serverKey,k);
+		
+		admin type="web" password="#variables.webAdminPassword#" action="updateAPIKey" key="#webKey#";
 		admin type="web" password="#variables.webAdminPassword#" action="getAPIKey" returnvariable="local.k";
 		assertEquals(webKey,k);
 		
 		
 		
-		
-		// when no web api key is defined server api key is used
-		admin type="web" password="#variables.webAdminPassword#" action="removeAPIKey";
-		admin type="web" password="#variables.webAdminPassword#" action="getAPIKey" returnvariable="local.kk";
-		assertEquals(serverKey,kk);
+		if(!getApplicationSettings().singleContext) {
+			// when no web api key is defined server api key is used
+			admin type="web" password="#variables.webAdminPassword#" action="removeAPIKey";
+			admin type="web" password="#variables.webAdminPassword#" action="getAPIKey" returnvariable="local.kk";
+			assertEquals(serverKey,kk);
+		}
 		
 		// when no api key exists null is returned
 		admin type="server" password="#variables.serverAdminPassword#" action="removeAPIKey";

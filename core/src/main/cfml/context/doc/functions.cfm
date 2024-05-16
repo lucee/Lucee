@@ -105,7 +105,7 @@
 			<h2 style="text-align: center;">Lucee Functions</h2>
 		</cfif>
 
-		<h2>Function <em>#uCase( url.item )#</em></h2>
+		<h2><em>#data.name#()</em></h2>
 		<cfif data.status EQ "deprecated">
 			<div class="warning nofocus">#stText.doc.depFunction#</div>
 		</cfif>
@@ -199,7 +199,7 @@
 			</div>
 		</div>
 
-		<p>Functions are at the core of Lucee Server's templating language. You can check out every Functions that has been created using the A-Z index below.</p>
+		<p>Functions are at the core of Lucee Server's templating language. You can check out every function available using the A-Z index below.</p>
 
 		<cfset qryAllItems = queryNew("Functions")>
 		<cfloop array="#arrAllItems#" index="ai">
@@ -211,8 +211,8 @@
 
 		<div class="tile-wrap tile-wrap-animation">
 			<cfloop index="i"  list="#list#">
-					<cfquery name="queryList" dbtype="query">
-						SELECT functions FROM qryAllItems  WHERE functions LIKE '#i#%';
+					<cfquery name="queryList" dbtype="query" params=#["#i#%"]#>
+						SELECT functions FROM qryAllItems  WHERE functions LIKE ?;
 					</cfquery>
 				<div class="tile tile-collapse tile-collapse-full">
 					<div class="tile-toggle" data-target="##function-#lCase(i)#" data-toggle="tile">

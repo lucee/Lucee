@@ -31,12 +31,19 @@ import lucee.runtime.type.util.KeyConstants;
  */
 public abstract class InterfacePageImpl extends InterfacePage implements PagePro {
 
+	@Override
 	public int getHash() {
 		return 0;
 	}
 
+	@Override
 	public long getSourceLength() {
 		return 0;
+	}
+
+	@Override
+	public String getSubname() {
+		return null;
 	}
 
 	@Override

@@ -14,11 +14,11 @@
  * You should have received a copy of the GNU Lesser General Public 
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  * 
- ---><cfcomponent>
-	
-	<cffunction name="invoke" access="public" output="no" returntype="void">
-    	<cfargument name="data" type="struct" required="yes">
-		<cflog text="#serialize(data)#" type="information" file="MailWatcher">
-	</cffunction>
+ --->
+ component hint="Mail Watcher Listener" {
 
-</cfcomponent>
+	public void function invoke(required struct data) output=false {
+		cflog( text=serialize(data), file="MailWatcher", type="information" );
+	}
+
+}

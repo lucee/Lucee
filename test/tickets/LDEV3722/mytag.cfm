@@ -1,0 +1,1 @@
+<cfset caller.thread.setFromCustomTag = "hey there">

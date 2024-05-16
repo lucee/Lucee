@@ -71,8 +71,8 @@ public final class COMUtil {
 		else if (type == Variant.VariantNull) return null;
 		else if (type == Variant.VariantShort) return Short.valueOf(variant.getShort());
 		else if (type == Variant.VariantInt) return Integer.valueOf(variant.getInt());
-		else if (type == Variant.VariantFloat) return new Float(variant.getFloat());
-		else if (type == Variant.VariantDouble) return new Double(variant.getDouble());
+		else if (type == Variant.VariantFloat) return Float.valueOf(variant.getFloat());
+		else if (type == Variant.VariantDouble) return Double.valueOf(variant.getDouble());
 		else if (type == Variant.VariantCurrency) {
 			long l;
 			try {
@@ -99,7 +99,7 @@ public final class COMUtil {
 		else if (type == Variant.VariantDate) return new DateTimeImpl((long) variant.getDate(), true);
 		else if (type == Variant.VariantString) return variant.getString();
 		else if (type == Variant.VariantBoolean) return variant.getBoolean() ? Boolean.TRUE : Boolean.FALSE;
-		else if (type == Variant.VariantByte) return new Byte(variant.getByte());
+		else if (type == Variant.VariantByte) return Byte.valueOf(variant.getByte());
 		else if (type == Variant.VariantVariant) {
 			throw new ExpressionException("type variant is not supported");
 			// return toObject(variant.getV.get());

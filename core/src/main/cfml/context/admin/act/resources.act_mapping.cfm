@@ -1,28 +1,34 @@
-<cfparam name="url.job" default="" type="string">
-<cfparam name="url.mapping_id" default="-1" type="numeric">
-<cfset mappings=getPageContext().getConfig().getMappings()>
-<cfif url.job eq "save" AND url.mapping_id gt -1>
-	<cfset mappings=getPageContext().getConfig().getMappings()>
-	<cfset mappings[url.mapping_id].physical = form.physical>
-	<cfset mappings[url.mapping_id].virtual  = form.virtual>
-	<cfset mappings[url.mapping_id].archive  = form.archive>
-	<cfif isDefined("form.trusted")>
-		<cfset mappings[url.mapping_id].trusted  = True>
-	<cfelse>
-		<cfset mappings[url.mapping_id].trusted  = False>
-	</cfif>
-</cfif>
-<cfif url.job eq "#stText.Buttons.Delete#">
-	<cfset tmp = ArrayDeleteAt(mappings, url.mapping_id)>
-<cfelseif url.job eq "add">
-	<cfset tmp = ArrayAppend(mappings, StructNew())>
-	<cfset url.mapping_id = ArrayLen(mappings)>
-	<cfset mappings[url.mapping_id].physical = form.physical>
-	<cfset mappings[url.mapping_id].virtual  = form.virtual>
-	<cfset mappings[url.mapping_id].archive  = form.archive>
-	<cfif isDefined("form.trusted")>
-		<cfset mappings[url.mapping_id].trusted  = True>
-	<cfelse>
-		<cfset mappings[url.mapping_id].trusted  = False>
-	</cfif>
-</cfif> 
+<cfscript>
+	param default="" name="url.job" type="string";
+	param default=-1 name="url.mapping_id" type="numeric";
+
+	mappings=getPageContext().getConfig().getMappings();
+
+	if ( url.job == "save" && url.mapping_id > -1 ) {
+		mappings=getPageContext().getConfig().getMappings();
+		mappings[url.mapping_id].physical = form.physical;
+		mappings[url.mapping_id].virtual  = form.virtual;
+		mappings[url.mapping_id].archive  = form.archive;
+		if ( isDefined("form.trusted") ) {
+			mappings[url.mapping_id].trusted  = True;
+		} else {
+			mappings[url.mapping_id].trusted  = False;
+		}
+	}
+	
+	if ( url.job == stText.Buttons.Delete ) {
+		tmp = ArrayDeleteAt(mappings, url.mapping_id);
+	} else if ( url.job == "add" ) {
+		tmp = ArrayAppend(mappings, StructNew());
+		url.mapping_id = ArrayLen(mappings);
+
+		mappings[url.mapping_id].physical = form.physical;
+		mappings[url.mapping_id].virtual  = form.virtual;
+		mappings[url.mapping_id].archive  = form.archive;
+		if ( isDefined("form.trusted") ) {
+			mappings[url.mapping_id].trusted  = True;
+		} else {
+			mappings[url.mapping_id].trusted  = False;
+		}
+	}
+</cfscript>

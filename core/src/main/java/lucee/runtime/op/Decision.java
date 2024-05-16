@@ -20,6 +20,7 @@ package lucee.runtime.op;
 
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
+import java.math.BigDecimal;
 import java.net.URI;
 import java.sql.Blob;
 import java.sql.Clob;
@@ -42,6 +43,8 @@ import org.w3c.dom.NodeList;
 
 import lucee.commons.date.DateTimeUtil;
 import lucee.commons.i18n.FormatUtil;
+import lucee.commons.io.res.Resource;
+import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.CFTypes;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.Component;
@@ -52,6 +55,7 @@ import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
+import lucee.runtime.functions.conversion.IsJSON;
 import lucee.runtime.image.ImageUtil;
 import lucee.runtime.java.JavaObject;
 import lucee.runtime.net.mail.MailUtil;
@@ -92,28 +96,13 @@ public final class Decision {
 	 * @return is value a simple value
 	 */
 	public static boolean isSimpleValue(Object value) {
-		return (value instanceof Number) || (value instanceof Locale) || (value instanceof TimeZone) || (value instanceof String) || (value instanceof Boolean)
-				|| (value instanceof Date) || ((value instanceof Castable) && !(value instanceof Objects) && !(value instanceof Collection));
+		return (value instanceof Number) || (value instanceof Locale) || (value instanceof TimeZone) || (value instanceof String) || (value instanceof Character)
+				|| (value instanceof Boolean) || (value instanceof Date) || ((value instanceof Castable) && !(value instanceof Objects) && !(value instanceof Collection));
 	}
 
 	public static boolean isSimpleValueLimited(Object value) {
 		return (value instanceof Number) || (value instanceof Locale) || (value instanceof TimeZone) || (value instanceof String) || (value instanceof Boolean)
 				|| (value instanceof Date);
-	}
-
-	/**
-	 * tests if value is Numeric
-	 * 
-	 * @param value value to test
-	 * @return is value numeric
-	 */
-	public static boolean isNumber(Object value) {
-		if (value instanceof Number) return true;
-		else if (value instanceof CharSequence || value instanceof Character) {
-			return isNumber(value.toString());
-		}
-
-		else return false;
 	}
 
 	public static boolean isCastableToNumeric(Object o) {
@@ -156,6 +145,21 @@ public final class Decision {
 	}
 
 	/**
+	 * tests if value is Numeric
+	 * 
+	 * @param value value to test
+	 * @return is value numeric
+	 */
+	public static boolean isNumber(Object value) {
+		if (value instanceof Number) return true;
+		else if (value instanceof CharSequence || value instanceof Character) {
+			return isNumber(value.toString());
+		}
+
+		else return false;
+	}
+
+	/**
 	 * tests if String value is Numeric
 	 * 
 	 * @param str value to test
@@ -168,8 +172,9 @@ public final class Decision {
 		int pos = 0;
 		int len = str.length();
 		if (len == 0) return false;
-		char curr = str.charAt(pos);
+		char curr = str.charAt(pos), nxt;
 
+		// +/- at beginning
 		if (curr == '+' || curr == '-') {
 			if (len == ++pos) return false;
 			curr = str.charAt(pos);
@@ -181,14 +186,25 @@ public final class Decision {
 			curr = str.charAt(pos);
 			if (curr < '0') {
 				if (curr == '.') {
-					if (pos + 1 >= len || hasDot) return false;
+					if (hasDot || len == 1) return false;
 					hasDot = true;
 				}
 				else return false;
 			}
 			else if (curr > '9') {
 				if (curr == 'e' || curr == 'E') {
+					// is it follow by +/-, that is fine
+					if (pos + 1 < len) {
+						nxt = str.charAt(pos + 1);
+						if (nxt == '+' || nxt == '-') {
+							curr = nxt;
+							pos++;
+						}
+					}
+
+					// e cannot be azt the end and not more than once
 					if (pos + 1 >= len || hasExp) return false;
+
 					hasExp = true;
 					hasDot = true;
 				}
@@ -213,8 +229,22 @@ public final class Decision {
 	}
 
 	public static boolean isInteger(Object value, boolean alsoBooleans) {
-		if (!alsoBooleans && value instanceof Boolean) return false;
+		if (!alsoBooleans && isBoolean(value)) return false;
+
+		if (value instanceof BigDecimal) {
+			BigDecimal bd = (BigDecimal) value;
+			BigDecimal bdc = new BigDecimal(bd.toBigInteger());
+
+			return bd.compareTo(bdc) == 0;
+		}
+
 		double dbl = Caster.toDoubleValue(value, false, Double.NaN);
+		if (!Decision.isValid(dbl)) return false;
+		int i = (int) dbl;
+		return i == dbl;
+	}
+
+	public static boolean isInteger(double dbl) {
 		if (!Decision.isValid(dbl)) return false;
 		int i = (int) dbl;
 		return i == dbl;
@@ -360,7 +390,6 @@ public final class Decision {
 	}
 
 	public static boolean isDateSimple(Object value, boolean alsoNumbers, boolean alsoMonthString) {
-
 		// return DateCaster.toDateEL(value)!=null;
 		if (value instanceof DateTime) return true;
 		else if (value instanceof Date) return true;
@@ -791,9 +820,8 @@ public final class Decision {
 	 * @return is or not
 	 */
 	public static boolean isObject(Object o) {
-		return isComponent(o)
-
-				|| (!isArray(o) && !isQuery(o) && !isSimpleValue(o) && !isStruct(o) && !isUserDefinedFunction(o) && !isXML(o));
+		if (o == null) return false;
+		return isComponent(o) || (!isArray(o) && !isQuery(o) && !isSimpleValue(o) && !isStruct(o) && !isUserDefinedFunction(o) && !isXML(o));
 	}
 
 	/**
@@ -918,7 +946,7 @@ public final class Decision {
 					int len = path.length();
 					for (int i = 0; i < len; i++) {
 
-						if ("?<>:*|\"".indexOf(path.charAt(i)) > -1) return false;
+						if ("?<>*|\"".indexOf(path.charAt(i)) > -1) return false;
 					}
 				}
 			}
@@ -967,6 +995,7 @@ public final class Decision {
 	}
 
 	public static boolean isValid(String type, Object value) throws ExpressionException {
+		PageContext pc = ThreadLocalPageContext.get();
 		type = StringUtil.toLowerCase(type.trim());
 		char first = type.charAt(0);
 		switch (first) {
@@ -995,6 +1024,7 @@ public final class Decision {
 			if ("email".equals(type)) return isEmail(value);
 			break;
 		case 'f':
+			if ("fileobject".equals(type)) return isFileObject(value);
 			if ("float".equals(type)) return isNumber(value, true);
 			if ("function".equals(type)) return isFunction(value);
 			break;
@@ -1005,6 +1035,9 @@ public final class Decision {
 			if ("integer".equals(type)) return isInteger(value, false);
 			if ("image".equals(type)) return ImageUtil.isImage(value);
 			break;
+		case 'j':
+			if ("json".equals(type)) return IsJSON.call(pc, value);
+			break;
 		case 'l':
 			if ("lambda".equals(type)) return isLambda(value);
 			break;
@@ -1013,7 +1046,9 @@ public final class Decision {
 			if ("number".equals(type)) return isCastableToNumeric(value);
 			if ("node".equals(type)) return isXML(value);
 			break;
-
+		case 'o':
+			if ("object".equals(type)) return isObject(value);
+			break;
 		case 'p':
 			if ("phone".equals(type)) return isPhone(value);
 			break;
@@ -1428,5 +1463,13 @@ public final class Decision {
 
 	public static boolean isWrapped(Object o) {
 		return o instanceof JavaObject || o instanceof ObjectWrap;
+	}
+
+	public static boolean isFileObject(Object source) {
+		PageContext pc = ThreadLocalPageContext.get();
+		if (source instanceof String) return false;
+		Resource file = ResourceUtil.toResourceNotExisting(pc, source.toString());
+		if (file.isFile()) return true;
+		return false;
 	}
 }

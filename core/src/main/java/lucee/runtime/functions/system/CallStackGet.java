@@ -23,20 +23,22 @@ import java.util.Iterator;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ExceptionUtil;
+import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.PageSource;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.converter.JSONConverter;
+import lucee.runtime.converter.JSONDateFormat;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
+import lucee.runtime.functions.arrays.ArraySlice;
 import lucee.runtime.listener.SerializationSettings;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.Collection;
-import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.UDF;
@@ -48,7 +50,7 @@ import lucee.runtime.type.util.KeyConstants;
 public final class CallStackGet implements Function {
 
 	private static final long serialVersionUID = -5853145189662102420L;
-	static final Collection.Key LINE_NUMBER = KeyImpl.init("LineNumber");
+	static final Collection.Key LINE_NUMBER = KeyConstants._LineNumber;
 
 	public static Object call(PageContext pc) {
 		Array arr = new ArrayImpl();
@@ -57,12 +59,27 @@ public final class CallStackGet implements Function {
 	}
 
 	public static Object call(PageContext pc, String type) throws PageException {
+		return call(pc, type, 0.0, 0.0);
+	}
+
+	public static Object call(PageContext pc, String type, double offset) throws PageException {
+		return call(pc, type, offset, 0.0);
+	}
+
+	public static Object call(PageContext pc, String type, double offset, double maxFrames) throws PageException {
 		Array arr = (Array) call(pc);
+
+		if (offset > 0 || maxFrames > 0) {
+			int sliceFrom = (int) offset + 1;
+			int sliceTo = (maxFrames > 0) ? (int) (maxFrames + offset) : 0;
+			arr = ArraySlice.get(arr, sliceFrom, sliceTo);
+		}
+
 		if (type.equalsIgnoreCase("array")) return arr;
 
 		if (type.equalsIgnoreCase("json")) {
 			try {
-				return new JSONConverter(true, null).serialize(pc, arr, SerializationSettings.SERIALIZE_AS_ROW);
+				return new JSONConverter(true, null, JSONDateFormat.PATTERN_CF, false).serialize(pc, arr, SerializationSettings.SERIALIZE_AS_ROW, false);
 			}
 			catch (Throwable t) {
 				ExceptionUtil.rethrowIfNecessary(t);
@@ -141,7 +158,7 @@ public final class CallStackGet implements Function {
 			 * (PageException e) {}
 			 */
 			item.setEL(KeyConstants._template, abs((PageContextImpl) pc, template));
-			item.setEL(lineNumberName, new Double(line));
+			item.setEL(lineNumberName, Double.valueOf(line));
 			tagContext.appendEL(item);
 		}
 	}
@@ -151,11 +168,12 @@ public final class CallStackGet implements Function {
 
 		Resource res = config.getResource(template);
 		if (res.exists()) return template;
-
+		String tmp;
 		PageSource ps = pc == null ? null : pc.getPageSource(template);
 		res = ps == null ? null : ps.getPhyscalFile();
 		if (res == null || !res.exists()) {
-			res = config.getResource(ps.getDisplayPath());
+			tmp = ps.getDisplayPath();
+			res = StringUtil.isEmpty(tmp) ? null : config.getResource(tmp);
 			if (res != null && res.exists()) return res.getAbsolutePath();
 		}
 		else return res.getAbsolutePath();

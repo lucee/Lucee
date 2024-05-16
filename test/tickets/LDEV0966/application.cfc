@@ -1,10 +1,6 @@
 component name='application' accessors=true output=false persistent=false {
 	
-	this.datasources.test = {
-	  class: 'org.hsqldb.jdbcDriver'
-	, connectionString: 'jdbc:hsqldb:file:#getDirectoryFromPath(getCurrentTemplatePath())#/datasource/db'
-	};
-	
+	this.datasources.test = server.getDatasource( "h2", server._getTempDir( "LDEV0966" ) );	
 	this.name = 'test966';
 	
 	this.applicationTimeout	= createTimeSpan(2, 0, 0, 0);
@@ -25,6 +21,7 @@ component name='application' accessors=true output=false persistent=false {
 	this.ormsettings.flushatrequestend	= true;
 	this.ormsettings.autoManageSession	= false;
 	
-	
-	
+	public function onRequestStart() {
+		setting requesttimeout=10;
+	}
 }

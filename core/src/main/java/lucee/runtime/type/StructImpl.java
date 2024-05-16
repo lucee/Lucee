@@ -53,6 +53,8 @@ import lucee.runtime.type.util.StructUtil;
 public class StructImpl extends StructSupport {
 	private static final long serialVersionUID = 1421746759512286393L;
 	private static final int TYPE_LINKED_NOT_SYNC = 100;
+	public static final int TYPE_LINKED_CASESENSITIVE = 256;
+	public static final int TYPE_CASESENSITIVE = 512;
 	private static final int DEFAULT_INITIAL_CAPACITY = 32;
 	public static final Object NULL = new Object();
 

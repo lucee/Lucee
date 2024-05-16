@@ -2,12 +2,7 @@
 
 <cfscript>
 	this.name = hash(getCurrentTemplatePath()) & getTickCount();
- 	if(directoryExists("datasource"))directoryDelete("datasource",true);
-
- 	this.datasources.test = {
-	  class: 'org.hsqldb.jdbcDriver'
-	, connectionString: 'jdbc:hsqldb:file:#getDirectoryFromPath(getCurrentTemplatePath())#/datasource/db'
-	};
+ 	this.datasources.test = server.getDatasource("h2", server._getTempDir("orm-many2many") );
 	this.datasource = 'test'; 
 		
 	this.ormEnabled = true; 
@@ -24,7 +19,7 @@
 
 
 <cffunction name="onRequestStart">
-
+	<cfsetting requesttimeout=10>
 </cffunction>
 
 </cfcomponent>

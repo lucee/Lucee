@@ -10,7 +10,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 
 			it(title="checking getThreadGroup(), after HTTP call", body = function( currentSpec ) {
 				var thrGrp1 = getPageContext().getThread().getThreadGroup();
-				http url="http://www.lucee.org" method="post" result="result";
+				http url="https://www.lucee.org" method="post" result="result";
 				var thrGrp2 = getPageContext().getThread().getThreadGroup();
 				try{
 					var result = isInstanceOf(thrGrp2, "java.lang.ThreadGroup")

@@ -37,7 +37,7 @@ public abstract class Date extends DateTime {
 	/**
 	 * constructor of the class
 	 * 
-	 * @param time
+	 * @param time time
 	 */
 	public Date(final long time) {
 		super(time);

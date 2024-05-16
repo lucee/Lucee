@@ -48,7 +48,7 @@ public interface CacheHandler {
 	/**
 	 * return a pattern for that handler, for example "request" or "{time-span}"
 	 * 
-	 * @return
+	 * @return Returns the pattern.
 	 */
 	public String pattern();
 }

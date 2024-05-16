@@ -4,10 +4,12 @@ import java.util.ArrayList;
 import java.util.Iterator;
 
 import lucee.commons.lang.CFTypes;
+import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.dump.DumpData;
 import lucee.runtime.dump.DumpProperties;
 import lucee.runtime.dump.DumpTable;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.op.Caster;
@@ -16,7 +18,7 @@ public class ArrayTyped extends ArrayImpl {
 
 	private static final long serialVersionUID = 2416933826309884176L;
 
-	private final String strType;
+	private String strType;
 	private final short type;
 
 	public ArrayTyped(String type) {
@@ -129,6 +131,17 @@ public class ArrayTyped extends ArrayImpl {
 	}
 
 	private Object checkType(Object o) throws PageException {
-		return Caster.castTo(null, type, strType, o);
+		return Caster.castTo(ThreadLocalPageContext.get(), type, strType, o);
+	}
+
+	public String getTypeAsString() {
+		if (StringUtil.isEmpty(strType)) {
+			strType = CFTypes.toString(type, "any");
+		}
+		return strType;
+	}
+
+	public short getType() {
+		return type;
 	}
 }

@@ -32,7 +32,6 @@ import lucee.commons.lang.Md5;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageSource;
 import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.config.ConfigWebUtil;
 import lucee.runtime.exp.TemplateException;
 import lucee.transformer.bytecode.statement.tag.Attribute;
@@ -57,7 +56,8 @@ import lucee.transformer.util.SourceCode;
 public final class Import extends EvaluatorSupport {
 
 	@Override
-	public void evaluate(Tag tag, TagLibTag libTag) throws EvaluatorException {}
+	public void evaluate(Tag tag, TagLibTag libTag) throws EvaluatorException {
+	}
 
 	@Override
 	public TagLib execute(Config config, Tag tag, TagLibTag libTag, FunctionLib[] flibs, Data data) throws TemplateException {
@@ -113,7 +113,7 @@ public final class Import extends EvaluatorSupport {
 		// Second Change
 		if (textTagLib.startsWith("/")) {
 			// config.getPhysical(textTagLib);
-			PageSource ps = ((ConfigImpl) config).getPageSourceExisting(null, null, textTagLib, false, false, true, false);
+			PageSource ps = config.getPageSourceExisting(null, null, textTagLib, false, false, true, false);
 
 			// config.getConfigDir()
 			if (ps != null) {
@@ -180,7 +180,8 @@ public final class Import extends EvaluatorSupport {
 		try {
 			filename = Md5.getDigestAsString(ResourceUtil.getCanonicalPathEL(jarFile) + jarFile.lastModified());
 		}
-		catch (IOException e) {}
+		catch (IOException e) {
+		}
 
 		Resource tldFile = jspTagLibDir.getRealResource(filename + ".tld");
 		if (tldFile.exists()) return tldFile;
@@ -193,7 +194,8 @@ public final class Import extends EvaluatorSupport {
 		try {
 			IOUtil.copy(new ByteArrayInputStream(barr), tldFile, true);
 		}
-		catch (IOException e) {}
+		catch (IOException e) {
+		}
 		return tldFile;
 	}
 
@@ -221,7 +223,8 @@ public final class Import extends EvaluatorSupport {
 				}
 			}
 		}
-		catch (IOException ioe) {}
+		catch (IOException ioe) {
+		}
 		finally {
 			IOUtil.closeEL(zis);
 		}

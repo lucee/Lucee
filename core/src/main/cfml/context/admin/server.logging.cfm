@@ -13,11 +13,11 @@
         remoteClients="#request.getRemoteClients()#">
 <cfscript>
 	function doSortedStruct(arr) {
-		arraySort(arr,function(l,r) {
-			return compare(l.getLabel(),r.getLabel());
+		arraySort(arguments.arr,function(l,r) {
+			return compare(arguments.l.getLabel(),arguments.r.getLabel());
 		});
 		var sct=structNew('ordered');
-		loop array=arr item="local.el" {
+		loop array=arguments.arr item="local.el" {
 			sct[el.getClass()]=el;
 		} 
 		return sct;

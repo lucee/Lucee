@@ -158,6 +158,7 @@ Error Output --->
 						<b>#YesNoFormat(err.doStatusCode)#</b><br />
 						</cfif>
 						<div class="comment">#stText.err.errorStatusCodeDescription#</div><br>
+						<cfset renderSysPropEnvVar( "lucee.status.code",err.doStatusCode)>
 						
 					</td>
 				</tr>
@@ -171,7 +172,7 @@ Error Output --->
 						<td colspan="2">
 							<input type="submit" class="bl button submit" name="mainAction" value="#stText.Buttons.Update#">
 							<input type="reset" class="<cfif request.adminType EQ "web">bm<cfelse>br</cfif> button reset" name="cancel" value="#stText.Buttons.Cancel#">
-							<cfif request.adminType EQ "web">
+							<cfif not request.singleMode and request.adminType EQ "web">
 								<input class="br button submit" type="submit" name="mainAction" value="#stText.Buttons.resetServerAdmin#">
 							</cfif>
 						</td>

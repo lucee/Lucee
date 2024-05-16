@@ -1,0 +1,1 @@
+<cfoutput>#session.test?:"none"#</cfoutput>

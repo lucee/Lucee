@@ -36,7 +36,7 @@ import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.net.http.ReqRspUtil;
 
 public final class ResourceLockImpl implements ResourceLock {
-
+	// MUST LDEV-4568
 	private static final long serialVersionUID = 6888529579290798651L;
 
 	private long lockTimeout;
@@ -52,12 +52,11 @@ public final class ResourceLockImpl implements ResourceLock {
 
 	@Override
 	public void lock(Resource res) {
-		String path = getPath(res);
-
-		synchronized (token) {
-			_read(path);
-			resources.put(path, Thread.currentThread());
-		}
+		/*
+		 * String path = getPath(res);
+		 * 
+		 * synchronized (token) { _read(path); resources.put(path, Thread.currentThread()); }
+		 */
 	}
 
 	private String getPath(Resource res) {
@@ -66,21 +65,16 @@ public final class ResourceLockImpl implements ResourceLock {
 
 	@Override
 	public void unlock(Resource res) {
-		String path = getPath(res);
-		// if(path.endsWith(".dmg"))print.err("unlock:"+path);
-		synchronized (token) {
-			resources.remove(path);
-			token.notifyAll();
-		}
+		/*
+		 * String path = getPath(res); synchronized (token) { resources.remove(path); token.notifyAll(); }
+		 */
 	}
 
 	@Override
 	public void read(Resource res) {
-		String path = getPath(res);
-		synchronized (token) {
-			// print.ln(".......");
-			_read(path);
-		}
+		/*
+		 * String path = getPath(res); synchronized (token) { _read(path); }
+		 */
 	}
 
 	private void _read(String path) {
@@ -92,10 +86,10 @@ public final class ResourceLockImpl implements ResourceLock {
 			}
 			if (t == Thread.currentThread()) {
 				Config config = ThreadLocalPageContext.getConfig();
-				LogUtil.log(config, Log.LEVEL_ERROR, "file", "conflict in same thread: on " + path);
+				if (!LogUtil.isAlreadyInLog()) LogUtil.log(config, Log.LEVEL_ERROR, "file", "Conflict in same thread: on [" + path + "]");
 				return;
 			}
-			// bugfix when lock von totem thread, wird es ignoriert
+			// bugfix when lock from dead thread, it will be ignored
 			if (!t.isAlive()) {
 				resources.remove(path);
 				return;
@@ -126,20 +120,21 @@ public final class ResourceLockImpl implements ResourceLock {
 							}
 						}
 						if (pc != null) {
-							add = " The file is locked by a request on the following URL " + ReqRspUtil.getRequestURL(pc.getHttpServletRequest(), true) + ", that request started "
-									+ (System.currentTimeMillis() - pc.getStartTime()) + "ms ago.";
+							add = " The file is locked by a request on the following URL [" + ReqRspUtil.getRequestURL(pc.getHttpServletRequest(), true)
+									+ "], that request started " + (System.currentTimeMillis() - pc.getStartTime()) + "ms ago.";
 						}
-
-						LogUtil.log(config, Log.LEVEL_ERROR, "file",
-								"timeout after " + (now - start) + " ms (" + (lockTimeout) + " ms) occured while accessing file [" + path + "]." + add);
-
+						if (!LogUtil.isAlreadyInLog()) LogUtil.log(config, Log.LEVEL_ERROR, "file",
+								"Timeout after " + (now - start) + " ms (" + (lockTimeout) + " ms) occurred while accessing file [" + path + "]." + add);
 					}
-					else LogUtil.log(config, Log.LEVEL_ERROR, "file", "timeout (" + (lockTimeout) + " ms) occured while accessing file [" + path + "].");
-
+					else {
+						if (!LogUtil.isAlreadyInLog())
+							LogUtil.log(config, Log.LEVEL_ERROR, "file", "Timeout (" + (lockTimeout) + " ms) occurred while accessing file [" + path + "].");
+					}
 					return;
 				}
 			}
-			catch (InterruptedException e) {}
+			catch (InterruptedException e) {
+			}
 		}
 		while (true);
 	}

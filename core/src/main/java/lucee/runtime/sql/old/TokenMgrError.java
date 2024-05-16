@@ -86,7 +86,8 @@ public final class TokenMgrError extends Error {
 		return super.getMessage();
 	}
 
-	public TokenMgrError() {}
+	public TokenMgrError() {
+	}
 
 	public TokenMgrError(String s, int i) {
 		super(s);

@@ -43,23 +43,23 @@ import lucee.runtime.type.Query;
 import lucee.runtime.type.QueryImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
+import lucee.runtime.type.util.KeyConstants;
 
 public final class RSSHandler extends DefaultHandler {
 
-	private static final Key RSSLINK = KeyImpl.intern("RSSLINK");
-	private static final Key CONTENT = KeyImpl.intern("CONTENT");
+	private static final Key RSSLINK = KeyConstants._RSSLINK;
+	private static final Key CONTENT = KeyConstants._CONTENT;
 
-	private static final Key LINK = KeyImpl.intern("LINK");
-	private static final Key DESCRIPTION = KeyImpl.intern("DESCRIPTION");
+	private static final Key LINK = KeyConstants._LINK;
+	private static final Key DESCRIPTION = KeyConstants._DESCRIPTION;
 
-	private static Collection.Key[] COLUMNS = new Collection.Key[] { KeyImpl.intern("AUTHOREMAIL"), KeyImpl.intern("AUTHORNAME"), KeyImpl.intern("AUTHORURI"),
-			KeyImpl.intern("CATEGORYLABEL"), KeyImpl.intern("CATEGORYSCHEME"), KeyImpl.intern("CATEGORYTERM"), KeyImpl.intern("COMMENTS"), CONTENT, KeyImpl.intern("CONTENTMODE"),
-			KeyImpl.intern("CONTENTSRC"), KeyImpl.intern("CONTENTTYPE"), KeyImpl.intern("CONTRIBUTOREMAIL"), KeyImpl.intern("CONTRIBUTORNAME"), KeyImpl.intern("CONTRIBUTORURI"),
-			KeyImpl.intern("CREATEDDATE"), KeyImpl.intern("EXPIRATIONDATE"), KeyImpl.intern("ID"), KeyImpl.intern("IDPERMALINK"), KeyImpl.intern("LINKHREF"),
-			KeyImpl.intern("LINKHREFLANG"), KeyImpl.intern("LINKLENGTH"), KeyImpl.intern("LINKREL"), KeyImpl.intern("LINKTITLE"), KeyImpl.intern("LINKTYPE"),
-			KeyImpl.intern("PUBLISHEDDATE"), KeyImpl.intern("RIGHTS"), RSSLINK, KeyImpl.intern("SOURCE"), KeyImpl.intern("SOURCEURL"), KeyImpl.intern("SUMMARY"),
-			KeyImpl.intern("SUMMARYMODE"), KeyImpl.intern("SUMMARYSRC"), KeyImpl.intern("SUMMARYTYPE"), KeyImpl.intern("TITLE"), KeyImpl.intern("TITLETYPE"),
-			KeyImpl.intern("UPDATEDDATE"), KeyImpl.intern("URI"), KeyImpl.intern("XMLBASE") };
+	private static Collection.Key[] COLUMNS = new Collection.Key[] { KeyConstants._AUTHOREMAIL, KeyConstants._AUTHORNAME, KeyConstants._AUTHORURI, KeyConstants._CATEGORYLABEL,
+			KeyConstants._CATEGORYSCHEME, KeyConstants._CATEGORYTERM, KeyConstants._COMMENTS, CONTENT, KeyConstants._CONTENTMODE, KeyConstants._CONTENTSRC,
+			KeyConstants._CONTENTTYPE, KeyConstants._CONTRIBUTOREMAIL, KeyConstants._CONTRIBUTORNAME, KeyConstants._CONTRIBUTORURI, KeyConstants._CREATEDDATE,
+			KeyConstants._EXPIRATIONDATE, KeyConstants._ID, KeyConstants._IDPERMALINK, KeyConstants._LINKHREF, KeyConstants._LINKHREFLANG, KeyConstants._LINKLENGTH,
+			KeyConstants._LINKREL, KeyConstants._LINKTITLE, KeyConstants._LINKTYPE, KeyConstants._PUBLISHEDDATE, KeyConstants._RIGHTS, RSSLINK, KeyConstants._SOURCE,
+			KeyConstants._SOURCEURL, KeyConstants._SUMMARY, KeyConstants._SUMMARYMODE, KeyConstants._SUMMARYSRC, KeyConstants._SUMMARYTYPE, KeyConstants._TITLE,
+			KeyConstants._TITLETYPE, KeyConstants._UPDATEDDATE, KeyConstants._URI, KeyConstants._XMLBASE };
 
 	private XMLReader xmlReader;
 
@@ -91,7 +91,7 @@ public final class RSSHandler extends DefaultHandler {
 			init(source);
 		}
 		finally {
-			IOUtil.closeEL(is);
+			IOUtil.close(is);
 		}
 	}
 
@@ -132,7 +132,7 @@ public final class RSSHandler extends DefaultHandler {
 
 	@Override
 	public void startElement(String uri, String name, String qName, Attributes atts) {
-		inside = KeyImpl.getInstance(qName);
+		inside = KeyImpl.init(qName);
 		lcInside = qName.toLowerCase();
 		if (lcInside.equals("image")) insideImage = true;
 		else if (qName.equals("item")) {
@@ -174,9 +174,6 @@ public final class RSSHandler extends DefaultHandler {
 			}
 			properties.setEL(inside, sct);
 		}
-
-		// <enclosure url="http://www.scripting.com/mp3s/weatherReportDicksPicsVol7.mp3" length="6182912"
-		// type="audio/mpeg"/>
 	}
 
 	@Override

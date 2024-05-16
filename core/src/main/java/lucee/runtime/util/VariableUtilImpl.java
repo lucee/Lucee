@@ -37,6 +37,7 @@ import lucee.runtime.PageContext;
 import lucee.runtime.config.NullSupportHelper;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.functions.international.GetTimeZoneInfo;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 import lucee.runtime.reflection.Reflector;
@@ -52,6 +53,7 @@ import lucee.runtime.type.Query;
 import lucee.runtime.type.QueryColumn;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.UDF;
+import lucee.runtime.type.scope.AccessModifier;
 import lucee.runtime.type.scope.Undefined;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.KeyConstants;
@@ -123,7 +125,7 @@ public final class VariableUtilImpl implements VariableUtil {
 		}
 		// Direct Object Access
 		if (pc.getConfig().getSecurityManager().getAccess(SecurityManager.TYPE_DIRECT_JAVA_ACCESS) == SecurityManager.VALUE_YES) {
-			if (doLogReflectionCalls()) LogUtil.log(pc.getConfig(), Log.LEVEL_INFO, "reflection", "get-property:" + key + " from class " + Caster.toTypeName(coll));
+			if (doLogReflectionCalls()) LogUtil.log(pc, Log.LEVEL_INFO, "reflection", "get-property:" + key + " from class " + Caster.toTypeName(coll));
 			return Reflector.getProperty(coll, key, defaultValue);
 		}
 		return null;
@@ -177,7 +179,7 @@ public final class VariableUtilImpl implements VariableUtil {
 
 		// Direct Object Access
 		if (pc.getConfig().getSecurityManager().getAccess(SecurityManager.TYPE_DIRECT_JAVA_ACCESS) == SecurityManager.VALUE_YES) {
-			if (doLogReflectionCalls()) LogUtil.log(pc.getConfig(), Log.LEVEL_INFO, "reflection", "get-property:" + key + " from class " + Caster.toTypeName(coll));
+			if (doLogReflectionCalls()) LogUtil.log(pc, Log.LEVEL_INFO, "reflection", "get-property:" + key + " from class " + Caster.toTypeName(coll));
 			return Reflector.getProperty(coll, key.getString(), defaultValue);
 		}
 		return defaultValue;
@@ -335,15 +337,15 @@ public final class VariableUtilImpl implements VariableUtil {
 				}
 			}
 		}
-		// HTTPSession
-		/*
-		 * else if(coll instanceof HttpSession) { return ((HttpSession)coll).getAttribute(key.getString());
-		 * }
-		 */
+		// TimeZone
+		else if (coll instanceof TimeZone) {
+			Object res = GetTimeZoneInfo.call(pc, (TimeZone) coll).get(key, null);
+			if (res != null) return res; // for backward compatibility (to support reflection), this is optional
+		}
 
 		// Direct Object Access
 		if (coll != null && pc.getConfig().getSecurityManager().getAccess(SecurityManager.TYPE_DIRECT_JAVA_ACCESS) == SecurityManager.VALUE_YES) {
-			if (doLogReflectionCalls()) LogUtil.log(pc.getConfig(), Log.LEVEL_INFO, "reflection", "get-property:" + key + " from class " + Caster.toTypeName(coll));
+			if (doLogReflectionCalls()) LogUtil.log(pc, Log.LEVEL_INFO, "reflection", "get-property:" + key + " from class " + Caster.toTypeName(coll));
 			return Reflector.getProperty(coll, key.getString());
 		}
 		throw new ExpressionException("No matching property [" + key.getString() + "] found");
@@ -400,7 +402,7 @@ public final class VariableUtilImpl implements VariableUtil {
 		}
 		// Direct Object Access
 		if (pc.getConfig().getSecurityManager().getAccess(SecurityManager.TYPE_DIRECT_JAVA_ACCESS) == SecurityManager.VALUE_YES) {
-			if (doLogReflectionCalls()) LogUtil.log(pc.getConfig(), Log.LEVEL_INFO, "reflection", "get-property:" + key + " from class " + Caster.toTypeName(coll));
+			if (doLogReflectionCalls()) LogUtil.log(pc, Log.LEVEL_INFO, "reflection", "get-property:" + key + " from class " + Caster.toTypeName(coll));
 			return Reflector.getProperty(coll, key);
 		}
 		throw new ExpressionException("No matching property [" + key + "] found");
@@ -415,6 +417,14 @@ public final class VariableUtilImpl implements VariableUtil {
 			sb.append(StringUtil.toStringNative(it.next(), ""));
 		}
 		return sb.toString();
+	}
+
+	public Object set(PageContext pc, Object coll, Collection.Key key, Object value, int access, int modifier) throws PageException {
+		if (coll instanceof AccessModifier) {
+			((AccessModifier) coll).set(pc, key, value, access, modifier);
+			return value;
+		}
+		return set(pc, coll, key, value);
 	}
 
 	@Override
@@ -456,7 +466,7 @@ public final class VariableUtilImpl implements VariableUtil {
 				return ArrayUtil.set(coll, Caster.toIntValue(key.getString()) - 1, value);
 			}
 			catch (Exception e) {
-				throw new ExpressionException("invalid index [" + key.getString() + "] for Native Array, can't expand Native Arrays");
+				throw new ExpressionException("Invalid index [" + key.getString() + "] for Native Array, can't expand Native Arrays");
 			}
 		}
 		// Node
@@ -466,13 +476,14 @@ public final class VariableUtilImpl implements VariableUtil {
 		// Direct Object Access
 		if (pc.getConfig().getSecurityManager().getAccess(SecurityManager.TYPE_DIRECT_JAVA_ACCESS) == SecurityManager.VALUE_YES) {
 			try {
-				if (doLogReflectionCalls()) LogUtil.log(pc.getConfig(), Log.LEVEL_INFO, "reflection", "set-property:" + key + " in class " + Caster.toTypeName(coll));
+				if (doLogReflectionCalls()) LogUtil.log(pc, Log.LEVEL_INFO, "reflection", "set-property:" + key + " in class " + Caster.toTypeName(coll));
 				Reflector.setProperty(coll, key.getString(), value);
 				return value;
 			}
-			catch (PageException pe) {}
+			catch (PageException pe) {
+			}
 		}
-		throw new ExpressionException("can't assign value to an Object of this type [" + Type.getName(coll) + "] with key " + key.getString());
+		throw new ExpressionException("Can't assign value to an Object of this type [" + Type.getName(coll) + "] with key [" + key.getString() + "]");
 	}
 
 	/**
@@ -528,13 +539,14 @@ public final class VariableUtilImpl implements VariableUtil {
 		// Direct Object Access
 		if (pc.getConfig().getSecurityManager().getAccess(SecurityManager.TYPE_DIRECT_JAVA_ACCESS) == SecurityManager.VALUE_YES) {
 			try {
-				if (doLogReflectionCalls()) LogUtil.log(pc.getConfig(), Log.LEVEL_INFO, "reflection", "set-property:" + key + " in class " + Caster.toTypeName(coll));
+				if (doLogReflectionCalls()) LogUtil.log(pc, Log.LEVEL_INFO, "reflection", "set-property:" + key + " in class " + Caster.toTypeName(coll));
 				Reflector.setProperty(coll, key, value);
 				return value;
 			}
-			catch (PageException pe) {}
+			catch (PageException pe) {
+			}
 		}
-		throw new ExpressionException("can't assign value to an Object of this type [" + Type.getName(coll) + "] with key " + key);
+		throw new ExpressionException("Can't assign value to an Object of this type [" + Type.getName(coll) + "] with key [" + key + "]");
 	}
 
 	/**
@@ -589,7 +601,7 @@ public final class VariableUtilImpl implements VariableUtil {
 		}
 		// Direct Object Access
 		if (pc.getConfig().getSecurityManager().getAccess(SecurityManager.TYPE_DIRECT_JAVA_ACCESS) == SecurityManager.VALUE_YES) {
-			if (doLogReflectionCalls()) LogUtil.log(pc.getConfig(), Log.LEVEL_INFO, "reflection", "set-property:" + key + " in class " + Caster.toTypeName(coll));
+			if (doLogReflectionCalls()) LogUtil.log(pc, Log.LEVEL_INFO, "reflection", "set-property:" + key + " in class " + Caster.toTypeName(coll));
 			Reflector.setPropertyEL(coll, key, value);
 			return value;
 		}
@@ -647,7 +659,7 @@ public final class VariableUtilImpl implements VariableUtil {
 		}
 		// Direct Object Access
 		if (pc.getConfig().getSecurityManager().getAccess(SecurityManager.TYPE_DIRECT_JAVA_ACCESS) == SecurityManager.VALUE_YES) {
-			if (doLogReflectionCalls()) LogUtil.log(pc.getConfig(), Log.LEVEL_INFO, "reflection", "set-property:" + key + " in class " + Caster.toTypeName(coll));
+			if (doLogReflectionCalls()) LogUtil.log(pc, Log.LEVEL_INFO, "reflection", "set-property:" + key + " in class " + Caster.toTypeName(coll));
 			Reflector.setPropertyEL(coll, key.getString(), value);
 			return value;
 		}
@@ -709,14 +721,14 @@ public final class VariableUtilImpl implements VariableUtil {
 		else if (coll instanceof Map) {
 			Object obj = ((Map) coll).remove(key);
 			// if(obj==null)obj=((Map)coll).remove(MapAsStruct.getCaseSensitiveKey((Map)coll, key));
-			if (obj == null) throw new ExpressionException("can't remove key [" + key + "] from map");
+			if (obj == null) throw new ExpressionException("Can't remove key [" + key + "] from map");
 			return obj;
 		}
 		// List
 		else if (coll instanceof List) {
 			int i = Caster.toIntValue(key);
 			Object obj = ((List) coll).remove(i);
-			if (obj == null) throw new ExpressionException("can't remove index [" + key + "] from list");
+			if (obj == null) throw new ExpressionException("Can't remove index [" + key + "] from list");
 			return obj;
 		}
 		/*
@@ -726,7 +738,7 @@ public final class VariableUtilImpl implements VariableUtil {
 		 * }
 		 */
 		// TODO Support for Node
-		throw new ExpressionException("can't remove key [" + key + "] from Object of type [" + Caster.toTypeName(coll) + "]");
+		throw new ExpressionException("Can't remove key [" + key + "] from Object of type [" + Caster.toTypeName(coll) + "]");
 	}
 
 	@Override
@@ -739,7 +751,7 @@ public final class VariableUtilImpl implements VariableUtil {
 		else if (coll instanceof Map) {
 			Object obj = ((Map) coll).remove(key.getString());
 			// if(obj==null)obj=((Map)coll).remove(MapAsStruct.getCaseSensitiveKey((Map)coll, key));
-			if (obj == null) throw new ExpressionException("can't remove key [" + key + "] from map");
+			if (obj == null) throw new ExpressionException("Can't remove key [" + key + "] from map");
 			return obj;
 		}
 		// List
@@ -756,7 +768,7 @@ public final class VariableUtilImpl implements VariableUtil {
 		 * }
 		 */
 		// TODO Support for Node
-		throw new ExpressionException("can't remove key [" + key + "] from Object of type [" + Caster.toTypeName(coll) + "]");
+		throw new ExpressionException("Can't remove key [" + key + "] from Object of type [" + Caster.toTypeName(coll) + "]");
 	}
 
 	/**
@@ -793,18 +805,6 @@ public final class VariableUtilImpl implements VariableUtil {
 		if (coll instanceof String) {
 			return MemberUtil.call(pc, coll, key, args, new short[] { CFTypes.TYPE_STRING }, new String[] { "string" });
 		}
-		// Locale
-		if (coll instanceof Locale) {
-			return MemberUtil.call(pc, coll, key, args, new short[] { CFTypes.TYPE_LOCALE }, new String[] { "locale" });
-		}
-		// TimeZone
-		if (coll instanceof TimeZone) {
-			return MemberUtil.call(pc, coll, key, args, new short[] { CFTypes.TYPE_TIMEZONE }, new String[] { "timezone" });
-		}
-		// Boolean
-		if (coll instanceof Boolean) {
-			return MemberUtil.call(pc, coll, key, args, new short[] { CFTypes.TYPE_BOOLEAN }, new String[] { "boolean" });
-		}
 		// Map || XML
 		if (coll instanceof Map) {
 			if (coll instanceof Node) return MemberUtil.call(pc, coll, key, args, new short[] { CFTypes.TYPE_XML, CFTypes.TYPE_STRUCT }, new String[] { "xml", "struct" });
@@ -818,14 +818,26 @@ public final class VariableUtilImpl implements VariableUtil {
 		if (coll instanceof Date) {
 			return MemberUtil.call(pc, coll, key, args, new short[] { CFTypes.TYPE_DATETIME }, new String[] { "date" });
 		}
+		// Boolean
+		if (coll instanceof Boolean) {
+			return MemberUtil.call(pc, coll, key, args, new short[] { CFTypes.TYPE_BOOLEAN }, new String[] { "boolean" });
+		}
 		// Number
 		if (coll instanceof Number) {
 			return MemberUtil.call(pc, coll, key, args, new short[] { CFTypes.TYPE_NUMERIC }, new String[] { "numeric" });
 		}
+		// Locale
+		if (coll instanceof Locale) {
+			return MemberUtil.call(pc, coll, key, args, new short[] { CFTypes.TYPE_LOCALE }, new String[] { "locale" });
+		}
+		// TimeZone
+		if (coll instanceof TimeZone) {
+			return MemberUtil.call(pc, coll, key, args, new short[] { CFTypes.TYPE_TIMEZONE }, new String[] { "timezone" });
+		}
 
 		// call Object Wrapper
 		if (pc.getConfig().getSecurityManager().getAccess(SecurityManager.TYPE_DIRECT_JAVA_ACCESS) == SecurityManager.VALUE_YES) {
-			if (doLogReflectionCalls()) LogUtil.log(pc.getConfig(), Log.LEVEL_INFO, "reflection", "call-method:" + key + " from class " + Caster.toTypeName(coll));
+			if (doLogReflectionCalls()) LogUtil.log(pc, Log.LEVEL_INFO, "reflection", "call-method:" + key + " from class " + Caster.toTypeName(coll));
 			if (!(coll instanceof Undefined)) return Reflector.callMethod(coll, key, args);
 		}
 		throw new ExpressionException("No matching Method/Function for " + key + "(" + Reflector.getDspMethods(Reflector.getClasses(args)) + ")");

@@ -25,9 +25,9 @@ import lucee.runtime.PageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.op.Caster;
-import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
+import lucee.runtime.type.util.KeyConstants;
 
 public final class IntergralContext implements Function {
 
@@ -35,7 +35,7 @@ public final class IntergralContext implements Function {
 
 	public static Struct call(PageContext pc) throws PageException {
 		Struct sct = new StructImpl();
-		sct.setEL(KeyImpl.init("scopeNames"), Caster.toArray(pc.undefinedScope().getScopeNames()));
+		sct.setEL(KeyConstants._scopeNames, Caster.toArray(pc.undefinedScope().getScopeNames()));
 		// sct.setEL("stack", FDThreadImpl.getStack((PageContextImpl)pc));
 
 		return sct;

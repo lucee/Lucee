@@ -32,8 +32,12 @@ public class AbsDefaultHostnameVerifier implements HostnameVerifier {
 
 	final static int DNS_NAME_TYPE = 2;
 	final static int IP_ADDRESS_TYPE = 7;
+	// private static final Object token = new Object();
 
-	private final Log log = LogFactory.getLog(getClass());
+	private static final Log log;
+	static {
+		log = LogFactory.getLog("lucee.runtime.net.http.sni.AbsDefaultHostnameVerifier");
+	}
 
 	private final PublicSuffixMatcher publicSuffixMatcher;
 
@@ -204,8 +208,10 @@ public class AbsDefaultHostnameVerifier implements HostnameVerifier {
 							return value.toString();
 						}
 					}
-					catch (NoSuchElementException ignore) {}
-					catch (NamingException ignore) {}
+					catch (NoSuchElementException ignore) {
+					}
+					catch (NamingException ignore) {
+					}
 				}
 			}
 			return null;
@@ -220,7 +226,8 @@ public class AbsDefaultHostnameVerifier implements HostnameVerifier {
 		try {
 			c = cert.getSubjectAlternativeNames();
 		}
-		catch (final CertificateParsingException ignore) {}
+		catch (final CertificateParsingException ignore) {
+		}
 		List<String> subjectAltList = null;
 		if (c != null) {
 			for (final List<?> aC: c) {

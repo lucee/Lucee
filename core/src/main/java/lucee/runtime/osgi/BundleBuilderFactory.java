@@ -388,7 +388,7 @@ public class BundleBuilderFactory {
 			build(os);
 		}
 		finally {
-			IOUtil.closeEL(os);
+			IOUtil.close(os);
 		}
 	}
 
@@ -411,12 +411,12 @@ public class BundleBuilderFactory {
 				copy(is, zos);
 			}
 			finally {
-				IOUtil.closeEL(is);
+				IOUtil.close(is);
 				zos.closeEntry();
 			}
 		}
 		finally {
-			IOUtil.closeEL(zos);
+			IOUtil.close(zos);
 		}
 	}
 
@@ -430,7 +430,7 @@ public class BundleBuilderFactory {
 			}
 		}
 		finally {
-			IOUtil.closeEL(zis);
+			IOUtil.close(zis);
 		}
 	}
 
@@ -563,6 +563,6 @@ public class BundleBuilderFactory {
 	}
 
 	public void log(String str) {
-		LogUtil.log(null, Log.LEVEL_INFO, BundleBuilderFactory.class.getName(), str);
+		LogUtil.log(Log.LEVEL_INFO, BundleBuilderFactory.class.getName(), str);
 	}
 }

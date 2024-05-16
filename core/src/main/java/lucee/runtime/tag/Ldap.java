@@ -46,6 +46,7 @@ public final class Ldap extends TagImpl {
 	private String delimiter = ";";
 	private String server;
 	private int port = 389;
+	private boolean usetls = false;
 	private short secureLevel = LDAPClient.SECURE_NONE;
 	private String[] returnAsBinary = new String[0];
 	private String attributes = null;
@@ -75,6 +76,7 @@ public final class Ldap extends TagImpl {
 		action = "query";
 		delimiter = ";";
 		port = 389;
+		usetls = false;
 		secureLevel = LDAPClient.SECURE_NONE;
 		returnAsBinary = new String[0];
 		username = null;
@@ -144,8 +146,8 @@ public final class Ldap extends TagImpl {
 	}
 
 	/**
-	 * Specifies the maximum amount of time, in seconds, to wait for LDAP processing. Defaults to 60
-	 * seconds.
+	 * Specifies the maximum amount of time, in milliseconds, to wait for LDAP processing. Defaults to
+	 * 60 seconds.
 	 * 
 	 * @param timeout The timeout to set.
 	 */
@@ -167,6 +169,15 @@ public final class Ldap extends TagImpl {
 	 */
 	public void setPort(double port) {
 		this.port = (int) port;
+	}
+
+	/**
+	 * UseTLs defaults to false 
+	 * 
+	 * @param usetls Whether to use TLS or not
+	 */
+	public void setUsetls(boolean usetls) {
+		this.usetls = (boolean) usetls;
 	}
 
 	/**
@@ -242,7 +253,7 @@ public final class Ldap extends TagImpl {
 	 * @throws PageException
 	 */
 	public void setReturnasbinary(String returnAsBinary) throws PageException {
-		this.returnAsBinary = ArrayUtil.trim(ListUtil.toStringArray(ListUtil.listToArrayRemoveEmpty(returnAsBinary, ',')));
+		this.returnAsBinary = ArrayUtil.trimItems(ListUtil.toStringArray(ListUtil.listToArrayRemoveEmpty(returnAsBinary, ',')));
 	}
 
 	/**
@@ -253,7 +264,7 @@ public final class Ldap extends TagImpl {
 	 * @throws PageException
 	 */
 	public void setSort(String sort) throws PageException {
-		this.sort = ArrayUtil.trim(ListUtil.toStringArray(ListUtil.listToArrayRemoveEmpty(sort, ',')));
+		this.sort = ArrayUtil.trimItems(ListUtil.toStringArray(ListUtil.listToArrayRemoveEmpty(sort, ',')));
 	}
 
 	/**
@@ -263,7 +274,7 @@ public final class Ldap extends TagImpl {
 	 * @throws PageException
 	 */
 	public void setSortcontrol(String sortControl) throws PageException {
-		String[] sortControlArr = ArrayUtil.trim(ListUtil.toStringArray(ListUtil.listToArrayRemoveEmpty(sortControl, ',')));
+		String[] sortControlArr = ArrayUtil.trimItems(ListUtil.toStringArray(ListUtil.listToArrayRemoveEmpty(sortControl, ',')));
 		for (int i = 0; i < sortControlArr.length; i++) {
 			String scs = sortControlArr[i].trim().toLowerCase();
 
@@ -361,7 +372,7 @@ public final class Ldap extends TagImpl {
 
 		// LDAPClient client=new
 		// LDAPClient(server,port,secureLevel,returnAsBinary,username,password,referral);
-		LDAPClient client = new LDAPClient(server, port, returnAsBinary);
+		LDAPClient client = new LDAPClient(server, port, timeout, returnAsBinary);
 		if (secureLevel != LDAPClient.SECURE_NONE) client.setSecureLevel(secureLevel);
 		if (username != null) client.setCredential(username, password);
 		if (referral > 0) client.setReferral(referral);

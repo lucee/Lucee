@@ -24,7 +24,6 @@ import org.objectweb.asm.commons.GeneratorAdapter;
 
 import lucee.transformer.Position;
 import lucee.transformer.bytecode.BytecodeContext;
-import lucee.transformer.bytecode.util.ExpressionUtil;
 import lucee.transformer.bytecode.util.Types;
 
 public final class ForVisitor implements Opcodes, LoopVisitor {
@@ -55,7 +54,7 @@ public final class ForVisitor implements Opcodes, LoopVisitor {
 		adapter.visitLabel(lbegin);
 		forUpdate(adapter);
 
-		ExpressionUtil.visitLine(bc, startline);
+		bc.visitLine(startline);
 		adapter.visitLabel(l2);
 		adapter.visitVarInsn(ILOAD, i);
 

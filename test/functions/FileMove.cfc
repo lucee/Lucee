@@ -3,7 +3,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 		variables.name=ListFirst(ListLast(getCurrentTemplatePath(),"\/"),".");
 		variables.dir=getDirectoryFromPath(getCurrentTemplatePath())&name&"/";
 		if(directoryExists(dir)){
-			afterTests();
+			afterAll();
 		}
 		cfdirectory(directory="#dir#" action="create" mode="777");
 	}

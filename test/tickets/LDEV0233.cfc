@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase"{
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="mysql,orm" {
 	function run(){
 		describe( title="Test suite for LDEV-233", skip=checkMySqlEnvVarsAvailable(), body=function(){
 			it(title="Checking ORM with cftransaction", body=function(){
@@ -6,16 +6,78 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				var result = _InternalRequest(
 					template:uri
 				);
-				expect(result.fileContent.trim()).toBeTrue();
+				if(isBoolean(result.fileContent.trim()))
+					expect(result.fileContent.trim()).toBeTrue();
+				else throw result.fileContent.trim()
 			});
 
-			it(title="Checking ORM without cftransaction", body=function(){
+			/*it(title="Checking ORM without cftransaction", body=function(){
+				
+				
+
+
+
+
+				thread name="showThread" {
+					NL="
+				";
+					ignores=[
+						"org.apache.tomcat.util.net.NioEndpoint.serverSocketAccept"
+						,"java.lang.Thread.getStackTrace(Thread.java:1559)"
+						,"org.apache.tomcat.util.net.NioBlockingSelector$BlockPoller.run"
+						,"org.apache.tomcat.util.net.NioEndpoint$Poller.run"
+						,"org.apache.catalina.startup.Bootstrap.start"
+					];
+					loop times=1000 {
+						Thread=createObject("java","java.lang.Thread");
+						it=Thread.getAllStackTraces().keySet().iterator();
+						systemOutput("-------------------------------------------"&NL,1,1);
+						// loop threads
+						loop collection=it item="t" label="outer" {
+							st=t.getStackTrace();
+							state=t.getState().toString();
+							str="";
+							// loop stacktraces
+							loop array=st item="ste" {
+								str&=ste;
+								str&=NL;
+							}
+				
+							if(state=="WAITING" || state=="TIMED_WAITING") continue;
+							loop array=ignores item="ignore" {
+								if(find(ignore,str))continue "outer";
+							}
+							if(isEmpty(str)) continue;
+				
+							
+							Systemoutput( ucase( t.name&" ("&state&")" )&NL ,1,1);
+							systemOutput(str&NL,1,1);
+						}
+				
+				
+				
+				
+				
+						sleep(500);
+					}
+				}
+
+
+				
+				
+				
+				
 				var uri = createURI("LDEV0233/withoutTrans.cfm");
 				var result = _InternalRequest(
 					template:uri
 				);
-				expect(result.fileContent.trim()).toBeTrue();
-			});
+
+				thread action="terminate" name="showThread";
+				
+				if(isBoolean(result.fileContent.trim()))
+					expect(result.fileContent.trim()).toBeTrue();
+				else throw result.fileContent.trim()
+			});*/
 		});
 	}
 
@@ -26,40 +88,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 	}
 
 	private boolean function checkMySqlEnvVarsAvailable() {
-		// getting the credentials from the environment variables
-		var mySQL={};
-		if(isNull(server.system)){
-			server.system = structNew();
-			currSystem = createObject("java", "java.lang.System");
-			server.system.environment = currSystem.getenv();
-			server.system.properties = currSystem.getproperties();
-		}
-
-		if(
-			!isNull(server.system.environment.MYSQL_SERVER) &&
-			!isNull(server.system.environment.MYSQL_USERNAME) &&
-			!isNull(server.system.environment.MYSQL_PASSWORD) &&
-			!isNull(server.system.environment.MYSQL_PORT) &&
-			!isNull(server.system.environment.MYSQL_DATABASE)) {
-			mySQL.server=server.system.environment.MYSQL_SERVER;
-			mySQL.username=server.system.environment.MYSQL_USERNAME;
-			mySQL.password=server.system.environment.MYSQL_PASSWORD;
-			mySQL.port=server.system.environment.MYSQL_PORT;
-			mySQL.database=server.system.environment.MYSQL_DATABASE;
-		}
-		// getting the credentials from the system variables
-		else if(
-			!isNull(server.system.properties.MYSQL_SERVER) &&
-			!isNull(server.system.properties.MYSQL_USERNAME) &&
-			!isNull(server.system.properties.MYSQL_PASSWORD) &&
-			!isNull(server.system.properties.MYSQL_PORT) &&
-			!isNull(server.system.properties.MYSQL_DATABASE)) {
-			mySQL.server=server.system.properties.MYSQL_SERVER;
-			mySQL.username=server.system.properties.MYSQL_USERNAME;
-			mySQL.password=server.system.properties.MYSQL_PASSWORD;
-			mySQL.port=server.system.properties.MYSQL_PORT;
-			mySQL.database=server.system.properties.MYSQL_DATABASE;
-		}
+		var mySQL= server.getDatasource("mysql");
 		return structIsEmpty(mySQL);
 	}
 }

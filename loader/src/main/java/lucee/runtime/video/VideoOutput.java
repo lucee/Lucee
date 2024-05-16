@@ -32,35 +32,35 @@ public interface VideoOutput {
 	/**
 	 * set time offset of the output file based on input file in seconds
 	 * 
-	 * @param offset
+	 * @param offset offset
 	 */
 	public void setOffset(double offset);
 
 	/**
 	 * sets a comment to the output video
 	 * 
-	 * @param comment
+	 * @param comment comment
 	 */
 	public void setComment(String comment);
 
 	/**
 	 * sets a title to the output video
 	 * 
-	 * @param title
+	 * @param title title
 	 */
 	public void setTitle(String title);
 
 	/**
 	 * sets an author to the output video
 	 * 
-	 * @param author
+	 * @param author author
 	 */
 	public void setAuthor(String author);
 
 	/**
 	 * sets a copyright to the output video
 	 * 
-	 * @param copyright
+	 * @param copyright copyright
 	 */
 	public void setCopyright(String copyright);
 

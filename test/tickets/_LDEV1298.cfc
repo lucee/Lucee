@@ -1,7 +1,7 @@
 component extends="org.lucee.cfml.test.LuceeTestCase" {
     function run() {
         describe("Test suite for LDEV-1298", function(){
-            it("checking Build in function with call back", function(){
+            it("checking Built in function with call back", function(){
                 var testString = "AbCd";
                 var applyTo = function(object, operation){
                     return operation(object);

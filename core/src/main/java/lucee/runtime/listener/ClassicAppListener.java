@@ -21,6 +21,7 @@ package lucee.runtime.listener;
 import java.io.IOException;
 
 import lucee.runtime.CFMLFactory;
+import lucee.runtime.Page;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.PageSource;
@@ -42,17 +43,17 @@ public final class ClassicAppListener extends AppListenerSupport {
 	@Override
 	public void onRequest(PageContext pc, PageSource requestedPage, RequestListener rl) throws PageException {
 
-		PageSource application = AppListenerUtil.getApplicationPageSource(pc, requestedPage, Constants.CFML_CLASSIC_APPLICATION_EVENT_HANDLER, mode);
+		Page application = AppListenerUtil.getApplicationPage(pc, requestedPage, Constants.CFML_CLASSIC_APPLICATION_EVENT_HANDLER, mode, ApplicationListener.TYPE_CLASSIC);
 
 		_onRequest(pc, requestedPage, application, rl);
 	}
 
-	static void _onRequest(PageContext pc, PageSource requestedPage, PageSource application, RequestListener rl) throws PageException {
+	static void _onRequest(PageContext pc, PageSource requestedPage, Page application, RequestListener rl) throws PageException {
 		PageContextImpl pci = (PageContextImpl) pc;
 		pci.setAppListenerType(ApplicationListener.TYPE_CLASSIC);
 
 		// on requestStart
-		if (application != null) pci._doInclude(new PageSource[] { application }, false, null);
+		if (application != null) pci._doInclude(new PageSource[] { application.getPageSource() }, false, null);
 
 		if (rl != null) {
 			requestedPage = rl.execute(pc, requestedPage);
@@ -79,7 +80,7 @@ public final class ClassicAppListener extends AppListenerSupport {
 
 		// on Request End
 		if (application != null) {
-			PageSource onReqEnd = application.getRealPage(Constants.CFML_CLASSIC_APPLICATION_END_EVENT_HANDLER);
+			PageSource onReqEnd = application.getPageSource().getRealPage(Constants.CFML_CLASSIC_APPLICATION_END_EVENT_HANDLER);
 			if (onReqEnd.exists()) pci._doInclude(new PageSource[] { onReqEnd }, false, null);
 		}
 	}
@@ -144,7 +145,8 @@ public final class ClassicAppListener extends AppListenerSupport {
 		_onTimeout(pc);
 	}
 
-	public static void _onTimeout(PageContext pc) {}
+	public static void _onTimeout(PageContext pc) {
+	}
 
 	@Override
 	public boolean hasOnApplicationStart() {

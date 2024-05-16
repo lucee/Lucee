@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -29,7 +30,7 @@ import java.util.Map.Entry;
 import lucee.commons.lang.ClassException;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
-import lucee.commons.lang.compiler.JavaCCompiler;
+import lucee.commons.lang.compiler.CompilerFactory;
 import lucee.commons.lang.compiler.JavaCompilerException;
 import lucee.commons.lang.compiler.JavaFunction;
 import lucee.commons.lang.types.RefBoolean;
@@ -38,6 +39,7 @@ import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.Component;
 import lucee.runtime.PageSource;
 import lucee.runtime.component.Member;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.Constants;
 import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.exp.TemplateException;
@@ -53,12 +55,14 @@ import lucee.transformer.Position;
 import lucee.transformer.TransformerException;
 import lucee.transformer.bytecode.Body;
 import lucee.transformer.bytecode.BodyBase;
+import lucee.transformer.bytecode.BytecodeContext;
 import lucee.transformer.bytecode.FunctionBody;
 import lucee.transformer.bytecode.ScriptBody;
 import lucee.transformer.bytecode.Statement;
 import lucee.transformer.bytecode.expression.FunctionAsExpression;
 import lucee.transformer.bytecode.expression.var.Assign;
 import lucee.transformer.bytecode.expression.var.VariableString;
+import lucee.transformer.bytecode.literal.Null;
 import lucee.transformer.bytecode.statement.Argument;
 import lucee.transformer.bytecode.statement.Condition;
 import lucee.transformer.bytecode.statement.Condition.Pair;
@@ -239,13 +243,15 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 		else if ((child = returnStatement(data)) != null) parent.addStatement(child);
 		else if ((child = switchStatement(data)) != null) parent.addStatement(child);
 		else if ((child = tryStatement(data)) != null) parent.addStatement(child);
-		else if (islandStatement(data, parent)) {}
+		else if (islandStatement(data, parent)) {
+		}
 		// else if(staticStatement(data,parent)) ; // do nothing, happen already inside the method
 		else if ((child = staticStatement(data, parent)) != null) parent.addStatement(child);
 		else if ((child = componentStatement(data, parent)) != null) parent.addStatement(child);
 		else if ((child = tagStatement(data, parent)) != null) parent.addStatement(child);
 		else if ((child = cftagStatement(data, parent)) != null) parent.addStatement(child);
-		else if (block(data, parent)) {}
+		else if (block(data, parent)) {
+		}
 
 		else parent.addStatement(expressionStatement(data, parent));
 		data.docComment = null;
@@ -460,7 +466,8 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 		return swit;
 	}
 
-	private final TagComponent componentStatement(Data data, Body parent) throws TemplateException {
+	@Override
+	protected final TagComponent componentStatement(Data data, Body parent) throws TemplateException {
 
 		int pos = data.srcCode.getPos();
 
@@ -720,64 +727,15 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 
 			if (!(left instanceof Variable)) throw new TemplateException(data.srcCode, "invalid syntax in for statement, left value is invalid");
 
-			// if(!(value instanceof Variable))
-			// throw new TemplateException(data.srcCode,"invalid syntax in for statement, right value is
-			// invalid");
 			return new ForEach((Variable) left, value, body, line, data.srcCode.getPosition(), id);
 		}
 		else throw new TemplateException(data.srcCode, "invalid syntax in for statement");
 	}
 
-	/*
-	 * private TagLoop asLoop(Factory factory, Expression expLeft, Expression expMiddle, Expression
-	 * expRight, Body body, Position start, Position end, String label) {
-	 * 
-	 * // LEFT // left must be an assignment if(!(expLeft instanceof Assign)) return null; Assign
-	 * left=(Assign) expLeft; String leftVarName=toVariableName(left.getVariable());
-	 * if(leftVarName==null) return null; if(!"susi".equalsIgnoreCase(leftVarName)) return null;
-	 * 
-	 * // MIDDLE // midfdle must be an operation if(!(expMiddle instanceof OPDecision)) return null;
-	 * OPDecision middle=(OPDecision) expMiddle;
-	 * 
-	 * // middle must be an operation LT or LTE boolean isLT=middle.getOperation()==OPDecision.LT;
-	 * if(!isLT && middle.getOperation()!=OPDecision.LTE) return null;
-	 * 
-	 * // middle variable need to be the same as the left variable
-	 * if(!leftVarName.equals(toVariableName(middle.getLeft()))) return null;
-	 * 
-	 * // RIGHT // right need to be an assignment (i=i+1 what is the same as i++) if(!(expRight
-	 * instanceof Assign)) return null; Assign right=(Assign) expRight;
-	 * 
-	 * // increment need to be a literal number if(!(right.getValue() instanceof OpDouble)) return null;
-	 * OpDouble opRight=(OpDouble) right.getValue();
-	 * 
-	 * // must be an increment of the same variable (i on both sides)
-	 * if(!leftVarName.equals(toVariableName(right.getVariable()))) return null;
-	 * if(!leftVarName.equals(toVariableName(opRight.getLeft()))) return null;
-	 * 
-	 * // must be a literal number if(!(opRight.getRight() instanceof LitDouble)) return null; LitDouble
-	 * rightIncValue=(LitDouble) opRight.getRight(); if(opRight.getOperation()!=Factory.OP_DBL_PLUS)
-	 * return null;
-	 * 
-	 * // create loop tag TagLoop tl=new TagLoop(factory, start, end); tl.setBody(body);
-	 * tl.setType(TagLoop.TYPE_FROM_TO);
-	 * 
-	 * // id tl.addAttribute( new Attribute( false, "index",
-	 * factory.createLitString(leftVarName,right.getVariable().getStart(),right.getVariable().getEnd()),
-	 * "string" ) ); // from tl.addAttribute( new Attribute( false, "from",
-	 * factory.toExprDouble(left.getValue()), "number" ) ); // to ExprDouble val = isLT?
-	 * factory.opDouble(middle.getLeft(), factory.createLitDouble(1),
-	 * Factory.OP_DBL_MINUS):factory.toExprDouble(middle.getLeft()); tl.addAttribute( new Attribute(
-	 * false, "to", val, "number" ) ); // step tl.addAttribute( new Attribute( false, "step",
-	 * factory.toExprDouble(rightIncValue), "number" ) );
-	 * 
-	 * return tl; }
-	 */
-
-	private String toVariableName(Expression variable) {
+	private String toVariableName(BytecodeContext bc, Expression variable) {
 		if (!(variable instanceof Variable)) return null;
 		try {
-			return VariableString.variableToString((Variable) variable, false);
+			return VariableString.variableToString(bc, (Variable) variable, false);
 		}
 		catch (TransformerException e) {
 			return null;
@@ -1069,8 +1027,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 	@Override
 	protected final Function closurePart(Data data, String id, int access, int modifier, String rtnType, Position line, boolean closure) throws TemplateException {
 		Body body = new FunctionBody(data.factory);
-		Function func = closure ? new Closure(data.root, id, access, modifier, rtnType, body, line, null)
-				: new FunctionImpl(data.root, id, access, modifier, rtnType, body, line, null);
+		Function func = closure ? new Closure(id, access, modifier, rtnType, body, line, null) : new FunctionImpl(id, access, modifier, rtnType, body, line, null);
 
 		comments(data);
 		if (!data.srcCode.forwardIfCurrent('(')) throw new TemplateException(data.srcCode, "invalid syntax in function head, missing begin [(]");
@@ -1110,7 +1067,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 				else throw new TemplateException(data.srcCode, "attribute type must be a literal string, ");
 			}
 
-			func.addAttribute(attr);
+			func.addAttribute(null, attr);
 		}
 
 		// body
@@ -1219,7 +1176,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 						verifyClient, localMode));
 			}
 			else {
-				func.register();
+				func.register(data.page);
 				statement(data, body, CTX_FUNCTION);
 			}
 			data.setParent(prior);
@@ -1274,9 +1231,6 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 			throw new TemplateException(data.srcCode, e.getMessage());
 		}
 
-		// print.e("+++++++++++++++++++++++++++++++++++");
-		// print.e(fd);
-
 		PageSourceCode psc = (PageSourceCode) data.srcCode;// TODO get PS in an other way
 		PageSource ps = psc.getPageSource();
 
@@ -1286,23 +1240,26 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 		Position end = sc.getPosition();
 		String javaCode = sc.substring(start.pos, end.pos - start.pos);
 		try {
-			String id = data.root.registerJavaFunctionName(functionName);
+			String id = data.page.registerJavaFunctionName(functionName);
+			lucee.commons.lang.compiler.SourceCode _sc = fd.createSourceCode(ps, javaCode, id, functionName, access, modifier, hint, args, output, bufferOutput, displayName,
+					description, returnFormat, secureJson, verifyClient, localMode);
+			JavaFunction jf = new JavaFunction(ps, _sc, CompilerFactory.getInstance().compile((ConfigPro) data.config, _sc));
 
-			JavaFunction jf = JavaCCompiler.compile(ps, fd.createSourceCode(ps, javaCode, id, functionName, access, modifier, hint, args, output, bufferOutput, displayName,
-					description, returnFormat, secureJson, verifyClient, localMode));
-			// print.e("-->" + (jf.byteCode == null ? -1 : jf.byteCode.length));
-			// jf.setTemplateName(ps.getRealpathWithVirtual());
-			// jf.setFunctionName(fn);
 			return jf;
 		}
 		catch (JavaCompilerException e) {
-			TemplateException te = new TemplateException(data.srcCode, (int) (start.line + e.getLineNumber()), (int) e.getColumnNumber(), e.getMessage());
-			te.setStackTrace(e.getStackTrace());
+			Throwable cause = e.getCause();
+			TemplateException te = new TemplateException(data.srcCode, (int) (start.line + (e.getLineNumber() - 24/* 24 lines of generated java code in front of it */)), 0,
+					e.getMessage());
+			// te.setStackTrace(e.getStackTrace());
+			if (cause != null) te.initCause(cause);
 			throw te;
 		}
 		catch (Exception e) {
+			Throwable cause = e.getCause();
 			TemplateException te = new TemplateException(data.srcCode, start.line, 0, e.getMessage());
-			te.setStackTrace(e.getStackTrace());
+			// te.setStackTrace(e.getStackTrace());
+			if (cause != null) te.initCause(cause);
 			throw te;
 		}
 
@@ -1361,8 +1318,8 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 	@Override
 	protected final Function lambdaPart(Data data, String id, int access, int modifier, String rtnType, Position line, ArrayList<Argument> args) throws TemplateException {
 		Body body = new FunctionBody(data.factory);
-		Function func = new Lambda(data.root, id, access, modifier, rtnType, body, line, null);
-		func.register();// TODO may add support for java functions
+		Function func = new Lambda(data.page, id, access, modifier, rtnType, body, line, null);
+		func.register(data.page);
 		comments(data);
 
 		// add arguments
@@ -1468,7 +1425,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 
 			}
 
-			boolean isValid = (data.srcCode.isCurrent(' ') || (tlt.getHasBody() && data.srcCode.isCurrent('{')));
+			boolean isValid = (data.srcCode.isCurrent(' ') || data.srcCode.isCurrent(';') || (tlt.getHasBody() && data.srcCode.isCurrent('{')));
 			if (isValid && (data.srcCode.isCurrent(" ", "=") || data.srcCode.isCurrent(" ", "("))) { // simply avoid a later exception
 				isValid = false;
 			}
@@ -1479,8 +1436,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 			}
 		}
 		else return null;
-
-		Position line = data.srcCode.getPosition();
+		Position line = data.srcCode.getPosition(pos);
 
 		TagLibTagScript script = tlt.getScript();
 		// TagLibTag tlt = CFMLTransformer.getTLT(data.srcCode,type);
@@ -1725,7 +1681,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 		// first fill all regular attribute -> name="value"
 		for (int i = attrs.length - 1; i >= 0; i--) {
 			attr = attrs[i];
-			if (!attr.getValue().equals(data.factory.NULL())) {
+			if (!isNull(attr.getValue())) {
 				if (attr.getName().equalsIgnoreCase("name")) {
 					hasName = true;
 				}
@@ -1740,7 +1696,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 		String first = null, second = null;
 		for (int i = 0; i < attrs.length; i++) {
 			attr = attrs[i];
-			if (attr.getValue().equals(data.factory.NULL())) {
+			if (isNull(attr.getValue())) {
 				// type
 				if (first == null && ((!hasName && !hasType) || !hasName)) {
 					first = attr.getNameOC();
@@ -1782,6 +1738,13 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 		property.setEnd(data.srcCode.getPosition());
 
 		return property;
+	}
+
+	private boolean isNull(Expression value) {
+		if (value == null) return true;
+		if (value instanceof Null) return true;
+		if (value instanceof Literal && ((Literal) value).getString() == null) return true;
+		return false;
 	}
 
 	private final Tag staticStatement(Data data, Body parent) throws TemplateException {
@@ -1898,7 +1861,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 		boolean hasDynamic = false;
 		for (int i = attrs.length - 1; i >= 0; i--) {
 			attr = attrs[i];
-			if (!attr.getValue().equals(data.factory.NULL())) {
+			if (!isNull(attr.getValue())) {
 				if (attr.getName().equalsIgnoreCase("name")) {
 					hasName = true;
 					param.addAttribute(attr);
@@ -1923,7 +1886,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 		for (int i = 0; i < attrs.length; i++) {
 			attr = attrs[i];
 
-			if (attr.getValue().equals(data.factory.NULL())) {
+			if (isNull(attr.getValue())) {
 				// type
 				if (first == null && (!hasName || !hasType)) {
 					first = attr.getName();
@@ -2383,7 +2346,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 
 			Body b = new BodyBase(data.factory);
 			try {
-				tryCatchFinally.addCatch(type, name, b, line);
+				tryCatchFinally.addCatch(null, type, name, b, line);
 			}
 			catch (TransformerException e) {
 				throw new TemplateException(data.srcCode, e.getMessage());
@@ -2445,7 +2408,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 
 	private final Attribute[] attributes(Tag tag, TagLibTag tlt, Data data, EndCondition endCond, Expression defaultValue, Object oAllowExpression, String ignoreAttrReqFor,
 			boolean allowTwiceAttr, char attributeSeparator, boolean allowColonAsNameValueSeparator) throws TemplateException {
-		Map<String, Attribute> attrs = new HashMap<String, Attribute>();
+		Map<String, Attribute> attrs = new LinkedHashMap<String, Attribute>(); // need to be linked hashmap to keep the right order
 		ArrayList<String> ids = new ArrayList<String>();
 		while (data.srcCode.isValidIndex()) {
 			data.srcCode.removeSpace();
@@ -2594,7 +2557,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 					String names = tag.getAttributeNames();
 					if (StringUtil.isEmpty(names)) throw new TemplateException(cfml, "Attribute [" + idOC + "] is not allowed for tag [" + tag.getFullName() + "]");
 
-					throw new TemplateException(cfml, "Attribute [" + idOC + "] is not allowed for statement [" + tag.getName() + "]", "valid attribute names are [" + names + "]");
+					throw new TemplateException(cfml, "Attribute [" + idOC + "] is not allowed for statement [" + tag.getName() + "]", "Valid Attribute names are [" + names + "]");
 				}
 				dynamic.setValue(true);
 

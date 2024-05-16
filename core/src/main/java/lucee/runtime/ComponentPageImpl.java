@@ -22,11 +22,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
 
-import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -36,15 +37,16 @@ import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.CFTypes;
 import lucee.commons.lang.ExceptionUtil;
+import lucee.commons.lang.HTMLEntities;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.mimetype.MimeType;
 import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.component.StaticStruct;
-import lucee.runtime.config.ConfigImpl;
-import lucee.runtime.config.ConfigWebImpl;
+import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.converter.BinaryConverter;
 import lucee.runtime.converter.ConverterException;
 import lucee.runtime.converter.JSONConverter;
+import lucee.runtime.converter.JSONDateFormat;
 import lucee.runtime.converter.JavaConverter;
 import lucee.runtime.converter.ScriptConverter;
 import lucee.runtime.converter.WDDXConverter;
@@ -53,6 +55,7 @@ import lucee.runtime.dump.DumpUtil;
 import lucee.runtime.dump.DumpWriter;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
+import lucee.runtime.exp.CustomTypeException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.gateway.GatewayEngineImpl;
 import lucee.runtime.interpreter.CFMLExpressionInterpreter;
@@ -87,16 +90,17 @@ import lucee.runtime.type.util.UDFUtil;
  */
 public abstract class ComponentPageImpl extends ComponentPage implements PagePro {
 
-	public static final Collection.Key ACCEPT_ARG_COLL_FORMATS = KeyImpl.getInstance("acceptedArgumentCollectionFormats");
+	public static final Collection.Key ACCEPT_ARG_COLL_FORMATS = KeyConstants._acceptedArgumentCollectionFormats;
 
 	private static final long serialVersionUID = -3483642653131058030L;
 
-	public static final lucee.runtime.type.Collection.Key REMOTE_PERSISTENT_ID = KeyImpl.intern("Id16hohohh");
+	public static final lucee.runtime.type.Collection.Key REMOTE_PERSISTENT_ID = KeyConstants._Id16hohohh;
 
 	private long lastCheck = -1;
 
-	// static scope
-	public final StaticStruct _static = new StaticStruct();
+	private StaticScope staticScope;
+
+	private long index;
 
 	public abstract ComponentImpl newInstance(PageContext pc, String callPath, boolean isRealPath, boolean isExtendedComponent, boolean executeConstr)
 			throws lucee.runtime.exp.PageException;
@@ -109,6 +113,11 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 	@Override
 	public long getSourceLength() {
 		return 0;
+	}
+
+	@Override
+	public String getSubname() {
+		return null;
 	}
 
 	@Override
@@ -134,8 +143,8 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 			// load the cfc
 			try {
 				if (internalCall && strRemotePersisId != null) {
-					ConfigWebImpl config = (ConfigWebImpl) pc.getConfig();
-					GatewayEngineImpl engine = config.getGatewayEngine();
+					ConfigWebPro config = (ConfigWebPro) pc.getConfig();
+					GatewayEngineImpl engine = (GatewayEngineImpl) config.getGatewayEngine();
 					component = engine.getPersistentRemoteCFC(strRemotePersisId);
 
 					if (component == null) {
@@ -163,18 +172,20 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 
 			// METHOD INVOCATION
 			String qs = ReqRspUtil.getQueryString(pc.getHttpServletRequest());
+
 			if (pc.getBasePageSource() == this.getPageSource() && pc.getConfig().debug()) pc.getDebugger().setOutput(false);
+
 			boolean isPost = pc.getHttpServletRequest().getMethod().equalsIgnoreCase("POST");
 
 			boolean suppressContent = pc.getRequestDialect() == CFMLEngine.DIALECT_LUCEE || ((PageContextImpl) pc).getSuppressContent();
 			if (suppressContent) pc.clear();
-			Object method;
 
 			if (fromRest) {
-
 				callRest(pc, component, Caster.toString(req.getAttribute("rest-path"), ""), (Result) req.getAttribute("rest-result"), suppressContent);
 				return null;
 			}
+
+			Object method;
 
 			// POST
 			if (isPost) {
@@ -190,7 +201,6 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 					// close(pc);
 					return null;
 				}
-
 			}
 
 			// GET
@@ -247,15 +257,16 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 			}
 
 			// DUMP
-			// TODO component.setAccess(pc,Component.ACCESS_PUBLIC);
-			String cdf = pc.getConfig().getComponentDumpTemplate();
+			if (!req.getServletPath().equalsIgnoreCase("/Web." + (pc.getRequestDialect() == CFMLEngine.DIALECT_CFML ? lucee.runtime.config.Constants.getCFMLComponentExtension()
+					: lucee.runtime.config.Constants.getLuceeComponentExtension()))) {
+				String cdf = pc.getConfig().getComponentDumpTemplate();
 
-			if (cdf != null && cdf.trim().length() > 0) {
-				pc.variablesScope().set(KeyConstants._component, component);
-				pc.doInclude(cdf, false);
+				if (cdf != null && cdf.trim().length() > 0) {
+					pc.variablesScope().set(KeyConstants._component, component);
+					pc.doInclude(cdf, false);
+				}
+				else pc.write(pc.getConfig().getDefaultDumpWriter(DumpWriter.DEFAULT_RICH).toString(pc, component.toDumpData(pc, 9999, DumpUtil.toDumpProperties()), true));
 			}
-			else pc.write(pc.getConfig().getDefaultDumpWriter(DumpWriter.DEFAULT_RICH).toString(pc, component.toDumpData(pc, 9999, DumpUtil.toDumpProperties()), true));
-
 		}
 		catch (Throwable t) {
 			throw Caster.toPageException(t);// Exception Handler.castAnd
@@ -270,7 +281,7 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 		return pc.urlScope().get(key, defaultValue);
 	}
 
-	private void callRest(PageContext pc, Component component, String path, Result result, boolean suppressContent) throws IOException, ConverterException {
+	private void callRest(PageContext pc, Component component, String path, Result result, boolean suppressContent) throws PageException, IOException, ConverterException {
 		String method = pc.getHttpServletRequest().getMethod();
 		String[] subPath = result.getPath();
 		Struct cMeta;
@@ -310,9 +321,11 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 				try {
 					meta = udf.getMetaData(pc);
 
-					// check if http method match
+					// check if http method either match or is unspecified
 					String httpMethod = Caster.toString(meta.get(KeyConstants._httpmethod, null), null);
-					if (StringUtil.isEmpty(httpMethod) || !httpMethod.equalsIgnoreCase(method)) continue;
+					boolean hasHttpMethod = !StringUtil.isEmpty(httpMethod);
+					boolean httpMethodMatches = hasHttpMethod && httpMethod.equalsIgnoreCase(method);
+					if (hasHttpMethod && !httpMethodMatches) continue;
 
 					// get consumes mimetype
 					MimeType[] consumes;
@@ -333,7 +346,7 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 					String restPath = Caster.toString(meta.get(KeyConstants._restPath, null), null);
 
 					// no rest path
-					if (StringUtil.isEmpty(restPath)) {
+					if (httpMethodMatches && StringUtil.isEmpty(restPath)) {
 						if (ArrayUtil.isEmpty(subPath)) {
 							bestC = best(consumes, result.getContentType());
 							bestP = best(produces, result.getAccept());
@@ -349,7 +362,15 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 					else {
 						Struct var = result.getVariables();
 						int index = RestUtil.matchPath(var, Path.init(restPath)/* TODO cache this */, result.getPath());
-						if (index >= 0 && index + 1 == result.getPath().length) {
+
+						if (!hasHttpMethod && index >= 0) {
+							Result subResult = makeSubResult(result, index + 1);
+							status = 200;
+							_callThroughSubresourceLocator(pc, component, udf, path, var, subResult, suppressContent, e.getKey());
+							break;
+						}
+
+						if (httpMethodMatches && index >= 0 && index + 1 == result.getPath().length) {
 							bestC = best(consumes, result.getContentType());
 							bestP = best(produces, result.getAccept());
 
@@ -363,24 +384,65 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 						}
 					}
 				}
+				catch (CustomTypeException cte) {
+					ThreadLocalPageContext.getLog(pc, "rest").error("REST", cte);
+					if (cte.getCustomTypeAsString() == "RestError") {
+						try {
+							status = Integer.parseInt(cte.getErrorCode());
+						}
+						catch (NumberFormatException ne) {
+							status = 500;
+						}
+						RestUtil.setStatus(pc, status, cte.getMessage());
+						return;
+					}
+					else {
+						throw cte;
+					}
+				}
 				catch (PageException pe) {
-					pc.getConfig().getLog("rest").error("REST", pe);
+					ThreadLocalPageContext.getLog(pc, "rest").error("REST", pe);
+					throw pe;
 				}
 			}
 		}
+
 		if (status == 404) {
-			RestUtil.setStatus(pc, 404, "no rest service for [" + path + "] found");
-			pc.getConfig().getLog("rest").error("REST", "404; no rest service for [" + path + "] found");
+			RestUtil.setStatus(pc, 404, "no rest service for [" + HTMLEntities.escapeHTML(path) + "] found");
+			ThreadLocalPageContext.getLog(pc, "rest").error("REST", "404; no rest service for [" + path + "] found");
 		}
 		else if (status == 405) {
 			RestUtil.setStatus(pc, 405, "Unsupported Media Type");
-			pc.getConfig().getLog("rest").error("REST", "405; Unsupported Media Type");
+			ThreadLocalPageContext.getLog(pc, "rest").error("REST", "405; Unsupported Media Type");
 		}
 		else if (status == 406) {
 			RestUtil.setStatus(pc, 406, "Not Acceptable");
-			pc.getConfig().getLog("rest").error("REST", "406; Not Acceptable");
+			ThreadLocalPageContext.getLog(pc, "rest").error("REST", "406; Not Acceptable");
 		}
 
+	}
+
+	private Result makeSubResult(Result r, int pathElemsToSkip) {
+		int n = r.getPath().length - pathElemsToSkip;
+		String pathElems[] = new String[n];
+		for (int i = 0; i < n; i++) {
+			pathElems[i] = r.getPath()[pathElemsToSkip + i];
+		}
+		List<MimeType> acceptList = Arrays.asList(r.getAccept());
+		Result subResult = new Result(r.getSource(), r.getVariables(), pathElems, r.getMatrix(), r.getFormat(), r.hasFormatExtension(), acceptList, r.getContentType());
+		return subResult;
+	}
+
+	private void _callThroughSubresourceLocator(PageContext pc, Component component, UDF udf, String path, Struct variables, Result result, boolean suppressContent, Key methodName)
+			throws PageException, IOException, ConverterException {
+		Object rtn = _callUDF(pc, component, udf, variables, result, suppressContent, methodName);
+		if (rtn instanceof Component) {
+			Component subcomp = (Component) rtn;
+			callRest(pc, subcomp, path, result, suppressContent);
+		}
+		else {
+			RestUtil.setStatus(pc, 500, "Subresource locator error.");
+		}
 	}
 
 	private MimeType best(MimeType[] produces, MimeType... accept) {
@@ -403,24 +465,32 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 		return best;
 	}
 
-	private void _callRest(PageContext pc, Component component, UDF udf, String path, Struct variables, Result result, MimeType best, MimeType[] produces, boolean suppressContent,
-			Key methodName) throws PageException, IOException, ConverterException {
+	private Object _callUDF(PageContext pc, Component component, UDF udf, Struct variables, Result result, boolean suppressContent, Key methodName) throws PageException {
 		FunctionArgument[] fa = udf.getFunctionArguments();
 		Struct args = new StructImpl(), meta;
 
 		Key name;
+		List<Key> arrName = new ArrayList<Key>();
+		List<String> arrRestArgSource = new ArrayList<String>();
+		List<String> arrRestArgName = new ArrayList<String>();
 		String restArgName, restArgSource, value;
 		for (int i = 0; i < fa.length; i++) {
-			name = fa[i].getName();
-			meta = fa[i].getMetaData();
-			restArgSource = meta == null ? "" : Caster.toString(meta.get(KeyConstants._restArgSource, ""), "");
 
+			arrName.add(fa[i].getName());
+			meta = fa[i].getMetaData();
+			arrRestArgSource.add(meta == null ? "" : Caster.toString(meta.get(KeyConstants._restArgSource, ""), ""));
+			arrRestArgName.add(meta == null ? "" : Caster.toString(meta.get(KeyConstants._restArgName, ""), ""));
+		}
+
+		for (int i = 0; i < fa.length; i++) {
+			name = arrName.get(i);
+			restArgSource = arrRestArgSource.get(i);
 			if ("path".equalsIgnoreCase(restArgSource)) setValue(fa[i], args, name, variables.get(name, null));
 			if ("query".equalsIgnoreCase(restArgSource) || "url".equalsIgnoreCase(restArgSource)) setValue(fa[i], args, name, pc.urlScope().get(name, null));
 			if ("form".equalsIgnoreCase(restArgSource)) setValue(fa[i], args, name, pc.formScope().get(name, null));
 			if ("cookie".equalsIgnoreCase(restArgSource)) setValue(fa[i], args, name, pc.cookieScope().get(name, null));
 			if ("header".equalsIgnoreCase(restArgSource) || "head".equalsIgnoreCase(restArgSource)) {
-				restArgName = meta == null ? "" : Caster.toString(meta.get(KeyConstants._restArgName, ""), "");
+				restArgName = arrRestArgName.get(i);
 				if (StringUtil.isEmpty(restArgName)) restArgName = name.getString();
 				value = ReqRspUtil.getHeaderIgnoreCase(pc, restArgName, null);
 				setValue(fa[i], args, name, value);
@@ -428,9 +498,21 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 			if ("matrix".equalsIgnoreCase(restArgSource)) setValue(fa[i], args, name, result.getMatrix().get(name, null));
 
 			if ("body".equalsIgnoreCase(restArgSource) || StringUtil.isEmpty(restArgSource, true)) {
+				// cfargument cannot have the attributes restArgSource and restArgName specified. That is, you can
+				// only send data in the body of the request.
+				if (!StringUtil.isEmpty(arrRestArgName.get(i), true)) {
+					continue;
+				}
+				else if (!"body".equalsIgnoreCase(restArgSource)) {
+					// There can only be one argument that does not specify the restArgSource attribute.
+					for (int j = 0; j < fa.length; j++) {
+						if (StringUtil.isEmpty(arrRestArgSource.get(j)) && i != j) continue;
+					}
+				}
 				boolean isSimple = CFTypes.isSimpleType(fa[i].getType());
-				Object body = ReqRspUtil.getRequestBody(pc, true, null);
-				if (isSimple && !Decision.isSimpleValue(body)) body = ReqRspUtil.getRequestBody(pc, false, null);
+				Object body;
+				if (isSimple) body = ReqRspUtil.getRequestBody(pc, false, null);
+				else body = ReqRspUtil.getRequestBody(pc, true, null);
 				setValue(fa[i], args, name, body);
 			}
 		}
@@ -441,11 +523,19 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 		}
 		catch (PageException e) {
 			RestUtil.setStatus(pc, 500, ExceptionUtil.getMessage(e));
-			pc.getConfig().getLog("rest").error("REST", e);
+			ThreadLocalPageContext.getLog(pc, "rest").error("REST", e);
+			throw e;
 		}
 		finally {
 			if (suppressContent) pc.unsetSilent();
 		}
+		return rtn;
+	}
+
+	private void _callRest(PageContext pc, Component component, UDF udf, String path, Struct variables, Result result, MimeType best, MimeType[] produces, boolean suppressContent,
+			Key methodName) throws PageException, IOException, ConverterException {
+
+		Object rtn = _callUDF(pc, component, udf, variables, result, suppressContent, methodName);
 
 		// custom response
 		Struct sct = result.getCustomResponse();
@@ -465,7 +555,8 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 						pc.forceWrite(content);
 						hasContent = true;
 					}
-					catch (IOException e) {}
+					catch (IOException e) {
+					}
 				}
 			}
 
@@ -487,6 +578,7 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 				}
 			}
 		}
+
 		// convert result
 		if (rtn != null && !hasContent) {
 			Props props = new Props();
@@ -560,7 +652,7 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 			converter.writeOut(pc, obj, os = pc.getResponseStream());
 		}
 		finally {
-			IOUtil.closeEL(os);
+			IOUtil.close(os);
 		}
 	}
 
@@ -584,7 +676,7 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 	private void callWDDX(PageContext pc, Component component, Collection.Key methodName, boolean suppressContent) throws PageException {
 		try {
 			// Struct url = StructUtil.duplicate(pc.urlFormScope(),true);
-			Struct url = StructUtil.merge(new Struct[] { pc.formScope(), pc.urlScope() });
+			Struct url = StructUtil.merge(false, new Struct[] { pc.formScope(), pc.urlScope() });
 			// define args
 			url.removeEL(KeyConstants._fieldnames);
 			url.removeEL(KeyConstants._method);
@@ -653,7 +745,8 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 							try {
 								args = new CFMLExpressionInterpreter().interpret(pc, str);
 							}
-							catch (PageException _pe) {}
+							catch (PageException _pe) {
+							}
 						}
 					}
 				}
@@ -792,13 +885,13 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 				if (qf == SerializationSettings.SERIALIZE_AS_UNDEFINED)
 					throw new ApplicationException("invalid queryformat definition [" + queryFormat + "], valid formats are [row,column,struct]");
 			}
-			JSONConverter converter = new JSONConverter(false, cs);
+			JSONConverter converter = new JSONConverter(false, cs, JSONDateFormat.PATTERN_CF, true);
 			String prefix = "";
 			if (props.secureJson) {
 				prefix = pc.getApplicationContext().getSecureJsonPrefix();
 				if (prefix == null) prefix = "";
 			}
-			pc.forceWrite(prefix + converter.serialize(pc, rtn, qf));
+			pc.forceWrite(prefix + converter.serialize(pc, rtn, qf, true));
 		}
 		// CFML
 		else if (UDF.RETURN_FORMAT_SERIALIZE == props.format) {
@@ -899,8 +992,8 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 		else if (UDF.RETURN_FORMAT_JSON == format) {
 			int qf = SerializationSettings.SERIALIZE_AS_ROW;
 			cs = getCharset(pc);
-			JSONConverter converter = new JSONConverter(false, cs);
-			String str = converter.serialize(pc, rtn, qf);
+			JSONConverter converter = new JSONConverter(false, cs, JSONDateFormat.PATTERN_CF, false);
+			String str = converter.serialize(pc, rtn, qf, true);
 			is = new ByteArrayInputStream(str.getBytes(cs));
 
 		}
@@ -942,7 +1035,7 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 		}
 		finally {
 			IOUtil.flushEL(os);
-			IOUtil.closeEL(os);
+			IOUtil.close(os);
 			((PageContextImpl) pc).getRootOut().setClosed(true);
 		}
 	}
@@ -954,7 +1047,7 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 		return cs;
 	}
 
-	private void callWSDL(PageContext pc, Component component) throws ServletException, IOException, PageException {
+	private void callWSDL(PageContext pc, Component component) throws IOException, PageException {
 		// take wsdl file defined by user
 		String wsdl = component.getWSDLFile();
 		if (!StringUtil.isEmpty(wsdl)) {
@@ -969,18 +1062,18 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 			}
 			finally {
 				IOUtil.flushEL(os);
-				IOUtil.closeEL(os);
+				IOUtil.close(os);
 				((PageContextImpl) pc).getRootOut().setClosed(true);
 			}
 		}
 		// create a wsdl file
 		else {
-			((ConfigImpl) ThreadLocalPageContext.getConfig(pc)).getWSHandler().getWSServer(pc).doGet(pc, pc.getHttpServletRequest(), pc.getHttpServletResponse(), component);
+			((ConfigWebPro) ThreadLocalPageContext.getConfig(pc)).getWSHandler().getWSServer(pc).doGet(pc, pc.getHttpServletRequest(), pc.getHttpServletResponse(), component);
 		}
 	}
 
-	private void callWebservice(PageContext pc, Component component) throws IOException, ServletException, PageException {
-		((ConfigImpl) ThreadLocalPageContext.getConfig(pc)).getWSHandler().getWSServer(pc).doPost(pc, pc.getHttpServletRequest(), pc.getHttpServletResponse(), component);
+	private void callWebservice(PageContext pc, Component component) throws IOException, PageException {
+		((ConfigWebPro) ThreadLocalPageContext.getConfig(pc)).getWSHandler().getWSServer(pc).doPost(pc, pc.getHttpServletRequest(), pc.getHttpServletResponse(), component);
 	}
 
 	/**
@@ -988,6 +1081,11 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 	 */
 	public void staticConstructor(PageContext pagecontext, ComponentImpl cfc) {
 		// do nothing
+	}
+
+	// this method only exist that old classes from archives still work, not perfectly, but good enough
+	public StaticStruct getStaticStruct() {
+		return new StaticStruct();
 	}
 
 	public abstract void initComponent(PageContext pc, ComponentImpl c, boolean executeDefaultConstructor) throws PageException;
@@ -1001,7 +1099,21 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 	}
 
 	public String getComponentName() {
+		if (getSubname() != null) return getPageSource().getComponentName() + "$" + getSubname();
 		return getPageSource().getComponentName();
+	}
+
+	public StaticScope getStaticScope() {
+		return staticScope;
+	}
+
+	public long getIndex() {
+		return index;
+	}
+
+	public void setStaticScope(StaticScope staticScope) {
+		this.staticScope = staticScope;
+		this.index = staticScope.index();
 	}
 
 }

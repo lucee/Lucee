@@ -28,6 +28,7 @@ import lucee.runtime.converter.ScriptConverter;
 import lucee.runtime.interpreter.CFMLExpressionInterpreter;
 import lucee.runtime.listener.ApplicationContext;
 import lucee.runtime.listener.ApplicationContextSupport;
+import lucee.runtime.listener.CookieData;
 import lucee.runtime.listener.SessionCookieData;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.KeyImpl;
@@ -37,6 +38,7 @@ import lucee.runtime.type.dt.DateTime;
 import lucee.runtime.type.dt.DateTimeImpl;
 import lucee.runtime.type.dt.TimeSpan;
 import lucee.runtime.type.scope.Cookie;
+import lucee.runtime.type.scope.CookieImpl;
 import lucee.runtime.type.scope.ScopeContext;
 import lucee.runtime.type.util.KeyConstants;
 
@@ -48,7 +50,7 @@ public abstract class StorageScopeCookie extends StorageScopeImpl {
 	private static final long serialVersionUID = -3509170569488448183L;
 
 	private static ScriptConverter serializer = new ScriptConverter();
-	protected static CFMLExpressionInterpreter evaluator = new CFMLExpressionInterpreter(false);
+	protected static CFMLExpressionInterpreter evaluator = new CFMLExpressionInterpreter(true);
 	// private Cookie cookie;
 	private String cookieName;
 
@@ -102,28 +104,32 @@ public abstract class StorageScopeCookie extends StorageScopeImpl {
 		TimeSpan timespan = (getType() == SCOPE_CLIENT) ? ac.getClientTimeout() : ac.getSessionTimeout();
 		Cookie cookie = pc.cookieScope();
 
-		boolean isHttpOnly = true, isSecure = false;
+		boolean isHttpOnly = true, isSecure = false, isPartitioned = false;
 		String domain = null;
+		short samesite = CookieData.SAMESITE_EMPTY;
 		if (ac instanceof ApplicationContextSupport) {
 			SessionCookieData settings = ((ApplicationContextSupport) ac).getSessionCookie();
 			if (settings != null) {
 				isHttpOnly = settings.isHttpOnly();
 				isSecure = settings.isSecure();
 				domain = settings.getDomain();
+				samesite = settings.getSamesite();
+				isPartitioned = settings.isPartitioned();
 			}
 		}
 
 		Date exp = new DateTimeImpl(pc, System.currentTimeMillis() + timespan.getMillis(), true);
 		try {
+			CookieImpl ci = (CookieImpl) cookie;
 			String ser = serializer.serializeStruct(sct, ignoreSet);
 			if (hasChanges()) {
-				cookie.setCookie(KeyImpl.init(cookieName), ser, exp, isSecure, "/", domain, isHttpOnly, false, true);
+				ci.setCookie(KeyImpl.init(cookieName), ser, exp, isSecure, "/", domain, isHttpOnly, false, true, samesite, isPartitioned);
 			}
-			cookie.setCookie(KeyImpl.init(cookieName + "_LV"), Caster.toString(_lastvisit.getTime()), exp, isSecure, "/", domain, isHttpOnly, false, true);
+			ci.setCookie(KeyImpl.init(cookieName + "_LV"), Caster.toString(_lastvisit.getTime()), exp, isSecure, "/", domain, isHttpOnly, false, true, samesite, isPartitioned);
 
 			if (getType() == SCOPE_CLIENT) {
-				cookie.setCookie(KeyImpl.init(cookieName + "_TC"), Caster.toString(timecreated.getTime()), exp, isSecure, "/", domain, isHttpOnly, false, true);
-				cookie.setCookie(KeyImpl.init(cookieName + "_HC"), Caster.toString(sct.get(HITCOUNT, "")), exp, isSecure, "/", domain, isHttpOnly, false, true);
+				ci.setCookie(KeyImpl.init(cookieName + "_TC"), Caster.toString(timecreated.getTime()), exp, isSecure, "/", domain, isHttpOnly, false, true, samesite, isPartitioned);
+				ci.setCookie(KeyImpl.init(cookieName + "_HC"), Caster.toString(sct.get(HITCOUNT, "")), exp, isSecure, "/", domain, isHttpOnly, false, true, samesite, isPartitioned);
 			}
 
 		}
@@ -165,14 +171,14 @@ public abstract class StorageScopeCookie extends StorageScopeImpl {
 					}
 				}
 
-				ScopeContext.info(log, "load data from cookie for " + strType + " scope for " + pc.getApplicationContext().getName() + "/" + pc.getCFID());
+				ScopeContext.debug(log, "load data from cookie for " + strType + " scope for " + pc.getApplicationContext().getName() + "/" + pc.getCFID());
 				return sct;
 			}
 			catch (Exception e) {
 
 			}
 		}
-		ScopeContext.info(log, "create new " + strType + " scope for " + pc.getApplicationContext().getName() + "/" + pc.getCFID());
+		ScopeContext.debug(log, "create new " + strType + " scope for " + pc.getApplicationContext().getName() + "/" + pc.getCFID());
 
 		return new StructImpl();
 	}

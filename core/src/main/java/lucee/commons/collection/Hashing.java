@@ -25,6 +25,7 @@
 package lucee.commons.collection;
 
 import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
 import lucee.commons.io.SystemUtil;
 
@@ -215,8 +216,8 @@ public class Hashing {
 		 *
 		 * We try to improve upon the default seeding.
 		 */
-		static final Random SEED_MAKER = new Random(Double.doubleToRawLongBits(Math.random()) ^ System.identityHashCode(Hashing.class) ^ System.currentTimeMillis()
-				^ System.nanoTime() ^ Runtime.getRuntime().freeMemory());
+		static final Random SEED_MAKER = new Random(Double.doubleToRawLongBits(ThreadLocalRandom.current().nextDouble()) ^ System.identityHashCode(Hashing.class)
+				^ System.currentTimeMillis() ^ System.nanoTime() ^ Runtime.getRuntime().freeMemory());
 
 		/**
 		 * Access to {@code String.hash32()}

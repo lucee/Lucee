@@ -56,11 +56,11 @@ public final class FunctionHandlerPool {
 			Class<?> clazz;
 			// OSGi bundle
 			if (!StringUtil.isEmpty(bundleName))
-				clazz = ClassUtil.loadClassByBundle(className, bundleName, bundleVersion, pc.getConfig().getIdentification(), JavaSettingsImpl.getBundleDirectories(pc));
+				clazz = ClassUtil.loadClassByBundle(className, bundleName, bundleVersion, pc.getConfig().getIdentification(), JavaSettingsImpl.getBundleDirectories(pc), true);
 			// JAR
 			else clazz = ClassUtil.loadClass(className);
 
-			if (Reflector.isInstaneOf(clazz, BIF.class, false)) bif = (BIF) clazz.newInstance();
+			if (Reflector.isInstaneOf(clazz, BIF.class, false)) bif = (BIF) ClassUtil.newInstance(clazz);
 			else bif = new BIFProxy(clazz);
 		}
 		catch (Exception e) {

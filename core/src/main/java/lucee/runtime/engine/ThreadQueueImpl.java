@@ -25,16 +25,27 @@ import java.util.List;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.lang.SerializableObject;
 import lucee.runtime.PageContext;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigPro;
 
-public class ThreadQueueImpl implements ThreadQueue {
+public class ThreadQueueImpl implements ThreadQueuePro {
 	private final SerializableObject token = new SerializableObject();
 
 	public final List<PageContext> list = new ArrayList<PageContext>();
 	private int waiting = 0;
 
+	private Integer max;
+
+	private short mode;
+
+	public ThreadQueueImpl(short mode, Integer max) {
+		this.mode = mode;
+		this.max = max;
+
+	}
+
 	@Override
 	public void enter(PageContext pc) throws IOException {
+		if (mode == MODE_DISABLED) return;
 		try {
 			synchronized (token) {
 				waiting++;
@@ -49,31 +60,47 @@ public class ThreadQueueImpl implements ThreadQueue {
 	}
 
 	private void _enter(PageContext pc) throws IOException {
-		ConfigImpl ci = (ConfigImpl) pc.getConfig();
-		// print.e("enter("+Thread.currentThread().getName()+"):"+list.size());
+		ConfigPro ci = (ConfigPro) pc.getConfig();
+
 		long start = System.currentTimeMillis();
 		long timeout = ci.getQueueTimeout();
 		if (timeout <= 0) timeout = pc.getRequestTimeout();
+
 		while (true) {
 			synchronized (token) {
-				if (list.size() < ci.getQueueMax()) {
-					// print.e("- ok("+Thread.currentThread().getName()+"):"+list.size());
+				// print.e("_enter(" + Thread.currentThread().getName() + "):" + list.size() + ":" + max);
+
+				// print.e("- timeout" + timeout);
+				if (mode == MODE_DISABLED) return;
+				int max = this.max == null ? ci.getQueueMax() : this.max.intValue();
+				// print.e("- max:" + max);
+				// print.e("- size:" + list.size());
+				if (mode != MODE_BLOCKING && list.size() < max) {
+					// print.e("- ok(" + Thread.currentThread().getName() + "):" + list.size());
 					list.add(pc);
 					return;
 				}
 			}
+			// print.e("- wait(" + Thread.currentThread().getName() + "):" + timeout);
 			if (timeout > 0) SystemUtil.wait(token, timeout);
 			else SystemUtil.wait(token);
 
-			if (timeout > 0 && (System.currentTimeMillis() - start) >= timeout) throw new IOException("Concurrent request timeout (" + (System.currentTimeMillis() - start) + ") ["
-					+ timeout + " ms] has occurred, server is too busy handling other requests. This timeout setting can be changed in the server administrator.");
+			// print.e("- wake up(" + Thread.currentThread().getName() + "):" + timeout);
+
+			if (timeout > 0 && (System.currentTimeMillis() - start) >= timeout) {
+				// print.e("- throw timeout(" + Thread.currentThread().getName() + "):" + timeout);
+				throw new IOException("Concurrent request timeout (" + (System.currentTimeMillis() - start) + ") [" + timeout
+						+ " ms] has occurred, server is too busy handling other requests. This timeout setting can be changed in the server administrator.");
+			}
 		}
 	}
 
 	@Override
 	public void exit(PageContext pc) {
-		// print.e("exist("+Thread.currentThread().getName()+")");
+		if (mode == MODE_DISABLED) return;
 		synchronized (token) {
+			// print.e("exit(" + Thread.currentThread().getName() + ")");
+			if (mode == MODE_DISABLED) return;
 			list.remove(pc);
 			token.notify();
 		}
@@ -88,5 +115,21 @@ public class ThreadQueueImpl implements ThreadQueue {
 	public void clear() {
 		list.clear();
 		token.notifyAll();
+	}
+
+	@Override
+	public short setMode(short mode) {
+		synchronized (token) {
+			short prevMode = this.mode;
+			// there are possible threads in the queue
+			if (this.mode != MODE_DISABLED) clear();
+			this.mode = mode;
+			return prevMode;
+		}
+	}
+
+	@Override
+	public short getMode() {
+		return mode;
 	}
 }

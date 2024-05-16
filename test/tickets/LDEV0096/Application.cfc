@@ -3,11 +3,7 @@ component{
 	this.name	=	Hash( GetCurrentTemplatePath() );
 	this.sessionManagement 	= false;	
 	
-
-    this.datasource = {
-	  class: 'org.hsqldb.jdbcDriver'
-		, connectionString: 'jdbc:hsqldb:file:#getDirectoryFromPath(getCurrentTemplatePath())#/datasource/db2'
-	};  
+	this.datasource =  server.getDatasource( "h2", server._getTempDir( "LDEV0096" ) );
 
 	// ORM settings
 	this.ormEnabled = true;
@@ -17,4 +13,8 @@ component{
 		,secondaryCacheEnabled=true
 	};
 
+	public function onRequestStart() {
+		setting requesttimeout=10;
+	}
+	
 }

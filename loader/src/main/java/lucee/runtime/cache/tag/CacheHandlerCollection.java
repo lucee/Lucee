@@ -31,14 +31,17 @@ public interface CacheHandlerCollection {
 	/**
 	 * based on the cachedWithin Object we choose the right Cachehandler and return it
 	 * 
-	 * @return
+	 * @param cachedWithin cached within
+	 * @param defaultValue default value
+	 * @return Returns the matching Object.
 	 */
 	public CacheHandler getInstanceMatchingObject(Object cachedWithin, CacheHandler defaultValue);
 
 	/**
 	 * 
 	 * @param cacheHandlerId id returned by CacheHandler.id() can be for example (request,timespan,...)
-	 * @return
+	 * @param defaultValue default value
+	 * @return Returns the instance.
 	 */
 	public CacheHandler getInstance(String cacheHandlerId, CacheHandler defaultValue);
 

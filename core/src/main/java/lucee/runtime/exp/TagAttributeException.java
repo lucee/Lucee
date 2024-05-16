@@ -30,6 +30,6 @@ public final class TagAttributeException extends ApplicationException {
 	 * @param message
 	 */
 	public TagAttributeException(String attributeName, String message) {
-		super("attribute " + attributeName + " is invalid", message);
+		super("Attribute [" + attributeName + "] is invalid", message);
 	}
 }

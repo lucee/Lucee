@@ -21,12 +21,13 @@ package lucee.transformer.library.function;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.Map;
 
 import org.osgi.framework.Version;
-import org.xml.sax.Attributes;
 
 import lucee.commons.lang.CFTypes;
 import lucee.commons.lang.ClassException;
+import lucee.commons.lang.ClassUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.Md5;
 import lucee.commons.lang.StringUtil;
@@ -268,9 +269,12 @@ public final class FunctionLibFunction {
 	 * 
 	 * @param value Klassendefinition als Zeichenkette.
 	 */
-	public void setFunctionClass(String value, Identification id, Attributes attrs) {
+	public void setFunctionClass(String value, Identification id, Map<String, String> attrs) {
 		functionCD = ClassDefinitionImpl.toClassDefinition(value, id, attrs);
+	}
 
+	public void setFunctionClass(ClassDefinition cd) {
+		functionCD = cd;
 	}
 
 	/**
@@ -347,7 +351,7 @@ public final class FunctionLibFunction {
 		return eval;
 	}
 
-	public void setTTEClass(String tteClass, Identification id, Attributes attrs) {
+	public void setTTEClass(String tteClass, Identification id, Map<String, String> attrs) {
 		this.tteCD = ClassDefinitionImpl.toClassDefinition(tteClass, id, attrs);
 	}
 
@@ -420,7 +424,7 @@ public final class FunctionLibFunction {
 
 		if (Reflector.isInstaneOf(clazz, BIF.class, false)) {
 			try {
-				bif = (BIF) clazz.newInstance();
+				bif = (BIF) ClassUtil.newInstance(clazz);
 			}
 			catch (Throwable t) {
 				ExceptionUtil.rethrowIfNecessary(t);

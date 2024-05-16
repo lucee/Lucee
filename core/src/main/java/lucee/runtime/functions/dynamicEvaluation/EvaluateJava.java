@@ -22,6 +22,7 @@
 package lucee.runtime.functions.dynamicEvaluation;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 
 import lucee.commons.io.IOUtil;
@@ -48,7 +49,12 @@ public final class EvaluateJava implements Function {
 				throw Caster.toPageException(e);
 			}
 			finally {
-				IOUtil.closeEL(is);
+				try {
+					IOUtil.close(is);
+				}
+				catch (IOException e) {
+					throw Caster.toPageException(e);
+				}
 			}
 		}
 

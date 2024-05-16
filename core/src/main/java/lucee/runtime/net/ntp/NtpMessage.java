@@ -20,6 +20,7 @@ package lucee.runtime.net.ntp;
 
 import java.text.DecimalFormat;
 import java.util.Date;
+import java.util.concurrent.ThreadLocalRandom;
 
 import lucee.commons.i18n.DateFormatPool;
 
@@ -320,7 +321,7 @@ public final class NtpMessage {
 		// low order bits of the timestamp with a random, unbiased
 		// bitstring, both to avoid systematic roundoff errors and as
 		// a means of loop detection and replay detection.
-		array[7] = (byte) (Math.random() * 255.0);
+		array[7] = (byte) ThreadLocalRandom.current().nextInt(256);
 	}
 
 	/**

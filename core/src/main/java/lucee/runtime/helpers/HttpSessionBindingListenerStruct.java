@@ -61,7 +61,8 @@ public final class HttpSessionBindingListenerStruct extends StructImpl implement
 		try {
 			url.getContent();
 		}
-		catch (IOException e) {}
+		catch (IOException e) {
+		}
 	}
 
 	@Override

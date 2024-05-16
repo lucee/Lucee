@@ -26,8 +26,8 @@
 		driver=drivers[session.debug.template];
 		template=session.debug.template;		
 	} else if ( IsEmpty(entries.type) || !StructKeyExists(drivers, entries.type) ) {
-		driver=drivers["lucee-modern"];
-		template= "lucee-modern";
+		driver=drivers["lucee-simple"];
+		template= "lucee-simple";
 	} else {
 		driver=drivers["#entries.type#"];
 		template=entries.type;
@@ -51,6 +51,13 @@
 		if ( url.id == id ) {
 			log=el;
 		}
+	}
+	
+	if (url.format eq "json") {
+		setting showdebugoutput="false";
+		content reset="yes" type="application/json";
+		echo(serializeJson(log));
+		abort;		
 	}
 </cfscript>
 <cfoutput>
@@ -93,7 +100,16 @@
 					<cfset c=structKeyExists(entry,'custom')?entry.custom:{}>
 				</cfif>
 				<cfset c.scopes=false>
-				<cfset driver.output(c,log,"admin")>
+				<cftry>
+					<cfset driver.output(c,duplicate(log),"admin")>
+					<cfcatch>
+						<cfset error.message = cfcatch.message>
+						<cfset error.detail = cfcatch.Detail>
+						<cfset error.exception = cfcatch>
+						<cfset error.cfcatch = cfcatch>
+						<cfset printError(error)>
+					</cfcatch>
+				</cftry>
 			<cfelse>
 				Debug Data no longer available
 			</cfif> 
@@ -111,7 +127,7 @@
 	<cfif template EQ "lucee-modern">
 		<div id="blockerContainer" class="jquery-modal current">
 			<div id="mdlWnd" class="modal" >
-				<a href="##close-modal" rel="modal:close" class="close-modal ">Close</a>
+				<a href="#request.self#?action=#url.action#" rel="modal:close" class="close-modal ">Close</a>
 				<div class="modal-body"></div>
 			</div>
 		</div>	

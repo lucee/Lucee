@@ -64,7 +64,7 @@ public interface Server {
 	 * verify the server properties
 	 * 
 	 * @return is ok
-	 * @throws SMTPException
+	 * @throws SMTPException SMTP Exception
 	 */
 	public abstract boolean verify() throws SMTPException;
 

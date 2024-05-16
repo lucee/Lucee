@@ -18,6 +18,8 @@
  **/
 package lucee.runtime.type.scope;
 
+import java.util.concurrent.ConcurrentLinkedQueue;
+
 import lucee.runtime.PageContext;
 
 /**
@@ -25,22 +27,20 @@ import lucee.runtime.PageContext;
  */
 public final class ScopeFactory {
 
-	int argumentCounter = 0;
-	final Argument[] arguments = new Argument[] { new ArgumentImpl(), new ArgumentImpl(), new ArgumentImpl(), new ArgumentImpl(), new ArgumentImpl(), new ArgumentImpl(),
-			new ArgumentImpl(), new ArgumentImpl(), new ArgumentImpl(), new ArgumentImpl(), new ArgumentImpl(), new ArgumentImpl(), new ArgumentImpl(), new ArgumentImpl(),
-			new ArgumentImpl(), new ArgumentImpl(), new ArgumentImpl(), new ArgumentImpl(), new ArgumentImpl() };
+	private static final int MAX_SIZE = 50;
 
-	int localCounter = 0;
-	LocalImpl[] locals = new LocalImpl[] { new LocalImpl(), new LocalImpl(), new LocalImpl(), new LocalImpl(), new LocalImpl(), new LocalImpl(), new LocalImpl(), new LocalImpl(),
-			new LocalImpl(), new LocalImpl(), new LocalImpl(), new LocalImpl(), new LocalImpl(), new LocalImpl(), new LocalImpl(), new LocalImpl(), new LocalImpl(),
-			new LocalImpl() };
+	int argumentCounter = 0;
+
+	private final ConcurrentLinkedQueue<Argument> arguments = new ConcurrentLinkedQueue<Argument>();
+	private final ConcurrentLinkedQueue<LocalImpl> locals = new ConcurrentLinkedQueue<LocalImpl>();
 
 	/**
 	 * @return returns an Argument scope
 	 */
 	public Argument getArgumentInstance() {
-		if (argumentCounter < arguments.length) {
-			return arguments[argumentCounter++];
+		Argument arg = arguments.poll();
+		if (arg != null) {
+			return arg;
 		}
 		return new ArgumentImpl();
 	}
@@ -49,8 +49,9 @@ public final class ScopeFactory {
 	 * @return retruns a Local Instance
 	 */
 	public LocalImpl getLocalInstance() {
-		if (localCounter < locals.length) {
-			return locals[localCounter++];
+		LocalImpl lcl = locals.poll();
+		if (lcl != null) {
+			return lcl;
 		}
 		return new LocalImpl();
 	}
@@ -59,18 +60,18 @@ public final class ScopeFactory {
 	 * @param argument recycle an Argument scope for reuse
 	 */
 	public void recycle(PageContext pc, Argument argument) {
-		if (argumentCounter <= 0 || argument.isBind()) return;
+		if (arguments.size() >= MAX_SIZE || argument.isBind()) return;
 		argument.release(pc);
-		arguments[--argumentCounter] = argument;
+		arguments.add(argument);
 	}
 
 	/**
 	 * @param local recycle a Local scope for reuse
 	 */
 	public void recycle(PageContext pc, LocalImpl local) {
-		if (localCounter <= 0 || local.isBind()) return;
+		if (locals.size() >= MAX_SIZE || local.isBind()) return;
 		local.release(pc);
-		locals[--localCounter] = local;
+		locals.add(local);
 	}
 
 	/**

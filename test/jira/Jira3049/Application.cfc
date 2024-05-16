@@ -7,9 +7,10 @@ component {
 		savemapping=true
     };
     
-    this.datasource = {
-	  class: 'org.hsqldb.jdbcDriver'
-		, connectionString: 'jdbc:hsqldb:file:#getDirectoryFromPath(getCurrentTemplatePath())#/datasource/db'
-	};  
+	this.datasource = server.getDatasource("h2", server._getTempDir("jira3049") );
+	
+	public function onRequestStart() {
+		setting requesttimeout=10;
+	}
 
 }

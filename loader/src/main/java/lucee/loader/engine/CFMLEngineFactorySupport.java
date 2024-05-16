@@ -35,9 +35,9 @@ public abstract class CFMLEngineFactorySupport {
 	/**
 	 * copy an inputstream to an outputstream
 	 * 
-	 * @param in
-	 * @param out
-	 * @throws IOException
+	 * @param in input stream
+	 * @param out output stream
+	 * @throws IOException in case the process fails
 	 */
 	public final static void copy(final InputStream in, final OutputStream out) throws IOException {
 		final byte[] buffer = new byte[0xffff];
@@ -55,25 +55,27 @@ public abstract class CFMLEngineFactorySupport {
 	/**
 	 * close inputstream without an Exception
 	 * 
-	 * @param is
+	 * @param is input stream
 	 */
 	public final static void closeEL(final InputStream is) {
 		try {
 			if (is != null) is.close();
 		}
-		catch (final Throwable e) {}
+		catch (final Throwable e) {
+		}
 	}
 
 	/**
 	 * close outputstream without an Exception
 	 * 
-	 * @param os
+	 * @param os output stream
 	 */
 	public final static void closeEL(final OutputStream os) {
 		try {
 			if (os != null) os.close();
 		}
-		catch (final Throwable e) {}
+		catch (final Throwable e) {
+		}
 	}
 
 	/**
@@ -81,7 +83,7 @@ public abstract class CFMLEngineFactorySupport {
 	 * 
 	 * @param is InputStream to read data from.
 	 * @return readed data from InputStream
-	 * @throws IOException
+	 * @throws IOException io exception
 	 */
 	public static String toString(final InputStream is) throws IOException {
 		final BufferedReader br = new BufferedReader(new InputStreamReader(is));
@@ -100,7 +102,8 @@ public abstract class CFMLEngineFactorySupport {
 	/**
 	 * cast a lucee string version to an int version
 	 * 
-	 * @param version
+	 * @param version input version
+	 * @param defaultValue default value
 	 * @return int version
 	 */
 	public static Version toVersion(String version, final Version defaultValue) {
@@ -133,7 +136,7 @@ public abstract class CFMLEngineFactorySupport {
 	 * replace path placeholder with the real path, placeholders are
 	 * [{temp-directory},{system-directory},{home-directory}]
 	 * 
-	 * @param path
+	 * @param path path
 	 * @return updated path
 	 */
 	public static String parsePlaceHolder(String path) {
@@ -224,7 +227,8 @@ public abstract class CFMLEngineFactorySupport {
 			tempFile = getCanonicalFileEL(tempFile);
 			tmp.delete();
 		}
-		catch (final IOException ioe) {}
+		catch (final IOException ioe) {
+		}
 
 		return tempFile;
 	}

@@ -4,17 +4,17 @@
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either 
+ * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public 
+ *
+ * You should have received a copy of the GNU Lesser General Public
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  **/
 package lucee.runtime.sql.exp.op;
 
@@ -43,7 +43,7 @@ public class Operation2 extends ExpressionSupport implements Operation {
 			return "*";
 		case Operation.OPERATION2_PLUS:
 			return "+";
-		case Operation.OPERATION2_EXP:
+		case Operation.OPERATION2_BITWISE:
 			return "^";
 		case Operation.OPERATION2_MOD:
 			return "%";
@@ -113,6 +113,43 @@ public class Operation2 extends ExpressionSupport implements Operation {
 	 */
 	public Expression getRight() {
 		return right;
+	}
+
+	@Override
+	public void reset() {
+		if (left != null) {
+			left.reset();
+		}
+		if (right != null) {
+			right.reset();
+		}
+	}
+
+	@Override
+	public void setCacheColumn(boolean cacheColumn) {
+		if (left != null) {
+			left.setCacheColumn(cacheColumn);
+		}
+		if (right != null) {
+			right.setCacheColumn(cacheColumn);
+		}
+	}
+
+	@Override
+	public boolean hasAggregate() {
+		if (left instanceof OperationAggregate) {
+			return true;
+		}
+		if (left instanceof Operation && ((Operation) left).hasAggregate()) {
+			return true;
+		}
+		if (right instanceof OperationAggregate) {
+			return true;
+		}
+		if (right instanceof Operation && ((Operation) right).hasAggregate()) {
+			return true;
+		}
+		return false;
 	}
 
 }

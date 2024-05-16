@@ -114,10 +114,12 @@ public class ClosureScope extends ScopeSupport implements Variables, Externaliza
 	}
 
 	@Override
-	public void initialize(PageContext pc) {}
+	public void initialize(PageContext pc) {
+	}
 
 	@Override
-	public void release(PageContext pc) {}
+	public void release(PageContext pc) {
+	}
 
 	@Override
 	public int getType() {
@@ -266,7 +268,8 @@ public class ClosureScope extends ScopeSupport implements Variables, Externaliza
 	}
 
 	@Override
-	public void setBind(boolean bind) {}
+	public void setBind(boolean bind) {
+	}
 
 	@Override
 	public boolean isBind() {

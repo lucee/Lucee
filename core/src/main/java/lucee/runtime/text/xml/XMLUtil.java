@@ -76,7 +76,7 @@ import lucee.commons.lang.ClassUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
@@ -94,6 +94,8 @@ import lucee.runtime.type.Collection;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
+import lucee.runtime.type.util.KeyConstants;
+import lucee.runtime.type.util.StructUtil;
 
 /**
  *
@@ -102,22 +104,23 @@ public final class XMLUtil {
 
 	public static final short UNDEFINED_NODE = -1;
 
-	public static final Collection.Key XMLCOMMENT = KeyImpl.intern("xmlcomment");
-	public static final Collection.Key XMLTEXT = KeyImpl.intern("xmltext");
-	public static final Collection.Key XMLCDATA = KeyImpl.intern("xmlcdata");
-	public static final Collection.Key XMLCHILDREN = KeyImpl.intern("xmlchildren");
-	public static final Collection.Key XMLNODES = KeyImpl.intern("xmlnodes");
-	public static final Collection.Key XMLNSURI = KeyImpl.intern("xmlnsuri");
-	public static final Collection.Key XMLNSPREFIX = KeyImpl.intern("xmlnsprefix");
-	public static final Collection.Key XMLROOT = KeyImpl.intern("xmlroot");
-	public static final Collection.Key XMLPARENT = KeyImpl.intern("xmlparent");
-	public static final Collection.Key XMLNAME = KeyImpl.intern("xmlname");
-	public static final Collection.Key XMLTYPE = KeyImpl.intern("xmltype");
-	public static final Collection.Key XMLVALUE = KeyImpl.intern("xmlvalue");
-	public static final Collection.Key XMLATTRIBUTES = KeyImpl.intern("xmlattributes");
-	public static final Collection.Key KEY_FEATURE_SECURE = KeyImpl.intern("secure");
-	public static final Collection.Key KEY_FEATURE_DISALLOW_DOCTYPE_DECL = KeyImpl.intern("disallowDoctypeDecl");
-	public static final Collection.Key KEY_FEATURE_EXTERNAL_GENERAL_ENTITIES = KeyImpl.intern("externalGeneralEntities");
+	public static final Collection.Key XMLCOMMENT = KeyConstants._xmlcomment;
+	public static final Collection.Key XMLTEXT = KeyConstants._xmltext;
+	public static final Collection.Key XMLCDATA = KeyConstants._xmlcdata;
+	public static final Collection.Key XMLCHILDREN = KeyConstants._xmlchildren;
+	public static final Collection.Key XMLNODES = KeyConstants._xmlnodes;
+	public static final Collection.Key XMLNSURI = KeyConstants._xmlnsuri;
+	public static final Collection.Key XMLNSPREFIX = KeyConstants._xmlnsprefix;
+	public static final Collection.Key XMLROOT = KeyConstants._xmlroot;
+	public static final Collection.Key XMLPARENT = KeyConstants._xmlparent;
+	public static final Collection.Key XMLNAME = KeyConstants._xmlname;
+	public static final Collection.Key XMLTYPE = KeyConstants._xmltype;
+	public static final Collection.Key XMLVALUE = KeyConstants._xmlvalue;
+	public static final Collection.Key XMLATTRIBUTES = KeyConstants._xmlattributes;
+	public static final Collection.Key KEY_FEATURE_SECURE = KeyConstants._secure;
+	public static final Collection.Key KEY_FEATURE_DISALLOW_DOCTYPE_DECL = KeyConstants._disallowDoctypeDecl;
+	public static final Collection.Key KEY_FEATURE_EXTERNAL_GENERAL_ENTITIES = KeyConstants._externalGeneralEntities;
+	public static final Collection.Key KEY_FEATURE_EXTERNAL_GENERAL_ENTITIES_ACF = KeyConstants._allowExternalEntities;
 
 	// public final static String
 	// DEFAULT_SAX_PARSER="org.apache.xerces.parsers.SAXParser";
@@ -138,6 +141,8 @@ public final class XMLUtil {
 	private static SAXParserFactory saxParserFactory;
 
 	private static URL transformerFactoryResource;
+
+	private static boolean disableXmlFeatureOverride = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.xmlfeatures.override.disable", "false"), false);
 
 	public static String unescapeXMLString(String str) {
 
@@ -206,7 +211,7 @@ public final class XMLUtil {
 			if (c == '<') sb.append("&lt;");
 			else if (c == '>') sb.append("&gt;");
 			else if (c == '&') sb.append("&amp;");
-			// else if(c=='\'') sb.append("&amp;");
+			else if (c == '\'') sb.append("&apos;");
 			else if (c == '"') sb.append("&quot;");
 			// else if(c>127) sb.append("&#"+((int)c)+";");
 			else sb.append(c);
@@ -238,7 +243,7 @@ public final class XMLUtil {
 
 	private static TransformerFactory _newTransformerFactory() {
 
-		Thread.currentThread().setContextClassLoader(new EnvClassLoader((ConfigImpl) ThreadLocalPageContext.getConfig()));
+		Thread.currentThread().setContextClassLoader(EnvClassLoader.getInstance((ConfigPro) ThreadLocalPageContext.getConfig()));
 		TransformerFactory factory = null;
 		Class clazz = null;
 		try {
@@ -248,16 +253,18 @@ public final class XMLUtil {
 			try {
 				clazz = ClassUtil.loadClass("org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl");
 			}
-			catch (Exception ee) {}
+			catch (Exception ee) {
+			}
 		}
 		if (clazz != null) {
 			try {
 				factory = (TransformerFactory) ClassUtil.loadInstance(clazz);
 			}
-			catch (Exception e) {}
+			catch (Exception e) {
+			}
 		}
 		if (factory == null) return factory = TransformerFactory.newInstance();
-		LogUtil.log(null, Log.LEVEL_INFO, "application", "xml", factory.getClass().getName() + " is used as TransformerFactory");
+		LogUtil.log(Log.LEVEL_INFO, "application", "xml", factory.getClass().getName() + " is used as TransformerFactory");
 
 		return factory;
 	}
@@ -276,10 +283,11 @@ public final class XMLUtil {
 	 * @throws IOException
 	 * @throws ParserConfigurationException
 	 */
-	public static final Document parse(InputSource xml, InputSource validator, EntityResolver entRes, boolean isHtml) throws SAXException, IOException {
+	public static final Document parse(InputSource xml, Object validator, EntityResolver entRes, boolean isHtml) throws SAXException, IOException {
 
 		if (!isHtml) {
-			DocumentBuilderFactory factory = newDocumentBuilderFactory(validator);
+			DocumentBuilderFactory factory = (validator instanceof InputSource) ? newDocumentBuilderFactory((InputSource) validator, null)
+					: newDocumentBuilderFactory(null, (Struct) validator);
 
 			try {
 				DocumentBuilder builder = factory.newDocumentBuilder();
@@ -309,6 +317,10 @@ public final class XMLUtil {
 	}
 
 	private static DocumentBuilderFactory newDocumentBuilderFactory(InputSource validator) {
+		return newDocumentBuilderFactory(validator, null);
+	}
+
+	private static DocumentBuilderFactory newDocumentBuilderFactory(InputSource validator, Struct xmlFeatures) {
 		DocumentBuilderFactory factory;
 		if (validator != null) {
 			factory = _newDocumentBuilderFactory();// DocumentBuilderFactory.newInstance();
@@ -325,61 +337,90 @@ public final class XMLUtil {
 			factory.setValidating(false);
 		}
 
+		// secure by default LDEV-3451
+		boolean featureSecure = true;
+		boolean disallowDocType = true;
+		boolean externalGeneralEntities = false;
+		Struct features = null;
+
+		// can be overriden per application
 		PageContext pc = ThreadLocalPageContext.get();
-		if (pc != null) {
-			ApplicationContextSupport ac = ((ApplicationContextSupport) pc.getApplicationContext());
-			Struct features = ac == null ? null : ac.getXmlFeatures();
+		if (pc != null || xmlFeatures != null) {
+			if (xmlFeatures != null) {
+				features = xmlFeatures;
+			}
+			else {
+				ApplicationContextSupport ac = ((ApplicationContextSupport) pc.getApplicationContext());
+				features = ac == null ? null : ac.getXmlFeatures();
+			}
 			if (features != null) {
 				try { // handle feature aliases, e.g. secure
+					if (disableXmlFeatureOverride) throw new ExpressionException("xmlFeatures override has been disabled by lucee.xmlfeatures.override.disable");
+					features = StructUtil.duplicate(features, true);
 					Object obj;
-					boolean featureValue;
+
 					obj = features.get(KEY_FEATURE_SECURE, null);
-					if (obj != null) {
-						featureValue = Caster.toBoolean(obj);
-						if (featureValue) {
-							// set features per
-							// https://cheatsheetseries.owasp.org/cheatsheets/XML_External_Entity_Prevention_Cheat_Sheet.html
-							factory.setFeature(XMLConstants.FEATURE_DISALLOW_DOCTYPE_DECL, true);
-							factory.setFeature(XMLConstants.FEATURE_EXTERNAL_GENERAL_ENTITIES, false);
-							factory.setFeature(XMLConstants.FEATURE_EXTERNAL_PARAMETER_ENTITIES, false);
-							factory.setFeature(XMLConstants.FEATURE_NONVALIDATING_LOAD_EXTERNAL_DTD, false);
-							factory.setXIncludeAware(false);
-							factory.setExpandEntityReferences(false);
-							factory.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
-							factory.setAttribute(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
-						}
-						features.remove(KEY_FEATURE_SECURE);
-					}
+					if (obj != null) featureSecure = Caster.toBoolean(obj);
+					features.remove(KEY_FEATURE_SECURE, null);
 
 					obj = features.get(KEY_FEATURE_DISALLOW_DOCTYPE_DECL, null);
-					if (obj != null) {
-						featureValue = Caster.toBoolean(obj);
-						factory.setFeature(XMLConstants.FEATURE_DISALLOW_DOCTYPE_DECL, featureValue);
-						features.remove(KEY_FEATURE_DISALLOW_DOCTYPE_DECL);
-					}
+					if (obj != null) disallowDocType = Caster.toBoolean(obj);
+					features.remove(KEY_FEATURE_DISALLOW_DOCTYPE_DECL, null);
 
 					obj = features.get(KEY_FEATURE_EXTERNAL_GENERAL_ENTITIES, null);
-					if (obj != null) {
-						featureValue = Caster.toBoolean(obj);
-						factory.setFeature(XMLConstants.FEATURE_EXTERNAL_GENERAL_ENTITIES, featureValue);
-						features.remove(KEY_FEATURE_EXTERNAL_GENERAL_ENTITIES);
+					Object obj2 = features.get(KEY_FEATURE_EXTERNAL_GENERAL_ENTITIES_ACF, null);
+					if (obj != null && obj2 != null) {
+						if (Caster.toBoolean(obj) != Caster.toBoolean(obj2))
+							throw new ExpressionException("When both externalGeneralEntities and allowExternalEntities are set, they must match ");
+						externalGeneralEntities = Caster.toBoolean(obj);
 					}
+					else if (obj != null) {
+						externalGeneralEntities = Caster.toBoolean(obj);
+					}
+					else if (obj2 != null) {
+						externalGeneralEntities = Caster.toBoolean(obj2);
+					}
+					features.remove(KEY_FEATURE_EXTERNAL_GENERAL_ENTITIES, null);
+					features.remove(KEY_FEATURE_EXTERNAL_GENERAL_ENTITIES_ACF, null);
+				}
+				catch (PageException ex) {
+					throw new RuntimeException(ex);
+				}
+			}
+		}
+
+		try { // set built in feature aliases
+			if (featureSecure) {
+				// set features per
+				// https://cheatsheetseries.owasp.org/cheatsheets/XML_External_Entity_Prevention_Cheat_Sheet.html
+				factory.setFeature(XMLConstants.FEATURE_DISALLOW_DOCTYPE_DECL, true);
+				factory.setFeature(XMLConstants.FEATURE_EXTERNAL_GENERAL_ENTITIES, false);
+				factory.setFeature(XMLConstants.FEATURE_EXTERNAL_PARAMETER_ENTITIES, false);
+				factory.setFeature(XMLConstants.FEATURE_NONVALIDATING_LOAD_EXTERNAL_DTD, false);
+				factory.setXIncludeAware(false);
+				factory.setExpandEntityReferences(false);
+				factory.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
+				factory.setAttribute(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
+			}
+
+			factory.setFeature(XMLConstants.FEATURE_DISALLOW_DOCTYPE_DECL, disallowDocType);
+			factory.setFeature(XMLConstants.FEATURE_EXTERNAL_GENERAL_ENTITIES, externalGeneralEntities);
+		}
+		catch (ParserConfigurationException ex) {
+			throw new RuntimeException(ex);
+		}
+		// pass thru any additional feature directives
+		// https://xerces.apache.org/xerces2-j/features.html#disallow-doctype-decl
+		if (features != null) {
+			features.forEach((k, v) -> {
+				try {
+					factory.setFeature(k.toString().toLowerCase(), Caster.toBoolean(v));
 				}
 				catch (PageException | ParserConfigurationException ex) {
 					throw new RuntimeException(ex);
 				}
-
-				features.forEach((k, v) -> {
-					try {
-						factory.setFeature(k.toString().toLowerCase(), Caster.toBoolean(v));
-					}
-					catch (PageException | ParserConfigurationException ex) {
-						throw new RuntimeException(ex);
-					}
-				});
-			}
+			});
 		}
-
 		return factory;
 	}
 
@@ -391,7 +432,7 @@ public final class XMLUtil {
 
 	private static Class<DocumentBuilderFactory> _newDocumentBuilderFactoryClass() {
 		if (dbf == null) {
-			Thread.currentThread().setContextClassLoader(new EnvClassLoader((ConfigImpl) ThreadLocalPageContext.getConfig()));
+			Thread.currentThread().setContextClassLoader(EnvClassLoader.getInstance((ConfigPro) ThreadLocalPageContext.getConfig()));
 			Class<DocumentBuilderFactory> clazz = null;
 			try {
 				clazz = ClassUtil.loadClass("com.sun.org.apache.xerces.internal.jaxp.DocumentBuilderFactoryImpl");
@@ -400,11 +441,12 @@ public final class XMLUtil {
 				try {
 					clazz = ClassUtil.loadClass("org.apache.xerces.internal.jaxp.DocumentBuilderFactoryImpl");
 				}
-				catch (Exception ee) {}
+				catch (Exception ee) {
+				}
 			}
 			if (clazz != null) {
 				dbf = clazz;
-				LogUtil.log(null, Log.LEVEL_INFO, "application", "xml", clazz.getName() + " is used as DocumentBuilderFactory");
+				LogUtil.log(Log.LEVEL_INFO, "application", "xml", clazz.getName() + " is used as DocumentBuilderFactory");
 			}
 		}
 		return dbf;
@@ -432,6 +474,7 @@ public final class XMLUtil {
 		return documentBuilderFactoryResource;
 	}
 
+	// used by xmlbuilder! do nt change
 	private static DocumentBuilderFactory _newDocumentBuilderFactory() {
 		Class<DocumentBuilderFactory> clazz = _newDocumentBuilderFactoryClass();
 		DocumentBuilderFactory factory = null;
@@ -439,7 +482,8 @@ public final class XMLUtil {
 			try {
 				factory = (DocumentBuilderFactory) ClassUtil.loadInstance(clazz);
 			}
-			catch (Exception e) {}
+			catch (Exception e) {
+			}
 		}
 		if (factory == null) factory = DocumentBuilderFactory.newInstance();
 		return factory;
@@ -447,7 +491,7 @@ public final class XMLUtil {
 
 	private static SAXParserFactory newSAXParserFactory() {
 		if (saxParserFactory == null) {
-			Thread.currentThread().setContextClassLoader(new EnvClassLoader((ConfigImpl) ThreadLocalPageContext.getConfig()));
+			Thread.currentThread().setContextClassLoader(EnvClassLoader.getInstance((ConfigPro) ThreadLocalPageContext.getConfig()));
 			saxParserFactory = SAXParserFactory.newInstance();
 		}
 		return saxParserFactory;
@@ -468,21 +512,24 @@ public final class XMLUtil {
 	}
 
 	public static XMLReader createXMLReader() throws SAXException {
-		Thread.currentThread().setContextClassLoader(new EnvClassLoader((ConfigImpl) ThreadLocalPageContext.getConfig()));
+		Thread.currentThread().setContextClassLoader(EnvClassLoader.getInstance((ConfigPro) ThreadLocalPageContext.getConfig()));
 		try {
 			return XMLReaderFactory.createXMLReader("com.sun.org.apache.xerces.internal.parsers.SAXParser");
 		}
-		catch (Exception e) {}
+		catch (Exception e) {
+		}
 
 		try {
 			return XMLReaderFactory.createXMLReader("org.apache.xerces.internal.parsers.SAXParser");
 		}
-		catch (Exception ee) {}
+		catch (Exception ee) {
+		}
 
 		try {
 			return XMLReaderFactory.createXMLReader("org.apache.xerces.parsers.SAXParser");
 		}
-		catch (Exception ee) {}
+		catch (Exception ee) {
+		}
 
 		try {
 			return newSAXParserFactory().newSAXParser().getXMLReader();
@@ -864,7 +911,8 @@ public final class XMLUtil {
 				try {
 					return new XMLMultiElementStruct(array, false);
 				}
-				catch (PageException e) {}
+				catch (PageException e) {
+				}
 			}
 			if (first != null) return first;
 		}
@@ -975,7 +1023,8 @@ public final class XMLUtil {
 			try {
 				return new XMLMultiElementStruct(array, false);
 			}
-			catch (PageException e) {}
+			catch (PageException e) {
+			}
 		}
 		return null;
 	}
@@ -1370,7 +1419,7 @@ public final class XMLUtil {
 				return new InputSource(new StringReader(str));
 			}
 			finally {
-				IOUtil.closeEL(is);
+				IOUtil.close(is);
 			}
 		}
 		if (value instanceof Reader) {
@@ -1380,7 +1429,7 @@ public final class XMLUtil {
 				return new InputSource(new StringReader(str));
 			}
 			finally {
-				IOUtil.closeEL(reader);
+				IOUtil.close(reader);
 			}
 		}
 		if (value instanceof byte[]) {
@@ -1397,13 +1446,19 @@ public final class XMLUtil {
 	public static InputSource toInputSource(PageContext pc, String xml, boolean canBePath) throws IOException, ExpressionException {
 		// xml text
 		xml = xml.trim();
-		if (!canBePath || xml.startsWith("<") || xml.length() > 2000 || StringUtil.isEmpty(xml, true)) {
+		if (!canBePath || !isPath(xml)) {
 			return new InputSource(new StringReader(xml));
 		}
 		// xml link
 		pc = ThreadLocalPageContext.get(pc);
 		Resource res = ResourceUtil.toResourceExisting(pc, xml);
 		return toInputSource(pc, res);
+	}
+
+	public static boolean isPath(String xml) throws IOException, ExpressionException {
+		// xml text
+		xml = xml.trim();
+		return !xml.startsWith("<") && xml.length() < 2000 && !StringUtil.isEmpty(xml, true);
 	}
 
 	/**
@@ -1443,8 +1498,8 @@ public final class XMLUtil {
 				else str = "XML File [" + res.getAbsolutePath() + "] is invalid;" + saxe.getMessage();
 
 				XMLException se = new XMLException(str);
-				se.setAdditional(KeyImpl.init("path"), res.getAbsolutePath());
-				se.setAdditional(KeyImpl.init("content"), content);
+				se.setAdditional(KeyConstants._path, res.getAbsolutePath());
+				se.setAdditional(KeyConstants._content, content);
 				se.setStackTrace(saxe.getStackTrace());
 
 				throw se;
@@ -1452,7 +1507,7 @@ public final class XMLUtil {
 			throw new XMLException(saxe);
 		}
 		finally {
-			IOUtil.closeEL(is);
+			IOUtil.close(is);
 		}
 	}
 
@@ -1485,7 +1540,7 @@ public final class XMLUtil {
 				return toInputSource(fis);
 			}
 			finally {
-				IOUtil.closeEL(fis);
+				IOUtil.close(fis);
 			}
 		}
 		if (value instanceof InputStream) {
@@ -1495,7 +1550,7 @@ public final class XMLUtil {
 				return new InputSource(new StringReader(str));
 			}
 			finally {
-				IOUtil.closeEL(is);
+				IOUtil.close(is);
 			}
 		}
 		if (value instanceof Reader) {
@@ -1505,7 +1560,7 @@ public final class XMLUtil {
 				return new InputSource(new StringReader(str));
 			}
 			finally {
-				IOUtil.closeEL(reader);
+				IOUtil.close(reader);
 			}
 		}
 		if (value instanceof byte[]) {
@@ -1518,8 +1573,8 @@ public final class XMLUtil {
 		return new InputSource(new StringReader(xml.trim()));
 	}
 
-	public static Struct validate(InputSource xml, InputSource schema, String strSchema) throws XMLException {
-		return new XMLValidator(schema, strSchema).validate(xml);
+	public static Struct validate(InputSource xml, InputSource schema, String strSchema, Struct result) throws XMLException {
+		return new XMLValidator(schema, strSchema).validate(xml, result);
 	}
 
 }

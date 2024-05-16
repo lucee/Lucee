@@ -27,6 +27,8 @@ public class QueryStruct extends StructImpl implements QueryResult {
 	private String cacheType;
 	private int updateCount;
 	private Key[] columnNames;
+	private boolean isSingleRecord = false;
+	private String datasourceName;
 
 	public QueryStruct(String name, SQL sql, TemplateLine templateLine) {
 		super(Struct.TYPE_LINKED);
@@ -48,8 +50,8 @@ public class QueryStruct extends StructImpl implements QueryResult {
 		int top = dp.getMaxlevel();
 
 		comment.append("Execution Time: ").append(Caster.toString(FormatUtil.formatNSAsMSDouble(getExecutionTime()))).append(" ms \n");
-		comment.append("Record Count: ").append(Caster.toString(size()));
-		if (size() > top) comment.append(" (showing top ").append(Caster.toString(top)).append(")");
+		comment.append("Record Count: ").append(Caster.toString(getRecordcount()));
+		if (getRecordcount() > top) comment.append(" (showing top ").append(Caster.toString(top)).append(")");
 		comment.append("\n");
 		comment.append("Cached: ").append(isCached() ? "Yes\n" : "No\n");
 		if (isCached()) {
@@ -57,13 +59,16 @@ public class QueryStruct extends StructImpl implements QueryResult {
 			comment.append("Cache Type: ").append(ct).append("\n");
 		}
 
+		String datasourceName = getDatasourceName();
+		if (datasourceName != null) comment.append("Datasource: ").append(datasourceName).append("\n");
+
 		SQL sql = getSql();
 		if (sql != null) comment.append("SQL: ").append("\n").append(StringUtil.suppressWhiteSpace(sql.toString().trim())).append("\n");
 
 		dt.setTitle("Struct (from Query)");
 		if (dp.getMetainfo()) dt.setComment(comment.toString());
-		return dt;
 
+		return dt;
 	}
 
 	@Override
@@ -73,6 +78,7 @@ public class QueryStruct extends StructImpl implements QueryResult {
 		qa.columnNames = columnNames;
 		qa.executionTime = executionTime;
 		qa.updateCount = updateCount;
+		qa.datasourceName = datasourceName;
 		copy(this, qa, deepCopy);
 		return qa;
 	}
@@ -95,6 +101,14 @@ public class QueryStruct extends StructImpl implements QueryResult {
 	@Override
 	public boolean isCached() {
 		return cacheType != null;
+	}
+
+	public String getDatasourceName() {
+		return datasourceName;
+	}
+
+	public void setDatasourceName(String datasourceName) {
+		this.datasourceName = datasourceName;
 	}
 
 	@Override
@@ -124,6 +138,9 @@ public class QueryStruct extends StructImpl implements QueryResult {
 
 	@Override
 	public int getRecordcount() {
+		if (isSingleRecord) {
+			return (size() > 0) ? 1 : 0;
+		}
 		return size();
 	}
 
@@ -152,6 +169,10 @@ public class QueryStruct extends StructImpl implements QueryResult {
 		this.columnNames = columnNames;
 	}
 
+	public void setSingleRecord(boolean value) {
+		this.isSingleRecord = value;
+	}
+
 	public static QueryStruct toQueryStruct(QueryImpl q, Key columnName) throws PageException {
 		QueryStruct qs = new QueryStruct(q.getName(), q.getSql(), q.getTemplateLine());
 		qs.setCacheType(q.getCacheType());
@@ -165,7 +186,7 @@ public class QueryStruct extends StructImpl implements QueryResult {
 
 		Struct tmp;
 		for (int r = 1; r <= rows; r++) {
-			tmp = new StructImpl();
+			tmp = new StructImpl(Struct.TYPE_LINKED);
 			qs.set(Caster.toKey(q.getAt(columnName, r)), tmp);
 			for (Key c: columns) {
 				tmp.setEL(c, q.getAt(c, r, null));

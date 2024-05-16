@@ -49,7 +49,8 @@ public final class FunctionLib implements Lib {
 	/**
 	 * Geschuetzer Konstruktor ohne Argumente.
 	 */
-	protected FunctionLib() {}
+	protected FunctionLib() {
+	}
 
 	/**
 	 * Gibt eine einzelne Funktion der FLD zurueck mit dem passenden Namen. Gibt null zurueck falls die

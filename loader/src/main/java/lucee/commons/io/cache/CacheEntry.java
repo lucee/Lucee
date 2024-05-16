@@ -93,6 +93,8 @@ public interface CacheEntry {
 
 	/**
 	 * get all information data available for this entry
+	 * 
+	 * @return custom information to the entry
 	 */
 	public Struct getCustomInfo();
 }

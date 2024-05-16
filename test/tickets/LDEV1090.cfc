@@ -16,7 +16,7 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  * 
  ---><cfscript>
-component extends="org.lucee.cfml.test.LuceeTestCase"	{
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="qoq" {
 
 	public void function testQuery(){
 		local.q=query(a:[1,2,3]);

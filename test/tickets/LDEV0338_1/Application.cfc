@@ -22,16 +22,17 @@ component {
     request.baseURL="http://#cgi.HTTP_HOST##GetDirectoryFromPath(cgi.SCRIPT_NAME)#";
 	request.currentPath=GetDirectoryFromPath(getCurrentTemplatePath());
 
-
- 	this.datasource = {
-	  class: 'org.hsqldb.jdbcDriver'
-	, connectionString: 'jdbc:hsqldb:file:#getDirectoryFromPath(getCurrentTemplatePath())#/datasource/db'
-	};
-
+	this.datasource =  server.getDatasource( "h2", server._getTempDir( "LDEV0338_1" ) );
+ 	
 	this.ormEnabled = true; 
 	this.ormSettings = { 
 		savemapping=true,
 		dbcreate = 'dropcreate' ,
 		logSQL=true
 	}; 
+
+	public function onRequestStart() {
+		setting requesttimeout=10;
+	}
+
 } 

@@ -25,7 +25,7 @@ import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
 
 import org.apache.commons.fileupload.MultipartStream;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import lucee.commons.io.IOUtil;
 import lucee.commons.lang.StringUtil;
@@ -79,7 +79,7 @@ public class MultiPartResponseUtils {
 		Struct fileStruct = new StructImpl();
 		fileStruct.set(KeyConstants._content, baos.toByteArray());
 		fileStruct.set(KeyConstants._headers, headers);
-		IOUtil.closeEL(baos);
+		IOUtil.close(baos);
 		return fileStruct;
 	}
 

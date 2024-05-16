@@ -30,68 +30,68 @@ public interface Operation {
 	/**
 	 * compares two Objects
 	 * 
-	 * @param left
-	 * @param right
+	 * @param left Left Object
+	 * @param right Right Object
 	 * @return different of objects as int
-	 * @throws PageException
+	 * @throws PageException Page Exception
 	 */
 	public int compare(Object left, Object right) throws PageException;
 
 	/**
 	 * compares an Object with a String
 	 * 
-	 * @param left
-	 * @param right
+	 * @param left Left Object
+	 * @param right Right Object
 	 * @return difference as int
-	 * @throws PageException
+	 * @throws PageException Page Exception
 	 */
 	public int compare(Object left, String right) throws PageException;
 
 	/**
 	 * compares an Object with a double
 	 * 
-	 * @param left
-	 * @param right
+	 * @param left Left Object
+	 * @param right Right Object
 	 * @return difference as int
-	 * @throws PageException
+	 * @throws PageException Page Exception
 	 */
 	public int compare(Object left, double right) throws PageException;
 
 	/**
 	 * compares an Object with a boolean
 	 * 
-	 * @param left
-	 * @param right
+	 * @param left Left Object
+	 * @param right Right Object
 	 * @return difference as int
-	 * @throws PageException
+	 * @throws PageException Page Exception
 	 */
 	public int compare(Object left, boolean right) throws PageException;
 
 	/**
 	 * compares an Object with a Date
 	 * 
-	 * @param left
-	 * @param right
+	 * @param left Left Object
+	 * @param right Right Object
 	 * @return difference as int
-	 * @throws PageException
+	 * @throws PageException Page Exception
 	 */
 	public int compare(Object left, Date right) throws PageException;
 
 	/**
 	 * compares a String with an Object
 	 * 
-	 * @param left
-	 * @param right
+	 * @param left Left Object
+	 * @param right Right Object
 	 * @return difference as int
-	 * @throws PageException
+	 * @throws PageException Page Exception
 	 */
 	public int compare(String left, Object right) throws PageException;
 
 	/**
 	 * compares a String with a String
 	 * 
-	 * @param left
-	 * @param right
+	 * @param left Left Object
+	 * @param right Right Object
 	 * @return difference as int
 	 */
 	public int compare(String left, String right);
@@ -99,8 +99,8 @@ public interface Operation {
 	/**
 	 * compares a String with a double
 	 * 
-	 * @param left
-	 * @param right
+	 * @param left Left Object
+	 * @param right Right Object
 	 * @return difference as int
 	 */
 	public int compare(String left, double right);
@@ -108,8 +108,8 @@ public interface Operation {
 	/**
 	 * compares a String with a boolean
 	 * 
-	 * @param left
-	 * @param right
+	 * @param left Left Object
+	 * @param right Right Object
 	 * @return difference as int
 	 */
 	public int compare(String left, boolean right);
@@ -117,28 +117,28 @@ public interface Operation {
 	/**
 	 * compares a String with a Date
 	 * 
-	 * @param left
-	 * @param right
+	 * @param left Left Object
+	 * @param right Right Object
 	 * @return difference as int
-	 * @throws PageException
+	 * @throws PageException Page Exception
 	 */
 	public int compare(String left, Date right) throws PageException;
 
 	/**
 	 * compares a double with an Object
 	 * 
-	 * @param left
-	 * @param right
+	 * @param left Left Object
+	 * @param right Right Object
 	 * @return difference as int
-	 * @throws PageException
+	 * @throws PageException Page Exception
 	 */
 	public int compare(double left, Object right) throws PageException;
 
 	/**
 	 * compares a double with a String
 	 * 
-	 * @param left
-	 * @param right
+	 * @param left Left Object
+	 * @param right Right Object
 	 * @return difference as int
 	 */
 	public int compare(double left, String right);
@@ -146,8 +146,8 @@ public interface Operation {
 	/**
 	 * compares a double with a double
 	 * 
-	 * @param left
-	 * @param right
+	 * @param left Left Object
+	 * @param right Right Object
 	 * @return difference as int
 	 */
 	public int compare(double left, double right);
@@ -155,8 +155,8 @@ public interface Operation {
 	/**
 	 * compares a double with a boolean
 	 * 
-	 * @param left
-	 * @param right
+	 * @param left Left Object
+	 * @param right Right Object
 	 * @return difference as int
 	 */
 	public int compare(double left, boolean right);
@@ -164,8 +164,8 @@ public interface Operation {
 	/**
 	 * compares a double with a Date
 	 * 
-	 * @param left
-	 * @param right
+	 * @param left Left Object
+	 * @param right Right Object
 	 * @return difference as int
 	 */
 	public int compare(double left, Date right);
@@ -173,18 +173,18 @@ public interface Operation {
 	/**
 	 * compares a boolean with an Object
 	 * 
-	 * @param left
-	 * @param right
+	 * @param left Left Object
+	 * @param right Right Object
 	 * @return difference as int
-	 * @throws PageException
+	 * @throws PageException Page Exception
 	 */
 	public int compare(boolean left, Object right) throws PageException;
 
 	/**
 	 * compares a boolean with a double
 	 * 
-	 * @param left
-	 * @param right
+	 * @param left Left Object
+	 * @param right Right Object
 	 * @return difference as int
 	 */
 	public int compare(boolean left, double right);
@@ -192,8 +192,8 @@ public interface Operation {
 	/**
 	 * compares a boolean with a double
 	 * 
-	 * @param left
-	 * @param right
+	 * @param left Left Object
+	 * @param right Right Object
 	 * @return difference as int
 	 */
 	public int compare(boolean left, String right);
@@ -201,8 +201,8 @@ public interface Operation {
 	/**
 	 * compares a boolean with a boolean
 	 * 
-	 * @param left
-	 * @param right
+	 * @param left Left Object
+	 * @param right Right Object
 	 * @return difference as int
 	 */
 	public int compare(boolean left, boolean right);
@@ -210,8 +210,8 @@ public interface Operation {
 	/**
 	 * compares a boolean with a Date
 	 * 
-	 * @param left
-	 * @param right
+	 * @param left Left Object
+	 * @param right Right Object
 	 * @return difference as int
 	 */
 	public int compare(boolean left, Date right);
@@ -219,28 +219,28 @@ public interface Operation {
 	/**
 	 * compares a Date with an Object
 	 * 
-	 * @param left
-	 * @param right
+	 * @param left Left Object
+	 * @param right Right Object
 	 * @return difference as int
-	 * @throws PageException
+	 * @throws PageException Page Exception
 	 */
 	public int compare(Date left, Object right) throws PageException;
 
 	/**
 	 * compares a Date with a String
 	 * 
-	 * @param left
-	 * @param right
+	 * @param left Left Object
+	 * @param right Right Object
 	 * @return difference as int
-	 * @throws PageException
+	 * @throws PageException Page Exception
 	 */
 	public int compare(Date left, String right) throws PageException;
 
 	/**
 	 * compares a Date with a double
 	 * 
-	 * @param left
-	 * @param right
+	 * @param left Left Object
+	 * @param right Right Object
 	 * @return difference as int
 	 */
 	public int compare(Date left, double right);
@@ -248,8 +248,8 @@ public interface Operation {
 	/**
 	 * compares a Date with a boolean
 	 * 
-	 * @param left
-	 * @param right
+	 * @param left Left Object
+	 * @param right Right Object
 	 * @return difference as int
 	 */
 	public int compare(Date left, boolean right);
@@ -257,8 +257,8 @@ public interface Operation {
 	/**
 	 * compares a Date with a Date
 	 * 
-	 * @param left
-	 * @param right
+	 * @param left Left Object
+	 * @param right Right Object
 	 * @return difference as int
 	 */
 	public int compare(Date left, Date right);
@@ -270,7 +270,7 @@ public interface Operation {
 	 * @param right right value to compare
 	 * @param caseSensitive check case sensitive or not
 	 * @return is same or not
-	 * @throws PageException
+	 * @throws PageException Page Exception
 	 */
 	public boolean equals(Object left, Object right, boolean caseSensitive) throws PageException;
 
@@ -284,7 +284,7 @@ public interface Operation {
 	 * @param left string to check
 	 * @param right substring to find in string
 	 * @return return if substring has been found
-	 * @throws PageException
+	 * @throws PageException Page Exception
 	 */
 	public boolean ct(Object left, Object right) throws PageException;
 
@@ -295,7 +295,7 @@ public interface Operation {
 	 * @param left value to check
 	 * @param right value to check
 	 * @return result of operation
-	 * @throws PageException
+	 * @throws PageException Page Exception
 	 */
 	public boolean eqv(Object left, Object right) throws PageException;
 
@@ -306,7 +306,7 @@ public interface Operation {
 	 * @param left value to check
 	 * @param right value to check
 	 * @return result
-	 * @throws PageException
+	 * @throws PageException Page Exception
 	 */
 	public boolean imp(Object left, Object right) throws PageException;
 
@@ -316,7 +316,7 @@ public interface Operation {
 	 * @param left string to check
 	 * @param right substring to find in string
 	 * @return return if substring NOT has been found
-	 * @throws PageException
+	 * @throws PageException Page Exception
 	 */
 	public boolean nct(Object left, Object right) throws PageException;
 
@@ -326,15 +326,15 @@ public interface Operation {
 	 * @param left value to get exponent from
 	 * @param right exponent count
 	 * @return return exponent value
-	 * @throws PageException
+	 * @throws PageException Page Exception
 	 */
 	public double exponent(Object left, Object right) throws PageException;
 
 	/**
 	 * concat to Strings
 	 * 
-	 * @param left
-	 * @param right
+	 * @param left Left Object
+	 * @param right Right Object
 	 * @return concatenated String
 	 */
 	public String concat(String left, String right);
@@ -342,8 +342,8 @@ public interface Operation {
 	/**
 	 * plus operation
 	 * 
-	 * @param left
-	 * @param right
+	 * @param left Left Object
+	 * @param right Right Object
 	 * @return result of the operations
 	 */
 	public double plus(double left, double right);
@@ -351,8 +351,8 @@ public interface Operation {
 	/**
 	 * minus operation
 	 * 
-	 * @param left
-	 * @param right
+	 * @param left Left Object
+	 * @param right Right Object
 	 * @return result of the operations
 	 */
 	public double minus(double left, double right);
@@ -360,8 +360,8 @@ public interface Operation {
 	/**
 	 * modulus operation
 	 * 
-	 * @param left
-	 * @param right
+	 * @param left Left Object
+	 * @param right Right Object
 	 * @return result of the operations
 	 */
 	public double modulus(double left, double right);
@@ -369,8 +369,8 @@ public interface Operation {
 	/**
 	 * divide operation
 	 * 
-	 * @param left
-	 * @param right
+	 * @param left Left Object
+	 * @param right Right Object
 	 * @return result of the operations
 	 */
 	public double divide(double left, double right);
@@ -378,8 +378,8 @@ public interface Operation {
 	/**
 	 * multiply operation
 	 * 
-	 * @param left
-	 * @param right
+	 * @param left Left Object
+	 * @param right Right Object
 	 * @return result of the operations
 	 */
 	public double multiply(double left, double right);

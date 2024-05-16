@@ -29,7 +29,7 @@ public interface CFXTagClass {
 
 	/**
 	 * @return return a New Instance
-	 * @throws CFXTagException
+	 * @throws CFXTagException CFX Tag Exception
 	 */
 	public CustomTag newInstance() throws CFXTagException;
 

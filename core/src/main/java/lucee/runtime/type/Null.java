@@ -34,7 +34,8 @@ import lucee.runtime.type.dt.DateTime;
 public final class Null implements Castable, Dumpable {
 	public static final Null NULL = new Null();
 
-	private Null() {}
+	private Null() {
+	}
 
 	@Override
 	public String castToString() throws ExpressionException {

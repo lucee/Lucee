@@ -60,7 +60,8 @@ public final class FileResourceProvider implements ResourceProviderPro {
 	/**
 	 * Constructor of the class
 	 */
-	public FileResourceProvider() {}
+	public FileResourceProvider() {
+	}
 
 	@Override
 	public Resource getResource(String path) {
@@ -115,5 +116,10 @@ public final class FileResourceProvider implements ResourceProviderPro {
 	@Override
 	public char getSeparator() {
 		return File.separatorChar;
+	}
+
+	@Override
+	public boolean allowMatching() {
+		return true;
 	}
 }

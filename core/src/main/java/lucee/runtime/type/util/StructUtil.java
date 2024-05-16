@@ -131,7 +131,7 @@ public final class StructUtil {
 	public static DumpTable toDumpTable(Struct sct, String title, PageContext pageContext, int maxlevel, DumpProperties dp) {
 		Key[] keys = CollectionUtil.keys(sct);
 		if (!(sct instanceof StructSupport) || ((StructSupport) sct).getType() != Struct.TYPE_LINKED) keys = order(sct, CollectionUtil.keys(sct));
-		DumpTable table = new DumpTable("struct", "#9999ff", "#ccccff", "#000000");// "#9999ff","#ccccff","#000000"
+		DumpTable table = new DumpTable("struct", "#468faf", "#89c2d9", "#000000");// "#9999ff","#ccccff","#000000"
 
 		int maxkeys = dp.getMaxKeys();
 		if (maxkeys < sct.size()) {
@@ -230,10 +230,10 @@ public final class StructUtil {
 		}
 	}
 
-	public static Struct merge(Struct[] scts) {
-		Struct sct = new StructImpl();
+	public static Struct merge(boolean intoFirst, Struct... scts) {
+		Struct sct = intoFirst ? scts[0] : new StructImpl();
 
-		for (int i = scts.length - 1; i >= 0; i--) {
+		for (int i = intoFirst ? 1 : 0; i < scts.length; i++) {
 			Iterator<Entry<Key, Object>> it = scts[i].entryIterator();
 			Entry<Key, Object> e;
 			while (it.hasNext()) {
@@ -257,10 +257,8 @@ public final class StructUtil {
 		if (Struct.TYPE_LINKED == type) return "ordered";
 		if (Struct.TYPE_WEAKED == type) return "weak";
 		if (Struct.TYPE_REGULAR == type) return "regular";
-		if (Struct.TYPE_REGULAR == type) return "regular";
 		if (Struct.TYPE_SOFT == type) return "soft";
 		if (Struct.TYPE_SYNC == type) return "synchronized";
-		if (Struct.TYPE_UNDEFINED == type) return "undefined";
 
 		return defaultValue;
 	}
@@ -280,5 +278,15 @@ public final class StructUtil {
 			sb.append(keys[i].getString()).append(';');
 		}
 		return Long.toString(HashUtil.create64BitHash(sb), Character.MAX_RADIX);
+	}
+
+	public static Struct getMetaData(Struct sct) throws PageException {
+		Struct res = new StructImpl();
+		if (sct instanceof StructImpl) {
+			int type = ((StructImpl) sct).getType();
+			res.set(KeyConstants._type, toType(type, "unsynchronized"));
+			res.set("ordered", type == Struct.TYPE_LINKED ? "ordered" : "unordered");
+		}
+		return res;
 	}
 }

@@ -15,7 +15,11 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					nn="DirectoryRename-"&createUUID();
 					dir2=parent&nn;
 					directoryCreate(dir);
-					directoryRename(dir,dir2);
+					newPath = directoryRename(dir,dir2);
+					assertEquals(nn, listLast(newpath, "/\"));
+					assertEquals(replaceNoCase(dir2,"\", "/","all"), replaceNoCase(newPath,"\", "/","all"));
+					assertEquals(true, directoryExists(newPath));
+					assertEquals(false, isEmpty(newPath));
 					assertEquals("#false#", "#directoryExists(dir)#");
 					assertEquals("#true#", "#directoryExists(dir2)#");
 
@@ -26,6 +30,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					assertEquals("#true#", "#directoryExists(dir2)#");
 				}
 			});
-		});	
+		});
 	}
 }

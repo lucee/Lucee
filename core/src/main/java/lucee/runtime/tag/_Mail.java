@@ -29,8 +29,6 @@ import lucee.runtime.ext.tag.TagImpl;
 import lucee.runtime.functions.other.CreateUniqueId;
 import lucee.runtime.net.mail.MailClient;
 import lucee.runtime.op.Caster;
-import lucee.runtime.type.util.ArrayUtil;
-import lucee.runtime.type.util.ListUtil;
 
 /**
  * Retrieves and deletes e-mail messages from a POP mail server.
@@ -48,8 +46,9 @@ public abstract class _Mail extends TagImpl {
 	private String password;
 	private String action = "getheaderonly";
 	private String name;
-	private String[] messageNumber;
-	private String[] uid;
+	private String messageNumber;
+	private String uid;
+	private String delimiter;
 	private Resource attachmentPath;
 	private int timeout = 60;
 	private int startrow = 1;
@@ -77,6 +76,7 @@ public abstract class _Mail extends TagImpl {
 		name = null;
 		messageNumber = null;
 		uid = null;
+		delimiter = null;
 		attachmentPath = null;
 		timeout = 60;
 		startrow = 1;
@@ -161,8 +161,7 @@ public abstract class _Mail extends TagImpl {
 	 * @throws PageException
 	 */
 	public void setMessagenumber(String messageNumber) throws PageException {
-		this.messageNumber = ArrayUtil.trim(ListUtil.toStringArray(ListUtil.listToArrayRemoveEmpty(messageNumber, ',')));
-		if (this.messageNumber.length == 0) this.messageNumber = null;
+		this.messageNumber = messageNumber;
 	}
 
 	/**
@@ -170,8 +169,15 @@ public abstract class _Mail extends TagImpl {
 	 * @throws PageException
 	 */
 	public void setUid(String uid) throws PageException {
-		this.uid = ArrayUtil.trim(ListUtil.toStringArray(ListUtil.listToArrayRemoveEmpty(uid, ',')));
-		if (this.uid.length == 0) this.uid = null;
+		this.uid = uid;
+	}
+
+	/**
+	 * @param delimiter The delimiter to set.
+	 * @throws PageException
+	 */
+	public void setDelimiter(String delimiter) throws PageException {
+		this.delimiter = delimiter;
 	}
 
 	/**
@@ -183,9 +189,9 @@ public abstract class _Mail extends TagImpl {
 		Resource attachmentDir = pageContext.getConfig().getResource(attachmentPath);
 		if (!attachmentDir.exists() && !attachmentDir.mkdir()) {
 			attachmentDir = pageContext.getConfig().getTempDirectory().getRealResource(attachmentPath);
-			if (!attachmentDir.exists() && !attachmentDir.mkdir()) throw new ApplicationException("directory [" + attachmentPath + "] doesent exist and can't created");
+			if (!attachmentDir.exists() && !attachmentDir.mkdir()) throw new ApplicationException("Directory [" + attachmentPath + "] doesn't exist and couldn't be created");
 		}
-		if (!attachmentDir.isDirectory()) throw new ApplicationException("file [" + attachmentPath + "] is not a directory");
+		if (!attachmentDir.isDirectory()) throw new ApplicationException("File [" + attachmentPath + "] is not a directory");
 		pageContext.getConfig().getSecurityManager().checkFileLocation(attachmentDir);
 		this.attachmentPath = attachmentDir;
 		/*
@@ -231,6 +237,8 @@ public abstract class _Mail extends TagImpl {
 	@Override
 	public int doStartTag() throws PageException {
 
+		if (!StringUtil.isEmpty(delimiter) && uid == null) throw new ApplicationException("must specify the attribute [uid] when the attribute delimiter is defined");
+
 		// check attrs
 		if (port == -1) port = getDefaultPort();
 
@@ -249,6 +257,7 @@ public abstract class _Mail extends TagImpl {
 
 		}
 
+		client.setDelimiter(!StringUtil.isEmpty(delimiter, true) ? delimiter : ",");
 		client.setTimeout(timeout * 1000);
 		client.setMaxrows(maxrows);
 		if (startrow > 1) client.setStartrow(startrow - 1);
@@ -305,9 +314,9 @@ public abstract class _Mail extends TagImpl {
 			}
 			else {
 				String actions = "getHeaderOnly,getAll,delete";
-				if (getType() == MailClient.TYPE_IMAP) actions += "open,close,markread,createfolder,deletefolder,renamefolder,listallfolders";
+				if (getType() == MailClient.TYPE_IMAP) actions += ",open,close,markread,createfolder,deletefolder,renamefolder,listallfolders,movemail";
 
-				throw new ApplicationException("invalid value for attribute action, valid values are [" + actions + "]");
+				throw new ApplicationException("Invalid value for attribute [action], valid values are [" + actions + "]");
 			}
 		}
 		catch (Exception e) {
@@ -321,7 +330,7 @@ public abstract class _Mail extends TagImpl {
 
 	private void checkConnection() throws ApplicationException {
 		if (StringUtil.isEmpty(connection) && StringUtil.isEmpty(server)) {
-			throw new ApplicationException("you need to define the attribute [connection] or [server].");
+			throw new ApplicationException("You need to define the attribute [connection] or [server].");
 		}
 	}
 

@@ -33,6 +33,7 @@ import lucee.runtime.CFMLFactoryImpl;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.PageSource;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.transformer.bytecode.util.ASMUtil;
 
 public class FDThreadImpl implements IFDThread {
@@ -65,7 +66,7 @@ public class FDThreadImpl implements IFDThread {
 
 	@Override
 	public void stop() {
-		Log log = pc.getConfig().getLog("application");
+		Log log = ThreadLocalPageContext.getLog(pc, "application");
 		SystemUtil.stop(pc, true);
 	}
 
@@ -85,25 +86,18 @@ public class FDThreadImpl implements IFDThread {
 
 	@Override
 	public List<IFDStackFrame> getStack() {
-		List<PageSource> stack = pc.getPageSourceList();
 
 		StackTraceElement[] traces = pc.getThread().getStackTrace();
 		String template = "";
 		StackTraceElement trace = null;
 		ArrayList<IFDStackFrame> list = new ArrayList<IFDStackFrame>();
 		PageSource ps;
-		int index = stack.size();
 		for (int i = traces.length - 1; i >= 0; i--) {
 			trace = traces[i];
-			ps = null;
 			if (trace.getLineNumber() <= 0) continue;
 			template = trace.getFileName();
 			if (template == null || ResourceUtil.getExtension(template, "").equals("java")) continue;
-
-			if (index > 0) ps = stack.get(--index);
-			if (ps == null || !isEqual(ps, trace)) {
-				ps = toPageSource(pc, template);
-			}
+			ps = toPageSource(pc, template);
 			FDStackFrameImpl frame = new FDStackFrameImpl(this, pc, trace, ps);
 			if (ASMUtil.isOverfowMethod(trace.getMethodName())) list.set(0, frame);
 			else list.add(0, frame);

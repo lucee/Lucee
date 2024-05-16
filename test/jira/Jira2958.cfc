@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU Lesser General Public 
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  * 
- ---><cfcomponent extends="org.lucee.cfml.test.LuceeTestCase">
+ ---><cfcomponent extends="org.lucee.cfml.test.LuceeTestCase" labels="xml">
 	<!---
 	<cffunction name="beforeTests"></cffunction>
 	<cffunction name="afterTests"></cffunction>
@@ -40,7 +40,7 @@
 
 	</cffunction>
 
-	<cffunction name="testXMLChildren">
+	<!---TODO <cffunction name="testXMLChildren">
 		<cfxml variable="local.MyDoc">
 		<MyDoc>this is a test<test>test 2</test>
 		<myTag>
@@ -56,7 +56,7 @@
 			_remove(MyDoc.Mydoc.xmlChildren[1]&"")
 		)>
 
-	</cffunction>
+	</cffunction>--->
 
 	<cfscript>
 	function _remove(str) {

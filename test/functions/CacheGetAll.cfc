@@ -1,66 +1,68 @@
-component extends="org.lucee.cfml.test.LuceeTestCase"{
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="cache,ehCache" {
 	function run( testResults , testBox ) {
 		describe( title="Test suite for CacheGetAll()", body=function() {
 			variables.cacheName="Test"&ListFirst(ListLast(getCurrentTemplatePath(),"\/"),".");
-			afterEach(function( currentSpec ){
-				testCacheGetAll();
-				deleteCache();
-			});
 			it(title="Checking testCacheGetAllEHCache()", body = function( currentSpec ) {
 				createEHCache();
+				testCacheGetAll();
+				deleteCache();
 			});
 			it(title="Checking testCacheGetAllJBossCache()", body = function( currentSpec ) {
 				if(!isNull(request.testJBossExtension) and request.testJBossExtension){
 					createJBossCache();
+					testCacheGetAll();
+					deleteCache();
 				}
 			});
 			it(title="Checking testCacheGetAllRAMCache()", body = function( currentSpec ) {
 				createRAMCache();
+				testCacheGetAll();
+				deleteCache();
 			});
 		});
 	}
 
 	private function testCacheGetAll(){
-		lock timeout="1" scope="server" { 
+		lock timeout="1" scope="server" {
 			cacheClear();
 			cachePut('abc','123');
 			cachePut('def','123');
-		    assertEquals("ABC,DEF","#ListSort(StructKeyList(cacheGetAll()),'textnocase')#");
+			assertEquals("ABC,DEF","#ListSort(StructKeyList(cacheGetAll()),'textnocase')#");
 			cachePut('abc','123');
 			cachePut('abd','123');
 			cachePut('def','123');
-		    assertEquals("ABC,ABD","#ListSort(StructKeyList(cacheGetAll("ab*")),'textnocase')#");
-		    assertEquals("ABC,ABD","#ListSort(StructKeyList(cacheGetAll("ab*")),'textnocase')#");
+			assertEquals("ABC,ABD","#ListSort(StructKeyList(cacheGetAll("ab*")),'textnocase')#");
+			assertEquals("ABC,ABD","#ListSort(StructKeyList(cacheGetAll("ab*")),'textnocase')#");
 		}
 	}
 
 
 	private function createRAMCache(){
-		admin 
+		admin
 			action="updateCacheConnection"
 			type="web"
 			password="#request.webadminpassword#"
-			
-			
-			name="#cacheName#" 
-			class="lucee.runtime.cache.ram.RamCache" 
+
+
+			name="#cacheName#"
+			class="lucee.runtime.cache.ram.RamCache"
 			storage="false"
-			default="object" 
+			default="object"
 			custom="#{timeToLiveSeconds:86400
 				,timeToIdleSeconds:86400}#";
 	}
-	
+
 	private function createEHCache() {
-		admin 
+		admin
 			action="updateCacheConnection"
 			type="web"
 			password="#request.webadminpassword#"
-			
-			
-			name="#cacheName#" 
-			class="org.lucee.extension.cache.eh.EHCache" 
+
+
+			name="#cacheName#"
+			class="org.lucee.extension.cache.eh.EHCache"
 			storage="false"
-			default="object" 
+			default="object"
 			custom="#{timeToLiveSeconds:86400
 				,maxelementsondisk:10000000
 				,distributed:"off"
@@ -72,16 +74,16 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				,diskpersistent:true
 				,memoryevictionpolicy:"LRU"}#";
 	}
-		
+
 	private function createJBossCache() {
-		admin 
+		admin
 			action="updateCacheConnection"
 			type="web"
 			password="#request.webadminpassword#"
-			
+
 			default="object"
-			name="#cacheName#" 
-			class="lucee.extension.cache.jboss.JBossCache" 
+			name="#cacheName#"
+			class="lucee.extension.cache.jboss.JBossCache"
 			storage="false"
 			custom="#{timeToLiveSeconds:86400.0
 				,minTimeToLiveSeconds:0
@@ -90,13 +92,13 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				,timeToIdleSeconds:86400
 				,maxElementsInMemory:10000}#";
 	}
-				
+
 	private function deleteCache(){
-		admin 
+		admin
 			action="removeCacheConnection"
 			type="web"
 			password="#request.webadminpassword#"
 			name="#cacheName#";
-						
+
 	}
 }

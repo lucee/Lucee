@@ -87,7 +87,7 @@ public final class FeedHandler extends DefaultHandler {
 			init(source);
 		}
 		finally {
-			IOUtil.closeEL(is);
+			IOUtil.close(is);
 		}
 	}
 
@@ -147,7 +147,7 @@ public final class FeedHandler extends DefaultHandler {
 			hasDC = true;
 		}
 
-		inside = KeyImpl.getInstance(name);
+		inside = KeyImpl.init(name);
 		if (StringUtil.isEmpty(path)) path = name;
 		else {
 			path += "." + name;
@@ -210,9 +210,6 @@ public final class FeedHandler extends DefaultHandler {
 		}
 		parents.add(data);
 		data = sct;
-
-		// <enclosure url="http://www.scripting.com/mp3s/weatherReportDicksPicsVol7.mp3" length="6182912"
-		// type="audio/mpeg"/>
 	}
 
 	private String name(String name, String qName) {

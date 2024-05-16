@@ -56,7 +56,7 @@ import lucee.runtime.component.AbstractFinal.UDFB;
 import lucee.runtime.component.ImportDefintion;
 import lucee.runtime.component.Property;
 import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.ExpressionException;
@@ -276,7 +276,7 @@ public final class ComponentUtil {
 	 */
 	private static Class registerTypeMapping(Class clazz) throws PageException {
 		PageContext pc = ThreadLocalPageContext.get();
-		WSServer server = ((ConfigImpl) ThreadLocalPageContext.getConfig(pc)).getWSHandler().getWSServer(pc);
+		WSServer server = ((ConfigWebPro) ThreadLocalPageContext.getConfig(pc)).getWSHandler().getWSServer(pc);
 		return registerTypeMapping(server, clazz);
 	}
 
@@ -584,7 +584,7 @@ public final class ComponentUtil {
 
 	private static Type toType(String cfType, boolean axistype) throws PageException {
 		Class clazz = Caster.cfTypeToClass(cfType);
-		if (axistype) clazz = ((ConfigImpl) ThreadLocalPageContext.getConfig()).getWSHandler().toWSTypeClass(clazz);
+		if (axistype) clazz = ((ConfigWebPro) ThreadLocalPageContext.getConfig()).getWSHandler().toWSTypeClass(clazz);
 		return Type.getType(clazz);
 
 	}
@@ -637,7 +637,7 @@ public final class ComponentUtil {
 		else if (access.equals("private")) return Component.ACCESS_PRIVATE;
 		else if (access.equals("public")) return Component.ACCESS_PUBLIC;
 		else if (access.equals("remote")) return Component.ACCESS_REMOTE;
-		throw new ApplicationException("invalid access type [" + access + "], access types are remote, public, package, private");
+		throw new ApplicationException("Invalid function access type [" + access + "], access types are [remote, public, package, private]");
 
 	}
 
@@ -660,8 +660,8 @@ public final class ComponentUtil {
 	public static String toStringAccess(int access) throws ApplicationException {
 		String res = toStringAccess(access, null);
 		if (res != null) return res;
-		throw new ApplicationException(
-				"invalid access type [" + access + "], access types are Component.ACCESS_PACKAGE, Component.ACCESS_PRIVATE, Component.ACCESS_PUBLIC, Component.ACCESS_REMOTE");
+		throw new ApplicationException("Invalid function access type [" + access
+				+ "], access types are [Component.ACCESS_PACKAGE, Component.ACCESS_PRIVATE, Component.ACCESS_PUBLIC, Component.ACCESS_REMOTE]");
 	}
 
 	public static String toStringAccess(int access, String defaultValue) {
@@ -684,12 +684,12 @@ public final class ComponentUtil {
 
 			Collection.Key[] other = c.keys(access);
 
-			if (other.length == 0) return new ExpressionException("component [" + c.getCallName() + "] has no " + strAccess + " function with name [" + key + "]");
+			if (other.length == 0) return new ExpressionException("Component [" + c.getCallName() + "] has no " + strAccess + " function with name [" + key + "]");
 
-			return new ExpressionException("component [" + c.getCallName() + "] has no " + strAccess + " function with name [" + key + "]",
-					"accessible functions are [" + ListUtil.arrayToList(other, ",") + "]");
+			return new ExpressionException("Component [" + c.getCallName() + "] has no " + strAccess + " function with name [" + key + "]",
+					"Accessible functions are [" + ListUtil.arrayToList(other, ", ") + "]");
 		}
-		return new ExpressionException("member [" + key + "] of component [" + c.getCallName() + "] is not a function", "Member is of type [" + Caster.toTypeName(member) + "]");
+		return new ExpressionException("Member [" + key + "] of component [" + c.getCallName() + "] is not a function", "Member is of type [" + Caster.toTypeName(member) + "]");
 	}
 
 	public static Property[] getProperties(Component c, boolean onlyPeristent, boolean includeBaseProperties, boolean preferBaseProperties, boolean inheritedMappedSuperClassOnly) {
@@ -712,7 +712,7 @@ public final class ComponentUtil {
 
 	public static Component toComponent(Object obj) throws ExpressionException {
 		if (obj instanceof Component) return (Component) obj;
-		throw new ExpressionException("can't cast class [" + Caster.toClassName(obj) + "] to a class of type Component");
+		throw new ExpressionException("Can't cast class [" + Caster.toClassName(obj) + "] to a class of type [Component]");
 	}
 
 	public static PageSource getPageSource(Component cfc) {
@@ -764,50 +764,81 @@ public final class ComponentUtil {
 		Property[] props = c.getProperties(onlyPersistent, false, false, false);
 		Struct sct = new StructImpl();
 		if (props != null) for (int i = 0; i < props.length; i++) {
-			sct.setEL(KeyImpl.getInstance(props[i].getName()), props[i]);
+			sct.setEL(KeyImpl.init(props[i].getName()), props[i]);
 		}
 		return sct;
 	}
 
 	public static Struct getMetaData(PageContext pc, UDFPropertiesBase udf) throws PageException {
+		return getMetaData(pc, udf, false);
+	}
+
+	public static Struct getMetaData(PageContext pc, UDFPropertiesBase udf, Boolean isStatic) throws PageException {
+		return getMetaData(pc, null, udf, isStatic);
+	}
+
+	public static Struct getMetaData(PageContext pc, UDF udf, UDFPropertiesBase udfProps, Boolean isStatic) throws PageException {
 		StructImpl func = new StructImpl();
 		pc = ThreadLocalPageContext.get(pc);
 		// TODO func.set("roles", value);
 		// TODO func.set("userMetadata", value); neo unterstuetzt irgendwelche a
 		// meta data
-		Struct meta = udf.getMeta();
+		Struct meta = udfProps.getMeta();
 		if (meta != null) StructUtil.copy(meta, func, true);
 
+		boolean isJava = false;
+		boolean isJavaLambda = false;
+		String lavaLambda = null;
+
+		if (udf != null) {
+			isJava = udf instanceof lucee.runtime.JF;
+			Class<? extends UDF> clazz = udf.getClass();
+
+			Class<?>[] interfaces = clazz.getInterfaces();
+			if (interfaces != null) {
+				for (Class<?> interf: interfaces) {
+					if (interf.getName().startsWith("java.util.function.")) {
+						isJavaLambda = true;
+						lavaLambda = interf.getName();
+					}
+				}
+			}
+		}
+		if (isJavaLambda) func.setEL("javaLambdaInterface", lavaLambda);
+		func.setEL(KeyConstants._java, (isJava ? Boolean.TRUE : Boolean.FALSE));
 		func.setEL(KeyConstants._closure, Boolean.FALSE);
 
-		func.set(KeyConstants._access, ComponentUtil.toStringAccess(udf.getAccess()));
-		String hint = udf.getHint();
+		func.set(KeyConstants._access, ComponentUtil.toStringAccess(udfProps.getAccess()));
+		String hint = udfProps.getHint();
 		if (!StringUtil.isEmpty(hint)) func.set(KeyConstants._hint, hint);
-		String displayname = udf.getDisplayName();
+		String displayname = udfProps.getDisplayName();
 		if (!StringUtil.isEmpty(displayname)) func.set(KeyConstants._displayname, displayname);
-		func.set(KeyConstants._name, udf.getFunctionName());
-		func.set(KeyConstants._output, Caster.toBoolean(udf.getOutput()));
-		func.set(KeyConstants._returntype, udf.getReturnTypeAsString());
-		func.set("modifier", udf.getModifier() == Component.MODIFIER_NONE ? "" : ComponentUtil.toModifier(udf.getModifier(), ""));
-		func.set(KeyConstants._description, udf.getDescription());
-		if (udf.getLocalMode() != null) func.set("localMode", AppListenerUtil.toLocalMode(udf.getLocalMode().intValue(), ""));
+		func.set(KeyConstants._name, udfProps.getFunctionName());
+		func.set(KeyConstants._output, Caster.toBoolean(udfProps.getOutput()));
+		func.set(KeyConstants._returntype, udfProps.getReturnTypeAsString());
+		func.set(KeyConstants._modifier, udfProps.getModifier() == Component.MODIFIER_NONE ? "" : ComponentUtil.toModifier(udfProps.getModifier(), ""));
+		func.set(KeyConstants._description, udfProps.getDescription());
+		if (isStatic != null) func.set(KeyConstants._static, isStatic);
 
-		if (udf.getPageSource() != null) func.set(KeyConstants._owner, udf.getPageSource().getDisplayPath());
+		if (udfProps.getLocalMode() != null) func.set("localMode", AppListenerUtil.toLocalMode(udfProps.getLocalMode().intValue(), ""));
 
-		if (udf.getStartLine() > 0 && udf.getEndLine() > 0) {
+		if (udfProps.getPageSource() != null) func.set(KeyConstants._owner, udfProps.getPageSource().getDisplayPath());
+
+		if (udfProps.getStartLine() > 0 && udfProps.getEndLine() > 0) {
 			Struct pos = new StructImpl();
-			pos.set("start", udf.getStartLine());
-			pos.set("end", udf.getEndLine());
-			func.setEL("position", pos);
+			pos.set(KeyConstants._start, udfProps.getStartLine());
+			pos.set(KeyConstants._end, udfProps.getEndLine());
+			func.setEL(KeyConstants._position, pos);
 		}
 
-		int format = udf.getReturnFormat();
+		int format = udfProps.getReturnFormat();
 		if (format < 0 || format == UDF.RETURN_FORMAT_WDDX) func.set(KeyConstants._returnFormat, "wddx");
 		else if (format == UDF.RETURN_FORMAT_PLAIN) func.set(KeyConstants._returnFormat, "plain");
 		else if (format == UDF.RETURN_FORMAT_JSON) func.set(KeyConstants._returnFormat, "json");
 		else if (format == UDF.RETURN_FORMAT_SERIALIZE) func.set(KeyConstants._returnFormat, "cfml");
+		else if (format == UDF.RETURN_FORMAT_XML) func.set(KeyConstants._returnFormat, "xml");
 
-		FunctionArgument[] args = udf.getFunctionArguments();
+		FunctionArgument[] args = udfProps.getFunctionArguments();
 		Array params = new ArrayImpl();
 		// Object defaultValue;
 		Struct m;
@@ -825,8 +856,8 @@ public final class ComponentUtil {
 				param.set(KeyConstants._default, "[runtime expression]");
 			}
 			else if (defType == FunctionArgument.DEFAULT_TYPE_LITERAL) {
-				Page p = udf.getPage(pc);
-				param.set(KeyConstants._default, p.udfDefaultValue(pc, udf.getIndex(), y, null));
+				Page p = udfProps.getPage(pc);
+				param.set(KeyConstants._default, p.udfDefaultValue(pc, udfProps.getIndex(), y, null));
 			}
 
 			hint = args[y].getHint();

@@ -229,7 +229,7 @@ Redirtect to entry --->
 							<cfset _int=toStructInterval(tasks.interval)>
 							<cfset _intervall="#stText.Schedule.Every# (hh:mm:ss) #two(_int.hour)#:#two(_int.minute)#:#two(_int.second)#">
 						<cfelse>
-							<cfset _intervall=tasks.interval>
+							<cfset _intervall="#tasks.interval# " & " (hh:mm:ss tt) " & " #TimeFormat(tasks.StartTime,'hh:mm:ss tt')#">
 						</cfif>
 						<cfif
 							doFilter(session.st.nameFilter,tasks.task,false)
@@ -247,7 +247,11 @@ Redirtect to entry --->
 									<input type="hidden" name="name_#tasks.currentrow#" value="#HTMLEditFormat(tasks.task)#">
 									#tasks.task#
 								</td>
-								<td>#_intervall#</td>
+								<td title=<cfif isNumeric(tasks.interval)>
+									"interval time of #stText.Schedule.Every# task"
+									<cfelse>
+										"Start time of #tasks.interval# task"					
+								</cfif> >#_intervall#</td>
 								<td><cfif len(urlAndPort) gt 50><abbr title="#urlAndPort#">#cut(urlAndPort,50)#</abbr><cfelse>#urlAndPort#</cfif></td>
 								<td>#YesNoFormat(tasks.paused)#</td>
 								<td>
@@ -261,11 +265,11 @@ Redirtect to entry --->
 				<tfoot>
 					<tr>
 						<td colspan="6">
-							<input type="submit" class="bl button submit" name="mainAction" value="#stText.Buttons.Execute#">
-							<input type="reset" class="bm button reset" name="cancel" value="#stText.Buttons.Cancel#">
-							<input type="submit" class="bm button submit" name="mainAction" value="#stText.Buttons.Delete#">
-							<input type="submit" class="bm button submit" name="mainAction" value="#stText.Schedule.pause#">
-							<input type="submit" class="br button submit" name="mainAction" value="#stText.Schedule.resume#">
+							<input type="submit" class="bl button submit enablebutton" name="mainAction" value="#stText.Buttons.Execute#">
+							<input type="reset" class="bm button reset enablebutton" id="clickCancel" name="cancel" value="#stText.Buttons.Cancel#">
+							<input type="submit" class="bm button submit enablebutton" name="mainAction" value="#stText.Buttons.Delete#">
+							<input type="submit" class="bm button submit enablebutton" name="mainAction" value="#stText.Schedule.pause#">
+							<input type="submit" class="br button submit enablebutton" name="mainAction" value="#stText.Schedule.resume#">
 						</td>
 					</tr>
 				</tfoot>
@@ -355,8 +359,8 @@ Redirtect to entry --->
 			<tfoot>
 				<tr>
 					<td colspan="2">
-						<input type="reset" class="bl button reset" name="cancel" value="#stText.Buttons.Cancel#">
-						<input type="submit" class="br button submit" name="run" value="#stText.Buttons.Create#">
+						<input type="submit" class="bl button submit" name="run" value="#stText.Buttons.Create#">
+						<input type="reset" class="br button reset" name="cancel" value="#stText.Buttons.Cancel#">
 					</td>
 				</tr>
 			</tfoot>

@@ -77,7 +77,7 @@ public interface VideoInfo {
 	/**
 	 * returns the information as Struct
 	 * 
-	 * @return
+	 * @return all video information
 	 */
 	public Struct toStruct();
 }

@@ -25,7 +25,7 @@ import java.util.ArrayList;
 import lucee.commons.io.log.Log;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.db.DataSource;
 import lucee.runtime.db.DataSourceManager;
 import lucee.runtime.db.DatasourceConnection;
@@ -35,6 +35,7 @@ import lucee.runtime.db.SQLItem;
 import lucee.runtime.db.SQLItemImpl;
 import lucee.runtime.debug.DebuggerImpl;
 import lucee.runtime.debug.DebuggerUtil;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.DatabaseException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.tag.TagImpl;
@@ -197,7 +198,7 @@ public final class Update extends TagImpl {
 
 				if (pageContext.getConfig().debug()) {
 					String dsn = ds instanceof DataSource ? ((DataSource) ds).getName() : Caster.toString(ds);
-					boolean logdb = ((ConfigImpl) pageContext.getConfig()).hasDebugOptions(ConfigImpl.DEBUG_DATABASE);
+					boolean logdb = ((ConfigPro) pageContext.getConfig()).hasDebugOptions(ConfigPro.DEBUG_DATABASE);
 					if (logdb) {
 						boolean debugUsage = DebuggerUtil.debugQueryUsage(pageContext, query);
 						DebuggerImpl di = (DebuggerImpl) pageContext.getDebugger();
@@ -207,7 +208,7 @@ public final class Update extends TagImpl {
 				}
 
 				// log
-				Log log = pageContext.getConfig().getLog("datasource");
+				Log log = ThreadLocalPageContext.getLog(pageContext, "datasource");
 				if (log.getLogLevel() >= Log.LEVEL_INFO) {
 					log.info("update tag", "executed [" + sql.toString().trim() + "] in " + DecimalFormat.call(pageContext, query.getExecutionTime() / 1000000D) + " ms");
 				}
@@ -215,7 +216,7 @@ public final class Update extends TagImpl {
 			return EVAL_PAGE;
 		}
 		catch (PageException pe) {
-			pageContext.getConfig().getLog("datasource").error("update tag", pe);
+			ThreadLocalPageContext.getLog(pageContext, "datasource").error("update tag", pe);
 			throw pe;
 		}
 		finally {

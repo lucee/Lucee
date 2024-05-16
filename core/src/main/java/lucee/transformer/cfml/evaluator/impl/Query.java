@@ -50,7 +50,7 @@ public final class Query extends EvaluatorSupport {
 	public void evaluate(Tag tag) throws EvaluatorException {
 		Body body = tag.getBody();
 		Attribute attr = tag.getAttribute("sql");
-		if (body == null && attr == null) throw new EvaluatorException("you need to define the attribute SQL or define the SQL in the body of the tag.");
+		if (body == null && attr == null) throw new EvaluatorException("You need to define the attribute [SQL] or define the SQL in the body of the tag.");
 
 		// we do not check if both are defined here because the body could be an expression holding an empty
 		// string
@@ -103,9 +103,9 @@ public final class Query extends EvaluatorSupport {
 							}
 							else if (bif.getClassDefinition().getClassName().equals(QuotedValueList.class.getName())
 									|| bif.getClassDefinition().getClassName().equals(ValueList.class.getName())) {
-								// printOut.setPreserveSingleQuote(false);
-								continue;
-							}
+										// printOut.setPreserveSingleQuote(false);
+										continue;
+									}
 						}
 
 						// do not preserve UDF return value

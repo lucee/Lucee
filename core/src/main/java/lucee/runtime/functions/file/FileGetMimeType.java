@@ -23,6 +23,7 @@ import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
+import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
@@ -33,13 +34,35 @@ public class FileGetMimeType {
 	}
 
 	public static String call(PageContext pc, Object oSrc, boolean checkHeader) throws PageException {
-		Resource src = Caster.toResource(pc, oSrc, false);
+		Resource src = null;
+		byte[] barr = null;
+		try {
+			src = Caster.toResource(pc, oSrc, false);
+		}
+		catch (ExpressionException e) {
+			barr = Caster.toBinary(oSrc, null);
+			if (barr == null) throw e;
+
+		}
+		if (barr != null) {
+			String mimeType = IOUtil.getMimeType(barr, null);
+			if (StringUtil.isEmpty(mimeType, true)) return "application/octet-stream";
+			return mimeType;
+		}
+
 		if (!src.exists()) {
-			String mimeType = IOUtil.getMimeType(src.getName(), null);
-			if (!StringUtil.isEmpty(mimeType)) return mimeType;
-			throw new FunctionException(pc, "FileGetMimeType", 1, "file", "file [" + src + "] does not exist and was not able to detect mimetype from file name extension.");
+			if (checkHeader) {
+				throw new FunctionException(pc, "FileGetMimeType", 1, "file", "File [" + src + "] does not exist, strict was true");
+			}
+			else {
+				String mimeType = IOUtil.getMimeType(src.getName(), null);
+				if (!StringUtil.isEmpty(mimeType)) return mimeType;
+				throw new FunctionException(pc, "FileGetMimeType", 1, "file", "File [" + src + "] does not exist and couldn't detect mimetype from the file extension.");
+			}
 		}
 		pc.getConfig().getSecurityManager().checkFileLocation(src);
+
+		if (checkHeader && src.length() == 0) throw new FunctionException(pc, "FileGetMimeType", 1, "file", "File [" + src + "] was empty, strict was true");
 
 		String mimeType = ResourceUtil.getMimeType(src, null);
 		if (StringUtil.isEmpty(mimeType, true)) return "application/octet-stream";

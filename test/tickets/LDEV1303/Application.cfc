@@ -40,4 +40,8 @@ component {
 	, default: 'object'
 	};
 	this.cache.object = "testEHcache";
+
+	public function onRequestStart() {
+		setting requesttimeout=10;
+	}
 }

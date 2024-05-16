@@ -21,7 +21,6 @@ package lucee.commons.lang;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.instrument.ClassDefinition;
 import java.lang.instrument.UnmodifiableClassException;
 import java.lang.ref.SoftReference;
 import java.net.URL;
@@ -37,9 +36,10 @@ import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceClassLoader;
 import lucee.commons.io.res.util.ResourceUtil;
+import lucee.runtime.PageSourcePool;
 import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigImpl;
-import lucee.runtime.instrumentation.InstrumentationFactory;
+import lucee.runtime.config.ConfigPro;
+import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.transformer.bytecode.util.ClassRenamer;
 
@@ -51,28 +51,32 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 	static {
 		boolean res = registerAsParallelCapable();
 	}
-
 	private Resource directory;
-	private ConfigImpl config;
+	private ConfigPro config;
 	private final ClassLoader[] parents;
 
 	private Map<String, String> loadedClasses = new ConcurrentHashMap<String, String>();
+	private Map<String, String> allLoadedClasses = new ConcurrentHashMap<String, String>(); // this includes all renames
 	private Map<String, String> unavaiClasses = new ConcurrentHashMap<String, String>();
 
 	private Map<String, SoftReference<PhysicalClassLoader>> customCLs;
+	private PageSourcePool pageSourcePool;
 
 	private static long counter = 0L;
 	private static long _start = 0L;
 	private static String start = Long.toString(_start, Character.MAX_RADIX);
+	private static Object countToken = new Object();
 
-	public static synchronized String uid() {
-		counter++;
-		if (counter < 0) {
-			counter = 1;
-			start = Long.toString(++_start, Character.MAX_RADIX);
+	public static String uid() {
+		synchronized (countToken) {
+			counter++;
+			if (counter < 0) {
+				counter = 1;
+				start = Long.toString(++_start, Character.MAX_RADIX);
+			}
+			if (_start == 0L) return Long.toString(counter, Character.MAX_RADIX);
+			return start + "_" + Long.toString(counter, Character.MAX_RADIX);
 		}
-		if (_start == 0L) return Long.toString(counter, Character.MAX_RADIX);
-		return start + "_" + Long.toString(counter, Character.MAX_RADIX);
 	}
 
 	/**
@@ -82,14 +86,15 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 	 * @param parent
 	 * @throws IOException
 	 */
-	public PhysicalClassLoader(Config c, Resource directory) throws IOException {
-		this(c, directory, (ClassLoader[]) null, true);
+	public PhysicalClassLoader(Config c, Resource directory, PageSourcePool pageSourcePool) throws IOException {
+		this(c, directory, (ClassLoader[]) null, true, pageSourcePool);
 	}
 
-	public PhysicalClassLoader(Config c, Resource directory, ClassLoader[] parentClassLoaders, boolean includeCoreCL) throws IOException {
+	public PhysicalClassLoader(Config c, Resource directory, ClassLoader[] parentClassLoaders, boolean includeCoreCL, PageSourcePool pageSourcePool) throws IOException {
 		super(parentClassLoaders == null || parentClassLoaders.length == 0 ? c.getClassLoader() : parentClassLoaders[0]);
-		config = (ConfigImpl) c;
+		config = (ConfigPro) c;
 
+		this.pageSourcePool = pageSourcePool;
 		// ClassLoader resCL = parent!=null?parent:config.getResourceClassLoader(null);
 
 		List<ClassLoader> tmp = new ArrayList<ClassLoader>();
@@ -108,30 +113,24 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 
 		// check directory
 		if (!directory.exists()) directory.mkdirs();
-		if (!directory.isDirectory()) throw new IOException("resource " + directory + " is not a directory");
-		if (!directory.canRead()) throw new IOException("no access to " + directory + " directory");
+		if (!directory.isDirectory()) throw new IOException("Resource [" + directory + "] is not a directory");
+		if (!directory.canRead()) throw new IOException("Access denied to [" + directory + "] directory");
 		this.directory = directory;
 	}
 
 	@Override
 	public Class<?> loadClass(String name) throws ClassNotFoundException {
-		synchronized (getClassLoadingLock(name)) {
-			return loadClass(name, false);
-		}
+		return loadClass(name, false);
 	}
 
 	@Override
 	protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
-		synchronized (getClassLoadingLock(name)) {
+		synchronized (this) {
 			return loadClass(name, resolve, true);
 		}
 	}
 
 	private Class<?> loadClass(String name, boolean resolve, boolean loadFromFS) throws ClassNotFoundException {
-		if (loadedClasses.containsKey(name) || unavaiClasses.containsKey(name)) {
-			return super.loadClass(name, false); // Use default CL cache
-		}
-
 		// First, check if the class has already been loaded
 		Class<?> c = findLoadedClass(name);
 		if (c == null) {
@@ -140,7 +139,8 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 					c = p.loadClass(name);
 					break;
 				}
-				catch (Exception e) {}
+				catch (Exception e) {
+				}
 			}
 			if (c == null) {
 				if (loadFromFS) c = findClass(name);
@@ -153,7 +153,7 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 
 	@Override
 	protected Class<?> findClass(String name) throws ClassNotFoundException {// if(name.indexOf("sub")!=-1)print.ds(name);
-		synchronized (getClassLoadingLock(name)) {
+		synchronized (this) {
 			Resource res = directory.getRealResource(name.replace('.', '/').concat(".class"));
 
 			ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -162,7 +162,7 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 			}
 			catch (IOException e) {
 				this.unavaiClasses.put(name, "");
-				throw new ClassNotFoundException("class " + name + " is invalid or doesn't exist");
+				throw new ClassNotFoundException("Class [" + name + "] is invalid or doesn't exist", e);
 			}
 
 			byte[] barr = baos.toByteArray();
@@ -172,26 +172,25 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 	}
 
 	@Override
-	public synchronized Class<?> loadClass(String name, byte[] barr) throws UnmodifiableClassException {
+	public Class<?> loadClass(String name, byte[] barr) throws UnmodifiableClassException {
 		Class<?> clazz = null;
 
-		synchronized (getClassLoadingLock(name)) {
+		synchronized (this) {
 
 			// new class , not in memory yet
 			try {
 				clazz = loadClass(name, false, false); // we do not load existing class from disk
 			}
-			catch (ClassNotFoundException cnf) {}
+			catch (ClassNotFoundException cnf) {
+			}
 			if (clazz == null) return _loadClass(name, barr, false);
 
 			// first we try to update the class what needs instrumentation object
-			try {
-				InstrumentationFactory.getInstrumentation(config).redefineClasses(new ClassDefinition(clazz, barr));
-				return clazz;
-			}
-			catch (Exception e) {
-				LogUtil.log(null, "compilation", e);
-			}
+			/*
+			 * try { InstrumentationFactory.getInstrumentation(config).redefineClasses(new
+			 * ClassDefinition(clazz, barr)); return clazz; } catch (Exception e) { LogUtil.log(null,
+			 * "compilation", e); }
+			 */
 			// in case instrumentation fails, we rename it
 			return rename(clazz, barr);
 		}
@@ -206,6 +205,8 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 		Class<?> clazz = defineClass(name, barr, 0, barr.length);
 		if (clazz != null) {
 			if (!rename) loadedClasses.put(name, "");
+			allLoadedClasses.put(name, "");
+
 			resolveClass(clazz);
 		}
 		return clazz;
@@ -216,8 +217,8 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 		return null;
 	}
 
-	public int getSize() {
-		return loadedClasses.size();
+	public int getSize(boolean includeAllRenames) {
+		return includeAllRenames ? allLoadedClasses.size() : loadedClasses.size();
 	}
 
 	@Override
@@ -230,7 +231,8 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 			try {
 				return IOUtil.toBufferedInputStream(f.getInputStream());
 			}
-			catch (IOException e) {}
+			catch (IOException e) {
+			}
 		}
 		return null;
 	}
@@ -275,7 +277,7 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 		SoftReference<PhysicalClassLoader> tmp = customCLs == null ? null : customCLs.get(key);
 		PhysicalClassLoader pcl = tmp == null ? null : tmp.get();
 		if (pcl != null) return pcl;
-		pcl = new PhysicalClassLoader(config, getDirectory(), new ClassLoader[] { new ResourceClassLoader(resources, getParent()) }, true);
+		pcl = new PhysicalClassLoader(config, getDirectory(), new ClassLoader[] { new ResourceClassLoader(resources, getParent()) }, true, pageSourcePool);
 		if (customCLs == null) customCLs = new ConcurrentHashMap<String, SoftReference<PhysicalClassLoader>>();
 		customCLs.put(key, new SoftReference<PhysicalClassLoader>(pcl));
 		return pcl;
@@ -292,7 +294,43 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 	}
 
 	public void clear() {
+		clear(true);
+	}
+
+	public void clear(boolean clearPagePool) {
+		if (clearPagePool && pageSourcePool != null) pageSourcePool.clearPages(this);
 		this.loadedClasses.clear();
+		this.allLoadedClasses.clear();
 		this.unavaiClasses.clear();
 	}
+
+	/**
+	 * removes memory based appendix from class name, for example it translates
+	 * [test.test_cfc$sub2$cf$5] to [test.test_cfc$sub2$cf]
+	 * 
+	 * @param name
+	 * @return
+	 * @throws IOException
+	 */
+	public static String substractAppendix(String name) throws ApplicationException {
+		if (name.endsWith("$cf")) return name;
+		int index = name.lastIndexOf('$');
+		if (index != -1) {
+			name = name.substring(0, index);
+		}
+		if (name.endsWith("$cf")) return name;
+		throw new ApplicationException("could not remove appendix from [" + name + "]");
+	}
+
+	@Override
+	public void finalize() throws Throwable {
+		try {
+			clear();
+		}
+		catch (Exception e) {
+			LogUtil.log(config, "classloader", e);
+		}
+		super.finalize();
+	}
+
 }

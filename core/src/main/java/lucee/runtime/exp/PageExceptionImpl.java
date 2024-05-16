@@ -28,6 +28,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 
 import lucee.commons.io.IOUtil;
+import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ClassUtil;
@@ -38,6 +39,7 @@ import lucee.runtime.PageContextImpl;
 import lucee.runtime.PageSource;
 import lucee.runtime.PageSourceImpl;
 import lucee.runtime.config.Config;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.config.Constants;
 import lucee.runtime.dump.DumpData;
@@ -102,7 +104,7 @@ public abstract class PageExceptionImpl extends PageException {
 	 * @param customType CUstom Type as String
 	 */
 	public PageExceptionImpl(String message, String type, String customType) {
-		super(message == null ? "" : message);
+		super(filterSecrets(message == null ? "" : message, 0));
 		// rootCause=this;
 		this.type = type.toLowerCase().trim();
 		this.customType = customType;
@@ -116,7 +118,7 @@ public abstract class PageExceptionImpl extends PageException {
 	 * @param type Type as String
 	 */
 	public PageExceptionImpl(Throwable e, String type) {
-		super(StringUtil.isEmpty(e.getMessage(), true) ? e.getClass().getName() : e.getMessage());
+		super(filterSecrets(StringUtil.isEmpty(e.getMessage(), true) ? e.getClass().getName() : e.getMessage(), 0));
 		if (e instanceof InvocationTargetException) e = ((InvocationTargetException) e).getTargetException();
 
 		// Throwable cause = e.getCause();
@@ -132,6 +134,39 @@ public abstract class PageExceptionImpl extends PageException {
 			this.setExtendedInfo(pe.getExtendedInfo());
 		}
 		this.type = type.trim();
+	}
+
+	private static String filterSecrets(String msg, int startIndex) {
+		if (!StringUtil.isEmpty(msg)) {
+			// S3 secret
+			startIndex = StringUtil.indexOfIgnoreCase(msg, "s3://", startIndex);
+			if (startIndex != -1) {
+				startIndex += 5;
+				int atIndex = msg.indexOf('@', startIndex + 1);
+				int colonIndex = msg.indexOf(':', startIndex + 1);
+				int slashIndex = msg.indexOf('/', startIndex + 1);
+				if (atIndex != -1) {
+					if (colonIndex != -1 && colonIndex < atIndex) {
+						String secretAccessKey = msg.substring(colonIndex + 1, atIndex);
+						int index = secretAccessKey.indexOf(':');
+						if (index != -1) {
+							secretAccessKey = secretAccessKey.substring(0, index);
+						}
+						msg = StringUtil.replace(msg, secretAccessKey, "{SECRET_ACCESS_KEY}", false, true);
+						return msg;
+					}
+				}
+				if (slashIndex != -1) {
+					String secretAccessKey = msg.substring(colonIndex + 1, slashIndex);
+					int index = secretAccessKey.indexOf(':');
+					if (index != -1) {
+						secretAccessKey = secretAccessKey.substring(0, index);
+					}
+					msg = StringUtil.replace(msg, secretAccessKey, "{SECRET_ACCESS_KEY}", false, true);
+				}
+			}
+		}
+		return msg;
 	}
 
 	@Override
@@ -176,7 +211,7 @@ public abstract class PageExceptionImpl extends PageException {
 
 	@Override
 	public CatchBlock getCatchBlock(Config config) {
-		return new CatchBlockImpl(this);
+		return new CatchBlockImpl(this, 0);
 	}
 
 	public Array getTagContext(Config config) {
@@ -238,9 +273,10 @@ public abstract class PageExceptionImpl extends PageException {
 						dspPath = si.relativePath;
 						res = ResourceUtil.toResourceNotExisting(ThreadLocalPageContext.get(), si.relativePath, true, true);
 						if (!res.exists()) {
-							PageSource _ps = PageSourceImpl.best(config.getPageSources(ThreadLocalPageContext.get(), null, si.relativePath, false, false, true));
-							if (_ps != null && _ps.exists()) {
-								res = _ps.getResource();
+							Resource _res = PageSourceImpl
+									.best(((ConfigPro) config).getResources(ThreadLocalPageContext.get(), null, si.relativePath, false, false, true, false, true));
+							if (_res != null && _res.exists()) {
+								res = _res;
 								if (res != null && res.exists()) dspPath = res.getAbsolutePath();
 							}
 							else dspPath = res.getAbsolutePath();
@@ -255,7 +291,7 @@ public abstract class PageExceptionImpl extends PageException {
 						content = new String[] {}; // empty code array to show ??
 					}
 					else content = IOUtil.toStringArray(IOUtil.getReader(res, config.getTemplateCharset()));
-					IOUtil.closeEL(is);
+					IOUtil.close(is);
 				}
 				else {
 					if (sources.size() > index) ps = sources.get(index);
@@ -267,7 +303,8 @@ public abstract class PageExceptionImpl extends PageException {
 					}
 				}
 			}
-			catch (Throwable th) {}
+			catch (Throwable th) {
+			}
 
 			// check last
 			if (tagContext.size() > 0) {
@@ -275,17 +312,18 @@ public abstract class PageExceptionImpl extends PageException {
 					Struct last = (Struct) tagContext.getE(tagContext.size());
 					if (last.get(KeyConstants._Raw_Trace).equals(trace.toString())) continue;
 				}
-				catch (Exception e) {}
+				catch (Exception e) {
+				}
 			}
 
 			item = new StructImpl();
 			line = trace.getLineNumber();
 			item.setEL(KeyConstants._template, dspPath);
-			item.setEL(KeyConstants._line, new Double(line));
+			item.setEL(KeyConstants._line, Double.valueOf(line));
 			item.setEL(KeyConstants._id, "??");
 			item.setEL(KeyConstants._Raw_Trace, trace.toString());
 			item.setEL(KeyConstants._type, "cfml");
-			item.setEL(KeyConstants._column, new Double(0));
+			item.setEL(KeyConstants._column, Double.valueOf(0));
 			if (content != null) {
 				if (content.length > 0) {
 					item.setEL(KeyConstants._codePrintHTML, getCodePrint(content, line, true));
@@ -326,7 +364,7 @@ public abstract class PageExceptionImpl extends PageException {
 	public Struct getErrorBlock(PageContext pc, ErrorPage ep) {
 		Struct struct = new StructImpl();
 
-		struct.setEL("browser", pc.cgiScope().get("HTTP_USER_AGENT", ""));
+		struct.setEL(KeyConstants._browser, pc.cgiScope().get("HTTP_USER_AGENT", ""));
 		struct.setEL("datetime", new DateTimeImpl(pc));
 		struct.setEL("diagnostics", getMessage() + ' ' + getDetail() + "<br>The error occurred on line " + getLine(pc.getConfig()) + " in file " + getFile(pc.getConfig()) + ".");
 		struct.setEL("GeneratedContent", getGeneratedContent(pc));
@@ -357,7 +395,8 @@ public abstract class PageExceptionImpl extends PageException {
 		try {
 			ro.clearBuffer();
 		}
-		catch (IOException ioe) {}
+		catch (IOException ioe) {
+		}
 		if (gc == null) return "";
 		return gc;
 	}
@@ -381,7 +420,7 @@ public abstract class PageExceptionImpl extends PageException {
 
 	@Override
 	public void addContext(PageSource ps, int line, int column, StackTraceElement element) {
-		if (line == -187) {
+		if (line == -187 && ps != null) {
 			sources.add(ps);
 			return;
 		}
@@ -389,29 +428,32 @@ public abstract class PageExceptionImpl extends PageException {
 		Struct struct = new StructImpl();
 		// print.out(pr.getDisplayPath());
 		try {
-			String[] content = ps.getSource();
-			struct.set(KeyConstants._template, ps.getDisplayPath());
-			struct.set(KeyConstants._line, new Double(line));
-			struct.set(KeyConstants._id, "??");
-			struct.set(KeyConstants._Raw_Trace, (element != null) ? element.toString() : "");
-			struct.set(KeyConstants._Type, "cfml");
-			struct.set(KeyConstants._column, new Double(column));
+			String[] content = ps == null ? null : ps.getSource();
+			struct.setEL(KeyConstants._template, ps == null ? "" : ps.getDisplayPath());
+			struct.setEL(KeyConstants._line, Double.valueOf(line));
+			struct.setEL(KeyConstants._id, "??");
+			struct.setEL(KeyConstants._Raw_Trace, (element != null) ? element.toString() : "");
+			struct.setEL(KeyConstants._Type, "cfml");
+			struct.setEL(KeyConstants._column, Double.valueOf(column));
 			if (content != null) {
-				struct.set(KeyConstants._codePrintHTML, getCodePrint(content, line, true));
-				struct.set(KeyConstants._codePrintPlain, getCodePrint(content, line, false));
+				struct.setEL(KeyConstants._codePrintHTML, getCodePrint(content, line, true));
+				struct.setEL(KeyConstants._codePrintPlain, getCodePrint(content, line, false));
 			}
-			tagContext.append(struct);
+			tagContext.appendEL(struct);
 		}
-		catch (Exception e) {}
+		catch (Exception e) {
+			LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), PageException.class.getName(), e);
+		}
 	}
 
 	private static String getCodePrint(String[] content, int line, boolean asHTML) {
 		StringBuilder sb = new StringBuilder();
-		// bad Line
 		for (int i = line - 2; i < line + 3; i++) {
 			if (i > 0 && i <= content.length) {
 				if (asHTML && i == line) sb.append("<b>");
-				if (asHTML) sb.append(i + ": " + StringUtil.escapeHTML(content[i - 1]));
+				if (asHTML) {
+					sb.append(i + ": " + StringUtil.replace(StringUtil.replace(StringUtil.escapeHTML(content[i - 1]), " ", "&nbsp;"), "\t", "&nbsp;&nbsp;&nbsp;"));
+				}
 				else sb.append(i + ": " + (content[i - 1]));
 				if (asHTML && i == line) sb.append("</b>");
 				if (asHTML) sb.append("<br>");
@@ -476,7 +518,8 @@ public abstract class PageExceptionImpl extends PageException {
 				htmlBox.appendRow(1, new SimpleDumpData("Code"), code);
 
 			}
-			catch (PageException e) {}
+			catch (PageException e) {
+			}
 		}
 
 		// Java Stacktrace

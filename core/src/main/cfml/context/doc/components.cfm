@@ -389,7 +389,7 @@
 				</ul>
 			</div>
 		</div>
-		<p>The packages listed here are based on the component mappings defined in the Lucee Administartor under  "Archives & Resources/Component". Add your own packages here by register your components with a component mapping. What makes it easier to access your components.</p>
+		<p>The packages listed here are based on the component mappings defined in the Lucee Administrator under  "Archives & Resources/Component". Add your own packages here by register your components with a component mapping. What makes it easier to access your components.</p>
 
 		<cfset qryAllItems = queryNew("component")>
 		<cfloop array="#arrAllItems#" index="ai">

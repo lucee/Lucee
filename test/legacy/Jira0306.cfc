@@ -70,14 +70,13 @@
 		    </cfquery>
 		    <cfcatch></cfcatch>
 		</cftry>
-	
 	</cffunction>
 	
 	
 	<cffunction name="testOrder_User_id">
 		<cfdbinfo type="columns" name="local.data" table="Order306" pattern="User_id">
 		<cfset assertEquals("User_id",data.COLUMN_NAME)>
-		<cfset assertEquals(10,data.COLUMN_SIZE)>
+		<cfset assertEquals(32,data.COLUMN_SIZE)>
 		<cfset assertEquals(0,data.DECIMAL_DIGITS)>
 		<cfset assertEquals(true,_boolean(data.IS_FOREIGNKEY))>
 		<cfset assertEquals(true,_boolean(data.IS_NULLABLE))>
@@ -92,7 +91,7 @@
 	<cffunction name="testOrder_id">
 		<cfdbinfo type="columns" name="local.data" table="Order306" pattern="id">
 		<cfset assertEquals("id",data.COLUMN_NAME)>
-		<cfset assertEquals(10,data.COLUMN_SIZE)>
+		<cfset assertEquals(32,data.COLUMN_SIZE)>
 		<cfset assertEquals(0,data.DECIMAL_DIGITS)>
 		<cfset assertEquals(false,_boolean(data.IS_FOREIGNKEY))>
 		<cfset assertEquals(false,_boolean(data.IS_NULLABLE))>
@@ -116,14 +115,14 @@
 		<cfset assertEquals("N/A",data.REFERENCED_PRIMARYKEY&"")>
 		<cfset assertEquals("N/A",data.REFERENCED_PRIMARYKEY_TABLE&"")>
 		<cfset assertEquals("",data.REMARKS)>
-		<cfset assertEquals("VARCHAR",data.TYPE_NAME)>
+		<cfset assertEquals("CHARACTER VARYING",data.TYPE_NAME)>
 	</cffunction>
 	
 	
 	<cffunction name="testUser_id">
 		<cfdbinfo type="columns" name="local.data" table="User306" pattern="id">
 		<cfset assertEquals("id",data.COLUMN_NAME)>
-		<cfset assertEquals(10,data.COLUMN_SIZE)>
+		<cfset assertEquals(32,data.COLUMN_SIZE)>
 		<cfset assertEquals(0,data.DECIMAL_DIGITS)>
 		<cfset assertEquals(false,_boolean(data.IS_FOREIGNKEY))>
 		<cfset assertEquals(false,_boolean(data.IS_NULLABLE))>
@@ -148,7 +147,7 @@
 		<cfset assertEquals("N/A",data.REFERENCED_PRIMARYKEY&"")>
 		<cfset assertEquals("N/A",data.REFERENCED_PRIMARYKEY_TABLE&"")>
 		<cfset assertEquals("",data.REMARKS)>
-		<cfset assertEquals("VARCHAR",data.TYPE_NAME)>
+		<cfset assertEquals("CHARACTER VARYING",data.TYPE_NAME)>
 	</cffunction>
 	
 	<cffunction access="private" name="_boolean">
@@ -160,14 +159,9 @@
 <cfscript>
 	private string function defineDatasource(){
 		application action="update" 
-			datasource="#{
-	  		class: 'org.h2.Driver'
-	  		, bundleName: 'org.h2'
-			, connectionString: 'jdbc:h2:#getDirectoryFromPath(getCurrentTemplatePath())#/datasource/jira306;MODE=MySQL'
-		}#";
+			datasource="#server.getDatasource( "h2", server._getTempDir( "jira0306" ) )#";
 	}
-
-
+	
 </cfscript>
 
 

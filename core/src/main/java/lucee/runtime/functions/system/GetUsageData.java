@@ -34,13 +34,13 @@ import lucee.runtime.Mapping;
 import lucee.runtime.MappingImpl;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
-import lucee.runtime.PageSourceImpl;
-import lucee.runtime.PageSourcePool;
+import lucee.runtime.PageSource;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigServer;
 import lucee.runtime.config.ConfigWeb;
-import lucee.runtime.config.ConfigWebImpl;
+import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.config.ConfigWebUtil;
+import lucee.runtime.config.DatasourceConnPool;
 import lucee.runtime.debug.ActiveLock;
 import lucee.runtime.debug.ActiveQuery;
 import lucee.runtime.engine.CFMLEngineImpl;
@@ -50,7 +50,6 @@ import lucee.runtime.lock.LockManager;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.Collection.Key;
-import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Query;
 import lucee.runtime.type.QueryImpl;
 import lucee.runtime.type.Struct;
@@ -61,13 +60,16 @@ import lucee.runtime.type.util.KeyConstants;
 
 public final class GetUsageData implements Function {
 
-	private static final Key START_TIME = KeyImpl.init("starttime");
-	private static final Key CACHED_QUERIES = KeyImpl.init("cachedqueries");
-	private static final Key OPEN_CONNECTIONS = KeyImpl.init("openconnections");
-	private static final Key ELEMENTS = KeyImpl.init("elements");
-	private static final Key USERS = KeyImpl.init("users");
-	private static final Key QUERIES = KeyImpl.init("queries");
-	private static final Key LOCKS = KeyImpl.init("locks");
+	private static final Key START_TIME = KeyConstants._starttime;
+	private static final Key CACHED_QUERIES = KeyConstants._cachedqueries;
+	private static final Key OPEN_CONNECTIONS = KeyConstants._openconnections;
+	private static final Key ACTIVE_CONNECTIONS = KeyConstants._activeconnections;
+	private static final Key IDLE_CONNECTIONS = KeyConstants._idleconnections;
+	private static final Key WAITING_FOR_CONNECTION = KeyConstants._waitingForConnection;
+	private static final Key ELEMENTS = KeyConstants._elements;
+	private static final Key USERS = KeyConstants._users;
+	private static final Key QUERIES = KeyConstants._queries;
+	private static final Key LOCKS = KeyConstants._locks;
 
 	public static Struct call(PageContext pc) throws PageException {
 		ConfigWeb cw = pc.getConfig();
@@ -92,7 +94,7 @@ public final class GetUsageData implements Function {
 
 		// Template Cache
 		Query tc = new QueryImpl(new Collection.Key[] { KeyConstants._web, ELEMENTS, KeyConstants._size }, 0, "templateCache");
-		sct.setEL(KeyImpl.init("templateCache"), tc);
+		sct.setEL(KeyConstants._templateCache, tc);
 
 		// Scopes
 		Struct scopes = new StructImpl();
@@ -112,10 +114,10 @@ public final class GetUsageData implements Function {
 		sct.setEL(LOCKS, lck);
 
 		// Loop webs
-		ConfigWebImpl web;
+		ConfigWebPro web;
 		Map<Integer, PageContextImpl> pcs;
 		PageContextImpl _pc;
-		int row, openConnections = 0;
+		int row, active = 0, idle = 0, waiters = 0;
 		CFMLFactoryImpl factory;
 		ActiveQuery[] queries;
 		ActiveQuery aq;
@@ -124,7 +126,7 @@ public final class GetUsageData implements Function {
 		for (int i = 0; i < webs.length; i++) {
 
 			// Loop requests
-			web = (ConfigWebImpl) webs[i];
+			web = (ConfigWebPro) webs[i];
 			factory = (CFMLFactoryImpl) web.getFactory();
 			pcs = factory.getActivePageContexts();
 			Iterator<PageContextImpl> it = pcs.values().iterator();
@@ -137,7 +139,7 @@ public final class GetUsageData implements Function {
 				req.setAt(KeyConstants._web, row, web.getLabel());
 				req.setAt(KeyConstants._uri, row, getPath(_pc.getHttpServletRequest()));
 				req.setAt(START_TIME, row, new DateTimeImpl(pc.getStartTime(), false));
-				req.setAt(KeyConstants._timeout, row, new Double(pc.getRequestTimeout()));
+				req.setAt(KeyConstants._timeout, row, Double.valueOf(pc.getRequestTimeout()));
 
 				// Query
 				queries = _pc.getActiveQueries();
@@ -168,9 +170,10 @@ public final class GetUsageData implements Function {
 				}
 			}
 
-			Iterator<Integer> _it = web.getDatasourceConnectionPool().openConnections().values().iterator();
-			while (_it.hasNext()) {
-				openConnections += _it.next().intValue();
+			for (DatasourceConnPool pool: web.getDatasourceConnectionPools()) {
+				active += pool.getNumActive();
+				idle += pool.getNumIdle();
+				waiters += pool.getNumWaiters();
 			}
 
 			// Template Cache
@@ -178,8 +181,8 @@ public final class GetUsageData implements Function {
 			long[] tce = templateCacheElements(mappings);
 			row = tc.addRow();
 			tc.setAt(KeyConstants._web, row, web.getLabel());
-			tc.setAt(KeyConstants._size, row, new Double(tce[1]));
-			tc.setAt(ELEMENTS, row, new Double(tce[0]));
+			tc.setAt(KeyConstants._size, row, Double.valueOf(tce[1]));
+			tc.setAt(ELEMENTS, row, Double.valueOf(tce[0]));
 
 			// Scope Application
 			getAllApplicationScopes(web, factory.getScopeContext(), app);
@@ -194,7 +197,10 @@ public final class GetUsageData implements Function {
 		ds.setEL(CACHED_QUERIES, Caster.toDouble(pc.getConfig().getCacheHandlerCollection(Config.CACHE_TYPE_QUERY, null).size(pc))); // there is only one cache for all contexts
 		// ds.setEL(CACHED_QUERIES, Caster.toDouble(pc.getQueryCache().size(pc))); // there is only one
 		// cache for all contexts
-		ds.setEL(OPEN_CONNECTIONS, Caster.toDouble(openConnections));
+		ds.setEL(OPEN_CONNECTIONS, Caster.toDouble(active + idle));
+		ds.setEL(ACTIVE_CONNECTIONS, Caster.toDouble(active));
+		ds.setEL(IDLE_CONNECTIONS, Caster.toDouble(idle));
+		ds.setEL(WAITING_FOR_CONNECTION, Caster.toDouble(waiters));
 
 		// Memory
 		Struct mem = new StructImpl();
@@ -213,7 +219,7 @@ public final class GetUsageData implements Function {
 		return sct;
 	}
 
-	private static void getAllApplicationScopes(ConfigWebImpl web, ScopeContext sc, Query app) throws PageException {
+	private static void getAllApplicationScopes(ConfigWeb web, ScopeContext sc, Query app) throws PageException {
 		Struct all = sc.getAllApplicationScopes();
 		Iterator<Entry<Key, Object>> it = all.entryIterator();
 		Entry<Key, Object> e;
@@ -225,13 +231,13 @@ public final class GetUsageData implements Function {
 			sac = SizeAndCount.sizeOf(e.getValue());
 			app.setAt(KeyConstants._web, row, web.getLabel());
 			app.setAt(KeyConstants._application, row, e.getKey().getString());
-			app.setAt(KeyConstants._size, row, new Double(sac.size));
-			app.setAt(ELEMENTS, row, new Double(sac.count));
+			app.setAt(KeyConstants._size, row, Double.valueOf(sac.size));
+			app.setAt(ELEMENTS, row, Double.valueOf(sac.count));
 
 		}
 	}
 
-	private static void getAllCFSessionScopes(ConfigWebImpl web, ScopeContext sc, Query sess) throws PageException {
+	private static void getAllCFSessionScopes(ConfigWeb web, ScopeContext sc, Query sess) throws PageException {
 		Struct all = sc.getAllCFSessionScopes();
 		Iterator it = all.entryIterator(), itt;
 		Entry e, ee;
@@ -254,32 +260,23 @@ public final class GetUsageData implements Function {
 			row = sess.addRow();
 
 			sess.setAt(KeyConstants._web, row, web.getLabel());
-			sess.setAt(USERS, row, new Double(users));
+			sess.setAt(USERS, row, Double.valueOf(users));
 			sess.setAt(KeyConstants._application, row, e.getKey().toString());
-			sess.setAt(KeyConstants._size, row, new Double(size));
-			sess.setAt(ELEMENTS, row, new Double(count));
+			sess.setAt(KeyConstants._size, row, Double.valueOf(size));
+			sess.setAt(ELEMENTS, row, Double.valueOf(count));
 		}
 	}
 
 	private static long[] templateCacheElements(Mapping[] mappings) {
 		long elements = 0, size = 0;
-
-		PageSourcePool psp;
-		String[] keys;
-		PageSourceImpl ps;
 		Resource res;
 		MappingImpl mapping;
 		for (int i = 0; i < mappings.length; i++) {
 			mapping = (MappingImpl) mappings[i];
-			psp = mapping.getPageSourcePool();
-			keys = psp.keys();
-			for (int y = 0; y < keys.length; y++) {
-				ps = (PageSourceImpl) psp.getPageSource(keys[y], false);
-				if (ps.isLoad()) {
-					elements++;
-					res = mapping.getClassRootDirectory().getRealResource(ps.getClassName().replace('.', '/') + ".class");
-					size += res.length();
-				}
+			for (PageSource ps: mapping.getPageSources(true)) {
+				elements++;
+				res = mapping.getClassRootDirectory().getRealResource(ps.getClassName().replace('.', '/') + ".class");
+				size += res.length();
 			}
 		}
 		return new long[] { elements, size };

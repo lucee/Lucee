@@ -87,4 +87,33 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
 
 
+	public void function testPopulate() localmode="true" {
+		var qry=QueryNew([
+	        ["Id":101,"Name":"John Adams","Paid":FALSE],
+	        {"Id":102,"name":"Samuel Jackson","Paid":TRUE},
+	        {"Id":103,"Name":"Gal Gadot","Paid":TRUE},
+	        {"Id":104,"NAME":"Margot Robbie","PAID":FALSE}
+	    ]);
+		assertEquals("ID,NAME,PAID",qry.columnlist);
+		assertEquals("101,102,103,104",valueList(qry.id));
+		assertEquals("John Adams,Samuel Jackson,Gal Gadot,Margot Robbie",valueList(qry.name));
+		assertEquals("false,true,true,false",valueList(qry.paid));
+	}
+
+	public void function testPopulateDiffNames() localmode="true" {
+		var qry=QueryNew([
+	        ["Id":101,"Name":"John Adams"],
+	        {"Id":102,"Name":"Samuel Jackson"},
+	        {"Id":103,"Fullname":"Gal Gadot"},
+	        {"Id":104}
+	    ]);
+		assertEquals("ID,NAME,FULLNAME",qry.columnlist);
+		assertEquals("101,102,103,104",valueList(qry.id));
+		assertEquals("John Adams,Samuel Jackson,,",valueList(qry.name));
+		assertEquals(",,Gal Gadot,",valueList(qry.fullname));
+	}
+	public void function testPopulateArray() localmode="true" {
+		var qry = queryNew("name,age","varchar,numeric",{name:["user1","user2"],age:[15,20]});
+		assertEquals("user1",qry.name[1]);
+	}
 } 

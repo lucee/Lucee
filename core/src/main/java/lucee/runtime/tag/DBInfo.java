@@ -22,6 +22,7 @@ import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -47,7 +48,6 @@ import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.Collection.Key;
-import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Query;
 import lucee.runtime.type.QueryColumn;
 import lucee.runtime.type.QueryImpl;
@@ -66,30 +66,30 @@ import lucee.runtime.type.util.KeyConstants;
  **/
 public final class DBInfo extends TagImpl {
 
-	private static final Key TABLE_NAME = KeyImpl.intern("TABLE_NAME");
-	private static final Key COLUMN_NAME = KeyImpl.intern("COLUMN_NAME");
-	private static final Key IS_PRIMARYKEY = KeyImpl.intern("IS_PRIMARYKEY");
-	private static final Key IS_FOREIGNKEY = KeyImpl.intern("IS_FOREIGNKEY");
-	private static final Key COLUMN_DEF = KeyImpl.intern("COLUMN_DEF");
-	private static final Key COLUMN_DEFAULT_VALUE = KeyImpl.intern("COLUMN_DEFAULT_VALUE");
-	private static final Key COLUMN_DEFAULT = KeyImpl.intern("COLUMN_DEFAULT");
-	private static final Key REFERENCED_PRIMARYKEY = KeyImpl.intern("REFERENCED_PRIMARYKEY");
-	private static final Key REFERENCED_PRIMARYKEY_TABLE = KeyImpl.intern("REFERENCED_PRIMARYKEY_TABLE");
-	private static final Key USER = KeyImpl.intern("USER");
-	private static final Key TABLE_SCHEM = KeyImpl.intern("TABLE_SCHEM");
-	private static final Key DECIMAL_DIGITS = KeyImpl.intern("DECIMAL_DIGITS");
+	private static final Key TABLE_NAME = KeyConstants._TABLE_NAME;
+	private static final Key COLUMN_NAME = KeyConstants._COLUMN_NAME;
+	private static final Key IS_PRIMARYKEY = KeyConstants._IS_PRIMARYKEY;
+	private static final Key IS_FOREIGNKEY = KeyConstants._IS_FOREIGNKEY;
+	private static final Key COLUMN_DEF = KeyConstants._COLUMN_DEF;
+	private static final Key COLUMN_DEFAULT_VALUE = KeyConstants._COLUMN_DEFAULT_VALUE;
+	private static final Key COLUMN_DEFAULT = KeyConstants._COLUMN_DEFAULT;
+	private static final Key REFERENCED_PRIMARYKEY = KeyConstants._REFERENCED_PRIMARYKEY;
+	private static final Key REFERENCED_PRIMARYKEY_TABLE = KeyConstants._REFERENCED_PRIMARYKEY_TABLE;
+	private static final Key USER = KeyConstants._USER;
+	private static final Key TABLE_SCHEM = KeyConstants._TABLE_SCHEM;
+	private static final Key DECIMAL_DIGITS = KeyConstants._DECIMAL_DIGITS;
 
-	private static final Key DATABASE_NAME = KeyImpl.intern("database_name");
-	private static final Key TABLE_CAT = KeyImpl.intern("TABLE_CAT");
-	private static final Key PROCEDURE = KeyImpl.intern("procedure");
-	private static final Key CATALOG = KeyImpl.intern("catalog");
-	private static final Key SCHEMA = KeyImpl.intern("schema");
-	private static final Key DATABASE_PRODUCTNAME = KeyImpl.intern("DATABASE_PRODUCTNAME");
-	private static final Key DATABASE_VERSION = KeyImpl.intern("DATABASE_VERSION");
-	private static final Key DRIVER_NAME = KeyImpl.intern("DRIVER_NAME");
-	private static final Key DRIVER_VERSION = KeyImpl.intern("DRIVER_VERSION");
-	private static final Key JDBC_MAJOR_VERSION = KeyImpl.intern("JDBC_MAJOR_VERSION");
-	private static final Key JDBC_MINOR_VERSION = KeyImpl.intern("JDBC_MINOR_VERSION");
+	private static final Key DATABASE_NAME = KeyConstants._database_name;
+	private static final Key TABLE_CAT = KeyConstants._TABLE_CAT;
+	private static final Key PROCEDURE = KeyConstants._procedure;
+	private static final Key CATALOG = KeyConstants._catalog;
+	private static final Key SCHEMA = KeyConstants._schema;
+	private static final Key DATABASE_PRODUCTNAME = KeyConstants._DATABASE_PRODUCTNAME;
+	private static final Key DATABASE_VERSION = KeyConstants._DATABASE_VERSION;
+	private static final Key DRIVER_NAME = KeyConstants._DRIVER_NAME;
+	private static final Key DRIVER_VERSION = KeyConstants._DRIVER_VERSION;
+	private static final Key JDBC_MAJOR_VERSION = KeyConstants._JDBC_MAJOR_VERSION;
+	private static final Key JDBC_MINOR_VERSION = KeyConstants._JDBC_MINOR_VERSION;
 
 	private static final int TYPE_NONE = 0;
 	private static final int TYPE_DBNAMES = 1;
@@ -102,7 +102,7 @@ public final class DBInfo extends TagImpl {
 	private static final int TYPE_INDEX = 8;
 	private static final int TYPE_USERS = 9;
 	private static final int TYPE_TERMS = 10;
-	private static final Collection.Key CARDINALITY = KeyImpl.init("CARDINALITY");
+	private static final Collection.Key CARDINALITY = KeyConstants._CARDINALITY;
 
 	private DataSource datasource;
 	private String name;
@@ -114,6 +114,7 @@ public final class DBInfo extends TagImpl {
 	private String procedure;
 	private String username;
 	private String strType;
+	private String filter;
 
 	@Override
 	public void release() {
@@ -127,7 +128,7 @@ public final class DBInfo extends TagImpl {
 		table = null;
 		procedure = null;
 		username = null;
-
+		filter = null;
 	}
 
 	/**
@@ -168,6 +169,7 @@ public final class DBInfo extends TagImpl {
 		else if ("tables".equals(strType)) this.type = TYPE_TABLES;
 		else if ("table".equals(strType)) this.type = TYPE_TABLES;
 		else if ("columns".equals(strType)) this.type = TYPE_TABLE_COLUMNS;
+		else if ("columns_minimal".equals(strType)) this.type = TYPE_TABLE_COLUMNS;
 		else if ("column".equals(strType)) this.type = TYPE_TABLE_COLUMNS;
 		else if ("version".equals(strType)) this.type = TYPE_VERSION;
 		else if ("procedures".equals(strType)) this.type = TYPE_PROCEDURES;
@@ -246,6 +248,13 @@ public final class DBInfo extends TagImpl {
 		this.username = username;
 	}
 
+	/**
+	 * @param username the username to set
+	 */
+	public void setFilter(String filter) {
+		this.filter = filter;
+	}
+
 	@Override
 	public int doStartTag() throws PageException {
 		Object ds = getDatasource(pageContext, datasource);
@@ -294,11 +303,10 @@ public final class DBInfo extends TagImpl {
 			table = table.substring(index + 1);
 		}
 
-		checkTable(metaData, _dbName);
-
 		Query qry = new QueryImpl(metaData.getColumns(_dbName, schema, table, StringUtil.isEmpty(pattern) ? "%" : pattern), "query", pageContext.getTimeZone());
 
 		int len = qry.getRecordcount();
+		if (len == 0) checkTable(metaData, _dbName); // only check if no columns get returned, otherwise it exists
 
 		if (qry.getColumn(COLUMN_DEF, null) != null) qry.rename(COLUMN_DEF, COLUMN_DEFAULT_VALUE);
 		else if (qry.getColumn(COLUMN_DEFAULT, null) != null) qry.rename(COLUMN_DEFAULT, COLUMN_DEFAULT_VALUE);
@@ -313,71 +321,73 @@ public final class DBInfo extends TagImpl {
 			qry.addColumn(DECIMAL_DIGITS, arr);
 		}
 
-		// add is primary
-		Map<String, Set<String>> primaries = new HashMap<>();
-		Array isPrimary = new ArrayImpl();
-		Set<String> set;
-		Object o;
-		String tblCat, tblScheme, tblName;
-		for (int i = 1; i <= len; i++) {
+		if (!"columns_minimal".equals(this.strType)) {
+			// add is primary
+			Map<String, Set<String>> primaries = new HashMap<>();
+			Array isPrimary = new ArrayImpl();
+			Set<String> set;
+			Object o;
+			String tblCat, tblScheme, tblName;
+			for (int i = 1; i <= len; i++) {
 
-			// decimal digits
-			o = qry.getAt(DECIMAL_DIGITS, i, null);
-			if (o == null) qry.setAtEL(DECIMAL_DIGITS, i, lucee.runtime.op.Constants.DOUBLE_ZERO);
+				// decimal digits
+				o = qry.getAt(DECIMAL_DIGITS, i, null);
+				if (o == null) qry.setAtEL(DECIMAL_DIGITS, i, lucee.runtime.op.Constants.DOUBLE_ZERO);
 
-			tblCat = StringUtil.emptyAsNull(Caster.toString(qry.getAt(TABLE_CAT, i), null), true);
-			tblScheme = StringUtil.emptyAsNull(Caster.toString(qry.getAt(TABLE_SCHEM, i), null), true);
-			tblName = StringUtil.emptyAsNull(Caster.toString(qry.getAt(TABLE_NAME, i), null), true);
+				tblCat = StringUtil.emptyAsNull(Caster.toString(qry.getAt(TABLE_CAT, i), null), true);
+				tblScheme = StringUtil.emptyAsNull(Caster.toString(qry.getAt(TABLE_SCHEM, i), null), true);
+				tblName = StringUtil.emptyAsNull(Caster.toString(qry.getAt(TABLE_NAME, i), null), true);
 
-			set = primaries.get(tblName);
-			if (set == null) {
-				try {
-					set = toSet(metaData.getPrimaryKeys(tblCat, tblScheme, tblName), true, "COLUMN_NAME");
-					primaries.put(tblName, set);
+				set = primaries.get(tblName);
+				if (set == null) {
+					try {
+						set = toSet(metaData.getPrimaryKeys(tblCat, tblScheme, tblName), true, "COLUMN_NAME");
+						primaries.put(tblName, set);
+					}
+					catch (Exception e) {
+					}
 				}
-				catch (Exception e) {}
+				isPrimary.append(set != null && set.contains(qry.getAt(COLUMN_NAME, i)) ? "YES" : "NO");
 			}
-			isPrimary.append(set != null && set.contains(qry.getAt(COLUMN_NAME, i)) ? "YES" : "NO");
+
+			qry.addColumn(IS_PRIMARYKEY, isPrimary);
+
+			// add is foreignkey
+			Map foreigns = new HashMap();
+			Array isForeign = new ArrayImpl();
+			Array refPrim = new ArrayImpl();
+			Array refPrimTbl = new ArrayImpl();
+			// Map map,inner;
+			Map<String, Map<String, SVArray>> map;
+			Map<String, SVArray> inner;
+			for (int i = 1; i <= len; i++) {
+
+				tblCat = StringUtil.emptyAsNull(Caster.toString(qry.getAt(TABLE_CAT, i), null), true);
+				tblScheme = StringUtil.emptyAsNull(Caster.toString(qry.getAt(TABLE_SCHEM, i), null), true);
+				tblName = StringUtil.emptyAsNull(Caster.toString(qry.getAt(TABLE_NAME, i), null), true);
+
+				map = (Map) foreigns.get(tblName);
+				if (map == null) {
+					map = toMap(metaData.getImportedKeys(tblCat, tblScheme, tblName), true, "FKCOLUMN_NAME", new String[] { "PKCOLUMN_NAME", "PKTABLE_NAME" });
+					foreigns.put(tblName, map);
+				}
+				inner = map.get(qry.getAt(COLUMN_NAME, i));
+				if (inner != null) {
+					isForeign.append("YES");
+					refPrim.append(inner.get("PKCOLUMN_NAME"));
+					refPrimTbl.append(inner.get("PKTABLE_NAME"));
+				}
+				else {
+					isForeign.append("NO");
+					refPrim.append("N/A");
+					refPrimTbl.append("N/A");
+				}
+			}
+
+			qry.addColumn(IS_FOREIGNKEY, isForeign);
+			qry.addColumn(REFERENCED_PRIMARYKEY, refPrim);
+			qry.addColumn(REFERENCED_PRIMARYKEY_TABLE, refPrimTbl);
 		}
-
-		qry.addColumn(IS_PRIMARYKEY, isPrimary);
-
-		// add is foreignkey
-		Map foreigns = new HashMap();
-		Array isForeign = new ArrayImpl();
-		Array refPrim = new ArrayImpl();
-		Array refPrimTbl = new ArrayImpl();
-		// Map map,inner;
-		Map<String, Map<String, SVArray>> map;
-		Map<String, SVArray> inner;
-		for (int i = 1; i <= len; i++) {
-
-			tblCat = StringUtil.emptyAsNull(Caster.toString(qry.getAt(TABLE_CAT, i), null), true);
-			tblScheme = StringUtil.emptyAsNull(Caster.toString(qry.getAt(TABLE_SCHEM, i), null), true);
-			tblName = StringUtil.emptyAsNull(Caster.toString(qry.getAt(TABLE_NAME, i), null), true);
-
-			map = (Map) foreigns.get(tblName);
-			if (map == null) {
-				map = toMap(metaData.getImportedKeys(tblCat, tblScheme, tblName), true, "FKCOLUMN_NAME", new String[] { "PKCOLUMN_NAME", "PKTABLE_NAME" });
-				foreigns.put(tblName, map);
-			}
-			inner = map.get(qry.getAt(COLUMN_NAME, i));
-			if (inner != null) {
-				isForeign.append("YES");
-				refPrim.append(inner.get("PKCOLUMN_NAME"));
-				refPrimTbl.append(inner.get("PKTABLE_NAME"));
-			}
-			else {
-				isForeign.append("NO");
-				refPrim.append("N/A");
-				refPrimTbl.append("N/A");
-			}
-		}
-
-		qry.addColumn(IS_FOREIGNKEY, isForeign);
-		qry.addColumn(REFERENCED_PRIMARYKEY, refPrim);
-		qry.addColumn(REFERENCED_PRIMARYKEY_TABLE, refPrimTbl);
-
 		qry.setExecutionTime(stopwatch.time());
 
 		pageContext.setVariable(name, qry);
@@ -412,7 +422,7 @@ public final class DBInfo extends TagImpl {
 			}
 		}
 		finally {
-			if (closeResult) IOUtil.closeEL(result);
+			if (closeResult) IOUtil.close(result);
 		}
 		return map;
 	}
@@ -428,7 +438,7 @@ public final class DBInfo extends TagImpl {
 			return set;
 		}
 		finally {
-			if (closeResult) IOUtil.closeEL(result);
+			if (closeResult) IOUtil.close(result);
 		}
 
 	}
@@ -488,9 +498,9 @@ public final class DBInfo extends TagImpl {
 			table = table.substring(index + 1);
 		}
 
-		checkTable(metaData, _dbName);
-
 		lucee.runtime.type.Query qry = new QueryImpl(metaData.getExportedKeys(_dbName, schema, table), "query", pageContext.getTimeZone());
+		if (qry.getRecordcount() == 0) checkTable(metaData, _dbName); // only check if no columns get returned, otherwise it exists
+
 		qry.setExecutionTime(stopwatch.time());
 
 		pageContext.setVariable(name, qry);
@@ -501,7 +511,7 @@ public final class DBInfo extends TagImpl {
 		if (StringUtil.isEmpty(table)) return;
 		try {
 			tables = metaData.getTables(_dbName, null, setCase(metaData, table), null);
-			if (!tables.next()) throw new ApplicationException("there is no table that match the following pattern [" + table + "]");
+			if (!tables.next()) throw new ApplicationException("there is no table that match the following pattern [" + setCase(metaData, table) + "]");
 		}
 		finally {
 			if (tables != null) tables.close();
@@ -511,10 +521,14 @@ public final class DBInfo extends TagImpl {
 
 	private String setCase(DatabaseMetaData metaData, String id) throws SQLException {
 		if (StringUtil.isEmpty(id)) return "%";
-
 		if (metaData.storesLowerCaseIdentifiers()) return id.toLowerCase();
 		if (metaData.storesUpperCaseIdentifiers()) return id.toUpperCase();
 		return id;
+	}
+
+	private String setFilterCase(DatabaseMetaData metaData, String id) throws SQLException {
+		if (StringUtil.isEmpty(id)) return null;
+		else return id.toUpperCase();
 	}
 
 	private void typeIndex(Connection conn) throws PageException, SQLException {
@@ -532,13 +546,13 @@ public final class DBInfo extends TagImpl {
 			table = table.substring(index + 1);
 		}
 
-		checkTable(metaData, _dbName);
-
 		ResultSet tables = metaData.getIndexInfo(_dbName, schema, table, false, true);
 		lucee.runtime.type.Query qry = new QueryImpl(tables, "query", pageContext.getTimeZone());
 
 		// type int 2 string
 		int rows = qry.getRecordcount();
+		if (rows == 0) checkTable(metaData, _dbName); // only check if no columns get returned, otherwise it exists
+
 		String strType;
 		int type, card;
 		for (int row = 1; row <= rows; row++) {
@@ -627,9 +641,31 @@ public final class DBInfo extends TagImpl {
 		stopwatch.start();
 
 		pattern = setCase(metaData, pattern);
-		lucee.runtime.type.Query qry = new QueryImpl(metaData.getTables(dbname(conn), null, StringUtil.isEmpty(pattern) ? "%" : pattern, null), "query", pageContext.getTimeZone());
+		filter = setFilterCase(metaData, filter);
+		lucee.runtime.type.Query qry = new QueryImpl(
+				metaData.getTables(dbname(conn), null, StringUtil.isEmpty(pattern) ? "%" : pattern, StringUtil.isEmpty(filter) ? null : new String[] { filter }), "query",
+				pageContext.getTimeZone());
 		qry.setExecutionTime(stopwatch.time());
 
+		if (filter != null && qry.getRecordcount() == 0) {
+			// validate if the filter was a valid table type for this jdbc connnection, delayed for better
+			// performance
+			ResultSet tableTypes = metaData.getTableTypes();
+			boolean validType = false;
+			ArrayList<String> allowedTypes = new ArrayList<String>();
+			while (tableTypes.next()) {
+				if (tableTypes.getString(1).equals(filter)) {
+					validType = true;
+					tableTypes.close();
+					break;
+				}
+				allowedTypes.add(tableTypes.getString(1));
+			}
+			tableTypes.close();
+			if (!validType) {
+				throw new ApplicationException("Invalid [dbinfo] type=table filter [" + filter + "]. Supported table types are " + allowedTypes.toString() + ".");
+			}
+		}
 		pageContext.setVariable(name, qry);
 	}
 
@@ -657,8 +693,8 @@ public final class DBInfo extends TagImpl {
 		qry.setAt(DATABASE_VERSION, 1, metaData.getDatabaseProductVersion());
 		qry.setAt(DRIVER_NAME, 1, metaData.getDriverName());
 		qry.setAt(DRIVER_VERSION, 1, metaData.getDriverVersion());
-		qry.setAt(JDBC_MAJOR_VERSION, 1, new Double(metaData.getJDBCMajorVersion()));
-		qry.setAt(JDBC_MINOR_VERSION, 1, new Double(metaData.getJDBCMinorVersion()));
+		qry.setAt(JDBC_MAJOR_VERSION, 1, Double.valueOf(metaData.getJDBCMajorVersion()));
+		qry.setAt(JDBC_MINOR_VERSION, 1, Double.valueOf(metaData.getJDBCMinorVersion()));
 
 		qry.setExecutionTime(stopwatch.time());
 

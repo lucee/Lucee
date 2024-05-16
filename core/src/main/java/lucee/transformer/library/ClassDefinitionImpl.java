@@ -21,10 +21,10 @@ import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
+import java.util.Map;
 
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Version;
-import org.xml.sax.Attributes;
 
 import lucee.commons.digest.HashUtil;
 import lucee.commons.lang.ClassException;
@@ -45,6 +45,7 @@ public class ClassDefinitionImpl<T> implements ClassDefinition<T>, Externalizabl
 	private String name;
 	private Version version;
 	private Identification id;
+	private boolean versionOnlyMattersWhenDownloading = false;
 
 	private transient Class<T> clazz;
 
@@ -80,7 +81,13 @@ public class ClassDefinitionImpl<T> implements ClassDefinition<T>, Externalizabl
 	/**
 	 * only used by deserializer!
 	 */
-	public ClassDefinitionImpl() {}
+	public ClassDefinitionImpl() {
+	}
+
+	public ClassDefinitionImpl<T> setVersionOnlyMattersWhenDownloading(boolean versionOnlyMattersWhenDownloading) {
+		this.versionOnlyMattersWhenDownloading = versionOnlyMattersWhenDownloading;
+		return this;
+	}
 
 	@Override
 	public void writeExternal(ObjectOutput out) throws IOException {
@@ -101,12 +108,16 @@ public class ClassDefinitionImpl<T> implements ClassDefinition<T>, Externalizabl
 
 	@Override
 	public Class<T> getClazz() throws ClassException, BundleException {
-		if (clazz != null) return clazz;
+		return getClazz(false);
+	}
+
+	public Class<T> getClazz(boolean forceLoadingClass) throws ClassException, BundleException {
+		if (!forceLoadingClass && clazz != null) return clazz;
 
 		// regular class definition
 		if (name == null) return clazz = ClassUtil.loadClass(className);
 
-		return clazz = ClassUtil.loadClassByBundle(className, name, version, id, JavaSettingsImpl.getBundleDirectories(null));
+		return clazz = ClassUtil.loadClassByBundle(className, name, version, id, JavaSettingsImpl.getBundleDirectories(null), versionOnlyMattersWhenDownloading);
 	}
 
 	@Override
@@ -167,18 +178,18 @@ public class ClassDefinitionImpl<T> implements ClassDefinition<T>, Externalizabl
 		return toString().hashCode();
 	}
 
-	public static ClassDefinition toClassDefinition(String className, Identification id, Attributes attributes) {
+	public static ClassDefinition toClassDefinition(String className, Identification id, Map<String, String> attributes) {
 		if (StringUtil.isEmpty(className, true)) return null;
 
 		String bn = null, bv = null;
 		if (attributes != null) {
 			// name
-			bn = attributes.getValue("name");
-			if (StringUtil.isEmpty(bn)) bn = attributes.getValue("bundle-name");
+			bn = attributes.get("name");
+			if (StringUtil.isEmpty(bn)) bn = attributes.get("bundle-name");
 
 			// version
-			bv = attributes.getValue("version");
-			if (StringUtil.isEmpty(bv)) bv = attributes.getValue("bundle-version");
+			bv = attributes.get("version");
+			if (StringUtil.isEmpty(bv)) bv = attributes.get("bundle-version");
 		}
 		return new ClassDefinitionImpl(className, bn, bv, id);
 	}

@@ -1,7 +1,5 @@
 package lucee.runtime.spooler;
 
-import javax.servlet.http.Cookie;
-
 import lucee.commons.io.DevNullOutputStream;
 import lucee.commons.io.SystemUtil.TemplateLine;
 import lucee.commons.io.log.LogUtil;
@@ -10,7 +8,6 @@ import lucee.runtime.PageContext;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.engine.ThreadLocalPageContext;
-import lucee.runtime.exp.CatchBlockImpl;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.spooler.mail.MailSpoolerTask;
@@ -42,7 +39,8 @@ public abstract class CFMLSpoolerTaskListener extends SpoolerTaskListener {
 			pcCreated = true;
 			Pair[] parr = new Pair[0];
 			DevNullOutputStream os = DevNullOutputStream.DEV_NULL_OUTPUT_STREAM;
-			pc = ThreadUtil.createPageContext(cw, os, "localhost", "/", "", new Cookie[0], parr, null, parr, new StructImpl(), true, -1);
+			pc = ThreadUtil.createDummyPageContext(cw);
+
 			pc.setRequestTimeout(config.getRequestTimeout().getMillis());
 		}
 		try {
@@ -55,17 +53,25 @@ public abstract class CFMLSpoolerTaskListener extends SpoolerTaskListener {
 			args.set("created", new DateTimeImpl(pc, task.getCreation(), true));
 			args.set(KeyConstants._id, task.getId());
 			args.set(KeyConstants._type, task.getType());
-			args.set(KeyConstants._detail, task.detail());
+
+			Struct details = task.detail();
+			if (task instanceof MailSpoolerTask) {
+				details.set(KeyConstants._charset, ((MailSpoolerTask) task).getCharset());
+				details.set(KeyConstants._replyto, ((MailSpoolerTask) task).getReplyTos());
+				details.set("failto", ((MailSpoolerTask) task).getFailTos());
+			}
+			args.set(KeyConstants._detail, details);
+
 			args.set(KeyConstants._tries, task.tries());
 			args.set("remainingtries", e == null ? 0 : task.getPlans().length - task.tries());
 			args.set("closed", task.closed());
 			if (!before) args.set("passed", e == null);
-			if (e != null) args.set("exception", new CatchBlockImpl(Caster.toPageException(e)));
+			if (e != null) args.set("exception", Caster.toPageException(e).getCatchBlock(cw));
 
 			Struct curr = new StructImpl();
 			args.set("caller", curr);
 			curr.set("template", currTemplate.template);
-			curr.set("line", new Double(currTemplate.line));
+			curr.set("line", Double.valueOf(currTemplate.line));
 
 			Struct adv = new StructImpl();
 			args.set("advanced", adv);
@@ -73,13 +79,13 @@ public abstract class CFMLSpoolerTaskListener extends SpoolerTaskListener {
 			adv.set("executedPlans", task.getPlans());
 
 			Object o = _listen(pc, args, before);
-			if (o instanceof Struct && task instanceof MailSpoolerTask) {
+			if (before && o instanceof Struct && task instanceof MailSpoolerTask) {
 				((MailSpoolerTask) task).mod((Struct) o);
 			}
 
 		}
-		catch (PageException pe) {
-			LogUtil.log(ThreadLocalPageContext.getConfig(), CFMLSpoolerTaskListener.class.getName(), pe);
+		catch (Exception pe) {
+			LogUtil.log(ThreadLocalPageContext.get(), CFMLSpoolerTaskListener.class.getName(), pe);
 		}
 		finally {
 			if (pcCreated) ThreadLocalPageContext.release();

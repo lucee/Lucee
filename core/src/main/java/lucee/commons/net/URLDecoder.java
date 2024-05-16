@@ -25,7 +25,8 @@ import lucee.runtime.net.http.ReqRspUtil;
 
 public class URLDecoder {
 
-	private URLDecoder() {}
+	private URLDecoder() {
+	}
 
 	/**
 	 * @param string

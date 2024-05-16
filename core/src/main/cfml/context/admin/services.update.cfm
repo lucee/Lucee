@@ -25,7 +25,7 @@
 <cfswitch expression="#url.action2#">
 	<cfcase value="settings">
 		<cfif !structKeyExists(form, "location") OR !structKeyExists(form, "locationCustom")>
-			<cfset form.locationCustom = "http://release.lucee.org">
+			<cfset form.locationCustom = "https://update.lucee.org">
 		</cfif>
 		<cfadmin
 			action="UpdateUpdate"
@@ -43,7 +43,15 @@
 		<cfset error.cfcatch=cfcatch>
 	</cfcatch>
 </cftry>
- <cfif request.admintype EQ "web"><cflocation url="#request.self#" addtoken="no"></cfif>
+<cfif request.admintype EQ "web"><cflocation url="#request.self#" addtoken="no"></cfif>
+
+<!--- only available for server --->
+<cfadmin
+    action="getloaderinfo"
+    type="#request.adminType#"
+    password="#session["password"&request.adminType]#"
+    returnVariable="loaderInfo">
+
 <cfset error.message="">
 <cfset error.detail="">
 
@@ -71,6 +79,35 @@
 			password="#session["password"&request.adminType]#"
 			returnvariable="upd";
 	
+	changeLogs= [];
+
+	try {
+		if ( structKeyExists( updateData, "changelog" ) ){
+			hasESAPI = ExtensionExists( "37C61C0A-5D7E-4256-8572639BE0CF5838" );
+			function safeText (str){
+				if (hasESAPI)
+					return encodeForHtml(arguments.str);
+				else
+					return htmlEditFormat(arguments.str);
+			}
+
+			changelog_versions = toVersionsSorted( updateData.changelog.keyArray() );
+			loop collection=#changelog_versions# key="cl_k" value="cl_tickets" {
+				cl_v = changelog_versions[cl_k];
+				cl_tickets= updateData.changelog[cl_v];
+				changeLog = "";
+				loop collection=#cl_tickets# key="ticket" value="title" {
+					changeLog &= '<li><a href="https://luceeserver.atlassian.net/browse/#safeText(ticket)#" target="_blank" rel="noopener">#safeText(ticket)#</a> - #safeText(title)#</li>#chr(10)#';
+				}
+				if (len(changeLog)){
+					ArrayAppend(changeLogs, "#safeText(cl_v)#<br>#chr(10)#<ul>#chr(10)##changelog#</ul>");
+				}
+			}
+		}
+	} catch(e) {
+		changelogs = ['<span class="CheckError">Error rendering changelogs</span><br> #e.message#'];
+	}
+
 	stText.services.update.downUpDesc=replace(stText.services.update.downUpDesc,'{version}',server.lucee.version);
 
 		/*if(isNull(providerData.message) || providerData.type == 'warning'){
@@ -81,7 +118,7 @@
 		}
 		updateData=getAvailableVersion();*/
 
-		if(updateData.provider.location EQ "http://update.lucee.org"){
+		if(updateData.provider.location EQ "https://update.lucee.org" || updateData.provider.location EQ "http://update.lucee.org"){
 			version = "lucee";
 		} 
 		else{
@@ -154,6 +191,13 @@
 		//dump(var:versionsStr,expand:false);
 		//dump(var:updateData,expand:false);
 	printError(error);
+
+	currMajor=listFirst(server.lucee.version,".");
+	if ( structKeyExists( updateData, "otherVersions" ) )
+		selectedUpdate = getUpdateForMajorVersion( updateData.otherVersions, currMajor );
+	else
+		selectedUpdate = "";
+
 </cfscript>
 <cfoutput>
 
@@ -169,7 +213,9 @@
 <cfelse>
 	<!--- <h1>#stText.services.update.luceeProvider#</h1>--->
 	<p>
-		#replace(stText.services.update.titleDesc,'{version}',"<b>"&server.lucee.version&"</b>") #
+		Current Version <b>( #server.lucee.version# )</b><br><br>
+		#stText.services.update.titleDesc#
+		<!--- #replace(stText.services.update.titleDesc,'{version}',"<b>"&server.lucee.version&"</b>") # --->
 	</p>
 
 	<cfset hiddenFormContents = "" >
@@ -194,21 +240,29 @@
 		<div  class="topBottomSpace">
 			<div class="whitePanel">
 				<cfformClassic onerror="customError" action="#request.self#?action=#url.action#" method="post">
-					<select name="UPDATE" id="upt_version"  class="large">
-						<option value="">--- select the version ---</option>
+					<input type="hidden" name="installedVer" id="installedVersion" value="#server.lucee.version#">
+					<select name="UPDATE" id="upt_version"  class="large" onchange="alertWarning()">
+						<!--- <option value="">--- select the version ---</option> --->
 						<cfloop list="#listVrs#" index="key">
-							<cfif len(versionsStr[key].upgrade) || len(versionsStr[key].downgrade)>
+							<cfif len(versionsStr[key].upgrade) gt 0|| len(versionsStr[key].downgrade) gt 0>
 								<optgroup class="td_#UcFirst(Lcase(key))#" label="#stText.services.update.short[key]#">
 									<cfloop array="#versionsStr[key].upgrade#" index="i">
-										<option class="td_#UcFirst(Lcase(key))#" value="#i#">#stText.services.update.upgradeTo# #i#</option>
+										<option class="td_#UcFirst(Lcase(key))#" value="#i#"
+											<cfif i eq selectedUpdate>selected</cfif>
+										>#stText.services.update.upgradeTo# #i#</option>
 									</cfloop>
 
 									<cfloop array="#versionsStr[key].downgrade#" index="i">
 										<option class="td_#UcFirst(Lcase(key))#" value="#i#">#stText.services.update.downgradeTo# #i#</option>
 									</cfloop>
 								</optgroup>
+							<cfelseif len(versionsStr[key].upgrade) eq 0>
+								<cfset session.empUpgrade = true>
 							</cfif>
 						</cfloop>
+						<cfif isdefined("session.empUpgrade") && session.empUpgrade eq true>
+							<option value="">--- select the version ---</option>
+						</cfif>
 					</select>
 					<input type="button" class="button submit"
 						onclick="changeVersion(this, UPDATE)" 
@@ -248,7 +302,7 @@
 									<b>#stText.services.update.location_custom#</b>
 								</label>
 								<input id="customtextinput" type="text" class="text" name="locationCustom" size="40" value="<cfif  version EQ 'custom'>#updateData.provider.location#</cfif>" disabled>
-								<div class="comment">#replace("#stText.services.update.location_customDesc#","{url}","<a href=""http://docs.lucee.org"">http://docs.lucee.org</a>")#</div>
+								<div class="comment">#replace("#stText.services.update.location_customDesc#","{url}","<a href=""https://docs.lucee.org"">https://docs.lucee.org</a>")#</div>
 								<cfif version EQ 'custom'>
 									<cfhtmlbody>
 										<script type="text/javascript">
@@ -342,19 +396,30 @@
 						$("##btn_"+v).addClass('btn');
 					}
 				}
+				alertWarning();
+			}
+
+			function alertWarning() {
+				var insVer = $("##installedVersion").val();
+				var chngVer = $(".large").val();
+				if(insVer.split(".")[0] == 6 && chngVer.split(".")[0] == 5) {
+					$( ".msg" ).empty().append( "<div class='error'>#stText.services.update.downgradeCheck#</p>" );
+				}
+				else {
+					$( ".msg" ).empty();
+				}
 			}
 
 			function changeVersion(field, frm) {
 				if(frm.value == "") {
-					$(".msg").text("");
-					$( ".msg" ).append( "<div class='error'>Please Choose any version</p>" );
+					$( ".msg" ).empty().append( "<div class='error'>Please Choose any version</p>" );
 					disableBlockUI=true;
 					return false;
 				}
 				else{
 					submitted = true;
 					$('##group_Connection').hide();
-					url='changeto.cfm?#session.urltoken#&adminType=#request.admintype#&version='+frm.value;
+					url='?action=changeto&adminType=#request.admintype#&version='+frm.value;
 					$(document).ready(function(){
 						$('##updateInfoDesc').html('<img src="../res/img/spinner16.gif.cfm">');
 						disableBlockUI=true;
@@ -395,6 +460,18 @@
 		</script>
 	</cfhtmlbody>
 
-	<p class="comment">* #replace(stText.services.update.titleDesc2,'{min-version}',"<b>"&minVersion&"</b>") #</p>
+	<cfscript>
+		loaderText = replaceNoCase(stText.services.update.loaderMinVersion,"{min-version}", "<b>#minVersion#</b>");
+		loaderPath = replaceNoCase(stText.services.update.loaderPath,"{loaderPath}", '<b>'& loaderInfo.LoaderPath & '</b>' );
+		//replace(stText.services.update.titleDesc2,'{context}',"<b class='error'>"&#expandPath("{lucee-server}\patches")#&"</b>");
+	</cfscript>
+	<p class="comment">#loaderText#</p>
+	<p class="comment">#loaderPath#</p>	
 	
+	<cfif len(changeLogs)>
+		<h1>#stText.services.update.changeLogsSince# (#server.lucee.version#)</h1>
+		<div class="whitePanel">
+			<p>#changeLogs.toList("")#</p>
+		</div>
+	</cfif>
 </cfoutput>

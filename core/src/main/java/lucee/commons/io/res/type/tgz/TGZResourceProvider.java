@@ -49,4 +49,14 @@ public final class TGZResourceProvider extends CompressResourceProvider {
 	public boolean isModeSupported() {
 		return true;
 	}
+
+	@Override
+	public char getSeparator() {
+		return '/';
+	}
+
+	@Override
+	public boolean allowMatching() {
+		return false;
+	}
 }

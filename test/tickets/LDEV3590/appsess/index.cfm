@@ -1,0 +1,1 @@
+<cfoutput>#application.test?:"none"#;#session.test?:"none"#</cfoutput>

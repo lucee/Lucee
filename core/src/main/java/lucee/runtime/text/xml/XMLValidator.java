@@ -18,8 +18,6 @@
  **/
 package lucee.runtime.text.xml;
 
-import java.io.IOException;
-
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
@@ -30,8 +28,10 @@ import lucee.runtime.exp.XMLException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
+import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
+import lucee.runtime.type.util.KeyConstants;
 
 public class XMLValidator extends XMLEntityResolverDefaultHandler {
 
@@ -95,10 +95,23 @@ public class XMLValidator extends XMLEntityResolverDefaultHandler {
 		array.appendEL(sb.toString());
 	}
 
-	public Struct validate(InputSource xml) throws XMLException {
-		warnings = new ArrayImpl();
-		errors = new ArrayImpl();
-		fatals = new ArrayImpl();
+	public Struct validate(InputSource xml, Struct result) throws XMLException {
+		if (result == null) {
+			warnings = new ArrayImpl();
+			errors = new ArrayImpl();
+			fatals = new ArrayImpl();
+
+			result = new StructImpl();
+			result.setEL(KeyConstants._warnings, warnings);
+			result.setEL(KeyConstants._errors, errors);
+			result.setEL(KeyConstants._fatalerrors, fatals);
+		}
+		else {
+			warnings = getArray(result, KeyConstants._warnings);
+			errors = getArray(result, KeyConstants._errors);
+			fatals = getArray(result, KeyConstants._fatalerrors);
+			hasErrors = !getBoolean(result, KeyConstants._status);
+		}
 
 		try {
 			XMLReader parser = XMLUtil.createXMLReader();
@@ -112,20 +125,25 @@ public class XMLValidator extends XMLEntityResolverDefaultHandler {
 			if (!StringUtil.isEmpty(strSchema)) parser.setProperty("http://apache.org/xml/properties/schema/external-noNamespaceSchemaLocation", strSchema);
 			parser.parse(xml);
 		}
-		catch (SAXException e) {}
-		catch (IOException e) {
+		catch (Exception e) {
 
-			throw new XMLException(e.getMessage());
+			throw new XMLException(e);
 		}
 
-		// result
-		Struct result = new StructImpl();
-		result.setEL("warnings", warnings);
-		result.setEL("errors", errors);
-		result.setEL("fatalerrors", fatals);
-		result.setEL("status", Caster.toBoolean(!hasErrors));
+		result.setEL(KeyConstants._status, Caster.toBoolean(!hasErrors));
+
 		release();
 		return result;
+	}
+
+	private Array getArray(Struct result, Key key) {
+		Array arr = Caster.toArray(result.get(key, null), null);
+		if (arr != null) return arr;
+		return new ArrayImpl();
+	}
+
+	private boolean getBoolean(Struct result, Key key) {
+		return Caster.toBooleanValue(result.get(key, null), true);
 	}
 
 }

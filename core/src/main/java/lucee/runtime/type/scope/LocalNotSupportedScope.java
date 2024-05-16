@@ -40,7 +40,8 @@ public final class LocalNotSupportedScope extends StructSupport implements Scope
 	private static LocalNotSupportedScope instance = new LocalNotSupportedScope();
 	private boolean bind;
 
-	private LocalNotSupportedScope() {}
+	private LocalNotSupportedScope() {
+	}
 
 	public static LocalNotSupportedScope getInstance() {
 		return instance;
@@ -68,7 +69,8 @@ public final class LocalNotSupportedScope extends StructSupport implements Scope
 	}
 
 	@Override
-	public void clear() {}
+	public void clear() {
+	}
 
 	@Override
 	public Object get(Collection.Key key) throws ExpressionException {
@@ -121,10 +123,12 @@ public final class LocalNotSupportedScope extends StructSupport implements Scope
 	}
 
 	@Override
-	public void initialize(PageContext pc) {}
+	public void initialize(PageContext pc) {
+	}
 
 	@Override
-	public void release(PageContext pc) {}
+	public void release(PageContext pc) {
+	}
 
 	@Override
 	public DumpData toDumpData(PageContext pageContext, int maxlevel, DumpProperties dp) {

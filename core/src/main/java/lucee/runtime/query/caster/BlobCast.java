@@ -37,7 +37,7 @@ public class BlobCast implements Cast {
 			return IOUtil.toBytes(is);
 		}
 		finally {
-			IOUtil.closeEL(is);
+			IOUtil.close(is);
 		}
 	}
 

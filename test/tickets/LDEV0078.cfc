@@ -16,25 +16,25 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  * 
  ---><cfscript>
-component extends="org.lucee.cfml.test.LuceeTestCase"	{
+component extends="org.lucee.cfml.test.LuceeTestCase"  labels="mysql,orm" {
 
 
 	public void function test1(){
-		if(!hasCredencials()) return;
+		if(!hasCredentials()) return;
 		local.uri=createURI("LDEV0078/test1.cfm");
 		local.result=_InternalRequest(uri);
 		assertEquals("true",trim(result.filecontent));
 	}
 
 	public void function test2(){
-		if(!hasCredencials()) return;
+		if(!hasCredentials()) return;
 		local.uri=createURI("LDEV0078/test2.cfm");
 		local.result=_InternalRequest(uri);
 		assertEquals("true",trim(result.filecontent));
 	}
 
 	public void function test3(){
-		if(!hasCredencials()) return;
+		if(!hasCredentials()) return;
 		local.uri=createURI("LDEV0078/test3.cfm");
 		local.result=_InternalRequest(uri);
 		assertEquals("true",trim(result.filecontent));
@@ -45,27 +45,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		return baseURI&""&calledName;
 	}
 
-	private boolean function hasCredencials() {
-		// getting the credetials from the enviroment variables
-		var mySQL={};
-		if(
-			!isNull(server.system.environment.MYSQL_SERVER) && 
-			!isNull(server.system.environment.MYSQL_USERNAME) && 
-			!isNull(server.system.environment.MYSQL_PASSWORD) && 
-			!isNull(server.system.environment.MYSQL_PORT) && 
-			!isNull(server.system.environment.MYSQL_DATABASE)) {
-			return true;
-		}
-		// getting the credetials from the system variables
-		else if(
-			!isNull(server.system.properties.MYSQL_SERVER) && 
-			!isNull(server.system.properties.MYSQL_USERNAME) && 
-			!isNull(server.system.properties.MYSQL_PASSWORD) && 
-			!isNull(server.system.properties.MYSQL_PORT) && 
-			!isNull(server.system.properties.MYSQL_DATABASE)) {
-			return true;
-		}
-		return false;
+	private boolean function hasCredentials() {
+		return structCount(server.getDatasource("mysql"));
 	}
 	
 } 

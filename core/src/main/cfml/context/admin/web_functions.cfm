@@ -22,7 +22,7 @@ function printError(error,boolean longversion=false) {
 	else if(arguments.error.message EQ arguments.error.detail)arguments.error.detail="";
 
 	// log to log file
-	if(arguments.error.message NEQ "" && arguments.error.detail NEQ "" || !isNull(error.cfcatch) ){
+	if(arguments.error.message NEQ "" && arguments.error.detail NEQ "" || !isNull(arguments.error.cfcatch) ){
 		if(isNull(error.cfcatch))
 			log type="error" log="application" text=error.message&";"&error.detail;
 		else
@@ -32,11 +32,22 @@ function printError(error,boolean longversion=false) {
 	
 
 	if(StructKeyExists(arguments.error,'message') and arguments.error.message NEQ "") {
+		header statuscode="500";
+		param name="url.rawError" default="false";
+		if ( url.rawError ){
+			echo( arguments.error.message & chr(10) );
+			if ( len(arguments.error.detail) )
+				echo( arguments.error.detail & chr(10) );
+			if (!isNull(arguments.error.exception.StackTrace) && !isEmpty(arguments.error.exception.StackTrace)) {
+				echo(arguments.error.exception.StackTrace);
+			}
+			abort;
+		} 
 		writeOutput('<div class="error">');
 		writeOutput(br(arguments.error.message));
+		
 
 		if (!isNull(arguments.error.exception.StackTrace) && !isEmpty(arguments.error.exception.StackTrace)) {
-
 			echo('<p>
 			<button id="error-details">Show Details</button>
 			<div id="stack-trace" style="display: none;">#arguments.error.exception.StackTrace#</div>');
@@ -64,7 +75,7 @@ function printError(error,boolean longversion=false) {
 				loop array="#error.TagContext#" index="local.i" item="local.tc" {
 					writeOutput('<br><span class="comment">');
 
-					if(i==1) writeOutput('error occured in ');
+					if(i==1) writeOutput('error occurred in ');
 					else writeOutput('called by ');
 					writeOutput(error.TagContext[i].template&':'&error.TagContext[i].line&"</span>");
 					//writeOutput('<br>');
@@ -332,13 +343,49 @@ function _byteFormatShort(numeric left,numeric right,string suffix){
 	<cfset var desc  = len(arguments.text) ? arguments.text : stText.settings.appcfcdesc>
 
 	<cfif !arguments.isExpand>
-		<div class="coding-tip-trigger">&lt;?/&gt;<!--- #stText.settings.tip#---></div>
+		<div class="coding-tip-trigger">&lt; #stText.settings.appcfccode# &gt;</div>
 	</cfif>
 	<div class="coding-tip #arguments.isExpand ? 'expanded' : ''#">
-		<div><cfif !(isBoolean(desc) && !desc)>#desc#:</cfif></div>
+		<div class="disp-flex"><cfif !(isBoolean(desc) && !desc)>#desc#:</cfif> <span class="copy flex-pull-right">copy</span></div>
 		<code>#trim(arguments.codeSample)#</code>
 	</div>
 </cffunction>
+
+<cffunction name="renderSysPropEnvVar" output="true">
+	<cfargument name="name">
+	<cfargument name="value">
+	<cfargument name="text" default="">
+	<cfargument name="defaultValue" default="#true#">
+	<cfargument name="isExpand"     default="#false#" type="boolean">
+<cfsilent>
+	<cfset local.uname=replace(ucase(arguments.name),".","_","all")>
+	<cfset var stText= application.stText[session.lucee_admin_lang]>
+	<cfset var desc  = len(arguments.text) ? arguments.text : stText.settings.sysopenvvar>
+	<cfif isNull(arguments.value)>
+		<cfset arguments.value=server.system.environment[uname]?:(server.system.properties[name]?:arguments.defaultValue)>
+	</cfif>
+	
+	
+	<cfif isBoolean(arguments.value) or isNumeric(arguments.value)>
+		<cfset local.ev=local.sp="#(arguments.value)#">
+	<cfelse>
+		<cfset local.sp="'#trim(arguments.value)#'">
+		<cfset local.ev="""#trim(arguments.value)#""">
+	</cfif>
+</cfsilent>
+	<cfif !arguments.isExpand>
+		<div class="coding-tip-trigger">% #stText.settings.syspropenvvar# %</div>
+	</cfif>
+	<div class="coding-tip #arguments.isExpand ? 'expanded' : ''#">
+		<div class="disp-flex"><cfif !(isBoolean(desc) && !desc)>#desc#:</cfif> <span class="copy flex-pull-right">copy</span></div>
+		<code>// System Property
+-D#trim(arguments.name)#=#sp# 
+// Enviroment Variable
+#uname#=#ev#</code>
+	</div>
+</cffunction>
+
+
 
 <cffunction name="renderEditButton" output="true">
 	<cfargument name="href"   default="">
@@ -351,3 +398,21 @@ function _byteFormatShort(numeric left,numeric right,string suffix){
 
 	<a class="mail-icon" href="#arguments.href#" title="Send a test mail" width="25"></a>
 </cffunction>
+
+<cfscript>
+
+	/**
+	 * replaces double quote character with two consecutive quote characters
+	 */
+	public string function escapeDoubleQuotes(required string input) {
+		return replace(arguments.input, '"', '""', "all");
+	}
+
+	/**
+	 * replaces single quote character with two consecutive quote characters
+	 */
+	public string function escapeSingleQuotes(required string input) {
+		return replace(arguments.input, "'", "''", "all");
+	}
+
+</cfscript>

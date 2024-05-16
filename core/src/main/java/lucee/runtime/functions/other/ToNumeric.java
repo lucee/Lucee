@@ -44,8 +44,7 @@ public class ToNumeric {
 			else if ("hex".equals(str)) radix = 16;
 			else throw invalidRadix(pc, str);
 		}
-
-		return Integer.parseInt(Caster.toString(value), radix);
+		return Long.parseLong(Caster.toString(value), radix);
 	}
 
 	private static FunctionException invalidRadix(PageContext pc, String radix) {

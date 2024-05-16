@@ -23,8 +23,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	//public function setUp(){}
 
 	public void function testTag(){
-		local.static=Issue0275.TestTag::getTheStaticScope2();
-		local.static=Issue0275.TestTag::getTheStaticScope();
+		local.static=Issue0275.TestStaticTag::getTheStaticScope2();
+		local.static=Issue0275.TestStaticTag::getTheStaticScope();
 
 		assertEquals(1,local.static.static1);
 		assertEquals(2,local.static.static2);
@@ -35,8 +35,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
 	}
 	public void function testScript(){
-		local.static=Issue0275.TestScript::getTheStaticScope2();
-		local.static=Issue0275.TestScript::getTheStaticScope();
+		local.static=Issue0275.TestStaticScript::getTheStaticScope2();
+		local.static=Issue0275.TestStaticScript::getTheStaticScope();
 
 		assertEquals(1,local.static.static1);
 		assertEquals(2,local.static.static2);

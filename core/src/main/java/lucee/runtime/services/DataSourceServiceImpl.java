@@ -30,8 +30,8 @@ import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.config.Config;
+import lucee.runtime.config.ConfigAdmin;
 import lucee.runtime.config.Constants;
-import lucee.runtime.config.XMLConfigAdmin;
 import lucee.runtime.db.DataSourceManager;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
@@ -46,14 +46,14 @@ import lucee.runtime.type.util.KeyConstants;
 
 public class DataSourceServiceImpl extends ServiceSupport implements DataSourceService {
 
-	private Number maxQueryCount = new Double(500);
+	private Number maxQueryCount = Double.valueOf(500);
 
 	@Override
 	public Struct getDefaults() {
 		Struct sct = new StructImpl();
 		sct.setEL("alter", Boolean.TRUE);
-		sct.setEL("blob_buffer", new Double(64000));
-		sct.setEL("buffer", new Double(64000));
+		sct.setEL("blob_buffer", Double.valueOf(64000));
+		sct.setEL("buffer", Double.valueOf(64000));
 		sct.setEL("create", Boolean.TRUE);
 		sct.setEL("delete", Boolean.TRUE);
 		sct.setEL("disable", Boolean.FALSE);
@@ -70,9 +70,9 @@ public class DataSourceServiceImpl extends ServiceSupport implements DataSourceS
 		sct.setEL("", Boolean.TRUE);
 		sct.setEL("", Boolean.TRUE);
 		sct.setEL("", Boolean.TRUE);
-		sct.setEL("interval", new Double(420));
-		sct.setEL("login_timeout", new Double(30));
-		sct.setEL("timeout", new Double(1200));
+		sct.setEL("interval", Double.valueOf(420));
+		sct.setEL("login_timeout", Double.valueOf(30));
+		sct.setEL("timeout", Double.valueOf(1200));
 
 		return sct;
 	}
@@ -184,7 +184,7 @@ public class DataSourceServiceImpl extends ServiceSupport implements DataSourceS
 	public void removeDatasource(String name) throws SQLException, SecurityException {
 		checkWriteAccess();
 		try {
-			XMLConfigAdmin admin = XMLConfigAdmin.newInstance(config(), null);
+			ConfigAdmin admin = ConfigAdmin.newInstance(config(), null);
 			admin.removeDataSource(name);
 		}
 		catch (Exception e) {

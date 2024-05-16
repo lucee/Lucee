@@ -56,7 +56,8 @@ public interface ConfigWeb extends Config, ServletConfig {
 	/**
 	 * 
 	 * @param type Config.CACHE_TYPE_***
-	 * @return
+	 * @param defaultValue default value
+	 * @return Returns a Cache Handler Collection.
 	 */
 	public CacheHandlerCollection getCacheHandlerCollection(int type, CacheHandlerCollection defaultValue);
 

@@ -9,4 +9,8 @@ component {
 	, default: 'object'
 	};
 	this.cache.object = "default";
+
+	public function onRequestStart() {
+		setting requesttimeout=10;
+	}
 }

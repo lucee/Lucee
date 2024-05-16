@@ -23,6 +23,7 @@ import java.util.List;
 
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.LogUtil;
+import lucee.commons.lang.ParentThreasRefThread;
 
 public class RetireOutputStreamFactory {
 
@@ -54,7 +55,7 @@ public class RetireOutputStreamFactory {
 		}
 	}
 
-	static class RetireThread extends Thread {
+	static class RetireThread extends ParentThreasRefThread {
 
 		public long sleepTime;
 		public boolean close = false;
@@ -68,7 +69,9 @@ public class RetireOutputStreamFactory {
 			while (true) {
 				try {
 					if (list.size() == 0) break;
-					SystemUtil.wait(this, sleepTime);
+					synchronized (this) {
+						this.wait(sleepTime);
+					}
 					RetireOutputStream[] arr = list.toArray(new RetireOutputStream[list.size()]); // not using iterator to avoid ConcurrentModificationException
 					for (int i = 0; i < arr.length; i++) {
 						if (arr[i] == null) continue;
@@ -77,8 +80,14 @@ public class RetireOutputStreamFactory {
 					}
 					if (close) break;
 				}
+				catch (InterruptedException ie) {
+					addParentStacktrace(ie);
+					LogUtil.log("file", ie);
+					break;
+				}
 				catch (Exception e) {
-					LogUtil.log(null, "file", e);
+					addParentStacktrace(e);
+					LogUtil.log("file", e);
 				}
 			}
 			thread = null;

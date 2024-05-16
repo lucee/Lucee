@@ -26,19 +26,22 @@ public interface CachePro extends Cache {
 	/**
 	 * clears the complete Cache
 	 * 
-	 * @throws IOException
+	 * @throws IOException in case action fails
+	 * @return how many entries got removed
 	 */
 	public int clear() throws IOException;
 
 	/**
 	 * verifies the cache, throws an exception if something is wrong with the cache
 	 * 
-	 * @throws CacheException
+	 * @throws CacheException in case verification fails
 	 */
 	public void verify() throws CacheException;
 
 	/**
 	 * if the cache does not necessary decouple values, this method should make sure of it.
+	 * 
+	 * @return the cache itself
 	 */
 	public CachePro decouple();
 }

@@ -232,7 +232,7 @@ Error Output --->
 					This feature is experimental (set to "writable").
 					If you have any problems while using this functionality,
 					please post the bugs and errors in our
-					<a href="http://issues.lucee.org" target="_blank">bugtracking system</a>. 
+					<a href="https://issues.lucee.org" target="_blank">bugtracking system</a>. 
 				</div>---><div class="comment">#stText.scopes.cgiReadOnlyDesc#</div>
 						<cfif hasAccess>
 							<ul class="radiolist">
@@ -256,8 +256,8 @@ Error Output --->
 							</ul>
 						<cfelse>
 							<input type="hidden" name="cgiReadonly" value="#scope.cgiReadonly#">
-							<b>#stText.Scopes["cgiReadOnly"& scope.LocalMode]#</b><br />
-							<div class="comment">#stText.Scopes["cgiReadOnly"& scope.LocalMode&"desc"]#</div>
+							<b>#stText.Scopes["cgiReadOnly"& scope.cgiReadonly]#</b><br />
+							<div class="comment">#stText.Scopes["cgiReadOnly"& scope.cgiReadonly&"desc"]#</div>
 						</cfif>
 						
 						<cfsavecontent variable="codeSample">
@@ -575,6 +575,13 @@ function test() localMode="#scope.LocalMode#" {}
 							<b>#iif(scope.allowImplicidQueryCall,de('Yes'),de('No'))#</b>
 						</cfif>
 						<div class="comment">#stText.Scopes.CascadeToResultSetDescription#</div>
+
+
+						<cfsavecontent variable="codeSample">
+							this.searchResults = #trueFalseFormat(scope.allowImplicidQueryCall)#;
+						</cfsavecontent>
+						<cfset renderCodingTip( codeSample)>
+						<cfset renderSysPropEnvVar( "lucee.cascade.to.resultset",scope.allowImplicidQueryCall)>
 					</td>
 				</tr>
 				
@@ -588,7 +595,7 @@ function test() localMode="#scope.LocalMode#" {}
 						<td colspan="2">
 							<input type="submit" class="bl button submit" name="mainAction" value="#stText.Buttons.Update#">
 							<input type="reset" class="<cfif request.adminType EQ "web">bm<cfelse>br</cfif> button reset" name="cancel" value="#stText.Buttons.Cancel#">
-							<cfif request.adminType EQ "web">
+							<cfif not request.singleMode and request.adminType EQ "web">
 								<input class="br button submit" type="submit" name="mainAction" value="#stText.Buttons.resetServerAdmin#">
 							</cfif>
 						</td>

@@ -52,7 +52,7 @@ public abstract class HTTPResponseSupport implements HTTPResponse {
 			return length;
 		}
 		finally {
-			IOUtil.closeEL(is);
+			IOUtil.close(is);
 		}
 	}
 

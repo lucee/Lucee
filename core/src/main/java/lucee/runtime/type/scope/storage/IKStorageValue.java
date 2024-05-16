@@ -2,6 +2,7 @@ package lucee.runtime.type.scope.storage;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
@@ -9,6 +10,8 @@ import java.util.Map;
 
 import lucee.commons.io.IOUtil;
 import lucee.commons.lang.NumberUtil;
+import lucee.loader.engine.CFMLEngineFactory;
+import lucee.runtime.converter.JavaConverter;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Collection;
@@ -26,6 +29,7 @@ public class IKStorageValue implements Serializable {
 		this(value, serialize(value), System.currentTimeMillis());
 	}
 
+	// DO NOT CHANGE, USED BY REDIS EXTENSION
 	public IKStorageValue(Map<Collection.Key, IKStorageScopeItem> value, byte[] barr, long lastModified) {
 		this.value = value;
 		this.barr = barr;
@@ -67,14 +71,19 @@ public class IKStorageValue implements Serializable {
 		ObjectInputStream ois = null;
 		Map<Collection.Key, IKStorageScopeItem> data = null;
 		try {
-			ois = new ObjectInputStream(new ByteArrayInputStream(barr));
+			ois = new JavaConverter.ObjectInputStreamImpl(CFMLEngineFactory.getInstance().getClass().getClassLoader(), new ByteArrayInputStream(barr));
 			data = (Map<Collection.Key, IKStorageScopeItem>) ois.readObject();
 		}
 		catch (Exception e) {
 			throw Caster.toPageException(e);
 		}
 		finally {
-			IOUtil.closeEL(ois);
+			try {
+				IOUtil.close(ois);
+			}
+			catch (IOException e) {
+				throw Caster.toPageException(e);
+			}
 		}
 		return data;
 	}
@@ -92,7 +101,12 @@ public class IKStorageValue implements Serializable {
 			throw Caster.toPageException(e);
 		}
 		finally {
-			IOUtil.closeEL(oos);
+			try {
+				IOUtil.close(oos);
+			}
+			catch (IOException e) {
+				throw Caster.toPageException(e);
+			}
 		}
 		return os.toByteArray();
 	}

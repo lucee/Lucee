@@ -55,7 +55,7 @@ public final class QueryFilter extends BIF {
 		if (type != CFTypes.TYPE_BOOLEAN && type != CFTypes.TYPE_ANY)
 			throw new ExpressionException("invalid return type [" + filter.getReturnTypeAsString() + "] for UDF Filter, valid return types are [boolean,any]");
 
-		return (Query) Filter._call(pc, qry, filter, parallel, maxThreads, Filter.TYPE_QUERY);
+		return (Query) Filter.call(pc, qry, filter, parallel, maxThreads, Filter.TYPE_QUERY);
 	}
 
 	@Override

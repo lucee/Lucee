@@ -32,7 +32,7 @@ public interface GatewayEngine {
 	/**
 	 * invoke given method on cfc listener
 	 * 
-	 * @param gateway
+	 * @param gateway gateway
 	 * @param method method to invoke
 	 * @param data arguments
 	 * @return returns if invocation was successfull
@@ -42,9 +42,9 @@ public interface GatewayEngine {
 	/**
 	 * logs message with defined logger for gateways
 	 * 
-	 * @param gateway
-	 * @param level
-	 * @param message
+	 * @param gateway gateway
+	 * @param level level
+	 * @param message message
 	 */
 	public void log(Gateway gateway, int level, String message);
 

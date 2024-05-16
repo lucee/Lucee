@@ -21,12 +21,15 @@
  */
 package lucee.runtime.functions.arrays;
 
+import java.util.List;
+
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.BIF;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Array;
+import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.util.ArrayUtil;
 
 public final class ArraySlice extends BIF {
@@ -40,6 +43,8 @@ public final class ArraySlice extends BIF {
 	public static Array call(PageContext pc, Array arr, double offset, double length) throws PageException {
 
 		int len = arr.size();
+		if (len == 0) throw new FunctionException(pc, "arraySlice", 1, "array", "Array cannot be empty");
+
 		if (offset > 0) {
 			if (len < offset) throw new FunctionException(pc, "arraySlice", 2, "offset", "Offset cannot be greater than size of the array");
 
@@ -60,15 +65,26 @@ public final class ArraySlice extends BIF {
 		else throw new FunctionException(pc, "ArraySlice", 2, 3, args.length);
 	}
 
-	private static Array get(Array arr, int from, int to) throws PageException {
-		Array rtn = ArrayUtil.getInstance(arr.getDimension());
-		int[] keys = arr.intKeys();
-		for (int i = 0; i < keys.length; i++) {
-			int key = keys[i];
-			if (key < from) continue;
-			if (to > 0 && key > to) break;
-			rtn.append(arr.getE(key));
+	public static Array get(Array arr, int from, int to) throws PageException {
+		int dimension = arr.getDimension();
+		Array rtn = ArrayUtil.getInstance(dimension);
+
+		if (dimension < 2) {
+			if (to < 1) to = arr.size();
+			if (from > to) return rtn;
+			List subList = ((List) arr).subList(from - 1, to);
+			rtn = new ArrayImpl(subList.toArray());
 		}
+		else { // two and three-dimensional arrays need this because the above one losses dimension
+			int[] keys = arr.intKeys();
+			for (int i = 0; i < keys.length; i++) {
+				int key = keys[i];
+				if (key < from) continue;
+				if (to > 0 && key > to) break;
+				rtn.append(arr.getE(key));
+			}
+		}
+
 		return rtn;
 	}
 

@@ -43,7 +43,7 @@ public interface Member extends Serializable {
 	/**
 	 * return Member.MODIFIER_FINAL, Member.MODIFIER_ABSTRACT or Member.MODIFIER_NONE
 	 * 
-	 * @return
+	 * @return the modifier.
 	 */
 	public int getModifier();
 

@@ -127,6 +127,36 @@ public class XMLMultiElementArray extends ArraySupport {
 	}
 
 	@Override
+	public Object pop() throws PageException {
+		return removeE(size());
+	}
+
+	@Override
+	public Object pop(Object defaultValue) {
+		try {
+			return removeE(size());
+		}
+		catch (Exception e) {
+			return defaultValue;
+		}
+	}
+
+	@Override
+	public Object shift() throws PageException {
+		return removeE(1);
+	}
+
+	@Override
+	public Object shift(Object defaultValue) {
+		try {
+			return removeE(1);
+		}
+		catch (Exception e) {
+			return defaultValue;
+		}
+	}
+
+	@Override
 	public void resize(int to) throws PageException {
 		throw new PageRuntimeException("resizing of xml nodelist not allowed");
 	}
@@ -358,7 +388,7 @@ public class XMLMultiElementArray extends ArraySupport {
 
 	@Override
 	public boolean add(Object o) {
-		// TODO Auto-generated method stub
+
 		return false;
 	}
 }

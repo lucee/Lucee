@@ -22,19 +22,23 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 
+import lucee.commons.digest.Base64Encoder;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.ContentType;
 import lucee.commons.io.res.Resource;
+import lucee.commons.lang.ParentThreasRefThread;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.net.http.HTTPEngine;
 import lucee.commons.net.http.HTTPResponse;
 import lucee.commons.net.http.Header;
+import lucee.commons.net.http.httpclient.HTTPEngine4Impl;
 import lucee.commons.security.Credentials;
 import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.Constants;
 import lucee.runtime.engine.ThreadLocalConfig;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
@@ -43,7 +47,7 @@ import lucee.runtime.net.proxy.ProxyData;
 import lucee.runtime.net.proxy.ProxyDataImpl;
 import lucee.runtime.util.URLResolver;
 
-class ExecutionThread extends Thread {
+class ExecutionThread extends ParentThreasRefThread {
 
 	private Config config;
 	// private Log log;
@@ -59,10 +63,10 @@ class ExecutionThread extends Thread {
 	@Override
 	public void run() {
 		if (ThreadLocalPageContext.getConfig() == null && config != null) ThreadLocalConfig.register(config);
-		execute(config, task, charset);
+		execute(this, config, task, charset);
 	}
 
-	public static void execute(Config config, ScheduleTask task, String charset) {
+	public static void execute(ParentThreasRefThread ptrt, Config config, ScheduleTask task, String charset) {
 		Scheduler scheduler = ((ScheduleTaskImpl) task).getScheduler();
 		if (scheduler instanceof SchedulerImpl && !((SchedulerImpl) scheduler).active()) return;
 		Log log = getLog(config);
@@ -83,8 +87,13 @@ class ExecutionThread extends Thread {
 
 		// HttpMethod method = new GetMethod(url);
 		// HostConfiguration hostConfiguration = client.getHostConfiguration();
+		String userAgent = ((ScheduleTaskPro) task).getUserAgent();
+		if (StringUtil.isEmpty(userAgent)) userAgent = Constants.NAME + " Scheduler";
+		// userAgent = "CFSCHEDULE"; this old userAgent string is on block listslists
 
-		Header[] headers = new Header[] { HTTPEngine.header("User-Agent", "CFSCHEDULE") };
+		ArrayList<Header> headers = new ArrayList<Header>();
+		headers.add(HTTPEngine.header("User-Agent", userAgent));
+
 		// method.setRequestHeader("User-Agent","CFSCHEDULE");
 
 		// Userame / Password
@@ -94,6 +103,10 @@ class ExecutionThread extends Thread {
 			user = credentials.getUsername();
 			pass = credentials.getPassword();
 			// get.addRequestHeader("Authorization","Basic admin:spwwn1p");
+			String plainCredentials = user + ":" + pass;
+			String base64Credentials = Base64Encoder.encode(plainCredentials.getBytes());
+			String authorizationHeader = "Basic " + base64Credentials;
+			headers.add(HTTPEngine.header("Authorization", authorizationHeader));
 		}
 
 		// Proxy
@@ -105,14 +118,16 @@ class ExecutionThread extends Thread {
 		HTTPResponse rsp = null;
 
 		// execute
-		log.info(logName, "calling URL [" + url + "]");
+		log.info(logName, "calling URL ->[" + url + "]");
 		try {
-			rsp = HTTPEngine.get(new URL(url), user, pass, task.getTimeout(), true, charset, null, proxy, headers);
+			rsp = HTTPEngine4Impl.get(new URL(url), user, pass, task.getTimeout(), true, charset, null, proxy, headers.toArray(new Header[headers.size()]));
 			if (rsp != null) {
 				int sc = rsp.getStatusCode();
+
 				if (sc >= 200 && sc < 300) log.info(logName, "successfully called URL [" + url + "], response code " + sc);
 				else log.warn(logName, "called URL [" + url + "] returned response code " + sc);
 			}
+			else log.error(logName, "called URL [" + url + "] with no response!");
 
 		}
 		catch (Exception e) {
@@ -120,6 +135,11 @@ class ExecutionThread extends Thread {
 				log.log(Log.LEVEL_ERROR, logName, e);
 			}
 			catch (Exception ee) {
+				if (ptrt != null) {
+					ptrt.addParentStacktrace(e);
+					ptrt.addParentStacktrace(ee);
+				}
+				// TODO log parent stacktrace as well
 				LogUtil.logGlobal(config, "scheduler", e);
 				LogUtil.logGlobal(config, "scheduler", ee);
 			}
@@ -176,7 +196,7 @@ class ExecutionThread extends Thread {
 	}
 
 	private static Log getLog(Config config) {
-		return ((ConfigImpl) config).getLog("scheduler");
+		return ThreadLocalPageContext.getLog(config, "scheduler");
 	}
 
 	private static boolean isText(HTTPResponse rsp) {

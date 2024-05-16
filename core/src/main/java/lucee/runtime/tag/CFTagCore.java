@@ -21,7 +21,7 @@ package lucee.runtime.tag;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.Mapping;
 import lucee.runtime.PageContext;
-import lucee.runtime.config.ConfigWebImpl;
+import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.customtag.InitFile;
 import lucee.runtime.exp.PageException;
 
@@ -69,7 +69,7 @@ public class CFTagCore extends CFTag {
 	}
 
 	public static InitFile createInitFile(PageContext pageContext, boolean isweb, String filename, String mappingName) {
-		ConfigWebImpl config = (ConfigWebImpl) pageContext.getConfig();
+		ConfigWebPro config = (ConfigWebPro) pageContext.getConfig();
 		if (StringUtil.isEmpty(mappingName)) mappingName = "mapping-tag";
 		Mapping mapping = isweb ? config.getTagMapping(mappingName) : config.getServerTagMapping(mappingName);
 

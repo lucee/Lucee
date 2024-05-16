@@ -71,7 +71,7 @@ public final class Error extends TagImpl {
 			errorPage.setType(ErrorPage.TYPE_REQUEST);
 		}
 		// else if(type.equals("validation")) this.type=VALIDATION;
-		else throw new ExpressionException("invalid type [" + type + "] for tag error, use one of the following types [exception,request]");
+		else throw new ExpressionException("Invalid type [" + type + "] for tag [error], use one of the following types [exception, request]");
 	}
 
 	/**

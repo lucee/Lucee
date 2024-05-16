@@ -50,7 +50,7 @@ public class QueryMap extends BIF {
 	}
 
 	private static Query _call(PageContext pc, Query qry, UDF udf, Query resQuery, boolean parallel, int maxThreads) throws PageException {
-		return (Query) Map._call(pc, qry, udf, parallel, maxThreads, resQuery, ClosureFunc.TYPE_QUERY);
+		return (Query) Map.call(pc, qry, udf, parallel, maxThreads, resQuery, ClosureFunc.TYPE_QUERY);
 	}
 
 	@Override

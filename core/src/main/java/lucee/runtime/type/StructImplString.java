@@ -164,15 +164,6 @@ public final class StructImplString extends StructImpl implements Struct {
 	@Override
 	public DumpData toDumpData(PageContext pageContext, int maxlevel, DumpProperties dp) {
 		return StructUtil.toDumpTable(this, "struct", pageContext, maxlevel, dp);
-		/*
-		 * Iterator it=map.keySet().iterator();
-		 * 
-		 * DumpTable table = new DumpTable("struct","#9999ff","#ccccff","#000000");
-		 * table.setTitle("Struct"); maxlevel--; while(it.hasNext()) { Object key=it.next();
-		 * if(DumpUtil.keyValid(dp, maxlevel,key.toString())) table.appendRow(1,new
-		 * SimpleDumpData(key.toString()),DumpUtil.toDumpData(map.get(key), pageContext,maxlevel,dp)); }
-		 * return table;
-		 */
 	}
 
 	/**

@@ -24,36 +24,55 @@ import java.io.InputStream;
 import java.io.Serializable;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 import org.osgi.framework.BundleException;
-import org.w3c.dom.Element;
+import org.osgi.framework.Version;
 
 import lucee.Info;
 import lucee.commons.digest.HashUtil;
+import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.Log;
+import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
+import lucee.commons.io.res.filter.ExtensionResourceFilter;
+import lucee.commons.io.res.filter.ResourceNameFilter;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ExceptionUtil;
+import lucee.commons.lang.Pair;
 import lucee.commons.lang.StringUtil;
+import lucee.commons.lang.types.RefBooleanImpl;
+import lucee.commons.lang.types.RefInteger;
+import lucee.commons.lang.types.RefIntegerImpl;
 import lucee.loader.util.Util;
 import lucee.runtime.config.Config;
+import lucee.runtime.config.ConfigAdmin;
 import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigWeb;
+import lucee.runtime.config.ConfigWebFactory;
+import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.config.ConfigWebUtil;
 import lucee.runtime.config.Constants;
 import lucee.runtime.config.DeployHandler;
-import lucee.runtime.config.XMLConfigAdmin;
+import lucee.runtime.converter.ConverterException;
+import lucee.runtime.converter.JSONConverter;
+import lucee.runtime.converter.JSONDateFormat;
 import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.engine.ThreadLocalConfig;
 import lucee.runtime.engine.ThreadLocalPageContext;
@@ -62,12 +81,16 @@ import lucee.runtime.exp.DatabaseException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.functions.conversion.DeserializeJSON;
+import lucee.runtime.interpreter.JSONExpressionInterpreter;
+import lucee.runtime.listener.SerializationSettings;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 import lucee.runtime.osgi.BundleFile;
 import lucee.runtime.osgi.BundleInfo;
+import lucee.runtime.osgi.OSGiUtil;
 import lucee.runtime.osgi.OSGiUtil.BundleDefinition;
 import lucee.runtime.osgi.VersionRange;
+import lucee.runtime.type.Array;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Query;
@@ -83,27 +106,15 @@ import lucee.runtime.type.util.ListUtil;
  */
 public class RHExtension implements Serializable {
 
-	private static final long serialVersionUID = 2904020095330689714L;
+	public static final short INSTALL_OPTION_NOT = 0;
+	public static final short INSTALL_OPTION_IF_NECESSARY = 1;
+	public static final short INSTALL_OPTION_FORCE = 2;
 
-	// public static final Key JARS = KeyImpl.init("jars");
-	private static final Key BUNDLES = KeyImpl.init("bundles");
-	private static final Key TLDS = KeyImpl.init("tlds");
-	private static final Key FLDS = KeyImpl.init("flds");
-	private static final Key EVENT_GATEWAYS = KeyImpl.init("eventGateways");
-	private static final Key TAGS = KeyImpl.init("tags");
-	private static final Key FUNCTIONS = KeyConstants._functions;
-	private static final Key ARCHIVES = KeyImpl.init("archives");
-	private static final Key CONTEXTS = KeyImpl.init("contexts");
-	private static final Key WEBCONTEXTS = KeyImpl.init("webcontexts");
-	private static final Key CONFIG = KeyImpl.init("config");
-	private static final Key COMPONENTS = KeyImpl.init("components");
-	private static final Key APPLICATIONS = KeyImpl.init("applications");
-	private static final Key CATEGORIES = KeyImpl.init("categories");
-	private static final Key PLUGINS = KeyImpl.init("plugins");
-	private static final Key START_BUNDLES = KeyImpl.init("startBundles");
-	private static final Key TRIAL = KeyImpl.init("trial");
-	private static final Key RELEASE_TYPE = KeyImpl.init("releaseType");
-	private static final Key SYMBOLIC_NAME = KeyImpl.init("symbolicName");
+	public static final short ACTION_NONE = 0;
+	public static final short ACTION_COPY = 1;
+	public static final short ACTION_MOVE = 2;
+
+	private static final long serialVersionUID = 2904020095330689714L;
 
 	private static final String[] EMPTY = new String[0];
 	private static final BundleDefinition[] EMPTY_BD = new BundleDefinition[0];
@@ -111,6 +122,10 @@ public class RHExtension implements Serializable {
 	public static final int RELEASE_TYPE_ALL = 0;
 	public static final int RELEASE_TYPE_SERVER = 1;
 	public static final int RELEASE_TYPE_WEB = 2;
+
+	private static final ExtensionResourceFilter LEX_FILTER = new ExtensionResourceFilter("lex");
+
+	private static Set<String> metadataFilesChecked = new HashSet<>();
 
 	private String id;
 	private int releaseType;
@@ -143,10 +158,11 @@ public class RHExtension implements Serializable {
 	private List<Map<String, String>> orms;
 	private List<Map<String, String>> webservices;
 	private List<Map<String, String>> monitors;
-	private List<Map<String, String>> searchs;
 	private List<Map<String, String>> resources;
+	private List<Map<String, String>> searchs;
 	private List<Map<String, String>> amfs;
 	private List<Map<String, String>> jdbcs;
+	private List<Map<String, String>> startupHooks;
 	private List<Map<String, String>> mappings;
 	private List<Map<String, Object>> eventGatewayInstances;
 
@@ -176,6 +192,8 @@ public class RHExtension implements Serializable {
 
 	private String jdbcsJson;
 
+	private String startupHooksJson;
+
 	private String mappingsJson;
 
 	private String eventGatewayInstancesJson;
@@ -184,68 +202,203 @@ public class RHExtension implements Serializable {
 
 	private final Config config;
 
-	public final boolean softLoaded;
+	public boolean softLoaded = false;
 
-	public RHExtension(Config config, Element el) throws PageException, IOException, BundleException {
+	public RHExtension(Config config, Resource ext) throws PageException, IOException, BundleException, ConverterException {
 		this.config = config;
-		// we have a newer version that holds the Manifest data
-		if (el.hasAttribute("start-bundles")) {
-			this.extensionFile = toResource(config, el);
-			boolean _softLoaded;
+		init(ext);
+	}
+
+	public RHExtension(Config config, String id, String version) throws PageException, IOException, BundleException, ConverterException {
+		this.config = config;
+
+		Struct data = getMetaData(config, id, version, (Struct) null);
+		this.extensionFile = getExtensionInstalledFile(config, id, version, false);
+		// do we have usefull meta data?
+		if (data != null && data.containsKey("startBundles")) {
 			try {
-				readManifestConfig(el, extensionFile.getAbsolutePath(), null);
-				_softLoaded = true;
+				readManifestConfig(id, data, extensionFile.getAbsolutePath(), null);
+				softLoaded = true;
+				return;
 			}
 			catch (InvalidVersion iv) {
 				throw iv;
 			}
 			catch (ApplicationException ae) {
-				init(toResource(config, el), false);
-				_softLoaded = false;
 			}
-			softLoaded = _softLoaded;
 		}
-		else {
-			init(toResource(config, el), false);
-			softLoaded = false;
-		}
-	}
 
-	public RHExtension(Config config, Resource ext, boolean moveIfNecessary) throws PageException, IOException, BundleException {
-		this.config = config;
-		init(ext, moveIfNecessary);
+		init(this.extensionFile);
 		softLoaded = false;
 	}
 
-	private void init(Resource ext, boolean moveIfNecessary) throws PageException, IOException, BundleException {
+	private void init(Resource ext) throws PageException, IOException, BundleException, ConverterException {
 		// make sure the config is registerd with the thread
 		if (ThreadLocalPageContext.getConfig() == null) ThreadLocalConfig.register(config);
-
 		// is it a web or server context?
-		type = config instanceof ConfigWeb ? "web" : "server";
+		this.type = config instanceof ConfigWeb ? "web" : "server";
+		this.extensionFile = ext;
 
 		load(ext);
+		// write metadata to XML
+		Resource mdf = getMetaDataFile(config, id, version);
+		if (!metadataFilesChecked.contains(mdf.getAbsolutePath()) && !mdf.isFile()) {
+			Struct data = new StructImpl(Struct.TYPE_LINKED);
+			populate(data, true);
+			storeMetaData(mdf, data);
+			metadataFilesChecked.add(mdf.getAbsolutePath()); // that way we only have to check this once
+		}
+	}
 
-		this.extensionFile = ext;
-		if (moveIfNecessary) move(ext);
+	public static RHExtension installExtension(ConfigPro config, String id, String version, String resource, boolean force)
+			throws PageException, IOException, BundleException, ConverterException {
+
+		// get installed res
+		Resource res = StringUtil.isEmpty(version) ? null : getExtensionInstalledFile(config, id, version, false);
+		boolean installed = (res != null && res.isFile());
+
+		if (!installed) {
+			if (!StringUtil.isEmpty(resource) && (res = ResourceUtil.toResourceExisting(config, resource, null)) != null) {
+				return DeployHandler.deployExtension(config, res, false, true, RHExtension.ACTION_COPY);
+			}
+			else if (!StringUtil.isEmpty(id)) {
+				return DeployHandler.deployExtension(config, new ExtensionDefintion(id, version), null, false, true, true, new RefBooleanImpl());
+			}
+			else {
+				throw new IOException("cannot install extension based on the given data [id:" + id + ";version:" + version + ";resource:" + resource + "]");
+			}
+		}
+		// if forced we also install if it already is
+		else if (force) {
+			return DeployHandler.deployExtension(config, res, false, true, RHExtension.ACTION_NONE);
+		}
+		return new RHExtension(config, res);
+	}
+
+	public static boolean isInstalled(Config config, String id, String version) throws PageException, IOException, BundleException, ConverterException {
+		Resource res = getExtensionInstalledFile(config, id, version, false);
+		return res != null && res.isFile();
+	}
+
+	/**
+	 * copy the extension resource file to the installed folder
+	 * 
+	 * @param ext
+	 * @return
+	 * @throws PageException
+	 * @throws ConverterException
+	 * @throws IOException
+	 */
+	public Resource copyToInstalled() throws PageException, ConverterException, IOException {
+		if (extensionFile == null) throw new IOException("no extension file defined");
+		if (!extensionFile.isFile()) throw new IOException("given extension file [" + extensionFile + "] does not exist");
+
+		addToAvailable(extensionFile);
+		return act(extensionFile, RHExtension.ACTION_COPY);
+	}
+
+	/**
+	 * copy the extension resource file to the installed folder
+	 * 
+	 * @param ext
+	 * @return
+	 * @throws PageException
+	 * @throws ConverterException
+	 * @throws IOException
+	 */
+	public Resource moveToInstalled() throws PageException, ConverterException, IOException {
+		if (extensionFile == null) throw new IOException("no extension file defined");
+		if (!extensionFile.isFile()) throw new IOException("given extension file [" + extensionFile + "] does not exist");
+
+		addToAvailable(extensionFile);
+		return act(extensionFile, RHExtension.ACTION_MOVE);
+	}
+
+	public static void storeMetaData(Config config, String id, String version, Struct data) throws ConverterException, IOException {
+		storeMetaData(getMetaDataFile(config, id, version), data);
+	}
+
+	private static void storeMetaData(Resource file, Struct data) throws ConverterException, IOException {
+		JSONConverter json = new JSONConverter(true, CharsetUtil.UTF8, JSONDateFormat.PATTERN_CF, false);
+		String str = json.serialize(null, data, SerializationSettings.SERIALIZE_AS_ROW, true);
+		ResourceUtil.createParentDirectoryIfNecessary(file);
+
+		IOUtil.write(file, str, CharsetUtil.UTF8, false);
 	}
 
 	// copy the file to extension dir if it is not already there
-	private void move(Resource ext) throws PageException {
+	private Resource act(Resource ext, short action) throws PageException {
 		Resource trg;
 		Resource trgDir;
 		try {
-			trg = getExtensionFile(config, ext, id, name, version);
+			trg = getExtensionInstalledFile(config, id, version, false);
 			trgDir = trg.getParentResource();
 			trgDir.mkdirs();
 			if (!ext.getParentResource().equals(trgDir)) {
 				if (trg.exists()) trg.delete();
-				ResourceUtil.moveTo(ext, trg, true);
+				if (action == ACTION_COPY) {
+					ext.copyTo(trg, false);
+				}
+				else if (action == ACTION_MOVE) {
+					ResourceUtil.moveTo(ext, trg, true);
+				}
 				this.extensionFile = trg;
 			}
 		}
 		catch (Exception e) {
 			throw Caster.toPageException(e);
+		}
+		return trg;
+	}
+
+	public void addToAvailable() {
+		addToAvailable(getExtensionFile());
+	}
+
+	private void addToAvailable(Resource ext) {
+		if (id == null) {
+			try {
+				load(ext);
+			}
+			catch (Exception e) {
+				LogUtil.log("deploy", "extension", e);
+			}
+		}
+		if (ext == null || ext.length() == 0 || id == null) return;
+		Log logger = ThreadLocalPageContext.getLog(config, "deploy");
+		Resource res;
+		if (config instanceof ConfigWeb) {
+			res = ((ConfigWeb) config).getConfigServerDir().getRealResource("extensions/");
+		}
+		else {
+			res = config.getConfigDir().getRealResource("extensions/");
+		}
+
+		// parent exist?
+		if (!res.isDirectory()) {
+			logger.warn("extension", "directory [" + res + "] does not exist");
+			return;
+		}
+		res = res.getRealResource("available/");
+
+		// exist?
+		if (!res.isDirectory()) {
+			try {
+				res.createDirectory(true);
+			}
+			catch (IOException e) {
+				logger.error("extension", e);
+				return;
+			}
+		}
+		res = res.getRealResource(id + "-" + version + ".lex");
+		if (res.length() == ext.length()) return;
+		try {
+			ResourceUtil.copy(ext, res);
+			logger.info("extension", "copy [" + id + ":" + version + "] to [" + res + "]");
+		}
+		catch (IOException e) {
+			logger.error("extension", e);
 		}
 	}
 
@@ -264,7 +417,7 @@ public class RHExtension implements Serializable {
 			}
 		}
 		finally {
-			IOUtil.closeEL(zis);
+			IOUtil.close(zis);
 		}
 		return null;
 
@@ -280,7 +433,6 @@ public class RHExtension implements Serializable {
 		String _img = null;
 		String path;
 		String fileName, sub;
-		boolean isPack200;
 
 		List<BundleInfo> bundles = new ArrayList<BundleInfo>();
 		List<String> jars = new ArrayList<String>();
@@ -302,7 +454,6 @@ public class RHExtension implements Serializable {
 				path = entry.getName();
 				fileName = fileName(entry);
 				sub = subFolder(entry);
-				isPack200 = false;
 
 				if (!entry.isDirectory() && path.equalsIgnoreCase("META-INF/MANIFEST.MF")) {
 					manifest = toManifest(config, zis, null);
@@ -312,15 +463,13 @@ public class RHExtension implements Serializable {
 				}
 
 				// jars
-				else if (!entry.isDirectory()
-						&& (startsWith(path, type, "jars") || startsWith(path, type, "jar") || startsWith(path, type, "bundles") || startsWith(path, type, "bundle")
-								|| startsWith(path, type, "lib") || startsWith(path, type, "libs"))
-						&& (StringUtil.endsWithIgnoreCase(path, ".jar") || (isPack200 = StringUtil.endsWithIgnoreCase(path, ".jar.pack.gz")))) {
+				else if (!entry.isDirectory() && (startsWith(path, type, "jars") || startsWith(path, type, "jar") || startsWith(path, type, "bundles")
+						|| startsWith(path, type, "bundle") || startsWith(path, type, "lib") || startsWith(path, type, "libs")) && (StringUtil.endsWithIgnoreCase(path, ".jar"))) {
 
-					jars.add(fileName);
-					BundleInfo bi = BundleInfo.getInstance(fileName, zis, false, isPack200);
-					if (bi.isBundle()) bundles.add(bi);
-				}
+							jars.add(fileName);
+							BundleInfo bi = BundleInfo.getInstance(fileName, zis, false);
+							if (bi.isBundle()) bundles.add(bi);
+						}
 
 				// flds
 				else if (!entry.isDirectory() && startsWith(path, type, "flds") && (StringUtil.endsWithIgnoreCase(path, ".fld") || StringUtil.endsWithIgnoreCase(path, ".fldx")))
@@ -371,7 +520,7 @@ public class RHExtension implements Serializable {
 			}
 		}
 		finally {
-			IOUtil.closeEL(zis);
+			IOUtil.close(zis);
 		}
 
 		// read the manifest
@@ -399,7 +548,7 @@ public class RHExtension implements Serializable {
 	private void readManifestConfig(Manifest manifest, String label, String _img) throws ApplicationException {
 		boolean isWeb = config instanceof ConfigWeb;
 		type = isWeb ? "web" : "server";
-		Log logger = ((ConfigImpl) config).getLog("deploy");
+		Log logger = ThreadLocalPageContext.getLog(config, "deploy");
 		Info info = ConfigWebUtil.getEngine(config).getInfo();
 
 		Attributes attr = manifest.getMainAttributes();
@@ -431,46 +580,47 @@ public class RHExtension implements Serializable {
 		readCache(label, StringUtil.unwrap(attr.getValue("cache")), logger);
 		readCacheHandler(label, StringUtil.unwrap(attr.getValue("cache-handler")), logger);
 		readJDBC(label, StringUtil.unwrap(attr.getValue("jdbc")), logger);
+		readStartupHook(label, StringUtil.unwrap(attr.getValue("startup-hook")), logger);
 		readMapping(label, StringUtil.unwrap(attr.getValue("mapping")), logger);
 		readEventGatewayInstances(label, StringUtil.unwrap(attr.getValue("event-gateway-instance")), logger);
 	}
 
-	private void readManifestConfig(Element el, String label, String _img) throws ApplicationException {
+	private void readManifestConfig(String id, Struct data, String label, String _img) throws ApplicationException {
 		boolean isWeb = config instanceof ConfigWeb;
 		type = isWeb ? "web" : "server";
 
-		Log logger = ((ConfigImpl) config).getLog("deploy");
+		Log logger = ThreadLocalPageContext.getLog(config, "deploy");
 		Info info = ConfigWebUtil.getEngine(config).getInfo();
 
-		readSymbolicName(label, el.getAttribute("symbolic-name"));
-		readName(label, el.getAttribute("name"));
+		readSymbolicName(label, ConfigWebFactory.getAttr(data, "symbolicName", "symbolic-name"));
+		readName(label, ConfigWebFactory.getAttr(data, "name"));
 		label = name;
-		readVersion(label, el.getAttribute("version"));
+		readVersion(label, ConfigWebFactory.getAttr(data, "version"));
 		label += " : " + version;
-		readId(label, el.getAttribute("id"));
-		readReleaseType(label, el.getAttribute("release-type"), isWeb);
-		description = el.getAttribute("description");
-		trial = Caster.toBooleanValue(el.getAttribute("trial"), false);
-		if (_img == null) _img = el.getAttribute("image");
+		readId(label, StringUtil.isEmpty(id) ? ConfigWebFactory.getAttr(data, "id") : id);
+		readReleaseType(label, ConfigWebFactory.getAttr(data, "releaseType", "release-type"), isWeb);
+		description = ConfigWebFactory.getAttr(data, "description");
+		trial = Caster.toBooleanValue(ConfigWebFactory.getAttr(data, "trial"), false);
+		if (_img == null) _img = ConfigWebFactory.getAttr(data, "image");
 		image = _img;
-		String cat = el.getAttribute("category");
-		if (StringUtil.isEmpty(cat, true)) cat = el.getAttribute("categories");
+		String cat = ConfigWebFactory.getAttr(data, "category");
+		if (StringUtil.isEmpty(cat, true)) cat = ConfigWebFactory.getAttr(data, "categories");
 		readCategories(label, cat);
-		readCoreVersion(label, el.getAttribute("lucee-core-version"), info);
-		readLoaderVersion(label, el.getAttribute("lucee-loader-version"));
-		startBundles = Caster.toBooleanValue(el.getAttribute("start-bundles"), true);
+		readCoreVersion(label, ConfigWebFactory.getAttr(data, "luceeCoreVersion", "lucee-core-version"), info);
+		readLoaderVersion(label, ConfigWebFactory.getAttr(data, "luceeLoaderVersion", "lucee-loader-version"));
+		startBundles = Caster.toBooleanValue(ConfigWebFactory.getAttr(data, "startBundles", "start-bundles"), true);
 
-		readAMF(label, el.getAttribute("amf"), logger);
-		readResource(label, el.getAttribute("resource"), logger);
-		readSearch(label, el.getAttribute("search"), logger);
-		readORM(label, el.getAttribute("orm"), logger);
-		readWebservice(label, el.getAttribute("webservice"), logger);
-		readMonitor(label, el.getAttribute("monitor"), logger);
-		readCache(label, el.getAttribute("cache"), logger);
-		readCacheHandler(label, el.getAttribute("cache-handler"), logger);
-		readJDBC(label, el.getAttribute("jdbc"), logger);
-		readMapping(label, el.getAttribute("mapping"), logger);
-		readEventGatewayInstances(label, el.getAttribute("event-gateway-instance"), logger);
+		readAMF(label, ConfigWebFactory.getAttr(data, "amf"), logger);
+		readResource(label, ConfigWebFactory.getAttr(data, "resource"), logger);
+		readSearch(label, ConfigWebFactory.getAttr(data, "search"), logger);
+		readORM(label, ConfigWebFactory.getAttr(data, "orm"), logger);
+		readWebservice(label, ConfigWebFactory.getAttr(data, "webservice"), logger);
+		readMonitor(label, ConfigWebFactory.getAttr(data, "monitor"), logger);
+		readCache(label, ConfigWebFactory.getAttr(data, "cache"), logger);
+		readCacheHandler(label, ConfigWebFactory.getAttr(data, "cacheHandler", "cache-handler"), logger);
+		readJDBC(label, ConfigWebFactory.getAttr(data, "jdbc"), logger);
+		readMapping(label, ConfigWebFactory.getAttr(data, "mapping"), logger);
+		readEventGatewayInstances(label, ConfigWebFactory.getAttr(data, "eventGatewayInstance", "event-gateway-instance"), logger);
 	}
 
 	private void readMapping(String label, String str, Log logger) {
@@ -495,6 +645,14 @@ public class RHExtension implements Serializable {
 			jdbcsJson = str;
 		}
 		if (jdbcs == null) jdbcs = new ArrayList<Map<String, String>>();
+	}
+
+	private void readStartupHook(String label, String str, Log logger) {
+		if (!StringUtil.isEmpty(str, true)) {
+			startupHooks = toSettings(logger, str);
+			startupHooksJson = str;
+		}
+		if (startupHooks == null) startupHooks = new ArrayList<Map<String, String>>();
 	}
 
 	private void readCacheHandler(String label, String str, Log logger) {
@@ -575,15 +733,18 @@ public class RHExtension implements Serializable {
 
 		minCoreVersion = StringUtil.isEmpty(str, true) ? null : new VersionRange(str);
 		/*
-		 * if (minCoreVersion != null && Util.isNewerThan(minCoreVersion, info.getVersion())) { throw new
-		 * InvalidVersion("The Extension [" + label + "] cannot be loaded, " + Constants.NAME +
+		 * if (minCoreVersion != null && OSGiUtil.isNewerThan(minCoreVersion, info.getVersion())) { throw
+		 * new InvalidVersion("The Extension [" + label + "] cannot be loaded, " + Constants.NAME +
 		 * " Version must be at least [" + minCoreVersion.toString() + "], version is [" +
 		 * info.getVersion().toString() + "]."); }
 		 */
 	}
 
 	public void validate() throws ApplicationException {
-		Info info = ConfigWebUtil.getEngine(config).getInfo();
+		validate(ConfigWebUtil.getEngine(config).getInfo());
+	}
+
+	public void validate(Info info) throws ApplicationException {
 
 		if (minCoreVersion != null && !minCoreVersion.isWithin(info.getVersion())) {
 			throw new InvalidVersion("The Extension [" + getName() + "] cannot be loaded, " + Constants.NAME + " Version must be at least [" + minCoreVersion.toString()
@@ -613,6 +774,7 @@ public class RHExtension implements Serializable {
 	}
 
 	private void readReleaseType(String label, String str, boolean isWeb) throws ApplicationException {
+		if (((ConfigPro) ThreadLocalPageContext.getConfig(config)).getAdminMode() == ConfigImpl.ADMINMODE_SINGLE) return;
 		// release type
 		int rt = RELEASE_TYPE_ALL;
 		if (!Util.isEmpty(str)) {
@@ -661,25 +823,21 @@ public class RHExtension implements Serializable {
 		ZipEntry entry;
 		String path;
 		String fileName;
-		boolean isPack200;
 		try {
 			while ((entry = zis.getNextEntry()) != null) {
 				path = entry.getName();
 				fileName = fileName(entry);
-				isPack200 = false;
 				// jars
-				if (!entry.isDirectory()
-						&& (startsWith(path, type, "jars") || startsWith(path, type, "jar") || startsWith(path, type, "bundles") || startsWith(path, type, "bundle")
-								|| startsWith(path, type, "lib") || startsWith(path, type, "libs"))
-						&& (StringUtil.endsWithIgnoreCase(path, ".jar") || (isPack200 = StringUtil.endsWithIgnoreCase(path, ".jar.pack.gz")))) {
+				if (!entry.isDirectory() && (startsWith(path, type, "jars") || startsWith(path, type, "jar") || startsWith(path, type, "bundles")
+						|| startsWith(path, type, "bundle") || startsWith(path, type, "lib") || startsWith(path, type, "libs")) && (StringUtil.endsWithIgnoreCase(path, ".jar"))) {
 
-					Object obj = XMLConfigAdmin.installBundle(config, zis, fileName, version, false, false, isPack200);
+					Object obj = ConfigAdmin.installBundle(config, zis, fileName, version, false, false);
 					// jar is not a bundle, only a regular jar
 					if (!(obj instanceof BundleFile)) {
 						Resource tmp = (Resource) obj;
 						Resource tmpJar = tmp.getParentResource().getRealResource(ListUtil.last(path, "\\/"));
 						tmp.moveTo(tmpJar);
-						XMLConfigAdmin.updateJar(config, tmpJar, false);
+						ConfigAdmin.updateJar(config, tmpJar, false);
 					}
 				}
 
@@ -687,41 +845,126 @@ public class RHExtension implements Serializable {
 			}
 		}
 		finally {
-			IOUtil.closeEL(zis);
+			IOUtil.close(zis);
 		}
 	}
 
-	public static Resource toResource(Config config, Element el) throws ApplicationException {
-		String fileName = el.getAttribute("file-name");
-		if (StringUtil.isEmpty(fileName)) throw new ApplicationException("missing attribute [file-name]");
-		Resource res = getExtensionDir(config).getRealResource(fileName);
-		if (!res.exists()) throw new ApplicationException("Extension [" + fileName + "] was not found at [" + res + "]");
+	public static Resource getExtensionInstalledFile(Config config, String id, String version, boolean validate) throws ApplicationException {
+		String fileName = toHash(id, version, "lex");
+		Resource res = getExtensionInstalledDir(config).getRealResource(fileName);
+		if (validate && !res.exists()) throw new ApplicationException("Extension [" + fileName + "] was not found at [" + res + "]");
 		return res;
 	}
 
-	public static Resource toResource(Config config, Element el, Resource defaultValue) {
-		String fileName = el.getAttribute("file-name");
-		if (StringUtil.isEmpty(fileName)) return defaultValue;
-		Resource res = getExtensionDir(config).getRealResource(fileName);
-		if (!res.exists()) return defaultValue;
-		return res;
+	private Struct getMetaData(Config config, String id, String version, Struct defaultValue) throws PageException, IOException, BundleException {
+		Resource file = getMetaDataFile(config, id, version);
+		if (file.isFile()) return Caster.toStruct(new JSONExpressionInterpreter().interpret(null, IOUtil.toString(file, CharsetUtil.UTF8)));
+		return defaultValue;
 	}
 
-	private static Resource getExtensionFile(Config config, Resource ext, String id, String name, String version) {
-		String fileName = toHash(id, name, version, ResourceUtil.getExtension(ext, "lex"));
-		// String
-		// fileName=HashUtil.create64BitHashAsString(id+version,Character.MAX_RADIX)+"."+ResourceUtil.getExtension(ext,
-		// "lex");
-		return getExtensionDir(config).getRealResource(fileName);
+	private Struct getMetaData(Config config, String id, String version, Resource exFile) throws PageException, IOException, BundleException {
+		Resource file = getMetaDataFile(config, id, version);
+		if (file.isFile()) return Caster.toStruct(new JSONExpressionInterpreter().interpret(null, IOUtil.toString(file, CharsetUtil.UTF8)));
+		if (exFile != null && exFile.isFile()) load(exFile);
+		else load(getExtensionInstalledFile(config, id, version, false));
+		Struct data = new StructImpl();
+		populate(data, true);
+		return data;
 	}
 
-	public static String toHash(String id, String name, String version, String ext) {
+	public static Resource getMetaDataFile(Config config, String id, String version) {
+		String fileName = toHash(id, version, "mf");
+		return getExtensionInstalledDir(config).getRealResource(fileName);
+	}
+
+	public static String toHash(String id, String version, String ext) {
 		if (ext == null) ext = "lex";
 		return HashUtil.create64BitHashAsString(id + version, Character.MAX_RADIX) + "." + ext;
 	}
 
-	private static Resource getExtensionDir(Config config) {
+	public static Resource getExtensionInstalledDir(Config config) {
 		return config.getConfigDir().getRealResource("extensions/installed");
+	}
+
+	private static int getPhysicalExtensionCount(Config config) {
+		final RefInteger count = new RefIntegerImpl(0);
+		getExtensionInstalledDir(config).list(new ResourceNameFilter() {
+			@Override
+			public boolean accept(Resource res, String name) {
+				if (StringUtil.endsWithIgnoreCase(name, ".lex")) count.plus(1);
+				return false;
+			}
+		});
+		return count.toInt();
+	}
+
+	public static void correctExtensions(Config config) throws PageException, IOException, BundleException, ConverterException {
+		// reduce the amount of extension stored in available
+		{
+			int max = 5;
+			Resource dir = config.getConfigDir().getRealResource("extensions/available");
+			Resource[] resources = dir.listResources(LEX_FILTER);
+			Map<String, List<Pair<RHExtension, Resource>>> map = new HashMap<>();
+			RHExtension ext;
+			List<Pair<RHExtension, Resource>> versions;
+			if (resources != null) {
+				for (Resource r: resources) {
+					ext = new RHExtension(config, r);
+					versions = map.get(ext.getId());
+					if (versions == null) map.put(ext.getId(), versions = new ArrayList<>());
+					versions.add(new Pair<RHExtension, Resource>(ext, r));
+				}
+			}
+
+			for (Entry<String, List<Pair<RHExtension, Resource>>> entry: map.entrySet()) {
+				if (entry.getValue().size() > max) {
+					List<Pair<RHExtension, Resource>> list = entry.getValue();
+					Collections.sort(list, new Comparator<Pair<RHExtension, Resource>>() {
+						@Override
+						public int compare(Pair<RHExtension, Resource> l, Pair<RHExtension, Resource> r) {
+							try {
+								return OSGiUtil.compare(OSGiUtil.toVersion(r.getName().getVersion()), OSGiUtil.toVersion(l.getName().getVersion()));
+							}
+							catch (BundleException e) {
+								return 0;
+							}
+						}
+					});
+					int count = 0;
+					for (Pair<RHExtension, Resource> pair: list) {
+						if (++count > max) {
+							if (!pair.getValue().delete()) ResourceUtil.deleteOnExit(pair.getValue());
+						}
+					}
+
+				}
+			}
+		}
+
+		if (config instanceof ConfigWebPro && ((ConfigWebPro) config).isSingle()) return;
+		// extension defined in xml
+		RHExtension[] xmlArrExtensions = ((ConfigPro) config).getRHExtensions();
+		if (xmlArrExtensions.length == getPhysicalExtensionCount(config)) return; // all is OK
+		RHExtension ext;
+		Map<String, RHExtension> xmlExtensions = new HashMap<>();
+		for (int i = 0; i < xmlArrExtensions.length; i++) {
+			ext = xmlArrExtensions[i];
+			xmlExtensions.put(ext.getId(), ext);
+		}
+
+		// Extension defined in filesystem
+		Resource[] resources = getExtensionInstalledDir(config).listResources(LEX_FILTER);
+
+		if (resources == null || resources.length == 0) return;
+		int rt;
+		RHExtension xmlExt;
+		for (int i = 0; i < resources.length; i++) {
+			ext = new RHExtension(config, resources[i]);
+			xmlExt = xmlExtensions.get(ext.getId());
+			if (xmlExt != null && (xmlExt.getVersion() + "").equals(ext.getVersion() + "")) continue;
+			rt = ext.getReleaseType();
+			ConfigAdmin._updateRHExtension((ConfigPro) config, resources[i], true, true, RHExtension.ACTION_MOVE);
+		}
 	}
 
 	public static BundleDefinition[] toBundleDefinitions(String strBundles) {
@@ -749,66 +992,36 @@ public class RHExtension implements Serializable {
 		return arrBDs;
 	}
 
-	public static void populate(Element el, Manifest manifest) {
-		Attributes attr = manifest.getMainAttributes();
-		pop(el, attr, "id", null);
-		pop(el, attr, "name", null);
-		pop(el, attr, "version", null);
-		pop(el, attr, "start-bundles", "false");
-		pop(el, attr, "release-type", "all");
-		pop(el, attr, "description", null);
-		pop(el, attr, "trial", null);
-		pop(el, attr, "image", null);
-		pop(el, attr, "categories", null);
-		pop(el, attr, "category", null);
-		pop(el, attr, "lucee-core-version", null);
-		pop(el, attr, "lucee-loader-version", null);
-		pop(el, attr, "amf", null);
-		pop(el, attr, "resource", null);
-		pop(el, attr, "search", null);
-		pop(el, attr, "orm", null);
-		pop(el, attr, "webservice", null);
-		pop(el, attr, "monitor", null);
-		pop(el, attr, "cache", null);
-		pop(el, attr, "cache-handler", null);
-		pop(el, attr, "jdbc", null);
-		pop(el, attr, "mapping", null);
-		pop(el, attr, "event-gateway-instance", null);
-	}
-
-	private static void pop(Element el, Attributes attr, String name, String defaultValue) {
-		String val = StringUtil.unwrap(attr.getValue(name));
-		if (!StringUtil.isEmpty(val)) el.setAttribute(name, val);
-		else if (defaultValue != null) el.setAttribute(name, defaultValue);
-		else el.removeAttribute(name);
-	}
-
-	public void populate(Element el) {
-		el.setAttribute("file-name", extensionFile.getName());
+	public void populate(Struct el, boolean full) {
 		String id = getId();
 		String name = getName();
 		if (StringUtil.isEmpty(name)) name = id;
-		el.setAttribute("id", id);
-		el.setAttribute("name", name);
-		el.setAttribute("version", getVersion());
+
+		if (!full) el.clear();
+
+		el.setEL("id", id);
+		el.setEL("name", name);
+		el.setEL("version", getVersion());
+
+		if (!full) return;
 
 		// newly added
 		// start bundles (IMPORTANT:this key is used to reconize a newer entry, so do not change)
-		el.setAttribute("start-bundles", Caster.toString(getStartBundles()));
+		el.setEL("startBundles", Caster.toString(getStartBundles()));
 
 		// release type
-		el.setAttribute("release-type", toReleaseType(getReleaseType(), "all"));
+		el.setEL("releaseType", toReleaseType(getReleaseType(), "all"));
 
 		// Description
-		if (StringUtil.isEmpty(getDescription())) el.setAttribute("description", toStringForAttr(getDescription()));
-		else el.removeAttribute("description");
+		if (StringUtil.isEmpty(getDescription())) el.setEL("description", toStringForAttr(getDescription()));
+		else el.removeEL(KeyImpl.init("description"));
 
 		// Trial
-		el.setAttribute("trial", Caster.toString(isTrial()));
+		el.setEL("trial", Caster.toString(isTrial()));
 
 		// Image
-		if (StringUtil.isEmpty(getImage())) el.setAttribute("image", toStringForAttr(getImage()));
-		else el.removeAttribute("image");
+		if (StringUtil.isEmpty(getImage())) el.setEL("image", toStringForAttr(getImage()));
+		else el.removeEL(KeyImpl.init("image"));
 
 		// Categories
 		String[] cats = getCategories();
@@ -818,61 +1031,65 @@ public class RHExtension implements Serializable {
 				if (sb.length() > 0) sb.append(',');
 				sb.append(toStringForAttr(cat).replace(',', ' '));
 			}
-			el.setAttribute("categories", sb.toString());
+			el.setEL("categories", sb.toString());
 		}
-		else el.removeAttribute("categories");
+		else el.removeEL(KeyImpl.init("categories"));
 
 		// core version
-		if (minCoreVersion != null) el.setAttribute("lucee-core-version", toStringForAttr(minCoreVersion.toString()));
-		else el.removeAttribute("lucee-core-version");
+		if (minCoreVersion != null) el.setEL("luceeCoreVersion", toStringForAttr(minCoreVersion.toString()));
+		else el.removeEL(KeyImpl.init("luceeCoreVersion"));
 
 		// loader version
-		if (minLoaderVersion > 0) el.setAttribute("loader-version", Caster.toString(minLoaderVersion));
-		else el.removeAttribute("loader-version");
+		if (minLoaderVersion > 0) el.setEL("loaderVersion", Caster.toString(minLoaderVersion));
+		else el.removeEL(KeyImpl.init("loaderVersion"));
 
 		// amf
-		if (!StringUtil.isEmpty(amfsJson)) el.setAttribute("amf", toStringForAttr(amfsJson));
-		else el.removeAttribute("amf");
+		if (!StringUtil.isEmpty(amfsJson)) el.setEL("amf", toStringForAttr(amfsJson));
+		else el.removeEL(KeyImpl.init("amf"));
 
 		// resource
-		if (!StringUtil.isEmpty(resourcesJson)) el.setAttribute("resource", toStringForAttr(resourcesJson));
-		else el.removeAttribute("resource");
+		if (!StringUtil.isEmpty(resourcesJson)) el.setEL("resource", toStringForAttr(resourcesJson));
+		else el.removeEL(KeyImpl.init("resource"));
 
 		// search
-		if (!StringUtil.isEmpty(searchsJson)) el.setAttribute("search", toStringForAttr(searchsJson));
-		else el.removeAttribute("search");
+		if (!StringUtil.isEmpty(searchsJson)) el.setEL("search", toStringForAttr(searchsJson));
+		else el.removeEL(KeyImpl.init("search"));
 
 		// orm
-		if (!StringUtil.isEmpty(ormsJson)) el.setAttribute("orm", toStringForAttr(ormsJson));
-		else el.removeAttribute("orm");
+		if (!StringUtil.isEmpty(ormsJson)) el.setEL("orm", toStringForAttr(ormsJson));
+		else el.removeEL(KeyImpl.init("orm"));
 
 		// webservice
-		if (!StringUtil.isEmpty(webservicesJson)) el.setAttribute("webservice", toStringForAttr(webservicesJson));
-		else el.removeAttribute("webservice");
+		if (!StringUtil.isEmpty(webservicesJson)) el.setEL("webservice", toStringForAttr(webservicesJson));
+		else el.removeEL(KeyImpl.init("webservice"));
 
 		// monitor
-		if (!StringUtil.isEmpty(monitorsJson)) el.setAttribute("monitor", toStringForAttr(monitorsJson));
-		else el.removeAttribute("monitor");
+		if (!StringUtil.isEmpty(monitorsJson)) el.setEL("monitor", toStringForAttr(monitorsJson));
+		else el.removeEL(KeyImpl.init("monitor"));
 
 		// cache
-		if (!StringUtil.isEmpty(cachesJson)) el.setAttribute("cache", toStringForAttr(cachesJson));
-		else el.removeAttribute("cache");
+		if (!StringUtil.isEmpty(cachesJson)) el.setEL("cache", toStringForAttr(cachesJson));
+		else el.removeEL(KeyImpl.init("cache"));
 
 		// cache-handler
-		if (!StringUtil.isEmpty(cacheHandlersJson)) el.setAttribute("cache-handler", toStringForAttr(cacheHandlersJson));
-		else el.removeAttribute("cache-handler");
+		if (!StringUtil.isEmpty(cacheHandlersJson)) el.setEL("cacheHandler", toStringForAttr(cacheHandlersJson));
+		else el.removeEL(KeyImpl.init("cacheHandler"));
 
 		// jdbc
-		if (!StringUtil.isEmpty(jdbcsJson)) el.setAttribute("jdbc", toStringForAttr(jdbcsJson));
-		else el.removeAttribute("jdbc");
+		if (!StringUtil.isEmpty(jdbcsJson)) el.setEL("jdbc", toStringForAttr(jdbcsJson));
+		else el.removeEL(KeyImpl.init("jdbc"));
+
+		// startup-hook
+		if (!StringUtil.isEmpty(startupHooksJson)) el.setEL("startupHook", toStringForAttr(startupHooksJson));
+		else el.removeEL(KeyImpl.init("startupHook"));
 
 		// mapping
-		if (!StringUtil.isEmpty(mappingsJson)) el.setAttribute("mapping", toStringForAttr(mappingsJson));
-		else el.removeAttribute("mapping");
+		if (!StringUtil.isEmpty(mappingsJson)) el.setEL("mapping", toStringForAttr(mappingsJson));
+		else el.removeEL(KeyImpl.init("mapping"));
 
 		// event-gateway-instances
-		if (!StringUtil.isEmpty(eventGatewayInstancesJson)) el.setAttribute("event-gateway-instances", toStringForAttr(eventGatewayInstancesJson));
-		else el.removeAttribute("event-gateway-instances");
+		if (!StringUtil.isEmpty(eventGatewayInstancesJson)) el.setEL("eventGatewayInstances", toStringForAttr(eventGatewayInstancesJson));
+		else el.removeEL(KeyImpl.init("eventGatewayInstances"));
 	}
 
 	private String toStringForAttr(String str) {
@@ -886,7 +1103,7 @@ public class RHExtension implements Serializable {
 	}
 
 	public static Query toQuery(Config config, List<RHExtension> children, Query qry) throws PageException {
-		Log log = config.getLog("deploy");
+		Log log = ThreadLocalPageContext.getLog(config, "deploy");
 		if (qry == null) qry = createQuery();
 		Iterator<RHExtension> it = children.iterator();
 		while (it.hasNext()) {
@@ -902,111 +1119,105 @@ public class RHExtension implements Serializable {
 	}
 
 	public static Query toQuery(Config config, RHExtension[] children, Query qry) throws PageException {
-		Log log = config.getLog("deploy");
+		Log log = ThreadLocalPageContext.getLog(config, "deploy");
 		if (qry == null) qry = createQuery();
-		for (int i = 0; i < children.length; i++) {
-			try {
-				children[i].populate(qry); // ,i+1
-			}
-			catch (Throwable t) {
-				ExceptionUtil.rethrowIfNecessary(t);
-				log.error("extension", t);
-			}
-		}
-		return qry;
-	}
-
-	public static Query toQuery(Config config, Element[] children) throws PageException {
-		Log log = config.getLog("deploy");
-		Query qry = createQuery();
-		for (int i = 0; i < children.length; i++) {
-			try {
-				new RHExtension(config, children[i]).populate(qry); // ,i+1
-			}
-			catch (Throwable t) {
-				ExceptionUtil.rethrowIfNecessary(t);
-				log.error("extension", t);
+		if (children != null) {
+			for (int i = 0; i < children.length; i++) {
+				try {
+					if (children[i] != null) children[i].populate(qry); // ,i+1
+				}
+				catch (Throwable t) {
+					ExceptionUtil.rethrowIfNecessary(t);
+					log.log(Log.LEVEL_WARN, "extension", t);
+				}
 			}
 		}
 		return qry;
 	}
 
 	private static Query createQuery() throws DatabaseException {
-		return new QueryImpl(new Key[] { KeyConstants._id, KeyConstants._version, KeyConstants._name, SYMBOLIC_NAME, KeyConstants._type, KeyConstants._description,
-				KeyConstants._image, RELEASE_TYPE, TRIAL, CATEGORIES, START_BUNDLES, BUNDLES, FLDS, TLDS, TAGS, FUNCTIONS, CONTEXTS, WEBCONTEXTS, CONFIG, APPLICATIONS, COMPONENTS,
-				PLUGINS, EVENT_GATEWAYS, ARCHIVES }, 0, "Extensions");
+		return new QueryImpl(
+				new Key[] { KeyConstants._id, KeyConstants._version, KeyConstants._name, KeyConstants._symbolicName, KeyConstants._type, KeyConstants._description,
+						KeyConstants._image, KeyConstants._releaseType, KeyConstants._trial, KeyConstants._categories, KeyConstants._startBundles, KeyConstants._bundles,
+						KeyConstants._flds, KeyConstants._tlds, KeyConstants._tags, KeyConstants._functions, KeyConstants._contexts, KeyConstants._webcontexts,
+						KeyConstants._config, KeyConstants._applications, KeyConstants._components, KeyConstants._plugins, KeyConstants._eventGateways, KeyConstants._archives },
+				0, "Extensions");
 	}
 
 	private void populate(Query qry) throws PageException, IOException, BundleException {
 		int row = qry.addRow();
 		qry.setAt(KeyConstants._id, row, getId());
 		qry.setAt(KeyConstants._name, row, getName());
-		qry.setAt(SYMBOLIC_NAME, row, getSymbolicName());
+		qry.setAt(KeyConstants._symbolicName, row, getSymbolicName());
 		qry.setAt(KeyConstants._image, row, getImage());
 		qry.setAt(KeyConstants._type, row, type);
 		qry.setAt(KeyConstants._description, row, description);
 		qry.setAt(KeyConstants._version, row, getVersion() == null ? null : getVersion().toString());
-		qry.setAt(TRIAL, row, isTrial());
-		qry.setAt(RELEASE_TYPE, row, toReleaseType(getReleaseType(), "all"));
+		qry.setAt(KeyConstants._trial, row, isTrial());
+		qry.setAt(KeyConstants._releaseType, row, toReleaseType(getReleaseType(), "all"));
 		// qry.setAt(JARS, row,Caster.toArray(getJars()));
-		qry.setAt(FLDS, row, Caster.toArray(getFlds()));
-		qry.setAt(TLDS, row, Caster.toArray(getTlds()));
-		qry.setAt(FUNCTIONS, row, Caster.toArray(getFunctions()));
-		qry.setAt(ARCHIVES, row, Caster.toArray(getArchives()));
-		qry.setAt(TAGS, row, Caster.toArray(getTags()));
-		qry.setAt(CONTEXTS, row, Caster.toArray(getContexts()));
-		qry.setAt(WEBCONTEXTS, row, Caster.toArray(getWebContexts()));
-		qry.setAt(CONFIG, row, Caster.toArray(getConfigs()));
-		qry.setAt(EVENT_GATEWAYS, row, Caster.toArray(getEventGateways()));
-		qry.setAt(CATEGORIES, row, Caster.toArray(getCategories()));
-		qry.setAt(APPLICATIONS, row, Caster.toArray(getApplications()));
-		qry.setAt(COMPONENTS, row, Caster.toArray(getComponents()));
-		qry.setAt(PLUGINS, row, Caster.toArray(getPlugins()));
-		qry.setAt(START_BUNDLES, row, Caster.toBoolean(getStartBundles()));
+		qry.setAt(KeyConstants._flds, row, Caster.toArray(getFlds()));
+		qry.setAt(KeyConstants._tlds, row, Caster.toArray(getTlds()));
+		qry.setAt(KeyConstants._functions, row, Caster.toArray(getFunctions()));
+		qry.setAt(KeyConstants._archives, row, Caster.toArray(getArchives()));
+		qry.setAt(KeyConstants._tags, row, Caster.toArray(getTags()));
+		qry.setAt(KeyConstants._contexts, row, Caster.toArray(getContexts()));
+		qry.setAt(KeyConstants._webcontexts, row, Caster.toArray(getWebContexts()));
+		qry.setAt(KeyConstants._config, row, Caster.toArray(getConfigs()));
+		qry.setAt(KeyConstants._eventGateways, row, Caster.toArray(getEventGateways()));
+		qry.setAt(KeyConstants._categories, row, Caster.toArray(getCategories()));
+		qry.setAt(KeyConstants._applications, row, Caster.toArray(getApplications()));
+		qry.setAt(KeyConstants._components, row, Caster.toArray(getComponents()));
+		qry.setAt(KeyConstants._plugins, row, Caster.toArray(getPlugins()));
+		qry.setAt(KeyConstants._startBundles, row, Caster.toBoolean(getStartBundles()));
 
 		BundleInfo[] bfs = getBundles();
-		Query qryBundles = new QueryImpl(new Key[] { KeyConstants._name, KeyConstants._version }, bfs.length, "bundles");
-		for (int i = 0; i < bfs.length; i++) {
-			qryBundles.setAt(KeyConstants._name, i + 1, bfs[i].getSymbolicName());
-			if (bfs[i].getVersion() != null) qryBundles.setAt(KeyConstants._version, i + 1, bfs[i].getVersionAsString());
+		Query qryBundles = new QueryImpl(new Key[] { KeyConstants._name, KeyConstants._version }, bfs == null ? 0 : bfs.length, "bundles");
+		if (bfs != null) {
+			for (int i = 0; i < bfs.length; i++) {
+				qryBundles.setAt(KeyConstants._name, i + 1, bfs[i].getSymbolicName());
+				if (bfs[i].getVersion() != null) qryBundles.setAt(KeyConstants._version, i + 1, bfs[i].getVersionAsString());
+			}
 		}
-		qry.setAt(BUNDLES, row, qryBundles);
+		qry.setAt(KeyConstants._bundles, row, qryBundles);
 	}
 
 	public Struct toStruct() throws PageException {
 		Struct sct = new StructImpl();
 		sct.set(KeyConstants._id, getId());
-		sct.set(SYMBOLIC_NAME, getSymbolicName());
+		sct.set(KeyConstants._symbolicName, getSymbolicName());
 		sct.set(KeyConstants._name, getName());
 		sct.set(KeyConstants._image, getImage());
 		sct.set(KeyConstants._description, description);
 		sct.set(KeyConstants._version, getVersion() == null ? null : getVersion().toString());
-		sct.set(TRIAL, isTrial());
-		sct.set(RELEASE_TYPE, toReleaseType(getReleaseType(), "all"));
+		sct.set(KeyConstants._trial, isTrial());
+		sct.set(KeyConstants._releaseType, toReleaseType(getReleaseType(), "all"));
 		// sct.set(JARS, row,Caster.toArray(getJars()));
 		try {
-			sct.set(FLDS, Caster.toArray(getFlds()));
-			sct.set(TLDS, Caster.toArray(getTlds()));
-			sct.set(FUNCTIONS, Caster.toArray(getFunctions()));
-			sct.set(ARCHIVES, Caster.toArray(getArchives()));
-			sct.set(TAGS, Caster.toArray(getTags()));
-			sct.set(CONTEXTS, Caster.toArray(getContexts()));
-			sct.set(WEBCONTEXTS, Caster.toArray(getWebContexts()));
-			sct.set(CONFIG, Caster.toArray(getConfigs()));
-			sct.set(EVENT_GATEWAYS, Caster.toArray(getEventGateways()));
-			sct.set(CATEGORIES, Caster.toArray(getCategories()));
-			sct.set(APPLICATIONS, Caster.toArray(getApplications()));
-			sct.set(COMPONENTS, Caster.toArray(getComponents()));
-			sct.set(PLUGINS, Caster.toArray(getPlugins()));
-			sct.set(START_BUNDLES, Caster.toBoolean(getStartBundles()));
+			sct.set(KeyConstants._flds, Caster.toArray(getFlds()));
+			sct.set(KeyConstants._tlds, Caster.toArray(getTlds()));
+			sct.set(KeyConstants._functions, Caster.toArray(getFunctions()));
+			sct.set(KeyConstants._archives, Caster.toArray(getArchives()));
+			sct.set(KeyConstants._tags, Caster.toArray(getTags()));
+			sct.set(KeyConstants._contexts, Caster.toArray(getContexts()));
+			sct.set(KeyConstants._webcontexts, Caster.toArray(getWebContexts()));
+			sct.set(KeyConstants._config, Caster.toArray(getConfigs()));
+			sct.set(KeyConstants._eventGateways, Caster.toArray(getEventGateways()));
+			sct.set(KeyConstants._categories, Caster.toArray(getCategories()));
+			sct.set(KeyConstants._applications, Caster.toArray(getApplications()));
+			sct.set(KeyConstants._components, Caster.toArray(getComponents()));
+			sct.set(KeyConstants._plugins, Caster.toArray(getPlugins()));
+			sct.set(KeyConstants._startBundles, Caster.toBoolean(getStartBundles()));
 
 			BundleInfo[] bfs = getBundles();
-			Query qryBundles = new QueryImpl(new Key[] { KeyConstants._name, KeyConstants._version }, bfs.length, "bundles");
-			for (int i = 0; i < bfs.length; i++) {
-				qryBundles.setAt(KeyConstants._name, i + 1, bfs[i].getSymbolicName());
-				if (bfs[i].getVersion() != null) qryBundles.setAt(KeyConstants._version, i + 1, bfs[i].getVersionAsString());
+			Query qryBundles = new QueryImpl(new Key[] { KeyConstants._name, KeyConstants._version }, bfs == null ? 0 : bfs.length, "bundles");
+			if (bfs != null) {
+				for (int i = 0; i < bfs.length; i++) {
+					qryBundles.setAt(KeyConstants._name, i + 1, bfs[i].getSymbolicName());
+					if (bfs[i].getVersion() != null) qryBundles.setAt(KeyConstants._version, i + 1, bfs[i].getVersionAsString());
+				}
 			}
-			sct.set(BUNDLES, qryBundles);
+			sct.set(KeyConstants._bundles, qryBundles);
 		}
 		catch (Exception e) {
 			throw Caster.toPageException(e);
@@ -1296,6 +1507,10 @@ public class RHExtension implements Serializable {
 		return jdbcs;
 	}
 
+	public List<Map<String, String>> getStartupHooks() {
+		return startupHooks;
+	}
+
 	public List<Map<String, String>> getMappings() {
 		return mappings;
 	}
@@ -1382,14 +1597,46 @@ public class RHExtension implements Serializable {
 		int index;
 		arrr = ListUtil.trimItems(ListUtil.listToStringArray(s, ';'));
 		ExtensionDefintion ed = new ExtensionDefintion();
+		String name;
+		Resource res;
+		Config c = ThreadLocalPageContext.getConfig();
 		for (String ss: arrr) {
+			res = null;
 			index = ss.indexOf('=');
 			if (index != -1) {
-				ed.setParam(ss.substring(0, index).trim(), ss.substring(index + 1).trim());
+				name = ss.substring(0, index).trim();
+				ed.setParam(name, ss.substring(index + 1).trim());
+				if ("path".equalsIgnoreCase(name) && c != null) {
+					res = ResourceUtil.toResourceExisting(c, ss.substring(index + 1).trim(), null);
+				}
 			}
-			else ed.setId(ss);
-		}
+			else if (ed.getId() == null || Decision.isUUId(ed.getId())) {
+				if (c == null || Decision.isUUId(ss) || (res = ResourceUtil.toResourceExisting(ThreadLocalPageContext.getConfig(), ss.trim(), null)) == null) ed.setId(ss);
+			}
 
+			if (res != null && res.isFile()) {
+
+				Resource trgDir = c.getLocalExtensionProviderDirectory();
+				Resource trg = trgDir.getRealResource(res.getName());
+				if (!res.equals(trg) && !trg.isFile()) {
+					try {
+						IOUtil.copy(res, trg);
+					}
+					catch (IOException e) {
+						e.printStackTrace();
+					}
+				}
+				if (!trg.isFile()) continue;
+
+				try {
+					return new RHExtension(c, trg).toExtensionDefinition();
+				}
+				catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+
+		}
 		return ed;
 	}
 
@@ -1424,5 +1671,48 @@ public class RHExtension implements Serializable {
 		ed.setParam("symbolic-name", getSymbolicName());
 		ed.setParam("description", getDescription());
 		return ed;
+	}
+
+	@Override
+	public String toString() {
+		ExtensionDefintion ed = new ExtensionDefintion(getId(), getVersion());
+		ed.setParam("symbolic-name", getSymbolicName());
+		ed.setParam("description", getDescription());
+		return ed.toString();
+	}
+
+	public static void removeDuplicates(Array arrExtensions) throws PageException, BundleException {
+		Iterator<Entry<Key, Object>> it = arrExtensions.entryIterator();
+		Entry<Key, Object> e;
+		Struct child;
+		String id, version;
+		Map<String, Pair<Version, Key>> existing = new HashMap<>();
+		List<Integer> toremove = null;
+		Pair<Version, Key> pair;
+		while (it.hasNext()) {
+			e = it.next();
+			child = Caster.toStruct(e.getValue(), null);
+			if (child == null) continue;
+			id = Caster.toString(child.get(KeyConstants._id, null), null);
+			if (StringUtil.isEmpty(id)) continue;
+			pair = existing.get(id);
+			version = Caster.toString(child.get(KeyConstants._version, null), null);
+			if (StringUtil.isEmpty(version)) continue;
+			Version nv = OSGiUtil.toVersion(version);
+			if (pair != null) {
+				if (toremove == null) toremove = new ArrayList<>();
+				toremove.add(Caster.toInteger(OSGiUtil.isNewerThan(pair.getName(), nv) ? e.getKey() : pair.getValue()));
+
+			}
+			existing.put(id, new Pair<Version, Key>(nv, e.getKey()));
+		}
+
+		if (toremove != null) {
+			int[] removes = ArrayUtil.toIntArray(toremove);
+			Arrays.sort(removes);
+			for (int i = removes.length - 1; i >= 0; i--) {
+				arrExtensions.removeE(removes[i]);
+			}
+		}
 	}
 }

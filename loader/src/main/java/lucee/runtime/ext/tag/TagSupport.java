@@ -41,7 +41,7 @@ public abstract class TagSupport implements Tag {
 	/**
 	 * sets a Lucee PageContext
 	 * 
-	 * @param pageContext
+	 * @param pageContext page context
 	 */
 	public void setPageContext(final PageContext pageContext) {
 		this.pageContext = pageContext;
@@ -99,11 +99,11 @@ public abstract class TagSupport implements Tag {
 	/**
 	 * check if value is not empty
 	 * 
-	 * @param tagName
-	 * @param actionName
-	 * @param attributeName
-	 * @param attribute
-	 * @throws PageException
+	 * @param tagName tag name
+	 * @param actionName action name
+	 * @param attributeName attribute name
+	 * @param attribute attribute
+	 * @throws PageException Page Exception
 	 */
 	public void required(final String tagName, final String actionName, final String attributeName, final Object attribute) throws PageException {
 		if (attribute == null) {

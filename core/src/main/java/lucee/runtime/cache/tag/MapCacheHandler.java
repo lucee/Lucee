@@ -31,7 +31,8 @@ public abstract class MapCacheHandler implements CacheHandler {
 	private int cacheType;
 	private String id;
 
-	public MapCacheHandler() {}
+	public MapCacheHandler() {
+	}
 
 	@Override
 	public void init(ConfigWeb cw, String id, int cacheType) {

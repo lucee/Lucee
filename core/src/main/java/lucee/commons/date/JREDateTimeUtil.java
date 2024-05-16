@@ -18,6 +18,8 @@
  */
 package lucee.commons.date;
 
+import java.time.DayOfWeek;
+import java.time.temporal.WeekFields;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Locale;
@@ -32,6 +34,7 @@ import lucee.runtime.type.dt.DateTime;
 
 public class JREDateTimeUtil extends DateTimeUtil {
 
+	private static final long SEVEN_DAYS = 604800000L;
 	private static CalendarThreadLocal _calendar = new CalendarThreadLocal();
 	private static CalendarThreadLocal calendar = new CalendarThreadLocal();
 	private static LocaleCalendarThreadLocal _localeCalendar = new LocaleCalendarThreadLocal();
@@ -148,7 +151,15 @@ public class JREDateTimeUtil extends DateTimeUtil {
 
 	@Override
 	public synchronized int getDayOfWeek(Locale locale, TimeZone tz, DateTime dt) {
-		return _get(locale, tz, dt, Calendar.DAY_OF_WEEK);
+		// TODO improve for locale not starting the week with Sunday or Monday
+		WeekFields weekFields = WeekFields.of(locale);
+		DayOfWeek firstDay = weekFields.getFirstDayOfWeek();
+		int fd = firstDay.getValue();
+		if (fd == 7) fd = 0;
+		int raw = _get(locale, tz, dt, Calendar.DAY_OF_WEEK);
+		int result = raw - fd;
+		if (result < 1) return 7 + result;
+		return result;
 	}
 
 	@Override
@@ -165,12 +176,11 @@ public class JREDateTimeUtil extends DateTimeUtil {
 		Calendar c = _getThreadCalendar(locale, tz);
 		c.setTimeInMillis(dt.getTime());
 		int week = c.get(Calendar.WEEK_OF_YEAR);
-
+		// alreay counted as week of next year
 		if (week == 1 && c.get(Calendar.MONTH) == Calendar.DECEMBER) {
-			if (isLeapYear(c.get(Calendar.YEAR)) && c.get(Calendar.DAY_OF_WEEK) == 1) {
-				return 54;
-			}
-			return 53;
+			// seven days before plus one
+			c.setTimeInMillis(dt.getTime() - SEVEN_DAYS);
+			return c.get(Calendar.WEEK_OF_YEAR) + 1;
 		}
 		return week;
 	}

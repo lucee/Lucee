@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase"{
+component extends="org.lucee.cfml.test.LuceeTestCase"  labels="pdf"{
 	function beforeAll() {
 		uri = createURI("LDEV0510");
 		if(not fileExists('#uri#/test.pdf')){

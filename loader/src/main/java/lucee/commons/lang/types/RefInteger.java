@@ -25,14 +25,8 @@ public interface RefInteger {
 
 	public void setValue(int value);
 
-	/**
-	 * operation plus
-	 */
 	public void plus(int value);
 
-	/**
-	 * operation minus
-	 */
 	public void minus(int value);
 
 	/**

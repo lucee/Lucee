@@ -22,9 +22,11 @@ import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 
+import lucee.commons.lang.HTMLEntities;
 import lucee.commons.lang.mimetype.MimeType;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageSource;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.listener.RequestListener;
 import lucee.runtime.type.Struct;
@@ -62,8 +64,8 @@ public class RestRequestListener implements RequestListener {
 		req.setAttribute("rest-result", result);
 
 		if (result == null) {
-			RestUtil.setStatus(pc, 404, "no rest service for [" + path + "] found in mapping [" + mapping.getVirtual() + "]");
-			pc.getConfig().getLog("rest").error("REST", "no rest service for [" + path + "] found in mapping [" + mapping.getVirtual() + "]");
+			RestUtil.setStatus(pc, 404, "no rest service for [" + HTMLEntities.escapeHTML(path) + "] found in mapping [" + mapping.getVirtual() + "]");
+			ThreadLocalPageContext.getLog(pc, "rest").error("REST", "no rest service for [" + path + "] found in mapping [" + mapping.getVirtual() + "]");
 			return null;
 		}
 

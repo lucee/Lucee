@@ -191,14 +191,14 @@ public final class CompressResource extends ResourceSupport {
 	@Override
 	public void remove(boolean force) throws IOException {
 		Resource rr = getRamResource();
-		if (rr.getParent() == null) throw new IOException("can't remove root resource [" + getPath() + "]");
+		if (rr.getParent() == null) throw new IOException("Can't remove root resource [" + getPath() + "]");
 
-		if (!rr.exists()) throw new IOException("can't remove resource [" + getPath() + "],resource does not exist");
+		if (!rr.exists()) throw new IOException("Can't remove resource [" + getPath() + "], resource does not exist");
 
 		Resource[] children = listResources();
 		if (children != null && children.length > 0) {
 			if (!force) {
-				throw new IOException("can't delete directory [" + getPath() + "], directory is not empty");
+				throw new IOException("Can't delete directory [" + getPath() + "], directory is not empty");
 			}
 			for (int i = 0; i < children.length; i++) {
 				children[i].remove(true);

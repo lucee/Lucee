@@ -1,28 +1,10 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" {
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="cache" {
 	
 	variables.cacheName="Test"&ListFirst(ListLast(getCurrentTemplatePath(),"\/"),".");
-
-	variables.parentFolder=getDirectoryFromPath(getCurrentTemplatePath())&"/datasource/";
-	variables.datasourceFolder=variables.parentFolder&"cacheClear/";
-
-
+	
 	private struct function getMongoDBCredentials() {
-		// getting the credetials from the enviroment variables
-		var mongoDB={};
-		if(!isNull(server.system.environment.MONGODB_SERVER) && !isNull(server.system.environment.MONGODB_PORT) && !isNull(server.system.environment.MONGODB_USERNAME) && !isNull(server.system.environment.MONGODB_PASSWORD)) {
-			mongoDB.server=server.system.environment.MONGODB_SERVER;
-			mongoDB.port=server.system.environment.MONGODB_PORT;
-			mongoDB.user=server.system.environment.MONGODB_USERNAME;
-			mongoDB.pass=server.system.environment.MONGODB_PASSWORD;
-		}
-		// getting the credetials from the system variables
-		else if(!isNull(server.system.properties.MONGODB_SERVER) && !isNull(server.system.properties.MONGODB_PORT) && !isNull(server.system.properties.MONGODB_USERNAME) && !isNull(server.system.properties.MONGODB_PASSWORD)) {
-			mongoDB.server=server.system.properties.MONGODB_SERVER;
-			mongoDB.port=server.system.properties.MONGODB_PORT;
-			mongoDB.user=server.system.properties.MONGODB_USERNAME;
-			mongoDB.pass=server.system.properties.MONGODB_PASSWORD;
-		}
-		return mongoDB;
+		// getting the credentials from the environment variables
+		return server.getDatasource("mongoDB");
 	}
 
 	private void function defineDatasource(id, boolean asMongo=false){
@@ -61,29 +43,13 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 				custom="#{timeToLiveSeconds:86400,timeToIdleSeconds:86400}#";
 		}
 
-
-
-		if(!directoryExists(variables.datasourceFolder)) directoryCreate(variables.datasourceFolder);
-		application 
-			action="update" 
-			cache={
-				query:"_cacheClear"&id
+		application action="update" 
+			cache={query:"_cacheClear"&id}
+			datasources={
+				'cacheClear_1': server.getDatasource( "h2", server._getTempDir( "cacheClear_1#id#" ) )
+				,'cacheClear_2': server.getDatasource( "h2", server._getTempDir( "cacheClear_2#id#" ) )
 			}
-			
-		datasources="#{
-			'cacheClear_1':{
-		  		class: 'org.hsqldb.jdbcDriver'
-				, bundleName: 'org.hsqldb.hsqldb'
-				, bundleVersion: '2.3.2'
-				, connectionString: 'jdbc:hsqldb:file:#variables.datasourceFolder#/cacheClear_1'&id
-			}
-			,'cacheClear_2':{
-		  		class: 'org.hsqldb.jdbcDriver'
-				, bundleName: 'org.hsqldb.hsqldb'
-				, bundleVersion: '2.3.2'
-				, connectionString: 'jdbc:hsqldb:file:#variables.datasourceFolder#/cacheClear_2'&id
-			}
-		}#";
+		;
 	}
 
 
@@ -103,17 +69,17 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 			before=arrayLen(idsBefore);
 			
 			query cachedwithin=createTimeSpan(0,0,1,0) name="qry1" datasource="cacheClear_1" tags=['tables'] {
-				echo('SELECT top 1 TABLE_NAME as tn,''cacheClear_1'' as ds FROM  INFORMATION_SCHEMA.SYSTEM_TABLES');
+				echo('SELECT TABLE_NAME as tn,''cacheClear_1'' as ds FROM  INFORMATION_SCHEMA.TABLES');
 			}
 			query cachedwithin=createTimeSpan(0,0,1,0) name="qry1" datasource="cacheClear_2" tags=['tables'] {
-				echo('SELECT top 1 TABLE_NAME as tn,''cacheClear_2'' as ds FROM  INFORMATION_SCHEMA.SYSTEM_TABLES');
+				echo('SELECT TABLE_NAME as tn,''cacheClear_2'' as ds FROM  INFORMATION_SCHEMA.TABLES');
 			}
 
 			query cachedwithin=createTimeSpan(0,0,1,0) name="qry1" datasource="cacheClear_1" tags=['tables2'] {
-				echo('SELECT top 1 TABLE_NAME as tn,''cacheClear_111'' as ds FROM  INFORMATION_SCHEMA.SYSTEM_TABLES');
+				echo('SELECT TABLE_NAME as tn,''cacheClear_111'' as ds FROM  INFORMATION_SCHEMA.TABLES');
 			}
 			query cachedwithin=createTimeSpan(0,0,1,0) name="qry1" datasource="cacheClear_2" tags=['tables2'] {
-				echo('SELECT top 1 TABLE_NAME as tn,''cacheClear_222'' as ds FROM  INFORMATION_SCHEMA.SYSTEM_TABLES');
+				echo('SELECT TABLE_NAME as tn,''cacheClear_222'' as ds FROM  INFORMATION_SCHEMA.TABLES');
 			}
 			idsAfter.a=cacheGetAllIds(cacheName:"_cacheClear"&id);
 			assertEquals(4,arrayLen(idsAfter.a)-before);
@@ -135,17 +101,26 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 		}
 		finally {
 			cacheClear(cacheName:"_cacheClear"&id);
-			directoryDelete(variables.datasourceFolder,true);
 		}
 	}
-
-
+	
+	function testCacheClearMongoDB() {
+		if (!extensionExists("E6634E1A-4CC5-4839-A83C67549ECA8D5B")) 
+			return;
+		// TODO add mongodb test	
+		//createEHCache();
+		//testCacheClear();
+		//deleteCache();
+	}
 
 	function testCacheClearEHCache() {
+		if (!extensionExists("87FE44E5-179C-43A3-A87B3D38BEF4652E")) 
+			return;
 		createEHCache();
 		testCacheClear();
 		deleteCache();
 	}
+
 	function testCacheClearRAMCache() {
 		createRAMCache();
 		testCacheClear();
@@ -252,4 +227,5 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 		    assertEquals("#cacheCount(cacheName)#", "1");
     	}
 	}
+	
 }

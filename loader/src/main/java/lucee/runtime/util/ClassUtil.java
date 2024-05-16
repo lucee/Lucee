@@ -41,7 +41,8 @@ public interface ClassUtil {
 	 * loads Class that match given classname, this Class can be from the Lucee core as well
 	 * 
 	 * @param className name of the Class to load
-	 * @throws IOException
+	 * @return Class
+	 * @throws IOException IO Exception
 	 */
 	public Class<?> loadClass(String className) throws IOException;
 
@@ -49,11 +50,13 @@ public interface ClassUtil {
 	 * loads Class that match given classname and the given bundle name and version, this Class can be
 	 * from the Lucee core as well
 	 * 
+	 * @param pc Page Context
 	 * @param className name of the Class to load
 	 * @param bundleName name of the bundle to load from
 	 * @param bundleVersion version of the bundle to load from (if null ignored)
-	 * @throws BundleException
-	 * @throws IOException
+	 * @return class
+	 * @throws BundleException Bundle Exception
+	 * @throws IOException IO Exception
 	 */
 	public Class<?> loadClass(PageContext pc, String className, String bundleName, String bundleVersion) throws BundleException, IOException;
 
@@ -125,9 +128,9 @@ public interface ClassUtil {
 	 * 
 	 * @param src Object to convert
 	 * @param trgClass Target Class
-	 * @param rating
+	 * @param rating rating
 	 * @return converted Object
-	 * @throws PageException
+	 * @throws PageException Page Exception
 	 */
 	public Object convert(Object src, Class<?> trgClass, RefInteger rating) throws PageException;
 
@@ -137,7 +140,7 @@ public interface ClassUtil {
 	 * @param clazz Class to search the field
 	 * @param name name to search
 	 * @return Matching Field
-	 * @throws NoSuchFieldException
+	 * @throws NoSuchFieldException No Such Field Exception
 	 */
 	public Field[] getFieldsIgnoreCase(Class<?> clazz, String name) throws NoSuchFieldException;
 
@@ -155,7 +158,7 @@ public interface ClassUtil {
 	 * @param clazz Class to get Instance
 	 * @param args Arguments for the Class
 	 * @return invoked Instance
-	 * @throws PageException
+	 * @throws PageException Page Exception
 	 */
 	public Object callConstructor(Class<?> clazz, Object[] args) throws PageException;
 
@@ -168,7 +171,7 @@ public interface ClassUtil {
 	 * @param methodName Name of the Method to get
 	 * @param args Arguments of the Method to get
 	 * @return return return value of the called Method
-	 * @throws PageException
+	 * @throws PageException Page Exception
 	 */
 	public Object callMethod(Object obj, Collection.Key methodName, Object[] args) throws PageException;
 
@@ -181,7 +184,7 @@ public interface ClassUtil {
 	 * @param methodName Name of the Method to get
 	 * @param args Arguments of the Method to get
 	 * @return return return value of the called Method
-	 * @throws PageException
+	 * @throws PageException Page Exception
 	 */
 	public Object callStaticMethod(Class<?> clazz, String methodName, Object[] args) throws PageException;
 
@@ -191,7 +194,7 @@ public interface ClassUtil {
 	 * @param obj Object to invoke
 	 * @param prop property to call
 	 * @return property value
-	 * @throws PageException
+	 * @throws PageException Page Exception
 	 */
 	public Object getField(Object obj, String prop) throws PageException;
 
@@ -203,7 +206,8 @@ public interface ClassUtil {
 	 * @param obj Object to assign value to his property
 	 * @param prop name of property
 	 * @param value Value to assign
-	 * @throws PageException
+	 * @return success
+	 * @throws PageException Page Exception
 	 */
 	public boolean setField(Object obj, String prop, Object value) throws PageException;
 
@@ -213,7 +217,7 @@ public interface ClassUtil {
 	 * @param obj Object to invoke
 	 * @param prop property to call
 	 * @return property value
-	 * @throws PageException
+	 * @throws PageException Page Exception
 	 */
 	public Object getProperty(Object obj, String prop) throws PageException;
 
@@ -222,6 +226,7 @@ public interface ClassUtil {
 	 * 
 	 * @param obj Object to invoke
 	 * @param prop property to call
+	 * @param defaultValue default value
 	 * @return property value
 	 */
 	public Object getProperty(Object obj, String prop, Object defaultValue);
@@ -232,7 +237,7 @@ public interface ClassUtil {
 	 * @param obj Object to assign value to his property
 	 * @param prop name of property
 	 * @param value Value to assign
-	 * @throws PageException
+	 * @throws PageException Page Exception
 	 */
 	public void setProperty(Object obj, String prop, Object value) throws PageException;
 
@@ -248,8 +253,8 @@ public interface ClassUtil {
 	/**
 	 * return all methods that are defined by the Class itself (not extended)
 	 * 
-	 * @param clazz
-	 * @return
+	 * @param clazz class
+	 * @return Returns declared methods.
 	 */
 	public Method[] getDeclaredMethods(Class<?> clazz);
 
@@ -269,8 +274,8 @@ public interface ClassUtil {
 	/**
 	 * loads a Class from a String classname
 	 * 
-	 * @param className
-	 * @param defaultValue
+	 * @param className class name
+	 * @param defaultValue default value
 	 * @return matching Class
 	 */
 	public Class<?> loadClass(String className, Class<?> defaultValue);
@@ -278,8 +283,9 @@ public interface ClassUtil {
 	/**
 	 * loads a Class from a specified Classloader with given classname
 	 * 
-	 * @param className
-	 * @param cl
+	 * @param cl class loader
+	 * @param className class name
+	 * @param defaultValue default value
 	 * @return matching Class
 	 */
 	public Class<?> loadClass(ClassLoader cl, String className, Class<?> defaultValue);
@@ -287,10 +293,10 @@ public interface ClassUtil {
 	/**
 	 * loads a Class from a specified Classloader with given classname
 	 * 
-	 * @param className
-	 * @param cl
+	 * @param className class name
+	 * @param cl class loader
 	 * @return matching Class
-	 * @throws IOException
+	 * @throws IOException IO Exception
 	 */
 	public Class<?> loadClass(ClassLoader cl, String className) throws IOException;
 
@@ -299,7 +305,7 @@ public interface ClassUtil {
 	 * 
 	 * @param clazz Class to load
 	 * @return matching Class
-	 * @throws IOException
+	 * @throws IOException IO Exception
 	 */
 	public Object loadInstance(Class<?> clazz) throws IOException;
 
@@ -311,6 +317,7 @@ public interface ClassUtil {
 	 * loads a Class from a String classname
 	 * 
 	 * @param clazz Class to load
+	 * @param defaultValue default value
 	 * @return matching Class
 	 */
 	public Object loadInstance(Class<?> clazz, Object defaultValue);
@@ -323,10 +330,10 @@ public interface ClassUtil {
 	 * loads a Class from a String classname
 	 * 
 	 * @param clazz Class to load
-	 * @param args
+	 * @param args arguments
 	 * @return matching Class
-	 * @throws IOException
-	 * @throws InvocationTargetException
+	 * @throws IOException IO Exception
+	 * @throws InvocationTargetException Invocation Target Exception
 	 */
 	public Object loadInstance(Class<?> clazz, Object[] args) throws IOException, InvocationTargetException;
 
@@ -338,7 +345,8 @@ public interface ClassUtil {
 	 * loads a Class from a String classname
 	 * 
 	 * @param clazz Class to load
-	 * @param args
+	 * @param args arguments
+	 * @param defaultValue default value
 	 * @return matching Class
 	 */
 	public Object loadInstance(Class<?> clazz, Object[] args, Object defaultValue);
@@ -350,9 +358,9 @@ public interface ClassUtil {
 	/**
 	 * check if given stream is a bytecode stream, if yes remove bytecode mark
 	 * 
-	 * @param is
+	 * @param is Input Stream
 	 * @return is bytecode stream
-	 * @throws IOException
+	 * @throws IOException IO Exception
 	 */
 	public boolean isBytecode(InputStream is) throws IOException;
 
@@ -377,8 +385,8 @@ public interface ClassUtil {
 	/**
 	 * return an array Class based on the given Class (opposite from Class.getComponentType())
 	 * 
-	 * @param clazz
-	 * @return
+	 * @param clazz class
+	 * @return Returns an Array Class.
 	 */
 	public Class<?> toArrayClass(Class<?> clazz);
 
@@ -389,7 +397,7 @@ public interface ClassUtil {
 	 * 
 	 * @param clazz - the Class object to check, for a live object pass obj.getClass();
 	 * @param defaultValue - a value to return in case the source could not be determined
-	 * @return
+	 * @return Returns the source path for the Class.
 	 */
 	public String getSourcePathForClass(Class<?> clazz, String defaultValue);
 
@@ -398,23 +406,23 @@ public interface ClassUtil {
 	 * 
 	 * @param className - the name of the Class to check
 	 * @param defaultValue - a value to return in case the source could not be determined
-	 * @return
+	 * @return Returns the source path for the Class.
 	 */
 	public String getSourcePathForClass(String className, String defaultValue);
 
 	/**
 	 * extracts the package from a className, return null, if there is none.
 	 * 
-	 * @param className
-	 * @return
+	 * @param className Class Name
+	 * @return Returns the source path for the Class.
 	 */
 	public String extractPackage(String className);
 
 	/**
 	 * extracts the Class name of a classname with package
 	 * 
-	 * @param className
-	 * @return
+	 * @param className Class Name
+	 * @return Returns Class name.
 	 */
 	public String extractName(String className);
 

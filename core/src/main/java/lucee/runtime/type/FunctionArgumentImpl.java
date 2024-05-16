@@ -108,7 +108,8 @@ public final class FunctionArgumentImpl implements FunctionArgument, Externaliza
 	/**
 	 * NEVER USE THIS CONSTRUCTOR, this constructor is only for deserialize this object from stream
 	 */
-	public FunctionArgumentImpl() {}
+	public FunctionArgumentImpl() {
+	}
 
 	public FunctionArgumentImpl(Collection.Key name) {
 		this(name, "any", CFTypes.TYPE_ANY, false, DEFAULT_TYPE_NULL, true, "", "", null);

@@ -30,14 +30,15 @@ public interface ClusterRemote {
 	/**
 	 * set entry on stack
 	 * 
-	 * @param entry
+	 * @param entry entry
 	 */
 	public void addEntry(ClusterEntry entry);
 
 	/**
 	 * check if the value can distributed over the "cluster"
 	 * 
-	 * @param value
+	 * @param value value
+	 * @return if the value can be distributed
 	 */
 	public boolean checkValue(Object value);
 
@@ -49,8 +50,8 @@ public interface ClusterRemote {
 	public ClusterRemote duplicate();
 
 	/**
-	 * @param configServer
-	 * @param cluster
+	 * @param configServer config server
+	 * @param cluster cluster
 	 */
 	public void init(ConfigServer configServer, Cluster cluster);
 

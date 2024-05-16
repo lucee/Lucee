@@ -18,14 +18,18 @@
  **/
 package lucee.runtime.tag;
 
+import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.tag.TagImpl;
 import lucee.runtime.listener.ApplicationContext;
 import lucee.runtime.listener.ApplicationContextSupport;
 import lucee.runtime.listener.CookieData;
+import lucee.runtime.listener.SessionCookieData;
+import lucee.runtime.listener.SessionCookieDataImpl;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.KeyImpl;
+import lucee.runtime.type.scope.CookieImpl;
 import lucee.runtime.type.util.KeyConstants;
 
 /**
@@ -63,7 +67,10 @@ public final class Cookie extends TagImpl {
 
 	private boolean httponly;
 	private boolean preservecase;
-	private boolean encode = true;
+	private Boolean encode = null;
+	private boolean partitioned;
+
+	private short samesite = SessionCookieData.SAMESITE_EMPTY;
 
 	@Override
 	public void release() {
@@ -76,7 +83,9 @@ public final class Cookie extends TagImpl {
 		name = null;
 		httponly = false;
 		preservecase = false;
-		encode = true;
+		encode = null;
+		samesite = SessionCookieData.SAMESITE_EMPTY;
+		partitioned = false;
 	}
 
 	/**
@@ -165,9 +174,17 @@ public final class Cookie extends TagImpl {
 		this.encode = encode;
 	}
 
+	public void setSamesite(String samesite) throws ApplicationException {
+		this.samesite = SessionCookieDataImpl.toSamesite(samesite);
+	}
+
+	public void setPartitioned(boolean partitioned) {
+		this.partitioned = partitioned;
+	}
+
 	@Override
 	public int doStartTag() throws PageException {
-		Key key = KeyImpl.getInstance(name);
+		Key key = KeyImpl.init(name);
 		String appName = Login.getApplicationName(pageContext.getApplicationContext());
 		boolean isAppName = false;
 		if (KeyConstants._CFID.equalsIgnoreCase(key) || KeyConstants._CFTOKEN.equalsIgnoreCase(key) || (isAppName = key.equals(appName))) {
@@ -179,7 +196,7 @@ public final class Cookie extends TagImpl {
 
 			}
 		}
-		pageContext.cookieScope().setCookie(key, value, expires, secure, path, domain, httponly, preservecase, encode);
+		((CookieImpl) pageContext.cookieScope()).setCookie(key, value, expires, secure, path, domain, httponly, preservecase, encode, samesite, partitioned);
 		return SKIP_BODY;
 	}
 

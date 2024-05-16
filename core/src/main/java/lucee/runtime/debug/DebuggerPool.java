@@ -23,7 +23,7 @@ import java.util.LinkedList;
 
 import lucee.commons.io.res.Resource;
 import lucee.runtime.PageContext;
-import lucee.runtime.config.ConfigWebImpl;
+import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.net.http.ReqRspUtil;
 import lucee.runtime.op.Duplicator;
@@ -47,9 +47,10 @@ public class DebuggerPool {
 			try {
 				queue.add((Struct) Duplicator.duplicate(debugger.getDebuggingData(pc, true), true));
 			}
-			catch (PageException e) {}
+			catch (PageException e) {
+			}
 
-			while (queue.size() > ((ConfigWebImpl) pc.getConfig()).getDebugMaxRecordsLogged())
+			while (queue.size() > ((ConfigWebPro) pc.getConfig()).getDebugMaxRecordsLogged())
 				queue.poll();
 		}
 	}
@@ -64,6 +65,12 @@ public class DebuggerPool {
 			arr.appendEL(it.next());
 		}
 		return arr;
+	}
+
+	public void purge() {
+		synchronized (queue) {
+			queue.clear();
+		}
 	}
 
 }

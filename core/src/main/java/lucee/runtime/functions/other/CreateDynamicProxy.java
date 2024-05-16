@@ -58,7 +58,7 @@ public class CreateDynamicProxy implements Function {
 	public static Object _call(PageContext pc, Object oCFC, Object oInterfaces) throws PageException, IOException, BundleException {
 
 		if (SystemUtil.getLoaderVersion() < 5.9D) throw new ApplicationException(
-				"You need to update your lucee.jar to execute the function [createDynamicProxy], you can download the latest jar from http://download.lucee.org.");
+				"You need to update your lucee.jar to execute the function [createDynamicProxy], you can download the latest jar from https://download.lucee.org.");
 
 		// Component
 		Component cfc;
@@ -93,10 +93,15 @@ public class CreateDynamicProxy implements Function {
 		}
 		else throw new FunctionException(pc, "CreateDynamicProxy", 2, "interfaces", "invalid type [" + Caster.toClassName(oInterfaces) + "] for class definition");
 
+		return _call(pc, cfc, interfaces);
+	}
+
+	public static Object _call(PageContext pc, Component cfc, Class[] interfaces) throws PageException, IOException, BundleException {
+
 		// check if all classes are interfaces
 		for (int i = 0; i < interfaces.length; i++) {
 			if (!interfaces[i].isInterface())
-				throw new FunctionException(pc, "CreateDynamicProxy", 2, "interfaces", "definition [" + interfaces[i].getClass() + "] is a class and not an interface");
+				throw new FunctionException(pc, "CreateDynamicProxy", 2, "interfaces", "definition [" + interfaces[i].getClass() + "] is a class and not a interface");
 		}
 
 		return JavaProxyFactory.createProxy(pc, cfc, null, interfaces);

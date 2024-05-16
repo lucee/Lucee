@@ -221,9 +221,9 @@ Redirtect to entry --->
 				<tfoot>
 					<tr>
 						<td colspan="4">
-							<input type="submit" class="bl button submit" name="mainAction" value="#stText.Buttons.verify#">
-							<input type="submit" class="bm button submit" name="mainAction" value="#stText.Buttons.delete#">
-							<input type="reset" class="br button reset" name="cancel" value="#stText.Buttons.Cancel#">
+							<input type="submit" class="bl button submit enablebutton" name="mainAction" value="#stText.Buttons.verify#">
+							<input type="submit" class="bm button submit enablebutton" name="mainAction" value="#stText.Buttons.delete#">
+							<input type="reset" class="br button reset enablebutton" id="clickCancel" name="cancel" value="#stText.Buttons.Cancel#">
 						</td>	
 					</tr>
 				</tfoot>
@@ -301,7 +301,7 @@ this.cache.webservice = "#!hasWSe?"&lt;cache-name>":defaults.webservice#";
 					<tr>
 						<td colspan="2">
 							<input type="submit" class="<cfif request.adminType EQ "web">bl<cfelse>bs</cfif> button submit" name="mainAction" value="#stText.Buttons.update#">
-							<cfif request.adminType EQ "web">
+							<cfif not request.singleMode and request.adminType EQ "web">
 								<input class="br button submit" type="submit" name="mainAction" value="#stText.Buttons.resetServerAdmin#">
 							</cfif>
 						</td>

@@ -24,11 +24,12 @@ import java.util.Date;
 import java.util.Locale;
 import java.util.TimeZone;
 
-import javax.servlet.jsp.JspException;
-import javax.servlet.jsp.JspTagException;
-import javax.servlet.jsp.PageContext;
 import javax.servlet.jsp.tagext.BodyContent;
 import javax.servlet.jsp.tagext.BodyTagSupport;
+
+import lucee.runtime.PageContext;
+import lucee.runtime.exp.ApplicationException;
+import lucee.runtime.exp.PageException;
 
 public final class FormatTag extends BodyTagSupport {
 
@@ -64,7 +65,7 @@ public final class FormatTag extends BodyTagSupport {
 	 * @return EVAL_BODY_TAG
 	 */
 	@Override
-	public final int doStartTag() throws JspException {
+	public final int doStartTag() throws PageException {
 		output_date = date;
 		return EVAL_BODY_TAG;
 	}
@@ -75,7 +76,7 @@ public final class FormatTag extends BodyTagSupport {
 	 * @return SKIP_BODY
 	 */
 	@Override
-	public final int doAfterBody() throws JspException {
+	public final int doAfterBody() throws PageException {
 		// Use the body of the tag as input for the date
 		BodyContent body = getBodyContent();
 		String s = body.getString().trim();
@@ -87,7 +88,8 @@ public final class FormatTag extends BodyTagSupport {
 				time = Long.valueOf(s).longValue();
 				output_date = new Date(time);
 			}
-			catch (NumberFormatException nfe) {}
+			catch (NumberFormatException nfe) {
+			}
 		}
 
 		return SKIP_BODY;
@@ -99,7 +101,7 @@ public final class FormatTag extends BodyTagSupport {
 	 * @return EVAL_PAGE
 	 */
 	@Override
-	public final int doEndTag() throws JspException {
+	public final int doEndTag() throws PageException {
 		String date_formatted = default_text;
 
 		if (output_date != null) {
@@ -121,7 +123,7 @@ public final class FormatTag extends BodyTagSupport {
 			if (symbolsRef != null) {
 				symbols = (DateFormatSymbols) pageContext.findAttribute(symbolsRef);
 				if (symbols == null) {
-					throw new JspException("datetime format tag could not find dateFormatSymbols for symbolsRef \"" + symbolsRef + "\".");
+					throw new ApplicationException("datetime format tag could not find dateFormatSymbols for symbolsRef \"" + symbolsRef + "\".");
 				}
 			}
 
@@ -129,7 +131,7 @@ public final class FormatTag extends BodyTagSupport {
 			if (localeRef != null) {
 				Locale locale = (Locale) pageContext.findAttribute(localeRef);
 				if (locale == null) {
-					throw new JspException("datetime format tag could not find locale for localeRef \"" + localeRef + "\".");
+					throw new ApplicationException("datetime format tag could not find locale for localeRef \"" + localeRef + "\".");
 				}
 
 				sdf = new SimpleDateFormat(pat, locale);
@@ -148,7 +150,7 @@ public final class FormatTag extends BodyTagSupport {
 			if (timeZone_string != null) {
 				TimeZone timeZone = (TimeZone) pageContext.getAttribute(timeZone_string, PageContext.SESSION_SCOPE);
 				if (timeZone == null) {
-					throw new JspTagException("Datetime format tag timeZone " + "script variable \"" + timeZone_string + " \" does not exist");
+					throw new ApplicationException("Datetime format tag timeZone " + "script variable \"" + timeZone_string + " \" does not exist");
 				}
 				sdf.setTimeZone(timeZone);
 			}
@@ -161,7 +163,7 @@ public final class FormatTag extends BodyTagSupport {
 			pageContext.getOut().write(date_formatted);
 		}
 		catch (Exception e) {
-			throw new JspException("IO Error: " + e.getMessage());
+			throw new ApplicationException("IO Error: " + e.getMessage());
 		}
 
 		return EVAL_PAGE;

@@ -80,7 +80,7 @@ public interface Resource extends Serializable {
 	 * then the directory must be empty, when argument "force" is set to false, when argument "force" is
 	 * set to true, also the children of the directory will be deleted.
 	 * 
-	 * @param force
+	 * @param force force the removal
 	 * 
 	 * @throws IOException if the file doesn't exists or can't delete
 	 */
@@ -94,6 +94,7 @@ public interface Resource extends Serializable {
 	 * if the file doesn't exists or can't delete
 	 * 
 	 * @deprecated replaced with method remove(boolean)
+	 * @return was delete sucessfull or not
 	 */
 	@Deprecated
 	public boolean delete();
@@ -101,8 +102,8 @@ public interface Resource extends Serializable {
 	/**
 	 * Tests whether the resource denoted by this abstract pathname exists.
 	 * 
-	 * @return <code>true</code> if and only if the resource denoted by this abstract pathname exists;
-	 *         <code>false</code> otherwise
+	 * @return true if and only if the resource denoted by this abstract pathname exists; false
+	 *         otherwise
 	 */
 	public abstract boolean exists();
 
@@ -527,6 +528,7 @@ public interface Resource extends Serializable {
 	 * operation fails it may have succeeded in creating some of the necessary parent directories.
 	 * 
 	 * @param createParentWhenNotExists throws Exception when can't create directory
+	 * @throws IOException in case copy fails
 	 */
 	public void createDirectory(boolean createParentWhenNotExists) throws IOException;
 
@@ -539,6 +541,7 @@ public interface Resource extends Serializable {
 	 * 
 	 * @param res resource to copy to
 	 * @param append do append value to existing data or overwrite
+	 * @throws IOException in case copy fails
 	 */
 	public void copyTo(Resource res, boolean append) throws IOException;
 
@@ -547,6 +550,7 @@ public interface Resource extends Serializable {
 	 * 
 	 * @param res resource to copy from
 	 * @param append do append value to existing data or overwrite
+	 * @throws IOException in case copy fails
 	 */
 	public void copyFrom(Resource res, boolean append) throws IOException;
 

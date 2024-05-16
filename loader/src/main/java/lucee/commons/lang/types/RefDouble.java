@@ -25,14 +25,8 @@ public interface RefDouble {
 
 	public void setValue(double value);
 
-	/**
-	 * operation plus
-	 */
 	public void plus(double value);
 
-	/**
-	 * operation minus
-	 */
 	public void minus(double value);
 
 	/**

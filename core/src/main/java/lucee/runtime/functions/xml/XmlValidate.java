@@ -25,24 +25,46 @@ import lucee.runtime.PageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.op.Caster;
+import lucee.runtime.op.Decision;
 import lucee.runtime.text.xml.XMLUtil;
 import lucee.runtime.type.Struct;
+import lucee.runtime.type.util.ListUtil;
 
 /**
  * 
  */
 public final class XmlValidate implements Function {
 
+	private static final long serialVersionUID = 3566454779506863837L;
+
 	public static Struct call(PageContext pc, String strXml) throws PageException {
 		return call(pc, strXml, null);
 	}
 
-	public static Struct call(PageContext pc, String strXml, String strValidator) throws PageException {
-		strXml = strXml.trim();
+	public static Struct call(PageContext pc, String strXml, Object objValidator) throws PageException {
 		try {
-			InputSource xml = XMLUtil.toInputSource(pc, strXml);
-			InputSource validator = StringUtil.isEmpty(strValidator) ? null : XMLUtil.toInputSource(pc, strValidator);
-			return XMLUtil.validate(xml, validator, strValidator);
+
+			// no validator
+			if (StringUtil.isEmpty(objValidator)) {
+				InputSource xml = XMLUtil.toInputSource(pc, strXml.trim());
+				return XMLUtil.validate(xml, null, null, null);
+			}
+
+			// single validator
+			if (!Decision.isArray(objValidator)) {
+				InputSource xml = XMLUtil.toInputSource(pc, strXml.trim());
+				String strValidator = Caster.toString(objValidator);
+				return XMLUtil.validate(xml, XMLUtil.toInputSource(pc, strValidator), strValidator, null);
+			}
+
+			// multiple validators
+			Struct result = null;
+			String[] strValidators = ListUtil.toStringArray(Caster.toArray(objValidator));
+			for (String strValidator: strValidators) {
+				InputSource xml = XMLUtil.toInputSource(pc, strXml.trim());
+				result = XMLUtil.validate(xml, XMLUtil.toInputSource(pc, strValidator), strValidator, result);
+			}
+			return result;
 		}
 		catch (Exception e) {
 			throw Caster.toPageException(e);

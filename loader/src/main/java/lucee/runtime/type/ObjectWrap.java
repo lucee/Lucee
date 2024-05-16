@@ -27,6 +27,7 @@ public interface ObjectWrap {
 	/**
 	 * returns embedded Object EL
 	 * 
+	 * @param defaultValue default value
 	 * @return embedded Object
 	 */
 	public Object getEmbededObject(Object defaultValue);
@@ -35,7 +36,7 @@ public interface ObjectWrap {
 	 * returns embedded Object
 	 * 
 	 * @return embedded Object
-	 * @throws PageException
+	 * @throws PageException Page Exception
 	 */
 	public Object getEmbededObject() throws PageException;
 

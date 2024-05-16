@@ -3,4 +3,9 @@ component {
 	this.setclientcookies = true;
 	this.clientmanagement = false;
 	this.sessionmanagement = true;
+
+
+	public function onRequestStart() {
+		setting requesttimeout=10;
+	}
 }

@@ -117,16 +117,17 @@ public interface SystemUtil {
 	 * returns the Temp Directory of the System
 	 * 
 	 * @return temp directory
-	 * @throws IOException
+	 * @throws IOException IO Exception
 	 */
 	public Resource getTempDirectory() throws IOException;
 
 	/**
 	 * returns a unique temp file (with no auto delete)
 	 * 
-	 * @param extension
+	 * @param extension File Extension
+	 * @param touch touch
 	 * @return temp directory
-	 * @throws IOException
+	 * @throws IOException IO Exception
 	 */
 	public Resource getTempFile(String extension, boolean touch) throws IOException;
 
@@ -141,7 +142,7 @@ public interface SystemUtil {
 	 * replace path placeholder with the real path, placeholders are
 	 * [{temp-directory},{system-directory},{home-directory}]
 	 * 
-	 * @param path
+	 * @param path path
 	 * @return updated path
 	 */
 	public String parsePlaceHolder(String path);
@@ -195,6 +196,9 @@ public interface SystemUtil {
 
 	/**
 	 * set the printer writer for System.out or System.err
+	 * 
+	 * @param type Type
+	 * @param pw Print Writer
 	 */
 	public void setPrintWriter(int type, PrintWriter pw);
 
@@ -202,7 +206,7 @@ public interface SystemUtil {
 	 * get the printer writer for System.out or System.err
 	 * 
 	 * @param type OUT or ERR
-	 * @return
+	 * @return Returns a Print Writer.
 	 */
 	public PrintWriter getPrintWriter(int type);
 
@@ -220,7 +224,7 @@ public interface SystemUtil {
 	/**
 	 * add resource to "java.library.path"
 	 * 
-	 * @param res
+	 * @param res Resource
 	 */
 	public void addLibraryPath(Resource res);
 

@@ -1,5 +1,13 @@
 component extends="org.lucee.cfml.test.LuceeTestCase"{	
-function testMemberFunction(){
+	function beforeAll(){
+		setLocale("en_us");
+	}
+
+	function afterAll(){
+		setLocale("en_us");
+	}
+
+	function testMemberFunction(){
 		local.orgLocale=getLocale();
 		setLocale("German (Swiss)");
 		setTimeZone('CET');

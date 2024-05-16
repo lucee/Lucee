@@ -27,4 +27,9 @@ component {
     	loadColdFusionClassPath = true, 
     	reloadOnChange = false
 	}
+	
+	public function onRequestStart() {
+		setting requesttimeout=10;
+	}
+
 }

@@ -53,6 +53,10 @@
 			</tbody>
 		</table>
 
+
+
+
+<cfif not request.singlemode>
 <!--- <cfformClassic onerror="customError" action="#go(url.action,"update#iif(type EQ "generell",de('Default'),de(''))#SecurityManager")#" method="post">--->
 		<h2>#stText.Security.WebAdministrator#</h2>
 		<div class="itemintro">#stText.Security.WebAdministratorDescription#</div>
@@ -227,7 +231,7 @@
 							}
 						</script>
 						<table class="tbl">
-							<tbody>
+							<tbody id="fileAccessBody">
 								<tr name="fileAccess" style="display:#access.file EQ 'local'?'':'none'#">
 									<td colspan="5">#stText.Security.FileCustom#
 										<div class="comment">#stText.Security.FileCustomDesc#</div>
@@ -247,7 +251,7 @@
 								</cfloop>
 								<!--- INSERT --->
 								<tr name="fileAccess" style="display:#access.file EQ 'local'?'':'none'#">
-									<td nowrap><cfinputClassic type="text" name="path_#arrayLen(access.file_access)+1#" value="" required="no" class="large"></td>
+									<td nowrap><cfinputClassic type="text" name="path_#arrayLen(access.file_access)+1#" value="" required="no" class="large"> <input type="button" name="addFileAccessDirectory" class="addFileAccessDirectory button" data-index="#arrayLen(access.file_access)+1#" value="Add"></td>
 								</tr>
 							</tbody>
 						</table>
@@ -274,6 +278,13 @@
 			</tbody>
 		</table>
 		
+		<!--- This code allows you to add multiple file access directories in one request.   Otherwise you can prevent Lucee from functioning by accident, forcing the developer to modify the XML directly and restart Lucee to fix the problem.  --->
+		<cfsavecontent variable="fileAccessDirectoryTemplate">
+			<tr name="fileAccess">
+				<td nowrap><cfinputClassic type="text" name="{FIELDNAME}" value="" required="no" class="large"> <input type="button" name="addFileAccessDirectory" class="addFileAccessDirectory button" value="Add" data-index="{INDEX}" onclick="this.style.display='none';"></td>
+			</tr>
+		</cfsavecontent>
+		<input type="hidden" name="fileAccessDirectoryTemplate" id="fileAccessDirectoryTemplate" value="#htmleditformat(fileAccessDirectoryTemplate)#">
 		
 		
 		
@@ -325,16 +336,22 @@
 				<cfif type NEQ "special">
 					<cfmodule template="remoteclients.cfm" colspan="2">
 				</cfif>
+			
 			</tbody>
-			<tfoot>
-				<tr>
-					<td colspan="2">
-						<input type="hidden" name="mainAction" value="#prefix#Udpate">
-						<input type="submit" class="button submit" name="subAction" value="#stText.Buttons.Update#">
-						<input onclick="window.location='#go(url.action)#';" type="button" class="button" name="cancel" value="#stText.Buttons.Cancel#">
-					</td>
-				</tr>
-			</tfoot>
 		</table>
+</cfif>
+
+	<table class="maintbl">
+		<tfoot>
+			<tr>
+				<td colspan="2">
+					<input type="hidden" name="mainAction" value="#prefix#Udpate">
+					<input type="submit" class="button submit" name="subAction" value="#stText.Buttons.Update#">
+					<input onclick="window.location='#go(url.action)#';" type="button" class="button" name="cancel" value="#stText.Buttons.Cancel#">
+				</td>
+			</tr>
+		</tfoot>
+	</table>
+
 	</cfformClassic>
 </cfoutput>

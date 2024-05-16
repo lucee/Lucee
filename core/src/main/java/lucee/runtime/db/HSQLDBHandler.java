@@ -4,17 +4,17 @@
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either 
+ * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public 
+ *
+ * You should have received a copy of the GNU Lesser General Public
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  **/
 package lucee.runtime.db;
 
@@ -32,12 +32,16 @@ import java.util.Iterator;
 import java.util.Set;
 
 import lucee.commons.db.DBUtil;
+import lucee.commons.io.SystemUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.SerializableObject;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigPro;
+import lucee.runtime.config.DatasourceConnPool;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.DatabaseException;
+import lucee.runtime.exp.IllegalQoQException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.date.DateCaster;
@@ -54,7 +58,7 @@ import lucee.runtime.type.dt.TimeSpan;
 import lucee.runtime.type.util.CollectionUtil;
 
 /**
- * class to reexecute queries on the resultset object inside the cfml enviroment
+ * class to reexecute queries on the resultset object inside the cfml environment
  */
 public final class HSQLDBHandler {
 
@@ -69,6 +73,13 @@ public final class HSQLDBHandler {
 	Executer executer = new Executer();
 	QoQ qoq = new QoQ();
 	private static Object lock = new SerializableObject();
+	private static boolean hsqldbDisable;
+	private static boolean hsqldbDebug;
+
+	static {
+		hsqldbDisable = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.qoq.hsqldb.disable", "false"), false);
+		hsqldbDebug = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.qoq.hsqldb.debug", "false"), false);
+	}
 
 	/**
 	 * constructor of the class
@@ -79,7 +90,7 @@ public final class HSQLDBHandler {
 
 	/**
 	 * adds a table to the memory database
-	 * 
+	 *
 	 * @param conn
 	 * @param pc
 	 * @param name name of the new table
@@ -152,7 +163,7 @@ public final class HSQLDBHandler {
 					else if (type == TIMESTAMP)
 						prepStat.setTimestamp(i + 1, (value.equals("")) ? null : new Timestamp(DateCaster.toDateAdvanced(query.getAt(keys[i], y + 1), pc.getTimeZone()).getTime()));
 					else if (type == DOUBLE) prepStat.setDouble(i + 1, (value.equals("")) ? 0 : Caster.toDoubleValue(query.getAt(keys[i], y + 1)));
-					else if (type == INT) prepStat.setLong(i + 1, (value.equals("")) ? 0 : Caster.toLongValue(query.getAt(keys[i], y + 1)));
+					else if (type == INT) prepStat.setInt(i + 1, (value.equals("")) ? 0 : Caster.toIntValue(query.getAt(keys[i], y + 1)));
 					else if (type == STRING) prepStat.setObject(i + 1, Caster.toString(value));
 				}
 
@@ -180,7 +191,7 @@ public final class HSQLDBHandler {
 	}
 
 	private static String toUsableType(int type) {
-		if (type == Types.NCHAR) return "CHAR";
+		if (type == Types.NCHAR || type == Types.CHAR) return "VARCHAR_IGNORECASE";
 		if (type == Types.NCLOB) return "CLOB";
 		if (type == Types.NVARCHAR) return "VARCHAR_IGNORECASE";
 		if (type == Types.VARCHAR) return "VARCHAR_IGNORECASE";
@@ -192,7 +203,7 @@ public final class HSQLDBHandler {
 
 	/**
 	 * remove a table from the memory database
-	 * 
+	 *
 	 * @param conn
 	 * @param name
 	 * @throws DatabaseException
@@ -206,7 +217,7 @@ public final class HSQLDBHandler {
 
 	/**
 	 * remove all table inside the memory database
-	 * 
+	 *
 	 * @param conn
 	 */
 	private static void removeAll(Connection conn, ArrayList<String> usedTables) {
@@ -226,8 +237,8 @@ public final class HSQLDBHandler {
 	}
 
 	/**
-	 * executes a query on the queries inside the cld fusion enviroment
-	 * 
+	 * executes a query on the queries inside the cfml environment
+	 *
 	 * @param pc Page Context
 	 * @param sql
 	 * @param maxrows
@@ -241,27 +252,69 @@ public final class HSQLDBHandler {
 		String prettySQL = null;
 		Selects selects = null;
 
+		Exception qoqException = null;
+
 		// First Chance
 		try {
 			SelectParser parser = new SelectParser();
 			selects = parser.parse(sql.getSQLString());
-			QueryImpl q = qoq.execute(pc, sql, selects, maxrows);
+			QueryImpl q = (QueryImpl) qoq.execute(pc, sql, selects, maxrows);
 			q.setExecutionTime(stopwatch.time());
 			return q;
 		}
 		catch (SQLParserException spe) {
-			// sp
+			qoqException = spe;
+			if (spe.getCause() != null && spe.getCause() instanceof IllegalQoQException) {
+				throw Caster.toPageException(spe);
+			}
 			prettySQL = SQLPrettyfier.prettyfie(sql.getSQLString());
 			try {
 				QueryImpl query = executer.execute(pc, sql, prettySQL, maxrows);
 				query.setExecutionTime(stopwatch.time());
 				return query;
 			}
-			catch (PageException ex) {}
+			catch (Exception ex) {
+			}
 
 		}
-		catch (PageException e) {}
-		// if(true) throw new RuntimeException();
+		catch (Exception e) {
+			qoqException = e;
+		}
+
+		// If our first pass at the QoQ failed, lets look at the exception to see what we want to do with
+		// it.
+		if (qoqException != null) {
+
+			// Track the root cause
+			Exception rootCause = qoqException;
+
+			// Unwrap any RuntimeExceptions thrown from Java streams
+			if (qoqException instanceof RuntimeException && qoqException.getCause() != null && qoqException.getCause() instanceof Exception) {
+				rootCause = (Exception) qoqException.getCause();
+				// Exceptions from an async Java stream will be wrapped in TWO RuntimeExceptions!
+				if (rootCause instanceof RuntimeException && rootCause.getCause() != null && rootCause.getCause() instanceof Exception) {
+					rootCause = (Exception) rootCause.getCause();
+				}
+			}
+
+			// We don't need to catch these, so re-throw
+			if (rootCause instanceof RuntimeException) {
+				// re-throw the original outer exception
+				throw new RuntimeException(qoqException);
+			}
+
+			// Debugging option to completely disable HyperSQL for testing
+			// Or if it's an IllegalQoQException that means, stop trying and throw the original message.
+			if (hsqldbDisable || rootCause instanceof IllegalQoQException) {
+				// re-throw the original outer exception
+				throw Caster.toPageException(qoqException);
+			}
+
+			// Debugging option to to log all QoQ that fall back on hsqldb in the datasource log
+			if (hsqldbDebug) {
+				ThreadLocalPageContext.getLog(pc, "datasource").error("QoQ [" + sql.getSQLString() + "] errored and is falling back to HyperSQL.", qoqException);
+			}
+		}
 
 		// SECOND Chance with hsqldb
 		try {
@@ -310,11 +363,14 @@ public final class HSQLDBHandler {
 		synchronized (lock) {
 
 			QueryImpl nqr = null;
-			ConfigImpl config = (ConfigImpl) pc.getConfig();
-			DatasourceConnectionPool pool = config.getDatasourceConnectionPool();
-			DatasourceConnection dc = pool.getDatasourceConnection(config, config.getDataSource(QOQ_DATASOURCE_NAME), "sa", "");
-			Connection conn = dc.getConnection();
+			ConfigPro config = (ConfigPro) pc.getConfig();
+			DatasourceConnection dc = null;
+			Connection conn = null;
 			try {
+				DatasourceConnPool pool = config.getDatasourceConnectionPool(config.getDataSource(QOQ_DATASOURCE_NAME), "sa", "");
+				dc = pool.borrowObject();
+				conn = dc.getConnection();
+
 				DBUtil.setAutoCommitEL(conn, false);
 
 				// sql.setSQLString(HSQLUtil.sqlToZQL(sql.getSQLString(),false));
@@ -335,6 +391,9 @@ public final class HSQLDBHandler {
 					try {
 						nqr = new QueryImpl(pc, dc, sql, maxrows, fetchsize, timeout, "query", null, false, false, null);
 					}
+					catch (PageException pe) {
+						throw pe;
+					}
 					finally {
 						DBUtil.setReadOnlyEL(conn, false);
 						DBUtil.commitEL(conn);
@@ -343,16 +402,16 @@ public final class HSQLDBHandler {
 
 				}
 				catch (SQLException e) {
-					DatabaseException de = new DatabaseException("there is a problem to execute sql statement on query", null, sql, null);
-					de.setDetail(e.getMessage());
-					throw de;
+					throw (IllegalQoQException) (new IllegalQoQException("QoQ HSQLDB: error executing sql statement on query.", e.getMessage(), sql, null).initCause(e));
 				}
 
 			}
 			finally {
-				removeAll(conn, usedTables);
-				DBUtil.setAutoCommitEL(conn, true);
-				pool.releaseDatasourceConnection(dc);
+				if (conn != null) {
+					removeAll(conn, usedTables);
+					DBUtil.setAutoCommitEL(conn, true);
+				}
+				if (dc != null) ((DatasourceConnectionPro) dc).release();
 
 				// manager.releaseConnection(dc);
 			}

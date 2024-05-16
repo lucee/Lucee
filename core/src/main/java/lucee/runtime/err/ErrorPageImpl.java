@@ -20,9 +20,6 @@ package lucee.runtime.err;
 
 import lucee.runtime.PageSource;
 
-/**
- * 
- */
 public final class ErrorPageImpl implements ErrorPage {
 
 	/** Type of exception. Required if type = "exception" or "monitor". */

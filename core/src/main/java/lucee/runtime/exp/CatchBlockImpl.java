@@ -18,6 +18,7 @@
  */
 package lucee.runtime.exp;
 
+import java.io.Serializable;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -28,6 +29,7 @@ import lucee.commons.lang.CFTypes;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
+import lucee.runtime.config.Config;
 import lucee.runtime.dump.DumpData;
 import lucee.runtime.dump.DumpProperties;
 import lucee.runtime.engine.ThreadLocalPageContext;
@@ -57,33 +59,30 @@ public class CatchBlockImpl extends StructImpl implements CatchBlock, Castable, 
 
 	private static final long serialVersionUID = -3680961614605720352L;
 
-	public static final Key ERROR_CODE = KeyImpl.intern("ErrorCode");
-	public static final Key CAUSE = KeyImpl.intern("Cause");
-	public static final Key EXTENDEDINFO = KeyImpl.intern("ExtendedInfo");
-	public static final Key EXTENDED_INFO = KeyImpl.intern("Extended_Info");
-	public static final Key TAG_CONTEXT = KeyImpl.intern("TagContext");
-	public static final Key STACK_TRACE = KeyImpl.intern("StackTrace");
-	public static final Key ADDITIONAL = KeyImpl.intern("additional");
+	public static final Key ERROR_CODE = KeyConstants._ErrorCode;
+	public static final Key CAUSE = KeyConstants._Cause;
+	public static final Key EXTENDEDINFO = KeyConstants._ExtendedInfo;
+	public static final Key EXTENDED_INFO = KeyConstants._Extended_Info;
+	public static final Key TAG_CONTEXT = KeyConstants._TagContext;
+	public static final Key STACK_TRACE = KeyConstants._StackTrace;
+	public static final Key ADDITIONAL = KeyConstants._additional;
 
-	private PageException exception;
+	private final PageException exception;
 
-	public CatchBlockImpl(PageException pe) {
-		this(pe, 0);
-	}
-
-	private CatchBlockImpl(PageException pe, int level) {
+	CatchBlockImpl(PageException pe, int level) {
+		if (level < 0) level = 0;
 		this.exception = pe;
 
-		setEL(KeyConstants._Message, new SpecialItem(pe, KeyConstants._Message, level));
-		setEL(KeyConstants._Detail, new SpecialItem(pe, KeyConstants._Detail, level));
-		setEL(ERROR_CODE, new SpecialItem(pe, ERROR_CODE, level));
-		setEL(EXTENDEDINFO, new SpecialItem(pe, EXTENDEDINFO, level));
-		setEL(EXTENDED_INFO, new SpecialItem(pe, EXTENDED_INFO, level));
-		setEL(ADDITIONAL, new SpecialItem(pe, ADDITIONAL, level));
-		setEL(TAG_CONTEXT, new SpecialItem(pe, TAG_CONTEXT, level));
-		setEL(KeyConstants._type, new SpecialItem(pe, KeyConstants._type, level));
-		setEL(STACK_TRACE, new SpecialItem(pe, STACK_TRACE, level));
-		setEL(CAUSE, new SpecialItem(pe, CAUSE, level));
+		setEL(KeyConstants._Message, new SpecialItem(KeyConstants._Message, level));
+		setEL(KeyConstants._Detail, new SpecialItem(KeyConstants._Detail, level));
+		setEL(ERROR_CODE, new SpecialItem(ERROR_CODE, level));
+		setEL(EXTENDEDINFO, new SpecialItem(EXTENDEDINFO, level));
+		setEL(EXTENDED_INFO, new SpecialItem(EXTENDED_INFO, level));
+		setEL(ADDITIONAL, new SpecialItem(ADDITIONAL, level));
+		setEL(TAG_CONTEXT, new SpecialItem(TAG_CONTEXT, level));
+		setEL(KeyConstants._type, new SpecialItem(KeyConstants._type, level));
+		setEL(STACK_TRACE, new SpecialItem(STACK_TRACE, level));
+		setEL(CAUSE, new SpecialItem(CAUSE, level));
 
 		if (pe instanceof NativeException) {
 			Throwable throwable = ((NativeException) pe).getException();
@@ -108,60 +107,62 @@ public class CatchBlockImpl extends StructImpl implements CatchBlock, Castable, 
 		}
 	}
 
-	class SpecialItem {
+	class SpecialItem implements Serializable {
 		private static final int MAX = 10;
-		private PageException pe;
-		private Key key;
-		private int level;
+		private final Key key;
+		private final int level;
 
-		public SpecialItem(PageException pe, Key key, int level) {
-			this.pe = pe;
+		public SpecialItem(Key key, int level) {
 			this.key = key;
 			this.level = level;
 		}
 
 		public Object get() {
 			if (level < MAX) {
-				if (key == CAUSE) return getCauseAsCatchBlock();
-				if (key == ADDITIONAL) return pe.getAdditional();
+				if (key == CAUSE) return getCauseAsCatchBlock(ThreadLocalPageContext.getConfig());
+				if (key == ADDITIONAL) return exception.getAdditional();
 
 			}
-			if (key == KeyConstants._Message) return StringUtil.emptyIfNull(pe.getMessage());
-			if (key == KeyConstants._Detail) return StringUtil.emptyIfNull(pe.getDetail());
-			if (key == ERROR_CODE) return StringUtil.emptyIfNull(pe.getErrorCode());
-			if (key == EXTENDEDINFO) return StringUtil.emptyIfNull(pe.getExtendedInfo());
-			if (key == EXTENDED_INFO) return StringUtil.emptyIfNull(pe.getExtendedInfo());
-			if (key == KeyConstants._type) return StringUtil.emptyIfNull(pe.getTypeAsString());
-			if (key == STACK_TRACE) return StringUtil.emptyIfNull(pe.getStackTraceAsString());
-			if (key == TAG_CONTEXT && pe instanceof PageExceptionImpl) return ((PageExceptionImpl) pe).getTagContext(ThreadLocalPageContext.getConfig());
+			if (key == KeyConstants._Message) return StringUtil.emptyIfNull(exception.getMessage());
+			if (key == KeyConstants._Detail) return StringUtil.emptyIfNull(exception.getDetail());
+			if (key == ERROR_CODE) return StringUtil.emptyIfNull(exception.getErrorCode());
+			if (key == EXTENDEDINFO) return StringUtil.emptyIfNull(exception.getExtendedInfo());
+			if (key == EXTENDED_INFO) return StringUtil.emptyIfNull(exception.getExtendedInfo());
+			if (key == KeyConstants._type) return StringUtil.emptyIfNull(exception.getTypeAsString());
+			if (key == STACK_TRACE) return StringUtil.emptyIfNull(exception.getStackTraceAsString());
+			if (key == TAG_CONTEXT && exception instanceof PageExceptionImpl) return ((PageExceptionImpl) exception).getTagContext(ThreadLocalPageContext.getConfig());
 			return null;
 		}
 
-		private CatchBlock getCauseAsCatchBlock() {
-			Throwable cause = pe.getCause();
-			if (cause == null || pe == cause) return null;
-			if (pe instanceof NativeException && ((NativeException) pe).getException() == cause) return null;
-			return new CatchBlockImpl(NativeException.newInstance(cause), level + 1);
+		private CatchBlock getCauseAsCatchBlock(Config config) {
+			Throwable exp;
+			if (exception instanceof NativeException) exp = ((NativeException) exception).getException();
+			else exp = exception;
+
+			Throwable cause = exp.getCause();
+			if (cause == null || exp == cause) return null;
+
+			return Caster.toPageException(cause).getCatchBlock(config);
 		}
 
 		public void set(Object o) {
 			try {
 				if (!(o instanceof Pair)) {
 					if (key == KeyConstants._Detail) {
-						pe.setDetail(Caster.toString(o));
+						exception.setDetail(Caster.toString(o));
 						return;
 					}
 					else if (key == ERROR_CODE) {
-						pe.setErrorCode(Caster.toString(o));
+						exception.setErrorCode(Caster.toString(o));
 						return;
 					}
 					else if (key == EXTENDEDINFO || key == EXTENDED_INFO) {
-						pe.setExtendedInfo(Caster.toString(o));
+						exception.setExtendedInfo(Caster.toString(o));
 						return;
 					}
 					else if (key == STACK_TRACE) {
 						if (o instanceof StackTraceElement[]) {
-							pe.setStackTrace((StackTraceElement[]) o);
+							exception.setStackTrace((StackTraceElement[]) o);
 							return;
 						}
 						else if (Decision.isCastableToArray(o)) {
@@ -171,14 +172,15 @@ public class CatchBlockImpl extends StructImpl implements CatchBlock, Castable, 
 								if (arr[i] instanceof StackTraceElement) elements[i] = (StackTraceElement) arr[i];
 								else throw new CasterException(o, StackTraceElement[].class);
 							}
-							pe.setStackTrace(elements);
+							exception.setStackTrace(elements);
 							return;
 
 						}
 					}
 				}
 			}
-			catch (PageException pe) {}
+			catch (PageException pe) {
+			}
 
 			superSetEL(key, o);
 
@@ -187,16 +189,16 @@ public class CatchBlockImpl extends StructImpl implements CatchBlock, Castable, 
 		public Object remove() {
 			Object rtn = null;
 			if (key == KeyConstants._Detail) {
-				rtn = pe.getDetail();
-				pe.setDetail("");
+				rtn = exception.getDetail();
+				exception.setDetail("");
 			}
 			else if (key == ERROR_CODE) {
-				rtn = pe.getErrorCode();
-				pe.setErrorCode("0");
+				rtn = exception.getErrorCode();
+				exception.setErrorCode("0");
 			}
 			else if (key == EXTENDEDINFO || key == EXTENDED_INFO) {
-				rtn = pe.getExtendedInfo();
-				pe.setExtendedInfo(null);
+				rtn = exception.getExtendedInfo();
+				exception.setExtendedInfo(null);
 			}
 			return rtn;
 
@@ -223,7 +225,8 @@ public class CatchBlockImpl extends StructImpl implements CatchBlock, Castable, 
 			try {
 				return PageContextUtil.getHandlePageException((PageContextImpl) pc, exception);
 			}
-			catch (PageException e) {}
+			catch (PageException e) {
+			}
 		}
 		return exception.getClass().getName();
 	}
@@ -313,7 +316,8 @@ public class CatchBlockImpl extends StructImpl implements CatchBlock, Castable, 
 				try {
 					setter.invoke(pair.throwable);
 				}
-				catch (Exception e) {}
+				catch (Exception e) {
+				}
 				return value;
 			}
 		}
@@ -437,12 +441,12 @@ public class CatchBlockImpl extends StructImpl implements CatchBlock, Castable, 
 	}
 
 	public Object callWithNamedValues(PageContext pc, String methodName, Struct args) throws PageException {
-		throw new ApplicationException("named arguments not supported");
+		throw new ApplicationException("Named arguments not supported");
 	}
 
 	@Override
 	public Object callWithNamedValues(PageContext pc, Key methodName, Struct args) throws PageException {
-		throw new ApplicationException("named arguments not supported");
+		throw new ApplicationException("Named arguments not supported");
 	}
 
 	public boolean isInitalized() {

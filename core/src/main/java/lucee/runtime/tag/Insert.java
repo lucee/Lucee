@@ -26,7 +26,7 @@ import java.util.ArrayList;
 import lucee.commons.db.DBUtil;
 import lucee.commons.io.log.Log;
 import lucee.commons.lang.StringUtil;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.db.DataSource;
 import lucee.runtime.db.DataSourceManager;
 import lucee.runtime.db.DatasourceConnection;
@@ -35,6 +35,7 @@ import lucee.runtime.db.SQLImpl;
 import lucee.runtime.db.SQLItem;
 import lucee.runtime.db.SQLItemImpl;
 import lucee.runtime.debug.DebuggerImpl;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.DatabaseException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.tag.TagImpl;
@@ -196,7 +197,7 @@ public final class Insert extends TagImpl {
 
 				if (pageContext.getConfig().debug()) {
 					String dsn = ds instanceof DataSource ? ((DataSource) ds).getName() : Caster.toString(ds);
-					boolean logdb = ((ConfigImpl) pageContext.getConfig()).hasDebugOptions(ConfigImpl.DEBUG_DATABASE);
+					boolean logdb = ((ConfigPro) pageContext.getConfig()).hasDebugOptions(ConfigPro.DEBUG_DATABASE);
 					if (logdb) {
 						boolean debugUsage = DebuggerImpl.debugQueryUsage(pageContext, (QueryResult) query);
 						DebuggerImpl di = (DebuggerImpl) pageContext.getDebugger();
@@ -207,7 +208,7 @@ public final class Insert extends TagImpl {
 				}
 
 				// log
-				Log log = pageContext.getConfig().getLog("datasource");
+				Log log = ThreadLocalPageContext.getLog(pageContext, "datasource");
 				if (log.getLogLevel() >= Log.LEVEL_INFO) {
 					log.info("insert tag", "executed [" + sql.toString().trim() + "] in " + DecimalFormat.call(pageContext, query.getExecutionTime() / 1000000D) + " ms");
 				}
@@ -215,7 +216,7 @@ public final class Insert extends TagImpl {
 			return EVAL_PAGE;
 		}
 		catch (PageException pe) {
-			pageContext.getConfig().getLog("datasource").error("insert tag", pe);
+			ThreadLocalPageContext.getLog(pageContext, "datasource").error("insert tag", pe);
 			throw pe;
 		}
 		finally {
@@ -276,7 +277,7 @@ public final class Insert extends TagImpl {
 
 		StringBuffer names = new StringBuffer();
 		StringBuffer values = new StringBuffer();
-		ArrayList items = new ArrayList();
+		ArrayList<SQLItem> items = new ArrayList<SQLItem>();
 		String field;
 		for (int i = 0; i < fields.length; i++) {
 			field = StringUtil.trim(fields[i], null);
@@ -313,7 +314,7 @@ public final class Insert extends TagImpl {
 		sql.append(values);
 		sql.append(")");
 
-		return new SQLImpl(sql.toString(), (SQLItem[]) items.toArray(new SQLItem[items.size()]));
+		return new SQLImpl(sql.toString(), items.toArray(new SQLItem[items.size()]));
 	}
 
 }

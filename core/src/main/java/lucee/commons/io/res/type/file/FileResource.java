@@ -21,14 +21,17 @@ package lucee.commons.io.res.type.file;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.CopyOption;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
+import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.nio.file.StandardOpenOption;
+import java.nio.file.attribute.DosFileAttributes;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -78,9 +81,14 @@ public final class FileResource extends File implements Resource {
 
 	@Override
 	public void copyFrom(Resource res, boolean append) throws IOException {
+
 		if (res instanceof File && (!append || !this.isFile())) {
-			Files.copy(((File) res).toPath(), this.toPath(), COPY_OPTIONS);
-			return;
+			try {
+				Files.copy(((File) res).toPath(), this.toPath(), COPY_OPTIONS);
+				return;
+			}
+			catch (Exception exception) {
+			}
 		}
 
 		IOUtil.copy(res, this.getOutputStream(append), true);
@@ -97,13 +105,17 @@ public final class FileResource extends File implements Resource {
 
 	@Override
 	public void copyTo(Resource res, boolean append) throws IOException {
+
 		if (res instanceof File && (!append || !res.isFile())) {
-			Files.copy(this.toPath(), ((File) res).toPath(), COPY_OPTIONS);
-			return;
+			try {
+				Files.copy(this.toPath(), ((File) res).toPath(), COPY_OPTIONS);
+				return;
+			}
+			catch (Exception exception) {
+			}
 		}
 
 		IOUtil.copy(this, res.getOutputStream(append), true);
-
 		boolean e = canExecute();
 		boolean w = canWrite();
 		boolean r = canRead();
@@ -111,6 +123,7 @@ public final class FileResource extends File implements Resource {
 		if (e && res instanceof File) ((File) res).setExecutable(true);
 		if (w != res.canWrite()) res.setWritable(w);
 		if (r != res.canRead()) res.setReadable(r);
+
 	}
 
 	@Override
@@ -147,13 +160,13 @@ public final class FileResource extends File implements Resource {
 		String[] files = list();
 		if (files == null) return null;
 
-		List list = new ArrayList();
+		List<String> list = new ArrayList<String>();
 		FileResource res;
 		for (int i = 0; i < files.length; i++) {
 			res = new FileResource(provider, this, files[i]);
 			if (filter.accept(res)) list.add(files[i]);
 		}
-		return (String[]) list.toArray(new String[list.size()]);
+		return list.toArray(new String[list.size()]);
 	}
 
 	@Override
@@ -161,24 +174,24 @@ public final class FileResource extends File implements Resource {
 		String[] files = list();
 		if (files == null) return null;
 
-		List list = new ArrayList();
+		List<Resource> list = new ArrayList<Resource>();
 		Resource res;
 		for (int i = 0; i < files.length; i++) {
 			res = getRealResource(files[i]);
 			if (filter.accept(res)) list.add(res);
 		}
-		return (Resource[]) list.toArray(new FileResource[list.size()]);
+		return list.toArray(new FileResource[list.size()]);
 	}
 
 	@Override
 	public String[] list(ResourceNameFilter filter) {
 		String[] files = list();
 		if (files == null) return null;
-		List list = new ArrayList();
+		List<String> list = new ArrayList<String>();
 		for (int i = 0; i < files.length; i++) {
 			if (filter.accept(this, files[i])) list.add(files[i]);
 		}
-		return (String[]) list.toArray(new String[list.size()]);
+		return list.toArray(new String[list.size()]);
 	}
 
 	@Override
@@ -186,11 +199,11 @@ public final class FileResource extends File implements Resource {
 		String[] files = list();
 		if (files == null) return null;
 
-		List list = new ArrayList();
+		List<Resource> list = new ArrayList<Resource>();
 		for (int i = 0; i < files.length; i++) {
 			if (filter.accept(this, files[i])) list.add(getRealResource(files[i]));
 		}
-		return (Resource[]) list.toArray(new Resource[list.size()]);
+		return list.toArray(new Resource[list.size()]);
 	}
 
 	@Override
@@ -200,7 +213,8 @@ public final class FileResource extends File implements Resource {
 		if (dest instanceof File) {
 			provider.lock(this);
 			try {
-				if (dest.exists() && !dest.delete()) throw new IOException("can't move file " + this.getAbsolutePath() + " cannot remove existing file " + dest.getAbsolutePath());
+				if (dest.exists() && !dest.delete())
+					throw new IOException("Can't move file [" + this.getAbsolutePath() + "] cannot remove existing file [" + dest.getAbsolutePath() + "]");
 
 				done = super.renameTo((File) dest);
 				/*
@@ -217,7 +231,7 @@ public final class FileResource extends File implements Resource {
 			ResourceUtil.checkMoveToOK(this, dest);
 			IOUtil.copy(getInputStream(), dest, true);
 			if (!this.delete()) {
-				throw new IOException("can't delete resource " + this.getAbsolutePath());
+				throw new IOException("Can't delete resource [" + this.getAbsolutePath() + "]");
 			}
 		}
 	}
@@ -227,8 +241,11 @@ public final class FileResource extends File implements Resource {
 		// provider.lock(this);
 		provider.read(this);
 		try {
-			// return new BufferedInputStream(new ResourceInputStream(this,new FileInputStream(this)));
-			return new BufferedInputStream(new FileInputStream(this));
+			return new BufferedInputStream(Files.newInputStream(toPath(), StandardOpenOption.READ));
+			// return new BufferedInputStream(new FileInputStream(this));
+		}
+		catch (NoSuchFileException nsfe) {
+			throw ExceptionUtil.toFileNotFoundException(nsfe);
 		}
 		catch (IOException ioe) {
 			// provider.unlock(this);
@@ -246,7 +263,7 @@ public final class FileResource extends File implements Resource {
 		provider.lock(this);
 		try {
 			if (!super.exists() && !super.createNewFile()) {
-				throw new IOException("can't create file " + this);
+				throw new IOException("Can't create file [" + this + "]");
 			}
 			return new BufferedOutputStream(new ResourceOutputStream(this, new FileOutputStream(this, append)));
 		}
@@ -262,12 +279,9 @@ public final class FileResource extends File implements Resource {
 		try {
 			if (createParentWhenNotExists) {
 				File p = super.getParentFile();
-				if (!p.exists()) p.mkdirs();
+				if (!p.exists()) Files.createDirectories(p.toPath());
 			}
-			if (!super.createNewFile()) {
-				if (super.isFile()) throw new IOException("can't create file " + this + ", file already exists");
-				throw new IOException("can't create file " + this);
-			}
+			Files.createFile(toPath());
 		}
 		finally {
 			provider.unlock(this);
@@ -278,16 +292,18 @@ public final class FileResource extends File implements Resource {
 	public void remove(boolean alsoRemoveChildren) throws IOException {
 		if (alsoRemoveChildren && isDirectory()) {
 			Resource[] children = listResources();
-			for (int i = 0; i < children.length; i++) {
-				children[i].remove(alsoRemoveChildren);
+			if (children != null) {
+				for (int i = 0; i < children.length; i++) {
+					children[i].remove(alsoRemoveChildren);
+				}
 			}
 		}
 		provider.lock(this);
 		try {
 			if (!super.delete()) {
-				if (!super.exists()) throw new IOException("can't delete file " + this + ", file does not exist");
-				if (!super.canWrite()) throw new IOException("can't delete file " + this + ", no access");
-				throw new IOException("can't delete file " + this);
+				if (!super.exists()) throw new IOException("Can't delete file [" + this + "], file does not exist");
+				if (!super.canWrite()) throw new IOException("Can't delete file [" + this + "], no access");
+				throw new IOException("Can't delete file [" + this + "]");
 			}
 		}
 		finally {
@@ -323,10 +339,8 @@ public final class FileResource extends File implements Resource {
 	public void createDirectory(boolean createParentWhenNotExists) throws IOException {
 		provider.lock(this);
 		try {
-			if (createParentWhenNotExists ? !_mkdirs() : !super.mkdir()) {
-				if (super.isDirectory()) throw new IOException("can't create directory " + this + ", directory already exists");
-				throw new IOException("can't create directory " + this);
-			}
+			if (createParentWhenNotExists) Files.createDirectories(toPath());
+			else Files.createDirectory(toPath());
 		}
 		finally {
 			provider.unlock(this);
@@ -354,7 +368,8 @@ public final class FileResource extends File implements Resource {
 			moveTo(dest);
 			return true;
 		}
-		catch (IOException e) {}
+		catch (IOException e) {
+		}
 		return false;
 	}
 
@@ -382,12 +397,36 @@ public final class FileResource extends File implements Resource {
 				return ModeUtil.toOctalMode(line);
 
 			}
-			catch (Exception e) {}
+			catch (Exception e) {
+			}
 
 		}
 		int mode = SystemUtil.isWindows() && exists() ? 0111 : 0;
 		if (super.canRead()) mode += 0444;
 		if (super.canWrite()) mode += 0222;
+		return mode;
+	}
+
+	public static int getMode(Path path) {
+		if (!Files.exists(path)) return 0;
+		if (SystemUtil.isUnix()) {
+			try {
+				// TODO geht nur fuer file
+				String line = Command.execute("ls -ld " + path.toAbsolutePath().toString(), false).getOutput();
+
+				line = line.trim();
+				line = line.substring(0, line.indexOf(' '));
+				// print.ln(getPath());
+				return ModeUtil.toOctalMode(line);
+
+			}
+			catch (Exception e) {
+			}
+
+		}
+		int mode = SystemUtil.isWindows() ? 0111 : 0;
+		if (Files.isReadable(path)) mode += 0444;
+		if (Files.isWritable(path)) mode += 0222;
 		return mode;
 	}
 
@@ -399,10 +438,10 @@ public final class FileResource extends File implements Resource {
 		try {
 			// print.ln(ModeUtil.toStringMode(mode));
 			if (Runtime.getRuntime().exec(new String[] { "chmod", ModeUtil.toStringMode(mode), getPath() }).waitFor() != 0)
-				throw new IOException("chmod  " + ModeUtil.toStringMode(mode) + " " + toString() + " failed");
+				throw new IOException("chmod  [" + ModeUtil.toStringMode(mode) + "] [" + toString() + "] failed");
 		}
 		catch (InterruptedException e) {
-			throw new IOException("Interrupted waiting for chmod " + toString());
+			throw new IOException("Interrupted waiting for chmod [" + toString() + "]");
 		}
 		finally {
 			provider.unlock(this);
@@ -443,7 +482,7 @@ public final class FileResource extends File implements Resource {
 		if (!value) {
 			try {
 				provider.lock(this);
-				if (!super.setReadOnly()) throw new IOException("can't set resource read-only");
+				if (!super.setReadOnly()) throw new IOException("Can't set resource read-only");
 			}
 			catch (IOException ioe) {
 				return false;
@@ -533,7 +572,8 @@ public final class FileResource extends File implements Resource {
 		try {
 			provider.read(this);
 		}
-		catch (IOException e) {}
+		catch (IOException e) {
+		}
 
 		return super.exists();
 	}
@@ -686,37 +726,48 @@ public final class FileResource extends File implements Resource {
 	public boolean getAttribute(short attribute) {
 		if (!SystemUtil.isWindows()) return false;
 
-		String attr = null;
-		if (attribute == ATTRIBUTE_ARCHIVE) attr = "A";
-		else if (attribute == ATTRIBUTE_HIDDEN) attr = "H";
-		else if (attribute == ATTRIBUTE_SYSTEM) attr = "S";
-
 		try {
 			provider.lock(this);
-			String result = Command.execute("attrib " + getAbsolutePath(), false).getOutput();
-			String[] arr = lucee.runtime.type.util.ListUtil.listToStringArray(result, ' ');
-			for (int i = 0; i < arr.length; i++) {
-				if (attr.equals(arr[i])) return true;
+			DosFileAttributes attr = Files.readAttributes(this.toPath(), DosFileAttributes.class);
+			if (attribute == ATTRIBUTE_ARCHIVE) {
+				return attr.isArchive();
+			}
+			else if (attribute == ATTRIBUTE_HIDDEN) {
+				return attr.isHidden();
+			}
+			else if (attribute == ATTRIBUTE_SYSTEM) {
+				return attr.isSystem();
+			}
+			else {
+				return false;
 			}
 		}
-		catch (Exception e) {}
+		catch (Exception e) {
+			return false;
+		}
 		finally {
 			provider.unlock(this);
 		}
-		return false;
 	}
 
 	@Override
 	public void setAttribute(short attribute, boolean value) throws IOException {
-		String attr = null;
-		if (attribute == ATTRIBUTE_ARCHIVE) attr = "A";
-		else if (attribute == ATTRIBUTE_HIDDEN) attr = "H";
-		else if (attribute == ATTRIBUTE_SYSTEM) attr = "S";
-
 		if (!SystemUtil.isWindows()) return;
+
 		provider.lock(this);
 		try {
-			Runtime.getRuntime().exec("attrib " + (value ? "+" : "-") + attr + " " + getAbsolutePath());
+			if (attribute == ATTRIBUTE_ARCHIVE) {
+				Files.setAttribute(this.toPath(), "dos:archive", value);
+			}
+			else if (attribute == ATTRIBUTE_HIDDEN) {
+				Files.setAttribute(this.toPath(), "dos:hidden", value);
+			}
+			else if (attribute == ATTRIBUTE_SYSTEM) {
+				Files.setAttribute(this.toPath(), "dos:system", value);
+			}
+		}
+		catch (IOException e) {
+			return;
 		}
 		finally {
 			provider.unlock(this);

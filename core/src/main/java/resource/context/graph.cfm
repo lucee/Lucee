@@ -1,1 +1,0 @@
-<cfcontent file="#GetTempDirectory()#/graph/#listLast(url.img,'/\#server.separator.file#')#" type="image/#url.type#"><cfsetting showdebugoutput="no">

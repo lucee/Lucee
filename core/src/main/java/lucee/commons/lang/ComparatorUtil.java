@@ -35,12 +35,12 @@ public class ComparatorUtil {
 		// check sortorder
 		// text
 		if (sortType == SORT_TYPE_TEXT) {
-			if (l != null) return toCollator(l, Collator.IDENTICAL);
+			if (l != null) return toCollator(l, Collator.IDENTICAL, orderAsc);
 			return new TextComparator(orderAsc, false);
 		}
 		// text no case
 		else if (sortType == SORT_TYPE_TEXT_NO_CASE) {
-			if (l != null) return toCollator(l, Collator.TERTIARY);
+			if (l != null) return toCollator(l, Collator.TERTIARY, orderAsc);
 			return new TextComparator(orderAsc, true);
 		}
 		// numeric
@@ -52,11 +52,25 @@ public class ComparatorUtil {
 		}
 	}
 
-	private static Comparator toCollator(Locale l, int strength) {
+	private static Comparator toCollator(Locale l, int strength, boolean orderAsc) {
 		Collator c = Collator.getInstance(l);
 		c.setStrength(strength);
 		c.setDecomposition(Collator.CANONICAL_DECOMPOSITION);
+		if (!orderAsc) return new Inverter(c);
 		return c;
 	}
 
+	private static class Inverter<T> implements Comparator<T> {
+
+		private Collator c;
+
+		public Inverter(Collator c) {
+			this.c = c;
+		}
+
+		@Override
+		public int compare(T o1, T o2) {
+			return c.compare(o2, o1);
+		}
+	}
 }

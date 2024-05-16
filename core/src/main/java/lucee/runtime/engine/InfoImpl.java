@@ -75,8 +75,7 @@ public final class InfoImpl implements Info {
 
 		try {
 			Manifest manifest = getManifest(bundle);
-			if (manifest == null)
-				throw new IllegalArgumentException("Failed to get manifest from bundle");
+			if (manifest == null) throw new IllegalArgumentException("Failed to get manifest from bundle");
 			Attributes mf = manifest.getMainAttributes();
 
 			versionName = mf.getValue("Minor-Name");

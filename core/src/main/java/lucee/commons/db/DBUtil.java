@@ -61,8 +61,7 @@ public final class DBUtil {
 		try {
 			if (conn != null) conn.setTransactionIsolation(level);
 		}
-		catch (Throwable e) {
-			ExceptionUtil.rethrowIfNecessary(e);
+		catch (Exception e) {
 		}
 	}
 

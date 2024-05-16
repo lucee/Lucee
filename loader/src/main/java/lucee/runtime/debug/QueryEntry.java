@@ -48,7 +48,7 @@ public interface QueryEntry extends Serializable {
 	/**
 	 * return the query of this entry (can be null, if the query has not produced a resultset)
 	 * 
-	 * @return
+	 * @return Returns the query.
 	 */
 	public Query getQry();
 

@@ -23,7 +23,6 @@ package lucee.runtime.functions.string;
 
 import lucee.commons.io.SystemUtil;
 import lucee.runtime.PageContext;
-import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.BIF;
@@ -33,11 +32,11 @@ import lucee.runtime.type.util.ListUtil;
 
 public final class Wrap extends BIF {
 
-	public static String call(PageContext pc, String string, double limit) throws ExpressionException {
+	public static String call(PageContext pc, String string, double limit) throws PageException {
 		return call(pc, string, limit, false);
 	}
 
-	public static String call(PageContext pc, String string, double limit, boolean strip) throws ExpressionException {
+	public static String call(PageContext pc, String string, double limit, boolean strip) throws PageException {
 		if (strip) {
 			string = REReplace.call(pc, string, "[[:space:]]", " ", "all");
 		}

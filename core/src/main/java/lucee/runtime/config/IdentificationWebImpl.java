@@ -23,9 +23,9 @@ import lucee.runtime.engine.ThreadLocalPageContext;
 
 public class IdentificationWebImpl extends IdentificationImpl implements IdentificationWeb, Serializable {
 
-	private transient ConfigWebImpl cw;
+	private transient ConfigWebPro cw;
 
-	public IdentificationWebImpl(ConfigWebImpl cw, String securityKey, String apiKey) {
+	public IdentificationWebImpl(ConfigWebPro cw, String securityKey, String apiKey) {
 		super(cw, securityKey, apiKey);
 		this.cw = cw;
 	}

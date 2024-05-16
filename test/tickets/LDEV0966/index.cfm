@@ -1,6 +1,9 @@
 <cfscript>
 
 query datasource="test" name="qry1" {
+	echo("select 1 as one");
+}
+query datasource="test" name="qry1" {
 	echo("select * from tblitem");
 }
 

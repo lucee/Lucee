@@ -29,7 +29,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		var yesterday = today.add("d", -1);
 
 		assertEquals(-1,dateDiff("d", today, yesterday));
-		assertEquals(-1,today.diff("d", yesterday));
+		assertEquals(1,today.diff("d", yesterday));
 	}
 } 
 </cfscript>

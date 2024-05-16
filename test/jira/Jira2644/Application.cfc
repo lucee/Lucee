@@ -22,12 +22,8 @@ component {
 	request.baseURL="http://#cgi.HTTP_HOST##GetDirectoryFromPath(cgi.SCRIPT_NAME)#";
 	request.currentPath=GetDirectoryFromPath(getCurrentTemplatePath());
 
-
- 	this.datasource = {
-	  class: 'org.hsqldb.jdbcDriver'
-	, connectionString: 'jdbc:hsqldb:file:#getDirectoryFromPath(getCurrentTemplatePath())#/datasource/db'
-	};
-
+	this.datasource =  server.getDatasource( "h2", server._getTempDir( "jira2644" ) );
+ 	
 	this.ormEnabled = true;
 	this.ormSettings.flushatrequestend = false;
 	this.ormSettings.autoManageSession = false;
@@ -36,7 +32,9 @@ component {
 	this.ormSettings.eventHandling = true;
 	//this.ormSettings.dbcreate = 'dropcreate' ;
 	
-	public any function onRequestStart() {
+	public function onRequestStart() {
+		setting requesttimeout=10;
 		ormReload();
 	}
+	
 }

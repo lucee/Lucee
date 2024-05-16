@@ -2,11 +2,14 @@ package lucee.runtime.type.scope.storage;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 
 import lucee.commons.io.IOUtil;
+import lucee.loader.engine.CFMLEngineFactory;
+import lucee.runtime.converter.JavaConverter;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Struct;
@@ -44,14 +47,19 @@ public class StorageValue implements Serializable {
 		ObjectInputStream ois = null;
 		Struct sct = null;
 		try {
-			ois = new ObjectInputStream(new ByteArrayInputStream(barr));
+			ois = new JavaConverter.ObjectInputStreamImpl(CFMLEngineFactory.getInstance().getClass().getClassLoader(), new ByteArrayInputStream(barr));
 			sct = (Struct) ois.readObject();
 		}
 		catch (Exception e) {
 			throw Caster.toPageException(e);
 		}
 		finally {
-			IOUtil.closeEL(ois);
+			try {
+				IOUtil.close(ois);
+			}
+			catch (IOException e) {
+				throw Caster.toPageException(e);
+			}
 		}
 		return sct;
 	}
@@ -69,7 +77,12 @@ public class StorageValue implements Serializable {
 			throw Caster.toPageException(e);
 		}
 		finally {
-			IOUtil.closeEL(oos);
+			try {
+				IOUtil.close(oos);
+			}
+			catch (IOException e) {
+				throw Caster.toPageException(e);
+			}
 		}
 		return os.toByteArray();
 	}

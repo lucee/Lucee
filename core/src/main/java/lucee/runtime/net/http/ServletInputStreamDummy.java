@@ -19,6 +19,9 @@
 package lucee.runtime.net.http;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -36,6 +39,11 @@ public final class ServletInputStreamDummy extends ServletInputStream {
 	 */
 	public ServletInputStreamDummy(byte[] data) {
 		stream = new ByteArrayInputStream(data == null ? new byte[0] : data);
+	}
+
+	public ServletInputStreamDummy(File file) throws FileNotFoundException {
+		if (file == null) stream = new ByteArrayInputStream(new byte[0]);
+		else stream = new FileInputStream(file);
 	}
 
 	/**

@@ -19,11 +19,11 @@
 package lucee.commons.lock.rw;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
 
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lock.Lock;
@@ -34,7 +34,7 @@ import lucee.runtime.op.Caster;
 
 public class RWKeyLock<K> {
 
-	private Map<K, RWLock<K>> locks = new HashMap<K, RWLock<K>>();
+	private Map<K, RWLock<K>> locks = new ConcurrentHashMap<K, RWLock<K>>();
 
 	public Lock lock(K token, long timeout, boolean readOnly) throws LockException, LockInterruptedException {
 		if (timeout <= 0) throw new LockException("timeout must be a positive number");

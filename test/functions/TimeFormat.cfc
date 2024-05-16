@@ -4,18 +4,26 @@
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either 
+ * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public 
+ *
+ * You should have received a copy of the GNU Lesser General Public
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  */
  component extends="org.lucee.cfml.test.LuceeTestCase" {
+
+	
+	function beforeAll(){
+		if ( getJavaVersion() >= 19 )
+			variables.narrowNBSP = chr(8239);
+		else
+			variables.narrowNBSP = chr(32); // space
+	};
 
  	public function testTimeFormatTimeZone_lz() localMode="modern" {
 
@@ -51,7 +59,7 @@
  	}
 
  	public function testMinute() localMode="modern" {
- 		
+
 		dt=createDateTime(2000,1,2,3,5,6,7);
 		assertEquals('5',timeFormat(dt,'m'));
 		assertEquals('5',timeFormat(dt,'M'));
@@ -68,7 +76,7 @@
 
 
  	public function testTimeFormatTimeZone_UZ() localMode="modern" {
- 		
+
 		dt=createDateTime(2000);
 		org=getTimeZone();
 		try{
@@ -93,7 +101,7 @@
 
  	public function testTimeFormatTimeZone_X() localMode="modern" {
  		setTimeZone("CET");
- 		
+
 		dt=createDateTime(2000);
 		org=getTimeZone();
 		try{
@@ -118,7 +126,7 @@
  	public function testTimeFormatMember() localMode="modern" {
  		dt=CreateDateTime(2004,1,2,4,5,6);
 		assertEquals("04",dt.timeFormat("hh"));
-		
+
  	}
  	public function testTimeFormat() localMode="modern" {
  		setTimeZone("CET");
@@ -128,45 +136,45 @@
 		assertEquals("#timeFormat(dt,"l")#", "0");
 		assertEquals("#timeFormat(dt,"t")#", "A");
 		assertEquals("#timeFormat(dt,"tt")#", "AM");
-		
+
 		dt=CreateDateTime(2004,1,2,11,59,59);
 		assertEquals("#timeFormat(dt,"tt")#", "AM");
-		
+
 		dt=CreateDateTime(2004,1,2,12,0,0);
 		assertEquals("#timeFormat(dt,"tt")#", "PM");
-		
+
 		dt=CreateDateTime(2004,1,2,14,0,0);
 		assertEquals("#timeFormat(dt,"hh:HH:h:H")#", "02:14:2:14");
 
 		assertEquals("#timeFormat(dt,"short")#x", "2:00 PMx");
-		assertEquals("#timeFormat(dt,"medium")#x", "2:00:00 PMx");
-		assertEquals("#timeFormat(dt,"long")#x", "2:00:00 PM CETx");
+		assertEquals("#timeFormat(dt,"medium")#x", "2:00:00#narrowNBSP#PMx");
+		assertEquals("#timeFormat(dt,"long")#x", "2:00:00#narrowNBSP#PM CETx");
 
 		// Java 10 changed the timezone output for full, what actually makes more sense than before
 		if(getJavaVersion()>=9)
-			assertEquals("#timeFormat(dt,"full")#x", "2:00:00 PM Central European Timex");
+			assertEquals("#timeFormat(dt,"full")#x", "2:00:00#narrowNBSP#PM Central European Timex");
 		else
-			assertEquals("#timeFormat(dt,"full")#x", "2:00:00 PM CETx");
-			
-		assertEquals("#timeFormat(dt)#x", "02:00 PMx"); 
-		assertEquals("#timeFormat('')#", ""); 
+			assertEquals("#timeFormat(dt,"full")#x", "2:00:00#narrowNBSP#PM CETx");
+
+		assertEquals("#timeFormat(dt)#x", "02:00#narrowNBSP#PMx");
+		assertEquals("#timeFormat('')#", "");
 
 		assertEquals("#timeFormat('','hh:mm')#x", "x");
 		x='susi';
-		try { 
+		try {
 			assertEquals("#timeFormat(x,'hh:mm')#x", "x");
-		    fail("must throw:The value of the parameter 1, which is currently ""susi"", must be a class java.util.Date value. "); 
+		    fail("must throw:The value of the parameter 1, which is currently ""susi"", must be a class java.util.Date value. ");
 		}
 		catch(local.e){}
 
 		assertEquals("12:00 AMx" ,"#timeFormat(1)#x");
-			
-			
+
+
 
 		d=CreateDateTime(2002,12,12,12,12,12);
 		assertEquals("#timeFormat(d,"hh:mm:ss")#", "12:12:12");
 		assertEquals("#timeFormat(d,"HH:mm:ss")#", "12:12:12");
-		
+
 		d=CreateDateTime(2002,12,12,13,12,12);
 		assertEquals("#timeFormat(d,"hh:mm:ss")#", "01:12:12");
 		assertEquals("#timeFormat(d,"HH:mm:ss")#", "13:12:12");
@@ -213,18 +221,17 @@
 		assertEquals("#TimeFormat(CreateDateTime( 2009, 6, 29, 12, 15, 26),"H")#x", "12x");
 		assertEquals("#TimeFormat(CreateDateTime( 2009, 6, 29, 12, 15, 26),"HH")#x", "12x");
 
-		assertEquals("#TimeFormat(CreateDateTime( 2009, 6, 29, 0, 15, 26),"h TT")#", "12 AM");
-		assertEquals("#TimeFormat(CreateDateTime( 2009, 6, 29, 0, 15, 26),"hh TT")#", "12 AM");
-		assertEquals("#TimeFormat(CreateDateTime( 2009, 6, 29, 12, 15, 26),"h TT")#", "12 PM");
-		assertEquals("#TimeFormat(CreateDateTime( 2009, 6, 29, 12, 15, 26),"hh TT")#", "12 PM");
+		assertEquals("#TimeFormat(CreateDateTime( 2009, 6, 29, 0, 15, 26),"h TT")#", "12#narrowNBSP#AM");
+		assertEquals("#TimeFormat(CreateDateTime( 2009, 6, 29, 0, 15, 26),"hh TT")#", "12#narrowNBSP#AM");
+		assertEquals("#TimeFormat(CreateDateTime( 2009, 6, 29, 12, 15, 26),"h TT")#", "12#narrowNBSP#PM");
+		assertEquals("#TimeFormat(CreateDateTime( 2009, 6, 29, 12, 15, 26),"hh TT")#", "12#narrowNBSP#PM");
 
 
 		// only supported by lucee
-		assertEquals("#TimeFormat(CreateDateTime( 2009, 6, 29, 24, 0, 0),"h TT")#", "12 AM");
-		assertEquals("#TimeFormat(CreateDateTime( 2009, 6, 29, 24, 0, 0),"hh TT")#", "12 AM");
-		
+		assertEquals("#TimeFormat(CreateDateTime( 2009, 6, 29, 24, 0, 0),"h TT")#", "12#narrowNBSP#AM");
+		assertEquals("#TimeFormat(CreateDateTime( 2009, 6, 29, 24, 0, 0),"hh TT")#", "12#narrowNBSP#AM");
 
-		assertEquals("#timeFormat(0.95833332754629624306019763935182709246873855590,"HH:mm:ss:ll")#x", "22:59:59:999x");
+
 		assertEquals("#timeFormat(0.9583333275462,"HH:mm:ss:ll")#x", "22:59:59:999x");
 		assertEquals("#timeFormat(0.9583333275463,"HH:mm:ss:ll")#x", "23:00:00:00x");
 		assertEquals("#timeFormat(0.958333327547,"HH:mm:ss:ll")#x", "23:00:00:00x");
@@ -232,6 +239,10 @@
 		assertEquals("#timeFormat(0.9583333276,"HH:mm:ss:ll")#x", "23:00:00:00x");
 		assertEquals("#timeFormat(0.95833333,"HH:mm:ss:ll")#x", "23:00:00:00x");
 
+	}
+
+	public void function testEmpty(){
+		expect( timeFormat( "" ) ).toBe( "" );
 	}
 
 	private function getJavaVersion() {

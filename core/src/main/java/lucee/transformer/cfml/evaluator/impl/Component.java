@@ -27,11 +27,13 @@ import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.PageSource;
 import lucee.runtime.config.Constants;
 import lucee.runtime.type.util.ComponentUtil;
+import lucee.transformer.TransformerException;
 import lucee.transformer.bytecode.Page;
 import lucee.transformer.bytecode.Statement;
 import lucee.transformer.bytecode.statement.tag.Attribute;
 import lucee.transformer.bytecode.statement.tag.Tag;
 import lucee.transformer.bytecode.statement.tag.TagCIObject;
+import lucee.transformer.bytecode.statement.tag.TagComponent;
 import lucee.transformer.bytecode.util.ASMUtil;
 import lucee.transformer.cfml.evaluator.EvaluatorException;
 import lucee.transformer.cfml.evaluator.EvaluatorSupport;
@@ -52,61 +54,62 @@ public class Component extends EvaluatorSupport {
 	public void evaluate(Tag tag, TagLibTag tlt) throws EvaluatorException {
 
 		TagCIObject tc = (TagCIObject) tag;
+		boolean inline = tag instanceof TagComponent && ((TagComponent) tag).isInline();
 
 		Statement pPage = tag.getParent();
-		// String className=tag.getTagLibTag().getTagClassName();
 		Page page;
 
-		// move components inside script to root
-		if (pPage instanceof Page) {
-			page = (Page) pPage;
+		if (inline) {
+			try {
+				page = ASMUtil.getAncestorPage(null, tag);
+			}
+			catch (TransformerException te) {
+				EvaluatorException ee = new EvaluatorException(te.getMessage());
+				ee.initCause(te);
+				throw ee;
+			}
 		}
 		else {
-			// is in script
-			Tag p = ASMUtil.getParentTag(tag);
-			if ((pPage = p.getParent()) instanceof Page && p.getTagLibTag().getName()
-					.equalsIgnoreCase(((Page) pPage).getSourceCode().getDialect() == CFMLEngine.DIALECT_CFML ? Constants.CFML_SCRIPT_TAG_NAME : Constants.LUCEE_SCRIPT_TAG_NAME)) { // chnaged
-				// order
-				// of
-				// the
-				// condition,
-				// not
-				// sure
-				// if
-				// this
-				// is
-				// ok
+			// move components inside script to root
+			if (pPage instanceof Page) {
 				page = (Page) pPage;
-				// move imports from script to component body
-				List<Statement> children = p.getBody().getStatements();
-				Iterator<Statement> it = children.iterator();
-				Statement stat;
-				Tag t;
-				while (it.hasNext()) {
-					stat = it.next();
-					if (!(stat instanceof Tag)) continue;
-					t = (Tag) stat;
-					if (t.getTagLibTag().getName().equals("import")) {
-						tag.getBody().addStatement(t);
-					}
-				}
-
-				// move to page
-				ASMUtil.move(tag, page);
-
-				// if(!inline)ASMUtil.replace(p, tag, false);
 			}
-			else throw new EvaluatorException("Wrong Context, tag [" + tlt.getFullName() + "] can't be inside other tags, tag is inside tag [" + p.getFullname() + "]");
+			else {
+				// is in script
+				Tag p = ASMUtil.getParentTag(tag);
+				if ((pPage = p.getParent()) instanceof Page && p.getTagLibTag().getName().equalsIgnoreCase(
+						((Page) pPage).getSourceCode().getDialect() == CFMLEngine.DIALECT_CFML ? Constants.CFML_SCRIPT_TAG_NAME : Constants.LUCEE_SCRIPT_TAG_NAME)) { // chnaged
+
+					page = (Page) pPage;
+					// move imports from script to component body
+					List<Statement> children = p.getBody().getStatements();
+					Iterator<Statement> it = children.iterator();
+					Statement stat;
+					Tag t;
+					while (it.hasNext()) {
+						stat = it.next();
+						if (!(stat instanceof Tag)) continue;
+						t = (Tag) stat;
+						if (t.getTagLibTag().getName().equals("import")) {
+							tag.getBody().addStatement(t);
+						}
+					}
+
+					// move to page
+					ASMUtil.move(tag, page);
+
+					// if(!inline)ASMUtil.replace(p, tag, false);
+				}
+				else throw new EvaluatorException("Wrong Context, tag [" + tlt.getFullName() + "] can't be inside other tags, tag is inside tag [" + p.getFullname() + "]");
+			}
 		}
 
-		// Page page=(Page) pPage;
-		Boolean insideCITemplate = isInsideCITemplate(page);
 		boolean main = isMainComponent(page, tc);
 
 		// is a full grown component or an inline component
-		if (insideCITemplate == Boolean.FALSE) {
+		if (!inline && isInsideCITemplate(page) == Boolean.FALSE) {
 			throw new EvaluatorException("Wrong Context, [" + tlt.getFullName() + "] tag must be inside a file with the extension [" + Constants.getCFMLComponentExtension()
-					+ "] or [" + Constants.getLuceeComponentExtension() + "]");
+					+ "] or [" + Constants.getLuceeComponentExtension() + "], only inline components are allowed outside ");
 		}
 
 		boolean isComponent = tlt.getTagClassDefinition().isClassNameEqualTo("lucee.runtime.tag.Component");
@@ -133,7 +136,7 @@ public class Component extends EvaluatorSupport {
 				Attribute attr = tag.getAttribute("name");
 				if (attr != null) {
 					Expression expr = tag.getFactory().toExprString(attr.getValue());
-					if (!(expr instanceof LitString)) throw new EvaluatorException("Name of the component " + tlt.getFullName() + ", must be a literal string value");
+					if (!(expr instanceof LitString)) throw new EvaluatorException("Name of the component [" + tlt.getFullName() + "], must be a literal string value");
 					name = ((LitString) expr).getString();
 				}
 				else throw new EvaluatorException("Missing name of the component [" + tlt.getFullName() + "]");
@@ -147,7 +150,7 @@ public class Component extends EvaluatorSupport {
 		if (attr != null) {
 			Expression expr = tag.getFactory().toExprBoolean(attr.getValue());
 			if (!(expr instanceof LitBoolean))
-				throw new EvaluatorException("Attribute output of the tag [" + tlt.getFullName() + "], must contain a static boolean value (true or false, yes or no)");
+				throw new EvaluatorException("Attribute [output] of the tag [" + tlt.getFullName() + "], must contain a static boolean value (true or false, yes or no)");
 			// boolean output = ((LitBoolean)expr).getBooleanValue();
 			// if(!output) ASMUtil.removeLiterlChildren(tag, true);
 		}
@@ -156,7 +159,7 @@ public class Component extends EvaluatorSupport {
 		attr = tag.getAttribute("extends");
 		if (attr != null) {
 			Expression expr = tag.getFactory().toExprString(attr.getValue());
-			if (!(expr instanceof LitString)) throw new EvaluatorException("Attribute extends of the tag [" + tlt.getFullName() + "], must contain a literal string value");
+			if (!(expr instanceof LitString)) throw new EvaluatorException("Attribute [extends] of the tag [" + tlt.getFullName() + "], must contain a literal string value");
 		}
 
 		// implements
@@ -164,7 +167,8 @@ public class Component extends EvaluatorSupport {
 			attr = tag.getAttribute("implements");
 			if (attr != null) {
 				Expression expr = tag.getFactory().toExprString(attr.getValue());
-				if (!(expr instanceof LitString)) throw new EvaluatorException("Attribute implements of the tag [" + tlt.getFullName() + "], must contain a literal string value");
+				if (!(expr instanceof LitString))
+					throw new EvaluatorException("Attribute [implements] of the tag [" + tlt.getFullName() + "], must contain a literal string value");
 			}
 		}
 		// modifier
@@ -172,12 +176,12 @@ public class Component extends EvaluatorSupport {
 			attr = tag.getAttribute("modifier");
 			if (attr != null) {
 				Expression expr = tag.getFactory().toExprString(attr.getValue());
-				if (!(expr instanceof LitString)) throw new EvaluatorException("Attribute modifier of the tag [" + tlt.getFullName() + "], must contain a literal string value");
+				if (!(expr instanceof LitString)) throw new EvaluatorException("Attribute [modifier] of the tag [" + tlt.getFullName() + "], must contain a literal string value");
 				LitString ls = (LitString) expr;
 				int mod = ComponentUtil.toModifier(ls.getString(), lucee.runtime.Component.MODIFIER_NONE, -1);
 
 				if (mod == -1) throw new EvaluatorException(
-						"Value [" + ls.getString() + "] from attribute modifier of the tag [" + tlt.getFullName() + "] is invalid,valid values are [none,abstract,final]");
+						"Value [" + ls.getString() + "] from attribute [modifier] of the tag [" + tlt.getFullName() + "] is invalid, valid values are [none, abstract, final]");
 			}
 		}
 	}

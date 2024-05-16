@@ -44,7 +44,7 @@ public class FileList {
 					if (str.indexOf("Invalid image format") != -1) print.e((++count) + " " + file);
 				}
 				finally {
-					IOUtil.closeEL(fis);
+					IOUtil.close(fis);
 				}
 			}
 		}

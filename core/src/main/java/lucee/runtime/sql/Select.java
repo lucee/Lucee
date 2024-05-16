@@ -4,30 +4,38 @@
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either 
+ * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public 
+ *
+ * You should have received a copy of the GNU Lesser General Public
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  **/
 package lucee.runtime.sql;
 
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import lucee.runtime.sql.exp.Column;
+import lucee.runtime.sql.exp.ColumnExpression;
 import lucee.runtime.sql.exp.Expression;
 import lucee.runtime.sql.exp.op.Operation;
+import lucee.runtime.sql.exp.op.OperationAggregate;
 import lucee.runtime.sql.exp.value.ValueNumber;
+import lucee.runtime.type.Collection.Key;
+import lucee.runtime.type.Query;
 
 public class Select {
 	private List selects = new ArrayList();
+	private Set<Key> additionalColumns = new HashSet();
 	private List froms = new ArrayList();
 	private Operation where;
 	private List groupbys = new ArrayList();
@@ -37,8 +45,37 @@ public class Select {
 	private boolean unionDistinct;
 
 	public void addSelectExpression(Expression select) {
+		// Make sure there isn't already a column or alias of the same name. This will just cause issues
+		// down the road since our
+		// column counts in the final query won't match the index in the expression
+		for (Expression col: getSelects()) {
+			if (col.getAlias().equalsIgnoreCase(select.getAlias())) {
+				return;
+			}
+		}
 		selects.add(select);
 		select.setIndex(selects.size());
+	}
+
+	public void expandAsterisks(Query source) {
+		Expression[] selectCols = getSelects();
+		this.selects.clear();
+		Iterator<Key> it;
+		Key k;
+		for (Expression col: selectCols) {
+			if (col.getAlias().equals("*")) {
+				it = source.keyIterator();
+				while (it.hasNext()) {
+					k = it.next();
+					addSelectExpression(new ColumnExpression(k.getString(), 0));
+				}
+			}
+			else {
+				addSelectExpression(col);
+			}
+		}
+		// We may not need all of these now.
+		calcAdditionalColumns(getAdditionalColumns());
 	}
 
 	public void addFromExpression(Column exp) {
@@ -50,12 +87,29 @@ public class Select {
 		this.where = where;
 	}
 
-	public void addGroupByExpression(Column col) {
+	public void addGroupByExpression(Expression col) {
 		this.groupbys.add(col);
 	}
 
 	public void setTop(ValueNumber top) {
 		this.top = top;
+	}
+
+	public void calcAdditionalColumns(Set<Key> allColumns) {
+		// Remove any columns we are explicitly selecting
+		for (Expression expSelect: getSelects()) {
+			if (expSelect instanceof ColumnExpression) {
+				ColumnExpression ce = (ColumnExpression) expSelect;
+				allColumns.remove(ce.getColumn());
+			}
+		}
+		// What's left are columns used by functions and aggregates,
+		// but not directly part of the final result
+		this.additionalColumns = allColumns;
+	}
+
+	public Set<Key> getAdditionalColumns() {
+		return this.additionalColumns;
 	}
 
 	/**
@@ -68,9 +122,9 @@ public class Select {
 	/**
 	 * @return the groupbys
 	 */
-	public Column[] getGroupbys() {
+	public Expression[] getGroupbys() {
 		if (groupbys == null) return new Column[0];
-		return (Column[]) groupbys.toArray(new Column[groupbys.size()]);
+		return (Expression[]) groupbys.toArray(new Expression[groupbys.size()]);
 	}
 
 	/**
@@ -85,6 +139,22 @@ public class Select {
 	 */
 	public Expression[] getSelects() {
 		return (Expression[]) selects.toArray(new Expression[selects.size()]);
+	}
+
+	/**
+	 * @return whether at least one select is an aggregate
+	 */
+	public boolean hasAggregateSelect() {
+		for (Expression col: getSelects()) {
+			if (col instanceof OperationAggregate) {
+				return true;
+			}
+			if (col instanceof Operation && ((Operation) col).hasAggregate()) {
+				return true;
+			}
+		}
+		return false;
+
 	}
 
 	/**

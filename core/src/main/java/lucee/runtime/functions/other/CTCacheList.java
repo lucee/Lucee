@@ -19,12 +19,12 @@
 package lucee.runtime.functions.other;
 
 import lucee.runtime.PageContext;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.type.Struct;
 
 public class CTCacheList {
 	public static Struct call(PageContext pc) {
-		ConfigImpl config = (ConfigImpl) pc.getConfig();
+		ConfigPro config = (ConfigPro) pc.getConfig();
 		return config.listCTCache();
 	}
 }

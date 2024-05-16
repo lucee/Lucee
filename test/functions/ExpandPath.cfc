@@ -17,7 +17,7 @@
  * 
  ---><cfscript>
 
-component extends="org.lucee.cfml.test.LuceeTestCase"   {
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="mappings" {
     /*try{
         dir=getDirectoryFromPath(GetBaseTemplatePath());
         dir=mid(dir,1,len(dir)-1);
@@ -46,10 +46,12 @@ component extends="org.lucee.cfml.test.LuceeTestCase"   {
     }
 
     public void function testSlashJM(){
-        assertEquals("#server.coldfusion.rootdir##SEP#jm",ExpandPath("/jm"));
+        //assertEquals("#server.coldfusion.rootdir##SEP#jm",ExpandPath("/jm"));
+        assertEquals("#expandPath("/")#jm",ExpandPath("/jm"));
     }
     public void function testBackSlashJM(){
-        assertEquals("#server.coldfusion.rootdir##SEP#jm",ExpandPath("\jm"));
+        //assertEquals("#server.coldfusion.rootdir##SEP#jm",ExpandPath("\jm"));
+        assertEquals("#expandPath("/")#jm",ExpandPath("\jm"));
     }
 
     public void function testMapping(){

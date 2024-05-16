@@ -107,6 +107,8 @@ public interface Scope extends Struct {
 
 	/**
 	 * release scope for reuse
+	 * 
+	 * @param pc Page Context
 	 */
 	public void release(PageContext pc);
 

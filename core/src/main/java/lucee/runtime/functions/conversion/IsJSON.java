@@ -28,6 +28,7 @@ public class IsJSON {
 	public static boolean call(PageContext pc, Object obj) {
 		String str = Caster.toString(obj, null);
 		if (StringUtil.isEmpty(str, true)) return false;
+
 		try {
 			new JSONExpressionInterpreter().interpret(pc, str);
 			return true;

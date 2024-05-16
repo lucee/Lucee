@@ -23,6 +23,7 @@ import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.Charset;
+import java.security.GeneralSecurityException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -37,12 +38,14 @@ import lucee.commons.net.HTTPUtil;
 import lucee.commons.net.http.HTTPEngine;
 import lucee.commons.net.http.HTTPResponse;
 import lucee.commons.net.http.Header;
+import lucee.commons.net.http.httpclient.HTTPEngine4Impl;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.runtime.ComponentPageImpl;
 import lucee.runtime.PageContext;
 import lucee.runtime.config.Constants;
 import lucee.runtime.converter.ConverterException;
 import lucee.runtime.converter.JSONConverter;
+import lucee.runtime.converter.JSONDateFormat;
 import lucee.runtime.converter.ScriptConverter;
 import lucee.runtime.dump.DumpData;
 import lucee.runtime.dump.DumpProperties;
@@ -97,10 +100,10 @@ public class HTTPClient implements Objects, Iteratorable {
 
 	public HTTPClient(String httpUrl, String username, String password, ProxyData proxyData) throws PageException {
 		try {
-			url = HTTPUtil.toURL(httpUrl, true);
+			url = HTTPUtil.toURL(httpUrl, HTTPUtil.ENCODED_AUTO);
 
 			if (!StringUtil.isEmpty(this.url.getQuery())) throw new ApplicationException("invalid url, query string is not allowed as part of the call");
-			metaURL = HTTPUtil.toURL(url.toExternalForm() + "?cfml", true);
+			metaURL = HTTPUtil.toURL(url.toExternalForm() + "?cfml", HTTPUtil.ENCODED_AUTO);
 		}
 		catch (MalformedURLException e) {
 			throw Caster.toPageException(e);
@@ -171,7 +174,7 @@ public class HTTPClient implements Objects, Iteratorable {
 			InputStream is = null;
 			HTTPResponse rsp = null;
 			try {
-				rsp = HTTPEngine.get(metaURL, username, password, -1, false, "UTF-8", createUserAgent(pc), proxyData, null);
+				rsp = HTTPEngine4Impl.get(metaURL, username, password, 5000, false, "UTF-8", createUserAgent(pc), proxyData, null);
 				MimeType mt = getMimeType(rsp, null);
 				int format = MimeType.toFormat(mt, -1);
 				if (format == -1) throw new ApplicationException("cannot convert response with mime type [" + mt + "] to a CFML Object");
@@ -191,11 +194,15 @@ public class HTTPClient implements Objects, Iteratorable {
 
 			}
 			catch (Throwable t) {
-				ExceptionUtil.rethrowIfNecessary(t);
 				throw new PageRuntimeException(Caster.toPageException(t));
 			}
 			finally {
-				IOUtil.closeEL(is);
+				try {
+					IOUtil.close(is);
+				}
+				catch (IOException e) {
+					throw new PageRuntimeException(Caster.toPageException(e));
+				}
 				HTTPEngine.closeEL(rsp);
 			}
 		}
@@ -264,7 +271,7 @@ public class HTTPClient implements Objects, Iteratorable {
 		try {
 			if (UDF.RETURN_FORMAT_JSON == argumentsCollectionFormat) {
 				Charset cs = pc.getWebCharset();
-				str = new JSONConverter(true, cs).serialize(pc, args, SerializationSettings.SERIALIZE_AS_ROW);
+				str = new JSONConverter(true, cs, JSONDateFormat.PATTERN_CF, false).serialize(pc, args, SerializationSettings.SERIALIZE_AS_ROW, true);
 				formfields.put("argumentCollectionFormat", "json");
 			}
 			else if (UDF.RETURN_FORMAT_SERIALIZE == argumentsCollectionFormat) {
@@ -293,7 +300,7 @@ public class HTTPClient implements Objects, Iteratorable {
 		InputStream is = null;
 		try {
 			// call remote cfc
-			rsp = HTTPEngine.post(url, username, password, -1, false, "UTF-8", createUserAgent(pc), proxyData, headers, formfields);
+			rsp = HTTPEngine4Impl.post(url, username, password, -1, false, "UTF-8", createUserAgent(pc), proxyData, HTTPEngine.toHeaders(headers), formfields);
 
 			// read result
 			Header[] rspHeaders = rsp.getAllHeaders();
@@ -311,7 +318,7 @@ public class HTTPClient implements Objects, Iteratorable {
 					}
 					is = rsp.getContentAsStream();
 					ApplicationException ae = new ApplicationException("remote component throws the following error:" + msg);
-					if (!hasMsg) ae.setAdditional(KeyImpl.init("respone-body"), IOUtil.toString(is, mt.getCharset()));
+					if (!hasMsg) ae.setAdditional(KeyImpl.getInstance("respone-body"), IOUtil.toString(is, mt.getCharset()));
 
 					throw ae;
 				}
@@ -323,8 +330,16 @@ public class HTTPClient implements Objects, Iteratorable {
 		catch (IOException ioe) {
 			throw Caster.toPageException(ioe);
 		}
+		catch (GeneralSecurityException e) {
+			throw Caster.toPageException(e);
+		}
 		finally {
-			IOUtil.closeEL(is);
+			try {
+				IOUtil.close(is);
+			}
+			catch (IOException e) {
+				throw Caster.toPageException(e);
+			}
 			HTTPEngine.closeEL(rsp);
 		}
 	}

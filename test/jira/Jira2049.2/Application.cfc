@@ -2,11 +2,7 @@ component {
 
 	this.name = hash( getCurrentTemplatePath() );
 	
-	this.datasource={
-  		class: 'org.h2.Driver'
-	  	, bundleName: 'org.h2'
-		, connectionString: 'jdbc:h2:#getDirectoryFromPath(getCurrentTemplatePath())#/datasource/db;MODE=MySQL'
-	};
+	this.datasource =  server.getDatasource( "h2", server._getTempDir( "jira2049.2" ) );
 
 	this.ormEnabled = true;
 	this.ormSettings.flushatrequestend = false;
@@ -15,7 +11,9 @@ component {
 	this.ormSettings.savemapping = true;
 	this.ormSettings.eventHandling = true;
 	
-	public any function onRequestStart() {
+	public function onRequestStart() {
+		setting requesttimeout=10;
 		ormReload();
 	}
+
 }

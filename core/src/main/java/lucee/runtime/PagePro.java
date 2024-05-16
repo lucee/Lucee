@@ -6,4 +6,6 @@ public interface PagePro {
 	public int getHash();
 
 	public long getSourceLength();
+
+	public String getSubname();
 }

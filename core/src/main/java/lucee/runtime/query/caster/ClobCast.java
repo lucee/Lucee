@@ -39,7 +39,7 @@ public class ClobCast implements Cast {
 			return IOUtil.toString(reader);
 		}
 		finally {
-			IOUtil.closeEL(reader);
+			IOUtil.close(reader);
 		}
 	}
 

@@ -37,7 +37,6 @@ import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.net.HTTPUtil;
 import lucee.runtime.PageContextImpl;
-import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PostContentAbort;
@@ -163,12 +162,19 @@ public final class Content extends BodyTagImpl {
 		// check the file before doing anything else
 		Resource file = null;
 		if (content == null && !StringUtil.isEmpty(strFile)) file = ResourceUtil.toResourceExisting(pageContext, strFile);
+		if (content == null && !StringUtil.isEmpty(strFile)) {
+			file = ResourceUtil.toResourceExisting(pageContext, strFile);
+			// Do not overwrite type-attribute
+			if (StringUtil.isEmpty(type, true)) {
+				type = ResourceUtil.getMimeType(file, "text/html");
+			}
+		}
 
 		// get response object
 		HttpServletResponse rsp = pageContext.getHttpServletResponse();
 
 		// check committed
-		if (rsp.isCommitted()) throw new ApplicationException("content is already flushed", "you can't rewrite head of response after part of the page is flushed");
+		if (rsp.isCommitted()) throw new ApplicationException("Content was already flushed", "you can't rewrite the header of a response after part of the page was flushed");
 
 		// set type
 		if (!StringUtil.isEmpty(type, true)) {
@@ -176,7 +182,7 @@ public final class Content extends BodyTagImpl {
 			ReqRspUtil.setContentType(rsp, type);
 
 			// TODO more dynamic implementation, configuration in admin?
-			if (!HTTPUtil.isTextMimeType(type)) {
+			if (!(HTTPUtil.isTextMimeType(type) == Boolean.TRUE)) {
 				((PageContextImpl) pageContext).getRootOut().setAllowCompression(false);
 			}
 		}
@@ -239,11 +245,14 @@ public final class Content extends BodyTagImpl {
 				}
 				if (!(os instanceof GZIPOutputStream)) ReqRspUtil.setContentLength(rsp, contentLength);
 			}
-			catch (IOException ioe) {}
+			catch (IOException ioe) {
+			}
 			finally {
 				IOUtil.flushEL(os);
 				IOUtil.closeEL(is, os);
 				if (deletefile && file != null) ResourceUtil.removeEL(file, true);
+				// disable debugging output
+				((PageContextImpl) pageContext).getDebugger().setOutput(false);
 				((PageContextImpl) pageContext).getRootOut().setClosed(true);
 			}
 			throw new PostContentAbort();
@@ -259,7 +268,7 @@ public final class Content extends BodyTagImpl {
 			return pageContext.getResponseStream();
 		}
 		catch (IllegalStateException ise) {
-			throw new TemplateException("content is already send to user, flush");
+			throw new TemplateException("Content was already sent to user, flush");
 		}
 	}
 
@@ -273,7 +282,8 @@ public final class Content extends BodyTagImpl {
 	 * 
 	 * @param hasBody
 	 */
-	public void hasBody(boolean hasBody) {}
+	public void hasBody(boolean hasBody) {
+	}
 
 	private Range[] getRanges() {
 		HttpServletRequest req = pageContext.getHttpServletRequest();
@@ -330,8 +340,7 @@ public final class Content extends BodyTagImpl {
 			ranges[i] = new Range(from, to);
 
 			if (i > 0 && ranges[i - 1].to >= from) {
-				LogUtil.log(ThreadLocalPageContext.getConfig(pageContext), Log.LEVEL_ERROR, Content.class.getName(),
-						"there is an overlapping of 2 ranges (" + ranges[i - 1] + "," + ranges[i] + ")");
+				LogUtil.log((pageContext), Log.LEVEL_ERROR, Content.class.getName(), "there is an overlapping of 2 ranges (" + ranges[i - 1] + "," + ranges[i] + ")");
 				return null;
 			}
 
@@ -340,7 +349,7 @@ public final class Content extends BodyTagImpl {
 	}
 
 	private void failRange(String name, String range) {
-		LogUtil.log(ThreadLocalPageContext.getConfig(pageContext), Log.LEVEL_INFO, Content.class.getName(), "failed to parse the header field [" + name + ":" + range + "]");
+		LogUtil.log((pageContext), Log.LEVEL_INFO, Content.class.getName(), "failed to parse the header field [" + name + ":" + range + "]");
 	}
 }
 

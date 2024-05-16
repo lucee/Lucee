@@ -114,16 +114,16 @@ public final class CacheResource extends ResourceSupport implements ResourceMeta
 
 	@Override
 	public void remove(boolean force) throws IOException {
-		if (isRoot()) throw new IOException("can't remove root resource [" + getPath() + "]");
+		if (isRoot()) throw new IOException("Can't remove root resource [" + getPath() + "]");
 
 		provider.read(this);
 		CacheResourceCore core = getCore();
-		if (core == null) throw new IOException("can't remove resource [" + getPath() + "],resource does not exist");
+		if (core == null) throw new IOException("Can't remove resource [" + getPath() + "], resource does not exist");
 
 		Resource[] children = listResources();
 		if (children != null && children.length > 0) {
 			if (!force) {
-				throw new IOException("can't delete directory [" + getPath() + "], directory is not empty");
+				throw new IOException("Can't delete directory [" + getPath() + "], directory is not empty");
 			}
 			for (int i = 0; i < children.length; i++) {
 				children[i].remove(true);
@@ -361,7 +361,7 @@ public final class CacheResource extends ResourceSupport implements ResourceMeta
 
 	@Override
 	public void setMode(int mode) throws IOException {
-		if (!exists()) throw new IOException("can't set mode on resource [" + this + "], resource does not exist");
+		if (!exists()) throw new IOException("Can't set mode on resource [" + this + "], resource does not exist");
 		getCore().setMode(mode);
 	}
 
@@ -373,7 +373,7 @@ public final class CacheResource extends ResourceSupport implements ResourceMeta
 
 	@Override
 	public void setAttribute(short attribute, boolean value) throws IOException {
-		if (!exists()) throw new IOException("can't get attributes on resource [" + this + "], resource does not exist");
+		if (!exists()) throw new IOException("Can't get attributes on resource [" + this + "], resource does not exist");
 		int attr = getCore().getAttributes();
 		if (value) {
 			if ((attr & attribute) == 0) attr += attribute;

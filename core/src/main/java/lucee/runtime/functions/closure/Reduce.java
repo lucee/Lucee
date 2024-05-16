@@ -55,7 +55,11 @@ public class Reduce extends BIF implements ClosureFunc {
 		return _call(pc, obj, udf, initalValue, TYPE_UNDEFINED);
 	}
 
-	public static Object _call(PageContext pc, Object obj, UDF udf, Object initalValue, short type) throws PageException {
+	public static Object call(PageContext pc, Object obj, UDF udf, Object initalValue, short type) throws PageException {
+		return _call(pc, obj, udf, initalValue, type);
+	}
+
+	private static Object _call(PageContext pc, Object obj, UDF udf, Object initalValue, short type) throws PageException {
 
 		Object value;
 
@@ -107,7 +111,7 @@ public class Reduce extends BIF implements ClosureFunc {
 		else if (obj instanceof StringListData) {
 			value = invoke(pc, (StringListData) obj, udf, initalValue);
 		}
-		else throw new FunctionException(pc, "Filter", 1, "data", "cannot iterate througth this type " + Caster.toTypeName(obj.getClass()));
+		else throw new FunctionException(pc, "Filter", 1, "data", "Cannot iterate over this type [" + Caster.toTypeName(obj.getClass()) + "]");
 
 		return value;
 	}

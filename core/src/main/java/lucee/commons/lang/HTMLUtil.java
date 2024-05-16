@@ -50,7 +50,7 @@ public final class HTMLUtil {
 	public List<URL> getURLS(String html, URL url) {
 
 		List<URL> urls = new ArrayList<URL>();
-		SourceCode cfml = new SourceCode(html, false, CFMLEngine.DIALECT_CFML);
+		SourceCode cfml = new SourceCode(null, html, false, CFMLEngine.DIALECT_CFML);
 		while (!cfml.isAfterLast()) {
 			if (cfml.forwardIfCurrent('<')) {
 				for (int i = 0; i < tags.length; i++) {
@@ -91,7 +91,8 @@ public final class HTMLUtil {
 					try {
 						urls.add(new URL(url, value.toString()));
 					}
-					catch (MalformedURLException e) {}
+					catch (MalformedURLException e) {
+					}
 					cfml.next();
 				}
 				else {
@@ -134,13 +135,14 @@ public final class HTMLUtil {
 		String lcValue = value.toLowerCase();
 		try {
 			if (lcValue.startsWith("http://") || lcValue.startsWith("news://") || lcValue.startsWith("goopher://") || lcValue.startsWith("javascript:"))
-				list.add(HTTPUtil.toURL(value, true));
+				list.add(HTTPUtil.toURL(value, HTTPUtil.ENCODED_AUTO));
 			else {
 
 				list.add(new URL(baseURL, value.toString()));
 			}
 		}
-		catch (MalformedURLException mue) {}
+		catch (MalformedURLException mue) {
+		}
 		// print.err(list.get(list.size()-1));
 	}
 

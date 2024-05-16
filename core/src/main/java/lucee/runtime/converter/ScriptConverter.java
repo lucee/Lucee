@@ -21,8 +21,9 @@ package lucee.runtime.converter;
 import java.io.IOException;
 import java.io.Serializable;
 import java.io.Writer;
+import java.util.Collections;
 import java.util.Date;
-import java.util.HashSet;
+import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
@@ -51,7 +52,6 @@ import lucee.runtime.text.xml.XMLCaster;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.Collection.Key;
-import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.ObjectWrap;
 import lucee.runtime.type.Query;
 import lucee.runtime.type.Struct;
@@ -67,7 +67,7 @@ import lucee.runtime.type.util.KeyConstants;
  * class to serialize and desirilize WDDX Packes
  */
 public final class ScriptConverter extends ConverterSupport {
-	private static final Collection.Key REMOTING_FETCH = KeyImpl.intern("remotingFetch");
+	private static final Collection.Key REMOTING_FETCH = KeyConstants._remotingFetch;
 	private static final char QUOTE_CHR = '"';
 	private static final String QUOTE_STR = String.valueOf(QUOTE_CHR);
 
@@ -77,7 +77,8 @@ public final class ScriptConverter extends ConverterSupport {
 	/**
 	 * constructor of the class
 	 */
-	public ScriptConverter() {}
+	public ScriptConverter() {
+	}
 
 	public ScriptConverter(boolean ignoreRemotingFetch) {
 		this.ignoreRemotingFetch = ignoreRemotingFetch;
@@ -226,7 +227,7 @@ public final class ScriptConverter extends ConverterSupport {
 			sb.append(escape(key.getString()));
 			sb.append(QUOTE_CHR);
 			sb.append(':');
-			_serialize(struct.get(key, null), sb, new HashSet<Object>());
+			_serialize(struct.get(key, null), sb, Collections.newSetFromMap(new IdentityHashMap<>()));
 		}
 		deep--;
 
@@ -555,14 +556,15 @@ public final class ScriptConverter extends ConverterSupport {
 				return;
 			}
 		}
+		catch (Exception e) {
+			ConverterException ce = new ConverterException("can't serialize Object of type [ " + Caster.toClassName(object) + " ]");
+			ce.initCause(e);
+			throw e;
+		}
 		finally {
 			done.remove(raw);
 		}
 		throw new ConverterException("can't serialize Object of type [ " + Caster.toClassName(object) + " ]");
-		// deep--;
-		/*
-		 * } catch(StackOverflowError soe){ throw soe; }
-		 */
 	}
 
 	private void _serializeXML(Node node, StringBuilder sb) {
@@ -607,7 +609,7 @@ public final class ScriptConverter extends ConverterSupport {
 	public String serialize(Object object) throws ConverterException {
 		deep = 0;
 		StringBuilder sb = new StringBuilder();
-		_serialize(object, sb, new HashSet<Object>());
+		_serialize(object, sb, Collections.newSetFromMap(new IdentityHashMap<>()));
 		return sb.toString();
 	}
 

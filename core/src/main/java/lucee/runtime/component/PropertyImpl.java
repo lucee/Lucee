@@ -243,7 +243,8 @@ public final class PropertyImpl extends MemberSupport implements Property, ASMPr
 		try {
 			strDynAttrs = new ScriptConverter().serialize(dynAttrs);
 		}
-		catch (ConverterException ce) {}
+		catch (ConverterException ce) {
+		}
 
 		return "default:" + this._default + ";displayname:" + this.displayname + ";hint:" + this.hint + ";name:" + this.name + ";type:" + this.type + ";ownerName:" + ownerName
 				+ ";attrs:" + strDynAttrs + ";";

@@ -27,6 +27,7 @@ import lucee.runtime.listener.ApplicationContext;
 import lucee.runtime.listener.ApplicationContextSupport;
 import lucee.runtime.listener.AuthCookieData;
 import lucee.runtime.listener.AuthCookieDataImpl;
+import lucee.runtime.listener.CookieData;
 import lucee.runtime.security.CredentialImpl;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.dt.TimeSpan;
@@ -104,7 +105,8 @@ public final class Loginuser extends TagImpl {
 				if (Integer.MAX_VALUE < tmp) expires = Integer.MAX_VALUE;
 				else expires = (int) tmp;
 
-				((CookieImpl) pageContext.cookieScope()).setCookie(KeyImpl.init(name), login.encode(), expires, false, "/", Login.getCookieDomain(appContext));
+				((CookieImpl) pageContext.cookieScope()).setCookie(KeyImpl.init(name), login.encode(), expires, false, "/", Login.getCookieDomain(appContext),
+						CookieData.SAMESITE_EMPTY);
 			}
 		}
 

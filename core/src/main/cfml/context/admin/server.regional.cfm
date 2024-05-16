@@ -193,9 +193,11 @@ Create Datasource --->
 					<td>
 						<cfif hasAccess>
 							<input type="text" name="timeserver" value="#regional.timeserver#" class="large">
+							<cfset renderSysPropEnvVar( "lucee.timeserver",regional.timeserver)>
 							<br /><input type="checkbox" class="checkbox" name="usetimeserver" <cfif regional.usetimeserver>checked="checked"</cfif> value="true" /> #stText.Regional.useTimeServer#
 						<cfelse>
 							<b>#regional.timeserver#</b>
+							<cfset renderSysPropEnvVar( "lucee.timeserver",regional.timeserver)>
 							<input type="hidden" name="usetimeserver" value="#regional.usetimeserver#" />
 						</cfif>
 						<div class="comment">#stText.Regional.TimeServerDescription#</div>
@@ -211,7 +213,7 @@ Create Datasource --->
 						<td colspan="2">
 							<input class="bl button submit" type="submit" name="mainAction" value="#stText.Buttons.Update#">
 							<input class="<cfif request.adminType EQ "web">bm<cfelse>br</cfif> button reset" type="reset" name="cancel" value="#stText.Buttons.Cancel#">
-							<cfif request.adminType EQ "web">
+							<cfif not request.singleMode and request.adminType EQ "web">
 								<input class="br button submit" type="submit" name="mainAction" value="#stText.Buttons.resetServerAdmin#">
 							</cfif>
 						</td>
@@ -223,18 +225,22 @@ Create Datasource --->
 		<h3>
 			Current time settings
 		</h3>
-		<table class="maintbl" style="width:300px">
+		<cfscript>
+			jvmTZ = GetTimeZoneInfo( "jvm" );
+			luceeTZ = GetTimeZoneInfo( GetTimeZone() );
+		</cfscript>
+		<table class="maintbl" style="width:500px">
 			<tbody>
 				<tr>
 					<th scope="row" nowrap="nowrap">#stText.Overview.ServerTime#</th>
 					<td>#lsdateFormat(date:now(),timezone:"jvm")#
-						#lstimeFormat(time:now(),timezone:"jvm")#
+						#lstimeFormat(time:now(),timezone:"jvm")# (#jvmTZ.isDSTon ? jvmTZ.nameDST : jvmTZ.name#)
 					</td>
 				</tr>
 				<tr>
 					<th scope="row">#stText.Overview.DateTime#</th>
 					<td>#lsdateFormat(now())#
-						#lstimeFormat(now())#
+						#lstimeFormat(now())# (#luceeTZ.isDSTon ? luceeTZ.nameDST : luceeTZ.name#)
 					</td>
 				</tr>
 			</tbody>

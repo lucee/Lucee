@@ -32,7 +32,7 @@ public interface QueryStack {
 	/**
 	 * adds a Query to the Stack
 	 * 
-	 * @param query
+	 * @param query Query
 	 */
 	public abstract void addQuery(Query query);
 
@@ -49,7 +49,9 @@ public interface QueryStack {
 	/**
 	 * loop over all Queries and return value at first occurrence
 	 * 
+	 * @param pc Page Context
 	 * @param key column name of the value to get
+	 * @param defaultValue default value
 	 * @return value
 	 * 
 	 */

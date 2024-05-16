@@ -32,24 +32,8 @@ component {
 	this.setClientCookies 	= true;
 	this.scriptProtect		= false;
 
- 	/*this.datasource = {
-	  class: 'org.hsqldb.jdbcDriver'
-	, connectionString: 'jdbc:hsqldb:file:#getDirectoryFromPath(getCurrentTemplatePath())#/datasource/db'
-	};*/
-
-	this.datasource={
-	  		class: 'org.h2.Driver'
-	  		, bundleName: 'org.h2'
-			, connectionString: 'jdbc:h2:#getDirectoryFromPath(getCurrentTemplatePath())#/datasource/db;MODE=MySQL'
-		};
-	/*this.datasource = {
-	  class: 'org.gjt.mm.mysql.Driver'
-	, connectionString: 'jdbc:mysql://localhost:3306/mysql?useUnicode=true&characterEncoding=UTF-8&useLegacyDatetimeCode=true'
-	, username: 'root'
-	, password: "encrypted:cfc70807ce617a02513585c7fc8b54ea7539c44a553a0cf9"
-	};*/
-
-
+	this.datasource =  server.getDatasource( "h2", server._getTempDir( "jira1829" ) );
+	
 	// CONTENTBOX ORM SETTINGS
 	this.ormEnabled = true;
 	this.ormSettings = {
@@ -70,5 +54,9 @@ component {
 		// ORM EVENTS MUST BE TURNED ON FOR CONTENTBOX TO WORK
 		skipCFCWithError	= false
 	};
+	
+	public function onRequestStart() {
+		setting requesttimeout=10;
+	}
 
 }

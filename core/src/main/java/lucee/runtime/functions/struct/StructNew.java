@@ -21,6 +21,10 @@
  */
 package lucee.runtime.functions.struct;
 
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.concurrent.ConcurrentHashMap;
+
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.FunctionException;
@@ -29,6 +33,9 @@ import lucee.runtime.ext.function.BIF;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
+import lucee.runtime.type.StructListenerImpl;
+import lucee.runtime.type.UDF;
+import lucee.runtime.type.wrap.MapAsStruct;
 
 public final class StructNew extends BIF {
 
@@ -39,7 +46,19 @@ public final class StructNew extends BIF {
 	}
 
 	public static Struct call(PageContext pc, String type) throws ApplicationException {
-		return new StructImpl(toType(type));
+		return call(pc, type, null);
+	}
+
+	public static Struct call(PageContext pc, String type, UDF onMissingKey) throws ApplicationException {
+		int t = toType(type);
+		if (t == StructImpl.TYPE_LINKED_CASESENSITIVE || t == StructImpl.TYPE_CASESENSITIVE) {
+			if (onMissingKey != null) throw new ApplicationException("type [" + type + "] is not supported in combination with onMissingKey listener");
+			return MapAsStruct.toStruct(t == StructImpl.TYPE_LINKED_CASESENSITIVE ? Collections.synchronizedMap(new LinkedHashMap<>()) : new ConcurrentHashMap<>(), true);
+		}
+		if (onMissingKey != null) {
+			return new StructListenerImpl(t, onMissingKey);
+		}
+		return new StructImpl(t);
 	}
 
 	public static int toType(String type) throws ApplicationException {
@@ -54,7 +73,10 @@ public final class StructNew extends BIF {
 		else if (type.equals("soft")) return Struct.TYPE_SOFT;
 		else if (type.equals("normal")) return Struct.TYPE_REGULAR;
 		else if (type.equals("regular")) return Struct.TYPE_REGULAR;
-		else throw new ApplicationException("valid struct types are [normal, weak, linked, soft, synchronized]");
+		else if (type.equals("ordered-casesensitive")) return StructImpl.TYPE_LINKED_CASESENSITIVE;
+		else if (type.equals("casesensitive")) return StructImpl.TYPE_CASESENSITIVE;
+		else throw new ApplicationException("valid struct types are [normal, weak, linked, soft, synchronized,ordered-casesensitive,casesensitive]");
+
 	}
 
 	@Override

@@ -60,21 +60,29 @@ public class Filter extends BIF implements ClosureFunc {
 	private static final long serialVersionUID = -5940580562772523622L;
 
 	public static Object call(PageContext pc, Object obj, UDF udf) throws PageException {
-		return _call(pc, obj, udf, false, 20, TYPE_UNDEFINED);
+		return _call(pc, obj, udf, false, Each.DEFAULT_MAX_THREAD, TYPE_UNDEFINED);
 	}
 
 	public static Object call(PageContext pc, Object obj, UDF udf, boolean parallel) throws PageException {
-		return _call(pc, obj, udf, parallel, 20, TYPE_UNDEFINED);
+		return _call(pc, obj, udf, parallel, Each.DEFAULT_MAX_THREAD, TYPE_UNDEFINED);
 	}
 
 	public static Object call(PageContext pc, Object obj, UDF udf, boolean parallel, double maxThreads) throws PageException {
 		return _call(pc, obj, udf, parallel, (int) maxThreads, TYPE_UNDEFINED);
 	}
 
-	public static Collection _call(PageContext pc, Object obj, UDF udf, boolean parallel, int maxThreads, short type) throws PageException {
+	public static Object call(PageContext pc, Object obj, UDF udf, boolean parallel, int maxThreads, short type) throws PageException {
+		return _call(pc, obj, udf, parallel, maxThreads, type);
+	}
+
+	private static Collection _call(PageContext pc, Object obj, UDF udf, boolean parallel, int maxThreads, short type) throws PageException {
 
 		ExecutorService execute = null;
 		List<Future<Data<Pair<Object, Object>>>> futures = null;
+		// 0 or less == default
+		if (maxThreads < 1) maxThreads = Each.DEFAULT_MAX_THREAD;
+		// 1 == not parallel
+		else if (maxThreads == 1) parallel = false;
 		if (parallel) {
 			execute = Executors.newFixedThreadPool(maxThreads);
 			futures = new ArrayList<Future<Data<Pair<Object, Object>>>>();
@@ -131,7 +139,7 @@ public class Filter extends BIF implements ClosureFunc {
 		else if (obj instanceof StringListData) {
 			coll = invoke(pc, (StringListData) obj, udf, execute, futures);
 		}
-		else throw new FunctionException(pc, "Filter", 1, "data", "cannot iterate througth this type " + Caster.toTypeName(obj.getClass()));
+		else throw new FunctionException(pc, "Filter", 1, "data", "Cannot iterate over this type [" + Caster.toTypeName(obj.getClass()) + "]");
 
 		if (parallel) afterCall(pc, coll, futures, execute);
 

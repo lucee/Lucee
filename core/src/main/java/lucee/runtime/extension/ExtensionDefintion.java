@@ -12,6 +12,7 @@ import org.osgi.framework.Version;
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.config.Config;
+import lucee.runtime.converter.ConverterException;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.osgi.OSGiUtil;
@@ -24,7 +25,8 @@ public class ExtensionDefintion {
 	private Config config;
 	private RHExtension rhe;
 
-	public ExtensionDefintion() {}
+	public ExtensionDefintion() {
+	}
 
 	public ExtensionDefintion(String id) {
 		this.id = id;
@@ -125,14 +127,14 @@ public class ExtensionDefintion {
 		this.source = source;
 	}
 
-	public RHExtension toRHExtension() throws PageException, IOException, BundleException {
+	public RHExtension toRHExtension() throws PageException, IOException, BundleException, ConverterException {
 		if (rhe != null) return rhe;
 
 		if (source == null) {
 			// MUST try to load the Extension
 			throw new ApplicationException("ExtensionDefinition does not contain the necessary data to create the requested object.");
 		}
-		rhe = new RHExtension(config, source, false);
+		rhe = new RHExtension(config, source);
 		return rhe;
 	}
 

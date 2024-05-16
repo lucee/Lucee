@@ -49,4 +49,14 @@ public final class ZipResourceProvider extends CompressResourceProvider {
 	public boolean isModeSupported() {
 		return false;
 	}
+
+	@Override
+	public char getSeparator() {
+		return '/';
+	}
+
+	@Override
+	public boolean allowMatching() {
+		return false;
+	}
 }

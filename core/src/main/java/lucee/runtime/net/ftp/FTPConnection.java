@@ -99,7 +99,7 @@ public interface FTPConnection {
 	 */
 	public String getProxyPassword();
 
-	public abstract boolean secure();
+	public abstract String secure();
 
 	public abstract boolean getStopOnError();
 

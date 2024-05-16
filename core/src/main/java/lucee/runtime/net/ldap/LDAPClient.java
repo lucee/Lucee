@@ -93,7 +93,7 @@ public final class LDAPClient {
 	 * @param port
 	 * @param binaryColumns
 	 */
-	public LDAPClient(String server, int port, String[] binaryColumns) {
+	public LDAPClient(String server, int port, int timeout, String[] binaryColumns) {
 
 		env.put("java.naming.factory.initial", "com.sun.jndi.ldap.LdapCtxFactory");
 		env.put("java.naming.provider.url", "ldap://" + server + ":" + port);
@@ -104,6 +104,9 @@ public final class LDAPClient {
 
 		// Referral
 		env.put("java.naming.referral", "ignore");
+
+		// timeout
+		env.put("com.sun.jndi.ldap.read.timeout", String.valueOf(timeout));
 	}
 
 	/**
@@ -138,7 +141,7 @@ public final class LDAPClient {
 			Class clazz = ClassUtil.loadClass("com.sun.net.ssl.internal.ssl.Provider");
 
 			try {
-				Security.addProvider((Provider) clazz.newInstance());
+				Security.addProvider((Provider) ClassUtil.newInstance(clazz));
 			}
 			catch (Exception e) {
 				throw new RuntimeException(e);
@@ -348,7 +351,8 @@ public final class LDAPClient {
 						try {
 							value = attributesRow.get(name).get();
 						}
-						catch (Exception e) {}
+						catch (Exception e) {
+						}
 
 						qry.setAtEL("name", len, name);
 						qry.setAtEL("value", len, value);
@@ -367,7 +371,7 @@ public final class LDAPClient {
 			for (int i = sort.length - 1; i >= 0; i--) {
 				String item = sort[i];
 				if (item.indexOf(' ') != -1) item = ListUtil.first(item, " ", true);
-				qry.sort(KeyImpl.getInstance(item), order);
+				qry.sort(KeyImpl.init(item), order);
 				// keys[i] = new SortKey(item);
 			}
 		}

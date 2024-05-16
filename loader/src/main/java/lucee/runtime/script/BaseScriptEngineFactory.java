@@ -30,6 +30,7 @@ import lucee.cli.servlet.ServletConfigImpl;
 import lucee.cli.servlet.ServletContextImpl;
 import lucee.loader.engine.CFMLEngine;
 import lucee.loader.engine.CFMLEngineFactory;
+import lucee.loader.util.Util;
 
 public abstract class BaseScriptEngineFactory implements ScriptEngineFactory {
 
@@ -45,14 +46,22 @@ public abstract class BaseScriptEngineFactory implements ScriptEngineFactory {
 			try {
 				engine = CFMLEngineFactory.getInstance();
 			}
-			catch (final RuntimeException re) {}
+			catch (final RuntimeException re) {
+			}
 
 			// create Engine
 			if (engine == null) {
 				final String servletName = "";
 				final Map<String, Object> attributes = new HashMap<String, Object>();
 				final Map<String, String> initParams = new HashMap<String, String>();
-				final File root = new File("."); // working directory that the java command was called from
+
+				// Allow override of context root
+				String rootPath = System.getProperty("lucee.cli.contextRoot");
+				if (Util.isEmpty(rootPath)) {
+					// working directory that the java command was called from
+					rootPath = ".";
+				}
+				final File root = new File(rootPath);
 
 				final ServletContextImpl servletContext = new ServletContextImpl(root, attributes, initParams, 1, 0);
 				final ServletConfigImpl servletConfig = new ServletConfigImpl(servletContext, servletName);

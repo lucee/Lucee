@@ -34,8 +34,8 @@
 
 	<!--- do initial or new indexing when a new Lucee version is detected --->
 	<cfif not fileExists(variables.indexFile)
-	or structKeyExists(url, "reindex")
-	or fileRead('#dataDir#indexed-lucee-version.cfm') neq server.lucee.version & server.lucee['release-date']>
+		or structKeyExists(url, "reindex")
+		or fileRead('#dataDir#indexed-lucee-version.cfm') neq server.lucee.version & server.lucee['release-date']>
 		<cfinclude template="admin.search.index.cfm" />
 	</cfif>
 

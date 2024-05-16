@@ -44,7 +44,8 @@ public class BodyContentUtil {
 			try {
 				bc.flush();
 			}
-			catch (IOException e) {}
+			catch (IOException e) {
+			}
 			pc.popBody();
 		}
 	}
@@ -54,7 +55,8 @@ public class BodyContentUtil {
 			try {
 				bc.flush();
 			}
-			catch (IOException e) {}
+			catch (IOException e) {
+			}
 		}
 	}
 

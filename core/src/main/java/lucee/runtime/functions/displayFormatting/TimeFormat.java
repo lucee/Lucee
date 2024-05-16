@@ -66,7 +66,7 @@ public final class TimeFormat implements Function {
 		DateTime datetime = Caster.toDate(object, true, tz, null);
 		if (datetime == null) {
 			if (StringUtil.isEmpty(object, true)) return "";
-			throw new ExpressionException("can't convert value " + object + " to a datetime value");
+			throw new ExpressionException("Can't convert value [" + object + "] to a datetime value");
 		}
 
 		return new lucee.runtime.format.TimeFormat(locale).format(datetime, mask, tz);

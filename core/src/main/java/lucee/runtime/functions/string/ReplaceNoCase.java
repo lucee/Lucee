@@ -62,7 +62,7 @@ public final class ReplaceNoCase extends BIF {
 
 	public static String call(PageContext pc, String input, Object struct) throws PageException {
 		if (!Decision.isStruct(struct)) throw new FunctionException(pc, "ReplaceNoCase", 2, "sub1", "When passing only two parameters, the second parameter must be a Struct.");
-		return StringUtil.replaceMap(input, Caster.toStruct(struct), true);
+		return StringUtil.replaceStruct(input, Caster.toStruct(struct), true);
 	}
 
 	@Override

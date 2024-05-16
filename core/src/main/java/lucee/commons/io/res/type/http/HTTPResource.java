@@ -21,6 +21,7 @@ package lucee.commons.io.res.type.http;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.security.GeneralSecurityException;
 
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.res.ContentType;
@@ -28,10 +29,12 @@ import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.ResourceProvider;
 import lucee.commons.io.res.util.ReadOnlyResourceSupport;
 import lucee.commons.io.res.util.ResourceUtil;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.net.http.HTTPEngine;
 import lucee.commons.net.http.HTTPResponse;
 import lucee.commons.net.http.Header;
+import lucee.commons.net.http.httpclient.HTTPEngine4Impl;
 import lucee.runtime.net.proxy.ProxyData;
 import lucee.runtime.net.proxy.ProxyDataImpl;
 import lucee.runtime.op.Caster;
@@ -54,32 +57,32 @@ public class HTTPResource extends ReadOnlyResourceSupport {
 
 	}
 
-	private HTTPResponse getHTTPResponse(boolean create) throws IOException {
+	private HTTPResponse getHTTPResponse(boolean create) throws IOException, GeneralSecurityException {
 		if (create || http == null) {
 			// URL url = HTTPUtil.toURL("http://"+data.host+":"+data.port+"/"+data.path);
 			URL url = new URL(provider.getProtocol(), data.host, data.port, data.path);
 			// TODO Support for proxy
 			ProxyData pd = ProxyDataImpl.isValid(data.proxyData, url.getHost()) ? data.proxyData : ProxyDataImpl.NO_PROXY;
 
-			http = HTTPEngine.get(url, data.username, data.password, _getTimeout(), true, null, data.userAgent, pd, null);
+			http = HTTPEngine4Impl.get(url, data.username, data.password, _getTimeout(), true, null, data.userAgent, pd, null);
 		}
 		return http;
 	}
 
-	private int getStatusCode() throws IOException {
+	private int getStatusCode() throws IOException, GeneralSecurityException {
 		if (http == null) {
 			URL url = new URL(provider.getProtocol(), data.host, data.port, data.path);
 			ProxyData pd = ProxyDataImpl.isValid(data.proxyData, url.getHost()) ? data.proxyData : ProxyDataImpl.NO_PROXY;
-			return HTTPEngine.head(url, data.username, data.password, _getTimeout(), true, null, data.userAgent, pd, null).getStatusCode();
+			return HTTPEngine4Impl.head(url, data.username, data.password, _getTimeout(), true, null, data.userAgent, pd, null).getStatusCode();
 		}
 		return http.getStatusCode();
 	}
 
-	public ContentType getContentType() throws IOException {
+	public ContentType getContentType() throws IOException, GeneralSecurityException {
 		if (http == null) {
 			URL url = new URL(provider.getProtocol(), data.host, data.port, data.path);
 			ProxyData pd = ProxyDataImpl.isValid(data.proxyData, url.getHost()) ? data.proxyData : ProxyDataImpl.NO_PROXY;
-			return HTTPEngine.head(url, data.username, data.password, _getTimeout(), true, null, data.userAgent, pd, null).getContentType();
+			return HTTPEngine4Impl.head(url, data.username, data.password, _getTimeout(), true, null, data.userAgent, pd, null).getContentType();
 		}
 		return http.getContentType();
 	}
@@ -91,7 +94,7 @@ public class HTTPResource extends ReadOnlyResourceSupport {
 			int code = getStatusCode();// getHttpMethod().getStatusCode();
 			return code != 404;
 		}
-		catch (IOException e) {
+		catch (Exception e) {
 			return false;
 		}
 	}
@@ -102,7 +105,7 @@ public class HTTPResource extends ReadOnlyResourceSupport {
 			provider.read(this);
 			return (rsp = getHTTPResponse(false)).getStatusCode();
 		}
-		catch (IOException e) {
+		catch (Exception e) {
 			return 0;
 		}
 		finally {
@@ -115,13 +118,15 @@ public class HTTPResource extends ReadOnlyResourceSupport {
 		// ResourceUtil.checkGetInputStreamOK(this);
 		// provider.lock(this);
 		provider.read(this);
-		HTTPResponse method = getHTTPResponse(true);
+		HTTPResponse method;
+		try {
+			method = getHTTPResponse(true);
+		}
+		catch (GeneralSecurityException e) {
+			throw ExceptionUtil.toIOException(e);
+		}
 		try {
 			return IOUtil.toBufferedInputStream(method.getContentAsStream());
-		}
-		catch (IOException e) {
-			// provider.unlock(this);
-			throw e;
 		}
 		finally {
 			HTTPEngine.closeEL(method);
@@ -194,7 +199,8 @@ public class HTTPResource extends ReadOnlyResourceSupport {
 			Header cl = (rsp = getHTTPResponse(false)).getLastHeaderIgnoreCase("last-modified");
 			if (cl != null && exists()) last = Caster.toIntValue(cl.getValue(), 0);
 		}
-		catch (IOException e) {}
+		catch (Exception e) {
+		}
 		finally {
 			HTTPEngine.closeEL(rsp);
 		}
@@ -208,7 +214,7 @@ public class HTTPResource extends ReadOnlyResourceSupport {
 			if (!exists()) return 0;
 			return (rsp = getHTTPResponse(false)).getContentLength();
 		}
-		catch (IOException e) {
+		catch (Exception e) {
 			return 0;
 		}
 		finally {

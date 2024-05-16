@@ -27,6 +27,7 @@ public interface ExtensionProvider {
 	 * return the url of the extension
 	 * 
 	 * @return url
+	 * @throws MalformedURLException Malformed URL Exception
 	 */
 	public URL getUrl() throws MalformedURLException;
 

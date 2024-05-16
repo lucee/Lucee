@@ -28,8 +28,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		catch(local.e){
 			msg=e.message;
 		}
-		
-		assertTrue(find("can't cast String [susi] to a value of type [boolean]",msg));
+		assertTrue(find("Cannot cast String [susi] to a value of type [boolean]",msg));
 	}
 	public void function testTypeCheckingOffAppCFC(){
 		local.uri=createURI("Jira1460/index.cfm");

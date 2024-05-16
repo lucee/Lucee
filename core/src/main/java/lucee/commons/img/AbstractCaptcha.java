@@ -31,6 +31,7 @@ import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * Abstract template class for captcha generation
@@ -198,8 +199,6 @@ public abstract class AbstractCaptcha {
 
 	private int r(int startColor) {
 		return rnd(startColor - 100, startColor);
-		// int r= ((int)(Math.random()*(255-startColor)))+startColor;
-		// return r;
 	}
 
 	private Point getRandomPointOnBorder(Dimension dimension) {
@@ -249,8 +248,7 @@ public abstract class AbstractCaptcha {
 			min = max;
 			max = tmp;
 		}
-		double diff = max - min;
-		return ((int) (StrictMath.random() * (diff + 1))) + min;
+		return (ThreadLocalRandom.current().doubles(1, min, max)).toArray()[0];
 	}
 
 	private void drawRandomLine(Graphics2D graphics, Dimension dimension, Color lineColorType) {

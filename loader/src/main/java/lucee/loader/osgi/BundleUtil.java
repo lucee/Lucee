@@ -60,7 +60,7 @@ public class BundleUtil {
 		 * null; try { cu = CFMLEngineFactory.getInstance().getClassUtil(); } catch (final Throwable t) {}
 		 * if (cu != null) return cu.addBundle(context, is, closeIS, true);
 		 */
-		if (log != null) log.info("OSGI", "add bundle:" + path);
+		if (log != null) log.debug("OSGI", "add bundle:" + path);
 		else {
 			// factory.log(Log.LEVEL_INFO, "add_bundle:" + bundle);
 		}
@@ -127,7 +127,8 @@ public class BundleUtil {
 			try {
 				Thread.sleep(1);
 			}
-			catch (InterruptedException e) {} // take a nap, before trying again
+			catch (InterruptedException e) {
+			} // take a nap, before trying again
 		}
 	}
 

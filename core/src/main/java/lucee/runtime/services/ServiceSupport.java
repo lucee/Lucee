@@ -25,7 +25,7 @@ import coldfusion.server.Service;
 import coldfusion.server.ServiceException;
 import coldfusion.server.ServiceMetaData;
 import lucee.runtime.PageContext;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigWebUtil;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.SecurityException;
@@ -33,13 +33,16 @@ import lucee.runtime.exp.SecurityException;
 public class ServiceSupport implements Service {
 
 	@Override
-	public void start() throws ServiceException {}
+	public void start() throws ServiceException {
+	}
 
 	@Override
-	public void stop() throws ServiceException {}
+	public void stop() throws ServiceException {
+	}
 
 	@Override
-	public void restart() throws ServiceException {}
+	public void restart() throws ServiceException {
+	}
 
 	@Override
 	public int getStatus() {
@@ -57,7 +60,8 @@ public class ServiceSupport implements Service {
 	}
 
 	@Override
-	public void setProperty(String key, Object value) {}
+	public void setProperty(String key, Object value) {
+	}
 
 	@Override
 	public Map getResourceBundle() {
@@ -72,8 +76,8 @@ public class ServiceSupport implements Service {
 		ConfigWebUtil.checkGeneralReadAccess(config(), null);
 	}
 
-	protected ConfigImpl config() {
-		return (ConfigImpl) ThreadLocalPageContext.getConfig();
+	protected ConfigPro config() {
+		return (ConfigPro) ThreadLocalPageContext.getConfig();
 	}
 
 	protected PageContext pc() {

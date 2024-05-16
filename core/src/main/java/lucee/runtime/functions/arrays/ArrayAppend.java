@@ -48,7 +48,7 @@ public final class ArrayAppend extends BIF {
 	 * @throws PageException
 	 */
 	public static boolean call(PageContext pc, Array array, Object object, boolean merge) throws PageException {
-		if (merge && Decision.isCastableToArray(object)) {
+		if (merge && Decision.isArray(object)) {
 			Object[] appends = Caster.toNativeArray(object);
 
 			for (int i = 0; i < appends.length; i++) {
@@ -63,6 +63,6 @@ public final class ArrayAppend extends BIF {
 	public Object invoke(PageContext pc, Object[] args) throws PageException {
 		if (args.length == 2) return call(pc, Caster.toArray(args[0]), args[1]);
 		else if (args.length == 3) return call(pc, Caster.toArray(args[0]), args[1], Caster.toBooleanValue(args[2]));
-		else throw new FunctionException(pc, "ArrayAppend", 2, 2, args.length);
+		else throw new FunctionException(pc, "ArrayAppend", 2, 3, args.length);
 	}
 }

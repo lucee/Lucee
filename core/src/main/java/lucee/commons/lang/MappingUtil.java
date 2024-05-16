@@ -91,7 +91,12 @@ public class MappingUtil {
 				LogUtil.log(mapping.getConfig(), "mapping", ioe);
 			}
 			finally {
-				IOUtil.closeEL(zis);
+				try {
+					IOUtil.close(zis);
+				}
+				catch (IOException ioe) {
+					LogUtil.log(mapping.getConfig(), "mapping", ioe);
+				}
 			}
 
 		}
@@ -169,7 +174,8 @@ public class MappingUtil {
 				SourceInfo si = ASMUtil.getSourceInfo(config, clazz, false);
 				if (si != null && trace.getFileName() != null && trace.getFileName().equals(si.absolutePath(pc))) return si;
 			}
-			catch (IOException e) {}
+			catch (IOException e) {
+			}
 
 		}
 		return null;

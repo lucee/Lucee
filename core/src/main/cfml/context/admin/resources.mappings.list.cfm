@@ -13,6 +13,8 @@
 					<th>#stText.Mappings.ArchiveHead#</th>
 					<th>#stText.Mappings.PrimaryHead#</th>
 					<th>#stText.Mappings.TrustedHead#</th>
+					<th>#stText.application.listenerType#</th>
+					<th>#stText.application.listenerMode#</th>
 					<th width="3%"></th>
 				</tr>
 			</thead>
@@ -73,6 +75,16 @@
 								</cfif>
 								<input type="hidden" name="toplevel_#mappings.currentrow#" value="#mappings.toplevel#">
 							</td>
+							<!--- ListenerType --->
+							<td nowrap="nowrap">
+								<input type="hidden" name="listenerType_#mappings.currentrow#" value="#mappings.listenerType#">
+								#mappings.listenerType#
+							</td>
+							<!--- ListenerMode --->
+							<td nowrap="nowrap">
+								<input type="hidden" name="listenerMode_#mappings.currentrow#" value="#mappings.listenerMode#">
+								#mappings.listenerMode#
+							</td>
 							<!--- edit --->
 							<td>
 								<cfif not mappings.readOnly>
@@ -106,9 +118,9 @@ this.mappings=["#mappings.virtual#"]={<cfif len(mappings.strPhysical)>
 							<input type="hidden" name="mainAction" value="#stText.Buttons.save#">
 							<!---<input type="submit" class="button submit" name="subAction" value="#stText.Buttons.save#">
 							--->
-							<input type="reset" class="bl button reset" name="cancel" value="#stText.Buttons.Cancel#">
-							<input type="submit" class="bm button submit" name="subAction" value="#stText.Buttons.Delete#">
-							<input type="submit" class="br button submit" name="subAction" value="#stText.Buttons.compileAll#">
+							<input type="reset" class="bl button reset enablebutton" id="clickCancel" name="cancel" value="#stText.Buttons.Cancel#">
+							<input type="submit" class="bm button submit enablebutton" name="subAction" value="#stText.Buttons.Delete#">
+							<input type="submit" class="br button submit enablebutton" name="subAction" value="#stText.Buttons.compileAll#">
 						</td>
 					</tr>
 				</tfoot>
@@ -147,6 +159,64 @@ this.mappings=["#mappings.virtual#"]={<cfif len(mappings.strPhysical)>
 								<option value="physical" selected>#stText.Mappings.Physical#</option>
 								<option value="archive">#stText.Mappings.Archive#</option>
 							</select>
+						</td>
+					</tr>
+					<!--- listener type --->
+					<tr>
+						<th scope="row">
+							#stText.application.listenerType#
+							<cfif hasAccess>
+								<!--- PK: disabled, because it only said "please select an option"
+								<div class="comment">#stText.application.listenerTypeDescription#</div>
+								--->
+							</cfif>
+						</th>
+						<td>
+							<cfif hasAccess>
+								<ul class="radiolist">
+									<cfloop index="key" list="none,classic,modern,mixed,inherit">
+										<li>
+											<label>
+												<input type="radio" class="radio" name="listenertype_1" value="#key#" <cfif key EQ "inherit">checked="checked"</cfif>>
+												<b>#stText.application['listenerType_' & key]#</b>
+											</label>
+											<div class="comment">#stText.application['listenerTypeDescription_' & key]#</div>
+										</li>
+									</cfloop>
+								</ul>
+							<cfelse>
+								<!---<input type="hidden" name="type" value="#listener.type#">--->
+								<b>#listener.type#</b>
+								<div class="comment">#stText.application['listenerTypeDescription_' & listener.type]#</div>
+							</cfif>
+						</td>
+					</tr>
+
+					<!--- listener mode --->
+					<tr>
+						<th>#stText.application.listenerMode#
+							<cfif hasAccess>
+								<div class="comment">#stText.application.listenerModeDescription#</div>
+							</cfif>
+						</th>
+						<td>
+							<cfif hasAccess>
+								<ul class="radiolist">
+									<cfloop index="key" list="curr2root,currorroot,root,current,inherit">
+										<li>
+											<label>
+												<input type="radio" class="radio" name="listenermode_1" value="#key#" <cfif key EQ "inherit">checked="checked"</cfif>>
+												<b>#stText.application['listenerMode_' & key]#</b>
+											</label>
+											<div class="comment">#stText.application['listenerModeDescription_' & key]#</div>
+										</li>
+									</cfloop>
+								</ul>
+							<cfelse>
+								<!---<input type="hidden" name="type" value="#listener.mode#">--->
+								<b>#listener.mode#</b>
+								<div class="comment">#stText.application['listenerModeDescription_' & listener.mode]#</div>
+							</cfif>
 						</td>
 					</tr>
 					<tr>

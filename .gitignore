@@ -20,9 +20,16 @@ target/*
 /cache
 WEB-INF
 
-
 .classpath
 *.eml
 *.iml
 *.ipr
 *.iws
+*.jfr
+
+/.vscode
+/.idea
+loader/env.json
+.idea/
+buildVersionNumber.txt
+/test/reports

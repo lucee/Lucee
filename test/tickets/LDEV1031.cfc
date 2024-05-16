@@ -39,12 +39,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
 	private string function defineDatasource(){
 		application action="update" 
-			datasource="#{
-	  		class: 'org.hsqldb.jdbcDriver'
-			, bundleName: 'org.hsqldb.hsqldb'
-			, bundleVersion: '2.3.2'
-			, connectionString: 'jdbc:hsqldb:file:#getDirectoryFromPath(getCurrentTemplatePath())#/datasource/db'
-		}#";
+			datasource="#server.getDatasource( "h2", server._getTempDir( "LDEV1031" ) )#";
 	}
 
 	public void function test() {

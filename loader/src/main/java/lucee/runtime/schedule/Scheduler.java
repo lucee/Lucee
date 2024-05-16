@@ -30,7 +30,7 @@ public interface Scheduler {
 	 * 
 	 * @param name Task name of Schedule Task to get
 	 * @return matching task
-	 * @throws ScheduleException
+	 * @throws ScheduleException Schedule Exception
 	 */
 	public abstract ScheduleTask getScheduleTask(String name) throws ScheduleException;
 
@@ -45,7 +45,7 @@ public interface Scheduler {
 	 * returns a schedule tasks matching given name or null
 	 * 
 	 * @param name Task name of Schedule Task to get
-	 * @param defaultValue
+	 * @param defaultValue default value
 	 * @return matching task
 	 */
 	public abstract ScheduleTask getScheduleTask(String name, ScheduleTask defaultValue);
@@ -53,21 +53,21 @@ public interface Scheduler {
 	/**
 	 * Adds a Task to the scheduler
 	 * 
-	 * @param task
-	 * @param allowOverwrite
-	 * @throws ScheduleException
-	 * @throws IOException
+	 * @param task task
+	 * @param allowOverwrite allow overwrite
+	 * @throws ScheduleException Schedule Exception
+	 * @throws IOException IO Exception
 	 */
 	public abstract void addScheduleTask(ScheduleTask task, boolean allowOverwrite) throws ScheduleException, IOException;
 
 	/**
 	 * pause the scheduler task
 	 * 
-	 * @param name
-	 * @param pause
-	 * @param throwWhenNotExist
-	 * @throws ScheduleException
-	 * @throws IOException
+	 * @param name name of the task to pause
+	 * @param pause pause
+	 * @param throwWhenNotExist define if method throws an exception if task doesn't exist
+	 * @throws ScheduleException Schedule Exception
+	 * @throws IOException IO Exception
 	 */
 	public void pauseScheduleTask(String name, boolean pause, boolean throwWhenNotExist) throws ScheduleException, IOException;
 
@@ -76,18 +76,18 @@ public interface Scheduler {
 	 * 
 	 * @param name name of the task to remove
 	 * @param throwWhenNotExist define if method throws an exception if task doesn't exist
-	 * @throws IOException
-	 * @throws ScheduleException
+	 * @throws IOException IO Exception
+	 * @throws ScheduleException Schedule Exception
 	 */
 	public abstract void removeScheduleTask(String name, boolean throwWhenNotExist) throws IOException, ScheduleException;
 
 	/**
 	 * runs a scheduler task
 	 * 
-	 * @param name
-	 * @param throwWhenNotExist
-	 * @throws IOException
-	 * @throws ScheduleException
+	 * @param name name of task to run
+	 * @param throwWhenNotExist define if method throws an exception if task doesn't exist
+	 * @throws IOException IO Exception
+	 * @throws ScheduleException Schedule Exception
 	 */
 	public abstract void runScheduleTask(String name, boolean throwWhenNotExist) throws IOException, ScheduleException;
 }

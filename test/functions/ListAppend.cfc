@@ -18,8 +18,6 @@
  **/
 component extends="org.lucee.cfml.test.LuceeTestCase" {
 	function testListLast(){
-
-
 		assertEquals(1,listAppend('',1));
 		assertEquals("1,2",listAppend('1',2));
 		assertEquals(",,1,2",listAppend(',,1',2));
@@ -28,7 +26,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 		assertEquals("1h2",listAppend('1',2,'h'));
 		assertEquals("1,2",listAppend('1,2',3,''));
 		assertEquals("1,2:3",listAppend('1,2',3,':;'));
-		
-
 	}
+
 }

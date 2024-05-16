@@ -28,7 +28,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import javax.xml.XMLConstants;
 import javax.xml.namespace.NamespaceContext;
-import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.TransformerException;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
@@ -177,7 +176,6 @@ public final class XmlSearch implements Function {
 		 */
 		public UniversalNamespaceResolver(Document document) {
 			sourceDocument = document;
-			DocumentBuilderFactory.newInstance();
 		}
 
 		public void setDocument(Document document) {

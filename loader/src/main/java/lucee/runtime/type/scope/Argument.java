@@ -32,7 +32,7 @@ public interface Argument extends Scope, Array, BindScope {
 	/**
 	 * sets if scope is bound to another variable for using outside of a udf
 	 * 
-	 * @param bind
+	 * @param bind bind
 	 */
 	@Override
 	public abstract void setBind(boolean bind);
@@ -46,11 +46,11 @@ public interface Argument extends Scope, Array, BindScope {
 	/**
 	 * insert a key in argument scope at defined position
 	 * 
-	 * @param index
-	 * @param key
-	 * @param value
+	 * @param index index
+	 * @param key key
+	 * @param value value
 	 * @return boolean
-	 * @throws PageException
+	 * @throws PageException Page Exception
 	 */
 	public abstract boolean insert(int index, String key, Object value) throws PageException;
 

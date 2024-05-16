@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU Lesser General Public 
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  */
-component extends="org.lucee.cfml.test.LuceeTestCase"	{
+component extends="org.lucee.cfml.test.LuceeTestCase" {
 	
 	//public function beforeTests(){}
 	
@@ -290,7 +290,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	}
 
 	public void function testURL() localmode="true"{
-		assertTrue(IsValid("url",'http://www.lucee.org/'));
+		assertTrue(IsValid("url",'https://www.lucee.org/'));
 		assertTrue(IsValid("url",  "http://a"));
 		assertTrue(IsValid("url", "http://www.lucee.com/svn.cfm?repositorypath=viewCount%2FviewCount-plugin-Mangoblog-v1.4.zip%3A108&download=1"));
 		assertFalse(IsValid("url",  "http://.-"));
@@ -377,4 +377,25 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
 	}
 
-} 
+	public void function testJSON() localmode="true"{
+		assertTrue(isValid('json','{}'));
+		assertTrue(isValid('json','[]'));
+		assertTrue(isValid('json','[{}]'));
+		assertTrue(isValid('json','{"a":"a"}'));
+		assertFalse(isValid('json','{a:a}'));
+		assertFalse(isValid('json','string'));
+		assertTrue(isValid('json',1));
+		assertTrue(isValid('json',true));
+	}
+
+	public void function testObject() localmode="true"{
+		assertTrue(isValid("object",createObject("java", "java.lang.System")));
+        assertTrue(isValid("object",createObject("component","org.lucee.cfml.test.LuceeTestCase")));
+        assertFalse(isValid("object","string"));
+        assertFalse(isValid("object",1));
+        assertFalse(isValid("object",true));
+        assertFalse(isValid("object",{}));
+        assertFalse(isValid("object",[]));
+	}
+
+}

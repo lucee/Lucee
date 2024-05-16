@@ -91,7 +91,12 @@ Defaults --->
 	type="#request.adminType#"
 	password="#session["password"&request.adminType]#"
 	returnVariable="mailservers">
-	
+<!--- regex --->
+<cfadmin 
+	action="getRegex"
+	type="#request.adminType#"
+	password="#session["password"&request.adminType]#"
+	returnVariable="regex">
 
 <!--- cache --->
 <cfadmin 
@@ -125,12 +130,11 @@ hasCache=hasObj || hasTem || hasQry || hasRes || hasFun || hasInc;
 	returnVariable="datasources">
 
 </cfsilent>
-
-
 <cfoutput>
 
-	<cfsavecontent variable="codeSample">
-component {
+<cfsavecontent variable="codeSample">
+	<span style="overflow-wrap: break-word">
+	component {
 
 	this.name = "#info.label ?: '&lt;application-name&gt;' #"; // name of the application context
 
@@ -182,7 +186,9 @@ component {
 	this.charset.resource="#charset.resourceCharset#";
 	
 	this.scopeCascading = "#scope.scopeCascadingType#";
-
+	this.searchResults = #trueFalseFormat(scope.allowImplicidQueryCall)#;
+// regex
+	this.regex.type = "#regex.type#";
 //////////////////////////////////////////////
 //               MAIL SERVERS               //
 //////////////////////////////////////////////
@@ -260,6 +266,7 @@ this.mappings["#mappings.virtual#"]=<cfif len(mappings.strPhysical) && !len(mapp
 		#del#primary:"<cfif mappings.PhysicalFirst>physical<cfelse>archive</cfif>"<cfset del=","></cfif>}</cfif>;
 </cfloop>
 }
+</span>
 </cfsavecontent>
 
 
@@ -278,6 +285,6 @@ this.mappings["#mappings.virtual#"]=<cfif len(mappings.strPhysical) && !len(mapp
 </cfformClassic>
 
 
-<cfset renderCodingTip( codeSample,false, false )>
+<cfset renderCodingTip( codeSample,false, true )>
 
 </cfoutput>

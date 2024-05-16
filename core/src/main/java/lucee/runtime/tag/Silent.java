@@ -20,9 +20,8 @@ package lucee.runtime.tag;
 
 import java.io.IOException;
 
-import javax.servlet.jsp.JspException;
-
 import lucee.commons.lang.ExceptionUtil;
+import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.tag.BodyTagTryCatchFinallyImpl;
 import lucee.runtime.listener.ApplicationContextSupport;
 import lucee.runtime.writer.BodyContentImpl;
@@ -41,7 +40,7 @@ public final class Silent extends BodyTagTryCatchFinallyImpl {
 	}
 
 	@Override
-	public int doStartTag() throws JspException {
+	public int doStartTag() throws PageException {
 		if (bufferOutput == null) bufferOutput = ((ApplicationContextSupport) pageContext.getApplicationContext()).getBufferOutput() ? Boolean.TRUE : Boolean.FALSE;
 
 		if (bufferOutput.booleanValue()) bc = (BodyContentImpl) pageContext.pushBody();
@@ -57,7 +56,8 @@ public final class Silent extends BodyTagTryCatchFinallyImpl {
 			try {
 				bc.flush();
 			}
-			catch (IOException e) {}
+			catch (IOException e) {
+			}
 			pageContext.popBody();
 			bc = null;
 		}
@@ -80,7 +80,7 @@ public final class Silent extends BodyTagTryCatchFinallyImpl {
 	public void release() {
 		super.release();
 		bc = null;
-		this.bufferOutput = null;
+		this.bufferOutput = true;
 	}
 
 }

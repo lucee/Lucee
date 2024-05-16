@@ -21,16 +21,15 @@ component {
 	this.name = hash( getCurrentTemplatePath() );
     this.sessionmanagement="Yes" 
 	this.sessiontimeout=createTimeSpan(0,0,3,0);
-	this.datasources.test={
-	  	class: 'org.hsqldb.jdbcDriver'
-		, bundleName: 'org.hsqldb.hsqldb'
-		, bundleVersion: '2.3.2'
-		, connectionString: 'jdbc:hsqldb:file:#getDirectoryFromPath(getCurrentTemplatePath())#/datasource/db'
-		, storage: true
-	};
+	this.datasources.test = server.getDatasource(service="h2", dbFile=server._getTempDir("LDEV1105"), options={ storage:true } );
+
 	this.sessionStorage="test";
 	this.sessionCluster=true;
 
+	public function onRequestStart() {
+		setting requesttimeout=10;
+	}
+	
 	function onSessionStart() {
 		//session.susi="sorglos";
 		sessionRotate();

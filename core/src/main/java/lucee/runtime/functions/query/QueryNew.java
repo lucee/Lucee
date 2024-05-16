@@ -18,8 +18,10 @@
  **/
 package lucee.runtime.functions.query;
 
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
@@ -44,25 +46,31 @@ public final class QueryNew extends BIF {
 
 	private static final long serialVersionUID = -4313766961671090938L;
 
-	/** @deprecated used by old lucee archives */
-	@Deprecated
-	public static lucee.runtime.type.Query call(PageContext pc, String columnNames) throws PageException {
-		return call(pc, (Object) columnNames);
-	}
-
-	/** @deprecated used by old lucee archives */
-	@Deprecated
-	public static lucee.runtime.type.Query call(PageContext pc, String columnNames, String columnTypes) throws PageException {
-		return call(pc, (Object) columnNames, (Object) columnTypes);
-	}
-
-	/** @deprecated used by old lucee archives */
-	@Deprecated
-	public static lucee.runtime.type.Query call(PageContext pc, String columnNames, String columnTypes, Object data) throws PageException {
-		return call(pc, (Object) columnNames, (Object) columnTypes, data);
-	}
-
 	public static lucee.runtime.type.Query call(PageContext pc, Object columnNames) throws PageException {
+		Array arr = toArray(pc, columnNames, 1);
+		if (arr.size() > 0 && Decision.isStruct(arr.getE(1))) {
+			QueryImpl qry = new QueryImpl(new Key[0], arr.size(), "");
+			Iterator<Object> it = arr.valueIterator();
+			Iterator<Entry<Key, Object>> rit;
+			int row = 0;
+			Entry<Key, Object> e;
+			Set<Key> containsCache = new HashSet<>();
+			while (it.hasNext()) {
+				rit = Caster.toStruct(it.next()).entryIterator();
+				row++;
+				while (rit.hasNext()) {
+					e = rit.next();
+					// add column
+					if (!containsCache.contains(e.getKey())) {
+						qry.addColumn(e.getKey(), new ArrayImpl());
+						containsCache.add(e.getKey());
+					}
+					qry.setAt(e.getKey(), row, e.getValue());
+				}
+			}
+			return qry;
+		}
+
 		return new QueryImpl(toArray(pc, columnNames, 1), 0, "query");
 	}
 
@@ -79,7 +87,7 @@ public final class QueryNew extends BIF {
 		else qry = new QueryImpl(cn, toArray(pc, columnTypes, 2), 0, "query");
 
 		if (data == null) return qry;
-		return populate(pc, qry, data);
+		return populate(pc, qry, data, true);
 	}
 
 	@Override
@@ -89,13 +97,13 @@ public final class QueryNew extends BIF {
 		return call(pc, Caster.toString(args[0]), Caster.toString(args[1]), args[2]);
 	}
 
-	public static Query populate(PageContext pc, Query qry, Object data) throws PageException {
+	public static Query populate(PageContext pc, Query qry, Object data, boolean arrayAsMultiRow) throws PageException {
 		if (Decision.isArray(data)) return _populate(pc, qry, Caster.toArray(data));
-		else if (Decision.isStruct(data)) return _populate(pc, qry, Caster.toStruct(data));
+		else if (Decision.isStruct(data)) return _populate(pc, qry, Caster.toStruct(data), arrayAsMultiRow);
 		else throw new FunctionException(pc, "QueryNew", 3, "data", "the date must be defined as array of structs , array of arrays or struct of arrays");
 	}
 
-	private static Query _populate(PageContext pc, Query qry, Struct data) throws PageException {
+	private static Query _populate(PageContext pc, Query qry, Struct data, boolean arrayAsMultiRow) throws PageException {
 		Iterator<Entry<Key, Object>> it = data.entryIterator();
 		Entry<Key, Object> e;
 		Object v;
@@ -105,7 +113,9 @@ public final class QueryNew extends BIF {
 			e = it.next();
 			if (qry.getColumn(e.getKey(), null) != null) {
 				v = e.getValue();
-				arr = Caster.toArray(v, null);
+				if (arrayAsMultiRow) arr = Caster.toArray(v, null);
+				else arr = null;
+
 				if (arr == null) arr = new ArrayImpl(new Object[] { v });
 				populateColumn(qry, e.getKey(), arr, rows);
 			}

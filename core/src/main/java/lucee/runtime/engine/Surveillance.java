@@ -18,20 +18,17 @@
  */
 package lucee.runtime.engine;
 
-import lucee.commons.lang.SizeOf;
 import lucee.runtime.CFMLFactory;
 import lucee.runtime.CFMLFactoryImpl;
 import lucee.runtime.Mapping;
 import lucee.runtime.MappingImpl;
 import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.config.ConfigServer;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.DoubleStruct;
-import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.scope.Scope;
@@ -40,12 +37,12 @@ import lucee.runtime.type.util.KeyConstants;
 
 class Surveillance {
 
-	private static final Collection.Key PAGE_POOL = KeyImpl.intern("pagePool");
-	private static final Collection.Key CLASS_LOADER = KeyImpl.intern("classLoader");
-	private static final Collection.Key QUERY_CACHE = KeyImpl.intern("queryCache");
-	private static final Collection.Key PAGE_CONTEXT_STACK = KeyImpl.intern("pageContextStack");
+	private static final Collection.Key PAGE_POOL = KeyConstants._pagePool;
+	private static final Collection.Key CLASS_LOADER = KeyConstants._classLoader;
+	private static final Collection.Key QUERY_CACHE = KeyConstants._queryCache;
+	private static final Collection.Key PAGE_CONTEXT_STACK = KeyConstants._pageContextStack;
 
-	public static Struct getInfo(ConfigImpl config) throws PageException {
+	public static Struct getInfo(Config config) throws PageException {
 
 		Struct sct = new StructImpl();
 
@@ -61,7 +58,7 @@ class Surveillance {
 		return sct;
 	}
 
-	private static void getInfoMemory(Struct parent, ConfigImpl config) throws PageException {
+	private static void getInfoMemory(Struct parent, Config config) throws PageException {
 		DoubleStruct server = new DoubleStruct();
 		DoubleStruct web = new DoubleStruct();
 		parent.set(KeyConstants._server, server);
@@ -126,8 +123,8 @@ class Surveillance {
 			sct.set("physicalClassLoader", Caster.toDouble(size));
 
 			// pagepool
-			size = SizeOf.size(mapping.getPageSourcePool());
-			sct.set(PAGE_POOL, Caster.toDouble(size));
+			// size = SizeOf.size(mapping.getPageSourcePool());
+			// sct.set(PAGE_POOL, Caster.toDouble(size));
 
 			map.set(!isCustomTagMapping ? mapping.getVirtual() : mapping.getStrPhysical(), sct);
 		}

@@ -32,8 +32,9 @@ public interface PageSource extends Serializable {
 	/**
 	 * loads a page
 	 * 
-	 * @param pc
-	 * @param forceReload
+	 * @param pc page context
+	 * @param forceReload force reload
+	 * @return page source
 	 * @throws PageException throws an exception when compilation fails or page does not exist
 	 */
 	public Page loadPage(PageContext pc, boolean forceReload) throws PageException;
@@ -41,9 +42,10 @@ public interface PageSource extends Serializable {
 	/**
 	 * loads a page
 	 * 
-	 * @param pc
-	 * @param forceReload
-	 * @param defaultValue
+	 * @param pc page context
+	 * @param forceReload force reload
+	 * @param defaultValue default value
+	 * @return page source
 	 * @throws PageException throws an exception when compilation fails
 	 */
 	public Page loadPageThrowTemplateException(PageContext pc, boolean forceReload, Page defaultValue) throws PageException;
@@ -51,9 +53,10 @@ public interface PageSource extends Serializable {
 	/**
 	 * loads a page
 	 * 
-	 * @param pc
-	 * @param forceReload
-	 * @param defaultValue
+	 * @param pc page context
+	 * @param forceReload force reload
+	 * @param defaultValue default value
+	 * @return page source
 	 */
 	public Page loadPage(PageContext pc, boolean forceReload, Page defaultValue);
 
@@ -89,6 +92,7 @@ public interface PageSource extends Serializable {
 	 * 
 	 * @return return the Resource matching this PageSource
 	 * @param pc the Page Context Object
+	 * @throws PageException Page Exception
 	 */
 	public abstract Resource getResourceTranslated(PageContext pc) throws PageException;
 
@@ -122,14 +126,14 @@ public interface PageSource extends Serializable {
 
 	/**
 	 * @return return the source of the file as String array
-	 * @throws IOException
+	 * @throws IOException IO Exception
 	 */
 	public abstract String[] getSource() throws IOException;
 
 	/**
 	 * get an new Pagesource from realpath
 	 * 
-	 * @param realPath
+	 * @param realPath path
 	 * @return new Pagesource
 	 */
 	public abstract PageSource getRealPage(String realPath);
@@ -173,6 +177,8 @@ public interface PageSource extends Serializable {
 
 	/**
 	 * returns true if the page source can be executed, means the source exists or is trusted and loaded
+	 * 
+	 * @return is the page source can be executed
 	 */
 	public boolean executable();
 

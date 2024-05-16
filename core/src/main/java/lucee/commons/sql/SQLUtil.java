@@ -93,7 +93,8 @@ public class SQLUtil {
 
 			if (c == '\'') {
 				if (inside) {
-					if (escapeMysql && p == '\\') {}
+					if (escapeMysql && p == '\\') {
+					}
 					else if (ps.hasNext() && ps.getNext() == '\'') ps.next();
 					else inside = false;
 				}
@@ -189,7 +190,8 @@ public class SQLUtil {
 			try {
 				stat.close();
 			}
-			catch (SQLException e) {}
+			catch (SQLException e) {
+			}
 		}
 	}
 
@@ -198,7 +200,8 @@ public class SQLUtil {
 			try {
 				conn.close();
 			}
-			catch (SQLException e) {}
+			catch (SQLException e) {
+			}
 		}
 	}
 
@@ -207,19 +210,34 @@ public class SQLUtil {
 			try {
 				rs.close();
 			}
-			catch (SQLException e) {}
+			catch (SQLException e) {
+			}
 		}
 	}
 
 	public static String connectionStringTranslatedPatch(Config config, String connStr) {
-		if (connStr == null || !StringUtil.startsWithIgnoreCase(connStr, "jdbc:mysql://")) return connStr;
+		if (connStr == null) return connStr;
 
 		// MySQL
-		if (StringUtil.indexOfIgnoreCase(connStr, "serverTimezone=") != -1) {
-			return connStr;
+		if (StringUtil.startsWithIgnoreCase(connStr, "jdbc:mysql://")) {
+			if (StringUtil.indexOfIgnoreCase(connStr, "serverTimezone=") != -1) {
+				return connStr;
+			}
+			char del = connStr.indexOf('?') != -1 ? '&' : '?';
+			return connStr + del + "serverTimezone=" + TimeZoneUtil.toString(ThreadLocalPageContext.getTimeZone(config));
 		}
-		char del = connStr.indexOf('?') != -1 ? '&' : '?';
-		return connStr + del + "serverTimezone=" + TimeZoneUtil.toString(ThreadLocalPageContext.getTimeZone(config));
 
+		// MSSQL
+		if (StringUtil.startsWithIgnoreCase(connStr, "jdbc:sqlserver://")) {
+			if (StringUtil.indexOfIgnoreCase(connStr, ";trustServerCertificate=") != -1) {
+				return connStr;
+			}
+			return connStr + (StringUtil.isEmpty(connStr, true) || connStr.endsWith(";") ? "" : ";") + "trustServerCertificate=true"; // we want default behaviour to state as
+																																		// before, if someone
+			// whishes encryption it can be set
+			// explicitly as the default behaviour was before
+		}
+
+		return connStr;
 	}
 }

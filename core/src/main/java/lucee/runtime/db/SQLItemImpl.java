@@ -19,6 +19,7 @@
 package lucee.runtime.db;
 
 import java.io.Serializable;
+import java.nio.charset.Charset;
 import java.sql.Types;
 
 import lucee.runtime.exp.PageException;
@@ -50,10 +51,15 @@ public class SQLItemImpl implements SQLItem, Serializable {
 
 	private boolean isValueSet;
 
+	private Charset charset;
+
+	private int maxlength = -1;
+
 	/**
 	 * constructor of the class
 	 */
-	public SQLItemImpl() {}
+	public SQLItemImpl() {
+	}
 
 	/**
 	 * constructor of the class
@@ -72,6 +78,13 @@ public class SQLItemImpl implements SQLItem, Serializable {
 	public SQLItemImpl(Object value, int type) {
 		this.value = value;
 		this.type = type;
+	}
+
+	public SQLItemImpl(Object value, int type, int maxlength, Charset charset) {
+		this.value = value;
+		this.type = type;
+		this.charset = charset;
+		this.maxlength = maxlength;
 	}
 
 	@Override
@@ -139,6 +152,14 @@ public class SQLItemImpl implements SQLItem, Serializable {
 		return isValueSet;
 	}
 
+	public Charset getCharset() {
+		return charset;
+	}
+
+	public int getMaxlength() {
+		return maxlength;
+	}
+
 	@Override
 	public String toString() {
 		try {
@@ -155,7 +176,7 @@ public class SQLItemImpl implements SQLItem, Serializable {
 	}
 
 	public SQLItem duplicate() {
-		SQLItemImpl rtn = new SQLItemImpl(value, type);
+		SQLItemImpl rtn = new SQLItemImpl(value, type, maxlength, charset);
 		rtn.nulls = nulls;
 		rtn.cfValue = cfValue;
 		rtn.isValueSet = isValueSet;

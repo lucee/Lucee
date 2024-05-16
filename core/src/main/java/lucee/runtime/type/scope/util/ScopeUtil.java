@@ -23,11 +23,14 @@ import java.util.HashMap;
 import java.util.Map;
 
 import lucee.commons.lang.RandomUtil;
+import lucee.commons.lang.StringUtil;
 import lucee.commons.net.URLDecoder;
 import lucee.commons.net.URLItem;
 import lucee.runtime.net.http.ReqRspUtil;
+import lucee.runtime.op.Caster;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.KeyImpl;
+import lucee.runtime.type.Struct;
 
 public class ScopeUtil {
 
@@ -48,7 +51,8 @@ public class ScopeUtil {
 						n = URLDecoder.decode(n, encoding, true);
 						v = URLDecoder.decode(v, encoding, true);
 					}
-					catch (UnsupportedEncodingException e) {}
+					catch (UnsupportedEncodingException e) {
+					}
 				}
 				arr = parameters.get(n);
 				if (arr == null) parameters.put(n, new String[] { v });
@@ -86,7 +90,8 @@ public class ScopeUtil {
 						n = URLDecoder.decode(n, encoding, true);
 						v = URLDecoder.decode(v, encoding, true);
 					}
-					catch (UnsupportedEncodingException e) {}
+					catch (UnsupportedEncodingException e) {
+					}
 				}
 				if (arr == null) arr = new String[] { v };
 				else {
@@ -100,25 +105,41 @@ public class ScopeUtil {
 		return arr;
 	}
 
-	public static String generateCsrfToken(Map<Collection.Key, String> tokens, String key, boolean forceNew) {
-		if (key == null) key = "";
-		Collection.Key k = KeyImpl.init(key);
-
+	public static String generateCsrfToken(Map mapTokens, String strKey, boolean forceNew) {
+		Collection.Key key = KeyImpl.init(strKey == null ? "" : strKey.trim());
+		if (mapTokens instanceof Struct) {
+			Struct tokens = Caster.toStruct(mapTokens, null, false);
+			String token;
+			if (!forceNew) {
+				Object tmp = tokens.get(key, null);
+				token = tmp == null ? null : Caster.toString(tmp, null);
+				if (!StringUtil.isEmpty(token)) return token;
+			}
+			token = RandomUtil.createRandomStringLC(40);
+			tokens.setEL(key, token);
+			return token;
+		}
 		String token;
 		if (!forceNew) {
-			token = tokens.get(k);
-			if (token != null) return token;
+			Object tmp = mapTokens.get(key);
+			token = tmp == null ? null : Caster.toString(tmp, null);
+			if (!StringUtil.isEmpty(token)) return token;
 		}
 
 		token = RandomUtil.createRandomStringLC(40);
-		tokens.put(k, token);
+		mapTokens.put(key, token);
 		return token;
 	}
 
-	public static boolean verifyCsrfToken(Map<Collection.Key, String> tokens, String token, String strKey) {
-		if (strKey == null) strKey = "";
-		Collection.Key key = KeyImpl.init(strKey);
-		String _token = tokens.get(key);
+	public static boolean verifyCsrfToken(Map mapTokens, String token, String strKey) {
+		Collection.Key key = KeyImpl.init(strKey == null ? "" : strKey.trim());
+		if (mapTokens instanceof Struct) {
+			Struct tokens = (Struct) mapTokens;
+			String _token = Caster.toString(tokens.get(key, null), null);
+			return (_token != null) && _token.equalsIgnoreCase(token);
+		}
+
+		String _token = Caster.toString(mapTokens.get(key), null);
 		return (_token != null) && _token.equalsIgnoreCase(token);
 	}
 }

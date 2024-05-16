@@ -60,7 +60,7 @@ public class ImageUtil {
 		catch (Exception e) {
 			throw Caster.toPageException(e);
 		}
-		throw new ApplicationException("cannot convert Object to an Image, you need to install the Image Extension to do so.");
+		throw new ApplicationException("Cannot convert Object to an Image, you need to install the Image Extension to do so.");
 	}
 
 	public static byte[] getImageBytes(Object o, String format) throws PageException {
@@ -85,7 +85,7 @@ public class ImageUtil {
 		catch (Exception e) {
 			throw Caster.toPageException(e);
 		}
-		throw new ApplicationException("cannot convert BufferedImage to a byte array, you need to install the Image Extension to do so.");
+		throw new ApplicationException("Cannot convert BufferedImage to a byte array, you need to install the Image Extension to do so.");
 	}
 
 	public static BufferedImage toBufferedImage(Resource file, String format) throws PageException {
@@ -99,7 +99,7 @@ public class ImageUtil {
 		catch (Exception e) {
 			throw Caster.toPageException(e);
 		}
-		throw new ApplicationException("cannot convert object to a BufferdImage, you need to install the Image Extension to do so.");
+		throw new ApplicationException("Cannot convert Object to a BufferedImage, you need to install the Image Extension to do so.");
 	}
 
 	/*
@@ -114,7 +114,8 @@ public class ImageUtil {
 				return (boolean) m.invoke(null, new Object[] { pc, obj });
 			}
 		}
-		catch (Exception e) {}
+		catch (Exception e) {
+		}
 		return false;
 	}
 
@@ -126,7 +127,8 @@ public class ImageUtil {
 				return (boolean) m.invoke(null, new Object[] { obj });
 			}
 		}
-		catch (Exception e) {}
+		catch (Exception e) {
+		}
 		return false;
 	}
 }

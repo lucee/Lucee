@@ -179,8 +179,8 @@ component output="false" extends="HelperBase" accessors="true"{
 	 * @hint Scan the passed array looking for a "name" param match.
 	 */
 	private Struct function findNamedParam(Array params,String name){
-		for(var item in params){
-			if(structKeyExists(item,'name') && name == item.name){
+		for(var item in arguments.params){
+			if(structKeyExists(item,'name') && arguments.name == item.name){
 				return item;
 			}
 		}
@@ -193,7 +193,7 @@ component output="false" extends="HelperBase" accessors="true"{
 	 * @hint Scan the passed array looking for a "name" param match.
 	 */
 	public static query function new(required columnNames, columnTypes, data) {
-		return queryNew(columnNames,columnTypes?:nullvalue(),data?:nullvalue());
+		return queryNew(arguments.columnNames,arguments.columnTypes?:nullvalue(),arguments.data?:nullvalue());
 	}
 
 
@@ -207,15 +207,15 @@ component output="false" extends="HelperBase" accessors="true"{
 		var resultVar = "";
 		var result = new Result();
 
-		structDelete(tagAttributes,"sql",false);
-
+		
 		// Makes the attributes available in local scope. Es : query of queries
 		structAppend(local, tagAttributes, true);
 
 		// get the query parts array
 		var qArray = getQArray();
-
-		query name="local.___q" attributeCollection=tagAttributes result="local.tagResult" {
+		var attrs=duplicate(tagAttributes);
+		structDelete(attrs,"sql",false);
+		query name="local.___q" attributeCollection=attrs result="local.tagResult" {
 
 			loop array=local.qArray index="Local.item" {
 				if (!isNull(item.type) && item.type == "string"){

@@ -70,8 +70,7 @@ public final class Methods_Caster {
 			new Method("toDecimal", Types.STRING, new Type[] { Types.STRING }) };
 
 	public static final Method[] TO_DATE = new Method[] { new Method("toDate", Types.DATE_TIME, new Type[] { Types.OBJECT, Types.TIMEZONE }),
-			new Method("toDate", Types.DATE_TIME, new Type[] { Types.BOOLEAN_VALUE, Types.TIMEZONE }),
-			new Method("toDate", Types.DATE_TIME, new Type[] { Types.DOUBLE_VALUE, Types.TIMEZONE }),
+			new Method("toDate", Types.DATE_TIME, new Type[] { Types.BOOLEAN, Types.TIMEZONE }), new Method("toDate", Types.DATE_TIME, new Type[] { Types.NUMBER, Types.TIMEZONE }),
 			new Method("toDate", Types.DATE_TIME, new Type[] { Types.STRING, Types.TIMEZONE }) };
 
 	public static final Method[] TO_STRING = new Method[] { new Method("toString", Types.STRING, new Type[] { Types.OBJECT }),
@@ -87,51 +86,51 @@ public final class Methods_Caster {
 			new Method("toBooleanValue", Types.BOOLEAN_VALUE, new Type[] { Types.DOUBLE_VALUE }), new Method("toBooleanValue", Types.BOOLEAN_VALUE, new Type[] { Types.STRING }) };
 
 	public static final Method[] TO_BYTE = new Method[] { new Method("toByte", Types.BYTE, new Type[] { Types.OBJECT }),
-			new Method("toByte", Types.BYTE, new Type[] { Types.BOOLEAN_VALUE }), new Method("toByte", Types.BYTE, new Type[] { Types.DOUBLE_VALUE }),
+			new Method("toByte", Types.BYTE, new Type[] { Types.BOOLEAN }), new Method("toByte", Types.BYTE, new Type[] { Types.NUMBER }),
 			new Method("toByte", Types.BYTE, new Type[] { Types.STRING }) };
 
 	public static final Method[] TO_BYTE_VALUE = new Method[] { new Method("toByteValue", Types.BYTE_VALUE, new Type[] { Types.OBJECT }),
-			new Method("toByteValue", Types.BYTE_VALUE, new Type[] { Types.BOOLEAN_VALUE }), new Method("toByteValue", Types.BYTE_VALUE, new Type[] { Types.DOUBLE_VALUE }),
+			new Method("toByteValue", Types.BYTE_VALUE, new Type[] { Types.BOOLEAN }), new Method("toByteValue", Types.BYTE_VALUE, new Type[] { Types.NUMBER }),
 			new Method("toByteValue", Types.BYTE_VALUE, new Type[] { Types.STRING }) };
 
 	public static final Method[] TO_CHARACTER = new Method[] { new Method("toCharacter", Types.CHARACTER, new Type[] { Types.OBJECT }),
-			new Method("toCharacter", Types.CHARACTER, new Type[] { Types.BOOLEAN_VALUE }), new Method("toCharacter", Types.CHARACTER, new Type[] { Types.DOUBLE_VALUE }),
+			new Method("toCharacter", Types.CHARACTER, new Type[] { Types.BOOLEAN }), new Method("toCharacter", Types.CHARACTER, new Type[] { Types.NUMBER }),
 			new Method("toCharacter", Types.CHARACTER, new Type[] { Types.STRING }) };
 
 	public static final Method[] TO_CHAR_VALUE = new Method[] { new Method("toCharValue", Types.CHAR, new Type[] { Types.OBJECT }),
-			new Method("toCharValue", Types.CHAR, new Type[] { Types.BOOLEAN_VALUE }), new Method("toCharValue", Types.CHAR, new Type[] { Types.DOUBLE_VALUE }),
+			new Method("toCharValue", Types.CHAR, new Type[] { Types.BOOLEAN }), new Method("toCharValue", Types.CHAR, new Type[] { Types.NUMBER }),
 			new Method("toCharValue", Types.CHAR, new Type[] { Types.STRING }) };
 
 	public static final Method[] TO_SHORT = new Method[] { new Method("toShort", Types.SHORT, new Type[] { Types.OBJECT }),
-			new Method("toShort", Types.SHORT, new Type[] { Types.BOOLEAN_VALUE }), new Method("toShort", Types.SHORT, new Type[] { Types.DOUBLE_VALUE }),
+			new Method("toShort", Types.SHORT, new Type[] { Types.BOOLEAN }), new Method("toShort", Types.SHORT, new Type[] { Types.NUMBER }),
 			new Method("toShort", Types.SHORT, new Type[] { Types.STRING }) };
 
 	public static final Method[] TO_SHORT_VALUE = new Method[] { new Method("toShortValue", Types.SHORT_VALUE, new Type[] { Types.OBJECT }),
-			new Method("toShortValue", Types.SHORT_VALUE, new Type[] { Types.BOOLEAN_VALUE }), new Method("toShortValue", Types.SHORT_VALUE, new Type[] { Types.DOUBLE_VALUE }),
+			new Method("toShortValue", Types.SHORT_VALUE, new Type[] { Types.BOOLEAN }), new Method("toShortValue", Types.SHORT_VALUE, new Type[] { Types.NUMBER }),
 			new Method("toShortValue", Types.SHORT_VALUE, new Type[] { Types.STRING }) };
 
 	public static final Method[] TO_INTEGER = new Method[] { new Method("toInteger", Types.INTEGER, new Type[] { Types.OBJECT }),
-			new Method("toInteger", Types.INTEGER, new Type[] { Types.BOOLEAN_VALUE }), new Method("toInteger", Types.INTEGER, new Type[] { Types.DOUBLE_VALUE }),
+			new Method("toInteger", Types.INTEGER, new Type[] { Types.BOOLEAN }), new Method("toInteger", Types.INTEGER, new Type[] { Types.NUMBER }),
 			new Method("toInteger", Types.INTEGER, new Type[] { Types.STRING }) };
 
 	public static final Method[] TO_INT_VALUE = new Method[] { new Method("toIntValue", Types.INT_VALUE, new Type[] { Types.OBJECT }),
-			new Method("toIntValue", Types.INT_VALUE, new Type[] { Types.BOOLEAN_VALUE }), new Method("toIntValue", Types.INT_VALUE, new Type[] { Types.DOUBLE_VALUE }),
+			new Method("toIntValue", Types.INT_VALUE, new Type[] { Types.BOOLEAN }), new Method("toIntValue", Types.INT_VALUE, new Type[] { Types.NUMBER }),
 			new Method("toIntValue", Types.INT_VALUE, new Type[] { Types.STRING }) };
 
 	public static final Method[] TO_LONG = new Method[] { new Method("toLong", Types.LONG, new Type[] { Types.OBJECT }),
-			new Method("toLong", Types.LONG, new Type[] { Types.BOOLEAN_VALUE }), new Method("toLong", Types.LONG, new Type[] { Types.DOUBLE_VALUE }),
+			new Method("toLong", Types.LONG, new Type[] { Types.BOOLEAN }), new Method("toLong", Types.LONG, new Type[] { Types.NUMBER }),
 			new Method("toLong", Types.LONG, new Type[] { Types.STRING }) };
 
 	public static final Method[] TO_LONG_VALUE = new Method[] { new Method("toLongValue", Types.LONG_VALUE, new Type[] { Types.OBJECT }),
-			new Method("toLongValue", Types.LONG_VALUE, new Type[] { Types.BOOLEAN_VALUE }), new Method("toLongValue", Types.LONG_VALUE, new Type[] { Types.DOUBLE_VALUE }),
+			new Method("toLongValue", Types.LONG_VALUE, new Type[] { Types.BOOLEAN }), new Method("toLongValue", Types.LONG_VALUE, new Type[] { Types.NUMBER }),
 			new Method("toLongValue", Types.LONG_VALUE, new Type[] { Types.STRING }) };
 
 	public static final Method[] TO_FLOAT = new Method[] { new Method("toFloat", Types.FLOAT, new Type[] { Types.OBJECT }),
-			new Method("toFloat", Types.FLOAT, new Type[] { Types.BOOLEAN_VALUE }), new Method("toFloat", Types.FLOAT, new Type[] { Types.DOUBLE_VALUE }),
+			new Method("toFloat", Types.FLOAT, new Type[] { Types.BOOLEAN }), new Method("toFloat", Types.FLOAT, new Type[] { Types.NUMBER }),
 			new Method("toFloat", Types.FLOAT, new Type[] { Types.STRING }) };
 
 	public static final Method[] TO_FLOAT_VALUE = new Method[] { new Method("toFloatValue", Types.FLOAT_VALUE, new Type[] { Types.OBJECT }),
-			new Method("toFloatValue", Types.FLOAT_VALUE, new Type[] { Types.BOOLEAN_VALUE }), new Method("toFloatValue", Types.FLOAT_VALUE, new Type[] { Types.DOUBLE_VALUE }),
+			new Method("toFloatValue", Types.FLOAT_VALUE, new Type[] { Types.BOOLEAN }), new Method("toFloatValue", Types.FLOAT_VALUE, new Type[] { Types.NUMBER }),
 			new Method("toFloatValue", Types.FLOAT_VALUE, new Type[] { Types.STRING }) };
 
 	public static final Method[] TO_DOUBLE = new Method[] { new Method("toDouble", Types.DOUBLE, new Type[] { Types.OBJECT }),

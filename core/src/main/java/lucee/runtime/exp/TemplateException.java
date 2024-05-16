@@ -18,9 +18,7 @@
  **/
 package lucee.runtime.exp;
 
-import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageSource;
-import lucee.runtime.op.Caster;
 import lucee.transformer.util.PageSourceCode;
 import lucee.transformer.util.SourceCode;
 
@@ -28,20 +26,6 @@ import lucee.transformer.util.SourceCode;
  * Template Exception Object
  */
 public class TemplateException extends PageExceptionImpl {
-
-	/**
-	 * @return the line
-	 */
-	public int getLine() {
-		return line;
-	}
-
-	/**
-	 * @return the pageSource
-	 */
-	public PageSource getPageSource() {
-		return pageSource;
-	}
 
 	private int line;
 	private PageSource pageSource;
@@ -73,7 +57,15 @@ public class TemplateException extends PageExceptionImpl {
 	 * @param message
 	 */
 	public TemplateException(PageSource ps, int line, int column, String message) {
-		super(message, "template");
+		super(ps != null ? "failure in " + ps.getDisplayPath() + ";" + message : message, "template");
+		// print.err(line+"+"+column);
+		addContext(ps, line, column, null);
+		this.line = line;
+		this.pageSource = ps;
+	}
+
+	public TemplateException(PageSource ps, int line, int column, Throwable t) {
+		super(t, "template");
 		// print.err(line+"+"+column);
 		addContext(ps, line, column, null);
 		this.line = line;
@@ -106,19 +98,32 @@ public class TemplateException extends PageExceptionImpl {
 		setDetail(detail);
 	}
 
-	private static PageSource getPageSource(SourceCode sc) {
-		if (sc instanceof PageSourceCode) return ((PageSourceCode) sc).getPageSource();
-		return null;
-	}
-
 	/**
 	 * Constructor of the class
 	 * 
 	 * @param cfml
 	 * @param e
 	 */
-	public TemplateException(SourceCode cfml, Throwable e) {
-		this(cfml, StringUtil.isEmpty(e.getMessage()) ? (Caster.toClassName(e)) : e.getMessage());
-		setStackTrace(e.getStackTrace());
+	public TemplateException(SourceCode sc, Throwable t) {
+		this(getPageSource(sc), sc.getLine(), sc.getColumn(), t);
+	}
+
+	/**
+	 * @return the line
+	 */
+	public int getLine() {
+		return line;
+	}
+
+	/**
+	 * @return the pageSource
+	 */
+	public PageSource getPageSource() {
+		return pageSource;
+	}
+
+	private static PageSource getPageSource(SourceCode sc) {
+		if (sc instanceof PageSourceCode) return ((PageSourceCode) sc).getPageSource();
+		return null;
 	}
 }

@@ -19,13 +19,13 @@
 package lucee.runtime.functions.decision;
 
 import lucee.runtime.PageContext;
+import lucee.runtime.PageContextImpl;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
-import lucee.runtime.regex.Perl5Util;
 
 /**
  * 
@@ -70,12 +70,12 @@ public final class IsValid implements Function {
 		if (!"regex".equalsIgnoreCase(type) && !"regular_expression".equalsIgnoreCase(type))
 			throw new FunctionException(pc, "isValid", 1, "type", "wrong attribute count for type [" + type + "]");
 
-		return regex(Caster.toString(value, null), Caster.toString(objPattern));
+		return regex(pc, Caster.toString(value, null), Caster.toString(objPattern));
 	}
 
-	public static boolean regex(String value, String strPattern) {
+	public static boolean regex(PageContext pc, String value, String strPattern) {
 		if (value == null) return false;
-		return Perl5Util.matches(strPattern, value, false);
+		return ((PageContextImpl) pc).getRegex().matches(strPattern, value, false);
 	}
 
 	public static boolean call(PageContext pc, String type, Object value, Object objMin, Object objMax) throws PageException {

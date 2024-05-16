@@ -20,11 +20,13 @@ package lucee.runtime.gateway;
 
 import java.util.Map;
 
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
+import lucee.runtime.type.util.KeyConstants;
 
 public class CFCGateway implements GatewaySupport {
 
@@ -50,14 +52,14 @@ public class CFCGateway implements GatewaySupport {
 
 		// requestURI=engine.toRequestURI(cfcPath);
 		Struct args = new StructImpl(Struct.TYPE_LINKED);
-		args.setEL("id", id);
-		args.setEL("config", Caster.toStruct(config, null, false));
+		args.setEL(KeyConstants._id, id);
+		args.setEL(KeyConstants._config, Caster.toStruct(config, null, false));
 		if (!StringUtil.isEmpty(cfcPath)) {
 			try {
-				args.setEL("listener", this.engine.getComponent(cfcPath, id));
+				args.setEL(KeyConstants._listener, this.engine.getComponent(cfcPath, id));
 			}
 			catch (PageException e) {
-				engine.log(this, GatewayEngine.LOGLEVEL_ERROR, e.getMessage());
+				log(engine, GatewayEngine.LOGLEVEL_ERROR, e);
 			}
 		}
 
@@ -65,9 +67,7 @@ public class CFCGateway implements GatewaySupport {
 			callOneWay("init", args);
 		}
 		catch (PageException pe) {
-
-			engine.log(this, GatewayEngine.LOGLEVEL_ERROR, pe.getMessage());
-			// throw new PageGatewayException(pe);
+			log(engine, GatewayEngine.LOGLEVEL_ERROR, pe);
 		}
 
 	}
@@ -145,7 +145,7 @@ public class CFCGateway implements GatewaySupport {
 			return GatewayEngineImpl.toIntState(Caster.toString(call("getState", args, state)), this.state);
 		}
 		catch (PageException pe) {
-			engine.log(this, GatewayEngine.LOGLEVEL_ERROR, pe.getMessage());
+			log(engine, GatewayEngine.LOGLEVEL_ERROR, pe);
 		}
 		return this.state;
 	}
@@ -182,5 +182,12 @@ public class CFCGateway implements GatewaySupport {
 	@Override
 	public Thread getThread() {
 		return thread;
+	}
+
+	private void log(GatewayEngine engine, int level, Exception e) {
+		if (engine instanceof GatewayEngineImpl) {
+			((GatewayEngineImpl) engine).log(id, level, e.getMessage(), e);
+		}
+		else engine.log(this, level, e.getMessage() + "\n" + ExceptionUtil.toString(e.getStackTrace()));
 	}
 }

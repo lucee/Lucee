@@ -66,7 +66,7 @@ public abstract class CallerResponseStreamResult implements Callable<String> {
 				str = IOUtil.toString((new ByteArrayInputStream(baos.toByteArray())), cs); // TODO add support for none string content
 			}
 			catch (Exception e) {
-				LogUtil.log(ThreadLocalPageContext.getConfig(pc), "concurrency", e);
+				LogUtil.log(pc, "concurrency", e);
 			}
 		}
 		return str;

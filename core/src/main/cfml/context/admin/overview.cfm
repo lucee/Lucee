@@ -1,11 +1,24 @@
 <!---
 Defaults --->
 
+<cfif structKeyExists(form,"adminMode")>		
+	<cfadmin
+		action="updateAdminMode"
+		type="#request.adminType#"
+		password="#session["password"&request.adminType]#"
+		mode="#form.adminMode#"
+		merge="#!isNull(form.switch) && form.switch=="merge"#"
+		keep="#!isNull(form.keep)#">
+	<cflocation url="#request.self#?action=#url.action#" addtoken=false>
+</cfif>
+
+
+<cfset current.label = "Lucee " & server.lucee.version & " - " & current.label>
 <cfset error.message="">
 <cfset error.detail="">
 <cfparam name="form.mainAction" default="none">
 <!--- load asynchron all extension providers  --->
-<cfparam name="application[request.admintype].preloadedExtensionProviders" default="false" type="boolean">
+<cfif isNull(application[request.admintype].preloadedExtensionProviders)><cfset application[request.admintype].preloadedExtensionProviders=false></cfif>
 <cfif !application[request.admintype].preloadedExtensionProviders>
 	<cfinclude template="ext.functions.cfm">
 	<cfset application[request.admintype].preloadedExtensionProviders=true>
@@ -46,59 +59,91 @@ Defaults --->
 		<cfset error.cfcatch=cfcatch>
 	</cfcatch>
 </cftry>
-<cfadmin 
-	action="surveillance" 
-	type="#request.adminType#" 
-	password="#session["password"&request.adminType]#" 
-	returnVariable="surveillance">
-
 <!---
-Redirtect to entry --->
+Redirect to entry --->
 <cfif cgi.request_method EQ "POST" and error.message EQ "" and form.mainAction NEQ "none">
 	<cflocation url="#request.self#" addtoken="no">
+</cfif>
+
+<cfset lucee_version = "UNKNOWN">
+<cfinclude template="version.cfm">
+<cfif lucee_version neq server.lucee.version && lucee_version neq "UNKNOWN">
+	<cfoutput>
+		<div class="error">Warning Lucee Admin was compiled with version #lucee_version#?</div>
+	</cfoutput>
 </cfif>
 
 <!---
 Error Output --->
 <cfset printError(error)>
 
-<cfset pool['HEAP']="Heap">
-<cfset pool['NON_HEAP']="Non-Heap">
-
-<cfset pool['HEAP_desc']="Memory used for all objects that are allocated.">
-<cfset pool['NON_HEAP_desc']="Memory used to store all cfc/cfm templates, java classes, interned Strings and meta-data.">
-
-<cfset pool["Par Eden Space"]="The pool from which memory is initially allocated for most objects.">
-<cfset pool["Par Survivor Space"]="The pool containing objects that have survived the garbage collection of the Eden space.">
-<cfset pool["CMS Old Gen"]="The pool containing objects that have existed for some time in the survivor space.">
-<cfset pool["CMS Perm Gen"]="The pool containing all the reflective data of the virtual machine itself, such as class and method objects.">
-<cfset pool["Code Cache"]="The HotSpot Java VM also includes a code cache, containing memory that is used for compilation and storage of native code.">
-
-
-<cfset pool["Eden Space"]=pool["Par Eden Space"]>
-<cfset pool["PS Eden Space"]=pool["Par Eden Space"]>
-
-<cfset pool["Survivor Space"]=pool["Par Survivor Space"]>
-<cfset pool["PS Survivor Space"]=pool["Par Survivor Space"]>
-
-<cfset pool["Perm Gen"]=pool["CMS Perm Gen"]>
-
-<cfset pool["Tenured Gen"]=pool["CMS Old Gen"]>
-<cfset pool["PS Old Gen"]=pool["CMS Old Gen"]>
-
 <cfhtmlbody>
     <script src="../res/js/echarts-all.js.cfm" type="text/javascript"></script>
+
+	<cfoutput><script type="text/javascript">
+		var submitted = false;
+		function adminmode(field) {
+			field.disabled = true;
+			submitted = true;
+			url='adminmode.cfm?adminType=#request.admintype#';
+			
+			// adminMode
+			var f=field.form["adminMode"]
+			url+="&adminMode="+$(f).val();
+
+			// switch
+			var f=field.form["switch"]
+			if(f) {
+				url+="&switch="+$(f).val();
+			}
+			// keep
+			var f=field.form["keep"]
+			if(f) {
+				url+="&keep="+$(f).val();
+			}			
+			//disableBlockUI = true;
+			//$('##updateInfoDesc').html('<img src="../res/img/spinner16.gif.cfm">');
+			
+			$.ajax(url )
+				.done(function( data, textStatus, xhr ) {
+					var response = $.trim(data);
+					if (response == ""){
+						setTimeout(function(){
+							// load the admin page to trigger a deploy, so css/js loads correctly
+							$.get("?", function(response) {
+								window.location=('?action=overview');
+							});
+						}, 6500); // LDEV-4568 give Lucee enough time to startup, otherwise, the admin login may show without css/js
+					} else {
+						// $('##updateInfoDesc').addClass("error").attr("style", null).html(response);
+						
+					}
+				})
+				.fail(function( xhr, textStatus, errorThrown ) {
+					// $('##updateInfoDesc').addClass("error").attr("style", null).html( "<b>" + xhr.status + "</b><br>"  + xhr.responseText);
+				})
+				.always(function() {
+					field.disabled = false;
+				});
+			
+		}
+	</script></cfoutput>
+
+
     <script type="text/javascript">
+    	var chartTimer;
     	labels={'heap':"Heap",'nonheap':"Non-Heap",'cpuSystem':"Whole System",'cpuProcess':"Lucee Process"};
 		function requestData(){
 			jQuery.ajax({
 				type: "POST",
 				<cfoutput>url: "./#request.self#?action=chartAjax",</cfoutput>
 				success: function(result){
+					if (typeof result !== 'object')
+						return;
 					var arr =["heap","nonheap"];
 					$.each(arr,function(index,chrt){
 						window["series_"+chrt] = window[chrt+"Chart"].series[0].data; //*charts*.series[0].data
-						window["series_"+chrt].push(result[chrt]); // push the value into series[0].data
+						window["series_"+chrt].push(result[chrt].PUSED); // push the value into series[0].data
 						window[chrt+"Chart"].series[0].data = window["series_"+chrt];
 						if(window[chrt+"Chart"].series[0].data.length > 60){
 						window[chrt+"Chart"].series[0].data.shift(); //shift the array
@@ -108,6 +153,8 @@ Error Output --->
 						window[chrt+"Chart"].xAxis[0].data.shift(); //shift the Time value
 						}
 						window[chrt].setOption(window[chrt+"Chart"]); // passed the data into the chats
+						var stats = result[chrt];
+						$('#' +chrt +'-label').text( stats.PUSED + "%, " + stats.USED + "Mb / " + stats.MAX + "Mb" );
 					});
 					var arr2 =["cpuSystem"];
 					$.each(arr2,function(index,chrt){
@@ -129,7 +176,8 @@ Error Output --->
 						}
 						window[chrt].setOption(cpuSystemChartOption); // passed the data into the chats
 					});
-					setTimeout(requestData, 1000);
+					if (chartTimer !== null)
+						chartTimer = setTimeout(requestData, 5000);
 				}
 			})
 		}
@@ -140,10 +188,10 @@ Error Output --->
 		$.each(["heap","nonheap"], function(i, data){
 			window[data] = echarts.init(document.getElementById(data),'macarons'); // intialize echarts
 			window[data+"Chart"] = {
-				backgroundColor: ["#EFEDE5"],
+				backgroundColor: ["#ffffff"],
 				tooltip : {'trigger':'axis',
 					formatter : function (params) {
-						return 'Series' + "<br>" + params[0].seriesName + ": " + params[0].value + "%" + '<br>' +params[0].name ;
+						return params[0].seriesName + ": " + params[0].value + "%" + '<br>' +params[0].name ;
 					}
 				},
 
@@ -180,14 +228,14 @@ Error Output --->
 
 		var cpuSystem = echarts.init(document.getElementById('cpuSystem'),'macarons'); // intialize echarts
 		var cpuSystemChartOption = {
-			backgroundColor: ["#EFEDE5"],
+			backgroundColor: ["#ffffff"],
 			tooltip : {'trigger':'axis',
 				formatter : function (params) {
 					var series2 = "";
 					if(params.length == 2) {
 						series2 =  params[1].seriesName + ": "+ params[1].value + "%" + '<br>' +params[0].name;
 					}
-					return 'Series' + "<br>" + params[0].seriesName + ": " + params[0].value + "%" + '<br>'  + series2;
+					return params[0].seriesName + ": " + params[0].value + "%" + '<br>'  + series2;
 				}
 			},
 			legend: {
@@ -247,13 +295,16 @@ Error Output --->
 	<div class="pageintro">
 		#stText.Overview.introdesc[request.adminType]#
 	</div>
+	
+
+
+
 
 	<cfadmin
 		action="getInfo"
 		type="#request.adminType#"
 		password="#session["password"&request.adminType]#"
 		returnVariable="info">
-
 	<cfadmin
 		action="getAPIKey"
 		type="#request.adminType#"
@@ -284,10 +335,18 @@ Error Output --->
 	type="#request.adminType#"
 	password="#session["password"&request.adminType]#"
 	returnVariable="contexts">
+<cfadmin
+    action="getExtensions"
+    type="server"
+    returnVariable="docsServer">
+<cfadmin
+    action="getExtensions"
+    type="web"
+    returnVariable="docsWeb">
 
 	<cfif request.adminType EQ "server">
 		<cfset names=StructKeyArray(info.servlets)>
-		<cfif !ArrayContainsNoCase(names,"Rest",true)>
+		<cfif len(names) and !ArrayContainsNoCase(names,"Rest",true)>
 			<div class="warning nofocus">
 				#stText.Overview.warning.warningMsg# 
 			</div>
@@ -301,11 +360,12 @@ Error Output --->
 			</div>
 		</cfif>
 	</cfif>
+
 	<cfset systemInfo=GetSystemMetrics()>
 
 
 	<!--- installed libs --->
-	<cfif request.adminType EQ "web">	
+	<cfif request.adminType EQ "web" or request.singlemode >	
 		<cfadmin
 			action="getTLDs"
 			type="#request.adminType#"
@@ -325,6 +385,62 @@ Error Output --->
 		</cfif>
 	</cfif>
 
+<cfif request.adminType=="server">
+	<form method="post">
+		<input type="hidden" name="adminMode" value="#request.singlemode?"multi":"single"#">
+		<h2>#stText.Overview[request.singlemode?"modeSingle":"modeMulti"]#</h2>
+		<div class="itemintro">#stText.Overview[request.singlemode?"modeSingleDesc":"modeMultiDesc"]#</div>
+		<!--- <div id="updateInfoDesc" style="text-align: center;">
+			<p>#stText.services.update.restartDesc#</p>
+		</div> --->
+		<table class="maintbl">
+		<tbody>
+			<tr>
+				<th scope="row">
+					<h4>#stText.Overview[request.singlemode?"modeSingleSwitch":"modeMultiSwitch"]#</h4>
+#stText.Overview[request.singlemode?"modeSingleSwitchDesc":"modeMultiSwitchDesc"]#
+				</th>
+				<cfif !request.singleMode>
+	
+				<td>
+					<ul class="radiolist" id="sp_options">
+						<li>
+							<label>
+								<input type="radio" class="radio" name="switch" value="merge" checked="checked">
+								<b>#stText.Overview.switchMerge#</b>
+							</label>
+							<div class="comment">#stText.Overview.switchMergeDesc#</div>
+						</li>
+						<li>
+							<label>
+								<input type="radio" class="radio" name="switch" value="leave">
+								<b>#stText.Overview.switchLeave#</b>
+							</label>
+							<div class="comment">#stText.Overview.switchLeaveDesc#</div>
+						</li>
+					</ul>
+					<br><br>
+					<input type="checkbox" class="checkbox" name="keep" value="keep" checked="checked">
+					<div class="comment">#stText.Overview.switchKeep#</div>
+				</td>
+				</cfif>
+			</tr>
+		</tbody>
+		<tfoot>
+			<tr>
+				<td colspan="2">
+					<input type="button" class="b button submit" name="mainAction" value="#stText.Buttons.switch#" onclick="adminmode(this)">
+				</td>
+			</tr>
+		</tfoot>
+		</table>
+	</form>
+
+</cfif>
+
+
+
+
 
 
 	<table>
@@ -333,8 +449,7 @@ Error Output --->
 			<cfhtmlbody>
 				<script type="text/javascript">
 					$( function() {
-
-						$('##updateInfoDesc').load('update.cfm?#session.urltoken#&adminType=#request.admintype#');
+						$('##updateInfoDesc').load('?action=update&adminType=#request.admintype#');
 					} );
 				</script>
 			</cfhtmlbody>
@@ -349,16 +464,18 @@ Error Output --->
 					<tbody>
 						<tr>
 							<th colspan="2" scope="row">
-								#stText.setting.memory#<br>
-								<span class="comment">#stText.setting.memoryDesc#</span>
+								<h3>#stText.setting.memory#</h3>
+								#stText.setting.memoryDesc#
 							</th>
 						</tr>
 						<tr>
-							<td width="50%"><b>#pool['heap']#</b>
+							<td width="50%"><b>#stText.Overview.pool['HEAP']#</b> <span id="heap-label" style="padding-left:10px;"></span>
 								<div id="heap" style="min-width: 100px; height: 150px; margin: 0 auto;"></div>
+								
 							</td>
-							<td width="50%"><b>#pool['non_heap']#</b><br>
+							<td width="50%"><b>#stText.Overview.pool['NON_HEAP']#</b><span id="nonheap-label" style="padding-left:10px;"></span><br>
 								<div id="nonheap" style="min-width: 100px; height: 150px; margin: 0 auto;"></div>
+								
 							</td>
 						</tr>
 
@@ -370,8 +487,8 @@ Error Output --->
 					<tbody>
 							<tr>
 								<th colspan="2" scope="row">
-									#stText.setting.cpu#<br>
-									<span class="comment">#stText.setting.cpuDesc#</span>
+									<h3>#stText.setting.cpu#</h3>
+									#stText.setting.cpuDesc#
 								</th>
 							</tr>
 							<tr>
@@ -388,8 +505,8 @@ Error Output --->
 					<tbody>
 						<tr>
 							<th rowspan="3" scope="row" style="width:50%">
-								#stText.setting.scopes#<br>
-								<span class="comment">#stText.setting.scopesDesc#</span>
+								<h3>#stText.setting.scopes#</h3>
+								#stText.setting.scopesDesc#
 							</th>
 							<td style="width:35%"><b>#stText.setting.scopeApplication#</b></td>
 							<td align="right" style="width:15%">#systemInfo.applicationContextCount#</td>
@@ -411,8 +528,8 @@ Error Output --->
 
 						<tr>
 							<th rowspan="3" scope="row" style="width:50%">
-								#stText.setting.request#<br>
-								<span class="comment">#stText.setting.requestDesc#</span>
+								<h3>#stText.setting.request#</h3>
+								#stText.setting.requestDesc#
 							</th>
 							<td style="width:35%"><b>#stText.setting.req#</b></td>
 							<cfset nbr=systemInfo.activeRequests>
@@ -437,8 +554,8 @@ Error Output --->
 
 						<tr>
 							<th scope="row" style="width:50%">
-								#stText.setting.datasource#<br>
-								<span class="comment">#stText.setting.datasourceDesc#</span>
+								<h3>#stText.setting.datasource#</h3>
+								#stText.setting.datasourceDesc#
 							</th>
 							<cfset nbr=systemInfo.activeDatasourceConnections>
 							<td style="width:35%">&nbsp;</td>
@@ -453,8 +570,8 @@ Error Output --->
 
 						<tr>
 							<th rowspan="2" scope="row" style="width:50%">
-								#stText.setting.task#<br>
-								<span class="comment">#stText.setting.taskDesc#</span>
+								<h3>#stText.setting.task#</h3>
+								#stText.setting.taskDesc#
 							</th>
 							<td style="width:35%"><b>#stText.setting.taskOpen#</b></td>
 							<cfset nbr=systemInfo.tasksOpen>
@@ -473,7 +590,11 @@ Error Output --->
 		</tr>
 
 
-
+		<cfadmin
+		action="getMinVersion"
+		type="#request.adminType#"
+		password="#session["password"&request.adminType]#"
+		returnVariable="minVersion">
 		<tr>
 			<td valign="top" colspan="3">
 				<br>
@@ -497,14 +618,14 @@ Error Output --->
 									<th nowrap="nowrap" scope="row">#stText.Overview.ReleaseDate#</th>
 									<td>#lsDateFormat(server.lucee['release-date'])#</td>
 								</tr>
-								<cfif request.adminType EQ "web">
+								<cfif request.singleMode or request.adminType EQ "web">
 								<tr>
 									<th nowrap="nowrap" scope="row">#stText.Overview.label#</th>
-									<td>#info.label#</td>
+									<td>#info.label?:""#</td>
 								</tr>
 								</cfif>
 
-								<cfif request.adminType EQ "web">
+								<cfif request.singlemode or  request.adminType EQ "web">
 								<tr>
 									<th nowrap="nowrap" scope="row">#stText.Overview.InstalledTLs#</th>
 									<td>
@@ -514,7 +635,7 @@ Error Output --->
 									</td>
 								</tr>
 								</cfif>
-								<cfif request.adminType EQ "web">
+								<cfif request.singlemode or request.adminType EQ "web">
 								<tr>
 									<th nowrap="nowrap" scope="row">#stText.Overview.InstalledFLs#</th>
 									<td>
@@ -534,6 +655,10 @@ Error Output --->
 								<tr>
 									<th scope="row">#stText.Overview.remote_addr#</th>
 									<td>#cgi.remote_addr#</td>
+								</tr>
+								<tr>
+									<th scope="row">Loader Version</th>
+									<td>#minversion#</td>
 								</tr>
 								<tr>
 									<th scope="row">#stText.overview.servletContainer#</th>
@@ -562,10 +687,10 @@ Error Output --->
 									</cfif>
 									</td>
 								</tr>
-								<cfif request.adminType EQ "web">
+								<cfif request.singleMode or request.adminType EQ "web">
 									<tr>
 										<th scope="row">#stText.Overview.hash#</th>
-										<td>#info.hash#</td>
+										<td>#info.hash?:""#</td>
 									</tr>
 								</cfif>
 
@@ -659,28 +784,33 @@ Error Output --->
 						<!--- Prof Support --->
 						<tr>
 							<td>
-								<a href="http://lucee.org/support.html" target="_blank">#stText.Overview.Professional#</a>
+								<a href="https://lucee.org/support.html" target="_blank">#stText.Overview.Professional#</a>
 								<div class="comment">#stText.Overview.ProfessionalDesc#</div>
 							</td>
 						</tr>
 						<!--- Doc --->
 						<tr>
 							<td>
-								<a href="http://docs.lucee.org" target="_blank">#stText.Overview.onlineDocsLink#</a>
+								<a href="https://docs.lucee.org" target="_blank">#stText.Overview.onlineDocsLink#</a>
 								<div class="comment">#stText.Overview.onlineDocsDesc#</div>
 							</td>
 						</tr>
 						<!--- Reference --->
 						<tr>
 							<td>
-								<a href="../doc/index.cfm" target="_blank">#stText.Overview.localRefLink#</a>
+								<cfif Listfind(valueList(docsServer.name),"Lucee Documentation") eq 0 && Listfind(valueList(docsWeb.name),"Lucee Documentation") eq 0>
+									<a href="#cgi.script_name#?action=ext.applications" title="#stText.overview.installDocsLink#">
+										#stText.overview.installDocsLink#</a>
+								<cfelse>
+									<a href="../doc/index.cfm" target="_blank">#stText.Overview.localRefLink#</a>
+								</cfif>
 								<div class="comment">#stText.Overview.localRefDesc#</div>
 							</td>
 						</tr>
 						<!--- Mailing List --->
 						<tr>
 							<td>
-								<a href="http://groups.google.com/group/lucee" target="_blank">#stText.Overview.Mailinglist#</a>
+								<a href="https://groups.google.com/group/lucee" target="_blank">#stText.Overview.Mailinglist#</a>
 								<div class="comment">#stText.Overview.MailinglistDesc#</div>
 							</td>
 						</tr>
@@ -694,7 +824,7 @@ Error Output --->
 						<!--- Blog --->
 						<tr>
 							<td>
-								<a href="http://blog.lucee.org/" target="_blank">#stText.Overview.blog#</a>
+								<a href="http://blog.lucee.org" target="_blank">#stText.Overview.blog#</a>
 								<div class="comment">#stText.Overview.blogDesc#</div>
 							</td>
 						</tr>
@@ -736,8 +866,8 @@ Error Output --->
 								<input type="text" style="width:99%" name="label_#rst.currentrow#" value="#rst.label#"/>
 							</td>
 							<td><cfif len(rst.url)><a target="_blank" href="#rst.url#/lucee/admin/web.cfm">#rst.url#</a></cfif></td>
-							<td><input type="text" class="xlarge" name="path_#rst.currentrow#" value="#rst.path#" readonly="readonly"/></td>
-							<td><input type="text" class="xlarge" style="width:99%" name="cf_#rst.currentrow#" value="#rst.config_file#" readonly="readonly"/></td>
+							<td>#rst.path#</td>
+							<td>#rst.config_file#</td>
 						</tr>
 
 						<cfset filesThreshold = 100000>
@@ -772,7 +902,12 @@ Error Output --->
 <cfscript>
 	function getJavaVersion() {
 		var verArr=listToArray(server.java.version,'.');
-		if(verArr[1]>2) return verArr[1];
-		return verArr[2];
+		if(verArr[1]>2) {
+			return verArr[1];
+		} else if (verArr.len() GT 1) {
+			return verArr[2];
+		} else {
+		    return val(server.java.version);
+		}
 	}
 </cfscript>

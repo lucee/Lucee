@@ -10,50 +10,7 @@
 	<cfformClassic onerror="customError" action="#request.self#?action=#url.action#" method="post">
 		<table class="maintbl">
 			<tbody>
-				<!--- Base Component ---->
-				
-				<tr>
-					<th scope="row">#stText.Components.BaseComponent# </th>
-<cfset css=iif(len(component["baseComponentTemplateCFML"]) EQ 0 and len(component["strBaseComponentTemplateCFML"]) NEQ 0,de('Red'),de(''))>
-					<td class="tblContent#css#" title="#component["strBaseComponentTemplateCFML"]#
-#component["BaseComponentTemplateCFML"]#">
-						
-
-
-						<!---<table class="maintbl">
-						<cfloop list="CFML,Lucee" item="dialect">
-					<cfset css=iif(len(component["baseComponentTemplate"&dialect]) EQ 0 and
-					 len(component["strBaseComponentTemplate"&dialect]) NEQ 0,de('Red'),de(''))>
-							<tr>
-							<th scope="row">Dialect #dialect#</th>
-							<td class="tblContent#css#" title="#component["strBaseComponentTemplate"&dialect]#
-#component["BaseComponentTemplate"&dialect]#">
-							<cfif hasAccess>
-								<cfinputClassic type="text" name="baseComponentTemplate#dialect#" value="#component["strBaseComponentTemplate"&dialect]#" style="width:350px" 
-									required="no" 
-									message="#stText.Components.BaseComponentMissing#">
-							<cfelse>
-								<b>#component["strBaseComponentTemplate"&dialect]#</b>
-							</cfif>
-							</td>
-							</tr>
-						</cfloop>--->
-
-
-							<cfif hasAccess>
-								<cfinputClassic type="text" name="baseComponentTemplateCFML" value="#component["strBaseComponentTemplateCFML"]#" style="width:350px" 
-									required="no" 
-									message="#stText.Components.BaseComponentMissing#">
-							<cfelse>
-								<b>#component["strBaseComponentTemplateCFML"]#</b>
-							</cfif>
-							
-						<cfoutput><input type="hidden" name="baseComponentTemplateLucee" value="#component["strBaseComponentTemplateLucee"]#" ></cfoutput>
-
-
-						<div class="comment">#stText.Components.BaseComponentDescription#</div>
-					</td>
-				</tr>
+			
 				<!--- Auto Import ---->
 				<tr>
 					<th scope="row">#stText.Components.AutoImport#</th>
@@ -95,7 +52,7 @@
 						<cfif hasAccess>
 							<input type="checkbox" class="checkbox" name="componentDeepSearchDesc" value="yes" <cfif component.deepsearch>checked</cfif>>
 						<cfelse>
-							<b>#yesNoFormat(setting.deepsearch)#</b>
+							<b>#yesNoFormat(component.deepsearch)#</b>
 						</cfif>
 						<div class="comment">#stText.Components.componentDeepSearchDesc#</div>
 					</td>
@@ -201,7 +158,7 @@
 						<td colspan="2">
 							<input class="bl button submit" type="submit" name="mainAction" value="#stText.Buttons.Update#">
 							<input type="reset" class="<cfif request.adminType EQ "web">bm<cfelse>br</cfif> button reset" name="cancel" value="#stText.Buttons.cancel#">
-							<cfif request.adminType EQ "web"><input class="br button submit" type="submit" name="mainAction" value="#stText.Buttons.resetServerAdmin#"></cfif>
+							<cfif not request.singleMode && request.adminType EQ "web"><input class="br button submit" type="submit" name="mainAction" value="#stText.Buttons.resetServerAdmin#"></cfif>
 						</td>
 					</tr>
 				</tfoot>

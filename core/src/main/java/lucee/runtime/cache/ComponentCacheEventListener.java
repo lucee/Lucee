@@ -23,14 +23,14 @@ import lucee.commons.io.cache.CacheEventListener;
 import lucee.runtime.Component;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.Collection.Key;
-import lucee.runtime.type.KeyImpl;
+import lucee.runtime.type.util.KeyConstants;
 
 public class ComponentCacheEventListener implements CacheEventListener {
 
 	private static final long serialVersionUID = 6271280246677734153L;
-	private static final Collection.Key ON_EXPIRES = KeyImpl.intern("onExpires");
-	private static final Collection.Key ON_PUT = KeyImpl.intern("onPut");
-	private static final Collection.Key ON_REMOVE = KeyImpl.intern("onRemove");
+	private static final Collection.Key ON_EXPIRES = KeyConstants._onExpires;
+	private static final Collection.Key ON_PUT = KeyConstants._onPut;
+	private static final Collection.Key ON_REMOVE = KeyConstants._onRemove;
 	private Component component;
 
 	public ComponentCacheEventListener(Component component) {

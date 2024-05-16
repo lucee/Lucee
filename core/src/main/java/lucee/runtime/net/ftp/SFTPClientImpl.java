@@ -14,6 +14,7 @@ import java.util.Vector;
 import org.apache.commons.net.ftp.FTPFile;
 
 import com.jcraft.jsch.Channel;
+import com.jcraft.jsch.ChannelExec;
 import com.jcraft.jsch.ChannelSftp;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.JSchException;
@@ -22,7 +23,10 @@ import com.jcraft.jsch.SftpATTRS;
 import com.jcraft.jsch.SftpException;
 
 import lucee.commons.io.SystemUtil;
+import lucee.commons.io.log.Log;
+import lucee.commons.io.log.LogUtil;
 import lucee.commons.lang.StringUtil;
+import lucee.runtime.PageContext;
 import lucee.runtime.op.Caster;
 
 public class SFTPClientImpl extends AFTPClient {
@@ -45,11 +49,11 @@ public class SFTPClientImpl extends AFTPClient {
 
 	static {
 		// set system property lucee.debug.jsch=true to enable debug output from JSch
-		if (Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.debug.jsch", ""), false)) {
+		if (Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.debug.jsch", ""), true)) {
 			JSch.setLogger(new com.jcraft.jsch.Logger() {
 				@Override
 				public boolean isEnabled(int i) {
-					return true;
+					return true; // log all levels
 				}
 
 				@Override
@@ -58,6 +62,27 @@ public class SFTPClientImpl extends AFTPClient {
 				}
 			});
 		}
+		// for backward compatibility to previous version used
+		// appendToJSchConfig("kex", "diffie-hellman-group14-sha1");
+		// appendToJSchConfig("server_host_key", "ssh-rsa", "ssh-dss");
+		appendToJSchConfig("server_host_key", "ssh-rsa", "ssh-dss");
+		appendToJSchConfig("PubkeyAcceptedAlgorithms", "ssh-rsa", "ssh-dss");
+	}
+
+	private static void appendToJSchConfig(String key, String... values) {
+		String value = JSch.getConfig(key);
+		boolean modified = false;
+		for (String val: values) {
+			if (StringUtil.isEmpty(value)) {
+				value = val;
+				modified = true;
+			}
+			else if (("," + value + ",").indexOf("," + val + ",") == -1) {
+				value += "," + val;
+				modified = true;
+			}
+		}
+		if (modified) JSch.setConfig(key, value);
 	}
 
 	SFTPClientImpl() {
@@ -95,6 +120,8 @@ public class SFTPClientImpl extends AFTPClient {
 
 			if (timeout > 0) session.setTimeout(timeout);
 
+			if (password != null && sshKey == null) session.setConfig("PreferredAuthentications", "password");
+
 			session.connect();
 
 			Channel channel = session.openChannel("sftp");
@@ -105,10 +132,11 @@ public class SFTPClientImpl extends AFTPClient {
 			if (!StringUtil.isEmpty(fingerprint)) {
 				if (!fingerprint.equalsIgnoreCase(fingerprint())) {
 					disconnect();
-					throw new IOException("given fingerprint is not a match.");
+					throw new IOException("SFTP given fingerprint is not a match.");
 				}
 			}
 			handleSucess();
+			replyString = "Connected to " + session.getServerVersion();
 		}
 		catch (JSchException e) {
 			handleFail(e, stopOnError);
@@ -122,6 +150,7 @@ public class SFTPClientImpl extends AFTPClient {
 	@Override
 	public boolean rename(String from, String to) throws IOException {
 		try {
+			if (channelSftp == null) connect();
 			channelSftp.rename(from, to);
 			handleSucess();
 			return true;
@@ -135,6 +164,7 @@ public class SFTPClientImpl extends AFTPClient {
 	@Override
 	public boolean removeDirectory(String pathname) throws IOException {
 		try {
+			if (channelSftp == null) connect();
 			channelSftp.rmdir(pathname);
 			handleSucess();
 			return true;
@@ -148,6 +178,7 @@ public class SFTPClientImpl extends AFTPClient {
 	@Override
 	public boolean makeDirectory(String pathname) throws IOException {
 		try {
+			if (channelSftp == null) connect();
 			channelSftp.mkdir(pathname);
 			handleSucess();
 			return true;
@@ -161,6 +192,7 @@ public class SFTPClientImpl extends AFTPClient {
 	@Override
 	public boolean directoryExists(String pathname) throws IOException {
 		try {
+			if (channelSftp == null) connect();
 			String pwd = channelSftp.pwd();
 			channelSftp.cd(pathname);
 			channelSftp.cd(pwd); // we change it back to what it was
@@ -175,6 +207,7 @@ public class SFTPClientImpl extends AFTPClient {
 	@Override
 	public boolean changeWorkingDirectory(String pathname) throws IOException {
 		try {
+			if (channelSftp == null) connect();
 			channelSftp.cd(pathname);
 			handleSucess();
 			return true;
@@ -188,6 +221,7 @@ public class SFTPClientImpl extends AFTPClient {
 	@Override
 	public String printWorkingDirectory() throws IOException {
 		try {
+			if (channelSftp == null) connect();
 			String pwd = channelSftp.pwd();
 			handleSucess();
 			return pwd;
@@ -201,6 +235,7 @@ public class SFTPClientImpl extends AFTPClient {
 	@Override
 	public boolean deleteFile(String pathname) throws IOException {
 		try {
+			if (channelSftp == null) connect();
 			channelSftp.rm(pathname);
 			handleSucess();
 			return true;
@@ -215,6 +250,7 @@ public class SFTPClientImpl extends AFTPClient {
 	public boolean retrieveFile(String remote, OutputStream local) throws IOException {
 		boolean success = false;
 		try {
+			if (channelSftp == null) connect();
 			channelSftp.get(remote, local);
 			handleSucess();
 			success = true;
@@ -228,7 +264,8 @@ public class SFTPClientImpl extends AFTPClient {
 	@Override
 	public boolean storeFile(String remote, InputStream local) throws IOException {
 		try {
-			this.channelSftp.put(local, remote); // TODO add progress monitor?
+			if (channelSftp == null) connect();
+			channelSftp.put(local, remote); // TODO add progress monitor?
 			handleSucess();
 			return true;
 		}
@@ -236,6 +273,40 @@ public class SFTPClientImpl extends AFTPClient {
 			handleFail(ioe, stopOnError);
 		}
 		return false;
+	}
+
+	@Override
+	public void sendCommand(String command, String params) throws IOException {
+		try {
+			StringBuilder outputBuffer = new StringBuilder();
+
+			Channel channel = session.openChannel("exec");
+			((ChannelExec) channel).setCommand(command);
+			InputStream commandOutput = channel.getInputStream();
+			channel.connect();
+			int readByte = commandOutput.read();
+
+			while (readByte != 0xffffffff) {
+				outputBuffer.append((char) readByte);
+				readByte = commandOutput.read();
+			}
+
+			channel.disconnect();
+
+			replyCode = channel.getExitStatus();
+			replyString = outputBuffer.toString();
+
+			if (replyCode == -1) {
+				positiveCompletion = false;
+				throw new IOException("SFTP Error, action [quote], actionParams [" + command + " " + params + "]" + " server returned code [" + replyCode + "], " + replyString);
+			}
+			else {
+				positiveCompletion = true;
+			}
+		}
+		catch (JSchException ioe) {
+			handleFail(ioe, stopOnError);
+		}
 	}
 
 	@Override
@@ -253,6 +324,7 @@ public class SFTPClientImpl extends AFTPClient {
 		pathname = cleanPath(pathname);
 		List<FTPFile> files = new ArrayList<FTPFile>();
 		try {
+			if (channelSftp == null) connect();
 			Vector list = channelSftp.ls(pathname);
 			Iterator<ChannelSftp.LsEntry> it = list.iterator();
 			ChannelSftp.LsEntry entry;
@@ -308,6 +380,7 @@ public class SFTPClientImpl extends AFTPClient {
 
 	@Override
 	public boolean isConnected() {
+		if (channelSftp == null) return false;
 		return channelSftp.isConnected();
 	}
 
@@ -332,7 +405,8 @@ public class SFTPClientImpl extends AFTPClient {
 			try {
 				session.setTimeout(timeout);
 			}
-			catch (JSchException e) {}
+			catch (JSchException e) {
+			}
 		}
 	}
 
@@ -378,5 +452,6 @@ public class SFTPClientImpl extends AFTPClient {
 			if (e instanceof IOException) throw (IOException) e;
 			throw new IOException(e);
 		}
+		else LogUtil.log((PageContext) null, "application", "ftp", e, Log.LEVEL_INFO);
 	}
 }
