@@ -3,7 +3,7 @@
 
   <groupId>org.lucee</groupId>
   <artifactId>lucee</artifactId>
-  <version>6.1.0.148-BETA</version>
+  <version>6.1.0.148-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>Lucee Loader Build</name>
@@ -261,67 +261,20 @@
             <version>3.2.0</version>
             <executions>
                 <execution>
-                    <id>attach-artifact-lco</id>
-                    <phase>package</phase>
-                    <goals>
-                        <goal>attach-artifact</goal>
-                    </goals>
-                    <configuration>
-                        <artifacts>
-                            <artifact>
-                                <file>${project.build.directory}/${project.version}.lco</file>
-                                <type>lco</type>
-                            </artifact>
-                        </artifacts>
-                    </configuration>
-                </execution>
-                <!--
-                <execution>
-                    <id>attach-artifact-jvm11</id>
-                    <phase>package</phase>
-                    <goals>
-                        <goal>attach-artifact</goal>
-                    </goals>
-                    <configuration>
-                        <artifacts>
-                            <artifact>
-                                <file>${project.build.directory}/${project.version}.jvm11.lco</file>
-                                <type>lcojvm11</type>
-                            </artifact>
-                        </artifacts>
-                    </configuration>
-                </execution>
-                <execution>
-                    <id>attach-artifact-jvm17</id>
-                    <phase>package</phase>
-                    <goals>
-                        <goal>attach-artifact</goal>
-                    </goals>
-                    <configuration>
-                        <artifacts>
-                            <artifact>
-                                <file>${project.build.directory}/${project.version}.jvm17.lco</file>
-                                <type>lcojvm17</type>
-                            </artifact>
-                        </artifacts>
-                    </configuration>
-                </execution>
-                <execution>
-                    <id>attach-artifact-jvm21</id>
-                    <phase>package</phase>
-                    <goals>
-                        <goal>attach-artifact</goal>
-                    </goals>
-                    <configuration>
-                        <artifacts>
-                            <artifact>
-                                <file>${project.build.directory}/${project.version}.jvm21.lco</file>
-                                <type>lcojvm21</type>
-                            </artifact>
-                        </artifacts>
-                    </configuration>
-                </execution>
-                -->
+                      <id>attach-artifacts</id>
+                      <phase>package</phase>
+                      <goals>
+                          <goal>attach-artifact</goal>
+                      </goals>
+                      <configuration>
+                          <artifacts>
+                              <artifact>
+                                  <file>${project.build.directory}/${project.version}.lco</file>
+                                  <type>lco</type>
+                              </artifact>
+                          </artifacts>
+                      </configuration>
+                  </execution>
             </executions>
         </plugin>
 
