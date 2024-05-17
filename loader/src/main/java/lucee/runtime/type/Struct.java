@@ -20,9 +20,6 @@ package lucee.runtime.type;
 
 import java.util.Map;
 
-/**
- * 
- */
 @SuppressWarnings("rawtypes")
 public interface Struct extends Collection, Map, Objects {
 

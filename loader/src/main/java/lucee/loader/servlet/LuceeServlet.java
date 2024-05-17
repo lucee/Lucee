@@ -27,8 +27,6 @@ import /* JAVJAK */ javax.servlet.http.HttpServletResponse;
 
 import lucee.loader.engine.CFMLEngineFactory;
 
-/**
- */
 public class LuceeServlet extends AbsServlet {
 
 	private static final long serialVersionUID = -1878214660283329587L;

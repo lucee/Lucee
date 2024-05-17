@@ -25,6 +25,8 @@ import java.util.Set;
 
 /**
  * class to make an enumeration from a ser, map or iterator
+ * 
+ * @param <T> type used
  */
 public final class EnumerationWrapper<T> implements Enumeration<T> {
 
