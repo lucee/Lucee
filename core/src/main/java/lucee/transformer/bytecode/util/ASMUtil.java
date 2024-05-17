@@ -1209,31 +1209,6 @@ public final class ASMUtil {
 		if (javaBytecodeVersion == -1) {
 			synchronized (token) {
 				if (javaBytecodeVersion == -1) {
-					// first we define the java compiler version based on the current java version
-					if (SystemUtil.JAVA_VERSION >= 22) javaBytecodeVersion = Opcodes.V22;
-					else if (SystemUtil.JAVA_VERSION == 21) javaBytecodeVersion = Opcodes.V21;
-					else if (SystemUtil.JAVA_VERSION == 20) javaBytecodeVersion = Opcodes.V20;
-					else if (SystemUtil.JAVA_VERSION == 19) javaBytecodeVersion = Opcodes.V19;
-					else if (SystemUtil.JAVA_VERSION == 18) javaBytecodeVersion = Opcodes.V18;
-					else if (SystemUtil.JAVA_VERSION == 17) javaBytecodeVersion = Opcodes.V17;
-					else if (SystemUtil.JAVA_VERSION == 16) javaBytecodeVersion = Opcodes.V16;
-					else if (SystemUtil.JAVA_VERSION == 15) javaBytecodeVersion = Opcodes.V15;
-					else if (SystemUtil.JAVA_VERSION == 14) javaBytecodeVersion = Opcodes.V14;
-					else if (SystemUtil.JAVA_VERSION == 13) javaBytecodeVersion = Opcodes.V13;
-					else if (SystemUtil.JAVA_VERSION == 12) javaBytecodeVersion = Opcodes.V12;
-					else if (SystemUtil.JAVA_VERSION == 11) javaBytecodeVersion = Opcodes.V11;
-					else if (SystemUtil.JAVA_VERSION == 10) javaBytecodeVersion = Opcodes.V10;
-					else if (SystemUtil.JAVA_VERSION == 9) javaBytecodeVersion = Opcodes.V9;
-					else if (SystemUtil.JAVA_VERSION == 8) javaBytecodeVersion = Opcodes.V1_8;
-					else if (SystemUtil.JAVA_VERSION == 7) javaBytecodeVersion = Opcodes.V1_7;
-					else if (SystemUtil.JAVA_VERSION == 6) javaBytecodeVersion = Opcodes.V1_6;
-					else if (SystemUtil.JAVA_VERSION == 5) javaBytecodeVersion = Opcodes.V1_5;
-					else if (SystemUtil.JAVA_VERSION == 4) javaBytecodeVersion = Opcodes.V1_4;
-					else if (SystemUtil.JAVA_VERSION == 3) javaBytecodeVersion = Opcodes.V1_3;
-					else if (SystemUtil.JAVA_VERSION == 2) javaBytecodeVersion = Opcodes.V1_2;
-					else {
-						javaBytecodeVersion = DEFAULT_JAVA_BYTECODE_VERSION;
-					}
 					String vs = Caster.toString(SystemUtil.getSystemPropOrEnvVar("lucee.compiler.java.version", null));
 					if (!StringUtil.isEmpty(vs, true)) {
 						vs = vs.trim();
@@ -1263,8 +1238,9 @@ public final class ASMUtil {
 						else if ("23".equals(vs) || "23.0".equals(vs)) javaBytecodeVersion = 0 << 16 | 67; // FUTURE use constant when exist
 					}
 
-					// LogUtil.log(Log.LEVEL_INFO, "compiler", "templates get compiled to java " +
-					// toStringVersion(javaBytecodeVersion));
+					// we do not use the version of the JVM by default, because this would limit the use of lucee
+					// archives created.
+					if (javaBytecodeVersion == -1) javaBytecodeVersion = DEFAULT_JAVA_BYTECODE_VERSION;
 				}
 			}
 		}
