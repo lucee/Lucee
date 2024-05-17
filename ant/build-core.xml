@@ -409,6 +409,12 @@
        <classpath path="${temp}/loader"/>
     </javac>
 
+     <!-- stash java 11 classes as the core build directory is reused, for the following additional files -->
+     <copy todir="${core11}">
+      <fileset dir="${core}">
+      </fileset>
+    </copy>
+
     <!-- copy all non java files from src -->
     <copy todir="${core}">
       <fileset dir="${srcCore}">
@@ -799,6 +805,12 @@
     <echots message="build core .lco"/>
     <echots message="output dir ${outputDir}"/>
     <echots message="temp dir ${temp}"/>
+
+     <!--- copy Java 11 in place (core dir is reused, with additional files) -->
+     <copy todir="${core}" overwrite="true">
+      <fileset dir="${core11}">
+      </fileset>
+    </copy>
 
     <!-- create the lucee core with the default Java version -->
     <jar 
