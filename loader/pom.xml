@@ -275,6 +275,7 @@
                         </artifacts>
                     </configuration>
                 </execution>
+                <!--
                 <execution>
                     <id>attach-artifact-jvm11</id>
                     <phase>package</phase>
@@ -320,6 +321,7 @@
                         </artifacts>
                     </configuration>
                 </execution>
+                -->
             </executions>
         </plugin>
 
