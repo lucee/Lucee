@@ -564,6 +564,8 @@
       <jvmarg value="-Dlucee.enable.bundle.download=false"/><!-- we do always download to make sure this is available -->
       <jvmarg value="-Dlucee.cli.printExceptions=true"/>
       <jvmarg value="-Dlucee.ssl.checkserveridentity=false"/>
+      <jvmarg value="-Dlucee.compiler.java.version=${javaVersionCoreDefault}"/>
+
     </java>
     <outputTrimmedString str="${exc}"/>
 </target>
