@@ -99,7 +99,8 @@ public class Component extends EvaluatorSupport {
 
 					// if(!inline)ASMUtil.replace(p, tag, false);
 				}
-				else throw new EvaluatorException("Wrong Context, tag [" + tlt.getFullName() + "] can't be inside other tags" + ((p != null) ? ", tag is inside tag ["+p.getFullname()+"]":""));
+				else throw new EvaluatorException(
+						"Wrong Context, tag [" + tlt.getFullName() + "] can't be inside other tags" + ((p != null) ? ", tag is inside tag [" + p.getFullname() + "]" : ""));
 			}
 		}
 

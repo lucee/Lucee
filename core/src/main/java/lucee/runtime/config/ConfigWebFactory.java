@@ -191,9 +191,6 @@ import lucee.transformer.library.function.FunctionLibException;
 import lucee.transformer.library.tag.TagLib;
 import lucee.transformer.library.tag.TagLibException;
 
-/**
- * 
- */
 public final class ConfigWebFactory extends ConfigFactory {
 
 	private static final String TEMPLATE_EXTENSION = "cfm";

@@ -20,9 +20,6 @@ package lucee.runtime.debug;
 
 import java.util.Comparator;
 
-/**
- * 
- */
 public final class QueryEntryComparator implements Comparator<QueryEntry> {
 
 	@Override

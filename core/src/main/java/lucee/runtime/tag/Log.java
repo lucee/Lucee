@@ -261,7 +261,8 @@ public final class Log extends TagImpl {
 		else {
 			logger.log(type, contextName, text);
 		}
-		// else throw new ApplicationException("Tag [log] requires one of the following attributes [text, exception]");
+		// else throw new ApplicationException("Tag [log] requires one of the following attributes [text,
+		// exception]");
 		// logger.write(toStringType(type),contextName,text);
 		return SKIP_BODY;
 	}

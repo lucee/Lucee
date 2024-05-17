@@ -42,9 +42,6 @@ import lucee.runtime.op.Caster;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.util.ArrayUtil;
 
-/**
- * 
- */
 public final class XMLDocumentStruct extends XMLNodeStruct implements Document {
 
 	private Document doc;

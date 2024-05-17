@@ -38,9 +38,6 @@ import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.util.CollectionUtil;
 
-/**
- * 
- */
 public final class DataSourceImpl extends DataSourceSupport {
 
 	private String connStr;

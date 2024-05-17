@@ -22,9 +22,6 @@ import lucee.runtime.PageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.type.Collection;
 
-/**
- * 
- */
 public interface Reference {
 
 	/**

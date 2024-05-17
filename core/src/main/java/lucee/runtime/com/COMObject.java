@@ -43,9 +43,6 @@ import lucee.runtime.type.dt.DateTime;
 import lucee.runtime.type.it.KeyAsStringIterator;
 import lucee.runtime.type.it.ObjectsEntryIterator;
 
-/**
- * 
- */
 public final class COMObject implements Objects, Iteratorable {
 
 	private String name;

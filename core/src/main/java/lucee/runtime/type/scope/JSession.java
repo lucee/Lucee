@@ -40,9 +40,6 @@ import lucee.runtime.type.scope.util.ScopeUtil;
 import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.ListUtil;
 
-/**
- * 
- */
 public final class JSession extends ScopeSupport implements Session, HttpSessionBindingListener, MemoryScope, CSRFTokenSupport {
 
 	public static final Collection.Key SESSION_ID = KeyConstants._sessionid;

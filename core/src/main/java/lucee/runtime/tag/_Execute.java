@@ -27,9 +27,6 @@ import lucee.commons.io.res.Resource;
 import lucee.commons.lang.PageContextThread;
 import lucee.runtime.PageContext;
 
-/**
- * 
- */
 public final class _Execute extends PageContextThread {
 
 	private Resource outputfile;

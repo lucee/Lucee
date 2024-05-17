@@ -25,9 +25,6 @@ import lucee.runtime.interpreter.ref.Ref;
 import lucee.runtime.interpreter.ref.RefSupport;
 import lucee.runtime.op.Caster;
 
-/**
- * 
- */
 public final class DynAssign extends RefSupport implements Ref {
 
 	private Ref value;

@@ -22,9 +22,6 @@ import java.io.Serializable;
 
 import lucee.runtime.type.Struct;
 
-/**
- * 
- */
 public interface Property extends Serializable, Member {
 
 	/**

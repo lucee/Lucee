@@ -25,9 +25,6 @@ import java.util.Map;
 import java.util.TimeZone;
 import java.util.WeakHashMap;
 
-/**
- * 
- */
 public final class DateFormatPool {
 
 	private final static Map<String, SimpleDateFormat> data = new WeakHashMap();

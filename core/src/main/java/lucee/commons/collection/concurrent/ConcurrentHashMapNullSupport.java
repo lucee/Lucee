@@ -83,8 +83,8 @@ import lucee.runtime.type.util.StructSupport;
  * <tt>null</tt> to be used as a key or value.
  *
  * <p>
- * This class is a member of the <a href="{@docRoot}/../technotes/guides/collections/index.html">
- * Java Collections Framework</a>.
+ * This class is a member of the
+ * <a href="{@docRoot}/../technotes/guides/collections/index.html"> Java Collections Framework</a>.
  *
  * @since 1.5
  * @author Doug Lea

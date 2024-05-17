@@ -23,9 +23,6 @@ import lucee.commons.lang.StringUtil;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.util.Type;
 
-/**
- * 
- */
 public class CasterException extends ExpressionException {
 
 	/**

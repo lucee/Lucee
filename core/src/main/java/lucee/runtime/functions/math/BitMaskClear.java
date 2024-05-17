@@ -31,7 +31,7 @@ public final class BitMaskClear implements Function {
 
 		int number = (int) dnumber, start = (int) dstart, length = (int) dlength;
 
-		if(!Decision.isInteger(dnumber)) throw new FunctionException(pc, "bitMaskClear", 1, "number", "value [" + dnumber + "] must be between the integer range");
+		if (!Decision.isInteger(dnumber)) throw new FunctionException(pc, "bitMaskClear", 1, "number", "value [" + dnumber + "] must be between the integer range");
 		if (start > 31 || start < 0) throw new FunctionException(pc, "bitMaskClear", 2, "start", "must be between 0 and 31 now " + start);
 		if (length > 31 || length < 0) throw new FunctionException(pc, "bitMaskClear", 3, "length", "must be between 0 and 31 now " + length);
 

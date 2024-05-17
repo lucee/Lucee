@@ -30,9 +30,6 @@ import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Query;
 import lucee.runtime.type.StructImpl;
 
-/**
- * 
- */
 public final class Variable extends RefSupport implements Set {
 
 	private String key;

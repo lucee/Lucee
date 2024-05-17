@@ -32,9 +32,6 @@ import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.util.ListUtil;
 
-/**
- * 
- */
 public final class CacheGetProperties extends BIF {
 
 	private static final long serialVersionUID = -8665995702411192700L;

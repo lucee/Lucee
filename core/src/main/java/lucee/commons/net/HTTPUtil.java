@@ -57,9 +57,6 @@ import lucee.runtime.op.Caster;
 import lucee.runtime.tag.Http;
 import lucee.runtime.type.util.ListUtil;
 
-/**
- * 
- */
 public final class HTTPUtil {
 
 	public static final short ENCODED_AUTO = 1;

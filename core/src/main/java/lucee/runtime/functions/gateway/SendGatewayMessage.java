@@ -28,9 +28,6 @@ import lucee.runtime.gateway.GatewayEngineImpl;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Struct;
 
-/**
- * 
- */
 public final class SendGatewayMessage implements Function {
 
 	public static String call(PageContext pc, String gatewayID, Struct data) throws PageException {

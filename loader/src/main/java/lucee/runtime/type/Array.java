@@ -23,9 +23,6 @@ import java.util.List;
 
 import lucee.runtime.exp.PageException;
 
-/**
- * 
- */
 public interface Array extends Collection, Cloneable, Objects {
 
 	/**

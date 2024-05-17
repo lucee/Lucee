@@ -38,9 +38,6 @@ import lucee.runtime.coder.CoderException;
 
 // FUTURE make this available to loader
 
-/**
- * 
- */
 public final class JavaConverter extends ConverterSupport implements BinaryConverter {
 
 	@Override

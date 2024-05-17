@@ -49,9 +49,6 @@ import lucee.runtime.type.QueryImpl;
 import lucee.runtime.type.util.ListUtil;
 import lucee.runtime.type.util.QueryUtil;
 
-/**
- * 
- */
 public final class Executer {
 
 	/**

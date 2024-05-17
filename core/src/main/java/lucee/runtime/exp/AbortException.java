@@ -18,9 +18,6 @@
  **/
 package lucee.runtime.exp;
 
-/**
- * 
- */
 public class AbortException extends ExpressionException {
 
 	/**

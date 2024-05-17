@@ -29,9 +29,6 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.BIF;
 import lucee.runtime.op.Caster;
 
-/**
- * 
- */
 public final class CacheGetDefaultCacheName extends BIF {
 
 	private static final long serialVersionUID = 6115589794465960484L;

@@ -20,9 +20,6 @@ package lucee.runtime.format;
 
 import java.util.Date;
 
-/**
- * 
- */
 public interface Format {
 	/**
 	 * formats a date to a cfml date format (short)

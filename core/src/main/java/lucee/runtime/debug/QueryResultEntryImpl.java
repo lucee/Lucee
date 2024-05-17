@@ -23,9 +23,6 @@ import lucee.runtime.db.SQL;
 import lucee.runtime.type.Query;
 import lucee.runtime.type.query.QueryResult;
 
-/**
- * 
- */
 public final class QueryResultEntryImpl implements QueryEntry {
 
 	private static final long serialVersionUID = 8655915268130645466L;

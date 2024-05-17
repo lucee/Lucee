@@ -30,9 +30,6 @@ import lucee.runtime.functions.string.ParseNumber;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.util.ListUtil;
 
-/**
- * 
- */
 public final class RegistryQuery {
 
 	private static final char DQ = '"';

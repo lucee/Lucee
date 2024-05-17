@@ -50,9 +50,6 @@ import lucee.transformer.library.tag.TagLibTag;
 import lucee.transformer.util.PageSourceCode;
 import lucee.transformer.util.SourceCode;
 
-/**
- * 
- */
 public final class Import extends EvaluatorSupport {
 
 	@Override

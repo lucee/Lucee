@@ -17,8 +17,6 @@
  */
 package lucee.runtime.search;
 
-/**
- */
 public interface SearchIndex {
 
 	/**

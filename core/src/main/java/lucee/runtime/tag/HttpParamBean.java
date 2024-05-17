@@ -22,9 +22,6 @@ import lucee.commons.io.res.Resource;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 
-/**
- * 
- */
 public final class HttpParamBean {
 
 	public static final int TYPE_URL = 1;

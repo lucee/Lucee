@@ -26,9 +26,6 @@ import org.w3c.dom.TypeInfo;
 
 import lucee.runtime.type.Collection;
 
-/**
- * 
- */
 public final class XMLAttrStruct extends XMLNodeStruct implements Attr {
 
 	private Attr attr;

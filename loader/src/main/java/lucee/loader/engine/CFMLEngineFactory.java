@@ -319,7 +319,8 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 
 		String pathJres = Paths.get(pathJava, "resource/").toString();
 
-		// LUCEE_CLASS_DIR allows to set custom compiler output directory for embedded mode if it is not at ${LUCEE_SOURCE_DIR}/core/target/classes,
+		// LUCEE_CLASS_DIR allows to set custom compiler output directory for embedded mode if it is not at
+		// ${LUCEE_SOURCE_DIR}/core/target/classes,
 		// e.g. LUCEE_CLASS_DIR=/workspace/src/lucee/idea-compiler-output-6/production/core
 		File classesDirectory = load("classes directory", "the directory containing all compiled class files from the core project", "LUCEE_CLASS_DIR", pathClas,
 				resPrefix + pathClas, true);
@@ -516,7 +517,8 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 		}
 		File lucee = null;
 
-		// LUCEE_SOURCE_DIR allows to run core in embeded mode, and should point to the project root which contains the "core" and "loader" directories
+		// LUCEE_SOURCE_DIR allows to run core in embeded mode, and should point to the project root which
+		// contains the "core" and "loader" directories
 		if (System.getenv("LUCEE_SOURCE_DIR") != null) embedded = true;
 
 		if (embedded) {

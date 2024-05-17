@@ -18,6 +18,7 @@ public class GenerateRSAKeys extends BIF {
 	public static Struct call(PageContext pc) throws PageException {
 		return createKeyPair(Caster.toIntValue(RSA.KEY_SIZE));
 	}
+
 	public static Struct call(PageContext pc, double keySize) throws PageException {
 		return createKeyPair(Caster.toIntValue(keySize));
 	}

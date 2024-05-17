@@ -26,9 +26,6 @@ import lucee.runtime.interpreter.ref.RefSupport;
 import lucee.runtime.interpreter.ref.Set;
 import lucee.runtime.interpreter.ref.literal.LString;
 
-/**
- * 
- */
 public final class Scope extends RefSupport implements Set {
 
 	private int scope;

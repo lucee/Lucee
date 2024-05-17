@@ -1,4 +1,5 @@
 package lucee.commons.io.res.util;
+
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.ResourceProvider;
 import lucee.commons.io.res.ResourceProviderPro;

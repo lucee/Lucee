@@ -195,9 +195,6 @@ import lucee.transformer.library.ClassDefinitionImpl;
 import lucee.transformer.library.function.FunctionLib;
 import lucee.transformer.library.tag.TagLib;
 
-/**
- * 
- */
 public final class Admin extends TagImpl implements DynamicAttributes {
 
 	private static final short TYPE_WEB = 0;

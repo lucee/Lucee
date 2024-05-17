@@ -24,9 +24,6 @@
  */
 package lucee.runtime.util;
 
-/**
- * 
- */
 public final class InvalidMaskException extends Exception {
 
 	/**

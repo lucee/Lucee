@@ -37,9 +37,6 @@ import lucee.runtime.type.util.MemberUtil;
 import lucee.runtime.type.util.StructSupport;
 import lucee.runtime.type.util.StructUtil;
 
-/**
- * 
- */
 public final class ComponentScopeThis extends StructSupport implements ComponentScope {
 
 	private final ComponentImpl component;

@@ -18,9 +18,6 @@
  **/
 package lucee.runtime.coder;
 
-/**
- * 
- */
 public final class Coder {
 
 	/**

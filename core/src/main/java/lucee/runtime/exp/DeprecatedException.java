@@ -20,9 +20,6 @@ package lucee.runtime.exp;
 
 import lucee.commons.lang.StringUtil;
 
-/**
- * 
- */
 public final class DeprecatedException extends ApplicationException {
 
 	public DeprecatedException(String tagName, String attrName) {

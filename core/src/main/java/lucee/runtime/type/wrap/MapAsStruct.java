@@ -42,9 +42,6 @@ import lucee.runtime.type.it.ValueIterator;
 import lucee.runtime.type.util.StructSupport;
 import lucee.runtime.type.util.StructUtil;
 
-/**
- * 
- */
 public class MapAsStruct extends StructSupport implements Struct {
 
 	Map map;

@@ -29,9 +29,6 @@ import lucee.runtime.cfx.CFXTagPool;
 import lucee.runtime.config.Config;
 import lucee.runtime.type.util.ListUtil;
 
-/**
- * 
- */
 public final class CFXTagPoolImpl implements CFXTagPool {
 
 	Config config;

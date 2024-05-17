@@ -48,9 +48,6 @@ import lucee.runtime.type.it.StringIterator;
 import lucee.runtime.type.util.ArraySupport;
 import lucee.runtime.util.ArrayIterator;
 
-/**
- * 
- */
 public final class XMLNodeList extends ArraySupport implements NodeList, XMLObject {
 
 	private boolean caseSensitive;

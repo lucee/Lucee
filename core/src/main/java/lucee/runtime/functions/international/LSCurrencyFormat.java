@@ -94,7 +94,8 @@ public final class LSCurrencyFormat extends BIF {
 			char[] chars = str.replace(NBSP, ' ').trim().toCharArray();
 			chars[0] = '(';
 			return String.valueOf(chars) + ')';
-		} else {
+		}
+		else {
 			return str.replace(NBSP, ' ').trim();
 		}
 	}

@@ -25,9 +25,6 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.op.Caster;
 
-/**
- * 
- */
 public final class ToScript implements Function {
 
 	public static String call(PageContext pc, Object var, String jsName) throws PageException {

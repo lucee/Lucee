@@ -25,9 +25,6 @@ import java.io.InputStream;
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.lang.ExceptionUtil;
 
-/**
- * 
- */
 public final class MD5 {
 	/**
 	 * return md5 from string as string

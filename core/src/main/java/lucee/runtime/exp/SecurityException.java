@@ -18,9 +18,6 @@
  **/
 package lucee.runtime.exp;
 
-/**
- * 
- */
 public final class SecurityException extends PageExceptionImpl {
 
 	/**

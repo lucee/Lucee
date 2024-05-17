@@ -28,9 +28,6 @@ import lucee.runtime.ext.function.BIF;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.dt.TimeSpan;
 
-/**
- * 
- */
 public final class CachePut extends BIF {
 
 	private static final long serialVersionUID = -8636947330333269874L;

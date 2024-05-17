@@ -315,7 +315,7 @@ public class QueryParamConverter {
 			T filledItem = fillSQLItem(item, sct);
 			Object oList = sct.get(KeyConstants._list, null);
 			Object value = filledItem.getValue();
-			boolean isList = ((oList != null && Caster.toBooleanValue(oList)) || (oList == null && (Decision.isArray(value) && !(value instanceof byte[])) ));
+			boolean isList = ((oList != null && Caster.toBooleanValue(oList)) || (oList == null && (Decision.isArray(value) && !(value instanceof byte[]))));
 
 			if (isList) {
 				Array values;

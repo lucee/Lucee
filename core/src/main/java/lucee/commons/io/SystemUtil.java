@@ -118,9 +118,6 @@ import lucee.runtime.type.dt.DateTime;
 import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.ListUtil;
 
-/**
- * 
- */
 public final class SystemUtil {
 
 	public static final int MEMORY_TYPE_ALL = lucee.runtime.util.SystemUtil.MEMORY_TYPE_ALL;

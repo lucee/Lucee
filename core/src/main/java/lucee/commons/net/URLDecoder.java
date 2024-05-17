@@ -50,7 +50,7 @@ public class URLDecoder {
 			URLCodec codec = new URLCodec(enc);
 			String str;
 			str = codec.decode(s);
-			return str;	
+			return str;
 		}
 		catch (DecoderException e) {
 			throw new UnsupportedEncodingException(e.getMessage());

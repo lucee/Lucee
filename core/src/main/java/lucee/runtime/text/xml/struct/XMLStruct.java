@@ -23,9 +23,6 @@ import org.w3c.dom.Node;
 import lucee.runtime.text.xml.XMLNodeList;
 import lucee.runtime.type.Struct;
 
-/**
- * 
- */
 public interface XMLStruct extends Struct, Node, XMLObject {
 	/**
 	 * @return casts XML Struct to a XML Node

@@ -46,9 +46,6 @@ import lucee.runtime.type.util.ListUtil;
 // Added support for preventing multiple submissions.
 // attr mask impl. logik dahinter umsetzen
 
-/**
- * 
- */
 public class Input extends TagImpl {
 
 	public static final short TYPE_SELECT = -1;

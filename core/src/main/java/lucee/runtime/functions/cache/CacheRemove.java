@@ -34,9 +34,6 @@ import lucee.runtime.op.Decision;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.util.ListUtil;
 
-/**
- * 
- */
 public final class CacheRemove extends BIF {
 
 	private static final long serialVersionUID = -5823359978885018762L;

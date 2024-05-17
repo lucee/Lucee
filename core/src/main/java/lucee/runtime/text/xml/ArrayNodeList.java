@@ -22,9 +22,6 @@ import java.util.ArrayList;
 
 import org.w3c.dom.Node;
 
-/**
- * 
- */
 public final class ArrayNodeList extends ArrayList<Node> implements org.w3c.dom.NodeList {
 
 	private static final long serialVersionUID = 8355573954254967533L;

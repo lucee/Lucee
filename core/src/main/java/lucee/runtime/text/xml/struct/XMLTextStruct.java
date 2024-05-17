@@ -27,9 +27,6 @@ import lucee.runtime.text.xml.XMLCaster;
 import lucee.runtime.text.xml.XMLUtil;
 import lucee.runtime.type.Collection;
 
-/**
- * 
- */
 public final class XMLTextStruct extends XMLNodeStruct implements Text {
 
 	private Text text;

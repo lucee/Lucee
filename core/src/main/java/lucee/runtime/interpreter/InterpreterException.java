@@ -20,9 +20,6 @@ package lucee.runtime.interpreter;
 
 import lucee.runtime.exp.ExpressionException;
 
-/**
- * 
- */
 public class InterpreterException extends ExpressionException {
 
 	/*

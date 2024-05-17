@@ -39,9 +39,6 @@ import lucee.runtime.type.dt.DateTime;
 import lucee.runtime.type.dt.Time;
 import lucee.runtime.type.dt.TimeImpl;
 
-/**
- * 
- */
 public final class StorageUtil {
 
 	/**

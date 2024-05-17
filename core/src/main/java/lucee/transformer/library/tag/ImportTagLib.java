@@ -25,9 +25,6 @@ import lucee.runtime.config.Identification;
 import lucee.runtime.db.ClassDefinition;
 import lucee.transformer.cfml.ExprTransformer;
 
-/**
- * 
- */
 public final class ImportTagLib extends TagLib {
 
 	private String taglib;

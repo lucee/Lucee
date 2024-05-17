@@ -27,9 +27,6 @@ import lucee.runtime.reflection.Reflector;
 import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.dt.DateTimeImpl;
 
-/**
- * 
- */
 public final class COMUtil {
 
 	/**

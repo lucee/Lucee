@@ -21,9 +21,6 @@ package lucee.runtime.tag;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.tag.TagImpl;
 
-/**
- * 
- */
 public final class Logout extends TagImpl {
 
 	@Override

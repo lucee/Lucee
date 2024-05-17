@@ -21,9 +21,6 @@ package lucee.runtime.tag;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.exp.ExpressionException;
 
-/**
- * 
- */
 public final class InputBean {
 	private short type = Input.TYPE_TEXT;
 	private short validate = Input.VALIDATE_NONE;

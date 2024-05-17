@@ -24,9 +24,6 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.net.rpc.client.WSClient;
 
-/**
- * 
- */
 public final class GetSOAPRequest implements Function {
 
 	private static final long serialVersionUID = -1743528432690118148L;

@@ -22,9 +22,6 @@ import java.util.Iterator;
 
 import com.jacob.com.EnumVariant;
 
-/**
- * 
- */
 public final class COMValueWrapperIterator implements Iterator {
 
 	private EnumVariant enumVariant;

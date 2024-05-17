@@ -37,9 +37,6 @@ import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 import lucee.runtime.type.dt.DateTime;
 
-/**
- * 
- */
 public final class DateDiff extends BIF {
 
 	private static final long serialVersionUID = 4243793930337910884L;

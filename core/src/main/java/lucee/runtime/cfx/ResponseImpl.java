@@ -26,9 +26,6 @@ import com.allaire.cfx.Response;
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.PageException;
 
-/**
- * 
- */
 public final class ResponseImpl implements Response {
 
 	private PageContext pc;

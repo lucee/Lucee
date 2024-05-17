@@ -47,9 +47,6 @@ import lucee.runtime.type.it.StringIterator;
 import lucee.runtime.type.util.ArraySupport;
 import lucee.runtime.type.util.ListIteratorImpl;
 
-/**
- * 
- */
 public class ListAsArray extends ArraySupport implements Array, List {
 
 	protected List list;

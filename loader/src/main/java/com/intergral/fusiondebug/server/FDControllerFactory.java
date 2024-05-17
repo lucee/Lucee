@@ -20,9 +20,6 @@ package com.intergral.fusiondebug.server;
 
 import lucee.loader.engine.CFMLEngineFactory;
 
-/**
- * 
- */
 public class FDControllerFactory {
 
 	public static long complete = 0;

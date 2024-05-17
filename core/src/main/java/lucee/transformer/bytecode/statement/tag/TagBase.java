@@ -35,9 +35,6 @@ import lucee.transformer.bytecode.visitor.ParseBodyVisitor;
 import lucee.transformer.library.tag.TagLibTag;
 import lucee.transformer.library.tag.TagLibTagAttr;
 
-/**
- * 
- */
 public abstract class TagBase extends StatementBase implements Tag {
 
 	private Body body = null;

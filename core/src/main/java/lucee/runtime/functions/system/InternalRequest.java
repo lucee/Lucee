@@ -126,7 +126,8 @@ public class InternalRequest implements Function {
 		boolean isText = false;
 		Charset _charset = null;
 		PageException pe = null;
-		Object rspCookies = cookieAsQuery ? new QueryImpl(new String[] { "name", "value", "path", "domain", "expires", "secure", "httpOnly", "samesite", "partitioned" }, 0, "cookies")
+		Object rspCookies = cookieAsQuery
+				? new QueryImpl(new String[] { "name", "value", "path", "domain", "expires", "secure", "httpOnly", "samesite", "partitioned" }, 0, "cookies")
 				: new StructImpl(Struct.TYPE_LINKED);
 
 		try {

@@ -53,9 +53,6 @@ import lucee.runtime.type.Struct;
 import lucee.transformer.library.function.FunctionLibException;
 import lucee.transformer.library.tag.TagLibException;
 
-/**
- * 
- */
 public final class ConfigServerFactory extends ConfigFactory {
 
 	public static final String CONFIG_FILE_NAME = ".CFConfig.json";

@@ -24,9 +24,6 @@ import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
 
-/**
- * 
- */
 public final class IsSOAPRequest implements Function {
 
 	private static final long serialVersionUID = 5616044662863702066L;

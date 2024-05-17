@@ -34,9 +34,6 @@ import lucee.runtime.type.dt.TimeSpan;
 import lucee.runtime.type.scope.CookieImpl;
 import lucee.runtime.type.scope.Scope;
 
-/**
- * 
- */
 public final class Loginuser extends TagImpl {
 	private String name;
 	private String password;

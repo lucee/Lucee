@@ -23,11 +23,11 @@ import lucee.runtime.ext.function.Function;
 /**
  * implements built in function isFlushed() which returns true if the response stream is committed
  */
-public final class IsFlushed implements Function  {
+public final class IsFlushed implements Function {
 
-    public static boolean call(PageContext pc) {
+	public static boolean call(PageContext pc) {
 
-        return pc.getHttpServletResponse().isCommitted();
-    }
+		return pc.getHttpServletResponse().isCommitted();
+	}
 
 }

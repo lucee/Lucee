@@ -38,9 +38,6 @@ import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.ListUtil;
 
-/**
- * 
- */
 public final class Select extends BodyTagImpl {
 
 	private static final int QUERY_POSITION_ABOVE = 0;

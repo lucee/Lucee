@@ -20,9 +20,6 @@ package lucee.runtime.net.rpc;
 
 import lucee.runtime.exp.ExpressionException;
 
-/**
- * 
- */
 public final class RPCException extends ExpressionException {
 
 	/**

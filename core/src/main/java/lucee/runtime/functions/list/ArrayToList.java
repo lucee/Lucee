@@ -46,7 +46,7 @@ public final class ArrayToList extends BIF {
 
 		Object o = array.get(1, null);
 		StringBuilder sb = new StringBuilder(o == null ? "" : Caster.toString(o));
-		sb.ensureCapacity( len*2 );
+		sb.ensureCapacity(len * 2);
 		for (int i = 2; i <= len; i++) {
 			sb.append(delimiter);
 			o = array.get(i, null);
@@ -63,7 +63,7 @@ public final class ArrayToList extends BIF {
 
 		Object o = array.get(1, null);
 		StringBuilder sb = new StringBuilder(o == null ? "" : Caster.toString(o));
-		sb.ensureCapacity( len*2 );
+		sb.ensureCapacity(len * 2);
 		for (int i = 2; i <= len; i++) {
 			sb.append(delimiter);
 			o = array.get(i, null);
@@ -80,7 +80,7 @@ public final class ArrayToList extends BIF {
 
 		Object o = array.get(1, null);
 		StringBuilder sb = new StringBuilder(o == null ? "" : Caster.toString(o));
-		sb.ensureCapacity( len );
+		sb.ensureCapacity(len);
 		for (int i = 2; i <= len; i++) {
 			o = array.get(i, null);
 			sb.append(o == null ? "" : Caster.toString(o));

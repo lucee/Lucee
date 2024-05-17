@@ -28,9 +28,6 @@ import lucee.runtime.cfx.CFXTagException;
 import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.reflection.Reflector;
 
-/**
- * 
- */
 public final class JavaCFXTagClass implements CFXTagClass {
 
 	private String name;

@@ -35,8 +35,7 @@ public class Main {
 		System.out.println("Setting web.xml: " + webxml);
 
 		File f = new File(webxml);
-		if (!f.exists())
-			throw(new IllegalArgumentException("web.xml not found at " + webxml));
+		if (!f.exists()) throw (new IllegalArgumentException("web.xml not found at " + webxml));
 
 		Tomcat tomcat = new Tomcat();
 
@@ -66,7 +65,6 @@ public class Main {
 
 		server.await();
 	}
-
 
 	/**
 	 * converts a System property format to its equivalent Environment variable, e.g. an input of

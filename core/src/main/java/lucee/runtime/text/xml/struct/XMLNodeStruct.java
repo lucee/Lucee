@@ -59,9 +59,6 @@ import lucee.runtime.type.it.ValueIterator;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.StructSupport;
 
-/**
- * 
- */
 public class XMLNodeStruct extends StructSupport implements XMLStruct {
 
 	private Node node;

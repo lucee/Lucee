@@ -30,9 +30,6 @@ import lucee.runtime.op.Caster;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.util.ArrayUtil;
 
-/**
- * 
- */
 public final class XMLCDATASectionStruct extends XMLNodeStruct implements CDATASection {
 
 	private CDATASection section;

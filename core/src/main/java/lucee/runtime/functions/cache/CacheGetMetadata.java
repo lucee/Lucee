@@ -34,9 +34,6 @@ import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.util.KeyConstants;
 
-/**
- * 
- */
 public final class CacheGetMetadata extends BIF {
 
 	private static final long serialVersionUID = -470089623854482521L;

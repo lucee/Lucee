@@ -25,9 +25,6 @@ import java.sql.Types;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 
-/**
- * 
- */
 public class SQLItemImpl implements SQLItem, Serializable {
 
 	/**

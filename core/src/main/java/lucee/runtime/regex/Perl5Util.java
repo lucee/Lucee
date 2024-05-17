@@ -38,9 +38,6 @@ import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 
-/**
- * 
- */
 final class Perl5Util {
 
 	private static Map<String, Pattern> patterns = MapFactory.<String, Pattern>getConcurrentMap();

@@ -20,9 +20,6 @@ package lucee.runtime.net.ftp;
 
 import org.apache.commons.net.ftp.FTPFile;
 
-/**
- * 
- */
 public final class FTPConstant {
 
 	/**

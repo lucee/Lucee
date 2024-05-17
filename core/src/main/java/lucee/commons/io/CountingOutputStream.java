@@ -21,9 +21,6 @@ package lucee.commons.io;
 import java.io.IOException;
 import java.io.OutputStream;
 
-/**
- * 
- */
 public final class CountingOutputStream extends OutputStream {
 
 	private final OutputStream os;

@@ -25,9 +25,6 @@ import lucee.commons.lang.StringUtil;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.op.Caster;
 
-/**
- * 
- */
 public final class ServerImpl implements Server, Serializable {
 
 	private static final long serialVersionUID = -3352908216814744100L;

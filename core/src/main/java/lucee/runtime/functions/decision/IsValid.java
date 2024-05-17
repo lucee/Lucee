@@ -27,9 +27,6 @@ import lucee.runtime.ext.function.Function;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 
-/**
- * 
- */
 public final class IsValid implements Function {
 
 	private static final long serialVersionUID = -1383105304624662986L;

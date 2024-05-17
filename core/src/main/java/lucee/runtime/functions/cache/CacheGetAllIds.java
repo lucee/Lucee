@@ -33,9 +33,6 @@ import lucee.runtime.op.Caster;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
 
-/**
- * 
- */
 public final class CacheGetAllIds extends BIF {
 
 	private static final long serialVersionUID = 4831944874663718056L;

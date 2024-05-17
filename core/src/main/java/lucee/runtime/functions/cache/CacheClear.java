@@ -38,9 +38,6 @@ import lucee.runtime.type.Struct;
 import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.ListUtil;
 
-/**
- * 
- */
 public final class CacheClear extends BIF implements Function, CacheKeyFilter {
 
 	private static final long serialVersionUID = 6080620551371620016L;

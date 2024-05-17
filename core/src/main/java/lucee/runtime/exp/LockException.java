@@ -20,9 +20,6 @@ package lucee.runtime.exp;
 
 import lucee.runtime.config.Config;
 
-/**
- * 
- */
 public final class LockException extends PageExceptionImpl {
 
 	/**

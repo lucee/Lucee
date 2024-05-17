@@ -16,9 +16,7 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  * 
  */
-/**
- * 
- */
+
 package lucee.runtime;
 
 import java.util.Iterator;
@@ -46,9 +44,6 @@ import lucee.runtime.type.scope.Scope;
 import lucee.runtime.type.scope.Variables;
 import lucee.runtime.type.util.StructUtil;
 
-/**
- * 
- */
 public class SuperComponent extends MemberSupport implements Component, Member {
 
 	private ComponentImpl comp;

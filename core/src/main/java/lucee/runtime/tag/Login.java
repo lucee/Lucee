@@ -33,9 +33,6 @@ import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.ListUtil;
 
-/**
- * 
- */
 public final class Login extends BodyTagImpl {
 
 	private static final Key CFLOGIN = KeyConstants._cflogin;

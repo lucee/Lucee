@@ -30,9 +30,6 @@ import lucee.runtime.text.xml.XMLUtil;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.util.ListUtil;
 
-/**
- * 
- */
 public final class XmlValidate implements Function {
 
 	private static final long serialVersionUID = 3566454779506863837L;

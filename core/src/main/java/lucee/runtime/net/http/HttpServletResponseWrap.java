@@ -36,9 +36,6 @@ import lucee.runtime.op.Caster;
 import lucee.runtime.thread.SerializableCookie;
 import lucee.runtime.type.dt.DateTimeImpl;
 
-/**
- * 
- */
 public final class HttpServletResponseWrap extends HttpServletResponseWrapper implements HttpServletResponse, Serializable {
 
 	private Cookie[] cookies = SerializableCookie.COOKIES0;

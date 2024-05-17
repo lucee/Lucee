@@ -32,9 +32,6 @@ import lucee.runtime.op.Caster;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.util.ArrayUtil;
 
-/**
- * 
- */
 public class XMLElementStruct extends XMLNodeStruct implements Element {
 
 	private Element element;
