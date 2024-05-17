@@ -842,7 +842,7 @@
 
     <!-- copy to core to the fat jar folder -->
     <copy 
-        file="${trgLoader}/${version}.jvm${javaVersionCoreDefault}.lco"
+        file="${trgLoader}/${version}.lco"
         tofile="${temp}/loader/core/core.lco"/>
     <echots message="copy ${trgLoader}/${version}.jvm${javaVersionCoreDefault}.lco to ${temp}/loader/core/core.lco"/>
 
