@@ -386,8 +386,8 @@
     <echo file="${temp}/loader/lucee/version" message="${version}:${ct}" encoding="UTF-8"/>
   </target>
 
-
-  <target name="_core" depends="_loader,java17core,java21core" description="compile the source" >
+  <!-- temporary disbled: depends="_loader,java17core,java21core" -->
+  <target name="_core" depends="_loader" description="compile the source" >
     <echots message="compile core, java 11, (default)"/>
     <!-- set the loader as classpath -->
     <path id="classpath">
@@ -801,7 +801,9 @@
 
   </target>
 
-  <target name="createCore" depends="createCore17,createCore21">
+  <!-- temporary disabled: depends="createCore17,createCore21" -->
+
+  <target name="createCore" >
     <echots message="build core .lco"/>
     <echots message="output dir ${outputDir}"/>
     <echots message="temp dir ${temp}"/>
@@ -819,15 +821,24 @@
         manifest="${core}/META-INF/MANIFEST.MF"/>
     <echots message="create lco:${trgLoader}/${version}.jvm11.lco"/>
 
+    <!-- temporary disabled -->
+    <!--
+      temporary disabled: 
     <copy 
         file="${trgLoader}/${version}.jvm${javaVersionCoreDefault}.lco"
         tofile="${trgLoader}/${version}.lco"/>
+    instead:
+    -->
+    <move 
+        file="${trgLoader}/${version}.jvm11.lco"
+        tofile="${trgLoader}/${version}.lco"/>
+
 
     <!-- copy to core to the classes folder -->
     <copy 
-        file="${trgLoader}/${version}.jvm${javaVersionCoreDefault}.lco"
+        file="${trgLoader}/${version}.lco"
         tofile="${outputDir}/core/core.lco"/>
-    <echots message="copy ${trgLoader}/${version}.jvm${javaVersionCoreDefault}.lco to ${outputDir}/core/core.lco"/>
+    <echots message="copy ${trgLoader}/${version}.lco to ${outputDir}/core/core.lco"/>
 
     <!-- optionally copy lco file to an existing Lucee install -->
     <deployLco
