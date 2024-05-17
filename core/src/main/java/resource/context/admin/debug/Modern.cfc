@@ -230,7 +230,7 @@ if(structKeyExists(arguments.custom, "metrics_Charts")) {
 	padding : 5px 16px 5px 16px !important; 
 	margin: 4px 0px 4px 0px !important; 
 	border-bottom-width: 0px !important; 
-	border: 1px solid white; 
+	border-color:white;
 	font-size: 15px !important; 
 	font-weight: 500 !important;
   	outline: none;
@@ -240,7 +240,7 @@ if(structKeyExists(arguments.custom, "metrics_Charts")) {
   background-color: #666;
 }
 .ldTab button.active {
-  background-color: #5f8731 !important;
+  background-color: #3399cc !important;
   color: #FFF !important;
   outline: none;
 }
@@ -256,15 +256,7 @@ if(structKeyExists(arguments.custom, "metrics_Charts")) {
 
 
 
-	.ldTabContent { 
-		margin: 2.5em 1em 0 1em; padding: 1em; 
-		background-color: #FFF; 
-		color: #222; 
-		border: 1px solid #CCC; 
-		border-radius: 7px; 
-		box-shadow: 0px 0px 4px 0px #5f8731;
-		text-shadow: none; 
-	}
+	.ldTabContent { margin: 2.5em 1em 0 1em; padding: 1em; background-color: #FFF; color: #222; border: 1px solid #CCC; border-radius: 5px; text-shadow: none; }
 	.ldTabContent.collapsed	{ padding: 0; border-width: 0; }
 	.ldTabContent legend 	{ padding: 0 1em; background-color: #FFF; color: #222; }
 	.ldTabContent legend span { font-weight: normal; }
@@ -280,7 +272,7 @@ if(structKeyExists(arguments.custom, "metrics_Charts")) {
 	#-lucee-debugging-ExecTime table.details th::after, #-lucee-debugging-ImpAccess table.details th::after { content: '\00A0\21E9';}
 	#-lucee-debugging-ExecTime table.details th, #-lucee-debugging-ImpAccess table.details th { cursor:pointer; } 
 
-	.ldTabContent .title	{ margin-top: 1.25em; font-size: 2.5em; font-weight: normal; color:#5f8731; }
+	.ldTabContent .title	{ margin-top: 1.25em; font-size: 2.5em; font-weight: normal; color:#3399cc; }
 	
 	.ldTabContent .section-title	{ margin-top: 1.25em; font-size: 1.75em; font-weight: normal; color:#555; }
 
@@ -542,7 +534,7 @@ function ldConfigureCharts() {
 	labels={'heap':"Heap",'nonheap':"Non-Heap",'cpuSystem':"Whole System",'cpuProcess':"Lucee Process"};
 	
 	var bg="#FFF";
-	var green="#5f8731";
+	var blue="#3399CC";
 	var red="#BF4F36";
 
 	var yAxis = [{
@@ -567,7 +559,7 @@ function ldConfigureCharts() {
 					return 'Series' + "<br>" + params[0].seriesName + ": " + params[0].value + "%" + '<br>' +params[0].name ;
 				}
 			},
-			color: [green],
+			color: [blue],
 			grid : {
 				width: '82%',
 				height: '65%',
@@ -610,7 +602,7 @@ function ldConfigureCharts() {
 		legend: {
 			data:['System CPU', 'Lucee CPU']
 		},
-		color: [green, red],
+		color: [blue, red],
 		grid : {
 			width: '82%',
 			height: '65%',
@@ -841,7 +833,9 @@ Reference Button
 										<tr>
 											<td class="label" colspan="2">
 												#server.coldfusion.productname#
-												 #server.lucee.version# (Loader Verison #server.lucee.loaderVersion#)
+												<cfif StructKeyExists(server.lucee,'versionName')>(<a href="#server.lucee.versionNameExplanation#" target="_blank">#server.lucee.versionName#</a>)
+												</cfif>
+												#ucFirst(server.coldfusion.productlevel)# #server.lucee.version# (CFML Version #server.ColdFusion.ProductVersion#)
 											</td>
 										</tr>
 										<tr>
@@ -1362,10 +1356,20 @@ Reference Button
 													class="#isOpen ? '' : 'collapsed'#"
 													oncontextmenu="__LUCEE.debug.selectText( this.id );">
 													<div class="inner">
-														<span class="bold">SQL</span>
-													<div class="innercircle">
-														<span class="prey">#trim( queries.sql )#</span>
-													</div>
+														<cfset hasParams=!isEmpty(queries.paramValue) && !isEmpty(queries.paramType)>
+														<span class="bold">SQL<cfif hasParams> (Merged Parameters)</cfif></span>
+														<div class="innercircle">
+															<span class="prey">#trim( queries.sql )#</span>
+														</div>
+														<cfif hasParams>
+															<br><span class="bold">SQL (Explicit Parameters)</span>
+															<div class="innercircle">
+																<span class="prey">#trim( queries.sqlPattern )#</span>
+															</div
+														</cfif>
+
+
+
 													</div>													
 
 													<cfif doUsage>

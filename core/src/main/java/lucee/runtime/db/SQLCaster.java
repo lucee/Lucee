@@ -574,7 +574,7 @@ public final class SQLCaster {
 			return "CF_SQL_NULL";
 
 		default:
-			return null;
+			return defaultValue;
 		}
 	}
 

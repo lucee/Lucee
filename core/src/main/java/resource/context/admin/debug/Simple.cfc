@@ -101,10 +101,9 @@
 		<cfif !structKeyExists(arguments.custom,'scopes')><cfset arguments.custom.scopes=false></cfif>
 		<cfif !structKeyExists(arguments.custom,'general')><cfset arguments.custom.general="Enabled"></cfif>
 
+		<cfset var time=getTickCount() />
+		<cfset var _cgi=structKeyExists(arguments.debugging,'cgi')?arguments.debugging.cgi:cgi />
 		<cfscript>
-			var time=getTickCount();
-			var _cgi = arguments?.debugging?.scope?.cgi ?: cgi;
-
 			if(isNull(arguments.debugging.pages)) 
 				local.pages=queryNew('id,count,min,max,avg,app,load,query,total,src');
 			else local.pages=arguments.debugging.pages;
@@ -417,7 +416,7 @@
 						<cfset sectionId = "Exceptions">
 						<cfset isOpen = this.isSectionOpen( sectionId )>
 
-						<div class="section-title">Exceptions</div>
+						<div class="section-title">Caught Exceptions</div>
 						<table>
 
 							<cfset renderSectionHeadTR( sectionId, "#arrayLen(exceptions)# Exception#arrayLen( exceptions ) GT 1 ? 's' : ''# Caught" )>
@@ -703,10 +702,21 @@
 													<td>#queries.src#</td>
 													<cfif hasCachetype><td>#isEmpty(queries.cacheType)?"none":queries.cacheType#</td></cfif>
 												</tr>
+												<cfset hasParams=!isEmpty(queries.paramValue) && !isEmpty(queries.paramType)>
 												<tr class="sort-group">
 													<th class="label">SQL:</th>
-													<td id="-lucee-debug-query-sql-#queries.currentRow#" colspan="6" oncontextmenu="__LUCEE.debug.selectText( this.id );"><pre>#trim( queries.sql )#</pre></td>
+													<td id="-lucee-debug-query-sql-#queries.currentRow#" colspan="6" oncontextmenu="__LUCEE.debug.selectText( this.id );">
+														<cfif hasParams>
+															<b>Merged Parameters</b>
+														</cfif>
+														<pre>#trim( queries.sql )#</pre>
+														<cfif hasParams>
+															<b>Explicit Parameters</b>
+															<pre>#trim( queries.sqlPattern )#</pre>
+														</cfif>
+													</td>
 												</tr>
+												
 
 												<cfif listFindNoCase(queries.columnlist, 'usage') && isStruct(queries.usage)>
 

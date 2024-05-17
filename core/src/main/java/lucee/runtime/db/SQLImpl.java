@@ -95,7 +95,13 @@ public final class SQLImpl implements SQL, Serializable {
 	 */
 
 	@Override
+
 	public String toString() {
+		return toString(false);
+
+	}
+
+	public String toString(boolean pattern) {
 
 		if (items.length == 0) return strSQL;
 
@@ -143,8 +149,18 @@ public final class SQLImpl implements SQL, Serializable {
 			}
 			else if (!inQuotes && c == '?') {
 				if ((index + 1) > items.length) throw new RuntimeException("there are more question marks in the SQL than params defined, in the SQL String: [" + strSQL + "]");
-				if (items[index].isNulls()) sb.append("null");
-				else sb.append(SQLCaster.toString(items[index]));
+
+				if (pattern) {
+					StringBuilder tmp = new StringBuilder();
+					tmp.append("{type: \"").append(SQLCaster.toStringType(items[index].getType(), "VARCHAR")).append("\", value: ")
+							.append(items[index].isNulls() ? "null" : SQLCaster.toString(items[index])).append("}");
+
+					sb.append(tmp.toString());
+				}
+				else {
+					if (items[index].isNulls()) sb.append("null");
+					else sb.append(SQLCaster.toString(items[index]));
+				}
 				index++;
 			}
 

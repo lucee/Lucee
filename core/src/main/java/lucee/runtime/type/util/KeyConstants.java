@@ -600,6 +600,7 @@ public class KeyConstants {
 	public static final Key _sleep = KeyImpl._const("sleep");
 	public static final Key _source = KeyImpl._const("source");
 	public static final Key _sql = KeyImpl._const("sql");
+	public static final Key _sqlPattern = KeyImpl._const("sqlPattern");
 	public static final Key _src = KeyImpl._const("src");
 	public static final Key _start = KeyImpl._const("start");
 	public static final Key _end = KeyImpl._const("end");
@@ -2977,6 +2978,8 @@ public class KeyConstants {
 	public static final Key _formUrlAsStruct = KeyImpl._const("formUrlAsStruct");
 	public static final Key _hasBody = KeyImpl._const("hasBody");
 	public static final Key _issuer = KeyImpl._const("issuer");
+	public static final Key _paramValue = KeyImpl._const("paramValue");
+	public static final Key _paramType = KeyImpl._const("paramType");
 	private static Map<String, Key> _____keys;
 
 	static {
