@@ -840,6 +840,13 @@
         tofile="${outputDir}/core/core.lco"/>
     <echots message="copy ${trgLoader}/${version}.lco to ${outputDir}/core/core.lco"/>
 
+    <!-- copy to core to the fat jar folder -->
+    <copy 
+        file="${trgLoader}/${version}.jvm${javaVersionCoreDefault}.lco"
+        tofile="${temp}/loader/core/core.lco"/>
+    <echots message="copy ${trgLoader}/${version}.jvm${javaVersionCoreDefault}.lco to ${temp}/loader/core/core.lco"/>
+
+
     <!-- optionally copy lco file to an existing Lucee install -->
     <deployLco
       srcdir="${trgLoader}" 
