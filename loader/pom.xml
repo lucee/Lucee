@@ -269,7 +269,7 @@
                     <configuration>
                         <artifacts>
                             <artifact>
-                                <file>${project.build.directory}/${project.version}.jvm11.lco</file>
+                                <file>${project.build.directory}/${project.version}.lco</file>
                                 <type>lco</type>
                             </artifact>
                         </artifacts>
