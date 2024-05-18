@@ -126,10 +126,10 @@
           var srcDir = attributes.get("srcdir");
           var deployDir = attributes.get("deploydir");
           var name = attributes.get("name");
-          
+          var echo = project.createTask( "echo" );
+
           if (deployDir && String(deployDir).length >= 0) {
             var path = deployDir + "/" + name;
-            var echo = project.createTask( "echo" );
             var copy = project.createTask( "copy" );
 
             copy.setFile( new java.io.File( srcDir + "/" + name ) );
@@ -138,6 +138,9 @@
             echo.perform();
 
             copy.perform();
+          } else {
+            echo.setMessage( 'Tip: use -DdeployLco="C:\\lucee6\\tomcat\\lucee-server\\deploy" to automatically deploy your build into a running Lucee instance' );
+            echo.perform();
           }
      ]]>
   </scriptdef>
