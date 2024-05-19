@@ -92,7 +92,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ftp" {
 		systemOutput("", true);
 		systemOutput("getcurrentdir: " & pwd1, true);
 
-		var error = false;
+		var error = {};
 		
 		try{
 
@@ -204,7 +204,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ftp" {
 				rethrow;
 			}
 		}
-		if (error){
+		if ( structCount( error ) ) {
 			throw message="#error.stacktrace#";
 		}
 
