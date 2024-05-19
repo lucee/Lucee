@@ -160,8 +160,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ftp" {
 			ftp action="putFile"  localfile=getCurrentTemplatePath() remoteFile="#subfile#-ascii" connection="ftpConn" transferMode="ASCII";
 			ftp action="putFile"  localfile=getCurrentTemplatePath() remoteFile="#subfile#-auto" connection="ftpConn" transferMode="auto"; // default
 			// LDEV-3528  transferMode=“binary” causes "Connection is not open" error with ftp
-			if ( arguments.secure )
+			if ( arguments.secure ) {
+				systemOutput(arguments, true);
 				ftp action="putFile"  localfile=getCurrentTemplatePath() remoteFile="#subfile#-binary" connection="ftpConn" transferMode="binary";
+			}
 			debug(cfftp);
 
 		//}
