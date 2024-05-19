@@ -144,6 +144,14 @@ jobs:
       run: |
           sudo useradd -m lucee 
           echo "lucee:lucee" | sudo chpasswd
+          cat /etc/ssh/sshd_config
+          cat << EOF | sudo tee -a /etc/ssh/sshd_config
+          PermitRootLogin yes
+          UseLogin yes
+          PasswordAuthentication yes
+          EOF
+          cat /etc/ssh/sshd_config
+          sudo systemctl restart sshd
     - name: Setup Memcached (docker)
       uses: niden/actions-memcached@v7
     - name: Build Lucee with Maven
