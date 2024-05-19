@@ -162,10 +162,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ftp" {
 			ftp action="putFile"  localfile=getCurrentTemplatePath() remoteFile="#subfile#-auto" connection="ftpConn" transferMode="auto"; // default
 			// LDEV-3528  transferMode=“binary” causes "Connection is not open" error with ftp
 			// but why is this throwing a ftp stack trace?
-			if ( arguments.secure ) {
+			//if ( arguments.secure ) {
 				systemOutput(arguments, true);
 				ftp action="putFile"  localfile=getCurrentTemplatePath() remoteFile="#subfile#-binary" connection="ftpConn" transferMode="binary";
-			}
+			//}
 			debug(cfftp);
 
 		//}
