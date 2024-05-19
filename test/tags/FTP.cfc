@@ -91,7 +91,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ftp" {
 		systemOutput("", true);
 		systemOutput("getcurrentdir: " & pwd1, true);
 		
-		//try{
+		try{
 
 			// we create a directory
 			systemOutput("attempt createdir: " & dir, true);
@@ -168,22 +168,25 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ftp" {
 			//}
 			debug(cfftp);
 
-		//}
-		//finally {
-			ftp action="listdir" directory=subdir connection="ftpConn" name="local.listSubdir" recurse=true passive="true";
-			expect( listSubdir.recordcount ).toBe( arguments.secure? 4 : 3 );
-			
-			ftp action="removedir" directory=subdir connection="ftpConn" recurse=true;
-			ftp action="existsDir" directory=subdir connection="ftpConn" result="local.listSubdirExists";
-			expect( listSubdirExists.returnvalue ).toBeFalse();
-			
-			// delete the folder we did for testing
-			ftp action="removedir" directory=dir connection="ftpConn" recurse=true;
-			ftp action="listdir" directory=base connection="ftpConn" name="local.finalState" passive="true";
-			expect( finalState.recordcount ) .toBe( initialState.recordcount );
-
-			ftp action="close" connection="ftpConn";
-		//}
+		}
+		finally {
+			try {
+				ftp action="listdir" directory=subdir connection="ftpConn" name="local.listSubdir" recurse=true passive="true";
+				expect( listSubdir.recordcount ).toBe( arguments.secure? 4 : 3 );
+				
+				ftp action="removedir" directory=subdir connection="ftpConn" recurse=true;
+				ftp action="existsDir" directory=subdir connection="ftpConn" result="local.listSubdirExists";
+				expect( listSubdirExists.returnvalue ).toBeFalse();
+				
+				// delete the folder we created for testing
+				ftp action="removedir" directory=dir connection="ftpConn" recurse=true;
+				ftp action="listdir" directory=base connection="ftpConn" name="local.finalState" passive="true";
+				expect( finalState.recordcount ) .toBe( initialState.recordcount );
+			} catch ( any e ){
+				ftp action="close" connection="ftpConn";
+				rethrow;
+			}
+		}
 
 	}
 
