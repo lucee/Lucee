@@ -108,7 +108,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ftp" {
 			assertTrue(pwd2==dir || pwd2&"/"==dir);
 
 			// we add a file
-			ftp action="putFile"  localfile=getCurrentTemplatePath() remoteFile=file connection= "ftpConn";
+			ftp action="putFile"  localfile=getCurrentTemplatePath() remoteFile=file connection="#ftpConn#";
 			ftp action="listdir" directory=dir connection="#ftpConn#" name="local.list3" passive="true";  // passive not sticky LDEV-977;
 			assertEquals(list3.recordcount,1);
 			assertEquals(list3.name,fileName);
@@ -121,7 +121,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ftp" {
 			var src=getCurrentTemplatePath();
 			var localFile=src&"."&getTickcount()&".rf";
 			try {
-				ftp action="getFile"  localfile=localFile remoteFile=file connection= "ftpConn";
+				ftp action="getFile"  localfile=localFile remoteFile=file connection="#ftpConn#";
 				var srcContent=fileRead(src);
 				var localFileContent=fileRead(localFile);
 				assertEquals(srcContent,localFileContent);
@@ -131,7 +131,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ftp" {
 			}
 
 			// we rename the file
-			ftp action="rename"  existing=file new=file2 connection= "ftpConn";
+			ftp action="rename"  existing=file new=file2 connection="#ftpConn#";
 			ftp action="listdir" directory=dir connection="#ftpConn#" name="local.list4" passive="true";
 			assertEquals(list4.recordcount,1);
 			assertEquals(list4.name,fileName2);
@@ -152,7 +152,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ftp" {
 			debug(list22);
 
 			// we delete the file again
-			ftp action="remove"  item=file2 connection= "ftpConn";
+			ftp action="remove"  item=file2 connection="#ftpConn#";
 			ftp action="listdir" directory=dir connection="#ftpConn#" name="local.list4" passive="true";
 			assertEquals(list4.recordcount,0);
 
@@ -176,9 +176,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ftp" {
 		finally {
 			// cleanup
 			try {
-				ftp action="listdir" directory=subdir connection="#ftpConn#" name="local.listSubdir" recurse=true passive="true";
-				if ( ftp_overall_success )
+				if ( ftp_overall_success ){
+					ftp action="listdir" directory=subdir connection="#ftpConn#" name="local.listSubdir" recurse=true passive="true";
 					expect( listSubdir.recordcount ).toBe( arguments.secure? 4 : 3 );
+				}
 				
 				ftp action="existsDir" directory=subdir connection="#ftpConn#" result="local.listSubdirExists";
 				if ( listSubdirExists.returnvalue ){
