@@ -158,7 +158,7 @@ jobs:
           write_enable=YES
           EOF
           sudo systemctl restart vsftpd.service
-          cat /etc/vsftpd.conf
+          #cat /etc/vsftpd.conf
     - name: Setup Memcached (docker)
       uses: niden/actions-memcached@v7
     - name: Build Lucee with Maven
