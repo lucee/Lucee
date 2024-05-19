@@ -407,6 +407,9 @@ public final class Ftp extends TagImpl {
 			is = IOUtil.toBufferedInputStream(local.getInputStream());
 			client.setFileType(getType(local));
 			client.storeFile(remotefile, is);
+			if (!client.completePendingCommand()){
+				throw new ApplicationException("FTP putFile [" + remotefile + "] failed");
+			}
 		}
 		finally {
 			IOUtil.close(is);
