@@ -164,6 +164,11 @@ public class FTPClientImpl extends AFTPClient {
 	}
 
 	@Override
+	public boolean completePendingCommand() throws IOException {
+		return client.completePendingCommand();
+	}
+
+	@Override
 	public boolean directoryExists(String pathname) throws IOException {
 		String pwd = null;
 		try {

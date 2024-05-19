@@ -373,6 +373,11 @@ public class SFTPClientImpl extends AFTPClient {
 		return positiveCompletion;
 	}
 
+	@Override
+	public boolean completePendingCommand() {
+		return true;
+	}
+
 	private void handleSucess() {
 		replyCode = 0;
 		replyString = "SSH_FX_OK successful completion of the operation";
