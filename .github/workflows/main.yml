@@ -140,7 +140,7 @@ jobs:
       with:
         mongodb-version: 4.4
         mongodb-port: 27017
-    - name: Set up sshd user
+    - name: Set up local test user, sshd & vsftpd
       run: |
           sudo useradd -m lucee 
           sudo chmod 0755 /home/lucee
@@ -153,6 +153,8 @@ jobs:
           EOF
           #cat /etc/ssh/sshd_config
           sudo systemctl restart sshd
+          sudo apt install vsftpd
+          sudo systemctl restart vsftpd.service
     - name: Setup Memcached (docker)
       uses: niden/actions-memcached@v7
     - name: Build Lucee with Maven
