@@ -91,6 +91,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ftp" {
 		///////// TODO does not work with sftp assertTrue(pwd1==base || pwd1&"/"==base);
 		systemOutput("", true);
 		systemOutput("getcurrentdir: " & pwd1, true);
+
+		var error = false;
 		
 		try{
 
@@ -171,7 +173,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ftp" {
 			ftp_overall_success = true;
 		}
 		catch( any e) {
-			systemOutput( cfcatch.stacktrace, true )
+			error = cfcatch;
 		}
 		finally {
 			// cleanup
@@ -201,6 +203,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ftp" {
 				ftp action="close" connection="#ftpConn#";
 				rethrow;
 			}
+		}
+		if (error){
+			throw message="#error.stacktrace#";
 		}
 
 	}
