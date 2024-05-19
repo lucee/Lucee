@@ -120,9 +120,9 @@ jobs:
         key: ${{ runner.os }}-maven-${{ hashFiles('loader/pom.xml','core/pom.xml') }}
         restore-keys: |
           ${{ runner.os }}-maven-
-    - name: Set up sftp (docker)
-      run: |
-           docker run -p 2022:22 -d atmoz/sftp lucee:lucee:::upload
+    #- name: Set up sftp (docker)
+    #  run: |
+    #     docker run -p 2022:22 -d atmoz/sftp lucee:lucee:::upload
     - name: Set up MySQL (local)
       run: |
         sudo systemctl start mysql
@@ -143,14 +143,15 @@ jobs:
     - name: Set up sshd user
       run: |
           sudo useradd -m lucee 
+          sudo chmod 0755 /home/lucee
           echo "lucee:lucee" | sudo chpasswd
-          cat /etc/ssh/sshd_config
+          #cat /etc/ssh/sshd_config
           cat << EOF | sudo tee -a /etc/ssh/sshd_config
           PermitRootLogin yes
           UseLogin yes
           PasswordAuthentication yes
           EOF
-          cat /etc/ssh/sshd_config
+          #cat /etc/ssh/sshd_config
           sudo systemctl restart sshd
     - name: Setup Memcached (docker)
       uses: niden/actions-memcached@v7
