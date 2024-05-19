@@ -85,12 +85,14 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ftp" {
 		ftp action="getcurrentdir" directory=base connection="ftpConn" result="local.pwd1";
 		pwd1=pwd1.returnValue;
 		///////// TODO does not work with sftp assertTrue(pwd1==base || pwd1&"/"==base);
+		systemOutput("", true);
 		systemOutput("getcurrentdir: " & pwd1, true);
 		
 		//try{
 
 			// we create a directory
-			systemOutput("createdir: " & dir, true);
+			systemOutput("attempt createdir: " & dir, true);
+			systemOutput("", true);
 			ftp action="createdir" directory=dir connection="ftpConn";
 			ftp action="listdir" directory=base connection="ftpConn" name="local.list2" passive="true";
 			assertEquals(initialState.recordcount+1,list2.recordcount);
