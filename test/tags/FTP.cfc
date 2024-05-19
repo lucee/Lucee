@@ -170,22 +170,32 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ftp" {
 			debug(cfftp);
 			ftp_overall_success = true;
 		}
+		catch( any e) {
+			systemOutput( cfcatch.stacktrace, true )
+		}
 		finally {
+			// cleanup
 			try {
 				ftp action="listdir" directory=subdir connection="#ftpConn#" name="local.listSubdir" recurse=true passive="true";
 				if ( ftp_overall_success )
 					expect( listSubdir.recordcount ).toBe( arguments.secure? 4 : 3 );
 				
-				ftp action="removedir" directory=subdir connection="#ftpConn#" recurse=true;
 				ftp action="existsDir" directory=subdir connection="#ftpConn#" result="local.listSubdirExists";
-				if ( ftp_overall_success )
-					expect( listSubdirExists.returnvalue ).toBeFalse();
+				if ( listSubdirExists.returnvalue ){
+					ftp action="removedir" directory=subdir connection="#ftpConn#" recurse=true;
+					ftp action="existsDir" directory=subdir connection="#ftpConn#" result="local.listSubdirExists";
+					if ( ftp_overall_success )
+						expect( listSubdirExists.returnvalue ).toBeFalse();
+				}
 				
 				// delete the folder we created for testing
-				ftp action="removedir" directory=dir connection="#ftpConn#" recurse=true;
-				ftp action="listdir" directory=base connection="#ftpConn#" name="local.finalState" passive="true";
-				if ( ftp_overall_success )
-					expect( finalState.recordcount ) .toBe( initialState.recordcount );
+				ftp action="existsDir" directory=subdir connection="#ftpConn#" result="local.listDirExists";
+				if ( listDirExists.returnvalue ){
+					ftp action="removedir" directory=dir connection="#ftpConn#" recurse=true;
+					ftp action="listdir" directory=base connection="#ftpConn#" name="local.finalState" passive="true";
+					if ( ftp_overall_success )
+						expect( finalState.recordcount ) .toBe( initialState.recordcount );
+				}
 			} catch ( any e ){
 				ftp action="close" connection="#ftpConn#";
 				rethrow;
