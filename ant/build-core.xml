@@ -552,7 +552,7 @@
       <jvmarg value="-Dlucee.full.null.support=false"/>
       <jvmarg value="-Dlucee.cli.printExceptions=true"/>
       <jvmarg value="-Dlucee.ssl.checkserveridentity=false"/>
-      <jvmarg value="-Dlucee.debug.ftp=true"/>
+      <jvmarg value="-Dlucee.debug.ftp=false"/>
       <jvmarg value="-Dlucee.debug.jsch=false"/>
       
       <jvmarg value="-DLUCEE_BUILD_ENV=${LUCEE_BUILD_ENV}"/>
