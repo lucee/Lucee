@@ -78,6 +78,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ftp" {
 		var subdir=dir&"sub/";
 		var subfile=subdir&fileName;
 		
+		systemOutput("", true);
+		systemOutput("listdir base: " & base, true);
 		// list the inital state
 		ftp action="listdir" directory=base connection="ftpConn" name="local.initialState" passive="true"; // passive not sticky LDEV-977
 		

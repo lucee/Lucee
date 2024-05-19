@@ -210,7 +210,7 @@ jobs:
         SFTP_USERNAME: lucee
         SFTP_PASSWORD: lucee
         SFTP_PORT: 22
-        SFTP_BASE_PATH: ~/
+        SFTP_BASE_PATH: /home/lucee
         S3_ACCESS_KEY_ID: ${{ secrets.S3_ACCESS_ID_TEST }}
         S3_SECRET_KEY: ${{ secrets.S3_SECRET_KEY_TEST }}
         # DO_DEPLOY: ${{ github.event_name == 'push' }}
