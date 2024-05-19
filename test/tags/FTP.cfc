@@ -54,10 +54,11 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ftp" {
 		required string user, required string pass, required string base){
 
 		//systemOutput(arguments, true);
-		var ftpconn = "";
+		var ftpconn = "#arguments.secure#-#arguments.host#";
+		var ftp_overall_success = false;
 		
 		ftp action = "open"
-			connection="ftpConn"
+			connection="#ftpConn#"
 			passive = "true"
 			timeout = 5
 			secure = arguments.secure
@@ -82,10 +83,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ftp" {
 		systemOutput("", true);
 		systemOutput("listdir base: " & base, true);
 		// list the inital state
-		ftp action="listdir" directory=base connection="ftpConn" name="local.initialState" passive="true"; // passive not sticky LDEV-977
+		ftp action="listdir" directory=base connection="#ftpConn#" name="local.initialState" passive="true"; // passive not sticky LDEV-977
 		
 		// print working directory
-		ftp action="getcurrentdir" directory=base connection="ftpConn" result="local.pwd1";
+		ftp action="getcurrentdir" directory=base connection="#ftpConn#" result="local.pwd1";
 		pwd1=pwd1.returnValue;
 		///////// TODO does not work with sftp assertTrue(pwd1==base || pwd1&"/"==base);
 		systemOutput("", true);
@@ -96,19 +97,19 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ftp" {
 			// we create a directory
 			systemOutput("attempt createdir: " & dir, true);
 			systemOutput("", true);
-			ftp action="createdir" directory=dir connection="ftpConn";
-			ftp action="listdir" directory=base connection="ftpConn" name="local.list2" passive="true";
+			ftp action="createdir" directory=dir connection="#ftpConn#";
+			ftp action="listdir" directory=base connection="#ftpConn#" name="local.list2" passive="true";
 			assertEquals(initialState.recordcount+1,list2.recordcount);
 
 			// change working directory
-			ftp action="changedir" directory=dir connection="ftpConn";
-			ftp action="getcurrentdir" directory=base connection="ftpConn" result="local.pwd2";
+			ftp action="changedir" directory=dir connection="#ftpConn#";
+			ftp action="getcurrentdir" directory=base connection="#ftpConn#" result="local.pwd2";
 			pwd2=pwd2.returnValue;
 			assertTrue(pwd2==dir || pwd2&"/"==dir);
 
 			// we add a file
 			ftp action="putFile"  localfile=getCurrentTemplatePath() remoteFile=file connection= "ftpConn";
-			ftp action="listdir" directory=dir connection="ftpConn" name="local.list3" passive="true";  // passive not sticky LDEV-977;
+			ftp action="listdir" directory=dir connection="#ftpConn#" name="local.list3" passive="true";  // passive not sticky LDEV-977;
 			assertEquals(list3.recordcount,1);
 			assertEquals(list3.name,fileName);
 			assertEquals(list3.isDirectory,false);
@@ -131,59 +132,62 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ftp" {
 
 			// we rename the file
 			ftp action="rename"  existing=file new=file2 connection= "ftpConn";
-			ftp action="listdir" directory=dir connection="ftpConn" name="local.list4" passive="true";
+			ftp action="listdir" directory=dir connection="#ftpConn#" name="local.list4" passive="true";
 			assertEquals(list4.recordcount,1);
 			assertEquals(list4.name,fileName2);
 
 			// exists dir
-			ftp action="existsdir" directory=dir connection="ftpConn" result="local.exist1";
+			ftp action="existsdir" directory=dir connection="#ftpConn#" result="local.exist1";
 			assertTrue(exist1.returnValue);
-			ftp action="existsdir" directory=subdir connection="ftpConn" result="local.exist2";
+			ftp action="existsdir" directory=subdir connection="#ftpConn#" result="local.exist2";
 			assertFalse(exist2.returnValue);
 
 			//exists file
-			ftp action="existsfile" remotefile=file2 connection="ftpConn" result="local.exist3";
+			ftp action="existsfile" remotefile=file2 connection="#ftpConn#" result="local.exist3";
 			assertTrue(exist3.returnValue);
-			ftp action="existsfile" remotefile=file connection="ftpConn" result="local.exist4";
+			ftp action="existsfile" remotefile=file connection="#ftpConn#" result="local.exist4";
 			assertFalse(exist4.returnValue);
 
-			ftp action="listdir" directory=base connection="ftpConn" name="local.list22" passive="true";
+			ftp action="listdir" directory=base connection="#ftpConn#" name="local.list22" passive="true";
 			debug(list22);
 
 			// we delete the file again
 			ftp action="remove"  item=file2 connection= "ftpConn";
-			ftp action="listdir" directory=dir connection="ftpConn" name="local.list4" passive="true";
+			ftp action="listdir" directory=dir connection="#ftpConn#" name="local.list4" passive="true";
 			assertEquals(list4.recordcount,0);
 
 			// we add again a file and directory to be sure we can delete a folder with content
-			ftp action="createdir" directory=subdir connection="ftpConn";
-			ftp action="putFile"  localfile=getCurrentTemplatePath() remoteFile="#subfile#-normal" connection="ftpConn";
-			ftp action="putFile"  localfile=getCurrentTemplatePath() remoteFile="#subfile#-ascii" connection="ftpConn" transferMode="ASCII";
-			ftp action="putFile"  localfile=getCurrentTemplatePath() remoteFile="#subfile#-auto" connection="ftpConn" transferMode="auto"; // default
+			ftp action="createdir" directory=subdir connection="#ftpConn#";
+			ftp action="putFile"  localfile=getCurrentTemplatePath() remoteFile="#subfile#-normal" connection="#ftpConn#";
+			ftp action="putFile"  localfile=getCurrentTemplatePath() remoteFile="#subfile#-ascii" connection="#ftpConn#" transferMode="ASCII";
+			ftp action="putFile"  localfile=getCurrentTemplatePath() remoteFile="#subfile#-auto" connection="#ftpConn#" transferMode="auto"; // default
 			// LDEV-3528  transferMode=“binary” causes "Connection is not open" error with ftp
 			// but why is this throwing a ftp stack trace?
 			//if ( arguments.secure ) {
 				systemOutput(arguments, true);
-				ftp action="putFile"  localfile=getCurrentTemplatePath() remoteFile="#subfile#-binary" connection="ftpConn" transferMode="binary";
+				ftp action="putFile"  localfile=getCurrentTemplatePath() remoteFile="#subfile#-binary" connection="#ftpConn#" transferMode="binary";
 			//}
 			debug(cfftp);
-
+			ftp_overall_success = true;
 		}
 		finally {
 			try {
-				ftp action="listdir" directory=subdir connection="ftpConn" name="local.listSubdir" recurse=true passive="true";
-				expect( listSubdir.recordcount ).toBe( arguments.secure? 4 : 3 );
+				ftp action="listdir" directory=subdir connection="#ftpConn#" name="local.listSubdir" recurse=true passive="true";
+				if ( ftp_overall_success )
+					expect( listSubdir.recordcount ).toBe( arguments.secure? 4 : 3 );
 				
-				ftp action="removedir" directory=subdir connection="ftpConn" recurse=true;
-				ftp action="existsDir" directory=subdir connection="ftpConn" result="local.listSubdirExists";
-				expect( listSubdirExists.returnvalue ).toBeFalse();
+				ftp action="removedir" directory=subdir connection="#ftpConn#" recurse=true;
+				ftp action="existsDir" directory=subdir connection="#ftpConn#" result="local.listSubdirExists";
+				if ( ftp_overall_success )
+					expect( listSubdirExists.returnvalue ).toBeFalse();
 				
 				// delete the folder we created for testing
-				ftp action="removedir" directory=dir connection="ftpConn" recurse=true;
-				ftp action="listdir" directory=base connection="ftpConn" name="local.finalState" passive="true";
-				expect( finalState.recordcount ) .toBe( initialState.recordcount );
+				ftp action="removedir" directory=dir connection="#ftpConn#" recurse=true;
+				ftp action="listdir" directory=base connection="#ftpConn#" name="local.finalState" passive="true";
+				if ( ftp_overall_success )
+					expect( finalState.recordcount ) .toBe( initialState.recordcount );
 			} catch ( any e ){
-				ftp action="close" connection="ftpConn";
+				ftp action="close" connection="#ftpConn#";
 				rethrow;
 			}
 		}
