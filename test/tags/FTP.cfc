@@ -54,6 +54,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ftp" {
 		required string user, required string pass, required string base){
 
 		//systemOutput(arguments, true);
+		var ftpconn = "";
 		
 		ftp action = "open"
 			connection="ftpConn"
@@ -160,6 +161,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ftp" {
 			ftp action="putFile"  localfile=getCurrentTemplatePath() remoteFile="#subfile#-ascii" connection="ftpConn" transferMode="ASCII";
 			ftp action="putFile"  localfile=getCurrentTemplatePath() remoteFile="#subfile#-auto" connection="ftpConn" transferMode="auto"; // default
 			// LDEV-3528  transferMode=“binary” causes "Connection is not open" error with ftp
+			// but why is this throwing a ftp stack trace?
 			if ( arguments.secure ) {
 				systemOutput(arguments, true);
 				ftp action="putFile"  localfile=getCurrentTemplatePath() remoteFile="#subfile#-binary" connection="ftpConn" transferMode="binary";
@@ -179,6 +181,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ftp" {
 			ftp action="removedir" directory=dir connection="ftpConn" recurse=true;
 			ftp action="listdir" directory=base connection="ftpConn" name="local.finalState" passive="true";
 			expect( finalState.recordcount ) .toBe( initialState.recordcount );
+
+			ftp action="close" connection="ftpConn";
 		//}
 
 	}
