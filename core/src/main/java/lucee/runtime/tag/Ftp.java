@@ -411,9 +411,9 @@ public final class Ftp extends TagImpl {
 		finally {
 			IOUtil.close(is);
 		}
-		if (!client.completePendingCommand()){
-			throw new ApplicationException("FTP putFile [" + remotefile + "] failed");
-		}
+		//if (!client.completePendingCommand()){
+		//	throw new ApplicationException("FTP putFile [" + remotefile + "] failed");
+		//}
 		writeCfftp(client);
 
 		return client;
