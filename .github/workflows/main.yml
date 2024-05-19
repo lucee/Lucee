@@ -207,7 +207,7 @@ jobs:
         FTP_USERNAME: lucee
         FTP_PASSWORD: lucee
         FTP_PORT: 21
-        FTP_BASE_PATH: /
+        FTP_BASE_PATH: /home/lucee
         SFTP_SERVER: localhost
         SFTP_USERNAME: lucee
         SFTP_PASSWORD: lucee
