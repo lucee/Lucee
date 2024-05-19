@@ -411,7 +411,7 @@ public final class Ftp extends TagImpl {
 		finally {
 			IOUtil.close(is);
 		}
-		if (transferMode == FTPConstant.TRANSFER_MODE_BINARY && !client.completePendingCommand()){
+		if (!client.completePendingCommand()){
 			throw new ApplicationException("FTP putFile [" + remotefile + "] failed");
 		}
 		writeCfftp(client);
