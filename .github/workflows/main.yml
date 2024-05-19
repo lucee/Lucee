@@ -142,8 +142,8 @@ jobs:
         mongodb-port: 27017
     - name: Set up sshd user
       run: |
-          sudo useradd -m lucee
-          echo lucee | passwd lucee --stdin
+          sudo useradd -m lucee 
+          echo "lucee:lucee" | chpasswd
     - name: Setup Memcached (docker)
       uses: niden/actions-memcached@v7
     - name: Build Lucee with Maven
