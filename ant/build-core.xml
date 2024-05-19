@@ -552,6 +552,9 @@
       <jvmarg value="-Dlucee.full.null.support=false"/>
       <jvmarg value="-Dlucee.cli.printExceptions=true"/>
       <jvmarg value="-Dlucee.ssl.checkserveridentity=false"/>
+      <jvmarg value="-Dlucee.debug.ftp=true"/>
+      <jvmarg value="-Dlucee.debug.jsch=true"/>
+      
       <jvmarg value="-DLUCEE_BUILD_ENV=${LUCEE_BUILD_ENV}"/>
       <!--
       <jvmarg value="-XX:StartFlightRecording=disk=true,dumponexit=true,filename=${temp}/../lucee-testcases.jfr,maxsize=1024m,maxage=1d,settings=profile,path-to-gc-roots=true"/>
