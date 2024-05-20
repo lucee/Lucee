@@ -13,6 +13,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 	function myError() {
 		throw "Upsi dupsi!"
 	}
+	function logAndFail(name,value) {
+		request.testFunctionListenerEcho[name]=value;
+		throw "Upsi dupsi!"
+	}
 
 	function run( testResults , testBox ) {
 		describe( "test suite for function listeners", function() {
@@ -118,7 +122,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					onSuccess:function(result) {
 						thread.success=result;
 					}
-					onFail:function(result,error) {
+					,onFail:function(result,error) {
 						thread.fail=error.message;
 					}
 				};
@@ -146,6 +150,20 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 
 				expect(cfthread[threadName1].success).toBe("Susi Sorglos");
 				expect(cfthread[threadName2].fail).toBe("Upsi dupsi!");
+			});
+
+			it(title="async execution without a listener", body=function() {
+				// passing null
+				var threadName1=logAndFail("testNull","Peter Lustig"):nullValue();
+				// passing empty struct
+				var threadName1=logAndFail("testStruct","Ruedi Zraggen"):{};
+
+				// wait for the thread to finsish
+				threadJoin(threadName1);
+				threadJoin(threadName2);
+
+				expect(request.testFunctionListenerEcho[name].testNull).toBe("Peter Lustig");
+				expect(request.testFunctionListenerEcho[name].testStruct).toBe("Ruedi Zraggen");
 			});
 
 			it(title="similar syntax that could conflict: switch", body=function() {
