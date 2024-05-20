@@ -2980,6 +2980,7 @@ public class KeyConstants {
 	public static final Key _issuer = KeyImpl._const("issuer");
 	public static final Key _paramValue = KeyImpl._const("paramValue");
 	public static final Key _paramType = KeyImpl._const("paramType");
+	public static final Key _onSuccess = KeyImpl._const("onSuccess");
 	private static Map<String, Key> _____keys;
 
 	static {

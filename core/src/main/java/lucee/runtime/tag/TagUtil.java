@@ -63,6 +63,7 @@ import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
+import lucee.runtime.type.UDF;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.KeyConstants;
 import lucee.transformer.library.tag.TagLib;
@@ -366,9 +367,9 @@ public class TagUtil {
 		Reflector.callMethod(tag, "hasBody", new Object[] { hasBody });
 	}
 
-	public static TagLibTag getTagLibTag(PageContext pc, String nameSpace, String strTagName) {
+	public static TagLibTag getTagLibTag(ConfigPro config, String nameSpace, String strTagName) {
 		TagLib[] tlds;
-		tlds = ((ConfigPro) pc.getConfig()).getTLDs();
+		tlds = config.getTLDs();
 
 		TagLib tld = null;
 		TagLibTag tag = null;
@@ -381,6 +382,67 @@ public class TagUtil {
 
 		}
 		return tag;
+	}
+
+	public static void handleListener(PageContext pc, Object result, PageException pe, Object listener) throws PageException {
+		if (listener instanceof UDF) {
+			Struct args = new StructImpl(StructImpl.TYPE_LINKED);
+			if (result != null) args.set(KeyConstants._result, result);
+			if (pe != null) args.set(KeyConstants._error, pe.getCatchBlock(pc.getConfig()));
+			((UDF) listener).callWithNamedValues(pc, args, true);
+		}
+		else if (listener instanceof Component) {
+			Component cfc = (Component) listener;
+
+			// result
+			if (result != null) {
+				if (cfc.contains(pc, KeyConstants._onSuccess)) {
+					Struct args = new StructImpl(StructImpl.TYPE_LINKED);
+					args.set(KeyConstants._result, result);
+					cfc.callWithNamedValues(pc, KeyConstants._onSuccess, args);
+				}
+			}
+			// error
+			if (pe != null) {
+				if (cfc.contains(pc, KeyConstants._onError)) {
+					Struct args = new StructImpl(StructImpl.TYPE_LINKED);
+					args.set(KeyConstants._error, pe.getCatchBlock(pc.getConfig()));
+					cfc.callWithNamedValues(pc, KeyConstants._onError, args);
+				}
+			}
+
+		}
+		else if (listener instanceof Struct) {
+			Struct coll = (Struct) listener;
+
+			// result
+			if (result != null) {
+				UDF onSuccess = Caster.toFunction(coll.get(KeyConstants._onSuccess, null), null);
+				if (onSuccess != null) {
+					Struct args = new StructImpl(StructImpl.TYPE_LINKED);
+					args.set(KeyConstants._result, result);
+					onSuccess.callWithNamedValues(pc, args, true);
+				}
+			}
+			// error
+			if (pe != null) {
+				UDF onError = Caster.toFunction(coll.get(KeyConstants._onError, null), null);
+				if (onError != null) {
+					Struct args = new StructImpl(StructImpl.TYPE_LINKED);
+					args.set(KeyConstants._error, pe.getCatchBlock(pc.getConfig()));
+					onError.callWithNamedValues(pc, args, true);
+				}
+			}
+
+		}
+		else if (listener == null) {
+			// do nothing
+		}
+
+		else throw new ApplicationException(
+				"type [" + Caster.toTypeName(listener) + "] not supported as listener, the only listeners supported is a function, a struct containing functions or a component");
+		// TODO Auto-generated method stub
+
 	}
 
 }

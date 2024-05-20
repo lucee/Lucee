@@ -21,7 +21,7 @@ import java.util.List;
 
 import lucee.transformer.expression.var.Member;
 
-public interface Invoker extends Expression {
+public interface Invoker extends Expression, Listenable {
 
 	/**
 	 * add a member to the invoker
@@ -43,4 +43,5 @@ public interface Invoker extends Expression {
 	 * @param member
 	 */
 	public Member removeMember(int index);
+
 }

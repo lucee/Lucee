@@ -52,6 +52,9 @@ public final class TagLibTagScript {
 	public static final short CTX_QUERY = 20;
 	public static final short CTX_ZIP = 21;
 	public static final short CTX_STATIC = 22;
+	public static final short CTX_TENARY_LEFT = 23;
+	public static final short CTX_TENARY_MIDDLE = 24;
+	public static final short CTX_TENARY_RIGHT = 25;
 
 	private final static TagLibTagAttr UNDEFINED = new TagLibTagAttr(null);
 

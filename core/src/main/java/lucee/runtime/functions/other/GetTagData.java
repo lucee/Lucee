@@ -32,7 +32,9 @@ import lucee.runtime.ComponentSpecificAccess;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.component.ComponentLoader;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.customtag.InitFile;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
@@ -55,7 +57,7 @@ public final class GetTagData implements Function {
 	private static final long serialVersionUID = -4928080244340202246L;
 
 	public static Struct call(PageContext pc, String nameSpace, String strTagName) throws PageException {
-		TagLibTag tlt = TagUtil.getTagLibTag(pc, nameSpace, strTagName);
+		TagLibTag tlt = TagUtil.getTagLibTag((ConfigPro) ThreadLocalPageContext.getConfig(pc), nameSpace, strTagName);
 		if (tlt == null) throw new ExpressionException("tag [" + nameSpace + strTagName + "] is not a built in tag");
 
 		// CFML Based Function

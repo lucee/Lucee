@@ -429,11 +429,16 @@ public abstract class PageExceptionImpl extends PageException {
 		// print.out(pr.getDisplayPath());
 		try {
 			String[] content = ps == null ? null : ps.getSource();
+			setAdditional(KeyConstants._template, ps == null ? "" : ps.getDisplayPath());
 			struct.setEL(KeyConstants._template, ps == null ? "" : ps.getDisplayPath());
+
+			setAdditional(KeyConstants._line, line);
 			struct.setEL(KeyConstants._line, Double.valueOf(line));
+
 			struct.setEL(KeyConstants._id, "??");
 			struct.setEL(KeyConstants._Raw_Trace, (element != null) ? element.toString() : "");
 			struct.setEL(KeyConstants._Type, "cfml");
+			setAdditional(KeyConstants._column, column);
 			struct.setEL(KeyConstants._column, Double.valueOf(column));
 			if (content != null) {
 				struct.setEL(KeyConstants._codePrintHTML, getCodePrint(content, line, true));

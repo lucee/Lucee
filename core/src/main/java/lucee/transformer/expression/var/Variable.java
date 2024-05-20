@@ -57,6 +57,7 @@ public interface Variable extends Expression, Invoker {
 
 	public Class<?> writeOutCollection(Context c, int mode) throws TransformerException;
 
+	@Override
 	Member removeMember(int index);
 
 	public void assign(Assign assign);

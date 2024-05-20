@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import lucee.print;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.Component;
@@ -64,6 +65,7 @@ import lucee.transformer.expression.ExprNumber;
 import lucee.transformer.expression.ExprString;
 import lucee.transformer.expression.Expression;
 import lucee.transformer.expression.Invoker;
+import lucee.transformer.expression.literal.LitBoolean;
 import lucee.transformer.expression.literal.LitNumber;
 import lucee.transformer.expression.literal.LitString;
 import lucee.transformer.expression.literal.Literal;
@@ -74,6 +76,7 @@ import lucee.transformer.library.function.FunctionLibFunction;
 import lucee.transformer.library.function.FunctionLibFunctionArg;
 import lucee.transformer.library.tag.TagLibTagAttr;
 import lucee.transformer.library.tag.TagLibTagScript;
+import lucee.transformer.util.PageSourceCode;
 import lucee.transformer.util.SourceCode;
 
 /**
@@ -171,12 +174,18 @@ public abstract class AbstrCFMLExprTransformer {
 	public static final short CTX_QUERY = TagLibTagScript.CTX_QUERY;
 	public static final short CTX_ZIP = TagLibTagScript.CTX_ZIP;
 	public static final short CTX_STATIC = TagLibTagScript.CTX_STATIC;
+	public static final short CTX_TENARY_LEFT = TagLibTagScript.CTX_TENARY_LEFT;
+	public static final short CTX_TENARY_MIDDLE = TagLibTagScript.CTX_TENARY_MIDDLE;
+	public static final short CTX_TENARY_RIGHT = TagLibTagScript.CTX_TENARY_RIGHT;
 
 	private DocCommentTransformer docCommentTransformer = new DocCommentTransformer();
 
 	protected short ATTR_TYPE_NONE = TagLibTagAttr.SCRIPT_SUPPORT_NONE;
 	protected short ATTR_TYPE_OPTIONAL = TagLibTagAttr.SCRIPT_SUPPORT_OPTIONAL;
 	protected short ATTR_TYPE_REQUIRED = TagLibTagAttr.SCRIPT_SUPPORT_REQUIRED;
+
+	private short tenaryContext = 0;
+	protected boolean insideCase = false;
 
 	protected static EndCondition SEMI_BLOCK = new EndCondition() {
 		@Override
@@ -380,12 +389,31 @@ public abstract class AbstrCFMLExprTransformer {
 				return data.factory.opElvis(left, right);
 			}
 
-			Expression left = assignOp(data);
+			// tenary middle
+			Expression left;
+			short pre = 0;
+			try {
+				pre = tenaryContext;
+				tenaryContext = CTX_TENARY_MIDDLE;
+				left = assignOp(data);
+			}
+			finally {
+				tenaryContext = pre;
+			}
 			comments(data);
 			if (!data.srcCode.forwardIfCurrent(':')) throw new TemplateException(data.srcCode, "invalid conditional operator");
 			comments(data);
-			Expression right = assignOp(data);
-
+			// tenary right
+			Expression right;
+			pre = 0;
+			try {
+				pre = tenaryContext;
+				tenaryContext = CTX_TENARY_RIGHT;
+				right = assignOp(data);
+			}
+			finally {
+				tenaryContext = pre;
+			}
 			expr = data.factory.opContional(expr, left, right);
 		}
 		return expr;
@@ -1215,7 +1243,6 @@ public abstract class AbstrCFMLExprTransformer {
 		Identifier id = identifier(data, false, true);
 		if (id == null) {
 			if (!data.srcCode.forwardIfCurrent('(')) return null;
-
 			comments(data);
 			Expression expr = assignOp(data);
 
@@ -1471,14 +1498,29 @@ public abstract class AbstrCFMLExprTransformer {
 			}
 		}
 
-		// static scipe call?
-
 		// STATIC SCOPE CALL
 		if (tryStatic) {
 			comments(data);
 			Expression staticCall = staticScope(data, expr);
-			if (staticCall != null) return staticCall;
+			if (staticCall != null) {
+				return staticCall;
+			}
 		}
+
+		if (expr instanceof Invoker) {
+			List<Member> members = ((Invoker) expr).getMembers();
+			if (members.size() > 0) {
+				Member last = members.get(members.size() - 1);
+				if (last instanceof FunctionMember) {
+					Expression listener = getListener(data);
+					if (listener != null) {
+						((Invoker) expr).addListener(listener);
+					}
+				}
+			}
+
+		}
+
 		return expr;
 	}
 
@@ -1545,9 +1587,11 @@ public abstract class AbstrCFMLExprTransformer {
 
 		if (data.srcCode.isCurrent('(')) {
 			FunctionMember func = getFunctionMember(data, Identifier.toIdentifier(data.factory, "_createComponent", Identifier.CASE_ORIGNAL, null, null), true);
+			// Expression listener = getListener(data);
 			func.addArgument(new Argument(exprName, "string"));
 			Variable v = expr.getFactory().createVariable(expr.getStart(), expr.getEnd());
 			v.addMember(func);
+			// if (listener != null) v.addListener(listener);
 			comments(data);
 			return v;
 		}
@@ -1609,9 +1653,11 @@ public abstract class AbstrCFMLExprTransformer {
 		// check function
 		if (data.srcCode.isCurrent('(')) {
 			FunctionMember func = getFunctionMember(data, name, true);
+			Expression listener = getListener(data);
 
 			Variable var = name.getFactory().createVariable(line, data.srcCode.getPosition());
 			var.addMember(func);
+			if (listener != null) var.addListener(listener);
 			comments(data);
 			return var;
 		}
@@ -1848,7 +1894,46 @@ public abstract class AbstrCFMLExprTransformer {
 			break;
 		}
 
+		comments(data);
+
 		return fm;
+	}
+
+	private Expression getListener(Data data) throws TemplateException {
+		if (!insideCase && tenaryContext != CTX_TENARY_MIDDLE && data.srcCode.forwardIfCurrent(':')) {
+			print.e("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
+			print.e("class: " + data.srcCode.getClass().getName());
+			print.e("line: " + data.srcCode.getLine());
+			if (data.srcCode instanceof PageSourceCode) {
+				print.e("source: " + ((PageSourceCode) data.srcCode).getPageSource().getDisplayPath());
+			}
+			print.e(data.srcCode.getText());
+
+			// if (true) return null;
+
+			int pos = data.srcCode.getPos();
+			comments(data);
+			Expression expr = assignOp(data);
+
+			// ATM we only allow function as listener
+			if (expr != null) {
+				if (expr instanceof Literal) {
+					if (expr instanceof LitString) throw new TemplateException(data.srcCode, "String [" + (((LitString) expr).getString()) + "] cannot be used as listeners");
+					else if (expr instanceof LitNumber) throw new TemplateException(data.srcCode, "Number [" + (((LitNumber) expr).getString()) + "] cannot be used as listeners");
+					else if (expr instanceof LitBoolean)
+						throw new TemplateException(data.srcCode, "Boolean [" + (((LitBoolean) expr).getString()) + "] cannot be used as listeners");
+					throw new TemplateException(data.srcCode, "Literal  [" + (((Literal) expr).getString()) + "] cannot be used as listeners for functions");
+				}
+				comments(data);
+				return expr;
+			}
+			// revert before the : if no function
+			else {
+				data.srcCode.setPos(pos);
+				data.srcCode.previous();
+			}
+		}
+		return null;
 	}
 
 	private int getFunctionMemberAttrs(Data data, ExprString name, boolean checkLibrary, Func fm, FunctionLibFunction flf) throws TemplateException {

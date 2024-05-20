@@ -44,6 +44,7 @@ import lucee.runtime.debug.DebuggerImpl;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.Abort;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.exp.ParentException;
 import lucee.runtime.net.http.HttpServletResponseDummy;
 import lucee.runtime.net.http.HttpUtil;
 import lucee.runtime.net.http.ReqRspUtil;
@@ -106,10 +107,13 @@ public class ChildThreadImpl extends ChildThread implements Serializable {
 
 	private Object threadScope;
 
+	private ParentException parentException;
+
 	public ChildThreadImpl(PageContextImpl parent, Page page, String tagName, int threadIndex, Struct attrs, boolean serializable) {
 		this.serializable = serializable;
 		this.tagName = tagName;
 		this.threadIndex = threadIndex;
+		this.parentException = new ParentException();
 		start = System.currentTimeMillis();
 		if (attrs == null) this.attrs = new StructImpl();
 		else this.attrs = attrs;
@@ -219,11 +223,21 @@ public class ChildThreadImpl extends ChildThread implements Serializable {
 				ExceptionUtil.rethrowIfNecessary(t);
 				if (!Abort.isSilentAbort(t)) {
 					ConfigWeb c = pc.getConfig();
+					ExceptionUtil.initCauseEL(t, parentException);
 					Log log = ThreadLocalPageContext.getLog(c, "thread");
-					if (log != null) log.log(Log.LEVEL_ERROR, this.getName(), t);
+					if (log != null) {
+						try {
+							log.log(Log.LEVEL_ERROR, this.getName(), t);
+						}
+						catch (Exception ex) {
+						}
+					}
+
 					PageException pe = Caster.toPageException(t);
-					// TODO log parent stacktrace as well
-					if (!serializable) catchBlock = pe.getCatchBlock(pc.getConfig());
+					if (!serializable) {
+						catchBlock = pe.getCatchBlock(pc.getConfig());
+					}
+
 					return pe;
 				}
 			}

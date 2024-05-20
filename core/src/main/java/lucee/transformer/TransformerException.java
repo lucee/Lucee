@@ -49,7 +49,7 @@ public final class TransformerException extends TemplateException {
 		if (c instanceof BytecodeContext) {
 			BytecodeContext bc = (BytecodeContext) c;
 			PageSource ps = bc.getPageSource();
-			if (ps != null) setAdditional(KeyConstants._source, ps.getDisplayPath());
+			if (ps != null) setAdditional(KeyConstants._template, ps.getDisplayPath());
 		}
 	}
 }

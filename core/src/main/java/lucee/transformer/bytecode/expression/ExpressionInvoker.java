@@ -34,6 +34,7 @@ import lucee.transformer.expression.Expression;
 import lucee.transformer.expression.Invoker;
 import lucee.transformer.expression.var.DataMember;
 import lucee.transformer.expression.var.Member;
+import lucee.transformer.expression.var.Variable;
 
 public final class ExpressionInvoker extends ExpressionBase implements Invoker {
 
@@ -98,19 +99,11 @@ public final class ExpressionInvoker extends ExpressionBase implements Invoker {
 		return rtn;
 	}
 
-	/**
-	 *
-	 * @see lucee.transformer.expression.Invoker#addMember(lucee.transformer.expression.var.Member)
-	 */
 	@Override
 	public void addMember(Member member) {
 		members.add(member);
 	}
 
-	/**
-	 *
-	 * @see lucee.transformer.expression.Invoker#getMembers()
-	 */
 	@Override
 	public List<Member> getMembers() {
 		return members;
@@ -121,4 +114,9 @@ public final class ExpressionInvoker extends ExpressionBase implements Invoker {
 		return members.remove(index);
 	}
 
+	@Override
+	public void addListener(Expression listener) {
+		if (expr instanceof Variable) ((Variable) expr).addListener(listener);
+		else if (expr instanceof Invoker) ((Invoker) expr).addListener(listener);
+	}
 }

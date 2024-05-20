@@ -510,7 +510,15 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 
 		// int line=data.srcCode.getLine();
 		comments(data);
-		Expression expr = super.expression(data);
+		Expression expr;
+		boolean pre = insideCase;
+		try {
+			insideCase = true;
+			expr = super.expression(data);
+		}
+		finally {
+			insideCase = pre;
+		}
 		comments(data);
 
 		if (!data.srcCode.forwardIfCurrent(':')) throw new TemplateException(data.srcCode, "case body must start with [:]");

@@ -33,8 +33,12 @@ import lucee.commons.lang.ClassException;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.types.RefInteger;
 import lucee.commons.lang.types.RefIntegerImpl;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.db.ClassDefinition;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.TemplateException;
+import lucee.runtime.functions.other.CreateUniqueId;
+import lucee.runtime.tag.TagUtil;
 import lucee.runtime.type.scope.Scope;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.UDFUtil;
@@ -42,8 +46,12 @@ import lucee.transformer.Context;
 import lucee.transformer.Factory;
 import lucee.transformer.Position;
 import lucee.transformer.TransformerException;
+import lucee.transformer.bytecode.Body;
 import lucee.transformer.bytecode.BytecodeContext;
 import lucee.transformer.bytecode.expression.ExpressionBase;
+import lucee.transformer.bytecode.statement.TryCatch;
+import lucee.transformer.bytecode.statement.tag.Attribute;
+import lucee.transformer.bytecode.statement.tag.TagThread;
 import lucee.transformer.bytecode.util.ASMConstants;
 import lucee.transformer.bytecode.util.ASMUtil;
 import lucee.transformer.bytecode.util.ExpressionUtil;
@@ -60,12 +68,12 @@ import lucee.transformer.expression.var.Member;
 import lucee.transformer.expression.var.Variable;
 import lucee.transformer.library.function.FunctionLibFunction;
 import lucee.transformer.library.function.FunctionLibFunctionArg;
+import lucee.transformer.library.tag.TagLibTag;
 
 public class VariableImpl extends ExpressionBase implements Variable {
 
 	// java.lang.Object get(Key)
 	final static Method METHOD_SCOPE_GET_KEY = new Method("get", Types.OBJECT, new Type[] { Types.COLLECTION_KEY });
-
 	// Object getCollection(Key)
 	final static Method METHOD_SCOPE_GET_COLLECTION_KEY = new Method("getCollection", Types.OBJECT, new Type[] { Types.COLLECTION_KEY });
 
@@ -182,6 +190,8 @@ public class VariableImpl extends ExpressionBase implements Variable {
 	private Boolean asCollection;
 	private Assign assign;
 
+	private Expression listener;
+
 	public VariableImpl(Factory factory, Position start, Position end) {
 		super(factory, start, end);
 	}
@@ -252,7 +262,7 @@ public class VariableImpl extends ExpressionBase implements Variable {
 	public final Type writeOutCollectionAsType(Context c, int mode) throws TransformerException {
 		BytecodeContext bc = (BytecodeContext) c;
 		bc.visitLine(getStart());
-		Type type = _writeOut(bc, mode, Boolean.TRUE);
+		Type type = writeOutX(bc, mode, Boolean.TRUE);
 		bc.visitLine(getEnd());
 		return type;
 	}
@@ -260,10 +270,33 @@ public class VariableImpl extends ExpressionBase implements Variable {
 	@Override
 	public Type _writeOut(BytecodeContext bc, int mode) throws TransformerException {
 		if (defaultValue != null && countFM == 0 && countDM != 0) return _writeOutCallerUtil(bc, mode);
-		return _writeOut(bc, mode, asCollection);
+		else if (listener != null) {
+			return _writeOutListener(bc, mode, asCollection);
+		}
+		return writeOutX(bc, mode, asCollection);
 	}
 
-	private Type _writeOut(BytecodeContext bc, int mode, Boolean asCollection) throws TransformerException {
+	private Type _writeOutListener(BytecodeContext bc, int mode, Boolean asCollection) throws TransformerException {
+		GeneratorAdapter ga = bc.getAdapter();
+		// TODO better way to get it?
+		String name = "threadListener:" + Long.toString(System.currentTimeMillis(), Character.MAX_RADIX) + CreateUniqueId.invoke();
+		LitString lname = bc.getFactory().createLitString(name);
+		TagThread tt = new TagThread(bc.getFactory(), getStart(), listener.getEnd());
+		TagLibTag tlt = TagUtil.getTagLibTag((ConfigPro) ThreadLocalPageContext.getConfig(), "cf", "thread");
+		tt.setTagLibTag(tlt);
+		tt.addAttribute(new Attribute(false, "action", bc.getFactory().createLitString("run"), "string"));
+		tt.addAttribute(new Attribute(false, "name", lname, "string"));
+		Body body = tt.getBody();
+		body.addStatement(new TryCatch(bc.getFactory(), getStart(), listener.getEnd(), this, listener, asCollection));
+		tt.setBody(body);
+		tt.setParent(bc.getPage());
+		tt.init();
+		tt._writeOut(bc);
+		lname.writeOut(bc, Expression.MODE_REF);
+		return Types.STRING;
+	}
+
+	public Type writeOutX(BytecodeContext bc, int mode, Boolean asCollection) throws TransformerException {
 
 		final GeneratorAdapter adapter = bc.getAdapter();
 		final int count = countFM + countDM;
@@ -1022,6 +1055,11 @@ public class VariableImpl extends ExpressionBase implements Variable {
 	@Override
 	public Assign assign() {
 		return assign;
+	}
+
+	@Override
+	public void addListener(Expression listener) {
+		this.listener = listener;
 	}
 
 }
