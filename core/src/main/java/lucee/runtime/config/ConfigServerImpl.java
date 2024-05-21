@@ -36,7 +36,6 @@ import lucee.commons.collection.MapFactory;
 import lucee.commons.digest.Hash;
 import lucee.commons.digest.HashUtil;
 import lucee.commons.io.SystemUtil;
-import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.ResourcesImpl;
@@ -509,16 +508,9 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 				// up to 100%
 				setPermGenCleanUpThreshold(permGenCleanUpThreshold - 5);
 			}
-			else {
-				LogUtil.log(ThreadLocalPageContext.getConfig(this), Log.LEVEL_WARN, ConfigServerImpl.class.getName(),
-						" Free Perm Gen Space is less than 5% free: shrinking all template classloaders : consider increasing allocated Perm Gen Space");
-			}
+
 		}
 		else if (check && kbFreePermSpace < 2048) {
-			LogUtil.log(ThreadLocalPageContext.getConfig(this), Log.LEVEL_WARN, ConfigServerImpl.class.getName(),
-
-					" Free Perm Gen Space is less than 2Mb (free:" + ((SystemUtil.getFreePermGenSpaceSize() / 1024)) + "kb), shrinking all template classloaders");
-			// first request a GC and then check if it helps
 			System.gc();
 			if ((SystemUtil.getFreePermGenSpaceSize() / 1024) < 2048) {
 				shrink();
