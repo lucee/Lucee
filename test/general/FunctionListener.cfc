@@ -181,7 +181,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 			});
 
 			it(title="listening on a UDF (joining the thread), send data to a component; test success", body=function() {
-				var threadName1=mySuccess():new functionListener.Test();
+				var cfc=createObject("component","functionListener/Test.cfc");
+				var threadName1=mySuccess():cfc;
 				
 				// wait for the thread to finsish
 				threadJoin(threadName1);
@@ -189,7 +190,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 			});
 
 			it(title="listening on a UDF (joining the thread), send data to a component; test fail", body=function() {
-				var threadName2=myError():new functionListener.Test();
+				var cfc=createObject("component","functionListener/Test.cfc");
+				var threadName2=myError():cfc;
 			
 				// wait for the thread to finsish
 				threadJoin(threadName2);
