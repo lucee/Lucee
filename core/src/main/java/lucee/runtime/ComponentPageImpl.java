@@ -322,7 +322,7 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 					// check if http method either match or is unspecified
 					String httpMethod = Caster.toString(meta.get(KeyConstants._httpmethod, null), null);
 					boolean hasHttpMethod = !StringUtil.isEmpty(httpMethod);
-					boolean httpMethodMatches = hasHttpMethod && httpMethod.equalsIgnoreCase(method);
+					boolean httpMethodMatches = hasHttpMethod && (StringUtil.indexOfIgnoreCase(httpMethod, method) != -1);
 					if (hasHttpMethod && !httpMethodMatches) continue;
 
 					// get consumes mimetype
