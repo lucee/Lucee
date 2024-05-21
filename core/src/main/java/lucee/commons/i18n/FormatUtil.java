@@ -25,6 +25,7 @@ import java.text.SimpleDateFormat;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
+import java.time.format.FormatStyle;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -35,9 +36,9 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import lucee.commons.date.TimeZoneConstants;
 import lucee.commons.io.IOUtil;
+import lucee.commons.io.SystemUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.ExceptionUtil;
-import lucee.commons.lang.SerializableObject;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.config.Config;
 import lucee.runtime.engine.ThreadLocalPageContext;
@@ -51,22 +52,20 @@ public class FormatUtil {
 
 	private final static Map<String, SoftReference<DateFormat[]>> formats = new ConcurrentHashMap<String, SoftReference<DateFormat[]>>();
 
-	private final static Object token = new SerializableObject();
-
 	private final static Map<String, SoftReference<List<DateTimeFormatter>>> cfmlFormats = new ConcurrentHashMap<>();
 
 	private final static String[] strCfmlFormats = new String[] { "EEE MMM dd HH:mm:ss z yyyy", "MMMM dd, yyyy HH:mm:ss a zzz", "MMM dd, yyyy HH:mm:ss a", "MMM dd, yyyy HH:mm:ss",
 			"MMMM d yyyy HH:mm:ssZ", "MMMM d yyyy HH:mm:ss", "MMMM d yyyy HH:mm", "EEE, MMM dd, yyyy HH:mm:ssZ", "EEE, MMM dd, yyyy HH:mm:ss", "EEEE, MMMM dd, yyyy H:mm:ss a zzz",
 			"dd-MMM-yy HH:mm a", "EE, dd-MMM-yyyy HH:mm:ss zz", "dd-MMMM-yy HH:mm a", "EE, dd MMM yyyy HH:mm:ss zz", "EEE d, MMM yyyy HH:mm:ss zz", "dd-MMM-yyyy",
 			"MMMM, dd yyyy HH:mm:ssZ", "MMMM, dd yyyy HH:mm:ss", "yyyy/MM/dd HH:mm:ss zz", "dd MMM yyyy HH:mm:ss zz", "EEE MMM dd yyyy HH:mm:ss 'GMT'ZZ (z)",
-			"yyyy-MM-dd HH:mm:ss zz", "dd MMM, yyyy HH:mm:ss" };
+			"yyyy-MM-dd HH:mm:ss zz", "dd MMM, yyyy HH:mm:ss", "MMMM, dd yyyy HH:mm:ss Z" };
 
 	public static List<DateTimeFormatter> getCFMLFormats(TimeZone timeZone, boolean lenient) {
 		String key = "cfml:" + timeZone.getID() + ":" + lenient;
 		SoftReference<List<DateTimeFormatter>> sr = cfmlFormats.get(key);
 		List<DateTimeFormatter> formatter = null;
 		if (sr == null || (formatter = sr.get()) == null) {
-			synchronized (token) {
+			synchronized (SystemUtil.createToken("cfml", key)) {
 				sr = cfmlFormats.get(key);
 				if (sr == null || (formatter = sr.get()) == null) {
 					ZoneId zone = timeZone.toZoneId();
@@ -83,6 +82,44 @@ public class FormatUtil {
 			}
 		}
 		return formatter;
+	}
+
+	public static List<DateTimeFormatter> getDateTimeFormatsNew(Locale locale, TimeZone tz, boolean lenient) {
+
+		String key = "dt-" + locale.toString() + "-" + tz.getID() + "-" + lenient;
+		SoftReference<List<DateTimeFormatter>> tmp = cfmlFormats.get(key);
+		List<DateTimeFormatter> df = tmp == null ? null : tmp.get();
+		if (df == null) {
+			synchronized (SystemUtil.createToken("dt", key)) {
+				df = tmp == null ? null : tmp.get();
+				if (df == null) {
+					ZoneId zone = tz.toZoneId();
+					df = new ArrayList<>();
+					df.add(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.FULL, FormatStyle.FULL).withLocale(locale).withZone(zone));
+					df.add(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.FULL, FormatStyle.LONG).withLocale(locale).withZone(zone));
+					df.add(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.FULL, FormatStyle.MEDIUM).withLocale(locale).withZone(zone));
+					df.add(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.FULL, FormatStyle.SHORT).withLocale(locale).withZone(zone));
+
+					df.add(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.LONG, FormatStyle.FULL).withLocale(locale).withZone(zone));
+					df.add(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.LONG, FormatStyle.LONG).withLocale(locale).withZone(zone));
+					df.add(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.LONG, FormatStyle.MEDIUM).withLocale(locale).withZone(zone));
+					df.add(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.LONG, FormatStyle.SHORT).withLocale(locale).withZone(zone));
+
+					df.add(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM, FormatStyle.FULL).withLocale(locale).withZone(zone));
+					df.add(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM, FormatStyle.LONG).withLocale(locale).withZone(zone));
+					df.add(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM, FormatStyle.MEDIUM).withLocale(locale).withZone(zone));
+					df.add(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM, FormatStyle.SHORT).withLocale(locale).withZone(zone));
+
+					df.add(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT, FormatStyle.FULL).withLocale(locale).withZone(zone));
+					df.add(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT, FormatStyle.LONG).withLocale(locale).withZone(zone));
+					df.add(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT, FormatStyle.MEDIUM).withLocale(locale).withZone(zone));
+					df.add(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT, FormatStyle.SHORT).withLocale(locale).withZone(zone));
+
+					cfmlFormats.put(key, new SoftReference<List<DateTimeFormatter>>(df));
+				}
+			}
+		}
+		return df;
 	}
 
 	public static DateFormat[] getDateTimeFormats(Locale locale, TimeZone tz, boolean lenient) {

@@ -156,7 +156,6 @@ public final class DateCaster {
 		if (dt == null) {
 			List<DateTimeFormatter> formats = FormatUtil.getCFMLFormats(timeZone, true);
 			for (DateTimeFormatter dtf: formats) {
-				// dtf = dtf.withZone(zone);
 				try {
 					return new DateTimeImpl(Date.from(ZonedDateTime.parse(str, dtf).toInstant()).getTime(), false);
 				}
