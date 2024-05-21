@@ -59,6 +59,7 @@ import lucee.runtime.type.scope.ArgumentThreadImpl;
 import lucee.runtime.type.scope.Local;
 import lucee.runtime.type.scope.LocalImpl;
 import lucee.runtime.type.scope.Undefined;
+import lucee.runtime.type.scope.UndefinedImpl;
 import lucee.runtime.type.util.KeyConstants;
 
 public class ChildThreadImpl extends ChildThread implements Serializable {
@@ -109,11 +110,14 @@ public class ChildThreadImpl extends ChildThread implements Serializable {
 
 	private ParentException parentException;
 
-	public ChildThreadImpl(PageContextImpl parent, Page page, String tagName, int threadIndex, Struct attrs, boolean serializable) {
+	private final boolean separateScopes;
+
+	public ChildThreadImpl(PageContextImpl parent, Page page, String tagName, int threadIndex, Struct attrs, boolean serializable, boolean separateScopes) {
 		this.serializable = serializable;
 		this.tagName = tagName;
 		this.threadIndex = threadIndex;
 		this.parentException = new ParentException();
+		this.separateScopes = separateScopes;
 		start = System.currentTimeMillis();
 		if (attrs == null) this.attrs = new StructImpl();
 		else this.attrs = attrs;
@@ -131,6 +135,10 @@ public class ChildThreadImpl extends ChildThread implements Serializable {
 				// tag names
 				this.pc.setTagName(tagName);
 				this.pc.addParentTag(parent.getTagName());
+				if (!separateScopes) {
+					this.pc.undefinedScope().setMode(((UndefinedImpl) parent.undefinedScope()).getMode());
+					this.pc.setFunctionScopes(parent.localScope(), parent.argumentsScope());
+				}
 			}
 		}
 		else {
@@ -198,23 +206,30 @@ public class ChildThreadImpl extends ChildThread implements Serializable {
 
 			Undefined undefined = pc.us();
 
-			Argument newArgs = new ArgumentThreadImpl((Struct) Duplicator.duplicate(attrs, false));
-			LocalImpl newLocal = pc.getScopeFactory().getLocalInstance();
-			// Key[] keys = attrs.keys();
-			Iterator<Entry<Key, Object>> it = attrs.entryIterator();
-			Entry<Key, Object> e;
-			while (it.hasNext()) {
-				e = it.next();
-				newArgs.setEL(e.getKey(), e.getValue());
+			int oldMode = -1;
+			LocalImpl newLocal = null;
+			Argument oldArgs = null;
+			Local oldLocal = null;
+			if (separateScopes) {
+
+				// arguments
+				oldArgs = pc.argumentsScope();
+				Argument newArgs = new ArgumentThreadImpl((Struct) Duplicator.duplicate(attrs, false));
+				Iterator<Entry<Key, Object>> it = attrs.entryIterator();
+				Entry<Key, Object> e;
+				while (it.hasNext()) {
+					e = it.next();
+					newArgs.setEL(e.getKey(), e.getValue());
+				}
+
+				// local
+				newLocal = pc.getScopeFactory().getLocalInstance();
+				oldLocal = pc.localScope();
+				newLocal.setEL(KEY_ATTRIBUTES, newArgs);
+
+				oldMode = undefined.setMode(Undefined.MODE_LOCAL_OR_ARGUMENTS_ALWAYS);
+				pc.setFunctionScopes(newLocal, newArgs);
 			}
-
-			newLocal.setEL(KEY_ATTRIBUTES, newArgs);
-
-			Argument oldArgs = pc.argumentsScope();
-			Local oldLocal = pc.localScope();
-
-			int oldMode = undefined.setMode(Undefined.MODE_LOCAL_OR_ARGUMENTS_ALWAYS);
-			pc.setFunctionScopes(newLocal, newArgs);
 
 			try {
 				p.threadCall(pc, threadIndex);
@@ -243,10 +258,12 @@ public class ChildThreadImpl extends ChildThread implements Serializable {
 			}
 			finally {
 				completed = true;
-				pc.setFunctionScopes(oldLocal, oldArgs);
-				undefined.setMode(oldMode);
+				if (separateScopes) {
+					pc.setFunctionScopes(oldLocal, oldArgs);
+					undefined.setMode(oldMode);
+					if (newLocal != null) pc.getScopeFactory().recycle(pc, newLocal);
+				}
 				// pc.getScopeFactory().recycle(newArgs);
-				pc.getScopeFactory().recycle(pc, newLocal);
 
 				if (pc.getHttpServletResponse() instanceof HttpServletResponseDummy) {
 					HttpServletResponseDummy rsp = (HttpServletResponseDummy) pc.getHttpServletResponse();

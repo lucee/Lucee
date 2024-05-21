@@ -63,10 +63,39 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				expect(cfthread[threadName].result).toBe(3);
 			});
 			
-			it(title="listening on a UDF chain that does NOT fail (joining the thread)",  body=function()  {
-				// TODO local.a.b.c.d=mySuccess; // does not work!
-				variables.a.b.c.d=mySuccess;
+			it(title="listening on a UDF chain that does NOT fail (joining the thread);undefined",  body=function()  {
+				a.b.c.d=mySuccess;
 				var threadName=a.b.c.d():function(result,error) {
+					thread.result=result?:error;
+				};
+				// wait for the thread to finsish
+				threadJoin(threadName);
+				expect(cfthread[threadName].result).toBe("Susi Sorglos");
+			});
+			
+			it(title="listening on a UDF chain that does NOT fail (joining the thread);local",  body=function()  {
+				local.a.b.c.d=mySuccess;
+				var threadName=local.a.b.c.d():function(result,error) {
+					thread.result=result?:error;
+				};
+				// wait for the thread to finsish
+				threadJoin(threadName);
+				expect(cfthread[threadName].result).toBe("Susi Sorglos");
+			});
+
+			it(title="listening on a UDF chain that does NOT fail (joining the thread);variables",  body=function()  {
+				variables.a.b.c.d=mySuccess;
+				var threadName=variables.a.b.c.d():function(result,error) {
+					thread.result=result?:error;
+				};
+				// wait for the thread to finsish
+				threadJoin(threadName);
+				expect(cfthread[threadName].result).toBe("Susi Sorglos");
+			});
+
+			it(title="listening on a UDF chain that does NOT fail (joining the thread);arguments",  body=function()  {
+				arguments.a.b.c.d=mySuccess;
+				var threadName=arguments.a.b.c.d():function(result,error) {
 					thread.result=result?:error;
 				};
 				// wait for the thread to finsish
@@ -119,8 +148,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 			});
 
 			it(title="listening on a UDF (joining the thread), send data to a function collection; test success", body=function() {
-				// TODO local.collection=
-				variables.coll1={
+				coll1={
 					onSuccess:function(result) {
 						thread.success=result;
 					}

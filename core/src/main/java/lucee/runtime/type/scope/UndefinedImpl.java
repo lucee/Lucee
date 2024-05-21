@@ -117,6 +117,15 @@ public final class UndefinedImpl extends StructSupport implements Undefined, Obj
 		return m;
 	}
 
+	public int getMode() {
+		int m = Undefined.MODE_NO_LOCAL_AND_ARGUMENTS;
+		if (checkArguments) {
+			if (localAlways) m = Undefined.MODE_LOCAL_OR_ARGUMENTS_ALWAYS;
+			else m = Undefined.MODE_LOCAL_OR_ARGUMENTS_ONLY_WHEN_EXISTS;
+		}
+		return m;
+	}
+
 	@Override
 	public boolean getLocalAlways() {
 		return localAlways;

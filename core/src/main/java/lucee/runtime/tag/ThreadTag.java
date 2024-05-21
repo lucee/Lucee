@@ -96,6 +96,7 @@ public final class ThreadTag extends BodyTagImpl implements DynamicAttributes {
 	private int type = TYPE_DAEMON;
 	private ExecutionPlan[] plans = EXECUTION_PLAN;
 	private Struct attrs;
+	private boolean separateScopes = true;
 
 	@Override
 	public void release() {
@@ -109,6 +110,7 @@ public final class ThreadTag extends BodyTagImpl implements DynamicAttributes {
 		timeout = 0;
 		attrs = null;
 		pc = null;
+		separateScopes = true;
 	}
 
 	/**
@@ -129,6 +131,10 @@ public final class ThreadTag extends BodyTagImpl implements DynamicAttributes {
 	 */
 	public void setDuration(double duration) {
 		this.duration = (long) duration;
+	}
+
+	public void setSeparatescopes(boolean separateScopes) {
+		this.separateScopes = separateScopes;
 	}
 
 	/**
@@ -298,7 +304,7 @@ public final class ThreadTag extends BodyTagImpl implements DynamicAttributes {
 
 			if (type == TYPE_DAEMON) {
 				if (ts != null) throw new ApplicationException("could not create a thread with the name [" + name.getString() + "]. name must be unique within a request");
-				ChildThreadImpl ct = new ChildThreadImpl((PageContextImpl) pc, currentPage, name.getString(), threadIndex, attrs, false);
+				ChildThreadImpl ct = new ChildThreadImpl((PageContextImpl) pc, currentPage, name.getString(), threadIndex, attrs, false, separateScopes);
 				ThreadsImpl t = new ThreadsImpl(ct);
 				PageContextImpl root = (PageContextImpl) getRootPageContext(pc);
 				root.setAllThreadScope(name, t);
@@ -308,7 +314,7 @@ public final class ThreadTag extends BodyTagImpl implements DynamicAttributes {
 				ct.start();
 			}
 			else {
-				ChildThreadImpl ct = new ChildThreadImpl((PageContextImpl) pc, currentPage, name.getString(), threadIndex, attrs, true);
+				ChildThreadImpl ct = new ChildThreadImpl((PageContextImpl) pc, currentPage, name.getString(), threadIndex, attrs, true, separateScopes);
 				ct.setPriority(priority);
 				((SpoolerEngineImpl) ((ConfigPro) pc.getConfig()).getSpoolerEngine()).add(pc.getConfig(), new ChildSpoolerTask(ct, plans));
 			}

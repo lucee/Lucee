@@ -285,6 +285,7 @@ public class VariableImpl extends ExpressionBase implements Variable {
 		TagLibTag tlt = TagUtil.getTagLibTag((ConfigPro) ThreadLocalPageContext.getConfig(), "cf", "thread");
 		tt.setTagLibTag(tlt);
 		tt.addAttribute(new Attribute(false, "action", bc.getFactory().createLitString("run"), "string"));
+		tt.addAttribute(new Attribute(false, "separatescopes", bc.getFactory().createLitBoolean(false), "boolean"));
 		tt.addAttribute(new Attribute(false, "name", lname, "string"));
 		Body body = tt.getBody();
 		body.addStatement(new TryCatch(bc.getFactory(), getStart(), listener.getEnd(), this, listener, asCollection));
