@@ -263,6 +263,7 @@ Create Datasource --->
 								<div class="comment">#stText.setting["inspectTemplate#settings.inspectTemplate#Desc"]#</div>
 							</cfif>
 						</cfif>
+						<cfset renderSysPropEnvVar( "lucee.inspect.template",settings.inspectTemplate?:"auto")>
 					</td>
 				</tr>
 				

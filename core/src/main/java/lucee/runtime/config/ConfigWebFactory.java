@@ -1803,6 +1803,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 							if ((physical != null || archive != null)) {
 
 								short insTemp = inspectTemplate(el);
+
 								int insTempSlow = Caster.toIntValue(getAttr(el, "inspectTemplateIntervalSlow"), ConfigPro.INSPECT_INTERVAL_UNDEFINED);
 								int insTempFast = Caster.toIntValue(getAttr(el, "inspectTemplateIntervalFast"), ConfigPro.INSPECT_INTERVAL_UNDEFINED);
 
@@ -1892,6 +1893,10 @@ public final class ConfigWebFactory extends ConfigFactory {
 			}
 			return ConfigPro.INSPECT_UNDEFINED;
 		}
+		if (StringUtil.isEmpty(strInsTemp)) {
+			strInsTemp = SystemUtil.getSystemPropOrEnvVar("lucee.inspect.template", null);
+		}
+
 		return ConfigWebUtil.inspectTemplate(strInsTemp, ConfigPro.INSPECT_UNDEFINED);
 	}
 
