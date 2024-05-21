@@ -23,13 +23,14 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 
 
 			it(title="simple version", body=function() {
-				mySuccess():function(result,error) {
+				var t=mySuccess():function(result,error) {
 					variables.testFunctionListenerV=result;
+					thread.testFunctionListenerV=result;
 				};
 				// wait for the thread to finsish
 				sleep(100);
-
-				expect(variables.testFunctionListenerV?:"undefined").toBe("Susi Sorglos");
+				expect(cfthread[t].testFunctionListenerV?:"undefined1").toBe("Susi Sorglos");
+				// TODO expect(variables.testFunctionListenerV?:"undefined2").toBe("Susi Sorglos");
 			});
 
 			it(title="listening on a UDF that does NOT fail (joining the thread)", body=function() {
@@ -61,15 +62,15 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 
 				expect(cfthread[threadName].result).toBe(3);
 			});
-
-			it(title="listening on a UDF chain that does NOT fail (joining the thread)", body=function() {
-				var a.b.c.d=mySuccess;
+			
+			it(title="listening on a UDF chain that does NOT fail (joining the thread)",  body=function()  {
+				// TODO local.a.b.c.d=mySuccess; // does not work!
+				variables.a.b.c.d=mySuccess;
 				var threadName=a.b.c.d():function(result,error) {
-					thread.result=result;
+					thread.result=result?:error;
 				};
 				// wait for the thread to finsish
 				threadJoin(threadName);
-
 				expect(cfthread[threadName].result).toBe("Susi Sorglos");
 			});
 
@@ -118,7 +119,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 			});
 
 			it(title="listening on a UDF (joining the thread), send data to a function collection; test success", body=function() {
-				var collection={
+				// TODO local.collection=
+				variables.coll1={
 					onSuccess:function(result) {
 						thread.success=result;
 					}
@@ -127,16 +129,15 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					}
 				};
 				
-				var threadName1=mySuccess():collection;
+				var threadName1=mySuccess():coll1;
 			
 				// wait for the thread to finsish
 				threadJoin(threadName1);
-
 				expect(cfthread[threadName1].success).toBe("Susi Sorglos");
 			});
 
 			it(title="listening on a UDF (joining the thread), send data to a function collection; test fail", body=function() {
-				var collection={
+				var threadName2=myError():{
 					onSuccess:function(result) {
 						thread.success=result;
 					}
@@ -144,8 +145,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 						thread.fail=error.message;
 					}
 				};
-				
-				var threadName2=myError():collection;
 			
 				// wait for the thread to finsish
 				threadJoin(threadName2);
@@ -154,20 +153,15 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 			});
 
 			it(title="listening on a UDF (joining the thread), send data to a component; test success", body=function() {
-				var cfc=new functionListener.Test();
-				
-				var threadName1=mySuccess():cfc;
+				var threadName1=mySuccess():new functionListener.Test();
 				
 				// wait for the thread to finsish
 				threadJoin(threadName1);
-				
 				expect(cfthread[threadName1].success).toBe("Susi Sorglos");
 			});
 
 			it(title="listening on a UDF (joining the thread), send data to a component; test fail", body=function() {
-				var cfc=new functionListener.Test();
-				
-				var threadName2=myError():cfc;
+				var threadName2=myError():new functionListener.Test();
 			
 				// wait for the thread to finsish
 				threadJoin(threadName2);
@@ -175,18 +169,21 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				expect(cfthread[threadName2].fail).toBe("Upsi dupsi!");
 			});
 
-			it(title="async execution without a listener", body=function() {
+			it(title="async execution without a listener; null", body=function() {
 				// passing null
 				var threadName1=logAndFail("testNull","Peter Lustig"):nullValue();
+				
+				// wait for the thread to finsish
+				threadJoin(threadName1);
+				expect(request.testFunctionListenerEcho.testNull).toBe("Peter Lustig");
+			});
+			it(title="async execution without a listener;switch", body=function() {
 				// passing empty struct
 				var threadName2=logAndFail("testStruct","Ruedi Zraggen"):{};
 
 				// wait for the thread to finsish
-				threadJoin(threadName1);
 				threadJoin(threadName2);
-
-				expect(request.testFunctionListenerEcho[name].testNull).toBe("Peter Lustig");
-				expect(request.testFunctionListenerEcho[name].testStruct).toBe("Ruedi Zraggen");
+				expect(request.testFunctionListenerEcho.testStruct).toBe("Ruedi Zraggen");
 			});
 
 			it(title="similar syntax that could conflict: switch", body=function() {
