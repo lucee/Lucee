@@ -3998,8 +3998,8 @@ public final class Caster {
 		}
 
 		// <type>[]
-		if (lctype.endsWith("[]")) {
-			String componentType = lctype.substring(0, lctype.length() - 2);
+		if (type.endsWith("[]")) {
+			String componentType = type.substring(0, type.length() - 2);
 			Object[] src = toNativeArray(o);
 			Array trg = new ArrayImpl();
 			for (int i = 0; i < src.length; i++) {
