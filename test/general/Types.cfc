@@ -48,6 +48,12 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	}
 
 
+	public void function testNativeStringArrayConversion(){
+		var engine=createObject("java","lucee.loader.engine.CFMLEngineFactory").getINstance();
+		var creator=engine.getCreationUtil();
+		// method that takes String[]
+		var qry=creator.createQuery(["firstname","lastname"], 1, "test");
+	}
 } 
 
 
