@@ -23,8 +23,11 @@ import java.text.DateFormat;
 import java.text.ParsePosition;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 import java.util.TimeZone;
 
@@ -151,20 +154,15 @@ public final class DateCaster {
 		timeZone = ThreadLocalPageContext.getTimeZone(timeZone);
 		DateTime dt = toDateSimple(str, convertingType, true, timeZone, defaultValue);
 		if (dt == null) {
-			final DateFormat[] formats = FormatUtil.getCFMLFormats(timeZone, true);
-			DateFormat df;
-			Date d;
-			ParsePosition pp = new ParsePosition(0);
-			for (int i = 0; i < formats.length; i++) {
-				df = formats[i];
-				pp.setErrorIndex(-1);
-				pp.setIndex(0);
-				synchronized (df) {
-					d = df.parse(str, pp);
+			List<DateTimeFormatter> formats = FormatUtil.getCFMLFormats(timeZone, true);
+			for (DateTimeFormatter dtf: formats) {
+				// dtf = dtf.withZone(zone);
+				try {
+					return new DateTimeImpl(Date.from(ZonedDateTime.parse(str, dtf).toInstant()).getTime(), false);
 				}
-				if (pp.getIndex() == 0 || d == null || pp.getIndex() < str.length()) continue;
-				dt = new DateTimeImpl(d.getTime(), false);
-				return dt;
+				catch (Exception e) {
+
+				}
 			}
 			dt = toDateTime(Locale.US, str, timeZone, defaultValue, false);
 		}

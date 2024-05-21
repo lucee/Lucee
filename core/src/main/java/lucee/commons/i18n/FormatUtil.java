@@ -22,6 +22,9 @@ import java.lang.ref.SoftReference;
 import java.nio.charset.Charset;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -34,6 +37,7 @@ import lucee.commons.date.TimeZoneConstants;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.ExceptionUtil;
+import lucee.commons.lang.SerializableObject;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.config.Config;
 import lucee.runtime.engine.ThreadLocalPageContext;
@@ -46,6 +50,40 @@ public class FormatUtil {
 	public static final short FORMAT_TYPE_DATE_ALL = 4;
 
 	private final static Map<String, SoftReference<DateFormat[]>> formats = new ConcurrentHashMap<String, SoftReference<DateFormat[]>>();
+
+	private final static Object token = new SerializableObject();
+
+	private final static Map<String, SoftReference<List<DateTimeFormatter>>> cfmlFormats = new ConcurrentHashMap<>();
+
+	private final static String[] strCfmlFormats = new String[] { "EEE MMM dd HH:mm:ss z yyyy", "MMMM dd, yyyy HH:mm:ss a zzz", "MMM dd, yyyy HH:mm:ss a", "MMM dd, yyyy HH:mm:ss",
+			"MMMM d yyyy HH:mm:ssZ", "MMMM d yyyy HH:mm:ss", "MMMM d yyyy HH:mm", "EEE, MMM dd, yyyy HH:mm:ssZ", "EEE, MMM dd, yyyy HH:mm:ss", "EEEE, MMMM dd, yyyy H:mm:ss a zzz",
+			"dd-MMM-yy HH:mm a", "EE, dd-MMM-yyyy HH:mm:ss zz", "dd-MMMM-yy HH:mm a", "EE, dd MMM yyyy HH:mm:ss zz", "EEE d, MMM yyyy HH:mm:ss zz", "dd-MMM-yyyy",
+			"MMMM, dd yyyy HH:mm:ssZ", "MMMM, dd yyyy HH:mm:ss", "yyyy/MM/dd HH:mm:ss zz", "dd MMM yyyy HH:mm:ss zz", "EEE MMM dd yyyy HH:mm:ss 'GMT'ZZ (z)",
+			"yyyy-MM-dd HH:mm:ss zz", "dd MMM, yyyy HH:mm:ss" };
+
+	public static List<DateTimeFormatter> getCFMLFormats(TimeZone timeZone, boolean lenient) {
+		String key = "cfml:" + timeZone.getID() + ":" + lenient;
+		SoftReference<List<DateTimeFormatter>> sr = cfmlFormats.get(key);
+		List<DateTimeFormatter> formatter = null;
+		if (sr == null || (formatter = sr.get()) == null) {
+			synchronized (token) {
+				sr = cfmlFormats.get(key);
+				if (sr == null || (formatter = sr.get()) == null) {
+					ZoneId zone = timeZone.toZoneId();
+					formatter = new ArrayList<>();
+					DateTimeFormatterBuilder builder;
+					for (String f: strCfmlFormats) {
+						builder = new DateTimeFormatterBuilder().appendPattern(f);
+						if (lenient) builder.parseCaseInsensitive();
+						else builder.parseCaseSensitive();
+						formatter.add(builder.toFormatter(Locale.ENGLISH).withZone(zone));
+					}
+					cfmlFormats.put(key, new SoftReference(formatter));
+				}
+			}
+		}
+		return formatter;
+	}
 
 	public static DateFormat[] getDateTimeFormats(Locale locale, TimeZone tz, boolean lenient) {
 
@@ -251,44 +289,6 @@ public class FormatUtil {
 				}
 			}
 		}
-	}
-
-	/**
-	 * CFML Supported LS Formats
-	 * 
-	 * @param locale
-	 * @param tz
-	 * @param lenient
-	 * @return
-	 */
-	public static DateFormat[] getCFMLFormats(TimeZone tz, boolean lenient) {
-		String id = "cfml-" + Locale.ENGLISH.toString() + "-" + tz.getID() + "-" + lenient;
-		SoftReference<DateFormat[]> tmp = formats.get(id);
-		DateFormat[] df = tmp == null ? null : tmp.get();
-
-		if (df == null) {
-			df = new SimpleDateFormat[] { new SimpleDateFormat("EEE MMM dd HH:mm:ss z yyyy", Locale.ENGLISH), new SimpleDateFormat("MMMM dd, yyyy HH:mm:ss a zzz", Locale.ENGLISH),
-					new SimpleDateFormat("MMM dd, yyyy HH:mm:ss a", Locale.ENGLISH), new SimpleDateFormat("MMM dd, yyyy HH:mm:ss", Locale.ENGLISH),
-					new SimpleDateFormat("MMMM d yyyy HH:mm:ssZ", Locale.ENGLISH), new SimpleDateFormat("MMMM d yyyy HH:mm:ss", Locale.ENGLISH),
-					new SimpleDateFormat("MMMM d yyyy HH:mm", Locale.ENGLISH), new SimpleDateFormat("EEE, MMM dd, yyyy HH:mm:ssZ", Locale.ENGLISH),
-					new SimpleDateFormat("EEE, MMM dd, yyyy HH:mm:ss", Locale.ENGLISH), new SimpleDateFormat("EEEE, MMMM dd, yyyy H:mm:ss a zzz", Locale.ENGLISH),
-					new SimpleDateFormat("dd-MMM-yy HH:mm a", Locale.ENGLISH), new SimpleDateFormat("dd-MMMM-yy HH:mm a", Locale.ENGLISH),
-					new SimpleDateFormat("EE, dd-MMM-yyyy HH:mm:ss zz", Locale.ENGLISH), new SimpleDateFormat("EE, dd MMM yyyy HH:mm:ss zz", Locale.ENGLISH),
-					new SimpleDateFormat("EEE d, MMM yyyy HH:mm:ss zz", Locale.ENGLISH), new SimpleDateFormat("dd-MMM-yyyy", Locale.ENGLISH),
-					new SimpleDateFormat("MMMM, dd yyyy HH:mm:ssZ", Locale.ENGLISH), new SimpleDateFormat("MMMM, dd yyyy HH:mm:ss", Locale.ENGLISH),
-					new SimpleDateFormat("yyyy/MM/dd HH:mm:ss zz", Locale.ENGLISH), new SimpleDateFormat("dd MMM yyyy HH:mm:ss zz", Locale.ENGLISH),
-					new SimpleDateFormat("yyyy-MM-dd HH:mm:ss zz", Locale.ENGLISH), new SimpleDateFormat("EEE MMM dd yyyy HH:mm:ss 'GMT'ZZ (z)", Locale.ENGLISH),
-					new SimpleDateFormat("dd MMM, yyyy HH:mm:ss", Locale.ENGLISH)
-					// ,new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss",Locale.ENGLISH)
-			};
-
-			for (int i = 0; i < df.length; i++) {
-				df[i].setLenient(lenient);
-				df[i].setTimeZone(tz);
-			}
-			formats.put(id, new SoftReference<DateFormat[]>(df));
-		}
-		return clone(df);
 	}
 
 	public static DateFormat[] getFormats(Locale locale, TimeZone tz, boolean lenient, short formatType) {
