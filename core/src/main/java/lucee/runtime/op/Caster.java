@@ -3586,11 +3586,6 @@ public final class Caster {
 			}
 
 		}
-		if (t instanceof OutOfMemoryError) {
-			ThreadLocalPageContext.getConfig().checkPermGenSpace(true);
-		}
-		// Throwable cause = t.getCause();
-		// if(cause!=null && cause!=t) return toPageException(cause);
 		return NativeException.newInstance(t, rethrowIfNecessary);
 	}
 

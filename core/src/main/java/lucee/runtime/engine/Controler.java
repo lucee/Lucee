@@ -268,17 +268,6 @@ public final class Controler extends ParentThreasRefThread {
 			}
 		}
 
-		// every hour
-		if (doHour) {
-			try {
-				configServer.checkPermGenSpace(true);
-			}
-			catch (Throwable t) {
-				ExceptionUtil.rethrowIfNecessary(t);
-				if (log != null) log.error("controler", t);
-			}
-		}
-
 		for (int i = 0; i < factories.length; i++) {
 			control(factories[i], do10Seconds, doMinute, doHour, firstRun, log);
 		}
@@ -494,14 +483,6 @@ public final class Controler extends ParentThreasRefThread {
 					ExceptionUtil.rethrowIfNecessary(t);
 					if (log != null) log.error("controler", t);
 				}
-			}
-
-			try {
-				configServer.checkPermGenSpace(true);
-			}
-			catch (Throwable t) {
-				ExceptionUtil.rethrowIfNecessary(t);
-				if (log != null) log.error("controler", t);
 			}
 		}
 		catch (Throwable t) {

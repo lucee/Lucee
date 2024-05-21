@@ -492,30 +492,7 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 
 	@Override
 	public void checkPermGenSpace(boolean check) {
-		int promille = SystemUtil.getFreePermGenSpacePromille();
 
-		long kbFreePermSpace = SystemUtil.getFreePermGenSpaceSize() / 1024;
-		int percentageAvailable = SystemUtil.getPermGenFreeSpaceAsAPercentageOfAvailable();
-
-		// Pen Gen Space info not available indicated by a return of -1
-		if (check && kbFreePermSpace < 0) {
-			if (countLoadedPages() > 2000) shrink();
-		}
-		else if (check && percentageAvailable < permGenCleanUpThreshold) {
-			shrink();
-			if (permGenCleanUpThreshold >= 5) {
-				// adjust the threshold allowed down so the amount of permgen can slowly grow to its allocated space
-				// up to 100%
-				setPermGenCleanUpThreshold(permGenCleanUpThreshold - 5);
-			}
-
-		}
-		else if (check && kbFreePermSpace < 2048) {
-			System.gc();
-			if ((SystemUtil.getFreePermGenSpaceSize() / 1024) < 2048) {
-				shrink();
-			}
-		}
 	}
 
 	private void shrink() {
