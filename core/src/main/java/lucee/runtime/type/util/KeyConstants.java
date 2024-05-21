@@ -1026,6 +1026,7 @@ public class KeyConstants {
 	public static final Key _PARENT = KeyImpl._const("PARENT");
 	public static final Key _SOURCE = KeyImpl._const("SOURCE");
 	public static final Key _onError = KeyImpl._const("onError");
+	public static final Key _onFail = KeyImpl._const("onFail");
 	public static final Key _onFinally = KeyImpl._const("onFinally");
 	public static final Key _onStartTag = KeyImpl._const("onStartTag");
 	public static final Key _onEndTag = KeyImpl._const("onEndTag");
@@ -2981,6 +2982,7 @@ public class KeyConstants {
 	public static final Key _paramValue = KeyImpl._const("paramValue");
 	public static final Key _paramType = KeyImpl._const("paramType");
 	public static final Key _onSuccess = KeyImpl._const("onSuccess");
+	public static final Key _choices = KeyImpl._const("choices");
 	private static Map<String, Key> _____keys;
 
 	static {

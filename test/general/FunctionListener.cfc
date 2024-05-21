@@ -117,7 +117,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				expect(cfthread[threadName].result.columnlist).toBe("COLUMNNAME");
 			});
 
-			it(title="listening on a UDF (joining the thread), send data to a function collection", body=function() {
+			it(title="listening on a UDF (joining the thread), send data to a function collection; test success", body=function() {
 				var collection={
 					onSuccess:function(result) {
 						thread.success=result;
@@ -128,27 +128,50 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				};
 				
 				var threadName1=mySuccess():collection;
+			
+				// wait for the thread to finsish
+				threadJoin(threadName1);
+
+				expect(cfthread[threadName1].success).toBe("Susi Sorglos");
+			});
+
+			it(title="listening on a UDF (joining the thread), send data to a function collection; test fail", body=function() {
+				var collection={
+					onSuccess:function(result) {
+						thread.success=result;
+					}
+					,onFail:function(result,error) {
+						thread.fail=error.message;
+					}
+				};
+				
 				var threadName2=myError():collection;
 			
 				// wait for the thread to finsish
-				threadJoin(threadName1);
 				threadJoin(threadName2);
 
-				expect(cfthread[threadName1].success).toBe("Susi Sorglos");
 				expect(cfthread[threadName2].fail).toBe("Upsi dupsi!");
 			});
 
-			it(title="listening on a UDF (joining the thread), send data to a component", body=function() {
+			it(title="listening on a UDF (joining the thread), send data to a component; test success", body=function() {
 				var cfc=new functionListener.Test();
 				
 				var threadName1=mySuccess():cfc;
+				
+				// wait for the thread to finsish
+				threadJoin(threadName1);
+				
+				expect(cfthread[threadName1].success).toBe("Susi Sorglos");
+			});
+
+			it(title="listening on a UDF (joining the thread), send data to a component; test fail", body=function() {
+				var cfc=new functionListener.Test();
+				
 				var threadName2=myError():cfc;
 			
 				// wait for the thread to finsish
-				threadJoin(threadName1);
 				threadJoin(threadName2);
 
-				expect(cfthread[threadName1].success).toBe("Susi Sorglos");
 				expect(cfthread[threadName2].fail).toBe("Upsi dupsi!");
 			});
 
@@ -156,7 +179,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				// passing null
 				var threadName1=logAndFail("testNull","Peter Lustig"):nullValue();
 				// passing empty struct
-				var threadName1=logAndFail("testStruct","Ruedi Zraggen"):{};
+				var threadName2=logAndFail("testStruct","Ruedi Zraggen"):{};
 
 				// wait for the thread to finsish
 				threadJoin(threadName1);
@@ -169,11 +192,11 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 			it(title="similar syntax that could conflict: switch", body=function() {
 				// switch allow this strange syntax, so Lucee does not allow the function listener operation within this context
 				savecontent variable="local.result" {
-					switch("susi") {
+					switch(mySuccess()) {
 					case mySuccess():echo(123);
 					}
 				}
-				expect(result).toBe("Susi Sorglos");
+				expect(result).toBe(123);
 			});
 
 			it(title="similar syntax that could conflict: tenary operator", body=function() {

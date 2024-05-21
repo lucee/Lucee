@@ -22,7 +22,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import lucee.print;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.Component;
@@ -76,7 +75,6 @@ import lucee.transformer.library.function.FunctionLibFunction;
 import lucee.transformer.library.function.FunctionLibFunctionArg;
 import lucee.transformer.library.tag.TagLibTagAttr;
 import lucee.transformer.library.tag.TagLibTagScript;
-import lucee.transformer.util.PageSourceCode;
 import lucee.transformer.util.SourceCode;
 
 /**
@@ -1901,16 +1899,6 @@ public abstract class AbstrCFMLExprTransformer {
 
 	private Expression getListener(Data data) throws TemplateException {
 		if (!insideCase && tenaryContext != CTX_TENARY_MIDDLE && data.srcCode.forwardIfCurrent(':')) {
-			print.e("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
-			print.e("class: " + data.srcCode.getClass().getName());
-			print.e("line: " + data.srcCode.getLine());
-			if (data.srcCode instanceof PageSourceCode) {
-				print.e("source: " + ((PageSourceCode) data.srcCode).getPageSource().getDisplayPath());
-			}
-			print.e(data.srcCode.getText());
-
-			// if (true) return null;
-
 			int pos = data.srcCode.getPos();
 			comments(data);
 			Expression expr = assignOp(data);

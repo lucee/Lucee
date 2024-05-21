@@ -404,10 +404,11 @@ public class TagUtil {
 			}
 			// error
 			if (pe != null) {
-				if (cfc.contains(pc, KeyConstants._onError)) {
+				boolean second = false;
+				if (cfc.contains(pc, KeyConstants._onFail) || (second = cfc.contains(pc, KeyConstants._onError))) {
 					Struct args = new StructImpl(StructImpl.TYPE_LINKED);
 					args.set(KeyConstants._error, pe.getCatchBlock(pc.getConfig()));
-					cfc.callWithNamedValues(pc, KeyConstants._onError, args);
+					cfc.callWithNamedValues(pc, second ? KeyConstants._onError : KeyConstants._onFail, args);
 				}
 			}
 
@@ -426,7 +427,8 @@ public class TagUtil {
 			}
 			// error
 			if (pe != null) {
-				UDF onError = Caster.toFunction(coll.get(KeyConstants._onError, null), null);
+				UDF onError = Caster.toFunction(coll.get(KeyConstants._onFail, null), null);
+				if (onError == null) onError = Caster.toFunction(coll.get(KeyConstants._onError, null), null);
 				if (onError != null) {
 					Struct args = new StructImpl(StructImpl.TYPE_LINKED);
 					args.set(KeyConstants._error, pe.getCatchBlock(pc.getConfig()));
