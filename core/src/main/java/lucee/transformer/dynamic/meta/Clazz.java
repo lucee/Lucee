@@ -83,6 +83,7 @@ public abstract class Clazz implements Serializable {
 	}
 
 	private static Map<String, SoftReference<Pair<Method, Boolean>>> cachedMethods = new ConcurrentHashMap<>();
+	private static RefInteger nirvana = new RefIntegerImpl();
 
 	public static Method getMethodMatch(Clazz clazz, final Collection.Key methodName, Object[] args, boolean convertArgument)
 			throws NoSuchMethodException, IOException, PageException {
@@ -104,6 +105,7 @@ public abstract class Clazz implements Serializable {
 
 			String key = sb.toString();
 
+			// get match from cache
 			SoftReference<Pair<Method, Boolean>> sr = cachedMethods.get(key);
 			if (sr != null) {
 				Pair<Method, Boolean> p = sr.get();
@@ -114,10 +116,9 @@ public abstract class Clazz implements Serializable {
 						// print.e("------- " + clazz.getDeclaringClass().getName() + ":" + methodName + " -----");
 						Class[] trgArgs = p.getName().getArgumentClasses();
 						for (int x = 0; x < trgArgs.length; x++) {
-							if (args[x] != null) args[x] = Caster.castTo(null, trgArgs[x], args[x]);
+							if (args[x] != null) args[x] = Reflector.convert(args[x], Reflector.toReferenceClass(trgArgs[x]), nirvana);
 							// print.e("- " + clazzArgs[x].getName() + "->" + trgArgs[x].getName());
 						}
-
 					}
 					return p.getName();
 				}
