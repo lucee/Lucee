@@ -139,7 +139,7 @@ public final class HSQLDBHandler {
 			comma = ",";
 		}
 		create.append(")");
-		SystemOut.print("SQL: " + Caster.toString(create));
+		//SystemOut.print("SQL: " + Caster.toString(create));
 		stat.execute(create.toString());
 		// SystemOut.print("Create Table: [" + dbTableName + "] took " + stopwatch.time());
 	}
@@ -192,12 +192,12 @@ public final class HSQLDBHandler {
 		values.append(")");
 
 		if (tableCols != null && targetCols.size() == 0) {
-			SystemOut.print("Populate Table, table has no used columns: " + dbTableName);
+			//SystemOut.print("Populate Table, table has no used columns: " + dbTableName);
 			return;
 		}
 
-		SystemOut.print("SQL: " + Caster.toString(insert));
-		SystemOut.print("SQL: " + Caster.toString(values));
+		//SystemOut.print("SQL: " + Caster.toString(insert));
+		//SystemOut.print("SQL: " + Caster.toString(values));
 
 		// INSERT STATEMENT
 		// HashMap integerTypes=getIntegerTypes(types);
@@ -271,7 +271,7 @@ public final class HSQLDBHandler {
 		Statement stat2 = conn.createStatement();
 		stat2.execute("SET FILES LOG TRUE");
 
-		SystemOut.print("Populate Table: [" + dbTableName + "] with [" + rows + "] rows, [" + count + "] //columns, took " + stopwatch.time() + "ms");
+		//SystemOut.print("Populate Table: [" + dbTableName + "] with [" + rows + "] rows, [" + count + "] //columns, took " + stopwatch.time() + "ms");
 	}
 
 	private static int[] toInnerTypes(int[] types) {
@@ -418,8 +418,8 @@ public final class HSQLDBHandler {
 			stat.execute("DROP VIEW " + view);
 		}
 		catch (Exception e) {
-			aprint.o(e.getMessage());
-			SystemOut.print("VIEW Exception, fall back to loading all data: [" + e.toString() + "], sql [" + sql.toString() + "]");
+			//aprint.o(e.getMessage());
+			//SystemOut.print("VIEW Exception, fall back to loading all data: [" + e.toString() + "], sql [" + sql.toString() + "]");
 			tables = null; // give up trying to be smart
 		}
 		finally {
@@ -432,7 +432,7 @@ public final class HSQLDBHandler {
 				SystemOut.print(e.toString());
 			}
 		}
-		SystemOut.print("getUsedColumnsForQuery: took " + stopwatch.time());
+		//SystemOut.print("getUsedColumnsForQuery: took " + stopwatch.time());
 		return tables;
 	}
 
@@ -551,7 +551,7 @@ public final class HSQLDBHandler {
 		}
 		catch (PageException pe) {
 			if (isUnion || StringUtil.indexOf(pe.getMessage(), "NumberFormatException:") != -1) {
-				SystemOut.print("HSQLDB Retry with Simple Types after: " + pe.getMessage());
+				//SystemOut.print("HSQLDB Retry with Simple Types after: " + pe.getMessage());
 				return __execute(pc, sql, maxrows, fetchsize, timeout, stopwatch, tables, true);
 			}
 			throw pe;
@@ -597,7 +597,7 @@ public final class HSQLDBHandler {
 						qoqTables.add(dbTableName);
 					}
 
-					SystemOut.print("QoQ HSQLDB CREATED TABLES: " + sql.toString());
+					//SystemOut.print("QoQ HSQLDB CREATED TABLES: " + sql.toString());
 
 					// create the sql as a view, to find out which table columns are needed
 					Struct allTableColumns = getUsedColumnsForQuery(conn, sql);
