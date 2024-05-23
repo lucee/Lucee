@@ -1,4 +1,6 @@
-component extends = "org.lucee.cfml.test.LuceeTestCase" labels="http" {
+component extends = "org.lucee.cfml.test.LuceeTestCase" labels="http" skip="true"{
+
+	// disabled until we update the provider to support head and get for rest calls to echoGET
 
 	// requires LDEV-4861 to support rest httpmethod="get,head" and on update provider
 	// as the exists check does a HEAD request
