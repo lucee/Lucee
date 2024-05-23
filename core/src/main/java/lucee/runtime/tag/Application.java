@@ -36,6 +36,7 @@ import lucee.runtime.Mapping;
 import lucee.runtime.PageSource;
 import lucee.runtime.cache.CacheConnection;
 import lucee.runtime.config.Config;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigWebUtil;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
@@ -171,6 +172,16 @@ public final class Application extends TagImpl implements DynamicAttributes {
 	private Boolean showMetric;
 	private Boolean showTest;
 
+	private Boolean debuggingDatabase;
+	private Boolean debuggingException;
+	private Boolean debuggingDump;
+	private Boolean debuggingTracing;
+	private Boolean debuggingTimer;
+	private Boolean debuggingImplicitAccess;
+	private Boolean debuggingQueryUsage;
+	private Boolean debuggingThread;
+	private Boolean debuggingTemplate;
+
 	@Override
 	public void release() {
 		super.release();
@@ -259,6 +270,16 @@ public final class Application extends TagImpl implements DynamicAttributes {
 		showDoc = null;
 		showMetric = null;
 		showTest = null;
+
+		this.debuggingDatabase = null;
+		this.debuggingException = null;
+		this.debuggingDump = null;
+		this.debuggingTracing = null;
+		this.debuggingTimer = null;
+		this.debuggingImplicitAccess = null;
+		this.debuggingQueryUsage = null;
+		this.debuggingThread = null;
+		this.debuggingTemplate = null;
 	}
 
 	@Override
@@ -729,6 +750,42 @@ public final class Application extends TagImpl implements DynamicAttributes {
 		}
 	}
 
+	public void setDebuggingdatabase(boolean b) {
+		debuggingDatabase = b;
+	}
+
+	public void setDebuggingexception(boolean b) {
+		debuggingException = b;
+	}
+
+	public void setDebuggingtemplate(boolean b) {
+		debuggingTemplate = b;
+	}
+
+	public void setDebuggingdump(boolean b) {
+		debuggingDump = b;
+	}
+
+	public void setDebuggingtracing(boolean b) {
+		debuggingTracing = b;
+	}
+
+	public void setDebuggingtimer(boolean b) {
+		debuggingTimer = b;
+	}
+
+	public void setDebuggingimplicitaccess(boolean b) {
+		debuggingImplicitAccess = b;
+	}
+
+	public void setDebuggingqueryusage(boolean b) {
+		debuggingQueryUsage = b;
+	}
+
+	public void setDebuggingthread(boolean b) {
+		debuggingThread = b;
+	}
+
 	@Override
 	public int doStartTag() throws PageException {
 
@@ -933,6 +990,43 @@ public final class Application extends TagImpl implements DynamicAttributes {
 			if (showDoc != null) appContextSup.setShowDoc(showDoc.booleanValue());
 			if (showMetric != null) appContextSup.setShowMetric(showMetric.booleanValue());
 			if (showTest != null) appContextSup.setShowTest(showTest.booleanValue());
+
+			if (debuggingDatabase != null) {
+				if (debuggingDatabase.booleanValue()) appContextSup.setDebugOptions(ConfigPro.DEBUG_DATABASE);
+				else appContextSup.remDebugOptions(ConfigPro.DEBUG_DATABASE);
+			}
+			if (debuggingDump != null) {
+				if (debuggingDump.booleanValue()) appContextSup.setDebugOptions(ConfigPro.DEBUG_DUMP);
+				else appContextSup.remDebugOptions(ConfigPro.DEBUG_DUMP);
+			}
+			if (debuggingException != null) {
+				if (debuggingException.booleanValue()) appContextSup.setDebugOptions(ConfigPro.DEBUG_EXCEPTION);
+				else appContextSup.remDebugOptions(ConfigPro.DEBUG_EXCEPTION);
+			}
+			if (debuggingImplicitAccess != null) {
+				if (debuggingImplicitAccess.booleanValue()) appContextSup.setDebugOptions(ConfigPro.DEBUG_IMPLICIT_ACCESS);
+				else appContextSup.remDebugOptions(ConfigPro.DEBUG_IMPLICIT_ACCESS);
+			}
+			if (debuggingQueryUsage != null) {
+				if (debuggingQueryUsage.booleanValue()) appContextSup.setDebugOptions(ConfigPro.DEBUG_QUERY_USAGE);
+				else appContextSup.remDebugOptions(ConfigPro.DEBUG_QUERY_USAGE);
+			}
+			if (debuggingTemplate != null) {
+				if (debuggingTemplate.booleanValue()) appContextSup.setDebugOptions(ConfigPro.DEBUG_TEMPLATE);
+				else appContextSup.remDebugOptions(ConfigPro.DEBUG_TEMPLATE);
+			}
+			if (debuggingThread != null) {
+				if (debuggingThread.booleanValue()) appContextSup.setDebugOptions(ConfigPro.DEBUG_THREAD);
+				else appContextSup.remDebugOptions(ConfigPro.DEBUG_THREAD);
+			}
+			if (debuggingTimer != null) {
+				if (debuggingTimer.booleanValue()) appContextSup.setDebugOptions(ConfigPro.DEBUG_TIMER);
+				else appContextSup.remDebugOptions(ConfigPro.DEBUG_TIMER);
+			}
+			if (debuggingTracing != null) {
+				if (debuggingTracing.booleanValue()) appContextSup.setDebugOptions(ConfigPro.DEBUG_TRACING);
+				else appContextSup.remDebugOptions(ConfigPro.DEBUG_TRACING);
+			}
 		}
 
 		// ORM

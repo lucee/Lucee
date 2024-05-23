@@ -2990,6 +2990,7 @@ public class KeyConstants {
 	public static final Key _showTest = KeyImpl._const("showTest");
 	public static final Key _doc = KeyImpl._const("doc");
 	public static final Key _metric = KeyImpl._const("metric");
+	public static final Key _monitoring = KeyImpl._const("monitoring");
 	private static Map<String, Key> _____keys;
 
 	static {

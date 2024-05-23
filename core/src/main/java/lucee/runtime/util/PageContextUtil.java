@@ -270,4 +270,12 @@ public class PageContextUtil {
 		if (c instanceof ConfigPro) return ((ConfigPro) c).getPreciseMath();
 		return true;
 	}
+
+	public static boolean hasDebugOptions(PageContext pc, int option) {
+		pc = ThreadLocalPageContext.get(pc);
+		if (pc instanceof PageContextImpl) return ((PageContextImpl) pc).hasDebugOptions(option);
+		Config c = ThreadLocalPageContext.getConfig();
+		if (c instanceof ConfigPro) return ((ConfigPro) c).hasDebugOptions(option);
+		return false;
+	}
 }

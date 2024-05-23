@@ -96,7 +96,7 @@ Redirtect to entry --->
 												</cfif>
 												<div class="comment">#stText.debug["show"&item&"Desc"]#</div>
 												<cfsavecontent variable="codeSample">
-													this.show#UCFirst(item)# = #_mon[item]#;
+													this.monitoring.show#UCFirst(item)# = #_mon[item]#;
 												</cfsavecontent>
 												<cfset renderCodingTip( codeSample )>
 												<cfset renderSysPropEnvVar( name:"lucee.show.#item#",value:_mon[item])>

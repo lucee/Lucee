@@ -578,7 +578,7 @@ public final class UndefinedImpl extends StructSupport implements Undefined, Obj
 		local = pc.localScope();
 		// allowImplicidQueryCall = pc.getConfig().allowImplicidQueryCall();
 		type = ((PageContextImpl) pc).getScopeCascadingType();
-		debug = pc.getConfig().debug() && ((ConfigPro) pc.getConfig()).hasDebugOptions(ConfigPro.DEBUG_IMPLICIT_ACCESS);
+		debug = ((PageContextImpl) pc).hasDebugOptions(ConfigPro.DEBUG_IMPLICIT_ACCESS);
 
 		// Strict
 		if (type == Config.SCOPE_STRICT) {

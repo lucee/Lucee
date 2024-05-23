@@ -222,6 +222,8 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	private ProxyData proxyData;
 	private String blockedExtForFileUpload;
 
+	private int debugging;
+
 	private Mapping[] mappings;
 	private boolean initMappings;
 	private boolean initCustomTypes;
@@ -277,10 +279,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	private boolean showMetric = false;
 	private boolean showTest = false;
 
-	private boolean initShowDebug = false;
-	private boolean initShowDoc = false;
-	private boolean initShowMetric = false;
-	private boolean initShowTest = false;
+	private boolean initMonitor = false;
 
 	private TimeZone timeZone;
 	private boolean initTimeZone;
@@ -374,6 +373,16 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 		this.showDoc = ci.getShowDoc();
 		this.showMetric = ci.getShowMetric();
 		this.showTest = ci.getShowTest();
+
+		if (ci.hasDebugOptions(ConfigPro.DEBUG_DATABASE)) this.debugging += ConfigPro.DEBUG_DATABASE;
+		if (ci.hasDebugOptions(ConfigPro.DEBUG_DUMP)) this.debugging += ConfigPro.DEBUG_DUMP;
+		if (ci.hasDebugOptions(ConfigPro.DEBUG_EXCEPTION)) this.debugging += ConfigPro.DEBUG_EXCEPTION;
+		if (ci.hasDebugOptions(ConfigPro.DEBUG_IMPLICIT_ACCESS)) this.debugging += ConfigPro.DEBUG_IMPLICIT_ACCESS;
+		if (ci.hasDebugOptions(ConfigPro.DEBUG_QUERY_USAGE)) this.debugging += ConfigPro.DEBUG_QUERY_USAGE;
+		if (ci.hasDebugOptions(ConfigPro.DEBUG_TEMPLATE)) this.debugging += ConfigPro.DEBUG_TEMPLATE;
+		if (ci.hasDebugOptions(ConfigPro.DEBUG_THREAD)) this.debugging += ConfigPro.DEBUG_THREAD;
+		if (ci.hasDebugOptions(ConfigPro.DEBUG_TIMER)) this.debugging += ConfigPro.DEBUG_TIMER;
+		if (ci.hasDebugOptions(ConfigPro.DEBUG_TRACING)) this.debugging += ConfigPro.DEBUG_TRACING;
 
 		initAntiSamyPolicyResource(pc);
 		if (antiSamyPolicyResource == null) this.antiSamyPolicyResource = ((ConfigPro) config).getAntiSamyPolicy();
@@ -1139,40 +1148,187 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 		return locale;
 	}
 
-	@Override
-	public boolean getShowDebug() {
-		if (!initShowDebug) {
-			showDebug = Caster.toBooleanValue(get(component, KeyConstants._showDebug, null), showDebug);
-			initShowDebug = true;
+	private void initMonitor() {
+		synchronized (KeyConstants._monitoring) {
+			if (!initMonitor) {
+				ConfigPro cp = (ConfigPro) config;
+				Struct sct = Caster.toStruct(get(component, KeyConstants._monitoring, null), null);
+				if (sct != null) {
+					showDebug = Caster.toBooleanValue(sct.get(KeyConstants._showDebug, null), showDebug);
+					showDoc = Caster.toBooleanValue(sct.get(KeyConstants._showDoc, null), showDoc);
+					showMetric = Caster.toBooleanValue(sct.get(KeyConstants._showMetric, null), showMetric);
+					showTest = Caster.toBooleanValue(sct.get(KeyConstants._showTest, null), showTest);
+
+					// Database
+					Boolean b = Caster.toBoolean(sct.get("debuggingDatabase", null), null);
+					if (b != null) {
+						if (b.booleanValue()) {
+							if (!hasDebugOptionsNoInit(ConfigPro.DEBUG_DATABASE)) debugging += ConfigPro.DEBUG_DATABASE;
+						}
+						else {
+							if (hasDebugOptionsNoInit(ConfigPro.DEBUG_DATABASE)) debugging -= ConfigPro.DEBUG_DATABASE;
+						}
+					}
+
+					// Exception
+					b = Caster.toBoolean(sct.get("debuggingException", null), null);
+					if (b != null) {
+						if (b.booleanValue()) {
+							if (!hasDebugOptionsNoInit(ConfigPro.DEBUG_EXCEPTION)) debugging += ConfigPro.DEBUG_EXCEPTION;
+						}
+						else {
+							if (hasDebugOptionsNoInit(ConfigPro.DEBUG_EXCEPTION)) debugging -= ConfigPro.DEBUG_EXCEPTION;
+						}
+					}
+
+					// Dump
+					b = Caster.toBoolean(sct.get("debuggingDump", null), null);
+					if (b != null) {
+						if (b.booleanValue()) {
+							if (!hasDebugOptionsNoInit(ConfigPro.DEBUG_DUMP)) debugging += ConfigPro.DEBUG_DUMP;
+						}
+						else {
+							if (hasDebugOptionsNoInit(ConfigPro.DEBUG_DUMP)) debugging -= ConfigPro.DEBUG_DUMP;
+						}
+					}
+
+					// Tracing
+					b = Caster.toBoolean(sct.get("debuggingTracing", null), null);
+					if (b != null) {
+						if (b.booleanValue()) {
+							if (!hasDebugOptionsNoInit(ConfigPro.DEBUG_TRACING)) debugging += ConfigPro.DEBUG_TRACING;
+						}
+						else {
+							if (hasDebugOptionsNoInit(ConfigPro.DEBUG_TRACING)) debugging -= ConfigPro.DEBUG_TRACING;
+						}
+					}
+
+					// Timer
+					b = Caster.toBoolean(sct.get("debuggingTimer", null), null);
+					if (b != null) {
+						if (b.booleanValue()) {
+							if (!hasDebugOptionsNoInit(ConfigPro.DEBUG_TIMER)) debugging += ConfigPro.DEBUG_TIMER;
+						}
+						else {
+							if (hasDebugOptionsNoInit(ConfigPro.DEBUG_TIMER)) debugging -= ConfigPro.DEBUG_TIMER;
+						}
+					}
+
+					// ImplicitAccess
+					b = Caster.toBoolean(sct.get("debuggingImplicitAccess", null), null);
+					if (b != null) {
+						if (b.booleanValue()) {
+							if (!hasDebugOptionsNoInit(ConfigPro.DEBUG_IMPLICIT_ACCESS)) debugging += ConfigPro.DEBUG_IMPLICIT_ACCESS;
+						}
+						else {
+							if (hasDebugOptionsNoInit(ConfigPro.DEBUG_IMPLICIT_ACCESS)) debugging -= ConfigPro.DEBUG_IMPLICIT_ACCESS;
+						}
+					}
+
+					// QueryUsage
+					b = Caster.toBoolean(sct.get("debuggingQueryUsage", null), null);
+					if (b != null) {
+						if (b.booleanValue()) {
+							if (!hasDebugOptionsNoInit(ConfigPro.DEBUG_QUERY_USAGE)) debugging += ConfigPro.DEBUG_QUERY_USAGE;
+						}
+						else {
+							if (hasDebugOptionsNoInit(ConfigPro.DEBUG_QUERY_USAGE)) debugging -= ConfigPro.DEBUG_QUERY_USAGE;
+						}
+					}
+
+					// Thread
+					b = Caster.toBoolean(sct.get("debuggingThread", null), null);
+					if (b != null) {
+						if (b.booleanValue()) {
+							if (!hasDebugOptionsNoInit(ConfigPro.DEBUG_THREAD)) debugging += ConfigPro.DEBUG_THREAD;
+						}
+						else {
+							if (hasDebugOptionsNoInit(ConfigPro.DEBUG_THREAD)) debugging -= ConfigPro.DEBUG_THREAD;
+						}
+					}
+
+					// Template
+					b = Caster.toBoolean(sct.get("debuggingTemplate", null), null);
+					if (b != null) {
+						if (b.booleanValue()) {
+							if (!hasDebugOptionsNoInit(ConfigPro.DEBUG_TEMPLATE)) debugging += ConfigPro.DEBUG_TEMPLATE;
+						}
+						else {
+							if (hasDebugOptionsNoInit(ConfigPro.DEBUG_TEMPLATE)) debugging -= ConfigPro.DEBUG_TEMPLATE;
+						}
+					}
+				}
+				initMonitor = true;
+			}
 		}
-		return showDebug;
 	}
 
 	@Override
 	public boolean getShowDoc() {
-		if (!initShowDoc) {
-			showDoc = Caster.toBooleanValue(get(component, KeyConstants._showDoc, null), showDoc);
-			initShowDoc = true;
-		}
+		if (!initMonitor) initMonitor();
 		return showDoc;
 	}
 
 	@Override
+	public boolean getShowDebug() {
+		if (!initMonitor) initMonitor();
+		return showDebug;
+	}
+
+	@Override
 	public boolean getShowMetric() {
-		if (!initShowMetric) {
-			showMetric = Caster.toBooleanValue(get(component, KeyConstants._showMetric, null), showMetric);
-			initShowMetric = true;
-		}
+		if (!initMonitor) initMonitor();
 		return showMetric;
 	}
 
 	@Override
 	public boolean getShowTest() {
-		if (!initShowTest) {
-			showTest = Caster.toBooleanValue(get(component, KeyConstants._showTest, null), showTest);
-			initShowTest = true;
-		}
+		if (!initMonitor) initMonitor();
 		return showTest;
+	}
+
+	@Override
+	public void setShowDebug(boolean b) {
+		if (!initMonitor) initMonitor();
+		showDebug = b;
+	}
+
+	@Override
+	public void setShowDoc(boolean b) {
+		if (!initMonitor) initMonitor();
+		showDoc = b;
+	}
+
+	@Override
+	public void setShowMetric(boolean b) {
+		if (!initMonitor) initMonitor();
+		showMetric = b;
+	}
+
+	@Override
+	public void setShowTest(boolean b) {
+		if (!initMonitor) initMonitor();
+		showTest = b;
+	}
+
+	@Override
+	public boolean hasDebugOptions(int option) {
+		if (!initMonitor) initMonitor();
+		return (debugging & option) > 0;
+	}
+
+	public boolean hasDebugOptionsNoInit(int option) {
+		return (debugging & option) > 0;
+	}
+
+	@Override
+	public void setDebugOptions(int option) {
+		if (!hasDebugOptions(option)) debugging += option;
+	}
+
+	@Override
+	public void remDebugOptions(int option) {
+		if (hasDebugOptions(option)) debugging -= option;
 	}
 
 	@Override
@@ -1513,30 +1669,6 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	public void setLocale(Locale locale) {
 		initLocale = true;
 		this.locale = locale;
-	}
-
-	@Override
-	public void setShowDebug(boolean b) {
-		showDebug = b;
-		initShowDebug = true;
-	}
-
-	@Override
-	public void setShowDoc(boolean b) {
-		showDoc = b;
-		initShowDoc = true;
-	}
-
-	@Override
-	public void setShowMetric(boolean b) {
-		showMetric = b;
-		initShowMetric = true;
-	}
-
-	@Override
-	public void setShowTest(boolean b) {
-		showTest = b;
-		initShowTest = true;
 	}
 
 	@Override

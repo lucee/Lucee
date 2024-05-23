@@ -8904,6 +8904,72 @@ Depending on this setting Lucee scans certain scopes to find a variable called f
 			<required>false</required>
 			<description>Show debug output at the end of teh webpage or not.</description>
 		</attribute>
+
+		<attribute>
+			<type>boolean</type>
+			<name>debuggingDatabase</name>
+			<default>false</default>
+			<required>false</required>
+			<description></description>
+		</attribute>
+		<attribute>
+			<type>boolean</type>
+			<name>debuggingException</name>
+			<default>false</default>
+			<required>false</required>
+			<description></description>
+		</attribute>
+		<attribute>
+			<type>boolean</type>
+			<name>debuggingDump</name>
+			<default>false</default>
+			<required>false</required>
+			<description></description>
+		</attribute>
+		<attribute>
+			<type>boolean</type>
+			<name>debuggingTracing</name>
+			<default>false</default>
+			<required>false</required>
+			<description></description>
+		</attribute>
+		<attribute>
+			<type>boolean</type>
+			<name>debuggingTimer</name>
+			<default>false</default>
+			<required>false</required>
+			<description></description>
+		</attribute>
+		<attribute>
+			<type>boolean</type>
+			<name>debuggingImplicitAccess</name>
+			<default>false</default>
+			<required>false</required>
+			<description></description>
+		</attribute>
+		<attribute>
+			<type>boolean</type>
+			<name>debuggingQueryUsage</name>
+			<default>false</default>
+			<required>false</required>
+			<description></description>
+		</attribute>
+		<attribute>
+			<type>boolean</type>
+			<name>debuggingThread</name>
+			<default>false</default>
+			<required>false</required>
+			<description></description>
+		</attribute>
+		<attribute>
+			<type>boolean</type>
+			<name>debuggingTemplate</name>
+			<default>false</default>
+			<required>false</required>
+			<description></description>
+		</attribute>
+	
+				
 	</tag>
 
 	<!-- Argument -->

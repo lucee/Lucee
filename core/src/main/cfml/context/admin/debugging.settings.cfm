@@ -132,7 +132,7 @@ Redirtect to entry --->
 											<td>
 												<cfset lbl = _debug[item] ? stText.general.yes : stText.general.no>
 												<cfif hasAccess>
-													<label><input type="checkbox" name="#item#" value="true"  <cfif item EQ "database">id="sp_radio_qu"</cfif> #_debug[item] ? 'checked="checked"' : ''#>
+													<label><input type="checkbox" class="checkbox" name="#item#" value="true"  <cfif item EQ "database">id="sp_radio_qu"</cfif> #_debug[item] ? 'checked="checked"' : ''#>
 													#stText.general.enabled#</label>
 												<cfelse>
 													<b>#_debug[item] ? stText.general.yes : stText.general.no#</b>
@@ -144,7 +144,6 @@ Redirtect to entry --->
 													</div>
 												</cfif>
 												<div class="comment">#stText.debug.settings[item&"Desc"]#</div>
-
 												<cfif item EQ "database">
 												<table class="maintbl autowidth" id="debugoptionqutbl">
 												<tbody>
@@ -153,7 +152,7 @@ Redirtect to entry --->
 														<td>
 															<cfset lbl = _debug.queryUsage ? stText.general.yes : stText.general.no>
 															<cfif hasAccess>
-																<label><input type="checkbox" name="queryUsage" value="true" #_debug.queryUsage ? 'checked="checked"' : ''#>
+																<label><input type="checkbox" class="checkbox" name="queryUsage" value="true" #_debug.queryUsage ? 'checked="checked"' : ''#>
 																#stText.general.enabled#</label>
 															<cfelse>
 																<b>#_debug.queryUsage ? stText.general.yes : stText.general.no#</b>
@@ -164,7 +163,12 @@ Redirtect to entry --->
 													</tr>
 												</table>
 												</cfif>
-
+												<cfsavecontent variable="codeSample">
+													this.monitoring.debugging#ucFirst(item)#=#_debug[item]#;
+												</cfsavecontent>
+												<cfset renderCodingTip( codeSample )>
+												<!--- <cfset renderSysPropEnvVar( name:"lucee.show.#item#",value:_mon[item])>--->
+												
 
 
 											</td>

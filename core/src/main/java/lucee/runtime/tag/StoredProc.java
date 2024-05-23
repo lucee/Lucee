@@ -700,7 +700,7 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 			res.set(KeyConstants._cached, Caster.toBoolean(isFromCache));
 
 			if (pageContext.getConfig().debug() && debug) {
-				boolean logdb = ((ConfigPro) pageContext.getConfig()).hasDebugOptions(ConfigPro.DEBUG_DATABASE);
+				boolean logdb = ((PageContextImpl) pageContext).hasDebugOptions(ConfigPro.DEBUG_DATABASE);
 				if (logdb) pageContext.getDebugger().addQuery(null, dsn, procedure, _sql, count, pageContext.getCurrentPageSource(), (int) exe);
 			}
 

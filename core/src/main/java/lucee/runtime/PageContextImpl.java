@@ -606,7 +606,7 @@ public final class PageContextImpl extends PageContext {
 
 		if (config.debug()) {
 			boolean skipLogThread = isChild;
-			if (skipLogThread && config.hasDebugOptions(ConfigPro.DEBUG_THREAD)) skipLogThread = false;
+			if (skipLogThread && hasDebugOptions(ConfigPro.DEBUG_THREAD)) skipLogThread = false;
 			if (!gatewayContext && !skipLogThread) config.getDebuggerPool().store(this, debugger);
 			debugger.reset();
 		}
@@ -1005,7 +1005,7 @@ public final class PageContextImpl extends PageContext {
 
 	private void _doInclude(PageSource[] sources, boolean runOnce) throws PageException {
 		// debug
-		if (!gatewayContext && config.debug() && config.hasDebugOptions(ConfigPro.DEBUG_TEMPLATE)) {
+		if (!gatewayContext && hasDebugOptions(ConfigPro.DEBUG_TEMPLATE)) {
 			long currTime = executionTime;
 			long exeTime = 0;
 			long time = System.nanoTime();
@@ -2785,6 +2785,11 @@ public final class PageContextImpl extends PageContext {
 		return getApplicationContext() instanceof ApplicationContextSupport ? ((ApplicationContextSupport) getApplicationContext()).getShowTest() : config.getShowTest();
 	}
 
+	public boolean hasDebugOptions(int option) {
+		return getApplicationContext() instanceof ApplicationContextSupport ? ((ApplicationContextSupport) getApplicationContext()).hasDebugOptions(option)
+				: config.hasDebugOptions(option);
+	}
+
 	private void initallog() {
 		if (!isGatewayContext() && config.isMonitoringEnabled()) {
 			RequestMonitor[] monitors = config.getRequestMonitors();
@@ -3288,7 +3293,7 @@ public final class PageContextImpl extends PageContext {
 			else {
 				(u.getCheckArguments() ? u.localScope() : u).setEL(KeyConstants._cfcatch, pe.getCatchBlock(config));
 				if (name != null && !StringUtil.isEmpty(name, true)) (u.getCheckArguments() ? u.localScope() : u).setEL(KeyImpl.init(name.trim()), pe.getCatchBlock(config));
-				if (!gatewayContext && config.debug() && config.hasDebugOptions(ConfigPro.DEBUG_EXCEPTION)) {
+				if (!gatewayContext && hasDebugOptions(ConfigPro.DEBUG_EXCEPTION)) {
 					/*
 					 * print.e("-----------------------"); print.e("msg:" + pe.getMessage()); print.e("caught:" +
 					 * caught); print.e("store:" + store); print.e("signal:" + signal); print.e("outer:" + outer);

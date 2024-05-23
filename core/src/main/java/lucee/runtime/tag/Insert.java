@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import lucee.commons.db.DBUtil;
 import lucee.commons.io.log.Log;
 import lucee.commons.lang.StringUtil;
+import lucee.runtime.PageContextImpl;
 import lucee.runtime.config.ConfigPro;
 import lucee.runtime.db.DataSource;
 import lucee.runtime.db.DataSourceManager;
@@ -197,7 +198,7 @@ public final class Insert extends TagImpl {
 
 				if (pageContext.getConfig().debug()) {
 					String dsn = ds instanceof DataSource ? ((DataSource) ds).getName() : Caster.toString(ds);
-					boolean logdb = ((ConfigPro) pageContext.getConfig()).hasDebugOptions(ConfigPro.DEBUG_DATABASE);
+					boolean logdb = ((PageContextImpl) pageContext).hasDebugOptions(ConfigPro.DEBUG_DATABASE);
 					if (logdb) {
 						boolean debugUsage = DebuggerImpl.debugQueryUsage(pageContext, (QueryResult) query);
 						DebuggerImpl di = (DebuggerImpl) pageContext.getDebugger();

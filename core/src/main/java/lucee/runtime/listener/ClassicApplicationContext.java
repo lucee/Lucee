@@ -168,6 +168,7 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 	private boolean showMetric;
 
 	private boolean showTest;
+	private int debugging;
 
 	/**
 	 * constructor of the class
@@ -176,6 +177,7 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 	 */
 	public ClassicApplicationContext(ConfigWeb config, String name, boolean isDefault, Resource source) {
 		super(config);
+		ConfigPro cp = (ConfigPro) config;
 		this.name = name;
 		setClientCookies = config.isClientCookies();
 		setDomainCookies = config.isDomainCookies();
@@ -187,8 +189,8 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 		applicationTimeout = config.getApplicationTimeout();
 		loginStorage = Scope.SCOPE_COOKIE;
 		scriptProtect = config.getScriptProtect();
-		typeChecking = ((ConfigPro) config).getTypeChecking();
-		allowCompression = ((ConfigPro) config).allowCompression();
+		typeChecking = cp.getTypeChecking();
+		allowCompression = cp.allowCompression();
 		this.isDefault = isDefault;
 		this.defaultDataSource = config.getDefaultDataSource();
 		this.localMode = config.getLocalMode();
@@ -201,34 +203,44 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 		this.fullNullSupport = config.getFullNullSupport();
 		this.scopeCascading = config.getScopeCascadingType();
 		this.allowImplicidQueryCall = config.allowImplicidQueryCall();
-		this.limitEvaluation = ((ConfigPro) config).limitEvaluation();
+		this.limitEvaluation = cp.limitEvaluation();
 
-		this.webCharset = ((ConfigPro) config).getWebCharSet();
-		this.resourceCharset = ((ConfigPro) config).getResourceCharSet();
-		this.bufferOutput = ((ConfigPro) config).getBufferOutput();
-		suppressRemoteComponentContent = ((ConfigPro) config).isSuppressContent();
+		this.webCharset = cp.getWebCharSet();
+		this.resourceCharset = cp.getResourceCharSet();
+		this.bufferOutput = cp.getBufferOutput();
+		suppressRemoteComponentContent = cp.isSuppressContent();
 		this.sessionType = config.getSessionType();
 		this.sessionCluster = config.getSessionCluster();
 		this.clientCluster = config.getClientCluster();
-		this.clientstorage = ((ConfigPro) config).getClientStorage();
-		this.sessionstorage = ((ConfigPro) config).getSessionStorage();
+		this.clientstorage = cp.getClientStorage();
+		this.sessionstorage = cp.getSessionStorage();
 
 		this.source = source;
 		this.triggerComponentDataMember = config.getTriggerComponentDataMember();
 		this.restSettings = config.getRestSetting();
 		this.javaSettings = new JavaSettingsImpl();
 		this.wstype = WS_TYPE_AXIS1;
-		cgiScopeReadonly = ((ConfigPro) config).getCGIScopeReadonly();
+		cgiScopeReadonly = cp.getCGIScopeReadonly();
 		this.antiSamyPolicy = ((ConfigPro) config).getAntiSamyPolicy();
-		this.regex = ((ConfigPro) config).getRegex();
-		this.preciseMath = ((ConfigPro) config).getPreciseMath();
-		this.formUrlAsStruct = ((ConfigPro) config).getFormUrlAsStruct();
+		this.regex = cp.getRegex();
+		this.preciseMath = cp.getPreciseMath();
+		this.formUrlAsStruct = cp.getFormUrlAsStruct();
 
-		this.returnFormat = ((ConfigPro) config).getReturnFormat();
-		this.showDebug = ((ConfigPro) config).getShowDebug();
-		this.showDoc = ((ConfigPro) config).getShowDoc();
-		this.showMetric = ((ConfigPro) config).getShowMetric();
-		this.showTest = ((ConfigPro) config).getShowTest();
+		this.returnFormat = cp.getReturnFormat();
+		this.showDebug = cp.getShowDebug();
+		this.showDoc = cp.getShowDoc();
+		this.showMetric = cp.getShowMetric();
+		this.showTest = cp.getShowTest();
+
+		if (cp.hasDebugOptions(ConfigPro.DEBUG_DATABASE)) this.debugging += ConfigPro.DEBUG_DATABASE;
+		if (cp.hasDebugOptions(ConfigPro.DEBUG_DUMP)) this.debugging += ConfigPro.DEBUG_DUMP;
+		if (cp.hasDebugOptions(ConfigPro.DEBUG_EXCEPTION)) this.debugging += ConfigPro.DEBUG_EXCEPTION;
+		if (cp.hasDebugOptions(ConfigPro.DEBUG_IMPLICIT_ACCESS)) this.debugging += ConfigPro.DEBUG_IMPLICIT_ACCESS;
+		if (cp.hasDebugOptions(ConfigPro.DEBUG_QUERY_USAGE)) this.debugging += ConfigPro.DEBUG_QUERY_USAGE;
+		if (cp.hasDebugOptions(ConfigPro.DEBUG_TEMPLATE)) this.debugging += ConfigPro.DEBUG_TEMPLATE;
+		if (cp.hasDebugOptions(ConfigPro.DEBUG_THREAD)) this.debugging += ConfigPro.DEBUG_THREAD;
+		if (cp.hasDebugOptions(ConfigPro.DEBUG_TIMER)) this.debugging += ConfigPro.DEBUG_TIMER;
+		if (cp.hasDebugOptions(ConfigPro.DEBUG_TRACING)) this.debugging += ConfigPro.DEBUG_TRACING;
 
 	}
 
@@ -1221,5 +1233,20 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 	@Override
 	public void setShowTest(boolean b) {
 		this.showTest = b;
+	}
+
+	@Override
+	public boolean hasDebugOptions(int option) {
+		return (debugging & option) > 0;
+	}
+
+	@Override
+	public void setDebugOptions(int option) {
+		if (!hasDebugOptions(option)) debugging += option;
+	}
+
+	@Override
+	public void remDebugOptions(int option) {
+		if (hasDebugOptions(option)) debugging -= option;
 	}
 }
