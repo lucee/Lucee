@@ -92,7 +92,7 @@ public class HTTPResource extends ReadOnlyResourceSupport {
 		try {
 			provider.read(this);
 			int code = getStatusCode();// getHttpMethod().getStatusCode();
-			return code != 404;
+			return code >= 200 && code <= 299;
 		}
 		catch (Exception e) {
 			return false;
@@ -126,7 +126,11 @@ public class HTTPResource extends ReadOnlyResourceSupport {
 			throw ExceptionUtil.toIOException(e);
 		}
 		try {
-			return IOUtil.toBufferedInputStream(method.getContentAsStream());
+			int code = method.getStatusCode();
+			if (code >= 200 && code <= 299) return IOUtil.toBufferedInputStream(method.getContentAsStream());
+			else {
+				throw new IOException("HTTP request [" + getParentResource().toString() + " returned [" + code + "]");
+			}
 		}
 		finally {
 			HTTPEngine.closeEL(method);
