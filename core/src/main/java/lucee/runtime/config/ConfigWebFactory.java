@@ -4616,7 +4616,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 				if (StringUtil.isEmpty(str, true)) str = getAttr(root, "debuggingEnabled");
 				if (StringUtil.isEmpty(str, true)) str = getAttr(root, "debugging");
 				if (StringUtil.isEmpty(str, true)) str = getAttr(root, "debug");
-				if (!hasCS && StringUtil.isEmpty(str, true)) str = SystemUtil.getSystemPropOrEnvVar("lucee.show.debug", null);
+				if (!hasCS && StringUtil.isEmpty(str, true)) str = SystemUtil.getSystemPropOrEnvVar("lucee.monitoring.showDebug", null);
 				;
 
 				if (hasAccess && !StringUtil.isEmpty(str)) {
@@ -4630,7 +4630,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 				if (StringUtil.isEmpty(str, true)) str = getAttr(root, "doc");
 				if (StringUtil.isEmpty(str, true)) str = getAttr(root, "documentation");
 				if (StringUtil.isEmpty(str, true)) str = getAttr(root, "reference");
-				if (!hasCS && StringUtil.isEmpty(str, true)) str = SystemUtil.getSystemPropOrEnvVar("lucee.show.doc", null);
+				if (!hasCS && StringUtil.isEmpty(str, true)) str = SystemUtil.getSystemPropOrEnvVar("lucee.monitoring.showDoc", null);
 				if (hasAccess && !StringUtil.isEmpty(str)) {
 					config.setShowDoc(toBoolean(str, false));
 				}
@@ -4641,7 +4641,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 				if (StringUtil.isEmpty(str, true)) str = getAttr(root, "showMetrics");
 				if (StringUtil.isEmpty(str, true)) str = getAttr(root, "metric");
 				if (StringUtil.isEmpty(str, true)) str = getAttr(root, "metrics");
-				if (!hasCS && StringUtil.isEmpty(str, true)) str = SystemUtil.getSystemPropOrEnvVar("lucee.show.metric", null);
+				if (!hasCS && StringUtil.isEmpty(str, true)) str = SystemUtil.getSystemPropOrEnvVar("lucee.monitoring.showMetric", null);
 				if (hasAccess && !StringUtil.isEmpty(str)) {
 					config.setShowMetric(toBoolean(str, false));
 				}
@@ -4651,7 +4651,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 				str = getAttr(root, "showTest");
 				if (StringUtil.isEmpty(str, true)) str = getAttr(root, "showTests");
 				if (StringUtil.isEmpty(str, true)) str = getAttr(root, "test");
-				if (!hasCS && StringUtil.isEmpty(str, true)) str = SystemUtil.getSystemPropOrEnvVar("lucee.show.test", null);
+				if (!hasCS && StringUtil.isEmpty(str, true)) str = SystemUtil.getSystemPropOrEnvVar("lucee.monitoring.showTest", null);
 				if (hasAccess && !StringUtil.isEmpty(str)) {
 					config.setShowTest(toBoolean(str, false));
 				}
@@ -4671,6 +4671,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 			int options = 0;
 			String str = getAttr(root, "debuggingDatabase");
 			if (StringUtil.isEmpty(str)) str = getAttr(root, "debuggingShowDatabase");
+			if (StringUtil.isEmpty(str) && !hasCS) str = SystemUtil.getSystemPropOrEnvVar("lucee.monitoring.debuggingDatabase", null);
 			if (hasAccess && !StringUtil.isEmpty(str)) {
 				if (toBoolean(str, false)) options += ConfigPro.DEBUG_DATABASE;
 			}
@@ -4679,6 +4680,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 
 			str = getAttr(root, "debuggingException");
 			if (StringUtil.isEmpty(str)) str = getAttr(root, "debuggingShowException");
+			if (StringUtil.isEmpty(str) && !hasCS) str = SystemUtil.getSystemPropOrEnvVar("lucee.monitoring.debuggingException", null);
 			if (hasAccess && !StringUtil.isEmpty(str)) {
 				if (toBoolean(str, false)) options += ConfigPro.DEBUG_EXCEPTION;
 			}
@@ -4687,6 +4689,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 
 			str = getAttr(root, "debuggingTemplate");
 			if (StringUtil.isEmpty(str)) str = getAttr(root, "debuggingShowTemplate");
+			if (StringUtil.isEmpty(str) && !hasCS) str = SystemUtil.getSystemPropOrEnvVar("lucee.monitoring.debuggingTemplate", null);
 			if (hasAccess && !StringUtil.isEmpty(str)) {
 				if (toBoolean(str, false)) options += ConfigPro.DEBUG_TEMPLATE;
 			}
@@ -4697,6 +4700,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 
 			str = getAttr(root, "debuggingDump");
 			if (StringUtil.isEmpty(str)) str = getAttr(root, "debuggingShowDump");
+			if (StringUtil.isEmpty(str) && !hasCS) str = SystemUtil.getSystemPropOrEnvVar("lucee.monitoring.debuggingDump", null);
 			if (hasAccess && !StringUtil.isEmpty(str)) {
 				if (toBoolean(str, false)) options += ConfigPro.DEBUG_DUMP;
 			}
@@ -4706,6 +4710,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 			str = getAttr(root, "debuggingTracing");
 			if (StringUtil.isEmpty(str)) str = getAttr(root, "debuggingShowTracing");
 			if (StringUtil.isEmpty(str)) str = getAttr(root, "debuggingShowTrace");
+			if (StringUtil.isEmpty(str) && !hasCS) str = SystemUtil.getSystemPropOrEnvVar("lucee.monitoring.debuggingTracing", null);
 			if (hasAccess && !StringUtil.isEmpty(str)) {
 				if (toBoolean(str, false)) options += ConfigPro.DEBUG_TRACING;
 			}
@@ -4714,6 +4719,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 
 			str = getAttr(root, "debuggingTimer");
 			if (StringUtil.isEmpty(str)) str = getAttr(root, "debuggingShowTimer");
+			if (StringUtil.isEmpty(str) && !hasCS) str = SystemUtil.getSystemPropOrEnvVar("lucee.monitoring.debuggingTimer", null);
 			if (hasAccess && !StringUtil.isEmpty(str)) {
 				if (toBoolean(str, false)) options += ConfigPro.DEBUG_TIMER;
 			}
@@ -4722,6 +4728,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 
 			str = getAttr(root, "debuggingImplicitAccess");
 			if (StringUtil.isEmpty(str)) str = getAttr(root, "debuggingShowImplicitAccess");
+			if (StringUtil.isEmpty(str) && !hasCS) str = SystemUtil.getSystemPropOrEnvVar("lucee.monitoring.debuggingImplicitAccess", null);
 			if (hasAccess && !StringUtil.isEmpty(str)) {
 				if (toBoolean(str, false)) options += ConfigPro.DEBUG_IMPLICIT_ACCESS;
 			}
@@ -4730,6 +4737,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 
 			str = getAttr(root, "debuggingQueryUsage");
 			if (StringUtil.isEmpty(str)) str = getAttr(root, "debuggingShowQueryUsage");
+			if (StringUtil.isEmpty(str) && !hasCS) str = SystemUtil.getSystemPropOrEnvVar("lucee.monitoring.debuggingQueryUsage", null);
 			if (hasAccess && !StringUtil.isEmpty(str)) {
 				if (toBoolean(str, false)) options += ConfigPro.DEBUG_QUERY_USAGE;
 			}
@@ -4737,6 +4745,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 			else if (hasCS && configServer.hasDebugOptions(ConfigPro.DEBUG_QUERY_USAGE)) options += ConfigPro.DEBUG_QUERY_USAGE;
 
 			str = getAttr(root, "debuggingThread");
+			if (StringUtil.isEmpty(str) && !hasCS) str = SystemUtil.getSystemPropOrEnvVar("lucee.monitoring.debuggingThread", null);
 			if (hasAccess && !StringUtil.isEmpty(str)) {
 				if (toBoolean(str, false)) options += ConfigPro.DEBUG_THREAD;
 			}

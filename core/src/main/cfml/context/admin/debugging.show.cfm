@@ -99,7 +99,7 @@ Redirtect to entry --->
 													this.monitoring.show#UCFirst(item)# = #_mon[item]#;
 												</cfsavecontent>
 												<cfset renderCodingTip( codeSample )>
-												<cfset renderSysPropEnvVar( name:"lucee.show.#item#",value:_mon[item])>
+												<cfset renderSysPropEnvVar( name:"lucee.monitoring.show#ucFirst(item)#",value:_mon[item])>
 											</td>
 										</tr>
 										</cfloop>

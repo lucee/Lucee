@@ -167,7 +167,7 @@ Redirtect to entry --->
 													this.monitoring.debugging#ucFirst(item)#=#_debug[item]#;
 												</cfsavecontent>
 												<cfset renderCodingTip( codeSample )>
-												<!--- <cfset renderSysPropEnvVar( name:"lucee.show.#item#",value:_mon[item])>--->
+												<cfset renderSysPropEnvVar( name:"lucee.monitoring.debugging#ucFirst(item)#",value:_debug[item])>
 												
 
 
