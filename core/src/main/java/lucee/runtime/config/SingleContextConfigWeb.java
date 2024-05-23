@@ -310,6 +310,26 @@ class SingleContextConfigWeb extends ConfigBase implements ConfigWebInner {
 	}
 
 	@Override
+	public boolean getShowDebug() {
+		return cs.getShowDebug();
+	}
+
+	@Override
+	public boolean getShowDoc() {
+		return cs.getShowDoc();
+	}
+
+	@Override
+	public boolean getShowMetric() {
+		return cs.getShowMetric();
+	}
+
+	@Override
+	public boolean getShowTest() {
+		return cs.getShowTest();
+	}
+
+	@Override
 	public boolean debugLogOutput() {
 		return cs.debugLogOutput();
 	}

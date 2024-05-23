@@ -41,6 +41,7 @@ import lucee.runtime.Page;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.PageSource;
+import lucee.runtime.PageSourceImpl;
 import lucee.runtime.component.ComponentLoader;
 import lucee.runtime.config.Constants;
 import lucee.runtime.debug.DebuggerImpl;
@@ -63,6 +64,7 @@ import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.Struct;
+import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.scope.Application;
 import lucee.runtime.type.scope.ApplicationImpl;
 import lucee.runtime.type.scope.JSession;
@@ -77,17 +79,12 @@ public class ModernAppListener extends AppListenerSupport {
 
 	public static final ModernAppListener instance = new ModernAppListener();
 
-	private static final Collection.Key ON_REQUEST_START = KeyConstants._onRequestStart;
-	private static final Collection.Key ON_CFCREQUEST = KeyConstants._onCFCRequest;
 	private static final Collection.Key ON_REQUEST = KeyConstants._onRequest;
 	private static final Collection.Key ON_REQUEST_END = KeyConstants._onRequestEnd;
-	private static final Collection.Key ON_ABORT = KeyConstants._onAbort;
 	private static final Collection.Key ON_APPLICATION_START = KeyConstants._onApplicationStart;
 	private static final Collection.Key ON_APPLICATION_END = KeyConstants._onApplicationEnd;
 	private static final Collection.Key ON_SESSION_START = KeyConstants._onSessionStart;
 	private static final Collection.Key ON_SESSION_END = KeyConstants._onSessionEnd;
-	private static final Collection.Key ON_DEBUG = KeyConstants._onDebug;
-	private static final Collection.Key ON_ERROR = KeyConstants._onError;
 	private static final Collection.Key ON_MISSING_TEMPLATE = KeyConstants._onMissingTemplate;
 
 	// private Map<String,Component> apps=new HashMap<String,Component>();// TODO no longer use this,
@@ -125,9 +122,9 @@ public class ModernAppListener extends AppListenerSupport {
 			RefBoolean goon = new RefBooleanImpl(true);
 
 			// onRequestStart
-			if (app.contains(pc, ON_REQUEST_START)) {
+			if (app.contains(pc, KeyConstants._onRequestStart)) {
 				try {
-					Object rtn = call(app, pci, ON_REQUEST_START, new Object[] { targetPage }, false);
+					Object rtn = call(app, pci, KeyConstants._onRequestStart, new Object[] { targetPage }, false);
 					if (!Caster.toBooleanValue(rtn, true)) return;
 				}
 				catch (PageException pe) {
@@ -141,7 +138,7 @@ public class ModernAppListener extends AppListenerSupport {
 
 				boolean isComp = isComponent(pc, requestedPage);
 				Object method;
-				if (isComp && app.contains(pc, ON_CFCREQUEST) && (method = pc.urlFormScope().get(KeyConstants._method, null)) != null) {
+				if (isComp && app.contains(pc, KeyConstants._onCFCRequest) && (method = pc.urlFormScope().get(KeyConstants._method, null)) != null) {
 
 					Struct url = (Struct) Duplicator.duplicate(pc.urlFormScope(), true);
 
@@ -192,7 +189,7 @@ public class ModernAppListener extends AppListenerSupport {
 					}
 					else args = url;
 
-					Object rtn = call(app, pci, ON_CFCREQUEST, new Object[] { requestedPage.getComponentName(), method, args }, true);
+					Object rtn = call(app, pci, KeyConstants._onCFCRequest, new Object[] { requestedPage.getComponentName(), method, args }, true);
 
 					if (rtn != null) {
 						if (pc.getHttpServletRequest().getHeader("AMF-Forward") != null) {
@@ -272,8 +269,8 @@ public class ModernAppListener extends AppListenerSupport {
 				((DebuggerImpl) pci.getDebugger()).setAbort(ExceptionUtil.getThrowingPosition(pci, _pe));
 			}
 			goon.setValue(false);
-			if (app.contains(pci, ON_ABORT)) {
-				call(app, pci, ON_ABORT, new Object[] { targetPage }, true);
+			if (app.contains(pci, KeyConstants._onAbort)) {
+				call(app, pci, KeyConstants._onAbort, new Object[] { targetPage }, true);
 			}
 		}
 		return null;
@@ -398,28 +395,67 @@ public class ModernAppListener extends AppListenerSupport {
 	public void onDebug(PageContext pc) throws PageException {
 		if (((PageContextImpl) pc).isGatewayContext() || !pc.getConfig().debug()) return;
 		Component app = getComponent(pc);
-		if (app != null && app.contains(pc, ON_DEBUG)) {
-			call(app, pc, ON_DEBUG, new Object[] { pc.getDebugger().getDebuggingData(pc) }, true);
+		if (app != null && app.contains(pc, KeyConstants._onDebug)) {
+			call(app, pc, KeyConstants._onDebug, new Object[] { pc.getDebugger().getDebuggingData(pc) }, true);
 			return;
 		}
 		try {
-			pc.getDebugger().writeOut(pc);
+			((DebuggerImpl) pc.getDebugger()).writeOut(pc);
 		}
 		catch (IOException e) {
 			throw Caster.toPageException(e);
 		}
 	}
 
+	/*
+	 * public void onInfo(PageContext pc) throws PageException { if (((PageContextImpl)
+	 * pc).isGatewayContext()) return; Component app = getComponent(pc); if (app != null &&
+	 * app.contains(pc, KeyConstants._onInfo)) { call(app, pc, KeyConstants._onInfo, new Object[] {
+	 * pc.getDebugger().getDebuggingData(pc) }, true); return; } info(pc, null, null); }
+	 */
+
+	public static void info(PageContext pc, Component debugTemplate, Struct debugArgs) throws PageException {
+
+		// TODO improve this code
+		Struct args = new StructImpl();
+		Struct show = new StructImpl();
+		args.setEL(KeyConstants._show, show);
+		show.setEL(KeyConstants._debug, debugTemplate != null && ((PageContextImpl) pc).showDebug());
+		show.setEL(KeyConstants._doc, ((PageContextImpl) pc).showDoc());
+		show.setEL(KeyConstants._metric, ((PageContextImpl) pc).showMetric());
+		show.setEL(KeyConstants._test, ((PageContextImpl) pc).showTest());
+
+		args.setEL("debugTemplate", debugTemplate);
+		args.setEL("debugArgs", debugArgs);
+
+		String fullname = "lucee-context.admin.info.Info";
+		String path = "/lucee-context/admin/info/Info.cfc";
+		try {
+			PageSource[] arr = ((PageContextImpl) pc).getPageSources(path);
+			Page p = PageSourceImpl.loadPage(pc, arr, null);
+			pc.addPageSource(p.getPageSource(), true);
+			Component c = pc.loadComponent(fullname);
+			if (c != null && c.contains(pc, KeyConstants._info)) {
+				c.callWithNamedValues(pc, KeyConstants._info, args);
+				return;
+			}
+		}
+		finally {
+			pc.removeLastPageSource(true);
+		}
+
+	}
+
 	@Override
 	public void onError(PageContext pc, PageException pe) {
 		Component app = getComponent(pc);
-		if (app != null && app.containsKey(ON_ERROR) && !Abort.isSilentAbort(pe)) {
+		if (app != null && app.containsKey(KeyConstants._onError) && !Abort.isSilentAbort(pe)) {
 			try {
 				String eventName = "";
 				if (pe instanceof ModernAppListenerException) eventName = ((ModernAppListenerException) pe).getEventName();
 				if (eventName == null) eventName = "";
 
-				call(app, pc, ON_ERROR, new Object[] { pe.getCatchBlock(pc.getConfig()), eventName }, true);
+				call(app, pc, KeyConstants._onError, new Object[] { pe.getCatchBlock(pc.getConfig()), eventName }, true);
 				return;
 			}
 			catch (PageException _pe) {

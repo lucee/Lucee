@@ -6,9 +6,13 @@ component {
 	this.setclientcookies="no";
 	this.setdomaincookies="no"; 
 	this.applicationtimeout="#createTimeSpan(0,0,5,0)#";
+	this.showDebug=false;
+	this.showDoc=false;
+	this.showMetric=false;
+	this.showTest=false;
 	
 	function onRequestStart( target ) {
-		setting showdebugoutput=false;
+		
 		return false;
 	}
 }

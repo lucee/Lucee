@@ -271,6 +271,17 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	private Object ormDatasource;
 	private Locale locale;
 	private boolean initLocale;
+
+	private boolean showDebug = false;
+	private boolean showDoc = false;
+	private boolean showMetric = false;
+	private boolean showTest = false;
+
+	private boolean initShowDebug = false;
+	private boolean initShowDoc = false;
+	private boolean initShowMetric = false;
+	private boolean initShowTest = false;
+
 	private TimeZone timeZone;
 	private boolean initTimeZone;
 	private CharSet webCharset;
@@ -358,6 +369,11 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 		this.preciseMath = ci.getPreciseMath();
 		this.formUrlAsStruct = ci.getFormUrlAsStruct();
 		this.returnFormat = ci.getReturnFormat();
+
+		this.showDebug = ci.getShowDebug();
+		this.showDoc = ci.getShowDoc();
+		this.showMetric = ci.getShowMetric();
+		this.showTest = ci.getShowTest();
 
 		initAntiSamyPolicyResource(pc);
 		if (antiSamyPolicyResource == null) this.antiSamyPolicyResource = ((ConfigPro) config).getAntiSamyPolicy();
@@ -1124,6 +1140,42 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	}
 
 	@Override
+	public boolean getShowDebug() {
+		if (!initShowDebug) {
+			showDebug = Caster.toBooleanValue(get(component, KeyConstants._showDebug, null), showDebug);
+			initShowDebug = true;
+		}
+		return showDebug;
+	}
+
+	@Override
+	public boolean getShowDoc() {
+		if (!initShowDoc) {
+			showDoc = Caster.toBooleanValue(get(component, KeyConstants._showDoc, null), showDoc);
+			initShowDoc = true;
+		}
+		return showDoc;
+	}
+
+	@Override
+	public boolean getShowMetric() {
+		if (!initShowMetric) {
+			showMetric = Caster.toBooleanValue(get(component, KeyConstants._showMetric, null), showMetric);
+			initShowMetric = true;
+		}
+		return showMetric;
+	}
+
+	@Override
+	public boolean getShowTest() {
+		if (!initShowTest) {
+			showTest = Caster.toBooleanValue(get(component, KeyConstants._showTest, null), showTest);
+			initShowTest = true;
+		}
+		return showTest;
+	}
+
+	@Override
 	public TimeZone getTimeZone() {
 		if (!initTimeZone) {
 			Object o = get(component, KeyConstants._timezone, null);
@@ -1461,6 +1513,30 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	public void setLocale(Locale locale) {
 		initLocale = true;
 		this.locale = locale;
+	}
+
+	@Override
+	public void setShowDebug(boolean b) {
+		showDebug = b;
+		initShowDebug = true;
+	}
+
+	@Override
+	public void setShowDoc(boolean b) {
+		showDoc = b;
+		initShowDoc = true;
+	}
+
+	@Override
+	public void setShowMetric(boolean b) {
+		showMetric = b;
+		initShowMetric = true;
+	}
+
+	@Override
+	public void setShowTest(boolean b) {
+		showTest = b;
+		initShowTest = true;
 	}
 
 	@Override

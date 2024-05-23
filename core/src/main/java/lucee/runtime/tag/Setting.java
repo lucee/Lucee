@@ -25,6 +25,7 @@ import lucee.runtime.debug.DebuggerImpl;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageExceptionImpl;
 import lucee.runtime.ext.tag.BodyTagImpl;
+import lucee.runtime.listener.ApplicationContextSupport;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.Struct;
@@ -55,11 +56,51 @@ public final class Setting extends BodyTagImpl {
 	 * @param showdebugoutput value to set
 	 **/
 	public void setShowdebugoutput(boolean showdebugoutput) {
-		if (pageContext.getConfig().debug()) {
-			DebuggerImpl d = (DebuggerImpl) pageContext.getDebugger();
-			d.setOutput(showdebugoutput, ((PageContextImpl) pageContext).getListenSettings());
+		ApplicationContextSupport acs = (ApplicationContextSupport) pageContext.getApplicationContext();
+		if (acs != null) {
+			acs.setShowDebug(showdebugoutput);
+			acs.setShowDoc(showdebugoutput);
+			acs.setShowMetric(showdebugoutput);
+			acs.setShowTest(showdebugoutput);
 		}
+	}
 
+	public void setShow(boolean showdebugoutput) {
+		ApplicationContextSupport acs = (ApplicationContextSupport) pageContext.getApplicationContext();
+		if (acs != null) {
+			acs.setShowDebug(showdebugoutput);
+			acs.setShowDoc(showdebugoutput);
+			acs.setShowMetric(showdebugoutput);
+			acs.setShowTest(showdebugoutput);
+		}
+	}
+
+	public void setShowdebug(boolean showdebugoutput) {
+		ApplicationContextSupport acs = (ApplicationContextSupport) pageContext.getApplicationContext();
+		if (acs != null) {
+			acs.setShowDebug(showdebugoutput);
+		}
+	}
+
+	public void setShowmetric(boolean showdebugoutput) {
+		ApplicationContextSupport acs = (ApplicationContextSupport) pageContext.getApplicationContext();
+		if (acs != null) {
+			acs.setShowMetric(showdebugoutput);
+		}
+	}
+
+	public void setShowdoc(boolean showdebugoutput) {
+		ApplicationContextSupport acs = (ApplicationContextSupport) pageContext.getApplicationContext();
+		if (acs != null) {
+			acs.setShowDoc(showdebugoutput);
+		}
+	}
+
+	public void setShowtest(boolean showdebugoutput) {
+		ApplicationContextSupport acs = (ApplicationContextSupport) pageContext.getApplicationContext();
+		if (acs != null) {
+			acs.setShowTest(showdebugoutput);
+		}
 	}
 
 	public void setListen(boolean listen) {

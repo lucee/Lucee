@@ -111,41 +111,21 @@ Redirtect to entry --->
 </cfhtmlbody>
 
 <cfoutput>
-
-
+	<cfset stText.Debug.settingsDesc="On this page, you can configure the specific information that Lucee should log during a request. Please note that enabling extensive logging can impact performance, as logging operations require additional processing time.">
 	<!--- Error Output--->
 	<cfset printError(error)>
 
-	#stText.Debug.EnableDescription#
+	#stText.Debug.settingsDesc#
 
 	<cfformClassic onerror="customError" action="#request.self#?action=#url.action#" method="post" name="debug_settings">
 		<table class="maintbl autowidth">
+
+
 			<tbody>
-				<tr>
-					<th scope="row">
-						#stText.Debug.EnableDebugging#
-					</th>
-					<td>
-						<cfset lbl = _debug.debug ? stText.general.yes : stText.general.no>
 						<cfif hasAccess>
-							<ul class="radiolist" id="sp_options">
-								<li>
-									<label>
-										<input type="radio" class="radio" name="debug" value="false" #!_debug.debug ? 'checked="checked"' : ''#>
-										#stText.general.no#
-									</label>
+							
+								
 
-									<div class="comment">#stText.debug.settings.generalNo#</div>
-
-								</li>
-								<li>
-									<label>
-										<input type="radio" class="radio" name="debug" id="sp_radio_debug" value="true" #_debug.debug ? 'checked="checked"' : ''#>
-										#stText.general.yes#
-									</label>
-									<div class="comment">#stText.debug.settings.generalYes#</div>
-									<table class="maintbl autowidth" id="debugoptionstbl">
-									<tbody>
 										<cfloop list="template,database,exception,tracing,dump,timer,implicitAccess,thread" item="item">
 										<tr>
 											<th scope="row">#stText.debug.settings[item]#</th>
@@ -190,9 +170,8 @@ Redirtect to entry --->
 											</td>
 										</tr>
 										</cfloop>
-								</table>
-								</li>
-							</ul>
+
+								
 						<cfelse>
 							<!---<input type="hidden" name="scriptProtect" value="#appSettings.scriptProtect#">--->
 							<b>#lbl#</b>

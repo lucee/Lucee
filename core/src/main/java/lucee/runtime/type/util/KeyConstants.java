@@ -2496,6 +2496,7 @@ public class KeyConstants {
 	public static final Key _onSessionStart = KeyImpl._const("onSessionStart");
 	public static final Key _onSessionEnd = KeyImpl._const("onSessionEnd");
 	public static final Key _onDebug = KeyImpl._const("onDebug");
+	public static final Key _onInfo = KeyImpl._const("onInfo");
 	public static final Key _onMissingTemplate = KeyImpl._const("onMissingTemplate");
 	public static final Key _ROWCOUNT = KeyImpl._const("ROWCOUNT");
 	public static final Key _autogenmap = KeyImpl._const("autogenmap");
@@ -2983,6 +2984,12 @@ public class KeyConstants {
 	public static final Key _paramType = KeyImpl._const("paramType");
 	public static final Key _onSuccess = KeyImpl._const("onSuccess");
 	public static final Key _choices = KeyImpl._const("choices");
+	public static final Key _showDebug = KeyImpl._const("showDebug");
+	public static final Key _showDoc = KeyImpl._const("showDoc");
+	public static final Key _showMetric = KeyImpl._const("showMetric");
+	public static final Key _showTest = KeyImpl._const("showTest");
+	public static final Key _doc = KeyImpl._const("doc");
+	public static final Key _metric = KeyImpl._const("metric");
 	private static Map<String, Key> _____keys;
 
 	static {

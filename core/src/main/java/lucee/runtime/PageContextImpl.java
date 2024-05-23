@@ -2739,19 +2739,50 @@ public final class PageContextImpl extends PageContext {
 			if (enablecfoutputonly > 0) {
 				setCFOutputOnly((short) 0);
 			}
-			if (!gatewayContext && getConfig().debug()) {
-				try {
-					listener.onDebug(this);
-				}
-				catch (Exception e) {
-					pe = Caster.toPageException(e);
-					if (!Abort.isSilentAbort(pe)) listener.onError(this, pe);
-					ExceptionUtil.rethrowIfNecessary(e);
+			if (!gatewayContext) {
+				if (getConfig().debug()) {
+					try {
+						listener.onDebug(this);
+					}
+					catch (Exception e) {
+						pe = Caster.toPageException(e);
+						if (!Abort.isSilentAbort(pe)) listener.onError(this, pe);
+						ExceptionUtil.rethrowIfNecessary(e);
+					}
 				}
 			}
 			ps = null;
 			if (_t != null) ExceptionUtil.rethrowIfNecessary(_t);
 		}
+	}
+
+	public boolean show() {
+		if (isGatewayContext()) return false;
+		ApplicationContextSupport ac = (ApplicationContextSupport) getApplicationContext();
+		if (ac == null) {
+			return config.getShowDoc() || config.getShowMetric() || config.getShowTest() || config.getShowDebug();
+		}
+		return ac.getShowDoc() || ac.getShowMetric() || ac.getShowTest() || ac.getShowDebug();
+	}
+
+	public boolean showDebug() {
+		if (isGatewayContext()) return false;
+		return getApplicationContext() instanceof ApplicationContextSupport ? ((ApplicationContextSupport) getApplicationContext()).getShowDebug() : config.getShowDebug();
+	}
+
+	public boolean showDoc() {
+		if (isGatewayContext()) return false;
+		return getApplicationContext() instanceof ApplicationContextSupport ? ((ApplicationContextSupport) getApplicationContext()).getShowDoc() : config.getShowDoc();
+	}
+
+	public boolean showMetric() {
+		if (isGatewayContext()) return false;
+		return getApplicationContext() instanceof ApplicationContextSupport ? ((ApplicationContextSupport) getApplicationContext()).getShowMetric() : config.getShowMetric();
+	}
+
+	public boolean showTest() {
+		if (isGatewayContext()) return false;
+		return getApplicationContext() instanceof ApplicationContextSupport ? ((ApplicationContextSupport) getApplicationContext()).getShowTest() : config.getShowTest();
 	}
 
 	private void initallog() {

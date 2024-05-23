@@ -681,6 +681,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		else if (check("getCfxTags", ACCESS_FREE) && check2(ACCESS_READ)) doGetCFXTags();
 		else if (check("getJavaCfxTags", ACCESS_FREE) && check2(ACCESS_READ)) doGetJavaCFXTags();
 		else if (check("getDebug", ACCESS_FREE) && check2(ACCESS_READ)) doGetDebug();
+		else if (check("getMonitoring", ACCESS_FREE) && check2(ACCESS_READ)) doGetMonitoring();
 		else if (check("getSecurity", ACCESS_FREE) && check2(ACCESS_READ)) doGetSecurity();
 		else if (check("getDebugEntry", ACCESS_FREE)) doGetDebugEntry();
 		else if (check("getError", ACCESS_FREE) && check2(ACCESS_READ)) doGetError();
@@ -734,6 +735,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 		else if (check("updatejavacfx", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateJavaCFX();
 		else if (check("updatedebug", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateDebug();
+		else if (check("updatemonitoring", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateMonitoring();
 		else if (check("updatesecurity", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateSecurity();
 		else if (check("updatedebugentry", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateDebugEntry();
 		else if (check("updatedebugsetting", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateDebugSetting();
@@ -1442,6 +1444,16 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		sct.set("thread", Caster.toBoolean(config.hasDebugOptions(ConfigPro.DEBUG_THREAD)));
 	}
 
+	private void doGetMonitoring() throws PageException {
+		Struct sct = new StructImpl();
+		pageContext.setVariable(getString("admin", action, "returnVariable"), sct);
+
+		sct.set(KeyConstants._debug, Caster.toBoolean(config.getShowDebug()));
+		sct.set(KeyConstants._doc, Caster.toBoolean(config.getShowDoc()));
+		sct.set(KeyConstants._metric, Caster.toBoolean(config.getShowMetric()));
+		sct.set(KeyConstants._test, Caster.toBoolean(config.getShowTest()));
+	}
+
 	private void doGetError() throws PageException {
 		Struct sct = new StructImpl();
 		pageContext.setVariable(getString("admin", action, "returnVariable"), sct);
@@ -1757,6 +1769,16 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 				Caster.toBoolean(getString("exception", ""), null), Caster.toBoolean(getString("tracing", ""), null), Caster.toBoolean(getString("dump", ""), null),
 				Caster.toBoolean(getString("timer", ""), null), Caster.toBoolean(getString("implicitAccess", ""), null), Caster.toBoolean(getString("queryUsage", ""), null),
 				Caster.toBoolean(getString("thread", ""), null));
+
+		// TODO?admin.updateDebugTemplate(getString("admin", action, "debugTemplate"));
+		store();
+		adminSync.broadcast(attributes, config);
+		if (!Caster.toBooleanValue(getString("debug", ""), false)) doPurgeDebugPool(); // purge the debug log pool when disabling debug to free up memory
+	}
+
+	private void doUpdateMonitoring() throws PageException {
+		admin.updateMonitoring(Caster.toBoolean(getString("debug", ""), null), Caster.toBoolean(getString("metric", ""), null), Caster.toBoolean(getString("doc", ""), null),
+				Caster.toBoolean(getString("test", ""), null));
 
 		// TODO?admin.updateDebugTemplate(getString("admin", action, "debugTemplate"));
 		store();

@@ -5646,8 +5646,51 @@ To use cached data, the current query must use the same SQL statement, data sour
 			<name>showDebugOutput</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>Yes or No. When set to No, showDebugOutput suppresses debugging information that would
-		otherwise display at the end of the generated page.Default is Yes.</description>
+			<description>Yes or No. When set to No, showDebugOutput suppresses monitor information that would
+		otherwise display at the end of the generated page.</description>
+		</attribute>
+		<attribute>
+			<type>boolean</type>
+			<name>show</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>Yes or No. When set to No, show suppresses monitor information that would
+		otherwise display at the end of the generated page.</description>
+		</attribute>
+		
+		
+		<attribute>
+			<type>boolean</type>
+			<name>showDebug</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>Yes or No. When set to No, showDebug suppresses debugging information that would
+		otherwise display at the end of the generated page.</description>
+		</attribute>
+		<attribute>
+			<type>boolean</type>
+			<name>showDoc</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>Yes or No. When set to No, showDoc suppresses documentation/reference information that would
+		otherwise display at the end of the generated page.</description>
+		</attribute>
+		<attribute>
+			<type>boolean</type>
+			<name>showMetric</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>Yes or No. When set to No, showMetric suppresses metric information that would
+		otherwise display at the end of the generated page.</description>
+		</attribute>
+		<attribute>
+			<type>boolean</type>
+			<name>showTest</name>
+			<required>false</required>
+			<status>hidden</status>
+			<rtexprvalue>true</rtexprvalue>
+			<description>Yes or No. When set to No, showTest suppresses test information that would
+		otherwise display at the end of the generated page.</description>
 		</attribute>
 		<attribute>
 			<type>number</type>
@@ -8827,6 +8870,39 @@ Depending on this setting Lucee scans certain scopes to find a variable called f
 			When true, url fields/parameters with the same name will be combined into an array.
 			This only works via Application.cfc
 			</description>
+		</attribute>
+		<attribute>
+			<type>boolean</type>
+			<name>showdoc</name>
+			<alias>doc</alias>
+			<default>false</default>
+			<required>false</required>
+			<description>Show documentation output at the end of teh webpage or not.</description>
+		</attribute>
+		<attribute>
+			<type>boolean</type>
+			<name>showmetric</name>
+			<alias>metric</alias>
+			<default>false</default>
+			<required>false</required>
+			<description>Show metric output at the end of teh webpage or not.</description>
+		</attribute>
+		<attribute>
+			<type>boolean</type>
+			<name>showtest</name>
+			<alias>test</alias>
+			<status>hidden</status>
+			<default>false</default>
+			<required>false</required>
+			<description>Show test output at the end of teh webpage or not.</description>
+		</attribute>
+		<attribute>
+			<type>boolean</type>
+			<name>showdebug</name>
+			<alias>debug</alias>
+			<default>false</default>
+			<required>false</required>
+			<description>Show debug output at the end of teh webpage or not.</description>
 		</attribute>
 	</tag>
 

@@ -4610,14 +4610,53 @@ public final class ConfigWebFactory extends ConfigFactory {
 				}
 			}
 			config.setDebugEntries(list.values().toArray(new DebugEntry[list.size()]));
+			{
+				// monitoring debug
+				String str = getAttr(root, "showDebug");
+				if (StringUtil.isEmpty(str, true)) str = getAttr(root, "debuggingEnabled");
+				if (StringUtil.isEmpty(str, true)) str = getAttr(root, "debugging");
+				if (StringUtil.isEmpty(str, true)) str = getAttr(root, "debug");
+				if (!hasCS && StringUtil.isEmpty(str, true)) str = SystemUtil.getSystemPropOrEnvVar("lucee.show.debug", null);
+				;
 
-			// debug
-			String strDebug = getAttr(root, "debuggingEnabled");
-			if (hasAccess && !StringUtil.isEmpty(strDebug)) {
-				config.setDebug(toBoolean(strDebug, false) ? ConfigImpl.CLIENT_BOOLEAN_TRUE : ConfigImpl.CLIENT_BOOLEAN_FALSE);
+				if (hasAccess && !StringUtil.isEmpty(str)) {
+					config.setShowDebug(toBoolean(str, false));
+				}
+				else if (hasCS) config.setShowDebug(configServer.getShowDebug());
+
+				// monitoring doc
+				str = getAttr(root, "showDoc");
+				if (StringUtil.isEmpty(str, true)) str = getAttr(root, "showReference");
+				if (StringUtil.isEmpty(str, true)) str = getAttr(root, "doc");
+				if (StringUtil.isEmpty(str, true)) str = getAttr(root, "documentation");
+				if (StringUtil.isEmpty(str, true)) str = getAttr(root, "reference");
+				if (!hasCS && StringUtil.isEmpty(str, true)) str = SystemUtil.getSystemPropOrEnvVar("lucee.show.doc", null);
+				if (hasAccess && !StringUtil.isEmpty(str)) {
+					config.setShowDoc(toBoolean(str, false));
+				}
+				else if (hasCS) config.setShowDoc(configServer.getShowDoc());
+
+				// monitoring metric
+				str = getAttr(root, "showMetric");
+				if (StringUtil.isEmpty(str, true)) str = getAttr(root, "showMetrics");
+				if (StringUtil.isEmpty(str, true)) str = getAttr(root, "metric");
+				if (StringUtil.isEmpty(str, true)) str = getAttr(root, "metrics");
+				if (!hasCS && StringUtil.isEmpty(str, true)) str = SystemUtil.getSystemPropOrEnvVar("lucee.show.metric", null);
+				if (hasAccess && !StringUtil.isEmpty(str)) {
+					config.setShowMetric(toBoolean(str, false));
+				}
+				else if (hasCS) config.setShowMetric(configServer.getShowMetric());
+
+				// monitoring test
+				str = getAttr(root, "showTest");
+				if (StringUtil.isEmpty(str, true)) str = getAttr(root, "showTests");
+				if (StringUtil.isEmpty(str, true)) str = getAttr(root, "test");
+				if (!hasCS && StringUtil.isEmpty(str, true)) str = SystemUtil.getSystemPropOrEnvVar("lucee.show.test", null);
+				if (hasAccess && !StringUtil.isEmpty(str)) {
+					config.setShowTest(toBoolean(str, false));
+				}
+				else if (hasCS) config.setShowTest(configServer.getShowTest());
 			}
-			else if (hasCS) config.setDebug(configServer.debug() ? ConfigImpl.SERVER_BOOLEAN_TRUE : ConfigImpl.SERVER_BOOLEAN_FALSE);
-
 			// debug-log-output
 			String strDLO = getAttr(root, "debuggingLogOutput");
 			if (hasAccess && !StringUtil.isEmpty(strDLO)) {

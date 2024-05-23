@@ -3084,6 +3084,24 @@ public final class ConfigAdmin {
 		else rem(root, "debuggingThread");
 	}
 
+	public void updateMonitoring(Boolean debug, Boolean metric, Boolean doc, Boolean test) throws SecurityException {
+		checkWriteAccess();
+		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_DEBUGGING);
+		if (!hasAccess) throw new SecurityException("no access to change monitoring settings");
+
+		if (debug != null) root.setEL("showDebug", debug.booleanValue());
+		else rem(root, "showDebug");
+
+		if (metric != null) root.setEL("showMetric", metric.booleanValue());
+		else rem(root, "showMetric");
+
+		if (doc != null) root.setEL("showDoc", doc.booleanValue());
+		else rem(root, "showDoc");
+
+		if (test != null) root.setEL("showTest", test.booleanValue());
+		else rem(root, "showTest");
+	}
+
 	/**
 	 * updates the ErrorTemplate
 	 * 

@@ -380,4 +380,12 @@ public interface ConfigPro extends Config {
 	public int getReturnFormat();
 
 	public PhysicalClassLoader getDirectClassLoader(boolean reload) throws IOException;
+
+	public boolean getShowDebug();
+
+	public boolean getShowDoc();
+
+	public boolean getShowMetric();
+
+	public boolean getShowTest();
 }

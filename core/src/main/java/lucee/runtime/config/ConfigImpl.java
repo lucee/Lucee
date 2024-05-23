@@ -212,7 +212,6 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 
 	private Map<String, LoggerAndSourceData> loggers = new HashMap<String, LoggerAndSourceData>();
 
-	private int _debug;
 	private int debugLogOutput = SERVER_BOOLEAN_FALSE;
 	private int debugOptions = 0;
 
@@ -429,6 +428,14 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	private int inspectTemplateAutoIntervalFast = ConfigPro.INSPECT_INTERVAL_FAST;
 
 	private boolean formUrlAsStruct = true;
+
+	private boolean showDebug;
+
+	private boolean showDoc;
+
+	private boolean showMetric;
+
+	private boolean showTest;
 
 	/**
 	 * @return the allowURLRequestTimeout
@@ -694,13 +701,48 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 
 	@Override
 	public boolean debug() {
-		if (!(_debug == CLIENT_BOOLEAN_TRUE || _debug == SERVER_BOOLEAN_TRUE)) return false;
 		return true;
 	}
 
 	@Override
+	public boolean getShowDebug() {
+		return this.showDebug;
+	}
+
+	public void setShowDebug(boolean b) {
+		this.showDebug = b;
+	}
+
+	@Override
+	public boolean getShowDoc() {
+		return this.showDoc;
+	}
+
+	public void setShowDoc(boolean b) {
+		this.showDoc = b;
+	}
+
+	@Override
+	public boolean getShowMetric() {
+		return this.showMetric;
+	}
+
+	public void setShowMetric(boolean b) {
+		this.showMetric = b;
+	}
+
+	@Override
+	public boolean getShowTest() {
+		return this.showTest;
+	}
+
+	public void setShowTest(boolean b) {
+		this.showTest = b;
+	}
+
+	@Override
 	public boolean debugLogOutput() {
-		return debug() && debugLogOutput == CLIENT_BOOLEAN_TRUE || debugLogOutput == SERVER_BOOLEAN_TRUE;
+		return debugLogOutput == CLIENT_BOOLEAN_TRUE || debugLogOutput == SERVER_BOOLEAN_TRUE;
 	}
 
 	@Override
@@ -1373,15 +1415,6 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	 */
 	protected void setPSQL(boolean psq) {
 		this.psq = psq;
-	}
-
-	/**
-	 * set if lucee make debug output or not
-	 * 
-	 * @param _debug debug or not
-	 */
-	protected void setDebug(int _debug) {
-		this._debug = _debug;
 	}
 
 	protected void setDebugLogOutput(int debugLogOutput) {

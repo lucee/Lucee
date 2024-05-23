@@ -284,6 +284,10 @@ public final class ConfigServerFactory extends ConfigFactory {
 		Resource debug = adminDir.getRealResource("debug");
 		create("/resource/context/admin/debug/", new String[] { "Debug.cfc", "Field.cfc", "Group.cfc", "Classic.cfc", "Simple.cfc", "Modern.cfc", "Comment.cfc" }, debug, doNew);
 
+		// Info
+		Resource info = adminDir.getRealResource("info");
+		create("/resource/context/admin/info/", new String[] { "Info.cfc" }, info, doNew);
+
 		// DB Drivers types
 		Resource dbDir = adminDir.getRealResource("dbdriver");
 		Resource typesDir = dbDir.getRealResource("types");

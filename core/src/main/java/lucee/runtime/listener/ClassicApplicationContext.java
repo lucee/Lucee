@@ -161,6 +161,14 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 
 	private int returnFormat = UDF.RETURN_FORMAT_WDDX;
 
+	private boolean showDebug;
+
+	private boolean showDoc;
+
+	private boolean showMetric;
+
+	private boolean showTest;
+
 	/**
 	 * constructor of the class
 	 * 
@@ -217,6 +225,11 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 		this.formUrlAsStruct = ((ConfigPro) config).getFormUrlAsStruct();
 
 		this.returnFormat = ((ConfigPro) config).getReturnFormat();
+		this.showDebug = ((ConfigPro) config).getShowDebug();
+		this.showDoc = ((ConfigPro) config).getShowDoc();
+		this.showMetric = ((ConfigPro) config).getShowMetric();
+		this.showTest = ((ConfigPro) config).getShowTest();
+
 	}
 
 	/**
@@ -1168,5 +1181,45 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 	@Override
 	public void setReturnFormat(int returnFormat) {
 		this.returnFormat = returnFormat;
+	}
+
+	@Override
+	public boolean getShowDebug() {
+		return this.showDebug;
+	}
+
+	@Override
+	public boolean getShowDoc() {
+		return this.showDoc;
+	}
+
+	@Override
+	public boolean getShowMetric() {
+		return this.showMetric;
+	}
+
+	@Override
+	public boolean getShowTest() {
+		return this.showTest;
+	}
+
+	@Override
+	public void setShowDebug(boolean b) {
+		this.showDebug = b;
+	}
+
+	@Override
+	public void setShowDoc(boolean b) {
+		this.showDoc = b;
+	}
+
+	@Override
+	public void setShowMetric(boolean b) {
+		this.showMetric = b;
+	}
+
+	@Override
+	public void setShowTest(boolean b) {
+		this.showTest = b;
 	}
 }

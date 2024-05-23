@@ -56,6 +56,7 @@ import lucee.runtime.exp.CatchBlock;
 import lucee.runtime.exp.DatabaseException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageExceptionImpl;
+import lucee.runtime.listener.ModernAppListener;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
@@ -97,7 +98,6 @@ public final class DebuggerImpl implements Debugger {
 	private final List<CatchBlock> exceptions = new ArrayList<CatchBlock>();
 	private final Map<String, ImplicitAccessImpl> implicitAccesses = new HashMap<String, ImplicitAccessImpl>();
 
-	private boolean output = true;
 	private long lastEntry;
 	private long lastTrace;
 	private final Array historyId = new ArrayImpl();
@@ -156,7 +156,6 @@ public final class DebuggerImpl implements Debugger {
 		exceptions.clear();
 		historyId.clear();
 		historyLevel.clear();
-		output = true;
 		outputLog = null;
 		abort = null;
 		outputContext = null;
@@ -307,23 +306,19 @@ public final class DebuggerImpl implements Debugger {
 
 	@Override
 	public void setOutput(boolean output) {
-		setOutput(output, false);
-	}
 
-	public void setOutput(boolean output, boolean listen) {
-		this.output = output;
-		if (listen) {
-			this.outputContext = new ApplicationException("");
-		}
 	}
 
 	public void setThreadName(String threadName) {
 		this.threadName = threadName;
 	}
 
-	// FUTURE add to inzerface
 	public boolean getOutput() {
-		return output;
+		PageContext pc = ThreadLocalPageContext.get();
+		if (pc instanceof PageContextImpl) {
+			return ((PageContextImpl) pc).showDebug();
+		}
+		return false;
 	}
 
 	public PageException getOutputContext() {
@@ -351,8 +346,9 @@ public final class DebuggerImpl implements Debugger {
 
 	@Override
 	public void writeOut(PageContext pc) throws IOException {
-		// stop();
-		if (!output) return;
+		if (pc == null) return;
+		PageContextImpl pci = (PageContextImpl) pc;
+		if (!pci.show()) return;
 
 		lucee.runtime.config.DebugEntry debugEntry = getDebugEntry(pc);
 
@@ -407,7 +403,7 @@ public final class DebuggerImpl implements Debugger {
 			pc.addPageSource(p.getPageSource(), true);
 			try {
 				Component c = pc.loadComponent(fullname);
-				c.callWithNamedValues(pc, "output", args);
+				ModernAppListener.info(pc, c, args);
 			}
 			finally {
 				pc.removeLastPageSource(true);

@@ -678,10 +678,11 @@
     },
     "menu": {
       "debugging": {
-        "label": "Debugging",
+        "label": "Monitoring",
         "logs": "Logs",
         "settings": "Settings",
-        "templates": "Templates"
+        "templates": "Debug Templates",
+        "show": "Show"
       },
       "documentation": {
         "funcRef": "Function Reference",

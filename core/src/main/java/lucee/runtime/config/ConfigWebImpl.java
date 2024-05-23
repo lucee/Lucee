@@ -1242,6 +1242,26 @@ public class ConfigWebImpl implements ConfigWebPro {
 	}
 
 	@Override
+	public boolean getShowDebug() {
+		return instance.getShowDebug();
+	}
+
+	@Override
+	public boolean getShowDoc() {
+		return instance.getShowDoc();
+	}
+
+	@Override
+	public boolean getShowMetric() {
+		return instance.getShowMetric();
+	}
+
+	@Override
+	public boolean getShowTest() {
+		return instance.getShowTest();
+	}
+
+	@Override
 	public lucee.runtime.Mapping getFunctionMapping(java.lang.String arg0) {
 		return instance.getFunctionMapping(arg0);
 	}

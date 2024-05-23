@@ -495,4 +495,20 @@ public abstract class ApplicationContextSupport implements ApplicationContext {
 
 	public abstract void setReturnFormat(int rf);
 
+	public abstract boolean getShowDebug();
+
+	public abstract boolean getShowDoc();
+
+	public abstract boolean getShowMetric();
+
+	public abstract boolean getShowTest();
+
+	public abstract void setShowDebug(boolean b);
+
+	public abstract void setShowDoc(boolean b);
+
+	public abstract void setShowMetric(boolean b);
+
+	public abstract void setShowTest(boolean b);
+
 }

@@ -18,6 +18,8 @@
  **/
 package lucee.commons.lang;
 
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.concurrent.ThreadLocalRandom;
 
 import lucee.runtime.exp.ExpressionException;
@@ -120,5 +122,35 @@ public class NumberUtil {
 
 	public static int randomRange(int min, int max) {
 		return min + (ThreadLocalRandom.current().nextInt(max - min + 1));
+	}
+
+	public static Number negate(Number number) {
+		if (number instanceof Integer) {
+			return -number.intValue();
+		}
+		else if (number instanceof Long) {
+			return -number.longValue();
+		}
+		else if (number instanceof Float) {
+			return -number.floatValue();
+		}
+		else if (number instanceof Double) {
+			return -number.doubleValue();
+		}
+		else if (number instanceof Short) {
+			return -number.shortValue();
+		}
+		else if (number instanceof Byte) {
+			return -number.byteValue();
+		}
+		else if (number instanceof BigInteger) {
+			return ((BigInteger) number).negate();
+		}
+		else if (number instanceof BigDecimal) {
+			return ((BigDecimal) number).negate();
+		}
+		else {
+			throw new IllegalArgumentException("Unsupported Number type: " + number.getClass());
+		}
 	}
 }

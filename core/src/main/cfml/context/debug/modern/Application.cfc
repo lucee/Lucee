@@ -13,5 +13,8 @@ component {
 	this.localmode="update";
 	this.web.charset="utf-8";
 	this.scopeCascading="strict";
-	setting showdebugoutput=false;
+	this.showDebug=false;
+	this.showDoc=false;
+	this.showMetric=false;
+	this.showTest=false;
 }

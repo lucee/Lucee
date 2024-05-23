@@ -1,6 +1,6 @@
 <cftry>
 <cfscript>
-
+setting showdebugOutput=false;
 
 minmax="It must have at least {min} arguments but a maximum of {max}.";
 min="It must have at least {min} arguments.";

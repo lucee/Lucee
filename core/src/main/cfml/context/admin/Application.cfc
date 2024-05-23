@@ -37,6 +37,10 @@ this.tag.cookie.httpOnly = true; // prevent access to session cookies from javas
 this.searchImplicitScopes = false;
 this.searchResults = false;
 this.security.limitEvaluation = true;
+this.showDebug=false;
+this.showDoc=false;
+this.showMetric=false;
+this.showTest=false;
 
 this.xmlFeatures = {
 	externalGeneralEntities: false,
