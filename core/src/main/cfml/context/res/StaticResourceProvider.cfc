@@ -45,7 +45,7 @@ component {
 	function onMissingTemplate( target,debug=false ) {
 		var filename = right( arguments.target, 4 ) == ".cfm" ? left( arguments.target, len( arguments.target ) - 4 ) : arguments.target;
 		var resInfo = getResInfo( filename ,"");
-			
+		
 		if(!resInfo.exists) {
 			// maybe the name has the version appendix
 			nameAppendix=hash(server.lucee.version&server.lucee['release-date'],'quick');
@@ -54,11 +54,11 @@ component {
 			}
 		}
 		if ( resInfo.exists ) {
-
+			
 			header name='Expires'       value='#getHttpTimeString( debug?now():(now() + 0.01))#'; // 0.01 % of 1 day, 24m
 			//header name='Cache-Control' value='max-age=#86400 * 10#';
 			header name='ETag'          value=resInfo.etag;
-			if (CGI.HTTP_IF_NONE_MATCH == resInfo.etag ) {
+			if (CGI.HTTP_IF_NONE_MATCH == resInfo.etag) {
 
 				header statuscode='304' statustext='Not Modified';
 				content reset=true type=resInfo.mimeType;
@@ -79,13 +79,11 @@ component {
 		return resInfo.exists;
 	}
 
-
 	private function getResInfo( filename,nameAppendix ) {
 		if ( structKeyExists( this.resources, arguments.filename ) )
 			return this.resources[ arguments.filename ];
 
 		var ext = listLast( arguments.filename, '.' );
-
 		var result = { path: expandPath( arguments.filename ), exists: false, mimeType: "" };
 
 		if ( this.mimeTypes.keyExists( ext ) )
@@ -106,7 +104,7 @@ component {
 			result.isText ? replace(fileRead( result.path ),'{appendix}',hash(server.lucee.version&server.lucee['release-date'],'quick'),'all') : 
 			fileReadBinary( result.path );
 
-		result.etag = hash( result.contents&":"&arguments.nameAppendix );
+		result.etag = hash( result.contents&":"&arguments.nameAppendix&":"&server.lucee.version );
 				
 		this.resources[ arguments.filename ] = result;
 

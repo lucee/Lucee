@@ -15,11 +15,11 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  */
 component {
-
-	this.showDebug=false;
-	this.showDoc=false;
-	this.showMetric=false;
-	this.showTest=false;
+	
+	this.monitoring.showDebug=false;
+	this.monitoring.showDoc=false;
+	this.monitoring.showMetric=false;
+	this.monitoring.showTest=false;
 
 	this.name = "__LUCEE_STATIC_RESOURCE" & (left(CGI.CF_TEMPLATE_PATH, 6) == "zip://" ? "_ARC" : "");
 

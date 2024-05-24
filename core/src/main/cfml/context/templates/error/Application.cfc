@@ -6,10 +6,10 @@ component {
 	this.setclientcookies="no";
 	this.setdomaincookies="no"; 
 	this.applicationtimeout="#createTimeSpan(0,0,5,0)#";
-	this.showDebug=false;
-	this.showDoc=false;
-	this.showMetric=false;
-	this.showTest=false;
+	this.monitoring.showDebug=false;
+	this.monitoring.showDoc=false;
+	this.monitoring.showMetric=false;
+	this.monitoring.showTest=false;
 	
 	function onRequestStart( target ) {
 		
