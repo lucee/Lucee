@@ -471,7 +471,7 @@ All elements in the array must contain values that can be converted to numeric.<
 			<alias>function,callback,udf</alias>
 			<type>function</type>
 			<required>Yes</required>
-			<description>function/closure that implements the following constructor [function(any value, numeric index,string list, string delimiter):void].</description>
+			<description>function/closure that implements the following constructor `function(any value, numeric index,string list, string delimiter):void`.</description>
 		
 		</argument>
 		<argument>
@@ -534,7 +534,7 @@ All elements in the array must contain values that can be converted to numeric.<
 			<alias>closure,function,callback</alias>
 			<type>function</type>
 			<required>Yes</required>
-			<description>filter can be a function/closure that implements the following constructor [function(any arg):boolean].</description>
+			<description>filter can be a function/closure that implements the following constructor `function(any arg):boolean`.</description>
 		</argument>
 		<argument>
 			<name>parallel</name>
@@ -766,7 +766,7 @@ Remember CFML arrays start at 1 not 0.</description>
 			<alias>function,callback,udf</alias>
 			<type>function</type>
 			<required>Yes</required>
-			<description>filter can be a function/closure that implements the following constructor [function(any value[, number index, array array]):any].</description>
+			<description>filter can be a function/closure that implements the following constructor `function(any value[, number index, array array]):any`.</description>
 		</argument>
 		<argument>
 			<name>parallel</name>
@@ -806,7 +806,7 @@ Remember CFML arrays start at 1 not 0.</description>
 			<alias>function,callback,udf</alias>
 			<type>function</type>
 			<required>Yes</required>
-			<description>filter can be a function/closure that implements the following constructor [function(any value, number index, string list, string delimiter):any].</description>
+			<description>filter can be a function/closure that implements the following constructor ``function(any value, number index, string list, string delimiter):any`.</description>
 		</argument>
 		<argument>
 			<name>delimiter</name>
@@ -827,7 +827,7 @@ Remember CFML arrays start at 1 not 0.</description>
 			<default>true</default>
 			<type>boolean</type>
 			<required>No</required>
-			<description>specifying whether the delimiters parameter specifies a multi-character delimiter. If this parameter is true, the delimiters parameter must specify a single delimiter consisting of multiple characters. This parameter enables the ListToArray function to convert a list such as the following to an array of color names: red:|orange:|yellow:|green:|blue:|indigo:|violet.</description>
+			<description>specifying whether the delimiters parameter specifies a multi-character delimiter. If this parameter is true, the delimiters parameter must specify a single delimiter consisting of multiple characters. This parameter enables the ListToArray function to convert a list such as the following to an array of color names: `red:|orange:|yellow:|green:|blue:|indigo:|violet`.</description>
 		</argument>
 		<argument>
 			<name>parallel</name>
@@ -869,7 +869,7 @@ Remember CFML arrays start at 1 not 0.</description>
 			<alias>function,callback,udf</alias>
 			<type>function</type>
 			<required>Yes</required>
-			<description>filter can be a function/closure that implements the following constructor [function(string key, any value[, struct struct]):any].</description>
+			<description>filter can be a function/closure that implements the following constructor `function(string key, any value[, struct struct]):any`.</description>
 		
 		</argument>
 		<argument>
@@ -910,7 +910,7 @@ Remember CFML arrays start at 1 not 0.</description>
 			<alias>function,callback,udf</alias>
 			<type>function</type>
 			<required>Yes</required>
-			<description>filter can be a function/closure that implements the following constructor [function(struct row[, number rowNumber, query query]):struct].
+			<description>filter can be a function/closure that implements the following constructor `function(struct row[, number rowNumber, query query]):struct`.
 			The returned struct is used to fill a single query row.</description>
 		</argument>
 		<argument>
@@ -8610,7 +8610,7 @@ The following things are considered to be empty:
 			<alias>closure,function,callback</alias>
 			<type>function</type>
 			<required>Yes</required>
-			<description>function/closure that implements the following constructor [function(any value, numeric index,string list, string delimiter):boolean].</description>
+			<description>function/closure that implements the following constructor `function(any value, numeric index,string list, string delimiter):boolean`.</description>
 		</argument>
 		<argument>
 			<name>delimiter</name>
@@ -12919,7 +12919,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<name>filter</name>
 			<type>function</type>
 			<required>Yes</required>
-			<description>filter can be a function/closure that implements the following constructor [function(any key,any value):boolean].</description>
+			<description>filter can be a function/closure that implements the following constructor `function(any key,any value):boolean`.</description>
 		</argument>
 		<argument>
 			<name>parallel</name>
@@ -12958,7 +12958,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<name>filter</name>
 			<type>function</type>
 			<required>Yes</required>
-			<description>filter can be a function/closure that implements the following constructor [function(struct row[, number rowNumber, query query]):boolean].</description>
+			<description>filter can be a function/closure that implements the following constructor `function(struct row[, number rowNumber, query query]):boolean`.</description>
 		</argument>
 		<argument>
 			<name>parallel</name>
@@ -12999,7 +12999,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<alias>function,callback,udf</alias>
 			<type>function</type>
 			<required>Yes</required>
-			<description>function/closure that implements the following constructor [function(... depending on the given collection ...):any].</description>
+			<description>function/closure that implements the following constructor `function(... depending on the given collection ...):any`.</description>
 		</argument>
 		<argument>
 			<name>initialValue</name>
@@ -13033,7 +13033,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<alias>function,callback,udf</alias>
 			<type>function</type>
 			<required>Yes</required>
-			<description>function/closure that implements the following constructor [function(any result, object value, [, numericIndex [, array]]):any].</description>
+			<description>function/closure that implements the following constructor `function(any result, object value, [, numericIndex [, array]]):any`.</description>
 		</argument>
 		<argument>
 			<name>initialValue</name>
@@ -13067,7 +13067,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<alias>function,callback,udf</alias>
 			<type>function</type>
 			<required>Yes</required>
-			<description>function/closure that implements the following constructor [function(any result, object value, numeric index , string list, string delimiter):any].</description>
+			<description>function/closure that implements the following constructor `function(any result, object value, numeric index , string list, string delimiter):any`.</description>
 		</argument>
 		<argument>
 			<name>initialValue</name>
@@ -13122,7 +13122,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<alias>function,callback,udf</alias>
 			<type>function</type>
 			<required>Yes</required>
-			<description>function/closure that implements the following constructor [function(any result, string key, object value[, struct struct]):any].</description>
+			<description>function/closure that implements the following constructor `function(any result, string key, object value[, struct struct]):any`.</description>
 		</argument>
 		<argument>
 			<name>initialValue</name>
@@ -13157,7 +13157,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<alias>function,callback,udf</alias>
 			<type>function</type>
 			<required>Yes</required>
-			<description>function/closure that implements the following constructor [function(any result, struct row[, number rowNumber, query query]):any].</description>
+			<description>function/closure that implements the following constructor `function(any result, struct row[, number rowNumber, query query]):any`.</description>
 		</argument>
 		<argument>
 			<name>initialValue</name>
@@ -13189,7 +13189,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<name>filter</name>
 			<type>function</type>
 			<required>Yes</required>
-			<description>filter can be a function/closure that implements the following constructor [function(... depending on given collection ...):boolean].</description>
+			<description>filter can be a function/closure that implements the following constructor `function(... depending on given collection ...):boolean`.</description>
 		</argument>
 		<argument>
 			<name>parallel</name>
@@ -13229,7 +13229,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<alias>function,callback,udf</alias>
 			<type>function</type>
 			<required>Yes</required>
-			<description>function/closure that implements the following constructor [function(... depends on the given collection ...):boolean].</description>
+			<description>function/closure that implements the following constructor `function(... depends on the given collection ...):boolean`.</description>
 		</argument>
 		<argument>
 			<name>parallel</name>
@@ -13269,7 +13269,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<alias>function,callback,udf</alias>
 			<type>function</type>
 			<required>Yes</required>
-			<description>function/closure that implements the following constructor [function(any value[, numeric index,array array]):boolean].</description>
+			<description>function/closure that implements the following constructor `function(any value[, numeric index,array array]):boolean`.</description>
 		</argument>
 		<argument>
 			<name>parallel</name>
@@ -13310,7 +13310,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<alias>function,callback,udf</alias>
 			<type>function</type>
 			<required>Yes</required>
-			<description>function/closure that implements the following constructor [function(any value, numeric index,string list, string delimiter):boolean].</description>
+			<description>function/closure that implements the following constructor `function(any value, numeric index,string list, string delimiter):boolean`.</description>
 		</argument>
 		<argument>
 			<name>delimiter</name>
@@ -13372,7 +13372,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<alias>function,callback,udf</alias>
 			<type>function</type>
 			<required>Yes</required>
-			<description>function/closure that implements the following constructor [function(string key, any value[array array]):boolean].</description>
+			<description>function/closure that implements the following constructor `function(string key, any value[array array]):boolean`.</description>
 		</argument>
 		<argument>
 			<name>parallel</name>
@@ -13412,7 +13412,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<alias>function,callback,udf</alias>
 			<type>function</type>
 			<required>Yes</required>
-			<description>function/closure that implements the following constructor [function(struct row [, number rowNumber, query query]):boolean].</description>
+			<description>function/closure that implements the following constructor `function(struct row [, number rowNumber, query query]):boolean`.</description>
 		</argument>
 		<argument>
 			<name>parallel</name>
@@ -13451,7 +13451,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<alias>function,callback,udf</alias>
 			<type>function</type>
 			<required>Yes</required>
-			<description>function/closure that implements the following constructor [function(... depends on the given collection ...):boolean].</description>
+			<description>function/closure that implements the following constructor `function(... depends on the given collection ...):boolean`.</description>
 		</argument>
 		<argument>
 			<name>parallel</name>
@@ -13492,7 +13492,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<alias>function,callback,udf</alias>
 			<type>function</type>
 			<required>Yes</required>
-			<description>function/closure that implements the following constructor [function(any value[, numeric index,array array]):boolean].</description>
+			<description>function/closure that implements the following constructor `function(any value[, numeric index,array array]):boolean`.</description>
 		</argument>
 		<argument>
 			<name>parallel</name>
@@ -13532,7 +13532,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<alias>function,callback,udf</alias>
 			<type>function</type>
 			<required>Yes</required>
-			<description>function/closure that implements the following constructor [function(any value, numeric index, string list, string delimiter):boolean].</description>
+			<description>function/closure that implements the following constructor `function(any value, numeric index, string list, string delimiter):boolean`.</description>
 		</argument>
 		<argument>
 			<name>delimiter</name>
@@ -13594,7 +13594,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<alias>function,callback,udf</alias>
 			<type>function</type>
 			<required>Yes</required>
-			<description>function/closure that implements the following constructor [function(string key, any value[array array]):boolean].</description>
+			<description>function/closure that implements the following constructor `function(string key, any value[array array]):boolean`.</description>
 		</argument>
 		<argument>
 			<name>parallel</name>
@@ -13634,7 +13634,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<alias>function,callback,udf</alias>
 			<type>function</type>
 			<required>Yes</required>
-			<description>function/closure that implements the following constructor [function(struct row [number rowNumber, query query]):boolean].</description>
+			<description>function/closure that implements the following constructor `function(struct row [number rowNumber, query query]):boolean`.</description>
 		</argument>
 		<argument>
 			<name>parallel</name>

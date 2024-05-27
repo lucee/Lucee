@@ -13,7 +13,7 @@
 	var labels=[
 		"debug":"Debugging"
 		,"metric":"Metrics"
-		,"ref":"Reference"
+		,"ref":"Documentation"
 		,"test":"Test"
 	];
 
@@ -214,6 +214,7 @@ function luceeSearchSugestions(val,force) {
 	var src=document.getElementById("-lucee-docs-search-input");
 	var allFunctions=false;
 	var allTags=false;
+	var allRecipes=false;
 
 	if(val==null) {// TODO check if exists
 		var val=src.value;
@@ -226,21 +227,48 @@ function luceeSearchSugestions(val,force) {
 		allTags=true;
 		src.value="";
 	}
-
-
+	else if(val=='recipes') {
+		allRecipes=true;
+		src.value="";
+	}
 	val=val.toLowerCase();
+	
+	// check for match with recipes
+	var recipes='';
+	var count=0;
+	var match;
+	var recipie=luceeRefData.recipes;
+	
+	var i=0;
+	var rcol=1;
+	for (var k in recipie) {
+		if(allRecipes || (!allTags && !allFunctions && (recipie[k].since+","+recipie[k].title.toLowerCase()+","+recipie[k].keywords).indexOf(val)!=-1)) { //  || (!allTags && recipe[k].title.indexOf(val)!=-1)
+			recipes+='<a onclick="luceeSearch(\''+recipie[k].title+'\',\'recipes\')" >'+recipie[k].title+'</a>';
+			if((i%50)==49) {
+				recipes+='</td><td>';
+				rcol++;
+			}
+			else recipes+='<br>';
+			
+			count++;
+			//match=recipe[k];
+		}
+		i++;
+	}
+	
+	
+	
 	// check for match with functions
 	var funcs='';
-	var count=0;
 	var match;
 	var func=luceeRefData.function;
 	
-	
+
 	var i=0;
 	var fcol=1;
 	for (var k in func) {
-		if(allFunctions || (!allTags && func[k].indexOf(val)!=-1)) {
-			funcs+='<a onclick="luceeSearch(\''+func[k]+'\')" >'+func[k]+'</a>';
+		if(allFunctions || (!allTags && !allRecipes && func[k].indexOf(val)!=-1)) {
+			funcs+='<a onclick="luceeSearch(\''+func[k]+'\',\'functions\')" >'+func[k]+'</a>';
 			if((i%50)==49) {
 				funcs+='</td><td>';
 				fcol++;
@@ -259,8 +287,8 @@ function luceeSearchSugestions(val,force) {
 	var i=0;
 	var tcol=1;
 	for (var k in tag) {
-		if(allTags || (!allFunctions && tag[k].indexOf(val)!=-1) ){
-			tags+='<a onclick="luceeSearch(\''+tag[k]+'\')" >'+tag[k]+'</a>';
+		if(allTags || (!allFunctions && !allRecipes && tag[k].indexOf(val)!=-1) ){
+			tags+='<a onclick="luceeSearch(\''+tag[k]+'\',\'tags\')" >'+tag[k]+'</a>';
 			if((i%50)==49) {
 				tags+='</td><td>';
 				tcol++;
@@ -275,10 +303,12 @@ function luceeSearchSugestions(val,force) {
 
 	var html='<table class="details">';
 	html+='<thead><tr>';
+	if(recipes.length)html+='<th colspan="'+rcol+'" class="txt-l">Recipes</th>';
 	if(funcs.length)html+='<th colspan="'+fcol+'" class="txt-l">Functions</th>';
 	if(tags.length)html+='<th colspan="'+tcol+'"  class="txt-l">Tags</th>';
 	html+='</tr></thead>';
 	html+='<tbody><tr>';
+	if(recipes.length)html+='<td>'+recipes+'</td>';
 	if(funcs.length)html+='<td>'+funcs+'</td>';
 	if(tags.length)html+='<td>'+tags+'</td>';
 	html+='</tr></tbody></table>';
@@ -292,7 +322,7 @@ function luceeSearchSugestions(val,force) {
 	else el.innerHTML=html; 
 }
 
-function luceeSearch(val) {
+function luceeSearch(val,type) {
 	var src=document.getElementById("-lucee-docs-search-input");
 	
 	if(val==null) {// TODO check if exists
@@ -301,7 +331,9 @@ function luceeSearch(val) {
 	else {
 		src.value=val;
 	}
-	
+	if(type==null) {// TODO check if exists
+		type="unknow";
+	}
 
 	var el=document.getElementById("-lucee-search-result");
 	
@@ -313,7 +345,7 @@ function luceeSearch(val) {
   	};
   	xhttp.open("POST", "/lucee/debug/modern/reference.cfm", true);
   	xhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
-  	xhttp.send("search="+val);
+  	xhttp.send("search=" + val + "&typ=" + type);
 }
 
 
@@ -584,7 +616,7 @@ loop array=enabledKeys index="local.i" item="local.k" {
 		<br><br>
 		<div class="pad">
 		<form autocomplete="off">
-			<a class="large" onclick="luceeSearchSugestions('functions')">Functions | </a><a onclick="luceeSearchSugestions('tags')" class="large">Tags | </a><input onkeyup="luceeSearchSugestions();" 
+			<a class="large" onclick="luceeSearchSugestions('functions')">Functions | </a><a onclick="luceeSearchSugestions('tags')" class="large">Tags | </a><a onclick="luceeSearchSugestions('recipes')" class="large">Recipes | </a><input onkeyup="luceeSearchSugestions();" 
 				id="-lucee-docs-search-input" 
 				name="luceesearchvalue"
 					placeholder="Search Tag or Function" 
