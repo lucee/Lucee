@@ -72,7 +72,7 @@ public class CacheUtil {
 		}
 
 		// get default from config
-		CacheConnection cc = ((ConfigPro) config).getCacheDefaultConnection(type);
+		CacheConnection cc = config == null ? null : ((ConfigPro) config).getCacheDefaultConnection(type);
 		if (cc == null) return defaultValue;
 		try {
 			return cc.getInstance(config);

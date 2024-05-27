@@ -1026,10 +1026,16 @@ public abstract class ConfigFactory {
 	}
 
 	static Resource create(String srcPath, String name, Resource dir, boolean doNew) {
-		if (!dir.exists()) dir.mkdirs();
+		boolean update = doNew;
+		// directory does not exist (so file do also not exist)
+		if (!dir.exists()) {
+			update = true;
+			dir.mkdirs();
+		}
 
 		Resource f = dir.getRealResource(name);
-		if (!f.exists() || doNew) ConfigFactory.createFileFromResourceEL(srcPath + name, f);
+		if (update || !f.exists()) ConfigFactory.createFileFromResourceEL(srcPath + name, f);
+
 		return f;
 
 	}
