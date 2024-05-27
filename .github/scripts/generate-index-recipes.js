@@ -1,5 +1,6 @@
 const fs = require('fs-extra');
 const path = require('path');
+const crypto = require('crypto');
 
 async function generateIndex() {
   const recipesDir = path.join(__dirname, '../../docs/recipes');
@@ -12,7 +13,8 @@ async function generateIndex() {
       const filePath = path.join(recipesDir, file);
       const content = await fs.readFile(filePath, 'utf-8');
       const titleMatch = content.match(/^#\s+(.+)$/m);
-      const title = titleMatch ? titleMatch[1] : 'Undefined';
+      const title = titleMatch ? titleMatch[1] : 'Untitled';
+      const hash = crypto.createHash('md5').update(content).digest('hex');
       const stats = await fs.stat(filePath);
       const lastModified = stats.mtime.toISOString();
       index.push({
@@ -20,6 +22,7 @@ async function generateIndex() {
         title: title,
         path: `/docs/recipes/${file}`,
         lastModified: lastModified,
+        hash: hash,
       });
     }
   }

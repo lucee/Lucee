@@ -115,7 +115,7 @@
 			
 		// do we have a change
 		var localIndex=localDirectory&"index.json";
-		// TODO update only the files with a changed lastmodified
+		// TODO update only the files with a changed hash
 		var first=!fileExists(localIndex);
 		
 		if(first || hash(trim(fileRead(localIndex)))!=indexHash) {
@@ -130,7 +130,7 @@
 				if(!first) {
 					loop array=oldIndex item="local.e" {
 						
-						if(e.file==entry.file && e.lastModified==entry.lastModified) {
+						if(e.file==entry.file && (e.hash?:"b")==(entry.hash?:"a")) {
 							arrayAppend(entries, trim(fileRead(localDirectory&listLast(entry.file,"\/"))));
 							continue outer;
 						}
