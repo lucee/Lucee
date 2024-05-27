@@ -26,11 +26,11 @@ Consider the following examples:
 
 In this example, the `break` statement is used with a label to exit the outer loop:
 
-```lucee
+```run
 <cfloop from="0" to="4" index="hour" label="outerLoop">
   <cfloop from="1" to="60" index="minute">
     <cfoutput>time: #hour#:#minute#<br></cfoutput>
-    <cfbreak label="outerLoop">
+    <cfbreak "outerLoop">
   </cfloop>
 </cfloop>
 ```
