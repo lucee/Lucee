@@ -26,6 +26,16 @@
 	if(!isNull(url.search)) form.search=url.search;
 	if(!isNull(url.typ)) form.typ=url.typ;
 	
+	function enhanceHTML(html) {
+		var code=replace(html,"<code class=""language-","<code id=""recipy"" class=""language-","all");
+		code=replace(code,"<code>","<code class=""recipy"">","all");
+		code=replace(code,"<blockquote>","<blockquote class=""resultml"">","all");
+		code=replace(code,"<h1>","<div class=""title"">","all");
+		code=replace(code,"</h1>",(isEmpty(data.since?:"")?"":(" (Lucee #data.since#)"))&"</div>","all");
+		code=replace(code,"~","`","all");
+		return code;	
+	}
+
 	function markdownToHTMLLine(md) {
 		var html=trim(markdownToHTML(trim(md)));
 		if(find("<p>",html)==1) {
@@ -35,7 +45,7 @@
 				html=mid(html,4); // then remove the beginning p
 			}	
 		}
-		return html;
+		return enhanceHTML(html);
 	}
 	
 	function executeCodeFragments(code) {
@@ -290,7 +300,7 @@
 			<cfif not StructKeyExists(data, "description")>
 				<em>No description found</em>
 			<cfelse>
-				#markdownToHTML(data.description)#
+				#enhanceHTML(markdownToHTML(data.description))#
 			</cfif>
 		</span>
 	</cfif>
@@ -395,15 +405,9 @@
 	<cftry>
 		<cfset md=data.content>
 		<cfset md=executeCodeFragments(md)>
-		<cfset code=markdownToHTML(md)>
+		<cfset code=enhanceHTML(markdownToHTML(md))>
 		
-		<cfset code=replace(code,"<code class=""language-","<code id=""recipy"" class=""language-","all")>
-		<cfset code=replace(code,"<code>","<code class=""recipy"">","all")>
-		<cfset code=replace(code,"<blockquote>","<blockquote class=""resultml"">","all")>
-		<cfset code=replace(code,"<h1>","<div class=""title"">","all")>
-		<cfset code=replace(code,"</h1>",(isEmpty(data.since?:"")?"":(" (Lucee #data.since#)"))&"</div>","all")>
-		<cfset code=replace(code,"~","`","all")>
-		
+
 	
 		
 		
