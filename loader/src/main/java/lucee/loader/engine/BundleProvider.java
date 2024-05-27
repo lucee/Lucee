@@ -442,7 +442,8 @@ public final class BundleProvider {
 		put(mappings, "org.objectweb.asm.tree", new Info("org.ow2.asm", "asm-tree"));
 		put(mappings, "com.sun.xml.bind.jaxb-core", new Info("com.sun.istack", "istack-commons-runtime"));
 		put(mappings, "com.sun.xml.bind.jaxb-impl", new Info("org.glassfish.jaxb", "jaxb-runtime"));
-
+		put(mappings, "org.lucee.commonmark", new Info("org.lucee", "commonmark"));
+		put(mappings, "org.lucee.argon2-jvm-nolibs", new Info("org.lucee", "argon2-jvm-nolibs"));
 	}
 
 	private static void put(Map<String, Info[]> mappings, String name, Info... value) {
