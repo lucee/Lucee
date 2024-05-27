@@ -26,7 +26,7 @@ Consider the following examples:
 
 In this example, the `break` statement is used with a label to exit the outer loop:
 
-```run
+```lucee
 <cfloop from="0" to="4" index="hour" label="outerLoop">
   <cfloop from="1" to="60" index="minute">
     <cfoutput>time: #hour#:#minute#<br></cfoutput>
