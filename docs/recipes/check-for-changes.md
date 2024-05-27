@@ -13,13 +13,13 @@
   ]
 }
 -->
-## Check for changes in your configuration file automatically
+# Check for changes in your configuration file automatically
 
 Lucee can automatically check for changes in your configuration files from the complete server or a single web context.
 
 This is useful if you are doing scripted deploys and/or synchronization from, for example, a master instance to many slave instances of Lucee.
 
-### Check for Changes in ALL the contexts
+## Check for Changes in ALL the contexts
 
 To enable this for a whole Lucee server, find the Lucee server XML file in:
 
@@ -39,7 +39,7 @@ Now that you have made the change, you can either restart Lucee server from the 
 
 Or actually make any change in the Server Admin for the configuration to be picked up. This should now allow it to pick up any changes you have written to the lucee-server.xml file.
 
-### Check for changes in an individual context
+## Check for changes in an individual context
 
 If you only want an individual context to check for changes, you can do the same configuration but you would have to go to:
 
