@@ -5,7 +5,9 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 
-import com.github.rjeschke.txtmark.Processor;
+import org.commonmark.node.Node;
+import org.commonmark.parser.Parser;
+import org.commonmark.renderer.html.HtmlRenderer;
 
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.IOUtil;
@@ -50,8 +52,16 @@ public class MarkdownToHTML extends BIF implements Function {
 
 				BufferedReader br = null;
 				try {
+					// TODO add safemode
 					br = new BufferedReader(new InputStreamReader(res.getInputStream(), cs));
-					return Processor.process(br, safeMode);
+
+					Parser parser = Parser.builder().build();
+					// Parse the markdown to a Node
+					Node document = parser.parseReader(br);
+					// Create a HTML renderer
+					HtmlRenderer renderer = HtmlRenderer.builder().build();
+					// Render the Node to HTML
+					return renderer.render(document);
 				}
 				catch (IOException e) {
 					throw Caster.toPageException(e);
@@ -62,7 +72,14 @@ public class MarkdownToHTML extends BIF implements Function {
 
 			}
 		}
-		return Processor.process(markdown, safeMode);
+
+		Parser parser = Parser.builder().build();
+		// Parse the markdown to a Node
+		Node document = parser.parse(markdown);
+		// Create a HTML renderer
+		HtmlRenderer renderer = HtmlRenderer.builder().build();
+		// Render the Node to HTML
+		return renderer.render(document);
 	}
 
 	/*

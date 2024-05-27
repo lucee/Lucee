@@ -3,7 +3,7 @@
 
   <groupId>org.lucee</groupId>
   <artifactId>lucee</artifactId>
-  <version>6.1.0.158-SNAPSHOT</version>
+  <version>6.1.0.159-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>Lucee Loader Build</name>
@@ -617,12 +617,12 @@
     <version>5.13.0</version>
     <scope>provided</scope>
   </dependency>
-  <dependency>
-    <groupId>org.lucee</groupId>
-    <artifactId>txtmark</artifactId>
-    <version>0.16.0</version>
-    <scope>provided</scope>
-  </dependency>
+    <dependency>
+      <groupId>org.lucee</groupId>
+      <artifactId>commonmark</artifactId>
+      <version>0.22.0</version>
+      <scope>provided</scope>
+    </dependency>
   <dependency>
     <groupId>org.lucee</groupId>
     <artifactId>janino</artifactId>

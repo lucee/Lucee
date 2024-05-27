@@ -24,7 +24,7 @@
 			<type>single</type>
 			<rtexprvalue>true</rtexprvalue>
 		</script>
-		<description>Stops processing of a page at the tag location. CFML returns everything that was processed before the cfabort tag. The cfabort tag is often used with conditional logic to stop processing a page when a condition occurs. </description>
+		<description>**Stops processing of a page at the tag location.** CFML returns everything that was processed before the cfabort tag. The cfabort tag is often used with conditional logic to stop processing a page when a condition occurs. </description>
 		<attribute-type>fixed</attribute-type>
 		<attribute>
 			<type>string</type>
