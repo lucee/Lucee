@@ -3,360 +3,360 @@
     "file": "Externalizing_Strings.md",
     "title": "Undefined",
     "path": "/docs/recipes/Externalizing_Strings.md",
-    "lastModified": "2024-05-27T18:55:33.545Z"
+    "lastModified": "2024-05-27T19:07:02.478Z"
   },
   {
     "file": "QOQ_Sucks.md",
     "title": "Undefined",
     "path": "/docs/recipes/QOQ_Sucks.md",
-    "lastModified": "2024-05-27T18:55:33.545Z"
+    "lastModified": "2024-05-27T19:07:02.478Z"
   },
   {
     "file": "application-context-basic.md",
     "title": "Undefined",
     "path": "/docs/recipes/application-context-basic.md",
-    "lastModified": "2024-05-27T18:55:33.545Z"
+    "lastModified": "2024-05-27T19:07:02.478Z"
   },
   {
     "file": "application-context-set-mapping.md",
     "title": "Undefined",
     "path": "/docs/recipes/application-context-set-mapping.md",
-    "lastModified": "2024-05-27T18:55:33.545Z"
+    "lastModified": "2024-05-27T19:07:02.478Z"
   },
   {
     "file": "application-context-update.md",
     "title": "Update Application Context",
     "path": "/docs/recipes/application-context-update.md",
-    "lastModified": "2024-05-27T18:55:33.545Z"
+    "lastModified": "2024-05-27T19:07:02.478Z"
   },
   {
     "file": "basic-date.md",
     "title": "Output the current date",
     "path": "/docs/recipes/basic-date.md",
-    "lastModified": "2024-05-27T18:55:33.545Z"
+    "lastModified": "2024-05-27T19:07:02.478Z"
   },
   {
     "file": "cache-list.md",
     "title": "Undefined",
     "path": "/docs/recipes/cache-list.md",
-    "lastModified": "2024-05-27T18:55:33.545Z"
+    "lastModified": "2024-05-27T19:07:02.478Z"
   },
   {
     "file": "cached-within-request.md",
     "title": "Undefined",
     "path": "/docs/recipes/cached-within-request.md",
-    "lastModified": "2024-05-27T18:55:33.545Z"
+    "lastModified": "2024-05-27T19:07:02.478Z"
   },
   {
     "file": "caches-in-application-cfc.md",
     "title": "Undefined",
     "path": "/docs/recipes/caches-in-application-cfc.md",
-    "lastModified": "2024-05-27T18:55:33.545Z"
+    "lastModified": "2024-05-27T19:07:02.478Z"
   },
   {
     "file": "cfml-to-java.md",
     "title": "Convert a CFML Function/Component to use in Java",
     "path": "/docs/recipes/cfml-to-java.md",
-    "lastModified": "2024-05-27T18:55:33.545Z"
+    "lastModified": "2024-05-27T19:07:02.478Z"
   },
   {
     "file": "check-for-changes.md",
     "title": "Undefined",
     "path": "/docs/recipes/check-for-changes.md",
-    "lastModified": "2024-05-27T18:55:33.545Z"
+    "lastModified": "2024-05-27T19:07:02.478Z"
   },
   {
     "file": "checksum.md",
     "title": "Undefined",
     "path": "/docs/recipes/checksum.md",
-    "lastModified": "2024-05-27T18:55:33.545Z"
+    "lastModified": "2024-05-27T19:07:02.478Z"
   },
   {
     "file": "configuration-administrator-cfc.md",
     "title": "Undefined",
     "path": "/docs/recipes/configuration-administrator-cfc.md",
-    "lastModified": "2024-05-27T18:55:33.545Z"
+    "lastModified": "2024-05-27T19:07:02.478Z"
   },
   {
     "file": "datasource-define-datasource.md",
     "title": "How to define a Datasource",
     "path": "/docs/recipes/datasource-define-datasource.md",
-    "lastModified": "2024-05-27T18:55:33.545Z"
+    "lastModified": "2024-05-27T19:07:02.478Z"
   },
   {
     "file": "deploy-archives.md",
     "title": "Undefined",
     "path": "/docs/recipes/deploy-archives.md",
-    "lastModified": "2024-05-27T18:55:33.545Z"
+    "lastModified": "2024-05-27T19:07:02.478Z"
   },
   {
     "file": "encryption_decryption.md",
     "title": "Undefined",
     "path": "/docs/recipes/encryption_decryption.md",
-    "lastModified": "2024-05-27T18:55:33.545Z"
+    "lastModified": "2024-05-27T19:07:02.478Z"
   },
   {
     "file": "event-gateway-create.md",
     "title": "Undefined",
     "path": "/docs/recipes/event-gateway-create.md",
-    "lastModified": "2024-05-27T18:55:33.545Z"
+    "lastModified": "2024-05-27T19:07:02.478Z"
   },
   {
     "file": "event-gateways-overview.md",
     "title": "Undefined",
     "path": "/docs/recipes/event-gateways-overview.md",
-    "lastModified": "2024-05-27T18:55:33.545Z"
+    "lastModified": "2024-05-27T19:07:02.478Z"
   },
   {
     "file": "event-gateways.md",
     "title": "Undefined",
     "path": "/docs/recipes/event-gateways.md",
-    "lastModified": "2024-05-27T18:55:33.545Z"
+    "lastModified": "2024-05-27T19:07:02.478Z"
   },
   {
     "file": "exception-output.md",
     "title": "Output Exceptions",
     "path": "/docs/recipes/exception-output.md",
-    "lastModified": "2024-05-27T18:55:33.545Z"
+    "lastModified": "2024-05-27T19:07:02.478Z"
   },
   {
     "file": "file-extensions.md",
     "title": "File Extensions",
     "path": "/docs/recipes/file-extensions.md",
-    "lastModified": "2024-05-27T18:55:33.545Z"
+    "lastModified": "2024-05-27T19:07:02.478Z"
   },
   {
     "file": "filesystem-mapping-define-mapping.md",
     "title": "Undefined",
     "path": "/docs/recipes/filesystem-mapping-define-mapping.md",
-    "lastModified": "2024-05-27T18:55:33.545Z"
+    "lastModified": "2024-05-27T19:07:02.478Z"
   },
   {
     "file": "filesystem-mapping.md",
     "title": "Undefined",
     "path": "/docs/recipes/filesystem-mapping.md",
-    "lastModified": "2024-05-27T18:55:33.545Z"
+    "lastModified": "2024-05-27T19:07:02.478Z"
   },
   {
     "file": "flying_saucer.md",
     "title": "Undefined",
     "path": "/docs/recipes/flying_saucer.md",
-    "lastModified": "2024-05-27T18:55:33.545Z"
+    "lastModified": "2024-05-27T19:07:02.478Z"
   },
   {
     "file": "function-listners.md",
     "title": "Function Listener",
     "path": "/docs/recipes/function-listners.md",
-    "lastModified": "2024-05-27T18:55:33.545Z"
+    "lastModified": "2024-05-27T19:07:02.478Z"
   },
   {
     "file": "gateways-overview.md",
     "title": "Undefined",
     "path": "/docs/recipes/gateways-overview.md",
-    "lastModified": "2024-05-27T18:55:33.545Z"
+    "lastModified": "2024-05-27T19:07:02.478Z"
   },
   {
     "file": "global-proxy.md",
     "title": "Global Proxy",
     "path": "/docs/recipes/global-proxy.md",
-    "lastModified": "2024-05-27T18:55:33.545Z"
+    "lastModified": "2024-05-27T19:07:02.478Z"
   },
   {
     "file": "hidden_gems.md",
     "title": "Undefined",
     "path": "/docs/recipes/hidden_gems.md",
-    "lastModified": "2024-05-27T18:55:33.545Z"
+    "lastModified": "2024-05-27T19:07:02.478Z"
   },
   {
     "file": "inline-components.md",
     "title": "Inline Component",
     "path": "/docs/recipes/inline-components.md",
-    "lastModified": "2024-05-27T18:55:33.545Z"
+    "lastModified": "2024-05-27T19:07:02.478Z"
   },
   {
     "file": "java-in-functions.md",
     "title": "Java in Functions and Closures",
     "path": "/docs/recipes/java-in-functions.md",
-    "lastModified": "2024-05-27T18:55:33.545Z"
+    "lastModified": "2024-05-27T19:07:02.478Z"
   },
   {
     "file": "labels.md",
     "title": "Loop Labels",
     "path": "/docs/recipes/labels.md",
-    "lastModified": "2024-05-27T18:55:33.545Z"
+    "lastModified": "2024-05-27T19:07:02.478Z"
   },
   {
     "file": "lazy_queries.md",
     "title": "Undefined",
     "path": "/docs/recipes/lazy_queries.md",
-    "lastModified": "2024-05-27T18:55:33.545Z"
+    "lastModified": "2024-05-27T19:07:02.478Z"
   },
   {
     "file": "loop_through_files.md",
     "title": "Undefined",
     "path": "/docs/recipes/loop_through_files.md",
-    "lastModified": "2024-05-27T18:55:33.545Z"
+    "lastModified": "2024-05-27T19:07:02.478Z"
   },
   {
     "file": "mail-listener.md",
     "title": "Mail Listeners",
     "path": "/docs/recipes/mail-listener.md",
-    "lastModified": "2024-05-27T18:55:33.545Z"
+    "lastModified": "2024-05-27T19:07:02.478Z"
   },
   {
     "file": "mail-send.md",
     "title": "Undefined",
     "path": "/docs/recipes/mail-send.md",
-    "lastModified": "2024-05-27T18:55:33.545Z"
+    "lastModified": "2024-05-27T19:07:02.478Z"
   },
   {
     "file": "mathematical-precision.md",
     "title": "Mathematical Precision",
     "path": "/docs/recipes/mathematical-precision.md",
-    "lastModified": "2024-05-27T18:55:33.545Z"
+    "lastModified": "2024-05-27T19:07:02.478Z"
   },
   {
     "file": "monitoring.md",
     "title": "Monitoring/Debugging",
     "path": "/docs/recipes/monitoring.md",
-    "lastModified": "2024-05-27T18:55:33.545Z"
+    "lastModified": "2024-05-27T19:07:02.478Z"
   },
   {
     "file": "null_support.md",
     "title": "Undefined",
     "path": "/docs/recipes/null_support.md",
-    "lastModified": "2024-05-27T18:55:33.545Z"
+    "lastModified": "2024-05-27T19:07:02.478Z"
   },
   {
     "file": "precompiled-code.md",
     "title": "Undefined",
     "path": "/docs/recipes/precompiled-code.md",
-    "lastModified": "2024-05-27T18:55:33.545Z"
+    "lastModified": "2024-05-27T19:07:02.478Z"
   },
   {
     "file": "query-async.md",
     "title": "Query Async",
     "path": "/docs/recipes/query-async.md",
-    "lastModified": "2024-05-27T18:55:33.545Z"
+    "lastModified": "2024-05-27T19:07:02.478Z"
   },
   {
     "file": "query-handling.md",
     "title": "Undefined",
     "path": "/docs/recipes/query-handling.md",
-    "lastModified": "2024-05-27T18:55:33.545Z"
+    "lastModified": "2024-05-27T19:07:02.478Z"
   },
   {
     "file": "query-indexes.md",
     "title": "Query Indexes",
     "path": "/docs/recipes/query-indexes.md",
-    "lastModified": "2024-05-27T18:55:33.545Z"
+    "lastModified": "2024-05-27T19:07:02.478Z"
   },
   {
     "file": "query-listener.md",
     "title": "Query Listeners",
     "path": "/docs/recipes/query-listener.md",
-    "lastModified": "2024-05-27T18:55:33.545Z"
+    "lastModified": "2024-05-27T19:07:02.478Z"
   },
   {
     "file": "query-of-queries.md",
     "title": "Undefined",
     "path": "/docs/recipes/query-of-queries.md",
-    "lastModified": "2024-05-27T18:55:33.545Z"
+    "lastModified": "2024-05-27T19:07:02.478Z"
   },
   {
     "file": "query_return_type.md",
     "title": "Undefined",
     "path": "/docs/recipes/query_return_type.md",
-    "lastModified": "2024-05-27T18:55:33.545Z"
+    "lastModified": "2024-05-27T19:07:02.478Z"
   },
   {
     "file": "retry.md",
     "title": "Undefined",
     "path": "/docs/recipes/retry.md",
-    "lastModified": "2024-05-27T18:55:33.545Z"
+    "lastModified": "2024-05-27T19:07:02.478Z"
   },
   {
     "file": "s3.md",
     "title": "Undefined",
     "path": "/docs/recipes/s3.md",
-    "lastModified": "2024-05-27T18:55:33.545Z"
+    "lastModified": "2024-05-27T19:07:02.478Z"
   },
   {
     "file": "sax.md",
     "title": "Undefined",
     "path": "/docs/recipes/sax.md",
-    "lastModified": "2024-05-27T18:55:33.545Z"
+    "lastModified": "2024-05-27T19:07:02.478Z"
   },
   {
     "file": "script-templates.md",
     "title": "Script Templates",
     "path": "/docs/recipes/script-templates.md",
-    "lastModified": "2024-05-27T18:55:33.545Z"
+    "lastModified": "2024-05-27T19:07:02.478Z"
   },
   {
     "file": "startup-listeners-code.md",
     "title": "Undefined",
     "path": "/docs/recipes/startup-listeners-code.md",
-    "lastModified": "2024-05-27T18:55:33.545Z"
+    "lastModified": "2024-05-27T19:07:02.478Z"
   },
   {
     "file": "static_scope.md",
     "title": "Undefined",
     "path": "/docs/recipes/static_scope.md",
-    "lastModified": "2024-05-27T18:55:33.545Z"
+    "lastModified": "2024-05-27T19:07:02.478Z"
   },
   {
     "file": "sub-components.md",
     "title": "Sub Component",
     "path": "/docs/recipes/sub-components.md",
-    "lastModified": "2024-05-27T18:55:33.545Z"
+    "lastModified": "2024-05-27T19:07:02.478Z"
   },
   {
     "file": "supercharge-your-website.md",
     "title": "Undefined",
     "path": "/docs/recipes/supercharge-your-website.md",
-    "lastModified": "2024-05-27T18:55:33.545Z"
+    "lastModified": "2024-05-27T19:07:02.478Z"
   },
   {
     "file": "systemoutput_function.md",
     "title": "Function SystemOutput #",
     "path": "/docs/recipes/systemoutput_function.md",
-    "lastModified": "2024-05-27T18:55:33.545Z"
+    "lastModified": "2024-05-27T19:07:02.478Z"
   },
   {
     "file": "thread_task.md",
     "title": "Undefined",
     "path": "/docs/recipes/thread_task.md",
-    "lastModified": "2024-05-27T18:55:33.545Z"
+    "lastModified": "2024-05-27T19:07:02.478Z"
   },
   {
     "file": "thread_usage.md",
     "title": "Undefined",
     "path": "/docs/recipes/thread_usage.md",
-    "lastModified": "2024-05-27T18:55:33.545Z"
+    "lastModified": "2024-05-27T19:07:02.478Z"
   },
   {
     "file": "timeout.md",
     "title": "Timeout",
     "path": "/docs/recipes/timeout.md",
-    "lastModified": "2024-05-27T18:55:33.545Z"
+    "lastModified": "2024-05-27T19:07:02.478Z"
   },
   {
     "file": "types_lucee.md",
     "title": "Undefined",
     "path": "/docs/recipes/types_lucee.md",
-    "lastModified": "2024-05-27T18:55:33.545Z"
+    "lastModified": "2024-05-27T19:07:02.478Z"
   },
   {
     "file": "virtual-file-system.md",
     "title": "Undefined",
     "path": "/docs/recipes/virtual-file-system.md",
-    "lastModified": "2024-05-27T18:55:33.545Z"
+    "lastModified": "2024-05-27T19:07:02.478Z"
   },
   {
     "file": "xml_fast-easy.md",
     "title": "Undefined",
     "path": "/docs/recipes/xml_fast-easy.md",
-    "lastModified": "2024-05-27T18:55:33.545Z"
+    "lastModified": "2024-05-27T19:07:02.478Z"
   }
 ]
