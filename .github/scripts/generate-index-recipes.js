@@ -12,11 +12,14 @@ async function generateIndex() {
       const filePath = path.join(recipesDir, file);
       const content = await fs.readFile(filePath, 'utf-8');
       const titleMatch = content.match(/^#\s+(.+)$/m);
-      const title = titleMatch ? titleMatch[1] : 'Untitled';
+      const title = titleMatch ? titleMatch[1] : 'Undefined';
+      const stats = await fs.stat(filePath);
+      const lastModified = stats.mtime.toISOString();
       index.push({
         file: file,
         title: title,
         path: `/docs/recipes/${file}`,
+        lastModified: lastModified,
       });
     }
   }
