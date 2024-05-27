@@ -682,7 +682,7 @@
         "logs": "Logs",
         "settings": "Settings",
         "templates": "Debug Templates",
-        "show": "Show"
+        "output": "Output"
       },
       "documentation": {
         "funcRef": "Function Reference",

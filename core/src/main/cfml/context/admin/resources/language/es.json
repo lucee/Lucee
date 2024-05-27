@@ -665,13 +665,13 @@
 			"virtualhead": "Virtual"
 		},
 		"menu": {
-		      "debugging": {
-		          "label": "Monitoreo",
-		          "logs": "Registros",
-		          "settings": "Configuraciones",
-		          "templates": "Plantillas de Depuración",
-		          "show": "Mostrar"
-		      },
+			"debugging": {
+				"label": "Monitoreo",
+				"logs": "Registros",
+				"settings": "Configuraciones",
+				"templates": "Plantillas de Depuración",
+				"output": "Mostrar"
+			},
 			"documentation": {
 				"funcRef": "Referencia de Funciones",
 				"label": "Documentación",

@@ -81,7 +81,7 @@
 				struct(action:"settings",label:arguments.stMenu.debugging.settings),
 				struct(action:"templates",label:arguments.stMenu.debugging.templates),
 				struct(action:"logs",label:arguments.stMenu.debugging.logs),
-				struct(action:"show",label:arguments.stMenu.debugging.show)
+				struct(action:"output",label:arguments.stMenu.debugging.output)
 			)
 		),
 		struct(action:"security",label:arguments.stMenu.security.label,

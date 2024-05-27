@@ -672,7 +672,7 @@
 				"logs": "Logs",
 				"settings": "Einstellungen",
 				"templates": "Debug Templates",
-				"show": "Show"
+				"output": "Ausgabe"
 			},
 			"documentation": {
 				"funcRef": "Function Reference",
@@ -823,7 +823,7 @@
 			"switchMergeDesc": "**All settings from all web contexts/webs get stored into the server context",
 			"switchLeave": "**Just Switch",
 			"switchLeaveDesc": "**Switch to Single Mode and forget all settings done in all web contexts/webs",
-			"switchKeep": "**Keep all web context/web configuration in place so a return to Multi Mode is possible",			
+			"switchKeep": "**Keep all web context/web configuration in place so a return to Multi Mode is possible",
 			"onlineDocsDesc": "Lucee online documentation.",
 			"onlineDocsLink": "Online Documentation",
 			"os": "Betriebssystem",
