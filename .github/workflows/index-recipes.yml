@@ -3,7 +3,7 @@ name: Generate Recipes Index
 on:
   push:
     branches:
-       - '**'
+      - '**'  # This will trigger on push to any branch
   workflow_dispatch:
 
 jobs:
@@ -28,9 +28,11 @@ jobs:
         node .github/scripts/generate-index-recipes.js
 
     - name: Commit and push changes
+      env:
+        BRANCH: ${GITHUB_REF#refs/heads/}
       run: |
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
         git add docs/recipes/index.json
         git commit -m "Update recipes index"
-        git push origin main
+        git push origin $BRANCH
