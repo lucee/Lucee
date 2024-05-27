@@ -15,13 +15,10 @@ async function generateIndex() {
       const titleMatch = content.match(/^#\s+(.+)$/m);
       const title = titleMatch ? titleMatch[1] : 'Untitled';
       const hash = crypto.createHash('md5').update(content).digest('hex');
-      const stats = await fs.stat(filePath);
-      const lastModified = stats.mtime.toISOString();
       index.push({
         file: file,
         title: title,
         path: `/docs/recipes/${file}`,
-        lastModified: lastModified,
         hash: hash,
       });
     }
