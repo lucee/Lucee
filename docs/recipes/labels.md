@@ -26,7 +26,7 @@ Consider the following examples:
 
 In this example, the `break` statement is used with a label to exit the outer loop:
 
-```lucee
+```run
 <cfloop from="0" to="4" index="hour" label="outerLoop">
   <cfloop from="1" to="60" index="minute">
     <cfoutput>time: #hour#:#minute#<br></cfoutput>
@@ -40,7 +40,7 @@ Here, the `cfbreak` statement with the `outerLoop` label causes the loop to brea
 
 Similarly, you can use labels in script-based loops:
 
-```lucee
+```run
 outerloop:for(hour=0; hour<=4; hour++) {
   for(minute=1; minute<=60; minute++) {
     echo("time: " & hour & ":" & minute & "<br>");
