@@ -104,7 +104,7 @@ public final class ConfigServerFactory extends ConfigFactory {
 							+ "===================================================================\n"
 
 			);
-			UpdateInfo ui = getNew(engine, configDir, false, UpdateInfo.NEW_NONE);
+			UpdateInfo ui = getNew(engine, configDir, essentialOnly, UpdateInfo.NEW_NONE);
 			boolean doNew = ui.updateType != NEW_NONE;
 
 			Resource configFileOld = configDir.getRealResource("lucee-server.xml");
