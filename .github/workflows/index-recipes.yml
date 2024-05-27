@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - '**'  # This will trigger on push to any branch
+    paths:
+      - 'docs/recipes/**'  
   workflow_dispatch:
 
 jobs:
@@ -33,5 +35,5 @@ jobs:
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
         git add docs/recipes/index.json
-        git commit -m "Update recipes index file"
+        git commit -m "Update recipes index"
         git push origin $BRANCH_NAME
