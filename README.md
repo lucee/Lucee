@@ -1,7 +1,6 @@
 ![Lucee](https://raw.githubusercontent.com/lucee/Lucee/6.0/images/lucee-white.png#gh-dark-mode-only)
 ![Lucee](https://raw.githubusercontent.com/lucee/Lucee/6.0/images/lucee-black.png#gh-light-mode-only)
 
-
 ## Lucee Server
 
 Lucee Server (or simply Lucee) is a dynamic, Java based, tag and scripting language used for rapid web application development.   
@@ -15,7 +14,6 @@ Lucee provides a compatibility layer for Adobe ColdFusion &copy;  CFML using les
  ## CFCAMP 2024 - Meet the Lucee team!
 
  [![Meet the Lucee Team at CFCAMP 2024](https://docs.lucee.org/assets/images/conferences/CFCAMP-2024.png)](https://www.cfcamp.org/?utm_source=website&utm_id=Ldoc)
-
 
 ## Installation
 
