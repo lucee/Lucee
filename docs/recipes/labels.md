@@ -41,12 +41,14 @@ Here, the `cfbreak` statement with the `outerLoop` label causes the loop to brea
 Similarly, you can use labels in script-based loops:
 
 ```run
+<cfscript>
 outerloop:for(hour=0; hour<=4; hour++) {
   for(minute=1; minute<=60; minute++) {
     echo("time: " & hour & ":" & minute & "<br>");
     continue outerloop;
   }
 }
+</cfscript>
 ```
 
 In this example, the `continue outerloop` statement causes the loop to skip to the next iteration of the outer loop, effectively restarting the outer loop and ignoring the remaining iterations of the inner loop.
