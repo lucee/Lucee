@@ -270,6 +270,12 @@
     "hash": "75e2939902c9d6c68764dfa32ad498cc"
   },
   {
+    "file": "request-timeout.md",
+    "title": "Request Timeout",
+    "path": "/docs/recipes/request-timeout.md",
+    "hash": "8f3386a44db2fe4e3885f7ac8071d7fc"
+  },
+  {
     "file": "retry.md",
     "title": "Untitled",
     "path": "/docs/recipes/retry.md",
