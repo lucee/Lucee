@@ -1,0 +1,297 @@
+[
+  {
+    "file": "Externalizing_Strings.md",
+    "title": "Untitled",
+    "path": "/docs/recipes/Externalizing_Strings.md"
+  },
+  {
+    "file": "QOQ_Sucks.md",
+    "title": "Untitled",
+    "path": "/docs/recipes/QOQ_Sucks.md"
+  },
+  {
+    "file": "application-context-basic.md",
+    "title": "Untitled",
+    "path": "/docs/recipes/application-context-basic.md"
+  },
+  {
+    "file": "application-context-set-mapping.md",
+    "title": "Untitled",
+    "path": "/docs/recipes/application-context-set-mapping.md"
+  },
+  {
+    "file": "application-context-update.md",
+    "title": "Update Application Context",
+    "path": "/docs/recipes/application-context-update.md"
+  },
+  {
+    "file": "basic-date.md",
+    "title": "Output the current date",
+    "path": "/docs/recipes/basic-date.md"
+  },
+  {
+    "file": "cache-list.md",
+    "title": "Untitled",
+    "path": "/docs/recipes/cache-list.md"
+  },
+  {
+    "file": "cached-within-request.md",
+    "title": "Untitled",
+    "path": "/docs/recipes/cached-within-request.md"
+  },
+  {
+    "file": "caches-in-application-cfc.md",
+    "title": "Untitled",
+    "path": "/docs/recipes/caches-in-application-cfc.md"
+  },
+  {
+    "file": "cfml-to-java.md",
+    "title": "Convert a CFML Function/Component to use in Java",
+    "path": "/docs/recipes/cfml-to-java.md"
+  },
+  {
+    "file": "check-for-changes.md",
+    "title": "Untitled",
+    "path": "/docs/recipes/check-for-changes.md"
+  },
+  {
+    "file": "checksum.md",
+    "title": "Untitled",
+    "path": "/docs/recipes/checksum.md"
+  },
+  {
+    "file": "configuration-administrator-cfc.md",
+    "title": "Untitled",
+    "path": "/docs/recipes/configuration-administrator-cfc.md"
+  },
+  {
+    "file": "datasource-define-datasource.md",
+    "title": "How to define a Datasource",
+    "path": "/docs/recipes/datasource-define-datasource.md"
+  },
+  {
+    "file": "deploy-archives.md",
+    "title": "Untitled",
+    "path": "/docs/recipes/deploy-archives.md"
+  },
+  {
+    "file": "encryption_decryption.md",
+    "title": "Untitled",
+    "path": "/docs/recipes/encryption_decryption.md"
+  },
+  {
+    "file": "event-gateway-create.md",
+    "title": "Untitled",
+    "path": "/docs/recipes/event-gateway-create.md"
+  },
+  {
+    "file": "event-gateways-overview.md",
+    "title": "Untitled",
+    "path": "/docs/recipes/event-gateways-overview.md"
+  },
+  {
+    "file": "event-gateways.md",
+    "title": "Untitled",
+    "path": "/docs/recipes/event-gateways.md"
+  },
+  {
+    "file": "exception-output.md",
+    "title": "Output Exceptions",
+    "path": "/docs/recipes/exception-output.md"
+  },
+  {
+    "file": "file-extensions.md",
+    "title": "File Extensions",
+    "path": "/docs/recipes/file-extensions.md"
+  },
+  {
+    "file": "filesystem-mapping-define-mapping.md",
+    "title": "Untitled",
+    "path": "/docs/recipes/filesystem-mapping-define-mapping.md"
+  },
+  {
+    "file": "filesystem-mapping.md",
+    "title": "Untitled",
+    "path": "/docs/recipes/filesystem-mapping.md"
+  },
+  {
+    "file": "flying_saucer.md",
+    "title": "Untitled",
+    "path": "/docs/recipes/flying_saucer.md"
+  },
+  {
+    "file": "function-listners.md",
+    "title": "Function Listener",
+    "path": "/docs/recipes/function-listners.md"
+  },
+  {
+    "file": "gateways-overview.md",
+    "title": "Untitled",
+    "path": "/docs/recipes/gateways-overview.md"
+  },
+  {
+    "file": "global-proxy.md",
+    "title": "Global Proxy",
+    "path": "/docs/recipes/global-proxy.md"
+  },
+  {
+    "file": "hidden_gems.md",
+    "title": "Untitled",
+    "path": "/docs/recipes/hidden_gems.md"
+  },
+  {
+    "file": "inline-components.md",
+    "title": "Inline Component",
+    "path": "/docs/recipes/inline-components.md"
+  },
+  {
+    "file": "java-in-functions.md",
+    "title": "Java in Functions and Closures",
+    "path": "/docs/recipes/java-in-functions.md"
+  },
+  {
+    "file": "lazy_queries.md",
+    "title": "Untitled",
+    "path": "/docs/recipes/lazy_queries.md"
+  },
+  {
+    "file": "loop_through_files.md",
+    "title": "Untitled",
+    "path": "/docs/recipes/loop_through_files.md"
+  },
+  {
+    "file": "mail-listener.md",
+    "title": "Mail Listeners",
+    "path": "/docs/recipes/mail-listener.md"
+  },
+  {
+    "file": "mail-send.md",
+    "title": "Untitled",
+    "path": "/docs/recipes/mail-send.md"
+  },
+  {
+    "file": "mathematical-precision.md",
+    "title": "Mathematical Precision",
+    "path": "/docs/recipes/mathematical-precision.md"
+  },
+  {
+    "file": "monitoring.md",
+    "title": "Monitoring/Debugging",
+    "path": "/docs/recipes/monitoring.md"
+  },
+  {
+    "file": "null_support.md",
+    "title": "Untitled",
+    "path": "/docs/recipes/null_support.md"
+  },
+  {
+    "file": "precompiled-code.md",
+    "title": "Untitled",
+    "path": "/docs/recipes/precompiled-code.md"
+  },
+  {
+    "file": "query-async.md",
+    "title": "Query Async",
+    "path": "/docs/recipes/query-async.md"
+  },
+  {
+    "file": "query-handling.md",
+    "title": "Untitled",
+    "path": "/docs/recipes/query-handling.md"
+  },
+  {
+    "file": "query-indexes.md",
+    "title": "Query Indexes",
+    "path": "/docs/recipes/query-indexes.md"
+  },
+  {
+    "file": "query-listener.md",
+    "title": "Query Listeners",
+    "path": "/docs/recipes/query-listener.md"
+  },
+  {
+    "file": "query-of-queries.md",
+    "title": "Untitled",
+    "path": "/docs/recipes/query-of-queries.md"
+  },
+  {
+    "file": "query_return_type.md",
+    "title": "Untitled",
+    "path": "/docs/recipes/query_return_type.md"
+  },
+  {
+    "file": "retry.md",
+    "title": "Untitled",
+    "path": "/docs/recipes/retry.md"
+  },
+  {
+    "file": "s3.md",
+    "title": "Untitled",
+    "path": "/docs/recipes/s3.md"
+  },
+  {
+    "file": "sax.md",
+    "title": "Untitled",
+    "path": "/docs/recipes/sax.md"
+  },
+  {
+    "file": "script-templates.md",
+    "title": "Script Templates",
+    "path": "/docs/recipes/script-templates.md"
+  },
+  {
+    "file": "startup-listeners-code.md",
+    "title": "Untitled",
+    "path": "/docs/recipes/startup-listeners-code.md"
+  },
+  {
+    "file": "static_scope.md",
+    "title": "Untitled",
+    "path": "/docs/recipes/static_scope.md"
+  },
+  {
+    "file": "sub-components.md",
+    "title": "Sub Component",
+    "path": "/docs/recipes/sub-components.md"
+  },
+  {
+    "file": "supercharge-your-website.md",
+    "title": "Untitled",
+    "path": "/docs/recipes/supercharge-your-website.md"
+  },
+  {
+    "file": "systemoutput_function.md",
+    "title": "Function SystemOutput #",
+    "path": "/docs/recipes/systemoutput_function.md"
+  },
+  {
+    "file": "thread_task.md",
+    "title": "Untitled",
+    "path": "/docs/recipes/thread_task.md"
+  },
+  {
+    "file": "thread_usage.md",
+    "title": "Untitled",
+    "path": "/docs/recipes/thread_usage.md"
+  },
+  {
+    "file": "timeout.md",
+    "title": "Timeout",
+    "path": "/docs/recipes/timeout.md"
+  },
+  {
+    "file": "types_lucee.md",
+    "title": "Untitled",
+    "path": "/docs/recipes/types_lucee.md"
+  },
+  {
+    "file": "virtual-file-system.md",
+    "title": "Untitled",
+    "path": "/docs/recipes/virtual-file-system.md"
+  },
+  {
+    "file": "xml_fast-easy.md",
+    "title": "Untitled",
+    "path": "/docs/recipes/xml_fast-easy.md"
+  }
+]
