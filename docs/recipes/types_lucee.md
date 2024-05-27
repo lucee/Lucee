@@ -12,11 +12,11 @@
   ]
 }
 -->
-## Types in Lucee
+# Types in Lucee
 
 This document explains types in Lucee. Lucee is still an untyped language. Types are only a check put on top of the language. The language is not based on types, however there are different places where types come into Lucee. This is explained with some simple examples below:
 
-#### Example 1 : Function Argument and Return Value
+### Example 1 : Function Argument and Return Value
 
 For functions, the return value is returned with the specific type that was defined in that function.
 
@@ -45,7 +45,7 @@ For functions, the return value is returned with the specific type that was defi
 * The test() function takes an array, but in this example I do not pass an array into the function. I have passed a struct `arr={'1':'one'}` value into the test() function. The test() function contains an array value `arr[2]= "two"`, so Lucee converts this array value into a structure. So the struct has two values as per keys are 1, 2 and values are one, two.
 * Lucee can handle an array as long as the keys are all numbers, meaning it considers a struct `'1' and [2]`. Execute this cfm page, the dump shows the structure format.
 
-#### Example 2 : CFParam
+### Example 2 : CFParam
 
 ```luceescript
 
@@ -102,7 +102,7 @@ component {
 
 These types are on top of the language. Lucee contains some other different types too. Therefore, it is always good to do type checking in your code.
 
-### Footnotes
+## Footnotes
 
 Here you can see above details in video
 
