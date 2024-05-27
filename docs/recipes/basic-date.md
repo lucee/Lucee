@@ -24,7 +24,7 @@ The following examples show you how to output the current date.
 </cfoutput>
 ```
 
-The tag [tag-output] defines for the compiler that everything within a `##` is a code expression and needs to be parsed accordingly. [function-now] is a function call that returns a date object containing the current time. [function-lsDateTimeFormat] then converts that date to a string using locale-specific formatting rules (default en_US).
+The tag `<cfoutput>` defines for the compiler that everything within a `##` is a code expression and needs to be parsed accordingly. the function `now()` is a function call that returns a date object containing the current time. [function-lsDateTimeFormat] then converts that date to a string using locale-specific formatting rules (default en_US).
 
 You can configure a different locale globally in the Lucee admin under "Settings/Regional".
 
