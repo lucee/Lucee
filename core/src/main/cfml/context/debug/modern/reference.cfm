@@ -27,11 +27,18 @@
 	if(!isNull(url.typ)) form.typ=url.typ;
 	
 	function enhanceHTML(html) {
-		var code=replace(html,"<code class=""language-","<code id=""recipy"" class=""language-","all");
-		code=replace(code,"<code>","<code class=""recipy"">","all");
-		code=replace(code,"<blockquote>","<blockquote class=""resultml"">","all");
-		code=replace(code,"<h1>","<div class=""title"">","all");
-		code=replace(code,"</h1>",(isEmpty(data.since?:"")?"":(" (Lucee #data.since#)"))&"</div>","all");
+		var code=replace(html,"<code class=""language-","<code id=""lucee"" class=""language-","all");
+		code=replace(code,"<code>","<code class=""lucee"">","all");
+		code=replace(code,"<blockquote>","<blockquote class=""lucee"">","all");
+		code=replace(code,"<h1>","<h1 class=""lucee"">","all");
+		code=replace(code,"</h1>",(isEmpty(data.since?:"")?"":(" (Lucee #data.since#)"))&"</h1>","all");
+		code=replace(code,"<h2>","<h2 class=""lucee"">","all");
+		code=replace(code,"<h3>","<h3 class=""lucee"">","all");
+		code=replace(code,"<h4>","<h4 class=""lucee"">","all");
+		code=replace(code,"<h5>","<h5 class=""lucee"">","all");
+		code=replace(code,"<h6>","<h6 class=""lucee"">","all");
+		code=replace(code,"<p>","<p class=""lucee"">","all");
+			
 		code=replace(code,"~","`","all");
 		return code;	
 	}
@@ -289,7 +296,7 @@
 	</cfif>
 	<cfif "recipes" NEQ type>
 		<!--- title --->
-		<div class="title">#ucFirst(type)# #data.name?:data.title#</div>
+		<h1 class="lucee">#ucFirst(type)# #data.name?:data.title#</h1>
 		<!--- deprecated? --->
 		<cfif (data.status?:"") EQ "deprecated">
 			<div class="warning nofocus">This #type# is deprecated</div>
@@ -304,96 +311,112 @@
 			</cfif>
 		</span>
 	</cfif>
-	<style>
+
+<style>
+	h1.lucee, h2.lucee, h3.lucee, h4.lucee, h5.lucee, h6.lucee {
+		color: ##4e7620 !important;
+	}
+	h1.lucee {
+		font-size: 32px !important;
+		margin-top: 20px !important; 
+	}
+	h2.lucee {font-size: 28px !important;}
+	h3.lucee {font-size: 22px !important;}
+	p.lucee {
+		xmax-width: 100% !important; /* Ensure it doesn't overflow the container */
+		font-size: 16px !important;
+		align:center;
+		color: ##333 !important;
+	}
 		/* Style for inline code */
-		.recipy {
-			 background-color: ##EEE;
-			 color: ##333;
-			 padding: 2px 4px;
-			 border-radius: 3px;
-			 font-family: 'Courier New', Courier, monospace;
+		code.lucee {
+			 background-color: ##EEE !important;
+			 color: ##333 !important;
+			 padding: 2px 4px !important;
+			 font-family: 'Courier New', Courier, monospace !important;
 	
-			 border: solid 1px ##333; 
-			 border-radius: 8px;
-			 white-space: nowrap; /* Prevent line breaks within the code */
+			 border: solid 1px ##333 !important; 
+			 border-radius: 5px !important;
+			 white-space: nowrap !important; /* Prevent line breaks within the code */
 	
 		 }
 	
 		 /* Style for block code */
-		 pre ##recipy {
-			 display: block;
-			 background-color: ##333;
-			 padding: 25px 25px 25px 25px;
-			 border: solid 1px ##eee; 
-			 border-radius: 1em;
-			 color: ##3399cc;
-			 margin: 1px;
-			 white-space: pre; /* Preserve whitespace and formatting */
-			 overflow-x: auto;
-			 word-wrap: break-word;
-			 max-width: 90%; /* Ensure it doesn't overflow the container */
-			 font-weight: normal;
-			 font-family: "Courier New", Courier, monospace, sans-serif;
-			 font-size: 16px;
-			 white-space: pre-wrap;
-			 word-break: break-all;
-			 word-wrap: break-word; 
-			 tab-size: 2;
+		 pre code##lucee {
+			 display: block !important;
+			 background-color: ##333 !important;
+			 padding: 25px 25px 25px 25px !important;
+			 border: solid 1px ##eee !important; 
+			 border-radius: 1em !important;
+			 color: ##3399cc !important;
+			 margin: 1px !important;
+			 white-space: pre !important; /* Preserve whitespace and formatting */
+			 overflow-x: auto !important;
+			 word-wrap: break-word !important;
+			 xmax-width: 90% !important; /* Ensure it doesn't overflow the container */
+			 font-weight: normal !important;
+			 font-family: "Courier New", Courier, monospace, sans-serif !important;
+			 font-size: 16px !important;
+			 white-space: pre-wrap !important;
+			 word-break: break-all !important;
+			 word-wrap: break-word !important; 
+			 tab-size: 2 !important;
 		 }
-		 .resultml {
-			 display: block;
-			 background-color: ##EEE;
-			 padding: 15px;
-			 border: solid 1px ##333; 
-			 border-radius: 1em;
-			 color: ##4e7620;
-			 margin: 1px;
-			 white-space: pre; /* Preserve whitespace and formatting */
-			 overflow-x: auto;
-			 word-wrap: break-word;
-			 max-width: 90%; /* Ensure it doesn't overflow the container */
-			 font-weight: normal;
-			 font-family: "Courier New", Courier, monospace, sans-serif;
-			 font-size: 16px;
-			 white-space: pre-wrap;
-			 word-break: break-all;
-			 word-wrap: break-word; 
-			 tab-size: 2;
+		 blockquote.lucee {
+			 display: block !important;
+			 background-color: ##EEE !important;
+			 padding: 15px !important;
+			 border: solid 1px ##333 !important; 
+			 border-radius: 1em !important;
+			 color: ##4e7620 !important;
+			 margin: 1px !important;
+			 white-space: pre !important; /* Preserve whitespace and formatting */
+			 overflow-x: auto !important;
+			 word-wrap: break-word !important;
+			xmax-width: 90% !important; /* Ensure it doesn't overflow the container */
+			 font-weight: normal !important;
+			 font-family: "Courier New", Courier, monospace, sans-serif !important;
+			 font-size: 16px !important;
+			 white-space: pre-wrap !important;
+			 word-break: break-all !important;
+			 word-wrap: break-word !important; 
+			 tab-size: 2 !important;
 		 }
 	
 		 .lucee_execute_result {
-			background-color: white;
-			border: solid 1px ##333;
-			border-radius: 1em;
-			padding: 10px;
-			margin-top: 30px; /* Increase margin-top to accommodate the overlapping text */
-			max-width: 90%; /* Ensure it doesn't overflow the container */
-			font-size: 16px;
-			position: relative; /* Needed for the absolute positioning of the label */
+			background-color: white !important;
+			border: solid 1px ##333 !important;
+			border-radius: 1em !important;
+			padding: 10px !important;
+			margin-top: 30px !important; /* Increase margin-top to accommodate the overlapping text */
+			margin-bottom: 10px !important; /* Increase margin-top to accommodate the overlapping text */
+			xmax-width: 90% !important; /* Ensure it doesn't overflow the container */
+			font-size: 16px !important;
+			position: relative !important; /* Needed for the absolute positioning of the label */
 		}
 	
 		.lucee_execute_result::before {
-			content: "Generated Output from the example above";
-			position: absolute;
-			top: -10px; /* Adjust this value to position the text correctly */
-			left: 30px; /* Indent the text 20 pixels from the left */
-			background-color: white;
-			padding: 0 5px; /* Add some padding to the label */
-			font-size: 16px;
-			color: ##333;
-			font-weight: bold;
+			content: "Generated Output from the example above" !important;
+			position: absolute !important;
+			top: -10px !important; /* Adjust this value to position the text correctly */
+			left: 30px !important; /* Indent the text 20 pixels from the left */
+			background-color: white !important;
+			padding: 0 5px !important; /* Add some padding to the label */
+			font-size: 16px !important;
+			color: ##333 !important;
+			font-weight: bold !important;
 		}
 	
-		.language-lucee .nf {color: ##569cd6;}
-		.language-lucee .nv {color: ##9cdcfe;}
-		.language-lucee .syntaxFunc {color: ##dcdcaa;}
-		.language-lucee .syntaxType {color: ##4ec9b0;}
-		.language-lucee .p {color: ##d4d4d4;}
-		.language-lucee .nt {color: ##569cd6;}
-		.language-lucee .na {color: ##9cdcfe;}
-		.language-lucee .s {color: ##ce9178;}
-		.language-lucee .err {color: ##d4d4d4;}
-		.language-lucee .syntaxAttr { color: ##dcdcaa;}
+		.language-lucee .nf {color: ##569cd6; !important}
+		.language-lucee .nv {color: ##9cdcfe; !important}
+		.language-lucee .syntaxFunc {color: ##dcdcaa; !important}
+		.language-lucee .syntaxType {color: ##4ec9b0; !important}
+		.language-lucee .p {color: ##d4d4d4; !important}
+		.language-lucee .nt {color: ##569cd6; !important}
+		.language-lucee .na {color: ##9cdcfe; !important}
+		.language-lucee .s {color: ##ce9178; !important}
+		.language-lucee .err {color: ##d4d4d4; !important}
+		.language-lucee .syntaxAttr { color: ##dcdcaa; !important}
 	
 	
 	 </style>
@@ -406,11 +429,6 @@
 		<cfset md=data.content>
 		<cfset md=executeCodeFragments(md)>
 		<cfset code=enhanceHTML(markdownToHTML(md))>
-		
-
-	
-		
-		
 		
 		#code#<br>
 		<cfcatch><cfdump var="#cfcatch#"></cfcatch>
@@ -429,27 +447,27 @@
 	<!--- Syntax TODO css missing--->
 	<cfset first=true>
 	<cfset optCount=0>
-	<div class="section-title">Syntax</div>
+	<h3 class="lucee">Syntax</h3>
 	
-	<pre class="pad"><code id="recipy" class="language-lucee"><span class="nf">#data.name#</span><span class="p">(</snap><cfloop array="#data.arguments#" index="item"><cfif item.status EQ "hidden"><cfcontinue></cfif><cfif not first><span class="nv">,</span></cfif><cfif not item.required><cfset optCount=optCount+1><span class="nv">[</span></cfif><span class="nv">#item.type#</span> <span class="nv">#item.name#</span><cfset first=false></cfloop><span class="syntaxFunc">#RepeatString(']',optCount)#): </span><span class="syntaxType">#data.returntype#</span></code></pre>
+	<pre><code id="lucee" class="language-lucee"><span class="nf">#data.name#</span><span class="p">(</snap><cfloop array="#data.arguments#" index="item"><cfif item.status EQ "hidden"><cfcontinue></cfif><cfif not first><span class="nv">,</span></cfif><cfif not item.required><cfset optCount=optCount+1><span class="nv">[</span></cfif><span class="nv">#item.type#</span> <span class="nv">#item.name#</span><cfset first=false></cfloop><span class="syntaxFunc">#RepeatString(']',optCount)#): </span><span class="syntaxType">#data.returntype#</span></code></pre>
 	
 	<!--- Syntax member TODO css missing--->
 	<cfif !isNull(data.member)>
 		<cfset first=true>
 		<cfset optCount=0>
-	<div class="section-title">Member Syntax</div>
-	<pre class="pad"><code id="recipy" class="language-lucee"><span class="nf">#data.member.type#.#data.member.name#</span><span class="p">(</snap><cfloop array="#data.arguments#" index="i" item="item"><cfif item.status EQ "hidden" or data.member.position EQ i><cfcontinue></cfif><cfif not first><span class="nv">,</span></cfif><cfif not item.required><cfset optCount=optCount+1><span class="nv">[</span></cfif><span class="nv">#item.type#</span> <span class="nv">#item.name#</span><cfset first=false></cfloop><span class="syntaxFunc">#RepeatString(']',optCount)#): </span><span class="syntaxType"><cfif data.member.chaining>#data.member.type#<cfelse>#data.returntype#</cfif></span></code></pre>
+		<h3 class="lucee">Member Syntax</h3>
+	<pre><code id="lucee" class="language-lucee"><span class="nf">#data.member.type#.#data.member.name#</span><span class="p">(</snap><cfloop array="#data.arguments#" index="i" item="item"><cfif item.status EQ "hidden" or data.member.position EQ i><cfcontinue></cfif><cfif not first><span class="nv">,</span></cfif><cfif not item.required><cfset optCount=optCount+1><span class="nv">[</span></cfif><span class="nv">#item.type#</span> <span class="nv">#item.name#</span><cfset first=false></cfloop><span class="syntaxFunc">#RepeatString(']',optCount)#): </span><span class="syntaxType"><cfif data.member.chaining>#data.member.type#<cfelse>#data.returntype#</cfif></span></code></pre>
 	
 	
 	</cfif>
 	
 	
 	<!--- Argumente --->
-	<div class="section-title">Arguments</div>
+	<h3 class="lucee">Arguments</h3>
 	<cfif data.argumentType EQ "fixed" and not arraylen(data.arguments)>
-		<div class="text">This function has no arguments</div>
+		<p class="lucee">This function has no arguments</p>
 	<cfelse>
-		<div class="text">
+		<p class="lucee">
 			#argtype[data.argumentType]#
 			<cfif data.argumentType EQ "dynamic">
 				<cfif data.argMin GT 0 and data.argMax GT 0>
@@ -461,7 +479,7 @@
 				</cfif>
 	
 			</cfif>
-		</div>
+		</p>
 	</cfif>
 	
 	
@@ -514,16 +532,16 @@
 	<cfelse>
 		
 	<!--- Body --->
-	<div class="section-title">Body</div>
-	<div class="pad">#body[ data.bodyType ]#</div>
+	<h3 class="lucee">Body</h3>
+	<p class="lucee">#body[ data.bodyType ]#</p>
 	
 	<!--- Syntax --->
 	<cfset arrAttrNames= data.attributes.keyArray().sort( 'textnocase' )>
 	<cfset tagName = data.namespace & data.namespaceseperator & data.name>
 	<cfif data.hasNameAppendix><cfset tagName &= "CustomName"></cfif>
 	
-	
-	<pre><code id="recipy" class="language-lucee"><!---
+	<h3 class="lucee">Tag Syntax</h3>
+	<pre><code id="lucee" class="language-lucee"><!---
 			---><span class="nt">&lt;#tagName#</span><!---
 			---><cfif data.attributeType == "noname"><!---
 				---> <span class="syntaxTag">##<!---
@@ -564,10 +582,10 @@
 	<!--- SCRIPT --->
 		<cfif data.keyExists( "script" ) && data.script.type != "none">
 			<cfset arrAttrNames = data.attributes.keyArray().sort( 'textnocase' )>
-			<div class="text">This tag is also supported within cfscript</div>
-			<!--- <cfabort showerror="Test"/> --->
-			<pre><code id="recipy" class="language-lucee">
-	<span class="nt">&lt;cfscript&gt;</span>
+			<h3 class="lucee">Script Syntax</h3>
+			<p class="lucee">This tag is also supported within cfscript</p>
+			<pre><code id="lucee" class="language-lucee"><!---
+			---><span class="nt">&lt;cfscript&gt;</span>
 		<span class="nt">#data.name#</span><!---
 		---><cfif data.attributeType == "noname"><!---
 			---> <span class="syntaxAttr">##<!---
@@ -615,16 +633,16 @@
 				[...]
 		}</span><!---
 		---></cfif>
-	<span class="nt">&lt;/cfscript></span>
-	</code></pre>
+<span class="nt">&lt;/cfscript></span><!---
+	---></code></pre>
 		</cfif>
 	
 	<!--- Attributes --->
-	<div class="section-title">Attributes</div>
+	<h3 class="lucee">Attributes</h3>
 	<cfif data.attributeType == "fixed" && !arrayLen( arrAttrNames )>
-		<div class="pad">This tag has no attributes</div>
+		<p class="lucee">This tag has no attributes</p>
 	<cfelse>
-		<div class="pad">#attrtype[data.attributeType]#
+		<p class="lucee">#attrtype[data.attributeType]#
 			<cfif data.attributeType == "dynamic">
 				<cfif data.attrMin GT 0 && data.attrMax GT 0>
 					#replace( replace( attr.minMax, "{min}", data.attrMin ), "{max}", data.attrMax )#
@@ -634,7 +652,7 @@
 					#replace( attr.max, "{max}", data.attrMax )#
 				</cfif>
 			</cfif>
-		</div>
+		</p>
 	</cfif>
 	
 	
@@ -665,19 +683,14 @@
 			</tbody>
 		</table>
 	</cfif>
-	
-	
-	
-	
-	
-	
+
 	</cfif>
 	
 	
 	<!--- Category --->
 	<cfif structKeyExists(data, "keywords") AND !arrayIsEmpty(data.keywords)>
-		<div class="section-title">Category</div>
-		<div class="pad">#arraytolist(data.keywords,", ")#</div>
+		<h3 class="lucee">Category</h3>
+		<p class="lucee">#arraytolist(data.keywords,", ")#</p>
 	</cfif>
 	
 	</cfoutput>
