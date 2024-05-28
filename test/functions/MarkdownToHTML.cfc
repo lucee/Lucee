@@ -52,30 +52,28 @@ variables.htmlString=trim('<h2>Headline with ID</h2>
 <ul>
 <li>List with ID</li>
 </ul>
-<p>Links: <a href="##headid">Foo</a></p>
-<p>This is <strong><em>TXTMARK</em></strong>
-This is <strong><em>TXTMARK</em></strong>
+<p>Links: [Foo] (##headid)</p>
+<p>This is <em><strong>TXTMARK</strong></em>
+This is <em><strong>TXTMARK</strong></em>
 <em>This Word is italic</em></p>
-<p><code>
-This is code!
-</code></p>
+<p><code>This is code!</code></p>
 <ol>
-<li>First list item</li>
-<li>First nested list item<ul>
+<li>First list item
+<ul>
+<li>First nested list item
+<ul>
 <li>Second nested list item</li>
 </ul>
 </li>
+</ul>
+</li>
 </ol>
-<p>This is code!</p>
-<p><code>
-`
-This is code!
-`
-</code></p>
-<p><code>`
-This is code!
-</code>`</p>
-<blockquote><p>Dorothy followed her through many of the beautiful rooms in her castle.</p>
+<p><code>This is code!</code></p>
+<p><code>` This is code! `</code></p>
+<pre><code>This is code!
+</code></pre>
+<blockquote>
+<p>Dorothy followed her through many of the beautiful rooms in her castle.</p>
 </blockquote>
 <p><img src="https://docs.lucee.org/assets/images/lucee-logo.png" alt="Lucee" /></p>
 <p>I love supporting the <strong><a href="https://eff.org">EFF</a></strong>.</p>
