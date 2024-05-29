@@ -2,6 +2,7 @@
 	<cfscript>
 		// skip closure
 		function isNotSupported() {
+			return true;
 			variables.s3Details=getCredentials();
 			return structIsEmpty(s3Details);
 		}
