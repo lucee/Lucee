@@ -1794,7 +1794,6 @@ public final class CFMLEngineImpl implements CFMLEngine {
 
 			}
 			catch (Exception e) {
-				e.printStackTrace();
 				// we simply ignore exceptions, if the template itself throws an error it will be handled by the
 				// error listener
 			}
