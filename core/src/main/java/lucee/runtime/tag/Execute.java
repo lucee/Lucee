@@ -241,7 +241,6 @@ public final class Execute extends BodyTagImpl {
 		// if(timeout<=0)execute._run();
 		// else {
 		execute.start();
-		long start = System.currentTimeMillis();
 		if (timeout > 0) execute.join(timeout);
 		else execute.join();
 		if (execute.hasException()) throw new Exception(execute.getException());
