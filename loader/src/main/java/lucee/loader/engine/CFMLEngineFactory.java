@@ -71,6 +71,7 @@ import lucee.VersionInfo;
 import lucee.commons.io.log.Log;
 import lucee.commons.lang.ConcurrentHashMapAsHashtable;
 import lucee.loader.TP;
+import lucee.loader.engine.mvn.MavenUpdateProvider;
 import lucee.loader.osgi.BundleCollection;
 import lucee.loader.osgi.BundleLoader;
 import lucee.loader.osgi.BundleUtil;
@@ -95,6 +96,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 	private static final long GB1 = 1024 * 1024 * 1024;
 	private static final long MB100 = 1024 * 1024 * 100;
 	private static final int MAX_REDIRECTS = 5;
+	private static final Version MIN_VERSION = toVersion("5.0.0.248", null);
 
 	private static CFMLEngineFactory factory;
 	// private static CFMLEngineWrapper engineListener;
@@ -282,6 +284,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 	}
 
 	private void initEngine() throws ServletException {
+
 		final Version coreVersion = VersionInfo.getIntVersion();
 		final long coreCreated = VersionInfo.getCreateTime();
 
@@ -289,69 +292,114 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 		File patcheDir = null;
 		try {
 			patcheDir = getPatchDirectory();
-			log(Logger.LOG_DEBUG, "lucee-server-root:" + patcheDir.getParent());
+			log(org.apache.felix.resolver.Logger.LOG_DEBUG, "lucee-server-root:" + patcheDir.getParent());
 		}
 		catch (final IOException e) {
 			throw new ServletException(e);
 		}
-
-		final File[] patches = PATCH_ENABLED ? patcheDir.listFiles(new ExtensionFilter(new String[] { ".lco" })) : null;
 		File lucee = null;
-		if (patches != null) {
-			for (final File patch: patches) {
-				if (patch.getName().startsWith("tmp.lco")) patch.delete();
-				else if (patch.lastModified() < coreCreated) patch.delete();
-				else if (patch.length() < 1000000L) patch.delete();
-				else if (lucee == null || Util.isNewerThan(toVersion(patch.getName(), VERSION_ZERO), toVersion(lucee.getName(), VERSION_ZERO))) lucee = patch;
+
+		String tmp = Util._getSystemPropOrEnvVar("lucee.version", null);
+		Version specificVersion = (!Util.isEmpty(tmp, true)) ? toVersion(tmp, null) : null;
+		// a specific version cannot be older than the core version
+		if (specificVersion != null) {
+			if (Util.isNewerThan(MIN_VERSION, specificVersion)) {
+				log(org.apache.felix.resolver.Logger.LOG_ERROR, "the version defined [" + specificVersion + "] cannot be used, version cannot be older than [" + MIN_VERSION + "]");
+				specificVersion = null;
+			}
+			else {
+				log(org.apache.felix.resolver.Logger.LOG_DEBUG, "specific version [" + specificVersion + "] defined.");
 			}
 		}
-		if (lucee != null && Util.isNewerThan(coreVersion, toVersion(lucee.getName(), VERSION_ZERO))) lucee = null;
 
-		// Load Lucee
-		// URL url=null;
-		try {
-			// Load core version when no patch available
-			if (lucee == null) {
-				log(Logger.LOG_DEBUG, "Load built-in Core");
+		// read lucee core from patch directory
+		if (lucee == null) {
 
-				final String coreExt = "lco";
-				final String coreExtPack = "lco.pack.gz";
-				boolean isPack200 = false;
-				// copy core
-
-				final File rc = new File(getTempDirectory(), "tmp_" + System.currentTimeMillis() + "." + coreExt);
-				File rcPack200 = new File(getTempDirectory(), "tmp_" + System.currentTimeMillis() + "." + coreExtPack);
-				InputStream is = null;
-				OutputStream os = null;
-				try {
-					is = new TP().getClass().getResourceAsStream("/core/core." + coreExt);
-					if (is == null) {
-						is = new TP().getClass().getResourceAsStream("/core/core." + coreExtPack);
-						if (is != null) {
-							isPack200 = true;
-						}
+			// load a specific version
+			Version pv;
+			final File[] patches = PATCH_ENABLED ? patcheDir.listFiles(new ExtensionFilter(new String[] { ".lco" })) : null;
+			if (patches != null) {
+				for (final File patch: patches) {
+					// invalid patches
+					if (patch.getName().startsWith("tmp.lco") || patch.length() < 1000000L) {
+						log(org.apache.felix.resolver.Logger.LOG_INFO, "delete [" + patch + "]");
+						patch.delete();
+						continue;
 					}
 
+					pv = toVersion(patch.getName(), VERSION_ZERO);
+
+					// specific version
+					if (specificVersion != null) {
+						if (pv.equals(specificVersion)) {
+							lucee = patch;
+							log(org.apache.felix.resolver.Logger.LOG_DEBUG, "specific version [" + specificVersion + "] is used.");
+							break;
+						}
+						continue;
+					}
+
+					// newest version
+					if (lucee == null || Util.isNewerThan(pv, toVersion(lucee.getName(), VERSION_ZERO))) lucee = patch;
+				}
+			}
+
+			if (specificVersion == null && lucee != null && Util.isNewerThan(coreVersion, toVersion(lucee.getName(), VERSION_ZERO))) {
+				log(org.apache.felix.resolver.Logger.LOG_INFO, "ignoring version from patch folder, it is to old");
+				lucee = null;
+			}
+		}
+		// Load Lucee
+		// URL url=null;
+		if (lucee == null && specificVersion != null) {
+			InputStream is = null;
+			OutputStream os = null;
+			try {
+				is = new MavenUpdateProvider().getCore(specificVersion);
+				lucee = new File(patcheDir, specificVersion + ".lco");
+				Util.copy(is, os = new FileOutputStream(lucee));
+			}
+			catch (Exception e) {
+				log(e);
+				e.printStackTrace();// TODO remove
+			}
+			finally {
+				Util.closeEL(is, os);
+			}
+		}
+
+		try {
+
+			// Load core version from jar when no patch available
+			if (lucee == null) {
+
+				log(org.apache.felix.resolver.Logger.LOG_DEBUG, "Load built-in Core");
+				final String coreExt = "lco";
+				// copy core
+				InputStream is = null;
+				OutputStream os = null;
+				final File rc = new File(getTempDirectory(), "tmp_" + System.currentTimeMillis() + "." + coreExt);
+				try {
+					is = new TP().getClass().getResourceAsStream("/core/core." + coreExt);
 					if (is == null) {
 						// check for custom path of Lucee core
 						String s = System.getProperty("lucee.core.path");
 						if (s != null) {
-							System.err.println("Searching for Lucee Core at " + s);
 							File dir = new File(s);
 							File[] files = dir.listFiles(new ExtensionFilter(new String[] { coreExt }));
 							if (files.length > 0) {
-								System.err.println("Using Lucee Core from " + files[0].toString());
 								is = new FileInputStream(files[0]);
 							}
 						}
 					}
 
 					if (is != null) {
-						os = new BufferedOutputStream(new FileOutputStream(isPack200 ? rcPack200 : rc));
+						os = new BufferedOutputStream(new FileOutputStream(rc));
 						copy(is, os);
 					}
 					else {
-						System.err.println("/core/core." + coreExt + " not found at " + TP.class.getProtectionDomain().getCodeSource().getLocation().getPath());
+						log(org.apache.felix.resolver.Logger.LOG_ERROR,
+								"/core/core." + coreExt + " not found at " + TP.class.getProtectionDomain().getCodeSource().getLocation().getPath());
 					}
 				}
 				finally {
@@ -359,64 +407,43 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 					closeEL(os);
 				}
 
-				// unpack if necessary
-				if (isPack200) {
-					Pack200Util.pack2Jar(rcPack200, rc);
-					log(Logger.LOG_DEBUG, "unpack " + rcPack200 + " to " + rc);
-					rcPack200.delete();
-				}
-
 				CFMLEngine engine = null;
-				if (rc.exists()) {
-					lucee = new File(patcheDir, getVersion(rc) + "." + coreExt);
-
-					try {
-						is = new FileInputStream(rc);
-						os = new BufferedOutputStream(new FileOutputStream(lucee));
-						copy(is, os);
-					}
-					finally {
-						closeEL(is);
-						closeEL(os);
-						rc.delete();
-					}
-
-					engine = _getCore(lucee);
+				String v = getVersion(rc);
+				lucee = new File(patcheDir, v + "." + coreExt);
+				try {
+					is = new FileInputStream(rc);
+					os = new BufferedOutputStream(new FileOutputStream(lucee));
+					copy(is, os);
 				}
-				else {
-					// TODO: LDEV-2805 set engine's classloader to use local class files
-					// engine =
+				finally {
+					closeEL(is);
+					closeEL(os);
+					rc.delete();
 				}
+
+				engine = _getCore(lucee);
 
 				setEngine(engine);
 			}
 			else {
-
 				bundleCollection = BundleLoader.loadBundles(this, getFelixCacheDirectory(), getBundleDirectory(), lucee, bundleCollection);
 				// bundle=loadBundle(lucee);
-				log(Logger.LOG_DEBUG, "Loaded bundle: [" + bundleCollection.core.getSymbolicName() + "]");
+				log(org.apache.felix.resolver.Logger.LOG_DEBUG, "Loaded bundle: [" + bundleCollection.core.getSymbolicName() + "]");
 				setEngine(getEngine(bundleCollection));
-				log(Logger.LOG_DEBUG, "Loaded engine: [" + singelton + "]");
+				log(org.apache.felix.resolver.Logger.LOG_DEBUG, "Loaded engine: [" + singelton + "]");
 			}
 			version = singelton.getInfo().getVersion();
 
-			log(Logger.LOG_DEBUG, "Loaded Lucee Version [" + singelton.getInfo().getVersion() + "]");
+			log(org.apache.felix.resolver.Logger.LOG_DEBUG, "Loaded Lucee Version [" + singelton.getInfo().getVersion() + "]");
 		}
 		catch (final InvocationTargetException e) {
 			log(e.getTargetException());
-			// e.getTargetException().printStackTrace();
 			throw new ServletException(e.getTargetException());
 		}
 		catch (final Exception e) {
+			e.printStackTrace();
 			throw new ServletException(e);
 		}
-
-		// check updates
-		String updateType = singelton.getUpdateType();
-		if (updateType == null || updateType.length() == 0) updateType = "manuell"; // TODO should be manual?
-
-		if (updateType.equalsIgnoreCase("auto")) new UpdateChecker(this, null).start();
-
 	}
 
 	private static String getVersion(File file) throws IOException, BundleException {
