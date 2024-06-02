@@ -4,11 +4,12 @@
   "id": "environment-variables-system-properties",
   "description": "This document gives you an overview over all Environment Variables an System Properties you can set for Lucee.",
   "keywords": [
-    "Checksum",
+    "Environment",
+    "Environment Variables",
+    "Properties",
+    "System Properties",
     "setting",
-    "cofig",
-    "hash",
-    "fileReadBinary"
+    "cofig"
   ]
 }
 -->
@@ -23,6 +24,10 @@ The following settings are very useful and important to know.
 **Environment Variable:** `LUCEE_ADMIN_ENABLED`  
 **System Property:** `-Dlucee.admin.enabled`  
 Should the Lucee Admin be available or not.
+
+**Environment Variable:** `LUCEE_ADMIN_PASSWORD`  
+**System Property:** `-Dlucee.admin.password`  
+Password used for the Lucee admin (when you run Lucee in multi mode, the password for the Server admin).
 
 **Environment Variable:** `LUCEE_DATASOURCE_POOL_VALIDATE`  
 **System Property:** `-Dlucee.datasource.pool.validate`  
