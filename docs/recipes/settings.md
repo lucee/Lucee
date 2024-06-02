@@ -201,6 +201,7 @@ Name of the main logger used by Lucee, for example, a non-existing logger is def
 Let's say you have the following code:
 
 ```lucee
+<cfinclude template="/foo/bar/index.cfm">
 ```
 
 And you have the following mappings defined:
@@ -358,9 +359,11 @@ A boolean value to enable/disable full null support.
 Path to a directory for additional CFML-based functions Lucee should load to make these functions available in the application. For example, you create a file called `length.cfm` that looks like this:
 
 ```lucee
+<cfscript>
 function length(obj) {
     return len(obj);
 }
+</cfscript>
 ```
 
 Then you copy that file into that directory, and you can use the function `length(any)` in all your code like a built-in function.
@@ -374,9 +377,11 @@ Path to a directory for additional CFML-based tags Lucee should load as globally
 Path to a directory for CFML-based functions Lucee should load to make these functions available in the application. For example, you create a file called `length.cfm` that looks like this:
 
 ```lucee
+<cfscript>
 function length(obj) {
     return len(obj);
 }
+</cfscript>
 ```
 
 Then you copy that file into that directory, and you can use the function `length(any)` in all your code like a built-in function.
@@ -414,6 +419,7 @@ Name of the main logger used by Lucee, for example, a non-existing logger is def
 Let's say you have the following code:
 
 ```lucee
+<cfinclude template="/foo/bar/index.cfm">
 ```
 
 And you have the following mappings defined:
