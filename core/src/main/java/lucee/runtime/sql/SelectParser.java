@@ -711,7 +711,7 @@ public class SelectParser {
 					raw.next();
 					str.append('\'');
 				}
-				// finsish
+				// finish
 				else {
 					break;
 				}

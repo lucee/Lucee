@@ -27,7 +27,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					variables.testFunctionListenerV=result;
 					thread.testFunctionListenerV=result;
 				};
-				// wait for the thread to finsish
+				// wait for the thread to finish
 				sleep(100);
 				expect(cfthread[t].testFunctionListenerV?:"undefined1").toBe("Susi Sorglos");
 				// TODO expect(variables.testFunctionListenerV?:"undefined2").toBe("Susi Sorglos");
@@ -37,7 +37,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				var threadName=mySuccess():function(result,error) {
 					thread.result=result;
 				};
-				// wait for the thread to finsish
+				// wait for the thread to finish
 				threadJoin(threadName);
 
 				expect(cfthread[threadName].result).toBe("Susi Sorglos");
@@ -47,7 +47,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				var threadName=myError():function(result,error) {
 					thread.result=error.message;
 				};
-				// wait for the thread to finsish
+				// wait for the thread to finish
 				threadJoin(threadName);
 
 				expect(cfthread[threadName].result).toBe("Upsi dupsi!");
@@ -57,7 +57,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				var threadName=arrayLen([1,2,3]):function(result,error) {
 					thread.result=result;
 				};
-				// wait for the thread to finsish
+				// wait for the thread to finish
 				threadJoin(threadName);
 
 				expect(cfthread[threadName].result).toBe(3);
@@ -68,7 +68,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				var threadName=a.b.c.d():function(result,error) {
 					thread.result=result?:error;
 				};
-				// wait for the thread to finsish
+				// wait for the thread to finish
 				threadJoin(threadName);
 				expect(cfthread[threadName].result).toBe("Susi Sorglos");
 			});
@@ -78,7 +78,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				var threadName=local.a.b.c.d():function(result,error) {
 					thread.result=result?:error;
 				};
-				// wait for the thread to finsish
+				// wait for the thread to finish
 				threadJoin(threadName);
 				expect(cfthread[threadName].result).toBe("Susi Sorglos");
 			});
@@ -88,7 +88,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				var threadName=variables.a.b.c.d():function(result,error) {
 					thread.result=result?:error;
 				};
-				// wait for the thread to finsish
+				// wait for the thread to finish
 				threadJoin(threadName);
 				expect(cfthread[threadName].result).toBe("Susi Sorglos");
 			});
@@ -98,7 +98,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				var threadName=arguments.a.b.c.d():function(result,error) {
 					thread.result=result?:error;
 				};
-				// wait for the thread to finsish
+				// wait for the thread to finish
 				threadJoin(threadName);
 				expect(cfthread[threadName].result).toBe("Susi Sorglos");
 			});
@@ -108,7 +108,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					thread.result=result;
 				};
 
-				// wait for the thread to finsish
+				// wait for the thread to finish
 				threadJoin(threadName);
 
 				expect(getMetadata(cfthread[threadName].result).fullname).toBe("org.lucee.cfml.Query");
@@ -119,7 +119,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					thread.result=result;
 				};
 
-				// wait for the thread to finsish
+				// wait for the thread to finish
 				threadJoin(threadName);
 
 				expect(getMetadata(cfthread[threadName].result).fullname).toBe("org.lucee.cfml.Query");
@@ -130,7 +130,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					thread.result=result;
 				};
 
-				// wait for the thread to finsish
+				// wait for the thread to finish
 				threadJoin(threadName);
 
 				expect(cfthread[threadName].result.columnlist).toBe("COLUMNNAME");
@@ -141,7 +141,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					thread.result=result;
 				};
 
-				// wait for the thread to finsish
+				// wait for the thread to finish
 				threadJoin(threadName);
 
 				expect(cfthread[threadName].result.columnlist).toBe("COLUMNNAME");
@@ -159,7 +159,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				
 				var threadName1=mySuccess():coll1;
 			
-				// wait for the thread to finsish
+				// wait for the thread to finish
 				threadJoin(threadName1);
 				expect(cfthread[threadName1].success).toBe("Susi Sorglos");
 			});
@@ -174,7 +174,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					}
 				};
 			
-				// wait for the thread to finsish
+				// wait for the thread to finish
 				threadJoin(threadName2);
 
 				expect(cfthread[threadName2].fail).toBe("Upsi dupsi!");
@@ -184,7 +184,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				var cfc=createObject("component","functionListener/Test.cfc");
 				var threadName1=mySuccess():cfc;
 				
-				// wait for the thread to finsish
+				// wait for the thread to finish
 				threadJoin(threadName1);
 				expect(cfthread[threadName1].success).toBe("Susi Sorglos");
 			});
@@ -193,7 +193,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				var cfc=createObject("component","functionListener/Test.cfc");
 				var threadName2=myError():cfc;
 			
-				// wait for the thread to finsish
+				// wait for the thread to finish
 				threadJoin(threadName2);
 
 				expect(cfthread[threadName2].fail).toBe("Upsi dupsi!");
@@ -203,7 +203,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				// passing null
 				var threadName1=logAndFail("testNull","Peter Lustig"):nullValue();
 				
-				// wait for the thread to finsish
+				// wait for the thread to finish
 				threadJoin(threadName1);
 				expect(request.testFunctionListenerEcho.testNull).toBe("Peter Lustig");
 			});
@@ -211,7 +211,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				// passing empty struct
 				var threadName2=logAndFail("testStruct","Ruedi Zraggen"):{};
 
-				// wait for the thread to finsish
+				// wait for the thread to finish
 				threadJoin(threadName2);
 				expect(request.testFunctionListenerEcho.testStruct).toBe("Ruedi Zraggen");
 			});

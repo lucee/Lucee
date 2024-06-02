@@ -83,7 +83,7 @@ public final class SimpleExprTransformer implements ExprTransformer {
 					cfml.next();
 					str.append(quoter);
 				}
-				// finsish
+				// finish
 				else {
 					break;
 				}
