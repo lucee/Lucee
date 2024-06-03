@@ -75,6 +75,11 @@ public final class TimeImpl extends Time implements SimpleValue {
 	}
 
 	@Override
+	public String toString() {
+		return castToString();
+	}
+
+	@Override
 	public String castToString(String defaultValue) {
 		synchronized (luceeFormatter) {
 			luceeFormatter.setTimeZone(ThreadLocalPageContext.getTimeZone());
