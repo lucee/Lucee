@@ -19,9 +19,11 @@
 package lucee.runtime.orm;
 
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.Collections;
+import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
@@ -98,11 +100,11 @@ public class ORMUtil {
 	}
 
 	public static boolean equals(Object left, Object right) {
-		HashSet<Object> done = new HashSet<Object>();
+		Set<Object> done = Collections.newSetFromMap(new IdentityHashMap<>());
 		return _equals(done, left, right);
 	}
 
-	private static boolean _equals(HashSet<Object> done, Object left, Object right) {
+	private static boolean _equals(Set<Object> done, Object left, Object right) {
 
 		if (left == right) return true;
 		if (left == null || right == null) return false;
@@ -130,7 +132,7 @@ public class ORMUtil {
 		}
 	}
 
-	private static boolean _equals(HashSet<Object> done, Collection left, Collection right) {
+	private static boolean _equals(Set<Object> done, Collection left, Collection right) {
 		if (done.contains(left)) return done.contains(right);
 		done.add(left);
 		done.add(right);
@@ -149,7 +151,7 @@ public class ORMUtil {
 		return true;
 	}
 
-	private static boolean _equals(HashSet<Object> done, Component left, Component right) {
+	private static boolean _equals(Set<Object> done, Component left, Component right) {
 		if (done.contains(left)) return done.contains(right);
 		done.add(left);
 		done.add(right);
