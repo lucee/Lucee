@@ -844,7 +844,7 @@ public final class DateCaster {
 	 * @return
 	 */
 	public static DateTime toDateSimple(String str, short convertingType, boolean alsoMonthString, TimeZone timeZone, DateTime defaultValue) {
-		str = StringUtil.trim(str, "");
+		str = StringUtil.replaceSpecialWhiteSpace(StringUtil.trim(str, ""));
 		DateString ds = new DateString(str);
 
 		// Timestamp
