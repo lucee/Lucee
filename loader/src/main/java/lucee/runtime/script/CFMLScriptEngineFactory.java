@@ -17,6 +17,9 @@
  */
 package lucee.runtime.script;
 
+import javax.naming.directory.InvalidAttributesException;
+import javax.script.ScriptEngine;
+import javax.script.ScriptException;
 import javax.servlet.ServletException;
 
 import lucee.loader.engine.CFMLEngine;
@@ -25,5 +28,44 @@ public class CFMLScriptEngineFactory extends BaseScriptEngineFactory {
 
 	public CFMLScriptEngineFactory() throws ServletException {
 		super(false, CFMLEngine.DIALECT_CFML);
+	}
+
+	public static void main(String[] args) throws ServletException, ScriptException, InvalidAttributesException {
+		try {
+			// no args
+			if (args.length < 2) {
+				System.err.println("you need to provide argumens following this pattern {String <method-name>,String <methodArguments>[,String <methodArguments>]}");
+				System.exit(1);
+			}
+
+			String methodName = args[0].trim().toLowerCase();
+			String arg1 = args[1].trim();
+
+			ScriptEngine eng = new CFMLScriptEngineFactory().getScriptEngine();
+
+			// get
+			if ("get".equals(methodName)) {
+				Object res = eng.get(arg1);
+				if (res != null) System.err.print(res.toString());
+			}
+			if ("eval".equals(methodName)) {
+				Object res = eng.eval(arg1);
+				if (res != null) System.err.print(res.toString());
+			}
+			if ("put".equals(methodName)) {
+				if (args.length < 3) {
+					System.err.println("you need to provide argumens following this pattern {\"put\",String key>,String <value>}");
+					System.exit(1);
+				}
+				String val = args[2].trim();
+
+				eng.put(arg1, val);
+				System.err.println();
+			}
+
+		}
+		finally {
+			System.exit(0);
+		}
 	}
 }
