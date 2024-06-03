@@ -58,7 +58,6 @@ public final class Compress {
 	private long lastCheck = -1;
 
 	private int format;
-	private int mode;
 	private boolean caseSensitive;
 	private Resource temp;
 
@@ -73,8 +72,6 @@ public final class Compress {
 	public Compress(Resource file, int format, boolean caseSensitive) throws IOException {
 		this.ffile = file;
 		this.format = format;
-		this.mode = ffile.getMode();
-		if (mode == 0) mode = 0777;
 		load(this.caseSensitive = caseSensitive);
 	}
 
