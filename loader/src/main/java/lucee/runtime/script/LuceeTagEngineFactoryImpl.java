@@ -19,11 +19,9 @@ package lucee.runtime.script;
 
 import /* JAVJAK */ javax.servlet.ServletException;
 
-import lucee.loader.engine.CFMLEngine;
-
-public class LuceeTagEngineFactoryImpl extends BaseScriptEngineFactory {
+public class LuceeTagEngineFactoryImpl extends CFMLTagEngineFactoryImpl {
 
 	public LuceeTagEngineFactoryImpl() throws ServletException {
-		super(true, CFMLEngine.DIALECT_LUCEE);
+		super();
 	}
 }
