@@ -19,11 +19,9 @@ package lucee.runtime.script;
 
 import javax.servlet.ServletException;
 
-import lucee.loader.engine.CFMLEngine;
-
-public class LuceeScriptEngineFactory extends BaseScriptEngineFactory {
+public class LuceeScriptEngineFactory extends CFMLScriptEngineFactory {
 
 	public LuceeScriptEngineFactory() throws ServletException {
-		super(false, CFMLEngine.DIALECT_LUCEE);
+		super();
 	}
 }
