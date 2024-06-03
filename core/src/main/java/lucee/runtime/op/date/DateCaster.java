@@ -27,7 +27,6 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.List;
 import java.util.Locale;
 import java.util.TimeZone;
 
@@ -154,15 +153,6 @@ public final class DateCaster {
 		timeZone = ThreadLocalPageContext.getTimeZone(timeZone);
 		DateTime dt = toDateSimple(str, convertingType, true, timeZone, defaultValue);
 		if (dt == null) {
-			List<DateTimeFormatter> formats = FormatUtil.getCFMLFormats(Locale.ENGLISH, timeZone, true);
-			for (DateTimeFormatter dtf: formats) {
-				try {
-					return new DateTimeImpl(Date.from(ZonedDateTime.parse(str, dtf).toInstant()).getTime(), false);
-				}
-				catch (Exception e) {
-
-				}
-			}
 			dt = toDateTime(Locale.US, str, timeZone, defaultValue, false);
 		}
 		return dt;
@@ -212,7 +202,8 @@ public final class DateCaster {
 	 */
 	public static DateTime toDateTime(Locale locale, String str, TimeZone tz, boolean useCommomDateParserAsWell) throws PageException {
 
-		DateTime dt = toDateTime(locale, str, tz, null, useCommomDateParserAsWell);
+		DateTime dt = toDateTimeNew(locale, str, tz, null, useCommomDateParserAsWell);
+		if (dt == null) dt = toDateTimeOld(locale, str, tz, null, false);
 		if (dt == null) {
 			String prefix = locale.getLanguage() + "-" + locale.getCountry() + "-";
 			throw new ExpressionException("can't cast [" + str + "] to date value",
@@ -296,12 +287,14 @@ public final class DateCaster {
 	}
 
 	public static DateTime toDateTime(Locale locale, String str, TimeZone tz, DateTime defaultValue, boolean useCommomDateParserAsWell) {
+		DateTime dt = toDateTimeNew(locale, str, tz, null, useCommomDateParserAsWell);
+		if (dt == null) dt = toDateTimeOld(locale, str, tz, null, false); // FUTURE remove this
+		return (dt == null) ? defaultValue : dt;
+	}
+
+	public static DateTime toDateTimeNew(Locale locale, String str, TimeZone tz, DateTime defaultValue, boolean useCommomDateParserAsWell) {
 		str = str.trim();
 		tz = ThreadLocalPageContext.getTimeZone(tz);
-		DateFormat[] df;
-
-		// get Calendar
-		Calendar c = JREDateTimeUtil.getThreadCalendar(locale, tz);
 
 		// datetime
 		for (DateTimeFormatter dtf: FormatUtil.getDateTimeFormats(locale, tz, false)) {
