@@ -42,7 +42,7 @@ public final class LSParseDateTime implements Function {
 	private static final long serialVersionUID = 7808039073301229473L;
 
 	public static lucee.runtime.type.dt.DateTime call(PageContext pc, Object oDate) throws PageException {
-		return _call(pc, oDate, pc.getLocale(), pc.getTimeZone(), null);
+		return _call(pc, oDate, ThreadLocalPageContext.getLocale(pc), ThreadLocalPageContext.getTimeZone(pc), null);
 	}
 
 	public static lucee.runtime.type.dt.DateTime call(PageContext pc, Object oDate, Locale locale) throws PageException {
@@ -67,7 +67,7 @@ public final class LSParseDateTime implements Function {
 
 		if (oDate instanceof Date) return Caster.toDate(oDate, tz);
 
-		String strDate = Caster.toString(oDate);
+		String strDate = StringUtil.replaceSpecialWhiteSpace(Caster.toString(oDate));
 
 		// regular parse date time
 		if (StringUtil.isEmpty(format, true)) return DateCaster.toDateTime(locale, strDate, tz, locale.equals(Locale.US));

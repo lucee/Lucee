@@ -43,26 +43,28 @@ import lucee.runtime.type.util.ArrayUtil;
  */
 public final class StringUtil {
 
-	private static final char[] SPECIAL_WHITE_SPACE_CHARS = new char[] { 0x85 // NEL, Next line
-			, 0xa0 // no-break space
-			, 0x1680 // ogham space mark
-			, 0x180e // mongolian vowel separator
-			, 0x2000 // en quad
-			, 0x2001 // em quad
-			, 0x2002 // en space
-			, 0x2003 // em space
-			, 0x2004 // three-per-em space
-			, 0x2005 // four-per-em space
-			, 0x2006 // six-per-em space
-			, 0x2007 // figure space
-			, 0x2008 // punctuation space
-			, 0x2009 // thin space
-			, 0x200A // hair space
-			, 0x2028 // line separator
-			, 0x2029 // paragraph separator
-			, 0x202F // narrow no-break space
-			, 0x205F // medium mathematical space
-			, 0x3000 // ideographic space
+	private static final char[] SPECIAL_WHITE_SPACE_CHARS = new char[] { 0x0020, // SPACE
+			0x0085, // NEL, Next line
+			0x00A0, // NO-BREAK SPACE
+			0x1680, // OGHAM SPACE MARK
+			0x180E, // MONGOLIAN VOWEL SEPARATOR
+			0x2000, // EN QUAD
+			0x2001, // EM QUAD
+			0x2002, // EN SPACE
+			0x2003, // EM SPACE
+			0x2004, // THREE-PER-EM SPACE
+			0x2005, // FOUR-PER-EM SPACE
+			0x2006, // SIX-PER-EM SPACE
+			0x2007, // FIGURE SPACE
+			0x2008, // PUNCTUATION SPACE
+			0x2009, // THIN SPACE
+			0x200A, // HAIR SPACE
+			0x2028, // LINE SEPARATOR
+			0x2029, // PARAGRAPH SEPARATOR
+			0x202F, // NARROW NO-BREAK SPACE
+			0x205F, // MEDIUM MATHEMATICAL SPACE
+			0x3000, // IDEOGRAPHIC SPACE
+			0x200B // ZERO WIDTH SPACE
 	};
 	private static final boolean[] WHITESPACES;
 

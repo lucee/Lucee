@@ -150,7 +150,7 @@ public final class DateCaster {
 		str = str.trim();
 		if (StringUtil.isEmpty(str)) return defaultValue;
 		if (!hasDigits(str)) return defaultValue; // every format has digits
-		str = replaceETCTimezoneDefintions(str);
+		str = replaceETCTimezoneDefintions(StringUtil.replaceSpecialWhiteSpace(str));
 		timeZone = ThreadLocalPageContext.getTimeZone(timeZone);
 		DateTime dt = toDateSimple(str, convertingType, true, timeZone, defaultValue);
 		if (dt == null) {

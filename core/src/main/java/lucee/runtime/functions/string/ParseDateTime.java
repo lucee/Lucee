@@ -23,6 +23,7 @@ import java.util.TimeZone;
 
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.BIF;
@@ -39,7 +40,7 @@ public final class ParseDateTime extends BIF {
 	private static final long serialVersionUID = -2623323893206022437L;
 
 	public static lucee.runtime.type.dt.DateTime call(PageContext pc, Object oDate) throws PageException {
-		return _call(pc, oDate, null, pc.getTimeZone());
+		return _call(pc, oDate, null, ThreadLocalPageContext.getTimeZone(pc));
 	}
 
 	public static lucee.runtime.type.dt.DateTime call(PageContext pc, Object oDate, String popConversion) throws PageException {
