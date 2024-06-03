@@ -212,9 +212,6 @@ public final class ResourceUtil {
 		if (res.exists()) return res;
 		else if (!allowRealpath) throw new ExpressionException("file or directory [" + path + "] does not exist");
 
-		if (res.isAbsolute() && res.exists()) {
-			return res;
-		}
 		if (StringUtil.startsWith(path, '/')) {
 			PageContextImpl pci = (PageContextImpl) pc;
 			ConfigWeb cw = pc.getConfig();
