@@ -607,7 +607,7 @@ public final class PageContextImpl extends PageContext {
 		if (config.debug()) {
 			boolean skipLogThread = isChild;
 			if (skipLogThread && hasDebugOptions(ConfigPro.DEBUG_THREAD)) skipLogThread = false;
-			if (!gatewayContext && !skipLogThread) config.getDebuggerPool().store(this, debugger);
+			if (!skipLogThread && !gatewayContext) config.getDebuggerPool().store(this, debugger);
 			debugger.reset();
 		}
 		else debugger.resetTraces(); // traces can alo be used when debugging is off
@@ -1005,7 +1005,7 @@ public final class PageContextImpl extends PageContext {
 
 	private void _doInclude(PageSource[] sources, boolean runOnce) throws PageException {
 		// debug
-		if (!gatewayContext && hasDebugOptions(ConfigPro.DEBUG_TEMPLATE)) {
+		if (hasDebugOptions(ConfigPro.DEBUG_TEMPLATE) && !gatewayContext) {
 			long currTime = executionTime;
 			long exeTime = 0;
 			long time = System.nanoTime();
@@ -1980,7 +1980,7 @@ public final class PageContextImpl extends PageContext {
 
 	@Override
 	public Object getFunction(Object coll, Key key, Object[] args) throws PageException {
-		if (!gatewayContext && config.debug() && config.hasDebugOptions(ConfigPro.DEBUG_TEMPLATE)) {
+		if (config.hasDebugOptions(ConfigPro.DEBUG_TEMPLATE) && !gatewayContext) {
 			DebugEntryTemplate debugEntry = debugger.getEntry(this, getCurrentTemplatePageSource(), key.toString());
 			long currTime = getExecutionTime();
 			long time = System.nanoTime();
@@ -2012,7 +2012,7 @@ public final class PageContextImpl extends PageContext {
 
 	@Override
 	public Object getFunctionWithNamedValues(Object coll, Key key, Object[] args) throws PageException {
-		if (!gatewayContext && config.debug() && config.hasDebugOptions(ConfigPro.DEBUG_TEMPLATE)) {
+		if (config.hasDebugOptions(ConfigPro.DEBUG_TEMPLATE) && !gatewayContext) {
 			DebugEntryTemplate debugEntry = debugger.getEntry(this, getCurrentTemplatePageSource(), key.toString());
 			long currTime = getExecutionTime();
 			long time = System.nanoTime();
@@ -3319,7 +3319,7 @@ public final class PageContextImpl extends PageContext {
 			else {
 				(u.getCheckArguments() ? u.localScope() : u).setEL(KeyConstants._cfcatch, pe.getCatchBlock(config));
 				if (name != null && !StringUtil.isEmpty(name, true)) (u.getCheckArguments() ? u.localScope() : u).setEL(KeyImpl.init(name.trim()), pe.getCatchBlock(config));
-				if (!gatewayContext && hasDebugOptions(ConfigPro.DEBUG_EXCEPTION)) {
+				if (hasDebugOptions(ConfigPro.DEBUG_EXCEPTION) && !gatewayContext) {
 					/*
 					 * print.e("-----------------------"); print.e("msg:" + pe.getMessage()); print.e("caught:" +
 					 * caught); print.e("store:" + store); print.e("signal:" + signal); print.e("outer:" + outer);
