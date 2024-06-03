@@ -108,15 +108,17 @@ public class QueryParamConverter {
 		return convert(sql, items, namedItems);
 	}
 
-	public static Struct toStruct(SQLItem item) {
+	public static Struct toStruct(SQLItem item, boolean fns) {
 		Struct sct = new StructImpl();
 		if (item instanceof NamedSQLItem) {
 			NamedSQLItem nsi = (NamedSQLItem) item;
 			sct.setEL(KeyConstants._name, nsi.getName());
 		}
-		sct.setEL(KeyConstants._value, item.getValue());
+		if (fns || item.getValue() != null) sct.setEL(KeyConstants._value, item.getValue() );
+		else sct.setEL(KeyConstants._value, "");
 		sct.setEL(KeyConstants._type, SQLCaster.toStringType(item.getType(), null));
 		sct.setEL(KeyConstants._scale, item.getScale());
+		sct.setEL(KeyConstants._null, item.isNulls());
 		return sct;
 	}
 
