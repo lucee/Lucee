@@ -21,8 +21,10 @@ package lucee.runtime.op;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
@@ -606,7 +608,7 @@ public final class OpUtil {
 		}
 		if (left == null) return right == null;
 
-		if (done == null) done = new HashSet<Object>();
+		if (done == null) done = Collections.newSetFromMap(new IdentityHashMap<>());
 		else if (done.contains(left) && done.contains(right)) return true;
 		done.add(left);
 		done.add(right);

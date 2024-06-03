@@ -16,7 +16,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"  {
 				)).toBeTrue();
 			});
 
-			it( title="checking ObjectEquals() nested arrays, different", skip=true, body=function( currentSpec ) {
+			it( title="checking ObjectEquals() nested arrays, different",  body=function( currentSpec ) {
 				expect(ObjectEquals(
 					[["PHONE", "EMAIL"], ["PHONE"], ["PHONE", "EMAIL"]],
 					[["PHONE", "EMAIL"], ["PHONE"], ["PHONE"]]
