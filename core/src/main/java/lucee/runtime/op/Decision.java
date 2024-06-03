@@ -24,8 +24,6 @@ import java.math.BigDecimal;
 import java.net.URI;
 import java.sql.Blob;
 import java.sql.Clob;
-import java.text.DateFormat;
-import java.text.ParsePosition;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Iterator;
@@ -42,7 +40,6 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import lucee.commons.date.DateTimeUtil;
-import lucee.commons.i18n.FormatUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.CFTypes;
@@ -1399,52 +1396,7 @@ public final class Decision {
 	}
 
 	public static boolean isDate(String str, Locale locale, TimeZone tz, boolean lenient) {
-		str = str.trim();
-		tz = ThreadLocalPageContext.getTimeZone(tz);
-		DateFormat[] df;
-
-		// get Calendar
-		// Calendar c=JREDateTimeUtil.getThreadCalendar(locale,tz);
-
-		// datetime
-		ParsePosition pp = new ParsePosition(0);
-		df = FormatUtil.getDateTimeFormats(locale, tz, false);// dfc[FORMATS_DATE_TIME];
-		Date d;
-		for (int i = 0; i < df.length; i++) {
-			pp.setErrorIndex(-1);
-			pp.setIndex(0);
-			df[i].setTimeZone(tz);
-			d = df[i].parse(str, pp);
-			if (pp.getIndex() == 0 || d == null || pp.getIndex() < str.length()) continue;
-
-			return true;
-		}
-
-		// date
-		df = FormatUtil.getDateFormats(locale, tz, false);
-		for (int i = 0; i < df.length; i++) {
-			pp.setErrorIndex(-1);
-			pp.setIndex(0);
-			df[i].setTimeZone(tz);
-			d = df[i].parse(str, pp);
-			if (pp.getIndex() == 0 || d == null || pp.getIndex() < str.length()) continue;
-			return true;
-		}
-
-		// time
-		df = FormatUtil.getTimeFormats(locale, tz, false);
-		for (int i = 0; i < df.length; i++) {
-			pp.setErrorIndex(-1);
-			pp.setIndex(0);
-			df[i].setTimeZone(tz);
-			d = df[i].parse(str, pp);
-			if (pp.getIndex() == 0 || d == null || pp.getIndex() < str.length()) continue;
-
-			return true;
-		}
-
-		if (lenient) return isDateSimple(str, false);
-		return false;
+		return DateCaster.toDateTime(locale, str.trim(), ThreadLocalPageContext.getTimeZone(tz), null, lenient) != null;
 	}
 
 	/**

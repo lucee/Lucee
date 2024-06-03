@@ -53,15 +53,63 @@ public class FormatUtil {
 	private final static Map<String, SoftReference<DateFormat[]>> formats = new ConcurrentHashMap<String, SoftReference<DateFormat[]>>();
 
 	private final static Map<String, SoftReference<List<DateTimeFormatter>>> cfmlFormats = new ConcurrentHashMap<>();
+	// "EEEE, MMMM d, yyyy, h:mm:ss a 'Coordinated Universal Time'"
+	private final static String[] strCfmlFormats = new String[] {
 
-	private final static String[] strCfmlFormats = new String[] { "EEE MMM dd HH:mm:ss z yyyy", "MMMM dd, yyyy HH:mm:ss a zzz", "MMM dd, yyyy HH:mm:ss a", "MMM dd, yyyy HH:mm:ss",
-			"MMMM d yyyy HH:mm:ssZ", "MMMM d yyyy HH:mm:ss", "MMMM d yyyy HH:mm", "EEE, MMM dd, yyyy HH:mm:ssZ", "EEE, MMM dd, yyyy HH:mm:ss", "EEEE, MMMM dd, yyyy H:mm:ss a zzz",
-			"dd-MMM-yy HH:mm a", "EE, dd-MMM-yyyy HH:mm:ss zz", "dd-MMMM-yy HH:mm a", "EE, dd MMM yyyy HH:mm:ss zz", "EEE d, MMM yyyy HH:mm:ss zz", "dd-MMM-yyyy",
-			"MMMM, dd yyyy HH:mm:ssZ", "MMMM, dd yyyy HH:mm:ss", "yyyy/MM/dd HH:mm:ss zz", "dd MMM yyyy HH:mm:ss zz", "EEE MMM dd yyyy HH:mm:ss 'GMT'ZZ (z)",
-			"yyyy-MM-dd HH:mm:ss zz", "dd MMM, yyyy HH:mm:ss", "MMMM, dd yyyy HH:mm:ss Z" };
+			"dd-MMM-yyyy",
 
-	public static List<DateTimeFormatter> getCFMLFormats(TimeZone timeZone, boolean lenient) {
-		String key = "cfml:" + timeZone.getID() + ":" + lenient;
+			"dd-MMM-yy HH:mm a",
+
+			"dd-MMMM-yy HH:mm a",
+
+			"dd MMM, yyyy HH:mm:ss",
+
+			"dd MMM yyyy HH:mm:ss zz",
+
+			"MMMM d yyyy HH:mm",
+
+			"MMMM d yyyy HH:mm:ss",
+
+			"MMM dd, yyyy HH:mm:ss",
+
+			"MMMM, dd yyyy HH:mm:ss",
+
+			"MMMM d yyyy HH:mm:ssZ",
+
+			"MMM dd, yyyy HH:mm:ss a",
+
+			"MMMM, dd yyyy HH:mm:ssZ",
+
+			"MMMM, dd yyyy HH:mm:ss Z",
+
+			"MMMM dd, yyyy HH:mm:ss a zzz",
+
+			"EEE, MMM dd, yyyy HH:mm:ss",
+
+			"EEE MMM dd HH:mm:ss z yyyy",
+
+			"EE, dd-MMM-yyyy HH:mm:ss zz",
+
+			"EE, dd MMM yyyy HH:mm:ss zz",
+
+			"EEE d, MMM yyyy HH:mm:ss zz",
+
+			"EEE, MMM dd, yyyy HH:mm:ssZ",
+
+			"EEEE, MMMM d, yyyy, h:mm:ss a z",
+
+			"EEEE, MMMM d, yyyy, h:mm:ss a zzzz",
+
+			"EEE MMM dd yyyy HH:mm:ss 'GMT'ZZ (z)",
+
+			"yyyy/MM/dd HH:mm:ss zz",
+
+			"yyyy-MM-dd HH:mm:ss zz"
+
+	};
+
+	public static List<DateTimeFormatter> getCFMLFormats(Locale locale, TimeZone timeZone, boolean lenient) {
+		String key = "cfml:" + locale.toString() + "-" + timeZone.getID() + ":" + lenient;
 		SoftReference<List<DateTimeFormatter>> sr = cfmlFormats.get(key);
 		List<DateTimeFormatter> formatter = null;
 		if (sr == null || (formatter = sr.get()) == null) {
@@ -75,7 +123,7 @@ public class FormatUtil {
 						builder = new DateTimeFormatterBuilder().appendPattern(f);
 						if (lenient) builder.parseCaseInsensitive();
 						else builder.parseCaseSensitive();
-						formatter.add(builder.toFormatter(Locale.ENGLISH).withZone(zone));
+						formatter.add(builder.toFormatter(locale).withZone(zone));
 					}
 					cfmlFormats.put(key, new SoftReference(formatter));
 				}
@@ -84,7 +132,7 @@ public class FormatUtil {
 		return formatter;
 	}
 
-	public static List<DateTimeFormatter> getDateTimeFormatsNew(Locale locale, TimeZone tz, boolean lenient) {
+	public static List<DateTimeFormatter> getDateTimeFormats(Locale locale, TimeZone tz, boolean lenient) {
 
 		String key = "dt-" + locale.toString() + "-" + tz.getID() + "-" + lenient;
 		SoftReference<List<DateTimeFormatter>> tmp = cfmlFormats.get(key);
@@ -122,7 +170,8 @@ public class FormatUtil {
 		return df;
 	}
 
-	public static DateFormat[] getDateTimeFormats(Locale locale, TimeZone tz, boolean lenient) {
+	@Deprecated
+	public static DateFormat[] getDateTimeFormatsOld(Locale locale, TimeZone tz, boolean lenient) {
 
 		String id = "dt-" + locale.toString() + "-" + tz.getID() + "-" + lenient;
 		SoftReference<DateFormat[]> tmp = formats.get(id);
@@ -163,7 +212,31 @@ public class FormatUtil {
 		return clone(df);
 	}
 
-	public static DateFormat[] getDateFormats(Locale locale, TimeZone tz, boolean lenient) {
+	public static List<DateTimeFormatter> getDateFormats(Locale locale, TimeZone tz, boolean lenient) {
+
+		String key = "d-" + locale.toString() + "-" + tz.getID() + "-" + lenient;
+		SoftReference<List<DateTimeFormatter>> tmp = cfmlFormats.get(key);
+		List<DateTimeFormatter> df = tmp == null ? null : tmp.get();
+		if (df == null) {
+			synchronized (SystemUtil.createToken("dt", key)) {
+				df = tmp == null ? null : tmp.get();
+				if (df == null) {
+					ZoneId zone = tz.toZoneId();
+					df = new ArrayList<>();
+					df.add(DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL).withLocale(locale).withZone(zone));
+					df.add(DateTimeFormatter.ofLocalizedDate(FormatStyle.LONG).withLocale(locale).withZone(zone));
+					df.add(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM).withLocale(locale).withZone(zone));
+					df.add(DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT).withLocale(locale).withZone(zone));
+
+					cfmlFormats.put(key, new SoftReference<List<DateTimeFormatter>>(df));
+				}
+			}
+		}
+		return df;
+	}
+
+	@Deprecated
+	public static DateFormat[] getDateFormatsOld(Locale locale, TimeZone tz, boolean lenient) {
 		String id = "d-" + locale.toString() + "-" + tz.getID() + "-" + lenient;
 		SoftReference<DateFormat[]> tmp = formats.get(id);
 		DateFormat[] df = tmp == null ? null : tmp.get();
@@ -195,7 +268,8 @@ public class FormatUtil {
 		return trg;
 	}
 
-	public static DateFormat[] getTimeFormats(Locale locale, TimeZone tz, boolean lenient) {
+	@Deprecated
+	public static DateFormat[] getTimeFormatsOld(Locale locale, TimeZone tz, boolean lenient) {
 		String id = "t-" + locale.toString() + "-" + tz.getID() + "-" + lenient;
 		SoftReference<DateFormat[]> tmp = formats.get(id);
 		DateFormat[] df = tmp == null ? null : tmp.get();
@@ -329,13 +403,13 @@ public class FormatUtil {
 	}
 
 	public static DateFormat[] getFormats(Locale locale, TimeZone tz, boolean lenient, short formatType) {
-		if (FORMAT_TYPE_DATE_TIME == formatType) return getDateTimeFormats(locale, TimeZoneConstants.GMT, true);
-		if (FORMAT_TYPE_DATE == formatType) return getDateFormats(locale, TimeZoneConstants.GMT, true);
-		if (FORMAT_TYPE_TIME == formatType) return getTimeFormats(locale, TimeZoneConstants.GMT, true);
+		if (FORMAT_TYPE_DATE_TIME == formatType) return getDateTimeFormatsOld(locale, TimeZoneConstants.GMT, true);
+		if (FORMAT_TYPE_DATE == formatType) return getDateFormatsOld(locale, TimeZoneConstants.GMT, true);
+		if (FORMAT_TYPE_TIME == formatType) return getTimeFormatsOld(locale, TimeZoneConstants.GMT, true);
 
-		DateFormat[] dt = getDateTimeFormats(locale, TimeZoneConstants.GMT, true);
-		DateFormat[] d = getDateFormats(locale, TimeZoneConstants.GMT, true);
-		DateFormat[] t = getTimeFormats(locale, TimeZoneConstants.GMT, true);
+		DateFormat[] dt = getDateTimeFormatsOld(locale, TimeZoneConstants.GMT, true);
+		DateFormat[] d = getDateFormatsOld(locale, TimeZoneConstants.GMT, true);
+		DateFormat[] t = getTimeFormatsOld(locale, TimeZoneConstants.GMT, true);
 
 		DateFormat[] all = new DateFormat[dt.length + d.length + t.length];
 		for (int i = 0; i < dt.length; i++) {
@@ -347,7 +421,7 @@ public class FormatUtil {
 		for (int i = 0; i < t.length; i++) {
 			all[i + dt.length + d.length] = t[i];
 		}
-		return getDateTimeFormats(locale, TimeZoneConstants.GMT, true);
+		return getDateTimeFormatsOld(locale, TimeZoneConstants.GMT, true);
 	}
 
 	public static String[] getSupportedPatterns(Locale locale, short formatType) {
@@ -361,6 +435,7 @@ public class FormatUtil {
 		return patterns;
 	}
 
+	@Deprecated
 	public static DateFormat getDateFormat(Locale locale, TimeZone tz, String mask) {
 		DateFormat df;
 		if (mask.equalsIgnoreCase("short")) df = DateFormat.getDateInstance(DateFormat.SHORT, locale);
@@ -374,6 +449,30 @@ public class FormatUtil {
 		return df;
 	}
 
+	public static List<DateTimeFormatter> getTimeFormats(Locale locale, TimeZone tz, boolean lenient) {
+
+		String key = "t-" + locale.toString() + "-" + tz.getID() + "-" + lenient;
+		SoftReference<List<DateTimeFormatter>> tmp = cfmlFormats.get(key);
+		List<DateTimeFormatter> df = tmp == null ? null : tmp.get();
+		if (df == null) {
+			synchronized (SystemUtil.createToken("dt", key)) {
+				df = tmp == null ? null : tmp.get();
+				if (df == null) {
+					ZoneId zone = tz.toZoneId();
+					df = new ArrayList<>();
+					df.add(DateTimeFormatter.ofLocalizedTime(FormatStyle.FULL).withLocale(locale).withZone(zone));
+					df.add(DateTimeFormatter.ofLocalizedDate(FormatStyle.LONG).withLocale(locale).withZone(zone));
+					df.add(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM).withLocale(locale).withZone(zone));
+					df.add(DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT).withLocale(locale).withZone(zone));
+
+					cfmlFormats.put(key, new SoftReference<List<DateTimeFormatter>>(df));
+				}
+			}
+		}
+		return df;
+	}
+
+	@Deprecated
 	public static DateFormat getTimeFormat(Locale locale, TimeZone tz, String mask) {
 		DateFormat df;
 		if (mask.equalsIgnoreCase("short")) df = DateFormat.getTimeInstance(DateFormat.SHORT, locale);
@@ -387,6 +486,7 @@ public class FormatUtil {
 		return df;
 	}
 
+	@Deprecated
 	public static DateFormat getDateTimeFormat(Locale locale, TimeZone tz, String mask) {
 		DateFormat df;
 		if (mask.equalsIgnoreCase("short")) df = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT, locale);
@@ -399,12 +499,6 @@ public class FormatUtil {
 		}
 		df.setTimeZone(tz);
 		return df;
-
-		/*
-		 * if(mask!=null && StringUtil.indexOfIgnoreCase(mask, "tt")==-1 &&
-		 * StringUtil.indexOfIgnoreCase(mask, "t")!=-1) { DateFormatSymbols dfs = new
-		 * DateFormatSymbols(locale); dfs.setAmPmStrings(AP); sdf.setDateFormatSymbols(dfs); }
-		 */
 	}
 
 }

@@ -154,7 +154,7 @@ public final class DateCaster {
 		timeZone = ThreadLocalPageContext.getTimeZone(timeZone);
 		DateTime dt = toDateSimple(str, convertingType, true, timeZone, defaultValue);
 		if (dt == null) {
-			List<DateTimeFormatter> formats = FormatUtil.getCFMLFormats(timeZone, true);
+			List<DateTimeFormatter> formats = FormatUtil.getCFMLFormats(Locale.ENGLISH, timeZone, true);
 			for (DateTimeFormatter dtf: formats) {
 				try {
 					return new DateTimeImpl(Date.from(ZonedDateTime.parse(str, dtf).toInstant()).getTime(), false);
@@ -233,7 +233,7 @@ public final class DateCaster {
 	 * @param defaultValue
 	 * @return datetime object
 	 */
-	public static DateTime toDateTime(Locale locale, String str, TimeZone tz, DateTime defaultValue, boolean useCommomDateParserAsWell) {
+	public static DateTime toDateTimeOld(Locale locale, String str, TimeZone tz, DateTime defaultValue, boolean useCommomDateParserAsWell) {
 		str = str.trim();
 		tz = ThreadLocalPageContext.getTimeZone(tz);
 		DateFormat[] df;
@@ -243,7 +243,7 @@ public final class DateCaster {
 
 		// datetime
 		ParsePosition pp = new ParsePosition(0);
-		df = FormatUtil.getDateTimeFormats(locale, tz, false);// dfc[FORMATS_DATE_TIME];
+		df = FormatUtil.getDateTimeFormatsOld(locale, tz, false);// dfc[FORMATS_DATE_TIME];
 		Date d;
 		for (int i = 0; i < df.length; i++) {
 			SimpleDateFormat sdf = (SimpleDateFormat) df[i];
@@ -259,7 +259,7 @@ public final class DateCaster {
 		}
 
 		// date
-		df = FormatUtil.getDateFormats(locale, tz, false);
+		df = FormatUtil.getDateFormatsOld(locale, tz, false);
 		for (int i = 0; i < df.length; i++) {
 			SimpleDateFormat sdf = (SimpleDateFormat) df[i];
 			// print.e(sdf.format(new Date(108,3,6,1,2,1)) + " : "+sdf.toPattern());
@@ -273,7 +273,7 @@ public final class DateCaster {
 		}
 
 		// time
-		df = FormatUtil.getTimeFormats(locale, tz, false);// dfc[FORMATS_TIME];
+		df = FormatUtil.getTimeFormatsOld(locale, tz, false);// dfc[FORMATS_TIME];
 		for (int i = 0; i < df.length; i++) {
 			SimpleDateFormat sdf = (SimpleDateFormat) df[i];
 			// print.e(sdf.format(new Date(108,3,6,1,2,1))+ " : "+sdf.toPattern());
@@ -291,6 +291,53 @@ public final class DateCaster {
 			return new DateTimeImpl(c.getTime());
 		}
 
+		if (useCommomDateParserAsWell) return DateCaster.toDateSimple(str, CONVERTING_TYPE_NONE, true, tz, defaultValue);
+		return defaultValue;
+	}
+
+	public static DateTime toDateTime(Locale locale, String str, TimeZone tz, DateTime defaultValue, boolean useCommomDateParserAsWell) {
+		str = str.trim();
+		tz = ThreadLocalPageContext.getTimeZone(tz);
+		DateFormat[] df;
+
+		// get Calendar
+		Calendar c = JREDateTimeUtil.getThreadCalendar(locale, tz);
+
+		// datetime
+		for (DateTimeFormatter dtf: FormatUtil.getDateTimeFormats(locale, tz, false)) {
+			try {
+				return new DateTimeImpl(Date.from(ZonedDateTime.parse(str, dtf).toInstant()).getTime(), false);
+			}
+			catch (Exception e) {
+			}
+		}
+
+		// date
+		for (DateTimeFormatter dtf: FormatUtil.getDateFormats(locale, tz, false)) {
+			try {
+				return new DateTimeImpl(Date.from(ZonedDateTime.parse(str, dtf).toInstant()).getTime(), false);
+			}
+			catch (Exception e) {
+			}
+		}
+
+		// time
+		for (DateTimeFormatter dtf: FormatUtil.getTimeFormats(locale, tz, false)) {
+			try {
+				return new DateTimeImpl(Date.from(ZonedDateTime.parse(str, dtf).toInstant()).getTime(), false);
+			}
+			catch (Exception e) {
+			}
+		}
+
+		// cfml
+		for (DateTimeFormatter dtf: FormatUtil.getCFMLFormats(locale, tz, false)) {
+			try {
+				return new DateTimeImpl(Date.from(ZonedDateTime.parse(str, dtf).toInstant()).getTime(), false);
+			}
+			catch (Exception e) {
+			}
+		}
 		if (useCommomDateParserAsWell) return DateCaster.toDateSimple(str, CONVERTING_TYPE_NONE, true, tz, defaultValue);
 		return defaultValue;
 	}
