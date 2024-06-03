@@ -573,7 +573,7 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 
 		// listener before
 		if (data.listener != null) {
-			String res = writeBackArgs(pageContext, data, data.listener.before(pageContext, createArgStruct(data, strSQL, tl)));
+			String res = writeBackArgs(pageContext, data, data.listener.before(pageContext, createArgStruct(pageContext, data, strSQL, tl)));
 			if (!StringUtil.isEmpty(res)) strSQL = res;
 		}
 
@@ -781,7 +781,7 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 		catch (PageException pe) {
 			if (data.listener != null && data.listener.hasError()) {
 				long addExe = System.nanoTime();
-				Struct args = createArgStruct(data, strSQL, tl);
+				Struct args = createArgStruct(pageContext, data, strSQL, tl);
 				args.set(KeyConstants._exception, pe.getCatchBlock(pageContext.getConfig()));
 				ResMeta rm = writeBackResult(pageContext, data, data.listener.error(pageContext, args), setVars);
 				if (data.result == null || (rm.meta == null && rm.asQueryResult() != null))
@@ -812,6 +812,7 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 		Struct meta;
 		if (data.result != null && queryResult != null) {
 			meta = new StructImpl();
+			boolean fns = ((PageContextImpl) pageContext).getFullNullSupport();
 			meta.setEL(KeyConstants._cached, Caster.toBoolean(queryResult.isCached()));
 			if ((queryResult.getColumncount() + queryResult.getRecordcount()) > 0) {
 				String list = ListUtil.arrayToList(queryResult instanceof lucee.runtime.type.Query ? ((lucee.runtime.type.Query) queryResult).getColumnNamesAsString()
@@ -859,7 +860,8 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 					Array arr = new ArrayImpl();
 					meta.setEL(SQL_PARAMETERS, arr);
 					for (int i = 0; i < params.length; i++) {
-						arr.append(params[i].getValue());
+						if (fns) arr.append(params[i].isNulls() ? null : params[i].getValue());
+						else arr.append(params[i].isNulls() ? "" : params[i].getValue());
 					}
 				}
 			}
@@ -875,16 +877,17 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 
 	private static void callAfter(PageContext pc, QueryBean data, String strSQL, TemplateLine tl, boolean setResult, Object queryResult, Object meta, boolean setVars)
 			throws PageException {
-		Struct args = createArgStruct(data, strSQL, tl);
+		Struct args = createArgStruct(pc, data, strSQL, tl);
 		if (setResult && queryResult != null) args.set(KeyConstants._result, queryResult);
 		if (meta != null) args.set(KeyConstants._meta, meta);
 		writeBackResult(pc, data, data.listener.after(pc, args), setVars);
 	}
 
-	private static Struct createArgStruct(QueryBean data, String strSQL, TemplateLine tl) throws PageException {
+	private static Struct createArgStruct(PageContext pc, QueryBean data, String strSQL, TemplateLine tl) throws PageException {
 		Struct rtn = new StructImpl(Struct.TYPE_LINKED);
 		Struct args = new StructImpl(Struct.TYPE_LINKED);
 
+		boolean fns = ((PageContextImpl) pc).getFullNullSupport();
 		// TODO add missing attrs
 		/*
 		 * TagLibTag tlt = TagUtil.getTagLibTag(pageContext, CFMLEngine.DIALECT_CFML, "cf", "query");
@@ -920,7 +923,7 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 			SQLItem item;
 			while (it.hasNext()) {
 				item = it.next();
-				params.appendEL(QueryParamConverter.toStruct(item));
+				params.appendEL(QueryParamConverter.toStruct(item, fns));
 			}
 			set(args, KeyConstants._params, params);
 		}
