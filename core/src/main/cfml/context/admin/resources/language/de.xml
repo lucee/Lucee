@@ -1142,6 +1142,8 @@ When checked, any requested files will be inspected only once for potential upda
 	<data key="doc.chooseTag">Choose a tag</data>
 	<data key="doc.chooseFunction">Choose a function</data>
 	<data key="doc.category">Kategorie</data>
+	<data key="overview.bannerLTS">Lucee 5.4 wird ab sofort nur noch als LTS Release geführt und wird nicht mehr weiter entwickelt. Das bedeutet, dass nur noch  sicherheitsrelevante Updates und Fehlerbehebungen für Regressionen implementiert werden. Zudem wird nur noch Java 8 and 11 unterstützt.</data>
+	<data key="overview.bannerLucee6">Lucee 6 wird aktiv weiter entwickelt mit Support für Java 11, 17 und 21. Dies beinhaltet grosse Performance Verbesserungen im Vergleich zu Lucee 5.4. Zudem noch viele Fehlerbehebungen sowie neue Features und Funktionalitäten</data>
 	<data key="overview.installedtls">Installierte Tag Bibliotheken</data>
 	<data key="overview.bugreport">Fehlerreport</data>
 	<data key="overview.Docs">Documentation</data>

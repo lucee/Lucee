@@ -247,6 +247,11 @@ Error Output --->
 		#stText.Overview.introdesc[request.adminType]#
 	</div>
 
+	<div class="warning nofocus">
+		<p>#stText.Overview.bannerLTS#</p>
+		<p>#stText.Overview.bannerLucee6#</p>
+	</div>
+
 	<cfadmin
 		action="getInfo"
 		type="#request.adminType#"

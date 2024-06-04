@@ -1285,6 +1285,8 @@ If the timezone of your Lucee instance and your database is different, this can 
 	<data key="setting.taskDesc">Active and failed tasks in the Task Spooler. This includes tasks to send E-mail messages.</data>
 	<data key="setting.taskOpen">Active</data>
 	<data key="setting.taskClose">Failed</data>
+	<data key="overview.bannerLTS">Lucee 5.4 is now being maintained as an LTS release and is no longer being actively developed, meaning it only receives security updates and fixes for regressions. Also, only Java 11 is supported</data>
+	<data key="overview.bannerLucee6">Lucee 6 is being actively developed with the support for Java 11, 17 and 21, including major performance improvements compared to 5.4, lots of bug fixes, new features and functionality</data>
 	<data key="Overview.resources">External Resources</data>
 	<data key="Overview.onlineDocsDesc">Lucee online documentation.</data>
 	<data key="Overview.localRefDesc">Local reference for tags, functions and components.</data>
