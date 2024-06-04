@@ -2916,7 +2916,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			config.setSalt(salt = salt.trim());
 
 			// password
-			pw = PasswordImpl.readFromXML(luceeConfiguration, salt, false);
+			pw = PasswordImpl.readFromXML(luceeConfiguration, salt, false, configServer == null);
 			if (pw != null) {
 				config.setPassword(pw);
 				if (config instanceof ConfigWebImpl) ((ConfigWebImpl) config).setPasswordSource(ConfigWebImpl.PASSWORD_ORIGIN_WEB);
@@ -2946,7 +2946,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 
 		// default password
 		if (config instanceof ConfigServerImpl) {
-			pw = PasswordImpl.readFromXML(luceeConfiguration, salt, true);
+			pw = PasswordImpl.readFromXML(luceeConfiguration, salt, true, configServer == null);
 			if (pw != null) ((ConfigServerImpl) config).setDefaultPassword(pw);
 		}
 
