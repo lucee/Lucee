@@ -171,6 +171,7 @@ public class GetApplicationSettings extends BIF {
 			sct.setEL("searchImplicitScopes", ac.getScopeCascading() == Config.SCOPE_STANDARD);
 		}
 
+		sct.setEL("dotNotationUpperCase", Caster.toBoolean(((ConfigPro) pc.getConfig()).getDotNotationUpperCase()));
 		// adminMode
 		sct.setEL("singleContext", ConfigWebUtil.toAdminMode(((ConfigPro) pc.getConfig()).getAdminMode(), "single") == "single");
 
