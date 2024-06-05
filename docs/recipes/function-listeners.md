@@ -26,13 +26,12 @@ function mySuccess() {
     return "Susi Sorglos";
 }
 
-t=mySuccess():function(result,error) {
-    variables.testFunctionListenerV=result;
-    thread.testFunctionListenerV=result;
+mySuccess():function(result,error) {
+    request.testFunctionListener=result;
 };
 // wait for the thread to finish
 sleep(100);
-dump(cfthread[t].testFunctionListenerV ?: "undefined1");
+dump(request.testFunctionListener ?: "undefined1");
 </cfscript>
 ```
 

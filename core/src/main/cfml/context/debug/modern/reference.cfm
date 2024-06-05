@@ -63,7 +63,7 @@
 		var startBlockquote='
 <div class="lucee_execute_result">';
 		var endBlockquote='</div>';
-	
+		
 		var needleLength=len(needle);
 		var endNeedleLength=len(endNeedle);
 		while((startIndex=find(needle, code,last))) {// 
@@ -79,27 +79,30 @@
 	}
 	
 	function executeCode(code) {
-		var ramdir="ram://templates"&createUniqueID();
-		var mappingName="/monitoringexecute";
+		if(isNull(variables.counter)) variables.counter=1;
+		else variables.counter++;
+		var ramdir="ram://templatesmonitor"&variables.counter;
+		var mappingName="/monitoringexecute"&variables.counter;
 		
 		var currSettings=getApplicationSettings();
 		try {
 			if(!directoryExists(ramdir)) directoryCreate(ramdir);
-			if(!structKeyExists(currSettings.mappings, mappingName)) {
-				currSettings.mappings[mappingName]=ramdir;
-				application action="update" mappings=currSettings.mappings;
-			}
-			fileWrite(ramdir&"/index.cfm", code);
+			currSettings.mappings[mappingName]=ramdir;
+			application action="update" mappings=currSettings.mappings;
+			
+			fileWrite(ramdir&"/index#variables.counter#.cfm", code);
 			savecontent variable="local.result" {
-				include mappingName&"/index.cfm";
+				include mappingName&"/index#variables.counter#.cfm";
 			}
 			return result;
 		}
-		//catch(e) {}
+		catch(e) {
+			return "error: "&(e.message?:"");
+		}
 		finally { 
-			//try {
+			try {
 				if(!directoryExists(ramdir)) directoryDelete(ramdir, true);
-			//}catch(ee) {}
+			}catch(ee) {}
 		}
 		return "";
 	}
