@@ -24,6 +24,7 @@ import org.osgi.framework.BundleException;
 import org.xml.sax.SAXException;
 
 import lucee.commons.digest.Hash;
+import lucee.commons.io.SystemUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.converter.ConverterException;
@@ -124,7 +125,7 @@ public class PasswordImpl implements Password {
 		}
 	}
 
-	public static Password readFromStruct(Struct data, String salt, boolean isDefault) {
+	public static Password readFromStruct(Struct data, String salt, boolean isDefault, boolean getPasswordFromEnv) {
 		String prefix = isDefault ? "adminDefault" : "admin";
 		String prefixOlder = isDefault ? "default" : "";
 
@@ -154,6 +155,13 @@ public class PasswordImpl implements Password {
 		if (!StringUtil.isEmpty(pwEnc, true)) {
 			String rawPassword = new BlowfishEasy("tpwisgh").decryptString(pwEnc);
 			return new PasswordImpl(ORIGIN_ENCRYPTED, rawPassword, salt);
+		}
+
+		if (getPasswordFromEnv) {
+			pw = SystemUtil.getSystemPropOrEnvVar(isDefault ? "lucee.admin.default.password" : "lucee.admin.password", null);
+			if (!StringUtil.isEmpty(pw, true)) {
+				return new PasswordImpl(ORIGIN_ENCRYPTED, pw, salt);
+			}
 		}
 		return null;
 	}

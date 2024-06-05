@@ -3052,7 +3052,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 		if (StringUtil.isEmpty(salt, true)) throw new RuntimeException("context is invalid, there is no salt!");
 		config.setSalt(salt = salt.trim());
 		// password
-		pw = PasswordImpl.readFromStruct(root, salt, false);
+		pw = PasswordImpl.readFromStruct(root, salt, false, configServer == null);
 		if (pw != null) {
 			config.setPassword(pw);
 			if (config instanceof MultiContextConfigWeb) ((MultiContextConfigWeb) config).setPasswordSource(ConfigWebImpl.PASSWORD_ORIGIN_WEB);
@@ -3083,7 +3083,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 
 		// default password
 		if (config instanceof ConfigServerImpl) {
-			pw = PasswordImpl.readFromStruct(root, salt, true);
+			pw = PasswordImpl.readFromStruct(root, salt, true, configServer == null);
 			if (pw != null) ((ConfigServerImpl) config).setDefaultPassword(pw);
 		}
 
