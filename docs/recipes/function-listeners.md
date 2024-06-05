@@ -26,13 +26,13 @@ function mySuccess() {
     return "Susi Sorglos";
 }
 
-var t=mySuccess():function(result,error) {
+t=mySuccess():function(result,error) {
     variables.testFunctionListenerV=result;
     thread.testFunctionListenerV=result;
 };
 // wait for the thread to finish
 sleep(100);
-dump(cfthread[t].testFunctionListenerV ? "undefined1");
+dump(cfthread[t].testFunctionListenerV ?: "undefined1");
 </cfscript>
 ```
 
@@ -46,7 +46,7 @@ function mySuccess() {
     return "Susi Sorglos";
 }
 // the function call returns the name of the thread
-var threadName=mySuccess():function(result,error) {
+threadName=mySuccess():function(result,error) {
     thread.result=result;
 };
 // you can then use the name to join the thread
@@ -69,7 +69,7 @@ function myError() {
 }
 
 // storing the exception message in the thread scope
-var threadName=myError():function(result,error) {
+threadName=myError():function(result,error) {
     thread.result=error.message;
 };
 
@@ -87,7 +87,7 @@ Instead of user defined functions, you can also listen to build in functions as 
 
 ```run
 <cfscript>
-var threadName=arrayLen([1,2,3]):function(result,error) {
+threadName=arrayLen([1,2,3]):function(result,error) {
     thread.result=result;
 };
 // wait for the thread to finish
@@ -108,8 +108,8 @@ function mySuccess() {
 }
 // create a chain
 a.b.c.d=mySuccess;
-var threadName=a.b.c.d():function(result,error) {
-    thread.result=result ? error;
+threadName=a.b.c.d():function(result,error) {
+    thread.result=result ?: error;
 };
 // wait for the thread to finish
 threadJoin(threadName);
@@ -125,7 +125,7 @@ You can also listen to a component instantiation.
 
 ```run
 <cfscript>
-var threadName=new Query():function(result,error) {
+threadName=new Query():function(result,error) {
     thread.result=result;
 };
 
@@ -142,7 +142,7 @@ You can also listen to a static component function.
 
 ```run
 <cfscript>
-var threadName=Query::new(["columnName"]):function(result,error) {
+threadName=Query::new(["columnName"]):function(result,error) {
     thread.result=result;
 };
 
@@ -165,7 +165,7 @@ function mySuccess() {
     return "Susi Sorglos";
 }
 
-var threadName1=mySuccess():{
+threadName1=mySuccess():{
     onSuccess:function(result) {
         thread.success=result;
     }
@@ -191,12 +191,9 @@ function mySuccess() {
     return "Susi Sorglos";
 }
 
-var threadName1=mySuccess():new component {  
+threadName1=mySuccess():new component {  
     function onSuccess(result) {
         thread.success=result;
-    }
-    function onFail(error) {
-        thread.fail=error.message;
     }
 };  
 
@@ -219,7 +216,7 @@ function logAndFail(name,value) {
     throw "Upsi dupsi!";
 }
 
-var threadName1=logAndFail("testNull","Peter Lustig"):nullValue();
+threadName1=logAndFail("testNull","Peter Lustig"):nullValue();
 
 // wait for the thread to finish
 threadJoin(threadName1);
@@ -234,8 +231,8 @@ Instead of `null`, you can also simply pass a empty struct or a component not de
 ```coldfusion
 
 // function collection with no listeners
-var threadName2=logAndFail("testStruct","Ruedi Zraggen"):{};
+threadName2=logAndFail("testStruct","Ruedi Zraggen"):{};
 
 // function collection with no listeners
-var threadName2=logAndFail("testStruct","Ruedi Zraggen"):new component {};
+threadName2=logAndFail("testStruct","Ruedi Zraggen"):new component {};
 ```
