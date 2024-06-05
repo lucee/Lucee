@@ -1102,7 +1102,7 @@ public abstract class AbstrCFMLExprTransformer {
 					data.srcCode.next();
 					str.append(quoter);
 				}
-				// finsish
+				// finish
 				else {
 					break;
 				}
