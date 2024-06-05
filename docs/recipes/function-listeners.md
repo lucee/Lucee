@@ -21,6 +21,7 @@ Lucee 6.1 introduced a new feature called "function listeners". This allows you 
 This example demonstrates a simple function listener that executes `mySuccess` in parallel and sets a variable with the result.
 
 ```run
+<cfscript>
 function mySuccess() {
     return "Susi Sorglos";
 }
@@ -32,6 +33,7 @@ var t=mySuccess():function(result,error) {
 // wait for the thread to finish
 sleep(100);
 dump(cfthread[t].testFunctionListenerV ? "undefined1");
+</cfscript>
 ```
 
 ## Join thread thread
@@ -39,6 +41,7 @@ dump(cfthread[t].testFunctionListenerV ? "undefined1");
 Instead of "run and forget" you can also join the thread with help of the function  `threadJoin` (or the tags `<cfthread action="join">`). You get a name from the call and that name you can use to join it. The thread information is available in the scope `cfhread` like a regular thread.
 
 ```run
+<cfscript>
 function mySuccess() {
     return "Susi Sorglos";
 }
@@ -51,6 +54,7 @@ threadJoin(threadName);
 
 // and for example see the result in cfthread
 dump(cfthread[threadName].result);
+</cfscript>
 ```
 
 ## Handling Exceptions
@@ -58,6 +62,7 @@ dump(cfthread[threadName].result);
 In this case we see what happens when the function throws an exception. in that case the argument `error` is provided to the listener function, you can then for example send it to the log.
 
 ```run
+<cfscript>
 // function that throws an exception
 function myError() {
     throw "Upsi dupsi!";
@@ -73,6 +78,7 @@ threadJoin(threadName);
 
 // see the result
 dump(cfthread[threadName].result);
+</cfscript>
 ```
 
 ## Listening on a Built-in Function (BIF)
@@ -80,6 +86,7 @@ dump(cfthread[threadName].result);
 Instead of user defined functions, you can also listen to build in functions as well.
 
 ```run
+<cfscript>
 var threadName=arrayLen([1,2,3]):function(result,error) {
     thread.result=result;
 };
@@ -87,6 +94,7 @@ var threadName=arrayLen([1,2,3]):function(result,error) {
 threadJoin(threadName);
 
 dump(cfthread[threadName].result);
+</cfscript>
 ```
 
 ## Listening on a variable "Chain"
@@ -94,6 +102,7 @@ dump(cfthread[threadName].result);
 You can also listen to variable "chain".
 
 ```run
+<cfscript>
 function mySuccess() {
     return "Susi Sorglos";
 }
@@ -106,6 +115,7 @@ var threadName=a.b.c.d():function(result,error) {
 threadJoin(threadName);
 
 dump(cfthread[threadName].result);
+</cfscript>
 ```
 
 
@@ -114,6 +124,7 @@ dump(cfthread[threadName].result);
 You can also listen to a component instantiation.
 
 ```run
+<cfscript>
 var threadName=new Query():function(result,error) {
     thread.result=result;
 };
@@ -122,6 +133,7 @@ var threadName=new Query():function(result,error) {
 threadJoin(threadName);
 
 dump(getMetadata(cfthread[threadName].result).fullname);
+</cfscript>
 ```
 
 ## Listening on a Static Component Function 
@@ -129,6 +141,7 @@ dump(getMetadata(cfthread[threadName].result).fullname);
 You can also listen to a static component function.
 
 ```run
+<cfscript>
 var threadName=Query::new(["columnName"]):function(result,error) {
     thread.result=result;
 };
@@ -137,6 +150,7 @@ var threadName=Query::new(["columnName"]):function(result,error) {
 threadJoin(threadName);
 
 dump(cfthread[threadName].result.columnlist);
+</cfscript>
 ```
 
 
@@ -146,6 +160,7 @@ A listener not necessarly has to be a function, it also can be a function collec
 This way you can define a function for specific events like `onSuccess` or `onFaail` like this.
 
 ```run
+<cfscript>
 function mySuccess() {
     return "Susi Sorglos";
 }
@@ -162,6 +177,7 @@ var threadName1=mySuccess():{
 // wait for the thread to finish
 threadJoin(threadName1);
 dump(cfthread[threadName1].success);
+</cfscript>
 ```
 
 
@@ -170,6 +186,7 @@ dump(cfthread[threadName1].success);
 You can also define a component instance as a listener, in this case we do a inline component.
 
 ```run
+<cfscript>
 function mySuccess() {
     return "Susi Sorglos";
 }
@@ -186,14 +203,16 @@ var threadName1=mySuccess():new component {
 // wait for the thread to finish
 threadJoin(threadName1);
 dump(cfthread[threadName1].success);
+</cfscript>
 ```
 
 
-### No Listener
+## No Listener
 
 In case you wanna simply a asynchron exection, but you don't care about the outcome, you can define no listener at all, simply pass `null` (in this case i use the function `nullValue()`, because only with full null support enabled, the constant `null` is available).
 
 ```run
+<cfscript>
 // writing some data to the request scope
 function logAndFail(name,value) {
     request.testFunctionListenerEcho[name]=value;
@@ -207,6 +226,7 @@ threadJoin(threadName1);
 
 // reading the data stored to the request scope
 dump(request.testFunctionListenerEcho.testNull);
+</cfscript>
 ```
 
 Instead of `null`, you can also simply pass a empty struct or a component not defining the function needed.
