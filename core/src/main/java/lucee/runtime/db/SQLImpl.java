@@ -112,7 +112,7 @@ public final class SQLImpl implements SQL, Serializable {
 		int index = 0;
 		for (int i = 0; i < sqlLen; i++) {
 			c = strSQL.charAt(i);
-			if (!inQuotes && sqlLen + 1 > i) {
+			if (!inQuotes && i < (sqlLen - 1)) {
 				// read multi line
 				if (c == '/' && strSQL.charAt(i + 1) == '*') {
 					int end = strSQL.indexOf("*/", i + 2);
@@ -124,7 +124,7 @@ public final class SQLImpl implements SQL, Serializable {
 				}
 
 				// read single line
-				if (c == '-' && strSQL.charAt(i + 1) == '-') {
+				if (c == '-' && i < (sqlLen - 1) && strSQL.charAt(i + 1) == '-') {
 					int end = strSQL.indexOf('\n', i + 1);
 					if (end != -1) {
 						i = end + 1;

@@ -146,7 +146,7 @@ public class QueryParamConverter {
 
 		for (int i = 0; i < sqlLen; i++) {
 			c = sql.charAt(i);
-			if (!inQuotes && sqlLen + 1 > i) {
+			if (!inQuotes && i < (sqlLen - 1) ) {
 				// read multi line
 				if (c == '/' && sql.charAt(i + 1) == '*') {
 					int end = sql.indexOf("*/", i + 2);
@@ -158,7 +158,7 @@ public class QueryParamConverter {
 				}
 
 				// read single line
-				if (c == '-' && sql.charAt(i + 1) == '-') {
+				if (c == '-' && i < (sqlLen - 1) && sql.charAt(i + 1) == '-') {
 					int end = sql.indexOf('\n', i + 1);
 					if (end != -1) {
 						i = end + 1;
