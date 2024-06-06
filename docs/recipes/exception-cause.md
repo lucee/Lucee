@@ -12,11 +12,11 @@
   ]
 }
 -->
-# Exception - Cause (Lucee 6.1)
+# Exception - Cause
 
 Lucee 6.1 improves its support for exception causes, providing better debugging and error handling capabilities.
 
-## Tag Attribute `cause`
+## Tag Attribute cause
 
 The `<cfthrow>` tag now includes a new attribute, `cause`, which allows you to add a cause to a newly created exception.
 

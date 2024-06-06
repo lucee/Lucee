@@ -110,7 +110,7 @@
 	function importRecipes() {
 		var tmp=listToArray(server.lucee.version,".");
 		var branch=tmp[1]&"."&tmp[2];
-		var rootPath="https://raw.githubusercontent.com/lucee/Lucee/#branch#";
+		var rootPath=(server.system.environment.LUCEE_DOC_RECIPES_PATH?:"https://raw.githubusercontent.com/lucee/lucee-docs/master");
 		var indexPath=rootPath&"/docs/recipes/index.json";
 		var indexContent=trim(fileRead(indexPath));
 		var indexHash=hash(indexContent);
