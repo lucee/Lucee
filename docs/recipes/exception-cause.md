@@ -33,7 +33,6 @@ try {
 catch(ex) {
     dump(ex.message);
     dump(ex.cause.message);
-    dump(ex);
 }
 </cfscript>
 ```
@@ -45,7 +44,7 @@ Thanks to this enhancement, you get not only the tag context and Java stack trac
 
 When you throw an exception from a child thread, for example, a `cfhttp` call executed in parallel or an exception inside the `cfthread` tag, you can now see the stack trace from where that thread was started. Previously, you only saw the stack trace within the child thread. With Lucee 6.1, you also get the information from the parent thread as the cause. Consider the following example:
 
-```lucee
+```run
 <cfscript>
 thread name="testexception" {
     throw "Upsi dupsi!"
