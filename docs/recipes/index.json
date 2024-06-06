@@ -115,9 +115,9 @@
   },
   {
     "file": "exception-cause.md",
-    "title": "Exception - Cause (Lucee 6.1)",
+    "title": "Exception - Cause",
     "path": "/docs/recipes/exception-cause.md",
-    "hash": "33ac98093d73af6f97d094e9b4c52d25"
+    "hash": "7e8cb92ad9137e3903b708883090824d"
   },
   {
     "file": "exception-output.md",
