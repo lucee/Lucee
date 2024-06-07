@@ -612,8 +612,8 @@ component {
 				if ( len( arguments.dbFile ) ){
 					return {
 						class: 'org.hsqldb.jdbcDriver'
-						, bundleName: 'org.lucee.hsqldb'
-						, bundleVersion: server.getDefaultBundleVersion( 'org.lucee.hsqldb', '2.7.2.jdk8' )
+						, bundleName: 'org.hsqldb.hsqldb'
+						, bundleVersion: server.getDefaultBundleVersion( 'org.lucee.hsqldb', '2.7.3' )
 						, connectionString: 'jdbc:hsqldb:#arguments.dbFile#/datasource/db;MODE=MySQL'
 					};
 				}
