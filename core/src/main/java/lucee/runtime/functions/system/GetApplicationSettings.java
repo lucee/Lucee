@@ -174,6 +174,7 @@ public class GetApplicationSettings extends BIF {
 		sct.setEL("searchResults", Caster.toBoolean(acs.getAllowImplicidQueryCall()));
 		sct.setEL("preciseMath", Caster.toBoolean(acs.getPreciseMath()));
 
+		sct.setEL("dotNotationUpperCase", Caster.toBoolean(((ConfigPro) pc.getConfig()).getDotNotationUpperCase()));
 		// adminMode
 		sct.setEL("singleContext", ConfigWebUtil.toAdminMode(((ConfigPro) pc.getConfig()).getAdminMode(), "single") == "single");
 

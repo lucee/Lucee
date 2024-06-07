@@ -1258,9 +1258,10 @@ component {
 	*/
 	public void function updateCompilerSettings( required string templateCharset, required string dotNotationUpperCase, boolean nullSupport, boolean suppressWSBeforeArg, boolean handleUnquotedAttrValueAsString, numeric externalizeStringGTE, boolean preciseMath){
 		var dotNotUpper=true;
-		if(isDefined('arguments.dotNotationUpperCase') and arguments.dotNotationUpperCase EQ "oc"){
-			dotNotUpper=false;
-		}
+		if ( isDefined( 'arguments.dotNotationUpperCase' ) ) {
+			if ( arguments.dotNotationUpperCase EQ "oc" or !arguments.dotNotationUpperCase )
+				dotNotUpper=false;
+		} 
 		var existing = getCompilerSettings();
 		admin
 			action="updateCompilerSettings"
@@ -1497,8 +1498,8 @@ component {
 			drivers[trim(tmp.getId())]=tmp;
 		}
 
-		SystemOutput(structKeyList(driverNames),1,1);
-		SystemOutput(structKeyList(drivers),1,1);
+		//SystemOutput(structKeyList(driverNames),1,1);
+		//SystemOutput(structKeyList(drivers),1,1);
 		var driver=drivers[trim(arguments.type)];
 		var meta=getMetaData(driver);
 		var debugEntry = getDebugEntry();
