@@ -674,7 +674,13 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 			// cache not found, process and cache result if needed
 			if (queryResult == null) {
 				// QoQ
-				if ("query".equals(data.dbtype)) {
+				if ("parseonly".equals(data.dbtype)) {
+					Struct sct = new StructImpl();
+					sct.setEL(KeyConstants._SQL, sqlQuery.getSQLString());
+					if (setVars) pageContext.setVariable(data.result, sct);
+					return EVAL_PAGE;
+				}
+				else if ("query".equals(data.dbtype)) {
 					QueryImpl q = executeQoQ(pageContext, data, sqlQuery, tl);
 					q.setTemplateLine(tl);
 					if (data.returntype == RETURN_TYPE_ARRAY) queryResult = QueryArray.toQueryArray(q); // TODO this should be done in queryExecute
