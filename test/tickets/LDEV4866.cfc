@@ -6,38 +6,36 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="query" {
 	function run( testResults , testBox ) {
 		describe( title='LDEV-4866' , body=function(){
 			it( title='test query parsing, /* */-' , body=function() {
-				```
-				<cfquery name="test" datasource="#ds#" params="#params#">
-/* */-</cfquery>
-				```
+				doQuery("#chr(13)# /* */- ");
+				doQuery("#chr(13)# /* */- ");
+				doQuery("/* */-");
 			});
 			it( title='test query parsing, just a - whitespace' , body=function() {
-				```
-				<cfquery name="test" datasource="#ds#" params="#params#">
-					-
-				</cfquery>
-				```
+				doQuery("#chr(9)# - #chr(13)# ");
 			});
 
 			it( title='test query parsing, just a -' , body=function() {
-				```
-				<cfquery name="test" datasource="#ds#" params="#params#">-</cfquery>
-				```
+				doQuery("-");
 			});
 
 			it( title='test query parsing, just a / whitespace' , body=function() {
-				```
-				<cfquery name="test" datasource="#ds#" params="#params#">
-					/
-				</cfquery>
-				```
+				doQuery("#chr(9)# / #chr(13)# ");
 			});
 			it( title='test query parsing, just a /' , body=function() {
-				```
-				<cfquery name="test" datasource="#ds#" params="#params#">/</cfquery>
-				```
+				doQuery("/");
 			});
 		});
+	}
+
+	private function doQuery(sql){
+		try {
+			query name="test" datasource="#ds#" params="#params#" {
+				echo( sql );
+			}
+		} catch (e) {
+			 if ( e.stackTrace.indexOf("lucee.runtime.exp.DatabaseException:") neq 0 )
+				rethrow;
+		}
 	}
 
 }
