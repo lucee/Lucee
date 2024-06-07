@@ -223,6 +223,9 @@ component {
 									}
 									*/
 								}
+								if ( !isNull( specStat.error.sql ) && !isEmpty( trim(specStat.error.sql) ) ){
+									systemOutput( TAB & "SQL: " & specStat.error.Detail, true );
+								}
 								if ( !isNull( specStat.error.StackTrace ) && !isEmpty( specStat.error.StackTrace ) ){
 									systemOutput( TAB & specStat.error.type, true );
 									// printStackTrace( specStat.error.StackTrace );

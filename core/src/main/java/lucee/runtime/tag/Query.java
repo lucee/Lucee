@@ -674,10 +674,14 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 			// cache not found, process and cache result if needed
 			if (queryResult == null) {
 				// QoQ
-				if ("parseonly".equals(data.dbtype)) {
+				if ("parseonly".equals(data.dbtype)) { // used for testing the query parser, doens't execute
 					Struct sct = new StructImpl();
 					sct.setEL(KeyConstants._SQL, sqlQuery.getSQLString());
-					if (setVars) pageContext.setVariable(data.result, sct);
+					sct.setEL(KeyConstants._source, strSQL);
+					if (setVars){
+						if (!StringUtil.isEmpty(data.result)) pageContext.setVariable(data.result, sct);
+						else if (!StringUtil.isEmpty(data.name)) pageContext.setVariable(data.name, sct);
+					}
 					return EVAL_PAGE;
 				}
 				else if ("query".equals(data.dbtype)) {

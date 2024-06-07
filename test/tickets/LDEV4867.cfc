@@ -57,6 +57,9 @@ SELECT 'test'");
 				rethrow;
 			systemOutput(e.stackTrace, true);
 		}
+		systemOutput("", true);
+		systemOutput("Parsed: " & result.sql, true);
+		systemOutput("Source: "& result.source, true);
 		return result;
 	}
 
