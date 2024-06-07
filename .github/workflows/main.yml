@@ -9,7 +9,7 @@ on:
       LUCEE_BUILD_JAVA_VERSION:
         required: true
         type: string
-        default: '8'
+        default: '11'
   push:
     branches:
       - '**' # thus ignoring tagging
@@ -26,7 +26,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       DO_DEPLOY: "${{ github.event_name == 'push' && startsWith(github.ref, 'refs/heads/6.0') }}"
-      LUCEE_BUILD_JAVA_VERSION: 8
+      LUCEE_BUILD_JAVA_VERSION: 11
       LUCEE_TEST_JAVA_VERSION: ''
     services:
       ldap:
@@ -101,8 +101,8 @@ jobs:
         java-version: '${{ env.LUCEE_BUILD_JAVA_VERSION }}'
         distribution: 'temurin'
 
-    - name: Disable DEPLOY if not building with Java 8 (Lucee default)
-      if: ${{ env.LUCEE_BUILD_JAVA_VERSION != '8' }}
+    - name: Disable DEPLOY if not building with Java 11 (Lucee default)
+      if: ${{ env.LUCEE_BUILD_JAVA_VERSION != '11' }}
       run: echo "DO_DEPLOY=false" >> $GITHUB_ENV
 
     - name: Cache Lucee extensions
