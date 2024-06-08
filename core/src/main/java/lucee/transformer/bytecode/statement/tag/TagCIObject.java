@@ -65,8 +65,13 @@ public abstract class TagCIObject extends TagBase {
 		writeOut(bc, bc.getPage());
 	}
 
-	public void writeOut(BytecodeContext bc, Page parent) throws TransformerException {
-		List<Function> functions = parent.getFunctions();
+	public void writeOut(BytecodeContext bc, Page parent) {
+		// do nothing
+	}
+
+	public void writeOutSubComponent(Page parent) throws TransformerException {
+
+		final List<Function> functions = parent.getFunctions();
 		SourceCode psc = null;
 		{
 			SourceCode tmp;
@@ -86,13 +91,11 @@ public abstract class TagCIObject extends TagBase {
 		for (Function f: functions) {
 			if (ASMUtil.getAncestorComponent(f) == this) {
 				page.addFunction(f);
+				parent.removeFunction(f);
 			}
 		}
-
-		// page.setIsComponent(true); // MUST can be an interface as well
 		page.addStatement(this);
-		setParent(page);
-		String className = getSubClassName(parent);
+		String className = this.getSubClassName(parent);
 		byte[] barr = page.execute(className);
 
 		Resource classFile = ((PageSourceCode) psc).getPageSource().getMapping().getClassRootDirectory().getRealResource(page.getClassName() + ".class");
@@ -103,7 +106,7 @@ public abstract class TagCIObject extends TagBase {
 			IOUtil.copy(new ByteArrayInputStream(barr), classFile, true);
 		}
 		catch (IOException e) {
-			TransformerException te = new TransformerException(bc, ExceptionUtil.getMessage(e, false), getStart());
+			TransformerException te = new TransformerException(null, ExceptionUtil.getMessage(e, false), getStart());
 			ExceptionUtil.initCauseEL(te, e);
 			throw te;
 		}

@@ -6,10 +6,14 @@ import org.objectweb.asm.commons.GeneratorAdapter;
 import org.objectweb.asm.commons.Method;
 
 import lucee.runtime.component.ComponentLoader;
+import lucee.runtime.functions.other.CreateUniqueId;
 import lucee.transformer.TransformerException;
 import lucee.transformer.bytecode.BytecodeContext;
+import lucee.transformer.bytecode.statement.tag.Attribute;
 import lucee.transformer.bytecode.statement.tag.TagComponent;
 import lucee.transformer.bytecode.util.Types;
+import lucee.transformer.cfml.Data;
+import lucee.transformer.cfml.evaluator.EvaluatorException;
 
 public class ComponentAsExpression extends ExpressionBase {
 	private static final Type COMPONENT_LOADER = Type.getType(ComponentLoader.class);
@@ -19,9 +23,20 @@ public class ComponentAsExpression extends ExpressionBase {
 
 	private TagComponent tc;
 
-	public ComponentAsExpression(TagComponent tc) {
+	public ComponentAsExpression(Data data, TagComponent tc) throws TransformerException {
 		super(tc.getFactory(), tc.getStart(), tc.getEnd());
 		this.tc = tc;
+		tc.setParent(data.getParent());
+		tc.setInline(true);
+		String name = "inlinecomponent_" + CreateUniqueId.invoke();
+		try {
+			tc.setName(name);
+		}
+		catch (EvaluatorException e) {
+			// name cannot be invalid, because it is hardcoded above ;-)
+		}
+		tc.addAttribute(new Attribute(false, "name", data.factory.createLitString(name), "string"));
+		tc.writeOutSubComponent(data.page);
 	}
 
 	@Override

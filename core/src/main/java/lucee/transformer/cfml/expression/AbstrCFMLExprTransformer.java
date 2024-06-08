@@ -52,7 +52,6 @@ import lucee.transformer.bytecode.literal.Identifier;
 import lucee.transformer.bytecode.literal.Null;
 import lucee.transformer.bytecode.literal.NullConstant;
 import lucee.transformer.bytecode.op.OpVariable;
-import lucee.transformer.bytecode.statement.tag.Attribute;
 import lucee.transformer.bytecode.statement.tag.TagComponent;
 import lucee.transformer.bytecode.statement.udf.Function;
 import lucee.transformer.bytecode.util.ASMUtil;
@@ -1368,18 +1367,8 @@ public abstract class AbstrCFMLExprTransformer {
 			return null;
 		}
 
-		// exclude "new Component("
-		/*
-		 * data.srcCode.removeSpace(); if (data.srcCode.isCurrent('(')) { data.srcCode.setPos(start); return
-		 * null; } data.srcCode.revertRemoveSpace();
-		 */
-
 		data.srcCode.setPos(data.srcCode.getPos() - 9); // go before "component"
-		TagComponent tc = componentStatement(data, data.getParent());
-		tc.setParent(data.getParent());
-		tc.setInline(true);
-		tc.addAttribute(new Attribute(false, "name", data.factory.createLitString("inlinecomponent_" + CreateUniqueId.invoke()), "string"));
-		return new ComponentAsExpression(tc);
+		return new ComponentAsExpression(data, componentStatement(data, data.getParent()));
 	}
 
 	protected abstract TagComponent componentStatement(Data data, Body parent) throws TemplateException;

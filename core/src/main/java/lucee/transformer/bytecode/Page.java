@@ -1648,11 +1648,6 @@ public final class Page extends BodyBase implements Root {
 	 */
 	public boolean isComponent() {
 		return isComponent(null);
-		/*
-		 * TagCFObject comp = getTagCFObject(null); if(comp!=null &&
-		 * comp.getTagLibTag().getTagClassName().equals("lucee.runtime.tag.Component")) return true; return
-		 * false;
-		 */
 	}
 
 	/**
@@ -1660,11 +1655,6 @@ public final class Page extends BodyBase implements Root {
 	 */
 	public boolean isInterface() {
 		return isInterface(null);
-		/*
-		 * TagCFObject comp = getTagCFObject(null); if(comp!=null &&
-		 * comp.getTagLibTag().getTagClassName().equals("lucee.runtime.tag.Interface")) return true; return
-		 * false;
-		 */
 	}
 
 	public boolean isComponent(TagCIObject cio) {
@@ -1703,6 +1693,13 @@ public final class Page extends BodyBase implements Root {
 
 	public void removeFunction(IFunction function) {
 		functions.remove(function);
+		int index = 0;
+		for (IFunction f: functions) {
+			if (function instanceof Function) {
+				((Function) f).setIndex(index);
+			}
+			index++;
+		}
 	}
 
 	@Override

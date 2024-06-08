@@ -608,4 +608,8 @@ public abstract class Function extends StatementBaseNoFinal implements Opcodes, 
 		this.index = index;
 	}
 
+	public int getIndex() {
+		return index;
+	}
+
 }
