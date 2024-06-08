@@ -7,7 +7,7 @@ component {
 		return "a";
 	}
 	function b() {
-		return "a";
+		return "b";
 	}
 }
 
@@ -17,9 +17,9 @@ component name="sub" {
 		return "sub:"&foo();
 	}
 	function c() {
-		return "a";
+		return "c";
 	}
 	function d() {
-		return "a";
+		return "d";
 	}
 }
