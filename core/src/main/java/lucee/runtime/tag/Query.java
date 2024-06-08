@@ -46,7 +46,6 @@ import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.config.Constants;
-import lucee.runtime.config.NullSupportHelper;
 import lucee.runtime.db.DataSource;
 import lucee.runtime.db.DataSourceImpl;
 import lucee.runtime.db.DataSourceSupport;
@@ -859,7 +858,7 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 					Array arr = new ArrayImpl();
 					meta.setEL(SQL_PARAMETERS, arr);
 					for (int i = 0; i < params.length; i++) {
-						if (fns) arr.append(params[i].isNulls() ? null: params[i].getValue());
+						if (fns) arr.append(params[i].isNulls() ? null : params[i].getValue());
 						else arr.append(params[i].isNulls() ? "" : params[i].getValue());
 					}
 				}

@@ -1042,10 +1042,10 @@ public abstract class ConfigFactory {
 		}
 
 		Resource f = dir.getRealResource(name);
-		if (update || !f.exists()) ConfigFactory.createFileFromResourceEL(srcPath + name, f);
-
+		if (update || f.length() == 0L) {
+			ConfigFactory.createFileFromResourceEL(srcPath + name, f);
+		}
 		return f;
-
 	}
 
 	static void delete(Resource dbDir, String[] names) {

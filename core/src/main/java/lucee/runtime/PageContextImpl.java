@@ -2793,7 +2793,10 @@ public final class PageContextImpl extends PageContext {
 
 	public boolean showDebug() {
 		if (isGatewayContext()) return false;
-		return getApplicationContext() instanceof ApplicationContextSupport ? ((ApplicationContextSupport) getApplicationContext()).getShowDebug() : config.getShowDebug();
+		if (!(getApplicationContext() instanceof ApplicationContextSupport ? ((ApplicationContextSupport) getApplicationContext()).getShowDebug() : config.getShowDebug()))
+			return false;
+		return DebuggerImpl.getDebugEntry(this) != null;
+
 	}
 
 	public boolean showDoc() {

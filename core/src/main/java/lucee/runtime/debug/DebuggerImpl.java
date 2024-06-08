@@ -81,6 +81,29 @@ import lucee.runtime.util.PageContextUtil;
 public final class DebuggerImpl implements Debugger {
 	private static final long serialVersionUID = 3957043879267494311L;
 
+	private static lucee.runtime.config.DebugEntry DEFAULT_DEBUG_ENTRY;
+
+	static {
+		try {
+			StructImpl custom = new StructImpl();
+			custom.set("colorHighlight", "Enabled");
+			custom.set(KeyConstants._general, "Enabled");
+			custom.set(KeyConstants._expression, "Enabled");
+			custom.set("callStack", "Enabled");
+			custom.set("highlight", "250000");
+			custom.set("displayPercentages", "Enabled");
+			custom.set("minimal", "0");
+			custom.set("sessionSize", "100");
+			custom.set("colorHighlight", "Enabled");
+			custom.set("colorHighlight", "Enabled");
+			custom.set("colorHighlight", "Enabled");
+			DEFAULT_DEBUG_ENTRY = new lucee.runtime.config.DebugEntry("f1290186a5d0b1ceab27f4e77c0c5d68", "lucee-modern", "*", "default", "/lucee/admin/debug/Modern.cfc",
+					"lucee.admin.debug.Modern", custom);
+		}
+		catch (Exception e) {
+		}
+	}
+
 	private static final Collection.Key IMPLICIT_ACCESS = KeyConstants._implicitAccess;
 	private static final Collection.Key GENERIC_DATA = KeyConstants._genericData;
 	private static final Collection.Key PAGE_PARTS = KeyConstants._pageParts;
@@ -341,6 +364,8 @@ public final class DebuggerImpl implements Debugger {
 
 		String addr = pc.getHttpServletRequest().getRemoteAddr();
 		lucee.runtime.config.DebugEntry debugEntry = ((ConfigPro) pc.getConfig()).getDebugEntry(addr, null);
+
+		if (debugEntry == null) return DEFAULT_DEBUG_ENTRY;
 		return debugEntry;
 	}
 
@@ -350,64 +375,46 @@ public final class DebuggerImpl implements Debugger {
 		PageContextImpl pci = (PageContextImpl) pc;
 		if (!pci.show()) return;
 
-		lucee.runtime.config.DebugEntry debugEntry = getDebugEntry(pc);
-
-		if (debugEntry == null) {
-			// pc.forceWrite(pc.getConfig().getDefaultDumpWriter().toString(pc,toDumpData(pc,
-			// 9999,DumpUtil.toDumpProperties()),true));
-			return;
-		}
-
-		Struct args = new StructImpl();
-		args.setEL(KeyConstants._custom, debugEntry.getCustom());
 		try {
-			args.setEL(KeyConstants._debugging, pc.getDebugger().getDebuggingData(pc));
-		}
-		catch (PageException e1) {
-		}
+			if (pci.showDebug()) {
+				// get debug template
+				lucee.runtime.config.DebugEntry debugEntry = getDebugEntry(pc);
 
-		try {
-			String path = debugEntry.getPath();
-			PageSource[] arr = ((PageContextImpl) pc).getPageSources(path);
-			Page p = PageSourceImpl.loadPage(pc, arr, null);
+				if (debugEntry != null) {
 
-			// patch for old path
-			String fullname = debugEntry.getFullname();
-			if (p == null) {
-				if (path != null) {
-					boolean changed = false;
-					if (path.endsWith("/Modern.cfc") || path.endsWith("\\Modern.cfc")) {
-						path = "/lucee-server-context/admin/debug/Modern.cfc";
-						fullname = "lucee-server-context.admin.debug.Modern";
-						changed = true;
+					// set data for debug template
+					Struct args = new StructImpl();
+					args.setEL(KeyConstants._custom, debugEntry.getCustom());
+					try {
+						args.setEL(KeyConstants._debugging, pc.getDebugger().getDebuggingData(pc));
 					}
-					else if (path.endsWith("/Classic.cfc") || path.endsWith("\\Classic.cfc")) {
-						path = "/lucee-server-context/admin/debug/Classic.cfc";
-						fullname = "lucee-server-context.admin.debug.Classic";
-						changed = true;
+					catch (PageException e1) {
 					}
-					else if (path.endsWith("/Comment.cfc") || path.endsWith("\\Comment.cfc")) {
-						path = "/lucee-server-context/admin/debug/Comment.cfc";
-						fullname = "lucee-server-context.admin.debug.Comment";
-						changed = true;
-					}
-					if (changed) pc.write(
-							"<span style='color:red'>Please update your debug template definitions in the Lucee admin by going into the detail view and hit the \"update\" button.</span>");
 
+					// load Pagesource of the template
+					String path = debugEntry.getPath();
+					PageSource[] arr = ((PageContextImpl) pc).getPageSources(path);
+					Page p = PageSourceImpl.loadPage(pc, arr, null);
+
+					String fullname = debugEntry.getFullname();
+					if (p != null) {
+						arr = ((PageContextImpl) pc).getPageSources(path);
+						p = PageSourceImpl.loadPage(pc, arr);
+						pc.addPageSource(p.getPageSource(), true);
+						// load info with debug template
+						try {
+							Component c = pc.loadComponent(fullname);
+							ModernAppListener.info(pc, c, args);
+						}
+						finally {
+							pc.removeLastPageSource(true);
+						}
+						return;
+					}
 				}
-
-				arr = ((PageContextImpl) pc).getPageSources(path);
-				p = PageSourceImpl.loadPage(pc, arr);
 			}
-
-			pc.addPageSource(p.getPageSource(), true);
-			try {
-				Component c = pc.loadComponent(fullname);
-				ModernAppListener.info(pc, c, args);
-			}
-			finally {
-				pc.removeLastPageSource(true);
-			}
+			// load info without debug template
+			ModernAppListener.info(pc, null, null);
 		}
 		catch (PageException e) {
 			pc.handlePageException(e);

@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Map.Entry;
 
 import lucee.commons.io.DevNullOutputStream;
+import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
@@ -425,14 +426,18 @@ public class ModernAppListener extends AppListenerSupport {
 		show.setEL(KeyConstants._metric, ((PageContextImpl) pc).showMetric());
 		show.setEL(KeyConstants._test, ((PageContextImpl) pc).showTest());
 
-		args.setEL("debugTemplate", debugTemplate);
-		args.setEL("debugArgs", debugArgs);
+		if (debugTemplate != null) args.setEL("debugTemplate", debugTemplate);
+		if (debugArgs != null) args.setEL("debugArgs", debugArgs);
 
-		String fullname = "lucee-context.admin.info.Info";
-		String path = "/lucee-context/admin/info/Info.cfc";
+		String fullname = "lucee-server.admin.info.Info";
+		String path = "/lucee-server/admin/info/Info.cfc";
 		try {
 			PageSource[] arr = ((PageContextImpl) pc).getPageSources(path);
 			Page p = PageSourceImpl.loadPage(pc, arr, null);
+			if (p == null) {
+				LogUtil.log(Log.LEVEL_ERROR, "monitoring", "unable to load [" + path + "]");
+				return;
+			}
 			pc.addPageSource(p.getPageSource(), true);
 			Component c = pc.loadComponent(fullname);
 			if (c != null && c.contains(pc, KeyConstants._info)) {

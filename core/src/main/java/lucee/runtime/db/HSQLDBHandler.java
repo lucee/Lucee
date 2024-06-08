@@ -22,13 +22,13 @@ import static lucee.runtime.db.DatasourceManagerImpl.QOQ_DATASOURCE_NAME;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.sql.Types;
-import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Set;
@@ -38,6 +38,7 @@ import lucee.commons.io.SystemUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.SerializableObject;
 import lucee.commons.lang.StringUtil;
+import lucee.commons.lang.SystemOut;
 import lucee.runtime.PageContext;
 import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.DatasourceConnPool;
@@ -53,17 +54,13 @@ import lucee.runtime.sql.Selects;
 import lucee.runtime.sql.old.ParseException;
 import lucee.runtime.timer.Stopwatch;
 import lucee.runtime.type.Collection.Key;
-import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Query;
 import lucee.runtime.type.QueryColumn;
 import lucee.runtime.type.QueryImpl;
-import lucee.runtime.type.dt.TimeSpan;
-import lucee.runtime.type.util.CollectionUtil;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
-
-import lucee.commons.lang.SystemOut;
-import lucee.aprint;
+import lucee.runtime.type.dt.TimeSpan;
+import lucee.runtime.type.util.CollectionUtil;
 
 /**
  * class to reexecute queries on the resultset object inside the cfml environment
@@ -101,7 +98,7 @@ public final class HSQLDBHandler {
 	 *
 	 * @param conn
 	 * @param pc
-	 * @param name  name of the new table
+	 * @param name name of the new table
 	 * @param query data source for table
 	 * @throws SQLException
 	 * @throws PageException
@@ -139,7 +136,7 @@ public final class HSQLDBHandler {
 			comma = ",";
 		}
 		create.append(")");
-		//SystemOut.print("SQL: " + Caster.toString(create));
+		// SystemOut.print("SQL: " + Caster.toString(create));
 		stat.execute(create.toString());
 		// SystemOut.print("Create Table: [" + dbTableName + "] took " + stopwatch.time());
 	}
@@ -149,7 +146,7 @@ public final class HSQLDBHandler {
 	 *
 	 * @param conn
 	 * @param pc
-	 * @param name  name of the new table
+	 * @param name name of the new table
 	 * @param query data source for table
 	 * @throws SQLException
 	 * @throws PageException
@@ -161,7 +158,7 @@ public final class HSQLDBHandler {
 		Stopwatch stopwatch = new Stopwatch(Stopwatch.UNIT_MILLI);
 		stopwatch.start();
 		Query query = Caster.toQuery(pc.getVariable(StringUtil.removeQuotes(cfQueryName, true)));
-		
+
 		Key[] cols = CollectionUtil.keys(query);
 		ArrayList<String> targetCols = new ArrayList<String>();
 
@@ -182,7 +179,7 @@ public final class HSQLDBHandler {
 				targetTypes[targetCols.size() - 1] = srcQueryTypes[i];
 				insert.append(comma);
 				insert.append(col);
-				
+
 				values.append(comma);
 				values.append("?");
 				comma = ",";
@@ -192,12 +189,12 @@ public final class HSQLDBHandler {
 		values.append(")");
 
 		if (tableCols != null && targetCols.size() == 0) {
-			//SystemOut.print("Populate Table, table has no used columns: " + dbTableName);
+			// SystemOut.print("Populate Table, table has no used columns: " + dbTableName);
 			return;
 		}
 
-		//SystemOut.print("SQL: " + Caster.toString(insert));
-		//SystemOut.print("SQL: " + Caster.toString(values));
+		// SystemOut.print("SQL: " + Caster.toString(insert));
+		// SystemOut.print("SQL: " + Caster.toString(values));
 
 		// INSERT STATEMENT
 		// HashMap integerTypes=getIntegerTypes(types);
@@ -209,52 +206,45 @@ public final class HSQLDBHandler {
 
 		int rows = query.getRecordcount();
 		int count = targetCols.size();
-		//String col = null;
+		// String col = null;
 		int rowsToCommit = 0;
 
 		QueryColumn[] columns = new QueryColumn[count];
 		for (int i = 0; i < count; i++) {
 			columns[i] = query.getColumn(targetCols.get(i));
 		}
-		
-		//aprint.o(query);
-		//aprint.o(tableCols); aprint.o(srcTypes);
-		//aprint.o(srcQueryTypes); aprint.o(targetTypes); aprint.o(targetCols);
+
+		// aprint.o(query);
+		// aprint.o(tableCols); aprint.o(srcTypes);
+		// aprint.o(srcQueryTypes); aprint.o(targetTypes); aprint.o(targetCols);
 		for (int y = 0; y < rows; y++) {
 			for (int i = 0; i < count; i++) {
 				int type = targetTypes[i];
 				Object value = columns[i].get(y + 1, null);
-				//col = targetCols.get(i);
+				// col = targetCols.get(i);
 
 				// print.out("*** "+type+":"+Caster.toString(value));
 				if (doSimpleTypes) {
 					prepStat.setObject(i + 1, Caster.toString(value));
 				}
 				else {
-					if (value == null) 
-						prepStat.setNull(i + 1, type);
-					else if (type == STRING) 
-						prepStat.setObject(i + 1, Caster.toString(value));
-					else if (type == INT) 
-						prepStat.setInt(i + 1, (value.equals("")) ? 0 : Caster.toIntValue(value));
-					else if (type == DOUBLE) 
-						prepStat.setDouble(i + 1, (value.equals("")) ? 0 : Caster.toDoubleValue(value));
+					if (value == null) prepStat.setNull(i + 1, type);
+					else if (type == STRING) prepStat.setObject(i + 1, Caster.toString(value));
+					else if (type == INT) prepStat.setInt(i + 1, (value.equals("")) ? 0 : Caster.toIntValue(value));
+					else if (type == DOUBLE) prepStat.setDouble(i + 1, (value.equals("")) ? 0 : Caster.toDoubleValue(value));
 					else if (type == DATE) {
 						// print.out(new java.util.Date(new
 						// Date(DateCaster.toDateAdvanced(value,pc.getTimeZone()).getTime()).getTime()));
 
-						prepStat.setTimestamp(i + 1,
-								(value.equals("")) ? null : new Timestamp(DateCaster.toDateAdvanced(value, pc.getTimeZone()).getTime()));
+						prepStat.setTimestamp(i + 1, (value.equals("")) ? null : new Timestamp(DateCaster.toDateAdvanced(value, pc.getTimeZone()).getTime()));
 						// prepStat.setObject(i+1,Caster.toDate(value,null));
 						// prepStat.setDate(i+1,(value==null || value.equals(""))?null:new
 						// Date(DateCaster.toDateAdvanced(value,pc.getTimeZone()).getTime()));
 					}
-					else if (type == TIME)
-						prepStat.setTime(i + 1, (value.equals("")) ? null : new Time(DateCaster.toDateAdvanced(value, pc.getTimeZone()).getTime()));
-					else if (type == TIMESTAMP) 
+					else if (type == TIME) prepStat.setTime(i + 1, (value.equals("")) ? null : new Time(DateCaster.toDateAdvanced(value, pc.getTimeZone()).getTime()));
+					else if (type == TIMESTAMP)
 						prepStat.setTimestamp(i + 1, (value.equals("")) ? null : new Timestamp(DateCaster.toDateAdvanced(value, pc.getTimeZone()).getTime()));
-					else if (type == BINARY) 
-						prepStat.setBytes(i + 1, Caster.toBinary(value));
+					else if (type == BINARY) prepStat.setBytes(i + 1, Caster.toBinary(value));
 					else SystemOut.print("HSQLDB QoQ unsupported type [" + type + " / " + toUsableType(type) + "] at row [" + y + "]");
 				}
 
@@ -271,7 +261,8 @@ public final class HSQLDBHandler {
 		Statement stat2 = conn.createStatement();
 		stat2.execute("SET FILES LOG TRUE");
 
-		//SystemOut.print("Populate Table: [" + dbTableName + "] with [" + rows + "] rows, [" + count + "] //columns, took " + stopwatch.time() + "ms");
+		// SystemOut.print("Populate Table: [" + dbTableName + "] with [" + rows + "] rows, [" + count + "]
+		// //columns, took " + stopwatch.time() + "ms");
 	}
 
 	private static int[] toInnerTypes(int[] types) {
@@ -370,7 +361,7 @@ public final class HSQLDBHandler {
 	 * @param sql
 	 * @throws DatabaseException
 	 */
-	private static Struct getUsedColumnsForQuery(Connection conn, SQL sql) throws SQLException {
+	private static Struct getUsedColumnsForQuery(Connection conn, SQL sql) {
 
 		// TODO this could be potentially cached against the sql text
 
@@ -381,8 +372,8 @@ public final class HSQLDBHandler {
 		String view = "V_QOQ_TEMP";
 		Struct tables = new StructImpl();
 
-		// TODO consider if worth doing, if recordcount / column count is too small 
-		
+		// TODO consider if worth doing, if recordcount / column count is too small
+
 		try {
 			Statement stat = conn.createStatement();
 			stat.execute("CREATE VIEW " + view + " AS " + sql.toString()); // + StringUtil.toUpperCase(sql.toString()));
@@ -418,8 +409,9 @@ public final class HSQLDBHandler {
 			stat.execute("DROP VIEW " + view);
 		}
 		catch (Exception e) {
-			//aprint.o(e.getMessage());
-			//SystemOut.print("VIEW Exception, fall back to loading all data: [" + e.toString() + "], sql [" + sql.toString() + "]");
+			// aprint.o(e.getMessage());
+			// SystemOut.print("VIEW Exception, fall back to loading all data: [" + e.toString() + "], sql [" +
+			// sql.toString() + "]");
 			tables = null; // give up trying to be smart
 		}
 		finally {
@@ -432,14 +424,14 @@ public final class HSQLDBHandler {
 				SystemOut.print(e.toString());
 			}
 		}
-		//SystemOut.print("getUsedColumnsForQuery: took " + stopwatch.time());
+		// SystemOut.print("getUsedColumnsForQuery: took " + stopwatch.time());
 		return tables;
 	}
 
 	/**
 	 * executes a query on the queries inside the cfml environment
 	 *
-	 * @param pc      Page Context
+	 * @param pc Page Context
 	 * @param sql
 	 * @param maxrows
 	 * @return result as Query
@@ -551,7 +543,7 @@ public final class HSQLDBHandler {
 		}
 		catch (PageException pe) {
 			if (isUnion || StringUtil.indexOf(pe.getMessage(), "NumberFormatException:") != -1) {
-				//SystemOut.print("HSQLDB Retry with Simple Types after: " + pe.getMessage());
+				// SystemOut.print("HSQLDB Retry with Simple Types after: " + pe.getMessage());
 				return __execute(pc, sql, maxrows, fetchsize, timeout, stopwatch, tables, true);
 			}
 			throw pe;
@@ -597,7 +589,7 @@ public final class HSQLDBHandler {
 						qoqTables.add(dbTableName);
 					}
 
-					//SystemOut.print("QoQ HSQLDB CREATED TABLES: " + sql.toString());
+					// SystemOut.print("QoQ HSQLDB CREATED TABLES: " + sql.toString());
 
 					// create the sql as a view, to find out which table columns are needed
 					Struct allTableColumns = getUsedColumnsForQuery(conn, sql);
