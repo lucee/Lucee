@@ -20,14 +20,19 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 			it(title="tag based sub component", body=function() {
 				var cfc=new subComponent.TestSubTag$sub();
 				expect(cfc.subtest()).toBe("subito");
+				expect(cfc.bb()).toBe("bb");
 			});
 			it(title="script based main component", body=function() {
 				var cfc=new subComponent.TestSubScript();
 				expect(cfc.test()).toBe("main:closure-insidemain:argclosuremain");
+				expect(cfc.a()).toBe("a");
+				expect(cfc.b()).toBe("b");
 			});
 			it(title="script based sub component", body=function() {
 				var cfc=new subComponent.TestSubScript$sub();
 				expect(cfc.test()).toBe("sub:closure-insidesub:argclosuresub");
+				expect(cfc.c()).toBe("c");
+				expect(cfc.d()).toBe("d");
 			});
 			it(title="checking sub component this scope", body=function( currentSpec ){
 

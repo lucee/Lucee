@@ -17,4 +17,7 @@
 	<cffunction name="subTest">
 		<cfreturn "subito">
 	</cffunction>
+	<cffunction name="bb">
+		<cfreturn "bb">
+	</cffunction>
 </cfcomponent>

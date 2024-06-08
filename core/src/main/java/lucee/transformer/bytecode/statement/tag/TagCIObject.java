@@ -46,6 +46,7 @@ import lucee.transformer.util.SourceCode;
 public abstract class TagCIObject extends TagBase {
 
 	private boolean main;
+	private boolean inline;
 	private String name;
 	private String subClassName;
 
@@ -65,8 +66,11 @@ public abstract class TagCIObject extends TagBase {
 		writeOut(bc, bc.getPage());
 	}
 
-	public void writeOut(BytecodeContext bc, Page parent) {
-		// do nothing
+	public void writeOut(BytecodeContext bc, Page parent) throws TransformerException {
+		// inline does it before execute
+		if (!inline) {
+			writeOutSubComponent(parent);
+		}
 	}
 
 	public void writeOutSubComponent(Page parent) throws TransformerException {
@@ -138,6 +142,14 @@ public abstract class TagCIObject extends TagBase {
 
 	public boolean isMain() {
 		return main;
+	}
+
+	public void setInline(boolean inline) {
+		this.inline = inline;
+	}
+
+	public boolean isInline() {
+		return inline;
 	}
 
 	public void setName(String name) throws EvaluatorException {
