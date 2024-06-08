@@ -6,6 +6,7 @@ import org.objectweb.asm.commons.GeneratorAdapter;
 import org.objectweb.asm.commons.Method;
 
 import lucee.runtime.component.ComponentLoader;
+import lucee.runtime.config.Constants;
 import lucee.runtime.functions.other.CreateUniqueId;
 import lucee.transformer.TransformerException;
 import lucee.transformer.bytecode.BytecodeContext;
@@ -28,7 +29,7 @@ public class ComponentAsExpression extends ExpressionBase {
 		this.tc = tc;
 		tc.setParent(data.getParent());
 		tc.setInline(true);
-		String name = "inlinecomponent_" + CreateUniqueId.invoke();
+		String name = Constants.SUB_COMPONENT_APPENDIX + CreateUniqueId.invoke();
 		try {
 			tc.setName(name);
 		}

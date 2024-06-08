@@ -81,6 +81,7 @@ public class Constants {
 	public static final String CFML_COMPONENT_TAG_NAME = "component";
 
 	public static final String CFML_CLASS_SUFFIX = "$cf";
+	public static final String SUB_COMPONENT_APPENDIX = "inline";
 
 	// TODO load this based on the servlet mapping
 	public static final String[] cte = new String[] { CFML_TEMPLATE_MAIN_EXTENSION };

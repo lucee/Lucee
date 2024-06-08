@@ -42,6 +42,7 @@ import lucee.commons.digest.HashUtil;
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.res.Resource;
+import lucee.commons.io.res.filter.ResourceNameFilter;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.compiler.JavaFunction;
 import lucee.runtime.Component;
@@ -97,6 +98,8 @@ import lucee.transformer.util.SourceCode;
  * represent a single Page
  */
 public final class Page extends BodyBase implements Root {
+
+	private static final long MIN_AGE_TO_CLEAR = 5000l;
 
 	public static final Type NULL = Type.getType(lucee.runtime.type.Null.class);
 	public static final Type KEY_IMPL = Type.getType(KeyImpl.class);
@@ -296,6 +299,9 @@ public final class Page extends BodyBase implements Root {
 	 */
 	@Override
 	public byte[] execute(String className) throws TransformerException {
+
+		clearOldSubComponents(className);
+
 		javaFunctions = null;// most likely not necessary
 		// not exists in any case, so every usage must have a plan b for not existence
 		PageSource optionalPS = sourceCode instanceof PageSourceCode ? ((PageSourceCode) sourceCode).getPageSource() : null;
@@ -700,6 +706,32 @@ public final class Page extends BodyBase implements Root {
 			}
 		}
 		return ASMUtil.verify(cw.toByteArray());
+	}
+
+	private void clearOldSubComponents(final String className) {
+		if (!className.endsWith(Constants.CFML_CLASS_SUFFIX)) return;
+
+		if (sourceCode instanceof PageSourceCode) {
+			final String subComName = className.substring(0, className.length() - Constants.CFML_CLASS_SUFFIX.length()) + "$" + Constants.SUB_COMPONENT_APPENDIX;
+			long now = System.currentTimeMillis();
+			//
+			PageSourceCode psc = (PageSourceCode) sourceCode;
+			Resource classFile = psc.getPageSource().getMapping().getClassRootDirectory().getRealResource(className + ".class");
+			if (classFile.isFile()) {
+				classFile.getParentResource().listResources(new ResourceNameFilter() {
+
+					@Override
+					public boolean accept(Resource parent, String name) {
+						if (!name.startsWith(subComName)) return false;
+						Resource r = parent.getRealResource(name);
+						if (r.lastModified() + MIN_AGE_TO_CLEAR < now) {
+							r.delete();
+						}
+						return false;
+					}
+				});
+			}
+		}
 	}
 
 	private Data getMatchingData(Function func, List<Data> datas) {
