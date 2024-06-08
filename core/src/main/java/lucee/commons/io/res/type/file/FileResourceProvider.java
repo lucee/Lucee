@@ -105,7 +105,7 @@ public final class FileResourceProvider implements ResourceProviderPro {
 
 	@Override
 	public boolean isModeSupported() {
-		return false;// SystemUtil.isUnix(); FUTURE add again
+		return SystemUtil.isUnix();
 	}
 
 	@Override
