@@ -5301,17 +5301,8 @@ public final class ConfigAdmin {
 			if (deleteExtension) rhe.getExtensionFile().delete();
 
 		}
-		catch (Throwable t) {
-			ExceptionUtil.rethrowIfNecessary(t);
-			// failed to uninstall, so we install it again
-			try {
-				updateRHExtension(config, rhe.getExtensionFile(), true, true, RHExtension.ACTION_MOVE);
-				// RHExtension.install(config, rhe.getExtensionFile());
-			}
-			catch (Throwable t2) {
-				ExceptionUtil.rethrowIfNecessary(t2);
-			}
-			throw Caster.toPageException(t);
+		catch (Exception e) {
+			throw Caster.toPageException(e);
 		}
 
 	}
