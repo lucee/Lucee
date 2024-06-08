@@ -63,9 +63,9 @@ Redirtect to entry --->
 <cfset stText.debug.settings.generalYes="Lucee logs debug information you have checked below.">
 <cfset stText.debug.settings.generalNo="Lucee does not log any debug information at all.">
 	<cfset stText.Debug.showDesc="Enable or disable various outputs related to system performance and diagnostics. ">
-	<cfset stText.Debug.showDebug="Debugging ">
+	<cfset stText.Debug.showDebug="Debugging">
 	<cfset stText.Debug.showMetric="Metrics">
-	<cfset stText.Debug.showDoc="Reference">
+	<cfset stText.Debug.showDoc="Documentation">
 	<cfset stText.Debug.showDebugDesc="Configure and view detailed information about execution times, database query performance, template processing, variable access, exception handling, and thread information.">
 	<cfset stText.Debug.showMetricDesc=" Monitor key performance indicators and system metrics to ensure optimal performance and identify potential issues.">
 	<cfset stText.Debug.showDocDesc="Access and manage documentation and reference materials for better understanding and troubleshooting.">

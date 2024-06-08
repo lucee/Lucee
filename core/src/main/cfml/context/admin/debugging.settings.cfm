@@ -144,6 +144,12 @@ Redirtect to entry --->
 													</div>
 												</cfif>
 												<div class="comment">#stText.debug.settings[item&"Desc"]#</div>
+												<cfsavecontent variable="codeSample">
+													this.monitoring.debugging#ucFirst(item)#=#_debug[item]#;
+												</cfsavecontent>
+												<cfset renderCodingTip( codeSample )>
+												<cfset renderSysPropEnvVar( name:"lucee.monitoring.debugging#ucFirst(item)#",value:_debug[item])>
+
 												<cfif item EQ "database">
 												<table class="maintbl autowidth" id="debugoptionqutbl">
 												<tbody>
@@ -159,15 +165,17 @@ Redirtect to entry --->
 																<input type="hidden" name="queryUsage" value="#_debug.queryUsage#">
 															</cfif>
 															<div class="comment">#stText.debug.settings["queryUsageDesc"]#</div>
+
+															<cfsavecontent variable="cs">
+																this.monitoring.debuggingQueryUsage=#_debug.queryUsage#;
+															</cfsavecontent>
+															<cfset renderCodingTip( cs )>
+															<cfset renderSysPropEnvVar( name:"lucee.monitoring.debuggingQueryUsage",value:_debug.queryUsage)>
 														</td>
 													</tr>
 												</table>
 												</cfif>
-												<cfsavecontent variable="codeSample">
-													this.monitoring.debugging#ucFirst(item)#=#_debug[item]#;
-												</cfsavecontent>
-												<cfset renderCodingTip( codeSample )>
-												<cfset renderSysPropEnvVar( name:"lucee.monitoring.debugging#ucFirst(item)#",value:_debug[item])>
+												
 												
 
 

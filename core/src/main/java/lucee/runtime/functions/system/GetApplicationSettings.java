@@ -122,6 +122,35 @@ public class GetApplicationSettings extends BIF {
 			sct.setEL("proxy", sc);
 		}
 
+		// Monitoring
+		{
+			// this.monitoring.showMetric = false;
+			// this.monitoring.showDebug = false;
+			// this.monitoring.showDoc = false;
+
+			// this.monitoring.debuggingTemplate=true;
+			// this.monitoring.debuggingDatabase=false;
+
+			Struct mon = new StructImpl(Struct.TYPE_LINKED);
+			mon.setEL("showDebug", acs.getShowDebug());
+			mon.setEL("showDoc", acs.getShowDoc());
+			mon.setEL("showMetric", acs.getShowMetric());
+			mon.setEL("showTest", acs.getShowTest());
+
+			mon.setEL("debuggingDatabase", acs.hasDebugOptions(ConfigPro.DEBUG_DATABASE));
+			mon.setEL("debuggingDump", acs.hasDebugOptions(ConfigPro.DEBUG_DUMP));
+			mon.setEL("debuggingException", acs.hasDebugOptions(ConfigPro.DEBUG_EXCEPTION));
+			mon.setEL("debuggingImplicitAccess", acs.hasDebugOptions(ConfigPro.DEBUG_IMPLICIT_ACCESS));
+			mon.setEL("debuggingQueryUsage", acs.hasDebugOptions(ConfigPro.DEBUG_QUERY_USAGE));
+			mon.setEL("debuggingTemplate", acs.hasDebugOptions(ConfigPro.DEBUG_TEMPLATE));
+			mon.setEL("debuggingThread", acs.hasDebugOptions(ConfigPro.DEBUG_THREAD));
+			mon.setEL("debuggingTimer", acs.hasDebugOptions(ConfigPro.DEBUG_TIMER));
+			mon.setEL("debuggingTracing", acs.hasDebugOptions(ConfigPro.DEBUG_TRACING));
+
+			sct.setEL("monitoring", mon);
+
+		}
+
 		Struct xmlFeatures = acs.getXmlFeatures();
 		if (xmlFeatures == null) xmlFeatures = new StructImpl();
 		Struct sxml = new StructImpl(Struct.TYPE_LINKED);
