@@ -3815,65 +3815,74 @@ Filter to be used to filter the data copied:
 	
 	
 	<!-- DirectoryList -->
-	<function>
-		<name>DirectoryList</name>
-		<class>lucee.runtime.functions.file.DirectoryList</class>
-		<description>Lists the directory and returns the list of files under it as array or query</description>
-		<argument>
-			<name>path</name>
-			<alias>absolute_path,absolutePath</alias>
-			<type>string</type>
-			<required>Yes</required>
-		<description>The absolute path of the directory for which to list the contents. Alternatively, you can specify IP address as in the following example: DirectoryList(\"//12.3.123.123/c_drive/test\");.</description>
+<function>
+    <name>DirectoryList</name>
+    <class>lucee.runtime.functions.file.DirectoryList</class>
+    <description>Lists the contents of a specified directory and returns the list as an array or a query.</description>
+    <argument>
+        <name>path</name>
+        <alias>absolute_path,absolutePath</alias>
+        <type>string</type>
+        <required>Yes</required>
+        <description>
+The absolute path of the directory for which to list the contents. This can be any type of supported virtual file systems.
+        </description>
     </argument>
-		<argument>
-			<name>recurse</name>
-			<type>boolean</type>
-			<required>no</required>
-			<description>Whether Lucee performs the action on subdirectories: If true, contents of all subdirectories are also listed.</description>
-		</argument>
-		<argument>
-			<name>listInfo</name>
-			<type>string</type>
-			<required>no</required>
-			<description>name: returns an array of names of files and directories.
-path: returns an array of paths of files and directories.
-query: returns a query.</description>
-		</argument>
-		<argument>
-			<name>filter</name>
-			<type>any</type>
-			<required>no</required>
-			<description>
-Filter to be used to filter the results:
-- A string that uses "*" as a wildcard, for example, "*.cfm"
-- a UDF (User defined Function) using the following pattern "functionName(String path):boolean", the function is run for every single file, if the function returns true, then the file is will be added to the list otherwise it will be omitted</description>
-		</argument>
-		<argument>
-			<name>sort</name>
-			<type>string</type>
-			<required>no</required>
-			<description>Query columns by which to sort a directory listing. Delimited list of columns from query output.
-To qualify a column, use one of the following values:
-asc: ascending (a to z) sort order.
-desc: descending (z to a) sort order.
-</description>
-		</argument>
-		<argument>
-			<name>type</name>
-			<type>string</type>
-			<required>no</required>
-		<description>
-type of the result returned:
-- file: includes only filenames
-- dir: includes only directory names
-- all: includes both filenames and directory names	
-		</description>
+    <argument>
+        <name>recurse</name>
+        <type>boolean</type>
+        <required>no</required>
+        <description>
+Specifies whether to include subdirectories in the listing. If `true`, the contents of all subdirectories are also listed.
+        </description>
     </argument>
-		<return>
-			<type>any</type>
-		</return>
-	</function>
+    <argument>
+        <name>listInfo</name>
+        <type>string</type>
+        <required>no</required>
+        <description>
+Defines the return type of this function:
+- `name`: returns an array of names of files and directories.
+- `path`: returns an array of paths of files and directories.
+- `query`: returns a query object.
+        </description>
+    </argument>
+    <argument>
+        <name>filter</name>
+        <type>any</type>
+        <required>no</required>
+        <description>
+Specifies a filter to be used to filter the results:
+- A string that uses `*` as a wildcard, for example, `*.cfm`.
+- A UDF (User Defined Function) using the following pattern: `functionName(String path):boolean`. The function is run for every single file; if the function returns `true`, the file is included in the list; otherwise, it is omitted.
+        </description>
+    </argument>
+    <argument>
+        <name>sort</name>
+        <type>string</type>
+        <required>no</required>
+        <description>
+Specifies the columns by which to sort a directory listing. Use a comma-delimited list of columns from the query output. To specify sort order, qualify a column with one of the following values:
+- `asc`: ascending (a to z) sort order.
+- `desc`: descending (z to a) sort order.
+        </description>
+    </argument>
+    <argument>
+        <name>type</name>
+        <type>string</type>
+        <required>no</required>
+        <description>
+Specifies the type of results to return:
+- `file`: includes only filenames.
+- `dir`: includes only directory names.
+- `all`: includes both filenames and directory names.
+        </description>
+    </argument>
+    <return>
+        <type>any</type>
+    </return>
+</function>
+
 	<!-- DirectoryRename -->
 	<function>
 		<name>DirectoryRename</name>
