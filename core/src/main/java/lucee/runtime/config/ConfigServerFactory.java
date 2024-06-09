@@ -154,6 +154,8 @@ public final class ConfigServerFactory extends ConfigFactory {
 
 			load(config, root, false, doNew, essentialOnly);
 
+			boolean single = ConfigWebUtil.toAdminMode(ConfigWebFactory.getAttr(root, "mode"), ConfigImpl.ADMINMODE_SINGLE) == ConfigImpl.ADMINMODE_SINGLE;
+			if (single) ConfigWebFactory.createContextFiles(configDir, doNew);
 			if (!essentialOnly) {
 				double version = ConfigWebUtil.getAsDouble("version", root, 1.0d);
 				boolean cleanupDatasources = version < 5.0D;

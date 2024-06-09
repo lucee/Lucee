@@ -306,7 +306,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 		if (path.exists()) createHtAccess(path.getRealResource(".htaccess"));
 		if (configDir.exists()) createHtAccess(configDir.getRealResource(".htaccess"));
 
-		createContextFiles(configDir, servletConfig, doNew);
+		createContextFiles(configDir, doNew);
 
 		load(configServer, multiweb, (ConfigWebImpl) configWeb, root, false, doNew, false);
 		createContextFilesPost(configDir, configWeb, servletConfig, false, doNew);
@@ -339,7 +339,6 @@ public final class ConfigWebFactory extends ConfigFactory {
 		ConfigWebPro configWeb = existingToUpdate != null ? existingToUpdate.setInstance(sccw) : new ConfigWebImpl(sccw);
 		factory.setConfig(configServer, configWeb);
 
-		createContextFiles(configDir, servletConfig, doNew);
 		createContextFilesPost(configDir, configWeb, servletConfig, false, doNew);
 		((ThreadQueueImpl) configWeb.getThreadQueue()).setMode(configWeb.getQueueEnable() ? ThreadQueuePro.MODE_ENABLED : ThreadQueuePro.MODE_DISABLED);
 
@@ -450,7 +449,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 		if (second(cwi.getLoadTime()) > second(configFile.lastModified()) && !force) return;
 
 		Struct root = loadDocumentCreateIfFails(configFile, "web");
-		createContextFiles(configDir, null, doNew);
+		createContextFiles(configDir, doNew);
 		cwi.reset();
 		// TODO handle differtly
 		load(cs, mcw, cwi, root, true, doNew, false);
@@ -1389,7 +1388,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 	 * @throws IOException
 	 * @throws IOException
 	 */
-	private static void createContextFiles(Resource configDir, ServletConfig servletConfig, boolean doNew) throws IOException {
+	public static void createContextFiles(Resource configDir, boolean doNew) throws IOException {
 		// NICE dies muss dynamisch erstellt werden, da hier der admin hinkommt
 		// und dieser sehr viele files haben wird
 		Resource contextDir = configDir.getRealResource("context");
