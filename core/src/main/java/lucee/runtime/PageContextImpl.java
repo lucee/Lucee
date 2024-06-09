@@ -57,6 +57,7 @@ import javax.servlet.jsp.tagext.BodyTag;
 import javax.servlet.jsp.tagext.Tag;
 import javax.servlet.jsp.tagext.TryCatchFinally;
 
+import lucee.print;
 import lucee.commons.db.DBUtil;
 import lucee.commons.io.BodyContentStack;
 import lucee.commons.io.CharsetUtil;
@@ -2355,10 +2356,7 @@ public final class PageContextImpl extends PageContext {
 				if (!Abort.isSilentAbort(pe)) {
 					forceWrite(getConfig().getDefaultDumpWriter(DumpWriter.DEFAULT_RICH).toString(this, pe.toDumpData(this, 9999, DumpUtil.toDumpProperties()), true));
 					if (errorTemplateExp != null) {
-						forceWrite("<p style=\"color:red\">Failed to load error template [" + template + "]<p>");
-						forceWrite(getConfig().getDefaultDumpWriter(DumpWriter.DEFAULT_RICH).toString(this, errorTemplateExp.toDumpData(this, 9999, DumpUtil.toDumpProperties()),
-								true));
-
+						LogUtil.log("errortemplate", errorTemplateExp);
 					}
 				}
 			}
@@ -2801,9 +2799,20 @@ public final class PageContextImpl extends PageContext {
 
 	public boolean showDebug() {
 		if (isGatewayContext()) return false;
-		if (!(getApplicationContext() instanceof ApplicationContextSupport ? ((ApplicationContextSupport) getApplicationContext()).getShowDebug() : config.getShowDebug()))
-			return false;
-		return DebuggerImpl.getDebugEntry(this) != null;
+
+		print.e("---------- showDebug -----------");
+		if (getApplicationContext() instanceof ApplicationContextSupport) {
+			print.e("- app: " + ((ApplicationContextSupport) getApplicationContext()).getShowDebug());
+
+		}
+		print.e("- config: " + config.getShowDebug());
+		print.e("- entry? " + (DebuggerImpl.getDebugEntry(this) != null));
+
+		return false;
+		// if (!(getApplicationContext() instanceof ApplicationContextSupport ? ((ApplicationContextSupport)
+		// getApplicationContext()).getShowDebug() : config.getShowDebug()))
+		// return false;
+		// return DebuggerImpl.getDebugEntry(this) != null;
 
 	}
 
