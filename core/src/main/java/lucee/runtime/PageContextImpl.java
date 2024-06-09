@@ -2263,7 +2263,7 @@ public final class PageContextImpl extends PageContext {
 		handlePageException(pe, true);
 	}
 
-	public void handlePageException(PageException pe, boolean setHeader) {
+	public void handlePageException(final PageException pe, boolean setHeader) {
 		if (!Abort.isSilentAbort(pe)) {
 			// if(requestTimeoutException!=null)
 			// pe=Caster.toPageException(requestTimeoutException);
@@ -2289,6 +2289,7 @@ public final class PageContextImpl extends PageContext {
 			// ExceptionHandler.printStackTrace(this,pe);
 			ExceptionHandler.log(getConfig(), pe);
 
+			PageException errorTemplateExp = null;
 			// error page exception
 			if (ep != null) {
 				try {
@@ -2302,10 +2303,9 @@ public final class PageContextImpl extends PageContext {
 				catch (Throwable t) {
 					ExceptionUtil.rethrowIfNecessary(t);
 					if (Abort.isSilentAbort(t)) return;
-					pe = Caster.toPageException(t);
+					errorTemplateExp = Caster.toPageException(t);
 				}
 			}
-			PageException errorTemplateExp = null;
 			// error page request
 			ep = errorPagePool.getErrorPage(pe, ErrorPageImpl.TYPE_REQUEST);
 			if (ep != null) {
@@ -2332,8 +2332,9 @@ public final class PageContextImpl extends PageContext {
 						errorTemplateExp = Caster.toPageException(t);
 					}
 				}
-				else pe = new ApplicationException("The error page template for type request only works if the actual source file also exists. If the exception file is in an "
-						+ Constants.NAME + " archive (.lar), you need to use type exception instead.");
+				else errorTemplateExp = new ApplicationException(
+						"The error page template for type request only works if the actual source file also exists. If the exception file is in an " + Constants.NAME
+								+ " archive (.lar), you need to use type exception instead.");
 			}
 
 			try {
@@ -2348,7 +2349,7 @@ public final class PageContextImpl extends PageContext {
 						return;
 					}
 					catch (PageException e) {
-						pe = e;
+						errorTemplateExp = e;
 					}
 				}
 				if (!Abort.isSilentAbort(pe)) {
