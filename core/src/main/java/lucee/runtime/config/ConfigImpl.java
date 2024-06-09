@@ -710,7 +710,6 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	}
 
 	public void setShowDebug(boolean b) {
-		if (b) throw new RuntimeException("don't");
 		this.showDebug = b;
 	}
 

@@ -57,7 +57,6 @@ import javax.servlet.jsp.tagext.BodyTag;
 import javax.servlet.jsp.tagext.Tag;
 import javax.servlet.jsp.tagext.TryCatchFinally;
 
-import lucee.print;
 import lucee.commons.db.DBUtil;
 import lucee.commons.io.BodyContentStack;
 import lucee.commons.io.CharsetUtil;
@@ -2799,21 +2798,7 @@ public final class PageContextImpl extends PageContext {
 
 	public boolean showDebug() {
 		if (isGatewayContext()) return false;
-
-		print.e("---------- showDebug -----------");
-		if (getApplicationContext() instanceof ApplicationContextSupport) {
-			print.e("- app: " + ((ApplicationContextSupport) getApplicationContext()).getShowDebug());
-
-		}
-		print.e("- config: " + config.getShowDebug());
-		print.e("- entry? " + (DebuggerImpl.getDebugEntry(this) != null));
-
-		return false;
-		// if (!(getApplicationContext() instanceof ApplicationContextSupport ? ((ApplicationContextSupport)
-		// getApplicationContext()).getShowDebug() : config.getShowDebug()))
-		// return false;
-		// return DebuggerImpl.getDebugEntry(this) != null;
-
+		return getApplicationContext() instanceof ApplicationContextSupport ? ((ApplicationContextSupport) getApplicationContext()).getShowDebug() : config.getShowDebug();
 	}
 
 	public boolean showDoc() {

@@ -55,7 +55,6 @@ import org.osgi.framework.BundleException;
 import org.xml.sax.SAXException;
 
 import lucee.Info;
-import lucee.print;
 import lucee.commons.collection.MapFactory;
 import lucee.commons.date.TimeZoneConstants;
 import lucee.commons.date.TimeZoneUtil;
@@ -4614,16 +4613,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 			{
 				// monitoring debug
 				String str = getAttr(root, "showDebug");
-				print.e("aaaa:" + str);
-				if (StringUtil.isEmpty(str, true)) str = getAttr(root, "debuggingEnabled");
-				if (Caster.toBooleanValue(str, false) && !config.getShowDebug()) print.ds("bbbb:" + str);
-
-				if (StringUtil.isEmpty(str, true)) str = getAttr(root, "debugging");
-				print.e("cccc:" + str);
-				if (StringUtil.isEmpty(str, true)) str = getAttr(root, "debug");
-				print.e("dddd:" + str);
 				if (!hasCS && StringUtil.isEmpty(str, true)) str = SystemUtil.getSystemPropOrEnvVar("lucee.monitoring.showDebug", null);
-				print.e("ffff:" + str);
 
 				if (hasAccess && !StringUtil.isEmpty(str)) {
 					config.setShowDebug(toBoolean(str, false));
