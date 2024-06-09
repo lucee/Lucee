@@ -4616,7 +4616,8 @@ public final class ConfigWebFactory extends ConfigFactory {
 				String str = getAttr(root, "showDebug");
 				print.e("aaaa:" + str);
 				if (StringUtil.isEmpty(str, true)) str = getAttr(root, "debuggingEnabled");
-				print.e("bbbb:" + str);
+				if (Caster.toBooleanValue(str, false) && !config.getShowDebug()) print.ds("bbbb:" + str);
+
 				if (StringUtil.isEmpty(str, true)) str = getAttr(root, "debugging");
 				print.e("cccc:" + str);
 				if (StringUtil.isEmpty(str, true)) str = getAttr(root, "debug");
