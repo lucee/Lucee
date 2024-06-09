@@ -106,7 +106,7 @@
 		}
 		return "";
 	}
-	
+
 	function importRecipes() {
 		var tmp=listToArray(server.lucee.version,".");
 		var branch=tmp[1]&"."&tmp[2];
@@ -131,44 +131,35 @@
 				hasLocalDir=false;
 			}
 		}
-		var entries=[];
+		
 			
 		// do we have a change
 		var localIndex=localDirectory&"index.json";
-		// TODO update only the files with a changed hash
-		var first=!fileExists(localIndex);
 		
+		var first=!fileExists(localIndex);
+		// load old index
+		if(!first) {
+			var oldIndex=deserializeJSON(trim(fileRead(localIndex)));
+		}
+
 		if(first || hash(trim(fileRead(localIndex)))!=indexHash) {
-			// load old index
-			if(!first) {
-				var oldIndex=deserializeJSON(trim(fileRead(localIndex)));
-			}
+			
 			
 			setting requesttimeout="120";
 			var index=deserializeJSON(indexContent);
-			loop array=index item="local.entry" label="outer" {
+            loop array=index item="local.entry" label="outer" {
+				entry.url=rootPath&entry.path;
+				entry.local=localDirectory&listLast(entry.file,"\/");
 				if(!first) {
 					loop array=oldIndex item="local.e" {
 						
 						if(e.file==entry.file && (e.hash?:"b")==(entry.hash?:"a")) {
-							arrayAppend(entries, trim(fileRead(localDirectory&listLast(entry.file,"\/"))));
+							// read existing content from local
+							entry.content=readRecipe(localDirectory&listLast(entry.file,"\/"));
 							continue outer;
 						}
 					}
 				}
-				
-				var entryPath=rootPath&entry.path;
-				var entryContent=trim(fileRead(entryPath));
-				var name=listLast(entryPath,"\/");
-				try {
-					if(hasLocalDir) {
-						fileWrite(localDirectory&name, entryContent);
-					}
-				}
-				catch(ex1) {
-					log log="application" exception=ex1;
-				}
-				arrayAppend(entries, entryContent);
 			}
 			try { 
 				if(hasLocalDir) {
@@ -180,62 +171,68 @@
 			}
 		}
 		else {
-			var files=directoryList(path:localDirectory,filter:"*.md");
-			loop array=files item="local.file" {
-				arrayAppend(entries, trim(fileRead(file)));
-			}
-		}
-		return entries;
-	}
-	
-	function readRecipes(cookbookDirectory) {
-		var entries=importRecipes();
-		var recipes=[:];
-		loop array=entries item="local.content" {
-			// extract metadata from header
-			startIndex=find("<!--", content);
-			if(startIndex!=1) continue;
-			endIndex=find("-->", content,4);
-			if(endIndex==0) continue;
-			var rawMeta=trim(mid(content,startIndex+5,endIndex-(startIndex+5)));
-			var json=deserializeJSON(rawMeta);
-			json["content"]=trim(mid(content,endIndex+3))
-			if(!isNull(json.categories)) {
-				loop array=json.categories item="local.cat" {
-					arrayAppend(json.keywords, cat);
+			var index=oldIndex;
+			loop array=index item="local.entry" {
+				var f=localDirectory&listLast(entry.file,"\/");
+                entry.url=rootPath&entry.path;
+				entry.local=localDirectory&listLast(entry.file,"\/");
+				if(fileExists(f)) {
+					// read existing contnt from local
+					entry.content=readRecipe(localDirectory&listLast(entry.file,"\/"));
+					
 				}
 			}
-			recipes[json.title]=json;
 		}
-		return recipes;
+
+        // SORT
+        arraySort(index,function(l,r) {
+            return compareNoCase(l.title, r.title);
+        });
+        
+		return index;
 	}
-	
-	function getRecipeStruct(recipes) {
-		var titles=[];
-		loop struct=recipes index="local.k" item="local.v" {
-			arrayAppend(titles,v.title);
+
+    function readRecipe(localFile) {
+        var content=fileRead(localFile);
+        var endIndex=find("-->", content,4);
+		if(endIndex==0) return content;
+		
+        //var rawMeta=trim(mid(content,startIndex+5,endIndex-(startIndex+5)));
+		//var json=deserializeJSON(rawMeta);
+		return trim(mid(content,endIndex+3));
+    }
+
+	function getContent(data) {
+		if(isNull(data.content)) {
+			var content=fileRead(data.url);
+			fileWrite(data.local,content);
+			data.content=readRecipe(data.local)	
 		}
-		arraySort(titles,"textnocase");
-	
-		var data=[];
-		loop array=titles item="local.title" {
-			var d=["id":recipes[title].id,"title":title,"keywords":lcase(arrayToList(recipes[title].keywords))];
-			if(!isNull(recipes[title].since))d["since"]=recipes[title].since;
-			arrayAppend(data,d);
-		}
-		return data;
+		return data.content;
 	}
+
 	
-	cookbookDirectory="/Users/mic/Projects/Lucee/Lucee6/docs/recipes";
+
+
+    function recipesAsStruct(index) {
+        var data=[:];
+        loop array=index item="local.entry" {
+            data[entry.title]=entry;
+        }
+        return data;
+	}
+
+
+	if(develop || isNull(application.recipeArray[server.lucee.version])) {
+		application.recipeArray[server.lucee.version]=importRecipes();
+	}
+	recipeArray=application.recipeArray[server.lucee.version]
+
+	
 	if(develop || isNull(application.recipes[server.lucee.version])) {
-		application.recipes[server.lucee.version]=readRecipes(cookbookDirectory);
+		application.recipes[server.lucee.version]=recipesAsStruct(recipeArray);
 	}
 	recipes=application.recipes[server.lucee.version];
-
-	if(develop || isNull(application.recipeStruct[server.lucee.version])) {
-		application.recipeStruct[server.lucee.version]=getRecipeStruct(recipes);
-	}
-	recipeStruct=application.recipeStruct[server.lucee.version]
 
 
 
@@ -262,7 +259,7 @@
 	// not requesting data for a specific tag,function,...
 	if(isNull(form.search)) {
 		echo((serializeJson({
-			'recipes':recipeStruct?:{},
+			'recipes':recipeArray?:{},
 			'function':ffunctions,
 			'tag':ftags})));
 		abort;
@@ -427,20 +424,24 @@
 	------------------- Recipes -------------
 	------------------------------------------>
 	<cfif type=="recipes">
-	
 	<cftry>
-		<cfset md=data.content>
+		<cfset md=getContent(data)>
 		<cfset md=executeCodeFragments(md)>
 		<cfset code=enhanceHTML(markdownToHTML(md))>
 		
 		#code#<br>
-		<cfcatch><cfdump var="#cfcatch#"></cfcatch>
-		</cftry>
+		<cfcatch>
+			<p style="color:red">Unable to load content; see application log for more details</p>
+			<cflog log="application" exception="#cfcatch#">
+		</cfcatch>
+	</cftry>
+	
+	
 	<cfif develop>
 	<h1>MD</h1>
-		<pre>#replace(md,"<","&lt;","all")#</pre>
+		<pre>#replace(md?:"","<","&lt;","all")#</pre>
 	<h1>HTML</h1>
-		<pre>#replace(code,"<","&lt;","all")#</pre>
+		<pre>#replace(code?:"","<","&lt;","all")#</pre>
 	</cfif>
 	<!----------------------------------------
 	------------------- FUNCTION -------------
