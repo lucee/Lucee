@@ -628,8 +628,12 @@ loop array=enabledKeys index="local.i" item="local.k" {
 		<div id="-lucee-search-result"></div>
 		<br><Br>
 				<cfoutput><span class="pan">
-		The documentation here aims to provide a thorough reference for the Lucee Server. You will find reference material on Lucee <a href="#cgi.hostName#/lucee/doc/tags.cfm">tags</a>, <a href="#cgi.hostName#/lucee/doc/functions.cfm">functions</a>, <a href="#cgi.hostName#/lucee/doc/components.cfm">components</a> and <a href="#cgi.hostName#/lucee/doc/objects.cfm">objects</a>. <span>You can reach the online version of the Lucee Server documentation <a href="https://docs.lucee.org/">here</a>.</span>
-		</span></cfoutput>
+					Improve our Lucee Server documentation by contributing to our 
+					<a href="https://github.com/lucee/lucee-docs/tree/master/docs/recipes">recipes</a>, 
+					<a href="https://github.com/lucee/Lucee/blob/6.1/core/src/main/java/resource/fld/">function</a>, and 
+					<a href="https://github.com/lucee/Lucee/tree/6.1/core/src/main/java/resource/tld">tag</a> descriptions.
+					Access the online documentation <a href="https://docs.lucee.org/">here</a>.
+				</span></cfoutput>
 	</fieldset>
 
 
