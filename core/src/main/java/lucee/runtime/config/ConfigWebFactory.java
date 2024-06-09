@@ -4695,8 +4695,6 @@ public final class ConfigWebFactory extends ConfigFactory {
 			}
 			else if (debugOptions != null && extractDebugOption("template", debugOptions)) options += ConfigPro.DEBUG_TEMPLATE;
 			else if (hasCS && configServer.hasDebugOptions(ConfigPro.DEBUG_TEMPLATE)) options += ConfigPro.DEBUG_TEMPLATE;
-			// default is true
-			else options += ConfigPro.DEBUG_TEMPLATE;
 
 			str = getAttr(root, "debuggingDump");
 			if (StringUtil.isEmpty(str)) str = getAttr(root, "debuggingShowDump");
