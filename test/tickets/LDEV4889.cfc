@@ -140,7 +140,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 		return isEmpty( mySqlCredentials() );
 	}
 
-	private struct function mySqlCredentials( onlyConfig ) {
+	private struct function mySqlCredentials( onlyConfig=false ) {
 		return server.getDatasource( service="mysql", onlyConfig=arguments.onlyConfig );
 	}
 
