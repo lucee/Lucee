@@ -11,8 +11,6 @@
 	,"componentBase":"/lucee/Component.cfc"
 	,"componentDataMemberAccess":"public"
 	,"componentDumpTemplate":"/lucee/component-dump.cfm"
-	,"debuggingEnabled":false
-	,"debuggingQueryUsage":false
 	,"developMode":false
 	,"domainCookies":false
 	,"listenerMode":"curr2root"

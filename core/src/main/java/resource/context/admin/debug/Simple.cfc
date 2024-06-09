@@ -853,7 +853,7 @@
 
 
 		<script>
-			<cfset this.includeInline( "/lucee/res/js/util.min.js" )>
+			<cfset this.includeInline( "../../js/util.min.js" )>
 
 			var __LUCEE = __LUCEE || {};
 
