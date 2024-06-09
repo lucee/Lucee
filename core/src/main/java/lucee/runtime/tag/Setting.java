@@ -56,6 +56,7 @@ public final class Setting extends BodyTagImpl {
 	 * @param showdebugoutput value to set
 	 **/
 	public void setShowdebugoutput(boolean showdebugoutput) {
+		if (true) throw new RuntimeException("not allowed");
 		ApplicationContextSupport acs = (ApplicationContextSupport) pageContext.getApplicationContext();
 		if (acs != null) {
 			acs.setShowDebug(showdebugoutput);
@@ -66,6 +67,7 @@ public final class Setting extends BodyTagImpl {
 	}
 
 	public void setShow(boolean showdebugoutput) {
+		if (true) throw new RuntimeException("not allowed");
 		ApplicationContextSupport acs = (ApplicationContextSupport) pageContext.getApplicationContext();
 		if (acs != null) {
 			acs.setShowDebug(showdebugoutput);

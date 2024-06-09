@@ -30,6 +30,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
+import lucee.print;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.SystemUtil.TemplateLine;
 import lucee.commons.io.res.util.ResourceSnippet;
@@ -374,6 +375,12 @@ public final class DebuggerImpl implements Debugger {
 		if (pc == null) return;
 		PageContextImpl pci = (PageContextImpl) pc;
 		if (!pci.show()) return;
+
+		print.e("show:" + pci.show());
+		print.e("showDebug:" + pci.showDebug());
+		print.e("showDoc:" + pci.showDoc());
+		print.e("showMetric" + pci.showMetric());
+		print.e("showTest:" + pci.showTest());
 
 		try {
 			if (pci.showDebug()) {
