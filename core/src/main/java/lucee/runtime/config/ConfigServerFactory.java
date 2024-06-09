@@ -157,7 +157,7 @@ public final class ConfigServerFactory extends ConfigFactory {
 
 			// admin mode
 			boolean single = ConfigWebUtil.toAdminMode(ConfigWebFactory.getAttr(root, "mode"), ConfigImpl.ADMINMODE_SINGLE) == ConfigImpl.ADMINMODE_SINGLE;
-			ConfigWebFactory.createContextFiles(configDir, doNew);
+			if (single) ConfigWebFactory.createContextFiles(configDir, doNew);
 			load(config, root, false, doNew, essentialOnly);
 
 			if (!essentialOnly) {
