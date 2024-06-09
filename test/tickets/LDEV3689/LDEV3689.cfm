@@ -17,7 +17,7 @@
 			}
 		}
 		catch(any e) {
-			FileWrite( file, e.message);
+			FileWrite( file, serializeJson(e));
 		}
 	} 
 </cfscript>
