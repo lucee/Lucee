@@ -155,6 +155,9 @@ public final class ConfigServerFactory extends ConfigFactory {
 			LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), Log.LEVEL_INFO, ConfigServerFactory.class.getName(), "load config file");
 			Struct root = loadDocumentCreateIfFails(configFileNew, "server");
 
+			// admin mode
+			boolean single = ConfigWebUtil.toAdminMode(ConfigWebFactory.getAttr(root, "mode"), ConfigImpl.ADMINMODE_SINGLE) == ConfigImpl.ADMINMODE_SINGLE;
+			ConfigWebFactory.createContextFiles(configDir, doNew);
 			load(config, root, false, doNew, essentialOnly);
 
 			if (!essentialOnly) {
