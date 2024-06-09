@@ -118,12 +118,13 @@ class SingleContextConfigWeb extends ConfigBase implements ConfigWebInner {
 	private Resource rootDir;
 	private Mapping[] mappings;
 	private lucee.runtime.rest.Mapping[] restMappings;
+	private Resource configDirWeb;
 
-	public SingleContextConfigWeb(CFMLFactoryImpl factory, ConfigServerImpl cs, ServletConfig config) {
+	public SingleContextConfigWeb(CFMLFactoryImpl factory, ConfigServerImpl cs, ServletConfig config, Resource configDirWeb) {
 		this.factory = factory;
 		this.cs = cs;
 		this.config = config;
-
+		this.configDirWeb = configDirWeb;
 		ResourceProvider frp = ResourcesImpl.getFileResourceProvider();
 		this.rootDir = frp.getResource(ReqRspUtil.getRootPath(config.getServletContext()));
 
@@ -1915,7 +1916,7 @@ class SingleContextConfigWeb extends ConfigBase implements ConfigWebInner {
 
 	@Override
 	public Resource getWebConfigDir() {
-		return cs.getConfigDir();
+		return this.configDirWeb;
 	}
 
 	@Override

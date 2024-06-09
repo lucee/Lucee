@@ -320,7 +320,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 		return configWeb;
 	}
 
-	public static ConfigWebPro newInstanceSingle(CFMLEngine engine, CFMLFactoryImpl factory, ConfigServerImpl configServer, ServletConfig servletConfig,
+	public static ConfigWebPro newInstanceSingle(CFMLEngine engine, CFMLFactoryImpl factory, ConfigServerImpl configServer, Resource configDirWeb, ServletConfig servletConfig,
 			ConfigWebImpl existingToUpdate)
 			throws SAXException, ClassException, PageException, IOException, TagLibException, FunctionLibException, NoSuchAlgorithmException, BundleException, ConverterException {
 
@@ -335,7 +335,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 		);
 
 		boolean doNew = configServer.getUpdateInfo().updateType != NEW_NONE;
-		SingleContextConfigWeb sccw = new SingleContextConfigWeb(factory, configServer, servletConfig);
+		SingleContextConfigWeb sccw = new SingleContextConfigWeb(factory, configServer, servletConfig, configDirWeb);
 		ConfigWebPro configWeb = existingToUpdate != null ? existingToUpdate.setInstance(sccw) : new ConfigWebImpl(sccw);
 		factory.setConfig(configServer, configWeb);
 
@@ -421,7 +421,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 		// changed from multi to single
 		if (isSingle != isWebSingle) {
 			try {
-				newInstanceSingle(engine, (CFMLFactoryImpl) cwi.getFactory(), cs, cwi.getServletConfig(), cwi);
+				newInstanceSingle(engine, (CFMLFactoryImpl) cwi.getFactory(), cs, cwi.getWebConfigDir(), cwi.getServletConfig(), cwi);
 				return;
 			}
 			catch (NoSuchAlgorithmException e) {
