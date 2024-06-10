@@ -145,6 +145,20 @@ public class SourceCode {
 		return lcText[pos - 1] == c;
 	}
 
+	public boolean isPreviousIgnoreSpace(char c) {
+		int start = pos;
+		try {
+			while (isPrevious(' ')) {
+				pos--;
+			}
+			if (!hasPrevious()) return false;
+			return charAt(getPos() - 1) == c;
+		}
+		finally {
+			pos = start;
+		}
+	}
+
 	/**
 	 * is the character at the next position the same as the character provided by the input parameter
 	 */

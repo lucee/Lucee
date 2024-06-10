@@ -1887,7 +1887,7 @@ public abstract class AbstrCFMLExprTransformer {
 	}
 
 	private Expression getListener(Data data) throws TemplateException {
-		if (!insideCase && tenaryContext != CTX_TENARY_MIDDLE && data.srcCode.forwardIfCurrent(':')) {
+		if (!insideCase && tenaryContext != CTX_TENARY_MIDDLE && data.srcCode.isPreviousIgnoreSpace(')') && data.srcCode.forwardIfCurrent(':')) {
 			int pos = data.srcCode.getPos();
 			comments(data);
 			Expression expr = assignOp(data);
