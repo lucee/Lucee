@@ -107,15 +107,18 @@
 		return "";
 	}
 
+	function get(url,timeout, defaultValue) {
+		http url=arguments.url timeout=arguments.timeout result="local.res";
+		
+		if(res.status_code>=200 && res.status_code<300) return res.filecontent;
+		return arguments.defaultValue;
+	}
+
 	function importRecipes() {
 		var tmp=listToArray(server.lucee.version,".");
 		var branch=tmp[1]&"."&tmp[2];
-		var rootPath=(server.system.environment.LUCEE_DOC_RECIPES_PATH?:"https://raw.githubusercontent.com/lucee/lucee-docs/master");
-		var indexPath=rootPath&"/docs/recipes/index.json";
-		var indexContent=trim(fileRead(indexPath));
-		var indexHash=hash(indexContent);
 		
-		// changed?
+	////////// read local index ////////
 		var localDirectory=expandPath("{lucee-config-dir}/recipes/");
 		var localIndexPath=localDirectory&"index.json";
 		
@@ -131,69 +134,89 @@
 				hasLocalDir=false;
 			}
 		}
-		
-			
-		// do we have a change
 		var localIndex=localDirectory&"index.json";
-		
 		var first=!fileExists(localIndex);
-		// load old index
+
+		// load local index
 		if(!first) {
-			var oldIndex=deserializeJSON(trim(fileRead(localIndex)));
+			var localIndexContent=trim(fileRead(localIndex));
+			var localIndexData=deserializeJSON(localIndexContent);
+			var localIndexHash=hash(localIndexContent);
+		}
+		else {
+			var localIndexContent="";
+			var localIndexData=[];
+			var localIndexHash="";
 		}
 
-		if(first || hash(trim(fileRead(localIndex)))!=indexHash) {
-			
-			
+	////////// read remote index ////////
+		var rootPath=(server.system.environment.LUCEE_DOC_RECIPES_PATH?:"https://raw.githubusercontent.com/lucee/lucee-docs/master");
+		var remoteIndexPath=rootPath&"/docs/recipes/index.json";
+		var remoteIndexContent=trim(get(remoteIndexPath,createTimeSpan(0,0,0,10),""));
+		var offline=false;
+		if(remoteIndexContent=="") {
+			remoteIndexContent=localIndexContent;
+			remoteIndexData=localIndexData;
+			var remoteIndexHash="";
+			offline=true;
+		}
+		else {
+			remoteIndexData=deserializeJSON(remoteIndexContent);
+			var remoteIndexHash=hash(remoteIndexContent);
+		}
+		// in case the local data differs from remote or we do not have local data at all
+		if(!offline && (first || localIndexHash!=remoteIndexHash)) {
 			setting requesttimeout="120";
-			var index=deserializeJSON(indexContent);
-            loop array=index item="local.entry" label="outer" {
+			loop array=remoteIndexData item="local.entry" label="outer" {
 				entry.url=rootPath&entry.path;
 				entry.local=localDirectory&listLast(entry.file,"\/");
 				if(!first) {
-					loop array=oldIndex item="local.e" {
-						
+					loop array=localIndexData item="local.e" {
 						if(e.file==entry.file && (e.hash?:"b")==(entry.hash?:"a")) {
-							// read existing content from local
-							entry.content=readRecipe(localDirectory&listLast(entry.file,"\/"));
-							continue outer;
+							if(fileExists(entry.local)) {
+								entry.content=readRecipe(localDirectory&listLast(entry.file,"\/"));
+								continue outer;
+							}
 						}
 					}
 				}
 			}
 			try { 
 				if(hasLocalDir) {
-					fileWrite(localIndex, indexContent);
+					fileWrite(localIndex, remoteIndexContent);
 				}
 			}
 			catch(ex2) {
 				log log="application" exception=ex2;
 			}
+			var indexData=remoteIndexData;
 		}
+		// we just get the local data
 		else {
-			var index=oldIndex;
-			loop array=index item="local.entry" {
-				var f=localDirectory&listLast(entry.file,"\/");
-                entry.url=rootPath&entry.path;
-				entry.local=localDirectory&listLast(entry.file,"\/");
-				if(fileExists(f)) {
-					// read existing contnt from local
-					entry.content=readRecipe(localDirectory&listLast(entry.file,"\/"));
-					
+			loop array=localIndexData item="local.entry" {
+				entry.url=rootPath&entry.path;
+                entry.local=localDirectory&listLast(entry.file,"\/");
+				if(fileExists(entry.local)) {
+					// read existing content from local
+					entry.content=readRecipe(entry.local);
 				}
 			}
+			var indexData=localIndexData;
 		}
 
         // SORT
-        arraySort(index,function(l,r) {
+        arraySort(indexData,function(l,r) {
             return compareNoCase(l.title, r.title);
         });
-        
-		return index;
+		return indexData;
 	}
 
-    function readRecipe(localFile) {
-        var content=fileRead(localFile);
+    function resetRecipes() {
+		application.recipeArray[server.lucee.version]=nullValue();
+		application.recipes[server.lucee.version]=nullValue();
+    }
+    function readRecipe(localFile, boolean fromContent=false) {
+        var content=fromContent?localFile:fileRead(localFile);
         var endIndex=find("-->", content,4);
 		if(endIndex==0) return content;
 		
@@ -203,10 +226,18 @@
     }
 
 	function getContent(data) {
-		if(isNull(data.content)) {
-			var content=fileRead(data.url);
-			fileWrite(data.local,content);
-			data.content=readRecipe(data.local)	
+		var cannotReach="Sorry, this recipe is not avialble at the moment";
+		
+		if(isNull(data.content) || isEmpty(data.content) || data.content==cannotReach) {
+			var content=get(data.url,createTimeSpan(0,0,0,5), "");
+			
+			if(!isEmpty(content)) {
+				fileWrite(data.local,content);
+				data.content=readRecipe(content,true);
+			}
+			else {
+				data.content=cannotReach;
+			}
 		}
 		return data.content;
 	}
@@ -223,17 +254,16 @@
 	}
 
 
-	if(develop || isNull(application.recipeArray[server.lucee.version])) {
+	if(develop || isNull(application.recipeArray[server.lucee.version]) || len(application.recipeArray[server.lucee.version])==0) {
 		application.recipeArray[server.lucee.version]=importRecipes();
 	}
 	recipeArray=application.recipeArray[server.lucee.version]
 
 	
-	if(develop || isNull(application.recipes[server.lucee.version])) {
+	if(develop || isNull(application.recipes[server.lucee.version]) || len(application.recipes[server.lucee.version])==0) {
 		application.recipes[server.lucee.version]=recipesAsStruct(recipeArray);
 	}
 	recipes=application.recipes[server.lucee.version];
-
 
 
 
@@ -428,9 +458,10 @@
 		<cfset md=getContent(data)>
 		<cfset md=executeCodeFragments(md)>
 		<cfset code=enhanceHTML(markdownToHTML(md))>
-		
 		#code#<br>
 		<cfcatch>
+			<cfif develop><cfdump var="#data#"></cfif>
+			<cfif develop><cfdump var="#cfcatch#"></cfif>
 			<p style="color:red">Unable to load content; see application log for more details</p>
 			<cflog log="application" exception="#cfcatch#">
 		</cfcatch>
@@ -701,7 +732,7 @@
 	
 	
 		<cfcatch>
-			<cfset systemOutput(cfcatch,1,1)>
-			<cfset echo(cfcatch)>
+			<p style="color:red">An error occurred; see application log for more details</p>
+			<cflog log="application" exception="#cfcatch#">
 		</cfcatch>
 	</cftry>
