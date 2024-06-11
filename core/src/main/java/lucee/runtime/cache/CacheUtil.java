@@ -19,7 +19,6 @@
 package lucee.runtime.cache;
 
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.util.Iterator;
 
 import lucee.commons.io.cache.Cache;
@@ -276,12 +275,7 @@ public class CacheUtil {
 			return;
 		}
 
-		try {
-			remove.invoke(c);
-		}
-		catch (InvocationTargetException e) {
-			throw e.getTargetException();
-		}
+		remove.invoke(c);
 	}
 
 	public static void releaseEL(CacheConnection cc) {

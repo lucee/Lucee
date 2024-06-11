@@ -19,7 +19,6 @@
 package lucee.runtime.java;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Date;
@@ -103,9 +102,6 @@ public class JavaObject implements Objects, ObjectWrap {
 			if (mi.getMethod().isStatic()) {
 				try {
 					return mi.invoke(null);
-				}
-				catch (InvocationTargetException e) {
-					throw Caster.toPageException(e.getTargetException());
 				}
 				catch (Exception e) {
 					throw Caster.toPageException(e);
@@ -196,9 +192,6 @@ public class JavaObject implements Objects, ObjectWrap {
 				try {
 					return mi.invoke(null);
 				}
-				catch (InvocationTargetException e) {
-					throw Caster.toPageException(e.getTargetException());
-				}
 				catch (Exception e) {
 					throw Caster.toPageException(e);
 				}
@@ -278,11 +271,6 @@ public class JavaObject implements Objects, ObjectWrap {
 			// invoke constructor and call instance method
 			Object obj = init();
 			return mi.invoke(obj);
-		}
-		catch (InvocationTargetException e) {
-			Throwable target = e.getTargetException();
-			if (target instanceof PageException) throw (PageException) target;
-			throw Caster.toPageException(e.getTargetException());
 		}
 		catch (Exception e) {
 			throw Caster.toPageException(e);

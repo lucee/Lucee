@@ -19,6 +19,7 @@
 package lucee.runtime.reflection.pairs;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.util.function.BiFunction;
 
 import lucee.commons.io.log.LogUtil;
@@ -49,7 +50,7 @@ public final class MethodInstance {
 		this.args = args;
 	}
 
-	public Object invoke(Object o) throws PageException, IllegalAccessException, IllegalArgumentException, NoSuchMethodException, SecurityException, IOException {
+	public Object invoke(Object o) throws PageException, NoSuchMethodException, IOException {
 
 		if (o != null) {
 			if ("toString".equals(methodName.getString()) && args.length == 0) {
@@ -71,6 +72,11 @@ public final class MethodInstance {
 				return ((LegacyMethod) method).getMethod().invoke(o, args);
 			}
 			catch (Exception e1) {
+				if (e1 instanceof InvocationTargetException) {
+					Throwable t = ((InvocationTargetException) e1).getTargetException();
+					ExceptionUtil.initCauseEL(e, t);
+					throw e;
+				}
 				ExceptionUtil.initCauseEL(e, e1);
 				throw e;
 			}

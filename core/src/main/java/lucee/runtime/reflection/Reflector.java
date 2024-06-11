@@ -22,7 +22,6 @@ import java.io.IOException;
 import java.lang.instrument.UnmodifiableClassException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Parameter;
@@ -1067,11 +1066,6 @@ public final class Reflector {
 	public static Object callGetter(Object obj, String prop) throws PageException {
 		try {
 			return getGetter(obj.getClass(), prop).invoke(obj);
-		}
-		catch (InvocationTargetException e) {
-			Throwable target = e.getTargetException();
-			if (target instanceof PageException) throw (PageException) target;
-			throw Caster.toPageException(e.getTargetException());
 		}
 		catch (Exception e) {
 			throw Caster.toPageException(e);
