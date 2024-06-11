@@ -19,10 +19,10 @@
 package lucee.runtime.reflection.pairs;
 
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.util.function.BiFunction;
 
 import lucee.commons.io.log.LogUtil;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.Pair;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
@@ -49,8 +49,7 @@ public final class MethodInstance {
 		this.args = args;
 	}
 
-	public Object invoke(Object o)
-			throws PageException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException, IOException {
+	public Object invoke(Object o) throws PageException, IllegalAccessException, IllegalArgumentException, NoSuchMethodException, SecurityException, IOException {
 
 		if (o != null) {
 			if ("toString".equals(methodName.getString()) && args.length == 0) {
@@ -63,12 +62,18 @@ public final class MethodInstance {
 		try {
 			return ((BiFunction<Object, Object, Object>) getResult().getValue()).apply(o, args);
 		}
-		catch (IncompatibleClassChangeError | IllegalStateException | ClassCastException e) { // java.lang.ClassCastException
+		catch (IncompatibleClassChangeError | ClassCastException e) { // java.lang.ClassCastException
 			if (!Clazz.allowReflection()) throw e;
 			LogUtil.log("dynamic", e);
 			DynamicInvoker di = DynamicInvoker.getInstance(null);
 			lucee.transformer.dynamic.meta.Method method = Clazz.getMethodMatch(di.getClazz(clazz, true), methodName, args, true);
-			return ((LegacyMethod) method).getMethod().invoke(o, args);
+			try {
+				return ((LegacyMethod) method).getMethod().invoke(o, args);
+			}
+			catch (Exception e1) {
+				ExceptionUtil.initCauseEL(e, e1);
+				throw e;
+			}
 		}
 	}
 
