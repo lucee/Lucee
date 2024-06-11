@@ -8,8 +8,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="error" {
 			action="getError"
 			type="server"
 			password="#request.SERVERADMINPASSWORD#"
-			returnVariable="variables.errorConfig";
-		systemOutput(variables.errorConfig, true);
+			returnVariable="variables.errorConfigBefore";
+		systemOutput(variables.errorConfigBefore, true);
 
 		// setup test config
 		admin
@@ -24,8 +24,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="error" {
 			action="getError"
 			type="server"
 			password="#request.SERVERADMINPASSWORD#"
-			returnVariable="variables.errorConfig2";
-		systemOutput(variables.errorConfig2, true);
+			returnVariable="variables.errorConfig";
+		systemOutput(variables.errorConfig, true);
 
 	}
 
@@ -35,16 +35,25 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="error" {
 			action="updateError"
 			type="server"
 			password="#request.SERVERADMINPASSWORD#"
-			template500=variables.errorConfig.str.500
-			template404=variables.errorConfig.str.404
-			statuscode= variables.errorConfig.doStatusCode;
+			template500=variables.errorConfigBefore.str.500
+			template404=variables.errorConfigBefore.str.404
+			statuscode= variables.errorConfigBefore.doStatusCode;
 	}
 
 	function run( testResults , testBox ) {
 		describe( title='LDEV-3739' , body=function(){
 			it( title='test that the test error templates are configured' , body=function() {
-				expect( fileExists( variables.errorConfig.templates.404 ) ).toBe( "#uri#/500.cfm" );
-				expect( fileExists( variables.errorConfig.templates.500 ) ).toBe( "#uri#/404.cfm" );
+				expect( variables.errorConfig.str.404 ).toBe( "#uri#/404.cfm" );
+				expect( variables.errorConfig.str.500 ).toBe( "#uri#/500.cfm" );
+
+				expect( fileExists( variables.errorConfig.str.404 ) ).toBeTrue();
+				expect( fileExists( variables.errorConfig.str.500 ) ).toBeTrue();
+
+				expect( variables.errorConfig.templates.404 ).toBe( expandPath( "#uri#/404.cfm" ) );
+				expect( variables.errorConfig.templates.500 ).toBe( expandPath( "#uri#/500.cfm" ) );
+
+				expect( fileExists( variables.errorConfig.templates.404 ) ).toBeTrue();
+				expect( fileExists( variables.errorConfig.templates.500 ) ).toBeTrue();
 			});
 
 			it( title='test 500 error page has error variable' , body=function() {
@@ -52,8 +61,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="error" {
 					template: "#uri#/throw.cfm",  // throw an error and trigger 500.cfm
 					throwonerror: false
 				);
-				//fileWrite( uri & "/500_req.json", req.toJson() );
-				//fileWrite( uri & "/500.json", req.filecontent );
+				fileWrite( uri & "/500_req.json", req.toJson() );
+				fileWrite( uri & "/500.json", req.filecontent );
 				systemOutput( req.filecontent, true );
 				systemOutput( req, true );
 				expect( isJson( req.filecontent ) ).toBeTrue();
@@ -76,8 +85,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="error" {
 				);
 				return; // testing this with internalRequest is difficult
 
-				//fileWrite( uri & "/404_req.json", req.toJson() );
-				//fileWrite( uri & "/404.json", req.filecontent );
+				fileWrite( uri & "/404_req.json", req.toJson() );
+				fileWrite( uri & "/404.json", req.filecontent );
 				expect( req.status_code ).toBe( 404 );
 				systemOutput( req.filecontent, true );
 				systemOutput( req, true );
