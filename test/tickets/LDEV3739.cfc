@@ -54,8 +54,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="error" {
 				);
 				//fileWrite( uri & "/500_req.json", req.toJson() );
 				//fileWrite( uri & "/500.json", req.filecontent );
-				systemOutput( result.filecontent, true );
-				systemOutput( result, true );
+				systemOutput( req.filecontent, true );
+				systemOutput( req, true );
 				expect( isJson( req.filecontent ) ).toBeTrue();
 				var result = deserializeJSON( req.filecontent ); 
 				expect( req.status_code ).toBe( 500 );
@@ -79,8 +79,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="error" {
 				//fileWrite( uri & "/404_req.json", req.toJson() );
 				//fileWrite( uri & "/404.json", req.filecontent );
 				expect( req.status_code ).toBe( 404 );
-				systemOutput( result.filecontent, true );
-				systemOutput( result, true );
+				systemOutput( req.filecontent, true );
+				systemOutput( req, true );
 				expect( isJson( req.filecontent ) ).toBeTrue();
 				var result = deserializeJSON( req.filecontent );
 
