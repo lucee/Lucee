@@ -2283,7 +2283,6 @@ public final class PageContextImpl extends PageContext {
 			if (ep != null) {
 				try {
 					Struct sct = pe.getErrorBlock(this, ep);
-					variablesScope().setEL(KeyConstants._error, sct);
 					variablesScope().setEL(KeyConstants._cferror, sct);
 					variablesScope().setEL(KeyConstants._error, pe.getErrorBlock(this, new ErrorPageImpl()));
 
