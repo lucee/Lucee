@@ -43,8 +43,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="error" {
 	function run( testResults , testBox ) {
 		describe( title='LDEV-3739' , body=function(){
 			it( title='test that the test error templates are configured' , body=function() {
-				expect( fileExists( variables.errorConfig.templates.404 ) ).toBeTrue();
-				expect( fileExists( variables.errorConfig.templates.500 ) ).toBeTrue();
+				expect( fileExists( variables.errorConfig.templates.404 ) ).toBe( "#uri#/500.cfm" );
+				expect( fileExists( variables.errorConfig.templates.500 ) ).toBe( "#uri#/404.cfm" );
 			});
 
 			it( title='test 500 error page has error variable' , body=function() {
