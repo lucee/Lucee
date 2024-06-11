@@ -2335,6 +2335,7 @@ public final class PageContextImpl extends PageContext {
 						Struct catchBlock = pe.getCatchBlock(getConfig());
 						variablesScope().setEL(KeyConstants._cfcatch, catchBlock);
 						variablesScope().setEL(KeyConstants._catch, catchBlock);
+						variablesScope().setEL(KeyConstants._error, pe.getErrorBlock(this, new ErrorPageImpl()));
 						doInclude(template, false);
 						return;
 					}
