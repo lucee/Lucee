@@ -9,7 +9,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="error" {
 			type="server"
 			password="#request.SERVERADMINPASSWORD#"
 			returnVariable="variables.errorConfigBefore";
-		systemOutput(variables.errorConfigBefore, true);
+		//systemOutput(variables.errorConfigBefore, true);
 
 		// setup test config
 		admin
@@ -25,7 +25,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="error" {
 			type="server"
 			password="#request.SERVERADMINPASSWORD#"
 			returnVariable="variables.errorConfig";
-		systemOutput(variables.errorConfig, true);
+		//systemOutput(variables.errorConfig, true);
 
 	}
 
@@ -61,10 +61,12 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="error" {
 					template: "#uri#/throw.cfm",  // throw an error and trigger 500.cfm
 					throwonerror: false
 				);
+				/*
 				fileWrite( uri & "/500_req.json", req.toJson() );
 				fileWrite( uri & "/500.json", req.filecontent );
 				systemOutput( req.filecontent, true );
 				systemOutput( req, true );
+				*/
 				expect( isJson( req.filecontent ) ).toBeTrue();
 				var result = deserializeJSON( req.filecontent ); 
 				expect( req.status_code ).toBe( 500 );
@@ -84,12 +86,13 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="error" {
 					throwonerror: false
 				);
 				return; // testing this with internalRequest is difficult
-
+				expect( req.status_code ).toBe( 404 );
+				/*
 				fileWrite( uri & "/404_req.json", req.toJson() );
 				fileWrite( uri & "/404.json", req.filecontent );
-				expect( req.status_code ).toBe( 404 );
 				systemOutput( req.filecontent, true );
 				systemOutput( req, true );
+				*/
 				expect( isJson( req.filecontent ) ).toBeTrue();
 				var result = deserializeJSON( req.filecontent );
 
