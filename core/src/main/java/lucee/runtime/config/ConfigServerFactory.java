@@ -179,36 +179,22 @@ public final class ConfigServerFactory extends ConfigFactory {
 
 		// lucee.base.config
 		String customCFConfig = SystemUtil.getSystemPropOrEnvVar("lucee.base.config", null);
-		Resource configFile = null, parent;
+		Resource configFile = null;
 		if (!StringUtil.isEmpty(customCFConfig, true)) {
 			try {
 				configFile = ResourcesImpl.getFileResourceProvider().getResource(customCFConfig.trim());
-				// at least the directory must exists
-				parent = configFile.getParentResource();
-				if (parent != null && !parent.isDirectory()) return configFile;
+				if (configFile.isFile()) return configFile;
+				LogUtil.log(Log.LEVEL_ERROR, "config", "defined config file [" + configFile + "] is does not exist or is not a file");
+
 			}
 			catch (Exception e) {
+				LogUtil.log("config", e);
 			}
 		}
-
-		// config
-		customCFConfig = SystemUtil.getSystemPropOrEnvVar("config", null);
-		if (!StringUtil.isEmpty(customCFConfig, true)) {
-			if (customCFConfig.trim().endsWith(CONFIG_FILE_NAME)) {
-				try {
-					configFile = ResourcesImpl.getFileResourceProvider().getResource(customCFConfig.trim());
-					// at least the directory must exists
-					parent = configFile.getParentResource();
-					if (parent != null && !parent.isDirectory()) return configFile;
-				}
-				catch (Exception e) {
-					configFile = null;
-				}
-			}
-		}
-
 		// default location
-		return configDir.getRealResource(CONFIG_FILE_NAME);
+		configFile = configDir.getRealResource(CONFIG_FILE_NAME);
+		LogUtil.log(Log.LEVEL_INFO, "config", "using config file [" + configFile + "]");
+		return configFile;
 	}
 
 	/**
