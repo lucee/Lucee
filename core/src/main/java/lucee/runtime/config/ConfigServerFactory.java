@@ -184,17 +184,13 @@ public final class ConfigServerFactory extends ConfigFactory {
 			try {
 				configFile = ResourcesImpl.getFileResourceProvider().getResource(customCFConfig.trim());
 				if (configFile.isFile()) return configFile;
-				LogUtil.log(Log.LEVEL_ERROR, "config", "defined config file [" + configFile + "] is does not exist or is not a file");
-
 			}
 			catch (Exception e) {
 				LogUtil.log("config", e);
 			}
 		}
 		// default location
-		configFile = configDir.getRealResource(CONFIG_FILE_NAME);
-		LogUtil.log(Log.LEVEL_INFO, "config", "using config file [" + configFile + "]");
-		return configFile;
+		return configDir.getRealResource(CONFIG_FILE_NAME);
 	}
 
 	/**
