@@ -16,29 +16,40 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  * 
  **/
-package lucee.loader.servlet;
+package lucee.loader.servlet.jakarta;
 
 import java.io.IOException;
 
-import /* JAVJAK */ javax.servlet.ServletConfig;
-import /* JAVJAK */ javax.servlet.ServletException;
-import /* JAVJAK */ javax.servlet.http.HttpServletRequest;
-import /* JAVJAK */ javax.servlet.http.HttpServletResponse;
-
+import jakarta.servlet.ServletConfig;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lucee.loader.engine.CFMLEngineFactory;
 
-public class LuceeServlet extends AbsServlet {
+public class RestServlet extends AbsServlet {
 
-	private static final long serialVersionUID = -1878214660283329587L;
+	private static final long serialVersionUID = 1555107078656945805L;
+	private HttpServletJavax myself;
 
 	@Override
 	public void init(final ServletConfig sg) throws ServletException {
 		super.init(sg);
-		engine = CFMLEngineFactory.getInstance(sg, this);
+		myself = new HttpServletJavax(this);
+		try {
+			engine = CFMLEngineFactory.getInstance(ServletConfigJavax.getInstance(sg), this);
+		}
+		catch (javax.servlet.ServletException e) {
+			throw (ServletException) ((ServletExceptionJavax) e).getJakartaInstance();
+		}
 	}
 
 	@Override
 	protected void service(final HttpServletRequest req, final HttpServletResponse rsp) throws ServletException, IOException {
-		engine.service(this, req, rsp);
+		try {
+			engine.serviceRest(myself, new HttpServletRequestJavax(req), new HttpServletResponseJavax(rsp));
+		}
+		catch (javax.servlet.ServletException e) {
+			throw (ServletException) ((ServletExceptionJavax) e).getJakartaInstance();
+		}
 	}
 }
