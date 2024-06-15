@@ -36,11 +36,11 @@ public class HttpServletRequestJavax extends ServletRequestJavax implements Http
 		for (int i = 0; i < cookies.length; i++) {
 			jakarta.servlet.http.Cookie c = cookies[i];
 			javaxCookies[i] = new Cookie(c.getName(), c.getValue());
-			javaxCookies[i].setComment(c.getComment());
-			javaxCookies[i].setDomain(c.getDomain());
+			if (c.getComment() != null) javaxCookies[i].setComment(c.getComment());
+			if (c.getDomain() != null) javaxCookies[i].setDomain(c.getDomain());
 			javaxCookies[i].setHttpOnly(c.isHttpOnly());
 			javaxCookies[i].setMaxAge(c.getMaxAge());
-			javaxCookies[i].setPath(c.getPath());
+			if (c.getPath() != null) javaxCookies[i].setPath(c.getPath());
 			javaxCookies[i].setSecure(c.getSecure());
 			javaxCookies[i].setVersion(c.getVersion());
 		}
