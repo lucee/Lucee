@@ -171,9 +171,9 @@ public abstract class AbstrCFMLExprTransformer {
 	public static final short CTX_QUERY = TagLibTagScript.CTX_QUERY;
 	public static final short CTX_ZIP = TagLibTagScript.CTX_ZIP;
 	public static final short CTX_STATIC = TagLibTagScript.CTX_STATIC;
-	public static final short CTX_TENARY_LEFT = TagLibTagScript.CTX_TENARY_LEFT;
+	// public static final short CTX_TENARY_LEFT = TagLibTagScript.CTX_TENARY_LEFT;
 	public static final short CTX_TENARY_MIDDLE = TagLibTagScript.CTX_TENARY_MIDDLE;
-	public static final short CTX_TENARY_RIGHT = TagLibTagScript.CTX_TENARY_RIGHT;
+	// public static final short CTX_TENARY_RIGHT = TagLibTagScript.CTX_TENARY_RIGHT;
 
 	private DocCommentTransformer docCommentTransformer = new DocCommentTransformer();
 
@@ -402,15 +402,7 @@ public abstract class AbstrCFMLExprTransformer {
 			comments(data);
 			// tenary right
 			Expression right;
-			pre = 0;
-			try {
-				pre = tenaryContext;
-				tenaryContext = CTX_TENARY_RIGHT;
-				right = assignOp(data);
-			}
-			finally {
-				tenaryContext = pre;
-			}
+			right = assignOp(data);
 			expr = data.factory.opContional(expr, left, right);
 		}
 		return expr;
