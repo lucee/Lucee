@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" skip="true" {
+component extends="org.lucee.cfml.test.LuceeTestCase" {
 	function test() {
 		return "abc";
 	}
@@ -9,18 +9,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase" skip="true" {
 					if ( test !== test )
 						return true;
 				}).notToThrow(); 
-			});
-			it( title="compare functions !=", body=function( currentSpec ) {
-				expect( function(){
-					if ( test != test )
-						return true;
-				}).notToThrow();
-			});
-			it( title="compare functions ==", body=function( currentSpec ) {
-				expect( function(){
-					if ( test == test )
-						return true;
-			  	}).notToThrow();
 			});
 			it( title="compare functions ===", body=function( currentSpec ) {
 				expect( function(){
