@@ -32,6 +32,7 @@ import lucee.runtime.functions.other.CreateUniqueId;
 import lucee.runtime.op.Elvis;
 import lucee.transformer.TransformerException;
 import lucee.transformer.bytecode.BytecodeContext;
+import lucee.transformer.bytecode.expression.AsExpression;
 import lucee.transformer.bytecode.expression.ExpressionBase;
 import lucee.transformer.bytecode.util.ASMUtil;
 import lucee.transformer.bytecode.util.Types;
@@ -54,7 +55,9 @@ public final class OpElvis extends ExpressionBase {
 
 	@Override
 	public Type _writeOut(BytecodeContext bc, int mode) throws TransformerException {
-		if (ASMUtil.hasOnlyDataMembers(left)) return _writeOutPureDataMember(bc, mode);
+		// FUTURE this is just a patch, for unknown reason the assignment of inline component or closures
+		// causes a issue, most likely in the way the object uses the stack
+		if (ASMUtil.hasOnlyDataMembers(left) && !(right instanceof AsExpression)) return _writeOutPureDataMember(bc, mode);
 
 		String name = createRandom(bc);
 		GeneratorAdapter ga = bc.getAdapter();
