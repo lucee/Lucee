@@ -1,22 +1,45 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" labels="syntax" {
-	
-	function run( testResults, testBox ) {
-		describe("Testcase for LDEV-4895 - invalid conditional operator", function() {
-			it( title="check syntax double ternary", body=function( currentSpec ) {
-				expect( function(){
-					internalRequest(
-						template="#createURI('LDEV4985')#/ldev4895.cfs"
-					).notToThrow();
-				});
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="qoq" {
+ 
 
-				// odd, same code in .cfs only crashes here
-				// var a = false ? true ? 1 : 2;
+	function run( testResults , testBox ) {
+
+		describe( title='LDEV-4895' , body=function(){
+		
+			it( title='test single tenary' , body=function() {
+				var a =  true ? 1 : 2;
+				expect( a ).toBe( 1 );
 			});
-		}); 
+
+			it( title='test double tenary, no bracket' , body=function() {
+				var a = true ? true ? 1 : 2 : 3;
+				expect( a ).toBe( 1 );
+				var a = true ? false ? 1 : 2 : 3;
+				expect( a ).toBe( 2 );
+				var a = false ? true ? 1 : 2 : 3;
+				expect( a ).toBe( 3 );
+			});
+
+			it( title='test double tenary with bracket' , body=function() {
+				var a = true ? (true ? 1 : 2) : 3;
+				expect( a ).toBe( 1 );
+				var a = true ? (false ? 1 : 2) : 3;
+				expect( a ).toBe( 2 );
+				var a = false ? (true ? 1 : 2) : 3;
+				expect( a ).toBe( 3 );
+			});
+
+			it( title='test double tenary with bracket and function calls' , body=function() {
+				var a = true ? true ? int(1) : 2 : 3;
+				expect( a ).toBe( 1 );
+				var a = true ? false ? 1 : int(2) : 3;
+				expect( a ).toBe( 2 );
+				var a = false ? true ? int(1) : int(2) : int(3);
+				expect( a ).toBe( 3 );
+			});
+
+
+		});
+
 	}
 
-	private string function createURI(string calledName){
-		var baseURI="/test/#listLast(getDirectoryFromPath(getCurrenttemplatepath()),"\/")#/";
-		return baseURI&""&calledName;
-	}
-}
+} 
