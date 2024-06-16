@@ -1554,8 +1554,6 @@ public final class Caster {
 	public static long toLongValue(Object o) throws PageException {
 		if (o instanceof Boolean) return ((((Boolean) o).booleanValue()) ? 1L : 0L);
 		else if (o instanceof Number) {
-			if (o instanceof BigDecimal) return toLongValueLossless((((BigDecimal) o)));
-			if (o instanceof Double) return toLongValueLossless((((Number) o).doubleValue()));
 			return (((Number) o).longValue());
 		}
 		else if (o instanceof CharSequence) {

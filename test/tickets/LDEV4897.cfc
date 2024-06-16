@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" labels="numeric" skip="true" {
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="numeric" {
 	
 	function run( testResults, testBox ) {
 		describe("Testcase for LDEV-4897 - The decimal value 0.005 is not close enough to any integer", function() {
