@@ -23,9 +23,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="qoq" {
 				var a = true ? (true ? 1 : 2) : 3;
 				expect( a ).toBe( 1 );
 				var a = true ? (false ? 1 : 2) : 3;
-				expect( a ).toBe( 1 );
+				expect( a ).toBe( 2 );
 				var a = false ? (true ? 1 : 2) : 3;
-				expect( a ).toBe( 1 );
+				expect( a ).toBe( 3 );
 			});
 
 			it( title='test double tenary with bracket and function calls' , body=function() {
