@@ -373,11 +373,11 @@ public abstract class DataSourceSupport implements DataSourcePro, Cloneable, Ser
 	@Override
 	public String id() {
 
-		return new StringBuilder(getConnectionStringTranslated()).append(':').append(getConnectionLimit()).append(':').append(getConnectionTimeout()).append(':')
-				.append(getLiveTimeout()).append(':').append(getMetaCacheTimeout()).append(':').append(getName().toLowerCase()).append(':').append(getUsername()).append(':')
-				.append(getPassword()).append(':').append(validate()).append(':').append(cd.toString()).append(':').append((getTimeZone() == null ? "null" : getTimeZone().getID()))
-				.append(':').append(isBlob()).append(':').append(isClob()).append(':').append(isReadOnly()).append(':').append(isStorage()).append(':').append(isRequestExclusive())
-				.append(':').append(isAlwaysResetConnections()).toString();
+		return new StringBuilder().append(getConnectionStringTranslated()).append(':').append(getConnectionLimit()).append(':').append(getConnectionTimeout()).append(':')
+				.append(getLiveTimeout()).append(':').append(getMetaCacheTimeout()).append(':').append((getName() + "").toLowerCase()).append(':').append(getUsername()).append(':')
+				.append(getPassword()).append(':').append(validate()).append(':').append(cd == null ? "null" : cd.toString()).append(':')
+				.append((getTimeZone() == null ? "null" : getTimeZone().getID())).append(':').append(isBlob()).append(':').append(isClob()).append(':').append(isReadOnly())
+				.append(':').append(isStorage()).append(':').append(isRequestExclusive()).append(':').append(isAlwaysResetConnections()).toString();
 	}
 
 	@Override
