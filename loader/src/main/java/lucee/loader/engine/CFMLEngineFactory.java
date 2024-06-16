@@ -625,7 +625,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 				CFMLEngine engine = null;
 				String v = getVersion(rc);
 
-				// in case the core version differes
+				// in case the core version differes we download it
 				if (specificVersion != null && !specificVersion.equals(toVersion(v, specificVersion))) {
 					InputStream in = null;
 					OutputStream out = null;
