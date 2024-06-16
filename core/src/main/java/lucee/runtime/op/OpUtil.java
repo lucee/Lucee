@@ -798,8 +798,9 @@ public final class OpUtil {
 	public static boolean eeq(PageContext pc, Object left, Object right) {
 		// same object is a match
 		if (left == right) return true;
+
 		// not same type not a match
-		if (Caster.toTypeName(left).equals(Caster.toTypeName(right))) return false;
+		if (!Caster.toTypeName(left).equals(Caster.toTypeName(right))) return false;
 
 		// simple vales - left and right have the same type
 		if (left instanceof String) return ((String) left).equalsIgnoreCase((String) right);
