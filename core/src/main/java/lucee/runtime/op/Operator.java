@@ -253,12 +253,12 @@ public final class Operator {
 	}
 
 	@Deprecated
-	public static boolean eeq(Object left, Object right) throws PageException {
+	public static boolean eeq(Object left, Object right) {
 		return OpUtil.eeq(ThreadLocalPageContext.get(), left, right);
 	}
 
 	@Deprecated
-	public static boolean neeq(Object left, Object right) throws PageException {
+	public static boolean neeq(Object left, Object right) {
 		return OpUtil.neeq(ThreadLocalPageContext.get(), left, right);
 	}
 
