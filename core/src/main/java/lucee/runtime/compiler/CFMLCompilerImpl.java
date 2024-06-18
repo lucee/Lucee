@@ -109,21 +109,28 @@ public final class CFMLCompilerImpl implements CFMLCompiler {
 			}
 			catch (RuntimeException re) {
 				String msg = StringUtil.emptyIfNull(re.getMessage());
-				if (StringUtil.indexOfIgnoreCase(msg, "Method code too large!") != -1) {
-					page = sc == null ? cfmlTransformer.transform(factory, config, ps, tld, fld, returnValue, ignoreScopes)
-							: cfmlTransformer.transform(factory, config, sc, tld, fld, System.currentTimeMillis(), config.getDotNotationUpperCase(), returnValue, ignoreScopes);
+				if (StringUtil.indexOfIgnoreCase(msg, "Method code too large!") != -1
+						// org.objectweb.asm.MethodTooLargeException
+						|| StringUtil.indexOfIgnoreCase(msg, "Method too large:") != -1) {
+					// page = sc == null ? cfmlTransformer.transform(factory, config, ps, tld, fld, returnValue,
+					// ignoreScopes)
+					// : cfmlTransformer.transform(factory, config, sc, tld, fld, System.currentTimeMillis(),
+					// config.getDotNotationUpperCase(), returnValue, ignoreScopes);
 
 					page.setSplitIfNecessary(true);
 					byte[] barr = page.execute(className);
 					result = new Result(page, barr, page.getJavaFunctions());
 				}
 				else throw re;
+
 			}
 			catch (ClassFormatError cfe) {
 				String msg = StringUtil.emptyIfNull(cfe.getMessage());
 				if (StringUtil.indexOfIgnoreCase(msg, "Invalid method Code length") != -1) {
-					page = ps != null ? cfmlTransformer.transform(factory, config, ps, tld, fld, returnValue, ignoreScopes)
-							: cfmlTransformer.transform(factory, config, sc, tld, fld, System.currentTimeMillis(), config.getDotNotationUpperCase(), returnValue, ignoreScopes);
+					// page = ps != null ? cfmlTransformer.transform(factory, config, ps, tld, fld, returnValue,
+					// ignoreScopes)
+					// : cfmlTransformer.transform(factory, config, sc, tld, fld, System.currentTimeMillis(),
+					// config.getDotNotationUpperCase(), returnValue, ignoreScopes);
 
 					page.setSplitIfNecessary(true);
 					byte[] barr = page.execute(className);
