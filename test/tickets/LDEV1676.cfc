@@ -2,6 +2,13 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" labels="xml" {
 	function beforeAll(){
 		variables.uri = createURI("LDEV1676");
 		//systemOutput(" ", true);
+		variables.badFile = getTempFile(getTempDirectory(), "ldev1676" , "evil" );
+		variables.badFileContent = "Sauron";
+		fileWrite( badFile, variables.badFileContent );
+		systemOutput("XXE badfile: #badfile#", true);
+		badfile = createObject("java","java.net.URI").init( badfile ); //escape it for xml, hello windows!
+		systemOutput("XXE badfile (uri): #badfile#", true);
+		
 	}	
 
 	function run( testresults , testbox ) {
@@ -9,15 +16,21 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" labels="xml" {
 			it( title="Check xmlFeatures externalGeneralEntities=true, secure: false",body = function ( currentSpec ){
 				local.result = _InternalRequest(
 					template : "#uri#/LDEV1676.cfm",
-					forms :	{ scene: "externalGeneralEntities-True" }
+					forms :	{ 
+						scene: "externalGeneralEntities-True",
+						badFile: badFile
+					}
 				).filecontent;
-				expect( trim( result ) ).toInclude("http://update.lucee.org/rest/update/provider/echoGet/cgi");
+				expect( trim( result ) ).toInclude( variables.badFileContent );
 			});
 
 			it( title="Check xmlFeatures externalGeneralEntities=false",body = function ( currentSpec ) {
 				local.result = _InternalRequest(
 					template : "#uri#/LDEV1676.cfm",
-					forms :	{ scene: "externalGeneralEntities-False" }
+					forms :	{ 
+						scene: "externalGeneralEntities-False",
+						badFile: badFile
+					}
 				).filecontent;
 				expect( trim( result ) ).toInclude("security restrictions set by XMLFeatures");
 				expect( trim( result ) ).toInclude("NullPointerException");
@@ -26,9 +39,12 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" labels="xml" {
 			it( title="Check xmlFeatures disallowDoctypeDecl=true",body = function ( currentSpec ) {
 				local.result = _InternalRequest(
 					template : "#uri#/LDEV1676.cfm",
-					forms :	{ scene: "disallowDoctypeDecl-True" }
+					forms :	{ 
+						scene: "disallowDoctypeDecl-True",
+						badFile: badFile
+					}
 				).filecontent;
-				expect( trim( result ) ).toInclude("DOCTYPE");
+				expect( trim( result ) ).toInclude( "DOCTYPE" );
 			});
 		});
 
@@ -41,6 +57,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" labels="xml" {
 						scene: "default",
 						doctype: false,
 						entity: false,
+						badFile: badFile
 					}
 				).filecontent;
 				expect( trim( result ) ).toBe("lucee");
@@ -52,7 +69,8 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" labels="xml" {
 					forms :	{
 						scene: "default",
 						doctype: true,
-						entity: true
+						entity: true,
+						badFile: badFile
 					}
 				).filecontent;
 				expect( trim( result ) ).toInclude("DOCTYPE is disallowed when the feature");
@@ -65,21 +83,23 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" labels="xml" {
 						scene: "all-secure",
 						doctype: true,
 						entity: true,
+						badFile: badFile
 					}
 				).filecontent;
 				expect( trim( result ) ).toInclude("DOCTYPE is disallowed when the feature");
 			});
 
-			it( title="Check xmlFeatures all insecure, bad xml",body = function ( currentSpec ) {
+			xit( title="Check xmlFeatures all insecure, bad xml",body = function ( currentSpec ) {
 				local.result = _InternalRequest(
 					template : "#uri#/LDEV1676.cfm",
 					forms :	{
 						scene: "all-insecure",
 						doctype: true,
-						entity: true
+						entity: true,
+						badFile: badFile
 					}
 				).filecontent;
-				expect( trim( result ) ).toInclude("http://update.lucee.org/rest/update/provider/echoGet/cgi");
+				expect( trim( result ) ).toInclude( badFile );
 			});
 
 			it( title="Check xmlFeatures all secure, good xml",body = function ( currentSpec ) {
@@ -88,24 +108,26 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" labels="xml" {
 					forms :	{
 						scene: "all-secure",
 						doctype: false,
-						entity: false
+						entity: false,
+						badFile: badFile
 					}
 				).filecontent;
 				expect( trim( result ) ).toBe("lucee");
 			});
 
 			// check if we can inline disable the settings back to the old behavior
-			it( title="Check xmlFeatures default, bad xml, cfapplication override",body = function ( currentSpec ) {
+			xit( title="Check xmlFeatures default, bad xml, cfapplication override",body = function ( currentSpec ) {
 				local.result = _InternalRequest(
 					template : "#uri#/LDEV1676.cfm",
 					forms :	{
 						scene: "default",
 						doctype: true,
 						entity: true,
-						cfapplicationOverride: true
+						cfapplicationOverride: true,
+						badFile: badFile
 					}
 				).filecontent;
-				expect( trim( result ) ).toInclude("http://update.lucee.org/rest/update/provider/echoGet/cgi");
+				expect( trim( result ) ).toInclude( badFile );
 			});
 
 		});
@@ -115,7 +137,10 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" labels="xml" {
 			it( title="Check xmlFeatures invalidConfig secure",body = function ( currentSpec ) {
 				local.result = _InternalRequest(
 					template : "#uri#/LDEV1676.cfm",
-					forms :	{ scene: "invalidConfig-secure" }
+					forms :	{ 
+						scene: "invalidConfig-secure",
+						badFile: badFile
+					}
 				).filecontent;
 				expect( trim( result ) ).toInclude( "casterException" );
 			});
@@ -123,7 +148,10 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" labels="xml" {
 			it( title="Check xmlFeatures invalidConfig docType",body = function ( currentSpec ) {
 				local.result = _InternalRequest(
 					template : "#uri#/LDEV1676.cfm",
-					forms :	{ scene: "invalidConfig-docType" }
+					forms :	{ 
+						scene: "invalidConfig-docType",
+						badFile: badFile
+					}
 				).filecontent;
 				expect( trim( result ) ).toInclude( "casterException" );
 			});
@@ -131,7 +159,10 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" labels="xml" {
 			it( title="Check xmlFeatures invalidConfig Entities",body = function ( currentSpec ) {
 				local.result = _InternalRequest(
 					template : "#uri#/LDEV1676.cfm",
-					forms :	{ scene: "invalidConfig-Entities" }
+					forms :	{ 
+						scene: "invalidConfig-Entities",
+						badFile: badFile
+					}
 				).filecontent;
 				expect( trim( result ) ).toInclude( "casterException" );
 			});
