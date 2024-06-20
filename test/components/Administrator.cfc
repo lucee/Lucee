@@ -549,7 +549,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 
 				it(title="checking verifyExtensionProvider()", body=function( currentSpec ) {
 					var getExtensionsProvider = adminWeb.getExtensionProviders();
-					adminWeb.verifyExtensionProvider(url=getExtensionsProvider.url);
+					expect(function(){
+						adminWeb.verifyExtensionProvider(url=getExtensionsProvider.url);
+					}).notToThrow( message="#getExtensionsProvider.url# should have returned 200" );
+					
 				});
 			});
 
