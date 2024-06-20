@@ -5,10 +5,9 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" labels="xml" {
 		variables.badFile = getTempFile(getTempDirectory(), "ldev1676" , "evil" );
 		variables.badFileContent = "Sauron";
 		fileWrite( badFile, variables.badFileContent );
-		systemOutput("XXE badfile: #badfile#", true);
-		badfile = createObject("java","java.net.URI").init( badfile ); //escape it for xml, hello windows!
-		systemOutput("XXE badfile (uri): #badfile#", true);
-		
+		//systemOutput("XXE badfile: #badfile#", true);
+		badfile = createObject("java","java.io.File").init( badfile ).toURI(); //escape it for xml, hello windows!
+		//systemOutput("XXE badfile (uri): #badfile#", true);
 	}	
 
 	function run( testresults , testbox ) {
