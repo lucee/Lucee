@@ -72,6 +72,7 @@ import lucee.runtime.type.dt.TimeSpanImpl;
 import lucee.runtime.type.scope.Scope;
 import lucee.runtime.type.scope.Undefined;
 import lucee.runtime.type.util.ArrayUtil;
+import lucee.runtime.type.util.ComponentUtil;
 import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.ListUtil;
 
@@ -140,6 +141,7 @@ public class GetApplicationSettings extends BIF {
 		sct.setEL("customTagPaths", toArray(ac.getCustomTagMappings()));
 		sct.setEL("componentPaths", toArray(ac.getComponentMappings()));
 		sct.setEL("loginStorage", AppListenerUtil.translateLoginStorage(ac.getLoginStorage()));
+		sct.setEL("componentDataMemberAccess", ComponentUtil.toStringAccess(((ConfigPro) pc.getConfig()).getComponentDataMemberDefaultAccess()));
 		sct.setEL(KeyConstants._mappings, toStruct(ac.getMappings()));
 		sct.setEL(KeyConstants._name, ac.getName());
 		sct.setEL("scriptProtect", AppListenerUtil.translateScriptProtect(ac.getScriptProtect()));

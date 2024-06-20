@@ -68,6 +68,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 				var as = getApplicationSettings(onlySupported=true);
 				expect( as ).toHaveKey("bufferoutput");
 				expect( as ).toHaveKey("suppresscontent");
+				expect( as ).toHaveKey("componentDataMemberAccess");
 			});
 		});
 	}
