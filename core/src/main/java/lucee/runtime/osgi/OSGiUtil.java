@@ -854,17 +854,17 @@ public class OSGiUtil {
 		}
 
 		if (symbolicVersion == null) symbolicVersion = "latest";
-		final URL updateUrl = new URL(updateProvider, "/rest/update/provider/download/" + symbolicName + "/" + symbolicVersion + "/" + (id != null ? id.toQueryString() : "")
-				+ (id == null ? "?" : "&") + "allowRedirect=true"
+		final URL updateUrl = new URL(updateProvider, "/rest/update/provider/download/" + symbolicName + "/" + symbolicVersion + "/?allowRedirect=true"
 
 		);
 		log(Logger.LOG_INFO, "Downloading bundle [" + symbolicName + ":" + symbolicVersion + "] from [" + updateUrl + "]");
-
+		final String userAgent = "Lucee " + factory.getInstance().getInfo().getVersion();
 		int code;
 		HttpURLConnection conn;
 		try {
 			conn = (HttpURLConnection) updateUrl.openConnection();
 			conn.setRequestMethod("GET");
+			conn.setRequestProperty("User-Agent", userAgent);
 			conn.setConnectTimeout(10000);
 			conn.connect();
 			code = conn.getResponseCode();
@@ -888,6 +888,7 @@ public class OSGiUtil {
 				try {
 					conn = (HttpURLConnection) url.openConnection();
 					conn.setRequestMethod("GET");
+					conn.setRequestProperty("User-Agent", userAgent);
 					conn.setConnectTimeout(10000);
 					conn.connect();
 					code = conn.getResponseCode();

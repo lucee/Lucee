@@ -983,19 +983,18 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 		jar = new File(jarDir, symbolicName.replace('.', '-') + "-" + symbolicVersion.replace('.', '-') + (".jar"));
 
 		final URL updateProvider = getUpdateLocation();
-		if (id == null && singelton != null) id = singelton.getIdentification();
-
-		final URL updateUrl = new URL(updateProvider, "/rest/update/provider/download/" + symbolicName + "/" + symbolicVersion + "/" + (id != null ? id.toQueryString() : "")
-				+ (id == null ? "?" : "&") + "allowRedirect=true&jv=" + System.getProperty("java.version")
+		
+		final URL updateUrl = new URL(updateProvider, "/rest/update/provider/download/" + symbolicName + "/" + symbolicVersion + "/?allowRedirect=true&jv=" + System.getProperty("java.version")
 
 		);
 		log(Logger.LOG_INFO, "Downloading bundle [" + symbolicName + ":" + symbolicVersion + "] from " + updateUrl + " and copying to " + jar);
-
+		final String userAgent = "Lucee " + CFMLEngineFactory.getInstance().getInfo().getVersion();
 		int code;
 		HttpURLConnection conn;
 		try {
 			conn = (HttpURLConnection) updateUrl.openConnection();
 			conn.setRequestMethod("GET");
+			conn.setRequestProperty("User-Agent", userAgent);
 			conn.setConnectTimeout(10000);
 			conn.connect();
 			code = conn.getResponseCode();
@@ -1022,6 +1021,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 				try {
 					conn = (HttpURLConnection) url.openConnection();
 					conn.setRequestMethod("GET");
+					conn.setRequestProperty("User-Agent", userAgent);
 					conn.setConnectTimeout(10000);
 					conn.connect();
 					code = conn.getResponseCode();
@@ -1190,12 +1190,10 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 	private File downloadCore(Identification id) throws IOException {
 		final URL updateProvider = getUpdateLocation();
 
-		if (id == null && singelton != null) id = singelton.getIdentification();
-
 		// only happens when the code runs from the debug project
 		if (version == null) version = getInstance().getInfo().getVersion();
 
-		final URL infoUrl = new URL(updateProvider, "/rest/update/provider/update-for/" + version.toString() + (id != null ? id.toQueryString() : ""));
+		final URL infoUrl = new URL(updateProvider, "/rest/update/provider/update-for/" + version.toString());
 
 		log(Logger.LOG_DEBUG, "Checking for core update at [" + updateProvider + "]");
 
@@ -1211,8 +1209,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 
 		log(Logger.LOG_INFO, "Found a newer Version \n - current Version [" + version.toString() + "]\n - available Version [" + strAvailableVersion + "]");
 
-		final URL updateUrl = new URL(updateProvider,
-				"/rest/update/provider/download/" + strAvailableVersion + (id != null ? id.toQueryString() : "") + (id == null ? "?" : "&") + "allowRedirect=true");
+		final URL updateUrl = new URL(updateProvider,"/rest/update/provider/download/" + strAvailableVersion + "?allowRedirect=true");
 		log(Logger.LOG_INFO, "Downloading core update from [" + updateUrl + "]");
 
 		// local resource
@@ -1225,6 +1222,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 		try {
 			conn = (HttpURLConnection) updateUrl.openConnection();
 			conn.setRequestMethod("GET");
+			conn.setRequestProperty("User-Agent", "Lucee" + getInstance().getInfo().getVersion());
 			conn.setConnectTimeout(10000);
 			conn.connect();
 			code = conn.getResponseCode();
@@ -1250,6 +1248,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 				try {
 					conn = (HttpURLConnection) url.openConnection();
 					conn.setRequestMethod("GET");
+					conn.setRequestProperty("User-Agent", "Lucee" + getInstance().getInfo().getVersion());
 					conn.setConnectTimeout(10000);
 					conn.connect();
 					code = conn.getResponseCode();

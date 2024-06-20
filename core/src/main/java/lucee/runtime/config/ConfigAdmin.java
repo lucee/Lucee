@@ -91,6 +91,7 @@ import lucee.runtime.cache.CacheConnection;
 import lucee.runtime.cache.CacheUtil;
 import lucee.runtime.cfx.CFXTagException;
 import lucee.runtime.cfx.CFXTagPool;
+import lucee.runtime.config.ConfigAdmin.PluginFilter;
 import lucee.runtime.config.maven.MavenUpdateProvider;
 import lucee.runtime.converter.ConverterException;
 import lucee.runtime.converter.JSONConverter;
@@ -3636,7 +3637,7 @@ public final class ConfigAdmin {
 		final URL updateProvider = factory.getUpdateLocation();
 
 		final URL updateUrl = new URL(updateProvider,
-				"/rest/update/provider/download/" + version.toString() + (id != null ? id.toQueryString() : "") + (id == null ? "?" : "&") + "allowRedirect=true");
+				"/rest/update/provider/download/" + version.toString() + "?allowRedirect=true");
 		// log.debug("Admin", "download "+version+" from " + updateUrl);
 		// System. out.println(updateUrl);
 
@@ -3644,12 +3645,14 @@ public final class ConfigAdmin {
 		final File patchDir = factory.getPatchDirectory();
 		final File newLucee = new File(patchDir, version + (".lco"));
 
+		final String userAgent = "Lucee " + factory.getInstance().getInfo().getVersion();
 		int code;
 		HttpURLConnection conn;
 		try {
 			conn = (HttpURLConnection) updateUrl.openConnection();
 			conn.setRequestMethod("GET");
 			conn.setConnectTimeout(10000);
+			conn.setRequestProperty("User-Agent", userAgent);
 			conn.connect();
 			code = conn.getResponseCode();
 		}
@@ -3677,6 +3680,7 @@ public final class ConfigAdmin {
 				try {
 					conn = (HttpURLConnection) url.openConnection();
 					conn.setRequestMethod("GET");
+					conn.setRequestProperty("User-Agent", userAgent);
 					conn.setConnectTimeout(10000);
 					conn.connect();
 					code = conn.getResponseCode();
