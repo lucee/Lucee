@@ -14,7 +14,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" labels="xml" {
 		variables.entityXml = '<?xml version="1.0" encoding="ISO-8859-1"?>
 			<!DOCTYPE foo [
 			<!ELEMENT foo ANY >
-				<cfoutput><!ENTITY xxe SYSTEM "#badfile#" ></cfoutput>
+				<!ENTITY xxe SYSTEM "#badfile#404">
 			]>
 			<foo>&xxe;</foo>'; // that url 404s
 
