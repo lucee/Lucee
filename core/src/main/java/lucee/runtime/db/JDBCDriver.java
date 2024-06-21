@@ -37,9 +37,24 @@ public class JDBCDriver {
 
 	public JDBCDriver(String label, String id, String connStr, ClassDefinition cd) {
 		this.label = label;
-		this.id = StringUtil.isEmpty(id) ? null : id.trim();
-		this.connStr = StringUtil.isEmpty(connStr) ? null : connStr.trim();
+		this.id = StringUtil.isEmpty(id, true) ? null : id.trim();
+		this.connStr = StringUtil.isEmpty(connStr, true) ? getById(id) : connStr.trim();
 		this.cd = cd;
+	}
+
+	private static String getById(String id) {
+		// FUTURE PATCH add to driver itself
+		if ("hsqldb".equalsIgnoreCase(id)) return "jdbc:hsqldb:file:{path}{database}";
+		if ("exasol".equalsIgnoreCase(id)) return "jdbc:exa:{host}:{port}";
+		if ("teradata".equalsIgnoreCase(id)) return "jdbc:teradata://{host}";
+		if ("jtds".equalsIgnoreCase(id)) return "jdbc:jtds:sqlserver://{host}:{port}/{database}";
+		if ("h2".equalsIgnoreCase(id)) return "jdbc:h2:{path}{database};MODE={mode}";
+		if ("mysql".equalsIgnoreCase(id)) return "jdbc:mysql://{host}:{port}/{database}";
+		if ("postgresql".equalsIgnoreCase(id)) return "jdbc:postgresql://{host}:{port}/{database}";
+		if ("mssql".equalsIgnoreCase(id)) return "jdbc:sqlserver://{host}:{port}";
+		if ("oracle".equalsIgnoreCase(id)) return "jdbc:oracle:{drivertype}:@{host}:{port}:{database}";
+		if ("derby".equalsIgnoreCase(id)) return "jdbc:derby:{mode}:{path}{database}";
+		return null;
 	}
 
 	public static String extractClassName(Bundle bundle) throws IOException {

@@ -346,8 +346,8 @@ public final class ClassUtil {
 	 * @return matching Class
 	 */
 	private static Class _loadClass(ClassLoading cl, String className, Class defaultValue, Set<Throwable> exceptions) {
+		if (StringUtil.isEmpty(className, true)) return defaultValue;
 		className = className.trim();
-		if (StringUtil.isEmpty(className)) return defaultValue;
 
 		Class clazz = checkPrimaryTypesBytecodeDef(className, null);
 		if (clazz != null) return clazz;
