@@ -48,7 +48,7 @@ public class BodyBase extends StatementBaseNoFinal implements Body {
 	private LinkedList<Statement> statements = new LinkedList<Statement>();
 	private Statement last = null;
 	// private int count=-1;
-	private final static int MAX_STATEMENTS = 206;
+	private final static int MAX_STATEMENTS = 1000;
 
 	/**
 	 * Constructor of the class
@@ -147,7 +147,8 @@ public class BodyBase extends StatementBaseNoFinal implements Body {
 		writeOut(bc, body.getStatements());
 	}
 
-	public static void writeOut(final BytecodeContext bc, List<Statement> statements) throws TransformerException {
+	// FUTURE not used anymore, we keep it around for the moment in case we need a fallback that works
+	public static void writeOutOld(final BytecodeContext bc, List<Statement> statements) throws TransformerException {
 		GeneratorAdapter adapter = bc.getAdapter();
 		boolean isOutsideMethod;
 		GeneratorAdapter a = null;
@@ -196,19 +197,21 @@ public class BodyBase extends StatementBaseNoFinal implements Body {
 		}
 	}
 
-	public static void writeOutNew(final BytecodeContext bc, List<Statement> statements) throws TransformerException {
+	public static void writeOut(final BytecodeContext bc, List<Statement> statements) throws TransformerException {
 
 		if (statements == null || statements.size() == 0) return;
 
 		Statement s;
-		Iterator<Statement> it = statements.iterator();
-		boolean isVoidMethod = bc.getMethod().getReturnType().equals(Types.VOID);
+
 		boolean split = bc.getPage().getSplitIfNecessary();
 
 		// split
-		if (split && isVoidMethod && statements.size() > 1 && bc.doSubFunctions()) {
-			int collectionSize = statements.size() / 10;
+		if (split && statements.size() > MAX_STATEMENTS && bc.doSubFunctions() && !ASMUtil.hasReturn(statements)) {
+			int ratio = Math.round(statements.size() / ((float) MAX_STATEMENTS));
+			int collectionSize = statements.size() / ratio;
 			if (collectionSize < 1) collectionSize = 1;
+			Iterator<Statement> it = statements.iterator();
+
 			List<Statement> _statements = new ArrayList<Statement>();
 			while (it.hasNext()) {
 				s = it.next();
@@ -239,6 +242,7 @@ public class BodyBase extends StatementBaseNoFinal implements Body {
 		}
 		// no split
 		else {
+			Iterator<Statement> it = statements.iterator();
 			while (it.hasNext()) {
 				ExpressionUtil.writeOut(it.next(), bc);
 			}

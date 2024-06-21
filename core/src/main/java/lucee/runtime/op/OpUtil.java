@@ -823,7 +823,7 @@ public final class OpUtil {
 	 * @return
 	 * @throws PageException
 	 */
-	public static boolean neeq(PageContext pc, Object left, Object right) throws PageException {
+	public static boolean neeq(PageContext pc, Object left, Object right) {
 		return !eeq(pc, left, right);
 	}
 

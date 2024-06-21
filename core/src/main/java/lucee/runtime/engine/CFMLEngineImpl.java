@@ -1678,7 +1678,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 		boolean isWeb = config instanceof ConfigWeb;
 		String context = isWeb ? "Web" : "Server";
 
-		if ((isWeb || config.getAdminMode() == ConfigImpl.ADMINMODE_SINGLE) && SystemUtil.getSystemPropOrEnvVar("lucee.enable.warmup", "").equalsIgnoreCase("true")) {
+		if ((isWeb || config.getAdminMode() == ConfigImpl.ADMINMODE_SINGLE) && Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.enable.warmup", ""), false)) {
 			String msg = "Lucee warmup completed. Shutting down.";
 			CONSOLE_ERR.println(msg);
 			LogUtil.log(config, Log.LEVEL_ERROR, "application", msg);

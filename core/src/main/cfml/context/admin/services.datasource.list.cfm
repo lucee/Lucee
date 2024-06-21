@@ -160,35 +160,35 @@ list all mappings and display necessary edit fields --->
 <cfset srcGlobal=queryNew("name,classname,dsn,username,password,readonly,storage,openConnections,idleConnections,activeConnections,waitingForConnection,host,port")>
 <cfloop query="datasources">
 	<cfif not datasources.readOnly>
-		<cfset QueryAddRow(srcLocal)>
-		<cfset QuerySetCell(srcLocal,"name",datasources.name)>
-		<cfset QuerySetCell(srcLocal,"classname",datasources.classname)>
-		<cfset QuerySetCell(srcLocal,"dsn",datasources.dsn)>
-		<cfset QuerySetCell(srcLocal,"username",datasources.username)>
-		<cfset QuerySetCell(srcLocal,"password",datasources.password)>
-		<cfset QuerySetCell(srcLocal,"openConnections",datasources.openConnections)>
-		<cfset QuerySetCell(srcLocal,"idleConnections",datasources.idleConnections)>
-		<cfset QuerySetCell(srcLocal,"activeConnections",datasources.activeConnections)>
-		<cfset QuerySetCell(srcLocal,"waitingForConnection",datasources.waitingForConnection)>
-		<cfset QuerySetCell(srcLocal,"readonly",datasources.readonly)>
-		<cfset QuerySetCell(srcLocal,"storage",datasources.storage)>
-		<cfset QuerySetCell(srcLocal,"host",datasources.host?:'')>
-		<cfset QuerySetCell(srcLocal,"port",datasources.port?:'')>
+		<cfset row=QueryAddRow(srcLocal)>
+		<cfset QuerySetCell(srcLocal,"name",datasources.name,row)>
+		<cfset QuerySetCell(srcLocal,"classname",datasources.classname,row)>
+		<cfset QuerySetCell(srcLocal,"dsn",datasources.dsn,row)>
+		<cfset QuerySetCell(srcLocal,"username",datasources.username,row)>
+		<cfset QuerySetCell(srcLocal,"password",datasources.password,row)>
+		<cfset QuerySetCell(srcLocal,"openConnections",datasources.openConnections,row)>
+		<cfset QuerySetCell(srcLocal,"idleConnections",datasources.idleConnections,row)>
+		<cfset QuerySetCell(srcLocal,"activeConnections",datasources.activeConnections,row)>
+		<cfset QuerySetCell(srcLocal,"waitingForConnection",datasources.waitingForConnection,row)>
+		<cfset QuerySetCell(srcLocal,"readonly",datasources.readonly,row)>
+		<cfset QuerySetCell(srcLocal,"storage",datasources.storage,row)>
+		<cfset QuerySetCell(srcLocal,"host",datasources.host?:'',row)>
+		<cfset QuerySetCell(srcLocal,"port",datasources.port?:'',row)>
 	<cfelse>
-		<cfset QueryAddRow(srcGlobal)>
-		<cfset QuerySetCell(srcGlobal,"name",datasources.name)>
-		<cfset QuerySetCell(srcGlobal,"classname",datasources.classname)>
-		<cfset QuerySetCell(srcGlobal,"dsn",datasources.dsn)>
-		<cfset QuerySetCell(srcGlobal,"username",datasources.username)>
-		<cfset QuerySetCell(srcGlobal,"password",datasources.password)>
-		<cfset QuerySetCell(srcGlobal,"openConnections",datasources.openConnections)>
-		<cfset QuerySetCell(srcLocal,"idleConnections",datasources.idleConnections)>
-		<cfset QuerySetCell(srcLocal,"activeConnections",datasources.activeConnections)>
-		<cfset QuerySetCell(srcLocal,"waitingForConnection",datasources.waitingForConnection)>
-		<cfset QuerySetCell(srcGlobal,"readonly",datasources.readonly)>
-		<cfset QuerySetCell(srcGlobal,"storage",datasources.storage)>
-		<cfset QuerySetCell(srcGlobal,"host",datasources.host?:'')>
-		<cfset QuerySetCell(srcGlobal,"port",datasources.port?:'')>
+		<cfset row=QueryAddRow(srcGlobal)>
+		<cfset QuerySetCell(srcGlobal,"name",datasources.name,row)>
+		<cfset QuerySetCell(srcGlobal,"classname",datasources.classname,row)>
+		<cfset QuerySetCell(srcGlobal,"dsn",datasources.dsn,row)>
+		<cfset QuerySetCell(srcGlobal,"username",datasources.username,row)>
+		<cfset QuerySetCell(srcGlobal,"password",datasources.password,row)>
+		<cfset QuerySetCell(srcGlobal,"openConnections",datasources.openConnections,row)>
+		<cfset QuerySetCell(srcGlobal,"idleConnections",datasources.idleConnections,row)>
+		<cfset QuerySetCell(srcGlobal,"activeConnections",datasources.activeConnections,row)>
+		<cfset QuerySetCell(srcGlobal,"waitingForConnection",datasources.waitingForConnection,row)>
+		<cfset QuerySetCell(srcGlobal,"readonly",datasources.readonly,row)>
+		<cfset QuerySetCell(srcGlobal,"storage",datasources.storage,row)>
+		<cfset QuerySetCell(srcGlobal,"host",datasources.host?:'',row)>
+		<cfset QuerySetCell(srcGlobal,"port",datasources.port?:'',row)>
 	</cfif>
 </cfloop>
 <cfset stText.Settings.active="Active">

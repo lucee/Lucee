@@ -2277,14 +2277,24 @@ public final class ConfigWebFactory extends ConfigFactory {
 						jdbc = config.getJDBCDriverById(getAttr(dataSource, "id"), null);
 						if (jdbc != null && jdbc.cd != null) {
 							cd = jdbc.cd;
-
 						}
-						else cd = getClassDefinition(dataSource, "", config.getIdentification());
+						else {
+							cd = getClassDefinition(dataSource, "", config.getIdentification());
+						}
+
+						// we have no class
+						if (!cd.hasClass()) {
+							jdbc = config.getJDBCDriverById(getAttr(dataSource, "type"), null);
+							if (jdbc != null && jdbc.cd != null) {
+								cd = jdbc.cd;
+							}
+						}
 						// we only have a class
-						if (!cd.isBundle()) {
+						else if (!cd.isBundle()) {
 							jdbc = config.getJDBCDriverByClassName(cd.getClassName(), null);
 							if (jdbc != null && jdbc.cd != null && jdbc.cd.isBundle()) cd = jdbc.cd;
 						}
+
 						// still no bundle!
 						if (!cd.isBundle()) cd = patchJDBCClass(config, cd);
 						int idle = Caster.toIntValue(getAttr(dataSource, "idleTimeout"), -1);
@@ -2292,10 +2302,23 @@ public final class ConfigWebFactory extends ConfigFactory {
 						int defLive = 15;
 						if (idle > 0) defLive = idle * 5;// for backward compatibility
 
+						String dsn = getAttr(dataSource, "connectionString");
+						if (StringUtil.isEmpty(dsn, true)) dsn = getAttr(dataSource, "dsn");
+						if (StringUtil.isEmpty(dsn, true)) dsn = getAttr(dataSource, "connStr");
+						if (StringUtil.isEmpty(dsn, true)) dsn = getAttr(dataSource, "url");
+						if (StringUtil.isEmpty(dsn, true)) {
+							if (jdbc == null && cd.hasClass()) {
+								jdbc = config.getJDBCDriverByClassName(cd.getClassName(), null);
+							}
+							if (jdbc != null) {
+								dsn = jdbc.connStr;
+							}
+
+						}
 						setDatasource(config, datasources, e.getKey().getString(), cd, getAttr(dataSource, "host"), getAttr(dataSource, "database"),
-								Caster.toIntValue(getAttr(dataSource, "port"), -1), getAttr(dataSource, "dsn"), getAttr(dataSource, "username"),
-								ConfigWebUtil.decrypt(getAttr(dataSource, "password")), null, Caster.toIntValue(getAttr(dataSource, "connectionLimit"), DEFAULT_MAX_CONNECTION),
-								idle, Caster.toIntValue(getAttr(dataSource, "liveTimeout"), defLive), Caster.toIntValue(getAttr(dataSource, "minIdle"), 0),
+								Caster.toIntValue(getAttr(dataSource, "port"), -1), dsn, getAttr(dataSource, "username"), ConfigWebUtil.decrypt(getAttr(dataSource, "password")),
+								null, Caster.toIntValue(getAttr(dataSource, "connectionLimit"), DEFAULT_MAX_CONNECTION), idle,
+								Caster.toIntValue(getAttr(dataSource, "liveTimeout"), defLive), Caster.toIntValue(getAttr(dataSource, "minIdle"), 0),
 								Caster.toIntValue(getAttr(dataSource, "maxIdle"), 0), Caster.toIntValue(getAttr(dataSource, "maxTotal"), 0),
 								Caster.toLongValue(getAttr(dataSource, "metaCacheTimeout"), 60000), toBoolean(getAttr(dataSource, "blob"), true),
 								toBoolean(getAttr(dataSource, "clob"), true), Caster.toIntValue(getAttr(dataSource, "allow"), DataSource.ALLOW_ALL),

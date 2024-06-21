@@ -80,11 +80,13 @@ import lucee.transformer.bytecode.statement.FlowControlFinal;
 import lucee.transformer.bytecode.statement.FlowControlRetry;
 import lucee.transformer.bytecode.statement.HasBody;
 import lucee.transformer.bytecode.statement.PrintOut;
+import lucee.transformer.bytecode.statement.Return;
 import lucee.transformer.bytecode.statement.Switch;
 import lucee.transformer.bytecode.statement.TryCatchFinally;
 import lucee.transformer.bytecode.statement.tag.Attribute;
 import lucee.transformer.bytecode.statement.tag.Tag;
 import lucee.transformer.bytecode.statement.tag.TagComponent;
+import lucee.transformer.bytecode.statement.tag.TagReturn;
 import lucee.transformer.bytecode.statement.tag.TagTry;
 import lucee.transformer.bytecode.util.SourceNameClassVisitor.SourceInfo;
 import lucee.transformer.cast.Cast;
@@ -165,6 +167,19 @@ public final class ASMUtil {
 		if (p == null) return false;
 		return p.getClass() == clazz;
 
+	}
+
+	public static boolean hasReturn(List<Statement> statements) {
+		// lucee.transformer.bytecode.statement.tag.TagReturn
+		if (statements != null) {
+			for (Statement s: statements) {
+				if (s instanceof TagReturn || s instanceof Return) return true;
+				if (s instanceof HasBody) {
+					if (hasReturn(((HasBody) s).getBody().getStatements())) return true;
+				}
+			}
+		}
+		return false;
 	}
 
 	public static boolean hasAncestorRetryFCStatement(Statement stat, String label) {
