@@ -22,7 +22,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 			
 	public void function testImplicit(){
 		http url="https://update.lucee.org/rest/update/provider/echoGet?filtername=henk+patat" result="local.res";
-		res=evaluate(res.filecontent);
+		expect( isJson( res.filecontent ) ).toBeTrue( res.filecontent );
+		var res=deserializeJSON(res.filecontent);
 		assertEquals("henk+patat",res.url.filtername);
 	}
 

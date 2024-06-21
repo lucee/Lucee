@@ -27,7 +27,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		local.httpSendResult = local.http.send(); 
 		local.httpResult = httpSendResult.getPrefix(); 
 		local.filecontent=httpResult.filecontent;
-		local.data=evaluate(filecontent);
+		expect( isJson( filecontent ) ).toBeTrue( filecontent );
+		local.data=deserializeJson( filecontent );
 
 		assertEquals('email',data.form.fieldNames);
 		assertEquals('test@test.com',data.form.email);
