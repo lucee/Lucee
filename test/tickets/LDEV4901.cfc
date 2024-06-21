@@ -2,7 +2,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" labels="struct" {
 
     function run( testResults, testBox ) {
         describe( "Testcase for LDEV-4901", function() {
-            it( title="only care about compiling this file", , body=function( currentSpec ) {
+            it( title="only care about compiling this file", body=function( currentSpec ) {
             });
         });
     }
