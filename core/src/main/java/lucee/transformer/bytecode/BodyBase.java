@@ -198,28 +198,19 @@ public class BodyBase extends StatementBaseNoFinal implements Body {
 	}
 
 	public static void writeOut(final BytecodeContext bc, List<Statement> statements) throws TransformerException {
-
 		if (statements == null || statements.size() == 0) return;
 
 		Statement s;
-
-		// boolean split = bc.getPage().getSplitIfNecessary();
-		// split
-
-		// print.e("descendants:" + (p == null ? 0 : p.getDescendants()));
-		// print.e("statments:" + statements.size());
-
-		if (statements.size() > MAX_STATEMENTS && bc.doSubFunctions()) {
-			int ratio = Math.round(statements.size() / ((float) MAX_STATEMENTS));
-			int collectionSize = statements.size() / ratio;
-			if (collectionSize < 1) collectionSize = 1;
+		if ((bc.getCount() > MAX_STATEMENTS || statements.size() > MAX_STATEMENTS) && bc.doSubFunctions()) {
 			Iterator<Statement> it = statements.iterator();
 
 			final List<Statement> subStatements = new ArrayList<Statement>();
 			while (it.hasNext()) {
 				s = it.next();
+
 				// reached the max size
 				if (subStatements.size() >= MAX_STATEMENTS) {
+					bc.incCount();
 					addToSubMethod(bc, subStatements.toArray(new Statement[subStatements.size()]));
 					subStatements.clear();
 				}
@@ -227,9 +218,11 @@ public class BodyBase extends StatementBaseNoFinal implements Body {
 				if (s.hasFlowController()) {
 					// add existing statements to sub method
 					if (subStatements.size() > 0) {
+						bc.incCount();
 						addToSubMethod(bc, subStatements.toArray(new Statement[subStatements.size()]));
 						subStatements.clear();
 					}
+					bc.incCount();
 					ExpressionUtil.writeOut(s, bc);
 				}
 				else {
@@ -243,7 +236,9 @@ public class BodyBase extends StatementBaseNoFinal implements Body {
 		else {
 			Iterator<Statement> it = statements.iterator();
 			while (it.hasNext()) {
-				ExpressionUtil.writeOut(it.next(), bc);
+				s = it.next();
+				bc.incCount();
+				ExpressionUtil.writeOut(s, bc);
 			}
 		}
 	}
@@ -254,10 +249,12 @@ public class BodyBase extends StatementBaseNoFinal implements Body {
 		GeneratorAdapter callerAdapter = callerBC.getAdapter();
 		String method = ASMUtil.createOverfowMethod(callerBC.getMethod().getName(), callerBC.getPage().getMethodCount());
 
-		/*
-		 * for (int i = 0; i < statements.length; i++) { if (statements[i].getStart() != null) {
-		 * bc.visitLine(statements[i].getStart()); break; } }
-		 */
+		for (int i = 0; i < statements.length; i++) {
+			if (statements[i].getStart() != null) {
+				callerBC.visitLine(statements[i].getStart());
+				break;
+			}
+		}
 
 		// ExpressionUtil.lastLine(bc);
 		Method m = new Method(method, Types.VOID, new Type[] { Types.PAGE_CONTEXT });
