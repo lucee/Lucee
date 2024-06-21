@@ -54,7 +54,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="http" {
 		http url="#variables.updateProvider#/rest/update/provider/echoGet" result="local.res" method="get"{
 			httpparam name="susi" value="Sorglos";
 		}
-		res=deserializeJSON(res.filecontent);
+		var res=deserializeJSON(res.filecontent);
 
 		assertEquals("Sorglos",res.url.susi);
 	}
@@ -71,7 +71,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="http" {
 		http url="#variables.updateProvider#/rest/update/provider/echoPut" result="local.res" method="put" throwonerror="no" charset="utf-8"{
 			httpparam type="body" value=data;
 		}
-		res=deserializeJSON(res.filecontent);
+		var res=deserializeJSON(res.filecontent);
 		assertEquals(data,res.httpRequestData.content);
 	}
 
@@ -105,11 +105,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="http" {
 		http url="#variables.updateProvider#/rest/update/provider/echoGet" result="local.res2" method="get" cachedWithin="request"{
 			httpparam name="susi" value="Sorglos";
 		}
-		systemOutput("", true);
-		systemOutput(res.filecontent, true);
-		res = evaluate( res.filecontent );
-		res = deserializeJSON( res.filecontent );
-		res2 = deserializeJSON( res2.filecontent );
+		var res = deserializeJSON( res.filecontent );
+		var res2 = deserializeJSON( res2.filecontent );
 		expect( res.url.susi ).toBe( res2.url.susi );
 	}
 }
