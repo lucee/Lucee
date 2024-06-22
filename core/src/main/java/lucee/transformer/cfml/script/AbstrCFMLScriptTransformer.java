@@ -511,13 +511,13 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 		// int line=data.srcCode.getLine();
 		comments(data);
 		Expression expr;
-		boolean pre = insideCase;
+		boolean pre = data.insideCase;
 		try {
-			insideCase = true;
+			data.insideCase = true;
 			expr = super.expression(data);
 		}
 		finally {
-			insideCase = pre;
+			data.insideCase = pre;
 		}
 		comments(data);
 
