@@ -171,18 +171,15 @@ public abstract class AbstrCFMLExprTransformer {
 	public static final short CTX_QUERY = TagLibTagScript.CTX_QUERY;
 	public static final short CTX_ZIP = TagLibTagScript.CTX_ZIP;
 	public static final short CTX_STATIC = TagLibTagScript.CTX_STATIC;
-	public static final short CTX_TENARY_LEFT = TagLibTagScript.CTX_TENARY_LEFT;
+	// public static final short CTX_TENARY_LEFT = TagLibTagScript.CTX_TENARY_LEFT;
 	public static final short CTX_TENARY_MIDDLE = TagLibTagScript.CTX_TENARY_MIDDLE;
-	public static final short CTX_TENARY_RIGHT = TagLibTagScript.CTX_TENARY_RIGHT;
+	// public static final short CTX_TENARY_RIGHT = TagLibTagScript.CTX_TENARY_RIGHT;
 
 	private DocCommentTransformer docCommentTransformer = new DocCommentTransformer();
 
 	protected short ATTR_TYPE_NONE = TagLibTagAttr.SCRIPT_SUPPORT_NONE;
 	protected short ATTR_TYPE_OPTIONAL = TagLibTagAttr.SCRIPT_SUPPORT_OPTIONAL;
 	protected short ATTR_TYPE_REQUIRED = TagLibTagAttr.SCRIPT_SUPPORT_REQUIRED;
-
-	private short tenaryContext = 0;
-	protected boolean insideCase = false;
 
 	protected static EndCondition SEMI_BLOCK = new EndCondition() {
 		@Override
@@ -388,29 +385,21 @@ public abstract class AbstrCFMLExprTransformer {
 
 			// tenary middle
 			Expression left;
-			short pre = 0;
+			boolean pre = false;
 			try {
-				pre = tenaryContext;
-				tenaryContext = CTX_TENARY_MIDDLE;
+				pre = data.insideTenaryMiddle;
+				data.insideTenaryMiddle = true;
 				left = assignOp(data);
 			}
 			finally {
-				tenaryContext = pre;
+				data.insideTenaryMiddle = pre;
 			}
 			comments(data);
 			if (!data.srcCode.forwardIfCurrent(':')) throw new TemplateException(data.srcCode, "invalid conditional operator");
 			comments(data);
 			// tenary right
 			Expression right;
-			pre = 0;
-			try {
-				pre = tenaryContext;
-				tenaryContext = CTX_TENARY_RIGHT;
-				right = assignOp(data);
-			}
-			finally {
-				tenaryContext = pre;
-			}
+			right = assignOp(data);
 			expr = data.factory.opContional(expr, left, right);
 		}
 		return expr;
@@ -1887,7 +1876,7 @@ public abstract class AbstrCFMLExprTransformer {
 	}
 
 	private Expression getListener(Data data) throws TemplateException {
-		if (!insideCase && tenaryContext != CTX_TENARY_MIDDLE && data.srcCode.isPreviousIgnoreSpace(')') && data.srcCode.forwardIfCurrent(':')) {
+		if (!data.insideCase && data.insideTenaryMiddle && data.srcCode.isPreviousIgnoreSpace(')') && data.srcCode.forwardIfCurrent(':')) {
 			int pos = data.srcCode.getPos();
 			comments(data);
 			Expression expr = assignOp(data);

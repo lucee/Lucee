@@ -3,7 +3,7 @@
 		<!DOCTYPE foo [
 		<!ELEMENT foo ANY >
 		<cfif FORM.entity>
-			<!ENTITY xxe SYSTEM "http://update.lucee.org/rest/update/provider/echoGet/cgi" >
+			<cfoutput><!ENTITY xxe SYSTEM "#badFile#" ></cfoutput>
 		</cfif>
 		]>
 	</cfif>

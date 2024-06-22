@@ -582,24 +582,6 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 				lucee = null;
 			}
 		}
-		// Load Lucee
-		// URL url=null;
-		if (lucee == null && specificVersion != null) {
-			InputStream is = null;
-			OutputStream os = null;
-			try {
-				is = new MavenUpdateProvider().getCore(specificVersion);
-				lucee = new File(patcheDir, specificVersion + ".lco");
-				Util.copy(is, os = new FileOutputStream(lucee));
-			}
-			catch (Exception e) {
-				log(e);
-				e.printStackTrace();// TODO remove
-			}
-			finally {
-				Util.closeEL(is, os);
-			}
-		}
 
 		try {
 
@@ -642,16 +624,36 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 
 				CFMLEngine engine = null;
 				String v = getVersion(rc);
-				lucee = new File(patcheDir, v + "." + coreExt);
-				try {
-					is = new FileInputStream(rc);
-					os = new BufferedOutputStream(new FileOutputStream(lucee));
-					copy(is, os);
+
+				// in case the core version differes we download it
+				if (specificVersion != null && !specificVersion.equals(toVersion(v, specificVersion))) {
+					InputStream in = null;
+					OutputStream out = null;
+					try {
+						in = new MavenUpdateProvider().getCore(specificVersion);
+						lucee = new File(patcheDir, specificVersion + ".lco");
+						Util.copy(in, out = new FileOutputStream(lucee));
+					}
+					catch (Exception e) {
+						log(e);
+						e.printStackTrace();// TODO remove
+					}
+					finally {
+						Util.closeEL(in, out);
+					}
 				}
-				finally {
-					closeEL(is);
-					closeEL(os);
-					rc.delete();
+				else {
+					lucee = new File(patcheDir, v + "." + coreExt);
+					try {
+						is = new FileInputStream(rc);
+						os = new BufferedOutputStream(new FileOutputStream(lucee));
+						copy(is, os);
+					}
+					finally {
+						closeEL(is);
+						closeEL(os);
+						rc.delete();
+					}
 				}
 
 				engine = _getCore(lucee);

@@ -795,9 +795,24 @@ public final class OpUtil {
 	 * @return
 	 * @throws PageException
 	 */
-	public static boolean eeq(PageContext pc, Object left, Object right) throws PageException {
-		if (compare(pc, left, right) != 0) return false;
-		return Caster.toTypeName(left).equals(Caster.toTypeName(right));
+	public static boolean eeq(PageContext pc, Object left, Object right) {
+		// same object is a match
+		if (left == right) return true;
+
+		// not same type not a match
+		if (!Caster.toTypeName(left).equals(Caster.toTypeName(right))) return false;
+
+		// simple vales - left and right have the same type
+		if (left instanceof String) return ((String) left).equalsIgnoreCase((String) right);
+		else if (left instanceof Number) return ((Number) left).equals(right);
+		else if (left instanceof Boolean) return ((Boolean) left).equals(right);
+		else if (left instanceof Date) return ((Date) left).equals(right);
+		else if (left instanceof Locale) return ((Locale) left).equals(right);
+		else if (left instanceof TimeZone) return ((TimeZone) left).equals(right);
+		else if (left instanceof Character) return ((Character) left).equals(right);
+		else if (left instanceof Calendar) return ((Calendar) left).equals(right);
+
+		return left == right;
 	}
 
 	/**
@@ -808,7 +823,7 @@ public final class OpUtil {
 	 * @return
 	 * @throws PageException
 	 */
-	public static boolean neeq(PageContext pc, Object left, Object right) throws PageException {
+	public static boolean neeq(PageContext pc, Object left, Object right) {
 		return !eeq(pc, left, right);
 	}
 

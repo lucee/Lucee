@@ -10,13 +10,14 @@ import lucee.runtime.config.Constants;
 import lucee.runtime.functions.other.CreateUniqueId;
 import lucee.transformer.TransformerException;
 import lucee.transformer.bytecode.BytecodeContext;
+import lucee.transformer.bytecode.Statement;
 import lucee.transformer.bytecode.statement.tag.Attribute;
 import lucee.transformer.bytecode.statement.tag.TagComponent;
 import lucee.transformer.bytecode.util.Types;
 import lucee.transformer.cfml.Data;
 import lucee.transformer.cfml.evaluator.EvaluatorException;
 
-public class ComponentAsExpression extends ExpressionBase {
+public class ComponentAsExpression extends ExpressionBase implements AsExpression {
 	private static final Type COMPONENT_LOADER = Type.getType(ComponentLoader.class);
 	// ComponentImpl loadInline(PageContext pc, CIPage page)
 	private static final Method LOAD_INLINE1 = new Method("loadInline", Types.COMPONENT_IMPL, new Type[] { Types.CI_PAGE });
@@ -72,6 +73,11 @@ public class ComponentAsExpression extends ExpressionBase {
 	 * @return the closure
 	 */
 	public TagComponent getTagComponent() {
+		return tc;
+	}
+
+	@Override
+	public Statement getStatement() {
 		return tc;
 	}
 }

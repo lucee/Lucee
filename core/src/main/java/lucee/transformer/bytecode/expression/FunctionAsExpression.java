@@ -21,10 +21,11 @@ import org.objectweb.asm.Type;
 
 import lucee.transformer.TransformerException;
 import lucee.transformer.bytecode.BytecodeContext;
+import lucee.transformer.bytecode.Statement;
 import lucee.transformer.bytecode.statement.udf.Function;
 import lucee.transformer.bytecode.util.Types;
 
-public class FunctionAsExpression extends ExpressionBase {
+public class FunctionAsExpression extends ExpressionBase implements AsExpression {
 
 	private Function function;
 
@@ -43,6 +44,10 @@ public class FunctionAsExpression extends ExpressionBase {
 	 * @return the closure
 	 */
 	public Function getFunction() {
+		return function;
+	}
+
+	public Statement getStatement() {
 		return function;
 	}
 }

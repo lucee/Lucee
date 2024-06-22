@@ -147,7 +147,8 @@ public class BodyBase extends StatementBaseNoFinal implements Body {
 		writeOut(bc, body.getStatements());
 	}
 
-	public static void writeOut(final BytecodeContext bc, List<Statement> statements) throws TransformerException {
+	// FUTURE not used anymore, we keep it around for the moment in case we need a fallback that works
+	public static void writeOutOld(final BytecodeContext bc, List<Statement> statements) throws TransformerException {
 		GeneratorAdapter adapter = bc.getAdapter();
 		boolean isOutsideMethod;
 		GeneratorAdapter a = null;
@@ -196,82 +197,79 @@ public class BodyBase extends StatementBaseNoFinal implements Body {
 		}
 	}
 
-	public static void writeOutNew(final BytecodeContext bc, List<Statement> statements) throws TransformerException {
-
+	public static void writeOut(final BytecodeContext bc, List<Statement> statements) throws TransformerException {
 		if (statements == null || statements.size() == 0) return;
 
 		Statement s;
-		Iterator<Statement> it = statements.iterator();
-		boolean isVoidMethod = bc.getMethod().getReturnType().equals(Types.VOID);
-		boolean split = bc.getPage().getSplitIfNecessary();
+		if ((bc.getCount() > MAX_STATEMENTS || statements.size() > MAX_STATEMENTS) && bc.doSubFunctions()) {
+			Iterator<Statement> it = statements.iterator();
 
-		// split
-		if (split && isVoidMethod && statements.size() > 1 && bc.doSubFunctions()) {
-			int collectionSize = statements.size() / 10;
-			if (collectionSize < 1) collectionSize = 1;
-			List<Statement> _statements = new ArrayList<Statement>();
+			final List<Statement> subStatements = new ArrayList<Statement>();
 			while (it.hasNext()) {
 				s = it.next();
 
+				// reached the max size
+				if (subStatements.size() >= MAX_STATEMENTS) {
+					bc.incCount();
+					addToSubMethod(bc, subStatements.toArray(new Statement[subStatements.size()]));
+					subStatements.clear();
+				}
+				// statement i cannot move to a sub method
 				if (s.hasFlowController()) {
 					// add existing statements to sub method
-					if (_statements.size() > 0) {
-						addToSubMethod(bc, _statements.toArray(new Statement[_statements.size()]));
-						_statements.clear();
+					if (subStatements.size() > 0) {
+						bc.incCount();
+						addToSubMethod(bc, subStatements.toArray(new Statement[subStatements.size()]));
+						subStatements.clear();
 					}
+					bc.incCount();
 					ExpressionUtil.writeOut(s, bc);
 				}
 				else {
-					_statements.add(s);
-					if (_statements.size() >= collectionSize) {
-						if (_statements.size() <= 10 && ASMUtil.count(_statements, true) <= 20) {
-							Iterator<Statement> _it = _statements.iterator();
-							while (_it.hasNext())
-								ExpressionUtil.writeOut(_it.next(), bc);
-						}
-						else addToSubMethod(bc, _statements.toArray(new Statement[_statements.size()]));
-						_statements.clear();
-					}
+					subStatements.add(s);
 				}
 			}
 
-			if (_statements.size() > 0) addToSubMethod(bc, _statements.toArray(new Statement[_statements.size()]));
+			if (subStatements.size() > 0) addToSubMethod(bc, subStatements.toArray(new Statement[subStatements.size()]));
 		}
 		// no split
 		else {
+			Iterator<Statement> it = statements.iterator();
 			while (it.hasNext()) {
-				ExpressionUtil.writeOut(it.next(), bc);
+				s = it.next();
+				bc.incCount();
+				ExpressionUtil.writeOut(s, bc);
 			}
 		}
 	}
 
-	private static void addToSubMethod(BytecodeContext bc, Statement... statements) throws TransformerException {
+	private static void addToSubMethod(BytecodeContext callerBC, Statement... statements) throws TransformerException {
 		if (statements == null || statements.length == 0) return;
 
-		GeneratorAdapter adapter = bc.getAdapter();
-		String method = ASMUtil.createOverfowMethod(bc.getMethod().getName(), bc.getPage().getMethodCount());
+		GeneratorAdapter callerAdapter = callerBC.getAdapter();
+		String method = ASMUtil.createOverfowMethod(callerBC.getMethod().getName(), callerBC.getPage().getMethodCount());
 
 		for (int i = 0; i < statements.length; i++) {
 			if (statements[i].getStart() != null) {
-				bc.visitLine(statements[i].getStart());
+				callerBC.visitLine(statements[i].getStart());
 				break;
 			}
 		}
 
 		// ExpressionUtil.lastLine(bc);
 		Method m = new Method(method, Types.VOID, new Type[] { Types.PAGE_CONTEXT });
-		GeneratorAdapter a = new GeneratorAdapter(Opcodes.ACC_PRIVATE + Opcodes.ACC_FINAL, m, null, new Type[] { Types.THROWABLE }, bc.getClassWriter());
+		GeneratorAdapter a = new GeneratorAdapter(Opcodes.ACC_PRIVATE + Opcodes.ACC_FINAL, m, null, new Type[] { Types.THROWABLE }, callerBC.getClassWriter());
 
-		BytecodeContext _bc = new BytecodeContext(bc.getConstructor(), bc.getKeys(), bc, a, m);
-		if (bc.getRoot() != null) _bc.setRoot(bc.getRoot());
-		else _bc.setRoot(bc);
+		BytecodeContext bc = new BytecodeContext(callerBC.getConstructor(), callerBC.getKeys(), callerBC, a, m);
+		if (callerBC.getRoot() != null) bc.setRoot(callerBC.getRoot());
+		else bc.setRoot(callerBC);
 
-		adapter.visitVarInsn(Opcodes.ALOAD, 0);
-		adapter.visitVarInsn(Opcodes.ALOAD, 1);
-		adapter.visitMethodInsn(Opcodes.INVOKEVIRTUAL, bc.getClassName(), method, "(Llucee/runtime/PageContext;)V");
+		callerAdapter.visitVarInsn(Opcodes.ALOAD, 0);
+		callerAdapter.visitVarInsn(Opcodes.ALOAD, 1);
+		callerAdapter.visitMethodInsn(Opcodes.INVOKEVIRTUAL, callerBC.getClassName(), method, "(Llucee/runtime/PageContext;)V");
 
 		for (int i = 0; i < statements.length; i++) {
-			ExpressionUtil.writeOut(statements[i], _bc);
+			ExpressionUtil.writeOut(statements[i], bc);
 		}
 
 		a.returnValue();

@@ -57,6 +57,9 @@ public class Data {
 	private Body parent;
 	public ExprTransformer transformer;
 
+	public boolean insideTenaryMiddle = false;
+	public boolean insideCase = false;
+
 	public Data(Factory factory, Config config, Page page, SourceCode srcCode, EvaluatorPool ep, TransfomerSettings settings, TagLib[][] tlibs, FunctionLib flibs,
 			TagLibTag[] scriptTags, boolean allowLowerThan) {
 		this.page = page;

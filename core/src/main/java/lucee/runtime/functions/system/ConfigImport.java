@@ -10,6 +10,8 @@ import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.config.CFConfigImport;
+import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigServerFactory;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
@@ -35,9 +37,12 @@ public class ConfigImport extends BIF {
 				null);
 
 		// type
+		boolean singleMode = ((ConfigPro) pc.getConfig()).getAdminMode() == ConfigImpl.ADMINMODE_SINGLE;
 		if (StringUtil.isEmpty(type)) type = "server";
-		else if (!"server".equalsIgnoreCase(type) && !"web".equalsIgnoreCase(type))
-			throw new FunctionException(pc, "ConfigFileImport", "second", "type", "Invalid value for argument type (" + type + "), valid values are [server,web]", null);
+		else if (!"server".equalsIgnoreCase(type) && (singleMode || !"web".equalsIgnoreCase(type))) {
+			throw new FunctionException(pc, "ConfigFileImport", "second", "type", "Invalid value for argument type (" + type + "), valid values are ["
+					+ (singleMode ? "server" : "server,web") + "] in " + (singleMode ? "single" : "multi") + " mode", null);
+		}
 
 		// password
 		if (StringUtil.isEmpty(password)) {
