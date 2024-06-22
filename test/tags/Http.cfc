@@ -41,11 +41,11 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="http" {
 	}
 
 	public function test404() localmode="true"{
-		http url="#variables.updateProvider#/rest/update/provider/404";
+		http url="#variables.updateProvider#/rest/update/provider/echoGet?statuscode=404";
 		expect( cfhttp.error ).toBe( true );
 		expect( cfhttp.status_code ).toBe( 404 );
 		expect( function(){
-			http url="#variables.updateProvider#/rest/update/provider/404" throwOnError=true;
+			http url="#variables.updateProvider#/rest/update/provider/echoGet?statuscode=404" throwOnError=true;
 		}).toThrow();
 	}
 
