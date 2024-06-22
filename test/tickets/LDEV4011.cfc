@@ -9,7 +9,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="http" {
 				catch(any e) {
 					var details = e.detail;
 				}
-				expect(details).toBe("POST https://update.lucee.org/rest/echoPost?statuscode=404");
+				expect(details).toBe("POST https://update.lucee.org/rest/update/echoPost?statuscode=404");
 			});
 		});
 	}
