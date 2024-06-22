@@ -181,9 +181,6 @@ public abstract class AbstrCFMLExprTransformer {
 	protected short ATTR_TYPE_OPTIONAL = TagLibTagAttr.SCRIPT_SUPPORT_OPTIONAL;
 	protected short ATTR_TYPE_REQUIRED = TagLibTagAttr.SCRIPT_SUPPORT_REQUIRED;
 
-	private short tenaryContext = 0;
-	protected boolean insideCase = false;
-
 	protected static EndCondition SEMI_BLOCK = new EndCondition() {
 		@Override
 		public boolean isEnd(Data data) {
@@ -388,14 +385,14 @@ public abstract class AbstrCFMLExprTransformer {
 
 			// tenary middle
 			Expression left;
-			short pre = 0;
+			boolean pre = false;
 			try {
-				pre = tenaryContext;
-				tenaryContext = CTX_TENARY_MIDDLE;
+				pre = data.insideTenaryMiddle;
+				data.insideTenaryMiddle = true;
 				left = assignOp(data);
 			}
 			finally {
-				tenaryContext = pre;
+				data.insideTenaryMiddle = pre;
 			}
 			comments(data);
 			if (!data.srcCode.forwardIfCurrent(':')) throw new TemplateException(data.srcCode, "invalid conditional operator");
@@ -1879,7 +1876,7 @@ public abstract class AbstrCFMLExprTransformer {
 	}
 
 	private Expression getListener(Data data) throws TemplateException {
-		if (!insideCase && tenaryContext != CTX_TENARY_MIDDLE && data.srcCode.isPreviousIgnoreSpace(')') && data.srcCode.forwardIfCurrent(':')) {
+		if (!data.insideCase && data.insideTenaryMiddle && data.srcCode.isPreviousIgnoreSpace(')') && data.srcCode.forwardIfCurrent(':')) {
 			int pos = data.srcCode.getPos();
 			comments(data);
 			Expression expr = assignOp(data);
