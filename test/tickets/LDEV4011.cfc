@@ -1,6 +1,6 @@
 component extends="org.lucee.cfml.test.LuceeTestCase" labels="http" {
 
-	variables.updateProvider = "https://update.lucee.org/";
+	variables.updateProvider = "https://update.lucee.org";
 
 	function run( testResults , testBox ) {
 		describe( "test case for LDEV-4011", function() {
