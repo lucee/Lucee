@@ -1,15 +1,18 @@
 component extends="org.lucee.cfml.test.LuceeTestCase" labels="http" {
 
+	variables.updateProvider = "https://update.lucee.org/";
+
 	function run( testResults , testBox ) {
 		describe( "test case for LDEV-4011", function() {
 			it( title="check cfhttp throwOnError to include method and url in error detail", body=function( currentSpec ) {
+				var details = "";
 				try {
-					http url="https://update.lucee.org/rest/update/provider/echoPost?statuscode=404" throwonerror=true method="post";
+					http url="#variables.updateProvider#/rest/update/provider/echoGet?statuscode=404" throwonerror=true method="get";
 				}
 				catch(any e) {
-					var details = e.detail;
+					details = e.detail;
 				}
-				expect(details).toBe("POST https://update.lucee.org/rest/update/provider/echoPost?statuscode=404");
+				expect( details ).toBe( "GET #variables.updateProvider#/rest/update/provider/echoGet?statuscode=404" );
 			});
 		});
 	}
