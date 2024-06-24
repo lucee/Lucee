@@ -294,7 +294,7 @@
                           <artifacts>
                               <artifact>
                                   <file>${project.build.directory}/lucee-zero-${project.version}.jar</file>
-                                  <type>lco</type>
+                                  <type>jar</type>
                               </artifact>
                           </artifacts>
                       </configuration>
