@@ -21,10 +21,16 @@ abstract class FunctionMemberDynamic implements FunctionMember {
 	protected String name;
 	protected int access;
 	protected int classAccess;
+
 	protected transient Type declaringType;
 	protected transient Class declaringClass;
+
 	protected transient Type declaringProviderType;
 	protected transient Class declaringProviderClass;
+
+	protected transient Type declaringProviderTypeWithSameAccess;
+	protected transient Class declaringProviderClassWithSameAccess;
+
 	protected transient Type rtnType;
 	protected transient Type[] argTypes;
 	protected transient Class[] argClasses;
@@ -50,6 +56,9 @@ abstract class FunctionMemberDynamic implements FunctionMember {
 		out.writeObject(declaringType.getDescriptor());
 		// declaring provider class
 		out.writeObject(declaringProviderType == null ? null : declaringProviderType.getDescriptor());
+
+		out.writeObject(declaringProviderTypeWithSameAccess == null ? null : declaringProviderTypeWithSameAccess.getDescriptor());
+
 		// return
 		out.writeObject(rtnType.getDescriptor());
 
@@ -93,6 +102,12 @@ abstract class FunctionMemberDynamic implements FunctionMember {
 			this.declaringProviderType = Type.getType((String) obj);
 			this.declaringProviderClass = Clazz.toClass(cl, this.declaringProviderType);
 		}
+		obj = in.readObject();
+		if (obj != null) {
+			this.declaringProviderTypeWithSameAccess = Type.getType((String) obj);
+			this.declaringProviderClassWithSameAccess = Clazz.toClass(cl, this.declaringProviderTypeWithSameAccess);
+		}
+
 		// declaring class
 		this.rtnType = Type.getType((String) in.readObject());
 
@@ -183,9 +198,29 @@ abstract class FunctionMemberDynamic implements FunctionMember {
 		return declaringProviderClass;
 	}
 
-	@Override
 	public void setDeclaringProviderClass(Class declaringProviderClass) {
 		this.declaringProviderClass = declaringProviderClass;
+	}
+
+	public void setDeclaringProviderClassWithSameAccess(Class declaringProviderClassWithSameAccess) {
+		this.declaringProviderClassWithSameAccess = declaringProviderClassWithSameAccess;
+	}
+
+	@Override
+	public String getDeclaringProviderClassNameWithSameAccess() {
+		return getDeclaringProviderClassWithSameAccess().getName();
+	}
+
+	@Override
+	public Class getDeclaringProviderClassWithSameAccess() {
+		return getDeclaringProviderClassWithSameAccess(false);
+	}
+
+	public Class getDeclaringProviderClassWithSameAccess(boolean onlyPublic) {
+		if (declaringProviderClassWithSameAccess == null && (!onlyPublic || isDeclaringClassPublic())) {
+			return getDeclaringClass();
+		}
+		return declaringProviderClassWithSameAccess;
 	}
 
 	@Override

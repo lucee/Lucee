@@ -8,11 +8,13 @@ public interface FunctionMember extends Serializable {
 
 	public abstract String getName();
 
+	public abstract String getDeclaringProviderClassNameWithSameAccess();
+
+	public abstract Class getDeclaringProviderClassWithSameAccess();
+
 	public abstract String getDeclaringProviderClassName();
 
 	public abstract Class getDeclaringProviderClass();
-
-	public abstract void setDeclaringProviderClass(Class declaringClassProvider);
 
 	public abstract String getDeclaringClassName();
 

@@ -3,6 +3,7 @@ package lucee.transformer.dynamic.meta;
 import java.io.IOException;
 import java.io.Serializable;
 import java.lang.ref.SoftReference;
+import java.lang.reflect.Modifier;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -28,7 +29,7 @@ import lucee.transformer.dynamic.meta.reflection.ClazzReflection;
 
 public abstract class Clazz implements Serializable {
 
-	public static final int VERSION = 1;
+	public static final int VERSION = 2;
 
 	private static final long serialVersionUID = 4236939474343760825L;
 	private static Boolean allowReflection = null;
@@ -93,7 +94,6 @@ public abstract class Clazz implements Serializable {
 		args = Reflector.cleanArgs(args);
 		Reflector.checkAccessibility(clazz.getDeclaringClass(), methodName);
 		List<Method> methods = clazz.getMethods(methodName.getString(), false, args.length);
-
 		if (methods != null && methods.size() > 0) {
 			Class[] clazzArgs = Reflector.getClasses(args);
 
@@ -349,6 +349,46 @@ public abstract class Clazz implements Serializable {
 	public static boolean isPrimitive(Type type) {
 		int sort = type.getSort();
 		return sort >= Type.BOOLEAN && sort <= Type.DOUBLE;
+	}
+
+	/**
+	 * Compares two FunctionMember objects based on their access modifiers. The comparison is done in
+	 * the order of access levels from most restrictive to least restrictive: private (1), default (2),
+	 * protected (3), and public (4).
+	 *
+	 * @param left the first FunctionMember to compare
+	 * @param right the second FunctionMember to compare
+	 * @return a negative integer, zero, or a positive integer if the access level of the left
+	 *         FunctionMember is less than, equal to, or greater than the access level of the right
+	 *         FunctionMember.
+	 */
+	public static int compareAccess(FunctionMember left, FunctionMember right) {
+		int l = 1, r = 1;
+
+		if (left.isPublic()) l = 4;
+		else if (left.isProtected()) l = 3;
+		else if (left.isDefault()) l = 2;
+
+		if (right.isPublic()) r = 4;
+		else if (right.isProtected()) r = 3;
+		else if (right.isDefault()) r = 2;
+
+		return l - r;
+
+	}
+
+	public static int getAccessModifier(FunctionMember fm) {
+		if (fm.isPublic()) return 4;
+		if (fm.isProtected()) return 3;
+		if (fm.isPrivate()) return 1;
+		return 2;
+	}
+
+	public static int getAccessModifier(int reflectionAccess) {
+		if (Modifier.isPublic(reflectionAccess)) return 4;
+		if (Modifier.isProtected(reflectionAccess)) return 3;
+		if (Modifier.isPrivate(reflectionAccess)) return 1;
+		return 2;
 	}
 
 	public static Class toClass(ClassLoader cl, Type type) throws ClassException {

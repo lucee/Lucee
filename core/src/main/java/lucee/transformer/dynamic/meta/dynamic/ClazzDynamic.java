@@ -315,7 +315,6 @@ public class ClazzDynamic extends Clazz {
 
 			@Override
 			public MethodVisitor visitMethod(int access, String name, String descriptor, String signature, String[] exceptions) {
-
 				FunctionMember fm = FunctionMemberDynamic.createInstance(clazz, name, access, descriptor, exceptions, classAccess.toInt());
 				String id = Clazz.id(fm);
 				FunctionMember parent = members.get(id);
@@ -323,7 +322,22 @@ public class ClazzDynamic extends Clazz {
 					FunctionMemberDynamic fmd = (FunctionMemberDynamic) parent;
 					// java.lang.Appendable
 					Class tmp = fmd.getDeclaringProviderClass(true);
-					if (tmp != null) fm.setDeclaringProviderClass(tmp);
+					if (tmp != null) {
+						/*
+						 * if (name.equals("nextElement")) { print.e(name + ":" + descriptor);
+						 * print.e(Clazz.getAccessModifier(fm)); print.e(Clazz.getAccessModifier(fmd));
+						 * print.e(Clazz.getAccessModifierAsString(fm)); print.e(Clazz.getAccessModifierAsString(fmd));
+						 * print.e(fm.getDeclaringProviderClassName());
+						 * print.e(fm.getDeclaringProviderClassNameWithSameAccess()); print.e("-----------------" +
+						 * Clazz.compareAccess(fmd, fm)); }
+						 */
+						if (Clazz.compareAccess(fmd, fm) >= 0) ((FunctionMemberDynamic) fm).setDeclaringProviderClassWithSameAccess(tmp);
+						((FunctionMemberDynamic) fm).setDeclaringProviderClass(tmp);
+						/*
+						 * if (name.equals("nextElement")) { print.e(fm.getDeclaringProviderClassName());
+						 * print.e(fm.getDeclaringProviderClassNameWithSameAccess()); }
+						 */
+					}
 				}
 				members.put(id, fm);
 

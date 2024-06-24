@@ -114,12 +114,13 @@
 	// Lucee zero build, built from light but also no admin or docs
 	src.zeroName = "lucee-zero-" & src.version & ".jar";
 	src.zero = src.dir & src.zeroName;
-	if ( DO_DEPLOY )
+	/*if ( DO_DEPLOY )
 		SystemOutput( "build and upload #src.zeroName# to S3",1,1 );
 	else
 		SystemOutput( "build #src.zero#",1,1 );
 
 	createLight( src.light, src.zero,src.version, true );
+	*/
 	if ( DO_DEPLOY ) {
 		trg.zero = trg.dir & src.zeroName;
 		fileCopy( src.zero, trg.zero );
