@@ -315,7 +315,6 @@ public class ClazzDynamic extends Clazz {
 
 			@Override
 			public MethodVisitor visitMethod(int access, String name, String descriptor, String signature, String[] exceptions) {
-
 				FunctionMember fm = FunctionMemberDynamic.createInstance(clazz, name, access, descriptor, exceptions, classAccess.toInt());
 				String id = Clazz.id(fm);
 				FunctionMember parent = members.get(id);
@@ -323,7 +322,10 @@ public class ClazzDynamic extends Clazz {
 					FunctionMemberDynamic fmd = (FunctionMemberDynamic) parent;
 					// java.lang.Appendable
 					Class tmp = fmd.getDeclaringProviderClass(true);
-					if (tmp != null) fm.setDeclaringProviderClass(tmp);
+					if (tmp != null) {
+						if (Clazz.compareAccess(fmd, fm) >= 0) ((FunctionMemberDynamic) fm).setDeclaringProviderClass(tmp);
+						((FunctionMemberDynamic) fm).setDeclaringProviderClass(tmp);
+					}
 				}
 				members.put(id, fm);
 

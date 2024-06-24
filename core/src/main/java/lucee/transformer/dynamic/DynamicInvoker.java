@@ -1,15 +1,19 @@
 package lucee.transformer.dynamic;
 
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.lang.instrument.UnmodifiableClassException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.PropertyResourceBundle;
 import java.util.TimeZone;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -195,7 +199,6 @@ public class DynamicInvoker {
 		cw.visit(ASMUtil.getJavaVersionForBytecodeGeneration(), Opcodes.ACC_PUBLIC + Opcodes.ACC_SUPER, classPath,
 				"Ljava/lang/Object;Ljava/util/function/BiFunction<Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;>;", "java/lang/Object",
 				new String[] { "java/util/function/BiFunction" });
-
 		// Constructor
 		mv = cw.visitMethod(Opcodes.ACC_PUBLIC, "<init>", "()V", null, null);
 		mv.visitCode();
@@ -220,8 +223,8 @@ public class DynamicInvoker {
 			if (!isStatic) {
 				// Load the instance to call the method on
 				mv.visitVarInsn(Opcodes.ALOAD, 1); // Load the first method argument (instance)
-				if (!fm.getDeclaringProviderClass().equals(Object.class)) { // Only cast if clazz is not java.lang.Object
-					mv.visitTypeInsn(Opcodes.CHECKCAST, Type.getInternalName(fm.getDeclaringProviderClass()));
+				if (!fm.getDeclaringProviderClassWithSameAccess().equals(Object.class)) { // Only cast if clazz is not java.lang.Object
+					mv.visitTypeInsn(Opcodes.CHECKCAST, Type.getInternalName(fm.getDeclaringProviderClassWithSameAccess()));
 				}
 			}
 		}
@@ -272,8 +275,9 @@ public class DynamicInvoker {
 			mv.visitMethodInsn(Opcodes.INVOKESPECIAL, rt.getInternalName(), "<init>", methodDesc.toString(), false); // Call the constructor of String
 		}
 		else {
-			mv.visitMethodInsn(isStatic ? Opcodes.INVOKESTATIC : (fm.getDeclaringProviderClass().isInterface() ? Opcodes.INVOKEINTERFACE : Opcodes.INVOKEVIRTUAL),
-					Type.getInternalName(fm.getDeclaringProviderClass()), method.getName(), methodDesc.toString(), fm.getDeclaringProviderClass().isInterface());
+			mv.visitMethodInsn(isStatic ? Opcodes.INVOKESTATIC : (fm.getDeclaringProviderClassWithSameAccess().isInterface() ? Opcodes.INVOKEINTERFACE : Opcodes.INVOKEVIRTUAL),
+					Type.getInternalName(fm.getDeclaringProviderClassWithSameAccess()), method.getName(), methodDesc.toString(),
+					fm.getDeclaringProviderClassWithSameAccess().isInterface());
 
 		}
 
@@ -390,9 +394,28 @@ public class DynamicInvoker {
 	}
 
 	public static void main(String[] args) throws Exception {
+		System.setProperty("lucee.allow.reflection", "false");
 		Resource classes = ResourcesImpl.getFileResourceProvider().getResource("/Users/mic/tmp8/classes/");
 		ResourceUtil.deleteContent(classes, null);
 		DynamicInvoker e = new DynamicInvoker(classes);
+
+		{
+			FileInputStream fis = new java.io.FileInputStream("/Users/mic/Tmp3/test.prop");
+			InputStreamReader fir = new java.io.InputStreamReader(fis, "UTF-8");
+			PropertyResourceBundle prb = new java.util.PropertyResourceBundle(fir);
+			Enumeration<String> keys = prb.getKeys();
+			String key;
+			while (keys.hasMoreElements()) {
+				aprint.e(key = keys.nextElement());
+				aprint.e(prb.handleGetObject(key));
+				aprint.e(e.invokeInstanceMethod(prb, "handleGetObject", new Object[] { key }));
+
+			}
+
+			fis.close();
+			System.exit(0);
+		}
+
 		StringBuilder sb = new StringBuilder("Susi");
 		Test t = new Test();
 		Integer i = Integer.valueOf(3);
