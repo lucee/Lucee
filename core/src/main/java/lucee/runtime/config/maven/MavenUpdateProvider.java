@@ -152,13 +152,20 @@ public class MavenUpdateProvider {
 				String urlPom = Caster.toString(result.get("pom").get("url"));
 				String urlJar = Caster.toString(result.get("jar").get("url"));
 
-				Object lastModified = result.get("jar").get("lastModified");
-
 				// PomReader pomRreader = new PomReader(new URL(urlPom));
 				// Map<String, Object> res = pomRreader.read();
 				Map<String, Object> res = new LinkedHashMap<>();
 				res.put("pom", urlPom);
 				res.put("jar", urlJar);
+
+				// zero
+				Map<String, Object> zeroMap = result.get("zero.jar");
+				if (zeroMap != null) {
+					String urlJarZero = Caster.toString(zeroMap.get("url"), null);
+					if (!StringUtil.isEmpty(urlJarZero, true)) res.put("zero", urlJarZero);
+				}
+
+				Object lastModified = result.get("jar").get("lastModified");
 				res.put("lastModified", lastModified);
 
 				// LCOS

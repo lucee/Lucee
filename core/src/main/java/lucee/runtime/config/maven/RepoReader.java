@@ -152,7 +152,7 @@ public final class RepoReader extends DefaultHandler {
 				e.printStackTrace();
 			}
 			String key = StringUtil.isEmpty(classifier) ? extension : classifier + "." + extension;
-			snapshot.put("url", base + artifact + "-" + value + "." + extension);
+			snapshot.put("url", base + artifact + "-" + value + (StringUtil.isEmpty(classifier) ? "" : "-" + classifier) + "." + extension);
 			snapshots.put(key, snapshot);
 			snapshot = null;
 
