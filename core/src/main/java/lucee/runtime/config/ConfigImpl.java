@@ -287,7 +287,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	private short clientType = CLIENT_SCOPE_TYPE_COOKIE;
 
 	private String componentDumpTemplate;
-	private int componentDataMemberDefaultAccess = Component.ACCESS_PRIVATE;
+	private int componentDataMemberDefaultAccess = Component.ACCESS_PUBLIC;
 	private boolean triggerComponentDataMember = false;
 
 	private short sessionType = SESSION_TYPE_APPLICATION;

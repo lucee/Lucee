@@ -3,7 +3,7 @@
 
   <groupId>org.lucee</groupId>
   <artifactId>lucee</artifactId>
-  <version>6.2.0.2-SNAPSHOT</version>
+  <version>6.2.0.3-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>Lucee Loader Build</name>
@@ -278,6 +278,31 @@
             </executions>
         </plugin>
 
+
+     <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>build-helper-maven-plugin</artifactId>
+            <version>3.2.0</version>
+            <executions>
+              <execution>
+                <id>attach-artifacts</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>attach-artifact</goal>
+                </goals>
+                <configuration>
+                  <artifacts>
+                    <artifact>
+                      <file>${project.build.directory}/lucee-zero-${project.version}.jar</file>
+                      <type>jar</type>
+                      <classifier>zero</classifier>
+                    </artifact>
+                  </artifacts>
+                </configuration>
+              </execution>
+            </executions>
+      </plugin>
+
       </plugins>
       <pluginManagement>
         <plugins>
@@ -333,31 +358,17 @@
     <version>7.0.5</version><!-- 4.6.1 -->
     <scope>compile</scope>
   </dependency>
-    <dependency>
+  <dependency>
     <groupId>javax.servlet</groupId>
     <artifactId>javax.servlet-api</artifactId>
     <version>4.0.1</version>
     <scope>compile</scope>
   </dependency>
-
 <dependency>
-    <groupId>jakarta.servlet</groupId>
-    <artifactId>jakarta.servlet-api</artifactId>
-    <version>6.1.0</version>
-    <scope>provided</scope>
-</dependency>
- <dependency>
     <groupId>javax.servlet.jsp</groupId>
     <artifactId>javax.servlet.jsp-api</artifactId>
     <version>2.3.3</version>
     <scope>compile</scope>
- </dependency>
-
-<dependency>
-    <groupId>jakarta.servlet.jsp</groupId>
-    <artifactId>jakarta.servlet.jsp-api</artifactId>
-    <version>4.0.0</version>
-    <scope>provided</scope>
 </dependency>
   <dependency>
     <groupId>javax.el</groupId>
@@ -365,13 +376,6 @@
     <version>3.0.0</version>
     <scope>compile</scope>
   </dependency>
-
-<dependency>
-    <groupId>jakarta.el</groupId>
-    <artifactId>jakarta.el-api</artifactId>
-    <version>6.0.0</version>
-</dependency>
-
   <dependency>
     <groupId>org.apache.ant</groupId>
     <artifactId>ant</artifactId>

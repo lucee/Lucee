@@ -43,8 +43,14 @@ abstract class FunctionMemberReflection implements FunctionMember {
 	}
 
 	@Override
-	public void setDeclaringProviderClass(Class declaringProviderClass) {
+	public String getDeclaringProviderClassNameWithSameAccess() {
+		return getDeclaringProviderClassWithSameAccess().getName();
+	}
+
+	@Override
+	public Class getDeclaringProviderClassWithSameAccess() {
 		// TODO this is not correct
+		return getDeclaringClass();
 	}
 
 	@Override

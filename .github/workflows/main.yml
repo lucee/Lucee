@@ -116,6 +116,13 @@ jobs:
         key: ${{ runner.os }}-maven-${{ hashFiles('loader/pom.xml','core/pom.xml') }}
         restore-keys: |
           ${{ runner.os }}-maven-
+    
+    - name: Import GPG key
+      run: |
+        echo "$GPG_PRIVATE_KEY" | base64 --decode | gpg --batch --import
+      env:
+        GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+
     - name: Set up MySQL (local)
       run: |
         sudo systemctl start mysql
