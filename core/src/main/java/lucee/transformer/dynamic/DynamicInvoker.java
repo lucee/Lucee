@@ -405,13 +405,13 @@ public class DynamicInvoker {
 			PropertyResourceBundle prb = new java.util.PropertyResourceBundle(fir);
 			Enumeration<String> keys = prb.getKeys();
 			String key;
+			aprint.e(e.invokeInstanceMethod(keys, "hasMoreElements", new Object[] {}));
 			while (keys.hasMoreElements()) {
-				aprint.e(key = keys.nextElement());
+				key = (String) e.invokeInstanceMethod(keys, "nextElement", new Object[] {});
+				aprint.e(key);
 				aprint.e(prb.handleGetObject(key));
 				aprint.e(e.invokeInstanceMethod(prb, "handleGetObject", new Object[] { key }));
-
 			}
-
 			fis.close();
 			System.exit(0);
 		}

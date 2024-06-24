@@ -202,6 +202,10 @@ abstract class FunctionMemberDynamic implements FunctionMember {
 		this.declaringProviderClass = declaringProviderClass;
 	}
 
+	public void setDeclaringProviderClassWithSameAccess(Class declaringProviderClassWithSameAccess) {
+		this.declaringProviderClassWithSameAccess = declaringProviderClassWithSameAccess;
+	}
+
 	@Override
 	public String getDeclaringProviderClassNameWithSameAccess() {
 		return getDeclaringProviderClassWithSameAccess().getName();

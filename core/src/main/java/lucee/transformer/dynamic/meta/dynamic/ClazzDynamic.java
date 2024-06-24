@@ -323,8 +323,20 @@ public class ClazzDynamic extends Clazz {
 					// java.lang.Appendable
 					Class tmp = fmd.getDeclaringProviderClass(true);
 					if (tmp != null) {
-						if (Clazz.compareAccess(fmd, fm) >= 0) ((FunctionMemberDynamic) fm).setDeclaringProviderClass(tmp);
+						/*
+						 * if (name.equals("nextElement")) { print.e(name + ":" + descriptor);
+						 * print.e(Clazz.getAccessModifier(fm)); print.e(Clazz.getAccessModifier(fmd));
+						 * print.e(Clazz.getAccessModifierAsString(fm)); print.e(Clazz.getAccessModifierAsString(fmd));
+						 * print.e(fm.getDeclaringProviderClassName());
+						 * print.e(fm.getDeclaringProviderClassNameWithSameAccess()); print.e("-----------------" +
+						 * Clazz.compareAccess(fmd, fm)); }
+						 */
+						if (Clazz.compareAccess(fmd, fm) >= 0) ((FunctionMemberDynamic) fm).setDeclaringProviderClassWithSameAccess(tmp);
 						((FunctionMemberDynamic) fm).setDeclaringProviderClass(tmp);
+						/*
+						 * if (name.equals("nextElement")) { print.e(fm.getDeclaringProviderClassName());
+						 * print.e(fm.getDeclaringProviderClassNameWithSameAccess()); }
+						 */
 					}
 				}
 				members.put(id, fm);

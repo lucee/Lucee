@@ -29,7 +29,7 @@ import lucee.transformer.dynamic.meta.reflection.ClazzReflection;
 
 public abstract class Clazz implements Serializable {
 
-	public static final int VERSION = 1;
+	public static final int VERSION = 2;
 
 	private static final long serialVersionUID = 4236939474343760825L;
 	private static Boolean allowReflection = null;
