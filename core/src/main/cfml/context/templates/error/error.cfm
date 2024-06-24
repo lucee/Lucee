@@ -73,10 +73,11 @@
 		</tr>
 	</cfif>
 	<cfif structKeyExists( catch, 'additional' )>
-		<cfloop collection="#catch.additional#" item="key">
+		<cfloop collection="#catch.additional#" index="key" item="val">
 			<tr>
 				<td class="label">#key#</td>
-				<td>#replace( HTMLEditFormat( catch.additional[key] ), chr(10),'<br>', 'all' )#</td>
+
+				<td><cftry>#markdowntohtml( catch.additional[key])#<cfcatch>#replace( HTMLEditFormat( catch.additional[key] ), chr(10),'<br>', 'all' )#</cfcatch></cftry></td>
 			</tr>
 		</cfloop>
 	</cfif>
