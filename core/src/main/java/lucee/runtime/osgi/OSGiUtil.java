@@ -1871,6 +1871,7 @@ public class OSGiUtil {
 		}
 
 		public boolean matches(Version v) {
+			if (v == null) return false;
 			if (EQ == op) return v.compareTo(version) == 0;
 			if (LTE == op) return v.compareTo(version) <= 0;
 			if (LT == op) return v.compareTo(version) < 0;
