@@ -27,7 +27,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" labels="struct" {
 				var path=expandPath("{temp-directory}test.prop");
 				fileWrite(path,variables.str);
 
-				var fis          = CreateObject("java","java.io.FileInputStream").init( arguments.propertiesFile );
+				var fis          = CreateObject("java","java.io.FileInputStream").init( path );
 				var fir          = CreateObject("java","java.io.InputStreamReader").init( fis, "UTF-8" );
 				var prb          = CreateObject("java","java.util.PropertyResourceBundle").init( fir );
 				var keys         = prb.getKeys();
