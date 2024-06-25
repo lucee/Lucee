@@ -7,6 +7,5 @@ component output="no" {
 	
 	private void function _handleError(required any catchData, string functionName='unknown'){
 		log text="CFMLAysncListener_handleError- Event Listener" file=this.logfile;
-		  //writeDump(var="#catchData#",output="console");
 	}
 }

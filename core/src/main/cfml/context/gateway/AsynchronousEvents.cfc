@@ -91,8 +91,6 @@ component accessors=true {
 	 }
 
 	 private void function _handlerError( required any catchData, string functionName="unknown" ){
-		// systemOutput('handleError',true);
 		log text="#catchData.message#" file=#this.logfile#;
-		// writeDump(var="#catchData#",output="console");
 	 }
 }

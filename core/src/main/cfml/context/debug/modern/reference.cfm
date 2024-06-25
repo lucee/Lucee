@@ -71,7 +71,6 @@
 			var endIndex=find(endNeedle, code,last);
 			if(endIndex==0) return "end not found";//code; TODO
 			var result=executeCode(mid(code,startIndex+needleLength,endIndex-(startIndex+needleLength)));
-			//dump(result);
 			code=mid(code,1,(endIndex-1)+endNeedleLength)&startBlockquote&result&endBlockquote&mid(code,endIndex+endNeedleLength);
 			last=endIndex+endNeedleLength+len(result)+len(startBlockquote)+len(endBlockquote);
 		}
@@ -460,8 +459,6 @@
 		<cfset code=enhanceHTML(markdownToHTML(md))>
 		#code#<br>
 		<cfcatch>
-			<cfif develop><cfdump var="#data#"></cfif>
-			<cfif develop><cfdump var="#cfcatch#"></cfif>
 			<p style="color:red">Unable to load content; see application log for more details</p>
 			<cflog log="application" exception="#cfcatch#">
 		</cfcatch>
