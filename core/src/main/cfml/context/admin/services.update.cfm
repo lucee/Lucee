@@ -122,7 +122,7 @@
 	
 
 	// Jira
-
+/*
 	arrChangeLog=[:];
 	try {
 		jira=new Jira("luceeserver.atlassian.net");
@@ -135,7 +135,7 @@
 		}
 	}
 	catch(e) {}
-	
+*/
 	
 
 </cfscript>
@@ -352,7 +352,7 @@
 		loaderPath = replaceNoCase(stText.services.update.loaderPath,"{loaderPath}", '<b>'& loaderInfo.LoaderPath & '</b>' );
 		//replace(stText.services.update.titleDesc2,'{context}',"<b class='error'>"&#expandPath("{lucee-server}\patches")#&"</b>");
 	</cfscript>
-
+<!--- 
 	<cfif len(arrChangeLog)>
 		<h2>#stText.services.update.changeLogsSince# (#server.lucee.version# - #latest#)</h2>
 		<ul><cfloop struct="#arrChangeLog#" index="version" item="values">
@@ -361,7 +361,10 @@
 
 		</cfloop></ul>
 	</cfif>
-
+--->
+	<h2>Changelog</h2>
+	<p class="comment">For a detailed change log, please visit the <a href="https://changelog.lucee.org">Lucee Changelog</a>.</p>
+	
 	<h2>Limitation</h2>
 	<p class="comment">#loaderText#</p>
 	<p class="comment">#loaderPath#</p>	
