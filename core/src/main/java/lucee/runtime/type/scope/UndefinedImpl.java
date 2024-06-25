@@ -762,8 +762,7 @@ public final class UndefinedImpl extends StructSupport implements Undefined, Obj
 	@Override
 	public boolean setAllowImplicidQueryCall(boolean allowImplicidQueryCall) {
 		boolean old = pc.allowImplicidQueryCall();
-		((ApplicationContextSupport) pc.getApplicationContext()).setAllowImplicidQueryCall(allowImplicidQueryCall);
-		// this.allowImplicidQueryCall = allowImplicidQueryCall;
+		pc.getApplicationContext().setAllowImplicidQueryCall(allowImplicidQueryCall);
 		return old;
 	}
 

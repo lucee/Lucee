@@ -73,4 +73,18 @@ public class DebuggerUtil {
 		}
 		return false;
 	}
+
+	public static boolean hasCustomDebugEntry(PageContext pc) {
+
+		String addr = pc.getHttpServletRequest().getRemoteAddr();
+		lucee.runtime.config.DebugEntry debugEntry = ((ConfigPro) pc.getConfig()).getDebugEntry(addr, null);
+		return debugEntry != null;
+	}
+
+	public static boolean hasDebugOptions(PageContext pc) {
+		PageContextImpl pci = (PageContextImpl) pc;
+		return pci.hasDebugOptions(ConfigPro.DEBUG_DATABASE) || pci.hasDebugOptions(ConfigPro.DEBUG_DUMP) || pci.hasDebugOptions(ConfigPro.DEBUG_EXCEPTION)
+				|| pci.hasDebugOptions(ConfigPro.DEBUG_IMPLICIT_ACCESS) || pci.hasDebugOptions(ConfigPro.DEBUG_QUERY_USAGE) || pci.hasDebugOptions(ConfigPro.DEBUG_TEMPLATE)
+				|| pci.hasDebugOptions(ConfigPro.DEBUG_THREAD) || pci.hasDebugOptions(ConfigPro.DEBUG_TIMER) || pci.hasDebugOptions(ConfigPro.DEBUG_TRACING);
+	}
 }
