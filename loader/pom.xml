@@ -3,7 +3,7 @@
 
   <groupId>org.lucee</groupId>
   <artifactId>lucee</artifactId>
-  <version>6.2.0.3-SNAPSHOT</version>
+  <version>6.2.0.4-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>Lucee Loader Build</name>
@@ -254,14 +254,13 @@
                 <target>1.8</target>
             </configuration>
          </plugin>
-
           <plugin>
-            <groupId>org.codehaus.mojo</groupId>
-            <artifactId>build-helper-maven-plugin</artifactId>
-            <version>3.2.0</version>
-            <executions>
-                <execution>
-                      <id>attach-artifacts</id>
+              <groupId>org.codehaus.mojo</groupId>
+              <artifactId>build-helper-maven-plugin</artifactId>
+              <version>3.2.0</version>
+              <executions>
+                  <execution>
+                      <id>attach-artifact-lco</id>
                       <phase>package</phase>
                       <goals>
                           <goal>attach-artifact</goal>
@@ -275,33 +274,24 @@
                           </artifacts>
                       </configuration>
                   </execution>
-            </executions>
-        </plugin>
-
-
-     <plugin>
-            <groupId>org.codehaus.mojo</groupId>
-            <artifactId>build-helper-maven-plugin</artifactId>
-            <version>3.2.0</version>
-            <executions>
-              <execution>
-                <id>attach-artifacts</id>
-                <phase>package</phase>
-                <goals>
-                  <goal>attach-artifact</goal>
-                </goals>
-                <configuration>
-                  <artifacts>
-                    <artifact>
-                      <file>${project.build.directory}/lucee-zero-${project.version}.jar</file>
-                      <type>jar</type>
-                      <classifier>zero</classifier>
-                    </artifact>
-                  </artifacts>
-                </configuration>
-              </execution>
-            </executions>
-      </plugin>
+                  <execution>
+                      <id>attach-artifact-zero</id>
+                      <phase>package</phase>
+                      <goals>
+                          <goal>attach-artifact</goal>
+                      </goals>
+                      <configuration>
+                          <artifacts>
+                              <artifact>
+                                  <file>${project.build.directory}/lucee-zero-${project.version}.jar</file>
+                                  <type>jar</type>
+                                  <classifier>zero</classifier>
+                              </artifact>
+                          </artifacts>
+                      </configuration>
+                  </execution>
+              </executions>
+          </plugin>
 
       </plugins>
       <pluginManagement>

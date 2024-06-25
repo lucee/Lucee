@@ -78,12 +78,9 @@ function printError(error,boolean longversion=false) {
 					if(i==1) writeOutput('error occurred in ');
 					else writeOutput('called by ');
 					writeOutput(error.TagContext[i].template&':'&error.TagContext[i].line&"</span>");
-					//writeOutput('<br>');
-					//writeOutput(error.TagContext[i].codePrintHTML);
-					//dump(error.TagContext[i]);
 				}
 			}
-			if(!isNull(error.cfcatch)) dump(error.cfcatch);
+			//if(!isNull(error.cfcatch)) dump(error.cfcatch);
 
 		}
 		//ErrorCode,addional,TagContext,StackTrace,type,Detail,Message,ExtendedInfo
