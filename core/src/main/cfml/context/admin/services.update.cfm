@@ -81,8 +81,13 @@
 			password="#session["password"&request.adminType]#"
 			returnvariable="minVersion";
 		minVs = toVersionSortable(minVersion);
-		otherVersions=LuceeVersionsList();
-		latest=len(otherVersions)?otherVersions[len(otherVersions)]:server.lucee.version;
+		try {
+			otherVersions=LuceeVersionsList();
+		}
+		catch(e) {
+			otherVersions=[];
+		}
+			latest=len(otherVersions)?otherVersions[len(otherVersions)]:server.lucee.version;
 		if(!isNull(otherVersions) && len(otherVersions)){
 
 			for(versions in otherVersions ){
