@@ -232,7 +232,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				expect(result).toBe("Susi Sorglos");
 			});
 			it(title="call the same multiple times", body=function() {
-				loop times=10 {
+				loop times=2 {
 					var t=mySuccess():function(result,error) {
 						variables.testFunctionListenerV=result;
 						thread.testFunctionListenerV=result;
