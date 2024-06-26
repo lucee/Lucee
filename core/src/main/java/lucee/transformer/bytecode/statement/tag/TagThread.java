@@ -32,18 +32,26 @@ import lucee.transformer.bytecode.BytecodeContext;
 import lucee.transformer.bytecode.Page;
 import lucee.transformer.bytecode.util.ASMUtil;
 import lucee.transformer.bytecode.util.Types;
+import lucee.transformer.expression.Expression;
 
 public final class TagThread extends TagBaseNoFinal implements ATagThread {
 
 	public static final Type THREAD_TAG = Type.getType(ThreadTag.class);
 
 	private static final Method REGISTER = new Method("register", Types.VOID, new Type[] { Types.PAGE, Types.INT_VALUE });
+	private static final Method NAME_AS_STRING = new Method("nameAsString", Types.STRING, new Type[] { Types.BOOLEAN_VALUE });
 
 	private int index;
+
+	private boolean outputName;
 
 	public TagThread(Factory f, Position start, Position end) {
 		super(f, start, end);
 		// print.e("::::"+ASMUtil.getAttributeString(this, "action","run")+":"+hashCode());
+	}
+
+	public void outputName() {
+		this.outputName = true;
 	}
 
 	public void init() throws TransformerException {
@@ -82,6 +90,11 @@ public final class TagThread extends TagBaseNoFinal implements ATagThread {
 		adapter.push(index);
 		adapter.invokeVirtual(THREAD_TAG, REGISTER);
 
+		if (outputName) {
+			adapter.loadLocal(bc.getCurrentTag());
+			bc.getFactory().createLitBoolean(true).writeOut(bc, Expression.MODE_VALUE);
+			adapter.invokeVirtual(THREAD_TAG, NAME_AS_STRING);
+		}
 	}
 
 	/**

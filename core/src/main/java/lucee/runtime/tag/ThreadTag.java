@@ -146,11 +146,11 @@ public final class ThreadTag extends BodyTagImpl implements DynamicAttributes {
 	}
 
 	private Collection.Key name(boolean create) {
-		if (_name == null && create) _name = KeyImpl.init("thread" + RandomUtil.createRandomStringLC(20));
+		if (_name == null && create) _name = KeyImpl.init("thread" + RandomUtil.createRandomStringLC(5));
 		return _name;
 	}
 
-	private String nameAsString(boolean create) {
+	public String nameAsString(boolean create) {
 		name(create);
 		return _name == null ? null : _name.getString();
 	}
