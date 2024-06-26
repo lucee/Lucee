@@ -231,6 +231,15 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				var result=b?mySuccess():"not b";
 				expect(result).toBe("Susi Sorglos");
 			});
+			it(title="call the same multiple times", body=function() {
+				loop times=10 {
+					var t=mySuccess():function(result,error) {
+						variables.testFunctionListenerV=result;
+						thread.testFunctionListenerV=result;
+					};
+					threadJoin(t);
+				}
+			});
 		});
 	}
 

@@ -277,23 +277,18 @@ public class VariableImpl extends ExpressionBase implements Variable {
 
 	private Type _writeOutListener(BytecodeContext bc, int mode, Boolean asCollection) throws TransformerException {
 		GeneratorAdapter ga = bc.getAdapter();
-		// String name = "threadListener:" + Long.toString(System.currentTimeMillis(), Character.MAX_RADIX)
-		// + CreateUniqueId.invoke();
-		// LitString lname = bc.getFactory().createLitString(name);
 		TagThread tt = new TagThread(bc.getFactory(), getStart(), listener.getEnd());
 		TagLibTag tlt = TagUtil.getTagLibTag((ConfigPro) ThreadLocalPageContext.getConfig(), "cf", "thread");
 		tt.outputName();
 		tt.setTagLibTag(tlt);
 		tt.addAttribute(new Attribute(false, "action", bc.getFactory().createLitString("run"), "string"));
 		tt.addAttribute(new Attribute(false, "separatescopes", bc.getFactory().createLitBoolean(false), "boolean"));
-		// tt.addAttribute(new Attribute(false, "name", lname, "string"));
 		Body body = tt.getBody();
 		body.addStatement(new TryCatch(bc.getFactory(), getStart(), listener.getEnd(), this, listener, asCollection));
 		tt.setBody(body);
 		tt.setParent(bc.getPage());
 		tt.init();
 		tt._writeOut(bc);
-		// lname.writeOut(bc, Expression.MODE_REF);
 		return Types.STRING;
 	}
 
