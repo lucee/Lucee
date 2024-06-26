@@ -32,6 +32,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import lucee.commons.digest.HashUtil;
 import lucee.commons.io.IOUtil;
+import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceClassLoader;
@@ -125,7 +126,7 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 
 	@Override
 	protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
-		synchronized (this) {
+		synchronized (SystemUtil.createToken("pcl", name)) {
 			return loadClass(name, resolve, true);
 		}
 	}
@@ -153,7 +154,7 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 
 	@Override
 	protected Class<?> findClass(String name) throws ClassNotFoundException {// if(name.indexOf("sub")!=-1)print.ds(name);
-		synchronized (this) {
+		synchronized (SystemUtil.createToken("pcl", name)) {
 			Resource res = directory.getRealResource(name.replace('.', '/').concat(".class"));
 
 			ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -175,7 +176,7 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 	public Class<?> loadClass(String name, byte[] barr) throws UnmodifiableClassException {
 		Class<?> clazz = null;
 
-		synchronized (this) {
+		synchronized (SystemUtil.createToken("pcl", name)) {
 
 			// new class , not in memory yet
 			try {

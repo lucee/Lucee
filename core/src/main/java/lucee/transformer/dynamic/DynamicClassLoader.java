@@ -25,18 +25,17 @@ public final class DynamicClassLoader extends ExtendableClassLoader {
 		boolean res = registerAsParallelCapable();
 	}
 	private Resource directory;
-	// private final Set<ClassLoader> parents = new HashSet<>();
 
-	private Map<String, String> loadedClasses = new ConcurrentHashMap<String, String>();
-	private Map<String, String> allLoadedClasses = new ConcurrentHashMap<String, String>(); // this includes all renames
-	private Map<String, String> unavaiClasses = new ConcurrentHashMap<String, String>();
+	private final Map<String, String> loadedClasses = new ConcurrentHashMap<>();
+	private final Map<String, String> allLoadedClasses = new ConcurrentHashMap<>(); // this includes all renames
+	private final Map<String, String> unavaiClasses = new ConcurrentHashMap<>();
 
-	private Map<String, SoftReference<Object>> instances = new ConcurrentHashMap<String, SoftReference<Object>>();
+	private final Map<String, SoftReference<Object>> instances = new ConcurrentHashMap<>();
 
 	private static long counter = 0L;
 	private static long _start = 0L;
 	private static String start = Long.toString(_start, Character.MAX_RADIX);
-	private static Object countToken = new Object();
+	private static final Object countToken = new Object();
 
 	public static String uid() {
 		synchronized (countToken) {
@@ -114,7 +113,7 @@ public final class DynamicClassLoader extends ExtendableClassLoader {
 	@Override
 	protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
 		// First, check if the class has already been loaded
-		synchronized (this) {
+		synchronized (SystemUtil.createToken("dcl", name)) {
 			return loadClass(name, resolve, true);
 		}
 	}
