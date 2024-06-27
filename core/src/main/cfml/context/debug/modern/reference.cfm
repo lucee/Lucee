@@ -377,7 +377,7 @@
 			 padding: 25px 25px 25px 25px !important;
 			 border: solid 1px ##eee !important; 
 			 border-radius: 1em !important;
-			 color: ##3399cc !important;
+			 color: ##e8f5d6 !important;
 			 margin: 1px !important;
 			 white-space: pre !important; /* Preserve whitespace and formatting */
 			 overflow-x: auto !important;
