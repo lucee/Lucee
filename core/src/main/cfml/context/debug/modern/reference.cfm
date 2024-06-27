@@ -78,20 +78,18 @@
 	}
 	
 	function executeCode(code) {
-		if(isNull(variables.counter)) variables.counter=1;
-		else variables.counter++;
-		var ramdir="ram://templatesmonitor"&variables.counter;
-		var mappingName="/monitoringexecute"&variables.counter;
-		
+		var id=createUniqueID();
+		var ramdir="ram://templatesmonitor"&id;
+		var mappingName="/monitoringexecute"&id;
 		var currSettings=getApplicationSettings();
 		try {
 			if(!directoryExists(ramdir)) directoryCreate(ramdir);
 			currSettings.mappings[mappingName]=ramdir;
 			application action="update" mappings=currSettings.mappings;
 			
-			fileWrite(ramdir&"/index#variables.counter#.cfm", code);
+			fileWrite(ramdir&"/index#id#.cfm", arguments.code);
 			savecontent variable="local.result" {
-				include mappingName&"/index#variables.counter#.cfm";
+				include mappingName&"/index#id#.cfm";
 			}
 			return result;
 		}
@@ -120,7 +118,7 @@
 	////////// read local index ////////
 		var localDirectory=expandPath("{lucee-config-dir}/recipes/");
 		var localIndexPath=localDirectory&"index.json";
-		
+
 		// create local directory if possible and needed
 		var hasLocalDir=true;
 		if(!fileExists(localIndexPath)) {
@@ -147,6 +145,7 @@
 			var localIndexData=[];
 			var localIndexHash="";
 		}
+		
 
 	////////// read remote index ////////
 		var rootPath=(server.system.environment.LUCEE_DOC_RECIPES_PATH?:"https://raw.githubusercontent.com/lucee/lucee-docs/master");
@@ -163,6 +162,7 @@
 			remoteIndexData=deserializeJSON(remoteIndexContent);
 			var remoteIndexHash=hash(remoteIndexContent);
 		}
+
 		// in case the local data differs from remote or we do not have local data at all
 		if(!offline && (first || localIndexHash!=remoteIndexHash)) {
 			setting requesttimeout="120";
@@ -171,10 +171,17 @@
 				entry.local=localDirectory&listLast(entry.file,"\/");
 				if(!first) {
 					loop array=localIndexData item="local.e" {
-						if(e.file==entry.file && (e.hash?:"b")==(entry.hash?:"a")) {
-							if(fileExists(entry.local)) {
-								entry.content=readRecipe(localDirectory&listLast(entry.file,"\/"));
-								continue outer;
+						if(e.file==entry.file) {
+							if( (e.hash?:"b")==(entry.hash?:"a")) {
+								if(fileExists(entry.local)) {
+									entry.content=readRecipe(localDirectory&listLast(entry.file,"\/"));
+									continue outer;
+								}
+							}
+							else {
+								if(fileExists(entry.local)) {
+									fileDelete(entry.local);
+								}
 							}
 						}
 					}
@@ -215,8 +222,9 @@
 		application.recipes[server.lucee.version]=nullValue();
     }
     function readRecipe(localFile, boolean fromContent=false) {
-        var content=fromContent?localFile:fileRead(localFile);
-        var endIndex=find("-->", content,4);
+		var content=fromContent?localFile:fileRead(localFile);
+        //var hash=hash(content,"md5");
+		var endIndex=find("-->", content,4);
 		if(endIndex==0) return content;
 		
         //var rawMeta=trim(mid(content,startIndex+5,endIndex-(startIndex+5)));
@@ -226,10 +234,8 @@
 
 	function getContent(data) {
 		var cannotReach="Sorry, this recipe is not avialble at the moment";
-		
 		if(isNull(data.content) || isEmpty(data.content) || data.content==cannotReach) {
 			var content=get(data.url,createTimeSpan(0,0,0,5), "");
-			
 			if(!isEmpty(content)) {
 				fileWrite(data.local,content);
 				data.content=readRecipe(content,true);
@@ -377,7 +383,7 @@
 			 padding: 25px 25px 25px 25px !important;
 			 border: solid 1px ##eee !important; 
 			 border-radius: 1em !important;
-			 color: ##e8f5d6 !important;
+			 color: ##ccffff !important;
 			 margin: 1px !important;
 			 white-space: pre !important; /* Preserve whitespace and formatting */
 			 overflow-x: auto !important;
