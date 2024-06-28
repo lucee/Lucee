@@ -5645,9 +5645,19 @@ To use cached data, the current query must use the same SQL statement, data sour
 			<type>boolean</type>
 			<name>showDebugOutput</name>
 			<required>false</required>
+			<status>deprecated</status>
 			<rtexprvalue>true</rtexprvalue>
-			<description>Yes or No. When set to No, showDebugOutput suppresses monitor information that would
-		otherwise display at the end of the generated page.</description>
+			<description>
+This attribute is deprecated, use instead one of the following attributes:
+- showDebug
+- showMetrics
+- showDoc
+- showTest
+- show		
+
+This attributes emulates as close as possible the behaviour of previous Lucee versions (6.0 or smaller).
+This attribute only takes effect when a custom debug template is defined in the Lucee admin and at least one debug option is enabled.
+			</description>
 		</attribute>
 		<attribute>
 			<type>boolean</type>

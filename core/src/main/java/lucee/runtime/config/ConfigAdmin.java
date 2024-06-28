@@ -303,14 +303,14 @@ public final class ConfigAdmin {
 		}
 	}
 
-	public static synchronized void _storeAndReload(ConfigPro config)
+	protected static synchronized void _storeAndReload(ConfigPro config)
 			throws PageException, ClassException, IOException, TagLibException, FunctionLibException, BundleException, ConverterException {
-		ConfigAdmin admin = new ConfigAdmin(config, null);
+		ConfigAdmin admin = new ConfigAdmin(config, null, true);
 		admin._store();
 		admin._reload();
 	}
 
-	private synchronized void _storeAndReload() throws PageException, ClassException, IOException, TagLibException, FunctionLibException, BundleException, ConverterException {
+	protected synchronized void _storeAndReload() throws PageException, ClassException, IOException, TagLibException, FunctionLibException, BundleException, ConverterException {
 		_store();
 		_reload();
 	}
@@ -561,27 +561,27 @@ public final class ConfigAdmin {
 		}
 	}
 
-	static void updateMapping(ConfigPro config, String virtual, String physical, String archive, String primary, short inspect, int inspectTemplateIntervalSlow,
+	protected static void updateMapping(ConfigPro config, String virtual, String physical, String archive, String primary, short inspect, int inspectTemplateIntervalSlow,
 			int inspectTemplateIntervalFast, boolean toplevel, int listenerMode, int listenerType, boolean readonly, boolean reload)
 			throws IOException, PageException, BundleException, ConverterException {
-		ConfigAdmin admin = new ConfigAdmin(config, null);
+		ConfigAdmin admin = new ConfigAdmin(config, null, true);
 		admin._updateMapping(virtual, physical, archive, primary, inspect, inspectTemplateIntervalSlow, inspectTemplateIntervalFast, toplevel, listenerMode, listenerType,
 				readonly);
 		admin._store();
 		if (reload) admin._reload();
 	}
 
-	static void updateComponentMapping(ConfigPro config, String virtual, String physical, String archive, String primary, short inspect, int inspectTemplateIntervalSlow,
+	protected static void updateComponentMapping(ConfigPro config, String virtual, String physical, String archive, String primary, short inspect, int inspectTemplateIntervalSlow,
 			int inspectTemplateIntervalFast, boolean reload) throws IOException, PageException, BundleException, ConverterException {
-		ConfigAdmin admin = new ConfigAdmin(config, null);
+		ConfigAdmin admin = new ConfigAdmin(config, null, true);
 		admin._updateComponentMapping(virtual, physical, archive, primary, inspect, inspectTemplateIntervalSlow, inspectTemplateIntervalFast);
 		admin._store();
 		if (reload) admin._reload();
 	}
 
-	static void updateCustomTagMapping(ConfigPro config, String virtual, String physical, String archive, String primary, short inspect, int inspectTemplateIntervalSlow,
+	protected static void updateCustomTagMapping(ConfigPro config, String virtual, String physical, String archive, String primary, short inspect, int inspectTemplateIntervalSlow,
 			int inspectTemplateIntervalFast, boolean reload) throws IOException, PageException, BundleException, ConverterException {
-		ConfigAdmin admin = new ConfigAdmin(config, null);
+		ConfigAdmin admin = new ConfigAdmin(config, null, true);
 		admin._updateCustomTag(virtual, physical, archive, primary, inspect, inspectTemplateIntervalSlow, inspectTemplateIntervalFast);
 		admin._store();
 		if (reload) admin._reload();
@@ -1556,8 +1556,8 @@ public final class ConfigAdmin {
 
 	}
 
-	static void removeJDBCDriver(ConfigPro config, ClassDefinition cd, boolean reload) throws IOException, PageException, BundleException, ConverterException {
-		ConfigAdmin admin = new ConfigAdmin(config, null);
+	protected static void removeJDBCDriver(ConfigPro config, ClassDefinition cd, boolean reload) throws IOException, PageException, BundleException, ConverterException {
+		ConfigAdmin admin = new ConfigAdmin(config, null, true);
 		admin._removeJDBCDriver(cd);
 		admin._store(); // store is necessary, otherwise it get lost
 
@@ -1782,8 +1782,8 @@ public final class ConfigAdmin {
 		el.setEL("readOnly", Caster.toString(readOnly));
 	}
 
-	static void removeSearchEngine(ConfigPro config, boolean reload) throws IOException, PageException, BundleException, ConverterException {
-		ConfigAdmin admin = new ConfigAdmin(config, null);
+	protected static void removeSearchEngine(ConfigPro config, boolean reload) throws IOException, PageException, BundleException, ConverterException {
+		ConfigAdmin admin = new ConfigAdmin(config, null, true);
 		admin._removeSearchEngine();
 		admin._store();
 		if (reload) admin._reload();
@@ -1813,8 +1813,8 @@ public final class ConfigAdmin {
 
 	}
 
-	static void removeORMEngine(ConfigPro config, boolean reload) throws IOException, PageException, BundleException, ConverterException {
-		ConfigAdmin admin = new ConfigAdmin(config, null);
+	protected static void removeORMEngine(ConfigPro config, boolean reload) throws IOException, PageException, BundleException, ConverterException {
+		ConfigAdmin admin = new ConfigAdmin(config, null, true);
 		admin._removeORMEngine();
 		admin._store();
 		if (reload) admin._reload();
@@ -4164,8 +4164,8 @@ public final class ConfigAdmin {
 		IOUtil.closeEL(monitor);
 	}
 
-	static void removeCacheHandler(ConfigPro config, String id, boolean reload) throws IOException, PageException, BundleException, ConverterException {
-		ConfigAdmin admin = new ConfigAdmin(config, null);
+	protected static void removeCacheHandler(ConfigPro config, String id, boolean reload) throws IOException, PageException, BundleException, ConverterException {
+		ConfigAdmin admin = new ConfigAdmin(config, null, true);
 		admin._removeCacheHandler(id);
 		admin._store();
 		if (reload) admin._reload();
@@ -4558,7 +4558,7 @@ public final class ConfigAdmin {
 
 	public static RHExtension _updateRHExtension(ConfigPro config, Resource ext, boolean reload, boolean force, short action) throws PageException {
 		try {
-			ConfigAdmin admin = new ConfigAdmin(config, null);
+			ConfigAdmin admin = new ConfigAdmin(config, null, true);
 			return admin.updateRHExtension(config, ext, reload, force, action);
 		}
 		catch (Exception e) {
@@ -4583,9 +4583,9 @@ public final class ConfigAdmin {
 		return rhext;
 	}
 
-	public static void _updateRHExtension(ConfigPro config, RHExtension rhext, boolean reload, boolean force) throws PageException {
+	protected static void _updateRHExtension(ConfigPro config, RHExtension rhext, boolean reload, boolean force) throws PageException {
 		try {
-			ConfigAdmin admin = new ConfigAdmin(config, null);
+			ConfigAdmin admin = new ConfigAdmin(config, null, true);
 			admin.updateRHExtension(config, rhext, reload, force);
 		}
 		catch (Exception e) {
@@ -4593,9 +4593,9 @@ public final class ConfigAdmin {
 		}
 	}
 
-	public static void _removeRHExtension(ConfigPro config, RHExtension rhext, RHExtension replacementRH, boolean deleteExtension) throws PageException {
+	protected static void _removeRHExtension(ConfigPro config, RHExtension rhext, RHExtension replacementRH, boolean deleteExtension) throws PageException {
 		try {
-			ConfigAdmin admin = new ConfigAdmin(config, null);
+			ConfigAdmin admin = new ConfigAdmin(config, null, true);
 			admin.removeRHExtension(config, rhext, replacementRH, deleteExtension);
 		}
 		catch (Exception e) {

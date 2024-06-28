@@ -21,7 +21,16 @@
 		"metric":"ldMetric"
 		,"ref":"loadRef"
 	];
-		
+	// this should never happen
+	if(len(enabledKeys)==0){
+		return;
+	}
+
+	// only show the debug template
+	if(len(enabledKeys)==1 && (arguments.show.debug?:false) && !isNull(arguments.debugTemplate) && ((getMetaData(arguments.debugTemplate).fullname?:"")!="lucee.admin.debug.Modern")) {
+		arguments.debugTemplate.output(custom:arguments.debugArgs.custom,debugging:arguments.debugArgs.debugging);
+		return;
+	}
 </cfscript>
 		
 </td></td></td></th></th></th></tr></tr></tr></table></table></table></a></abbrev></acronym></address></applet></au></b></banner></big></blink></blockquote></bq></caption></center></cite></code></comment></del></dfn></dir></div></div></dl></em></fig></fn></font></form></frame></frameset></h1></h2></h3></h4></h5></h6></head></i></ins></kbd></listing></map></marquee></menu></multicol></nobr></noframes></noscript></note></ol></p></param></person></plaintext></pre></q></s></samp></script></select></small></strike></strong></sub></sup></table></td></textarea></th></title></tr></tt></u></ul></var></wbr></xmp>

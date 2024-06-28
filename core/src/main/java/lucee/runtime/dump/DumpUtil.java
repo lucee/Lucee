@@ -519,6 +519,27 @@ public class DumpUtil {
 
 			table.setTitle("Class " + className);
 
+			// Meta
+			DumpTable metaDump = new DumpTable("#d6ccc2", "#f5ebe0", "#000000");
+			table.appendRow(0, metaDump);
+			metaDump.appendRow(1, new SimpleDumpData("class"), new SimpleDumpData(fullClassName));
+
+			// extennds
+			Class sClass = clazz.getSuperclass();
+			if (sClass != null) {
+				metaDump.appendRow(1, new SimpleDumpData("extends"), new SimpleDumpData(sClass.getName()));
+			}
+			// implements
+			Class[] iClasses = clazz.getInterfaces();
+			if (iClasses != null && iClasses.length > 0) {
+				StringBuilder sb = new StringBuilder();
+				for (Class c: iClasses) {
+					if (sb.length() > 0) sb.append(", ");
+					sb.append(c.getName());
+				}
+				metaDump.appendRow(1, new SimpleDumpData("implements"), new SimpleDumpData(sb.toString()));
+			}
+
 			// Fields
 			Field[] fields = clazz.getFields();
 			DumpTable fieldDump = new DumpTable("#d6ccc2", "#f5ebe0", "#000000");

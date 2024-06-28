@@ -55,6 +55,7 @@ import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.config.Identification;
 import lucee.runtime.config.NullSupportHelper;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.Abort;
 import lucee.runtime.exp.ExceptionHandler;
 import lucee.runtime.exp.ExpressionException;
@@ -278,6 +279,7 @@ public final class Types {
 	public static final Type DATA_MEMBER = Type.getType(lucee.runtime.component.DataMember.class);
 	public static final Type EXPRESSION_EXCEPTION = Type.getType(ExpressionException.class);
 	public static final Type STATIC_STRUCT = Type.getType(StaticStruct.class);
+	public static final Type THREAD_LOCAL_PAGE_CONTEXT = Type.getType(ThreadLocalPageContext.class);
 
 	/**
 	 * translate sString classname to a real type

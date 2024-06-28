@@ -14,8 +14,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 
 			it(title="checking ArraySort(asc;localeSensitive=true) function", body = function( currentSpec ) {
 				var arr=['a','b'];
-				arraySort(arr,'text','asc',true)
-				writedump(arrayToList(arr)=="a,b");
+				arraySort(arr,'text','asc',true);
 				assertEquals("a,b",arrayToList(arr));
 			});
 			it(title="checking ArraySort(desc;localeSensitive=true) function", body = function( currentSpec ) {

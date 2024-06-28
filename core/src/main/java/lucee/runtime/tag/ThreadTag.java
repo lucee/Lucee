@@ -89,7 +89,7 @@ public final class ThreadTag extends BodyTagImpl implements DynamicAttributes {
 
 	private int action = ACTION_RUN;
 	private long duration = -1;
-	private Collection.Key _name;
+	private Collection.Key name;
 	private int priority = Thread.NORM_PRIORITY;
 	private long timeout = 0;
 	private PageContext pc;
@@ -103,7 +103,7 @@ public final class ThreadTag extends BodyTagImpl implements DynamicAttributes {
 		super.release();
 		action = ACTION_RUN;
 		duration = -1;
-		_name = null;
+		name = null;
 		priority = Thread.NORM_PRIORITY;
 		type = TYPE_DAEMON;
 		plans = EXECUTION_PLAN;
@@ -142,17 +142,17 @@ public final class ThreadTag extends BodyTagImpl implements DynamicAttributes {
 	 */
 	public void setName(String name) {
 		if (StringUtil.isEmpty(name, true)) return;
-		this._name = KeyImpl.init(name);
+		this.name = KeyImpl.init(name);
 	}
 
 	private Collection.Key name(boolean create) {
-		if (_name == null && create) _name = KeyImpl.init("thread" + RandomUtil.createRandomStringLC(20));
-		return _name;
+		if (name == null && create) name = KeyImpl.init("thread" + RandomUtil.createRandomStringLC(5));
+		return name;
 	}
 
-	private String nameAsString(boolean create) {
+	public String nameAsString(boolean create) {
 		name(create);
-		return _name == null ? null : _name.getString();
+		return name == null ? null : name.getString();
 	}
 
 	/**
@@ -296,7 +296,11 @@ public final class ThreadTag extends BodyTagImpl implements DynamicAttributes {
 	}
 
 	public void register(Page currentPage, int threadIndex) throws PageException {
-		if (ACTION_RUN != action) return;
+		_register(currentPage, threadIndex);
+	}
+
+	public String _register(Page currentPage, int threadIndex) throws PageException {
+		if (ACTION_RUN != action) return null;
 
 		Key name = name(true);
 		try {
@@ -327,6 +331,7 @@ public final class ThreadTag extends BodyTagImpl implements DynamicAttributes {
 		finally {
 			((PageContextImpl) pc).reuse(this);// this method is not called from template when type is run, a call from template is to early,
 		}
+		return name.getString();
 	}
 
 	private static PageContext getRootPageContext(PageContext pc) {

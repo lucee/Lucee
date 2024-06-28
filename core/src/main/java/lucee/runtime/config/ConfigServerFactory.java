@@ -183,7 +183,11 @@ public final class ConfigServerFactory extends ConfigFactory {
 		if (!StringUtil.isEmpty(customCFConfig, true)) {
 			try {
 				configFile = ResourcesImpl.getFileResourceProvider().getResource(customCFConfig.trim());
-				if (configFile.isFile()) return configFile;
+
+				if (configFile.isFile()) {
+					LogUtil.log(Log.LEVEL_INFO, "config", "using config File : " + configFile);
+					return configFile;
+				}
 			}
 			catch (Exception e) {
 				LogUtil.log("config", e);

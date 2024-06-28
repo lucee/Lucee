@@ -49,8 +49,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 				
 				// this should be resolved via the /sue mapping, because it is a match with that mapping and there is no other mapping, dahh!
 				var path=slashify(expandPath("/sue/ellen/sub/"));
-				dump(label:"/susi/ellen/sub/",var:path);
-				dump(path== sue&"ellen/sub/");
 				expect( path ).toBe( sue&"ellen/sub/" );
 			});
 
@@ -63,8 +61,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 				 
 				// now the sue/ellen mapping should be used
 				var path=slashify(expandPath("/sue/ellen/sub/"));
-				dump(label:"/susi/ellen/sub/",var:path);
-				dump(path== sue_ellen_sub);
 				expect( path ).toBe( sue_ellen_sub );
 			});
 
@@ -79,7 +75,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 				 
 				// now we test sub sub that only exists in the /sue mapping
 				var path=slashify(expandPath("/sue/ellen/sub/subsub/"));
-				dump(label:"/susi/ellen/sub/subsub/",var:path);
 				
 				// even that does not exist in the sue/ellen mapping, that mapping is used because of the "lucee.mapping.first" env var is true, so mapping over match
 				expect( path ).toBe( sue_ellen_sub&"subsub/" );

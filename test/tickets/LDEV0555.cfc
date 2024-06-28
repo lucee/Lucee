@@ -79,7 +79,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				} catch ( any e ){
 					var encodeValue = e.message;
 				}
-				writeDump(encodeValue);
 				expect(encodeValue).toBe("aWQ9QkEtMzU3OSZ5PTIwMDEmbT1EQUtPVEEmeW1zPVBQJnVyZ2lkPU5ZMDImdmluPTNEN0hBMThONzJHMTc3Njg2tg==");
 			});
 
@@ -102,7 +101,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				} catch ( any e ){
 					var encodeValue = e.message;
 				}
-				writeDump(encodeValue);
 				expect(encodeValue).toBe("aWQ9QkEtMzU3OSZ5PTIwMDEmbT1EQUtPVEEmeW1zPVBQJnVyZ2lkPU5ZMDImdmluPTNEN0hBThONzJHMTc3Nj2tkgQ==");
 			});
 		});

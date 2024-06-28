@@ -8,7 +8,6 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 				for(var i=1; i<=numberOfColumns; i++) {
 					queryAddColumn(q, "c#i#", ["x"])
 				}
-				dump(q)
 			});
 		});
 	}

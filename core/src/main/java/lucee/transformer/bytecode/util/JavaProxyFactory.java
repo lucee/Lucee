@@ -83,7 +83,8 @@ public class JavaProxyFactory {
 	private static final org.objectweb.asm.commons.Method CALL_UDF = new org.objectweb.asm.commons.Method("call", Types.OBJECT,
 			new Type[] { Types.CONFIG_WEB, Types.UDF, Types.STRING, Types.OBJECT_ARRAY });
 
-	private static final org.objectweb.asm.commons.Method CONSTRUCTOR_CONFIG_CFC = new org.objectweb.asm.commons.Method("<init>", Types.VOID,
+	private static final org.objectweb.asm.commons.Method CONSTRUCTOR_CONFIG_CFC_0 = new org.objectweb.asm.commons.Method("<init>", Types.VOID, new Type[] {});
+	private static final org.objectweb.asm.commons.Method CONSTRUCTOR_CONFIG_CFC_2 = new org.objectweb.asm.commons.Method("<init>", Types.VOID,
 			new Type[] { Types.CONFIG_WEB, Types.COMPONENT });
 	private static final org.objectweb.asm.commons.Method CONSTRUCTOR_CONFIG_UDF = new org.objectweb.asm.commons.Method("<init>", Types.VOID,
 			new Type[] { Types.CONFIG_WEB, Types.UDF });
@@ -116,6 +117,9 @@ public class JavaProxyFactory {
 	private static final org.objectweb.asm.commons.Method GET_INSTANCE = new org.objectweb.asm.commons.Method("getInstance", CFML_ENGINE, new Type[] {});
 	private static final org.objectweb.asm.commons.Method GET_JAVA_PROXY_UTIL = new org.objectweb.asm.commons.Method("getJavaProxyUtil", Types.OBJECT, // FUTURE change to JavaProxy
 			new Type[] {});
+	private static final org.objectweb.asm.commons.Method GET_CONFIG = new org.objectweb.asm.commons.Method("getConfig", Types.CONFIG_WEB, new Type[] {});
+	private static final org.objectweb.asm.commons.Method GET = new org.objectweb.asm.commons.Method("get", Types.PAGE_CONTEXT, new Type[] {});
+	private static final org.objectweb.asm.commons.Method LOAD_COMPONENT = new org.objectweb.asm.commons.Method("loadComponent", Types.OBJECT, new Type[] { Types.STRING });
 
 	public static Object createProxy(Object defaultValue, PageContext pc, UDF udf, Class interf) {
 		try {
@@ -278,30 +282,75 @@ public class JavaProxyFactory {
 		_fv = cw.visitField(Opcodes.ACC_PRIVATE, "config", CONFIG_WEB_NAME, null, null);
 		_fv.visitEnd();
 
-		// Constructor
-		GeneratorAdapter adapter = new GeneratorAdapter(Opcodes.ACC_PUBLIC, CONSTRUCTOR_CONFIG_CFC, null, null, cw);
-		Label begin = new Label();
-		adapter.visitLabel(begin);
-		adapter.loadThis();
-		adapter.invokeConstructor(Types.OBJECT, SUPER_CONSTRUCTOR);
+		// Constructor with 0 arguments
+		/*
+		 * if (!((ComponentImpl) cfc).isInline()) { // regular // pc.us(KeyConstants._A,
+		 * _CreateComponent.call(var1, new Object[] { "Tester" // })); // sub // pc.us(KeyConstants._B,
+		 * _CreateComponent.call(var1, new Object[] { // "Tester$Sub" })); // inline //
+		 * pc.us(KeyConstants._C, ComponentLoader.loadInline((CIPage) (new // cf(this.getPageSource())),
+		 * var1));
+		 * 
+		 * // /Users/mic/Test/test-cfconfig/lucee-server/context/cfclasses/RPC/1npx73yjz161r/
+		 * Vd4b77fbf5bf083bf7dbae6851cf82a8811468.class GeneratorAdapter adapter = new
+		 * GeneratorAdapter(Opcodes.ACC_PUBLIC, CONSTRUCTOR_CONFIG_CFC_0, null, null, cw); Label begin = new
+		 * Label(); adapter.visitLabel(begin); adapter.loadThis(); adapter.invokeConstructor(Types.OBJECT,
+		 * SUPER_CONSTRUCTOR);
+		 * 
+		 * // this.config = (ConfigWeb) ThreadLocalPageContext.getConfig(); adapter.loadThis();
+		 * adapter.invokeStatic(Types.THREAD_LOCAL_PAGE_CONTEXT, GET_CONFIG);
+		 * adapter.checkCast(Types.CONFIG_WEB); adapter.visitFieldInsn(Opcodes.PUTFIELD, className,
+		 * "config", CONFIG_WEB_NAME);
+		 * 
+		 * // regular/sub if (!((ComponentImpl) cfc).isInline()) { // this.cfc =
+		 * ThreadLocalPageContext.get().loadComponent("Susi"); adapter.loadThis();
+		 * adapter.invokeStatic(Types.THREAD_LOCAL_PAGE_CONTEXT, GET); print.e("----------------------");
+		 * print.e("getName: " + cfc.getName()); print.e("getAbsName: " + cfc.getAbsName());
+		 * print.e("getBaseAbsName: " + cfc.getBaseAbsName()); print.e("getCallName: " + cfc.getCallName());
+		 * print.e("getDisplayName: " + cfc.getDisplayName()); print.e("getClassName: " +
+		 * cfc.getPageSource().getClassName()); print.e("getJavaName: " +
+		 * cfc.getPageSource().getJavaName()); print.e("getComponentName: " +
+		 * cfc.getPageSource().getComponentName()); print.e("getFileName: " +
+		 * cfc.getPageSource().getFileName());
+		 * 
+		 * adapter.push("Query"); adapter.invokeVirtual(Types.PAGE_CONTEXT, LOAD_COMPONENT);
+		 * adapter.checkCast(Types.COMPONENT); adapter.visitFieldInsn(Opcodes.PUTFIELD, className, "cfc",
+		 * COMPONENT_NAME); } // inline else {
+		 * 
+		 * }
+		 * 
+		 * adapter.visitInsn(Opcodes.RETURN); Label end = new Label(); adapter.visitLabel(end);
+		 * adapter.visitLocalVariable("config", CONFIG_WEB_NAME, null, begin, end, 1);
+		 * adapter.visitLocalVariable("cfc", COMPONENT_NAME, null, begin, end, 2);
+		 * 
+		 * // adapter.returnValue(); adapter.endMethod(); }
+		 */
 
-		// adapter.putField(JAVA_PROXY, arg1, arg2)
-		adapter.visitVarInsn(Opcodes.ALOAD, 0);
-		adapter.visitVarInsn(Opcodes.ALOAD, 1);
-		adapter.visitFieldInsn(Opcodes.PUTFIELD, className, "config", CONFIG_WEB_NAME);
+		// Constructor with 2 arguments
+		{
+			GeneratorAdapter adapter = new GeneratorAdapter(Opcodes.ACC_PUBLIC, CONSTRUCTOR_CONFIG_CFC_2, null, null, cw);
+			Label begin = new Label();
+			adapter.visitLabel(begin);
+			adapter.loadThis();
+			adapter.invokeConstructor(Types.OBJECT, SUPER_CONSTRUCTOR);
 
-		adapter.visitVarInsn(Opcodes.ALOAD, 0);
-		adapter.visitVarInsn(Opcodes.ALOAD, 2);
-		adapter.visitFieldInsn(Opcodes.PUTFIELD, className, "cfc", COMPONENT_NAME);
+			// adapter.putField(JAVA_PROXY, arg1, arg2)
+			adapter.visitVarInsn(Opcodes.ALOAD, 0);
+			adapter.visitVarInsn(Opcodes.ALOAD, 1);
+			adapter.visitFieldInsn(Opcodes.PUTFIELD, className, "config", CONFIG_WEB_NAME);
 
-		adapter.visitInsn(Opcodes.RETURN);
-		Label end = new Label();
-		adapter.visitLabel(end);
-		adapter.visitLocalVariable("config", CONFIG_WEB_NAME, null, begin, end, 1);
-		adapter.visitLocalVariable("cfc", COMPONENT_NAME, null, begin, end, 2);
+			adapter.visitVarInsn(Opcodes.ALOAD, 0);
+			adapter.visitVarInsn(Opcodes.ALOAD, 2);
+			adapter.visitFieldInsn(Opcodes.PUTFIELD, className, "cfc", COMPONENT_NAME);
 
-		// adapter.returnValue();
-		adapter.endMethod();
+			adapter.visitInsn(Opcodes.RETURN);
+			Label end = new Label();
+			adapter.visitLabel(end);
+			adapter.visitLocalVariable("config", CONFIG_WEB_NAME, null, begin, end, 1);
+			adapter.visitLocalVariable("cfc", COMPONENT_NAME, null, begin, end, 2);
+
+			// adapter.returnValue();
+			adapter.endMethod();
+		}
 
 		// create methods
 		Set<Class> cDone = new HashSet<Class>();

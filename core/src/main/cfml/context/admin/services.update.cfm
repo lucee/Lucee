@@ -368,7 +368,7 @@
 	</cfif>
 --->
 	<h2>Changelog</h2>
-	<p class="comment">For a detailed change log, please visit the <a href="https://changelog.lucee.org">Lucee Changelog</a>.</p>
+	<p class="comment">For a detailed change log, please visit the <a href="https://download.lucee.org/changelog/">Lucee Changelog</a>.</p>
 	
 	<h2>Limitation</h2>
 	<p class="comment">#loaderText#</p>
