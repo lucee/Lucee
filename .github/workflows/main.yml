@@ -118,6 +118,7 @@ jobs:
           ${{ runner.os }}-maven-
     
     - name: Import GPG key
+      if: ${{ env.DO_DEPLOY == 'true' }}
       run: |
         echo "$GPG_PRIVATE_KEY" | base64 --decode | gpg --batch --import
       env:
