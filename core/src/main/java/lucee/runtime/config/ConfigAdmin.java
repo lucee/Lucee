@@ -4558,7 +4558,7 @@ public final class ConfigAdmin {
 
 	public static RHExtension _updateRHExtension(ConfigPro config, Resource ext, boolean reload, boolean force, short action) throws PageException {
 		try {
-			ConfigAdmin admin = new ConfigAdmin(config, null);
+			ConfigAdmin admin = new ConfigAdmin(config, null, true);
 			return admin.updateRHExtension(config, ext, reload, force, action);
 		}
 		catch (Exception e) {
