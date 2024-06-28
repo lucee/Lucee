@@ -283,37 +283,47 @@ public class JavaProxyFactory {
 		_fv.visitEnd();
 
 		// Constructor with 0 arguments
-		if (false) {
-			// /Users/mic/Test/test-cfconfig/lucee-server/context/cfclasses/RPC/1npx73yjz161r/Vd4b77fbf5bf083bf7dbae6851cf82a8811468.class
-			GeneratorAdapter adapter = new GeneratorAdapter(Opcodes.ACC_PUBLIC, CONSTRUCTOR_CONFIG_CFC_0, null, null, cw);
-			Label begin = new Label();
-			adapter.visitLabel(begin);
-			adapter.loadThis();
-			adapter.invokeConstructor(Types.OBJECT, SUPER_CONSTRUCTOR);
-
-			// this.config = (ConfigWeb) ThreadLocalPageContext.getConfig();
-			adapter.loadThis();
-			adapter.invokeStatic(Types.THREAD_LOCAL_PAGE_CONTEXT, GET_CONFIG);
-			adapter.checkCast(Types.CONFIG_WEB);
-			adapter.visitFieldInsn(Opcodes.PUTFIELD, className, "config", CONFIG_WEB_NAME);
-
-			// this.cfc = ThreadLocalPageContext.get().loadComponent("Susi");
-			adapter.loadThis();
-			adapter.invokeStatic(Types.THREAD_LOCAL_PAGE_CONTEXT, GET);
-			adapter.push("Query");
-			adapter.invokeVirtual(Types.PAGE_CONTEXT, LOAD_COMPONENT);
-			adapter.checkCast(Types.COMPONENT);
-			adapter.visitFieldInsn(Opcodes.PUTFIELD, className, "cfc", COMPONENT_NAME);
-
-			adapter.visitInsn(Opcodes.RETURN);
-			Label end = new Label();
-			adapter.visitLabel(end);
-			adapter.visitLocalVariable("config", CONFIG_WEB_NAME, null, begin, end, 1);
-			adapter.visitLocalVariable("cfc", COMPONENT_NAME, null, begin, end, 2);
-
-			// adapter.returnValue();
-			adapter.endMethod();
-		}
+		/*
+		 * if (!((ComponentImpl) cfc).isInline()) { // regular // pc.us(KeyConstants._A,
+		 * _CreateComponent.call(var1, new Object[] { "Tester" // })); // sub // pc.us(KeyConstants._B,
+		 * _CreateComponent.call(var1, new Object[] { // "Tester$Sub" })); // inline //
+		 * pc.us(KeyConstants._C, ComponentLoader.loadInline((CIPage) (new // cf(this.getPageSource())),
+		 * var1));
+		 * 
+		 * // /Users/mic/Test/test-cfconfig/lucee-server/context/cfclasses/RPC/1npx73yjz161r/
+		 * Vd4b77fbf5bf083bf7dbae6851cf82a8811468.class GeneratorAdapter adapter = new
+		 * GeneratorAdapter(Opcodes.ACC_PUBLIC, CONSTRUCTOR_CONFIG_CFC_0, null, null, cw); Label begin = new
+		 * Label(); adapter.visitLabel(begin); adapter.loadThis(); adapter.invokeConstructor(Types.OBJECT,
+		 * SUPER_CONSTRUCTOR);
+		 * 
+		 * // this.config = (ConfigWeb) ThreadLocalPageContext.getConfig(); adapter.loadThis();
+		 * adapter.invokeStatic(Types.THREAD_LOCAL_PAGE_CONTEXT, GET_CONFIG);
+		 * adapter.checkCast(Types.CONFIG_WEB); adapter.visitFieldInsn(Opcodes.PUTFIELD, className,
+		 * "config", CONFIG_WEB_NAME);
+		 * 
+		 * // regular/sub if (!((ComponentImpl) cfc).isInline()) { // this.cfc =
+		 * ThreadLocalPageContext.get().loadComponent("Susi"); adapter.loadThis();
+		 * adapter.invokeStatic(Types.THREAD_LOCAL_PAGE_CONTEXT, GET); print.e("----------------------");
+		 * print.e("getName: " + cfc.getName()); print.e("getAbsName: " + cfc.getAbsName());
+		 * print.e("getBaseAbsName: " + cfc.getBaseAbsName()); print.e("getCallName: " + cfc.getCallName());
+		 * print.e("getDisplayName: " + cfc.getDisplayName()); print.e("getClassName: " +
+		 * cfc.getPageSource().getClassName()); print.e("getJavaName: " +
+		 * cfc.getPageSource().getJavaName()); print.e("getComponentName: " +
+		 * cfc.getPageSource().getComponentName()); print.e("getFileName: " +
+		 * cfc.getPageSource().getFileName());
+		 * 
+		 * adapter.push("Query"); adapter.invokeVirtual(Types.PAGE_CONTEXT, LOAD_COMPONENT);
+		 * adapter.checkCast(Types.COMPONENT); adapter.visitFieldInsn(Opcodes.PUTFIELD, className, "cfc",
+		 * COMPONENT_NAME); } // inline else {
+		 * 
+		 * }
+		 * 
+		 * adapter.visitInsn(Opcodes.RETURN); Label end = new Label(); adapter.visitLabel(end);
+		 * adapter.visitLocalVariable("config", CONFIG_WEB_NAME, null, begin, end, 1);
+		 * adapter.visitLocalVariable("cfc", COMPONENT_NAME, null, begin, end, 2);
+		 * 
+		 * // adapter.returnValue(); adapter.endMethod(); }
+		 */
 
 		// Constructor with 2 arguments
 		{
