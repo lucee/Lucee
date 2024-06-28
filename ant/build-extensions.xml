@@ -156,7 +156,6 @@
 		<available file="${cache}/${extImage}-${extImageVersion}.lex" property="image.present"/>
 		<available file="${cache}/${extEsapi}-${extEsapiVersion}.lex" property="esapi.present"/>
 		<available file="${cache}/${extCompress}-${extCompressVersion}.lex" property="compress.present"/>
-		<available file="${cache}/${extArgon2}-${extArgon2Version}.lex" property="argon2.present"/>
 	</target>
 
 	<target name="check-mysql" depends="check-cache" unless="mysql.present">
@@ -194,9 +193,6 @@
 	</target>
 	<target name="check-compress" depends="check-cache" unless="compress.present">
 		<get src="${extURL}${extCompress}?version=${extCompressVersion}" dest="${cache}/${extCompress}-${extCompressVersion}.lex"/>
-	</target>
-	<target name="check-argon2" depends="check-cache" unless="argon2.present">
-		<get src="${extURL}${extArgon2}?version=${extArgon2Version}" dest="${cache}/${extArgon2}-${extArgon2Version}.lex"/>
 	</target>
 	<target name="check-testbox" depends="check-cache" unless="testbox.present">
 		<get src="${testboxURL}" dest="${cache}/testbox-${testboxVersion}.zip"/>
@@ -350,18 +346,6 @@
 			tofile="${goal}/extensions/${ext_compress.filename}"/>
 		<echo level="info">add:${goal}/extensions/${ext_compress.filename}</echo>
 		<echo file="${goal}/extensions/.index" append="true">${ext_compress.filename};</echo>
-
-		<!-- add extension Argon2 -->
-		<loadmf jar="${cache}/${extArgon2}-${extArgon2Version}.lex" prefix="ext_argon2."/>
-		<toFileName id="${ext_argon2.id}" name="${ext_argon2.name}" version="${ext_argon2.version}" property="ext_argon2.filename"/>
-		<copy 
-			file="${cache}/${extArgon2}-${extArgon2Version}.lex" 
-			todir="${goal}/extensions/"/>
-		<move 
-			file="${goal}/extensions/${extArgon2}-${extArgon2Version}.lex" 
-			tofile="${goal}/extensions/${ext_argon2.filename}"/>
-		<echo level="info">add:${goal}/extensions/${ext_argon2.filename}</echo>
-		<echo file="${goal}/extensions/.index" append="true">${ext_argon2.filename};</echo>
 
 	</target>
 
