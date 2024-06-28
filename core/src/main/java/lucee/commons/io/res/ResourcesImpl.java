@@ -160,7 +160,7 @@ public final class ResourcesImpl implements Resources {
 	 * @return matching resource
 	 */
 	@Override
-	public Resource getResource(String path) {
+	public Resource getResource(String path) { // FUTURE throw IOException
 		int index = path.indexOf("://");
 		if (index != -1) {
 			String scheme = path.substring(0, index).toLowerCase().trim();
