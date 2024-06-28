@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" labels="argon2" skip="true" {
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="argon2" {
 
     function run( testResults , testBox ) {
         describe( title = "Testcase for Argon2CheckHash function", body = function() {
