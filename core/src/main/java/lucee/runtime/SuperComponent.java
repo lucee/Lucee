@@ -569,7 +569,7 @@ public class SuperComponent extends MemberSupport implements Component, Member {
 
 	@Override
 	public DumpData toDumpData(PageContext pageContext, int maxlevel, DumpProperties dp, int access) {
-		return toDumpData(pageContext, maxlevel, dp, access);
+		return comp.toDumpData(pageContext, maxlevel, dp, access);
 	}
 
 	@Override

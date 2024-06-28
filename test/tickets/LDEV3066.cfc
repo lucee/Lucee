@@ -9,8 +9,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 				expect("abc").toBe(ReReplace( string, regex, "\1" ));
 				expect("asdasd").toBe(ReReplace( string, regex, "\2" ));
 				expect("").toBe(ReReplace( string, regex, "\3" ));
-
-				writedump( ReFind( regex, string, 1, true ) );
 			});
 
 

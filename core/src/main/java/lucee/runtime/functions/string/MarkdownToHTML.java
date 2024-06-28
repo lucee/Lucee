@@ -23,11 +23,11 @@ public class MarkdownToHTML extends BIF implements Function {
 		return call(pc, Caster.toString(args[0]));
 	}
 
-	public static String call(PageContext pc, String markdown) throws PageException {
+	public static String call(PageContext pc, String markdown) {
 		return call(pc, markdown, false, null);
 	}
 
-	public static String call(PageContext pc, String markdown, boolean safeMode) throws PageException {
+	public static String call(PageContext pc, String markdown, boolean safeMode) {
 		return call(pc, markdown, safeMode, null);
 	}
 

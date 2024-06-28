@@ -25,7 +25,7 @@
 		<cftry> 
 			<cfthrow type="TestException" message="test exception"> 
 			<cfcatch name="local.e">
-				<cfdump var="#cfcatch#">
+				
 			</cfcatch> 
 		</cftry>
 

@@ -38,12 +38,19 @@ public final class TagThread extends TagBaseNoFinal implements ATagThread {
 	public static final Type THREAD_TAG = Type.getType(ThreadTag.class);
 
 	private static final Method REGISTER = new Method("register", Types.VOID, new Type[] { Types.PAGE, Types.INT_VALUE });
+	private static final Method _REGISTER = new Method("_register", Types.STRING, new Type[] { Types.PAGE, Types.INT_VALUE });
 
 	private int index;
+
+	private boolean outputName;
 
 	public TagThread(Factory f, Position start, Position end) {
 		super(f, start, end);
 		// print.e("::::"+ASMUtil.getAttributeString(this, "action","run")+":"+hashCode());
+	}
+
+	public void outputName() {
+		this.outputName = true;
 	}
 
 	public void init() throws TransformerException {
@@ -80,8 +87,7 @@ public final class TagThread extends TagBaseNoFinal implements ATagThread {
 		adapter.loadLocal(bc.getCurrentTag());
 		adapter.loadThis();
 		adapter.push(index);
-		adapter.invokeVirtual(THREAD_TAG, REGISTER);
-
+		adapter.invokeVirtual(THREAD_TAG, outputName ? _REGISTER : REGISTER);
 	}
 
 	/**

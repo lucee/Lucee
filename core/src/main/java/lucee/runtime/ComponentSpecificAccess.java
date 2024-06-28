@@ -491,7 +491,7 @@ public final class ComponentSpecificAccess extends StructSupport implements Comp
 
 	@Override
 	public DumpData toDumpData(PageContext pageContext, int maxlevel, DumpProperties dp, int access) {
-		return toDumpData(pageContext, maxlevel, dp, access);
+		return component.toDumpData(pageContext, maxlevel, dp, access);
 	}
 
 	@Override

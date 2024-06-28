@@ -195,6 +195,7 @@ class DCStack {
 	}
 
 	private boolean isClosedEL(Connection conn) {
+		if (conn == null) return true;
 		try {
 			return conn.isClosed();
 		}
@@ -213,6 +214,7 @@ class DCStack {
 	}
 
 	private Boolean isValidEL(Connection conn) {
+		if (conn == null) return false;
 		try {
 			// value is in ms but method expect s
 			int ms = datasource.getNetworkTimeout();

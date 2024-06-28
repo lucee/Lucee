@@ -39,7 +39,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
 		// data should be copied over
 		assertEquals("sorglos",sess1.susi);
-		dump(sess2);
 		assertEquals("sorglos",sess2.susi);
 		assertEquals("sorglos",sess3.susi);
 

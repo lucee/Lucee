@@ -324,9 +324,9 @@ public class JavaObject implements Objects, ObjectWrap {
 	}
 
 	private Object init(Object[] arguments, Object defaultValue) {
-		object = Reflector.callConstructor(clazz, arguments, defaultValue);
-		isInit = object != defaultValue;
-		return object;
+		object = Reflector.callConstructor(clazz, arguments, null);
+		isInit = object != null;
+		return isInit ? object : defaultValue;
 	}
 
 	@Override
