@@ -110,6 +110,14 @@ component extends="org.lucee.cfml.test.LuceeTestCase"  labels="mysql" 	{
 		testTypes("8.0.33");
 	}
 
+	public void function testTypes830() {
+		testTypes("8.3.0");
+	}
+
+	public void function testTypes840() {
+		testTypes("8.4.0");
+	}
+
 	/**
 	 * test types
 	 */
@@ -118,6 +126,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"  labels="mysql" 	{
 
 			var datasourceName="ds"&createUniqueID();
 			defineDatasource(arguments.version,datasourceName);
+			systemOutput("MySQL " arguments.version & ": " & server.verifyDatasource( datasourceName ), true );
 
 			var MinInt="-2147483648";
 			var MaxInt="2147483647";
