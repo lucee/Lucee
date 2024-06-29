@@ -419,6 +419,7 @@ component {
 		// TODO hmmmf closures and this scope!
 		server.getDefaultBundleVersion = getDefaultBundleVersion;  
 		server.getBundleVersions = getBundleVersions;
+		server.verifyDatasource = verifyDatasource;
 	}
 	public struct function getTestService( required string service, 
 			string dbFile="", 
