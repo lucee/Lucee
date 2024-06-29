@@ -80,6 +80,18 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mysql" {
 				var result = testConnection();
 				assertEquals(true, isQuery(result));
 			});
+
+			it( title='test with version 8.3.0',skip=isNotSupported(), body=function( currentSpec ) {
+				defineDatasource('com.mysql.cj.jdbc.Driver',  'com.mysql.cj', '8.3.0');
+				var result = testConnection();
+				assertEquals(true, isQuery(result));
+			});
+
+			it( title='test with version 8.4.0',skip=isNotSupported(), body=function( currentSpec ) {
+				defineDatasource('com.mysql.cj.jdbc.Driver',  'com.mysql.cj', '8.4.0');
+				var result = testConnection();
+				assertEquals(true, isQuery(result));
+			});
 		});
 
 		describe( title="Checking MYSQL JDBC drivers with PDT timeZone", body=function() {
@@ -232,6 +244,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mysql" {
 		mySQL.bundle=arguments.bundle;
 		mySQL.bundleVersion=arguments.bundleVersion;
 		application action="update" datasource=mySQL;
+
+		systemOutput("MySQL " & arguments.bundleVersion & ": " & server.verifyDatasource( mySQL ), true );
 	}
 
 	private query function testConnection(){
