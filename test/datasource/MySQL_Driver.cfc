@@ -244,8 +244,11 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mysql" {
 		mySQL.bundle=arguments.bundle;
 		mySQL.bundleVersion=arguments.bundleVersion;
 		application action="update" datasource=mySQL;
+		var info = server.verifyDatasource( mySQL );
+		// check via dbinfo that the bundle version matches
+		expect( info ).toInclude( arguments.bundleVersion );
+		//systemOutput("MySQL " & arguments.bundleVersion & ": " & server.verifyDatasource( mySQL ), true );
 
-		systemOutput("MySQL " & arguments.bundleVersion & ": " & server.verifyDatasource( mySQL ), true );
 	}
 
 	private query function testConnection(){
