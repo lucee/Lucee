@@ -2686,7 +2686,10 @@ To use cached data, the tag must be called with the exact same arguments.</descr
 			<type>single</type>
 			<rtexprvalue>false</rtexprvalue>
 		</script>
-		<description>To import a JSP Tag Library or a CFML Custom Tag Directory</description>
+		<description>
+The tag `import` has a dual purpose, it can be used to import components with help of the attribute `path` 
+or CFML/JSP custom tags with help of the attributes `prefix` and `taglib`.
+</description>
 		<attribute-type>fixed</attribute-type>
 		<attribute>
 			<type>string</type>
@@ -2694,7 +2697,6 @@ To use cached data, the tag must be called with the exact same arguments.</descr
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Path to a custom tag library or a jsp tld
-				
 As cfimport is a compiler directive, Application.cfc mappings won't work, but mappings configured via the web admin will.
 </description>
 		</attribute>
