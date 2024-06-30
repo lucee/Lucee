@@ -7,7 +7,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" skip=true {
         arrayEach(a, function(){
             pagePoolClear();
             sleep(2);
-            getComponentMetadata( "test.tickets.LDEV4934" );
+            getComponentMetadata( "test.tickets.LDEV4967" );
             sleeo(3); // yeah typo
         }, true );
     }
