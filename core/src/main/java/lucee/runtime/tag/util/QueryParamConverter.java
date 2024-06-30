@@ -161,11 +161,12 @@ public class QueryParamConverter {
 				// read single line
 				if (c == '-' && i < (sqlLen - 1) && sql.charAt(i + 1) == '-') {
 					int end = sql.indexOf('\n', i + 1);
-					if (end != -1) {
-						sb.append(sql.substring(i, end+1));
-						i = end;
-						continue;
-					}
+					if (end == -1) {
+						end = sqlLen-1; // end of sql string
+					} 
+					sb.append(sql.substring(i, end+1));
+					i = end;
+					continue;
 					//else break;
 				}
 			}

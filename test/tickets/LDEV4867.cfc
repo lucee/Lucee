@@ -35,6 +35,18 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="query" {
 				);
 			});
 
+			it( title='test query parsing, with a ? in a trailing line comment' , body=function() {
+				doTest( [ "SELECT 'test'",  "-- foo ? :do" ],
+					[ "-- foo ? :do" ]
+				);
+			});
+
+			it( title='test query parsing, with a ? in a trailing comment block' , body=function() {
+				doTest( [ "SELECT 'test'",  "/* foo ? :do */" ],
+					[ "/* foo ? :do */" ]
+				);
+			});
+
 		});
 	}
 
