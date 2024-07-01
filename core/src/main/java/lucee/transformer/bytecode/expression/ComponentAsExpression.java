@@ -25,12 +25,12 @@ public class ComponentAsExpression extends ExpressionBase implements AsExpressio
 
 	private TagComponent tc;
 
-	public ComponentAsExpression(Data data, TagComponent tc) throws TransformerException {
+	public ComponentAsExpression(Data data, TagComponent tc) {
 		super(tc.getFactory(), tc.getStart(), tc.getEnd());
 		this.tc = tc;
 		tc.setParent(data.getParent());
 		tc.setInline(true);
-		String name = Constants.SUB_COMPONENT_APPENDIX + CreateUniqueId.invoke();
+		String name = Constants.SUB_COMPONENT_APPENDIX + "_" + CreateUniqueId.invoke();
 		try {
 			tc.setName(name);
 		}
@@ -38,7 +38,6 @@ public class ComponentAsExpression extends ExpressionBase implements AsExpressio
 			// name cannot be invalid, because it is hardcoded above ;-)
 		}
 		tc.addAttribute(new Attribute(false, "name", data.factory.createLitString(name), "string"));
-		tc.writeOutSubComponent(data.page);
 	}
 
 	@Override

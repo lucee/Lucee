@@ -49,6 +49,8 @@ public abstract class TagCIObject extends TagBase {
 	private boolean inline;
 	private String name;
 	private String subClassName;
+	private Page page;
+	private SourceCode psc;
 
 	@Override
 	public void _writeOut(BytecodeContext bc) throws TransformerException {
@@ -66,17 +68,15 @@ public abstract class TagCIObject extends TagBase {
 		writeOut(bc, bc.getPage());
 	}
 
-	public void writeOut(BytecodeContext bc, Page parent) throws TransformerException {
-		// inline does it before execute
-		if (!inline) {
-			writeOutSubComponent(parent);
-		}
-	}
-
-	public void writeOutSubComponent(Page parent) throws TransformerException {
-
-		final List<Function> functions = parent.getFunctions();
-		SourceCode psc = null;
+	/**
+	 * detaches the inline/sub component from the root page and creates a independent page, also moves
+	 * all functions over
+	 * 
+	 * @param parent
+	 */
+	public void initDetachedComponent(Page parent) {
+		// create source code just for that component
+		psc = null;
 		{
 			SourceCode tmp;
 			psc = parent.getSourceCode();
@@ -88,21 +88,50 @@ public abstract class TagCIObject extends TagBase {
 		}
 		SourceCode sc = parent.getSourceCode().subCFMLString(getStart().pos, getEnd().pos - getStart().pos);
 
-		Page page = new Page(parent.getFactory(), parent.getConfig(), sc, this, CFMLEngineFactory.getInstance().getInfo().getFullVersionInfo(), parent.getLastModifed(),
+		// create page for that component
+		page = new Page(parent.getFactory(), parent.getConfig(), sc, this, CFMLEngineFactory.getInstance().getInfo().getFullVersionInfo(), parent.getLastModifed(),
 				parent.writeLog(), parent.getSupressWSbeforeArg(), parent.getOutput(), parent.returnValue(), parent.ignoreScopes);
 
-		// add functions from this component
+		// move functions over from root page to this page
+		final List<Function> functions = parent.getFunctions();
 		for (Function f: functions) {
 			if (ASMUtil.getAncestorComponent(f) == this) {
-				page.addFunction(f);
 				parent.removeFunction(f);
+				page.addFunction(f);
 			}
 		}
 		page.addStatement(this);
-		String className = this.getSubClassName(parent);
+	}
+
+	public void writeOut(BytecodeContext bc, Page parent) throws TransformerException {
+
+		String className = getSubClassName(parent);
+		// write the file
 		byte[] barr = page.execute(className);
 
 		Resource classFile = ((PageSourceCode) psc).getPageSource().getMapping().getClassRootDirectory().getRealResource(page.getClassName() + ".class");
+
+		// delete all old inline files
+		if (inline) {
+			long now = System.currentTimeMillis();
+			String prefix = classFile.getName();
+			int i = prefix.lastIndexOf('_');
+			if (i != -1) prefix = prefix.substring(0, i + 1);
+
+			Resource classDir = classFile.getParentResource(), r;
+			if (classDir.isDirectory()) {
+				String[] names = classDir.list();
+				if (names != null) {
+					for (String name: names) {
+						if (name != null && name.startsWith(prefix) && (now - (r = classDir.getRealResource(name)).lastModified()) > 10000) {
+							// print.e("delete:" + r);
+							r.delete();
+						}
+					}
+				}
+			}
+		}
+
 		Resource classDir = classFile.getParentResource();
 		if (!classDir.isDirectory()) classDir.mkdirs();
 		if (classFile.isFile()) classFile.delete();
