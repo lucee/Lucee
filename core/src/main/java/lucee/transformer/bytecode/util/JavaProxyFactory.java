@@ -119,9 +119,9 @@ public class JavaProxyFactory {
 	private static final org.objectweb.asm.commons.Method GET_INSTANCE = new org.objectweb.asm.commons.Method("getInstance", CFML_ENGINE, new Type[] {});
 	private static final org.objectweb.asm.commons.Method GET_JAVA_PROXY_UTIL = new org.objectweb.asm.commons.Method("getJavaProxyUtil", Types.OBJECT, // FUTURE change to JavaProxy
 			new Type[] {});
-	private static final org.objectweb.asm.commons.Method GET_CONFIG = new org.objectweb.asm.commons.Method("getConfig", Types.CONFIG_WEB, new Type[] {});
+	private static final org.objectweb.asm.commons.Method GET_CONFIG = new org.objectweb.asm.commons.Method("getConfig", Types.CONFIG, new Type[] {});
 	private static final org.objectweb.asm.commons.Method GET = new org.objectweb.asm.commons.Method("get", Types.PAGE_CONTEXT, new Type[] {});
-	private static final org.objectweb.asm.commons.Method LOAD_COMPONENT = new org.objectweb.asm.commons.Method("loadComponent", Types.OBJECT, new Type[] { Types.STRING });
+	private static final org.objectweb.asm.commons.Method LOAD_COMPONENT = new org.objectweb.asm.commons.Method("loadComponent", Types.COMPONENT, new Type[] { Types.STRING });
 
 	public static Object createProxy(Object defaultValue, PageContext pc, UDF udf, Class interf) {
 		try {
@@ -285,6 +285,46 @@ public class JavaProxyFactory {
 		_fv = cw.visitField(Opcodes.ACC_PRIVATE, "config", CONFIG_WEB_NAME, null, null);
 		_fv.visitEnd();
 
+		// Descriptor for local variables
+		String descriptor = 'L' + classPath + ';';
+
+		// Constructor with 0 arguments
+		{
+			GeneratorAdapter adapter = new GeneratorAdapter(Opcodes.ACC_PUBLIC, CONSTRUCTOR_CONFIG_CFC_0, null, null, cw);
+			Label begin = new Label();
+			adapter.visitLabel(begin);
+			adapter.loadThis();
+			adapter.invokeConstructor(Types.OBJECT, SUPER_CONSTRUCTOR);
+
+			// this.config = (ConfigWeb) ThreadLocalPageContext.getConfig();
+			adapter.loadThis(); // Load 'this' onto the stack
+			adapter.invokeStatic(Types.THREAD_LOCAL_PAGE_CONTEXT, GET_CONFIG);
+			adapter.checkCast(Types.CONFIG_WEB);
+			adapter.visitFieldInsn(Opcodes.PUTFIELD, classPath, "config", CONFIG_WEB_NAME);
+
+			// this.cfc = ThreadLocalPageContext.get().loadComponent(className);
+			String name = cfc.getAbsName();
+			String sub = ((ComponentImpl) cfc).getSubName();
+			if (!StringUtil.isEmpty(sub)) {
+				name += "$" + sub;
+			}
+			adapter.loadThis(); // Load 'this' onto the stack
+			adapter.invokeStatic(Types.THREAD_LOCAL_PAGE_CONTEXT, GET);
+			adapter.push(name);
+			adapter.invokeVirtual(Types.PAGE_CONTEXT, LOAD_COMPONENT);
+			adapter.checkCast(Types.COMPONENT);
+			adapter.visitFieldInsn(Opcodes.PUTFIELD, classPath, "cfc", COMPONENT_NAME);
+
+			adapter.visitInsn(Opcodes.RETURN);
+			Label end = new Label();
+			adapter.visitLabel(end);
+			adapter.visitLocalVariable("this", descriptor, null, begin, end, 0); // Correctly define 'this' as local variable 0
+			adapter.visitLocalVariable("config", CONFIG_WEB_NAME, null, begin, end, 1); // Correctly define 'config' as local variable 1
+			adapter.visitLocalVariable("cfc", COMPONENT_NAME, null, begin, end, 2); // Correctly define 'cfc' as local variable 2
+
+			adapter.endMethod();
+		}
+
 		// Constructor with 2 arguments
 		{
 			GeneratorAdapter adapter = new GeneratorAdapter(Opcodes.ACC_PUBLIC, CONSTRUCTOR_CONFIG_CFC_2, null, null, cw);
@@ -304,8 +344,9 @@ public class JavaProxyFactory {
 			adapter.visitInsn(Opcodes.RETURN);
 			Label end = new Label();
 			adapter.visitLabel(end);
-			adapter.visitLocalVariable("config", CONFIG_WEB_NAME, null, begin, end, 1);
-			adapter.visitLocalVariable("cfc", COMPONENT_NAME, null, begin, end, 2);
+			adapter.visitLocalVariable("this", descriptor, null, begin, end, 0); // Correctly define 'this' as local variable 0
+			adapter.visitLocalVariable("config", CONFIG_WEB_NAME, null, begin, end, 1); // Correctly define 'config' as local variable 1
+			adapter.visitLocalVariable("cfc", COMPONENT_NAME, null, begin, end, 2); // Correctly define 'cfc' as local variable 2
 
 			adapter.endMethod();
 		}
@@ -334,6 +375,7 @@ public class JavaProxyFactory {
 			throw Caster.toPageException(t);
 		}
 	}
+
 	// Constructor with 0 arguments
 	/*
 	 * if (!((ComponentImpl) cfc).isInline()) { // regular // pc.us(KeyConstants._A,
