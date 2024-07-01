@@ -1676,15 +1676,27 @@ public final class CFMLEngineImpl implements CFMLEngine {
 
 	public void onStart(ConfigPro config, boolean reload) {
 		boolean isWeb = config instanceof ConfigWeb;
-		String context = isWeb ? "Web" : "Server";
+		Boolean build = Caster.toBoolean(SystemUtil.getSystemPropOrEnvVar("lucee.enable.warmup", ""), null);
+		if (build == null) build = Caster.toBoolean(SystemUtil.getSystemPropOrEnvVar("lucee.build", ""), null);
+		boolean warmup = Boolean.TRUE.equals(build);
+		if (warmup) {
+			if (!isWeb) {
+				onStartCall(config, reload, true);
 
-		if ((isWeb || config.getAdminMode() == ConfigImpl.ADMINMODE_SINGLE) && Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.enable.warmup", ""), false)) {
-			String msg = "Lucee warmup completed. Shutting down.";
-			CONSOLE_ERR.println(msg);
-			LogUtil.log(config, Log.LEVEL_ERROR, "application", msg);
-			shutdownFelix();
-			System.exit(0);
+				String msg = "Lucee warmup completed. Shutting down.";
+				// CONSOLE_OUT.println(msg);
+				LogUtil.logGlobal(config, Log.LEVEL_INFO, "config", msg);
+				LogUtil.log(config, Log.LEVEL_INFO, "application", msg);
+				shutdownFelix();
+				System.exit(0);
+			}
 		}
+		else onStartCall(config, reload, false);
+	}
+
+	private void onStartCall(ConfigPro config, boolean reload, boolean warmup) {
+		boolean isWeb = config instanceof ConfigWeb;
+		String context = isWeb ? "Web" : "Server";
 
 		if (!ThreadLocalPageContext.callOnStart.get()) return;
 
@@ -1713,7 +1725,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 		if (!StringUtil.emptyIfNull(Thread.currentThread().getName()).startsWith("on-start-")) {
 			long timeout = config.getRequestTimeout().getMillis();
 			if (timeout <= 0) timeout = 50000L;
-			OnStart thread = new OnStart(config, context, reload, inWebRoot);
+			OnStart thread = new OnStart(config, context, reload, inWebRoot, warmup);
 			thread.setName("on-start-" + CreateUniqueId.invoke());
 			long start = System.currentTimeMillis();
 			thread.start();
@@ -1724,10 +1736,10 @@ public final class CFMLEngineImpl implements CFMLEngine {
 				LogUtil.log(config, "on-start", e);
 			}
 			if (thread.isAlive()) {
-				LogUtil.log(config, Log.LEVEL_ERROR, "on-start", "killing on-start");
+				LogUtil.log(config, Log.LEVEL_INFO, "on-start", "killing on-start");
 				SystemUtil.stop(thread);
 			}
-			LogUtil.log(config, Log.LEVEL_INFO, "on-start", "on-start executed in " + (System.currentTimeMillis() - start) + "ms");
+			LogUtil.log(config, Log.LEVEL_INFO, "on-start", "on-" + (warmup ? "warmup" : "start") + " executed in " + (System.currentTimeMillis() - start) + "ms");
 		}
 	}
 
@@ -1740,12 +1752,14 @@ public final class CFMLEngineImpl implements CFMLEngine {
 		private boolean reload;
 		private String context;
 		private boolean inWebRoot;
+		private boolean warmup;
 
-		public OnStart(ConfigPro config, String context, boolean reload, boolean inWebRoot) {
+		public OnStart(ConfigPro config, String context, boolean reload, boolean inWebRoot, boolean warmup) {
 			this.config = config;
 			this.context = context;
 			this.reload = reload;
 			this.inWebRoot = inWebRoot;
+			this.warmup = warmup;
 		}
 
 		@Override
@@ -1766,7 +1780,8 @@ public final class CFMLEngineImpl implements CFMLEngine {
 				catch (IOException e) {
 					throw Caster.toPageException(e);
 				}
-				String queryString = "method=on" + context + "Start&reload=" + reload + "&" + ComponentPageImpl.REMOTE_PERSISTENT_ID + "=" + remotePersisId;
+				String methodName = warmup ? "onBuild" : ("on" + context + "Start");
+				String queryString = "method=" + methodName + "&reload=" + reload + "&" + ComponentPageImpl.REMOTE_PERSISTENT_ID + "=" + remotePersisId;
 				if (config instanceof ConfigWeb) {
 					Pair[] headers = new Pair[] { new Pair<String, Object>("AMF-Forward", "true") };
 					Struct attrs = new StructImpl();

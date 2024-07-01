@@ -1181,6 +1181,10 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 		return top.properties.dspName;
 	}
 
+	public String getSubName() {
+		return top.properties.subName;
+	}
+
 	@Override
 	public String getExtends() {
 		return top.properties.extend;

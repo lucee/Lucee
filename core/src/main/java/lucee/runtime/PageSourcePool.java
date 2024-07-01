@@ -31,6 +31,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.watch.PageSourcePoolWatcher;
+import lucee.commons.lang.SerializableObject;
 import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigWebUtil;
 import lucee.runtime.config.Constants;
@@ -52,6 +53,7 @@ public final class PageSourcePool implements Dumpable {
 	private final Map<String, SoftReference<PageSource>> pageSources = new ConcurrentHashMap<String, SoftReference<PageSource>>();
 	private int maxSize_min = 1000;
 	private PageSourcePoolWatcher watcher;
+	private Object token = new SerializableObject();
 	private MappingImpl mapping;
 
 	// max size of the pool cache
@@ -105,11 +107,13 @@ public final class PageSourcePool implements Dumpable {
 			cleanLoaders();
 		}
 		if ((mapping.getInspectTemplate() == ConfigPro.INSPECT_AUTO) && (watcher == null || pageSources.size() == 0)) {
-			if (watcher != null) {
-				watcher.stopIfNecessary();
+			synchronized (token) {
+				if (watcher != null) {
+					watcher.stopIfNecessary();
+				}
+				watcher = new PageSourcePoolWatcher(mapping, this, pageSources);
+				watcher.startIfNecessary();
 			}
-			watcher = new PageSourcePoolWatcher(mapping, this, pageSources);
-			watcher.startIfNecessary();
 		}
 
 		ps.setLastAccessTime();
@@ -240,10 +244,7 @@ public final class PageSourcePool implements Dumpable {
 			System.gc();
 		}
 
-		if (pageSources.isEmpty()) {
-			watcher.stopIfNecessary();
-			watcher = null;
-		}
+		resetWatcherWhenEmpty(false, true);
 	}
 
 	@Override
@@ -287,10 +288,8 @@ public final class PageSourcePool implements Dumpable {
 		if (cl == null) {
 			pageSources.clear();
 		}
-		if (watcher != null && pageSources.isEmpty()) {
-			watcher.stopIfNecessary();
-			watcher = null;
-		}
+
+		resetWatcherWhenEmpty(false, true);
 	}
 
 	public void resetPages(ClassLoader cl) {
@@ -305,20 +304,11 @@ public final class PageSourcePool implements Dumpable {
 			else psi.resetLoaded();
 		}
 
-		if (watcher != null && pageSources.isEmpty()) {
-			watcher.stopIfNecessary();
-			watcher = null;
-		}
+		resetWatcherWhenEmpty(false, true);
 	}
 
 	public void stopWatcher() {
-		if (watcher != null) {
-			PageSourcePoolWatcher tmp = watcher;
-			watcher = null;
-			if (tmp != null) {
-				tmp.stopIfNecessary();
-			}
-		}
+		resetWatcherWhenEmpty(true, true);
 	}
 
 	public void clear() {
@@ -350,4 +340,14 @@ public final class PageSourcePool implements Dumpable {
 		}
 	}
 
+	private void resetWatcherWhenEmpty(boolean force, boolean set2null) {
+		if (watcher != null && (force || pageSources.isEmpty())) {
+			synchronized (token) {
+				if (watcher != null && (force || pageSources.isEmpty())) {
+					watcher.stopIfNecessary();
+					if (set2null) watcher = null;
+				}
+			}
+		}
+	}
 }

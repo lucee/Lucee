@@ -15353,7 +15353,7 @@ you can use tag cfadmin instead. we will add support for this function in a futu
 		<argument>
 			<name>classname</name>
 			<alias>component,class</alias>
-			<type>string</type>
+			<type>object</type>
 			<required>no</required>
 		<description>
 the usage of this argument depend on type defined with argument "type":
