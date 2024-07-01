@@ -37,16 +37,18 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.GeneratorAdapter;
 
+import lucee.commons.digest.HashUtil;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ClassUtil;
 import lucee.commons.lang.ExceptionUtil;
-import lucee.commons.lang.KeyGenerator;
 import lucee.commons.lang.PhysicalClassLoader;
+import lucee.commons.lang.StringUtil;
 import lucee.loader.engine.CFMLEngine;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.runtime.Component;
+import lucee.runtime.ComponentImpl;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.config.ConfigWeb;
@@ -149,7 +151,7 @@ public class JavaProxyFactory {
 		catch (IOException e) {
 			throw Caster.toPageException(e);
 		}
-		String className = createClassName("udf", pcl.getDirectory(), Object.class, interf);
+		String className = createClassName("udf", null, pcl.getDirectory(), Object.class, interf);
 
 		Resource classFile = pcl.getDirectory().getRealResource(className.concat(".class"));
 
@@ -259,8 +261,9 @@ public class JavaProxyFactory {
 			throw Caster.toPageException(e);
 		}
 
-		String className = createClassName("cfc", pcl.getDirectory(), extendz, interfaces);
-		Resource classFile = pcl.getDirectory().getRealResource(className.concat(".class"));
+		String className = createClassName("cfc", cfc, pcl.getDirectory(), extendz, interfaces);
+		String classPath = className.replace('.', '/'); // Ensure classPath is using slashes
+		Resource classFile = pcl.getDirectory().getRealResource(classPath.concat(".class"));
 
 		// check if already exists, if yes return
 		if (classFile.exists()) {
@@ -274,56 +277,13 @@ public class JavaProxyFactory {
 		}
 		ClassWriter cw = ASMUtil.getClassWriter();
 
-		cw.visit(ASMUtil.getJavaVersionForBytecodeGeneration(), Opcodes.ACC_PUBLIC, className, null, typeExtends.getInternalName(), strInterfaces);
+		cw.visit(ASMUtil.getJavaVersionForBytecodeGeneration(), Opcodes.ACC_PUBLIC, classPath, null, typeExtends.getInternalName(), strInterfaces);
 
 		// field Component
 		FieldVisitor _fv = cw.visitField(Opcodes.ACC_PRIVATE, "cfc", COMPONENT_NAME, null, null);
 		_fv.visitEnd();
 		_fv = cw.visitField(Opcodes.ACC_PRIVATE, "config", CONFIG_WEB_NAME, null, null);
 		_fv.visitEnd();
-
-		// Constructor with 0 arguments
-		/*
-		 * if (!((ComponentImpl) cfc).isInline()) { // regular // pc.us(KeyConstants._A,
-		 * _CreateComponent.call(var1, new Object[] { "Tester" // })); // sub // pc.us(KeyConstants._B,
-		 * _CreateComponent.call(var1, new Object[] { // "Tester$Sub" })); // inline //
-		 * pc.us(KeyConstants._C, ComponentLoader.loadInline((CIPage) (new // cf(this.getPageSource())),
-		 * var1));
-		 * 
-		 * // /Users/mic/Test/test-cfconfig/lucee-server/context/cfclasses/RPC/1npx73yjz161r/
-		 * Vd4b77fbf5bf083bf7dbae6851cf82a8811468.class GeneratorAdapter adapter = new
-		 * GeneratorAdapter(Opcodes.ACC_PUBLIC, CONSTRUCTOR_CONFIG_CFC_0, null, null, cw); Label begin = new
-		 * Label(); adapter.visitLabel(begin); adapter.loadThis(); adapter.invokeConstructor(Types.OBJECT,
-		 * SUPER_CONSTRUCTOR);
-		 * 
-		 * // this.config = (ConfigWeb) ThreadLocalPageContext.getConfig(); adapter.loadThis();
-		 * adapter.invokeStatic(Types.THREAD_LOCAL_PAGE_CONTEXT, GET_CONFIG);
-		 * adapter.checkCast(Types.CONFIG_WEB); adapter.visitFieldInsn(Opcodes.PUTFIELD, className,
-		 * "config", CONFIG_WEB_NAME);
-		 * 
-		 * // regular/sub if (!((ComponentImpl) cfc).isInline()) { // this.cfc =
-		 * ThreadLocalPageContext.get().loadComponent("Susi"); adapter.loadThis();
-		 * adapter.invokeStatic(Types.THREAD_LOCAL_PAGE_CONTEXT, GET); print.e("----------------------");
-		 * print.e("getName: " + cfc.getName()); print.e("getAbsName: " + cfc.getAbsName());
-		 * print.e("getBaseAbsName: " + cfc.getBaseAbsName()); print.e("getCallName: " + cfc.getCallName());
-		 * print.e("getDisplayName: " + cfc.getDisplayName()); print.e("getClassName: " +
-		 * cfc.getPageSource().getClassName()); print.e("getJavaName: " +
-		 * cfc.getPageSource().getJavaName()); print.e("getComponentName: " +
-		 * cfc.getPageSource().getComponentName()); print.e("getFileName: " +
-		 * cfc.getPageSource().getFileName());
-		 * 
-		 * adapter.push("Query"); adapter.invokeVirtual(Types.PAGE_CONTEXT, LOAD_COMPONENT);
-		 * adapter.checkCast(Types.COMPONENT); adapter.visitFieldInsn(Opcodes.PUTFIELD, className, "cfc",
-		 * COMPONENT_NAME); } // inline else {
-		 * 
-		 * }
-		 * 
-		 * adapter.visitInsn(Opcodes.RETURN); Label end = new Label(); adapter.visitLabel(end);
-		 * adapter.visitLocalVariable("config", CONFIG_WEB_NAME, null, begin, end, 1);
-		 * adapter.visitLocalVariable("cfc", COMPONENT_NAME, null, begin, end, 2);
-		 * 
-		 * // adapter.returnValue(); adapter.endMethod(); }
-		 */
 
 		// Constructor with 2 arguments
 		{
@@ -333,14 +293,13 @@ public class JavaProxyFactory {
 			adapter.loadThis();
 			adapter.invokeConstructor(Types.OBJECT, SUPER_CONSTRUCTOR);
 
-			// adapter.putField(JAVA_PROXY, arg1, arg2)
 			adapter.visitVarInsn(Opcodes.ALOAD, 0);
 			adapter.visitVarInsn(Opcodes.ALOAD, 1);
-			adapter.visitFieldInsn(Opcodes.PUTFIELD, className, "config", CONFIG_WEB_NAME);
+			adapter.visitFieldInsn(Opcodes.PUTFIELD, classPath, "config", CONFIG_WEB_NAME);
 
 			adapter.visitVarInsn(Opcodes.ALOAD, 0);
 			adapter.visitVarInsn(Opcodes.ALOAD, 2);
-			adapter.visitFieldInsn(Opcodes.PUTFIELD, className, "cfc", COMPONENT_NAME);
+			adapter.visitFieldInsn(Opcodes.PUTFIELD, classPath, "cfc", COMPONENT_NAME);
 
 			adapter.visitInsn(Opcodes.RETURN);
 			Label end = new Label();
@@ -348,7 +307,6 @@ public class JavaProxyFactory {
 			adapter.visitLocalVariable("config", CONFIG_WEB_NAME, null, begin, end, 1);
 			adapter.visitLocalVariable("cfc", COMPONENT_NAME, null, begin, end, 2);
 
-			// adapter.returnValue();
 			adapter.endMethod();
 		}
 
@@ -356,7 +314,7 @@ public class JavaProxyFactory {
 		Set<Class> cDone = new HashSet<Class>();
 		Map<String, Class> mDone = new HashMap<String, Class>();
 		for (int i = 0; i < interfaces.length; i++) {
-			_createProxy(cw, cDone, mDone, cfc, interfaces[i], className);
+			_createProxy(cw, cDone, mDone, cfc, interfaces[i], classPath);
 		}
 		cw.visitEnd();
 
@@ -376,6 +334,48 @@ public class JavaProxyFactory {
 			throw Caster.toPageException(t);
 		}
 	}
+	// Constructor with 0 arguments
+	/*
+	 * if (!((ComponentImpl) cfc).isInline()) { // regular // pc.us(KeyConstants._A,
+	 * _CreateComponent.call(var1, new Object[] { "Tester" // })); // sub // pc.us(KeyConstants._B,
+	 * _CreateComponent.call(var1, new Object[] { // "Tester$Sub" })); // inline //
+	 * pc.us(KeyConstants._C, ComponentLoader.loadInline((CIPage) (new // cf(this.getPageSource())),
+	 * var1));
+	 * 
+	 * // /Users/mic/Test/test-cfconfig/lucee-server/context/cfclasses/RPC/1npx73yjz161r/
+	 * Vd4b77fbf5bf083bf7dbae6851cf82a8811468.class GeneratorAdapter adapter = new
+	 * GeneratorAdapter(Opcodes.ACC_PUBLIC, CONSTRUCTOR_CONFIG_CFC_0, null, null, cw); Label begin = new
+	 * Label(); adapter.visitLabel(begin); adapter.loadThis(); adapter.invokeConstructor(Types.OBJECT,
+	 * SUPER_CONSTRUCTOR);
+	 * 
+	 * // this.config = (ConfigWeb) ThreadLocalPageContext.getConfig(); adapter.loadThis();
+	 * adapter.invokeStatic(Types.THREAD_LOCAL_PAGE_CONTEXT, GET_CONFIG);
+	 * adapter.checkCast(Types.CONFIG_WEB); adapter.visitFieldInsn(Opcodes.PUTFIELD, className,
+	 * "config", CONFIG_WEB_NAME);
+	 * 
+	 * // regular/sub if (!((ComponentImpl) cfc).isInline()) { // this.cfc =
+	 * ThreadLocalPageContext.get().loadComponent("Susi"); adapter.loadThis();
+	 * adapter.invokeStatic(Types.THREAD_LOCAL_PAGE_CONTEXT, GET); print.e("----------------------");
+	 * print.e("getName: " + cfc.getName()); print.e("getAbsName: " + cfc.getAbsName());
+	 * print.e("getBaseAbsName: " + cfc.getBaseAbsName()); print.e("getCallName: " + cfc.getCallName());
+	 * print.e("getDisplayName: " + cfc.getDisplayName()); print.e("getClassName: " +
+	 * cfc.getPageSource().getClassName()); print.e("getJavaName: " +
+	 * cfc.getPageSource().getJavaName()); print.e("getComponentName: " +
+	 * cfc.getPageSource().getComponentName()); print.e("getFileName: " +
+	 * cfc.getPageSource().getFileName());
+	 * 
+	 * adapter.push("Query"); adapter.invokeVirtual(Types.PAGE_CONTEXT, LOAD_COMPONENT);
+	 * adapter.checkCast(Types.COMPONENT); adapter.visitFieldInsn(Opcodes.PUTFIELD, className, "cfc",
+	 * COMPONENT_NAME); } // inline else {
+	 * 
+	 * }
+	 * 
+	 * adapter.visitInsn(Opcodes.RETURN); Label end = new Label(); adapter.visitLabel(end);
+	 * adapter.visitLocalVariable("config", CONFIG_WEB_NAME, null, begin, end, 1);
+	 * adapter.visitLocalVariable("cfc", COMPONENT_NAME, null, begin, end, 2);
+	 * 
+	 * // adapter.returnValue(); adapter.endMethod(); }
+	 */
 
 	private static ClassLoader[] extractClassLoaders(ClassLoader cl, Class... classes) {
 		HashSet<ClassLoader> set = new HashSet<>();
@@ -573,7 +573,7 @@ public class JavaProxyFactory {
 		return constr.newInstance(new Object[] { config, cfc });
 	}
 
-	private static String createClassName(String appendix, Resource resource, Class extendz, Class... interfaces) throws IOException {
+	private static String createClassName(String appendix, Component cfc, Resource resource, Class extendz, Class... interfaces) {
 		if (extendz == null) extendz = Object.class;
 
 		StringBuilder sb = new StringBuilder(extendz.getName());
@@ -589,8 +589,16 @@ public class JavaProxyFactory {
 			sb.append(lucee.runtime.type.util.ListUtil.arrayToList(arr, ";"));
 		}
 		sb.append(appendix).append(';').append(resource.getAbsolutePath()).append(';');
-		String key = KeyGenerator.createVariable(sb.toString());
 
-		return key;
+		StringBuilder name = new StringBuilder().append(appendix.charAt(0)).append(HashUtil.create64BitHashAsString(sb.toString(), Character.MAX_RADIX).toLowerCase());
+		if (cfc != null && !StringUtil.isEmpty(cfc.getAbsName())) {
+			name.append('.').append(cfc.getAbsName());
+
+			String sub = ((ComponentImpl) cfc).getSubName();
+			if (!StringUtil.isEmpty(sub)) {
+				name.append('$').append(sub);
+			}
+		}
+		return name.toString();
 	}
 }
