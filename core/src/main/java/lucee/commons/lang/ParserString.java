@@ -19,6 +19,7 @@
 package lucee.commons.lang;
 
 import lucee.commons.io.SystemUtil;
+import lucee.aprint;
 
 /**
  * Der CFMLString ist eine Hilfe fuer die Transformer, er repraesentiert den CFML Code und bietet
@@ -711,7 +712,10 @@ public final class ParserString {
 		}
 		return (start < pos);
 	}
-
+	/*
+	 * MARK: stripcomment
+	 * 
+	 */
 	/**
 	 * Strip out all sql comments
 	 * 
@@ -722,6 +726,9 @@ public final class ParserString {
 		int sqlLen = sql.length();
 		StringBuilder sb = new StringBuilder();
 
+	//	aprint.out( "-----stripComments START---" );
+	//	aprint.out( sql );
+
 		for (int i = 0; i < sqlLen; i++) {
 			c = sql.charAt(i);
 			if ( i < (sqlLen - 1)) {
@@ -729,7 +736,7 @@ public final class ParserString {
 				if (c == '/' && sql.charAt(i + 1) == '*') {
 					int end = sql.indexOf("*/", i + 2);
 					if (end != -1) {
-						i = end + 2;
+						i = end + 1; // TODO why 1 here, not 2?
 						continue;
 					}
 				}
@@ -737,14 +744,22 @@ public final class ParserString {
 				// handle single line comment
 				if (c == '-' && i < (sqlLen - 1) && sql.charAt(i + 1) == '-') {
 					int end = sql.indexOf('\n', i + 1);
-					if (end != -1) {
-						i = end;
-						continue;
+					if (end == -1) {
+						break; // end of sql string
 					}
+					i = end;
+					continue;
 				}
 			}
 			sb.append(c);
+			//aprint.out( "@" + i );
+			//aprint.out( sb.toString() );
 		}
+		/*
+		aprint.out( "" );
+		aprint.out( sb.toString() );
+		aprint.out( "-----stripComments END---" );
+		*/
 		return sb.toString();
 	}
 

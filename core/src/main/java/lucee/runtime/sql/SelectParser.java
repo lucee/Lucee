@@ -44,6 +44,7 @@ import lucee.runtime.sql.exp.value.ValueNull;
 import lucee.runtime.sql.exp.value.ValueNumber;
 import lucee.runtime.sql.exp.value.ValueString;
 import lucee.runtime.type.Collection.Key;
+import lucee.aprint;
 
 public class SelectParser {
 
@@ -63,6 +64,13 @@ public class SelectParser {
 	public Selects parse(String sql) throws SQLParserException {
 		columnIndex = 0;
 		ParserString raw = new ParserString(sql.trim(), true);
+		/*
+		aprint.out("---select parser----");
+		aprint.out(sql);
+		aprint.out( "" );
+		aprint.out( raw.toString() );
+		aprint.out( "" );
+		*/
 		Selects selects = new Selects();
 		Select select = new Select();
 

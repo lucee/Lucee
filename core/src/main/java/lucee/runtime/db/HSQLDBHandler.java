@@ -56,6 +56,7 @@ import lucee.runtime.type.QueryColumn;
 import lucee.runtime.type.QueryImpl;
 import lucee.runtime.type.dt.TimeSpan;
 import lucee.runtime.type.util.CollectionUtil;
+import lucee.aprint;
 
 /**
  * class to reexecute queries on the resultset object inside the cfml environment
@@ -267,13 +268,18 @@ public final class HSQLDBHandler {
 			if (spe.getCause() != null && spe.getCause() instanceof IllegalQoQException) {
 				throw Caster.toPageException(spe);
 			}
-			prettySQL = SQLPrettyfier.prettyfie(sql.getSQLString());
+			aprint.out(spe);
+
+			prettySQL = SQLPrettyfier.prettyfie(sql.getSQLString(), true);
+			//aprint.out("---prettyfie----");
+			//aprint.out(prettySQL);
 			try {
 				QueryImpl query = executer.execute(pc, sql, prettySQL, maxrows);
 				query.setExecutionTime(stopwatch.time());
 				return query;
 			}
 			catch (Exception ex) {
+				aprint.out(ex);
 			}
 
 		}
@@ -326,7 +332,7 @@ public final class HSQLDBHandler {
 				tables = hsql2.getInvokedTables();
 			}
 			else {
-				if (prettySQL == null) prettySQL = SQLPrettyfier.prettyfie(sql.getSQLString());
+				if (prettySQL == null) prettySQL = SQLPrettyfier.prettyfie(sql.getSQLString(), true);
 				HSQLUtil hsql = new HSQLUtil(prettySQL);
 				tables = hsql.getInvokedTables();
 				isUnion = hsql.isUnion();
@@ -339,6 +345,7 @@ public final class HSQLDBHandler {
 
 		}
 		catch (ParseException e) {
+			aprint.out(sql);
 			throw new DatabaseException(e.getMessage(), null, sql, null);
 		}
 
