@@ -760,7 +760,7 @@ public final class ParserString {
 		aprint.out( sb.toString() );
 		aprint.out( "-----stripComments END---" );
 		*/
-		return sb.toString();
+		return sb.toString().trim();
 	}
 
 	public void revertRemoveSpace() {
