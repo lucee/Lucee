@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" skip=true {
+component extends="org.lucee.cfml.test.LuceeTestCase"  {
 
 	
 	function run( testResults , testBox ) {
@@ -14,7 +14,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" skip=true {
 				expect( cfc.length() ).toBe(4);
 
 			});
-			it( title="issue ##4 ", body=function( currentSpec ) {
+			it( title="inline component", body=function( currentSpec ) {
 				var cfc=new component {
 					variables.text="four";
 					

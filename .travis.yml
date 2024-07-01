@@ -69,10 +69,10 @@ script:
 
 - if [ "${DO_DEPLOY}" == "true" ]; then
     echo "------- Maven Deploy -------";
-    mvn -e -f loader/pom.xml clean deploy --settings travis-settings.xml;
+    mvn -e -f loader/pom.xml clean deploy --settings maven-settings.xml;
   else
     echo "------- Maven Install ---------";
-    mvn -e -f loader/pom.xml clean install --settings travis-settings.xml;
+    mvn -e -f loader/pom.xml clean install --settings maven-settings.xml;
   fi
 
 ############ increment maven version (not working) ###########
