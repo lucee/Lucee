@@ -58,10 +58,12 @@ public class Component extends EvaluatorSupport {
 
 		Statement pPage = tag.getParent();
 		Page page;
-
+		boolean detached = false;
 		if (inline) {
 			try {
 				page = ASMUtil.getAncestorPage(null, tag);
+				tc.initDetachedComponent(page);
+				detached = true;
 			}
 			catch (TransformerException te) {
 				EvaluatorException ee = new EvaluatorException(te.getMessage());
@@ -138,6 +140,8 @@ public class Component extends EvaluatorSupport {
 					Expression expr = tag.getFactory().toExprString(attr.getValue());
 					if (!(expr instanceof LitString)) throw new EvaluatorException("Name of the component [" + tlt.getFullName() + "], must be a literal string value");
 					name = ((LitString) expr).getString();
+					if (!detached) tc.initDetachedComponent(page);
+
 				}
 				else throw new EvaluatorException("Missing name of the component [" + tlt.getFullName() + "]");
 			}
