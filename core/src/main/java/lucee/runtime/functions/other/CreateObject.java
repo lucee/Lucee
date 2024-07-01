@@ -57,6 +57,16 @@ public final class CreateObject extends BIF {
 		return call(pc, type, args.length > 1 ? args[1] : null, args.length > 2 ? args[2] : null, args.length > 3 ? args[3] : null);
 	}
 
+	@Deprecated
+	public static Object call(PageContext pc, String type, String className) throws PageException {
+		return call(pc, type, className, null, null);
+	}
+
+	@Deprecated
+	public static Object call(PageContext pc, String type, String className, Object context) throws PageException {
+		return call(pc, type, className, context, null);
+	}
+
 	public static Object call(PageContext pc, String cfcName) throws PageException {
 		return call(pc, "component", cfcName, null, null);
 	}
