@@ -35,9 +35,6 @@ jobs:
            ports:
              - 10389:10389
              - 10636:10636
-           credentials: 
-             username: ${{ secrets.DOCKERHUB_PUBLIC_USERNAME }}
-             password: ${{ secrets.DOCKERHUB_PUBLIC_TOKEN }}
       sql-server:
         # Docker Hub image
         image: mcr.microsoft.com/mssql/server:2019-latest
@@ -60,9 +57,6 @@ jobs:
         ports:
           # Maps port 6379 on service container to the host
           - 6379:6379
-        credentials: 
-           username: ${{ secrets.DOCKERHUB_PUBLIC_USERNAME }}
-           password: ${{ secrets.DOCKERHUB_PUBLIC_TOKEN }}
       greenmail:
         image: greenmail/standalone:1.6.9
         ports:
@@ -73,17 +67,9 @@ jobs:
           - 3993:3993 #IMAPS
           - 3995:3995 #POP3S
           - 8080:8080 #API
-        credentials: 
-           username: ${{ secrets.DOCKERHUB_PUBLIC_USERNAME }}
-           password: ${{ secrets.DOCKERHUB_PUBLIC_TOKEN }}      
     steps:
     # when workflow is run via a workflow_call, these vars are found under input, which doesn't exist otherwise
     # so lets copy them over to the normal env vars
-    -  name: Login to Docker Hub
-       uses: docker/login-action@v3
-       with:
-         username: ${{ secrets.DOCKERHUB_PUBLIC_USERNAME }}
-         password: ${{ secrets.DOCKERHUB_PUBLIC_TOKEN }}
     - name: Configure Build Java Version
       if: ${{ inputs.LUCEE_BUILD_JAVA_VERSION != '' }}
       run: echo "LUCEE_BUILD_JAVA_VERSION=${{ inputs.LUCEE_BUILD_JAVA_VERSION }}" >> $GITHUB_ENV
@@ -114,7 +100,6 @@ jobs:
       with:
         java-version: '${{ env.LUCEE_BUILD_JAVA_VERSION }}'
         distribution: 'temurin'
-
     - name: Cache Lucee extensions
       uses: actions/cache@v4
       with:
@@ -132,7 +117,6 @@ jobs:
           ${{ runner.os }}-maven-
     
     - name: Import GPG key
-      if: ${{ env.DO_DEPLOY == 'true' }}
       run: |
         echo "$GPG_PRIVATE_KEY" | base64 --decode | gpg --batch --import
       env:
