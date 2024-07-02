@@ -115,7 +115,6 @@ import lucee.runtime.listener.AppListenerUtil;
 import lucee.runtime.listener.ApplicationContext;
 import lucee.runtime.listener.ApplicationListener;
 import lucee.runtime.net.mail.Server;
-import lucee.runtime.net.ntp.NtpClient;
 import lucee.runtime.net.proxy.ProxyData;
 import lucee.runtime.net.proxy.ProxyDataImpl;
 import lucee.runtime.net.rpc.WSHandler;
@@ -250,9 +249,6 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	private int returnFormat = UDF.RETURN_FORMAT_WDDX;
 
 	private TimeZone timeZone;
-
-	private String timeServer = "";
-	private boolean useTimeServer = false;
 
 	private long timeOffset;
 
@@ -459,8 +455,6 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 
 	@Override
 	public void reset() {
-		timeServer = "";
-		useTimeServer = false;
 		componentDumpTemplate = "";
 		// resources.reset();
 		ormengines.clear();
@@ -475,12 +469,9 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	}
 
 	@Override
+	@Deprecated
 	public void reloadTimeServerOffset() {
-		timeOffset = 0;
-		if (useTimeServer && !StringUtil.isEmpty(timeServer, true)) {
-			NtpClient ntp = new NtpClient(timeServer);
-			timeOffset = ntp.getOffset(0);
-		}
+		// FUTURE remove methd
 	}
 
 	/**
@@ -768,6 +759,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	}
 
 	@Override
+	@Deprecated
 	public long getTimeServerOffset() {
 		return timeOffset;
 	}
@@ -1490,15 +1482,6 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	}
 
 	/**
-	 * sets the time server
-	 * 
-	 * @param timeServer
-	 */
-	protected void setTimeServer(String timeServer) {
-		this.timeServer = timeServer;
-	}
-
-	/**
 	 * sets the locale
 	 * 
 	 * @param strLocale
@@ -1777,8 +1760,9 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	}
 
 	@Override
+	@Deprecated
 	public String getTimeServer() {
-		return timeServer;
+		return "";
 	}
 
 	@Override
@@ -2810,15 +2794,6 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 
 	protected void setVideoExecuterClass(Class videoExecuterClass) {
 		this.videoExecuterClass = videoExecuterClass;
-	}
-
-	protected void setUseTimeServer(boolean useTimeServer) {
-		this.useTimeServer = useTimeServer;
-	}
-
-	@Override
-	public boolean getUseTimeServer() {
-		return useTimeServer;
 	}
 
 	/**

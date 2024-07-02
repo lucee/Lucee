@@ -284,8 +284,6 @@ public abstract class ConfigFactory {
 			Struct regional = ConfigWebUtil.getAsStruct("regional", root);
 			move("timezone", regional, root);
 			move("locale", regional, root);
-			move("timeserver", regional, root);
-			moveAsBool("useTimeserver", "useTimeserver", regional, root);
 			rem("regional", root);
 		}
 		//////////////////// application ////////////////////

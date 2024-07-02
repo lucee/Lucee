@@ -868,12 +868,8 @@
 				"server": "Valor del servidor",
 				"web": "Valor del administrador del servidor"
 			},
-			"timeserver": "Servidor de tiempo (NTP)",
-			"timeserverdescription": "Servidor de tiempo que devuelve la hora actual. Si se establece, esta hora se utilizará en Lucee en lugar de la hora local del servidor. (Ejemplo: swisstime.ethz.ch, time.nist.gov)\u003cbr/\u003e",
-			"timeservermissing": "Por favor, define un valor para el campo de la zona horaria",
 			"timezone": "Zona horaria",
 			"timezonedescription": "Define la zona horaria deseada para Lucee, esto también cambiará la hora para el contexto web.\u003cbr/\u003e",
-			"usetimeserver": "utilizar servidor de tiempo",
 			"web": "Lucee te permite configurar tu propia configuración regional individual, zona horaria y servidor de tiempo."
 		},
 		"remote": {

@@ -894,13 +894,9 @@
 				"server": "Server Wert",
 				"web": "Server Administrator Wert"
 			},
-			"timeserver": "Time Server (NTP)",
-			"timeserverdescription": "Time server der die aktuelle Zeit zürück gibt. Falls gesetzt, wird in Lucee diese Zeit anstelle der lokalen Server-Zeit verwendet (Beispiel: swisstime.ethz.ch, time.nist.gov).",
-			"timeservermissing": "Bitte wählen Sie einen Wert für die Zeitzone aus.",
 			"timezone": "Zeitzone",
 			"timezonedescription": "Definiert die gewünschte Zeitzone für Lucee. Diese Einstellung ändert die Zeit für den Web-Instanz.",
-			"usetimeserver": "verwende Time Server",
-			"web": "Lucee lässt Sie Ihre eigenen individuellen Locale-, Zeitzonen- und Zeitservereinstellungen vorzunehmen."
+			"web": "Lucee lässt Sie Ihre eigenen individuellen Locale- und Zeitzoneneinstellungen vorzunehmen."
 		},
 		"remote": {
 			"adminaccess": "Admin Access",

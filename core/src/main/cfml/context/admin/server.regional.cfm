@@ -40,8 +40,6 @@ Defaults --->
 					
 					timezone="#form.timezone#"
 					locale="#form.locale#"
-					timeserver="#form.timeserver#"
-					usetimeserver="#structKeyExists(form,"usetimeserver") and form.usetimeserver#"
 					remoteClients="#request.getRemoteClients()#"
 					>
 			
@@ -59,8 +57,6 @@ Defaults --->
 					
 					timezone=""
 					locale=""
-					timeserver=""
-					usetimeserver=""
 					remoteClients="#request.getRemoteClients()#"
 					>
 			
@@ -188,21 +184,6 @@ Create Datasource --->
 						<cfset renderCodingTip( codeSample )>
 					</td>
 				</tr>
-				<tr>
-					<th scope="row">#stText.Regional.TimeServer#</th>
-					<td>
-						<cfif hasAccess>
-							<input type="text" name="timeserver" value="#regional.timeserver#" class="large">
-							<cfset renderSysPropEnvVar( "lucee.timeserver",regional.timeserver)>
-							<br /><input type="checkbox" class="checkbox" name="usetimeserver" <cfif regional.usetimeserver>checked="checked"</cfif> value="true" /> #stText.Regional.useTimeServer#
-						<cfelse>
-							<b>#regional.timeserver#</b>
-							<cfset renderSysPropEnvVar( "lucee.timeserver",regional.timeserver)>
-							<input type="hidden" name="usetimeserver" value="#regional.usetimeserver#" />
-						</cfif>
-						<div class="comment">#stText.Regional.TimeServerDescription#</div>
-					</td>
-				</tr>
 				<cfif hasAccess>
 					<cfmodule template="remoteclients.cfm" colspan="2">
 				</cfif>
@@ -220,30 +201,6 @@ Create Datasource --->
 					</tr>
 				</tfoot>
 			</cfif>
-		</table>
-
-		<h3>
-			Current time settings
-		</h3>
-		<cfscript>
-			jvmTZ = GetTimeZoneInfo( "jvm" );
-			luceeTZ = GetTimeZoneInfo( GetTimeZone() );
-		</cfscript>
-		<table class="maintbl" style="width:500px">
-			<tbody>
-				<tr>
-					<th scope="row" nowrap="nowrap">#stText.Overview.ServerTime#</th>
-					<td>#lsdateFormat(date:now(),timezone:"jvm")#
-						#lstimeFormat(time:now(),timezone:"jvm")# (#jvmTZ.isDSTon ? jvmTZ.nameDST : jvmTZ.name#)
-					</td>
-				</tr>
-				<tr>
-					<th scope="row">#stText.Overview.DateTime#</th>
-					<td>#lsdateFormat(now())#
-						#lstimeFormat(now())# (#luceeTZ.isDSTon ? luceeTZ.nameDST : luceeTZ.name#)
-					</td>
-				</tr>
-			</tbody>
 		</table>
 	</cfformClassic>
 

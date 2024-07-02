@@ -905,13 +905,9 @@
         "server": "Server Value",
         "web": "Server Administrator Value"
       },
-      "timeserver": "Time server (NTP)",
-      "timeserverdescription": "Time server that returns the current time. If set, this time will be used within Lucee instead of the local server time. (Example: swisstime.ethz.ch, time.nist.gov)\u003cbr/\u003e",
-      "timeservermissing": "Please define a value for the field timezone",
       "timezone": "Time zone",
       "timezonedescription": "Define the desired time zone for Lucee. This will also change the time for the context of the web.\u003cbr/\u003e",
-      "usetimeserver": "use time server",
-      "web": "Lucee lets you set your own individual locale, timezone, and timeserver."
+      "web": "Lucee lets you set your own individual locale and timezone."
     },
     "remote": {
       "adminaccess": "Admin Access",

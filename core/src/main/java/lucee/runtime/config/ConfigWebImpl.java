@@ -1055,11 +1055,6 @@ public class ConfigWebImpl implements ConfigWebPro {
 	}
 
 	@Override
-	public boolean getUseTimeServer() {
-		return instance.getUseTimeServer();
-	}
-
-	@Override
 	public lucee.commons.io.res.Resource getConfigDir() {
 		return instance.getConfigDir();
 	}
@@ -1182,6 +1177,7 @@ public class ConfigWebImpl implements ConfigWebPro {
 	}
 
 	@Override
+	@Deprecated
 	public java.lang.String getTimeServer() {
 		return instance.getTimeServer();
 	}
@@ -1387,6 +1383,7 @@ public class ConfigWebImpl implements ConfigWebPro {
 	}
 
 	@Override
+	@Deprecated
 	public long getTimeServerOffset() {
 		return instance.getTimeServerOffset();
 	}
@@ -1452,6 +1449,7 @@ public class ConfigWebImpl implements ConfigWebPro {
 	}
 
 	@Override
+	@Deprecated
 	public void reloadTimeServerOffset() {
 		instance.reloadTimeServerOffset();
 	}

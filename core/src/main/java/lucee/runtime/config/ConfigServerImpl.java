@@ -674,9 +674,8 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 			if (diff > 10) throw new ApplicationException("nonce was already used, same nonce can only be used once");
 
 		}
-		long now = System.currentTimeMillis() + getTimeServerOffset();
-		if (timeNonce > (now + FIVE_SECONDS) || timeNonce < (now - FIVE_SECONDS))
-			throw new ApplicationException("nonce is outdated (timserver offset:" + getTimeServerOffset() + ")");
+		long now = System.currentTimeMillis();
+		if (timeNonce > (now + FIVE_SECONDS) || timeNonce < (now - FIVE_SECONDS)) throw new ApplicationException("nonce is outdated");
 		previousNonces.put(timeNonce, "");
 
 		String[] keys = getAuthenticationKeys();

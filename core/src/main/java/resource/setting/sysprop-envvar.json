@@ -60,11 +60,6 @@
         "desc": ""
     },
     {
-        "sysprop": "lucee.timeserver",
-        "envvar": "LUCEE_TIMESERVER",
-        "desc": ""
-    },
-    {
         "sysprop": "lucee.precise.math",
         "envvar": "LUCEE_PRECISE_MATH",
         "desc": ""

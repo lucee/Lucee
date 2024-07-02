@@ -3896,20 +3896,6 @@ public final class ConfigWebFactory extends ConfigFactory {
 			// this is necessary, otherwise travis has no default
 			if (TimeZone.getDefault() == null) TimeZone.setDefault(config.getTimeZone());
 
-			// timeserver
-			String strTimeServer = hasCS ? null : SystemUtil.getSystemPropOrEnvVar("lucee.timeserver", null);
-			Boolean useTimeServer = null;
-			if (!StringUtil.isEmpty(strTimeServer)) useTimeServer = Boolean.TRUE;
-
-			if (StringUtil.isEmpty(strTimeServer)) strTimeServer = getAttr(root, "timeserver");
-			if (useTimeServer == null) useTimeServer = Caster.toBoolean(getAttr(root, "useTimeserver"), null);
-
-			if (!StringUtil.isEmpty(strTimeServer)) config.setTimeServer(strTimeServer);
-			else if (hasCS) config.setTimeServer(configServer.getTimeServer());
-
-			if (useTimeServer != null) config.setUseTimeServer(useTimeServer.booleanValue());
-			else if (hasCS) config.setUseTimeServer(((ConfigPro) configServer).getUseTimeServer());
-
 			// locale
 			String strLocale = getAttr(root, new String[] { "locale", "thisLocale" });
 			if (!StringUtil.isEmpty(strLocale)) config.setLocale(strLocale);
