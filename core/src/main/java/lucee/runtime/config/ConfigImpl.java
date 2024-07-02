@@ -252,7 +252,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	private TimeZone timeZone;
 
 	private String timeServer = "";
-	private boolean useTimeServer = true;
+	private boolean useTimeServer = false;
 
 	private long timeOffset;
 
@@ -460,6 +460,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	@Override
 	public void reset() {
 		timeServer = "";
+		useTimeServer = false;
 		componentDumpTemplate = "";
 		// resources.reset();
 		ormengines.clear();
