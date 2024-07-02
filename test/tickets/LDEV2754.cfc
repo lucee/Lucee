@@ -22,7 +22,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" labels="query" {
 				expect(result.filecontent).tobe("juwait");
 			});
 
-			it(title = "Using (') with QoQ", body = function( currentSpec ){
+			it(title = "Using (') with QoQ", skip=noMssql(), body = function( currentSpec ){
 				local.result = _InternalRequest(
 					template : "#uri#\test.cfm",
 					forms : { scene = 3 }

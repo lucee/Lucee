@@ -114,7 +114,7 @@ public class QueryParamConverter {
 			NamedSQLItem nsi = (NamedSQLItem) item;
 			sct.setEL(KeyConstants._name, nsi.getName());
 		}
-		if (fns || item.getValue() != null) sct.setEL(KeyConstants._value, item.getValue() );
+		if (fns || item.getValue() != null) sct.setEL(KeyConstants._value, item.getValue());
 		else sct.setEL(KeyConstants._value, "");
 		sct.setEL(KeyConstants._type, SQLCaster.toStringType(item.getType(), null));
 		sct.setEL(KeyConstants._scale, item.getScale());
@@ -167,7 +167,6 @@ public class QueryParamConverter {
 					sb.append(sql.substring(i, end+1));
 					i = end;
 					continue;
-					//else break;
 				}
 			}
 

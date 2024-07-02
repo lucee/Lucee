@@ -144,12 +144,8 @@ public final class SQLImpl implements SQL, Serializable {
 				sb.append(c);
 			}
 			else if (!inQuotes && c == '?') {
-				if ((index + 1) > items.length){ 
-					//System.out.println( sb.toString() );
-					throw new RuntimeException("There are more question marks [" + (index+1) 
-						+ "] in the SQL than params defined [" + items.length 
-						+ "], in the SQL String: [" + strSQL + "]");
-			}
+				if ((index + 1) > items.length) throw new RuntimeException("There are more question marks [" + (index+1)
+					+ "] in the SQL than params defined [" + items.length + "], in the SQL String: [" + strSQL + "]");
 				if (items[index].isNulls()) sb.append("null");
 				else sb.append(SQLCaster.toString(items[index]));
 				index++;

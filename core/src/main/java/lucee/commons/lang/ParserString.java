@@ -19,7 +19,6 @@
 package lucee.commons.lang;
 
 import lucee.commons.io.SystemUtil;
-import lucee.aprint;
 
 /**
  * Der CFMLString ist eine Hilfe fuer die Transformer, er repraesentiert den CFML Code und bietet
@@ -62,10 +61,10 @@ public final class ParserString {
 	}
 
 	/**
-	 * Diesen Konstruktor kann er CFML Code als Zeichenkette uebergeben werden.
+	 * This constructor allows stripping comments from SQL Text
 	 * 
-	 * @param text CFML Code
-	 * @param doIgnoreComments treat comments as space
+	 * @param text SQL Text
+	 * @param doIgnoreComments strip sql comments from text
 	 */
 	public ParserString(String text, boolean doIgnoreComments) {
 		init(text, doIgnoreComments);
@@ -78,7 +77,7 @@ public final class ParserString {
 	 * @param str
 	 */
 	protected void init(String str, boolean doIgnoreComments) {
-		if (doIgnoreComments) str = stripComments(str);
+		if (doIgnoreComments) str = stripSqlComments(str);
 		int len = str.length();
 		text = new char[len];
 		lcText = new char[len];
@@ -712,22 +711,15 @@ public final class ParserString {
 		}
 		return (start < pos);
 	}
-	/*
-	 * MARK: stripcomment
-	 * 
-	 */
 	/**
 	 * Strip out all sql comments
 	 * 
 	 * @return SQL text with comments stripped out
 	 */
-	public String stripComments(String sql) {
+	public String stripSqlComments(String sql) {
 		char c;
 		int sqlLen = sql.length();
 		StringBuilder sb = new StringBuilder();
-
-	//	aprint.out( "-----stripComments START---" );
-	//	aprint.out( sql );
 
 		for (int i = 0; i < sqlLen; i++) {
 			c = sql.charAt(i);
@@ -736,7 +728,7 @@ public final class ParserString {
 				if (c == '/' && sql.charAt(i + 1) == '*') {
 					int end = sql.indexOf("*/", i + 2);
 					if (end != -1) {
-						i = end + 1; // TODO why 1 here, not 2?
+						i = end + 1;
 						continue;
 					}
 				}
@@ -752,14 +744,7 @@ public final class ParserString {
 				}
 			}
 			sb.append(c);
-			//aprint.out( "@" + i );
-			//aprint.out( sb.toString() );
 		}
-		/*
-		aprint.out( "" );
-		aprint.out( sb.toString() );
-		aprint.out( "-----stripComments END---" );
-		*/
 		return sb.toString().trim();
 	}
 

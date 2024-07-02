@@ -44,7 +44,6 @@ import lucee.runtime.sql.exp.value.ValueNull;
 import lucee.runtime.sql.exp.value.ValueNumber;
 import lucee.runtime.sql.exp.value.ValueString;
 import lucee.runtime.type.Collection.Key;
-import lucee.aprint;
 
 public class SelectParser {
 
@@ -63,14 +62,7 @@ public class SelectParser {
 	// select <select-statement> from <tables> where <where-statement>
 	public Selects parse(String sql) throws SQLParserException {
 		columnIndex = 0;
-		ParserString raw = new ParserString(sql.trim(), true);
-		/*
-		aprint.out("---select parser----");
-		aprint.out(sql);
-		aprint.out( "" );
-		aprint.out( raw.toString() );
-		aprint.out( "" );
-		*/
+		ParserString raw = new ParserString(sql.trim(),true);
 		Selects selects = new Selects();
 		Select select = new Select();
 
@@ -168,8 +160,7 @@ public class SelectParser {
 
 		if (raw.forwardIfCurrent(';')) raw.removeSpace();
 
-		if (!raw.isAfterLast())
-			throw new SQLParserException("Error parsing SQL statement (stop at char:" + raw.getCurrent() + ", pos: " + raw.getPos() + "), sql: [" + raw.toString() + "]");
+		if (!raw.isAfterLast()) throw new SQLParserException("Error parsing SQL statement (stop at char:" + raw.getCurrent() + ", pos: " + raw.getPos() + "), sql: [" + raw.toString() + "]");
 		return selects;
 	}
 
