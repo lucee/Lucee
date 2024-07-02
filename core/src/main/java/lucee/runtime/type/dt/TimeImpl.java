@@ -41,29 +41,36 @@ public final class TimeImpl extends Time implements SimpleValue {
 
 	private static SimpleDateFormat luceeFormatter = new SimpleDateFormat("HH:mm:ss", Locale.US);
 
-	// private TimeZone timezone;
-	public TimeImpl(long utcTime) {
-		this(null, utcTime, false);
+	public TimeImpl() {
+		super(System.currentTimeMillis());
 	}
 
+	public TimeImpl(long time) {
+		super(time);
+	}
+
+	@Deprecated
 	public TimeImpl(boolean addOffset) {
-		this(null, System.currentTimeMillis(), addOffset);
+		super(System.currentTimeMillis());
 	}
 
-	public TimeImpl(long utcTime, boolean addOffset) {
-		this(null, utcTime, addOffset);
+	@Deprecated
+	public TimeImpl(long time, boolean addOffset) {
+		super(time);
 	}
 
+	@Deprecated
 	public TimeImpl(PageContext pc, boolean addOffset) {
-		this(pc, System.currentTimeMillis(), addOffset);
+		super(System.currentTimeMillis());
 	}
 
-	public TimeImpl(PageContext pc, long utcTime, boolean addOffset) {
-		super(addOffset ? DateTimeImpl.addOffset(ThreadLocalPageContext.getConfig(pc), utcTime) : utcTime);
+	@Deprecated
+	public TimeImpl(PageContext pc, long time, boolean addOffset) {
+		super(time);
 	}
 
 	public TimeImpl(java.util.Date date) {
-		this(date.getTime(), false);
+		super(date.getTime());
 	}
 
 	@Override

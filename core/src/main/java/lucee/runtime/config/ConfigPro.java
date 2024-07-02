@@ -205,8 +205,6 @@ public interface ConfigPro extends Config {
 
 	public LogEngine getLogEngine();
 
-	public boolean getUseTimeServer();
-
 	public boolean useComponentPathCache();
 
 	public ImportDefintion getComponentDefaultImport();

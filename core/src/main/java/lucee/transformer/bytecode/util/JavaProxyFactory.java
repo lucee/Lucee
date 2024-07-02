@@ -302,6 +302,9 @@ public class JavaProxyFactory {
 			adapter.checkCast(Types.CONFIG_WEB);
 			adapter.visitFieldInsn(Opcodes.PUTFIELD, classPath, "config", CONFIG_WEB_NAME);
 
+			// inline
+			// ComponentLoader.loadInline((CIPage)(new cf(this.getPageSource())), pc);
+
 			// this.cfc = ThreadLocalPageContext.get().loadComponent(className);
 			String name = cfc.getAbsName();
 			String sub = ((ComponentImpl) cfc).getSubName();

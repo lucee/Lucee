@@ -11,7 +11,7 @@ component {
 	}
 
 	/**
-	* @hint returns Regional information about current context, this includes the locale, the timezone,a timeserver address and if the timeserver is used or not
+	* @hint returns Regional information about current context, this includes the locale and the timezone
 	*/
 	public struct function getRegional(){
 		admin
@@ -26,10 +26,8 @@ component {
 	* @hint updates the regional settings of current context
 	* @timezone timezone used for this context, this can be for example "gmt+1" or "Europe/Zurich", use the function "getAvailableTimeZones" to get a list of available timezones
 	* @locale the locale used for this context, this can be for example "de_ch", use the function getAvailableLocales() to get a list of all possible locales.
-	* @timeserver timeserver used for this context, this can be for example "swisstime.ethz.ch"
-	* @usetimeserver defines if the timeserver is used or not
 	*/
-	public void function updateRegional(string timezone, string locale,string timeserver,boolean usetimeserver){
+	public void function updateRegional(string timezone, string locale){
 		var regional="";
 
 		// check timezone
@@ -44,18 +42,6 @@ component {
 			arguments.locale=regional.locale;
 		}
 
-		// check timeserver
-		if(isNull(arguments.timeserver) || isEmpty(arguments.timeserver)) {
-			if(isSimpleValue(regional))regional=getRegional();
-			arguments.timeserver=regional.timeserver;
-		}
-
-		// check usetimeserver
-		if(isNull(arguments.usetimeserver)) {
-			if(isSimpleValue(regional))regional=getRegional();
-			arguments.usetimeserver=regional.usetimeserver;
-		}
-
 		admin
 			action="updateRegional"
 			type="#variables.type#"
@@ -63,8 +49,6 @@ component {
 
 			timezone="#arguments.timezone#"
 			locale="#arguments.locale#"
-			timeserver="#arguments.timeserver#"
-			usetimeserver="#arguments.usetimeserver#"
 			remoteClients="#variables.remoteClients#";
 	}
 
@@ -82,8 +66,6 @@ component {
 			password="#variables.password#"
 			timezone=""
 			locale=""
-			timeserver=""
-			usetimeserver=""
 			remoteClients="#variables.remoteClients#";
 	}
 

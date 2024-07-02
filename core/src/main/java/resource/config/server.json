@@ -28,7 +28,6 @@
 	,"systemErr":"system"
 	,"systemOut":"system"
 	,"tempDirectory":"{lucee-config}/temp/"
-	,"timeserver":"pool.ntp.org"
 	,"updateLocation":"https://update.lucee.org"
 	,"updateType":"manual"
 	,"version":"5.0"

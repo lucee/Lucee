@@ -49,28 +49,37 @@ public final class DateTimeImpl extends DateTime implements SimpleValue, Objects
 
 	private static final long serialVersionUID = 1287979666244112798L;
 
-	public DateTimeImpl(PageContext pc) {
-		this(pc, System.currentTimeMillis(), true);
-	}
-
-	public DateTimeImpl(Config config) {
-		this(config, System.currentTimeMillis(), true);
-	}
-
 	public DateTimeImpl() {
-		this(System.currentTimeMillis(), true);
+		super(System.currentTimeMillis());
 	}
 
-	public DateTimeImpl(PageContext pc, long utcTime, boolean doOffset) {
-		super(doOffset ? addOffset(ThreadLocalPageContext.getConfig(pc), utcTime) : utcTime);
+	public DateTimeImpl(long time) {
+		super(time);
 	}
 
-	public DateTimeImpl(Config config, long utcTime, boolean doOffset) {
-		super(doOffset ? addOffset(ThreadLocalPageContext.getConfig(config), utcTime) : utcTime);
+	@Deprecated
+	public DateTimeImpl(PageContext pc) {
+		super(System.currentTimeMillis());
 	}
 
-	public DateTimeImpl(long utcTime, boolean doOffset) {
-		super(doOffset ? addOffset(ThreadLocalPageContext.getConfig(), utcTime) : utcTime);
+	@Deprecated
+	public DateTimeImpl(Config config) {
+		super(System.currentTimeMillis());
+	}
+
+	@Deprecated
+	public DateTimeImpl(PageContext pc, long time, boolean doOffset) {
+		super(time);
+	}
+
+	@Deprecated
+	public DateTimeImpl(Config config, long time, boolean doOffset) {
+		super(time);
+	}
+
+	@Deprecated
+	public DateTimeImpl(long time, boolean doOffset) {
+		super(time);
 	}
 
 	/*
@@ -85,11 +94,6 @@ public final class DateTimeImpl extends DateTime implements SimpleValue, Objects
 	public DateTimeImpl(Calendar calendar) {
 		super(calendar.getTimeInMillis());
 		// this.timezone=ThreadLocalPageContext.getTimeZone(calendar.getTimeZone());
-	}
-
-	public static long addOffset(Config config, long utcTime) {
-		if (config != null) return utcTime + config.getTimeServerOffset();
-		return utcTime;
 	}
 
 	@Override

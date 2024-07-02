@@ -322,11 +322,8 @@ Path placeholders:
 		timezone: default:maschine configuration
 			the ID for a TimeZone, either an abbreviation such as "PST", 
 			a full name such as "America/Los_Angeles", or a custom ID such as "GMT-8:00". 
-		timeserver: [example: swisstime.ethz.ch] default:local time
-			dns of a ntp time server
 	-->
-	<regional
-		timeserver="pool.ntp.org"/>
+	<regional/>
 	
 	<!--
 	orm configuration:
@@ -337,8 +334,6 @@ Path placeholders:
 		timezone: default:maschine configuration
 			the ID for a TimeZone, either an abbreviation such as "PST", 
 			a full name such as "America/Los_Angeles", or a custom ID such as "GMT-8:00". 
-		timeserver: [example: swisstime.ethz.ch] default:local time
-			dns of a ntp time server
 	-->
 	<orm
 		engine-class="lucee.runtime.orm.DummyORMEngine"/>

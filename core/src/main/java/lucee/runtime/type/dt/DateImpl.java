@@ -43,24 +43,25 @@ public final class DateImpl extends Date implements SimpleValue {
 	// private TimeZone timezone;
 
 	public DateImpl() {
-		this(null, System.currentTimeMillis());
+		super(System.currentTimeMillis());
 	}
 
 	public DateImpl(long utcTime) {
-		this(null, utcTime);
-	}
-
-	public DateImpl(PageContext pc) {
-		this(pc, System.currentTimeMillis());
-	}
-
-	public DateImpl(PageContext pc, long utcTime) {
-		super(DateTimeImpl.addOffset(ThreadLocalPageContext.getConfig(pc), utcTime));
-		// this.timezone=ThreadLocalPageContext.getTimeZone(pc);
+		super(utcTime);
 	}
 
 	public DateImpl(java.util.Date date) {
 		super(date.getTime());
+	}
+
+	@Deprecated
+	public DateImpl(PageContext pc) {
+		super(System.currentTimeMillis());
+	}
+
+	@Deprecated
+	public DateImpl(PageContext pc, long time) {
+		super(time);
 	}
 
 	@Override

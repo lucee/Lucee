@@ -151,6 +151,7 @@ class SingleContextConfigWeb extends ConfigBase implements ConfigWebInner {
 	}
 
 	@Override
+	@Deprecated
 	public void reloadTimeServerOffset() {
 		cs.reloadTimeServerOffset();
 	}
@@ -351,6 +352,7 @@ class SingleContextConfigWeb extends ConfigBase implements ConfigWebInner {
 	}
 
 	@Override
+	@Deprecated
 	public long getTimeServerOffset() {
 		return cs.getTimeServerOffset();
 	}
@@ -951,11 +953,6 @@ class SingleContextConfigWeb extends ConfigBase implements ConfigWebInner {
 	@Override
 	public Class getVideoExecuterClass() {
 		return cs.getVideoExecuterClass();
-	}
-
-	@Override
-	public boolean getUseTimeServer() {
-		return cs.getUseTimeServer();
 	}
 
 	@Override

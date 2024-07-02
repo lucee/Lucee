@@ -913,7 +913,7 @@ public final class DebuggerImpl implements Debugger {
 
 	@Override
 	public void init(Config config) {
-		this.starttime = System.currentTimeMillis() + config.getTimeServerOffset();
+		this.starttime = System.currentTimeMillis();
 	}
 
 	@Override

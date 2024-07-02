@@ -285,7 +285,6 @@ public final class Controler extends ParentThreasRefThread {
 				config = cfmlFactory.getConfig();
 				ThreadLocalConfig.register(config);
 
-				config.reloadTimeServerOffset();
 				checkOldClientFile(config, log);
 
 				try {
@@ -295,17 +294,6 @@ public final class Controler extends ParentThreasRefThread {
 					if (log != null) log.error("controler", e);
 				}
 
-				// try{checkStorageScopeFile(config,Session.SCOPE_CLIENT);}catch(Throwable t)
-				// {ExceptionUtil.rethrowIfNecessary(t);}
-				// try{checkStorageScopeFile(config,Session.SCOPE_SESSION);}catch(Throwable t)
-				// {ExceptionUtil.rethrowIfNecessary(t);}
-				try {
-					config.reloadTimeServerOffset();
-				}
-				catch (Throwable t) {
-					ExceptionUtil.rethrowIfNecessary(t);
-					if (log != null) log.error("controler", t);
-				}
 				try {
 					checkTempDirectorySize(config);
 				}
@@ -454,19 +442,6 @@ public final class Controler extends ParentThreasRefThread {
 
 				ThreadLocalConfig.register(config);
 
-				// time server offset
-				try {
-					config.reloadTimeServerOffset();
-				}
-				catch (Throwable t) {
-					ExceptionUtil.rethrowIfNecessary(t);
-					if (log != null) log.error("controler", t);
-				}
-				// check file based client/session scope
-				// try{checkStorageScopeFile(config,Session.SCOPE_CLIENT);}catch(Throwable t)
-				// {ExceptionUtil.rethrowIfNecessary(t);}
-				// try{checkStorageScopeFile(config,Session.SCOPE_SESSION);}catch(Throwable t)
-				// {ExceptionUtil.rethrowIfNecessary(t);}
 				// check temp directory
 				try {
 					checkTempDirectorySize(config);
