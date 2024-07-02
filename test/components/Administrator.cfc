@@ -43,28 +43,24 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				it(title="testGetRegional()", body=function( currentSpec ) {
 					var regional=adminWeb.getRegional();
 					assertEquals(isStruct(regional),true);
-					loop list="locale,timeserver,timezone,usetimeserver" item="local.prop" {
+					loop list="locale,timezone" item="local.prop" {
 						expect( regional ).toHaveKey( prop );
 					}
 				});
 
 				it(title="testUpdateRegional()", body=function( currentSpec ) {
-					var timeserver='swisstime.ethz.ch';
 					var timezone='gmt';
 					var locale='german (swiss)'
 
-					adminWeb.updateRegional(timezone,locale,timeserver,true);
+					adminWeb.updateRegional(timezone,locale);
 
 					var mod=adminWeb.getRegional();
 					var l=GetLocaleInfo(mod.locale,'en_US');
 					assertEquals("de",l.language);
 					assertEquals("CH",l.country);
-					assertEquals(timeserver,mod.timeserver);
 					assertEquals(timezone,mod.timezone);
-					assertEquals(true,mod.usetimeserver);
-
+					
 					// without optional arguments
-					adminWeb.updateRegional(timezone,locale,timeserver);
 					adminWeb.updateRegional(timezone,locale);
 					adminWeb.updateRegional(timezone);
 					adminWeb.updateRegional();
@@ -76,9 +72,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					var adminWebRegionals=adminweb.getRegional();
 
 					assertEquals(adminWebRegionals.locale EQ adminRegionals.locale,true);
-					assertEquals(adminWebRegionals.timeserver EQ adminRegionals.timeserver,true);
 					assertEquals(adminWebRegionals.timezone EQ adminRegionals.timezone,true);
-					assertEquals(adminWebRegionals.usetimeserver EQ adminRegionals.usetimeserver,true);
 				});
 			});
 
