@@ -267,7 +267,6 @@ public final class HSQLDBHandler {
 			if (spe.getCause() != null && spe.getCause() instanceof IllegalQoQException) {
 				throw Caster.toPageException(spe);
 			}
-
 			prettySQL = SQLPrettyfier.prettyfie(sql.getSQLString(), true);
 
 			try {
@@ -328,7 +327,7 @@ public final class HSQLDBHandler {
 				tables = hsql2.getInvokedTables();
 			}
 			else {
-				if (prettySQL == null) prettySQL = SQLPrettyfier.prettyfie(sql.getSQLString(), true);
+				if (prettySQL == null) prettySQL = SQLPrettyfier.prettyfie(sql.getSQLString(),true);
 				HSQLUtil hsql = new HSQLUtil(prettySQL);
 				tables = hsql.getInvokedTables();
 				isUnion = hsql.isUnion();

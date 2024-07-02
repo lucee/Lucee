@@ -35,8 +35,6 @@
 			},
 			queryoptions = { dbtype = "query", name="usingQOQ" }
 		);
-		//systemOutput(usingQOQ.sql);
-		//systemOutput(usingQOQ.source);
 		writeOutput(usingQOQ.name);
 	}
 </cfscript>
