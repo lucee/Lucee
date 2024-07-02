@@ -224,7 +224,7 @@ component {
 									*/
 								}
 								if ( !isNull( specStat.error.sql ) && !isEmpty( trim(specStat.error.sql) ) ){
-									systemOutput( TAB & "SQL: " & specStat.error.Detail, true );
+									systemOutput( TAB & "SQL: [" & specStat.error.sql & "]", true );
 								}
 								if ( !isNull( specStat.error.StackTrace ) && !isEmpty( specStat.error.StackTrace ) ){
 									systemOutput( TAB & specStat.error.type, true );
@@ -233,7 +233,7 @@ component {
 									systemOutput( NL );
 								}
 
-							//	systemOutput(NL & serialize(specStat.error), true);
+								//systemOutput(NL & serializeJson(specStat.error), true);
 
 							} // if !isNull
 						}

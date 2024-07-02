@@ -340,7 +340,8 @@ public final class HSQLDBHandler {
 
 		}
 		catch (ParseException e) {
-			throw new DatabaseException(e.getMessage(), null, sql, null);
+			throw (IllegalQoQException) (new IllegalQoQException("QoQ: error executing sql statement on query, " + e.getMessage(), null, sql, null).initCause(e));
+			//throw new DatabaseException(e.getMessage(), e, sql, null);
 		}
 
 	}

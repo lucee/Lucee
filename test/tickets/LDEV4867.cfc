@@ -17,44 +17,60 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="query" {
 	};
 
 	function run( testResults , testBox ) {
-		describe( title='LDEV-4867' , body=function(){
+		describe( title='LDEV-4867', body=function(){
 
-			it( title='test query parsing, removing comments' , body=function() {
+			it( title='test query parsing, removing comments', body=function() {
 				doTest( ["-- foo", "/* bar */", "SELECT engine from qry where id = :id "]
 					,[ "-- foo" , "/* bar */" ]
 				);
 			});
 
-			it( title='test query parsing, with a ? in a comment' , body=function() {
+			it( title='test query parsing, mixed nested comments', body=function() {
+				doTest( ["/* bar -- foo */", "SELECT engine from qry where id = :id ", "/* bar -- foo */"]
+					,[ "/* bar -- foo */" ]
+				);
+				doTest( ["--foo /* bar */", "SELECT engine from qry where id = :id ", "--foo /* bar */"]
+					,[ "--foo /* bar */" ]
+				);
+			});
+
+			it( title='test query parsing, nested comment blocks', skip=true, body=function() {
+				// Nested comments aren't generally supported anyway....
+				doTest( ["/* bar /* #LF# -- foo #LF# */ */", "SELECT engine from qry where id = :id "]
+					,[ "/* bar /* #LF# -- foo #LF# */ */" ]
+				);
+			});
+
+			it( title='test query parsing, with a ? in a comment', body=function() {
 				doTest( [ "-- foo", "/* bar? */", "SELECT engine"," from qry", "where id = :id" ]
 					,[ "-- foo", "/* bar? */" ]
 				);
 			});
 
-			it( title='test query parsing, with a ? in a /* */ comment' , body=function() {
+			it( title='test query parsing, with a ? in a /* */ comment', body=function() {
 				doTest( [ "-- foo", "/* bar? */", "SELECT engine"," from qry", "where id = :id" ],
 					[ "-- foo", "/* bar? */" ] );
 			});
 
-			it( title='test query parsing, with a ? and : in a comment' , body=function() {
+			it( title='test query parsing, with a ? and : in a comment', body=function() {
 				doTest( [ "-- foo ? :do", "/* bar? :*/", "SELECT engine"," from qry", "where id = :id" ],
 					[ "-- foo ? :do", "/* bar? :*/" ]
 				);
 			});
 
-			it( title='test query parsing, with a ? in a comment' , body=function() {
+			it( title='test query parsing, with a ? in a comment', body=function() {
 				doTest( [ "-- foo ? :do", "/* bar? :*/", "SELECT engine"," from qry", "where id = :id" ],
 					[ "-- foo ? :do", "/* bar? :*/" ]
 				);
 			});
 
-			it( title='test query parsing, with a ? in a trailing line comment' , body=function() {
+			it( title='test query parsing, with a ? in a trailing line comment', body=function() {
 				doTest( [ "SELECT engine"," from qry", "where id = :id",  "-- foo ? :do" ],
 					[ "-- foo ? :do" ]
 				);
 			});
 
-			it( title='test query parsing, with a ? in a trailing comment block' , body=function() {
+			it( title='test query parsing, with a ? in a trailing comment block', body=function() {
 				doTest( [ "SELECT engine"," from qry", "where id = :id",  "/* foo ? :do */" ],
 					[ "/* foo ? :do */" ]
 				);
