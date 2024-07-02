@@ -25,7 +25,7 @@ jobs:
 
     runs-on: ubuntu-latest
     env:
-      DO_DEPLOY: "${{ github.event_name == 'push' && startsWith(github.ref, 'refs/heads/6.1') }}"
+      DO_DEPLOY: "${{ github.event_name == 'push' && startsWith(github.ref, 'refs/heads/6.2') }}"
       LUCEE_BUILD_JAVA_VERSION: 21
       LUCEE_TEST_JAVA_VERSION: ''
     services:
@@ -239,13 +239,3 @@ jobs:
       with:
         junit_files: test/reports/*.xml
         check_name: "Lucee Test Results"
-    - name: Trigger Docker Build
-      if: ${{ env.DO_DEPLOY == 'true' }}
-      env:
-        TRAVIS_JOB_ID: ${{ github.run_id }}
-        TRAVIS_TOKEN: ${{ secrets.DOCKER_AUTH_TOKEN }} # not set up yet
-      run: |
-        echo "Trigger Docker Build on Travis https://travis-ci.com/github/lucee/lucee-dockerfiles"
-        chmod +x travis-docker-build.sh
-        ./travis-docker-build.sh
- 
