@@ -561,6 +561,23 @@ public class ComponentLoader {
 		}
 	}
 
+	// ComponentLoader.loadInline((CIPage)(new cf(this.getPageSource())), pc);
+
+	// public static ComponentImpl loadInline(PageContext pc, String relPathTemplate, String className)
+	// throws PageException {
+	// PageContextImpl pci = ((PageContextImpl) pc);
+	// PageSource ps = pci.getPageSourceExisting(relPathTemplate);
+	// try {
+	// Class clazz = ClassUtil.loadClass(pci.getRPCClassLoader(false), className);
+	// CIPage page = (CIPage) Reflector.callConstructor(clazz, new Object[] { ps });
+	// return _loadComponent(pc, page, null, true, true, true, true).setInline();
+	// }
+	// catch (Exception e) {
+	// throw Caster.toPageException(e);
+	// }
+
+	// }
+
 	public static ComponentImpl loadInline(CIPage page, PageContext pc) throws PageException {
 		return _loadComponent(pc, page, null, true, true, true, true).setInline();
 	}
