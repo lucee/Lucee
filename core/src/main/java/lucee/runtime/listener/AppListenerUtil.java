@@ -984,7 +984,6 @@ public final class AppListenerUtil {
 	}
 
 	public static boolean getPreciseMath(PageContext pc, Config config) {
-		pc = ThreadLocalPageContext.get(pc);
 		if (pc != null) {
 			ApplicationContext ac = pc.getApplicationContext();
 			if (ac != null) return ((ApplicationContextSupport) pc.getApplicationContext()).getPreciseMath();

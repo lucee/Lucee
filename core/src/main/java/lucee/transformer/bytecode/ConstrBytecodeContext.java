@@ -25,6 +25,7 @@ import org.objectweb.asm.commons.GeneratorAdapter;
 import org.objectweb.asm.commons.Method;
 
 import lucee.runtime.PageSource;
+import lucee.runtime.config.Config;
 import lucee.transformer.bytecode.statement.udf.Function;
 import lucee.transformer.expression.literal.LitString;
 
@@ -32,9 +33,9 @@ public class ConstrBytecodeContext extends BytecodeContext {
 
 	private List<Data> properties = new ArrayList<Data>();
 
-	public ConstrBytecodeContext(PageSource ps, Page page, List<LitString> keys, ClassWriter classWriter, String className, GeneratorAdapter adapter, Method method,
+	public ConstrBytecodeContext(Config config, PageSource ps, Page page, List<LitString> keys, ClassWriter classWriter, String className, GeneratorAdapter adapter, Method method,
 			boolean writeLog, boolean suppressWSbeforeArg, boolean output, boolean returnValue) {
-		super(ps, null, page, keys, classWriter, className, adapter, method, writeLog, suppressWSbeforeArg, output, returnValue);
+		super(config, ps, null, page, keys, classWriter, className, adapter, method, writeLog, suppressWSbeforeArg, output, returnValue);
 	}
 
 	public void addUDFProperty(Function function, int arrayIndex, int valueIndex, int type) {

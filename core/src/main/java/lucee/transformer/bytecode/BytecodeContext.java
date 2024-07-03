@@ -68,12 +68,14 @@ public class BytecodeContext implements Context {
 	}
 
 	private String id = id();
+	private Config config;
 	private Page page;
 	protected PageSource ps;
 	protected final ExpressionUtil expressionUtil;
 
-	public BytecodeContext(PageSource ps, ConstrBytecodeContext constr, Page page, List<LitString> keys, ClassWriter classWriter, String className, GeneratorAdapter adapter,
-			Method method, boolean writeLog, boolean suppressWSbeforeArg, boolean output, boolean returnValue) {
+	public BytecodeContext(Config config, PageSource ps, ConstrBytecodeContext constr, Page page, List<LitString> keys, ClassWriter classWriter, String className,
+			GeneratorAdapter adapter, Method method, boolean writeLog, boolean suppressWSbeforeArg, boolean output, boolean returnValue) {
+		this.config = ThreadLocalPageContext.getConfig(config);
 		this.classWriter = classWriter;
 		this.className = className;
 		this.writeLog = writeLog;
@@ -298,7 +300,10 @@ public class BytecodeContext implements Context {
 
 	public Config getConfig() {
 		if (ps != null) return ps.getMapping().getConfig();
-		return ThreadLocalPageContext.getConfig();
+		if (config == null) {
+			config = ThreadLocalPageContext.getConfig();
+		}
+		return config;
 	}
 
 	/**
