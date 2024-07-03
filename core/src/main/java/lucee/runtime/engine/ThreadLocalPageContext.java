@@ -36,7 +36,7 @@ public final class ThreadLocalPageContext {
 
 	private static final Locale DEFAULT_LOCALE = Locale.getDefault();
 	private static final TimeZone DEFAULT_TIMEZONE = TimeZone.getDefault();
-	private static ThreadLocal<PageContext> pcThreadLocal = new ThreadLocal<PageContext>();
+	private static InheritableThreadLocal<PageContext> pcThreadLocal = new InheritableThreadLocal<PageContext>();
 	public final static CallOnStart callOnStart = new CallOnStart();
 	private static ThreadLocal<Boolean> insideServerNewInstance = new ThreadLocal<Boolean>();
 	private static ThreadLocal<Boolean> insideGateway = new ThreadLocal<Boolean>();
@@ -62,6 +62,10 @@ public final class ThreadLocalPageContext {
 	 *         thread
 	 */
 	public static PageContext get() {// print.dumpStack();
+		/*
+		 * PageContext pc = pcThreadLocal.get(); if (pc != null && pc.getThread() == Thread.currentThread())
+		 * { return pc; } else { if (pc != null) print.ds("null? " + (pc == null)); }
+		 */
 		return pcThreadLocal.get();
 	}
 
