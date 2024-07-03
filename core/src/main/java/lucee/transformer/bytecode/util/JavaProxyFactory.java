@@ -235,7 +235,7 @@ public class JavaProxyFactory {
 
 	public static Object createProxy(PageContext pc, final Component cfc, Class extendz, Class... interfaces) throws PageException, IOException {
 		PageContextImpl pci = (PageContextImpl) pc;
-		ClassLoader[] parents = extractClassLoaders(null, interfaces);
+		ClassLoader[] parents = extractClassLoaders(cfc.getClass().getClassLoader(), extendz, interfaces);
 
 		if (extendz == null) extendz = Object.class;
 		if (interfaces == null) interfaces = new Class[0];
@@ -304,7 +304,6 @@ public class JavaProxyFactory {
 
 			// inline
 			// ComponentLoader.loadInline((CIPage)(new cf(this.getPageSource())), pc);
-
 			// this.cfc = ThreadLocalPageContext.get().loadComponent(className);
 			String name = cfc.getAbsName();
 			String sub = ((ComponentImpl) cfc).getSubName();
@@ -422,12 +421,16 @@ public class JavaProxyFactory {
 	 * // adapter.returnValue(); adapter.endMethod(); }
 	 */
 
-	private static ClassLoader[] extractClassLoaders(ClassLoader cl, Class... classes) {
+	private static ClassLoader[] extractClassLoaders(ClassLoader cl, Class extendz, Class... classes) {
 		HashSet<ClassLoader> set = new HashSet<>();
 		if (cl != null) {
 			set.add(cl);
 			cl = null;
 		}
+		if (extendz != null) {
+			set.add(ClassUtil.getClassLoader(extendz));
+		}
+
 		if (classes != null) {
 			for (int i = 0; i < classes.length; i++) {
 				set.add(ClassUtil.getClassLoader(classes[i]));
