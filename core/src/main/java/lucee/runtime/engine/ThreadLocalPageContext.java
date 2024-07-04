@@ -22,6 +22,7 @@ import java.io.ByteArrayOutputStream;
 import java.util.Locale;
 import java.util.TimeZone;
 
+import lucee.print;
 import lucee.commons.io.log.Log;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
@@ -35,7 +36,7 @@ import lucee.runtime.thread.ThreadUtil;
  * argument pagecontext
  */
 public final class ThreadLocalPageContext {
-
+	private static final boolean INHERIT_ENABLED = false;
 	private static final Locale DEFAULT_LOCALE = Locale.getDefault();
 	private static final TimeZone DEFAULT_TIMEZONE = TimeZone.getDefault();
 	private static ThreadLocal<PageContext> pcThreadLocal = new ThreadLocal<PageContext>();
@@ -73,6 +74,10 @@ public final class ThreadLocalPageContext {
 		 */
 		PageContext pc = pcThreadLocal.get();
 		if (pc == null) {
+			if (!INHERIT_ENABLED) {
+				print.ds();
+				return null;
+			}
 			PageContext pci = pcThreadLocalInheritable.get();
 			// we have one from parent
 			if (pci != null) {
@@ -90,6 +95,7 @@ public final class ThreadLocalPageContext {
 
 			}
 		}
+
 		return pc;
 	}
 
