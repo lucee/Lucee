@@ -18,6 +18,7 @@
  **/
 package lucee.runtime.engine;
 
+import java.io.ByteArrayOutputStream;
 import java.util.Locale;
 import java.util.TimeZone;
 
@@ -27,6 +28,7 @@ import lucee.runtime.PageContextImpl;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigWeb;
+import lucee.runtime.thread.ThreadUtil;
 
 /**
  * class to handle thread local PageContext, do use pagecontext in classes that have no method
@@ -36,10 +38,12 @@ public final class ThreadLocalPageContext {
 
 	private static final Locale DEFAULT_LOCALE = Locale.getDefault();
 	private static final TimeZone DEFAULT_TIMEZONE = TimeZone.getDefault();
-	private static InheritableThreadLocal<PageContext> pcThreadLocal = new InheritableThreadLocal<PageContext>();
+	private static ThreadLocal<PageContext> pcThreadLocalX = new ThreadLocal<PageContext>();
+	private static InheritableThreadLocal<PageContext> pcThreadLocalInheritable = new InheritableThreadLocal<PageContext>();
 	public final static CallOnStart callOnStart = new CallOnStart();
 	private static ThreadLocal<Boolean> insideServerNewInstance = new ThreadLocal<Boolean>();
 	private static ThreadLocal<Boolean> insideGateway = new ThreadLocal<Boolean>();
+	private static ThreadLocal<Boolean> insideInheritableRegistration = new ThreadLocal<Boolean>();
 
 	/**
 	 * register a pagecontext for he current thread
@@ -52,7 +56,8 @@ public final class ThreadLocalPageContext {
 		Thread t = Thread.currentThread();
 		t.setContextClassLoader(((ConfigPro) pc.getConfig()).getClassLoaderEnv());
 		((PageContextImpl) pc).setThread(t);
-		pcThreadLocal.set(pc);
+		pcThreadLocalX.set(pc);
+		pcThreadLocalInheritable.set(pc);
 	}
 
 	/**
@@ -66,7 +71,26 @@ public final class ThreadLocalPageContext {
 		 * PageContext pc = pcThreadLocal.get(); if (pc != null && pc.getThread() == Thread.currentThread())
 		 * { return pc; } else { if (pc != null) print.ds("null? " + (pc == null)); }
 		 */
-		return pcThreadLocal.get();
+		PageContext pc = pcThreadLocalX.get();
+		if (pc == null) {
+			PageContext pci = pcThreadLocalInheritable.get();
+			// we have one from parent
+			if (pci != null) {
+				try {
+					// this is needed because clone below call this method a lot
+					if (Boolean.TRUE.equals(insideInheritableRegistration.get())) return pci;
+					insideInheritableRegistration.set(Boolean.TRUE);
+					// register(pc = ThreadUtil.clonePageContext(pci, new ByteArrayOutputStream(), false, false,
+					// false));
+					pc = ThreadUtil.clonePageContext(pci, new ByteArrayOutputStream(), false, false, false);
+				}
+				finally {
+					insideInheritableRegistration.set(null);
+				}
+
+			}
+		}
+		return pc;
 	}
 
 	public static Config getConfig() {
@@ -82,7 +106,8 @@ public final class ThreadLocalPageContext {
 	 * release the pagecontext for the current thread
 	 */
 	public static void release() {// print.ds(Thread.currentThread().getName());
-		pcThreadLocal.set(null);
+		pcThreadLocalX.set(null);
+		pcThreadLocalInheritable.set(null);
 	}
 
 	public static Config getConfig(PageContext pc) {
