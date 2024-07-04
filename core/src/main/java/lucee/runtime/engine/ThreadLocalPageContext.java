@@ -22,6 +22,7 @@ import java.io.ByteArrayOutputStream;
 import java.util.Locale;
 import java.util.TimeZone;
 
+import lucee.print;
 import lucee.commons.io.log.Log;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
@@ -73,10 +74,11 @@ public final class ThreadLocalPageContext {
 		 */
 		PageContext pc = pcThreadLocal.get();
 		if (pc == null) {
+			PageContext pci = pcThreadLocalInheritable.get();
 			if (!INHERIT_ENABLED) {
+				if (pci != null) print.ds();
 				return null;
 			}
-			PageContext pci = pcThreadLocalInheritable.get();
 			// we have one from parent
 			if (pci != null) {
 				try {
