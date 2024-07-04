@@ -117,6 +117,8 @@ public class JavaProxyFactory {
 	private static final org.objectweb.asm.commons.Method _OBJECT = new org.objectweb.asm.commons.Method("toCFML", Types.OBJECT, new Type[] { Types.OBJECT });
 
 	private static final org.objectweb.asm.commons.Method GET_INSTANCE = new org.objectweb.asm.commons.Method("getInstance", CFML_ENGINE, new Type[] {});
+	private static final org.objectweb.asm.commons.Method GET_THREAD_CONFIG = new org.objectweb.asm.commons.Method("getThreadConfig", Types.CONFIG, new Type[] {});
+	private static final org.objectweb.asm.commons.Method GET_THREAD_PAGECONTEXT = new org.objectweb.asm.commons.Method("getThreadPageContext", Types.PAGE_CONTEXT, new Type[] {});
 	private static final org.objectweb.asm.commons.Method GET_JAVA_PROXY_UTIL = new org.objectweb.asm.commons.Method("getJavaProxyUtil", Types.OBJECT, // FUTURE change to JavaProxy
 			new Type[] {});
 	private static final org.objectweb.asm.commons.Method GET_CONFIG = new org.objectweb.asm.commons.Method("getConfig", Types.CONFIG, new Type[] {});
@@ -296,25 +298,23 @@ public class JavaProxyFactory {
 			adapter.loadThis();
 			adapter.invokeConstructor(Types.OBJECT, SUPER_CONSTRUCTOR);
 
-			// this.config = (ConfigWeb) ThreadLocalPageContext.getConfig();
+			// this.config=CFMLEngineFactory.getInstance().getThreadConfig();
 			adapter.loadThis(); // Load 'this' onto the stack
-			adapter.invokeStatic(Types.THREAD_LOCAL_PAGE_CONTEXT, GET_CONFIG);
-			adapter.checkCast(Types.CONFIG_WEB);
-			adapter.visitFieldInsn(Opcodes.PUTFIELD, classPath, "config", CONFIG_WEB_NAME);
+			adapter.invokeStatic(CFML_ENGINE_FACTORY, GET_INSTANCE); // Call CFMLEngineFactory.getInstance()
+			adapter.invokeInterface(CFML_ENGINE, GET_THREAD_CONFIG); // Call getThreadConfig() on the result of getInstance()
+			adapter.checkCast(Types.CONFIG_WEB); // Cast the result to ConfigWeb
+			adapter.visitFieldInsn(Opcodes.PUTFIELD, classPath, "config", CONFIG_WEB_NAME); // this.config = <result>
 
-			// inline
-			// ComponentLoader.loadInline((CIPage)(new cf(this.getPageSource())), pc);
-			// this.cfc = ThreadLocalPageContext.get().loadComponent(className);
 			String name = cfc.getAbsName();
 			String sub = ((ComponentImpl) cfc).getSubName();
 			if (!StringUtil.isEmpty(sub)) {
 				name += "$" + sub;
 			}
 			adapter.loadThis(); // Load 'this' onto the stack
-			adapter.invokeStatic(Types.THREAD_LOCAL_PAGE_CONTEXT, GET);
+			adapter.invokeStatic(CFML_ENGINE_FACTORY, GET_INSTANCE);
+			adapter.invokeInterface(CFML_ENGINE, GET_THREAD_PAGECONTEXT);
 			adapter.push(name);
 			adapter.invokeVirtual(Types.PAGE_CONTEXT, LOAD_COMPONENT);
-			adapter.checkCast(Types.COMPONENT);
 			adapter.visitFieldInsn(Opcodes.PUTFIELD, classPath, "cfc", COMPONENT_NAME);
 
 			adapter.visitInsn(Opcodes.RETURN);
