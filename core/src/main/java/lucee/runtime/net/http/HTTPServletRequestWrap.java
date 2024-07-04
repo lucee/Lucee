@@ -305,12 +305,16 @@ public final class HTTPServletRequestWrap implements HttpServletRequest, Seriali
 		}
 	}
 
-	@Override
-	public Map<String, String[]> getParameterMap() {
-		PageContext pc = ThreadLocalPageContext.get();
+	public Map<String, String[]> getParameterMap(PageContext pc) {
+		pc = ThreadLocalPageContext.get(pc);
 		FormImpl form = _form(pc);
 		URLImpl url = _url(pc);
 		return ScopeUtil.getParameterMap(new URLItem[][] { form.getRaw(), url.getRaw() }, new String[] { form.getEncoding(), url.getEncoding() });
+	}
+
+	@Override
+	public Map<String, String[]> getParameterMap() {
+		return getParameterMap(null);
 	}
 
 	@Override
@@ -340,9 +344,13 @@ public final class HTTPServletRequestWrap implements HttpServletRequest, Seriali
 		return (FormImpl) f;
 	}
 
+	public Enumeration<String> getParameterNames(PageContext pc) {
+		return new ItasEnum<String>(getParameterMap(pc).keySet().iterator());
+	}
+
 	@Override
 	public Enumeration<String> getParameterNames() {
-		return new ItasEnum<String>(getParameterMap().keySet().iterator());
+		return getParameterNames(null);
 	}
 
 	@Override
