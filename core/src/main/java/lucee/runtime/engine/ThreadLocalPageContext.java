@@ -63,7 +63,7 @@ public final class ThreadLocalPageContext {
 	}
 
 	public static PageContext get() {
-		return get(true);
+		return get(false);
 	}
 
 	/**
