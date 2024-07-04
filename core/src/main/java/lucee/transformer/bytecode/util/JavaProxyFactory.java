@@ -237,7 +237,7 @@ public class JavaProxyFactory {
 
 	public static Object createProxy(PageContext pc, final Component cfc, Class extendz, Class... interfaces) throws PageException, IOException {
 		PageContextImpl pci = (PageContextImpl) pc;
-		ClassLoader[] parents = extractClassLoaders(CFMLEngineFactory.class.getClassLoader(), extendz, interfaces);
+		ClassLoader[] parents = extractClassLoaders(null, extendz, interfaces);
 
 		if (extendz == null) extendz = Object.class;
 		if (interfaces == null) interfaces = new Class[0];
