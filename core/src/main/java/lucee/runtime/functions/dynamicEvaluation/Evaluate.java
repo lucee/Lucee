@@ -20,6 +20,7 @@ package lucee.runtime.functions.dynamicEvaluation;
 
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.interpreter.CFMLExpressionInterpreter;
@@ -31,7 +32,6 @@ import lucee.runtime.type.scope.LocalNotSupportedScope;
 import lucee.runtime.type.scope.Scope;
 import lucee.runtime.type.scope.Undefined;
 import lucee.runtime.type.scope.Variables;
-import lucee.runtime.util.PageContextUtil;
 
 /**
  * Implements the CFML Function evaluate
@@ -42,7 +42,7 @@ public final class Evaluate implements Function {
 
 	public static Object call(PageContext pc, Object[] objs) throws PageException {
 
-		return call(pc, objs, PageContextUtil.preciseMath(pc));
+		return call(pc, objs, ThreadLocalPageContext.preciseMath(pc));
 	}
 
 	public static Object call(PageContext pc, Object[] objs, boolean preciseMath) throws PageException {

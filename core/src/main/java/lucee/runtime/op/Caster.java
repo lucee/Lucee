@@ -108,7 +108,6 @@ import lucee.runtime.image.ImageUtil;
 import lucee.runtime.interpreter.CFMLExpressionInterpreter;
 import lucee.runtime.interpreter.VariableInterpreter;
 import lucee.runtime.java.JavaObject;
-import lucee.runtime.listener.AppListenerUtil;
 import lucee.runtime.op.date.DateCaster;
 import lucee.runtime.op.validators.ValidateCreditCard;
 import lucee.runtime.reflection.Reflector;
@@ -339,37 +338,37 @@ public final class Caster {
 
 	public static Number toNumber(PageContext pc, Object o) throws PageException {
 		if (o instanceof Number) return (Number) o;
-		if (AppListenerUtil.getPreciseMath(pc, null)) return toBigDecimal(o);
+		if (ThreadLocalPageContext.preciseMath(pc)) return toBigDecimal(o);
 		return Double.valueOf(toDoubleValue(o));
 
 	}
 
 	public static Number toNumber(Object o) throws PageException {
 		if (o instanceof Number) return (Number) o;
-		if (AppListenerUtil.getPreciseMath(null, null)) return toBigDecimal(o);
+		if (ThreadLocalPageContext.preciseMath(null)) return toBigDecimal(o);
 		return Double.valueOf(toDoubleValue(o));
 
 	}
 
 	public static Number toNumber(boolean b) {
-		if (AppListenerUtil.getPreciseMath(null, null)) return b ? BigDecimal.ONE : BigDecimal.ZERO;
+		if (ThreadLocalPageContext.preciseMath(null)) return b ? BigDecimal.ONE : BigDecimal.ZERO;
 		return Double.valueOf(b ? 1d : 0d);
 
 	}
 
 	public static Number toNumber(double d) {
-		if (AppListenerUtil.getPreciseMath(null, null)) return BigDecimal.valueOf(d);
+		if (ThreadLocalPageContext.preciseMath(null)) return BigDecimal.valueOf(d);
 		return Double.valueOf(d);
 
 	}
 
 	public static Number toNumber(String str) throws PageException {
-		if (AppListenerUtil.getPreciseMath(null, null)) return toBigDecimal(str);
+		if (ThreadLocalPageContext.preciseMath(null)) return toBigDecimal(str);
 		return toDouble(str);
 	}
 
 	public static Number toNumber(PageContext pc, String str) throws PageException {
-		if (AppListenerUtil.getPreciseMath(pc, null)) return toBigDecimal(str);
+		if (ThreadLocalPageContext.preciseMath(pc)) return toBigDecimal(str);
 		return toDouble(str);
 	}
 

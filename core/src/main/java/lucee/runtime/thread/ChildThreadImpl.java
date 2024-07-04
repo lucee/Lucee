@@ -162,7 +162,7 @@ public class ChildThreadImpl extends ChildThread implements Serializable {
 	}
 
 	public PageException execute(Config config) {
-		PageContext oldPc = ThreadLocalPageContext.get();
+		PageContext oldPc = ThreadLocalPageContext.get(false);
 		Page p = page;
 		PageContextImpl pc = null;
 		DebugEntryTemplate debugEntry = null;

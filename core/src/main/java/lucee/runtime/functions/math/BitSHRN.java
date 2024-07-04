@@ -22,11 +22,11 @@
 package lucee.runtime.functions.math;
 
 import lucee.runtime.PageContext;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.BIF;
 import lucee.runtime.ext.function.Function;
-import lucee.runtime.listener.AppListenerUtil;
 import lucee.runtime.op.Caster;
 
 public final class BitSHRN extends BIF implements Function {
@@ -39,7 +39,7 @@ public final class BitSHRN extends BIF implements Function {
 		int count = Caster.toIntValue(args[1]);
 		if (count < 0) throw new FunctionException(pc, "bitSHRN", 2, "count", "Invalid shift value [" + count + "], value must be a positive integer");
 
-		if (AppListenerUtil.getPreciseMath(pc, null)) {
+		if (ThreadLocalPageContext.preciseMath(pc)) {
 			return Caster.toBigDecimal(Caster.toBigInteger(args[0]).shiftRight(count));
 		}
 		return Caster.toDouble(Caster.toLongValue(args[0]) >>> count);

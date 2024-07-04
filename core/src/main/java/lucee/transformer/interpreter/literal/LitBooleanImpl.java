@@ -2,7 +2,7 @@ package lucee.transformer.interpreter.literal;
 
 import java.math.BigDecimal;
 
-import lucee.runtime.listener.AppListenerUtil;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.op.Caster;
 import lucee.transformer.Factory;
 import lucee.transformer.Position;
@@ -78,7 +78,7 @@ public final class LitBooleanImpl extends ExpressionBase implements LitBoolean, 
 
 	@Override
 	public Number getNumber(Number defaultValue) {
-		if (AppListenerUtil.getPreciseMath(null, null)) return b ? BigDecimal.ONE : BigDecimal.ZERO;
+		if (ThreadLocalPageContext.preciseMath(null)) return b ? BigDecimal.ONE : BigDecimal.ZERO;
 		return Caster.toDouble(b);
 	}
 

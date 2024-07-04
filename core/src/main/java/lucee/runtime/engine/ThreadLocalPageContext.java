@@ -28,7 +28,8 @@ import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigPro;
-import lucee.runtime.config.ConfigWeb;
+import lucee.runtime.listener.ApplicationContext;
+import lucee.runtime.listener.ApplicationContextSupport;
 import lucee.runtime.thread.ThreadUtil;
 
 /**
@@ -61,13 +62,17 @@ public final class ThreadLocalPageContext {
 		pcThreadLocalInheritable.set(pc);
 	}
 
+	public static PageContext get() {
+		return get(true);
+	}
+
 	/**
 	 * returns pagecontext registered for the current thread
 	 * 
 	 * @return pagecontext for the current thread or null if no pagecontext is regisred for the current
 	 *         thread
 	 */
-	public static PageContext get() {// print.dumpStack();
+	public static PageContext get(boolean cloneParentIfNotExist) {
 		/*
 		 * PageContext pc = pcThreadLocal.get(); if (pc != null && pc.getThread() == Thread.currentThread())
 		 * { return pc; } else { if (pc != null) print.ds("null? " + (pc == null)); }
@@ -75,12 +80,11 @@ public final class ThreadLocalPageContext {
 		PageContext pc = pcThreadLocal.get();
 		if (pc == null) {
 			PageContext pci = pcThreadLocalInheritable.get();
-			if (!INHERIT_ENABLED) {
+			if (cloneParentIfNotExist) {
 				if (pci != null) print.ds();
-				return null;
 			}
 			// we have one from parent
-			if (pci != null) {
+			if (cloneParentIfNotExist && pci != null) {
 				try {
 					// this is needed because clone below call this method a lot
 					if (Boolean.TRUE.equals(insideInheritableRegistration.get())) return pci;
@@ -100,7 +104,7 @@ public final class ThreadLocalPageContext {
 	}
 
 	public static Config getConfig() {
-		PageContext pc = pcThreadLocal.get();
+		PageContext pc = get(false);
 		if (pc != null) {
 			return pc.getConfig();
 		}
@@ -126,25 +130,91 @@ public final class ThreadLocalPageContext {
 		return config;
 	}
 
-	public static TimeZone getTimeZone(PageContext pc) {
-		// pc
-		pc = get(pc);
+	public static boolean preciseMath(PageContext pc) {
+		// pc provided
 		if (pc != null) {
-			if (pc.getTimeZone() != null) return pc.getTimeZone();
+			ApplicationContext ac = pc.getApplicationContext();
+			if (ac instanceof ApplicationContextSupport) {
+				return ((ApplicationContextSupport) ac).getPreciseMath();
+			}
+			Config c = ThreadLocalConfig.get();
+			if (c instanceof ConfigPro) return ((ConfigPro) c).getPreciseMath();
+			return true;
+		}
+		// pc from current thread
+		pc = pcThreadLocal.get();
+		if (pc != null) {
+			ApplicationContext ac = pc.getApplicationContext();
+			if (ac instanceof ApplicationContextSupport) {
+				return ((ApplicationContextSupport) ac).getPreciseMath();
+			}
+			Config c = ThreadLocalConfig.get();
+			if (c instanceof ConfigPro) return ((ConfigPro) c).getPreciseMath();
+			return true;
+		}
+
+		// pc from parent thread
+		pc = pcThreadLocalInheritable.get();
+		if (pc != null) {
+			ApplicationContext ac = pc.getApplicationContext();
+			if (ac instanceof ApplicationContextSupport) {
+				return ((ApplicationContextSupport) ac).getPreciseMath();
+			}
+			Config c = ThreadLocalConfig.get();
+			if (c instanceof ConfigPro) return ((ConfigPro) c).getPreciseMath();
+			return true;
+		}
+
+		Config c = ThreadLocalConfig.get();
+		if (c instanceof ConfigPro) return ((ConfigPro) c).getPreciseMath();
+		return true;
+	}
+
+	public static TimeZone getTimeZone(PageContext pc) {
+		// pc provided
+		if (pc != null) {
+			TimeZone tz = pc.getTimeZone();
+			if (tz != null) return tz;
+			return DEFAULT_TIMEZONE;
+		}
+		// pc from current thread
+		pc = pcThreadLocal.get();
+		if (pc != null) {
+			TimeZone tz = pc.getTimeZone();
+			if (tz != null) return tz;
+			return DEFAULT_TIMEZONE;
+		}
+
+		// pc from parent thread
+		pc = pcThreadLocalInheritable.get();
+		if (pc != null) {
+			TimeZone tz = pc.getTimeZone();
+			if (tz != null) return tz;
 			return DEFAULT_TIMEZONE;
 		}
 
 		// config
 		Config config = getConfig((Config) null);
-		if (config != null && config.getTimeZone() != null) {
-			return config.getTimeZone();
+		if (config != null) {
+			TimeZone tz = config.getTimeZone();
+			if (tz != null) return tz;
 		}
 		return DEFAULT_TIMEZONE;
 	}
 
 	public static Log getLog(PageContext pc, String logName) {
-		// pc
-		pc = get(pc);
+		// pc provided
+		if (pc instanceof PageContextImpl) {
+			return ((PageContextImpl) pc).getLog(logName);
+		}
+		// pc from current thread
+		pc = pcThreadLocal.get();
+		if (pc instanceof PageContextImpl) {
+			return ((PageContextImpl) pc).getLog(logName);
+		}
+
+		// pc from parent thread
+		pc = pcThreadLocalInheritable.get();
 		if (pc instanceof PageContextImpl) {
 			return ((PageContextImpl) pc).getLog(logName);
 		}
@@ -158,12 +228,17 @@ public final class ThreadLocalPageContext {
 	}
 
 	public static Log getLog(Config config, String logName) {
-		// pc
-		if (config instanceof ConfigWeb) {
-			PageContext pc = get(config);
-			if (pc instanceof PageContextImpl) {
-				return ((PageContextImpl) pc).getLog(logName);
-			}
+
+		// pc from current thread
+		PageContext pc = pcThreadLocal.get();
+		if (pc instanceof PageContextImpl && pc.getConfig() == config) {
+			return ((PageContextImpl) pc).getLog(logName);
+		}
+
+		// pc from parent thread
+		pc = pcThreadLocalInheritable.get();
+		if (pc instanceof PageContextImpl && pc.getConfig() == config) {
+			return ((PageContextImpl) pc).getLog(logName);
 		}
 
 		// config
@@ -175,18 +250,7 @@ public final class ThreadLocalPageContext {
 	}
 
 	public static Log getLog(String logName) {
-		// pc
-		PageContext pc = get();
-		if (pc instanceof PageContextImpl) {
-			return ((PageContextImpl) pc).getLog(logName);
-		}
-
-		// config
-		Config config = getConfig();
-		if (config != null) {
-			return config.getLog(logName);
-		}
-		return null;
+		return getLog((PageContext) null, logName);
 	}
 
 	public static Locale getLocale() {
@@ -199,24 +263,53 @@ public final class ThreadLocalPageContext {
 	}
 
 	public static Locale getLocale(PageContext pc) {
-		// pc
-		pc = get(pc);
+		// pc provided
 		if (pc != null) {
-			if (pc.getLocale() != null) return pc.getLocale();
+			Locale l = pc.getLocale();
+			if (l != null) return l;
+			return DEFAULT_LOCALE;
+		}
+		// pc from current thread
+		pc = pcThreadLocal.get();
+		if (pc != null) {
+			Locale l = pc.getLocale();
+			if (l != null) return l;
+			return DEFAULT_LOCALE;
+		}
+
+		// pc from parent thread
+		pc = pcThreadLocalInheritable.get();
+		if (pc != null) {
+			Locale l = pc.getLocale();
+			if (l != null) return l;
 			return DEFAULT_LOCALE;
 		}
 
 		// config
 		Config config = getConfig((Config) null);
-		if (config != null && config.getLocale() != null) {
-			return config.getLocale();
+		if (config != null) {
+			Locale l = config.getLocale();
+			if (l != null) return l;
 		}
 		return DEFAULT_LOCALE;
 	}
 
 	public static TimeZone getTimeZone(Config config) {
-		PageContext pc = get();
-		if (pc != null && pc.getTimeZone() != null) return pc.getTimeZone();
+		// pc from current thread
+		PageContext pc = pcThreadLocal.get();
+		if (pc instanceof PageContextImpl && pc.getConfig() == config) {
+			TimeZone tz = pc.getTimeZone();
+			if (tz != null) return tz;
+			return DEFAULT_TIMEZONE;
+		}
+
+		// pc from parent thread
+		pc = pcThreadLocalInheritable.get();
+		if (pc instanceof PageContextImpl && pc.getConfig() == config) {
+			TimeZone tz = pc.getTimeZone();
+			if (tz != null) return tz;
+			return DEFAULT_TIMEZONE;
+		}
 
 		config = getConfig(config);
 		if (config != null && config.getTimeZone() != null) {

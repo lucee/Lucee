@@ -84,7 +84,6 @@ import lucee.runtime.interpreter.ref.var.DynAssign;
 import lucee.runtime.interpreter.ref.var.Variable;
 import lucee.runtime.type.scope.Scope;
 import lucee.runtime.type.scope.ScopeSupport;
-import lucee.runtime.util.PageContextUtil;
 import lucee.transformer.library.ClassDefinitionImpl;
 import lucee.transformer.library.function.FunctionLib;
 import lucee.transformer.library.function.FunctionLibFunction;
@@ -188,7 +187,7 @@ public class CFMLExpressionInterpreter {
 	}
 
 	public Object interpret(PageContext pc, String str) throws PageException {
-		return interpret(pc, str, PageContextUtil.preciseMath(pc));
+		return interpret(pc, str, ThreadLocalPageContext.preciseMath(pc));
 	}
 
 	public Object interpret(PageContext pc, String str, boolean preciseMath) throws PageException {

@@ -19,6 +19,7 @@
 package lucee.runtime.util;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.Map;
@@ -30,6 +31,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.jsp.tagext.BodyContent;
 
+import lucee.commons.io.DevNullOutputStream;
+import lucee.commons.io.log.LogUtil;
+import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.loader.engine.CFMLEngine;
@@ -52,8 +56,6 @@ import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageServletException;
 import lucee.runtime.exp.RequestTimeoutException;
-import lucee.runtime.listener.ApplicationContext;
-import lucee.runtime.listener.ApplicationContextSupport;
 import lucee.runtime.listener.ApplicationListener;
 import lucee.runtime.net.http.ReqRspUtil;
 import lucee.runtime.op.Caster;
@@ -131,8 +133,19 @@ public class PageContextUtil {
 		boolean callOnStart = ThreadLocalPageContext.callOnStart.get();
 		try {
 			ThreadLocalPageContext.callOnStart.set(false);
+			if (config == null) config = ThreadLocalPageContext.getConfig();
 
-			if (contextRoot == null) contextRoot = new File(".");
+			if (contextRoot == null) {
+				if (config instanceof ConfigWeb) {
+					try {
+						contextRoot = ResourceUtil.toFile(config.getRootDirectory());
+					}
+					catch (IOException e) {
+						LogUtil.log("pagecontext-loading", e);
+					}
+				}
+				if (contextRoot == null) contextRoot = new File(".");
+			}
 			// Engine
 			CFMLEngine engine = null;
 			try {
@@ -152,9 +165,8 @@ public class PageContextUtil {
 					null);
 
 			// Response
-			HttpServletResponse rsp = CreationImpl.getInstance(engine).createHttpServletResponse(os);
 
-			if (config == null) config = ThreadLocalPageContext.getConfig();
+			HttpServletResponse rsp = CreationImpl.getInstance(engine).createHttpServletResponse(os == null ? DevNullOutputStream.DEV_NULL_OUTPUT_STREAM : os);
 
 			CFMLFactory factory = null;
 			HttpServlet servlet;
@@ -261,14 +273,6 @@ public class PageContextUtil {
 
 	public static Object getFunctionWithNamedValues(PageContext pc, Object coll, Object[] args) throws PageException {
 		return Caster.toFunction(coll).callWithNamedValues(pc, Caster.toFunctionValues(args), true);
-	}
-
-	public static boolean preciseMath(PageContext pc) {
-		ApplicationContext ac = (pc = ThreadLocalPageContext.get(pc)) == null ? null : pc.getApplicationContext();
-		if (ac instanceof ApplicationContextSupport) return ((ApplicationContextSupport) ac).getPreciseMath();
-		Config c = ThreadLocalPageContext.getConfig();
-		if (c instanceof ConfigPro) return ((ConfigPro) c).getPreciseMath();
-		return true;
 	}
 
 	public static boolean hasDebugOptions(PageContext pc, int option) {
