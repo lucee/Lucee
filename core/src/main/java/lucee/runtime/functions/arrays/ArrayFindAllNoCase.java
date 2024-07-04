@@ -30,7 +30,7 @@ public final class ArrayFindAllNoCase extends BIF {
 	private static final long serialVersionUID = -1922900405563697067L;
 
 	public static Array call(PageContext pc, Array array, Object value) throws PageException {
-		return ArrayFindAll.find(array, value, false);
+		return ArrayFindAll.find(pc, array, value, false);
 	}
 
 	@Override

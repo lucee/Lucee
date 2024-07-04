@@ -122,7 +122,7 @@ public class SimpleQuery implements Query, ResultSet, Objects, QueryResult {
 		stat = null;
 		// check SQL Restrictions
 		if (dc.getDatasource().hasSQLRestriction()) {
-			QueryUtil.checkSQLRestriction(dc, sql);
+			QueryUtil.checkSQLRestriction(pc, dc, sql);
 		}
 
 		// Stopwatch stopwatch=new Stopwatch(Stopwatch.UNIT_NANO);

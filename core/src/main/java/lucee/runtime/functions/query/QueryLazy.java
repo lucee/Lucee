@@ -108,7 +108,7 @@ public class QueryLazy extends BIF {
 		boolean isMySQL = DataSourceUtil.isMySQL(dc);
 		// check SQL Restrictions
 		if (dc.getDatasource().hasSQLRestriction()) { // deprecated
-			QueryUtil.checkSQLRestriction(dc, sql);
+			QueryUtil.checkSQLRestriction(pc, dc, sql);
 		}
 
 		// execute

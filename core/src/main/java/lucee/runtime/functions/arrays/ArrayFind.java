@@ -19,7 +19,6 @@
 package lucee.runtime.functions.arrays;
 
 import lucee.runtime.PageContext;
-import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.CasterException;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
@@ -38,7 +37,7 @@ public final class ArrayFind extends BIF {
 	public static double call(PageContext pc, Array array, Object value) throws PageException {
 		if (value instanceof UDF) return find(pc, array, (UDF) value);
 
-		return find(array, value, true);
+		return find(pc, array, value, true);
 	}
 
 	@Override
@@ -67,13 +66,13 @@ public final class ArrayFind extends BIF {
 		return 0;
 	}
 
-	public static int find(Array array, Object value, boolean caseSensitive) {
+	public static int find(PageContext pc, Array array, Object value, boolean caseSensitive) {
 		int len = array.size();
 		boolean valueIsSimple = Decision.isSimpleValue(value);
 		Object o;
 		for (int i = 1; i <= len; i++) {
 			o = array.get(i, null);
-			if (o != null && OpUtil.equalsEL(ThreadLocalPageContext.get(), o, value, caseSensitive, !valueIsSimple)) return i;
+			if (o != null && OpUtil.equalsEL(pc, o, value, caseSensitive, !valueIsSimple)) return i;
 		}
 		return 0;
 	}

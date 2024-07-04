@@ -198,24 +198,24 @@ public class QueryUtil {
 	 * @param sql
 	 * @throws PageException
 	 */
-	public static void checkSQLRestriction(DatasourceConnection dc, SQL sql) throws PageException {
+	public static void checkSQLRestriction(PageContext pc, DatasourceConnection dc, SQL sql) throws PageException {
 		Array sqlparts = ListUtil.listToArrayRemoveEmpty(SQLUtil.removeLiterals(sql.getSQLString()), " \t" + System.getProperty("line.separator"));
 
 		// print.ln(List.toStringArray(sqlparts));
 		DataSource ds = dc.getDatasource();
-		if (!ds.hasAllow(DataSource.ALLOW_ALTER)) checkSQLRestriction(dc, "alter", sqlparts, sql);
-		if (!ds.hasAllow(DataSource.ALLOW_CREATE)) checkSQLRestriction(dc, "create", sqlparts, sql);
-		if (!ds.hasAllow(DataSource.ALLOW_DELETE)) checkSQLRestriction(dc, "delete", sqlparts, sql);
-		if (!ds.hasAllow(DataSource.ALLOW_DROP)) checkSQLRestriction(dc, "drop", sqlparts, sql);
-		if (!ds.hasAllow(DataSource.ALLOW_GRANT)) checkSQLRestriction(dc, "grant", sqlparts, sql);
-		if (!ds.hasAllow(DataSource.ALLOW_INSERT)) checkSQLRestriction(dc, "insert", sqlparts, sql);
-		if (!ds.hasAllow(DataSource.ALLOW_REVOKE)) checkSQLRestriction(dc, "revoke", sqlparts, sql);
-		if (!ds.hasAllow(DataSource.ALLOW_SELECT)) checkSQLRestriction(dc, "select", sqlparts, sql);
-		if (!ds.hasAllow(DataSource.ALLOW_UPDATE)) checkSQLRestriction(dc, "update", sqlparts, sql);
+		if (!ds.hasAllow(DataSource.ALLOW_ALTER)) checkSQLRestriction(pc, dc, "alter", sqlparts, sql);
+		if (!ds.hasAllow(DataSource.ALLOW_CREATE)) checkSQLRestriction(pc, dc, "create", sqlparts, sql);
+		if (!ds.hasAllow(DataSource.ALLOW_DELETE)) checkSQLRestriction(pc, dc, "delete", sqlparts, sql);
+		if (!ds.hasAllow(DataSource.ALLOW_DROP)) checkSQLRestriction(pc, dc, "drop", sqlparts, sql);
+		if (!ds.hasAllow(DataSource.ALLOW_GRANT)) checkSQLRestriction(pc, dc, "grant", sqlparts, sql);
+		if (!ds.hasAllow(DataSource.ALLOW_INSERT)) checkSQLRestriction(pc, dc, "insert", sqlparts, sql);
+		if (!ds.hasAllow(DataSource.ALLOW_REVOKE)) checkSQLRestriction(pc, dc, "revoke", sqlparts, sql);
+		if (!ds.hasAllow(DataSource.ALLOW_SELECT)) checkSQLRestriction(pc, dc, "select", sqlparts, sql);
+		if (!ds.hasAllow(DataSource.ALLOW_UPDATE)) checkSQLRestriction(pc, dc, "update", sqlparts, sql);
 	}
 
-	private static void checkSQLRestriction(DatasourceConnection dc, String keyword, Array sqlparts, SQL sql) throws PageException {
-		if (ArrayFind.find(sqlparts, keyword, false) > 0) {
+	private static void checkSQLRestriction(PageContext pc, DatasourceConnection dc, String keyword, Array sqlparts, SQL sql) throws PageException {
+		if (ArrayFind.find(pc, sqlparts, keyword, false) > 0) {
 			throw new DatabaseException("access denied to execute \"" + StringUtil.ucFirst(keyword) + "\" SQL statement for datasource " + dc.getDatasource().getName(), null, sql,
 					dc);
 		}
