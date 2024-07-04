@@ -19,6 +19,7 @@
 package lucee.transformer.bytecode.util;
 
 import java.io.BufferedReader;
+import java.io.OutputStream;
 import java.io.Reader;
 import java.math.BigDecimal;
 import java.util.Iterator;
@@ -26,6 +27,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.TimeZone;
 
+import javax.servlet.http.Cookie;
 import javax.servlet.jsp.JspWriter;
 import javax.servlet.jsp.tagext.BodyContent;
 import javax.servlet.jsp.tagext.BodyTag;
@@ -197,6 +199,8 @@ public final class Types {
 	public static final Type CASTER = Type.getType(Caster.class);
 
 	public static final Type COLLECTION = Type.getType(Collection.class);
+	public static final Type COOKIE = Type.getType(Cookie.class);
+	public static final Type COOKIE_ARRAY = Type.getType(Cookie[].class);
 
 	public static final Type STRING = Type.getType(String.class);
 	public static final Type STRING_ARRAY = Type.getType(String[].class);
@@ -250,6 +254,7 @@ public final class Types {
 	public static final Type COLLECTION_KEY_ARRAY = Type.getType(Collection.Key[].class);
 	public static final Type UNDEFINED = Type.getType(Undefined.class);
 	public static final Type MAP = Type.getType(Map.class);
+	public static final Type OUTPUTSTREAM = Type.getType(OutputStream.class);
 	public static final Type MAP_ENTRY = Type.getType(Map.Entry.class);
 	public static final Type CHAR_ARRAY = Type.getType(char[].class);
 	public static final Type IOUTIL = Type.getType(IOUtil.class);

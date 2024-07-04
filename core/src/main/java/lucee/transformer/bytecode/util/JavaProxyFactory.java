@@ -119,9 +119,12 @@ public class JavaProxyFactory {
 	private static final org.objectweb.asm.commons.Method GET_INSTANCE = new org.objectweb.asm.commons.Method("getInstance", CFML_ENGINE, new Type[] {});
 	private static final org.objectweb.asm.commons.Method GET_THREAD_CONFIG = new org.objectweb.asm.commons.Method("getThreadConfig", Types.CONFIG, new Type[] {});
 	private static final org.objectweb.asm.commons.Method GET_THREAD_PAGECONTEXT = new org.objectweb.asm.commons.Method("getThreadPageContext", Types.PAGE_CONTEXT, new Type[] {});
+	private static final org.objectweb.asm.commons.Method CREATE_PAGECONTEXT = new org.objectweb.asm.commons.Method("createPageContext", Types.PAGE_CONTEXT, new Type[] {
+			Types.FILE, Types.STRING, Types.STRING, Types.STRING, Types.COOKIE_ARRAY, Types.MAP, Types.MAP, Types.MAP, Types.OUTPUTSTREAM, Types.LONG_VALUE, Types.BOOLEAN_VALUE });
+
 	private static final org.objectweb.asm.commons.Method GET_JAVA_PROXY_UTIL = new org.objectweb.asm.commons.Method("getJavaProxyUtil", Types.OBJECT, // FUTURE change to JavaProxy
 			new Type[] {});
-	private static final org.objectweb.asm.commons.Method GET_CONFIG = new org.objectweb.asm.commons.Method("getConfig", Types.CONFIG, new Type[] {});
+	private static final org.objectweb.asm.commons.Method GET_CONFIG = new org.objectweb.asm.commons.Method("getConfig", Types.CONFIG_WEB, new Type[] {});
 	private static final org.objectweb.asm.commons.Method GET = new org.objectweb.asm.commons.Method("get", Types.PAGE_CONTEXT, new Type[] {});
 	private static final org.objectweb.asm.commons.Method LOAD_COMPONENT = new org.objectweb.asm.commons.Method("loadComponent", Types.COMPONENT, new Type[] { Types.STRING });
 
@@ -290,19 +293,43 @@ public class JavaProxyFactory {
 		// Descriptor for local variables
 		String descriptor = 'L' + classPath + ';';
 
+		// CFMLEngineFactory.getInstance().createPageContext(null, null, null, null, null, null, null, null,
+		// null, -1, true);
+
 		// Constructor with 0 arguments
 		{
 			GeneratorAdapter adapter = new GeneratorAdapter(Opcodes.ACC_PUBLIC, CONSTRUCTOR_CONFIG_CFC_0, null, null, cw);
 			Label begin = new Label();
+			Label end = new Label();
+
 			adapter.visitLabel(begin);
+
 			adapter.loadThis();
 			adapter.invokeConstructor(Types.OBJECT, SUPER_CONSTRUCTOR);
 
-			// this.config=CFMLEngineFactory.getInstance().getThreadConfig();
+			// PageContext pc=CFMLEngineFactory.getInstance().createPageContext((File)null,
+			// "getThreadPageContext:boolean", (String)null, (String)null, (Cookie[])null, (Map)null, (Map)null,
+			// (Map)null, (OutputStream)null, -1L, true);
+			adapter.invokeStatic(CFML_ENGINE_FACTORY, GET_INSTANCE);
+			adapter.visitInsn(Opcodes.ACONST_NULL); // File
+			adapter.push("getThreadPageContext:boolean"); // String
+			adapter.visitInsn(Opcodes.ACONST_NULL); // String
+			adapter.visitInsn(Opcodes.ACONST_NULL); // String
+			adapter.visitInsn(Opcodes.ACONST_NULL); // Cookie[]
+			adapter.visitInsn(Opcodes.ACONST_NULL); // Map
+			adapter.visitInsn(Opcodes.ACONST_NULL); // Map
+			adapter.visitInsn(Opcodes.ACONST_NULL); // Map
+			adapter.visitInsn(Opcodes.ACONST_NULL); // OutputStream
+			adapter.push(-1L); // long
+			adapter.push(true); // boolean
+
+			adapter.invokeInterface(CFML_ENGINE, CREATE_PAGECONTEXT);
+			adapter.visitVarInsn(Opcodes.ASTORE, 1); // Store the PageContext in a local variable (index 1)
+
+			// this.config = pc.getConfig();
 			adapter.loadThis(); // Load 'this' onto the stack
-			adapter.invokeStatic(CFML_ENGINE_FACTORY, GET_INSTANCE); // Call CFMLEngineFactory.getInstance()
-			adapter.invokeInterface(CFML_ENGINE, GET_THREAD_CONFIG); // Call getThreadConfig() on the result of getInstance()
-			adapter.checkCast(Types.CONFIG_WEB); // Cast the result to ConfigWeb
+			adapter.visitVarInsn(Opcodes.ALOAD, 1); // Load the PageContext (local variable 1)
+			adapter.invokeVirtual(Types.PAGE_CONTEXT, GET_CONFIG); // Call getConfig() on PageContext
 			adapter.visitFieldInsn(Opcodes.PUTFIELD, classPath, "config", CONFIG_WEB_NAME); // this.config = <result>
 
 			String name = cfc.getAbsName();
@@ -310,17 +337,21 @@ public class JavaProxyFactory {
 			if (!StringUtil.isEmpty(sub)) {
 				name += "$" + sub;
 			}
+
+			// this.cfc = pc.loadComponent("quartz.CFMJob");
 			adapter.loadThis(); // Load 'this' onto the stack
-			adapter.invokeStatic(CFML_ENGINE_FACTORY, GET_INSTANCE);
-			adapter.invokeInterface(CFML_ENGINE, GET_THREAD_PAGECONTEXT);
+			adapter.visitVarInsn(Opcodes.ALOAD, 1); // Load the PageContext (local variable 1)
 			adapter.push(name);
 			adapter.invokeVirtual(Types.PAGE_CONTEXT, LOAD_COMPONENT);
 			adapter.visitFieldInsn(Opcodes.PUTFIELD, classPath, "cfc", COMPONENT_NAME);
 
+			// End label
+			adapter.visitLabel(end);
+
 			adapter.visitInsn(Opcodes.RETURN);
-			Label end = new Label();
 			adapter.visitLabel(end);
 			adapter.visitLocalVariable("this", descriptor, null, begin, end, 0); // Correctly define 'this' as local variable 0
+			adapter.visitLocalVariable("pc", Types.PAGE_CONTEXT.getDescriptor(), null, begin, end, 1); // Define 'pc' as local variable 1
 			adapter.visitLocalVariable("config", CONFIG_WEB_NAME, null, begin, end, 1); // Correctly define 'config' as local variable 1
 			adapter.visitLocalVariable("cfc", COMPONENT_NAME, null, begin, end, 2); // Correctly define 'cfc' as local variable 2
 

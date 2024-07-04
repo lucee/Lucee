@@ -1440,6 +1440,11 @@ public final class CFMLEngineImpl implements CFMLEngine {
 		return ThreadLocalPageContext.get();
 	}
 
+	// FUTURE add to interface
+	public PageContext getThreadPageContext(boolean cloneParentIfNotExist) {
+		return ThreadLocalPageContext.get(cloneParentIfNotExist);
+	}
+
 	@Override
 	public Config getThreadConfig() {
 		return ThreadLocalPageContext.getConfig();
@@ -1631,8 +1636,19 @@ public final class CFMLEngineImpl implements CFMLEngine {
 	@Override
 	public PageContext createPageContext(File contextRoot, String host, String scriptName, String queryString, Cookie[] cookies, Map<String, Object> headers,
 			Map<String, String> parameters, Map<String, Object> attributes, OutputStream os, long timeout, boolean register) throws PageServletException {
+
+		// FUTURE remove and replace it's use with getThreadPageContext(boolean)
+		if ("getThreadPageContext:boolean".equals(host)) {
+			PageContext pc = getThreadPageContext(register);
+			if (pc != null) return pc;
+			host = null;
+			register = true;
+		}
+
 		// FUTURE add first 2 arguments to interface
-		return PageContextUtil.getPageContext(null, null, contextRoot, host, scriptName, queryString, cookies, headers, parameters, attributes, os, register, timeout, false);
+		return PageContextUtil.getPageContext(null, null, contextRoot, StringUtil.isEmpty(host) ? "localhost" : host, StringUtil.isEmpty(scriptName) ? "/" : scriptName,
+				StringUtil.isEmpty(queryString) ? "" : queryString, cookies == null ? SerializableCookie.COOKIES0 : cookies, headers, parameters, attributes,
+				os == null ? DevNullOutputStream.DEV_NULL_OUTPUT_STREAM : os, register, timeout == -1 ? 100000 : timeout, false);
 	}
 
 	@Override

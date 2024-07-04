@@ -22,7 +22,6 @@ import java.io.ByteArrayOutputStream;
 import java.util.Locale;
 import java.util.TimeZone;
 
-import lucee.print;
 import lucee.commons.io.log.Log;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
@@ -73,24 +72,15 @@ public final class ThreadLocalPageContext {
 	 *         thread
 	 */
 	public static PageContext get(boolean cloneParentIfNotExist) {
-		/*
-		 * PageContext pc = pcThreadLocal.get(); if (pc != null && pc.getThread() == Thread.currentThread())
-		 * { return pc; } else { if (pc != null) print.ds("null? " + (pc == null)); }
-		 */
 		PageContext pc = pcThreadLocal.get();
-		if (pc == null) {
+		if (cloneParentIfNotExist && pc == null) {
 			PageContext pci = pcThreadLocalInheritable.get();
-			if (cloneParentIfNotExist) {
-				if (pci != null) print.ds();
-			}
 			// we have one from parent
-			if (cloneParentIfNotExist && pci != null) {
+			if (pci != null) {
 				try {
 					// this is needed because clone below call this method a lot
 					if (Boolean.TRUE.equals(insideInheritableRegistration.get())) return pci;
 					insideInheritableRegistration.set(Boolean.TRUE);
-					// register(pc = ThreadUtil.clonePageContext(pci, new ByteArrayOutputStream(), false, false,
-					// false));
 					pc = ThreadUtil.clonePageContext(pci, new ByteArrayOutputStream(), true, false, false);
 				}
 				finally {
