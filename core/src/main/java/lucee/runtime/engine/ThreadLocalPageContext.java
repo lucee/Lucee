@@ -18,6 +18,7 @@
  **/
 package lucee.runtime.engine;
 
+import java.io.ByteArrayOutputStream;
 import java.util.Locale;
 import java.util.TimeZone;
 
@@ -26,20 +27,24 @@ import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigPro;
-import lucee.runtime.config.ConfigWeb;
+import lucee.runtime.listener.ApplicationContext;
+import lucee.runtime.listener.ApplicationContextSupport;
+import lucee.runtime.thread.ThreadUtil;
 
 /**
  * class to handle thread local PageContext, do use pagecontext in classes that have no method
  * argument pagecontext
  */
 public final class ThreadLocalPageContext {
-
+	private static final boolean INHERIT_ENABLED = false;
 	private static final Locale DEFAULT_LOCALE = Locale.getDefault();
 	private static final TimeZone DEFAULT_TIMEZONE = TimeZone.getDefault();
 	private static ThreadLocal<PageContext> pcThreadLocal = new ThreadLocal<PageContext>();
+	private static InheritableThreadLocal<PageContext> pcThreadLocalInheritable = new InheritableThreadLocal<PageContext>();
 	public final static CallOnStart callOnStart = new CallOnStart();
 	private static ThreadLocal<Boolean> insideServerNewInstance = new ThreadLocal<Boolean>();
 	private static ThreadLocal<Boolean> insideGateway = new ThreadLocal<Boolean>();
+	private static ThreadLocal<Boolean> insideInheritableRegistration = new ThreadLocal<Boolean>();
 
 	/**
 	 * register a pagecontext for he current thread
@@ -53,6 +58,11 @@ public final class ThreadLocalPageContext {
 		t.setContextClassLoader(((ConfigPro) pc.getConfig()).getClassLoaderEnv());
 		((PageContextImpl) pc).setThread(t);
 		pcThreadLocal.set(pc);
+		pcThreadLocalInheritable.set(pc);
+	}
+
+	public static PageContext get() {
+		return get(false);
 	}
 
 	/**
@@ -61,12 +71,30 @@ public final class ThreadLocalPageContext {
 	 * @return pagecontext for the current thread or null if no pagecontext is regisred for the current
 	 *         thread
 	 */
-	public static PageContext get() {// print.dumpStack();
-		return pcThreadLocal.get();
+	public static PageContext get(boolean cloneParentIfNotExist) {
+		PageContext pc = pcThreadLocal.get();
+		if (cloneParentIfNotExist && pc == null) {
+			PageContext pci = pcThreadLocalInheritable.get();
+			// we have one from parent
+			if (pci != null) {
+				try {
+					// this is needed because clone below call this method a lot
+					if (Boolean.TRUE.equals(insideInheritableRegistration.get())) return pci;
+					insideInheritableRegistration.set(Boolean.TRUE);
+					pc = ThreadUtil.clonePageContext(pci, new ByteArrayOutputStream(), true, false, false);
+				}
+				finally {
+					insideInheritableRegistration.set(null);
+				}
+
+			}
+		}
+
+		return pc;
 	}
 
 	public static Config getConfig() {
-		PageContext pc = get();
+		PageContext pc = get(false);
 		if (pc != null) {
 			return pc.getConfig();
 		}
@@ -79,6 +107,7 @@ public final class ThreadLocalPageContext {
 	 */
 	public static void release() {// print.ds(Thread.currentThread().getName());
 		pcThreadLocal.set(null);
+		pcThreadLocalInheritable.set(null);
 	}
 
 	public static Config getConfig(PageContext pc) {
@@ -91,25 +120,91 @@ public final class ThreadLocalPageContext {
 		return config;
 	}
 
-	public static TimeZone getTimeZone(PageContext pc) {
-		// pc
-		pc = get(pc);
+	public static boolean preciseMath(PageContext pc) {
+		// pc provided
 		if (pc != null) {
-			if (pc.getTimeZone() != null) return pc.getTimeZone();
+			ApplicationContext ac = pc.getApplicationContext();
+			if (ac instanceof ApplicationContextSupport) {
+				return ((ApplicationContextSupport) ac).getPreciseMath();
+			}
+			Config c = ThreadLocalConfig.get();
+			if (c instanceof ConfigPro) return ((ConfigPro) c).getPreciseMath();
+			return true;
+		}
+		// pc from current thread
+		pc = pcThreadLocal.get();
+		if (pc != null) {
+			ApplicationContext ac = pc.getApplicationContext();
+			if (ac instanceof ApplicationContextSupport) {
+				return ((ApplicationContextSupport) ac).getPreciseMath();
+			}
+			Config c = ThreadLocalConfig.get();
+			if (c instanceof ConfigPro) return ((ConfigPro) c).getPreciseMath();
+			return true;
+		}
+
+		// pc from parent thread
+		pc = pcThreadLocalInheritable.get();
+		if (pc != null) {
+			ApplicationContext ac = pc.getApplicationContext();
+			if (ac instanceof ApplicationContextSupport) {
+				return ((ApplicationContextSupport) ac).getPreciseMath();
+			}
+			Config c = ThreadLocalConfig.get();
+			if (c instanceof ConfigPro) return ((ConfigPro) c).getPreciseMath();
+			return true;
+		}
+
+		Config c = ThreadLocalConfig.get();
+		if (c instanceof ConfigPro) return ((ConfigPro) c).getPreciseMath();
+		return true;
+	}
+
+	public static TimeZone getTimeZone(PageContext pc) {
+		// pc provided
+		if (pc != null) {
+			TimeZone tz = pc.getTimeZone();
+			if (tz != null) return tz;
+			return DEFAULT_TIMEZONE;
+		}
+		// pc from current thread
+		pc = pcThreadLocal.get();
+		if (pc != null) {
+			TimeZone tz = pc.getTimeZone();
+			if (tz != null) return tz;
+			return DEFAULT_TIMEZONE;
+		}
+
+		// pc from parent thread
+		pc = pcThreadLocalInheritable.get();
+		if (pc != null) {
+			TimeZone tz = pc.getTimeZone();
+			if (tz != null) return tz;
 			return DEFAULT_TIMEZONE;
 		}
 
 		// config
 		Config config = getConfig((Config) null);
-		if (config != null && config.getTimeZone() != null) {
-			return config.getTimeZone();
+		if (config != null) {
+			TimeZone tz = config.getTimeZone();
+			if (tz != null) return tz;
 		}
 		return DEFAULT_TIMEZONE;
 	}
 
 	public static Log getLog(PageContext pc, String logName) {
-		// pc
-		pc = get(pc);
+		// pc provided
+		if (pc instanceof PageContextImpl) {
+			return ((PageContextImpl) pc).getLog(logName);
+		}
+		// pc from current thread
+		pc = pcThreadLocal.get();
+		if (pc instanceof PageContextImpl) {
+			return ((PageContextImpl) pc).getLog(logName);
+		}
+
+		// pc from parent thread
+		pc = pcThreadLocalInheritable.get();
 		if (pc instanceof PageContextImpl) {
 			return ((PageContextImpl) pc).getLog(logName);
 		}
@@ -123,12 +218,17 @@ public final class ThreadLocalPageContext {
 	}
 
 	public static Log getLog(Config config, String logName) {
-		// pc
-		if (config instanceof ConfigWeb) {
-			PageContext pc = get(config);
-			if (pc instanceof PageContextImpl) {
-				return ((PageContextImpl) pc).getLog(logName);
-			}
+
+		// pc from current thread
+		PageContext pc = pcThreadLocal.get();
+		if (pc instanceof PageContextImpl && pc.getConfig() == config) {
+			return ((PageContextImpl) pc).getLog(logName);
+		}
+
+		// pc from parent thread
+		pc = pcThreadLocalInheritable.get();
+		if (pc instanceof PageContextImpl && pc.getConfig() == config) {
+			return ((PageContextImpl) pc).getLog(logName);
 		}
 
 		// config
@@ -140,18 +240,7 @@ public final class ThreadLocalPageContext {
 	}
 
 	public static Log getLog(String logName) {
-		// pc
-		PageContext pc = get();
-		if (pc instanceof PageContextImpl) {
-			return ((PageContextImpl) pc).getLog(logName);
-		}
-
-		// config
-		Config config = getConfig();
-		if (config != null) {
-			return config.getLog(logName);
-		}
-		return null;
+		return getLog((PageContext) null, logName);
 	}
 
 	public static Locale getLocale() {
@@ -164,24 +253,53 @@ public final class ThreadLocalPageContext {
 	}
 
 	public static Locale getLocale(PageContext pc) {
-		// pc
-		pc = get(pc);
+		// pc provided
 		if (pc != null) {
-			if (pc.getLocale() != null) return pc.getLocale();
+			Locale l = pc.getLocale();
+			if (l != null) return l;
+			return DEFAULT_LOCALE;
+		}
+		// pc from current thread
+		pc = pcThreadLocal.get();
+		if (pc != null) {
+			Locale l = pc.getLocale();
+			if (l != null) return l;
+			return DEFAULT_LOCALE;
+		}
+
+		// pc from parent thread
+		pc = pcThreadLocalInheritable.get();
+		if (pc != null) {
+			Locale l = pc.getLocale();
+			if (l != null) return l;
 			return DEFAULT_LOCALE;
 		}
 
 		// config
 		Config config = getConfig((Config) null);
-		if (config != null && config.getLocale() != null) {
-			return config.getLocale();
+		if (config != null) {
+			Locale l = config.getLocale();
+			if (l != null) return l;
 		}
 		return DEFAULT_LOCALE;
 	}
 
 	public static TimeZone getTimeZone(Config config) {
-		PageContext pc = get();
-		if (pc != null && pc.getTimeZone() != null) return pc.getTimeZone();
+		// pc from current thread
+		PageContext pc = pcThreadLocal.get();
+		if (pc instanceof PageContextImpl && pc.getConfig() == config) {
+			TimeZone tz = pc.getTimeZone();
+			if (tz != null) return tz;
+			return DEFAULT_TIMEZONE;
+		}
+
+		// pc from parent thread
+		pc = pcThreadLocalInheritable.get();
+		if (pc instanceof PageContextImpl && pc.getConfig() == config) {
+			TimeZone tz = pc.getTimeZone();
+			if (tz != null) return tz;
+			return DEFAULT_TIMEZONE;
+		}
 
 		config = getConfig(config);
 		if (config != null && config.getTimeZone() != null) {

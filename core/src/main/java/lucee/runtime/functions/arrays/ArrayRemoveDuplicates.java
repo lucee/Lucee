@@ -39,7 +39,7 @@ public final class ArrayRemoveDuplicates extends BIF {
 		int i;
 		for (i = 1; i <= arr.size(); i++) {
 			Object value = arr.getE(i);
-			if (ArrayFind.find(a, value, !ignoreCase) == 0) a.appendEL(value);
+			if (ArrayFind.find(pc, a, value, !ignoreCase) == 0) a.appendEL(value);
 		}
 		return a;
 	}

@@ -24,8 +24,8 @@ package lucee.runtime.functions.math;
 import java.math.RoundingMode;
 
 import lucee.runtime.PageContext;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.ext.function.Function;
-import lucee.runtime.listener.AppListenerUtil;
 import lucee.runtime.op.Caster;
 
 public final class Ceiling implements Function {
@@ -33,7 +33,7 @@ public final class Ceiling implements Function {
 	private static final long serialVersionUID = 6833211382440300903L;
 
 	public static Number call(PageContext pc, Number number) {
-		if (AppListenerUtil.getPreciseMath(pc, null)) {
+		if (ThreadLocalPageContext.preciseMath(pc)) {
 			return Caster.toBigDecimal(number).setScale(0, RoundingMode.CEILING);
 		}
 		return StrictMath.ceil(Caster.toDoubleValue(number));

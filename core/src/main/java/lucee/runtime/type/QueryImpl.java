@@ -277,7 +277,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 
 		// check SQL Restrictions
 		if (dc.getDatasource().hasSQLRestriction()) {
-			QueryUtil.checkSQLRestriction(dc, sql);
+			QueryUtil.checkSQLRestriction(pc, dc, sql);
 		}
 
 		Statement stat = null;
@@ -366,7 +366,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 
 		// check SQL Restrictions
 		if (dc.getDatasource().hasSQLRestriction()) {
-			QueryUtil.checkSQLRestriction(dc, sql);
+			QueryUtil.checkSQLRestriction(pc, dc, sql);
 		}
 
 		Statement stat = null;

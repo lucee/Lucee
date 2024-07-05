@@ -106,7 +106,7 @@ public class LiteralValue {
 
 	// ZERO
 	public static Number l0() {
-		if (((ApplicationContextSupport) ThreadLocalPageContext.get().getApplicationContext()).getPreciseMath()) return BigDecimal.ZERO;
+		if (ThreadLocalPageContext.preciseMath(null)) return BigDecimal.ZERO;
 		else return LO_0;
 	}
 
@@ -116,7 +116,7 @@ public class LiteralValue {
 	}
 
 	public static Number l1() {
-		if (((ApplicationContextSupport) ThreadLocalPageContext.get().getApplicationContext()).getPreciseMath()) return BigDecimal.ONE;
+		if (ThreadLocalPageContext.preciseMath(null)) return BigDecimal.ONE;
 		else return LO_1;
 	}
 
@@ -126,7 +126,7 @@ public class LiteralValue {
 	}
 
 	public static Number l2() {
-		if (((ApplicationContextSupport) ThreadLocalPageContext.get().getApplicationContext()).getPreciseMath()) return BG_2;
+		if (ThreadLocalPageContext.preciseMath(null)) return BG_2;
 		else return LO_2;
 	}
 
@@ -136,7 +136,7 @@ public class LiteralValue {
 	}
 
 	public static Number l3() {
-		if (((ApplicationContextSupport) ThreadLocalPageContext.get().getApplicationContext()).getPreciseMath()) return BG_3;
+		if (ThreadLocalPageContext.preciseMath(null)) return BG_3;
 		else return LO_3;
 	}
 
@@ -146,7 +146,7 @@ public class LiteralValue {
 	}
 
 	public static Number l4() {
-		if (((ApplicationContextSupport) ThreadLocalPageContext.get().getApplicationContext()).getPreciseMath()) return BG_4;
+		if (ThreadLocalPageContext.preciseMath(null)) return BG_4;
 		else return LO_4;
 	}
 
@@ -156,7 +156,7 @@ public class LiteralValue {
 	}
 
 	public static Number l5() {
-		if (((ApplicationContextSupport) ThreadLocalPageContext.get().getApplicationContext()).getPreciseMath()) return BG_5;
+		if (ThreadLocalPageContext.preciseMath(null)) return BG_5;
 		else return LO_5;
 	}
 
@@ -166,7 +166,7 @@ public class LiteralValue {
 	}
 
 	public static Number l6() {
-		if (((ApplicationContextSupport) ThreadLocalPageContext.get().getApplicationContext()).getPreciseMath()) return BG_6;
+		if (ThreadLocalPageContext.preciseMath(null)) return BG_6;
 		else return LO_6;
 	}
 
@@ -176,7 +176,7 @@ public class LiteralValue {
 	}
 
 	public static Number l7() {
-		if (((ApplicationContextSupport) ThreadLocalPageContext.get().getApplicationContext()).getPreciseMath()) return BG_7;
+		if (ThreadLocalPageContext.preciseMath(null)) return BG_7;
 		else return LO_7;
 	}
 
@@ -186,7 +186,7 @@ public class LiteralValue {
 	}
 
 	public static Number l8() {
-		if (((ApplicationContextSupport) ThreadLocalPageContext.get().getApplicationContext()).getPreciseMath()) return BG_8;
+		if (ThreadLocalPageContext.preciseMath(null)) return BG_8;
 		else return LO_8;
 	}
 
@@ -196,7 +196,7 @@ public class LiteralValue {
 	}
 
 	public static Number l9() {
-		if (((ApplicationContextSupport) ThreadLocalPageContext.get().getApplicationContext()).getPreciseMath()) return BG_9;
+		if (ThreadLocalPageContext.preciseMath(null)) return BG_9;
 		else return LO_9;
 	}
 
@@ -206,7 +206,7 @@ public class LiteralValue {
 	}
 
 	public static Number l10() {
-		if (((ApplicationContextSupport) ThreadLocalPageContext.get().getApplicationContext()).getPreciseMath()) return BigDecimal.TEN;
+		if (ThreadLocalPageContext.preciseMath(null)) return BigDecimal.TEN;
 		else return LO_10;
 	}
 
@@ -216,7 +216,7 @@ public class LiteralValue {
 	}
 
 	public static Number l11() {
-		if (((ApplicationContextSupport) ThreadLocalPageContext.get().getApplicationContext()).getPreciseMath()) return BG_11;
+		if (ThreadLocalPageContext.preciseMath(null)) return BG_11;
 		else return LO_11;
 	}
 
@@ -226,7 +226,7 @@ public class LiteralValue {
 	}
 
 	public static Number l12() {
-		if (((ApplicationContextSupport) ThreadLocalPageContext.get().getApplicationContext()).getPreciseMath()) return BG_12;
+		if (ThreadLocalPageContext.preciseMath(null)) return BG_12;
 		else return LO_12;
 	}
 
@@ -236,7 +236,7 @@ public class LiteralValue {
 	}
 
 	public static Number l13() {
-		if (((ApplicationContextSupport) ThreadLocalPageContext.get().getApplicationContext()).getPreciseMath()) return BG_13;
+		if (ThreadLocalPageContext.preciseMath(null)) return BG_13;
 		else return LO_13;
 	}
 
@@ -246,7 +246,7 @@ public class LiteralValue {
 	}
 
 	public static Number l14() {
-		if (((ApplicationContextSupport) ThreadLocalPageContext.get().getApplicationContext()).getPreciseMath()) return BG_14;
+		if (ThreadLocalPageContext.preciseMath(null)) return BG_14;
 		else return LO_14;
 	}
 
@@ -256,7 +256,7 @@ public class LiteralValue {
 	}
 
 	public static Number l15() {
-		if (((ApplicationContextSupport) ThreadLocalPageContext.get().getApplicationContext()).getPreciseMath()) return BG_15;
+		if (ThreadLocalPageContext.preciseMath(null)) return BG_15;
 		else return LO_15;
 	}
 
@@ -266,7 +266,7 @@ public class LiteralValue {
 	}
 
 	public static Number l16() {
-		if (((ApplicationContextSupport) ThreadLocalPageContext.get().getApplicationContext()).getPreciseMath()) return BG_16;
+		if (ThreadLocalPageContext.preciseMath(null)) return BG_16;
 		else return LO_16;
 	}
 
@@ -276,7 +276,7 @@ public class LiteralValue {
 	}
 
 	public static Number l17() {
-		if (((ApplicationContextSupport) ThreadLocalPageContext.get().getApplicationContext()).getPreciseMath()) return BG_17;
+		if (ThreadLocalPageContext.preciseMath(null)) return BG_17;
 		else return LO_17;
 	}
 
@@ -286,7 +286,7 @@ public class LiteralValue {
 	}
 
 	public static Number l18() {
-		if (((ApplicationContextSupport) ThreadLocalPageContext.get().getApplicationContext()).getPreciseMath()) return BG_18;
+		if (ThreadLocalPageContext.preciseMath(null)) return BG_18;
 		else return LO_18;
 	}
 
@@ -296,7 +296,7 @@ public class LiteralValue {
 	}
 
 	public static Number l19() {
-		if (((ApplicationContextSupport) ThreadLocalPageContext.get().getApplicationContext()).getPreciseMath()) return BG_19;
+		if (ThreadLocalPageContext.preciseMath(null)) return BG_19;
 		else return LO_19;
 	}
 
@@ -306,7 +306,7 @@ public class LiteralValue {
 	}
 
 	public static Number l20() {
-		if (((ApplicationContextSupport) ThreadLocalPageContext.get().getApplicationContext()).getPreciseMath()) return BG_20;
+		if (ThreadLocalPageContext.preciseMath(null)) return BG_20;
 		else return LO_20;
 	}
 

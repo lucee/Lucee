@@ -21,10 +21,10 @@ package lucee.runtime.interpreter.ref.literal;
 import java.math.BigDecimal;
 
 import lucee.runtime.PageContext;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.interpreter.ref.Ref;
 import lucee.runtime.interpreter.ref.util.RefUtil;
-import lucee.runtime.listener.AppListenerUtil;
 import lucee.runtime.op.Caster;
 
 /**
@@ -54,7 +54,7 @@ public final class LNumber implements Literal {
 
 	@Override
 	public Object getValue(PageContext pc) {
-		if (!AppListenerUtil.getPreciseMath(pc, null)) return Double.valueOf(literal.doubleValue());
+		if (!ThreadLocalPageContext.preciseMath(pc)) return Double.valueOf(literal.doubleValue());
 		return literal;
 	}
 

@@ -399,7 +399,9 @@ public final class ConfigAdmin {
 		else {
 			setClass(logger, null, "appender", ci.getLogEngine().appenderClassDefintion("resource"));
 			setClass(logger, null, "layout", ci.getLogEngine().layoutClassDefintion("classic"));
-			logger.setEL("appenderArguments", "path:" + logFile);
+			Struct args = new StructImpl();
+			args.set(KeyConstants._path, logFile);
+			logger.setEL("appenderArguments", args);
 		}
 		logger.setEL("logLevel", level);
 	}
@@ -2051,14 +2053,6 @@ public final class ConfigAdmin {
 	}
 
 	public void updateResourceProvider(String scheme, ClassDefinition cd, Struct arguments) throws PageException {
-		updateResourceProvider(scheme, cd, toStringCSSStyle(arguments));
-	}
-
-	public void _updateResourceProvider(String scheme, ClassDefinition cd, Struct arguments) throws PageException {
-		_updateResourceProvider(scheme, cd, toStringCSSStyle(arguments));
-	}
-
-	public void updateResourceProvider(String scheme, ClassDefinition cd, String arguments) throws PageException {
 		checkWriteAccess();
 		SecurityManager sm = config.getSecurityManager();
 		short access = sm.getAccess(SecurityManager.TYPE_FILE);
@@ -2068,7 +2062,7 @@ public final class ConfigAdmin {
 		_updateResourceProvider(scheme, cd, arguments);
 	}
 
-	public void _updateResourceProvider(String scheme, ClassDefinition cd, String arguments) throws PageException {
+	public void _updateResourceProvider(String scheme, ClassDefinition cd, Struct arguments) throws PageException {
 
 		// check parameters
 		if (StringUtil.isEmpty(scheme)) throw new ExpressionException("scheme can't be an empty value");
@@ -2145,22 +2139,6 @@ public final class ConfigAdmin {
 			rtn.append(URLEncoder.encode(e.getKey().getString()));
 			rtn.append('=');
 			rtn.append(URLEncoder.encode(Caster.toString(e.getValue(), "")));
-		}
-		return rtn.toString();
-	}
-
-	private static String toStringCSSStyle(Struct sct) {
-		// Collection.Key[] keys = sct.keys();
-		StringBuilder rtn = new StringBuilder();
-		Iterator<Entry<Key, Object>> it = sct.entryIterator();
-		Entry<Key, Object> e;
-
-		while (it.hasNext()) {
-			e = it.next();
-			if (rtn.length() > 0) rtn.append(';');
-			rtn.append(encode(e.getKey().getString()));
-			rtn.append(':');
-			rtn.append(encode(Caster.toString(e.getValue(), "")));
 		}
 		return rtn.toString();
 	}
@@ -4225,7 +4203,7 @@ public final class ConfigAdmin {
 	public void updateExecutionLog(ClassDefinition cd, Struct args, boolean enabled) throws PageException {
 		Struct el = _getRootElement("executionLog");
 		setClass(el, null, "", cd);
-		el.setEL("arguments", toStringCSSStyle(args));
+		el.setEL("arguments", args);
 		el.setEL("enabled", Caster.toString(enabled));
 	}
 
@@ -4412,12 +4390,12 @@ public final class ConfigAdmin {
 	public static void updateCore(ConfigServerImpl config, Resource core, boolean reload) throws PageException {
 		try {
 			// get patches directory
-			CFMLEngine engine = ConfigWebUtil.getEngine(config);
+			CFMLEngineFactory factory = ConfigWebUtil.getCFMLEngineFactory(config);
 			ConfigServerImpl cs = config;
 			Version v;
 			v = CFMLEngineFactory.toVersion(core.getName(), null);
 			Log logger = cs.getLog("deploy");
-			File f = engine.getCFMLEngineFactory().getResourceRoot();
+			File f = factory.getResourceRoot();
 			Resource res = ResourcesImpl.getFileResourceProvider().getResource(f.getAbsolutePath());
 			Resource pd = res.getRealResource("patches");
 			if (!pd.exists()) pd.mkdirs();
@@ -4574,7 +4552,12 @@ public final class ConfigAdmin {
 	public void updateRHExtension(Config config, RHExtension rhext, boolean reload, boolean force) throws PageException {
 		try {
 			if (!force && ConfigAdmin.hasRHExtensionInstalled((ConfigPro) config, rhext.toExtensionDefinition()) != null) {
-				throw new ApplicationException("the extension " + rhext.getName() + " (id: " + rhext.getId() + ") in version " + rhext.getVersion() + " is already installed");
+				String msg = "the extension " + rhext.getName() + " (id: " + rhext.getId() + ") in version " + rhext.getVersion() + " is already installed";
+				Log log = config.getLog("deploy");
+				if (log != null) {
+					log.debug("install", msg);
+				}
+				return;
 			}
 		}
 		catch (Exception e) {
@@ -5728,9 +5711,9 @@ public final class ConfigAdmin {
 
 		el.setEL("level", LogUtil.levelToString(level, ""));
 		setClass(el, null, "appender", appenderCD);
-		el.setEL("appenderArguments", toStringCSSStyle(appenderArgs));
+		el.setEL("appenderArguments", appenderArgs);
 		setClass(el, null, "layout", layoutCD);
-		el.setEL("layoutArguments", toStringCSSStyle(layoutArgs));
+		el.setEL("layoutArguments", layoutArgs);
 
 		if (el.containsKey("appender")) rem(el, "appender");
 		if (el.containsKey("layout")) rem(el, "layout");

@@ -82,6 +82,7 @@ import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.net.URLDecoder;
 import lucee.loader.engine.CFMLEngine;
+import lucee.loader.engine.CFMLEngineFactory;
 import lucee.runtime.CFMLFactoryImpl;
 import lucee.runtime.Component;
 import lucee.runtime.Mapping;
@@ -757,13 +758,13 @@ public final class ConfigWebFactory extends ConfigFactory {
 
 				// class
 				if (defProv.hasClass()) {
-					config.setDefaultResourceProvider(defProv.getClazz(), toArguments(getAttr(defaultProvider, "arguments"), true));
+					config.setDefaultResourceProvider(defProv.getClazz(), toArguments(defaultProvider, "arguments", true, false));
 				}
 
 				// component
 				else if (!StringUtil.isEmpty(strDefaultProviderComponent)) {
 					strDefaultProviderComponent = strDefaultProviderComponent.trim();
-					Map<String, String> args = toArguments(getAttr(defaultProvider, "arguments"), true);
+					Map<String, String> args = toArguments(defaultProvider, "arguments", true, false);
 					args.put("component", strDefaultProviderComponent);
 					config.setDefaultResourceProvider(CFMLResourceProvider.class, args);
 				}
@@ -799,12 +800,12 @@ public final class ConfigWebFactory extends ConfigFactory {
 						// class
 						if (prov.hasClass() && !StringUtil.isEmpty(strProviderScheme)) {
 							strProviderScheme = strProviderScheme.trim().toLowerCase();
-							config.addResourceProvider(strProviderScheme, prov, toArguments(getAttr(provider, "arguments"), true));
+							config.addResourceProvider(strProviderScheme, prov, toArguments(provider, "arguments", true, false));
 
 							// patch for user not having
 							if ("http".equalsIgnoreCase(strProviderScheme)) {
 								httpClass = prov;
-								httpArgs = toArguments(getAttr(provider, "arguments"), true);
+								httpArgs = toArguments(provider, "arguments", true, false);
 							}
 							else if ("https".equalsIgnoreCase(strProviderScheme)) hasHTTPs = true;
 						}
@@ -813,7 +814,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 						else if (!StringUtil.isEmpty(strProviderCFC) && !StringUtil.isEmpty(strProviderScheme)) {
 							strProviderCFC = strProviderCFC.trim();
 							strProviderScheme = strProviderScheme.trim().toLowerCase();
-							Map<String, String> args = toArguments(getAttr(provider, "arguments"), true);
+							Map<String, String> args = toArguments(provider, "arguments", true, false);
 							args.put("component", strProviderCFC);
 							config.addResourceProvider(strProviderScheme, new ClassDefinitionImpl(CFMLResourceProvider.class), args);
 						}
@@ -833,7 +834,9 @@ public final class ConfigWebFactory extends ConfigFactory {
 				// we make sure we have the default on server level
 				if (!hasCS && !config.hasResourceProvider("s3")) {
 					ClassDefinition s3Class = new ClassDefinitionImpl(DummyS3ResourceProvider.class);
-					config.addResourceProvider("s3", s3Class, toArguments("lock-timeout:10000;", false));
+					Map<String, String> args = new HashMap<>();
+					args.put("lock-timeout", "10000");
+					config.addResourceProvider("s3", s3Class, args);
 				}
 			}
 		}
@@ -1015,14 +1018,44 @@ public final class ConfigWebFactory extends ConfigFactory {
 		}
 	}
 
-	static Map<String, String> toArguments(String attributes, boolean decode) {
-		return cssStringToMap(attributes, decode, false);
+	static Map<String, String> toArguments(Struct coll, String name, boolean decode, boolean lowerKeys) throws PageException {
+		Map<String, String> map = new HashMap<>();
+		Object obj = coll.get(name, null);
+		if (obj == null) return map;
 
+		if (Decision.isStruct(obj)) {
+			Iterator<Entry<Key, Object>> it = Caster.toStruct(obj).entryIterator();
+			Entry<Key, Object> e;
+			while (it.hasNext()) {
+				e = it.next();
+				map.put(lowerKeys ? e.getKey().getLowerString() : e.getKey().getString(), Caster.toString(e.getValue())); // TODO remove need to cast to string
+			}
+		}
+		if (Decision.isString(obj)) {
+			String[] arr = ListUtil.toStringArray(ListUtil.listToArray(Caster.toString(obj), ';'), null);
+
+			int index;
+			String str;
+			for (int i = 0; i < arr.length; i++) {
+				str = arr[i].trim();
+				if (StringUtil.isEmpty(str)) continue;
+				index = str.indexOf(':');
+				if (index == -1) map.put(lowerKeys ? str.toLowerCase() : str, "");
+				else {
+					String k = dec(str.substring(0, index).trim(), decode);
+					if (lowerKeys) k = k.toLowerCase();
+					map.put(k, dec(str.substring(index + 1).trim(), decode));
+				}
+			}
+			return map;
+		}
+		return map;
 	}
 
-	public static Map<String, String> cssStringToMap(String attributes, boolean decode, boolean lowerKeys) {
-		Map<String, String> map = new HashMap<String, String>();
-		if (StringUtil.isEmpty(attributes, true)) return map;
+	@Deprecated
+	public static Struct cssStringToStruct(String attributes, boolean decode, boolean lowerKeys) {
+		Struct sct = new StructImpl();
+		if (StringUtil.isEmpty(attributes, true)) return sct;
 		String[] arr = ListUtil.toStringArray(ListUtil.listToArray(attributes, ';'), null);
 
 		int index;
@@ -1031,14 +1064,14 @@ public final class ConfigWebFactory extends ConfigFactory {
 			str = arr[i].trim();
 			if (StringUtil.isEmpty(str)) continue;
 			index = str.indexOf(':');
-			if (index == -1) map.put(lowerKeys ? str.toLowerCase() : str, "");
+			if (index == -1) sct.setEL(lowerKeys ? str.toLowerCase() : str, "");
 			else {
 				String k = dec(str.substring(0, index).trim(), decode);
 				if (lowerKeys) k = k.toLowerCase();
-				map.put(k, dec(str.substring(index + 1).trim(), decode));
+				sct.setEL(k, dec(str.substring(index + 1).trim(), decode));
 			}
 		}
-		return map;
+		return sct;
 	}
 
 	private static String dec(String str, boolean decode) {
@@ -2011,7 +2044,8 @@ public final class ConfigWebFactory extends ConfigFactory {
 		try {
 			// loggers
 			Struct loggers = ConfigWebUtil.getAsStruct("loggers", root);
-			String name, appenderArgs, tmp, layoutArgs;
+			String name, tmp;
+			Map<String, String> appenderArgs, layoutArgs;
 			ClassDefinition cdAppender, cdLayout;
 			int level = Log.LEVEL_ERROR;
 			boolean readOnly = false;
@@ -2035,7 +2069,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 					else if (!cdAppender.isBundle()) {
 						cdAppender = config.getLogEngine().appenderClassDefintion(cdAppender.getClassName());
 					}
-					appenderArgs = StringUtil.trim(getAttr(child, "appenderArguments"), "");
+					appenderArgs = toArguments(child, "appenderArguments", true, false);
 
 					// layout
 					cdLayout = getClassDefinition(child, "layout", config.getIdentification());
@@ -2046,7 +2080,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 					else if (!cdLayout.isBundle()) {
 						cdLayout = config.getLogEngine().layoutClassDefintion(cdLayout.getClassName());
 					}
-					layoutArgs = StringUtil.trim(getAttr(child, "layoutArguments"), "");
+					layoutArgs = toArguments(child, "layoutArguments", true, false);
 
 					String strLevel = getAttr(child, "level");
 					if (StringUtil.isEmpty(strLevel, true)) strLevel = getAttr(child, "logLevel");
@@ -2054,13 +2088,11 @@ public final class ConfigWebFactory extends ConfigFactory {
 					readOnly = Caster.toBooleanValue(getAttr(child, "readOnly"), false);
 					// ignore when no appender/name is defined
 					if (cdAppender.hasClass() && !StringUtil.isEmpty(name)) {
-						Map<String, String> appArgs = cssStringToMap(appenderArgs, true, true);
 						existing.add(name.toLowerCase());
 						if (cdLayout.hasClass()) {
-							Map<String, String> layArgs = cssStringToMap(layoutArgs, true, true);
-							config.addLogger(name, level, cdAppender, appArgs, cdLayout, layArgs, readOnly, false);
+							config.addLogger(name, level, cdAppender, appenderArgs, cdLayout, layoutArgs, readOnly, false);
 						}
-						else config.addLogger(name, level, cdAppender, appArgs, null, null, readOnly, false);
+						else config.addLogger(name, level, cdAppender, appenderArgs, null, null, readOnly, false);
 					}
 				}
 				catch (Throwable t) {
@@ -2168,9 +2200,8 @@ public final class ConfigWebFactory extends ConfigFactory {
 						ConfigWebFactory.class.getName(), "loaded ExecutionLog class " + clazz.getName());
 
 				// arguments
-				String strArgs = getAttr(el, "arguments");
-				if (StringUtil.isEmpty(strArgs)) strArgs = getAttr(el, "classArguments");
-				Map<String, String> args = toArguments(strArgs, true);
+				Map<String, String> args = toArguments(el, "arguments", true, false);
+				if (args == null) args = toArguments(el, "classArguments", true, false);
 
 				config.setExecutionLogFactory(new ExecutionLogFactory(clazz, args));
 			}
@@ -3778,8 +3809,8 @@ public final class ConfigWebFactory extends ConfigFactory {
 			}
 			else if (StringUtil.startsWithIgnoreCase(streamtype, "log")) {
 				try {
-					CFMLEngine engine = ConfigWebUtil.getEngine(config);
-					Resource root = ResourceUtil.toResource(engine.getCFMLEngineFactory().getResourceRoot());
+					CFMLEngineFactory factory = ConfigWebUtil.getCFMLEngineFactory(config);
+					Resource root = ResourceUtil.toResource(factory.getResourceRoot());
 					Resource log = root.getRealResource("context/logs/" + (iserror ? "err" : "out") + ".log");
 					if (!log.isFile()) {
 						log.getParentResource().mkdirs();

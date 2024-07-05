@@ -147,7 +147,7 @@ public class ChildThreadImpl extends ChildThread implements Serializable {
 			serverName = req.getServerName();
 			queryString = ReqRspUtil.getQueryString(req);
 			cookies = SerializableCookie.toSerializableCookie(ReqRspUtil.getCookies(req, parent.getWebCharset()));
-			parameters = HttpUtil.cloneParameters(req);
+			parameters = HttpUtil.cloneParameters(parent, req);
 			requestURI = req.getRequestURI();
 			headers = HttpUtil.cloneHeaders(req);
 			attributes = HttpUtil.getAttributesAsStruct(req);
@@ -162,7 +162,7 @@ public class ChildThreadImpl extends ChildThread implements Serializable {
 	}
 
 	public PageException execute(Config config) {
-		PageContext oldPc = ThreadLocalPageContext.get();
+		PageContext oldPc = ThreadLocalPageContext.get(false);
 		Page p = page;
 		PageContextImpl pc = null;
 		DebugEntryTemplate debugEntry = null;

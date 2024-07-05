@@ -107,7 +107,7 @@ public abstract class CompressResourceProvider implements ResourceProviderPro {
 	private Resource toResource(String path) {
 		PageContext pc = ThreadLocalPageContext.get();
 		if (pc != null) {
-			return ResourceUtil.toResourceNotExisting(ThreadLocalPageContext.get(), path, true, false);
+			return ResourceUtil.toResourceNotExisting(pc, path, true, false);
 		}
 		return resources.getResource(path);
 	}

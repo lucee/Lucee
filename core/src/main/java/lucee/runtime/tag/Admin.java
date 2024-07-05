@@ -97,6 +97,7 @@ import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigServer;
 import lucee.runtime.config.ConfigServerImpl;
 import lucee.runtime.config.ConfigWeb;
+import lucee.runtime.config.ConfigWebFactory;
 import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.config.ConfigWebUtil;
 import lucee.runtime.config.Constants;
@@ -2817,12 +2818,10 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 		Struct sctArguments = getStruct("arguments", null);
 		if (sctArguments != null) {
-
 			admin.updateResourceProvider(scheme, cd, sctArguments);
 		}
 		else {
-			String strArguments = getString("admin", action, "arguments");
-			admin.updateResourceProvider(scheme, cd, strArguments);
+			admin.updateResourceProvider(scheme, cd, ConfigWebFactory.cssStringToStruct(getString("admin", action, "arguments"), true, false));
 		}
 
 		// admin.updateResourceProvider(scheme,clazz,arguments);

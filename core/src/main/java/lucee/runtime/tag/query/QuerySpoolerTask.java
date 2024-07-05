@@ -73,7 +73,7 @@ public class QuerySpoolerTask extends SpoolerTaskSupport {
 		serverName = req.getServerName();
 		queryString = ReqRspUtil.getQueryString(req);
 		cookies = SerializableCookie.toSerializableCookie(ReqRspUtil.getCookies(req, parent.getWebCharset()));
-		parameters = HttpUtil.cloneParameters(req);
+		parameters = HttpUtil.cloneParameters(parent, req);
 		requestURI = req.getRequestURI();
 		headers = HttpUtil.cloneHeaders(req);
 		attributes = HttpUtil.getAttributesAsStruct(req);

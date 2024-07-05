@@ -41,7 +41,7 @@ public class _CreateComponent {
 		Component c = CreateObject.doComponent(pc, path);
 
 		// no init method
-		if (!(c.get(KeyConstants._init, null) instanceof UDF)) {
+		if (!(c.get(pc, KeyConstants._init, null) instanceof UDF)) {
 
 			if (objArr.length > 1) { // we have arguments passed in
 				Object arg1 = objArr[0];

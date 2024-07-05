@@ -168,7 +168,8 @@ public final class ComponentUtil {
 		int max;
 		for (int i = 0; i < keys.length; i++) {
 			max = -1;
-			while ((max = createMethod(constr, _keys, cw, real, component.get(keys[i]), max, writeLog, suppressWSbeforeArg, output, returnValue)) != -1) {
+			while ((max = createMethod(ThreadLocalPageContext.getConfig(pc), constr, _keys, cw, real, component.get(keys[i]), max, writeLog, suppressWSbeforeArg, output,
+					returnValue)) != -1) {
 				break;// for overload remove this
 			}
 		}
@@ -177,8 +178,8 @@ public final class ComponentUtil {
 		GeneratorAdapter adapter = new GeneratorAdapter(Opcodes.ACC_PUBLIC, CONSTRUCTOR_OBJECT, null, null, cw);
 		adapter.loadThis();
 		adapter.invokeConstructor(Types.OBJECT, CONSTRUCTOR_OBJECT);
-		lucee.transformer.bytecode.Page.registerFields(
-				new BytecodeContext(null, constr, getPage(constr), _keys, cw, real, adapter, CONSTRUCTOR_OBJECT, writeLog, suppressWSbeforeArg, output, returnValue), _keys);
+		lucee.transformer.bytecode.Page.registerFields(new BytecodeContext(ThreadLocalPageContext.getConfig(pc), null, constr, getPage(constr), _keys, cw, real, adapter,
+				CONSTRUCTOR_OBJECT, writeLog, suppressWSbeforeArg, output, returnValue), _keys);
 		adapter.returnValue();
 		adapter.endMethod();
 
@@ -535,8 +536,8 @@ public final class ComponentUtil {
 		return cl.loadClass(className);
 	}
 
-	private static int createMethod(ConstrBytecodeContext constr, java.util.List<LitString> keys, ClassWriter cw, String className, Object member, int max, boolean writeLog,
-			boolean suppressWSbeforeArg, boolean output, boolean returnValue) throws PageException {
+	private static int createMethod(Config config, ConstrBytecodeContext constr, java.util.List<LitString> keys, ClassWriter cw, String className, Object member, int max,
+			boolean writeLog, boolean suppressWSbeforeArg, boolean output, boolean returnValue) throws PageException {
 
 		boolean hasOptionalArgs = false;
 
@@ -551,7 +552,8 @@ public final class ComponentUtil {
 			Type rtnType = toType(udf.getReturnTypeAsString(), true);
 			Method method = new Method(udf.getFunctionName(), rtnType, types);
 			GeneratorAdapter adapter = new GeneratorAdapter(Opcodes.ACC_PUBLIC + Opcodes.ACC_FINAL, method, null, null, cw);
-			BytecodeContext bc = new BytecodeContext(null, constr, getPage(constr), keys, cw, className, adapter, method, writeLog, suppressWSbeforeArg, output, returnValue);
+			BytecodeContext bc = new BytecodeContext(ThreadLocalPageContext.getConfig(config), null, constr, getPage(constr), keys, cw, className, adapter, method, writeLog,
+					suppressWSbeforeArg, output, returnValue);
 			Label start = adapter.newLabel();
 			adapter.visitLabel(start);
 

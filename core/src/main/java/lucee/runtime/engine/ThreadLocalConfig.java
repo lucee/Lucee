@@ -26,14 +26,14 @@ import lucee.runtime.config.Config;
  */
 public final class ThreadLocalConfig {
 
-	private static ThreadLocal cThreadLocal = new ThreadLocal();
+	private static InheritableThreadLocal<Config> cThreadLocal = new InheritableThreadLocal<Config>();
 
 	/**
 	 * register a Config for he current thread
 	 * 
 	 * @param config Config to register
 	 */
-	public static void register(Config config) {// DO NOT CHANGE, used in Ortus extension via reflection
+	public static void register(Config config) {
 		cThreadLocal.set(config);
 	}
 
@@ -43,13 +43,13 @@ public final class ThreadLocalConfig {
 	 * @return Config for the current thread or null
 	 */
 	static Config get() {
-		return (Config) cThreadLocal.get();
+		return cThreadLocal.get();
 	}
 
 	/**
 	 * release the pagecontext for the current thread
 	 */
-	public static void release() {// DO NOT CHANGE, used in Ortus extension via reflection
+	public static void release() {
 		cThreadLocal.set(null);
 	}
 }

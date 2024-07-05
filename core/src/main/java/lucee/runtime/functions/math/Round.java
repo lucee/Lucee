@@ -24,8 +24,8 @@ package lucee.runtime.functions.math;
 import java.math.BigDecimal;
 
 import lucee.runtime.PageContext;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.ext.function.Function;
-import lucee.runtime.listener.AppListenerUtil;
 import lucee.runtime.op.Caster;
 
 public final class Round implements Function {
@@ -33,7 +33,7 @@ public final class Round implements Function {
 	private static final long serialVersionUID = 3955271203445975609L;
 
 	public static Number call(PageContext pc, Number number) {
-		if (AppListenerUtil.getPreciseMath(pc, null)) {
+		if (ThreadLocalPageContext.preciseMath(pc)) {
 			return Caster.toBigDecimal(number).setScale(0, BigDecimal.ROUND_HALF_UP);
 		}
 		return StrictMath.round(number.doubleValue());
@@ -41,7 +41,7 @@ public final class Round implements Function {
 
 	public static Number call(PageContext pc, Number number, Number precision) {
 		int p;
-		if ((p = precision.intValue()) > 0 || AppListenerUtil.getPreciseMath(pc, null)) {
+		if ((p = precision.intValue()) > 0 || ThreadLocalPageContext.preciseMath(pc)) {
 			return Caster.toBigDecimal(number).setScale(p, BigDecimal.ROUND_HALF_UP);
 		}
 		return StrictMath.round(number.doubleValue());
@@ -53,7 +53,7 @@ public final class Round implements Function {
 
 	public static double call(PageContext pc, double number, double precision) {
 		int p;
-		if ((p = (int) precision) > 0 || AppListenerUtil.getPreciseMath(pc, null)) {
+		if ((p = (int) precision) > 0 || ThreadLocalPageContext.preciseMath(pc)) {
 			return Caster.toBigDecimal(number).setScale(p, BigDecimal.ROUND_HALF_UP).doubleValue();
 		}
 		return StrictMath.round(number);

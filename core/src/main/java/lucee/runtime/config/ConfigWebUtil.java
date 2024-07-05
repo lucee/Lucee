@@ -56,6 +56,7 @@ import lucee.runtime.PageContextImpl;
 import lucee.runtime.PageSource;
 import lucee.runtime.PageSourceImpl;
 import lucee.runtime.crypt.BlowfishEasy;
+import lucee.runtime.engine.CFMLEngineImpl;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.SecurityException;
@@ -200,7 +201,7 @@ public final class ConfigWebUtil {
 			libs = ResourceUtil.merge(libs, rcl.getResources());
 		}
 
-		CFMLEngine engine = ConfigWebUtil.getEngine(config);
+		CFMLEngine engine = ConfigWebUtil.getCFMLEngine(config);
 		BundleContext bc = engine.getBundleContext();
 		Log log = ThreadLocalPageContext.getLog(config, "application");
 		BundleFile bf;
@@ -708,10 +709,29 @@ public final class ConfigWebUtil {
 		}
 	}
 
+	@Deprecated
 	public static CFMLEngine getEngine(Config config) {
 		if (config instanceof ConfigWeb) return ((ConfigWeb) config).getFactory().getEngine();
 		if (config instanceof ConfigServer) return ((ConfigServer) config).getEngine();
 		return CFMLEngineFactory.getInstance();
+	}
+
+	public static CFMLEngine getCFMLEngine(Config config) {
+		if (config instanceof ConfigWeb) return ((ConfigWeb) config).getFactory().getEngine();
+		if (config instanceof ConfigServer) return ((ConfigServer) config).getEngine();
+		return CFMLEngineFactory.getInstance();
+	}
+
+	public static CFMLEngineFactory getCFMLEngineFactory(Config config) {
+		try {
+			if (config instanceof ConfigWeb) return ((ConfigWeb) config).getFactory().getEngine().getCFMLEngineFactory();
+			if (config instanceof ConfigServer) return ((ConfigServer) config).getEngine().getCFMLEngineFactory();
+			return CFMLEngineFactory.getInstance().getCFMLEngineFactory();
+		}
+		catch (RuntimeException e) {
+			if (CFMLEngineImpl.FACTORY() != null) return CFMLEngineImpl.FACTORY();
+			throw e;
+		}
 	}
 
 	public static Resource getConfigServerDirectory(Config config) {

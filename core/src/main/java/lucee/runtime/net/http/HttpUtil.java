@@ -28,8 +28,6 @@ import javax.servlet.http.HttpServletRequest;
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.lang.Pair;
 import lucee.runtime.PageContext;
-import lucee.runtime.config.Config;
-import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.thread.SerializableCookie;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
@@ -79,9 +77,10 @@ public class HttpUtil {
 		return attributes.toArray(new Pair[attributes.size()]);
 	}
 
-	public static Pair<String, String>[] cloneParameters(HttpServletRequest req) {
+	public static Pair<String, String>[] cloneParameters(PageContext pc, HttpServletRequest req) {
 		List<Pair<String, String>> parameters = new ArrayList<Pair<String, String>>();
-		Enumeration e = req.getParameterNames();
+
+		Enumeration e = req instanceof HTTPServletRequestWrap ? ((HTTPServletRequestWrap) req).getParameterNames(pc) : req.getParameterNames();
 		String[] values;
 		String name;
 
@@ -90,9 +89,8 @@ public class HttpUtil {
 			values = req.getParameterValues(name);
 			if (values == null && ReqRspUtil.needEncoding(name, false)) values = req.getParameterValues(ReqRspUtil.encode(name, ReqRspUtil.getCharacterEncoding(null, req)));
 			if (values == null) {
-				PageContext pc = ThreadLocalPageContext.get();
 				if (pc != null && ReqRspUtil.identical(pc.getHttpServletRequest(), req)) {
-					values = HTTPServletRequestWrap.getParameterValues(ThreadLocalPageContext.get(), name);
+					values = HTTPServletRequestWrap.getParameterValues(pc, name);
 				}
 			}
 			if (values != null) for (int i = 0; i < values.length; i++) {
@@ -102,8 +100,8 @@ public class HttpUtil {
 		return parameters.toArray(new Pair[parameters.size()]);
 	}
 
-	public static Cookie[] cloneCookies(Config config, HttpServletRequest req) {
-		Cookie[] src = ReqRspUtil.getCookies(req, CharsetUtil.getWebCharset());
+	public static Cookie[] cloneCookies(PageContext pc, HttpServletRequest req) {
+		Cookie[] src = ReqRspUtil.getCookies(req, pc != null ? pc.getWebCharset() : CharsetUtil.ISO88591);
 		if (src == null) return SerializableCookie.COOKIES0;
 
 		Cookie[] dest = new Cookie[src.length];

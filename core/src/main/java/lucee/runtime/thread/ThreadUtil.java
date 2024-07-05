@@ -57,7 +57,7 @@ public class ThreadUtil {
 		// copy state
 		PageContextImpl pci = (PageContextImpl) pc;
 		PageContextImpl dest = factory.getPageContextImpl(factory.getServlet(), req, rsp, null, false, -1, false, register2Thread, true, pc.getRequestTimeout(),
-				register2RunningThreads, false, false, pci);
+				register2RunningThreads, false, false, stateless ? null : pci);
 		// pci.copyStateTo(dest);
 		return dest;
 	}
@@ -143,7 +143,7 @@ public class ThreadUtil {
 	public static HttpServletRequest cloneHttpServletRequest(PageContext pc) {
 		Config config = pc.getConfig();
 		HttpServletRequest req = pc.getHttpServletRequest();
-		HttpServletRequestDummy dest = HttpServletRequestDummy.clone(config, config.getRootDirectory(), req);
+		HttpServletRequestDummy dest = HttpServletRequestDummy.clone(pc, config.getRootDirectory(), req);
 		return dest;
 	}
 

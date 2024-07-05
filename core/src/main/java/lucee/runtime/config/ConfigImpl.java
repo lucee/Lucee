@@ -3822,7 +3822,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 			// config server
 			else {
 				try {
-					File file = new File(ConfigWebUtil.getEngine(this).getCFMLEngineFactory().getResourceRoot(), "deploy");
+					File file = new File(ConfigWebUtil.getCFMLEngineFactory(this).getResourceRoot(), "deploy");
 					if (!file.exists()) file.mkdirs();
 					deployDir = ResourcesImpl.getFileResourceProvider().getResource(file.getAbsolutePath());
 				}

@@ -22,13 +22,13 @@
 package lucee.runtime.functions.math;
 
 import lucee.runtime.PageContext;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.ext.function.Function;
-import lucee.runtime.listener.AppListenerUtil;
 import lucee.runtime.op.Caster;
 
 public final class Min implements Function {
 	public static Number call(PageContext pc, Number number1, Number number2) {
-		if (AppListenerUtil.getPreciseMath(pc, null)) {
+		if (ThreadLocalPageContext.preciseMath(pc)) {
 			return (Caster.toBigDecimal(number1).compareTo(Caster.toBigDecimal(number2)) < 0) ? number1 : number2;
 		}
 		return (Caster.toDoubleValue(number1) < Caster.toDoubleValue(number2)) ? number1 : number2;

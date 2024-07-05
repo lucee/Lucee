@@ -53,7 +53,7 @@ import lucee.commons.io.IOUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.Pair;
-import lucee.runtime.config.Config;
+import lucee.runtime.PageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.date.DateCaster;
@@ -689,7 +689,7 @@ public final class HttpServletRequestDummy implements HttpServletRequest, Serial
 		this.session = session;
 	}
 
-	public static HttpServletRequestDummy clone(Config config, Resource rootDirectory, HttpServletRequest req) {
+	public static HttpServletRequestDummy clone(PageContext pc, Resource rootDirectory, HttpServletRequest req) {
 		byte[] inputData = null;
 		try {
 			inputData = IOUtil.toBytes(req.getInputStream(), true, null);
@@ -697,9 +697,8 @@ public final class HttpServletRequestDummy implements HttpServletRequest, Serial
 		catch (IOException e) {
 		}
 
-		HttpServletRequestDummy dest = new HttpServletRequestDummy(rootDirectory, req.getServerName(), req.getRequestURI(), req.getQueryString(),
-				HttpUtil.cloneCookies(config, req), HttpUtil.cloneHeaders(req), HttpUtil.cloneParameters(req), HttpUtil.getAttributesAsStruct(req), getSessionEL(req, false),
-				inputData);
+		HttpServletRequestDummy dest = new HttpServletRequestDummy(rootDirectory, req.getServerName(), req.getRequestURI(), req.getQueryString(), HttpUtil.cloneCookies(pc, req),
+				HttpUtil.cloneHeaders(req), HttpUtil.cloneParameters(pc, req), HttpUtil.getAttributesAsStruct(req), getSessionEL(req, false), inputData);
 
 		try {
 			dest.setCharacterEncoding(req.getCharacterEncoding());
