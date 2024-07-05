@@ -328,6 +328,7 @@ public final class ConfigWebUtil {
 				if (str.startsWith("}", 13)) str = checkResult(str, config.getConfigDir().getReal(str.substring(14)));
 				else if (str.startsWith("-dir}", 13)) str = checkResult(str, config.getConfigDir().getReal(str.substring(18)));
 				else if (str.startsWith("-directory}", 13)) str = checkResult(str, config.getConfigDir().getReal(str.substring(24)));
+				else if (str.startsWith("-file}", 13)) str = checkResult(str, config.getConfigFile().getReal(str.substring(19)));
 			}
 
 			else if (config != null && str.startsWith("{lucee-server")) {
