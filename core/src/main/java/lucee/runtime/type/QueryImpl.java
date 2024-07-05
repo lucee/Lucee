@@ -131,7 +131,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 
 	private QueryColumnImpl[] columns;
 	private Collection.Key[] columnNames;
-	private ResultSetMetaData metadata;
+	private transient ResultSetMetaData metadata;
 	private SQL sql;
 	private Map<Integer, Integer> currRow = new ConcurrentHashMap<Integer, Integer>();
 	private AtomicInteger recordcount = new AtomicInteger(0);
