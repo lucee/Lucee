@@ -185,9 +185,13 @@ public final class ConfigServerFactory extends ConfigFactory {
 				configFile = ResourcesImpl.getFileResourceProvider().getResource(customCFConfig.trim());
 
 				if (configFile.isFile()) {
-					LogUtil.log(Log.LEVEL_INFO, "config", "using config File : " + configFile);
+					LogUtil.log(Log.LEVEL_INFO, "deploy", "config", "using config File : " + configFile);
 					return configFile;
 				}
+				LogUtil.log(Log.LEVEL_ERROR, "deploy", "config",
+						"the config file [" + configFile
+								+ "] defined with the environment variable [LUCEE_BASE_CONFIG] or system property [-Dlucee.base.config] does not exist, using ["
+								+ configDir.getRealResource(CONFIG_FILE_NAME) + "] instead.");
 			}
 			catch (Exception e) {
 				LogUtil.log("config", e);
