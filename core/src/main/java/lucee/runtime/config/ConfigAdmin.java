@@ -4390,12 +4390,12 @@ public final class ConfigAdmin {
 	public static void updateCore(ConfigServerImpl config, Resource core, boolean reload) throws PageException {
 		try {
 			// get patches directory
-			CFMLEngine engine = ConfigWebUtil.getEngine(config);
+			CFMLEngineFactory factory = ConfigWebUtil.getCFMLEngineFactory(config);
 			ConfigServerImpl cs = config;
 			Version v;
 			v = CFMLEngineFactory.toVersion(core.getName(), null);
 			Log logger = cs.getLog("deploy");
-			File f = engine.getCFMLEngineFactory().getResourceRoot();
+			File f = factory.getResourceRoot();
 			Resource res = ResourcesImpl.getFileResourceProvider().getResource(f.getAbsolutePath());
 			Resource pd = res.getRealResource("patches");
 			if (!pd.exists()) pd.mkdirs();

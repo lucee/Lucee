@@ -199,6 +199,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 	private ConfigServerImpl configServer = null;
 	private static CFMLEngineImpl engine = null;
 	private CFMLEngineFactory factory;
+	private static CFMLEngineFactory FACTORY;
 	private final ControllerStateImpl controlerState = new ControllerStateImpl(true);
 	private boolean allowRequestTimeout = true;
 	private Monitor monitor;
@@ -218,8 +219,12 @@ public final class CFMLEngineImpl implements CFMLEngine {
 
 	// private static CFMLEngineImpl engine=new CFMLEngineImpl();
 
+	public static CFMLEngineFactory FACTORY() {
+		return FACTORY;
+	}
+
 	private CFMLEngineImpl(CFMLEngineFactory factory, BundleCollection bc) {
-		this.factory = factory;
+		FACTORY = this.factory = factory;
 		this.bundleCollection = bc;
 
 		this.allowRequestTimeout = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.requesttimeout", null), true);

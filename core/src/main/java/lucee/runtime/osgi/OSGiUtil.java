@@ -1290,8 +1290,7 @@ public class OSGiUtil {
 			set.add(b.getSymbolicName() + ":" + b.getVersion());
 		}
 		// is it in jar directory but not loaded
-		CFMLEngine engine = ConfigWebUtil.getEngine(ThreadLocalPageContext.getConfig());
-		CFMLEngineFactory factory = engine.getCFMLEngineFactory();
+		CFMLEngineFactory factory = ConfigWebUtil.getCFMLEngineFactory(ThreadLocalPageContext.getConfig());
 		try {
 			File[] children = factory.getBundleDirectory().listFiles(JAR_EXT_FILTER);
 			BundleFile bf;
@@ -1349,8 +1348,7 @@ public class OSGiUtil {
 
 		// is it in jar directory but not loaded
 
-		CFMLEngine engine = ConfigWebUtil.getEngine(ThreadLocalPageContext.getConfig());
-		CFMLEngineFactory factory = engine.getCFMLEngineFactory();
+		CFMLEngineFactory factory = ConfigWebUtil.getCFMLEngineFactory(ThreadLocalPageContext.getConfig());
 		BundleFile bf = _getBundleFile(factory, name, version, addional, null);
 		if (bf != null) {
 			try {

@@ -19,7 +19,6 @@
 package lucee.commons.io.log;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.Date;
 
 import lucee.aprint;
@@ -29,7 +28,7 @@ import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.SystemOut;
-import lucee.loader.engine.CFMLEngine;
+import lucee.loader.engine.CFMLEngineFactory;
 import lucee.runtime.PageContext;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigWebUtil;
@@ -165,8 +164,8 @@ public final class LogUtil {
 
 	public static void logGlobal(Config config, int level, String type, String msg) {
 		try {
-			CFMLEngine engine = ConfigWebUtil.getEngine(config);
-			File root = engine.getCFMLEngineFactory().getResourceRoot();
+			CFMLEngineFactory factory = ConfigWebUtil.getCFMLEngineFactory(config);
+			File root = factory.getResourceRoot();
 			File flog = new File(root, "context/logs/" + (level > Log.LEVEL_DEBUG ? "err" : "out") + ".log");
 			Resource log = ResourceUtil.toResource(flog);
 			if (!log.isFile()) {
@@ -175,8 +174,9 @@ public final class LogUtil {
 			}
 			IOUtil.write(log, SystemOut.FORMAT.format(new Date(System.currentTimeMillis())) + " " + type + " " + msg + "\n", CharsetUtil.UTF8, true);
 		}
-		catch (IOException ioe) {
-			aprint.e(ioe);
+		catch (Exception e) {
+			aprint.e(type + ":" + msg);
+			aprint.e(e);
 		}
 	}
 

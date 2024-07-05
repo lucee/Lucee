@@ -82,6 +82,7 @@ import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.net.URLDecoder;
 import lucee.loader.engine.CFMLEngine;
+import lucee.loader.engine.CFMLEngineFactory;
 import lucee.runtime.CFMLFactoryImpl;
 import lucee.runtime.Component;
 import lucee.runtime.Mapping;
@@ -3808,8 +3809,8 @@ public final class ConfigWebFactory extends ConfigFactory {
 			}
 			else if (StringUtil.startsWithIgnoreCase(streamtype, "log")) {
 				try {
-					CFMLEngine engine = ConfigWebUtil.getEngine(config);
-					Resource root = ResourceUtil.toResource(engine.getCFMLEngineFactory().getResourceRoot());
+					CFMLEngineFactory factory = ConfigWebUtil.getCFMLEngineFactory(config);
+					Resource root = ResourceUtil.toResource(factory.getResourceRoot());
 					Resource log = root.getRealResource("context/logs/" + (iserror ? "err" : "out") + ".log");
 					if (!log.isFile()) {
 						log.getParentResource().mkdirs();
