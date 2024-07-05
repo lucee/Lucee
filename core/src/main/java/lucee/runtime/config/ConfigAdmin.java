@@ -4552,7 +4552,12 @@ public final class ConfigAdmin {
 	public void updateRHExtension(Config config, RHExtension rhext, boolean reload, boolean force) throws PageException {
 		try {
 			if (!force && ConfigAdmin.hasRHExtensionInstalled((ConfigPro) config, rhext.toExtensionDefinition()) != null) {
-				throw new ApplicationException("the extension " + rhext.getName() + " (id: " + rhext.getId() + ") in version " + rhext.getVersion() + " is already installed");
+				String msg = "the extension " + rhext.getName() + " (id: " + rhext.getId() + ") in version " + rhext.getVersion() + " is already installed";
+				Log log = config.getLog("deploy");
+				if (log != null) {
+					log.debug("install", msg);
+				}
+				return;
 			}
 		}
 		catch (Exception e) {
