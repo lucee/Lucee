@@ -3,7 +3,7 @@
 
   <groupId>org.lucee</groupId>
   <artifactId>lucee</artifactId>
-  <version>6.1.0.234-SNAPSHOT</version>
+  <version>6.1.0.235-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>Lucee Loader Build</name>
@@ -286,6 +286,22 @@
                                   <file>${project.build.directory}/lucee-zero-${project.version}.jar</file>
                                   <type>jar</type>
                                   <classifier>zero</classifier>
+                              </artifact>
+                          </artifacts>
+                      </configuration>
+                  </execution>
+                  <execution>
+                      <id>attach-artifact-light</id>
+                      <phase>package</phase>
+                      <goals>
+                          <goal>attach-artifact</goal>
+                      </goals>
+                      <configuration>
+                          <artifacts>
+                              <artifact>
+                                  <file>${project.build.directory}/lucee-light-${project.version}.jar</file>
+                                  <type>jar</type>
+                                  <classifier>light</classifier>
                               </artifact>
                           </artifacts>
                       </configuration>
