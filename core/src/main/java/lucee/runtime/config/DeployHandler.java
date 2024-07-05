@@ -387,7 +387,7 @@ public class DeployHandler {
 			}
 		}
 		String name = StringUtil.emptyIfNull(ed.getId()).equals(ed.getSymbolicName()) ? ed.getSymbolicName() : (ed.getSymbolicName() + "(" + ed.getId() + ")");
-		throw new ApplicationException("Failed to install extension [" + name + ":" + ed.getVersion() + "]");
+		throw new ApplicationException("Failed to download extension [" + name + ":" + ed.getVersion() + "]");
 	}
 
 	public static Resource downloadExtension(Config config, ExtensionDefintion ed, Log log) {
