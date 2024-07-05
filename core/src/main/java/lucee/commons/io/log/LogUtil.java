@@ -19,7 +19,6 @@
 package lucee.commons.io.log;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.Date;
 
 import lucee.aprint;
@@ -175,8 +174,8 @@ public final class LogUtil {
 			}
 			IOUtil.write(log, SystemOut.FORMAT.format(new Date(System.currentTimeMillis())) + " " + type + " " + msg + "\n", CharsetUtil.UTF8, true);
 		}
-		catch (IOException ioe) {
-			aprint.e(ioe);
+		catch (Exception ioe) {
+			aprint.e(type + ":" + msg);
 		}
 	}
 
