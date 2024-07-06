@@ -8887,7 +8887,7 @@ Depending on this setting Lucee scans certain scopes to find a variable called f
 			<alias>doc</alias>
 			<default>false</default>
 			<required>false</required>
-			<description>Show documentation output at the end of teh webpage or not.</description>
+			<description>Show documentation output at the end of the webpage or not.</description>
 		</attribute>
 		<attribute>
 			<type>boolean</type>
@@ -8895,7 +8895,7 @@ Depending on this setting Lucee scans certain scopes to find a variable called f
 			<alias>metric</alias>
 			<default>false</default>
 			<required>false</required>
-			<description>Show metric output at the end of teh webpage or not.</description>
+			<description>Show metric output at the end of the webpage or not.</description>
 		</attribute>
 		<attribute>
 			<type>boolean</type>
@@ -8904,7 +8904,7 @@ Depending on this setting Lucee scans certain scopes to find a variable called f
 			<status>hidden</status>
 			<default>false</default>
 			<required>false</required>
-			<description>Show test output at the end of teh webpage or not.</description>
+			<description>Show test output at the end of the webpage or not.</description>
 		</attribute>
 		<attribute>
 			<type>boolean</type>
@@ -8912,7 +8912,7 @@ Depending on this setting Lucee scans certain scopes to find a variable called f
 			<alias>debug</alias>
 			<default>false</default>
 			<required>false</required>
-			<description>Show debug output at the end of teh webpage or not.</description>
+			<description>Show debug output at the end of the webpage or not.</description>
 		</attribute>
 
 		<attribute>
