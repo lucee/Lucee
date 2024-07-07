@@ -38,7 +38,6 @@ public abstract class DebugEntrySupport implements DebugEntry {
 	 * constructor of the class
 	 * 
 	 * @param source
-	 * @param key
 	 */
 	protected DebugEntrySupport(PageSource source) {
 		this.path = source == null ? "" : source.getDisplayPath();

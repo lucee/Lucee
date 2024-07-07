@@ -39,8 +39,7 @@ public class FileStreamWrapperReadBinary extends FileStreamWrapper {
 	 * Constructor of the class
 	 * 
 	 * @param res
-	 * @param charset
-	 * @throws IOException
+	 * @param seekable
 	 */
 	public FileStreamWrapperReadBinary(Resource res, boolean seekable) {
 		super(res);

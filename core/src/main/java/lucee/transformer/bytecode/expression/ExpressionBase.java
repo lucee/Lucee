@@ -66,7 +66,7 @@ public abstract class ExpressionBase implements Expression {
 	/**
 	 * write out the statement to the adapter
 	 * 
-	 * @param adapter
+	 * @param bc
 	 * @param mode
 	 * @return return Type of expression
 	 * @throws TransformerException

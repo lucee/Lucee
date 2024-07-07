@@ -53,7 +53,9 @@ public class TemplateException extends PageExceptionImpl {
 	/**
 	 * Constructor of the class
 	 * 
-	 * @param srcCode
+	 * @param ps
+	 * @param line
+	 * @param column
 	 * @param message
 	 */
 	public TemplateException(PageSource ps, int line, int column, String message) {
@@ -75,7 +77,7 @@ public class TemplateException extends PageExceptionImpl {
 	/**
 	 * Constructor of the class
 	 * 
-	 * @param cfml
+	 * @param sc
 	 * @param message
 	 */
 	public TemplateException(SourceCode sc, String message) {
@@ -89,7 +91,7 @@ public class TemplateException extends PageExceptionImpl {
 	/**
 	 * Constructor of the class
 	 * 
-	 * @param cfml
+	 * @param sc
 	 * @param message
 	 * @param detail
 	 */
@@ -101,8 +103,8 @@ public class TemplateException extends PageExceptionImpl {
 	/**
 	 * Constructor of the class
 	 * 
-	 * @param cfml
-	 * @param e
+	 * @param sc
+	 * @param t
 	 */
 	public TemplateException(SourceCode sc, Throwable t) {
 		this(getPageSource(sc), sc.getLine(), sc.getColumn(), t);

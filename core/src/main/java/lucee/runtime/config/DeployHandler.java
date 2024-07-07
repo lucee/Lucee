@@ -235,11 +235,13 @@ public class DeployHandler {
 	 * install an extension based on the given id and version
 	 * 
 	 * @param config
-	 * @param id the id of the extension
-	 * @param version pass null if you don't need a specific version
+	 * @param ed the id of the extension
+	 * @param log
+	 * @param reload
+	 * @param force
+	 * @param throwOnError
+	 * @param installDone
 	 * @return
-	 * @return
-	 * @throws IOException
 	 * @throws PageException
 	 */
 	public static RHExtension deployExtension(Config config, ExtensionDefintion ed, Log log, boolean reload, boolean force, boolean throwOnError, RefBoolean installDone)

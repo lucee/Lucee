@@ -194,7 +194,7 @@ public abstract class DateTimeUtil {
 	 * 
 	 * @param dateTime
 	 * @return boolean value
-	 * @throws ExpressionException
+	 * @throws DateTimeException
 	 */
 	public boolean toBooleanValue(DateTime dateTime) throws DateTimeException {
 		throw new DateTimeException("Can't cast Date [" + DateTimeUtil.toHTTPTimeString(dateTime, false) + "] to boolean value");

@@ -47,11 +47,12 @@ public final class _Execute extends PageContextThread {
 	/**
 	 * @param pageContext
 	 * @param monitor
-	 * @param process
+	 * @param commands
 	 * @param outputfile
 	 * @param variable
-	 * @param body
-	 * @param terminateOnTimeout
+	 * @param errorFile
+	 * @param errorVariable
+	 * @param directory
 	 */
 	public _Execute(PageContext pageContext, Object monitor, String[] commands, Resource outputfile, String variable, Resource errorFile, String errorVariable, String directory) {
 		super(pageContext);
@@ -104,15 +105,24 @@ public final class _Execute extends PageContextThread {
 
 	/**
 	 * define that execution is aborted
+	 * @param terminateProcess
 	 */
 	public void abort(boolean terminateProcess) {
 		aborted = true;
 		if (terminateProcess) process.destroy();
 	}
-
+	/**
+	 * has an exception occured
+	 * @return exception statuss
+	 */
 	public boolean hasException() {
 		return exception != null;
 	}
+
+	/**
+	 * has the execution finished
+	 * @return has finished
+	 */
 
 	public boolean hasFinished() {
 		return finished;

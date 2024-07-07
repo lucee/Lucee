@@ -80,9 +80,10 @@ public final class Controler extends ParentThreasRefThread {
 	private boolean poolValidate;
 
 	/**
+	 * @param configServer
 	 * @param contextes
 	 * @param interval
-	 * @param run
+	 * @param state
 	 */
 	public Controler(ConfigServer configServer, Map contextes, int interval, ControllerState state) {
 		this.contextes = contextes;

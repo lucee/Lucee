@@ -63,7 +63,6 @@ public final class ClassUtil {
 	 * @param className
 	 * @return
 	 * @throws ClassException
-	 * @throws PageException
 	 */
 	public static Class toClass(String className) throws ClassException {
 		return loadClass(className);

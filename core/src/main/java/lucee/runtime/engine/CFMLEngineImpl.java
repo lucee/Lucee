@@ -705,7 +705,6 @@ public final class CFMLEngineImpl implements CFMLEngine {
 	/**
 	 * get singelton instance of the CFML Engine, throwsexception when not already init
 	 * 
-	 * @param factory
 	 * @return CFMLEngine
 	 */
 	public static synchronized CFMLEngine getInstance() throws PageServletException {

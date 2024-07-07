@@ -65,7 +65,6 @@ public final class CastBoolean extends ExpressionBase implements ExprBoolean, Ca
 	 * 
 	 * @param expr
 	 * @return String expression
-	 * @throws TemplateException
 	 */
 	public static ExprBoolean toExprBoolean(Expression expr) {
 		if (expr instanceof ExprBoolean) return (ExprBoolean) expr;

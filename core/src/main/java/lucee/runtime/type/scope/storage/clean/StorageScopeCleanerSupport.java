@@ -65,7 +65,7 @@ public abstract class StorageScopeCleanerSupport implements StorageScopeCleaner 
 	protected abstract void _clean();
 
 	/**
-	 * @return the log
+	 * @param msg
 	 */
 	@Override
 	public void info(String msg) {

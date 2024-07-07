@@ -57,19 +57,19 @@ public abstract class AbstractSet<E> extends AbstractCollection<E> implements Se
 	// Comparison and hashing
 
 	/**
-	 * Compares the specified object with this set for equality. Returns <tt>true</tt> if the given
+	 * Compares the specified object with this set for equality. Returns <code>true</code> if the given
 	 * object is also a set, the two sets have the same size, and every member of the given set is
-	 * contained in this set. This ensures that the <tt>equals</tt> method works properly across
-	 * different implementations of the <tt>Set</tt> interface.
+	 * contained in this set. This ensures that the <code>equals</code> method works properly across
+	 * different implementations of the <code>Set</code> interface.
 	 * <p>
 	 *
 	 * This implementation first checks if the specified object is this set; if so it returns
-	 * <tt>true</tt>. Then, it checks if the specified object is a set whose size is identical to the
+	 * <code>true</code>. Then, it checks if the specified object is a set whose size is identical to the
 	 * size of this set; if not, it returns false. If so, it returns
-	 * <tt>containsAll((Collection) o)</tt>.
+	 * <code>containsAll((Collection) o)</code>.
 	 *
 	 * @param o object to be compared for equality with this set
-	 * @return <tt>true</tt> if the specified object is equal to this set
+	 * @return <code>true</code> if the specified object is equal to this set
 	 */
 	@Override
 	public boolean equals(Object o) {

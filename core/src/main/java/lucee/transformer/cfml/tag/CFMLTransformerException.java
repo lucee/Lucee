@@ -35,7 +35,7 @@ public final class CFMLTransformerException extends Exception {
 	/**
 	 * Konstruktor mit einem CFMLString und einer anderen Exception.
 	 * 
-	 * @param cfml
+	 * @param sc
 	 * @param e
 	 */
 	public CFMLTransformerException(SourceCode sc, Exception e) {
@@ -54,7 +54,7 @@ public final class CFMLTransformerException extends Exception {
 	/**
 	 * Hauptkonstruktor, mit CFMLString und message.
 	 * 
-	 * @param cfml CFMLString
+	 * @param sc CFMLString
 	 * @param message Fehlermeldung
 	 */
 	public CFMLTransformerException(SourceCode sc, String message) {

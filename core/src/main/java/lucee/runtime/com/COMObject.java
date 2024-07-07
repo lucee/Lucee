@@ -53,7 +53,6 @@ public final class COMObject implements Objects, Iteratorable {
 	 * Public Constructor of the class
 	 * 
 	 * @param dispatch
-	 * @throws ExpressionException
 	 */
 	public COMObject(String dispatch) {
 		// if(!SystemUtil.isWindows()) throw new ExpressionException("Com Objects are only supported in

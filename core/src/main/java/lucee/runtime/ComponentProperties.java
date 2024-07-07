@@ -79,7 +79,6 @@ public class ComponentProperties implements Serializable {
 	 * returns null if there is no wsdlFile defined
 	 * 
 	 * @return the wsdlFile
-	 * @throws ExpressionException
 	 */
 	public String getWsdlFile() {
 		if (meta == null) return null;

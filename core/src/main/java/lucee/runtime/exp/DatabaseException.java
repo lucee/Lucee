@@ -158,7 +158,7 @@ public class DatabaseException extends PageExceptionImpl {
 	/**
 	 * Constructor of the class
 	 *
-	 * @param sqle
+	 * @param config
 	 */
 
 	@Override

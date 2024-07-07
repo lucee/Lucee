@@ -54,7 +54,6 @@ public final class CastNumber extends ExpressionBase implements ExprNumber, Cast
 	 * 
 	 * @param expr
 	 * @return String expression
-	 * @throws TemplateException
 	 */
 	public static ExprNumber toExprNumber(Expression expr) {
 		if (expr instanceof ExprNumber) return (ExprNumber) expr;

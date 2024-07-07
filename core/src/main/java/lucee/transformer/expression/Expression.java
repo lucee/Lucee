@@ -40,10 +40,10 @@ public interface Expression {
 	/**
 	 * write out the stament to adapter
 	 * 
-	 * @param adapter
+	 * @param bc
 	 * @param mode
 	 * @return return Type of expression
-	 * @throws TemplateException
+	 * @throws TransformerException
 	 */
 	public Class<?> writeOut(Context bc, int mode) throws TransformerException;
 

@@ -49,7 +49,6 @@ public final class ComponentSpecificAccess extends StructSupport implements Comp
 	 * 
 	 * @param access
 	 * @param component
-	 * @throws ExpressionException
 	 */
 	public ComponentSpecificAccess(int access, Component component) {
 		this.access = access;

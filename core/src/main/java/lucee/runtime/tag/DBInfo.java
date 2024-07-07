@@ -156,7 +156,7 @@ public final class DBInfo extends TagImpl {
 	}
 
 	/**
-	 * @param type the type to set
+	 * @param strType the type to set
 	 * @throws ApplicationException
 	 */
 	public void setType(String strType) throws ApplicationException {
@@ -248,7 +248,7 @@ public final class DBInfo extends TagImpl {
 	}
 
 	/**
-	 * @param username the username to set
+	 * @param filter the filter to set
 	 */
 	public void setFilter(String filter) {
 		this.filter = filter;

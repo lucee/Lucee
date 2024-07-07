@@ -33,8 +33,10 @@ public final class Base64Coder {
 	 * decodes a Base64 String to a Plain String
 	 * 
 	 * @param encoded
+	 * @param charset
+	 * @param precise
 	 * @return
-	 * @throws ExpressionException
+	 * @throws CoderException
 	 */
 	public static String decodeToString(String encoded, String charset, boolean precise) throws CoderException, UnsupportedEncodingException {
 		byte[] dec = decode(Caster.toString(encoded, null), precise);
@@ -45,6 +47,7 @@ public final class Base64Coder {
 	 * encodes a String to Base64 String
 	 * 
 	 * @param plain String to encode
+	 * @param charset
 	 * @return encoded String
 	 * @throws CoderException
 	 * @throws UnsupportedEncodingException
@@ -58,7 +61,6 @@ public final class Base64Coder {
 	 * 
 	 * @param barr byte array to encode
 	 * @return encoded String
-	 * @throws CoderException
 	 */
 	public static String encode(byte[] barr) {
 		return Base64Encoder.encode(barr);
@@ -68,6 +70,7 @@ public final class Base64Coder {
 	 * decodes a Base64 String to a Plain String
 	 * 
 	 * @param encoded
+	 * @param precise
 	 * @return decoded binary data
 	 * @throws CoderException
 	 */

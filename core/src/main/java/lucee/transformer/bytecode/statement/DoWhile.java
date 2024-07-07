@@ -44,7 +44,9 @@ public final class DoWhile extends StatementBaseNoFinal implements FlowControlBr
 	 * 
 	 * @param expr
 	 * @param body
-	 * @param line
+	 * @param start
+	 * @param end
+	 * @param label
 	 */
 	public DoWhile(Expression expr, Body body, Position start, Position end, String label) {
 		super(expr.getFactory(), start, end);

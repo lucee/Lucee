@@ -48,10 +48,9 @@ public final class CacheResourceCore implements Serializable {
 	/**
 	 * Konstruktor
 	 * 
-	 * @param parent
 	 * @param type
+	 * @param path
 	 * @param name
-	 * @param caseSensitive
 	 */
 	public CacheResourceCore(int type, String path, String name) {
 		this.type = type;

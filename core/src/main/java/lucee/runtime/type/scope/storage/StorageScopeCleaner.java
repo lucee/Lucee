@@ -29,8 +29,6 @@ public interface StorageScopeCleaner {
 
 	/**
 	 * clean storage from expired Scopes
-	 * 
-	 * @param config
 	 */
 	public void clean();
 

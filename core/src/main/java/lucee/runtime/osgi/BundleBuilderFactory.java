@@ -98,17 +98,11 @@ public class BundleBuilderFactory {
 
 	/**
 	 * 
+	 * @param jar
 	 * @param symbolicName this entry specifies a unique identifier for a bundle, based on the reverse
 	 *            domain name convention (used also by the java packages).
-	 * @param name Defines a human-readable name for this bundle, Simply assigns a short name to the
-	 *            bundle.
-	 * @param description A description of the bundle's functionality.
-	 * @param version Designates a version number to the bundle.
-	 * @param activator Indicates the class name to be invoked once a bundle is activated.
-	 * @param name
 	 * @throws IOException
 	 * @throws BundleException
-	 * @throws BundleBuilderFactoryException
 	 */
 	public BundleBuilderFactory(Resource jar, String symbolicName) throws IOException, BundleException {
 		if (!jar.isFile()) throw new IOException("[" + jar + "] is not a file");

@@ -42,7 +42,7 @@ public abstract class AFTPClient {
 	 *                independently as itself.
 	 * @exception IOException If an I/O error occurs while either sending a command to the server or
 	 *                receiving a reply from the server.
-	 * @throws FTPException
+	 * @throws IOException
 	 */
 	public abstract boolean rename(String from, String to) throws IOException;
 
@@ -134,7 +134,6 @@ public abstract class AFTPClient {
 	 * <p>
 	 * 
 	 * @param pathname The pathname of the directory to remove.
-	 * @param recursive if true it also can delete
 	 * @return True if successfully completed, false if not.
 	 * @exception FTPConnectionClosedException If the FTP server prematurely closes the connection as a
 	 *                result of the client being idle or some other reason causing the server to send
@@ -332,12 +331,11 @@ public abstract class AFTPClient {
 	 * called to perform connection initialization actions.
 	 * <p>
 	 * 
-	 * @param host The remote host.
-	 * @param port The port to connect to on the remote host.
 	 * @exception SocketException If the socket timeout could not be set.
 	 * @exception IOException If the socket could not be opened. In most cases you will only want to
 	 *                catch IOException since SocketException is derived from it.
-	 * @throws FTPException
+	 * @throws SocketException
+	 * @throws IOException
 	 */
 	public abstract void connect() throws SocketException, IOException;
 
@@ -346,8 +344,7 @@ public abstract class AFTPClient {
 	 * positive completion responses. The FTP server will send a positive completion response on the
 	 * final successful completion of a command.
 	 * <p>
-	 * 
-	 * @param reply The reply code to test.
+	 *
 	 * @return True if a reply code is a postive completion response, false if not.
 	 ***/
 	public abstract boolean isPositiveCompletion();

@@ -71,7 +71,7 @@ public abstract class AbstractCollection<E> implements Collection<E> {
 	 * {@inheritDoc}
 	 *
 	 * <p>
-	 * This implementation returns <tt>size() == 0</tt>.
+	 * This implementation returns <code>size() == 0</code>.
 	 */
 	@Override
 	public boolean isEmpty() {
@@ -230,7 +230,7 @@ public abstract class AbstractCollection<E> implements Collection<E> {
 	 * {@inheritDoc}
 	 *
 	 * <p>
-	 * This implementation always throws an <tt>UnsupportedOperationException</tt>.
+	 * This implementation always throws an <code>UnsupportedOperationException</code>.
 	 *
 	 * @throws UnsupportedOperationException {@inheritDoc}
 	 * @throws ClassCastException {@inheritDoc}
@@ -251,8 +251,8 @@ public abstract class AbstractCollection<E> implements Collection<E> {
 	 * the element, it removes the element from the collection using the iterator's remove method.
 	 *
 	 * <p>
-	 * Note that this implementation throws an <tt>UnsupportedOperationException</tt> if the iterator
-	 * returned by this collection's iterator method does not implement the <tt>remove</tt> method and
+	 * Note that this implementation throws an <code>UnsupportedOperationException</code> if the iterator
+	 * returned by this collection's iterator method does not implement the <code>remove</code> method and
 	 * this collection contains the specified object.
 	 *
 	 * @throws UnsupportedOperationException {@inheritDoc}
@@ -329,13 +329,13 @@ public abstract class AbstractCollection<E> implements Collection<E> {
 	 *
 	 * <p>
 	 * This implementation iterates over this collection, removing each element using the
-	 * <tt>Iterator.remove</tt> operation. Most implementations will probably choose to override this
+	 * <code>Iterator.remove</code> operation. Most implementations will probably choose to override this
 	 * method for efficiency.
 	 *
 	 * <p>
-	 * Note that this implementation will throw an <tt>UnsupportedOperationException</tt> if the
-	 * iterator returned by this collection's <tt>iterator</tt> method does not implement the
-	 * <tt>remove</tt> method and this collection is non-empty.
+	 * Note that this implementation will throw an <code>UnsupportedOperationException</code> if the
+	 * iterator returned by this collection's <code>iterator</code> method does not implement the
+	 * <code>remove</code> method and this collection is non-empty.
 	 *
 	 * @throws UnsupportedOperationException {@inheritDoc}
 	 */
@@ -353,7 +353,7 @@ public abstract class AbstractCollection<E> implements Collection<E> {
 	/**
 	 * Returns a string representation of this collection. The string representation consists of a list
 	 * of the collection's elements in the order they are returned by its iterator, enclosed in square
-	 * brackets (<tt>"[]"</tt>). Adjacent elements are separated by the characters <tt>", "</tt> (comma
+	 * brackets (<code>"[]"</code>). Adjacent elements are separated by the characters <code>", "</code> (comma
 	 * and space). Elements are converted to strings as by {@link String#valueOf(Object)}.
 	 *
 	 * @return a string representation of this collection

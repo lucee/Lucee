@@ -336,10 +336,8 @@ public final class CFMLTransformer {
 	 * EBNF:<br />
 	 * <code>[comment] ("</" | "<" tag body | literal body);</code>
 	 * 
-	 * @param body CFXD Body Element dem der Inhalt zugeteilt werden soll.
-	 * @param parseExpression Definiert ob Expressions innerhalb von Literalen uebersetzt werden sollen
-	 *            oder nicht.
-	 * @param transformer Expression Transfomer zum uebersetzten von Expression.
+	 * @param data
+	 * @param body
 	 * @throws TemplateException
 	 */
 	public void body(Data data, Body body) throws TemplateException {

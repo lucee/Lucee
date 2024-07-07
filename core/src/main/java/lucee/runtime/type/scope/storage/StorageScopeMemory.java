@@ -35,8 +35,9 @@ public abstract class StorageScopeMemory extends StorageScopeImpl implements Mem
 	 * Constructor of the class
 	 * 
 	 * @param pc
+	 * @param strType
+	 * @param type
 	 * @param log
-	 * @param name
 	 */
 	protected StorageScopeMemory(PageContext pc, String strType, int type, Log log) {
 		super(new StructImpl(), new DateTimeImpl(pc.getConfig()), null, -1, 1, strType, type);

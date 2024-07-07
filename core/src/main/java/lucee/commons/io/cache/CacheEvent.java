@@ -27,7 +27,7 @@ public interface CacheEvent {
 	/**
 	 * allows to register a CacheEventListener for one or more certain events
 	 * 
-	 * @param event
+	 * @param listener
 	 */
 	public void register(CacheEventListener listener);
 }

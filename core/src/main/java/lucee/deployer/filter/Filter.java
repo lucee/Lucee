@@ -31,7 +31,7 @@ public interface Filter {
 	/**
 	 * Gibt zurueck ob die eingegebene Datei eine CFML Datei ist oder nicht.
 	 * 
-	 * @param file File das geprueft werden soll.
+	 * @param res File das geprueft werden soll.
 	 * @return handelt es sich bei der CFML Datei um eine CFML
 	 */
 	public boolean isValid(Resource res);

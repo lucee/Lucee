@@ -108,7 +108,6 @@ public final class Form extends BodyTagImpl {
 
 	/**
 	 * @param enablecab The enablecab to set.
-	 * @throws ApplicationException
 	 */
 	public void setEnablecab(boolean enablecab) {
 		// DeprecatedUtil.tagAttribute(pageContext,"Form", "enablecab");

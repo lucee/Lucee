@@ -244,8 +244,7 @@ public abstract class AbstrCFMLExprTransformer {
 	/**
 	 * Initialmethode, wird aufgerufen um den internen Zustand des Objektes zu setzten.
 	 * 
-	 * @param fld Function Libraries zum validieren der Funktionen
-	 * @param cfml CFML Code der transfomiert werden soll.
+	 * @param data Function Libraries zum validieren der Funktionen
 	 */
 
 	protected Data init(Data data) {

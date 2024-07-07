@@ -32,7 +32,7 @@ public class DatasourceResourceOutputStream extends OutputStream {
 	/**
 	 * Constructor of the class
 	 * 
-	 * @param res
+	 * @param dw
 	 * @param os
 	 */
 	public DatasourceResourceOutputStream(DataWriter dw, OutputStream os) {

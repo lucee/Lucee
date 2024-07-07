@@ -37,10 +37,7 @@ public interface ExprTransformer {
 	 * Beispiel eines uebergebenen String:<br>
 	 * "session.firstName" oder "trim(left('test'&var1,3))"
 	 * 
-	 * @param fld Array von Function Libraries, Mithilfe dieser Function Libraries kann der Transfomer
-	 *            buil-in Funktionen innerhalb des CFML Codes erkennen und validieren.
-	 * @param doc XML Document des aktuellen zu erstellenden CFXD
-	 * @param cfml Text der transfomiert werden soll.
+	 * @param data
 	 * @return Element CFXD Element
 	 * @throws lucee.runtime.exp.TemplateException
 	 * @throws TemplateException
@@ -54,10 +51,7 @@ public interface ExprTransformer {
 	 * Beispiel eines uebergebenen String:<br>
 	 * "session.firstName" oder "trim(left('test'&var1,3))"
 	 * 
-	 * @param fld Array von Function Libraries, Mithilfe dieser Function Libraries kann der Transfomer
-	 *            buil-in Funktionen innerhalb des CFML Codes erkennen und validieren.
-	 * @param doc XML Document des aktuellen zu erstellenden CFXD
-	 * @param cfml Text der transfomiert werden soll.
+	 * @param data
 	 * @return Element CFXD Element
 	 * @throws TemplateException
 	 */

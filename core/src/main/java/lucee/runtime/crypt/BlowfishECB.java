@@ -505,8 +505,7 @@ public class BlowfishECB {
 	 * same size or bigger)
 	 * 
 	 * @param inbuffer buffer with plaintext data
-	 * 
-	 * @param outBuffer buffer to get the ciphertext data
+	 * @param outbuffer buffer to get the ciphertext data
 	 * 
 	 */
 
@@ -611,8 +610,7 @@ public class BlowfishECB {
 	 * to another byte buffer (of the same size or bigger)
 	 * 
 	 * @param inbuffer buffer with ciphertext data
-	 * 
-	 * @param outBuffer buffer to get the plaintext data
+	 * @param outbuffer buffer to get the plaintext data
 	 * 
 	 */
 

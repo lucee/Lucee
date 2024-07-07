@@ -34,7 +34,6 @@ public final class ColorCaster {
 	 * @param left
 	 * @param right
 	 * @return an int between 0 (badest) and 510 (best)
-	 * @throws ServletException
 	 */
 	public static int contrast(Color left, Color right) {
 		return (Math.max(left.getRed(), right.getRed()) - Math.min(left.getRed(), right.getRed()))

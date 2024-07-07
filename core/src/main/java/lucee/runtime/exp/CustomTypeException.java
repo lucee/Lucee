@@ -44,7 +44,7 @@ public final class CustomTypeException extends PageExceptionImpl {
 	 * @param detail Detailed Exception Message
 	 * @param errorCode Error Code
 	 * @param customType Type of the Exception
-	 * @param entryLevel
+	 * @param extendedinfo
 	 */
 	public CustomTypeException(String message, String detail, String errorCode, String customType, String extendedinfo) {
 		this(message, detail, errorCode, customType, extendedinfo, 1);

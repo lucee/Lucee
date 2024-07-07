@@ -54,9 +54,9 @@ public final class DateDiff extends BIF {
 
 	/**
 	 * @param pc
-	 * @param s
-	 * @param date
-	 * @param date1
+	 * @param datePart
+	 * @param left
+	 * @param right
 	 * @return
 	 * @throws ExpressionException
 	 */

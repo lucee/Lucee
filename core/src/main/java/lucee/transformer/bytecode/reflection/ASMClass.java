@@ -972,7 +972,7 @@ public final class ASMClass implements java.io.Serializable {
 	 *
 	 * <ul>
 	 *
-	 * <li>If the {@code name} begins with a {@code '/'} (<tt>'&#92;u002f'</tt>), then the absolute name
+	 * <li>If the {@code name} begins with a {@code '/'} (<code>'&#92;u002f'</code>), then the absolute name
 	 * of the resource is the portion of the {@code name} following the {@code '/'}.
 	 *
 	 * <li>Otherwise, the absolute name is of the following form:
@@ -981,7 +981,7 @@ public final class ASMClass implements java.io.Serializable {
 	 *
 	 * <p>
 	 * Where the {@code modified_package_name} is the package name of this object with {@code '/'}
-	 * substituted for {@code '.'} (<tt>'&#92;u002e'</tt>).
+	 * substituted for {@code '.'} (<code>'&#92;u002e'</code>).
 	 *
 	 * </ul>
 	 *
@@ -1008,7 +1008,7 @@ public final class ASMClass implements java.io.Serializable {
 	 *
 	 * <ul>
 	 *
-	 * <li>If the {@code name} begins with a {@code '/'} (<tt>'&#92;u002f'</tt>), then the absolute name
+	 * <li>If the {@code name} begins with a {@code '/'} (<code>'&#92;u002f'</code>), then the absolute name
 	 * of the resource is the portion of the {@code name} following the {@code '/'}.
 	 *
 	 * <li>Otherwise, the absolute name is of the following form:
@@ -1017,7 +1017,7 @@ public final class ASMClass implements java.io.Serializable {
 	 *
 	 * <p>
 	 * Where the {@code modified_package_name} is the package name of this object with {@code '/'}
-	 * substituted for {@code '.'} (<tt>'&#92;u002e'</tt>).
+	 * substituted for {@code '.'} (<code>'&#92;u002e'</code>).
 	 *
 	 * </ul>
 	 *

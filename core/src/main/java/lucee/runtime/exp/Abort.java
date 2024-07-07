@@ -29,6 +29,7 @@ public class Abort extends AbortException {
 
 	/**
 	 * Constructor of the Class
+	 * @param scope
 	 */
 	public Abort(int scope) {
 		super("Page request is aborted");

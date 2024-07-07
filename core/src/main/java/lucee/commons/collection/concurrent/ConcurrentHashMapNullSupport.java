@@ -44,17 +44,17 @@ import lucee.runtime.type.util.StructSupport;
 /**
  * A hash table supporting full concurrency of retrievals and adjustable expected concurrency for
  * updates. This class obeys the same functional specification as {@link java.util.Hashtable}, and
- * includes versions of methods corresponding to each method of <tt>Hashtable</tt>. However, even
+ * includes versions of methods corresponding to each method of <code>Hashtable</code>. However, even
  * though all operations are thread-safe, retrieval operations do <em>not</em> entail locking, and
  * there is <em>not</em> any support for locking the entire table in a way that prevents all access.
- * This class is fully interoperable with <tt>Hashtable</tt> in programs that rely on its thread
+ * This class is fully interoperable with <code>Hashtable</code> in programs that rely on its thread
  * safety but not on its synchronization details.
  *
  * <p>
- * Retrieval operations (including <tt>get</tt>) generally do not block, so may overlap with update
- * operations (including <tt>put</tt> and <tt>remove</tt>). Retrievals reflect the results of the
+ * Retrieval operations (including <code>get</code>) generally do not block, so may overlap with update
+ * operations (including <code>put</code> and <code>remove</code>). Retrievals reflect the results of the
  * most recently <em>completed</em> update operations holding upon their onset. For aggregate
- * operations such as <tt>putAll</tt> and <tt>clear</tt>, concurrent retrievals may reflect
+ * operations such as <code>putAll</code> and <code>clear</code>, concurrent retrievals may reflect
  * insertion or removal of only some entries. Similarly, Iterators and Enumerations return elements
  * reflecting the state of the hash table at some point at or since the creation of the
  * iterator/enumeration. They do <em>not</em> throw {@link ConcurrentModificationException}.
@@ -62,7 +62,7 @@ import lucee.runtime.type.util.StructSupport;
  *
  * <p>
  * The allowed concurrency among update operations is guided by the optional
- * <tt>concurrencyLevel</tt> constructor argument (default <tt>16</tt>), which is used as a hint for
+ * <code>concurrencyLevel</code> constructor argument (default <code>16</code>), which is used as a hint for
  * internal sizing. The table is internally partitioned to try to permit the indicated number of
  * concurrent updates without contention. Because placement in hash tables is essentially random,
  * the actual concurrency will vary. Ideally, you should choose a value to accommodate as many
@@ -80,7 +80,7 @@ import lucee.runtime.type.util.StructSupport;
  *
  * <p>
  * Like {@link Hashtable} but unlike {@link HashMap}, this class does <em>not</em> allow
- * <tt>null</tt> to be used as a key or value.
+ * <code>null</code> to be used as a key or value.
  *
  * <p>
  * This class is a member of the
@@ -263,8 +263,8 @@ public class ConcurrentHashMapNullSupport<K, V> extends AbstractMap<K, V> implem
 
 		/**
 		 * The table is rehashed when its size exceeds this threshold. (The value of this field is always
-		 * <tt>(int)(capacity *
-		 * loadFactor)</tt>.)
+		 * <code>(int)(capacity *
+		 * loadFactor)</code>.)
 		 */
 		transient int threshold;
 
@@ -726,9 +726,9 @@ public class ConcurrentHashMapNullSupport<K, V> extends AbstractMap<K, V> implem
 	}
 
 	/**
-	 * Returns <tt>true</tt> if this map contains no key-value mappings.
+	 * Returns <code>true</code> if this map contains no key-value mappings.
 	 *
-	 * @return <tt>true</tt> if this map contains no key-value mappings
+	 * @return <code>true</code> if this map contains no key-value mappings
 	 */
 	@Override
 	public boolean isEmpty() {
@@ -758,7 +758,7 @@ public class ConcurrentHashMapNullSupport<K, V> extends AbstractMap<K, V> implem
 
 	/**
 	 * Returns the number of key-value mappings in this map. If the map contains more than
-	 * <tt>Integer.MAX_VALUE</tt> elements, returns <tt>Integer.MAX_VALUE</tt>.
+	 * <code>Integer.MAX_VALUE</code> elements, returns <code>Integer.MAX_VALUE</code>.
 	 *
 	 * @return the number of key-value mappings in this map
 	 */
@@ -835,8 +835,8 @@ public class ConcurrentHashMapNullSupport<K, V> extends AbstractMap<K, V> implem
 	 * Tests if the specified object is a key in this table.
 	 *
 	 * @param key possible key
-	 * @return <tt>true</tt> if and only if the specified object is a key in this table, as determined
-	 *         by the <tt>equals</tt> method; <tt>false</tt> otherwise.
+	 * @return <code>true</code> if and only if the specified object is a key in this table, as determined
+	 *         by the <code>equals</code> method; <code>false</code> otherwise.
 	 * @throws NullPointerException if the specified key is null
 	 */
 	@Override
@@ -846,12 +846,12 @@ public class ConcurrentHashMapNullSupport<K, V> extends AbstractMap<K, V> implem
 	}
 
 	/**
-	 * Returns <tt>true</tt> if this map maps one or more keys to the specified value. Note: This method
+	 * Returns <code>true</code> if this map maps one or more keys to the specified value. Note: This method
 	 * requires a full internal traversal of the hash table, and so is much slower than method
-	 * <tt>containsKey</tt>.
+	 * <code>containsKey</code>.
 	 *
 	 * @param value value whose presence in this map is to be tested
-	 * @return <tt>true</tt> if this map maps one or more keys to the specified value
+	 * @return <code>true</code> if this map maps one or more keys to the specified value
 	 * @throws NullPointerException if the specified value is null
 	 */
 	@Override
@@ -907,8 +907,8 @@ public class ConcurrentHashMapNullSupport<K, V> extends AbstractMap<K, V> implem
 	 * introduction of the Java Collections framework.
 	 * 
 	 * @param value a value to search for
-	 * @return <tt>true</tt> if and only if some key maps to the <tt>value</tt> argument in this table
-	 *         as determined by the <tt>equals</tt> method; <tt>false</tt> otherwise
+	 * @return <code>true</code> if and only if some key maps to the <code>value</code> argument in this table
+	 *         as determined by the <code>equals</code> method; <code>false</code> otherwise
 	 * @throws NullPointerException if the specified value is null
 	 */
 	public boolean contains(Object value) {
@@ -920,13 +920,13 @@ public class ConcurrentHashMapNullSupport<K, V> extends AbstractMap<K, V> implem
 	 * null.
 	 *
 	 * <p>
-	 * The value can be retrieved by calling the <tt>get</tt> method with a key that is equal to the
+	 * The value can be retrieved by calling the <code>get</code> method with a key that is equal to the
 	 * original key.
 	 *
 	 * @param key key with which the specified value is to be associated
 	 * @param value value to be associated with the specified key
-	 * @return the previous value associated with <tt>key</tt>, or <tt>null</tt> if there was no mapping
-	 *         for <tt>key</tt>
+	 * @return the previous value associated with <code>key</code>, or <code>null</code> if there was no mapping
+	 *         for <code>key</code>
 	 * @throws NullPointerException if the specified key or value is null
 	 */
 	@Override
@@ -952,8 +952,8 @@ public class ConcurrentHashMapNullSupport<K, V> extends AbstractMap<K, V> implem
 	 * is not in the map.
 	 *
 	 * @param key the key that needs to be removed
-	 * @return the previous value associated with <tt>key</tt>, or <tt>null</tt> if there was no mapping
-	 *         for <tt>key</tt>
+	 * @return the previous value associated with <code>key</code>, or <code>null</code> if there was no mapping
+	 *         for <code>key</code>
 	 * @throws NullPointerException if the specified key is null
 	 */
 	@Override
@@ -986,12 +986,12 @@ public class ConcurrentHashMapNullSupport<K, V> extends AbstractMap<K, V> implem
 	/**
 	 * Returns a {@link Set} view of the keys contained in this map. The set is backed by the map, so
 	 * changes to the map are reflected in the set, and vice-versa. The set supports element removal,
-	 * which removes the corresponding mapping from this map, via the <tt>Iterator.remove</tt>,
-	 * <tt>Set.remove</tt>, <tt>removeAll</tt>, <tt>retainAll</tt>, and <tt>clear</tt> operations. It
-	 * does not support the <tt>add</tt> or <tt>addAll</tt> operations.
+	 * which removes the corresponding mapping from this map, via the <code>Iterator.remove</code>,
+	 * <code>Set.remove</code>, <code>removeAll</code>, <code>retainAll</code>, and <code>clear</code> operations. It
+	 * does not support the <code>add</code> or <code>addAll</code> operations.
 	 *
 	 * <p>
-	 * The view's <tt>iterator</tt> is a "weakly consistent" iterator that will never throw
+	 * The view's <code>iterator</code> is a "weakly consistent" iterator that will never throw
 	 * {@link ConcurrentModificationException}, and guarantees to traverse elements as they existed upon
 	 * construction of the iterator, and may (but is not guaranteed to) reflect any modifications
 	 * subsequent to construction.
@@ -1006,11 +1006,11 @@ public class ConcurrentHashMapNullSupport<K, V> extends AbstractMap<K, V> implem
 	 * Returns a {@link Collection} view of the values contained in this map. The collection is backed
 	 * by the map, so changes to the map are reflected in the collection, and vice-versa. The collection
 	 * supports element removal, which removes the corresponding mapping from this map, via the
-	 * <tt>Iterator.remove</tt>, <tt>Collection.remove</tt>, <tt>removeAll</tt>, <tt>retainAll</tt>, and
-	 * <tt>clear</tt> operations. It does not support the <tt>add</tt> or <tt>addAll</tt> operations.
+	 * <code>Iterator.remove</code>, <code>Collection.remove</code>, <code>removeAll</code>, <code>retainAll</code>, and
+	 * <code>clear</code> operations. It does not support the <code>add</code> or <code>addAll</code> operations.
 	 *
 	 * <p>
-	 * The view's <tt>iterator</tt> is a "weakly consistent" iterator that will never throw
+	 * The view's <code>iterator</code> is a "weakly consistent" iterator that will never throw
 	 * {@link ConcurrentModificationException}, and guarantees to traverse elements as they existed upon
 	 * construction of the iterator, and may (but is not guaranteed to) reflect any modifications
 	 * subsequent to construction.
@@ -1024,12 +1024,12 @@ public class ConcurrentHashMapNullSupport<K, V> extends AbstractMap<K, V> implem
 	/**
 	 * Returns a {@link Set} view of the mappings contained in this map. The set is backed by the map,
 	 * so changes to the map are reflected in the set, and vice-versa. The set supports element removal,
-	 * which removes the corresponding mapping from the map, via the <tt>Iterator.remove</tt>,
-	 * <tt>Set.remove</tt>, <tt>removeAll</tt>, <tt>retainAll</tt>, and <tt>clear</tt> operations. It
-	 * does not support the <tt>add</tt> or <tt>addAll</tt> operations.
+	 * which removes the corresponding mapping from the map, via the <code>Iterator.remove</code>,
+	 * <code>Set.remove</code>, <code>removeAll</code>, <code>retainAll</code>, and <code>clear</code> operations. It
+	 * does not support the <code>add</code> or <code>addAll</code> operations.
 	 *
 	 * <p>
-	 * The view's <tt>iterator</tt> is a "weakly consistent" iterator that will never throw
+	 * The view's <code>iterator</code> is a "weakly consistent" iterator that will never throw
 	 * {@link ConcurrentModificationException}, and guarantees to traverse elements as they existed upon
 	 * construction of the iterator, and may (but is not guaranteed to) reflect any modifications
 	 * subsequent to construction.
@@ -1288,7 +1288,7 @@ public class ConcurrentHashMapNullSupport<K, V> extends AbstractMap<K, V> implem
 	/* ---------------- Serialization Support -------------- */
 
 	/**
-	 * Save the state of the <tt>ConcurrentHashMap</tt> instance to a stream (i.e., serialize it).
+	 * Save the state of the <code>ConcurrentHashMap</code> instance to a stream (i.e., serialize it).
 	 * 
 	 * @param s the stream
 	 * @serialData the key (Object) and value (Object) for each key-value mapping, followed by a null
@@ -1318,7 +1318,7 @@ public class ConcurrentHashMapNullSupport<K, V> extends AbstractMap<K, V> implem
 	}
 
 	/**
-	 * Reconstitute the <tt>ConcurrentHashMap</tt> instance from a stream (i.e., deserialize it).
+	 * Reconstitute the <code>ConcurrentHashMap</code> instance from a stream (i.e., deserialize it).
 	 * 
 	 * @param s the stream
 	 */

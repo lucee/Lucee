@@ -57,7 +57,7 @@ public final class Abort extends TagImpl {
 	 * sets the type of the abort (page,request)
 	 * 
 	 * @param type
-	 * @throws ApplicationException
+	 * @throws ApplicationException throws when invalid type
 	 */
 	public void setType(String type) throws ApplicationException {
 		type = type.toLowerCase().trim();

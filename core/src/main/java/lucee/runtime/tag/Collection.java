@@ -64,7 +64,6 @@ public final class Collection extends TagImpl {
 
 	/**
 	 * @param categories the categories to set
-	 * @throws ApplicationException
 	 */
 	public void setCategories(boolean categories) {
 		// Lucee always support categories
@@ -89,7 +88,7 @@ public final class Collection extends TagImpl {
 	/**
 	 * set the value path
 	 * 
-	 * @param path value to set
+	 * @param strPath value to set
 	 * @throws PageException
 	 **/
 	public void setPath(String strPath) throws PageException {

@@ -383,7 +383,7 @@ public final class DateCaster {
 	/**
 	 * converts a double to a DateTime Object
 	 * 
-	 * @param d double to Convert
+	 * @param l long to Convert
 	 * @param timeZone
 	 * @return coverted Date Time Object
 	 */

@@ -45,7 +45,7 @@ public class FDNative extends FDValueNotMutability {
 	 * 
 	 * @param frame
 	 * @param name
-	 * @param coll
+	 * @param value
 	 */
 	public FDNative(IFDStackFrame frame, String name, Object value) {
 		this.name = name;

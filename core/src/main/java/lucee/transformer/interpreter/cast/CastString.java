@@ -29,7 +29,6 @@ public final class CastString extends ExpressionBase implements ExprString, Cast
 	 * Create a String expression from an Expression
 	 * 
 	 * @param expr
-	 * @param pos
 	 * @return String expression
 	 */
 	public static ExprString toExprString(Expression expr) {
