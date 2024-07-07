@@ -33,7 +33,7 @@ public class ArrayListIteratorImpl implements ListIterator {
 	/**
 	 * Constructor of the class
 	 * 
-	 * @param arr
+	 * @param array
 	 * @param index
 	 */
 	public ArrayListIteratorImpl(Array array, int index) {

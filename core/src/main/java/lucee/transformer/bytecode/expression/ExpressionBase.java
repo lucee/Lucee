@@ -69,7 +69,7 @@ public abstract class ExpressionBase implements Expression {
 	 * @param adapter
 	 * @param mode
 	 * @return return Type of expression
-	 * @throws TemplateException
+	 * @throws TransformerException
 	 */
 	public abstract Type _writeOut(BytecodeContext bc, int mode) throws TransformerException;
 

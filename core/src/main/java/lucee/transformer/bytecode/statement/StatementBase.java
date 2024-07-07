@@ -71,7 +71,7 @@ public abstract class StatementBase implements Statement {
 	 * write out the statement to adapter
 	 * 
 	 * @param adapter
-	 * @throws TemplateException
+	 * @throws TransformerException
 	 */
 	@Override
 	public final void writeOut(Context c) throws TransformerException {

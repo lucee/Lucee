@@ -39,7 +39,6 @@ public class Array_ extends BIF {
 	 * @param pc
 	 * @param objArr
 	 * @return
-	 * @throws ExpressionException
 	 */
 	public static Array call(PageContext pc, Object[] objArr) {
 		/*

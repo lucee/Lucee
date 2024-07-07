@@ -52,7 +52,7 @@ import lucee.runtime.thread.SerializableCookie;
 import lucee.runtime.type.QueryImpl;
 
 /**
- *  
+ *  debug print class
  */
 public class aprint {
 	public static void edate(String value) {

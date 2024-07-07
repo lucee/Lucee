@@ -44,7 +44,6 @@ public class ActionMonitorCollectorImpl implements ActionMonitorCollector {
 	 * 
 	 * @param pc
 	 * @param ar
-	 * @throws IOException
 	 */
 	@Override
 	public void log(PageContext pc, String type, String label, long executionTime, Object data) {

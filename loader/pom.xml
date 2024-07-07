@@ -149,7 +149,10 @@
         <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-javadoc-plugin</artifactId>
-          <version>3.5.0</version>
+          <version>3.7.0</version>
+          <configuration>
+            <sourcepath>src/main/java;../core/src/main/java</sourcepath>
+          </configuration>
           <executions>
             <execution>
               <id>attach-javadocs</id>
@@ -158,9 +161,10 @@
               </goals>
             
             <configuration>
-               <source>8</source>
+               <source>11</source>
                <detectJavaApiLink>false</detectJavaApiLink>
                <quiet>true</quiet>
+               <additionalparam>-Xdoclint:none</additionalparam>
                <!-- add this to disable checking
                 <additionalparam>-Xdoclint:none</additionalparam>
                -->
