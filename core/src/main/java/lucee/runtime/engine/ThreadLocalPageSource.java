@@ -28,9 +28,9 @@ public final class ThreadLocalPageSource {
 	private static ThreadLocal<PageSource> local = new ThreadLocal<PageSource>();
 
 	/**
-	 * register a Config for he current thread
+	 * register a pagesource for he current thread
 	 * 
-	 * @param config Config to register
+	 * @param ps
 	 */
 	public static void register(PageSource ps) {
 		local.set(ps);

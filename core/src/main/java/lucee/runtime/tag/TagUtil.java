@@ -236,8 +236,8 @@ public class TagUtil {
 	/**
 	 * load metadata from cfc based custom tags and add the info to the tag
 	 * 
-	 * @param cs
-	 * @param config
+	 * @param cw
+	 * @param log
 	 */
 	public static void addTagMetaData(ConfigWebPro cw, lucee.commons.io.log.Log log) {
 
@@ -330,12 +330,12 @@ public class TagUtil {
 	 * used by the bytecode builded
 	 * 
 	 * @param pc pageContext
+	 * @param args
 	 * @param className
 	 * @param bundleName
 	 * @param bundleVersion
 	 * @return
-	 * @throws BundleException
-	 * @throws ClassException
+	 * @throws PageException
 	 */
 	public static Object invokeBIF(PageContext pc, Object[] args, String className, String bundleName, String bundleVersion) throws PageException {
 		try {

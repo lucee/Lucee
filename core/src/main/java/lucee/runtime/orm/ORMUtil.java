@@ -315,8 +315,8 @@ public class ORMUtil {
 	 * 
 	 * @param pc
 	 * @param cfc
+	 * @param defaultValue
 	 * @return
-	 * @throws PageException
 	 */
 	public static DataSource getDataSource(PageContext pc, Component cfc, DataSource defaultValue) {
 		pc = ThreadLocalPageContext.get(pc);

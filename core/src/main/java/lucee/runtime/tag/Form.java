@@ -125,7 +125,7 @@ public final class Form extends BodyTagImpl {
 	}
 
 	/**
-	 * @param format the format to set
+	 * @param strFormat the format to set
 	 * @throws ApplicationException
 	 */
 	public void setFormat(String strFormat) throws ApplicationException {
@@ -143,7 +143,7 @@ public final class Form extends BodyTagImpl {
 	}
 
 	/**
-	 * @param skin The skin to set.
+	 * @param strSkin The skin to set.
 	 */
 	public void setSkin(String strSkin) {
 		this.strSkin = strSkin;
@@ -165,7 +165,6 @@ public final class Form extends BodyTagImpl {
 
 	/**
 	 * @param archive The archive to set.
-	 * @throws ApplicationException
 	 */
 	public void setArchive(String archive) {
 		archive = archive.trim().toLowerCase().replace('\\', '/');
@@ -175,7 +174,6 @@ public final class Form extends BodyTagImpl {
 
 	/**
 	 * @param codebase The codebase to set.
-	 * @throws ApplicationException
 	 */
 	public void setCodebase(String codebase) {
 		this.codebase = codebase;
@@ -249,7 +247,7 @@ public final class Form extends BodyTagImpl {
 	}
 
 	/**
-	 * @param onreset The onreset to set.
+	 * @param onload The onreset to set.
 	 */
 	public void setOnload(String onload) {
 		this.onload = onload;
@@ -396,7 +394,7 @@ public final class Form extends BodyTagImpl {
 	}
 
 	/**
-	 * @param strWMode the wmode to set
+	 * @param accessible the accessible to set
 	 */
 	public void setAccessible(boolean accessible) {
 		this.accessible = accessible;

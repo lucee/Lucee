@@ -209,7 +209,6 @@ public final class ConfigWebFactory extends ConfigFactory {
 	 * @param servletConfig
 	 * @return new Instance
 	 * @throws SAXException
-	 * @throws ClassNotFoundException
 	 * @throws PageException
 	 * @throws IOException
 	 * @throws TagLibException
@@ -376,14 +375,12 @@ public final class ConfigWebFactory extends ConfigFactory {
 	 * 
 	 * @param cs
 	 * @param force
-	 * @throws SAXException
-	 * @throws ClassNotFoundException
+	 * @throws ClassException
 	 * @throws PageException
 	 * @throws IOException
 	 * @throws TagLibException
 	 * @throws FunctionLibException
 	 * @throws BundleException
-	 * @throws NoSuchAlgorithmException
 	 */ // MUST
 	public static void reloadInstance(CFMLEngine engine, ConfigServerImpl cs, ConfigWebImpl cwi, boolean force)
 			throws ClassException, PageException, IOException, TagLibException, FunctionLibException, BundleException {

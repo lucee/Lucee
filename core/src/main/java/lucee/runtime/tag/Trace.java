@@ -98,7 +98,7 @@ public final class Trace extends BodyTagImpl {
 	}
 
 	/**
-	 * @param type the type to set
+	 * @param strType the type to set
 	 * @throws ApplicationException
 	 */
 	public void setType(String strType) throws ApplicationException {

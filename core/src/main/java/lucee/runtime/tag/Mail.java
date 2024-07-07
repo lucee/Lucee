@@ -182,7 +182,7 @@ public final class Mail extends BodyTagImpl {
 	/**
 	 * set the value from The sender of the e-mail message.
 	 * 
-	 * @param strForm value to set
+	 * @param from value to set
 	 * @throws PageException
 	 **/
 	public void setFrom(Object from) throws PageException {
@@ -202,7 +202,7 @@ public final class Mail extends BodyTagImpl {
 	/**
 	 * set the value to The name of the e-mail message recipient.
 	 * 
-	 * @param strTo value to set
+	 * @param to value to set
 	 * @throws ApplicationException
 	 **/
 	public void setTo(Object to) throws ApplicationException {
@@ -221,7 +221,7 @@ public final class Mail extends BodyTagImpl {
 	 * set the value cc Indicates addresses to copy the e-mail message to; "cc" stands for "carbon
 	 * copy."
 	 * 
-	 * @param strCc value to set
+	 * @param cc value to set
 	 * @throws ApplicationException
 	 **/
 	public void setCc(Object cc) throws ApplicationException {
@@ -240,7 +240,7 @@ public final class Mail extends BodyTagImpl {
 	 * set the value bcc Indicates addresses to copy the e-mail message to, without listing them in the
 	 * message header. "bcc" stands for "blind carbon copy."
 	 * 
-	 * @param strBcc value to set
+	 * @param bcc value to set
 	 * @throws ApplicationException
 	 **/
 	public void setBcc(Object bcc) throws ApplicationException {
@@ -256,7 +256,7 @@ public final class Mail extends BodyTagImpl {
 	}
 
 	/**
-	 * @param strFailto The failto to set.
+	 * @param failto The failto to set.
 	 * @throws ApplicationException
 	 */
 	public void setFailto(Object failto) throws ApplicationException {
@@ -272,7 +272,7 @@ public final class Mail extends BodyTagImpl {
 	}
 
 	/**
-	 * @param strReplyto The replyto to set.
+	 * @param replyto The replyto to set.
 	 * @throws ApplicationException
 	 */
 	public void setReplyto(Object replyto) throws ApplicationException {

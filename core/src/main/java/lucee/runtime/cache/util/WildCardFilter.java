@@ -38,7 +38,7 @@ public class WildCardFilter implements CacheKeyFilter {
 
 	/**
 	 * @param wildcard
-	 * @throws MalformedPatternException
+	 * @param ignoreCase
 	 */
 	public WildCardFilter(String wildcard, boolean ignoreCase) {
 		this.wildcard = wildcard;

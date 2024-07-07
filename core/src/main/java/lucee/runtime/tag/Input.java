@@ -376,7 +376,7 @@ public class Input extends TagImpl {
 	}
 
 	/**
-	 * @param onMouseUp The onMouseUp to set.
+	 * @param onselect The onSelect to set.
 	 */
 	public void setOnselect(String onselect) {
 		attributes.setEL("onselect", onselect);
@@ -441,7 +441,7 @@ public class Input extends TagImpl {
 	}
 
 	/**
-	 * @param daynames The daynames to set.
+	 * @param listDaynames The daynames to set.
 	 * @throws ApplicationException
 	 */
 	public void setDaynames(String listDaynames) throws ApplicationException {
@@ -451,7 +451,7 @@ public class Input extends TagImpl {
 	}
 
 	/**
-	 * @param daynames The daynames to set.
+	 * @param firstDayOfWeek The firstDayOfWeek to set.
 	 * @throws ApplicationException
 	 */
 	public void setFirstdayofweek(double firstDayOfWeek) throws ApplicationException {
@@ -460,7 +460,7 @@ public class Input extends TagImpl {
 	}
 
 	/**
-	 * @param daynames The daynames to set.
+	 * @param listMonthNames The MonthNames to set.
 	 * @throws ApplicationException
 	 */
 	public void setMonthnames(String listMonthNames) throws ApplicationException {
@@ -470,14 +470,14 @@ public class Input extends TagImpl {
 	}
 
 	/**
-	 * @param daynames The daynames to set.
+	 * @param label
 	 */
 	public void setLabel(String label) {
 		this.label = label;
 	}
 
 	/**
-	 * @param daynames The daynames to set.
+	 * @param mask The mask to set.
 	 */
 	public void setMask(String mask) {
 		this.mask = mask;
@@ -500,14 +500,14 @@ public class Input extends TagImpl {
 	}
 
 	/**
-	 * @param daynames The daynames to set.
+	 * @param notab
 	 */
 	public void setNotab(String notab) {
 		attributes.setEL("notab", notab);
 	}
 
 	/**
-	 * @param daynames The daynames to set.
+	 * @param hspace
 	 */
 	public void setHspace(String hspace) {
 		attributes.setEL("hspace", hspace);
@@ -750,7 +750,6 @@ public class Input extends TagImpl {
 
 	/**
 	 * @param tooltip the tooltip to set
-	 * @throws ApplicationException
 	 */
 	public void setTooltip(String tooltip) {
 		this.tooltip = tooltip;
@@ -768,7 +767,6 @@ public class Input extends TagImpl {
 
 	/**
 	 * @param visible the visible to set
-	 * @throws ApplicationException
 	 */
 	public void setVisible(boolean visible) {
 		this.visible = visible;
@@ -776,7 +774,6 @@ public class Input extends TagImpl {
 
 	/**
 	 * @param width the width to set
-	 * @throws ApplicationException
 	 */
 	public void setWidth(String width) {
 		attributes.setEL(KeyConstants._width, width);

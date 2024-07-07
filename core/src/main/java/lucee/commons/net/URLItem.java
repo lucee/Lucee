@@ -30,7 +30,7 @@ public final class URLItem {
 	/**
 	 * @param name
 	 * @param value
-	 * @param isURLEncoded
+	 * @param urlEncoded
 	 */
 	public URLItem(String name, String value, boolean urlEncoded) {
 		this.name = name;

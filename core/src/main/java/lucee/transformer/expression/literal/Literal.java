@@ -25,7 +25,6 @@ import lucee.transformer.expression.Expression;
 public interface Literal extends Expression {
 
 	/**
-	 * @param defaultValue
 	 * @return return value as String (CFML Rules)
 	 */
 	public String getString();

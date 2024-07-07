@@ -34,7 +34,7 @@ public class SessionFile extends StorageScopeFile implements Session {
 	 * Constructor of the class
 	 * 
 	 * @param pc
-	 * @param name
+	 * @param res
 	 * @param sct
 	 */
 	private SessionFile(PageContext pc, Resource res, Struct sct) {
@@ -45,6 +45,7 @@ public class SessionFile extends StorageScopeFile implements Session {
 	 * Constructor of the class, clone existing
 	 * 
 	 * @param other
+	 * @param deepCopy
 	 */
 	private SessionFile(SessionFile other, boolean deepCopy) {
 		super(other, deepCopy);
@@ -55,7 +56,7 @@ public class SessionFile extends StorageScopeFile implements Session {
 	 * 
 	 * @param name
 	 * @param pc
-	 * @param checkExpires
+	 * @param log
 	 * @return
 	 */
 	public static Session getInstance(String name, PageContext pc, Log log) {

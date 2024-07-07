@@ -107,7 +107,6 @@ public final class Ldap extends TagImpl {
 
 	/**
 	 * @param filterfile The filterfile to set.
-	 * @throws ApplicationException
 	 */
 	public void setFilterfile(String filterfile) {
 		// DeprecatedUtil.tagAttribute(pageContext,"LDAP", "filterfile");

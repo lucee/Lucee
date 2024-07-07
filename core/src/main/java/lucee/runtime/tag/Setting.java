@@ -54,7 +54,7 @@ public final class Setting extends BodyTagImpl {
 	 * for backward compatibility reason this setting only works enables debugging, if there is a custom
 	 * debug template and at least one debug setting is enabled
 	 * 
-	 * @param showdebugoutput value to set
+	 * @param show value to set
 	 **/
 	public void setShowdebugoutput(boolean show) {
 		if (show) {

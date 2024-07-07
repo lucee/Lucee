@@ -49,7 +49,6 @@ public final class LStringBuffer extends RefSupport implements Literal {
 	/**
 	 * constructor of the class
 	 * 
-	 * @param str
 	 */
 	public LStringBuffer() {
 	}

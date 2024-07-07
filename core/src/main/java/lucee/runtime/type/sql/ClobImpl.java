@@ -117,7 +117,7 @@ public final class ClobImpl implements java.sql.Clob, Serializable {
 	}
 
 	/**
-	 * Materializes the <code>CLOB</code> value designated by this <Code>object
+	 * Materializes the <code>CLOB</code> value designated by this <code>object
 	 * as a stream of Unicode character.
 	 * 
 	 * &#64;return A reader object with all the data in the <code>CLOB</code> value designated by this

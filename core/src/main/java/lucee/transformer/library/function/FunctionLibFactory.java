@@ -350,7 +350,7 @@ public final class FunctionLibFactory extends DefaultHandler {
 	 * Laedt mehrere FunctionLib's die innerhalb eines Verzeichnisses liegen.
 	 * 
 	 * @param dir Verzeichnis im dem die FunctionLib's liegen.
-	 * @param saxParser Definition des Sax Parser mit dem die FunctionLib's eingelesen werden sollen.
+	 * @param id
 	 * @return FunctionLib's als Array
 	 * @throws FunctionLibException
 	 */
@@ -370,7 +370,7 @@ public final class FunctionLibFactory extends DefaultHandler {
 	 * Laedt eine einzelne FunctionLib.
 	 * 
 	 * @param res FLD die geladen werden soll.
-	 * @param saxParser Definition des Sax Parser mit dem die FunctionLib eingelsesen werden soll.
+	 * @param id
 	 * @return FunctionLib
 	 * @throws FunctionLibException
 	 */
@@ -392,7 +392,6 @@ public final class FunctionLibFactory extends DefaultHandler {
 	 * 
 	 * @param res
 	 * @return
-	 * @throws NoSuchAlgorithmException
 	 */
 	public static String id(Resource res) {
 		String str = ResourceUtil.getCanonicalPathEL(res) + "|" + res.length() + "|" + res.lastModified();
@@ -407,7 +406,7 @@ public final class FunctionLibFactory extends DefaultHandler {
 	/**
 	 * Laedt die Systeminterne FLD.
 	 * 
-	 * @param saxParser Definition des Sax Parser mit dem die FunctionLib eingelsesen werden soll.
+	 * @param id
 	 * @return FunctionLib
 	 * @throws FunctionLibException
 	 */

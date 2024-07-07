@@ -43,7 +43,9 @@ public final class While extends StatementBaseNoFinal implements FlowControlBrea
 	 * 
 	 * @param expr
 	 * @param body
-	 * @param line
+	 * @param start
+	 * @param end
+	 * @param label
 	 */
 	public While(Expression expr, Body body, Position start, Position end, String label) {
 		super(expr.getFactory(), start, end);
@@ -58,7 +60,9 @@ public final class While extends StatementBaseNoFinal implements FlowControlBrea
 	 * 
 	 * @param b
 	 * @param body
-	 * @param line
+	 * @param start
+	 * @param end
+	 * @param label
 	 */
 	public While(boolean b, Body body, Position start, Position end, String label) {
 		this(body.getFactory().createLitBoolean(b), body, start, end, label);

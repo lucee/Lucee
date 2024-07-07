@@ -79,8 +79,10 @@ public final class TryCatchFinally extends StatementBase implements Opcodes, Has
 	/**
 	 * Constructor of the class
 	 * 
+	 * @param factory
 	 * @param body
-	 * @param line
+	 * @param start
+	 * @param end
 	 */
 	public TryCatchFinally(Factory factory, Body body, Position start, Position end) {
 		super(factory, start, end);
@@ -92,6 +94,7 @@ public final class TryCatchFinally extends StatementBase implements Opcodes, Has
 	 * sets finally body
 	 * 
 	 * @param body
+	 * @param finallyLine
 	 */
 	public void setFinally(Body body, Position finallyLine) {
 		body.setParent(this);

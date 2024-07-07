@@ -71,8 +71,9 @@ public final class UUCoder {
 	/**
 	 * decodes back a String to a byte array
 	 * 
-	 * @param b
+	 * @param str
 	 * @return decoded byte array
+	 * @throws CoderException
 	 */
 	public static byte[] decode(String str) throws CoderException {
 		byte out[] = new byte[str.length()];

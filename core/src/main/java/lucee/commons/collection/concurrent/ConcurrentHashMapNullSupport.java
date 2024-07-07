@@ -1293,6 +1293,7 @@ public class ConcurrentHashMapNullSupport<K, V> extends AbstractMap<K, V> implem
 	 * @param s the stream
 	 * @serialData the key (Object) and value (Object) for each key-value mapping, followed by a null
 	 *             pair. The key-value mappings are emitted in no particular order.
+	 * @throws IOException
 	 */
 	private void writeObject(java.io.ObjectOutputStream s) throws IOException {
 		s.defaultWriteObject();
@@ -1321,6 +1322,8 @@ public class ConcurrentHashMapNullSupport<K, V> extends AbstractMap<K, V> implem
 	 * Reconstitute the <code>ConcurrentHashMap</code> instance from a stream (i.e., deserialize it).
 	 * 
 	 * @param s the stream
+	 * @throws IOException
+	 * @throws ClassNotFoundException
 	 */
 	private void readObject(java.io.ObjectInputStream s) throws IOException, ClassNotFoundException {
 		s.defaultReadObject();

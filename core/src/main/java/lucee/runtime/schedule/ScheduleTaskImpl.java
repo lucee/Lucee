@@ -76,6 +76,7 @@ public final class ScheduleTaskImpl implements ScheduleTaskPro {
 	/**
 	 * constructor of the class
 	 * 
+	 * @param scheduler
 	 * @param task Task name
 	 * @param file Output File
 	 * @param startDate Start Date
@@ -87,12 +88,15 @@ public final class ScheduleTaskImpl implements ScheduleTaskPro {
 	 * @param interval interval of the job
 	 * @param timeout request timeout in miilisconds
 	 * @param credentials username and password for the request
-	 * @param proxyHost
-	 * @param proxyPort
-	 * @param proxyCredentials proxy username and password
-	 * @param userAgent
-	 * @param resolveURL resolve links in the output page to absolute references or not
+	 * @param proxy
+	 * @param resolveURL
 	 * @param publish
+	 * @param hidden
+	 * @param readonly
+	 * @param paused
+	 * @param autoDelete
+	 * @param unique
+	 * @param userAgent
 	 * @throws IOException
 	 * @throws ScheduleException
 	 */

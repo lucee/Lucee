@@ -170,7 +170,7 @@ public class ThreadUtil {
 	/**
 	 * return priority as an int representation
 	 * 
-	 * @param priority Thread priority as String definition
+	 * @param strPriority Thread priority as String definition
 	 * @return int definition of priority (-1 when input is invalid)
 	 */
 	public static int toIntPriority(String strPriority) {

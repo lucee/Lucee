@@ -61,7 +61,8 @@ public final class XMLAttributes extends StructSupport implements Struct, NamedN
 	/**
 	 * constructor of the class (readonly)
 	 * 
-	 * @param nodeMap
+	 * @param parent
+	 * @param caseSensitive
 	 */
 	public XMLAttributes(Node parent, boolean caseSensitive) {
 		this.owner = XMLUtil.getDocument(parent);

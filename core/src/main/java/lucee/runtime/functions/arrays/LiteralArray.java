@@ -32,7 +32,6 @@ public class LiteralArray extends BIF {
 	 * @param pc
 	 * @param objArr
 	 * @return
-	 * @throws ExpressionException
 	 */
 	public static Array call(PageContext pc, Object[] objArr) {
 		return Array_.call(pc, objArr);

@@ -34,7 +34,6 @@ public final class FTPResourceOutputStream extends ResourceOutputStream {
 	 * @param client
 	 * @param res
 	 * @param os
-	 * @throws IOException
 	 */
 	public FTPResourceOutputStream(FTPResourceClient client, Resource res, OutputStream os) {
 		super(res, os);

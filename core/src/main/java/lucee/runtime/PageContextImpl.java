@@ -370,9 +370,8 @@ public final class PageContextImpl extends PageContext {
 	 * 
 	 * @param scopeContext
 	 * @param config Configuration of the CFML Container
-	 * @param queryCache Query Cache Object
-	 * @param id identity of the pageContext
 	 * @param servlet
+	 * @param jsr223
 	 */
 	public PageContextImpl(ScopeContext scopeContext, ConfigWebPro config, HttpServlet servlet, boolean jsr223) {
 		// must be first because is used after

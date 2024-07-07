@@ -49,7 +49,8 @@ public final class PrintOut extends StatementBaseNoFinal {
 	 * constructor of the class
 	 * 
 	 * @param expr
-	 * @param line
+	 * @param start
+	 * @param end
 	 */
 	public PrintOut(Expression expr, Position start, Position end) {
 		super(expr.getFactory(), start, end);
@@ -99,7 +100,7 @@ public final class PrintOut extends StatementBaseNoFinal {
 	}
 
 	/**
-	 * @param preserveSingleQuote the preserveSingleQuote to set
+	 * @param checkPSQ the preserveSingleQuote to set
 	 */
 	public void setCheckPSQ(boolean checkPSQ) {
 		this.checkPSQ = checkPSQ;

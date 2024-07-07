@@ -790,10 +790,10 @@ public final class OpUtil {
 	/**
 	 * simple reference compersion
 	 * 
+	 * @param pc
 	 * @param left
 	 * @param right
 	 * @return
-	 * @throws PageException
 	 */
 	public static boolean eeq(PageContext pc, Object left, Object right) {
 		// same object is a match
@@ -818,10 +818,10 @@ public final class OpUtil {
 	/**
 	 * simple reference compersion
 	 * 
+	 * @param pc
 	 * @param left
 	 * @param right
 	 * @return
-	 * @throws PageException
 	 */
 	public static boolean neeq(PageContext pc, Object left, Object right) {
 		return !eeq(pc, left, right);

@@ -391,7 +391,6 @@ public final class MappingImpl implements Mapping {
 	 * 
 	 * @param config
 	 * @return cloned mapping
-	 * @throws IOException
 	 */
 	public MappingImpl cloneReadOnly(Config config) {
 		return new MappingImpl(config, virtual, strPhysical, strArchive, inspect, inspectTemplateAutoIntervalSlow, inspectTemplateAutoIntervalFast, physicalFirst, hidden, true,

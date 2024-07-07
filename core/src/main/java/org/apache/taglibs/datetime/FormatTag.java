@@ -185,7 +185,7 @@ public final class FormatTag extends BodyTagSupport {
 	/**
 	 * Locale flag, if set to true, format date for client's preferred locale if known.
 	 *
-	 * @param boolean use users locale, true or false
+	 * @param flag use users locale, true or false
 	 */
 	public final void setLocale(short flag) {
 		// locale_flag = flag;
@@ -196,7 +196,7 @@ public final class FormatTag extends BodyTagSupport {
 	 *
 	 * Value must be the name of a <b>timeZone</b> tag script variable ID.
 	 *
-	 * @param String name of timeZone to use
+	 * @param tz name of timeZone to use
 	 */
 	public final void setTimeZone(String tz) {
 		timeZone_string = tz;
@@ -205,7 +205,7 @@ public final class FormatTag extends BodyTagSupport {
 	/**
 	 * Set the pattern to use when formatting Date.
 	 *
-	 * @param String SimpleDateFormat style time pattern format string
+	 * @param str SimpleDateFormat style time pattern format string
 	 */
 	public final void setPattern(String str) {
 		pattern = str;
@@ -214,7 +214,7 @@ public final class FormatTag extends BodyTagSupport {
 	/**
 	 * Set the pattern to use when parsing Date using a script variable attribute.
 	 * 
-	 * @param String name of script variable attribute id
+	 * @param str name of script variable attribute id
 	 */
 	public final void setPatternId(String str) {
 		patternid = str;
@@ -223,7 +223,7 @@ public final class FormatTag extends BodyTagSupport {
 	/**
 	 * Set the date to use (overrides tag body) for formatting
 	 *
-	 * @param Date to use for formatting (could be null)
+	 * @param date to use for formatting (could be null)
 	 */
 	public final void setDate(Date date) {
 		this.date = date;
@@ -232,7 +232,7 @@ public final class FormatTag extends BodyTagSupport {
 	/**
 	 * Set the default text if an invalid date or no tag body is given
 	 *
-	 * @param String to use as default text
+	 * @param default_text to use as default text
 	 */
 	public final void setDefault(String default_text) {
 		this.default_text = default_text;
@@ -241,7 +241,7 @@ public final class FormatTag extends BodyTagSupport {
 	/**
 	 * Provides a key to search the page context for in order to get the java.util.Locale to use.
 	 *
-	 * @param String name of locale attribute to use
+	 * @param value name of locale attribute to use
 	 */
 	public void setLocaleRef(String value) {
 		localeRef = value;

@@ -757,7 +757,6 @@ public final class SMTPClient implements Serializable {
 	/**
 	 * @param file
 	 * @throws MessagingException
-	 * @throws FileNotFoundException
 	 */
 	public void addAttachment(Resource file) throws MessagingException {
 		addAttachment(file, null, null, null, null, false);

@@ -21,8 +21,10 @@ public final class LitBooleanImpl extends ExpressionBase implements LitBoolean, 
 	/**
 	 * constructor of the class
 	 * 
+	 * @param f
 	 * @param b
-	 * @param line
+	 * @param start
+	 * @param end
 	 */
 	public LitBooleanImpl(Factory f, boolean b, Position start, Position end) {
 		super(f, start, end);

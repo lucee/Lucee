@@ -546,7 +546,7 @@ public final class HTTPUtil {
 	/**
 	 * return the length of a file defined by a url.
 	 * 
-	 * @param dataUrl
+	 * @param url
 	 * @return
 	 * @throws IOException
 	 * @throws GeneralSecurityException

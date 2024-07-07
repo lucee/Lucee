@@ -32,7 +32,7 @@ public class ListIteratorImpl<T> implements ListIterator<T> {
 	/**
 	 * Constructor of the class
 	 * 
-	 * @param arr
+	 * @param list
 	 */
 	public ListIteratorImpl(List<T> list) {
 		this(list, 0);
@@ -41,7 +41,7 @@ public class ListIteratorImpl<T> implements ListIterator<T> {
 	/**
 	 * Constructor of the class
 	 * 
-	 * @param arr
+	 * @param list
 	 * @param index
 	 */
 	public ListIteratorImpl(List<T> list, int index) {

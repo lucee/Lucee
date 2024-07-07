@@ -47,7 +47,7 @@ public final class ServletInputStreamDummy extends ServletInputStream {
 	}
 
 	/**
-	 * @param barr
+	 * @param is
 	 */
 	public ServletInputStreamDummy(InputStream is) {
 		stream = is == null ? new ByteArrayInputStream(new byte[0]) : is;

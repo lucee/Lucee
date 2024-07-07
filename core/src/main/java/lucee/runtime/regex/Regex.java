@@ -47,7 +47,7 @@ public interface Regex {
 	 * @param offset
 	 * @param caseSensitive
 	 * @return
-	 * @throws MalformedPatternException
+	 * @throws PageException
 	 */
 	public Struct find(String strPattern, String strInput, int offset, boolean caseSensitive, boolean multiLine) throws PageException;
 
@@ -60,7 +60,7 @@ public interface Regex {
 	 * @param offset
 	 * @param caseSensitive
 	 * @return
-	 * @throws MalformedPatternException
+	 * @throws PageException
 	 */
 	public Array findAll(String strPattern, String strInput, int offset, boolean caseSensitive, boolean multiLine) throws PageException;
 

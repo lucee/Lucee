@@ -66,7 +66,6 @@ public class JavaObject implements Objects, ObjectWrap {
 	 * 
 	 * @param variableUtil
 	 * @param clazz
-	 * @throws ExpressionException
 	 */
 	public JavaObject(VariableUtil variableUtil, Class clazz) {
 		this._variableUtil = variableUtil;

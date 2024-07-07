@@ -120,11 +120,17 @@ public final class HttpServletRequestDummy implements HttpServletRequest, Serial
 	/**
 	 * constructor of the class
 	 * 
+	 * @param contextRoot
+	 * @param serverName
+	 * @param scriptName
+	 * @param queryString
+	 * @param cookies
 	 * @param headers
 	 * @param parameters
-	 * @param httpSession
-	 * @param pairs
-	 * @param cookiess
+	 * @param attributes
+	 * @param session
+	 * @param headers
+	 * @param inputData
 	 */
 	public HttpServletRequestDummy(Resource contextRoot, String serverName, String scriptName, String queryString, Cookie[] cookies, Pair[] headers, Pair[] parameters,
 			Struct attributes, HttpSession session, byte[] inputData) {

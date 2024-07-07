@@ -167,9 +167,9 @@ public class OSGiUtil {
 	 * only installs a bundle, if the bundle does not already exist, if the bundle exists the existing
 	 * bundle is unloaded first.
 	 *
-	 * @param factory
 	 * @param context
 	 * @param bundle
+	 * @param checkExistence
 	 * @return
 	 * @throws IOException
 	 * @throws BundleException
@@ -220,9 +220,10 @@ public class OSGiUtil {
 	 * only installs a bundle, if the bundle does not already exist, if the bundle exists the existing
 	 * bundle is unloaded first. the bundle is not stored physically on the system.
 	 *
-	 * @param factory
 	 * @param context
-	 * @param bundle
+	 * @param bundleIS
+	 * @param closeStream
+	 * @param checkExistence
 	 * @return
 	 * @throws IOException
 	 * @throws BundleException
@@ -300,12 +301,9 @@ public class OSGiUtil {
 	/**
 	 * tries to load a class with ni bundle definition
 	 *
-	 * @param name
-	 * @param version
-	 * @param id
-	 * @param startIfNecessary
+	 * @param className
+	 * @param defaultValue
 	 * @return
-	 * @throws BundleException
 	 */
 	public static Class loadClass(String className, Class defaultValue) {
 
@@ -1272,8 +1270,6 @@ public class OSGiUtil {
 	/**
 	 * get all local bundles (even bundles not loaded/installed)
 	 *
-	 * @param name
-	 * @param version
 	 * @return
 	 */
 	public static List<BundleDefinition> getBundleDefinitions() {
@@ -1368,7 +1364,9 @@ public class OSGiUtil {
 	 *
 	 * @param name
 	 * @param version
-	 * @return
+	 * @param addional
+	 * @param removePhysical
+	 * @param doubleTap
 	 * @throws BundleException
 	 */
 	public static void removeLocalBundle(String name, Version version, List<Resource> addional, boolean removePhysical, boolean doubleTap) throws BundleException {
@@ -2089,9 +2087,10 @@ public class OSGiUtil {
 		/**
 		 * get Bundle, also load if necessary from local or remote
 		 *
+		 * @param config
+		 * @param addional
 		 * @return
 		 * @throws BundleException
-		 * @throws StartFailedException
 		 */
 		public Bundle getBundle(Config config, List<Resource> addional) throws BundleException {
 			return getBundle(config, addional, false);

@@ -44,8 +44,9 @@ public final class TagSwitch extends TagBaseNoFinal {
 	/**
 	 * Constructor of the class
 	 * 
-	 * @param sl
-	 * @param el
+	 * @param f
+	 * @param start
+	 * @param end
 	 */
 	public TagSwitch(Factory f, Position start, Position end) {
 		super(f, start, end);

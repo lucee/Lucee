@@ -33,9 +33,8 @@ public final class Monitor extends ParentThreasRefThread {
 	private final ControllerState state;
 
 	/**
-	 * @param contextes
-	 * @param interval
-	 * @param run
+	 * @param configServer
+	 * @param state
 	 */
 	public Monitor(ConfigServer configServer, ControllerState state) {
 

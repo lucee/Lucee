@@ -50,9 +50,9 @@ public final class ResourceClassLoader extends URLClassLoader implements Closeab
 	/**
 	 * Constructor of the class
 	 * 
-	 * @param reses
+	 * @param resources
 	 * @param parent
-	 * @throws PageException
+	 * @throws IOException
 	 */
 	public ResourceClassLoader(Resource[] resources, ClassLoader parent) throws IOException {
 		super(doURLs(resources), parent);
@@ -81,7 +81,7 @@ public final class ResourceClassLoader extends URLClassLoader implements Closeab
 	 * 
 	 * @param reses
 	 * @return
-	 * @throws PageException
+	 * @throws IOException
 	 */
 	public static URL[] doURLs(Resource[] reses) throws IOException {
 		List<URL> list = new ArrayList<URL>();

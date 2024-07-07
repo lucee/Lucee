@@ -41,7 +41,8 @@ public final class SystemOut extends StatementBaseNoFinal {
 	 * constructor of the class
 	 * 
 	 * @param expr
-	 * @param line
+	 * @param start
+	 * @param end
 	 */
 	public SystemOut(Expression expr, Position start, Position end) {
 		super(expr.getFactory(), start, end);

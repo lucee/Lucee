@@ -66,7 +66,7 @@ public final class StructImplKey extends StructSupport implements Struct {
 	 * by normally Struct , without incurring the increased cost associated with TreeMap. It can be used
 	 * to produce a copy of a map that has the same order as the original
 	 * 
-	 * @param doubleLinked
+	 * @param type
 	 */
 	public StructImplKey(int type) {
 		if (type == TYPE_LINKED) _map = new LinkedHashMap<Collection.Key, Object>();

@@ -591,7 +591,9 @@ public final class TagLibTag {
 	 * Setzt die implementierende Klassendefinition des Evaluator. Diese Methode wird durch die Klasse
 	 * TagLibFactory verwendet.
 	 * 
-	 * @param tteClass Klassendefinition der Evaluator-Implementation.
+	 * @param tttClass Klassendefinition der Evaluator-Implementation.
+	 * @param id
+	 * @param attr
 	 */
 	public void setTTTClassDefinition(String tttClass, Identification id, Map<String, String> attr) {
 		this.tttCD = ClassDefinitionImpl.toClassDefinition(tttClass, id, attr);
@@ -689,7 +691,9 @@ public final class TagLibTag {
 	/**
 	 * Setzt den Namen der Klasse welche einen AttributeEvaluator implementiert.
 	 * 
-	 * @param value Name der AttributeEvaluator Klassse
+	 * @param className Name der AttributeEvaluator Klassse
+	 * @param id
+	 * @param attr
 	 */
 	public void setAttributeEvaluatorClassDefinition(String className, Identification id, Map<String, String> attr) {
 		cdAttributeEvaluator = ClassDefinitionImpl.toClassDefinition(className, id, attr);
@@ -721,7 +725,9 @@ public final class TagLibTag {
 	/**
 	 * return ASM Tag for this tag
 	 * 
-	 * @param line
+	 * @param f
+	 * @param start
+	 * @param end
 	 * @return
 	 * 
 	 */

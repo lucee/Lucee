@@ -39,7 +39,7 @@ public final class RCL extends ClassLoader implements Closeable {
 	/**
 	 * constructor of the class
 	 * 
-	 * @param file
+	 * @param files
 	 * @param parent
 	 * @throws IOException
 	 */

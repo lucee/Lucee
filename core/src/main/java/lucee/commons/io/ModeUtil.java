@@ -69,7 +69,7 @@ public final class ModeUtil {
 	/**
 	 * translate an octal mode value (73) to a string representation ("111")
 	 * 
-	 * @param strMode
+	 * @param octalMode
 	 * @return
 	 */
 	public static String toStringMode(int octalMode) {

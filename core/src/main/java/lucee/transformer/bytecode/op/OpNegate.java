@@ -46,11 +46,11 @@ public final class OpNegate extends ExpressionBase implements ExprBoolean {
 	/**
 	 * Create a String expression from an Expression
 	 * 
-	 * @param left
-	 * @param right
+	 * @param expr
+	 * @param start
+	 * @param end
 	 * 
 	 * @return String expression
-	 * @throws TemplateException
 	 */
 	public static ExprBoolean toExprBoolean(Expression expr, Position start, Position end) {
 		if (expr instanceof Literal) {

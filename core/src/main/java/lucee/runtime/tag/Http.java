@@ -495,9 +495,9 @@ public final class Http extends BodyTagImpl {
 	}
 
 	/**
-	 * set the value charset set the charset for the call.
+	 * set the autoCert value
 	 * 
-	 * @param charset value to set
+	 * @param autoCert value to set
 	 **/
 	public void setAutocert(boolean autoCert) {
 		this.autoCert = autoCert;

@@ -71,7 +71,6 @@ public class GatewayEntryImpl implements GatewayEntry {
 	}
 
 	/**
-	 * @return the gateway
 	 * @throws ClassException
 	 * @throws PageException
 	 * @throws BundleException

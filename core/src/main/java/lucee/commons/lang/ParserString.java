@@ -219,7 +219,7 @@ public final class ParserString {
 	/**
 	 * Gibt zurueck ob das naechste Zeichen das selbe ist wie das Eingegebene.
 	 * 
-	 * @param c Zeichen zum Vergleich.
+	 * @param str Zeichen zum Vergleich.
 	 * @return boolean
 	 */
 	public boolean isCurrentIgnoreSpace(String str) {

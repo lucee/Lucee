@@ -94,7 +94,7 @@ public final class Property extends TagImpl implements DynamicAttributes {
 
 	/**
 	 * @param access The access to set.
-	 * @throws ExpressionException
+	 * @throws ApplicationException
 	 */
 	public void setAccess(String access) throws ApplicationException {
 		setDynamicAttribute(null, "access", access);

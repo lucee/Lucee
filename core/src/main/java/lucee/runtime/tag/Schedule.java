@@ -304,7 +304,7 @@ public final class Schedule extends TagImpl {
 	 * requested. Default is 80. When used with resolveURL, the URLs of retrieved documents that specify
 	 * a port number are automatically resolved to preserve links in the retrieved document.
 	 * 
-	 * @param proxyport value to set
+	 * @param oProxyport value to set
 	 * @throws PageException
 	 **/
 	public void setProxyport(Object oProxyport) throws PageException {
@@ -317,7 +317,7 @@ public final class Schedule extends TagImpl {
 	 * is 80. When used with resolveURL, the URLs of retrieved documents that specify a port number are
 	 * automatically resolved to preserve links in the retrieved document.
 	 * 
-	 * @param port value to set
+	 * @param oPort value to set
 	 * @throws PageException
 	 **/
 	public void setPort(Object oPort) throws PageException {
@@ -378,7 +378,8 @@ public final class Schedule extends TagImpl {
 	 * set the value requesttimeout Customizes the requestTimeOut for the task operation. Can be used to
 	 * extend the default timeout for operations that require more time to execute.
 	 * 
-	 * @param requesttimeout value to set
+	 * @param oRequesttimeout value to set
+	 * @throws PageException
 	 **/
 	public void setRequesttimeout(Object oRequesttimeout) throws PageException {
 		if (StringUtil.isEmpty(oRequesttimeout)) return;

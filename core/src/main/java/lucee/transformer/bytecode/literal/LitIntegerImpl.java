@@ -40,8 +40,10 @@ public final class LitIntegerImpl extends ExpressionBase implements LitInteger, 
 	/**
 	 * constructor of the class
 	 * 
-	 * @param d
-	 * @param line
+	 * @param f
+	 * @param i
+	 * @param start
+	 * @param end
 	 */
 	public LitIntegerImpl(Factory f, int i, Position start, Position end) {
 		super(f, start, end);

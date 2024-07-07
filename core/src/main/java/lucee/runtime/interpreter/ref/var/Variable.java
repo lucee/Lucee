@@ -38,9 +38,9 @@ public final class Variable extends RefSupport implements Set {
 	private boolean limited;
 
 	/**
-	 * @param pc
 	 * @param parent
 	 * @param key
+	 * @param limited
 	 */
 	public Variable(Ref parent, String key, boolean limited) {
 		this.parent = parent;
@@ -49,9 +49,9 @@ public final class Variable extends RefSupport implements Set {
 	}
 
 	/**
-	 * @param pc
 	 * @param parent
 	 * @param refKey
+	 * @param limited
 	 */
 	public Variable(Ref parent, Ref refKey, boolean limited) {
 		this.parent = parent;

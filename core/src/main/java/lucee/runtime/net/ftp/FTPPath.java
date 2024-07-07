@@ -41,7 +41,7 @@ public final class FTPPath implements Dumpable {
 	// private Array arrPath;
 
 	/**
-	 * @param current
+	 * @param client
 	 * @param relpath
 	 * @throws PageException
 	 * @throws IOException

@@ -60,7 +60,7 @@ public final class StructImplString extends StructImpl implements Struct {
 	 * by normally Struct , without incurring the increased cost associated with TreeMap. It can be used
 	 * to produce a copy of a map that has the same order as the original
 	 * 
-	 * @param doubleLinked
+	 * @param type
 	 */
 	public StructImplString(int type) {
 		if (type == TYPE_LINKED) map = new LinkedHashMap<Collection.Key, Object>();

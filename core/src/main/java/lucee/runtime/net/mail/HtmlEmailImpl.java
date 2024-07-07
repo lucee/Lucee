@@ -140,13 +140,13 @@ public final class HtmlEmailImpl extends MultiPartEmail {
 	 *
 	 * <p>
 	 * Example of use:<br>
-	 * <code><pre>
+	 * <code>
 	 * HtmlEmail he = new HtmlEmail();
 	 * he.setHtmlMsg("&lt;html&gt;&lt;img src=cid:" +
 	 *  embed("file:/my/image.gif","image.gif") +
 	 *  "&gt;&lt;/html&gt;");
 	 * // code to set the others email fields (not shown)
-	 * </pre></code>
+	 * </code>
 	 *
 	 * @param url The URL of the file.
 	 * @param cid A String with the Content-ID of the file.

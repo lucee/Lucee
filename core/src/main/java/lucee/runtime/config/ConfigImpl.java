@@ -1456,7 +1456,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	 * sets the Schedule Directory
 	 * 
 	 * @param engine
-	 * @param scheduleDirectory sets the schedule Directory
+	 * @param scheduledTasks
 	 * @throws PageException
 	 */
 	protected void setScheduler(CFMLEngine engine, Array scheduledTasks) throws PageException {

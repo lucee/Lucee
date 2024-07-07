@@ -56,7 +56,6 @@ public final class RamResourceCore implements Serializable {
 	 * @param parent
 	 * @param type
 	 * @param name
-	 * @param caseSensitive
 	 */
 	public RamResourceCore(RamResourceCore parent, int type, String name) {
 		if (parent != null) {

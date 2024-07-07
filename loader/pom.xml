@@ -152,6 +152,13 @@
           <version>3.7.0</version>
           <configuration>
             <sourcepath>src/main/java;../core/src/main/java</sourcepath>
+            <additionalparam>-Xdoclint:missing</additionalparam>
+            <additionalJOptions>
+              <additionalJOption>-Xmaxerrs</additionalJOption>
+              <additionalJOption>65536</additionalJOption>
+              <additionalJOption>-Xmaxwarns</additionalJOption>
+              <additionalJOption>10</additionalJOption>
+            </additionalJOptions>
           </configuration>
           <executions>
             <execution>
@@ -163,7 +170,7 @@
             <configuration>
                <source>11</source>
                <detectJavaApiLink>false</detectJavaApiLink>
-               <quiet>true</quiet>
+               <quiet>false</quiet>
                <additionalparam>-Xdoclint:none</additionalparam>
                <!-- add this to disable checking
                 <additionalparam>-Xdoclint:none</additionalparam>

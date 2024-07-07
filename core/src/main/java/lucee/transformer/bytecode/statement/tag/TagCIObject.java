@@ -153,8 +153,9 @@ public abstract class TagCIObject extends TagBase {
 	/**
 	 * Constructor of the class
 	 * 
-	 * @param startLine
-	 * @param endLine
+	 * @param f
+	 * @param start
+	 * @param end
 	 */
 	public TagCIObject(Factory f, Position start, Position end) {
 		super(f, start, end);

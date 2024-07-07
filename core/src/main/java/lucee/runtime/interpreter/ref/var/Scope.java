@@ -33,7 +33,6 @@ public final class Scope extends RefSupport implements Set {
 	/**
 	 * contructor of the class
 	 * 
-	 * @param pc
 	 * @param scope
 	 */
 	public Scope(int scope) {

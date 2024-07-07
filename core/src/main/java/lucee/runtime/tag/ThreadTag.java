@@ -114,7 +114,8 @@ public final class ThreadTag extends BodyTagImpl implements DynamicAttributes {
 	}
 
 	/**
-	 * @param action the action to set
+	 * @param strAction the action to set
+	 * @throws ApplicationException
 	 */
 	public void setAction(String strAction) throws ApplicationException {
 		String lcAction = strAction.trim().toLowerCase();

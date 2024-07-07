@@ -173,7 +173,8 @@ public class TimeZoneUtil {
 	/**
 	 * translate timezone string format to a timezone
 	 * 
-	 * @param strTimezoneTrimmed
+	 * @param strTimezone
+	 * @param defaultValue
 	 * @return
 	 */
 	public static TimeZone toTimeZone(String strTimezone, TimeZone defaultValue) {
