@@ -315,7 +315,7 @@ public final class ParserString {
 	}
 
 	/**
-	 * Gibt zurueck ob das aktuelle Zeichen ein Special Buchstabe ist (_,<euro>,$,<pound>).
+	 * Gibt zurueck ob das aktuelle Zeichen ein Special Buchstabe ist (_,&euro;,$,&pound;).
 	 * 
 	 * @return Gibt zurueck ob das aktuelle Zeichen ein Buchstabe ist.
 	 */

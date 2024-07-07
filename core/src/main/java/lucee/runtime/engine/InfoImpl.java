@@ -305,16 +305,18 @@ public final class InfoImpl implements Info {
 		return requiredExtensions;
 	}
 
-	/**
+	/* 
+	 * *
 	 * @return returns the state
 	 * 
-	 * @Override public int getStateAsInt() { return state; }
+	 * Override public int getStateAsInt() { return state; }
 	 */
 
-	/**
+	/*
+	 * *
 	 * @return returns the state
 	 * 
-	 * @Override public String getStateAsString() { return strState; }
+	 * Override public String getStateAsString() { return strState; }
 	 */
 
 	/*

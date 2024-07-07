@@ -73,7 +73,7 @@ import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.util.DBUtilImpl;
 
 /**
- *
+ * Query of Queries (QoQ)
  */
 public final class QoQ {
 	final static private Collection.Key paramKey = new KeyImpl("?");

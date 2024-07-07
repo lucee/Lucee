@@ -27,6 +27,9 @@ import lucee.commons.io.res.Resource;
 import lucee.commons.lang.PageContextThread;
 import lucee.runtime.PageContext;
 
+/*
+ * Execute external processes
+ */
 public final class _Execute extends PageContextThread {
 
 	private Resource outputfile;
@@ -45,6 +48,8 @@ public final class _Execute extends PageContextThread {
 	private String directory;
 
 	/**
+	 * Constructor: Execute external processes
+	 * 
 	 * @param pageContext
 	 * @param monitor
 	 * @param commands

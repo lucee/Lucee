@@ -81,14 +81,14 @@ import lucee.transformer.util.SourceCode;
 		EBNF (Extended Backus-Naur Form) 
 		
 		transform	= {body}
-		body		= [comment] ("</" | "<" tag body | literal body);
+		body		= [comment] ("&lt;/" | "&lt;" tag body | literal body);
 		comment		= "<!---" {?-"--->"} "--->";
-		literal		= ("<" | {?-"#"-"<"} "<" | {"#" expression "#"} "<" ) | ({?-"<"} "<")
+		literal		= ("&lt;" | {?-"#"-"&lt;"} "&lt;" | {"#" expression "#"} "&lt;" ) | ({?-"&lt;"} "&lt;")
 				  (* Welcher Teil der "oder" Bedingung ausgefuehrt wird, ist abhaengig was die Tag-Lib vorgibt, 
 				     dass Expression geparst werden sollen oder nicht. *)
-		tag		= name-space identifier spaces attributes ("/>" | ">" [body "</" identifier spaces ">"]);
+		tag		= name-space identifier spaces attributes ("/&gt;" | "&gt;" [body "&lt;/" identifier spaces "&gt;"]);
 				  (* Ob dem Tag ein Body und ein End-Tag folgt ist abhaengig von Definition des body-content in Tag-Lib, gleices gilt fuer appendix *)
-		name-space	= < tagLib[].getNameSpaceAndSeperator() >;
+		name-space	= &lt; tagLib[].getNameSpaceAndSeperator() &gt;;
 			          (* Vergleicht Zeichen mit den Namespacedefinitionen der Tag Libraries. *)
 		attributes	= ({spaces attribute} "/>" | {spaces attribute} ">") | attribute-value;
 				  (* Welcher Teil der "oder" Bedingung ausgefuehrt wird, ist abhaengig von der Tag Attribute Definition in der Tag Lib. *)
@@ -99,7 +99,7 @@ import lucee.transformer.util.SourceCode;
 		identifier     	= (letter | "_") {letter | "_"|digit};
 		letter			= "a".."z"|"A".."Z";
 		digit			= "0".."9";
-		expression      = <ExprTransfomer.expression()>; (* Ruft den Expression Transformer auf. *)
+		expression      = &lt;ExprTransfomer.expression()&gt;; (* Ruft den Expression Transformer auf. *)
 		spaces         = {space};
 		space          = "\s"|"\t"|"\f"|"\t"|"\n";
 		
@@ -334,7 +334,7 @@ public final class CFMLTransformer {
 	/**
 	 * Liest den Body eines Tag ein. Kommentare, Tags und Literale inkl. Expressions. <br />
 	 * EBNF:<br />
-	 * <code>[comment] ("</" | "<" tag body | literal body);</code>
+	 * <code>[comment] ("&lt;/" | "&lt;" tag body | literal body);</code>
 	 * 
 	 * @param data
 	 * @param body
@@ -861,7 +861,7 @@ public final class CFMLTransformer {
 	 * Vergleicht folgende Zeichen mit den Namespacedefinitionen der Tag Libraries, gibt eine Tag-Lib
 	 * zurueck falls eine passt, ansonsten null. <br />
 	 * EBNF:<br />
-	 * <code>< tagLib[].getNameSpaceAndSeperator() >(* Vergleicht Zeichen mit den Namespacedefinitionen der Tag Libraries. *) </code>
+	 * <code>&lt; tagLib[].getNameSpaceAndSeperator() &gt;(* Vergleicht Zeichen mit den Namespacedefinitionen der Tag Libraries. *) </code>
 	 * 
 	 * @return TagLib Passende Tag Lirary oder null.
 	 */

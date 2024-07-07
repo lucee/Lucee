@@ -57,7 +57,7 @@ public abstract class SpoolerTaskHTTPCall extends SpoolerTaskSupport {
 
 	/**
 	 * @return
-	 * @see lucee.runtime.spooler.SpoolerTask#execute()
+	 * @see lucee.runtime.spooler.SpoolerTask#execute(Config)
 	 */
 	@Override
 	public final Object execute(Config config) throws PageException {

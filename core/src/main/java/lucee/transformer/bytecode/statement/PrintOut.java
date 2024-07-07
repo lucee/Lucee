@@ -58,7 +58,7 @@ public final class PrintOut extends StatementBaseNoFinal {
 	}
 
 	/**
-	 * @see lucee.transformer.bytecode.Statement#_writeOut(org.objectweb.asm.commons.GeneratorAdapter)
+	 * @see lucee.transformer.bytecode.Statement#writeOut(BytecodeContext)
 	 */
 	@Override
 	public void _writeOut(BytecodeContext bc) throws TransformerException {

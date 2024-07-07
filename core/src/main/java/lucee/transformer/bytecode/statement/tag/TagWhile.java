@@ -39,7 +39,7 @@ public final class TagWhile extends TagBaseNoFinal implements FlowControlBreak, 
 	}
 
 	/**
-	 * @see lucee.transformer.bytecode.statement.StatementBase#_writeOut(org.objectweb.asm.commons.GeneratorAdapter)
+	 * @see lucee.transformer.bytecode.statement.StatementBase#_writeOut(lucee.transformer.bytecode.BytecodeContext)
 	 */
 	@Override
 	public void _writeOut(BytecodeContext bc) throws TransformerException {
@@ -52,7 +52,7 @@ public final class TagWhile extends TagBaseNoFinal implements FlowControlBreak, 
 	}
 
 	/**
-	 * @see lucee.transformer.bytecode.statement.FlowControl#getBreakLabel()
+	 * @see lucee.transformer.bytecode.statement.FlowControl#getLabel()
 	 */
 	@Override
 	public Label getBreakLabel() {
@@ -60,7 +60,7 @@ public final class TagWhile extends TagBaseNoFinal implements FlowControlBreak, 
 	}
 
 	/**
-	 * @see lucee.transformer.bytecode.statement.FlowControl#getContinueLabel()
+	 * @see lucee.transformer.bytecode.statement.FlowControl#getLabel()
 	 */
 	@Override
 	public Label getContinueLabel() {

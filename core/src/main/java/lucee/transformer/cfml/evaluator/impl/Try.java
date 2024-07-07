@@ -37,7 +37,7 @@ import lucee.transformer.cfml.evaluator.EvaluatorSupport;
 public final class Try extends EvaluatorSupport {
 
 	/**
-	 * @see lucee.transformer.cfml.evaluator.EvaluatorSupport#evaluate(Element)
+	 * @see lucee.transformer.cfml.evaluator.EvaluatorSupport#evaluate(lucee.transformer.bytecode.statement.tag.Tag)
 	 */
 	@Override
 	public void evaluate(Tag tag) throws EvaluatorException {

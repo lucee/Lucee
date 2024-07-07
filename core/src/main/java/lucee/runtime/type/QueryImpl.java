@@ -115,9 +115,6 @@ import lucee.runtime.type.util.StructSupport;
 /**
  * implementation of the query interface
  */
-/**
- *
- */
 public class QueryImpl implements Query, Objects, QueryResult {
 
 	private static final long serialVersionUID = 1035795427320192551L; // do not chnage

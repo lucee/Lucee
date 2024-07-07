@@ -98,7 +98,7 @@ import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.StructUtil;
 
 /**
- *
+ * Utils for XML
  */
 public final class XMLUtil {
 

@@ -168,7 +168,6 @@ public final class Execute extends BodyTagImpl {
 	 * the output is displayed on the page from which it was called.
 	 * 
 	 * @param outputfile value to set
-	 * @throws SecurityException
 	 **/
 	public void setOutputfile(String outputfile) {
 		try {

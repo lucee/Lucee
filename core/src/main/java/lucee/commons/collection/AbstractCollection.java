@@ -117,15 +117,15 @@ public abstract class AbstractCollection<E> implements Collection<E> {
 	 * <p>
 	 * This method is equivalent to:
 	 *
-	 * <pre>
+	 * <code>
 	 * {
 	 * 	&#64;code
-	 * 	List<E> list = new ArrayList<E>(size());
+	 * 	List&lt;E&gt; list = new ArrayList&lt;E&gt;(size());
 	 * 	for (E e: this)
 	 * 		list.add(e);
 	 * 	return list.toArray();
 	 * }
-	 * </pre>
+	 * </code>
 	 */
 	@Override
 	public Object[] toArray() {
@@ -159,7 +159,7 @@ public abstract class AbstractCollection<E> implements Collection<E> {
 	 * <pre>
 	 * {
 	 * 	&#64;code
-	 * 	List<E> list = new ArrayList<E>(size());
+	 * 	List&lt;E&gt; list = new ArrayList&lt;E&gt;(size());
 	 * 	for (E e: this)
 	 * 		list.add(e);
 	 * 	return list.toArray(a);

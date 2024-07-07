@@ -171,7 +171,7 @@ public abstract class AFTPClient {
 	 * NOT close the given OutputStream. If the current file type is ASCII, line separators in the file
 	 * are converted to the local representation.
 	 * <p>
-	 * Note: if you have used {@link #setRestartOffset(long)}, the file data will start from the
+	 * Note: if you have used setRestartOffset(long), the file data will start from the
 	 * selected offset.
 	 * 
 	 * @param remote The name of the remote file.
@@ -327,7 +327,7 @@ public abstract class AFTPClient {
 
 	/**
 	 * Opens a Socket connected to a remote host at the specified port and originating from the current
-	 * host at a system assigned port. Before returning, {@link #_connectAction_ _connectAction_() } is
+	 * host at a system assigned port. Before returning, connectAction is
 	 * called to perform connection initialization actions.
 	 * <p>
 	 * 

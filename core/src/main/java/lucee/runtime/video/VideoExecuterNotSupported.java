@@ -26,20 +26,11 @@ import lucee.runtime.type.Struct;
 
 public class VideoExecuterNotSupported implements VideoExecuter {
 
-	/**
-	 * @see lucee.runtime.video.VideoExecuter#convertRaw(lucee.runtime.config.ConfigWeb,
-	 *      lucee.runtime.video.VideoInput[], lucee.runtime.video.VideoOutput,
-	 *      lucee.runtime.video.VideoProfile)
-	 */
 	@Override
 	public VideoInfo[] convert(ConfigWeb config, VideoInput[] inputs, VideoOutput output, VideoProfile quality) throws IOException {
 		throw notSupported();
 	}
 
-	/**
-	 * @see lucee.runtime.video.VideoExecuter#infoRaw(lucee.runtime.config.ConfigWeb,
-	 *      lucee.runtime.video.VideoInput)
-	 */
 	@Override
 	public VideoInfo info(ConfigWeb config, VideoInput input) throws IOException {
 		throw notSupported();

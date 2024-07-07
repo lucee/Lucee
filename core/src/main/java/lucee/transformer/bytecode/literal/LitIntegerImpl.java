@@ -99,8 +99,8 @@ public final class LitIntegerImpl extends ExpressionBase implements LitInteger, 
 	}
 
 	/**
-	 * @see lucee.transformer.expression.Expression#_writeOut(org.objectweb.asm.commons.GeneratorAdapter,
-	 *      int)
+	 * lucee.transformer.expression.Expression#_writeOut(lucee.transformer.bytecode.BytecodeContext,int)
+	 * 
 	 */
 	@Override
 	public Type _writeOut(BytecodeContext bc, int mode) {

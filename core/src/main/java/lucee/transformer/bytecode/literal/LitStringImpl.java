@@ -79,7 +79,7 @@ public class LitStringImpl extends ExpressionBase implements LitString, ExprStri
 	}
 
 	/**
-	 * @see lucee.transformer.expression.Expression#_writeOut(org.objectweb.asm.commons.GeneratorAdapter,
+	 * lucee.transformer.expression.Expression#_writeOut(lucee.transformer.bytecode.BytecodeContext,
 	 *      int)
 	 */
 	private static Type _writeOut(BytecodeContext bc, int mode, String str) throws TransformerException {

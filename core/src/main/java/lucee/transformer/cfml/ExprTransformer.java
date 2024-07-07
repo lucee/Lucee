@@ -35,7 +35,7 @@ public interface ExprTransformer {
 	 * Wird aufgerufen um aus dem uebergebenen CFMLString einen Ausdruck auszulesen und diesen in ein
 	 * CFXD Element zu uebersetzten. <br>
 	 * Beispiel eines uebergebenen String:<br>
-	 * "session.firstName" oder "trim(left('test'&var1,3))"
+	 * "session.firstName" oder "trim(left('test'&amp;var1,3))"
 	 * 
 	 * @param data
 	 * @return Element CFXD Element
@@ -49,7 +49,7 @@ public interface ExprTransformer {
 	 * CFXD Element zu uebersetzten. Es wird aber davon ausgegangen das es sich um einen String handelt.
 	 * <br>
 	 * Beispiel eines uebergebenen String:<br>
-	 * "session.firstName" oder "trim(left('test'&var1,3))"
+	 * "session.firstName" oder "trim(left('test'&amp;var1,3))"
 	 * 
 	 * @param data
 	 * @return Element CFXD Element

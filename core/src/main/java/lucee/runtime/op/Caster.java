@@ -3301,7 +3301,6 @@ public final class Caster {
 	 * @param pc
 	 * @return
 	 * @throws PageException
-	 * @info used in bytecode generation
 	 */
 	public static QueryColumn toQueryColumn(Object o, PageContext pc) throws PageException {
 		if (o instanceof QueryColumn) return (QueryColumn) o;

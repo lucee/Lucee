@@ -62,8 +62,8 @@ public final class CastInt extends ExpressionBase implements ExprInt, Cast {
 	}
 
 	/**
-	 * @see lucee.transformer.expression.Expression#_writeOut(org.objectweb.asm.commons.GeneratorAdapter,
-	 *      int)
+	 * @see lucee.transformer.expression.Expression#writeOut(BytecodeContext,int)
+	 * 
 	 */
 	@Override
 	public Type _writeOut(BytecodeContext bc, int mode) throws TransformerException {
