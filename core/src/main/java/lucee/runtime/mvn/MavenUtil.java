@@ -213,7 +213,7 @@ public class MavenUtil {
 		List<POM> parentDendencyManagement = null;
 
 		if (parent != null) {
-			parentDendencyManagement = parent.getDependencyManagement();
+			parentDendencyManagement = current.getDependencyManagement();
 			for (POM pom: parent.getDependencies()) {
 				dependencies.add(pom); // TODO clone?
 			}
@@ -251,7 +251,7 @@ public class MavenUtil {
 		return dependencies;
 	}
 
-	private static GAVSO getDependency(Element el, POM parent, POM current, Map<String, String> properties, List<POM> parentDendencyManagement, boolean management)
+	public static GAVSO getDependency(Element el, POM parent, POM current, Map<String, String> properties, List<POM> parentDendencyManagement, boolean management)
 			throws IOException {
 		POM pdm = null;// TODO move out of here so multiple loop elements can profit
 
@@ -310,12 +310,20 @@ public class MavenUtil {
 		// dependencies.add(p);
 	}
 
-	private static class GAVSO {
-		private String g;
-		private String a;
-		private String v;
-		private String s;
-		private String o;
+	static class GAVSO {
+		public final String g;
+		public final String a;
+		public final String v;
+		public final String s;
+		public final String o;
+
+		public GAVSO(String g, String a, String v) {
+			this.g = g;
+			this.a = a;
+			this.v = v;
+			this.s = null;
+			this.o = null;
+		}
 
 		public GAVSO(String g, String a, String v, String s, String o) {
 			this.g = g;
@@ -340,9 +348,7 @@ public class MavenUtil {
 	}
 
 	public static List<POM> getDependencyManagement(Element rootElement, POM current, POM parent, Map<String, String> properties, Resource localDirectory) throws IOException {
-
 		Element root = getElement(rootElement, "dependencyManagement", null);
-		if (root == null) return null;
 
 		List<POM> dependencies = new ArrayList<>();
 
@@ -354,33 +360,34 @@ public class MavenUtil {
 				}
 			}
 		}
+		if (root != null) {
+			NodeList nodes = root.getChildNodes();
+			int len = nodes.getLength();
+			Node n, nn;
+			Element el;
+			for (int i = 0; i < len; i++) {
+				n = nodes.item(i);
+				if ("dependencies".equals(n.getNodeName())) {
 
-		NodeList nodes = root.getChildNodes();
-		int len = nodes.getLength();
-		Node n, nn;
-		Element el;
-		for (int i = 0; i < len; i++) {
-			n = nodes.item(i);
-			if ("dependencies".equals(n.getNodeName())) {
+					NodeList innderNodes = n.getChildNodes();
+					int innerLen = innderNodes.getLength();
+					POM p;
 
-				NodeList innderNodes = n.getChildNodes();
-				int innerLen = innderNodes.getLength();
-				POM p;
-
-				for (int ii = 0; ii < innerLen; ii++) {
-					nn = innderNodes.item(ii);
-					if (nn instanceof Element) {
-						el = (Element) nn;
-						if ("dependency".equals(el.getNodeName())) {
-							GAVSO gavso = getDependency(el, parent, current, properties, null, true);
-							if (gavso == null) continue;
-							p = POM.getInstance(localDirectory, current.getRepositories(), gavso.g, gavso.a, gavso.v, gavso.s, gavso.o, current.getDependencyScope(),
-									current.getDependencyScopeManagement());
-							dependencies.add(p);
+					for (int ii = 0; ii < innerLen; ii++) {
+						nn = innderNodes.item(ii);
+						if (nn instanceof Element) {
+							el = (Element) nn;
+							if ("dependency".equals(el.getNodeName())) {
+								GAVSO gavso = getDependency(el, parent, current, properties, null, true);
+								if (gavso == null) continue;
+								p = POM.getInstance(localDirectory, current.getRepositories(), gavso.g, gavso.a, gavso.v, gavso.s, gavso.o, current.getDependencyScope(),
+										current.getDependencyScopeManagement());
+								dependencies.add(p);
+							}
 						}
 					}
+					break;
 				}
-				break;
 			}
 		}
 		return dependencies;

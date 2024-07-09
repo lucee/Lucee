@@ -68,6 +68,11 @@ public class POM {
 
 	private Element root;
 
+	private String packaging;
+	private String name;
+	private String description;
+	private String url;
+
 	public static POM getInstance(Resource localDirectory, String groupId, String version, String artifactId) {
 		return getInstance(localDirectory, null, groupId, artifactId, version, null, null, SCOPE_NOT_TEST, SCOPE_ALL);
 	}
@@ -145,12 +150,23 @@ public class POM {
 		try (InputStream inputStream = getPath().getInputStream()) {
 			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 			DocumentBuilder builder = factory.newDocumentBuilder();
+
 			Document doc = builder.parse(inputStream);
 			this.root = doc.getDocumentElement();
 			root.normalize();
+
+			// read base information
+			this.packaging = MavenUtil.getValue(root, "packaging", "jar");
+			this.name = MavenUtil.getValue(root, "name", null);
+			this.description = MavenUtil.getValue(root, "description", null);
+			this.url = MavenUtil.getValue(root, "url", null);
+
 		}
 		catch (SAXException | ParserConfigurationException e) {
-			throw ExceptionUtil.toIOException(e);
+			IOException cause = ExceptionUtil.toIOException(e);
+			IOException ioe = new IOException("failed to load pom file [" + getArtifact("pom", initRepositories) + "]");
+			ExceptionUtil.initCauseEL(ioe, cause);
+			throw ioe;
 		}
 	}
 
@@ -223,6 +239,26 @@ public class POM {
 
 	public String getVersion() {
 		return version;
+	}
+
+	public String getPackaging() throws IOException {
+		initXML();
+		return this.packaging == null ? "jar" : this.packaging;
+	}
+
+	public String getName() throws IOException {
+		initXML();
+		return this.name;
+	}
+
+	public String getDescription() throws IOException {
+		initXML();
+		return this.description;
+	}
+
+	public String getURL() throws IOException {
+		initXML();
+		return this.url;
 	}
 
 	public int getDependencyScopeManagement() {
@@ -303,8 +339,7 @@ public class POM {
 	}
 
 	public boolean isOptional() {
-
-		return Boolean.TRUE.equals(optional);
+		return Boolean.TRUE.equals(Caster.toBoolean(optional, null));
 	}
 
 	private Resource local(Resource dir, String extension) {
@@ -364,14 +399,28 @@ public class POM {
 	}
 
 	private static TreeNode<POM> getDependencies(POM pom, boolean recursive, int level, TreeNode<POM> node) throws IOException {
-		List<POM> deps = pom.getDependencies();
-		if (deps != null) {
-			for (POM p: deps) {
-				if (!node.addChild(p)) continue;
-				if (recursive) getDependencies(p, recursive, level + 1, node);
+		try {
+			List<POM> deps = pom.getDependencies();
+			if (deps != null) {
+				for (POM p: deps) {
+					try {
+						if (!node.addChild(p)) continue;
+						if (recursive) getDependencies(p, recursive, level + 1, node);
+					}
+					catch (IOException ioe) {
+						node.removeChild(p);
+						// if optional we let it go
+						if (!p.isOptional()) throw ioe;
+					}
+				}
 			}
+			return node;
 		}
-		return node;
+		catch (IOException cause) {
+			IOException e = new IOException("failed to load dependencies in [" + pom + "]");
+			ExceptionUtil.initCauseEL(e, cause);
+			throw e;
+		}
 	}
 
 	public List<TreeNode<POM>> getAllDependencyManagementAsTrees() throws IOException {
@@ -385,14 +434,27 @@ public class POM {
 	}
 
 	private static TreeNode<POM> getDependencyManagement(POM pom, boolean recursive, int level, TreeNode<POM> node) throws IOException {
-		List<POM> deps = pom.getDependencyManagement();
-		if (deps != null) {
-			for (POM p: deps) {
-				if (!node.addChild(p)) continue;
-				if (recursive) getDependencyManagement(p, recursive, level + 1, node);
+		try {
+			List<POM> deps = pom.getDependencyManagement();
+			if (deps != null) {
+				for (POM p: deps) {
+					try {
+						if (!node.addChild(p)) continue;
+						if (recursive) getDependencyManagement(p, recursive, level + 1, node);
+					}
+					catch (IOException ioe) {
+						node.removeChild(p);
+						if (!p.isOptional()) throw ioe;
+					}
+				}
 			}
+			return node;
 		}
-		return node;
+		catch (IOException cause) {
+			IOException e = new IOException("failed to load dependency management in [" + pom + "]");
+			ExceptionUtil.initCauseEL(e, cause);
+			throw e;
+		}
 	}
 
 	public TreeNode<POM> getAllParentsAsTree() throws IOException {

@@ -3,72 +3,46 @@ package lucee.runtime.mvn;
 import lucee.print;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.ResourcesImpl;
+import lucee.runtime.mvn.MavenUtil.GAVSO;
 
 public class Test {
 	public static void main(String[] args) throws Exception {
 		Resource dir = ResourcesImpl.getFileResourceProvider().getResource("/Users/mic/Tmp3");
+		GAVSO[] arr = new GAVSO[] {
 
-		String groupId = "org.apache.maven";
-		String artifactId = "maven-parent";
-		String version = "40";
+				new GAVSO("org.apache.maven", "maven-parent", "40"),
 
-		groupId = "org.apache";
-		artifactId = "apache";
-		version = "30";
+				new GAVSO("org.apache", "apache", "30"),
 
-		groupId = "com.puppycrawl.tools";
-		artifactId = "checkstyle";
-		version = "7.8";
+				new GAVSO("com.puppycrawl.tools", "checkstyle", "7.8"),
 
-		groupId = "org.apache.commons";
-		artifactId = "commons-lang3";
-		version = "3.12.0";
+				new GAVSO("org.apache.commons", "commons-lang3", "3.12.0"),
 
-		groupId = "org.apache.httpcomponents";
-		artifactId = "httpclient";
-		version = "4.5.14";
+				new GAVSO("org.apache.httpcomponents", "httpclient", "4.5.14"),
 
-		groupId = "org.apache.httpcomponents";
-		artifactId = "httpcomponents-client";
-		version = "4.5.14";
+				new GAVSO("org.apache.httpcomponents", "httpcomponents-client", "4.5.14"),
 
-		groupId = "org.apache.commons";
-		artifactId = "commons-pool2";
-		version = "2.12.0";
+				new GAVSO("org.apache.commons", "commons-pool2", "2.12.0"),
 
-		groupId = "org.apache.commons";
-		artifactId = "commons-parent";
-		version = "62";
+				new GAVSO("org.apache.commons", "commons-parent", "62"),
 
-		groupId = "org.slf4j";
-		artifactId = "slf4j-api";
-		version = "1.6.1";
+				new GAVSO("org.slf4j", "slf4j-api", "1.6.1"),
 
-		groupId = "net.bytebuddy";
-		artifactId = "byte-buddy";
-		version = "1.14.17";
+				new GAVSO("net.bytebuddy", "byte-buddy", "1.14.17"),
 
-		// groupId = "net.bytebuddy";
-		// artifactId = "byte-buddy-parent";
-		// version = "1.14.17";
+				new GAVSO("net.bytebuddy", "byte-buddy-parent", "1.14.17"),
 
-		groupId = "org.lucee";
-		artifactId = "lucee";
-		version = "6.1.0.235-RC";
-		groupId = "org.apache.maven.resolver";
-		artifactId = "maven-resolver-impl";
-		version = "2.0.0";
-		groupId = "commons-beanutils";
-		artifactId = "commons-beanutils";
-		version = "1.9.4";
+				new GAVSO("commons-beanutils", "commons-beanutils", "1.9.4"),
 
-		// groupId = "xerces";
-		// artifactId = "xerces-impl";
-		// version = "2.6.2";
+				new GAVSO("org.apache.maven.resolver", "maven-resolver-impl", "2.0.0"),
+
+				new GAVSO("jakarta.enterprise", "jakarta.enterprise.cdi-api", "4.0.1"),
+
+				new GAVSO("org.lucee", "lucee", "6.1.0.235-RC")
+
+		};
 
 		/*
-		 * Artifact[] examples = new Artifact[] {
-		 * 
 		 * new Artifact("org.hibernate.orm", "hibernate-core", "6.5.2.Final"), new Artifact("com.amazonaws",
 		 * "aws-java-sdk-s3", "1.12.756"),
 		 * 
@@ -100,36 +74,42 @@ public class Test {
 		 * for (Artifact a: examples) { print.e("------------ " + a); print.e(maven.download(a.groupId,
 		 * a.artifactId, a.version, true, false)); }
 		 */
+		for (GAVSO gav: arr) {
+			POM pom = POM.getInstance(dir, gav.g, gav.a, gav.v, POM.SCOPE_NOT_TEST);
+			print.e("==========================================");
+			print.e(pom.getName());
+			print.e(pom);
+			print.e("==========================================");
 
-		POM pom = POM.getInstance(dir, groupId, artifactId, version, POM.SCOPE_NOT_TEST);
-		print.e("==========================================");
-		print.e(pom);
-		print.e("==========================================");
+			// print.e("--- properties ---");
+			// print.e(pom.getAllParentsAsTree());
+			// print.e(pom.getProperties());
+			print.e("--- packaging ---");
+			print.e(pom.getPackaging());
 
-		// print.e("--- properties ---");
-		// print.e(pom.getAllParentsAsTree());
-		// print.e(pom.getProperties());
+			print.e("--- parents ---");
+			// print.e(pom.getAllParentsAsTree());
+			print.e(pom.getAllParents());
 
-		print.e("--- parents ---");
-		// print.e(pom.getAllParentsAsTree());
-		print.e(pom.getAllParents());
+			print.e("--- repositories ---");
+			// print.e(pom.getAllParentsAsTree());
+			print.e(pom.getRepositories());
 
-		print.e("--- repositories ---");
-		// print.e(pom.getAllParentsAsTree());
-		print.e(pom.getRepositories());
+			print.e("--- dependencies management ---");
+			print.e(pom.getDependencyManagement());
 
-		print.e("--- dependencies ---");
-		// print.e(getDependenciesAsTrees(pom, true));
-		print.e(pom.getAllDependencies());
+			print.e("--- all dependencies management ---");
+			print.e(pom.getAllDependencyManagement());
 
-		// pom.getScope();
+			print.e("--- dependencies ---");
+			// print.e(getDependenciesAsTrees(pom, true));
+			print.e(pom.getAllDependencies());
 
-		print.e("--- dependencies management ---");
-		print.e(pom.getAllDependencyManagement());
-		// print.e(pom.getDependencyManagement());
+			// pom.getScope();
+			// print.e(pom.getDependencyManagement());
 
-		// print.e(maven.getDependencies(groupId, artifactId, version, true, false, true));
-
+			// print.e(maven.getDependencies(groupId, artifactId, version, true, false, true));
+		}
 	}
 
 }

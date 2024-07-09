@@ -51,6 +51,12 @@ public class TreeNode<T> {
 		return true;
 	}
 
+	public void removeChild(T child) {
+		children.remove(child);
+		if (all != null) all.remove(child);
+
+	}
+
 	public List<T> asList() {
 		List<T> list = new ArrayList<T>();
 		list.add(getValue());
