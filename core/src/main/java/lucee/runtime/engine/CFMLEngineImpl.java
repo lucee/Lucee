@@ -352,7 +352,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 			extensions = new HashSet<ExtensionDefintion>();
 		}
 
-		// install extension defined
+		// install extension defined in env var /sys prop
 		String extensionIds = StringUtil.unwrap(SystemUtil.getSystemPropOrEnvVar("lucee-extensions", null)); // old no longer used
 		if (StringUtil.isEmpty(extensionIds, true)) extensionIds = StringUtil.unwrap(SystemUtil.getSystemPropOrEnvVar("lucee.extensions", null));
 
@@ -360,9 +360,12 @@ public final class CFMLEngineImpl implements CFMLEngine {
 		if (!StringUtil.isEmpty(extensionIds, true)) {
 			this.envExt = extensionIds;
 			LogUtil.log(Log.LEVEL_INFO, "deploy", "controller", "Extensions to install defined in env variable or system property:" + extensionIds);
-			List<ExtensionDefintion> _extensions = RHExtension.toExtensionDefinitions(extensionIds);
-			extensions = toSet(extensions, _extensions);
+			extensions = toSet(extensions, RHExtension.toExtensionDefinitions(extensionIds));
+		}
 
+		// install extension defined in .CFConfig.json
+		if (installExtensions && (updateInfo.updateType == ConfigFactory.NEW_FRESH || updateInfo.updateType == ConfigFactory.NEW_FROM4)) {
+			extensions = toSet(extensions, cs.getExtensionDefinitions());
 		}
 
 		if (extensions.size() > 0) {
@@ -371,7 +374,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 			StringBuilder failedSB = new StringBuilder();
 			boolean sucess = true;
 			try {
-				results = DeployHandler.deployExtensions(cs, extensions.toArray(new ExtensionDefintion[extensions.size()]), null, false, false);
+				results = DeployHandler.deployExtensions(cs, extensions.toArray(new ExtensionDefintion[extensions.size()]), null, true, false);
 				for (Entry<ExtensionDefintion, Boolean> e: results.entrySet()) {
 					// failed
 					if (!Boolean.TRUE.equals(e.getValue())) {
@@ -517,7 +520,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 			Iterator<ExtensionDefintion> it = set.iterator();
 			while (it.hasNext()) {
 				ed = it.next();
-				map.put(ed.toString(), ed);
+				map.put(ed.getId() + "", ed);
 			}
 		}
 
@@ -526,10 +529,11 @@ public final class CFMLEngineImpl implements CFMLEngine {
 			Iterator<ExtensionDefintion> it = list.iterator();
 			while (it.hasNext()) {
 				ed = it.next();
-				map.put(ed.toString(), ed);
+				map.put(ed.getId() + "", ed);
 			}
 		}
 
+		// TODO remove this and simply return a collection
 		// to Set
 		LinkedHashSet<ExtensionDefintion> rtn = new LinkedHashSet<ExtensionDefintion>();
 		Iterator<ExtensionDefintion> it = map.values().iterator();

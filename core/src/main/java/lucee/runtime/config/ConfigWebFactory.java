@@ -127,6 +127,7 @@ import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.SecurityException;
+import lucee.runtime.extension.ExtensionDefintion;
 import lucee.runtime.extension.RHExtension;
 import lucee.runtime.extension.RHExtensionProvider;
 import lucee.runtime.functions.other.CreateUUID;
@@ -560,8 +561,16 @@ public final class ConfigWebFactory extends ConfigFactory {
 
 		if (!essentialOnly) {
 			_loadExtensionBundles(cs, config, root, log);
-			if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_DEBUG, ConfigWebFactory.class.getName(), "loaded extension bundles");
+			if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_DEBUG, ConfigWebFactory.class.getName(), "loaded extension");
 
+		}
+		else {
+			_loadExtensionDefinition(cs, config, root, log);
+			if (LOG)
+				LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_DEBUG, ConfigWebFactory.class.getName(), "loaded extension definitions");
+
+		}
+		if (!essentialOnly) {
 			_loadWS(cs, config, root, log);
 			if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_DEBUG, ConfigWebFactory.class.getName(), "loaded webservice");
 
@@ -4991,6 +5000,43 @@ public final class ConfigWebFactory extends ConfigFactory {
 			}
 			// set
 			config.setExtensions(extensions.toArray(new RHExtension[extensions.size()]), md5);
+		}
+		catch (Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
+			log(config, log, t);
+		}
+	}
+
+	private static void _loadExtensionDefinition(ConfigServerImpl cs, ConfigImpl config, Struct root, Log log) {
+		if (!(config instanceof ConfigServer)) return;
+
+		try {
+			Log deployLog = config.getLog("deploy");
+			if (deployLog != null) log = deployLog;
+			Array children = ConfigWebUtil.getAsArray("extensions", root);
+			// set
+			Map<String, String> child;
+			Struct childSct;
+			String id;
+			Iterator<Object> it = children.valueIterator();
+			List<ExtensionDefintion> extensions = null;
+			while (it.hasNext()) {
+				childSct = Caster.toStruct(it.next(), null);
+				if (childSct == null) continue;
+				child = Caster.toStringMap(childSct, null);
+
+				if (child == null) continue;
+				id = Caster.toString(childSct.get(KeyConstants._id, null), null);
+
+				try {
+					if (extensions == null) extensions = new ArrayList<>();
+					extensions.add(RHExtension.toExtensionDefinition(config, id, child));
+				}
+				catch (Exception e) {
+					log(config, log, e);
+				}
+			}
+			if (extensions != null) config.setExtensionDefinitions(extensions);
 		}
 		catch (Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);

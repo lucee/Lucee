@@ -971,7 +971,7 @@ public final class Decision {
 	}
 
 	public static boolean isString(Object o) {
-		if (o instanceof String) return true;
+		if (o instanceof CharSequence) return true;
 		else if (o instanceof Boolean) return true;
 		else if (o instanceof Number) return true;
 		else if (o instanceof Date) return true;

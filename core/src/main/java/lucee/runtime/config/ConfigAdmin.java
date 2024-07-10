@@ -116,6 +116,7 @@ import lucee.runtime.gateway.GatewayEntryImpl;
 import lucee.runtime.listener.AppListenerUtil;
 import lucee.runtime.listener.SerializationSettings;
 import lucee.runtime.monitor.Monitor;
+import lucee.runtime.net.ntp.NtpClient;
 import lucee.runtime.net.proxy.ProxyData;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
@@ -399,9 +400,7 @@ public final class ConfigAdmin {
 		else {
 			setClass(logger, null, "appender", ci.getLogEngine().appenderClassDefintion("resource"));
 			setClass(logger, null, "layout", ci.getLogEngine().layoutClassDefintion("classic"));
-			Struct args = new StructImpl();
-			args.set(KeyConstants._path, logFile);
-			logger.setEL("appenderArguments", args);
+			logger.setEL("appenderArguments", "path:" + logFile);
 		}
 		logger.setEL("logLevel", level);
 	}
@@ -2053,6 +2052,14 @@ public final class ConfigAdmin {
 	}
 
 	public void updateResourceProvider(String scheme, ClassDefinition cd, Struct arguments) throws PageException {
+		updateResourceProvider(scheme, cd, toStringCSSStyle(arguments));
+	}
+
+	public void _updateResourceProvider(String scheme, ClassDefinition cd, Struct arguments) throws PageException {
+		_updateResourceProvider(scheme, cd, toStringCSSStyle(arguments));
+	}
+
+	public void updateResourceProvider(String scheme, ClassDefinition cd, String arguments) throws PageException {
 		checkWriteAccess();
 		SecurityManager sm = config.getSecurityManager();
 		short access = sm.getAccess(SecurityManager.TYPE_FILE);
@@ -2062,7 +2069,7 @@ public final class ConfigAdmin {
 		_updateResourceProvider(scheme, cd, arguments);
 	}
 
-	public void _updateResourceProvider(String scheme, ClassDefinition cd, Struct arguments) throws PageException {
+	public void _updateResourceProvider(String scheme, ClassDefinition cd, String arguments) throws PageException {
 
 		// check parameters
 		if (StringUtil.isEmpty(scheme)) throw new ExpressionException("scheme can't be an empty value");
@@ -2139,6 +2146,22 @@ public final class ConfigAdmin {
 			rtn.append(URLEncoder.encode(e.getKey().getString()));
 			rtn.append('=');
 			rtn.append(URLEncoder.encode(Caster.toString(e.getValue(), "")));
+		}
+		return rtn.toString();
+	}
+
+	private static String toStringCSSStyle(Struct sct) {
+		// Collection.Key[] keys = sct.keys();
+		StringBuilder rtn = new StringBuilder();
+		Iterator<Entry<Key, Object>> it = sct.entryIterator();
+		Entry<Key, Object> e;
+
+		while (it.hasNext()) {
+			e = it.next();
+			if (rtn.length() > 0) rtn.append(';');
+			rtn.append(encode(e.getKey().getString()));
+			rtn.append(':');
+			rtn.append(encode(Caster.toString(e.getValue(), "")));
 		}
 		return rtn.toString();
 	}
@@ -2878,6 +2901,37 @@ public final class ConfigAdmin {
 
 		root.setEL("timezone", timeZone.trim());
 
+	}
+
+	/**
+	 * update the timeServer
+	 * 
+	 * @param timeServer
+	 * @param useTimeServer
+	 * @throws PageException
+	 */
+	public void updateTimeServer(String timeServer, Boolean useTimeServer) throws PageException {
+		checkWriteAccess();
+		if (useTimeServer != null && useTimeServer.booleanValue() && !StringUtil.isEmpty(timeServer, true)) {
+			try {
+				new NtpClient(timeServer).getOffset();
+			}
+			catch (IOException e) {
+				try {
+					new NtpClient(timeServer).getOffset();
+				}
+				catch (IOException ee) {
+					throw Caster.toPageException(ee);
+				}
+			}
+		}
+
+		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
+		if (!hasAccess) throw new SecurityException("no access to update regional setting");
+
+		root.setEL("timeserver", timeServer.trim());
+		if (useTimeServer != null) root.setEL("useTimeserver", Caster.toBooleanValue(useTimeServer));
+		else rem(root, "useTimeserver");
 	}
 
 	public void updateComponentDeepSearch(Boolean deepSearch) throws SecurityException {
@@ -4203,7 +4257,7 @@ public final class ConfigAdmin {
 	public void updateExecutionLog(ClassDefinition cd, Struct args, boolean enabled) throws PageException {
 		Struct el = _getRootElement("executionLog");
 		setClass(el, null, "", cd);
-		el.setEL("arguments", args);
+		el.setEL("arguments", toStringCSSStyle(args));
 		el.setEL("enabled", Caster.toString(enabled));
 	}
 
@@ -4390,12 +4444,12 @@ public final class ConfigAdmin {
 	public static void updateCore(ConfigServerImpl config, Resource core, boolean reload) throws PageException {
 		try {
 			// get patches directory
-			CFMLEngineFactory factory = ConfigWebUtil.getCFMLEngineFactory(config);
+			CFMLEngine engine = ConfigWebUtil.getEngine(config);
 			ConfigServerImpl cs = config;
 			Version v;
 			v = CFMLEngineFactory.toVersion(core.getName(), null);
 			Log logger = cs.getLog("deploy");
-			File f = factory.getResourceRoot();
+			File f = engine.getCFMLEngineFactory().getResourceRoot();
 			Resource res = ResourcesImpl.getFileResourceProvider().getResource(f.getAbsolutePath());
 			Resource pd = res.getRealResource("patches");
 			if (!pd.exists()) pd.mkdirs();
@@ -4551,13 +4605,8 @@ public final class ConfigAdmin {
 
 	public void updateRHExtension(Config config, RHExtension rhext, boolean reload, boolean force) throws PageException {
 		try {
-			if (!force && ConfigAdmin.hasRHExtensionInstalled((ConfigPro) config, rhext.toExtensionDefinition()) != null) {
-				String msg = "the extension " + rhext.getName() + " (id: " + rhext.getId() + ") in version " + rhext.getVersion() + " is already installed";
-				Log log = config.getLog("deploy");
-				if (log != null) {
-					log.debug("install", msg);
-				}
-				return;
+			if (!force && _hasRHExtensionInstalled((ConfigPro) config, rhext.toExtensionDefinition()) != null) {
+				throw new ApplicationException("the extension " + rhext.getName() + " (id: " + rhext.getId() + ") in version " + rhext.getVersion() + " is already installed");
 			}
 		}
 		catch (Exception e) {
@@ -5711,9 +5760,9 @@ public final class ConfigAdmin {
 
 		el.setEL("level", LogUtil.levelToString(level, ""));
 		setClass(el, null, "appender", appenderCD);
-		el.setEL("appenderArguments", appenderArgs);
+		el.setEL("appenderArguments", toStringCSSStyle(appenderArgs));
 		setClass(el, null, "layout", layoutCD);
-		el.setEL("layoutArguments", layoutArgs);
+		el.setEL("layoutArguments", toStringCSSStyle(layoutArgs));
 
 		if (el.containsKey("appender")) rem(el, "appender");
 		if (el.containsKey("layout")) rem(el, "layout");

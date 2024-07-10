@@ -157,7 +157,7 @@ public final class ModernAppListenerException extends PageException {
 
 	@Override
 	public boolean typeEqual(String type) {
-		return rootCause.equals(type);
+		return rootCause.getTypeAsString().equals(type);
 	}
 
 	@Override

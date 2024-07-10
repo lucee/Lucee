@@ -501,8 +501,12 @@ public class aprint {
 				ps.print(map.getClass().getName() + " {");
 				while (it.hasNext()) {
 					Object key = it.next();
-
-					_eo(ps, key);
+					if (key instanceof CharSequence) {
+						ps.print("\"");
+						ps.print(key.toString());
+						ps.print("\" ");
+					}
+					else _eo(ps, key);
 					ps.print(":");
 					_eo(ps, map.get(key));
 				}
@@ -510,13 +514,20 @@ public class aprint {
 			}
 			else {
 				ps.println(map.getClass().getName() + " {");
+				char del = ' ';
 				while (it.hasNext()) {
 					Object key = it.next();
 					ps.print("	");
-					_eo(ps, key);
+					ps.print(del);
+					if (key instanceof CharSequence) {
+						ps.print("\"");
+						ps.print(key.toString());
+						ps.print("\" ");
+					}
+					else _eo(ps, key);
 					ps.print(":");
 					_eo(ps, map.get(key));
-					ps.println(";");
+					del = ',';
 				}
 				ps.println("}");
 			}
