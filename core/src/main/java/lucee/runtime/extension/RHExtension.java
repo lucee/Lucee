@@ -1567,6 +1567,8 @@ public class RHExtension implements Serializable {
 		return rtn;
 	}
 
+	// TODO call public static ExtensionDefintion toExtensionDefinition(String id, Map<String, String>
+	// data)
 	public static ExtensionDefintion toExtensionDefinition(String s) {
 		if (StringUtil.isEmpty(s, true)) return null;
 		s = s.trim();
@@ -1616,6 +1618,54 @@ public class RHExtension implements Serializable {
 
 		}
 		return ed;
+	}
+
+	public static ExtensionDefintion toExtensionDefinition(Config config, String id, Map<String, String> data) {
+		if (data == null || data.size() == 0) return null;
+
+		ExtensionDefintion ed = new ExtensionDefintion();
+
+		// validate id
+		if (Decision.isUUId(id)) {
+			ed.setId(id);
+		}
+
+		String name;
+		Resource res;
+		config = ThreadLocalPageContext.getConfig(config);
+		for (Entry<String, String> entry: data.entrySet()) {
+			name = entry.getKey().trim();
+			if (!"id".equalsIgnoreCase(name)) ed.setParam(name, entry.getValue().trim());
+			if ("path".equalsIgnoreCase(name) || "url".equalsIgnoreCase(name) || "resource".equalsIgnoreCase(name)) {
+				res = ResourceUtil.toResourceExisting(config, entry.getValue().trim(), null);
+
+				if (ed.getId() == null && res != null && res.isFile()) {
+
+					Resource trgDir = config.getLocalExtensionProviderDirectory();
+					Resource trg = trgDir.getRealResource(res.getName());
+					if (!res.equals(trg) && !trg.isFile()) {
+						try {
+							IOUtil.copy(res, trg);
+						}
+						catch (IOException e) {
+							e.printStackTrace();
+						}
+					}
+					if (!trg.isFile()) continue;
+
+					try {
+						return new RHExtension(config, trg).toExtensionDefinition();
+					}
+					catch (Exception e) {
+						e.printStackTrace();
+					}
+				}
+			}
+
+		}
+		if (ed.getId() == null) return null;
+		return ed;
+
 	}
 
 	public static List<RHExtension> toRHExtensions(List<ExtensionDefintion> eds) throws PageException {

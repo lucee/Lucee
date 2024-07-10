@@ -27,7 +27,6 @@ import java.util.Map.Entry;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
-import lucee.print;
 import lucee.commons.io.DevNullOutputStream;
 import lucee.commons.io.log.Log;
 import lucee.commons.lang.ExceptionUtil;
@@ -113,8 +112,6 @@ public class ChildThreadImpl extends ChildThread implements Serializable {
 
 	private final boolean separateScopes;
 
-	private static long counter = 0;
-
 	public ChildThreadImpl(PageContextImpl parent, Page page, String tagName, int threadIndex, Struct attrs, boolean serializable, boolean separateScopes) {
 		this.serializable = serializable;
 		this.tagName = tagName;
@@ -124,7 +121,6 @@ public class ChildThreadImpl extends ChildThread implements Serializable {
 		start = System.currentTimeMillis();
 		if (attrs == null) this.attrs = new StructImpl();
 		else this.attrs = attrs;
-		print.ds("count:" + (++counter));
 		if (!serializable) {
 			this.page = page;
 			if (parent != null) {
