@@ -55,15 +55,29 @@
 
 		// copy jar
 		SystemOutput( "upload #src.jar# to S3",1,1 );
-		if ( fileExists( trg.jar ) )
-			fileDelete( trg.jar );
-		fileCopy( src.jar, trg.jar );
+		copyIt=true;
+		if (fileExists( trg.jar ) ) {
+			try { 
+				fileDelete( trg.jar );
+			}
+			catch(e){
+				copyIt=false;
+			}
+		}
+		if(copyIt) fileCopy( src.jar, trg.jar );
 
 		// copy core
 		SystemOutput( "upload #src.core# to S3",1,1 );
-		if ( fileExists( trg.core ) )
-			fileDelete( trg.core );
-		fileCopy( src.core, trg.core );
+		copyIt=true;
+		if ( fileExists( trg.core ) ) {
+			try { 
+				fileDelete( trg.core );
+			}
+			catch(e){
+				copyIt=false;
+			}
+		}
+		if(copyIt) fileCopy( src.core, trg.core );
 	}
 
 	/*
@@ -103,7 +117,16 @@
 	createLight( src.jar,src.light,src.version, false );
 	if ( DO_DEPLOY ){
 		trg.light = trg.dir & src.lightName;
-		fileCopy( src.light, trg.light );
+		copyIt=true;
+		if ( fileExists( trg.light ) ) {
+			try { 
+				fileDelete( trg.light );
+			}
+			catch(e){
+				copyIt=false;
+			}
+		}
+		if(copyIt) fileCopy( src.light, trg.light );
 	}
 
 	// Lucee zero build, built from light but also no admin or docs
@@ -118,9 +141,17 @@
 
 	if ( DO_DEPLOY ) {
 		trg.zero = trg.dir & src.zeroName;
-		fileCopy( src.zero, trg.zero );
-
-		SystemOutput(trg,1,1);
+		
+		copyIt=true;
+		if ( fileExists( trg.zero ) ) {
+			try { 
+				fileDelete( trg.zero );
+			}
+			catch(e){
+				copyIt=false;
+			}
+		}
+		if(copyIt) fileCopy( src.zero, trg.zero );
 	}
 
 
