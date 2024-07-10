@@ -4605,7 +4605,7 @@ public final class ConfigAdmin {
 
 	public void updateRHExtension(Config config, RHExtension rhext, boolean reload, boolean force) throws PageException {
 		try {
-			if (!force && ConfigAdmin.hasRHExtensionInstalled((ConfigPro) config, rhext.toExtensionDefinition()) != null) {
+			if (!force && _hasRHExtensionInstalled((ConfigPro) config, rhext.toExtensionDefinition()) != null) {
 				throw new ApplicationException("the extension " + rhext.getName() + " (id: " + rhext.getId() + ") in version " + rhext.getVersion() + " is already installed");
 			}
 		}

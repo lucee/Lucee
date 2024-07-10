@@ -369,7 +369,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 			StringBuilder failedSB = new StringBuilder();
 			boolean sucess = true;
 			try {
-				results = DeployHandler.deployExtensions(cs, extensions.toArray(new ExtensionDefintion[extensions.size()]), null, false, false);
+				results = DeployHandler.deployExtensions(cs, extensions.toArray(new ExtensionDefintion[extensions.size()]), null, true, false);
 				for (Entry<ExtensionDefintion, Boolean> e: results.entrySet()) {
 					// failed
 					if (!Boolean.TRUE.equals(e.getValue())) {
