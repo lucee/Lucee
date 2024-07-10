@@ -2116,7 +2116,7 @@ public final class Caster {
 	 * @throws PageException
 	 */
 	public static String toString(Object o) throws PageException {
-		if (o instanceof String) return (String) o;
+		if (o instanceof CharSequence) return o.toString();
 		else if (o instanceof Number) return toString(((Number) o));
 		else if (o instanceof Boolean) return toString(((Boolean) o).booleanValue());
 		else if (o instanceof Castable) return ((Castable) o).castToString();
@@ -2229,7 +2229,7 @@ public final class Caster {
 	}
 
 	public static String toString(Object o, boolean executeDefaultToStringMethod, String defaultValue) {
-		if (o instanceof String) return (String) o;
+		if (o instanceof CharSequence) return o.toString();
 		else if (o instanceof Boolean) return toString(((Boolean) o).booleanValue());
 		else if (o instanceof Number) return toString(((Number) o));
 		else if (o instanceof Castable) return ((Castable) o).castToString(defaultValue);
