@@ -46,6 +46,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -5330,5 +5331,22 @@ public final class Caster {
 	public static Number negate(Number n) {
 		if (n instanceof BigDecimal) return ((BigDecimal) n).negate();
 		return Double.valueOf(-n.doubleValue());
+	}
+
+	public static Map<String, String> toStringMap(Struct sct, Map<String, String> defaultValue) {
+		if (sct == null) return defaultValue;
+		try {
+			Map<String, String> rtn = new LinkedHashMap<>();
+			Iterator<Entry<Key, Object>> it = sct.entryIterator();
+			Entry<Key, Object> entry;
+			while (it.hasNext()) {
+				entry = it.next();
+				rtn.put(entry.getKey().getString(), Caster.toString(entry.getValue()));
+			}
+			return rtn;
+		}
+		catch (Exception e) {
+			return defaultValue;
+		}
 	}
 }
