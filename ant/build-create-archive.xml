@@ -70,7 +70,7 @@
 		
 		file="#temp#/lucee-context.lar"
 		virtual="/context"
-		addCFMLFiles="false"
+		addCFMLFiles="true"
 		addNonCFMLFiles="true"
 		ignoreScopes="false";
 
@@ -110,7 +110,7 @@
 		
 		file="#temp#/lucee-admin.lar"
 		virtual="/admin"
-		addCFMLFiles="false"
+		addCFMLFiles="true"
 		addNonCFMLFiles="true"
 		ignoreScopes="false";
 
@@ -142,7 +142,7 @@
 		file="#temp#/lucee-doc.lar"
 		virtual="/doc"
 		addCFMLFiles="true"
-		addNonCFMLFiles="false"
+		addNonCFMLFiles="true"
 		ignoreScopes="false";
 
 	if ( compileTestBox ) {
