@@ -59,13 +59,13 @@
 		}
 
 		// copy jar
-		SystemOutput( "upload #src.jarName# to S3",1,1 );
+		SystemOutput( "upload #src.jar# to S3",1,1 );
 		if ( fileExists( trg.jar ) )
 			fileDelete( trg.jar );
 		fileCopy( src.jar, trg.jar );
 
 		// copy core
-		SystemOutput( "upload #src.coreName# to S3",1,1 );
+		SystemOutput( "upload #src.core# to S3",1,1 );
 		if ( fileExists( trg.core ) )
 			fileDelete( trg.core );
 		fileCopy( src.core, trg.core );
@@ -119,7 +119,7 @@
 	else
 		SystemOutput( "build #src.zero#",1,1 );
 
-	createLight( src.light, src.zero,src.version, true );
+	createLight( src.light, src.zero,src.version, false );
 
 	if ( DO_DEPLOY ) {
 		trg.zero = trg.dir & src.zeroName;
