@@ -374,7 +374,7 @@ public class DeployHandler {
 
 		// if not we try to download it
 		if (log != null) log.info("extension", "Installing extension [" + ed + "] from remote extension provider");
-		Resource res = downloadExtension(ci, ed, log);
+		Resource res = downloadExtension(ci, ed, log, throwOnError);
 		if (res != null) {
 			try {
 				RHExtension _ext = ConfigAdmin._updateRHExtension((ConfigPro) config, res, reload, force, RHExtension.ACTION_MOVE);
@@ -386,17 +386,16 @@ public class DeployHandler {
 				else throw Caster.toPageException(e);
 			}
 		}
-		String name = StringUtil.emptyIfNull(ed.getId()).equals(ed.getSymbolicName()) ? ed.getSymbolicName() : (ed.getSymbolicName() + "(" + ed.getId() + ")");
-		throw new ApplicationException("Failed to download extension [" + name + ":" + ed.getVersion() + "]");
+		return null;
 	}
 
-	public static Resource downloadExtension(Config config, ExtensionDefintion ed, Log log) {
+	public static Resource downloadExtension(Config config, ExtensionDefintion ed, Log log, boolean throwOnError) throws ApplicationException {
 
 		Identification id = config.getIdentification();
 		String apiKey = id == null ? null : id.getApiKey();
 		URL url;
 		RHExtensionProvider[] providers = ((ConfigPro) config).getRHExtensionProviders();
-
+		ApplicationException exp = null;
 		for (int i = 0; i < providers.length; i++) {
 			HTTPResponse rsp = null;
 			try {
@@ -407,7 +406,6 @@ public class DeployHandler {
 
 				url = new URL(url, "/rest/extension/provider/full/" + ed.getId() + qs);
 				if (log != null) log.info("main", "Check for extension at [" + url + "]");
-
 				rsp = HTTPEngine4Impl.get(url, null, null, 5000, true, "UTF-8", "", null, new Header[] { new HeaderImpl("accept", "application/cfml") });
 
 				// If status code indicates success
@@ -421,9 +419,9 @@ public class DeployHandler {
 					return res;
 
 				}
-				else {
-					if (log != null) log.warn("main", "Failed (" + rsp.getStatusCode() + ") to load extension: [" + ed + "] from [" + url + "]");
-				}
+				// we want the first
+				if (throwOnError && exp == null) exp = new ApplicationException("Failed (" + rsp.getStatusCode() + ") to load extension: [" + ed + "] from [" + url + "]");
+				if (log != null) log.warn("main", "Failed (" + rsp.getStatusCode() + ") to load extension: [" + ed + "] from [" + url + "]");
 			}
 			catch (Exception e) {
 				if (log != null) log.error("extension", e);
@@ -432,6 +430,10 @@ public class DeployHandler {
 				HTTPEngine.closeEL(rsp);
 			}
 		}
+		if (exp != null) {
+			throw exp;
+		}
+
 		return null;
 	}
 
@@ -457,7 +459,12 @@ public class DeployHandler {
 			}
 		}
 		// remote
-		return downloadExtension(config, ed, log);
+		try {
+			return downloadExtension(config, ed, log, false);
+		}
+		catch (ApplicationException e) {
+			return null;
+		}
 	}
 
 	public static ExtensionDefintion getLocalExtension(Config config, ExtensionDefintion ed, ExtensionDefintion defaultValue) {
