@@ -53,11 +53,6 @@
 		trg.jar = trg.dir & src.jarName;
 		trg.core = trg.dir & src.coreName;
 
-		if ( fileExists( trg.jar ) && fileExists( trg.core ) ){
-			SystemOutput( "Build artifacts have already been uploaded for this version, nothing to do", 1, 1 );
-			return;
-		}
-
 		// copy jar
 		SystemOutput( "upload #src.jar# to S3",1,1 );
 		if ( fileExists( trg.jar ) )
@@ -100,7 +95,7 @@
 	src.lightName = "lucee-light-" & src.version & ".jar";
 	src.light = src.dir & src.lightName;
 	if ( DO_DEPLOY )
-		SystemOutput( "build and upload #src.lightName# to S3",1,1 );
+		SystemOutput( "build and upload #src.light# to S3",1,1 );
 	else
 		SystemOutput( "build #src.light#",1,1 );
 
@@ -115,7 +110,7 @@
 	src.zeroName = "lucee-zero-" & src.version & ".jar";
 	src.zero = src.dir & src.zeroName;
 	if ( DO_DEPLOY )
-		SystemOutput( "build and upload #src.zeroName# to S3",1,1 );
+		SystemOutput( "build and upload #src.zero# to S3",1,1 );
 	else
 		SystemOutput( "build #src.zero#",1,1 );
 
