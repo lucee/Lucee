@@ -76,6 +76,14 @@ public class Test {
 
 		};
 
+		arr = new GAVSO[] {
+
+				// new GAVSO("com.amazonaws", "aws-java-sdk-core", "1.12.757")
+				// new GAVSO("com.amazonaws", "aws-java-sdk-core", "1.12.458")
+				new GAVSO("com.amazonaws", "aws-java-sdk-core", "1.12.757")
+
+		};
+
 		/*
 		 * new Artifact("org.hibernate.orm", "hibernate-core", "6.5.2.Final"), new Artifact("com.amazonaws",
 		 * "aws-java-sdk-s3", "1.12.756"),
