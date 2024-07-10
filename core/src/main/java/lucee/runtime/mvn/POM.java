@@ -1,7 +1,6 @@
 package lucee.runtime.mvn;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
@@ -10,18 +9,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
 import lucee.print;
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.tree.TreeNode;
+import lucee.runtime.mvn.POMReader.Dependency;
 import lucee.runtime.op.Caster;
 
 public class POM {
@@ -66,12 +60,12 @@ public class POM {
 
 	private boolean debug = false;
 
-	private Element root;
-
 	private String packaging;
 	private String name;
 	private String description;
 	private String url;
+
+	private POMReader reader;
 
 	public static POM getInstance(Resource localDirectory, String groupId, String version, String artifactId) {
 		return getInstance(localDirectory, null, groupId, artifactId, version, null, null, SCOPE_NOT_TEST, SCOPE_ALL);
@@ -147,27 +141,21 @@ public class POM {
 
 		MavenUtil.downloadPOM(this, initRepositories);
 
-		try (InputStream inputStream = getPath().getInputStream()) {
-			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-			DocumentBuilder builder = factory.newDocumentBuilder();
-
-			Document doc = builder.parse(inputStream);
-			this.root = doc.getDocumentElement();
-			root.normalize();
-
-			// read base information
-			this.packaging = MavenUtil.getValue(root, "packaging", "jar");
-			this.name = MavenUtil.getValue(root, "name", null);
-			this.description = MavenUtil.getValue(root, "description", null);
-			this.url = MavenUtil.getValue(root, "url", null);
-
+		reader = new POMReader(getPath());
+		try {
+			reader.read();
 		}
-		catch (SAXException | ParserConfigurationException e) {
+		catch (SAXException e) {
 			IOException cause = ExceptionUtil.toIOException(e);
 			IOException ioe = new IOException("failed to load pom file [" + getArtifact("pom", initRepositories) + "]");
 			ExceptionUtil.initCauseEL(ioe, cause);
 			throw ioe;
 		}
+
+		this.packaging = reader.getPackaging();
+		this.name = reader.getName();
+		this.description = reader.getDescription();
+		this.url = reader.getURL();
 	}
 
 	private void initParent() throws IOException {
@@ -176,10 +164,10 @@ public class POM {
 		if (debug) print.e("xxxxxx initParent " + this + " xxxxxx");
 		initXML();
 
-		Element elParent = MavenUtil.getElement(root, "parent", null);
-		if (elParent != null) {
+		Dependency p = reader.getParent();
+		if (p != null) {
 			// chicken egg, because there is no parent yet, this cannot use properties from parent
-			this.parent = MavenUtil.toPOM(this.localDirectory, initRepositories, elParent, MavenUtil.getProperties(root, null), dependencyScope, dependencyScopeManagement);
+			this.parent = MavenUtil.toPOM(this.localDirectory, initRepositories, p, reader.getProperties(), dependencyScope, dependencyScopeManagement);
 			parent.init();
 		}
 	}
@@ -189,7 +177,7 @@ public class POM {
 		isInitProperties = true;
 		initParent();
 		if (debug) print.e("xxxxxx initProperties " + this + " xxxxxx");
-		properties = MavenUtil.getProperties(root, parent);
+		properties = MavenUtil.getProperties(reader.getProperties(), parent);
 
 	}
 
@@ -198,7 +186,7 @@ public class POM {
 		isInitRepositories = true;
 		if (debug) print.e("xxxxxx initRepositories " + this + " xxxxxx");
 		initProperties();
-		childRepositories = MavenUtil.getRepositories(root, this, parent, properties, DEFAULT_REPOSITORY);
+		childRepositories = MavenUtil.getRepositories(reader.getRepositories(), this, parent, properties, DEFAULT_REPOSITORY);
 	}
 
 	private void initDependencies() throws IOException {
@@ -206,7 +194,7 @@ public class POM {
 		isInitDependencies = true;
 		if (debug) print.e("xxxxxx initDependencies " + this + " xxxxxx");
 		initProperties();
-		if (dependencyScope > 0) dependencies = MavenUtil.getDependencies(root, this, parent, properties, localDirectory, false);
+		if (dependencyScope > 0) dependencies = MavenUtil.getDependencies(reader.getDependencies(), this, parent, properties, localDirectory, false);
 	}
 
 	private void initDependencyManagement() throws IOException {
@@ -215,7 +203,7 @@ public class POM {
 		if (debug) print.e("xxxxxx initDependencyManagement " + this + " xxxxxx");
 		initProperties();
 
-		if (dependencyScopeManagement > 0) dependencyManagement = MavenUtil.getDependencyManagement(root, this, parent, properties, localDirectory);
+		if (dependencyScopeManagement > 0) dependencyManagement = MavenUtil.getDependencyManagement(reader.getDependencyManagements(), this, parent, properties, localDirectory);
 
 	}
 

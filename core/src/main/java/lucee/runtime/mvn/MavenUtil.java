@@ -18,31 +18,23 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 
 import lucee.print;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.SerializableObject;
-import lucee.commons.lang.StringUtil;
+import lucee.runtime.mvn.POMReader.Dependency;
 import lucee.runtime.type.util.ListUtil;
 
 public class MavenUtil {
 	private static Map<String, String> sysprops;
 	private static Object token = new SerializableObject();
 
-	public static Map<String, String> getProperties(Element root, POM parent) throws IOException {
+	public static Map<String, String> getProperties(Map<String, String> rawProperties, POM parent) throws IOException {
 		Map<String, String> properties = parent != null ? parent.getProperties() : new LinkedHashMap<>();
 
-		Element elProperties = getElement(root, "properties", null);
-		NodeList nodeList = null;
 		int size = properties.size();
-		if (elProperties != null) {
-			nodeList = elProperties.getChildNodes();
-			size += nodeList.getLength();
-		}
+		if (rawProperties != null) size += rawProperties.size();
 
 		Map<String, String> newProperties = new HashMap<>(size);
 
@@ -52,46 +44,12 @@ public class MavenUtil {
 		}
 
 		// add new data
-
-		if (nodeList != null && nodeList.getLength() > 0) {
-			for (int i = 0; i < nodeList.getLength(); i++) {
-				Node propertyNode = nodeList.item(i);
-				if (propertyNode instanceof Element) {
-					// print.e(getValue(root, "groupId", null) + ":" + getValue(root, "artifactId", null) + " ---->" +
-					// propertyNode.getNodeName().trim());
-					newProperties.put(propertyNode.getNodeName().trim(), propertyNode.getTextContent().trim());
-				}
+		if (rawProperties != null) {
+			for (Entry<String, String> e: rawProperties.entrySet()) {
+				newProperties.put(e.getKey(), e.getValue());
 			}
 		}
 		return newProperties;
-	}
-
-	public static Map<String, String> toMap(NodeList nodeList) {
-		Map<String, String> newProperties = new HashMap<>(nodeList.getLength());
-		if (nodeList.getLength() > 0) {
-			Element el = (Element) nodeList.item(0);
-			NodeList propertyNodes = el.getChildNodes();
-			for (int i = 0; i < propertyNodes.getLength(); i++) {
-				Node propertyNode = propertyNodes.item(i);
-				if (propertyNode instanceof Element) {
-					newProperties.put(propertyNode.getNodeName(), propertyNode.getTextContent());
-				}
-			}
-		}
-		return newProperties;
-	}
-
-	public static String parent(Element rootElement) {
-		// parent
-		Element elParent = getElement(rootElement, "parent", null);
-		if (elParent != null) {
-			NodeList parentNodes = elParent.getChildNodes();
-			if (parentNodes != null && parentNodes.getLength() > 0) {
-				Element parentElement = (Element) parentNodes.item(0);
-				return getValue(parentElement, "version", null);
-			}
-		}
-		return null;
 	}
 
 	public static Map<String, String> getSystemProperties() {
@@ -109,55 +67,8 @@ public class MavenUtil {
 		return sysprops;
 	}
 
-	public static String getValue(Element el, String name, String childName, String defaultValue) {
-		if (el == null) return defaultValue;
-
-		NodeList nodes = el.getChildNodes();
-		int len = nodes.getLength();
-		Node n;
-		for (int i = 0; i < len; i++) {
-			n = nodes.item(i);
-			if (name.equals(n.getNodeName()) && n instanceof Element) {
-				return getValue((Element) n, childName, defaultValue);
-			}
-		}
-		return defaultValue;
-	}
-
-	public static String getValue(Element el, String name, String defaultValue) {
-		if (el == null) return defaultValue;
-
-		NodeList nodes = el.getChildNodes();
-		int len = nodes.getLength();
-		Node n;
-		for (int i = 0; i < len; i++) {
-			n = nodes.item(i);
-			if (name.equals(n.getNodeName())) {
-				String str = n.getTextContent();
-				if (StringUtil.isEmpty(str, true)) return defaultValue;
-				return str.trim();
-			}
-		}
-		return defaultValue;
-	}
-
-	public static Element getElement(Element el, String name, Element defaultValue) {
-		if (el == null) return defaultValue;
-
-		NodeList nodes = el.getChildNodes();
-		int len = nodes.getLength();
-		Node n;
-		for (int i = 0; i < len; i++) {
-			n = nodes.item(i);
-			if (name.equals(n.getNodeName())) {
-				if (n instanceof Element) return (Element) n;
-			}
-		}
-		return defaultValue;
-	}
-
-	public static Collection<Repository> getRepositories(Element rootElement, POM current, POM parent, Map<String, String> properties, Repository defaultRepository)
-			throws IOException {
+	public static Collection<Repository> getRepositories(List<POMReader.Repository> rawRepositories, POM current, POM parent, Map<String, String> properties,
+			Repository defaultRepository) throws IOException {
 		Map<String, Repository> repositories = new LinkedHashMap<>();
 		repositories.put(defaultRepository.getUrl(), defaultRepository);
 		if (parent != null) {
@@ -168,47 +79,26 @@ public class MavenUtil {
 				}
 			}
 		}
+		if (rawRepositories != null) {
+			for (POMReader.Repository rep: rawRepositories) {
+				Repository r = new Repository(
 
-		// TODO should we pass that in instead?
-		NodeList nodes = rootElement.getChildNodes();
-		int len = nodes.getLength();
-		Node n, nn;
-		Element el;
-		for (int i = 0; i < len; i++) {
-			n = nodes.item(i);
-			if ("repositories".equals(n.getNodeName())) {
+						resolvePlaceholders(current, rep.id, properties),
 
-				NodeList innderNodes = n.getChildNodes();
-				int innerLen = innderNodes.getLength();
-				POM p;
+						resolvePlaceholders(current, rep.name, properties),
 
-				for (int ii = 0; ii < innerLen; ii++) {
-					nn = innderNodes.item(ii);
-					if (nn instanceof Element) {
-						el = (Element) nn;
+						resolvePlaceholders(current, rep.url, properties)
 
-						if ("repository".equals(el.getNodeName())) {
-							String id = MavenUtil.getValue(el, "id", null);
-							id = resolvePlaceholders(current, id, properties);
-
-							String name = MavenUtil.getValue(el, "name", null);
-							name = resolvePlaceholders(current, name, properties);
-
-							String url = MavenUtil.getValue(el, "url", null);
-							url = resolvePlaceholders(current, url, properties);
-							Repository r = new Repository(id, name, url);
-							repositories.put(r.getUrl(), r);
-						}
-					}
-				}
-				break;
+				);
+				repositories.put(r.getUrl(), r);
 			}
 		}
 		return repositories.values();
+
 	}
 
-	public static List<POM> getDependencies(Element rootElement, POM current, POM parent, Map<String, String> properties, Resource localDirectory, boolean management)
-			throws IOException {
+	public static List<POM> getDependencies(List<POMReader.Dependency> rawDependencies, POM current, POM parent, Map<String, String> properties, Resource localDirectory,
+			boolean management) throws IOException {
 		List<POM> dependencies = new ArrayList<>();
 		List<POM> parentDendencyManagement = null;
 
@@ -218,51 +108,28 @@ public class MavenUtil {
 				dependencies.add(pom); // TODO clone?
 			}
 		}
+		if (rawDependencies != null) {
+			for (POMReader.Dependency rd: rawDependencies) {
+				GAVSO gavso = getDependency(rd, parent, current, properties, parentDendencyManagement, management);
+				if (gavso == null) continue;
+				POM p = POM.getInstance(localDirectory, current.getRepositories(), gavso.g, gavso.a, gavso.v, gavso.s, gavso.o, current.getDependencyScope(),
+						current.getDependencyScopeManagement());
+				dependencies.add(p);
 
-		// TODO should we pass that in instead?
-		NodeList nodes = rootElement.getChildNodes();
-		int len = nodes.getLength();
-		Node n, nn;
-		Element el;
-		for (int i = 0; i < len; i++) {
-			n = nodes.item(i);
-			if ("dependencies".equals(n.getNodeName())) {
-
-				NodeList innderNodes = n.getChildNodes();
-				int innerLen = innderNodes.getLength();
-				POM p;
-
-				for (int ii = 0; ii < innerLen; ii++) {
-					nn = innderNodes.item(ii);
-					if (nn instanceof Element) {
-						el = (Element) nn;
-						if ("dependency".equals(el.getNodeName())) {
-							GAVSO gavso = getDependency(el, parent, current, properties, parentDendencyManagement, management);
-							if (gavso == null) continue;
-							p = POM.getInstance(localDirectory, current.getRepositories(), gavso.g, gavso.a, gavso.v, gavso.s, gavso.o, current.getDependencyScope(),
-									current.getDependencyScopeManagement());
-							dependencies.add(p);
-						}
-					}
-				}
-				break;
 			}
 		}
 		return dependencies;
 	}
 
-	public static GAVSO getDependency(Element el, POM parent, POM current, Map<String, String> properties, List<POM> parentDendencyManagement, boolean management)
+	public static GAVSO getDependency(POMReader.Dependency rd, POM parent, POM current, Map<String, String> properties, List<POM> parentDendencyManagement, boolean management)
 			throws IOException {
 		POM pdm = null;// TODO move out of here so multiple loop elements can profit
 
-		String g = MavenUtil.getValue(el, "groupId", null);
-		g = resolvePlaceholders(current, g, properties);
-
-		String a = MavenUtil.getValue(el, "artifactId", null);
-		a = resolvePlaceholders(current, a, properties);
+		String g = resolvePlaceholders(current, rd.groupId, properties);
+		String a = resolvePlaceholders(current, rd.artifactId, properties);
 
 		// scope
-		String s = MavenUtil.getValue(el, "scope", null);
+		String s = rd.scope;
 		if (s == null && parentDendencyManagement != null) {
 			if (pdm == null) pdm = getDendency(parentDendencyManagement, g, a);
 			if (pdm != null) {
@@ -277,7 +144,7 @@ public class MavenUtil {
 		}
 
 		// version
-		String v = MavenUtil.getValue(el, "version", null);
+		String v = rd.version;
 		if (v == null) {
 			pdm = getDendency(parentDendencyManagement, g, a);
 
@@ -295,7 +162,7 @@ public class MavenUtil {
 		}
 
 		// optional
-		String o = MavenUtil.getValue(el, "optional", null);
+		String o = rd.optional;
 		if (o == null && parentDendencyManagement != null) {
 			if (pdm == null) pdm = getDendency(parentDendencyManagement, g, a);
 			if (pdm != null) {
@@ -347,8 +214,8 @@ public class MavenUtil {
 		return null;
 	}
 
-	public static List<POM> getDependencyManagement(Element rootElement, POM current, POM parent, Map<String, String> properties, Resource localDirectory) throws IOException {
-		Element root = getElement(rootElement, "dependencyManagement", null);
+	public static List<POM> getDependencyManagement(List<POMReader.Dependency> rawDependencies, POM current, POM parent, Map<String, String> properties, Resource localDirectory)
+			throws IOException {
 
 		List<POM> dependencies = new ArrayList<>();
 
@@ -360,34 +227,14 @@ public class MavenUtil {
 				}
 			}
 		}
-		if (root != null) {
-			NodeList nodes = root.getChildNodes();
-			int len = nodes.getLength();
-			Node n, nn;
-			Element el;
-			for (int i = 0; i < len; i++) {
-				n = nodes.item(i);
-				if ("dependencies".equals(n.getNodeName())) {
 
-					NodeList innderNodes = n.getChildNodes();
-					int innerLen = innderNodes.getLength();
-					POM p;
-
-					for (int ii = 0; ii < innerLen; ii++) {
-						nn = innderNodes.item(ii);
-						if (nn instanceof Element) {
-							el = (Element) nn;
-							if ("dependency".equals(el.getNodeName())) {
-								GAVSO gavso = getDependency(el, parent, current, properties, null, true);
-								if (gavso == null) continue;
-								p = POM.getInstance(localDirectory, current.getRepositories(), gavso.g, gavso.a, gavso.v, gavso.s, gavso.o, current.getDependencyScope(),
-										current.getDependencyScopeManagement());
-								dependencies.add(p);
-							}
-						}
-					}
-					break;
-				}
+		if (rawDependencies != null) {
+			for (Dependency rd: rawDependencies) {
+				GAVSO gavso = getDependency(rd, parent, current, properties, null, true);
+				if (gavso == null) continue;
+				POM p = POM.getInstance(localDirectory, current.getRepositories(), gavso.g, gavso.a, gavso.v, gavso.s, gavso.o, current.getDependencyScope(),
+						current.getDependencyScopeManagement());
+				dependencies.add(p);
 			}
 		}
 		return dependencies;
@@ -478,16 +325,16 @@ public class MavenUtil {
 		} // TODO handle not 200
 	}
 
-	public static POM toPOM(Resource localDirectory, Collection<Repository> repositories, Element el, Map<String, String> properties, int dependencyScope,
+	public static POM toPOM(Resource localDirectory, Collection<Repository> repositories, POMReader.Dependency dependency, Map<String, String> properties, int dependencyScope,
 			int dependencyScopeManagement) throws IOException {
 
 		return POM.getInstance(localDirectory, repositories,
 
-				resolvePlaceholders(null, MavenUtil.getValue(el, "groupId", null), properties),
+				resolvePlaceholders(null, dependency.groupId, properties),
 
-				resolvePlaceholders(null, MavenUtil.getValue(el, "artifactId", null), properties),
+				resolvePlaceholders(null, dependency.artifactId, properties),
 
-				resolvePlaceholders(null, MavenUtil.getValue(el, "version", null), properties),
+				resolvePlaceholders(null, dependency.version, properties),
 
 				null, null,
 
