@@ -6639,6 +6639,6 @@ public final class ConfigAdmin {
 	public void updateConfig(Struct data, boolean flushExistingData) throws SecurityException {
 		checkWriteAccess();
 		if (flushExistingData) root.clear();
-		StructUtil.merge(true, root, data);
+		StructUtil.merge(root, data);
 	}
 }

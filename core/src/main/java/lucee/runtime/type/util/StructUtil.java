@@ -241,6 +241,24 @@ public final class StructUtil {
 		return sct;
 	}
 
+	public static void merge(Collection a, Collection b) {
+		Iterator<Entry<Key, Object>> it = b.entryIterator();
+		Entry<Key, Object> e;
+		Object tmp;
+		while (it.hasNext()) {
+			e = it.next();
+			// Lucee Collection
+			if (e.getValue() instanceof Collection) {
+				tmp = a.get(e.getKey(), null);
+				if (tmp instanceof Collection) {
+					merge((Collection) tmp, (Collection) e.getValue());
+					continue;
+				}
+			}
+			a.setEL(e.getKey(), e.getValue());
+		}
+	}
+
 	public static int getType(Map m) {
 		if (m instanceof LinkedHashMap) return Struct.TYPE_LINKED;
 		if (m instanceof WeakHashMap) return Struct.TYPE_WEAKED;
