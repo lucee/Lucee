@@ -733,7 +733,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 				}
 			}
 			else {
-				LogUtil.log(config, Log.LEVEL_ERROR, "application", "no password set and no password file found at [" + pwFile + "]");
+				LogUtil.log(config, Log.LEVEL_DEBUG, "application", "no password set and no password file found at [" + pwFile + "]");
 			}
 		}
 		return rtn;
