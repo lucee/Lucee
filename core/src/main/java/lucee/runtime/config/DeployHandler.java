@@ -61,7 +61,7 @@ import lucee.runtime.type.util.ListUtil;
 
 public class DeployHandler {
 
-	private static final ResourceFilter ALL_EXT = new ExtensionResourceFilter(new String[] { ".lex", ".lar", ".lco" });
+	private static final ResourceFilter ALL_EXT = new ExtensionResourceFilter(new String[] { ".lex", ".lar", ".lco", ".json" });
 
 	/**
 	 * deploys all files found
@@ -99,6 +99,19 @@ public class DeployHandler {
 
 							// Lucee core
 							else if (config instanceof ConfigServer && "lco".equalsIgnoreCase(ext)) ConfigAdmin.updateCore((ConfigServerImpl) config, child, true);
+							// CFConfig
+							if ("json".equalsIgnoreCase(ext)) {
+								try {
+									CFConfigImport ci = new CFConfigImport(config, child, config.getResourceCharset(), null, "server", null, false, false, false);
+									ci.execute(true);
+									child.delete();
+								}
+								catch (Exception e) {
+									DeployHandler.moveToFailedFolder(config.getDeployDirectory(), child);
+									throw Caster.toPageException(e);
+								}
+							}
+
 						}
 						catch (Exception e) {
 							log.log(Log.LEVEL_ERROR, "deploy handler", e);

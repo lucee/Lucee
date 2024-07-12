@@ -359,8 +359,6 @@ public final class PageContextImpl extends PageContext {
 
 	private StackTraceElement[] timeoutStacktrace;
 
-	private boolean fullNullSupport;
-
 	private static final boolean READ_CFID_FROM_URL = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.read.cfid.from.url", "true"), true);
 	private static AtomicInteger _idCounter = new AtomicInteger(1);
 	private long lastTimeoutNoAction;
@@ -455,7 +453,6 @@ public final class PageContextImpl extends PageContext {
 
 		ReqRspUtil.setContentType(rsp, "text/html; charset=" + config.getWebCharset().name());
 		this.isChild = isChild;
-		fullNullSupport = config.getFullNullSupport();
 
 		startTime = System.currentTimeMillis();
 		startTimeNS = System.nanoTime();
@@ -578,7 +575,6 @@ public final class PageContextImpl extends PageContext {
 			tmplPC.children.add(this);
 
 			this.applicationContext = tmplPC.applicationContext;
-			this.setFullNullSupport();
 
 			// path
 			this.base = tmplPC.base;
@@ -2679,13 +2675,11 @@ public final class PageContextImpl extends PageContext {
 
 	@Override
 	public final void execute(String realPath, boolean throwExcpetion, boolean onlyTopLevel) throws PageException {
-		fullNullSupport = getConfig().getFullNullSupport();
 		_execute(realPath, throwExcpetion, onlyTopLevel);
 	}
 
 	@Override
 	public final void executeCFML(String realPath, boolean throwExcpetion, boolean onlyTopLevel) throws PageException {
-		fullNullSupport = getConfig().getFullNullSupport();
 		_execute(realPath, throwExcpetion, onlyTopLevel);
 	}
 
@@ -3346,13 +3340,11 @@ public final class PageContextImpl extends PageContext {
 
 	@Override
 	public void addPageSource(PageSource ps, boolean alsoInclude) {
-		setFullNullSupport();
 		pathList.add(ps);
 		if (alsoInclude) includePathList.add(ps);
 	}
 
 	public void addPageSource(PageSource ps, PageSource psInc) {
-		setFullNullSupport();
 		pathList.add(ps);
 		if (psInc != null) includePathList.add(psInc);
 	}
@@ -3360,9 +3352,6 @@ public final class PageContextImpl extends PageContext {
 	@Override
 	public void removeLastPageSource(boolean alsoInclude) {
 		if (!pathList.isEmpty()) pathList.removeLast();
-		if (!pathList.isEmpty()) {
-			setFullNullSupport();
-		}
 		if (alsoInclude && !includePathList.isEmpty()) includePathList.removeLast();
 	}
 
@@ -3410,7 +3399,6 @@ public final class PageContextImpl extends PageContext {
 		if (ac != null) this.applicationContext = (ApplicationContextSupport) ac;
 		else return;
 
-		setFullNullSupport();
 		int scriptProtect = applicationContext.getScriptProtect();
 
 		// ScriptProtecting
@@ -3997,11 +3985,7 @@ public final class PageContextImpl extends PageContext {
 
 	// FUTURE add to interface
 	public boolean getFullNullSupport() {
-		return fullNullSupport;
-	}
-
-	private void setFullNullSupport() {
-		fullNullSupport = getApplicationContext().getFullNullSupport();
+		return getApplicationContext().getFullNullSupport();
 	}
 
 	public void registerLazyStatement(Statement s) {
