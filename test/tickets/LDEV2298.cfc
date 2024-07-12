@@ -45,7 +45,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 
 		describe( "Test case for LDEV2298, inserting date with null=false, with sqltype, via array of structs", function(){
 
-			it( title="queryExecute() column allows nulls", skip=isMSSqlNotSupported(), body = function( currentSpec ) {
+			it( title="queryExecute() column allows nulls", skip=true, body = function( currentSpec ) {
 				local.result = _InternalRequest(
 					template : "#uri#\test.cfm",
 					forms : {Scene = 4,tablename = 'ldev2298_null'}

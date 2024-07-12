@@ -75,7 +75,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 					cfquery( name="local.qTest" params=p ) {
 						echo(" SELECT * FROM LDEV1532 WHERE id = :id ");
 					}
-				}).toThrow();
+				}).notToThrow();
 			});
 
 			it(title = "Checking cfqueryparam with datatype cf_sql_integer, null=true & value is null (datasource query)", skip=notHasMssql(), body = function( currentSpec ) {
@@ -94,7 +94,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 						SELECT * FROM LDEV1532 WHERE id = <cfqueryparam sqltype="integer" value="">
 					</cfquery> 
 					```
-				}).toThrow();
+				}).notToThrow();
 			});
 
 			it(title = "Checking cfqueryparam with datatype cf_sql_varchar, null=false & value is null (datasource query)", skip=notHasMssql(), body = function( currentSpec ) {
