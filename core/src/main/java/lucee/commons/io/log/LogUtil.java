@@ -27,10 +27,14 @@ import lucee.commons.io.IOUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ExceptionUtil;
+import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.SystemOut;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.runtime.PageContext;
+import lucee.runtime.PageContextImpl;
+import lucee.runtime.PageSource;
 import lucee.runtime.config.Config;
+import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.config.ConfigWebUtil;
 import lucee.runtime.engine.ThreadLocalPageContext;
 
@@ -206,5 +210,39 @@ public final class LogUtil {
 
 	public static boolean doesFatal(Log log) {
 		return (log != null && log.getLogLevel() >= Log.LEVEL_FATAL);
+	}
+
+	public static String caller(PageContext pc, String defaultValue) {
+		Exception t = new Exception("Stack trace");
+		StackTraceElement[] traces = t.getStackTrace();
+
+		String template;
+		for (StackTraceElement trace: traces) {
+			template = trace.getFileName();
+			if (trace.getLineNumber() <= 0 || template == null || ResourceUtil.getExtension(template, "").equals("java")) continue;
+
+			return abs(pc, template) + ":" + trace.getLineNumber();
+		}
+		return defaultValue;
+	}
+
+	private static String abs(PageContext pc, String template) {
+		try {
+			ConfigWeb config = pc.getConfig();
+			Resource res = config.getResource(template);
+			if (res.exists()) return template;
+			String tmp;
+			PageSource ps = pc == null ? null : ((PageContextImpl) pc).getPageSource(template);
+			res = ps == null ? null : ps.getPhyscalFile();
+			if (res == null || !res.exists()) {
+				tmp = ps.getDisplayPath();
+				res = StringUtil.isEmpty(tmp) ? null : config.getResource(tmp);
+				if (res != null && res.exists()) return res.getAbsolutePath();
+			}
+			else return res.getAbsolutePath();
+		}
+		catch (Exception e) {
+		}
+		return template;
 	}
 }
