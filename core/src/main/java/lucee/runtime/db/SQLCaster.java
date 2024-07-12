@@ -233,7 +233,6 @@ public final class SQLCaster {
 				}
 				else throw pe;
 			}
-			stat.setDouble(parameterIndex, (Caster.toDoubleValue(value)));
 			return;
 
 		case Types.DOUBLE:
