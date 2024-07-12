@@ -35,6 +35,7 @@ import java.util.TimeZone;
 
 import lucee.commons.date.JREDateTimeUtil;
 import lucee.commons.io.IOUtil;
+import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.lang.ExceptionUtil;
@@ -58,6 +59,10 @@ import lucee.runtime.type.sql.ClobImpl;
  * SQL Caster
  */
 public final class SQLCaster {
+	private static final boolean allowEmptyAsNull;
+	static {
+		allowEmptyAsNull = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.query.allowemptyasnull", null), false);
+	}
 
 	private SQLCaster() {
 	}
@@ -161,8 +166,7 @@ public final class SQLCaster {
 				stat.setLong(parameterIndex, Caster.toLongValue(value));
 			}
 			catch (PageException pe) {
-				// FUTURE remove this if
-				if (!NullSupportHelper.full(pc) && value instanceof String && StringUtil.isEmpty((String) value)) {
+				if (allowEmptyAsNull && !NullSupportHelper.full(pc) && value instanceof String && StringUtil.isEmpty((String) value)) {
 					LogUtil.log(Log.LEVEL_WARN, "datasource", "conversion", "Deprecated functionality used at [" + LogUtil.caller(pc, "")
 							+ "]. An empty string was passed as a value for type BIGINT. Currently, this is treated as null, but it will be rejected in future releases.");
 					stat.setNull(parameterIndex, item.getType());
@@ -175,8 +179,7 @@ public final class SQLCaster {
 				stat.setBoolean(parameterIndex, Caster.toBooleanValue(value));
 			}
 			catch (PageException pe) {
-				// FUTURE remove this if
-				if (!NullSupportHelper.full(pc) && value instanceof String && StringUtil.isEmpty((String) value)) {
+				if (allowEmptyAsNull && !NullSupportHelper.full(pc) && value instanceof String && StringUtil.isEmpty((String) value)) {
 					LogUtil.log(Log.LEVEL_WARN, "datasource", "conversion", "Deprecated functionality used at [" + LogUtil.caller(pc, "")
 							+ "]. An empty string was passed as a value for type BIT. Currently, this is treated as null, but it will be rejected in future releases.");
 					stat.setNull(parameterIndex, item.getType());
@@ -189,8 +192,7 @@ public final class SQLCaster {
 				stat.setBlob(parameterIndex, SQLUtil.toBlob(stat.getConnection(), value));
 			}
 			catch (PageException pe) {
-				// FUTURE remove this if
-				if (!NullSupportHelper.full(pc) && value instanceof String && StringUtil.isEmpty((String) value)) {
+				if (allowEmptyAsNull && !NullSupportHelper.full(pc) && value instanceof String && StringUtil.isEmpty((String) value)) {
 					LogUtil.log(Log.LEVEL_WARN, "datasource", "conversion", "Deprecated functionality used at [" + LogUtil.caller(pc, "")
 							+ "]. An empty string was passed as a value for type BLOB. Currently, this is treated as null, but it will be rejected in future releases.");
 					stat.setNull(parameterIndex, item.getType());
@@ -204,8 +206,7 @@ public final class SQLCaster {
 				stat.setClob(parameterIndex, SQLUtil.toClob(stat.getConnection(), value));
 			}
 			catch (PageException pe) {
-				// FUTURE remove this if
-				if (!NullSupportHelper.full(pc) && value instanceof String && StringUtil.isEmpty((String) value)) {
+				if (allowEmptyAsNull && !NullSupportHelper.full(pc) && value instanceof String && StringUtil.isEmpty((String) value)) {
 					LogUtil.log(Log.LEVEL_WARN, "datasource", "conversion", "Deprecated functionality used at [" + LogUtil.caller(pc, "")
 							+ "]. An empty string was passed as a value for type CLOB. Currently, this is treated as null, but it will be rejected in future releases.");
 					stat.setNull(parameterIndex, item.getType());
@@ -225,8 +226,7 @@ public final class SQLCaster {
 				stat.setDouble(parameterIndex, (Caster.toDoubleValue(value)));
 			}
 			catch (PageException pe) {
-				// FUTURE remove this if
-				if (!NullSupportHelper.full(pc) && value instanceof String && StringUtil.isEmpty((String) value)) {
+				if (allowEmptyAsNull && !NullSupportHelper.full(pc) && value instanceof String && StringUtil.isEmpty((String) value)) {
 					LogUtil.log(Log.LEVEL_WARN, "datasource", "conversion", "Deprecated functionality used at [" + LogUtil.caller(pc, "")
 							+ "]. An empty string was passed as a value for type NUMERIC|DECIMAL. Currently, this is treated as null, but it will be rejected in future releases.");
 					stat.setNull(parameterIndex, item.getType());
@@ -243,8 +243,7 @@ public final class SQLCaster {
 				else stat.setObject(parameterIndex, Caster.toDouble(value), type);
 			}
 			catch (PageException pe) {
-				// FUTURE remove this if
-				if (!NullSupportHelper.full(pc) && value instanceof String && StringUtil.isEmpty((String) value)) {
+				if (allowEmptyAsNull && !NullSupportHelper.full(pc) && value instanceof String && StringUtil.isEmpty((String) value)) {
 					LogUtil.log(Log.LEVEL_WARN, "datasource", "conversion", "Deprecated functionality used at [" + LogUtil.caller(pc, "")
 							+ "]. An empty string was passed as a value for type DOUBLE|FLOAT. Currently, this is treated as null, but it will be rejected in future releases.");
 					stat.setNull(parameterIndex, item.getType());
@@ -259,8 +258,7 @@ public final class SQLCaster {
 				stat.setObject(parameterIndex, Caster.toBinary(value), type);
 			}
 			catch (PageException pe) {
-				// FUTURE remove this if
-				if (!NullSupportHelper.full(pc) && value instanceof String && StringUtil.isEmpty((String) value)) {
+				if (allowEmptyAsNull && !NullSupportHelper.full(pc) && value instanceof String && StringUtil.isEmpty((String) value)) {
 					LogUtil.log(Log.LEVEL_WARN, "datasource", "conversion", "Deprecated functionality used at [" + LogUtil.caller(pc, "")
 							+ "]. An empty string was passed as a value for type VARBINARY|LONGVARBINARY|BINARY. Currently, this is treated as null, but it will be rejected in future releases.");
 					stat.setNull(parameterIndex, item.getType());
@@ -273,8 +271,7 @@ public final class SQLCaster {
 				stat.setObject(parameterIndex, Caster.toFloat(value), type);
 			}
 			catch (PageException pe) {
-				// FUTURE remove this if
-				if (!NullSupportHelper.full(pc) && value instanceof String && StringUtil.isEmpty((String) value)) {
+				if (allowEmptyAsNull && !NullSupportHelper.full(pc) && value instanceof String && StringUtil.isEmpty((String) value)) {
 					LogUtil.log(Log.LEVEL_WARN, "datasource", "conversion", "Deprecated functionality used at [" + LogUtil.caller(pc, "")
 							+ "]. An empty string was passed as a value for type REAL. Currently, this is treated as null, but it will be rejected in future releases.");
 					stat.setNull(parameterIndex, item.getType());
@@ -287,8 +284,7 @@ public final class SQLCaster {
 				stat.setObject(parameterIndex, Caster.toByte(value), type);
 			}
 			catch (PageException pe) {
-				// FUTURE remove this if
-				if (!NullSupportHelper.full(pc) && value instanceof String && StringUtil.isEmpty((String) value)) {
+				if (allowEmptyAsNull && !NullSupportHelper.full(pc) && value instanceof String && StringUtil.isEmpty((String) value)) {
 					LogUtil.log(Log.LEVEL_WARN, "datasource", "conversion", "Deprecated functionality used at [" + LogUtil.caller(pc, "")
 							+ "]. An empty string was passed as a value for type TINYINT. Currently, this is treated as null, but it will be rejected in future releases.");
 					stat.setNull(parameterIndex, item.getType());
@@ -301,8 +297,7 @@ public final class SQLCaster {
 				stat.setObject(parameterIndex, Caster.toShort(value), type);
 			}
 			catch (PageException pe) {
-				// FUTURE remove this if
-				if (!NullSupportHelper.full(pc) && value instanceof String && StringUtil.isEmpty((String) value)) {
+				if (allowEmptyAsNull && !NullSupportHelper.full(pc) && value instanceof String && StringUtil.isEmpty((String) value)) {
 					LogUtil.log(Log.LEVEL_WARN, "datasource", "conversion", "Deprecated functionality used at [" + LogUtil.caller(pc, "")
 							+ "]. An empty string was passed as a value for type SMALLINT. Currently, this is treated as null, but it will be rejected in future releases.");
 					stat.setNull(parameterIndex, item.getType());
@@ -315,8 +310,7 @@ public final class SQLCaster {
 				stat.setObject(parameterIndex, Caster.toInteger(value), type);
 			}
 			catch (PageException pe) {
-				// FUTURE remove this if
-				if (!NullSupportHelper.full(pc) && value instanceof String && StringUtil.isEmpty((String) value)) {
+				if (allowEmptyAsNull && !NullSupportHelper.full(pc) && value instanceof String && StringUtil.isEmpty((String) value)) {
 					LogUtil.log(Log.LEVEL_WARN, "datasource", "conversion", "Deprecated functionality used at [" + LogUtil.caller(pc, "")
 							+ "]. An empty string was passed as a value for type INTEGER. Currently, this is treated as null, but it will be rejected in future releases.");
 					stat.setNull(parameterIndex, item.getType());
@@ -357,8 +351,7 @@ public final class SQLCaster {
 				stat.setDate(parameterIndex, new Date(Caster.toDate(value, tz).getTime()), JREDateTimeUtil.getThreadCalendar(tz));
 			}
 			catch (PageException pe) {
-				// FUTURE remove this if
-				if (!NullSupportHelper.full(pc) && value instanceof String && StringUtil.isEmpty((String) value)) {
+				if (allowEmptyAsNull && !NullSupportHelper.full(pc) && value instanceof String && StringUtil.isEmpty((String) value)) {
 					LogUtil.log(Log.LEVEL_WARN, "datasource", "conversion", "Deprecated functionality used at [" + LogUtil.caller(pc, "")
 							+ "]. An empty string was passed as a value for type DATE. Currently, this is treated as null, but it will be rejected in future releases.");
 					stat.setNull(parameterIndex, item.getType());
@@ -371,8 +364,7 @@ public final class SQLCaster {
 				stat.setTime(parameterIndex, new Time(Caster.toDate(value, tz).getTime()), JREDateTimeUtil.getThreadCalendar(tz));
 			}
 			catch (PageException pe) {
-				// FUTURE remove this if
-				if (!NullSupportHelper.full(pc) && value instanceof String && StringUtil.isEmpty((String) value)) {
+				if (allowEmptyAsNull && !NullSupportHelper.full(pc) && value instanceof String && StringUtil.isEmpty((String) value)) {
 					LogUtil.log(Log.LEVEL_WARN, "datasource", "conversion", "Deprecated functionality used at [" + LogUtil.caller(pc, "")
 							+ "]. An empty string was passed as a value for type TIME. Currently, this is treated as null, but it will be rejected in future releases.");
 					stat.setNull(parameterIndex, item.getType());
@@ -385,8 +377,7 @@ public final class SQLCaster {
 				stat.setTimestamp(parameterIndex, new Timestamp(Caster.toDate(value, tz).getTime()), JREDateTimeUtil.getThreadCalendar(tz));
 			}
 			catch (PageException pe) {
-				// FUTURE remove this if
-				if (!NullSupportHelper.full(pc) && value instanceof String && StringUtil.isEmpty((String) value)) {
+				if (allowEmptyAsNull && !NullSupportHelper.full(pc) && value instanceof String && StringUtil.isEmpty((String) value)) {
 					LogUtil.log(Log.LEVEL_WARN, "datasource", "conversion", "Deprecated functionality used at [" + LogUtil.caller(pc, "")
 							+ "]. An empty string was passed as a value for type TIMESTAMP. Currently, this is treated as null, but it will be rejected in future releases.");
 					stat.setNull(parameterIndex, item.getType());
