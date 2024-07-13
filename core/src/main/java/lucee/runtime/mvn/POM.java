@@ -432,7 +432,7 @@ public class POM {
 					}
 					catch (IOException ioe) {
 						node.removeChild(p);
-						if (!p.isOptional()) throw ioe;
+						// if (!p.isOptional()) throw ioe;
 					}
 				}
 			}

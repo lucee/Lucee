@@ -11,13 +11,16 @@ import java.util.Map;
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
+import org.xml.sax.SAXParseException;
 import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.DefaultHandler;
 
 import lucee.print;
+import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.ResourcesImpl;
+import lucee.commons.lang.StringUtil;
 import lucee.runtime.text.xml.XMLUtil;
 import lucee.transformer.library.function.FunctionLibEntityResolver;
 import lucee.transformer.library.function.FunctionLibException;
@@ -136,8 +139,23 @@ public final class POMReader extends DefaultHandler {
 		try {
 			init(new InputSource(r = IOUtil.getReader(file.getInputStream(), (Charset) null)));
 		}
+		catch (SAXParseException saxe) {
+			if (saxe.getMessage().indexOf("oslash") != -1) {
+				IOUtil.closeEL(r);
+				r = null;
+
+				String str = IOUtil.toString(file, (Charset) null);
+				// TODO PATCH make a better solution for that
+				str = StringUtil.replace(str, "&oslash;", "ø", false);// (str, "oslash");// &oslash;
+				IOUtil.write(file, str.getBytes(CharsetUtil.UTF8), false);
+				init(new InputSource(r = IOUtil.getReader(file.getInputStream(), (Charset) null)));
+
+			}
+			else throw saxe;
+
+		}
 		finally {
-			IOUtil.close(r);
+			IOUtil.closeEL(r);
 		}
 	}
 

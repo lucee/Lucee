@@ -42,48 +42,6 @@ public class Test {
 
 		};
 
-		arr = new GAVSO[] {
-
-				// new GAVSO("org.apache.maven", "maven-parent", "40"),
-
-				// new GAVSO("org.apache", "apache", "30"),
-
-				// new GAVSO("com.puppycrawl.tools", "checkstyle", "7.8"),
-
-				// new GAVSO("org.apache.commons", "commons-lang3", "3.12.0"),
-
-				// new GAVSO("org.apache.httpcomponents", "httpclient", "4.5.14"),
-
-				// new GAVSO("org.apache.httpcomponents", "httpcomponents-client", "4.5.14"),
-
-				new GAVSO("org.apache.commons", "commons-pool2", "2.12.0"),
-
-				// new GAVSO("org.apache.commons", "commons-parent", "62"),
-
-				new GAVSO("org.slf4j", "slf4j-api", "1.6.1"),
-
-				// new GAVSO("net.bytebuddy", "byte-buddy", "1.14.17"),
-
-				// new GAVSO("net.bytebuddy", "byte-buddy-parent", "1.14.17"),
-
-				new GAVSO("commons-beanutils", "commons-beanutils", "1.9.4"),
-
-				// new GAVSO("org.apache.maven.resolver", "maven-resolver-impl", "2.0.0"),
-
-				new GAVSO("jakarta.enterprise", "jakarta.enterprise.cdi-api", "4.0.1"),
-
-				new GAVSO("org.lucee", "lucee", "6.1.0.235-RC")
-
-		};
-
-		arr = new GAVSO[] {
-
-				// new GAVSO("com.amazonaws", "aws-java-sdk-core", "1.12.757")
-				// new GAVSO("com.amazonaws", "aws-java-sdk-core", "1.12.458")
-				new GAVSO("com.amazonaws", "aws-java-sdk-core", "1.12.757")
-
-		};
-
 		/*
 		 * new Artifact("org.hibernate.orm", "hibernate-core", "6.5.2.Final"), new Artifact("com.amazonaws",
 		 * "aws-java-sdk-s3", "1.12.756"),
