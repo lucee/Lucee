@@ -38,14 +38,16 @@ public class MavenUtil {
 	public static Map<String, String> getProperties(Map<String, String> rawProperties, POM parent) throws IOException {
 		Map<String, String> properties = parent != null ? parent.getProperties() : new LinkedHashMap<>();
 
-		int size = properties.size();
+		int size = properties == null ? 0 : properties.size();
 		if (rawProperties != null) size += rawProperties.size();
 
 		Map<String, String> newProperties = new HashMap<>(size);
 
 		// copy data from parent
-		for (Entry<String, String> e: properties.entrySet()) {
-			newProperties.put(e.getKey(), e.getValue());
+		if (properties != null) {
+			for (Entry<String, String> e: properties.entrySet()) {
+				newProperties.put(e.getKey(), e.getValue());
+			}
 		}
 
 		// add new data
@@ -111,8 +113,11 @@ public class MavenUtil {
 
 		if (parent != null) {
 			parentDendencyManagement = current.getDependencyManagement();
-			for (POM pom: parent.getDependencies()) {
-				dependencies.add(pom); // TODO clone?
+			List<POM> tmp = parent.getDependencies();
+			if (tmp != null) {
+				for (POM pom: tmp) {
+					dependencies.add(pom); // TODO clone?
+				}
 			}
 		}
 		if (rawDependencies != null) {
