@@ -74,8 +74,9 @@ public class Test {
 		 * for (Artifact a: examples) { print.e("------------ " + a); print.e(maven.download(a.groupId,
 		 * a.artifactId, a.version, true, false)); }
 		 */
+		long start = System.currentTimeMillis();
 		for (GAVSO gav: arr) {
-			POM pom = POM.getInstance(dir, gav.g, gav.a, gav.v, POM.SCOPE_NOT_TEST);
+			POM pom = POM.getInstance(dir, gav.g, gav.a, gav.v, POM.SCOPE_NOT_TEST, null);
 			print.e("==========================================");
 			print.e(pom.getName());
 			print.e(pom);
@@ -86,6 +87,12 @@ public class Test {
 			// print.e(pom.getProperties());
 			print.e("--- packaging ---");
 			print.e(pom.getPackaging());
+
+			print.e("--- path ---");
+			print.e(pom.getPath());
+
+			print.e("--- artifact ---");
+			print.e(pom.getArtifact());
 
 			print.e("--- parents ---");
 			// print.e(pom.getAllParentsAsTree());
@@ -104,13 +111,14 @@ public class Test {
 			print.e("--- dependencies ---");
 			// print.e(getDependenciesAsTrees(pom, true));
 			print.e(pom.getAllDependencies());
+			print.e(System.currentTimeMillis() - start);
 
 			// pom.getScope();
 			// print.e(pom.getDependencyManagement());
 
 			// print.e(maven.getDependencies(groupId, artifactId, version, true, false, true));
 
-			break;
+			// break;
 		}
 	}
 
