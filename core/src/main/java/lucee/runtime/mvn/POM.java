@@ -12,8 +12,10 @@ import java.util.Map;
 import org.xml.sax.SAXException;
 
 import lucee.print;
+import lucee.commons.io.log.Log;
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.ExceptionUtil;
+import lucee.commons.lang.SerializableObject;
 import lucee.commons.tree.TreeNode;
 import lucee.runtime.mvn.POMReader.Dependency;
 import lucee.runtime.op.Caster;
@@ -65,41 +67,48 @@ public class POM {
 	private String description;
 	private String url;
 
+	private Object token = new SerializableObject();
+
 	private POMReader reader;
 
-	public static POM getInstance(Resource localDirectory, String groupId, String version, String artifactId) {
-		return getInstance(localDirectory, null, groupId, artifactId, version, null, null, SCOPE_NOT_TEST, SCOPE_ALL);
+	private Log log;
+
+	private String artifactExtension;
+
+	public static POM getInstance(Resource localDirectory, String groupId, String version, String artifactId, Log log) {
+		return getInstance(localDirectory, null, groupId, artifactId, version, null, null, SCOPE_NOT_TEST, SCOPE_ALL, log);
 	}
 
-	public static POM getInstance(Resource localDirectory, Collection<Repository> repositories, String groupId, String version, String artifactId) {
-		return getInstance(localDirectory, repositories, groupId, artifactId, version, null, null, SCOPE_NOT_TEST, SCOPE_ALL);
+	public static POM getInstance(Resource localDirectory, Collection<Repository> repositories, String groupId, String version, String artifactId, Log log) {
+		return getInstance(localDirectory, repositories, groupId, artifactId, version, null, null, SCOPE_NOT_TEST, SCOPE_ALL, log);
 	}
 
-	public static POM getInstance(Resource localDirectory, String groupId, String artifactId, String version, int dependencyScope) {
-		return getInstance(localDirectory, null, groupId, artifactId, version, null, null, dependencyScope, POM.SCOPE_ALL);
+	public static POM getInstance(Resource localDirectory, String groupId, String artifactId, String version, int dependencyScope, Log log) {
+		return getInstance(localDirectory, null, groupId, artifactId, version, null, null, dependencyScope, POM.SCOPE_ALL, log);
 	}
 
-	public static POM getInstance(Resource localDirectory, Collection<Repository> repositories, String groupId, String artifactId, String version, int dependencyScope) {
-		return getInstance(localDirectory, repositories, groupId, artifactId, version, null, null, dependencyScope, POM.SCOPE_ALL);
+	public static POM getInstance(Resource localDirectory, Collection<Repository> repositories, String groupId, String artifactId, String version, int dependencyScope, Log log) {
+		return getInstance(localDirectory, repositories, groupId, artifactId, version, null, null, dependencyScope, POM.SCOPE_ALL, log);
 	}
 
 	public static POM getInstance(Resource localDirectory, Collection<Repository> repositories, String groupId, String artifactId, String version, int dependencyScope,
-			int dependencyScopeManagement) {
-		return getInstance(localDirectory, repositories, groupId, artifactId, version, null, null, dependencyScope, dependencyScopeManagement);
+			int dependencyScopeManagement, Log log) {
+		return getInstance(localDirectory, repositories, groupId, artifactId, version, null, null, dependencyScope, dependencyScopeManagement, log);
 	}
 
-	public static POM getInstance(Resource localDirectory, String groupId, String artifactId, String version, int dependencyScope, int dependencyScopeManagement) {
-		return getInstance(localDirectory, null, groupId, artifactId, version, null, null, dependencyScope, dependencyScopeManagement);
+	public static POM getInstance(Resource localDirectory, String groupId, String artifactId, String version, int dependencyScope, int dependencyScopeManagement, Log log) {
+		return getInstance(localDirectory, null, groupId, artifactId, version, null, null, dependencyScope, dependencyScopeManagement, log);
 	}
 
 	public static POM getInstance(Resource localDirectory, Collection<Repository> repositories, String groupId, String artifactId, String version, String scope, String optional,
-			int dependencyScope, int dependencyScopeManagement) {
+			int dependencyScope, int dependencyScopeManagement, Log log) {
 		String id = toId(localDirectory, groupId, artifactId, version, scope, optional, dependencyScope, dependencyScopeManagement);
 		POM pom = cache.get(id);
 		if (pom != null) {
 			return pom;
 		}
-		pom = new POM(localDirectory, repositories, groupId, artifactId, version, scope, optional, dependencyScope, dependencyScopeManagement);
+
+		pom = new POM(localDirectory, repositories, groupId, artifactId, version, scope, optional, dependencyScope, dependencyScopeManagement, log);
 		cache.put(id, pom);
 		return pom;
 	}
@@ -111,7 +120,7 @@ public class POM {
 	}
 
 	private POM(Resource localDirectory, Collection<Repository> repositories, String groupId, String artifactId, String version, String scope, String optional, int dependencyScope,
-			int dependencyScopeManagement) {
+			int dependencyScopeManagement, Log log) {
 		if (groupId == null) throw new IllegalArgumentException("groupId cannot be null");
 		if (artifactId == null) throw new IllegalArgumentException("artifactId cannot be null");
 		if (version == null) throw new IllegalArgumentException("version cannot be null");
@@ -130,32 +139,43 @@ public class POM {
 		this.optional = optional == null ? null : optional.trim();
 		this.dependencyScopeManagement = dependencyScopeManagement;
 		this.dependencyScope = dependencyScope;
+		this.log = log;
 
 		cache.put(id(), this);
 	}
 
-	private void initXML() throws IOException {
-		if (isInitXML) return;
-		isInitXML = true;
-		if (debug) print.e("xxxxxx initXML " + this + " xxxxxx");
+	void initXML() throws IOException {
+		if (!isInitXML) {
+			synchronized (token) {
+				if (!isInitXML) {
+					if (debug) print.e("xxxxxx initXML " + this + " xxxxxx");
 
-		MavenUtil.downloadPOM(this, initRepositories);
+					MavenUtil.download(this, initRepositories, "pom", log);
 
-		reader = new POMReader(getPath());
-		try {
-			reader.read();
+					reader = new POMReader(getPath());
+					try {
+						reader.read();
+					}
+					catch (SAXException e) {
+						IOException cause = ExceptionUtil.toIOException(e);
+						IOException ioe = new IOException("failed to load pom file [" + getArtifact("pom", initRepositories) + "]");
+						ExceptionUtil.initCauseEL(ioe, cause);
+						throw ioe;
+					}
+					this.packaging = reader.getPackaging();
+					this.artifactExtension = this.packaging;
+					if ("bundle".equalsIgnoreCase(artifactExtension)) this.artifactExtension = "jar";
+
+					this.name = reader.getName();
+					this.description = reader.getDescription();
+					this.url = reader.getURL();
+
+					if (this.packaging != null && !"pom".equalsIgnoreCase(this.packaging)) MavenUtil.download(this, initRepositories, artifactExtension, log);
+
+					isInitXML = true;
+				}
+			}
 		}
-		catch (SAXException e) {
-			IOException cause = ExceptionUtil.toIOException(e);
-			IOException ioe = new IOException("failed to load pom file [" + getArtifact("pom", initRepositories) + "]");
-			ExceptionUtil.initCauseEL(ioe, cause);
-			throw ioe;
-		}
-
-		this.packaging = reader.getPackaging();
-		this.name = reader.getName();
-		this.description = reader.getDescription();
-		this.url = reader.getURL();
 	}
 
 	private void initParent() throws IOException {
@@ -167,7 +187,7 @@ public class POM {
 		Dependency p = reader.getParent();
 		if (p != null) {
 			// chicken egg, because there is no parent yet, this cannot use properties from parent
-			this.parent = MavenUtil.toPOM(this.localDirectory, initRepositories, p, reader.getProperties(), dependencyScope, dependencyScopeManagement);
+			this.parent = MavenUtil.toPOM(this.localDirectory, initRepositories, p, reader.getProperties(), dependencyScope, dependencyScopeManagement, log);
 			parent.init();
 		}
 	}
@@ -194,7 +214,7 @@ public class POM {
 		isInitDependencies = true;
 		if (debug) print.e("xxxxxx initDependencies " + this + " xxxxxx");
 		initProperties();
-		if (dependencyScope > 0) dependencies = MavenUtil.getDependencies(reader.getDependencies(), this, parent, properties, localDirectory, false);
+		if (dependencyScope > 0) dependencies = MavenUtil.getDependencies(reader.getDependencies(), this, parent, properties, localDirectory, false, log);
 	}
 
 	private void initDependencyManagement() throws IOException {
@@ -203,7 +223,8 @@ public class POM {
 		if (debug) print.e("xxxxxx initDependencyManagement " + this + " xxxxxx");
 		initProperties();
 
-		if (dependencyScopeManagement > 0) dependencyManagement = MavenUtil.getDependencyManagement(reader.getDependencyManagements(), this, parent, properties, localDirectory);
+		if (dependencyScopeManagement > 0)
+			dependencyManagement = MavenUtil.getDependencyManagement(reader.getDependencyManagements(), this, parent, properties, localDirectory, log);
 
 	}
 
@@ -287,6 +308,15 @@ public class POM {
 
 	public Resource getPath() {
 		return local(localDirectory, "pom");
+	}
+
+	Resource getArtifact(String type) {
+		return local(localDirectory, type);
+	}
+
+	public Resource getArtifact() {
+		if (artifactExtension == null) return null;
+		return local(localDirectory, artifactExtension);
 	}
 
 	public boolean isInit() {
@@ -432,7 +462,7 @@ public class POM {
 					}
 					catch (IOException ioe) {
 						node.removeChild(p);
-						if (!p.isOptional()) throw ioe;
+						// if (!p.isOptional()) throw ioe;
 					}
 				}
 			}

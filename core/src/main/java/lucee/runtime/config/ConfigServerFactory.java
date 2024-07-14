@@ -175,27 +175,21 @@ public final class ConfigServerFactory extends ConfigFactory {
 		}
 	}
 
-	public static Resource getConfigFile(Resource configDir) {
+	public static Resource getConfigFile(Resource configDir) throws IOException {
 
 		// lucee.base.config
 		String customCFConfig = SystemUtil.getSystemPropOrEnvVar("lucee.base.config", null);
 		Resource configFile = null;
 		if (!StringUtil.isEmpty(customCFConfig, true)) {
-			try {
-				configFile = ResourcesImpl.getFileResourceProvider().getResource(customCFConfig.trim());
 
-				if (configFile.isFile()) {
-					LogUtil.log(Log.LEVEL_INFO, "deploy", "config", "using config File : " + configFile);
-					return configFile;
-				}
-				LogUtil.log(Log.LEVEL_ERROR, "deploy", "config",
-						"the config file [" + configFile
-								+ "] defined with the environment variable [LUCEE_BASE_CONFIG] or system property [-Dlucee.base.config] does not exist, using ["
-								+ configDir.getRealResource(CONFIG_FILE_NAME) + "] instead.");
+			configFile = ResourcesImpl.getFileResourceProvider().getResource(customCFConfig.trim());
+
+			if (configFile.isFile()) {
+				LogUtil.log(Log.LEVEL_INFO, "deploy", "config", "using config File : " + configFile);
+				return configFile;
 			}
-			catch (Exception e) {
-				LogUtil.log("config", e);
-			}
+			throw new IOException(
+					"the config file [" + configFile + "] defined with the environment variable [LUCEE_BASE_CONFIG] or system property [-Dlucee.base.config] does not exist.");
 		}
 		// default location
 		return configDir.getRealResource(CONFIG_FILE_NAME);

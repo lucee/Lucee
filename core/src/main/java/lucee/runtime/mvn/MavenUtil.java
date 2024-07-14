@@ -11,6 +11,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -21,7 +24,9 @@ import org.apache.http.util.EntityUtils;
 
 import lucee.print;
 import lucee.commons.io.IOUtil;
+import lucee.commons.io.log.Log;
 import lucee.commons.io.res.Resource;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.SerializableObject;
 import lucee.runtime.mvn.POMReader.Dependency;
 import lucee.runtime.type.util.ListUtil;
@@ -33,14 +38,16 @@ public class MavenUtil {
 	public static Map<String, String> getProperties(Map<String, String> rawProperties, POM parent) throws IOException {
 		Map<String, String> properties = parent != null ? parent.getProperties() : new LinkedHashMap<>();
 
-		int size = properties.size();
+		int size = properties == null ? 0 : properties.size();
 		if (rawProperties != null) size += rawProperties.size();
 
 		Map<String, String> newProperties = new HashMap<>(size);
 
 		// copy data from parent
-		for (Entry<String, String> e: properties.entrySet()) {
-			newProperties.put(e.getKey(), e.getValue());
+		if (properties != null) {
+			for (Entry<String, String> e: properties.entrySet()) {
+				newProperties.put(e.getKey(), e.getValue());
+			}
 		}
 
 		// add new data
@@ -98,26 +105,45 @@ public class MavenUtil {
 	}
 
 	public static List<POM> getDependencies(List<POMReader.Dependency> rawDependencies, POM current, POM parent, Map<String, String> properties, Resource localDirectory,
-			boolean management) throws IOException {
+			boolean management, Log log) throws IOException {
 		List<POM> dependencies = new ArrayList<>();
 		List<POM> parentDendencyManagement = null;
 
+		ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+
 		if (parent != null) {
 			parentDendencyManagement = current.getDependencyManagement();
-			for (POM pom: parent.getDependencies()) {
-				dependencies.add(pom); // TODO clone?
+			List<POM> tmp = parent.getDependencies();
+			if (tmp != null) {
+				for (POM pom: tmp) {
+					dependencies.add(pom); // TODO clone?
+				}
 			}
 		}
 		if (rawDependencies != null) {
+			List<Future<POM>> futures = new ArrayList<>();
 			for (POMReader.Dependency rd: rawDependencies) {
 				GAVSO gavso = getDependency(rd, parent, current, properties, parentDendencyManagement, management);
 				if (gavso == null) continue;
-				POM p = POM.getInstance(localDirectory, current.getRepositories(), gavso.g, gavso.a, gavso.v, gavso.s, gavso.o, current.getDependencyScope(),
-						current.getDependencyScopeManagement());
-				dependencies.add(p);
 
+				Future<POM> future = executor.submit(() -> {
+					POM p = POM.getInstance(localDirectory, current.getRepositories(), gavso.g, gavso.a, gavso.v, gavso.s, gavso.o, current.getDependencyScope(),
+							current.getDependencyScopeManagement(), log);
+					p.initXML();
+					return p;
+				});
+				futures.add(future);
+			}
+			try {
+				for (Future<POM> future: futures) {
+					dependencies.add(future.get()); // Wait for init to complete
+				}
+			}
+			catch (Exception e) {
+				throw ExceptionUtil.toIOException(e);
 			}
 		}
+		executor.shutdown();
 		return dependencies;
 	}
 
@@ -214,8 +240,8 @@ public class MavenUtil {
 		return null;
 	}
 
-	public static List<POM> getDependencyManagement(List<POMReader.Dependency> rawDependencies, POM current, POM parent, Map<String, String> properties, Resource localDirectory)
-			throws IOException {
+	public static List<POM> getDependencyManagement(List<POMReader.Dependency> rawDependencies, POM current, POM parent, Map<String, String> properties, Resource localDirectory,
+			Log log) throws IOException {
 
 		List<POM> dependencies = new ArrayList<>();
 
@@ -233,7 +259,7 @@ public class MavenUtil {
 				GAVSO gavso = getDependency(rd, parent, current, properties, null, true);
 				if (gavso == null) continue;
 				POM p = POM.getInstance(localDirectory, current.getRepositories(), gavso.g, gavso.a, gavso.v, gavso.s, gavso.o, current.getDependencyScope(),
-						current.getDependencyScopeManagement());
+						current.getDependencyScopeManagement(), log);
 				dependencies.add(p);
 			}
 		}
@@ -300,13 +326,14 @@ public class MavenUtil {
 		return str != null && str.indexOf("${") != -1;
 	}
 
-	public static void downloadPOM(POM pom, Collection<Repository> repositories) throws IOException {
-		Resource res = pom.getPath();
+	public static void download(POM pom, Collection<Repository> repositories, String type, Log log) throws IOException {
+		Resource res = pom.getArtifact(type);
 		if (!res.isFile()) {
-			URL url = pom.getArtifact("pom", repositories);
-			print.o("download:" + url);
+			URL url = pom.getArtifact(type, repositories);
+			print.e("download:" + url);
+			if (log != null) log.info("maven", "download [" + url + "]");
 			try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
-				HttpGet request = new HttpGet(pom.getArtifact("pom", repositories).toExternalForm());
+				HttpGet request = new HttpGet(pom.getArtifact(type, repositories).toExternalForm());
 				HttpResponse response = httpClient.execute(request);
 				HttpEntity entity = response.getEntity();
 				int sc = response.getStatusLine().getStatusCode();
@@ -326,7 +353,7 @@ public class MavenUtil {
 	}
 
 	public static POM toPOM(Resource localDirectory, Collection<Repository> repositories, POMReader.Dependency dependency, Map<String, String> properties, int dependencyScope,
-			int dependencyScopeManagement) throws IOException {
+			int dependencyScopeManagement, Log log) throws IOException {
 
 		return POM.getInstance(localDirectory, repositories,
 
@@ -338,7 +365,9 @@ public class MavenUtil {
 
 				null, null,
 
-				dependencyScope, dependencyScopeManagement
+				dependencyScope, dependencyScopeManagement,
+
+				log
 
 		);
 	}
