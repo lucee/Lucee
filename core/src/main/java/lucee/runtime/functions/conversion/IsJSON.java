@@ -30,7 +30,7 @@ public class IsJSON {
 		if (StringUtil.isEmpty(str, true)) return false;
 
 		try {
-			new JSONExpressionInterpreter().interpret(pc, str);
+			new JSONExpressionInterpreter(false, false).interpret(pc, str);
 			return true;
 		}
 		catch (PageException e) {
