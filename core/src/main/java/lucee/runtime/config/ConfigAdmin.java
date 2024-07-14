@@ -1640,12 +1640,12 @@ public final class ConfigAdmin {
 		}
 	}
 
-	public void updateJDBCDriver(String label, String id, ClassDefinition cd) throws PageException {
+	public void updateJDBCDriver(String label, String id, ClassDefinition cd, String connectionString) throws PageException {
 		checkWriteAccess();
-		_updateJDBCDriver(label, id, cd);
+		_updateJDBCDriver(label, id, cd, connectionString);
 	}
 
-	private void _updateJDBCDriver(String label, String id, ClassDefinition cd) throws PageException {
+	private void _updateJDBCDriver(String label, String id, ClassDefinition cd, String connectionString) throws PageException {
 
 		// check if label exists
 		if (StringUtil.isEmpty(label)) throw new ApplicationException("missing label for jdbc driver [" + cd.getClassName() + "]");
@@ -1673,6 +1673,8 @@ public final class ConfigAdmin {
 		}
 
 		child.setEL("label", label);
+		if (!StringUtil.isEmpty(connectionString, true)) child.setEL("connectionString", connectionString);
+
 		if (!StringUtil.isEmpty(id)) child.setEL(KeyConstants._id, id);
 		else child.removeEL(KeyConstants._id);
 		// make sure the class exists
@@ -4896,8 +4898,10 @@ public final class ConfigAdmin {
 					ClassDefinition cd = RHExtension.toClassDefinition(config, map, null);
 					String _label = map.get("label");
 					String _id = map.get("id");
+					String _dsn = map.get("connectionString");
+					if (StringUtil.isEmpty(_dsn, true)) _dsn = map.get("dsn");
 					if (cd != null && cd.isBundle()) {
-						_updateJDBCDriver(_label, _id, cd);
+						_updateJDBCDriver(_label, _id, cd, _dsn);
 						reloadNecessary = true;
 					}
 					logger.info("extension", "Update JDBC Driver [" + _label + ":" + cd + "] from extension [" + rhext.getName() + ":" + rhext.getVersion() + "]");
