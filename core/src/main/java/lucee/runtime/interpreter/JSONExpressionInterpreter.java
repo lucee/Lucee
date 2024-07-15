@@ -36,11 +36,11 @@ public class JSONExpressionInterpreter extends CFMLExpressionInterpreter {
 	}
 
 	public JSONExpressionInterpreter() {
-		this(false, FORMAT_JSON);
+		this(false, FORMAT_JSON5);
 	}
 
 	public JSONExpressionInterpreter(boolean strict) {// strict is set to true, it should not be compatible with CFMLExpressionInterpreter
-		this(strict, FORMAT_JSON);
+		this(strict, FORMAT_JSON5);
 	}
 
 	public JSONExpressionInterpreter(boolean strict, int format) {// strict is set to true, it should not be compatible with CFMLExpressionInterpreter

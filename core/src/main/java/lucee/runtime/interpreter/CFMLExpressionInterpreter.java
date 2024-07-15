@@ -173,8 +173,8 @@ public class CFMLExpressionInterpreter {
 	private FunctionLib fld;
 	protected boolean allowNullConstant = false;
 
-	protected boolean allowComments;
-	protected boolean allowAllowUnquotedNames;
+	protected boolean allowComments = true;
+	protected boolean allowAllowUnquotedNames = true;
 	private boolean preciseMath;
 	private final boolean isJson;
 	private final boolean limited;
