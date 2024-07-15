@@ -25,12 +25,19 @@ import lucee.runtime.interpreter.ref.literal.LStringBuffer;
 
 public class JSONExpressionInterpreter extends CFMLExpressionInterpreter {
 
+	private boolean allowComments;
+
 	public JSONExpressionInterpreter() {
-		this(false);
+		this(false, true);
 	}
 
 	public JSONExpressionInterpreter(boolean strict) {// strict is set to true, it should not be compatible with CFMLExpressionInterpreter
+		this(strict, true);
+	}
+
+	public JSONExpressionInterpreter(boolean strict, boolean allowComments) {// strict is set to true, it should not be compatible with CFMLExpressionInterpreter
 		allowNullConstant = true;
+		this.allowComments = allowComments;
 	}
 
 	@Override
@@ -120,7 +127,8 @@ public class JSONExpressionInterpreter extends CFMLExpressionInterpreter {
 			}
 		}
 		if (!cfml.forwardIfCurrent(quoter)) throw new InterpreterException("Invalid String Literal Syntax Closing [" + quoter + "] not found");
-		comments();
+		if (allowComments) comments();
+		else cfml.removeSpace();
 		mode = STATIC;
 		/*
 		 * Ref value=null; if(value!=null) { if(str.isEmpty()) return value; return new

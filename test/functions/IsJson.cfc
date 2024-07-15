@@ -108,4 +108,45 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 {a:1}
 '));
 	}
+
+	// uses files from https://github.com/json5/json5-tests
+	private function testSuite (){
+		var json5TestDir = expandPath( getDirectoryFromPath( getCurrentTemplatePath() ) & "../artifacts/json5-tests" );
+		var json5Tests = directoryList( path=json5TestDir, recurse=true, listinfo="path", type="file" );
+		var canJson5 = ( len( getFunctionData( "isJson" ).arguments ) == 2 );
+
+		expect( ArrayLen( json5Tests ) ).toBeGT( 0 );
+		systemOutput( "", true);
+		systemOutput( "running json5 testsuite with #ArrayLen( json5Tests )# tests", true);
+		
+		loop array=json5Tests item="local.test"{
+			var fileType = listLast( test, "." );
+			var expectedResult="";
+			switch( fileType ) {
+				case "json":
+					expectedResult = true;
+					break;
+				case "json5":
+					expectedResult = canJson5;
+					break;
+				case "txt":
+					expectedResult = false;
+					break;
+				case "js":
+					expectedResult = false;
+					break;
+				case "errorspec":
+					expectedResult = true;
+					break;
+				default:
+					expectedResult = false;
+			}
+			// due to false positives, this function is private / disabled LDEV-5017
+			if ( isJson( fileRead( test ) ) neq expectedResult ) {
+				systemOutput( "expected: " & expectedResult & " isJson:" & isJson( fileRead( test ) ) & " " & test, true);
+			}
+			//TBD add second argument, version for json5 support
+			//expect( isJson( fileRead( test ) ) ).toBe( expectedResult, test );
+		}
+	}
 } 
