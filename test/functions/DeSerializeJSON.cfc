@@ -162,7 +162,9 @@
 					template:"#uri#/index.cfm");
 				expect(result.filecontent.trim()).toBe("DESERIALISED");
 			});
+		});
 
+		describe( title="Test suite for comments", body=function() {
 			// we allowing, because other parser do as well (some)
 			it( "deserializeJson should allow json5, block comment by default", function(){
 				var str = '{
@@ -171,9 +173,7 @@
 						block comment
 					*/
 				}';
-				expect( function(){
-					structKeyExists( deserializeJson( str ), "name" ) 
-				}).toNotThrow();
+				structKeyExists( deserializeJson( str ), "name" );
 			});
 
 			it( "deserializeJson should allow json5, block comment when format is set to json5", function(){
@@ -183,9 +183,7 @@
 						block comment
 					*/
 				}';
-				expect( function(){
-					structKeyExists( deserializeJson( str,true,"json5" ), "name" ) 
-				}).toNotThrow();
+				structKeyExists( deserializeJson( str,true,"json5" ), "name" );
 			});
 
 			it( "deserializeJson should NOT allow json5, block comment when format is set to json", function(){
@@ -206,18 +204,14 @@
 				var str = '{
 					"name" : "lucee" // single line
 				}';
-				expect( function(){
-					structKeyExists( deserializeJson( str ), "name" ) 
-				}).toNotThrow();
+				structKeyExists( deserializeJson( str ), "name" ) ;
 			});
 
 			it( "deserializeJson should allow json5, single line comment when format is set to json5", function(){
 				var str = '{
 					"name" : "lucee" // single line
 				}';
-				expect( function(){
-					structKeyExists( deserializeJson( str,true,"json5" ), "name" ) 
-				}).toNotThrow();
+				structKeyExists( deserializeJson( str,true,"json5" ), "name" );
 			});
 
 			it( "deserializeJson should NOT allow json5, single line comment when format is set to json", function(){
@@ -228,8 +222,6 @@
 					structKeyExists( deserializeJson( str,true,"json" ), "name" ) 
 				}).toThrow();
 			});
-
-
 		});
 	}
 
