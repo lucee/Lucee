@@ -487,8 +487,8 @@ public final class PageContextImpl extends PageContext {
 		if (clone) {
 			this.cfid = tmplPC.cfid;
 			this.client = tmplPC.client;
-			this.cgiR = tmplPC.cgiR;
-			this.cgiRW = tmplPC.cgiRW;
+			// this.cgiR = tmplPC.cgiR;
+			// this.cgiRW = tmplPC.cgiRW;
 			this.cookie = tmplPC.cookie;
 			this.form = tmplPC.form;
 			this.url = tmplPC.url;
