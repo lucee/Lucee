@@ -571,15 +571,19 @@ public final class UndefinedImpl extends StructSupport implements Undefined, Obj
 
 	@Override
 	public void initialize(PageContext pc) {
+		initialize(pc, ((PageContextImpl) pc).getScopeCascadingType(), ((PageContextImpl) pc).hasDebugOptions(ConfigPro.DEBUG_IMPLICIT_ACCESS));
+	}
+
+	public void initialize(PageContext pc, short type, boolean debug) {
+
 		// if(isInitalized()) return;
 		isInit = true;
 		variable = pc.variablesScope();
 		argument = pc.argumentsScope();
 		local = pc.localScope();
 		// allowImplicidQueryCall = pc.getConfig().allowImplicidQueryCall();
-		type = ((PageContextImpl) pc).getScopeCascadingType();
-		debug = ((PageContextImpl) pc).hasDebugOptions(ConfigPro.DEBUG_IMPLICIT_ACCESS);
-
+		this.type = type;
+		this.debug = debug;
 		// Strict
 		if (type == Config.SCOPE_STRICT) {
 			// print.ln("strict");
@@ -599,7 +603,6 @@ public final class UndefinedImpl extends StructSupport implements Undefined, Obj
 		else {
 			reinitialize(pc);
 		}
-
 	}
 
 	@Override

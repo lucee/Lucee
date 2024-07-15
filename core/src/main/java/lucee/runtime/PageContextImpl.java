@@ -372,22 +372,21 @@ public final class PageContextImpl extends PageContext {
 	 * @param id identity of the pageContext
 	 * @param servlet
 	 */
-	public PageContextImpl(ScopeContext scopeContext, ConfigWebPro config, HttpServlet servlet, boolean jsr223) {
+	public PageContextImpl(ScopeContext scopeContext, ConfigWebPro config, HttpServlet servlet, PageContextImpl template, boolean jsr223) {
+
 		// must be first because is used after
 		tagHandlerPool = config.getTagHandlerPool();
 		this.servlet = servlet;
-
+		this.initApplicationContext = template != null ? template.initApplicationContext : new ClassicApplicationContext(config, "", true, null);
+		if (template != null) this.applicationContext = template.applicationContext;
 		bodyContentStack = new BodyContentStack();
 		devNull = bodyContentStack.getDevNullBodyContent();
-
 		this.config = config;
 		manager = new DatasourceManagerImpl(config);
 
 		this.scopeContext = scopeContext;
 		undefined = new UndefinedImpl(this, getScopeCascadingType());
 		server = ScopeContext.getServerScope(this, jsr223);
-		initApplicationContext = new ClassicApplicationContext(config, "", true, null);
-
 		this.id = getIdCounter();
 	}
 
@@ -486,6 +485,11 @@ public final class PageContextImpl extends PageContext {
 		// Scopes
 		server = ScopeContext.getServerScope(this, ignoreScopes);
 		if (clone) {
+			this.cfid = tmplPC.cfid;
+			this.client = tmplPC.client;
+			this.cgiR = tmplPC.cgiR;
+			this.cgiRW = tmplPC.cgiRW;
+			this.cookie = tmplPC.cookie;
 			this.form = tmplPC.form;
 			this.url = tmplPC.url;
 			this.urlForm = tmplPC.urlForm;
@@ -536,16 +540,19 @@ public final class PageContextImpl extends PageContext {
 		else {
 			_psq = null;
 		}
-
 		fdEnabled = !config.allowRequestTimeout();
-
 		if (config.getExecutionLogEnabled()) this.execLog = config.getExecutionLogFactory().getInstance(this);
 		if (debugger != null) debugger.init(config);
-		undefined.initialize(this);
+		if (clone) {
+			((UndefinedImpl) undefined).initialize(this, tmplPC.getScopeCascadingType(), tmplPC.hasDebugOptions(ConfigPro.DEBUG_IMPLICIT_ACCESS));
+		}
+		else {
+			undefined.initialize(this);
+		}
 		timeoutStacktrace = null;
 
 		if (clone) {
-			getCFID();
+			tmplPC.getCFID();
 			this.cfid = tmplPC.cfid;
 			this.cftoken = tmplPC.cftoken;
 
@@ -573,7 +580,6 @@ public final class PageContextImpl extends PageContext {
 				}
 			}
 			tmplPC.children.add(this);
-
 			this.applicationContext = tmplPC.applicationContext;
 
 			// path
