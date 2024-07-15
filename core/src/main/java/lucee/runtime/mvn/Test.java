@@ -90,6 +90,8 @@ public class Test {
 
 			print.e("--- path ---");
 			print.e(pom.getPath());
+			print.e("--- hash ---");
+			print.e(pom.hash());
 
 			print.e("--- artifact ---");
 			print.e(pom.getArtifact());
@@ -118,7 +120,7 @@ public class Test {
 
 			// print.e(maven.getDependencies(groupId, artifactId, version, true, false, true));
 
-			// break;
+			break;
 		}
 	}
 

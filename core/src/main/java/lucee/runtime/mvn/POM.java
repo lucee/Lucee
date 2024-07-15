@@ -12,6 +12,7 @@ import java.util.Map;
 import org.xml.sax.SAXException;
 
 import lucee.print;
+import lucee.commons.digest.HashUtil;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.ExceptionUtil;
@@ -308,6 +309,21 @@ public class POM {
 
 	public Resource getPath() {
 		return local(localDirectory, "pom");
+	}
+
+	private StringBuilder _hash(StringBuilder sb) throws IOException {
+		List<POM> deps = getDependencies();
+		if (deps != null) {
+			for (POM p: deps) {
+				p._hash(sb);
+			}
+		}
+		sb.append(groupId).append(';').append(artifactId).append(';').append(version);
+		return sb;
+	}
+
+	public String hash() throws IOException {
+		return HashUtil.create64BitHashAsString(_hash(new StringBuilder()));
 	}
 
 	Resource getArtifact(String type) {
