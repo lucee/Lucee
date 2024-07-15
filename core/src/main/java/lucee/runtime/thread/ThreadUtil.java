@@ -19,8 +19,13 @@
 package lucee.runtime.thread;
 
 import java.io.OutputStream;
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
 import java.util.Iterator;
 import java.util.Map.Entry;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
@@ -29,6 +34,7 @@ import javax.servlet.http.HttpSession;
 
 import lucee.aprint;
 import lucee.commons.io.DevNullOutputStream;
+import lucee.commons.io.SystemUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.Pair;
@@ -58,7 +64,6 @@ public class ThreadUtil {
 		PageContextImpl pci = (PageContextImpl) pc;
 		PageContextImpl dest = factory.getPageContextImpl(factory.getServlet(), req, rsp, null, false, -1, false, register2Thread, true, pc.getRequestTimeout(),
 				register2RunningThreads, false, false, stateless ? null : pci);
-		// pci.copyStateTo(dest);
 		return dest;
 	}
 
@@ -201,5 +206,21 @@ public class ThreadUtil {
 		if (stes == null || stes.length == 0) return defaultValue;
 		StackTraceElement ste = stes[0];
 		return ste.isNativeMethod();
+	}
+
+	public static ExecutorService createExecutorService(int maxThreads) {
+		if (SystemUtil.JAVA_VERSION >= SystemUtil.JAVA_VERSION_19) {
+			// FUTURE use newVirtualThreadPerTaskExecutor natively
+			try {
+				MethodHandles.Lookup lookup = MethodHandles.lookup();
+				MethodType methodType = MethodType.methodType(ExecutorService.class);
+				MethodHandle methodHandle = lookup.findStatic(Executors.class, "newVirtualThreadPerTaskExecutor", methodType);
+				return (ExecutorService) methodHandle.invoke();
+			}
+			catch (Throwable e) {
+				ExceptionUtil.rethrowIfNecessary(e);
+			}
+		}
+		return Executors.newFixedThreadPool(maxThreads);
 	}
 }

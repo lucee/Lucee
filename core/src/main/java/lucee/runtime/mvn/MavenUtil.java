@@ -12,7 +12,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 import org.apache.http.HttpEntity;
@@ -29,6 +28,7 @@ import lucee.commons.io.res.Resource;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.SerializableObject;
 import lucee.runtime.mvn.POMReader.Dependency;
+import lucee.runtime.thread.ThreadUtil;
 import lucee.runtime.type.util.ListUtil;
 
 public class MavenUtil {
@@ -109,7 +109,7 @@ public class MavenUtil {
 		List<POM> dependencies = new ArrayList<>();
 		List<POM> parentDendencyManagement = null;
 
-		ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+		ExecutorService executor = ThreadUtil.createExecutorService(Runtime.getRuntime().availableProcessors());
 
 		if (parent != null) {
 			parentDendencyManagement = current.getDependencyManagement();
