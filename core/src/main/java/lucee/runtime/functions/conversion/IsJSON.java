@@ -20,17 +20,26 @@ package lucee.runtime.functions.conversion;
 
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
+import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.interpreter.JSONExpressionInterpreter;
 import lucee.runtime.op.Caster;
 
 public class IsJSON {
-	public static boolean call(PageContext pc, Object obj) {
+
+	public static boolean call(PageContext pc, Object obj) throws ApplicationException {
+		return call(pc, obj, null);
+	}
+
+	public static boolean call(PageContext pc, Object obj, String strFormat) throws ApplicationException {
+
+		int format = StringUtil.isEmpty(strFormat, true) ? JSONExpressionInterpreter.FORMAT_JSON5 : JSONExpressionInterpreter.toFormat(strFormat);
+
 		String str = Caster.toString(obj, null);
 		if (StringUtil.isEmpty(str, true)) return false;
 
 		try {
-			new JSONExpressionInterpreter(false, false).interpret(pc, str);
+			new JSONExpressionInterpreter(false, format).interpret(pc, str);
 			return true;
 		}
 		catch (PageException e) {

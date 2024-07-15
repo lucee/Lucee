@@ -3914,29 +3914,40 @@ Specifies the type of results to return:
 
 	<!-- DeserializeJSON -->
 	<function>
-		<name>DeserializeJSON</name>
-		<class>lucee.runtime.functions.conversion.DeserializeJSON</class>
-		<member-name>deserializeJSON</member-name>
-		<keywords>string,parsing,json,javascript</keywords>
-		<description>Converts a JSON (JavaScript Object Notation) string data representation into CFML data, such as a struct or array.</description>
-		<argument>
-			<name>JSONVar</name>
-			<alias>json,data</alias>
-			<type>string</type>
-			<required>Yes</required>
-			<description>A string that contains a valid JSON construct, or variable that represents one.</description>
-		</argument>
-		<argument>
-			<name>strictMapping</name>
-			<type>boolean</type>
-			<required>No</required>
-			<default>true</default>
-			<description>A Boolean value that specifies whether to convert the JSON strictly</description>
-		</argument>
-		<return>
-			<type>any</type>
-		</return>
+	    <name>DeserializeJSON</name>
+	    <class>lucee.runtime.functions.conversion.DeserializeJSON</class>
+	    <member-name>deserializeJSON</member-name>
+	    <keywords>string,parsing,json,javascript,json5</keywords>
+	    <since>6.2.0.14</since>
+	    <description>Converts a JSON (JavaScript Object Notation) or JSON5 string data representation into CFML data, such as a struct or array.</description>
+	    <argument>
+	        <name>JSONVar</name>
+	        <alias>json,data</alias>
+	        <type>string</type>
+	        <required>Yes</required>
+	        <description>A string that contains a valid JSON or JSON5 construct, or a variable that represents one.</description>
+	    </argument>
+	    <argument>
+	        <name>strictMapping</name>
+	        <type>boolean</type>
+	        <required>No</required>
+	        <default>true</default>
+	        <description>A Boolean value that specifies whether to convert the JSON strictly. When true, the function will adhere to strict JSON mapping rules.</description>
+	    </argument>
+	    <argument>
+	        <name>format</name>
+	        <type>string</type>
+	        <required>No</required>
+	        <default>json5</default>
+	        <description>The format of the input string. Possible values are:
+	- **json**: Standard JSON format
+	- **json5**: JSON5 format which allows additional features such as comments and unquoted keys</description>
+	    </argument>
+	    <return>
+	        <type>any</type>
+	    </return>
 	</function>
+
 
 	<!-- DotNetToCFType -->
 	<function>
@@ -7411,23 +7422,33 @@ The following things are considered to be empty:
 			<type>boolean</type>
 		</return>
 	</function>
-	<!-- IsJson -->
 	<function>
-		<name>IsJson</name>
-		<class>lucee.runtime.functions.conversion.IsJSON</class>
-		<keywords>decision,json,javascript</keywords>
-		<description>Evaluates whether a string is in valid JSON (JavaScript Object Notation) data interchange format.</description>
-		<argument>
-			<name>var</name>
-			<alias>value</alias>
-			<type>any</type>
-			<required>Yes</required>
-		<description>A string or variable that represents one.</description>
-    </argument>
-		<return>
-			<type>boolean</type>
-		</return>
+	    <name>IsJson</name>
+	    <class>lucee.runtime.functions.conversion.IsJSON</class>
+	    <keywords>decision,json,javascript,json5</keywords>
+	    <since>6.2.0.14</since>
+	    <description>Evaluates whether a string is in a valid JSON (JavaScript Object Notation) or JSON5 data interchange format.</description>
+	    <argument>
+	        <name>var</name>
+	        <alias>value</alias>
+	        <type>any</type>
+	        <required>Yes</required>
+	        <description>A string or variable that represents one.</description>
+	    </argument>
+	    <argument>
+	        <name>format</name>
+	        <type>string</type>
+	        <required>No</required>
+	        <default>json5</default>
+	        <description>The format of the input string. Possible values are:
+	- **json**: Standard JSON format
+	- **json5**: JSON5 format which allows additional features such as comments and unquoted keys</description>
+	    </argument>
+	    <return>
+	        <type>boolean</type>
+	    </return>
 	</function>
+
 	<!-- IsIPv6 -->
 	<function>
 		<name>IsIPv6</name>

@@ -172,6 +172,9 @@ public class CFMLExpressionInterpreter {
 	protected PageContext pc;
 	private FunctionLib fld;
 	protected boolean allowNullConstant = false;
+
+	protected boolean allowComments;
+	protected boolean allowAllowUnquotedNames;
 	private boolean preciseMath;
 	private final boolean isJson;
 	private final boolean limited;
@@ -312,7 +315,11 @@ public class CFMLExpressionInterpreter {
 	 */
 	private Ref functionArgDeclaration() throws PageException {
 		Ref ref = impOp();
+
 		if (cfml.forwardIfCurrent(':') || cfml.forwardIfCurrent('=')) {
+			if (!allowAllowUnquotedNames && !(ref instanceof Literal)) throw new InterpreterException(
+					"Unquoted name found. Keys in structures must be enclosed in quotes. Example of incorrect format: {susi:1}. Correct format: {\"susi\":1}");
+
 			comments();
 			ref = new LFunctionValue(ref, assignOp());
 		}
@@ -1548,8 +1555,10 @@ public class CFMLExpressionInterpreter {
 
 	protected void comments() throws InterpreterException {
 		cfml.removeSpace();
-		while (comment()) {
-			cfml.removeSpace();
+		if (allowComments) {
+			while (comment()) {
+				cfml.removeSpace();
+			}
 		}
 	}
 

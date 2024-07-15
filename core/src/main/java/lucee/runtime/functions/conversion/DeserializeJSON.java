@@ -48,21 +48,32 @@ public final class DeserializeJSON extends BIF implements Function {
 	private static final Key ROWCOUNT = KeyConstants._ROWCOUNT;
 
 	public static Object call(PageContext pc, String JSONVar) throws PageException {
-		return call(pc, JSONVar, true);
+		return _call(pc, JSONVar, true, JSONExpressionInterpreter.FORMAT_JSON5); // for backward compatibility we need to allow json5 (most comments are allowed in Lucee 5)
 	}
 
 	public static Object call(PageContext pc, String JSONVar, boolean strictMapping) throws PageException {
+		return _call(pc, JSONVar, strictMapping, JSONExpressionInterpreter.FORMAT_JSON5);// for backward compatibility we need to allow json5 (most comments are allowed in Lucee 5)
+	}
+
+	public static Object call(PageContext pc, String JSONVar, boolean strictMapping, String strFormat) throws PageException {
+		int format = StringUtil.isEmpty(strFormat, true) ? JSONExpressionInterpreter.FORMAT_JSON : JSONExpressionInterpreter.toFormat(strFormat);
+		return _call(pc, JSONVar, strictMapping, format);
+	}
+
+	private static Object _call(PageContext pc, String JSONVar, boolean strictMapping, int format) throws PageException {
 		if (StringUtil.isEmpty(JSONVar, true))
 			throw new FunctionException(pc, "DeserializeJSON", 1, "JSONVar", "input value cannot be empty string.", "Must be the valid JSON string");
-		Object result = new JSONExpressionInterpreter().interpret(pc, JSONVar);
+
+		Object result = new JSONExpressionInterpreter(false, format).interpret(pc, JSONVar);
 		if (!strictMapping) return toQuery(result);
 		return result;
 	}
 
 	@Override
 	public Object invoke(PageContext pc, Object[] args) throws PageException {
-		if (args.length == 2) return call(pc, Caster.toString(args[0]), Caster.toBooleanValue(args[1]));
-		if (args.length == 1) return call(pc, Caster.toString(args[0]));
+		if (args.length == 3) return call(pc, Caster.toString(args[0]), Caster.toBooleanValue(args[1]), Caster.toString(args[2]));
+		if (args.length == 2) return _call(pc, Caster.toString(args[0]), Caster.toBooleanValue(args[1]), JSONExpressionInterpreter.FORMAT_JSON5);
+		if (args.length == 1) return _call(pc, Caster.toString(args[0]), true, JSONExpressionInterpreter.FORMAT_JSON5);
 		throw new FunctionException(pc, "DeserializeJSON", 1, 2, args.length);
 	}
 

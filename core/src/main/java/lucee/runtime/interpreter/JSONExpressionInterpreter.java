@@ -19,25 +19,34 @@
 package lucee.runtime.interpreter;
 
 import lucee.commons.lang.NumberUtil;
+import lucee.commons.lang.StringUtil;
+import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.interpreter.ref.Ref;
 import lucee.runtime.interpreter.ref.literal.LStringBuffer;
 
 public class JSONExpressionInterpreter extends CFMLExpressionInterpreter {
 
-	private boolean allowComments;
+	public static final int FORMAT_JSON = 1;
+	public static final int FORMAT_JSON5 = 2;
+
+	public static void main(String[] args) throws PageException {
+		new JSONExpressionInterpreter(false, FORMAT_JSON).interpret(null, "{\"b\":2}");
+		new JSONExpressionInterpreter(false, FORMAT_JSON5).interpret(null, "{a:1,\"b\":2}");
+	}
 
 	public JSONExpressionInterpreter() {
-		this(false, true);
+		this(false, FORMAT_JSON);
 	}
 
 	public JSONExpressionInterpreter(boolean strict) {// strict is set to true, it should not be compatible with CFMLExpressionInterpreter
-		this(strict, true);
+		this(strict, FORMAT_JSON);
 	}
 
-	public JSONExpressionInterpreter(boolean strict, boolean allowComments) {// strict is set to true, it should not be compatible with CFMLExpressionInterpreter
-		allowNullConstant = true;
-		this.allowComments = allowComments;
+	public JSONExpressionInterpreter(boolean strict, int format) {// strict is set to true, it should not be compatible with CFMLExpressionInterpreter
+		this.allowNullConstant = true;
+		this.allowComments = format == FORMAT_JSON5;
+		this.allowAllowUnquotedNames = format == FORMAT_JSON5;
 	}
 
 	@Override
@@ -127,14 +136,30 @@ public class JSONExpressionInterpreter extends CFMLExpressionInterpreter {
 			}
 		}
 		if (!cfml.forwardIfCurrent(quoter)) throw new InterpreterException("Invalid String Literal Syntax Closing [" + quoter + "] not found");
-		if (allowComments) comments();
-		else cfml.removeSpace();
+		comments();
 		mode = STATIC;
 		/*
 		 * Ref value=null; if(value!=null) { if(str.isEmpty()) return value; return new
 		 * Concat(pc,value,str); }
 		 */
 		return str;
+	}
+
+	public static int toFormat(String format) throws ApplicationException {
+		int f = toFormat(format, 0);
+		if (f != 0) return f;
+
+		if (!StringUtil.isEmpty(format, true)) throw new ApplicationException("invalid format defintion [" + format + "], valid format names are [json, json5].");
+		throw new ApplicationException("invalid format defintion, an empty string or null is not allowed.");
+	}
+
+	public static int toFormat(String format, int defaultValue) {
+		if (!StringUtil.isEmpty(format, true)) {
+			format = format.trim().toLowerCase();
+			if ("json".equals(format)) return FORMAT_JSON;
+			if ("json5".equals(format)) return FORMAT_JSON5;
+		}
+		return defaultValue;
 	}
 
 }
