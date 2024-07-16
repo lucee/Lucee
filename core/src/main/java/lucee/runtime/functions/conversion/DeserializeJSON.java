@@ -20,6 +20,9 @@ package lucee.runtime.functions.conversion;
 
 import java.util.Iterator;
 
+import lucee.commons.io.SystemUtil;
+import lucee.commons.io.log.Log;
+import lucee.commons.io.log.LogUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.FunctionException;
@@ -45,6 +48,10 @@ import lucee.runtime.type.util.ListUtil;
 public final class DeserializeJSON extends BIF implements Function {
 
 	private static final long serialVersionUID = -4847186239512149277L;
+	private static final boolean allowEmpty;
+	static {
+		allowEmpty = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.deserializejson.allowempty", null), false);
+	}
 	private static final Key ROWCOUNT = KeyConstants._ROWCOUNT;
 
 	public static Object call(PageContext pc, String JSONVar) throws PageException {
@@ -61,9 +68,14 @@ public final class DeserializeJSON extends BIF implements Function {
 	}
 
 	private static Object _call(PageContext pc, String JSONVar, boolean strictMapping, int format) throws PageException {
-		if (StringUtil.isEmpty(JSONVar, true))
+		if (StringUtil.isEmpty(JSONVar, true)) {
+			if (allowEmpty) {
+				LogUtil.log(Log.LEVEL_WARN, "datasource", "conversion",
+						"Deprecated functionality used at [" + LogUtil.caller(pc, "") + "]. An empty string was passed as a value to the function DeserializeJSON.");
+				return "";
+			}
 			throw new FunctionException(pc, "DeserializeJSON", 1, "JSONVar", "input value cannot be empty string.", "Must be the valid JSON string");
-
+		}
 		Object result = new JSONExpressionInterpreter(false, format).interpret(pc, JSONVar);
 		if (!strictMapping) return toQuery(result);
 		return result;
