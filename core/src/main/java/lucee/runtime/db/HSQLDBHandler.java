@@ -61,7 +61,7 @@ import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.dt.TimeSpan;
 import lucee.runtime.type.util.CollectionUtil;
-
+import lucee.aprint;
 /**
  * class to reexecute queries on the resultset object inside the cfml environment
  */
@@ -374,6 +374,8 @@ public final class HSQLDBHandler {
 
 		// TODO consider if worth doing, if recordcount / column count is too small
 
+		aprint.o(sql.toString());
+
 		try {
 			Statement stat = conn.createStatement();
 			stat.execute("CREATE VIEW " + view + " AS " + sql.toString()); // + StringUtil.toUpperCase(sql.toString()));
@@ -403,8 +405,8 @@ public final class HSQLDBHandler {
 				Struct tableCols = ((Struct) tables.get(tableName));
 				tableCols.setEL(Caster.toKey(rs.getString(colPos)), null);
 			}
-			// aprint.o(rs);
-			// aprint.o(tables);
+			aprint.o(rs);
+			aprint.o(tables);
 			// don't need the view anymore, bye bye
 			stat.execute("DROP VIEW " + view);
 		}
@@ -569,19 +571,27 @@ public final class HSQLDBHandler {
 			try {
 				// we now only lock the data loading, not the execution of the query, but should this be done via
 				// cflock by the developer?
+				aprint.out(tables);
 				synchronized (lock) {
 					Iterator<String> it = tables.iterator();
 					String cfQueryName = null; // name of the source query variable
 					String dbTableName = null; // name of the table in the database
 					String modSql = null;
 					// int len=tables.size();
+					SystemOut.print("QoQ HSQLDB CREATED TABLES: " + sql.toString());
 					while (it.hasNext()) {
 						cfQueryName = it.next().toString();// tables.get(i).toString();
 						dbTableName = cfQueryName.replace('.', '_');
+						if (qoqTables.contains(dbTableName)){
+							aprint.o("duplicate table name!!");
+						}
 
-						// this could match the wrong strings??
-						modSql = StringUtil.replace(sql.getSQLString(), cfQueryName, dbTableName, false);
-						sql.setSQLString(modSql);
+						if (!cfQueryName.toLowerCase().equals(dbTableName.toLowerCase())){
+							// TODO this could match the wrong strings??
+							modSql = StringUtil.replace(sql.getSQLString(), cfQueryName, dbTableName, false);
+							sql.setSQLString(modSql);
+							SystemOut.print("QoQ HSQLDB CREATED TABLES: " + modSql);
+						}
 						if (sql.getItems() != null && sql.getItems().length > 0) sql = new SQLImpl(sql.toString());
 						// temp tables still get created will all the source columns,
 						// only populateTables is driven by the required columns calculated from the view
@@ -589,7 +599,7 @@ public final class HSQLDBHandler {
 						qoqTables.add(dbTableName);
 					}
 
-					// SystemOut.print("QoQ HSQLDB CREATED TABLES: " + sql.toString());
+					
 
 					// create the sql as a view, to find out which table columns are needed
 					Struct allTableColumns = getUsedColumnsForQuery(conn, sql);
