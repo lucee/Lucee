@@ -487,8 +487,9 @@ public final class PageContextImpl extends PageContext {
 		if (clone) {
 			this.cfid = tmplPC.cfid;
 			this.client = tmplPC.client;
-			// this.cgiR = tmplPC.cgiR;
-			// this.cgiRW = tmplPC.cgiRW;
+			this.session = tmplPC.session;
+			this.cgiR = tmplPC.cgiR;
+			this.cgiRW = tmplPC.cgiRW;
 			this.cookie = tmplPC.cookie;
 			this.form = tmplPC.form;
 			this.url = tmplPC.url;
@@ -621,22 +622,24 @@ public final class PageContextImpl extends PageContext {
 		caller = null;
 		callerTemplate = null;
 		root = null;
-		// Attention have to be before close
-		if (client != null) {
-			client.touchAfterRequest(this);
-			client = null;
-		}
-
-		if (session != null) {
-			session.touchAfterRequest(this);
-			session = null;
-		}
 
 		// ORM
 		// if(ormSession!=null)releaseORM();
 
 		// Scopes
 		if (hasFamily) {
+			boolean lastStanding = lastStanding();
+			// Attention have to be before close
+			if (client != null) {
+				if (lastStanding) client.touchAfterRequest(this);
+				client = null;
+			}
+
+			if (session != null) {
+				if (lastStanding) session.touchAfterRequest(this);
+				session = null;
+			}
+
 			if (hasFamily && !isChild) {
 				req.disconnect(this);
 			}
@@ -655,8 +658,22 @@ public final class PageContextImpl extends PageContext {
 			threads = null;
 			allThreads = null;
 			currentThread = null;
+			cgiR = new CGIImplReadOnly();
+			cgiRW = new CGIImpl();
 		}
 		else {
+
+			// Attention have to be before close
+			if (client != null) {
+				client.touchAfterRequest(this);
+				client = null;
+			}
+
+			if (session != null) {
+				session.touchAfterRequest(this);
+				session = null;
+			}
+
 			close();
 			base = null;
 			if (variables.isBind()) {
@@ -670,9 +687,9 @@ public final class PageContextImpl extends PageContext {
 			undefined.release(this);
 			urlForm.release(this);
 			request.release(this);
+			cgiR.release(this);
+			cgiRW.release(this);
 		}
-		cgiR.release(this);
-		cgiRW.release(this);
 		argument.release(this);
 		local = localUnsupportedScope;
 
@@ -753,6 +770,25 @@ public final class PageContextImpl extends PageContext {
 			catch (Exception e) {
 			}
 		}
+		startTime = 0L;
+	}
+
+	private boolean lastStanding() {
+		if (!hasFamily()) return true;
+		// active childern?
+		Queue<PageContext> tmp = this.children;
+		if (tmp != null) {
+			for (PageContext p: tmp) {
+				if (p.getStartTime() > 0) return false;
+			}
+		}
+		// active parent?
+		PageContext p = this;
+		while ((p = p.getParentPageContext()) != null) {
+			if (p.getStartTime() > 0) return false;
+		}
+
+		return false;
 	}
 
 	private void releaseORM() throws PageException {
