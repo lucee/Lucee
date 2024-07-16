@@ -37,9 +37,9 @@ public class POM {
 	public static final int SCOPE_ALL = SCOPE_NOT_TEST + SCOPE_TEST;
 
 	private Resource localDirectory;
-	private String groupId;
-	private String artifactId;
-	private String version;
+	private final String groupId;
+	private final String artifactId;
+	private final String version;
 	private String scope;
 	private String optional;
 	private int dependencyScope = SCOPE_ALL;
@@ -75,6 +75,8 @@ public class POM {
 	private Log log;
 
 	private String artifactExtension;
+
+	private String hash;
 
 	public static POM getInstance(Resource localDirectory, String groupId, String version, String artifactId, Log log) {
 		return getInstance(localDirectory, null, groupId, artifactId, version, null, null, SCOPE_NOT_TEST, SCOPE_ALL, log);
@@ -323,7 +325,14 @@ public class POM {
 	}
 
 	public String hash() throws IOException {
-		return HashUtil.create64BitHashAsString(_hash(new StringBuilder()));
+		if (hash == null) {
+			synchronized (groupId) {
+				if (hash == null) {
+					hash = HashUtil.create64BitHashAsString(_hash(new StringBuilder()));
+				}
+			}
+		}
+		return hash;
 	}
 
 	Resource getArtifact(String type) {
@@ -513,5 +522,26 @@ public class POM {
 			}
 		}
 		return parents;
+	}
+
+	public Resource[] getJars() throws IOException {
+		List<Resource> jars = new ArrayList<>();
+
+		// current
+		if ("jar".equalsIgnoreCase(this.artifactExtension)) {
+			Resource r = getArtifact();
+			if (r != null) jars.add(r);
+		}
+
+		List<POM> dependencies = getAllDependencies();
+		if (dependencies != null) {
+			for (POM p: dependencies) {
+				if ("jar".equalsIgnoreCase(p.artifactExtension)) {
+					Resource r = p.getArtifact();
+					if (r != null) jars.add(r);
+				}
+			}
+		}
+		return jars.toArray(new Resource[jars.size()]);
 	}
 }

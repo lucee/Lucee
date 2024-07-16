@@ -38,7 +38,7 @@ import lucee.runtime.type.util.ArrayUtil;
 /**
  * Classloader that load classes from resources
  */
-public final class ResourceClassLoader extends URLClassLoader implements Closeable {
+public class ResourceClassLoader extends URLClassLoader implements Closeable {
 
 	private List<Resource> resources = new ArrayList<Resource>();
 	private Map<String, SoftReference<ResourceClassLoader>> customCLs;
