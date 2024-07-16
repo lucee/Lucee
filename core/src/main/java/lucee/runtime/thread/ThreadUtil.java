@@ -53,6 +53,8 @@ import lucee.runtime.type.Struct;
 
 public class ThreadUtil {
 
+	private static final boolean ALLOW_FUTURE_THREADS = false;
+
 	// do not change, used in Redis extension
 	public static PageContextImpl clonePageContext(PageContext pc, OutputStream os, boolean stateless, boolean register2Thread, boolean register2RunningThreads) {
 		// TODO stateless
@@ -209,7 +211,7 @@ public class ThreadUtil {
 	}
 
 	public static ExecutorService createExecutorService(int maxThreads) {
-		if (false && SystemUtil.JAVA_VERSION >= SystemUtil.JAVA_VERSION_19) {
+		if (ALLOW_FUTURE_THREADS && SystemUtil.JAVA_VERSION >= SystemUtil.JAVA_VERSION_19) {
 			// FUTURE use newVirtualThreadPerTaskExecutor natively
 			try {
 				MethodHandles.Lookup lookup = MethodHandles.lookup();
