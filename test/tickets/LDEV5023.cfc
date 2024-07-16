@@ -5,7 +5,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="qoq" skip=true {
 		describe( title='QofQ' , body=function(){
 
 			it( title='QoQ select * from table same source table name HSQLDB', body=function() {
-				var q = extensionList();
+				var q = getDummyData();
 				var cols = replaceNoCase( q.columnList, ",unique", "" ); // cleanup reserved word
 				// native engine
 				cols = "name, id";
@@ -26,7 +26,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="qoq" skip=true {
 			});
 
 			it( title='QoQ select * from table same source table name (arguments) HSQLDB', body=function() {
-				var q = extensionList();
+				var q = getDummyData();
 				var cols = replaceNoCase( q.columnList, ",unique", "" ); // cleanup reserved word
 				// native engine
 				cols = "name, id";
@@ -41,14 +41,13 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="qoq" skip=true {
 					sql = "SELECT t1.name FROM q_native t1, arguments.q_native t2 WHERE t1.id = t2.id",
 					options = { dbtype: 'query' }
 				);
-				systemOutput( q_hsqlb, true );
 				expect( q_stash.recordcount ).toBe( q_hsqlb.recordcount );
 				expect( q_native.recordcount ).toBe( q_hsqlb.recordcount );
 				expect( q_stash.recordcount ).toBe( q_native.recordcount );
 			});
 
 			it( title='QoQ select * from table same source table name (all cols) HSQLDB', body=function() {
-				var q = extensionList();
+				var q = getDummyData();
 				var cols = replaceNoCase( q.columnList, ",unique", "" ); // cleanup reserved word
 				// native engine
 				var q_native = QueryExecute(
@@ -61,7 +60,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="qoq" skip=true {
 					sql = "SELECT t1.name FROM q_native t1, q_native t2 WHERE t1.id = t2.id",
 					options = { dbtype: 'query' }
 				);
-				systemOutput( q_hsqlb, true );
 				expect( q_stash.recordcount ).toBe( q_hsqlb.recordcount );
 				expect( q_native.recordcount ).toBe( q_hsqlb.recordcount );
 				expect( q_stash.recordcount ).toBe( q_native.recordcount );
@@ -72,7 +70,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="qoq" skip=true {
 				var arr = [];
 				ArraySet(arr, 1, 1000, 0);
 				arrayEach(arr, function(){
-					var q = extensionList();
+					var q = getDummyData();
 					var cols = replaceNoCase( q.columnList, ",unique", "" ); // cleanup reserved word
 					// native engine
 					q = QueryExecute(
@@ -89,6 +87,19 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="qoq" skip=true {
 			});
 		});
 
+	}
+
+	private function getDummyData(){
+		var q = queryNew("id,name,data","integer,varchar, varchar");
+		loop times=100 {
+			loop list="micha,zac,brad,pothys,gert" item="local.n" index="local.i" {
+				var r = queryAddRow( q );
+				querySetCell(q, "id", r, r)
+				querySetCell(q, "name", n, r)
+				//querySetCell(q, "data", repeatString("lucee",1000), r);
+			}
+		}
+		return q;
 	}
 
 }
