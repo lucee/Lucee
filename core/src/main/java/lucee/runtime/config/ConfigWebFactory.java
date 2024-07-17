@@ -4982,7 +4982,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 					if (!installedFiles.contains(r)) {
 
 						// is maybe a diff version installed?
-						RHExtension ext = new RHExtension(config, r);
+						RHExtension ext = RHExtension.getInstance(config, r);
 						if (!installedIds.contains(ext.getId())) {
 							if (log != null) log.info("extension",
 									"Found the extension [" + ext + "] in the installed folder that is not present in the configuration in any version, so we will uninstall it");

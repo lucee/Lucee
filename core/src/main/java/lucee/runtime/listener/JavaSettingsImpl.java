@@ -28,7 +28,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import lucee.print;
 import lucee.commons.digest.HashUtil;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
@@ -113,10 +112,6 @@ public class JavaSettingsImpl implements JavaSettings {
 		String key = hash(resources) + ":" + parent.getName();
 		ResourceClassLoader classLoader = reload ? null : classLoaders.get(key);
 
-		print.e("----- getClassLoader -----" + key);
-		print.e("key:" + key);
-		print.e("reload:" + reload);
-
 		if (classLoader == null) {
 			Collection<Resource> allResources = getAllResources(resources);
 			if (allResources.size() > 0) {
@@ -169,9 +164,6 @@ public class JavaSettingsImpl implements JavaSettings {
 		String key = hash(resources) + ":" + parent.getName();
 		ResourceClassLoader classLoader = reload ? null : classLoaders.get(key);
 		ResourceClassLoader modified = null;
-		print.e("----- getClassLoader -----" + key);
-		print.e("key:" + key);
-		print.e("reload:" + reload);
 		if (classLoader == null) {
 			// maven
 			if (poms != null) {

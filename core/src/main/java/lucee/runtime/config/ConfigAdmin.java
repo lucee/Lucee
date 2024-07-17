@@ -4001,7 +4001,7 @@ public final class ConfigAdmin {
 				for (ConfigWeb cw: webs) {
 					try {
 						for (RHExtension ext: ((ConfigPro) cw).getRHExtensions()) {
-							ext.addToAvailable();
+							ext.addToAvailable(cw);
 						}
 					}
 					catch (Exception e) {
@@ -4412,7 +4412,7 @@ public final class ConfigAdmin {
 			if (child == null) continue;
 
 			try {
-				rhe = new RHExtension(config, Caster.toString(child.get(KeyConstants._id), null), Caster.toString(child.get(KeyConstants._version), null));
+				rhe = RHExtension.getInstance(config, Caster.toString(child.get(KeyConstants._id), null), Caster.toString(child.get(KeyConstants._version), null));
 			}
 			catch (Throwable t) {
 				ExceptionUtil.rethrowIfNecessary(t);
@@ -4571,10 +4571,10 @@ public final class ConfigAdmin {
 	public RHExtension updateRHExtension(Config config, Resource ext, boolean reload, boolean force, short action) throws PageException {
 		RHExtension rhext;
 		try {
-			rhext = new RHExtension(config, ext);
-			if (RHExtension.ACTION_COPY == action) rhext.copyToInstalled();
-			else if (RHExtension.ACTION_MOVE == action) rhext.moveToInstalled();
-			rhext.validate();
+			rhext = RHExtension.getInstance(config, ext);
+			if (RHExtension.ACTION_COPY == action) rhext.copyToInstalled(config);
+			else if (RHExtension.ACTION_MOVE == action) rhext.moveToInstalled(config);
+			rhext.validate(config);
 		}
 		catch (Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);
@@ -6370,7 +6370,7 @@ public final class ConfigAdmin {
 					Resource r;
 					if (!StringUtil.isEmpty(res) && (r = ResourceUtil.toResourceExisting(config, res, null)) != null) {
 						try {
-							RHExtension _ext = new RHExtension(config, r);// TODO not load it again!
+							RHExtension _ext = RHExtension.getInstance(config, r);// TODO not load it again!
 							if (_ext != null && _ext.getId().equalsIgnoreCase(ext.getId())) {
 								old = RHExtension.toBundleDefinitions(ConfigWebUtil.getAsString("bundles", el, null)); // get existing bundles before populate new ones
 								ext.populate(el, false);
@@ -6426,7 +6426,7 @@ public final class ConfigAdmin {
 				if (!id.equals(_id)) continue;
 
 				try {
-					return new RHExtension(config, _id, Caster.toString(tmp.get(KeyConstants._version), null));
+					return RHExtension.getInstance(config, _id, Caster.toString(tmp.get(KeyConstants._version), null));
 				}
 				catch (Exception e) {
 					return defaultValue;
@@ -6465,7 +6465,7 @@ public final class ConfigAdmin {
 				v = Caster.toString(sct.get(KeyConstants._version, null), null);
 				if (!RHExtension.isInstalled(config, id, v)) continue;
 
-				if (ed.equals(new ExtensionDefintion(id, v))) return new RHExtension(config, id, v);
+				if (ed.equals(new ExtensionDefintion(id, v))) return RHExtension.getInstance(config, id, v);
 			}
 			return null;
 		}

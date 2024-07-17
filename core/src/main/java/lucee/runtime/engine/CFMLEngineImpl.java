@@ -628,8 +628,8 @@ public final class CFMLEngineImpl implements CFMLEngine {
 					log.info("extract-extension", "Copy extension [" + name + "] to temp directory [" + temp + "]");
 					ResourceUtil.touch(temp);
 					Util.copy(is, temp.getOutputStream(), false, true);
-					rhe = new RHExtension(cs, temp);
-					rhe.validate();
+					rhe = RHExtension.getInstance(cs, temp);
+					rhe.validate(cs);
 					ExtensionDefintion alreadyExists = null;
 					it = existing.iterator();
 					while (it.hasNext()) {
