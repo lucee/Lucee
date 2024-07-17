@@ -48,11 +48,11 @@ import lucee.runtime.type.Struct;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.ListUtil;
-import lucee.transformer.bytecode.util.SystemExitScanner;
 
 public class JavaSettingsImpl implements JavaSettings {
 
 	private static final int DEFAULT_WATCH_INTERVAL = 60;
+
 	private List<POM> poms;
 	private List<BD> osgis;
 	private final Resource[] resources;
@@ -67,37 +67,31 @@ public class JavaSettingsImpl implements JavaSettings {
 	private Map<String, ResourceClassLoader> classLoaders = new ConcurrentHashMap<String, ResourceClassLoader>();
 	private Config config;
 
-	public JavaSettingsImpl() {
-		this.config = ThreadLocalPageContext.getConfig();
-		this.resources = new Resource[0];
-		this.bundles = new Resource[0];
-		this.loadCFMLClassPath = false;
-		this.reloadOnChange = false;
-		this.watchInterval = DEFAULT_WATCH_INTERVAL;
-		this.watchedExtensions = new String[] { "jar", "class" };
+	public JavaSettingsImpl(Config config, List<POM> poms, List<BD> osgis, Resource[] resources, Resource[] bundles, Boolean loadCFMLClassPath, boolean reloadOnChange,
+			int watchInterval, String[] watchedExtensions) {
+		this.config = config == null ? ThreadLocalPageContext.getConfig() : config;
+		this.poms = poms;
+		this.osgis = osgis;
+		this.resources = resources == null ? new Resource[0] : resources;
+		this.bundles = bundles == null ? new Resource[0] : bundles;
+		this.loadCFMLClassPath = Boolean.TRUE.equals(loadCFMLClassPath);
+		this.reloadOnChange = reloadOnChange;
+		this.watchInterval = watchInterval;
+		this.watchedExtensions = watchedExtensions == null ? new String[] { "jar", "class" } : watchedExtensions;
+
+		// TODO needed? SystemExitScanner.validate(resources);
 	}
 
 	public boolean hasPoms() {
 		return poms != null && poms.size() > 0;
 	}
 
-	public boolean hasOSGis() {
-		return osgis != null && osgis.size() > 0;
+	public List<POM> getPoms() {
+		return poms;
 	}
 
-	public JavaSettingsImpl(Config config, List<POM> poms, List<BD> osgis, Resource[] resources, Resource[] bundles, Boolean loadCFMLClassPath, boolean reloadOnChange,
-			int watchInterval, String[] watchedExtensions) throws PageException {
-		this.config = config;
-		this.poms = poms;
-		this.osgis = osgis;
-		this.resources = resources;
-		this.bundles = bundles;
-		this.loadCFMLClassPath = Boolean.TRUE.equals(loadCFMLClassPath);
-		this.reloadOnChange = reloadOnChange;
-		this.watchInterval = watchInterval;
-		this.watchedExtensions = watchedExtensions;
-		SystemExitScanner.validate(resources);
-
+	public boolean hasOSGis() {
+		return osgis != null && osgis.size() > 0;
 	}
 
 	public ClassLoader getRPCClassLoader(ClassLoader parent, boolean reload) throws IOException {
@@ -226,7 +220,7 @@ public class JavaSettingsImpl implements JavaSettings {
 		return watchedExtensions;
 	}
 
-	public static JavaSettings getInstance(Config config, Struct sct) throws PageException {
+	public static JavaSettings getInstance(Config config, Struct sct) {
 		// TODO faster hash?
 		String id = HashUtil.create64BitHashAsString(sct.toString());
 

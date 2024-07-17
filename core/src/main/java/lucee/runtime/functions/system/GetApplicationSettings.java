@@ -19,6 +19,7 @@
 package lucee.runtime.functions.system;
 
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -50,9 +51,11 @@ import lucee.runtime.listener.ApplicationContext;
 import lucee.runtime.listener.ApplicationContextSupport;
 import lucee.runtime.listener.ClassicApplicationContext;
 import lucee.runtime.listener.JavaSettings;
+import lucee.runtime.listener.JavaSettingsImpl;
 import lucee.runtime.listener.ModernApplicationContext;
 import lucee.runtime.listener.SessionCookieData;
 import lucee.runtime.listener.SessionCookieDataImpl;
+import lucee.runtime.mvn.POM;
 import lucee.runtime.net.mail.Server;
 import lucee.runtime.net.mail.ServerImpl;
 import lucee.runtime.net.proxy.ProxyData;
@@ -412,6 +415,26 @@ public class GetApplicationSettings extends BIF {
 			sb.append(reses[i].getAbsolutePath());
 		}
 		jsSct.put("loadCFMLClassPath", sb.toString());
+
+		// maven
+		if (js instanceof JavaSettingsImpl) {
+			JavaSettingsImpl jsi = (JavaSettingsImpl) js;
+			List<POM> poms = jsi.getPoms();
+			if (poms != null) {
+				Array arr = new ArrayImpl();
+				Struct s;
+				for (POM pom: poms) {
+					s = new StructImpl();
+					// TODO add more columns
+					s.set(KeyConstants._groupId, pom.getGroupId());
+					s.set(KeyConstants._artifactId, pom.getArtifactId());
+					s.set(KeyConstants._version, pom.getVersion());
+					arr.append(s);
+				}
+				jsSct.put("maven", arr);
+			}
+		}
+
 		sct.put("javaSettings", jsSct);
 		// REST Settings
 		// MUST

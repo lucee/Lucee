@@ -41,6 +41,7 @@ import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.CharSet;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.Pair;
+import lucee.commons.lang.SerializableObject;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.types.RefBoolean;
 import lucee.runtime.Component;
@@ -54,6 +55,7 @@ import lucee.runtime.cache.CacheUtil;
 import lucee.runtime.component.Member;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigPro;
+import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.config.ConfigWebUtil;
 import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.db.DataSource;
@@ -164,6 +166,8 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	private static final Key USE_JAVA_AS_REGEX_ENGINE = KeyConstants._useJavaAsRegexEngine;
 
 	private static Map<String, CacheConnection> initCacheConnections = new ConcurrentHashMap<String, CacheConnection>();
+	private static Object token = new SerializableObject();
+	private static JavaSettings defaultJavaSettings;
 
 	private Component component;
 
@@ -1802,16 +1806,24 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 		if (!initJavaSettings) {
 			Object o = get(component, JAVA_SETTING, null);
 			if (o != null && Decision.isStruct(o)) {
-				try {
-					javaSettings = JavaSettingsImpl.getInstance(config, Caster.toStruct(o, null));
-				}
-				catch (PageException e) {
-					throw new PageRuntimeException(e);
-				}
-
+				javaSettings = JavaSettingsImpl.getInstance(config, Caster.toStruct(o, null));
+			}
+			if (javaSettings == null) {
+				javaSettings = getDefaultJavaSettings(config);
 			}
 			initJavaSettings = true;
 		}
+	}
+
+	public static JavaSettings getDefaultJavaSettings(ConfigWeb config) {
+		if (defaultJavaSettings == null) {
+			synchronized (token) {
+				if (defaultJavaSettings == null) {
+					defaultJavaSettings = JavaSettingsImpl.getInstance(config, new StructImpl());
+				}
+			}
+		}
+		return defaultJavaSettings;
 	}
 
 	@Override
