@@ -3838,7 +3838,7 @@ public final class PageContextImpl extends PageContext {
 		JavaSettingsImpl js = (JavaSettingsImpl) getApplicationContext().getJavaSettings();
 		if (js != null) {
 			// TODO FUTURE 7 we do this to avoid any kind of regression, in Lucee 7 remove this
-			if (JAVA_SETTING_CLASSIC_MODE && !js.hasPoms() && !js.hasOSGis()) {
+			if (!JAVA_SETTING_CLASSIC_MODE && !js.hasPoms() && !js.hasOSGis()) {
 				Resource[] jars = js.getResourcesTranslated();
 				if (jars.length > 0) return config.getResourceClassLoader().getCustomResourceClassLoader(jars);
 			}
