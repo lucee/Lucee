@@ -77,6 +77,14 @@ public class JavaSettingsImpl implements JavaSettings {
 		this.watchedExtensions = new String[] { "jar", "class" };
 	}
 
+	public boolean hasPoms() {
+		return poms != null && poms.size() > 0;
+	}
+
+	public boolean hasOSGis() {
+		return osgis != null && osgis.size() > 0;
+	}
+
 	public JavaSettingsImpl(Config config, List<POM> poms, List<BD> osgis, Resource[] resources, Resource[] bundles, Boolean loadCFMLClassPath, boolean reloadOnChange,
 			int watchInterval, String[] watchedExtensions) throws PageException {
 		this.config = config;

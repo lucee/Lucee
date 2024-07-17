@@ -70,6 +70,7 @@ import lucee.commons.lang.ClassException;
 import lucee.commons.lang.ClassUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.HTMLEntities;
+import lucee.commons.lang.PhysicalClassLoader;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.mimetype.MimeType;
 import lucee.commons.lang.types.RefBoolean;
@@ -226,7 +227,7 @@ import lucee.runtime.writer.DevNullBodyContent;
 public final class PageContextImpl extends PageContext {
 
 	private static final RefBoolean DUMMY_BOOL = new RefBooleanImpl(false);
-
+	private static final boolean JAVA_SETTING_CLASSIC_MODE = true;
 	private static int counter = 0;
 
 	/**
@@ -3836,7 +3837,13 @@ public final class PageContextImpl extends PageContext {
 	public ClassLoader getClassLoader(Resource[] reses) throws IOException {
 		JavaSettingsImpl js = (JavaSettingsImpl) getApplicationContext().getJavaSettings();
 		if (js != null) {
+			// TODO FUTURE 7 we do this to avoid any kind of regression, in Lucee 7 remove this
+			if (JAVA_SETTING_CLASSIC_MODE && !js.hasPoms() && !js.hasOSGis()) {
+				Resource[] jars = js.getResourcesTranslated();
+				if (jars.length > 0) return config.getResourceClassLoader().getCustomResourceClassLoader(jars);
+			}
 			return js.getResourceClassLoader(reses);
+
 		}
 		return config.getResourceClassLoader();
 	}
@@ -3848,7 +3855,14 @@ public final class PageContextImpl extends PageContext {
 	public ClassLoader getRPCClassLoader(boolean reload, ClassLoader[] parents) throws IOException {
 		ClassLoader cl = ((ConfigPro) config).getRPCClassLoader(reload, parents);
 		JavaSettingsImpl js = (JavaSettingsImpl) getApplicationContext().getJavaSettings();
-		if (js != null) cl = js.getRPCClassLoader(cl, reload);
+		if (js != null) {
+			// TODO FUTURE 7 we do this to avoid any kind of regression, in Lucee 7 remove this
+			if (JAVA_SETTING_CLASSIC_MODE && !js.hasPoms() && !js.hasOSGis()) {
+				Resource[] jars = js.getResourcesTranslated();
+				if (jars.length > 0) return ((PhysicalClassLoader) cl).getCustomClassLoader(jars, reload);
+			}
+			else cl = js.getRPCClassLoader(cl, reload);
+		}
 		return cl;
 	}
 
