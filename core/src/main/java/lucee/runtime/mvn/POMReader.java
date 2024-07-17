@@ -2,11 +2,14 @@ package lucee.runtime.mvn;
 
 import java.io.IOException;
 import java.io.Reader;
+import java.lang.ref.Reference;
+import java.lang.ref.SoftReference;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
@@ -63,7 +66,22 @@ public final class POMReader extends DefaultHandler {
 
 	private Resource file;
 
-	public POMReader(Resource file) {
+	private static Map<String, Reference<POMReader>> instances = new ConcurrentHashMap<>();
+
+	public static POMReader getInstance(Resource file) throws IOException, SAXException {
+		Reference<POMReader> ref = instances.get(file.getAbsolutePath());
+		POMReader pr;
+		if (ref != null) {
+			pr = ref.get();
+			if (pr != null) return pr;
+		}
+		pr = new POMReader(file);
+		pr.read();
+		instances.put(file.getAbsolutePath(), new SoftReference<POMReader>(pr));
+		return pr;
+	}
+
+	private POMReader(Resource file) {
 		this.file = file;
 	}
 
@@ -133,7 +151,7 @@ public final class POMReader extends DefaultHandler {
 	 * tmpMeta.put(h.getName(), h.getValue()); } }
 	 */
 
-	public void read() throws IOException, SAXException {
+	private void read() throws IOException, SAXException {
 
 		Reader r = null;
 		try {

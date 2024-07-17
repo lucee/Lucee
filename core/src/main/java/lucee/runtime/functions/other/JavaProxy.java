@@ -76,7 +76,6 @@ public final class JavaProxy implements Function {
 	public static Class<?> loadClass(PageContext pc, String className, Object pathOrName, String delimiterOrVersion, Array aRelatedBundles) throws PageException {
 
 		if (StringUtil.isEmpty(pathOrName)) return loadClassByPath(pc, className, null);
-
 		String str = Caster.toString(pathOrName, null);
 		BundleDefinition[] relatedBundles = null;
 		if (aRelatedBundles != null) {
@@ -125,6 +124,16 @@ public final class JavaProxy implements Function {
 			String[] arrPaths = ListUtil.trimItems(ListUtil.toStringArray(ListUtil.listToArrayRemoveEmpty(str, delimiterOrVersion)));
 
 			return loadClassByPath(pc, className, arrPaths);
+		}
+		else if (Decision.isStruct(pathOrName)) {
+			JavaSettingsImpl js = (JavaSettingsImpl) JavaSettingsImpl.getInstance(pc.getConfig(), Caster.toStruct(pathOrName));
+			try {
+				return js.getResourceClassLoader(null).loadClass(className);
+			}
+			catch (Exception e) {
+				throw Caster.toPageException(e);
+			}
+
 		}
 
 		return loadClassByPath(pc, className, ListUtil.toStringArray(Caster.toArray(pathOrName)));

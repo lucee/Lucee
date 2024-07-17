@@ -25,6 +25,7 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -61,6 +62,13 @@ public class ResourceClassLoader extends URLClassLoader implements Closeable {
 		}
 	}
 
+	public ResourceClassLoader(Collection<Resource> resources, ClassLoader parent) throws IOException {
+		super(doURLs(resources), parent);
+		for (Resource r: resources) {
+			if (r != null) this.resources.add(r);
+		}
+	}
+
 	public ResourceClassLoader(ClassLoader parent) {
 		super(new URL[0], parent);
 	}
@@ -74,6 +82,14 @@ public class ResourceClassLoader extends URLClassLoader implements Closeable {
 
 	public boolean isEmpty() {
 		return resources.isEmpty();
+	}
+
+	public static URL[] doURLs(Collection<Resource> reses) throws IOException {
+		List<URL> list = new ArrayList<URL>();
+		for (Resource r: reses) {
+			if (r.isDirectory() || "jar".equalsIgnoreCase(ResourceUtil.getExtension(r, null))) list.add(doURL(r));
+		}
+		return list.toArray(new URL[list.size()]);
 	}
 
 	/**

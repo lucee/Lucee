@@ -75,32 +75,20 @@ public class POM {
 
 	private String hash;
 
-	public static POM getInstance(Resource localDirectory, String groupId, String artifactId, String version, Log log) {
+	public static POM getInstanceX(Resource localDirectory, String groupId, String artifactId, String version, Log log) {
 		return getInstance(localDirectory, null, groupId, artifactId, version, null, null, SCOPE_NOT_TEST, SCOPE_ALL, log);
 	}
 
-	public static POM getInstance(Resource localDirectory, Collection<Repository> repositories, String groupId, String artifactId, String version, Log log) {
-		return getInstance(localDirectory, repositories, groupId, artifactId, version, null, null, SCOPE_NOT_TEST, SCOPE_ALL, log);
-	}
-
 	public static POM getInstance(Resource localDirectory, String groupId, String artifactId, String version, int dependencyScope, Log log) {
-		return getInstance(localDirectory, null, groupId, artifactId, version, null, null, dependencyScope, POM.SCOPE_ALL, log);
-	}
-
-	public static POM getInstance(Resource localDirectory, Collection<Repository> repositories, String groupId, String artifactId, String version, int dependencyScope, Log log) {
-		return getInstance(localDirectory, repositories, groupId, artifactId, version, null, null, dependencyScope, POM.SCOPE_ALL, log);
+		return getInstance(localDirectory, null, groupId, artifactId, version, null, null, dependencyScope, SCOPE_ALL, log);
 	}
 
 	public static POM getInstance(Resource localDirectory, Collection<Repository> repositories, String groupId, String artifactId, String version, int dependencyScope,
 			int dependencyScopeManagement, Log log) {
-		return getInstance(localDirectory, repositories, groupId, artifactId, version, null, null, dependencyScope, dependencyScopeManagement, log);
-	}
-
-	public static POM getInstance(Resource localDirectory, String groupId, String artifactId, String version, int dependencyScope, int dependencyScopeManagement, Log log) {
 		return getInstance(localDirectory, null, groupId, artifactId, version, null, null, dependencyScope, dependencyScopeManagement, log);
 	}
 
-	public static POM getInstance(Resource localDirectory, Collection<Repository> repositories, String groupId, String artifactId, String version, String scope, String optional,
+	static POM getInstance(Resource localDirectory, Collection<Repository> repositories, String groupId, String artifactId, String version, String scope, String optional,
 			int dependencyScope, int dependencyScopeManagement, Log log) {
 		String id = toId(localDirectory, groupId, artifactId, version, scope, optional, dependencyScope, dependencyScopeManagement);
 		POM pom = cache.get(id);
@@ -149,9 +137,9 @@ public class POM {
 			synchronized (token) {
 				if (!isInitXML) {
 					MavenUtil.download(this, initRepositories, "pom", log);
-					reader = new POMReader(getPath());
+
 					try {
-						reader.read();
+						reader = POMReader.getInstance(getPath());
 					}
 					catch (SAXException e) {
 						IOException cause = ExceptionUtil.toIOException(e);

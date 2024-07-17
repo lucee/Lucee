@@ -21,6 +21,8 @@ package lucee.runtime.listener;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -40,6 +42,7 @@ import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigPro;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.mvn.MavenUtil;
 import lucee.runtime.mvn.POM;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
@@ -107,6 +110,62 @@ public class JavaSettingsImpl implements JavaSettings {
 	}
 
 	private ClassLoader getClassLoader(ClassLoader parent, Resource[] resources, boolean reload) throws IOException {
+		String key = hash(resources) + ":" + parent.getName();
+		ResourceClassLoader classLoader = reload ? null : classLoaders.get(key);
+
+		print.e("----- getClassLoader -----" + key);
+		print.e("key:" + key);
+		print.e("reload:" + reload);
+
+		if (classLoader == null) {
+			Collection<Resource> allResources = getAllResources(resources);
+			if (allResources.size() > 0) {
+				ResourceClassLoader modified = new ResourceClassLoader(allResources, parent);
+				classLoaders.put(key, modified);
+				return modified;
+			}
+			return parent;
+		}
+
+		return classLoader;
+	}
+
+	public Collection<Resource> getAllResources(Resource[] resources) throws IOException {
+		Map<String, Resource> mapJars = new HashMap<>();
+		Resource[] tmp;
+
+		// maven
+		if (poms != null) {
+			for (POM pom: poms) {
+				tmp = pom.getJars();
+				if (tmp != null) {
+					for (Resource r: tmp) {
+						mapJars.put(r.getAbsolutePath(), r);
+					}
+				}
+			}
+		}
+
+		// TODO OSGi
+
+		// jars
+		Resource[] jars = getResourcesTranslated();
+		if (jars != null && jars.length > 0) {
+			for (Resource r: jars) {
+				mapJars.put(r.getAbsolutePath(), r);
+			}
+		}
+
+		// resources passed in
+		if (resources != null && resources.length > 0) {
+			for (Resource r: resources) {
+				mapJars.put(r.getAbsolutePath(), r);
+			}
+		}
+		return mapJars.values();
+	}
+
+	private ClassLoader getClassLoaderOld(ClassLoader parent, Resource[] resources, boolean reload) throws IOException {
 		String key = hash(resources) + ":" + parent.getName();
 		ResourceClassLoader classLoader = reload ? null : classLoaders.get(key);
 		ResourceClassLoader modified = null;
@@ -237,6 +296,7 @@ public class JavaSettingsImpl implements JavaSettings {
 	}
 
 	public static JavaSettings getInstance(Config config, Struct sct) {
+
 		// TODO faster hash?
 		String id = HashUtil.create64BitHashAsString(sct.toString());
 
@@ -262,7 +322,7 @@ public class JavaSettingsImpl implements JavaSettings {
 
 				if (arr != null) {
 					Iterator<Object> it = arr.valueIterator();
-					String g, a, v;
+					String g, a, v, s;
 					// TODO add method getMavenDir to config
 					Resource dir = ((ConfigPro) config).getMavenDir();
 					dir.mkdirs();
@@ -273,9 +333,10 @@ public class JavaSettingsImpl implements JavaSettings {
 							g = Caster.toString(el.get(KeyConstants._groupId, null), null);
 							a = Caster.toString(el.get(KeyConstants._artifactId, null), null);
 							v = Caster.toString(el.get(KeyConstants._version, null), null);
+							s = Caster.toString(el.get(KeyConstants._scope, null), null);
 							if (!StringUtil.isEmpty(g) && !StringUtil.isEmpty(a)) {
 								if (poms == null) poms = new ArrayList<>();
-								poms.add(POM.getInstance(dir, g, a, v, log));
+								poms.add(POM.getInstance(dir, g, a, v, MavenUtil.toScopes(s, POM.SCOPE_COMPILE), log));
 							}
 						}
 					}

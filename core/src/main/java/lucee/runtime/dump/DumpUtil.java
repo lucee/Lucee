@@ -19,7 +19,6 @@
 package lucee.runtime.dump;
 
 import java.io.File;
-import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -49,20 +48,21 @@ import org.w3c.dom.NodeList;
 
 import lucee.commons.date.TimeZoneUtil;
 import lucee.commons.io.res.Resource;
-import lucee.commons.io.res.util.MavenClassLoader;
+import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.CharSet;
+import lucee.commons.lang.ClassUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.IDGenerator;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.coder.Base64Coder;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.converter.WDDXConverter;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.functions.international.GetTimeZoneInfo;
 import lucee.runtime.functions.system.BundleInfo;
 import lucee.runtime.i18n.LocaleFactory;
-import lucee.runtime.mvn.POM;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 import lucee.runtime.osgi.BundleRange;
@@ -657,27 +657,57 @@ public class DumpUtil {
 				catch (NoSuchMethodError e) {
 				}
 			}
+			else {
+				String path = ClassUtil.getSourcePathForClass(clazz, null);
+				if (path != null) {
+					Resource res = ResourceUtil.toResourceExisting(pageContext.getConfig(), path, null);
+					boolean printed = false;
+					if (res != null) {
+						// is Maven?
+						Resource mvnDir = ((ConfigPro) pageContext.getConfig()).getMavenDir();
+						if (ResourceUtil.isChildOf(res, mvnDir)) {
+							String name = res.getName();
+							if (name.endsWith(".jar")) {
 
-			// Maven Info
-			if (cl instanceof MavenClassLoader) {
-				try {
-					MavenClassLoader mcl = (MavenClassLoader) cl;
-					POM pom = mcl.getPOM();
-					if (pom != null) {
+								String pomName = name.substring(0, name.length() - 4) + ".pom";
+								Resource pom = res.getParentResource().getRealResource(pomName);
+								if (pom.isFile()) {
+									try {
+
+										Resource parent = res.getParentResource();
+										String v = parent.getName();
+
+										parent = parent.getParentResource();
+										String a = parent.getName();
+
+										parent = parent.getParentResource();
+										String g = parent.getName();
+										while (!mvnDir.equals(parent = parent.getParentResource())) {
+											g = parent.getName() + "." + g;
+
+										}
+
+										DumpTable bd = new DumpTable("#d6ccc2", "#f5ebe0", "#000000");
+										bd.setTitle("Maven Info");
+										bd.appendRow(0, new SimpleDumpData("groupId: " + g));
+										bd.appendRow(0, new SimpleDumpData("artifactId: " + a));
+										bd.appendRow(0, new SimpleDumpData("version: " + v));
+										bd.appendRow(0, new SimpleDumpData("location: " + res.getAbsolutePath()));
+										table.appendRow(0, bd);
+										printed = true;
+									}
+									catch (Exception e) {
+									}
+								}
+							}
+						}
+					}
+					if (!printed) {
 						DumpTable bd = new DumpTable("#d6ccc2", "#f5ebe0", "#000000");
-						bd.setTitle("Maven Info");
-						bd.appendRow(0, new SimpleDumpData("groupId: " + pom.getGroupId()));
-						bd.appendRow(0, new SimpleDumpData("artifactId: " + pom.getArtifactId()));
-						bd.appendRow(0, new SimpleDumpData("version: " + pom.getVersion()));
-						try {
-							bd.appendRow(0, new SimpleDumpData("location: " + pom.getArtifact()));
-						}
-						catch (IOException e) {
-						}
+						bd.setTitle("Jar Info");
+						bd.appendRow(0, new SimpleDumpData("location: " + path));
 						table.appendRow(0, bd);
 					}
-				}
-				catch (NoSuchMethodError e) {
 				}
 			}
 

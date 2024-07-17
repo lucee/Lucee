@@ -26,6 +26,7 @@ import lucee.commons.io.log.Log;
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.SerializableObject;
+import lucee.commons.lang.StringUtil;
 import lucee.runtime.mvn.POMReader.Dependency;
 import lucee.runtime.thread.ThreadUtil;
 import lucee.runtime.type.util.ListUtil;
@@ -368,6 +369,18 @@ public class MavenUtil {
 				log
 
 		);
+	}
+
+	public static int toScopes(String scopes, int defaultValue) {
+		if (StringUtil.isEmpty(scopes, true)) return defaultValue;
+
+		int rtn = 0;
+		for (String scope: ListUtil.listToStringArray(scopes, ',')) {
+			rtn += toScope(scope, 0);
+		}
+		if (rtn > 0) return rtn;
+
+		return defaultValue;
 	}
 
 	public static int toScope(String scope, int defaultValue) {

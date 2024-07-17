@@ -3861,7 +3861,11 @@ public final class PageContextImpl extends PageContext {
 				Resource[] jars = js.getResourcesTranslated();
 				if (jars.length > 0) return ((PhysicalClassLoader) cl).getCustomClassLoader(jars, reload);
 			}
-			else cl = js.getRPCClassLoader(cl, reload);
+			else {
+				java.util.Collection<Resource> jars = js.getAllResources(null);
+				if (jars.size() > 0) return ((PhysicalClassLoader) cl).getCustomClassLoader(jars.toArray(new Resource[jars.size()]), reload);
+			}
+
 		}
 		return cl;
 	}
