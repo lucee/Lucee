@@ -20,11 +20,13 @@ package lucee.runtime.listener;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import lucee.print;
 import lucee.commons.digest.HashUtil;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
@@ -101,18 +103,21 @@ public class JavaSettingsImpl implements JavaSettings {
 
 	public ResourceClassLoader getResourceClassLoader(Resource[] resources) throws IOException {
 		ResourceClassLoader parent = ((ConfigPro) config).getResourceClassLoader();
-		return getClassLoader(parent, resources, false);
+		return (ResourceClassLoader) getClassLoader(parent, resources, false);
 	}
 
-	private ResourceClassLoader getClassLoader(ClassLoader parent, Resource[] resources, boolean reload) throws IOException {
-		String key = "" + parent.getName();
+	private ClassLoader getClassLoader(ClassLoader parent, Resource[] resources, boolean reload) throws IOException {
+		String key = hash(resources) + ":" + parent.getName();
 		ResourceClassLoader classLoader = reload ? null : classLoaders.get(key);
-
+		ResourceClassLoader modified = null;
+		print.e("----- getClassLoader -----" + key);
+		print.e("key:" + key);
+		print.e("reload:" + reload);
 		if (classLoader == null) {
 			// maven
 			if (poms != null) {
 				for (POM pom: poms) {
-					parent = new MavenClassLoader(pom, parent);
+					parent = modified = new MavenClassLoader(pom, parent);
 				}
 			}
 
@@ -121,18 +126,29 @@ public class JavaSettingsImpl implements JavaSettings {
 			// jars
 			Resource[] jars = getResourcesTranslated();
 			if (jars.length > 0) {
-				parent = new ResourceClassLoader(jars, parent);
+				parent = modified = new ResourceClassLoader(jars, parent);
 			}
 
-			// TODO does that cast always work?
-			classLoader = (ResourceClassLoader) parent;
-			classLoaders.put(key, classLoader);
+			if (resources != null && resources.length > 0) {
+				parent = modified = new ResourceClassLoader(resources, parent);
+			}
+
+			if (modified != null) classLoaders.put(key, modified);
+			return parent;
 		}
-		// TODO make "getCustomResourceClassLoader" here
-		if (resources != null && resources.length > 0) {
-			return classLoader.getCustomResourceClassLoader(resources);
-		}
+
 		return classLoader;
+	}
+
+	private String hash(Resource[] resources) {
+		if (resources == null || resources.length == 0) return "";
+		Arrays.sort(resources);
+		StringBuilder sb = new StringBuilder();
+		for (int i = 0; i < resources.length; i++) {
+			sb.append(ResourceUtil.getCanonicalPathEL(resources[i]));
+			sb.append(';');
+		}
+		return HashUtil.create64BitHashAsString(sb.toString());
 	}
 
 	@Override
