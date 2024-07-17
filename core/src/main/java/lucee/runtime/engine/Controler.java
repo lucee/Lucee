@@ -211,24 +211,6 @@ public final class Controler extends ParentThreasRefThread {
 			if (log != null) log.error("controler", t);
 		}
 
-		if (firstRun) {
-
-			try {
-				RHExtension.correctExtensions(configServer);
-			}
-			catch (Exception e) {
-				if (log != null) log.error("controler", e);
-			}
-
-			// loading all versions from Maven (if it can be reached)
-			try {
-				new MavenUpdateProvider().list();
-			}
-			catch (Exception e) {
-				if (log != null) log.error("controler", e);
-			}
-		}
-
 		// every 10 seconds
 		if (do10Seconds) {
 			// deploy extensions, archives ...
@@ -270,6 +252,24 @@ public final class Controler extends ParentThreasRefThread {
 
 		for (int i = 0; i < factories.length; i++) {
 			control(factories[i], do10Seconds, doMinute, doHour, firstRun, log);
+		}
+
+		if (firstRun) {
+
+			try {
+				RHExtension.correctExtensions(configServer);
+			}
+			catch (Exception e) {
+				if (log != null) log.error("controler", e);
+			}
+
+			// loading all versions from Maven (if it can be reached)
+			try {
+				new MavenUpdateProvider().list();
+			}
+			catch (Exception e) {
+				if (log != null) log.error("controler", e);
+			}
 		}
 	}
 
