@@ -893,9 +893,10 @@ public class RHExtension implements Serializable {
 	public static void correctExtensions(Config config) throws PageException, IOException, BundleException, ConverterException {
 		// reduce the amount of extension stored in available
 		{
-			int max = 5;
+			int max = 2;
 			Resource dir = config.getConfigDir().getRealResource("extensions/available");
 			Resource[] resources = dir.listResources(LEX_FILTER);
+			if (resources.length < 60) return;
 			Map<String, List<Pair<RHExtension, Resource>>> map = new HashMap<>();
 			RHExtension ext;
 			List<Pair<RHExtension, Resource>> versions;

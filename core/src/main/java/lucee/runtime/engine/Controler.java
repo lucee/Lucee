@@ -288,13 +288,6 @@ public final class Controler extends ParentThreasRefThread {
 				checkOldClientFile(config, log);
 
 				try {
-					RHExtension.correctExtensions(config);
-				}
-				catch (Exception e) {
-					if (log != null) log.error("controler", e);
-				}
-
-				try {
 					checkTempDirectorySize(config);
 				}
 				catch (Throwable t) {
