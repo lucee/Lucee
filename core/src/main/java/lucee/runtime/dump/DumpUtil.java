@@ -19,6 +19,7 @@
 package lucee.runtime.dump;
 
 import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -48,6 +49,7 @@ import org.w3c.dom.NodeList;
 
 import lucee.commons.date.TimeZoneUtil;
 import lucee.commons.io.res.Resource;
+import lucee.commons.io.res.util.MavenClassLoader;
 import lucee.commons.lang.CharSet;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.IDGenerator;
@@ -60,6 +62,7 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.functions.international.GetTimeZoneInfo;
 import lucee.runtime.functions.system.BundleInfo;
 import lucee.runtime.i18n.LocaleFactory;
+import lucee.runtime.mvn.POM;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 import lucee.runtime.osgi.BundleRange;
@@ -72,11 +75,9 @@ import lucee.runtime.type.ObjectWrap;
 import lucee.runtime.type.Pojo;
 import lucee.runtime.type.QueryImpl;
 import lucee.runtime.type.Struct;
-import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.UDF;
 import lucee.runtime.type.dt.DateTimeImpl;
 import lucee.runtime.type.scope.CookieImpl;
-import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.UDFUtil;
 
 public class DumpUtil {
@@ -643,19 +644,36 @@ public class DumpUtil {
 					BundleClassLoader bcl = (BundleClassLoader) cl;
 					Bundle b = bcl.getBundle();
 					if (b != null) {
-						Struct sct = new StructImpl();
-						sct.setEL(KeyConstants._id, b.getBundleId());
-						sct.setEL(KeyConstants._name, b.getSymbolicName());
-						sct.setEL(KeyConstants._location, b.getLocation());
-						sct.setEL(KeyConstants._version, b.getVersion().toString());
-
 						DumpTable bd = new DumpTable("#d6ccc2", "#f5ebe0", "#000000");
-						bd.setTitle("Bundle Info");
+						bd.setTitle("OSGi Bundle Info");
 						bd.appendRow(0, new SimpleDumpData("id: " + b.getBundleId()));
 						bd.appendRow(0, new SimpleDumpData("symbolic-name: " + b.getSymbolicName()));
 						bd.appendRow(0, new SimpleDumpData("version: " + b.getVersion().toString()));
 						bd.appendRow(0, new SimpleDumpData("location: " + b.getLocation()));
 						requiredBundles(bd, b);
+						table.appendRow(0, bd);
+					}
+				}
+				catch (NoSuchMethodError e) {
+				}
+			}
+
+			// Maven Info
+			if (cl instanceof MavenClassLoader) {
+				try {
+					MavenClassLoader mcl = (MavenClassLoader) cl;
+					POM pom = mcl.getPOM();
+					if (pom != null) {
+						DumpTable bd = new DumpTable("#d6ccc2", "#f5ebe0", "#000000");
+						bd.setTitle("Maven Info");
+						bd.appendRow(0, new SimpleDumpData("groupId: " + pom.getGroupId()));
+						bd.appendRow(0, new SimpleDumpData("artifactId: " + pom.getArtifactId()));
+						bd.appendRow(0, new SimpleDumpData("version: " + pom.getVersion()));
+						try {
+							bd.appendRow(0, new SimpleDumpData("location: " + pom.getArtifact()));
+						}
+						catch (IOException e) {
+						}
 						table.appendRow(0, bd);
 					}
 				}

@@ -11,7 +11,6 @@ import java.util.Map;
 
 import org.xml.sax.SAXException;
 
-import lucee.print;
 import lucee.commons.digest.HashUtil;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.res.Resource;
@@ -61,8 +60,6 @@ public class POM {
 	private boolean isInitXML = false;
 	public static final Map<String, POM> cache = new HashMap<>();
 
-	private boolean debug = false;
-
 	private String packaging;
 	private String name;
 	private String description;
@@ -78,11 +75,11 @@ public class POM {
 
 	private String hash;
 
-	public static POM getInstance(Resource localDirectory, String groupId, String version, String artifactId, Log log) {
+	public static POM getInstance(Resource localDirectory, String groupId, String artifactId, String version, Log log) {
 		return getInstance(localDirectory, null, groupId, artifactId, version, null, null, SCOPE_NOT_TEST, SCOPE_ALL, log);
 	}
 
-	public static POM getInstance(Resource localDirectory, Collection<Repository> repositories, String groupId, String version, String artifactId, Log log) {
+	public static POM getInstance(Resource localDirectory, Collection<Repository> repositories, String groupId, String artifactId, String version, Log log) {
 		return getInstance(localDirectory, repositories, groupId, artifactId, version, null, null, SCOPE_NOT_TEST, SCOPE_ALL, log);
 	}
 
@@ -151,10 +148,7 @@ public class POM {
 		if (!isInitXML) {
 			synchronized (token) {
 				if (!isInitXML) {
-					if (debug) print.e("xxxxxx initXML " + this + " xxxxxx");
-
 					MavenUtil.download(this, initRepositories, "pom", log);
-
 					reader = new POMReader(getPath());
 					try {
 						reader.read();
@@ -167,13 +161,12 @@ public class POM {
 					}
 					this.packaging = reader.getPackaging();
 					this.artifactExtension = this.packaging;
-					if ("bundle".equalsIgnoreCase(artifactExtension)) this.artifactExtension = "jar";
-
+					if (artifactExtension == null || "bundle".equalsIgnoreCase(artifactExtension)) this.artifactExtension = "jar";
 					this.name = reader.getName();
 					this.description = reader.getDescription();
 					this.url = reader.getURL();
 
-					if (this.packaging != null && !"pom".equalsIgnoreCase(this.packaging)) MavenUtil.download(this, initRepositories, artifactExtension, log);
+					if (this.artifactExtension != null && !"pom".equalsIgnoreCase(this.artifactExtension)) MavenUtil.download(this, initRepositories, artifactExtension, log);
 
 					isInitXML = true;
 				}
@@ -184,7 +177,7 @@ public class POM {
 	private void initParent() throws IOException {
 		if (isInitParent) return;
 		isInitParent = true;
-		if (debug) print.e("xxxxxx initParent " + this + " xxxxxx");
+		if (log != null) log.debug("maven", "int parent for " + this);
 		initXML();
 
 		Dependency p = reader.getParent();
@@ -199,7 +192,7 @@ public class POM {
 		if (isInitProperties) return;
 		isInitProperties = true;
 		initParent();
-		if (debug) print.e("xxxxxx initProperties " + this + " xxxxxx");
+		if (log != null) log.debug("maven", "int properties for " + this);
 		properties = MavenUtil.getProperties(reader.getProperties(), parent);
 
 	}
@@ -207,7 +200,7 @@ public class POM {
 	private void initRepositories() throws IOException {
 		if (isInitRepositories) return;
 		isInitRepositories = true;
-		if (debug) print.e("xxxxxx initRepositories " + this + " xxxxxx");
+		if (log != null) log.debug("maven", "int repositories for " + this);
 		initProperties();
 		childRepositories = MavenUtil.getRepositories(reader.getRepositories(), this, parent, properties, DEFAULT_REPOSITORY);
 	}
@@ -215,7 +208,7 @@ public class POM {
 	private void initDependencies() throws IOException {
 		if (isInitDependencies) return;
 		isInitDependencies = true;
-		if (debug) print.e("xxxxxx initDependencies " + this + " xxxxxx");
+		if (log != null) log.debug("maven", "int dependencies for " + this);
 		initProperties();
 		if (dependencyScope > 0) dependencies = MavenUtil.getDependencies(reader.getDependencies(), this, parent, properties, localDirectory, false, log);
 	}
@@ -223,7 +216,7 @@ public class POM {
 	private void initDependencyManagement() throws IOException {
 		if (isInitDependencyManagement) return;
 		isInitDependencyManagement = true;
-		if (debug) print.e("xxxxxx initDependencyManagement " + this + " xxxxxx");
+		if (log != null) log.debug("maven", "int dependencx management for " + this);
 		initProperties();
 
 		if (dependencyScopeManagement > 0)
@@ -234,7 +227,7 @@ public class POM {
 	private void init() throws IOException {
 		if (isInit) return;
 		isInit = true;
-		if (debug) print.e("xxxxxx init " + this + " xxxxxx");
+		if (log != null) log.debug("maven", "int for " + this);
 		initProperties();
 		initRepositories();
 		initDependencyManagement();
@@ -339,7 +332,8 @@ public class POM {
 		return local(localDirectory, type);
 	}
 
-	public Resource getArtifact() {
+	public Resource getArtifact() throws IOException {
+		initXML();
 		if (artifactExtension == null) return null;
 		return local(localDirectory, artifactExtension);
 	}
@@ -409,8 +403,6 @@ public class POM {
 			else sb.append(", ");
 			sb.append(url.toExternalForm());
 		}
-		print.e(repositories);
-
 		throw new IOException("could not find a valid endpoint for [" + this + "], possibles endpoint are [" + sb + "]");
 	}
 
@@ -526,11 +518,13 @@ public class POM {
 
 	public Resource[] getJars() throws IOException {
 		List<Resource> jars = new ArrayList<>();
-
+		initXML();
 		// current
 		if ("jar".equalsIgnoreCase(this.artifactExtension)) {
 			Resource r = getArtifact();
-			if (r != null) jars.add(r);
+			if (r != null) {
+				jars.add(r);
+			}
 		}
 
 		List<POM> dependencies = getAllDependencies();
@@ -538,7 +532,9 @@ public class POM {
 			for (POM p: dependencies) {
 				if ("jar".equalsIgnoreCase(p.artifactExtension)) {
 					Resource r = p.getArtifact();
-					if (r != null) jars.add(r);
+					if (r != null) {
+						jars.add(r);
+					}
 				}
 			}
 		}

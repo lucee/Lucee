@@ -18,17 +18,27 @@
  **/
 package lucee.runtime.listener;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
+import lucee.commons.digest.HashUtil;
+import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
+import lucee.commons.io.res.util.MavenClassLoader;
+import lucee.commons.io.res.util.ResourceClassLoader;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
+import lucee.runtime.config.Config;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.mvn.POM;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 import lucee.runtime.osgi.BundleFile;
@@ -42,6 +52,9 @@ import lucee.transformer.bytecode.util.SystemExitScanner;
 
 public class JavaSettingsImpl implements JavaSettings {
 
+	private static final int DEFAULT_WATCH_INTERVAL = 60;
+	private List<POM> poms;
+	private List<BD> osgis;
 	private final Resource[] resources;
 	private Resource[] resourcesTranslated;
 	private final Resource[] bundles;
@@ -51,25 +64,73 @@ public class JavaSettingsImpl implements JavaSettings {
 	private final int watchInterval;
 	private final String[] watchedExtensions;
 	private boolean hasBundlesTranslated;
+	private Map<String, ResourceClassLoader> classLoaders = new ConcurrentHashMap<String, ResourceClassLoader>();
+	private Config config;
 
 	public JavaSettingsImpl() {
+		this.config = ThreadLocalPageContext.getConfig();
 		this.resources = new Resource[0];
 		this.bundles = new Resource[0];
 		this.loadCFMLClassPath = false;
 		this.reloadOnChange = false;
-		this.watchInterval = 60;
+		this.watchInterval = DEFAULT_WATCH_INTERVAL;
 		this.watchedExtensions = new String[] { "jar", "class" };
 	}
 
-	public JavaSettingsImpl(Resource[] resources, Resource[] bundles, Boolean loadCFMLClassPath, boolean reloadOnChange, int watchInterval, String[] watchedExtensions)
-			throws PageException {
+	public JavaSettingsImpl(Config config, List<POM> poms, List<BD> osgis, Resource[] resources, Resource[] bundles, Boolean loadCFMLClassPath, boolean reloadOnChange,
+			int watchInterval, String[] watchedExtensions) throws PageException {
+		this.config = config;
+		this.poms = poms;
+		this.osgis = osgis;
 		this.resources = resources;
 		this.bundles = bundles;
-		this.loadCFMLClassPath = loadCFMLClassPath;
+		this.loadCFMLClassPath = Boolean.TRUE.equals(loadCFMLClassPath);
 		this.reloadOnChange = reloadOnChange;
 		this.watchInterval = watchInterval;
 		this.watchedExtensions = watchedExtensions;
 		SystemExitScanner.validate(resources);
+
+	}
+
+	public ClassLoader getRPCClassLoader(ClassLoader parent, boolean reload) throws IOException {
+		return getClassLoader(parent, null, false);
+
+	}
+
+	public ResourceClassLoader getResourceClassLoader(Resource[] resources) throws IOException {
+		ResourceClassLoader parent = ((ConfigPro) config).getResourceClassLoader();
+		return getClassLoader(parent, resources, false);
+	}
+
+	private ResourceClassLoader getClassLoader(ClassLoader parent, Resource[] resources, boolean reload) throws IOException {
+		String key = "" + parent.getName();
+		ResourceClassLoader classLoader = reload ? null : classLoaders.get(key);
+
+		if (classLoader == null) {
+			// maven
+			if (poms != null) {
+				for (POM pom: poms) {
+					parent = new MavenClassLoader(pom, parent);
+				}
+			}
+
+			// TODO OSGi
+
+			// jars
+			Resource[] jars = getResourcesTranslated();
+			if (jars.length > 0) {
+				parent = new ResourceClassLoader(jars, parent);
+			}
+
+			// TODO does that cast always work?
+			classLoader = (ResourceClassLoader) parent;
+			classLoaders.put(key, classLoader);
+		}
+		// TODO make "getCustomResourceClassLoader" here
+		if (resources != null && resources.length > 0) {
+			return classLoader.getCustomResourceClassLoader(resources);
+		}
+		return classLoader;
 	}
 
 	@Override
@@ -157,7 +218,89 @@ public class JavaSettingsImpl implements JavaSettings {
 		return watchedExtensions;
 	}
 
-	public static JavaSettingsImpl newInstance(JavaSettings base, Struct sct) throws PageException {
+	public static JavaSettings getInstance(Config config, Struct sct) throws PageException {
+		// TODO faster hash?
+		String id = HashUtil.create64BitHashAsString(sct.toString());
+
+		JavaSettings js = ((ConfigPro) config).getJavaSettings(id);
+		if (js != null) {
+			return js;
+		}
+
+		// maven
+		List<POM> poms = null;
+		{
+			Object obj = sct.get(KeyConstants._maven, null);
+			if (obj == null) obj = sct.get(KeyConstants._mvn, null);
+			if (obj != null) {
+				Array arr = Caster.toArray(obj, null);
+				if (arr == null) {
+					Struct tmp = Caster.toStruct(obj, null);
+					if (tmp != null) {
+						arr = new ArrayImpl();
+						arr.appendEL(tmp);
+					}
+				}
+
+				if (arr != null) {
+					Iterator<Object> it = arr.valueIterator();
+					String g, a, v;
+					// TODO add method getMavenDir to config
+					Resource dir = ((ConfigPro) config).getMavenDir();
+					dir.mkdirs();
+					Log log = config.getLog("application");
+					while (it.hasNext()) {
+						Struct el = Caster.toStruct(it.next(), null);
+						if (el != null) {
+							g = Caster.toString(el.get(KeyConstants._groupId, null), null);
+							a = Caster.toString(el.get(KeyConstants._artifactId, null), null);
+							v = Caster.toString(el.get(KeyConstants._version, null), null);
+							if (!StringUtil.isEmpty(g) && !StringUtil.isEmpty(a)) {
+								if (poms == null) poms = new ArrayList<>();
+								poms.add(POM.getInstance(dir, g, a, v, log));
+							}
+						}
+					}
+				}
+			}
+		}
+
+		// osgi
+		List<BD> osgis = null;
+		{
+			Object obj = sct.get(KeyConstants._osgi, null);
+			if (obj != null) {
+				Array arr = Caster.toArray(obj, null);
+				if (arr == null) {
+					Struct tmp = Caster.toStruct(obj, null);
+					if (tmp != null) {
+						arr = new ArrayImpl();
+						arr.appendEL(tmp);
+					}
+				}
+
+				if (arr != null) {
+					Iterator<Object> it = arr.valueIterator();
+					String n, v;
+					Log log = config.getLog("application");
+					while (it.hasNext()) {
+						Struct el = Caster.toStruct(it.next(), null);
+						if (el != null) {
+							n = Caster.toString(el.get(KeyConstants._name, null), null);
+							if (StringUtil.isEmpty(n, true)) n = Caster.toString(el.get(KeyConstants._bundleName, null), null);
+							v = Caster.toString(el.get(KeyConstants._version, null), null);
+							if (StringUtil.isEmpty(v, true)) v = Caster.toString(el.get(KeyConstants._bundleVersion, null), null);
+
+							if (!StringUtil.isEmpty(n, true)) {
+								if (osgis == null) osgis = new ArrayList<>();
+								osgis.add(new BD(n.trim(), v == null ? v : v.trim()));
+							}
+						}
+					}
+				}
+			}
+		}
+
 		// load paths
 		List<Resource> paths;
 		{
@@ -183,13 +326,17 @@ public class JavaSettingsImpl implements JavaSettings {
 		// loadCFMLClassPath
 		Boolean loadCFMLClassPath = Caster.toBoolean(sct.get(KeyConstants._loadCFMLClassPath, null), null);
 		if (loadCFMLClassPath == null) loadCFMLClassPath = Caster.toBoolean(sct.get(KeyConstants._loadColdFusionClassPath, null), null);
-		if (loadCFMLClassPath == null) loadCFMLClassPath = base.loadCFMLClassPath();
+		//// if (loadCFMLClassPath == null) loadCFMLClassPath = base.loadCFMLClassPath();
 
 		// reloadOnChange
-		boolean reloadOnChange = Caster.toBooleanValue(sct.get(KeyConstants._reloadOnChange, null), base.reloadOnChange());
+		//// boolean reloadOnChange = Caster.toBooleanValue(sct.get(KeyConstants._reloadOnChange, null),
+		// base.reloadOnChange());
+		boolean reloadOnChange = Caster.toBooleanValue(sct.get(KeyConstants._reloadOnChange, null), false);
 
 		// watchInterval
-		int watchInterval = Caster.toIntValue(sct.get(KeyConstants._watchInterval, null), base.watchInterval());
+		//// int watchInterval = Caster.toIntValue(sct.get(KeyConstants._watchInterval, null),
+		// base.watchInterval());
+		int watchInterval = Caster.toIntValue(sct.get(KeyConstants._watchInterval, null), DEFAULT_WATCH_INTERVAL);
 
 		// watchExtensions
 		Object obj = sct.get(KeyConstants._watchExtensions, null);
@@ -218,8 +365,10 @@ public class JavaSettingsImpl implements JavaSettings {
 				extensions.add(ext);
 			}
 		}
-		return new JavaSettingsImpl(paths.toArray(new Resource[paths.size()]), bundles.toArray(new Resource[bundles.size()]), loadCFMLClassPath, reloadOnChange, watchInterval,
-				extensions.toArray(new String[extensions.size()]));
+		js = new JavaSettingsImpl(config, poms, osgis, paths.toArray(new Resource[paths.size()]), bundles.toArray(new Resource[bundles.size()]), loadCFMLClassPath, reloadOnChange,
+				watchInterval, extensions.toArray(new String[extensions.size()]));
+		((ConfigPro) config).setJavaSettings(id, js);
+		return js;
 	}
 
 	private static java.util.List<Resource> loadPaths(PageContext pc, Object obj) {
@@ -264,4 +413,15 @@ public class JavaSettingsImpl implements JavaSettings {
 		return js.getBundlesTranslated();
 	}
 
+	public static class BD {
+
+		public final String name;
+		public final String version;
+
+		public BD(String name, String version) {
+			this.name = name;
+			this.version = version;
+		}
+
+	}
 }

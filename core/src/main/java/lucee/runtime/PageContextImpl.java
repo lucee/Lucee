@@ -66,12 +66,10 @@ import lucee.commons.io.cache.exp.CacheException;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
-import lucee.commons.io.res.util.ResourceClassLoader;
 import lucee.commons.lang.ClassException;
 import lucee.commons.lang.ClassUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.HTMLEntities;
-import lucee.commons.lang.PhysicalClassLoader;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.mimetype.MimeType;
 import lucee.commons.lang.types.RefBoolean;
@@ -3832,21 +3830,13 @@ public final class PageContextImpl extends PageContext {
 	}
 
 	public ClassLoader getClassLoader() throws IOException {
-		return getResourceClassLoader();
+		return getClassLoader(null);
 	}
 
 	public ClassLoader getClassLoader(Resource[] reses) throws IOException {
-
-		ResourceClassLoader rcl = getResourceClassLoader();
-		return rcl.getCustomResourceClassLoader(reses);
-	}
-
-	private ResourceClassLoader getResourceClassLoader() throws IOException {
 		JavaSettingsImpl js = (JavaSettingsImpl) getApplicationContext().getJavaSettings();
-
 		if (js != null) {
-			Resource[] jars = js.getResourcesTranslated();
-			if (jars.length > 0) return config.getResourceClassLoader().getCustomResourceClassLoader(jars);
+			return js.getResourceClassLoader(reses);
 		}
 		return config.getResourceClassLoader();
 	}
@@ -3856,12 +3846,9 @@ public final class PageContextImpl extends PageContext {
 	}
 
 	public ClassLoader getRPCClassLoader(boolean reload, ClassLoader[] parents) throws IOException {
+		ClassLoader cl = ((ConfigPro) config).getRPCClassLoader(reload, parents);
 		JavaSettingsImpl js = (JavaSettingsImpl) getApplicationContext().getJavaSettings();
-		ClassLoader cl = config.getRPCClassLoader(reload, parents);
-		if (js != null) {
-			Resource[] jars = js.getResourcesTranslated();
-			if (jars.length > 0) return ((PhysicalClassLoader) cl).getCustomClassLoader(jars, reload);
-		}
+		if (js != null) cl = js.getRPCClassLoader(cl, reload);
 		return cl;
 	}
 

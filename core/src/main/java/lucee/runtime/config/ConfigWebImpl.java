@@ -15,6 +15,7 @@ import lucee.commons.io.res.ResourcesImpl.ResourceProviderFactory;
 import lucee.commons.lang.PhysicalClassLoader;
 import lucee.runtime.config.gateway.GatewayMap;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.listener.JavaSettings;
 import lucee.runtime.writer.CFMLWriter;
 
 public class ConfigWebImpl implements ConfigWebPro {
@@ -1920,5 +1921,20 @@ public class ConfigWebImpl implements ConfigWebPro {
 	@Override
 	public int getReturnFormat() {
 		return instance.getReturnFormat();
+	}
+
+	@Override
+	public JavaSettings getJavaSettings(String id) {
+		return instance.getJavaSettings(id);
+	}
+
+	@Override
+	public void setJavaSettings(String id, JavaSettings js) {
+		instance.setJavaSettings(id, js);
+	}
+
+	@Override
+	public Resource getMavenDir() {
+		return instance.getMavenDir();
 	}
 }

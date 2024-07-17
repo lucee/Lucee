@@ -610,4 +610,9 @@ class MultiContextConfigWeb extends ConfigImpl implements ServletConfig, ConfigW
 	public ServletConfig getServletConfig() {
 		return config;
 	}
+
+	@Override
+	public Resource getMavenDir() {
+		return configServer.getMavenDir();
+	}
 }

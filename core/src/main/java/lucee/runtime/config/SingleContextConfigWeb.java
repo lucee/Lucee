@@ -77,6 +77,7 @@ import lucee.runtime.extension.RHExtension;
 import lucee.runtime.extension.RHExtensionProvider;
 import lucee.runtime.gateway.GatewayEngine;
 import lucee.runtime.listener.ApplicationListener;
+import lucee.runtime.listener.JavaSettings;
 import lucee.runtime.lock.LockManager;
 import lucee.runtime.monitor.ActionMonitor;
 import lucee.runtime.monitor.ActionMonitorCollector;
@@ -2101,4 +2102,18 @@ class SingleContextConfigWeb extends ConfigBase implements ConfigWebInner {
 		return cs.getReturnFormat();
 	}
 
+	@Override
+	public JavaSettings getJavaSettings(String id) {
+		return cs.getJavaSettings(id);
+	}
+
+	@Override
+	public void setJavaSettings(String id, JavaSettings js) {
+		cs.setJavaSettings(id, js);
+	}
+
+	@Override
+	public Resource getMavenDir() {
+		return cs.getMavenDir();
+	}
 }

@@ -40,6 +40,7 @@ import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.ResourcesImpl;
 import lucee.commons.io.res.filter.ExtensionResourceFilter;
+import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ClassUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
@@ -126,6 +127,25 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 	final FunctionLib coreFLDs;
 
 	private final UpdateInfo updateInfo;
+
+	private IdentificationServer id;
+
+	private String libHash;
+
+	private ClassDefinition<AMFEngine> amfEngineCD;
+
+	private Map<String, String> amfEngineArgs;
+
+	private List<ExtensionDefintion> localExtensions;
+
+	private long localExtHash;
+	private int localExtSize = -1;
+
+	private GatewayMap gatewayEntries;
+
+	private short adminMode = ADMINMODE_SINGLE;
+
+	private Resource mvnDir;
 
 	/**
 	 * @param engine
@@ -632,23 +652,6 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 		return engine.allowRequestTimeout();
 	}
 
-	private IdentificationServer id;
-
-	private String libHash;
-
-	private ClassDefinition<AMFEngine> amfEngineCD;
-
-	private Map<String, String> amfEngineArgs;
-
-	private List<ExtensionDefintion> localExtensions;
-
-	private long localExtHash;
-	private int localExtSize = -1;
-
-	private GatewayMap gatewayEntries;
-
-	private short adminMode = ADMINMODE_SINGLE;
-
 	public String[] getAuthenticationKeys() {
 		return authKeys == null ? new String[0] : authKeys;
 	}
@@ -872,5 +875,19 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 	@Override
 	public short getAdminMode() {
 		return adminMode;
+	}
+
+	@Override
+	public Resource getMavenDir() {
+		if (mvnDir == null) {
+			synchronized (this) {
+				if (mvnDir == null) {
+					mvnDir = ResourceUtil.getCanonicalResourceEL(getConfigDir().getRealResource("../mvn/"));
+
+					mvnDir.mkdirs();
+				}
+			}
+		}
+		return mvnDir;
 	}
 }

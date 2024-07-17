@@ -36,6 +36,7 @@ import lucee.runtime.exp.TemplateException;
 import lucee.runtime.extension.ExtensionDefintion;
 import lucee.runtime.extension.RHExtension;
 import lucee.runtime.extension.RHExtensionProvider;
+import lucee.runtime.listener.JavaSettings;
 import lucee.runtime.orm.ORMConfiguration;
 import lucee.runtime.orm.ORMEngine;
 import lucee.runtime.osgi.OSGiUtil.BundleDefinition;
@@ -386,4 +387,10 @@ public interface ConfigPro extends Config {
 	public boolean getShowMetric();
 
 	public boolean getShowTest();
+
+	public JavaSettings getJavaSettings(String id);
+
+	public void setJavaSettings(String id, JavaSettings js);
+
+	public Resource getMavenDir();
 }

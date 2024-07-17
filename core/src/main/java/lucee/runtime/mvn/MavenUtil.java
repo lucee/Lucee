@@ -21,7 +21,6 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 
-import lucee.print;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.res.Resource;
@@ -330,7 +329,6 @@ public class MavenUtil {
 		Resource res = pom.getArtifact(type);
 		if (!res.isFile()) {
 			URL url = pom.getArtifact(type, repositories);
-			print.e("download:" + url);
 			if (log != null) log.info("maven", "download [" + url + "]");
 			try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
 				HttpGet request = new HttpGet(pom.getArtifact(type, repositories).toExternalForm());

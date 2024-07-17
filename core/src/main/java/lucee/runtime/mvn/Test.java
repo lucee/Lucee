@@ -42,6 +42,11 @@ public class Test {
 
 		};
 
+		arr = new GAVSO[] { new GAVSO("commons-beanutils", "commons-beanutils", "1.9.4")
+				// new GAVSO("org.apache.commons", "commons-jexl3", "3.4.0")
+
+		};
+
 		/*
 		 * new Artifact("org.hibernate.orm", "hibernate-core", "6.5.2.Final"), new Artifact("com.amazonaws",
 		 * "aws-java-sdk-s3", "1.12.756"),
@@ -113,6 +118,10 @@ public class Test {
 			print.e("--- dependencies ---");
 			// print.e(getDependenciesAsTrees(pom, true));
 			print.e(pom.getAllDependencies());
+
+			print.e("--- jars ---");
+			// print.e(getDependenciesAsTrees(pom, true));
+			print.e(pom.getJars());
 			print.e(System.currentTimeMillis() - start);
 
 			// pom.getScope();

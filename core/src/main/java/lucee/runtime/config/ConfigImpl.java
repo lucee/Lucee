@@ -115,6 +115,7 @@ import lucee.runtime.functions.other.CreateUniqueId;
 import lucee.runtime.listener.AppListenerUtil;
 import lucee.runtime.listener.ApplicationContext;
 import lucee.runtime.listener.ApplicationListener;
+import lucee.runtime.listener.JavaSettings;
 import lucee.runtime.net.mail.Server;
 import lucee.runtime.net.proxy.ProxyData;
 import lucee.runtime.net.proxy.ProxyDataImpl;
@@ -170,6 +171,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 
 	// FUTURE add to interface
 	public static final short ADMINMODE_SINGLE = 1;
+
 	public static final short ADMINMODE_MULTI = 2;
 	public static final short ADMINMODE_AUTO = 4;
 
@@ -434,6 +436,8 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	private boolean showMetric;
 
 	private boolean showTest;
+
+	private Map<String, JavaSettings> javaSettingsInstances = new ConcurrentHashMap<>();
 
 	/**
 	 * @return the allowURLRequestTimeout
@@ -3987,4 +3991,15 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	protected void setReturnFormat(int returnFormat) {
 		this.returnFormat = returnFormat;
 	}
+
+	@Override
+	public JavaSettings getJavaSettings(String id) {
+		return javaSettingsInstances.get(id);
+	}
+
+	@Override
+	public void setJavaSettings(String id, JavaSettings js) {
+		javaSettingsInstances.put(id, js);
+	}
+
 }

@@ -362,7 +362,6 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 		this.limitEvaluation = ci.limitEvaluation();
 		this.triggerComponentDataMember = config.getTriggerComponentDataMember();
 		this.restSetting = config.getRestSetting();
-		this.javaSettings = new JavaSettingsImpl();
 		this.component = cfc;
 		this.regex = ci.getRegex();
 		this.preciseMath = ci.getPreciseMath();
@@ -1804,7 +1803,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 			Object o = get(component, JAVA_SETTING, null);
 			if (o != null && Decision.isStruct(o)) {
 				try {
-					javaSettings = JavaSettingsImpl.newInstance(javaSettings, Caster.toStruct(o, null));
+					javaSettings = JavaSettingsImpl.getInstance(config, Caster.toStruct(o, null));
 				}
 				catch (PageException e) {
 					throw new PageRuntimeException(e);

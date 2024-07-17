@@ -2992,6 +2992,11 @@ public class KeyConstants {
 	public static final Key _metric = KeyImpl._const("metric");
 	public static final Key _monitoring = KeyImpl._const("monitoring");
 	public static final Key _expression = KeyImpl._const("expression");
+	public static final Key _maven = KeyImpl._const("maven");
+	public static final Key _osgi = KeyImpl._const("osgi");
+	public static final Key _mvn = KeyImpl._const("mvn");
+	public static final Key _groupId = KeyImpl._const("groupId");
+	public static final Key _artifactId = KeyImpl._const("artifactId");
 	private static Map<String, Key> _____keys;
 
 	static {
