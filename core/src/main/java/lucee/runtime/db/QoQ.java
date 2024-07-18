@@ -168,7 +168,7 @@ public final class QoQ {
 	/**
 	 * Order the rows in a query
 	 *
-	 * @param target Query to order
+	 * @param target  Query to order
 	 * @param columns Column expressions to order on
 	 * @param isUnion Is this a union
 	 * @param sql
@@ -188,16 +188,16 @@ public final class QoQ {
 	 * Process a single select statement. If this is a union, append it to the incoming "previous" Query
 	 * and return the new, combined query with all rows
 	 *
-	 * @param pc PageContext
-	 * @param select Select instance
-	 * @param source Source query to pull data from
-	 * @param previous Previous query in case of union. May be empty if this is the first select in the
-	 *            union
-	 * @param maxrows max rows from cfquery tag. Not necessarily the same as TOP
-	 * @param sql SQL object
+	 * @param pc        PageContext
+	 * @param select    Select instance
+	 * @param source    Source query to pull data from
+	 * @param previous  Previous query in case of union. May be empty if this is the first select in the
+	 *                      union
+	 * @param maxrows   max rows from cfquery tag. Not necessarily the same as TOP
+	 * @param sql       SQL object
 	 * @param hasOrders Is this overall Selects instance ordered? This affects whether we can optimize
-	 *            maxrows or not
-	 * @param isUnion Is this select part of a union of several selects
+	 *                      maxrows or not
+	 * @param isUnion   Is this select part of a union of several selects
 	 * @return
 	 * @throws PageException
 	 */
@@ -273,7 +273,7 @@ public final class QoQ {
 	 * Combine two queries while retaining all rows.
 	 *
 	 * @param previous Query from previous select to union
-	 * @param target New query to add into the previous
+	 * @param target   New query to add into the previous
 	 * @return Combined Query with potential duplicate rows
 	 * @throws PageException
 	 */
@@ -306,10 +306,10 @@ public final class QoQ {
 	/**
 	 * Combine two queries while removing duplicate rows
 	 *
-	 * @param pc PageContext
+	 * @param pc       PageContext
 	 * @param previous Query from previous select to union
-	 * @param target New query to add into the previous
-	 * @param sql SQL instance
+	 * @param target   New query to add into the previous
+	 * @param sql      SQL instance
 	 * @return Combined Query with no duplicate rows
 	 * @throws PageException
 	 */
@@ -332,7 +332,7 @@ public final class QoQ {
 		}
 
 		// Initialize our object to track the partitions
-		QueryPartitions queryPartitions = new QueryPartitions(sql, selectExpressions, new Expression[0], newTarget, new HashSet<Key>(), this);
+		QueryPartitions queryPartitions = new QueryPartitions(sql, selectExpressions, new Expression[0], newTarget, new HashSet<Key>(), this, false);
 
 		// Add in all the rows from our previous work
 		getStream(previous).forEach(throwingIntConsumer(row -> {
@@ -360,17 +360,17 @@ public final class QoQ {
 	/**
 	 * Process a single select that is not partitioned (grouped or distinct)
 	 *
-	 * @param pc PageContext
-	 * @param select Select instance
-	 * @param source Query we're select from
-	 * @param target Query object we're adding rows into. (passed back by reference)
-	 * @param maxrows Max rows from cfquery.
+	 * @param pc         PageContext
+	 * @param select     Select instance
+	 * @param source     Query we're select from
+	 * @param target     Query object we're adding rows into. (passed back by reference)
+	 * @param maxrows    Max rows from cfquery.
 	 * @param sql
-	 * @param hasOrders Is this overall query ordered?
-	 * @param isUnion Is this part of a union?
+	 * @param hasOrders  Is this overall query ordered?
+	 * @param isUnion    Is this part of a union?
 	 * @param trgColumns Lookup array of column
-	 * @param trgValues Lookup array of expressions
-	 * @param headers Select lists
+	 * @param trgValues  Lookup array of expressions
+	 * @param headers    Select lists
 	 * @throws PageException
 	 */
 	private void executeSingleNonPartitioned(PageContext pc, Select select, QueryImpl source, QueryImpl target, int maxrows, SQL sql, boolean hasOrders, boolean isUnion,
@@ -450,17 +450,17 @@ public final class QoQ {
 	/**
 	 * Process a single select that is partitioned (grouped)
 	 *
-	 * @param pc PageContext
-	 * @param select Select instance
-	 * @param source Query we're selecting from
-	 * @param target Query object we're adding rows into. (passed back by reference)
+	 * @param pc         PageContext
+	 * @param select     Select instance
+	 * @param source     Query we're selecting from
+	 * @param target     Query object we're adding rows into. (passed back by reference)
 	 * @param maxrows
 	 * @param sql
-	 * @param hasOrders Is this overall query ordered?
-	 * @param isUnion Is this part of a union?
+	 * @param hasOrders  Is this overall query ordered?
+	 * @param isUnion    Is this part of a union?
 	 * @param trgColumns Lookup array of column
-	 * @param trgValues Lookup array of expressions
-	 * @param headers select columns
+	 * @param trgValues  Lookup array of expressions
+	 * @param headers    select columns
 	 * @throws PageException
 	 */
 	private void executeSinglePartitioned(PageContext pc, Select select, QueryImpl source, QueryImpl target, int maxrows, SQL sql, boolean hasOrders, boolean isUnion,
@@ -482,7 +482,7 @@ public final class QoQ {
 
 		Operation where = select.getWhere();
 		// Initialize object to track our partitioned data
-		QueryPartitions queryPartitions = new QueryPartitions(sql, select.getSelects(), select.getGroupbys(), target, select.getAdditionalColumns(), this);
+		QueryPartitions queryPartitions = new QueryPartitions(sql, select.getSelects(), select.getGroupbys(), target, select.getAdditionalColumns(), this, hasAggregateSelect);
 
 		IntStream stream = getStream(source);
 		if (where != null) {
@@ -600,7 +600,7 @@ public final class QoQ {
 	}
 
 	/**
-	 * @param pc Page Context of the Request
+	 * @param pc    Page Context of the Request
 	 * @param table ZQLQuery
 	 * @return Query
 	 * @throws PageException
@@ -614,8 +614,8 @@ public final class QoQ {
 	 *
 	 * @param sql
 	 * @param source Query Result
-	 * @param exp expression to execute
-	 * @param row current row of resultset
+	 * @param exp    expression to execute
+	 * @param row    current row of resultset
 	 * @return result
 	 * @throws PageException
 	 */
@@ -1091,9 +1091,9 @@ public final class QoQ {
 	 * execute an and operation
 	 *
 	 * @param sql
-	 * @param source QueryResult to execute on it
+	 * @param source     QueryResult to execute on it
 	 * @param expression
-	 * @param row row of resultset to execute
+	 * @param row        row of resultset to execute
 	 * @return result
 	 * @throws PageException
 	 */
@@ -1121,9 +1121,9 @@ public final class QoQ {
 	 * execute an equal operation
 	 *
 	 * @param sql
-	 * @param source QueryResult to execute on it
+	 * @param source     QueryResult to execute on it
 	 * @param expression
-	 * @param row row of resultset to execute
+	 * @param row        row of resultset to execute
 	 * @return result
 	 * @throws PageException
 	 */
@@ -1136,9 +1136,9 @@ public final class QoQ {
 	 * execute a not equal operation
 	 *
 	 * @param sql
-	 * @param source QueryResult to execute on it
+	 * @param source     QueryResult to execute on it
 	 * @param expression
-	 * @param row row of resultset to execute
+	 * @param row        row of resultset to execute
 	 * @return result
 	 * @throws PageException
 	 */
@@ -1151,9 +1151,9 @@ public final class QoQ {
 	 * execute a less than operation
 	 *
 	 * @param sql
-	 * @param source QueryResult to execute on it
+	 * @param source     QueryResult to execute on it
 	 * @param expression
-	 * @param row row of resultset to execute
+	 * @param row        row of resultset to execute
 	 * @return result
 	 * @throws PageException
 	 */
@@ -1166,9 +1166,9 @@ public final class QoQ {
 	 * execute a less than or equal operation
 	 *
 	 * @param sql
-	 * @param source QueryResult to execute on it
+	 * @param source     QueryResult to execute on it
 	 * @param expression
-	 * @param row row of resultset to execute
+	 * @param row        row of resultset to execute
 	 * @return result
 	 * @throws PageException
 	 */
@@ -1181,9 +1181,9 @@ public final class QoQ {
 	 * execute a greater than operation
 	 *
 	 * @param sql
-	 * @param source QueryResult to execute on it
+	 * @param source     QueryResult to execute on it
 	 * @param expression
-	 * @param row row of resultset to execute
+	 * @param row        row of resultset to execute
 	 * @return result
 	 * @throws PageException
 	 */
@@ -1196,9 +1196,9 @@ public final class QoQ {
 	 * execute a greater than or equal operation
 	 *
 	 * @param sql
-	 * @param source QueryResult to execute on it
+	 * @param source     QueryResult to execute on it
 	 * @param expression
-	 * @param row row of resultset to execute
+	 * @param row        row of resultset to execute
 	 * @return result
 	 * @throws PageException
 	 */
@@ -1213,7 +1213,7 @@ public final class QoQ {
 	 * @param sql
 	 * @param source QueryResult to execute on it
 	 * @param op
-	 * @param row row of resultset to execute
+	 * @param row    row of resultset to execute
 	 * @return result
 	 * @throws PageException
 	 */
@@ -1244,9 +1244,9 @@ public final class QoQ {
 	 * execute a greater than or equal operation
 	 *
 	 * @param sql
-	 * @param source QueryResult to execute on it
+	 * @param source     QueryResult to execute on it
 	 * @param expression
-	 * @param row row of resultset to execute
+	 * @param row        row of resultset to execute
 	 * @return result
 	 * @throws PageException
 	 */
@@ -1291,9 +1291,9 @@ public final class QoQ {
 	 * execute a minus operation
 	 *
 	 * @param sql
-	 * @param source QueryResult to execute on it
+	 * @param source     QueryResult to execute on it
 	 * @param expression
-	 * @param row row of resultset to execute
+	 * @param row        row of resultset to execute
 	 * @return result
 	 * @throws PageException
 	 */
@@ -1314,9 +1314,9 @@ public final class QoQ {
 	 * execute a divide operation
 	 *
 	 * @param sql
-	 * @param source QueryResult to execute on it
+	 * @param source     QueryResult to execute on it
 	 * @param expression
-	 * @param row row of resultset to execute
+	 * @param row        row of resultset to execute
 	 * @return result
 	 * @throws PageException
 	 */
@@ -1342,9 +1342,9 @@ public final class QoQ {
 	 * execute a multiply operation
 	 *
 	 * @param sql
-	 * @param source QueryResult to execute on it
+	 * @param source     QueryResult to execute on it
 	 * @param expression
-	 * @param row row of resultset to execute
+	 * @param row        row of resultset to execute
 	 * @return result
 	 * @throws PageException
 	 */
@@ -1365,9 +1365,9 @@ public final class QoQ {
 	 * execute a bitwise operation
 	 *
 	 * @param sql
-	 * @param source QueryResult to execute on it
+	 * @param source     QueryResult to execute on it
 	 * @param expression
-	 * @param row row of resultset to execute
+	 * @param row        row of resultset to execute
 	 * @return result
 	 * @throws PageException
 	 */
@@ -1388,9 +1388,9 @@ public final class QoQ {
 	 * execute a plus operation
 	 *
 	 * @param sql
-	 * @param source QueryResult to execute on it
+	 * @param source     QueryResult to execute on it
 	 * @param expression
-	 * @param row row of resultset to execute
+	 * @param row        row of resultset to execute
 	 * @return result
 	 * @throws PageException
 	 */
@@ -1430,9 +1430,9 @@ public final class QoQ {
 	 * execute a between operation
 	 *
 	 * @param sql
-	 * @param source QueryResult to execute on it
+	 * @param source     QueryResult to execute on it
 	 * @param expression
-	 * @param row row of resultset to execute
+	 * @param row        row of resultset to execute
 	 * @return result
 	 * @throws PageException
 	 */
