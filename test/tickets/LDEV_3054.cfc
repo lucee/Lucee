@@ -10,6 +10,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 				local.result = _InternalRequest(
 					template : "#uri#\test.cfm"
 				);
+				expect(trim(result.filecontent)).toBe("");
 				expect(find("true,The key [T]",trim(result.filecontent))>0 ).toBeTrue();
 			});
 		});
