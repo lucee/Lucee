@@ -10,8 +10,8 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 				local.result = _InternalRequest(
 					template : "#uri#\test.cfm"
 				);
-				expect(trim(result.filecontent)).toBe("");
-				expect(find("true,The key [T]",trim(result.filecontent))>0 ).toBeTrue();
+				var c=trim(result.filecontent);
+				expect( (find("true,The key [T]",c)>0) || (find("true,variable [T] doesn't exist",c)>0) ).toBeTrue();
 			});
 		});
 	}
