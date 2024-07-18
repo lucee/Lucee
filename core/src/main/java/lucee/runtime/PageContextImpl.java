@@ -600,7 +600,7 @@ public final class PageContextImpl extends PageContext {
 			execLog = null;
 		}
 
-		if (config.debug()) {
+		if (PageContextUtil.debug(this)) {
 			boolean skipLogThread = isChild;
 			if (skipLogThread && hasDebugOptions(ConfigPro.DEBUG_THREAD)) skipLogThread = false;
 			if (!skipLogThread && !gatewayContext) config.getDebuggerPool().store(this, debugger);
@@ -2765,7 +2765,7 @@ public final class PageContextImpl extends PageContext {
 				setCFOutputOnly((short) 0);
 			}
 			if (!gatewayContext) {
-				if (getConfig().debug()) {
+				if (show()) {
 					try {
 						listener.onDebug(this);
 					}
@@ -2813,6 +2813,10 @@ public final class PageContextImpl extends PageContext {
 
 	public boolean hasDebugOptions(int option) {
 		return getApplicationContext().hasDebugOptions(option);
+	}
+
+	public int getDebugOptions() {
+		return getApplicationContext().getDebugOptions();
 	}
 
 	private void initallog() {

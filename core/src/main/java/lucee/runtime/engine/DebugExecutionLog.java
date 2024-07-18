@@ -22,6 +22,7 @@ import java.util.Map;
 
 import lucee.runtime.PageContext;
 import lucee.runtime.debug.DebugEntry;
+import lucee.runtime.util.PageContextUtil;
 
 public class DebugExecutionLog extends ExecutionLogSupport {
 
@@ -35,7 +36,7 @@ public class DebugExecutionLog extends ExecutionLogSupport {
 	@Override
 	protected void _log(int startPos, int endPos, long startTime, long endTime) {
 
-		if (!pc.getConfig().debug()) return;
+		if (!PageContextUtil.debug(pc)) return;
 
 		long diff = endTime - startTime;
 		if (unit == UNIT_MICRO) diff /= 1000;

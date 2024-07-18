@@ -1241,6 +1241,11 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 	}
 
 	@Override
+	public int getDebugOptions() {
+		return debugging;
+	}
+
+	@Override
 	public void setDebugOptions(int option) {
 		if (!hasDebugOptions(option)) debugging += option;
 	}

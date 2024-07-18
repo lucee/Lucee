@@ -58,10 +58,12 @@ public class IKHandlerDatasource implements IKHandler {
 			if (dc != null) ((DatasourceConnectionPro) dc).release();
 		}
 
-		if (query != null && config.debug()) {
+		if (query != null) {
 			boolean debugUsage = DebuggerUtil.debugQueryUsage(pc, query);
-			if (debugUsage) pc.getDebugger().addQuery(debugUsage ? query : null, name, "", query.getSql(), query.getRecordcount(),
-					((PageContextImpl) pc).getCurrentPageSource(null), query.getExecutionTime());
+			if (debugUsage) {
+				pc.getDebugger().addQuery(debugUsage ? query : null, name, "", query.getSql(), query.getRecordcount(), ((PageContextImpl) pc).getCurrentPageSource(null),
+						query.getExecutionTime());
+			}
 		}
 		boolean _isNew = query.getRecordcount() == 0;
 

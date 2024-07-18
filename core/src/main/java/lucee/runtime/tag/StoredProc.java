@@ -76,6 +76,7 @@ import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.dt.DateTime;
 import lucee.runtime.type.util.KeyConstants;
+import lucee.runtime.util.PageContextUtil;
 
 public class StoredProc extends BodyTagTryCatchFinallySupport {
 	// private static final int PROCEDURE_CAT=1;
@@ -699,7 +700,7 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 			res.set(KeyConstants._executionTime, Caster.toDouble(exe = (System.nanoTime() - startNS)));
 			res.set(KeyConstants._cached, Caster.toBoolean(isFromCache));
 
-			if (pageContext.getConfig().debug() && debug) {
+			if (PageContextUtil.debug(pageContext) && debug) {
 				boolean logdb = ((PageContextImpl) pageContext).hasDebugOptions(ConfigPro.DEBUG_DATABASE);
 				if (logdb) pageContext.getDebugger().addQuery(null, dsn, procedure, _sql, count, pageContext.getCurrentPageSource(), (int) exe);
 			}

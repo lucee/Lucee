@@ -75,6 +75,7 @@ import lucee.runtime.type.scope.session.SessionMemory;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.UDFUtil;
+import lucee.runtime.util.PageContextUtil;
 
 public class ModernAppListener extends AppListenerSupport {
 
@@ -266,7 +267,7 @@ public class ModernAppListener extends AppListenerSupport {
 			else return pe;
 		}
 		else {
-			if (!pci.isGatewayContext() && pci.getConfig().debug()) {
+			if (!pci.isGatewayContext() && PageContextUtil.show(pci)) {
 				((DebuggerImpl) pci.getDebugger()).setAbort(ExceptionUtil.getThrowingPosition(pci, _pe));
 			}
 			goon.setValue(false);
@@ -394,7 +395,7 @@ public class ModernAppListener extends AppListenerSupport {
 
 	@Override
 	public void onDebug(PageContext pc) throws PageException {
-		if (((PageContextImpl) pc).isGatewayContext() || !pc.getConfig().debug()) return;
+		if (((PageContextImpl) pc).isGatewayContext() || !PageContextUtil.show(pc)) return;
 		Component app = getComponent(pc);
 		if (app != null && app.contains(pc, KeyConstants._onDebug)) {
 			call(app, pc, KeyConstants._onDebug, new Object[] { pc.getDebugger().getDebuggingData(pc) }, true);

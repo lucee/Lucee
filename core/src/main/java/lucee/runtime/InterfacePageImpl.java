@@ -26,6 +26,7 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.net.http.ReqRspUtil;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.util.KeyConstants;
+import lucee.runtime.util.PageContextUtil;
 
 /**
  * A Page that can produce Components
@@ -60,7 +61,7 @@ public abstract class InterfacePageImpl extends InterfacePage implements PagePro
 			}
 
 			String qs = ReqRspUtil.getQueryString(pc.getHttpServletRequest());
-			if (pc.getBasePageSource() == this.getPageSource() && pc.getConfig().debug()) pc.getDebugger().setOutput(false);
+			if (pc.getBasePageSource() == this.getPageSource() && PageContextUtil.debug(pc)) pc.getDebugger().setOutput(false);
 			boolean isPost = pc.getHttpServletRequest().getMethod().equalsIgnoreCase("POST");
 
 			// POST

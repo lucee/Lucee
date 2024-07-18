@@ -41,6 +41,7 @@ import lucee.runtime.type.Struct;
 import lucee.runtime.type.UDF;
 import lucee.runtime.type.dt.DateTime;
 import lucee.runtime.type.it.KeyAsStringIterator;
+import lucee.runtime.util.PageContextUtil;
 
 public abstract class StructSupport implements Map, Struct {
 
@@ -64,7 +65,7 @@ public abstract class StructSupport implements Map, Struct {
 		config = ThreadLocalPageContext.getConfig(config);
 		String msg = ExceptionUtil.similarKeyMessage(sct, key.getString(), "key", "keys", in, true);
 		String detail = ExceptionUtil.similarKeyMessage(sct, key.getString(), "keys", in, true);
-		if (config != null && config.debug()) return new ExpressionException(msg, detail);
+		if (config != null && PageContextUtil.debug(ThreadLocalPageContext.get(config))) return new ExpressionException(msg, detail);
 
 		return new ExpressionException("key [" + key.getString() + "] doesn't exist" + appendix);
 	}

@@ -65,11 +65,9 @@ public class DebuggerUtil {
 	}
 
 	public static boolean debugQueryUsage(PageContext pageContext, Query query) {
-		if (pageContext.getConfig().debug() && query != null) {
-			if (((PageContextImpl) pageContext).hasDebugOptions(ConfigPro.DEBUG_QUERY_USAGE)) {
-				query.enableShowQueryUsage();
-				return true;
-			}
+		if (((PageContextImpl) pageContext).hasDebugOptions(ConfigPro.DEBUG_QUERY_USAGE)) {
+			query.enableShowQueryUsage();
+			return true;
 		}
 		return false;
 	}

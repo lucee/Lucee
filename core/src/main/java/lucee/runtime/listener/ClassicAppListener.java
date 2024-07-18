@@ -32,6 +32,7 @@ import lucee.runtime.op.Caster;
 import lucee.runtime.type.UDF;
 import lucee.runtime.type.scope.Application;
 import lucee.runtime.type.scope.Session;
+import lucee.runtime.util.PageContextUtil;
 
 public final class ClassicAppListener extends AppListenerSupport {
 
@@ -121,7 +122,7 @@ public final class ClassicAppListener extends AppListenerSupport {
 
 	public static void _onDebug(PageContext pc) throws PageException {
 		try {
-			if (pc.getConfig().debug()) pc.getDebugger().writeOut(pc);
+			if (PageContextUtil.show(pc)) pc.getDebugger().writeOut(pc);
 		}
 		catch (IOException e) {
 			throw Caster.toPageException(e);
