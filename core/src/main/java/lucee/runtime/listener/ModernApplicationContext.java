@@ -269,6 +269,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	private boolean initRestSetting;
 	private RestSettings restSetting;
 	private boolean initJavaSettings;
+	private boolean initJavaSettingsBefore;
 	private JavaSettings javaSettings;
 	private Object ormDatasource;
 	private Locale locale;
@@ -1795,12 +1796,17 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 
 	@Override
 	public JavaSettings getJavaSettings() {
-		initJava();
-		return javaSettings;
+		return initJava();
 	}
 
-	private void initJava() {
+	private JavaSettings initJava() {
 		if (!initJavaSettings) {
+			// PATCH to avoid cycle
+			if (initJavaSettingsBefore) {
+				return new JavaSettingsImpl();
+			}
+			initJavaSettingsBefore = true;
+
 			Object o = get(component, JAVA_SETTING, null);
 			if (o != null && Decision.isStruct(o)) {
 				try {
@@ -1812,7 +1818,10 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 
 			}
 			initJavaSettings = true;
+			initJavaSettingsBefore = false;
 		}
+		return javaSettings;
+
 	}
 
 	@Override

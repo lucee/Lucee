@@ -31,6 +31,7 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.listener.RequestListener;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.util.ListUtil;
+import lucee.runtime.util.PageContextUtil;
 
 public class RestRequestListener implements RequestListener {
 
@@ -74,7 +75,7 @@ public class RestRequestListener implements RequestListener {
 			else addDetail = " in the matching mapping [" + mapping.getVirtual() + "] at [" + mapping.getPhysical().getAbsolutePath() + "], available targets are ["
 					+ ListUtil.listToListEL(sources, ", ") + "]";
 
-			if (pc.getConfig().debug()) {
+			if (PageContextUtil.debug(pc)) {
 				RestUtil.setStatus(pc, 404, HTMLEntities.escapeHTML(msg + addDetail));
 
 			}

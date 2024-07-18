@@ -37,6 +37,7 @@ import lucee.runtime.type.Collection;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.util.CollectionUtil;
 import lucee.runtime.type.util.KeyConstants;
+import lucee.runtime.util.PageContextUtil;
 
 public class ClosureScope extends ScopeSupport implements Variables, Externalizable {
 
@@ -55,7 +56,7 @@ public class ClosureScope extends ScopeSupport implements Variables, Externaliza
 		this.arg = arg;
 		this.local = local;
 		this.var = var;
-		this.debug = pc.getConfig().debug();
+		this.debug = PageContextUtil.debug(pc);
 	}
 
 	/*

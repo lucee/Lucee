@@ -43,6 +43,7 @@ import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.PageSource;
 import lucee.runtime.config.Config;
+import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigServerImpl;
 import lucee.runtime.config.ConfigWeb;
@@ -276,6 +277,14 @@ public class PageContextUtil {
 		if (pc instanceof PageContextImpl) return ((PageContextImpl) pc).hasDebugOptions(option);
 		Config c = ThreadLocalPageContext.getConfig();
 		if (c instanceof ConfigPro) return ((ConfigPro) c).hasDebugOptions(option);
+		return false;
+	}
+
+	public static boolean debug(PageContext pc) {
+		if (pc != null) {
+			PageContextImpl pci = (PageContextImpl) pc;
+			return pci.show() || pci.hasDebugOptions(ConfigImpl.DEBUG_ALL);
+		}
 		return false;
 	}
 }

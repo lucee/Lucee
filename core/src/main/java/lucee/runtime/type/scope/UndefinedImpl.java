@@ -53,6 +53,7 @@ import lucee.runtime.type.dt.DateTime;
 import lucee.runtime.type.util.CollectionUtil;
 import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.StructSupport;
+import lucee.runtime.util.PageContextUtil;
 import lucee.runtime.util.QueryStack;
 import lucee.runtime.util.QueryStackImpl;
 
@@ -242,7 +243,7 @@ public final class UndefinedImpl extends StructSupport implements Undefined, Obj
 			}
 		}
 
-		if (pc.getConfig().debug()) {
+		if (PageContextUtil.debug(pc)) {
 			String msg = ExceptionUtil.similarKeyMessage(this, key.getString(), "key", "keys", null, false);
 			String detail = ExceptionUtil.similarKeyMessage(this, key.getString(), "keys", null, false);
 			throw new ExpressionException(msg, detail);

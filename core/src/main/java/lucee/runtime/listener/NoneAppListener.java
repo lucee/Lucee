@@ -27,6 +27,7 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.scope.Application;
 import lucee.runtime.type.scope.Session;
+import lucee.runtime.util.PageContextUtil;
 
 public final class NoneAppListener extends AppListenerSupport {
 
@@ -76,7 +77,7 @@ public final class NoneAppListener extends AppListenerSupport {
 	@Override
 	public void onDebug(PageContext pc) throws PageException {
 		try {
-			if (pc.getConfig().debug()) pc.getDebugger().writeOut(pc);
+			if (PageContextUtil.debug(pc)) pc.getDebugger().writeOut(pc);
 		}
 		catch (IOException e) {
 			throw Caster.toPageException(e);
