@@ -39,7 +39,7 @@ import lucee.runtime.op.Caster;
  */
 public class CFMLWriterImpl extends CFMLWriter {
 
-	private static final int BUFFER_SIZE = 100000;
+	private static final int BUFFER_SIZE = 10000;
 	// private static final String VERSIONj = Info.getVersionAsString();
 	private OutputStream out;
 	private HttpServletResponse response;
