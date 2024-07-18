@@ -20,7 +20,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 					template : "#uri#\test.cfm",
 					forms : { Scene = 2 }
 				);
-				expect(trim(result.filecontent)).toBe("The key [TIMEZONE] does not exist");
+				expect(trim(result.filecontent)).toBe("key [TIMEZONE] doesn't exist");
 			});
 
 			it( title = "Checking datasource configured Empty timezone", body = function( currentSpec ){
