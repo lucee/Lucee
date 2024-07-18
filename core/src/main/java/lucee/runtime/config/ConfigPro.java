@@ -65,6 +65,8 @@ public interface ConfigPro extends Config {
 	public static final int DEBUG_DUMP = 64;
 	public static final int DEBUG_TEMPLATE = 128;
 	public static final int DEBUG_THREAD = 256;
+	public static final int DEBUG_ALL = DEBUG_DATABASE + DEBUG_EXCEPTION + DEBUG_TRACING + DEBUG_TIMER + DEBUG_IMPLICIT_ACCESS + DEBUG_QUERY_USAGE + DEBUG_DUMP + DEBUG_TEMPLATE
+			+ DEBUG_THREAD;
 
 	public static final int MODE_CUSTOM = 1;
 	public static final int MODE_STRICT = 2;
