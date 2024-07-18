@@ -301,7 +301,6 @@ public final class HSQLDBHandler {
 	 * @throws DatabaseException
 	 */
 	private static void removeTable(Connection conn, String name) throws SQLException {
-		name = name.replace('.', '_');
 		Statement stat = conn.createStatement();
 		stat.execute("DROP TABLE " + name);
 		DBUtil.commitEL(conn);
@@ -362,11 +361,8 @@ public final class HSQLDBHandler {
 	 * @throws DatabaseException
 	 */
 	private static Struct getUsedColumnsForQuery(Connection conn, SQL sql) {
-
-		// TODO this could be potentially cached against the sql text
-
-		Stopwatch stopwatch = new Stopwatch(Stopwatch.UNIT_MILLI);
-		stopwatch.start();
+		// Stopwatch stopwatch = new Stopwatch(Stopwatch.UNIT_MILLI);
+		// stopwatch.start();
 		ResultSet rs = null;
 		ResultSetMetaData rsmd = null;
 		String view = "V_QOQ_TEMP";
@@ -467,7 +463,6 @@ public final class HSQLDBHandler {
 			}
 			catch (Exception ex) {
 			}
-
 		}
 		catch (Exception e) {
 			qoqException = e;
@@ -476,7 +471,6 @@ public final class HSQLDBHandler {
 		// If our first pass at the QoQ failed, lets look at the exception to see what we want to do with
 		// it.
 		if (qoqException != null) {
-
 			// Track the root cause
 			Exception rootCause = qoqException;
 
@@ -557,31 +551,30 @@ public final class HSQLDBHandler {
 		ConfigPro config = (ConfigPro) pc.getConfig();
 		DatasourceConnection dc = null;
 		Connection conn = null;
-		try {
-			DatasourceConnPool pool = config.getDatasourceConnectionPool(config.getDataSource(QOQ_DATASOURCE_NAME), "sa", "");
-			dc = pool.borrowObject();
-			conn = dc.getConnection();
-
-			// executeStatement(conn, "CONNECT"); // create a new HSQLDB session for temp tables
-			DBUtil.setAutoCommitEL(conn, false);
-
-			// sql.setSQLString(HSQLUtil.sqlToZQL(sql.getSQLString(),false));
+		// TODO this is currently single threaded
+		synchronized (lock) {
 			try {
-				// we now only lock the data loading, not the execution of the query, but should this be done via
-				// cflock by the developer?
-				synchronized (lock) {
+				DatasourceConnPool pool = config.getDatasourceConnectionPool(config.getDataSource(QOQ_DATASOURCE_NAME), "sa", "");
+				dc = pool.borrowObject();
+				conn = dc.getConnection();
+				// executeStatement(conn, "CONNECT"); // TODO create a new HSQLDB session for temp tables
+				DBUtil.setAutoCommitEL(conn, false);
+
+				try {
 					Iterator<String> it = tables.iterator();
-					String cfQueryName = null; // name of the source query variable
-					String dbTableName = null; // name of the table in the database
+					String cfQueryName = null; // name of the source cfml query variable
+					String dbTableName = null; // name of the target table in the database
 					String modSql = null;
 					// int len=tables.size();
 					while (it.hasNext()) {
 						cfQueryName = it.next().toString();// tables.get(i).toString();
 						dbTableName = cfQueryName.replace('.', '_');
 
-						// this could match the wrong strings??
-						modSql = StringUtil.replace(sql.getSQLString(), cfQueryName, dbTableName, false);
-						sql.setSQLString(modSql);
+						if (!cfQueryName.toLowerCase().equals(dbTableName.toLowerCase())){
+							// TODO this could match the wrong strings??
+							modSql = StringUtil.replace(sql.getSQLString(), cfQueryName, dbTableName, false);
+							sql.setSQLString(modSql);
+						}
 						if (sql.getItems() != null && sql.getItems().length > 0) sql = new SQLImpl(sql.toString());
 						// temp tables still get created will all the source columns,
 						// only populateTables is driven by the required columns calculated from the view
@@ -630,32 +623,27 @@ public final class HSQLDBHandler {
 					}
 
 				}
+				catch (SQLException e) {
+					throw (IllegalQoQException) (new IllegalQoQException("QoQ HSQLDB: error executing sql statement on query.", e.getMessage(), sql, null).initCause(e));
+				}
 			}
-			catch (SQLException e) {
-				throw (IllegalQoQException) (new IllegalQoQException("QoQ HSQLDB: error executing sql statement on query.", e.getMessage(), sql, null).initCause(e));
-				// DatabaseException de = new DatabaseException("QoQ HSQLDB: error executing sql statement on query
-				// [" + e.getMessage() + "]", null , sql, null);
-				// throw de;
+			catch (Exception ee) {
+				throw (IllegalQoQException) (new IllegalQoQException("QoQ HSQLDB: error executing sql statement on query.", ee.getMessage(), sql, null).initCause(ee));
 			}
-		}
-		catch (Exception ee) {
-			throw (IllegalQoQException) (new IllegalQoQException("QoQ HSQLDB: error executing sql statement on query.", ee.getMessage(), sql, null).initCause(ee));
-			// DatabaseException de = new DatabaseException("QoQ HSQLDB: error executing sql statement on query
-			// [" + ee.getMessage() + "]", null , sql, null);
-			// throw ee;
-		}
-		finally {
-			if (conn != null) {
-				removeAll(conn, qoqTables);
-				// executeStatement(conn, "DISCONNECT"); // close HSQLDB session with temp tables
-				DBUtil.setAutoCommitEL(conn, true);
-			}
-			if (dc != null) ((DatasourceConnectionPro) dc).release();
+			finally {
+				if (conn != null) {
+					removeAll(conn, qoqTables);
+					//executeStatement(conn, "DISCONNECT"); // close HSQLDB session with temp tables
+					DBUtil.setAutoCommitEL(conn, true);
+				}
+				if (dc != null) ((DatasourceConnectionPro) dc).release();
 
-			// manager.releaseConnection(dc);
+				// manager.releaseConnection(dc);
+			}
+			// TODO we are swallowing errors, shouldn't be passing a null value back
+			if (nqr != null) nqr.setExecutionTime(stopwatch.time());
+			return nqr;
 		}
-		// TOOD we are swalloing errors, shouldn't be passing a null value bacl
-		if (nqr != null) nqr.setExecutionTime(stopwatch.time());
-		return nqr;
+		
 	}
 }
