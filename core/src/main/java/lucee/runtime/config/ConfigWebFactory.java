@@ -4331,7 +4331,14 @@ public final class ConfigWebFactory extends ConfigFactory {
 				try {
 					child = Caster.toStruct(it.next());
 					if (child == null) continue;
+					// component
+					String cfc = Caster.toString(child.get(KeyConstants._component), null);
+					if (!StringUtil.isEmpty(cfc, true)) {
+						// TODO start hook
+						continue;
+					}
 
+					// class
 					ClassDefinition cd = getClassDefinition(child, "", config.getIdentification());
 					ConfigBase.Startup existing = config.getStartups().get(cd.getClassName());
 

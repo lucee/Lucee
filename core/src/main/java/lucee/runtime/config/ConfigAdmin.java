@@ -1624,6 +1624,24 @@ public final class ConfigAdmin {
 		}
 	}
 
+	private void _removeStartupHook(String component) {
+
+		Array children = ConfigWebUtil.getAsArray("startupHooks", root);
+		Key[] keys = children.keys();
+		// Remove
+		for (int i = keys.length - 1; i >= 0; i--) {
+			Key key = keys[i];
+			Struct tmp = Caster.toStruct(children.get(key, null), null);
+			if (tmp == null) continue;
+
+			String n = Caster.toString(tmp.get(KeyConstants._component, null), null);
+			if (n != null && n.equalsIgnoreCase(component)) {
+				children.removeEL(key);
+				break;
+			}
+		}
+	}
+
 	private void unloadStartupIfNecessary(ConfigPro config, ClassDefinition<?> cd, boolean force) {
 		ConfigBase.Startup startup = config.getStartups().get(cd.getClassName());
 		if (startup == null) return;
@@ -1734,6 +1752,34 @@ public final class ConfigAdmin {
 				}
 			}
 		}
+	}
+
+	private void _updateStartupHook(String component) {
+		// unloadStartupIfNecessary(config, cd, false);
+
+		Array children = ConfigWebUtil.getAsArray("startupHooks", root);
+
+		// Update
+		Struct child = null;
+		for (int i = 1; i <= children.size(); i++) {
+			Struct tmp = Caster.toStruct(children.get(i, null), null);
+			if (tmp == null) continue;
+
+			String n = ConfigWebUtil.getAsString("component", tmp, null);
+			if (n.equalsIgnoreCase(component)) {
+				child = tmp;
+				break;
+			}
+		}
+
+		// Insert
+		if (child == null) {
+			child = new StructImpl(Struct.TYPE_LINKED);
+			children.appendEL(child);
+		}
+
+		// make sure the class exists
+		child.setEL(KeyConstants._component, component);
 	}
 
 	public void updateGatewayEntry(String id, ClassDefinition cd, String componentPath, String listenerCfcPath, int startupMode, Struct custom, boolean readOnly)
@@ -4915,11 +4961,20 @@ public final class ConfigAdmin {
 				while (itl.hasNext()) {
 					map = itl.next();
 					ClassDefinition cd = RHExtension.toClassDefinition(config, map, null);
+					String cfc = map.get("component");
+
+					// class
 					if (cd != null && cd.isBundle()) {
 						_updateStartupHook(cd);
 						reloadNecessary = true;
+						logger.info("extension", "Update Startup Hook [" + cd + "] from extension [" + rhext.getName() + ":" + rhext.getVersion() + "]");
 					}
-					logger.info("extension", "Update Startup Hook [" + cd + "] from extension [" + rhext.getName() + ":" + rhext.getVersion() + "]");
+					// component
+					else if (!StringUtil.isEmpty(cfc, true)) {
+						_updateStartupHook(cfc);
+						reloadNecessary = true;
+						logger.info("extension", "Update Startup Hook [" + cfc + "] from extension [" + rhext.getName() + ":" + rhext.getVersion() + "]");
+					}
 				}
 			}
 
@@ -5239,8 +5294,13 @@ public final class ConfigAdmin {
 				while (itl.hasNext()) {
 					map = itl.next();
 					ClassDefinition cd = RHExtension.toClassDefinition(config, map, null);
+					String cfc = map.get("component");
+
 					if (cd != null && cd.isBundle()) {
 						_removeStartupHook(cd);
+					}
+					else if (!StringUtil.isEmpty(cfc, true)) {
+						_removeStartupHook(cfc);
 					}
 					logger.info("extension", "Remove Startup Hook [" + cd + "] from extension [" + rhe.getName() + ":" + rhe.getVersion() + "]");
 				}
