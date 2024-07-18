@@ -1813,7 +1813,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 		if (!initJavaSettings) {
 			// PATCH to avoid cycle
 			if (initJavaSettingsBefore) {
-				return new JavaSettingsImpl();
+				return getDefaultJavaSettings(config);
 			}
 			initJavaSettingsBefore = true;
 
