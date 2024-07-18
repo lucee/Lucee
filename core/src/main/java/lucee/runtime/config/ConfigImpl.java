@@ -3936,7 +3936,10 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 
 	@Override
 	public TimeSpan getCachedAfterTimeRange() {
-		if (this.cachedAfterTimeRange != null && this.cachedAfterTimeRange.getMillis() <= 0) this.cachedAfterTimeRange = null;
+		TimeSpan tmp = this.cachedAfterTimeRange;
+		if (tmp != null && tmp.getMillis() <= 0) {
+			this.cachedAfterTimeRange = null;
+		}
 		return this.cachedAfterTimeRange;
 	}
 

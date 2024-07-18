@@ -28,6 +28,7 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.tag.BodyTagImpl;
 import lucee.runtime.op.Caster;
 //import lucee.runtime.debug.DebuggerPro;
+import lucee.runtime.util.PageContextUtil;
 
 public final class Timer extends BodyTagImpl {
 
@@ -174,7 +175,7 @@ public final class Timer extends BodyTagImpl {
 			pageContext.write("<!-- " + label + ": " + exe + unitDesc + " -->");
 		}
 		else if (TYPE_DEBUG == type) {
-			if (pageContext.getConfig().debug()) {
+			if (PageContextUtil.debug(pageContext)) {
 				PageSource curr = pageContext.getCurrentTemplatePageSource();
 				// TODO need to include unitDesc?
 				// ((DebuggerPro) pageContext.getDebugger()).addTimer(label, exe, curr == null ? "unknown template"

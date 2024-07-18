@@ -99,6 +99,7 @@ import lucee.runtime.type.scope.Argument;
 import lucee.runtime.type.util.CollectionUtil;
 import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.ListUtil;
+import lucee.runtime.util.PageContextUtil;
 
 /**
  * Passes SQL statements to a data source. Not limited to queries.
@@ -553,10 +554,10 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 		if (data.async) {
 			PageSource ps = getPageSource();
 			((SpoolerEngineImpl) ((ConfigPro) pageContext.getConfig()).getSpoolerEngine()).add(pageContext.getConfig(),
-					new QuerySpoolerTask(pageContext, data, strSQL, toTemplateLine(pageContext.getConfig(), sourceTemplate, ps), ps));
+					new QuerySpoolerTask(pageContext, data, strSQL, toTemplateLine(pageContext, sourceTemplate, ps), ps));
 		}
 		else {
-			_doEndTag(pageContext, data, strSQL, toTemplateLine(pageContext.getConfig(), sourceTemplate, getPageSource()), true); // when
+			_doEndTag(pageContext, data, strSQL, toTemplateLine(pageContext, sourceTemplate, getPageSource()), true); // when
 			// sourceTemplate
 			// exists
 			// getPageSource
@@ -739,7 +740,7 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 				queryResult.setCacheType(cacheHandlerId);
 			}
 
-			if (pageContext.getConfig().debug() && data.debug) {
+			if (PageContextUtil.debug(pageContext) && data.debug) {
 				DebuggerImpl di = (DebuggerImpl) pageContext.getDebugger();
 				boolean logdb = ((PageContextImpl) pageContext).hasDebugOptions(ConfigPro.DEBUG_DATABASE);
 				if (logdb) {
@@ -1175,11 +1176,11 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 		return defaultValue;
 	}
 
-	public static TemplateLine toTemplateLine(Config config, String sourceTemplate, PageSource ps) {
+	public static TemplateLine toTemplateLine(PageContext pc, String sourceTemplate, PageSource ps) {
 		if (!StringUtil.isEmpty(sourceTemplate)) {
 			return new TemplateLine(sourceTemplate);
 		}
-		if (config.debug() || ps == null) {
+		if (PageContextUtil.debug(pc) || ps == null) {
 			TemplateLine rtn = SystemUtil.getCurrentContext(null);
 			if (rtn != null) return rtn;
 		}

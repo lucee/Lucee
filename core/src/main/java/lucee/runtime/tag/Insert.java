@@ -49,6 +49,7 @@ import lucee.runtime.type.query.QueryResult;
 import lucee.runtime.type.scope.Form;
 import lucee.runtime.type.util.CollectionUtil;
 import lucee.runtime.type.util.ListUtil;
+import lucee.runtime.util.PageContextUtil;
 
 /**
  * Inserts records in data sources.
@@ -196,7 +197,7 @@ public final class Insert extends TagImpl {
 			if (sql != null) {
 				QueryImpl query = new QueryImpl(pageContext, dc, sql, -1, -1, null, "query");
 
-				if (pageContext.getConfig().debug()) {
+				if (PageContextUtil.debug(pageContext)) {
 					String dsn = ds instanceof DataSource ? ((DataSource) ds).getName() : Caster.toString(ds);
 					boolean logdb = ((PageContextImpl) pageContext).hasDebugOptions(ConfigPro.DEBUG_DATABASE);
 					if (logdb) {
@@ -204,7 +205,7 @@ public final class Insert extends TagImpl {
 						DebuggerImpl di = (DebuggerImpl) pageContext.getDebugger();
 
 						di.addQuery(debugUsage ? query : null, dsn, "", sql, query.getRecordcount(),
-								Query.toTemplateLine(pageContext.getConfig(), sourceTemplate, pageContext.getCurrentPageSource()), query.getExecutionTime());
+								Query.toTemplateLine(pageContext, sourceTemplate, pageContext.getCurrentPageSource()), query.getExecutionTime());
 					}
 				}
 

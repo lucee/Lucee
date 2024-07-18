@@ -26,7 +26,6 @@ import lucee.runtime.PageContext;
 import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.net.http.ReqRspUtil;
-import lucee.runtime.op.Duplicator;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.Struct;
@@ -43,16 +42,15 @@ public class DebuggerPool {
 
 	public void store(PageContext pc, Debugger debugger) {
 		if (ReqRspUtil.getScriptName(pc, pc.getHttpServletRequest()).indexOf("/lucee/") == 0) return;
-		synchronized (queue) {
-			try {
-				queue.add((Struct) Duplicator.duplicate(debugger.getDebuggingData(pc, true), true));
-			}
-			catch (PageException e) {
-			}
-
-			while (queue.size() > ((ConfigWebPro) pc.getConfig()).getDebugMaxRecordsLogged())
-				queue.poll();
+		try {
+			queue.add(debugger.getDebuggingData(pc, true));
 		}
+		catch (PageException e) {
+		}
+
+		while (queue.size() > ((ConfigWebPro) pc.getConfig()).getDebugMaxRecordsLogged())
+			queue.poll();
+
 	}
 
 	public Array getData(PageContext pc) {

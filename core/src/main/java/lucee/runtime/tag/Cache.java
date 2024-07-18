@@ -50,6 +50,7 @@ import lucee.runtime.type.dt.DateTime;
 import lucee.runtime.type.dt.DateTimeImpl;
 import lucee.runtime.type.dt.TimeSpan;
 import lucee.runtime.type.dt.TimeSpanImpl;
+import lucee.runtime.util.PageContextUtil;
 
 /**
  * Speeds up page rendering when dynamic content does not have to be retrieved each time a user
@@ -335,7 +336,7 @@ public final class Cache extends BodyTagImpl {
 		if (hasBody) hasBody = !StringUtil.isEmpty(body);
 
 		// call via cfcache disable debugger output
-		if (pageContext.getConfig().debug()) pageContext.getDebugger().setOutput(false);
+		if (PageContextUtil.debug(pageContext)) pageContext.getDebugger().setOutput(false);
 
 		HttpServletResponse rsp = pageContext.getHttpServletResponse();
 

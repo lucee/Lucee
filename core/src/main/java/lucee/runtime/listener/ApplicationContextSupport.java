@@ -511,6 +511,8 @@ public abstract class ApplicationContextSupport implements ApplicationContext {
 
 	public abstract void setShowTest(boolean b);
 
+	public abstract int getDebugOptions();
+
 	public abstract boolean hasDebugOptions(int option);
 
 	public abstract void setDebugOptions(int option);

@@ -35,6 +35,7 @@ import lucee.runtime.functions.system.CallStackGet;
 import lucee.runtime.listener.ApplicationContext;
 import lucee.runtime.net.http.ReqRspUtil;
 import lucee.runtime.op.Caster;
+import lucee.runtime.util.PageContextUtil;
 
 public final class Location extends TagImpl {
 
@@ -172,7 +173,7 @@ public final class Location extends TagImpl {
 		catch (IOException e) {
 			throw Caster.toPageException(e);
 		}
-		if (pageContext.getConfig().debug()) pageContext.getDebugger().setOutput(false);
+		if (PageContextUtil.debug(pageContext)) pageContext.getDebugger().setOutput(false);
 		throw new Abort(Abort.SCOPE_REQUEST);
 	}
 

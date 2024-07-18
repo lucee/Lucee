@@ -192,6 +192,7 @@ import lucee.runtime.type.util.ComponentUtil;
 import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.ListUtil;
 import lucee.runtime.type.util.UDFUtil;
+import lucee.runtime.util.PageContextUtil;
 import lucee.transformer.library.ClassDefinitionImpl;
 import lucee.transformer.library.function.FunctionLib;
 import lucee.transformer.library.tag.TagLib;
@@ -1503,7 +1504,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	 * 
 	 */
 	private void doGetDebugData() throws PageException {
-		pageContext.setVariable(getString("admin", action, "returnVariable"), pageContext.getConfig().debug() ? pageContext.getDebugger().getDebuggingData(pageContext) : null);
+		pageContext.setVariable(getString("admin", action, "returnVariable"), PageContextUtil.debug(pageContext) ? pageContext.getDebugger().getDebuggingData(pageContext) : null);
 	}
 
 	private void doGetLoggedDebugData() throws PageException {

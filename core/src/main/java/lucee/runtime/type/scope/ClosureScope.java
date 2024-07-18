@@ -27,6 +27,8 @@ import java.util.Iterator;
 import lucee.runtime.Component;
 import lucee.runtime.ComponentScope;
 import lucee.runtime.PageContext;
+import lucee.runtime.PageContextImpl;
+import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.dump.DumpData;
 import lucee.runtime.dump.DumpProperties;
 import lucee.runtime.dump.DumpTable;
@@ -55,7 +57,7 @@ public class ClosureScope extends ScopeSupport implements Variables, Externaliza
 		this.arg = arg;
 		this.local = local;
 		this.var = var;
-		this.debug = pc.getConfig().debug();
+		this.debug = ((PageContextImpl) pc).hasDebugOptions(ConfigImpl.DEBUG_IMPLICIT_ACCESS);
 	}
 
 	/*
