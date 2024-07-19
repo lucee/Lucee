@@ -4332,7 +4332,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 					child = Caster.toStruct(it.next());
 					if (child == null) continue;
 					// component
-					String cfc = Caster.toString(child.get(KeyConstants._component), null);
+					String cfc = Caster.toString(child.get(KeyConstants._component, null), null);
 					if (!StringUtil.isEmpty(cfc, true)) {
 						// TODO start hook
 						continue;

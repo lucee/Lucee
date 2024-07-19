@@ -27,6 +27,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
 
 import lucee.commons.digest.Hash;
 import lucee.commons.io.IOUtil;
@@ -63,6 +64,7 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.functions.system.ExpandPath;
 import lucee.runtime.op.Caster;
 import lucee.runtime.reflection.Reflector;
+import lucee.runtime.thread.ThreadUtil;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.ListUtil;
 
@@ -1039,11 +1041,28 @@ public final class ResourceUtil {
 		return res != null && res.exists();
 	}
 
-	public static void removeChildren(Resource res) throws IOException {
-		removeChildren(res, (ResourceFilter) null);
+	public static void removeChildren(Resource res, boolean async) throws IOException {
+		removeChildren(res, (ResourceFilter) null, async);
 	}
 
-	public static void removeChildren(Resource res, ResourceNameFilter filter) throws IOException {
+	public static void removeChildren(Resource res, ResourceNameFilter filter, boolean async) throws IOException {
+		if (async) {
+			ExecutorService executor = ThreadUtil.createExecutorService();
+			executor.submit(() -> {
+				try {
+					_removeChildren(res, filter);
+				}
+				catch (IOException e) {
+					LogUtil.log("file", e);
+				}
+			});
+		}
+		else {
+			_removeChildren(res, filter);
+		}
+	}
+
+	private static void _removeChildren(Resource res, ResourceNameFilter filter) throws IOException {
 		Resource[] children = filter == null ? res.listResources() : res.listResources(filter);
 		if (children == null) return;
 
@@ -1052,7 +1071,24 @@ public final class ResourceUtil {
 		}
 	}
 
-	public static void removeChildren(Resource res, ResourceFilter filter) throws IOException {
+	public static void removeChildren(Resource res, ResourceFilter filter, boolean async) throws IOException {
+		if (async) {
+			ExecutorService executor = ThreadUtil.createExecutorService();
+			executor.submit(() -> {
+				try {
+					_removeChildren(res, filter);
+				}
+				catch (IOException e) {
+					LogUtil.log("file", e);
+				}
+			});
+		}
+		else {
+			_removeChildren(res, filter);
+		}
+	}
+
+	private static void _removeChildren(Resource res, ResourceFilter filter) throws IOException {
 		Resource[] children = filter == null ? res.listResources() : res.listResources(filter);
 		if (children == null) return;
 
@@ -1061,27 +1097,27 @@ public final class ResourceUtil {
 		}
 	}
 
-	public static void removeChildrenEL(Resource res, ResourceNameFilter filter) {
+	public static void removeChildrenEL(Resource res, ResourceNameFilter filter, boolean async) {
 		try {
-			removeChildren(res, filter);
+			removeChildren(res, filter, async);
 		}
 		catch (Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);
 		}
 	}
 
-	public static void removeChildrenEL(Resource res, ResourceFilter filter) {
+	public static void removeChildrenEL(Resource res, ResourceFilter filter, boolean async) {
 		try {
-			removeChildren(res, filter);
+			removeChildren(res, filter, async);
 		}
 		catch (Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);
 		}
 	}
 
-	public static void removeChildrenEL(Resource res) {
+	public static void removeChildrenEL(Resource res, boolean async) {
 		try {
-			removeChildren(res);
+			removeChildren(res, async);
 		}
 		catch (Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);

@@ -91,7 +91,7 @@ class CacheItemFS extends CacheItem {
 
 	protected static void _flushAll(PageContext pc, Resource dir) throws IOException {
 		if (dir == null) dir = getDirectory(pc);
-		ResourceUtil.removeChildrenEL(dir);
+		ResourceUtil.removeChildrenEL(dir, false);
 	}
 
 	protected static void _flush(PageContext pc, Resource dir, String expireurl) throws IOException {

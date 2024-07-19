@@ -234,7 +234,7 @@ public class SMBResource extends ResourceSupport implements Resource {
 
 	@Override
 	public void remove(boolean alsoRemoveChildren) throws IOException {
-		if (alsoRemoveChildren) ResourceUtil.removeChildren(this);
+		if (alsoRemoveChildren) ResourceUtil.removeChildren(this, false);
 
 		_delete();
 	}

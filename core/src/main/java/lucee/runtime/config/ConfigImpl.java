@@ -1446,7 +1446,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 				LogUtil.log(this, Log.LEVEL_ERROR, "loading", "temp directory [" + tempDirectory + "] is not writable");
 			}
 		}
-		if (flush) ResourceUtil.removeChildrenEL(tempDirectory);// start with an empty temp directory
+		if (flush) ResourceUtil.removeChildrenEL(tempDirectory, true);// start with an empty temp directory
 		this.tempDirectory = tempDirectory;
 	}
 

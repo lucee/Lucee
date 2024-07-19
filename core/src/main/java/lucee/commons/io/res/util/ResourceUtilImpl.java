@@ -163,17 +163,17 @@ public class ResourceUtilImpl implements lucee.runtime.util.ResourceUtil {
 
 	@Override
 	public void removeChildren(Resource res) throws IOException {
-		ResourceUtil.removeChildren(res);
+		ResourceUtil.removeChildren(res, false); // FUTURE add argument async to interface
 	}
 
 	@Override
 	public void removeChildren(Resource res, ResourceNameFilter filter) throws IOException {
-		ResourceUtil.removeChildren(res, filter);
+		ResourceUtil.removeChildren(res, filter, false); // FUTURE add argument async to interface
 	}
 
 	@Override
 	public void removeChildren(Resource res, ResourceFilter filter) throws IOException {
-		ResourceUtil.removeChildren(res, filter);
+		ResourceUtil.removeChildren(res, filter, false); // FUTURE add argument async to interface
 	}
 
 	@Override
@@ -333,17 +333,17 @@ public class ResourceUtilImpl implements lucee.runtime.util.ResourceUtil {
 
 	@Override
 	public void removeChildrenSilent(Resource res, ResourceNameFilter filter) {
-		ResourceUtil.removeChildrenEL(res, filter);
+		ResourceUtil.removeChildrenEL(res, filter, false);
 	}
 
 	@Override
 	public void removeChildrenSilent(Resource res, ResourceFilter filter) {
-		ResourceUtil.removeChildrenEL(res, filter);
+		ResourceUtil.removeChildrenEL(res, filter, false);
 	}
 
 	@Override
 	public void removeChildrenSilent(Resource res) {
-		ResourceUtil.removeChildrenEL(res);
+		ResourceUtil.removeChildrenEL(res, false);
 	}
 
 	@Override

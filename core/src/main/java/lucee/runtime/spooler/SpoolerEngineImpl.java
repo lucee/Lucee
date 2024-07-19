@@ -568,11 +568,11 @@ public class SpoolerEngineImpl implements SpoolerEngine {
 	}
 
 	public void removeAll() {
-		ResourceUtil.removeChildrenEL(openDirectory);
-		ResourceUtil.removeChildrenEL(closedDirectory);
+		ResourceUtil.removeChildrenEL(openDirectory, false);
+		ResourceUtil.removeChildrenEL(closedDirectory, false);
 		SystemUtil.wait(this, 100);
-		ResourceUtil.removeChildrenEL(openDirectory);
-		ResourceUtil.removeChildrenEL(closedDirectory);
+		ResourceUtil.removeChildrenEL(openDirectory, false);
+		ResourceUtil.removeChildrenEL(closedDirectory, false);
 	}
 
 	public int adds() {

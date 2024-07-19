@@ -114,7 +114,7 @@ public final class FTPResource extends ResourceSupport {
 	public void remove(boolean alsoRemoveChildren) throws IOException {
 		if (isRoot()) throw new FTPResoucreException("Can't delete root of ftp server");
 
-		if (alsoRemoveChildren) ResourceUtil.removeChildren(this);
+		if (alsoRemoveChildren) ResourceUtil.removeChildren(this, false);
 		FTPResourceClient client = null;
 		try {
 			provider.lock(this);

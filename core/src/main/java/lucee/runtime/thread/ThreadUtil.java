@@ -225,4 +225,21 @@ public class ThreadUtil {
 		}
 		return Executors.newFixedThreadPool(maxThreads);
 	}
+
+	public static ExecutorService createExecutorService() {
+		if (SystemUtil.JAVA_VERSION >= SystemUtil.JAVA_VERSION_19) {
+			// FUTURE use newVirtualThreadPerTaskExecutor natively
+			try {
+				MethodHandles.Lookup lookup = MethodHandles.lookup();
+				MethodType methodType = MethodType.methodType(ExecutorService.class);
+				MethodHandle methodHandle = lookup.findStatic(Executors.class, "newVirtualThreadPerTaskExecutor", methodType);
+				return (ExecutorService) methodHandle.invoke();
+			}
+			catch (Throwable e) {
+				ExceptionUtil.rethrowIfNecessary(e);
+			}
+		}
+		return Executors.newSingleThreadExecutor();
+	}
+
 }
