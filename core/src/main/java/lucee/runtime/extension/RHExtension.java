@@ -875,7 +875,8 @@ public class RHExtension implements Serializable {
 	}
 
 	public static Resource getExtensionInstalledDir(Config config) {
-		return config.getConfigDir().getRealResource("extensions/installed");
+
+		return ((ConfigPro) config).getExtensionInstalledDir();
 	}
 
 	private static int getPhysicalExtensionCount(Config config) {
@@ -894,7 +895,7 @@ public class RHExtension implements Serializable {
 		// reduce the amount of extension stored in available
 		{
 			int max = 5;
-			Resource dir = config.getConfigDir().getRealResource("extensions/available");
+			Resource dir = ((ConfigPro) config).getExtensionAvailableDir();
 			Resource[] resources = dir.listResources(LEX_FILTER);
 			Map<String, List<Pair<RHExtension, Resource>>> map = new HashMap<>();
 			RHExtension ext;

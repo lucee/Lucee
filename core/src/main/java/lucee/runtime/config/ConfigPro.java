@@ -388,4 +388,9 @@ public interface ConfigPro extends Config {
 	public boolean getShowMetric();
 
 	public boolean getShowTest();
+
+	public Resource getExtensionInstalledDir();
+
+	public Resource getExtensionAvailableDir();
+
 }

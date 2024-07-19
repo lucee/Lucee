@@ -759,9 +759,7 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 
 	@Override
 	public Resource getLocalExtensionProviderDirectory() {
-		Resource dir = getConfigDir().getRealResource("extensions/available");
-		if (!dir.exists()) dir.mkdirs();
-		return dir;
+		return getExtensionAvailableDir();
 	}
 
 	protected void setAMFEngine(ClassDefinition<AMFEngine> cd, Map<String, String> args) {
@@ -873,4 +871,5 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 	public short getAdminMode() {
 		return adminMode;
 	}
+
 }

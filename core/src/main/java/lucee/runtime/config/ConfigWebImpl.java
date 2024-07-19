@@ -1921,4 +1921,14 @@ public class ConfigWebImpl implements ConfigWebPro {
 	public int getReturnFormat() {
 		return instance.getReturnFormat();
 	}
+
+	@Override
+	public Resource getExtensionInstalledDir() {
+		return instance.getExtensionInstalledDir();
+	}
+
+	@Override
+	public Resource getExtensionAvailableDir() {
+		return instance.getExtensionAvailableDir();
+	}
 }
