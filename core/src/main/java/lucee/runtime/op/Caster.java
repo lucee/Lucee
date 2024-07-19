@@ -3652,7 +3652,7 @@ public final class Caster {
 		return clazz.getName();
 	}
 
-	public static Class cfTypeToClass(String type) throws PageException {
+	public static Class cfTypeToClass(PageContext pc, String type) throws PageException {
 		// TODO weitere typen siehe bytecode.cast.Cast
 
 		type = type.trim();
@@ -3760,14 +3760,14 @@ public final class Caster {
 		}
 		// array
 		if (type.endsWith("[]")) {
-			Class clazz = cfTypeToClass(type.substring(0, type.length() - 2));
+			Class clazz = cfTypeToClass(pc, type.substring(0, type.length() - 2));
 			clazz = ClassUtil.toArrayClass(clazz);
 			return clazz;
 		}
 		// check for argument
 		Class<?> clazz;
 		try {
-			clazz = otherTypeToClass(type);
+			clazz = otherTypeToClass(pc, type);
 		}
 		catch (ClassException e) {
 			throw Caster.toPageException(e);
@@ -3775,8 +3775,8 @@ public final class Caster {
 		return clazz;
 	}
 
-	private static Class<?> otherTypeToClass(String type) throws PageException, ClassException {
-		PageContext pc = ThreadLocalPageContext.get();
+	private static Class<?> otherTypeToClass(PageContext pc, String type) throws PageException, ClassException {
+		pc = ThreadLocalPageContext.get(pc);
 		PageException pe = null;
 		// try to load as cfc
 		if (pc != null) {
@@ -3790,7 +3790,7 @@ public final class Caster {
 		}
 		// try to load as class
 		try {
-			return ClassUtil.loadClass(type);
+			return ClassUtil.loadClass(pc, type);
 		}
 		catch (ClassException ce) {
 			if (pe != null) throw pe;
@@ -4160,7 +4160,7 @@ public final class Caster {
 			if (comp.instanceOf(strType)) return o;
 
 			try {
-				Class<?> trgClass = ClassUtil.loadClass(strType);
+				Class<?> trgClass = ClassUtil.loadClass(pc, strType);
 				if (trgClass.isInterface()) {
 					return Reflector.componentToClass(pc, comp, trgClass);
 				}
@@ -4173,7 +4173,7 @@ public final class Caster {
 		}
 		if (o instanceof UDF) {
 			try {
-				Class<?> trgClass = ClassUtil.loadClass(strType);
+				Class<?> trgClass = ClassUtil.loadClass(pc, strType);
 				if (trgClass.isInterface()) {
 					return Reflector.udfToClass(pc, (UDF) o, trgClass);
 				}

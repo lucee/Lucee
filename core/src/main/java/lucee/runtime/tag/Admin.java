@@ -2299,7 +2299,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			Struct sct = new StructImpl();
 			sct.set("LoaderVersion", VersionInfo.getIntVersion().toString());
 			sct.set("LuceeVersion", pageContext.getConfig().getFactory().getEngine().getInfo().getVersion().toString());
-			sct.set("LoaderPath", ClassUtil.getSourcePathForClass("lucee.loader.servlet.CFMLServlet", ""));
+			sct.set("LoaderPath", ClassUtil.getSourcePathForClass(pageContext, "lucee.loader.servlet.CFMLServlet", ""));
 			pageContext.setVariable(getString("admin", action, "returnVariable"), sct);
 		}
 		catch (Exception e) {

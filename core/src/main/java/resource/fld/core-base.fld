@@ -8262,6 +8262,12 @@ The following things are considered to be empty:
 			<required>Yes</required>
 		<description>the object to cast</description>
     </argument>
+	<argument>
+			<name>javaSettings</name>
+			<type>struct</type>
+			<required>no</required>
+		<description>javasettings to use to load the class</description>
+    </argument>
 		<return>
 			<type>any</type>
 		</return>

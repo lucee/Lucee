@@ -132,6 +132,7 @@ import lucee.runtime.listener.ApplicationContext;
 import lucee.runtime.listener.ApplicationContextSupport;
 import lucee.runtime.listener.ApplicationListener;
 import lucee.runtime.listener.ClassicApplicationContext;
+import lucee.runtime.listener.JavaSettings;
 import lucee.runtime.listener.JavaSettingsImpl;
 import lucee.runtime.listener.ModernAppListenerException;
 import lucee.runtime.listener.NoneAppListener;
@@ -3838,8 +3839,12 @@ public final class PageContextImpl extends PageContext {
 		return getClassLoader(null);
 	}
 
+	public JavaSettings getJavaSettings() {
+		return getApplicationContext().getJavaSettings();
+	}
+
 	public ClassLoader getClassLoader(Resource[] reses) throws IOException {
-		JavaSettingsImpl js = (JavaSettingsImpl) getApplicationContext().getJavaSettings();
+		JavaSettingsImpl js = (JavaSettingsImpl) getJavaSettings();
 		if (js != null) {
 			// TODO FUTURE 7 we do this to avoid any kind of regression, in Lucee 7 remove this
 			if (!JAVA_SETTING_CLASSIC_MODE && !js.hasPoms() && !js.hasOSGis()) {
@@ -3858,7 +3863,7 @@ public final class PageContextImpl extends PageContext {
 
 	public ClassLoader getRPCClassLoader(boolean reload, ClassLoader[] parents) throws IOException {
 		ClassLoader cl = ((ConfigPro) config).getRPCClassLoader(reload, parents);
-		JavaSettingsImpl js = (JavaSettingsImpl) getApplicationContext().getJavaSettings();
+		JavaSettingsImpl js = (JavaSettingsImpl) getJavaSettings();
 		if (js != null) {
 			// TODO FUTURE 7 we do this to avoid any kind of regression, in Lucee 7 remove this
 			if (!JAVA_SETTING_CLASSIC_MODE && !js.hasPoms() && !js.hasOSGis()) {

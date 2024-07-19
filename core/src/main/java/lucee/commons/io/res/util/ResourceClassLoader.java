@@ -30,7 +30,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import lucee.commons.digest.MD5;
+import lucee.commons.digest.HashUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.type.file.FileResource;
 import lucee.runtime.exp.PageException;
@@ -57,8 +57,8 @@ public class ResourceClassLoader extends URLClassLoader implements Closeable {
 	 */
 	public ResourceClassLoader(Resource[] resources, ClassLoader parent) throws IOException {
 		super(doURLs(resources), parent);
-		for (int i = 0; i < resources.length; i++) {
-			if (resources[i] != null) this.resources.add(resources[i]);
+		for (Resource r: resources) {
+			if (r != null) this.resources.add(r);
 		}
 	}
 
@@ -136,7 +136,7 @@ public class ResourceClassLoader extends URLClassLoader implements Closeable {
 		return rcl;
 	}
 
-	public ResourceClassLoader getCustomResourceClassLoader2(Resource[] resources) throws IOException {
+	public ResourceClassLoader getCustomResourceClassLoader2w(Resource[] resources) throws IOException {
 		if (ArrayUtil.isEmpty(resources)) return this;
 		String key = hash(resources);
 		SoftReference<ResourceClassLoader> tmp = customCLs == null ? null : customCLs.get(key);
@@ -156,7 +156,7 @@ public class ResourceClassLoader extends URLClassLoader implements Closeable {
 			sb.append(ResourceUtil.getCanonicalPathEL(resources[i]));
 			sb.append(';');
 		}
-		return MD5.getDigestAsString(sb.toString(), null);
+		return HashUtil.create64BitHashAsString(sb.toString());
 	}
 
 }

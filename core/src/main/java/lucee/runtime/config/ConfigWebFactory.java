@@ -87,6 +87,7 @@ import lucee.runtime.CFMLFactoryImpl;
 import lucee.runtime.Component;
 import lucee.runtime.Mapping;
 import lucee.runtime.MappingImpl;
+import lucee.runtime.PageContext;
 import lucee.runtime.cache.CacheConnection;
 import lucee.runtime.cache.CacheConnectionImpl;
 import lucee.runtime.cache.ServerCacheConnection;
@@ -3798,7 +3799,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 				String classname = streamtype.substring(6);
 				try {
 
-					return (PrintStream) ClassUtil.loadInstance(classname);
+					return (PrintStream) ClassUtil.loadInstance((PageContext) null, classname);
 				}
 				catch (Throwable t) {
 					ExceptionUtil.rethrowIfNecessary(t);
