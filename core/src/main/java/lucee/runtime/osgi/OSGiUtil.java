@@ -837,7 +837,6 @@ public class OSGiUtil {
 
 	private static Resource downloadBundle(CFMLEngineFactory factory, final String symbolicName, String symbolicVersion, Identification id) throws IOException, BundleException {
 		resetJarsFromBundleDirectory(factory);
-
 		String strDownload = SystemUtil.getSystemPropOrEnvVar("lucee.enable.bundle.download", null);
 		if (!Caster.toBooleanValue(strDownload, true)) {
 			boolean printExceptions = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.cli.printExceptions", null), false);
@@ -859,7 +858,6 @@ public class OSGiUtil {
 		final URL updateUrl = BundleProvider.getInstance().getBundleAsURL(new BundleDefinition(symbolicName, symbolicVersion), true);
 
 		log(Logger.LOG_INFO, "Downloading bundle [" + symbolicName + ":" + symbolicVersion + "] from [" + updateUrl + "]");
-
 		int code;
 		HttpURLConnection conn;
 		try {
@@ -927,12 +925,12 @@ public class OSGiUtil {
 				temp.delete();
 			}
 		}
-		else {
-			Resource jar = jarDir.getRealResource(symbolicName + "-" + symbolicVersion + ".jar");
-			IOUtil.copy((InputStream) conn.getContent(), jar, true);
-			conn.disconnect();
-			return jar;
-		}
+
+		Resource jar = jarDir.getRealResource(symbolicName + "-" + symbolicVersion + ".jar");
+		IOUtil.copy((InputStream) conn.getContent(), jar, true);
+		conn.disconnect();
+		return jar;
+
 	}
 
 	/**
@@ -1097,38 +1095,21 @@ public class OSGiUtil {
 			if (mbf != null) {
 				return improveFileName(bd, mbf);
 			}
-			List<Resource> children = listFiles(dir, addional, JAR_EXT_FILTER);
-
-			// now we check all jar files
-			{
-
-				// now we check by Manifest comparsion, name not necessary reflect the correct bundle info
-				BundleFile bf;
-				for (boolean checkBundleRange: checkBundleRanges) {
-					mbf = null;
-					for (Resource child: children) {
-						if (checkBundleRange && !new Filter(bundleRange).accept(child.getName())) continue;
-						match = child;
-						bf = BundleFile.getInstance(child);
-						if (bf.isBundle()) {
-							if (bf.getSymbolicName().equals(bundleRange.getName())) {
-								if (bundleRange.matches(bf)) {
-									if (mbf == null || OSGiUtil.isNewerThan(bf.getVersion(), mbf.getVersion())) mbf = bf;
-								}
-								else {
-									if (versionsFound != null) {
-										if (versionsFound.length() > 0) versionsFound.append(", ");
-										versionsFound.append(bf.getVersionAsString());
-									}
-								}
-							}
-						}
-					}
-					if (mbf != null) {
-						return improveFileName(factory.getBundleDirectory(), mbf);
-					}
-				}
-			}
+			/*
+			 * List<Resource> children = listFiles(dir, addional, JAR_EXT_FILTER);
+			 * 
+			 * // now we check all jar files {
+			 * 
+			 * // now we check by Manifest comparsion, name not necessary reflect the correct bundle info
+			 * BundleFile bf; for (boolean checkBundleRange: checkBundleRanges) { mbf = null; for (Resource
+			 * child: children) { if (checkBundleRange && !new Filter(bundleRange).accept(child.getName()))
+			 * continue; match = child; bf = BundleFile.getInstance(child); if (bf.isBundle()) { if
+			 * (bf.getSymbolicName().equals(bundleRange.getName())) { if (bundleRange.matches(bf)) { if (mbf ==
+			 * null || OSGiUtil.isNewerThan(bf.getVersion(), mbf.getVersion())) mbf = bf; } else { if
+			 * (versionsFound != null) { if (versionsFound.length() > 0) versionsFound.append(", ");
+			 * versionsFound.append(bf.getVersionAsString()); } } } } } if (mbf != null) { return
+			 * improveFileName(factory.getBundleDirectory(), mbf); } } }
+			 */
 
 		}
 		catch (Exception e) {
@@ -1152,6 +1133,20 @@ public class OSGiUtil {
 			}
 		}
 		return null;
+	}
+
+	public static void correctBundles(CFMLEngineFactory factory) throws IOException, BundleException {
+		BundleFile bf;
+		String expName;
+		for (Resource child: ResourceUtil.toResource(factory.getBundleDirectory()).listResources(JAR_EXT_FILTER)) {
+			bf = BundleFile.getInstance(child);
+			if (bf.isBundle()) {
+				expName = bf.getSymbolicName() + "-" + bf.getVersionAsString() + ".jar";
+				if (!child.getName().equals(expName)) {
+					child.moveTo(child.getParentResource().getRealResource(expName));
+				}
+			}
+		}
 	}
 
 	/**

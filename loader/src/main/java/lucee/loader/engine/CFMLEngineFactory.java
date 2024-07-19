@@ -982,7 +982,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 					+ ", and has been prevented from downloading it. If this jar is not a core jar, it will need to be manually downloaded and placed in the {{lucee-server}}/context/bundles directory."));
 		}
 
-		jar = new File(jarDir, symbolicName.replace('.', '-') + "-" + symbolicVersion.replace('.', '-') + (".jar"));
+		jar = new File(jarDir, symbolicName + "-" + symbolicVersion + (".jar"));
 
 		URL updateUrl;
 		try {
