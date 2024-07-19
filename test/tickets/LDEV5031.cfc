@@ -19,6 +19,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="qoq"{
 				expect(local.result.recordCount).toBe(1);
 				expect(local.result.sum).toBe(6);
 			});
-
+		});
 	}
 }
