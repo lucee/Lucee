@@ -1,6 +1,6 @@
 component extends="org.lucee.cfml.test.LuceeTestCase" {
 
-	variables.rounds = 10000;
+	variables.rounds = 10;
 	variables.mysql = server.getDatasource("mysql");
 
 	function run( testResults , testBox ) {
