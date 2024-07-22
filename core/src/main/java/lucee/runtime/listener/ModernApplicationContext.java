@@ -1834,7 +1834,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 		if (defaultJavaSettings == null) {
 			synchronized (token) {
 				if (defaultJavaSettings == null) {
-					defaultJavaSettings = JavaSettingsImpl.getInstance(config, new StructImpl());
+					defaultJavaSettings = ((ConfigPro) config).getJavaSettings();// JavaSettingsImpl.getInstance(config, new StructImpl());
 				}
 			}
 		}

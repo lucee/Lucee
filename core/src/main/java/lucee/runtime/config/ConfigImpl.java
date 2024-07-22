@@ -437,6 +437,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 
 	private boolean showTest;
 
+	private JavaSettings javaSettings;
 	private Map<String, JavaSettings> javaSettingsInstances = new ConcurrentHashMap<>();
 
 	/**
@@ -4003,6 +4004,15 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	@Override
 	public void setJavaSettings(String id, JavaSettings js) {
 		javaSettingsInstances.put(id, js);
+	}
+
+	public void setJavaSettings(JavaSettings js) {
+		javaSettings = js;
+	}
+
+	@Override
+	public JavaSettings getJavaSettings() {
+		return javaSettings;
 	}
 
 }

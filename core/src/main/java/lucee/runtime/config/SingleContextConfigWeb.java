@@ -2116,4 +2116,9 @@ class SingleContextConfigWeb extends ConfigBase implements ConfigWebInner {
 	public Resource getMavenDir() {
 		return cs.getMavenDir();
 	}
+
+	@Override
+	public JavaSettings getJavaSettings() {
+		return cs.getJavaSettings();
+	}
 }

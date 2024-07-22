@@ -1937,4 +1937,9 @@ public class ConfigWebImpl implements ConfigWebPro {
 	public Resource getMavenDir() {
 		return instance.getMavenDir();
 	}
+
+	@Override
+	public JavaSettings getJavaSettings() {
+		return instance.getJavaSettings();
+	}
 }

@@ -137,6 +137,8 @@ import lucee.runtime.gateway.GatewayEntry;
 import lucee.runtime.gateway.GatewayEntryImpl;
 import lucee.runtime.listener.AppListenerUtil;
 import lucee.runtime.listener.ApplicationListener;
+import lucee.runtime.listener.JavaSettings;
+import lucee.runtime.listener.JavaSettingsImpl;
 import lucee.runtime.listener.MixedAppListener;
 import lucee.runtime.listener.ModernAppListener;
 import lucee.runtime.listener.SerializationSettings;
@@ -589,6 +591,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_DEBUG, ConfigWebFactory.class.getName(), "loaded application");
 
 		_loadJava(cs, config, root, log); // define compile type
+		if (!essentialOnly) _loadJavaSettings(cs, config, root, log); // define compile type
 		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_DEBUG, ConfigWebFactory.class.getName(), "loaded java");
 
 		if (!essentialOnly) {
@@ -4237,10 +4240,29 @@ public final class ConfigWebFactory extends ConfigFactory {
 			else if (hasCS) {
 				config.setCompileType(configServer.getCompileType());
 			}
+
 		}
 		catch (Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);
 			log(config, log, t);
+		}
+	}
+
+	private static void _loadJavaSettings(ConfigServerImpl configServer, ConfigImpl config, Struct root, Log log) {
+		try {
+			if (config instanceof ConfigServerImpl) {
+				ConfigServerImpl csi = (ConfigServerImpl) config;
+				Struct javasettings = ConfigWebUtil.getAsStruct(root, "javasettings");
+
+				if (javasettings != null && javasettings.size() > 0) {
+					JavaSettings js = JavaSettingsImpl.getInstance(config, javasettings);
+					csi.setJavaSettings(js);
+				}
+			}
+		}
+		catch (Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
+			log(config, null, t);
 		}
 	}
 

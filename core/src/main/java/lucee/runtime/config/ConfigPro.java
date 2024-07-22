@@ -390,6 +390,8 @@ public interface ConfigPro extends Config {
 
 	public boolean getShowTest();
 
+	public JavaSettings getJavaSettings();
+
 	public JavaSettings getJavaSettings(String id);
 
 	public void setJavaSettings(String id, JavaSettings js);
