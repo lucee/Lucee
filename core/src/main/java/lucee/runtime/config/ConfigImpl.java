@@ -116,6 +116,7 @@ import lucee.runtime.listener.AppListenerUtil;
 import lucee.runtime.listener.ApplicationContext;
 import lucee.runtime.listener.ApplicationListener;
 import lucee.runtime.listener.JavaSettings;
+import lucee.runtime.listener.JavaSettingsImpl;
 import lucee.runtime.net.mail.Server;
 import lucee.runtime.net.proxy.ProxyData;
 import lucee.runtime.net.proxy.ProxyDataImpl;
@@ -4012,6 +4013,14 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 
 	@Override
 	public JavaSettings getJavaSettings() {
+		if (javaSettings == null) {
+			synchronized (javaSettingsInstances) {
+				if (javaSettings == null) {
+					javaSettings = JavaSettingsImpl.getInstance(this, new StructImpl());
+				}
+
+			}
+		}
 		return javaSettings;
 	}
 
