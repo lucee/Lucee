@@ -228,7 +228,7 @@ import lucee.runtime.writer.DevNullBodyContent;
 public final class PageContextImpl extends PageContext {
 
 	private static final RefBoolean DUMMY_BOOL = new RefBooleanImpl(false);
-	private static final boolean JAVA_SETTING_CLASSIC_MODE = true;
+	private static final boolean JAVA_SETTING_CLASSIC_MODE = false;
 	private static int counter = 0;
 
 	/**
@@ -3835,23 +3835,23 @@ public final class PageContextImpl extends PageContext {
 		return ormSession;
 	}
 
-	public ClassLoader getClassLoader() throws IOException {
-		return getClassLoader(null);
-	}
+	/*
+	 * public ClassLoader getClassLoader() throws IOException { return getClassLoader(null); }
+	 */
 
 	public JavaSettings getJavaSettings() {
 		return getApplicationContext().getJavaSettings();
 	}
 
-	public ClassLoader getClassLoader(Resource[] reses) throws IOException {
+	public ClassLoader getClassLoader() throws IOException {
 		JavaSettingsImpl js = (JavaSettingsImpl) getJavaSettings();
 		if (js != null) {
 			// TODO FUTURE 7 we do this to avoid any kind of regression, in Lucee 7 remove this
-			if (!JAVA_SETTING_CLASSIC_MODE && !js.hasPoms() && !js.hasOSGis()) {
+			if (JAVA_SETTING_CLASSIC_MODE && !js.hasPoms() && !js.hasOSGis()) {
 				Resource[] jars = js.getResourcesTranslated();
 				if (jars.length > 0) return config.getResourceClassLoader().getCustomResourceClassLoader(jars);
 			}
-			return js.getResourceClassLoader(reses);
+			return js.getClassLoader(null, false);
 
 		}
 		return config.getResourceClassLoader();
@@ -3866,12 +3866,12 @@ public final class PageContextImpl extends PageContext {
 		JavaSettingsImpl js = (JavaSettingsImpl) getJavaSettings();
 		if (js != null) {
 			// TODO FUTURE 7 we do this to avoid any kind of regression, in Lucee 7 remove this
-			if (!JAVA_SETTING_CLASSIC_MODE && !js.hasPoms() && !js.hasOSGis()) {
+			if (JAVA_SETTING_CLASSIC_MODE && !js.hasPoms() && !js.hasOSGis()) {
 				Resource[] jars = js.getResourcesTranslated();
 				if (jars.length > 0) return ((PhysicalClassLoader) cl).getCustomClassLoader(jars, reload);
 			}
 			else {
-				java.util.Collection<Resource> jars = js.getAllResources(null);
+				java.util.Collection<Resource> jars = js.getAllResources(cl);
 				if (jars.size() > 0) return ((PhysicalClassLoader) cl).getCustomClassLoader(jars.toArray(new Resource[jars.size()]), reload);
 			}
 

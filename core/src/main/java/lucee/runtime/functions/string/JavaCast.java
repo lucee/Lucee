@@ -21,13 +21,14 @@
  */
 package lucee.runtime.functions.string;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
-import lucee.commons.lang.ClassException;
 import lucee.commons.lang.ClassUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
+import lucee.runtime.PageContextImpl;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
@@ -112,20 +113,15 @@ public final class JavaCast implements Function {
 		if (lcType.equals("bigdecimal")) {
 			return BigDecimal.class;
 		}
-		if (javaSettings != null) {
-			JavaSettingsImpl js = (JavaSettingsImpl) JavaSettingsImpl.getInstance(pc.getConfig(), Caster.toStruct(javaSettings));
-			try {
-				return js.getResourceClassLoader(null).loadClass(type);
-			}
-			catch (Exception e) {
-				throw Caster.toPageException(e);
-			}
-		}
-		try {
 
+		try {
+			if (javaSettings != null) {
+				JavaSettingsImpl js = (JavaSettingsImpl) JavaSettingsImpl.getInstance(pc.getConfig(), Caster.toStruct(javaSettings));
+				return ClassUtil.loadClass(js.getClassLoader(((PageContextImpl) pc).getClassLoader(), false), type);
+			}
 			return ClassUtil.loadClass(pc, type);
 		}
-		catch (ClassException e) {
+		catch (IOException e) {
 			throw Caster.toPageException(e);
 		}
 	}

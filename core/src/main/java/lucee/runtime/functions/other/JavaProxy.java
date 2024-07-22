@@ -21,6 +21,7 @@
  */
 package lucee.runtime.functions.other;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 
@@ -128,12 +129,11 @@ public final class JavaProxy implements Function {
 		else if (Decision.isStruct(pathOrName)) {
 			JavaSettingsImpl js = (JavaSettingsImpl) JavaSettingsImpl.getInstance(pc.getConfig(), Caster.toStruct(pathOrName));
 			try {
-				return js.getResourceClassLoader(null).loadClass(className);
+				return ClassUtil.loadClass(js.getClassLoader(((PageContextImpl) pc).getClassLoader(), false), className);
 			}
-			catch (Exception e) {
+			catch (IOException e) {
 				throw Caster.toPageException(e);
 			}
-
 		}
 
 		return loadClassByPath(pc, className, ListUtil.toStringArray(Caster.toArray(pathOrName)));
@@ -172,7 +172,11 @@ public final class JavaProxy implements Function {
 		// load class
 		try {
 
-			ClassLoader cl = resources.isEmpty() ? pci.getClassLoader() : pci.getClassLoader(resources.toArray(new Resource[resources.size()]));
+			ClassLoader cl = pci.getClassLoader();
+			if (!resources.isEmpty()) {
+				JavaSettingsImpl js = (JavaSettingsImpl) JavaSettingsImpl.getInstance(pc.getConfig(), resources);
+				cl = js.getClassLoader(cl, false);
+			}
 
 			Class clazz = null;
 			try {
