@@ -2121,4 +2121,14 @@ class SingleContextConfigWeb extends ConfigBase implements ConfigWebInner {
 	public JavaSettings getJavaSettings() {
 		return cs.getJavaSettings();
 	}
+
+	@Override
+	public Resource getExtensionInstalledDir() {
+		return cs.getExtensionInstalledDir();
+	}
+
+	@Override
+	public Resource getExtensionAvailableDir() {
+		return cs.getExtensionAvailableDir();
+	}
 }

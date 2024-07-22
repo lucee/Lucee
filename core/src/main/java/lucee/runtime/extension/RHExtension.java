@@ -34,7 +34,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 import java.util.zip.ZipEntry;
@@ -201,45 +200,24 @@ public class RHExtension implements Serializable {
 
 	private boolean loaded;
 
-	// private final Config config;
+	private final Config config;
 
 	public boolean softLoaded = false;
 
-	private static Map<String, RHExtension> instances = new ConcurrentHashMap<>();
-
-	public static RHExtension getInstance(Config config, Resource ext) throws PageException, IOException, BundleException, ConverterException {
-		RHExtension instance = instances.get(ext.getAbsolutePath());
-		if (instance == null) {
-			instance = new RHExtension(config, ext);
-			instances.put(instance.getId() + ":" + instance.getVersion(), instance);
-			instances.put(ext.getAbsolutePath(), instance);
-		}
-		return instance;
+	public RHExtension(Config config, Resource ext) throws PageException, IOException, BundleException, ConverterException {
+		this.config = config;
+		init(ext);
 	}
 
-	private RHExtension(Config config, Resource ext) throws PageException, IOException, BundleException, ConverterException {
-		init(config, ext);
-	}
-
-	public static RHExtension getInstance(Config config, String id, String version) throws PageException, IOException, BundleException, ConverterException {
-		RHExtension instance = instances.get(id + ":" + version);
-		if (instance == null) {
-			instance = new RHExtension(config, id, version);
-			instances.put(instance.getId() + ":" + instance.getVersion(), instance);
-			instances.put(instance.extensionFile.getAbsolutePath(), instance);
-		}
-		return instance;
-	}
-
-	private RHExtension(Config config, String id, String version) throws PageException, IOException, BundleException, ConverterException {
-		// this.config = config;
+	public RHExtension(Config config, String id, String version) throws PageException, IOException, BundleException, ConverterException {
+		this.config = config;
 
 		Struct data = getMetaData(config, id, version, (Struct) null);
 		this.extensionFile = getExtensionInstalledFile(config, id, version, false);
 		// do we have usefull meta data?
 		if (data != null && data.containsKey("startBundles")) {
 			try {
-				readManifestConfig(config, id, data, extensionFile.getAbsolutePath(), null);
+				readManifestConfig(id, data, extensionFile.getAbsolutePath(), null);
 				softLoaded = true;
 				return;
 			}
@@ -250,18 +228,18 @@ public class RHExtension implements Serializable {
 			}
 		}
 
-		init(config, this.extensionFile);
+		init(this.extensionFile);
 		softLoaded = false;
 	}
 
-	private void init(Config config, Resource ext) throws PageException, IOException, BundleException, ConverterException {
+	private void init(Resource ext) throws PageException, IOException, BundleException, ConverterException {
 		// make sure the config is registerd with the thread
 		if (ThreadLocalPageContext.getConfig() == null) ThreadLocalConfig.register(config);
 		// is it a web or server context?
 		this.type = config instanceof ConfigWeb ? "web" : "server";
 		this.extensionFile = ext;
 
-		load(config, ext);
+		load(ext);
 		// write metadata to XML
 		Resource mdf = getMetaDataFile(config, id, version);
 		if (!metadataFilesChecked.contains(mdf.getAbsolutePath()) && !mdf.isFile()) {
@@ -311,12 +289,12 @@ public class RHExtension implements Serializable {
 	 * @throws ConverterException
 	 * @throws IOException
 	 */
-	public Resource copyToInstalled(Config config) throws PageException, ConverterException, IOException {
+	public Resource copyToInstalled() throws PageException, ConverterException, IOException {
 		if (extensionFile == null) throw new IOException("no extension file defined");
 		if (!extensionFile.isFile()) throw new IOException("given extension file [" + extensionFile + "] does not exist");
 
-		addToAvailable(config, extensionFile);
-		return act(config, extensionFile, RHExtension.ACTION_COPY);
+		addToAvailable(extensionFile);
+		return act(extensionFile, RHExtension.ACTION_COPY);
 	}
 
 	/**
@@ -328,12 +306,12 @@ public class RHExtension implements Serializable {
 	 * @throws ConverterException
 	 * @throws IOException
 	 */
-	public Resource moveToInstalled(Config config) throws PageException, ConverterException, IOException {
+	public Resource moveToInstalled() throws PageException, ConverterException, IOException {
 		if (extensionFile == null) throw new IOException("no extension file defined");
 		if (!extensionFile.isFile()) throw new IOException("given extension file [" + extensionFile + "] does not exist");
 
-		addToAvailable(config, extensionFile);
-		return act(config, extensionFile, RHExtension.ACTION_MOVE);
+		addToAvailable(extensionFile);
+		return act(extensionFile, RHExtension.ACTION_MOVE);
 	}
 
 	public static void storeMetaData(Config config, String id, String version, Struct data) throws ConverterException, IOException {
@@ -349,7 +327,7 @@ public class RHExtension implements Serializable {
 	}
 
 	// copy the file to extension dir if it is not already there
-	private Resource act(Config config, Resource ext, short action) throws PageException {
+	private Resource act(Resource ext, short action) throws PageException {
 		Resource trg;
 		Resource trgDir;
 		try {
@@ -373,14 +351,14 @@ public class RHExtension implements Serializable {
 		return trg;
 	}
 
-	public void addToAvailable(Config config) {
-		addToAvailable(config, getExtensionFile());
+	public void addToAvailable() {
+		addToAvailable(getExtensionFile());
 	}
 
-	private void addToAvailable(Config config, Resource ext) {
+	private void addToAvailable(Resource ext) {
 		if (id == null) {
 			try {
-				load(config, ext);
+				load(ext);
 			}
 			catch (Exception e) {
 				LogUtil.log("deploy", "extension", e);
@@ -445,7 +423,7 @@ public class RHExtension implements Serializable {
 
 	}
 
-	private void load(Config config, Resource ext) throws IOException, BundleException, ApplicationException {
+	private void load(Resource ext) throws IOException, BundleException, ApplicationException {
 		// print.ds(ext.getAbsolutePath());
 		loaded = true;
 		// no we read the content of the zip
@@ -546,7 +524,7 @@ public class RHExtension implements Serializable {
 
 		// read the manifest
 		if (manifest == null) throw new ApplicationException("The Extension [" + ext + "] is invalid,no Manifest file was found at [META-INF/MANIFEST.MF].");
-		readManifestConfig(config, manifest, ext.getAbsolutePath(), _img);
+		readManifestConfig(manifest, ext.getAbsolutePath(), _img);
 
 		this.jars = jars.toArray(new String[jars.size()]);
 		this.flds = flds.toArray(new String[flds.size()]);
@@ -566,7 +544,7 @@ public class RHExtension implements Serializable {
 
 	}
 
-	private void readManifestConfig(Config config, Manifest manifest, String label, String _img) throws ApplicationException {
+	private void readManifestConfig(Manifest manifest, String label, String _img) throws ApplicationException {
 		boolean isWeb = config instanceof ConfigWeb;
 		type = isWeb ? "web" : "server";
 		Log logger = ThreadLocalPageContext.getLog(config, "deploy");
@@ -580,7 +558,7 @@ public class RHExtension implements Serializable {
 		readVersion(label, StringUtil.unwrap(attr.getValue("version")));
 		label += " : " + version;
 		readId(label, StringUtil.unwrap(attr.getValue("id")));
-		readReleaseType(config, label, StringUtil.unwrap(attr.getValue("release-type")), isWeb);
+		readReleaseType(label, StringUtil.unwrap(attr.getValue("release-type")), isWeb);
 		description = StringUtil.unwrap(attr.getValue("description"));
 		trial = Caster.toBooleanValue(StringUtil.unwrap(attr.getValue("trial")), false);
 		if (_img == null) _img = StringUtil.unwrap(attr.getValue("image"));
@@ -606,7 +584,7 @@ public class RHExtension implements Serializable {
 		readEventGatewayInstances(label, StringUtil.unwrap(attr.getValue("event-gateway-instance")), logger);
 	}
 
-	private void readManifestConfig(Config config, String id, Struct data, String label, String _img) throws ApplicationException {
+	private void readManifestConfig(String id, Struct data, String label, String _img) throws ApplicationException {
 		boolean isWeb = config instanceof ConfigWeb;
 		type = isWeb ? "web" : "server";
 
@@ -619,7 +597,7 @@ public class RHExtension implements Serializable {
 		readVersion(label, ConfigWebFactory.getAttr(data, "version"));
 		label += " : " + version;
 		readId(label, StringUtil.isEmpty(id) ? ConfigWebFactory.getAttr(data, "id") : id);
-		readReleaseType(config, label, ConfigWebFactory.getAttr(data, "releaseType", "release-type"), isWeb);
+		readReleaseType(label, ConfigWebFactory.getAttr(data, "releaseType", "release-type"), isWeb);
 		description = ConfigWebFactory.getAttr(data, "description");
 		trial = Caster.toBooleanValue(ConfigWebFactory.getAttr(data, "trial"), false);
 		if (_img == null) _img = ConfigWebFactory.getAttr(data, "image");
@@ -761,7 +739,7 @@ public class RHExtension implements Serializable {
 		 */
 	}
 
-	public void validate(Config config) throws ApplicationException {
+	public void validate() throws ApplicationException {
 		validate(ConfigWebUtil.getEngine(config).getInfo());
 	}
 
@@ -794,7 +772,7 @@ public class RHExtension implements Serializable {
 		else categories = null;
 	}
 
-	private void readReleaseType(Config config, String label, String str, boolean isWeb) throws ApplicationException {
+	private void readReleaseType(String label, String str, boolean isWeb) throws ApplicationException {
 		if (((ConfigPro) ThreadLocalPageContext.getConfig(config)).getAdminMode() == ConfigImpl.ADMINMODE_SINGLE) return;
 		// release type
 		int rt = RELEASE_TYPE_ALL;
@@ -897,7 +875,8 @@ public class RHExtension implements Serializable {
 	}
 
 	public static Resource getExtensionInstalledDir(Config config) {
-		return config.getConfigDir().getRealResource("extensions/installed");
+
+		return ((ConfigPro) config).getExtensionInstalledDir();
 	}
 
 	private static int getPhysicalExtensionCount(Config config) {
@@ -916,9 +895,8 @@ public class RHExtension implements Serializable {
 		// reduce the amount of extension stored in available
 		{
 			int max = 2;
-			Resource dir = config.getConfigDir().getRealResource("extensions/available");
+			Resource dir = ((ConfigPro) config).getExtensionAvailableDir();
 			Resource[] resources = dir.listResources(LEX_FILTER);
-			if (resources.length < 60) return;
 			Map<String, List<Pair<RHExtension, Resource>>> map = new HashMap<>();
 			RHExtension ext;
 			List<Pair<RHExtension, Resource>> versions;
@@ -1159,7 +1137,7 @@ public class RHExtension implements Serializable {
 				0, "Extensions");
 	}
 
-	private void populate(Query qry) throws PageException {
+	private void populate(Query qry) throws PageException, IOException, BundleException {
 		int row = qry.addRow();
 		qry.setAt(KeyConstants._id, row, getId());
 		qry.setAt(KeyConstants._name, row, getName());
@@ -1386,63 +1364,85 @@ public class RHExtension implements Serializable {
 		return releaseType;
 	}
 
-	public BundleInfo[] getBundles() {
+	public BundleInfo[] getBundles() throws ApplicationException, IOException, BundleException {
+		if (!loaded) load(extensionFile);
 		return bundles;
 	}
 
 	public BundleInfo[] getBundles(BundleInfo[] defaultValue) {
+		if (!loaded) {
+			try {
+				load(extensionFile);
+			}
+			catch (Exception e) {
+				return defaultValue;
+			}
+		}
 		return bundles;
 	}
 
-	public String[] getFlds() {
+	public String[] getFlds() throws ApplicationException, IOException, BundleException {
+		if (!loaded) load(extensionFile);
 		return flds == null ? EMPTY : flds;
 	}
 
-	public String[] getJars() {
+	public String[] getJars() throws ApplicationException, IOException, BundleException {
+		if (!loaded) load(extensionFile);
 		return jars == null ? EMPTY : jars;
 	}
 
-	public String[] getTlds() {
+	public String[] getTlds() throws ApplicationException, IOException, BundleException {
+		if (!loaded) load(extensionFile);
 		return tlds == null ? EMPTY : tlds;
 	}
 
-	public String[] getFunctions() {
+	public String[] getFunctions() throws ApplicationException, IOException, BundleException {
+		if (!loaded) load(extensionFile);
 		return functions == null ? EMPTY : functions;
 	}
 
-	public String[] getArchives() {
+	public String[] getArchives() throws ApplicationException, IOException, BundleException {
+		if (!loaded) load(extensionFile);
 		return archives == null ? EMPTY : archives;
 	}
 
-	public String[] getTags() {
+	public String[] getTags() throws ApplicationException, IOException, BundleException {
+		if (!loaded) load(extensionFile);
 		return tags == null ? EMPTY : tags;
 	}
 
-	public String[] getEventGateways() {
+	public String[] getEventGateways() throws ApplicationException, IOException, BundleException {
+		if (!loaded) load(extensionFile);
 		return gateways == null ? EMPTY : gateways;
 	}
 
-	public String[] getApplications() {
+	public String[] getApplications() throws ApplicationException, IOException, BundleException {
+		if (!loaded) load(extensionFile);
 		return applications == null ? EMPTY : applications;
 	}
 
-	public String[] getComponents() {
+	public String[] getComponents() throws ApplicationException, IOException, BundleException {
+		if (!loaded) load(extensionFile);
 		return components == null ? EMPTY : components;
 	}
 
-	public String[] getPlugins() {
+	public String[] getPlugins() throws ApplicationException, IOException, BundleException {
+		if (!loaded) load(extensionFile);
 		return plugins == null ? EMPTY : plugins;
 	}
 
-	public String[] getContexts() {
+	public String[] getContexts() throws ApplicationException, IOException, BundleException {
+		if (!loaded) load(extensionFile);
 		return contexts == null ? EMPTY : contexts;
 	}
 
-	public String[] getConfigs() {
+	public String[] getConfigs() throws ApplicationException, IOException, BundleException {
+		if (!loaded) load(extensionFile);
 		return configs == null ? EMPTY : configs;
 	}
 
-	public String[] getWebContexts() {
+	public String[] getWebContexts() throws ApplicationException, IOException, BundleException {
+		if (!loaded) load(extensionFile);
 		return webContexts == null ? EMPTY : webContexts;
 	}
 

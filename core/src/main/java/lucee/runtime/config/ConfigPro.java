@@ -390,6 +390,10 @@ public interface ConfigPro extends Config {
 
 	public boolean getShowTest();
 
+	public Resource getExtensionInstalledDir();
+
+	public Resource getExtensionAvailableDir();
+
 	public JavaSettings getJavaSettings();
 
 	public JavaSettings getJavaSettings(String id);

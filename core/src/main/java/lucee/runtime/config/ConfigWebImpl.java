@@ -1942,4 +1942,14 @@ public class ConfigWebImpl implements ConfigWebPro {
 	public JavaSettings getJavaSettings() {
 		return instance.getJavaSettings();
 	}
+
+	@Override
+	public Resource getExtensionInstalledDir() {
+		return instance.getExtensionInstalledDir();
+	}
+
+	@Override
+	public Resource getExtensionAvailableDir() {
+		return instance.getExtensionAvailableDir();
+	}
 }

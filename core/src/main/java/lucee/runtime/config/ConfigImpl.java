@@ -172,7 +172,6 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 
 	// FUTURE add to interface
 	public static final short ADMINMODE_SINGLE = 1;
-
 	public static final short ADMINMODE_MULTI = 2;
 	public static final short ADMINMODE_AUTO = 4;
 
@@ -437,9 +436,13 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	private boolean showMetric;
 
 	private boolean showTest;
-
 	private JavaSettings javaSettings;
 	private Map<String, JavaSettings> javaSettingsInstances = new ConcurrentHashMap<>();
+
+	private boolean fullNullSupport = false;
+
+	private Resource extInstalled;
+	private Resource extAvailable;
 
 	/**
 	 * @return the allowURLRequestTimeout
@@ -2696,15 +2699,6 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	}
 
 	@Override
-	public Resource getExtensionDirectory() {
-		// TODO take from tag <extensions>
-		Resource dir = getConfigDir().getRealResource("extensions/installed");
-		if (!dir.exists()) dir.mkdirs();
-
-		return dir;
-	}
-
-	@Override
 	public ExtensionProvider[] getExtensionProviders() {
 		throw new RuntimeException("no longer supported, use getRHExtensionProviders() instead.");
 	}
@@ -3906,8 +3900,6 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 		return cd == null || StringUtil.isEmpty(cd.getClassName());
 	}
 
-	private boolean fullNullSupport = false;
-
 	protected final void setFullNullSupport(boolean fullNullSupport) {
 		this.fullNullSupport = fullNullSupport;
 	}
@@ -4018,10 +4010,39 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 				if (javaSettings == null) {
 					javaSettings = JavaSettingsImpl.getInstance(this, new StructImpl());
 				}
-
 			}
 		}
 		return javaSettings;
 	}
 
+	@Override
+	public Resource getExtensionDirectory() {
+		return getExtensionInstalledDir();
+	}
+
+	@Override
+	public Resource getExtensionInstalledDir() {
+		if (extInstalled == null) {
+			synchronized (SystemUtil.createToken("extensions", "installed")) {
+				if (extInstalled == null) {
+					extInstalled = getConfigDir().getRealResource("extensions/installed");
+					if (!extInstalled.exists()) extInstalled.mkdirs();
+				}
+			}
+		}
+		return extInstalled;
+	}
+
+	@Override
+	public Resource getExtensionAvailableDir() {
+		if (extAvailable == null) {
+			synchronized (SystemUtil.createToken("extensions", "available")) {
+				if (extAvailable == null) {
+					extAvailable = getConfigDir().getRealResource("extensions/available");
+					if (!extAvailable.exists()) extAvailable.mkdirs();
+				}
+			}
+		}
+		return extAvailable;
+	}
 }
