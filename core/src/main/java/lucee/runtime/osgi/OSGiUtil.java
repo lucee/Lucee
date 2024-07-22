@@ -1095,6 +1095,39 @@ public class OSGiUtil {
 			if (mbf != null) {
 				return improveFileName(bd, mbf);
 			}
+
+			List<Resource> children = listFiles(dir, addional, JAR_EXT_FILTER);
+
+			// now we check all jar files
+			{
+
+				// now we check by Manifest comparsion, name not necessary reflect the correct bundle info
+				BundleFile bf;
+				for (boolean checkBundleRange: checkBundleRanges) {
+					mbf = null;
+					for (Resource child: children) {
+						if (checkBundleRange && !new Filter(bundleRange).accept(child.getName())) continue;
+						match = child;
+						bf = BundleFile.getInstance(child);
+						if (bf.isBundle()) {
+							if (bf.getSymbolicName().equals(bundleRange.getName())) {
+								if (bundleRange.matches(bf)) {
+									if (mbf == null || OSGiUtil.isNewerThan(bf.getVersion(), mbf.getVersion())) mbf = bf;
+								}
+								else {
+									if (versionsFound != null) {
+										if (versionsFound.length() > 0) versionsFound.append(", ");
+										versionsFound.append(bf.getVersionAsString());
+									}
+								}
+							}
+						}
+					}
+					if (mbf != null) {
+						return improveFileName(factory.getBundleDirectory(), mbf);
+					}
+				}
+			}
 			/*
 			 * List<Resource> children = listFiles(dir, addional, JAR_EXT_FILTER);
 			 * 
