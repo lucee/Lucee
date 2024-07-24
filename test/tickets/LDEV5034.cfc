@@ -31,7 +31,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 
 				arrayAppend( tests, _file( dir, "644.txt", "644" ) );
 				arrayAppend( tests, _file( dir, "743.txt", "743" ) );
-				arrayAppend( tests, _file( dir, "043.txt", "043" ) );
+				arrayAppend( tests, _file( dir, "043.txt", "443" ) );
 				arrayAppend( tests, _file( dir, "400.txt", "400" ) );
 
 				var files = directoryList( dir, true, "query");
