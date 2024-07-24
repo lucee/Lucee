@@ -1,6 +1,7 @@
 package lucee.runtime.config;
 
 import java.io.IOException;
+import java.util.Collection;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletContext;
@@ -13,6 +14,8 @@ import org.xml.sax.SAXException;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.ResourcesImpl.ResourceProviderFactory;
 import lucee.commons.lang.PhysicalClassLoader;
+import lucee.runtime.ai.AIEngineFactory;
+import lucee.runtime.ai.AISessionPool;
 import lucee.runtime.config.gateway.GatewayMap;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.listener.JavaSettings;
@@ -1951,5 +1954,20 @@ public class ConfigWebImpl implements ConfigWebPro {
 	@Override
 	public Resource getExtensionAvailableDir() {
 		return instance.getExtensionAvailableDir();
+	}
+
+	@Override
+	public Collection<String> getAIEngineFactoryNames() {
+		return instance.getAIEngineFactoryNames();
+	}
+
+	@Override
+	public AIEngineFactory getAIEngineFactory(String name) {
+		return instance.getAIEngineFactory(name);
+	}
+
+	@Override
+	public AISessionPool getAISessionPool() {
+		return instance.getAISessionPool();
 	}
 }

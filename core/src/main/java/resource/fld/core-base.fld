@@ -9612,6 +9612,24 @@ The following things are considered to be empty:
 		</return>
 	</function>
 	
+	<!-- LuceeGetAIEngine -->
+	<function>
+		<name>LuceeGetAIEngine</name>
+		<status>hidden</status>
+		<class>lucee.runtime.functions.ai.LuceeGetAIEngine</class>
+		<description></description>
+		<argument>
+			<name>name</name>
+			<alias>aiName,nameAI</alias>
+			<type>string</type>
+			<required>yes</required>
+			<description></description>
+		</argument>
+		<return>
+			<type>object</type>
+		</return>
+	</function>
+	
 	<!-- LuceeVersionsDetail -->
 	<function>
 		<name>LuceeVersionsDetail</name>

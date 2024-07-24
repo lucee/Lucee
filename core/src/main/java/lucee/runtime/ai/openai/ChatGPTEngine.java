@@ -3,8 +3,6 @@ package lucee.runtime.ai.openai;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 
 import lucee.print;
@@ -13,6 +11,7 @@ import lucee.commons.io.IOUtil;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.ContentType;
 import lucee.commons.io.res.ResourcesImpl;
+import lucee.commons.lang.StringUtil;
 import lucee.commons.net.HTTPUtil;
 import lucee.commons.net.http.HTTPResponse;
 import lucee.commons.net.http.Header;
@@ -20,7 +19,11 @@ import lucee.commons.net.http.httpclient.HTTPEngine4Impl;
 import lucee.commons.net.http.httpclient.HeaderImpl;
 import lucee.loader.util.Util;
 import lucee.runtime.ai.AIEngine;
-import lucee.runtime.ai.Request;
+import lucee.runtime.ai.AIEngineFactory;
+import lucee.runtime.ai.AIEngineSupport;
+import lucee.runtime.ai.Conversation;
+import lucee.runtime.ai.ConversationImpl;
+import lucee.runtime.ai.RequestSupport;
 import lucee.runtime.ai.Response;
 import lucee.runtime.converter.JSONConverter;
 import lucee.runtime.converter.JSONDateFormat;
@@ -36,18 +39,22 @@ import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.util.KeyConstants;
 
-public class ChatGPTEngine implements AIEngine {
+public class ChatGPTEngine extends AIEngineSupport {
 	private static final URL DEFAULT_URL;
-	private static final int DEFAULT_TIMEOUT = 0;
+	private static final long DEFAULT_TIMEOUT = 3000L;
 	private static final String DEFAULT_CHARSET = null;
 	private static final String DEFAULT_MIMETYPE = null;
 	private static final String DEFAULT_USERAGENT = "Lucee (AI Request)";
-	private static final String DEFAULT_MODEL = "gpt-3.5-turbo";
+	// private static final String DEFAULT_MODEL = "gpt-4";
+	// private static final String DEFAULT_MODEL = "gpt-3.5-turbo";
+	private static final String DEFAULT_MODEL = "gpt-4o-mini"; // Change to your preferred model
 
 	static {
 		URL tmp = null;
 		try {
 			tmp = new URL("https://api.openai.com/v1/chat/completions");
+			// tmp = new URL("https://api.customopenai.com/v1/chat/completions");
+			// https://chatgpt.com/g/g-EFSGvsHVN-lucee
 		}
 		catch (MalformedURLException e) {
 			log(e);
@@ -58,16 +65,17 @@ public class ChatGPTEngine implements AIEngine {
 	private Struct properties;
 	private URL url;
 	private String secretKey;
-	private int timeout;
+	private long timeout;
 	private String charset;
 	private String mimetype;
 	private ProxyData proxy = null;
 	private Map<String, String> formfields = null;
 	private String model;
-	private List<Struct> conversationHistory = new ArrayList<>();
+	private String systemMessage;
 
 	@Override
-	public AIEngine init(Struct properties) throws PageException {
+	public AIEngine init(AIEngineFactory factory, Struct properties, String initalMessage) throws PageException {
+		super.init(factory);
 		this.properties = properties;
 
 		// URL
@@ -90,7 +98,7 @@ public class ChatGPTEngine implements AIEngine {
 		secretKey = str.trim();
 
 		// timeout
-		timeout = Caster.toIntValue(properties.get(KeyConstants._timeout, null), DEFAULT_TIMEOUT);
+		timeout = Caster.toLongValue(properties.get(KeyConstants._timeout, null), DEFAULT_TIMEOUT);
 		// charset
 		charset = Caster.toString(properties.get(KeyConstants._charset, null), DEFAULT_CHARSET);
 		if (Util.isEmpty(charset, true)) charset = null;
@@ -99,24 +107,45 @@ public class ChatGPTEngine implements AIEngine {
 		if (Util.isEmpty(mimetype, true)) mimetype = null;
 		// model
 		model = Caster.toString(properties.get(KeyConstants._model, DEFAULT_MODEL), DEFAULT_MODEL);
+		// message
+		systemMessage = !StringUtil.isEmpty(initalMessage, true) ? initalMessage.trim() : Caster.toString(properties.get(KeyConstants._message, null), null);
 		return this;
 	}
 
 	@Override
-	public Response invoke(Request req) throws PageException {
+	public Response invoke(String message) throws PageException {
 		try {
+			Struct msg;
 			Array arr = new ArrayImpl();
+
+			// add system
+			if (!StringUtil.isEmpty(systemMessage)) {
+				msg = new StructImpl();
+				msg.set(KeyConstants._role, "system");
+				msg.set(KeyConstants._content, systemMessage);
+				arr.append(msg);
+			}
+
 			// Add conversation history
-			for (Struct msg: conversationHistory) {
-				arr.append(msg);
-			}
-			// Add new user messages
-			for (String q: req.getQuestions()) {
-				Struct msg = new StructImpl();
+			for (Conversation c: getHistoryAsList()) {
+				// question
+				msg = new StructImpl();
 				msg.set(KeyConstants._role, "user");
-				msg.set(KeyConstants._content, q);
+				msg.set(KeyConstants._content, c.getRequest().getQuestion());
 				arr.append(msg);
+				// answer
+				msg = new StructImpl();
+				msg.set(KeyConstants._role, "assistant");
+				msg.set(KeyConstants._content, c.getResponse().getAnswer());
+				arr.append(msg);
+
 			}
+
+			// Add new user messages
+			msg = new StructImpl();
+			msg.set(KeyConstants._role, "user");
+			msg.set(KeyConstants._content, message);
+			arr.append(msg);
 
 			Struct sct = new StructImpl();
 			sct.set(KeyConstants._model, model);
@@ -136,19 +165,14 @@ public class ChatGPTEngine implements AIEngine {
 				Struct raw = Caster.toStruct(new JSONExpressionInterpreter().interpret(null, rsp.getContentAsString(cs)));
 				Struct err = Caster.toStruct(raw.get(KeyConstants._error, null), null);
 				if (err != null) {
+					print.e(err);
 					throw ChatGPTUtil.toException(Caster.toString(err.get(KeyConstants._message)), Caster.toString(err.get(KeyConstants._type, null), null),
 							Caster.toString(err.get(KeyConstants._code, null), null));
 				}
 
-				// Add assistant's response to the conversation history
-				Array choices = Caster.toArray(raw.get(KeyConstants._choices));
-				if (choices != null && choices.size() > 0) {
-					Struct choice = Caster.toStruct(choices.getE(1));
-					Struct message = Caster.toStruct(choice.get(KeyConstants._message));
-					conversationHistory.add(message);
-				}
-
-				return new ChatGPTResponse(raw, cs);
+				ChatGPTResponse response = new ChatGPTResponse(raw, cs);
+				getHistoryAsList().add(new ConversationImpl(new RequestSupport(message), response));
+				return response;
 			}
 			else {
 				throw new ApplicationException("Chat GPT did answer with the mime type [" + ct.getMimeType() + "] that is not supported, only [application/json] is supported");
@@ -167,18 +191,33 @@ public class ChatGPTEngine implements AIEngine {
 		Struct props = new StructImpl();
 
 		props.set(KeyConstants._secretKey, "");
+		props.set(KeyConstants._timeout, "10000");
+		props.set(KeyConstants._message, "keep the answers as short as possible");
 		// props.set(KeyConstants._model, "gpt-4");
 
-		AIEngine ai = new ChatGPTEngine().init(props);
+		AIEngine ai = new ChatGPTEngine().init(null, props, null);
 
 		String code = IOUtil.toString(ResourcesImpl.getFileResourceProvider().getResource("/Users/mic/Test/test-cfconfig/webapps/ROOT/test3.cfm"), CharsetUtil.UTF8);
 
-		Request req = new Request(new String[] { "Please analyze the following Lucee (CFML) code for best practices, performance, and security improvements",
-				" give me suggestions for doc comments", "The code is intended for Lucee version 5.4.4.42.", "keep it as short as possible", "Here is the code:", code });
-		Response rsp = ai.invoke(req);
+		// Request req = new RequestSupport(new String[] { "Please analyze the following Lucee (CFML) code
+		// for best practices, performance, and security improvements",
+		// "give me suggestions for doc comments", "The code is intended for Lucee version 5.4.4.42.", "keep
+		// it as short as possible", "Here is the code:", code });
 
+		Response rsp = ai.invoke("Where was Albert Einstein born");
 		print.e(rsp.getAnswer());
 		print.e("-----------------------------------");
 		print.e(rsp);
+
+		rsp = ai.invoke("When did he move to Switzerland and why?");
+		print.e(rsp.getAnswer());
+		print.e("-----------------------------------");
+		print.e(rsp);
+
+		rsp = ai.invoke("what was his eye color?");
+		print.e(rsp.getAnswer());
+		print.e("-----------------------------------");
+		print.e(rsp);
+
 	}
 }

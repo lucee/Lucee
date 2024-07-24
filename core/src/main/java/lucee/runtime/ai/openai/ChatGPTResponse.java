@@ -44,4 +44,8 @@ public class ChatGPTResponse implements Response {
 		return Caster.toString(sct.get(KeyConstants._content, null), null);
 	}
 
+	public Struct getData() {
+		return raw;
+	}
+
 }

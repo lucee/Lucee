@@ -24,6 +24,8 @@ import lucee.runtime.CIPage;
 import lucee.runtime.Mapping;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageSource;
+import lucee.runtime.ai.AIEngineFactory;
+import lucee.runtime.ai.AISessionPool;
 import lucee.runtime.cache.tag.CacheHandler;
 import lucee.runtime.component.ImportDefintion;
 import lucee.runtime.customtag.InitFile;
@@ -401,4 +403,10 @@ public interface ConfigPro extends Config {
 	public void setJavaSettings(String id, JavaSettings js);
 
 	public Resource getMavenDir();
+
+	public Collection<String> getAIEngineFactoryNames();
+
+	public AIEngineFactory getAIEngineFactory(String name);
+
+	public AISessionPool getAISessionPool();
 }

@@ -47,6 +47,8 @@ import lucee.runtime.Mapping;
 import lucee.runtime.MappingImpl;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageSource;
+import lucee.runtime.ai.AIEngineFactory;
+import lucee.runtime.ai.AISessionPool;
 import lucee.runtime.cache.CacheConnection;
 import lucee.runtime.cache.tag.CacheHandler;
 import lucee.runtime.cache.tag.CacheHandlerCollection;
@@ -2130,5 +2132,20 @@ class SingleContextConfigWeb extends ConfigBase implements ConfigWebInner {
 	@Override
 	public Resource getExtensionAvailableDir() {
 		return cs.getExtensionAvailableDir();
+	}
+
+	@Override
+	public Collection<String> getAIEngineFactoryNames() {
+		return cs.getAIEngineFactoryNames();
+	}
+
+	@Override
+	public AIEngineFactory getAIEngineFactory(String name) {
+		return cs.getAIEngineFactory(name);
+	}
+
+	@Override
+	public AISessionPool getAISessionPool() {
+		return cs.getAISessionPool();
 	}
 }

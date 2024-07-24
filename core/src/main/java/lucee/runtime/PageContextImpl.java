@@ -80,6 +80,7 @@ import lucee.commons.lock.Lock;
 import lucee.commons.net.HTTPUtil;
 import lucee.intergral.fusiondebug.server.FDSignal;
 import lucee.loader.engine.CFMLEngine;
+import lucee.runtime.ai.AIEngine;
 import lucee.runtime.cache.CacheConnection;
 import lucee.runtime.cache.CacheUtil;
 import lucee.runtime.cache.tag.CacheHandler;
@@ -4210,5 +4211,31 @@ public final class PageContextImpl extends PageContext {
 		long tmp = lastTimeoutNoAction;
 		lastTimeoutNoAction = System.currentTimeMillis();
 		return tmp;
+	}
+
+	public AIEngine createAISession(String nameAI, String initalMessage) throws PageException {
+		return ((ConfigPro) config).getAISessionPool().createSession(this, nameAI, initalMessage);
+	}
+
+	public AIEngine getAISession(String nameSession) throws PageException {
+		return ((ConfigPro) config).getAISessionPool().getSession(this, nameSession);
+	}
+
+	public void returnAISession(AIEngine aie) {
+		((ConfigPro) config).getAISessionPool().returnSession(this, aie);
+	}
+
+	public String getNameFromDefault(String defaultName) throws PageException {
+		if (StringUtil.isEmpty(defaultName, true)) throw new ApplicationException("default name cannot be empty.");
+		defaultName = defaultName.trim();
+
+		// TODO make a more direct way
+		ConfigPro cp = config;
+		for (String name: cp.getAIEngineFactoryNames()) {
+			if (defaultName.equalsIgnoreCase(cp.getAIEngineFactory(name).getDefault())) {
+				return name;
+			}
+		}
+		throw new ApplicationException("no match for default [" + defaultName + "] found.");
 	}
 }

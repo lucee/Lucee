@@ -51,6 +51,8 @@ import lucee.runtime.CFMLFactory;
 import lucee.runtime.CFMLFactoryImpl;
 import lucee.runtime.Mapping;
 import lucee.runtime.MappingImpl;
+import lucee.runtime.ai.AIEngineFactory;
+import lucee.runtime.ai.AISessionPool;
 import lucee.runtime.config.ConfigFactory.UpdateInfo;
 import lucee.runtime.config.gateway.GatewayMap;
 import lucee.runtime.db.ClassDefinition;
@@ -395,6 +397,8 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 	}
 
 	private ThreadQueue threadQueue = new ThreadQueueImpl(ThreadQueuePro.MODE_BLOCKING, null); // before the queue is loaded we block all requests
+
+	private AISessionPool aiSessionPool;
 
 	public ThreadQueue setThreadQueue(ThreadQueue threadQueue) {
 		return this.threadQueue = threadQueue;
@@ -889,5 +893,27 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 			}
 		}
 		return mvnDir;
+	}
+
+	@Override
+	public Collection<String> getAIEngineFactoryNames() {
+		return aiEngineFactories.keySet();
+	}
+
+	@Override
+	public AIEngineFactory getAIEngineFactory(String name) {
+		return aiEngineFactories.get(name);
+	}
+
+	@Override
+	public AISessionPool getAISessionPool() {
+		if (aiSessionPool == null) {
+			synchronized (this) {
+				if (aiSessionPool == null) {
+					aiSessionPool = new AISessionPool();
+				}
+			}
+		}
+		return aiSessionPool;
 	}
 }

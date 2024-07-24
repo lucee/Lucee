@@ -88,6 +88,8 @@ import lucee.runtime.Component;
 import lucee.runtime.Mapping;
 import lucee.runtime.MappingImpl;
 import lucee.runtime.PageContext;
+import lucee.runtime.ai.AIEngine;
+import lucee.runtime.ai.AIEngineFactory;
 import lucee.runtime.cache.CacheConnection;
 import lucee.runtime.cache.CacheConnectionImpl;
 import lucee.runtime.cache.ServerCacheConnection;
@@ -690,6 +692,9 @@ public final class ConfigWebFactory extends ConfigFactory {
 			_loadLogin(cs, config, root, log);
 			if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_DEBUG, ConfigWebFactory.class.getName(), "loaded login");
 
+			_loadAI(cs, config, root, log);
+			if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_DEBUG, ConfigWebFactory.class.getName(), "loaded AI");
+
 			_loadStartupHook(cs, config, root, log);
 			if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_DEBUG, ConfigWebFactory.class.getName(), "loaded startup hook");
 		}
@@ -859,7 +864,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 		}
 	}
 
-	private static ClassDefinition getClassDefinition(Struct data, String prefix, Identification id) {
+	private static <T> ClassDefinition<T> getClassDefinition(Struct data, String prefix, Identification id) {
 		String cn;
 		String bn;
 		String bv;
@@ -875,12 +880,12 @@ public final class ConfigWebFactory extends ConfigFactory {
 			bv = getAttr(data, prefix + "BundleVersion");
 		}
 
-		// proxy jar libary no longer provided, so if still this class name is used ....
+		// proxy jar library no longer provided, so if still this class name is used ....
 		if ("com.microsoft.jdbc.sqlserver.SQLServerDriver".equals(cn)) {
 			cn = "com.microsoft.sqlserver.jdbc.SQLServerDriver";
 		}
 
-		ClassDefinition cd = new ClassDefinitionImpl(cn, bn, bv, id);
+		ClassDefinition<T> cd = new ClassDefinitionImpl<>(cn, bn, bv, id);
 		// if(!StringUtil.isEmpty(cd.className,true))cd.getClazz();
 		return cd;
 	}
@@ -950,6 +955,53 @@ public final class ConfigWebFactory extends ConfigFactory {
 		catch (Throwable th) {
 			ExceptionUtil.rethrowIfNecessary(th);
 			log(config, log, th);
+		}
+	}
+
+	private static void _loadAI(ConfigServerImpl configServer, ConfigImpl config, Struct root, Log log) {
+		try {
+			boolean hasCS = configServer != null;
+
+			// we only load this for the server context
+			if (hasCS) return;
+			Struct ai = ConfigWebUtil.getAsStruct(root, "ai");
+			if (ai != null) {
+
+				ClassDefinition<AIEngine> cd;
+				String strId;
+				Iterator<Entry<Key, Object>> it = ai.entryIterator();
+				Entry<Key, Object> entry;
+				Struct data, custom;
+				String _default;
+				Map<String, AIEngineFactory> engines = new HashMap<>();
+
+				while (it.hasNext()) {
+					try {
+						entry = it.next();
+						data = Caster.toStruct(entry.getValue(), null);
+						if (data == null) continue;
+						strId = entry.getKey().getString();
+
+						cd = getClassDefinition(data, "", config.getIdentification());
+						if (cd.hasClass() && !StringUtil.isEmpty(strId)) {
+							strId = strId.trim().toLowerCase();
+
+							custom = Caster.toStruct(data.get(KeyConstants._custom, null), null);
+							if (custom == null) custom = Caster.toStruct(data.get(KeyConstants._properties, null), null);
+							if (custom == null) custom = Caster.toStruct(data.get(KeyConstants._arguments, null), null);
+							_default = Caster.toString(data.get(KeyConstants._default, null), null);
+							engines.put(strId, AIEngineFactory.load(config, cd, custom, strId, _default, false));
+						}
+					}
+					catch (Exception e) {
+						log(config, log, e);
+					}
+				}
+				config.setAIEngineFactories(engines);
+			}
+		}
+		catch (Exception ex) {
+			log(config, log, ex);
 		}
 	}
 

@@ -77,6 +77,7 @@ import lucee.runtime.MappingImpl;
 import lucee.runtime.Page;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageSource;
+import lucee.runtime.ai.AIEngineFactory;
 import lucee.runtime.cache.CacheConnection;
 import lucee.runtime.cache.ram.RamCache;
 import lucee.runtime.cache.tag.CacheHandler;
@@ -443,6 +444,8 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 
 	private Resource extInstalled;
 	private Resource extAvailable;
+
+	protected Map<String, AIEngineFactory> aiEngineFactories;
 
 	/**
 	 * @return the allowURLRequestTimeout
@@ -1526,6 +1529,10 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	 */
 	protected void setDataSources(Map<String, DataSource> datasources) {
 		this.datasources = datasources;
+	}
+
+	protected void setAIEngineFactories(Map<String, AIEngineFactory> aiEngineFactories) {
+		this.aiEngineFactories = aiEngineFactories;
 	}
 
 	/**
