@@ -152,10 +152,21 @@ public final class LogUtil {
 
 	public static void log(Config config, int level, String logName, String type, String msg) {
 		Log log = ThreadLocalPageContext.getLog(config, logName);
-		if (log != null) log.log(level, type, msg);
-		else {
-			logGlobal(ThreadLocalPageContext.getConfig(config), level, logName + ":" + type, msg);
+		if (log != null) {
+			log.log(level, type, msg);
+			return;
 		}
+		// fallback to application
+		if (!"application".equalsIgnoreCase(logName)) {
+			log = ThreadLocalPageContext.getLog(config, "application");
+			if (log != null) {
+				log.log(level, type, msg);
+				return;
+			}
+		}
+
+		logGlobal(ThreadLocalPageContext.getConfig(config), level, logName + ":" + type, msg);
+
 	}
 
 	public static void log(PageContext pc, int level, String logName, String type, String msg) {
