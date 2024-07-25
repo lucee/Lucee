@@ -1462,25 +1462,25 @@ public final class ConfigAdmin {
 				if (!StringUtil.isEmpty(id)) el.setEL(KeyConstants._id, id);
 				else if (el.containsKey(KeyConstants._id)) el.removeEL(KeyConstants._id);
 
-				el.setEL("dsn", dsn);
-				el.setEL("username", username);
-				el.setEL("password", ConfigWebUtil.encrypt(password));
+				el.setEL(KeyConstants._dsn, dsn);
+				el.setEL(KeyConstants._username, username);
+				el.setEL(KeyConstants._password, ConfigWebUtil.encrypt(password));
 
-				el.setEL("host", host);
+				el.setEL(KeyConstants._host, host);
 				if (!StringUtil.isEmpty(timezone)) el.setEL(KeyConstants._timezone, timezone);
 				else if (el.containsKey(KeyConstants._timezone)) el.removeEL(KeyConstants._timezone);
-				el.setEL("database", database);
-				el.setEL("port", Caster.toString(port));
-				el.setEL("connectionLimit", Caster.toString(connectionLimit));
-				el.setEL("connectionTimeout", Caster.toString(idleTimeout));
-				el.setEL("liveTimeout", Caster.toString(liveTimeout));
-				el.setEL("metaCacheTimeout", Caster.toString(metaCacheTimeout));
-				el.setEL("blob", Caster.toString(blob));
-				el.setEL("clob", Caster.toString(clob));
-				el.setEL("allow", Caster.toString(allow));
-				el.setEL("validate", Caster.toString(validate));
-				el.setEL("storage", Caster.toString(storage));
-				el.setEL("custom", toStringURLStyle(custom));
+				el.setEL(KeyConstants._database, database);
+				el.setEL(KeyConstants._port, Caster.toString(port));
+				el.setEL(KeyConstants._connectionLimit, Caster.toString(connectionLimit));
+				el.setEL(KeyConstants._connectionTimeout, Caster.toString(idleTimeout));
+				el.setEL(KeyConstants._liveTimeout, Caster.toString(liveTimeout));
+				el.setEL(KeyConstants._metaCacheTimeout, Caster.toString(metaCacheTimeout));
+				el.setEL(KeyConstants._blob, Caster.toString(blob));
+				el.setEL(KeyConstants._clob, Caster.toString(clob));
+				el.setEL(KeyConstants._allow, Caster.toString(allow));
+				el.setEL(KeyConstants._validate, Caster.toString(validate));
+				el.setEL(KeyConstants._storage, Caster.toString(storage));
+				el.setEL(KeyConstants._custom, custom);
 
 				if (!StringUtil.isEmpty(dbdriver)) el.setEL("dbdriver", Caster.toString(dbdriver));
 
@@ -1540,7 +1540,7 @@ public final class ConfigAdmin {
 		el.setEL("validate", Caster.toString(validate));
 		el.setEL("storage", Caster.toString(storage));
 		if (allow > -1) el.setEL("allow", Caster.toString(allow));
-		el.setEL("custom", toStringURLStyle(custom));
+		el.setEL("custom", custom);
 
 		if (!StringUtil.isEmpty(dbdriver)) el.setEL("dbdriver", Caster.toString(dbdriver));
 
@@ -1765,7 +1765,7 @@ public final class ConfigAdmin {
 				el.setEL("cfcPath", componentPath);
 				el.setEL("listenerCFCPath", listenerCfcPath);
 				el.setEL("startupMode", GatewayEntryImpl.toStartup(startupMode, "automatic"));
-				el.setEL("custom", toStringURLStyle(custom));
+				el.setEL("custom", custom);
 				el.setEL("readOnly", Caster.toString(readOnly));
 				return;
 			}
@@ -1778,7 +1778,7 @@ public final class ConfigAdmin {
 		el.setEL("listenerCFCPath", listenerCfcPath);
 		el.setEL("startupMode", GatewayEntryImpl.toStartup(startupMode, "automatic"));
 		setClass(el, null, "", cd);
-		el.setEL("custom", toStringURLStyle(custom));
+		el.setEL("custom", custom);
 		el.setEL("readOnly", Caster.toString(readOnly));
 	}
 
@@ -1928,7 +1928,7 @@ public final class ConfigAdmin {
 			if (key.getString().equalsIgnoreCase(name)) {
 				Struct el = Caster.toStruct(conns.get(key, null), null);
 				setClass(el, null, "", cd);
-				el.setEL("custom", toStringURLStyle(custom));
+				el.setEL("custom", custom);
 				el.setEL("readOnly", Caster.toString(readOnly));
 				el.setEL("storage", Caster.toString(storage));
 				return;
@@ -1939,7 +1939,7 @@ public final class ConfigAdmin {
 		Struct data = new StructImpl(Struct.TYPE_LINKED);
 		conns.setEL(name, data);
 		setClass(data, null, "", cd);
-		data.setEL("custom", toStringURLStyle(custom));
+		data.setEL("custom", custom);
 		data.setEL("readOnly", Caster.toString(readOnly));
 		data.setEL("storage", Caster.toString(storage));
 
@@ -2052,14 +2052,6 @@ public final class ConfigAdmin {
 	}
 
 	public void updateResourceProvider(String scheme, ClassDefinition cd, Struct arguments) throws PageException {
-		updateResourceProvider(scheme, cd, toStringCSSStyle(arguments));
-	}
-
-	public void _updateResourceProvider(String scheme, ClassDefinition cd, Struct arguments) throws PageException {
-		_updateResourceProvider(scheme, cd, toStringCSSStyle(arguments));
-	}
-
-	public void updateResourceProvider(String scheme, ClassDefinition cd, String arguments) throws PageException {
 		checkWriteAccess();
 		SecurityManager sm = config.getSecurityManager();
 		short access = sm.getAccess(SecurityManager.TYPE_FILE);
@@ -2069,7 +2061,7 @@ public final class ConfigAdmin {
 		_updateResourceProvider(scheme, cd, arguments);
 	}
 
-	public void _updateResourceProvider(String scheme, ClassDefinition cd, String arguments) throws PageException {
+	public void _updateResourceProvider(String scheme, ClassDefinition cd, Struct arguments) throws PageException {
 
 		// check parameters
 		if (StringUtil.isEmpty(scheme)) throw new ExpressionException("scheme can't be an empty value");
@@ -2133,37 +2125,6 @@ public final class ConfigAdmin {
 			if (!((DataSource) ds.get(it.next())).isReadOnly()) len++;
 		}
 		return len;
-	}
-
-	private static String toStringURLStyle(Struct sct) {
-		if (sct == null) return "";
-		Iterator<Entry<Key, Object>> it = sct.entryIterator();
-		Entry<Key, Object> e;
-		StringBuilder rtn = new StringBuilder();
-		while (it.hasNext()) {
-			e = it.next();
-			if (rtn.length() > 0) rtn.append('&');
-			rtn.append(URLEncoder.encode(e.getKey().getString()));
-			rtn.append('=');
-			rtn.append(URLEncoder.encode(Caster.toString(e.getValue(), "")));
-		}
-		return rtn.toString();
-	}
-
-	private static String toStringCSSStyle(Struct sct) {
-		// Collection.Key[] keys = sct.keys();
-		StringBuilder rtn = new StringBuilder();
-		Iterator<Entry<Key, Object>> it = sct.entryIterator();
-		Entry<Key, Object> e;
-
-		while (it.hasNext()) {
-			e = it.next();
-			if (rtn.length() > 0) rtn.append(';');
-			rtn.append(encode(e.getKey().getString()));
-			rtn.append(':');
-			rtn.append(encode(Caster.toString(e.getValue(), "")));
-		}
-		return rtn.toString();
 	}
 
 	private static String encode(String str) {
@@ -4257,7 +4218,7 @@ public final class ConfigAdmin {
 	public void updateExecutionLog(ClassDefinition cd, Struct args, boolean enabled) throws PageException {
 		Struct el = _getRootElement("executionLog");
 		setClass(el, null, "", cd);
-		el.setEL("arguments", toStringCSSStyle(args));
+		el.setEL("arguments", args);
 		el.setEL("enabled", Caster.toString(enabled));
 	}
 
@@ -5541,7 +5502,7 @@ public final class ConfigAdmin {
 		usage.setEL(code, displayname);
 
 		Struct extensions = _getRootElement("remoteClients");
-		extensions.setEL("usage", toStringURLStyle(usage));
+		extensions.setEL("usage", usage);
 
 	}
 
@@ -5557,7 +5518,7 @@ public final class ConfigAdmin {
 		usage.removeEL(KeyImpl.init(code));
 
 		Struct extensions = _getRootElement("remoteClients");
-		extensions.setEL("usage", toStringURLStyle(usage));
+		extensions.setEL("usage", usage);
 
 	}
 
@@ -5687,7 +5648,7 @@ public final class ConfigAdmin {
 		el.setEL("label", label);
 		el.setEL("path", path);
 		el.setEL("fullname", fullname);
-		el.setEL("custom", toStringURLStyle(custom));
+		el.setEL("custom", custom);
 	}
 
 	public void removeDebugEntry(String id) throws SecurityException {
@@ -5760,9 +5721,9 @@ public final class ConfigAdmin {
 
 		el.setEL("level", LogUtil.levelToString(level, ""));
 		setClass(el, null, "appender", appenderCD);
-		el.setEL("appenderArguments", toStringCSSStyle(appenderArgs));
+		el.setEL("appenderArguments", appenderArgs);
 		setClass(el, null, "layout", layoutCD);
-		el.setEL("layoutArguments", toStringCSSStyle(layoutArgs));
+		el.setEL("layoutArguments", layoutArgs);
 
 		if (el.containsKey("appender")) rem(el, "appender");
 		if (el.containsKey("layout")) rem(el, "layout");

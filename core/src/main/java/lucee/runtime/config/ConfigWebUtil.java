@@ -47,6 +47,7 @@ import lucee.commons.io.res.util.ResourceClassLoader;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
+import lucee.commons.net.URLDecoder;
 import lucee.loader.engine.CFMLEngine;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.runtime.Mapping;
@@ -80,6 +81,7 @@ import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.util.ArrayUtil;
+import lucee.runtime.type.util.ListUtil;
 import lucee.transformer.library.function.FunctionLib;
 import lucee.transformer.library.tag.TagLib;
 
@@ -827,8 +829,10 @@ public final class ConfigWebUtil {
 		return getAsArray(child, getAsStruct(parent, sct));
 	}
 
-	public static Struct getAsStruct(Struct input, String... names) {
+	public static Struct getAsStruct(Struct input, boolean allowCSSString, String... names) {
 		Struct sct = null;
+		if (input == null) return sct;
+
 		Object obj;
 		for (String name: names) {
 			obj = input.get(name, null);
@@ -837,11 +841,41 @@ public final class ConfigWebUtil {
 			}
 		}
 
+		if (allowCSSString && sct == null) {
+			for (String name: names) {
+				obj = input.get(name, null);
+				if (obj instanceof CharSequence && !StringUtil.isEmpty(obj.toString(), true)) {
+					sct = toStruct(obj.toString().trim());
+					if (!sct.isEmpty()) break;
+				}
+			}
+
+		}
+
 		if (sct == null) {
 			sct = new StructImpl(Struct.TYPE_LINKED);
 			input.put(names[0], sct);
 			return sct;
 		}
+		return sct;
+	}
+
+	public static Struct toStruct(String str) {
+
+		Struct sct = new StructImpl(StructImpl.TYPE_LINKED);
+		try {
+			String[] arr = ListUtil.toStringArray(ListUtil.listToArrayRemoveEmpty(str, '&'));
+
+			String[] item;
+			for (int i = 0; i < arr.length; i++) {
+				item = ListUtil.toStringArray(ListUtil.listToArrayRemoveEmpty(arr[i], '='));
+				if (item.length == 2) sct.setEL(KeyImpl.init(URLDecoder.decode(item[0], true).trim()), URLDecoder.decode(item[1], true));
+				else if (item.length == 1) sct.setEL(KeyImpl.init(URLDecoder.decode(item[0], true).trim()), "");
+			}
+		}
+		catch (PageException ee) {
+		}
+
 		return sct;
 	}
 

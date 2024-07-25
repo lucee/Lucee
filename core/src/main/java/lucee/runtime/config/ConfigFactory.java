@@ -261,7 +261,7 @@ public abstract class ConfigFactory {
 		else {
 			new ConverterException("inputing data is invalid, cannot cast [" + old.getClass().getName() + "] to a Resource or an InputSource");
 		}
-		Struct root = ConfigWebUtil.getAsStruct(reader.getData(), "cfLuceeConfiguration", "luceeConfiguration", "lucee-configuration");
+		Struct root = ConfigWebUtil.getAsStruct(reader.getData(), false, "cfLuceeConfiguration", "luceeConfiguration", "lucee-configuration");
 
 		//////////////////// charset ////////////////////
 		{
@@ -947,7 +947,7 @@ public abstract class ConfigFactory {
 		// That step is not necessary anymore TODO remove
 		if (StringUtil.endsWithIgnoreCase(name, ".xml.cfm") || StringUtil.endsWithIgnoreCase(name, ".xml")) {
 			try {
-				return ConfigWebUtil.getAsStruct(new XMLConfigReader(res, true, new ReadRule(), new NameRule()).getData(), "cfLuceeConfiguration", "luceeConfiguration",
+				return ConfigWebUtil.getAsStruct(new XMLConfigReader(res, true, new ReadRule(), new NameRule()).getData(), false, "cfLuceeConfiguration", "luceeConfiguration",
 						"lucee-configuration");
 			}
 			catch (SAXException e) {
