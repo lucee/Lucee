@@ -2294,7 +2294,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 			else if (hasCS) config.setPSQL(configServer.getPSQL());
 
 			// Data Sources
-			Struct dataSources = ConfigWebUtil.getAsStruct("dataSources", root);
+			Struct dataSources = ConfigWebUtil.getAsStruct(root, false, "dataSources");
 			if (accessCount == -1) accessCount = dataSources.size();
 			if (dataSources.size() < accessCount) accessCount = dataSources.size();
 
@@ -2310,7 +2310,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 				dataSource = Caster.toStruct(e.getValue(), null);
 				if (dataSource == null) continue;
 
-				if (dataSource.containsKey("database")) {
+				if (dataSource.containsKey(KeyConstants._database)) {
 					try {
 						// do we have an id?
 						jdbc = config.getJDBCDriverById(getAttr(dataSource, "id"), null);
