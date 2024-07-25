@@ -963,7 +963,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 
 			// we only load this for the server context
 			if (hasCS) return;
-			Struct ai = ConfigWebUtil.getAsStruct(root, "ai");
+			Struct ai = ConfigWebUtil.getAsStruct(root, false, "ai");
 			if (ai != null) {
 
 				ClassDefinition<AIEngine> cd;
@@ -4281,7 +4281,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 		try {
 			if (config instanceof ConfigServerImpl) {
 				ConfigServerImpl csi = (ConfigServerImpl) config;
-				Struct javasettings = ConfigWebUtil.getAsStruct(root, "javasettings");
+				Struct javasettings = ConfigWebUtil.getAsStruct(root, false, "javasettings");
 
 				if (javasettings != null && javasettings.size() > 0) {
 					JavaSettings js = JavaSettingsImpl.getInstance(config, javasettings);
