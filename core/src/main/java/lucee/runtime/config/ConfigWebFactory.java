@@ -181,7 +181,6 @@ import lucee.runtime.tag.TagUtil;
 import lucee.runtime.tag.listener.TagListener;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.Collection.Key;
-import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.UDF;
@@ -2419,7 +2418,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 								Caster.toLongValue(getAttr(dataSource, "metaCacheTimeout"), 60000), toBoolean(getAttr(dataSource, "blob"), true),
 								toBoolean(getAttr(dataSource, "clob"), true), Caster.toIntValue(getAttr(dataSource, "allow"), DataSource.ALLOW_ALL),
 								toBoolean(getAttr(dataSource, "validate"), false), toBoolean(getAttr(dataSource, "storage"), false), getAttr(dataSource, "timezone"),
-								toStruct(getAttr(dataSource, "custom")), getAttr(dataSource, "dbdriver"), ParamSyntax.toParamSyntax(dataSource, ParamSyntax.DEFAULT),
+								ConfigWebUtil.getAsStruct(dataSource, true, "custom"), getAttr(dataSource, "dbdriver"), ParamSyntax.toParamSyntax(dataSource, ParamSyntax.DEFAULT),
 								toBoolean(getAttr(dataSource, "literalTimestampWithTSOffset"), false), toBoolean(getAttr(dataSource, "alwaysSetTimeout"), false),
 								toBoolean(getAttr(dataSource, "requestExclusive"), false), toBoolean(getAttr(dataSource, "alwaysResetConnections"), false)
 
@@ -2673,7 +2672,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 						}
 
 						{
-							Struct custom = toStruct(getAttr(data, "custom"));
+							Struct custom = ConfigWebUtil.getAsStruct(data, true, "custom");
 
 							// Workaround for old EHCache class definitions
 							if (cd.getClassName() != null && cd.getClassName().endsWith(".EHCacheLite")) {
@@ -2841,7 +2840,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 						id = e.getKey().getLowerString();
 
 						ge = new GatewayEntryImpl(id, getClassDefinition(eConnection, "", config.getIdentification()), getAttr(eConnection, "cfcPath"),
-								getAttr(eConnection, "listenerCFCPath"), getAttr(eConnection, "startupMode"), toStruct(getAttr(eConnection, "custom")),
+								getAttr(eConnection, "listenerCFCPath"), getAttr(eConnection, "startupMode"), ConfigWebUtil.getAsStruct(eConnection, true, "custom"),
 								Caster.toBooleanValue(getAttr(eConnection, "readOnly"), false));
 
 						if (!StringUtil.isEmpty(id)) {
@@ -2868,25 +2867,6 @@ public final class ConfigWebFactory extends ConfigFactory {
 		else if (hasCS) {
 			((GatewayEngineImpl) ((ConfigWebPro) config).getGatewayEngine()).clear();
 		}
-	}
-
-	private static Struct toStruct(String str) {
-
-		Struct sct = new StructImpl(StructImpl.TYPE_LINKED);
-		try {
-			String[] arr = ListUtil.toStringArray(ListUtil.listToArrayRemoveEmpty(str, '&'));
-
-			String[] item;
-			for (int i = 0; i < arr.length; i++) {
-				item = ListUtil.toStringArray(ListUtil.listToArrayRemoveEmpty(arr[i], '='));
-				if (item.length == 2) sct.setEL(KeyImpl.init(URLDecoder.decode(item[0], true).trim()), URLDecoder.decode(item[1], true));
-				else if (item.length == 1) sct.setEL(KeyImpl.init(URLDecoder.decode(item[0], true).trim()), "");
-			}
-		}
-		catch (PageException ee) {
-		}
-
-		return sct;
 	}
 
 	private static void setDatasource(ConfigImpl config, Map<String, DataSource> datasources, String datasourceName, ClassDefinition cd, String server, String databasename,
@@ -3695,10 +3675,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 			Struct _clients = ConfigWebUtil.getAsStruct("remoteClients", root);
 
 			// usage
-			String strUsage = getAttr(_clients, "usage");
-			Struct sct;
-			if (!StringUtil.isEmpty(strUsage)) sct = toStruct(strUsage);// config.setRemoteClientUsage(toStruct(strUsage));
-			else sct = new StructImpl();
+			Struct sct = ConfigWebUtil.getAsStruct(_clients, true, "usage");// config.setRemoteClientUsage(toStruct(strUsage));
 			// TODO make this generic
 			if (configServer != null) {
 				String sync = Caster.toString(configServer.getRemoteClientUsage().get("synchronisation", ""), "");
@@ -4732,7 +4709,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 						if (e == null) continue;
 						id = getAttr(e, "id");
 						list.put(id, new DebugEntry(id, getAttr(e, "type"), getAttr(e, "iprange"), getAttr(e, "label"), getAttr(e, "path"), getAttr(e, "fullname"),
-								toStruct(getAttr(e, "custom"))));
+								ConfigWebUtil.getAsStruct(e, true, "custom")));
 					}
 					catch (Throwable t) {
 						ExceptionUtil.rethrowIfNecessary(t);
