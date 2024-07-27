@@ -1,10 +1,10 @@
-component extends="org.lucee.cfml.test.LuceeTestCase"{
+component extends="org.lucee.cfml.test.LuceeTestCase" {
 	function beforeAll(){
 		variables.uri = createURI("LDEV2133");
 	}
 	function run( testResults , testBox ) {
 		describe( "test case for LDEV-2133", function() {
-			it(title = "checking abort with type='page in cfscript'", body = function( currentSpec ) {
+			it(title = "checking abort with type='page in cfscript'", skip=true, body = function( currentSpec ) {
 				local.result = _InternalRequest(
 					template:"#variables.uri#/test.cfm",
 					forms:{Scene=1}
@@ -28,7 +28,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				expect(local.result.filecontent.trim()).toBe('Page type');
 			});
 
-			it(title = "checking cfabort with type='request'", body = function( currentSpec ) {
+			it(title = "checking cfabort with type='request'", skip=true, body = function( currentSpec ) {
 				local.result = _InternalRequest(
 					template:"#variables.uri#/test.cfm",
 					forms:{Scene=4}

@@ -12,7 +12,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mysql" {
 	}
 	function run( testResults , testBox ) {
 		describe( "test case for LDEV-1671", function() {
-			it(title = "Checking value attribute of cfqueryparam is blank", body = function( currentSpec ) {
+			it(title = "Checking value attribute of cfqueryparam is blank", skip=isNotSupported(), body = function( currentSpec ) {
 				local.result = _InternalRequest(
 					template:"#variables.uri#/test.cfm"
 				);
