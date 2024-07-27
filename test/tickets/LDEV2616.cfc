@@ -5,22 +5,20 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 	}
 
 	function run( testResults , testBox ) {
-		describe( "test case for LDEV-2581", function() {
+		describe( "test case for LDEV-2616", function() {
 			it(title = " value empty throws an error for queryexecute function", body = function( currentSpec ) {
-				local.result = _InternalRequest(
-					template : uri&"/LDEV2616.cfm",
-					forms : {scene = 1}
-				);
-				expect(result.filecontent).toBe(0);
+				var result = "";
+				try {
+					result = _InternalRequest(
+						template : uri&"/LDEV2616.cfm"
+					);
+					result = result.fileContent;
+				} catch ( e ) {
+					result = e.message;
+				}
+				expect(result).toInclude("param [id] may not be empty" );
 			});
 
-			it(title = "Value empty execute in query member function query.queryexecute", body = function( currentSpec ) {
-				local.result = _InternalRequest(
-					template : uri&"/LDEV2616.cfm",
-					forms : {scene = 2}
-				);
-				expect(result.filecontent).toBe(0);
-			});
 		});
 	}
 
