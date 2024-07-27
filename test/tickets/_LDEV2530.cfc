@@ -1,7 +1,8 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" labels="qoq"{
+// this is simply crappy code, and will never be supported by lucee, WONT FIX
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="qoq" {
 	function run( testResults , testBox ) {
 		describe( "test suite for LDEV-2530", function() {
-			it(title = "Query returns single column instead of multiple columns", body = function( currentSpec ) {
+			it(title = "Query returns single column instead of multiple columns with the same name (WONTFIX)", body = function( currentSpec ) {
 				a = querynew("id","integer",[{"id": 1},{"id": 2},{"id": 3}]);
 				b = duplicate(a);
 				query name="qry" dbtype="query" {
