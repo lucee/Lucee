@@ -57,8 +57,8 @@
 
 	<!--- private functions --->
 	<cffunction name="maxrow1" access="private">
-		<cfset countofManager = 0>
-		<cfset listofEmployees = 0>
+		<cfset var countofManager = 0>
+		<cfset var listofEmployees = 0>
 		<cfoutput  query="resultQuery" group="Manager" maxrows="1">
 			<cfset countofManager++>
 			<cfoutput>
@@ -68,8 +68,8 @@
 		<cfset expect(countofManager EQ 1 && listofEmployees EQ 2).toBeTrue()>
 	</cffunction>
 	<cffunction name="maxrow2" access="private">
-		<cfset countofManager = 0>
-		<cfset listofEmployees = 0>
+		<cfset var countofManager = 0>
+		<cfset var listofEmployees = 0>
 		<cfoutput  query="resultQuery" group="Manager" maxrows="2">
 			<cfset countofManager++>
 			<cfoutput>
@@ -79,8 +79,8 @@
 		<cfset expect(countofManager EQ 2 && listofEmployees EQ 4).toBeTrue()>
 	</cffunction>
 	<cffunction name="maxrow3" access="private">
-		<cfset countofManager = 0>
-		<cfset listofEmployees = 0>
+		<cfset var countofManager = 0>
+		<cfset var listofEmployees = 0>
 		<cfoutput  query="resultQuery" group="Manager" maxrows="3">
 			<cfset countofManager++>
 			<cfoutput>
@@ -90,8 +90,8 @@
 		<cfset expect(countofManager EQ 3 && listofEmployees EQ 6).toBeTrue()>
 	</cffunction>
 	<cffunction name="maxrow4" access="private">
-		<cfset countofManager = 0>
-		<cfset listofEmployees = 0>
+		<cfset var countofManager = 0>
+		<cfset var listofEmployees = 0>
 		<cfoutput  query="resultQuery" group="Manager" maxrows="4">
 			<cfset countofManager++>
 			<cfoutput>

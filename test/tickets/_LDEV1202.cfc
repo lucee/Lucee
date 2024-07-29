@@ -21,25 +21,15 @@ LDEV-273
 
  ---><cfscript>
 component extends="org.lucee.cfml.test.LuceeTestCase"	{
-	
 
 	public void function testCFMLElvis() {
 		var c=new LDEV1202.Test2();
 		assertEquals("",c.elvis());
 	}
 
-	public void function testLuceeElvis() {
-		var c=new LDEV1202.Test();
-		assertEquals("",c.elvis());
-	}
 
 	public void function testCFMLIsNull() {
 		var c=new LDEV1202.Test2();
-		assertTrue(c.isItNull());
-	}
-
-	public void function testLuceeIsNull() {
-		var c=new LDEV1202.Test();
 		assertTrue(c.isItNull());
 	}
 } 

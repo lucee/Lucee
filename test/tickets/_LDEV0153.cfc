@@ -22,8 +22,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="http" {
 			
 	public void function test(){
 		http url="#variables.updateProvider#/rest/update/provider/echoGet?filtername=henk+patat" result="local.res";
-		res=evaluate(res.filecontent);
-		assertEquals("henk patat",res.url.filtername);
+		res=deserializeJSON(res.filecontent);
+		assertEquals("henk patat",res.url.filtername); // comes back as henk+patat ???
 	}
 
 	
