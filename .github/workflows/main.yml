@@ -50,7 +50,7 @@ jobs:
           SA_PASSWORD: Lucee!1433 # password must be complex or the service won't start
         ports:
           - 1433:1433
-        options: --health-cmd="/opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P ${SA_PASSWORD} -Q 'SELECT 1' || exit 1"  --health-interval 10s --health-timeout 5s --health-retries 5
+        options: --health-cmd="/opt/mssql-tools18/bin/sqlcmd -C -S localhost -U SA -P ${SA_PASSWORD} -Q 'SELECT 1' || exit 1"  --health-interval 10s --health-timeout 5s --health-retries 5
         credentials: 
           username: ${{ secrets.DOCKERHUB_PUBLIC_USERNAME || ' ' }}
           password: ${{ secrets.DOCKERHUB_PUBLIC_TOKEN || ' ' }}
