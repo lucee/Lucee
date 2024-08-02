@@ -76,6 +76,26 @@ component extends="org.lucee.cfml.test.LuceeTestCase" skip=true {
 				expect( parsedForm ).toHaveKey( "fieldnames" );
 				expect( structCount( parsedForm ) ).toBe( 2 );
 			});
+
+			it( title='internalRequest string url [a&=b]', body=function( currentSpec ) {
+				var qs = "a&=b";
+				local.result = _InternalRequest(
+					template : "#uri#/LDEV5049_url.cfm",
+					urls: qs
+				);
+
+				var parsedUrl = deserializeJSON( result.filecontent ); 
+
+				systemOutput( "", true );
+				systemOutput( qs, true );
+				systemOutput( parsedUrl, true );
+
+				expect( parsedUrl ).toHaveKey( "a" );
+				expect( parsedUrl["a"] ).toBe( "" );
+				expect( parsedUrl ).toHaveKey( "" );
+				expect( parsedUrl[""] ).toBe( "b" );
+				expect( structCount( parsedUrl ) ).toBe( 2 );
+			});
 		});
 	}
 
