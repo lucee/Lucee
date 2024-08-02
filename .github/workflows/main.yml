@@ -1,4 +1,4 @@
-name: Build 6.1 
+name: Build 6.1
 
 on: 
   workflow_call:
@@ -22,25 +22,27 @@ on:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
     env:
       DO_DEPLOY: "${{ github.event_name == 'push' && startsWith(github.ref, 'refs/heads/6.1') }}"
       LUCEE_BUILD_JAVA_VERSION: 21
       LUCEE_TEST_JAVA_VERSION: ''
     services:
-      ldap:
-        #  image: kwart/ldap-server
-           image: rroemhild/test-openldap
-           ports:
-             - 10389:10389
-             - 10636:10636
-           credentials: 
-             username: ${{ secrets.DOCKERHUB_PUBLIC_USERNAME }}
-             password: ${{ secrets.DOCKERHUB_PUBLIC_TOKEN }}
-      sql-server:
-        # Docker Hub image
-        image: mcr.microsoft.com/mssql/server:2019-latest
+      ldap_with_creds:
+        image: ${{ (github.secret_source != 'none') && 'rroemhild/test-openldap' || '' }}
+        ports:
+          - 10389:10389
+          - 10636:10636
+        credentials: 
+          username: ${{ secrets.DOCKERHUB_PUBLIC_USERNAME || ' ' }} # empty string to avoid invalid template
+          password: ${{ secrets.DOCKERHUB_PUBLIC_TOKEN || ' ' }}
+      ldap_no_creds:
+        image: ${{ (github.secret_source == 'none') && 'rroemhild/test-openldap' || '' }}
+        ports:
+          - 10389:10389
+          - 10636:10636
+      sql-server_with_creds:
+        image: ${{ (github.secret_source != 'none') && 'mcr.microsoft.com/mssql/server:2022-latest' || '' }}
         env:
           MSSQL_PID: Express
           ACCEPT_EULA: Y
@@ -48,9 +50,20 @@ jobs:
         ports:
           - 1433:1433
         options: --health-cmd="/opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P ${SA_PASSWORD} -Q 'SELECT 1' || exit 1"  --health-interval 10s --health-timeout 5s --health-retries 5
-      redis:
-        # Docker Hub image
-        image: redis
+        credentials: 
+          username: ${{ secrets.DOCKERHUB_PUBLIC_USERNAME || ' ' }}
+          password: ${{ secrets.DOCKERHUB_PUBLIC_TOKEN || ' ' }}
+      sql-server_without_creds:
+        image: ${{ (github.secret_source == 'none') && 'mcr.microsoft.com/mssql/server:2022-latest' || '' }}
+        env:
+          MSSQL_PID: Express
+          ACCEPT_EULA: Y
+          SA_PASSWORD: Lucee!1433 # password must be complex or the service won't start
+        ports:
+          - 1433:1433
+        options: --health-cmd="/opt/mssql-tools18/bin/sqlcmd -C -S localhost -U SA -P ${SA_PASSWORD} -Q 'SELECT 1' || exit 1"  --health-interval 10s --health-timeout 5s --health-retries 5
+      redis_with_creds:
+        image: ${{ (github.secret_source != 'none') && 'redis' || '' }}
         # Set health checks to wait until redis has started
         options: >-
           --health-cmd "redis-cli ping"
@@ -61,10 +74,22 @@ jobs:
           # Maps port 6379 on service container to the host
           - 6379:6379
         credentials: 
-          username: ${{ secrets.DOCKERHUB_PUBLIC_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_PUBLIC_TOKEN }}
-      greenmail:
-        image: greenmail/standalone:1.6.9
+          username: ${{ secrets.DOCKERHUB_PUBLIC_USERNAME || ' ' }}
+          password: ${{ secrets.DOCKERHUB_PUBLIC_TOKEN || ' ' }}
+      redis_without_creds:
+        # Docker Hub image
+        image: ${{ (github.secret_source == 'none') && 'redis' || '' }}
+        # Set health checks to wait until redis has started
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          # Maps port 6379 on service container to the host
+          - 6379:6379
+      greenmail_with_creds:
+        image: ${{ (github.secret_source != 'none') && 'greenmail/standalone:1.6.9' || '' }}
         ports:
           - 3025:3025 #SMTP
           - 3110:3110 #POP3
@@ -74,14 +99,26 @@ jobs:
           - 3995:3995 #POP3S
           - 8080:8080 #API
         credentials: 
-          username: ${{ secrets.DOCKERHUB_PUBLIC_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_PUBLIC_TOKEN }}
+          username: ${{ secrets.DOCKERHUB_PUBLIC_USERNAME || ' ' }}
+          password: ${{ secrets.DOCKERHUB_PUBLIC_TOKEN || ' ' }}
+      greenmail_no_creds:
+        image: ${{ (github.secret_source == 'none') && 'greenmail/standalone:1.6.9' || '' }}
+        ports:
+          - 3025:3025 #SMTP
+          - 3110:3110 #POP3
+          - 3143:3143 #IMAP
+          - 3465:3465 #SMTPS
+          - 3993:3993 #IMAPS
+          - 3995:3995 #POP3S
+          - 8080:8080 #API
+
     steps:
     # when workflow is run via a workflow_call, these vars are found under input, which doesn't exist otherwise
     # so lets copy them over to the normal env vars
 
     - name: Login to Docker Hub
       uses: docker/login-action@v3
+      if: ${{ github.secret_source != 'none' }}
       with:
         username: ${{ secrets.DOCKERHUB_PUBLIC_USERNAME }}
         password: ${{ secrets.DOCKERHUB_PUBLIC_TOKEN }}
