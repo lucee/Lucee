@@ -81,6 +81,7 @@ import lucee.commons.net.HTTPUtil;
 import lucee.intergral.fusiondebug.server.FDSignal;
 import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.ai.AIEngine;
+import lucee.runtime.ai.AISession;
 import lucee.runtime.cache.CacheConnection;
 import lucee.runtime.cache.CacheUtil;
 import lucee.runtime.cache.tag.CacheHandler;
@@ -4213,16 +4214,25 @@ public final class PageContextImpl extends PageContext {
 		return tmp;
 	}
 
-	public AIEngine createAISession(String nameAI, String initalMessage) throws PageException {
-		return ((ConfigPro) config).getAISessionPool().createSession(this, nameAI, initalMessage);
+	public AIEngine getAIEngine(String nameAI) throws PageException {
+		return ((ConfigPro) config).getAIEnginePool().getEngine(this, nameAI);
 	}
 
-	public AIEngine getAISession(String nameSession) throws PageException {
-		return ((ConfigPro) config).getAISessionPool().getSession(this, nameSession);
+	public AIEngine getAIEngine(String nameAI, AIEngine defaultValue) {
+		try {
+			return ((ConfigPro) config).getAIEnginePool().getEngine(this, nameAI);
+		}
+		catch (Exception e) {
+			return defaultValue;
+		}
 	}
 
-	public void returnAISession(AIEngine aie) {
-		((ConfigPro) config).getAISessionPool().returnSession(this, aie);
+	public AISession createAISession(String nameAI, String initalMessage) throws PageException {
+		return getAIEngine(nameAI).createSession(initalMessage, -1);
+	}
+
+	public AISession createAISession(String nameAI, String initalMessage, long timeout) throws PageException {
+		return getAIEngine(nameAI).createSession(initalMessage, timeout);
 	}
 
 	public String getNameFromDefault(String defaultName) throws PageException {
@@ -4237,5 +4247,18 @@ public final class PageContextImpl extends PageContext {
 			}
 		}
 		throw new ApplicationException("no match for default [" + defaultName + "] found.");
+	}
+
+	public String getNameFromDefault(String defaultName, String defaultValue) {
+		if (StringUtil.isEmpty(defaultName, true)) return defaultValue;
+
+		// TODO make a more direct way
+		ConfigPro cp = config;
+		for (String name: cp.getAIEngineFactoryNames()) {
+			if (defaultName.equalsIgnoreCase(cp.getAIEngineFactory(name).getDefault())) {
+				return name;
+			}
+		}
+		return defaultValue;
 	}
 }

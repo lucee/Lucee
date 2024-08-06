@@ -1,5 +1,7 @@
 package lucee.runtime.ai;
 
+import java.util.List;
+
 import lucee.runtime.exp.PageException;
 import lucee.runtime.type.Struct;
 
@@ -16,20 +18,24 @@ public interface AIEngine {
 	 * @return an instance of the AIEngine after initialization.
 	 * @throws PageException if an error occurs during initialization.
 	 */
-	AIEngine init(AIEngineFactory factory, Struct properties, String initalMessage) throws PageException;
+	AIEngine init(AIEngineFactory factory, Struct properties) throws PageException;
+
+	public String getId();
 
 	/**
-	 * Invokes the AI engine with the specified request.
-	 *
-	 * @param req the Request object containing the questions to be processed.
-	 * @return a Response object containing the answers from the AI engine.
-	 * @throws PageException if an error occurs during invocation.
+	 * 
+	 * @param inialMessage inital message to send to the AI, set null for no message
+	 * @param timeout connection/read timeout for the calls to AI, set 0 for not timeout and -1 to use
+	 *            the default defined with the driver.
+	 * @return the session created
 	 */
-	Response invoke(String message) throws PageException;
-
-	public Conversation[] getHistory();
+	public AISession createSession(String inialMessage, long timeout);
 
 	public AIEngineFactory getFactory();
 
-	public String getId();
+	public long getTimeout();
+
+	public String getLabel();
+
+	public List<AIModel> getModels() throws PageException;
 }

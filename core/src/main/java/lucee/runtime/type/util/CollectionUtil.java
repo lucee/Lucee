@@ -80,6 +80,16 @@ public class CollectionUtil {
 		return getKeyList(coll.keyIterator(), delimiter);
 	}
 
+	public static Key[] keysFromString(java.util.Collection<String> coll) {
+		if (coll == null) return new Key[0];
+		Iterator<String> it = coll.iterator();
+		List<Key> rtn = new ArrayList<Key>();
+		if (it != null) while (it.hasNext()) {
+			rtn.add(KeyImpl.init(it.next()));
+		}
+		return rtn.toArray(new Key[rtn.size()]);
+	}
+
 	public static Key[] keys(Collection coll) {
 		if (coll == null) return new Key[0];
 		Iterator<Key> it = coll.keyIterator();

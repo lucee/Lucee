@@ -25,7 +25,7 @@ import lucee.runtime.Mapping;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageSource;
 import lucee.runtime.ai.AIEngineFactory;
-import lucee.runtime.ai.AISessionPool;
+import lucee.runtime.ai.AIEnginePool;
 import lucee.runtime.cache.tag.CacheHandler;
 import lucee.runtime.component.ImportDefintion;
 import lucee.runtime.customtag.InitFile;
@@ -408,5 +408,5 @@ public interface ConfigPro extends Config {
 
 	public AIEngineFactory getAIEngineFactory(String name);
 
-	public AISessionPool getAISessionPool();
+	public AIEnginePool getAIEnginePool();
 }

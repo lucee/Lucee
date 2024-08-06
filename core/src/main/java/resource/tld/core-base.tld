@@ -5291,6 +5291,7 @@ To use cached data, the current query must use the same SQL statement, data sour
 		<handle-exception>false</handle-exception>
 		<body-content>must</body-content>
 		<body-rtexprvalue>false</body-rtexprvalue>
+		<handle-exception>true</handle-exception>
 		<status>hidden</status>
 		<attribute-type>fixed</attribute-type>
 		<description></description>
@@ -5316,6 +5317,29 @@ To use cached data, the current query must use the same SQL statement, data sour
 		<attribute>
 			<type>string</type>
 			<name>name</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description></description>
+		</attribute>
+		<attribute>
+			<type>boolean</type>
+			<name>throwonerror</name>
+			<required>false</required>
+			<default>true</default>
+			<rtexprvalue>true</rtexprvalue>
+			<description></description>
+		</attribute>
+		<attribute>
+			<type>any</type>
+			<name>timeout</name>
+			<required>false</required>
+			<default>-1</default>
+			<rtexprvalue>true</rtexprvalue>
+			<description></description>
+		</attribute>
+		<attribute>
+			<type>string</type>
+			<name>meta</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description></description>

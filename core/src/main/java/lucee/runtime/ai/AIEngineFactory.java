@@ -34,10 +34,10 @@ public class AIEngineFactory {
 		return new AIEngineFactory(cd, custom, name, _default);
 	}
 
-	public AIEngine createInstance(Config config, String initalMessage) throws PageException, ClassException, BundleException {
+	public AIEngine createInstance(Config config) throws PageException, ClassException, BundleException {
 		AIEngine aie = (AIEngine) ClassUtil.loadInstance(cd.getClazz());
 		LogUtil.log(config, Log.LEVEL_TRACE, "ai", "ai-factory", "create AI instance [" + cd.toString() + "]");
-		return aie.init(this, properties, initalMessage);
+		return aie.init(this, properties);
 	}
 
 	public String getDefault() {

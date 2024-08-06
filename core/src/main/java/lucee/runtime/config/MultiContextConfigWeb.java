@@ -40,7 +40,7 @@ import lucee.runtime.CIPage;
 import lucee.runtime.Mapping;
 import lucee.runtime.PageContext;
 import lucee.runtime.ai.AIEngineFactory;
-import lucee.runtime.ai.AISessionPool;
+import lucee.runtime.ai.AIEnginePool;
 import lucee.runtime.cache.tag.CacheHandlerCollection;
 import lucee.runtime.cfx.CFXTagPool;
 import lucee.runtime.compiler.CFMLCompilerImpl;
@@ -629,7 +629,7 @@ class MultiContextConfigWeb extends ConfigImpl implements ServletConfig, ConfigW
 	}
 
 	@Override
-	public AISessionPool getAISessionPool() {
-		return configServer.getAISessionPool();
+	public AIEnginePool getAIEnginePool() {
+		return configServer.getAIEnginePool();
 	}
 }

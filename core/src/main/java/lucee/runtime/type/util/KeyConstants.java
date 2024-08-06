@@ -2976,6 +2976,7 @@ public class KeyConstants {
 	public static final Key _threadName = KeyImpl._const("threadName");
 	public static final Key _md5 = KeyImpl._const("md5");
 	public static final Key _model = KeyImpl._const("model");
+	public static final Key _models = KeyImpl._const("models");
 	public static final Key _role = KeyImpl._const("role");
 	public static final Key _formUrlAsStruct = KeyImpl._const("formUrlAsStruct");
 	public static final Key _hasBody = KeyImpl._const("hasBody");
@@ -2997,6 +2998,9 @@ public class KeyConstants {
 	public static final Key _mvn = KeyImpl._const("mvn");
 	public static final Key _groupId = KeyImpl._const("groupId");
 	public static final Key _artifactId = KeyImpl._const("artifactId");
+	public static final Key _answer = KeyImpl._const("answer");
+	public static final Key _contents = KeyImpl._const("contents");
+	public static final Key _parts = KeyImpl._const("parts");
 	private static Map<String, Key> _____keys;
 
 	static {

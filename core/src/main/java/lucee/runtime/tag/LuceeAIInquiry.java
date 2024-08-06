@@ -3,23 +3,23 @@ package lucee.runtime.tag;
 
 import javax.servlet.jsp.tagext.Tag;
 
+import lucee.runtime.PageContextImpl;
 import lucee.runtime.ai.Response;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.tag.TagImpl;
+import lucee.runtime.type.util.KeyConstants;
 
 public final class LuceeAIInquiry extends TagImpl {
 
-	private static final String DEFAULT_ANSWER_NAME = "cfai";
-
 	private String question;
-	private String answer = DEFAULT_ANSWER_NAME;
+	private String answer = null;
 
 	@Override
 	public void release() {
 		super.release();
 		question = null;
-		answer = DEFAULT_ANSWER_NAME;
+		answer = null;
 	}
 
 	public void setQuestion(String question) {
@@ -39,7 +39,16 @@ public final class LuceeAIInquiry extends TagImpl {
 
 		if (parent instanceof LuceeAI) {
 			Response rsp = ((LuceeAI) parent).question(question);
-			pageContext.setVariable(answer, rsp.getAnswer());
+
+			if (answer == null) {
+				PageContextImpl pci = ((PageContextImpl) pageContext);
+				if (pci.undefinedScope().getCheckArguments()) {
+					pci.localScope().set(KeyConstants._answer, rsp.getAnswer());
+				}
+				answer = "answer";
+
+			}
+			if (answer != null) pageContext.setVariable(answer, rsp.getAnswer());
 		}
 		else {
 			throw new ApplicationException("the tag [LuceeAIInquiry] need to be insiide the tag [LuceeAI]");
