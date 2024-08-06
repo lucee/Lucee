@@ -11,12 +11,12 @@ import lucee.runtime.type.Array;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.util.KeyConstants;
 
-public class ChatGPTResponse implements Response {
+public class OpenAIResponse implements Response {
 
 	private Struct raw;
 	private String charset;
 
-	public ChatGPTResponse(Struct raw, String charset) {
+	public OpenAIResponse(Struct raw, String charset) {
 		this.raw = raw;
 		this.charset = charset;
 	}

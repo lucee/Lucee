@@ -30,42 +30,45 @@ import lucee.runtime.type.Array;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.util.KeyConstants;
 
-public class ChatGPTEngine extends AIEngineSupport {
-	private static final URL DEFAULT_URL;
+public class OpenAIEngine extends AIEngineSupport {
 	private static final long DEFAULT_TIMEOUT = 3000L;
 	private static final String DEFAULT_CHARSET = null;
 	private static final String DEFAULT_MIMETYPE = null;
 	// private static final String DEFAULT_MODEL = "gpt-4";
 	// private static final String DEFAULT_MODEL = "gpt-3.5-turbo";
 	private static final String DEFAULT_MODEL = "gpt-4o-mini"; // Change to your preferred model
-	private static final URL DEFAULT_URL_MODELS;
+	private static final URL DEFAULT_URL_CHATGPT;
+	private static final URL DEFAULT_URL_OLLAMA;
 
 	static {
+
+		// ChatGPT
 		URL tmp = null;
 		try {
-			tmp = new URL("https://api.openai.com/v1/chat/completions");
+			tmp = new URL("https://api.openai.com/v1/");
 			// tmp = new URL("https://api.customopenai.com/v1/chat/completions");
 			// https://chatgpt.com/g/g-EFSGvsHVN-lucee
 		}
 		catch (MalformedURLException e) {
 			log(e);
 		}
-		DEFAULT_URL = tmp;
+		DEFAULT_URL_CHATGPT = tmp;
 
+		// Ollama (lokal)
+		tmp = null;
 		try {
-			tmp = new URL("https://api.openai.com/v1/models");
+			tmp = new URL("http://localhost:11434/v1/");
 			// tmp = new URL("https://api.customopenai.com/v1/chat/completions");
 			// https://chatgpt.com/g/g-EFSGvsHVN-lucee
 		}
 		catch (MalformedURLException e) {
 			log(e);
 		}
-		DEFAULT_URL_MODELS = tmp;
+		DEFAULT_URL_OLLAMA = tmp;
 
 	}
 
 	Struct properties;
-	URL url;
 	String secretKey;
 	long timeout = DEFAULT_TIMEOUT;
 	String charset;
@@ -75,22 +78,36 @@ public class ChatGPTEngine extends AIEngineSupport {
 	String model;
 	private String systemMessage;
 
+	private URL baseURL;
+
 	@Override
 	public AIEngine init(AIEngineFactory factory, Struct properties) throws PageException {
 		super.init(factory);
 		this.properties = properties;
 
 		// URL
-		String str = Caster.toString(properties.get(KeyConstants._URL, null), null);
+		/// we support some hard coded types to keep it simple
+		String str = Caster.toString(properties.get(KeyConstants._type, null), null);
 		if (!Util.isEmpty(str, true)) {
-			try {
-				url = HTTPUtil.toURL(str.trim(), HTTPUtil.ENCODED_AUTO);
-			}
-			catch (Exception e) {
-				url = DEFAULT_URL;
-			}
+			if ("chatgpt".equals(str.trim())) baseURL = DEFAULT_URL_CHATGPT;
+			else if ("ollama".equals(str.trim())) baseURL = DEFAULT_URL_OLLAMA;
+			else throw new ApplicationException(
+					"ATM only 2 types are supported [chatgpt, ollama], for any other endpoint simply define the attribute `url` that looks like this [https://api.lucee.com/v1/].");
 		}
-		else url = DEFAULT_URL;
+		else {
+			str = Caster.toString(properties.get(KeyConstants._URL, null), null);
+			if (!Util.isEmpty(str, true)) {
+				if (!str.endsWith("/")) str += "/";
+				try {
+					baseURL = HTTPUtil.toURL(str.trim(), HTTPUtil.ENCODED_AUTO);
+				}
+				catch (Exception e) {
+					throw Caster.toPageException(e);
+				}
+			}
+			else throw new ApplicationException(
+					"for this driver you need to define a type like [ollama or chatgpt] or an URL pointing to a endpoint prvding an OpenAI compatible interface like [https://api.lucee.com/v1/]");
+		}
 
 		// secret key
 		str = Caster.toString(properties.get(KeyConstants._secretKey, null), null);
@@ -117,7 +134,7 @@ public class ChatGPTEngine extends AIEngineSupport {
 
 	@Override
 	public AISession createSession(String inialMessage, long timeout) {
-		return new ChatGPTSession(this, StringUtil.isEmpty(inialMessage, true) ? systemMessage : inialMessage.trim(), timeout);
+		return new OpenAISession(this, StringUtil.isEmpty(inialMessage, true) ? systemMessage : inialMessage.trim(), timeout);
 	}
 
 	@Override
@@ -130,11 +147,16 @@ public class ChatGPTEngine extends AIEngineSupport {
 		return timeout;
 	}
 
+	public URL getBaseURL() {
+		return baseURL;
+	}
+
 	@Override
 	public List<AIModel> getModels() throws PageException {
 		try {
 
-			HTTPResponse rsp = HTTPEngine4Impl.get(DEFAULT_URL_MODELS, null, null, timeout, false, charset, AIEngineSupport.DEFAULT_USERAGENT, proxy,
+			URL url = new URL(baseURL, "models");
+			HTTPResponse rsp = HTTPEngine4Impl.get(url, null, null, timeout, false, charset, AIEngineSupport.DEFAULT_USERAGENT, proxy,
 					new Header[] { new HeaderImpl("Authorization", "Bearer " + secretKey), new HeaderImpl("Content-Type", "application/json") });
 
 			ContentType ct = rsp.getContentType();
@@ -153,7 +175,7 @@ public class ChatGPTEngine extends AIEngineSupport {
 				Iterator<Object> it = data.valueIterator();
 				List<AIModel> list = new ArrayList<>();
 				while (it.hasNext()) {
-					list.add(new ChatGPTModel(Caster.toStruct(it.next()), charset));
+					list.add(new OpenAIModel(Caster.toStruct(it.next()), charset));
 				}
 				return list;
 			}

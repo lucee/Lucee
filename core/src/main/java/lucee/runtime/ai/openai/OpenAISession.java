@@ -1,5 +1,7 @@
 package lucee.runtime.ai.openai;
 
+import java.net.URL;
+
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.res.ContentType;
 import lucee.commons.lang.StringUtil;
@@ -28,12 +30,12 @@ import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.util.KeyConstants;
 
-public class ChatGPTSession extends AISessionSupport {
+public class OpenAISession extends AISessionSupport {
 
-	private ChatGPTEngine chatGPTEngine;
+	private OpenAIEngine chatGPTEngine;
 	private String initalMessage;
 
-	public ChatGPTSession(ChatGPTEngine engine, String initalMessage, long timeout) {
+	public OpenAISession(OpenAIEngine engine, String initalMessage, long timeout) {
 		super(engine, timeout);
 		this.chatGPTEngine = engine;
 		this.initalMessage = initalMessage;
@@ -81,9 +83,9 @@ public class ChatGPTSession extends AISessionSupport {
 			JSONConverter json = new JSONConverter(true, CharsetUtil.UTF8, JSONDateFormat.PATTERN_CF, false);
 			String str = json.serialize(null, sct, SerializationSettings.SERIALIZE_AS_COLUMN, null);
 
-			HTTPResponse rsp = HTTPEngine4Impl.post(chatGPTEngine.url, null, null, getTimeout(), false, chatGPTEngine.mimetype, chatGPTEngine.charset,
-					AIEngineSupport.DEFAULT_USERAGENT, chatGPTEngine.proxy,
-					new Header[] { new HeaderImpl("Authorization", "Bearer " + chatGPTEngine.secretKey), new HeaderImpl("Content-Type", "application/json") },
+			URL url = new URL(chatGPTEngine.getBaseURL(), "chat/completions");
+			HTTPResponse rsp = HTTPEngine4Impl.post(url, null, null, getTimeout(), false, chatGPTEngine.mimetype, chatGPTEngine.charset, AIEngineSupport.DEFAULT_USERAGENT,
+					chatGPTEngine.proxy, new Header[] { new HeaderImpl("Authorization", "Bearer " + chatGPTEngine.secretKey), new HeaderImpl("Content-Type", "application/json") },
 					chatGPTEngine.formfields, str);
 
 			ContentType ct = rsp.getContentType();
@@ -98,7 +100,7 @@ public class ChatGPTSession extends AISessionSupport {
 							Caster.toString(err.get(KeyConstants._code, null), null));
 				}
 
-				ChatGPTResponse response = new ChatGPTResponse(raw, cs);
+				OpenAIResponse response = new OpenAIResponse(raw, cs);
 				getHistoryAsList().add(new ConversationImpl(new RequestSupport(message), response));
 				return response;
 			}

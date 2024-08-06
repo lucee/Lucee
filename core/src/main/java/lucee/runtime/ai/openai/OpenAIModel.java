@@ -11,11 +11,11 @@ import lucee.runtime.type.Struct;
 import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.ListUtil;
 
-public class ChatGPTModel extends AIModelSupport {
+public class OpenAIModel extends AIModelSupport {
 
 	private static Map<String, String> labels = new ConcurrentHashMap<>();
 
-	public ChatGPTModel(Struct raw, String charset) throws PageException {
+	public OpenAIModel(Struct raw, String charset) throws PageException {
 		super(Caster.toString(raw.get(KeyConstants._id)), raw, charset);
 	}
 
