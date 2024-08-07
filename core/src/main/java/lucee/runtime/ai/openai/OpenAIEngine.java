@@ -37,7 +37,7 @@ public class OpenAIEngine extends AIEngineSupport {
 	// private static final String DEFAULT_MODEL = "gpt-4";
 	// private static final String DEFAULT_MODEL = "gpt-3.5-turbo";
 	private static final String DEFAULT_MODEL = "gpt-4o-mini"; // Change to your preferred model
-	private static final URL DEFAULT_URL_CHATGPT;
+	private static final URL DEFAULT_URL_OPENAI;
 	private static final URL DEFAULT_URL_OLLAMA;
 
 	static {
@@ -52,7 +52,7 @@ public class OpenAIEngine extends AIEngineSupport {
 		catch (MalformedURLException e) {
 			log(e);
 		}
-		DEFAULT_URL_CHATGPT = tmp;
+		DEFAULT_URL_OPENAI = tmp;
 
 		// Ollama (lokal)
 		tmp = null;
@@ -89,10 +89,10 @@ public class OpenAIEngine extends AIEngineSupport {
 		/// we support some hard coded types to keep it simple
 		String str = Caster.toString(properties.get(KeyConstants._type, null), null);
 		if (!Util.isEmpty(str, true)) {
-			if ("chatgpt".equals(str.trim())) baseURL = DEFAULT_URL_CHATGPT;
+			if ("chatgpt".equals(str.trim()) || "openai".equals(str.trim())) baseURL = DEFAULT_URL_OPENAI;
 			else if ("ollama".equals(str.trim())) baseURL = DEFAULT_URL_OLLAMA;
 			else throw new ApplicationException(
-					"ATM only 2 types are supported [chatgpt, ollama], for any other endpoint simply define the attribute `url` that looks like this [https://api.lucee.com/v1/].");
+					"ATM only 2 types are supported [openai, ollama], for any other endpoint simply define the attribute `url` that looks like this [https://api.lucee.com/v1/].");
 		}
 		else {
 			str = Caster.toString(properties.get(KeyConstants._URL, null), null);
@@ -105,8 +105,7 @@ public class OpenAIEngine extends AIEngineSupport {
 					throw Caster.toPageException(e);
 				}
 			}
-			else throw new ApplicationException(
-					"for this driver you need to define a type like [ollama or chatgpt] or an URL pointing to a endpoint prvding an OpenAI compatible interface like [https://api.lucee.com/v1/]");
+			else baseURL = DEFAULT_URL_OPENAI;
 		}
 
 		// secret key
