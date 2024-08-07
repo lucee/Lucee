@@ -3585,7 +3585,23 @@ public final class ConfigWebFactory extends ConfigFactory {
 	 * @param doc
 	 */
 	private static void _loadAdminMode(ConfigServerImpl config, Struct root) {
-		config.setAdminMode(ConfigWebUtil.toAdminMode(getAttr(root, "mode"), ConfigImpl.ADMINMODE_SINGLE));
+		final short undefined = -1;
+		short am = undefined;
+
+		// force by env var
+		String str = SystemUtil.getSystemPropOrEnvVar("lucee.admin.mode", null);
+		if (!StringUtil.isEmpty(str, true)) {
+			am = ConfigWebUtil.toAdminMode(str, undefined);
+		}
+
+		// when not forced
+		if (am == undefined) {
+			am = ConfigWebUtil.toAdminMode(getAttr(root, "mode"), undefined);
+			if (am == undefined) {
+				am = ConfigWebUtil.toAdminMode(SystemUtil.getSystemPropOrEnvVar("lucee.admin.mode.default", null), ConfigImpl.ADMINMODE_SINGLE);
+			}
+		}
+		config.setAdminMode(am);
 	}
 
 	private static void _loadSetting(ConfigServerImpl configServer, ConfigImpl config, Struct root, Log log) {

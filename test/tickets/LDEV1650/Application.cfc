@@ -2,7 +2,7 @@ component {
 	this.name = createUUID();
 	mySQL= getCredentials();
 	
-	this.datasources["testdb"] =  = mySQL;
+	this.datasources["testdb"] = mySQL;
 	
 	
 	public function onRequestStart() {

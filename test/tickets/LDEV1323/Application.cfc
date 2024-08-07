@@ -1,5 +1,5 @@
 component {
-	this.name = "test3";
+	this.name = "ldev1323";
 	mySQL= getCredentials();
 	this.datasource = {
 		 type: "mysql"

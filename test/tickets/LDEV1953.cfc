@@ -13,7 +13,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"  labels="mysql" {
 			it( title='Checking mysql with zeroDateTimeBehavior as convertToNull',skip=isMySqlNotSupported(),body=function( currentSpec ) {
 				var uri = createURI("LDEV1953");
 				var result = _InternalRequest(
-					template:"#uri#/test.cfm"
+					template:"#uri#/ldev1953.cfm"
 				);
 				expect(result.fileContent.trim()).toBe("123");
 			});

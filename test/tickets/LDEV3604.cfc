@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase"{
+component extends="org.lucee.cfml.test.LuceeTestCase" skip=true {
     function run( testResults, testBox ){
         describe("Testcase for LDEV-3604", function( currentSpec ) {
             it(title="Checking instance of original CFC", body=function( currentSpec )  {

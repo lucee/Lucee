@@ -1,5 +1,5 @@
 component {
-	this.name = "test345";
+	this.name = "LDEV1953";
 
 	mySQL= getCredentials();
 	mySQL.storage = true;	
@@ -12,13 +12,13 @@ component {
 
 	function onApplicationStart(){
 		query{
-			echo("DROP TABLE IF EXISTS users");
+			echo("DROP TABLE IF EXISTS LDEV1953");
 		}
 		query{
-			echo("CREATE TABLE users( id INT , name VARCHAR(30) )");
+			echo("CREATE TABLE LDEV1953( id INT , name VARCHAR(30) )");
 		}
 		query{
-			echo("INSERT INTO users VALUES(123,'micha'), (999, 'lucee')");
+			echo("INSERT INTO LDEV1953 VALUES(123,'micha'), (999, 'lucee')");
 		}
 	}
 	

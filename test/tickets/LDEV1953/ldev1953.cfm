@@ -1,7 +1,7 @@
 <cfoutput>
 	<cftry>
 		<cfquery name="qry">
-			select * from users
+			select * from LDEV1953
 		</cfquery>
 		#qry.id#
 		<cfcatch type="any">
