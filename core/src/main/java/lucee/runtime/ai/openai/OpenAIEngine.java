@@ -32,7 +32,7 @@ import lucee.runtime.type.util.KeyConstants;
 
 public class OpenAIEngine extends AIEngineSupport {
 	private static final long DEFAULT_TIMEOUT = 3000L;
-	private static final String DEFAULT_CHARSET = "UTF-8";
+	private static final String DEFAULT_CHARSET = null;
 	private static final String DEFAULT_MIMETYPE = null;
 	private static final URL DEFAULT_URL_OPENAI;
 	private static final URL DEFAULT_URL_OLLAMA;

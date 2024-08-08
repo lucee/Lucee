@@ -30,8 +30,15 @@ import lucee.runtime.type.Struct;
 import lucee.runtime.type.util.KeyConstants;
 
 public class GeminiEngine extends AIEngineSupport {
-	private static final String DEFAULT_URL = "https://generativelanguage.googleapis.com/v1/models/{model}:generateContent?key={apikey}";
-	private static final String DEFAULT_URL_MODELS = "https://generativelanguage.googleapis.com/v1/models/?key={apikey}";
+
+	public static final String TYPE_REG = "generateContent?";
+	public static final String TYPE_STREAM = "streamGenerateContent?alt=sse&";
+
+	private static final String DEFAULT_URL = "https://generativelanguage.googleapis.com/v1/";
+
+	public static final String CHAT = "models/{model}:{cttype}key={apikey}";
+	public static final String MODELS = "models/?key={apikey}";
+
 	private static final long DEFAULT_TIMEOUT = 3000L;
 	private static final String DEFAULT_CHARSET = null;
 	private static final String DEFAULT_MIMETYPE = null;
@@ -39,8 +46,6 @@ public class GeminiEngine extends AIEngineSupport {
 	private static final String DEFAULT_LOCATION = "us-central1";
 
 	Struct properties;
-	URL url;
-	URL modelUrl;
 	String apikey;
 	private long timeout;
 	String location;
@@ -50,6 +55,7 @@ public class GeminiEngine extends AIEngineSupport {
 	Map<String, String> formfields = null;
 	String model;
 	String systemMessage;
+	String baseURL = null;
 
 	@Override
 	public AIEngine init(AIEngineFactory factory, Struct properties) throws PageException {
@@ -57,7 +63,6 @@ public class GeminiEngine extends AIEngineSupport {
 		this.properties = properties;
 
 		// base URL
-		String baseURL = null;
 		String str = Caster.toString(properties.get(KeyConstants._URL, null), null);
 		if (!Util.isEmpty(str, true)) {
 			baseURL = str.trim();
@@ -92,31 +97,21 @@ public class GeminiEngine extends AIEngineSupport {
 		// message
 		systemMessage = Caster.toString(properties.get(KeyConstants._message, null), null);
 
-		// url
-		// baseURL = StringUtil.replace(baseURL, "{projectid}", projectid, false);
-		baseURL = StringUtil.replace(baseURL, "{location}", location, false);
-		baseURL = StringUtil.replace(baseURL, "{apikey}", apikey, false);
-		baseURL = StringUtil.replace(baseURL, "{model}", model, false);
-		try {
-			url = new URL(baseURL);
-		}
-		catch (MalformedURLException e) {
-			throw Caster.toPageException(e);
-		}
-
-		baseURL = DEFAULT_URL_MODELS;
-		baseURL = StringUtil.replace(baseURL, "{location}", location, false);
-		baseURL = StringUtil.replace(baseURL, "{apikey}", apikey, false);
-		baseURL = StringUtil.replace(baseURL, "{model}", model, false);
-		try {
-			modelUrl = new URL(baseURL);
-		}
-		catch (MalformedURLException e) {
-			throw Caster.toPageException(e);
-		}
-
 		return this;
 
+	}
+
+	public URL toURL(String base, String scriptName, String cttype) throws PageException {
+		scriptName = StringUtil.replace(scriptName, "{location}", location, false);
+		scriptName = StringUtil.replace(scriptName, "{apikey}", apikey, false);
+		scriptName = StringUtil.replace(scriptName, "{model}", model, false);
+		if (cttype != null) scriptName = StringUtil.replace(scriptName, "{cttype}", cttype, false);
+		try {
+			return new URL(base + scriptName);
+		}
+		catch (MalformedURLException e) {
+			throw Caster.toPageException(e);
+		}
 	}
 
 	@Override
@@ -138,7 +133,7 @@ public class GeminiEngine extends AIEngineSupport {
 	public List<AIModel> getModels() throws PageException {
 		try {
 
-			HTTPResponse rsp = HTTPEngine4Impl.get(modelUrl, null, null, timeout, false, charset, AIEngineSupport.DEFAULT_USERAGENT, proxy,
+			HTTPResponse rsp = HTTPEngine4Impl.get(toURL(baseURL, MODELS, null), null, null, timeout, false, charset, AIEngineSupport.DEFAULT_USERAGENT, proxy,
 					new Header[] { new HeaderImpl("Content-Type", "application/json") });
 
 			ContentType ct = rsp.getContentType();

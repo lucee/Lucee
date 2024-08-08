@@ -1,5 +1,9 @@
 package lucee.runtime.ai.google;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.net.URL;
+
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.res.ContentType;
 import lucee.commons.lang.StringUtil;
@@ -9,6 +13,7 @@ import lucee.commons.net.http.httpclient.HTTPEngine4Impl;
 import lucee.commons.net.http.httpclient.HeaderImpl;
 import lucee.loader.util.Util;
 import lucee.runtime.ai.AIEngineSupport;
+import lucee.runtime.ai.AIResponseListener;
 import lucee.runtime.ai.AISessionSupport;
 import lucee.runtime.ai.AIUtil;
 import lucee.runtime.ai.Conversation;
@@ -40,8 +45,13 @@ public class GeminiSession extends AISessionSupport {
 
 	@Override
 	public Response inquiry(String message) throws PageException {
-		try {
+		return inquiry(message, null);
+	}
 
+	@Override
+	public Response inquiry(String message, AIResponseListener listener) throws PageException {
+		try {
+			// if (listener != null) throw new ApplicationException("listener not supported yet.");
 			Struct root = new StructImpl(StructImpl.TYPE_LINKED);
 
 			// contents
@@ -67,8 +77,9 @@ public class GeminiSession extends AISessionSupport {
 
 			JSONConverter json = new JSONConverter(true, CharsetUtil.UTF8, JSONDateFormat.PATTERN_CF, false);
 			String str = json.serialize(null, root, SerializationSettings.SERIALIZE_AS_COLUMN, null);
-			HTTPResponse rsp = HTTPEngine4Impl.post(geminiEngine.url, null, null, getTimeout(), false, geminiEngine.mimetype, geminiEngine.charset,
-					AIEngineSupport.DEFAULT_USERAGENT, geminiEngine.proxy, new Header[] {
+			URL url = geminiEngine.toURL(geminiEngine.baseURL, GeminiEngine.CHAT, listener != null ? GeminiEngine.TYPE_STREAM : GeminiEngine.TYPE_REG);
+			HTTPResponse rsp = HTTPEngine4Impl.post(url, null, null, getTimeout(), false, geminiEngine.mimetype, geminiEngine.charset, AIEngineSupport.DEFAULT_USERAGENT,
+					geminiEngine.proxy, new Header[] {
 
 							// new HeaderImpl("Authorization", "Bearer " + geminiEngine.apikey),
 
@@ -78,7 +89,29 @@ public class GeminiSession extends AISessionSupport {
 
 			ContentType ct = rsp.getContentType();
 
-			if ("application/json".equals(ct.getMimeType())) {
+			// stream true
+			if ("text/event-stream".equals(ct.getMimeType())) {
+				String cs = ct.getCharset();
+				if (Util.isEmpty(cs, true)) cs = geminiEngine.charset;
+				JSONExpressionInterpreter interpreter = new JSONExpressionInterpreter();
+				GeminiStreamResponse response = new GeminiStreamResponse(cs, listener);
+				try (BufferedReader reader = new BufferedReader(
+						cs == null ? new InputStreamReader(rsp.getContentAsStream()) : new InputStreamReader(rsp.getContentAsStream(), cs))) {
+					String line;
+					while ((line = reader.readLine()) != null) {
+						if (!line.startsWith("data: ")) continue;
+						line = line.substring(6);
+						response.addPart(Caster.toStruct(interpreter.interpret(null, line)));
+					}
+				}
+				catch (Exception e) {
+					throw Caster.toPageException(e);
+				}
+				getHistoryAsList().add(new ConversationImpl(new RequestSupport(message), response));
+				return response;
+			}
+
+			else if ("application/json".equals(ct.getMimeType())) {
 				String cs = ct.getCharset();
 				if (Util.isEmpty(cs, true)) cs = geminiEngine.charset;
 

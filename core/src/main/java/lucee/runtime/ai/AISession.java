@@ -13,6 +13,8 @@ public interface AISession {
 	 */
 	Response inquiry(String message) throws PageException;
 
+	Response inquiry(String message, AIResponseListener listener) throws PageException;
+
 	public Conversation[] getHistory();
 
 	public String getId();
