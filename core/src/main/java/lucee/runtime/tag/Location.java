@@ -153,11 +153,11 @@ public final class Location extends TagImpl {
 
 		Log log = ThreadLocalPageContext.getLog(pageContext, "application");
 		if (abort) {
-			if (log != null) log.log(Log.LEVEL_ERROR, "cftrace", "abort redirect to " + url + " at " + CallStackGet.call(pageContext, "text"));
+			if (log != null) log.log(Log.LEVEL_ERROR, "cflocation", "abort redirect to " + url + " at " + CallStackGet.call(pageContext, "text"));
 			throw new ExpressionException("abort redirect to " + url);
 		}
 		else {
-			if (log != null) log.log(Log.LEVEL_TRACE, "cftrace", "redirect to " + url + " at " + CallStackGet.call(pageContext, "text"));
+			if (log != null) log.log(Log.LEVEL_DEBUG, "cflocation", "redirect to " + url + " at " + CallStackGet.call(pageContext, "text"));
 		}
 
 		rsp.setHeader("Connection", "close"); // IE unter IIS6, Win2K3 und Resin
