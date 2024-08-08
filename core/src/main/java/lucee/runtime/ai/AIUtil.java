@@ -17,13 +17,14 @@ public class AIUtil {
 
 	public static Exception toException(AIEngine engine, String msg, String type, String code) {
 		String appendix = "";
-		if ("model_not_found".equals(code)) {
+		if ("model_not_found".equals(code) || msg.indexOf("models") != -1) {
 			try {
 				appendix = " Available model names are [" + AIUtil.getModelNamesAsStringList(engine) + "]";
 			}
 			catch (PageException e) {
 			}
 		}
+
 		PageException ae = new ApplicationException(msg + appendix, "type:" + type + ";code:" + code);
 		ae.setErrorCode(code);
 		return ae;

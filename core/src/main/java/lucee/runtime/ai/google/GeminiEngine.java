@@ -42,7 +42,7 @@ public class GeminiEngine extends AIEngineSupport {
 	private static final long DEFAULT_TIMEOUT = 3000L;
 	private static final String DEFAULT_CHARSET = null;
 	private static final String DEFAULT_MIMETYPE = null;
-	private static final String DEFAULT_MODEL = "gemini-1.5-flash";
+	// private static final String DEFAULT_MODEL = "gemini-1.5-flash";
 	private static final String DEFAULT_LOCATION = "us-central1";
 
 	Struct properties;
@@ -93,7 +93,19 @@ public class GeminiEngine extends AIEngineSupport {
 		if (Util.isEmpty(mimetype, true)) mimetype = null;
 
 		// model
-		model = Caster.toString(properties.get(KeyConstants._model, DEFAULT_MODEL), DEFAULT_MODEL);
+		model = Caster.toString(properties.get(KeyConstants._model, null), null);
+		if (Util.isEmpty(model, true)) {
+			// nice to have
+			String appendix = "";
+			try {
+				appendix = " Available models for this engine are [" + AIUtil.getModelNamesAsStringList(this) + "]";
+			}
+			catch (PageException pe) {
+			}
+
+			throw new ApplicationException("the property [model] is required for a OpenAI Engine!." + appendix);
+		}
+
 		// message
 		systemMessage = Caster.toString(properties.get(KeyConstants._message, null), null);
 
@@ -157,7 +169,6 @@ public class GeminiEngine extends AIEngineSupport {
 				return list;
 			}
 			throw new ApplicationException("Chat GPT did answer with the mime type [" + ct.getMimeType() + "] that is not supported, only [application/json] is supported");
-
 		}
 		catch (Exception e) {
 			throw Caster.toPageException(e);
