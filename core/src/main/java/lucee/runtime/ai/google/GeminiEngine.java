@@ -149,7 +149,7 @@ public class GeminiEngine extends AIEngineSupport {
 				Struct raw = Caster.toStruct(new JSONExpressionInterpreter().interpret(null, rsp.getContentAsString(cs)));
 				Struct err = Caster.toStruct(raw.get(KeyConstants._error, null), null);
 				if (err != null) {
-					throw AIUtil.toException(Caster.toString(err.get(KeyConstants._message)), Caster.toString(err.get(KeyConstants._type, null), null),
+					throw AIUtil.toException(this, Caster.toString(err.get(KeyConstants._message)), Caster.toString(err.get(KeyConstants._type, null), null),
 							Caster.toString(err.get(KeyConstants._code, null), null));
 				}
 				Array data = Caster.toArray(raw.get("models"));
