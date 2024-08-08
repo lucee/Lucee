@@ -1,6 +1,7 @@
 package lucee.runtime.ai;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import lucee.runtime.exp.ApplicationException;
@@ -14,9 +15,16 @@ import lucee.runtime.type.util.KeyConstants;
 
 public class AIUtil {
 
-	public static Exception toException(String msg, String type, String code) {
-		// CFMLEngine eng = CFMLEngineFactory.getInstance();
-		PageException ae = new ApplicationException(msg, "type:" + type + ";code:" + code);
+	public static Exception toException(AIEngine engine, String msg, String type, String code) {
+		String appendix = "";
+		if ("model_not_found".equals(code)) {
+			try {
+				appendix = " Available model names are [" + AIUtil.getModelNamesAsStringList(engine) + "]";
+			}
+			catch (PageException e) {
+			}
+		}
+		PageException ae = new ApplicationException(msg + appendix, "type:" + type + ";code:" + code);
 		ae.setErrorCode(code);
 		return ae;
 	}
@@ -27,7 +35,17 @@ public class AIUtil {
 		for (AIModel m: models) {
 			names.add(m.getName());
 		}
+		Collections.sort(names);
 		return names;
+	}
+
+	public static String getModelNamesAsStringList(AIEngine aie) throws PageException {
+		StringBuilder sb = new StringBuilder();
+		for (String name: getModelNames(aie)) {
+			if (sb.length() > 0) sb.append(", ");
+			sb.append(name);
+		}
+		return sb.toString();
 	}
 
 	public static Struct getMetaData(AIEngine aie) throws PageException {

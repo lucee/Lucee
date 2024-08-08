@@ -32,11 +32,8 @@ import lucee.runtime.type.util.KeyConstants;
 
 public class OpenAIEngine extends AIEngineSupport {
 	private static final long DEFAULT_TIMEOUT = 3000L;
-	private static final String DEFAULT_CHARSET = null;
+	private static final String DEFAULT_CHARSET = "UTF-8";
 	private static final String DEFAULT_MIMETYPE = null;
-	// private static final String DEFAULT_MODEL = "gpt-4";
-	// private static final String DEFAULT_MODEL = "gpt-3.5-turbo";
-	private static final String DEFAULT_MODEL = "gpt-4o-mini"; // Change to your preferred model
 	private static final URL DEFAULT_URL_OPENAI;
 	private static final URL DEFAULT_URL_OLLAMA;
 
@@ -119,15 +116,26 @@ public class OpenAIEngine extends AIEngineSupport {
 		timeout = Caster.toLongValue(properties.get(KeyConstants._timeout, null), DEFAULT_TIMEOUT);
 		// charset
 		charset = Caster.toString(properties.get(KeyConstants._charset, null), DEFAULT_CHARSET);
-		if (Util.isEmpty(charset, true)) charset = null;
+		if (Util.isEmpty(charset, true)) charset = DEFAULT_CHARSET;
 		// mimetype
 		mimetype = Caster.toString(properties.get(KeyConstants._mimetype, null), DEFAULT_MIMETYPE);
 		if (Util.isEmpty(mimetype, true)) mimetype = null;
 		// model
-		model = Caster.toString(properties.get(KeyConstants._model, DEFAULT_MODEL), DEFAULT_MODEL);
+		model = Caster.toString(properties.get(KeyConstants._model, null), null);
+		if (Util.isEmpty(model, true)) {
+			// nice to have
+			String appendix = "";
+			try {
+				appendix = " Available models for this engine are [" + AIUtil.getModelNamesAsStringList(this) + "]";
+			}
+			catch (PageException pe) {
+			}
+
+			throw new ApplicationException("the property [model] is required for a OpenAI Engine!." + appendix);
+		}
+
 		// message
 		systemMessage = Caster.toString(properties.get(KeyConstants._message, null), null);
-		getModels();
 		return this;
 	}
 
@@ -166,7 +174,7 @@ public class OpenAIEngine extends AIEngineSupport {
 				Struct raw = Caster.toStruct(new JSONExpressionInterpreter().interpret(null, rsp.getContentAsString(cs)));
 				Struct err = Caster.toStruct(raw.get(KeyConstants._error, null), null);
 				if (err != null) {
-					throw AIUtil.toException(Caster.toString(err.get(KeyConstants._message)), Caster.toString(err.get(KeyConstants._type, null), null),
+					throw AIUtil.toException(this, Caster.toString(err.get(KeyConstants._message)), Caster.toString(err.get(KeyConstants._type, null), null),
 							Caster.toString(err.get(KeyConstants._code, null), null));
 				}
 
