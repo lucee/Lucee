@@ -73,14 +73,15 @@ public class QueryPartitions {
 	 * @param qoQ
 	 * @throws PageException
 	 */
-	public QueryPartitions(SQL sql, Expression[] columns, Expression[] groupbys, QueryImpl target, Set<Key> additionalColumns, QoQ qoQ) throws PageException {
+	public QueryPartitions(SQL sql, Expression[] columns, Expression[] groupbys, QueryImpl target, Set<Key> additionalColumns, QoQ qoQ, boolean hasAggregateSelect)
+			throws PageException {
 		this.sql = sql;
 		this.qoQ = qoQ;
 		this.columns = columns;
 		this.groupbys = groupbys;
 		// This happens when using distinct with no group by
 		// Just assume we're grouping on the entire select list
-		if (this.groupbys.length == 0) {
+		if (this.groupbys.length == 0 && !hasAggregateSelect) {
 			ArrayList<Expression> temp = new ArrayList<Expression>();
 			for (Expression col: columns) {
 				if (!(col instanceof OperationAggregate)) {
@@ -118,11 +119,12 @@ public class QueryPartitions {
 	 * Call this to add a single row to the proper partition finaizedColumnVals is true when all data in
 	 * the source Query is fully realized and there are no expressions left to evaluate
 	 *
-	 * @param pc PageContext
-	 * @param source Source query to get data from
-	 * @param row Row to get data from
+	 * @param pc                  PageContext
+	 * @param source              Source query to get data from
+	 * @param row                 Row to get data from
 	 * @param finalizedColumnVals If we're adding finalized data, just copy it across. Easy. This
-	 *            applies when distincting a result set after it's already been processed
+	 *                                applies when distincting a result set after it's already been
+	 *                                processed
 	 * @throws PageException
 	 */
 	public void addRow(PageContext pc, QueryImpl source, int row, boolean finalizedColumnVals) throws PageException {
@@ -181,11 +183,13 @@ public class QueryPartitions {
 	/**
 	 * Generate a unique string that represents the column data being grouped on
 	 *
-	 * @param pc PageContext
-	 * @param source QueryImpl to get data from. Note, operations have not yet been processed
-	 * @param row Row to get data from
+	 * @param pc                  PageContext
+	 * @param source              QueryImpl to get data from. Note, operations have not yet been
+	 *                                processed
+	 * @param row                 Row to get data from
 	 * @param finalizedColumnVals If we're adding finalized data, just copy it across. Easy. This
-	 *            applies when distincting a result set after it's already been processed
+	 *                                applies when distincting a result set after it's already been
+	 *                                processed
 	 * @return unique string
 	 * @throws PageException
 	 */
@@ -267,10 +271,11 @@ public class QueryPartitions {
 	 * Create new Query for a partition. Needs to have all ColumnExpressions in the final select as well
 	 * as any additional columns required for operation expressions
 	 *
-	 * @param target Query for target data (for column refernces)
-	 * @param source source query we're getting data from
+	 * @param target              Query for target data (for column refernces)
+	 * @param source              source query we're getting data from
 	 * @param finalizedColumnVals If we're adding finalized data, just copy it across. Easy. This
-	 *            applies when distincting a result set after it's already been processed
+	 *                                applies when distincting a result set after it's already been
+	 *                                processed
 	 * @return Empty Query with all the needed columns
 	 * @throws PageException
 	 */
