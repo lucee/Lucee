@@ -183,13 +183,12 @@ public class DynamicInvoker {
 
 		DynamicClassLoader loader = getCL(clazz);
 		if (loader.hasClass(className)) {
-			// try {
-			return new Pair<FunctionMember, Object>(fm, loader.loadInstance(className));
-			/*
-			 * } finally { hasMatchCount++; hasMatchTotal += (SystemUtil.millis() - start); print.e("has match("
-			 * + hasMatchCount + "):" + Caster.toString(hasMatchTotal / hasMatchCount)); start =
-			 * SystemUtil.millis(); }
-			 */
+			try {
+				return new Pair<FunctionMember, Object>(fm, loader.loadInstance(className));
+			}
+			catch (Exception e) {
+				// simply ignore when fail
+			}
 		}
 		Class[] parameterClasses = fm.getArgumentClasses();
 
