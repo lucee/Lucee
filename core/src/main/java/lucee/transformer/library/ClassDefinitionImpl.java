@@ -88,7 +88,7 @@ public class ClassDefinitionImpl<T> implements ClassDefinition<T>, Externalizabl
 		String bv = toBundleVersion(sct, prefix);
 
 		if (!StringUtil.isEmpty(bn)) {
-			return new ClassDefinitionImpl(bn, bv, cl, id);
+			return new ClassDefinitionImpl(cl, bn, bv, id);
 		}
 
 		// TODO Maven?
