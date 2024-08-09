@@ -26,7 +26,6 @@ import java.util.Map;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Version;
 
-import lucee.print;
 import lucee.commons.digest.HashUtil;
 import lucee.commons.lang.ClassException;
 import lucee.commons.lang.ClassUtil;
@@ -34,8 +33,6 @@ import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.config.Identification;
 import lucee.runtime.db.ClassDefinition;
-import lucee.runtime.exp.ApplicationException;
-import lucee.runtime.exp.PageException;
 import lucee.runtime.listener.JavaSettingsImpl;
 import lucee.runtime.op.Caster;
 import lucee.runtime.osgi.OSGiUtil;
@@ -61,9 +58,6 @@ public class ClassDefinitionImpl<T> implements ClassDefinition<T>, Externalizabl
 		this.className = className == null ? null : className.trim();
 		this.name = StringUtil.isEmpty(name, true) ? null : name.trim();
 		this.version = OSGiUtil.toVersion(version, null);
-
-		print.e(toString());
-
 		this.id = id;
 	}
 
@@ -82,7 +76,7 @@ public class ClassDefinitionImpl<T> implements ClassDefinition<T>, Externalizabl
 		this.id = null;
 	}
 
-	public static ClassDefinitionImpl toClassDefinitionImpl(Struct sct, String prefix, boolean strict, Identification id) throws PageException {
+	public static ClassDefinitionImpl toClassDefinitionImpl(Struct sct, String prefix, boolean strict, Identification id) {
 		prefix = improvePrefix(prefix);
 
 		String cl = toClassName(sct, prefix);
@@ -99,18 +93,8 @@ public class ClassDefinitionImpl<T> implements ClassDefinition<T>, Externalizabl
 		return new ClassDefinitionImpl(cl, null, null, id);
 	}
 
-	public static ClassDefinition toClassDefinition(Map<String, ?> map, boolean strict, Identification id) throws PageException {
+	public static ClassDefinition toClassDefinition(Map<String, ?> map, boolean strict, Identification id) {
 		return toClassDefinitionImpl(MapAsStruct.toStruct(map, false), null, strict, id);
-	}
-
-	public static ClassDefinition toClassDefinition(Map<String, ?> map, boolean strict, Identification id, ClassDefinition defaultValue) {
-		try {
-			return toClassDefinitionImpl(MapAsStruct.toStruct(map, false), null, strict, id);
-		}
-		catch (PageException e) {
-			return defaultValue;
-		}
-
 	}
 
 	private static String improvePrefix(String prefix) {
@@ -123,14 +107,14 @@ public class ClassDefinitionImpl<T> implements ClassDefinition<T>, Externalizabl
 		return prefix;
 	}
 
-	public static String toClassName(Struct sct, String prefix) throws ApplicationException {
-		if (sct == null) throw new ApplicationException("structure is empty");
+	public static String toClassName(Struct sct, String prefix) {
+		if (sct == null) return null;
 		prefix = improvePrefix(prefix);
 
 		String className = Caster.toString(sct.get(prefix != null ? KeyImpl.init(prefix + "class") : KeyConstants._class, null), null);
 		if (StringUtil.isEmpty(className)) className = Caster.toString(sct.get(prefix != null ? KeyImpl.init(prefix + "classname") : KeyConstants._classname, null), null);
 		if (StringUtil.isEmpty(className)) className = Caster.toString(sct.get(prefix != null ? KeyImpl.init(prefix + "-class-name") : KeyImpl.init("class-name"), null), null);
-		if (StringUtil.isEmpty(className)) throw new ApplicationException("class is undefined");
+		if (StringUtil.isEmpty(className)) return null;
 		return className;
 	}
 

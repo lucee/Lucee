@@ -1000,7 +1000,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 		}
 	}
 
-	public static CacheConnection toCacheConnection(Config config, String name, Struct data) throws PageException {
+	public static CacheConnection toCacheConnection(Config config, String name, Struct data) {
 		// class definition
 		ClassDefinition cd = ClassDefinitionImpl.toClassDefinitionImpl(data, null, true, config.getIdentification());
 
