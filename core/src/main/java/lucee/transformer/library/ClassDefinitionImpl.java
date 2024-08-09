@@ -33,8 +33,15 @@ import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.config.Identification;
 import lucee.runtime.db.ClassDefinition;
+import lucee.runtime.exp.ApplicationException;
+import lucee.runtime.exp.PageException;
 import lucee.runtime.listener.JavaSettingsImpl;
+import lucee.runtime.op.Caster;
 import lucee.runtime.osgi.OSGiUtil;
+import lucee.runtime.type.KeyImpl;
+import lucee.runtime.type.Struct;
+import lucee.runtime.type.util.KeyConstants;
+import lucee.runtime.type.wrap.MapAsStruct;
 
 public class ClassDefinitionImpl<T> implements ClassDefinition<T>, Externalizable {
 
@@ -56,13 +63,6 @@ public class ClassDefinitionImpl<T> implements ClassDefinition<T>, Externalizabl
 		this.id = id;
 	}
 
-	public ClassDefinitionImpl(Identification id, String className, String name, Version version) {
-		this.className = className == null ? null : className.trim();
-		this.name = StringUtil.isEmpty(name, true) ? null : name.trim();
-		this.version = version;
-		this.id = id;
-	}
-
 	public ClassDefinitionImpl(String className) {
 		this.className = className == null ? null : className.trim();
 		this.name = null;
@@ -76,6 +76,81 @@ public class ClassDefinitionImpl<T> implements ClassDefinition<T>, Externalizabl
 		this.name = null;
 		this.version = null;
 		this.id = null;
+	}
+
+	public static ClassDefinitionImpl toClassDefinitionImpl(Struct sct, String prefix, Identification id) throws PageException {
+		prefix = improvePrefix(prefix);
+
+		String cl = toClassName(sct, prefix);
+
+		// bundle?
+		String bn = toBundleName(sct, prefix);
+		String bv = toBundleVersion(sct, prefix);
+
+		if (!StringUtil.isEmpty(bn)) {
+			return new ClassDefinitionImpl(bn, bv, cl, id);
+		}
+
+		// TODO Maven?
+		return new ClassDefinitionImpl(cl, null, null, id);
+	}
+
+	public static ClassDefinition toClassDefinition(Map<String, ?> map, Identification id) throws PageException {
+		return toClassDefinitionImpl(MapAsStruct.toStruct(map, false), null, id);
+	}
+
+	public static ClassDefinition toClassDefinition(Map<String, ?> map, Identification id, ClassDefinition defaultValue) {
+		try {
+			return toClassDefinitionImpl(MapAsStruct.toStruct(map, false), null, id);
+		}
+		catch (PageException e) {
+			return defaultValue;
+		}
+
+	}
+
+	private static String improvePrefix(String prefix) {
+		if (prefix != null) {
+			prefix = prefix.trim();
+			if (StringUtil.isEmpty(prefix)) prefix = null;
+			else if (prefix.endsWith("-")) prefix = prefix.substring(0, prefix.length() - 1);
+		}
+
+		return prefix;
+	}
+
+	public static String toClassName(Struct sct, String prefix) throws ApplicationException {
+		if (sct == null) throw new ApplicationException("structure is empty");
+		prefix = improvePrefix(prefix);
+
+		String className = Caster.toString(sct.get(prefix != null ? KeyImpl.init(prefix + "class") : KeyConstants._class, null), null);
+		if (StringUtil.isEmpty(className)) className = Caster.toString(sct.get(prefix != null ? KeyImpl.init(prefix + "classname") : KeyConstants._classname, null), null);
+		if (StringUtil.isEmpty(className)) className = Caster.toString(sct.get(prefix != null ? KeyImpl.init(prefix + "-class-name") : KeyImpl.init("class-name"), null), null);
+		if (StringUtil.isEmpty(className)) throw new ApplicationException("class is undefined");
+		return className;
+	}
+
+	public static String toBundleName(Struct sct, String prefix) {
+		if (sct == null) return null;
+		prefix = improvePrefix(prefix);
+
+		String name = Caster.toString(sct.get(prefix != null ? KeyImpl.init(prefix + "bundleName") : KeyConstants._bundleName, null), null);
+		if (StringUtil.isEmpty(name)) name = Caster.toString(sct.get(prefix != null ? KeyImpl.init(prefix + "-bundle-name") : KeyImpl.init("bundle-name"), null), null);
+		if (StringUtil.isEmpty(name)) name = Caster.toString(sct.get(prefix != null ? KeyImpl.init(prefix + "name") : KeyConstants._name, null), null);
+		if (StringUtil.isEmpty(name)) return null;
+		return name;
+	}
+
+	public static String toBundleVersion(Struct sct, String prefix) {
+		if (sct == null) return null;
+
+		prefix = improvePrefix(prefix);
+
+		String version = Caster.toString(sct.get(prefix != null ? KeyImpl.init(prefix + "bundleVersion") : KeyConstants._bundleVersion, null), null);
+		if (StringUtil.isEmpty(version)) version = Caster.toString(sct.get(prefix != null ? KeyImpl.init(prefix + "-bundle-version") : KeyImpl.init("bundle-version"), null), null);
+		if (StringUtil.isEmpty(version)) version = Caster.toString(sct.get(prefix != null ? KeyImpl.init(prefix + "version") : KeyConstants._version, null), null);
+		if (StringUtil.isEmpty(version)) return null;
+		return version;
 	}
 
 	/**

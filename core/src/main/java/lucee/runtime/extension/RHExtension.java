@@ -74,7 +74,6 @@ import lucee.runtime.config.DeployHandler;
 import lucee.runtime.converter.ConverterException;
 import lucee.runtime.converter.JSONConverter;
 import lucee.runtime.converter.JSONDateFormat;
-import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.engine.ThreadLocalConfig;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
@@ -1274,22 +1273,6 @@ public class RHExtension implements Serializable {
 			ExceptionUtil.rethrowIfNecessary(t);
 			return defaultValue;
 		}
-	}
-
-	public static ClassDefinition<?> toClassDefinition(Config config, Map<String, ?> map, ClassDefinition<?> defaultValue) {
-		String _class = Caster.toString(map.get("class"), null);
-
-		String _name = Caster.toString(map.get("bundle-name"), null);
-		if (StringUtil.isEmpty(_name)) _name = Caster.toString(map.get("bundleName"), null);
-		if (StringUtil.isEmpty(_name)) _name = Caster.toString(map.get("bundlename"), null);
-		if (StringUtil.isEmpty(_name)) _name = Caster.toString(map.get("name"), null);
-
-		String _version = Caster.toString(map.get("bundle-version"), null);
-		if (StringUtil.isEmpty(_version)) _version = Caster.toString(map.get("bundleVersion"), null);
-		if (StringUtil.isEmpty(_version)) _version = Caster.toString(map.get("bundleversion"), null);
-		if (StringUtil.isEmpty(_version)) _version = Caster.toString(map.get("version"), null);
-		if (StringUtil.isEmpty(_class)) return defaultValue;
-		return new lucee.transformer.library.ClassDefinitionImpl(_class, _name, _version, config.getIdentification());
 	}
 
 	private static List<Map<String, String>> toSettings(Log log, String str) {

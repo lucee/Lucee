@@ -863,29 +863,27 @@ public final class ConfigWebFactory extends ConfigFactory {
 		}
 	}
 
-	private static <T> ClassDefinition<T> getClassDefinition(Struct data, String prefix, Identification id) {
+	private static <T> ClassDefinition<T> getClassDefinition(Struct data, String prefix, Identification id) throws PageException {
+		String attrName;
 		String cn;
-		String bn;
-		String bv;
+
+		// FUTURE remove
 		if (StringUtil.isEmpty(prefix)) {
 			cn = getAttr(data, "class");
-			bn = getAttr(data, "bundleName");
-			bv = getAttr(data, "bundleVersion");
+			attrName = "class";
 		}
 		else {
 			if (prefix.endsWith("-")) prefix = prefix.substring(0, prefix.length() - 1);
 			cn = getAttr(data, prefix + "Class");
-			bn = getAttr(data, prefix + "BundleName");
-			bv = getAttr(data, prefix + "BundleVersion");
+			attrName = prefix + "Class";
 		}
 
 		// proxy jar library no longer provided, so if still this class name is used ....
-		if ("com.microsoft.jdbc.sqlserver.SQLServerDriver".equals(cn)) {
-			cn = "com.microsoft.sqlserver.jdbc.SQLServerDriver";
+		if (cn != null && "com.microsoft.jdbc.sqlserver.SQLServerDriver".equals(cn)) {
+			data.set(attrName, "com.microsoft.sqlserver.jdbc.SQLServerDriver");
 		}
 
-		ClassDefinition<T> cd = new ClassDefinitionImpl<>(cn, bn, bv, id);
-		// if(!StringUtil.isEmpty(cd.className,true))cd.getClazz();
+		ClassDefinition<T> cd = ClassDefinitionImpl.toClassDefinitionImpl(data, prefix, id);
 		return cd;
 	}
 
@@ -2512,7 +2510,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 						try {
 							Bundle bundle = OSGiUtil.loadBundle(cd.getName(), cd.getVersion(), config.getIdentification(), null, false);
 							String cn = JDBCDriver.extractClassName(bundle);
-							cd = new ClassDefinitionImpl(config.getIdentification(), cn, cd.getName(), cd.getVersion());
+							cd = new ClassDefinitionImpl(cn, cd.getName(), cd.getVersionAsString(), config.getIdentification());
 						}
 						catch (Throwable t) {
 							ExceptionUtil.rethrowIfNecessary(t);

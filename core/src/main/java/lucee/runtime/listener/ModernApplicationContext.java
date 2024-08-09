@@ -60,7 +60,6 @@ import lucee.runtime.config.ConfigWebUtil;
 import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.db.DataSource;
 import lucee.runtime.engine.ThreadLocalPageContext;
-import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.DeprecatedException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageRuntimeException;
@@ -1001,12 +1000,9 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 		}
 	}
 
-	public static CacheConnection toCacheConnection(Config config, String name, Struct data) throws ApplicationException {
+	public static CacheConnection toCacheConnection(Config config, String name, Struct data) throws PageException {
 		// class definition
-		String className = Caster.toString(data.get(KeyConstants._class, null), null);
-		if (StringUtil.isEmpty(className)) throw new ApplicationException("missing key class in struct the defines a cachec connection");
-		ClassDefinition cd = new ClassDefinitionImpl(className, Caster.toString(data.get(KeyConstants._bundleName, null), null),
-				Caster.toString(data.get(KeyConstants._bundleVersion, null), null), config.getIdentification());
+		ClassDefinition cd = ClassDefinitionImpl.toClassDefinitionImpl(data, null, config.getIdentification());
 
 		CacheConnectionImpl cc = new CacheConnectionImpl(config, name, cd, Caster.toStruct(data.get(KeyConstants._custom, null), null),
 				Caster.toBooleanValue(data.get(KeyConstants._readonly, null), false), Caster.toBooleanValue(data.get(KeyConstants._storage, null), false));

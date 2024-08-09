@@ -2214,7 +2214,7 @@ public final class ConfigAdmin {
 		String cn = ConfigWebUtil.getAsString("class", p, null);
 		String name = ConfigWebUtil.getAsString("bundleName", p, null);
 		String version = ConfigWebUtil.getAsString("bundleVersion", p, null);
-		ClassDefinition cd = new ClassDefinitionImpl(cn, name, version, ThreadLocalPageContext.getConfig().getIdentification());
+		ClassDefinition cd = ClassDefinitionImpl.toClassDefinitionImpl(p, null, ThreadLocalPageContext.getConfig().getIdentification());
 		String scheme = Caster.toString(p.get("scheme", null), null);
 		if (StringUtil.isEmpty(scheme)) {
 			try {
@@ -4789,7 +4789,7 @@ public final class ConfigAdmin {
 				Map<String, String> map;
 				while (itl.hasNext()) {
 					map = itl.next();
-					ClassDefinition cd = RHExtension.toClassDefinition(config, map, null);
+					ClassDefinition cd = ClassDefinitionImpl.toClassDefinition(map, config.getIdentification(), null);
 					if (cd != null && cd.isBundle()) {
 						_updateCache(cd);
 						reloadNecessary = true;
@@ -4804,7 +4804,7 @@ public final class ConfigAdmin {
 				Map<String, String> map;
 				while (itl.hasNext()) {
 					map = itl.next();
-					ClassDefinition cd = RHExtension.toClassDefinition(config, map, null);
+					ClassDefinition cd = ClassDefinitionImpl.toClassDefinition(map, config.getIdentification(), null);
 					String _id = map.get("id");
 					if (!StringUtil.isEmpty(_id) && cd != null && cd.hasClass()) {
 						_updateCacheHandler(_id, cd);
@@ -4820,7 +4820,7 @@ public final class ConfigAdmin {
 				Map<String, String> map;
 				while (itl.hasNext()) {
 					map = itl.next();
-					ClassDefinition cd = RHExtension.toClassDefinition(config, map, null);
+					ClassDefinition cd = ClassDefinitionImpl.toClassDefinition(map, config.getIdentification(), null);
 					if (cd != null && cd.hasClass()) {
 						_updateSearchEngine(cd);
 						reloadNecessary = true;
@@ -4835,7 +4835,7 @@ public final class ConfigAdmin {
 				Map<String, String> map;
 				while (itl.hasNext()) {
 					map = itl.next();
-					ClassDefinition cd = RHExtension.toClassDefinition(config, map, null);
+					ClassDefinition cd = ClassDefinitionImpl.toClassDefinition(map, config.getIdentification(), null);
 					String scheme = map.get("scheme");
 					if (cd != null && cd.hasClass() && !StringUtil.isEmpty(scheme)) {
 						Struct args = new StructImpl(Struct.TYPE_LINKED);
@@ -4854,7 +4854,7 @@ public final class ConfigAdmin {
 				Map<String, String> map;
 				while (itl.hasNext()) {
 					map = itl.next();
-					ClassDefinition cd = RHExtension.toClassDefinition(config, map, null);
+					ClassDefinition cd = ClassDefinitionImpl.toClassDefinition(map, config.getIdentification(), null);
 
 					if (cd != null && cd.hasClass()) {
 						_updateORMEngine(cd);
@@ -4870,7 +4870,7 @@ public final class ConfigAdmin {
 				Map<String, String> map;
 				while (itl.hasNext()) {
 					map = itl.next();
-					ClassDefinition cd = RHExtension.toClassDefinition(config, map, null);
+					ClassDefinition cd = ClassDefinitionImpl.toClassDefinition(map, config.getIdentification(), null);
 
 					if (cd != null && cd.hasClass()) {
 						_updateWebserviceHandler(cd);
@@ -4886,7 +4886,7 @@ public final class ConfigAdmin {
 				Map<String, String> map;
 				while (itl.hasNext()) {
 					map = itl.next();
-					ClassDefinition cd = RHExtension.toClassDefinition(config, map, null);
+					ClassDefinition cd = ClassDefinitionImpl.toClassDefinition(map, config.getIdentification(), null);
 					if (cd != null && cd.hasClass()) {
 						_updateMonitorEnabled(true);
 						_updateMonitor(cd, map.get("type"), map.get("name"), true);
@@ -4902,7 +4902,7 @@ public final class ConfigAdmin {
 				Map<String, String> map;
 				while (itl.hasNext()) {
 					map = itl.next();
-					ClassDefinition cd = RHExtension.toClassDefinition(config, map, null);
+					ClassDefinition cd = ClassDefinitionImpl.toClassDefinition(map, config.getIdentification(), null);
 					String _label = map.get("label");
 					String _id = map.get("id");
 					String _dsn = map.get("connectionString");
@@ -4921,7 +4921,7 @@ public final class ConfigAdmin {
 				Map<String, String> map;
 				while (itl.hasNext()) {
 					map = itl.next();
-					ClassDefinition cd = RHExtension.toClassDefinition(config, map, null);
+					ClassDefinition cd = ClassDefinitionImpl.toClassDefinition(map, config.getIdentification(), null);
 					String cfc = map.get("component");
 
 					// class
@@ -5001,7 +5001,7 @@ public final class ConfigAdmin {
 					// id
 					String id = Caster.toString(map.get("id"), null);
 					// class
-					ClassDefinition cd = RHExtension.toClassDefinition(config, map, null);
+					ClassDefinition cd = ClassDefinitionImpl.toClassDefinition(map, config.getIdentification(), null);
 					// component path
 					String cfcPath = Caster.toString(map.get("cfcPath"), null);
 					if (StringUtil.isEmpty(cfcPath)) cfcPath = Caster.toString(map.get("cfc-path"), null);
@@ -5137,7 +5137,7 @@ public final class ConfigAdmin {
 				Map<String, String> map;
 				while (itl.hasNext()) {
 					map = itl.next();
-					ClassDefinition cd = RHExtension.toClassDefinition(config, map, null);
+					ClassDefinition cd = ClassDefinitionImpl.toClassDefinition(map, config.getIdentification(), null);
 					String _id = map.get("id");
 
 					if (!StringUtil.isEmpty(_id) && cd != null && cd.hasClass()) {
@@ -5154,7 +5154,7 @@ public final class ConfigAdmin {
 				Map<String, String> map;
 				while (itl.hasNext()) {
 					map = itl.next();
-					ClassDefinition cd = RHExtension.toClassDefinition(config, map, null);
+					ClassDefinition cd = ClassDefinitionImpl.toClassDefinition(map, config.getIdentification(), null);
 					if (cd != null && cd.isBundle()) {
 						_removeCache(cd);
 						// reload=true;
@@ -5169,7 +5169,7 @@ public final class ConfigAdmin {
 				Map<String, String> map;
 				while (itl.hasNext()) {
 					map = itl.next();
-					ClassDefinition cd = RHExtension.toClassDefinition(config, map, null);
+					ClassDefinition cd = ClassDefinitionImpl.toClassDefinition(map, config.getIdentification(), null);
 					if (cd != null && cd.hasClass()) {
 						_removeSearchEngine();
 						// reload=true;
@@ -5184,7 +5184,7 @@ public final class ConfigAdmin {
 				Map<String, String> map;
 				while (itl.hasNext()) {
 					map = itl.next();
-					ClassDefinition cd = RHExtension.toClassDefinition(config, map, null);
+					ClassDefinition cd = ClassDefinitionImpl.toClassDefinition(map, config.getIdentification(), null);
 					String scheme = map.get("scheme");
 					if (cd != null && cd.hasClass()) {
 						_removeResourceProvider(scheme);
@@ -5199,7 +5199,7 @@ public final class ConfigAdmin {
 				Map<String, String> map;
 				while (itl.hasNext()) {
 					map = itl.next();
-					ClassDefinition cd = RHExtension.toClassDefinition(config, map, null);
+					ClassDefinition cd = ClassDefinitionImpl.toClassDefinition(map, config.getIdentification(), null);
 
 					if (cd != null && cd.hasClass()) {
 						_removeORMEngine();
@@ -5215,7 +5215,7 @@ public final class ConfigAdmin {
 				Map<String, String> map;
 				while (itl.hasNext()) {
 					map = itl.next();
-					ClassDefinition cd = RHExtension.toClassDefinition(config, map, null);
+					ClassDefinition cd = ClassDefinitionImpl.toClassDefinition(map, config.getIdentification(), null);
 
 					if (cd != null && cd.hasClass()) {
 						_removeWebserviceHandler();
@@ -5249,7 +5249,7 @@ public final class ConfigAdmin {
 				Map<String, String> map;
 				while (itl.hasNext()) {
 					map = itl.next();
-					ClassDefinition cd = RHExtension.toClassDefinition(config, map, null);
+					ClassDefinition cd = ClassDefinitionImpl.toClassDefinition(map, config.getIdentification(), null);
 					if (cd != null && cd.isBundle()) {
 						_removeJDBCDriver(cd);
 					}
@@ -5263,7 +5263,7 @@ public final class ConfigAdmin {
 				Map<String, String> map;
 				while (itl.hasNext()) {
 					map = itl.next();
-					ClassDefinition cd = RHExtension.toClassDefinition(config, map, null);
+					ClassDefinition cd = ClassDefinitionImpl.toClassDefinition(map, config.getIdentification(), null);
 					String cfc = map.get("component");
 
 					if (cd != null && cd.isBundle()) {
