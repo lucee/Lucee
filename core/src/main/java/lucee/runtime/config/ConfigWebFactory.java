@@ -883,7 +883,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 			data.set(attrName, "com.microsoft.sqlserver.jdbc.SQLServerDriver");
 		}
 
-		ClassDefinition<T> cd = ClassDefinitionImpl.toClassDefinitionImpl(data, prefix, id);
+		ClassDefinition<T> cd = ClassDefinitionImpl.toClassDefinitionImpl(data, prefix, true, id);
 		return cd;
 	}
 

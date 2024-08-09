@@ -1861,7 +1861,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	private void doUpdateJavaCFX() throws PageException {
 		String name = getString("admin", action, "name");
 		if (StringUtil.startsWithIgnoreCase(name, "cfx_")) name = name.substring(4);
-		lucee.runtime.db.ClassDefinition cd = ClassDefinitionImpl.toClassDefinitionImpl(attributes, null, config.getIdentification());
+		lucee.runtime.db.ClassDefinition cd = ClassDefinitionImpl.toClassDefinitionImpl(attributes, null, true, config.getIdentification());
 		admin.updateJavaCFX(name, cd);
 		store();
 		adminSync.broadcast(attributes, config);
@@ -1869,7 +1869,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 	private void doVerifyJavaCFX() throws PageException {
 		String name = getString("admin", action, "name");
-		ClassDefinition cd = ClassDefinitionImpl.toClassDefinitionImpl(attributes, null, config.getIdentification());
+		ClassDefinition cd = ClassDefinitionImpl.toClassDefinitionImpl(attributes, null, true, config.getIdentification());
 		admin.verifyJavaCFX(name, cd);
 	}
 
@@ -2198,7 +2198,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	}
 
 	private void doUpdateAdminSyncClass() throws PageException {
-		ClassDefinition cd = ClassDefinitionImpl.toClassDefinitionImpl(attributes, null, config.getIdentification());
+		ClassDefinition cd = ClassDefinitionImpl.toClassDefinitionImpl(attributes, null, true, config.getIdentification());
 		admin.updateAdminSyncClass(cd);
 		store();
 	}
@@ -2603,7 +2603,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 	private void doUpdateJDBCDriver() throws PageException {
 
-		ClassDefinition cd = ClassDefinitionImpl.toClassDefinitionImpl(attributes, null, config.getIdentification());
+		ClassDefinition cd = ClassDefinitionImpl.toClassDefinitionImpl(attributes, null, true, config.getIdentification());
 
 		String label = getString("admin", action, "label");
 		String id = getString("id", null);
@@ -2641,7 +2641,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 					+ "]: only alphanumeric characters, underscores (_), and hyphens (-) are valid. Please ensure the name conforms to these formats.");
 		}
 
-		ClassDefinition cd = ClassDefinitionImpl.toClassDefinitionImpl(attributes, null, config.getIdentification());
+		ClassDefinition cd = ClassDefinitionImpl.toClassDefinitionImpl(attributes, null, true, config.getIdentification());
 
 		// customParameterSyntax
 		// Struct sct = getStruct("customParameterSyntax", null);
@@ -2699,7 +2699,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	}
 
 	private void doUpdateCacheConnection() throws PageException {
-		ClassDefinition cd = ClassDefinitionImpl.toClassDefinitionImpl(attributes, null, config.getIdentification());
+		ClassDefinition cd = ClassDefinitionImpl.toClassDefinitionImpl(attributes, null, true, config.getIdentification());
 
 		admin.updateCacheConnection(getString("admin", action, "name"), cd, toCacheConstant("default"), getStruct("admin", action, "custom"), getBoolV("readOnly", false),
 				getBoolV("storage", false)
@@ -2734,7 +2734,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		 * +" ] listener CFC"); }
 		 */
 
-		ClassDefinition cd = ClassDefinitionImpl.toClassDefinitionImpl(attributes, null, config.getIdentification());
+		ClassDefinition cd = ClassDefinitionImpl.toClassDefinitionImpl(attributes, null, true, config.getIdentification());
 		admin.updateGatewayEntry(getString("admin", action, "id"), cd, getString("admin", action, "cfcPath"), getString("admin", action, "listenerCfcPath"), startup,
 				getStruct("admin", action, "custom"), getBoolV("readOnly", false)
 
@@ -2809,7 +2809,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 	private void doUpdateResourceProvider() throws PageException {
 
-		ClassDefinition cd = ClassDefinitionImpl.toClassDefinitionImpl(attributes, null, config.getIdentification());
+		ClassDefinition cd = ClassDefinitionImpl.toClassDefinitionImpl(attributes, null, true, config.getIdentification());
 
 		String scheme = getString("admin", action, "scheme");
 
@@ -2827,7 +2827,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	}
 
 	private void doUpdateDefaultResourceProvider() throws PageException {
-		ClassDefinition cd = ClassDefinitionImpl.toClassDefinitionImpl(attributes, null, config.getIdentification());
+		ClassDefinition cd = ClassDefinitionImpl.toClassDefinitionImpl(attributes, null, true, config.getIdentification());
 
 		String arguments = getString("admin", action, "arguments");
 
@@ -2855,7 +2855,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	 * 
 	 */
 	private void doVerifyDatasource() throws PageException {
-		ClassDefinition cd = ClassDefinitionImpl.toClassDefinitionImpl(attributes, null, config.getIdentification());
+		ClassDefinition cd = ClassDefinitionImpl.toClassDefinitionImpl(attributes, null, true, config.getIdentification());
 
 		String connStr = (String) attributes.get("connStr", null);
 		if (StringUtil.isEmpty(connStr)) connStr = (String) attributes.get("dsn", null);
@@ -4197,7 +4197,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	}
 
 	private void doUpdateMonitor() throws PageException {
-		ClassDefinition cd = ClassDefinitionImpl.toClassDefinitionImpl(attributes, null, config.getIdentification());
+		ClassDefinition cd = ClassDefinitionImpl.toClassDefinitionImpl(attributes, null, true, config.getIdentification());
 
 		admin.updateMonitor(cd, getString("admin", "updateMonitor", "monitorType"), getString("admin", "updateMonitor", "name"), getBool("admin", "updateMonitor", "logEnabled"));
 		store();
@@ -4205,21 +4205,21 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	}
 
 	private void doUpdateORMEngine() throws PageException {
-		ClassDefinition cd = ClassDefinitionImpl.toClassDefinitionImpl(attributes, null, config.getIdentification());
+		ClassDefinition cd = ClassDefinitionImpl.toClassDefinitionImpl(attributes, null, true, config.getIdentification());
 		admin.updateORMEngine(cd);
 		store();
 		adminSync.broadcast(attributes, config);
 	}
 
 	private void doUpdateCacheHandler() throws PageException {
-		ClassDefinition cd = ClassDefinitionImpl.toClassDefinitionImpl(attributes, null, config.getIdentification());
+		ClassDefinition cd = ClassDefinitionImpl.toClassDefinitionImpl(attributes, null, true, config.getIdentification());
 		admin.updateCacheHandler(getString("admin", "updateCacheHandler", "id"), cd);
 		store();
 		adminSync.broadcast(attributes, config);
 	}
 
 	private void doUpdateExecutionLog() throws PageException {
-		lucee.runtime.db.ClassDefinition cd = ClassDefinitionImpl.toClassDefinitionImpl(attributes, null, config.getIdentification());
+		lucee.runtime.db.ClassDefinition cd = ClassDefinitionImpl.toClassDefinitionImpl(attributes, null, true, config.getIdentification());
 		admin.updateExecutionLog(cd, getStruct("admin", "updateExecutionLog", "arguments"), getBool("admin", "updateExecutionLog", "enabled"));
 		store();
 		adminSync.broadcast(attributes, config);
@@ -4643,11 +4643,11 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 		LogEngine eng = config.getLogEngine();
 		// appender
-		ClassDefinition acd = ClassDefinitionImpl.toClassDefinitionImpl(attributes, "appender", config.getIdentification());
+		ClassDefinition acd = ClassDefinitionImpl.toClassDefinitionImpl(attributes, "appender", true, config.getIdentification());
 		if (!acd.isBundle()) acd = eng.appenderClassDefintion(acd.getClassName());
 
 		// layout
-		ClassDefinition lcd = ClassDefinitionImpl.toClassDefinitionImpl(attributes, "layout", config.getIdentification());
+		ClassDefinition lcd = ClassDefinitionImpl.toClassDefinitionImpl(attributes, "layout", true, config.getIdentification());
 		if (!lcd.isBundle()) lcd = eng.layoutClassDefintion(lcd.getClassName());
 
 		admin.updateLogSettings(getString("admin", "UpdateLogSettings", "name", true), l, acd, Caster.toStruct(getObject("admin", "UpdateLogSettings", "appenderArgs")), lcd,

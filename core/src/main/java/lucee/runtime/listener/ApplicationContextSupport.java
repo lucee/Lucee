@@ -317,12 +317,12 @@ public abstract class ApplicationContextSupport implements ApplicationContext {
 
 			// appender
 			Struct sctApp = Caster.toStruct(v.get("appender", null), null);
-			ClassDefinition cdApp = ClassDefinitionImpl.toClassDefinitionImpl(sctApp, null, config.getIdentification());
+			ClassDefinition cdApp = ClassDefinitionImpl.toClassDefinitionImpl(sctApp, null, false, config.getIdentification());
 			if (!cdApp.isBundle()) cdApp = ((ConfigPro) config).getLogEngine().appenderClassDefintion(cdApp.getClassName());
 
 			// layout
 			Struct sctLay = Caster.toStruct(v.get("layout", null), null);
-			ClassDefinition cdLay = ClassDefinitionImpl.toClassDefinitionImpl(sctLay, null, config.getIdentification());
+			ClassDefinition cdLay = ClassDefinitionImpl.toClassDefinitionImpl(sctLay, null, false, config.getIdentification());
 			if (!cdLay.isBundle()) cdLay = ((ConfigPro) config).getLogEngine().appenderClassDefintion(cdLay.getClassName());
 
 			if (cdApp != null && cdApp.hasClass()) {

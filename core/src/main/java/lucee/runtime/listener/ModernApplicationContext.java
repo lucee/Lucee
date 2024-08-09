@@ -1002,7 +1002,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 
 	public static CacheConnection toCacheConnection(Config config, String name, Struct data) throws PageException {
 		// class definition
-		ClassDefinition cd = ClassDefinitionImpl.toClassDefinitionImpl(data, null, config.getIdentification());
+		ClassDefinition cd = ClassDefinitionImpl.toClassDefinitionImpl(data, null, true, config.getIdentification());
 
 		CacheConnectionImpl cc = new CacheConnectionImpl(config, name, cd, Caster.toStruct(data.get(KeyConstants._custom, null), null),
 				Caster.toBooleanValue(data.get(KeyConstants._readonly, null), false), Caster.toBooleanValue(data.get(KeyConstants._storage, null), false));

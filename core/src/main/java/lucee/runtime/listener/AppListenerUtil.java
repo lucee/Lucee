@@ -223,7 +223,7 @@ public final class AppListenerUtil {
 			if ("com.microsoft.jdbc.sqlserver.SQLServerDriver".equals(className)) {
 				data.set(KeyConstants._class, "com.microsoft.sqlserver.jdbc.SQLServerDriver");
 			}
-			ClassDefinition cd = ClassDefinitionImpl.toClassDefinitionImpl(data, null, ThreadLocalPageContext.getConfig().getIdentification());
+			ClassDefinition cd = ClassDefinitionImpl.toClassDefinitionImpl(data, null, true, ThreadLocalPageContext.getConfig().getIdentification());
 
 			try {
 				int idle = Caster.toIntValue(data.get(IDLE_TIMEOUT, null), -1);

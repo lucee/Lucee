@@ -26,6 +26,7 @@ import java.util.Map;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Version;
 
+import lucee.print;
 import lucee.commons.digest.HashUtil;
 import lucee.commons.lang.ClassException;
 import lucee.commons.lang.ClassUtil;
@@ -60,6 +61,9 @@ public class ClassDefinitionImpl<T> implements ClassDefinition<T>, Externalizabl
 		this.className = className == null ? null : className.trim();
 		this.name = StringUtil.isEmpty(name, true) ? null : name.trim();
 		this.version = OSGiUtil.toVersion(version, null);
+
+		print.e(toString());
+
 		this.id = id;
 	}
 
@@ -78,14 +82,14 @@ public class ClassDefinitionImpl<T> implements ClassDefinition<T>, Externalizabl
 		this.id = null;
 	}
 
-	public static ClassDefinitionImpl toClassDefinitionImpl(Struct sct, String prefix, Identification id) throws PageException {
+	public static ClassDefinitionImpl toClassDefinitionImpl(Struct sct, String prefix, boolean strict, Identification id) throws PageException {
 		prefix = improvePrefix(prefix);
 
 		String cl = toClassName(sct, prefix);
 
 		// bundle?
-		String bn = toBundleName(sct, prefix);
-		String bv = toBundleVersion(sct, prefix);
+		String bn = toBundleName(sct, prefix, strict);
+		String bv = toBundleVersion(sct, prefix, strict);
 
 		if (!StringUtil.isEmpty(bn)) {
 			return new ClassDefinitionImpl(cl, bn, bv, id);
@@ -95,13 +99,13 @@ public class ClassDefinitionImpl<T> implements ClassDefinition<T>, Externalizabl
 		return new ClassDefinitionImpl(cl, null, null, id);
 	}
 
-	public static ClassDefinition toClassDefinition(Map<String, ?> map, Identification id) throws PageException {
-		return toClassDefinitionImpl(MapAsStruct.toStruct(map, false), null, id);
+	public static ClassDefinition toClassDefinition(Map<String, ?> map, boolean strict, Identification id) throws PageException {
+		return toClassDefinitionImpl(MapAsStruct.toStruct(map, false), null, strict, id);
 	}
 
-	public static ClassDefinition toClassDefinition(Map<String, ?> map, Identification id, ClassDefinition defaultValue) {
+	public static ClassDefinition toClassDefinition(Map<String, ?> map, boolean strict, Identification id, ClassDefinition defaultValue) {
 		try {
-			return toClassDefinitionImpl(MapAsStruct.toStruct(map, false), null, id);
+			return toClassDefinitionImpl(MapAsStruct.toStruct(map, false), null, strict, id);
 		}
 		catch (PageException e) {
 			return defaultValue;
@@ -130,25 +134,25 @@ public class ClassDefinitionImpl<T> implements ClassDefinition<T>, Externalizabl
 		return className;
 	}
 
-	public static String toBundleName(Struct sct, String prefix) {
+	public static String toBundleName(Struct sct, String prefix, boolean strict) {
 		if (sct == null) return null;
 		prefix = improvePrefix(prefix);
 
 		String name = Caster.toString(sct.get(prefix != null ? KeyImpl.init(prefix + "bundleName") : KeyConstants._bundleName, null), null);
 		if (StringUtil.isEmpty(name)) name = Caster.toString(sct.get(prefix != null ? KeyImpl.init(prefix + "-bundle-name") : KeyImpl.init("bundle-name"), null), null);
-		if (StringUtil.isEmpty(name)) name = Caster.toString(sct.get(prefix != null ? KeyImpl.init(prefix + "name") : KeyConstants._name, null), null);
+		if (!strict && StringUtil.isEmpty(name)) name = Caster.toString(sct.get(prefix != null ? KeyImpl.init(prefix + "name") : KeyConstants._name, null), null);
 		if (StringUtil.isEmpty(name)) return null;
 		return name;
 	}
 
-	public static String toBundleVersion(Struct sct, String prefix) {
+	public static String toBundleVersion(Struct sct, String prefix, boolean strict) {
 		if (sct == null) return null;
 
 		prefix = improvePrefix(prefix);
 
 		String version = Caster.toString(sct.get(prefix != null ? KeyImpl.init(prefix + "bundleVersion") : KeyConstants._bundleVersion, null), null);
 		if (StringUtil.isEmpty(version)) version = Caster.toString(sct.get(prefix != null ? KeyImpl.init(prefix + "-bundle-version") : KeyImpl.init("bundle-version"), null), null);
-		if (StringUtil.isEmpty(version)) version = Caster.toString(sct.get(prefix != null ? KeyImpl.init(prefix + "version") : KeyConstants._version, null), null);
+		if (!strict && StringUtil.isEmpty(version)) version = Caster.toString(sct.get(prefix != null ? KeyImpl.init(prefix + "version") : KeyConstants._version, null), null);
 		if (StringUtil.isEmpty(version)) return null;
 		return version;
 	}
