@@ -4,9 +4,14 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import lucee.commons.io.res.ContentType;
+import lucee.commons.lang.StringUtil;
+import lucee.runtime.PageContext;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.type.Collection.Key;
+import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Query;
 import lucee.runtime.type.QueryImpl;
 import lucee.runtime.type.Struct;
@@ -14,6 +19,9 @@ import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.util.KeyConstants;
 
 public class AIUtil {
+
+	private static final Key CREATED_AT = KeyImpl.init("createdAt");
+	private static final Key STATUS_DETAILS = KeyImpl.init("statusDetails");
 
 	public static Exception toException(AIEngine engine, String msg, String type, String code) {
 		String appendix = "";
@@ -58,18 +66,52 @@ public class AIUtil {
 		if (factory != null) meta.set(KeyConstants._name, factory.getName());
 
 		// models
-		List<AIModel> models = aie.getModels();
-		Query qry = new QueryImpl(new Key[] { KeyConstants._name, KeyConstants._label, KeyConstants._description, KeyConstants._custom }, models.size(), "models");
-		int row = 0;
-		for (AIModel m: models) {
-			row++;
-			qry.setAt(KeyConstants._name, row, m.getName());
-			qry.setAt(KeyConstants._label, row, m.getLabel());
-			qry.setAt(KeyConstants._description, row, m.getDescription());
-			qry.setAt(KeyConstants._custom, row, m.asStruct());
+		{
+			List<AIModel> models = aie.getModels();
+			Query qry = new QueryImpl(new Key[] { KeyConstants._name, KeyConstants._label, KeyConstants._description, KeyConstants._custom }, models.size(), "models");
+			int row = 0;
+			for (AIModel m: models) {
+				row++;
+				qry.setAt(KeyConstants._name, row, m.getName());
+				qry.setAt(KeyConstants._label, row, m.getLabel());
+				qry.setAt(KeyConstants._description, row, m.getDescription());
+				qry.setAt(KeyConstants._custom, row, m.asStruct());
+			}
+			meta.set(KeyConstants._models, qry);
 		}
-		meta.set(KeyConstants._models, qry);
 
+		// files
+		if (aie instanceof AIEngineFile) {
+			AIEngineFile aief = (AIEngineFile) aie;
+			List<AIFile> files = aief.listFiles();
+
+			// String status, String statusDetails
+			Query qry = new QueryImpl(new Key[] { KeyConstants._object, KeyConstants._id, KeyConstants._purpose, KeyConstants._filename, KeyConstants._bytes, CREATED_AT,
+					KeyConstants._status, STATUS_DETAILS }, files.size(), "files");
+			int row = 0;
+			for (AIFile f: files) {
+				row++;
+				qry.setAt(KeyConstants._object, row, f.getObject());
+				qry.setAt(KeyConstants._id, row, f.getId());
+				qry.setAt(KeyConstants._purpose, row, f.getPurpose());
+				qry.setAt(KeyConstants._filename, row, f.getFilename());
+				qry.setAt(KeyConstants._bytes, row, f.getBytes());
+				qry.setAt(CREATED_AT, row, f.getCreatedAt());
+				qry.setAt(KeyConstants._status, row, f.getStatus());
+				qry.setAt(STATUS_DETAILS, row, f.getStatusDetails());
+			}
+			meta.set(KeyConstants._files, qry);
+		}
 		return meta;
+	}
+
+	private static final String getCharset(ContentType ct) {
+		String charset = null;
+		if (ct != null) charset = ct.getCharset();
+		if (!StringUtil.isEmpty(charset)) return charset;
+
+		PageContext pc = ThreadLocalPageContext.get();
+		if (pc != null) return pc.getWebCharset().name();
+		return "ISO-8859-1";
 	}
 }

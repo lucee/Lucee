@@ -3001,6 +3001,10 @@ public class KeyConstants {
 	public static final Key _answer = KeyImpl._const("answer");
 	public static final Key _contents = KeyImpl._const("contents");
 	public static final Key _parts = KeyImpl._const("parts");
+	public static final Key _stream = KeyImpl._const("stream");
+	public static final Key _temperature = KeyImpl._const("temperature");
+	public static final Key _purpose = KeyImpl._const("purpose");
+
 	private static Map<String, Key> _____keys;
 
 	static {

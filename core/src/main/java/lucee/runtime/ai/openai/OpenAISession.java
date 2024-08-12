@@ -87,7 +87,15 @@ public class OpenAISession extends AISessionSupport {
 			Struct sct = new StructImpl(StructImpl.TYPE_LINKED);
 			sct.set(KeyConstants._model, openaiEngine.model);
 			sct.set(KeyConstants._messages, arr);
-			sct.set("stream", listener != null);
+			sct.set(KeyConstants._stream, listener != null);
+			if (openaiEngine.temperature != null) sct.set(KeyConstants._temperature, openaiEngine.temperature);
+			// TODO response_format
+			// TODO frequency_penalty
+			// TODO logit_bias
+			// TODO logprobs
+			// TODO top_logprobs
+			// TODO max_tokens
+			// TODO presence_penalty
 
 			JSONConverter json = new JSONConverter(true, CharsetUtil.UTF8, JSONDateFormat.PATTERN_CF, false);
 			String str = json.serialize(null, sct, SerializationSettings.SERIALIZE_AS_COLUMN, null);
@@ -152,4 +160,5 @@ public class OpenAISession extends AISessionSupport {
 	public void release() {
 		// nothing to give up
 	}
+
 }

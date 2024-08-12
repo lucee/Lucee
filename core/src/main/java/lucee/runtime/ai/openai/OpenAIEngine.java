@@ -1,13 +1,27 @@
 package lucee.runtime.ai.openai;
 
+import java.io.InputStream;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.http.HttpEntity;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.mime.MultipartEntityBuilder;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.util.EntityUtils;
+
+import lucee.commons.io.IOUtil;
 import lucee.commons.io.res.ContentType;
+import lucee.commons.io.res.Resource;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.net.HTTPUtil;
 import lucee.commons.net.http.HTTPResponse;
@@ -17,7 +31,10 @@ import lucee.commons.net.http.httpclient.HeaderImpl;
 import lucee.loader.util.Util;
 import lucee.runtime.ai.AIEngine;
 import lucee.runtime.ai.AIEngineFactory;
+import lucee.runtime.ai.AIEngineFile;
 import lucee.runtime.ai.AIEngineSupport;
+import lucee.runtime.ai.AIFile;
+import lucee.runtime.ai.AIFileSupport;
 import lucee.runtime.ai.AIModel;
 import lucee.runtime.ai.AISession;
 import lucee.runtime.ai.AIUtil;
@@ -30,12 +47,17 @@ import lucee.runtime.type.Array;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.util.KeyConstants;
 
-public class OpenAIEngine extends AIEngineSupport {
+public class OpenAIEngine extends AIEngineSupport implements AIEngineFile {
 	private static final long DEFAULT_TIMEOUT = 3000L;
 	private static final String DEFAULT_CHARSET = null;
 	private static final String DEFAULT_MIMETYPE = null;
 	private static final URL DEFAULT_URL_OPENAI;
 	private static final URL DEFAULT_URL_OLLAMA;
+
+	// TODO
+	// post https://api.openai.com/v1/audio/speech
+	// post https://api.openai.com/v1/audio/transcriptions
+	// post https://api.openai.com/v1/audio/translations
 
 	static {
 
@@ -76,6 +98,7 @@ public class OpenAIEngine extends AIEngineSupport {
 	private String systemMessage;
 
 	private URL baseURL;
+	public Double temperature = null;
 
 	@Override
 	public AIEngine init(AIEngineFactory factory, Struct properties) throws PageException {
@@ -107,10 +130,7 @@ public class OpenAIEngine extends AIEngineSupport {
 
 		// secret key
 		str = Caster.toString(properties.get(KeyConstants._secretKey, null), null);
-		if (Util.isEmpty(str, true)) {
-			throw new ApplicationException("the property [secretKey] is required for the AI Engine ChatGPT!");
-		}
-		secretKey = str.trim();
+		if (!Util.isEmpty(str, true)) secretKey = str.trim();
 
 		// timeout
 		timeout = Caster.toLongValue(properties.get(KeyConstants._timeout, null), DEFAULT_TIMEOUT);
@@ -132,6 +152,11 @@ public class OpenAIEngine extends AIEngineSupport {
 			}
 
 			throw new ApplicationException("the property [model] is required for a OpenAI Engine!." + appendix);
+		}
+		// temperature
+		temperature = Caster.toDouble(properties.get(KeyConstants._temperature, null), null);
+		if (temperature != null && (temperature < 0D || temperature > 1D)) {
+			throw new ApplicationException("temperature has to be a number between 0 and 1, now it is [" + temperature + "]");
 		}
 
 		// message
@@ -187,6 +212,114 @@ public class OpenAIEngine extends AIEngineSupport {
 				return list;
 			}
 			throw new ApplicationException("Chat GPT did answer with the mime type [" + ct.getMimeType() + "] that is not supported, only [application/json] is supported");
+
+		}
+		catch (Exception e) {
+			throw Caster.toPageException(e);
+		}
+	}
+
+	@Override
+	public String uploadFile(Resource jsonl) throws PageException {
+		try {
+			URI url = new URI(getBaseURL() + "files");
+			InputStream is = null;
+			// Create HttpClient
+			try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
+				// Create HttpPost request
+				HttpPost uploadFile = new HttpPost(url);
+				uploadFile.setHeader("Authorization", "Bearer " + secretKey);
+
+				// Build the multipart entity
+				MultipartEntityBuilder builder = MultipartEntityBuilder.create();
+				builder.addTextBody("purpose", "fine-tune", org.apache.http.entity.ContentType.TEXT_PLAIN);
+				builder.addBinaryBody("file", is = jsonl.getInputStream(), org.apache.http.entity.ContentType.APPLICATION_OCTET_STREAM, jsonl.getName());
+
+				HttpEntity multipart = builder.build();
+				uploadFile.setEntity(multipart);
+
+				// Execute the request
+				CloseableHttpResponse response = httpClient.execute(uploadFile);
+				try {
+
+					// Get response
+					HttpEntity responseEntity = response.getEntity();
+					String responseString = EntityUtils.toString(responseEntity, charset);
+
+					/*
+					 * { "object": "file", "id": "file-NvDokaQZjf06auxzzU5ONayK", "purpose": "fine-tune", "filename":
+					 * "markdown_data.jsonl", "bytes": 179207, "created_at": 1723452279, "status": "processed",
+					 * "status_details": null }
+					 */
+
+					Struct raw = Caster.toStruct(new JSONExpressionInterpreter().interpret(null, responseString));
+					return Caster.toString(raw.get(KeyConstants._id));
+
+				}
+				finally {
+					response.close();
+				}
+			}
+			finally {
+				IOUtil.close(is);
+			}
+
+		}
+		catch (Exception e) {
+			throw Caster.toPageException(e);
+		}
+	}
+
+	@Override
+	public List<AIFile> listFiles() throws PageException {
+		try {
+			URI url = new URI(getBaseURL() + "files");
+			InputStream is = null;
+			// Create HttpClient
+			try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
+				// Create HttpPost request
+				HttpGet get = new HttpGet(url);
+				get.setHeader("Authorization", "Bearer " + secretKey);
+
+				// Execute the request
+				try (CloseableHttpResponse response = httpClient.execute(get)) {
+					// Get response
+					HttpEntity responseEntity = response.getEntity();
+					List<AIFile> list = new ArrayList<>();
+					if ("application/json".equals(responseEntity.getContentType().getValue())) {
+						String responseString = EntityUtils.toString(responseEntity, charset);
+						Struct raw = Caster.toStruct(new JSONExpressionInterpreter().interpret(null, responseString));
+						Array data = Caster.toArray(raw.get(KeyConstants._data));
+						Iterator<?> it = data.getIterator();
+						Struct sct;
+						while (it.hasNext()) {
+							sct = Caster.toStruct(it.next());
+							list.add(new AIFileSupport(
+
+									Caster.toString(sct.get(KeyConstants._object)),
+
+									Caster.toString(sct.get(KeyConstants._id)),
+
+									Caster.toString(sct.get("purpose")),
+
+									Caster.toString(sct.get(KeyConstants._filename)),
+
+									Caster.toLongValue(sct.get(KeyConstants._bytes)),
+
+									Caster.toDatetime(new Date(Caster.toLongValue(sct.get("created_at")) * 1000L), null),
+
+									Caster.toString(sct.get(KeyConstants._status)),
+
+									Caster.toString(sct.get("status_details", null))));
+
+						}
+					}
+					return list;
+				}
+			}
+			finally {
+				IOUtil.close(is);
+			}
 
 		}
 		catch (Exception e) {
