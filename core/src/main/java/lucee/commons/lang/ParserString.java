@@ -717,13 +717,14 @@ public final class ParserString {
 	 * @return SQL text with comments stripped out
 	 */
 	public String stripSqlComments(String sql) {
-		char c;
+		char c, quoteType = 0;
 		int sqlLen = sql.length();
+		boolean inQuotes = false;
 		StringBuilder sb = new StringBuilder();
 
 		for (int i = 0; i < sqlLen; i++) {
 			c = sql.charAt(i);
-			if ( i < (sqlLen - 1)) {
+			if (!inQuotes && i < (sqlLen - 1)) {
 				// handle multi line comment
 				if (c == '/' && sql.charAt(i + 1) == '*') {
 					int end = sql.indexOf("*/", i + 2);
@@ -742,8 +743,22 @@ public final class ParserString {
 					i = end;
 					continue;
 				}
+				
 			}
-			sb.append(c);
+			if (c == '"' || c == '\'') {
+				if (inQuotes) {
+					if (c == quoteType) {
+						inQuotes = false;
+					}
+				}
+				else {
+					quoteType = c;
+					inQuotes = true;
+				}
+				sb.append(c);
+			} else {
+				sb.append(c);
+			}
 		}
 		return sb.toString().trim();
 	}
