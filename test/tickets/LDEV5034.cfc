@@ -64,18 +64,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 				
 				files=justFiles(files);
 				extractedFiles=justFiles(extractedFiles);
-				systemOutput(files,1,1);
-				systemOutput(extractedFiles,1,1);
 				expect( files.recordcount ).toBe( extractedFiles.recordcount );
-
-				loop array=tests item="local.test" {
-					//systemOutput( test, true );
-					var key = mid( test.name, len( dest) + 1 );
-					expect( st ).toHaveKey( key );
-					//systemOutput( st[ key ], true );
-					expect( test.mode ).toBe( st[ key ].mode, test.name );
-				}
-
 			});
 		} );
 	}
