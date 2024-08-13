@@ -61,7 +61,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 
 				var extractedFiles = directoryList( dest, true, "query" );
 				var st2 = QueryToStruct( files, "name" );
-				
+				systemOutput(files,1,1);
+				systemOutput(extractedFiles,1,1);
 				expect( files.recordcount ).toBe( extractedFiles.recordcount );
 
 				loop array=tests item="local.test" {
