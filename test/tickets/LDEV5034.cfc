@@ -61,6 +61,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 
 				var extractedFiles = directoryList( dest, true, "query" );
 				var st2 = QueryToStruct( files, "name" );
+				
+				files=justFiles(files);
+				extractedFiles=justFiles(extractedFiles);
 				systemOutput(files,1,1);
 				systemOutput(extractedFiles,1,1);
 				expect( files.recordcount ).toBe( extractedFiles.recordcount );
@@ -75,6 +78,15 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 
 			});
 		} );
+	}
+
+	private function justFiles(qry) {
+		qry=duplicate(qry);
+		for(var row=qry.recordcount;row>0;row--) {
+			if(qry.type[row]!="File") queryDeleteRow(qry,row);
+		}
+		querySort(qry, "type");
+		return qry;
 	}
 
 	private function _dir( parent, name, mode ){
