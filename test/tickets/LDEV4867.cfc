@@ -75,6 +75,14 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="query" {
 					[ "/* foo ? :do */" ]
 				);
 			});
+
+			// this fails in the old zzsql parser, works fine with h2
+			xit( title='test query parsing, with comments in quotes ', body=function() {
+				doTest( [ "SELECT engine, '/* multi */  // -- single' AS comments FROM qry WHERE id = :id"],
+					[ "/* multi */  // -- single" ]
+				);
+			});
+
 		});
 	}
 
