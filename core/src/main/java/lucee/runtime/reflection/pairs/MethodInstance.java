@@ -118,8 +118,9 @@ public final class MethodInstance {
 			try {
 				result = DynamicInvoker.getInstance(null).createInstance(clazz, methodName, args);
 			}
-			catch (Exception e) {
-				throw Caster.toPageException(e);
+			catch (Throwable t) {
+				ExceptionUtil.rethrowIfNecessary(t);
+				throw Caster.toPageException(t);
 			}
 		}
 		return result;

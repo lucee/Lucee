@@ -40,6 +40,7 @@ import org.apache.commons.compress.compressors.bzip2.BZip2CompressorInputStream;
 import org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream;
 
 import lucee.commons.io.IOUtil;
+import lucee.commons.io.ModeUtil;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.ResourceProvider;
@@ -221,7 +222,9 @@ public final class CompressUtil {
 				}
 				target.setLastModified(entry.getModTime().getTime());
 				mode = entry.getMode();
-				if (mode > 0) target.setMode(mode);
+				if (mode > 0) {
+					target.setMode(ModeUtil.extractPermissions(mode, false));
+				}
 				// tis.closeEntry() ;
 			}
 		}

@@ -54,15 +54,12 @@ public final class TagHandlerPool {
 	 */
 	public Tag use(String className, String tagBundleName, String tagBundleVersion, Identification id) throws PageException {
 		Queue<Tag> queue = getQueue(toId(className, tagBundleName, tagBundleVersion));
-		Tag tag = queue.poll();
+		Tag tag = null;
+		synchronized (queue) {
+			tag = queue.poll();
+		}
 		if (tag != null) return tag;
 		return loadTag(className, tagBundleName, tagBundleVersion, id);
-	}
-
-	private String toId(String className, String tagBundleName, String tagBundleVersion) {
-		if (tagBundleName == null && tagBundleVersion == null) return className;
-		if (tagBundleVersion == null) return className + ":" + tagBundleName;
-		return className + ":" + tagBundleName + ":" + tagBundleVersion;
 	}
 
 	/**
@@ -74,13 +71,23 @@ public final class TagHandlerPool {
 	public void reuse(Tag tag) {
 		tag.release();
 		Queue<Tag> queue = getQueue(tag.getClass().getName());
-		queue.add(tag);
+		synchronized (queue) {
+			queue.add(tag);
+		}
 	}
 
 	public void reuse(Tag tag, String bundleName, String bundleVersion) {
 		tag.release();
 		Queue<Tag> queue = getQueue(toId(tag.getClass().getName(), bundleName, bundleVersion));
-		queue.add(tag);
+		synchronized (queue) {
+			queue.add(tag);
+		}
+	}
+
+	private String toId(String className, String tagBundleName, String tagBundleVersion) {
+		if (tagBundleName == null && tagBundleVersion == null) return className;
+		if (tagBundleVersion == null) return className + ":" + tagBundleName;
+		return className + ":" + tagBundleName + ":" + tagBundleVersion;
 	}
 
 	private Tag loadTag(String className, String tagBundleName, String tagBundleVersion, Identification id) throws PageException {

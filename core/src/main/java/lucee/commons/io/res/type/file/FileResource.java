@@ -439,8 +439,9 @@ public final class FileResource extends File implements Resource {
 
 	@Override
 	public void setMode(int mode) throws IOException {
-		// TODO unter windows mit setReadable usw.
+		// TODO for windows do it with help of NIO functions
 		if (!SystemUtil.isUnix()) return;
+		mode = ModeUtil.extractPermissions(mode, true); // we only need the permission part
 		provider.lock(this);
 		try {
 			// print.ln(ModeUtil.toStringMode(mode));
