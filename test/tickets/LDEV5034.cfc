@@ -56,24 +56,19 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 				compress( "tgz", dir, tar );
 
 				var dest = getTempDirectory() & "LDEV-5034-" & createUUID() & "/";
-				if ( directoryExists( dest ) );
-					directoryDelete( dest, true );
 				directoryCreate( dest );
 				extract( "tgz", tar, dest );
 
 				var extractedFiles = directoryList( dest, true, "query" );
 				var st2 = QueryToStruct( files, "name" );
-				loop collection=st2 item="local.item"{
-					systemOutput( item, true );
-				}
-
+				
 				expect( files.recordcount ).toBe( extractedFiles.recordcount );
 
 				loop array=tests item="local.test" {
-					systemOutput( test, true );
+					//systemOutput( test, true );
 					var key = mid( test.name, len( dest) + 1 );
 					expect( st ).toHaveKey( key );
-					systemOutput( st[ key ], true );
+					//systemOutput( st[ key ], true );
 					expect( test.mode ).toBe( st[ key ].mode, test.name );
 				}
 
