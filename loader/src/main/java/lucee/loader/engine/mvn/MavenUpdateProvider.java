@@ -106,8 +106,9 @@ public class MavenUpdateProvider {
 			String a = artifact.replace('.', '/');
 			String v = version.toString();
 			String repo = repoReleases;
-			urlLco = new URL(repo + "/" + g + "/" + a + "/" + v + "/" + a + "-" + v + ".lco");
-			urljar = new URL(repo + "/" + g + "/" + a + "/" + v + "/" + a + "-" + v + ".jar");
+			if (!repo.endsWith("/")) repo += "/";
+			urlLco = new URL(repo + g + "/" + a + "/" + v + "/" + a + "-" + v + ".lco");
+			urljar = new URL(repo + g + "/" + a + "/" + v + "/" + a + "-" + v + ".jar");
 		}
 		// LCO
 		if (urlLco != null) {
