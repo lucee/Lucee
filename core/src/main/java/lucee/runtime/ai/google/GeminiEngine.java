@@ -30,7 +30,7 @@ import lucee.runtime.type.Struct;
 import lucee.runtime.type.util.KeyConstants;
 
 public class GeminiEngine extends AIEngineSupport {
-
+	// https://ai.google.dev/gemini-api/docs/get-started/tutorial?lang=rest&hl=de
 	public static final String TYPE_REG = "generateContent?";
 	public static final String TYPE_STREAM = "streamGenerateContent?alt=sse&";
 

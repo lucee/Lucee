@@ -23,7 +23,7 @@ public class AIUtil {
 	private static final Key CREATED_AT = KeyImpl.init("createdAt");
 	private static final Key STATUS_DETAILS = KeyImpl.init("statusDetails");
 
-	public static Exception toException(AIEngine engine, String msg, String type, String code) {
+	public static PageException toException(AIEngine engine, String msg, String type, String code) {
 		String appendix = "";
 		if ("model_not_found".equals(code) || msg.indexOf("models") != -1) {
 			try {

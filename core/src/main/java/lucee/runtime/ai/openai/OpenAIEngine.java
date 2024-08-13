@@ -14,11 +14,13 @@ import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.StringEntity;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 
+import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.res.ContentType;
 import lucee.commons.io.res.Resource;
@@ -38,16 +40,22 @@ import lucee.runtime.ai.AIFileSupport;
 import lucee.runtime.ai.AIModel;
 import lucee.runtime.ai.AISession;
 import lucee.runtime.ai.AIUtil;
+import lucee.runtime.converter.JSONConverter;
+import lucee.runtime.converter.JSONDateFormat;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.interpreter.JSONExpressionInterpreter;
+import lucee.runtime.listener.SerializationSettings;
 import lucee.runtime.net.proxy.ProxyData;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.Struct;
+import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.util.KeyConstants;
 
 public class OpenAIEngine extends AIEngineSupport implements AIEngineFile {
+	// https://platform.openai.com/docs/api-reference/introduction
+
 	private static final long DEFAULT_TIMEOUT = 3000L;
 	private static final String DEFAULT_CHARSET = null;
 	private static final String DEFAULT_MIMETYPE = null;
@@ -197,11 +205,7 @@ public class OpenAIEngine extends AIEngineSupport implements AIEngineFile {
 				if (Util.isEmpty(cs, true)) cs = charset;
 
 				Struct raw = Caster.toStruct(new JSONExpressionInterpreter().interpret(null, rsp.getContentAsString(cs)));
-				Struct err = Caster.toStruct(raw.get(KeyConstants._error, null), null);
-				if (err != null) {
-					throw AIUtil.toException(this, Caster.toString(err.get(KeyConstants._message)), Caster.toString(err.get(KeyConstants._type, null), null),
-							Caster.toString(err.get(KeyConstants._code, null), null));
-				}
+				throwIfError(raw);
 
 				Array data = Caster.toArray(raw.get(KeyConstants._data));
 				Iterator<Object> it = data.valueIterator();
@@ -211,7 +215,54 @@ public class OpenAIEngine extends AIEngineSupport implements AIEngineFile {
 				}
 				return list;
 			}
-			throw new ApplicationException("Chat GPT did answer with the mime type [" + ct.getMimeType() + "] that is not supported, only [application/json] is supported");
+			throw new ApplicationException("OpenAI did answer with the mime type [" + ct.getMimeType() + "] that is not supported, only [application/json] is supported");
+
+		}
+		catch (Exception e) {
+			throw Caster.toPageException(e);
+		}
+	}
+
+	private void throwIfError(Struct raw) throws PageException {
+		Struct err = Caster.toStruct(raw.get(KeyConstants._error, null), null);
+		if (err != null) {
+			throw AIUtil.toException(this, Caster.toString(err.get(KeyConstants._message)), Caster.toString(err.get(KeyConstants._type, null), null),
+					Caster.toString(err.get(KeyConstants._code, null), null));
+		}
+	}
+
+	public Struct createFineTuningJob(String trainingFileId) throws PageException {
+		try {
+			URI url = new URI(getBaseURL() + "fine_tuning/jobs");
+			InputStream is = null;
+			// Create HttpClient
+			try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
+				// Create HttpPost request
+				HttpPost post = new HttpPost(url);
+				post.setHeader("Content-Type", "application/json");
+				post.setHeader("Authorization", "Bearer " + secretKey);
+
+				Struct sct = new StructImpl();
+				sct.set("training_file", trainingFileId);
+				sct.set(KeyConstants._model, model);
+				JSONConverter json = new JSONConverter(true, CharsetUtil.UTF8, JSONDateFormat.PATTERN_CF, false);
+				String str = json.serialize(null, sct, SerializationSettings.SERIALIZE_AS_COLUMN, null);
+				StringEntity entity = new StringEntity(str);
+				post.setEntity(entity);
+
+				// Execute the request
+				try (CloseableHttpResponse response = httpClient.execute(post)) {
+					HttpEntity responseEntity = response.getEntity();
+					String responseString = EntityUtils.toString(responseEntity, charset);
+
+					Struct raw = Caster.toStruct(new JSONExpressionInterpreter().interpret(null, responseString));
+					throwIfError(raw);
+					return raw;
+				}
+			}
+			finally {
+				IOUtil.close(is);
+			}
 
 		}
 		catch (Exception e) {
@@ -253,6 +304,7 @@ public class OpenAIEngine extends AIEngineSupport implements AIEngineFile {
 					 */
 
 					Struct raw = Caster.toStruct(new JSONExpressionInterpreter().interpret(null, responseString));
+					throwIfError(raw);
 					return Caster.toString(raw.get(KeyConstants._id));
 
 				}
@@ -289,6 +341,7 @@ public class OpenAIEngine extends AIEngineSupport implements AIEngineFile {
 					if ("application/json".equals(responseEntity.getContentType().getValue())) {
 						String responseString = EntityUtils.toString(responseEntity, charset);
 						Struct raw = Caster.toStruct(new JSONExpressionInterpreter().interpret(null, responseString));
+						throwIfError(raw);
 						Array data = Caster.toArray(raw.get(KeyConstants._data));
 						Iterator<?> it = data.getIterator();
 						Struct sct;
