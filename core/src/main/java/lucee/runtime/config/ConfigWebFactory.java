@@ -73,6 +73,7 @@ import lucee.commons.io.res.ResourcesImpl;
 import lucee.commons.io.res.filter.ExtensionResourceFilter;
 import lucee.commons.io.res.type.cfml.CFMLResourceProvider;
 import lucee.commons.io.res.type.s3.DummyS3ResourceProvider;
+import lucee.commons.io.res.type.zip.ZipResourceProvider;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.io.retirement.RetireOutputStream;
 import lucee.commons.lang.ByteSizeParser;
@@ -779,6 +780,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 			}
 			// Resource Provider
 			if (hasCS) config.setResourceProviderFactories(configServer.getResourceProviderFactories());
+			boolean hasZip = false;
 			if (providers != null && providers.size() > 0) {
 				ClassDefinition prov;
 				String strProviderCFC;
@@ -816,6 +818,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 								httpArgs = toArguments(provider, "arguments", true, false);
 							}
 							else if ("https".equalsIgnoreCase(strProviderScheme)) hasHTTPs = true;
+							else if ("zip".equalsIgnoreCase(strProviderScheme)) hasZip = true;
 						}
 
 						// cfc
@@ -837,15 +840,24 @@ public final class ConfigWebFactory extends ConfigFactory {
 				if (!hasHTTPs && httpClass != null) {
 					config.addResourceProvider("https", httpClass, httpArgs);
 				}
-				// adding s3 when not exist
 
-				// we make sure we have the default on server level
-				if (!hasCS && !config.hasResourceProvider("s3")) {
-					ClassDefinition s3Class = new ClassDefinitionImpl(DummyS3ResourceProvider.class);
-					Map<String, String> args = new HashMap<>();
-					args.put("lock-timeout", "10000");
-					config.addResourceProvider("s3", s3Class, args);
-				}
+			}
+			// adding zip when not exist
+			print.e("hasZip:" + hasZip);
+			if (!hasZip) {
+				Map<String, String> args = new HashMap<>();
+				args.put("lock-timeout", "1000");
+				args.put("case-sensitive", "1000");
+				print.e(args);
+				config.addResourceProvider("zip", new ClassDefinitionImpl<>(ZipResourceProvider.class), args);
+			}
+
+			// we make sure we have the default on server level
+			if (!hasCS && !config.hasResourceProvider("s3")) {
+				ClassDefinition s3Class = new ClassDefinitionImpl(DummyS3ResourceProvider.class);
+				Map<String, String> args = new HashMap<>();
+				args.put("lock-timeout", "10000");
+				config.addResourceProvider("s3", s3Class, args);
 			}
 		}
 		catch (Throwable t) {
@@ -3507,14 +3519,16 @@ public final class ConfigWebFactory extends ConfigFactory {
 				cs.setUpdateType(getAttr(root, "updateType"));
 
 				String location = getAttr(root, "updateLocation");
-				if (location != null) {
+				if (!StringUtil.isEmpty(location, true)) {
 					location = location.trim();
-					if (location.length() == 0 || "http://update.lucee.org".equals(location)) location = DEFAULT_LOCATION;
+					if ("http://update.lucee.org".equals(location)) location = DEFAULT_LOCATION;
 					if ("http://snapshot.lucee.org".equals(location) || "https://snapshot.lucee.org".equals(location)) location = DEFAULT_LOCATION;
 					if ("http://release.lucee.org".equals(location) || "https://release.lucee.org".equals(location)) location = DEFAULT_LOCATION;
 					cs.setUpdateLocation(location);
 				}
-
+				else {
+					cs.setUpdateLocation(DEFAULT_LOCATION);
+				}
 			}
 		}
 		catch (Throwable t) {
@@ -5125,10 +5139,11 @@ public final class ConfigWebFactory extends ConfigFactory {
 
 				// Dump-Template
 				String strDumpRemplate = getAttr(root, "componentDumpTemplate");
-				if ((strDumpRemplate == null || strDumpRemplate.trim().length() == 0) && configServer != null) {
-					strDumpRemplate = configServer.getComponentDumpTemplate();
+				if (StringUtil.isEmpty(strDumpRemplate, true)) {
+					if (configServer != null) strDumpRemplate = configServer.getComponentDumpTemplate();
+					else strDumpRemplate = "/lucee/component-dump.cfm";
 				}
-				config.setComponentDumpTemplate(strDumpRemplate);
+				config.setComponentDumpTemplate(strDumpRemplate.trim());
 
 				// data-member-default-access
 				if (mode == ConfigPro.MODE_STRICT) {
@@ -5309,7 +5324,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 			}
 
 			if (!hasSet) {
-				MappingImpl m = new MappingImpl(config, "/default", "{lucee-web}/components/", null, ConfigPro.INSPECT_UNDEFINED, ConfigPro.INSPECT_INTERVAL_UNDEFINED,
+				MappingImpl m = new MappingImpl(config, "/default", "{lucee-config}/components/", null, ConfigPro.INSPECT_UNDEFINED, ConfigPro.INSPECT_INTERVAL_UNDEFINED,
 						ConfigPro.INSPECT_INTERVAL_UNDEFINED, true, false, false, true, false, true, null, -1, -1);
 				config.setComponentMappings(new Mapping[] { m.cloneReadOnly(config) });
 			}

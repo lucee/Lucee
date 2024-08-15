@@ -220,10 +220,10 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	private boolean showVersion = false;
 
 	private Resource tempDirectory;
-	private TimeSpan clientTimeout = new TimeSpanImpl(90, 0, 0, 0);
+	private TimeSpan clientTimeout = new TimeSpanImpl(0, 0, 90, 0);
 	private TimeSpan sessionTimeout = new TimeSpanImpl(0, 0, 30, 0);
 	private TimeSpan applicationTimeout = new TimeSpanImpl(1, 0, 0, 0);
-	private TimeSpan requestTimeout = new TimeSpanImpl(0, 0, 0, 30);
+	private TimeSpan requestTimeout = new TimeSpanImpl(0, 0, 0, 50);
 
 	private boolean sessionManagement = true;
 	private boolean clientManagement = false;
@@ -313,11 +313,11 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 
 	private Resource clientScopeDir;
 	private Resource sessionScopeDir;
-	private long clientScopeDirSize = 1024 * 1024 * 10;
-	private long sessionScopeDirSize = 1024 * 1024 * 10;
+	private long clientScopeDirSize = 1024 * 1024 * 100;
+	private long sessionScopeDirSize = 1024 * 1024 * 100;
 
 	private Resource cacheDir;
-	private long cacheDirSize = 1024 * 1024 * 10;
+	private long cacheDirSize = 1024 * 1024 * 100;
 
 	private boolean useComponentShadow = true;
 
