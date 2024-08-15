@@ -232,10 +232,7 @@ public final class ConfigWebUtil {
 			}
 		}
 
-		// set classloader
-
-		ClassLoader parent = SystemUtil.getCoreClassLoader();
-		((ConfigImpl) config).setResourceClassLoader(new ResourceClassLoader(list.toArray(new Resource[list.size()]), parent));
+		((ConfigImpl) config).setResourceClassLoader(new ResourceClassLoader(list.toArray(new Resource[list.size()]), SystemUtil.getCombinedClassLoader()));
 	}
 
 	/**

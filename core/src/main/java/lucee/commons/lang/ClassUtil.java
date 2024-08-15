@@ -321,6 +321,8 @@ public final class ClassUtil {
 			if (clazz != null) return clazz;
 		}
 
+		// MUST javasettings?
+
 		// OSGI env
 		Class clazz = _loadClass(new OSGiBasedClassLoading(), className, null, exceptions);
 		if (clazz != null) return clazz;
