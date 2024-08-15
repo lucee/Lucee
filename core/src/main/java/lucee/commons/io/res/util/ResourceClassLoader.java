@@ -26,6 +26,7 @@ import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -41,9 +42,10 @@ import lucee.runtime.type.util.ArrayUtil;
  */
 public class ResourceClassLoader extends URLClassLoader implements Closeable {
 
-	private List<Resource> resources = new ArrayList<Resource>();
+	private final List<Resource> resources = new ArrayList<Resource>();
 	private Map<String, SoftReference<ResourceClassLoader>> customCLs;
-
+	private Integer hc = null;
+	private static RC rc = new RC();
 	static {
 		boolean res = registerAsParallelCapable();
 	}
@@ -60,6 +62,7 @@ public class ResourceClassLoader extends URLClassLoader implements Closeable {
 		for (Resource r: resources) {
 			if (r != null) this.resources.add(r);
 		}
+		java.util.Collections.sort(this.resources, rc);
 	}
 
 	public ResourceClassLoader(Collection<Resource> resources, ClassLoader parent) throws IOException {
@@ -67,6 +70,7 @@ public class ResourceClassLoader extends URLClassLoader implements Closeable {
 		for (Resource r: resources) {
 			if (r != null) this.resources.add(r);
 		}
+		java.util.Collections.sort(this.resources, rc);
 	}
 
 	public ResourceClassLoader(ClassLoader parent) {
@@ -120,7 +124,7 @@ public class ResourceClassLoader extends URLClassLoader implements Closeable {
 	public ResourceClassLoader getCustomResourceClassLoader(Resource[] resources) throws IOException {
 
 		if (ArrayUtil.isEmpty(resources)) return this;
-
+		Arrays.sort(resources);
 		String key = hash(resources);
 		SoftReference<ResourceClassLoader> tmp = customCLs == null ? null : customCLs.get(key);
 		ResourceClassLoader rcl = tmp == null ? null : tmp.get();
@@ -136,27 +140,40 @@ public class ResourceClassLoader extends URLClassLoader implements Closeable {
 		return rcl;
 	}
 
-	public ResourceClassLoader getCustomResourceClassLoader2w(Resource[] resources) throws IOException {
-		if (ArrayUtil.isEmpty(resources)) return this;
-		String key = hash(resources);
-		SoftReference<ResourceClassLoader> tmp = customCLs == null ? null : customCLs.get(key);
-		ResourceClassLoader rcl = tmp == null ? null : tmp.get();
-		if (rcl != null) return rcl;
-
-		rcl = new ResourceClassLoader(resources, this);
-		if (customCLs == null) customCLs = new ConcurrentHashMap<String, SoftReference<ResourceClassLoader>>();
-		customCLs.put(key, new SoftReference<ResourceClassLoader>(rcl));
-		return rcl;
+	@Override
+	public int hashCode() {
+		if (hc == null) {
+			synchronized (resources) {
+				if (hc == null) {
+					hc = _hashStr(getResources()).hashCode();
+				}
+			}
+		}
+		return hc.intValue();
 	}
 
-	private String hash(Resource[] resources) {
-		Arrays.sort(resources);
+	private String _hashStr(Resource[] resources) {
 		StringBuilder sb = new StringBuilder();
 		for (int i = 0; i < resources.length; i++) {
 			sb.append(ResourceUtil.getCanonicalPathEL(resources[i]));
 			sb.append(';');
 		}
-		return HashUtil.create64BitHashAsString(sb.toString());
+		return sb.toString();
 	}
 
+	public String hash() {
+		return hash(getResources());
+	}
+
+	private String hash(Resource[] resources) {
+		return HashUtil.create64BitHashAsString(_hashStr(resources));
+	}
+
+	private static class RC implements Comparator<Resource> {
+
+		@Override
+		public int compare(Resource l, Resource r) {
+			return l.getAbsolutePath().compareTo(r.getAbsolutePath());
+		}
+	}
 }

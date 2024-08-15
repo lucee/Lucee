@@ -88,25 +88,23 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 	 * @throws IOException
 	 */
 	public PhysicalClassLoader(Config c, Resource directory, PageSourcePool pageSourcePool) throws IOException {
-		this(c, directory, (ClassLoader[]) null, true, pageSourcePool);
+		this(c, directory, (ClassLoader) null, true, pageSourcePool);
 	}
 
-	public PhysicalClassLoader(Config c, Resource directory, ClassLoader[] parentClassLoaders, boolean includeCoreCL, PageSourcePool pageSourcePool) throws IOException {
-		super(parentClassLoaders == null || parentClassLoaders.length == 0 ? c.getClassLoader() : parentClassLoaders[0]);
+	public PhysicalClassLoader(Config c, Resource directory, ClassLoader parentClassLoader, boolean includeCoreCL, PageSourcePool pageSourcePool) throws IOException {
+		super(parentClassLoader == null ? c.getClassLoader() : parentClassLoader);
 		config = (ConfigPro) c;
 
 		this.pageSourcePool = pageSourcePool;
 		// ClassLoader resCL = parent!=null?parent:config.getResourceClassLoader(null);
 
 		List<ClassLoader> tmp = new ArrayList<ClassLoader>();
-		if (parentClassLoaders == null || parentClassLoaders.length == 0) {
+		if (parentClassLoader == null) {
 			ResourceClassLoader _cl = config.getResourceClassLoader(null);
 			if (_cl != null) tmp.add(_cl);
 		}
 		else {
-			for (ClassLoader p: parentClassLoaders) {
-				tmp.add(p);
-			}
+			tmp.add(parentClassLoader);
 		}
 
 		if (includeCoreCL) tmp.add(config.getClassLoaderCore());
@@ -278,7 +276,7 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 		SoftReference<PhysicalClassLoader> tmp = customCLs == null ? null : customCLs.get(key);
 		PhysicalClassLoader pcl = tmp == null ? null : tmp.get();
 		if (pcl != null) return pcl;
-		pcl = new PhysicalClassLoader(config, getDirectory(), new ClassLoader[] { new ResourceClassLoader(resources, getParent()) }, true, pageSourcePool);
+		pcl = new PhysicalClassLoader(config, getDirectory(), new ResourceClassLoader(resources, getParent()), true, pageSourcePool);
 		if (customCLs == null) customCLs = new ConcurrentHashMap<String, SoftReference<PhysicalClassLoader>>();
 		customCLs.put(key, new SoftReference<PhysicalClassLoader>(pcl));
 		return pcl;

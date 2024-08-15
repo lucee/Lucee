@@ -3863,8 +3863,8 @@ public final class PageContextImpl extends PageContext {
 		return getRPCClassLoader(reload, null);
 	}
 
-	public ClassLoader getRPCClassLoader(boolean reload, ClassLoader[] parents) throws IOException {
-		ClassLoader cl = ((ConfigPro) config).getRPCClassLoader(reload, parents);
+	public ClassLoader getRPCClassLoader(boolean reload, ClassLoader parent) throws IOException {
+		ClassLoader cl = ((ConfigPro) config).getRPCClassLoader(reload, parent);
 		JavaSettingsImpl js = (JavaSettingsImpl) getJavaSettings();
 		if (js != null) {
 			// TODO FUTURE 7 we do this to avoid any kind of regression, in Lucee 7 remove this

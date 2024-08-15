@@ -39,6 +39,7 @@ import org.objectweb.asm.commons.GeneratorAdapter;
 
 import lucee.commons.digest.HashUtil;
 import lucee.commons.io.IOUtil;
+import lucee.commons.io.SystemUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ClassUtil;
@@ -140,7 +141,6 @@ public class JavaProxyFactory {
 	public static Object createProxy(PageContext pc, UDF udf, Class interf) throws PageException, IOException {
 		PageContextImpl pci = (PageContextImpl) pc;
 		ClassLoader parent = ClassUtil.getClassLoader(interf);
-		ClassLoader[] parents = new ClassLoader[] { parent };
 
 		if (!interf.isInterface()) throw new IOException("definition [" + interf.getName() + "] is a class and not a interface");
 
@@ -151,7 +151,7 @@ public class JavaProxyFactory {
 		// get ClassLoader
 		PhysicalClassLoader pcl = null;
 		try {
-			pcl = (PhysicalClassLoader) pci.getRPCClassLoader(false, parents);
+			pcl = (PhysicalClassLoader) pci.getRPCClassLoader(false, parent);
 		}
 		catch (IOException e) {
 			throw Caster.toPageException(e);
@@ -219,7 +219,7 @@ public class JavaProxyFactory {
 			ResourceUtil.touch(classFile);
 			IOUtil.copy(new ByteArrayInputStream(barr), classFile, true);
 
-			pcl = (PhysicalClassLoader) pci.getRPCClassLoader(true, parents);
+			pcl = (PhysicalClassLoader) pci.getRPCClassLoader(true, parent);
 			Class<?> clazz = pcl.loadClass(className, barr);
 			return newInstance(clazz, pc.getConfig(), udf);
 		}
@@ -240,7 +240,7 @@ public class JavaProxyFactory {
 
 	public static Object createProxy(PageContext pc, final Component cfc, Class extendz, Class... interfaces) throws PageException, IOException {
 		PageContextImpl pci = (PageContextImpl) pc;
-		ClassLoader[] parents = extractClassLoaders(null, extendz, interfaces);
+		ClassLoader parent = extractClassLoaders(extendz, interfaces);
 
 		if (extendz == null) extendz = Object.class;
 		if (interfaces == null) interfaces = new Class[0];
@@ -260,7 +260,7 @@ public class JavaProxyFactory {
 		// get ClassLoader
 		PhysicalClassLoader pcl = null;
 		try {
-			pcl = (PhysicalClassLoader) pci.getRPCClassLoader(false, parents);// mapping.getConfig().getRPCClassLoader(false)
+			pcl = (PhysicalClassLoader) pci.getRPCClassLoader(false, parent);
 		}
 		catch (IOException e) {
 			throw Caster.toPageException(e);
@@ -399,7 +399,7 @@ public class JavaProxyFactory {
 			ResourceUtil.touch(classFile);
 			IOUtil.copy(new ByteArrayInputStream(barr), classFile, true);
 
-			pcl = (PhysicalClassLoader) pci.getRPCClassLoader(true, parents);
+			pcl = (PhysicalClassLoader) pci.getRPCClassLoader(true, parent);
 			Class<?> clazz = pcl.loadClass(className, barr);
 			return newInstance(clazz, pc.getConfig(), cfc);
 		}
@@ -452,24 +452,22 @@ public class JavaProxyFactory {
 	 * // adapter.returnValue(); adapter.endMethod(); }
 	 */
 
-	private static ClassLoader[] extractClassLoaders(ClassLoader cl, Class extendz, Class... classes) {
-		HashSet<ClassLoader> set = new HashSet<>();
-		if (cl != null) {
-			set.add(cl);
-			cl = null;
-		}
+	private static ClassLoader extractClassLoaders(Class extendz, Class... interfaces) {
+		// extends and implement need to come from the same parent classloader
+		ClassLoader cl = null;
 		if (extendz != null) {
-			set.add(ClassUtil.getClassLoader(extendz));
+			cl = ClassUtil.getClassLoader(extendz);
+			if (cl != null) return cl;
 		}
 
-		if (classes != null) {
-			for (int i = 0; i < classes.length; i++) {
-				set.add(ClassUtil.getClassLoader(classes[i]));
+		if (interfaces != null) {
+			for (Class cls: interfaces) {
+				cl = ClassUtil.getClassLoader(cls);
+				if (cl != null) return cl;
 			}
 		}
-		return set.toArray(new ClassLoader[set.size()]);
+		return SystemUtil.getCombinedClassLoader();
 	}
-	// _createProxy(cw, cDone, mDone, udf, interf, className);
 
 	private static void _createProxy(ClassWriter cw, Set<Class> cDone, Map<String, Class> mDone, UDF udf, Class clazz, String className) throws IOException {
 		if (cDone.contains(clazz)) return;
@@ -656,6 +654,7 @@ public class JavaProxyFactory {
 		if (extendz == null) extendz = Object.class;
 
 		StringBuilder sb = new StringBuilder(extendz.getName());
+
 		if (interfaces != null && interfaces.length > 0) {
 			sb.append(';');
 
@@ -667,7 +666,10 @@ public class JavaProxyFactory {
 
 			sb.append(lucee.runtime.type.util.ListUtil.arrayToList(arr, ";"));
 		}
-		sb.append(appendix).append(';').append(resource.getAbsolutePath()).append(';');
+
+		sb.append(appendix).append(';')
+		// .append(resource.getAbsolutePath()).append(';')
+		;
 
 		StringBuilder name = new StringBuilder().append(appendix.charAt(0)).append(HashUtil.create64BitHashAsString(sb.toString(), Character.MAX_RADIX).toLowerCase());
 		if (cfc != null && !StringUtil.isEmpty(cfc.getAbsName())) {
