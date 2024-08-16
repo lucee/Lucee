@@ -390,6 +390,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	private ClassDefinition<? extends ORMEngine> cdORMEngine;
 	private ORMConfiguration ormConfig;
 	private ResourceClassLoader resourceCL;
+	private JavaSettings js;
 
 	private ImportDefintion componentDefaultImport = new ImportDefintionImpl(Constants.DEFAULT_PACKAGE, "*");
 	private boolean componentLocalSearch = true;
@@ -699,10 +700,6 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	public ResourceClassLoader getResourceClassLoader(ResourceClassLoader defaultValue) {
 		if (resourceCL == null) return defaultValue;
 		return resourceCL;
-	}
-
-	protected void setResourceClassLoader(ResourceClassLoader resourceCL) {
-		this.resourceCL = resourceCL;
 	}
 
 	@Override
@@ -2267,8 +2264,8 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	}
 
 	@Override
-	public ClassLoader getRPCClassLoader(boolean reload, ClassLoader parent) throws IOException {
-		String key = toKey(parent);
+	public ClassLoader getRPCClassLoader(boolean reload, ResourceClassLoader parent) throws IOException {
+		String key = parent.hash();
 		PhysicalClassLoader rpccl = reload ? null : rpcClassLoaders.get(key);
 		if (rpccl == null) {
 			synchronized (key) {
@@ -2277,18 +2274,16 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 					Resource dir = getClassDirectory().getRealResource("RPC/" + key);
 					if (!dir.exists()) {
 						ResourceUtil.createDirectoryEL(dir, true);
-						if (parent instanceof ResourceClassLoader) {
-							Resource file = dir.getRealResource("classloader-resources.json");
-							Struct root = new StructImpl();
-							root.setEL(KeyConstants._resources, ((ResourceClassLoader) parent).getResources());
-							JSONConverter json = new JSONConverter(true, CharsetUtil.UTF8, JSONDateFormat.PATTERN_CF, false);
-							try {
-								String str = json.serialize(null, root, SerializationSettings.SERIALIZE_AS_COLUMN, null);
-								IOUtil.write(file, str, CharsetUtil.UTF8, false);
-							}
-							catch (ConverterException e) {
-								throw ExceptionUtil.toIOException(e);
-							}
+						Resource file = dir.getRealResource("classloader-resources.json");
+						Struct root = new StructImpl();
+						root.setEL(KeyConstants._resources, parent.getResources());
+						JSONConverter json = new JSONConverter(true, CharsetUtil.UTF8, JSONDateFormat.PATTERN_CF, false);
+						try {
+							String str = json.serialize(null, root, SerializationSettings.SERIALIZE_AS_COLUMN, null);
+							IOUtil.write(file, str, CharsetUtil.UTF8, false);
+						}
+						catch (ConverterException e) {
+							throw ExceptionUtil.toIOException(e);
 						}
 
 					}
@@ -4033,7 +4028,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 		if (javaSettings == null) {
 			synchronized (javaSettingsInstances) {
 				if (javaSettings == null) {
-					javaSettings = JavaSettingsImpl.getInstance(this, new StructImpl());
+					javaSettings = JavaSettingsImpl.getInstance(this, new StructImpl(), null);
 				}
 			}
 		}

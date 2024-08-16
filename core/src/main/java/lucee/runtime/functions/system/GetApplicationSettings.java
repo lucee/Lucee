@@ -19,7 +19,6 @@
 package lucee.runtime.functions.system;
 
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -419,7 +418,7 @@ public class GetApplicationSettings extends BIF {
 		// maven
 		if (js instanceof JavaSettingsImpl) {
 			JavaSettingsImpl jsi = (JavaSettingsImpl) js;
-			List<POM> poms = jsi.getPoms();
+			java.util.Collection<POM> poms = jsi.getPoms();
 			if (poms != null) {
 				Array arr = new ArrayImpl();
 				Struct s;

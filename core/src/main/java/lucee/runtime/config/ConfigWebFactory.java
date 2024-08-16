@@ -543,13 +543,12 @@ public final class ConfigWebFactory extends ConfigFactory {
 			_loadSecurity(cs, config, root, log);
 			if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_DEBUG, ConfigWebFactory.class.getName(), "loaded security");
 		}
-		try {
-			ConfigWebUtil.loadLib(cs, config);
+
+		if (!essentialOnly) {
+			_loadJavaSettings(cs, config, root, log); // define compile type
+			if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_DEBUG, ConfigWebFactory.class.getName(), "loaded java settings");
 		}
-		catch (Throwable t) {
-			ExceptionUtil.rethrowIfNecessary(t);
-			log(config, log, t);
-		}
+
 		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_DEBUG, ConfigWebFactory.class.getName(), "loaded lib");
 
 		if (!essentialOnly) {
@@ -592,7 +591,6 @@ public final class ConfigWebFactory extends ConfigFactory {
 		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_DEBUG, ConfigWebFactory.class.getName(), "loaded application");
 
 		_loadJava(cs, config, root, log); // define compile type
-		if (!essentialOnly) _loadJavaSettings(cs, config, root, log); // define compile type
 		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_DEBUG, ConfigWebFactory.class.getName(), "loaded java");
 
 		if (!essentialOnly) {
@@ -4294,11 +4292,15 @@ public final class ConfigWebFactory extends ConfigFactory {
 	private static void _loadJavaSettings(ConfigServerImpl configServer, ConfigImpl config, Struct root, Log log) {
 		try {
 			if (config instanceof ConfigServerImpl) {
+
+				Resource lib = config.getLibraryDirectory();
+				Resource[] libs = lib.listResources(ExtensionResourceFilter.EXTENSION_JAR_NO_DIR);
+
 				ConfigServerImpl csi = (ConfigServerImpl) config;
 				Struct javasettings = ConfigWebUtil.getAsStruct(root, false, "javasettings");
 
 				if (javasettings != null && javasettings.size() > 0) {
-					JavaSettings js = JavaSettingsImpl.getInstance(config, javasettings);
+					JavaSettings js = JavaSettingsImpl.getInstance(config, javasettings, libs);
 					csi.setJavaSettings(js);
 				}
 			}

@@ -190,7 +190,7 @@ public interface ConfigPro extends Config {
 
 	public ResourceClassLoader getResourceClassLoader();
 
-	public ClassLoader getRPCClassLoader(boolean reload, ClassLoader parent) throws IOException;
+	public ClassLoader getRPCClassLoader(boolean reload, ResourceClassLoader parent) throws IOException;
 
 	public PageSource toPageSource(Mapping[] mappings, Resource res, PageSource defaultValue);
 

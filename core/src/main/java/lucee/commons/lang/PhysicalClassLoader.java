@@ -25,23 +25,19 @@ import java.lang.instrument.UnmodifiableClassException;
 import java.lang.ref.SoftReference;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import lucee.commons.digest.HashUtil;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceClassLoader;
-import lucee.commons.io.res.util.ResourceUtil;
 import lucee.runtime.PageSourcePool;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigPro;
 import lucee.runtime.exp.ApplicationException;
-import lucee.runtime.type.util.ArrayUtil;
 import lucee.transformer.bytecode.util.ClassRenamer;
 
 /**
@@ -265,31 +261,6 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 	 */
 	public Resource getDirectory() {
 		return directory;
-	}
-
-	public PhysicalClassLoader getCustomClassLoader(Resource[] resources, boolean reload) throws IOException {
-		if (ArrayUtil.isEmpty(resources)) return this;
-		String key = hash(resources);
-
-		if (reload && customCLs != null) customCLs.remove(key);
-
-		SoftReference<PhysicalClassLoader> tmp = customCLs == null ? null : customCLs.get(key);
-		PhysicalClassLoader pcl = tmp == null ? null : tmp.get();
-		if (pcl != null) return pcl;
-		pcl = new PhysicalClassLoader(config, getDirectory(), new ResourceClassLoader(resources, getParent()), true, pageSourcePool);
-		if (customCLs == null) customCLs = new ConcurrentHashMap<String, SoftReference<PhysicalClassLoader>>();
-		customCLs.put(key, new SoftReference<PhysicalClassLoader>(pcl));
-		return pcl;
-	}
-
-	private String hash(Resource[] resources) {
-		Arrays.sort(resources);
-		StringBuilder sb = new StringBuilder();
-		for (int i = 0; i < resources.length; i++) {
-			sb.append(ResourceUtil.getCanonicalPathEL(resources[i]));
-			sb.append(';');
-		}
-		return HashUtil.create64BitHashAsString(sb.toString(), Character.MAX_RADIX);
 	}
 
 	public void clear() {

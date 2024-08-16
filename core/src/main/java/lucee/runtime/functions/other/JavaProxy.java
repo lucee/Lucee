@@ -127,9 +127,9 @@ public final class JavaProxy implements Function {
 			return loadClassByPath(pc, className, arrPaths);
 		}
 		else if (Decision.isStruct(pathOrName)) {
-			JavaSettingsImpl js = (JavaSettingsImpl) JavaSettingsImpl.getInstance(pc.getConfig(), Caster.toStruct(pathOrName));
+			JavaSettingsImpl js = (JavaSettingsImpl) JavaSettingsImpl.getInstance(pc.getConfig(), Caster.toStruct(pathOrName), null);
 			try {
-				return ClassUtil.loadClass(js.getClassLoader(((PageContextImpl) pc).getClassLoader(), false), className);
+				return ClassUtil.loadClass(((PageContextImpl) pc).getClassLoader(js), className);
 			}
 			catch (IOException e) {
 				throw Caster.toPageException(e);
@@ -171,12 +171,11 @@ public final class JavaProxy implements Function {
 
 		// load class
 		try {
-
-			ClassLoader cl = pci.getClassLoader();
-			if (!resources.isEmpty()) {
-				JavaSettingsImpl js = (JavaSettingsImpl) JavaSettingsImpl.getInstance(pc.getConfig(), resources);
-				cl = js.getClassLoader(cl, false);
+			JavaSettingsImpl js = null;
+			if (resources != null && !resources.isEmpty()) {
+				js = (JavaSettingsImpl) JavaSettingsImpl.getInstance(pc.getConfig(), null, resources);
 			}
+			ClassLoader cl = pci.getClassLoader(js);
 
 			Class clazz = null;
 			try {

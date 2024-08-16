@@ -53,6 +53,7 @@ import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.Identification;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.listener.JavaSettingsImpl;
 import lucee.runtime.op.Caster;
 import lucee.runtime.osgi.OSGiUtil;
 import lucee.runtime.osgi.OSGiUtil.BundleDefinition;
@@ -255,7 +256,7 @@ public final class ClassUtil {
 		if (pc instanceof PageContextImpl) {
 			ClassLoader cl;
 			try {
-				cl = ((PageContextImpl) pc).getClassLoader();
+				cl = ((PageContextImpl) pc).getClassLoader(null);
 			}
 			catch (IOException e) {
 				ClassException ce = new ClassException("cannot load class through its string name");
@@ -1027,13 +1028,17 @@ public final class ClassUtil {
 		}
 	}
 
-	public static ClassLoader getClassLoader(Class clazz) {
+	public static ClassLoader getClassLoader(PageContext pc, Class clazz) throws IOException {
 		ClassLoader cl = clazz.getClassLoader();
 		if (cl != null) return cl;
 
+		if (pc instanceof PageContextImpl) {
+			return ((PageContextImpl) pc).getClassLoader();
+		}
+		// NEXT this is wrong
 		Config config = ThreadLocalPageContext.getConfig();
 		if (config instanceof ConfigPro) {
-			return ((ConfigPro) config).getClassLoaderCore();
+			return ((JavaSettingsImpl) ((ConfigPro) config).getJavaSettings()).getClassLoader(false);
 		}
 		return new lucee.commons.lang.ClassLoaderHelper().getClass().getClassLoader();
 	}

@@ -39,10 +39,9 @@ import org.objectweb.asm.commons.GeneratorAdapter;
 
 import lucee.commons.digest.HashUtil;
 import lucee.commons.io.IOUtil;
-import lucee.commons.io.SystemUtil;
 import lucee.commons.io.res.Resource;
+import lucee.commons.io.res.util.ResourceClassLoader;
 import lucee.commons.io.res.util.ResourceUtil;
-import lucee.commons.lang.ClassUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.PhysicalClassLoader;
 import lucee.commons.lang.StringUtil;
@@ -53,6 +52,7 @@ import lucee.runtime.ComponentImpl;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.config.ConfigWeb;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.JavaProxyUtilImpl;
@@ -140,22 +140,14 @@ public class JavaProxyFactory {
 
 	public static Object createProxy(PageContext pc, UDF udf, Class interf) throws PageException, IOException {
 		PageContextImpl pci = (PageContextImpl) pc;
-		ClassLoader parent = ClassUtil.getClassLoader(interf);
+		PhysicalClassLoader pcl = getRPCClassLoaderFromClass(pc, interf);
+		if (pcl == null) pcl = (PhysicalClassLoader) pci.getRPCClassLoader(false);
 
 		if (!interf.isInterface()) throw new IOException("definition [" + interf.getName() + "] is a class and not a interface");
 
 		Type typeExtends = Types.OBJECT;
 		Type typeInterface = Type.getType(interf);
 		String strInterface = typeInterface.getInternalName();
-
-		// get ClassLoader
-		PhysicalClassLoader pcl = null;
-		try {
-			pcl = (PhysicalClassLoader) pci.getRPCClassLoader(false, parent);
-		}
-		catch (IOException e) {
-			throw Caster.toPageException(e);
-		}
 		String className = createClassName("udf", null, pcl.getDirectory(), Object.class, interf);
 
 		Resource classFile = pcl.getDirectory().getRealResource(className.concat(".class"));
@@ -219,7 +211,6 @@ public class JavaProxyFactory {
 			ResourceUtil.touch(classFile);
 			IOUtil.copy(new ByteArrayInputStream(barr), classFile, true);
 
-			pcl = (PhysicalClassLoader) pci.getRPCClassLoader(true, parent);
 			Class<?> clazz = pcl.loadClass(className, barr);
 			return newInstance(clazz, pc.getConfig(), udf);
 		}
@@ -240,7 +231,8 @@ public class JavaProxyFactory {
 
 	public static Object createProxy(PageContext pc, final Component cfc, Class extendz, Class... interfaces) throws PageException, IOException {
 		PageContextImpl pci = (PageContextImpl) pc;
-		ClassLoader parent = extractClassLoaders(extendz, interfaces);
+		PhysicalClassLoader pcl = getRPCClassLoaderFromClasses(pc, extendz, interfaces);
+		if (pcl == null) pcl = (PhysicalClassLoader) pci.getRPCClassLoader(false);
 
 		if (extendz == null) extendz = Object.class;
 		if (interfaces == null) interfaces = new Class[0];
@@ -255,15 +247,6 @@ public class JavaProxyFactory {
 		String[] strInterfaces = new String[typeInterfaces.length];
 		for (int i = 0; i < strInterfaces.length; i++) {
 			strInterfaces[i] = typeInterfaces[i].getInternalName();
-		}
-
-		// get ClassLoader
-		PhysicalClassLoader pcl = null;
-		try {
-			pcl = (PhysicalClassLoader) pci.getRPCClassLoader(false, parent);
-		}
-		catch (IOException e) {
-			throw Caster.toPageException(e);
 		}
 
 		String className = createClassName("cfc", cfc, pcl.getDirectory(), extendz, interfaces);
@@ -399,7 +382,6 @@ public class JavaProxyFactory {
 			ResourceUtil.touch(classFile);
 			IOUtil.copy(new ByteArrayInputStream(barr), classFile, true);
 
-			pcl = (PhysicalClassLoader) pci.getRPCClassLoader(true, parent);
 			Class<?> clazz = pcl.loadClass(className, barr);
 			return newInstance(clazz, pc.getConfig(), cfc);
 		}
@@ -452,21 +434,35 @@ public class JavaProxyFactory {
 	 * // adapter.returnValue(); adapter.endMethod(); }
 	 */
 
-	private static ClassLoader extractClassLoaders(Class extendz, Class... interfaces) {
+	private static PhysicalClassLoader getRPCClassLoaderFromClasses(PageContext pc, Class extendz, Class... interfaces) throws IOException {
 		// extends and implement need to come from the same parent classloader
-		ClassLoader cl = null;
+		PhysicalClassLoader pcl = null;
 		if (extendz != null) {
-			cl = ClassUtil.getClassLoader(extendz);
-			if (cl != null) return cl;
+			pcl = getRPCClassLoaderFromClass(pc, extendz);
+			if (pcl != null) return pcl;
 		}
 
 		if (interfaces != null) {
 			for (Class cls: interfaces) {
-				cl = ClassUtil.getClassLoader(cls);
-				if (cl != null) return cl;
+				pcl = getRPCClassLoaderFromClass(pc, cls);
+				if (pcl != null) return pcl;
 			}
 		}
-		return SystemUtil.getCombinedClassLoader();
+		return null;
+	}
+
+	public static PhysicalClassLoader getRPCClassLoaderFromClass(PageContext pc, Class clazz) throws IOException {
+		ClassLoader cl = clazz.getClassLoader();
+		pc = ThreadLocalPageContext.get(pc);
+		if (cl != null) {
+			if (cl instanceof PhysicalClassLoader) {
+				return ((PhysicalClassLoader) cl);
+			}
+			if (cl instanceof ResourceClassLoader && pc != null) {
+				return (PhysicalClassLoader) ((PageContextImpl) pc).getRPCClassLoader(false, (ResourceClassLoader) cl);
+			}
+		}
+		return null;
 	}
 
 	private static void _createProxy(ClassWriter cw, Set<Class> cDone, Map<String, Class> mDone, UDF udf, Class clazz, String className) throws IOException {

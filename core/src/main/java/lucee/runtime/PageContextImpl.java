@@ -66,11 +66,11 @@ import lucee.commons.io.cache.exp.CacheException;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
+import lucee.commons.io.res.util.ResourceClassLoader;
 import lucee.commons.lang.ClassException;
 import lucee.commons.lang.ClassUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.HTMLEntities;
-import lucee.commons.lang.PhysicalClassLoader;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.mimetype.MimeType;
 import lucee.commons.lang.types.RefBoolean;
@@ -3846,39 +3846,29 @@ public final class PageContextImpl extends PageContext {
 	}
 
 	public ClassLoader getClassLoader() throws IOException {
-		JavaSettingsImpl js = (JavaSettingsImpl) getJavaSettings();
-		if (js != null) {
-			// TODO FUTURE 7 we do this to avoid any kind of regression, in Lucee 7 remove this
-			if (JAVA_SETTING_CLASSIC_MODE && !js.hasPoms() && !js.hasOSGis()) {
-				Resource[] jars = js.getResourcesTranslated();
-				if (jars.length > 0) return config.getResourceClassLoader().getCustomResourceClassLoader(jars);
-			}
-			return js.getClassLoader(null, false);
+		return getClassLoader(null);
+	}
 
+	public ClassLoader getClassLoader(JavaSettings customJS) throws IOException {
+		JavaSettings js = getJavaSettings();
+		if (customJS != null) {
+			js = JavaSettingsImpl.merge(config, js, customJS);
 		}
-		return config.getResourceClassLoader();
+		return ((JavaSettingsImpl) js).getClassLoader(false);
 	}
 
 	public ClassLoader getRPCClassLoader(boolean reload) throws IOException {
-		return getRPCClassLoader(reload, null);
+		return getRPCClassLoader(reload, (JavaSettings) null);
 	}
 
-	public ClassLoader getRPCClassLoader(boolean reload, ClassLoader parent) throws IOException {
-		ClassLoader cl = ((ConfigPro) config).getRPCClassLoader(reload, parent);
-		JavaSettingsImpl js = (JavaSettingsImpl) getJavaSettings();
-		if (js != null) {
-			// TODO FUTURE 7 we do this to avoid any kind of regression, in Lucee 7 remove this
-			if (JAVA_SETTING_CLASSIC_MODE && !js.hasPoms() && !js.hasOSGis()) {
-				Resource[] jars = js.getResourcesTranslated();
-				if (jars.length > 0) return ((PhysicalClassLoader) cl).getCustomClassLoader(jars, reload);
-			}
-			else {
-				java.util.Collection<Resource> jars = js.getAllResources(cl);
-				if (jars.size() > 0) return ((PhysicalClassLoader) cl).getCustomClassLoader(jars.toArray(new Resource[jars.size()]), reload);
-			}
+	public ClassLoader getRPCClassLoader(boolean reload, JavaSettings customJS) throws IOException {
+		return ((ConfigPro) config).getRPCClassLoader(reload, (ResourceClassLoader) getClassLoader(customJS));
 
-		}
-		return cl;
+	}
+
+	public ClassLoader getRPCClassLoader(boolean reload, ResourceClassLoader parent) throws IOException {
+		return ((ConfigPro) config).getRPCClassLoader(reload, parent);
+
 	}
 
 	public void resetSession() {

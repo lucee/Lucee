@@ -13,6 +13,7 @@ import org.xml.sax.SAXException;
 
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.ResourcesImpl.ResourceProviderFactory;
+import lucee.commons.io.res.util.ResourceClassLoader;
 import lucee.commons.lang.PhysicalClassLoader;
 import lucee.runtime.ai.AIEngineFactory;
 import lucee.runtime.ai.AIEnginePool;
@@ -779,7 +780,7 @@ public class ConfigWebImpl implements ConfigWebPro {
 	}
 
 	@Override
-	public java.lang.ClassLoader getRPCClassLoader(boolean arg0, java.lang.ClassLoader arg1) throws java.io.IOException {
+	public ClassLoader getRPCClassLoader(boolean arg0, ResourceClassLoader arg1) throws java.io.IOException {
 		return instance.getRPCClassLoader(arg0, arg1);
 	}
 

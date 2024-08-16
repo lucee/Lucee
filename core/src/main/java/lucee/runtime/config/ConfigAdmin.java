@@ -1189,7 +1189,7 @@ public final class ConfigAdmin {
 		if (fileLib.length() != resJar.length()) {
 			IOUtil.closeEL(config.getClassLoader());
 			ResourceUtil.copy(resJar, fileLib);
-			if (reloadWhenClassicJar) ConfigWebUtil.reloadLib(config);
+			// NEXT if (reloadWhenClassicJar) ConfigWebUtil.reloadLib(config);
 		}
 	}
 

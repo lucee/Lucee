@@ -38,7 +38,7 @@ public final class IsInstanceOf implements Function {
 		if (obj instanceof Component) return ((Component) obj).instanceOf(typeName);
 		if (obj instanceof JavaObject) {
 			try {
-				return Reflector.isInstaneOf(((PageContextImpl) pc).getClassLoader(), ((JavaObject) obj).getClazz(), typeName);
+				return Reflector.isInstaneOf(((PageContextImpl) pc).getClassLoader(null), ((JavaObject) obj).getClazz(), typeName);
 			}
 			catch (IOException ioe) {
 				throw Caster.toPageException(ioe);
@@ -47,7 +47,7 @@ public final class IsInstanceOf implements Function {
 		if (obj instanceof ObjectWrap) return call(pc, ((ObjectWrap) obj).getEmbededObject(), typeName);
 
 		try {
-			return Reflector.isInstaneOf(((PageContextImpl) pc).getClassLoader(), obj.getClass(), typeName);
+			return Reflector.isInstaneOf(((PageContextImpl) pc).getClassLoader(null), obj.getClass(), typeName);
 		}
 		catch (IOException ioe) {
 			throw Caster.toPageException(ioe);

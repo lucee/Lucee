@@ -981,7 +981,7 @@ public final class Application extends TagImpl implements DynamicAttributes {
 		if (ac instanceof ApplicationContextSupport) {
 			ApplicationContextSupport appContextSup = ((ApplicationContextSupport) ac);
 
-			if (javaSettings != null) appContextSup.setJavaSettings(JavaSettingsImpl.getInstance(pageContext.getConfig(), javaSettings));
+			if (javaSettings != null) appContextSup.setJavaSettings(JavaSettingsImpl.getInstance(pageContext.getConfig(), javaSettings, null));
 			if (xmlFeatures != null) appContextSup.setXmlFeatures(xmlFeatures);
 			if (searchQueries != null) appContextSup.setAllowImplicidQueryCall(searchQueries.booleanValue());
 			if (regex != null) appContextSup.setRegex(regex);
