@@ -843,12 +843,10 @@ public final class ConfigWebFactory extends ConfigFactory {
 
 			}
 			// adding zip when not exist
-			print.e("hasZip:" + hasZip);
 			if (!hasZip) {
 				Map<String, String> args = new HashMap<>();
 				args.put("lock-timeout", "1000");
 				args.put("case-sensitive", "1000");
-				print.e(args);
 				config.addResourceProvider("zip", new ClassDefinitionImpl<>(ZipResourceProvider.class), args);
 			}
 
