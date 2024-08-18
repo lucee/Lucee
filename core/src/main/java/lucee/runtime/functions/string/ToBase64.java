@@ -19,13 +19,16 @@
 package lucee.runtime.functions.string;
 
 import lucee.runtime.PageContext;
+import lucee.runtime.coder.Base64Util;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.net.http.ReqRspUtil;
 import lucee.runtime.op.Caster;
+import lucee.runtime.op.Decision;
+import java.io.UnsupportedEncodingException;
 
 /**
- * Implements the CFML Function tobase64
+ * Implements the CFML Function toBase64()
  */
 public final class ToBase64 implements Function {
 	/**
@@ -46,6 +49,36 @@ public final class ToBase64 implements Function {
 	 * @throws PageException
 	 */
 	public static String call(PageContext pc, Object object, String encoding) throws PageException {
-		return Caster.toBase64(object, encoding);
+		if (Decision.isBoolean(encoding)) {
+			return call(pc, object, ReqRspUtil.getCharacterEncoding(pc, pc.getHttpServletResponse()).name(), Caster.toBoolean(encoding));
+		}
+
+		return Caster.toBase64(object, (String)encoding);
+	}
+
+	/**
+	 * @param pc
+	 * @param object
+	 * @param encoding
+	 * @return base 64 value as string
+	 * @throws PageException
+	 */
+	public static String call(PageContext pc, Object object, String encoding, Boolean urlSafe) throws PageException {
+		if (!urlSafe) return Caster.toBase64(object, encoding);
+
+		byte[] barr;
+		if (object instanceof CharSequence) {
+			try {
+				barr = object.toString().getBytes(encoding);
+			}
+			catch (UnsupportedEncodingException ex) {
+				throw Caster.toPageException(ex);
+			}
+		}
+		else {
+			barr = Caster.toBinary(object);
+		}
+
+		return Base64Util.base64EncodeToString(barr, urlSafe);
 	}
 }

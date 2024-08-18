@@ -14240,10 +14240,18 @@ _- asc (default): ascending (a to z) sort order
 			<description>For a string, defines how characters are represented in a
             byte array.</description>
     	</argument>
+    	<argument>
+            <name>urlSafe</name>
+            <type>boolean</type>
+            <required>false</required>
+            <default>false</default>
+            <description>If true, URL-safe characters would be used</description>
+        </argument>
 		<return>
 			<type>string</type>
 		</return>
 	</function>
+
 	<!-- toBinary -->
 	<function>
 		<name>toBinary</name>

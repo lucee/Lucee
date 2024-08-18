@@ -176,6 +176,11 @@ public final class Base64Util {
 		return encoder.encode(barr);
 	}
 
+	public static String base64EncodeToString(byte[] barr, boolean urlSafe) {
+		Base64.Encoder encoder = urlSafe ? base64UrlEncoder : base64Encoder;
+		return encoder.encodeToString(barr);
+	}
+
 	public static byte[] base64Decode(String b64, boolean urlSafe) {
 		Base64.Decoder decoder = urlSafe ? base64UrlDecoder : base64Decoder;
 		return decoder.decode(b64);

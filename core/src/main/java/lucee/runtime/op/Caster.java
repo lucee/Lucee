@@ -3067,29 +3067,27 @@ public final class Caster {
 	/**
 	 * cast an Object to a Base64 value
 	 * 
-	 * @param o Object to cast
-	 * @param defaultValue
+	 * @param o            the Object to encode
+	 * @param charset      character set, default to UTF-8
+	 * @param defaultValue value to return if failing to encode as Base64
 	 * @return to Base64 String
 	 */
 	public static String toBase64(Object o, String charset, String defaultValue) {
+		if (o == null) return toB64("", charset, defaultValue);
 		if (o instanceof byte[]) return toB64((byte[]) o, defaultValue);
-		else if (o instanceof String) return toB64((String) o, charset, defaultValue);
-		else if (o instanceof Number) return toB64(toString(((Number) o)), charset, defaultValue);
-		else if (o instanceof ObjectWrap) {
+		if (o instanceof String) return toB64((String) o, charset, defaultValue);
+		if (o instanceof Number) return toB64(toString(((Number) o)), charset, defaultValue);
+		if (o instanceof ObjectWrap) {
 			return toBase64(((ObjectWrap) o).getEmbededObject(defaultValue), charset, defaultValue);
 		}
-		else if (o == null) {
-			return toBase64("", charset, defaultValue);
-		}
-		else {
-			byte[] b = toBinary(o, null);
-			if (b != null) return toB64(b, defaultValue);
-			else {
-				String str = toString(o, null);
-				if (str != null) return toBase64(str, charset, defaultValue);
-				else return defaultValue;
-			}
-		}
+
+		byte[] b = toBinary(o, null);
+		if (b != null) return toB64(b, defaultValue);
+
+		String str = toString(o, null);
+		if (str != null) return toBase64(str, charset, defaultValue);
+
+		return defaultValue;
 	}
 
 	public static String toB64(String str, String charset) throws UnsupportedEncodingException {
