@@ -233,11 +233,11 @@ public class CFMLExpressionInterpreter {
 		throw new InterpreterException("Syntax Error, invalid Expression " + getExceptionPosition(), getExceptionSnippet());
 	}
 
-	private String getExceptionPosition(){
-		return  "[" + cfml.getCurrent() + "] at position [" + cfml.getPos() + "]";
+	private String getExceptionPosition() {
+		return "[" + cfml.getCurrent() + "] at position [" + cfml.getPos() + "]";
 	}
 
-	private String getExceptionSnippet(){
+	private String getExceptionSnippet() {
 		if (cfml.toString().length() > 1024) {
 			if (cfml.getPos() > 1024) {
 				int offset = cfml.getPos() - 10;
@@ -1033,7 +1033,7 @@ public class CFMLExpressionInterpreter {
 		throw new InterpreterException("Syntax Error, Invalid Construct", " at position " + (pos + 1) + " in [" + str + "]");
 	}
 
-protected Ref json(FunctionLibFunction flf, char start, char end) throws PageException {
+	protected Ref json(FunctionLibFunction flf, char start, char end) throws PageException {
 		if (!cfml.isCurrent(start)) return null;
 		/*
 		 * String[] str = cfml.toString().split(","); if(cfml.getCurrent() == '{' && cfml.getNext() != '}'
@@ -1057,14 +1057,16 @@ protected Ref json(FunctionLibFunction flf, char start, char end) throws PageExc
 			if (flf == LITERAL_ARRAY) {
 				if (args[0] instanceof LFunctionValue) {
 					for (int i = 1; i < args.length; i++) {
-						if (!(args[i] instanceof LFunctionValue))
-							throw new TemplateException("invalid argument for literal ordered struct, only named arguments are allowed like {name:\"value\",name2:\"value2\"}");
+						if (!(args[i] instanceof LFunctionValue)) throw new TemplateException(
+								"invalid argument for literal ordered struct, only named arguments are allowed like {name:\"value\",name2:\"value2\"}" + getExceptionPosition(),
+								getExceptionSnippet());
 					}
 					flf = LITERAL_ORDERED_STRUCT;
 				}
 				else {
 					for (int i = 1; i < args.length; i++) {
-						if (args[i] instanceof LFunctionValue) throw new TemplateException("invalid argument for literal array, no named arguments are allowed");
+						if (args[i] instanceof LFunctionValue)
+							throw new TemplateException("invalid argument for literal array, no named arguments are allowed " + getExceptionPosition(), getExceptionSnippet());
 					}
 
 				}
@@ -1120,7 +1122,8 @@ protected Ref json(FunctionLibFunction flf, char start, char end) throws PageExc
 				str.append(cfml.getCurrent());
 			}
 		}
-		if (!cfml.forwardIfCurrent(quoter)) throw new InterpreterException("Invalid String Literal Syntax Closing [" + quoter + "] not found " + getExceptionPosition(), getExceptionSnippet());
+		if (!cfml.forwardIfCurrent(quoter))
+			throw new InterpreterException("Invalid String Literal Syntax Closing [" + quoter + "] not found " + getExceptionPosition(), getExceptionSnippet());
 
 		comments();
 		mode = STATIC;
@@ -1237,7 +1240,7 @@ protected Ref json(FunctionLibFunction flf, char start, char end) throws PageExc
 			comments();
 			Ref ref = assignOp();
 
-			if (!cfml.forwardIfCurrent(')')) throw new InterpreterException("Invalid Syntax Closing [)] not found "  + getExceptionPosition(), getExceptionSnippet());
+			if (!cfml.forwardIfCurrent(')')) throw new InterpreterException("Invalid Syntax Closing [)] not found " + getExceptionPosition(), getExceptionSnippet());
 			comments();
 			return limited ? ref : subDynamic(ref);
 		}
@@ -1300,7 +1303,8 @@ protected Ref json(FunctionLibFunction flf, char start, char end) throws PageExc
 			comments();
 
 			if (cfml.isCurrent('(')) {
-				if (!(ref instanceof Set)) throw new InterpreterException("Invalid syntax " + ref.getTypeName() + " can't called as function "  + getExceptionPosition(), getExceptionSnippet());
+				if (!(ref instanceof Set))
+					throw new InterpreterException("Invalid syntax " + ref.getTypeName() + " can't called as function " + getExceptionPosition(), getExceptionSnippet());
 				Set set = (Set) ref;
 				ref = new UDFCall(set.getParent(pc), set.getKey(pc), functionArg(name, false, null, ')'));
 			}
@@ -1356,7 +1360,7 @@ protected Ref json(FunctionLibFunction flf, char start, char end) throws PageExc
 				if (cfml.forwardIfCurrent('.')) {
 					comments();
 					name = identifier(true);
-					if (name == null) throw new InterpreterException("Invalid Component declaration "  + getExceptionPosition(), getExceptionSnippet());
+					if (name == null) throw new InterpreterException("Invalid Component declaration " + getExceptionPosition(), getExceptionSnippet());
 					comments();
 					fullName.append('.');
 					fullName.append(name);
@@ -1495,7 +1499,8 @@ protected Ref json(FunctionLibFunction flf, char start, char end) throws PageExc
 				max = flf.getArgMax();
 				// Dynamic
 				if (isDynamic) {
-					if (max != -1 && max <= count) throw new InterpreterException("Too many Attributes in function [" + name + "] " + getExceptionPosition(), getExceptionSnippet());
+					if (max != -1 && max <= count)
+						throw new InterpreterException("Too many Attributes in function [" + name + "] " + getExceptionPosition(), getExceptionSnippet());
 				}
 				// Fix
 				else {
@@ -1530,7 +1535,8 @@ protected Ref json(FunctionLibFunction flf, char start, char end) throws PageExc
 		}
 
 		// check min attributes
-		if (checkLibrary && flf.getArgMin() > count) throw new InterpreterException("To few Attributes in function [" + name + "] " + getExceptionPosition(), getExceptionSnippet());
+		if (checkLibrary && flf.getArgMin() > count)
+			throw new InterpreterException("To few Attributes in function [" + name + "] " + getExceptionPosition(), getExceptionSnippet());
 
 		comments();
 		return arr.toArray(new Ref[arr.size()]);
