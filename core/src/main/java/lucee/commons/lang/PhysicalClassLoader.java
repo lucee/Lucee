@@ -31,6 +31,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.apache.felix.framework.BundleWiringImpl.BundleClassLoader;
+
 import lucee.commons.digest.HashUtil;
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.IOUtil;
@@ -68,7 +70,7 @@ public final class PhysicalClassLoader extends URLClassLoader implements Extenda
 
 	private Resource directory;
 	private ConfigPro config;
-	private final ClassLoader parent;
+	private final ClassLoader addionalClassLoader;
 	private final Collection<Resource> resources;
 
 	private Map<String, String> loadedClasses = new ConcurrentHashMap<String, String>();
@@ -105,7 +107,7 @@ public final class PhysicalClassLoader extends URLClassLoader implements Extenda
 			synchronized (SystemUtil.createToken("PhysicalClassLoader", key)) {
 				rpccl = reload ? null : classLoaders.get(key);
 				if (rpccl == null) {
-					classLoaders.put(key, rpccl = new PhysicalClassLoader(c, new ArrayList<Resource>(), directory, SystemUtil.getCombinedClassLoader(), null, false));
+					classLoaders.put(key, rpccl = new PhysicalClassLoader(c, new ArrayList<Resource>(), directory, SystemUtil.getCombinedClassLoader(), null, null, false));
 				}
 			}
 		}
@@ -130,19 +132,36 @@ public final class PhysicalClassLoader extends URLClassLoader implements Extenda
 					}
 					Resource dir = storeResourceMeta(c, key, js, resources);
 					// (Config config, String key, JavaSettings js, Collection<Resource> _resources)
-					classLoaders.put(key, rpccl = new PhysicalClassLoader(c, resources, dir, SystemUtil.getCombinedClassLoader(), null, true));
+					classLoaders.put(key, rpccl = new PhysicalClassLoader(c, resources, dir, SystemUtil.getCombinedClassLoader(), null, null, true));
 				}
 			}
 		}
 		return rpccl;
 	}
 
-	private PhysicalClassLoader(Config c, List<Resource> resources, Resource directory, ClassLoader parentClassLoader, PageSourcePool pageSourcePool, boolean rpc)
-			throws IOException {
+	public static PhysicalClassLoader getRPCClassLoader(Config c, BundleClassLoader bcl, boolean reload) throws IOException {
+		String key = HashUtil.create64BitHashAsString(bcl + "");
+		PhysicalClassLoader rpccl = reload ? null : classLoaders.get(key);
+		if (rpccl == null) {
+			synchronized (SystemUtil.createToken("PhysicalClassLoader", key)) {
+				rpccl = reload ? null : classLoaders.get(key);
+				if (rpccl == null) {
+					Resource dir = c.getClassDirectory().getRealResource("RPC/" + key);
+					if (!dir.exists()) ResourceUtil.createDirectoryEL(dir, true);
+					// (Config config, String key, JavaSettings js, Collection<Resource> _resources)
+					classLoaders.put(key, rpccl = new PhysicalClassLoader(c, new ArrayList<Resource>(), dir, SystemUtil.getCombinedClassLoader(), bcl, null, true));
+				}
+			}
+		}
+		return rpccl;
+	}
+
+	private PhysicalClassLoader(Config c, List<Resource> resources, Resource directory, ClassLoader parentClassLoader, ClassLoader addionalClassLoader,
+			PageSourcePool pageSourcePool, boolean rpc) throws IOException {
 		super(doURLs(resources), parentClassLoader == null ? (parentClassLoader = SystemUtil.getCombinedClassLoader()) : parentClassLoader);
 		this.resources = resources;
 		config = (ConfigPro) c;
-		parent = parentClassLoader;
+		this.addionalClassLoader = addionalClassLoader;
 
 		this.pageSourcePool = pageSourcePool;
 		// ClassLoader resCL = parent!=null?parent:config.getResourceClassLoader(null);
@@ -175,13 +194,20 @@ public final class PhysicalClassLoader extends URLClassLoader implements Extenda
 		// First, check if the class has already been loaded
 		Class<?> c = findLoadedClass(name);
 		if (c == null) {
-			// for (ClassLoader p: parents) {
 			try {
 				c = super.loadClass(name, resolve);
-				// break;
 			}
 			catch (Exception e) {
 			}
+
+			if (addionalClassLoader != null) {
+				try {
+					c = addionalClassLoader.loadClass(name);
+				}
+				catch (Exception e) {
+				}
+			}
+
 			// }
 			if (c == null) {
 				if (loadFromFS) c = findClass(name);
@@ -199,6 +225,14 @@ public final class PhysicalClassLoader extends URLClassLoader implements Extenda
 			return super.findClass(name);
 		}
 		catch (ClassNotFoundException cnfe) {
+		}
+
+		if (addionalClassLoader != null) {
+			try {
+				return addionalClassLoader.loadClass(name);
+			}
+			catch (ClassNotFoundException e) {
+			}
 		}
 
 		synchronized (SystemUtil.createToken("pcl", name)) {
@@ -428,4 +462,5 @@ public final class PhysicalClassLoader extends URLClassLoader implements Extenda
 			return l.getAbsolutePath().compareTo(r.getAbsolutePath());
 		}
 	}
+
 }

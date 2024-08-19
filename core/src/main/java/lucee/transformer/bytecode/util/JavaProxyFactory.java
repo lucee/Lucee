@@ -30,6 +30,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.felix.framework.BundleWiringImpl.BundleClassLoader;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.Label;
@@ -51,7 +52,6 @@ import lucee.runtime.ComponentImpl;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.config.ConfigWeb;
-import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.JavaProxyUtilImpl;
@@ -231,6 +231,7 @@ public class JavaProxyFactory {
 	public static Object createProxy(PageContext pc, final Component cfc, Class extendz, Class... interfaces) throws PageException, IOException {
 		PageContextImpl pci = (PageContextImpl) pc;
 		PhysicalClassLoader pcl = getRPCClassLoaderFromClasses(pc, extendz, interfaces);
+
 		if (pcl == null) pcl = (PhysicalClassLoader) pci.getRPCClassLoader(false);
 
 		if (extendz == null) extendz = Object.class;
@@ -433,7 +434,7 @@ public class JavaProxyFactory {
 	 * // adapter.returnValue(); adapter.endMethod(); }
 	 */
 
-	private static PhysicalClassLoader getRPCClassLoaderFromClasses(PageContext pc, Class extendz, Class... interfaces) {
+	private static PhysicalClassLoader getRPCClassLoaderFromClasses(PageContext pc, Class extendz, Class... interfaces) throws IOException {
 		// extends and implement need to come from the same parent classloader
 		PhysicalClassLoader pcl = null;
 		if (extendz != null) {
@@ -450,13 +451,16 @@ public class JavaProxyFactory {
 		return null;
 	}
 
-	public static PhysicalClassLoader getRPCClassLoaderFromClass(PageContext pc, Class clazz) {
+	public static PhysicalClassLoader getRPCClassLoaderFromClass(PageContext pc, Class clazz) throws IOException {
 		ClassLoader cl = clazz.getClassLoader();
-		pc = ThreadLocalPageContext.get(pc);
 		if (cl != null) {
 			if (cl instanceof PhysicalClassLoader) {
 				return ((PhysicalClassLoader) cl);
 			}
+			else if (cl instanceof BundleClassLoader) {
+				return PhysicalClassLoader.getRPCClassLoader(pc.getConfig(), (BundleClassLoader) cl, false);
+			}
+
 		}
 		return null;
 	}
