@@ -33,7 +33,6 @@ import lucee.commons.io.res.ResourceProvider;
 import lucee.commons.io.res.ResourcesImpl;
 import lucee.commons.io.res.ResourcesImpl.ResourceProviderFactory;
 import lucee.commons.io.res.type.compress.Compress;
-import lucee.commons.io.res.util.ResourceClassLoader;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.CharSet;
 import lucee.commons.lang.ClassException;
@@ -292,16 +291,6 @@ class SingleContextConfigWeb extends ConfigBase implements ConfigWebInner {
 	@Override
 	public ClassLoader getClassLoaderCore() {
 		return cs.getClassLoaderCore();
-	}
-
-	@Override
-	public ResourceClassLoader getResourceClassLoader() {
-		return cs.getResourceClassLoader();
-	}
-
-	@Override
-	public ResourceClassLoader getResourceClassLoader(ResourceClassLoader defaultValue) {
-		return cs.getResourceClassLoader(defaultValue);
 	}
 
 	@Override
@@ -733,8 +722,8 @@ class SingleContextConfigWeb extends ConfigBase implements ConfigWebInner {
 	}
 
 	@Override
-	public ClassLoader getRPCClassLoader(boolean reload, ResourceClassLoader parent) throws IOException {
-		return cs.getRPCClassLoader(reload, parent);
+	public ClassLoader getRPCClassLoader(boolean reload, JavaSettings js) throws IOException {
+		return cs.getRPCClassLoader(reload, js);
 	}
 
 	@Override

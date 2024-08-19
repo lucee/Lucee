@@ -41,10 +41,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Version;
 
-import lucee.commons.digest.HashUtil;
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.FileUtil;
-import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.cache.Cache;
 import lucee.commons.io.log.Log;
@@ -58,7 +56,6 @@ import lucee.commons.io.res.ResourcesImpl;
 import lucee.commons.io.res.ResourcesImpl.ResourceProviderFactory;
 import lucee.commons.io.res.filter.ExtensionResourceFilter;
 import lucee.commons.io.res.type.compress.Compress;
-import lucee.commons.io.res.util.ResourceClassLoader;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.CharSet;
 import lucee.commons.lang.ClassException;
@@ -89,9 +86,6 @@ import lucee.runtime.component.ImportDefintionImpl;
 import lucee.runtime.config.ConfigWebFactory.Path;
 import lucee.runtime.config.ConfigWebUtil.CacheElement;
 import lucee.runtime.config.gateway.GatewayMap;
-import lucee.runtime.converter.ConverterException;
-import lucee.runtime.converter.JSONConverter;
-import lucee.runtime.converter.JSONDateFormat;
 import lucee.runtime.customtag.InitFile;
 import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.db.DataSource;
@@ -122,7 +116,6 @@ import lucee.runtime.listener.ApplicationContext;
 import lucee.runtime.listener.ApplicationListener;
 import lucee.runtime.listener.JavaSettings;
 import lucee.runtime.listener.JavaSettingsImpl;
-import lucee.runtime.listener.SerializationSettings;
 import lucee.runtime.net.mail.Server;
 import lucee.runtime.net.proxy.ProxyData;
 import lucee.runtime.net.proxy.ProxyDataImpl;
@@ -389,8 +382,6 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	private Map<String, ORMEngine> ormengines = new HashMap<String, ORMEngine>();
 	private ClassDefinition<? extends ORMEngine> cdORMEngine;
 	private ORMConfiguration ormConfig;
-	private ResourceClassLoader resourceCL;
-	private JavaSettings js;
 
 	private ImportDefintion componentDefaultImport = new ImportDefintionImpl(Constants.DEFAULT_PACKAGE, "*");
 	private boolean componentLocalSearch = true;
@@ -669,9 +660,14 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 
 	@Override
 	public ClassLoader getClassLoader() {
-		ResourceClassLoader rcl = getResourceClassLoader(null);
-		if (rcl != null) return rcl;
-		return new lucee.commons.lang.ClassLoaderHelper().getClass().getClassLoader();
+		ClassLoader cl = null;
+		try {
+			cl = getRPCClassLoader(false);
+		}
+		catch (IOException e) {
+		}
+		if (cl != null) return cl;
+		return SystemUtil.getCombinedClassLoader();
 
 	}
 
@@ -685,21 +681,6 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	@Override
 	public ClassLoader getClassLoaderCore() {
 		return new lucee.commons.lang.ClassLoaderHelper().getClass().getClassLoader();
-	}
-	/*
-	 * public ClassLoader getClassLoaderLoader() { return new TP().getClass().getClassLoader(); }
-	 */
-
-	@Override
-	public ResourceClassLoader getResourceClassLoader() {
-		if (resourceCL == null) throw new RuntimeException("no RCL defined yet!");
-		return resourceCL;
-	}
-
-	@Override
-	public ResourceClassLoader getResourceClassLoader(ResourceClassLoader defaultValue) {
-		if (resourceCL == null) return defaultValue;
-		return resourceCL;
 	}
 
 	@Override
@@ -2260,38 +2241,12 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 
 	@Override
 	public ClassLoader getRPCClassLoader(boolean reload) throws IOException {
-		return getRPCClassLoader(reload, null);
+		return PhysicalClassLoader.getRPCClassLoader(this, getJavaSettings(), reload);
 	}
 
 	@Override
-	public ClassLoader getRPCClassLoader(boolean reload, ResourceClassLoader parent) throws IOException {
-		String key = parent.hash();
-		PhysicalClassLoader rpccl = reload ? null : rpcClassLoaders.get(key);
-		if (rpccl == null) {
-			synchronized (key) {
-				rpccl = reload ? null : rpcClassLoaders.get(key);
-				if (rpccl == null) {
-					Resource dir = getClassDirectory().getRealResource("RPC/" + key);
-					if (!dir.exists()) {
-						ResourceUtil.createDirectoryEL(dir, true);
-						Resource file = dir.getRealResource("classloader-resources.json");
-						Struct root = new StructImpl();
-						root.setEL(KeyConstants._resources, parent.getResources());
-						JSONConverter json = new JSONConverter(true, CharsetUtil.UTF8, JSONDateFormat.PATTERN_CF, false);
-						try {
-							String str = json.serialize(null, root, SerializationSettings.SERIALIZE_AS_COLUMN, null);
-							IOUtil.write(file, str, CharsetUtil.UTF8, false);
-						}
-						catch (ConverterException e) {
-							throw ExceptionUtil.toIOException(e);
-						}
-
-					}
-					rpcClassLoaders.put(key, rpccl = new PhysicalClassLoader(this, dir, parent, false, null));
-				}
-			}
-		}
-		return rpccl;
+	public ClassLoader getRPCClassLoader(boolean reload, JavaSettings js) throws IOException {
+		return PhysicalClassLoader.getRPCClassLoader(this, js != null ? js : getJavaSettings(), reload);
 	}
 
 	private static final Object dclt = new SerializableObject();
@@ -2305,22 +2260,11 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 					if (!dir.exists()) {
 						ResourceUtil.createDirectoryEL(dir, true);
 					}
-					directClassLoader = new PhysicalClassLoader(this, dir, null);
+					directClassLoader = PhysicalClassLoader.getPhysicalClassLoader(this, dir, reload);
 				}
 			}
 		}
 		return directClassLoader;
-	}
-
-	private String toKey(ClassLoader parent) {
-		if (parent == null) return "orphan";
-		if (parent instanceof ResourceClassLoader) {
-			return ((ResourceClassLoader) parent).hash();
-		}
-
-		StringBuilder sb = new StringBuilder();
-		sb.append(';').append(System.identityHashCode(parent));
-		return HashUtil.create64BitHashAsString(sb.toString());
 	}
 
 	public void resetRPCClassLoader() {

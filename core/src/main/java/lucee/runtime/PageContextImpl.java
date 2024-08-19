@@ -66,7 +66,6 @@ import lucee.commons.io.cache.exp.CacheException;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
-import lucee.commons.io.res.util.ResourceClassLoader;
 import lucee.commons.lang.ClassException;
 import lucee.commons.lang.ClassUtil;
 import lucee.commons.lang.ExceptionUtil;
@@ -3845,30 +3844,24 @@ public final class PageContextImpl extends PageContext {
 		return getApplicationContext().getJavaSettings();
 	}
 
-	public ClassLoader getClassLoader() throws IOException {
-		return getClassLoader(null);
-	}
-
-	public ClassLoader getClassLoader(JavaSettings customJS) throws IOException {
-		JavaSettings js = getJavaSettings();
-		if (customJS != null) {
-			js = JavaSettingsImpl.merge(config, js, customJS);
-		}
-		return ((JavaSettingsImpl) js).getClassLoader(false);
-	}
-
 	public ClassLoader getRPCClassLoader(boolean reload) throws IOException {
 		return getRPCClassLoader(reload, (JavaSettings) null);
 	}
 
-	public ClassLoader getRPCClassLoader(boolean reload, JavaSettings customJS) throws IOException {
-		return ((ConfigPro) config).getRPCClassLoader(reload, (ResourceClassLoader) getClassLoader(customJS));
-
+	public ClassLoader getClassLoader() throws IOException {
+		return getRPCClassLoader(false, (JavaSettings) null);
 	}
 
-	public ClassLoader getRPCClassLoader(boolean reload, ResourceClassLoader parent) throws IOException {
-		return ((ConfigPro) config).getRPCClassLoader(reload, parent);
+	public ClassLoader getClassLoader(JavaSettings customJS) throws IOException {
+		return getRPCClassLoader(false, customJS);
+	}
 
+	public ClassLoader getRPCClassLoader(boolean reload, JavaSettings customJS) throws IOException {
+		JavaSettings js = getJavaSettings();
+		if (customJS != null) {
+			js = JavaSettingsImpl.merge(config, js, customJS);
+		}
+		return ((ConfigPro) config).getRPCClassLoader(reload, js);
 	}
 
 	public void resetSession() {

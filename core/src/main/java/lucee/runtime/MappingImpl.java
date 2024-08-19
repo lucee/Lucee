@@ -23,7 +23,6 @@ import java.io.InputStream;
 import java.io.Serializable;
 import java.lang.instrument.UnmodifiableClassException;
 import java.lang.ref.SoftReference;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -72,7 +71,7 @@ public final class MappingImpl implements Mapping {
 	private final int inspectTemplateAutoIntervalFast;
 
 	private boolean physicalFirst;
-	private transient Map<String, PhysicalClassLoaderReference> loaders = new HashMap<>();
+	// private transient Map<String, PhysicalClassLoaderReference> loaders = new HashMap<>();
 	private Resource archive;
 
 	private final Config config;
@@ -253,25 +252,27 @@ public final class MappingImpl implements Mapping {
 	}
 
 	private Class<?> loadClass(String className, byte[] code) throws IOException, ClassNotFoundException {
-
-		PhysicalClassLoaderReference pclr = loaders.get(className);
-		PhysicalClassLoader pcl = pclr == null ? null : pclr.get();
-		if (pcl == null || code != null) {// || pcl.getSize(true) > 3
-			if (pcl != null) {
-				pcl.clear();
-			}
-			pcl = new PhysicalClassLoader(config, getClassRootDirectory(), pageSourcePool);
-			synchronized (loaders) {
-				loaders.put(className, new PhysicalClassLoaderReference(pcl));
-			}
-		}
+		PhysicalClassLoader pcl = PhysicalClassLoader.getPhysicalClassLoader(config, getClassRootDirectory(), false);
+		/*
+		 * PhysicalClassLoaderReference pclr = loaders.get(className); PhysicalClassLoader pcl = pclr ==
+		 * null ? null : pclr.get(); if (pcl == null || code != null) {// || pcl.getSize(true) > 3 if (pcl
+		 * != null) { pcl.clear(); } pcl = PhysicalClassLoader.getPhysicalClassLoader(config,
+		 * getClassRootDirectory(), true); synchronized (loaders) { loaders.put(className, new
+		 * PhysicalClassLoaderReference(pcl)); } }
+		 */
 
 		if (code != null) {
 			try {
 				return pcl.loadClass(className, code);
 			}
 			catch (UnmodifiableClassException e) {
-				throw ExceptionUtil.toIOException(e);
+				pcl = PhysicalClassLoader.getPhysicalClassLoader(config, getClassRootDirectory(), true);
+				try {
+					return pcl.loadClass(className, code);
+				}
+				catch (UnmodifiableClassException ex) {
+					throw ExceptionUtil.toIOException(ex);
+				}
 			}
 		}
 		return pcl.loadClass(className);
@@ -282,18 +283,10 @@ public final class MappingImpl implements Mapping {
 	}
 
 	public void clear(String className) {
-		PhysicalClassLoaderReference ref = loaders.remove(className);
-		PhysicalClassLoader pcl;
-		if (ref != null) {
-			pcl = ref.get();
-			if (pcl != null) {
-				pcl.clear(false);
-			}
-		}
-	}
-
-	public int getSize() {
-		return loaders.size();
+		/*
+		 * PhysicalClassLoaderReference ref = loaders.remove(className); PhysicalClassLoader pcl; if (ref !=
+		 * null) { pcl = ref.get(); if (pcl != null) { pcl.clear(false); } }
+		 */
 	}
 
 	@Override

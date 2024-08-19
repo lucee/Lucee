@@ -15,7 +15,6 @@ import lucee.commons.io.log.LoggerAndSourceData;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.ResourcesImpl.ResourceProviderFactory;
 import lucee.commons.io.res.type.compress.Compress;
-import lucee.commons.io.res.util.ResourceClassLoader;
 import lucee.commons.lang.CharSet;
 import lucee.commons.lang.ClassException;
 import lucee.commons.lang.PhysicalClassLoader;
@@ -188,9 +187,7 @@ public interface ConfigPro extends Config {
 
 	public boolean getTypeChecking();
 
-	public ResourceClassLoader getResourceClassLoader();
-
-	public ClassLoader getRPCClassLoader(boolean reload, ResourceClassLoader parent) throws IOException;
+	public ClassLoader getRPCClassLoader(boolean reload, JavaSettings js) throws IOException;
 
 	public PageSource toPageSource(Mapping[] mappings, Resource res, PageSource defaultValue);
 
@@ -338,8 +335,6 @@ public interface ConfigPro extends Config {
 	 * @return
 	 */
 	public List<ExtensionDefintion> loadLocalExtensions(boolean validate);
-
-	public ResourceClassLoader getResourceClassLoader(ResourceClassLoader defaultValue);
 
 	public Compress getCompressInstance(Resource zipFile, int format, boolean caseSensitive) throws IOException;
 

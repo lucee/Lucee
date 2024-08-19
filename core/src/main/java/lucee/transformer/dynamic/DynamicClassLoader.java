@@ -19,7 +19,7 @@ import lucee.commons.lang.ExtendableClassLoader;
 /**
  * Directory ClassLoader
  */
-public final class DynamicClassLoader extends ExtendableClassLoader {
+public final class DynamicClassLoader extends ClassLoader implements ExtendableClassLoader {
 
 	static {
 		boolean res = registerAsParallelCapable();

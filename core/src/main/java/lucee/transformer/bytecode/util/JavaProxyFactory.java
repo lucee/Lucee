@@ -40,7 +40,6 @@ import org.objectweb.asm.commons.GeneratorAdapter;
 import lucee.commons.digest.HashUtil;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.res.Resource;
-import lucee.commons.io.res.util.ResourceClassLoader;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.PhysicalClassLoader;
@@ -434,7 +433,7 @@ public class JavaProxyFactory {
 	 * // adapter.returnValue(); adapter.endMethod(); }
 	 */
 
-	private static PhysicalClassLoader getRPCClassLoaderFromClasses(PageContext pc, Class extendz, Class... interfaces) throws IOException {
+	private static PhysicalClassLoader getRPCClassLoaderFromClasses(PageContext pc, Class extendz, Class... interfaces) {
 		// extends and implement need to come from the same parent classloader
 		PhysicalClassLoader pcl = null;
 		if (extendz != null) {
@@ -451,15 +450,12 @@ public class JavaProxyFactory {
 		return null;
 	}
 
-	public static PhysicalClassLoader getRPCClassLoaderFromClass(PageContext pc, Class clazz) throws IOException {
+	public static PhysicalClassLoader getRPCClassLoaderFromClass(PageContext pc, Class clazz) {
 		ClassLoader cl = clazz.getClassLoader();
 		pc = ThreadLocalPageContext.get(pc);
 		if (cl != null) {
 			if (cl instanceof PhysicalClassLoader) {
 				return ((PhysicalClassLoader) cl);
-			}
-			if (cl instanceof ResourceClassLoader && pc != null) {
-				return (PhysicalClassLoader) ((PageContextImpl) pc).getRPCClassLoader(false, (ResourceClassLoader) cl);
 			}
 		}
 		return null;

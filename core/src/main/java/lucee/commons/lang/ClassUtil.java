@@ -45,7 +45,6 @@ import lucee.commons.io.FileUtil;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.res.Resource;
-import lucee.commons.io.res.util.ResourceClassLoader;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.config.Config;
@@ -53,7 +52,6 @@ import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.Identification;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
-import lucee.runtime.listener.JavaSettingsImpl;
 import lucee.runtime.op.Caster;
 import lucee.runtime.osgi.OSGiUtil;
 import lucee.runtime.osgi.OSGiUtil.BundleDefinition;
@@ -313,11 +311,6 @@ public final class ClassUtil {
 	private static Class loadClass(ClassLoader cl, String className, Class defaultValue, Set<Throwable> exceptions) {
 
 		if (cl != null) {
-			// TODO do not produce a resource classloader in the first place if there are no resources
-			if (cl instanceof ResourceClassLoader && ((ResourceClassLoader) cl).isEmpty()) {
-				ClassLoader p = ((ResourceClassLoader) cl).getParent();
-				if (p != null) cl = p;
-			}
 			Class clazz = _loadClass(new ClassLoaderBasedClassLoading(cl), className, defaultValue, exceptions);
 			if (clazz != null) return clazz;
 		}
@@ -1035,10 +1028,9 @@ public final class ClassUtil {
 		if (pc instanceof PageContextImpl) {
 			return ((PageContextImpl) pc).getClassLoader();
 		}
-		// NEXT this is wrong
 		Config config = ThreadLocalPageContext.getConfig();
 		if (config instanceof ConfigPro) {
-			return ((JavaSettingsImpl) ((ConfigPro) config).getJavaSettings()).getClassLoader(false);
+			return ((ConfigPro) config).getRPCClassLoader(false, null);
 		}
 		return new lucee.commons.lang.ClassLoaderHelper().getClass().getClassLoader();
 	}

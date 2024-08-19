@@ -20,15 +20,7 @@ package lucee.commons.lang;
 
 import java.lang.instrument.UnmodifiableClassException;
 
-public abstract class ExtendableClassLoader extends ClassLoader {
-
-	public ExtendableClassLoader() {
-		super();
-	}
-
-	public ExtendableClassLoader(ClassLoader parent) {
-		super(parent);
-	}
+public interface ExtendableClassLoader {
 
 	/**
 	 * allow to define a new Class with help of the bytecode passed to the method

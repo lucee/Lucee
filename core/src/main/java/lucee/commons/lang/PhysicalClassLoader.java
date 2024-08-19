@@ -22,42 +22,62 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.instrument.UnmodifiableClassException;
-import java.lang.ref.SoftReference;
 import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import lucee.commons.digest.HashUtil;
+import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
-import lucee.commons.io.res.util.ResourceClassLoader;
+import lucee.commons.io.res.type.file.FileResource;
+import lucee.commons.io.res.util.ResourceUtil;
 import lucee.runtime.PageSourcePool;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigPro;
+import lucee.runtime.converter.ConverterException;
+import lucee.runtime.converter.JSONConverter;
+import lucee.runtime.converter.JSONDateFormat;
 import lucee.runtime.exp.ApplicationException;
+import lucee.runtime.listener.JavaSettings;
+import lucee.runtime.listener.JavaSettingsImpl;
+import lucee.runtime.listener.SerializationSettings;
+import lucee.runtime.type.Struct;
+import lucee.runtime.type.StructImpl;
+import lucee.runtime.type.util.KeyConstants;
 import lucee.transformer.bytecode.util.ClassRenamer;
 
 /**
  * Directory ClassLoader
  */
-public final class PhysicalClassLoader extends ExtendableClassLoader {
+public final class PhysicalClassLoader extends URLClassLoader implements ExtendableClassLoader {
 
 	static {
 		boolean res = registerAsParallelCapable();
 	}
+	private static RC rc = new RC();
+
+	private static Map<String, PhysicalClassLoader> classLoaders = new ConcurrentHashMap<>();
+
 	private Resource directory;
 	private ConfigPro config;
-	private final ClassLoader[] parents;
+	private final ClassLoader parent;
+	private final Collection<Resource> resources;
 
 	private Map<String, String> loadedClasses = new ConcurrentHashMap<String, String>();
 	private Map<String, String> allLoadedClasses = new ConcurrentHashMap<String, String>(); // this includes all renames
 	private Map<String, String> unavaiClasses = new ConcurrentHashMap<String, String>();
 
-	private Map<String, SoftReference<PhysicalClassLoader>> customCLs;
 	private PageSourcePool pageSourcePool;
+
+	private boolean rpc;
 
 	private static long counter = 0L;
 	private static long _start = 0L;
@@ -76,41 +96,67 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 		}
 	}
 
-	/**
-	 * Constructor of the class
-	 * 
-	 * @param directory
-	 * @param parent
-	 * @throws IOException
-	 */
-	public PhysicalClassLoader(Config c, Resource directory, PageSourcePool pageSourcePool) throws IOException {
-		this(c, directory, (ClassLoader) null, true, pageSourcePool);
+	public static PhysicalClassLoader getPhysicalClassLoader(Config c, Resource directory, boolean reload) throws IOException {
+
+		String key = HashUtil.create64BitHashAsString(directory.getAbsolutePath());
+
+		PhysicalClassLoader rpccl = reload ? null : classLoaders.get(key);
+		if (rpccl == null) {
+			synchronized (SystemUtil.createToken("PhysicalClassLoader", key)) {
+				rpccl = reload ? null : classLoaders.get(key);
+				if (rpccl == null) {
+					classLoaders.put(key, rpccl = new PhysicalClassLoader(c, new ArrayList<Resource>(), directory, SystemUtil.getCombinedClassLoader(), null, false));
+				}
+			}
+		}
+		return rpccl;
 	}
 
-	public PhysicalClassLoader(Config c, Resource directory, ClassLoader parentClassLoader, boolean includeCoreCL, PageSourcePool pageSourcePool) throws IOException {
-		super(parentClassLoader == null ? c.getClassLoader() : parentClassLoader);
+	public static PhysicalClassLoader getRPCClassLoader(Config c, JavaSettings js, boolean reload) throws IOException {
+
+		String key = js == null ? "orphan" : ((JavaSettingsImpl) js).id();
+
+		PhysicalClassLoader rpccl = reload ? null : classLoaders.get(key);
+		if (rpccl == null) {
+			synchronized (SystemUtil.createToken("PhysicalClassLoader", key)) {
+				rpccl = reload ? null : classLoaders.get(key);
+				if (rpccl == null) {
+					List<Resource> resources;
+					if (js == null) {
+						resources = new ArrayList<Resource>();
+					}
+					else {
+						resources = toSortedList(JavaSettingsImpl.getAllResources(js));
+					}
+					Resource dir = storeResourceMeta(c, key, js, resources);
+					// (Config config, String key, JavaSettings js, Collection<Resource> _resources)
+					classLoaders.put(key, rpccl = new PhysicalClassLoader(c, resources, dir, SystemUtil.getCombinedClassLoader(), null, true));
+				}
+			}
+		}
+		return rpccl;
+	}
+
+	private PhysicalClassLoader(Config c, List<Resource> resources, Resource directory, ClassLoader parentClassLoader, PageSourcePool pageSourcePool, boolean rpc)
+			throws IOException {
+		super(doURLs(resources), parentClassLoader == null ? (parentClassLoader = SystemUtil.getCombinedClassLoader()) : parentClassLoader);
+		this.resources = resources;
 		config = (ConfigPro) c;
+		parent = parentClassLoader;
 
 		this.pageSourcePool = pageSourcePool;
 		// ClassLoader resCL = parent!=null?parent:config.getResourceClassLoader(null);
-
-		List<ClassLoader> tmp = new ArrayList<ClassLoader>();
-		if (parentClassLoader == null) {
-			ResourceClassLoader _cl = config.getResourceClassLoader(null);
-			if (_cl != null) tmp.add(_cl);
-		}
-		else {
-			tmp.add(parentClassLoader);
-		}
-
-		if (includeCoreCL) tmp.add(config.getClassLoaderCore());
-		parents = tmp.toArray(new ClassLoader[tmp.size()]);
 
 		// check directory
 		if (!directory.exists()) directory.mkdirs();
 		if (!directory.isDirectory()) throw new IOException("Resource [" + directory + "] is not a directory");
 		if (!directory.canRead()) throw new IOException("Access denied to [" + directory + "] directory");
 		this.directory = directory;
+		this.rpc = rpc;
+	}
+
+	public boolean isRPC() {
+		return rpc;
 	}
 
 	@Override
@@ -129,14 +175,14 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 		// First, check if the class has already been loaded
 		Class<?> c = findLoadedClass(name);
 		if (c == null) {
-			for (ClassLoader p: parents) {
-				try {
-					c = p.loadClass(name);
-					break;
-				}
-				catch (Exception e) {
-				}
+			// for (ClassLoader p: parents) {
+			try {
+				c = super.loadClass(name, resolve);
+				// break;
 			}
+			catch (Exception e) {
+			}
+			// }
 			if (c == null) {
 				if (loadFromFS) c = findClass(name);
 				else throw new ClassNotFoundException(name);
@@ -147,7 +193,14 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 	}
 
 	@Override
-	protected Class<?> findClass(String name) throws ClassNotFoundException {// if(name.indexOf("sub")!=-1)print.ds(name);
+	protected Class<?> findClass(String name) throws ClassNotFoundException {
+
+		try {
+			return super.findClass(name);
+		}
+		catch (ClassNotFoundException cnfe) {
+		}
+
 		synchronized (SystemUtil.createToken("pcl", name)) {
 			Resource res = directory.getRealResource(name.replace('.', '/').concat(".class"));
 
@@ -212,6 +265,14 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 		return null;
 	}
 
+	public Resource[] getJarResources() {
+		return resources.toArray(new Resource[resources.size()]);
+	}
+
+	public boolean hasJarResources() {
+		return resources.isEmpty();
+	}
+
 	public int getSize(boolean includeAllRenames) {
 		return includeAllRenames ? allLoadedClasses.size() : loadedClasses.size();
 	}
@@ -274,6 +335,26 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 		this.unavaiClasses.clear();
 	}
 
+	private static Resource storeResourceMeta(Config config, String key, JavaSettings js, Collection<Resource> _resources) throws IOException {
+		Resource dir = config.getClassDirectory().getRealResource("RPC/" + key);
+		if (!dir.exists()) {
+			ResourceUtil.createDirectoryEL(dir, true);
+			Resource file = dir.getRealResource("classloader-resources.json");
+			Struct root = new StructImpl();
+			root.setEL(KeyConstants._resources, _resources);
+			JSONConverter json = new JSONConverter(true, CharsetUtil.UTF8, JSONDateFormat.PATTERN_CF, false);
+			try {
+				String str = json.serialize(null, root, SerializationSettings.SERIALIZE_AS_COLUMN, null);
+				IOUtil.write(file, str, CharsetUtil.UTF8, false);
+			}
+			catch (ConverterException e) {
+				throw ExceptionUtil.toIOException(e);
+			}
+
+		}
+		return dir;
+	}
+
 	/**
 	 * removes memory based appendix from class name, for example it translates
 	 * [test.test_cfc$sub2$cf$5] to [test.test_cfc$sub2$cf]
@@ -303,4 +384,48 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 		super.finalize();
 	}
 
+	public static List<Resource> toSortedList(Collection<Resource> resources) {
+		List<Resource> list = new ArrayList<Resource>();
+		if (resources != null) {
+			for (Resource r: resources) {
+				if (r != null) list.add(r);
+			}
+		}
+		java.util.Collections.sort(list, rc);
+		return list;
+	}
+
+	public static List<Resource> toSortedList(Resource[] resources) {
+		List<Resource> list = new ArrayList<Resource>();
+		if (resources != null) {
+			for (Resource r: resources) {
+				if (r != null) list.add(r);
+			}
+		}
+		java.util.Collections.sort(list, rc);
+		return list;
+	}
+
+	private static URL[] doURLs(Collection<Resource> reses) throws IOException {
+		List<URL> list = new ArrayList<URL>();
+		for (Resource r: reses) {
+			if (r.isDirectory() || "jar".equalsIgnoreCase(ResourceUtil.getExtension(r, null))) list.add(doURL(r));
+		}
+		return list.toArray(new URL[list.size()]);
+	}
+
+	private static URL doURL(Resource res) throws IOException {
+		if (!(res instanceof FileResource)) {
+			return ResourceUtil.toFile(res).toURL();
+		}
+		return ((FileResource) res).toURL();
+	}
+
+	private static class RC implements Comparator<Resource> {
+
+		@Override
+		public int compare(Resource l, Resource r) {
+			return l.getAbsolutePath().compareTo(r.getAbsolutePath());
+		}
+	}
 }

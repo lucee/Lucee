@@ -1621,7 +1621,9 @@ public final class SystemUtil {
 
 			// check ClassLoader
 			if (cl == null) continue;
-			if (cl instanceof PhysicalClassLoader) continue;
+			if (cl instanceof PhysicalClassLoader) {
+				if (!((PhysicalClassLoader) cl).isRPC()) continue;
+			}
 			if (cl instanceof ArchiveClassLoader) continue;
 			if (cl instanceof MemoryClassLoader) continue;
 
@@ -1639,6 +1641,7 @@ public final class SystemUtil {
 			}
 			last = ref.context[i];
 		}
+
 		return context;
 	}
 

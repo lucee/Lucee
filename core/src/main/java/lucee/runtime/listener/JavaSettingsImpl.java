@@ -28,11 +28,9 @@ import java.util.List;
 import java.util.Map;
 
 import lucee.commons.digest.HashUtil;
-import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
-import lucee.commons.io.res.util.ResourceClassLoader;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
@@ -67,9 +65,6 @@ public class JavaSettingsImpl implements JavaSettings {
 	private final int watchInterval;
 	private final String[] watchedExtensions;
 	private boolean hasBundlesTranslated;
-	// private Map<String, ResourceClassLoader> classLoaders = new ConcurrentHashMap<String,
-	// ResourceClassLoader>();
-	private ResourceClassLoader classLoader;
 	private Config config;
 
 	private String id;
@@ -86,7 +81,6 @@ public class JavaSettingsImpl implements JavaSettings {
 		this.reloadOnChange = reloadOnChange;
 		this.watchInterval = watchInterval;
 		this.watchedExtensions = watchedExtensions == null ? new String[] { "jar", "class" } : watchedExtensions;
-
 		// TODO needed? SystemExitScanner.validate(resources);
 	}
 
@@ -175,7 +169,6 @@ public class JavaSettingsImpl implements JavaSettings {
 			((ConfigPro) config).setJavaSettings(id, l);
 			return l;
 		}
-
 		js = new JavaSettingsImpl(id, config, mapPOMs.values(), mapOSGIs.values(), mapResources.values().toArray(new Resource[mapResources.size()]),
 				mapBundles.values().toArray(new Resource[mapBundles.size()]), ri.loadCFMLClassPath, ri.reloadOnChange, ri.watchInterval,
 				mapWatched.keySet().toArray(new String[mapWatched.size()]));
@@ -188,6 +181,10 @@ public class JavaSettingsImpl implements JavaSettings {
 		return poms != null && poms.size() > 0;
 	}
 
+	public String id() {
+		return id;
+	}
+
 	public Collection<POM> getPoms() {
 		return poms;
 	}
@@ -196,28 +193,20 @@ public class JavaSettingsImpl implements JavaSettings {
 		return osgis != null && osgis.size() > 0;
 	}
 
-	public ResourceClassLoader getClassLoader(boolean reload) throws IOException {
-		if (classLoader == null || reload) {
-			ClassLoader parent = SystemUtil.getCombinedClassLoader();
-			Collection<Resource> allResources = getAllResources(null);
-			return classLoader = ResourceClassLoader.getInstance(allResources, parent);
-		}
-		return classLoader;
+	/*
+	 * private ResourceClassLoader getClassLoader(boolean reload) throws IOException { if (classLoader
+	 * == null || reload) { ClassLoader parent = SystemUtil.getCombinedClassLoader();
+	 * Collection<Resource> allResources = getAllResources((ClassLoader) null); return classLoader =
+	 * ResourceClassLoader.getInstance(allResources, parent); } return classLoader; }
+	 */
+
+	public static Collection<Resource> getAllResources(JavaSettings js) throws IOException {
+		return ((JavaSettingsImpl) js).getAllResources((ClassLoader) null);
 	}
 
 	public Collection<Resource> getAllResources(ClassLoader parent) throws IOException {
 		Map<String, Resource> mapJars = new HashMap<>();
 
-		// parent
-		if (parent instanceof ResourceClassLoader) {
-			Resource[] reses = ((ResourceClassLoader) parent).getResources();
-
-			if (reses != null) {
-				for (Resource r: reses) {
-					mapJars.put(r.getAbsolutePath(), r);
-				}
-			}
-		}
 		Resource[] tmp;
 
 		// maven
@@ -525,9 +514,9 @@ public class JavaSettingsImpl implements JavaSettings {
 		if (js != null) {
 			return js;
 		}
-
 		js = new JavaSettingsImpl(id, config, poms, osgis, paths.toArray(new Resource[paths.size()]), bundles.toArray(new Resource[bundles.size()]), loadCFMLClassPath,
 				reloadOnChange, watchInterval, extensions.toArray(new String[extensions.size()]));
+
 		((ConfigPro) config).setJavaSettings(id, js);
 		return js;
 	}

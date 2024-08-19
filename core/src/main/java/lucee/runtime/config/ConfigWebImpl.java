@@ -13,7 +13,6 @@ import org.xml.sax.SAXException;
 
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.ResourcesImpl.ResourceProviderFactory;
-import lucee.commons.io.res.util.ResourceClassLoader;
 import lucee.commons.lang.PhysicalClassLoader;
 import lucee.runtime.ai.AIEngineFactory;
 import lucee.runtime.ai.AIEnginePool;
@@ -780,7 +779,7 @@ public class ConfigWebImpl implements ConfigWebPro {
 	}
 
 	@Override
-	public ClassLoader getRPCClassLoader(boolean arg0, ResourceClassLoader arg1) throws java.io.IOException {
+	public ClassLoader getRPCClassLoader(boolean arg0, JavaSettings arg1) throws java.io.IOException {
 		return instance.getRPCClassLoader(arg0, arg1);
 	}
 
@@ -1161,11 +1160,6 @@ public class ConfigWebImpl implements ConfigWebPro {
 		return instance.isMailSendPartial();
 	}
 
-	@Override
-	public lucee.commons.io.res.util.ResourceClassLoader getResourceClassLoader(lucee.commons.io.res.util.ResourceClassLoader arg0) {
-		return instance.getResourceClassLoader(arg0);
-	}
-
 	public lucee.runtime.config.ConfigServerImpl getConfigServerImpl() {
 		if (instance instanceof MultiContextConfigWeb) return ((MultiContextConfigWeb) instance).getConfigServerImpl();
 		return ((SingleContextConfigWeb) instance).getConfigServerImpl();
@@ -1396,11 +1390,6 @@ public class ConfigWebImpl implements ConfigWebPro {
 	@Override
 	public int getQueryVarUsage() {
 		return instance.getQueryVarUsage();
-	}
-
-	@Override
-	public lucee.commons.io.res.util.ResourceClassLoader getResourceClassLoader() {
-		return instance.getResourceClassLoader();
 	}
 
 	@Override

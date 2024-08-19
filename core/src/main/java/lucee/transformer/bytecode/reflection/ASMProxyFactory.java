@@ -143,7 +143,7 @@ public class ASMProxyFactory {
 		// try to load existing ASM Class
 		Class<?> asmClass;
 		try {
-			asmClass = pcl.loadClass(className);
+			asmClass = ((ClassLoader) pcl).loadClass(className);
 			// print.e("use existing class");
 		}
 		catch (ClassNotFoundException cnfe) {
@@ -170,7 +170,7 @@ public class ASMProxyFactory {
 		// try to load existing ASM Class
 		Class<?> asmClass;
 		try {
-			asmClass = pcl.loadClass(className);
+			asmClass = ((ClassLoader) pcl).loadClass(className);
 		}
 		catch (ClassNotFoundException cnfe) {
 			byte[] barr = _createMethod(type, clazz, method, classRoot, className);
