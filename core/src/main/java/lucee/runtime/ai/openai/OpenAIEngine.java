@@ -12,6 +12,7 @@ import java.util.Map;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
@@ -271,7 +272,10 @@ public class OpenAIEngine extends AIEngineSupport implements AIEngineFile {
 	}
 
 	@Override
-	public String uploadFile(Resource jsonl) throws PageException {
+	public String uploadFile(Resource jsonl, String purpose) throws PageException {
+		if (StringUtil.isEmpty(purpose, true)) purpose = "assistants";
+		else purpose = purpose.trim();
+
 		try {
 			URI url = new URI(getBaseURL() + "files");
 			InputStream is = null;
@@ -283,7 +287,7 @@ public class OpenAIEngine extends AIEngineSupport implements AIEngineFile {
 
 				// Build the multipart entity
 				MultipartEntityBuilder builder = MultipartEntityBuilder.create();
-				builder.addTextBody("purpose", "fine-tune", org.apache.http.entity.ContentType.TEXT_PLAIN);
+				builder.addTextBody("purpose", purpose, org.apache.http.entity.ContentType.TEXT_PLAIN);
 				builder.addBinaryBody("file", is = jsonl.getInputStream(), org.apache.http.entity.ContentType.APPLICATION_OCTET_STREAM, jsonl.getName());
 
 				HttpEntity multipart = builder.build();
@@ -369,6 +373,127 @@ public class OpenAIEngine extends AIEngineSupport implements AIEngineFile {
 					}
 					return list;
 				}
+			}
+			finally {
+				IOUtil.close(is);
+			}
+
+		}
+		catch (Exception e) {
+			throw Caster.toPageException(e);
+		}
+	}
+
+	@Override
+	public AIFile getFile(String id) throws PageException {
+		try {
+			URI url = new URI(getBaseURL() + "files/" + id.trim());
+			InputStream is = null;
+			// Create HttpClient
+			try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
+				// Create HttpPost request
+				HttpGet get = new HttpGet(url);
+				get.setHeader("Authorization", "Bearer " + secretKey);
+
+				// Execute the request
+				try (CloseableHttpResponse response = httpClient.execute(get)) {
+					// Get response
+					HttpEntity responseEntity = response.getEntity();
+					if ("application/json".equals(responseEntity.getContentType().getValue())) {
+						String responseString = EntityUtils.toString(responseEntity, charset);
+						Struct sct = Caster.toStruct(new JSONExpressionInterpreter().interpret(null, responseString));
+						throwIfError(sct);
+						return new AIFileSupport(
+
+								Caster.toString(sct.get(KeyConstants._object)),
+
+								Caster.toString(sct.get(KeyConstants._id)),
+
+								Caster.toString(sct.get("purpose")),
+
+								Caster.toString(sct.get(KeyConstants._filename)),
+
+								Caster.toLongValue(sct.get(KeyConstants._bytes)),
+
+								Caster.toDatetime(new Date(Caster.toLongValue(sct.get("created_at")) * 1000L), null),
+
+								Caster.toString(sct.get(KeyConstants._status)),
+
+								Caster.toString(sct.get("status_details", null)));
+
+					}
+					throw new ApplicationException("The AI did answer with the mime type [" + responseEntity.getContentType().getValue()
+							+ "] that is not supported, only [application/json] is supported");
+				}
+
+			}
+			finally {
+				IOUtil.close(is);
+			}
+
+		}
+		catch (Exception e) {
+			throw Caster.toPageException(e);
+		}
+	}
+
+	@Override
+	public InputStream getFileContent(String id) throws PageException {
+		try {
+			URI url = new URI(getBaseURL() + "files/" + id.trim() + "/content");
+
+			// Create HttpClient
+			CloseableHttpClient httpClient = HttpClients.createDefault();
+
+			// Create HttpGet request
+			HttpGet get = new HttpGet(url);
+			get.setHeader("Authorization", "Bearer " + secretKey);
+
+			// Execute the request
+			CloseableHttpResponse response = httpClient.execute(get);
+			HttpEntity responseEntity = response.getEntity();
+
+			if ("application/json".equals(responseEntity.getContentType().getValue())) {
+				String responseString = EntityUtils.toString(responseEntity, charset);
+				Struct sct = Caster.toStruct(new JSONExpressionInterpreter().interpret(null, responseString));
+				throwIfError(sct);
+			}
+
+			// Return the InputStream, caller is responsible for closing it
+			return responseEntity.getContent();
+
+		}
+		catch (Exception e) {
+			throw Caster.toPageException(e);
+		}
+	}
+
+	@Override
+	public boolean deleteFile(String id) throws PageException {
+		try {
+			URI url = new URI(getBaseURL() + "files/" + id.trim());
+			InputStream is = null;
+			// Create HttpClient
+			try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
+				// Create HttpPost request
+				HttpDelete get = new HttpDelete(url);
+				get.setHeader("Authorization", "Bearer " + secretKey);
+
+				// Execute the request
+				try (CloseableHttpResponse response = httpClient.execute(get)) {
+					// Get response
+					HttpEntity responseEntity = response.getEntity();
+					if ("application/json".equals(responseEntity.getContentType().getValue())) {
+						String responseString = EntityUtils.toString(responseEntity, charset);
+						Struct sct = Caster.toStruct(new JSONExpressionInterpreter().interpret(null, responseString));
+						throwIfError(sct);
+						return Caster.toBooleanValue(sct.get(KeyConstants._deleted));
+
+					}
+					throw new ApplicationException("The AI did answer with the mime type [" + responseEntity.getContentType().getValue()
+							+ "] that is not supported, only [application/json] is supported");
+				}
+
 			}
 			finally {
 				IOUtil.close(is);
