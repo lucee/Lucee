@@ -143,7 +143,7 @@ public class ASMProxyFactory {
 		// try to load existing ASM Class
 		Class<?> asmClass;
 		try {
-			asmClass = pcl.loadClass(className);
+			asmClass = ((ClassLoader) pcl).loadClass(className);
 			// print.e("use existing class");
 		}
 		catch (ClassNotFoundException cnfe) {
@@ -170,7 +170,7 @@ public class ASMProxyFactory {
 		// try to load existing ASM Class
 		Class<?> asmClass;
 		try {
-			asmClass = pcl.loadClass(className);
+			asmClass = ((ClassLoader) pcl).loadClass(className);
 		}
 		catch (ClassNotFoundException cnfe) {
 			byte[] barr = _createMethod(type, clazz, method, classRoot, className);
@@ -365,14 +365,4 @@ public class ASMProxyFactory {
 		IOUtil.copy(new ByteArrayInputStream(barr), classFile, true);
 		return barr;
 	}
-	/*
-	 * private void store(ClassWriter cw) { // create class file byte[] barr = cw.toByteArray();
-	 * 
-	 * try { ResourceUtil.touch(classFile); IOUtil.copy(new ByteArrayInputStream(barr), classFile,true);
-	 * 
-	 * cl = (PhysicalClassLoader) mapping.getConfig().getRPCClassLoader(true); Class<?> clazz =
-	 * cl.loadClass(className, barr); return newInstance(clazz, config,cfc); } catch(Throwable t) {
-	 * throw Caster.toPageException(t); } }
-	 */
-
 }

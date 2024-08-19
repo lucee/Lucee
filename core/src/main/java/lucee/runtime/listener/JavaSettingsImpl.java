@@ -18,17 +18,28 @@
  **/
 package lucee.runtime.listener;
 
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
+import lucee.commons.digest.HashUtil;
+import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
+import lucee.runtime.config.Config;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.mvn.MavenUtil;
+import lucee.runtime.mvn.POM;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 import lucee.runtime.osgi.BundleFile;
@@ -38,10 +49,13 @@ import lucee.runtime.type.Struct;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.ListUtil;
-import lucee.transformer.bytecode.util.SystemExitScanner;
 
 public class JavaSettingsImpl implements JavaSettings {
 
+	private static final int DEFAULT_WATCH_INTERVAL = 60;
+
+	private Collection<POM> poms;
+	private Collection<BD> osgis;
 	private final Resource[] resources;
 	private Resource[] resourcesTranslated;
 	private final Resource[] bundles;
@@ -51,25 +65,178 @@ public class JavaSettingsImpl implements JavaSettings {
 	private final int watchInterval;
 	private final String[] watchedExtensions;
 	private boolean hasBundlesTranslated;
+	private Config config;
 
-	public JavaSettingsImpl() {
-		this.resources = new Resource[0];
-		this.bundles = new Resource[0];
-		this.loadCFMLClassPath = false;
-		this.reloadOnChange = false;
-		this.watchInterval = 60;
-		this.watchedExtensions = new String[] { "jar", "class" };
-	}
+	private String id;
 
-	public JavaSettingsImpl(Resource[] resources, Resource[] bundles, Boolean loadCFMLClassPath, boolean reloadOnChange, int watchInterval, String[] watchedExtensions)
-			throws PageException {
-		this.resources = resources;
-		this.bundles = bundles;
-		this.loadCFMLClassPath = loadCFMLClassPath;
+	private JavaSettingsImpl(String id, Config config, Collection<POM> poms, Collection<BD> osgis, Resource[] resources, Resource[] bundles, Boolean loadCFMLClassPath,
+			boolean reloadOnChange, int watchInterval, String[] watchedExtensions) {
+		this.config = config == null ? ThreadLocalPageContext.getConfig() : config;
+		this.id = id;
+		this.poms = poms;
+		this.osgis = osgis;
+		this.resources = resources == null ? new Resource[0] : resources;
+		this.bundles = bundles == null ? new Resource[0] : bundles;
+		this.loadCFMLClassPath = Boolean.TRUE.equals(loadCFMLClassPath);
 		this.reloadOnChange = reloadOnChange;
 		this.watchInterval = watchInterval;
-		this.watchedExtensions = watchedExtensions;
-		SystemExitScanner.validate(resources);
+		this.watchedExtensions = watchedExtensions == null ? new String[] { "jar", "class" } : watchedExtensions;
+		// TODO needed? SystemExitScanner.validate(resources);
+	}
+
+	public static JavaSettings merge(Config config, JavaSettings l, JavaSettings r) {
+		JavaSettingsImpl li = (JavaSettingsImpl) l;
+		JavaSettingsImpl ri = (JavaSettingsImpl) r;
+
+		String id = HashUtil.create64BitHashAsString(li.id + ":" + ri.id);
+
+		JavaSettings js = ((ConfigPro) config).getJavaSettings(id);
+		if (js != null) {
+			return js;
+		}
+		boolean lEmpty = true;
+		boolean rEmpty = true;
+		// poms
+		Map<String, POM> mapPOMs = new HashMap<>();
+		if (ri.getPoms() != null) {
+			for (POM pom: ri.getPoms()) {
+				mapPOMs.put(pom.id(), pom);
+				rEmpty = false;
+			}
+		}
+		if (li.getPoms() != null) {
+			for (POM pom: li.getPoms()) {
+				mapPOMs.put(pom.id(), pom);
+				lEmpty = false;
+			}
+		}
+
+		// osgis
+		Map<String, BD> mapOSGIs = new HashMap<>();
+		if (ri.osgis != null) {
+			for (BD bd: ri.osgis) {
+				mapOSGIs.put(bd.toString(), bd);
+				rEmpty = false;
+			}
+		}
+		if (li.osgis != null) {
+			for (BD bd: li.osgis) {
+				mapOSGIs.put(bd.toString(), bd);
+				lEmpty = false;
+			}
+		}
+
+		// resources
+		Map<String, Resource> mapResources = new HashMap<>();
+		for (Resource res: ri.getResources()) {
+			mapResources.put(res.getAbsolutePath(), res);
+			rEmpty = false;
+		}
+		for (Resource res: li.getResources()) {
+			mapResources.put(res.getAbsolutePath(), res);
+			lEmpty = false;
+		}
+
+		// bundles
+		Map<String, Resource> mapBundles = new HashMap<>();
+		for (Resource res: ri.getBundles()) {
+			mapBundles.put(res.getAbsolutePath(), res);
+			rEmpty = false;
+		}
+		for (Resource res: li.getBundles()) {
+			mapBundles.put(res.getAbsolutePath(), res);
+			lEmpty = false;
+		}
+
+		// watched extensions
+		Map<String, String> mapWatched = new HashMap<>();
+		if (ri.watchedExtensions != null) {
+			for (String str: ri.watchedExtensions) {
+				mapWatched.put(str, "");
+			}
+		}
+		if (li.watchedExtensions != null) {
+			for (String str: li.watchedExtensions) {
+				mapWatched.put(str, "");
+			}
+		}
+
+		if (lEmpty) {
+			((ConfigPro) config).setJavaSettings(id, r);
+			return r;
+		}
+		if (rEmpty) {
+			((ConfigPro) config).setJavaSettings(id, l);
+			return l;
+		}
+		js = new JavaSettingsImpl(id, config, mapPOMs.values(), mapOSGIs.values(), mapResources.values().toArray(new Resource[mapResources.size()]),
+				mapBundles.values().toArray(new Resource[mapBundles.size()]), ri.loadCFMLClassPath, ri.reloadOnChange, ri.watchInterval,
+				mapWatched.keySet().toArray(new String[mapWatched.size()]));
+
+		((ConfigPro) config).setJavaSettings(id, js);
+		return js;
+	}
+
+	public boolean hasPoms() {
+		return poms != null && poms.size() > 0;
+	}
+
+	public String id() {
+		return id;
+	}
+
+	public Collection<POM> getPoms() {
+		return poms;
+	}
+
+	public boolean hasOSGis() {
+		return osgis != null && osgis.size() > 0;
+	}
+
+	/*
+	 * private ResourceClassLoader getClassLoader(boolean reload) throws IOException { if (classLoader
+	 * == null || reload) { ClassLoader parent = SystemUtil.getCombinedClassLoader();
+	 * Collection<Resource> allResources = getAllResources((ClassLoader) null); return classLoader =
+	 * ResourceClassLoader.getInstance(allResources, parent); } return classLoader; }
+	 */
+
+	public static Collection<Resource> getAllResources(JavaSettings js) throws IOException {
+		return ((JavaSettingsImpl) js).getAllResources((ClassLoader) null);
+	}
+
+	public Collection<Resource> getAllResources(ClassLoader parent) throws IOException {
+		Map<String, Resource> mapJars = new HashMap<>();
+
+		Resource[] tmp;
+
+		// maven
+		if (poms != null) {
+			for (POM pom: poms) {
+				tmp = pom.getJars();
+				if (tmp != null) {
+					for (Resource r: tmp) {
+						mapJars.put(r.getAbsolutePath(), r);
+					}
+				}
+			}
+		}
+
+		// TODO OSGi
+
+		// jars
+		Resource[] jars = getResourcesTranslated();
+		if (jars != null && jars.length > 0) {
+			for (Resource r: jars) {
+				mapJars.put(r.getAbsolutePath(), r);
+			}
+		}
+
+		// resources passed in
+		/*
+		 * if (resources != null && resources.length > 0) { for (Resource r: resources) {
+		 * mapJars.put(r.getAbsolutePath(), r); } }
+		 */
+		return mapJars.values();
 	}
 
 	@Override
@@ -157,42 +324,162 @@ public class JavaSettingsImpl implements JavaSettings {
 		return watchedExtensions;
 	}
 
-	public static JavaSettingsImpl newInstance(JavaSettings base, Struct sct) throws PageException {
-		// load paths
-		List<Resource> paths;
+	public static JavaSettings getInstance(Config config, Struct data, Object addionalResources) {
+
+		List<String> names = new ArrayList<>();
+
+		// maven
+		List<POM> poms = null;
 		{
-			Object obj = sct.get(KeyConstants._loadPaths, null);
+			Object obj = data == null ? null : data.get(KeyConstants._maven, null);
+			if (obj == null) obj = data == null ? null : data.get(KeyConstants._mvn, null);
+			if (obj != null) {
+				Array arr = Caster.toArray(obj, null);
+				if (arr == null) {
+					Struct tmp = Caster.toStruct(obj, null);
+					if (tmp != null) {
+						arr = new ArrayImpl();
+						arr.appendEL(tmp);
+					}
+				}
+
+				if (arr != null) {
+					Iterator<Object> it = arr.valueIterator();
+					String g, a, v, s;
+					// TODO add method getMavenDir to config
+					Resource dir = ((ConfigPro) config).getMavenDir();
+					dir.mkdirs();
+					Log log = config.getLog("application");
+					while (it.hasNext()) {
+						Struct el = Caster.toStruct(it.next(), null);
+						if (el != null) {
+							g = Caster.toString(el.get(KeyConstants._groupId, null), null);
+							a = Caster.toString(el.get(KeyConstants._artifactId, null), null);
+							v = Caster.toString(el.get(KeyConstants._version, null), null);
+							s = Caster.toString(el.get(KeyConstants._scope, null), null);
+							if (!StringUtil.isEmpty(g) && !StringUtil.isEmpty(a)) {
+								if (poms == null) poms = new ArrayList<>();
+								POM tmp = POM.getInstance(dir, g, a, v, MavenUtil.toScopes(s, POM.SCOPE_COMPILE), log);
+								poms.add(tmp);
+								names.add("maven:" + tmp.getGroupId() + ":" + tmp.getArtifactId() + ":" + tmp.getVersion());
+							}
+						}
+					}
+				}
+			}
+		}
+
+		// osgi
+		List<BD> osgis = null;
+		{
+			Object obj = data == null ? null : data.get(KeyConstants._osgi, null);
+			if (obj != null) {
+				Array arr = Caster.toArray(obj, null);
+				if (arr == null) {
+					Struct tmp = Caster.toStruct(obj, null);
+					if (tmp != null) {
+						arr = new ArrayImpl();
+						arr.appendEL(tmp);
+					}
+				}
+
+				if (arr != null) {
+					Iterator<Object> it = arr.valueIterator();
+					String n, v;
+					BD tmp;
+					while (it.hasNext()) {
+						Struct el = Caster.toStruct(it.next(), null);
+						if (el != null) {
+							n = Caster.toString(el.get(KeyConstants._name, null), null);
+							if (StringUtil.isEmpty(n, true)) n = Caster.toString(el.get(KeyConstants._bundleName, null), null);
+							v = Caster.toString(el.get(KeyConstants._version, null), null);
+							if (StringUtil.isEmpty(v, true)) v = Caster.toString(el.get(KeyConstants._bundleVersion, null), null);
+
+							if (!StringUtil.isEmpty(n, true)) {
+								if (osgis == null) osgis = new ArrayList<>();
+								tmp = new BD(n.trim(), v == null ? v : v.trim());
+								osgis.add(tmp);
+								names.add("osgi:" + tmp.name + ":" + tmp.version);
+							}
+						}
+					}
+				}
+			}
+		}
+
+		// load paths
+		Collection<Resource> paths;
+		{
+			Object obj = data == null ? null : data.get(KeyConstants._loadPaths, null);
 			if (obj != null) {
 				paths = loadPaths(ThreadLocalPageContext.get(), obj);
+				for (Resource p: paths) {
+					names.add("paths:" + p.getAbsolutePath());
+				}
 			}
 			else paths = new ArrayList<Resource>();
+		}
+
+		// addional resources
+		if (addionalResources != null) {
+			Map<String, Resource> map = new HashMap<>();
+			for (Resource r: paths) {
+				map.put(r.getAbsolutePath(), r);
+			}
+			if (addionalResources instanceof Resource[]) {
+				for (Resource r: (Resource[]) addionalResources) {
+					map.put(r.getAbsolutePath(), r);
+					names.add("addional:" + r.getAbsolutePath());
+				}
+			}
+			else if (addionalResources instanceof List) {
+				for (Resource r: (List<Resource>) addionalResources) {
+					map.put(r.getAbsolutePath(), r);
+					names.add("addional:" + r.getAbsolutePath());
+				}
+			}
+			paths = map.values();
 		}
 
 		// bundles paths
 		List<Resource> bundles;
 		{
-			Object obj = sct.get(KeyConstants._bundlePaths, null);
-			if (obj == null) obj = sct.get(KeyConstants._bundles, null);
-			if (obj == null) obj = sct.get(KeyConstants._bundleDirectory, null);
-			if (obj == null) obj = sct.get(KeyConstants._bundleDirectories, null);
+			Object obj = data == null ? null : data.get(KeyConstants._bundlePaths, null);
+			if (obj == null) obj = data == null ? null : data.get(KeyConstants._bundles, null);
+			if (obj == null) obj = data == null ? null : data.get(KeyConstants._bundleDirectory, null);
+			if (obj == null) obj = data == null ? null : data.get(KeyConstants._bundleDirectories, null);
 			if (obj != null) {
 				bundles = loadPaths(ThreadLocalPageContext.get(), obj);
+				for (Resource b: bundles) {
+					names.add("bundles:" + b.getAbsolutePath());
+				}
 			}
 			else bundles = new ArrayList<Resource>();
 		}
+
 		// loadCFMLClassPath
-		Boolean loadCFMLClassPath = Caster.toBoolean(sct.get(KeyConstants._loadCFMLClassPath, null), null);
-		if (loadCFMLClassPath == null) loadCFMLClassPath = Caster.toBoolean(sct.get(KeyConstants._loadColdFusionClassPath, null), null);
-		if (loadCFMLClassPath == null) loadCFMLClassPath = base.loadCFMLClassPath();
+		Boolean loadCFMLClassPath = Caster.toBoolean(data == null ? null : data.get(KeyConstants._loadCFMLClassPath, null), null);
+		if (loadCFMLClassPath == null) {
+			loadCFMLClassPath = Caster.toBoolean(data == null ? null : data.get(KeyConstants._loadColdFusionClassPath, null), null);
+
+		}
+		names.add("loadCFMLClassPath:" + loadCFMLClassPath);
+		//// if (loadCFMLClassPath == null) loadCFMLClassPath = base.loadCFMLClassPath();
 
 		// reloadOnChange
-		boolean reloadOnChange = Caster.toBooleanValue(sct.get(KeyConstants._reloadOnChange, null), base.reloadOnChange());
+		//// boolean reloadOnChange = Caster.toBooleanValue(sct.get(KeyConstants._reloadOnChange, null),
+		// base.reloadOnChange());
+		boolean reloadOnChange = Caster.toBooleanValue(data == null ? null : data.get(KeyConstants._reloadOnChange, null), false);
+		names.add("reloadOnChange:" + reloadOnChange);
 
 		// watchInterval
-		int watchInterval = Caster.toIntValue(sct.get(KeyConstants._watchInterval, null), base.watchInterval());
+		//// int watchInterval = Caster.toIntValue(sct.get(KeyConstants._watchInterval, null),
+		// base.watchInterval());
+		int watchInterval = Caster.toIntValue(data == null ? null : data.get(KeyConstants._watchInterval, null), DEFAULT_WATCH_INTERVAL);
+		names.add("watchInterval:" + watchInterval);
 
 		// watchExtensions
-		Object obj = sct.get(KeyConstants._watchExtensions, null);
+		Object obj = data == null ? null : data.get(KeyConstants._watchExtensions, null);
 		List<String> extensions = new ArrayList<String>();
 		if (obj != null) {
 			Array arr;
@@ -215,11 +502,23 @@ public class JavaSettingsImpl implements JavaSettings {
 				ext = ext.trim();
 				if (ext.startsWith(".")) ext = ext.substring(1);
 				if (ext.startsWith("*.")) ext = ext.substring(2);
+				names.add("ext:" + ext);
 				extensions.add(ext);
 			}
 		}
-		return new JavaSettingsImpl(paths.toArray(new Resource[paths.size()]), bundles.toArray(new Resource[bundles.size()]), loadCFMLClassPath, reloadOnChange, watchInterval,
-				extensions.toArray(new String[extensions.size()]));
+
+		Collections.sort(names);
+		String id = HashUtil.create64BitHashAsString(names.toString());
+
+		JavaSettings js = ((ConfigPro) config).getJavaSettings(id);
+		if (js != null) {
+			return js;
+		}
+		js = new JavaSettingsImpl(id, config, poms, osgis, paths.toArray(new Resource[paths.size()]), bundles.toArray(new Resource[bundles.size()]), loadCFMLClassPath,
+				reloadOnChange, watchInterval, extensions.toArray(new String[extensions.size()]));
+
+		((ConfigPro) config).setJavaSettings(id, js);
+		return js;
 	}
 
 	private static java.util.List<Resource> loadPaths(PageContext pc, Object obj) {
@@ -242,7 +541,7 @@ public class JavaSettingsImpl implements JavaSettings {
 					if (path == null) continue;
 					res = AppListenerUtil.toResourceExisting(pc.getConfig(), pc.getApplicationContext(), path, false);
 					if (res == null || !res.exists()) res = ResourceUtil.toResourceExisting(pc, path, true, null);
-					if (res != null) list.add(res);
+					if (res != null) list.add(ResourceUtil.getCanonicalResourceEL(res));
 				}
 				catch (Exception e) {
 					LogUtil.log(pc, ModernApplicationContext.class.getName(), e);
@@ -262,6 +561,23 @@ public class JavaSettingsImpl implements JavaSettings {
 		if (js == null) return null;
 
 		return js.getBundlesTranslated();
+	}
+
+	public static class BD {
+
+		public final String name;
+		public final String version;
+
+		public BD(String name, String version) {
+			this.name = name;
+			this.version = version;
+		}
+
+		@Override
+		public String toString() {
+			return name + ":" + version;
+		}
+
 	}
 
 }

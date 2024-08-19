@@ -167,17 +167,17 @@ public final class ExceptionUtil {
 	}
 
 	public static String similarKeyMessage(Collection.Key[] _keys, String keySearched, String keyLabel, String keyLabels, String in, boolean listAll) {
-		String inThe = StringUtil.isEmpty(in, true) ? "" : " in the " + in;
+		String inThe = StringUtil.isEmpty(in, true) ? "." : (" in the " + in + ".");
 
 		boolean empty = _keys.length == 0;
 		if (listAll && (_keys.length > 50 || empty)) {
 			listAll = false;
 		}
 
-		String list = null;
+		String list = "";
 		if (listAll) {
 			Arrays.sort(_keys);
-			list = ListUtil.arrayToList(_keys, ", ");
+			list = " Available " + keyLabels + " are [" + ListUtil.arrayToList(_keys, ", ") + "].";
 		}
 
 		String keySearchedSoundex = StringUtil.soundex(keySearched);
@@ -193,7 +193,11 @@ public final class ExceptionUtil {
 						+ "] available.";
 			}
 		}
-		return "The " + keyLabel + " [" + keySearched + "] does not exist" + inThe;
+		return "The " + keyLabel + " [" + keySearched + "] does not exist" + inThe + list;
+	}
+
+	public static String similarKeyMessage(java.util.Collection<String> coll, String keySearched, String keyLabel, String keyLabels, String in, boolean listAll) {
+		return similarKeyMessage(CollectionUtil.keysFromString(coll), keySearched, keyLabel, keyLabels, in, listAll);
 	}
 
 	public static String similarKeyMessage(Collection coll, String keySearched, String keyLabel, String keyLabels, String in, boolean listAll) {

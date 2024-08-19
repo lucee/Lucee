@@ -139,8 +139,8 @@ public class DynamicInvoker {
 	 * private static int loadClassCount = 0; private static int getMatchCount = 0; private static int
 	 * hasMatchCount = 0; private static int create1Count = 0; private static int create2Count = 0;
 	 */
-	public Pair<FunctionMember, Object> createInstance(Class<?> clazz, Key methodName, Object[] arguments) throws NoSuchMethodException, IOException, ClassNotFoundException,
-			UnmodifiableClassException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, SecurityException, PageException {
+	public Pair<FunctionMember, Object> createInstance(Class<?> clazz, Key methodName, Object[] arguments) throws NoSuchMethodException, IOException, UnmodifiableClassException,
+			InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, SecurityException, PageException {
 		// observe(clazz, methodName);
 		// double start = SystemUtil.millis();
 
@@ -181,129 +181,121 @@ public class DynamicInvoker {
 		String classPath = Clazz.getPackagePrefix() + sbClassPath.toString();// StringUtil.replace(sbClassPath.toString(), "javae/lang/", "java_lang/", false);
 		String className = classPath.replace('/', '.');
 
-		DynamicClassLoader loader = getCL(clazz);
-		if (loader.hasClass(className)) {
-			// try {
-			return new Pair<FunctionMember, Object>(fm, loader.loadInstance(className));
-			/*
-			 * } finally { hasMatchCount++; hasMatchTotal += (SystemUtil.millis() - start); print.e("has match("
-			 * + hasMatchCount + "):" + Caster.toString(hasMatchTotal / hasMatchCount)); start =
-			 * SystemUtil.millis(); }
-			 */
-		}
-		Class[] parameterClasses = fm.getArgumentClasses();
+		synchronized (SystemUtil.createToken("dyninvoc", className)) {
 
-		ClassWriter cw = ASMUtil.getClassWriter();
-		MethodVisitor mv;
-		String abstractClassPath = "java/lang/Object";
-		cw.visit(ASMUtil.getJavaVersionForBytecodeGeneration(), Opcodes.ACC_PUBLIC + Opcodes.ACC_SUPER, classPath,
-				"Ljava/lang/Object;Ljava/util/function/BiFunction<Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;>;", "java/lang/Object",
-				new String[] { "java/util/function/BiFunction" });
-		// Constructor
-		mv = cw.visitMethod(Opcodes.ACC_PUBLIC, "<init>", "()V", null, null);
-		mv.visitCode();
-		mv.visitVarInsn(Opcodes.ALOAD, 0); // Load "this"
-		mv.visitMethodInsn(Opcodes.INVOKESPECIAL, abstractClassPath, "<init>", "()V", false); // Call the constructor of super class (Object)
-		mv.visitInsn(Opcodes.RETURN);
-		mv.visitMaxs(1, 1); // Compute automatically
-		mv.visitEnd();
+			DynamicClassLoader loader = getCL(clazz);
+			if (loader.hasClass(className)) {
+				try {
+					return new Pair<FunctionMember, Object>(fm, loader.loadInstance(className));
 
-		// Dynamic invoke method
-		// public abstract Object invoke(PageContext pc, Object[] args) throws PageException;
-		mv = cw.visitMethod(Opcodes.ACC_PUBLIC, "apply", "(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;", null, null);
-		mv.visitCode();
-		boolean isStatic = true;
-		if (isConstr) {
-			mv.visitTypeInsn(Opcodes.NEW, Type.getType(clazz).getInternalName());
-			mv.visitInsn(Opcodes.DUP); // Duplicate the top operand stack value
-
-		}
-		else {
-			isStatic = fm.isStatic();
-			if (!isStatic) {
-				// Load the instance to call the method on
-				mv.visitVarInsn(Opcodes.ALOAD, 1); // Load the first method argument (instance)
-				if (!fm.getDeclaringProviderClassWithSameAccess().equals(Object.class)) { // Only cast if clazz is not java.lang.Object
-					mv.visitTypeInsn(Opcodes.CHECKCAST, Type.getInternalName(fm.getDeclaringProviderClassWithSameAccess()));
+				}
+				catch (Exception e) {
+					// simply ignore when fail
 				}
 			}
-		}
-		// Assuming no arguments are needed for the invoked method, i.e., toString()
-		// For methods that require arguments, you would need to manipulate the args array appropriately
-		// here
+			Class[] parameterClasses = fm.getArgumentClasses();
 
-		// print.e(Type.getInternalName(clazz));
+			ClassWriter cw = ASMUtil.getClassWriter();
+			MethodVisitor mv;
+			String abstractClassPath = "java/lang/Object";
+			cw.visit(ASMUtil.getJavaVersionForBytecodeGeneration(), Opcodes.ACC_PUBLIC + Opcodes.ACC_SUPER, classPath,
+					"Ljava/lang/Object;Ljava/util/function/BiFunction<Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;>;", "java/lang/Object",
+					new String[] { "java/util/function/BiFunction" });
+			// Constructor
+			mv = cw.visitMethod(Opcodes.ACC_PUBLIC, "<init>", "()V", null, null);
+			mv.visitCode();
+			mv.visitVarInsn(Opcodes.ALOAD, 0); // Load "this"
+			mv.visitMethodInsn(Opcodes.INVOKESPECIAL, abstractClassPath, "<init>", "()V", false); // Call the constructor of super class (Object)
+			mv.visitInsn(Opcodes.RETURN);
+			mv.visitMaxs(1, 1); // Compute automatically
+			mv.visitEnd();
 
-		StringBuilder methodDesc = new StringBuilder();
-		String del = "(";
-		if (fm.getArgumentCount() > 0) {
-			// Load method arguments from the args array
-			Type[] args = fm.getArgumentTypes();
-			// TODO if args!=arguments throw !
-			for (int i = 0; i < args.length; i++) {
+			// Dynamic invoke method
+			// public abstract Object invoke(PageContext pc, Object[] args) throws PageException;
+			mv = cw.visitMethod(Opcodes.ACC_PUBLIC, "apply", "(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;", null, null);
+			mv.visitCode();
+			boolean isStatic = true;
+			if (isConstr) {
+				mv.visitTypeInsn(Opcodes.NEW, Type.getType(clazz).getInternalName());
+				mv.visitInsn(Opcodes.DUP); // Duplicate the top operand stack value
 
-				methodDesc.append(del).append(args[i].getDescriptor());
-				del = "";
-
-				mv.visitVarInsn(Opcodes.ALOAD, 2); // Load the args array
-				mv.visitTypeInsn(Opcodes.CHECKCAST, "[Ljava/lang/Object;"); // Cast it to Object[]
-
-				mv.visitIntInsn(Opcodes.BIPUSH, i); // Index of the argument in the array
-				mv.visitInsn(Opcodes.AALOAD); // Load the argument from the array
-
-				// Cast or unbox the argument as necessary
-				// TOOD Caster.castTo(null, clazz, methodDesc)
-				Class<?> argType = parameterClasses[i]; // TODO get the class from args
-				if (argType.isPrimitive()) {
-					Type type = Type.getType(argType);
-					Class<?> wrapperType = Reflector.toReferenceClass(argType);
-					mv.visitTypeInsn(Opcodes.CHECKCAST, Type.getInternalName(wrapperType)); // Cast to wrapper type
-					mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, Type.getInternalName(wrapperType), type.getClassName() + "Value", "()" + type.getDescriptor(), false); // Unbox
-				}
-				else {
-					mv.visitTypeInsn(Opcodes.CHECKCAST, Type.getInternalName(argType)); // Cast to correct type
+			}
+			else {
+				isStatic = fm.isStatic();
+				if (!isStatic) {
+					// Load the instance to call the method on
+					mv.visitVarInsn(Opcodes.ALOAD, 1); // Load the first method argument (instance)
+					if (!fm.getDeclaringProviderClassWithSameAccess().equals(Object.class)) { // Only cast if clazz is not java.lang.Object
+						mv.visitTypeInsn(Opcodes.CHECKCAST, Type.getInternalName(fm.getDeclaringProviderClassWithSameAccess()));
+					}
 				}
 			}
-		}
-		else {
-			methodDesc.append('(');
-		}
-		Type rt = isConstr ? Type.getType(clazz) : method.getReturnType();
-		methodDesc.append(')').append(isConstr ? Types.VOID : rt.getDescriptor());
-		if (isConstr) {
-			// Create a new instance of java/lang/String
-			mv.visitMethodInsn(Opcodes.INVOKESPECIAL, rt.getInternalName(), "<init>", methodDesc.toString(), false); // Call the constructor of String
-		}
-		else {
-			mv.visitMethodInsn(isStatic ? Opcodes.INVOKESTATIC : (fm.getDeclaringProviderClassWithSameAccess().isInterface() ? Opcodes.INVOKEINTERFACE : Opcodes.INVOKEVIRTUAL),
-					Type.getInternalName(fm.getDeclaringProviderClassWithSameAccess()), method.getName(), methodDesc.toString(),
-					fm.getDeclaringProviderClassWithSameAccess().isInterface());
+			// Assuming no arguments are needed for the invoked method, i.e., toString()
+			// For methods that require arguments, you would need to manipulate the args array appropriately
+			// here
 
+			// print.e(Type.getInternalName(clazz));
+
+			StringBuilder methodDesc = new StringBuilder();
+			String del = "(";
+			if (fm.getArgumentCount() > 0) {
+				// Load method arguments from the args array
+				Type[] args = fm.getArgumentTypes();
+				// TODO if args!=arguments throw !
+				for (int i = 0; i < args.length; i++) {
+
+					methodDesc.append(del).append(args[i].getDescriptor());
+					del = "";
+
+					mv.visitVarInsn(Opcodes.ALOAD, 2); // Load the args array
+					mv.visitTypeInsn(Opcodes.CHECKCAST, "[Ljava/lang/Object;"); // Cast it to Object[]
+
+					mv.visitIntInsn(Opcodes.BIPUSH, i); // Index of the argument in the array
+					mv.visitInsn(Opcodes.AALOAD); // Load the argument from the array
+
+					// Cast or unbox the argument as necessary
+					// TOOD Caster.castTo(null, clazz, methodDesc)
+					Class<?> argType = parameterClasses[i]; // TODO get the class from args
+					if (argType.isPrimitive()) {
+						Type type = Type.getType(argType);
+						Class<?> wrapperType = Reflector.toReferenceClass(argType);
+						mv.visitTypeInsn(Opcodes.CHECKCAST, Type.getInternalName(wrapperType)); // Cast to wrapper type
+						mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, Type.getInternalName(wrapperType), type.getClassName() + "Value", "()" + type.getDescriptor(), false); // Unbox
+					}
+					else {
+						mv.visitTypeInsn(Opcodes.CHECKCAST, Type.getInternalName(argType)); // Cast to correct type
+					}
+				}
+			}
+			else {
+				methodDesc.append('(');
+			}
+			Type rt = isConstr ? Type.getType(clazz) : method.getReturnType();
+			methodDesc.append(')').append(isConstr ? Types.VOID : rt.getDescriptor());
+			if (isConstr) {
+				// Create a new instance of java/lang/String
+				mv.visitMethodInsn(Opcodes.INVOKESPECIAL, rt.getInternalName(), "<init>", methodDesc.toString(), false); // Call the constructor of String
+			}
+			else {
+				mv.visitMethodInsn(isStatic ? Opcodes.INVOKESTATIC : (fm.getDeclaringProviderClassWithSameAccess().isInterface() ? Opcodes.INVOKEINTERFACE : Opcodes.INVOKEVIRTUAL),
+						Type.getInternalName(fm.getDeclaringProviderClassWithSameAccess()), method.getName(), methodDesc.toString(),
+						fm.getDeclaringProviderClassWithSameAccess().isInterface());
+
+			}
+
+			boxIfPrimitive(mv, rt);
+			// method on the
+			// instance
+			mv.visitInsn(Opcodes.ARETURN); // Return the result of the method call
+			if (isConstr) mv.visitMaxs(2, 1);
+			else mv.visitMaxs(1, 3); // Compute automatically
+			mv.visitEnd();
+
+			cw.visitEnd();
+			byte[] barr = cw.toByteArray();
+			Object result = loader.loadInstance(className, barr);
+			return new Pair<FunctionMember, Object>(fm, result);
 		}
-
-		boxIfPrimitive(mv, rt);
-		// method on the
-		// instance
-		mv.visitInsn(Opcodes.ARETURN); // Return the result of the method call
-		if (isConstr) mv.visitMaxs(2, 1);
-		else mv.visitMaxs(1, 3); // Compute automatically
-		mv.visitEnd();
-
-		cw.visitEnd();
-		byte[] barr = cw.toByteArray();
-
-		/*
-		 * { create1Count++; create1Total += (SystemUtil.millis() - start); print.e("create 1(" +
-		 * create1Count + "):" + Caster.toString(create1Total / create1Count)); start = SystemUtil.millis();
-		 * }
-		 */
-		Object result = loader.loadInstance(className, barr);
-		/*
-		 * { create2Count++; create2Total += (SystemUtil.millis() - start); print.e("create 2(" +
-		 * create2Count + "):" + Caster.toString(create2Total / create2Count)); start = SystemUtil.millis();
-		 * }
-		 */
-		return new Pair<FunctionMember, Object>(fm, result);
 	}
 
 	private static void observe(Class<?> clazz, Key methodName) {

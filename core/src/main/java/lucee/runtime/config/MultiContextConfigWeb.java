@@ -39,6 +39,8 @@ import lucee.runtime.CFMLFactoryImpl;
 import lucee.runtime.CIPage;
 import lucee.runtime.Mapping;
 import lucee.runtime.PageContext;
+import lucee.runtime.ai.AIEngineFactory;
+import lucee.runtime.ai.AIEnginePool;
 import lucee.runtime.cache.tag.CacheHandlerCollection;
 import lucee.runtime.cfx.CFXTagPool;
 import lucee.runtime.compiler.CFMLCompilerImpl;
@@ -609,5 +611,25 @@ class MultiContextConfigWeb extends ConfigImpl implements ServletConfig, ConfigW
 	@Override
 	public ServletConfig getServletConfig() {
 		return config;
+	}
+
+	@Override
+	public Resource getMavenDir() {
+		return configServer.getMavenDir();
+	}
+
+	@Override
+	public Collection<String> getAIEngineFactoryNames() {
+		return configServer.getAIEngineFactoryNames();
+	}
+
+	@Override
+	public AIEngineFactory getAIEngineFactory(String name) {
+		return configServer.getAIEngineFactory(name);
+	}
+
+	@Override
+	public AIEnginePool getAIEnginePool() {
+		return configServer.getAIEnginePool();
 	}
 }

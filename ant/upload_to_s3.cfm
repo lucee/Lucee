@@ -53,22 +53,31 @@
 		trg.jar = trg.dir & src.jarName;
 		trg.core = trg.dir & src.coreName;
 
-		if ( fileExists( trg.jar ) && fileExists( trg.core ) ){
-			SystemOutput( "Build artifacts have already been uploaded for this version, nothing to do", 1, 1 );
-			return;
-		}
-
 		// copy jar
-		SystemOutput( "upload #src.jarName# to S3",1,1 );
-		if ( fileExists( trg.jar ) )
-			fileDelete( trg.jar );
-		fileCopy( src.jar, trg.jar );
+		SystemOutput( "upload #src.jar# to S3",1,1 );
+		copyIt=true;
+		if (fileExists( trg.jar ) ) {
+			try { 
+				fileDelete( trg.jar );
+			}
+			catch(e){
+				copyIt=false;
+			}
+		}
+		if(copyIt) fileCopy( src.jar, trg.jar );
 
 		// copy core
-		SystemOutput( "upload #src.coreName# to S3",1,1 );
-		if ( fileExists( trg.core ) )
-			fileDelete( trg.core );
-		fileCopy( src.core, trg.core );
+		SystemOutput( "upload #src.core# to S3",1,1 );
+		copyIt=true;
+		if ( fileExists( trg.core ) ) {
+			try { 
+				fileDelete( trg.core );
+			}
+			catch(e){
+				copyIt=false;
+			}
+		}
+		if(copyIt) fileCopy( src.core, trg.core );
 	}
 
 	/*
@@ -100,7 +109,7 @@
 	src.lightName = "lucee-light-" & src.version & ".jar";
 	src.light = src.dir & src.lightName;
 	if ( DO_DEPLOY )
-		SystemOutput( "build and upload #src.lightName# to S3",1,1 );
+		SystemOutput( "build and upload #src.light# to S3",1,1 );
 	else
 		SystemOutput( "build #src.light#",1,1 );
 
@@ -108,22 +117,41 @@
 	createLight( src.jar,src.light,src.version, false );
 	if ( DO_DEPLOY ){
 		trg.light = trg.dir & src.lightName;
-		fileCopy( src.light, trg.light );
+		copyIt=true;
+		if ( fileExists( trg.light ) ) {
+			try { 
+				fileDelete( trg.light );
+			}
+			catch(e){
+				copyIt=false;
+			}
+		}
+		if(copyIt) fileCopy( src.light, trg.light );
 	}
 
 	// Lucee zero build, built from light but also no admin or docs
 	src.zeroName = "lucee-zero-" & src.version & ".jar";
 	src.zero = src.dir & src.zeroName;
-	/*if ( DO_DEPLOY )
-		SystemOutput( "build and upload #src.zeroName# to S3",1,1 );
+	if ( DO_DEPLOY )
+		SystemOutput( "build and upload #src.zero# to S3",1,1 );
 	else
 		SystemOutput( "build #src.zero#",1,1 );
 
-	createLight( src.light, src.zero,src.version, true );
-	*/
+	createLight( src.light, src.zero,src.version, false );
+
 	if ( DO_DEPLOY ) {
 		trg.zero = trg.dir & src.zeroName;
-		fileCopy( src.zero, trg.zero );
+		
+		copyIt=true;
+		if ( fileExists( trg.zero ) ) {
+			try { 
+				fileDelete( trg.zero );
+			}
+			catch(e){
+				copyIt=false;
+			}
+		}
+		if(copyIt) fileCopy( src.zero, trg.zero );
 	}
 
 

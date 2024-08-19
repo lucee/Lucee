@@ -30,6 +30,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.felix.framework.BundleWiringImpl.BundleClassLoader;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.Label;
@@ -41,7 +42,6 @@ import lucee.commons.digest.HashUtil;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
-import lucee.commons.lang.ClassUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.PhysicalClassLoader;
 import lucee.commons.lang.StringUtil;
@@ -139,23 +139,14 @@ public class JavaProxyFactory {
 
 	public static Object createProxy(PageContext pc, UDF udf, Class interf) throws PageException, IOException {
 		PageContextImpl pci = (PageContextImpl) pc;
-		ClassLoader parent = ClassUtil.getClassLoader(interf);
-		ClassLoader[] parents = new ClassLoader[] { parent };
+		PhysicalClassLoader pcl = getRPCClassLoaderFromClass(pc, interf);
+		if (pcl == null) pcl = (PhysicalClassLoader) pci.getRPCClassLoader(false);
 
 		if (!interf.isInterface()) throw new IOException("definition [" + interf.getName() + "] is a class and not a interface");
 
 		Type typeExtends = Types.OBJECT;
 		Type typeInterface = Type.getType(interf);
 		String strInterface = typeInterface.getInternalName();
-
-		// get ClassLoader
-		PhysicalClassLoader pcl = null;
-		try {
-			pcl = (PhysicalClassLoader) pci.getRPCClassLoader(false, parents);
-		}
-		catch (IOException e) {
-			throw Caster.toPageException(e);
-		}
 		String className = createClassName("udf", null, pcl.getDirectory(), Object.class, interf);
 
 		Resource classFile = pcl.getDirectory().getRealResource(className.concat(".class"));
@@ -219,7 +210,6 @@ public class JavaProxyFactory {
 			ResourceUtil.touch(classFile);
 			IOUtil.copy(new ByteArrayInputStream(barr), classFile, true);
 
-			pcl = (PhysicalClassLoader) pci.getRPCClassLoader(true, parents);
 			Class<?> clazz = pcl.loadClass(className, barr);
 			return newInstance(clazz, pc.getConfig(), udf);
 		}
@@ -240,7 +230,9 @@ public class JavaProxyFactory {
 
 	public static Object createProxy(PageContext pc, final Component cfc, Class extendz, Class... interfaces) throws PageException, IOException {
 		PageContextImpl pci = (PageContextImpl) pc;
-		ClassLoader[] parents = extractClassLoaders(null, extendz, interfaces);
+		PhysicalClassLoader pcl = getRPCClassLoaderFromClasses(pc, extendz, interfaces);
+
+		if (pcl == null) pcl = (PhysicalClassLoader) pci.getRPCClassLoader(false);
 
 		if (extendz == null) extendz = Object.class;
 		if (interfaces == null) interfaces = new Class[0];
@@ -255,15 +247,6 @@ public class JavaProxyFactory {
 		String[] strInterfaces = new String[typeInterfaces.length];
 		for (int i = 0; i < strInterfaces.length; i++) {
 			strInterfaces[i] = typeInterfaces[i].getInternalName();
-		}
-
-		// get ClassLoader
-		PhysicalClassLoader pcl = null;
-		try {
-			pcl = (PhysicalClassLoader) pci.getRPCClassLoader(false, parents);// mapping.getConfig().getRPCClassLoader(false)
-		}
-		catch (IOException e) {
-			throw Caster.toPageException(e);
 		}
 
 		String className = createClassName("cfc", cfc, pcl.getDirectory(), extendz, interfaces);
@@ -399,7 +382,6 @@ public class JavaProxyFactory {
 			ResourceUtil.touch(classFile);
 			IOUtil.copy(new ByteArrayInputStream(barr), classFile, true);
 
-			pcl = (PhysicalClassLoader) pci.getRPCClassLoader(true, parents);
 			Class<?> clazz = pcl.loadClass(className, barr);
 			return newInstance(clazz, pc.getConfig(), cfc);
 		}
@@ -452,24 +434,36 @@ public class JavaProxyFactory {
 	 * // adapter.returnValue(); adapter.endMethod(); }
 	 */
 
-	private static ClassLoader[] extractClassLoaders(ClassLoader cl, Class extendz, Class... classes) {
-		HashSet<ClassLoader> set = new HashSet<>();
-		if (cl != null) {
-			set.add(cl);
-			cl = null;
-		}
+	private static PhysicalClassLoader getRPCClassLoaderFromClasses(PageContext pc, Class extendz, Class... interfaces) throws IOException {
+		// extends and implement need to come from the same parent classloader
+		PhysicalClassLoader pcl = null;
 		if (extendz != null) {
-			set.add(ClassUtil.getClassLoader(extendz));
+			pcl = getRPCClassLoaderFromClass(pc, extendz);
+			if (pcl != null) return pcl;
 		}
 
-		if (classes != null) {
-			for (int i = 0; i < classes.length; i++) {
-				set.add(ClassUtil.getClassLoader(classes[i]));
+		if (interfaces != null) {
+			for (Class cls: interfaces) {
+				pcl = getRPCClassLoaderFromClass(pc, cls);
+				if (pcl != null) return pcl;
 			}
 		}
-		return set.toArray(new ClassLoader[set.size()]);
+		return null;
 	}
-	// _createProxy(cw, cDone, mDone, udf, interf, className);
+
+	public static PhysicalClassLoader getRPCClassLoaderFromClass(PageContext pc, Class clazz) throws IOException {
+		ClassLoader cl = clazz.getClassLoader();
+		if (cl != null) {
+			if (cl instanceof PhysicalClassLoader) {
+				return ((PhysicalClassLoader) cl);
+			}
+			else if (cl instanceof BundleClassLoader) {
+				return PhysicalClassLoader.getRPCClassLoader(pc.getConfig(), (BundleClassLoader) cl, false);
+			}
+
+		}
+		return null;
+	}
 
 	private static void _createProxy(ClassWriter cw, Set<Class> cDone, Map<String, Class> mDone, UDF udf, Class clazz, String className) throws IOException {
 		if (cDone.contains(clazz)) return;
@@ -656,6 +650,7 @@ public class JavaProxyFactory {
 		if (extendz == null) extendz = Object.class;
 
 		StringBuilder sb = new StringBuilder(extendz.getName());
+
 		if (interfaces != null && interfaces.length > 0) {
 			sb.append(';');
 
@@ -667,7 +662,10 @@ public class JavaProxyFactory {
 
 			sb.append(lucee.runtime.type.util.ListUtil.arrayToList(arr, ";"));
 		}
-		sb.append(appendix).append(';').append(resource.getAbsolutePath()).append(';');
+
+		sb.append(appendix).append(';')
+		// .append(resource.getAbsolutePath()).append(';')
+		;
 
 		StringBuilder name = new StringBuilder().append(appendix.charAt(0)).append(HashUtil.create64BitHashAsString(sb.toString(), Character.MAX_RADIX).toLowerCase());
 		if (cfc != null && !StringUtil.isEmpty(cfc.getAbsName())) {

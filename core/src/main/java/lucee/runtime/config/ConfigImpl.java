@@ -41,7 +41,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Version;
 
-import lucee.commons.digest.HashUtil;
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.FileUtil;
 import lucee.commons.io.SystemUtil;
@@ -57,7 +56,6 @@ import lucee.commons.io.res.ResourcesImpl;
 import lucee.commons.io.res.ResourcesImpl.ResourceProviderFactory;
 import lucee.commons.io.res.filter.ExtensionResourceFilter;
 import lucee.commons.io.res.type.compress.Compress;
-import lucee.commons.io.res.util.ResourceClassLoader;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.CharSet;
 import lucee.commons.lang.ClassException;
@@ -77,6 +75,7 @@ import lucee.runtime.MappingImpl;
 import lucee.runtime.Page;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageSource;
+import lucee.runtime.ai.AIEngineFactory;
 import lucee.runtime.cache.CacheConnection;
 import lucee.runtime.cache.ram.RamCache;
 import lucee.runtime.cache.tag.CacheHandler;
@@ -107,6 +106,7 @@ import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.exp.SecurityException;
 import lucee.runtime.exp.TemplateException;
 import lucee.runtime.extension.Extension;
+import lucee.runtime.extension.ExtensionDefintion;
 import lucee.runtime.extension.ExtensionProvider;
 import lucee.runtime.extension.RHExtension;
 import lucee.runtime.extension.RHExtensionProvider;
@@ -114,6 +114,8 @@ import lucee.runtime.functions.other.CreateUniqueId;
 import lucee.runtime.listener.AppListenerUtil;
 import lucee.runtime.listener.ApplicationContext;
 import lucee.runtime.listener.ApplicationListener;
+import lucee.runtime.listener.JavaSettings;
+import lucee.runtime.listener.JavaSettingsImpl;
 import lucee.runtime.net.mail.Server;
 import lucee.runtime.net.proxy.ProxyData;
 import lucee.runtime.net.proxy.ProxyDataImpl;
@@ -350,6 +352,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 
 	private RHExtensionProvider[] rhextensionProviders = Constants.RH_EXTENSION_PROVIDERS;
 
+	private List<ExtensionDefintion> extensionsDefs;
 	private RHExtension[] rhextensions = RHEXTENSIONS_EMPTY;
 	private String extensionsMD5;
 	private boolean allowRealPath = true;
@@ -379,7 +382,6 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	private Map<String, ORMEngine> ormengines = new HashMap<String, ORMEngine>();
 	private ClassDefinition<? extends ORMEngine> cdORMEngine;
 	private ORMConfiguration ormConfig;
-	private ResourceClassLoader resourceCL;
 
 	private ImportDefintion componentDefaultImport = new ImportDefintionImpl(Constants.DEFAULT_PACKAGE, "*");
 	private boolean componentLocalSearch = true;
@@ -432,6 +434,15 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	private boolean showMetric;
 
 	private boolean showTest;
+	private JavaSettings javaSettings;
+	private Map<String, JavaSettings> javaSettingsInstances = new ConcurrentHashMap<>();
+
+	private boolean fullNullSupport = false;
+
+	private Resource extInstalled;
+	private Resource extAvailable;
+
+	protected Map<String, AIEngineFactory> aiEngineFactories;
 
 	/**
 	 * @return the allowURLRequestTimeout
@@ -649,9 +660,14 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 
 	@Override
 	public ClassLoader getClassLoader() {
-		ResourceClassLoader rcl = getResourceClassLoader(null);
-		if (rcl != null) return rcl;
-		return new lucee.commons.lang.ClassLoaderHelper().getClass().getClassLoader();
+		ClassLoader cl = null;
+		try {
+			cl = getRPCClassLoader(false);
+		}
+		catch (IOException e) {
+		}
+		if (cl != null) return cl;
+		return SystemUtil.getCombinedClassLoader();
 
 	}
 
@@ -665,25 +681,6 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	@Override
 	public ClassLoader getClassLoaderCore() {
 		return new lucee.commons.lang.ClassLoaderHelper().getClass().getClassLoader();
-	}
-	/*
-	 * public ClassLoader getClassLoaderLoader() { return new TP().getClass().getClassLoader(); }
-	 */
-
-	@Override
-	public ResourceClassLoader getResourceClassLoader() {
-		if (resourceCL == null) throw new RuntimeException("no RCL defined yet!");
-		return resourceCL;
-	}
-
-	@Override
-	public ResourceClassLoader getResourceClassLoader(ResourceClassLoader defaultValue) {
-		if (resourceCL == null) return defaultValue;
-		return resourceCL;
-	}
-
-	protected void setResourceClassLoader(ResourceClassLoader resourceCL) {
-		this.resourceCL = resourceCL;
 	}
 
 	@Override
@@ -1440,7 +1437,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 				LogUtil.log(this, Log.LEVEL_ERROR, "loading", "temp directory [" + tempDirectory + "] is not writable");
 			}
 		}
-		if (flush) ResourceUtil.removeChildrenEL(tempDirectory);// start with an empty temp directory
+		if (flush) ResourceUtil.removeChildrenEL(tempDirectory, true);// start with an empty temp directory
 		this.tempDirectory = tempDirectory;
 	}
 
@@ -1515,6 +1512,10 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	 */
 	protected void setDataSources(Map<String, DataSource> datasources) {
 		this.datasources = datasources;
+	}
+
+	protected void setAIEngineFactories(Map<String, AIEngineFactory> aiEngineFactories) {
+		this.aiEngineFactories = aiEngineFactories;
 	}
 
 	/**
@@ -2240,26 +2241,12 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 
 	@Override
 	public ClassLoader getRPCClassLoader(boolean reload) throws IOException {
-		return getRPCClassLoader(reload, null);
+		return PhysicalClassLoader.getRPCClassLoader(this, getJavaSettings(), reload);
 	}
 
 	@Override
-	public ClassLoader getRPCClassLoader(boolean reload, ClassLoader[] parents) throws IOException {
-		String key = toKey(parents);
-		PhysicalClassLoader rpccl = rpcClassLoaders.get(key);
-		if (rpccl == null || reload) {
-			synchronized (key) {
-				rpccl = rpcClassLoaders.get(key);
-				if (rpccl == null || reload) {
-					Resource dir = getClassDirectory().getRealResource("RPC/" + key);
-					if (!dir.exists()) {
-						ResourceUtil.createDirectoryEL(dir, true);
-					}
-					rpcClassLoaders.put(key, rpccl = new PhysicalClassLoader(this, dir, parents != null && parents.length == 0 ? null : parents, false, null));
-				}
-			}
-		}
-		return rpccl;
+	public ClassLoader getRPCClassLoader(boolean reload, JavaSettings js) throws IOException {
+		return PhysicalClassLoader.getRPCClassLoader(this, js != null ? js : getJavaSettings(), reload);
 	}
 
 	private static final Object dclt = new SerializableObject();
@@ -2273,21 +2260,11 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 					if (!dir.exists()) {
 						ResourceUtil.createDirectoryEL(dir, true);
 					}
-					directClassLoader = new PhysicalClassLoader(this, dir, null);
+					directClassLoader = PhysicalClassLoader.getPhysicalClassLoader(this, dir, reload);
 				}
 			}
 		}
 		return directClassLoader;
-	}
-
-	private String toKey(ClassLoader[] parents) {
-		if (parents == null || parents.length == 0) return "orphan";
-
-		StringBuilder sb = new StringBuilder();
-		for (ClassLoader parent: parents) {
-			sb.append(';').append(System.identityHashCode(parent));
-		}
-		return HashUtil.create64BitHashAsString(sb.toString());
 	}
 
 	public void resetRPCClassLoader() {
@@ -2688,15 +2665,6 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	}
 
 	@Override
-	public Resource getExtensionDirectory() {
-		// TODO take from tag <extensions>
-		Resource dir = getConfigDir().getRealResource("extensions/installed");
-		if (!dir.exists()) dir.mkdirs();
-
-		return dir;
-	}
-
-	@Override
 	public ExtensionProvider[] getExtensionProviders() {
 		throw new RuntimeException("no longer supported, use getRHExtensionProviders() instead.");
 	}
@@ -2725,8 +2693,17 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	}
 
 	protected void setExtensions(RHExtension[] extensions, String md5) {
+		this.extensionsDefs = null;
 		this.rhextensions = extensions;
 		this.extensionsMD5 = md5;
+	}
+
+	protected void setExtensionDefinitions(List<ExtensionDefintion> extensionsDefs) {
+		this.extensionsDefs = extensionsDefs;
+	}
+
+	public List<ExtensionDefintion> getExtensionDefinitions() {
+		return this.extensionsDefs;
 	}
 
 	@Override
@@ -3889,8 +3866,6 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 		return cd == null || StringUtil.isEmpty(cd.getClassName());
 	}
 
-	private boolean fullNullSupport = false;
-
 	protected final void setFullNullSupport(boolean fullNullSupport) {
 		this.fullNullSupport = fullNullSupport;
 	}
@@ -3916,12 +3891,13 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	}
 
 	protected void setCachedAfterTimeRange(TimeSpan ts) {
-		this.cachedAfterTimeRange = ts;
+		if (ts != null && ts.getMillis() > 0) {
+			this.cachedAfterTimeRange = ts;
+		}
 	}
 
 	@Override
 	public TimeSpan getCachedAfterTimeRange() {
-		if (this.cachedAfterTimeRange != null && this.cachedAfterTimeRange.getMillis() <= 0) this.cachedAfterTimeRange = null;
 		return this.cachedAfterTimeRange;
 	}
 
@@ -3975,5 +3951,62 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 
 	protected void setReturnFormat(int returnFormat) {
 		this.returnFormat = returnFormat;
+	}
+
+	@Override
+	public JavaSettings getJavaSettings(String id) {
+		return javaSettingsInstances.get(id);
+	}
+
+	@Override
+	public void setJavaSettings(String id, JavaSettings js) {
+		javaSettingsInstances.put(id, js);
+	}
+
+	public void setJavaSettings(JavaSettings js) {
+		javaSettings = js;
+	}
+
+	@Override
+	public JavaSettings getJavaSettings() {
+		if (javaSettings == null) {
+			synchronized (javaSettingsInstances) {
+				if (javaSettings == null) {
+					javaSettings = JavaSettingsImpl.getInstance(this, new StructImpl(), null);
+				}
+			}
+		}
+		return javaSettings;
+	}
+
+	@Override
+	public Resource getExtensionDirectory() {
+		return getExtensionInstalledDir();
+	}
+
+	@Override
+	public Resource getExtensionInstalledDir() {
+		if (extInstalled == null) {
+			synchronized (SystemUtil.createToken("extensions", "installed")) {
+				if (extInstalled == null) {
+					extInstalled = getConfigDir().getRealResource("extensions/installed");
+					if (!extInstalled.exists()) extInstalled.mkdirs();
+				}
+			}
+		}
+		return extInstalled;
+	}
+
+	@Override
+	public Resource getExtensionAvailableDir() {
+		if (extAvailable == null) {
+			synchronized (SystemUtil.createToken("extensions", "available")) {
+				if (extAvailable == null) {
+					extAvailable = getConfigDir().getRealResource("extensions/available");
+					if (!extAvailable.exists()) extAvailable.mkdirs();
+				}
+			}
+		}
+		return extAvailable;
 	}
 }

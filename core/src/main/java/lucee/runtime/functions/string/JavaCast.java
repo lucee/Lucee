@@ -21,18 +21,21 @@
  */
 package lucee.runtime.functions.string;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
-import lucee.commons.lang.ClassException;
 import lucee.commons.lang.ClassUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
+import lucee.runtime.PageContextImpl;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
+import lucee.runtime.listener.JavaSettingsImpl;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
+import lucee.runtime.type.Struct;
 
 public final class JavaCast implements Function {
 
@@ -43,19 +46,23 @@ public final class JavaCast implements Function {
 	}
 
 	public static Object call(PageContext pc, String type, Object obj) throws PageException {
+		return call(pc, type, obj, null);
+	}
+
+	public static Object call(PageContext pc, String type, Object obj, Struct javaSettings) throws PageException {
 		type = type.trim();
 		String lcType = StringUtil.toLowerCase(type);
 
 		if (type.endsWith("[]")) {
 
-			return toArray(pc, type, lcType, obj);
+			return toArray(pc, type, lcType, obj, javaSettings);
 		}
-		Class<?> clazz = toClass(pc, lcType, type);
+		Class<?> clazz = toClass(pc, lcType, type, javaSettings);
 		return to(pc, obj, clazz);
 
 	}
 
-	public static Object toArray(PageContext pc, String type, String lcType, Object obj) throws PageException {
+	public static Object toArray(PageContext pc, String type, String lcType, Object obj, Struct javaSettings) throws PageException {
 		// byte
 		if ("byte[]".equals(lcType)) {
 			if (obj instanceof byte[]) return obj;
@@ -68,20 +75,20 @@ public final class JavaCast implements Function {
 			if (obj instanceof CharSequence) return obj.toString().toCharArray();
 		}
 
-		return _toArray(pc, type, lcType, obj);
+		return _toArray(pc, type, lcType, obj, javaSettings);
 	}
 
-	public static Object _toArray(PageContext pc, String type, String lcType, Object obj) throws PageException {
+	public static Object _toArray(PageContext pc, String type, String lcType, Object obj, Struct javaSettings) throws PageException {
 		lcType = lcType.substring(0, lcType.length() - 2);
 		type = type.substring(0, type.length() - 2);
 
 		// other
 		Object[] arr = Caster.toList(obj).toArray();
-		Class<?> clazz = toClass(pc, lcType, type);
+		Class<?> clazz = toClass(pc, lcType, type, javaSettings);
 		Object trg = java.lang.reflect.Array.newInstance(clazz, arr.length);
 
 		for (int i = arr.length - 1; i >= 0; i--) {
-			java.lang.reflect.Array.set(trg, i, type.endsWith("[]") ? _toArray(pc, type, lcType, arr[i]) : to(pc, arr[i], clazz));
+			java.lang.reflect.Array.set(trg, i, type.endsWith("[]") ? _toArray(pc, type, lcType, arr[i], javaSettings) : to(pc, arr[i], clazz));
 		}
 		return trg;
 	}
@@ -95,7 +102,7 @@ public final class JavaCast implements Function {
 		// float ,double ,boolean ,string,null ), "+lcType+" is invalid");
 	}
 
-	private static Class<?> toClass(PageContext pc, String lcType, String type) throws PageException {
+	private static Class<?> toClass(PageContext pc, String lcType, String type, Struct javaSettings) throws PageException {
 
 		if (lcType.equals("null")) {
 			return null;
@@ -106,10 +113,15 @@ public final class JavaCast implements Function {
 		if (lcType.equals("bigdecimal")) {
 			return BigDecimal.class;
 		}
+
 		try {
-			return ClassUtil.toClass(type);
+			if (javaSettings != null) {
+				JavaSettingsImpl js = (JavaSettingsImpl) JavaSettingsImpl.getInstance(pc.getConfig(), Caster.toStruct(javaSettings), null);
+				return ClassUtil.loadClass(((PageContextImpl) pc).getClassLoader(js), type);
+			}
+			return ClassUtil.loadClass(pc, type);
 		}
-		catch (ClassException e) {
+		catch (IOException e) {
 			throw Caster.toPageException(e);
 		}
 	}

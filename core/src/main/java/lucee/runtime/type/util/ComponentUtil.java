@@ -168,8 +168,7 @@ public final class ComponentUtil {
 		int max;
 		for (int i = 0; i < keys.length; i++) {
 			max = -1;
-			while ((max = createMethod(ThreadLocalPageContext.getConfig(pc), constr, _keys, cw, real, component.get(keys[i]), max, writeLog, suppressWSbeforeArg, output,
-					returnValue)) != -1) {
+			while ((max = createMethod(pc, constr, _keys, cw, real, component.get(keys[i]), max, writeLog, suppressWSbeforeArg, output, returnValue)) != -1) {
 				break;// for overload remove this
 			}
 		}
@@ -473,7 +472,7 @@ public final class ComponentUtil {
 		String strExt = component.getExtends();
 		Class<?> ext = Object.class;
 		if (!StringUtil.isEmpty(strExt, true)) {
-			ext = Caster.cfTypeToClass(strExt);
+			ext = Caster.cfTypeToClass(pc, strExt);
 		}
 		//
 		// create file
@@ -536,7 +535,7 @@ public final class ComponentUtil {
 		return cl.loadClass(className);
 	}
 
-	private static int createMethod(Config config, ConstrBytecodeContext constr, java.util.List<LitString> keys, ClassWriter cw, String className, Object member, int max,
+	private static int createMethod(PageContext pc, ConstrBytecodeContext constr, java.util.List<LitString> keys, ClassWriter cw, String className, Object member, int max,
 			boolean writeLog, boolean suppressWSbeforeArg, boolean output, boolean returnValue) throws PageException {
 
 		boolean hasOptionalArgs = false;
@@ -546,13 +545,13 @@ public final class ComponentUtil {
 			FunctionArgument[] args = udf.getFunctionArguments();
 			Type[] types = new Type[max < 0 ? args.length : max];
 			for (int y = 0; y < types.length; y++) {
-				types[y] = toType(args[y].getTypeAsString(), true);
+				types[y] = toType(pc, args[y].getTypeAsString(), true);
 				if (!args[y].isRequired()) hasOptionalArgs = true;
 			}
-			Type rtnType = toType(udf.getReturnTypeAsString(), true);
+			Type rtnType = toType(pc, udf.getReturnTypeAsString(), true);
 			Method method = new Method(udf.getFunctionName(), rtnType, types);
 			GeneratorAdapter adapter = new GeneratorAdapter(Opcodes.ACC_PUBLIC + Opcodes.ACC_FINAL, method, null, null, cw);
-			BytecodeContext bc = new BytecodeContext(ThreadLocalPageContext.getConfig(config), null, constr, getPage(constr), keys, cw, className, adapter, method, writeLog,
+			BytecodeContext bc = new BytecodeContext(ThreadLocalPageContext.getConfig(pc), null, constr, getPage(constr), keys, cw, className, adapter, method, writeLog,
 					suppressWSbeforeArg, output, returnValue);
 			Label start = adapter.newLabel();
 			adapter.visitLabel(start);
@@ -592,8 +591,8 @@ public final class ComponentUtil {
 		return -1;
 	}
 
-	private static Type toType(String cfType, boolean axistype) throws PageException {
-		Class clazz = Caster.cfTypeToClass(cfType);
+	private static Type toType(PageContext pc, String cfType, boolean axistype) throws PageException {
+		Class clazz = Caster.cfTypeToClass(pc, cfType);
 		if (axistype) clazz = ((ConfigWebPro) ThreadLocalPageContext.getConfig()).getWSHandler().toWSTypeClass(clazz);
 		return Type.getType(clazz);
 

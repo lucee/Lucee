@@ -48,12 +48,15 @@ import org.w3c.dom.NodeList;
 
 import lucee.commons.date.TimeZoneUtil;
 import lucee.commons.io.res.Resource;
+import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.CharSet;
+import lucee.commons.lang.ClassUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.IDGenerator;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.coder.Base64Coder;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.converter.WDDXConverter;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
@@ -72,11 +75,9 @@ import lucee.runtime.type.ObjectWrap;
 import lucee.runtime.type.Pojo;
 import lucee.runtime.type.QueryImpl;
 import lucee.runtime.type.Struct;
-import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.UDF;
 import lucee.runtime.type.dt.DateTimeImpl;
 import lucee.runtime.type.scope.CookieImpl;
-import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.UDFUtil;
 
 public class DumpUtil {
@@ -643,14 +644,8 @@ public class DumpUtil {
 					BundleClassLoader bcl = (BundleClassLoader) cl;
 					Bundle b = bcl.getBundle();
 					if (b != null) {
-						Struct sct = new StructImpl();
-						sct.setEL(KeyConstants._id, b.getBundleId());
-						sct.setEL(KeyConstants._name, b.getSymbolicName());
-						sct.setEL(KeyConstants._location, b.getLocation());
-						sct.setEL(KeyConstants._version, b.getVersion().toString());
-
 						DumpTable bd = new DumpTable("#d6ccc2", "#f5ebe0", "#000000");
-						bd.setTitle("Bundle Info");
+						bd.setTitle("OSGi Bundle Info");
 						bd.appendRow(0, new SimpleDumpData("id: " + b.getBundleId()));
 						bd.appendRow(0, new SimpleDumpData("symbolic-name: " + b.getSymbolicName()));
 						bd.appendRow(0, new SimpleDumpData("version: " + b.getVersion().toString()));
@@ -660,6 +655,59 @@ public class DumpUtil {
 					}
 				}
 				catch (NoSuchMethodError e) {
+				}
+			}
+			else {
+				String path = ClassUtil.getSourcePathForClass(clazz, null);
+				if (path != null) {
+					Resource res = ResourceUtil.toResourceExisting(pageContext.getConfig(), path, null);
+					boolean printed = false;
+					if (res != null) {
+						// is Maven?
+						Resource mvnDir = ((ConfigPro) pageContext.getConfig()).getMavenDir();
+						if (ResourceUtil.isChildOf(res, mvnDir)) {
+							String name = res.getName();
+							if (name.endsWith(".jar")) {
+
+								String pomName = name.substring(0, name.length() - 4) + ".pom";
+								Resource pom = res.getParentResource().getRealResource(pomName);
+								if (pom.isFile()) {
+									try {
+
+										Resource parent = res.getParentResource();
+										String v = parent.getName();
+
+										parent = parent.getParentResource();
+										String a = parent.getName();
+
+										parent = parent.getParentResource();
+										String g = parent.getName();
+										while (!mvnDir.equals(parent = parent.getParentResource())) {
+											g = parent.getName() + "." + g;
+
+										}
+
+										DumpTable bd = new DumpTable("#d6ccc2", "#f5ebe0", "#000000");
+										bd.setTitle("Maven Info");
+										bd.appendRow(0, new SimpleDumpData("groupId: " + g));
+										bd.appendRow(0, new SimpleDumpData("artifactId: " + a));
+										bd.appendRow(0, new SimpleDumpData("version: " + v));
+										bd.appendRow(0, new SimpleDumpData("location: " + res.getAbsolutePath()));
+										table.appendRow(0, bd);
+										printed = true;
+									}
+									catch (Exception e) {
+									}
+								}
+							}
+						}
+					}
+					if (!printed) {
+						DumpTable bd = new DumpTable("#d6ccc2", "#f5ebe0", "#000000");
+						bd.setTitle("Jar Info");
+						bd.appendRow(0, new SimpleDumpData("location: " + path));
+						table.appendRow(0, bd);
+					}
 				}
 			}
 

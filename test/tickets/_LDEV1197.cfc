@@ -1,7 +1,7 @@
 component extends="org.lucee.cfml.test.LuceeTestCase"{
 	function beforeAll(){
-		variables.serveradmin = "password";
-		variables.Webadmin = "password";
+		variables.serveradmin = server.SERVERADMINPASSWORD;
+		variables.Webadmin = server.WEBADMINPASSWORD;
 		variables.uri = createURI("LDEV1197");
 		createMapping();
 	}
@@ -54,7 +54,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 	private string function createMapping(){
 		 admin
 			action="updateMapping"
-			type="web"
+			type="server"
 			password="#variables.Webadmin#"
 
 			virtual="/w1197"

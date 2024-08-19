@@ -66,12 +66,10 @@ import lucee.commons.io.cache.exp.CacheException;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
-import lucee.commons.io.res.util.ResourceClassLoader;
 import lucee.commons.lang.ClassException;
 import lucee.commons.lang.ClassUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.HTMLEntities;
-import lucee.commons.lang.PhysicalClassLoader;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.mimetype.MimeType;
 import lucee.commons.lang.types.RefBoolean;
@@ -81,6 +79,8 @@ import lucee.commons.lock.Lock;
 import lucee.commons.net.HTTPUtil;
 import lucee.intergral.fusiondebug.server.FDSignal;
 import lucee.loader.engine.CFMLEngine;
+import lucee.runtime.ai.AIEngine;
+import lucee.runtime.ai.AISession;
 import lucee.runtime.cache.CacheConnection;
 import lucee.runtime.cache.CacheUtil;
 import lucee.runtime.cache.tag.CacheHandler;
@@ -133,6 +133,7 @@ import lucee.runtime.listener.ApplicationContext;
 import lucee.runtime.listener.ApplicationContextSupport;
 import lucee.runtime.listener.ApplicationListener;
 import lucee.runtime.listener.ClassicApplicationContext;
+import lucee.runtime.listener.JavaSettings;
 import lucee.runtime.listener.JavaSettingsImpl;
 import lucee.runtime.listener.ModernAppListenerException;
 import lucee.runtime.listener.NoneAppListener;
@@ -228,7 +229,7 @@ import lucee.runtime.writer.DevNullBodyContent;
 public final class PageContextImpl extends PageContext {
 
 	private static final RefBoolean DUMMY_BOOL = new RefBooleanImpl(false);
-
+	private static final boolean JAVA_SETTING_CLASSIC_MODE = false;
 	private static int counter = 0;
 
 	/**
@@ -359,8 +360,6 @@ public final class PageContextImpl extends PageContext {
 
 	private StackTraceElement[] timeoutStacktrace;
 
-	private boolean fullNullSupport;
-
 	private static final boolean READ_CFID_FROM_URL = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.read.cfid.from.url", "true"), true);
 	private static AtomicInteger _idCounter = new AtomicInteger(1);
 	private long lastTimeoutNoAction;
@@ -374,22 +373,21 @@ public final class PageContextImpl extends PageContext {
 	 * @param id identity of the pageContext
 	 * @param servlet
 	 */
-	public PageContextImpl(ScopeContext scopeContext, ConfigWebPro config, HttpServlet servlet, boolean jsr223) {
+	public PageContextImpl(ScopeContext scopeContext, ConfigWebPro config, HttpServlet servlet, PageContextImpl template, boolean jsr223) {
+
 		// must be first because is used after
 		tagHandlerPool = config.getTagHandlerPool();
 		this.servlet = servlet;
-
+		this.initApplicationContext = template != null ? template.initApplicationContext : new ClassicApplicationContext(config, "", true, null);
+		if (template != null) this.applicationContext = template.applicationContext;
 		bodyContentStack = new BodyContentStack();
 		devNull = bodyContentStack.getDevNullBodyContent();
-
 		this.config = config;
 		manager = new DatasourceManagerImpl(config);
 
 		this.scopeContext = scopeContext;
 		undefined = new UndefinedImpl(this, getScopeCascadingType());
 		server = ScopeContext.getServerScope(this, jsr223);
-		initApplicationContext = new ClassicApplicationContext(config, "", true, null);
-
 		this.id = getIdCounter();
 	}
 
@@ -455,7 +453,6 @@ public final class PageContextImpl extends PageContext {
 
 		ReqRspUtil.setContentType(rsp, "text/html; charset=" + config.getWebCharset().name());
 		this.isChild = isChild;
-		fullNullSupport = config.getFullNullSupport();
 
 		startTime = System.currentTimeMillis();
 		startTimeNS = System.nanoTime();
@@ -489,6 +486,12 @@ public final class PageContextImpl extends PageContext {
 		// Scopes
 		server = ScopeContext.getServerScope(this, ignoreScopes);
 		if (clone) {
+			this.cfid = tmplPC.cfid;
+			this.client = tmplPC.client;
+			this.session = tmplPC.session;
+			this.cgiR = tmplPC.cgiR;
+			this.cgiRW = tmplPC.cgiRW;
+			this.cookie = tmplPC.cookie;
 			this.form = tmplPC.form;
 			this.url = tmplPC.url;
 			this.urlForm = tmplPC.urlForm;
@@ -539,16 +542,19 @@ public final class PageContextImpl extends PageContext {
 		else {
 			_psq = null;
 		}
-
 		fdEnabled = !config.allowRequestTimeout();
-
 		if (config.getExecutionLogEnabled()) this.execLog = config.getExecutionLogFactory().getInstance(this);
 		if (debugger != null) debugger.init(config);
-		undefined.initialize(this);
+		if (clone) {
+			((UndefinedImpl) undefined).initialize(this, tmplPC.getScopeCascadingType(), tmplPC.hasDebugOptions(ConfigPro.DEBUG_IMPLICIT_ACCESS));
+		}
+		else {
+			undefined.initialize(this);
+		}
 		timeoutStacktrace = null;
 
 		if (clone) {
-			getCFID();
+			tmplPC.getCFID();
 			this.cfid = tmplPC.cfid;
 			this.cftoken = tmplPC.cftoken;
 
@@ -576,9 +582,7 @@ public final class PageContextImpl extends PageContext {
 				}
 			}
 			tmplPC.children.add(this);
-
 			this.applicationContext = tmplPC.applicationContext;
-			this.setFullNullSupport();
 
 			// path
 			this.base = tmplPC.base;
@@ -604,7 +608,7 @@ public final class PageContextImpl extends PageContext {
 			execLog = null;
 		}
 
-		if (config.debug()) {
+		if (PageContextUtil.debug(this)) {
 			boolean skipLogThread = isChild;
 			if (skipLogThread && hasDebugOptions(ConfigPro.DEBUG_THREAD)) skipLogThread = false;
 			if (!skipLogThread && !gatewayContext) config.getDebuggerPool().store(this, debugger);
@@ -619,22 +623,24 @@ public final class PageContextImpl extends PageContext {
 		caller = null;
 		callerTemplate = null;
 		root = null;
-		// Attention have to be before close
-		if (client != null) {
-			client.touchAfterRequest(this);
-			client = null;
-		}
-
-		if (session != null) {
-			session.touchAfterRequest(this);
-			session = null;
-		}
 
 		// ORM
 		// if(ormSession!=null)releaseORM();
 
 		// Scopes
 		if (hasFamily) {
+			boolean lastStanding = lastStanding();
+			// Attention have to be before close
+			if (client != null) {
+				if (lastStanding) client.touchAfterRequest(this);
+				client = null;
+			}
+
+			if (session != null) {
+				if (lastStanding) session.touchAfterRequest(this);
+				session = null;
+			}
+
 			if (hasFamily && !isChild) {
 				req.disconnect(this);
 			}
@@ -653,8 +659,22 @@ public final class PageContextImpl extends PageContext {
 			threads = null;
 			allThreads = null;
 			currentThread = null;
+			cgiR = new CGIImplReadOnly();
+			cgiRW = new CGIImpl();
 		}
 		else {
+
+			// Attention have to be before close
+			if (client != null) {
+				client.touchAfterRequest(this);
+				client = null;
+			}
+
+			if (session != null) {
+				session.touchAfterRequest(this);
+				session = null;
+			}
+
 			close();
 			base = null;
 			if (variables.isBind()) {
@@ -668,9 +688,9 @@ public final class PageContextImpl extends PageContext {
 			undefined.release(this);
 			urlForm.release(this);
 			request.release(this);
+			cgiR.release(this);
+			cgiRW.release(this);
 		}
-		cgiR.release(this);
-		cgiRW.release(this);
 		argument.release(this);
 		local = localUnsupportedScope;
 
@@ -751,6 +771,25 @@ public final class PageContextImpl extends PageContext {
 			catch (Exception e) {
 			}
 		}
+		startTime = 0L;
+	}
+
+	private boolean lastStanding() {
+		if (!hasFamily()) return true;
+		// active childern?
+		Queue<PageContext> tmp = this.children;
+		if (tmp != null) {
+			for (PageContext p: tmp) {
+				if (p.getStartTime() > 0) return false;
+			}
+		}
+		// active parent?
+		PageContext p = this;
+		while ((p = p.getParentPageContext()) != null) {
+			if (p.getStartTime() > 0) return false;
+		}
+
+		return false;
 	}
 
 	private void releaseORM() throws PageException {
@@ -2679,13 +2718,11 @@ public final class PageContextImpl extends PageContext {
 
 	@Override
 	public final void execute(String realPath, boolean throwExcpetion, boolean onlyTopLevel) throws PageException {
-		fullNullSupport = getConfig().getFullNullSupport();
 		_execute(realPath, throwExcpetion, onlyTopLevel);
 	}
 
 	@Override
 	public final void executeCFML(String realPath, boolean throwExcpetion, boolean onlyTopLevel) throws PageException {
-		fullNullSupport = getConfig().getFullNullSupport();
 		_execute(realPath, throwExcpetion, onlyTopLevel);
 	}
 
@@ -2771,7 +2808,7 @@ public final class PageContextImpl extends PageContext {
 				setCFOutputOnly((short) 0);
 			}
 			if (!gatewayContext) {
-				if (getConfig().debug()) {
+				if (show()) {
 					try {
 						listener.onDebug(this);
 					}
@@ -2819,6 +2856,10 @@ public final class PageContextImpl extends PageContext {
 
 	public boolean hasDebugOptions(int option) {
 		return getApplicationContext().hasDebugOptions(option);
+	}
+
+	public int getDebugOptions() {
+		return getApplicationContext().getDebugOptions();
 	}
 
 	private void initallog() {
@@ -3346,13 +3387,11 @@ public final class PageContextImpl extends PageContext {
 
 	@Override
 	public void addPageSource(PageSource ps, boolean alsoInclude) {
-		setFullNullSupport();
 		pathList.add(ps);
 		if (alsoInclude) includePathList.add(ps);
 	}
 
 	public void addPageSource(PageSource ps, PageSource psInc) {
-		setFullNullSupport();
 		pathList.add(ps);
 		if (psInc != null) includePathList.add(psInc);
 	}
@@ -3360,9 +3399,6 @@ public final class PageContextImpl extends PageContext {
 	@Override
 	public void removeLastPageSource(boolean alsoInclude) {
 		if (!pathList.isEmpty()) pathList.removeLast();
-		if (!pathList.isEmpty()) {
-			setFullNullSupport();
-		}
 		if (alsoInclude && !includePathList.isEmpty()) includePathList.removeLast();
 	}
 
@@ -3410,7 +3446,6 @@ public final class PageContextImpl extends PageContext {
 		if (ac != null) this.applicationContext = (ApplicationContextSupport) ac;
 		else return;
 
-		setFullNullSupport();
 		int scriptProtect = applicationContext.getScriptProtect();
 
 		// ScriptProtecting
@@ -3801,38 +3836,32 @@ public final class PageContextImpl extends PageContext {
 		return ormSession;
 	}
 
-	public ClassLoader getClassLoader() throws IOException {
-		return getResourceClassLoader();
-	}
+	/*
+	 * public ClassLoader getClassLoader() throws IOException { return getClassLoader(null); }
+	 */
 
-	public ClassLoader getClassLoader(Resource[] reses) throws IOException {
-
-		ResourceClassLoader rcl = getResourceClassLoader();
-		return rcl.getCustomResourceClassLoader(reses);
-	}
-
-	private ResourceClassLoader getResourceClassLoader() throws IOException {
-		JavaSettingsImpl js = (JavaSettingsImpl) getApplicationContext().getJavaSettings();
-
-		if (js != null) {
-			Resource[] jars = js.getResourcesTranslated();
-			if (jars.length > 0) return config.getResourceClassLoader().getCustomResourceClassLoader(jars);
-		}
-		return config.getResourceClassLoader();
+	public JavaSettings getJavaSettings() {
+		return getApplicationContext().getJavaSettings();
 	}
 
 	public ClassLoader getRPCClassLoader(boolean reload) throws IOException {
-		return getRPCClassLoader(reload, null);
+		return getRPCClassLoader(reload, (JavaSettings) null);
 	}
 
-	public ClassLoader getRPCClassLoader(boolean reload, ClassLoader[] parents) throws IOException {
-		JavaSettingsImpl js = (JavaSettingsImpl) getApplicationContext().getJavaSettings();
-		ClassLoader cl = config.getRPCClassLoader(reload, parents);
-		if (js != null) {
-			Resource[] jars = js.getResourcesTranslated();
-			if (jars.length > 0) return ((PhysicalClassLoader) cl).getCustomClassLoader(jars, reload);
+	public ClassLoader getClassLoader() throws IOException {
+		return getRPCClassLoader(false, (JavaSettings) null);
+	}
+
+	public ClassLoader getClassLoader(JavaSettings customJS) throws IOException {
+		return getRPCClassLoader(false, customJS);
+	}
+
+	public ClassLoader getRPCClassLoader(boolean reload, JavaSettings customJS) throws IOException {
+		JavaSettings js = getJavaSettings();
+		if (customJS != null) {
+			js = JavaSettingsImpl.merge(config, js, customJS);
 		}
-		return cl;
+		return ((ConfigPro) config).getRPCClassLoader(reload, js);
 	}
 
 	public void resetSession() {
@@ -3997,11 +4026,7 @@ public final class PageContextImpl extends PageContext {
 
 	// FUTURE add to interface
 	public boolean getFullNullSupport() {
-		return fullNullSupport;
-	}
-
-	private void setFullNullSupport() {
-		fullNullSupport = getApplicationContext().getFullNullSupport();
+		return getApplicationContext().getFullNullSupport();
 	}
 
 	public void registerLazyStatement(Statement s) {
@@ -4170,5 +4195,53 @@ public final class PageContextImpl extends PageContext {
 		long tmp = lastTimeoutNoAction;
 		lastTimeoutNoAction = System.currentTimeMillis();
 		return tmp;
+	}
+
+	public AIEngine getAIEngine(String nameAI) throws PageException {
+		return ((ConfigPro) config).getAIEnginePool().getEngine(this, nameAI);
+	}
+
+	public AIEngine getAIEngine(String nameAI, AIEngine defaultValue) {
+		try {
+			return ((ConfigPro) config).getAIEnginePool().getEngine(this, nameAI);
+		}
+		catch (Exception e) {
+			return defaultValue;
+		}
+	}
+
+	public AISession createAISession(String nameAI, String initalMessage) throws PageException {
+		return getAIEngine(nameAI).createSession(initalMessage, -1);
+	}
+
+	public AISession createAISession(String nameAI, String initalMessage, long timeout) throws PageException {
+		return getAIEngine(nameAI).createSession(initalMessage, timeout);
+	}
+
+	public String getNameFromDefault(String defaultName) throws PageException {
+		if (StringUtil.isEmpty(defaultName, true)) throw new ApplicationException("default name cannot be empty.");
+		defaultName = defaultName.trim();
+
+		// TODO make a more direct way
+		ConfigPro cp = config;
+		for (String name: cp.getAIEngineFactoryNames()) {
+			if (defaultName.equalsIgnoreCase(cp.getAIEngineFactory(name).getDefault())) {
+				return name;
+			}
+		}
+		throw new ApplicationException("no match for default [" + defaultName + "] found.");
+	}
+
+	public String getNameFromDefault(String defaultName, String defaultValue) {
+		if (StringUtil.isEmpty(defaultName, true)) return defaultValue;
+
+		// TODO make a more direct way
+		ConfigPro cp = config;
+		for (String name: cp.getAIEngineFactoryNames()) {
+			if (defaultName.equalsIgnoreCase(cp.getAIEngineFactory(name).getDefault())) {
+				return name;
+			}
+		}
+		return defaultValue;
 	}
 }

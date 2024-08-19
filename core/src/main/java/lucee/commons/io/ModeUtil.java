@@ -20,6 +20,9 @@ package lucee.commons.io;
 
 import java.io.IOException;
 
+import lucee.commons.io.log.Log;
+import lucee.commons.io.log.LogUtil;
+
 public final class ModeUtil {
 
 	public static final int PERM_READ = 04;
@@ -64,6 +67,23 @@ public final class ModeUtil {
 		if ("w".equals(strMode.substring(index++, index))) mode += 02;
 		if ("x".equals(strMode.substring(index++, index))) mode += 01;
 		return mode;
+	}
+
+	/**
+	 * Extracts the permission bits from the mode value. Logs a message if the file type bits are
+	 * removed and logging is enabled.
+	 * 
+	 * @param mode The mode value that includes file type and permission bits.
+	 * @param log If true, log a message if file type bits are removed.
+	 * @return The permission bits (e.g., 0700).
+	 */
+	public static int extractPermissions(int mode, boolean log) {
+		int permissionBits = mode & 07777;
+
+		if (log && (mode != permissionBits)) {
+			LogUtil.log(Log.LEVEL_WARN, "mode", "File type bits removed from mode: original=" + toStringMode(mode) + ", extracted=" + toStringMode(permissionBits));
+		}
+		return permissionBits;
 	}
 
 	/**

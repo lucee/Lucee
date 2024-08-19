@@ -27,7 +27,7 @@ import lucee.transformer.bytecode.util.ClassRenamer;
 /**
  * ClassLoader that loads classes in memory that are not stored somewhere physically
  */
-public final class MemoryClassLoader extends ExtendableClassLoader {
+public final class MemoryClassLoader extends ClassLoader implements ExtendableClassLoader {
 	static {
 		boolean res = registerAsParallelCapable();
 	}

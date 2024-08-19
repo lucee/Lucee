@@ -282,4 +282,14 @@ public class PageContextUtil {
 		if (c instanceof ConfigPro) return ((ConfigPro) c).hasDebugOptions(option);
 		return false;
 	}
+
+	public static boolean debug(PageContext pc) {
+		if (pc != null) return ((PageContextImpl) pc).getDebugOptions() > 0;
+		return false;
+	}
+
+	public static boolean show(PageContext pc) {
+		if (pc != null) return ((PageContextImpl) pc).show();
+		return false;
+	}
 }

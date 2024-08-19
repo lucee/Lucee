@@ -24,6 +24,7 @@ import lucee.commons.lang.StringUtil;
 import lucee.runtime.Component;
 import lucee.runtime.converter.ConverterException;
 import lucee.runtime.converter.ScriptConverter;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Duplicator;
@@ -153,7 +154,7 @@ public final class PropertyImpl extends MemberSupport implements Property, ASMPr
 
 	@Override
 	public Type getASMType() throws PageException {
-		return ASMUtil.toType(getType(), true);
+		return ASMUtil.toType(ThreadLocalPageContext.get(), getType(), true);
 	}
 
 	/**

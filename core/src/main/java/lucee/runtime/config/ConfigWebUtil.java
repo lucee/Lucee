@@ -31,8 +31,6 @@ import java.util.Map.Entry;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletContext;
 
-import org.osgi.framework.BundleContext;
-
 import lucee.commons.digest.MD5;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
@@ -40,13 +38,11 @@ import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.ResourcesImpl;
-import lucee.commons.io.res.filter.ExtensionResourceFilter;
 import lucee.commons.io.res.type.compress.CompressResource;
 import lucee.commons.io.res.type.compress.CompressResourceProvider;
-import lucee.commons.io.res.util.ResourceClassLoader;
 import lucee.commons.io.res.util.ResourceUtil;
-import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
+import lucee.commons.net.URLDecoder;
 import lucee.loader.engine.CFMLEngine;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.runtime.Mapping;
@@ -69,9 +65,6 @@ import lucee.runtime.listener.NoneAppListener;
 import lucee.runtime.monitor.Monitor;
 import lucee.runtime.net.http.ReqRspUtil;
 import lucee.runtime.op.Caster;
-import lucee.runtime.osgi.BundleBuilderFactory;
-import lucee.runtime.osgi.BundleFile;
-import lucee.runtime.osgi.OSGiUtil;
 import lucee.runtime.security.SecurityManager;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
@@ -80,6 +73,7 @@ import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.util.ArrayUtil;
+import lucee.runtime.type.util.ListUtil;
 import lucee.transformer.library.function.FunctionLib;
 import lucee.transformer.library.tag.TagLib;
 
@@ -185,57 +179,6 @@ public final class ConfigWebUtil {
 		}
 	}
 
-	public static void reloadLib(Config config) throws IOException {
-		if (config instanceof ConfigWeb) loadLib(((ConfigWebImpl) config).getConfigServerImpl(), (ConfigPro) config);
-		else loadLib(null, (ConfigPro) config);
-	}
-
-	static void loadLib(ConfigServer configServer, ConfigPro config) throws IOException {
-		// get lib and classes resources
-		Resource lib = config.getLibraryDirectory();
-		Resource[] libs = lib.listResources(ExtensionResourceFilter.EXTENSION_JAR_NO_DIR);
-
-		// get resources from server config and merge
-		if (configServer != null) {
-			ResourceClassLoader rcl = ((ConfigPro) configServer).getResourceClassLoader();
-			libs = ResourceUtil.merge(libs, rcl.getResources());
-		}
-
-		CFMLEngine engine = ConfigWebUtil.getCFMLEngine(config);
-		BundleContext bc = engine.getBundleContext();
-		Log log = ThreadLocalPageContext.getLog(config, "application");
-		BundleFile bf;
-		List<Resource> list = new ArrayList<Resource>();
-		for (int i = 0; i < libs.length; i++) {
-			try {
-				bf = BundleFile.getInstance(libs[i], true);
-				// jar is not a bundle
-				if (bf == null) {
-					// convert to a bundle
-					BundleBuilderFactory factory = new BundleBuilderFactory(libs[i]);
-					factory.setVersion("0.0.0.0");
-					Resource tmp = SystemUtil.getTempFile("jar", false);
-					factory.build(tmp);
-					IOUtil.copy(tmp, libs[i]);
-					bf = BundleFile.getInstance(libs[i], true);
-				}
-
-				OSGiUtil.start(OSGiUtil.installBundle(bc, libs[i], true));
-
-			}
-			catch (Throwable t) {
-				ExceptionUtil.rethrowIfNecessary(t);
-				list.add(libs[i]);
-				log.log(Log.LEVEL_ERROR, "OSGi", t);
-			}
-		}
-
-		// set classloader
-
-		ClassLoader parent = SystemUtil.getCoreClassLoader();
-		((ConfigImpl) config).setResourceClassLoader(new ResourceClassLoader(list.toArray(new Resource[list.size()]), parent));
-	}
-
 	/**
 	 * touch a file object by the string definition
 	 * 
@@ -329,6 +272,7 @@ public final class ConfigWebUtil {
 				if (str.startsWith("}", 13)) str = checkResult(str, config.getConfigDir().getReal(str.substring(14)));
 				else if (str.startsWith("-dir}", 13)) str = checkResult(str, config.getConfigDir().getReal(str.substring(18)));
 				else if (str.startsWith("-directory}", 13)) str = checkResult(str, config.getConfigDir().getReal(str.substring(24)));
+				else if (str.startsWith("-file}", 13)) str = checkResult(str, config.getConfigFile().getReal(str.substring(19)));
 			}
 
 			else if (config != null && str.startsWith("{lucee-server")) {
@@ -826,8 +770,10 @@ public final class ConfigWebUtil {
 		return getAsArray(child, getAsStruct(parent, sct));
 	}
 
-	public static Struct getAsStruct(Struct input, String... names) {
+	public static Struct getAsStruct(Struct input, boolean allowCSSString, String... names) {
 		Struct sct = null;
+		if (input == null) return sct;
+
 		Object obj;
 		for (String name: names) {
 			obj = input.get(name, null);
@@ -836,11 +782,41 @@ public final class ConfigWebUtil {
 			}
 		}
 
+		if (allowCSSString && sct == null) {
+			for (String name: names) {
+				obj = input.get(name, null);
+				if (obj instanceof CharSequence && !StringUtil.isEmpty(obj.toString(), true)) {
+					sct = toStruct(obj.toString().trim());
+					if (!sct.isEmpty()) break;
+				}
+			}
+
+		}
+
 		if (sct == null) {
 			sct = new StructImpl(Struct.TYPE_LINKED);
 			input.put(names[0], sct);
 			return sct;
 		}
+		return sct;
+	}
+
+	public static Struct toStruct(String str) {
+
+		Struct sct = new StructImpl(StructImpl.TYPE_LINKED);
+		try {
+			String[] arr = ListUtil.toStringArray(ListUtil.listToArrayRemoveEmpty(str, '&'));
+
+			String[] item;
+			for (int i = 0; i < arr.length; i++) {
+				item = ListUtil.toStringArray(ListUtil.listToArrayRemoveEmpty(arr[i], '='));
+				if (item.length == 2) sct.setEL(KeyImpl.init(URLDecoder.decode(item[0], true).trim()), URLDecoder.decode(item[1], true));
+				else if (item.length == 1) sct.setEL(KeyImpl.init(URLDecoder.decode(item[0], true).trim()), "");
+			}
+		}
+		catch (PageException ee) {
+		}
+
 		return sct;
 	}
 

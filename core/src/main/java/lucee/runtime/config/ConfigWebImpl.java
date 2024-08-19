@@ -1,6 +1,7 @@
 package lucee.runtime.config;
 
 import java.io.IOException;
+import java.util.Collection;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletContext;
@@ -13,8 +14,11 @@ import org.xml.sax.SAXException;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.ResourcesImpl.ResourceProviderFactory;
 import lucee.commons.lang.PhysicalClassLoader;
+import lucee.runtime.ai.AIEngineFactory;
+import lucee.runtime.ai.AIEnginePool;
 import lucee.runtime.config.gateway.GatewayMap;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.listener.JavaSettings;
 import lucee.runtime.writer.CFMLWriter;
 
 public class ConfigWebImpl implements ConfigWebPro {
@@ -775,7 +779,7 @@ public class ConfigWebImpl implements ConfigWebPro {
 	}
 
 	@Override
-	public java.lang.ClassLoader getRPCClassLoader(boolean arg0, java.lang.ClassLoader[] arg1) throws java.io.IOException {
+	public ClassLoader getRPCClassLoader(boolean arg0, JavaSettings arg1) throws java.io.IOException {
 		return instance.getRPCClassLoader(arg0, arg1);
 	}
 
@@ -1156,11 +1160,6 @@ public class ConfigWebImpl implements ConfigWebPro {
 		return instance.isMailSendPartial();
 	}
 
-	@Override
-	public lucee.commons.io.res.util.ResourceClassLoader getResourceClassLoader(lucee.commons.io.res.util.ResourceClassLoader arg0) {
-		return instance.getResourceClassLoader(arg0);
-	}
-
 	public lucee.runtime.config.ConfigServerImpl getConfigServerImpl() {
 		if (instance instanceof MultiContextConfigWeb) return ((MultiContextConfigWeb) instance).getConfigServerImpl();
 		return ((SingleContextConfigWeb) instance).getConfigServerImpl();
@@ -1391,11 +1390,6 @@ public class ConfigWebImpl implements ConfigWebPro {
 	@Override
 	public int getQueryVarUsage() {
 		return instance.getQueryVarUsage();
-	}
-
-	@Override
-	public lucee.commons.io.res.util.ResourceClassLoader getResourceClassLoader() {
-		return instance.getResourceClassLoader();
 	}
 
 	@Override
@@ -1920,5 +1914,50 @@ public class ConfigWebImpl implements ConfigWebPro {
 	@Override
 	public int getReturnFormat() {
 		return instance.getReturnFormat();
+	}
+
+	@Override
+	public JavaSettings getJavaSettings(String id) {
+		return instance.getJavaSettings(id);
+	}
+
+	@Override
+	public void setJavaSettings(String id, JavaSettings js) {
+		instance.setJavaSettings(id, js);
+	}
+
+	@Override
+	public Resource getMavenDir() {
+		return instance.getMavenDir();
+	}
+
+	@Override
+	public JavaSettings getJavaSettings() {
+		return instance.getJavaSettings();
+	}
+
+	@Override
+	public Resource getExtensionInstalledDir() {
+		return instance.getExtensionInstalledDir();
+	}
+
+	@Override
+	public Resource getExtensionAvailableDir() {
+		return instance.getExtensionAvailableDir();
+	}
+
+	@Override
+	public Collection<String> getAIEngineFactoryNames() {
+		return instance.getAIEngineFactoryNames();
+	}
+
+	@Override
+	public AIEngineFactory getAIEngineFactory(String name) {
+		return instance.getAIEngineFactory(name);
+	}
+
+	@Override
+	public AIEnginePool getAIEnginePool() {
+		return instance.getAIEnginePool();
 	}
 }

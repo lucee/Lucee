@@ -60,6 +60,24 @@
 		    <td>#replace( HTMLEditFormat( trim( catch.detail ) ), chr(10), '<br>', 'all' )#</td>
 		</tr>
 	</cfif>
+
+	<cfif LuceeAIHas('default:exception')>
+		<cfLuceeAI default="exception"  throwonerror=false
+		meta="meta"
+		message="An exception was thrown in Lucee version #server.lucee.version# source code. 
+		Analyze the provided source code provided in JSON format and return the result in markdown format.
+		Keep the answer short and ensure the structure is flat,  the result will be injected into an existing markdown output that show the input you got,
+		so only gives your conclusion, the input you get will already be presented.
+		Make some example code how to improve.">
+		<cfLuceeAIInquiry question="#serializeJSON(catch)#">
+		<tr>
+			<td class="label">AI (#meta.label?:""#)</td>
+			<td>#markdowntohtml(answer)#</td>
+		</tr>
+		</cfLuceeAI>
+	</cfif>
+
+
 	<cfif structkeyexists( catch, 'errorcode' ) && len( catch.errorcode ) && catch.errorcode NEQ 0>
 		<tr>
 			<td class="label">Error Code</td>

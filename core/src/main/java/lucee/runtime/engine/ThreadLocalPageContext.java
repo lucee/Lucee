@@ -76,7 +76,7 @@ public final class ThreadLocalPageContext {
 		if (cloneParentIfNotExist && pc == null) {
 			PageContext pci = pcThreadLocalInheritable.get();
 			// we have one from parent
-			if (pci != null) {
+			if (pci != null && pci.getRequest() != null) {
 				try {
 					// this is needed because clone below call this method a lot
 					if (Boolean.TRUE.equals(insideInheritableRegistration.get())) return pci;

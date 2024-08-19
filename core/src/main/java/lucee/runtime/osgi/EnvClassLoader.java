@@ -154,7 +154,6 @@ public class EnvClassLoader extends URLClassLoader {
 	}
 
 	private synchronized Object load(String name, short type, boolean doLog, List<ClassLoader> listContext, boolean useCache) {
-		double start = SystemUtil.millis();
 
 		StringBuilder id = new StringBuilder(name).append(';').append(type).append(';');
 		String _id = id.toString();

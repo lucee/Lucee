@@ -218,7 +218,6 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 		this.source = source;
 		this.triggerComponentDataMember = config.getTriggerComponentDataMember();
 		this.restSettings = config.getRestSetting();
-		this.javaSettings = new JavaSettingsImpl();
 		this.wstype = WS_TYPE_AXIS1;
 		cgiScopeReadonly = cp.getCGIScopeReadonly();
 		this.antiSamyPolicy = ((ConfigPro) config).getAntiSamyPolicy();
@@ -879,6 +878,7 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 
 	@Override
 	public JavaSettings getJavaSettings() {
+		if (javaSettings == null) javaSettings = ModernApplicationContext.getDefaultJavaSettings(config);
 		return javaSettings;
 	}
 
@@ -1238,6 +1238,11 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 	@Override
 	public boolean hasDebugOptions(int option) {
 		return (debugging & option) > 0;
+	}
+
+	@Override
+	public int getDebugOptions() {
+		return debugging;
 	}
 
 	@Override

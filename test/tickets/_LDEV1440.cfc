@@ -11,7 +11,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mysql" {
 
 	function run( testResults , testBox ) {
 		describe( title="Test suite for LDEV-1440", body=function() {
-			it( title='Checking cfquery with duplicate column',skip=isNotSupported(),body=function( currentSpec ) {
+			it( title='Checking cfquery with duplicate column names (WONTFIX)',skip=isNotSupported(),body=function( currentSpec ) {
 				var uri = createURI("LDEV1440");
 				var result = _InternalRequest(
 					template:"#uri#/test.cfm"

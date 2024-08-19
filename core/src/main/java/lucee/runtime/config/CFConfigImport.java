@@ -1,11 +1,9 @@
 package lucee.runtime.config;
 
-import java.io.File;
 import java.nio.charset.Charset;
 import java.util.Iterator;
 import java.util.Map.Entry;
 
-import lucee.commons.io.DevNullOutputStream;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
@@ -13,18 +11,14 @@ import lucee.commons.lang.ExceptionUtil;
 import lucee.loader.engine.CFMLEngine;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.loader.util.Util;
-import lucee.runtime.PageContext;
-import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.interpreter.JSONExpressionInterpreter;
 import lucee.runtime.op.Caster;
-import lucee.runtime.thread.SerializableCookie;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.util.Cast;
-import lucee.runtime.util.PageContextUtil;
 
 public class CFConfigImport {
 
@@ -98,18 +92,9 @@ public class CFConfigImport {
 	}
 
 	public Struct execute(boolean throwException) throws PageException {
-		boolean unregister = false;
-		PageContext pc = ThreadLocalPageContext.get();
 		Struct json = null;
 
 		try {
-			if (pc == null) {
-
-				pc = PageContextUtil.getPageContext(config, null, (File) SystemUtil.getTempDirectory(), "localhost", "/", "", SerializableCookie.COOKIES0, null, null, null,
-						DevNullOutputStream.DEV_NULL_OUTPUT_STREAM, true, 100000, false);
-				unregister = true;
-
-			}
 			if (validatePassword && Util.isEmpty(password)) {
 				String sysprop = "lucee." + type.toUpperCase() + ".admin.password";
 				String envVarName = sysprop.replace('.', '_').toUpperCase();
@@ -162,12 +147,7 @@ public class CFConfigImport {
 			if (throwException) {
 				throw Caster.toPageException(t);
 			}
-			else LogUtil.log(pc, "deploy", t);
-		}
-		finally {
-			if (unregister) {
-				pc.getConfig().getFactory().releaseLuceePageContext(pc, true);
-			}
+			LogUtil.log("deploy", "config-imprt", t);
 		}
 		if (throwException && exd != null) throw exd;
 		return json;

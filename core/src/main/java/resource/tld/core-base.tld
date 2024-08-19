@@ -5282,7 +5282,101 @@ To use cached data, the current query must use the same SQL statement, data sour
 		<attribute-type>dynamic</attribute-type>
 		<description>Protects Lucee-web.xml from LFI</description>
 	</tag>
-
+	
+	
+	<!-- LuceeAI -->
+	<tag>
+		<name>LuceeAI</name>
+		<tag-class>lucee.runtime.tag.LuceeAI</tag-class>
+		<handle-exception>false</handle-exception>
+		<body-content>must</body-content>
+		<body-rtexprvalue>false</body-rtexprvalue>
+		<handle-exception>true</handle-exception>
+		<status>hidden</status>
+		<attribute-type>fixed</attribute-type>
+		<description></description>
+		<script>
+			<type>multiple</type>
+			<rtexprvalue>true</rtexprvalue>
+		</script>
+		<attribute-type>fixed</attribute-type>
+		<attribute>
+			<type>string</type>
+			<name>default</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description></description>
+		</attribute>
+		<attribute>
+			<type>string</type>
+			<name>message</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description></description>
+		</attribute>
+		<attribute>
+			<type>string</type>
+			<name>name</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description></description>
+		</attribute>
+		<attribute>
+			<type>boolean</type>
+			<name>throwonerror</name>
+			<required>false</required>
+			<default>true</default>
+			<rtexprvalue>true</rtexprvalue>
+			<description></description>
+		</attribute>
+		<attribute>
+			<type>any</type>
+			<name>timeout</name>
+			<required>false</required>
+			<default>-1</default>
+			<rtexprvalue>true</rtexprvalue>
+			<description></description>
+		</attribute>
+		<attribute>
+			<type>string</type>
+			<name>meta</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description></description>
+		</attribute>
+	</tag>
+	
+		<!-- LuceeAIInquiry -->
+	<tag>
+		<name>LuceeAIInquiry</name>
+		<tag-class>lucee.runtime.tag.LuceeAIInquiry</tag-class>
+		<handle-exception>false</handle-exception>
+		<body-content>empty</body-content>
+		<body-rtexprvalue>false</body-rtexprvalue>
+		<status>hidden</status>
+		<attribute-type>fixed</attribute-type>
+		<description></description>
+		<script>
+			<type>multiple</type>
+			<rtexprvalue>true</rtexprvalue>
+		</script>
+		<attribute-type>fixed</attribute-type>
+		<attribute>
+			<type>string</type>
+			<name>question</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description></description>
+		</attribute>
+		<attribute>
+			<type>string</type>
+			<name>answer</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description></description>
+		</attribute>
+	</tag>
+	
 	<!-- ReThrow -->
 	<tag>
 		<name>rethrow</name>
@@ -5668,6 +5762,7 @@ This attribute only takes effect when a custom debug template is defined in the 
 			<rtexprvalue>true</rtexprvalue>
 			<description>Yes or No. When set to No, show suppresses monitor information that would
 		otherwise display at the end of the generated page.</description>
+			<introduced>6.1.0.155</introduced>
 		</attribute>
 		
 		
@@ -5678,6 +5773,7 @@ This attribute only takes effect when a custom debug template is defined in the 
 			<rtexprvalue>true</rtexprvalue>
 			<description>Yes or No. When set to No, showDebug suppresses debugging information that would
 		otherwise display at the end of the generated page.</description>
+			<introduced>6.1.0.155</introduced>
 		</attribute>
 		<attribute>
 			<type>boolean</type>
@@ -5686,6 +5782,7 @@ This attribute only takes effect when a custom debug template is defined in the 
 			<rtexprvalue>true</rtexprvalue>
 			<description>Yes or No. When set to No, showDoc suppresses documentation/reference information that would
 		otherwise display at the end of the generated page.</description>
+			<introduced>6.1.0.155</introduced>
 		</attribute>
 		<attribute>
 			<type>boolean</type>
@@ -5694,6 +5791,7 @@ This attribute only takes effect when a custom debug template is defined in the 
 			<rtexprvalue>true</rtexprvalue>
 			<description>Yes or No. When set to No, showMetric suppresses metric information that would
 		otherwise display at the end of the generated page.</description>
+			<introduced>6.1.0.155</introduced>
 		</attribute>
 		<attribute>
 			<type>boolean</type>
@@ -5703,6 +5801,7 @@ This attribute only takes effect when a custom debug template is defined in the 
 			<rtexprvalue>true</rtexprvalue>
 			<description>Yes or No. When set to No, showTest suppresses test information that would
 		otherwise display at the end of the generated page.</description>
+			<introduced>6.1.0.155</introduced>
 		</attribute>
 		<attribute>
 			<type>number</type>
@@ -6138,6 +6237,7 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>the cause of the exception created with this tag. This can be a cfcatch block or a native java exception.</description>
+			<introduced>6.0.0.534</introduced>
 		</attribute>
 		<attribute>
 			<type>numeric</type>
@@ -8889,7 +8989,8 @@ Depending on this setting Lucee scans certain scopes to find a variable called f
 			<alias>doc</alias>
 			<default>false</default>
 			<required>false</required>
-			<description>Show documentation output at the end of teh webpage or not.</description>
+			<description>Show documentation output at the end of the webpage or not.</description>
+			<introduced>6.1.0.155</introduced>
 		</attribute>
 		<attribute>
 			<type>boolean</type>
@@ -8897,7 +8998,8 @@ Depending on this setting Lucee scans certain scopes to find a variable called f
 			<alias>metric</alias>
 			<default>false</default>
 			<required>false</required>
-			<description>Show metric output at the end of teh webpage or not.</description>
+			<description>Show metric output at the end of the webpage or not.</description>
+			<introduced>6.1.0.155</introduced>
 		</attribute>
 		<attribute>
 			<type>boolean</type>
@@ -8906,7 +9008,8 @@ Depending on this setting Lucee scans certain scopes to find a variable called f
 			<status>hidden</status>
 			<default>false</default>
 			<required>false</required>
-			<description>Show test output at the end of teh webpage or not.</description>
+			<description>Show test output at the end of the webpage or not.</description>
+			<introduced>6.1.0.155</introduced>
 		</attribute>
 		<attribute>
 			<type>boolean</type>
@@ -8914,7 +9017,8 @@ Depending on this setting Lucee scans certain scopes to find a variable called f
 			<alias>debug</alias>
 			<default>false</default>
 			<required>false</required>
-			<description>Show debug output at the end of teh webpage or not.</description>
+			<description>Show debug output at the end of the webpage or not.</description>
+			<introduced>6.1.0.155</introduced>
 		</attribute>
 
 		<attribute>
@@ -8922,63 +9026,72 @@ Depending on this setting Lucee scans certain scopes to find a variable called f
 			<name>debuggingDatabase</name>
 			<default>false</default>
 			<required>false</required>
-			<description></description>
+			<description>Log debugging information from the queries in the request</description>
+			<introduced>6.1.0.156</introduced>
 		</attribute>
 		<attribute>
 			<type>boolean</type>
 			<name>debuggingException</name>
 			<default>false</default>
 			<required>false</required>
-			<description></description>
+			<description>Log debugging information from the exceptions in the request</description>
+			<introduced>6.1.0.156</introduced>
 		</attribute>
 		<attribute>
 			<type>boolean</type>
 			<name>debuggingDump</name>
 			<default>false</default>
 			<required>false</required>
-			<description></description>
+			<description>Log debugging information from the dump tag in the request</description>
+			<introduced>6.1.0.156</introduced>
 		</attribute>
 		<attribute>
 			<type>boolean</type>
 			<name>debuggingTracing</name>
 			<default>false</default>
 			<required>false</required>
-			<description></description>
+			<description>Log debugging information from the trace tag in the request</description>
+			<introduced>6.1.0.156</introduced>
 		</attribute>
 		<attribute>
 			<type>boolean</type>
 			<name>debuggingTimer</name>
 			<default>false</default>
 			<required>false</required>
-			<description></description>
+			<description>Log debugging information from the timer tag in the request</description>
+			<introduced>6.1.0.156</introduced>
 		</attribute>
 		<attribute>
 			<type>boolean</type>
 			<name>debuggingImplicitAccess</name>
 			<default>false</default>
 			<required>false</required>
-			<description></description>
+			<description>Log debugging information about unscoped variables accessed in the request</description>
+			<introduced>6.1.0.156</introduced>
 		</attribute>
 		<attribute>
 			<type>boolean</type>
 			<name>debuggingQueryUsage</name>
 			<default>false</default>
 			<required>false</required>
-			<description></description>
+			<description>Log debugging information about which columns in queries are used the request</description>
+			<introduced>6.1.0.156</introduced>
 		</attribute>
 		<attribute>
 			<type>boolean</type>
 			<name>debuggingThread</name>
 			<default>false</default>
 			<required>false</required>
-			<description></description>
+			<description>Log debugging information about threads used in the request</description>
+			<introduced>6.1.0.156</introduced>
 		</attribute>
 		<attribute>
 			<type>boolean</type>
 			<name>debuggingTemplate</name>
 			<default>false</default>
 			<required>false</required>
-			<description></description>
+			<description>Log debugging information about templates used in the request</description>
+			<introduced>6.1.0.156</introduced>
 		</attribute>
 	
 				

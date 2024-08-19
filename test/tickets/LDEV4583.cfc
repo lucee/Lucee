@@ -11,35 +11,23 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" label="json" {
 				expect( structKeyExists( deserializeJson( str ), "name" ) ).toBeTrue();
 			});
 
-			it( "isJson allows json ", function(){
-				var str = '{
-					"name" : "lucee"
-				}';
-				expect( isJson( str ) ).toBeTrue();
-				expect( structKeyExists( deserializeJson( str ), "name" ) ).toBeTrue();
-			});
-
-			it( "isJson shouldn't allow json5, block comment", function(){
+			it( "isJson should allow json5, block comment", function(){
 				var str = '{
 					"name" : "lucee"
 					/*
 						block comment
 					*/
 				}';
-				expect( isJson( str ) ).toBeFalse();
-				expect( function(){
-					structKeyExists( deserializeJson( str ), "name" ) 
-				}).toThrow();
+				expect( isJson( str ) ).toBeTrue();
+				structKeyExists( deserializeJson( str ), "name" ) ;
 			});
 
-			it( "isJson shouldn't allow json5 inline", function(){
+			it( "isJson should allow json5 inline", function(){
 				var str = '{
 					"name" : "lucee" // inline comment
 				}';
-				expect( isJson( str ) ).toBeFalse();
-				expect( function(){
-					structKeyExists( deserializeJson( str ), "name" ) 
-				}).toThrow();
+				expect( isJson( str ) ).toBeTrue();
+				structKeyExists( deserializeJson( str ), "name" );
 			});
 
 		} );

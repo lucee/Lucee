@@ -4,6 +4,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase"  labels="mysql" {
 		variables.mySQL= getCredentials();
 		// Admin password
 		variables.adminPassword = request.WEBADMINPASSWORD;
+
+		systemOutput(variables.mySQL, true);
 		
 		return structisEmpty(variables.mySQL);
 	}
@@ -51,6 +53,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase"  labels="mysql" {
 	}
 
 	private struct function getCredentials() {
-		return server.getDatasource("mysql");
+		return server.getDatasource(service="mysql", onlyConfig=true);
 	}
 }

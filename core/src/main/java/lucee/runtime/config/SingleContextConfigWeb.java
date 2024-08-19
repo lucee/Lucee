@@ -33,7 +33,6 @@ import lucee.commons.io.res.ResourceProvider;
 import lucee.commons.io.res.ResourcesImpl;
 import lucee.commons.io.res.ResourcesImpl.ResourceProviderFactory;
 import lucee.commons.io.res.type.compress.Compress;
-import lucee.commons.io.res.util.ResourceClassLoader;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.CharSet;
 import lucee.commons.lang.ClassException;
@@ -47,6 +46,8 @@ import lucee.runtime.Mapping;
 import lucee.runtime.MappingImpl;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageSource;
+import lucee.runtime.ai.AIEngineFactory;
+import lucee.runtime.ai.AIEnginePool;
 import lucee.runtime.cache.CacheConnection;
 import lucee.runtime.cache.tag.CacheHandler;
 import lucee.runtime.cache.tag.CacheHandlerCollection;
@@ -77,6 +78,7 @@ import lucee.runtime.extension.RHExtension;
 import lucee.runtime.extension.RHExtensionProvider;
 import lucee.runtime.gateway.GatewayEngine;
 import lucee.runtime.listener.ApplicationListener;
+import lucee.runtime.listener.JavaSettings;
 import lucee.runtime.lock.LockManager;
 import lucee.runtime.monitor.ActionMonitor;
 import lucee.runtime.monitor.ActionMonitorCollector;
@@ -289,16 +291,6 @@ class SingleContextConfigWeb extends ConfigBase implements ConfigWebInner {
 	@Override
 	public ClassLoader getClassLoaderCore() {
 		return cs.getClassLoaderCore();
-	}
-
-	@Override
-	public ResourceClassLoader getResourceClassLoader() {
-		return cs.getResourceClassLoader();
-	}
-
-	@Override
-	public ResourceClassLoader getResourceClassLoader(ResourceClassLoader defaultValue) {
-		return cs.getResourceClassLoader(defaultValue);
 	}
 
 	@Override
@@ -730,8 +722,8 @@ class SingleContextConfigWeb extends ConfigBase implements ConfigWebInner {
 	}
 
 	@Override
-	public ClassLoader getRPCClassLoader(boolean reload, ClassLoader[] parents) throws IOException {
-		return cs.getRPCClassLoader(reload, parents);
+	public ClassLoader getRPCClassLoader(boolean reload, JavaSettings js) throws IOException {
+		return cs.getRPCClassLoader(reload, js);
 	}
 
 	@Override
@@ -2101,4 +2093,48 @@ class SingleContextConfigWeb extends ConfigBase implements ConfigWebInner {
 		return cs.getReturnFormat();
 	}
 
+	@Override
+	public JavaSettings getJavaSettings(String id) {
+		return cs.getJavaSettings(id);
+	}
+
+	@Override
+	public void setJavaSettings(String id, JavaSettings js) {
+		cs.setJavaSettings(id, js);
+	}
+
+	@Override
+	public Resource getMavenDir() {
+		return cs.getMavenDir();
+	}
+
+	@Override
+	public JavaSettings getJavaSettings() {
+		return cs.getJavaSettings();
+	}
+
+	@Override
+	public Resource getExtensionInstalledDir() {
+		return cs.getExtensionInstalledDir();
+	}
+
+	@Override
+	public Resource getExtensionAvailableDir() {
+		return cs.getExtensionAvailableDir();
+	}
+
+	@Override
+	public Collection<String> getAIEngineFactoryNames() {
+		return cs.getAIEngineFactoryNames();
+	}
+
+	@Override
+	public AIEngineFactory getAIEngineFactory(String name) {
+		return cs.getAIEngineFactory(name);
+	}
+
+	@Override
+	public AIEnginePool getAIEnginePool() {
+		return cs.getAIEnginePool();
+	}
 }

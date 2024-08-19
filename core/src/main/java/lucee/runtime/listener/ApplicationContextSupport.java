@@ -25,8 +25,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.osgi.framework.Version;
-
 import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.log.LoggerAndSourceData;
@@ -318,22 +316,14 @@ public abstract class ApplicationContextSupport implements ApplicationContext {
 			if (v == null) continue;
 
 			// appender
-			ClassDefinition cdApp;
 			Struct sctApp = Caster.toStruct(v.get("appender", null), null);
-			String ac = AppListenerUtil.toClassName(sctApp);
-			String abn = AppListenerUtil.toBundleName(sctApp);
-			Version abv = AppListenerUtil.toBundleVersion(sctApp);
-			if (StringUtil.isEmpty(abn)) cdApp = ((ConfigPro) config).getLogEngine().appenderClassDefintion(ac);
-			else cdApp = new ClassDefinitionImpl<>(config.getIdentification(), ac, abn, abv);
+			ClassDefinition cdApp = ClassDefinitionImpl.toClassDefinitionImpl(sctApp, null, false, config.getIdentification());
+			if (!cdApp.isBundle()) cdApp = ((ConfigPro) config).getLogEngine().appenderClassDefintion(cdApp.getClassName());
 
 			// layout
-			ClassDefinition cdLay;
 			Struct sctLay = Caster.toStruct(v.get("layout", null), null);
-			String lc = AppListenerUtil.toClassName(sctLay);
-			String lbn = AppListenerUtil.toBundleName(sctLay);
-			Version lbv = AppListenerUtil.toBundleVersion(sctLay);
-			if (StringUtil.isEmpty(lbn)) cdLay = ((ConfigPro) config).getLogEngine().layoutClassDefintion(lc);
-			else cdLay = new ClassDefinitionImpl<>(config.getIdentification(), lc, lbn, lbv);
+			ClassDefinition cdLay = ClassDefinitionImpl.toClassDefinitionImpl(sctLay, null, false, config.getIdentification());
+			if (!cdLay.isBundle()) cdLay = ((ConfigPro) config).getLogEngine().appenderClassDefintion(cdLay.getClassName());
 
 			if (cdApp != null && cdApp.hasClass()) {
 				// level
@@ -510,6 +500,8 @@ public abstract class ApplicationContextSupport implements ApplicationContext {
 	public abstract void setShowMetric(boolean b);
 
 	public abstract void setShowTest(boolean b);
+
+	public abstract int getDebugOptions();
 
 	public abstract boolean hasDebugOptions(int option);
 

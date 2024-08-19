@@ -192,6 +192,7 @@ import lucee.runtime.type.util.ComponentUtil;
 import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.ListUtil;
 import lucee.runtime.type.util.UDFUtil;
+import lucee.runtime.util.PageContextUtil;
 import lucee.transformer.library.ClassDefinitionImpl;
 import lucee.transformer.library.function.FunctionLib;
 import lucee.transformer.library.tag.TagLib;
@@ -1503,7 +1504,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	 * 
 	 */
 	private void doGetDebugData() throws PageException {
-		pageContext.setVariable(getString("admin", action, "returnVariable"), pageContext.getConfig().debug() ? pageContext.getDebugger().getDebuggingData(pageContext) : null);
+		pageContext.setVariable(getString("admin", action, "returnVariable"), PageContextUtil.debug(pageContext) ? pageContext.getDebugger().getDebuggingData(pageContext) : null);
 	}
 
 	private void doGetLoggedDebugData() throws PageException {
@@ -1860,8 +1861,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	private void doUpdateJavaCFX() throws PageException {
 		String name = getString("admin", action, "name");
 		if (StringUtil.startsWithIgnoreCase(name, "cfx_")) name = name.substring(4);
-		lucee.runtime.db.ClassDefinition cd = new ClassDefinitionImpl(getString("admin", action, "class"), getString("bundleName", null), getString("bundleVersion", null),
-				config.getIdentification());
+		lucee.runtime.db.ClassDefinition cd = ClassDefinitionImpl.toClassDefinitionImpl(attributes, null, true, config.getIdentification());
 		admin.updateJavaCFX(name, cd);
 		store();
 		adminSync.broadcast(attributes, config);
@@ -1869,8 +1869,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 	private void doVerifyJavaCFX() throws PageException {
 		String name = getString("admin", action, "name");
-		ClassDefinition cd = new ClassDefinitionImpl(getString("admin", action, "class"), getString("bundleName", null), getString("bundleVersion", null),
-				config.getIdentification());
+		ClassDefinition cd = ClassDefinitionImpl.toClassDefinitionImpl(attributes, null, true, config.getIdentification());
 		admin.verifyJavaCFX(name, cd);
 	}
 
@@ -2199,8 +2198,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	}
 
 	private void doUpdateAdminSyncClass() throws PageException {
-		ClassDefinition cd = new ClassDefinitionImpl(getString("admin", action, "class"), getString("bundleName", null), getString("bundleVersion", null),
-				config.getIdentification());
+		ClassDefinition cd = ClassDefinitionImpl.toClassDefinitionImpl(attributes, null, true, config.getIdentification());
 		admin.updateAdminSyncClass(cd);
 		store();
 	}
@@ -2298,7 +2296,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			Struct sct = new StructImpl();
 			sct.set("LoaderVersion", VersionInfo.getIntVersion().toString());
 			sct.set("LuceeVersion", pageContext.getConfig().getFactory().getEngine().getInfo().getVersion().toString());
-			sct.set("LoaderPath", ClassUtil.getSourcePathForClass("lucee.loader.servlet.CFMLServlet", ""));
+			sct.set("LoaderPath", ClassUtil.getSourcePathForClass(pageContext, "lucee.loader.servlet.CFMLServlet", ""));
 			pageContext.setVariable(getString("admin", action, "returnVariable"), sct);
 		}
 		catch (Exception e) {
@@ -2604,13 +2602,15 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	}
 
 	private void doUpdateJDBCDriver() throws PageException {
-		ClassDefinition cd = new ClassDefinitionImpl(getString("admin", action, "classname"), getString("bundleName", null), getString("bundleVersion", null),
-				config.getIdentification());
+
+		ClassDefinition cd = ClassDefinitionImpl.toClassDefinitionImpl(attributes, null, true, config.getIdentification());
 
 		String label = getString("admin", action, "label");
 		String id = getString("id", null);
+		String dsn = getString("connectionString", null);
+		if (dsn == null) getString("dsn", null);
 
-		admin.updateJDBCDriver(label, id, cd);
+		admin.updateJDBCDriver(label, id, cd, dsn);
 		store();
 		adminSync.broadcast(attributes, config);
 	}
@@ -2629,7 +2629,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 		String cn = getString("admin", action, "classname");
 		if ("com.microsoft.jdbc.sqlserver.SQLServerDriver".equals(cn)) {
-			cn = "com.microsoft.sqlserver.jdbc.SQLServerDriver";
+			attributes.set(KeyConstants._classname, "com.microsoft.sqlserver.jdbc.SQLServerDriver");
 		}
 
 		String tmp = getString("admin", action, "newName");
@@ -2641,7 +2641,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 					+ "]: only alphanumeric characters, underscores (_), and hyphens (-) are valid. Please ensure the name conforms to these formats.");
 		}
 
-		ClassDefinition cd = new ClassDefinitionImpl(cn, getString("bundleName", null), getString("bundleVersion", null), config.getIdentification());
+		ClassDefinition cd = ClassDefinitionImpl.toClassDefinitionImpl(attributes, null, true, config.getIdentification());
 
 		// customParameterSyntax
 		// Struct sct = getStruct("customParameterSyntax", null);
@@ -2699,8 +2699,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	}
 
 	private void doUpdateCacheConnection() throws PageException {
-		ClassDefinition cd = new ClassDefinitionImpl(getString("admin", action, "class"), getString("bundleName", null), getString("bundleVersion", null),
-				config.getIdentification());
+		ClassDefinition cd = ClassDefinitionImpl.toClassDefinitionImpl(attributes, null, true, config.getIdentification());
 
 		admin.updateCacheConnection(getString("admin", action, "name"), cd, toCacheConstant("default"), getStruct("admin", action, "custom"), getBoolV("readOnly", false),
 				getBoolV("storage", false)
@@ -2735,8 +2734,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		 * +" ] listener CFC"); }
 		 */
 
-		ClassDefinition cd = new ClassDefinitionImpl(getString("admin", action, "class"), getString("bundleName", null), getString("bundleVersion", null),
-				config.getIdentification());
+		ClassDefinition cd = ClassDefinitionImpl.toClassDefinitionImpl(attributes, null, true, config.getIdentification());
 		admin.updateGatewayEntry(getString("admin", action, "id"), cd, getString("admin", action, "cfcPath"), getString("admin", action, "listenerCfcPath"), startup,
 				getStruct("admin", action, "custom"), getBoolV("readOnly", false)
 
@@ -2811,8 +2809,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 	private void doUpdateResourceProvider() throws PageException {
 
-		ClassDefinition cd = new ClassDefinitionImpl(getString("admin", action, "class"), getString("bundleName", null), getString("bundleVersion", null),
-				config.getIdentification());
+		ClassDefinition cd = ClassDefinitionImpl.toClassDefinitionImpl(attributes, null, true, config.getIdentification());
 
 		String scheme = getString("admin", action, "scheme");
 
@@ -2830,8 +2827,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	}
 
 	private void doUpdateDefaultResourceProvider() throws PageException {
-		ClassDefinition cd = new ClassDefinitionImpl(getString("admin", action, "class"), getString("bundleName", null), getString("bundleVersion", null),
-				config.getIdentification());
+		ClassDefinition cd = ClassDefinitionImpl.toClassDefinitionImpl(attributes, null, true, config.getIdentification());
 
 		String arguments = getString("admin", action, "arguments");
 
@@ -2859,8 +2855,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	 * 
 	 */
 	private void doVerifyDatasource() throws PageException {
-		ClassDefinition cd = new ClassDefinitionImpl(Caster.toString(attributes.get("classname", null), null), Caster.toString(attributes.get("bundleName", null), null),
-				Caster.toString(attributes.get("bundleVersion", null), null), config.getIdentification());
+		ClassDefinition cd = ClassDefinitionImpl.toClassDefinitionImpl(attributes, null, true, config.getIdentification());
 
 		String connStr = (String) attributes.get("connStr", null);
 		if (StringUtil.isEmpty(connStr)) connStr = (String) attributes.get("dsn", null);
@@ -4202,8 +4197,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	}
 
 	private void doUpdateMonitor() throws PageException {
-		ClassDefinition cd = new ClassDefinitionImpl(getString("admin", action, "class"), getString("bundleName", null), getString("bundleVersion", null),
-				config.getIdentification());
+		ClassDefinition cd = ClassDefinitionImpl.toClassDefinitionImpl(attributes, null, true, config.getIdentification());
 
 		admin.updateMonitor(cd, getString("admin", "updateMonitor", "monitorType"), getString("admin", "updateMonitor", "name"), getBool("admin", "updateMonitor", "logEnabled"));
 		store();
@@ -4211,24 +4205,21 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	}
 
 	private void doUpdateORMEngine() throws PageException {
-		ClassDefinition cd = new ClassDefinitionImpl(getString("admin", action, "class"), getString("bundleName", null), getString("bundleVersion", null),
-				config.getIdentification());
+		ClassDefinition cd = ClassDefinitionImpl.toClassDefinitionImpl(attributes, null, true, config.getIdentification());
 		admin.updateORMEngine(cd);
 		store();
 		adminSync.broadcast(attributes, config);
 	}
 
 	private void doUpdateCacheHandler() throws PageException {
-		ClassDefinition cd = new ClassDefinitionImpl(getString("admin", action, "class"), getString("bundleName", null), getString("bundleVersion", null),
-				config.getIdentification());
+		ClassDefinition cd = ClassDefinitionImpl.toClassDefinitionImpl(attributes, null, true, config.getIdentification());
 		admin.updateCacheHandler(getString("admin", "updateCacheHandler", "id"), cd);
 		store();
 		adminSync.broadcast(attributes, config);
 	}
 
 	private void doUpdateExecutionLog() throws PageException {
-		lucee.runtime.db.ClassDefinition cd = new ClassDefinitionImpl(getString("admin", action, "class"), getString("bundleName", null), getString("bundleVersion", null),
-				config.getIdentification());
+		lucee.runtime.db.ClassDefinition cd = ClassDefinitionImpl.toClassDefinitionImpl(attributes, null, true, config.getIdentification());
 		admin.updateExecutionLog(cd, getStruct("admin", "updateExecutionLog", "arguments"), getBool("admin", "updateExecutionLog", "enabled"));
 		store();
 		adminSync.broadcast(attributes, config);
@@ -4652,18 +4643,12 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 		LogEngine eng = config.getLogEngine();
 		// appender
-		String className = getString("admin", action, "appenderClass", true);
-		String bundleName = getString("appenderBundleName", null);
-		String bundleVersion = getString("appenderBundleVersion", null);
-		ClassDefinition acd = StringUtil.isEmpty(bundleName) ? eng.appenderClassDefintion(className)
-				: new ClassDefinitionImpl(className, bundleName, bundleVersion, config.getIdentification());
+		ClassDefinition acd = ClassDefinitionImpl.toClassDefinitionImpl(attributes, "appender", true, config.getIdentification());
+		if (!acd.isBundle()) acd = eng.appenderClassDefintion(acd.getClassName());
 
 		// layout
-		className = getString("admin", action, "layoutClass", true);
-		bundleName = getString("layoutBundleName", null);
-		bundleVersion = getString("layoutBundleVersion", null);
-		ClassDefinition lcd = StringUtil.isEmpty(bundleName) ? eng.layoutClassDefintion(className)
-				: new ClassDefinitionImpl(className, bundleName, bundleVersion, config.getIdentification());
+		ClassDefinition lcd = ClassDefinitionImpl.toClassDefinitionImpl(attributes, "layout", true, config.getIdentification());
+		if (!lcd.isBundle()) lcd = eng.layoutClassDefintion(lcd.getClassName());
 
 		admin.updateLogSettings(getString("admin", "UpdateLogSettings", "name", true), l, acd, Caster.toStruct(getObject("admin", "UpdateLogSettings", "appenderArgs")), lcd,
 				Caster.toStruct(getObject("admin", "UpdateLogSettings", "layoutArgs")));

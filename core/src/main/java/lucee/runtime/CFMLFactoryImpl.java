@@ -73,6 +73,7 @@ import lucee.runtime.type.scope.ScopeContext;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.ListUtil;
+import lucee.runtime.util.PageContextUtil;
 import lucee.servlet.http.HTTPServletImpl;
 
 /**
@@ -232,7 +233,7 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 				pc = null;
 			}
 		}
-		if (pc == null) pc = new PageContextImpl(scopeContext, config, servlet, ignoreScopes);
+		if (pc == null) pc = new PageContextImpl(scopeContext, config, servlet, tmplPC, ignoreScopes);
 
 		if (timeout > 0) pc.setRequestTimeout(timeout);
 		if (register2RunningThreads) {
@@ -580,7 +581,7 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 
 			data.setEL(KeyConstants._urltoken, pc.getURLToken());
 			try {
-				if (pc.getConfig().debug()) data.setEL("debugger", pc.getDebugger().getDebuggingData(pc));
+				if (PageContextUtil.debug(pc)) data.setEL("debugger", pc.getDebugger().getDebuggingData(pc));
 			}
 			catch (PageException e2) {
 			}

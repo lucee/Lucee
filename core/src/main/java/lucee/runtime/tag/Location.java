@@ -35,6 +35,7 @@ import lucee.runtime.functions.system.CallStackGet;
 import lucee.runtime.listener.ApplicationContext;
 import lucee.runtime.net.http.ReqRspUtil;
 import lucee.runtime.op.Caster;
+import lucee.runtime.util.PageContextUtil;
 
 public final class Location extends TagImpl {
 
@@ -152,11 +153,11 @@ public final class Location extends TagImpl {
 
 		Log log = ThreadLocalPageContext.getLog(pageContext, "application");
 		if (abort) {
-			if (log != null) log.log(Log.LEVEL_ERROR, "cftrace", "abort redirect to " + url + " at " + CallStackGet.call(pageContext, "text"));
+			if (log != null) log.log(Log.LEVEL_ERROR, "cflocation", "abort redirect to " + url + " at " + CallStackGet.call(pageContext, "text"));
 			throw new ExpressionException("abort redirect to " + url);
 		}
 		else {
-			if (log != null) log.log(Log.LEVEL_TRACE, "cftrace", "redirect to " + url + " at " + CallStackGet.call(pageContext, "text"));
+			if (log != null) log.log(Log.LEVEL_DEBUG, "cflocation", "redirect to " + url + " at " + CallStackGet.call(pageContext, "text"));
 		}
 
 		rsp.setHeader("Connection", "close"); // IE unter IIS6, Win2K3 und Resin
@@ -172,7 +173,7 @@ public final class Location extends TagImpl {
 		catch (IOException e) {
 			throw Caster.toPageException(e);
 		}
-		if (pageContext.getConfig().debug()) pageContext.getDebugger().setOutput(false);
+		if (PageContextUtil.debug(pageContext)) pageContext.getDebugger().setOutput(false);
 		throw new Abort(Abort.SCOPE_REQUEST);
 	}
 

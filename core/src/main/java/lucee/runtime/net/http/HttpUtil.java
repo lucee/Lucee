@@ -86,7 +86,7 @@ public class HttpUtil {
 
 		while (e.hasMoreElements()) {
 			name = (String) e.nextElement();
-			values = req.getParameterValues(name);
+			values = req instanceof HTTPServletRequestWrap ? ((HTTPServletRequestWrap) req).getParameterValues(pc, name) : req.getParameterValues(name);
 			if (values == null && ReqRspUtil.needEncoding(name, false)) values = req.getParameterValues(ReqRspUtil.encode(name, ReqRspUtil.getCharacterEncoding(null, req)));
 			if (values == null) {
 				if (pc != null && ReqRspUtil.identical(pc.getHttpServletRequest(), req)) {

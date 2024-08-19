@@ -54,6 +54,11 @@ public class ClassUtilImpl implements ClassUtil {
 		return lucee.commons.lang.ClassUtil.loadClass(className);
 	}
 
+	// FUTURE add to interface
+	public Class<?> loadClass(PageContext pc, String className) throws ClassException {
+		return lucee.commons.lang.ClassUtil.loadClass(pc, className);
+	}
+
 	@Override
 	public Class<?> loadClass(PageContext pc, String className, String bundleName, String bundleVersion) throws ClassException, BundleException {
 		Config config = ThreadLocalPageContext.getConfig(pc);
@@ -273,7 +278,7 @@ public class ClassUtilImpl implements ClassUtil {
 
 	@Override
 	public Object loadInstance(String className) throws ClassException {
-		return lucee.commons.lang.ClassUtil.loadInstance(className);
+		return lucee.commons.lang.ClassUtil.loadInstance((PageContext) null, className);
 	}
 
 	@Override
@@ -378,7 +383,7 @@ public class ClassUtilImpl implements ClassUtil {
 
 	@Override
 	public String getSourcePathForClass(String className, String defaultValue) {
-		return lucee.commons.lang.ClassUtil.getSourcePathForClass(className, defaultValue);
+		return lucee.commons.lang.ClassUtil.getSourcePathForClass(null, className, defaultValue);
 	}
 
 	@Override

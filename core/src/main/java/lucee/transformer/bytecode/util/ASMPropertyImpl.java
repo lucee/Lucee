@@ -34,11 +34,6 @@ public final class ASMPropertyImpl implements ASMProperty {
 		this.clazz = type;
 	}
 
-	public ASMPropertyImpl(String type, String name) throws PageException {
-		this.type = ASMUtil.toType(type, true);
-		this.name = name;
-	}
-
 	public ASMPropertyImpl(Type type, String name) {
 		this.type = type;
 		this.name = name;

@@ -277,7 +277,7 @@ public final class DebuggerImpl implements Debugger {
 	}
 
 	public static boolean debugQueryUsage(PageContext pageContext, QueryResult qr) {
-		if (pageContext.getConfig().debug() && qr instanceof Query) {
+		if (qr instanceof Query) {
 			if (((PageContextImpl) pageContext).hasDebugOptions(ConfigPro.DEBUG_QUERY_USAGE)) {
 				((Query) qr).enableShowQueryUsage();
 				return true;
@@ -1010,7 +1010,7 @@ public final class DebuggerImpl implements Debugger {
 	}
 
 	public static void deprecated(PageContext pc, String key, String msg) {
-		if (pc.getConfig().debug()) {
+		if (PageContextUtil.show(pc)) {
 			// do we already have set?
 			boolean exists = false;
 			Map<String, Map<String, List<String>>> gd = pc.getDebugger().getGenericData();

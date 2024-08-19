@@ -32,7 +32,7 @@ import lucee.runtime.op.date.DateCaster;
 import lucee.runtime.type.ObjectWrap;
 import lucee.runtime.type.dt.DateTime;
 
-public final class ModeObjectWrap implements ObjectWrap, Castable {
+public final class ModeObjectWrap implements ObjectWrap, Castable, CharSequence {
 
 	private static final long serialVersionUID = -1630745501422006978L;
 
@@ -133,6 +133,21 @@ public final class ModeObjectWrap implements ObjectWrap, Castable {
 	@Override
 	public int compareTo(DateTime dt) throws PageException {
 		return OpUtil.compare(ThreadLocalPageContext.get(), toString(), dt.castToString());
+	}
+
+	@Override
+	public int length() {
+		return toString().length();
+	}
+
+	@Override
+	public char charAt(int index) {
+		return toString().charAt(index);
+	}
+
+	@Override
+	public CharSequence subSequence(int start, int end) {
+		return toString().subSequence(end, end);
 	}
 
 }

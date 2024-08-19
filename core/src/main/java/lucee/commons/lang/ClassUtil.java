@@ -45,7 +45,8 @@ import lucee.commons.io.FileUtil;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.res.Resource;
-import lucee.commons.io.res.util.ResourceClassLoader;
+import lucee.runtime.PageContext;
+import lucee.runtime.PageContextImpl;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.Identification;
@@ -65,8 +66,8 @@ public final class ClassUtil {
 	 * @throws ClassException
 	 * @throws PageException
 	 */
-	public static Class toClass(String className) throws ClassException {
-		return loadClass(className);
+	public static Class toClass(PageContext pc, String className) throws ClassException {
+		return loadClass(pc, className);
 	}
 
 	private static Class checkPrimaryTypesBytecodeDef(String className, Class defaultValue) {
@@ -231,6 +232,10 @@ public final class ClassUtil {
 		return defaultValue;
 	}
 
+	public static Class loadClass(String className) throws ClassException {
+		return loadClass((PageContext) null, className);
+	}
+
 	/**
 	 * loads a class from a String classname
 	 * 
@@ -238,28 +243,55 @@ public final class ClassUtil {
 	 * @return matching Class
 	 * @throws ClassException
 	 */
-	public static Class loadClass(String className) throws ClassException {
+	public static Class loadClass(PageContext pc, String className) throws ClassException {
 		Set<Throwable> exceptions = new HashSet<Throwable>();
 		// OSGI env
 		Class clazz = _loadClass(new OSGiBasedClassLoading(), className, null, exceptions);
 		if (clazz != null) {
 			return clazz;
 		}
+		// no ThreadLocalPageContext !!!
+		if (pc instanceof PageContextImpl) {
+			ClassLoader cl;
+			try {
+				cl = ((PageContextImpl) pc).getClassLoader(null);
+			}
+			catch (IOException e) {
+				ClassException ce = new ClassException("cannot load class through its string name");
+				ExceptionUtil.initCauseEL(ce, e);
+				throw ce;
+			}
 
-		// core classloader
-		clazz = _loadClass(new ClassLoaderBasedClassLoading(SystemUtil.getCoreClassLoader()), className, null, exceptions);
-		if (clazz != null) {
-			return clazz;
+			// core classloader
+			clazz = _loadClass(new ClassLoaderBasedClassLoading(cl), className, null, exceptions);
+			if (clazz != null) {
+				return clazz;
+			}
 		}
+		else {
+			// core classloader
+			clazz = _loadClass(new ClassLoaderBasedClassLoading(SystemUtil.getCoreClassLoader()), className, null, exceptions);
+			if (clazz != null) {
+				return clazz;
+			}
 
-		// loader classloader
-		clazz = _loadClass(new ClassLoaderBasedClassLoading(SystemUtil.getLoaderClassLoader()), className, null, exceptions);
-		if (clazz != null) {
-			return clazz;
+			// loader classloader
+			clazz = _loadClass(new ClassLoaderBasedClassLoading(SystemUtil.getLoaderClassLoader()), className, null, exceptions);
+			if (clazz != null) {
+				return clazz;
+			}
 		}
 
 		String msg = "cannot load class through its string name, because no definition for the class with the specified name [" + className + "] could be found";
-		if (exceptions.size() > 0) {
+
+		if (exceptions.size() == 1) {
+			Throwable t = exceptions.iterator().next();
+			ClassException ce = new ClassException(msg);
+			ExceptionUtil.initCauseEL(ce, t);
+			throw ce;
+		}
+
+		else if (exceptions.size() > 0) {
 			StringBuilder detail = new StringBuilder();
 			Iterator<Throwable> it = exceptions.iterator();
 			Throwable t;
@@ -279,14 +311,11 @@ public final class ClassUtil {
 	private static Class loadClass(ClassLoader cl, String className, Class defaultValue, Set<Throwable> exceptions) {
 
 		if (cl != null) {
-			// TODO do not produce a resource classloader in the first place if there are no resources
-			if (cl instanceof ResourceClassLoader && ((ResourceClassLoader) cl).isEmpty()) {
-				ClassLoader p = ((ResourceClassLoader) cl).getParent();
-				if (p != null) cl = p;
-			}
 			Class clazz = _loadClass(new ClassLoaderBasedClassLoading(cl), className, defaultValue, exceptions);
 			if (clazz != null) return clazz;
 		}
+
+		// MUST javasettings?
 
 		// OSGI env
 		Class clazz = _loadClass(new OSGiBasedClassLoading(), className, null, exceptions);
@@ -448,8 +477,8 @@ public final class ClassUtil {
 		}
 	}
 
-	public static Object loadInstance(String className) throws ClassException {
-		return loadInstance(loadClass(className));
+	public static Object loadInstance(PageContext pc, String className) throws ClassException {
+		return loadInstance(loadClass(pc, className));
 	}
 
 	public static Object loadInstance(ClassLoader cl, String className) throws ClassException {
@@ -545,8 +574,8 @@ public final class ClassUtil {
 		}
 	}
 
-	public static Object loadInstance(String className, Object[] args) throws ClassException, InvocationTargetException {
-		return loadInstance(loadClass(className), args);
+	public static Object loadInstance(PageContext pc, String className, Object[] args) throws ClassException, InvocationTargetException {
+		return loadInstance(loadClass(pc, className), args);
 	}
 
 	public static Object loadInstance(ClassLoader cl, String className, Object[] args) throws ClassException, InvocationTargetException {
@@ -871,11 +900,11 @@ public final class ClassUtil {
 	 * @param defaultValue - a value to return in case the source could not be determined
 	 * @return
 	 */
-	public static String getSourcePathForClass(String className, String defaultValue) {
+	public static String getSourcePathForClass(PageContext pc, String className, String defaultValue) {
 
 		try {
 
-			return getSourcePathForClass(ClassUtil.loadClass(className), defaultValue);
+			return getSourcePathForClass(ClassUtil.loadClass(pc, className), defaultValue);
 		}
 		catch (Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);
@@ -921,8 +950,9 @@ public final class ClassUtil {
 	 * @throws ClassException
 	 * @throws BundleException
 	 */
-	public static Class loadClass(String className, String bundleName, String bundleVersion, Identification id, List<Resource> addional) throws ClassException, BundleException {
-		if (StringUtil.isEmpty(bundleName)) return loadClass(className);
+	public static Class loadClass(PageContext pc, String className, String bundleName, String bundleVersion, Identification id, List<Resource> addional)
+			throws ClassException, BundleException {
+		if (StringUtil.isEmpty(bundleName)) return loadClass(pc, className);
 		return loadClassByBundle(className, bundleName, bundleVersion, id, addional);
 	}
 
@@ -991,13 +1021,16 @@ public final class ClassUtil {
 		}
 	}
 
-	public static ClassLoader getClassLoader(Class clazz) {
+	public static ClassLoader getClassLoader(PageContext pc, Class clazz) throws IOException {
 		ClassLoader cl = clazz.getClassLoader();
 		if (cl != null) return cl;
 
+		if (pc instanceof PageContextImpl) {
+			return ((PageContextImpl) pc).getClassLoader();
+		}
 		Config config = ThreadLocalPageContext.getConfig();
 		if (config instanceof ConfigPro) {
-			return ((ConfigPro) config).getClassLoaderCore();
+			return ((ConfigPro) config).getRPCClassLoader(false, null);
 		}
 		return new lucee.commons.lang.ClassLoaderHelper().getClass().getClassLoader();
 	}

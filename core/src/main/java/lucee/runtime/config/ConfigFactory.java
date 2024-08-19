@@ -220,14 +220,18 @@ public abstract class ConfigFactory {
 		catch (Exception e) {
 			// rename buggy config files
 			if (configFile.exists()) {
-				LogUtil.log(ThreadLocalPageContext.getConfig(), Log.LEVEL_INFO, ConfigFactory.class.getName(),
-						"Config file [" + configFile + "] was not valid and has been replaced");
-				LogUtil.log(ThreadLocalPageContext.get(), ConfigFactory.class.getName(), e);
-				int count = 1;
 				Resource bugFile;
+				int count = 1;
 				Resource configDir = configFile.getParentResource();
 				while ((bugFile = configDir.getRealResource("lucee-" + type + "." + (count++) + ".buggy")).exists()) {
 				}
+
+				LogUtil.log(ThreadLocalPageContext.getConfig(), Log.LEVEL_INFO, ConfigFactory.class.getName(),
+						"The configuration file [" + configFile
+								+ "] contained syntax errors and could not be read. A new configuration file has been created, and the invalid file has been renamed to [" + bugFile
+								+ "].");
+				LogUtil.log(ThreadLocalPageContext.get(), ConfigFactory.class.getName(), e);
+
 				IOUtil.copy(configFile, bugFile);
 				configFile.delete();
 			}
@@ -257,7 +261,7 @@ public abstract class ConfigFactory {
 		else {
 			new ConverterException("inputing data is invalid, cannot cast [" + old.getClass().getName() + "] to a Resource or an InputSource");
 		}
-		Struct root = ConfigWebUtil.getAsStruct(reader.getData(), "cfLuceeConfiguration", "luceeConfiguration", "lucee-configuration");
+		Struct root = ConfigWebUtil.getAsStruct(reader.getData(), false, "cfLuceeConfiguration", "luceeConfiguration", "lucee-configuration");
 
 		//////////////////// charset ////////////////////
 		{
@@ -943,7 +947,7 @@ public abstract class ConfigFactory {
 		// That step is not necessary anymore TODO remove
 		if (StringUtil.endsWithIgnoreCase(name, ".xml.cfm") || StringUtil.endsWithIgnoreCase(name, ".xml")) {
 			try {
-				return ConfigWebUtil.getAsStruct(new XMLConfigReader(res, true, new ReadRule(), new NameRule()).getData(), "cfLuceeConfiguration", "luceeConfiguration",
+				return ConfigWebUtil.getAsStruct(new XMLConfigReader(res, true, new ReadRule(), new NameRule()).getData(), false, "cfLuceeConfiguration", "luceeConfiguration",
 						"lucee-configuration");
 			}
 			catch (SAXException e) {

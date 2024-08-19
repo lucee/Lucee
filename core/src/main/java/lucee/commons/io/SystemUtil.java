@@ -71,6 +71,7 @@ import lucee.commons.io.log.Log;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.ResourceProvider;
 import lucee.commons.io.res.ResourcesImpl;
+import lucee.commons.io.res.util.CombinedClassLoader;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ArchiveClassLoader;
 import lucee.commons.lang.CharSet;
@@ -163,6 +164,12 @@ public final class SystemUtil {
 	public static final int JAVA_VERSION_27 = 27; // FUTURE lucee.runtime.util.SystemUtil.JAVA_VERSION_14;
 	public static final int JAVA_VERSION_28 = 28; // FUTURE lucee.runtime.util.SystemUtil.JAVA_VERSION_14;
 	public static final int JAVA_VERSION_29 = 29; // FUTURE lucee.runtime.util.SystemUtil.JAVA_VERSION_14;
+	public static final int JAVA_VERSION_30 = 30;
+	public static final int JAVA_VERSION_31 = 31;
+	public static final int JAVA_VERSION_32 = 32;
+	public static final int JAVA_VERSION_33 = 33;
+	public static final int JAVA_VERSION_34 = 34;
+	public static final int JAVA_VERSION_35 = 35;
 
 	public static final int OUT = lucee.runtime.util.SystemUtil.OUT;
 	public static final int ERR = lucee.runtime.util.SystemUtil.ERR;
@@ -223,39 +230,37 @@ public final class SystemUtil {
 		MemoryPoolMXBean tmp = getPermGenSpaceBean();
 		if (tmp != permGenSpaceBean) permGenSpaceBean = null;
 
-		if (JAVA_VERSION_STRING.startsWith("1.14.") || JAVA_VERSION_STRING.startsWith("14")) JAVA_VERSION = JAVA_VERSION_14;
+		if (JAVA_VERSION_STRING.startsWith("35.")) JAVA_VERSION = JAVA_VERSION_35;
+		else if (JAVA_VERSION_STRING.startsWith("34.")) JAVA_VERSION = JAVA_VERSION_34;
+		else if (JAVA_VERSION_STRING.startsWith("33.")) JAVA_VERSION = JAVA_VERSION_33;
+		else if (JAVA_VERSION_STRING.startsWith("32.")) JAVA_VERSION = JAVA_VERSION_32;
+		else if (JAVA_VERSION_STRING.startsWith("31.")) JAVA_VERSION = JAVA_VERSION_31;
+		else if (JAVA_VERSION_STRING.startsWith("30.")) JAVA_VERSION = JAVA_VERSION_30;
+		else if (JAVA_VERSION_STRING.startsWith("29.")) JAVA_VERSION = JAVA_VERSION_29;
+		else if (JAVA_VERSION_STRING.startsWith("28.")) JAVA_VERSION = JAVA_VERSION_28;
+		else if (JAVA_VERSION_STRING.startsWith("27.")) JAVA_VERSION = JAVA_VERSION_27;
+		else if (JAVA_VERSION_STRING.startsWith("26.")) JAVA_VERSION = JAVA_VERSION_26;
+		else if (JAVA_VERSION_STRING.startsWith("25.")) JAVA_VERSION = JAVA_VERSION_25;
+		else if (JAVA_VERSION_STRING.startsWith("24.")) JAVA_VERSION = JAVA_VERSION_24;
+		else if (JAVA_VERSION_STRING.startsWith("23.")) JAVA_VERSION = JAVA_VERSION_23;
+		else if (JAVA_VERSION_STRING.startsWith("22.")) JAVA_VERSION = JAVA_VERSION_22;
+		else if (JAVA_VERSION_STRING.startsWith("21.")) JAVA_VERSION = JAVA_VERSION_21;
+		else if (JAVA_VERSION_STRING.startsWith("20.")) JAVA_VERSION = JAVA_VERSION_20;
+		else if (JAVA_VERSION_STRING.startsWith("19.")) JAVA_VERSION = JAVA_VERSION_19;
+		else if (JAVA_VERSION_STRING.startsWith("18.")) JAVA_VERSION = JAVA_VERSION_18;
+		else if (JAVA_VERSION_STRING.startsWith("17.")) JAVA_VERSION = JAVA_VERSION_17;
+		else if (JAVA_VERSION_STRING.startsWith("16.")) JAVA_VERSION = JAVA_VERSION_16;
+		else if (JAVA_VERSION_STRING.startsWith("15.")) JAVA_VERSION = JAVA_VERSION_15;
+
+		else if (JAVA_VERSION_STRING.startsWith("1.14.") || JAVA_VERSION_STRING.startsWith("14")) JAVA_VERSION = JAVA_VERSION_14;
 		else if (JAVA_VERSION_STRING.startsWith("1.13.") || JAVA_VERSION_STRING.startsWith("13")) JAVA_VERSION = JAVA_VERSION_13;
 		else if (JAVA_VERSION_STRING.startsWith("1.12.") || JAVA_VERSION_STRING.startsWith("12")) JAVA_VERSION = JAVA_VERSION_12;
 		else if (JAVA_VERSION_STRING.startsWith("1.11.") || JAVA_VERSION_STRING.startsWith("11")) JAVA_VERSION = JAVA_VERSION_11;
 		else if (JAVA_VERSION_STRING.startsWith("1.10.") || JAVA_VERSION_STRING.startsWith("10")) JAVA_VERSION = JAVA_VERSION_10;
 		else if (JAVA_VERSION_STRING.startsWith("1.9.") || JAVA_VERSION_STRING.startsWith("9.")) JAVA_VERSION = JAVA_VERSION_9;
-		else if (JAVA_VERSION_STRING.startsWith("1.8.")) JAVA_VERSION = JAVA_VERSION_8;
-		else if (JAVA_VERSION_STRING.startsWith("1.7.")) JAVA_VERSION = JAVA_VERSION_7;
-		else if (JAVA_VERSION_STRING.startsWith("1.6.")) JAVA_VERSION = JAVA_VERSION_6;
-		else if (JAVA_VERSION_STRING.startsWith("1.6.")) JAVA_VERSION = JAVA_VERSION_6;
-
-		else if (JAVA_VERSION_STRING.startsWith("8.")) JAVA_VERSION = JAVA_VERSION_8;
-		else if (JAVA_VERSION_STRING.startsWith("9.")) JAVA_VERSION = JAVA_VERSION_9;
-		else if (JAVA_VERSION_STRING.startsWith("10.")) JAVA_VERSION = JAVA_VERSION_10;
-		else if (JAVA_VERSION_STRING.startsWith("11.")) JAVA_VERSION = JAVA_VERSION_11;
-		else if (JAVA_VERSION_STRING.startsWith("12.")) JAVA_VERSION = JAVA_VERSION_12;
-		else if (JAVA_VERSION_STRING.startsWith("13.")) JAVA_VERSION = JAVA_VERSION_13;
-		else if (JAVA_VERSION_STRING.startsWith("14.")) JAVA_VERSION = JAVA_VERSION_14;
-		else if (JAVA_VERSION_STRING.startsWith("15.")) JAVA_VERSION = JAVA_VERSION_15;
-		else if (JAVA_VERSION_STRING.startsWith("16.")) JAVA_VERSION = JAVA_VERSION_16;
-		else if (JAVA_VERSION_STRING.startsWith("17.")) JAVA_VERSION = JAVA_VERSION_17;
-		else if (JAVA_VERSION_STRING.startsWith("18.")) JAVA_VERSION = JAVA_VERSION_18;
-		else if (JAVA_VERSION_STRING.startsWith("19.")) JAVA_VERSION = JAVA_VERSION_19;
-		else if (JAVA_VERSION_STRING.startsWith("20.")) JAVA_VERSION = JAVA_VERSION_20;
-		else if (JAVA_VERSION_STRING.startsWith("21.")) JAVA_VERSION = JAVA_VERSION_21;
-		else if (JAVA_VERSION_STRING.startsWith("22.")) JAVA_VERSION = JAVA_VERSION_22;
-		else if (JAVA_VERSION_STRING.startsWith("23.")) JAVA_VERSION = JAVA_VERSION_23;
-		else if (JAVA_VERSION_STRING.startsWith("24.")) JAVA_VERSION = JAVA_VERSION_24;
-		else if (JAVA_VERSION_STRING.startsWith("25.")) JAVA_VERSION = JAVA_VERSION_25;
-		else if (JAVA_VERSION_STRING.startsWith("26.")) JAVA_VERSION = JAVA_VERSION_26;
-		else if (JAVA_VERSION_STRING.startsWith("27.")) JAVA_VERSION = JAVA_VERSION_27;
-		else if (JAVA_VERSION_STRING.startsWith("28.")) JAVA_VERSION = JAVA_VERSION_28;
-		else if (JAVA_VERSION_STRING.startsWith("29.")) JAVA_VERSION = JAVA_VERSION_29;
+		else if (JAVA_VERSION_STRING.startsWith("1.8.") || JAVA_VERSION_STRING.startsWith("8.")) JAVA_VERSION = JAVA_VERSION_8;
+		else if (JAVA_VERSION_STRING.startsWith("1.7.") || JAVA_VERSION_STRING.startsWith("7.")) JAVA_VERSION = JAVA_VERSION_7;
+		else if (JAVA_VERSION_STRING.startsWith("1.6.") || JAVA_VERSION_STRING.startsWith("6.")) JAVA_VERSION = JAVA_VERSION_6;
 
 		else JAVA_VERSION = 0;
 	}
@@ -263,15 +268,39 @@ public final class SystemUtil {
 	private static final Map<String, String> tokens = Collections.synchronizedMap(new AccessOrderLimitedSizeMap<String, String>(10000, 100));
 	private static ClassLoader loaderCL;
 	private static ClassLoader coreCL;
+	private static ClassLoader combCL;
 
 	public static ClassLoader getLoaderClassLoader() {
-		if (loaderCL == null) loaderCL = new TP().getClass().getClassLoader();
+		if (loaderCL == null) {
+			synchronized (tokens) {
+				if (loaderCL == null) {
+					loaderCL = new TP().getClass().getClassLoader();
+				}
+			}
+		}
 		return loaderCL;
 	}
 
 	public static ClassLoader getCoreClassLoader() {
-		if (coreCL == null) coreCL = new ClassLoaderHelper().getClass().getClassLoader();
+		if (coreCL == null) {
+			synchronized (tokens) {
+				if (coreCL == null) {
+					coreCL = new ClassLoaderHelper().getClass().getClassLoader();
+				}
+			}
+		}
 		return coreCL;
+	}
+
+	public static ClassLoader getCombinedClassLoader() {
+		if (combCL == null) {
+			synchronized (tokens) {
+				if (combCL == null) {
+					combCL = new CombinedClassLoader(SystemUtil.getLoaderClassLoader(), SystemUtil.getCoreClassLoader());
+				}
+			}
+		}
+		return combCL;
 	}
 
 	public static MemoryPoolMXBean getPermGenSpaceBean() {
@@ -1592,7 +1621,9 @@ public final class SystemUtil {
 
 			// check ClassLoader
 			if (cl == null) continue;
-			if (cl instanceof PhysicalClassLoader) continue;
+			if (cl instanceof PhysicalClassLoader) {
+				if (!((PhysicalClassLoader) cl).isRPC()) continue;
+			}
 			if (cl instanceof ArchiveClassLoader) continue;
 			if (cl instanceof MemoryClassLoader) continue;
 
@@ -1610,6 +1641,7 @@ public final class SystemUtil {
 			}
 			last = ref.context[i];
 		}
+
 		return context;
 	}
 

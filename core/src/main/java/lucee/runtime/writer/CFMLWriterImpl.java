@@ -39,23 +39,20 @@ import lucee.runtime.op.Caster;
  */
 public class CFMLWriterImpl extends CFMLWriter {
 
-	private static final int BUFFER_SIZE = 100000;
-	// private static final String VERSIONj = Info.getVersionAsString();
+	private static final int BUFFER_SIZE = 10000;
 	private OutputStream out;
 	private HttpServletResponse response;
 	private boolean flushed;
 	private StringBuilder htmlHead;
 	private StringBuilder htmlBody;
-	private StringBuilder buffer = new StringBuilder(BUFFER_SIZE);
+	private StringBuilder buffer;
 	private boolean closed = false;
 	private boolean closeConn;
-	private boolean showVersion;
 	private boolean contentLength;
 	private CacheItem cacheItem;
 	private HttpServletRequest request;
 	private Boolean _allowCompression;
 	private PageContext pc;
-	private String version;
 
 	/**
 	 * constructor of the class
@@ -73,14 +70,11 @@ public class CFMLWriterImpl extends CFMLWriter {
 		this.autoFlush = autoFlush;
 		this.bufferSize = bufferSize;
 		this.closeConn = closeConn;
-		this.showVersion = showVersion;
 		this.contentLength = contentLength;
-		// this.allowCompression=allowCompression;
-		version = pc.getConfig().getFactory().getEngine().getInfo().getVersion().toString();
 	}
 
 	private void _check() throws IOException {
-		if (autoFlush && buffer.length() > bufferSize) {
+		if (autoFlush && buffer != null && buffer.length() > bufferSize) {
 			_flush(true);
 		}
 	}
@@ -94,6 +88,7 @@ public class CFMLWriterImpl extends CFMLWriter {
 
 	@Override
 	public void print(char[] arg) throws IOException {
+		if (buffer == null) buffer = new StringBuilder(BUFFER_SIZE);
 		buffer.append(arg);
 		_check();
 	}
@@ -131,9 +126,8 @@ public class CFMLWriterImpl extends CFMLWriter {
 
 	@Override
 	public void flushHTMLBody() throws IOException {
-
 		if (htmlBody != null) {
-
+			if (buffer == null) buffer = new StringBuilder(BUFFER_SIZE);
 			buffer.append(htmlBody);
 			resetHTMLBody();
 		}
@@ -173,9 +167,8 @@ public class CFMLWriterImpl extends CFMLWriter {
 
 	@Override
 	public void flushHTMLHead() throws IOException {
-
 		if (htmlHead != null) {
-
+			if (buffer == null) buffer = new StringBuilder(BUFFER_SIZE);
 			buffer.append(htmlHead);
 			resetHTMLHead();
 		}
@@ -198,6 +191,7 @@ public class CFMLWriterImpl extends CFMLWriter {
 
 	@Override
 	public void write(char[] cbuf, int off, int len) throws IOException {
+		if (buffer == null) buffer = new StringBuilder(BUFFER_SIZE);
 		buffer.append(cbuf, off, len);
 		_check();
 	}
@@ -210,7 +204,7 @@ public class CFMLWriterImpl extends CFMLWriter {
 
 	@Override
 	public void clearBuffer() {
-		buffer = new StringBuilder(BUFFER_SIZE);
+		buffer = null;
 	}
 
 	@Override
@@ -248,15 +242,16 @@ public class CFMLWriterImpl extends CFMLWriter {
 		flushed = true;
 		out.write(barr);
 
-		buffer = new StringBuilder(BUFFER_SIZE); // to not change to clearBuffer, produce problem with CFMLWriterWhiteSpace.clearBuffer
+		buffer = null; // to not change to clearBuffer, produce problem with CFMLWriterWhiteSpace.clearBuffer
 	}
 
 	private String _toString(boolean releaseHeadData) {
 
-		if (htmlBody == null && htmlHead == null) return buffer.toString();
+		if (htmlBody == null && htmlHead == null) {
+			return buffer == null ? "" : buffer.toString();
+		}
 
-		String str = buffer.toString();
-
+		String str = buffer == null ? "" : buffer.toString();
 		if (htmlHead != null) {
 
 			int index = StringUtil.indexOfIgnoreCase(str, "</head>");
@@ -364,7 +359,7 @@ public class CFMLWriterImpl extends CFMLWriter {
 
 	@Override
 	public int getRemaining() {
-		return bufferSize - buffer.length();
+		return bufferSize - (buffer == null ? 0 : buffer.length());
 	}
 
 	@Override
@@ -379,6 +374,7 @@ public class CFMLWriterImpl extends CFMLWriter {
 
 	@Override
 	public void print(char arg) throws IOException {
+		if (buffer == null) buffer = new StringBuilder(BUFFER_SIZE);
 		buffer.append(arg);
 		_check();
 	}
@@ -406,6 +402,7 @@ public class CFMLWriterImpl extends CFMLWriter {
 
 	@Override
 	public void print(String arg) throws IOException {
+		if (buffer == null) buffer = new StringBuilder(BUFFER_SIZE);
 		buffer.append(arg);
 		_check();
 	}
@@ -490,6 +487,7 @@ public class CFMLWriterImpl extends CFMLWriter {
 
 	@Override
 	public void write(String str) throws IOException {
+		if (buffer == null) buffer = new StringBuilder(BUFFER_SIZE);
 		buffer.append(str);
 		_check();
 	}
@@ -512,6 +510,7 @@ public class CFMLWriterImpl extends CFMLWriter {
 	}
 
 	private void _print(String arg) throws IOException {
+		if (buffer == null) buffer = new StringBuilder(BUFFER_SIZE);
 		buffer.append(arg);
 		_check();
 	}

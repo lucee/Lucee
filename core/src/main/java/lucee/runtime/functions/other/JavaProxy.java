@@ -21,6 +21,7 @@
  */
 package lucee.runtime.functions.other;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 
@@ -76,7 +77,6 @@ public final class JavaProxy implements Function {
 	public static Class<?> loadClass(PageContext pc, String className, Object pathOrName, String delimiterOrVersion, Array aRelatedBundles) throws PageException {
 
 		if (StringUtil.isEmpty(pathOrName)) return loadClassByPath(pc, className, null);
-
 		String str = Caster.toString(pathOrName, null);
 		BundleDefinition[] relatedBundles = null;
 		if (aRelatedBundles != null) {
@@ -126,6 +126,15 @@ public final class JavaProxy implements Function {
 
 			return loadClassByPath(pc, className, arrPaths);
 		}
+		else if (Decision.isStruct(pathOrName)) {
+			JavaSettingsImpl js = (JavaSettingsImpl) JavaSettingsImpl.getInstance(pc.getConfig(), Caster.toStruct(pathOrName), null);
+			try {
+				return ClassUtil.loadClass(((PageContextImpl) pc).getClassLoader(js), className);
+			}
+			catch (IOException e) {
+				throw Caster.toPageException(e);
+			}
+		}
 
 		return loadClassByPath(pc, className, ListUtil.toStringArray(Caster.toArray(pathOrName)));
 	}
@@ -162,8 +171,11 @@ public final class JavaProxy implements Function {
 
 		// load class
 		try {
-
-			ClassLoader cl = resources.isEmpty() ? pci.getClassLoader() : pci.getClassLoader(resources.toArray(new Resource[resources.size()]));
+			JavaSettingsImpl js = null;
+			if (resources != null && !resources.isEmpty()) {
+				js = (JavaSettingsImpl) JavaSettingsImpl.getInstance(pc.getConfig(), null, resources);
+			}
+			ClassLoader cl = pci.getClassLoader(js);
 
 			Class clazz = null;
 			try {

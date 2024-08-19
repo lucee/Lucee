@@ -163,6 +163,66 @@
 				expect(result.filecontent.trim()).toBe("DESERIALISED");
 			});
 		});
+
+		describe( title="Test suite for comments", body=function() {
+			// we allowing, because other parser do as well (some)
+			it( "deserializeJson should allow json5, block comment by default", function(){
+				var str = '{
+					"name" : "lucee"
+					/*
+						block comment
+					*/
+				}';
+				structKeyExists( deserializeJson( str ), "name" );
+			});
+
+			it( "deserializeJson should allow json5, block comment when format is set to json5", function(){
+				var str = '{
+					"name" : "lucee"
+					/*
+						block comment
+					*/
+				}';
+				structKeyExists( deserializeJson( str,true,"json5" ), "name" );
+			});
+
+			it( "deserializeJson should NOT allow json5, block comment when format is set to json", function(){
+				var str = '{
+					"name" : "lucee"
+					/*
+						block comment
+					*/
+				}';
+				expect( function(){
+					structKeyExists( deserializeJson( str,true,"json" ), "name" ) 
+				}).toThrow();
+			});
+
+
+			// we allowing, because other parser do as well (some)
+			it( "deserializeJson should allow json5, single line comment by default", function(){
+				var str = '{
+					"name" : "lucee" // single line
+				}';
+				structKeyExists( deserializeJson( str ), "name" ) ;
+			});
+
+			it( "deserializeJson should allow json5, single line comment when format is set to json5", function(){
+				var str = '{
+					"name" : "lucee" // single line
+				}';
+				structKeyExists( deserializeJson( str,true,"json5" ), "name" );
+			});
+
+			it( "deserializeJson should NOT allow json5, single line comment when format is set to json", function(){
+				var str = '{
+					"name" : "lucee" // single line
+				}';
+				expect( function(){
+					structKeyExists( deserializeJson( str,true,"json" ), "name" ) 
+				}).toThrow();
+			});
+		});
 	}
 
 	private function toHex(nbr){

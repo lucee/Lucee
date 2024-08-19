@@ -1,7 +1,7 @@
 component {
 	this.name =	"sample";
 	mySQL = getCredentials();
-	this.datasource =  = mySQL;
+	this.datasource = mySQL;
 	
 	public function onRequestStart() {
 		setting requesttimeout=10 showdebugOutput=false;

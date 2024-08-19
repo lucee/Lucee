@@ -41,6 +41,7 @@ import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.CharSet;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.Pair;
+import lucee.commons.lang.SerializableObject;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.types.RefBoolean;
 import lucee.runtime.Component;
@@ -54,11 +55,11 @@ import lucee.runtime.cache.CacheUtil;
 import lucee.runtime.component.Member;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigPro;
+import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.config.ConfigWebUtil;
 import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.db.DataSource;
 import lucee.runtime.engine.ThreadLocalPageContext;
-import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.DeprecatedException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageRuntimeException;
@@ -164,6 +165,8 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	private static final Key USE_JAVA_AS_REGEX_ENGINE = KeyConstants._useJavaAsRegexEngine;
 
 	private static Map<String, CacheConnection> initCacheConnections = new ConcurrentHashMap<String, CacheConnection>();
+	private static Object token = new SerializableObject();
+	private static JavaSettings defaultJavaSettings;
 
 	private Component component;
 
@@ -269,6 +272,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	private boolean initRestSetting;
 	private RestSettings restSetting;
 	private boolean initJavaSettings;
+	private boolean initJavaSettingsBefore;
 	private JavaSettings javaSettings;
 	private Object ormDatasource;
 	private Locale locale;
@@ -362,7 +366,6 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 		this.limitEvaluation = ci.limitEvaluation();
 		this.triggerComponentDataMember = config.getTriggerComponentDataMember();
 		this.restSetting = config.getRestSetting();
-		this.javaSettings = new JavaSettingsImpl();
 		this.component = cfc;
 		this.regex = ci.getRegex();
 		this.preciseMath = ci.getPreciseMath();
@@ -997,12 +1000,9 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 		}
 	}
 
-	public static CacheConnection toCacheConnection(Config config, String name, Struct data) throws ApplicationException {
+	public static CacheConnection toCacheConnection(Config config, String name, Struct data) {
 		// class definition
-		String className = Caster.toString(data.get(KeyConstants._class, null), null);
-		if (StringUtil.isEmpty(className)) throw new ApplicationException("missing key class in struct the defines a cachec connection");
-		ClassDefinition cd = new ClassDefinitionImpl(className, Caster.toString(data.get(KeyConstants._bundleName, null), null),
-				Caster.toString(data.get(KeyConstants._bundleVersion, null), null), config.getIdentification());
+		ClassDefinition cd = ClassDefinitionImpl.toClassDefinitionImpl(data, null, true, config.getIdentification());
 
 		CacheConnectionImpl cc = new CacheConnectionImpl(config, name, cd, Caster.toStruct(data.get(KeyConstants._custom, null), null),
 				Caster.toBooleanValue(data.get(KeyConstants._readonly, null), false), Caster.toBooleanValue(data.get(KeyConstants._storage, null), false));
@@ -1309,6 +1309,12 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	public void setShowTest(boolean b) {
 		if (!initMonitor) initMonitor();
 		showTest = b;
+	}
+
+	@Override
+	public int getDebugOptions() {
+		if (!initMonitor) initMonitor();
+		return debugging;
 	}
 
 	@Override
@@ -1795,24 +1801,41 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 
 	@Override
 	public JavaSettings getJavaSettings() {
-		initJava();
+
+		return initJava();
+	}
+
+	private JavaSettings initJava() {
+		if (!initJavaSettings) {
+			// PATCH to avoid cycle
+			if (initJavaSettingsBefore) {
+				return getDefaultJavaSettings(config);
+			}
+			initJavaSettingsBefore = true;
+
+			Object o = get(component, JAVA_SETTING, null);
+			if (o != null && Decision.isStruct(o)) {
+				javaSettings = JavaSettingsImpl.getInstance(config, Caster.toStruct(o, null), null);
+				javaSettings = JavaSettingsImpl.merge(config, javaSettings, getDefaultJavaSettings(config));
+			}
+			if (javaSettings == null) {
+				javaSettings = getDefaultJavaSettings(config);
+			}
+			initJavaSettings = true;
+			initJavaSettingsBefore = false;
+		}
 		return javaSettings;
 	}
 
-	private void initJava() {
-		if (!initJavaSettings) {
-			Object o = get(component, JAVA_SETTING, null);
-			if (o != null && Decision.isStruct(o)) {
-				try {
-					javaSettings = JavaSettingsImpl.newInstance(javaSettings, Caster.toStruct(o, null));
+	public static JavaSettings getDefaultJavaSettings(ConfigWeb config) {
+		if (defaultJavaSettings == null) {
+			synchronized (token) {
+				if (defaultJavaSettings == null) {
+					defaultJavaSettings = ((ConfigPro) config).getJavaSettings();// JavaSettingsImpl.getInstance(config, new StructImpl());
 				}
-				catch (PageException e) {
-					throw new PageRuntimeException(e);
-				}
-
 			}
-			initJavaSettings = true;
 		}
+		return defaultJavaSettings;
 	}
 
 	@Override

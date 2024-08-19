@@ -116,6 +116,7 @@ import lucee.runtime.gateway.GatewayEntryImpl;
 import lucee.runtime.listener.AppListenerUtil;
 import lucee.runtime.listener.SerializationSettings;
 import lucee.runtime.monitor.Monitor;
+import lucee.runtime.net.ntp.NtpClient;
 import lucee.runtime.net.proxy.ProxyData;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
@@ -399,9 +400,7 @@ public final class ConfigAdmin {
 		else {
 			setClass(logger, null, "appender", ci.getLogEngine().appenderClassDefintion("resource"));
 			setClass(logger, null, "layout", ci.getLogEngine().layoutClassDefintion("classic"));
-			Struct args = new StructImpl();
-			args.set(KeyConstants._path, logFile);
-			logger.setEL("appenderArguments", args);
+			logger.setEL("appenderArguments", "path:" + logFile);
 		}
 		logger.setEL("logLevel", level);
 	}
@@ -1190,7 +1189,7 @@ public final class ConfigAdmin {
 		if (fileLib.length() != resJar.length()) {
 			IOUtil.closeEL(config.getClassLoader());
 			ResourceUtil.copy(resJar, fileLib);
-			if (reloadWhenClassicJar) ConfigWebUtil.reloadLib(config);
+			// NEXT if (reloadWhenClassicJar) ConfigWebUtil.reloadLib(config);
 		}
 	}
 
@@ -1463,25 +1462,25 @@ public final class ConfigAdmin {
 				if (!StringUtil.isEmpty(id)) el.setEL(KeyConstants._id, id);
 				else if (el.containsKey(KeyConstants._id)) el.removeEL(KeyConstants._id);
 
-				el.setEL("dsn", dsn);
-				el.setEL("username", username);
-				el.setEL("password", ConfigWebUtil.encrypt(password));
+				el.setEL(KeyConstants._dsn, dsn);
+				el.setEL(KeyConstants._username, username);
+				el.setEL(KeyConstants._password, ConfigWebUtil.encrypt(password));
 
-				el.setEL("host", host);
+				el.setEL(KeyConstants._host, host);
 				if (!StringUtil.isEmpty(timezone)) el.setEL(KeyConstants._timezone, timezone);
 				else if (el.containsKey(KeyConstants._timezone)) el.removeEL(KeyConstants._timezone);
-				el.setEL("database", database);
-				el.setEL("port", Caster.toString(port));
-				el.setEL("connectionLimit", Caster.toString(connectionLimit));
-				el.setEL("connectionTimeout", Caster.toString(idleTimeout));
-				el.setEL("liveTimeout", Caster.toString(liveTimeout));
-				el.setEL("metaCacheTimeout", Caster.toString(metaCacheTimeout));
-				el.setEL("blob", Caster.toString(blob));
-				el.setEL("clob", Caster.toString(clob));
-				el.setEL("allow", Caster.toString(allow));
-				el.setEL("validate", Caster.toString(validate));
-				el.setEL("storage", Caster.toString(storage));
-				el.setEL("custom", toStringURLStyle(custom));
+				el.setEL(KeyConstants._database, database);
+				el.setEL(KeyConstants._port, Caster.toString(port));
+				el.setEL(KeyConstants._connectionLimit, Caster.toString(connectionLimit));
+				el.setEL(KeyConstants._connectionTimeout, Caster.toString(idleTimeout));
+				el.setEL(KeyConstants._liveTimeout, Caster.toString(liveTimeout));
+				el.setEL(KeyConstants._metaCacheTimeout, Caster.toString(metaCacheTimeout));
+				el.setEL(KeyConstants._blob, Caster.toString(blob));
+				el.setEL(KeyConstants._clob, Caster.toString(clob));
+				el.setEL(KeyConstants._allow, Caster.toString(allow));
+				el.setEL(KeyConstants._validate, Caster.toString(validate));
+				el.setEL(KeyConstants._storage, Caster.toString(storage));
+				el.setEL(KeyConstants._custom, custom);
 
 				if (!StringUtil.isEmpty(dbdriver)) el.setEL("dbdriver", Caster.toString(dbdriver));
 
@@ -1541,7 +1540,7 @@ public final class ConfigAdmin {
 		el.setEL("validate", Caster.toString(validate));
 		el.setEL("storage", Caster.toString(storage));
 		if (allow > -1) el.setEL("allow", Caster.toString(allow));
-		el.setEL("custom", toStringURLStyle(custom));
+		el.setEL("custom", custom);
 
 		if (!StringUtil.isEmpty(dbdriver)) el.setEL("dbdriver", Caster.toString(dbdriver));
 
@@ -1625,6 +1624,24 @@ public final class ConfigAdmin {
 		}
 	}
 
+	private void _removeStartupHook(String component) {
+
+		Array children = ConfigWebUtil.getAsArray("startupHooks", root);
+		Key[] keys = children.keys();
+		// Remove
+		for (int i = keys.length - 1; i >= 0; i--) {
+			Key key = keys[i];
+			Struct tmp = Caster.toStruct(children.get(key, null), null);
+			if (tmp == null) continue;
+
+			String n = Caster.toString(tmp.get(KeyConstants._component, null), null);
+			if (n != null && n.equalsIgnoreCase(component)) {
+				children.removeEL(key);
+				break;
+			}
+		}
+	}
+
 	private void unloadStartupIfNecessary(ConfigPro config, ClassDefinition<?> cd, boolean force) {
 		ConfigBase.Startup startup = config.getStartups().get(cd.getClassName());
 		if (startup == null) return;
@@ -1641,12 +1658,12 @@ public final class ConfigAdmin {
 		}
 	}
 
-	public void updateJDBCDriver(String label, String id, ClassDefinition cd) throws PageException {
+	public void updateJDBCDriver(String label, String id, ClassDefinition cd, String connectionString) throws PageException {
 		checkWriteAccess();
-		_updateJDBCDriver(label, id, cd);
+		_updateJDBCDriver(label, id, cd, connectionString);
 	}
 
-	private void _updateJDBCDriver(String label, String id, ClassDefinition cd) throws PageException {
+	private void _updateJDBCDriver(String label, String id, ClassDefinition cd, String connectionString) throws PageException {
 
 		// check if label exists
 		if (StringUtil.isEmpty(label)) throw new ApplicationException("missing label for jdbc driver [" + cd.getClassName() + "]");
@@ -1674,6 +1691,8 @@ public final class ConfigAdmin {
 		}
 
 		child.setEL("label", label);
+		if (!StringUtil.isEmpty(connectionString, true)) child.setEL("connectionString", connectionString);
+
 		if (!StringUtil.isEmpty(id)) child.setEL(KeyConstants._id, id);
 		else child.removeEL(KeyConstants._id);
 		// make sure the class exists
@@ -1735,6 +1754,34 @@ public final class ConfigAdmin {
 		}
 	}
 
+	private void _updateStartupHook(String component) {
+		// unloadStartupIfNecessary(config, cd, false);
+
+		Array children = ConfigWebUtil.getAsArray("startupHooks", root);
+
+		// Update
+		Struct child = null;
+		for (int i = 1; i <= children.size(); i++) {
+			Struct tmp = Caster.toStruct(children.get(i, null), null);
+			if (tmp == null) continue;
+
+			String n = ConfigWebUtil.getAsString("component", tmp, null);
+			if (n.equalsIgnoreCase(component)) {
+				child = tmp;
+				break;
+			}
+		}
+
+		// Insert
+		if (child == null) {
+			child = new StructImpl(Struct.TYPE_LINKED);
+			children.appendEL(child);
+		}
+
+		// make sure the class exists
+		child.setEL(KeyConstants._component, component);
+	}
+
 	public void updateGatewayEntry(String id, ClassDefinition cd, String componentPath, String listenerCfcPath, int startupMode, Struct custom, boolean readOnly)
 			throws PageException {
 		checkWriteAccess();
@@ -1766,7 +1813,7 @@ public final class ConfigAdmin {
 				el.setEL("cfcPath", componentPath);
 				el.setEL("listenerCFCPath", listenerCfcPath);
 				el.setEL("startupMode", GatewayEntryImpl.toStartup(startupMode, "automatic"));
-				el.setEL("custom", toStringURLStyle(custom));
+				el.setEL("custom", custom);
 				el.setEL("readOnly", Caster.toString(readOnly));
 				return;
 			}
@@ -1779,7 +1826,7 @@ public final class ConfigAdmin {
 		el.setEL("listenerCFCPath", listenerCfcPath);
 		el.setEL("startupMode", GatewayEntryImpl.toStartup(startupMode, "automatic"));
 		setClass(el, null, "", cd);
-		el.setEL("custom", toStringURLStyle(custom));
+		el.setEL("custom", custom);
 		el.setEL("readOnly", Caster.toString(readOnly));
 	}
 
@@ -1929,7 +1976,7 @@ public final class ConfigAdmin {
 			if (key.getString().equalsIgnoreCase(name)) {
 				Struct el = Caster.toStruct(conns.get(key, null), null);
 				setClass(el, null, "", cd);
-				el.setEL("custom", toStringURLStyle(custom));
+				el.setEL("custom", custom);
 				el.setEL("readOnly", Caster.toString(readOnly));
 				el.setEL("storage", Caster.toString(storage));
 				return;
@@ -1940,7 +1987,7 @@ public final class ConfigAdmin {
 		Struct data = new StructImpl(Struct.TYPE_LINKED);
 		conns.setEL(name, data);
 		setClass(data, null, "", cd);
-		data.setEL("custom", toStringURLStyle(custom));
+		data.setEL("custom", custom);
 		data.setEL("readOnly", Caster.toString(readOnly));
 		data.setEL("storage", Caster.toString(storage));
 
@@ -2128,21 +2175,6 @@ public final class ConfigAdmin {
 		return len;
 	}
 
-	private static String toStringURLStyle(Struct sct) {
-		if (sct == null) return "";
-		Iterator<Entry<Key, Object>> it = sct.entryIterator();
-		Entry<Key, Object> e;
-		StringBuilder rtn = new StringBuilder();
-		while (it.hasNext()) {
-			e = it.next();
-			if (rtn.length() > 0) rtn.append('&');
-			rtn.append(URLEncoder.encode(e.getKey().getString()));
-			rtn.append('=');
-			rtn.append(URLEncoder.encode(Caster.toString(e.getValue(), "")));
-		}
-		return rtn.toString();
-	}
-
 	private static String encode(String str) {
 		try {
 			return URLEncodedFormat.invoke(str, "UTF-8", false);
@@ -2182,7 +2214,7 @@ public final class ConfigAdmin {
 		String cn = ConfigWebUtil.getAsString("class", p, null);
 		String name = ConfigWebUtil.getAsString("bundleName", p, null);
 		String version = ConfigWebUtil.getAsString("bundleVersion", p, null);
-		ClassDefinition cd = new ClassDefinitionImpl(cn, name, version, ThreadLocalPageContext.getConfig().getIdentification());
+		ClassDefinition cd = ClassDefinitionImpl.toClassDefinitionImpl(p, null, false, ThreadLocalPageContext.getConfig().getIdentification());
 		String scheme = Caster.toString(p.get("scheme", null), null);
 		if (StringUtil.isEmpty(scheme)) {
 			try {
@@ -2878,6 +2910,37 @@ public final class ConfigAdmin {
 
 		root.setEL("timezone", timeZone.trim());
 
+	}
+
+	/**
+	 * update the timeServer
+	 * 
+	 * @param timeServer
+	 * @param useTimeServer
+	 * @throws PageException
+	 */
+	public void updateTimeServer(String timeServer, Boolean useTimeServer) throws PageException {
+		checkWriteAccess();
+		if (useTimeServer != null && useTimeServer.booleanValue() && !StringUtil.isEmpty(timeServer, true)) {
+			try {
+				new NtpClient(timeServer).getOffset();
+			}
+			catch (IOException e) {
+				try {
+					new NtpClient(timeServer).getOffset();
+				}
+				catch (IOException ee) {
+					throw Caster.toPageException(ee);
+				}
+			}
+		}
+
+		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
+		if (!hasAccess) throw new SecurityException("no access to update regional setting");
+
+		root.setEL("timeserver", timeServer.trim());
+		if (useTimeServer != null) root.setEL("useTimeserver", Caster.toBooleanValue(useTimeServer));
+		else rem(root, "useTimeserver");
 	}
 
 	public void updateComponentDeepSearch(Boolean deepSearch) throws SecurityException {
@@ -3945,7 +4008,7 @@ public final class ConfigAdmin {
 				for (ConfigWeb cw: webs) {
 					try {
 						for (RHExtension ext: ((ConfigPro) cw).getRHExtensions()) {
-							ext.addToAvailable();
+							ext.addToAvailable(cw);
 						}
 					}
 					catch (Exception e) {
@@ -4356,7 +4419,7 @@ public final class ConfigAdmin {
 			if (child == null) continue;
 
 			try {
-				rhe = new RHExtension(config, Caster.toString(child.get(KeyConstants._id), null), Caster.toString(child.get(KeyConstants._version), null));
+				rhe = RHExtension.getInstance(config, Caster.toString(child.get(KeyConstants._id), null), Caster.toString(child.get(KeyConstants._version), null));
 			}
 			catch (Throwable t) {
 				ExceptionUtil.rethrowIfNecessary(t);
@@ -4390,12 +4453,12 @@ public final class ConfigAdmin {
 	public static void updateCore(ConfigServerImpl config, Resource core, boolean reload) throws PageException {
 		try {
 			// get patches directory
-			CFMLEngineFactory factory = ConfigWebUtil.getCFMLEngineFactory(config);
+			CFMLEngine engine = ConfigWebUtil.getEngine(config);
 			ConfigServerImpl cs = config;
 			Version v;
 			v = CFMLEngineFactory.toVersion(core.getName(), null);
 			Log logger = cs.getLog("deploy");
-			File f = factory.getResourceRoot();
+			File f = engine.getCFMLEngineFactory().getResourceRoot();
 			Resource res = ResourcesImpl.getFileResourceProvider().getResource(f.getAbsolutePath());
 			Resource pd = res.getRealResource("patches");
 			if (!pd.exists()) pd.mkdirs();
@@ -4515,10 +4578,10 @@ public final class ConfigAdmin {
 	public RHExtension updateRHExtension(Config config, Resource ext, boolean reload, boolean force, short action) throws PageException {
 		RHExtension rhext;
 		try {
-			rhext = new RHExtension(config, ext);
-			if (RHExtension.ACTION_COPY == action) rhext.copyToInstalled();
-			else if (RHExtension.ACTION_MOVE == action) rhext.moveToInstalled();
-			rhext.validate();
+			rhext = RHExtension.getInstance(config, ext);
+			if (RHExtension.ACTION_COPY == action) rhext.copyToInstalled(config);
+			else if (RHExtension.ACTION_MOVE == action) rhext.moveToInstalled(config);
+			rhext.validate(config);
 		}
 		catch (Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);
@@ -4551,13 +4614,8 @@ public final class ConfigAdmin {
 
 	public void updateRHExtension(Config config, RHExtension rhext, boolean reload, boolean force) throws PageException {
 		try {
-			if (!force && ConfigAdmin.hasRHExtensionInstalled((ConfigPro) config, rhext.toExtensionDefinition()) != null) {
-				String msg = "the extension " + rhext.getName() + " (id: " + rhext.getId() + ") in version " + rhext.getVersion() + " is already installed";
-				Log log = config.getLog("deploy");
-				if (log != null) {
-					log.debug("install", msg);
-				}
-				return;
+			if (!force && _hasRHExtensionInstalled((ConfigPro) config, rhext.toExtensionDefinition()) != null) {
+				throw new ApplicationException("the extension " + rhext.getName() + " (id: " + rhext.getId() + ") in version " + rhext.getVersion() + " is already installed");
 			}
 		}
 		catch (Exception e) {
@@ -4731,7 +4789,7 @@ public final class ConfigAdmin {
 				Map<String, String> map;
 				while (itl.hasNext()) {
 					map = itl.next();
-					ClassDefinition cd = RHExtension.toClassDefinition(config, map, null);
+					ClassDefinition cd = ClassDefinitionImpl.toClassDefinition(map, false, config.getIdentification());
 					if (cd != null && cd.isBundle()) {
 						_updateCache(cd);
 						reloadNecessary = true;
@@ -4746,7 +4804,7 @@ public final class ConfigAdmin {
 				Map<String, String> map;
 				while (itl.hasNext()) {
 					map = itl.next();
-					ClassDefinition cd = RHExtension.toClassDefinition(config, map, null);
+					ClassDefinition cd = ClassDefinitionImpl.toClassDefinition(map, false, config.getIdentification());
 					String _id = map.get("id");
 					if (!StringUtil.isEmpty(_id) && cd != null && cd.hasClass()) {
 						_updateCacheHandler(_id, cd);
@@ -4762,7 +4820,7 @@ public final class ConfigAdmin {
 				Map<String, String> map;
 				while (itl.hasNext()) {
 					map = itl.next();
-					ClassDefinition cd = RHExtension.toClassDefinition(config, map, null);
+					ClassDefinition cd = ClassDefinitionImpl.toClassDefinition(map, false, config.getIdentification());
 					if (cd != null && cd.hasClass()) {
 						_updateSearchEngine(cd);
 						reloadNecessary = true;
@@ -4777,7 +4835,7 @@ public final class ConfigAdmin {
 				Map<String, String> map;
 				while (itl.hasNext()) {
 					map = itl.next();
-					ClassDefinition cd = RHExtension.toClassDefinition(config, map, null);
+					ClassDefinition cd = ClassDefinitionImpl.toClassDefinition(map, false, config.getIdentification());
 					String scheme = map.get("scheme");
 					if (cd != null && cd.hasClass() && !StringUtil.isEmpty(scheme)) {
 						Struct args = new StructImpl(Struct.TYPE_LINKED);
@@ -4796,7 +4854,7 @@ public final class ConfigAdmin {
 				Map<String, String> map;
 				while (itl.hasNext()) {
 					map = itl.next();
-					ClassDefinition cd = RHExtension.toClassDefinition(config, map, null);
+					ClassDefinition cd = ClassDefinitionImpl.toClassDefinition(map, false, config.getIdentification());
 
 					if (cd != null && cd.hasClass()) {
 						_updateORMEngine(cd);
@@ -4812,7 +4870,7 @@ public final class ConfigAdmin {
 				Map<String, String> map;
 				while (itl.hasNext()) {
 					map = itl.next();
-					ClassDefinition cd = RHExtension.toClassDefinition(config, map, null);
+					ClassDefinition cd = ClassDefinitionImpl.toClassDefinition(map, false, config.getIdentification());
 
 					if (cd != null && cd.hasClass()) {
 						_updateWebserviceHandler(cd);
@@ -4828,7 +4886,7 @@ public final class ConfigAdmin {
 				Map<String, String> map;
 				while (itl.hasNext()) {
 					map = itl.next();
-					ClassDefinition cd = RHExtension.toClassDefinition(config, map, null);
+					ClassDefinition cd = ClassDefinitionImpl.toClassDefinition(map, false, config.getIdentification());
 					if (cd != null && cd.hasClass()) {
 						_updateMonitorEnabled(true);
 						_updateMonitor(cd, map.get("type"), map.get("name"), true);
@@ -4844,11 +4902,13 @@ public final class ConfigAdmin {
 				Map<String, String> map;
 				while (itl.hasNext()) {
 					map = itl.next();
-					ClassDefinition cd = RHExtension.toClassDefinition(config, map, null);
+					ClassDefinition cd = ClassDefinitionImpl.toClassDefinition(map, false, config.getIdentification());
 					String _label = map.get("label");
 					String _id = map.get("id");
+					String _dsn = map.get("connectionString");
+					if (StringUtil.isEmpty(_dsn, true)) _dsn = map.get("dsn");
 					if (cd != null && cd.isBundle()) {
-						_updateJDBCDriver(_label, _id, cd);
+						_updateJDBCDriver(_label, _id, cd, _dsn);
 						reloadNecessary = true;
 					}
 					logger.info("extension", "Update JDBC Driver [" + _label + ":" + cd + "] from extension [" + rhext.getName() + ":" + rhext.getVersion() + "]");
@@ -4861,12 +4921,21 @@ public final class ConfigAdmin {
 				Map<String, String> map;
 				while (itl.hasNext()) {
 					map = itl.next();
-					ClassDefinition cd = RHExtension.toClassDefinition(config, map, null);
+					ClassDefinition cd = ClassDefinitionImpl.toClassDefinition(map, false, config.getIdentification());
+					String cfc = map.get("component");
+
+					// class
 					if (cd != null && cd.isBundle()) {
 						_updateStartupHook(cd);
 						reloadNecessary = true;
+						logger.info("extension", "Update Startup Hook [" + cd + "] from extension [" + rhext.getName() + ":" + rhext.getVersion() + "]");
 					}
-					logger.info("extension", "Update Startup Hook [" + cd + "] from extension [" + rhext.getName() + ":" + rhext.getVersion() + "]");
+					// component
+					else if (!StringUtil.isEmpty(cfc, true)) {
+						_updateStartupHook(cfc);
+						reloadNecessary = true;
+						logger.info("extension", "Update Startup Hook [" + cfc + "] from extension [" + rhext.getName() + ":" + rhext.getVersion() + "]");
+					}
 				}
 			}
 
@@ -4932,25 +5001,34 @@ public final class ConfigAdmin {
 					// id
 					String id = Caster.toString(map.get("id"), null);
 					// class
-					ClassDefinition cd = RHExtension.toClassDefinition(config, map, null);
+					ClassDefinition cd = ClassDefinitionImpl.toClassDefinition(map, false, config.getIdentification());
 					// component path
 					String cfcPath = Caster.toString(map.get("cfcPath"), null);
+					if (StringUtil.isEmpty(cfcPath)) cfcPath = Caster.toString(map.get("cfc-path"), null);
 					if (StringUtil.isEmpty(cfcPath)) cfcPath = Caster.toString(map.get("componentPath"), null);
+					if (StringUtil.isEmpty(cfcPath)) cfcPath = Caster.toString(map.get("component-path"), null);
+
 					// listener component path
 					String listenerCfcPath = Caster.toString(map.get("listenerCFCPath"), null);
 					if (StringUtil.isEmpty(listenerCfcPath)) listenerCfcPath = Caster.toString(map.get("listenerComponentPath"), null);
 					// startup mode
 					String strStartupMode = Caster.toString(map.get("startupMode"), "automatic");
+					if (StringUtil.isEmpty(strStartupMode)) strStartupMode = Caster.toString(map.get("startup-mode"), "automatic");
 					int startupMode = GatewayEntryImpl.toStartup(strStartupMode, GatewayEntryImpl.STARTUP_MODE_AUTOMATIC);
 					// read only
-					boolean readOnly = Caster.toBooleanValue(map.get("readOnly"), false);
+					String strReadOnly = Caster.toString(map.get("readOnly"), null);
+					if (StringUtil.isEmpty(strReadOnly)) strReadOnly = Caster.toString(map.get("read-only"), null);
+					boolean readOnly = Caster.toBooleanValue(strReadOnly, false);
 					// custom
 					Struct custom = Caster.toStruct(map.get("custom"), null);
-					/*
-					 * print.e("::::::::::::::::::::::::::::::::::::::::::"); print.e("id:"+id); print.e("cd:"+cd);
-					 * print.e("cfc:"+cfcPath); print.e("listener:"+listenerCfcPath);
-					 * print.e("startupMode:"+startupMode); print.e(custom);
-					 */
+
+					// print.e("::::::::::::::::::::::::::::::::::::::::::");
+					// print.e("id:" + id);
+					// print.e("cd:" + cd);
+					// print.e("cfc:" + cfcPath);
+					// print.e("listener:" + listenerCfcPath);
+					// print.e("startupMode:" + startupMode);
+					// print.e(custom);
 
 					if (!StringUtil.isEmpty(id) && (!StringUtil.isEmpty(cfcPath) || (cd != null && cd.hasClass()))) {
 						_updateGatewayEntry(id, cd, cfcPath, listenerCfcPath, startupMode, custom, readOnly);
@@ -5059,7 +5137,7 @@ public final class ConfigAdmin {
 				Map<String, String> map;
 				while (itl.hasNext()) {
 					map = itl.next();
-					ClassDefinition cd = RHExtension.toClassDefinition(config, map, null);
+					ClassDefinition cd = ClassDefinitionImpl.toClassDefinition(map, false, config.getIdentification());
 					String _id = map.get("id");
 
 					if (!StringUtil.isEmpty(_id) && cd != null && cd.hasClass()) {
@@ -5076,7 +5154,7 @@ public final class ConfigAdmin {
 				Map<String, String> map;
 				while (itl.hasNext()) {
 					map = itl.next();
-					ClassDefinition cd = RHExtension.toClassDefinition(config, map, null);
+					ClassDefinition cd = ClassDefinitionImpl.toClassDefinition(map, false, config.getIdentification());
 					if (cd != null && cd.isBundle()) {
 						_removeCache(cd);
 						// reload=true;
@@ -5091,7 +5169,7 @@ public final class ConfigAdmin {
 				Map<String, String> map;
 				while (itl.hasNext()) {
 					map = itl.next();
-					ClassDefinition cd = RHExtension.toClassDefinition(config, map, null);
+					ClassDefinition cd = ClassDefinitionImpl.toClassDefinition(map, false, config.getIdentification());
 					if (cd != null && cd.hasClass()) {
 						_removeSearchEngine();
 						// reload=true;
@@ -5106,7 +5184,7 @@ public final class ConfigAdmin {
 				Map<String, String> map;
 				while (itl.hasNext()) {
 					map = itl.next();
-					ClassDefinition cd = RHExtension.toClassDefinition(config, map, null);
+					ClassDefinition cd = ClassDefinitionImpl.toClassDefinition(map, false, config.getIdentification());
 					String scheme = map.get("scheme");
 					if (cd != null && cd.hasClass()) {
 						_removeResourceProvider(scheme);
@@ -5121,7 +5199,7 @@ public final class ConfigAdmin {
 				Map<String, String> map;
 				while (itl.hasNext()) {
 					map = itl.next();
-					ClassDefinition cd = RHExtension.toClassDefinition(config, map, null);
+					ClassDefinition cd = ClassDefinitionImpl.toClassDefinition(map, false, config.getIdentification());
 
 					if (cd != null && cd.hasClass()) {
 						_removeORMEngine();
@@ -5137,7 +5215,7 @@ public final class ConfigAdmin {
 				Map<String, String> map;
 				while (itl.hasNext()) {
 					map = itl.next();
-					ClassDefinition cd = RHExtension.toClassDefinition(config, map, null);
+					ClassDefinition cd = ClassDefinitionImpl.toClassDefinition(map, false, config.getIdentification());
 
 					if (cd != null && cd.hasClass()) {
 						_removeWebserviceHandler();
@@ -5171,7 +5249,7 @@ public final class ConfigAdmin {
 				Map<String, String> map;
 				while (itl.hasNext()) {
 					map = itl.next();
-					ClassDefinition cd = RHExtension.toClassDefinition(config, map, null);
+					ClassDefinition cd = ClassDefinitionImpl.toClassDefinition(map, false, config.getIdentification());
 					if (cd != null && cd.isBundle()) {
 						_removeJDBCDriver(cd);
 					}
@@ -5185,9 +5263,14 @@ public final class ConfigAdmin {
 				Map<String, String> map;
 				while (itl.hasNext()) {
 					map = itl.next();
-					ClassDefinition cd = RHExtension.toClassDefinition(config, map, null);
+					ClassDefinition cd = ClassDefinitionImpl.toClassDefinition(map, false, config.getIdentification());
+					String cfc = map.get("component");
+
 					if (cd != null && cd.isBundle()) {
 						_removeStartupHook(cd);
+					}
+					else if (!StringUtil.isEmpty(cfc, true)) {
+						_removeStartupHook(cfc);
 					}
 					logger.info("extension", "Remove Startup Hook [" + cd + "] from extension [" + rhe.getName() + ":" + rhe.getVersion() + "]");
 				}
@@ -5492,7 +5575,7 @@ public final class ConfigAdmin {
 		usage.setEL(code, displayname);
 
 		Struct extensions = _getRootElement("remoteClients");
-		extensions.setEL("usage", toStringURLStyle(usage));
+		extensions.setEL("usage", usage);
 
 	}
 
@@ -5508,7 +5591,7 @@ public final class ConfigAdmin {
 		usage.removeEL(KeyImpl.init(code));
 
 		Struct extensions = _getRootElement("remoteClients");
-		extensions.setEL("usage", toStringURLStyle(usage));
+		extensions.setEL("usage", usage);
 
 	}
 
@@ -5638,7 +5721,7 @@ public final class ConfigAdmin {
 		el.setEL("label", label);
 		el.setEL("path", path);
 		el.setEL("fullname", fullname);
-		el.setEL("custom", toStringURLStyle(custom));
+		el.setEL("custom", custom);
 	}
 
 	public void removeDebugEntry(String id) throws SecurityException {
@@ -6317,7 +6400,7 @@ public final class ConfigAdmin {
 					Resource r;
 					if (!StringUtil.isEmpty(res) && (r = ResourceUtil.toResourceExisting(config, res, null)) != null) {
 						try {
-							RHExtension _ext = new RHExtension(config, r);// TODO not load it again!
+							RHExtension _ext = RHExtension.getInstance(config, r);// TODO not load it again!
 							if (_ext != null && _ext.getId().equalsIgnoreCase(ext.getId())) {
 								old = RHExtension.toBundleDefinitions(ConfigWebUtil.getAsString("bundles", el, null)); // get existing bundles before populate new ones
 								ext.populate(el, false);
@@ -6373,7 +6456,7 @@ public final class ConfigAdmin {
 				if (!id.equals(_id)) continue;
 
 				try {
-					return new RHExtension(config, _id, Caster.toString(tmp.get(KeyConstants._version), null));
+					return RHExtension.getInstance(config, _id, Caster.toString(tmp.get(KeyConstants._version), null));
 				}
 				catch (Exception e) {
 					return defaultValue;
@@ -6412,7 +6495,7 @@ public final class ConfigAdmin {
 				v = Caster.toString(sct.get(KeyConstants._version, null), null);
 				if (!RHExtension.isInstalled(config, id, v)) continue;
 
-				if (ed.equals(new ExtensionDefintion(id, v))) return new RHExtension(config, id, v);
+				if (ed.equals(new ExtensionDefintion(id, v))) return RHExtension.getInstance(config, id, v);
 			}
 			return null;
 		}
@@ -6590,6 +6673,6 @@ public final class ConfigAdmin {
 	public void updateConfig(Struct data, boolean flushExistingData) throws SecurityException {
 		checkWriteAccess();
 		if (flushExistingData) root.clear();
-		StructUtil.merge(true, root, data);
+		StructUtil.merge(root, data);
 	}
 }

@@ -62,7 +62,7 @@ public final class FunctionHandlerPool {
 			if (!StringUtil.isEmpty(bundleName))
 				clazz = ClassUtil.loadClassByBundle(className, bundleName, bundleVersion, pc.getConfig().getIdentification(), JavaSettingsImpl.getBundleDirectories(pc), true);
 			// JAR
-			else clazz = ClassUtil.loadClass(className);
+			else clazz = ClassUtil.loadClass(pc, className);
 
 			if (Reflector.isInstaneOf(clazz, BIF.class, false)) bif = (BIF) ClassUtil.newInstance(clazz);
 			else bif = new BIFProxy(clazz);
@@ -79,7 +79,7 @@ public final class FunctionHandlerPool {
 		if (bif != null) return bif;
 
 		try {
-			Class<?> clazz = ClassUtil.loadClass(className);
+			Class<?> clazz = ClassUtil.loadClass(pc, className);
 
 			if (Reflector.isInstaneOf(clazz, BIF.class, false)) bif = (BIF) ClassUtil.newInstance(clazz);
 			else bif = new BIFProxy(clazz);

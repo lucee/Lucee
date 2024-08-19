@@ -26,7 +26,6 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Map.Entry;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 import lucee.runtime.PageContext;
@@ -38,6 +37,7 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.ParentException;
 import lucee.runtime.ext.function.BIF;
 import lucee.runtime.op.Caster;
+import lucee.runtime.thread.ThreadUtil;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.ArrayPro;
@@ -85,7 +85,7 @@ public class Map extends BIF implements ClosureFunc {
 		// 1 == not parallel
 		else if (maxThreads == 1) parallel = false;
 		if (parallel) {
-			execute = Executors.newFixedThreadPool(maxThreads);
+			execute = ThreadUtil.createExecutorService(maxThreads);
 			futures = new ArrayList<Future<Data<Object>>>();
 		}
 

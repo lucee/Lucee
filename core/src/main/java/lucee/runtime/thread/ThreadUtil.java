@@ -19,8 +19,13 @@
 package lucee.runtime.thread;
 
 import java.io.OutputStream;
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
 import java.util.Iterator;
 import java.util.Map.Entry;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
@@ -29,6 +34,7 @@ import javax.servlet.http.HttpSession;
 
 import lucee.aprint;
 import lucee.commons.io.DevNullOutputStream;
+import lucee.commons.io.SystemUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.Pair;
@@ -47,6 +53,8 @@ import lucee.runtime.type.Struct;
 
 public class ThreadUtil {
 
+	private static final boolean ALLOW_FUTURE_THREADS = false;
+
 	// do not change, used in Redis extension
 	public static PageContextImpl clonePageContext(PageContext pc, OutputStream os, boolean stateless, boolean register2Thread, boolean register2RunningThreads) {
 		// TODO stateless
@@ -58,7 +66,6 @@ public class ThreadUtil {
 		PageContextImpl pci = (PageContextImpl) pc;
 		PageContextImpl dest = factory.getPageContextImpl(factory.getServlet(), req, rsp, null, false, -1, false, register2Thread, true, pc.getRequestTimeout(),
 				register2RunningThreads, false, false, stateless ? null : pci);
-		// pci.copyStateTo(dest);
 		return dest;
 	}
 
@@ -202,4 +209,37 @@ public class ThreadUtil {
 		StackTraceElement ste = stes[0];
 		return ste.isNativeMethod();
 	}
+
+	public static ExecutorService createExecutorService(int maxThreads) {
+		if (ALLOW_FUTURE_THREADS && SystemUtil.JAVA_VERSION >= SystemUtil.JAVA_VERSION_19) {
+			// FUTURE use newVirtualThreadPerTaskExecutor natively
+			try {
+				MethodHandles.Lookup lookup = MethodHandles.lookup();
+				MethodType methodType = MethodType.methodType(ExecutorService.class);
+				MethodHandle methodHandle = lookup.findStatic(Executors.class, "newVirtualThreadPerTaskExecutor", methodType);
+				return (ExecutorService) methodHandle.invoke();
+			}
+			catch (Throwable e) {
+				ExceptionUtil.rethrowIfNecessary(e);
+			}
+		}
+		return Executors.newFixedThreadPool(maxThreads);
+	}
+
+	public static ExecutorService createExecutorService() {
+		if (SystemUtil.JAVA_VERSION >= SystemUtil.JAVA_VERSION_19) {
+			// FUTURE use newVirtualThreadPerTaskExecutor natively
+			try {
+				MethodHandles.Lookup lookup = MethodHandles.lookup();
+				MethodType methodType = MethodType.methodType(ExecutorService.class);
+				MethodHandle methodHandle = lookup.findStatic(Executors.class, "newVirtualThreadPerTaskExecutor", methodType);
+				return (ExecutorService) methodHandle.invoke();
+			}
+			catch (Throwable e) {
+				ExceptionUtil.rethrowIfNecessary(e);
+			}
+		}
+		return Executors.newSingleThreadExecutor();
+	}
+
 }

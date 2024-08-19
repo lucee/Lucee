@@ -172,6 +172,9 @@ public class CFMLExpressionInterpreter {
 	protected PageContext pc;
 	private FunctionLib fld;
 	protected boolean allowNullConstant = false;
+
+	protected boolean allowComments = true;
+	protected boolean allowAllowUnquotedNames = true;
 	private boolean preciseMath;
 	private final boolean isJson;
 	private final boolean limited;
@@ -317,7 +320,11 @@ public class CFMLExpressionInterpreter {
 	 */
 	private Ref functionArgDeclaration() throws PageException {
 		Ref ref = impOp();
+
 		if (cfml.forwardIfCurrent(':') || cfml.forwardIfCurrent('=')) {
+			if (!allowAllowUnquotedNames && !(ref instanceof Literal)) throw new InterpreterException(
+					"Unquoted name found. Keys in structures must be enclosed in quotes. Example of incorrect format: {susi:1}. Correct format: {\"susi\":1}");
+
 			comments();
 			ref = new LFunctionValue(ref, assignOp());
 		}
@@ -1026,7 +1033,7 @@ public class CFMLExpressionInterpreter {
 		throw new InterpreterException("Syntax Error, Invalid Construct", " at position " + (pos + 1) + " in [" + str + "]");
 	}
 
-	protected Ref json(FunctionLibFunction flf, char start, char end) throws PageException {
+protected Ref json(FunctionLibFunction flf, char start, char end) throws PageException {
 		if (!cfml.isCurrent(start)) return null;
 		/*
 		 * String[] str = cfml.toString().split(","); if(cfml.getCurrent() == '{' && cfml.getNext() != '}'
@@ -1039,27 +1046,30 @@ public class CFMLExpressionInterpreter {
 		 * TemplateException("Invalid json value" +cfml); } } }
 		 */
 
-		if (cfml.forwardIfCurrent('[', ':', ']') || cfml.forwardIfCurrent('[', '=', ']')) {
+		if (!isJson && cfml.forwardIfCurrent('[', ':', ']') || cfml.forwardIfCurrent('[', '=', ']')) {
 			return new BIFCall(LITERAL_ORDERED_STRUCT, new Ref[0]);
 		}
-
 		Ref[] args = flf == null ? null : functionArg(flf.getName(), false, flf, end);
-		if (args != null && args.length > 0 && flf == LITERAL_ARRAY) {
-			if (args[0] instanceof LFunctionValue) {
-				for (int i = 1; i < args.length; i++) {
-					if (!(args[i] instanceof LFunctionValue))
-						throw new TemplateException("Invalid argument for literal ordered struct, only named arguments are allowed like {name:\"value\",name2:\"value2\"} " + getExceptionPosition(), getExceptionSnippet());
-				}
-				flf = LITERAL_ORDERED_STRUCT;
+		if (args != null && args.length > 0) {
+			if (isJson && start == '[' && args[0] instanceof LFunctionValue) {
+				throw new TemplateException("invalid syntax, json does not allow ordered structs");
 			}
-			else {
-				for (int i = 1; i < args.length; i++) {
-					if (args[i] instanceof LFunctionValue) throw new TemplateException("Invalid argument for literal array, no named arguments are allowed " + getExceptionPosition(), getExceptionSnippet());
+			if (flf == LITERAL_ARRAY) {
+				if (args[0] instanceof LFunctionValue) {
+					for (int i = 1; i < args.length; i++) {
+						if (!(args[i] instanceof LFunctionValue))
+							throw new TemplateException("invalid argument for literal ordered struct, only named arguments are allowed like {name:\"value\",name2:\"value2\"}");
+					}
+					flf = LITERAL_ORDERED_STRUCT;
 				}
+				else {
+					for (int i = 1; i < args.length; i++) {
+						if (args[i] instanceof LFunctionValue) throw new TemplateException("invalid argument for literal array, no named arguments are allowed");
+					}
 
+				}
 			}
 		}
-
 		return new BIFCall(flf, args);
 	}
 
@@ -1553,8 +1563,10 @@ public class CFMLExpressionInterpreter {
 
 	protected void comments() throws InterpreterException {
 		cfml.removeSpace();
-		while (comment()) {
-			cfml.removeSpace();
+		if (allowComments) {
+			while (comment()) {
+				cfml.removeSpace();
+			}
 		}
 	}
 

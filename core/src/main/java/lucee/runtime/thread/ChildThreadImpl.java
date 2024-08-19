@@ -61,6 +61,7 @@ import lucee.runtime.type.scope.LocalImpl;
 import lucee.runtime.type.scope.Undefined;
 import lucee.runtime.type.scope.UndefinedImpl;
 import lucee.runtime.type.util.KeyConstants;
+import lucee.runtime.util.PageContextUtil;
 
 public class ChildThreadImpl extends ChildThread implements Serializable {
 
@@ -121,7 +122,6 @@ public class ChildThreadImpl extends ChildThread implements Serializable {
 		start = System.currentTimeMillis();
 		if (attrs == null) this.attrs = new StructImpl();
 		else this.attrs = attrs;
-
 		if (!serializable) {
 			this.page = page;
 			if (parent != null) {
@@ -193,7 +193,7 @@ public class ChildThreadImpl extends ChildThread implements Serializable {
 			}
 
 			ConfigWebPro ci = (ConfigWebPro) pc.getConfig();
-			if (!pc.isGatewayContext() && ci.debug()) {
+			if (!pc.isGatewayContext() && PageContextUtil.debug(pc)) {
 				((DebuggerImpl) pc.getDebugger()).setThreadName(tagName);
 				if (pc.hasDebugOptions(ConfigPro.DEBUG_TEMPLATE)) debugEntry = pc.getDebugger().getEntry(pc, page.getPageSource());
 			}

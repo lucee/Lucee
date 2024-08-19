@@ -26,8 +26,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import javax.servlet.jsp.PageContext;
-
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.FieldVisitor;
@@ -49,6 +47,7 @@ import lucee.commons.io.res.Resource;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.SerializableObject;
 import lucee.commons.lang.StringUtil;
+import lucee.runtime.PageContext;
 import lucee.runtime.component.Property;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigWebPro;
@@ -670,8 +669,8 @@ public final class ASMUtil {
 	 * @return
 	 * @throws PageException
 	 */
-	public static Type toType(String cfType, boolean axistype) throws PageException {
-		return toType(Caster.cfTypeToClass(cfType), axistype);
+	public static Type toType(PageContext pc, String cfType, boolean axistype) throws PageException {
+		return toType(Caster.cfTypeToClass(pc, cfType), axistype);
 	}
 
 	/**

@@ -162,7 +162,7 @@ public class InternalRequest implements Function {
 				name = KeyImpl.init(it.next());
 				values = rsp.getHeaders(name.getString());
 				if (values == null || values.size() == 0) continue;
-				if (name.equals("Set-Cookie")) {
+				if (name.equals(KeyImpl.getInstance("Set-Cookie"))) {
 					String cs = _pc.getWebCharset().name();
 					for (String v: values) {
 

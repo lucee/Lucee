@@ -15,7 +15,6 @@ import lucee.commons.io.log.LoggerAndSourceData;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.ResourcesImpl.ResourceProviderFactory;
 import lucee.commons.io.res.type.compress.Compress;
-import lucee.commons.io.res.util.ResourceClassLoader;
 import lucee.commons.lang.CharSet;
 import lucee.commons.lang.ClassException;
 import lucee.commons.lang.PhysicalClassLoader;
@@ -24,6 +23,8 @@ import lucee.runtime.CIPage;
 import lucee.runtime.Mapping;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageSource;
+import lucee.runtime.ai.AIEngineFactory;
+import lucee.runtime.ai.AIEnginePool;
 import lucee.runtime.cache.tag.CacheHandler;
 import lucee.runtime.component.ImportDefintion;
 import lucee.runtime.customtag.InitFile;
@@ -36,6 +37,7 @@ import lucee.runtime.exp.TemplateException;
 import lucee.runtime.extension.ExtensionDefintion;
 import lucee.runtime.extension.RHExtension;
 import lucee.runtime.extension.RHExtensionProvider;
+import lucee.runtime.listener.JavaSettings;
 import lucee.runtime.orm.ORMConfiguration;
 import lucee.runtime.orm.ORMEngine;
 import lucee.runtime.osgi.OSGiUtil.BundleDefinition;
@@ -65,6 +67,8 @@ public interface ConfigPro extends Config {
 	public static final int DEBUG_DUMP = 64;
 	public static final int DEBUG_TEMPLATE = 128;
 	public static final int DEBUG_THREAD = 256;
+	public static final int DEBUG_ALL = DEBUG_DATABASE + DEBUG_EXCEPTION + DEBUG_TRACING + DEBUG_TIMER + DEBUG_IMPLICIT_ACCESS + DEBUG_QUERY_USAGE + DEBUG_DUMP + DEBUG_TEMPLATE
+			+ DEBUG_THREAD;
 
 	public static final int MODE_CUSTOM = 1;
 	public static final int MODE_STRICT = 2;
@@ -183,9 +187,7 @@ public interface ConfigPro extends Config {
 
 	public boolean getTypeChecking();
 
-	public ResourceClassLoader getResourceClassLoader();
-
-	public ClassLoader getRPCClassLoader(boolean reload, ClassLoader[] parents) throws IOException;
+	public ClassLoader getRPCClassLoader(boolean reload, JavaSettings js) throws IOException;
 
 	public PageSource toPageSource(Mapping[] mappings, Resource res, PageSource defaultValue);
 
@@ -334,8 +336,6 @@ public interface ConfigPro extends Config {
 	 */
 	public List<ExtensionDefintion> loadLocalExtensions(boolean validate);
 
-	public ResourceClassLoader getResourceClassLoader(ResourceClassLoader defaultValue);
-
 	public Compress getCompressInstance(Resource zipFile, int format, boolean caseSensitive) throws IOException;
 
 	public int getPasswordOrigin();
@@ -386,4 +386,22 @@ public interface ConfigPro extends Config {
 	public boolean getShowMetric();
 
 	public boolean getShowTest();
+
+	public Resource getExtensionInstalledDir();
+
+	public Resource getExtensionAvailableDir();
+
+	public JavaSettings getJavaSettings();
+
+	public JavaSettings getJavaSettings(String id);
+
+	public void setJavaSettings(String id, JavaSettings js);
+
+	public Resource getMavenDir();
+
+	public Collection<String> getAIEngineFactoryNames();
+
+	public AIEngineFactory getAIEngineFactory(String name);
+
+	public AIEnginePool getAIEnginePool();
 }

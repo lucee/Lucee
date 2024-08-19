@@ -40,6 +40,7 @@ import org.apache.commons.compress.compressors.bzip2.BZip2CompressorInputStream;
 import org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream;
 
 import lucee.commons.io.IOUtil;
+import lucee.commons.io.ModeUtil;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.ResourceProvider;
@@ -207,7 +208,6 @@ public final class CompressUtil {
 		try {
 			tis = new TarArchiveInputStream(IOUtil.toBufferedInputStream(tarFile.getInputStream()));
 			TarArchiveEntry entry;
-			int mode;
 			while ((entry = tis.getNextTarEntry()) != null) {
 				// print.ln(entry);
 				Resource target = targetDir.getRealResource(entry.getName());
@@ -220,9 +220,6 @@ public final class CompressUtil {
 					IOUtil.copy(tis, target, false);
 				}
 				target.setLastModified(entry.getModTime().getTime());
-				mode = entry.getMode();
-				if (mode > 0) target.setMode(mode);
-				// tis.closeEntry() ;
 			}
 		}
 		finally {
@@ -555,9 +552,8 @@ public final class CompressUtil {
 			entry.setName(parent);
 
 			// mode
-			// 100777 TODO ist das so ok?
-			if (mode > 0) entry.setMode(mode);
-			else if ((mode = source.getMode()) > 0) entry.setMode(mode);
+			if (mode > 0) entry.setMode(ModeUtil.extractPermissions(mode, false));
+			else if ((mode = source.getMode()) > 0) entry.setMode(ModeUtil.extractPermissions(mode, false));
 
 			entry.setSize(source.length());
 			entry.setModTime(source.lastModified());

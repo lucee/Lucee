@@ -85,6 +85,7 @@ import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.ListUtil;
 import lucee.runtime.type.util.StructUtil;
 import lucee.runtime.type.util.UDFUtil;
+import lucee.runtime.util.PageContextUtil;
 
 /**
  * A Page that can produce Components
@@ -174,7 +175,7 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 			// METHOD INVOCATION
 			String qs = ReqRspUtil.getQueryString(pc.getHttpServletRequest());
 
-			if (pc.getBasePageSource() == this.getPageSource() && pc.getConfig().debug()) pc.getDebugger().setOutput(false);
+			if (pc.getBasePageSource() == this.getPageSource() && PageContextUtil.show(pc)) pc.getDebugger().setOutput(false);
 
 			boolean isPost = pc.getHttpServletRequest().getMethod().equalsIgnoreCase("POST");
 
@@ -413,7 +414,7 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 
 		if (status == 404) {
 			String prefix = "no rest service for [" + path + "] found";
-			if (pc.getConfig().debug()) {
+			if (PageContextUtil.show(pc)) {
 				msg = prefix + " in" + addDetail;
 			}
 			else {
@@ -424,7 +425,7 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 		}
 		else if (status == 405) {
 			String prefix = "Unsupported Media Type";
-			if (pc.getConfig().debug()) {
+			if (PageContextUtil.show(pc)) {
 				msg = prefix + " for" + addDetail;
 			}
 			else {
@@ -435,7 +436,7 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 		}
 		else if (status == 406) {
 			String prefix = "Not Acceptable";
-			if (pc.getConfig().debug()) {
+			if (PageContextUtil.show(pc)) {
 				msg = prefix + " for" + addDetail;
 			}
 			else {
@@ -547,7 +548,7 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 			rtn = component.callWithNamedValues(pc, methodName, args);
 		}
 		catch (PageException e) {
-			if (pc.getConfig().debug()) {
+			if (PageContextUtil.show(pc)) {
 				throw e;
 			}
 			else {
@@ -813,7 +814,7 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 		}
 		catch (Throwable t) {
 			PageException pe = Caster.toPageException(t);
-			if (pc.getConfig().debug()) pe.setExposeMessage(true);
+			if (PageContextUtil.show(pc)) pe.setExposeMessage(true);
 			throw pe;
 		}
 	}
