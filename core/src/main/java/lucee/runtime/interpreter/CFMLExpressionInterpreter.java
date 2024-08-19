@@ -1041,27 +1041,30 @@ public class CFMLExpressionInterpreter {
 		 * TemplateException("Invalid json value" +cfml); } } }
 		 */
 
-		if (cfml.forwardIfCurrent('[', ':', ']') || cfml.forwardIfCurrent('[', '=', ']')) {
+		if (!isJson && cfml.forwardIfCurrent('[', ':', ']') || cfml.forwardIfCurrent('[', '=', ']')) {
 			return new BIFCall(LITERAL_ORDERED_STRUCT, new Ref[0]);
 		}
-
 		Ref[] args = flf == null ? null : functionArg(flf.getName(), false, flf, end);
-		if (args != null && args.length > 0 && flf == LITERAL_ARRAY) {
-			if (args[0] instanceof LFunctionValue) {
-				for (int i = 1; i < args.length; i++) {
-					if (!(args[i] instanceof LFunctionValue))
-						throw new TemplateException("invalid argument for literal ordered struct, only named arguments are allowed like {name:\"value\",name2:\"value2\"}");
-				}
-				flf = LITERAL_ORDERED_STRUCT;
+		if (args != null && args.length > 0) {
+			if (isJson && start == '[' && args[0] instanceof LFunctionValue) {
+				throw new TemplateException("invalid syntax, json does not allow ordered structs");
 			}
-			else {
-				for (int i = 1; i < args.length; i++) {
-					if (args[i] instanceof LFunctionValue) throw new TemplateException("invalid argument for literal array, no named arguments are allowed");
+			if (flf == LITERAL_ARRAY) {
+				if (args[0] instanceof LFunctionValue) {
+					for (int i = 1; i < args.length; i++) {
+						if (!(args[i] instanceof LFunctionValue))
+							throw new TemplateException("invalid argument for literal ordered struct, only named arguments are allowed like {name:\"value\",name2:\"value2\"}");
+					}
+					flf = LITERAL_ORDERED_STRUCT;
 				}
+				else {
+					for (int i = 1; i < args.length; i++) {
+						if (args[i] instanceof LFunctionValue) throw new TemplateException("invalid argument for literal array, no named arguments are allowed");
+					}
 
+				}
 			}
 		}
-
 		return new BIFCall(flf, args);
 	}
 
