@@ -67,18 +67,15 @@ public class _CreateComponent {
 						}
 					}
 				}
-
 			}
 			if (cls == null) {
 				try {
 					cls = ClassUtil.loadClass(pc, path);
 				}
 				catch (Exception e) {
-					cfc = ComponentLoader.searchComponent(pc, null, path, null, null, false, true, true, true);
-					// ApplicationException ae = new ApplicationException("could not find component or class with name
-					// [" + path + "]");
+					ApplicationException ae = new ApplicationException("could not find component or class with name [" + path + "]");
 					// ExceptionUtil.initCauseEL(ae, e);
-					// throw ae;
+					throw ae;
 				}
 			}
 

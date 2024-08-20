@@ -1,6 +1,6 @@
 component extends="org.lucee.cfml.test.LuceeTestCase"{
-	
-	
+	import java.util.*;
+	import lucee.runtime.type.StructImpl;
 
 	function run( testResults , testBox ) {
 		describe( "test new operator", function() {
@@ -24,14 +24,12 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 			});
 
 			it(title="class: implicit with asterix import", body=function() {
-				import java.util.*;
 				var map=new HashMap();
 				expect(map.size()).toBe(0);
 			});
 
 			it(title="class: implicit with explicit import", body=function() {
-				import java.util.HashMap;
-				var map=new HashMap();
+				var map=new StructImpl();
 				expect(map.size()).toBe(0);
 			});
 			
