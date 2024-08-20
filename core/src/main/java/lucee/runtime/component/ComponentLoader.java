@@ -82,17 +82,22 @@ public class ComponentLoader {
 	 */
 	public static ComponentImpl searchComponent(PageContext pc, PageSource loadingLocation, String rawPath, Boolean searchLocal, Boolean searchRoot, boolean isExtendedComponent)
 			throws PageException {
-		return (ComponentImpl) _search(pc, loadingLocation, rawPath, searchLocal, searchRoot, true, RETURN_TYPE_COMPONENT, isExtendedComponent, true);
+		return (ComponentImpl) _search(pc, loadingLocation, rawPath, searchLocal, searchRoot, true, RETURN_TYPE_COMPONENT, isExtendedComponent, true, true);
 	}
 
-	public static ComponentImpl searchComponent(PageContext pc, PageSource loadingLocation, String rawPath, Boolean searchLocal, Boolean searchRoot,
-			final boolean isExtendedComponent, boolean executeConstr) throws PageException {
-		return (ComponentImpl) _search(pc, loadingLocation, rawPath, searchLocal, searchRoot, executeConstr, RETURN_TYPE_COMPONENT, isExtendedComponent, true);
+	public static ComponentImpl searchComponent(PageContext pc, PageSource loadingLocation, String rawPath, Boolean searchLocal, Boolean searchRoot, boolean isExtendedComponent,
+			boolean executeConstr) throws PageException {
+		return (ComponentImpl) _search(pc, loadingLocation, rawPath, searchLocal, searchRoot, executeConstr, RETURN_TYPE_COMPONENT, isExtendedComponent, true, true);
 	}
 
-	public static ComponentImpl searchComponent(PageContext pc, PageSource loadingLocation, String rawPath, Boolean searchLocal, Boolean searchRoot,
-			final boolean isExtendedComponent, boolean executeConstr, boolean validate) throws PageException {
-		return (ComponentImpl) _search(pc, loadingLocation, rawPath, searchLocal, searchRoot, executeConstr, RETURN_TYPE_COMPONENT, isExtendedComponent, validate);
+	public static ComponentImpl searchComponent(PageContext pc, PageSource loadingLocation, String rawPath, Boolean searchLocal, Boolean searchRoot, boolean isExtendedComponent,
+			boolean executeConstr, boolean validate) throws PageException {
+		return (ComponentImpl) _search(pc, loadingLocation, rawPath, searchLocal, searchRoot, executeConstr, RETURN_TYPE_COMPONENT, isExtendedComponent, validate, true);
+	}
+
+	public static ComponentImpl searchComponent(PageContext pc, PageSource loadingLocation, String rawPath, Boolean searchLocal, Boolean searchRoot, boolean isExtendedComponent,
+			boolean executeConstr, boolean validate, boolean throwOnMissing) throws PageException {
+		return (ComponentImpl) _search(pc, loadingLocation, rawPath, searchLocal, searchRoot, executeConstr, RETURN_TYPE_COMPONENT, isExtendedComponent, validate, throwOnMissing);
 	}
 
 	public static StaticScope getStaticScope(PageContext pc, PageSource loadingLocation, String rawPath, Boolean searchLocal, Boolean searchRoot) throws PageException {
@@ -138,39 +143,54 @@ public class ComponentLoader {
 	}
 
 	public static ComponentPageImpl searchComponentPage(PageContext pc, PageSource loadingLocation, String rawPath, Boolean searchLocal, Boolean searchRoot) throws PageException {
-		return searchComponentPage(pc, loadingLocation, rawPath, searchLocal, searchRoot, true);
+		return searchComponentPage(pc, loadingLocation, rawPath, searchLocal, searchRoot, true, true);
 	}
 
 	public static ComponentPageImpl searchComponentPage(PageContext pc, PageSource loadingLocation, String rawPath, Boolean searchLocal, Boolean searchRoot, boolean validate)
 			throws PageException {
-		Object obj = _search(pc, loadingLocation, rawPath, searchLocal, searchRoot, false, RETURN_TYPE_PAGE, false, validate);
+		return searchComponentPage(pc, loadingLocation, rawPath, searchLocal, searchRoot, validate, true);
+	}
+
+	public static ComponentPageImpl searchComponentPage(PageContext pc, PageSource loadingLocation, String rawPath, Boolean searchLocal, Boolean searchRoot, boolean validate,
+			boolean throwOnMissing) throws PageException {
+		Object obj = _search(pc, loadingLocation, rawPath, searchLocal, searchRoot, false, RETURN_TYPE_PAGE, false, validate, throwOnMissing);
 
 		if (obj instanceof ComponentPageImpl) return (ComponentPageImpl) obj;
 		throw new ExpressionException("invalid " + toStringType(RETURN_TYPE_PAGE) + " definition, can't find " + toStringType(RETURN_TYPE_PAGE) + " [" + rawPath + "]");
 	}
 
 	public static InterfaceImpl searchInterface(PageContext pc, PageSource loadingLocation, String rawPath) throws PageException {
-		return (InterfaceImpl) _search(pc, loadingLocation, rawPath, Boolean.TRUE, Boolean.TRUE, true, RETURN_TYPE_INTERFACE, false, true);
+		return (InterfaceImpl) _search(pc, loadingLocation, rawPath, Boolean.TRUE, Boolean.TRUE, true, RETURN_TYPE_INTERFACE, false, true, true);
 	}
 
 	public static InterfaceImpl searchInterface(PageContext pc, PageSource loadingLocation, String rawPath, boolean executeConstr) throws PageException {
-		return (InterfaceImpl) _search(pc, loadingLocation, rawPath, Boolean.TRUE, Boolean.TRUE, executeConstr, RETURN_TYPE_INTERFACE, false, true);
+		return (InterfaceImpl) _search(pc, loadingLocation, rawPath, Boolean.TRUE, Boolean.TRUE, executeConstr, RETURN_TYPE_INTERFACE, false, true, true);
 	}
 
 	public static InterfaceImpl searchInterface(PageContext pc, PageSource loadingLocation, String rawPath, boolean executeConstr, boolean validate) throws PageException {
-		return (InterfaceImpl) _search(pc, loadingLocation, rawPath, Boolean.TRUE, Boolean.TRUE, executeConstr, RETURN_TYPE_INTERFACE, false, validate);
+		return (InterfaceImpl) _search(pc, loadingLocation, rawPath, Boolean.TRUE, Boolean.TRUE, executeConstr, RETURN_TYPE_INTERFACE, false, validate, true);
+	}
+
+	public static InterfaceImpl searchInterface(PageContext pc, PageSource loadingLocation, String rawPath, boolean executeConstr, boolean validate, boolean throwOnMissing)
+			throws PageException {
+		return (InterfaceImpl) _search(pc, loadingLocation, rawPath, Boolean.TRUE, Boolean.TRUE, executeConstr, RETURN_TYPE_INTERFACE, false, validate, throwOnMissing);
 	}
 
 	public static Page searchPage(PageContext pc, PageSource child, String rawPath, Boolean searchLocal, Boolean searchRoot) throws PageException {
-		return (Page) _search(pc, child, rawPath, searchLocal, searchRoot, false, RETURN_TYPE_PAGE, false, true);
+		return (Page) _search(pc, child, rawPath, searchLocal, searchRoot, false, RETURN_TYPE_PAGE, false, true, true);
 	}
 
 	public static Page searchPage(PageContext pc, PageSource child, String rawPath, Boolean searchLocal, Boolean searchRoot, boolean validate) throws PageException {
-		return (Page) _search(pc, child, rawPath, searchLocal, searchRoot, false, RETURN_TYPE_PAGE, false, validate);
+		return (Page) _search(pc, child, rawPath, searchLocal, searchRoot, false, RETURN_TYPE_PAGE, false, validate, true);
+	}
+
+	public static Page searchPage(PageContext pc, PageSource child, String rawPath, Boolean searchLocal, Boolean searchRoot, boolean validate, boolean throwOnMissing)
+			throws PageException {
+		return (Page) _search(pc, child, rawPath, searchLocal, searchRoot, false, RETURN_TYPE_PAGE, false, validate, throwOnMissing);
 	}
 
 	private static Object _search(PageContext pc, PageSource loadingLocation, String rawPath, Boolean searchLocal, Boolean searchRoot, boolean executeConstr, short returnType,
-			final boolean isExtendedComponent, boolean validate) throws PageException {
+			final boolean isExtendedComponent, boolean validate, boolean throwOnMissing) throws PageException {
 		PageSource currPS = pc.getCurrentPageSource(null);
 
 		ImportDefintion[] importDefintions = null;
@@ -187,7 +207,9 @@ public class ComponentLoader {
 		// first try for the current dialect
 		Object obj = _search(pc, loadingLocation, rawPath, searchLocal, searchRoot, executeConstr, returnType, currPS, importDefintions, isExtendedComponent, validate);
 
-		if (obj == null) throw new ExpressionException("invalid " + toStringType(returnType) + " definition, can't find " + toStringType(returnType) + " [" + rawPath + "]");
+		if (obj == null && throwOnMissing) {
+			throw new ExpressionException("invalid " + toStringType(returnType) + " definition, can't find " + toStringType(returnType) + " [" + rawPath + "]");
+		}
 		return obj;
 	}
 
