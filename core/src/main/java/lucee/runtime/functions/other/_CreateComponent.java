@@ -138,7 +138,7 @@ public class _CreateComponent {
 		// no name arguments
 		else {
 			Object[] args = new Object[objArr.length - (hasType ? 2 : 1)];
-			for (int i = 0; i < objArr.length - 1; i++) {
+			for (int i = 0; i < objArr.length - (hasType ? 2 : 1); i++) {
 				args[i] = objArr[i];
 				if (args[i] instanceof FunctionValue)
 					throw new ExpressionException("invalid argument definition, when using named parameters to a function, every parameter must have a name.");
