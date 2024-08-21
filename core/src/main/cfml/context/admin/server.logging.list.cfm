@@ -6,7 +6,7 @@
 			<cfset data.names=toArrayFromForm("name")>
 			<cfset data.rows=toArrayFromForm("row")>
 			<cfloop index="idx" from="1" to="#arrayLen(data.names)#">
-				<cfif isDefined("data.rows[#idx#]") and data.names[idx] NEQ "">
+				<cfif arrayIndexExists(data.rows, idx) and data.names[idx] NEQ "">
 					<cfadmin 
 						action="removeLogSetting"
 						type="#request.adminType#"

@@ -29,9 +29,8 @@ ACTIONS --->
 			<cfset data.ports=toArrayFromForm("port")>
 			<cfset data.rows=toArrayFromForm("row")>
 			<cfloop index="idx" from="1" to="#arrayLen(data.hosts)#">
-				<cfif isDefined("data.rows[#idx#]") and data.hosts[idx] NEQ "">
-					<cfparam name="data.ports[#idx#]" default="21">
-					<cfif trim(data.ports[idx]) EQ ""><cfset data.ports[idx]=21></cfif>
+				<cfif arrayIndexExists(data.rows, idx) and data.hosts[idx] NEQ "">
+					<cfif trim(data.ports[idx]?:"") EQ ""><cfset data.ports[idx]=21></cfif>
 					<cfset admin.updateMailServer(data.rows[idx]-1,data.hosts[idx],data.usernames[idx],data.passwords[idx],toInt(data.ports[idx]))>
 				</cfif>
 			</cfloop>

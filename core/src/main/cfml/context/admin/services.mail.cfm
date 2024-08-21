@@ -115,9 +115,9 @@ Defaults --->
 				<cfset data.lifes=toTimeSpan("life")>
 				
 				<cfloop index="idx" from="1" to="#arrayLen(data.hosts)#">
-					<cfif isDefined("data.rows[#idx#]") and data.hosts[idx] NEQ "">
-						<cfparam name="data.ports[idx]" default="25">
-						<cfif trim(data.ports[idx]) EQ "">
+					<cfif (data.hosts[idx]?:"") NEQ "">
+
+						<cfif trim(data.ports[idx]?:"") EQ "">
 							<cfset data.ports[idx]=25>
 						</cfif>
 						<cfset pw=toPassword(data.hosts[idx],session["password"&request.adminType], ms)>
@@ -133,9 +133,9 @@ Defaults --->
 							
 
 							port="#data.ports[idx]#"
-							id="#isDefined("data.ids[#idx#]")?data.ids[idx]:''#"
-							tls="#isDefined("data.tlss[#idx#]") and data.tlss[idx]#"
-							ssl="#isDefined("data.ssls[#idx#]") and data.ssls[idx]#"
+							id="#data.ids[idx]?:''#"
+							tls="#data.tlss[idx]?:false#"
+							ssl="#data.ssls[idx]?:false#"
 							remoteClients="#request.getRemoteClients()#">
 					</cfif>
 				</cfloop>
@@ -148,13 +148,13 @@ Defaults --->
 				<cflock type="exclusive" scope="application" timeout="5"></cflock> --->
 				<cfset len=arrayLen(data.hosts)>
 				<cfloop index="idx" from="1" to="#len#">
-					<cfif isDefined("data.rows[#idx#]") and data.hosts[idx] NEQ "">
+					<cfif (data.hosts[idx]?:"") NEQ "">
 						<cfadmin 
 							action="removeMailServer"
 							type="#request.adminType#"
 							password="#session["password"&request.adminType]#"
 							
-							id="#isDefined("data.ids[#idx#]")?data.ids[idx]:''#"
+							id="#data.ids[idx]?:''#"
 							hostname="#data.hosts[idx]#"
 							username="#data.usernames[idx]#"
 							remoteClients="#request.getRemoteClients()#">
@@ -168,7 +168,7 @@ Defaults --->
 				<cfset data.ports=toArrayFromForm("port")>
 				<cfset doNotRedirect=true>
 				<cfloop index="idx" from="1" to="#arrayLen(data.rows)#">
-					<cfif isDefined("data.rows[#idx#]") and isDefined("data.hosts[#idx#]") and data.hosts[idx] NEQ "">
+					<cfif arrayIndexExists(data.rows, idx) and (data.hosts[idx]?:"") NEQ "">
 						<cftry>
 							<cfadmin 
 								action="verifyMailServer"
@@ -213,7 +213,7 @@ Defaults --->
 	<cfcatch>
 		<cfset error.message=cfcatch.message>
 		<cfset error.detail=cfcatch.Detail>
-		<cfset error.cfcatch=cfcatch>
+		<cfset error.cfcatch=cfcatch><cfrethrow>
 	</cfcatch>
 </cftry>
 

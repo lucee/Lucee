@@ -545,7 +545,7 @@
 			}
 
 			// sucessfull
-			if(http.status_code==200) { // if(isDefined("http.responseheader['Return-Format']"))
+			if(http.status_code==200) {
 				local.result=deserializeJson(http.fileContent,false);
 				
 				result.lastModified=now();

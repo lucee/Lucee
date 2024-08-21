@@ -81,8 +81,14 @@
 	<cfoutput query="q">
 		<cfset action = rereplace(q.page, '\.cfm$', '') />
 		<!--- try to create friendly name for current page --->
-		<cfif isDefined("variables.data.menu.#listfirst(action, '.')#.label") and isDefined("variables.data.menu.#action#")>
-			<cfset pagename = variables.data.menu[listfirst(action, '.')].label & " - " & evaluate("variables.data.menu.#action#") />
+		<cfif 
+			isDefined("variables.data.menu") and
+			structKeyExists(variables.data.menu, listfirst(action, '.')) and
+			structKeyExists(variables.data.menu[listfirst(action, '.')], "label") and 
+			
+			isDefined("variables.data.menu") and
+			structKeyExists(variables.data.menu, action)>
+			<cfset pagename = variables.data.menu[listfirst(action, '.')].label & " - " & variables.data.menu[action] />
 		<cfelse>
 			<cfset pagename = rereplace(replace(action, ".", " - "), '.', '\U\0') />
 		</cfif>
