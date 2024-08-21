@@ -12,6 +12,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				var cfc=new Query();
 				cfc.getName();
 			});
+			it(title="component: set type", body=function() {
+				var cfc=new cfml:Query();
+				var cfc=new cfml:org.lucee.cfml.Query();
+			});
 
 			it(title="class: full name", body=function() {
 				var sb= new java.lang.StringBuilder("Susi");
@@ -31,6 +35,11 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 			it(title="class: implicit with explicit import", body=function() {
 				var map=new StructImpl();
 				expect(map.size()).toBe(0);
+			});
+
+			it(title="class: set type", body=function() {
+				var map=new java:StructImpl();
+				var map=new java:java.lang.StringBuilder("Susi");
 			});
 			
 		});

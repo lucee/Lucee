@@ -1552,6 +1552,10 @@ public abstract class AbstrCFMLExprTransformer {
 		if (!"new".equalsIgnoreCase(ls.getString())) return expr;
 
 		int start = data.srcCode.getPos();
+		data.srcCode.removeSpace();
+		String type = "type:undefined";
+		if (data.srcCode.forwardIfCurrent("java:") || data.srcCode.forwardIfCurrent("class:")) type = "type:java";
+		else if (data.srcCode.forwardIfCurrent("cfml:") || data.srcCode.forwardIfCurrent("cfc:")) type = "type:cfml";
 
 		ExprString exprName = readComponentPath(data);
 		if (exprName == null) {
@@ -1565,6 +1569,7 @@ public abstract class AbstrCFMLExprTransformer {
 			FunctionMember func = getFunctionMember(data, Identifier.toIdentifier(data.factory, "_createComponent", Identifier.CASE_ORIGNAL, null, null), true);
 			// Expression listener = getListener(data);
 			func.addArgument(new Argument(exprName, "string"));
+			func.addArgument(new Argument(data.factory.createLitString(type), "string"));
 			Variable v = expr.getFactory().createVariable(expr.getStart(), expr.getEnd());
 			v.addMember(func);
 			// if (listener != null) v.addListener(listener);

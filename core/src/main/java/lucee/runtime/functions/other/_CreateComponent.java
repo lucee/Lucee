@@ -45,10 +45,25 @@ public class _CreateComponent {
 	private static final ImportDefintion JAVA_LANG = new ImportDefintionImpl("java.lang", "*");
 	private static ImportDefintion[] EMPTY_ID = new ImportDefintion[0];
 
+	private static int TYPE_BOTH = 1;
+	private static int TYPE_JAVA = 2;
+	private static int TYPE_CFML = 4;
+
 	public static Object call(PageContext pc, Object[] objArr) throws PageException {
 		String path = Caster.toString(objArr[objArr.length - 1]);
+
+		// FUTURE expect this always
+		int type = TYPE_BOTH;
+		boolean hasType = false;
+		if (path.startsWith("type:")) {
+			hasType = true;
+			if ("type:java".equals(path)) type = TYPE_JAVA;
+			else if ("type:cfml".equals(path)) type = TYPE_CFML;
+			path = Caster.toString(objArr[objArr.length - 2]);
+		}
+
 		// not store the index to make it faster
-		Component cfc = ComponentLoader.searchComponent(pc, null, path, null, null, false, true, true, false);
+		Component cfc = type != TYPE_JAVA ? ComponentLoader.searchComponent(pc, null, path, null, null, false, true, true, type == TYPE_CFML) : null;
 		Class cls = null;
 		if (cfc == null) {
 			// no package
@@ -84,13 +99,14 @@ public class _CreateComponent {
 		// no init method
 		if (cfc != null && !(cfc.get(pc, KeyConstants._init, null) instanceof UDF)) {
 
-			if (objArr.length > 1) { // we have arguments passed in
+			if (objArr.length > (hasType ? 2 : 1)) { // we have arguments passed in
 				Object arg1 = objArr[0];
 				if (arg1 instanceof FunctionValue) {
-					Struct args = Caster.toFunctionValues(objArr, 0, objArr.length - 1);
+					Struct args = Caster.toFunctionValues(objArr, 0, objArr.length - (hasType ? 2 : 1));
 					EntityNew.setPropeties(pc, cfc, args, true);
 				}
-				else if (Decision.isStruct(arg1) && !Decision.isComponent(arg1) && objArr.length == 2) { // we only do this in case there is only argument set, otherwise we assume
+				else if (Decision.isStruct(arg1) && !Decision.isComponent(arg1) && objArr.length == (hasType ? 3 : 2)) { // we only do this in case there is only argument set,
+																															// otherwise we assume
 					// that this is simply a missuse of the new operator
 					Struct args = Caster.toStruct(arg1);
 					EntityNew.setPropeties(pc, cfc, args, true);
@@ -102,7 +118,7 @@ public class _CreateComponent {
 
 		Object rtn;
 		// no arguments
-		if (objArr.length == 1) {
+		if (objArr.length == (hasType ? 2 : 1)) {
 			if (cfc != null) rtn = cfc.call(pc, KeyConstants._init, EMPTY);
 			else {
 				try {
@@ -116,12 +132,12 @@ public class _CreateComponent {
 		// named arguments
 		else if (objArr[0] instanceof FunctionValue) {
 			if (cfc == null) throw new ApplicationException("named arguments are not supported with classes.");
-			Struct args = Caster.toFunctionValues(objArr, 0, objArr.length - 1);
+			Struct args = Caster.toFunctionValues(objArr, 0, objArr.length - (hasType ? 2 : 1));
 			rtn = cfc.callWithNamedValues(pc, KeyConstants._init, args);
 		}
 		// no name arguments
 		else {
-			Object[] args = new Object[objArr.length - 1];
+			Object[] args = new Object[objArr.length - (hasType ? 2 : 1)];
 			for (int i = 0; i < objArr.length - 1; i++) {
 				args[i] = objArr[i];
 				if (args[i] instanceof FunctionValue)
