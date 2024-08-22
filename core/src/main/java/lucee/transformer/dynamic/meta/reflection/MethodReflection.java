@@ -34,4 +34,33 @@ class MethodReflection extends FunctionMemberReflection implements Method, Legac
 	public java.lang.reflect.Method getMethod() {
 		return method;
 	}
+
+	public Type getDeclaringProviderRtnType() {
+		// TODO not correct
+		return getReturnType();
+	}
+
+	@Override
+	public String getDeclaringProviderRtnClassName() {
+		// TODO not correct
+		return getReturn();
+	}
+
+	@Override
+	public Class getDeclaringProviderRtnClass() {
+		// TODO not correct
+		return getReturnClass();
+	}
+
+	@Override
+	public String getDeclaringProviderRtnClassNameWithSameAccess() {
+		// TODO not correct
+		return getReturn();
+	}
+
+	@Override
+	public Class getDeclaringProviderRtnClassWithSameAccess() {
+		// TODO not correct
+		return getReturnClass();
+	}
 }

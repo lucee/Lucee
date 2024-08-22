@@ -39,6 +39,7 @@ import lucee.runtime.net.ftp.FTPConstant;
 import lucee.runtime.net.ftp.FTPPath;
 import lucee.runtime.net.ftp.FTPPoolImpl;
 import lucee.runtime.op.Caster;
+import lucee.runtime.op.Decision;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.QueryImpl;
 import lucee.runtime.type.Struct;
@@ -161,10 +162,14 @@ public final class Ftp extends TagImpl {
 	 * sets the secure flag, true / false / sftp
 	 * 
 	 * @param secure
+	 * @throws PageException
 	 */
-	public void setSecure(String secure) {
+	public void setSecure(String secure) throws PageException {
 		if (StringUtil.isEmpty(secure, true)) return;
 		this.secure = secure.trim().toUpperCase();
+		// convert yes|no to true|false
+		if (Decision.isBoolean(this.secure)) this.secure = Caster.toString(Caster.toBooleanValue(this.secure)).toUpperCase();
+
 	}
 
 	@Override

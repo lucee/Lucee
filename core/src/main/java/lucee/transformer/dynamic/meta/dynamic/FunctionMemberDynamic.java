@@ -28,8 +28,14 @@ abstract class FunctionMemberDynamic implements FunctionMember {
 	protected transient Type declaringProviderType;
 	protected transient Class declaringProviderClass;
 
+	protected transient Type declaringProviderRtnType;
+	protected transient Class declaringProviderRtnClass;
+
 	protected transient Type declaringProviderTypeWithSameAccess;
 	protected transient Class declaringProviderClassWithSameAccess;
+
+	protected transient Type declaringProviderRtnTypeWithSameAccess;
+	protected transient Class declaringProviderRtnClassWithSameAccess;
 
 	protected transient Type rtnType;
 	protected transient Type[] argTypes;
@@ -56,8 +62,10 @@ abstract class FunctionMemberDynamic implements FunctionMember {
 		out.writeObject(declaringType.getDescriptor());
 		// declaring provider class
 		out.writeObject(declaringProviderType == null ? null : declaringProviderType.getDescriptor());
+		out.writeObject(declaringProviderRtnType == null ? null : declaringProviderRtnType.getDescriptor());
 
 		out.writeObject(declaringProviderTypeWithSameAccess == null ? null : declaringProviderTypeWithSameAccess.getDescriptor());
+		out.writeObject(declaringProviderRtnTypeWithSameAccess == null ? null : declaringProviderRtnTypeWithSameAccess.getDescriptor());
 
 		// return
 		out.writeObject(rtnType.getDescriptor());
@@ -102,10 +110,22 @@ abstract class FunctionMemberDynamic implements FunctionMember {
 			this.declaringProviderType = Type.getType((String) obj);
 			this.declaringProviderClass = Clazz.toClass(cl, this.declaringProviderType);
 		}
+
+		obj = in.readObject();
+		if (obj != null) {
+			this.declaringProviderRtnType = Type.getType((String) obj);
+			this.declaringProviderRtnClass = Clazz.toClass(cl, this.declaringProviderRtnType);
+		}
+
 		obj = in.readObject();
 		if (obj != null) {
 			this.declaringProviderTypeWithSameAccess = Type.getType((String) obj);
 			this.declaringProviderClassWithSameAccess = Clazz.toClass(cl, this.declaringProviderTypeWithSameAccess);
+		}
+		obj = in.readObject();
+		if (obj != null) {
+			this.declaringProviderRtnTypeWithSameAccess = Type.getType((String) obj);
+			this.declaringProviderRtnClassWithSameAccess = Clazz.toClass(cl, this.declaringProviderRtnTypeWithSameAccess);
 		}
 
 		// declaring class
@@ -198,12 +218,49 @@ abstract class FunctionMemberDynamic implements FunctionMember {
 		return declaringProviderClass;
 	}
 
-	public void setDeclaringProviderClass(Class declaringProviderClass) {
-		this.declaringProviderClass = declaringProviderClass;
+	public String getDeclaringProviderRtnClassName() {
+		return getDeclaringProviderClass().getName();
 	}
 
-	public void setDeclaringProviderClassWithSameAccess(Class declaringProviderClassWithSameAccess) {
+	public Class getDeclaringProviderRtnClass() {
+		return getDeclaringProviderClass(false);
+	}
+
+	public Class getDeclaringProviderRtnClass(boolean onlyPublic) {
+		if (declaringProviderRtnClass == null && (!onlyPublic || isDeclaringClassPublic())) {
+			return getReturnClass();
+		}
+		return declaringProviderRtnClass;
+	}
+
+	public String getDeclaringProviderRtnClassNameWithSameAccess() {
+		return getDeclaringProviderRtnClassWithSameAccess().getName();
+	}
+
+	public Class getDeclaringProviderRtnClassWithSameAccess() {
+		return getDeclaringProviderRtnClassWithSameAccess(false);
+	}
+
+	public Class getDeclaringProviderRtnClassWithSameAccess(boolean onlyPublic) {
+		if (declaringProviderRtnClassWithSameAccess == null && (!onlyPublic || isDeclaringClassPublic())) {
+			return getReturnClass();
+		}
+		return declaringProviderRtnClassWithSameAccess;
+	}
+
+	public void setDeclaringProviderClass(Class declaringProviderClass, Type declaringProviderType, Class declaringProviderRtnClass, Type declaringProviderRtnType) {
+		this.declaringProviderClass = declaringProviderClass;
+		this.declaringProviderType = declaringProviderType;
+		this.declaringProviderRtnClass = declaringProviderRtnClass;
+		this.declaringProviderRtnType = declaringProviderRtnType;
+	}
+
+	public void setDeclaringProviderClassWithSameAccess(Class declaringProviderClassWithSameAccess, Type declaringProviderTypeWithSameAccess,
+			Class declaringProviderRtnClassWithSameAccess, Type declaringProviderRtnTypeWithSameAccess) {
 		this.declaringProviderClassWithSameAccess = declaringProviderClassWithSameAccess;
+		this.declaringProviderTypeWithSameAccess = declaringProviderTypeWithSameAccess;
+		this.declaringProviderRtnClassWithSameAccess = declaringProviderRtnClassWithSameAccess;
+		this.declaringProviderRtnTypeWithSameAccess = declaringProviderRtnTypeWithSameAccess;
 	}
 
 	@Override

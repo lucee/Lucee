@@ -7,7 +7,7 @@
 <cfscript>
 	function arrayRemoveValue(arr,value){
 		var index=arrayFindNoCase(arr,value);
-		if(index GT 0)ArrayDeleteAt(arr,index);
+		if(index GT 0) ArrayDeleteAt(arr,index);
 	}
 </cfscript>
 
@@ -63,8 +63,8 @@
 				<cfset data.rows=toArrayFromForm("row")>
 				
 				<cfloop index="idx" from="1" to="#arrayLen(data.physicals)#">
-					<cfif isDefined("data.rows[#idx#]")>
-						<cfset data.inspects[idx]=isDefined("data.inspects[#idx#]")?data.inspects[idx]:"">
+					<cfif arrayIndexExists(data.rows, idx)>
+						<cfset data.inspects[idx]=data.inspects[idx]?:"">
 					
 					<cfset name=data.names[idx]?:"">
 					<cfset virtual=trim(data.virtuals[idx]?:"")>
@@ -93,7 +93,7 @@
 				
 				<cfloop index="idx" from="1" to="#arrayLen(data.virtuals)#">
 					
-					<cfif isDefined("data.rows[#idx#]") and data.virtuals[idx] NEQ "">
+					<cfif arrayIndexExists(data.rows, idx) and data.virtuals[idx] NEQ "">
 						<cfadmin 
 							action="removeCustomTag"
 							type="#request.adminType#"

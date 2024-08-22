@@ -28,7 +28,7 @@
 			<cfset data.rows=toArrayFromForm("row")>
 			
 			<cfloop index="idx" from="1" to="#arrayLen(data.urls)#">
-				<cfif isDefined("data.rows[#idx#]") and data.urls[idx] NEQ "">
+				<cfif arrayIndexExists(data.rows, idx) and data.urls[idx] NEQ "">
 					<cfadmin 
 						action="removeRemoteClient"
 						type="#request.adminType#"
@@ -44,7 +44,7 @@
 				<cfset data.rows=toArrayFromForm("row")>
 				
 				<cfloop index="idx" from="1" to="#arrayLen(data.urls)#">
-					<cfif isDefined("data.rows[#idx#]") and data.urls[idx] NEQ "">
+					<cfif arrayIndexExists(data.rows, idx) and data.urls[idx] NEQ "">
 						<cfadmin 
 							action="getRemoteClient"
 							type="#request.adminType#"

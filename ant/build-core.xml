@@ -611,6 +611,7 @@
       <jvmarg value="-Dtemp=${temp}"/>
       <jvmarg value="-Dbasedir=${baseDir}"/>
       <jvmarg value="-Dsrcall=${srcAll}"/>
+      <jvmarg value="-Dlucee.allow.reflection=false"/>
       <!-- <jvmarg value="-Djdk.attach.allowAttachSelf=true"/> -->
       <jvmarg value="-DtestboxArchive=${temp}/archive/testbox.lar"/>
       <jvmarg value="-Dexecute=${testcases}"/>

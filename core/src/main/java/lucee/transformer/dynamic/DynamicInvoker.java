@@ -7,6 +7,11 @@ import java.lang.instrument.UnmodifiableClassException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.math.BigDecimal;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.temporal.ChronoField;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -41,6 +46,7 @@ import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
+import lucee.runtime.type.dt.DateTimeImpl;
 import lucee.runtime.type.util.ListUtil;
 import lucee.transformer.bytecode.util.ASMUtil;
 import lucee.transformer.bytecode.util.Types;
@@ -161,6 +167,7 @@ public class DynamicInvoker {
 		else {
 			// Clazz clazz, final Collection.Key methodName, final Object[] args, boolean convertArgument
 			fm = method = Clazz.getMethodMatch(clazzz, methodName, arguments, true);
+
 		}
 		/*
 		 * { getMatchCount++; getMatchTotal += (SystemUtil.millis() - start); print.e("get match(" +
@@ -170,7 +177,6 @@ public class DynamicInvoker {
 
 		Type[] parameterTypes = fm.getArgumentTypes();
 		clazz = fm.getDeclaringClass(); // we wanna go as low as possible, to be as open as possible also this avoid not allow to access
-
 		StringBuilder sbClassPath = new StringBuilder();
 		sbClassPath.append(clazz.getName().replace('.', '/')).append('/').append(isConstr ? "____init____" : fm.getName());
 		StringBuilder sbArgs = new StringBuilder();
@@ -180,7 +186,6 @@ public class DynamicInvoker {
 		sbClassPath.append('_').append(HashUtil.create64BitHashAsString(sbArgs, Character.MAX_RADIX));
 		String classPath = Clazz.getPackagePrefix() + sbClassPath.toString();// StringUtil.replace(sbClassPath.toString(), "javae/lang/", "java_lang/", false);
 		String className = classPath.replace('/', '.');
-
 		synchronized (SystemUtil.createToken("dyninvoc", className)) {
 
 			DynamicClassLoader loader = getCL(clazz);
@@ -270,7 +275,16 @@ public class DynamicInvoker {
 			else {
 				methodDesc.append('(');
 			}
-			Type rt = isConstr ? Type.getType(clazz) : method.getReturnType();
+			Type rt;
+			if (isConstr) {
+				rt = Type.getType(clazz);
+			}
+			else {
+				Class tmp = method.getDeclaringProviderRtnClassWithSameAccess();
+				if (tmp != null) rt = Type.getType(tmp);
+				else rt = method.getReturnType();
+			}
+
 			methodDesc.append(')').append(isConstr ? Types.VOID : rt.getDescriptor());
 			if (isConstr) {
 				// Create a new instance of java/lang/String
@@ -391,7 +405,7 @@ public class DynamicInvoker {
 		ResourceUtil.deleteContent(classes, null);
 		DynamicInvoker e = new DynamicInvoker(classes);
 
-		{
+		if (false) {
 			FileInputStream fis = new java.io.FileInputStream("/Users/mic/Tmp3/test.prop");
 			InputStreamReader fir = new java.io.InputStreamReader(fis, "UTF-8");
 			PropertyResourceBundle prb = new java.util.PropertyResourceBundle(fir);
@@ -407,6 +421,26 @@ public class DynamicInvoker {
 			fis.close();
 			System.exit(0);
 		}
+
+		{
+
+			// zoneId = createObject( "java", "java.time.ZoneId" );
+			// chronoField = createObject( "java", "java.time.temporal.ChronoField" );
+
+			// dump( now().toInstant().atZone( zoneId.of( "US/Central" ) ).toLocalDateTime()
+			// .with( ChronoField.DAY_OF_WEEK, javacast( "long", 1 ) ))
+
+			ZoneId zoneId = (ZoneId) e.invokeStaticMethod(java.time.ZoneId.class, "of", new Object[] { "US/Central" });
+			Instant instant = (Instant) e.invokeInstanceMethod(new DateTimeImpl(), "toInstant", new Object[] {});
+
+			ZonedDateTime zdt = (ZonedDateTime) e.invokeInstanceMethod(instant, "atZone", new Object[] { zoneId });
+			LocalDateTime ldt = (LocalDateTime) e.invokeInstanceMethod(zdt, "toLocalDateTime", new Object[] {});
+			Object r = e.invokeInstanceMethod(ldt, "with", new Object[] { ChronoField.DAY_OF_WEEK, 1L });
+			aprint.e(r);
+
+		}
+
+		if (true) return;
 
 		StringBuilder sb = new StringBuilder("Susi");
 		Test t = new Test();

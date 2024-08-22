@@ -31,7 +31,7 @@
 				<cfset data.rows=toArrayFromForm("row")>
 				<cfset data.names=toArrayFromForm("name")>
 				<cfloop index="idx" from="1" to="#arrayLen(data.names)#">
-					<cfif isDefined("data.rows[#idx#]") and data.names[idx] NEQ "">
+					<cfif arrayIndexExists(data.rows, idx) and data.names[idx] NEQ "">
 						<cfadmin 
 							action="removeCacheConnection"
 							type="#request.adminType#"
@@ -48,7 +48,7 @@
 				<cfset data.names=toArrayFromForm("name")>
 				
 				<cfloop index="idx" from="1" to="#arrayLen(data.names)#">
-					<cfif isDefined("data.rows[#idx#]") and data.names[idx] NEQ "">
+					<cfif arrayIndexExists(data.rows, idx) and data.names[idx] NEQ "">
 						<cftry>
 							<cfadmin 
 								action="verifyCacheConnection"

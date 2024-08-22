@@ -29,7 +29,7 @@
 				<cfset data.rows=toArrayFromForm("row")>
 				<cfset data.ids=toArrayFromForm("id")>
 				<cfloop index="idx" from="1" to="#arrayLen(data.ids)#">
-					<cfif isDefined("data.rows[#idx#]") and data.ids[idx] NEQ "">
+					<cfif arrayIndexExists(data.rows, idx) and data.ids[idx] NEQ "">
 						<cfadmin 
 							action="removeDebugEntry"
 							type="#request.adminType#"

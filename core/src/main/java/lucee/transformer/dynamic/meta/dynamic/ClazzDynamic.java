@@ -315,31 +315,47 @@ public class ClazzDynamic extends Clazz {
 
 			@Override
 			public MethodVisitor visitMethod(int access, String name, String descriptor, String signature, String[] exceptions) {
-				FunctionMember fm = FunctionMemberDynamic.createInstance(clazz, name, access, descriptor, exceptions, classAccess.toInt());
-				String id = Clazz.id(fm);
+				FunctionMember fmCurrent = FunctionMemberDynamic.createInstance(clazz, name, access, descriptor, exceptions, classAccess.toInt());
+				String id = Clazz.id(fmCurrent);
 				FunctionMember parent = members.get(id);
 				if (parent instanceof FunctionMemberDynamic) {
-					FunctionMemberDynamic fmd = (FunctionMemberDynamic) parent;
+					FunctionMemberDynamic fmParent = (FunctionMemberDynamic) parent;
 					// java.lang.Appendable
-					Class tmp = fmd.getDeclaringProviderClass(true);
-					if (tmp != null) {
+
+					Class tmpClass = fmParent.getDeclaringProviderClass(true);
+					if (tmpClass != null) {
+						Class rtnClass = null;
+						if (fmParent instanceof Method) {
+
+							Class tmpRtn = fmParent.getDeclaringProviderRtnClass(true);
+							rtnClass = tmpRtn;
+						}
+
 						/*
-						 * if (name.equals("nextElement")) { print.e(name + ":" + descriptor);
-						 * print.e(Clazz.getAccessModifier(fm)); print.e(Clazz.getAccessModifier(fmd));
-						 * print.e(Clazz.getAccessModifierAsString(fm)); print.e(Clazz.getAccessModifierAsString(fmd));
-						 * print.e(fm.getDeclaringProviderClassName());
-						 * print.e(fm.getDeclaringProviderClassNameWithSameAccess()); print.e("-----------------" +
+						 * if (name.equals("toLocalDateTime")) { print.e("xxxxxxxxxxxxxxx"); print.e(clazz + ":" + name +
+						 * ":" + descriptor); // print.e(Clazz.getAccessModifier(fmCurrent)); //
+						 * print.e(Clazz.getAccessModifier(fmParent)); print.e("curr: " +
+						 * Clazz.getAccessModifierAsString(fmCurrent)); print.e("parr: " +
+						 * Clazz.getAccessModifierAsString(fmParent)); print.e("DeclaringClassName: " +
+						 * fmCurrent.getDeclaringClassName()); print.e("getDeclaringProviderClassName: " +
+						 * fmCurrent.getDeclaringProviderClassNameWithSameAccess()); // print.e("-----------------" +
 						 * Clazz.compareAccess(fmd, fm)); }
 						 */
-						if (Clazz.compareAccess(fmd, fm) >= 0) ((FunctionMemberDynamic) fm).setDeclaringProviderClassWithSameAccess(tmp);
-						((FunctionMemberDynamic) fm).setDeclaringProviderClass(tmp);
+
+						Type tmpType = tmpClass != null ? Type.getType(tmpClass) : null;
+						Type rtnType = rtnClass != null ? Type.getType(rtnClass) : null;
+
+						if (Clazz.compareAccess(fmParent, fmCurrent) >= 0)
+							((FunctionMemberDynamic) fmCurrent).setDeclaringProviderClassWithSameAccess(tmpClass, tmpType, rtnClass, rtnType);
+						((FunctionMemberDynamic) fmCurrent).setDeclaringProviderClass(tmpClass, tmpType, rtnClass, rtnType);
+
 						/*
 						 * if (name.equals("nextElement")) { print.e(fm.getDeclaringProviderClassName());
 						 * print.e(fm.getDeclaringProviderClassNameWithSameAccess()); }
 						 */
 					}
 				}
-				members.put(id, fm);
+				members.put(id, fmCurrent);
 
 				return super.visitMethod(access, name, descriptor, signature, exceptions);
 			}

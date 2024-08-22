@@ -6,17 +6,13 @@
 <cfset stText.CustomTags.PrimaryDesc="Defines where Lucee looks first for a requested custom tags">
 <cfset stText.CustomTags.trustedDesc="When does Lucee checks for changes in the source file for an already loaded custom tags">
 
-
-<!--- <cfif isDefined("form")>
-	<cfinclude template="act/resources.act_mapping.cfm">
-</cfif> --->
 <cfset error.message="">
 <cfset error.detail="">
 <cfparam name="url.action2" default="list">
 <cfscript>
-	function arrayRemoveValue(arr,value){
+	function arrayRemoveValue(arr,value) {
 		var index=arrayFindNoCase(arr,value);
-		if(index GT 0)ArrayDeleteAt(arr,index);
+		if(index GT 0) ArrayDeleteAt(arr,index);
 	}
 </cfscript>
 
@@ -58,9 +54,9 @@
 				<cfset data.rows=toArrayFromForm("row")>
 				
 				<cfloop index="idx" from="1" to="#arrayLen(data.virtuals)#">
-					<cfif isDefined("data.rows[#idx#]") and data.virtuals[idx] NEQ "">
-						<cfset data.addNonCFMLFiles[idx]=isDefined("data.addNonCFMLFiles[#idx#]") and data.addNonCFMLFiles[idx]>
-						<cfset data.addCFMLFiles[idx]=isDefined("data.addCFMLFiles[#idx#]") and data.addCFMLFiles[idx]>
+					<cfif arrayIndexExists(data.rows, idx) and data.virtuals[idx] NEQ "">
+						<cfset data.addNonCFMLFiles[idx]=data.addNonCFMLFiles[idx]?:false>
+						<cfset data.addCFMLFiles[idx]=data.addCFMLFiles[idx]?:false>
 					
 					<cfset ext='lar'>
 					<cfset target=getTempDirectory() & Rand() & "."&ext>
@@ -122,9 +118,9 @@
 				
 				<cfloop index="idx" from="1" to="#arrayLen(data.virtuals)#">
 				
-					<cfif isDefined("data.rows[#idx#]") and data.virtuals[idx] NEQ "">
-						<cfset data.toplevels[idx]=isDefined("data.toplevels[#idx#]") and data.toplevels[idx]>
-						<cfset data.stoponerrors[idx]=isDefined("data.stoponerrors[#idx#]") and data.stoponerrors[idx]>
+					<cfif arrayIndexExists(data.rows, idx) and data.virtuals[idx] NEQ "">
+						<cfset data.toplevels[idx]=data.toplevels[idx]?:false>
+						<cfset data.stoponerrors[idx]=data.stoponerrors[idx]?:false>
 					
 					<cfadmin 
 						action="compileCTMapping"
@@ -152,9 +148,9 @@
 						type="#request.adminType#"
 						password="#session["password"&request.adminType]#"
 						
-						deepSearch="#isDefined('form.customTagDeepSearchDesc') and form.customTagDeepSearchDesc EQ true#"
-						localSearch="#isDefined('form.customTagLocalSearchDesc') and form.customTagLocalSearchDesc EQ true#"
-						customTagPathCache="#isDefined('form.customTagPathCache') and form.customTagPathCache EQ true#"
+						deepSearch="#form.customTagDeepSearchDesc?:false#"
+						localSearch="#form.customTagLocalSearchDesc?:false#"
+						customTagPathCache="#form.customTagPathCache?:false#"
 						
 						
 						
@@ -172,8 +168,8 @@
 				<cfset data.rows=toArrayFromForm("row")>
 
 				<cfloop index="idx" from="1" to="#arrayLen(data.physicals)#">
-					<cfif isDefined("data.rows[#idx#]")>
-						<cfset data.inspects[idx]=isDefined("data.inspects[#idx#]")?data.inspects[idx]:"">
+					<cfif arrayIndexExists(data.rows, idx)>
+						<cfset data.inspects[idx]=data.inspects[idx]?:"">
 					
 					<cfset name=data.names[idx]?:"">
 					<cfset virtual=trim(data.virtuals[idx]?:"")>
@@ -204,7 +200,7 @@
 				
 				<cfloop index="idx" from="1" to="#arrayLen(data.virtuals)#">
 					
-					<cfif isDefined("data.rows[#idx#]") and data.virtuals[idx] NEQ "">
+					<cfif arrayIndexExists(data.rows, idx) and data.virtuals[idx] NEQ "">
 						<cfadmin 
 							action="removeCustomTag"
 							type="#request.adminType#"

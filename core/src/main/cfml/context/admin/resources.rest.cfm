@@ -40,7 +40,7 @@
 
             <cfloop index="idx" from="1" to="#arrayLen(data.virtuals)#">
             	<cfset _default=StructKeyExists(form,'default') and form.default EQ idx>
-				<cfif isDefined("data.rows[#idx#]") and data.virtuals[idx] NEQ "">aaa
+				<cfif arrayIndexExists(data.rows, idx) and data.virtuals[idx] NEQ "">aaa
                 <cfadmin
                     action="updateRestMapping"
                     type="#request.adminType#"
@@ -63,7 +63,7 @@
 
             <cfloop index="idx" from="1" to="#arrayLen(data.virtuals)#">
             	<cfset _default=StructKeyExists(form,'default') and form.default EQ idx>
-				<cfif isDefined("data.rows[#idx#]") and data.virtuals[idx] NEQ "">aaa
+				<cfif arrayIndexExists(data.rows, idx) and data.virtuals[idx] NEQ "">aaa
                 <cfadmin
                     action="removeRestMapping"
                     type="#request.adminType#"

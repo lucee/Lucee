@@ -66,9 +66,9 @@ Defaults --->
 				<cfset data.rows=toArrayFromForm("row")>
 				
 				<cfloop index="idx" from="1" to="#arrayLen(data.virtuals)#">
-					<cfif isDefined("data.rows[#idx#]") and data.virtuals[idx] NEQ "">
-						<cfset data.addNonCFMLFiles[idx]=isDefined("data.addNonCFMLFiles[#idx#]") and data.addNonCFMLFiles[idx]>
-						<cfset data.addCFMLFiles[idx]=isDefined("data.addCFMLFiles[#idx#]") and data.addCFMLFiles[idx]>
+					<cfif arrayIndexExists(data.rows, idx) and data.virtuals[idx] NEQ "">
+						<cfset data.addNonCFMLFiles[idx]=data.addNonCFMLFiles[idx]?:false>
+						<cfset data.addCFMLFiles[idx]=data.addCFMLFiles[idx]?:false>
 					
 					<cfset ext='lar'>
 					<cfset target=getTempDirectory() & Rand() & "."&ext>
@@ -120,9 +120,9 @@ Defaults --->
 				<cfset data.rows=toArrayFromForm("row")>
 				
 				<cfloop index="idx" from="1" to="#arrayLen(data.virtuals)#">
-					<cfif isDefined("data.rows[#idx#]") and data.virtuals[idx] NEQ "">
-						<cfset data.toplevels[idx]=isDefined("data.toplevels[#idx#]") and data.toplevels[idx]>
-						<cfset data.stoponerrors[idx]=isDefined("data.stoponerrors[#idx#]") and data.stoponerrors[idx]>
+					<cfif arrayIndexExists(data.rows, idx) and data.virtuals[idx] NEQ "">
+						<cfset data.toplevels[idx]=data.toplevels[idx]?:false>
+						<cfset data.stoponerrors[idx]=data.stoponerrors[idx]?:false>
 					
 					<cfadmin 
 						action="compileComponentMapping"
@@ -149,7 +149,7 @@ Defaults --->
 				
 				<cfloop index="idx" from="1" to="#arrayLen(data.virtuals)#">
 					
-					<cfif isDefined("data.rows[#idx#]") and data.virtuals[idx] NEQ "">
+					<cfif arrayIndexExists(data.rows, idx) and data.virtuals[idx] NEQ "">
 						<cfadmin 
 							action="removeComponentMapping"
 							type="#request.adminType#"
@@ -174,8 +174,8 @@ Defaults --->
 				<cfset data.rows=toArrayFromForm("row")>
 				
                 <cfloop index="idx" from="1" to="#arrayLen(data.physicals)#">
-					<cfif isDefined("data.rows[#idx#]") and data.virtuals[idx] NEQ "">
-						<cfset data.inspects[idx]=isDefined("data.inspects[#idx#]")?data.inspects[idx]:"">
+					<cfif arrayIndexExists(data.rows, idx) and data.virtuals[idx] NEQ "">
+						<cfset data.inspects[idx]=data.inspects[idx]?:"">
 					<cfset name=data.names[idx]?:"">
 					<cfset virtual=trim(data.virtuals[idx])>
 					<cfif len(name)>

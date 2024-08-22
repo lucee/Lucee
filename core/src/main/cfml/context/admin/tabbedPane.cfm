@@ -7,7 +7,7 @@
 		<cfset request.tpnames[attributes.name]=1>
 		<cfset actionName=attributes.name&"_tab">
 		<cfparam name="attributes.name" default="">
-		<cfif isDefined('url.'&actionName)>
+		<cfif structKeyExists(url,actionName)>
 			<cfset cTab=url[actionName]>
 		<cfelse>
 			<cfset cTab=attributes.default>
@@ -17,7 +17,7 @@
 		<cfset baseurl=request.self>
 		<cfset baseurl=cgi.query_string>
 
-		<cfif isDefined('url.#actionName#')>
+		<cfif structKeyExists(url,actionName)>
 			<cfset qs="">
 			<cfloop collection="#url#" item="key">
 				<cfif key NEQ actionName><cfset qs=qs&key&"="&url[key]&"&"></cfif>
