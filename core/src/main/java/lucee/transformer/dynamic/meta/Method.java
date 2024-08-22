@@ -8,4 +8,12 @@ public interface Method extends FunctionMember {
 	public Type getReturnType();
 
 	public Class getReturnClass();
+
+	public String getDeclaringProviderRtnClassName();
+
+	public Class getDeclaringProviderRtnClass();
+
+	public String getDeclaringProviderRtnClassNameWithSameAccess();
+
+	public Class getDeclaringProviderRtnClassWithSameAccess();
 }
