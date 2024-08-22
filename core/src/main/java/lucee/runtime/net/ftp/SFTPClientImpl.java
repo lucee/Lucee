@@ -111,8 +111,7 @@ public class SFTPClientImpl extends AFTPClient {
 		try {
 
 			session = jsch.getSession(username, host.getHostAddress(), port);
-
-			session.setConfig("StrictHostKeyChecking", "no");
+			java.util.Properties config = new java.util.Properties();
 
 			if (password != null) session.setPassword(password);
 
@@ -120,7 +119,11 @@ public class SFTPClientImpl extends AFTPClient {
 
 			if (timeout > 0) session.setTimeout(timeout);
 
-			if (password != null && sshKey == null) session.setConfig("PreferredAuthentications", "password");
+			if (password != null && sshKey == null) config.put("PreferredAuthentications", "password");
+
+			config.put("StrictHostKeyChecking", "no");
+
+			session.setConfig(config);
 
 			session.connect();
 
