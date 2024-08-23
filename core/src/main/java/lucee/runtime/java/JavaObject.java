@@ -283,7 +283,7 @@ public class JavaObject implements Objects, ObjectWrap {
 			}
 
 			// invoke constructor and call instance method
-			Object obj = init(arguments, TYPE_METHOD, methodName);
+			Object obj = init(EMPTY, TYPE_METHOD, methodName);
 			return mi.invoke(obj);
 		}
 		catch (Exception e) {
