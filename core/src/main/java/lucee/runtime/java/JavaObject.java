@@ -32,6 +32,7 @@ import lucee.runtime.dump.DumpData;
 import lucee.runtime.dump.DumpProperties;
 import lucee.runtime.dump.DumpUtil;
 import lucee.runtime.engine.ThreadLocalPageContext;
+import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
@@ -55,11 +56,14 @@ import lucee.runtime.util.VariableUtilImpl;
 public class JavaObject implements Objects, ObjectWrap {
 
 	private static final long serialVersionUID = -3716657460843769960L;
-
+	private static final Object[] EMPTY = new Object[0];
+	private static final String TYPE_FIELD = "field";
+	private static final String TYPE_METHOD = "method";
 	private Class clazz;
 	private boolean isInit = false;
 	private Object object;
 	private transient VariableUtil _variableUtil;
+	private boolean allowInit;
 
 	/**
 	 * constructor with className to load
@@ -68,16 +72,26 @@ public class JavaObject implements Objects, ObjectWrap {
 	 * @param clazz
 	 * @throws ExpressionException
 	 */
-	public JavaObject(VariableUtil variableUtil, Class clazz) {
-		this._variableUtil = variableUtil;
-		this.clazz = clazz;
+	private JavaObject(VariableUtil variableUtil, Class clazz) {
+		this(variableUtil, clazz, true);
 	}
 
-	public JavaObject(VariableUtil variableUtil, Object object) {
+	public JavaObject(VariableUtil variableUtil, Class clazz, boolean allowInit) {
+		this._variableUtil = variableUtil;
+		this.clazz = clazz;
+		this.allowInit = allowInit;
+	}
+
+	private JavaObject(VariableUtil variableUtil, Object object) {
+		this(variableUtil, object, true);
+	}
+
+	public JavaObject(VariableUtil variableUtil, Object object, boolean allowInit) {
 		this._variableUtil = variableUtil;
 		this.clazz = object.getClass();
 		this.object = object;
 		isInit = object != null;
+		this.allowInit = allowInit;
 	}
 
 	public Object get(PageContext pc, String propertyName) throws PageException {
@@ -109,7 +123,7 @@ public class JavaObject implements Objects, ObjectWrap {
 			}
 		}
 		// male Instance
-		return variableUtil(pc).get(pc, init(), propertyName);
+		return variableUtil(pc).get(pc, init(EMPTY, TYPE_FIELD, propertyName), propertyName);
 	}
 
 	private VariableUtil variableUtil(PageContext pc) {
@@ -154,7 +168,7 @@ public class JavaObject implements Objects, ObjectWrap {
 			}
 		}
 		try {
-			return variableUtil(pc).get(pc, init(), propertyName, defaultValue);
+			return variableUtil(pc).get(pc, init(EMPTY, TYPE_FIELD, propertyName), propertyName, defaultValue);
 		}
 		catch (PageException e1) {
 			return defaultValue;
@@ -198,7 +212,7 @@ public class JavaObject implements Objects, ObjectWrap {
 			}
 		}
 
-		return ((VariableUtilImpl) variableUtil(pc)).set(pc, init(), propertyName, value);
+		return ((VariableUtilImpl) variableUtil(pc)).set(pc, init(EMPTY, TYPE_FIELD, propertyName.getString()), propertyName, value);
 	}
 
 	@Override
@@ -232,7 +246,7 @@ public class JavaObject implements Objects, ObjectWrap {
 		}
 
 		try {
-			return variableUtil(pc).setEL(pc, init(), propertyName, value);
+			return variableUtil(pc).setEL(pc, init(EMPTY, TYPE_FIELD, propertyName.getString()), propertyName, value);
 		}
 		catch (PageException e1) {
 			return value;
@@ -246,7 +260,7 @@ public class JavaObject implements Objects, ObjectWrap {
 
 		// edge cases
 		if (methodName.equalsIgnoreCase("init")) {
-			return init(arguments);
+			return init(arguments, TYPE_METHOD, methodName);
 		}
 		else if (methodName.equalsIgnoreCase("getClass")) {
 			return clazz;
@@ -269,7 +283,7 @@ public class JavaObject implements Objects, ObjectWrap {
 			}
 
 			// invoke constructor and call instance method
-			Object obj = init();
+			Object obj = init(arguments, TYPE_METHOD, methodName);
 			return mi.invoke(obj);
 		}
 		catch (Exception e) {
@@ -297,33 +311,23 @@ public class JavaObject implements Objects, ObjectWrap {
 	}
 
 	/**
-	 * initialize method (default no object)
-	 * 
-	 * @return initialize object
-	 * @throws PageException
-	 */
-	private Object init() throws PageException {
-		return init(new Object[0]);
-	}
-
-	private Object init(Object defaultValue) {
-		return init(new Object[0], defaultValue);
-	}
-
-	/**
 	 * initialize method
 	 * 
 	 * @param arguments
 	 * @return Initalised Object
 	 * @throws PageException
 	 */
-	private Object init(Object[] arguments) throws PageException {
+	private Object init(Object[] arguments, String type, String name) throws PageException {
+		if (!allowInit && name != null) {
+			throw new ApplicationException("No static " + type + " named [" + name + "] was found. There may be an instance " + type + " with this name.");
+		}
 		object = Reflector.callConstructor(clazz, arguments);
 		isInit = true;
 		return object;
 	}
 
 	private Object init(Object[] arguments, Object defaultValue) {
+		if (!allowInit) return defaultValue;
 		object = Reflector.callConstructor(clazz, arguments, null);
 		isInit = object != null;
 		return isInit ? object : defaultValue;
@@ -331,7 +335,7 @@ public class JavaObject implements Objects, ObjectWrap {
 
 	@Override
 	public Object getEmbededObject() throws PageException {
-		if (object == null) init();
+		if (object == null) init(EMPTY, null, null);
 		return object;
 	}
 
@@ -418,7 +422,7 @@ public class JavaObject implements Objects, ObjectWrap {
 
 	@Override
 	public Object getEmbededObject(Object def) {
-		if (object == null) init(def);
+		if (object == null) init(EMPTY, def);
 		return object;
 	}
 

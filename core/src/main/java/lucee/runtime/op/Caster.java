@@ -5077,7 +5077,7 @@ public final class Caster {
 	public static Objects toObjects(PageContext pc, Object obj) throws PageException {
 		if (obj instanceof Objects) return (Objects) obj;
 		if (obj instanceof ObjectWrap) return toObjects(pc, ((ObjectWrap) obj).getEmbededObject());
-		return new JavaObject(pc.getVariableUtil(), obj);
+		return new JavaObject(pc.getVariableUtil(), obj, true);
 	}
 
 	public static BigDecimal toBigDecimal(Object o) throws PageException {

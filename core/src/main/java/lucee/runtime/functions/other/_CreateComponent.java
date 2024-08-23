@@ -42,8 +42,8 @@ import lucee.runtime.type.util.KeyConstants;
 public class _CreateComponent {
 
 	private static final Object[] EMPTY = new Object[0];
-	private static final ImportDefintion JAVA_LANG = new ImportDefintionImpl("java.lang", "*");
-	private static ImportDefintion[] EMPTY_ID = new ImportDefintion[0];
+	public static final ImportDefintion JAVA_LANG = new ImportDefintionImpl("java.lang", "*");
+	public static ImportDefintion[] EMPTY_ID = new ImportDefintion[0];
 
 	private static int TYPE_BOTH = 1;
 	private static int TYPE_JAVA = 2;
@@ -64,37 +64,9 @@ public class _CreateComponent {
 
 		// not store the index to make it faster
 		Component cfc = type != TYPE_JAVA ? ComponentLoader.searchComponent(pc, null, path, null, null, false, true, true, type == TYPE_CFML) : null;
-		Class cls = null;
-		if (cfc == null) {
-			// no package
-			if (path.indexOf('.') == -1) {
-				ImportDefintion[] imports = getImportDefintions(pc);
-				ImportDefintion id;
-				for (int i = 0; i <= imports.length; i++) {
-					id = i == imports.length ? JAVA_LANG : imports[i];
-					if ("*".equals(id.getName()) || path.equals(id.getName())) {
-						try {// TODO do method with defaultValue
-							cls = ClassUtil.loadClass(pc, id.getPackage() + "." + path);
-							break;
-						}
-						catch (Exception e) {
-
-						}
-					}
-				}
-			}
-			if (cls == null) {
-				try {
-					cls = ClassUtil.loadClass(pc, path);
-				}
-				catch (Exception e) {
-					ApplicationException ae = new ApplicationException("could not find component or class with name [" + path + "]");
-					// ExceptionUtil.initCauseEL(ae, e);
-					throw ae;
-				}
-			}
-
-		}
+		// if type is TYPE_CFML we do not have to check for it here anymore, because the line above has a
+		// cfc or throws an exception
+		Class cls = cfc == null ? cls = loadClass(pc, path) : null;
 
 		// no init method
 		if (cfc != null && !(cfc.get(pc, KeyConstants._init, null) instanceof UDF)) {
@@ -161,7 +133,39 @@ public class _CreateComponent {
 		return rtn;
 	}
 
-	private static ImportDefintion[] getImportDefintions(PageContext pc) {
+	public static Class loadClass(PageContext pc, String path) throws ApplicationException {
+		Class cls = null;
+		// no package
+		if (path.indexOf('.') == -1) {
+			ImportDefintion[] imports = getImportDefintions(pc);
+			ImportDefintion id;
+			for (int i = 0; i <= imports.length; i++) {
+				id = i == imports.length ? JAVA_LANG : imports[i];
+				if ("*".equals(id.getName()) || path.equals(id.getName())) {
+					try {// TODO do method with defaultValue
+						cls = ClassUtil.loadClass(pc, id.getPackage() + "." + path);
+						break;
+					}
+					catch (Exception e) {
+
+					}
+				}
+			}
+		}
+		if (cls == null) {
+			try {
+				cls = ClassUtil.loadClass(pc, path);
+			}
+			catch (Exception e) {
+				ApplicationException ae = new ApplicationException("could not find component or class with name [" + path + "]");
+				// ExceptionUtil.initCauseEL(ae, e);
+				throw ae;
+			}
+		}
+		return cls;
+	}
+
+	public static ImportDefintion[] getImportDefintions(PageContext pc) {
 		PageSource currPS = pc.getCurrentPageSource(null);
 
 		ImportDefintion[] importDefintions = null;

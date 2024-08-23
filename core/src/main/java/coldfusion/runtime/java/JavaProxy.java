@@ -25,11 +25,11 @@ import lucee.runtime.java.JavaObject;
 public class JavaProxy extends JavaObject {
 
 	public JavaProxy(Class clazz) {
-		super(ThreadLocalPageContext.get().getVariableUtil(), clazz);
+		super(ThreadLocalPageContext.get().getVariableUtil(), clazz, true);
 	}
 
 	public JavaProxy(Object obj) {
-		super(ThreadLocalPageContext.get().getVariableUtil(), obj);
+		super(ThreadLocalPageContext.get().getVariableUtil(), obj, true);
 	}
 
 	public Object invoke(String methodName, Object args[], PageContext pc) throws Exception {

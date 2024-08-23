@@ -18,18 +18,24 @@
 package lucee.runtime.functions.other;
 
 import lucee.runtime.PageContext;
+import lucee.runtime.StaticScope;
 import lucee.runtime.component.ComponentLoader;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
-import lucee.runtime.type.Struct;
+import lucee.runtime.java.JavaObject;
 
 public class _GetStaticScope implements Function {
 
 	private static final long serialVersionUID = -2676531632543576056L;
 
-	public static Struct call(PageContext pc, String componentPath) throws PageException {
+	public static Object call(PageContext pc, String componentPath) throws PageException {
 
-		return ComponentLoader.getStaticScope(pc, null, componentPath, null, null);
+		StaticScope ss = ComponentLoader.getStaticScope(pc, null, componentPath, null, null, false);
+		if (ss != null) return ss;
+
+		Class cls = _CreateComponent.loadClass(pc, componentPath);
+
+		return new JavaObject((pc).getVariableUtil(), cls, false);
 	}
 
 }

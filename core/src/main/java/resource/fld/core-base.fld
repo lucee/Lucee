@@ -2841,7 +2841,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<description>component or component name</description>
 	    </argument>
 		<return>
-			<type>struct</type>
+			<type>any</type>
 		</return>
 	</function>
 	

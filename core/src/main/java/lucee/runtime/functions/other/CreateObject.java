@@ -86,7 +86,7 @@ public final class CreateObject extends BIF {
 		if (type.equals("java")) {
 			checkAccess(pc, type);
 			if (objClass instanceof Class<?>) {
-				return new JavaObject((pc).getVariableUtil(), (Class) objClass);
+				return new JavaObject((pc).getVariableUtil(), (Class) objClass, true);
 			}
 
 			return doJava(pc, toClassName(pc, objClass), context, Caster.toString(serverName));

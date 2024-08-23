@@ -46,7 +46,7 @@ public final class ObjectStruct extends StructSupport implements Struct, Objects
 
 	public ObjectStruct(Object o) {
 		if (o instanceof JavaObject) this.jo = (JavaObject) o;
-		else this.jo = new JavaObject(ThreadLocalPageContext.get().getVariableUtil(), o);
+		else this.jo = new JavaObject(ThreadLocalPageContext.get().getVariableUtil(), o, true);
 	}
 
 	public ObjectStruct(JavaObject jo) {

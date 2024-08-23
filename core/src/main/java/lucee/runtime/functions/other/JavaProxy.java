@@ -71,7 +71,7 @@ public final class JavaProxy implements Function {
 
 	public static Object call(PageContext pc, String className, Object pathOrName, String delimiterOrVersion, Array relatedBundles) throws PageException {
 		checkAccess(pc);
-		return new JavaObject((pc).getVariableUtil(), loadClass(pc, className, pathOrName, delimiterOrVersion, relatedBundles));
+		return new JavaObject((pc).getVariableUtil(), loadClass(pc, className, pathOrName, delimiterOrVersion, relatedBundles), true);
 	}
 
 	public static Class<?> loadClass(PageContext pc, String className, Object pathOrName, String delimiterOrVersion, Array aRelatedBundles) throws PageException {

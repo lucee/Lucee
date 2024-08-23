@@ -100,8 +100,10 @@ public class ComponentLoader {
 		return (ComponentImpl) _search(pc, loadingLocation, rawPath, searchLocal, searchRoot, executeConstr, RETURN_TYPE_COMPONENT, isExtendedComponent, validate, throwOnMissing);
 	}
 
-	public static StaticScope getStaticScope(PageContext pc, PageSource loadingLocation, String rawPath, Boolean searchLocal, Boolean searchRoot) throws PageException {
-		ComponentPageImpl cp = searchComponentPage(pc, loadingLocation, rawPath, searchLocal, searchRoot);
+	public static StaticScope getStaticScope(PageContext pc, PageSource loadingLocation, String rawPath, Boolean searchLocal, Boolean searchRoot, boolean throwOnMissing)
+			throws PageException {
+		ComponentPageImpl cp = searchComponentPage(pc, loadingLocation, rawPath, searchLocal, searchRoot, true, throwOnMissing);
+		if (cp == null) return null;
 		StaticScope ss = cp.getStaticScope();
 
 		// if there is no static scope stored yet, we need to load it
@@ -156,7 +158,9 @@ public class ComponentLoader {
 		Object obj = _search(pc, loadingLocation, rawPath, searchLocal, searchRoot, false, RETURN_TYPE_PAGE, false, validate, throwOnMissing);
 
 		if (obj instanceof ComponentPageImpl) return (ComponentPageImpl) obj;
-		throw new ExpressionException("invalid " + toStringType(RETURN_TYPE_PAGE) + " definition, can't find " + toStringType(RETURN_TYPE_PAGE) + " [" + rawPath + "]");
+		if (throwOnMissing)
+			throw new ExpressionException("invalid " + toStringType(RETURN_TYPE_PAGE) + " definition, can't find " + toStringType(RETURN_TYPE_PAGE) + " [" + rawPath + "]");
+		return null;
 	}
 
 	public static InterfaceImpl searchInterface(PageContext pc, PageSource loadingLocation, String rawPath) throws PageException {
