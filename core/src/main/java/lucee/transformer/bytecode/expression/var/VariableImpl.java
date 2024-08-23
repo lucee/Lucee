@@ -618,10 +618,9 @@ public class VariableImpl extends ExpressionBase implements Variable {
 					if (m == null) {
 
 						StringBuilder sb = new StringBuilder();
-						sb.append("call(");
+						sb.append("call(PageContext pc");
 						for (FunctionLibFunctionArg flfa: fargs) {
-							if (sb.length() > 5) sb.append(", ");
-							sb.append(flfa.getTypeAsString()).append(' ').append(flfa.getName());
+							sb.append(", ").append(Types.toType(bc, flfa.getTypeAsString()).getClassName()).append(' ').append(flfa.getName());
 						}
 						sb.append("):").append(rtnType.getClassName());
 						throw new TransformerException(bc, "no matching implementation for the BIF [" + sb + "] found", line);
