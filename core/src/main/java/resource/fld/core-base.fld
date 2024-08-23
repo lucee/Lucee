@@ -12548,6 +12548,25 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<type>any</type>
 		</return>
 	</function>
+		<!-- SetJavaSettings -->
+<function>
+    <name>SetJavaSettings</name>
+    <class>lucee.runtime.functions.system.SetJavaSettings</class>
+    <description>
+        Set individual Java settings for the remainder of the current request. This function extends the existing Java settings defined in both `Application.cfc` and `.CFConfig.json`. The provided settings will be merged with the pre-existing configurations, allowing for dynamic adjustments specific to the needs of the request.
+    </description>
+    <argument>
+        <name>javasettings</name>
+        <type>struct</type>
+        <required>Yes</required>
+        <description>
+            A struct containing the Java settings to be applied. This struct may include Maven dependencies or other Java configurations necessary for the current request.
+        </description>
+    </argument>
+    <return>
+        <type>void</type>
+    </return>
+</function>
 	<!-- sgn -->
 	<function>
 		<name>sgn</name>
