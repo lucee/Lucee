@@ -197,29 +197,29 @@
 			<rtexprvalue>true</rtexprvalue>
 		<description>
 			- cache (default): server-side and client-side template caching.
-            - flush: refresh cached pages (template caching).
-            - clientCache: browser-side caching only. To cache a personalized page, use this option.
-            - serverCache: server-side caching only. Not recommended.
-            - optimal: same as "cache".
-            - content: same as cache, but cache only the body of the tag, not the complete template (template caching).
-            - put: adds a key value pair to object cache (see function cachePut for more details)
-            - get: gets value matching given key from object cache (see function cacheGet for more details)
-            </description>
-    </attribute>
+			- flush: refresh cached pages (template caching).
+			- clientCache: browser-side caching only. To cache a personalized page, use this option.
+			- serverCache: server-side caching only. Not recommended.
+			- optimal: same as "cache".
+			- content: same as cache, but cache only the body of the tag, not the complete template (template caching).
+			- put: adds a key value pair to object cache (see function cachePut for more details)
+			- get: gets value matching given key from object cache (see function cacheGet for more details)
+			</description>
+	</attribute>
 		<attribute>
 			<type>string</type>
 			<name>key</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 		<description>key to access cache</description>
-    </attribute>
+	</attribute>
 		<attribute>
 			<type>any</type>
 			<name>id</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 		<description>Id of the cached object</description>
-    </attribute>
+	</attribute>
 		<attribute>
 			<type>boolean</type>
 			<name>throwOnError</name>
@@ -232,7 +232,7 @@ true
 you can handle the error in a
 cfcatch
 block, for example, if a specified id value is invalid</description>
-    </attribute>
+	</attribute>
 
 		<attribute>
 			<type>string</type>
@@ -240,28 +240,28 @@ block, for example, if a specified id value is invalid</description>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 		<description>name of return variable, valid with action="get"</description>
-    </attribute>
+	</attribute>
 		<attribute>
 			<type>string</type>
 			<name>metadata</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 		<description>Name of the struct variable</description>
-    </attribute>
+	</attribute>
 		<attribute>
 			<type>any</type>
 			<name>value</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 		<description>For action="set", object which needs to be stored</description>
-    </attribute>
+	</attribute>
 		<attribute>
 			<type>string</type>
 			<name>cacheName</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 		<description>definition of the cache used by name, when not set the "default Object Cache" defined in Lucee Administrator is used instead.</description>
-    </attribute>
+	</attribute>
 		<attribute>
 			<type>string</type>
 			<name>username</name>
@@ -414,29 +414,39 @@ A return value from the CreateTimeSpan function, for example, "#CreateTimeSpan(0
 			<rtexprvalue>false</rtexprvalue>
 			<context>component</context>
 		</script>
-		<description>Creates and defines a component object; encloses functionality that you build in CFML and enclose within cffunction tags. This tag contains one or more cffunction tags that define methods. Code within the body of this tag, other than cffunction tags, is executed when the component is instantiated. </description>
+		<description>
+			The `component` tag is used to define a CFML component (CFC), a reusable encapsulation of logic and data in Lucee. A component is an object that can contain properties and functions, allowing for structured and object-oriented development. Within the `component` body, you define functions using `cffunction` tags. Code outside `cffunction` tags is executed when the component is instantiated. This tag is essential for creating modular and reusable code blocks in CFML applications.
+		</description>
 		<att-class>lucee.transformer.cfml.attributes.impl.Component</att-class>
 		<attribute-type>mixed</attribute-type>
+	
+		<attribute>
+			<type>boolean</type>
+			<name>accessors</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>If set to true, lets you invoke implicit getters and setters. For persistent CFCs, accessors are always enabled.</description>
+		</attribute>
 		<attribute>
 			<type>boolean</type>
 			<name>synchronized</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>If set to true all calls to an instance of a component are synchronized. This setting allows a method to be executed only by one single thread at a time.</description>
+			<description>If set to true, all calls to an instance of a component are synchronized. This setting allows a function to be executed only by one single thread at a time.</description>
 		</attribute>
 		<attribute>
 			<type>boolean</type>
 			<name>persistent</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>Specifies CFC is persistent or not</description>
+			<description>Specifies whether the CFC is persistent or not.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
 			<name>extends</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>Name of parent component from which to inherit methods and properties.</description>
+			<description>Name of the parent component from which to inherit properties and functions.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -444,11 +454,7 @@ A return value from the CreateTimeSpan function, for example, "#CreateTimeSpan(0
 			<alias>display</alias>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>A string to be displayed when using introspection to show
-            information about the CFC. The information appears on the
-            heading, following the component name.
-            If the style attribute is set to document, the displayName
-            attribute is used as the name of the service element in the WSDL.</description>
+			<description>A string to be displayed when using introspection to show information about the CFC. The information appears on the heading, following the component name. If the style attribute is set to document, the displayName attribute is used as the name of the service element in the WSDL.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -463,8 +469,8 @@ A return value from the CreateTimeSpan function, for example, "#CreateTimeSpan(0
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>
-				- true: permits component method output
-				- false: suppresses component method output
+				- true: permits component function output
+				- false: suppresses component function output
 			</description>
 		</attribute>
 		<attribute>
@@ -473,19 +479,15 @@ A return value from the CreateTimeSpan function, for example, "#CreateTimeSpan(0
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<status>unimplemented</status>
-			<description>Specifies whether a CFC used for web services uses RPC-encoded style or document-literal style</description>
+			<description>Specifies whether a CFC used for web services uses RPC-encoded style or document-literal style.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
 			<name>namespace</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-		    <status>unimplemented</status>
-			<description>Specifies the namespace used in the WSDL when
-            using the CFC as a document-literal style web service.
-            If you don't specify this attribute, Lucee
-            derives the namespace from the CFC class name.
-            This attribute applies only when style="document".</description>
+			<status>unimplemented</status>
+			<description>Specifies the namespace used in the WSDL when using the CFC as a document-literal style web service. If you don't specify this attribute, Lucee derives the namespace from the CFC class name. This attribute applies only when style="document".</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -493,8 +495,7 @@ A return value from the CreateTimeSpan function, for example, "#CreateTimeSpan(0
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<status>unimplemented</status>
-			<description>Specifies the name of the port element in the WSDL.
-            This attribute applies only when style="document".</description>
+			<description>Specifies the name of the port element in the WSDL. This attribute applies only when style="document".</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -502,8 +503,7 @@ A return value from the CreateTimeSpan function, for example, "#CreateTimeSpan(0
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<status>unimplemented</status>
-			<description>Specifies the SOAP URL of the web service. If you don't specify this attribute, Lucee uses the URL of the CFC in the WSDL service description.
-			Use this attribute to specify the protocol, for example, by specifying a URL that starts with https://. This attribute applies only for web services.</description>
+			<description>Specifies the SOAP URL of the web service. If you don't specify this attribute, Lucee uses the URL of the CFC in the WSDL service description. Use this attribute to specify the protocol, for example, by specifying a URL that starts with https://. This attribute applies only for web services.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -511,44 +511,41 @@ A return value from the CreateTimeSpan function, for example, "#CreateTimeSpan(0
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<status>unimplemented</status>
-			<description>Specifies the name of the portType element in the WSDL.
-            This attribute applies only when style="document".</description>
+			<description>Specifies the name of the portType element in the WSDL. This attribute applies only when style="document".</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
 			<name>bindingName</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>Specifies the name of the binding element in the WSDL.
-            This attribute applies only when style="document".</description>
+			<description>Specifies the name of the binding element in the WSDL. This attribute applies only when style="document".</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
 			<name>wsdlFile</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-		    <status>unimplemented</status>
-			<description>A properly formatted WSDL file to be used instead of
-            WSDL generated by Lucee.
-            This attribute applies only when style="document".</description>
+			<status>unimplemented</status>
+			<description>A properly formatted WSDL file to be used instead of WSDL generated by Lucee. This attribute applies only when style="document".</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
 			<name>alias</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-		    <status>unimplemented</status>
-			<description></description>
+			<status>unimplemented</status>
+			<description>Specifies an alternative name or alias for the component.</description>
 		</attribute>
 		<attribute>
 			<type>boolean</type>
 			<name>mappedSuperClass</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-		    <status>unimplemented</status>
-			<description></description>
+			<status>unimplemented</status>
+			<description>Indicates whether the component acts as a mapped superclass, which is a base class for other components to extend but does not itself represent a database entity.</description>
 		</attribute>
 	</tag>
+	
 	<!-- Continue -->
 	<tag>
 		<name>Continue</name>
@@ -687,27 +684,27 @@ A return value from the CreateTimeSpan function, for example, "#CreateTimeSpan(0
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 		<description>URL, within a domain, to which the cookie applies;
-            typically a directory. Only pages in this path can use the
-            cookie. By default, all pages on the server that set the
-            cookie can access the cookie.
+			typically a directory. Only pages in this path can use the
+			cookie. By default, all pages on the server that set the
+			cookie can access the cookie.
 
-            path = "/services/login"</description>
-    </attribute>
+			path = "/services/login"</description>
+	</attribute>
 		<attribute>
 			<type>string</type>
 			<name>domain</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 		<description>Domain in which cookie is valid and to which cookie content
-            can be sent from the user's system. By default, the cookie
-            is only available to the server that set it. Use this
-            attribute to make the cookie available to other servers.
+			can be sent from the user's system. By default, the cookie
+			is only available to the server that set it. Use this
+			attribute to make the cookie available to other servers.
 
-            Must start with a period. If the value is a subdomain, the
-            valid domain is all domain names that end with this string.
-            This attribute sets the available subdomains on the site
-            upon which the cookie can be used.</description>
-    </attribute>
+			Must start with a period. If the value is a subdomain, the
+			valid domain is all domain names that end with this string.
+			This attribute sets the available subdomains on the site
+			upon which the cookie can be used.</description>
+	</attribute>
 		<attribute>
 			<type>boolean</type>
 			<name>httpOnly</name>
@@ -910,7 +907,7 @@ Each Database implementation has it's own supported types
 			<rtexprvalue>true</rtexprvalue>
 			<description>
 			-  all: includes all information in the result set.
-    		- name: includes only filenames in the result set.</description>
+			- name: includes only filenames in the result set.</description>
 		</attribute>
 		<attribute>
 			<type>object</type>
@@ -938,8 +935,8 @@ Example:
 			<rtexprvalue>true</rtexprvalue>
 			<description>
 	- file: includes only filenames.
-    - dir: includes only directory names.
-    - all: includes both filenames and directory names.</description>
+	- dir: includes only directory names.
+	- all: includes both filenames and directory names.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -1133,12 +1130,12 @@ Example:
 				output is displayed on page from which it was called.</description>
 		</attribute>
 		<attribute>
-            <type>string</type>
-            <name>errorFile</name>
-            <required>false</required>
-            <rtexprvalue>true</rtexprvalue>
-            <description>The file to which to direct the error stream of the program. If neither errorFile nor errorVariable is specified, the error stream is discarded.</description>
-        </attribute>
+			<type>string</type>
+			<name>errorFile</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>The file to which to direct the error stream of the program. If neither errorFile nor errorVariable is specified, the error stream is discarded.</description>
+		</attribute>
 		<attribute>
 			<type>string</type>
 			<name>errorVariable</name>
@@ -1176,9 +1173,9 @@ Example:
 			<rtexprvalue>true</rtexprvalue>
 			<script-support>optional</script-support>
 		<description>exitTag: aborts processing of currently executing tag
-            exitTemplate: exits page of currently executing tag
-            loop: re-executes body of currently executing tag</description>
-    </attribute>
+			exitTemplate: exits page of currently executing tag
+			loop: re-executes body of currently executing tag</description>
+	</attribute>
 	</tag>
 	<!-- Feed -->
 	<tag>
@@ -1201,167 +1198,167 @@ Example:
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 		<description>The name to use for the JavaScript proxy class.
-        The action to take, one of the following values:
-        - create: Creates an RSS 2.0 or Atom 1.0 feed XML document and saves it in a variable, writes it to a file, or both.
-        - read (default): Parses an RSS or Atom feed from a URL or an XML file and saves it in a structure or query.
-        You can also get query metadata in a separate structure. </description>
-    </attribute>
+		The action to take, one of the following values:
+		- create: Creates an RSS 2.0 or Atom 1.0 feed XML document and saves it in a variable, writes it to a file, or both.
+		- read (default): Parses an RSS or Atom feed from a URL or an XML file and saves it in a structure or query.
+		You can also get query metadata in a separate structure. </description>
+	</attribute>
 		<attribute>
 			<type>struct</type>
 			<name>columnMap</name>
 			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>		    
+			<rtexprvalue>true</rtexprvalue>			
 		<description>Used only for the create action with a query attribute.
-            A structure specifying a mapping between the names of the columns in the object specified by the query attribute
-            and the columns of the feed format, as described in the Query attribute section.
-            The key for each field must be a column name listed in the Query columns section. The value of the field must be
-            the name of the corresponding column in the query object used as input to the create action. </description>
+			A structure specifying a mapping between the names of the columns in the object specified by the query attribute
+			and the columns of the feed format, as described in the Query attribute section.
+			The key for each field must be a column name listed in the Query columns section. The value of the field must be
+			the name of the corresponding column in the query object used as input to the create action. </description>
 			<introduced>5.3.8.127</introduced>
-    </attribute>
+	</attribute>
 		<attribute>
 			<type>string</type>
 			<name>enclosureDir</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 		<description>Used only for the read action.
-            Path to the directory in which to save any enclosures that are available in the feed being read.
-            The path can be absolute or relative to the CFML file.
-            If the directory does not exist, Lucee generates an error.
-            If you omit this attribute, Lucee does not save enclosures.
-            To specify the directory that contains the current page, set this attribute to .(period). </description>
-    </attribute>
+			Path to the directory in which to save any enclosures that are available in the feed being read.
+			The path can be absolute or relative to the CFML file.
+			If the directory does not exist, Lucee generates an error.
+			If you omit this attribute, Lucee does not save enclosures.
+			To specify the directory that contains the current page, set this attribute to .(period). </description>
+	</attribute>
 		<attribute>
 			<type>boolean</type>
 			<name>ignoreEnclosureError</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 		<description>If this attribute is true, Lucee attempts to save all enclosures.
-            If it encounters an error downloading one enclosure, it continues downloading other enclosures and writes the
-            error information in the server log.
-            If this attribute is false, Lucee stops downloading all enclosures and generates an error when it encounters
-            an error downloading an enclosure.
-            Note: Enclosure errors can occur if the specified enclosure is of a type that the web server does not allow to be
-            downloaded. (optional, default=false)</description>
-    </attribute>
+			If it encounters an error downloading one enclosure, it continues downloading other enclosures and writes the
+			error information in the server log.
+			If this attribute is false, Lucee stops downloading all enclosures and generates an error when it encounters
+			an error downloading an enclosure.
+			Note: Enclosure errors can occur if the specified enclosure is of a type that the web server does not allow to be
+			downloaded. (optional, default=false)</description>
+	</attribute>
 		<attribute>
 			<type>any</type>
 			<name>name</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 		<description>A structure that contains complete feed data:
-             The output of a read action.
-             The input definition of the feed to create.
-            This structure contains complete feed information.
-            When you specify the name attribute for a create action, you must put it in pound signs (#). </description>
-    </attribute>
+			 The output of a read action.
+			 The input definition of the feed to create.
+			This structure contains complete feed information.
+			When you specify the name attribute for a create action, you must put it in pound signs (#). </description>
+	</attribute>
 		<attribute>
 			<type>string</type>
 			<name>outputFile</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 		<description>Path of the file in which to write the feed as XML text.
-            The path can be absolute, or relative to the CFML file. </description>
-    </attribute>
+			The path can be absolute, or relative to the CFML file. </description>
+	</attribute>
 		<attribute>
 			<type>boolean</type>
 			<name>overwrite</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 		<description>Whether to overwrite the XML feed file if it already exists.
-            If you do not set this attribute to true and the cffeed tag tries to write to a file that exists, Lucee
-            generates an error. (optional, default=false)</description>
-    </attribute>
+			If you do not set this attribute to true and the cffeed tag tries to write to a file that exists, Lucee
+			generates an error. (optional, default=false)</description>
+	</attribute>
 		<attribute>
 			<type>boolean</type>
 			<name>overwriteEnclosure</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 		<description>Used only for the read action.
-            Whether to overwrite files in the enclosure directory if they already exist.
-            If you do not set this attribute to true and the cffeed tag tries to write to a file that exists, Lucee
-            generates an error. (optional, default=false)</description>
-    </attribute>
+			Whether to overwrite files in the enclosure directory if they already exist.
+			If you do not set this attribute to true and the cffeed tag tries to write to a file that exists, Lucee
+			generates an error. (optional, default=false)</description>
+	</attribute>
 		<attribute>
 			<type>any</type>
 			<name>properties</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 		<description>A structure containing the feed metadata, the information about the entire feed.
-            Can contain either of the following:
-             The output of a read action.
-             Input to a create action.
-            The properties and query attributes combined provide complete feed information.
-            When you specify the properties attribute for a create action, you must put it in pound signs (#) </description>
-    </attribute>
+			Can contain either of the following:
+			 The output of a read action.
+			 Input to a create action.
+			The properties and query attributes combined provide complete feed information.
+			When you specify the properties attribute for a create action, you must put it in pound signs (#) </description>
+	</attribute>
 		<attribute>
 			<type>string</type>
 			<name>proxyPassword</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 		<description>Password required by the proxy server.</description>
-    </attribute>
+	</attribute>
 		<attribute>
 			<type>number</type>
 			<name>proxyPort</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 		<description>The port to connect to on the proxy server.</description>
-    </attribute>
+	</attribute>
 		<attribute>
 			<type>string</type>
 			<name>proxyServer</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 		<description>Host name or IP address of a proxy server to which to send the request.</description>
-    </attribute>
+	</attribute>
 		<attribute>
 			<type>string</type>
 			<name>proxyUser</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 		<description>User name to provide to the proxy server.</description>
-    </attribute>
+	</attribute>
 		<attribute>
 			<type>any</type>
 			<name>query</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 		<description>A query object containing the Atom entries or RSS items in the feed. Can contain either of the following:
-             The output of a read action.
-             Input to a create action.
-            The properties and query attributes combined provide complete feed information.
-            When you specify the query attribute for a create action, you must put it in pound signs (#) </description>
-    </attribute>
+			 The output of a read action.
+			 Input to a create action.
+			The properties and query attributes combined provide complete feed information.
+			When you specify the query attribute for a create action, you must put it in pound signs (#) </description>
+	</attribute>
 		<attribute>
 			<type>string</type>
 			<name>source</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 		<description>Used only for the read action.
-            The URL of the feed or the path to the XML file that contains the feed contents.
-            A path can be absolute, or relative to the CFML file.</description>
-    </attribute>
+			The URL of the feed or the path to the XML file that contains the feed contents.
+			A path can be absolute, or relative to the CFML file.</description>
+	</attribute>
 		<attribute>
 			<type>number</type>
 			<name>timeout</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 		<description>The number of seconds to wait for a response from the feed source. A value of 0 specifies that the request does not time out.</description>
-    </attribute>
+	</attribute>
 		<attribute>
 			<type>string</type>
 			<name>userAgent</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 		<description>Text to put in the HTTP User-Agent request header field. Used to identify the request client software.</description>
-    </attribute>
+	</attribute>
 		<attribute>
 			<type>string</type>
 			<name>xmlVar</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 		<description>A variable in which to save the read or created feed as XML text.</description>
-    </attribute>
+	</attribute>
 	</tag>
 	<!-- Finally -->
 	<tag>
@@ -1527,7 +1524,7 @@ String "request": If original content was created within the current request, ca
 a timeSpan (created with function CreateTimeSpan): If original content date falls within the time span, cached content data is used.
 
 To use cached data, the tag must be called with the exact same arguments. Only used by action "read" and "readBinary"</description>
-    	</attribute>
+		</attribute>
 		<attribute>
 			<type>boolean</type>
 			<name>addNewLine</name>
@@ -1541,9 +1538,9 @@ To use cached data, the tag must be called with the exact same arguments. Only u
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>- true: changes embedded line-ending characters in string
-            variables to operating-system specific line endings
-            - false: (default) do not change embedded line-ending
-            characters in string variables.</description>
+			variables to operating-system specific line endings
+			- false: (default) do not change embedded line-ending
+			characters in string variables.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -1910,8 +1907,8 @@ To use cached data, the tag must be called with the exact same arguments. Only u
 			<rtexprvalue>true</rtexprvalue>
 			<description>The character encoding in which to encode the header value.
 
-            For more information on character encodings, see:
-            www.w3.org/International/O-charset.html.</description>
+			For more information on character encodings, see:
+			www.w3.org/International/O-charset.html.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -2386,8 +2383,8 @@ String "request": If original content was created within the current request, ca
 a timeSpan (created with function CreateTimeSpan): If original content date falls within the time span, cached content data is used.
 
 To use cached data, the tag must be called with the exact same arguments.</description>
-    	</attribute>
-    	<attribute>
+		</attribute>
+		<attribute>
 			<type>boolean</type>
 			<name>autoCert</name>
 			<required>false</required>
@@ -2538,7 +2535,7 @@ To use cached data, the tag must be called with the exact same arguments.</descr
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 		<description>Specifies the unique ID or a comma-delimited list of Uids to retrieve or delete. If you set invalid Uids, then they are ignored.</description>
-    </attribute>
+	</attribute>
 		<attribute>
 			<type>string</type>
 			<name>username</name>
@@ -2762,7 +2759,7 @@ both functions must have the same attributes; otherwise
 			<required>no</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Text to be displayed when using introspection to show information about the interface.
-            The hint attribute value follows the syntax line in the function description. </description>
+			The hint attribute value follows the syntax line in the function description. </description>
 		</attribute>
 	</tag>
 	<!-- Include -->
@@ -2801,7 +2798,7 @@ a timeSpan (created with function CreateTimeSpan): If original content date fall
 
 To use cached data, the function must be called with the exact same arguments.
 		</description>
-    	</attribute>
+		</attribute>
 		<attribute>
 			<type>boolean</type>
 			<name>runOnce</name>
@@ -2902,7 +2899,7 @@ To use cached data, the function must be called with the exact same arguments.
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>String or component object; a reference to a component, or
-            component to instantiate.</description>
+			component to instantiate.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -2910,7 +2907,7 @@ To use cached data, the function must be called with the exact same arguments.
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Name of a method. For a web service, the name of an
-            operation.</description>
+			operation.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -2945,7 +2942,7 @@ To use cached data, the function must be called with the exact same arguments.
 			<name>timeout</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-		    <status>unimplemented</status>
+			<status>unimplemented</status>
 			<description>The timeout for the web service request, in seconds</description>
 		</attribute>
 		<attribute>
@@ -2981,12 +2978,12 @@ To use cached data, the function must be called with the exact same arguments.
 			<name>servicePort</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-		    <status>unimplemented</status>
+			<status>unimplemented</status>
 			<description>The port name for the web service. This value is
-            case-sensitive and corresponds to the port element's
-            name attribute under the service element. Specify this
-            attribute if the web service contains multiple ports.
-            Default: first port found in the WSDL.</description>
+			case-sensitive and corresponds to the port element's
+			name attribute under the service element. Specify this
+			attribute if the web service contains multiple ports.
+			Default: first port found in the WSDL.</description>
 		</attribute>
 	</tag>
 	<!-- InvokeArgument -->
@@ -3020,7 +3017,7 @@ To use cached data, the function must be called with the exact same arguments.
 			<name>omit</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-		    <status>unimplemented</status>
+			<status>unimplemented</status>
 			<description>Enables you to omit a parameter when invoking a web service</description>
 		</attribute>
 	</tag>
@@ -3142,24 +3139,24 @@ To use cached data, the function must be called with the exact same arguments.
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 		<description>Required if action = "Query", "Add", "ModifyDN", or "Modify"
-            For queries: comma-delimited list of attributes to return. For
-            queries, to get all attributes, specify "*".
+			For queries: comma-delimited list of attributes to return. For
+			queries, to get all attributes, specify "*".
 
-            If action = "add" or "modify", you can specify a list of update
-            columns. Separate attributes with a semicolon.
+			If action = "add" or "modify", you can specify a list of update
+			columns. Separate attributes with a semicolon.
 
-            If action = "ModifyDN", CFML passes attributes to the
-            LDAP server without syntax checking.</description>
-    </attribute>
+			If action = "ModifyDN", CFML passes attributes to the
+			LDAP server without syntax checking.</description>
+	</attribute>
 		<attribute>
 			<type>string</type>
 			<name>filter</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 		<description>Search criteria for action = "Query".
-            List attributes in the form:
-            "(attribute operator value)" Example: "(sn = Smith)"</description>
-    </attribute>
+			List attributes in the form:
+			"(attribute operator value)" Example: "(sn = Smith)"</description>
+	</attribute>
 		<attribute>
 			<type>string</type>
 			<name>filterFile</name>
@@ -3209,7 +3206,7 @@ To use cached data, the function must be called with the exact same arguments.
 			<name>rebind</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-		    <status>unimplemented</status>
+			<status>unimplemented</status>
 			<description>If you set rebind to Yes, cfldap attempts to rebind the referral callback and reissue the query
 		by the referred address using the original credentials. The default is No, which means referred
 		connections are anonymous.</description>
@@ -3436,11 +3433,11 @@ To use cached data, the function must be called with the exact same arguments.
 			<rtexprvalue>true</rtexprvalue>
 		<description>Define instead a log reference in the Lucee Administrator and use the name of the generated log with the attribute log.
 		 Specify only the main part of the filename.
-            For example, to log to the Testing.log file, specify
-            "Testing".
-            The file must be located in the default log directory. You
-            cannot specify a directory path. If the file does not
-            exist, it is created automatically, with the suffix .log.</description>
+			For example, to log to the Testing.log file, specify
+			"Testing".
+			The file must be located in the default log directory. You
+			cannot specify a directory path. If the file does not
+			exist, it is created automatically, with the suffix .log.</description>
 		</attribute>
 		<attribute>
 			<type>boolean</type>
@@ -3684,7 +3681,7 @@ Lucee uses the number of characters in the file.</description>
 			<name>groupCaseSensitive</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-		    <status>implemented</status>
+			<status>implemented</status>
 			<description>Boolean indicating whether to group with regard to case or not. The default value is NO;
 		case is considered while grouping. If the query attribute specifies a query object that was generated
 		by a case-insensitive SQL query, set the groupCaseSensitive attribute to NO to keep the recordset
@@ -3697,7 +3694,7 @@ Lucee uses the number of characters in the file.</description>
 			<name>label</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-		    <status>implemented</status>
+			<status>implemented</status>
 			<description>used to an address this loop from a "break" or "continue" statement (instead of the nearest one).</description>
 		</attribute>
 
@@ -3707,7 +3704,7 @@ Lucee uses the number of characters in the file.</description>
 			<name>times</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-		    <status>implemented</status>
+			<status>implemented</status>
 			<description>used for a simple loop that is looping n times</description>
 		</attribute>
 
@@ -3790,7 +3787,7 @@ Lucee uses the number of characters in the file.</description>
 			<name>maxRows</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-		    <status>unimplemented</status>
+			<status>unimplemented</status>
 			<description>Specifies the maximum number of e-mail messages to send.</description>
 		</attribute>
 		<attribute>
@@ -3830,7 +3827,7 @@ Lucee uses the number of characters in the file.</description>
 			<name>query</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-		    <status>unimplemented</status>
+			<status>unimplemented</status>
 			<description>The name of the cfquery from which to draw data for message(s) to send. Specify this
 		attribute to send more than one mail message, or to send the results of a query within a message.</description>
 		</attribute>
@@ -3839,7 +3836,7 @@ Lucee uses the number of characters in the file.</description>
 			<name>group</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-		    <status>unimplemented</status>
+			<status>unimplemented</status>
 			<description>Specifies the query column to use when you group sets of records together to send as an e-mail
 		message. For example, if you send a set of billing statements to customers, you might group on
 		"Customer_ID." The group attribute, which is case sensitive, eliminates adjacent duplicates when the
@@ -3850,7 +3847,7 @@ Lucee uses the number of characters in the file.</description>
 			<name>groupCaseSensitive</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-		    <status>implemented</status>
+			<status>implemented</status>
 			<description>Boolean indicating whether to group with regard to case or not. The default value is NO;
 		case is considered while grouping. If the query attribute specifies a query object that was generated
 		by a case-insensitive SQL query, set the groupCaseSensitive attribute to NO to keep the recordset
@@ -3861,7 +3858,7 @@ Lucee uses the number of characters in the file.</description>
 			<name>startRow</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-		    <status>unimplemented</status>
+			<status>unimplemented</status>
 			<description>Specifies the row in the query to start from.</description>
 		</attribute>
 		<attribute>
@@ -3949,8 +3946,8 @@ Lucee uses the number of characters in the file.</description>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>The message priority level. Can be one of the following values:
-    * An integer in the range 1-5; 1 represents the highest priority.
-    * One of the following string values, which correspond to the numeric values: highest or urgent, high, normal, low, and lowest or non-urgent.</description>
+	* An integer in the range 1-5; 1 represents the highest priority.
+	* One of the following string values, which correspond to the numeric values: highest or urgent, high, normal, low, and lowest or non-urgent.</description>
 		</attribute>
 		<attribute>
 			<type>boolean</type>
@@ -4327,8 +4324,8 @@ Lucee uses the number of characters in the file.</description>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 		<description>UID or a comma-delimited list of UIDs to get or delete.
-            Invalid UIDs are ignored.</description>
-    </attribute>
+			Invalid UIDs are ignored.</description>
+	</attribute>
 		<attribute>
 			<type>number</type>
 			<name>port</name>
@@ -4692,8 +4689,8 @@ sct["bracketNotation"] --> keyName: "bracketNotation"
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>A value to be displayed when using introspection to show
-            information about the CFC. The value appears in parentheses
-            following the property name.</description>
+			information about the CFC. The value appears in parentheses
+			following the property name.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -4701,8 +4698,8 @@ sct["bracketNotation"] --> keyName: "bracketNotation"
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Text to be displayed when using introspection to show
-            information about the CFC. This attribute can be useful
-            for describing the purpose of the parameter.</description>
+			information about the CFC. This attribute can be useful
+			for describing the purpose of the parameter.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -4906,13 +4903,13 @@ sct["bracketNotation"] --> keyName: "bracketNotation"
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Specifies a name for the structure in which cfquery returns
-            the result variables.
-            - SQL: The SQL statement that was executed. (string)
-            - Cached: If the query was cached. (boolean)
-            - SqlParameters: An ordered Array of cfqueryparam values. (array)
-            - RecordCount: Total number of records in the query. (numeric)
-            - ColumnList: Column list, comma separated. (numeric)
-            - ExecutionTime: Execution time for the SQL request. (numeric)</description>
+			the result variables.
+			- SQL: The SQL statement that was executed. (string)
+			- Cached: If the query was cached. (boolean)
+			- SqlParameters: An ordered Array of cfqueryparam values. (array)
+			- RecordCount: Total number of records in the query. (numeric)
+			- ColumnList: Column list, comma separated. (numeric)
+			- ExecutionTime: Execution time for the SQL request. (numeric)</description>
 		</attribute>
 		<attribute>
 			<type>any</type>
@@ -5019,7 +5016,7 @@ String "request": If original query was created within the current request, cach
 a timeSpan (created with function CreateTimeSpan): If original query date falls within the time span, cached query data is used.
 
 To use cached data, the current query must use the same SQL statement, data source, query name, maxrows, user name, and password.</description>
-    	</attribute>
+		</attribute>
 		<attribute>
 			<type>string</type>
 			<name>provider</name>
@@ -5382,7 +5379,7 @@ To use cached data, the current query must use the same SQL statement, data sour
 - pause: pause execution of the defined scheduled task
 - resume: resume execution of a paused scheduled task
 </description>
-    	</attribute>
+		</attribute>
 		<attribute>
 			<type>string</type>
 			<name>serverPassword</name>
@@ -5396,7 +5393,7 @@ To use cached data, the current query must use the same SQL statement, data sour
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 		<description>if set to true the scheduled task is not displayed in the Lucee Administrator.</description>
-    	</attribute>
+		</attribute>
 		<attribute>
 			<type>boolean</type>
 			<name>readonly</name>
@@ -5885,7 +5882,7 @@ String "request": If original query was created within the current request, cach
 a timeSpan (created with function CreateTimeSpan): If original query date falls within the time span, cached query data is used.
 
 To use cached data, the current query must use the same SQL statement, data source, query name, user name, and password.</description>
-    </attribute>
+	</attribute>
 
 
 		<attribute>
@@ -5997,10 +5994,10 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>The name of the thread to which the action applies:
-            terminate The name of the thread to stop.
-            join The name of the thread or threads to join to the current thread.
-            To specify multiple threads, use a comma-delimited list.
-            run The name to use to identify the thread being created.</description>
+			terminate The name of the thread to stop.
+			join The name of the thread or threads to join to the current thread.
+			To specify multiple threads, use a comma-delimited list.
+			run The name to use to identify the thread being created.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -6008,11 +6005,11 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>The priority level at which to run the thread.
-            The following values are valid:
-            HIGH, LOW, NORMAL
-            Higher priority threads get more processing time than lower priority
-            threads. Page-level code, the code that is outside of cfthread tags,
-            always has NORMAL priority. (optional, default=NORMAL)</description>
+			The following values are valid:
+			HIGH, LOW, NORMAL
+			Higher priority threads get more processing time than lower priority
+			threads. Page-level code, the code that is outside of cfthread tags,
+			always has NORMAL priority. (optional, default=NORMAL)</description>
 		</attribute>
 		<attribute>
 			<type>number</type>
@@ -6020,12 +6017,12 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>The number of milliseconds that the current thread waits for
-            the thread or threads being joined to finish. If any thread does not
-            finish by the specified time, the current thread proceeds.
-            If the attribute value is 0, the default, the current thread continues
-            waiting until all joining threads finish. If the current thread is the
-            page thread, the page continues waiting until the threads are joined,
-            even if you specify a page timeout. (optional, default=0)</description>
+			the thread or threads being joined to finish. If any thread does not
+			finish by the specified time, the current thread proceeds.
+			If the attribute value is 0, the default, the current thread continues
+			waiting until all joining threads finish. If the current thread is the
+			page thread, the page continues waiting until the threads are joined,
+			even if you specify a page timeout. (optional, default=0)</description>
 		</attribute>
 	</tag>
 	
@@ -6176,17 +6173,17 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>- inline: displays timing information inline, following the
-              resulting HTML.
-            - outline: displays timing information and also displays a line
-              around the output produced by the timed code. The browser
-              must support the FIELDSET tag to display the outline.
-            - comment: displays timing information in an HTML comment
-              in the format &lt;!-- label: elapsed-time ms --&gt;. The default label
-              is cftimer.
-            - debug: displays timing information in the debug output
-              under the heading CFTimer Times.
-            - console: displays timing information in the console output. The default label is CFTimer.
-            Default: debug</description>
+			  resulting HTML.
+			- outline: displays timing information and also displays a line
+			  around the output produced by the timed code. The browser
+			  must support the FIELDSET tag to display the outline.
+			- comment: displays timing information in an HTML comment
+			  in the format &lt;!-- label: elapsed-time ms --&gt;. The default label
+			  is cftimer.
+			- debug: displays timing information in the debug output
+			  under the heading CFTimer Times.
+			- console: displays timing information in the console output. The default label is CFTimer.
+			Default: debug</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -6194,7 +6191,7 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Label to display with timing information.
-            Default: " "</description>
+			Default: " "</description>
 		</attribute>
 		<attribute>
 			<name>unit</name>
@@ -6249,7 +6246,7 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 - rollback: Rolls back a pending transaction.
 - setSavePoint: Saves a specific state within a transaction
 </description>
-    </attribute>
+	</attribute>
 		<attribute>
 			<type>string</type>
 			<name>isolation</name>
@@ -6302,8 +6299,8 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Displays trace code in line on the page in the
-            location of the cftrace tag, addition to the debugging
-            information output.</description>
+			location of the cftrace tag, addition to the debugging
+			information output.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -6311,8 +6308,8 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>User-defined string, which can include simple variable,
-            but not complex variables such as arrays. Outputs to cflog
-            text attribute</description>
+			but not complex variables such as arrays. Outputs to cflog
+			text attribute</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -6320,11 +6317,11 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Corresponds to the cflog type attribute; displays an
-            appropriate icon.
-            - Information
-            - Warning
-            - Error
-            - Fatal</description>
+			appropriate icon.
+			- Information
+			- Warning
+			- Error
+			- Fatal</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -6334,8 +6331,8 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 			<rtexprvalue>true</rtexprvalue>
 			<description>The name of a simple or complex variable to display.
 
-            Useful for displaying a temporary value, or a value that
-            does not display on any CFM page.</description>
+			Useful for displaying a temporary value, or a value that
+			does not display on any CFM page.</description>
 		</attribute>
 		<attribute>
 			<type>boolean</type>
@@ -6498,19 +6495,19 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 		<description>Applies if action = "wddx2cfml" or "wddx2js".
-                - Yes: validates WDDX input with an XML parser using
-                    WDDX DTD. If parser processes input without error,
-                    packet is deserialized. Otherwise, an error is
-                    thrown.
-                - No: no input validation</description>
-    </attribute>
+				- Yes: validates WDDX input with an XML parser using
+					WDDX DTD. If parser processes input without error,
+					packet is deserialized. Otherwise, an error is
+					thrown.
+				- No: no input validation</description>
+	</attribute>
 		<attribute>
 			<type>boolean</type>
 			<name>xmlConform</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 		<description>if set to true generate valid xml, if set to false (default) the xml generated is compatible to other engines, but not valid xml (use for example single quotes for attribute values)</description>
-    </attribute>
+	</attribute>
 	</tag>
 	<!-- Xml -->
 	<tag>
@@ -6653,7 +6650,7 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 			<name>preserveData</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-		    <status>unimplemented</status>
+			<status>unimplemented</status>
 			<description>Optional. "Yes" or "No." Specifies whether to display the data that was entered into cfform
 		controls in the action page. "Yes" resets the value of the control to the value submitted when the
 		form is submitted to itself. This works as expected for the cftextinput and cfslider controls.
@@ -6720,10 +6717,10 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Specifies the URL, relative to the web root, of the
-            directory that contains the cfform.js file with the
-            client-side JavaScript used by this tag and its child
-            tags. For XML format forms, this directory is also the
-            default directory for XSLT skins.</description>
+			directory that contains the cfform.js file with the
+			client-side JavaScript used by this tag and its child
+			tags. For XML format forms, this directory is also the
+			default directory for XSLT skins.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -6768,9 +6765,9 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Styles to apply to the form. In HTML or XML format,
-            Lucee passes the style attribute to the browser
-            or XML. In Flash format, must be a style specification
-            in CSS format (XML and Flash type no supported).</description>
+			Lucee passes the style attribute to the browser
+			or XML. In Flash format, must be a style specification
+			in CSS format (XML and Flash type no supported).</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -6791,7 +6788,7 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 			<name>skin</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-		    <status>unimplemented</status>
+			<status>unimplemented</status>
 			<description></description>
 		</attribute>
 		<attribute>
@@ -6799,73 +6796,73 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 			<name>width</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-		    <status>unimplemented</status>
+			<status>unimplemented</status>
 			<description>The width of the form. Use a number to specify
-            pixels, In Flash, you can use a percentage value to
-            specify a percentage of the available width.</description>
+			pixels, In Flash, you can use a percentage value to
+			specify a percentage of the available width.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
 			<name>height</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-		    <status>unimplemented</status>
+			<status>unimplemented</status>
 			<description>The height of the form. Use a number to specify
-            pixels, In Flash, you can use a percentage value to
-            specify a percentage of the available width. The
-            displayed height might be less than the specified size.</description>
+			pixels, In Flash, you can use a percentage value to
+			specify a percentage of the available width. The
+			displayed height might be less than the specified size.</description>
 		</attribute>
 		<attribute>
 			<type>boolean</type>
 			<name>preLoader</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-		    <status>unimplemented</status>
+			<status>unimplemented</status>
 			<description>Specifies whether to display a progress bar when
-            loading the Flash form. Default is: true.</description>
+			loading the Flash form. Default is: true.</description>
 		</attribute>
 		<attribute>
 			<type>number</type>
 			<name>timeout</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-		    <status>unimplemented</status>
+			<status>unimplemented</status>
 			<description>Integer number of seconds for which to keep the
-            form data in the Flash cache on the server. A value of
-            0 prevents the data from being cached.</description>
+			form data in the Flash cache on the server. A value of
+			0 prevents the data from being cached.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
 			<name>wMode</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-		    <status>unimplemented</status>
+			<status>unimplemented</status>
 			<description>Specifies how the Flash form appears relative to
-            other displayable content that occupies the same
-            space on an HTML page.
-             - window: The Flash form is the topmost layer on the
-            page and obscures anything that would share the
-            space, such as drop-down dynamic HTML lists.
-             - transparent: The Flash form honors the z-index of
-            dhtml so you can float items above it. If the Flash
-            form is above any item, transparent regions in the
-            form show the content that is below it.
-             - opaque: The Flash form honors the z-index of
-            dhtml so you can float items above it. If the Flash
-            form is above any item, it blocks any content that is
-            below it.
-            Default is: window.</description>
+			other displayable content that occupies the same
+			space on an HTML page.
+			 - window: The Flash form is the topmost layer on the
+			page and obscures anything that would share the
+			space, such as drop-down dynamic HTML lists.
+			 - transparent: The Flash form honors the z-index of
+			dhtml so you can float items above it. If the Flash
+			form is above any item, transparent regions in the
+			form show the content that is below it.
+			 - opaque: The Flash form honors the z-index of
+			dhtml so you can float items above it. If the Flash
+			form is above any item, it blocks any content that is
+			below it.
+			Default is: window.</description>
 		</attribute>
 		<attribute>
 			<type>boolean</type>
 			<name>accessible</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-		    <status>unimplemented</status>
-		    <description>Specifies whether to include support screen readers
-            in the Flash form. Screen reader support adds
-            approximately 80KB to the SWF file sent to the
-            client. Default is: false.</description>
+			<status>unimplemented</status>
+			<description>Specifies whether to include support screen readers
+			in the Flash form. Screen reader support adds
+			approximately 80KB to the SWF file sent to the
+			client. Default is: false.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -6994,16 +6991,16 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 			<status>deprecated</status>
 			<description>This attribute is deprecated.
 					Specifies entry completion suggestions to
-                    display as the user types into a text input. The
-                    user can select a suggestion to complete the text
-                    entry.
-                    The valid value can be either of the following:
-                    - A string consisting of the suggestion values
-                    separated by the delimiter specified by the
-                    delimiter attribute.
-                    - A bind expression that gets the suggestion
-                    values based on the current input text.
-                    Valid only for cfinput type="text".</description>
+					display as the user types into a text input. The
+					user can select a suggestion to complete the text
+					entry.
+					The valid value can be either of the following:
+					- A string consisting of the suggestion values
+					separated by the delimiter specified by the
+					delimiter attribute.
+					- A bind expression that gets the suggestion
+					values based on the current input text.
+					Valid only for cfinput type="text".</description>
 		</attribute>
 		<attribute>
 			<type>number</type>
@@ -7012,10 +7009,10 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 			<rtexprvalue>true</rtexprvalue>
 			<status>deprecated</status>
 			<description>This attribute is deprecated.The minimum time between autoSuggest bind
-                    expression invocations, in seconds. Use this
-                    attribute to limit the number of requests that are
-                    sent to the server when a user types.
-                    Valid only for cfinput type="text"</description>
+					expression invocations, in seconds. Use this
+					attribute to limit the number of requests that are
+					sent to the server when a user types.
+					Valid only for cfinput type="text"</description>
 		</attribute>
 		<attribute>
 			<type>number</type>
@@ -7024,9 +7021,9 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 			<rtexprvalue>true</rtexprvalue>
 			<status>deprecated</status>
 			<description>This attribute is deprecated.The minimum number of characters required in
-                    the text box before invoking a bind expression to
-                    return items for suggestion.
-                    Valid only for cfinput type="text".</description>
+					the text box before invoking a bind expression to
+					return items for suggestion.
+					Valid only for cfinput type="text".</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -7086,10 +7083,10 @@ Valid only for cfinput type="text".</description>
 			<rtexprvalue>true</rtexprvalue>
 			<status>deprecated</status>
 			<description>This attribute is deprecated. How to do the validation; one or more of the following:
-            onSubmit, onServer or onBlur.
-            onBlur and onSubmit are identical in Flash forms. For
-            multiple values, use a comma-delimited list.
-            Default: onSubmit</description>
+			onSubmit, onServer or onBlur.
+			onBlur and onSubmit are identical in Flash forms. For
+			multiple values, use a comma-delimited list.
+			Default: onSubmit</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -7097,19 +7094,19 @@ Valid only for cfinput type="text".</description>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 		<description>The input control type to create:
-            - button: push button.
-            - checkbox: check box.
-            - file: file selector; not supported in Flash.
-            - hidden: invisible control.
-            - image: clickable button with an image.
-            - password: password entry control; hides input values.
-            - radio: radio button.
-            - reset: form reset button.
-            - submit: form submission button.
-            - text: text entry box.
-            - dateField: Flash only; date entry field with an
-              expanding calendar for selecting dates.</description>
-    </attribute>
+			- button: push button.
+			- checkbox: check box.
+			- file: file selector; not supported in Flash.
+			- hidden: invisible control.
+			- image: clickable button with an image.
+			- password: password entry control; hides input values.
+			- radio: radio button.
+			- reset: form reset button.
+			- submit: form submission button.
+			- text: text entry box.
+			- dateField: Flash only; date entry field with an
+			  expanding calendar for selecting dates.</description>
+	</attribute>
 		<attribute>
 			<type>string</type>
 			<name>name</name>
@@ -7144,22 +7141,22 @@ Valid only for cfinput type="text".</description>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 		<description>date: verifies format mm/dd/yy.
-            euroDate: verifies date format dd/mm/yyyy.
-            time: verifies time format hh:mm:ss.
-            float: verifies floating point format.
-            integer: verifies integer format.
-            telephone: verifies telephone format ###-###-####. The
-                separator can be a blank. Area code and exchange must
-                begin with digit 1 - 9.
-            zipcode: verifies, in U.S. formats only, 5- or 9-digit
-                format #####-####. The separator can be a blank.
-            creditCard: strips blanks and dashes; verifies number using
-                mod10 algorithm. Number must have 13-16 digits.
-            social_security_number: verifies format ###-##-####. The
-                separator can be a blank.
-            regular_expression: matches input against pattern
-                attribute.</description>
-    </attribute>
+			euroDate: verifies date format dd/mm/yyyy.
+			time: verifies time format hh:mm:ss.
+			float: verifies floating point format.
+			integer: verifies integer format.
+			telephone: verifies telephone format ###-###-####. The
+				separator can be a blank. Area code and exchange must
+				begin with digit 1 - 9.
+			zipcode: verifies, in U.S. formats only, 5- or 9-digit
+				format #####-####. The separator can be a blank.
+			creditCard: strips blanks and dashes; verifies number using
+				mod10 algorithm. Number must have 13-16 digits.
+			social_security_number: verifies format ###-##-####. The
+				separator can be a blank.
+			regular_expression: matches input against pattern
+				attribute.</description>
+	</attribute>
 		<attribute>
 			<type>string</type>
 			<name>bind</name>
@@ -7167,8 +7164,8 @@ Valid only for cfinput type="text".</description>
 			<rtexprvalue>true</rtexprvalue>
 			<status>deprecated</status>
 		<description>This attribute is deprecated. A Flash bind expression that populates the field with
-            information from other form fields.</description>
-    </attribute>
+			information from other form fields.</description>
+	</attribute>
 		<attribute>
 			<type>string</type>
 			<name>bindAttribute</name>
@@ -7176,12 +7173,12 @@ Valid only for cfinput type="text".</description>
 			<rtexprvalue>true</rtexprvalue>
 			<status>deprecated</status>
 		<description>This attribute is deprecated. Specifies the HTML tag attribute whose value is
-                    set by the bind attribute. You can only specify
-                    attributes in the browser's HTML DOM tree, not
-                    Lucee-specific attributes.
-                    Ignored if there is no bind attribute.
-                    Valid only for cfinput type="text".</description>
-    </attribute>
+					set by the bind attribute. You can only specify
+					attributes in the browser's HTML DOM tree, not
+					Lucee-specific attributes.
+					Ignored if there is no bind attribute.
+					Valid only for cfinput type="text".</description>
+	</attribute>
 		<attribute>
 			<type>boolean</type>
 			<name>bindOnLoad</name>
@@ -7189,11 +7186,11 @@ Valid only for cfinput type="text".</description>
 			<rtexprvalue>true</rtexprvalue>
 			<status>deprecated</status>
 		<description>This attribute is deprecated. A Boolean value that specifies whether to
-                        execute the bind attribute expression when first
-                        loading the form.
-                        Ignored if there is no bind attribute.
-                        Valid only for cfinput type="text".</description>
-    </attribute>
+						execute the bind attribute expression when first
+						loading the form.
+						Ignored if there is no bind attribute.
+						Valid only for cfinput type="text".</description>
+	</attribute>
 
 		<attribute>
 			<type>string</type>
@@ -7201,7 +7198,7 @@ Valid only for cfinput type="text".</description>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>passed through to input tag created, only used for type html.</description>
-    </attribute>
+	</attribute>
 		<attribute>
 			<type>string</type>
 			<name>accept</name>
@@ -7236,8 +7233,8 @@ Valid only for cfinput type="text".</description>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 		<description>Selects a control. No value is required. Applies if
-            type=radio or checkbox.
-            Default: false</description>
+			type=radio or checkbox.
+			Default: false</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -7245,10 +7242,10 @@ Valid only for cfinput type="text".</description>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 		<description>A comma-delimited list that sets the names of the
-            weekdays displayed in the calendar. Sunday is the
-            first day and the rest of the weekday names follow in
-            the normal order.
-            Default is: S,M,T,W,Th,F,S</description>
+			weekdays displayed in the calendar. Sunday is the
+			first day and the rest of the weekday names follow in
+			the normal order.
+			Default is: S,M,T,W,Th,F,S</description>
 		</attribute>
 		<attribute>
 			<type>number</type>
@@ -7256,8 +7253,8 @@ Valid only for cfinput type="text".</description>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 		<description>Integer in the range 0-6 specifying the first day of the
-            week in the calendar, 0 indicates Sunday, 6 indicates Saturday.
-            Default is: 0</description>
+			week in the calendar, 0 indicates Sunday, 6 indicates Saturday.
+			Default is: 0</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -7265,7 +7262,7 @@ Valid only for cfinput type="text".</description>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 		<description>A comma-delimited list of the month names that are
-            displayed at the top of the calendar.</description>
+			displayed at the top of the calendar.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -7273,8 +7270,8 @@ Valid only for cfinput type="text".</description>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 		<description>Applies to most Flash types, HTML image type on
-            some browsers. The height of the control, in pixels. The
-            displayed height might be less than the specified size.</description>
+			some browsers. The height of the control, in pixels. The
+			displayed height might be less than the specified size.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -7282,9 +7279,9 @@ Valid only for cfinput type="text".</description>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 		<description>Applies to most Flash types, HTML image type on
-            some browsers. The width of the control, in pixels. For
-            Flash forms, Lucee ignores this attribute if you also
-            specify a size attribute value.</description>
+			some browsers. The width of the control, in pixels. For
+			Flash forms, Lucee ignores this attribute if you also
+			specify a size attribute value.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -7299,7 +7296,7 @@ Valid only for cfinput type="text".</description>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 		<description>Label to put next to the control on a Flash or XML form.
-            Not used for button, hidden, image, reset, or submit types.</description>
+			Not used for button, hidden, image, reset, or submit types.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -7307,18 +7304,18 @@ Valid only for cfinput type="text".</description>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 		<description>A mask pattern that controls the character pattern that
-            users can enter, or that the form sends to Lucee.
-            In HTML and Flash for type=text use:
-             - A = [A-Za-z]
-             - X = [A-Za-z0-9]
-             - 9 = [0-9]
-             - ? = Any character
-             - all other = the literal character
-            In Flash for type=dateField use:
-             - D = day; can use 0-2 mask characters.
-             - M = month; can use 0-4 mask characters.
-             - Y = year; can use 0, 2, or 4 characters.
-             - E = day in week; can use 0-4 characters.</description>
+			users can enter, or that the form sends to Lucee.
+			In HTML and Flash for type=text use:
+			 - A = [A-Za-z]
+			 - X = [A-Za-z0-9]
+			 - 9 = [0-9]
+			 - ? = Any character
+			 - all other = the literal character
+			In Flash for type=dateField use:
+			 - D = day; can use 0-2 mask characters.
+			 - M = month; can use 0-4 mask characters.
+			 - Y = year; can use 0, 2, or 4 characters.
+			 - E = day in week; can use 0-4 characters.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -7354,9 +7351,9 @@ Valid only for cfinput type="text".</description>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 		<description>Disables user input, making the control read-only. To
-            disable input, specify disabled without an attribute or
-            disabled="true". To enable input, omit the attribute
-            or specify disabled="false".</description>
+			disable input, specify disabled without an attribute or
+			disabled="true". To enable input, omit the attribute
+			or specify disabled="false".</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -7378,8 +7375,8 @@ Valid only for cfinput type="text".</description>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 		<description>Applies to Flash button, reset, submit, and image types,
-            and the HTML image type. URL of an image to use on
-            the button. Flash does not support GIF images.</description>
+			and the HTML image type. URL of an image to use on
+			the button. Flash does not support GIF images.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -7596,31 +7593,31 @@ Valid only for cfinput type="text".</description>
 			<name>enabled</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-		        <status>unimplemented</status>
+				<status>unimplemented</status>
 			<description>Flash only: Boolean value specifying whether the control is
-            enabled. A disabled control appears in light gray. The
-            inverse of the disabled attribute. Flash only.
-            Default: true</description>
+			enabled. A disabled control appears in light gray. The
+			inverse of the disabled attribute. Flash only.
+			Default: true</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
 			<name>visible</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-		    <status>unimplemented</status>
+			<status>unimplemented</status>
 			<description>Flash only: Boolean value specifying whether to show the
-            control. Space that would be occupied by an invisible
-            control is blank.
-            Default: true</description>
+			control. Space that would be occupied by an invisible
+			control is blank.
+			Default: true</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
 			<name>tooltip</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-		    <status>unimplemented</status>
+			<status>unimplemented</status>
 			<description>Flash only: Text to display when the mouse pointer hovers
-            over the control.</description>
+			over the control.</description>
 		</attribute>
 
 
@@ -7750,7 +7747,7 @@ Valid only for cfinput type="text".</description>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 		<description>passed through to form tag created, only used for type html.</description>
-    </attribute>
+	</attribute>
 		<attribute>
 			<type>boolean</type>
 			<name>caseSensitive</name>
@@ -7813,7 +7810,7 @@ Valid only for cfinput type="text".</description>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 		<description>JavaScript to run
-            when the user releases a mouse button in the control.</description>
+			when the user releases a mouse button in the control.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -7821,7 +7818,7 @@ Valid only for cfinput type="text".</description>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 		<description>JavaScript to run
-            when the user presses a mouse button in the control.</description>
+			when the user presses a mouse button in the control.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -7857,7 +7854,7 @@ Valid only for cfinput type="text".</description>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 		<description>JavaScript to run
-            when the user releases a keyboard key in the control.</description>
+			when the user releases a keyboard key in the control.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -7865,7 +7862,7 @@ Valid only for cfinput type="text".</description>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 		<description>JavaScript to run when the user depresses a keyboard
-            key in the control.</description>
+			key in the control.</description>
 		</attribute>
 
 		<attribute>
@@ -7976,7 +7973,7 @@ Valid only for cfinput type="text".</description>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>JavaScript to run
-            when the control changes due to user action.</description>
+			when the control changes due to user action.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -8005,7 +8002,7 @@ Valid only for cfinput type="text".</description>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Lucee passes the
-            style attribute to the browser.</description>
+			style attribute to the browser.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -8019,7 +8016,7 @@ Valid only for cfinput type="text".</description>
 			<name>label</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-		        <status>unimplemented</status>
+				<status>unimplemented</status>
 			<description>Label to put next to the control on a Flash or XML-format form.</description>
 		</attribute>
 		<attribute>
@@ -8028,9 +8025,9 @@ Valid only for cfinput type="text".</description>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Flash only: Boolean value specifying whether to show the control.
-            Space that would be occupied by an invisible control is
-            blank.
-            Default: true</description>
+			Space that would be occupied by an invisible control is
+			blank.
+			Default: true</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -8038,7 +8035,7 @@ Valid only for cfinput type="text".</description>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Query column to use to group the items in the drop-down
-            list into a two-level hierarchical list.</description>
+			list into a two-level hierarchical list.</description>
 		</attribute>
 		<attribute>
 			<type>number</type>
@@ -8054,19 +8051,19 @@ Valid only for cfinput type="text".</description>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>If you populate the options list with a query and use HTML
-            option child tags to specify additional entries, determines
-            the location of the items from the query relative to the items
-            from the option tags:
-             - above: Put the query items above the options items.
-             - below: Put the query items below the options items.
-            Default: above</description>
+			option child tags to specify additional entries, determines
+			the location of the items from the query relative to the items
+			from the option tags:
+			 - above: Put the query items above the options items.
+			 - below: Put the query items below the options items.
+			Default: above</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
 			<name>tooltip</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-		    <status>unimplemented</status>
+			<status>unimplemented</status>
 			<description>Flash only: Text to display when the mouse pointer hovers over the control.</description>
 		</attribute>
 		<attribute>
@@ -8074,11 +8071,11 @@ Valid only for cfinput type="text".</description>
 			<name>visible</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-		    <status>unimplemented</status>
+			<status>unimplemented</status>
 			<description>Flash only: Boolean value specifying whether to show the control.
-            Space that would be occupied by an invisible control is
-            blank.
-            Default: true</description>
+			Space that would be occupied by an invisible control is
+			blank.
+			Default: true</description>
 		</attribute>
 		<attribute>
 			<type>number</type>
@@ -8095,7 +8092,7 @@ Valid only for cfinput type="text".</description>
 			<rtexprvalue>true</rtexprvalue>
 			<status>unimplemented</status>
 			<description>Boolean value specifying whether you can edit the
-                    contents of the control.</description>
+					contents of the control.</description>
 		</attribute>
 	</tag>
 
@@ -8229,15 +8226,15 @@ Valid only for cfinput type="text".</description>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Array of structs that defines the mailserver configuration. Each struct configures one mailserver. Struct keys used for smtp configuration are:
-            - host (string): host name of smtp server
-            - port (numeric): port number of smtp server
-            - username (string): smtp username
-            - password (string): smtp userpassword 
-            - ssl (boolean): enable secure connections via SSL.
-            - tls (boolean): enables Transport Layer Security.
-            - lifeTimespan (timespan): overall timeout for the connections established to the mail server.
-            - idleTimespan (timespan): idle timeout for the connections established to the mail server.
-            </description>
+			- host (string): host name of smtp server
+			- port (numeric): port number of smtp server
+			- username (string): smtp username
+			- password (string): smtp userpassword 
+			- ssl (boolean): enable secure connections via SSL.
+			- tls (boolean): enables Transport Layer Security.
+			- lifeTimespan (timespan): overall timeout for the connections established to the mail server.
+			- idleTimespan (timespan): idle timeout for the connections established to the mail server.
+			</description>
 		</attribute>
 		<attribute>
 			<type>struct</type>
@@ -8711,9 +8708,9 @@ A struct that defines default ftp settings, this settings can be overwritten as 
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Sets the country/language locale for CFML processing. The locale value
-        determines the default format of date, time, number, and
-        currency values, according to language and regional
-        conventions.</description>
+		determines the default format of date, time, number, and
+		currency values, according to language and regional
+		conventions.</description>
 		</attribute>
 		<attribute>
 			<type>timezone</type>
@@ -9340,16 +9337,16 @@ String "request": If original content was created within the current request, ca
 a timespan (created with function CreateTimeSpan): If original content date falls within the time span, cached content data is used.
 
 To use cached data, the function must be called with the exact same arguments.</description>
-    </attribute>
-        <attribute>
+	</attribute>
+		<attribute>
 			<type>string</type>
 			<name>modifier</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Use modifier to denote a function as abstract, static or final.
-            - abstract: implementation must be defined in extended component.
-            - final: implementation cannot be extended.
-            - static: does not access instance variables in the component.</description>
+			- abstract: implementation must be defined in extended component.
+			- final: implementation cannot be extended.
+			- static: does not access instance variables in the component.</description>
 		</attribute>
 	</tag>
 	<!-- Login -->
@@ -9372,7 +9369,7 @@ To use cached data, the function must be called with the exact same arguments.</
 			<name>idleTimeout</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-		    <status>unimplemented</status>
+			<status>unimplemented</status>
 			<description>Time interval, in seconds, after which Lucee logs off the user.</description>
 		</attribute>
 		<attribute>
@@ -9380,7 +9377,7 @@ To use cached data, the function must be called with the exact same arguments.</
 			<name>applicationToken</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-		    <status>unimplemented</status>
+			<status>unimplemented</status>
 			<description>The login that applies to the application. To let users log in to only one application, specify a unique value for that application. To let users log in to multiple applications, specify the same value for those applications. If you do not set a value for the applicationToken attribute, the default value is CFAUTHORIZATION_applicationName.</description>
 		</attribute>
 		<attribute>
@@ -9388,7 +9385,7 @@ To use cached data, the function must be called with the exact same arguments.</
 			<name>cookieDomain</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-		    <status>unimplemented</status>
+			<status>unimplemented</status>
 			<description>Domain of the cookie that is used to mark a user as logged in. Use this attribute to enable a user login cookie to work with multiple clustered servers in the same domain.</description>
 		</attribute>
 	</tag>
@@ -9469,7 +9466,7 @@ To use cached data, the function must be called with the exact same arguments.</
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Domain against which to authenticate the user. The
-            server must be running on this domain.</description>
+			server must be running on this domain.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -9477,7 +9474,7 @@ To use cached data, the function must be called with the exact same arguments.</
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Name of the variable in which to return the results.
-            Default: cfntauthenticate</description>
+			Default: cfntauthenticate</description>
 		</attribute>
 		<attribute>
 			<type>boolean</type>
@@ -9485,9 +9482,9 @@ To use cached data, the function must be called with the exact same arguments.</
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Boolean value specifying whether to Include a
-            comma-delimited list of the user's groups in the
-            result structure.
-            Default: false</description>
+			comma-delimited list of the user's groups in the
+			result structure.
+			Default: false</description>
 		</attribute>
 		<attribute>
 			<type>boolean</type>
@@ -9495,11 +9492,11 @@ To use cached data, the function must be called with the exact same arguments.</
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Boolean value specifying whether to throw an
-            exception if the validation fails. If this attribute is true,
-            Lucee throws an error if the user name or password is
-            invalid; the application must handle such errors in a
-            try/catch block or Lucee error handler page.
-            Default: false</description>
+			exception if the validation fails. If this attribute is true,
+			Lucee throws an error if the user name or password is
+			invalid; the application must handle such errors in a
+			try/catch block or Lucee error handler page.
+			Default: false</description>
 		</attribute>
 	</tag>
 	<!-- Object -->
@@ -9553,8 +9550,8 @@ To use cached data, the function must be called with the exact same arguments.</
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>-  inproc
-    - local
-    - remote
+	- local
+	- remote
 
 In Windows, if not specified, uses Registry setting.</description>
 		</attribute>
@@ -9572,11 +9569,11 @@ In Windows, if not specified, uses Registry setting.</description>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Server name, using Universal Naming Convention (UNC) or Domain Name Serve (DNS) convention, in one of these forms:
 
-    * \\lanserver
-    * lanserver
-    * http://www.servername.com
-    * www.servername.com
-    * 127.0.0.1</description>
+	* \\lanserver
+	* lanserver
+	* http://www.servername.com
+	* www.servername.com
+	* 127.0.0.1</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -10061,7 +10058,7 @@ dWord: creates a value of 0 (zero)</description>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 		<description>Absolute path to a Lucene collection.</description>
-    </attribute>
+	</attribute>
 		<attribute>
 			<type>string</type>
 			<name>language</name>
@@ -10070,7 +10067,7 @@ dWord: creates a value of 0 (zero)</description>
 		<description>language the collection is based on: possible values are:
 		english,german,russian,dutch,french,italian,norwegian,portuguese,spanish,brazilian,chinese,greek,thai,danish,japanese,norwegian,korean
 		</description>
-    </attribute>
+	</attribute>
 		<attribute>
 			<type>string</type>
 			<name>name</name>
@@ -10078,7 +10075,7 @@ dWord: creates a value of 0 (zero)</description>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 		<description>Name for the query results returned by the list action.</description>
-    </attribute>
+	</attribute>
 	</tag>
 <!-- Index -->
 	<tag>
@@ -10142,13 +10139,13 @@ Permits searching collections by title or displaying a separate title from the k
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 		<description>- Absolute path and filename, if type = "file"
-            - Absolute path, if type = "path"
-            - A query column name (typically, the primary key column
-                name), if type = "custom"
-            - A query column name, if type = any other value
+			- Absolute path, if type = "path"
+			- A query column name (typically, the primary key column
+				name), if type = "custom"
+			- A query column name, if type = any other value
 
-            This attribute is required for the actions listed, unless
-            you intend for its value to be an empty string.</description>
+			This attribute is required for the actions listed, unless
+			you intend for its value to be an empty string.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -10156,10 +10153,10 @@ Permits searching collections by title or displaying a separate title from the k
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 		<description>- ASCII text to index
-            - Query column name(s), if name is specified in query
+			- Query column name(s), if name is specified in query
 
-            You can specify columns in a delimited list. For example:
-            - emp_name, dept_name, location"</description>
+			You can specify columns in a delimited list. For example:
+			- emp_name, dept_name, location"</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -10248,8 +10245,8 @@ Permits searching collections by title or displaying a separate title from the k
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>A string value that specifies one or more search categories
-            for which to index the data. You can define multiple
-            categories, separated by commas, for a single index.</description>
+			for which to index the data. You can define multiple
+			categories, separated by commas, for a single index.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -10257,9 +10254,9 @@ Permits searching collections by title or displaying a separate title from the k
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>A string value that specifies a hierarchical category or
-            category tree for searching. It is a series of categories
-            separated by forward slashes ("/"). You can specify only
-            one category tree.</description>
+			category tree for searching. It is a series of categories
+			separated by forward slashes ("/"). You can specify only
+			one category tree.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -10267,14 +10264,14 @@ Permits searching collections by title or displaying a separate title from the k
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>The name of the structure into which Lucee
-            returns status information.</description>
+			returns status information.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
 			<name>prefix</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-		    <status>unimplemented</status>
+			<status>unimplemented</status>
 			<description>Specifies the location of files to index when the computer that contains the K2 Search Service is not the computer on which you installed Lucee, and when you index files with the type attribute set to path.</description>
 		</attribute>
 		<attribute>
@@ -10289,7 +10286,7 @@ Permits searching collections by title or displaying a separate title from the k
 			<name>throwontimeout</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-		    <status>unimplemented</status>
+			<status>unimplemented</status>
 			<description>Specifies how timeout conditions are handled. If the value is true, an exception is enerated to provide notification of the timeout. If the value is No, execution continues. Default is no.</description>
 		</attribute>
 	</tag>
@@ -10375,10 +10372,10 @@ Permits searching collections by title or displaying a separate title from the k
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>A list of categories, separated by commas, to which
-            the search is limited. If specified, and the collection
-            does not have categories enabled, Lucee
+			the search is limited. If specified, and the collection
+			does not have categories enabled, Lucee
 
-            throws an exception.</description>
+			throws an exception.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -10386,11 +10383,11 @@ Permits searching collections by title or displaying a separate title from the k
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>The location in a hierarchical category tree at which
-            to start the search. Lucee searches at and
-            below this level. If specified, and the collection does
-            not have categories enabled, Lucee throws an
-            exception. Can be used in addition to category
-            attribute.</description>
+			to start the search. Lucee searches at and
+			below this level. If specified, and the collection does
+			not have categories enabled, Lucee throws an
+			exception. Can be used in addition to category
+			attribute.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -10398,8 +10395,8 @@ Permits searching collections by title or displaying a separate title from the k
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Specifies the name of the structure variable into
-            which Lucee places search information, including
-            alternative criteria suggestions (spelling corrections).</description>
+			which Lucee places search information, including
+			alternative criteria suggestions (spelling corrections).</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -10407,7 +10404,7 @@ Permits searching collections by title or displaying a separate title from the k
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Specifies whether Lucene returns spelling suggestions
-            for possibly misspelled words.</description>
+			for possibly misspelled words.</description>
 		</attribute>
 		<attribute>
 			<type>number</type>
@@ -10415,9 +10412,9 @@ Permits searching collections by title or displaying a separate title from the k
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>The number of passages/sentences Lucene returns in
-            the context summary (that is, the context column of
-            the results).
-            Default: 3</description>
+			the context summary (that is, the context column of
+			the results).
+			Default: 3</description>
 		</attribute>
 		<attribute>
 			<type>number</type>
@@ -10425,8 +10422,8 @@ Permits searching collections by title or displaying a separate title from the k
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>The maximum number of bytes Lucene returns in the
-            context summary.
-            Default: 300</description>
+			context summary.
+			Default: 300</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -10434,10 +10431,10 @@ Permits searching collections by title or displaying a separate title from the k
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>The HTML to prepend to search terms in the context
-            summary. Use this attribute in conjunction with
-            contextHighlightEnd to highlight search terms in the
-            context summary.
-            Default: &lt;b&gt;</description>
+			summary. Use this attribute in conjunction with
+			contextHighlightEnd to highlight search terms in the
+			context summary.
+			Default: &lt;b&gt;</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -10445,10 +10442,10 @@ Permits searching collections by title or displaying a separate title from the k
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>The HTML to prepend to search terms in the context
-            summary. Use this attribute in conjunction with
-            contextHighlightEnd to highlight search terms in the
-            context summary.
-            Default: &lt;/b&gt;</description>
+			summary. Use this attribute in conjunction with
+			contextHighlightEnd to highlight search terms in the
+			context summary.
+			Default: &lt;/b&gt;</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -10457,10 +10454,10 @@ Permits searching collections by title or displaying a separate title from the k
 			<rtexprvalue>true</rtexprvalue>
 			<status>unimplemented</status>
 			<description>The name of a result set from an existing set of search
-            results. Lucene searches the result set for criteria
-            without regard to the previous search score or rank.
-            Use this attribute to implement searching within result
-            sets.</description>
+			results. Lucene searches the result set for criteria
+			without regard to the previous search score or rank.
+			Use this attribute to implement searching within result
+			sets.</description>
 		</attribute>
 
 	</tag>
