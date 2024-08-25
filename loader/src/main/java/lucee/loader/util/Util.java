@@ -540,18 +540,26 @@ public class Util {
 	 *            found
 	 * @return - the value of the property referenced by propOrEnv or the defaultValue if not found
 	 */
-	public static String _getSystemPropOrEnvVar(String name, String defaultValue) { // FUTURE remove _ in front of the name
+	public static String _getSystemPropOrEnvVar(String name, String defaultValue) { // FUTURE remove _ or move to CFMLEngineFactory.getSystemPropOrEnvVar()
+
+		if (isEmpty(name)) return defaultValue;
+
 		// env
 		String value = System.getenv(name);
 		if (!Util.isEmpty(value)) return value;
 
 		// prop
-		value = System.getProperty(name);
+		value = System.getProperty(name, null);
 		if (!Util.isEmpty(value)) return value;
 
-		// env 2
-		name = name.replace('.', '_').toUpperCase();
-		value = System.getenv(name);
+		// try to convert prop to env
+		String key = name.replace('.', '_').toUpperCase();
+		value = System.getenv(key);
+		if (!Util.isEmpty(value)) return value;
+
+		// try to convert env to prop
+		key = name.replace('_', '.').toLowerCase();
+		value = System.getProperty(key, null);
 		if (!Util.isEmpty(value)) return value;
 
 		return defaultValue;

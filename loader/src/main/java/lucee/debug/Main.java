@@ -1,11 +1,16 @@
 package lucee.debug;
 
+import lucee.loader.util.Util;
 import org.apache.catalina.Context;
 import org.apache.catalina.Server;
 import org.apache.catalina.connector.Connector;
 import org.apache.catalina.startup.Tomcat;
 
 import java.io.File;
+import java.nio.file.Paths;
+
+import static lucee.loader.engine.CFMLEngineFactory.ARG_PROJECT_DIR;
+import static lucee.loader.engine.CFMLEngineFactory.ARG_CLASSES_DIR;
 
 public class Main {
 
@@ -15,7 +20,7 @@ public class Main {
 	public static final String ARG_WEBXML = "LUCEE_DEBUG_WEBXML";
 
 	public static final String DEF_HOST = "localhost";
-	public static final String DEF_PORT = "48080";
+	public static final String DEF_PORT = "48888";
 	public static final String DEF_BASE = "/workspace/test/LuceeDebugWebapp";
 
 	public static void main(String[] args) throws Exception {
@@ -24,11 +29,32 @@ public class Main {
 
 		System.setProperty("lucee.controller.disabled", "true");
 
-		s = getSystemPropOrEnvVar(ARG_BASE, DEF_BASE);
+		s = Util._getSystemPropOrEnvVar(ARG_PROJECT_DIR, "");
+		if (s.isEmpty()) {
+			s = Paths.get("").toAbsolutePath().toString();
+			System.out.println(ARG_PROJECT_DIR + " is not set, using " + s);
+			System.setProperty(convertEnvVarToSysProp(ARG_PROJECT_DIR), s);
+		}
+		else {
+			System.out.println(ARG_PROJECT_DIR + " is set to " + s);
+		}
+
+		s = Util._getSystemPropOrEnvVar(ARG_CLASSES_DIR, "");
+		if (s.isEmpty()) {
+			s = Main.class.getProtectionDomain().getCodeSource().getLocation().getPath();
+			s = Paths.get(s).getParent().toString();
+			System.out.println(ARG_CLASSES_DIR + " is not set, using " + s);
+			System.setProperty(convertEnvVarToSysProp(ARG_CLASSES_DIR), s);
+		}
+		else {
+			System.out.println(ARG_CLASSES_DIR + " is set to " + s);
+		}
+
+		s = Util._getSystemPropOrEnvVar(ARG_BASE, DEF_BASE);
 
 		String appBase = (new File(s)).getCanonicalPath().replace('\\', '/');
 		String docBase = appBase + "/webroot";
-		String webxml = getSystemPropOrEnvVar(ARG_WEBXML, docBase + "/WEB-INF/web.xml");
+		String webxml = Util._getSystemPropOrEnvVar(ARG_WEBXML, docBase + "/WEB-INF/web.xml");
 
 		System.out.println("Setting appBase: " + appBase);
 		System.out.println("Setting docBase: " + docBase);
@@ -42,10 +68,10 @@ public class Main {
 
 		tomcat.setBaseDir(appBase);
 
-		s = getSystemPropOrEnvVar(ARG_HOST, DEF_HOST);
+		s = Util._getSystemPropOrEnvVar(ARG_HOST, DEF_HOST);
 		tomcat.setHostname(s);
 
-		s = getSystemPropOrEnvVar(ARG_PORT, DEF_PORT);
+		s = Util._getSystemPropOrEnvVar(ARG_PORT, DEF_PORT);
 		tomcat.setPort(Integer.parseInt(s));
 
 		tomcat.setAddDefaultWebXmlToWebapp(false);
@@ -75,38 +101,19 @@ public class Main {
 	 * @param name the System property name
 	 * @return the equivalent Environment variable name
 	 */
-	private static String convertSystemPropToEnvVar(String name) {
+	private static String convertSysPropToEnvVar(String name) {
 		return name.replace('.', '_').toUpperCase();
 	}
 
 	/**
-	 * returns a system setting by either a Java property name or a System environment variable
+	 * converts an Environment variable format to its equivalent System property, e.g. an input of
+	 * "LUCEE_CONF_NAME" will return "lucee.conf.name"
 	 *
-	 * @param name - either a lowercased Java property name (e.g. lucee.controller.disabled) or an
-	 *            UPPERCASED Environment variable name ((e.g. LUCEE_CONTROLLER_DISABLED))
-	 * @param defaultValue - value to return if the neither the property nor the environment setting was
-	 *            found
-	 * @return - the value of the property referenced by propOrEnv or the defaultValue if not found
+	 * @param name the System property name
+	 * @return the equivalent Environment variable name
 	 */
-	private static String getSystemPropOrEnvVar(String name, String defaultValue) {
-		// env
-		String value = System.getenv(name);
-		if (!isEmpty(value)) return value;
-
-		// prop
-		value = System.getProperty(name);
-		if (!isEmpty(value)) return value;
-
-		// env 2
-		name = convertSystemPropToEnvVar(name);
-		value = System.getenv(name);
-		if (!isEmpty(value)) return value;
-
-		return defaultValue;
-	}
-
-	private static boolean isEmpty(String value) {
-		return value == null || value.isEmpty();
+	private static String convertEnvVarToSysProp(String name) {
+		return name.replace('_', '.').toLowerCase();
 	}
 
 }
