@@ -94,6 +94,12 @@ import lucee.runtime.util.Pack200Util;
  */
 public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 
+	/** Project sources root dir, e.g. /Users/mic/Projects/Lucee/Lucee6 */
+	public static final String ARG_PROJECT_DIR = "LUCEE_PROJECT_DIR";
+
+	/** Compiler output root dir, e.g. /Users/mic/Projects/Lucee/ide-compiler-output-6 */
+	public static final String ARG_CLASSES_DIR = "LUCEE_CLASSES_DIR";
+
 	// set to false to disable patch loading, for example in major alpha releases
 	private static final boolean PATCH_ENABLED = true;
 	public static final Version VERSION_ZERO = new Version(0, 0, 0, "0");
@@ -310,14 +316,19 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 		String pathClas = "../core/target/classes/";
 		String pathCfml = "../core/src/main/cfml/";
 		String pathJava = "../core/src/main/java/";
-		String pathPom = "./pom.xml";
+		String pathLpom = "./pom.xml";
 
-		String s = System.getenv("LUCEE_SOURCE_DIR");
-		if (s != null) {
-			pathClas = Paths.get(s, "/core/target/classes/").toString();
+		String s = Util._getSystemPropOrEnvVar(ARG_PROJECT_DIR, "");
+		if (!s.isEmpty()) {
 			pathCfml = Paths.get(s, "/core/src/main/cfml/").toString();
 			pathJava = Paths.get(s, "/core/src/main/java/").toString();
-			pathPom = Paths.get(s, "/loader/pom.xml").toString();
+			pathLpom = Paths.get(s, "/loader/pom.xml").toString();
+			pathClas = Paths.get(s, "/core/target/classes/").toString();
+			s = Util._getSystemPropOrEnvVar(ARG_CLASSES_DIR, "");
+			if (!s.isEmpty()) {
+				// Lucee core classes should be in $ARG_CLASSES_DIR/core
+				pathClas = Paths.get(s, "core").toString();
+			}
 		}
 
 		String pathJres = Paths.get(pathJava, "resource/").toString();
@@ -343,7 +354,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 		System.out.println("RESOURCE_JAVA_DIR: " + resourceJava);
 
 		// read POM File
-		File pomFile = load("pom file", "the pom.xml file from the core project", "POM_FILE", pathPom, "../../../pom.xml", false);
+		File pomFile = load("pom file", "the pom.xml file from the core project", "POM_FILE", pathLpom, "../../../pom.xml", false);
 		System.out.println("POM: " + pomFile);
 
 		// if (true) return null;
@@ -414,7 +425,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 	}
 
 	private static File load(String subject, String desc, String envVarName, String relpath, String relResource, boolean dir) throws IOException {
-		String env = System.getenv(envVarName);
+		String env = Util._getSystemPropOrEnvVar(envVarName, "");
 		File file;
 		if (!Util.isEmpty(env)) {
 			file = new File(env.trim());
@@ -520,9 +531,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 		}
 		File lucee = null;
 
-		// LUCEE_SOURCE_DIR allows to run core in embeded mode, and should point to the project root which
-		// contains the "core" and "loader" directories
-		if (System.getenv("LUCEE_SOURCE_DIR") != null) embedded = true;
+		if (isEmbeddedMode()) embedded = true;
 
 		if (embedded) {
 			try {
@@ -829,20 +838,15 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 	}
 
 	protected static String getSystemPropOrEnvVar(String name, String defaultValue) {
-		// env
-		String value = System.getenv(name);
-		if (!Util.isEmpty(value)) return value;
+		return Util._getSystemPropOrEnvVar(name, defaultValue);
+	}
 
-		// prop
-		value = System.getProperty(name);
-		if (!Util.isEmpty(value)) return value;
-
-		// env 2
-		name = name.replace('.', '_').toUpperCase();
-		value = System.getenv(name);
-		if (!Util.isEmpty(value)) return value;
-
-		return defaultValue;
+	public boolean isEmbeddedMode() {
+		String s = Util._getSystemPropOrEnvVar(ARG_PROJECT_DIR, null);
+		if (s == null) return false;
+		boolean result = (new File(s)).isDirectory();
+		if (!result) System.out.println(ARG_PROJECT_DIR + " is set but is not pointing to a valid directory (" + s + ")");
+		return result;
 	}
 
 	public void log(final Throwable t) {
