@@ -55,11 +55,6 @@ public function onRequestStart() {
 	// if not logged in, we only allow access to admin|web|server[.cfm]
 	if(!structKeyExists(session, "passwordWeb") && !structKeyExists(session, "passwordServer")){
 		var fileName=listLast(cgi.script_name,"/");
-		if ( GetDirectoryFromPath(ExpandPath(cgi.SCRIPT_NAME)) neq GetDirectoryFromPath(GetCurrentTemplatePath()) ){
-			writeLog(text="The Lucee Admin bad path [#getCurrentTemplatePath()#]", type="error", log="application");
-			fileName="";
-		}
-		
 		if(fileName!="admin.cfm" && fileName!="web.cfm" && fileName!="server.cfm" && fileName!="index.cfm" && fileName!="restart.cfm") {
 			writeLog(text="Lucee Admin request to restricted file [#filename#] before login", type="error", log="application");
 			cfsetting(showdebugoutput:false);
