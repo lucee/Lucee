@@ -80,6 +80,7 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.functions.dynamicEvaluation.EvaluateComponent;
 import lucee.runtime.functions.system.ContractPath;
 import lucee.runtime.interpreter.CFMLExpressionInterpreter;
+import lucee.runtime.listener.JavaSettings;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Duplicator;
 import lucee.runtime.op.ThreadLocalDuplication;
@@ -206,6 +207,10 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 		if (!StringUtil.isEmpty(style) && !"rpc".equals(style))
 			throw new ApplicationException("style [" + style + "] is not supported, only the following styles are supported: [rpc]");
 		this.isExtended = isExtended;
+	}
+
+	public JavaSettings getJavaSettings(PageContext pc) throws IOException {
+		return this.cp.getJavaSettings(pc, properties);
 	}
 
 	@Override
@@ -2517,4 +2522,5 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 		this.properties.inline = true;
 		return this;
 	}
+
 }

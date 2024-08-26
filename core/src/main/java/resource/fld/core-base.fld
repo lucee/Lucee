@@ -12548,25 +12548,33 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<type>any</type>
 		</return>
 	</function>
-		<!-- SetJavaSettings -->
-<function>
-    <name>SetJavaSettings</name>
-    <class>lucee.runtime.functions.system.SetJavaSettings</class>
-    <description>
-        Set individual Java settings for the remainder of the current request. This function extends the existing Java settings defined in both `Application.cfc` and `.CFConfig.json`. The provided settings will be merged with the pre-existing configurations, allowing for dynamic adjustments specific to the needs of the request.
-    </description>
-    <argument>
-        <name>javasettings</name>
-        <type>struct</type>
-        <required>Yes</required>
-        <description>
-            A struct containing the Java settings to be applied. This struct may include Maven dependencies or other Java configurations necessary for the current request.
-        </description>
-    </argument>
-    <return>
-        <type>void</type>
-    </return>
-</function>
+	<!-- ImportJavaSettings -->
+	<function>
+	    <name>ImportJavaSettings</name>
+	    <class>lucee.runtime.functions.system.ImportJavaSettings</class>
+	    <status>hidden</status>
+		<description>
+	        Imports Java settings for the current environment, which may involve downloading and configuring Maven and OSGi files locally. 
+	        This function allows for dynamic modification of Java dependencies and configurations at runtime, 
+	        ensuring that the necessary Java libraries are available and properly configured for use within the Lucee environment. 
+	        One of the primary purposes of this function is to ensure that Java resources are available at runtime by executing it as part of the Docker build process, 
+	        specifically by calling it in the `onBuild` function, which can be configured within the `onBuild` phase.
+	    </description>
+	    <argument>
+	        <name>javasettings</name>
+	        <type>any</type>
+	        <required>Yes</required>
+	        <description>
+	            A struct, JSON string, or a path to a JSON file that specifies the Java settings to be applied. 
+	            These settings may include details such as Maven artifact identifiers, versions, and other configurations necessary for Java integration. 
+	            This ensures that all required Java resources are fetched and configured appropriately.
+	        </description>
+	    </argument>
+	    <return>
+	        <type>void</type>
+	    </return>
+	</function>
+	
 	<!-- sgn -->
 	<function>
 		<name>sgn</name>

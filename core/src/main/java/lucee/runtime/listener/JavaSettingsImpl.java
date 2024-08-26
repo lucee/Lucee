@@ -227,18 +227,7 @@ public class JavaSettingsImpl implements JavaSettings {
 		return osgis != null && osgis.size() > 0;
 	}
 
-	/*
-	 * private ResourceClassLoader getClassLoader(boolean reload) throws IOException { if (classLoader
-	 * == null || reload) { ClassLoader parent = SystemUtil.getCombinedClassLoader();
-	 * Collection<Resource> allResources = getAllResources((ClassLoader) null); return classLoader =
-	 * ResourceClassLoader.getInstance(allResources, parent); } return classLoader; }
-	 */
-
-	public static Collection<Resource> getAllResources(JavaSettings js) throws IOException {
-		return ((JavaSettingsImpl) js).getAllResources((ClassLoader) null);
-	}
-
-	public Collection<Resource> getAllResources(ClassLoader parent) throws IOException {
+	public Collection<Resource> getAllResources() throws IOException {
 		Map<String, Resource> mapJars = new HashMap<>();
 
 		Resource[] tmp;

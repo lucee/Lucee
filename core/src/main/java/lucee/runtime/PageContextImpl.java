@@ -486,7 +486,6 @@ public final class PageContextImpl extends PageContext {
 		// Scopes
 		server = ScopeContext.getServerScope(this, ignoreScopes);
 		if (clone) {
-			this.js = tmplPC.js;
 			this.cfid = tmplPC.cfid;
 			this.client = tmplPC.client;
 			this.session = tmplPC.session;
@@ -624,7 +623,6 @@ public final class PageContextImpl extends PageContext {
 		caller = null;
 		callerTemplate = null;
 		root = null;
-		js = null;
 		// ORM
 		// if(ormSession!=null)releaseORM();
 
@@ -3799,7 +3797,6 @@ public final class PageContextImpl extends PageContext {
 
 	private boolean dummy;
 	private boolean listenSettings;
-	private JavaSettings js;
 
 	public boolean isTrusted(Page page) {
 		if (page == null) return false;
@@ -3842,13 +3839,13 @@ public final class PageContextImpl extends PageContext {
 	 * public ClassLoader getClassLoader() throws IOException { return getClassLoader(null); }
 	 */
 
-	public JavaSettings getJavaSettings() {
-		if (js != null) return js;
+	public JavaSettings getJavaSettings() throws IOException {
+		Component ac = getActiveComponent();
+		if (ac instanceof ComponentImpl) {
+			JavaSettings js = ((ComponentImpl) ac).getJavaSettings(this);
+			return JavaSettingsImpl.merge(config, getApplicationContext().getJavaSettings(), js);
+		}
 		return getApplicationContext().getJavaSettings();
-	}
-
-	public void setJavaSettings(JavaSettings js) {
-		this.js = JavaSettingsImpl.merge(config, getApplicationContext().getJavaSettings(), js);
 	}
 
 	public ClassLoader getRPCClassLoader(boolean reload) throws IOException {

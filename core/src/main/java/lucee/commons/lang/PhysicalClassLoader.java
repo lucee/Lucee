@@ -128,7 +128,7 @@ public final class PhysicalClassLoader extends URLClassLoader implements Extenda
 						resources = new ArrayList<Resource>();
 					}
 					else {
-						resources = toSortedList(JavaSettingsImpl.getAllResources(js));
+						resources = toSortedList(((JavaSettingsImpl) js).getAllResources());
 					}
 					Resource dir = storeResourceMeta(c, key, js, resources);
 					// (Config config, String key, JavaSettings js, Collection<Resource> _resources)

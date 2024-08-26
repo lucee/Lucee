@@ -60,6 +60,8 @@ import lucee.runtime.gateway.GatewayEngineImpl;
 import lucee.runtime.interpreter.CFMLExpressionInterpreter;
 import lucee.runtime.interpreter.JSONExpressionInterpreter;
 import lucee.runtime.listener.ApplicationContextSupport;
+import lucee.runtime.listener.JavaSettings;
+import lucee.runtime.listener.JavaSettingsImpl;
 import lucee.runtime.listener.SerializationSettings;
 import lucee.runtime.net.http.ReqRspUtil;
 import lucee.runtime.op.Caster;
@@ -103,6 +105,9 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 	private StaticScope staticScope;
 
 	private long index;
+
+	private boolean initJS = false;
+	private JavaSettings js;
 
 	public abstract ComponentImpl newInstance(PageContext pc, String callPath, boolean isRealPath, boolean isExtendedComponent, boolean executeConstr)
 			throws lucee.runtime.exp.PageException;
@@ -1153,6 +1158,36 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 	public void setStaticScope(StaticScope staticScope) {
 		this.staticScope = staticScope;
 		this.index = staticScope.index();
+	}
+
+	public JavaSettings getJavaSettings(PageContext pc, ComponentProperties properties) throws IOException {
+		if (!initJS) {
+			synchronized (properties) {
+				if (!initJS) {
+					// TODO cache
+					String json = Caster.toString(properties.meta.get(KeyConstants._javasettings, null), null);
+					if (!StringUtil.isEmpty(json, true)) {
+						json = json.trim();
+						try {
+							if (StringUtil.endsWithIgnoreCase(json, ".json")) {
+								pc = ThreadLocalPageContext.get(pc);
+								if (pc != null) json = IOUtil.toString(ResourceUtil.toResourceExisting(pc, json), CharsetUtil.UTF8);
+								else json = IOUtil.toString(ResourceUtil.toResourceExisting(ThreadLocalPageContext.getConfig(), json), CharsetUtil.UTF8);
+							}
+
+							Struct sct = Caster.toStruct(new JSONExpressionInterpreter().interpret(null, json));
+							js = JavaSettingsImpl.getInstance(ThreadLocalPageContext.getConfig(pc), sct, null);
+						}
+						catch (Exception e) {
+							// LogUtil.log("component", e);
+							throw ExceptionUtil.toIOException(e);
+						}
+					}
+					initJS = true;
+				}
+			}
+		}
+		return js;
 	}
 
 }
