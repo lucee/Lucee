@@ -415,7 +415,7 @@ A return value from the CreateTimeSpan function, for example, "#CreateTimeSpan(0
 			<context>component</context>
 		</script>
 		<description>
-			The `component` tag is used to define a CFML component (CFC), a reusable encapsulation of logic and data in Lucee. A component is an object that can contain properties and functions, allowing for structured and object-oriented development. Within the `component` body, you define functions using `cffunction` tags. Code outside `cffunction` tags is executed when the component is instantiated. This tag is essential for creating modular and reusable code blocks in CFML applications.
+			The `component` tag is used to define a CFML component (CFC), which is a reusable encapsulation of logic and data in Lucee. Components allow for structured, object-oriented development by encapsulating related properties and functions within a single object. Inside the `component` tag, functions are defined using `cffunction` tags. Code placed outside `cffunction` tags within a component is executed when the component is instantiated. This tag is fundamental for building modular and maintainable code in CFML applications.
 		</description>
 		<att-class>lucee.transformer.cfml.attributes.impl.Component</att-class>
 		<attribute-type>mixed</attribute-type>
@@ -425,28 +425,43 @@ A return value from the CreateTimeSpan function, for example, "#CreateTimeSpan(0
 			<name>accessors</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>If set to true, lets you invoke implicit getters and setters. For persistent CFCs, accessors are always enabled.</description>
+			<description>If set to true, enables implicit getters and setters for the component's properties. For persistent CFCs, accessors are always enabled.</description>
 		</attribute>
 		<attribute>
 			<type>boolean</type>
 			<name>synchronized</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>If set to true, all calls to an instance of a component are synchronized. This setting allows a function to be executed only by one single thread at a time.</description>
+			<description>If set to true, synchronizes all calls to an instance of the component, ensuring that each function can only be executed by one thread at a time, thereby providing thread safety.</description>
 		</attribute>
 		<attribute>
 			<type>boolean</type>
 			<name>persistent</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>Specifies whether the CFC is persistent or not.</description>
+			<description>Specifies whether the component is persistent, meaning it can be saved to and loaded from a storage medium such as a database.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
 			<name>extends</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>Name of the parent component from which to inherit properties and functions.</description>
+			<description>Specifies the name of the parent component from which to inherit properties and functions, facilitating code reuse and modularity.</description>
+		</attribute>
+		<attribute>
+			<type>string</type>
+			<name>implements</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>Lists the interfaces that the component implements, specifying the set of functions that the component must provide.</description>
+		</attribute>
+		<attribute>
+			<type>string</type>
+			<name>modifier</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<values>none,final,abstract</values>
+			<description>Defines the type of component: `none` for a regular component, `abstract` for a component that cannot be instantiated directly and must be extended, or `final` for a component that cannot be extended by other components.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -454,14 +469,14 @@ A return value from the CreateTimeSpan function, for example, "#CreateTimeSpan(0
 			<alias>display</alias>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>A string to be displayed when using introspection to show information about the CFC. The information appears on the heading, following the component name. If the style attribute is set to document, the displayName attribute is used as the name of the service element in the WSDL.</description>
+			<description>A user-friendly name for the component, used when displaying information about the CFC during introspection. This value appears alongside the component name and is used in the WSDL service element if the style is set to document.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
 			<name>hint</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>Text that displays when you use introspection to show information about the CFC. The hint attribute value appears below the component name heading. Use this attribute to describe the purpose of the component.</description>
+			<description>Provides a description of the component's purpose, displayed during introspection. This hint helps document the functionality and usage of the component.</description>
 		</attribute>
 		<attribute>
 			<type>boolean</type>
@@ -469,8 +484,8 @@ A return value from the CreateTimeSpan function, for example, "#CreateTimeSpan(0
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>
-				- true: permits component function output
-				- false: suppresses component function output
+				- `true`: Allows the output generated by component functions to be displayed.
+				- `false`: Suppresses the output generated by component functions, preventing it from being displayed.
 			</description>
 		</attribute>
 		<attribute>
@@ -479,7 +494,7 @@ A return value from the CreateTimeSpan function, for example, "#CreateTimeSpan(0
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<status>unimplemented</status>
-			<description>Specifies whether a CFC used for web services uses RPC-encoded style or document-literal style.</description>
+			<description>Determines whether the CFC, when used for web services, uses RPC-encoded style or document-literal style. This attribute controls the format of the generated WSDL.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -487,7 +502,7 @@ A return value from the CreateTimeSpan function, for example, "#CreateTimeSpan(0
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<status>unimplemented</status>
-			<description>Specifies the namespace used in the WSDL when using the CFC as a document-literal style web service. If you don't specify this attribute, Lucee derives the namespace from the CFC class name. This attribute applies only when style="document".</description>
+			<description>Specifies the namespace for the WSDL when the CFC is used as a document-literal style web service. If not specified, Lucee derives the namespace from the CFC class name. This attribute applies only when `style="document"`.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -495,7 +510,7 @@ A return value from the CreateTimeSpan function, for example, "#CreateTimeSpan(0
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<status>unimplemented</status>
-			<description>Specifies the name of the port element in the WSDL. This attribute applies only when style="document".</description>
+			<description>Specifies the name of the port element in the WSDL. This attribute is relevant only when `style="document"` is used for web services.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -503,7 +518,7 @@ A return value from the CreateTimeSpan function, for example, "#CreateTimeSpan(0
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<status>unimplemented</status>
-			<description>Specifies the SOAP URL of the web service. If you don't specify this attribute, Lucee uses the URL of the CFC in the WSDL service description. Use this attribute to specify the protocol, for example, by specifying a URL that starts with https://. This attribute applies only for web services.</description>
+			<description>Defines the SOAP URL of the web service. If not specified, Lucee uses the URL of the CFC in the WSDL service description. This attribute is particularly useful for specifying the protocol, such as using a URL starting with `https://`. It applies only to web services.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -511,14 +526,14 @@ A return value from the CreateTimeSpan function, for example, "#CreateTimeSpan(0
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<status>unimplemented</status>
-			<description>Specifies the name of the portType element in the WSDL. This attribute applies only when style="document".</description>
+			<description>Specifies the name of the `portType` element in the WSDL, applicable only when `style="document"` is used.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
 			<name>bindingName</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>Specifies the name of the binding element in the WSDL. This attribute applies only when style="document".</description>
+			<description>Defines the name of the `binding` element in the WSDL. This attribute applies only when `style="document"`.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -526,7 +541,7 @@ A return value from the CreateTimeSpan function, for example, "#CreateTimeSpan(0
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<status>unimplemented</status>
-			<description>A properly formatted WSDL file to be used instead of WSDL generated by Lucee. This attribute applies only when style="document".</description>
+			<description>Specifies a custom WSDL file to be used instead of the automatically generated WSDL by Lucee. This is applicable only when `style="document"`.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -534,7 +549,7 @@ A return value from the CreateTimeSpan function, for example, "#CreateTimeSpan(0
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<status>unimplemented</status>
-			<description>Specifies an alternative name or alias for the component.</description>
+			<description>Defines an alternative name or alias for the component, providing flexibility in referencing the component in different contexts.</description>
 		</attribute>
 		<attribute>
 			<type>boolean</type>
@@ -542,9 +557,10 @@ A return value from the CreateTimeSpan function, for example, "#CreateTimeSpan(0
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<status>unimplemented</status>
-			<description>Indicates whether the component acts as a mapped superclass, which is a base class for other components to extend but does not itself represent a database entity.</description>
+			<description>Indicates whether the component acts as a mapped superclass. A mapped superclass serves as a base class for other components to extend but does not itself represent a database entity.</description>
 		</attribute>
 	</tag>
+	
 	
 	<!-- Continue -->
 	<tag>
