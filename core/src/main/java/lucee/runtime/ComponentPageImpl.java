@@ -90,8 +90,6 @@ import lucee.runtime.type.util.StructUtil;
 import lucee.runtime.type.util.UDFUtil;
 import lucee.runtime.util.PageContextUtil;
 
-
-
 /**
  * A Page that can produce Components
  */
@@ -1173,7 +1171,7 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 			synchronized (properties) {
 				if (!initJS) {
 					// TODO cache
-					String json = Caster.toString(properties.meta.get(KeyConstants._javasettings, null), null);
+					String json = properties.meta == null ? null : Caster.toString(properties.meta.get(KeyConstants._javasettings, null), null);
 					if (!StringUtil.isEmpty(json, true)) {
 						json = json.trim();
 						try {
