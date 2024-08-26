@@ -70,7 +70,7 @@
 		
 		file="#temp#/lucee-context.lar"
 		virtual="/context"
-		addCFMLFiles="true"
+		addCFMLFiles="false"
 		addNonCFMLFiles="true"
 		ignoreScopes="false";
 
@@ -110,7 +110,7 @@
 		
 		file="#temp#/lucee-admin.lar"
 		virtual="/admin"
-		addCFMLFiles="true"
+		addCFMLFiles="false"
 		addNonCFMLFiles="true"
 		ignoreScopes="false";
 
@@ -141,7 +141,7 @@
 		
 		file="#temp#/lucee-doc.lar"
 		virtual="/doc"
-		addCFMLFiles="true"
+		addCFMLFiles="false"
 		addNonCFMLFiles="true"
 		ignoreScopes="false";
 

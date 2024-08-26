@@ -512,9 +512,16 @@
 	</cfif>
 <cfelse>
 	<cfsavecontent variable="content">
-		<cfif !findOneOf("\/",current.action) && fileExists("#current.action#.cfm")>
-			<cfinclude template="#current.action#.cfm">
-		<cfelse>
+		<cfset doAbort=true>
+		
+		<cfif not findOneOf("\/",current.action)>
+			<cftry>
+				<cfinclude template="#current.action#.cfm">
+				<cfset doAbort=false>
+				<cfcatch type="missinginclude"></cfcatch>
+			</cftry>
+		</cfif>
+		<cfif doAbort>
 			<cfset current.label = "Error">
 			<cfparam name="url.rawError" default="false">
 			<cfheader statuscode="404">

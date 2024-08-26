@@ -50,9 +50,6 @@
 					<cfset custom[mid(key,8,10000)]=form[key]>
 				</cfif>
 			</cfloop>
-			<!---<cfif not fileExists(trim(form.cfcPath))>
-				<cfthrow message="#form.cfcPath# does not exist">
-			</cfif>--->
 			<cfif not structkeyExists(form,'listenerCfcPath')><cfset form.listenerCfcPath=""></cfif>
 			<cfset driver.onBeforeUpdate(trim(form.listenerCfcPath),trim(form.startupMode),custom)>
 		

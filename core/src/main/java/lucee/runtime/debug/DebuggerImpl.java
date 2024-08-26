@@ -798,7 +798,7 @@ public final class DebuggerImpl implements Debugger {
 		//////////////////////////////////////////
 		if (addAddionalInfo) {
 			Struct scopes = new StructImpl();
-			scopes.setEL(KeyConstants._cgi, pc.cgiScope());
+			scopes.setEL(KeyConstants._cgi, pc.cgiScope().duplicate(false));
 			debugging.setEL(KeyConstants._scope, scopes);
 		}
 

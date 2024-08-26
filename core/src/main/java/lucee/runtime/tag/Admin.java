@@ -1775,7 +1775,6 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		// TODO?admin.updateDebugTemplate(getString("admin", action, "debugTemplate"));
 		store();
 		adminSync.broadcast(attributes, config);
-		if (!Caster.toBooleanValue(getString("debug", ""), false)) doPurgeDebugPool(); // purge the debug log pool when disabling debug to free up memory
 	}
 
 	private void doUpdateMonitoring() throws PageException {
@@ -1785,7 +1784,6 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		// TODO?admin.updateDebugTemplate(getString("admin", action, "debugTemplate"));
 		store();
 		adminSync.broadcast(attributes, config);
-		if (!Caster.toBooleanValue(getString("debug", ""), false)) doPurgeDebugPool(); // purge the debug log pool when disabling debug to free up memory
 	}
 
 	private void doGetDebugSetting() throws PageException {

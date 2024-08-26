@@ -40,6 +40,7 @@ import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.HTMLEntities;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.mimetype.MimeType;
+import lucee.commons.net.HTTPUtil;
 import lucee.runtime.component.StaticStruct;
 import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.converter.BinaryConverter;
@@ -88,6 +89,8 @@ import lucee.runtime.type.util.ListUtil;
 import lucee.runtime.type.util.StructUtil;
 import lucee.runtime.type.util.UDFUtil;
 import lucee.runtime.util.PageContextUtil;
+
+
 
 /**
  * A Page that can produce Components
@@ -696,6 +699,11 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 
 	public static boolean isSoap(PageContext pc) {
 		HttpServletRequest req = pc.getHttpServletRequest();
+
+		String strContentType = ReqRspUtil.getContentTypeAsString(pc, null);
+		Boolean isText = HTTPUtil.isTextMimeType(strContentType);
+		if (isText == null || !isText) return false;
+
 		InputStream is = null;
 		try {
 			is = req.getInputStream();
