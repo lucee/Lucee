@@ -3843,7 +3843,7 @@ public final class PageContextImpl extends PageContext {
 		Component ac = getActiveComponent();
 		if (ac instanceof ComponentImpl) {
 			JavaSettings js = ((ComponentImpl) ac).getJavaSettings(this);
-			return JavaSettingsImpl.merge(config, getApplicationContext().getJavaSettings(), js);
+			if (js != null) return JavaSettingsImpl.merge(config, getApplicationContext().getJavaSettings(), js);
 		}
 		return getApplicationContext().getJavaSettings();
 	}
