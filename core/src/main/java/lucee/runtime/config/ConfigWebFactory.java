@@ -2562,8 +2562,10 @@ public final class ConfigWebFactory extends ConfigFactory {
 			for (int i = 0; i < ConfigPro.CACHE_TYPES_MAX.length; i++) {
 				try {
 					String def = getAttr(defaultCache, "default" + StringUtil.ucFirst(ConfigPro.STRING_CACHE_TYPES_MAX[i]));
-					if (hasAccess && !StringUtil.isEmpty(def)) {
-						config.setCacheDefaultConnectionName(ConfigPro.CACHE_TYPES_MAX[i], def);
+					if (StringUtil.isEmpty(def, true)) def = getAttr(root, "cacheDefault" + StringUtil.ucFirst(ConfigPro.STRING_CACHE_TYPES_MAX[i]));
+
+					if (hasAccess && !StringUtil.isEmpty(def, true)) {
+						config.setCacheDefaultConnectionName(ConfigPro.CACHE_TYPES_MAX[i], def.trim());
 					}
 					else if (hasCS) {
 						if (defaultCache.containsKey("default" + StringUtil.ucFirst(ConfigPro.STRING_CACHE_TYPES_MAX[i])))
@@ -2580,6 +2582,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 					log(config, log, t);
 				}
 			}
+
 			{
 				Struct eCaches = ConfigWebUtil.getAsStruct("caches", root);
 
