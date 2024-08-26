@@ -720,9 +720,6 @@ public final class ConfigAdmin {
 
 		Struct children = ConfigWebUtil.getAsStruct("mappings", root);
 		Key[] keys = children.keys();
-		// Element mappings = _getRootElement("mappings");
-		// Element[] children = ConfigWebFactory.getChildren(mappings, "mapping");
-
 		Struct el = null;
 		for (Key key: keys) {
 			Struct tmp = Caster.toStruct(children.get(key, null), null);
@@ -1137,9 +1134,13 @@ public final class ConfigAdmin {
 				data.setEL("physical", physical);
 				data.setEL("archive", archive);
 				data.setEL("primary", primary.equalsIgnoreCase("archive") ? "archive" : "physical");
-				data.setEL("inspectTemplate", ConfigWebUtil.inspectTemplate(inspect, ""));
-				data.setEL("inspectTemplateIntervalSlow", Caster.toString(inspectTemplateIntervalSlow, ""));
-				data.setEL("inspectTemplateIntervalFast", Caster.toString(inspectTemplateIntervalFast, ""));
+				String str = ConfigWebUtil.inspectTemplate(inspect, "");
+				if (!StringUtil.isEmpty(str)) data.setEL("inspectTemplate", str);
+				else data.removeEL(KeyImpl.init("inspectTemplate"));
+				if (ConfigPro.INSPECT_INTERVAL_SLOW != inspectTemplateIntervalSlow) data.setEL("inspectTemplateIntervalSlow", Caster.toString(inspectTemplateIntervalSlow, ""));
+				else data.removeEL(KeyImpl.init("inspectTemplateIntervalSlow"));
+				if (ConfigPro.INSPECT_INTERVAL_FAST != inspectTemplateIntervalFast) data.setEL("inspectTemplateIntervalFast", Caster.toString(inspectTemplateIntervalFast, ""));
+				else data.removeEL(KeyImpl.init("inspectTemplateIntervalFast"));
 				data.removeEL(KeyImpl.init("trusted"));
 				return;
 			}
@@ -1151,9 +1152,10 @@ public final class ConfigAdmin {
 		if (physical.length() > 0) el.setEL("physical", physical);
 		if (archive.length() > 0) el.setEL("archive", archive);
 		el.setEL("primary", primary.equalsIgnoreCase("archive") ? "archive" : "physical");
-		el.setEL("inspectTemplate", ConfigWebUtil.inspectTemplate(inspect, ""));
-		el.setEL("inspectTemplateIntervalSlow", Caster.toString(inspectTemplateIntervalSlow, ""));
-		el.setEL("inspectTemplateIntervalFast", Caster.toString(inspectTemplateIntervalFast, ""));
+		String str = ConfigWebUtil.inspectTemplate(inspect, "");
+		if (!StringUtil.isEmpty(str)) el.setEL("inspectTemplate", ConfigWebUtil.inspectTemplate(inspect, ""));
+		if (ConfigPro.INSPECT_INTERVAL_SLOW != inspectTemplateIntervalSlow) el.setEL("inspectTemplateIntervalSlow", Caster.toString(inspectTemplateIntervalSlow, ""));
+		if (ConfigPro.INSPECT_INTERVAL_FAST != inspectTemplateIntervalFast) el.setEL("inspectTemplateIntervalFast", Caster.toString(inspectTemplateIntervalFast, ""));
 		el.setEL("virtual", StringUtil.isEmpty(virtual) ? createVirtual(el) : virtual);
 	}
 
