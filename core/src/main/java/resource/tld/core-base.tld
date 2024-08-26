@@ -9222,79 +9222,83 @@ Depending on this setting Lucee scans certain scopes to find a variable called f
 		<tte-class>lucee.transformer.cfml.evaluator.impl.Function</tte-class>
 		<ttt-class>lucee.transformer.bytecode.statement.tag.TagFunction</ttt-class>
 		<att-default-value></att-default-value>
-		<!-- <tdbt-class>lucee.transformer.cfml.script.CFMLScriptTransformer</tdbt-class> -->
 		<body-content>must</body-content>
 		<body-rtexprvalue>false</body-rtexprvalue>
-		<description>Defines a function that can accept arguments and return a value.</description>
+		<description>Defines a function within a CFML component that can accept arguments and return a value.</description>
 		<att-class>lucee.transformer.cfml.attributes.impl.Function</att-class>
 		<attribute-type>mixed</attribute-type>
+	
 		<attribute>
 			<type>string</type>
 			<name>name</name>
 			<required>true</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>A string; a component method that is used within the cfcomponent tag.</description>
+			<description>The name of the function. This is a required attribute.</description>
 		</attribute>
+		
 		<attribute>
 			<type>string</type>
 			<name>returnType</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>String; a type name; data type of the function return value</description>
+			<description>The data type of the function's return value. If not specified, the default is `any`.</description>
 		</attribute>
+		
 		<attribute>
 			<type>boolean</type>
 			<name>bufferOutput</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>this attribute is only used when output of the function is set to false. if this attribute is set to true (default) the output written to the body of the function is buffered and in case of an exception also outputted.
-			if set to false the content to body is ignored and not disabled when a failure in the body of the tag occur.</description>
+			<description>Determines whether the function's output is buffered. This attribute is only relevant when the `output` attribute is set to `false`. If set to `true` (default), the output generated in the function body is buffered and returned even if an exception occurs. If set to `false`, output is ignored when an error occurs.</description>
 		</attribute>
+		
 		<attribute>
 			<type>string</type>
 			<name>roles</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>This attribute is used only for a component. If this attribute is omitted, all roles can invoke the method.</description>
+			<description>Defines the roles that are permitted to invoke this function. If omitted, all roles can invoke the function.</description>
 		</attribute>
+		
 		<attribute>
 			<type>string</type>
 			<name>access</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>This attribute is used only for a component.
-The client security context from which the method can be invoked</description>
+			<description>Defines the access level for the function. Accepted values include `public`, `private`, and `package`. Defaults to `public` if not specified.</description>
 		</attribute>
+		
 		<attribute>
 			<type>boolean</type>
 			<name>output</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>This attribute is used only for a component.
-
-yes: the function is processed as if it were within a cfoutput tag
-no: the function is processed as if it were within a cfsilent tag </description>
+			<description>Determines how the function's output is handled:
+			- `true`: The function's output is processed normally, as if it were within a `cfoutput` tag.
+			- `false`: The function's output is suppressed, as if it were within a `cfsilent` tag.</description>
 		</attribute>
+		
 		<attribute>
 			<type>string</type>
 			<name>displayName</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>Display Name of the Function</description>
+			<description>A human-readable name for the function, used in documentation and introspection tools.</description>
 		</attribute>
+		
 		<attribute>
 			<type>string</type>
 			<name>hint</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>Hint of the Function</description>
+			<description>A brief description of what the function does. This hint is used in documentation and introspection tools.</description>
 		</attribute>
 		<attribute>
 			<type>boolean</type>
 			<name>abstract</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>is the function abstract or not, abstract functions are only allowed inside interface or component tags</description>
+			<description>Indicates whether the function is abstract. Abstract functions must be implemented in a subclass and cannot contain a function body.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -9308,38 +9312,38 @@ no: the function is processed as if it were within a cfsilent tag </description>
 			<name>returnFormat</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>The format in which to return values to a remote caller. Possible values are [wddx], json, plain (text), serialize (cfml, cfm), xml, and java.</description>
+			<description>Specifies the format in which the function returns its value to a remote caller. Possible values are:
+			- `plain` (default)
+			- `json`
+			- `xml`
+			- `wddx`
+			- `java`</description>
 		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>description</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>Supplies a short text description of the function.</description>
-		</attribute>
+		
 		<attribute>
 			<type>boolean</type>
 			<name>secureJson</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>A Boolean value that specifies whether to add a security prefix in front of any value that the function returns in JSON-format in response to a remote call.</description>
+			<description>Specifies whether to add a security prefix in front of any value that the function returns in JSON format in response to a remote call.</description>
 		</attribute>
+		
 		<attribute>
 			<type>boolean</type>
 			<name>verifyClient</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>A Boolean value that specifies whether to require remote function calls to include an encrypted security token. For use with AJAX applications only.</description>
+			<description>Specifies whether to require remote function calls to include an encrypted security token. This is typically used with AJAX applications.</description>
 		</attribute>
+		
 		<attribute>
 			<type>string</type>
 			<name>localMode</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>Defines how the local scope of this function is invoked when a variable with no scope definition is used.  Accepted values include:  
-
-- classic (default): The local scope is only invoked when the key already exists in it.
-- modern: The local scope is always invoked.</description>
+			<description>Defines how the local scope of this function is invoked when a variable without a scope definition is used. Accepted values include:
+			- `classic`: The local scope is only invoked when the key already exists in it.
+			- `modern`: The local scope is always invoked.</description>
 		</attribute>
 		
 		<attribute>
@@ -9347,24 +9351,66 @@ no: the function is processed as if it were within a cfsilent tag </description>
 			<name>cachedWithin</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-		<description>
-possible values are:
-String "request": If original content was created within the current request, cached content data is used.
-a timespan (created with function CreateTimeSpan): If original content date falls within the time span, cached content data is used.
-
-To use cached data, the function must be called with the exact same arguments.</description>
-	</attribute>
+			<description>Determines if the function's output should be cached. Possible values include:
+			- `"request"`: Cached content is used if it was created within the current request.
+			- A timespan created with the `CreateTimeSpan` function: Cached content is used if the original content falls within the timespan.
+			The function must be called with the exact same arguments to use cached data.</description>
+		</attribute>
+		
 		<attribute>
 			<type>string</type>
 			<name>modifier</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>Use modifier to denote a function as abstract, static or final.
-			- abstract: implementation must be defined in extended component.
-			- final: implementation cannot be extended.
-			- static: does not access instance variables in the component.</description>
+			<description>Specifies the modifier for the function, such as:
+			- `abstract`: The function must be implemented in an extending component.
+			- `final`: The function cannot be overridden in any subclass.
+			- `static`: The function does not access instance variables in the component.</description>
+		</attribute>
+		
+		<attribute>
+			<type>string</type>
+			<name>consumes</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>A comma-separated list of acceptable MIME types that the function can accept or consume. If no value is specified, all MIME types are consumed by default. Use this attribute to control the types of content the function can handle. This attribute overrides the `consumes` attribute at the component level.</description>
+		</attribute>
+		
+		<attribute>
+			<type>string</type>
+			<name>produces</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>A comma-separated list of MIME types that the function can produce. The function will respond with the most acceptable media type as declared by the client. This attribute overrides the `produces` attribute at the component level.</description>
+		</attribute>
+		
+		<attribute>
+			<type>string</type>
+			<name>httpMethod</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<values>GET,PUT,POST,DELETE</values>
+			<description>Specifies the HTTP method to use when calling the function as part of a RESTful service. Accepted values include:
+			- `GET`: Requests information from the server.
+			- `POST`: Sends information to the server for processing.
+			- `PUT`: Requests the server to store the message body at the specified URL.
+			- `DELETE`: Requests the server to delete the specified URL.
+			- `HEAD`: Similar to GET but without a response body.
+			- `OPTIONS`: Requests information about the communication options available for the server or the specified URL.
+			If not specified, the `GET` method is used by default.</description>
+		</attribute>
+		
+		<attribute>
+			<type>string</type>
+			<name>restPath</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>Defines a sub-resource path for the function when used as part of a RESTful web service. The path is case-sensitive and should avoid special characters. Regular expressions can be included in the path.</description>
 		</attribute>
 	</tag>
+
+
+
 	<!-- Login -->
 	<tag>
 		<name>login</name>
