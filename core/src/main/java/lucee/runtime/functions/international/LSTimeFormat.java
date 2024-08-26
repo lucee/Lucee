@@ -19,12 +19,12 @@
 package lucee.runtime.functions.international;
 
 import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.Locale;
 import java.util.TimeZone;
 
 import lucee.commons.i18n.FormatUtil;
+import lucee.commons.i18n.FormatterWrapper;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.PageException;
@@ -72,9 +72,9 @@ public final class LSTimeFormat implements Function {
 		if (object instanceof DateTime) return (DateTime) object;
 		if (object instanceof CharSequence) {
 			String str = Caster.toString(object);
-			for (DateTimeFormatter format: FormatUtil.getTimeFormats(locale, timeZone, true)) {
+			for (FormatterWrapper format: FormatUtil.getTimeFormats(locale, timeZone, true)) {
 				try {
-					return new DateTimeImpl(Date.from(ZonedDateTime.parse(str, format).toInstant()).getTime(), false);
+					return new DateTimeImpl(Date.from(ZonedDateTime.parse(str, format.formatter).toInstant()).getTime(), false);
 				}
 				catch (Exception e) {
 				}

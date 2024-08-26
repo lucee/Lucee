@@ -24,16 +24,19 @@ import java.text.ParsePosition;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Calendar;
+import java.util.Comparator;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 import java.util.TimeZone;
 
+import lucee.print;
 import lucee.commons.date.DateTimeUtil;
 import lucee.commons.date.JREDateTimeUtil;
 import lucee.commons.date.TimeZoneConstants;
 import lucee.commons.i18n.FormatUtil;
+import lucee.commons.i18n.FormatterWrapper;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.Component;
@@ -292,45 +295,38 @@ public final class DateCaster {
 		return (dt == null) ? defaultValue : dt;
 	}
 
+	private static int count = 0;
+
 	public static DateTime toDateTimeNew(Locale locale, String str, TimeZone tz, DateTime defaultValue, boolean useCommomDateParserAsWell) {
+		count++;
 		str = str.trim();
 		tz = ThreadLocalPageContext.getTimeZone(tz);
 
-		// datetime
-		for (DateTimeFormatter dtf: FormatUtil.getDateTimeFormats(locale, tz, false)) {
-			try {
-				return new DateTimeImpl(Date.from(ZonedDateTime.parse(str, dtf).toInstant()).getTime(), false);
+		List<FormatterWrapper> all = FormatUtil.getAllFormats(locale, tz, false);
+
+		try {
+			for (FormatterWrapper fw: all) {
+				try {
+					DateTimeImpl res = new DateTimeImpl(Date.from(ZonedDateTime.parse(str, fw.formatter).toInstant()).getTime(), false);
+					fw.successCount++;
+					print.e(locale);
+					return res;
+				}
+				catch (Exception e) {
+				}
 			}
-			catch (Exception e) {
+		}
+		finally {
+			if (count > 10) {
+				synchronized (all) {
+					if (count > 500) {
+						all.sort(Comparator.comparingInt(x -> -x.successCount));
+						count = 0;
+					}
+				}
 			}
 		}
 
-		// date
-		for (DateTimeFormatter dtf: FormatUtil.getDateFormats(locale, tz, false)) {
-			try {
-				return new DateTimeImpl(Date.from(ZonedDateTime.parse(str, dtf).toInstant()).getTime(), false);
-			}
-			catch (Exception e) {
-			}
-		}
-
-		// time
-		for (DateTimeFormatter dtf: FormatUtil.getTimeFormats(locale, tz, false)) {
-			try {
-				return new DateTimeImpl(Date.from(ZonedDateTime.parse(str, dtf).toInstant()).getTime(), false);
-			}
-			catch (Exception e) {
-			}
-		}
-
-		// cfml
-		for (DateTimeFormatter dtf: FormatUtil.getCFMLFormats(locale, tz, false)) {
-			try {
-				return new DateTimeImpl(Date.from(ZonedDateTime.parse(str, dtf).toInstant()).getTime(), false);
-			}
-			catch (Exception e) {
-			}
-		}
 		if (useCommomDateParserAsWell) return DateCaster.toDateSimple(str, CONVERTING_TYPE_NONE, true, tz, defaultValue);
 		return defaultValue;
 	}

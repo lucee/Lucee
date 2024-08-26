@@ -52,7 +52,7 @@ public class FormatUtil {
 
 	private final static Map<String, SoftReference<DateFormat[]>> formats = new ConcurrentHashMap<String, SoftReference<DateFormat[]>>();
 
-	private final static Map<String, SoftReference<List<DateTimeFormatter>>> cfmlFormats = new ConcurrentHashMap<>();
+	private final static Map<String, SoftReference<List<FormatterWrapper>>> cfmlFormats = new ConcurrentHashMap<>();
 	// "EEEE, MMMM d, yyyy, h:mm:ss a 'Coordinated Universal Time'"
 	private final static String[] strCfmlFormats = new String[] {
 
@@ -94,6 +94,8 @@ public class FormatUtil {
 
 			"EEE d, MMM yyyy HH:mm:ss zz",
 
+			"EEE, dd MMM yyyy HH:mm:ss Z",
+
 			"EEE, MMM dd, yyyy HH:mm:ssZ",
 
 			"EEEE, MMMM d, yyyy, h:mm:ss a z",
@@ -108,10 +110,41 @@ public class FormatUtil {
 
 	};
 
-	public static List<DateTimeFormatter> getCFMLFormats(Locale locale, TimeZone timeZone, boolean lenient) {
+	public static List<FormatterWrapper> getAllFormats(Locale locale, TimeZone timeZone, boolean lenient) {
+		String key = "all:" + locale.toString() + "-" + timeZone.getID() + ":" + lenient;
+		SoftReference<List<FormatterWrapper>> sr = cfmlFormats.get(key);
+		List<FormatterWrapper> formatter = null;
+		if (sr == null || (formatter = sr.get()) == null) {
+			synchronized (SystemUtil.createToken("all", key)) {
+				sr = cfmlFormats.get(key);
+				if (sr == null || (formatter = sr.get()) == null) {
+
+					formatter = new ArrayList<>();
+
+					for (FormatterWrapper dtf: getCFMLFormats(locale, timeZone, lenient)) {
+						formatter.add(dtf);
+					}
+					for (FormatterWrapper dtf: getDateTimeFormats(locale, timeZone, lenient)) {
+						formatter.add(dtf);
+					}
+					for (FormatterWrapper dtf: getDateFormats(locale, timeZone, lenient)) {
+						formatter.add(dtf);
+					}
+					for (FormatterWrapper dtf: getTimeFormats(locale, timeZone, lenient)) {
+						formatter.add(dtf);
+					}
+
+					cfmlFormats.put(key, new SoftReference(formatter));
+				}
+			}
+		}
+		return formatter;
+	}
+
+	public static List<FormatterWrapper> getCFMLFormats(Locale locale, TimeZone timeZone, boolean lenient) {
 		String key = "cfml:" + locale.toString() + "-" + timeZone.getID() + ":" + lenient;
-		SoftReference<List<DateTimeFormatter>> sr = cfmlFormats.get(key);
-		List<DateTimeFormatter> formatter = null;
+		SoftReference<List<FormatterWrapper>> sr = cfmlFormats.get(key);
+		List<FormatterWrapper> formatter = null;
 		if (sr == null || (formatter = sr.get()) == null) {
 			synchronized (SystemUtil.createToken("cfml", key)) {
 				sr = cfmlFormats.get(key);
@@ -123,7 +156,7 @@ public class FormatUtil {
 						builder = new DateTimeFormatterBuilder().appendPattern(f);
 						if (lenient) builder.parseCaseInsensitive();
 						else builder.parseCaseSensitive();
-						formatter.add(builder.toFormatter(locale).withZone(zone));
+						formatter.add(new FormatterWrapper(builder.toFormatter(locale).withZone(zone)));
 					}
 					cfmlFormats.put(key, new SoftReference(formatter));
 				}
@@ -132,38 +165,38 @@ public class FormatUtil {
 		return formatter;
 	}
 
-	public static List<DateTimeFormatter> getDateTimeFormats(Locale locale, TimeZone tz, boolean lenient) {
+	public static List<FormatterWrapper> getDateTimeFormats(Locale locale, TimeZone tz, boolean lenient) {
 
 		String key = "dt-" + locale.toString() + "-" + tz.getID() + "-" + lenient;
-		SoftReference<List<DateTimeFormatter>> tmp = cfmlFormats.get(key);
-		List<DateTimeFormatter> df = tmp == null ? null : tmp.get();
+		SoftReference<List<FormatterWrapper>> tmp = cfmlFormats.get(key);
+		List<FormatterWrapper> df = tmp == null ? null : tmp.get();
 		if (df == null) {
 			synchronized (SystemUtil.createToken("dt", key)) {
 				df = tmp == null ? null : tmp.get();
 				if (df == null) {
 					ZoneId zone = tz.toZoneId();
 					df = new ArrayList<>();
-					df.add(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.FULL, FormatStyle.FULL).withLocale(locale).withZone(zone));
-					df.add(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.FULL, FormatStyle.LONG).withLocale(locale).withZone(zone));
-					df.add(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.FULL, FormatStyle.MEDIUM).withLocale(locale).withZone(zone));
-					df.add(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.FULL, FormatStyle.SHORT).withLocale(locale).withZone(zone));
+					df.add(new FormatterWrapper(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.FULL, FormatStyle.FULL).withLocale(locale).withZone(zone)));
+					df.add(new FormatterWrapper(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.FULL, FormatStyle.LONG).withLocale(locale).withZone(zone)));
+					df.add(new FormatterWrapper(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.FULL, FormatStyle.MEDIUM).withLocale(locale).withZone(zone)));
+					df.add(new FormatterWrapper(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.FULL, FormatStyle.SHORT).withLocale(locale).withZone(zone)));
 
-					df.add(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.LONG, FormatStyle.FULL).withLocale(locale).withZone(zone));
-					df.add(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.LONG, FormatStyle.LONG).withLocale(locale).withZone(zone));
-					df.add(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.LONG, FormatStyle.MEDIUM).withLocale(locale).withZone(zone));
-					df.add(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.LONG, FormatStyle.SHORT).withLocale(locale).withZone(zone));
+					df.add(new FormatterWrapper(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.LONG, FormatStyle.FULL).withLocale(locale).withZone(zone)));
+					df.add(new FormatterWrapper(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.LONG, FormatStyle.LONG).withLocale(locale).withZone(zone)));
+					df.add(new FormatterWrapper(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.LONG, FormatStyle.MEDIUM).withLocale(locale).withZone(zone)));
+					df.add(new FormatterWrapper(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.LONG, FormatStyle.SHORT).withLocale(locale).withZone(zone)));
 
-					df.add(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM, FormatStyle.FULL).withLocale(locale).withZone(zone));
-					df.add(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM, FormatStyle.LONG).withLocale(locale).withZone(zone));
-					df.add(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM, FormatStyle.MEDIUM).withLocale(locale).withZone(zone));
-					df.add(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM, FormatStyle.SHORT).withLocale(locale).withZone(zone));
+					df.add(new FormatterWrapper(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM, FormatStyle.FULL).withLocale(locale).withZone(zone)));
+					df.add(new FormatterWrapper(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM, FormatStyle.LONG).withLocale(locale).withZone(zone)));
+					df.add(new FormatterWrapper(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM, FormatStyle.MEDIUM).withLocale(locale).withZone(zone)));
+					df.add(new FormatterWrapper(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM, FormatStyle.SHORT).withLocale(locale).withZone(zone)));
 
-					df.add(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT, FormatStyle.FULL).withLocale(locale).withZone(zone));
-					df.add(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT, FormatStyle.LONG).withLocale(locale).withZone(zone));
-					df.add(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT, FormatStyle.MEDIUM).withLocale(locale).withZone(zone));
-					df.add(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT, FormatStyle.SHORT).withLocale(locale).withZone(zone));
+					df.add(new FormatterWrapper(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT, FormatStyle.FULL).withLocale(locale).withZone(zone)));
+					df.add(new FormatterWrapper(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT, FormatStyle.LONG).withLocale(locale).withZone(zone)));
+					df.add(new FormatterWrapper(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT, FormatStyle.MEDIUM).withLocale(locale).withZone(zone)));
+					df.add(new FormatterWrapper(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT, FormatStyle.SHORT).withLocale(locale).withZone(zone)));
 
-					cfmlFormats.put(key, new SoftReference<List<DateTimeFormatter>>(df));
+					cfmlFormats.put(key, new SoftReference<List<FormatterWrapper>>(df));
 				}
 			}
 		}
@@ -212,23 +245,23 @@ public class FormatUtil {
 		return clone(df);
 	}
 
-	public static List<DateTimeFormatter> getDateFormats(Locale locale, TimeZone tz, boolean lenient) {
+	public static List<FormatterWrapper> getDateFormats(Locale locale, TimeZone tz, boolean lenient) {
 
 		String key = "d-" + locale.toString() + "-" + tz.getID() + "-" + lenient;
-		SoftReference<List<DateTimeFormatter>> tmp = cfmlFormats.get(key);
-		List<DateTimeFormatter> df = tmp == null ? null : tmp.get();
+		SoftReference<List<FormatterWrapper>> tmp = cfmlFormats.get(key);
+		List<FormatterWrapper> df = tmp == null ? null : tmp.get();
 		if (df == null) {
 			synchronized (SystemUtil.createToken("dt", key)) {
 				df = tmp == null ? null : tmp.get();
 				if (df == null) {
 					ZoneId zone = tz.toZoneId();
 					df = new ArrayList<>();
-					df.add(DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL).withLocale(locale).withZone(zone));
-					df.add(DateTimeFormatter.ofLocalizedDate(FormatStyle.LONG).withLocale(locale).withZone(zone));
-					df.add(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM).withLocale(locale).withZone(zone));
-					df.add(DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT).withLocale(locale).withZone(zone));
+					df.add(new FormatterWrapper(DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL).withLocale(locale).withZone(zone)));
+					df.add(new FormatterWrapper(DateTimeFormatter.ofLocalizedDate(FormatStyle.LONG).withLocale(locale).withZone(zone)));
+					df.add(new FormatterWrapper(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM).withLocale(locale).withZone(zone)));
+					df.add(new FormatterWrapper(DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT).withLocale(locale).withZone(zone)));
 
-					cfmlFormats.put(key, new SoftReference<List<DateTimeFormatter>>(df));
+					cfmlFormats.put(key, new SoftReference<List<FormatterWrapper>>(df));
 				}
 			}
 		}
@@ -449,23 +482,23 @@ public class FormatUtil {
 		return df;
 	}
 
-	public static List<DateTimeFormatter> getTimeFormats(Locale locale, TimeZone tz, boolean lenient) {
+	public static List<FormatterWrapper> getTimeFormats(Locale locale, TimeZone tz, boolean lenient) {
 
 		String key = "t-" + locale.toString() + "-" + tz.getID() + "-" + lenient;
-		SoftReference<List<DateTimeFormatter>> tmp = cfmlFormats.get(key);
-		List<DateTimeFormatter> df = tmp == null ? null : tmp.get();
+		SoftReference<List<FormatterWrapper>> tmp = cfmlFormats.get(key);
+		List<FormatterWrapper> df = tmp == null ? null : tmp.get();
 		if (df == null) {
 			synchronized (SystemUtil.createToken("dt", key)) {
 				df = tmp == null ? null : tmp.get();
 				if (df == null) {
 					ZoneId zone = tz.toZoneId();
 					df = new ArrayList<>();
-					df.add(DateTimeFormatter.ofLocalizedTime(FormatStyle.FULL).withLocale(locale).withZone(zone));
-					df.add(DateTimeFormatter.ofLocalizedDate(FormatStyle.LONG).withLocale(locale).withZone(zone));
-					df.add(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM).withLocale(locale).withZone(zone));
-					df.add(DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT).withLocale(locale).withZone(zone));
+					df.add(new FormatterWrapper(DateTimeFormatter.ofLocalizedTime(FormatStyle.FULL).withLocale(locale).withZone(zone)));
+					df.add(new FormatterWrapper(DateTimeFormatter.ofLocalizedDate(FormatStyle.LONG).withLocale(locale).withZone(zone)));
+					df.add(new FormatterWrapper(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM).withLocale(locale).withZone(zone)));
+					df.add(new FormatterWrapper(DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT).withLocale(locale).withZone(zone)));
 
-					cfmlFormats.put(key, new SoftReference<List<DateTimeFormatter>>(df));
+					cfmlFormats.put(key, new SoftReference<List<FormatterWrapper>>(df));
 				}
 			}
 		}
