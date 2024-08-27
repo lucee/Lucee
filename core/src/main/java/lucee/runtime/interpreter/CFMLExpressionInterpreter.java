@@ -233,16 +233,15 @@ public class CFMLExpressionInterpreter {
 				int offset = cfml.getPos() - 10;
 				if ((offset + 255) > cfml.length()) offset = cfml.length();
 				else offset += 255;
-				throw new InterpreterException("Syntax Error, invalid Expression [" + cfml.getCurrent() + "] at position [" + cfml.getPos() + "]",
-						"[" + cfml.toString().substring(cfml.getPos() - 10, offset) + "]");
+				throw new InterpreterException("Syntax Error, invalid Expression [" + cfml.getCurrent() + "] at position [" + cfml.getPos() + "] with " + "["
+						+ cfml.toString().substring(cfml.getPos() - 10, offset) + "]");
 			}
 			else {
-				throw new InterpreterException("Syntax Error, invalid Expression [" + cfml.getCurrent() + "] at position [" + cfml.getPos() + "]",
-						"[" + cfml.toString().substring(0, 1024) + "]");
+				throw new InterpreterException(
+						"Syntax Error, invalid Expression [" + cfml.getCurrent() + "] at position [" + cfml.getPos() + "] with [" + "[" + cfml.toString().substring(0, 1024) + "]");
 			}
 		}
-
-		throw new InterpreterException("Syntax Error, invalid Expression [" + cfml.getCurrent() + "] at position [" + cfml.getPos() + "]", cfml.toString());
+		throw new InterpreterException("Syntax Error, invalid Expression [" + cfml.getCurrent() + "] at position [" + cfml.getPos() + "] with [" + str + "]");
 	}
 
 	private void init(PageContext pc) {
