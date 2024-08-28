@@ -62,6 +62,7 @@ public class AIUtil {
 		Struct meta = new StructImpl();
 
 		meta.set(KeyConstants._label, aie.getLabel());
+		meta.set(KeyConstants._model, aie.getModel());
 		AIEngineFactory factory = aie.getFactory();
 		if (factory != null) meta.set(KeyConstants._name, factory.getName());
 

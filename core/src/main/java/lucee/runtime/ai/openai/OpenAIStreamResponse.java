@@ -6,6 +6,7 @@ import lucee.runtime.ai.Response;
 import lucee.runtime.converter.ConverterException;
 import lucee.runtime.converter.JSONConverter;
 import lucee.runtime.converter.JSONDateFormat;
+import lucee.runtime.exp.PageException;
 import lucee.runtime.listener.SerializationSettings;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Array;
@@ -46,7 +47,7 @@ public class OpenAIStreamResponse implements Response {
 		return raw;
 	}
 
-	public void addPart(Struct part) {
+	public void addPart(Struct part) throws PageException {
 		if (raw == null) raw = part;
 		// raw.appendEL(part);
 		Array arr = Caster.toArray(part.get("choices", null), null);

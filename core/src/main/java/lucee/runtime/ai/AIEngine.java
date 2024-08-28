@@ -37,5 +37,7 @@ public interface AIEngine {
 
 	public String getLabel();
 
+	public String getModel();
+
 	public List<AIModel> getModels() throws PageException;
 }

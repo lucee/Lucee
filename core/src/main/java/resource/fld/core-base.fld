@@ -9612,11 +9612,11 @@ The following things are considered to be empty:
 		</return>
 	</function>
 	
-	<!-- LuceeGetAIEngine -->
+	<!-- CreateAISession -->
 	<function>
-		<name>LuceeGetAIEngine</name>
+		<name>LuceeCreateAISession</name>
 		<status>hidden</status>
-		<class>lucee.runtime.functions.ai.LuceeGetAIEngine</class>
+		<class>lucee.runtime.functions.ai.CreateAISession</class>
 		<description></description>
 		<argument>
 			<name>name</name>
@@ -9625,8 +9625,46 @@ The following things are considered to be empty:
 			<required>yes</required>
 			<description></description>
 		</argument>
+		<argument>
+			<name>message</name>
+			<alias>initalMesssage</alias>
+			<type>string</type>
+			<required>no</required>
+			<description></description>
+		</argument>
 		<return>
 			<type>object</type>
+		</return>
+	</function>
+
+	<!-- InquiryAISession -->
+	<function>
+		<name>LuceeInquiryAISession</name>
+		<status>hidden</status>
+		<class>lucee.runtime.functions.ai.InquiryAISession</class>
+		<description></description>
+		<argument>
+			<name>session</name>
+			<alias>aiSession</alias>
+			<type>any</type>
+			<required>yes</required>
+			<description></description>
+		</argument>
+		<argument>
+			<name>question</name>
+			<alias>message</alias>
+			<type>string</type>
+			<required>yes</required>
+			<description></description>
+		</argument>
+		<argument>
+			<name>listener</name>
+    		<type>function</type>
+			<required>no</required>
+			<description></description>
+		</argument>
+		<return>
+			<type>string</type>
 		</return>
 	</function>
 	

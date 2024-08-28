@@ -104,6 +104,7 @@ public class OpenAIEngine extends AIEngineSupport implements AIEngineFile {
 	ProxyData proxy = null;
 	Map<String, String> formfields = null;
 	String model;
+	String label = "OpenAI";
 	private String systemMessage;
 
 	private URL baseURL;
@@ -118,8 +119,14 @@ public class OpenAIEngine extends AIEngineSupport implements AIEngineFile {
 		/// we support some hard coded types to keep it simple
 		String str = Caster.toString(properties.get(KeyConstants._type, null), null);
 		if (!Util.isEmpty(str, true)) {
-			if ("chatgpt".equals(str.trim()) || "openai".equals(str.trim())) baseURL = DEFAULT_URL_OPENAI;
-			else if ("ollama".equals(str.trim())) baseURL = DEFAULT_URL_OLLAMA;
+			if ("chatgpt".equals(str.trim()) || "openai".equals(str.trim())) {
+				label = "ChatGPT";
+				baseURL = DEFAULT_URL_OPENAI;
+			}
+			else if ("ollama".equals(str.trim())) {
+				label = "Ollama";
+				baseURL = DEFAULT_URL_OLLAMA;
+			}
 			else throw new ApplicationException(
 					"ATM only 2 types are supported [openai, ollama], for any other endpoint simply define the attribute `url` that looks like this [https://api.lucee.com/v1/].");
 		}
@@ -180,7 +187,12 @@ public class OpenAIEngine extends AIEngineSupport implements AIEngineFile {
 
 	@Override
 	public String getLabel() {
-		return "ChatGPT";
+		return label;
+	}
+
+	@Override
+	public String getModel() {
+		return model;
 	}
 
 	@Override

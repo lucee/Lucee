@@ -137,6 +137,11 @@ public class GeminiEngine extends AIEngineSupport {
 	}
 
 	@Override
+	public String getModel() {
+		return model;
+	}
+
+	@Override
 	public long getTimeout() {
 		return timeout;
 	}

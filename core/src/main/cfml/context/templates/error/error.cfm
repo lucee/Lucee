@@ -2,7 +2,7 @@
 </cfif><style>
 	#-lucee-err			{ font-family: Verdana, Geneva, Arial, Helvetica, sans-serif; font-size: 11px;
 	 background-color:#930; border: 0px; }
-	#-lucee-err td 		{ border: 0px solid #350606; color: #930; background-color: #FC0; line-height: 1.35; }
+	#-lucee-err td 		{ font-size: 1.1em;border: 0px solid #350606; color: #930; background-color: #FC0; line-height: 1.35; }
 	#-lucee-err td.label	{ background-color: #F90; font-weight: bold; white-space: nowrap; vertical-align: top; }
 
 	#-lucee-err .collapsed	{ display: none; }
@@ -15,6 +15,33 @@
 						no-repeat left center; padding: 4px 0 4px 16px; }
 
 	.-no-icon 	{padding: 0px 0px 0px 16px; }
+	.-lucee-comment 	{
+		opacity: 0.5; 
+	}
+    
+	#aivalue code {
+		font-size: 1.2em;
+		background-color: rgba(0, 0, 0, 0.6); /* Lighter semi-transparent background */
+		color: #E6F0F2;              /* Light text color */
+		padding: 2px 4px;            /* Smaller padding for inline text */
+		border-radius: 5px;          /* Slightly rounded corners */
+		font-family: Consolas, "Courier New", monospace; /* Monospaced font for code */
+		display: inline;             /* Keep it as an inline element */
+		white-space: nowrap;         /* Prevent breaking lines */
+	}
+
+	#aivalue pre code  {
+		display: block;              /* Make it a block element */
+		padding: 10px;               /* Padding around the text for better readability */
+		border-radius: 5px;          /* Rounded corners for a nicer look */
+		overflow-x: auto;            /* Allows horizontal scrolling for long lines of code */
+		font-family: Consolas, "Courier New", monospace; /* Use a monospaced font for code */
+		margin: 10px 0;              /* Margin around the code block for spacing */
+		white-space: pre-wrap;       /* Preserve whitespace and wrap as necessary */
+	}
+
+	
+
 </style>
 <script>
 
@@ -41,8 +68,6 @@
 		}
 	}
 </script>
-
-
 <cfoutput>
 <table id="-lucee-err" cellpadding="4" cellspacing="1">
 	<tr>
@@ -60,24 +85,19 @@
 		    <td>#replace( HTMLEditFormat( trim( catch.detail ) ), chr(10), '<br>', 'all' )#</td>
 		</tr>
 	</cfif>
-
+	<!--- AI --->
 	<cfif LuceeAIHas('default:exception')>
-		<cfLuceeAI default="exception"  throwonerror=false
-		meta="meta"
-		message="An exception was thrown in Lucee version #server.lucee.version# source code. 
-		Analyze the provided source code provided in JSON format and return the result in markdown format.
-		Keep the answer short and ensure the structure is flat,  the result will be injected into an existing markdown output that show the input you got,
-		so only gives your conclusion, the input you get will already be presented.
-		Make some example code how to improve.">
-		<cfLuceeAIInquiry question="#serializeJSON(catch)#">
-		<tr>
-			<td class="label">AI (#meta.label?:""#)</td>
-			<td>#markdowntohtml(answer)#</td>
-		</tr>
-		</cfLuceeAI>
+		<cftry>
+			<cfset meta=LuceeAIGetMetaData('default:exception')>
+			<tr>
+				<td class="label">
+					AI (#meta.label?:""#)
+				</td>
+				<td id="ai-response-cell">...</td>
+			</tr>
+			<cfcatch></cfcatch>
+		</cftry>
 	</cfif>
-
-
 	<cfif structkeyexists( catch, 'errorcode' ) && len( catch.errorcode ) && catch.errorcode NEQ 0>
 		<tr>
 			<td class="label">Error Code</td>
@@ -141,5 +161,48 @@
 		</td>
 	</tr>
 </table>
+
+
+<cfif LuceeAIHas('default:exception')>
+	<cfflush throwonerror=false>
+	<cftry>
+		<script>
+			var val= "";
+		</script>
+		<cfscript>
+			ais=LuceeCreateAISession('default:exception', 
+			"An exception was thrown in Lucee version #server.lucee.version# source code. 
+			Analyze the provided JSON data containg information about the exception (contain of the failing file in key ""content"") and return the result in markdown format.
+			Keep the answer short and ensure the structure is flat,  the result will be injected into an existing HTML output that show the input you got,
+			so only gives your conclusion, the input you get will already be presented.
+			Make some example code how to improve. ");
+			catchi=duplicate(catch);
+			path=catch.TagContext[1].template?:"";
+			if(!fileExists(path)) path=expandPath(path);
+			if(fileExists(path)) {
+				catchi["content"]=fileRead(path);
+
+			}
+			structDelete(catchi, "TagContext",false);
+			structDelete(catchi, "ErrorCode",false);
+			
+			answer=LuceeInquiryAISession(ais,serializeJSON(catchi),function(msg) {
+				echo('<script>');
+				echo('val+=#serializeJson(msg)#;');
+				echo("document.getElementById('ai-response-cell').innerText = val;");	
+				echo('</script>');
+				cfflush(throwonerror=false);
+				
+			});
+	
+		</cfscript>
+		<script>
+			document.getElementById('ai-response-cell').innerHTML ='<span id="aivalue">'+ #serializeJSON(markdowntohtml(replaceNoCase(answer,"Coldfusion","CFML","all") ))# 
+				+'</span><p class="-lucee-comment"> created by #meta.label# (#(meta.model)#)</p>';
+		</script>
+		<cfcatch></cfcatch>
+	</cftry>
+</cfif>
+
 <br>
 </cfoutput>
