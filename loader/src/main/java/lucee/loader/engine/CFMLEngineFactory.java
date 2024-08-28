@@ -14,7 +14,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
- *
  */
 package lucee.loader.engine;
 
@@ -87,7 +86,6 @@ import lucee.loader.util.ZipUtil;
 import lucee.runtime.config.ConfigServer;
 import lucee.runtime.config.Identification;
 import lucee.runtime.config.Password;
-import lucee.runtime.util.Pack200Util;
 
 /**
  * Factory to load CFML Engine
@@ -1064,8 +1062,6 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 		String sub = "bundles/";
 		String nameAndVersion = symbolicName + "|" + symbolicVersion;
 		String osgiFileName = symbolicName + "-" + symbolicVersion + ".jar";
-		String pack20Ext = ".jar.pack.gz";
-		boolean isPack200 = false;
 
 		// first we look for an exact match
 		InputStream is = getClass().getResourceAsStream("bundles/" + osgiFileName);
@@ -1074,29 +1070,13 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 		if (is != null) log(org.apache.felix.resolver.Logger.LOG_DEBUG, "Found ]/bundles/" + osgiFileName + "] in lucee.jar");
 		else log(org.apache.felix.resolver.Logger.LOG_INFO, "Could not find [/bundles/" + osgiFileName + "] in lucee.jar");
 
-		if (is == null) {
-			is = getClass().getResourceAsStream("bundles/" + osgiFileName + pack20Ext);
-			if (is == null) is = getClass().getResourceAsStream("/bundles/" + osgiFileName + pack20Ext);
-			isPack200 = true;
-
-			if (is != null) log(org.apache.felix.resolver.Logger.LOG_DEBUG, "Found [/bundles/" + osgiFileName + pack20Ext + "] in lucee.jar");
-			else log(org.apache.felix.resolver.Logger.LOG_INFO, "Could not find [/bundles/" + osgiFileName + pack20Ext + "] in lucee.jar");
-		}
 		if (is != null) {
 			File temp = null;
 			try {
 				// copy to temp file
 				temp = File.createTempFile("bundle", ".tmp");
-				log(org.apache.felix.resolver.Logger.LOG_DEBUG, "Copying [lucee.jar!/bundles/" + osgiFileName + pack20Ext + "] to [" + temp + "]");
+				log(org.apache.felix.resolver.Logger.LOG_DEBUG, "Copying [lucee.jar!/bundles/" + osgiFileName + "] to [" + temp + "]");
 				Util.copy(new BufferedInputStream(is), new FileOutputStream(temp), true, true);
-
-				if (isPack200) {
-					File temp2 = File.createTempFile("bundle", ".tmp2");
-					Pack200Util.pack2Jar(temp, temp2);
-					log(org.apache.felix.resolver.Logger.LOG_DEBUG, "Upack [" + temp + "] to [" + temp2 + "]");
-					temp.delete();
-					temp = temp2;
-				}
 
 				// adding bundle
 				File trg = new File(bundleDirectory, osgiFileName);
@@ -1112,9 +1092,6 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 			}
 		}
 
-		// now we search the current jar as an external zip what is slow (we do not support pack200 in this
-		// case)
-		// this also not works with windows
 		if (isWindows()) return null;
 		ZipEntry entry;
 		File temp;
@@ -1131,8 +1108,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 				temp = null;
 				path = entry.getName().replace('\\', '/');
 				if (path.startsWith("/")) path = path.substring(1); // some zip path start with "/" some not
-				isPack200 = false;
-				if (path.startsWith(sub) && (path.endsWith(".jar") /* || (isPack200=path.endsWith(".jar.pack.gz")) */)) { // ignore non jar files or file from elsewhere
+				if (path.startsWith(sub) && (path.endsWith(".jar"))) { // ignore non jar files or file from elsewhere
 					index = path.lastIndexOf('/') + 1;
 					if (index == sub.length()) { // ignore sub directories
 						name = path.substring(index);
@@ -1140,11 +1116,6 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 						try {
 							temp = File.createTempFile("bundle", ".tmp");
 							Util.copy(zis, new FileOutputStream(temp), false, true);
-
-							/*
-							 * if(isPack200) { File temp2 = File.createTempFile("bundle", ".tmp2"); Pack200Util.pack2Jar(temp,
-							 * temp2); temp.delete(); temp=temp2; name=name.substring(0,name.length()-".pack.gz".length()); }
-							 */
 
 							bundleInfo = BundleLoader.loadBundleInfo(temp);
 							if (bundleInfo != null && nameAndVersion.equals(bundleInfo)) {
