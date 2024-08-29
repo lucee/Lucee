@@ -316,6 +316,15 @@ public final class PhysicalClassLoader extends URLClassLoader implements Extenda
 		InputStream is = super.getResourceAsStream(name);
 		if (is != null) return is;
 
+		URL url = super.getResource(name);
+		if (url != null) {
+			try {
+				return IOUtil.toBufferedInputStream(url.openStream());
+			}
+			catch (IOException e) {
+			}
+		}
+
 		Resource f = _getResource(name);
 		if (f != null) {
 			try {
