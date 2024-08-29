@@ -45,7 +45,7 @@ public final class ImportTagLib extends TagLib {
 	}
 
 	/**
-	 * @see lucee.transformer.library.tag.TagLib#getELClass()
+	 * @see lucee.transformer.library.tag.TagLib#getELClassDefinition()
 	 */
 	@Override
 	public ClassDefinition<? extends ExprTransformer> getELClassDefinition() {

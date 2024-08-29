@@ -65,9 +65,9 @@ public final class OpBool extends ExpressionBase implements ExprBoolean {
 	 * 
 	 * @param left
 	 * @param right
+	 * @param operation
 	 * 
 	 * @return String expression
-	 * @throws TemplateException
 	 */
 	public static ExprBoolean toExprBoolean(Expression left, Expression right, int operation) {
 		if (left instanceof Literal && right instanceof Literal) {

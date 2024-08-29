@@ -127,7 +127,7 @@ public final class Lock extends BodyTagTryCatchFinallyImpl {
 	 * If a lock can be obtained within the specified period, execution continues inside the body of the
 	 * tag. Otherwise, the behavior depends on the value of the throwOnTimeout attribute.
 	 * 
-	 * @param timeout value to set
+	 * @param oTimeout value to set
 	 **/
 	public void setTimeout(Object oTimeout) throws PageException {
 		if (oTimeout instanceof TimeSpan) this.timeoutInMillis = toInt(((TimeSpan) oTimeout).getMillis());

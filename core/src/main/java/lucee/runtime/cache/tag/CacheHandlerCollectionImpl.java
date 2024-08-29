@@ -68,7 +68,6 @@ public class CacheHandlerCollectionImpl implements CacheHandlerCollection {
 	 * 
 	 * @param cw config object this Factory is related
 	 * @param cacheType type of the cache, see Config.CACHE_TYPE_XXX
-	 * @throws PageException
 	 */
 	protected CacheHandlerCollectionImpl(ConfigWeb cw, int cacheType) {
 		this.cw = cw;

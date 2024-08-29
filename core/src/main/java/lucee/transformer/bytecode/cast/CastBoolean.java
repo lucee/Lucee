@@ -65,7 +65,6 @@ public final class CastBoolean extends ExpressionBase implements ExprBoolean, Ca
 	 * 
 	 * @param expr
 	 * @return String expression
-	 * @throws TemplateException
 	 */
 	public static ExprBoolean toExprBoolean(Expression expr) {
 		if (expr instanceof ExprBoolean) return (ExprBoolean) expr;
@@ -78,8 +77,8 @@ public final class CastBoolean extends ExpressionBase implements ExprBoolean, Ca
 	}
 
 	/**
-	 * @see lucee.transformer.expression.Expression#writeOut(org.objectweb.asm.commons.GeneratorAdapter,
-	 *      int)
+	 * @see lucee.transformer.expression.Expression#writeOut(lucee.transformer.Context,int)
+	 * 
 	 */
 	@Override
 	public Type _writeOut(BytecodeContext bc, int mode) throws TransformerException {

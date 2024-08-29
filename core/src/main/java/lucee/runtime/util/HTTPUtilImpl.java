@@ -145,7 +145,7 @@ public class HTTPUtilImpl implements lucee.runtime.util.HTTPUtil {
 	}
 
 	/**
-	 * @see lucee.commons.net.HTTPUtil#toURL(java.lang.String)
+	 * @see lucee.commons.net.HTTPUtil#toURL(java.lang.String, short)
 	 */
 	@Override
 	public URL toURL(String strUrl) throws MalformedURLException {

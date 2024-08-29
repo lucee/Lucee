@@ -31,8 +31,7 @@ public class ServletConfigDummy implements ServletConfig {
 	/**
 	 * Constructor of the class
 	 * 
-	 * @param parameters
-	 * @param attrs
+	 * @param context
 	 * @param servletName
 	 */
 	public ServletConfigDummy(ServletContextDummy context, String servletName) {

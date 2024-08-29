@@ -44,9 +44,8 @@ public class SourceCode {
 	 * Constructor of the class
 	 * 
 	 * @param parent
-	 * 
-	 * @param text
-	 * @param charset
+	 * @param strText
+	 * @param writeLog
 	 */
 	public SourceCode(SourceCode parent, String strText, boolean writeLog) {
 		this.parent = parent;

@@ -50,7 +50,7 @@ public final class ResourceDataSource implements DataSource {
 	/**
 	 * Get name.
 	 * 
-	 * @returns Name
+	 * @return Name of resource
 	 */
 	@Override
 	public String getName() {
@@ -60,7 +60,7 @@ public final class ResourceDataSource implements DataSource {
 	/**
 	 * Get Resource.
 	 * 
-	 * @returns Resource
+	 * @return Resource
 	 */
 	public Resource getResource() {
 		return _file;
@@ -69,7 +69,7 @@ public final class ResourceDataSource implements DataSource {
 	/**
 	 * Get input stream.
 	 * 
-	 * @returns Input stream
+	 * @return Input stream
 	 * @throws IOException IO exception occurred
 	 */
 	@Override
@@ -80,7 +80,7 @@ public final class ResourceDataSource implements DataSource {
 	/**
 	 * Get content type.
 	 * 
-	 * @returns Content type
+	 * @return Content type
 	 */
 	@Override
 	public String getContentType() {
@@ -90,7 +90,7 @@ public final class ResourceDataSource implements DataSource {
 	/**
 	 * Get output stream.
 	 * 
-	 * @returns Output stream
+	 * @return Output stream
 	 * @throws IOException IO exception occurred
 	 */
 	@Override

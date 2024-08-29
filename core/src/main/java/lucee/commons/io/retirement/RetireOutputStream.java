@@ -38,7 +38,8 @@ public class RetireOutputStream extends OutputStream {
 	 * 
 	 * @param res
 	 * @param append
-	 * @param retireRange retire the stream after given time in minutes
+	 * @param retireRangeInSeconds retire the stream after given time in seconds
+	 * @param listener
 	 */
 	public RetireOutputStream(Resource res, boolean append, int retireRangeInSeconds, RetireListener listener) {
 		this.res = res;

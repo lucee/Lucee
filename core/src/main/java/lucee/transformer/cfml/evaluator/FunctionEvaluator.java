@@ -39,7 +39,7 @@ public interface FunctionEvaluator {
 	 * 
 	 * @param bif
 	 * @param flf the definition of the function from the fld file
-	 * @throws TemplateException
+	 * @throws EvaluatorException
 	 */
 	public void evaluate(BIF bif, FunctionLibFunction flf) throws EvaluatorException;
 

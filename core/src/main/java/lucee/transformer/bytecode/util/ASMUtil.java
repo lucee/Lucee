@@ -130,7 +130,7 @@ public final class ASMUtil {
 	 * Gibt zurueck ob das direkt uebergeordnete Tag mit dem uebergebenen Full-Name (Namespace und Name)
 	 * existiert.
 	 * 
-	 * @param el Startelement, von wo aus gesucht werden soll.
+	 * @param stat Startelement, von wo aus gesucht werden soll.
 	 * @param fullName Name des gesuchten Tags.
 	 * @return Existiert ein solches Tag oder nicht.
 	 */
@@ -142,7 +142,7 @@ public final class ASMUtil {
 	 * Gibt das uebergeordnete CFXD Tag Element zurueck, falls dies nicht existiert wird null
 	 * zurueckgegeben.
 	 * 
-	 * @param el Element von dem das parent Element zurueckgegeben werden soll.
+	 * @param tag Element von dem das parent Element zurueckgegeben werden soll.
 	 * @return uebergeordnete CFXD Tag Element
 	 */
 	public static Tag getParentTag(Tag tag) {
@@ -307,7 +307,7 @@ public final class ASMUtil {
 	 * Gibt ein uebergeordnetes Tag mit dem uebergebenen Full-Name (Namespace und Name) zurueck, falls
 	 * ein solches existiert, andernfalls wird null zurueckgegeben.
 	 * 
-	 * @param el Startelement, von wo aus gesucht werden soll.
+	 * @param stat Startelement, von wo aus gesucht werden soll.
 	 * @param fullName Name des gesuchten Tags.
 	 * @return uebergeornetes Element oder null.
 	 */
@@ -336,7 +336,7 @@ public final class ASMUtil {
 	/**
 	 * extract the content of an attribute
 	 * 
-	 * @param cfxdTag
+	 * @param tag
 	 * @param attrName
 	 * @return attribute value
 	 * @throws EvaluatorException
@@ -350,10 +350,10 @@ public final class ASMUtil {
 	/**
 	 * extract the content of an attribute
 	 * 
-	 * @param cfxdTag
+	 * @param tag
 	 * @param attrName
+	 * @param defaultValue
 	 * @return attribute value
-	 * @throws EvaluatorException
 	 */
 	public static Boolean getAttributeBoolean(Tag tag, String attrName, Boolean defaultValue) {
 		Literal lit = getAttributeLiteral(tag, attrName, null);
@@ -364,7 +364,7 @@ public final class ASMUtil {
 	/**
 	 * extract the content of an attribute
 	 * 
-	 * @param cfxdTag
+	 * @param tag
 	 * @param attrName
 	 * @return attribute value
 	 * @throws EvaluatorException
@@ -376,10 +376,10 @@ public final class ASMUtil {
 	/**
 	 * extract the content of an attribute
 	 * 
-	 * @param cfxdTag
+	 * @param tag
 	 * @param attrName
+	 * @param defaultValue
 	 * @return attribute value
-	 * @throws EvaluatorException
 	 */
 	public static String getAttributeString(Tag tag, String attrName, String defaultValue) {
 		Literal lit = getAttributeLiteral(tag, attrName, null);
@@ -390,7 +390,7 @@ public final class ASMUtil {
 	/**
 	 * extract the content of an attribute
 	 * 
-	 * @param cfxdTag
+	 * @param tag
 	 * @param attrName
 	 * @return attribute value
 	 * @throws EvaluatorException
@@ -404,10 +404,10 @@ public final class ASMUtil {
 	/**
 	 * extract the content of an attribute
 	 * 
-	 * @param cfxdTag
+	 * @param tag
 	 * @param attrName
+	 * @param defaultValue
 	 * @return attribute value
-	 * @throws EvaluatorException
 	 */
 	public static Literal getAttributeLiteral(Tag tag, String attrName, Literal defaultValue) {
 		Attribute attr = tag.getAttribute(attrName);
@@ -677,7 +677,7 @@ public final class ASMUtil {
 	/**
 	 * translate a string cfml type definition to a Type Object
 	 * 
-	 * @param cfType
+	 * @param type
 	 * @param axistype
 	 * @return
 	 * @throws PageException

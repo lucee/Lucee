@@ -127,7 +127,7 @@ public class ByteBuffer {
 	 * method to writeout content of the char buffer in a writer, this is faster than get char array
 	 * with (toCharArray()) and write this in writer.
 	 * 
-	 * @param writer writer to write inside
+	 * @param os the output stream
 	 * @throws IOException
 	 */
 	public void writeOut(OutputStream os) throws IOException {

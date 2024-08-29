@@ -42,10 +42,11 @@ public class EvaluatorSupport implements TagEvaluator {
 	 * Implementation nicht ueberschrieben wird, ruft sie wiederere, allenfalls implementierte evaluate
 	 * Methoden auf. Mit Hilfe dieses Konstrukt ist es moeglich drei evaluate methoden anzubieten.
 	 * 
-	 * @param cfxdTag Das konkrete Tag innerhalb der kompletten CFXD.
+	 * @param config Das konkrete Tag innerhalb der kompletten CFXD.
+	 * @param tag
 	 * @param libTag Die Definition des Tag aus der TLD.
 	 * @param flibs Saemtliche Function Library Deskriptoren des aktuellen Tag Libray Deskriptors.
-	 * @param srcCode
+	 * @param data
 	 * @return TagLib
 	 * @throws TemplateException
 	 */
@@ -61,7 +62,7 @@ public class EvaluatorSupport implements TagEvaluator {
 	 * Implementation nicht ueberschrieben wird, ruft sie wiederere, allenfalls implementierte evaluate
 	 * Methoden auf. Mit Hilfe dieses Konstrukt ist es moeglich drei evaluate methoden anzubieten.
 	 * 
-	 * @param cfxdTag Das konkrete Tag innerhalb der kompletten CFXD.
+	 * @param tag Das konkrete Tag innerhalb der kompletten CFXD.
 	 * @param libTag Die Definition des Tag aus der TLD.
 	 * @param flibs Saemtliche Function Library Deskriptoren des aktuellen Tag Libray Deskriptors.
 	 * @throws EvaluatorException
@@ -75,7 +76,7 @@ public class EvaluatorSupport implements TagEvaluator {
 	/**
 	 * ueberladene evaluate Methode nur mit einem CFXD Element.
 	 * 
-	 * @param cfxdTag
+	 * @param tag
 	 * @throws EvaluatorException
 	 */
 	public void evaluate(Tag tag) throws EvaluatorException {
@@ -85,7 +86,7 @@ public class EvaluatorSupport implements TagEvaluator {
 	/**
 	 * ueberladene evaluate Methode mit einem CFXD Element und einem TagLibTag.
 	 * 
-	 * @param cfxdTag
+	 * @param tag
 	 * @param libTag
 	 * @throws EvaluatorException
 	 */

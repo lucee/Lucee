@@ -41,7 +41,8 @@ public final class SystemOut extends StatementBaseNoFinal {
 	 * constructor of the class
 	 * 
 	 * @param expr
-	 * @param line
+	 * @param start
+	 * @param end
 	 */
 	public SystemOut(Expression expr, Position start, Position end) {
 		super(expr.getFactory(), start, end);
@@ -49,7 +50,7 @@ public final class SystemOut extends StatementBaseNoFinal {
 	}
 
 	/**
-	 * @see lucee.transformer.bytecode.statement.StatementBase#_writeOut(org.objectweb.asm.commons.GeneratorAdapter)
+	 * @see lucee.transformer.bytecode.statement.StatementBase#_writeOut(lucee.transformer.bytecode.BytecodeContext)
 	 */
 	@Override
 	public void _writeOut(BytecodeContext bc) throws TransformerException {

@@ -41,7 +41,7 @@ public class FileStreamWrapperRead extends FileStreamWrapper {
 	 * 
 	 * @param res
 	 * @param charset
-	 * @throws IOException
+	 * @param seekable
 	 */
 	public FileStreamWrapperRead(Resource res, String charset, boolean seekable) {
 		super(res);

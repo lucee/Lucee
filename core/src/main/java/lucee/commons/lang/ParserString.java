@@ -219,7 +219,7 @@ public final class ParserString {
 	/**
 	 * Gibt zurueck ob das naechste Zeichen das selbe ist wie das Eingegebene.
 	 * 
-	 * @param c Zeichen zum Vergleich.
+	 * @param str Zeichen zum Vergleich.
 	 * @return boolean
 	 */
 	public boolean isCurrentIgnoreSpace(String str) {
@@ -315,7 +315,7 @@ public final class ParserString {
 	}
 
 	/**
-	 * Gibt zurueck ob das aktuelle Zeichen ein Special Buchstabe ist (_,<euro>,$,<pound>).
+	 * Gibt zurueck ob das aktuelle Zeichen ein Special Buchstabe ist (_,&euro;,$,&pound;).
 	 * 
 	 * @return Gibt zurueck ob das aktuelle Zeichen ein Buchstabe ist.
 	 */

@@ -33,7 +33,7 @@ public final class Silent extends BodyTagTryCatchFinallyImpl {
 	private boolean wasSilent;
 
 	/**
-	 * @param bufferoutput the bufferoutput to set
+	 * @param bufferOutput the bufferoutput to set
 	 */
 	public void setBufferoutput(boolean bufferOutput) {
 		this.bufferOutput = bufferOutput ? Boolean.TRUE : Boolean.FALSE;

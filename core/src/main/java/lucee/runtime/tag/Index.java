@@ -268,7 +268,6 @@ public final class Index extends TagImpl {
 	 * set the value external
 	 * 
 	 * @param external value to set
-	 * @throws ApplicationException
 	 **/
 	public void setExternal(boolean external) {
 		// DeprecatedUtil.tagAttribute(pageContext,"Index", "external");
@@ -364,8 +363,7 @@ public final class Index extends TagImpl {
 	}
 
 	/**
-	 * @param category the category to set
-	 * @throws ApplicationException
+	 * @param listCategories the category to set
 	 */
 	public void setCategory(String listCategories) {
 		if (listCategories == null) return;
@@ -374,7 +372,6 @@ public final class Index extends TagImpl {
 
 	/**
 	 * @param categoryTree the categoryTree to set
-	 * @throws ApplicationException
 	 */
 	public void setCategorytree(String categoryTree) {
 		if (categoryTree == null) return;
@@ -393,7 +390,6 @@ public final class Index extends TagImpl {
 
 	/**
 	 * @param status the status to set
-	 * @throws ApplicationException
 	 */
 	public void setStatus(String status) {
 		this.status = status;

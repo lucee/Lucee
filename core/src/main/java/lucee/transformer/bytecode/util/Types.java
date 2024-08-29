@@ -284,9 +284,10 @@ public final class Types {
 	/**
 	 * translate sString classname to a real type
 	 * 
+	 * @param bc
 	 * @param type
 	 * @return
-	 * @throws lucee.runtime.exp.TemplateExceptionption
+	 * @throws TransformerException
 	 */
 	public static Type toType(BytecodeContext bc, String type) throws TransformerException {
 		if (type == null) return OBJECT;

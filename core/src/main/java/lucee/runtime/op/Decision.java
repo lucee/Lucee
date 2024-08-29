@@ -497,7 +497,6 @@ public final class Decision {
 	 * 
 	 * @param o
 	 * @return
-	 * @throws PageException
 	 */
 	public static boolean isCastableToArray(Object o) {
 		if (isArray(o)) return true;

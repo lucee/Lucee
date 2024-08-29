@@ -126,7 +126,10 @@ public final class ExceptionUtil {
 	 * creates a message for key not found with soundex check for similar key
 	 * 
 	 * @param _keys
-	 * @param keyLabel
+	 * @param keySearched
+	 * @param keyLabels
+	 * @param in
+	 * @param listAll
 	 * @return
 	 */
 	public static String similarKeyMessage(Collection.Key[] _keys, String keySearched, String keyLabels, String in, boolean listAll) {

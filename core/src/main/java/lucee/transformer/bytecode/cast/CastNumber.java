@@ -54,7 +54,6 @@ public final class CastNumber extends ExpressionBase implements ExprNumber, Cast
 	 * 
 	 * @param expr
 	 * @return String expression
-	 * @throws TemplateException
 	 */
 	public static ExprNumber toExprNumber(Expression expr) {
 		if (expr instanceof ExprNumber) return (ExprNumber) expr;
@@ -69,7 +68,7 @@ public final class CastNumber extends ExpressionBase implements ExprNumber, Cast
 	}
 
 	/**
-	 * @see lucee.transformer.expression.Expression#_writeOut(org.objectweb.asm.commons.GeneratorAdapter,
+	 * lucee.transformer.expression.Expression#_writeOut(lucee.transformer.bytecode.BytecodeContext,
 	 *      int)
 	 */
 	@Override

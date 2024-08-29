@@ -708,9 +708,9 @@ public final class ScopeContext {
 	 * return the application Scope for this context (cfid,cftoken,contextname)
 	 *
 	 * @param pc PageContext
+	 * @param createUpdateIfNotExist
 	 * @param isNew
 	 * @return session matching the context
-	 * @throws PageException
 	 */
 	public Application getApplicationScope(PageContext pc, boolean createUpdateIfNotExist, RefBoolean isNew) {
 		ApplicationContext appContext = pc.getApplicationContext();

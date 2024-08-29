@@ -98,7 +98,7 @@ public abstract class ScopeSupport extends StructImpl implements Scope {
 	}
 
 	/**
-	 * write parameter defined in a query string (name1=value1&name2=value2) to the scope
+	 * write parameter defined in a query string (name1=value1&amp;name2=value2) to the scope
 	 * 
 	 * @param str Query String
 	 * @return parsed name value pair

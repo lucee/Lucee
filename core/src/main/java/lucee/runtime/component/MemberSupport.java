@@ -34,7 +34,6 @@ public abstract class MemberSupport implements Serializable, Member, Duplicable 
 	 * Constructor of the class
 	 * 
 	 * @param access
-	 * @param value
 	 */
 	public MemberSupport(int access) {
 		this.access = access;
@@ -45,7 +44,7 @@ public abstract class MemberSupport implements Serializable, Member, Duplicable 
 	 * Constructor of the class
 	 * 
 	 * @param access
-	 * @param value
+	 * @param modifier
 	 */
 	public MemberSupport(int access, int modifier) {
 		this.access = access;
@@ -71,7 +70,7 @@ public abstract class MemberSupport implements Serializable, Member, Duplicable 
 
 	/**
 	 * @param access the access to set
-	 * @throws ExpressionException
+	 * @throws ApplicationException
 	 */
 	public void setAccess(String access) throws ApplicationException {
 		this.access = ComponentUtil.toIntAccess(access);

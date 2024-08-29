@@ -250,7 +250,6 @@ public class PasswordImpl implements Password {
 	 * @param strPasswordOld the old password to replace or null if there is no password set yet
 	 * @param strPasswordNew the new password
 	 * @throws IOException
-	 * @throws SAXException
 	 * @throws PageException
 	 * @throws BundleException
 	 * @throws ConverterException

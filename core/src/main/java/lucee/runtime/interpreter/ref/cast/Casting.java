@@ -38,7 +38,6 @@ public final class Casting extends RefSupport implements Ref {
 	/**
 	 * constructor of the class
 	 * 
-	 * @param pc
 	 * @param strType
 	 * @param type
 	 * @param ref

@@ -73,7 +73,8 @@ public class ComponentScopeShadow extends StructSupport implements ComponentScop
 	 * Constructor of the class
 	 * 
 	 * @param component
-	 * @param shadow
+	 * @param scope
+	 * @param cloneShadow
 	 */
 	public ComponentScopeShadow(ComponentImpl component, ComponentScopeShadow scope, boolean cloneShadow) {
 		this.component = component;

@@ -131,7 +131,7 @@ public final class Switch extends StatementBaseNoFinal implements FlowControlBre
 
 	/**
 	 *
-	 * @see lucee.transformer.bytecode.statement.FlowControl#getBreakLabel()
+	 * @see lucee.transformer.bytecode.statement.FlowControl#getLabel()
 	 */
 	@Override
 	public Label getBreakLabel() {
@@ -140,7 +140,7 @@ public final class Switch extends StatementBaseNoFinal implements FlowControlBre
 
 	/**
 	 *
-	 * @see lucee.transformer.bytecode.statement.FlowControl#getContinueLabel()
+	 * @see lucee.transformer.bytecode.statement.FlowControl#getLabel()
 	 */
 	public Label getContinueLabel() {
 		return ns.getContinueLabel();

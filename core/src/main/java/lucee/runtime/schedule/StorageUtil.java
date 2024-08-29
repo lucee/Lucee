@@ -68,8 +68,8 @@ public final class StorageUtil {
 	/**
 	 * reads a XML Element Attribute ans cast it to a String
 	 * 
-	 * @param el XML Element to read Attribute from it
-	 * @param attributeName Name of the Attribute to read
+	 * @param data XML Element to read Attribute from it
+	 * @param name Name of the Attribute to read
 	 * @return Attribute Value
 	 */
 	public String toString(Struct data, String name) {
@@ -79,6 +79,7 @@ public final class StorageUtil {
 	/**
 	 * reads a XML Element Attribute ans cast it to a File
 	 * 
+	 * @param config
 	 * @param el XML Element to read Attribute from it
 	 * @param attributeName Name of the Attribute to read
 	 * @return Attribute Value
@@ -92,8 +93,8 @@ public final class StorageUtil {
 	/**
 	 * reads a XML Element Attribute ans cast it to a boolean value
 	 * 
-	 * @param el XML Element to read Attribute from it
-	 * @param attributeName Name of the Attribute to read
+	 * @param data XML Element to read Attribute from it
+	 * @param name Name of the Attribute to read
 	 * @return Attribute Value
 	 */
 	public boolean toBoolean(Struct data, String name) {

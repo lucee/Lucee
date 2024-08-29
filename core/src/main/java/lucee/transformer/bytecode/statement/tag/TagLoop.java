@@ -152,7 +152,7 @@ public final class TagLoop extends TagGroup implements FlowControlBreak, FlowCon
 
 	/**
 	 *
-	 * @see lucee.transformer.bytecode.statement.tag.TagBase#_writeOut(org.objectweb.asm.commons.GeneratorAdapter)
+	 * @see lucee.transformer.bytecode.statement.tag.TagBase#_writeOut(lucee.transformer.bytecode.BytecodeContext)
 	 */
 	@Override
 	public void _writeOut(BytecodeContext bc) throws TransformerException {
@@ -840,7 +840,7 @@ public final class TagLoop extends TagGroup implements FlowControlBreak, FlowCon
 	}
 
 	/**
-	 * @see lucee.transformer.bytecode.statement.FlowControl#getBreakLabel()
+	 * @see lucee.transformer.bytecode.statement.FlowControl#getLabel()
 	 */
 	@Override
 	public Label getBreakLabel() {
@@ -848,7 +848,7 @@ public final class TagLoop extends TagGroup implements FlowControlBreak, FlowCon
 	}
 
 	/**
-	 * @see lucee.transformer.bytecode.statement.FlowControl#getContinueLabel()
+	 * @see lucee.transformer.bytecode.statement.FlowControl#getLabel()
 	 */
 	@Override
 	public Label getContinueLabel() {

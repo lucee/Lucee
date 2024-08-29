@@ -91,7 +91,7 @@ public final class Formgroup extends BodyTagImpl {
 	}
 
 	/**
-	 * @param query the query to set
+	 * @param queryName the query to set
 	 */
 	public void setQuery(String queryName) {
 		// this.query = query;

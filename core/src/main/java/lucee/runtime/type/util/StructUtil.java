@@ -216,7 +216,7 @@ public final class StructUtil {
 	 * remove every entry hat has this value
 	 * 
 	 * @param map
-	 * @param obj
+	 * @param value
 	 */
 	public static void removeValue(Map map, Object value) {
 		Iterator it = map.entrySet().iterator();
@@ -281,7 +281,7 @@ public final class StructUtil {
 	/**
 	 * creates a hash based on the keys of the Map/Struct
 	 * 
-	 * @param map
+	 * @param sct
 	 * @return
 	 */
 	public static String keyHash(Struct sct) {

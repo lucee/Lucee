@@ -36,7 +36,7 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 
 /**
- *
+ * Cryptor
  */
 public class Cryptor {
 

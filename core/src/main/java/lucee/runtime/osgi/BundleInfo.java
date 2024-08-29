@@ -264,7 +264,7 @@ public class BundleInfo implements Serializable {
 	}
 
 	/**
-	 * Value can be a string (for a Single entry or a List<String> for multiple entries)
+	 * Value can be a string (for a Single entry or a List&lt;String&gt; for multiple entries)
 	 * 
 	 * @return
 	 */

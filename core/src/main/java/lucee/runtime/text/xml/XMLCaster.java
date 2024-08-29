@@ -323,7 +323,6 @@ public final class XMLCaster {
 	/**
 	 * casts a value to a XML Node
 	 * 
-	 * @param doc XML Document
 	 * @param o Object to cast
 	 * @return XML Element Object
 	 * @throws PageException

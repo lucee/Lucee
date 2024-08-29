@@ -67,7 +67,7 @@ public final class DoWhileVisitor implements LoopVisitor {
 
 	/**
 	 *
-	 * @see lucee.transformer.bytecode.visitor.LoopVisitor#visitContinue(org.objectweb.asm.commons.GeneratorAdapter)
+	 * @see lucee.transformer.bytecode.visitor.LoopVisitor#visitContinue(lucee.transformer.bytecode.BytecodeContext)
 	 */
 	@Override
 	public void visitContinue(BytecodeContext bc) {
@@ -76,7 +76,7 @@ public final class DoWhileVisitor implements LoopVisitor {
 
 	/**
 	 *
-	 * @see lucee.transformer.bytecode.visitor.LoopVisitor#visitBreak(org.objectweb.asm.commons.GeneratorAdapter)
+	 * @see lucee.transformer.bytecode.visitor.LoopVisitor#visitBreak(lucee.transformer.bytecode.BytecodeContext)
 	 */
 	@Override
 	public void visitBreak(BytecodeContext bc) {

@@ -209,7 +209,8 @@ public final class StringUtil {
 	 * escapes JS sensitive characters
 	 *
 	 * @param str String to escape
-	 * @param charset if not null, it checks if the given string is supported by the encoding, if not,
+	 * @param quotesUsed
+	 * @param enc if not null, it checks if the given string is supported by the encoding, if not,
 	 *            lucee encodes the string
 	 * @return escapes String
 	 */
@@ -1372,7 +1373,7 @@ public final class StringUtil {
 	 * this is the public entry point for the replaceMap() method
 	 *
 	 * @param input - the string on which the replacements should be performed.
-	 * @param map - a java.util.Map with key/value pairs where the key is the substring to find and the
+	 * @param data - a java.util.Map with key/value pairs where the key is the substring to find and the
 	 *            value is the substring with which to replace the matched key
 	 * @param ignoreCase - if true then matches will not be case sensitive
 	 * @return

@@ -300,8 +300,8 @@ public abstract class MailClient implements PoolItem {
 	/**
 	 * delete all message in ibox that match given criteria
 	 * 
-	 * @param messageNumbers
-	 * @param uIds
+	 * @param messageNumber
+	 * @param uid
 	 * @throws MessagingException
 	 * @throws IOException
 	 * @throws PageException
@@ -330,8 +330,9 @@ public abstract class MailClient implements PoolItem {
 	 * return all messages from inbox
 	 * 
 	 * @param messageNumbers all messages with this ids
-	 * @param uIds all messages with this uids
-	 * @param withBody also return body
+	 * @param uids all messages with this uids
+	 * @param all
+	 * @param folderName
 	 * @return all messages from inbox
 	 * @throws MessagingException
 	 * @throws IOException

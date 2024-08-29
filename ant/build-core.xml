@@ -400,7 +400,7 @@
       target="11" 
       destdir="${core}"
       includeantruntime="false"
-      debug="true" 
+      debug="true"
       debuglevel="lines,vars,source">
        <classpath refid="classpath" />
        <classpath path="${temp}/loader"/>

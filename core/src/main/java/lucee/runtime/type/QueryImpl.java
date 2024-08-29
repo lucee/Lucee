@@ -115,9 +115,6 @@ import lucee.runtime.type.util.StructSupport;
 /**
  * implementation of the query interface
  */
-/**
- *
- */
 public class QueryImpl implements Query, Objects, QueryResult {
 
 	private static final long serialVersionUID = 1035795427320192551L; // do not chnage
@@ -829,9 +826,10 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	/**
 	 * constructor of the class, to generate an empty resultset (no database execution)
 	 *
-	 * @param strColumns columns for the resultset
+	 * @param columnKeys
 	 * @param rowNumber count of rows to generate (empty fields)
 	 * @param name
+	 * @throws DatabaseException
 	 */
 	public QueryImpl(Collection.Key[] columnKeys, int rowNumber, String name) throws DatabaseException {
 		this(columnKeys, rowNumber, name, null);
@@ -876,7 +874,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	/**
 	 * constructor of the class, to generate an empty resultset (no database execution)
 	 *
-	 * @param strColumns columns for the resultset
+	 * @param columnNames columns for the resultset
 	 * @param strTypes array of the types
 	 * @param rowNumber count of rows to generate (empty fields)
 	 * @param name
@@ -1002,7 +1000,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	/**
 	 * constructor of the class
 	 *
-	 * @param columnList
+	 * @param strColumnList
 	 * @param data
 	 * @param name
 	 * @throws DatabaseException

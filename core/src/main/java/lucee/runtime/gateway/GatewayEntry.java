@@ -33,7 +33,6 @@ public interface GatewayEntry {
 	public static int STARTUP_MODE_DISABLED = 4;
 
 	/**
-	 * @return the gateway
 	 * @throws ClassException
 	 * @throws PageException
 	 * @throws BundleException

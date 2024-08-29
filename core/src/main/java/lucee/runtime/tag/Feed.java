@@ -119,7 +119,7 @@ public final class Feed extends TagImpl {
 	}
 
 	/**
-	 * @param action the action to set
+	 * @param strAction the action to set
 	 * @throws ApplicationException
 	 */
 	public void setAction(String strAction) throws ApplicationException {
@@ -148,7 +148,7 @@ public final class Feed extends TagImpl {
 	}
 
 	/**
-	 * @param enclosureDir the enclosureDir to set
+	 * @param strEnclosureDir the enclosureDir to set
 	 * @throws ExpressionException
 	 */
 	public void setEnclosuredir(String strEnclosureDir) throws ExpressionException {
@@ -170,7 +170,7 @@ public final class Feed extends TagImpl {
 	}
 
 	/**
-	 * @param outputFile the outputFile to set
+	 * @param strOutputFile the outputFile to set
 	 * @throws ExpressionException
 	 */
 	public void setOutputfile(String strOutputFile) throws ExpressionException {
@@ -206,7 +206,7 @@ public final class Feed extends TagImpl {
 	}
 
 	/**
-	 * @param source the source to set
+	 * @param strSource the source to set
 	 * @throws ExpressionException
 	 */
 	public void setSource(String strSource) throws ExpressionException {

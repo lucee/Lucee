@@ -26,7 +26,6 @@ public final class CastInt extends ExpressionBase implements ExprInt, Cast {
 	 * 
 	 * @param expr
 	 * @return String expression
-	 * @throws TemplateException
 	 */
 	public static ExprInt toExprInt(Expression expr) {
 		if (expr instanceof ExprInt) return (ExprInt) expr;

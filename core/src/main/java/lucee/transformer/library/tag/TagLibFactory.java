@@ -466,7 +466,7 @@ public final class TagLibFactory extends DefaultHandler {
 	 * Laedt mehrere TagLib's die innerhalb eines Verzeichnisses liegen.
 	 * 
 	 * @param dir Verzeichnis im dem die TagLib's liegen.
-	 * @param saxParser Definition des Sax Parser mit dem die TagLib's eingelesen werden sollen.
+	 * @param id
 	 * @return TagLib's als Array
 	 * @throws TagLibException
 	 */
@@ -485,8 +485,8 @@ public final class TagLibFactory extends DefaultHandler {
 	/**
 	 * Laedt eine einzelne TagLib.
 	 * 
-	 * @param file TLD die geladen werden soll.
-	 * @param saxParser Definition des Sax Parser mit dem die TagLib eingelsesen werden soll.
+	 * @param res
+	 * @param id
 	 * @return TagLib
 	 * @throws TagLibException
 	 */
@@ -505,8 +505,8 @@ public final class TagLibFactory extends DefaultHandler {
 	/**
 	 * Laedt eine einzelne TagLib.
 	 * 
-	 * @param file TLD die geladen werden soll.
-	 * @param saxParser Definition des Sax Parser mit dem die TagLib eingelsesen werden soll.
+	 * @param is
+	 * @param id
 	 * @return TagLib
 	 * @throws TagLibException
 	 */
@@ -517,7 +517,7 @@ public final class TagLibFactory extends DefaultHandler {
 	/**
 	 * Laedt die Systeminterne TLD.
 	 * 
-	 * @param saxParser Definition des Sax Parser mit dem die FunctionLib eingelsesen werden soll.
+	 * @param id Definition des Sax Parser mit dem die FunctionLib eingelsesen werden soll.
 	 * @return FunctionLib
 	 * @throws TagLibException
 	 */

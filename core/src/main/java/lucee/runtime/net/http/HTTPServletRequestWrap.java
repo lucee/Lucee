@@ -135,7 +135,6 @@ public final class HTTPServletRequestWrap implements HttpServletRequest, Seriali
 	 * Constructor of the class
 	 * 
 	 * @param req
-	 * @param max how many is possible to re read
 	 */
 	public HTTPServletRequestWrap(HttpServletRequest req) {
 		this.req = pure(req);/* JAVJAK */

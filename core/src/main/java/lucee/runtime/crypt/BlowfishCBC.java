@@ -129,8 +129,7 @@ public final class BlowfishCBC extends BlowfishECB {
 	 * constructor
 	 * 
 	 * @param bfkey key material, up to MAXKEYLENGTH bytes
-	 * 
-	 * @param lInitCBCIV the CBC IV (array with min. BLOCKSIZE bytes)
+	 * @param initCBCIV the CBC IV (array with min. BLOCKSIZE bytes)
 	 * 
 	 */
 
@@ -280,8 +279,7 @@ public final class BlowfishCBC extends BlowfishECB {
 	 * size or bigger)
 	 * 
 	 * @param inbuffer buffer with plaintext data
-	 * 
-	 * @param outBuffer buffer to get the ciphertext data
+	 * @param outbuffer buffer to get the ciphertext data
 	 * 
 	 */
 
@@ -386,8 +384,7 @@ public final class BlowfishCBC extends BlowfishECB {
 	 * to another buffer (of the same size or bigger)
 	 * 
 	 * @param inbuffer buffer with ciphertext data
-	 * 
-	 * @param outBuffer buffer to get the plaintext data
+	 * @param outbuffer buffer to get the plaintext data
 	 * 
 	 */
 

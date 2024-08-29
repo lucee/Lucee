@@ -21,7 +21,7 @@ package lucee.runtime.coder;
 import lucee.commons.io.CharsetUtil;
 
 /**
- *
+ * Hex encoder utils
  */
 public final class HexCoder {
 

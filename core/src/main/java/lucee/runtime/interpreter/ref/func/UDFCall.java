@@ -36,7 +36,6 @@ public final class UDFCall extends RefSupport implements Ref {
 	private Ref refName;
 
 	/**
-	 * @param pc
 	 * @param parent
 	 * @param name
 	 * @param arguments
@@ -48,7 +47,6 @@ public final class UDFCall extends RefSupport implements Ref {
 	}
 
 	/**
-	 * @param pc
 	 * @param parent
 	 * @param refName
 	 * @param arguments

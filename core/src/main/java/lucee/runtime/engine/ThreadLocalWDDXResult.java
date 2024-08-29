@@ -29,7 +29,7 @@ public final class ThreadLocalWDDXResult {
 	/**
 	 * register a pagecontext for he current thread
 	 * 
-	 * @param pc PageContext to register
+	 * @param result
 	 */
 	public static void set(Object result) {
 		resultThreadLocal.set(result);

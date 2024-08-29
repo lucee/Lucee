@@ -69,7 +69,9 @@ public abstract class StorageScopeCookie extends StorageScopeImpl {
 	 * Constructor of the class
 	 * 
 	 * @param pc
-	 * @param name
+	 * @param cookieName
+	 * @param strType
+	 * @param type
 	 * @param sct
 	 */
 	protected StorageScopeCookie(PageContext pc, String cookieName, String strType, int type, Struct sct) {
@@ -83,6 +85,7 @@ public abstract class StorageScopeCookie extends StorageScopeImpl {
 	 * Constructor of the class, clone existing
 	 * 
 	 * @param other
+	 * @param deepCopy
 	 */
 	protected StorageScopeCookie(StorageScopeCookie other, boolean deepCopy) {
 		super(other, deepCopy);

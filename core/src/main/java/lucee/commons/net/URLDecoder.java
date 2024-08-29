@@ -32,7 +32,8 @@ public class URLDecoder {
 	}
 
 	/**
-	 * @param string
+	 * @param str
+	 * @param force
 	 * @return
 	 */
 	public static String decode(String str, boolean force) {

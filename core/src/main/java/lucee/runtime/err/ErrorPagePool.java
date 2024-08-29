@@ -73,7 +73,7 @@ public final class ErrorPagePool {
 	/**
 	 * remove this error page
 	 * 
-	 * @param type
+	 * @param pe
 	 */
 	public void removeErrorPage(PageException pe) {
 		// exception

@@ -48,7 +48,10 @@ public final class TagHandlerPool {
 	/**
 	 * return a tag to use from a class
 	 * 
-	 * @param tagClass
+	 * @param className
+	 * @param tagBundleName
+	 * @param tagBundleVersion
+	 * @param id
 	 * @return Tag
 	 * @throws PageException
 	 */
@@ -69,7 +72,6 @@ public final class TagHandlerPool {
 	 * free a tag for reusing
 	 * 
 	 * @param tag
-	 * @throws ExpressionException
 	 */
 	public void reuse(Tag tag) {
 		tag.release();

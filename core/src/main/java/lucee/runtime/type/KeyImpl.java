@@ -177,7 +177,7 @@ public class KeyImpl implements Collection.Key, Castable, Comparable, Externaliz
 	/**
 	 * for dynamic loading of key objects
 	 * 
-	 * @param string
+	 * @param key
 	 * @return
 	 */
 	public static Collection.Key init(String key) {

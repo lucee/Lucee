@@ -43,8 +43,10 @@ public class ActionMonitorCollectorImpl implements ActionMonitorCollector {
 	 * logs certain action within a Request
 	 * 
 	 * @param pc
-	 * @param ar
-	 * @throws IOException
+	 * @param type
+	 * @param label
+	 * @param executionTime
+	 * @param data
 	 */
 	@Override
 	public void log(PageContext pc, String type, String label, long executionTime, Object data) {

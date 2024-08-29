@@ -44,8 +44,9 @@ public final class TagSwitch extends TagBaseNoFinal {
 	/**
 	 * Constructor of the class
 	 * 
-	 * @param sl
-	 * @param el
+	 * @param f
+	 * @param start
+	 * @param end
 	 */
 	public TagSwitch(Factory f, Position start, Position end) {
 		super(f, start, end);
@@ -53,7 +54,7 @@ public final class TagSwitch extends TagBaseNoFinal {
 
 	/**
 	 *
-	 * @see lucee.transformer.bytecode.statement.tag.TagBase#_writeOut(org.objectweb.asm.commons.GeneratorAdapter)
+	 * @see lucee.transformer.bytecode.statement.tag.TagBase#_writeOut(lucee.transformer.bytecode.BytecodeContext)
 	 */
 	@Override
 	public void _writeOut(BytecodeContext bc) throws TransformerException {

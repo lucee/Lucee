@@ -59,7 +59,6 @@ public class Elvis {
 	 * called by the Elvis operator from the interpreter
 	 * 
 	 * @param pc
-	 * @param scope
 	 * @param varNames
 	 * @return
 	 */
@@ -97,7 +96,6 @@ public class Elvis {
 	 * called by the Elvis operator from the interpreter
 	 * 
 	 * @param pc
-	 * @param scope
 	 * @param varNames
 	 * @return
 	 */

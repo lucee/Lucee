@@ -40,7 +40,9 @@ public abstract class StatementBase implements Statement {
 	/**
 	 * constructor of the class
 	 * 
-	 * @param line
+	 * @param factory
+	 * @param start
+	 * @param end
 	 */
 	public StatementBase(Factory factory, Position start, Position end) {
 		this.factory = factory;
@@ -70,8 +72,8 @@ public abstract class StatementBase implements Statement {
 	/**
 	 * write out the statement to adapter
 	 * 
-	 * @param adapter
-	 * @throws TemplateException
+	 * @param c
+	 * @throws TransformerException
 	 */
 	@Override
 	public final void writeOut(Context c) throws TransformerException {
@@ -85,15 +87,15 @@ public abstract class StatementBase implements Statement {
 	/**
 	 * write out the statement to the adapter
 	 * 
-	 * @param adapter
+	 * @param bc
 	 * @throws TransformerException
 	 */
 	public abstract void _writeOut(BytecodeContext bc) throws TransformerException;
 
 	/**
-	 * sets the line value.
+	 * sets the start value.
 	 * 
-	 * @param line The line to set.
+	 * @param start The start position.
 	 */
 	@Override
 	public void setStart(Position start) {

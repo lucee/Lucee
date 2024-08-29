@@ -42,7 +42,7 @@ public class DumpWriterEntry {
 	}
 
 	/**
-	 * @param def the def to set
+	 * @param defaultType the def to set
 	 */
 	public void setDefaultType(int defaultType) {
 		this.defaultType = defaultType;

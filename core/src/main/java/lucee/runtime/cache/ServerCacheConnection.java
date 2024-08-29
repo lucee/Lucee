@@ -34,7 +34,7 @@ public class ServerCacheConnection implements CacheConnectionPlus {
 	/**
 	 * Constructor of the class
 	 * 
-	 * @param configServer
+	 * @param cs
 	 * @param cc
 	 */
 	public ServerCacheConnection(ConfigServerImpl cs, CacheConnection cc) {

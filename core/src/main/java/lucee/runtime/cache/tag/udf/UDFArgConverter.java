@@ -35,7 +35,6 @@ public class UDFArgConverter {
 	/**
 	 * 
 	 * @param o
-	 * @param max max elements converted
 	 * @return
 	 */
 	public static String serialize(Object o) {

@@ -20,7 +20,7 @@
 package lucee.runtime.net.ftp;
 
 /**
- *  
+ *  Creates a FTP Connection
  */
 public final class FTPConnectionImpl implements FTPConnection {
 

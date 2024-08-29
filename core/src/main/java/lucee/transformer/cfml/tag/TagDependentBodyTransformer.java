@@ -28,11 +28,8 @@ import lucee.transformer.cfml.Data;
 public interface TagDependentBodyTransformer {
 
 	/**
-	 * @param parent
-	 * @param flibs
-	 * @param cfxdTag
-	 * @param tagLibTag
-	 * @param cfml
+	 * @param data
+	 * @param surroundingTagName
 	 * @throws TemplateException
 	 */
 	// public Body transform(Factory factory,Root root,EvaluatorPool ep,TagLib[][] tlibs, FunctionLib[]

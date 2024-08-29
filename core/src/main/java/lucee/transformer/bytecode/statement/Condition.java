@@ -39,9 +39,9 @@ public final class Condition extends StatementBaseNoFinal implements HasBodies {
 	/**
 	 * Constructor of the class
 	 * 
-	 * @param condition
-	 * @param body
-	 * @param line
+	 * @param f
+	 * @param start
+	 * @param end
 	 */
 	public Condition(Factory f, Position start, Position end) {
 		super(f, start, end);
@@ -50,9 +50,11 @@ public final class Condition extends StatementBaseNoFinal implements HasBodies {
 	/**
 	 * Constructor of the class
 	 * 
+	 * @param f
 	 * @param condition
 	 * @param body
-	 * @param line
+	 * @param start
+	 * @param end
 	 */
 	public Condition(Factory f, ExprBoolean condition, Statement body, Position start, Position end) {
 		super(condition.getFactory(), start, end);
@@ -70,6 +72,9 @@ public final class Condition extends StatementBaseNoFinal implements HasBodies {
 	 * 
 	 * @param condition
 	 * @param body
+	 * @param start
+	 * @param end
+	 
 	 */
 	public Pair addElseIf(ExprBoolean condition, Statement body, Position start, Position end) {
 		Pair pair;
@@ -82,6 +87,8 @@ public final class Condition extends StatementBaseNoFinal implements HasBodies {
 	 * sets the else Block of the condition
 	 * 
 	 * @param body
+	 * @param start
+	 * @param end
 	 */
 	public Pair setElse(Statement body, Position start, Position end) {
 		_else = new Pair(null, body, start, end);

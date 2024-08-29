@@ -39,8 +39,10 @@ public final class LitLongImpl extends ExpressionBase implements LitLong {
 	/**
 	 * constructor of the class
 	 * 
-	 * @param d
-	 * @param line
+	 * @param f
+	 * @param l
+	 * @param start
+	 * @param end
 	 */
 	public LitLongImpl(Factory f, long l, Position start, Position end) {
 		super(f, start, end);
@@ -87,7 +89,7 @@ public final class LitLongImpl extends ExpressionBase implements LitLong {
 	}
 
 	/**
-	 * @see lucee.transformer.expression.Expression#_writeOut(org.objectweb.asm.commons.GeneratorAdapter,
+	 * lucee.transformer.expression.Expression#_writeOut(lucee.transformer.bytecode.BytecodeContext,
 	 *      int)
 	 */
 	@Override

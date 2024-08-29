@@ -36,8 +36,7 @@ public class SessionMemory extends StorageScopeMemory implements Session, Memory
 	 * Constructor of the class
 	 * 
 	 * @param pc
-	 * @param isNew
-	 * @param name
+	 * @param log
 	 */
 	protected SessionMemory(PageContext pc, Log log) {
 		super(pc, "session", SCOPE_SESSION, log);
@@ -47,6 +46,7 @@ public class SessionMemory extends StorageScopeMemory implements Session, Memory
 	 * Constructor of the class, clone existing
 	 * 
 	 * @param other
+	 * @param deepCopy
 	 */
 	protected SessionMemory(StorageScopeMemory other, boolean deepCopy) {
 		super(other, deepCopy);
@@ -57,6 +57,7 @@ public class SessionMemory extends StorageScopeMemory implements Session, Memory
 	 * 
 	 * @param pc
 	 * @param isNew
+	 * @param log
 	 * @return
 	 */
 	public static Session getInstance(PageContext pc, RefBoolean isNew, Log log) {

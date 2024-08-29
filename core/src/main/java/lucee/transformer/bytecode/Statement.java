@@ -33,7 +33,7 @@ public interface Statement {
 	/**
 	 * sets parent statement to statement
 	 * 
-	 * @param parent
+	 * @param parent the parent statement
 	 */
 	public void setParent(Statement parent);
 
@@ -50,21 +50,21 @@ public interface Statement {
 	 * write out the statement to adapter
 	 * 
 	 * @param c
-	 * @throws TemplateException
+	 * @throws TransformerException
 	 */
 	public void writeOut(Context c) throws TransformerException;
 
 	/**
-	 * sets the line value.
+	 * sets the start line value.
 	 * 
-	 * @param line The line to set.
+	 * @param startLine The start line position to set.
 	 */
 	public void setStart(Position startLine);
 
 	/**
-	 * sets the line value.
+	 * sets the start line value.
 	 * 
-	 * @param line The line to set.
+	 * @param endLine The end line position to set.
 	 */
 	public void setEnd(Position endLine);
 

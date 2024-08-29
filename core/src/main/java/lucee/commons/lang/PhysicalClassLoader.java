@@ -83,8 +83,9 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 	/**
 	 * Constructor of the class
 	 * 
+	 * @param c
 	 * @param directory
-	 * @param parent
+	 * @param pageSourcePool
 	 * @throws IOException
 	 */
 	public PhysicalClassLoader(Config c, Resource directory, PageSourcePool pageSourcePool) throws IOException {
@@ -311,7 +312,7 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 	 * 
 	 * @param name
 	 * @return
-	 * @throws IOException
+	 * @throws ApplicationException
 	 */
 	public static String substractAppendix(String name) throws ApplicationException {
 		if (name.endsWith("$cf")) return name;

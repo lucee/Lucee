@@ -140,14 +140,14 @@ public final class Select extends BodyTagImpl {
 	}
 
 	/**
-	 * @param title The title to set.
+	 * @param dir The dir to set.
 	 */
 	public void setDir(String dir) {
 		attributes.setEL(KeyConstants._dir, dir);
 	}
 
 	/**
-	 * @param title The title to set.
+	 * @param lang The lang to set.
 	 */
 	public void setLang(String lang) {
 		attributes.setEL(KeyConstants._lang, lang);
@@ -189,49 +189,49 @@ public final class Select extends BodyTagImpl {
 	}
 
 	/**
-	 * @param ondblclick The ondblclick to set.
+	 * @param onmouseup The onmouseup to set.
 	 */
 	public void setOnmouseup(String onmouseup) {
 		attributes.setEL("onmouseup", onmouseup);
 	}
 
 	/**
-	 * @param ondblclick The ondblclick to set.
+	 * @param onmouseover The onmouseover to set.
 	 */
 	public void setOnmouseover(String onmouseover) {
 		attributes.setEL("onmouseover", onmouseover);
 	}
 
 	/**
-	 * @param ondblclick The ondblclick to set.
+	 * @param onmousemove The onmousemove to set.
 	 */
 	public void setOnmousemove(String onmousemove) {
 		attributes.setEL("onmousemove", onmousemove);
 	}
 
 	/**
-	 * @param ondblclick The ondblclick to set.
+	 * @param onmouseout The onmouseout to set.
 	 */
 	public void setOnmouseout(String onmouseout) {
 		attributes.setEL("onmouseout", onmouseout);
 	}
 
 	/**
-	 * @param ondblclick The ondblclick to set.
+	 * @param onkeypress The onkeypress to set.
 	 */
 	public void setOnkeypress(String onkeypress) {
 		attributes.setEL("onkeypress", onkeypress);
 	}
 
 	/**
-	 * @param ondblclick The ondblclick to set.
+	 * @param onkeydown The onkeydown to set.
 	 */
 	public void setOnkeydown(String onkeydown) {
 		attributes.setEL("onkeydown", onkeydown);
 	}
 
 	/**
-	 * @param ondblclick The ondblclick to set.
+	 * @param onkeyup The onkeyup to set.
 	 */
 	public void setOnkeyup(String onkeyup) {
 		attributes.setEL("onkeyup", onkeyup);
@@ -283,7 +283,7 @@ public final class Select extends BodyTagImpl {
 	}
 
 	/**
-	 * @param query The query to set.
+	 * @param strQuery The query to set.
 	 * @throws PageException
 	 */
 	public void setQuery(String strQuery) throws PageException {
@@ -456,7 +456,6 @@ public final class Select extends BodyTagImpl {
 
 	/**
 	 * @param editable the editable to set
-	 * @throws ApplicationException
 	 */
 	public void setEditable(boolean editable) {
 		this.editable = editable;
@@ -464,7 +463,6 @@ public final class Select extends BodyTagImpl {
 
 	/**
 	 * @param group the group to set
-	 * @throws ApplicationException
 	 */
 	public void setGroup(String group) {
 		this.group = group;
@@ -472,7 +470,6 @@ public final class Select extends BodyTagImpl {
 
 	/**
 	 * @param height the height to set
-	 * @throws ApplicationException
 	 */
 	public void setHeight(double height) {
 		this.height = (int) height;
@@ -480,14 +477,13 @@ public final class Select extends BodyTagImpl {
 
 	/**
 	 * @param label the label to set
-	 * @throws ApplicationException
 	 */
 	public void setLabel(String label) {
 		this.label = label;
 	}
 
 	/**
-	 * @param queryPosition the queryPosition to set
+	 * @param strQueryPosition the queryPosition to set
 	 * @throws ApplicationException
 	 */
 	public void setQueryposition(String strQueryPosition) throws ApplicationException {
@@ -500,7 +496,6 @@ public final class Select extends BodyTagImpl {
 
 	/**
 	 * @param tooltip the tooltip to set
-	 * @throws ApplicationException
 	 */
 	public void setTooltip(String tooltip) {
 		this.tooltip = tooltip;
@@ -508,7 +503,6 @@ public final class Select extends BodyTagImpl {
 
 	/**
 	 * @param visible the visible to set
-	 * @throws ApplicationException
 	 */
 	public void setVisible(boolean visible) {
 		this.visible = visible;
@@ -516,15 +510,13 @@ public final class Select extends BodyTagImpl {
 
 	/**
 	 * @param width the width to set
-	 * @throws ApplicationException
 	 */
 	public void setWidth(double width) {
 		this.width = (int) width;
 	}
 
 	/**
-	 * @param width the width to set
-	 * @throws ApplicationException
+	 * @param enabled the enabled to set
 	 */
 	public void setEnabled(String enabled) {
 		setDisabled(!Caster.toBooleanValue(enabled, true));

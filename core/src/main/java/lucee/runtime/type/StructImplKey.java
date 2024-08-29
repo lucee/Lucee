@@ -66,7 +66,7 @@ public final class StructImplKey extends StructSupport implements Struct {
 	 * by normally Struct , without incurring the increased cost associated with TreeMap. It can be used
 	 * to produce a copy of a map that has the same order as the original
 	 * 
-	 * @param doubleLinked
+	 * @param type
 	 */
 	public StructImplKey(int type) {
 		if (type == TYPE_LINKED) _map = new LinkedHashMap<Collection.Key, Object>();
@@ -165,7 +165,7 @@ public final class StructImplKey extends StructSupport implements Struct {
 
 	/**
 	 *
-	 * @see lucee.runtime.dump.Dumpable#toDumpData(lucee.runtime.PageContext, int)
+	 * @see lucee.runtime.dump.Dumpable#toDumpData(lucee.runtime.PageContext, int, DumpProperties)
 	 */
 	@Override
 	public DumpData toDumpData(PageContext pageContext, int maxlevel, DumpProperties dp) {
@@ -238,7 +238,7 @@ public final class StructImplKey extends StructSupport implements Struct {
 	}
 
 	/**
-	 * @see lucee.runtime.type.Iteratorable#iterator()
+	 * @see lucee.runtime.type.Iteratorable#valueIterator()
 	 */
 	@Override
 	public Iterator valueIterator() {
@@ -320,7 +320,7 @@ public final class StructImplKey extends StructSupport implements Struct {
 	}
 
 	/**
-	 * @see lucee.runtime.op.Castable#compare(boolean)
+	 * @see lucee.runtime.op.Castable#compareTo(boolean)
 	 */
 	@Override
 	public int compareTo(boolean b) throws ExpressionException {

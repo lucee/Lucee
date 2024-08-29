@@ -91,7 +91,6 @@ public final class OpNumber extends ExpressionBase implements ExprNumber {
 	 * @param operation
 	 * 
 	 * @return String expression
-	 * @throws TemplateException
 	 */
 	public static ExprNumber toExprNumber(Expression left, Expression right, int operation) {
 		return new OpNumber(left, right, operation);

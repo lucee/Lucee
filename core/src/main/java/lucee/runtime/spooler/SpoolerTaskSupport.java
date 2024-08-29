@@ -45,7 +45,7 @@ public abstract class SpoolerTaskSupport implements SpoolerTaskPro {
 	 * Constructor of the class
 	 * 
 	 * @param plans
-	 * @param timeOffset offset from the local time to the config time
+	 * @param nextExecution
 	 */
 	public SpoolerTaskSupport(ExecutionPlan[] plans, long nextExecution) {
 		this.plans = plans;

@@ -79,7 +79,7 @@ public final class XMLConverter extends ConverterSupport {
 	 * constructor of the class
 	 * 
 	 * @param timeZone
-	 * @param xmlConform define if generated xml conform output or wddx conform output (wddx is not xml
+	 * @param ignoreRemotingFetch
 	 *            conform)
 	 */
 	public XMLConverter(TimeZone timeZone, boolean ignoreRemotingFetch) {

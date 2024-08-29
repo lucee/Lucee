@@ -47,8 +47,9 @@ public final class Argument {
 	 * @param required
 	 * @param defaultValue
 	 * @param displayName
+	 * @param passByReference
+	 * @param displayName
 	 * @param hint
-	 * @param hint2
 	 * @param meta
 	 */
 	public Argument(Expression name, Expression type, Expression required, Expression defaultValue, ExprBoolean passByReference, Expression displayName, Expression hint,

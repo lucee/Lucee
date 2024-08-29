@@ -43,7 +43,9 @@ public final class Return extends StatementBaseNoFinal {
 	/**
 	 * Constructor of the class
 	 * 
-	 * @param line
+	 * @param f
+	 * @param start
+	 * @param end
 	 */
 	public Return(Factory f, Position start, Position end) {
 		super(f, start, end);
@@ -55,7 +57,8 @@ public final class Return extends StatementBaseNoFinal {
 	 * Constructor of the class
 	 * 
 	 * @param expr
-	 * @param line
+	 * @param start
+	 * @param end
 	 */
 	public Return(Expression expr, Position start, Position end) {
 		super(expr.getFactory(), start, end);

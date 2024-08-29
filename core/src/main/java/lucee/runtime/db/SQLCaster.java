@@ -71,10 +71,7 @@ public final class SQLCaster {
 	 * 
 	 * sets a Value to a PreparedStatement
 	 * 
-	 * @param stat
-	 * @param parameterIndex
 	 * @param item
-	 * @throws SQLException
 	 * @throws PageException
 	 * @throws DatabaseException
 	 */
@@ -623,8 +620,8 @@ public final class SQLCaster {
 	 * returns CF SQL Type as String
 	 * 
 	 * @param type
+	 * @param defaultValue
 	 * @return SQL Type as String
-	 * @throws DatabaseException
 	 */
 	public static String toStringType(int type, String defaultValue) {
 		switch (type) {

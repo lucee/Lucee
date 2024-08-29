@@ -66,10 +66,10 @@ public abstract class ExpressionBase implements Expression {
 	/**
 	 * write out the statement to the adapter
 	 * 
-	 * @param adapter
+	 * @param bc
 	 * @param mode
 	 * @return return Type of expression
-	 * @throws TemplateException
+	 * @throws TransformerException
 	 */
 	public abstract Type _writeOut(BytecodeContext bc, int mode) throws TransformerException;
 

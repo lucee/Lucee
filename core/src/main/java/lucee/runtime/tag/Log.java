@@ -136,7 +136,7 @@ public final class Log extends TagImpl {
 	/**
 	 * set the value time Specifies whether to log the system time.
 	 * 
-	 * @param time value to set
+	 * @param useTime value to set
 	 * @throws ApplicationException
 	 **/
 	public void setTime(boolean useTime) throws ApplicationException {
@@ -163,7 +163,7 @@ public final class Log extends TagImpl {
 	/**
 	 * set the value date Specifies whether to log the system date.
 	 * 
-	 * @param date value to set
+	 * @param useDate value to set
 	 * @throws ApplicationException
 	 **/
 	public void setDate(boolean useDate) throws ApplicationException {

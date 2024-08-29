@@ -108,9 +108,11 @@ public final class IOUtil {
 	/**
 	 * copy an inputstream to an outputstream
 	 * 
-	 * @param in
+	 * @param in1
+	 * @param in2
 	 * @param out
-	 * @param closeIS
+	 * @param closeIS1
+	 * @param closeIS2
 	 * @param closeOS
 	 * @throws IOException
 	 */
@@ -170,8 +172,9 @@ public final class IOUtil {
 	/**
 	 * copy an input resource to an output resource
 	 * 
-	 * @param in
+	 * @param is
 	 * @param out
+	 * @param closeIS
 	 * @throws IOException
 	 */
 	public static void copy(InputStream is, Resource out, boolean closeIS) throws IOException {
@@ -190,7 +193,8 @@ public final class IOUtil {
 	 * copy an input resource to an output resource
 	 * 
 	 * @param in
-	 * @param out
+	 * @param os
+	 * @param closeOS
 	 * @throws IOException
 	 */
 	public static void copy(Resource in, OutputStream os, boolean closeOS) throws IOException {
@@ -343,12 +347,10 @@ public final class IOUtil {
 	}
 
 	/**
-	 * copy data from in to out, if max is reached an exception is thrown, max must be the multiply of
-	 * blocksize
+	 * copy data from in to out, if max is reached an exception is thrown
 	 * 
 	 * @param in
 	 * @param out
-	 * @param blockSize
 	 * @param max
 	 * @throws IOException
 	 */
@@ -474,7 +476,6 @@ public final class IOUtil {
 	 * 
 	 * @param is
 	 * @param os
-	 * @throws IOException
 	 */
 	public static void closeEL(InputStream is, OutputStream os) {
 		closeEL(is);
@@ -592,7 +593,7 @@ public final class IOUtil {
 	/**
 	 * close Closeable, when null ignores it
 	 * 
-	 * @param r
+	 * @param c
 	 */
 	public static void close(Closeable c) throws IOException {
 		if (c != null) c.close();
@@ -616,7 +617,7 @@ public final class IOUtil {
 	/**
 	 * close Closeable without an Exception
 	 * 
-	 * @param r
+	 * @param c
 	 */
 	public static void closeEL(Closeable c) {
 		try {
@@ -979,7 +980,7 @@ public final class IOUtil {
 	 *             String to an object
 	 * @param file
 	 * @param string String to write to file
-	 * @param charset
+	 * @param strCharset
 	 * @param append append to cuuretn data or overwrite existing data
 	 * @throws IOException
 	 */
@@ -1169,7 +1170,7 @@ public final class IOUtil {
 	/**
 	 * flush OutputStream without an Exception
 	 * 
-	 * @param os
+	 * @param w
 	 */
 	public static void flushEL(Writer w) {
 		try {
@@ -1183,7 +1184,7 @@ public final class IOUtil {
 	 * check if given encoding is ok
 	 * 
 	 * @param encoding
-	 * @throws PageException
+	 * @throws IOException
 	 */
 	public static void checkEncoding(String encoding) throws IOException {
 		try {
@@ -1197,7 +1198,7 @@ public final class IOUtil {
 	/**
 	 * return the mime type of a file, dont check extension
 	 * 
-	 * @param barr
+	 * @param is
 	 * @param defaultValue
 	 * @return mime type of the file
 	 */
@@ -1214,8 +1215,8 @@ public final class IOUtil {
 	 * return the mime type of a file, dont check extension
 	 * 
 	 * @param barr
+	 * @param defaultValue
 	 * @return mime type of the file
-	 * @throws IOException
 	 */
 	public static String getMimeType(byte[] barr, String defaultValue) {
 		try {
@@ -1388,7 +1389,7 @@ public final class IOUtil {
 	/**
 	 * returns a Reader for the given InputStream
 	 * 
-	 * @param is
+	 * @param os
 	 * @param charset
 	 * @return Reader
 	 * @throws IOException

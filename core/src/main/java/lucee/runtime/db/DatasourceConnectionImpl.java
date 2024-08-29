@@ -67,10 +67,11 @@ public final class DatasourceConnectionImpl implements DatasourceConnectionPro, 
 	private boolean managed;
 
 	/**
+	 * @param pool
 	 * @param connection
 	 * @param datasource
-	 * @param pass
-	 * @param user
+	 * @param username
+	 * @param password
 	 */
 	public DatasourceConnectionImpl(DatasourceConnPool pool, Connection connection, DataSourcePro datasource, String username, String password) {
 		this.pool = pool;

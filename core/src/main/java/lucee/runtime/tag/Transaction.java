@@ -64,7 +64,7 @@ public final class Transaction extends BodyTagTryCatchFinallyImpl {
 	}
 
 	/**
-	 * @param action The action to set.
+	 * @param strAction The action to set.
 	 * @throws DatabaseException
 	 */
 	public void setAction(String strAction) throws DatabaseException {
@@ -96,7 +96,7 @@ public final class Transaction extends BodyTagTryCatchFinallyImpl {
 	}
 
 	/**
-	 * @param isolation The isolation to set.
+	 * @param savepoint The savepoint to set.
 	 * @throws DatabaseException
 	 */
 	public void setSavepoint(String savepoint) throws DatabaseException {

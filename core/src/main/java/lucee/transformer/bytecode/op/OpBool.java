@@ -43,7 +43,7 @@ public final class OpBool extends ExpressionBase implements ExprBoolean {
 
 	/**
 	 *
-	 * @see lucee.transformer.bytecode.expression.ExpressionBase#_writeOut(org.objectweb.asm.commons.GeneratorAdapter,
+	 * @see lucee.transformer.bytecode.expression.ExpressionBase#_writeOut(lucee.transformer.bytecode.BytecodeContext,
 	 *      int)
 	 */
 	@Override
@@ -122,9 +122,9 @@ public final class OpBool extends ExpressionBase implements ExprBoolean {
 	 * 
 	 * @param left
 	 * @param right
+	 * @param operation
 	 * 
 	 * @return String expression
-	 * @throws TemplateException
 	 */
 	public static ExprBoolean toExprBoolean(Expression left, Expression right, int operation) {
 		if (left instanceof Literal && right instanceof Literal) {

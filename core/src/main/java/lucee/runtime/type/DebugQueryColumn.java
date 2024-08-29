@@ -66,7 +66,6 @@ public final class DebugQueryColumn extends QueryColumnImpl implements QueryColu
 	 *
 	 * @param row
 	 * @return new row or existing
-	 * @throws DatabaseException
 	 */
 	@Override
 	public Object touch(int row) {
@@ -79,7 +78,6 @@ public final class DebugQueryColumn extends QueryColumnImpl implements QueryColu
 	 *
 	 * @param row
 	 * @return new row or existing
-	 * @throws DatabaseException
 	 */
 	@Override
 	public Object touchEL(int row) {

@@ -20,8 +20,10 @@ public final class LitNumberImpl extends ExpressionBase implements LitNumber, Ex
 	/**
 	 * constructor of the class
 	 * 
-	 * @param d
-	 * @param line
+	 * @param f
+	 * @param n
+	 * @param start
+	 * @param end
 	 */
 	public LitNumberImpl(Factory f, Number n, Position start, Position end) {
 		super(f, start, end);

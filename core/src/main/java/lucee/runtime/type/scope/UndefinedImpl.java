@@ -81,7 +81,7 @@ public final class UndefinedImpl extends StructSupport implements Undefined, Obj
 	/**
 	 * constructor of the class
 	 * 
-	 * @param pageContextImpl
+	 * @param pc
 	 * @param type type of the undefined scope
 	 *            (ServletConfig.SCOPE_STRICT;ServletConfig.SCOPE_SMALL;ServletConfig.SCOPE_STANDART)
 	 */
@@ -361,7 +361,6 @@ public final class UndefinedImpl extends StructSupport implements Undefined, Obj
 	/**
 	 * return a list of String with the scope names
 	 * 
-	 * @param key
 	 * @return
 	 */
 	@Override

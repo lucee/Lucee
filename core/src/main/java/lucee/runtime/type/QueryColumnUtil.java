@@ -220,7 +220,7 @@ public final class QueryColumnUtil implements Serializable {
 	/**
 	 * reorganize type of a column
 	 * 
-	 * @param reorganize
+	 * @param column
 	 */
 	protected static void reOrganizeType(QueryColumnImpl column) {
 		if ((column.type == Types.OTHER) && !column.typeChecked) {

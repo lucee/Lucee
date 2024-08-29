@@ -51,11 +51,11 @@ public final class OpNegateNumber extends ExpressionBase implements ExprNumber {
 	/**
 	 * Create a String expression from an Expression
 	 * 
-	 * @param left
-	 * @param right
+	 * @param expr
+	 * @param start
+	 * @param end
 	 * 
 	 * @return String expression
-	 * @throws TemplateException
 	 */
 	public static ExprNumber toExprNumber(Expression expr, Position start, Position end) {
 		if (expr instanceof Literal) {

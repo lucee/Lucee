@@ -36,7 +36,6 @@ public class FDSimpleVariable implements IFDVariable {
 	 * @param frame
 	 * @param name
 	 * @param value
-	 * @param children
 	 */
 	public FDSimpleVariable(IFDStackFrame frame, String name, IFDValue value) {
 		this.frame = frame;

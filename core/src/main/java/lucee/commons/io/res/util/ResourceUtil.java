@@ -580,9 +580,7 @@ public final class ResourceUtil {
 	/**
 	 * sets attributes of a file on Windows system
 	 * 
-	 * @param res
 	 * @param attributes
-	 * @throws PageException
 	 * @throws IOException
 	 */
 	public static String translateAttribute(String attributes) throws IOException {
@@ -956,7 +954,8 @@ public final class ResourceUtil {
 	}
 
 	/**
-	 * @param res delete the content of a directory
+	 * @param src delete the content of a directory
+	 * @param filter
 	 */
 
 	public static void deleteContent(Resource src, ResourceFilter filter) {
@@ -988,9 +987,9 @@ public final class ResourceUtil {
 	/**
 	 * copy a file or directory recursive (with his content)
 	 * 
-	 * @param res file or directory to delete
+	 * @param src file or directory to delete
+	 * @param trg
 	 * @throws IOException
-	 * @throws FileNotFoundException
 	 */
 	public static void copyRecursive(Resource src, Resource trg) throws IOException {
 		copyRecursive(src, trg, null);
@@ -1189,7 +1188,7 @@ public final class ResourceUtil {
 	 * return the size of the Resource, other than method length of Resource this method return the size
 	 * of all files in a directory
 	 * 
-	 * @param collectionDir
+	 * @param res
 	 * @return
 	 */
 	public static long getRealSize(Resource res) {
@@ -1200,7 +1199,8 @@ public final class ResourceUtil {
 	 * return the size of the Resource, other than method length of Resource this method return the size
 	 * of all files in a directory
 	 * 
-	 * @param collectionDir
+	 * @param res
+	 * @param filter
 	 * @return
 	 */
 	public static long getRealSize(Resource res, ResourceFilter filter) {

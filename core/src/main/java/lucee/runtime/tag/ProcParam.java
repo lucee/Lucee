@@ -49,7 +49,7 @@ public class ProcParam extends TagSupport {
 	}
 
 	/**
-	 * @param ignoreNull The ignoreNull to set.
+	 * @param _null The ignoreNull to set.
 	 */
 	public void setNull(boolean _null) {
 		param.setNull(_null);

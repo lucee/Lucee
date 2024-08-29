@@ -85,7 +85,7 @@ public final class Calendar extends TagImpl {
 	}
 
 	/**
-	 * @param dayNames the dayNames to set
+	 * @param listDayNames the dayNames to set
 	 */
 	public void setDaynames(String listDayNames) {
 		this.dayNames = ListUtil.listToStringArray(listDayNames, ',');
@@ -134,7 +134,7 @@ public final class Calendar extends TagImpl {
 	}
 
 	/**
-	 * @param monthNames the monthNames to set
+	 * @param listMonthNames the monthNames to set
 	 */
 	public void setMonthnames(String listMonthNames) {
 		this.monthNames = monthNames;

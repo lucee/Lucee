@@ -51,8 +51,10 @@ public final class LitBooleanImpl extends ExpressionBase implements LitBoolean, 
 	/**
 	 * constructor of the class
 	 * 
+	 * @param f
 	 * @param b
-	 * @param line
+	 * @param start
+	 * @param end
 	 */
 	public LitBooleanImpl(Factory f, boolean b, Position start, Position end) {
 		super(f, start, end);
@@ -104,7 +106,7 @@ public final class LitBooleanImpl extends ExpressionBase implements LitBoolean, 
 
 	/**
 	 *
-	 * @see lucee.transformer.bytecode.expression.ExpressionBase#_writeOut(org.objectweb.asm.commons.GeneratorAdapter,
+	 * @see lucee.transformer.bytecode.expression.ExpressionBase#_writeOut(lucee.transformer.bytecode.BytecodeContext,
 	 *      int)
 	 */
 	@Override

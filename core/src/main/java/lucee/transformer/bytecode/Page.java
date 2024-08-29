@@ -262,13 +262,14 @@ public final class Page extends BodyBase implements Root {
 	 * @param factory
 	 * @param config
 	 * @param sc SourceCode for this Page
-	 * @param className name of the class produced (pattern: org.whatever.Susi)
 	 * @param tc
 	 * @param version
 	 * @param lastModifed
 	 * @param writeLog
 	 * @param suppressWSbeforeArg
-	 * @param dotNotationUpperCase
+	 * @param output
+	 * @param returnValue
+	 * @param ignoreScopes
 	 */
 	public Page(Factory factory, Config config, SourceCode sc, TagCIObject tc, long version, long lastModifed, boolean writeLog, boolean suppressWSbeforeArg, boolean output,
 			boolean returnValue, boolean ignoreScopes) {
@@ -292,7 +293,7 @@ public final class Page extends BodyBase implements Root {
 	/**
 	 * convert the Page Object to java bytecode
 	 * 
-	 * @param cn name of the genrated class (only necessary when Page object has no PageSource
+	 * @param className name of the genrated class (only necessary when Page object has no PageSource
 	 *            reference)
 	 * @return
 	 * @throws TransformerException

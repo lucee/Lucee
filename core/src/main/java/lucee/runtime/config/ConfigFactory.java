@@ -976,8 +976,6 @@ public abstract class ConfigFactory {
 	 * 
 	 * @param resource
 	 * @param file
-	 * @param password
-	 * @throws IOException
 	 */
 	public static void createFileFromResourceEL(String resource, Resource file) {
 		if (file.exists()) file.delete();

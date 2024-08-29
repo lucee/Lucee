@@ -20,8 +20,10 @@ public class LitStringImpl extends ExpressionBase implements LitString, ExprStri
 	/**
 	 * constructor of the class
 	 * 
+	 * @param f
 	 * @param str
-	 * @param line
+	 * @param start
+	 * @param end
 	 */
 	public LitStringImpl(Factory f, String str, Position start, Position end) {
 		super(f, start, end);

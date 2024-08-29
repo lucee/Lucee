@@ -267,7 +267,6 @@ public final class Cache extends BodyTagImpl {
 
 	/**
 	 * @param timespan The timespan to set.
-	 * @throws PageException
 	 */
 	public void setTimespan(TimeSpan timespan) {
 		this.timespan = timespan;
@@ -469,7 +468,7 @@ public final class Cache extends BodyTagImpl {
 	}
 
 	/**
-	 * @param id the id to set
+	 * @param _id the id to set
 	 */
 	public void set_id(String _id) {
 		this._id = _id;

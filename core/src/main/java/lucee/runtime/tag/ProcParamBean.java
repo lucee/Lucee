@@ -49,7 +49,7 @@ public class ProcParamBean implements SQLItem {
 	}
 
 	/**
-	 * @param cfsqltype The cfsqltype to set.
+	 * @param sqlType The cfsqltype to set.
 	 */
 	@Override
 	public void setType(int sqlType) {
@@ -64,7 +64,7 @@ public class ProcParamBean implements SQLItem {
 	}
 
 	/**
-	 * @param ignoreNull The ignoreNull to set.
+	 * @param _null The ignoreNull to set.
 	 */
 	public void setNull(boolean _null) {
 		this._null = _null;
@@ -108,7 +108,7 @@ public class ProcParamBean implements SQLItem {
 	}
 
 	/**
-	 * @param type The type to set.
+	 * @param direction The direction to set.
 	 */
 	public void setDirection(int direction) {
 		this.direction = direction;

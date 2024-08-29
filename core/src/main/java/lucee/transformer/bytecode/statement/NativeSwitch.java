@@ -138,7 +138,7 @@ public final class NativeSwitch extends StatementBaseNoFinal implements FlowCont
 
 	/**
 	 *
-	 * @see lucee.transformer.bytecode.statement.FlowControl#getBreakLabel()
+	 * @see lucee.transformer.bytecode.statement.FlowControl#getLabel()
 	 */
 	@Override
 	public Label getBreakLabel() {
@@ -147,7 +147,7 @@ public final class NativeSwitch extends StatementBaseNoFinal implements FlowCont
 
 	/**
 	 *
-	 * @see lucee.transformer.bytecode.statement.FlowControl#getContinueLabel()
+	 * @see lucee.transformer.bytecode.statement.FlowControl#getLabel()
 	 */
 	@Override
 	public Label getContinueLabel() {

@@ -1791,8 +1791,9 @@ public final class ListUtil {
 	/**
 	 * returns the 0-based delimiter position for the specified item
 	 *
-	 * @param list
+	 * @param sb
 	 * @param itemPos
+	 * @param delims
 	 * @param ignoreEmpty
 	 * @return
 	 */

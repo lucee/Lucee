@@ -40,7 +40,7 @@ public interface Invoker extends Expression, Listenable {
 	/**
 	 * remove a member
 	 * 
-	 * @param member
+	 * @param index
 	 */
 	public Member removeMember(int index);
 

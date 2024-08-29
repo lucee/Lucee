@@ -33,7 +33,7 @@ public final class XMLAttrStruct extends XMLNodeStruct implements Attr {
 	/**
 	 * constructor of the class
 	 * 
-	 * @param section
+	 * @param attr
 	 * @param caseSensitive
 	 */
 	public XMLAttrStruct(Attr attr, boolean caseSensitive) {

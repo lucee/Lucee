@@ -40,8 +40,10 @@ public final class LitIntegerImpl extends ExpressionBase implements LitInteger, 
 	/**
 	 * constructor of the class
 	 * 
-	 * @param d
-	 * @param line
+	 * @param f
+	 * @param i
+	 * @param start
+	 * @param end
 	 */
 	public LitIntegerImpl(Factory f, int i, Position start, Position end) {
 		super(f, start, end);
@@ -97,8 +99,8 @@ public final class LitIntegerImpl extends ExpressionBase implements LitInteger, 
 	}
 
 	/**
-	 * @see lucee.transformer.expression.Expression#_writeOut(org.objectweb.asm.commons.GeneratorAdapter,
-	 *      int)
+	 * lucee.transformer.expression.Expression#_writeOut(lucee.transformer.bytecode.BytecodeContext,int)
+	 * 
 	 */
 	@Override
 	public Type _writeOut(BytecodeContext bc, int mode) {

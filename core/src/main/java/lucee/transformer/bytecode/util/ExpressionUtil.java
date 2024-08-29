@@ -66,9 +66,8 @@ public final class ExpressionUtil {
 	/**
 	 * visit line number
 	 * 
-	 * @param adapter
-	 * @param line
-	 * @param silent id silent this is ignored for log
+	 * @param bc
+	 * @param pos
 	 */
 	public void visitLine(BytecodeContext bc, Position pos) {
 		if (pos != null) {

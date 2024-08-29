@@ -191,10 +191,7 @@ public final class PageSourceImpl implements PageSource {
 	/**
 	 * return page when already loaded, otherwise null
 	 * 
-	 * @param pc
-	 * @param config
 	 * @return
-	 * @throws PageException
 	 */
 	public Page getPage() {
 		return pcn.page;
@@ -956,7 +953,7 @@ public final class PageSourceImpl implements PageSource {
 	/**
 	 * is given object equal to this
 	 * 
-	 * @param other
+	 * @param ps
 	 * @return is same
 	 */
 	public boolean equals(PageSource ps) {
@@ -1140,8 +1137,8 @@ public final class PageSourceImpl implements PageSource {
 	 * 
 	 * @param pc
 	 * @param ps
+	 * @param defaultValue
 	 * @return
-	 * @throws PageException
 	 */
 	public static boolean isTemplate(PageContext pc, PageSource ps, boolean defaultValue) {
 		try {

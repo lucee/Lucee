@@ -28,8 +28,9 @@ public class TagImport extends TagBaseNoFinal {
 	/**
 	 * Constructor of the class
 	 * 
-	 * @param startLine
-	 * @param endLine
+	 * @param f
+	 * @param start
+	 * @param end
 	 */
 	public TagImport(Factory f, Position start, Position end) {
 		super(f, start, end);

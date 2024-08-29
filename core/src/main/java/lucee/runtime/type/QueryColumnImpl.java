@@ -255,7 +255,6 @@ public class QueryColumnImpl implements QueryColumnPro, Objects {
 	 *
 	 * @param row
 	 * @return new row or existing
-	 * @throws DatabaseException
 	 */
 	public Object touch(int row) {
 		if (row < 1 || row > size()) return NullSupportHelper.full() ? null : "";
@@ -269,7 +268,6 @@ public class QueryColumnImpl implements QueryColumnPro, Objects {
 	 *
 	 * @param row
 	 * @return new row or existing
-	 * @throws DatabaseException
 	 */
 	public Object touchEL(int row) {
 		return touch(row);

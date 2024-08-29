@@ -112,14 +112,14 @@ import lucee.transformer.library.function.FunctionLibFunctionArg;
     xorOp          = orOp {"xor" spaces  orOp};
     orOp           = andOp {("or" | "||") spaces andOp}; 
             (* "||" Existiert in CFMX nicht *)
-    andOp          = notOp {("and" | "&&") spaces notOp}; 
-            (* "&&" Existiert in CFMX nicht *) 
+    andOp          = notOp {("and" | "&amp;&amp;") spaces notOp}; 
+            (* "&amp;&amp;" Existiert in CFMX nicht *) 
     notOp          = [("not"|"!") spaces] decsionOp; 
             (* "!" Existiert in CFMX nicht *)
     decsionOp      = concatOp {("neq"|"eq"|"gte"|"gt"|"lte"|"lt"|"ct"|
                      "contains"|"nct"|"does not contain") spaces concatOp}; 
             (* "ct"=conatains und "nct"=does not contain; Existiert in CFMX nicht *)
-    concatOp       = plusMinusOp {"&" spaces plusMinusOp};
+    concatOp       = plusMinusOp {"&amp;" spaces plusMinusOp};
     plusMinusOp    = modOp {("-"|"+") spaces modOp};
     
     modOp          = divMultiOp {("mod" | "%") spaces divMultiOp}; 

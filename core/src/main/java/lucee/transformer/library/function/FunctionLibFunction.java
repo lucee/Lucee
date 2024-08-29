@@ -184,7 +184,6 @@ public final class FunctionLibFunction {
 	 * Gibt die Klasse zurueck, welche diese Funktion implementiert.
 	 * 
 	 * @return Klasse der Function.
-	 * @throws ClassException
 	 */
 	public ClassDefinition getFunctionClassDefinition() {
 		return functionCD;

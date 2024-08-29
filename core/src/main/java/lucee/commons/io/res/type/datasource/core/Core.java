@@ -38,9 +38,10 @@ public interface Core {
 	 * return a single Attr, if Attr does not exist it returns null
 	 * 
 	 * @param dc
+	 * @param prefix
+	 * @param fullPathHash
 	 * @param path
 	 * @param name
-	 * @param name2
 	 * @return
 	 * @throws SQLException
 	 */

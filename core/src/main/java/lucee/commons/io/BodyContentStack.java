@@ -47,7 +47,7 @@ public final class BodyContentStack {
 	/**
 	 * initialize the BodyContentStack
 	 * 
-	 * @param rsp
+	 * @param writer
 	 */
 	public void init(CFMLWriter writer) {
 		this.base = writer;

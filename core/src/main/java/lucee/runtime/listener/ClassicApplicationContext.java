@@ -389,7 +389,7 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 	}
 
 	/**
-	 * @param sessionTimeout The sessionTimeout to set.
+	 * @param clientTimeout The clientTimeout to set.
 	 */
 	@Override
 	public void setClientTimeout(TimeSpan clientTimeout) {
@@ -493,7 +493,7 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 	}
 
 	/**
-	 * @param scriptProtect The scriptProtect to set.
+	 * @param typeChecking The typeChecking to set.
 	 */
 	@Override
 	public void setTypeChecking(boolean typeChecking) {
@@ -716,7 +716,7 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 	}
 
 	/**
-	 * @return the sessionType
+	 * @param sessionType the sessionType
 	 */
 	@Override
 	public void setSessionType(short sessionType) {

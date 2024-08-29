@@ -130,7 +130,6 @@ public final class LDAPClient {
 	 * sets the secure Level
 	 * 
 	 * @param secureLevel [SECURE_CFSSL_BASIC, SECURE_CFSSL_CLIENT_AUTH, SECURE_NONE]
-	 * @throws ClassNotFoundException
 	 * @throws ClassException
 	 */
 	public void setSecureLevel(short secureLevel) throws ClassException {
@@ -265,7 +264,6 @@ public final class LDAPClient {
 	}
 
 	/**
-	 * @param dn
 	 * @param strAttributes
 	 * @param scope
 	 * @param startrow

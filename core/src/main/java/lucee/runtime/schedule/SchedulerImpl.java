@@ -61,11 +61,9 @@ public final class SchedulerImpl implements Scheduler {
 	/**
 	 * constructor of the sheduler
 	 * 
+	 * @param engine
 	 * @param config
-	 * @param schedulerDir schedule file
-	 * @param log
-	 * @throws IOException
-	 * @throws SAXException
+	 * @param tasks
 	 * @throws PageException
 	 */
 	public SchedulerImpl(CFMLEngine engine, Config config, Array tasks) throws PageException {
@@ -79,11 +77,8 @@ public final class SchedulerImpl implements Scheduler {
 	 * creates an empty Scheduler, used for event gateway context
 	 * 
 	 * @param engine
+	 * @param xml
 	 * @param config
-	 * @param log
-	 * @throws SAXException
-	 * @throws IOException
-	 * @throws PageException
 	 */
 	public SchedulerImpl(CFMLEngine engine, String xml, Config config) {
 		this.engine = (CFMLEngineImpl) engine;

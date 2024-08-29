@@ -135,9 +135,8 @@ public final class TagHelper {
 	 * @param tag
 	 * @param bc
 	 * @param doReuse
+	 * @param fcf
 	 * @throws TransformerException
-	 * @throws BundleException
-	 * @throws ClassException
 	 */
 	public static void writeOut(Tag tag, BytecodeContext bc, boolean doReuse, final FlowControlFinal fcf) throws TransformerException {
 		final GeneratorAdapter adapter = bc.getAdapter();

@@ -136,7 +136,7 @@ public class BytecodeContext implements Context {
 	}
 
 	/**
-	 * @param count the count to set
+	 * @return the incremented count
 	 */
 	public int incCount() {
 		return ++this.count;
@@ -154,7 +154,7 @@ public class BytecodeContext implements Context {
 	}
 
 	/**
-	 * @param adapter the adapter to set
+	 * @param bc the bytecode content to set
 	 */
 	public void setAdapter(BytecodeContext bc) {
 		this.adapter = bc.getAdapter();

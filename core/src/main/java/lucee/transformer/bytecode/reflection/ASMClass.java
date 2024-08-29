@@ -75,9 +75,6 @@ public final class ASMClass implements java.io.Serializable {
 	 *
 	 *                <ul>
 	 *
-	 *                <li>invocation of {@link SecurityManager#checkMemberAccess
-	 *                s.checkMemberAccess(this, Member.PUBLIC)} denies creation of new instances of this
-	 *                class
 	 *
 	 *                <li>the caller's class loader is not the same as or an ancestor of the class
 	 *                loader for the current class and invocation of
@@ -162,7 +159,8 @@ public final class ASMClass implements java.io.Serializable {
 	 * depth of the array nesting. The encoding of element type names is as follows:
 	 *
 	 * <blockquote>
-	 * <table summary="Element types and encodings">
+	 * <table>
+	 * <caption>Element types and encodings</caption>
 	 * <tr>
 	 * <th>Element Type
 	 * <th>&nbsp;&nbsp;&nbsp;
@@ -170,39 +168,39 @@ public final class ASMClass implements java.io.Serializable {
 	 * <tr>
 	 * <td>boolean
 	 * <td>&nbsp;&nbsp;&nbsp;
-	 * <td align=center>Z
+	 * <td>Z
 	 * <tr>
 	 * <td>byte
 	 * <td>&nbsp;&nbsp;&nbsp;
-	 * <td align=center>B
+	 * <td>B
 	 * <tr>
 	 * <td>char
 	 * <td>&nbsp;&nbsp;&nbsp;
-	 * <td align=center>C
+	 * <td>C
 	 * <tr>
 	 * <td>class or interface
 	 * <td>&nbsp;&nbsp;&nbsp;
-	 * <td align=center>L<i>classname</i>;
+	 * <td>L<i>classname</i>;
 	 * <tr>
 	 * <td>double
 	 * <td>&nbsp;&nbsp;&nbsp;
-	 * <td align=center>D
+	 * <td>D
 	 * <tr>
 	 * <td>float
 	 * <td>&nbsp;&nbsp;&nbsp;
-	 * <td align=center>F
+	 * <td>F
 	 * <tr>
 	 * <td>int
 	 * <td>&nbsp;&nbsp;&nbsp;
-	 * <td align=center>I
+	 * <td>I
 	 * <tr>
 	 * <td>long
 	 * <td>&nbsp;&nbsp;&nbsp;
-	 * <td align=center>J
+	 * <td>J
 	 * <tr>
 	 * <td>short
 	 * <td>&nbsp;&nbsp;&nbsp;
-	 * <td align=center>S
+	 * <td>S
 	 * </table>
 	 * </blockquote>
 	 *
@@ -422,9 +420,6 @@ public final class ASMClass implements java.io.Serializable {
 	 *
 	 *                <ul>
 	 *
-	 *                <li>invocation of {@link SecurityManager#checkMemberAccess
-	 *                s.checkMemberAccess(this, Member.PUBLIC)} method denies access to the classes
-	 *                within this class
 	 *
 	 *                <li>the caller's class loader is not the same as or an ancestor of the class
 	 *                loader for the current class and invocation of
@@ -465,10 +460,6 @@ public final class ASMClass implements java.io.Serializable {
 	 *
 	 *                <ul>
 	 *
-	 *                <li>invocation of {@link SecurityManager#checkMemberAccess
-	 *                s.checkMemberAccess(this, Member.PUBLIC)} denies access to the fields within this
-	 *                class
-	 *
 	 *                <li>the caller's class loader is not the same as or an ancestor of the class
 	 *                loader for the current class and invocation of
 	 *                {@link SecurityManager#checkPackageAccess s.checkPackageAccess()} denies access to
@@ -507,9 +498,6 @@ public final class ASMClass implements java.io.Serializable {
 	 *
 	 *                <ul>
 	 *
-	 *                <li>invocation of {@link SecurityManager#checkMemberAccess
-	 *                s.checkMemberAccess(this, Member.PUBLIC)} denies access to the methods within this
-	 *                class
 	 *
 	 *                <li>the caller's class loader is not the same as or an ancestor of the class
 	 *                loader for the current class and invocation of
@@ -545,10 +533,6 @@ public final class ASMClass implements java.io.Serializable {
 	 *                conditions is met:
 	 *
 	 *                <ul>
-	 *
-	 *                <li>invocation of {@link SecurityManager#checkMemberAccess
-	 *                s.checkMemberAccess(this, Member.PUBLIC)} denies access to the constructors within
-	 *                this class
 	 *
 	 *                <li>the caller's class loader is not the same as or an ancestor of the class
 	 *                loader for the current class and invocation of
@@ -593,9 +577,6 @@ public final class ASMClass implements java.io.Serializable {
 	 *                conditions is met:
 	 *
 	 *                <ul>
-	 *
-	 *                <li>invocation of {@link SecurityManager#checkMemberAccess
-	 *                s.checkMemberAccess(this, Member.PUBLIC)} denies access to the field
 	 *
 	 *                <li>the caller's class loader is not the same as or an ancestor of the class
 	 *                loader for the current class and invocation of
@@ -659,9 +640,6 @@ public final class ASMClass implements java.io.Serializable {
 	 *
 	 *                <ul>
 	 *
-	 *                <li>invocation of {@link SecurityManager#checkMemberAccess
-	 *                s.checkMemberAccess(this, Member.PUBLIC)} denies access to the method
-	 *
 	 *                <li>the caller's class loader is not the same as or an ancestor of the class
 	 *                loader for the current class and invocation of
 	 *                {@link SecurityManager#checkPackageAccess s.checkPackageAccess()} denies access to
@@ -698,9 +676,6 @@ public final class ASMClass implements java.io.Serializable {
 	 *
 	 *                <ul>
 	 *
-	 *                <li>invocation of {@link SecurityManager#checkMemberAccess
-	 *                s.checkMemberAccess(this, Member.PUBLIC)} denies access to the constructor
-	 *
 	 *                <li>the caller's class loader is not the same as or an ancestor of the class
 	 *                loader for the current class and invocation of
 	 *                {@link SecurityManager#checkPackageAccess s.checkPackageAccess()} denies access to
@@ -728,10 +703,6 @@ public final class ASMClass implements java.io.Serializable {
 	 *                conditions is met:
 	 *
 	 *                <ul>
-	 *
-	 *                <li>invocation of {@link SecurityManager#checkMemberAccess
-	 *                s.checkMemberAccess(this, Member.DECLARED)} denies access to the declared classes
-	 *                within this class
 	 *
 	 *                <li>the caller's class loader is not the same as or an ancestor of the class
 	 *                loader for the current class and invocation of
@@ -763,10 +734,6 @@ public final class ASMClass implements java.io.Serializable {
 	 *                conditions is met:
 	 *
 	 *                <ul>
-	 *
-	 *                <li>invocation of {@link SecurityManager#checkMemberAccess
-	 *                s.checkMemberAccess(this, Member.DECLARED)} denies access to the declared fields
-	 *                within this class
 	 *
 	 *                <li>the caller's class loader is not the same as or an ancestor of the class
 	 *                loader for the current class and invocation of
@@ -801,10 +768,6 @@ public final class ASMClass implements java.io.Serializable {
 	 *
 	 *                <ul>
 	 *
-	 *                <li>invocation of {@link SecurityManager#checkMemberAccess
-	 *                s.checkMemberAccess(this, Member.DECLARED)} denies access to the declared methods
-	 *                within this class
-	 *
 	 *                <li>the caller's class loader is not the same as or an ancestor of the class
 	 *                loader for the current class and invocation of
 	 *                {@link SecurityManager#checkPackageAccess s.checkPackageAccess()} denies access to
@@ -837,10 +800,6 @@ public final class ASMClass implements java.io.Serializable {
 	 *
 	 *                <ul>
 	 *
-	 *                <li>invocation of {@link SecurityManager#checkMemberAccess
-	 *                s.checkMemberAccess(this, Member.DECLARED)} denies access to the declared
-	 *                constructors within this class
-	 *
 	 *                <li>the caller's class loader is not the same as or an ancestor of the class
 	 *                loader for the current class and invocation of
 	 *                {@link SecurityManager#checkPackageAccess s.checkPackageAccess()} denies access to
@@ -869,9 +828,6 @@ public final class ASMClass implements java.io.Serializable {
 	 *                conditions is met:
 	 *
 	 *                <ul>
-	 *
-	 *                <li>invocation of {@link SecurityManager#checkMemberAccess
-	 *                s.checkMemberAccess(this, Member.DECLARED)} denies access to the declared field
 	 *
 	 *                <li>the caller's class loader is not the same as or an ancestor of the class
 	 *                loader for the current class and invocation of
@@ -908,9 +864,6 @@ public final class ASMClass implements java.io.Serializable {
 	 *
 	 *                <ul>
 	 *
-	 *                <li>invocation of {@link SecurityManager#checkMemberAccess
-	 *                s.checkMemberAccess(this, Member.DECLARED)} denies access to the declared method
-	 *
 	 *                <li>the caller's class loader is not the same as or an ancestor of the class
 	 *                loader for the current class and invocation of
 	 *                {@link SecurityManager#checkPackageAccess s.checkPackageAccess()} denies access to
@@ -942,10 +895,6 @@ public final class ASMClass implements java.io.Serializable {
 	 *
 	 *                <ul>
 	 *
-	 *                <li>invocation of {@link SecurityManager#checkMemberAccess
-	 *                s.checkMemberAccess(this, Member.DECLARED)} denies access to the declared
-	 *                constructor
-	 *
 	 *                <li>the caller's class loader is not the same as or an ancestor of the class
 	 *                loader for the current class and invocation of
 	 *                {@link SecurityManager#checkPackageAccess s.checkPackageAccess()} denies access to
@@ -972,7 +921,7 @@ public final class ASMClass implements java.io.Serializable {
 	 *
 	 * <ul>
 	 *
-	 * <li>If the {@code name} begins with a {@code '/'} (<tt>'&#92;u002f'</tt>), then the absolute name
+	 * <li>If the {@code name} begins with a {@code '/'} (<code>'&#92;u002f'</code>), then the absolute name
 	 * of the resource is the portion of the {@code name} following the {@code '/'}.
 	 *
 	 * <li>Otherwise, the absolute name is of the following form:
@@ -981,7 +930,7 @@ public final class ASMClass implements java.io.Serializable {
 	 *
 	 * <p>
 	 * Where the {@code modified_package_name} is the package name of this object with {@code '/'}
-	 * substituted for {@code '.'} (<tt>'&#92;u002e'</tt>).
+	 * substituted for {@code '.'} (<code>'&#92;u002e'</code>).
 	 *
 	 * </ul>
 	 *
@@ -1008,7 +957,7 @@ public final class ASMClass implements java.io.Serializable {
 	 *
 	 * <ul>
 	 *
-	 * <li>If the {@code name} begins with a {@code '/'} (<tt>'&#92;u002f'</tt>), then the absolute name
+	 * <li>If the {@code name} begins with a {@code '/'} (<code>'&#92;u002f'</code>), then the absolute name
 	 * of the resource is the portion of the {@code name} following the {@code '/'}.
 	 *
 	 * <li>Otherwise, the absolute name is of the following form:
@@ -1017,7 +966,7 @@ public final class ASMClass implements java.io.Serializable {
 	 *
 	 * <p>
 	 * Where the {@code modified_package_name} is the package name of this object with {@code '/'}
-	 * substituted for {@code '.'} (<tt>'&#92;u002e'</tt>).
+	 * substituted for {@code '.'} (<code>'&#92;u002e'</code>).
 	 *
 	 * </ul>
 	 *

@@ -54,7 +54,9 @@ public abstract class StorageScopeFile extends StorageScopeImpl {
 	 * Constructor of the class
 	 * 
 	 * @param pc
-	 * @param name
+	 * @param res
+	 * @param strType
+	 * @param type
 	 * @param sct
 	 */
 	protected StorageScopeFile(PageContext pc, Resource res, String strType, int type, Struct sct) {

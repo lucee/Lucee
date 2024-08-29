@@ -47,7 +47,10 @@ public final class FunctionHandlerPool {
 	/**
 	 * return a tag to use from a class
 	 * 
-	 * @param tagClass
+	 * @param pc
+	 * @param className
+	 * @param bundleName
+	 * @param bundleVersion
 	 * @return Tag
 	 * @throws PageException
 	 */

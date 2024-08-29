@@ -40,8 +40,9 @@ public class FDUDF extends FDValueNotMutability {
 	/**
 	 * Constructor of the class
 	 * 
+	 * @param frame
 	 * @param name
-	 * @param coll
+	 * @param udf
 	 */
 	public FDUDF(IFDStackFrame frame, String name, UDF udf) {
 		this.name = name;

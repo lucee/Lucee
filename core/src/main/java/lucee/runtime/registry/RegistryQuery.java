@@ -40,7 +40,7 @@ public final class RegistryQuery {
 	/**
 	 * execute a String query on command line
 	 * 
-	 * @param query String to execute
+	 * @param cmd String to execute
 	 * @return
 	 * @throws IOException
 	 * @throws InterruptedException

@@ -57,6 +57,7 @@ public final class SecurityManagerImpl implements Cloneable, SecurityManager {
 	 * @param mail
 	 * @param datasource
 	 * @param mapping
+	 * @param remote
 	 * @param customTag
 	 * @param cfxSetting
 	 * @param cfxUsage
@@ -67,8 +68,11 @@ public final class SecurityManagerImpl implements Cloneable, SecurityManager {
 	 * @param tagImport
 	 * @param tagObject
 	 * @param tagRegistry
-	 * @param t
+	 * @param cache
+	 * @param gateway
+	 * @param orm
 	 * @param accessRead
+	 * @param accessWrite
 	 */
 	public SecurityManagerImpl(short setting, short file, short directJavaAccess, short mail, short datasource, short mapping, short remote, short customTag, short cfxSetting,
 			short cfxUsage, short debugging, short search, short scheduledTasks, short tagExecute, short tagImport, short tagObject, short tagRegistry, short cache, short gateway,

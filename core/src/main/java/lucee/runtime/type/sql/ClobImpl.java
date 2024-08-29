@@ -45,8 +45,8 @@ import lucee.runtime.op.Caster;
  * the data itself. A <code>Clob</code> object is valid for the duration of the transaction in which
  * is was created.
  * <p>
- * Methods in the interfaces {@link DriverResultSet},{@link CallableStatement}, and
- * {@link PreparedStatement}, such as <code>getClob</code> and <code>setClob</code> allow a
+ * Methods in the interfaces  DriverResultSet,{@link java.sql.CallableStatement}, and
+ * {@link java.sql.PreparedStatement}, such as <code>getClob</code> and <code>setClob</code> allow a
  * programmer to access an SQL <code>CLOB</code> value. The <code>Clob</code> interface provides
  * methods for getting the length of an SQL <code>CLOB</code> (Character Large Object) value, for
  * materializing a <code>CLOB</code> value on the client, and for determining the position of a
@@ -117,7 +117,7 @@ public final class ClobImpl implements java.sql.Clob, Serializable {
 	}
 
 	/**
-	 * Materializes the <code>CLOB</code> value designated by this <Code>object
+	 * Materializes the <code>CLOB</code> value designated by this <code>object</code>
 	 * as a stream of Unicode character.
 	 * 
 	 * &#64;return A reader object with all the data in the <code>CLOB</code> value designated by this

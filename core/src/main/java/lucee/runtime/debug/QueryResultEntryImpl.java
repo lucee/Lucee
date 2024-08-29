@@ -39,9 +39,12 @@ public final class QueryResultEntryImpl implements QueryEntry {
 	/**
 	 * constructor of the class
 	 * 
+	 * @param qr
+	 * @param datasource
+	 * @param name
+	 * @param sql
 	 * @param recordcount
-	 * @param query
-	 * @param src
+	 * @param tl
 	 * @param exe
 	 */
 	public QueryResultEntryImpl(QueryResult qr, String datasource, String name, SQL sql, int recordcount, TemplateLine tl, long exe) {

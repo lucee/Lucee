@@ -90,7 +90,6 @@ public final class XMLEventParser extends DefaultHandler {
 	 * start execution of the parser
 	 * 
 	 * @param xmlFile
-	 * @param saxParserCass
 	 * @throws PageException
 	 */
 	public void start(Resource xmlFile) throws PageException {
