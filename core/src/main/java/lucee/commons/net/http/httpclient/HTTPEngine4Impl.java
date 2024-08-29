@@ -56,6 +56,7 @@ import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.AuthCache;
 import org.apache.http.client.CookieStore;
 import org.apache.http.client.CredentialsProvider;
+import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.client.config.CookieSpecs;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpDelete;
@@ -92,6 +93,7 @@ import org.apache.http.protocol.HttpContext;
 
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.TemporaryStream;
+import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.ExceptionUtil;
@@ -292,20 +294,25 @@ public class HTTPEngine4Impl {
 
 		PoolingHttpClientConnectionManager cm = connectionManagers.get(key);
 		if (cm == null || isShutDown(cm, true)) {
-
-			// if (connMan == null || isShutDown(true)) {
 			cm = new PoolingHttpClientConnectionManager(new DefaultHttpClientConnectionOperatorImpl(reg), null, POOL_CONN_TTL_MS, TimeUnit.MILLISECONDS);
 			cm.setDefaultMaxPerRoute(POOL_MAX_CONN_PER_ROUTE);
 			cm.setMaxTotal(POOL_MAX_CONN);
 			cm.setDefaultSocketConfig(SocketConfig.copy(SocketConfig.DEFAULT).setTcpNoDelay(true).setSoReuseAddress(true).setSoLinger(0).build());
-			cm.setValidateAfterInactivity(POOL_CONN_INACTIVITY_DURATION);
-			// }
-
+			// cm.setValidateAfterInactivity(POOL_CONN_INACTIVITY_DURATION);
 			connectionManagers.put(key, cm);
 		}
 		HttpClientBuilder builder = HttpClients.custom();
-		builder.setConnectionManager(cm).setConnectionManagerShared(true).setConnectionTimeToLive(POOL_CONN_TTL_MS, TimeUnit.MILLISECONDS)
-				.setConnectionReuseStrategy(new DefaultClientConnectionReuseStrategy());
+		builder
+
+				.setConnectionManager(cm)
+
+				.setConnectionManagerShared(true)
+
+				.setConnectionTimeToLive(POOL_CONN_TTL_MS, TimeUnit.MILLISECONDS)
+
+				.setConnectionReuseStrategy(new DefaultClientConnectionReuseStrategy())
+
+				.setRetryHandler(new NoHttpResponseExceptionHttpRequestRetryHandler());
 
 		return builder;
 	}
@@ -566,6 +573,17 @@ public class HTTPEngine4Impl {
 
 	public static Entity getResourceEntity(Resource res, ContentType contentType) {
 		return new ResourceHttpEntity(res, contentType);
+	}
+
+	private static class NoHttpResponseExceptionHttpRequestRetryHandler implements HttpRequestRetryHandler {
+		@Override
+		public boolean retryRequest(java.io.IOException exception, int executionCount, HttpContext context) {
+			if (executionCount <= 2 && exception instanceof org.apache.http.NoHttpResponseException) {
+				LogUtil.log(Log.LEVEL_INFO, "http-conn", ExceptionUtil.getStacktrace(exception, true));
+				return true;
+			}
+			return false;
+		}
 	}
 
 }
