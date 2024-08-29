@@ -49,6 +49,7 @@ public class OpenAIStreamResponse implements Response {
 
 	public void addPart(Struct part) throws PageException {
 		if (raw == null) raw = part;
+
 		// raw.appendEL(part);
 		Array arr = Caster.toArray(part.get("choices", null), null);
 		// print.e(arr);
@@ -65,4 +66,8 @@ public class OpenAIStreamResponse implements Response {
 		if (listener != null) listener.listen(str);
 	}
 
+	@Override
+	public long getTotalTokenUsed() {
+		return 0;
+	}
 }

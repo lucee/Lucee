@@ -15,6 +15,7 @@ public class OpenAIResponse implements Response {
 
 	private Struct raw;
 	private String charset;
+	private long tokens = -1L;
 
 	public OpenAIResponse(Struct raw, String charset) {
 		this.raw = raw;
@@ -46,6 +47,16 @@ public class OpenAIResponse implements Response {
 
 	public Struct getData() {
 		return raw;
+	}
+
+	@Override
+	public long getTotalTokenUsed() {
+		if (tokens == -1L) {
+			Struct sct = Caster.toStruct(raw.get("usage", null), null);
+			if (sct == null) return tokens = 0L;
+			return tokens = Caster.toLongValue(sct.get("total_tokens", null), 0L);
+		}
+		return tokens;
 	}
 
 }

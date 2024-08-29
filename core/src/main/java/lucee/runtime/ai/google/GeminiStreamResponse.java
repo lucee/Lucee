@@ -23,6 +23,8 @@ public class GeminiStreamResponse implements Response {
 
 	private AIResponseListener listener;
 
+	private long tokens = -1L;
+
 	public GeminiStreamResponse(String charset, AIResponseListener listener) {
 		this.charset = charset;
 		this.listener = listener;
@@ -68,4 +70,16 @@ public class GeminiStreamResponse implements Response {
 		answer.append(str);
 	}
 
+	@Override
+	public long getTotalTokenUsed() {
+		if (tokens == -1L) {
+			Struct sct = Caster.toStruct(raw.get(raw.size(), null), null);
+			if (sct == null) return tokens = 0L;
+
+			sct = Caster.toStruct(sct.get("usageMetadata", null), null);
+			if (sct == null) return tokens = 0L;
+			return tokens = Caster.toLongValue(sct.get("totalTokenCount", null), 0L);
+		}
+		return tokens;
+	}
 }

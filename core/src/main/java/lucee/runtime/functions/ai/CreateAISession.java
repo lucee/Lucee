@@ -18,9 +18,9 @@ public final class CreateAISession extends BIF {
 		return call(pc, nameAI, null);
 	}
 
-	public static Object call(PageContext pc, String nameAI, String initalMessage) throws PageException {
+	public static Object call(PageContext pc, String nameAI, String systemMessage) throws PageException {
 		if (nameAI.startsWith("default:")) nameAI = ((PageContextImpl) pc).getNameFromDefault(nameAI.substring(8));
-		return ((PageContextImpl) pc).createAISession(nameAI, initalMessage);
+		return ((PageContextImpl) pc).createAISession(nameAI, systemMessage);
 	}
 
 	@Override

@@ -36,12 +36,12 @@ import lucee.runtime.type.util.KeyConstants;
 public class OpenAISession extends AISessionSupport {
 
 	private OpenAIEngine openaiEngine;
-	private String initalMessage;
+	private String systemMessage;
 
-	public OpenAISession(OpenAIEngine engine, String initalMessage, long timeout) {
+	public OpenAISession(OpenAIEngine engine, String systemMessage, long timeout) {
 		super(engine, timeout);
 		this.openaiEngine = engine;
-		this.initalMessage = initalMessage;
+		this.systemMessage = systemMessage;
 	}
 
 	@Override
@@ -56,10 +56,10 @@ public class OpenAISession extends AISessionSupport {
 			Array arr = new ArrayImpl();
 
 			// add system
-			if (!StringUtil.isEmpty(initalMessage)) {
+			if (!StringUtil.isEmpty(systemMessage)) {
 				msg = new StructImpl(StructImpl.TYPE_LINKED);
 				msg.set(KeyConstants._role, "system");
-				msg.set(KeyConstants._content, initalMessage);
+				msg.set(KeyConstants._content, systemMessage);
 				arr.append(msg);
 			}
 

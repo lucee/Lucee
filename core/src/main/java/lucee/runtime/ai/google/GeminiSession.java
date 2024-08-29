@@ -35,12 +35,12 @@ import lucee.runtime.type.util.KeyConstants;
 
 public class GeminiSession extends AISessionSupport {
 	private GeminiEngine geminiEngine;
-	private String initalMessage;
+	private String systemMessage;
 
-	public GeminiSession(GeminiEngine engine, String initalMessage, long timeout) {
+	public GeminiSession(GeminiEngine engine, String systemMessage, long timeout) {
 		super(engine, timeout);
 		this.geminiEngine = engine;
-		this.initalMessage = initalMessage;
+		this.systemMessage = systemMessage;
 	}
 
 	@Override
@@ -59,8 +59,8 @@ public class GeminiSession extends AISessionSupport {
 			root.set(KeyConstants._contents, contents);
 
 			// add system
-			if (!StringUtil.isEmpty(initalMessage, true)) {
-				contents.append(createParts("user", initalMessage));
+			if (!StringUtil.isEmpty(systemMessage, true)) {
+				contents.append(createParts("user", systemMessage));
 			}
 
 			// Add conversation history

@@ -4214,12 +4214,12 @@ public final class PageContextImpl extends PageContext {
 		}
 	}
 
-	public AISession createAISession(String nameAI, String initalMessage) throws PageException {
-		return getAIEngine(nameAI).createSession(initalMessage, -1);
+	public AISession createAISession(String nameAI, String systemMessage) throws PageException {
+		return getAIEngine(nameAI).createSession(systemMessage, -1);
 	}
 
-	public AISession createAISession(String nameAI, String initalMessage, long timeout) throws PageException {
-		return getAIEngine(nameAI).createSession(initalMessage, timeout);
+	public AISession createAISession(String nameAI, String systemMessage, long timeout) throws PageException {
+		return getAIEngine(nameAI).createSession(systemMessage, timeout);
 	}
 
 	public String getNameFromDefault(String defaultName) throws PageException {
