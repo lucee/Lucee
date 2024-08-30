@@ -95,17 +95,17 @@ public final class ExtensionResourceFilter implements ResourceFilter {
 	@Override
 	public boolean accept(Resource res) {
 		if (res.isDirectory()) return allowDir;
-		if (!mustExists || res.exists()) {
-			String name = res.getName();
-			for (int i = 0; i < extensions.length; i++) {
-				if (ignoreCase) {
-					if (StringUtil.endsWithIgnoreCase(name, extensions[i])) return true;
-				}
-				else {
-					if (name.endsWith(extensions[i])) return true;
-				}
+
+		String name = res.getName();
+		for (String ext: extensions) {
+			if (ignoreCase) {
+				if (StringUtil.endsWithIgnoreCase(name, ext)) return !mustExists || res.exists();
+			}
+			else {
+				if (name.endsWith(ext)) return !mustExists || res.exists();
 			}
 		}
+
 		return false;
 	}
 

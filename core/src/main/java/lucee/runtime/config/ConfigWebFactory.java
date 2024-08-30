@@ -1521,7 +1521,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 		f = contextDir.getRealResource("Component." + COMPONENT_EXTENSION);
 		if (f.exists()) delete(contextDir, "Component." + COMPONENT_EXTENSION);
 
-		// Component.lucee
+		// FUTURE remove Component.lucee
 		f = contextDir.getRealResource("Component." + COMPONENT_EXTENSION_LUCEE);
 		if (f.exists()) delete(contextDir, "Component." + COMPONENT_EXTENSION_LUCEE);
 
