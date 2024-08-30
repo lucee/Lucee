@@ -49,6 +49,7 @@
     <servlet-name>CFMLServlet</servlet-name>
     <url-pattern>*.cfc</url-pattern>
     <url-pattern>*.cfm</url-pattern>
+    <url-pattern>*.cfs</url-pattern>
   </servlet-mapping>
 
   <!-- ===================================================================== -->

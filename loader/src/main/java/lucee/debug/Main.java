@@ -21,7 +21,6 @@ public class Main {
 
 	public static final String DEF_HOST = "localhost";
 	public static final String DEF_PORT = "48888";
-	public static final String DEF_BASE = "/workspace/test/LuceeDebugWebapp";
 
 	public static void main(String[] args) throws Exception {
 
@@ -50,11 +49,29 @@ public class Main {
 			System.out.println(ARG_CLASSES_DIR + " is set to " + s);
 		}
 
-		s = Util._getSystemPropOrEnvVar(ARG_BASE, DEF_BASE);
+		s = Util._getSystemPropOrEnvVar(ARG_BASE, "");
+		if (s.isEmpty()) {
+			s = Paths.get("", "dev/webapp").toAbsolutePath().toString();
+		}
 
 		String appBase = (new File(s)).getCanonicalPath().replace('\\', '/');
 		String docBase = appBase + "/webroot";
-		String webxml = Util._getSystemPropOrEnvVar(ARG_WEBXML, docBase + "/WEB-INF/web.xml");
+
+		String webxml = Util._getSystemPropOrEnvVar(ARG_WEBXML, "");
+		if (webxml.isEmpty()) {
+			s = docBase + "/WEB-INF/web.xml";
+			if (new File(s).exists()) {
+				webxml = s;
+			}
+			else {
+				s = Paths.get("", "loader/src/main/resources/debug/web.xml").toAbsolutePath().toString();
+				if (new File(s).exists()) {
+					webxml = s;
+				}
+			}
+		}
+
+		if (webxml.isEmpty()) throw (new IllegalArgumentException("web.xml not found at " + webxml));
 
 		System.out.println("Setting appBase: " + appBase);
 		System.out.println("Setting docBase: " + docBase);
