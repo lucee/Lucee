@@ -73,7 +73,7 @@ import lucee.transformer.library.function.FunctionLibException;
 
 public final class BundleProvider extends DefaultHandler {
 	public static final int CONNECTION_TIMEOUT = 1000;
-	private static final long MAX_AGE = 10000;
+	private static final long MAX_AGE = 24 * 60 * 60 * 1000;
 	private static final int MAX_REDIRECTS = 10;
 
 	private static URL DEFAULT_PROVIDER_LIST = null;
@@ -148,6 +148,7 @@ public final class BundleProvider extends DefaultHandler {
 	private final URL url;
 	private boolean insideContents;
 	private Map<String, Element> elements = new LinkedHashMap<>();
+	private List<Element> elementsSorted;
 	private Element element;
 	private boolean isTruncated;
 	private String lastKey;
@@ -244,7 +245,7 @@ public final class BundleProvider extends DefaultHandler {
 		// S3: we loop through all records and S3 and pick one
 		if (url == null) {
 			try {
-				for (Element e: read()) {
+				for (Element e: read(false)) {
 					if (bd.equals(e.getBundleDefinition())) {
 						url = e.getJAR();
 						if (url != null) return url;
@@ -456,50 +457,56 @@ public final class BundleProvider extends DefaultHandler {
 	// 1146:size:305198;bundle:name:xmlgraphics.batik.awt.util;version:version EQ 1.8.0;;last-mod:{ts
 	// '2024-01-14 22:32:05'};
 
-	public List<Element> read() throws IOException, GeneralSecurityException, SAXException {
-		int count = 100;
-		URL url = null;
+	public List<Element> read(boolean flush) throws IOException, GeneralSecurityException, SAXException {
+		long now = System.currentTimeMillis();
+		if (elementsSorted == null) {
+			synchronized (elements) {
+				if (elementsSorted == null) {
+					int count = 100;
+					URL url = null;
+					if (lastKey != null) url = new URL(this.url.toExternalForm() + "?marker=" + lastKey);
 
-		if (lastKey != null) url = new URL(this.url.toExternalForm() + "?marker=" + lastKey);
+					do {
+						if (url == null) url = isTruncated ? new URL(this.url.toExternalForm() + "?marker=" + this.lastKey) : this.url;
+						HTTPResponse rsp = HTTPEngine4Impl.get(url, null, null, BundleProvider.CONNECTION_TIMEOUT, true, null, null, null, null);
+						if (rsp != null) {
+							int sc = rsp.getStatusCode();
+							if (sc < 200 || sc >= 300) throw new IOException("unable to invoke [" + url + "], status code [" + sc + "]");
+						}
+						else {
+							throw new IOException("unable to invoke [" + url + "], no response.");
+						}
 
-		do {
-			if (url == null) url = isTruncated ? new URL(this.url.toExternalForm() + "?marker=" + this.lastKey) : this.url;
-			HTTPResponse rsp = HTTPEngine4Impl.get(url, null, null, BundleProvider.CONNECTION_TIMEOUT, true, null, null, null, null);
-			if (rsp != null) {
-				int sc = rsp.getStatusCode();
-				if (sc < 200 || sc >= 300) throw new IOException("unable to invoke [" + url + "], status code [" + sc + "]");
-			}
-			else {
-				throw new IOException("unable to invoke [" + url + "], no response.");
-			}
+						Reader r = null;
+						try {
+							init(new InputSource(r = IOUtil.getReader(rsp.getContentAsStream(), (Charset) null)));
+						}
+						finally {
+							url = null;
+							IOUtil.close(r);
+						}
 
-			Reader r = null;
-			try {
-				init(new InputSource(r = IOUtil.getReader(rsp.getContentAsStream(), (Charset) null)));
-			}
-			finally {
-				url = null;
-				IOUtil.close(r);
-			}
+					}
+					while (isTruncated || --count == 0);
 
+					List<Element> list = new ArrayList<>();
+					for (Element e: elements.values()) {
+						list.add(e);
+					}
+
+					Collections.sort(list, new Comparator<Element>() {
+						@Override
+						public int compare(Element l, Element r) {
+							int cmp = l.getBundleDefinition().getName().compareTo(r.getBundleDefinition().getName());
+							if (cmp != 0) return cmp;
+							return OSGiUtil.compare(l.getBundleDefinition().getVersion(), r.getBundleDefinition().getVersion());
+						}
+					});
+					elementsSorted = list;
+				}
+			}
 		}
-		while (isTruncated || --count == 0);
-
-		List<Element> list = new ArrayList<>();
-		for (Element e: elements.values()) {
-			list.add(e);
-		}
-
-		Collections.sort(list, new Comparator<Element>() {
-			@Override
-			public int compare(Element l, Element r) {
-				int cmp = l.getBundleDefinition().getName().compareTo(r.getBundleDefinition().getName());
-				if (cmp != 0) return cmp;
-				return OSGiUtil.compare(l.getBundleDefinition().getVersion(), r.getBundleDefinition().getVersion());
-			}
-		});
-
-		return list;
+		return elementsSorted;
 	}
 
 	/**
@@ -779,7 +786,7 @@ public final class BundleProvider extends DefaultHandler {
 		Set<String> has = new HashSet<>();
 		List<Info> infos;
 		Info info;
-		for (Element e: read()) {
+		for (Element e: read(true)) {
 			infos = mappings.get(e.bd.getName());
 			if (infos != null) continue;
 
@@ -816,7 +823,7 @@ public final class BundleProvider extends DefaultHandler {
 
 	public void whatcanBeRemovedFromS3() throws IOException, GeneralSecurityException, SAXException {
 		URL url;
-		for (Element e: read()) {
+		for (Element e: read(true)) {
 			url = getBundleAsURL(e.bd, false, null);
 
 			if (url != null) {
