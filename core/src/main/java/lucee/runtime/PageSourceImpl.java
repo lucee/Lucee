@@ -431,10 +431,11 @@ public final class PageSourceImpl implements PageSource {
 		// Page exists
 		if (page != null) {
 			// if(page!=null && !recompileAlways) {
-			if (srcLastModified == 0 || srcLastModified != page.getSourceLastModified() || (page instanceof PagePro && ((PagePro) page).getSourceLength() != srcFile.length())) {
+
+			if (srcLastModified == 0 || srcLastModified != page.getSourceLastModified()) { // || (page instanceof PagePro && ((PagePro) page).getSourceLength() != srcFile.length())
 				synchronized (this) {
-					if (srcLastModified == 0 || srcLastModified != page.getSourceLastModified()
-							|| (page instanceof PagePro && ((PagePro) page).getSourceLength() != srcFile.length())) {
+					if (srcLastModified == 0 || srcLastModified != page.getSourceLastModified()) {// || (page instanceof PagePro && ((PagePro) page).getSourceLength() !=
+																									// srcFile.length())
 						if (LogUtil.doesDebug(log)) log.debug("page-source", "release [" + getDisplayPath() + "] from page source pool");
 						resetLoaded();
 						flush();
