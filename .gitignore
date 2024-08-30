@@ -29,7 +29,7 @@ WEB-INF
 
 /.vscode
 /.idea
-/dev-dependencies/
+/dev/
 loader/env.json
 .idea/
 buildVersionNumber.txt
