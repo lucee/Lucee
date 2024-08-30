@@ -87,7 +87,7 @@ public interface ConfigPro extends Config {
 
 	public static final short INSPECT_AUTO = 8;
 
-	public final static int INSPECT_INTERVAL_SLOW = 2000;
+	public final static int INSPECT_INTERVAL_SLOW = 3000;
 	public final static int INSPECT_INTERVAL_FAST = 100;
 	public final static int INSPECT_INTERVAL_UNDEFINED = -1;
 
