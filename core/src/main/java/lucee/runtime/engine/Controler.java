@@ -473,7 +473,7 @@ public final class Controler extends ParentThreasRefThread {
 	}
 
 	private void checkOldClientFile(ConfigWeb config, Log log) {
-		ExtensionResourceFilter filter = new ExtensionResourceFilter(".script", false);
+		ExtensionResourceFilter filter = new ExtensionResourceFilter(".script");
 
 		// move old structured file in new structure
 		try {

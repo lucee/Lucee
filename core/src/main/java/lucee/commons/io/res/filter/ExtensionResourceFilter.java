@@ -34,40 +34,18 @@ public final class ExtensionResourceFilter implements ResourceFilter {
 	private final boolean mustExists;
 	// private int extLen;
 
-	public static final ExtensionResourceFilter EXTENSION_JAR_NO_DIR = new ExtensionResourceFilter(".jar", false);
-	public static final ExtensionResourceFilter EXTENSION_CLASS_DIR = new ExtensionResourceFilter(".class", true);
+	public static final ExtensionResourceFilter EXTENSION_JAR_NO_DIR = new ExtensionResourceFilter(".jar");
+	public static final ExtensionResourceFilter EXTENSION_CLASS_DIR = new ExtensionResourceFilter(true, ".class");
 
-	/**
-	 * Konstruktor des Filters
-	 * 
-	 * @param extension Endung die geprueft werden soll.
-	 */
-	public ExtensionResourceFilter(String extension) {
-		this(new String[] { extension }, false, true);
+	public ExtensionResourceFilter(String... extension) {
+		this(false, true, false, extension);
 	}
 
-	/**
-	 * Konstruktor des Filters
-	 * 
-	 * @param extension Endung die geprueft werden soll.
-	 */
-	public ExtensionResourceFilter(String extension, boolean allowDir) {
-		this(new String[] { extension }, allowDir, true, true);
+	public ExtensionResourceFilter(boolean allowDir, String... extension) {
+		this(allowDir, true, false, extension);
 	}
 
-	public ExtensionResourceFilter(String[] extensions) {
-		this(extensions, false, true, true);
-	}
-
-	public ExtensionResourceFilter(String[] extensions, boolean allowDir) {
-		this(extensions, allowDir, true, true);
-	}
-
-	public ExtensionResourceFilter(String[] extensions, boolean allowDir, boolean ignoreCase) {
-		this(extensions, allowDir, ignoreCase, true);
-	}
-
-	public ExtensionResourceFilter(String[] extensions, boolean allowDir, boolean ignoreCase, boolean mustExists) {
+	public ExtensionResourceFilter(boolean allowDir, boolean ignoreCase, boolean mustExists, String... extensions) {
 		String[] tmp = new String[extensions.length];
 		for (int i = 0; i < extensions.length; i++) {
 			if (!StringUtil.startsWith(extensions[i], '.')) tmp[i] = "." + extensions[i];
@@ -94,8 +72,7 @@ public final class ExtensionResourceFilter implements ResourceFilter {
 
 	@Override
 	public boolean accept(Resource res) {
-		if (res.isDirectory()) return allowDir;
-
+		// check files
 		String name = res.getName();
 		for (String ext: extensions) {
 			if (ignoreCase) {
@@ -106,7 +83,9 @@ public final class ExtensionResourceFilter implements ResourceFilter {
 			}
 		}
 
-		return false;
+		// check directory
+		if (!allowDir) return false;
+		return res.isDirectory();
 	}
 
 	public boolean accept(String name) {

@@ -39,7 +39,7 @@ import lucee.runtime.type.scope.storage.StorageScopeListener;
 public class FileStorageScopeCleaner extends StorageScopeCleanerSupport {
 
 	private static final ResourceFilter DIR_FILTER = new DirectoryResourceFilter();
-	private static ExtensionResourceFilter EXT_FILTER = new ExtensionResourceFilter(".scpt", true);
+	private static ExtensionResourceFilter EXT_FILTER = new ExtensionResourceFilter(true, ".scpt");
 
 	public FileStorageScopeCleaner(int type, StorageScopeListener listener) {
 		super(type, listener, INTERVALL_DAY);

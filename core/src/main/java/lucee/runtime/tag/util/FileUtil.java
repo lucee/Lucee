@@ -124,7 +124,7 @@ public class FileUtil {
 				if (!StringUtil.isEmpty(str)) list.add(str);
 			}
 		}
-		return new ExtensionResourceFilter(list.toArray(new String[list.size()]), false, true, false);
+		return new ExtensionResourceFilter(false, true, false, list.toArray(new String[list.size()]));
 	}
 
 	public static String toExtensions(String str) {

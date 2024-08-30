@@ -249,12 +249,12 @@ public class ResourceUtilImpl implements lucee.runtime.util.ResourceUtil {
 
 	@Override
 	public ResourceFilter getExtensionResourceFilter(String extension, boolean allowDir) {
-		return new ExtensionResourceFilter(extension, allowDir);
+		return new ExtensionResourceFilter(allowDir, extension);
 	}
 
 	@Override
 	public ResourceFilter getExtensionResourceFilter(String[] extensions, boolean allowDir) {
-		return new ExtensionResourceFilter(extensions, allowDir);
+		return new ExtensionResourceFilter(allowDir, extensions);
 	}
 
 	@Override

@@ -45,9 +45,9 @@ public class MappingUtil {
 		if (name.indexOf('/') == -1) { // TODO handle this as well?
 			Config config = mapping.getConfig();
 			ExtensionResourceFilter ext = null;
-			if (onlyCFC) ext = new ExtensionResourceFilter(Constants.getComponentExtensions(), true, true);
+			if (onlyCFC) ext = new ExtensionResourceFilter(true, true, false, Constants.getComponentExtensions());
 			else {
-				ext = new ExtensionResourceFilter(Constants.getExtensions(), true, true);
+				ext = new ExtensionResourceFilter(true, true, false, Constants.getExtensions());
 				// ext.addExtension(config.getComponentExtension());
 			}
 

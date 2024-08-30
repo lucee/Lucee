@@ -43,10 +43,10 @@ public class SourceNameClassVisitor extends ClassVisitor {
 	public SourceNameClassVisitor(Config config, int arg0, boolean onlyCFC) {
 		super(arg0);
 		if (onlyCFC) {
-			filter = new ExtensionResourceFilter(Constants.getComponentExtensions(), true, true);
+			filter = new ExtensionResourceFilter(true, true, false, Constants.getComponentExtensions());
 		}
 		else {
-			filter = new ExtensionResourceFilter(Constants.getExtensions(), true, true);
+			filter = new ExtensionResourceFilter(true, true, false, Constants.getExtensions());
 			// filter.addExtension(config.getComponentExtension());
 		}
 
@@ -125,6 +125,7 @@ public class SourceNameClassVisitor extends ClassVisitor {
 			return absolutePath;
 		}
 
+		@Override
 		public String toString() {
 			return new StringBuilder("absolute-path:" + absolutePath + ";relative-path:" + relativePath + ";name:" + name).toString();
 		}

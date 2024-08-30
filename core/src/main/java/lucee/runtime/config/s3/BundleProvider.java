@@ -458,7 +458,6 @@ public final class BundleProvider extends DefaultHandler {
 	// '2024-01-14 22:32:05'};
 
 	public List<Element> read(boolean flush) throws IOException, GeneralSecurityException, SAXException {
-		long now = System.currentTimeMillis();
 		if (elementsSorted == null) {
 			synchronized (elements) {
 				if (elementsSorted == null) {

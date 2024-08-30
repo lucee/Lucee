@@ -958,16 +958,16 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			if (addCFMLFiles && addNonCFMLFiles) filter = null;
 			// CFML Files but no other files
 			else if (addCFMLFiles) {
-				if (mappingType == MAPPING_CFC) filter = new ExtensionResourceFilter(ArrayUtil.toArray(Constants.getComponentExtensions(), "class", "MF"), true, true);
-				else filter = new ExtensionResourceFilter(ArrayUtil.toArray(Constants.getExtensions(), "class", "MF"), true, true);
+				if (mappingType == MAPPING_CFC) filter = new ExtensionResourceFilter(true, true, false, ArrayUtil.toArray(Constants.getComponentExtensions(), "class", "MF"));
+				else filter = new ExtensionResourceFilter(true, true, false, ArrayUtil.toArray(Constants.getExtensions(), "class", "MF"));
 			}
 			// No CFML Files, but all other files
 			else if (addNonCFMLFiles) {
-				filter = new NotResourceFilter(new ExtensionResourceFilter(Constants.getExtensions(), false, true));
+				filter = new NotResourceFilter(new ExtensionResourceFilter(false, true, false, Constants.getExtensions()));
 			}
 			// no files at all
 			else {
-				filter = new ExtensionResourceFilter(new String[] { "class", "MF" }, true, true);
+				filter = new ExtensionResourceFilter(true, true, false, new String[] { "class", "MF" });
 			}
 			String id = HashUtil.create64BitHashAsString(mapping.getStrPhysical(), Character.MAX_RADIX);
 			// String id = MD5.getDigestAsString(mapping.getStrPhysical());
@@ -2583,7 +2583,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 				0, "jars");
 
 		if (lib.isDirectory()) {
-			Resource[] children = lib.listResources(new ExtensionResourceFilter(new String[] { ".jar", ".zip" }, false, true));
+			Resource[] children = lib.listResources(new ExtensionResourceFilter(false, true, false, ".jar", ".zip"));
 
 			for (int i = 0; i < children.length; i++) {
 				qry.addRow();
