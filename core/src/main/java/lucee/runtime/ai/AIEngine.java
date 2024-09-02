@@ -40,4 +40,6 @@ public interface AIEngine {
 	public String getModel();
 
 	public List<AIModel> getModels() throws PageException;
+
+	public int getConversationSizeLimit();
 }

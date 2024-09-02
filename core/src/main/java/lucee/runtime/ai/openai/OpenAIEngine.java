@@ -58,10 +58,11 @@ public class OpenAIEngine extends AIEngineSupport implements AIEngineFile {
 	// https://platform.openai.com/docs/api-reference/introduction
 
 	private static final long DEFAULT_TIMEOUT = 3000L;
-	private static final String DEFAULT_CHARSET = null;
+	private static final String DEFAULT_CHARSET = "UTF-8";
 	private static final String DEFAULT_MIMETYPE = null;
 	private static final URL DEFAULT_URL_OPENAI;
 	private static final URL DEFAULT_URL_OLLAMA;
+	private static final int DEFAULT_CONVERSATION_SIZE_LIMIT = 100;
 
 	// TODO
 	// post https://api.openai.com/v1/audio/speech
@@ -100,7 +101,6 @@ public class OpenAIEngine extends AIEngineSupport implements AIEngineFile {
 	String secretKey;
 	long timeout = DEFAULT_TIMEOUT;
 	String charset;
-	String mimetype;
 	ProxyData proxy = null;
 	Map<String, String> formfields = null;
 	String model;
@@ -109,6 +109,7 @@ public class OpenAIEngine extends AIEngineSupport implements AIEngineFile {
 
 	private URL baseURL;
 	public Double temperature = null;
+	private int conversationSizeLimit = DEFAULT_CONVERSATION_SIZE_LIMIT;
 
 	@Override
 	public AIEngine init(AIEngineFactory factory, Struct properties) throws PageException {
@@ -148,14 +149,14 @@ public class OpenAIEngine extends AIEngineSupport implements AIEngineFile {
 		str = Caster.toString(properties.get(KeyConstants._secretKey, null), null);
 		if (!Util.isEmpty(str, true)) secretKey = str.trim();
 
+		// conversation Size Limit
+		conversationSizeLimit = Caster.toIntValue(properties.get("conversationSizeLimit", null), DEFAULT_CONVERSATION_SIZE_LIMIT);
+
 		// timeout
 		timeout = Caster.toLongValue(properties.get(KeyConstants._timeout, null), DEFAULT_TIMEOUT);
 		// charset
 		charset = Caster.toString(properties.get(KeyConstants._charset, null), DEFAULT_CHARSET);
 		if (Util.isEmpty(charset, true)) charset = DEFAULT_CHARSET;
-		// mimetype
-		mimetype = Caster.toString(properties.get(KeyConstants._mimetype, null), DEFAULT_MIMETYPE);
-		if (Util.isEmpty(mimetype, true)) mimetype = null;
 		// model
 		model = Caster.toString(properties.get(KeyConstants._model, null), null);
 		if (Util.isEmpty(model, true)) {
@@ -210,7 +211,7 @@ public class OpenAIEngine extends AIEngineSupport implements AIEngineFile {
 
 			URL url = new URL(baseURL, "models");
 			HTTPResponse rsp = HTTPEngine4Impl.get(url, null, null, timeout, false, charset, AIEngineSupport.DEFAULT_USERAGENT, proxy,
-					new Header[] { new HeaderImpl("Authorization", "Bearer " + secretKey), new HeaderImpl("Content-Type", "application/json") });
+					new Header[] { new HeaderImpl("Authorization", "Bearer " + secretKey), new HeaderImpl("Content-Type", AIUtil.createJsonContentType(charset)) });
 
 			ContentType ct = rsp.getContentType();
 			if ("application/json".equals(ct.getMimeType())) {
@@ -252,7 +253,7 @@ public class OpenAIEngine extends AIEngineSupport implements AIEngineFile {
 			try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
 				// Create HttpPost request
 				HttpPost post = new HttpPost(url);
-				post.setHeader("Content-Type", "application/json");
+				post.setHeader("Content-Type", AIUtil.createJsonContentType(charset));
 				post.setHeader("Authorization", "Bearer " + secretKey);
 
 				Struct sct = new StructImpl();
@@ -515,5 +516,10 @@ public class OpenAIEngine extends AIEngineSupport implements AIEngineFile {
 		catch (Exception e) {
 			throw Caster.toPageException(e);
 		}
+	}
+
+	@Override
+	public int getConversationSizeLimit() {
+		return conversationSizeLimit;
 	}
 }

@@ -2,17 +2,22 @@ package lucee.runtime.ai.openai;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.net.URI;
 import java.net.URL;
 
+import org.apache.http.Header;
+import org.apache.http.HttpEntity;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.util.EntityUtils;
+
 import lucee.commons.io.CharsetUtil;
-import lucee.commons.io.res.ContentType;
 import lucee.commons.lang.StringUtil;
-import lucee.commons.net.http.HTTPResponse;
-import lucee.commons.net.http.Header;
-import lucee.commons.net.http.httpclient.HTTPEngine4Impl;
-import lucee.commons.net.http.httpclient.HeaderImpl;
+import lucee.commons.lang.mimetype.MimeType;
 import lucee.loader.util.Util;
-import lucee.runtime.ai.AIEngineSupport;
 import lucee.runtime.ai.AIResponseListener;
 import lucee.runtime.ai.AISessionSupport;
 import lucee.runtime.ai.AIUtil;
@@ -54,7 +59,6 @@ public class OpenAISession extends AISessionSupport {
 		try {
 			Struct msg;
 			Array arr = new ArrayImpl();
-
 			// add system
 			if (!StringUtil.isEmpty(systemMessage)) {
 				msg = new StructImpl(StructImpl.TYPE_LINKED);
@@ -70,6 +74,7 @@ public class OpenAISession extends AISessionSupport {
 				msg.set(KeyConstants._role, "user");
 				msg.set(KeyConstants._content, c.getRequest().getQuestion());
 				arr.append(msg);
+
 				// answer
 				msg = new StructImpl(StructImpl.TYPE_LINKED);
 				msg.set(KeyConstants._role, "assistant");
@@ -99,56 +104,73 @@ public class OpenAISession extends AISessionSupport {
 
 			JSONConverter json = new JSONConverter(true, CharsetUtil.UTF8, JSONDateFormat.PATTERN_CF, false);
 			String str = json.serialize(null, sct, SerializationSettings.SERIALIZE_AS_COLUMN, null);
-
 			URL url = new URL(openaiEngine.getBaseURL(), "chat/completions");
-			HTTPResponse rsp = HTTPEngine4Impl.post(url, null, null, getTimeout(), false, openaiEngine.mimetype, openaiEngine.charset, AIEngineSupport.DEFAULT_USERAGENT,
-					openaiEngine.proxy, new Header[] { new HeaderImpl("Authorization", "Bearer " + openaiEngine.secretKey), new HeaderImpl("Content-Type", "application/json") },
-					openaiEngine.formfields, str);
 
-			ContentType ct = rsp.getContentType();
-			// stream false
-			if ("application/json".equals(ct.getMimeType())) {
-				String cs = ct.getCharset();
-				// getContent(rsp, cs);
-				if (Util.isEmpty(cs, true)) cs = openaiEngine.charset;
+			try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
+				URI uri = new URI(openaiEngine.getBaseURL() + "chat/completions");
+				// Create HttpPost request
+				HttpPost post = new HttpPost(uri);
+				post.setHeader("Content-Type", AIUtil.createJsonContentType(openaiEngine.charset));
+				post.setHeader("Authorization", "Bearer " + openaiEngine.secretKey);
 
-				Struct raw = Caster.toStruct(new JSONExpressionInterpreter().interpret(null, rsp.getContentAsString(cs)));
+				StringEntity entity = new StringEntity(str, openaiEngine.charset);
+				post.setEntity(entity);
 
-				Struct err = Caster.toStruct(raw.get(KeyConstants._error, null), null);
-				if (err != null) {
-					throw AIUtil.toException(this.getEngine(), Caster.toString(err.get(KeyConstants._message)), Caster.toString(err.get(KeyConstants._type, null), null),
-							Caster.toString(err.get(KeyConstants._code, null), null));
-				}
+				// Execute the request
+				try (CloseableHttpResponse response = httpClient.execute(post)) {
+					HttpEntity responseEntity = response.getEntity();
+					Header ct = responseEntity.getContentType();
+					MimeType mt = MimeType.getInstance(ct.getValue());
 
-				OpenAIResponse response = new OpenAIResponse(raw, cs);
-				getHistoryAsList().add(new ConversationImpl(new RequestSupport(message), response));
-				return response;
-			}
-			// stream true
-			else if ("text/event-stream".equals(ct.getMimeType())) {
-				String cs = ct.getCharset();
-				if (Util.isEmpty(cs, true)) cs = openaiEngine.charset;
-				JSONExpressionInterpreter interpreter = new JSONExpressionInterpreter();
-				OpenAIStreamResponse response = new OpenAIStreamResponse(cs, listener);
-				try (BufferedReader reader = new BufferedReader(
-						cs == null ? new InputStreamReader(rsp.getContentAsStream()) : new InputStreamReader(rsp.getContentAsStream(), cs))) {
-					String line;
-					while ((line = reader.readLine()) != null) {
-						if (!line.startsWith("data: ")) continue;
-						line = line.substring(6);
-						if ("[DONE]".equals(line)) break;
-						response.addPart(Caster.toStruct(interpreter.interpret(null, line)));
+					String t = mt.getType() + "/" + mt.getSubtype();
+					String cs = mt.getCharset() != null ? mt.getCharset().toString() : openaiEngine.charset;
 
+					// stream false
+					if ("application/json".equals(t)) {
+						// String cs = ct.getCharset();
+						// getContent(rsp, cs);
+						if (Util.isEmpty(cs, true)) cs = openaiEngine.charset;
+
+						Struct raw = Caster.toStruct(new JSONExpressionInterpreter().interpret(null, EntityUtils.toString(responseEntity, openaiEngine.charset)));
+
+						Struct err = Caster.toStruct(raw.get(KeyConstants._error, null), null);
+						if (err != null) {
+							throw AIUtil.toException(this.getEngine(), Caster.toString(err.get(KeyConstants._message)), Caster.toString(err.get(KeyConstants._type, null), null),
+									Caster.toString(err.get(KeyConstants._code, null), null));
+						}
+
+						OpenAIResponse r = new OpenAIResponse(raw, cs);
+						AIUtil.addConversation(openaiEngine, getHistoryAsList(), new ConversationImpl(new RequestSupport(message), r));
+
+						return r;
+					}
+					// stream true
+					else if ("text/event-stream".equals(t)) {
+						// String cs = ct.getCharset();
+						if (Util.isEmpty(cs, true)) cs = openaiEngine.charset;
+						JSONExpressionInterpreter interpreter = new JSONExpressionInterpreter();
+						OpenAIStreamResponse r = new OpenAIStreamResponse(cs, listener);
+						try (BufferedReader reader = new BufferedReader(
+								cs == null ? new InputStreamReader(responseEntity.getContent()) : new InputStreamReader(responseEntity.getContent(), cs))) {
+							String line;
+							while ((line = reader.readLine()) != null) {
+								if (!line.startsWith("data: ")) continue;
+								line = line.substring(6);
+								if ("[DONE]".equals(line)) break;
+								r.addPart(Caster.toStruct(interpreter.interpret(null, line)));
+
+							}
+						}
+						catch (Exception e) {
+							throw Caster.toPageException(e);
+						}
+						AIUtil.addConversation(openaiEngine, getHistoryAsList(), new ConversationImpl(new RequestSupport(message), r));
+						return r;
+					}
+					else {
+						throw new ApplicationException("The AI did answer with the mime type [" + t + "] that is not supported, only [application/json] is supported");
 					}
 				}
-				catch (Exception e) {
-					throw Caster.toPageException(e);
-				}
-				getHistoryAsList().add(new ConversationImpl(new RequestSupport(message), response));
-				return response;
-			}
-			else {
-				throw new ApplicationException("The AI did answer with the mime type [" + ct.getMimeType() + "] that is not supported, only [application/json] is supported");
 			}
 		}
 		catch (Exception e) {

@@ -78,12 +78,12 @@ public class GeminiSession extends AISessionSupport {
 			JSONConverter json = new JSONConverter(true, CharsetUtil.UTF8, JSONDateFormat.PATTERN_CF, false);
 			String str = json.serialize(null, root, SerializationSettings.SERIALIZE_AS_COLUMN, null);
 			URL url = geminiEngine.toURL(geminiEngine.baseURL, GeminiEngine.CHAT, listener != null ? GeminiEngine.TYPE_STREAM : GeminiEngine.TYPE_REG);
-			HTTPResponse rsp = HTTPEngine4Impl.post(url, null, null, getTimeout(), false, geminiEngine.mimetype, geminiEngine.charset, AIEngineSupport.DEFAULT_USERAGENT,
-					geminiEngine.proxy, new Header[] {
+			HTTPResponse rsp = HTTPEngine4Impl.post(url, null, null, getTimeout(), false, null, geminiEngine.charset, AIEngineSupport.DEFAULT_USERAGENT, geminiEngine.proxy,
+					new Header[] {
 
 							// new HeaderImpl("Authorization", "Bearer " + geminiEngine.apikey),
 
-							new HeaderImpl("Content-Type", "application/json")
+							new HeaderImpl("Content-Type", AIUtil.createJsonContentType(geminiEngine.charset))
 
 					}, geminiEngine.formfields, str);
 
@@ -107,7 +107,7 @@ public class GeminiSession extends AISessionSupport {
 				catch (Exception e) {
 					throw Caster.toPageException(e);
 				}
-				getHistoryAsList().add(new ConversationImpl(new RequestSupport(message), response));
+				AIUtil.addConversation(geminiEngine, getHistoryAsList(), new ConversationImpl(new RequestSupport(message), response));
 				return response;
 			}
 
@@ -127,7 +127,7 @@ public class GeminiSession extends AISessionSupport {
 				}
 
 				GeminiResponse response = new GeminiResponse(raw, cs);
-				getHistoryAsList().add(new ConversationImpl(new RequestSupport(message), response));
+				AIUtil.addConversation(geminiEngine, getHistoryAsList(), new ConversationImpl(new RequestSupport(message), response));
 				return response;
 
 			}

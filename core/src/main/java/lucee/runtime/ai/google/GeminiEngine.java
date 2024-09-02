@@ -40,22 +40,22 @@ public class GeminiEngine extends AIEngineSupport {
 	public static final String MODELS = "models/?key={apikey}";
 
 	private static final long DEFAULT_TIMEOUT = 3000L;
-	private static final String DEFAULT_CHARSET = null;
-	private static final String DEFAULT_MIMETYPE = null;
+	private static final String DEFAULT_CHARSET = "UTF-8";
 	// private static final String DEFAULT_MODEL = "gemini-1.5-flash";
 	private static final String DEFAULT_LOCATION = "us-central1";
+	private static final int DEFAULT_CONVERSATION_SIZE_LIMIT = 100;
 
 	Struct properties;
 	String apikey;
 	private long timeout;
 	String location;
 	String charset;
-	String mimetype;
 	ProxyData proxy = null;
 	Map<String, String> formfields = null;
 	String model;
 	String systemMessage;
 	String baseURL = null;
+	private int conversationSizeLimit = DEFAULT_CONVERSATION_SIZE_LIMIT;
 
 	@Override
 	public AIEngine init(AIEngineFactory factory, Struct properties) throws PageException {
@@ -77,6 +77,8 @@ public class GeminiEngine extends AIEngineSupport {
 		}
 		apikey = str.trim();
 
+		// conversation Size Limit
+		conversationSizeLimit = Caster.toIntValue(properties.get("conversationSizeLimit", null), DEFAULT_CONVERSATION_SIZE_LIMIT);
 		// location
 		location = Caster.toString(properties.get(KeyConstants._location, null), DEFAULT_LOCATION);
 		if (Util.isEmpty(location, true)) location = DEFAULT_LOCATION;
@@ -86,11 +88,7 @@ public class GeminiEngine extends AIEngineSupport {
 
 		// charset
 		charset = Caster.toString(properties.get(KeyConstants._charset, null), DEFAULT_CHARSET);
-		if (Util.isEmpty(charset, true)) charset = null;
-
-		// mimetype
-		mimetype = Caster.toString(properties.get(KeyConstants._mimetype, null), DEFAULT_MIMETYPE);
-		if (Util.isEmpty(mimetype, true)) mimetype = null;
+		if (Util.isEmpty(charset, true)) charset = DEFAULT_CHARSET;
 
 		// model
 		model = Caster.toString(properties.get(KeyConstants._model, null), null);
@@ -151,7 +149,7 @@ public class GeminiEngine extends AIEngineSupport {
 		try {
 
 			HTTPResponse rsp = HTTPEngine4Impl.get(toURL(baseURL, MODELS, null), null, null, timeout, false, charset, AIEngineSupport.DEFAULT_USERAGENT, proxy,
-					new Header[] { new HeaderImpl("Content-Type", "application/json") });
+					new Header[] { new HeaderImpl("Content-Type", AIUtil.createJsonContentType(charset)) });
 
 			ContentType ct = rsp.getContentType();
 			if ("application/json".equals(ct.getMimeType())) {
@@ -178,5 +176,10 @@ public class GeminiEngine extends AIEngineSupport {
 		catch (Exception e) {
 			throw Caster.toPageException(e);
 		}
+	}
+
+	@Override
+	public int getConversationSizeLimit() {
+		return conversationSizeLimit;
 	}
 }

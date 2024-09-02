@@ -115,4 +115,16 @@ public class AIUtil {
 		if (pc != null) return pc.getWebCharset().name();
 		return "ISO-8859-1";
 	}
+
+	public static void addConversation(AIEngine engine, List<Conversation> history, Conversation conversation) {
+		history.add(conversation);
+		while (history.size() > engine.getConversationSizeLimit()) {
+			history.remove(0);
+		}
+	}
+
+	public static String createJsonContentType(String charset) {
+		if (StringUtil.isEmpty(charset, true)) return "application/json";
+		return "application/json; charset=" + charset.trim();
+	}
 }
