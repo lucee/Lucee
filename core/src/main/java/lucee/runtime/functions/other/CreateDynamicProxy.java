@@ -46,6 +46,15 @@ public class CreateDynamicProxy implements Function {
 
 	private static final long serialVersionUID = -1787490871697335220L;
 
+	public static Object call(PageContext pc, Object oCFC) throws PageException {
+		try {
+			return _call(pc, oCFC, null);
+		}
+		catch (Exception e) {
+			throw Caster.toPageException(e);
+		}
+	}
+
 	public static Object call(PageContext pc, Object oCFC, Object oInterfaces) throws PageException {
 		try {
 			return _call(pc, oCFC, oInterfaces);
@@ -91,7 +100,8 @@ public class CreateDynamicProxy implements Function {
 			ClassLoader cl = ((PageContextImpl) pc).getClassLoader(null);
 			interfaces = new Class[] { toClass(pc, cl, (Struct) oInterfaces) };
 		}
-		else throw new FunctionException(pc, "CreateDynamicProxy", 2, "interfaces", "invalid type [" + Caster.toClassName(oInterfaces) + "] for class definition");
+		else if (oInterfaces != null)
+			throw new FunctionException(pc, "CreateDynamicProxy", 2, "interfaces", "invalid type [" + Caster.toClassName(oInterfaces) + "] for class definition");
 
 		return _call(pc, cfc, interfaces);
 	}
@@ -99,11 +109,12 @@ public class CreateDynamicProxy implements Function {
 	public static Object _call(PageContext pc, Component cfc, Class[] interfaces) throws PageException, IOException {
 
 		// check if all classes are interfaces
-		for (int i = 0; i < interfaces.length; i++) {
-			if (!interfaces[i].isInterface())
-				throw new FunctionException(pc, "CreateDynamicProxy", 2, "interfaces", "definition [" + interfaces[i].getClass() + "] is a class and not a interface");
+		if (interfaces != null) {
+			for (int i = 0; i < interfaces.length; i++) {
+				if (!interfaces[i].isInterface())
+					throw new FunctionException(pc, "CreateDynamicProxy", 2, "interfaces", "definition [" + interfaces[i].getClass() + "] is a class and not a interface");
+			}
 		}
-
 		return JavaProxyFactory.createProxy(pc, cfc, null, interfaces);
 	}
 

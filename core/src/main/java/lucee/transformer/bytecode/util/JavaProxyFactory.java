@@ -27,6 +27,7 @@ import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -233,14 +234,19 @@ public class JavaProxyFactory {
 		PhysicalClassLoader pcl = getRPCClassLoaderFromClasses(pc, extendz, interfaces);
 
 		if (pcl == null) pcl = (PhysicalClassLoader) pci.getRPCClassLoader(false);
-
+		boolean hasTemplates = false;
 		if (extendz == null) extendz = Object.class;
-		if (interfaces == null) interfaces = new Class[0];
+		else hasTemplates = true;
+
+		if (interfaces == null) {
+			interfaces = new Class[0];
+		}
 		else {
 			for (int i = 0; i < interfaces.length; i++) {
 				if (!interfaces[i].isInterface()) throw new IOException("definition [" + interfaces[i].getName() + "] is a class and not an interface");
 			}
 		}
+		if (!hasTemplates && interfaces.length > 0) hasTemplates = true;
 
 		Type typeExtends = Type.getType(extendz);
 		Type[] typeInterfaces = ASMUtil.toTypes(interfaces);
@@ -373,6 +379,9 @@ public class JavaProxyFactory {
 		for (int i = 0; i < interfaces.length; i++) {
 			_createProxy(cw, cDone, mDone, cfc, interfaces[i], classPath);
 		}
+		if (!hasTemplates) {
+			createProxyFromComponentInterface(cw, cDone, mDone, cfc, classPath);
+		}
 		cw.visitEnd();
 
 		// create class file
@@ -483,7 +492,21 @@ public class JavaProxyFactory {
 		Method[] methods = clazz.getMethods();
 		if (methods != null) for (int i = 0; i < methods.length; i++) {
 			if (methods[i].isDefault() || Modifier.isStatic(methods[i].getModifiers())) continue;
-			_createMethod(cw, mDone, methods[i], className, TYPE_UDF);
+			_createMethod(cw, mDone, new SimpleMethodReflect(methods[i]), className, TYPE_UDF);
+		}
+	}
+
+	private static void createProxyFromComponentInterface(ClassWriter cw, Set<Class> cDone, Map<String, Class> mDone, Component cfc, String className) throws IOException {
+		if (cDone.contains(cfc.getClass())) return;
+		cDone.add(cfc.getClass());
+
+		ComponentImpl cfci = (ComponentImpl) cfc;
+		List<SimpleMethod> methods = ComponentImpl.getSimpleMethods(cfci, ComponentImpl.ACCESS_PUBLIC);
+
+		if (methods != null) {
+			for (SimpleMethod m: methods) {
+				_createMethod(cw, mDone, m, className, TYPE_CFC);
+			}
 		}
 	}
 
@@ -504,11 +527,62 @@ public class JavaProxyFactory {
 
 		Method[] methods = clazz.getMethods();
 		if (methods != null) for (int i = 0; i < methods.length; i++) {
-			_createMethod(cw, mDone, methods[i], className, TYPE_CFC);
+			_createMethod(cw, mDone, new SimpleMethodReflect(methods[i]), className, TYPE_CFC);
 		}
 	}
 
-	private static void _createMethod(ClassWriter cw, Map<String, Class> mDone, Method src, String className, short type) throws IOException {
+	private static class SimpleMethodReflect implements SimpleMethod {
+		private Method method;
+
+		public SimpleMethodReflect(Method method) {
+			this.method = method;
+		}
+
+		@Override
+		public String getName() {
+			return method.getName();
+		}
+
+		@Override
+		public Class[] getParameterTypes() {
+			return method.getParameterTypes();
+		}
+
+		@Override
+		public Class getReturnType() {
+			return method.getReturnType();
+		}
+	}
+
+	private static class SimpleMethodProvided implements SimpleMethod {
+
+		private String name;
+		private Class[] parameterTypes;
+		private Class returnType;
+
+		public SimpleMethodProvided(String name, Class[] parameterTypes, Class returnType) {
+			this.name = name;
+			this.parameterTypes = parameterTypes;
+			this.returnType = returnType;
+		}
+
+		@Override
+		public String getName() {
+			return name;
+		}
+
+		@Override
+		public Class[] getParameterTypes() {
+			return parameterTypes;
+		}
+
+		@Override
+		public Class getReturnType() {
+			return returnType;
+		}
+	}
+
+	private static void _createMethod(ClassWriter cw, Map<String, Class> mDone, SimpleMethod src, String className, short type) throws IOException {
 		final Class<?>[] classArgs = src.getParameterTypes();
 		final Class<?> classRtn = src.getReturnType();
 

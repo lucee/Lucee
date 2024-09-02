@@ -116,6 +116,8 @@ import lucee.runtime.type.util.PropertyFactory;
 import lucee.runtime.type.util.StructSupport;
 import lucee.runtime.type.util.StructUtil;
 import lucee.runtime.type.util.UDFUtil;
+import lucee.transformer.bytecode.util.SimpleMethod;
+import lucee.transformer.bytecode.util.SimpleMethodUDF;
 
 /**
  * %**% MUST add handling for new attributes (style, namespace, serviceportname, porttypename,
@@ -1701,6 +1703,69 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 		}
 
 		sct.set(KeyConstants._functions, arr);
+	}
+
+	public static List<SimpleMethod> getSimpleMethods(ComponentImpl comp, int access) {
+		List<SimpleMethod> methods = new ArrayList<>();
+		if (comp.absFin != null) {
+			// we not to add abstract separately because they are not real Methods, more a rule
+			if (comp.absFin.hasAbstractUDFs()) {
+				java.util.Collection<UDF> absUdfs = ComponentUtil.toUDFs(comp.absFin.getAbstractUDFBs().values(), false);
+				getSimpleMethods(absUdfs.iterator(), comp, access, methods);
+			}
+		}
+
+		if (comp._udfs != null) {
+			getSimpleMethods(comp._udfs.values().iterator(), comp, access, methods);
+		}
+		if (comp._static != null) {
+			Map<Key, Object> entries = comp._static._entries(new HashMap<Key, Object>(), access);
+			List<UDF> udfs = extractUDFS(entries.values());
+			if (udfs.size() > 0) getSimpleMethods(udfs.iterator(), comp, access, methods);
+		}
+
+		// property functions
+		{
+			Iterator<Entry<Key, UDF>> it = comp._udfs.entrySet().iterator();
+			Entry<Key, UDF> entry;
+			UDF udf;
+			while (it.hasNext()) {
+				entry = it.next();
+				udf = entry.getValue();
+				if (udf.getAccess() > access || !(udf instanceof UDFGSProperty)) continue;
+				if (comp.base != null) {
+					if (udf == comp.base.getMember(access, entry.getKey(), true, true)) continue;
+				}
+				methods.add(new SimpleMethodUDF(udf));
+			}
+		}
+
+		// static functions
+		{
+			UDF udf;
+			StaticScope statics = comp.staticScope();
+			Iterator<Entry<Key, Object>> it = statics.entryIterator(ACCESS_PRIVATE);
+			Entry<Key, Object> e;
+			while (it.hasNext()) {
+				e = it.next();
+				if (!(e.getValue() instanceof UDF)) continue;
+				udf = (UDF) e.getValue();
+				if (udf.getAccess() > access || !(udf instanceof UDFGSProperty)) continue;
+				methods.add(new SimpleMethodUDF(udf));
+			}
+		}
+		return methods;
+	}
+
+	private static void getSimpleMethods(Iterator<UDF> it, ComponentImpl comp, int access, List<SimpleMethod> methods) {
+		UDF udf;
+		while (it.hasNext()) {
+			udf = it.next();
+			if (udf instanceof UDFGSProperty) continue;
+			if (udf.getAccess() > access) continue;
+			if (udf.getPageSource() != null && !udf.getPageSource().equals(comp._getPageSource())) continue;
+			methods.add(new SimpleMethodUDF(udf));
+		}
 	}
 
 	private static List<UDF> extractUDFS(java.util.Collection values) {

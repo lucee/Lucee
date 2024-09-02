@@ -2806,23 +2806,34 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 	<function>
 		<name>CreateDynamicProxy</name>
 		<class>lucee.runtime.functions.other.CreateDynamicProxy</class>
-		<description>wrap the given component with a java class that implements the given interfaces.</description>
+		<description>
+			Wraps the given component with a Java class that implements the specified interfaces.
+			If no interfaces are provided, Lucee will create a proxy based on the component's interface itself.
+		</description>
 		<argument>
 			<name>cfc</name>
-			<alias>cfcName,component,componentName</alias>
+			<alias>cfcName, component, componentName</alias>
 			<type>object</type>
 			<required>Yes</required>
-			<description>component or component name</description>
-	    </argument>
+			<description>
+				The component or the name of the component to be wrapped. This argument is mandatory.
+			</description>
+		</argument>
 		<argument>
 			<name>interfaces</name>
 			<alias>interface</alias>
 			<type>object</type>
-			<required>Yes</required>
-			<description>array of strings containing interface paths or a string list of interface paths.</description>
-	    </argument>
+			<required>No</required>
+			<description>
+				An array of strings containing the interface paths, or a comma-separated list of interface paths.
+				This argument is optional.
+			</description>
+		</argument>
 		<return>
 			<type>any</type>
+			<description>
+				Returns the dynamically created proxy object that wraps the given component.
+			</description>
 		</return>
 	</function>
 	
