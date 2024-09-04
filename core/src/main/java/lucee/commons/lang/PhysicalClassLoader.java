@@ -459,7 +459,7 @@ public final class PhysicalClassLoader extends URLClassLoader implements Extenda
 	private static URL[] doURLs(Collection<Resource> reses) throws IOException {
 		List<URL> list = new ArrayList<URL>();
 		for (Resource r: reses) {
-			if (r.isDirectory() || "jar".equalsIgnoreCase(ResourceUtil.getExtension(r, null))) list.add(doURL(r));
+			if ("jar".equalsIgnoreCase(ResourceUtil.getExtension(r, null)) || r.isDirectory()) list.add(doURL(r));
 		}
 		return list.toArray(new URL[list.size()]);
 	}
