@@ -39,7 +39,6 @@ import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
-import lucee.commons.io.res.filter.ExtensionResourceFilter;
 import lucee.commons.io.res.type.file.FileResource;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.runtime.PageSourcePool;
@@ -459,21 +458,10 @@ public final class PhysicalClassLoader extends URLClassLoader implements Extenda
 
 	private static URL[] doURLs(Collection<Resource> reses) throws IOException {
 		List<URL> list = new ArrayList<URL>();
-		addURLs(list, reses);
-		return list.toArray(new URL[list.size()]);
-	}
-
-	private static void addURLs(List<URL> list, Collection<Resource> reses) throws IOException {
-		for (Resource res: reses) {
-			if ("jar".equalsIgnoreCase(ResourceUtil.getExtension(res, null))) list.add(doURL(res));
-			else if (res.isDirectory()) {
-				List<Resource> children = new ArrayList<>();
-				for (Resource child: res.listResources(new ExtensionResourceFilter(true, "jar"))) {
-					children.add(child);
-				}
-				addURLs(list, children);
-			}
+		for (Resource r: reses) {
+			if (r.isDirectory() || "jar".equalsIgnoreCase(ResourceUtil.getExtension(r, null))) list.add(doURL(r));
 		}
+		return list.toArray(new URL[list.size()]);
 	}
 
 	private static URL doURL(Resource res) throws IOException {
