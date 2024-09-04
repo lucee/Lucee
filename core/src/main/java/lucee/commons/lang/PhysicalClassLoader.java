@@ -65,6 +65,7 @@ public final class PhysicalClassLoader extends URLClassLoader implements Extenda
 	static {
 		boolean res = registerAsParallelCapable();
 	}
+
 	private static RC rc = new RC();
 
 	private static Map<String, PhysicalClassLoader> classLoaders = new ConcurrentHashMap<>();
@@ -81,6 +82,8 @@ public final class PhysicalClassLoader extends URLClassLoader implements Extenda
 	private PageSourcePool pageSourcePool;
 
 	private boolean rpc;
+
+	private String birthplace;
 
 	private static long counter = 0L;
 	private static long _start = 0L;
@@ -163,7 +166,7 @@ public final class PhysicalClassLoader extends URLClassLoader implements Extenda
 		this.resources = resources;
 		config = (ConfigPro) c;
 		this.addionalClassLoader = addionalClassLoader;
-
+		this.birthplace = ExceptionUtil.getStacktrace(new Throwable(), false);
 		this.pageSourcePool = pageSourcePool;
 		// ClassLoader resCL = parent!=null?parent:config.getResourceClassLoader(null);
 
@@ -173,6 +176,10 @@ public final class PhysicalClassLoader extends URLClassLoader implements Extenda
 		if (!directory.canRead()) throw new IOException("Access denied to [" + directory + "] directory");
 		this.directory = directory;
 		this.rpc = rpc;
+	}
+
+	public String getBirthplace() {
+		return birthplace;
 	}
 
 	public boolean isRPC() {

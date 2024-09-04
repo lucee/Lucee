@@ -16,9 +16,11 @@ import lucee.commons.io.res.Resource;
 import lucee.commons.lang.ClassException;
 import lucee.commons.lang.ClassUtil;
 import lucee.commons.lang.Pair;
+import lucee.commons.lang.PhysicalClassLoader;
 import lucee.commons.lang.types.RefInteger;
 import lucee.commons.lang.types.RefIntegerImpl;
 import lucee.runtime.config.Constants;
+import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.java.JavaObject;
 import lucee.runtime.op.Caster;
@@ -212,13 +214,53 @@ public abstract class Clazz implements Serializable {
 		 * (first,third,10th) and because this object have no constructor taking no arguments, Lucee cannot
 		 * instantiate them. you need first to instantiate this objects.
 		 */
+
+		Class[] trgArgs = Reflector.getClasses(args);
+		String strTrgArgs = Reflector.getDspMethods(trgArgs);
 		StringBuilder msg = new StringBuilder();
-		msg.append("No matching method for ").append(lucee.runtime.type.util.Type.getName(clazz.getDeclaringClass())).append(".").append(methodName).append("(")
-				.append(Reflector.getDspMethods(Reflector.getClasses(args))).append(") found. ");
+		msg.append("No matching method for ").append(lucee.runtime.type.util.Type.getName(clazz.getDeclaringClass())).append(".").append(methodName).append("(").append(strTrgArgs)
+				.append(") found. ");
 		if (methods.size() > 0) {
 			msg.append("there are similar methods with the same name, but diferent arguments:\n ");
+			Class[] srcArgs;
+			String strSrcArgs;
 			for (Method m: methods) {
-				msg.append(methodName).append('(').append(Reflector.getDspMethods(m.getArgumentClasses())).append(");\n");
+				srcArgs = m.getArgumentClasses();
+				strSrcArgs = Reflector.getDspMethods(srcArgs);
+				if (strSrcArgs.equals(strTrgArgs)) {
+					ClassLoader srcClassLoader = null;
+					ClassLoader trgClassLoader = null;
+					int index = -1;
+					for (int i = 0; i < srcArgs.length; i++) {
+						if (srcArgs[i].getClassLoader() == trgArgs[i].getClassLoader()) continue;
+						index = i;
+						srcClassLoader = srcArgs[i].getClassLoader();
+						trgClassLoader = trgArgs[i].getClassLoader();
+						break;
+					}
+					String srcClassLoaderName = "Bootstrap ClassLoader";
+					if (srcClassLoader instanceof PhysicalClassLoader) {
+						srcClassLoaderName = "PhysicalClassLoader loaded at " + ((PhysicalClassLoader) srcClassLoader).getBirthplace();
+					}
+					else if (srcClassLoader != null) {
+						srcClassLoaderName = srcClassLoader.toString();
+					}
+					String trgClassLoaderName = "Bootstrap ClassLoader";
+					if (trgClassLoader instanceof PhysicalClassLoader) {
+						trgClassLoaderName = "PhysicalClassLoader loaded at " + ((PhysicalClassLoader) trgClassLoader).getBirthplace();
+					}
+					else if (trgClassLoader != null) {
+						trgClassLoaderName = srcClassLoader.toString();
+					}
+
+					if (index != -1) throw new NoSuchMethodException("Found a matching method for [" + lucee.runtime.type.util.Type.getName(clazz.getDeclaringClass()) + "("
+							+ strSrcArgs + ")], but the classes were loaded by different class loaders. \n" + "The " + FunctionException.toStringBadArgumentPosition(index + 1)
+							+ " argument [" + lucee.runtime.type.util.Type.getName(srcArgs[index]) + "] was loaded by the class loader [" + trgClassLoaderName
+							+ "], but the provided argument is from the class loader [" + srcClassLoaderName + "]."
+							+ " Ensure that both classes are loaded by the same class loader to avoid conflicts.");
+
+				}
+				msg.append(methodName).append('(').append(strSrcArgs).append(");\n");
 			}
 
 		}

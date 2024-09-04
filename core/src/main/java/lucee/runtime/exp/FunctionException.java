@@ -65,7 +65,7 @@ public final class FunctionException extends ExpressionException {
 		this(pc, functionName, toStringBadArgumentPosition(badArgumentPosition), badArgumentName, message, detail);
 	}
 
-	private static String toStringBadArgumentPosition(int pos) {
+	public static String toStringBadArgumentPosition(int pos) {
 		switch (pos) {
 		case 1:
 			return "first";
