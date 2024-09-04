@@ -1829,8 +1829,8 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 			getRPCClassLoader();
 		}
 		catch (IOException e) {
-			return ((ConfigPro) config).getJavaSettings();
 		}
+		if (javaSettings == null) return ((ConfigPro) config).getJavaSettings();
 		return javaSettings;
 	}
 

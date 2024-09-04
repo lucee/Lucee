@@ -58,4 +58,13 @@ public class GatewayUtil {
 		return ge.getGateway().getState();
 	}
 
+	public static String toState(int state, String defaultValue) {
+		if (Gateway.FAILED == state) return "failed";
+		if (Gateway.RUNNING == state) return "running";
+		if (Gateway.STARTING == state) return "starting";
+		if (Gateway.STOPPED == state) return "stopped";
+		if (Gateway.STOPPING == state) return "stopping";
+		return defaultValue;
+	}
+
 }

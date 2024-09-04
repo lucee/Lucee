@@ -12404,6 +12404,42 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<type>string</type>
 		</return>
 	</function>
+		<!-- GatewayState -->
+	<function>
+		<name>GatewayState</name>
+		<class>lucee.runtime.functions.gateway.GatewayState</class>
+		<description>Return the current state for the given gateway id.</description>
+		<argument>
+			<name>gatewayID</name>
+			<type>string</type>
+			<required>Yes</required>
+		<description>Identifier of the gateway to get info for.</description>
+    </argument>
+		<return>
+			<type>string</type>
+		</return>
+	</function>
+		<!-- GatewayAction -->
+	<function>
+		<name>GatewayAction</name>
+		<class>lucee.runtime.functions.gateway.GatewayAction</class>
+		<description>Executes a specifc action for a gateway instance.</description>
+		<argument>
+			<name>gatewayID</name>
+			<type>string</type>
+			<required>Yes</required>
+		<description>Identifier of the gateway to do the action on.</description>
+    </argument>
+    		<argument>
+			<name>action</name>
+			<type>string</type>
+			<required>Yes</required>
+		<description>action to execute, possible values are [start,stop and restart]</description>
+    </argument>
+		<return>
+			<type>string</type>
+		</return>
+	</function>
 
 	<!-- serialize -->
 	<function>
