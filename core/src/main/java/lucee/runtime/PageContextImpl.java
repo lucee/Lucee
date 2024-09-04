@@ -134,7 +134,6 @@ import lucee.runtime.listener.ApplicationContextSupport;
 import lucee.runtime.listener.ApplicationListener;
 import lucee.runtime.listener.ClassicApplicationContext;
 import lucee.runtime.listener.JavaSettings;
-import lucee.runtime.listener.JavaSettingsImpl;
 import lucee.runtime.listener.ModernAppListenerException;
 import lucee.runtime.listener.NoneAppListener;
 import lucee.runtime.listener.SessionCookieData;
@@ -3835,37 +3834,33 @@ public final class PageContextImpl extends PageContext {
 		return ormSession;
 	}
 
-	/*
-	 * public ClassLoader getClassLoader() throws IOException { return getClassLoader(null); }
-	 */
-
-	public JavaSettings getJavaSettings() throws IOException {
-		Component ac = getActiveComponent();
-		if (ac instanceof ComponentImpl) {
-			JavaSettings js = ((ComponentImpl) ac).getJavaSettings(this);
-			if (js != null) return JavaSettingsImpl.merge(config, getApplicationContext().getJavaSettings(), js);
-		}
-		return getApplicationContext().getJavaSettings();
+	public ClassLoader getRPCClassLoader() throws IOException {
+		return getRPCClassLoader(false, (JavaSettings) null);
 	}
 
 	public ClassLoader getRPCClassLoader(boolean reload) throws IOException {
 		return getRPCClassLoader(reload, (JavaSettings) null);
 	}
 
-	public ClassLoader getClassLoader() throws IOException {
-		return getRPCClassLoader(false, (JavaSettings) null);
-	}
-
-	public ClassLoader getClassLoader(JavaSettings customJS) throws IOException {
+	public ClassLoader getRPCClassLoader(JavaSettings customJS) throws IOException {
 		return getRPCClassLoader(false, customJS);
 	}
 
 	public ClassLoader getRPCClassLoader(boolean reload, JavaSettings customJS) throws IOException {
-		JavaSettings js = getJavaSettings();
-		if (customJS != null) {
-			js = JavaSettingsImpl.merge(config, js, customJS);
+		ClassLoader cl = getApplicationContext().getRPCClassLoader();
+
+		Component ac = getActiveComponent();
+		if (ac instanceof ComponentImpl) {
+			JavaSettings js = ((ComponentImpl) ac).getJavaSettings(this);
+			if (js != null) {
+				cl = ((ConfigPro) config).getRPCClassLoader(reload, js, cl);
+			}
 		}
-		return ((ConfigPro) config).getRPCClassLoader(reload, js);
+
+		if (customJS != null) {
+			cl = ((ConfigPro) config).getRPCClassLoader(reload, customJS, cl);
+		}
+		return cl;
 	}
 
 	public void resetSession() {

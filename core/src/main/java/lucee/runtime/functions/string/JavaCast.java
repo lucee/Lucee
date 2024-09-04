@@ -117,7 +117,7 @@ public final class JavaCast implements Function {
 		try {
 			if (javaSettings != null) {
 				JavaSettingsImpl js = (JavaSettingsImpl) JavaSettingsImpl.getInstance(pc.getConfig(), Caster.toStruct(javaSettings), null);
-				return ClassUtil.loadClass(((PageContextImpl) pc).getClassLoader(js), type);
+				return ClassUtil.loadClass(((PageContextImpl) pc).getRPCClassLoader(js), type);
 			}
 			return ClassUtil.loadClass(pc, type);
 		}

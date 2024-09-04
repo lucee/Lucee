@@ -18,6 +18,7 @@
  */
 package lucee.runtime.listener;
 
+import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.HashSet;
 import java.util.List;
@@ -877,8 +878,17 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 	}
 
 	@Override
+	public ClassLoader getRPCClassLoader() throws IOException {
+		ClassLoader cl = ModernApplicationContext.getDefaultClassLoader(config);
+		if (javaSettings != null) {
+			cl = ((ConfigPro) config).getRPCClassLoader(false, javaSettings, cl);
+		}
+		return cl;
+	}
+
+	@Override
 	public JavaSettings getJavaSettings() {
-		if (javaSettings == null) javaSettings = ModernApplicationContext.getDefaultJavaSettings(config);
+		if (javaSettings == null) return ((ConfigPro) config).getJavaSettings();
 		return javaSettings;
 	}
 

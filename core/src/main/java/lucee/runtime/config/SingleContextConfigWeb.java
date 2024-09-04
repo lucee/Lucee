@@ -722,8 +722,8 @@ class SingleContextConfigWeb extends ConfigBase implements ConfigWebInner {
 	}
 
 	@Override
-	public ClassLoader getRPCClassLoader(boolean reload, JavaSettings js) throws IOException {
-		return cs.getRPCClassLoader(reload, js);
+	public ClassLoader getRPCClassLoader(boolean reload, JavaSettings js, ClassLoader parent) throws IOException {
+		return cs.getRPCClassLoader(reload, js, parent);
 	}
 
 	@Override

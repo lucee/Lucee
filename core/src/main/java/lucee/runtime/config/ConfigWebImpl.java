@@ -779,8 +779,8 @@ public class ConfigWebImpl implements ConfigWebPro {
 	}
 
 	@Override
-	public ClassLoader getRPCClassLoader(boolean arg0, JavaSettings arg1) throws java.io.IOException {
-		return instance.getRPCClassLoader(arg0, arg1);
+	public ClassLoader getRPCClassLoader(boolean arg0, JavaSettings arg1, ClassLoader parent) throws java.io.IOException {
+		return instance.getRPCClassLoader(arg0, arg1, parent);
 	}
 
 	@Override

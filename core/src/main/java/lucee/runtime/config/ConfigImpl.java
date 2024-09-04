@@ -2241,12 +2241,12 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 
 	@Override
 	public ClassLoader getRPCClassLoader(boolean reload) throws IOException {
-		return PhysicalClassLoader.getRPCClassLoader(this, getJavaSettings(), reload);
+		return PhysicalClassLoader.getRPCClassLoader(this, getJavaSettings(), reload, null);
 	}
 
 	@Override
-	public ClassLoader getRPCClassLoader(boolean reload, JavaSettings js) throws IOException {
-		return PhysicalClassLoader.getRPCClassLoader(this, js != null ? js : getJavaSettings(), reload);
+	public ClassLoader getRPCClassLoader(boolean reload, JavaSettings js, ClassLoader parent) throws IOException {
+		return PhysicalClassLoader.getRPCClassLoader(this, js != null ? js : getJavaSettings(), reload, parent);
 	}
 
 	private static final Object dclt = new SerializableObject();

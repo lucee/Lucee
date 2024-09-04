@@ -121,7 +121,7 @@ public final class ComponentUtil {
 		Mapping mapping = component.getPageSource().getMapping();
 		PhysicalClassLoader cl = null;
 		try {
-			cl = (PhysicalClassLoader) ((PageContextImpl) pc).getRPCClassLoader(false);
+			cl = (PhysicalClassLoader) ((PageContextImpl) pc).getRPCClassLoader();
 		}
 		catch (IOException e) {
 			throw Caster.toPageException(e);
@@ -399,7 +399,7 @@ public final class ComponentUtil {
 
 		PhysicalClassLoader cl;
 		if (pc == null) cl = (PhysicalClassLoader) secondChanceConfig.getRPCClassLoader(false);
-		else cl = (PhysicalClassLoader) ((PageContextImpl) pc).getRPCClassLoader(false);
+		else cl = (PhysicalClassLoader) ((PageContextImpl) pc).getRPCClassLoader();
 
 		Resource rootDir = cl.getDirectory();
 		Resource classFile = rootDir.getRealResource(real.concat(".class"));
@@ -448,7 +448,7 @@ public final class ComponentUtil {
 		String real = className.replace('.', '/');
 
 		Mapping mapping = component.getPageSource().getMapping();
-		PhysicalClassLoader cl = (PhysicalClassLoader) ((PageContextImpl) pc).getRPCClassLoader(false);
+		PhysicalClassLoader cl = (PhysicalClassLoader) ((PageContextImpl) pc).getRPCClassLoader();
 
 		Resource classFile = cl.getDirectory().getRealResource(real.concat(".class"));
 

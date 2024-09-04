@@ -18,6 +18,7 @@
  */
 package lucee.runtime.listener;
 
+import java.io.IOException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.nio.charset.Charset;
@@ -167,6 +168,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	private static Map<String, CacheConnection> initCacheConnections = new ConcurrentHashMap<String, CacheConnection>();
 	private static Object token = new SerializableObject();
 	private static JavaSettings defaultJavaSettings;
+	private static ClassLoader defaultClassLoader;
 
 	private Component component;
 
@@ -271,9 +273,10 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	private ORMConfiguration ormConfig;
 	private boolean initRestSetting;
 	private RestSettings restSetting;
-	private boolean initJavaSettings;
-	private boolean initJavaSettingsBefore;
+	private boolean initClassLoader;
+	private boolean initClassLoaderBefore;
 	private JavaSettings javaSettings;
+	private ClassLoader cl;
 	private Object ormDatasource;
 	private Locale locale;
 	private boolean initLocale;
@@ -1795,47 +1798,51 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 
 	@Override
 	public void setJavaSettings(JavaSettings javaSettings) {
-		initJavaSettings = true;
+		initClassLoader = false;
 		this.javaSettings = javaSettings;
 	}
 
 	@Override
-	public JavaSettings getJavaSettings() {
+	public ClassLoader getRPCClassLoader() throws IOException {
+		if (!initClassLoader) {
+			// PATCH to avoid cycle
+			if (initClassLoaderBefore) {
+				return getDefaultClassLoader(config);
+			}
+			initClassLoaderBefore = true;
+			cl = getDefaultClassLoader(config);
+			Object o = javaSettings != null ? null : get(component, JAVA_SETTING, null);
+			if (javaSettings != null || (o != null && Decision.isStruct(o))) {
+				if (javaSettings == null) javaSettings = JavaSettingsImpl.getInstance(config, Caster.toStruct(o, null), null);
+				cl = ((ConfigPro) config).getRPCClassLoader(false, javaSettings, cl);
+			}
 
-		return initJava();
+			initClassLoader = true;
+			initClassLoaderBefore = false;
+		}
+		return cl;
 	}
 
-	private JavaSettings initJava() {
-		if (!initJavaSettings) {
-			// PATCH to avoid cycle
-			if (initJavaSettingsBefore) {
-				return getDefaultJavaSettings(config);
-			}
-			initJavaSettingsBefore = true;
-
-			Object o = get(component, JAVA_SETTING, null);
-			if (o != null && Decision.isStruct(o)) {
-				javaSettings = JavaSettingsImpl.getInstance(config, Caster.toStruct(o, null), null);
-				javaSettings = JavaSettingsImpl.merge(config, javaSettings, getDefaultJavaSettings(config));
-			}
-			if (javaSettings == null) {
-				javaSettings = getDefaultJavaSettings(config);
-			}
-			initJavaSettings = true;
-			initJavaSettingsBefore = false;
+	@Override
+	public JavaSettings getJavaSettings() {
+		try {
+			getRPCClassLoader();
+		}
+		catch (IOException e) {
+			return ((ConfigPro) config).getJavaSettings();
 		}
 		return javaSettings;
 	}
 
-	public static JavaSettings getDefaultJavaSettings(ConfigWeb config) {
-		if (defaultJavaSettings == null) {
+	public static ClassLoader getDefaultClassLoader(ConfigWeb config) throws IOException {
+		if (defaultClassLoader == null) {
 			synchronized (token) {
-				if (defaultJavaSettings == null) {
-					defaultJavaSettings = ((ConfigPro) config).getJavaSettings();// JavaSettingsImpl.getInstance(config, new StructImpl());
+				if (defaultClassLoader == null) {
+					defaultClassLoader = ((ConfigPro) config).getRPCClassLoader(false, ((ConfigPro) config).getJavaSettings(), null);
 				}
 			}
 		}
-		return defaultJavaSettings;
+		return defaultClassLoader;
 	}
 
 	@Override

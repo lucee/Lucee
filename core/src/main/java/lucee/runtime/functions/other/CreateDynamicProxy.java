@@ -84,7 +84,7 @@ public class CreateDynamicProxy implements Function {
 		if (Decision.isArray(oInterfaces)) {
 			Object[] arr = Caster.toNativeArray(oInterfaces);
 
-			ClassLoader cl = ((PageContextImpl) pc).getClassLoader(null);
+			ClassLoader cl = ((PageContextImpl) pc).getRPCClassLoader(null);
 			interfaces = new Class[arr.length];
 			for (int i = 0; i < arr.length; i++) {
 				if (arr[i] instanceof JavaObject) interfaces[i] = ((JavaObject) arr[i]).getClazz();
@@ -97,7 +97,7 @@ public class CreateDynamicProxy implements Function {
 			interfaces = new Class[] { ((JavaObject) oInterfaces).getClazz() };
 		}
 		else if (oInterfaces instanceof Struct) {
-			ClassLoader cl = ((PageContextImpl) pc).getClassLoader(null);
+			ClassLoader cl = ((PageContextImpl) pc).getRPCClassLoader(null);
 			interfaces = new Class[] { toClass(pc, cl, (Struct) oInterfaces) };
 		}
 		else if (oInterfaces != null)

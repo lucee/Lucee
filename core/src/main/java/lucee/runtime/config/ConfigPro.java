@@ -187,7 +187,7 @@ public interface ConfigPro extends Config {
 
 	public boolean getTypeChecking();
 
-	public ClassLoader getRPCClassLoader(boolean reload, JavaSettings js) throws IOException;
+	public ClassLoader getRPCClassLoader(boolean reload, JavaSettings js, ClassLoader parent) throws IOException;
 
 	public PageSource toPageSource(Mapping[] mappings, Resource res, PageSource defaultValue);
 

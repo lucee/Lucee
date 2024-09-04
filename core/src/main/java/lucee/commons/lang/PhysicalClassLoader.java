@@ -118,7 +118,7 @@ public final class PhysicalClassLoader extends URLClassLoader implements Extenda
 		return rpccl;
 	}
 
-	public static PhysicalClassLoader getRPCClassLoader(Config c, JavaSettings js, boolean reload) throws IOException {
+	public static PhysicalClassLoader getRPCClassLoader(Config c, JavaSettings js, boolean reload, ClassLoader parent) throws IOException {
 
 		String key = js == null ? "orphan" : ((JavaSettingsImpl) js).id();
 
@@ -136,7 +136,7 @@ public final class PhysicalClassLoader extends URLClassLoader implements Extenda
 					}
 					Resource dir = storeResourceMeta(c, key, js, resources);
 					// (Config config, String key, JavaSettings js, Collection<Resource> _resources)
-					classLoaders.put(key, rpccl = new PhysicalClassLoader(c, resources, dir, SystemUtil.getCombinedClassLoader(), null, null, true));
+					classLoaders.put(key, rpccl = new PhysicalClassLoader(c, resources, dir, parent != null ? parent : SystemUtil.getCombinedClassLoader(), null, null, true));
 				}
 			}
 		}

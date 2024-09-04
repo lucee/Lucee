@@ -254,7 +254,7 @@ public final class ClassUtil {
 		if (pc instanceof PageContextImpl) {
 			ClassLoader cl;
 			try {
-				cl = ((PageContextImpl) pc).getClassLoader(null);
+				cl = ((PageContextImpl) pc).getRPCClassLoader(null);
 			}
 			catch (IOException e) {
 				ClassException ce = new ClassException("cannot load class through its string name");
@@ -1026,11 +1026,11 @@ public final class ClassUtil {
 		if (cl != null) return cl;
 
 		if (pc instanceof PageContextImpl) {
-			return ((PageContextImpl) pc).getClassLoader();
+			return ((PageContextImpl) pc).getRPCClassLoader();
 		}
 		Config config = ThreadLocalPageContext.getConfig();
 		if (config instanceof ConfigPro) {
-			return ((ConfigPro) config).getRPCClassLoader(false, null);
+			return ((ConfigPro) config).getRPCClassLoader(false, null, null);
 		}
 		return new lucee.commons.lang.ClassLoaderHelper().getClass().getClassLoader();
 	}

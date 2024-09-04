@@ -88,7 +88,7 @@ public class JavaSettingsImpl implements JavaSettings {
 
 	}
 
-	public static JavaSettings merge(Config config, JavaSettings l, JavaSettings r) {
+	private static JavaSettings merge(Config config, JavaSettings l, JavaSettings r) {
 		if (l == null) return r;
 		if (r == null) return l;
 

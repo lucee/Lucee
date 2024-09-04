@@ -129,7 +129,7 @@ public final class JavaProxy implements Function {
 		else if (Decision.isStruct(pathOrName)) {
 			JavaSettingsImpl js = (JavaSettingsImpl) JavaSettingsImpl.getInstance(pc.getConfig(), Caster.toStruct(pathOrName), null);
 			try {
-				return ClassUtil.loadClass(((PageContextImpl) pc).getClassLoader(js), className);
+				return ClassUtil.loadClass(((PageContextImpl) pc).getRPCClassLoader(js), className);
 			}
 			catch (IOException e) {
 				throw Caster.toPageException(e);
@@ -175,7 +175,7 @@ public final class JavaProxy implements Function {
 			if (resources != null && !resources.isEmpty()) {
 				js = (JavaSettingsImpl) JavaSettingsImpl.getInstance(pc.getConfig(), null, resources);
 			}
-			ClassLoader cl = pci.getClassLoader(js);
+			ClassLoader cl = pci.getRPCClassLoader(js);
 
 			Class clazz = null;
 			try {

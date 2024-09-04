@@ -141,7 +141,7 @@ public class JavaProxyFactory {
 	public static Object createProxy(PageContext pc, UDF udf, Class interf) throws PageException, IOException {
 		PageContextImpl pci = (PageContextImpl) pc;
 		PhysicalClassLoader pcl = getRPCClassLoaderFromClass(pc, interf);
-		if (pcl == null) pcl = (PhysicalClassLoader) pci.getRPCClassLoader(false);
+		if (pcl == null) pcl = (PhysicalClassLoader) pci.getRPCClassLoader();
 
 		if (!interf.isInterface()) throw new IOException("definition [" + interf.getName() + "] is a class and not a interface");
 
@@ -233,7 +233,7 @@ public class JavaProxyFactory {
 		PageContextImpl pci = (PageContextImpl) pc;
 		PhysicalClassLoader pcl = getRPCClassLoaderFromClasses(pc, extendz, interfaces);
 
-		if (pcl == null) pcl = (PhysicalClassLoader) pci.getRPCClassLoader(false);
+		if (pcl == null) pcl = (PhysicalClassLoader) pci.getRPCClassLoader();
 		boolean hasTemplates = false;
 		if (extendz == null) extendz = Object.class;
 		else hasTemplates = true;

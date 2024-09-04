@@ -18,6 +18,7 @@
  */
 package lucee.runtime.listener;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -458,6 +459,8 @@ public abstract class ApplicationContextSupport implements ApplicationContext {
 	public abstract String getBlockedExtForFileUpload();
 
 	public abstract void setJavaSettings(JavaSettings javaSettings);
+
+	public abstract ClassLoader getRPCClassLoader() throws IOException;
 
 	public abstract Struct getXmlFeatures();
 

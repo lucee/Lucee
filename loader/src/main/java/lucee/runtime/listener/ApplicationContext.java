@@ -328,5 +328,4 @@ public interface ApplicationContext extends Serializable {
 	public abstract boolean getCGIScopeReadonly();
 
 	public void setCGIScopeReadonly(boolean cgiScopeReadonly);
-
 }
