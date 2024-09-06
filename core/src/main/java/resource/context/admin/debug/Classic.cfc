@@ -83,7 +83,9 @@ private function isColumnEmpty(query query, string columnName){
 		<cfargument name="context" type="string" default="web"><cfsilent>
 <cfscript>
 	var time=getTickCount();
-	var _cgi = arguments?.debugging?.scope?.cgi ?: cgi;
+	if(!isNull(arguments.debugging.scope.cgi)) local._cgi=arguments.debugging.scope.cgi;
+	else if(!isNull(arguments.debugging.cgi)) local._cgi=arguments.debugging.cgi; 
+	else local._cgi=cgi;
 
 	if(isNull(arguments.debugging.pages)) 
 		local.pages=queryNew('id,count,min,max,avg,app,load,query,total,src');
