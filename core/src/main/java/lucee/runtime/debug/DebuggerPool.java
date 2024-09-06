@@ -19,8 +19,10 @@
 package lucee.runtime.debug;
 
 import java.util.Iterator;
-import java.util.LinkedList;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
+import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
 import lucee.runtime.PageContext;
 import lucee.runtime.config.ConfigWebPro;
@@ -32,33 +34,32 @@ import lucee.runtime.type.Struct;
 
 public class DebuggerPool {
 
-	// private Resource storage;
-	private LinkedList<Struct> queue = new LinkedList<Struct>();
-	// private List<Debugger> list=new ArrayList<Debugger>();
+	// private LinkedList<Struct> queue = new LinkedList<Struct>();
+	private Queue<Struct> queue = new ConcurrentLinkedQueue<>();
 
 	public DebuggerPool(Resource storage) {
 		// this.storage=storage;
 	}
 
-	public void store(PageContext pc, Debugger debugger) {
+	public void store(PageContext pc, DebuggerImpl debugger) {
 		if (ReqRspUtil.getScriptName(pc, pc.getHttpServletRequest()).indexOf("/lucee/") == 0) return;
+
 		try {
 			queue.add(debugger.getDebuggingData(pc, true));
 		}
 		catch (PageException e) {
+			LogUtil.log(pc, "debugger", e);
 		}
 
-		while (queue.size() > ((ConfigWebPro) pc.getConfig()).getDebugMaxRecordsLogged())
+		// on overflow
+		while (queue.size() > ((ConfigWebPro) pc.getConfig()).getDebugMaxRecordsLogged()) {
 			queue.poll();
-
+		}
 	}
 
 	public Array getData(PageContext pc) {
-		Iterator<Struct> it;
-		synchronized (queue) {
-			it = queue.iterator();
-		}
 		Array arr = new ArrayImpl();
+		Iterator<Struct> it = queue.iterator();
 		while (it.hasNext()) {
 			arr.appendEL(it.next());
 		}
@@ -66,9 +67,6 @@ public class DebuggerPool {
 	}
 
 	public void purge() {
-		synchronized (queue) {
-			queue.clear();
-		}
+		queue.clear();
 	}
-
 }
