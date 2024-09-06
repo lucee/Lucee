@@ -79,7 +79,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 	}	
 
 	private function isNotUnix(){
-		return (server.os.name == "windows");
+		return (server.os.name contains "windows");
 	}
 
 }
