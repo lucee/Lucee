@@ -29,6 +29,8 @@
 					<!--- web contexts inherit the server context settings and plugins --->
 					<cfset application.plugin[request.adminType][url.plugin].component=createObject('component','lucee_server_plugin_directory.'&url.plugin&'.Action')>
 					<cfset application.plugin[request.adminType][url.plugin].mapping = "/lucee_server_plugin_directory">
+				<cfelse>
+					<cfrethrow>
 				</cfif>
 			</cfcatch>
 		</cftry>

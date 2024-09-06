@@ -466,6 +466,17 @@ td.fieldPadded {
 	*/
 }
 
+.admin-single th {
+	background-color: rgba(95, 135, 49, 0.1);
+}
+.admin-server th {
+	background-color: rgba(222, 165, 152, 0.1);
+}
+.admin-web th {
+	background-color: rgba(154, 202, 229, 0.1);
+}
+
+
 .admin-web th .comment,
 .admin-web .extensionthumb .comment
 {color:#9acae5;}
