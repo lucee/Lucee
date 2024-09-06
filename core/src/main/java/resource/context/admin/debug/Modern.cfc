@@ -162,8 +162,10 @@ if(structKeyExists(arguments.custom, "metrics_Charts")) {
 		local.times=arguments.debugging.times;
 
 		var time=getTickCount();
-		var _cgi=structKeyExists(arguments.debugging,'cgi')?arguments.debugging.cgi:cgi;
-		
+		// CGI
+		if(!isNull(arguments.debugging.scope.cgi)) local._cgi=arguments.debugging.scope.cgi;
+		else if(!isNull(arguments.debugging.cgi)) local._cgi=arguments.debugging.cgi; 
+		else local._cgi=cgi;
 		
 		
 
