@@ -102,8 +102,11 @@
 		<cfif !structKeyExists(arguments.custom,'general')><cfset arguments.custom.general="Enabled"></cfif>
 
 		<cfset var time=getTickCount() />
-		<cfset var _cgi=structKeyExists(arguments.debugging,'cgi')?arguments.debugging.cgi:cgi />
 		<cfscript>
+			if(!isNull(arguments.debugging.scope.cgi)) local._cgi=arguments.debugging.scope.cgi;
+			else if(!isNull(arguments.debugging.cgi)) local._cgi=arguments.debugging.cgi; 
+			else local._cgi=cgi;
+
 			if(isNull(arguments.debugging.pages)) 
 				local.pages=queryNew('id,count,min,max,avg,app,load,query,total,src');
 			else local.pages=arguments.debugging.pages;

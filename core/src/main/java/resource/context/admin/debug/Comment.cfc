@@ -56,7 +56,9 @@
 		*/
 		function output(struct custom, struct debugging, string context="web") {
 			var NL=variables.NL;
-			var _cgi = arguments?.debugging?.scope?.cgi ?: cgi;
+			if(!isNull(arguments.debugging.scope.cgi)) local._cgi=arguments.debugging.scope.cgi;
+			else if(!isNull(arguments.debugging.cgi)) local._cgi=arguments.debugging.cgi; 
+			else local._cgi=cgi;
 			if (not StructKeyExists(arguments.custom, "unit"))
 				 arguments.custom["unit"] = "millisecond";
 			writeOutput("<!--"&NL);
