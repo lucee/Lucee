@@ -12430,11 +12430,24 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<required>Yes</required>
 		<description>Identifier of the gateway to do the action on.</description>
     </argument>
-    		<argument>
+    <argument>
 			<name>action</name>
 			<type>string</type>
 			<required>Yes</required>
 		<description>action to execute, possible values are [start,stop and restart]</description>
+    </argument>
+    <argument>
+			<name>waitForIt</name>
+			<type>boolean</type>
+			<default>true</default>
+			<required>No</required>
+		<description>Wait for the process to end (starting, stopping or restarting)</description>
+    </argument>
+    <argument>
+			<name>timeout</name>
+			<type>timespan</type>
+			<required>No</required>
+		<description>in case `waitForIt` is set to `true`, this defines how long we wait for the process to end, default is one second.</description>
     </argument>
 		<return>
 			<type>string</type>
