@@ -128,6 +128,7 @@ public class JavaProxyFactory {
 	private static final org.objectweb.asm.commons.Method GET_CONFIG = new org.objectweb.asm.commons.Method("getConfig", Types.CONFIG_WEB, new Type[] {});
 	private static final org.objectweb.asm.commons.Method GET = new org.objectweb.asm.commons.Method("get", Types.PAGE_CONTEXT, new Type[] {});
 	private static final org.objectweb.asm.commons.Method LOAD_COMPONENT = new org.objectweb.asm.commons.Method("loadComponent", Types.COMPONENT, new Type[] { Types.STRING });
+	private static final org.objectweb.asm.commons.Method TO_COMPONENT = new org.objectweb.asm.commons.Method("_toComponent", Types.COMPONENT, new Type[] {});
 
 	public static Object createProxy(Object defaultValue, PageContext pc, UDF udf, Class interf) {
 		try {
@@ -250,10 +251,11 @@ public class JavaProxyFactory {
 
 		Type typeExtends = Type.getType(extendz);
 		Type[] typeInterfaces = ASMUtil.toTypes(interfaces);
-		String[] strInterfaces = new String[typeInterfaces.length];
+		String[] strInterfaces = new String[typeInterfaces.length + 1];
 		for (int i = 0; i < strInterfaces.length; i++) {
 			strInterfaces[i] = typeInterfaces[i].getInternalName();
 		}
+		strInterfaces[strInterfaces.length] = Types.COMPONENT_WRAP.getInternalName();
 
 		String className = createClassName("cfc", cfc, pcl.getDirectory(), extendz, interfaces);
 		String classPath = className.replace('.', '/'); // Ensure classPath is using slashes
@@ -370,6 +372,33 @@ public class JavaProxyFactory {
 			adapter.visitLocalVariable("config", CONFIG_WEB_NAME, null, begin, end, 1); // Correctly define 'config' as local variable 1
 			adapter.visitLocalVariable("cfc", COMPONENT_NAME, null, begin, end, 2); // Correctly define 'cfc' as local variable 2
 
+			adapter.endMethod();
+		}
+
+		// create toComponent
+		{
+
+			// Create a GeneratorAdapter for the toComponent method
+			GeneratorAdapter adapter = new GeneratorAdapter(Opcodes.ACC_PUBLIC, TO_COMPONENT, null, null, cw);
+
+			Label begin = new Label();
+			adapter.visitLabel(begin);
+
+			// Load 'this' onto the stack (for accessing the instance field)
+			adapter.loadThis();
+
+			// Get the value of 'cfc' field (ALoad 0, then getField)
+			adapter.visitFieldInsn(Opcodes.GETFIELD, classPath, "cfc", Type.getDescriptor(Component.class));
+
+			// Return the value (which is of type Component)
+			adapter.returnValue();
+
+			// Define the labels and local variables for debugging purposes
+			Label end = new Label();
+			adapter.visitLabel(end);
+			adapter.visitLocalVariable("this", descriptor, null, begin, end, 0); // 'this' as local variable 0
+
+			// Complete the method definition
 			adapter.endMethod();
 		}
 

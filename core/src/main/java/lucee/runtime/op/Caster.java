@@ -143,6 +143,7 @@ import lucee.runtime.type.it.CollectionAsEntryIterator;
 import lucee.runtime.type.scope.ObjectStruct;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.ComponentUtil;
+import lucee.runtime.type.util.ComponentWrap;
 import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.wrap.ArrayAsList;
 import lucee.runtime.type.wrap.ListAsArray;
@@ -4516,6 +4517,7 @@ public final class Caster {
 	 */
 	public static Component toComponent(Object o) throws PageException {
 		if (o instanceof Component) return (Component) o;
+		else if (o instanceof ComponentWrap) return ((ComponentWrap) o)._toComponent();
 		else if (o instanceof ObjectWrap) {
 			return toComponent(((ObjectWrap) o).getEmbededObject());
 		}
@@ -4524,6 +4526,7 @@ public final class Caster {
 
 	public static Component toComponent(Object o, Component defaultValue) {
 		if (o instanceof Component) return (Component) o;
+		else if (o instanceof ComponentWrap) return ((ComponentWrap) o)._toComponent();
 		else if (o instanceof ObjectWrap) {
 			return toComponent(((ObjectWrap) o).getEmbededObject(defaultValue), defaultValue);
 		}

@@ -91,6 +91,7 @@ import lucee.runtime.type.scope.Scope;
 import lucee.runtime.type.scope.Undefined;
 import lucee.runtime.type.scope.Variables;
 import lucee.runtime.type.util.ArrayUtil;
+import lucee.runtime.type.util.ComponentWrap;
 import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.ListUtil;
 import lucee.runtime.util.CallerUtil;
@@ -285,6 +286,7 @@ public final class Types {
 	public static final Type EXPRESSION_EXCEPTION = Type.getType(ExpressionException.class);
 	public static final Type STATIC_STRUCT = Type.getType(StaticStruct.class);
 	public static final Type THREAD_LOCAL_PAGE_CONTEXT = Type.getType(ThreadLocalPageContext.class);
+	public static final Type COMPONENT_WRAP = Type.getType(ComponentWrap.class);
 
 	/**
 	 * translate sString classname to a real type
