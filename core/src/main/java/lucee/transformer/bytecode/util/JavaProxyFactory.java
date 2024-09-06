@@ -250,12 +250,16 @@ public class JavaProxyFactory {
 		if (!hasTemplates && interfaces.length > 0) hasTemplates = true;
 
 		Type typeExtends = Type.getType(extendz);
-		Type[] typeInterfaces = ASMUtil.toTypes(interfaces);
-		String[] strInterfaces = new String[typeInterfaces.length + 1];
-		for (int i = 0; i < strInterfaces.length; i++) {
-			strInterfaces[i] = typeInterfaces[i].getInternalName();
+
+		String[] strInterfaces;
+		{
+			Type[] typeInterfaces = ASMUtil.toTypes(interfaces);
+			strInterfaces = new String[typeInterfaces.length + 1];
+			for (int i = 0; i < typeInterfaces.length; i++) {
+				strInterfaces[i] = typeInterfaces[i].getInternalName();
+			}
+			strInterfaces[typeInterfaces.length] = Types.COMPONENT_WRAP.getInternalName();
 		}
-		strInterfaces[strInterfaces.length] = Types.COMPONENT_WRAP.getInternalName();
 
 		String className = createClassName("cfc", cfc, pcl.getDirectory(), extendz, interfaces);
 		String classPath = className.replace('.', '/'); // Ensure classPath is using slashes
