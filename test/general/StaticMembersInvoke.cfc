@@ -20,8 +20,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 			});
 
 			it(title="class: implicit with asterix import", body=function() {
-				var map=java.util.HashMap::newHashMap(1);
-				expect(map.size()).toBe(0);
+				var list=java.util.Collections::emptyList();
+				expect(list.size()).toBe(0);
 			});
 
 			it(title="class: implicit with explicit import", body=function() {
