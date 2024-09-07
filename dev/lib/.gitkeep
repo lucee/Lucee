@@ -1,3 +1,5 @@
 ### Maven dependencies can be downloaded by running the goal dependency:copy-dependencies
-##  e.g. by running the following command from the Project root directory:
-#   mvn -f loader/pom.xml dependency:copy-dependencies -DoutputDirectory=../dev/lib
+##  e.g. by running the mvn command or sourcing this file from the Project root directory:
+#   source ./dev/lib/.gitkeep
+
+mvn -f loader/pom.xml dependency:copy-dependencies -DoutputDirectory=../dev/lib
