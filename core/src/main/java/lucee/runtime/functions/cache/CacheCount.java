@@ -32,14 +32,14 @@ public final class CacheCount extends BIF {
 
 	private static final long serialVersionUID = 4192649311671009474L;
 
-	public static double call(PageContext pc) throws PageException {
+	public static Number call(PageContext pc) throws PageException {
 		return call(pc, null);
 
 	}
 
-	public static double call(PageContext pc, String cacheName) throws PageException {
+	public static Number call(PageContext pc, String cacheName) throws PageException {
 		try {
-			return CacheUtil.getCache(pc, cacheName, Config.CACHE_TYPE_OBJECT).keys().size();
+			return Caster.toNumber(pc, CacheUtil.getCache(pc, cacheName, Config.CACHE_TYPE_OBJECT).keys().size());
 		}
 		catch (IOException e) {
 			throw Caster.toPageException(e);

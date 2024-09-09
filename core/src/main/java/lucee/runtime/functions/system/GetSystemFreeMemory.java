@@ -28,8 +28,8 @@ public class GetSystemFreeMemory implements Function {
 
 	private static final long serialVersionUID = -2808311251929634506L;
 
-	public static double call(PageContext pc) throws ApplicationException {
-		return Caster.toDoubleValue(SystemUtil.getFreeBytes());
+	public static Number call(PageContext pc) throws ApplicationException {
+		return Caster.toNumber(pc, SystemUtil.getFreeBytes());
 	}
 
 }

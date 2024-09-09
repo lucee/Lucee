@@ -33,14 +33,14 @@ public final class ArrayIndexExists extends BIF {
 
 	private static final long serialVersionUID = -4490011932571314711L;
 
-	public static boolean call(PageContext pc, Array array, double index) {
+	public static boolean call(PageContext pc, Array array, Number index) {
 		Object _null = NullSupportHelper.NULL(pc);
-		return array.get((int) index, _null) != _null;
+		return array.get(Caster.toIntValue(index), _null) != _null;
 	}
 
 	@Override
 	public Object invoke(PageContext pc, Object[] args) throws PageException {
-		if (args.length == 2) return call(pc, Caster.toArray(args[0]), Caster.toDoubleValue(args[1]));
-		else throw new FunctionException(pc, "ArrayIndexExists", 2, 2, args.length);
+		if (args.length == 2) return call(pc, Caster.toArray(args[0]), Caster.toNumber(pc, args[1]));
+		throw new FunctionException(pc, "ArrayIndexExists", 2, 2, args.length);
 	}
 }

@@ -31,10 +31,10 @@ public final class CompareNoCase extends BIF {
 
 	private static final long serialVersionUID = 4570856747042434801L;
 
-	public static double call(PageContext pc, String str1, String str2) {
+	public static Number call(PageContext pc, String str1, String str2) {
 		int compare = str1.compareToIgnoreCase(str2);
 		if (compare == 0) return 0;
-		return compare > 0 ? 1 : -1;
+		return Caster.toNumber(pc, compare > 0 ? 1 : -1);
 	}
 
 	@Override

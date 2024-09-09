@@ -38,16 +38,16 @@ public class StructKeyTranslate extends BIF {
 
 	private static final long serialVersionUID = -7978129950865681102L;
 
-	public static double call(PageContext pc, Struct sct) throws PageException {
+	public static Number call(PageContext pc, Struct sct) throws PageException {
 		return call(pc, sct, false, false);
 	}
 
-	public static double call(PageContext pc, Struct sct, boolean deepTranslation) throws PageException {
+	public static Number call(PageContext pc, Struct sct, boolean deepTranslation) throws PageException {
 		return call(pc, sct, deepTranslation, false);
 	}
 
-	public static double call(PageContext pc, Struct sct, boolean deepTranslation, boolean leaveOriginalKey) throws PageException {
-		return translate(sct, deepTranslation, leaveOriginalKey);
+	public static Number call(PageContext pc, Struct sct, boolean deepTranslation, boolean leaveOriginalKey) throws PageException {
+		return Caster.toNumber(pc, translate(sct, deepTranslation, leaveOriginalKey));
 	}
 
 	private static int translate(Collection coll, boolean deep, boolean leaveOrg) throws PageException {

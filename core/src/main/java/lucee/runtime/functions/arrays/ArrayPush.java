@@ -11,7 +11,7 @@ public final class ArrayPush extends BIF {
 
 	private static final long serialVersionUID = -5673140457325547233L;
 
-	public static double call(PageContext pc, Array array, Object object) throws PageException {
+	public static Number call(PageContext pc, Array array, Object object) throws PageException {
 		// TODO need to be atomic
 		array.append(object);
 		return array.size();

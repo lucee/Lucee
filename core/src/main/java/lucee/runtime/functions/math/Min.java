@@ -27,6 +27,8 @@ import lucee.runtime.ext.function.Function;
 import lucee.runtime.op.Caster;
 
 public final class Min implements Function {
+	private static final long serialVersionUID = 5324510164743536854L;
+
 	public static Number call(PageContext pc, Number number1, Number number2) {
 		if (ThreadLocalPageContext.preciseMath(pc)) {
 			return (Caster.toBigDecimal(number1).compareTo(Caster.toBigDecimal(number2)) < 0) ? number1 : number2;

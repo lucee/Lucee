@@ -25,16 +25,17 @@ import lucee.runtime.op.Caster;
 
 public class Sleep {
 
-	public static String call(PageContext pc, double duration) throws PageException {
-		if (duration >= 0) {
+	public static String call(PageContext pc, Number nduration) throws PageException {
+		long dur = Caster.toLongValue(nduration);
+		if (dur >= 0L) {
 			try {
-				Thread.sleep((long) duration);
+				Thread.sleep(dur);
 			}
 			catch (InterruptedException e) {
 				throw Caster.toPageException(e);
 			}
 		}
-		else throw new FunctionException(pc, "sleep", 1, "duration", "attribute interval must be greater or equal to 0, now [" + (duration) + "]");
+		else throw new FunctionException(pc, "sleep", 1, "duration", "attribute interval must be greater or equal to 0, now [" + (dur) + "]");
 		return null;
 
 	}

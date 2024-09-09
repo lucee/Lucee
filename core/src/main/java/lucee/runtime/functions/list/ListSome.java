@@ -53,7 +53,7 @@ public class ListSome extends BIF {
 	}
 
 	public static boolean call(PageContext pc, String list, UDF udf, String delimiter, boolean includeEmptyFields, boolean multiCharacterDelimiter, boolean parallel,
-			double maxThreads) throws PageException {
+			Number maxThreads) throws PageException {
 		StringListData data = new StringListData(list, delimiter, includeEmptyFields, multiCharacterDelimiter);
 
 		return Some.call(pc, data, udf, parallel, maxThreads);
@@ -70,7 +70,7 @@ public class ListSome extends BIF {
 		if (args.length == 6) return call(pc, Caster.toString(args[0]), Caster.toFunction(args[1]), Caster.toString(args[2]), Caster.toBooleanValue(args[3]),
 				Caster.toBooleanValue(args[4]), Caster.toBooleanValue(args[5]));
 		if (args.length == 7) return call(pc, Caster.toString(args[0]), Caster.toFunction(args[1]), Caster.toString(args[2]), Caster.toBooleanValue(args[3]),
-				Caster.toBooleanValue(args[4]), Caster.toBooleanValue(args[5]), Caster.toDoubleValue(args[6]));
+				Caster.toBooleanValue(args[4]), Caster.toBooleanValue(args[5]), Caster.toNumber(pc, args[6]));
 
 		throw new FunctionException(pc, "ListSome", 2, 7, args.length);
 	}

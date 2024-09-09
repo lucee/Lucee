@@ -357,6 +357,24 @@ public final class Caster {
 
 	}
 
+	public static Number toNumber(PageContext pc, long l) {
+		if (ThreadLocalPageContext.preciseMath(pc)) return BigDecimal.valueOf(l);
+		return Double.valueOf(l);
+
+	}
+
+	public static Number toNumber(long l) {
+		if (ThreadLocalPageContext.preciseMath(null)) return BigDecimal.valueOf(l);
+		return Double.valueOf(l);
+
+	}
+
+	public static Number toNumber(PageContext pc, double d) {
+		if (ThreadLocalPageContext.preciseMath(pc)) return BigDecimal.valueOf(d);
+		return Double.valueOf(d);
+
+	}
+
 	public static Number toNumber(double d) {
 		if (ThreadLocalPageContext.preciseMath(null)) return BigDecimal.valueOf(d);
 		return Double.valueOf(d);

@@ -33,15 +33,15 @@ public final class ListValueCount extends BIF {
 
 	private static final long serialVersionUID = -1808030347105091742L;
 
-	public static double call(PageContext pc, String list, String value) throws PageException {
+	public static Number call(PageContext pc, String list, String value) throws PageException {
 		return call(pc, list, value, ",", false);
 	}
 
-	public static double call(PageContext pc, String list, String value, String delimiter) throws PageException {
+	public static Number call(PageContext pc, String list, String value, String delimiter) throws PageException {
 		return call(pc, list, value, delimiter, false);
 	}
 
-	public static double call(PageContext pc, String list, String value, String delimiter, boolean includeEmptyFields) throws PageException {
+	public static Number call(PageContext pc, String list, String value, String delimiter, boolean includeEmptyFields) throws PageException {
 		int count = 0;
 		Array arr = includeEmptyFields ? ListUtil.listToArray(list, delimiter) : ListUtil.listToArrayRemoveEmpty(list, delimiter);
 		int len = arr.size();
@@ -49,7 +49,7 @@ public final class ListValueCount extends BIF {
 		for (int i = 1; i <= len; i++) {
 			if (arr.getE(i).equals(value)) count++;
 		}
-		return count;
+		return Caster.toNumber(pc, count);
 	}
 
 	@Override

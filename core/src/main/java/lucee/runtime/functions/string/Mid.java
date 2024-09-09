@@ -29,13 +29,13 @@ import lucee.runtime.ext.function.BIF;
 import lucee.runtime.op.Caster;
 
 public final class Mid extends BIF {
-	public static String call(PageContext pc, String str, double start) throws ExpressionException {
+	public static String call(PageContext pc, String str, Number start) throws ExpressionException {
 		return call(pc, str, start, -1);
 	}
 
-	public static String call(PageContext pc, String str, double start, double count) throws ExpressionException {
-		int s = (int) (start - 1);
-		int c = (int) count;
+	public static String call(PageContext pc, String str, Number start, Number count) throws ExpressionException {
+		int s = Caster.toIntValue(start) - 1;
+		int c = Caster.toIntValue(count);
 
 		if (s < 0) throw new ExpressionException("Parameter 2 of function mid which is now [" + (s + 1) + "] must be a positive integer");
 		if (c == -1) c = str.length();

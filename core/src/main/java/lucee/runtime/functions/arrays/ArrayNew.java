@@ -37,13 +37,13 @@ public final class ArrayNew extends BIF {
 
 	private static final long serialVersionUID = -5923269433550568279L;
 
-	public static Array call(PageContext pc, double dimension, String type, boolean _synchronized) throws PageException {
+	public static Array call(PageContext pc, Number dimension, String type, boolean _synchronized) throws PageException {
 		Array a;
 		if (StringUtil.isEmpty(type, true) || Decision.isBoolean(type)) {
-			a = ArrayUtil.getInstance((int) dimension, _synchronized);
+			a = ArrayUtil.getInstance(Caster.toIntValue(dimension), _synchronized);
 		}
 		else {
-			if (dimension > 1) {
+			if (Caster.toIntValue(dimension) > 1) {
 				throw new ApplicationException("multi dimensional arrays are not supported with typed arrays");
 			}
 			a = new ArrayTyped(type.trim());

@@ -32,17 +32,17 @@ public final class ListFind extends BIF {
 
 	private static final long serialVersionUID = -8999117503012321225L;
 
-	public static double call(PageContext pc, String list, String value) {
+	public static Number call(PageContext pc, String list, String value) {
 		return ListUtil.listFindIgnoreEmpty(list, value, ',') + 1;
 	}
 
-	public static double call(PageContext pc, String list, String value, String delimter) {
+	public static Number call(PageContext pc, String list, String value, String delimter) {
 		return ListUtil.listFindIgnoreEmpty(list, value, delimter) + 1;
 	}
 
-	public static double call(PageContext pc, String list, String value, String delimter, boolean includeEmptyFields) {
+	public static Number call(PageContext pc, String list, String value, String delimter, boolean includeEmptyFields) {
 		if (includeEmptyFields) return ListUtil.listFind(list, value, delimter) + 1;
-		return ListUtil.listFindIgnoreEmpty(list, value, delimter) + 1;
+		return Caster.toNumber(pc, ListUtil.listFindIgnoreEmpty(list, value, delimter) + 1);
 	}
 
 	@Override

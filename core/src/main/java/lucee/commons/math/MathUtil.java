@@ -42,6 +42,10 @@ public final class MathUtil {
 		return (number <= 0.0D) ? 0.0D - number : number;
 	}
 
+	public static BigDecimal abs(BigDecimal number) {
+		return number.abs();
+	}
+
 	public static double sgn(double number) {
 		return number != 0.0d ? number >= 0.0d ? 1 : -1 : 0;
 	}

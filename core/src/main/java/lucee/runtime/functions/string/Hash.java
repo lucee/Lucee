@@ -64,8 +64,8 @@ public final class Hash extends BIF implements Function {
 		return invoke(pc.getConfig(), input, algorithm, encoding, 1);
 	}
 
-	public static String call(PageContext pc, Object input, String algorithm, String encoding, double numIterations) throws PageException {
-		return invoke(pc.getConfig(), input, algorithm, encoding, (int) numIterations);
+	public static String call(PageContext pc, Object input, String algorithm, String encoding, Number numIterations) throws PageException {
+		return invoke(pc.getConfig(), input, algorithm, encoding, Caster.toIntValue(numIterations));
 	}
 
 	@Override

@@ -21,6 +21,7 @@ package lucee.runtime.functions.other;
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
+import lucee.runtime.op.Caster;
 import lucee.runtime.tag.Admin;
 
 public final class SSLCertificateInstall implements Function {
@@ -31,8 +32,8 @@ public final class SSLCertificateInstall implements Function {
 		return call(pc, host, 443);
 	}
 
-	public static String call(PageContext pc, String host, double port) throws PageException {
-		Admin.updateSSLCertificate(pc.getConfig(), host, (int) port);
+	public static String call(PageContext pc, String host, Number port) throws PageException {
+		Admin.updateSSLCertificate(pc.getConfig(), host, Caster.toIntValue(port));
 		return "";
 	}
 

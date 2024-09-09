@@ -68,8 +68,8 @@ public class Map extends BIF implements ClosureFunc {
 		return _call(pc, obj, udf, parallel, Each.DEFAULT_MAX_THREAD, null, TYPE_UNDEFINED);
 	}
 
-	public static Object call(PageContext pc, Object obj, UDF udf, boolean parallel, double maxThreads) throws PageException {
-		return _call(pc, obj, udf, parallel, (int) maxThreads, null, TYPE_UNDEFINED);
+	public static Object call(PageContext pc, Object obj, UDF udf, boolean parallel, Number maxThreads) throws PageException {
+		return _call(pc, obj, udf, parallel, Caster.toIntValue(maxThreads), null, TYPE_UNDEFINED);
 	}
 
 	public static Object call(PageContext pc, Object obj, UDF udf, boolean parallel, int maxThreads, Query resQry, short type) throws PageException {
@@ -358,7 +358,7 @@ public class Map extends BIF implements ClosureFunc {
 	public Object invoke(PageContext pc, Object[] args) throws PageException {
 		if (args.length == 2) return call(pc, (args[0]), Caster.toFunction(args[1]));
 		if (args.length == 3) return call(pc, (args[0]), Caster.toFunction(args[1]), Caster.toBooleanValue(args[2]));
-		if (args.length == 4) return call(pc, (args[0]), Caster.toFunction(args[1]), Caster.toBooleanValue(args[2]), Caster.toDoubleValue(args[3]));
+		if (args.length == 4) return call(pc, (args[0]), Caster.toFunction(args[1]), Caster.toBooleanValue(args[2]), Caster.toNumber(pc, args[3]));
 
 		throw new FunctionException(pc, "Map", 2, 4, args.length);
 	}

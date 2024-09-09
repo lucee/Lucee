@@ -32,8 +32,8 @@ public final class StructCount extends BIF {
 
 	private static final long serialVersionUID = -2023978105880376970L;
 
-	public static double call(PageContext pc, Struct struct) {
-		return struct.size();
+	public static Number call(PageContext pc, Struct struct) {
+		return Caster.toNumber(pc, struct.size());
 	}
 
 	@Override

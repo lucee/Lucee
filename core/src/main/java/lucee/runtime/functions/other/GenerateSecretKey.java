@@ -35,10 +35,11 @@ public final class GenerateSecretKey implements Function {
 		return call(pc, algorithm, 0);
 	}
 
-	public static String call(PageContext pc, String algorithm, double keySize) throws PageException {
+	public static String call(PageContext pc, String algorithm, Number keySize) throws PageException {
 		try {
 			KeyGenerator keyGenerator = KeyGenerator.getInstance(algorithm.toUpperCase());
-			if (keySize > 0) keyGenerator.init(Caster.toIntValue(keySize));
+			int kz = Caster.toIntValue(keySize);
+			if (kz > 0) keyGenerator.init(Caster.toIntValue(keySize));
 			return Coder.encode(Coder.ENCODING_BASE64, keyGenerator.generateKey().getEncoded());
 		}
 		catch (Exception e) {

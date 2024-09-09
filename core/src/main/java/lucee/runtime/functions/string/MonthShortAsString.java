@@ -29,11 +29,11 @@ import lucee.runtime.ext.function.Function;
 
 public final class MonthShortAsString implements Function {
 
-	public static String call(PageContext pc, double month) throws ExpressionException {
+	public static String call(PageContext pc, Number month) throws ExpressionException {
 		return MonthAsString.call(month, pc.getLocale(), true);
 	}
 
-	public static String call(PageContext pc, double month, Locale locale) throws ExpressionException {
+	public static String call(PageContext pc, Number month, Locale locale) throws ExpressionException {
 		if (locale == null) locale = pc.getLocale();
 		return MonthAsString.call(month, locale, true);
 	}

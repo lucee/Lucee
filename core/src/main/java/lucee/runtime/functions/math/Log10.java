@@ -16,18 +16,32 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  * 
  **/
-/**
- * Implements the CFML Function log10
- */
 package lucee.runtime.functions.math;
 
 import lucee.runtime.PageContext;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.ext.function.Function;
+import lucee.runtime.op.Caster;
 
 public final class Log10 implements Function {
-	public static double call(PageContext pc, double number) throws ExpressionException {
-		if (number <= 0) throw new ExpressionException("invalid argument at function log10, vale must be a positive number now " + ((int) number) + "");
-		return 0.43429448190325182D * StrictMath.log(number);
+
+	private static final long serialVersionUID = 5661273846487684766L;
+	private static final double LOG10_CONVERSION = 0.43429448190325182D;
+
+	public static Number call(PageContext pc, Number number) throws ExpressionException {
+
+		double numValue = Caster.toDoubleValue(number);
+
+		if (numValue <= 0.0D) {
+			throw new ExpressionException("invalid argument at function log10, value must be a positive number, now " + Caster.toString(number) + "");
+		}
+
+		double result = LOG10_CONVERSION * StrictMath.log(numValue);
+
+		if (ThreadLocalPageContext.preciseMath(pc)) {
+			return Caster.toBigDecimal(result);
+		}
+		return result;
 	}
 }

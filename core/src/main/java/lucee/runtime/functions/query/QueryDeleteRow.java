@@ -32,9 +32,10 @@ public final class QueryDeleteRow extends BIF {
 		return call(pc, query, query.getRowCount());
 	}
 
-	public static boolean call(PageContext pc, Query query, double row) throws PageException {
+	public static boolean call(PageContext pc, Query query, Number nrow) throws PageException {
+		int row = Caster.toIntValue(nrow);
 		if (row == -9999) row = query.getRowCount();// used for named arguments
-		query.removeRow((int) row);
+		query.removeRow(row);
 		return true;
 	}
 

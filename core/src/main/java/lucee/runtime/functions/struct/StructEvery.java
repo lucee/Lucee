@@ -40,8 +40,8 @@ public class StructEvery extends BIF {
 		return _call(pc, sct, udf, parallel, 20);
 	}
 
-	public static boolean call(PageContext pc, Struct sct, UDF udf, boolean parallel, double maxThreads) throws PageException {
-		return _call(pc, sct, udf, parallel, (int) maxThreads);
+	public static boolean call(PageContext pc, Struct sct, UDF udf, boolean parallel, Number maxThreads) throws PageException {
+		return _call(pc, sct, udf, parallel, Caster.toIntValue(maxThreads));
 	}
 
 	private static boolean _call(PageContext pc, Struct sct, UDF udf, boolean parallel, int maxThreads) throws PageException {

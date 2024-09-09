@@ -31,10 +31,10 @@ public final class Compare extends BIF {
 
 	private static final long serialVersionUID = -6982310146145687711L;
 
-	public static double call(PageContext pc, String str1, String str2) {
+	public static Number call(PageContext pc, String str1, String str2) {
 		int compare = str1.compareTo(str2);
 		if (compare == 0) return 0;
-		return compare > 0 ? 1 : -1;
+		return Caster.toNumber(pc, compare > 0 ? 1 : -1);
 	}
 
 	@Override

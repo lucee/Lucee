@@ -34,9 +34,9 @@ public final class ArraySet extends BIF {
 
 	private static final long serialVersionUID = -7804363479876538167L;
 
-	public static boolean call(PageContext pc, Array array, double from, double to, Object value) throws PageException {
-		int f = (int) from;
-		int t = (int) to;
+	public static boolean call(PageContext pc, Array array, Number from, Number to, Object value) throws PageException {
+		int f = Caster.toIntValue(from);
+		int t = Caster.toIntValue(to);
 		if (f < 1) throw new ExpressionException("Start index of the function arraySet must be greater than zero; now [" + f + "]");
 		if (f > t) throw new ExpressionException("End index of the function arraySet must be greater than the Start index; now [start:" + f + ", end:" + t + "]");
 		if (array.getDimension() > 1)
@@ -50,7 +50,7 @@ public final class ArraySet extends BIF {
 
 	@Override
 	public Object invoke(PageContext pc, Object[] args) throws PageException {
-		if (args.length == 4) return call(pc, Caster.toArray(args[0]), Caster.toDoubleValue(args[1]), Caster.toDoubleValue(args[2]), args[3]);
+		if (args.length == 4) return call(pc, Caster.toArray(args[0]), Caster.toNumber(pc, args[1]), Caster.toNumber(pc, args[2]), args[3]);
 		else throw new FunctionException(pc, "ArraySet", 4, 4, args.length);
 	}
 }

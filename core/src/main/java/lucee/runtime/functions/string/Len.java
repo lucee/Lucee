@@ -32,14 +32,15 @@ import lucee.runtime.type.Collection;
 import lucee.runtime.type.Query;
 
 public final class Len implements Function {
-	public static double call(PageContext pc, String string) {
-		return string.length();
+
+	public static Number call(PageContext pc, String string) {
+		return Caster.toNumber(pc, string.length());
 	}
 
-	public static double call(PageContext pc, Object obj) throws FunctionException {
+	public static Number call(PageContext pc, Object obj) throws FunctionException {
 		double len = invoke(obj, -1);
 		if (len == -1) throw new FunctionException(pc, "len", 1, "object", "this type  [" + Caster.toTypeName(obj) + "] is not supported for returning the len");
-		return len;
+		return Caster.toNumber(pc, len);
 	}
 
 	public static double invoke(Object obj, double defaultValue) {

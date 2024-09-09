@@ -44,8 +44,9 @@ public final class ListLast extends BIF {
 		return ListUtil.last(list, delimiter, !includeEmptyFields);
 	}
 
-	public static String call(PageContext pc, String list, String delimiter, boolean includeEmptyFields, double count) {
-		if (count == 1d) return ListUtil.last(list, delimiter, !includeEmptyFields);
+	public static String call(PageContext pc, String list, String delimiter, boolean includeEmptyFields, Number count) {
+		int cnt = Caster.toIntValue(count);
+		if (cnt == 1d) return ListUtil.last(list, delimiter, !includeEmptyFields);
 		return ListUtil.last(list, delimiter, !includeEmptyFields, (int) count);
 	}
 

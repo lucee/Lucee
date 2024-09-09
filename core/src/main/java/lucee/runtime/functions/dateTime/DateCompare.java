@@ -28,7 +28,6 @@ import java.util.TimeZone;
 import lucee.commons.date.JREDateTimeUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.engine.ThreadLocalPageContext;
-import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.BIF;
@@ -37,11 +36,13 @@ import lucee.runtime.type.dt.DateTime;
 
 public final class DateCompare extends BIF {
 
-	public static double call(PageContext pc, DateTime left, DateTime right) throws ExpressionException {
+	private static final long serialVersionUID = -6948569111084038007L;
+
+	public static Number call(PageContext pc, DateTime left, DateTime right) throws PageException {
 		return call(pc, left, right, "s");
 	}
 
-	public static double call(PageContext pc, DateTime left, DateTime right, String datepart) throws ExpressionException {
+	public static Number call(PageContext pc, DateTime left, DateTime right, String datepart) throws PageException {
 		datepart = datepart.toLowerCase().trim();
 		TimeZone tz = ThreadLocalPageContext.getTimeZone(pc);
 		Calendar cLeft = JREDateTimeUtil.getThreadCalendar(tz);
@@ -66,35 +67,35 @@ public final class DateCompare extends BIF {
 
 		// Year
 		int value = cLeft.get(Calendar.YEAR) - cRight.get(Calendar.YEAR);
-		if (value != 0) return value > 0 ? 1 : -1;
-		if (Calendar.YEAR == type) return 0;
-		if (Calendar.YEAR == type) return 0;
+		if (value != 0) return Caster.toNumber(pc, value > 0 ? 1 : -1);
+		if (Calendar.YEAR == type) return Caster.toNumber(pc, 0);
+		if (Calendar.YEAR == type) return Caster.toNumber(pc, 0);
 
 		// Month
 		value = cLeft.get(Calendar.MONTH) - cRight.get(Calendar.MONTH);
-		if (value != 0) return value > 0 ? 1 : -1;
-		if (Calendar.MONTH == type) return 0;
+		if (value != 0) return Caster.toNumber(pc, value > 0 ? 1 : -1);
+		if (Calendar.MONTH == type) return Caster.toNumber(pc, 0);
 
 		// Day
 		value = cLeft.get(Calendar.DATE) - cRight.get(Calendar.DATE);
-		if (value != 0) return value > 0 ? 1 : -1;
-		if (Calendar.DATE == type) return 0;
+		if (value != 0) return Caster.toNumber(pc, value > 0 ? 1 : -1);
+		if (Calendar.DATE == type) return Caster.toNumber(pc, 0);
 
 		// Hour
 		// print.out(cLeft.get(Calendar.HOUR_OF_DAY)+"-"+cRight.get(Calendar.HOUR_OF_DAY));
 		value = cLeft.get(Calendar.HOUR_OF_DAY) - cRight.get(Calendar.HOUR_OF_DAY);
-		if (value != 0) return value > 0 ? 1 : -1;
-		if (Calendar.HOUR == type) return 0;
+		if (value != 0) return Caster.toNumber(pc, value > 0 ? 1 : -1);
+		if (Calendar.HOUR == type) return Caster.toNumber(pc, 0);
 
 		// Minute
 		value = cLeft.get(Calendar.MINUTE) - cRight.get(Calendar.MINUTE);
-		if (value != 0) return value > 0 ? 1 : -1;
-		if (Calendar.MINUTE == type) return 0;
+		if (value != 0) return Caster.toNumber(pc, value > 0 ? 1 : -1);
+		if (Calendar.MINUTE == type) return Caster.toNumber(pc, 0);
 
 		// Second
 		value = cLeft.get(Calendar.SECOND) - cRight.get(Calendar.SECOND);
-		if (value != 0) return value > 0 ? 1 : -1;
-		return 0;
+		if (value != 0) return Caster.toNumber(pc, value > 0 ? 1 : -1);
+		return Caster.toNumber(pc, 0);
 
 	}
 

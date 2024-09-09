@@ -11,7 +11,7 @@ public final class ArrayUnShift extends BIF {
 
 	private static final long serialVersionUID = 6952045964109881804L;
 
-	public static double call(PageContext pc, Array array, Object object) throws PageException {
+	public static Number call(PageContext pc, Array array, Object object) throws PageException {
 		// TODO make it atomar
 		array.prepend(object);
 		return array.size();

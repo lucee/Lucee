@@ -32,8 +32,8 @@ public final class QueryCurrentRow extends BIF {
 
 	private static final long serialVersionUID = 6744860152468692462L;
 
-	public static double call(PageContext pc, Query qry) {
-		return qry.getCurrentrow(pc.getId());
+	public static Number call(PageContext pc, Query qry) {
+		return Caster.toNumber(pc, qry.getCurrentrow(pc.getId()));
 	}
 
 	@Override

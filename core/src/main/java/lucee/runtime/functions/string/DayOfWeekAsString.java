@@ -42,17 +42,17 @@ public final class DayOfWeekAsString extends BIF {
 	private static Date[] dates = new Date[] { new Date(0 + (3 * DAY)), new Date(0 + (4 * DAY)), new Date(0 + (5 * DAY)), new Date(0 + (6 * DAY)), new Date(0),
 			new Date(0 + (1 * DAY)), new Date(0 + (2 * DAY)) };
 
-	public static String call(PageContext pc, double dow) throws ExpressionException {
+	public static String call(PageContext pc, Number dow) throws ExpressionException {
 		return call(pc, dow, pc.getLocale(), true);
 	}
 
-	public static String call(PageContext pc, double dow, Locale locale) throws ExpressionException {
+	public static String call(PageContext pc, Number dow, Locale locale) throws ExpressionException {
 		return call(pc, dow, locale == null ? pc.getLocale() : locale, true);
 	}
 
-	protected static String call(PageContext pc, double dow, Locale locale, boolean _long) throws ExpressionException {
+	protected static String call(PageContext pc, Number dow, Locale locale, boolean _long) throws ExpressionException {
 
-		int dayOfWeek = (int) dow;
+		int dayOfWeek = Caster.toIntValue(dow);
 		if (dayOfWeek >= 1 && dayOfWeek <= 7) {
 			if (_long) return DateFormatPool.format(locale, TimeZoneConstants.GMT0, "EEEE", dates[dayOfWeek - 1]);
 			return StringUtil.replace(DateFormatPool.format(locale, TimeZoneConstants.GMT0, "EEE", dates[dayOfWeek - 1]), ".", "", true);

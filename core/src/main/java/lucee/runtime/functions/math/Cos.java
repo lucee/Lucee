@@ -31,13 +31,9 @@ import lucee.runtime.ext.function.Function;
 import lucee.runtime.op.Caster;
 
 public final class Cos implements Function {
-	private static final long serialVersionUID = -6746800530182386158L;
-	// MathContext to specify the precision and rounding of big decimal calculations
-	private static final MathContext mc = new MathContext(30, RoundingMode.HALF_UP);
 
-	public static double call(PageContext pc, double number) {
-		return StrictMath.cos(number);
-	}
+	private static final long serialVersionUID = -6746800530182386158L;
+	private static final MathContext mc = new MathContext(30, RoundingMode.HALF_UP);
 
 	public static Number call(PageContext pc, Number number) {
 		if (ThreadLocalPageContext.preciseMath(pc)) {
@@ -63,7 +59,6 @@ public final class Cos implements Function {
 				break;
 			}
 		}
-
 		return sum;
 	}
 

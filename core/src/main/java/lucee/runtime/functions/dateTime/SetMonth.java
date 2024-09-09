@@ -14,12 +14,12 @@ public class SetMonth extends BIF {
 
 	private static final long serialVersionUID = 4327734406273363858L;
 
-	public static DateTime call(PageContext pc, DateTime date, double value) {
-		return _call(date, (int) value, pc.getTimeZone());
+	public static DateTime call(PageContext pc, DateTime date, Number value) {
+		return _call(date, Caster.toIntValue(value), pc.getTimeZone());
 	}
 
-	public static DateTime call(PageContext pc, DateTime date, double value, TimeZone tz) {
-		return _call(date, (int) value, tz == null ? pc.getTimeZone() : tz);
+	public static DateTime call(PageContext pc, DateTime date, Number value, TimeZone tz) {
+		return _call(date, Caster.toIntValue(value), tz == null ? pc.getTimeZone() : tz);
 	}
 
 	@Override

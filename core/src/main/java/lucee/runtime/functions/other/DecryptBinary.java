@@ -43,11 +43,11 @@ public final class DecryptBinary implements Function {
 		return Decrypt.invoke(Caster.toBinary(oBytes), key, algorithm, Caster.toBinary(ivOrSalt), 0, true);
 	}
 
-	public static Object call(PageContext pc, Object oBytes, String key, String algorithm, Object ivOrSalt, double iterations) throws PageException {
+	public static Object call(PageContext pc, Object oBytes, String key, String algorithm, Object ivOrSalt, Number iterations) throws PageException {
 		return Decrypt.invoke(Caster.toBinary(oBytes), key, algorithm, Caster.toBinary(ivOrSalt), Caster.toInteger(iterations), true);
 	}
 
-	public static Object call(PageContext pc, Object oBytes, String key, String algorithm, Object ivOrSalt, double iterations, boolean precise) throws PageException {
+	public static Object call(PageContext pc, Object oBytes, String key, String algorithm, Object ivOrSalt, Number iterations, boolean precise) throws PageException {
 		return Decrypt.invoke(Caster.toBinary(oBytes), key, algorithm, Caster.toBinary(ivOrSalt), Caster.toInteger(iterations), precise);
 	}
 }

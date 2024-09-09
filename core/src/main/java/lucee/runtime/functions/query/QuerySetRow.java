@@ -39,12 +39,13 @@ public final class QuerySetRow extends BIF {
 
 	private static final long serialVersionUID = -5234853923691806118L;
 
-	public static boolean call(PageContext pc, Query query, double rowNumber, Object rowData) throws PageException {
+	public static boolean call(PageContext pc, Query query, Number nrowNumber, Object rowData) throws PageException {
+		int rowNumber = Caster.toIntValue(nrowNumber);
 		if (rowNumber < 1) {
 			query.addRow(1);
 			rowNumber = query.getRecordcount();
 		}
-		int rn = (int) rowNumber;
+		int rn = rowNumber;
 		Collection.Key[] colNames = query.getColumnNames();
 
 		if (Decision.isStruct(rowData)) {

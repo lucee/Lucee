@@ -42,23 +42,12 @@ public final class ArrayEach extends BIF {
 		return _call(pc, array, udf, parallel, 20);
 	}
 
-	public static String call(PageContext pc, Array array, UDF udf, boolean parallel, double maxThreads) throws PageException {
-		return _call(pc, array, udf, parallel, (int) maxThreads);
+	public static String call(PageContext pc, Array array, UDF udf, boolean parallel, Number maxThreads) throws PageException {
+		return _call(pc, array, udf, parallel, Caster.toIntValue(maxThreads));
 	}
 
 	private static String _call(PageContext pc, Array array, UDF udf, boolean parallel, int maxThreads) throws PageException {
-
 		return Each.call(pc, array, udf, parallel, maxThreads);
-
-		/*
-		 * ExecutorService execute=null; List<Future<Data<Object>>> futures=null; if(parallel) { execute =
-		 * Executors.newFixedThreadPool(maxThreads); futures=new ArrayList<Future<Data<Object>>>(); }
-		 * Each.invoke(pc, array, udf,execute,futures);
-		 * 
-		 * if(parallel) Each.afterCall(pc,futures);
-		 * 
-		 * return null;
-		 */
 	}
 
 	@Override

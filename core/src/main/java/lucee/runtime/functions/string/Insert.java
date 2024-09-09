@@ -32,8 +32,8 @@ public final class Insert extends BIF {
 
 	private static final long serialVersionUID = 5926183314989306282L;
 
-	public static String call(PageContext pc, String sub, String str, double pos) throws ExpressionException {
-		int p = (int) pos;
+	public static String call(PageContext pc, String sub, String str, Number pos) throws ExpressionException {
+		int p = Caster.toIntValue(pos);
 		if (p < 0 || p > str.length()) throw new ExpressionException("third parameter of the function insert, must be between 0 and " + str.length() + " now [" + (p) + "]");
 		StringBuilder sb = new StringBuilder(str.length() + sub.length());
 

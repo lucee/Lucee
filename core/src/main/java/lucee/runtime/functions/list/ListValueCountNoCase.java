@@ -31,16 +31,16 @@ public final class ListValueCountNoCase extends BIF {
 
 	private static final long serialVersionUID = 2648222056209118284L;
 
-	public static double call(PageContext pc, String list, String value) throws PageException {
+	public static Number call(PageContext pc, String list, String value) throws PageException {
 		return ListValueCount.call(pc, list.toLowerCase(), value.toLowerCase(), ",");
 	}
 
-	public static double call(PageContext pc, String list, String value, String delimiter) throws PageException {
+	public static Number call(PageContext pc, String list, String value, String delimiter) throws PageException {
 		return ListValueCount.call(pc, list.toLowerCase(), value.toLowerCase(), delimiter);
 
 	}
 
-	public static double call(PageContext pc, String list, String value, String delimiter, boolean includeEmptyFields) throws PageException {
+	public static Number call(PageContext pc, String list, String value, String delimiter, boolean includeEmptyFields) throws PageException {
 		return ListValueCount.call(pc, list.toLowerCase(), value.toLowerCase(), delimiter, includeEmptyFields);
 	}
 

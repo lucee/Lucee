@@ -34,19 +34,19 @@ public final class ListSetAt extends BIF {
 
 	private static final long serialVersionUID = -105782799713547552L;
 
-	public static String call(PageContext pc, String list, double posNumber, String value) throws ExpressionException {
+	public static String call(PageContext pc, String list, Number posNumber, String value) throws ExpressionException {
 		return call(pc, list, posNumber, value, ",", false);
 	}
 
-	public static String call(PageContext pc, String list, double posNumber, String value, String delimiter) throws ExpressionException {
+	public static String call(PageContext pc, String list, Number posNumber, String value, String delimiter) throws ExpressionException {
 		return call(pc, list, posNumber, value, delimiter, false);
 	}
 
-	public static String call(PageContext pc, String list, double posNumber, String value, String delimiter, boolean includeEmptyFields) throws ExpressionException {
+	public static String call(PageContext pc, String list, Number posNumber, String value, String delimiter, boolean includeEmptyFields) throws ExpressionException {
 
 		if (list.length() == 0) throw new FunctionException(pc, "listSetAt", 1, "list", "can't be empty");
 
-		int pos = ((int) posNumber);
+		int pos = Caster.toIntValue(posNumber);
 		// int[] removedInfo=new int[2];
 
 		Array arr = ListUtil.listToArray(list, delimiter);
@@ -86,10 +86,10 @@ public final class ListSetAt extends BIF {
 
 	@Override
 	public Object invoke(PageContext pc, Object[] args) throws PageException {
-		if (args.length == 3) return call(pc, Caster.toString(args[0]), Caster.toDoubleValue(args[1]), Caster.toString(args[2]));
-		if (args.length == 4) return call(pc, Caster.toString(args[0]), Caster.toDoubleValue(args[1]), Caster.toString(args[2]), Caster.toString(args[3]));
+		if (args.length == 3) return call(pc, Caster.toString(args[0]), Caster.toNumber(pc, args[1]), Caster.toString(args[2]));
+		if (args.length == 4) return call(pc, Caster.toString(args[0]), Caster.toNumber(pc, args[1]), Caster.toString(args[2]), Caster.toString(args[3]));
 		if (args.length == 5)
-			return call(pc, Caster.toString(args[0]), Caster.toDoubleValue(args[1]), Caster.toString(args[2]), Caster.toString(args[3]), Caster.toBooleanValue(args[4]));
+			return call(pc, Caster.toString(args[0]), Caster.toNumber(pc, args[1]), Caster.toString(args[2]), Caster.toString(args[3]), Caster.toBooleanValue(args[4]));
 
 		throw new FunctionException(pc, "ListSetAt", 3, 5, args.length);
 	}

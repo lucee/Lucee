@@ -38,17 +38,17 @@ public final class DateAdd extends BIF {
 	// do not change this is used in the chart extension
 	private static final long serialVersionUID = -5827644560609841341L;
 
-	public static DateTime call(PageContext pc, String datepart, double number, DateTime date) throws ExpressionException {
+	public static DateTime call(PageContext pc, String datepart, Number number, DateTime date) throws ExpressionException {
 		return _call(pc, pc.getTimeZone(), datepart, number, date);
 	}
 
 	@Override
 	public Object invoke(PageContext pc, Object[] args) throws PageException {
 		if (args.length != 3) throw new FunctionException(pc, "DateAdd", 3, 3, args.length);
-		return call(pc, Caster.toString(args[0]), Caster.toDoubleValue(args[1]), Caster.toDate(args[2], pc.getTimeZone()));
+		return call(pc, Caster.toString(args[0]), Caster.toNumber(pc, args[1]), Caster.toDate(args[2], pc.getTimeZone()));
 	}
 
-	public static DateTime _call(PageContext pc, TimeZone tz, String datepart, double number, DateTime date) throws ExpressionException {
+	public static DateTime _call(PageContext pc, TimeZone tz, String datepart, Number number, DateTime date) throws ExpressionException {
 		datepart = datepart.toLowerCase();
 		long l = (long) number;
 		int n = (int) l;

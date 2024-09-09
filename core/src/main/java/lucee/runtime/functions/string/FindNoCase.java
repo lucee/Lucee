@@ -32,11 +32,11 @@ public final class FindNoCase extends BIF {
 
 	private static final long serialVersionUID = 3372064423000880501L;
 
-	public static double call(PageContext pc, String sub, String str) {
+	public static Number call(PageContext pc, String sub, String str) {
 		return StringUtil.indexOfIgnoreCase(str, sub) + 1;
 	}
 
-	public static double call(PageContext pc, String sub, String str, double number) {
+	public static Number call(PageContext pc, String sub, String str, Number number) {
 		return Find.call(pc, sub.toLowerCase(), str.toLowerCase(), number);
 	}
 

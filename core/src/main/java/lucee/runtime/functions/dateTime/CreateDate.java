@@ -27,29 +27,30 @@ import lucee.commons.date.DateTimeUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.ext.function.Function;
+import lucee.runtime.op.Caster;
 import lucee.runtime.type.dt.DateTime;
 
 public final class CreateDate implements Function {
 
 	private static final long serialVersionUID = -8116641467358905335L;
 
-	public static DateTime call(PageContext pc, double year) throws ExpressionException {
+	public static DateTime call(PageContext pc, Number year) throws ExpressionException {
 		return _call(pc, year, 1, 1, pc.getTimeZone());
 	}
 
-	public static DateTime call(PageContext pc, double year, double month) throws ExpressionException {
+	public static DateTime call(PageContext pc, Number year, Number month) throws ExpressionException {
 		return _call(pc, year, month, 1, pc.getTimeZone());
 	}
 
-	public static DateTime call(PageContext pc, double year, double month, double day) throws ExpressionException {
+	public static DateTime call(PageContext pc, Number year, Number month, Number day) throws ExpressionException {
 		return _call(pc, year, month, day, pc.getTimeZone());
 	}
 
-	public static DateTime call(PageContext pc, double year, double month, double day, TimeZone tz) throws ExpressionException {
+	public static DateTime call(PageContext pc, Number year, Number month, Number day, TimeZone tz) throws ExpressionException {
 		return _call(pc, year, month, day, tz == null ? pc.getTimeZone() : tz);
 	}
 
-	private static DateTime _call(PageContext pc, double year, double month, double day, TimeZone tz) throws ExpressionException {
-		return DateTimeUtil.getInstance().toDateTime(tz, (int) year, (int) month, (int) day, 0, 0, 0, 0);
+	private static DateTime _call(PageContext pc, Number year, Number month, Number day, TimeZone tz) throws ExpressionException {
+		return DateTimeUtil.getInstance().toDateTime(tz, Caster.toIntValue(year), Caster.toIntValue(month), Caster.toIntValue(day), 0, 0, 0, 0);
 	}
 }

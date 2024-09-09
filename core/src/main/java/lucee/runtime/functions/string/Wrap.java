@@ -32,16 +32,18 @@ import lucee.runtime.type.util.ListUtil;
 
 public final class Wrap extends BIF {
 
-	public static String call(PageContext pc, String string, double limit) throws PageException {
+	private static final long serialVersionUID = -3791456443427693022L;
+
+	public static String call(PageContext pc, String string, Number limit) throws PageException {
 		return call(pc, string, limit, false);
 	}
 
-	public static String call(PageContext pc, String string, double limit, boolean strip) throws PageException {
+	public static String call(PageContext pc, String string, Number limit, boolean strip) throws PageException {
 		if (strip) {
 			string = REReplace.call(pc, string, "[[:space:]]", " ", "all");
 		}
-		int _limit = (int) limit;
-		if (limit < 1) throw new FunctionException(pc, "Wrap", 2, "limit", "value mus be a positive number");
+		int _limit = Caster.toIntValue(limit);
+		if (_limit < 1) throw new FunctionException(pc, "Wrap", 2, "limit", "value mus be a positive number");
 		return wrap(string, _limit);
 	}
 

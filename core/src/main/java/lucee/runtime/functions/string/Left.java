@@ -32,8 +32,8 @@ public final class Left extends BIF {
 
 	private static final long serialVersionUID = 571667661130843970L;
 
-	public static String call(PageContext pc, String str, double number) throws ExpressionException {
-		int len = (int) number;
+	public static String call(PageContext pc, String str, Number number) throws ExpressionException {
+		int len = Caster.toIntValue(number);
 		if (len == 0) throw new ExpressionException("parameter 2 of the function left can not be 0 for the string [" + str + "]");
 		if (Math.abs(len) >= str.length()) return str;
 		if (len < 0) len = str.length() + len;

@@ -25,11 +25,11 @@ import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 
 public class ToNumeric {
-	public static double call(PageContext pc, Object value) throws PageException {
-		return Caster.toDoubleValue(value);
+	public static Number call(PageContext pc, Object value) throws PageException {
+		return Caster.toNumber(pc, value);
 	}
 
-	public static double call(PageContext pc, Object value, Object oRadix) throws PageException {
+	public static Number call(PageContext pc, Object value, Object oRadix) throws PageException {
 		if (oRadix == null) return call(pc, value);
 		int radix;
 		if (Decision.isNumber(oRadix)) {
@@ -44,7 +44,7 @@ public class ToNumeric {
 			else if ("hex".equals(str)) radix = 16;
 			else throw invalidRadix(pc, str);
 		}
-		return Long.parseLong(Caster.toString(value), radix);
+		return Caster.toNumber(pc, Long.parseLong(Caster.toString(value), radix));
 	}
 
 	private static FunctionException invalidRadix(PageContext pc, String radix) {

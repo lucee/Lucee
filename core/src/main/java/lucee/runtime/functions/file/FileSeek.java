@@ -24,12 +24,12 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 
 public class FileSeek {
-	public static String call(PageContext pc, Object fileObj, double pos) throws PageException {
+	public static String call(PageContext pc, Object fileObj, Number pos) throws PageException {
 
 		if (!(fileObj instanceof FileStreamWrapper))
 			throw new FunctionException(pc, "FileSeek", 1, "fileObj", "invalid type [" + Caster.toTypeName(fileObj) + "], only File Object produced by FileOpen supported");
 		FileStreamWrapper fs = (FileStreamWrapper) fileObj;
-		fs.seek((long) pos);
+		fs.seek(Caster.toLongValue(pos));
 		return null;
 
 	}

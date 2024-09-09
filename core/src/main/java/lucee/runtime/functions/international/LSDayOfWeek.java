@@ -35,15 +35,15 @@ public final class LSDayOfWeek extends BIF {
 
 	private static final long serialVersionUID = -9002250869621547151L;
 
-	public static double call(PageContext pc, DateTime date) {
+	public static Number call(PageContext pc, DateTime date) {
 		return _call(pc, date, pc.getLocale(), pc.getTimeZone());
 	}
 
-	public static double call(PageContext pc, DateTime date, Locale locale) {
+	public static Number call(PageContext pc, DateTime date, Locale locale) {
 		return _call(pc, date, locale, pc.getTimeZone());
 	}
 
-	public static double call(PageContext pc, DateTime date, Locale locale, TimeZone tz) {
+	public static Number call(PageContext pc, DateTime date, Locale locale, TimeZone tz) {
 		return _call(pc, date, locale == null ? pc.getLocale() : locale, tz == null ? pc.getTimeZone() : tz);
 	}
 
@@ -54,7 +54,7 @@ public final class LSDayOfWeek extends BIF {
 		return call(pc, Caster.toDatetime(args[0], pc.getTimeZone()), Caster.toLocale(args[1]), Caster.toTimeZone(args[2]));
 	}
 
-	private static double _call(PageContext pc, DateTime date, Locale locale, TimeZone tz) {
-		return DateTimeUtil.getInstance().getDayOfWeek(locale, tz, date);
+	private static Number _call(PageContext pc, DateTime date, Locale locale, TimeZone tz) {
+		return Caster.toNumber(pc, DateTimeUtil.getInstance().getDayOfWeek(locale, tz, date));
 	}
 }

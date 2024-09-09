@@ -23,14 +23,12 @@ import org.w3c.dom.Node;
 
 import lucee.runtime.PageContext;
 import lucee.runtime.ext.function.Function;
+import lucee.runtime.op.Caster;
 import lucee.runtime.text.xml.XMLNodeList;
 import lucee.runtime.text.xml.XMLUtil;
 
-/**
- * Implements the CFML Function xmlchildpos
- */
 public final class XmlChildPos implements Function {
-	public static double call(PageContext pc, Node node, String name, double index) {
+	public static Number call(PageContext pc, Node node, String name, double index) {
 		XMLNodeList xmlNodeList = new XMLNodeList(node, false, Node.ELEMENT_NODE);
 		int len = xmlNodeList.getLength();
 		// if(index<1)throw new FunctionException(pc,"XmlChildPos","second","index","attribute must be 1 or
@@ -38,8 +36,8 @@ public final class XmlChildPos implements Function {
 		int count = 1;
 		for (int i = 0; i < len; i++) {
 			Node n = xmlNodeList.item(i);
-			if (XMLUtil.nameEqual(n, name, XMLUtil.isCaseSensitve(n)) && count++ == index) return i + 1;
+			if (XMLUtil.nameEqual(n, name, XMLUtil.isCaseSensitve(n)) && count++ == index) return Caster.toNumber(pc, i + 1);
 		}
-		return -1;
+		return Caster.toNumber(pc, -1);
 	}
 }

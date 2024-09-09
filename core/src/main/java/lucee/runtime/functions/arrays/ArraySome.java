@@ -40,8 +40,8 @@ public class ArraySome extends BIF {
 		return _call(pc, array, udf, parallel, 20);
 	}
 
-	public static boolean call(PageContext pc, Array array, UDF udf, boolean parallel, double maxThreads) throws PageException {
-		return _call(pc, array, udf, parallel, (int) maxThreads);
+	public static boolean call(PageContext pc, Array array, UDF udf, boolean parallel, Number maxThreads) throws PageException {
+		return _call(pc, array, udf, parallel, Caster.toIntValue(maxThreads));
 	}
 
 	private static boolean _call(PageContext pc, Array array, UDF udf, boolean parallel, int maxThreads) throws PageException {
@@ -52,7 +52,7 @@ public class ArraySome extends BIF {
 	public Object invoke(PageContext pc, Object[] args) throws PageException {
 		if (args.length == 2) return call(pc, Caster.toArray(args[0]), Caster.toFunction(args[1]));
 		if (args.length == 3) return call(pc, Caster.toArray(args[0]), Caster.toFunction(args[1]), Caster.toBooleanValue(args[2]));
-		if (args.length == 4) return call(pc, Caster.toArray(args[0]), Caster.toFunction(args[1]), Caster.toBooleanValue(args[2]), Caster.toDoubleValue(args[3]));
+		if (args.length == 4) return call(pc, Caster.toArray(args[0]), Caster.toFunction(args[1]), Caster.toBooleanValue(args[2]), Caster.toNumber(pc, args[3]));
 
 		throw new FunctionException(pc, "ArraySome", 2, 4, args.length);
 

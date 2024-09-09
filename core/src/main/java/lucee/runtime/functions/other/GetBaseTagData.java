@@ -28,6 +28,7 @@ import lucee.runtime.PageContext;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
+import lucee.runtime.op.Caster;
 import lucee.runtime.tag.CFTag;
 import lucee.runtime.tag.CFTagCore;
 import lucee.runtime.type.Struct;
@@ -40,8 +41,8 @@ public final class GetBaseTagData implements Function {
 		return call(pc, tagName, -1);
 	}
 
-	public static Struct call(PageContext pc, String tagName, double minLevel) throws PageException {
-		CFTag tag = getParentCFTag(pc.getCurrentTag(), tagName, (int) minLevel);
+	public static Struct call(PageContext pc, String tagName, Number minLevel) throws PageException {
+		CFTag tag = getParentCFTag(pc.getCurrentTag(), tagName, Caster.toIntValue(minLevel));
 		if (tag == null) throw new ExpressionException("can't find base tag with name [" + tagName + "]");
 		return tag.getVariablesScope();
 	}

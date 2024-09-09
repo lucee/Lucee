@@ -42,8 +42,8 @@ public final class StructFilter extends BIF {
 		return _call(pc, sct, udf, parallel, 20);
 	}
 
-	public static Struct call(PageContext pc, Struct sct, UDF udf, boolean parallel, double maxThreads) throws PageException {
-		return _call(pc, sct, udf, parallel, (int) maxThreads);
+	public static Struct call(PageContext pc, Struct sct, UDF udf, boolean parallel, Number maxThreads) throws PageException {
+		return _call(pc, sct, udf, parallel, Caster.toIntValue(maxThreads));
 	}
 
 	public static Struct _call(PageContext pc, Struct sct, UDF filter, boolean parallel, int maxThreads) throws PageException {

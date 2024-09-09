@@ -15,23 +15,24 @@ public class ArraySplice extends BIF implements Function {
 
 	private static final long serialVersionUID = -8604228677976070247L;
 
-	public static Array call(PageContext pc, Array arr, double index) throws PageException {
+	public static Array call(PageContext pc, Array arr, Number index) throws PageException {
 		return call(pc, arr, index, -1, null);
 	}
 
-	public static Array call(PageContext pc, Array arr, double index, double len) throws PageException {
+	public static Array call(PageContext pc, Array arr, Number index, Number len) throws PageException {
 		return call(pc, arr, index, len, null);
 	}
 
-	public static Array call(PageContext pc, Array arr, double index, double length, Array replacements) throws PageException {
+	public static Array call(PageContext pc, Array arr, Number index, Number length, Array replacements) throws PageException {
 		Array removed = new ArrayImpl();
+
 		// check index
-		if (index < 1) index = arr.size() + index + 1;
-		else if (index > arr.size()) index = arr.size() + 1;
-		int idx = (int) index;
+		int idx = Caster.toIntValue(index);
+		if (idx < 1) idx = arr.size() + idx + 1;
+		else if (idx > arr.size()) idx = arr.size() + 1;
 
 		// check len
-		int len = (int) length;
+		int len = Caster.toIntValue(length);
 		if (len == -1) len = arr.size() - idx + 1;
 		else if (len < -1) len = 0; // stupid ut how acf works
 		else {
@@ -57,9 +58,9 @@ public class ArraySplice extends BIF implements Function {
 
 	@Override
 	public Object invoke(PageContext pc, Object[] args) throws PageException {
-		if (args.length == 2) return call(pc, Caster.toArray(args[0]), Caster.toDoubleValue(args[1]));
-		if (args.length == 3) return call(pc, Caster.toArray(args[0]), Caster.toDoubleValue(args[1]), Caster.toDoubleValue(args[2]));
-		if (args.length == 4) return call(pc, Caster.toArray(args[0]), Caster.toDoubleValue(args[1]), Caster.toDoubleValue(args[2]), Caster.toArray(args[3]));
+		if (args.length == 2) return call(pc, Caster.toArray(args[0]), Caster.toNumber(pc, args[1]));
+		if (args.length == 3) return call(pc, Caster.toArray(args[0]), Caster.toNumber(pc, args[1]), Caster.toNumber(pc, args[2]));
+		if (args.length == 4) return call(pc, Caster.toArray(args[0]), Caster.toNumber(pc, args[1]), Caster.toNumber(pc, args[2]), Caster.toArray(args[3]));
 
 		throw new FunctionException(pc, "ArraySplice", 2, 4, args.length);
 	}

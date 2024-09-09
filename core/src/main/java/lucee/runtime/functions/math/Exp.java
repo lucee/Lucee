@@ -22,10 +22,18 @@
 package lucee.runtime.functions.math;
 
 import lucee.runtime.PageContext;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.ext.function.Function;
+import lucee.runtime.op.Caster;
 
 public final class Exp implements Function {
-	public static double call(PageContext pc, double number) {
-		return Math.exp(number);
+
+	private static final long serialVersionUID = -3559574758816303574L;
+
+	public static Number call(PageContext pc, Number number) {
+		if (ThreadLocalPageContext.preciseMath(pc)) {
+			return Caster.toBigDecimal(Math.exp(Caster.toDoubleValue(number)));
+		}
+		return Math.exp(Caster.toDoubleValue(number));
 	}
 }

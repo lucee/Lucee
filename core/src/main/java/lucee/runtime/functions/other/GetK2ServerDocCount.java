@@ -23,9 +23,12 @@ package lucee.runtime.functions.other;
 
 import lucee.runtime.PageContext;
 import lucee.runtime.ext.function.Function;
+import lucee.runtime.op.Caster;
 
 public final class GetK2ServerDocCount implements Function {
-	public static double call(PageContext pc) {
-		return 0;
+	private static final long serialVersionUID = 341959256890747154L;
+
+	public static Number call(PageContext pc) {
+		return Caster.toNumber(pc, 0);
 	}
 }

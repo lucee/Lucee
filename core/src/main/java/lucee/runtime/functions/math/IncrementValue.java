@@ -21,11 +21,25 @@
  */
 package lucee.runtime.functions.math;
 
+import java.math.BigDecimal;
+
 import lucee.runtime.PageContext;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.ext.function.Function;
+import lucee.runtime.op.Caster;
 
 public final class IncrementValue implements Function {
+
+	private static final long serialVersionUID = 4690923533697203403L;
+
 	public static double call(PageContext pc, double number) {
 		return ++number;
+	}
+
+	public static Number call(PageContext pc, Number number) {
+		if (ThreadLocalPageContext.preciseMath(pc)) {
+			return Caster.toBigDecimal(number).add(BigDecimal.ONE);
+		}
+		return number.doubleValue() + 1;
 	}
 }

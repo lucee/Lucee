@@ -23,8 +23,8 @@ public class RunAsync extends BIF {
 	 * @return
 	 * @throws PageException
 	 */
-	public static Object call(PageContext pc, Object udf, double timeout) throws PageException {
-		return Future._then(pc, Caster.toFunction(udf), (long) timeout);
+	public static Object call(PageContext pc, Object udf, Number timeout) throws PageException {
+		return Future._then(pc, Caster.toFunction(udf), Caster.toLongValue(timeout));
 	}
 
 }

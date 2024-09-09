@@ -27,19 +27,20 @@ import java.util.Locale;
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.ext.function.Function;
+import lucee.runtime.op.Caster;
 
 public final class MonthAsString implements Function {
 
-	public static String call(PageContext pc, double month) throws ExpressionException {
+	public static String call(PageContext pc, Number month) throws ExpressionException {
 		return call(month, pc.getLocale(), false);
 	}
 
-	public static String call(PageContext pc, double month, Locale locale) throws ExpressionException {
+	public static String call(PageContext pc, Number month, Locale locale) throws ExpressionException {
 		return call(month, locale == null ? pc.getLocale() : locale, false);
 	}
 
-	protected static String call(double month, Locale locale, boolean _short) throws ExpressionException {
-		int m = (int) month;
+	protected static String call(Number month, Locale locale, boolean _short) throws ExpressionException {
+		int m = Caster.toIntValue(month);
 		if (m >= 1 && m <= 12) {
 			DateFormatSymbols dfs = new DateFormatSymbols(locale);
 			String[] months = _short ? dfs.getShortMonths() : dfs.getMonths();

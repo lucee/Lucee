@@ -32,8 +32,8 @@ public final class Chr extends BIF {
 
 	private static final long serialVersionUID = -4941617303146860984L;
 
-	public static String call(PageContext pc, double number) throws ExpressionException {
-		int value = (int) number;
+	public static String call(PageContext pc, Number number) throws ExpressionException {
+		int value = Caster.toIntValue(number);
 		if (value < 1) {
 			if (value == 0) return "";
 			// else {

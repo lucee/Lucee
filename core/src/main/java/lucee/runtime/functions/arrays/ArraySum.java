@@ -34,13 +34,13 @@ public final class ArraySum extends BIF {
 
 	private static final long serialVersionUID = 2414586741503001864L;
 
-	public static double call(PageContext pc, Array array) throws ExpressionException {
+	public static Number call(PageContext pc, Array array) throws ExpressionException {
 		return ArrayUtil.sum(array);
 	}
 
 	@Override
 	public Object invoke(PageContext pc, Object[] args) throws PageException {
 		if (args.length == 1) return call(pc, Caster.toArray(args[0]));
-		else throw new FunctionException(pc, "ArraySum", 1, 1, args.length);
+		throw new FunctionException(pc, "ArraySum", 1, 1, args.length);
 	}
 }

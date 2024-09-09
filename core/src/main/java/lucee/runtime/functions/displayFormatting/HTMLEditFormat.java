@@ -24,18 +24,22 @@ package lucee.runtime.functions.displayFormatting;
 import lucee.commons.lang.HTMLEntities;
 import lucee.runtime.PageContext;
 import lucee.runtime.ext.function.Function;
+import lucee.runtime.op.Caster;
 
 public final class HTMLEditFormat implements Function {
+	private static final long serialVersionUID = 5405529396560613367L;
+
 	public static String call(PageContext pc, String html) {
 		return HTMLEntities.escapeHTML(html, HTMLEntities.HTMLV20);
 	}
 
-	public static String call(PageContext pc, String html, double version) {
+	public static String call(PageContext pc, String html, Number version) {
+		double ver = Caster.toDoubleValue(version);
 		short v = HTMLEntities.HTMLV20;
-		if (version == 2D) v = HTMLEntities.HTMLV20;
-		else if (version == 3.2D) v = HTMLEntities.HTMLV32;
-		else if (version == 4D) v = HTMLEntities.HTMLV40;
-		else if (version <= 0D) v = HTMLEntities.HTMLV40;
+		if (ver == 2D) v = HTMLEntities.HTMLV20;
+		else if (ver == 3.2D) v = HTMLEntities.HTMLV32;
+		else if (ver == 4D) v = HTMLEntities.HTMLV40;
+		else if (ver <= 0D) v = HTMLEntities.HTMLV40;
 
 		return HTMLEntities.escapeHTML(html, v);
 	}

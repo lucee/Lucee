@@ -10,11 +10,11 @@ public final class FindLastNoCase extends BIF {
 
 	private static final long serialVersionUID = -5722812211523628009L;
 
-	public static double call(PageContext pc, String sub, String str) {
+	public static Number call(PageContext pc, String sub, String str) {
 		return FindLast.call(pc, sub.toLowerCase(), str.toLowerCase());
 	}
 
-	public static double call(PageContext pc, String sub, String str, double number) {
+	public static Number call(PageContext pc, String sub, String str, Number number) {
 		return FindLast.call(pc, sub.toLowerCase(), str.toLowerCase(), number);
 	}
 

@@ -16,20 +16,32 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  * 
  **/
-/**
- * Implements the CFML Function log
- */
 package lucee.runtime.functions.math;
 
 import lucee.runtime.PageContext;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.op.Caster;
 
 public final class Log implements Function {
-	public static double call(PageContext pc, double number) throws ExpressionException {
-		if (number <= 0.0D) throw new FunctionException(pc, "log", 1, "number", "value must be a positive number now " + Caster.toString(number) + "");
-		return StrictMath.log(number);
+
+	private static final long serialVersionUID = -4931285702053654102L;
+
+	public static Number call(PageContext pc, Number number) throws ExpressionException {
+
+		double numValue = Caster.toDoubleValue(number);
+
+		if (numValue <= 0.0D) {
+			throw new FunctionException(pc, "log", 1, "number", "value must be a positive number, now " + Caster.toString(number) + "");
+		}
+
+		double result = StrictMath.log(numValue);
+
+		if (ThreadLocalPageContext.preciseMath(pc)) {
+			return Caster.toBigDecimal(result);
+		}
+		return result;
 	}
 }
