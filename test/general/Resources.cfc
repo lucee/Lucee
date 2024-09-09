@@ -325,7 +325,7 @@ private function testResourceListening(res) localMode=true {
 	assertEquals("s,ss,sss.txt",listSort(arrayToList(children),"textnoCase"));
 
 	// filter
-	filter=createObject("java","lucee.commons.io.res.filter.ExtensionResourceFilter").init("txt",false);
+	filter=createObject("java","lucee.commons.io.res.filter.ExtensionResourceFilter").init(false,["txt"]);
 	children=res.list(filter);
 	assertEquals("sss.txt",listSort(arrayToList(children),"textnoCase"));
 }
