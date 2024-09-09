@@ -5723,6 +5723,15 @@ This attribute only takes effect when a custom debug template is defined in the 
 			<introduced>6.1.0.155</introduced>
 		</attribute>
 		<attribute>
+			<type>boolean</type>
+			<name>show</name>
+			<required>false</required>
+			<status>hidden</status>
+			<rtexprvalue>true</rtexprvalue>
+			<description></description>
+			<introduced>6.1.1.81</introduced>
+		</attribute>
+		<attribute>
 			<type>number</type>
 			<name>requestTimeOut</name>
 			<required>false</required>

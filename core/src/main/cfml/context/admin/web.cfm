@@ -11,9 +11,8 @@
 	}
 	param name="request.disableFrame" default="false" type="boolean";
 	param name="request.setCFApplication" default="true" type="boolean";
-
 	if(request.setCFApplication) {
-		application name="webadmin#server.lucee.version#"
+		application action="update"
 		sessionmanagement="yes"
 		clientmanagement="no"
 		setclientcookies="yes"
@@ -24,8 +23,11 @@
 		sessiontimeout="#createTimeSpan(0,0,30,0)#"
 		applicationtimeout="#createTimeSpan(1,0,0,0)#"
 		localmode="update"
-		webcharset="utf-8";
+		webcharset="utf-8"
+		show="#false#";
+		cfsetting(show:false);
 	}
+
 </cfscript><cfsilent>
 
 <!--- todo: remember screenwidth, so images have the correct width etc. --->

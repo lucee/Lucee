@@ -171,6 +171,7 @@ public final class Application extends TagImpl implements DynamicAttributes {
 	private Boolean showDebug;
 	private Boolean showMetric;
 	private Boolean showTest;
+	private Boolean show;
 
 	private Boolean debuggingDatabase;
 	private Boolean debuggingException;
@@ -270,6 +271,7 @@ public final class Application extends TagImpl implements DynamicAttributes {
 		showDoc = null;
 		showMetric = null;
 		showTest = null;
+		show = null;
 
 		this.debuggingDatabase = null;
 		this.debuggingException = null;
@@ -735,6 +737,10 @@ public final class Application extends TagImpl implements DynamicAttributes {
 		this.showTest = showTest;
 	}
 
+	public void setShow(boolean show) {
+		this.show = show;
+	}
+
 	public void setRegex(Object data) throws PageException {
 		if (Decision.isSimpleValue(data)) {
 			regex = RegexFactory.toRegex(RegexFactory.toType(Caster.toString(data)), null);
@@ -986,6 +992,13 @@ public final class Application extends TagImpl implements DynamicAttributes {
 			if (searchQueries != null) appContextSup.setAllowImplicidQueryCall(searchQueries.booleanValue());
 			if (regex != null) appContextSup.setRegex(regex);
 
+			if (show != null) {
+				appContextSup.setShowDebug(show.booleanValue());
+				appContextSup.setShowDoc(show.booleanValue());
+				appContextSup.setShowMetric(show.booleanValue());
+				appContextSup.setShowTest(show.booleanValue());
+			}
+			// overrule previous with specific
 			if (showDebug != null) appContextSup.setShowDebug(showDebug.booleanValue());
 			if (showDoc != null) appContextSup.setShowDoc(showDoc.booleanValue());
 			if (showMetric != null) appContextSup.setShowMetric(showMetric.booleanValue());
