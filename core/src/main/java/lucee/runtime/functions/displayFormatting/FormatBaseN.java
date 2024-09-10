@@ -46,6 +46,6 @@ public final class FormatBaseN implements Function {
 			throw new FunctionException(pc, "formatBaseN", 1, "number",
 					"number to formatted must be on or between Integer.MIN_VALUE and Integer.MAX_VALUE (" + Integer.MIN_VALUE + ", " + Integer.MAX_VALUE + ")");
 		}
-		return rdx == 2 || rdx == 16 ? Long.toString(converted & uint32_mask, (int) radix) : Long.toString(converted, (int) radix);
+		return rdx == 2 || rdx == 16 ? Long.toString(converted & uint32_mask, rdx) : Long.toString(converted, rdx);
 	}
 }

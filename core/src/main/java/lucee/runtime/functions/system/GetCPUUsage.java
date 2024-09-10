@@ -32,8 +32,8 @@ public class GetCPUUsage implements Function {
 		return call(pc, 1000);
 	}
 
-	public static Number call(PageContext pc, double time) throws ApplicationException {
-		return Caster.toNumber(pc, SystemUtil.getCpuUsage((long) time));
+	public static Number call(PageContext pc, Number time) throws ApplicationException {
+		return Caster.toNumber(pc, SystemUtil.getCpuUsage(Caster.toLongValue(time)));
 	}
 
 }

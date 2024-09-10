@@ -47,7 +47,7 @@ public final class ListFirst extends BIF {
 	public static String call(PageContext pc, String list, String delimiter, boolean includeEmptyFields, Number count) throws FunctionException {
 		int cnt = Caster.toIntValue(count);
 		if (cnt < 1) throw new FunctionException(pc, "ListFirst", 4, "count", "Argument count must be a positive value greater than 0");
-		return ListUtil.first(list, delimiter, !includeEmptyFields, (int) count);
+		return ListUtil.first(list, delimiter, !includeEmptyFields, cnt);
 	}
 
 	@Override

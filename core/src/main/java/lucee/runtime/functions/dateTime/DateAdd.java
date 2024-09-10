@@ -50,7 +50,7 @@ public final class DateAdd extends BIF {
 
 	public static DateTime _call(PageContext pc, TimeZone tz, String datepart, Number number, DateTime date) throws ExpressionException {
 		datepart = datepart.toLowerCase();
-		long l = (long) number;
+		long l = Caster.toLongValue(number);
 		int n = (int) l;
 		char first = datepart.length() == 1 ? datepart.charAt(0) : (char) 0;
 

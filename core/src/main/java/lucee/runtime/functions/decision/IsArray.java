@@ -39,7 +39,7 @@ public final class IsArray implements Function {
 		if (dim == -999) return Decision.isArray(object); // -999 == default value for named argument
 
 		if ((object instanceof Array)) {
-			return ((Array) object).getDimension() == (int) dimension;
+			return ((Array) object).getDimension() == dim;
 		}
 		else if (dim == 1) {
 			return Decision.isArray(object);

@@ -44,11 +44,11 @@ public final class ListRest extends BIF {
 		return ListUtil.rest(list, delimiter, !includeEmptyFields, 1);
 	}
 
-	public static String call(PageContext pc, String list, String delimiter, boolean includeEmptyFields, double offset) throws FunctionException {
+	public static String call(PageContext pc, String list, String delimiter, boolean includeEmptyFields, Number offset) throws FunctionException {
+		int off = Caster.toIntValue(offset);
+		if (off < 1) throw new FunctionException(pc, "ListRest", 4, "offset", "Argument offset must be a positive value greater than 0");
 
-		if (offset < 1) throw new FunctionException(pc, "ListRest", 4, "offset", "Argument offset must be a positive value greater than 0");
-
-		return ListUtil.rest(list, delimiter, !includeEmptyFields, (int) offset);
+		return ListUtil.rest(list, delimiter, !includeEmptyFields, off);
 	}
 
 	@Override
