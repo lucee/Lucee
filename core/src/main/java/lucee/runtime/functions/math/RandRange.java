@@ -25,11 +25,11 @@ import lucee.runtime.op.Caster;
 public final class RandRange implements Function {
 	private static final long serialVersionUID = 2380288324240209290L;
 
-	public static double call(PageContext pc, Number number1, Number number2) throws ExpressionException {
+	public static Number call(PageContext pc, Number number1, Number number2) throws ExpressionException {
 		return call(pc, number1, number2, "cfmx_compat");
 	}
 
-	public static double call(PageContext pc, Number number1, Number number2, String algo) throws ExpressionException {
+	public static Number call(PageContext pc, Number number1, Number number2, String algo) throws ExpressionException {
 
 		int min = Caster.toIntValue(number1);
 		int max = Caster.toIntValue(number2);
