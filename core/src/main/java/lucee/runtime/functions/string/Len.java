@@ -38,12 +38,12 @@ public final class Len implements Function {
 	}
 
 	public static Number call(PageContext pc, Object obj) throws FunctionException {
-		double len = invoke(obj, -1);
+		int len = invoke(obj, -1);
 		if (len == -1) throw new FunctionException(pc, "len", 1, "object", "this type  [" + Caster.toTypeName(obj) + "] is not supported for returning the len");
 		return Caster.toNumber(pc, len);
 	}
 
-	public static double invoke(Object obj, double defaultValue) {
+	public static int invoke(Object obj, int defaultValue) {
 		if (obj instanceof CharSequence) return ((CharSequence) obj).length();
 		if (obj instanceof Query) return ((Query) obj).getRecordcount();
 		if (obj instanceof Collection) return ((Collection) obj).size();

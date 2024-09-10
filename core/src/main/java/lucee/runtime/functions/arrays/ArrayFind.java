@@ -34,16 +34,16 @@ public final class ArrayFind extends BIF {
 
 	private static final long serialVersionUID = -3282048672805234115L;
 
-	public static double call(PageContext pc, Array array, Object value) throws PageException {
-		if (value instanceof UDF) return find(pc, array, (UDF) value);
+	public static Number call(PageContext pc, Array array, Object value) throws PageException {
+		if (value instanceof UDF) return Caster.toNumber(pc, find(pc, array, (UDF) value));
 
-		return find(pc, array, value, true);
+		return Caster.toNumber(pc, find(pc, array, value, true));
 	}
 
 	@Override
 	public Object invoke(PageContext pc, Object[] args) throws PageException {
 		if (args.length == 2) return call(pc, Caster.toArray(args[0]), args[1]);
-		else throw new FunctionException(pc, "ArrayFind", 2, 2, args.length);
+		throw new FunctionException(pc, "ArrayFind", 2, 2, args.length);
 	}
 
 	public static int find(PageContext pc, Array array, UDF udf) throws PageException {

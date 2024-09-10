@@ -84,17 +84,17 @@ public final class Dump implements Function {
 		return call(pc, object, label, expand, maxLevel, show, hide, output, format, 9999, true, true);
 	}
 
-	public static String call(PageContext pc, Object object, String label, boolean expand, Number maxLevel, String show, String hide, String output, String format, double keys)
+	public static String call(PageContext pc, Object object, String label, boolean expand, Number maxLevel, String show, String hide, String output, String format, Number keys)
 			throws PageException {
 		return call(pc, object, label, expand, maxLevel, show, hide, output, format, keys, true, true);
 	}
 
-	public static String call(PageContext pc, Object object, String label, boolean expand, Number maxLevel, String show, String hide, String output, String format, double keys,
+	public static String call(PageContext pc, Object object, String label, boolean expand, Number maxLevel, String show, String hide, String output, String format, Number keys,
 			boolean metainfo) throws PageException {
 		return call(pc, object, label, expand, maxLevel, show, hide, output, format, keys, metainfo, true);
 	}
 
-	public static String call(PageContext pc, Object object, String label, boolean expand, Number maxLevel, String show, String hide, String output, String format, double keys,
+	public static String call(PageContext pc, Object object, String label, boolean expand, Number maxLevel, String show, String hide, String output, String format, Number keys,
 			boolean metainfo, boolean showUDFs) throws PageException {
 		if (show != null && "all".equalsIgnoreCase(show.trim())) show = null;
 		if (hide != null && "all".equalsIgnoreCase(hide.trim())) hide = null;
@@ -130,7 +130,7 @@ public final class Dump implements Function {
 			Set<String> setShow = (show != null) ? ListUtil.listToSet(show.toLowerCase(), ",", true) : null;
 			Set<String> setHide = (hide != null) ? ListUtil.listToSet(hide.toLowerCase(), ",", true) : null;
 
-			DumpProperties properties = new DumpProperties(Caster.toIntValue(maxLevel), setShow, setHide, (int) keys, metainfo, showUDFs);
+			DumpProperties properties = new DumpProperties(Caster.toIntValue(maxLevel), setShow, setHide, Caster.toIntValue(keys), metainfo, showUDFs);
 			DumpData dd = DumpUtil.toDumpData(object, pc, Caster.toIntValue(maxLevel), properties);
 
 			if (!StringUtil.isEmpty(label)) {

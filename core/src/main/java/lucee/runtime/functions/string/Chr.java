@@ -45,7 +45,7 @@ public final class Chr extends BIF {
 
 	@Override
 	public Object invoke(PageContext pc, Object[] args) throws PageException {
-		if (args.length == 1) return call(pc, Caster.toDoubleValue(args[0]));
+		if (args.length == 1) return call(pc, Caster.toNumber(pc, args[0]));
 		throw new FunctionException(pc, "chr", 1, 1, args.length);
 	}
 }

@@ -38,27 +38,27 @@ public final class REFindNoCase extends BIF {
 		return call(pc, regExpr, str, 1, false, null, false);
 	}
 
-	public static Object call(PageContext pc, String regExpr, String str, double start) throws PageException {
+	public static Object call(PageContext pc, String regExpr, String str, Number start) throws PageException {
 		return call(pc, regExpr, str, start, false, null, false);
 	}
 
-	public static Object call(PageContext pc, String regExpr, String str, double start, boolean returnsubexpressions) throws PageException {
+	public static Object call(PageContext pc, String regExpr, String str, Number start, boolean returnsubexpressions) throws PageException {
 		return call(pc, regExpr, str, start, returnsubexpressions, null, false);
 	}
 
-	public static Object call(PageContext pc, String regExpr, String str, double start, boolean returnsubexpressions, String scope) throws PageException {
+	public static Object call(PageContext pc, String regExpr, String str, Number start, boolean returnsubexpressions, String scope) throws PageException {
 		return call(pc, regExpr, str, start, returnsubexpressions, scope, false);
 	}
 
-	public static Object call(PageContext pc, String regExpr, String str, double start, boolean returnsubexpressions, String scope, boolean multiline) throws PageException {
+	public static Object call(PageContext pc, String regExpr, String str, Number start, boolean returnsubexpressions, String scope, boolean multiline) throws PageException {
 		Regex regex = ((PageContextImpl) pc).getRegex();
 		boolean isMatchAll = scope == null ? false : scope.equalsIgnoreCase("all");
 		if (returnsubexpressions) {
-			if (isMatchAll) return regex.findAll(regExpr, str, (int) start, false, multiline);
-			return regex.find(regExpr, str, (int) start, false, multiline);
+			if (isMatchAll) return regex.findAll(regExpr, str, Caster.toIntValue(start), false, multiline);
+			return regex.find(regExpr, str, Caster.toIntValue(start), false, multiline);
 		}
-		if (isMatchAll) return regex.indexOfAll(regExpr, str, (int) start, false, multiline);
-		return regex.indexOf(regExpr, str, (int) start, false, multiline);
+		if (isMatchAll) return regex.indexOfAll(regExpr, str, Caster.toIntValue(start), false, multiline);
+		return regex.indexOf(regExpr, str, Caster.toIntValue(start), false, multiline);
 
 	}
 

@@ -34,11 +34,11 @@ public final class ArrayContainsNoCase extends BIF {
 
 	private static final long serialVersionUID = 4394078979692450076L;
 
-	public static double call(PageContext pc, Array array, Object value) {
+	public static Number call(PageContext pc, Array array, Object value) {
 		return ArrayFindNoCase.call(pc, array, value);
 	}
 
-	public static double call(PageContext pc, Array array, Object value, boolean substringMatch) throws PageException {
+	public static Number call(PageContext pc, Array array, Object value, boolean substringMatch) throws PageException {
 		if (substringMatch) {
 			if (!Decision.isSimpleValue(value)) throw new FunctionException(pc, "ArrayContainsNoCase", 3, "substringMatch",
 					"substringMatch can not be true when the value that is searched for is a complex object");

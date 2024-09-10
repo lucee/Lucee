@@ -49,22 +49,22 @@ public final class ArrayDelete extends BIF {
 
 	static boolean _call(PageContext pc, Array array, Object value, String scope, boolean caseSensitive) throws PageException {
 		boolean onlyFirst = !"all".equalsIgnoreCase(scope);
-		double pos;
+		int pos;
 		if ((pos = find(pc, array, value, caseSensitive)) > 0) {
-			array.removeE((int) pos);
+			array.removeE(pos);
 			if (onlyFirst) return true;
 		}
 		else return false;
 
 		while ((pos = find(pc, array, value, caseSensitive)) > 0) {
-			array.removeE((int) pos);
+			array.removeE(pos);
 		}
 
 		return true;
 	}
 
-	private static double find(PageContext pc, Array array, Object value, boolean caseSensitive) throws PageException {
-		return caseSensitive ? ArrayFind.call(pc, array, value) : ArrayFindNoCase.call(pc, array, value);
+	private static int find(PageContext pc, Array array, Object value, boolean caseSensitive) throws PageException {
+		return Caster.toIntValue(caseSensitive ? ArrayFind.call(pc, array, value) : ArrayFindNoCase.call(pc, array, value));
 	}
 
 }

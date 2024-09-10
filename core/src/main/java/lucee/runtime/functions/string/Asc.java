@@ -36,8 +36,8 @@ public final class Asc extends BIF {
 		return Caster.toNumber(pc, string.charAt(0));
 	}
 
-	public static Number call(PageContext pc, String string, double position) {
-		int pos = (int) position;
+	public static Number call(PageContext pc, String string, Number position) {
+		int pos = Caster.toIntValue(position);
 		if (pos < 1 || pos > string.length()) return 0;
 		return Caster.toNumber(pc, string.charAt(pos - 1));
 	}
