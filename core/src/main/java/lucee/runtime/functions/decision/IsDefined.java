@@ -27,6 +27,7 @@ import lucee.runtime.config.NullSupportHelper;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.interpreter.SecurityInterpreterException;
 import lucee.runtime.interpreter.VariableInterpreter;
+import lucee.runtime.op.Caster;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Null;
@@ -42,9 +43,14 @@ public final class IsDefined implements Function {
 		// return pc.isDefined(varName);
 	}
 
+	// used for older compiled code in ra files
 	public static boolean call(PageContext pc, double scope, Collection.Key key) {
+		return call(pc, Caster.toNumber(scope), key);
+	}
+
+	public static boolean call(PageContext pc, Number scope, Collection.Key key) {
 		try {
-			Object coll = VariableInterpreter.scope(pc, (int) scope, false);
+			Object coll = VariableInterpreter.scope(pc, Caster.toIntValue(scope), false);
 			if (coll == null) return false;
 			Object _null = NullSupportHelper.NULL(pc);
 			coll = ((VariableUtilImpl) pc.getVariableUtil()).get(pc, coll, key, _null);
@@ -58,10 +64,15 @@ public final class IsDefined implements Function {
 		return true;
 	}
 
+	// used for older compiled code in ra files
 	public static boolean call(PageContext pc, double scope, Collection.Key[] varNames) {
+		return call(pc, Caster.toNumber(scope), varNames);
+	}
+
+	public static boolean call(PageContext pc, Number scope, Collection.Key[] varNames) {
 		Object defVal = NullSupportHelper.NULL(pc);
 		try {
-			Object coll = VariableInterpreter.scope(pc, (int) scope, false);
+			Object coll = VariableInterpreter.scope(pc, Caster.toIntValue(scope), false);
 			// Object coll =pc.scope((int)scope);
 			VariableUtilImpl vu = ((VariableUtilImpl) pc.getVariableUtil());
 			for (int i = 0; i < varNames.length; i++) {

@@ -57,7 +57,7 @@ public function onRequestStart() {
 		var fileName=listLast(cgi.script_name,"/");
 		if(fileName!="admin.cfm" && fileName!="web.cfm" && fileName!="server.cfm" && fileName!="index.cfm" && fileName!="restart.cfm") {
 			writeLog(text="Lucee Admin request to restricted file [#filename#] before login", type="error", log="application");
-			cfsetting(showdebugoutput:false);
+			cfsetting(show:false);
 			cfheader(statuscode="404" statustext="Invalid access");
 			cfcontent(reset="true");
 			abort;

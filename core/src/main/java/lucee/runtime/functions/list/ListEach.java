@@ -56,8 +56,8 @@ public final class ListEach extends BIF {
 	}
 
 	public static String call(PageContext pc, String list, UDF udf, String delimiter, boolean includeEmptyFields, boolean multiCharacterDelimiter, boolean parallel,
-			double maxThreads) throws PageException {
-		return _call(pc, list, udf, delimiter, includeEmptyFields, multiCharacterDelimiter, parallel, (int) maxThreads);
+			Number maxThreads) throws PageException {
+		return _call(pc, list, udf, delimiter, includeEmptyFields, multiCharacterDelimiter, parallel, Caster.toIntValue(maxThreads));
 	}
 
 	private static String _call(PageContext pc, String list, UDF udf, String delimiter, boolean includeEmptyFields, boolean multiCharacterDelimiter, boolean parallel,

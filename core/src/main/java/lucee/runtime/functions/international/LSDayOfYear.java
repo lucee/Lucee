@@ -35,20 +35,20 @@ public final class LSDayOfYear extends BIF {
 
 	private static final long serialVersionUID = 8136302798735384757L;
 
-	public static double call(PageContext pc, DateTime date) {
+	public static Number call(PageContext pc, DateTime date) {
 		return _call(pc, date, null, null);
 	}
 
-	public static double call(PageContext pc, DateTime date, Locale locale) {
+	public static Number call(PageContext pc, DateTime date, Locale locale) {
 		return _call(pc, date, locale, null);
 	}
 
-	public static double call(PageContext pc, DateTime date, Locale locale, TimeZone tz) {
+	public static Number call(PageContext pc, DateTime date, Locale locale, TimeZone tz) {
 		return _call(pc, date, locale == null ? pc.getLocale() : locale, tz == null ? pc.getTimeZone() : tz);
 	}
 
-	private static double _call(PageContext pc, DateTime date, Locale l, TimeZone tz) {
-		return DateTimeUtil.getInstance().getDayOfYear(l, tz, date);
+	private static Number _call(PageContext pc, DateTime date, Locale l, TimeZone tz) {
+		return Caster.toNumber(pc, DateTimeUtil.getInstance().getDayOfYear(l, tz, date));
 	}
 
 	@Override

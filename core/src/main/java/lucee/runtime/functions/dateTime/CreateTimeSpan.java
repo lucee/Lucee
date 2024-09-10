@@ -23,15 +23,18 @@ package lucee.runtime.functions.dateTime;
 
 import lucee.runtime.PageContext;
 import lucee.runtime.ext.function.Function;
+import lucee.runtime.op.Caster;
 import lucee.runtime.type.dt.TimeSpan;
 import lucee.runtime.type.dt.TimeSpanImpl;
 
 public final class CreateTimeSpan implements Function {
-	public static TimeSpan call(PageContext pc, double day, double hour, double minute, double second) {
-		return new TimeSpanImpl((int) day, (int) hour, (int) minute, (int) second);
+	private static final long serialVersionUID = -5518000993498260249L;
+
+	public static TimeSpan call(PageContext pc, Number day, Number hour, Number minute, Number second) {
+		return new TimeSpanImpl(Caster.toIntValue(day), Caster.toIntValue(hour), Caster.toIntValue(minute), Caster.toIntValue(second));
 	}
 
-	public static TimeSpan call(PageContext pc, double day, double hour, double minute, double second, double millisecond) {
-		return new TimeSpanImpl((int) day, (int) hour, (int) minute, (int) second, (int) millisecond);
+	public static TimeSpan call(PageContext pc, Number day, Number hour, Number minute, Number second, Number millisecond) {
+		return new TimeSpanImpl(Caster.toIntValue(day), Caster.toIntValue(hour), Caster.toIntValue(minute), Caster.toIntValue(second), Caster.toIntValue(millisecond));
 	}
 }

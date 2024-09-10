@@ -42,8 +42,8 @@ public final class ArrayFilter extends BIF {
 		return _call(pc, array, udf, parallel, 20);
 	}
 
-	public static Array call(PageContext pc, Array array, UDF udf, boolean parallel, double maxThreads) throws PageException {
-		return _call(pc, array, udf, parallel, (int) maxThreads);
+	public static Array call(PageContext pc, Array array, UDF udf, boolean parallel, Number maxThreads) throws PageException {
+		return _call(pc, array, udf, parallel, Caster.toIntValue(maxThreads));
 	}
 
 	public static Array _call(PageContext pc, Array array, UDF filter, boolean parallel, int maxThreads) throws PageException {

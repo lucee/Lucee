@@ -18,11 +18,12 @@ public class QueryInsertAt extends BIF implements Function {
 
 	private static final long serialVersionUID = -2549767593942513005L;
 
-	public static Query call(PageContext pc, Query qry, Object value, double index) throws PageException {
+	public static Query call(PageContext pc, Query qry, Object value, Number nindex) throws PageException {
+		int index = Caster.toIntValue(nindex);
 		if (index < 1) throw new FunctionException(pc, "QueryInsertAt", 3, "index", "index most be at least one, now it is [" + Caster.toString(index) + "].");
 		if (index - 1 > qry.getRowCount()) throw new FunctionException(pc, "QueryInsertAt", 3, "index",
 				"index [" + Caster.toString(index) + "] cannot be bigger than recordcount [" + qry.getRecordcount() + "] of the query plus 1.");
-		int off = (int) (index - 1);
+		int off = index - 1;
 
 		// QUERY
 		if (Decision.isQuery(value)) {

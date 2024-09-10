@@ -28,12 +28,12 @@ public class CacheRemoveAll extends BIF {
 
 	private static final long serialVersionUID = -3444983104369826751L;
 
-	public static double call(PageContext pc) throws PageException {
+	public static Number call(PageContext pc) throws PageException {
 		return CacheClear.call(pc);
 
 	}
 
-	public static double call(PageContext pc, String cacheName) throws PageException {
+	public static Number call(PageContext pc, String cacheName) throws PageException {
 		return CacheClear.call(pc, null, cacheName);
 	}
 

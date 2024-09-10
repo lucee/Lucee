@@ -29,13 +29,13 @@ public final class ArrayFindNoCase extends BIF {
 
 	private static final long serialVersionUID = 3636181944643536992L;
 
-	public static double call(PageContext pc, Array array, Object value) {
-		return ArrayFind.find(pc, array, value, false);
+	public static Number call(PageContext pc, Array array, Object value) {
+		return Caster.toNumber(pc, ArrayFind.find(pc, array, value, false));
 	}
 
 	@Override
 	public Object invoke(PageContext pc, Object[] args) throws PageException {
 		if (args.length == 2) return call(pc, Caster.toArray(args[0]), args[1]);
-		else throw new FunctionException(pc, "ArrayFindNoCase", 2, 2, args.length);
+		throw new FunctionException(pc, "ArrayFindNoCase", 2, 2, args.length);
 	}
 }

@@ -358,6 +358,24 @@ public final class Caster {
 
 	}
 
+	public static Number toNumber(PageContext pc, long l) {
+		if (ThreadLocalPageContext.preciseMath(pc)) return BigDecimal.valueOf(l);
+		return Double.valueOf(l);
+
+	}
+
+	public static Number toNumber(long l) {
+		if (ThreadLocalPageContext.preciseMath(null)) return BigDecimal.valueOf(l);
+		return Double.valueOf(l);
+
+	}
+
+	public static Number toNumber(PageContext pc, double d) {
+		if (ThreadLocalPageContext.preciseMath(pc)) return BigDecimal.valueOf(d);
+		return Double.valueOf(d);
+
+	}
+
 	public static Number toNumber(double d) {
 		if (ThreadLocalPageContext.preciseMath(null)) return BigDecimal.valueOf(d);
 		return Double.valueOf(d);
@@ -5112,10 +5130,10 @@ public final class Caster {
 
 	public static BigDecimal toBigDecimal(String str) throws CasterException {
 		try {
-			if (Util.isEmpty(str, true)) throw new CasterException("cannot convert string[" + str + "] to a number, the string is empty");
 			return new BigDecimal(str.trim(), MathContext.DECIMAL128);
 		}
 		catch (NumberFormatException nfe) {
+			if (Util.isEmpty(str, true)) throw new CasterException("cannot convert string[" + str + "] to a number, the string is empty");
 			throw new CasterException("cannot convert string[" + str + "] to a number; " + nfe.getMessage());
 		}
 	}

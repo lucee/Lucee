@@ -14,12 +14,12 @@ public class SetSecond extends BIF {
 
 	private static final long serialVersionUID = 4545770892579927986L;
 
-	public static DateTime call(PageContext pc, DateTime date, double seconds) {
-		return _call(date, (int) seconds, pc.getTimeZone());
+	public static DateTime call(PageContext pc, DateTime date, Number seconds) {
+		return _call(date, Caster.toIntValue(seconds), pc.getTimeZone());
 	}
 
-	public static DateTime call(PageContext pc, DateTime date, double seconds, TimeZone tz) {
-		return _call(date, (int) seconds, tz == null ? pc.getTimeZone() : tz);
+	public static DateTime call(PageContext pc, DateTime date, Number seconds, TimeZone tz) {
+		return _call(date, Caster.toIntValue(seconds), tz == null ? pc.getTimeZone() : tz);
 	}
 
 	@Override

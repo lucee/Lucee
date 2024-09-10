@@ -32,9 +32,9 @@ public final class ArrayResize extends BIF {
 
 	private static final long serialVersionUID = -3107784929660340665L;
 
-	public static boolean call(PageContext pc, Array array, double number) {
+	public static boolean call(PageContext pc, Array array, Number number) {
 		try {
-			array.resize((int) number);
+			array.resize(Caster.toIntValue(number));
 			return true;
 		}
 		catch (PageException e) {
@@ -45,7 +45,7 @@ public final class ArrayResize extends BIF {
 
 	@Override
 	public Object invoke(PageContext pc, Object[] args) throws PageException {
-		if (args.length == 2) return call(pc, Caster.toArray(args[0]), Caster.toDoubleValue(args[1]));
+		if (args.length == 2) return call(pc, Caster.toArray(args[0]), Caster.toNumber(pc, args[1]));
 		else throw new FunctionException(pc, "ArrayResize", 2, 2, args.length);
 	}
 }

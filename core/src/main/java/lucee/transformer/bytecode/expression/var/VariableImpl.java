@@ -618,7 +618,7 @@ public class VariableImpl extends ExpressionBase implements Variable {
 					if (m == null) {
 
 						StringBuilder sb = new StringBuilder();
-						sb.append("call(PageContext pc");
+						sb.append(bif.getName() + ".call(PageContext pc ");
 						for (FunctionLibFunctionArg flfa: fargs) {
 							sb.append(", ").append(Types.toType(bc, flfa.getTypeAsString()).getClassName()).append(' ').append(flfa.getName());
 						}

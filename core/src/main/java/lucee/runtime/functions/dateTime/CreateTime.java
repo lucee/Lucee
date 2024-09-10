@@ -27,6 +27,7 @@ import lucee.commons.date.DateTimeUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.ext.function.Function;
+import lucee.runtime.op.Caster;
 import lucee.runtime.type.dt.DateTime;
 import lucee.runtime.type.dt.TimeImpl;
 
@@ -34,29 +35,29 @@ public final class CreateTime implements Function {
 
 	private static final long serialVersionUID = -5887770689991548576L;
 
-	public static DateTime call(PageContext pc, double hour) {
-		return _call(pc, hour, 0, 0, 0, pc.getTimeZone());
+	public static DateTime call(PageContext pc, Number hour) {
+		return _call(pc, Caster.toIntValue(hour), 0, 0, 0, pc.getTimeZone());
 	}
 
-	public static DateTime call(PageContext pc, double hour, double minute) {
-		return _call(pc, hour, minute, 0, 0, pc.getTimeZone());
+	public static DateTime call(PageContext pc, Number hour, Number minute) {
+		return _call(pc, Caster.toIntValue(hour), Caster.toIntValue(minute), 0, 0, pc.getTimeZone());
 	}
 
-	public static DateTime call(PageContext pc, double hour, double minute, double second) {
-		return _call(pc, hour, minute, second, 0, pc.getTimeZone());
+	public static DateTime call(PageContext pc, Number hour, Number minute, Number second) {
+		return _call(pc, Caster.toIntValue(hour), Caster.toIntValue(minute), Caster.toIntValue(second), 0, pc.getTimeZone());
 	}
 
-	public static DateTime call(PageContext pc, double hour, double minute, double second, double millis) {
-		return _call(pc, hour, minute, second, millis, pc.getTimeZone());
+	public static DateTime call(PageContext pc, Number hour, Number minute, Number second, Number millis) {
+		return _call(pc, Caster.toIntValue(hour), Caster.toIntValue(minute), Caster.toIntValue(second), Caster.toIntValue(millis), pc.getTimeZone());
 	}
 
-	public static DateTime call(PageContext pc, double hour, double minute, double second, double millis, TimeZone tz) {
-		return _call(pc, hour, minute, second, millis, tz == null ? pc.getTimeZone() : tz);
+	public static DateTime call(PageContext pc, Number hour, Number minute, Number second, Number millis, TimeZone tz) {
+		return _call(pc, Caster.toIntValue(hour), Caster.toIntValue(minute), Caster.toIntValue(second), Caster.toIntValue(millis), tz == null ? pc.getTimeZone() : tz);
 	}
 
-	private static DateTime _call(PageContext pc, double hour, double minute, double second, double millis, TimeZone tz) {
+	private static DateTime _call(PageContext pc, int hour, int minute, int second, int millis, TimeZone tz) {
 		// TODO check this looks wrong
 		if (tz == null) tz = ThreadLocalPageContext.getTimeZone(pc);
-		return new TimeImpl(DateTimeUtil.getInstance().toTime(tz, 1899, 12, 30, (int) hour, (int) minute, (int) second, (int) millis, 0), false);
+		return new TimeImpl(DateTimeUtil.getInstance().toTime(tz, 1899, 12, 30, hour, minute, second, millis, 0), false);
 	}
 }

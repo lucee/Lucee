@@ -42,8 +42,8 @@ public final class QueryEach extends BIF {
 		return _call(pc, qry, udf, parallel, 20);
 	}
 
-	public static String call(PageContext pc, Query qry, UDF udf, boolean parallel, double maxThreads) throws PageException {
-		return _call(pc, qry, udf, parallel, (int) maxThreads);
+	public static String call(PageContext pc, Query qry, UDF udf, boolean parallel, Number maxThreads) throws PageException {
+		return _call(pc, qry, udf, parallel, Caster.toIntValue(maxThreads));
 	}
 
 	private static String _call(PageContext pc, Query qry, UDF udf, boolean parallel, int maxThreads) throws PageException {

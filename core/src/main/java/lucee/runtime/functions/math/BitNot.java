@@ -25,10 +25,9 @@ import lucee.runtime.PageContext;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.BIF;
-import lucee.runtime.ext.function.Function;
 import lucee.runtime.op.Caster;
 
-public final class BitNot extends BIF implements Function {
+public final class BitNot extends BIF {
 
 	private static final long serialVersionUID = 5762882485653530918L;
 

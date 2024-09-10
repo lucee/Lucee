@@ -40,11 +40,11 @@ public class GeneratePBKDFKey extends BIF {
 		return call(pc, algorithm, passPhrase, salt, 4096, 128);
 	}
 
-	public static String call(PageContext pc, String algorithm, String passPhrase, String salt, double iterations) throws PageException {
+	public static String call(PageContext pc, String algorithm, String passPhrase, String salt, Number iterations) throws PageException {
 		return call(pc, algorithm, passPhrase, salt, iterations, 128);
 	}
 
-	public static String call(PageContext pc, String algorithm, String passPhrase, String salt, double iterations, double keySize) throws PageException {
+	public static String call(PageContext pc, String algorithm, String passPhrase, String salt, Number iterations, Number keySize) throws PageException {
 		// algo
 		if (StringUtil.isEmpty(algorithm)) throw new FunctionException(pc, "GeneratePBKDFKey", 1, "algorithm", "Argument [algorithm] is empty.");
 		algorithm = algorithm.trim();
@@ -64,7 +64,7 @@ public class GeneratePBKDFKey extends BIF {
 		}
 
 		try {
-			PBEKeySpec spec = new PBEKeySpec(passPhrase.toCharArray(), salt.getBytes(), (int) iterations, (int) keySize);
+			PBEKeySpec spec = new PBEKeySpec(passPhrase.toCharArray(), salt.getBytes(), Caster.toIntValue(iterations), Caster.toIntValue(keySize));
 			return Base64Coder.encode(key.generateSecret(spec).getEncoded());
 		}
 		catch (InvalidKeySpecException ikse) {

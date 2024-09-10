@@ -64,8 +64,8 @@ public final class Each extends BIF implements ClosureFunc {
 		return _call(pc, obj, udf, parallel, DEFAULT_MAX_THREAD, TYPE_UNDEFINED);
 	}
 
-	public static String call(PageContext pc, Object obj, UDF udf, boolean parallel, double maxThreads) throws PageException {
-		return _call(pc, obj, udf, parallel, (int) maxThreads, TYPE_UNDEFINED);
+	public static String call(PageContext pc, Object obj, UDF udf, boolean parallel, Number maxThreads) throws PageException {
+		return _call(pc, obj, udf, parallel, Caster.toIntValue(maxThreads), TYPE_UNDEFINED);
 	}
 
 	private static String _call(PageContext pc, Object obj, UDF udf, boolean parallel, int maxThreads, short type) throws PageException {
@@ -236,7 +236,7 @@ public final class Each extends BIF implements ClosureFunc {
 
 		if (args.length == 2) return call(pc, args[0], Caster.toFunction(args[1]));
 		if (args.length == 3) return call(pc, args[0], Caster.toFunction(args[1]), Caster.toBooleanValue(args[2]));
-		if (args.length == 4) return call(pc, args[0], Caster.toFunction(args[1]), Caster.toBooleanValue(args[2]), Caster.toDoubleValue(args[3]));
+		if (args.length == 4) return call(pc, args[0], Caster.toFunction(args[1]), Caster.toBooleanValue(args[2]), Caster.toNumber(pc, args[3]));
 
 		throw new FunctionException(pc, "Each", 2, 4, args.length);
 

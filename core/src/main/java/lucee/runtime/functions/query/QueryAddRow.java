@@ -33,19 +33,19 @@ public final class QueryAddRow extends BIF {
 
 	private static final long serialVersionUID = 1252130736067181453L;
 
-	public static double call(PageContext pc, Query query) {
-		return query.addRow();
+	public static Number call(PageContext pc, Query query) {
+		return Caster.toNumber(pc, query.addRow());
 	}
 
-	public static double call(PageContext pc, Query query, Object numberOrData) throws PageException {
+	public static Number call(PageContext pc, Query query, Object numberOrData) throws PageException {
 		if (numberOrData == null) return call(pc, query);
 		else if (Decision.isNumber(numberOrData)) {
-			return ((QueryImpl) query).addRowAndGet(Caster.toIntValue(numberOrData));
+			return Caster.toNumber(pc, ((QueryImpl) query).addRowAndGet(Caster.toIntValue(numberOrData)));
 		}
 		else {
 			QueryNew.populate(pc, query, numberOrData, false);
 		}
-		return query.getRecordcount();
+		return Caster.toNumber(pc, query.getRecordcount());
 	}
 
 	@Override

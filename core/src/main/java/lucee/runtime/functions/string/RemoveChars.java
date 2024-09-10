@@ -29,9 +29,11 @@ import lucee.runtime.ext.function.BIF;
 import lucee.runtime.op.Caster;
 
 public final class RemoveChars extends BIF {
-	public static String call(PageContext pc, String str, double s, double l) throws ExpressionException {
-		int start = (int) s;
-		int length = (int) l;
+	private static final long serialVersionUID = 2682822041816864678L;
+
+	public static String call(PageContext pc, String str, Number s, Number l) throws ExpressionException {
+		int start = Caster.toIntValue(s);
+		int length = Caster.toIntValue(l);
 		int strLength = str.length();
 
 		// check param 2

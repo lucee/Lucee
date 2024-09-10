@@ -23,12 +23,19 @@ package lucee.runtime.functions.math;
 
 import lucee.commons.math.MathUtil;
 import lucee.runtime.PageContext;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.op.Caster;
 
 public final class Abs implements Function {
 
+	private static final long serialVersionUID = 6284295838111579098L;
+
 	public static Number call(PageContext pc, Number n) {
+
+		if (ThreadLocalPageContext.preciseMath(pc)) {
+			return MathUtil.abs(Caster.toBigDecimal(n));
+		}
 		return MathUtil.abs(Caster.toDoubleValue(n));
 	}
 }

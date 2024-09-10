@@ -37,9 +37,9 @@ public final class QueryConvertForGrid extends BIF {
 
 	private static final long serialVersionUID = 871091293736619034L;
 
-	public static Struct call(PageContext pc, Query src, double dpage, double dpageSize) throws PageException {
-		int page = (int) dpage;
-		int pageSize = (int) dpageSize;
+	public static Struct call(PageContext pc, Query src, Number npage, Number npageSize) throws PageException {
+		int page = Caster.toIntValue(npage);
+		int pageSize = Caster.toIntValue(npageSize);
 		if (page < 1) {
 			throw new FunctionException(pc, "QueryConvertForGrid", 2, "page", "page must be a positive number now (" + page + ")");
 		}

@@ -22,17 +22,17 @@
 package lucee.runtime.functions.math;
 
 import lucee.runtime.PageContext;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.op.Caster;
 
 public final class Sin implements Function {
 	private static final long serialVersionUID = -5944535986043820873L;
 
-	public static double call(PageContext pc, double number) {
-		return StrictMath.sin(number);
-	}
-
 	public static Number call(PageContext pc, Number number) {
-		return Caster.toBigDecimal(StrictMath.sin(Caster.toDoubleValue(number)));
+		if (ThreadLocalPageContext.preciseMath(pc)) {
+			return Caster.toBigDecimal(StrictMath.sin(Caster.toDoubleValue(number)));
+		}
+		return Caster.toDouble(StrictMath.sin(Caster.toDoubleValue(number)));
 	}
 }

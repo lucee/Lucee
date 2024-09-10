@@ -40,11 +40,11 @@ public final class LSParseNumber implements Function {
 
 	private static Map<Locale, SoftReference<NumberFormat>> formatters = new ConcurrentHashMap<Locale, SoftReference<NumberFormat>>();
 
-	public static double call(PageContext pc, String string) throws PageException {
+	public static Number call(PageContext pc, String string) throws PageException {
 		return toDoubleValue(pc.getLocale(), string);
 	}
 
-	public static double call(PageContext pc, String string, Locale locale) throws PageException {
+	public static Number call(PageContext pc, String string, Locale locale) throws PageException {
 		return toDoubleValue(locale == null ? pc.getLocale() : locale, string);
 	}
 

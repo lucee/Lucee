@@ -30,12 +30,12 @@ public final class Val implements Function {
 
 	private static final long serialVersionUID = -4333040593277864043L;
 
-	public static double call(PageContext pc, String value) throws PageException {
+	public static Number call(PageContext pc, String value) throws PageException {
 		if (value == null) return 0;
 		value = value.trim();
 		int pos = getPos(value);
-		if (pos <= 0) return 0;
-		return Caster.toDoubleValue(value.substring(0, pos));
+		if (pos <= 0) return Caster.toNumber(pc, 0);
+		return Caster.toNumber(pc, value.substring(0, pos));
 	}
 
 	private static int getPos(String str) {

@@ -35,16 +35,16 @@ public final class DayOfWeek extends BIF {
 
 	private static final long serialVersionUID = 8025414014490122478L;
 
-	public static double call(PageContext pc, DateTime date) {
+	public static Number call(PageContext pc, DateTime date) {
 		return _call(pc, date, pc.getTimeZone());
 	}
 
-	public static double call(PageContext pc, DateTime date, TimeZone tz) {
+	public static Number call(PageContext pc, DateTime date, TimeZone tz) {
 		return _call(pc, date, tz == null ? pc.getTimeZone() : tz);
 	}
 
-	private static double _call(PageContext pc, DateTime date, TimeZone tz) {
-		return DateTimeUtil.getInstance().getDayOfWeek(Locale.US, tz, date);
+	private static Number _call(PageContext pc, DateTime date, TimeZone tz) {
+		return Caster.toNumber(pc, DateTimeUtil.getInstance().getDayOfWeek(Locale.US, tz, date));
 	}
 
 	@Override

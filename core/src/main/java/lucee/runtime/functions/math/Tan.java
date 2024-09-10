@@ -16,16 +16,23 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  * 
  **/
-/**
- * Implements the CFML Function tan
- */
 package lucee.runtime.functions.math;
 
 import lucee.runtime.PageContext;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.ext.function.Function;
+import lucee.runtime.op.Caster;
 
 public final class Tan implements Function {
-	public static double call(PageContext pc, double number) {
-		return StrictMath.tan(number);
+
+	private static final long serialVersionUID = 4317741894871385443L;
+
+	public static Number call(PageContext pc, Number number) {
+
+		double numValue = Caster.toDoubleValue(number);
+		if (ThreadLocalPageContext.preciseMath(pc)) {
+			return Caster.toBigDecimal(StrictMath.tan(numValue));
+		}
+		return StrictMath.tan(numValue);
 	}
 }

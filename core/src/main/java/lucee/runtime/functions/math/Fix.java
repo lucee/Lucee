@@ -22,11 +22,24 @@
 package lucee.runtime.functions.math;
 
 import lucee.runtime.PageContext;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.ext.function.Function;
+import lucee.runtime.op.Caster;
 
 public final class Fix implements Function {
-	public static double call(PageContext pc, double number) {
-		if (number == 0) return number;
-		return number > 0 ? StrictMath.floor(number) : StrictMath.ceil(number);
+	private static final long serialVersionUID = -6306628352821070813L;
+
+	public static Number call(PageContext pc, Number number) {
+
+		double numValue = Caster.toDoubleValue(number);
+
+		if (numValue != 0) {
+			numValue = numValue > 0 ? StrictMath.floor(numValue) : StrictMath.ceil(numValue);
+		}
+
+		if (ThreadLocalPageContext.preciseMath(pc)) {
+			return Caster.toBigDecimal(numValue);
+		}
+		return numValue;
 	}
 }

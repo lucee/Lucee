@@ -33,7 +33,7 @@ public final class ArrayMin extends BIF {
 
 	private static final long serialVersionUID = 7640801691378949924L;
 
-	public static double call(PageContext pc, Array array) throws PageException {
+	public static Number call(PageContext pc, Array array) throws PageException {
 		return ArrayUtil.min(array);
 	}
 

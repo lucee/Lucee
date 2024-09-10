@@ -58,39 +58,39 @@ public final class DumpStruct implements Function {
 		return call(pc, object, 9999, null, null, 9999, true);
 	}
 
-	public static Struct call(PageContext pc, Object object, double maxLevel) {
+	public static Struct call(PageContext pc, Object object, Number maxLevel) {
 		return call(pc, object, maxLevel, null, null, 9999, true, true, null);
 	}
 
-	public static Struct call(PageContext pc, Object object, double maxLevel, String show) {
+	public static Struct call(PageContext pc, Object object, Number maxLevel, String show) {
 		return call(pc, object, maxLevel, show, null, 9999, true, true, null);
 	}
 
-	public static Struct call(PageContext pc, Object object, double maxLevel, String show, String hide) {
+	public static Struct call(PageContext pc, Object object, Number maxLevel, String show, String hide) {
 		return call(pc, object, maxLevel, show, hide, 9999, true, true, null);
 	}
 
-	public static Struct call(PageContext pc, Object object, double maxLevel, String show, String hide, double keys) {
+	public static Struct call(PageContext pc, Object object, Number maxLevel, String show, String hide, Number keys) {
 		return call(pc, object, maxLevel, show, hide, keys, true, true, null);
 	}
 
-	public static Struct call(PageContext pc, Object object, double maxLevel, String show, String hide, double keys, boolean metainfo) {
+	public static Struct call(PageContext pc, Object object, Number maxLevel, String show, String hide, Number keys, boolean metainfo) {
 		return call(pc, object, maxLevel, show, hide, keys, metainfo, true, null);
 	}
 
-	public static Struct call(PageContext pc, Object object, double maxLevel, String show, String hide, double keys, boolean metainfo, boolean showUDFs) {
+	public static Struct call(PageContext pc, Object object, Number maxLevel, String show, String hide, Number keys, boolean metainfo, boolean showUDFs) {
 		return call(pc, object, maxLevel, show, hide, keys, metainfo, showUDFs, null);
 	}
 
-	public static Struct call(PageContext pc, Object object, double maxLevel, String show, String hide, double keys, boolean metainfo, boolean showUDFs, String label) {
+	public static Struct call(PageContext pc, Object object, Number maxLevel, String show, String hide, Number keys, boolean metainfo, boolean showUDFs, String label) {
 		if (show != null && "all".equalsIgnoreCase(show.trim())) show = null;
 		if (hide != null && "all".equalsIgnoreCase(hide.trim())) hide = null;
 
 		Set<String> setShow = (show != null) ? ListUtil.listToSet(show.toLowerCase(), ",", true) : null;
 		Set<String> setHide = (hide != null) ? ListUtil.listToSet(hide.toLowerCase(), ",", true) : null;
 
-		DumpProperties properties = new DumpProperties((int) maxLevel, setShow, setHide, (int) keys, metainfo, showUDFs);
-		DumpData dd = DumpUtil.toDumpData(object, pc, (int) maxLevel, properties);
+		DumpProperties properties = new DumpProperties(Caster.toIntValue(maxLevel), setShow, setHide, Caster.toIntValue(keys), metainfo, showUDFs);
+		DumpData dd = DumpUtil.toDumpData(object, pc, Caster.toIntValue(maxLevel), properties);
 
 		if (!StringUtil.isEmpty(label)) {
 			DumpTable table = new DumpTable("#ffffff", "#cccccc", "#000000");

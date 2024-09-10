@@ -23,6 +23,7 @@ import java.util.TimeZone;
 import lucee.commons.date.DateTimeUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.ext.function.Function;
+import lucee.runtime.op.Caster;
 import lucee.runtime.type.dt.DateTime;
 
 /**
@@ -30,11 +31,11 @@ import lucee.runtime.type.dt.DateTime;
  */
 public final class Year implements Function {
 
-	public static double call(PageContext pc, DateTime date) {
-		return DateTimeUtil.getInstance().getYear(pc.getTimeZone(), date);
+	public static Number call(PageContext pc, DateTime date) {
+		return Caster.toNumber(pc, DateTimeUtil.getInstance().getYear(pc.getTimeZone(), date));
 	}
 
-	public static double call(PageContext pc, DateTime date, TimeZone tz) {
-		return DateTimeUtil.getInstance().getYear(tz == null ? pc.getTimeZone() : tz, date);
+	public static Number call(PageContext pc, DateTime date, TimeZone tz) {
+		return Caster.toNumber(pc, DateTimeUtil.getInstance().getYear(tz == null ? pc.getTimeZone() : tz, date));
 	}
 }

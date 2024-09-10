@@ -23,23 +23,25 @@ package lucee.runtime.functions.math;
 
 import lucee.runtime.PageContext;
 import lucee.runtime.crypt.CFMXCompat;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.ext.function.Function;
+import lucee.runtime.op.Caster;
 
 public final class Randomize implements Function {
 
-	public static double call(PageContext pc, double number) throws ExpressionException {
+	private static final long serialVersionUID = -7493245881811279645L;
 
-		Rand.getRandom(CFMXCompat.ALGORITHM_NAME, number);
-
-		return Rand.call(pc, CFMXCompat.ALGORITHM_NAME);
+	public static Number call(PageContext pc, Number number) throws ExpressionException {
+		return call(pc, number, CFMXCompat.ALGORITHM_NAME);
 	}
 
-	public static double call(PageContext pc, double number, String algorithm) throws ExpressionException {
+	public static Number call(PageContext pc, Number number, String algorithm) throws ExpressionException {
 
-		Rand.getRandom(algorithm, number);
-
-		return Rand.call(pc, algorithm);
+		if (ThreadLocalPageContext.preciseMath(pc)) {
+			return Caster.toBigDecimal(Rand.getRandom(algorithm, Caster.toDouble(number)).nextDouble());
+		}
+		return Rand.getRandom(algorithm, Caster.toDouble(number)).nextDouble();
 	}
 
 }

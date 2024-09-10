@@ -28,10 +28,13 @@ import lucee.runtime.ext.function.Function;
 import lucee.runtime.op.Caster;
 
 public final class FormatBaseN implements Function {
+	private static final long serialVersionUID = -8509493957721943317L;
 	private static final long uint32_mask = 0x0000_0000_FFFF_FFFFL;
 
-	public static String call(PageContext pc, double number, double radix) throws ExpressionException {
-		if (radix < 2 || radix > 36) throw new FunctionException(pc, "formatBaseN", 2, "radix", "radix must be between 2 an 36");
+	public static String call(PageContext pc, Number number, Number radix) throws ExpressionException {
+		int rdx = Caster.toIntValue(radix);
+
+		if (rdx < 2 || rdx > 36) throw new FunctionException(pc, "formatBaseN", 2, "radix", "radix must be between 2 an 36");
 
 		// LDEV-3776
 		// Adobe compat - only support values in the range of a signed int32, and for base 2 and 16 mask
@@ -43,6 +46,6 @@ public final class FormatBaseN implements Function {
 			throw new FunctionException(pc, "formatBaseN", 1, "number",
 					"number to formatted must be on or between Integer.MIN_VALUE and Integer.MAX_VALUE (" + Integer.MIN_VALUE + ", " + Integer.MAX_VALUE + ")");
 		}
-		return radix == 2 || radix == 16 ? Long.toString(converted & uint32_mask, (int) radix) : Long.toString(converted, (int) radix);
+		return rdx == 2 || rdx == 16 ? Long.toString(converted & uint32_mask, rdx) : Long.toString(converted, rdx);
 	}
 }

@@ -27,6 +27,8 @@ import lucee.runtime.ext.function.Function;
 import lucee.runtime.op.Caster;
 
 public final class Max implements Function {
+	private static final long serialVersionUID = 4506803307163054252L;
+
 	public static Number call(PageContext pc, Number number1, Number number2) {
 		if (ThreadLocalPageContext.preciseMath(pc)) {
 

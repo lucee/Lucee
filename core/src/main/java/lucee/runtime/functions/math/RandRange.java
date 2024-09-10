@@ -14,34 +14,33 @@
  * 
  * You should have received a copy of the GNU Lesser General Public 
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
- * 
- **/
-/**
- * Implements the CFML Function randrange
  */
 package lucee.runtime.functions.math;
 
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.ext.function.Function;
+import lucee.runtime.op.Caster;
 
 public final class RandRange implements Function {
-	public static double call(PageContext pc, double number1, double number2) throws ExpressionException {
+	private static final long serialVersionUID = 2380288324240209290L;
+
+	public static Number call(PageContext pc, Number number1, Number number2) throws ExpressionException {
 		return call(pc, number1, number2, "cfmx_compat");
 	}
 
-	public static double call(PageContext pc, double number1, double number2, String algo) throws ExpressionException {
+	public static Number call(PageContext pc, Number number1, Number number2, String algo) throws ExpressionException {
 
-		int min = (int) number1;
-		int max = (int) number2;
+		int min = Caster.toIntValue(number1);
+		int max = Caster.toIntValue(number2);
 
-		if (number1 > number2) {
+		if (min > max) {
 			int tmp = min;
 			min = max;
 			max = tmp;
 		}
 		int diff = max - min;
-		return ((int) (Rand.call(pc, algo) * (diff + 1))) + min;
+		return Caster.toIntValue((Rand.getRandom(algo, Double.NaN).nextDouble() * (diff + 1)) + min);
 	}
 
 	public static int invoke(int min, int max) throws ExpressionException {
@@ -52,7 +51,7 @@ public final class RandRange implements Function {
 			max = tmp;
 		}
 		int diff = max - min;
-		return ((int) (Rand.call(null, "cfmx_compat") * (diff + 1))) + min;
+		return (Caster.toIntValue(Rand.call(null, "cfmx_compat")) * (diff + 1)) + min;
 	}
 
 }

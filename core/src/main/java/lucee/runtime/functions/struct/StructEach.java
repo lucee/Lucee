@@ -42,8 +42,8 @@ public final class StructEach extends BIF {
 		return _call(pc, sct, udf, parallel, 20);
 	}
 
-	public static String call(PageContext pc, Struct sct, UDF udf, boolean parallel, double maxThreads) throws PageException {
-		return _call(pc, sct, udf, parallel, (int) maxThreads);
+	public static String call(PageContext pc, Struct sct, UDF udf, boolean parallel, Number maxThreads) throws PageException {
+		return _call(pc, sct, udf, parallel, Caster.toIntValue(maxThreads));
 	}
 
 	private static String _call(PageContext pc, Struct sct, UDF udf, boolean parallel, int maxThreads) throws PageException {

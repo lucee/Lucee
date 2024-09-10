@@ -20,12 +20,12 @@ public class QueryRowByIndex extends BIF {
 
 	private static final long serialVersionUID = -1462555083727605910L;
 
-	public static double call(PageContext pc, Query query, String index) throws PageException {
-		return Caster.toDoubleValue(getIndex(query, index));
+	public static Number call(PageContext pc, Query query, String index) throws PageException {
+		return Caster.toNumber(pc, getIndex(query, index));
 	}
 
-	public static double call(PageContext pc, Query query, String index, double defaultValue) {
-		return Caster.toDoubleValue(getIndex(query, index, (int) defaultValue));
+	public static Number call(PageContext pc, Query query, String index, Number defaultValue) {
+		return Caster.toNumber(pc, getIndex(query, index, Caster.toIntValue(defaultValue)));
 	}
 
 	@Override

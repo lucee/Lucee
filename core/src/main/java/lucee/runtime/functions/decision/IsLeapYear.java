@@ -20,14 +20,15 @@ package lucee.runtime.functions.decision;
 
 import lucee.runtime.PageContext;
 import lucee.runtime.ext.function.Function;
+import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 
 /**
  * Implements the CFML Function isleapyear
  */
 public final class IsLeapYear implements Function {
-	public static boolean call(PageContext pc, double year) {
-		return Decision.isLeapYear((int) year);
+	public static boolean call(PageContext pc, Number year) {
+		return Decision.isLeapYear(Caster.toIntValue(year));
 	}
 
 }

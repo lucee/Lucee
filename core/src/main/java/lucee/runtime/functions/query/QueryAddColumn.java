@@ -36,19 +36,19 @@ public final class QueryAddColumn extends BIF {
 
 	private static final long serialVersionUID = -242783888553490683L;
 
-	public static double call(PageContext pc, Query query, String string) throws PageException {
+	public static Number call(PageContext pc, Query query, String string) throws PageException {
 		return call(pc, query, string, null, new ArrayImpl());
 	}
 
-	public static double call(PageContext pc, Query query, String string, Object arrayOrDataType) throws PageException {
+	public static Number call(PageContext pc, Query query, String string, Object arrayOrDataType) throws PageException {
 		if (!Decision.isArray(arrayOrDataType)) return call(pc, query, string, Caster.toString(arrayOrDataType), new ArrayImpl());
 		return call(pc, query, string, null, Caster.toArray(arrayOrDataType));
 	}
 
-	public static double call(PageContext pc, Query query, String string, Object datatype, Object array) throws PageException {
+	public static Number call(PageContext pc, Query query, String string, Object datatype, Object array) throws PageException {
 		if (StringUtil.isEmpty(datatype)) query.addColumn(KeyImpl.init(string), Caster.toArray(array));
 		else query.addColumn(KeyImpl.init(string), Caster.toArray(array), SQLCaster.toSQLType(Caster.toString(datatype)));
-		return query.size();
+		return Caster.toNumber(pc, query.size());
 	}
 
 	@Override

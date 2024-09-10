@@ -44,8 +44,8 @@ public final class QueryFilter extends BIF {
 		return _call(pc, qry, udf, parallel, 20);
 	}
 
-	public static Query call(PageContext pc, Query qry, UDF udf, boolean parallel, double maxThreads) throws PageException {
-		return _call(pc, qry, udf, parallel, (int) maxThreads);
+	public static Query call(PageContext pc, Query qry, UDF udf, boolean parallel, Number maxThreads) throws PageException {
+		return _call(pc, qry, udf, parallel, Caster.toIntValue(maxThreads));
 	}
 
 	public static Query _call(PageContext pc, Query qry, UDF filter, boolean parallel, int maxThreads) throws PageException {

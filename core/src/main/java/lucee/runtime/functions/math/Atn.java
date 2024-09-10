@@ -22,10 +22,19 @@
 package lucee.runtime.functions.math;
 
 import lucee.runtime.PageContext;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.ext.function.Function;
+import lucee.runtime.op.Caster;
 
 public final class Atn implements Function {
-	public static double call(PageContext pc, double number) {
-		return StrictMath.atan(number);
+
+	private static final long serialVersionUID = 4094854682780902171L;
+
+	public static Number call(PageContext pc, Number number) {
+		double res = (StrictMath.atan(Caster.toDoubleValue(number)));
+		if (ThreadLocalPageContext.preciseMath(pc)) {
+			return Caster.toBigDecimal(res);
+		}
+		return Caster.toDouble(res);
 	}
 }

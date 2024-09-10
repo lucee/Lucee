@@ -41,15 +41,15 @@ public final class LSDatePart implements Function {
 
 	private static final long serialVersionUID = -4203375459570986511L;
 
-	public static double call(PageContext pc, String datepart, DateTime date) throws ExpressionException {
+	public static Number call(PageContext pc, String datepart, DateTime date) throws ExpressionException {
 		return call(pc, datepart, date, null, null);
 	}
 
-	public static double call(PageContext pc, String datepart, DateTime date, Locale locale) throws ExpressionException {
+	public static Number call(PageContext pc, String datepart, DateTime date, Locale locale) throws ExpressionException {
 		return call(pc, datepart, date, locale, null);
 	}
 
-	public static double call(PageContext pc, String datepart, DateTime date, Locale locale, TimeZone tz) throws ExpressionException {
+	public static Number call(PageContext pc, String datepart, DateTime date, Locale locale, TimeZone tz) throws ExpressionException {
 		datepart = datepart.toLowerCase();
 		char first = datepart.length() == 1 ? datepart.charAt(0) : (char) 0;
 

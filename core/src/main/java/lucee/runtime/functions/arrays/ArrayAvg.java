@@ -34,7 +34,7 @@ public final class ArrayAvg extends BIF {
 
 	private static final long serialVersionUID = -6440677638555730262L;
 
-	public static double call(PageContext pc, Array array) throws ExpressionException {
+	public static Number call(PageContext pc, Array array) throws ExpressionException {
 		return ArrayUtil.avg(array);
 	}
 

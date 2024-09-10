@@ -26,19 +26,22 @@ import java.util.TimeZone;
 import lucee.commons.date.DateTimeUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.ext.function.Function;
+import lucee.runtime.op.Caster;
 import lucee.runtime.type.dt.DateTime;
 
 public final class Second implements Function {
 
-	public static double call(PageContext pc, DateTime date) {
+	private static final long serialVersionUID = 5414126101123214213L;
+
+	public static Number call(PageContext pc, DateTime date) {
 		return _call(pc, date, pc.getTimeZone());
 	}
 
-	public static double call(PageContext pc, DateTime date, TimeZone tz) {
+	public static Number call(PageContext pc, DateTime date, TimeZone tz) {
 		return _call(pc, date, tz == null ? pc.getTimeZone() : tz);
 	}
 
-	private static double _call(PageContext pc, DateTime date, TimeZone tz) {
-		return DateTimeUtil.getInstance().getSecond(tz, date);
+	private static Number _call(PageContext pc, DateTime date, TimeZone tz) {
+		return Caster.toNumber(pc, DateTimeUtil.getInstance().getSecond(tz, date));
 	}
 }

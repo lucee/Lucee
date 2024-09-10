@@ -23,11 +23,14 @@ package lucee.runtime.functions.other;
 
 import lucee.runtime.PageContext;
 import lucee.runtime.ext.function.Function;
+import lucee.runtime.op.Caster;
 import lucee.runtime.tag.util.DeprecatedUtil;
 
 public final class GetK2ServerDocCountLimit implements Function {
-	public static double call(PageContext pc) {
+	private static final long serialVersionUID = -5381791167298940973L;
+
+	public static Number call(PageContext pc) {
 		DeprecatedUtil.function(pc, "GetK2ServerDocCountLimit");
-		return 0;
+		return Caster.toNumber(pc, 0);
 	}
 }

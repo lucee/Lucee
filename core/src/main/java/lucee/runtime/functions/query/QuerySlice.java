@@ -34,12 +34,13 @@ public final class QuerySlice extends BIF {
 
 	private static final long serialVersionUID = -2760070317171532995L;
 
-	public static Query call(PageContext pc, Query qry, double offset) throws PageException {
+	public static Query call(PageContext pc, Query qry, Number offset) throws PageException {
 		return call(pc, qry, offset, 0);
 	}
 
-	public static Query call(PageContext pc, Query qry, double offset, double length) throws PageException {
-
+	public static Query call(PageContext pc, Query qry, Number noffset, Number nlength) throws PageException {
+		int offset = Caster.toIntValue(noffset);
+		int length = Caster.toIntValue(nlength);
 		int len = qry.getRecordcount();
 		if (len == 0) throw new FunctionException(pc, "querySlice", 1, "query", "Query cannot be empty");
 
@@ -47,11 +48,11 @@ public final class QuerySlice extends BIF {
 			if (len < offset) throw new FunctionException(pc, "querySlice", 2, "offset", "offset cannot be greater than the recordcount of the query");
 
 			int to = 0;
-			if (length > 0) to = (int) (offset + length - 1);
-			else if (length <= 0) to = (int) (len + length);
+			if (length > 0) to = offset + length - 1;
+			else if (length <= 0) to = len + length;
 			if (len < to) throw new FunctionException(pc, "querySlice", 3, "length", "offset+length cannot be greater than the recordcount of the query");
 
-			return get(qry, (int) offset, to);
+			return get(qry, offset, to);
 		}
 		return call(pc, qry, len + offset, length);
 	}

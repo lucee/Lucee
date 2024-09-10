@@ -31,8 +31,8 @@ public final class StringLen extends BIF {
 
 	private static final long serialVersionUID = -9040645233901974147L;
 
-	public static double call(PageContext pc, String string) {
-		return string.length();
+	public static Number call(PageContext pc, String string) {
+		return Caster.toNumber(pc, string.length());
 	}
 
 	@Override

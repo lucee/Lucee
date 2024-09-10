@@ -31,15 +31,15 @@ public final class Asc extends BIF {
 
 	private static final long serialVersionUID = 8147532406904456091L;
 
-	public static double call(PageContext pc, String string) {
+	public static Number call(PageContext pc, String string) {
 		if (string.length() == 0) return 0;
-		return string.charAt(0);
+		return Caster.toNumber(pc, string.charAt(0));
 	}
 
-	public static double call(PageContext pc, String string, double position) {
-		int pos = (int) position;
+	public static Number call(PageContext pc, String string, Number position) {
+		int pos = Caster.toIntValue(position);
 		if (pos < 1 || pos > string.length()) return 0;
-		return string.charAt(pos - 1);
+		return Caster.toNumber(pc, string.charAt(pos - 1));
 	}
 
 	@Override

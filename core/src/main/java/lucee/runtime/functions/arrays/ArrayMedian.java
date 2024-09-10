@@ -29,7 +29,7 @@ import lucee.runtime.type.util.ArrayUtil;
 
 public class ArrayMedian extends BIF {
 
-	public static double call(PageContext pc, Array array) throws ExpressionException {
+	public static Number call(PageContext pc, Array array) throws ExpressionException {
 		return ArrayUtil.median(array);
 	}
 

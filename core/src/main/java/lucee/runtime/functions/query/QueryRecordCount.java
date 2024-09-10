@@ -31,8 +31,8 @@ public final class QueryRecordCount extends BIF {
 
 	private static final long serialVersionUID = -5956390806966915503L;
 
-	public static double call(PageContext pc, Query qry) {
-		return qry.getRowCount();
+	public static Number call(PageContext pc, Query qry) {
+		return Caster.toNumber(pc, qry.getRowCount());
 	}
 
 	@Override

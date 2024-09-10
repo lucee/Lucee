@@ -24,7 +24,7 @@ public final class CreateULID extends BIF {
 		return invoke(pc, type, -1, null);
 	}
 
-	public static String call(PageContext pc, String type, double input1, String input2) throws PageException {
+	public static String call(PageContext pc, String type, Number input1, String input2) throws PageException {
 		return invoke(pc, type, input1, input2);
 	}
 
@@ -38,7 +38,7 @@ public final class CreateULID extends BIF {
 		throw new FunctionException(pc, CreateUniqueId.class.getSimpleName(), 0, 3, args.length);
 	}
 
-	public static String invoke(PageContext pc, String type, double input1, String input2) throws PageException {
+	public static String invoke(PageContext pc, String type, Number input1, String input2) throws PageException {
 		if (StringUtil.isEmpty(type)) return UlidCreator.getUlid().toString();
 
 		// empty,monotonic,hash

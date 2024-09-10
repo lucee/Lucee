@@ -30,15 +30,15 @@ public class ParseNumber {
 	private static final int DEC = 10;
 	private static final int HEX = 16;
 
-	public static double call(PageContext pc, String strNumber) throws PageException {
+	public static Number call(PageContext pc, String strNumber) throws PageException {
 		return call(pc, strNumber, null);
 	}
 
-	public static double call(PageContext pc, String strNumber, String strRadix) throws PageException {
+	public static Number call(PageContext pc, String strNumber, String strRadix) throws PageException {
 		return invoke(strNumber, strRadix);
 	}
 
-	public static double invoke(String strNumber, String strRadix, double defaultValue) {
+	public static Number invoke(String strNumber, String strRadix, Number defaultValue) {
 		try {
 			return invoke(strNumber, strRadix);
 		}
@@ -47,7 +47,7 @@ public class ParseNumber {
 		}
 	}
 
-	public static double invoke(String strNumber, String strRadix) throws PageException {
+	public static Number invoke(String strNumber, String strRadix) throws PageException {
 		strNumber = strNumber.trim();
 		int radix = DEC;
 		if (strRadix == null) {

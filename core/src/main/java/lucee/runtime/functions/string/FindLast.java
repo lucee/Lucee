@@ -10,13 +10,14 @@ public class FindLast extends BIF {
 
 	private static final long serialVersionUID = -176191593295823013L;
 
-	public static double call(PageContext pc, String sub, String str) {
-		return str.lastIndexOf(sub) + 1;
+	public static Number call(PageContext pc, String sub, String str) {
+		return Caster.toNumber(pc, str.lastIndexOf(sub) + 1);
 	}
 
-	public static double call(PageContext pc, String sub, String str, double number) {
-		if (sub.length() == 0) return (int) number;
-		return str.lastIndexOf(sub, (int) number - 1) + 1;
+	public static Number call(PageContext pc, String sub, String str, Number number) {
+		int nbr = Caster.toIntValue(number);
+		if (sub.length() == 0) return number;
+		return Caster.toNumber(pc, str.lastIndexOf(sub, nbr - 1) + 1);
 	}
 
 	@Override

@@ -16,25 +16,44 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  * 
  **/
-/**
- * Implements the CFML Function bitmaskclear
- */
 package lucee.runtime.functions.math;
 
 import lucee.runtime.PageContext;
-import lucee.runtime.op.Decision;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.ext.function.Function;
+import lucee.runtime.op.Caster;
+import lucee.runtime.op.Decision;
 
 public final class BitMaskClear implements Function {
-	public static double call(PageContext pc, double dnumber, double dstart, double dlength) throws FunctionException {
 
-		int number = (int) dnumber, start = (int) dstart, length = (int) dlength;
+	private static final long serialVersionUID = 6185902331633982712L;
 
-		if (!Decision.isInteger(dnumber)) throw new FunctionException(pc, "bitMaskClear", 1, "number", "value [" + dnumber + "] must be between the integer range");
-		if (start > 31 || start < 0) throw new FunctionException(pc, "bitMaskClear", 2, "start", "must be between 0 and 31 now " + start);
-		if (length > 31 || length < 0) throw new FunctionException(pc, "bitMaskClear", 3, "length", "must be between 0 and 31 now " + length);
+	public static Number call(PageContext pc, Number number, Number start, Number length) throws FunctionException {
 
-		return number & ~((1 << length) - 1 << start);
+		// Convert the input numbers to integers for bitwise operations
+		int numValue = Caster.toInteger(number);
+		int startValue = Caster.toInteger(start);
+		int lengthValue = Caster.toInteger(length);
+
+		// Validation checks
+		if (!Decision.isInteger(number)) {
+			throw new FunctionException(pc, "bitMaskClear", 1, "number", "value [" + number + "] must be an integer.");
+		}
+		if (startValue > 31 || startValue < 0) {
+			throw new FunctionException(pc, "bitMaskClear", 2, "start", "must be between 0 and 31, now " + startValue);
+		}
+		if (lengthValue > 31 || lengthValue < 0) {
+			throw new FunctionException(pc, "bitMaskClear", 3, "length", "must be between 0 and 31, now " + lengthValue);
+		}
+
+		// Perform bitwise clear operation
+		int result = numValue & ~((1 << lengthValue) - 1 << startValue);
+
+		// Return result based on precise math
+		if (ThreadLocalPageContext.preciseMath(pc)) {
+			return Caster.toBigDecimal(result);
+		}
+		return result;
 	}
 }

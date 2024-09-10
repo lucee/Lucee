@@ -31,8 +31,8 @@ public final class QueryColumnCount extends BIF {
 
 	private static final long serialVersionUID = 7637016307562378310L;
 
-	public static double call(PageContext pc, Query qry) {
-		return qry.getColumnCount();
+	public static Number call(PageContext pc, Query qry) {
+		return Caster.toNumber(pc, qry.getColumnCount());
 	}
 
 	@Override

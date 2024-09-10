@@ -25,6 +25,7 @@ import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.ext.function.Function;
+import lucee.runtime.op.Caster;
 
 public final class GetTickCount implements Function {
 
@@ -35,24 +36,32 @@ public final class GetTickCount implements Function {
 	public static double UNIT_MICRO = 4;
 	public static double UNIT_SECOND = 8;
 
-	public static double call(PageContext pc) {
+	public static Number call(PageContext pc) {
 		return System.currentTimeMillis();
 	}
 
-	public static double call(PageContext pc, String unit) throws FunctionException {
+	public static Number call(PageContext pc, String unit) throws FunctionException {
 		if (!StringUtil.isEmpty(unit, true)) {
 			unit = unit.trim();
 			char c = unit.charAt(0);
 
-			if (c == 'n' || c == 'N') return System.nanoTime();
+			if (c == 'n' || c == 'N') return Caster.toNumber(pc, System.nanoTime());
 			else if (c == 'm' || c == 'M') {
-				if ("micro".equalsIgnoreCase(unit)) return System.nanoTime() / 1000;
+				if ("micro".equalsIgnoreCase(unit)) return Caster.toNumber(pc, System.nanoTime() / 1000);
 				return System.currentTimeMillis();
 			}
-			else if (c == 's' || c == 'S') return System.currentTimeMillis() / 1000;
+			else if (c == 's' || c == 'S') return Caster.toNumber(pc, System.currentTimeMillis() / 1000);
 		}
 
 		throw new FunctionException(pc, "GetTickCount", 1, "unit", "invalid value [" + unit + "], valid values are (nano, micro, milli, second)");
+	}
+
+	public static Number call(PageContext pc, Number unit) {
+		double u = Caster.toDoubleValue(unit);
+		if (UNIT_NANO == u) return Caster.toNumber(pc, System.nanoTime());
+		if (UNIT_MICRO == u) return Caster.toNumber(pc, System.nanoTime() / 1000);
+		if (UNIT_MILLI == u) return Caster.toNumber(pc, System.currentTimeMillis());
+		return Caster.toNumber(pc, System.currentTimeMillis() / 1000);
 	}
 
 	// this function is only called when the evaluator validates the unit definition on compilation time

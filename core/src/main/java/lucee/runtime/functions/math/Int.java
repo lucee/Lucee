@@ -37,7 +37,7 @@ public final class Int extends BIF {
 		if (ThreadLocalPageContext.preciseMath(pc)) {
 			return Caster.toBigDecimal(number).toBigInteger();
 		}
-		return (int) Caster.toDoubleValue(number);
+		return Caster.toIntValue(number);
 	}
 
 	@Override

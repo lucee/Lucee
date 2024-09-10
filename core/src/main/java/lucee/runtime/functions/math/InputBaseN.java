@@ -19,25 +19,38 @@
 package lucee.runtime.functions.math;
 
 import lucee.runtime.PageContext;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.ext.function.Function;
+import lucee.runtime.op.Caster;
 
-/**
- * Implements the CFML Function inputbasen
- */
 public final class InputBaseN implements Function {
-	public static double call(PageContext pc, String string, double radix) throws ExpressionException {
-		if (radix < 2 || radix > 36) throw new FunctionException(pc, "inputBaseN", 2, "radix", "radix must be between 2 an 36");
+
+	private static final long serialVersionUID = 951439327862024318L;
+
+	public static Number call(PageContext pc, String string, Number radix) throws ExpressionException {
+
+		int radixValue = Caster.toInteger(radix);
+
+		if (radixValue < 2 || radixValue > 36) {
+			throw new FunctionException(pc, "inputBaseN", 2, "radix", "radix must be between 2 and 36");
+		}
 
 		string = string.trim().toLowerCase();
-		if (string.startsWith("0x")) string = string.substring(2, string.length());
+		if (string.startsWith("0x")) {
+			string = string.substring(2); // Remove '0x' prefix
+		}
 
-		if (string.length() > 32) throw new FunctionException(pc, "inputBaseN", 1, "string", "argument is too large, it can only be a maximum of 32 digits (-0x at start)");
+		if (string.length() > 32) {
+			throw new FunctionException(pc, "inputBaseN", 1, "string", "argument is too large, it can only be a maximum of 32 digits (-0x at start)");
+		}
 
-		// print.ln(string+"-"+radix);
-		return Long.parseLong(string, (int) radix);
+		long result = Long.parseLong(string, radixValue);
 
+		if (ThreadLocalPageContext.preciseMath(pc)) {
+			return Caster.toBigDecimal(result);
+		}
+		return result;
 	}
-
 }

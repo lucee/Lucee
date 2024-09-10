@@ -31,11 +31,11 @@ public class DatePartMember extends BIF {
 
 	private static final long serialVersionUID = 4954080153486127616L;
 
-	public static double call(PageContext pc, DateTime date, String datepart) throws ExpressionException {
+	public static Number call(PageContext pc, DateTime date, String datepart) throws ExpressionException {
 		return DatePart.call(pc, datepart, date, null);
 	}
 
-	public static double call(PageContext pc, DateTime date, String datepart, TimeZone tz) throws ExpressionException {
+	public static Number call(PageContext pc, DateTime date, String datepart, TimeZone tz) throws ExpressionException {
 		return DatePart.call(pc, datepart, date, tz);
 	}
 

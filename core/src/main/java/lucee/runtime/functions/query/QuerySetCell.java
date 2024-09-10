@@ -36,9 +36,10 @@ public final class QuerySetCell extends BIF {
 		return call(pc, query, columnName, value, query.getRecordcount());
 	}
 
-	public static boolean call(PageContext pc, Query query, String columnName, Object value, double rowNumber) throws PageException {
+	public static boolean call(PageContext pc, Query query, String columnName, Object value, Number nrowNumber) throws PageException {
+		int rowNumber = Caster.toIntValue(nrowNumber);
 		if (rowNumber == -9999) rowNumber = query.getRecordcount();// used for named arguments
-		query.setAt(KeyImpl.init(columnName.trim()), (int) rowNumber, value);
+		query.setAt(KeyImpl.init(columnName.trim()), rowNumber, value);
 		return true;
 	}
 

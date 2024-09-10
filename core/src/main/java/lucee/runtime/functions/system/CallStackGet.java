@@ -62,15 +62,18 @@ public final class CallStackGet implements Function {
 		return call(pc, type, 0.0, 0.0);
 	}
 
-	public static Object call(PageContext pc, String type, double offset) throws PageException {
+	public static Object call(PageContext pc, String type, Number offset) throws PageException {
 		return call(pc, type, offset, 0.0);
 	}
 
-	public static Object call(PageContext pc, String type, double offset, double maxFrames) throws PageException {
+	public static Object call(PageContext pc, String type, Number noffset, Number nmaxFrames) throws PageException {
 		Array arr = (Array) call(pc);
 
+		int offset = Caster.toIntValue(noffset);
+		int maxFrames = Caster.toIntValue(nmaxFrames);
+
 		if (offset > 0 || maxFrames > 0) {
-			int sliceFrom = (int) offset + 1;
+			int sliceFrom = offset + 1;
 			int sliceTo = (maxFrames > 0) ? (int) (maxFrames + offset) : 0;
 			arr = ArraySlice.get(arr, sliceFrom, sliceTo);
 		}

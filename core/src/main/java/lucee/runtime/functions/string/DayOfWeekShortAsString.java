@@ -34,18 +34,18 @@ public final class DayOfWeekShortAsString extends BIF {
 
 	private static final long serialVersionUID = 3088890446888229079L;
 
-	public static String call(PageContext pc, double dow) throws ExpressionException {
+	public static String call(PageContext pc, Number dow) throws ExpressionException {
 		return DayOfWeekAsString.call(pc, dow, pc.getLocale(), false);
 	}
 
-	public static String call(PageContext pc, double dow, Locale locale) throws ExpressionException {
+	public static String call(PageContext pc, Number dow, Locale locale) throws ExpressionException {
 		return DayOfWeekAsString.call(pc, dow, locale == null ? pc.getLocale() : locale, false);
 	}
 
 	@Override
 	public Object invoke(PageContext pc, Object[] args) throws PageException {
-		if (args.length == 1) return call(pc, Caster.toDoubleValue(args[0]));
-		if (args.length == 2) return call(pc, Caster.toDoubleValue(args[0]), Caster.toLocale(args[1]));
+		if (args.length == 1) return call(pc, Caster.toNumber(pc, args[0]));
+		if (args.length == 2) return call(pc, Caster.toNumber(pc, args[0]), Caster.toLocale(args[1]));
 		throw new FunctionException(pc, "DayOfWeekShortAsString", 1, 2, args.length);
 	}
 }

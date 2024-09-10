@@ -16,19 +16,28 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  * 
  **/
-/**
- * Implements the CFML Function sqr
- */
 package lucee.runtime.functions.math;
 
 import lucee.runtime.PageContext;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.ext.function.Function;
+import lucee.runtime.op.Caster;
 
 public final class Sqr implements Function {
-	public static double call(PageContext pc, double number) throws ExpressionException {
-		if (number >= 0.0D) return StrictMath.sqrt(number);
-		throw new ExpressionException("invalid argument, function argument must be a positive number");
 
+	private static final long serialVersionUID = 1905751872241318598L;
+
+	public static Number call(PageContext pc, Number number) throws ExpressionException {
+
+		double numValue = Caster.toDoubleValue(number);
+		if (numValue < 0.0D) {
+			throw new ExpressionException("invalid argument, function argument must be a positive number");
+		}
+
+		if (ThreadLocalPageContext.preciseMath(pc)) {
+			return Caster.toBigDecimal(StrictMath.sqrt(numValue));
+		}
+		return StrictMath.sqrt(numValue);
 	}
 }

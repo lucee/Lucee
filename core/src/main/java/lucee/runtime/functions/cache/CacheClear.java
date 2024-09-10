@@ -30,7 +30,6 @@ import lucee.runtime.config.Config;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.BIF;
-import lucee.runtime.ext.function.Function;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 import lucee.runtime.type.Array;
@@ -38,25 +37,25 @@ import lucee.runtime.type.Struct;
 import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.ListUtil;
 
-public final class CacheClear extends BIF implements Function, CacheKeyFilter {
+public final class CacheClear extends BIF implements CacheKeyFilter {
 
 	private static final long serialVersionUID = 6080620551371620016L;
 
 	public static CacheKeyFilter FILTER = new CacheClear();
 
-	public static double call(PageContext pc) throws PageException {
-		return _call(pc, null, null);
+	public static Number call(PageContext pc) throws PageException {
+		return Caster.toNumber(pc, _call(pc, null, null));
 	}
 
-	public static double call(PageContext pc, Object filterOrTags) throws PageException {
-		return _call(pc, filterOrTags, null);
+	public static Number call(PageContext pc, Object filterOrTags) throws PageException {
+		return Caster.toNumber(pc, _call(pc, filterOrTags, null));
 	}
 
-	public static double call(PageContext pc, Object filterOrTags, String cacheName) throws PageException {
-		return _call(pc, filterOrTags, cacheName);
+	public static Number call(PageContext pc, Object filterOrTags, String cacheName) throws PageException {
+		return Caster.toNumber(pc, _call(pc, filterOrTags, cacheName));
 	}
 
-	private static double _call(PageContext pc, Object filterOrTags, String cacheName) throws PageException {
+	private static int _call(PageContext pc, Object filterOrTags, String cacheName) throws PageException {
 		try {
 			Object filter = FILTER;
 			// tags

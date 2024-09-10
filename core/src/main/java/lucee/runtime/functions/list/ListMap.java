@@ -61,7 +61,7 @@ public final class ListMap extends BIF {
 	}
 
 	public static String call(PageContext pc, String list, UDF filter, String delimiter, boolean includeEmptyFields, boolean multiCharacterDelimiter, boolean parallel,
-			double maxThreads) throws PageException {
+			Number maxThreads) throws PageException {
 
 		return ListUtil.arrayToList((Array) Map.call(pc, new StringListData(list, delimiter, includeEmptyFields, multiCharacterDelimiter), filter, parallel, maxThreads),
 				delimiter);
@@ -78,7 +78,7 @@ public final class ListMap extends BIF {
 		if (args.length == 6) return call(pc, Caster.toString(args[0]), Caster.toFunction(args[1]), Caster.toString(args[2]), Caster.toBooleanValue(args[3]),
 				Caster.toBooleanValue(args[4]), Caster.toBooleanValue(args[5]));
 		if (args.length == 7) return call(pc, Caster.toString(args[0]), Caster.toFunction(args[1]), Caster.toString(args[2]), Caster.toBooleanValue(args[3]),
-				Caster.toBooleanValue(args[4]), Caster.toBooleanValue(args[5]), Caster.toDoubleValue(args[6]));
+				Caster.toBooleanValue(args[4]), Caster.toBooleanValue(args[5]), Caster.toNumber(pc, args[6]));
 
 		throw new FunctionException(pc, "ListMap", 2, 7, args.length);
 	}

@@ -33,18 +33,18 @@ public final class ListInsertAt extends BIF {
 
 	private static final long serialVersionUID = 2796195727971683118L;
 
-	public static String call(PageContext pc, String list, double posNumber, String value) throws ExpressionException {
+	public static String call(PageContext pc, String list, Number posNumber, String value) throws ExpressionException {
 		return call(pc, list, posNumber, value, ",", false);
 	}
 
-	public static String call(PageContext pc, String list, double posNumber, String value, String strDelimiter) throws ExpressionException {
+	public static String call(PageContext pc, String list, Number posNumber, String value, String strDelimiter) throws ExpressionException {
 		return call(pc, list, posNumber, value, strDelimiter, false);
 	}
 
-	public static String call(PageContext pc, String list, double posNumber, String value, String strDelimiter, boolean includeEmptyFields) throws ExpressionException {
+	public static String call(PageContext pc, String list, Number posNumber, String value, String strDelimiter, boolean includeEmptyFields) throws ExpressionException {
 		if (strDelimiter.length() == 0) throw new FunctionException(pc, "listInsertAt", 4, "delimiter", "invalid delimiter value, can't be an empty string");
 
-		return ListUtil.listInsertAt(list, (int) posNumber, value, strDelimiter, !includeEmptyFields);
+		return ListUtil.listInsertAt(list, Caster.toIntValue(posNumber), value, strDelimiter, !includeEmptyFields);
 	}
 
 	@Override

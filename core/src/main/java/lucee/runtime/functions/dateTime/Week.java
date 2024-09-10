@@ -27,19 +27,20 @@ import java.util.TimeZone;
 import lucee.commons.date.DateTimeUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.ext.function.Function;
+import lucee.runtime.op.Caster;
 import lucee.runtime.type.dt.DateTime;
 
 public final class Week implements Function {
 
-	public static double call(PageContext pc, DateTime date) {
+	public static Number call(PageContext pc, DateTime date) {
 		return _call(pc, date, pc.getTimeZone());
 	}
 
-	public static double call(PageContext pc, DateTime date, TimeZone tz) {
+	public static Number call(PageContext pc, DateTime date, TimeZone tz) {
 		return _call(pc, date, tz == null ? pc.getTimeZone() : tz);
 	}
 
-	private static double _call(PageContext pc, DateTime date, TimeZone tz) {
-		return DateTimeUtil.getInstance().getWeekOfYear(Locale.US, tz, date);
+	private static Number _call(PageContext pc, DateTime date, TimeZone tz) {
+		return Caster.toNumber(pc, DateTimeUtil.getInstance().getWeekOfYear(Locale.US, tz, date));
 	}
 }

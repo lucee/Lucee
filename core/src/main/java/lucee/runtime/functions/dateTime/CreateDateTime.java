@@ -36,37 +36,40 @@ public final class CreateDateTime extends BIF {
 
 	private static final long serialVersionUID = 2158994510749730985L;
 
-	public static DateTime call(PageContext pc, double year) throws ExpressionException {
-		return _call(pc, (int) year, 1, 1, 0, 0, 0, 0, pc.getTimeZone());
+	public static DateTime call(PageContext pc, Number year) throws ExpressionException {
+		return _call(pc, Caster.toIntValue(year), 1, 1, 0, 0, 0, 0, pc.getTimeZone());
 	}
 
-	public static DateTime call(PageContext pc, double year, double month) throws ExpressionException {
-		return _call(pc, (int) year, (int) month, 1, 0, 0, 0, 0, pc.getTimeZone());
+	public static DateTime call(PageContext pc, Number year, Number month) throws ExpressionException {
+		return _call(pc, Caster.toIntValue(year), Caster.toIntValue(month), 1, 0, 0, 0, 0, pc.getTimeZone());
 	}
 
-	public static DateTime call(PageContext pc, double year, double month, double day) throws ExpressionException {
-		return _call(pc, (int) year, (int) month, (int) day, 0, 0, 0, 0, pc.getTimeZone());
+	public static DateTime call(PageContext pc, Number year, Number month, Number day) throws ExpressionException {
+		return _call(pc, Caster.toIntValue(year), Caster.toIntValue(month), Caster.toIntValue(day), 0, 0, 0, 0, pc.getTimeZone());
 	}
 
-	public static DateTime call(PageContext pc, double year, double month, double day, double hour) throws ExpressionException {
-		return _call(pc, (int) year, (int) month, (int) day, (int) hour, 0, 0, 0, pc.getTimeZone());
+	public static DateTime call(PageContext pc, Number year, Number month, Number day, Number hour) throws ExpressionException {
+		return _call(pc, Caster.toIntValue(year), Caster.toIntValue(month), Caster.toIntValue(day), Caster.toIntValue(hour), 0, 0, 0, pc.getTimeZone());
 	}
 
-	public static DateTime call(PageContext pc, double year, double month, double day, double hour, double minute) throws ExpressionException {
-		return _call(pc, (int) year, (int) month, (int) day, (int) hour, (int) minute, 0, 0, pc.getTimeZone());
+	public static DateTime call(PageContext pc, Number year, Number month, Number day, Number hour, Number minute) throws ExpressionException {
+		return _call(pc, Caster.toIntValue(year), Caster.toIntValue(month), Caster.toIntValue(day), Caster.toIntValue(hour), Caster.toIntValue(minute), 0, 0, pc.getTimeZone());
 	}
 
-	public static DateTime call(PageContext pc, double year, double month, double day, double hour, double minute, double second) throws ExpressionException {
-		return _call(pc, (int) year, (int) month, (int) day, (int) hour, (int) minute, (int) second, 0, pc.getTimeZone());
+	public static DateTime call(PageContext pc, Number year, Number month, Number day, Number hour, Number minute, Number second) throws ExpressionException {
+		return _call(pc, Caster.toIntValue(year), Caster.toIntValue(month), Caster.toIntValue(day), Caster.toIntValue(hour), Caster.toIntValue(minute), Caster.toIntValue(second),
+				0, pc.getTimeZone());
 	}
 
-	public static DateTime call(PageContext pc, double year, double month, double day, double hour, double minute, double second, double millis) throws ExpressionException {
-		return _call(pc, (int) year, (int) month, (int) day, (int) hour, (int) minute, (int) second, (int) millis, pc.getTimeZone());
+	public static DateTime call(PageContext pc, Number year, Number month, Number day, Number hour, Number minute, Number second, Number millis) throws ExpressionException {
+		return _call(pc, Caster.toIntValue(year), Caster.toIntValue(month), Caster.toIntValue(day), Caster.toIntValue(hour), Caster.toIntValue(minute), Caster.toIntValue(second),
+				Caster.toIntValue(millis), pc.getTimeZone());
 	}
 
-	public static DateTime call(PageContext pc, double year, double month, double day, double hour, double minute, double second, double millis, TimeZone tz)
+	public static DateTime call(PageContext pc, Number year, Number month, Number day, Number hour, Number minute, Number second, Number millis, TimeZone tz)
 			throws ExpressionException {
-		return _call(pc, (int) year, (int) month, (int) day, (int) hour, (int) minute, (int) second, (int) millis, tz == null ? pc.getTimeZone() : tz);
+		return _call(pc, Caster.toIntValue(year), Caster.toIntValue(month), Caster.toIntValue(day), Caster.toIntValue(hour), Caster.toIntValue(minute), Caster.toIntValue(second),
+				Caster.toIntValue(millis), tz == null ? pc.getTimeZone() : tz);
 	}
 
 	private static DateTime _call(PageContext pc, int year, int month, int day, int hour, int minute, int second, int millis, TimeZone tz) throws ExpressionException {

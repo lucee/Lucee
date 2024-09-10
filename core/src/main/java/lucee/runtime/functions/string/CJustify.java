@@ -32,8 +32,8 @@ public final class CJustify extends BIF {
 
 	private static final long serialVersionUID = -4145093552477680411L;
 
-	public static String call(PageContext pc, String string, double length) throws ExpressionException {
-		int len = (int) length;
+	public static String call(PageContext pc, String string, Number length) throws ExpressionException {
+		int len = Caster.toIntValue(length);
 		if (len < 1) throw new ExpressionException("Parameter 2 of function cJustify which is now [" + len + "] must be a non-negative integer");
 		else if ((len -= string.length()) <= 0) return string;
 		else {

@@ -32,7 +32,7 @@ public final class ArrayLen extends BIF {
 
 	private static final long serialVersionUID = -1530118609194349457L;
 
-	public static double call(PageContext pc, Array array) {
+	public static Number call(PageContext pc, Array array) {
 		return array.size();
 	}
 

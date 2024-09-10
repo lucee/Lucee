@@ -32,14 +32,17 @@ public final class ArrayDeleteAt extends BIF {
 
 	private static final long serialVersionUID = -5900967522809749154L;
 
-	public static boolean call(PageContext pc, Array array, double number) throws PageException {
-		array.removeE((int) number);
+	public static boolean call(PageContext pc, Array array, Number number) throws PageException {
+		array.removeE(Caster.toIntValue(number));
 		return true;
 	}
 
 	@Override
 	public Object invoke(PageContext pc, Object[] args) throws PageException {
-		if (args.length == 2) return call(pc, Caster.toArray(args[0]), Caster.toDoubleValue(args[1]));
-		else throw new FunctionException(pc, "ArrayDeleteAt", 2, 3, args.length);
+		if (args.length == 2) {
+			Caster.toArray(args[0]).removeE(Caster.toIntValue(args[1]));
+			return true;
+		}
+		throw new FunctionException(pc, "ArrayDeleteAt", 2, 3, args.length);
 	}
 }

@@ -22,22 +22,43 @@
 package lucee.runtime.functions.math;
 
 import lucee.runtime.PageContext;
-import lucee.runtime.op.Decision;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.ext.function.Function;
+import lucee.runtime.op.Caster;
+import lucee.runtime.op.Decision;
 
 public final class BitMaskSet implements Function {
 
-	public static double call(PageContext pc, double dnumber, double dmask, double dstart, double dlength) throws FunctionException {
+	private static final long serialVersionUID = -6113955054602192041L;
 
-		int number = (int) dnumber, mask = (int) dmask, start = (int) dstart, length = (int) dlength;
+	public static Number call(PageContext pc, Number number, Number mask, Number start, Number length) throws FunctionException {
 
-		if (!Decision.isInteger(dnumber)) throw new FunctionException(pc, "bitMaskSet", 1, "number", "value [" + dnumber + "] must be between the integer range");
-		if (start > 31 || start < 0) throw new FunctionException(pc, "bitMaskSet", 2, "start", "must be between 0 and 31 now " + start);
-		if (length > 31 || length < 0) throw new FunctionException(pc, "bitMaskSet", 3, "length", "must be between 0 and 31 now " + length);
+		// Convert the input numbers to integers for bitwise operations
+		int numValue = Caster.toInteger(number);
+		int maskValue = Caster.toInteger(mask);
+		int startValue = Caster.toInteger(start);
+		int lengthValue = Caster.toInteger(length);
 
-		int tmp = (1 << length) - 1 << start;
-		mask &= (1 << length) - 1;
-		return number & ~tmp | mask << start;
+		// Validation checks
+		if (!Decision.isInteger(number)) {
+			throw new FunctionException(pc, "bitMaskSet", 1, "number", "value [" + number + "] must be an integer.");
+		}
+		if (startValue > 31 || startValue < 0) {
+			throw new FunctionException(pc, "bitMaskSet", 2, "start", "must be between 0 and 31, now " + startValue);
+		}
+		if (lengthValue > 31 || lengthValue < 0) {
+			throw new FunctionException(pc, "bitMaskSet", 3, "length", "must be between 0 and 31, now " + lengthValue);
+		}
+
+		// Perform bitwise set operation
+		int tmp = (1 << lengthValue) - 1 << startValue;
+		maskValue &= (1 << lengthValue) - 1;
+		int result = numValue & ~tmp | maskValue << startValue;
+
+		if (ThreadLocalPageContext.preciseMath(pc)) {
+			return Caster.toBigDecimal(result);
+		}
+		return result;
 	}
 }

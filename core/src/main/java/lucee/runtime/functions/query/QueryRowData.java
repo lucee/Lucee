@@ -40,11 +40,11 @@ public class QueryRowData extends BIF {
 	// is this needed?
 	private static final long serialVersionUID = -5234853923691806118L;
 
-	public static Object call(PageContext pc, Query query, double rowNumber) throws PageException {
+	public static Object call(PageContext pc, Query query, Number rowNumber) throws PageException {
 		return call(pc, query, rowNumber, "struct");
 	}
 
-	public static Object call(PageContext pc, Query query, double rowNumber, String returnFormat) throws PageException {
+	public static Object call(PageContext pc, Query query, Number rowNumber, String returnFormat) throws PageException {
 
 		int row = Caster.toInteger(rowNumber);
 

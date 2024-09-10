@@ -51,11 +51,11 @@ public final class Encrypt implements Function {
 		return invoke(input, key, algorithm, encoding, ivOrSalt, 0, true);
 	}
 
-	public static String call(PageContext pc, String input, String key, String algorithm, String encoding, Object ivOrSalt, double iterations) throws PageException {
+	public static String call(PageContext pc, String input, String key, String algorithm, String encoding, Object ivOrSalt, Number iterations) throws PageException {
 		return invoke(input, key, algorithm, encoding, ivOrSalt, Caster.toInteger(iterations), true);
 	}
 
-	public static String call(PageContext pc, String input, String key, String algorithm, String encoding, Object ivOrSalt, double iterations, boolean precise)
+	public static String call(PageContext pc, String input, String key, String algorithm, String encoding, Object ivOrSalt, Number iterations, boolean precise)
 			throws PageException {
 		return invoke(input, key, algorithm, encoding, ivOrSalt, Caster.toInteger(iterations), precise);
 	}

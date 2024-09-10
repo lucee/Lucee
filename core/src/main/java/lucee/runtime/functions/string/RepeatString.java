@@ -33,13 +33,14 @@ public final class RepeatString extends BIF {
 
 	private static final long serialVersionUID = 6041471441971348584L;
 
-	public static String call(PageContext pc, String str, double count) throws ExpressionException {
-		if (count < 0) throw new ExpressionException("Parameter 2 of function repeatString which is now [" + Caster.toString(count) + "] must be a non-negative integer");
-		return StringUtil.repeatString(str, (int) count);
+	public static String call(PageContext pc, String str, Number count) throws ExpressionException {
+		int cnt = Caster.toIntValue(count);
+		if (cnt < 0) throw new ExpressionException("Parameter 2 of function repeatString which is now [" + Caster.toString(cnt) + "] must be a non-negative integer");
+		return StringUtil.repeatString(str, cnt);
 	}
 
-	public static String _call(PageContext pc, String str, double count) throws ExpressionException {
-		int len = (int) count;
+	public static String _call(PageContext pc, String str, Number count) throws ExpressionException {
+		int len = Caster.toIntValue(count);
 		if (len < 0) throw new ExpressionException("Parameter 2 of function repeatString which is now [" + len + "] must be a non-negative integer");
 		char[] chars = str.toCharArray();
 		StringBuilder cb = new StringBuilder(chars.length * len);
@@ -48,8 +49,8 @@ public final class RepeatString extends BIF {
 		return cb.toString();
 	}
 
-	public static StringBuilder call(StringBuilder sb, String str, double count) throws ExpressionException {
-		int len = (int) count;
+	public static StringBuilder call(StringBuilder sb, String str, Number count) throws ExpressionException {
+		int len = Caster.toIntValue(count);
 		if (len < 0) throw new ExpressionException("Parameter 1 of function repeatString which is now [" + len + "] must be a non-negative integer");
 
 		for (int i = 0; i < len; i++)
@@ -57,8 +58,8 @@ public final class RepeatString extends BIF {
 		return sb;
 	}
 
-	public static StringBuilder call(StringBuilder sb, char c, double count) throws ExpressionException {
-		int len = (int) count;
+	public static StringBuilder call(StringBuilder sb, char c, Number count) throws ExpressionException {
+		int len = Caster.toIntValue(count);
 		if (len < 0) throw new ExpressionException("Parameter 1 of function repeatString which is now [" + len + "] must be a non-negative integer");
 
 		for (int i = 0; i < len; i++)

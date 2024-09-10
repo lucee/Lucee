@@ -31,13 +31,14 @@ public final class Find extends BIF {
 
 	private static final long serialVersionUID = 1399049740954864771L;
 
-	public static double call(PageContext pc, String sub, String str) {
-		return str.indexOf(sub) + 1;
+	public static Number call(PageContext pc, String sub, String str) {
+		return Caster.toNumber(pc, str.indexOf(sub) + 1);
 	}
 
-	public static double call(PageContext pc, String sub, String str, double number) {
-		if (sub.length() == 0) return (int) number;
-		return str.indexOf(sub, (int) number - 1) + 1;
+	public static Number call(PageContext pc, String sub, String str, Number number) {
+		int nbr = Caster.toIntValue(number);
+		if (sub.length() == 0) return number;
+		return Caster.toNumber(pc, str.indexOf(sub, nbr - 1) + 1);
 	}
 
 	@Override

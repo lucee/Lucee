@@ -35,11 +35,11 @@ public final class DatePart extends BIF {
 
 	private static final long serialVersionUID = -4203375459570986511L;
 
-	public static double call(PageContext pc, String datepart, DateTime date) throws ExpressionException {
+	public static Number call(PageContext pc, String datepart, DateTime date) throws ExpressionException {
 		return call(pc, datepart, date, null);
 	}
 
-	public static double call(PageContext pc, String datepart, DateTime date, TimeZone tz) throws ExpressionException {
+	public static Number call(PageContext pc, String datepart, DateTime date, TimeZone tz) throws ExpressionException {
 		datepart = datepart.toLowerCase();
 		char first = datepart.length() == 1 ? datepart.charAt(0) : (char) 0;
 

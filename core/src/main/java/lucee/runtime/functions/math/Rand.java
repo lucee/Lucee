@@ -16,9 +16,6 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  * 
  **/
-/**
- * Implements the CFML Function rand
- */
 package lucee.runtime.functions.math;
 
 import java.security.NoSuchAlgorithmException;
@@ -29,38 +26,39 @@ import java.util.Random;
 
 import lucee.runtime.PageContext;
 import lucee.runtime.crypt.CFMXCompat;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.ext.function.Function;
+import lucee.runtime.op.Caster;
 
 public final class Rand implements Function {
 
+	private static final long serialVersionUID = -9153653138698137803L;
 	private static Map<String, Random> randoms = new HashMap<String, Random>();
 
-	public static double call(PageContext pc) throws ExpressionException {
-
-		return getRandom(CFMXCompat.ALGORITHM_NAME, Double.NaN).nextDouble();
+	public static Number call(PageContext pc) throws ExpressionException {
+		return call(pc, CFMXCompat.ALGORITHM_NAME);
 	}
 
-	public static double call(PageContext pc, String algorithm) throws ExpressionException {
-
+	public static Number call(PageContext pc, String algorithm) throws ExpressionException {
+		if (ThreadLocalPageContext.preciseMath(pc)) {
+			return Caster.toBigDecimal(getRandom(algorithm, Double.NaN).nextDouble());
+		}
 		return getRandom(algorithm, Double.NaN).nextDouble();
 	}
 
+	// Helper method to get the Random instance based on the algorithm
 	static Random getRandom(String algorithm, Double seed) throws ExpressionException {
-
 		algorithm = algorithm.toLowerCase();
 
 		Random result = randoms.get(algorithm);
 
 		if (result == null || !seed.isNaN()) {
 			if (CFMXCompat.ALGORITHM_NAME.equalsIgnoreCase(algorithm)) {
-
 				result = new Random();
 			}
 			else {
-
 				try {
-
 					result = SecureRandom.getInstance(algorithm);
 				}
 				catch (NoSuchAlgorithmException e) {

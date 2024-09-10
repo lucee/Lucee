@@ -32,17 +32,17 @@ public final class ListIndexExists extends BIF {
 
 	private static final long serialVersionUID = 7642583305678735361L;
 
-	public static boolean call(PageContext pc, String list, double index) {
+	public static boolean call(PageContext pc, String list, Number index) {
 		return call(pc, list, index, ",", false);
 	}
 
-	public static boolean call(PageContext pc, String list, double index, String delimiter) {
+	public static boolean call(PageContext pc, String list, Number index, String delimiter) {
 		return call(pc, list, index, delimiter, false);
 	}
 
-	public static boolean call(PageContext pc, String list, double index, String delimiter, boolean includeEmptyFields) {
-		if (includeEmptyFields) return ListUtil.listToArray(list, delimiter).get((int) index, null) != null;
-		return ListUtil.listToArrayRemoveEmpty(list, delimiter).get((int) index, null) != null;
+	public static boolean call(PageContext pc, String list, Number index, String delimiter, boolean includeEmptyFields) {
+		if (includeEmptyFields) return ListUtil.listToArray(list, delimiter).get(Caster.toIntValue(index), null) != null;
+		return ListUtil.listToArrayRemoveEmpty(list, delimiter).get(Caster.toIntValue(index), null) != null;
 	}
 
 	@Override

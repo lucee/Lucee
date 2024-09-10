@@ -31,13 +31,13 @@ public final class ArrayMid extends BIF {
 
 	private static final long serialVersionUID = 4996354700884413289L;
 
-	public static Array call(PageContext pc, Array arr, double start) throws ExpressionException {
+	public static Array call(PageContext pc, Array arr, Number start) throws ExpressionException {
 		return call(pc, arr, start, -1);
 	}
 
-	public static Array call(PageContext pc, Array arr, double start, double count) throws ExpressionException {
-		int s = (int) start;
-		int c = (int) count;
+	public static Array call(PageContext pc, Array arr, Number start, Number count) throws ExpressionException {
+		int s = Caster.toIntValue(start);
+		int c = Caster.toIntValue(count);
 
 		if (s < 1) throw new FunctionException(pc, "ArrayMid", 2, "start", "Parameter which is now [" + s + "] must be a positive integer");
 		if (c == -1) c = arr.size();

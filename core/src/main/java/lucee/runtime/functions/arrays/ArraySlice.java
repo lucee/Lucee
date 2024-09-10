@@ -36,32 +36,33 @@ public final class ArraySlice extends BIF {
 
 	private static final long serialVersionUID = 7309769117464009924L;
 
-	public static Array call(PageContext pc, Array arr, double offset) throws PageException {
+	public static Array call(PageContext pc, Array arr, Number offset) throws PageException {
 		return call(pc, arr, offset, 0);
 	}
 
-	public static Array call(PageContext pc, Array arr, double offset, double length) throws PageException {
+	public static Array call(PageContext pc, Array arr, Number offset, Number length) throws PageException {
+		int off = Caster.toIntValue(offset);
+		int len = Caster.toIntValue(length);
+		int arrLen = arr.size();
+		if (arrLen == 0) throw new FunctionException(pc, "arraySlice", 1, "array", "Array cannot be empty");
 
-		int len = arr.size();
-		if (len == 0) throw new FunctionException(pc, "arraySlice", 1, "array", "Array cannot be empty");
-
-		if (offset > 0) {
-			if (len < offset) throw new FunctionException(pc, "arraySlice", 2, "offset", "Offset cannot be greater than size of the array");
+		if (off > 0) {
+			if (arrLen < off) throw new FunctionException(pc, "arraySlice", 2, "offset", "Offset cannot be greater than size of the array");
 
 			int to = 0;
-			if (length > 0) to = (int) (offset + length - 1);
-			else if (length < 0) to = (int) (len + length);
-			if (len < to) throw new FunctionException(pc, "arraySlice", 3, "length", "Offset+length cannot be greater than size of the array");
+			if (len > 0) to = off + len - 1;
+			else if (len < 0) to = arrLen + len;
+			if (arrLen < to) throw new FunctionException(pc, "arraySlice", 3, "length", "Offset+length cannot be greater than size of the array");
 
-			return get(arr, (int) offset, to);
+			return get(arr, off, to);
 		}
-		return call(pc, arr, len + offset, length);
+		return call(pc, arr, arrLen + off, len);
 	}
 
 	@Override
 	public Object invoke(PageContext pc, Object[] args) throws PageException {
-		if (args.length == 2) return call(pc, Caster.toArray(args[0]), Caster.toDoubleValue(args[1]));
-		else if (args.length == 3) return call(pc, Caster.toArray(args[0]), Caster.toDoubleValue(args[1]), Caster.toDoubleValue(args[2]));
+		if (args.length == 2) return call(pc, Caster.toArray(args[0]), Caster.toNumber(pc, args[1]));
+		else if (args.length == 3) return call(pc, Caster.toArray(args[0]), Caster.toNumber(pc, args[1]), Caster.toNumber(pc, args[2]));
 		else throw new FunctionException(pc, "ArraySlice", 2, 3, args.length);
 	}
 

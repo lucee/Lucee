@@ -16,16 +16,26 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  * 
  **/
-/**
- * Implements the CFML Function sgn
- */
 package lucee.runtime.functions.math;
 
 import lucee.runtime.PageContext;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.ext.function.Function;
+import lucee.runtime.op.Caster;
 
 public final class Sgn implements Function {
-	public static double call(PageContext pc, double number) {
-		return number != 0.0d ? number >= 0.0d ? 1 : -1 : 0;
+
+	private static final long serialVersionUID = -6590806959925629603L;
+
+	public static Number call(PageContext pc, Number number) {
+
+		double numValue = Caster.toDoubleValue(number);
+
+		int result = numValue != 0.0d ? (numValue >= 0.0d ? 1 : -1) : 0;
+
+		if (ThreadLocalPageContext.preciseMath(pc)) {
+			return Caster.toBigDecimal(result);
+		}
+		return result;
 	}
 }
