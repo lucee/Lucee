@@ -21,7 +21,6 @@
  */
 package lucee.runtime.functions.math;
 
-import java.math.BigDecimal;
 import java.math.MathContext;
 import java.math.RoundingMode;
 
@@ -37,44 +36,9 @@ public final class Cos implements Function {
 
 	public static Number call(PageContext pc, Number number) {
 		if (ThreadLocalPageContext.preciseMath(pc)) {
-			return cosine(Caster.toBigDecimal(number));
+			return Caster.toBigDecimal(StrictMath.cos(Caster.toDoubleValue(number)));
 		}
-		return StrictMath.cos(Caster.toDoubleValue(number));
-	}
+		return Caster.toDouble(StrictMath.cos(Caster.toDoubleValue(number)));
 
-	public static BigDecimal cosine(BigDecimal x) {
-		BigDecimal sum = BigDecimal.ZERO;
-		BigDecimal term;
-		int maxIterations = 100; // More iterations, more precision
-
-		for (int n = 0; n <= maxIterations; n++) {
-			BigDecimal numerator = pow(x, 2 * n).multiply(BigDecimal.valueOf(Math.pow(-1, n)), mc);
-			BigDecimal denominator = factorial(2 * n);
-			term = numerator.divide(denominator, mc);
-
-			sum = sum.add(term, mc);
-
-			// Check if the term is negligible
-			if (term.abs().compareTo(new BigDecimal("1E-29", mc)) < 0) {
-				break;
-			}
-		}
-		return sum;
-	}
-
-	private static BigDecimal pow(BigDecimal base, int exponent) {
-		BigDecimal result = BigDecimal.ONE;
-		for (int i = 1; i <= exponent; i++) {
-			result = result.multiply(base, mc);
-		}
-		return result;
-	}
-
-	private static BigDecimal factorial(int n) {
-		BigDecimal result = BigDecimal.ONE;
-		for (int i = 2; i <= n; i++) {
-			result = result.multiply(BigDecimal.valueOf(i), mc);
-		}
-		return result;
 	}
 }
