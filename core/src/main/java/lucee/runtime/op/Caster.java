@@ -5127,10 +5127,10 @@ public final class Caster {
 
 	public static BigDecimal toBigDecimal(String str) throws CasterException {
 		try {
-			if (Util.isEmpty(str, true)) throw new CasterException("cannot convert string[" + str + "] to a number, the string is empty");
 			return new BigDecimal(str.trim(), MathContext.DECIMAL128);
 		}
 		catch (NumberFormatException nfe) {
+			if (Util.isEmpty(str, true)) throw new CasterException("cannot convert string[" + str + "] to a number, the string is empty");
 			throw new CasterException("cannot convert string[" + str + "] to a number; " + nfe.getMessage());
 		}
 	}
