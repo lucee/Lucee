@@ -2702,7 +2702,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 						log.error("Cache", e);
 					}
 					catch (NoSuchMethodException e) {
-						log.error("Cache", "missing method [public static init(Config,String[],Struct[]):void] for class [" + _cd.toString() + "] ");
+						log.info("Cache", "missing OPTIONAL method [public static init(Config,String[],Struct[]):void] for class [" + _cd.toString() + "] ");
 					}
 					catch (Throwable e) {
 						ExceptionUtil.rethrowIfNecessary(e);
