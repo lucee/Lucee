@@ -641,12 +641,18 @@ public class Log4j2Engine extends LogEngine {
 	}
 
 	private static void lowerCase(Map<String, String> map) {
-		String v;
+		List<String> changes = null;
 		for (String k: map.keySet()) {
 			if (hasUpperCase(k)) {
-				v = map.get(k);
-				map.put(k.toLowerCase(), v);
-				map.remove(k);
+				if (changes == null) changes = new ArrayList<>();
+				changes.add(k);
+			}
+		}
+		if (changes != null) {
+			synchronized (map) {
+				for (String k: changes) {
+					map.put(k.toLowerCase(), map.remove(k));
+				}
 			}
 		}
 	}
