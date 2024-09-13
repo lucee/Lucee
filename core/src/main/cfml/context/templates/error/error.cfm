@@ -1,8 +1,7 @@
 <cfparam name="addClosingHTMLTags" default="#true#" type="boolean"><cfif addClosingHTMLTags></TD></TD></TD></TH></TH></TH></TR></TR></TR></TABLE></TABLE></TABLE></A></ABBREV></ACRONYM></ADDRESS></APPLET></AU></B></BANNER></BIG></BLINK></BLOCKQUOTE></BQ></CAPTION></CENTER></CITE></CODE></COMMENT></DEL></DFN></DIR></DIV></DL></EM></FIG></FN></FONT></FORM></FRAME></FRAMESET></H1></H2></H3></H4></H5></H6></HEAD></I></INS></KBD></LISTING></MAP></MARQUEE></MENU></MULTICOL></NOBR></NOFRAMES></NOSCRIPT></NOTE></OL></P></PARAM></PERSON></PLAINTEXT></PRE></Q></S></SAMP></SCRIPT></SELECT></SMALL></STRIKE></STRONG></SUB></SUP></TABLE></TD></TEXTAREA></TH></TITLE></TR></TT></U></UL></VAR></WBR></XMP>
 </cfif><style>
-	#-lucee-err			{ font-family: Verdana, Geneva, Arial, Helvetica, sans-serif; font-size: 11px;
-	 background-color:#930; border: 0px; }
-	#-lucee-err td 		{ font-size: 1.1em;border: 0px solid #350606; color: #930; background-color: #FC0; line-height: 1.35; }
+	#-lucee-err			{ font-family: Verdana, Geneva, Arial, Helvetica, sans-serif; font-size: 11px; background-color:#930; border-collapse: collapse; }
+	#-lucee-err td 		{ font-size: 1.1em;border: 0px solid #350606; color: #930; background-color: #FC0; line-height: 1.35;border: 1px solid #930;  }
 	#-lucee-err td.label	{ background-color: #F90; font-weight: bold; white-space: nowrap; vertical-align: top; }
 
 	#-lucee-err .collapsed	{ display: none; }
@@ -164,18 +163,37 @@
 
 
 <cfif LuceeAIHas('default:exception')>
-	<cfflush throwonerror=false>
+	
 	<cftry>
 		<script>
 			var val= "";
+			spinner=true;
+			function luceeSpinner(index) {
+				var spinnerElement = document.getElementById('ai-response-cell');
+				
+				var dotCycle = ['⣷','⣯','⣟','⡿','⢿','⣻','⣽','⣾'];
+				if(!index) index = 0;
+				if(!spinner) return;
+				spinnerElement.innerText = dotCycle[index];
+				index = (index + 1) % dotCycle.length;
+				setTimeout(luceeSpinner, 200, index)
+			}
+			luceeSpinner();
+		
 		</script>
+<cfflush throwonerror=false>
+
+
 		<cfscript>
 			ais=LuceeCreateAISession('default:exception', 
-			"An exception was thrown in Lucee version #server.lucee.version# source code. 
-			Analyze the provided JSON data containg information about the exception (contain of the failing file in key ""content"") and return the result in markdown format.
-			Keep the answer short and ensure the structure is flat,  the result will be injected into an existing HTML output that show the input you got,
-			so only gives your conclusion, the input you get will already be presented.
-			Make some example code how to improve. ");
+			"You are a Lucee expert.
+
+Analyze the provided JSON containing exception details from Lucee version #server.lucee.version#. 
+The 'content' key contains the source code of the template that failed.
+
+Provide a concise analysis with potential fixes, and include example code where necessary. 
+Return the result in plain markdown format (no startinf ""```markdown"") without referencing how the data was provided or mentioning any specific JSON keys. 
+Avoid repeating exception details, as those will be presented elsewhere. Keep your response brief and structured for inclusion in existing HTML output.");
 			catchi=duplicate(catch);
 			path=catch.TagContext[1].template?:"";
 			if(!fileExists(path)) path=expandPath(path);
@@ -188,6 +206,7 @@
 			
 			answer=LuceeInquiryAISession(ais,serializeJSON(catchi),function(msg) {
 				echo('<script>');
+				echo('spinner=false;');
 				echo('val+=#serializeJson(msg)#;');
 				echo("document.getElementById('ai-response-cell').innerText = val;");	
 				echo('</script>');
