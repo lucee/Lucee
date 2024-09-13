@@ -24,6 +24,8 @@ import javax.servlet.http.HttpServletResponse;
 
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
+import lucee.commons.lang.HTMLEntities;
+import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.rest.path.Path;
 import lucee.runtime.type.Struct;
@@ -60,11 +62,11 @@ public class RestUtil {
 	 * @param status
 	 * @param msg
 	 */
-	public static void setStatus(PageContext pc, int status, String msg) {
+	public static void setStatus(PageContext pc, int status, String msg, boolean htmlEscapeMessage) {
 		pc.clear();
-		if (msg != null) {
+		if (!StringUtil.isEmpty(msg)) {
 			try {
-				pc.forceWrite(msg);
+				pc.forceWrite(htmlEscapeMessage ? HTMLEntities.escapeHTML(msg) : msg);
 			}
 			catch (IOException e) {
 			}

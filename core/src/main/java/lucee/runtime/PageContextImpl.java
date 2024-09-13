@@ -2531,7 +2531,7 @@ public final class PageContextImpl extends PageContext {
 						throw Caster.toPageException(e);
 					}
 				}
-				else RestUtil.setStatus(this, 404, null);
+				else RestUtil.setStatus(this, 404, null, false);
 				return;
 			}
 
@@ -2637,7 +2637,7 @@ public final class PageContextImpl extends PageContext {
 			// base = PageSourceImpl.best(config.getPageSources(this,null,realPath,true,false,true));
 
 			if (mapping == null || mapping.getPhysical() == null) {
-				RestUtil.setStatus(this, 404, "no rest service for [" + HTMLEntities.escapeHTML(pathInfo) + "] found");
+				RestUtil.setStatus(this, 404, "no rest service for [" + HTMLEntities.escapeHTML(pathInfo) + "] found", false);
 				getLog("rest").error("REST", "no rest service for [" + pathInfo + "] found");
 			}
 			else {
