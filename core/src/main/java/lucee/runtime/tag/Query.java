@@ -553,7 +553,7 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 
 		if (data.async) {
 			PageSource ps = getPageSource();
-			((SpoolerEngineImpl) ((ConfigPro) pageContext.getConfig()).getSpoolerEngine()).add(pageContext.getConfig(),
+			((SpoolerEngineImpl) pageContext.getConfig().getSpoolerEngine()).add(pageContext.getConfig(),
 					new QuerySpoolerTask(pageContext, data, strSQL, toTemplateLine(pageContext, sourceTemplate, ps), ps));
 		}
 		else {

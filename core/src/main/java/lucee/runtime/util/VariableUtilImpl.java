@@ -303,7 +303,7 @@ public final class VariableUtilImpl implements VariableUtil {
 						+ "\" to address the Map";
 			}
 
-			throw new ExpressionException("Key [" + key.getString() + "] doesn't exist in Map (" + ((Map) coll).getClass().getName() + ")", detail);
+			throw new ExpressionException("Key [" + key.getString() + "] doesn't exist in Map (" + (coll).getClass().getName() + ")", detail);
 		}
 		// List
 		else if (coll instanceof List) {

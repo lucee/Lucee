@@ -244,7 +244,7 @@ public class PageContextUtil {
 	}
 
 	private static boolean allowRequestTimeout(PageContext pc) {
-		if (!((ConfigPro) ThreadLocalPageContext.getConfig(pc)).allowRequestTimeout()) return false;
+		if (!ThreadLocalPageContext.getConfig(pc).allowRequestTimeout()) return false;
 		CFMLFactoryImpl factory = (CFMLFactoryImpl) pc.getConfig().getFactory();
 		return factory.reachedConcurrentReqThreshold() && factory.reachedCPUThreshold() && factory.reachedMemoryThreshold();
 	}

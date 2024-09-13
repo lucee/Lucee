@@ -804,11 +804,11 @@ public final class OpUtil {
 
 		// simple vales - left and right have the same type
 		if (left instanceof String) return ((String) left).equalsIgnoreCase((String) right);
-		else if (left instanceof Number) return ((Number) left).equals(right);
+		else if (left instanceof Number) return (left).equals(right);
 		else if (left instanceof Boolean) return ((Boolean) left).equals(right);
 		else if (left instanceof Date) return ((Date) left).equals(right);
 		else if (left instanceof Locale) return ((Locale) left).equals(right);
-		else if (left instanceof TimeZone) return ((TimeZone) left).equals(right);
+		else if (left instanceof TimeZone) return (left).equals(right);
 		else if (left instanceof Character) return ((Character) left).equals(right);
 		else if (left instanceof Calendar) return ((Calendar) left).equals(right);
 

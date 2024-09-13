@@ -1007,7 +1007,7 @@ public final class QoQ {
 		}
 		Expression input = inputList.get(0);
 		// count(*), count(1), or count('asdf') just count the rows
-		if ((input instanceof Column && ((Column) input).getAlias().equals("*")) || input instanceof Value) {
+		if ((input instanceof Column && (input).getAlias().equals("*")) || input instanceof Value) {
 			return Caster.toIntValue(source.getRecordcount());
 		}
 		// count( columnName ) returns count of non-null values

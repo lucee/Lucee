@@ -521,7 +521,7 @@ public final class ConfigWebUtil {
 
 		boolean has = true;
 		if (config instanceof ConfigWeb) {
-			has = ((ConfigWeb) config)
+			has = config
 
 					.getSecurityManager()
 
@@ -741,7 +741,7 @@ public final class ConfigWebUtil {
 		if (config == null) config = ThreadLocalPageContext.getConfig();
 		if (config instanceof ConfigWeb) return ((ConfigWeb) config).getConfigServerDir();
 		if (config == null) return null;
-		return ((ConfigServer) config).getConfigDir();
+		return (config).getConfigDir();
 	}
 
 	public static Mapping[] getAllMappings(PageContext pc) {

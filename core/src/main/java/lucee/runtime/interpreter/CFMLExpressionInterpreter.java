@@ -28,7 +28,6 @@ import lucee.runtime.MappingImpl;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageSource;
 import lucee.runtime.config.ConfigPro;
-import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.TemplateException;
@@ -1419,7 +1418,7 @@ public class CFMLExpressionInterpreter {
 		boolean doUpper;
 		PageSource ps = pc == null ? null : pc.getCurrentPageSource();
 		if (ps != null) doUpper = !isJson && ((MappingImpl) ps.getMapping()).getDotNotationUpperCase();
-		else doUpper = !isJson && ((ConfigWebPro) config).getDotNotationUpperCase(); // MUST .lucee should not be upper case
+		else doUpper = !isJson && (config).getDotNotationUpperCase(); // MUST .lucee should not be upper case
 
 		StringBuilder sb = new StringBuilder();
 		sb.append(doUpper ? cfml.getCurrentUpper() : cfml.getCurrent());

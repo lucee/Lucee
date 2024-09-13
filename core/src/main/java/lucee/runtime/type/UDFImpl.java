@@ -517,7 +517,7 @@ public class UDFImpl extends MemberSupport implements UDFPlus, Externalizable {
 	@Override
 	public boolean getBufferOutput(PageContext pc) {
 		if (properties.getBufferOutput() != null) return properties.getBufferOutput().booleanValue();
-		return ((ApplicationContextSupport) pc.getApplicationContext()).getBufferOutput();
+		return (pc.getApplicationContext()).getBufferOutput();
 	}
 
 	@Override

@@ -281,7 +281,7 @@ public final class ClassUtil {
 		if (cl != null) {
 			// TODO do not produce a resource classloader in the first place if there are no resources
 			if (cl instanceof ResourceClassLoader && ((ResourceClassLoader) cl).isEmpty()) {
-				ClassLoader p = ((ResourceClassLoader) cl).getParent();
+				ClassLoader p = (cl).getParent();
 				if (p != null) cl = p;
 			}
 			Class clazz = _loadClass(new ClassLoaderBasedClassLoading(cl), className, defaultValue, exceptions);
