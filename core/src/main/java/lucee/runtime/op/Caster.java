@@ -3585,11 +3585,11 @@ public final class Caster {
 			if (target != null) return toPageException(target);
 		}
 		if (t instanceof ExceptionInInitializerError) {
-			Throwable cause = ((ExceptionInInitializerError) t).getCause();
+			Throwable cause = (t).getCause();
 			if (cause != null) return toPageException(cause);
 		}
 		if (t instanceof ExecutionException) {
-			Throwable cause = ((ExecutionException) t).getCause();
+			Throwable cause = (t).getCause();
 			if (cause != null) return toPageException(cause);
 		}
 		if (t instanceof InterruptedException) {

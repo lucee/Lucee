@@ -212,7 +212,7 @@ public final class ExceptionUtil {
 		rethrowIfNecessary(t);
 		if (t instanceof IOException) return (IOException) t;
 		if (t instanceof InvocationTargetException) return toIOException(((InvocationTargetException) t).getCause());
-		if (t instanceof NativeException) return toIOException(((NativeException) t).getCause());
+		if (t instanceof NativeException) return toIOException((t).getCause());
 
 		IOException ioe = new IOException(t.getClass().getName() + ":" + t.getMessage());
 		ExceptionUtil.initCauseEL(ioe, t);

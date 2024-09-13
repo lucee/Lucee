@@ -4659,14 +4659,14 @@ public final class ConfigWebFactory extends ConfigFactory {
 			// class
 			ClassDefinition<SearchEngine> cd = search != null ? getClassDefinition(search, "engine", config.getIdentification()) : null;
 			if (cd == null || !cd.hasClass() || "lucee.runtime.search.lucene.LuceneSearchEngine".equals(cd.getClassName())) {
-				if (configServer != null) cd = ((ConfigPro) configServer).getSearchEngineClassDefinition();
+				if (configServer != null) cd = (configServer).getSearchEngineClassDefinition();
 				else cd = new ClassDefinitionImpl(DummySearchEngine.class);
 			}
 
 			// directory
 			String dir = search != null ? getAttr(search, "directory") : null;
 			if (StringUtil.isEmpty(dir)) {
-				if (configServer != null) dir = ((ConfigPro) configServer).getSearchEngineDirectory();
+				if (configServer != null) dir = (configServer).getSearchEngineDirectory();
 				else dir = "{lucee-web}/search/";
 			}
 
@@ -4719,7 +4719,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 			Array entries = ConfigWebUtil.getAsArray("debugTemplates", root);
 			Map<String, DebugEntry> list = new HashMap<String, DebugEntry>();
 			if (hasCS) {
-				DebugEntry[] _entries = ((ConfigPro) configServer).getDebugEntries();
+				DebugEntry[] _entries = configServer.getDebugEntries();
 				for (int i = 0; i < _entries.length; i++) {
 					try {
 						list.put(_entries[i].getId(), _entries[i].duplicate(true));

@@ -23,7 +23,6 @@ import java.io.IOException;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.tag.BodyTagTryCatchFinallyImpl;
-import lucee.runtime.listener.ApplicationContextSupport;
 import lucee.runtime.writer.BodyContentImpl;
 
 public final class Silent extends BodyTagTryCatchFinallyImpl {
@@ -41,7 +40,7 @@ public final class Silent extends BodyTagTryCatchFinallyImpl {
 
 	@Override
 	public int doStartTag() throws PageException {
-		if (bufferOutput == null) bufferOutput = ((ApplicationContextSupport) pageContext.getApplicationContext()).getBufferOutput() ? Boolean.TRUE : Boolean.FALSE;
+		if (bufferOutput == null) bufferOutput = (pageContext.getApplicationContext()).getBufferOutput() ? Boolean.TRUE : Boolean.FALSE;
 
 		if (bufferOutput.booleanValue()) bc = (BodyContentImpl) pageContext.pushBody();
 		else wasSilent = pageContext.setSilent();

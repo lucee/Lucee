@@ -55,7 +55,7 @@ public class DatasourceConnectionFactory extends BasePooledObjectFactory<Datasou
 
 		Connection conn = null;
 		try {
-			conn = ((DataSourcePro) datasource).getConnection(config, username, password);
+			conn = (datasource).getConnection(config, username, password);
 		}
 		catch (SQLException e) {
 			throw new IOException(e);

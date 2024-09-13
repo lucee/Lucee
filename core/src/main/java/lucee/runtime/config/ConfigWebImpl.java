@@ -72,8 +72,8 @@ public class ConfigWebImpl implements ConfigWebPro {
 
 	@Override
 	public boolean equals(java.lang.Object arg0) {
-		if (instance instanceof MultiContextConfigWeb) return ((MultiContextConfigWeb) instance).equals(arg0);
-		else return ((SingleContextConfigWeb) instance).equals(arg0);
+		if (instance instanceof MultiContextConfigWeb) return instance.equals(arg0);
+		else return (instance).equals(arg0);
 	}
 
 	@Override

@@ -799,7 +799,7 @@ public final class ASMUtil {
 			return ((VariableString) exp).castToString(bc);
 		}
 		else if (exp instanceof Literal) {
-			return ((Literal) exp).toString();
+			return (exp).toString();
 		}
 		return null;
 	}
