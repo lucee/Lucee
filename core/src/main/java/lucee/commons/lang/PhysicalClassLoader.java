@@ -301,11 +301,6 @@ public final class PhysicalClassLoader extends URLClassLoader implements Extenda
 		return clazz;
 	}
 
-	@Override
-	public URL getResource(String name) {
-		return null;
-	}
-
 	public Resource[] getJarResources() {
 		return resources.toArray(new Resource[resources.size()]);
 	}
@@ -317,6 +312,15 @@ public final class PhysicalClassLoader extends URLClassLoader implements Extenda
 	public int getSize(boolean includeAllRenames) {
 		return includeAllRenames ? allLoadedClasses.size() : loadedClasses.size();
 	}
+
+	/*
+	 * @Override public URL getResource(String name) { URL r = super.getResource(name); if (r != null)
+	 * return r; print.e("xx ====>" + name);
+	 * 
+	 * Resource f = _getResource(name);
+	 * 
+	 * if (f != null) { return ResourceUtil.toURL(f, null); } return null; }
+	 */
 
 	@Override
 	public InputStream getResourceAsStream(String name) {

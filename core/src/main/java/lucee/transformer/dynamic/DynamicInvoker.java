@@ -367,14 +367,12 @@ public class DynamicInvoker {
 
 	private DynamicClassLoader getCL(Class<?> clazz) {
 		ClassLoader parent = clazz.getClassLoader();
-		if (parent == null) parent = getClass().getClassLoader();// core classloader
-
+		if (parent == null) parent = SystemUtil.getCombinedClassLoader();
 		DynamicClassLoader cl = loaders.get(parent.hashCode());
 		if (cl == null) {
 			synchronized (token) {
-				cl = loaders.get(parent.getName());
+				cl = loaders.get(parent.hashCode());
 				if (cl == null) {
-					// print.e("---- newnewnewnewnewnew ---- " + parent.hashCode() + ":" + parent.toString());
 					loaders.put(parent.hashCode(), cl = new DynamicClassLoader(parent, root, log));
 				}
 			}

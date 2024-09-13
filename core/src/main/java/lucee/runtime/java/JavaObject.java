@@ -33,7 +33,6 @@ import lucee.runtime.dump.DumpProperties;
 import lucee.runtime.dump.DumpUtil;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
-import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.OpUtil;
@@ -65,25 +64,10 @@ public class JavaObject implements Objects, ObjectWrap {
 	private transient VariableUtil _variableUtil;
 	private boolean allowInit;
 
-	/**
-	 * constructor with className to load
-	 * 
-	 * @param variableUtil
-	 * @param clazz
-	 * @throws ExpressionException
-	 */
-	private JavaObject(VariableUtil variableUtil, Class clazz) {
-		this(variableUtil, clazz, true);
-	}
-
 	public JavaObject(VariableUtil variableUtil, Class clazz, boolean allowInit) {
 		this._variableUtil = variableUtil;
 		this.clazz = clazz;
 		this.allowInit = allowInit;
-	}
-
-	private JavaObject(VariableUtil variableUtil, Object object) {
-		this(variableUtil, object, true);
 	}
 
 	public JavaObject(VariableUtil variableUtil, Object object, boolean allowInit) {

@@ -22,6 +22,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -1694,4 +1696,31 @@ public final class ResourceUtil {
 		if (parent == null) throw new IOException("there is no parent directory for [" + file + "]");
 		if (!parent.isDirectory()) parent.createDirectory(true);
 	}
+
+	public static URL toURL(Resource res) throws IOException {
+		return toURL(toFile(res));
+	}
+
+	public static URL toURL(Resource res, URL defaultValue) {
+		try {
+			return toURL(toFile(res));
+		}
+		catch (Exception e) {
+			return defaultValue;
+		}
+	}
+
+	public static URL toURL(File file) throws MalformedURLException {
+		return file.toURI().toURL();
+	}
+
+	public static URL toURL(File file, URL defaultValue) {
+		try {
+			return file.toURI().toURL();
+		}
+		catch (Exception e) {
+			return defaultValue;
+		}
+	}
+
 }

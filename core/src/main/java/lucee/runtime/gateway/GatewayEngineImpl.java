@@ -162,7 +162,6 @@ public class GatewayEngineImpl implements GatewayEngine {
 	 */
 	public String sendMessage(String gatewayId, Struct data) throws PageException, IOException {
 		Gateway g = getGateway(gatewayId);
-		if (g.getState() != Gateway.RUNNING) throw new GatewayException("Gateway [" + gatewayId + "] is not running");
 		return g.sendMessage(data);
 	}
 
