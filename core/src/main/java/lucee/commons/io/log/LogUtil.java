@@ -43,6 +43,8 @@ import lucee.runtime.engine.ThreadLocalPageContext;
  */
 public final class LogUtil {
 
+	public static Resource ERR, OUT;
+
 	public static int toLevel(String strLevel, int defaultValue) {
 		if (strLevel == null) return defaultValue;
 		strLevel = strLevel.toLowerCase().trim();
@@ -169,16 +171,39 @@ public final class LogUtil {
 	public static void logGlobal(Config config, int level, String type, String msg) {
 		try {
 			CFMLEngineFactory factory = ConfigWebUtil.getCFMLEngineFactory(config);
-			File root = factory.getResourceRoot();
-			File flog = new File(root, "context/logs/" + (level > Log.LEVEL_DEBUG ? "err" : "out") + ".log");
-			Resource log = ResourceUtil.toResource(flog);
-			if (!log.isFile()) {
+			Resource log;
+			boolean check = false;
+			if (level > Log.LEVEL_DEBUG) {
+				if (ERR == null) {
+					synchronized (factory) {
+						if (ERR == null) {
+							ERR = ResourceUtil.toResource(new File(factory.getResourceRoot(), "context/logs/err.log"));
+							check = true;
+						}
+					}
+				}
+				log = ERR;
+			}
+			else {
+				if (OUT == null) {
+					synchronized (factory) {
+						if (OUT == null) {
+							OUT = ResourceUtil.toResource(new File(factory.getResourceRoot(), "context/logs/out.log"));
+							check = true;
+						}
+					}
+				}
+				log = OUT;
+			}
+			if (check && !log.isFile()) {
 				log.getParentResource().mkdirs();
 				log.createNewFile();
 			}
 			IOUtil.write(log, SystemOut.FORMAT.format(new Date(System.currentTimeMillis())) + " " + type + " " + msg + "\n", CharsetUtil.UTF8, true);
 		}
 		catch (Exception e) {
+			ERR = null;
+			OUT = null;
 			aprint.e(type + ":" + msg);
 			aprint.e(e);
 		}
