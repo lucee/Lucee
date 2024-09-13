@@ -103,7 +103,7 @@ public final class SQLCaster {
 				return new Date(Caster.toDate(value, null).getTime());
 			case Types.NUMERIC:
 			case Types.DECIMAL:
-				return Caster.toString(Caster.toBigDecimal(value));
+				return Caster.toBigDecimal(value);
 			case Types.DOUBLE:
 				return Caster.toDouble(value);
 			case Types.FLOAT:
