@@ -87,6 +87,7 @@ import lucee.loader.engine.CFMLEngineFactory;
 import lucee.loader.osgi.BundleCollection;
 import lucee.loader.util.ExtensionFilter;
 import lucee.runtime.PageContext;
+import lucee.runtime.ai.AIEngine;
 import lucee.runtime.cache.CacheConnection;
 import lucee.runtime.cache.CacheUtil;
 import lucee.runtime.cfx.CFXTagException;
@@ -1924,6 +1925,65 @@ public final class ConfigAdmin {
 		setClass(orm, null, "", cd);
 	}
 
+	public void updateAIConnection(String name, ClassDefinition cd, String _default, Struct custom) throws PageException {
+
+		checkWriteAccess();
+
+		// check parameters
+		name = name.trim();
+		if (StringUtil.isEmpty(name)) throw new ExpressionException("name can't be an empty value");
+
+		try {
+			Class clazz = cd.getClazz();
+
+			if (!Reflector.isInstaneOf(clazz, AIEngine.class, false))
+				throw new ExpressionException("class [" + clazz.getName() + "] is not of type [" + AIEngine.class.getName() + "]");
+		}
+		catch (Exception e) {
+			throw Caster.toPageException(e);
+		}
+
+		Struct parent = _getRootElement("ai");
+
+		// remove matching default on existing records
+		if (!StringUtil.isEmpty(_default, true)) {
+			_default = _default.trim().toLowerCase();
+			Iterator<Object> it = parent.valueIterator();
+			Object v;
+			while (it.hasNext()) {
+				v = it.next();
+				Struct el = Caster.toStruct(v);
+				if (_default.equalsIgnoreCase(Caster.toString(el.get(KeyConstants._default, null), null))) {
+					el.removeEL(KeyConstants._default);
+				}
+			}
+		}
+
+		// Update
+		Iterator<Entry<Key, Object>> it = parent.entryIterator();
+		Entry<Key, Object> e;
+		while (it.hasNext()) {
+			e = it.next();
+			if (e.getKey().getString().equalsIgnoreCase(name)) {
+				Struct el = Caster.toStruct(e.getValue());
+				setClass(el, null, "", cd);
+				el.setEL(KeyConstants._custom, custom);
+				if (!StringUtil.isEmpty(_default, true)) el.setEL(KeyConstants._default, _default);
+				else el.removeEL(KeyConstants._default);
+				return;
+			}
+
+		}
+
+		// Insert
+		Struct data = new StructImpl(Struct.TYPE_LINKED);
+		parent.setEL(name, data);
+		setClass(data, null, "", cd);
+		data.setEL(KeyConstants._custom, custom);
+		if (!StringUtil.isEmpty(_default, true)) data.setEL(KeyConstants._default, _default);
+
+	}
+
 	public void updateCacheConnection(String name, ClassDefinition cd, int _default, Struct custom, boolean readOnly, boolean storage) throws PageException {
 
 		checkWriteAccess();
@@ -2345,6 +2405,15 @@ public final class ConfigAdmin {
 				children.removeEL(key);
 			}
 		}
+	}
+
+	public void removeAIConnection(String name) throws ExpressionException, SecurityException {
+		checkWriteAccess();
+		// check parameters
+		if (StringUtil.isEmpty(name, true)) throw new ExpressionException("name for AI Connection can not be an empty value");
+		name = name.trim();
+		Struct parent = _getRootElement("ai");
+		parent.removeEL(KeyImpl.init(name));
 	}
 
 	public boolean cacheConnectionExists(String name) throws ExpressionException, SecurityException {

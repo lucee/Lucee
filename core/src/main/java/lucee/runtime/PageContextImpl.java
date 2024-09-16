@@ -4197,12 +4197,12 @@ public final class PageContextImpl extends PageContext {
 	}
 
 	public AIEngine getAIEngine(String nameAI) throws PageException {
-		return config.getAIEnginePool().getEngine(this, nameAI);
+		return config.getAIEnginePool().getEngine(this.getConfig(), nameAI);
 	}
 
 	public AIEngine getAIEngine(String nameAI, AIEngine defaultValue) {
 		try {
-			return config.getAIEnginePool().getEngine(this, nameAI);
+			return config.getAIEnginePool().getEngine(this.getConfig(), nameAI);
 		}
 		catch (Exception e) {
 			return defaultValue;

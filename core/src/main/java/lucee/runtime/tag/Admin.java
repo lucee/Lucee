@@ -84,7 +84,10 @@ import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.PageSource;
 import lucee.runtime.PageSourceImpl;
+import lucee.runtime.ai.AIEngine;
 import lucee.runtime.ai.AIEngineFactory;
+import lucee.runtime.ai.AISession;
+import lucee.runtime.ai.Response;
 import lucee.runtime.cache.CacheConnection;
 import lucee.runtime.cache.CacheUtil;
 import lucee.runtime.cfx.customtag.CFXTagClass;
@@ -626,7 +629,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		else if (check("getCacheConnections", ACCESS_FREE) && check2(ACCESS_READ)) doGetCacheConnections();
 		else if (check("getCacheConnection", ACCESS_FREE) && check2(ACCESS_READ)) doGetCacheConnection();
 		else if (check("getCacheDefaultConnection", ACCESS_FREE) && check2(ACCESS_READ)) doGetCacheDefaultConnection();
-		else if (check("getAIEngines", ACCESS_NOT_WHEN_WEB) && check2(ACCESS_READ)) doGetAIEngines();
+		else if (check("getAIConnections", ACCESS_NOT_WHEN_WEB) && check2(ACCESS_READ)) doGetAIConnections();
 		else if (check("getRemoteClients", ACCESS_FREE) && check2(ACCESS_READ)) doGetRemoteClients();
 		else if (check("getRemoteClient", ACCESS_FREE) && check2(ACCESS_READ)) doGetRemoteClient();
 		else if (check("hasRemoteClientUsage", ACCESS_FREE) && check2(ACCESS_READ)) doHasRemoteClientUsage();
@@ -693,6 +696,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		else if (check("verifyremoteclient", ACCESS_FREE) && check2(ACCESS_READ)) doVerifyRemoteClient();
 		else if (check("verifyDatasource", ACCESS_FREE) && check2(ACCESS_READ)) doVerifyDatasource();
 		else if (check("verifyCacheConnection", ACCESS_FREE) && check2(ACCESS_READ)) doVerifyCacheConnection();
+		else if (check("verifyAIConnection", ACCESS_FREE) && check2(ACCESS_READ)) doVerifyAIConnection();
 		else if (check("verifyMailServer", ACCESS_FREE) && check2(ACCESS_READ)) doVerifyMailServer();
 		else if (check("verifyExtensionProvider", ACCESS_FREE) && check2(ACCESS_READ)) doVerifyExtensionProvider();
 		else if (check("verifyJavaCFX", ACCESS_FREE) && check2(ACCESS_READ)) doVerifyJavaCFX();
@@ -726,6 +730,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		else if (check("updateJDBCDriver", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateJDBCDriver();
 		else if (check("updateCacheDefaultConnection", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateCacheDefaultConnection();
 		else if (check("updateCacheConnection", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateCacheConnection();
+		else if (check("updateAIConnection", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateAIConnection();
 		else if (check("updateremoteclient", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateRemoteClient();
 		else if (check("updateRemoteClientUsage", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateRemoteClientUsage();
 		else if (check("updatemailsetting", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateMailSetting();
@@ -772,6 +777,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		else if (check("removeJDBCDriver", ACCESS_FREE) && check2(ACCESS_WRITE)) doRemoveJDBCDriver();
 		else if (check("removedatasource", ACCESS_FREE) && check2(ACCESS_WRITE)) doRemoveDatasource();
 		else if (check("removeCacheConnection", ACCESS_FREE) && check2(ACCESS_WRITE)) doRemoveCacheConnection();
+		else if (check("removeAIConnection", ACCESS_FREE) && check2(ACCESS_WRITE)) doRemoveAIConnection();
 		else if (check("removeremoteclient", ACCESS_FREE) && check2(ACCESS_WRITE)) doRemoveRemoteClient();
 		else if (check("removeRemoteClientUsage", ACCESS_FREE) && check2(ACCESS_WRITE)) doRemoveRemoteClientUsage();
 		else if (check("removeSpoolerTask", ACCESS_FREE) && check2(ACCESS_WRITE)) doRemoveSpoolerTask();
@@ -2700,11 +2706,15 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 	private void doUpdateCacheConnection() throws PageException {
 		ClassDefinition cd = ClassDefinitionImpl.toClassDefinitionImpl(attributes, null, true, config.getIdentification());
-
 		admin.updateCacheConnection(getString("admin", action, "name"), cd, toCacheConstant("default"), getStruct("admin", action, "custom"), getBoolV("readOnly", false),
-				getBoolV("storage", false)
+				getBoolV("storage", false));
+		store();
+		adminSync.broadcast(attributes, config);
+	}
 
-		);
+	private void doUpdateAIConnection() throws PageException {
+		ClassDefinition cd = ClassDefinitionImpl.toClassDefinitionImpl(attributes, null, true, config.getIdentification());
+		admin.updateAIConnection(getString("admin", action, "name"), cd, getString("default", null), getStruct("admin", action, "custom"));
 		store();
 		adminSync.broadcast(attributes, config);
 	}
@@ -3714,12 +3724,12 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		pageContext.setVariable(getString("admin", action, "returnVariable"), qry);
 	}
 
-	private void doGetAIEngines() throws PageException {
+	private void doGetAIConnections() throws PageException {
 		java.util.Collection<String> names = this.config.getAIEngineFactoryNames();
 		Map conns = config.getCacheConnections();
 		Iterator it = conns.entrySet().iterator();
 		lucee.runtime.type.Query qry = new QueryImpl(
-				new Key[] { KeyConstants._default, KeyConstants._name, KeyConstants._class, KeyConstants._bundleName, KeyConstants._bundleVersion, KeyConstants._properties }, 0,
+				new Key[] { KeyConstants._default, KeyConstants._name, KeyConstants._class, KeyConstants._bundleName, KeyConstants._bundleVersion, KeyConstants._custom }, 0,
 				"factories");
 
 		int row;
@@ -3732,7 +3742,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			qry.setAtEL(KeyConstants._class, row, factory.getClassDefinition().getClassName());
 			qry.setAtEL(KeyConstants._bundleName, row, factory.getClassDefinition().getName());
 			qry.setAtEL(KeyConstants._bundleVersion, row, factory.getClassDefinition().getVersionAsString());
-			qry.setAtEL(KeyConstants._properties, row, factory.getProperties());
+			qry.setAtEL(KeyConstants._custom, row, factory.getProperties());
 		}
 		pageContext.setVariable(getString("admin", action, "returnVariable"), qry);
 	}
@@ -3825,6 +3835,12 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		adminSync.broadcast(attributes, config);
 	}
 
+	private void doRemoveAIConnection() throws PageException {
+		admin.removeAIConnection(getString("admin", action, "name"));
+		store();
+		adminSync.broadcast(attributes, config);
+	}
+
 	private void doRemoveGatewayEntry() throws PageException {
 		admin.removeGatewayEntry(getString("admin", action, "id"));
 		store();
@@ -3847,6 +3863,18 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		catch (IOException e) {
 			throw Caster.toPageException(e);
 		}
+	}
+
+	private void doVerifyAIConnection() throws PageException {
+		AIEngine engine = config.getAIEnginePool().getEngine(config, getString("admin", action, "name"));
+		AISession session = engine.createSession("keep your answers as short as possible.", AIEngine.DEFAULT_TIMEOUT);
+		Response rsp = session.inquiry("ping");
+
+		Struct sct = new StructImpl();
+		sct.set("question", "ping");
+		sct.set("answer", rsp.getAnswer());
+
+		pageContext.setVariable(getString("admin", action, "returnVariable"), sct);
 	}
 
 	/**

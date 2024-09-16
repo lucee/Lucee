@@ -747,6 +747,7 @@
         "certificates": "SSL Certificates",
         "datasource": "Datasource",
         "gateway": "Event Gateway",
+        "ai": "AI (experimental)",
         "label": "Services",
         "mail": "Mail",
         "orm": "ORM",

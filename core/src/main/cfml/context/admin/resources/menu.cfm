@@ -37,6 +37,7 @@
 		struct(
 			action:"services",label:arguments.stMenu.services.label,
 			children:array(
+				struct(action:"ai",label:arguments.stMenu.services.ai,hidden: arguments.adminType EQ "web" and not arguments.singlemode),
 				struct(action:"gateway",label:arguments.stMenu.services.gateway,hidden: arguments.adminType NEQ "web" and not arguments.singlemode),
 				struct(action:"cache",label:arguments.stMenu.services.cache),
 				struct(action:"datasource",label:arguments.stMenu.services.datasource),

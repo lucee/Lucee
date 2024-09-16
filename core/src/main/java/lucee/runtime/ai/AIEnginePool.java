@@ -5,6 +5,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.PageContext;
+import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigPro;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
@@ -31,19 +32,19 @@ public class AIEnginePool {
 		return defaultValue;
 	}
 
-	public AIEngine getEngine(PageContext pc, String name) throws PageException {
+	public AIEngine getEngine(Config config, String name) throws PageException {
 		// get existing instance
 		AIEngine aie = instances.get(name);
 		if (aie != null) return aie;
 
 		// loading new instance
-		AIEngineFactory factory = ((ConfigPro) pc.getConfig()).getAIEngineFactory(name.toLowerCase());
+		AIEngineFactory factory = ((ConfigPro) config).getAIEngineFactory(name.toLowerCase());
 		if (factory == null) {
-			throw new ApplicationException(ExceptionUtil.similarKeyMessage(((ConfigPro) pc.getConfig()).getAIEngineFactoryNames(), name, "source", "sources", "ai pool", true));
+			throw new ApplicationException(ExceptionUtil.similarKeyMessage(((ConfigPro) config).getAIEngineFactoryNames(), name, "source", "sources", "ai pool", true));
 		}
 
 		try {
-			aie = factory.createInstance(pc.getConfig());
+			aie = factory.createInstance(config);
 			if (aie != null) return aie;
 		}
 		catch (Exception e) {
