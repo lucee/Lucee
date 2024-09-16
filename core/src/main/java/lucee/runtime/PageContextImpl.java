@@ -3853,12 +3853,12 @@ public final class PageContextImpl extends PageContext {
 		if (ac instanceof ComponentImpl) {
 			JavaSettings js = ((ComponentImpl) ac).getJavaSettings(this);
 			if (js != null) {
-				cl = ((ConfigPro) config).getRPCClassLoader(reload, js, cl);
+				cl = config.getRPCClassLoader(reload, js, cl);
 			}
 		}
 
 		if (customJS != null) {
-			cl = ((ConfigPro) config).getRPCClassLoader(reload, customJS, cl);
+			cl = config.getRPCClassLoader(reload, customJS, cl);
 		}
 		return cl;
 	}
@@ -4197,12 +4197,12 @@ public final class PageContextImpl extends PageContext {
 	}
 
 	public AIEngine getAIEngine(String nameAI) throws PageException {
-		return ((ConfigPro) config).getAIEnginePool().getEngine(this, nameAI);
+		return config.getAIEnginePool().getEngine(this, nameAI);
 	}
 
 	public AIEngine getAIEngine(String nameAI, AIEngine defaultValue) {
 		try {
-			return ((ConfigPro) config).getAIEnginePool().getEngine(this, nameAI);
+			return config.getAIEnginePool().getEngine(this, nameAI);
 		}
 		catch (Exception e) {
 			return defaultValue;
