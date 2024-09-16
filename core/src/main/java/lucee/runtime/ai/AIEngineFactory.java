@@ -47,4 +47,12 @@ public class AIEngineFactory {
 	public String getName() {
 		return name;
 	}
+
+	public ClassDefinition<? extends AIEngine> getClassDefinition() {
+		return cd;
+	}
+
+	public Struct getProperties() {
+		return properties;
+	}
 }

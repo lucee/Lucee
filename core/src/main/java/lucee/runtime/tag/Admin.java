@@ -84,6 +84,7 @@ import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.PageSource;
 import lucee.runtime.PageSourceImpl;
+import lucee.runtime.ai.AIEngineFactory;
 import lucee.runtime.cache.CacheConnection;
 import lucee.runtime.cache.CacheUtil;
 import lucee.runtime.cfx.customtag.CFXTagClass;
@@ -625,6 +626,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		else if (check("getCacheConnections", ACCESS_FREE) && check2(ACCESS_READ)) doGetCacheConnections();
 		else if (check("getCacheConnection", ACCESS_FREE) && check2(ACCESS_READ)) doGetCacheConnection();
 		else if (check("getCacheDefaultConnection", ACCESS_FREE) && check2(ACCESS_READ)) doGetCacheDefaultConnection();
+		else if (check("getAIEngines", ACCESS_NOT_WHEN_WEB) && check2(ACCESS_READ)) doGetAIEngines();
 		else if (check("getRemoteClients", ACCESS_FREE) && check2(ACCESS_READ)) doGetRemoteClients();
 		else if (check("getRemoteClient", ACCESS_FREE) && check2(ACCESS_READ)) doGetRemoteClient();
 		else if (check("hasRemoteClientUsage", ACCESS_FREE) && check2(ACCESS_READ)) doHasRemoteClientUsage();
@@ -3708,6 +3710,29 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			qry.setAtEL(KeyConstants._readonly, row, Caster.toBoolean(cc.isReadOnly()));
 			qry.setAtEL(KeyConstants._storage, row, Caster.toBoolean(cc.isStorage()));
 
+		}
+		pageContext.setVariable(getString("admin", action, "returnVariable"), qry);
+	}
+
+	private void doGetAIEngines() throws PageException {
+		java.util.Collection<String> names = this.config.getAIEngineFactoryNames();
+		Map conns = config.getCacheConnections();
+		Iterator it = conns.entrySet().iterator();
+		lucee.runtime.type.Query qry = new QueryImpl(
+				new Key[] { KeyConstants._default, KeyConstants._name, KeyConstants._class, KeyConstants._bundleName, KeyConstants._bundleVersion, KeyConstants._properties }, 0,
+				"factories");
+
+		int row;
+		AIEngineFactory factory;
+		for (String name: names) {
+			factory = this.config.getAIEngineFactory(name);
+			row = qry.addRow();
+			qry.setAtEL(KeyConstants._default, row, factory.getDefault());
+			qry.setAtEL(KeyConstants._name, row, factory.getName());
+			qry.setAtEL(KeyConstants._class, row, factory.getClassDefinition().getClassName());
+			qry.setAtEL(KeyConstants._bundleName, row, factory.getClassDefinition().getName());
+			qry.setAtEL(KeyConstants._bundleVersion, row, factory.getClassDefinition().getVersionAsString());
+			qry.setAtEL(KeyConstants._properties, row, factory.getProperties());
 		}
 		pageContext.setVariable(getString("admin", action, "returnVariable"), qry);
 	}
