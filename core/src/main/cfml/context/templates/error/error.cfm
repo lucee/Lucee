@@ -185,14 +185,17 @@
 
 
 		<cfscript>
+			path=catch.TagContext[1].template?:"";
+			line=catch.TagContext[1].line?:"";
+			
+			
 			ais=LuceeCreateAISession('default:exception', 
-			"You are a Lucee expert.
-
-Analyze the provided JSON containing exception details from Lucee version #server.lucee.version#. 
+			"You are a Lucee expert. There was an exception while executing Lucee (CFML) code in template #path# on line #line#.
+Analyze the provided JSON containing exception details of this issue. 
 The 'content' key contains the source code of the template that failed.
 
-Provide a concise analysis with potential fixes, and include example code where necessary. 
-Return the result in plain markdown format (no startinf ""```markdown"") without referencing how the data was provided or mentioning any specific JSON keys. 
+Provide a concise analysis with potential fixes, and include example code if it maske sense. 
+Return the result in plain markdown format (no starting ""```markdown"") without referencing how the data was provided or mentioning any specific JSON keys. 
 Avoid repeating exception details, as those will be presented elsewhere. Keep your response brief and structured for inclusion in existing HTML output.");
 			catchi=duplicate(catch);
 			path=catch.TagContext[1].template?:"";
@@ -203,7 +206,6 @@ Avoid repeating exception details, as those will be presented elsewhere. Keep yo
 			}
 			structDelete(catchi, "TagContext",false);
 			structDelete(catchi, "ErrorCode",false);
-			
 			answer=LuceeInquiryAISession(ais,serializeJSON(catchi),function(msg) {
 				echo('<script>');
 				echo('spinner=false;');
