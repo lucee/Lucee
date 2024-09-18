@@ -148,7 +148,7 @@ public final class Location extends TagImpl {
 				for (int i = 1; i < arr.length; i++)
 					url += "&" + arr[i];
 			}
-			url = ReqRspUtil.encodeRedirectURLEL(rsp, url);
+			if (this.encode) url = ReqRspUtil.encodeRedirectURLEL(rsp, url);
 		}
 
 		Log log = ThreadLocalPageContext.getLog(pageContext, "application");
