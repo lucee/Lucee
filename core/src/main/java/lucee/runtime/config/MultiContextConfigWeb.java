@@ -34,6 +34,7 @@ import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.ResourceProvider;
 import lucee.commons.io.res.ResourcesImpl;
 import lucee.commons.lock.KeyLock;
+import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.CFMLFactory;
 import lucee.runtime.CFMLFactoryImpl;
 import lucee.runtime.CIPage;
@@ -631,5 +632,10 @@ class MultiContextConfigWeb extends ConfigImpl implements ServletConfig, ConfigW
 	@Override
 	public AIEnginePool getAIEnginePool() {
 		return configServer.getAIEnginePool();
+	}
+
+	@Override
+	public CFMLEngine getEngine() {
+		return configServer.getEngine();
 	}
 }

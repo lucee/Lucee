@@ -484,7 +484,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 			if (!essentialOnly && config instanceof ConfigServerImpl) {
 				try {
 					ConfigServerImpl _cs = (ConfigServerImpl) config;
-					File rr = _cs.getCFMLEngine().getCFMLEngineFactory().getResourceRoot();
+					File rr = _cs.getEngine().getCFMLEngineFactory().getResourceRoot();
 					File log = new File(rr, "context/logs/felix.log");
 					if (log.isFile() && log.length() > GB1) {
 						if (log.delete()) ResourceUtil.touch(log);
@@ -4638,7 +4638,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 			ActionMonitorCollector actionMonitorCollector = ActionMonitorFatory.getActionMonitorCollector(configServer, actions.toArray(new MonitorTemp[actions.size()]));
 			configServer.setActionMonitorCollector(actionMonitorCollector);
 
-			((CFMLEngineImpl) configServer.getCFMLEngine()).touchMonitor(configServer);
+			((CFMLEngineImpl) configServer.getEngine()).touchMonitor(configServer);
 		}
 		catch (Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);
@@ -4696,7 +4696,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 
 			Resource configDir = config.getConfigDir();
 			Array scheduledTasks = ConfigWebUtil.getAsArray("scheduledTasks", root);
-			config.setScheduler(configServer != null ? configServer.getCFMLEngine() : ((ConfigServer) config).getCFMLEngine(), scheduledTasks);
+			config.setScheduler(configServer != null ? configServer.getEngine() : ((ConfigServer) config).getEngine(), scheduledTasks);
 		}
 		catch (Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);

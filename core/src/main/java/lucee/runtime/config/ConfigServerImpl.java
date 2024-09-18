@@ -612,7 +612,7 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 	}
 
 	public String[] getInstalledPatches() throws PageException {
-		CFMLEngineFactory factory = getCFMLEngine().getCFMLEngineFactory();
+		CFMLEngineFactory factory = getEngine().getCFMLEngineFactory();
 
 		try {
 			return factory.getInstalledPatches();

@@ -14,6 +14,7 @@ import org.xml.sax.SAXException;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.ResourcesImpl.ResourceProviderFactory;
 import lucee.commons.lang.PhysicalClassLoader;
+import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.ai.AIEngineFactory;
 import lucee.runtime.ai.AIEnginePool;
 import lucee.runtime.config.gateway.GatewayMap;
@@ -1959,5 +1960,10 @@ public class ConfigWebImpl implements ConfigWebPro {
 	@Override
 	public AIEnginePool getAIEnginePool() {
 		return instance.getAIEnginePool();
+	}
+
+	@Override
+	public CFMLEngine getEngine() {
+		return instance.getEngine();
 	}
 }

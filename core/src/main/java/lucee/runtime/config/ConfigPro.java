@@ -19,6 +19,7 @@ import lucee.commons.lang.CharSet;
 import lucee.commons.lang.ClassException;
 import lucee.commons.lang.PhysicalClassLoader;
 import lucee.commons.lang.types.RefBoolean;
+import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.CIPage;
 import lucee.runtime.Mapping;
 import lucee.runtime.PageContext;
@@ -404,4 +405,6 @@ public interface ConfigPro extends Config {
 	public AIEngineFactory getAIEngineFactory(String name);
 
 	public AIEnginePool getAIEnginePool();
+
+	public CFMLEngine getEngine();
 }

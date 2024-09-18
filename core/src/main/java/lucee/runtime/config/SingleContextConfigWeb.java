@@ -39,6 +39,7 @@ import lucee.commons.lang.ClassException;
 import lucee.commons.lang.PhysicalClassLoader;
 import lucee.commons.lang.types.RefBoolean;
 import lucee.commons.lock.KeyLock;
+import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.CFMLFactory;
 import lucee.runtime.CFMLFactoryImpl;
 import lucee.runtime.CIPage;
@@ -2136,5 +2137,10 @@ class SingleContextConfigWeb extends ConfigBase implements ConfigWebInner {
 	@Override
 	public AIEnginePool getAIEnginePool() {
 		return cs.getAIEnginePool();
+	}
+
+	@Override
+	public CFMLEngine getEngine() {
+		return cs.getEngine();
 	}
 }

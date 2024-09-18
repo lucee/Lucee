@@ -3589,7 +3589,7 @@ public final class ConfigAdmin {
 	public void runUpdate(Password password) throws PageException {
 		checkWriteAccess();
 		ConfigServerImpl cs = (ConfigServerImpl) ConfigWebUtil.getConfigServer(config, password);
-		CFMLEngineFactory factory = cs.getCFMLEngine().getCFMLEngineFactory();
+		CFMLEngineFactory factory = cs.getEngine().getCFMLEngineFactory();
 
 		synchronized (factory) {
 			try {
@@ -3622,7 +3622,7 @@ public final class ConfigAdmin {
 		ConfigServerImpl cs = (ConfigServerImpl) ConfigWebUtil.getConfigServer(config, password);
 
 		try {
-			CFMLEngineFactory factory = cs.getCFMLEngine().getCFMLEngineFactory();
+			CFMLEngineFactory factory = cs.getEngine().getCFMLEngineFactory();
 
 			if (onlyLatest) {
 				factory.removeLatestUpdate(cs.getPassword());
@@ -3642,7 +3642,7 @@ public final class ConfigAdmin {
 		Log logger = cs.getLog("deploy");
 
 		try {
-			CFMLEngineFactory factory = cs.getCFMLEngine().getCFMLEngineFactory();
+			CFMLEngineFactory factory = cs.getEngine().getCFMLEngineFactory();
 			cleanUp(factory);
 			// do we have the core file?
 			final File patchDir = factory.getPatchDirectory();
@@ -3692,7 +3692,7 @@ public final class ConfigAdmin {
 		Log logger = cs.getLog("deploy");
 
 		try {
-			CFMLEngineFactory factory = cs.getCFMLEngine().getCFMLEngineFactory();
+			CFMLEngineFactory factory = cs.getEngine().getCFMLEngineFactory();
 			cleanUp(factory);
 			// do we have the core file?
 			final File patchDir = factory.getPatchDirectory();
@@ -3864,7 +3864,7 @@ public final class ConfigAdmin {
 	public void restart(Password password) throws PageException {
 		checkWriteAccess();
 		ConfigServerImpl cs = (ConfigServerImpl) ConfigWebUtil.getConfigServer(config, password);
-		CFMLEngineFactory factory = cs.getCFMLEngine().getCFMLEngineFactory();
+		CFMLEngineFactory factory = cs.getEngine().getCFMLEngineFactory();
 
 		synchronized (factory) {
 			try {
@@ -3878,7 +3878,7 @@ public final class ConfigAdmin {
 	}
 
 	public void restart(ConfigServerImpl cs) throws PageException {
-		CFMLEngineFactory factory = cs.getCFMLEngine().getCFMLEngineFactory();
+		CFMLEngineFactory factory = cs.getEngine().getCFMLEngineFactory();
 
 		synchronized (factory) {
 			try {

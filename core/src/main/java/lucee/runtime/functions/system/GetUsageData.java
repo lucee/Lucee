@@ -76,7 +76,7 @@ public final class GetUsageData implements Function {
 		ConfigServer cs = cw.getConfigServer("server");
 		ConfigWeb[] webs = cs.getConfigWebs();
 		CFMLEngineFactory.getInstance();
-		CFMLEngineImpl engine = (CFMLEngineImpl) cs.getCFMLEngine();
+		CFMLEngineImpl engine = (CFMLEngineImpl) cs.getEngine();
 
 		Struct sct = new StructImpl();
 

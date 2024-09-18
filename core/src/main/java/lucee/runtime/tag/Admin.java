@@ -1584,7 +1584,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		// Servlets
 		if (config instanceof ConfigServer) {
 			ConfigServer cs = (ConfigServer) config;
-			CFMLEngineImpl engine = (CFMLEngineImpl) cs.getCFMLEngine();
+			CFMLEngineImpl engine = (CFMLEngineImpl) cs.getEngine();
 			Struct srv = new StructImpl(), params;
 
 			ServletConfig[] configs = engine.getServletConfigs();
