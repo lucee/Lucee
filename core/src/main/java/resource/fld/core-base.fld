@@ -9637,8 +9637,8 @@ The following things are considered to be empty:
 			<description></description>
 		</argument>
 		<argument>
-			<name>message</name>
-			<alias>initalMesssage</alias>
+			<name>systemMessage</name>
+			<alias>initalMesssage,message</alias>
 			<type>string</type>
 			<required>no</required>
 			<description></description>
