@@ -32,7 +32,7 @@ public class ConfigImport extends BIF {
 		if (pathOrData instanceof CharSequence) res = ResourceUtil.toResourceExisting(pc, pathOrData.toString());
 		else if (pathOrData instanceof Map) data = Caster.toStruct(pathOrData);
 		else throw new FunctionException(pc, "ConfigFileImport", "first", "pathOrData",
-				"Invalid value for argument pathOrData, the argument must contain a string that points to a " + ConfigServerFactory.CONFIG_FILE_NAME
+				"Invalid value for argument pathOrData, the argument must contain a string that points to a " + ConfigServerFactory.CONFIG_FILE_NAMES[0]
 						+ " file or a struct containing the data itself.",
 				null);
 

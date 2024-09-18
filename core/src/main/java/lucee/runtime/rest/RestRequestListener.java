@@ -22,7 +22,6 @@ import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 
-import lucee.commons.lang.HTMLEntities;
 import lucee.commons.lang.mimetype.MimeType;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageSource;
@@ -76,11 +75,11 @@ public class RestRequestListener implements RequestListener {
 					+ ListUtil.listToListEL(sources, ", ") + "]";
 
 			if (PageContextUtil.show(pc)) {
-				RestUtil.setStatus(pc, 404, HTMLEntities.escapeHTML(msg + addDetail));
+				RestUtil.setStatus(pc, 404, msg + addDetail, true);
 
 			}
 			else {
-				RestUtil.setStatus(pc, 404, HTMLEntities.escapeHTML(msg));
+				RestUtil.setStatus(pc, 404, msg, true);
 
 			}
 			ThreadLocalPageContext.getLog(pc, "rest").info("REST", msg + addDetail);

@@ -37,7 +37,6 @@ import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.CFTypes;
 import lucee.commons.lang.ExceptionUtil;
-import lucee.commons.lang.HTMLEntities;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.mimetype.MimeType;
 import lucee.commons.net.HTTPUtil;
@@ -398,7 +397,7 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 						catch (NumberFormatException ne) {
 							status = 500;
 						}
-						RestUtil.setStatus(pc, status, cte.getMessage());
+						RestUtil.setStatus(pc, status, cte.getMessage(), true);
 						return;
 					}
 					else {
@@ -426,7 +425,7 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 			else {
 				msg = prefix;
 			}
-			RestUtil.setStatus(pc, 404, HTMLEntities.escapeHTML(msg));
+			RestUtil.setStatus(pc, 404, msg, true);
 			ThreadLocalPageContext.getLog(pc, "rest").info("REST", prefix + " in" + addDetail);
 		}
 		else if (status == 405) {
@@ -437,7 +436,7 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 			else {
 				msg = prefix;
 			}
-			RestUtil.setStatus(pc, 405, HTMLEntities.escapeHTML(msg));
+			RestUtil.setStatus(pc, 405, msg, true);
 			ThreadLocalPageContext.getLog(pc, "rest").info("REST", prefix + " for" + addDetail);
 		}
 		else if (status == 406) {
@@ -448,7 +447,7 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 			else {
 				msg = prefix;
 			}
-			RestUtil.setStatus(pc, 406, HTMLEntities.escapeHTML(msg));
+			RestUtil.setStatus(pc, 406, msg, true);
 			ThreadLocalPageContext.getLog(pc, "rest").info("REST", prefix + " for" + addDetail);
 		}
 
@@ -473,7 +472,7 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 			callRest(pc, subcomp, path, result, suppressContent);
 		}
 		else {
-			RestUtil.setStatus(pc, 500, "Subresource locator error.");
+			RestUtil.setStatus(pc, 500, "Subresource locator error.", false);
 		}
 	}
 
@@ -557,11 +556,9 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 			if (PageContextUtil.show(pc)) {
 				throw e;
 			}
-			else {
-				ThreadLocalPageContext.getLog(pc, "rest").error("REST", e);
-				RestUtil.setStatus(pc, 500, ExceptionUtil.getMessage(e, true));
-				return null;
-			}
+			ThreadLocalPageContext.getLog(pc, "rest").error("REST", e);
+			RestUtil.setStatus(pc, 500, ExceptionUtil.getMessage(e, true), true);
+			return null;
 		}
 		finally {
 			if (suppressContent) pc.unsetSilent();

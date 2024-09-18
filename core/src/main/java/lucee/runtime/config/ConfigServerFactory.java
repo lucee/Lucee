@@ -55,7 +55,7 @@ import lucee.transformer.library.tag.TagLibException;
 
 public final class ConfigServerFactory extends ConfigFactory {
 
-	public static final String CONFIG_FILE_NAME = ".CFConfig.json";
+	public static final String[] CONFIG_FILE_NAMES = new String[] { ".CFConfig.json", "config.json" };
 
 	/**
 	 * creates a new ServletConfig Impl Object
@@ -110,7 +110,7 @@ public final class ConfigServerFactory extends ConfigFactory {
 			Resource configFileOld = configDir.getRealResource("lucee-server.xml");
 
 			// config file
-			Resource configFileNew = getConfigFile(configDir);
+			Resource configFileNew = getConfigFile(configDir, true);
 
 			boolean hasConfigOld = false;
 			boolean hasConfigNew = configFileNew.exists() && configFileNew.length() > 0;
@@ -175,24 +175,31 @@ public final class ConfigServerFactory extends ConfigFactory {
 		}
 	}
 
-	public static Resource getConfigFile(Resource configDir) throws IOException {
+	public static Resource getConfigFile(Resource configDir, boolean server) throws IOException {
+		if (server) {
+			// lucee.base.config
+			String customCFConfig = SystemUtil.getSystemPropOrEnvVar("lucee.base.config", null);
+			Resource configFile = null;
+			if (!StringUtil.isEmpty(customCFConfig, true)) {
 
-		// lucee.base.config
-		String customCFConfig = SystemUtil.getSystemPropOrEnvVar("lucee.base.config", null);
-		Resource configFile = null;
-		if (!StringUtil.isEmpty(customCFConfig, true)) {
+				configFile = ResourcesImpl.getFileResourceProvider().getResource(customCFConfig.trim());
 
-			configFile = ResourcesImpl.getFileResourceProvider().getResource(customCFConfig.trim());
-
-			if (configFile.isFile()) {
-				LogUtil.log(Log.LEVEL_INFO, "deploy", "config", "using config File : " + configFile);
-				return configFile;
+				if (configFile.isFile()) {
+					LogUtil.log(Log.LEVEL_INFO, "deploy", "config", "using config File : " + configFile);
+					return configFile;
+				}
+				throw new IOException(
+						"the config file [" + configFile + "] defined with the environment variable [LUCEE_BASE_CONFIG] or system property [-Dlucee.base.config] does not exist.");
 			}
-			throw new IOException(
-					"the config file [" + configFile + "] defined with the environment variable [LUCEE_BASE_CONFIG] or system property [-Dlucee.base.config] does not exist.");
 		}
+		Resource res;
+		for (String cf: CONFIG_FILE_NAMES) {
+			res = configDir.getRealResource(cf);
+			if (res.isFile()) return res;
+		}
+
 		// default location
-		return configDir.getRealResource(CONFIG_FILE_NAME);
+		return configDir.getRealResource(CONFIG_FILE_NAMES[0]);
 	}
 
 	/**

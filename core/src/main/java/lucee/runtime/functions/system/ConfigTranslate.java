@@ -55,10 +55,10 @@ public class ConfigTranslate extends BIF {
 			if (!StringUtil.isEmpty(target, true)) {
 				if ("web".equalsIgnoreCase(target.trim())) {
 					Resource dir = ((ConfigWebPro) config).getWebConfigDir();
-					trg = dir.getRealResource(ConfigServerFactory.CONFIG_FILE_NAME);
+					trg = ConfigServerFactory.getConfigFile(dir, false);
 				}
 				else if ("server".equalsIgnoreCase(target.trim())) {
-					trg = ConfigServerFactory.getConfigFile(pc.getConfig().getConfigServerDir());
+					trg = ConfigServerFactory.getConfigFile(pc.getConfig().getConfigServerDir(), true);
 				}
 				if (trg == null) trg = Caster.toResource(pc, target, false);
 				if (!trg.getParentResource().isDirectory())
