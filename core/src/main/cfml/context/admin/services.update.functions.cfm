@@ -52,12 +52,24 @@
 	}
 
 	string function getUpdateForMajorVersion( array versions, numeric majorVersion ){
-		loop from="#arrayLen(arguments.versions)#" to="1" index="local.v" step="-1" {
-			if ( listfirst(arguments.versions[ v ],".") eq arguments.majorVersion ){
-				return arguments.versions[ v ];
+		elementArr = [];
+		returnStruct = structnew();
+		versions.each(function(element, index) {
+			if ( listfirst(element, ".") eq majorVersion ){
+				splitArr = listToArray(element,".");
+				res = listfirst(Replace(element, ".#splitArr[3]#", "#numberFormat(splitArr[3],"00")#"),"-");
+				finalEle = Replace(res, ".#listfirst(splitArr[4],"-")#", "#numberFormat(listfirst(splitArr[4],"-"),"000")#");
+				finalVerNum = int(Replace(finalEle, ".", "", "all"));
+				elementArr.append(finalVerNum);
+				returnStruct[finalVerNum] = element;
 			}
+		});
+		if (arrayLen(returnStruct)) {
+			return returnStruct[arrayMax(elementArr)];
 		}
-		return "";
+		else {
+			return "";
+		}
 	}
 
 </cfscript>
