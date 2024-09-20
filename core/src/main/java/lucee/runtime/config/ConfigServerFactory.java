@@ -202,6 +202,13 @@ public final class ConfigServerFactory extends ConfigFactory {
 		return configDir.getRealResource(CONFIG_FILE_NAMES[0]);
 	}
 
+	public static boolean isConfigFileName(String fileName) {
+		for (String fn: CONFIG_FILE_NAMES) {
+			if (fn.equalsIgnoreCase(fileName)) return true;
+		}
+		return false;
+	}
+
 	/**
 	 * reloads the Config Object
 	 * 
