@@ -42,7 +42,7 @@ public class CacheRegionRemove extends BIF {
 	}
 
 	static String _call(PageContext pc, String cacheName, String strWebAdminPassword) throws PageException {
-		Password webAdminPassword = CacheUtil.getPassword(pc, strWebAdminPassword, false);
+		Password webAdminPassword = CacheUtil.getPassword(pc, strWebAdminPassword);
 		try {
 			ConfigAdmin adminConfig = ConfigAdmin.newInstance(pc.getConfig(), webAdminPassword);
 			adminConfig.removeCacheConnection(cacheName);

@@ -25,7 +25,7 @@ import lucee.commons.lang.StringUtil;
 import lucee.runtime.Mapping;
 import lucee.runtime.MappingImpl;
 import lucee.runtime.PageContext;
-import lucee.runtime.config.ConfigWebUtil;
+import lucee.runtime.config.ConfigUtil;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.type.Array;
@@ -37,7 +37,7 @@ public final class PagePoolList implements Function {
 
 	public static Array call(PageContext pc) throws PageException {
 		ArrayImpl arr = new ArrayImpl();
-		fill(arr, ConfigWebUtil.getAllMappings(pc));
+		fill(arr, ConfigUtil.getAllMappings(pc));
 		return arr;
 	}
 

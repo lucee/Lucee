@@ -37,7 +37,7 @@ import lucee.runtime.PageSource;
 import lucee.runtime.cache.CacheConnection;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigPro;
-import lucee.runtime.config.ConfigWebUtil;
+import lucee.runtime.config.ConfigUtil;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.ExpressionException;
@@ -424,7 +424,7 @@ public final class Application extends TagImpl implements DynamicAttributes {
 	public void setScopecascading(String scopeCascading) throws ApplicationException {
 		if (StringUtil.isEmpty(scopeCascading)) return;
 		short NULL = -1;
-		short tmp = ConfigWebUtil.toScopeCascading(scopeCascading, NULL);
+		short tmp = ConfigUtil.toScopeCascading(scopeCascading, NULL);
 		if (tmp == NULL) throw new ApplicationException("invalid value (" + scopeCascading + ") for attribute [ScopeCascading], valid values are [strict,small,standard]");
 		this.scopeCascading = tmp;
 	}
@@ -434,7 +434,7 @@ public final class Application extends TagImpl implements DynamicAttributes {
 	}
 
 	public void setSearchimplicitscopes(boolean searchImplicitScopes) {
-		short tmp = ConfigWebUtil.toScopeCascading(searchImplicitScopes);
+		short tmp = ConfigUtil.toScopeCascading(searchImplicitScopes);
 		this.scopeCascading = tmp;
 	}
 

@@ -1,4 +1,3 @@
-<cfif not request.singlemode and request.admintype EQ "server"><cflocation url="#request.self#" addtoken="no"></cfif>
 <cfscript>
 	
 	
@@ -66,7 +65,6 @@
 	error.detail="";
 </cfscript>
 
-<cfif request.adminType EQ "web" OR request.singlemode>
 <!--- 
 Defaults --->
 <cfparam name="url.action2" default="list">
@@ -77,4 +75,3 @@ Defaults --->
 	<cfcase value="edit"><cfinclude template="services.schedule.edit.cfm"/></cfcase>
 	<cfcase value="create,#stText.Buttons.Create#"><cfinclude template="services.schedule.create.cfm"/></cfcase>
 </cfswitch>
-</cfif>

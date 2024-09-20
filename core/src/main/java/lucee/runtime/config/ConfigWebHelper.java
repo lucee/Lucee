@@ -133,7 +133,7 @@ public class ConfigWebHelper {
 				if (o instanceof SearchEngine) searchEngine = (SearchEngine) o;
 				else throw new ApplicationException("class [" + o.getClass().getName() + "] does not implement the interface SearchEngine");
 
-				searchEngine.init(cw, ConfigWebUtil.getFile(cw.getConfigDir(), ConfigWebUtil.translateOldPath(cw.getSearchEngineDirectory()), "search", cw.getConfigDir(),
+				searchEngine.init(cw, ConfigUtil.getFile(cw.getConfigDir(), ConfigUtil.translateOldPath(cw.getSearchEngineDirectory()), "search", cw.getConfigDir(),
 						FileUtil.TYPE_DIR, ResourceUtil.LEVEL_GRAND_PARENT_FILE, cw));
 			}
 			catch (Exception e) {

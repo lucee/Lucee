@@ -108,10 +108,8 @@ public final class TimeFormat extends BaseFormat implements Format {
 					break;
 				// RFC 822 TimeZone
 				case 'Z': {
-					int count = 1;
 					while (mask.length() > pos + 1 && mask.charAt(pos + 1) == 'Z') {
 						pos++;
-						count++;
 					}
 					formated.append(lucee.runtime.format.DateFormat.Z(time, tz));
 				}

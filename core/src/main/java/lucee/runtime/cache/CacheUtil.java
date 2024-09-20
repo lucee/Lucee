@@ -370,7 +370,7 @@ public class CacheUtil {
 	 * @return
 	 * @throws lucee.runtime.exp.SecurityException
 	 */
-	public static Password getPassword(PageContext pc, String password, boolean server) throws lucee.runtime.exp.SecurityException { // TODO: move this to a utility class in a more
+	public static Password getPassword(PageContext pc, String password) throws lucee.runtime.exp.SecurityException { // TODO: move this to a utility class in a more
 		// generic package?
 		// no password passed
 		if (StringUtil.isEmpty(password, true)) {
@@ -383,6 +383,6 @@ public class CacheUtil {
 				"A Web Admin Password is required to manipulate Cache connections. " + "You can either pass the password as an argument to this function, or set it in "
 						+ (Constants.CFML_APPLICATION_EVENT_HANDLER) + " with the variable [this.webAdminPassword].");
 
-		return PasswordImpl.passwordToCompare(pc.getConfig(), server, password);
+		return PasswordImpl.passwordToCompare(pc.getConfig(), password);
 	}
 }

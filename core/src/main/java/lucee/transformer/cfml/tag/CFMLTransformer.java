@@ -33,7 +33,7 @@ import lucee.commons.lang.types.RefBooleanImpl;
 import lucee.runtime.MappingImpl;
 import lucee.runtime.PageSource;
 import lucee.runtime.config.ConfigPro;
-import lucee.runtime.config.ConfigWebUtil;
+import lucee.runtime.config.ConfigUtil;
 import lucee.runtime.config.Constants;
 import lucee.runtime.config.Identification;
 import lucee.runtime.exp.ApplicationException;
@@ -280,7 +280,7 @@ public final class CFMLTransformer {
 			_tlibs[TAG_LIB_PAGE] = new TagLib[0];
 		}
 
-		Page page = new Page(factory, config, sc, null, ConfigWebUtil.getEngine(config).getInfo().getFullVersionInfo(), sourceLastModified, sc.getWriteLog(),
+		Page page = new Page(factory, config, sc, null, ConfigUtil.getEngine(config).getInfo().getFullVersionInfo(), sourceLastModified, sc.getWriteLog(),
 				config.getSuppressWSBeforeArg(), config.getDefaultFunctionOutput(), returnValue, ignoreScope);
 
 		TransfomerSettings settings = new TransfomerSettings(dnuc, config.getHandleUnQuotedAttrValueAsString(), ignoreScope);

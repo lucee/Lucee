@@ -1,5 +1,3 @@
-<cfif not request.singlemode and request.admintype EQ "server"><cflocation url="#request.self#" addtoken="no"></cfif>
-
 <cfset error.message="">
 <cfset error.detail="">
 <cfparam name="url.action2" default="list">

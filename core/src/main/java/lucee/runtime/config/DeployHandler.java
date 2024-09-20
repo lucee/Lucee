@@ -127,7 +127,7 @@ public class DeployHandler {
 			if (config instanceof ConfigServer) {
 				String extensionIds = StringUtil.unwrap(SystemUtil.getSystemPropOrEnvVar("lucee-extensions", null)); // old no longer used
 				if (StringUtil.isEmpty(extensionIds, true)) extensionIds = StringUtil.unwrap(SystemUtil.getSystemPropOrEnvVar("lucee.extensions", null));
-				CFMLEngineImpl engine = (CFMLEngineImpl) ConfigWebUtil.getEngine(config);
+				CFMLEngineImpl engine = (CFMLEngineImpl) ConfigUtil.getEngine(config);
 				if (engine != null && !StringUtil.isEmpty(extensionIds, true) && !extensionIds.equals(engine.getEnvExt())) {
 					try {
 						engine.setEnvExt(extensionIds);
@@ -303,7 +303,7 @@ public class DeployHandler {
 					// check if the zip is valid
 					if (res instanceof File) {
 						if (!IsZipFile.invoke((File) res)) {
-							CFMLEngineImpl engine = CFMLEngineImpl.toCFMLEngineImpl(ConfigWebUtil.getEngine(config));
+							CFMLEngineImpl engine = CFMLEngineImpl.toCFMLEngineImpl(ConfigUtil.getEngine(config));
 							engine.deployBundledExtension(true);
 							if (IsZipFile.invoke((File) res)) {
 								continue; // we start over that part

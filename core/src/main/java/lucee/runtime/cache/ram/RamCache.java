@@ -40,7 +40,7 @@ import lucee.runtime.cache.ram.ref.HardRef;
 import lucee.runtime.cache.ram.ref.Ref;
 import lucee.runtime.cache.ram.ref.SoftRef;
 import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigWebUtil;
+import lucee.runtime.config.ConfigUtil;
 import lucee.runtime.engine.CFMLEngineImpl;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.op.Caster;
@@ -75,7 +75,7 @@ public class RamCache extends CacheSupport {
 	public RamCache() {
 		Config config = ThreadLocalPageContext.getConfig();
 		if (config != null) {
-			CFMLEngineImpl engine = CFMLEngineImpl.toCFMLEngineImpl(ConfigWebUtil.getEngine(config), null);
+			CFMLEngineImpl engine = CFMLEngineImpl.toCFMLEngineImpl(ConfigUtil.getEngine(config), null);
 			if (engine != null) {
 				controller = new Controler(engine, this);
 				controller.start();
@@ -88,7 +88,7 @@ public class RamCache extends CacheSupport {
 		// RamCache is also used without calling init, because of that we have this test in constructor and
 		// here
 		if (controller == null) {
-			CFMLEngineImpl engine = CFMLEngineImpl.toCFMLEngineImpl(ConfigWebUtil.getEngine(config), null);
+			CFMLEngineImpl engine = CFMLEngineImpl.toCFMLEngineImpl(ConfigUtil.getEngine(config), null);
 			if (engine != null) {
 				controller = new Controler(engine, this);
 				controller.start();

@@ -58,7 +58,7 @@ import lucee.runtime.PageSourceImpl;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.config.ConfigWebPro;
-import lucee.runtime.config.ConfigWebUtil;
+import lucee.runtime.config.ConfigUtil;
 import lucee.runtime.config.Constants;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ExpressionException;
@@ -471,7 +471,7 @@ public final class ResourceUtil {
 
 		// Parent
 		Resource parent = res.getParentResource();
-		if (level >= LEVEL_PARENT_FILE && parent != null && parent.exists() && canRW(parent) && !ConfigWebUtil.hasPlaceholder(res.getAbsolutePath())) {
+		if (level >= LEVEL_PARENT_FILE && parent != null && parent.exists() && canRW(parent) && !ConfigUtil.hasPlaceholder(res.getAbsolutePath())) {
 			if (asDir) {
 				if (res.mkdirs()) return getCanonicalResourceEL(res);
 			}
@@ -484,7 +484,7 @@ public final class ResourceUtil {
 		// Grand Parent
 		if (level >= LEVEL_GRAND_PARENT_FILE && parent != null) {
 			Resource gparent = parent.getParentResource();
-			if (gparent != null && gparent.exists() && canRW(gparent) && !ConfigWebUtil.hasPlaceholder(res.getAbsolutePath())) {
+			if (gparent != null && gparent.exists() && canRW(gparent) && !ConfigUtil.hasPlaceholder(res.getAbsolutePath())) {
 				if (asDir) {
 					if (res.mkdirs()) return getCanonicalResourceEL(res);
 				}

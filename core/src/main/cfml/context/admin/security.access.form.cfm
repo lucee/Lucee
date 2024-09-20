@@ -56,7 +56,7 @@
 
 
 
-<cfif not request.singlemode>
+<cfif false>
 <!--- <cfformClassic onerror="customError" action="#go(url.action,"update#iif(type EQ "generell",de('Default'),de(''))#SecurityManager")#" method="post">--->
 		<h2>#stText.Security.WebAdministrator#</h2>
 		<div class="itemintro">#stText.Security.WebAdministratorDescription#</div>

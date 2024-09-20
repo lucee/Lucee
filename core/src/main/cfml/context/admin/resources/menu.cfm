@@ -1,7 +1,6 @@
 <cffunction name="createMenu" returntype="array" localmode="modern">
 	<cfargument name="stMenu" type="struct" required="yes">
 	<cfargument name="adminType" type="string" required="yes">
-	<cfargument name="singleMode" type="string" required="yes">
 	<cfset var MenuStruct = 
 	array(
 		struct(
@@ -37,18 +36,18 @@
 		struct(
 			action:"services",label:arguments.stMenu.services.label,
 			children:array(
-				struct(action:"ai",label:arguments.stMenu.services.ai,hidden: arguments.adminType EQ "web" and not arguments.singlemode),
-				struct(action:"gateway",label:arguments.stMenu.services.gateway,hidden: arguments.adminType NEQ "web" and not arguments.singlemode),
+				struct(action:"ai",label:arguments.stMenu.services.ai),
+				struct(action:"gateway",label:arguments.stMenu.services.gateway),
 				struct(action:"cache",label:arguments.stMenu.services.cache),
 				struct(action:"datasource",label:arguments.stMenu.services.datasource),
 				struct(action:"orm",label:arguments.stMenu.services.orm),
-				struct(action:"search",label:arguments.stMenu.services.search,hidden: arguments.adminType NEQ "web" and not arguments.singlemode),
+				struct(action:"search",label:arguments.stMenu.services.search),
 				struct(action:"mail",label:arguments.stMenu.services.mail),
 				struct(action:"tasks",label:arguments.stMenu.services.tasks),
-				struct(action:"schedule",label:arguments.stMenu.services.schedule,hidden:arguments.adminType NEQ "web" and not arguments.singlemode),
-				struct(action:"update",label:arguments.stMenu.services.update,hidden:arguments.adminType EQ "web" and not arguments.singlemode,display:true),
-				struct(action:"restart",label:arguments.stMenu.services.restart,hidden:arguments.adminType EQ "web" and not arguments.singlemode,display:true),
-				struct(action:"certificates",label:arguments.stMenu.services.certificates,hidden:arguments.adminType EQ "web" and not arguments.singlemode,display:true)
+				struct(action:"schedule",label:arguments.stMenu.services.schedule),
+				struct(action:"update",label:arguments.stMenu.services.update,display:true),
+				struct(action:"restart",label:arguments.stMenu.services.restart,display:true),
+				struct(action:"certificates",label:arguments.stMenu.services.certificates,display:true)
 				
 			)
 		),
@@ -87,7 +86,7 @@
 		),
 		struct(action:"security",label:arguments.stMenu.security.label,
 			children:array(
-				struct(action:"access",label:arguments.stMenu.security.access,hidden:arguments.adminType NEQ "server" and not arguments.singlemode),
+				struct(action:"access",label:arguments.stMenu.security.access),
 				struct(action:"password",label:arguments.stMenu.security.password,display:true)
 			)
 		)/*,

@@ -276,7 +276,6 @@ public class VariableImpl extends ExpressionBase implements Variable {
 	}
 
 	private Type _writeOutListener(BytecodeContext bc, int mode, Boolean asCollection) throws TransformerException {
-		GeneratorAdapter ga = bc.getAdapter();
 		TagThread tt = new TagThread(bc.getFactory(), getStart(), listener.getEnd());
 		TagLibTag tlt = TagUtil.getTagLibTag((ConfigPro) ThreadLocalPageContext.getConfig(), "cf", "thread");
 		tt.outputName();

@@ -95,8 +95,7 @@
 					<td colspan="2"><cfoutput>
 						<input type="hidden" name="mainAction" value="#stText.Buttons.Setting#">
 						<input type="submit" class="bl button submit" name="_mainAction" value="#stText.Buttons.Update#">
-						<input type="reset" class="<cfif request.adminType EQ "web">bm<cfelse>br</cfif> button reset" name="canel" value="#stText.Buttons.Cancel#">
-						<cfif request.singlemode or request.adminType EQ "web"><input class="br button submit" type="submit" name="_mainAction" value="#stText.Buttons.resetServerAdmin#"></cfif>
+						<input type="reset" class="br button reset" name="canel" value="#stText.Buttons.Cancel#">
 					</cfoutput></td>
 				</tr>
 			</tfoot>

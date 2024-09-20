@@ -286,8 +286,7 @@ Error Output --->
 					<tr>
 						<td colspan="2">
 							<input type="submit" class="bl button submit" name="mainAction1" value="#stText.Buttons.Update#">
-							<input type="reset" class="<cfif request.adminType EQ "web">bm<cfelse>br</cfif> button reset" name="cancel" value="#stText.Buttons.Cancel#">
-							<cfif not request.singleMode and request.adminType EQ "web"><input class="br button submit" type="submit" name="mainAction1" value="#stText.Buttons.resetServerAdmin#"></cfif>
+							<input type="reset" class="br button reset" name="cancel" value="#stText.Buttons.Cancel#">
 						</td>
 					</tr>
 				</tfoot>
@@ -410,8 +409,7 @@ Error Output --->
 					<tr>
 						<td colspan="2">
 							<input type="submit" class="bl button submit" name="mainAction1" value="#stText.Buttons.Update#">
-							<input type="reset" class="<cfif request.adminType EQ "web">bm<cfelse>br</cfif> button reset" name="cancel" value="#stText.Buttons.Cancel#">
-							<cfif not request.singleMode and request.adminType EQ "web"><input class="br button submit" type="submit" name="mainAction1" value="#stText.Buttons.resetServerAdmin#"></cfif>
+							<input type="reset" class="br button reset" name="cancel" value="#stText.Buttons.Cancel#">
 						</td>
 					</tr>
 				</tfoot>
@@ -543,8 +541,7 @@ Error Output --->
 					<tr>
 						<td colspan="2">
 							<input type="submit" class="bl button submit" name="mainAction1" value="#stText.Buttons.Update#">
-							<input type="reset" class="<cfif request.adminType EQ "web">bm<cfelse>br</cfif> button reset" name="cancel" value="#stText.Buttons.Cancel#">
-							<cfif not request.singleMode and request.adminType EQ "web"><input class="br button submit" type="submit" name="mainAction1" value="#stText.Buttons.resetServerAdmin#"></cfif>
+							<input type="reset" class="br button reset" name="cancel" value="#stText.Buttons.Cancel#">
 						</td>
 					</tr>
 				</tfoot>
@@ -688,8 +685,7 @@ Error Output --->
 					<tr>
 						<td colspan="2">
 							<input type="submit" class="bl button submit" name="mainAction2" value="#stText.Buttons.Update#">
-							<input type="reset" class="<cfif request.adminType EQ "web">bm<cfelse>br</cfif> button reset" name="cancel" value="#stText.Buttons.Cancel#">
-							<cfif not request.singleMode and request.adminType EQ "web"><input class="br button submit" type="submit" name="mainAction2" value="#stText.Buttons.resetServerAdmin#"></cfif>
+							<input type="reset" class="br button reset" name="cancel" value="#stText.Buttons.Cancel#">
 						</td>
 					</tr>
 				</tfoot>

@@ -35,7 +35,7 @@ import lucee.runtime.PageSource;
 import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.config.ConfigWebPro;
-import lucee.runtime.config.ConfigWebUtil;
+import lucee.runtime.config.ConfigUtil;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.net.http.ReqRspUtil;
@@ -100,7 +100,7 @@ public final class ExpandPath implements Function {
 			// cwi.getPhysicalResources(pc,pc.getApplicationContext().getMappings(),realPath,false,pci.useSpecialMappings(),true);
 
 		}
-		relPath = ConfigWebUtil.replacePlaceholder(relPath, config);
+		relPath = ConfigUtil.replacePlaceholder(relPath, config);
 		res = pc.getConfig().getResource(relPath);
 		if (res.isAbsolute()) return toReturnValue(relPath, res);
 

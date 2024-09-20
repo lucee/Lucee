@@ -37,37 +37,6 @@ function checkTheBox(field) {
 	<cfswitch expression="#url.action2#">
 	<!--- UPDATE --->
 		<cfcase value="updateDefaultSecurityManager">
-        	<cfif not request.singlemode>
-				<cfadmin 
-					action="updateDefaultSecurityManager"
-					type="#request.adminType#"
-					password="#session["password"&request.adminType]#"
-					
-					setting="#fb('defaultSetting')#"
-					file="#form.defaultFile#"
-					file_access="#getFileAccessPath()#"
-					direct_java_access="#fb('defaultDirectJavaAccess')#"
-					mail="#fb('defaultMail')#"
-					datasource="#form.defaultDatasource#"
-					mapping="#fb('defaultMapping')#"
-					remote="#fb('defaultRemote')#"
-					custom_tag="#fb('defaultCustomTag')#"
-					cfx_setting="#fb('defaultCfxSetting')#"
-					cfx_usage="#fb('defaultCfxUsage')#"
-					debugging="#fb('defaultDebugging')#"
-					search="#fb('defaultSearch')#"
-					scheduled_task="#fb('defaultScheduledTask')#"
-					tag_execute="#fb('defaultTagExecute')#"
-					tag_import="#fb('defaultTagImport')#"
-					tag_object="#fb('defaultTagObject')#"
-					tag_registry="#fb('defaultTagRegistry')#"
-					cache="#fb('defaultCache')#"
-					gateway="#fb('defaultGateway')#"
-					orm="#fb('defaultOrm')#"
-					access_read="#form.defaultaccess_read#"
-					access_write="#form.defaultaccess_write#"
-				remoteClients="#request.getRemoteClients()#">
-			<cfelse>
 				<cfadmin 
 					action="updateDefaultSecurityManager"
 					type="#request.adminType#"
@@ -76,7 +45,6 @@ function checkTheBox(field) {
 					access_read="#form.defaultaccess_read#"
 					access_write="#form.defaultaccess_write#"
 					remoteClients="#request.getRemoteClients()#">
-			</cfif>
 		</cfcase>
 		<cfcase value="updateSecurityManager">
 			<cfadmin 
@@ -159,7 +127,6 @@ Error Output --->
 <cfset tabs.special=stText.Security.tabSpecial>
 
 
-<cfif request.singlemode>
 	<cfset type="generell">
 	<cfadmin 
 		action="getDefaultSecurityManager"
@@ -167,27 +134,3 @@ Error Output --->
 		password="#session["password"&request.adminType]#"
 		returnVariable="access">
 	<cfinclude template="security.access.form.cfm">
-<!--- multi mode --->
-<cfelse>
-	<cfoutput><div class="pageintro">#stText.Security.desc#</div></cfoutput>
-	<cfmodule template="tabbedPane.cfm" name="sec" tabs="#tabs#" default="generell">
-		<cfmodule template="tab.cfm" name="generell">
-			<!---
-			<cfoutput><div class="itemintro">#stText.Security.generalDesc#</div></cfoutput>
-			--->
-			<cfset type="generell">
-			<cfadmin 
-				action="getDefaultSecurityManager"
-				type="#request.adminType#"
-				password="#session["password"&request.adminType]#"
-				returnVariable="access">
-				
-			<cfinclude template="security.access.form.cfm">
-		</cfmodule>
-		<cfmodule template="tab.cfm" name="special">
-			<cfoutput><div class="itemintro">#stText.Security.specialDesc#</div></cfoutput>
-			<cfset type="special">
-			<cfinclude template="security.access.special.cfm">
-		</cfmodule>
-	</cfmodule>
-</cfif>

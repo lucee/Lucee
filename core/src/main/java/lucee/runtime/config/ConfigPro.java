@@ -27,6 +27,7 @@ import lucee.runtime.PageSource;
 import lucee.runtime.ai.AIEngineFactory;
 import lucee.runtime.ai.AIEnginePool;
 import lucee.runtime.cache.tag.CacheHandler;
+import lucee.runtime.compiler.CFMLCompilerImpl;
 import lucee.runtime.component.ImportDefintion;
 import lucee.runtime.customtag.InitFile;
 import lucee.runtime.db.ClassDefinition;
@@ -353,8 +354,6 @@ public interface ConfigPro extends Config {
 
 	public void setPassword(Password pw);
 
-	public short getAdminMode();
-
 	public PageSource getApplicationPageSource(PageContext pc, String path, String filename, int mode, RefBoolean isCFC);
 
 	public void putApplicationPageSource(String path, PageSource ps, String filename, int mode, boolean isCFC);
@@ -407,4 +406,8 @@ public interface ConfigPro extends Config {
 	public AIEnginePool getAIEnginePool();
 
 	public CFMLEngine getEngine();
+
+	public void checkMappings();
+
+	public CFMLCompilerImpl getCompiler();
 }

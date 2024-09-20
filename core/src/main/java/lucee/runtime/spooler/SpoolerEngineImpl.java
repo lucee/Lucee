@@ -41,7 +41,7 @@ import lucee.commons.lang.StringUtil;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigWeb;
-import lucee.runtime.config.ConfigWebUtil;
+import lucee.runtime.config.ConfigUtil;
 import lucee.runtime.converter.JavaConverter;
 import lucee.runtime.engine.ThreadLocalConfig;
 import lucee.runtime.engine.ThreadLocalPageContext;
@@ -128,7 +128,7 @@ public class SpoolerEngineImpl implements SpoolerEngine {
 	@Override
 
 	public synchronized void add(SpoolerTask task) {
-		add(ConfigWebUtil.toConfigWeb(ThreadLocalPageContext.getConfig()), task);
+		add(ConfigUtil.toConfigWeb(ThreadLocalPageContext.getConfig()), task);
 	}
 
 	public synchronized void add(ConfigWeb config, SpoolerTask task) {
@@ -558,7 +558,7 @@ public class SpoolerEngineImpl implements SpoolerEngine {
 	 */
 	@Override
 	public void remove(SpoolerTask task) {
-		unstore(ConfigWebUtil.toConfigWeb(ThreadLocalPageContext.getConfig()), task);
+		unstore(ConfigUtil.toConfigWeb(ThreadLocalPageContext.getConfig()), task);
 		// if(!openTasks.remove(task))closedTasks.remove(task);
 	}
 
@@ -609,7 +609,7 @@ public class SpoolerEngineImpl implements SpoolerEngine {
 
 	@Override
 	public PageException execute(SpoolerTask task) {
-		return execute(ConfigWebUtil.toConfigWeb(ThreadLocalPageContext.getConfig()), task);
+		return execute(ConfigUtil.toConfigWeb(ThreadLocalPageContext.getConfig()), task);
 	}
 
 	public PageException execute(ConfigWeb config, SpoolerTask task) {

@@ -32,7 +32,7 @@ import lucee.commons.lang.Md5;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageSource;
 import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigWebUtil;
+import lucee.runtime.config.ConfigUtil;
 import lucee.runtime.exp.TemplateException;
 import lucee.transformer.bytecode.statement.tag.Attribute;
 import lucee.transformer.bytecode.statement.tag.Tag;
@@ -96,7 +96,7 @@ public final class Import extends EvaluatorSupport {
 		if (textTagLib == null) throw new TemplateException(sc, "attribute [taglib] must be a constant value");
 
 		textTagLib = textTagLib.replace('\\', '/');
-		textTagLib = ConfigWebUtil.replacePlaceholder(textTagLib, config);
+		textTagLib = ConfigUtil.replacePlaceholder(textTagLib, config);
 		// File TagLib
 		String ext = ResourceUtil.getExtension(textTagLib, null);
 		boolean hasTldExtension = "tld".equalsIgnoreCase(ext) || "tldx".equalsIgnoreCase(ext);

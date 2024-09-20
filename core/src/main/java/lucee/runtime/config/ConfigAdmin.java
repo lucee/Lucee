@@ -53,7 +53,7 @@ import org.xml.sax.SAXException;
 
 import com.allaire.cfx.CustomTag;
 
-import lucee.aprint;
+import lucee.print;
 import lucee.commons.digest.MD5;
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.FileUtil;
@@ -215,11 +215,11 @@ public final class ConfigAdmin {
 	}
 
 	private void checkWriteAccess() throws SecurityException {
-		if (!optionalPW) ConfigWebUtil.checkGeneralWriteAccess(config, password);
+		if (!optionalPW) ConfigUtil.checkGeneralWriteAccess(config, password);
 	}
 
 	private void checkReadAccess() throws SecurityException {
-		if (!optionalPW) ConfigWebUtil.checkGeneralReadAccess(config, password);
+		if (!optionalPW) ConfigUtil.checkGeneralReadAccess(config, password);
 	}
 
 	/**
@@ -269,7 +269,7 @@ public final class ConfigAdmin {
 		else {
 			ConfigServerImpl cs = (ConfigServerImpl) config;
 			ConfigWebImpl cw = (ConfigWebImpl) cs.getConfigWeb(contextPath);
-			if (cw != null) cw.updatePassword(false, cw.getPassword(), null);
+			// MUST if (cw != null) cw.updatePassword(false, cw.getPassword(), null);
 		}
 	}
 
@@ -325,36 +325,28 @@ public final class ConfigAdmin {
 	private synchronized void _store() throws ConverterException, IOException {
 		JSONConverter json = new JSONConverter(true, CharsetUtil.UTF8, JSONDateFormat.PATTERN_CF, false);
 		String str = json.serialize(null, root, SerializationSettings.SERIALIZE_AS_ROW, true);
+		print.e(config.getConfigFile());
+		print.e(str);
 		IOUtil.write(config.getConfigFile(), str, CharsetUtil.UTF8, false);
 	}
 
 	private synchronized void _reload() throws PageException, ClassException, IOException, TagLibException, FunctionLibException, BundleException {
-
+		print.e("------------ _reload -----------------");
+		print.e(config);
 		// if(storeInMemoryData)XMLCaster.writeTo(doc,config.getConfigFile());
-		CFMLEngine engine = ConfigWebUtil.getEngine(config);
-		if (config instanceof ConfigServerImpl) {
-
-			ConfigServerImpl cs = (ConfigServerImpl) config;
-			ConfigServerFactory.reloadInstance(engine, cs);
-			ConfigWeb[] webs = cs.getConfigWebs();
-			for (ConfigWeb web: webs) {
-				ConfigWebFactory.reloadInstance(engine, (ConfigServerImpl) config, (ConfigWebImpl) web, true);
-
-			}
+		CFMLEngine engine = ConfigUtil.getEngine(config);
+		ConfigServerImpl cs;
+		if (config instanceof ConfigWebImpl) {
+			cs = ((ConfigWebImpl) config).getConfigServerImpl();
 		}
-		else if (config instanceof ConfigWebImpl) {
-			ConfigServerImpl cs = ((ConfigWebImpl) config).getConfigServerImpl();
-			ConfigWebFactory.reloadInstance(engine, cs, (ConfigWebImpl) config, false);
+		else {
+			cs = (ConfigServerImpl) config;
 		}
-		else if (config instanceof SingleContextConfigWeb) {
-			if (true) throw new RuntimeException("important exception, please report to Lucee");
-			// TODO remove this this should never happening
-			aprint.ds();
-			SingleContextConfigWeb sccw = (SingleContextConfigWeb) config;
 
-			ConfigServerImpl cs = sccw.getConfigServerImpl();
-			ConfigServerFactory.reloadInstance(engine, cs);
-			sccw.reload();
+		ConfigServerFactory.reloadInstance(engine, cs);
+		ConfigWeb[] webs = cs.getConfigWebs();
+		for (ConfigWeb web: webs) {
+			ConfigWebFactory.reloadInstance(engine, cs, (ConfigWebImpl) web, true);
 		}
 	}
 
@@ -366,7 +358,7 @@ public final class ConfigAdmin {
 
 	public void setTaskMaxThreads(Integer maxThreads) throws SecurityException {
 		checkWriteAccess();
-		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
+		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 		if (!hasAccess) throw new SecurityException("no access to update task settings");
 		Struct mail = _getRootElement("remoteClients");
 		mail.setEL("maxThreads", Caster.toString(maxThreads, ""));
@@ -382,12 +374,12 @@ public final class ConfigAdmin {
 	public void setMailLog(Config config, String logFile, String level) throws PageException {
 		ConfigPro ci = (ConfigPro) config;
 		checkWriteAccess();
-		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_MAIL);
+		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_MAIL);
 
 		if (!hasAccess) throw new SecurityException("no access to update mail server settings");
-		ConfigWebUtil.getFile(config, config.getRootDirectory(), logFile, FileUtil.TYPE_FILE);
+		ConfigUtil.getFile(config, config.getRootDirectory(), logFile, FileUtil.TYPE_FILE);
 
-		Struct loggers = ConfigWebUtil.getAsStruct("loggers", root);
+		Struct loggers = ConfigUtil.getAsStruct("loggers", root);
 		Struct logger = Caster.toStruct(loggers.get(KeyConstants._mail, null), null);
 
 		if (logger == null) {
@@ -414,7 +406,7 @@ public final class ConfigAdmin {
 	 */
 	public void setMailSpoolEnable(Boolean spoolEnable) throws SecurityException {
 		checkWriteAccess();
-		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_MAIL);
+		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_MAIL);
 
 		if (!hasAccess) throw new SecurityException("no access to update mail server settings");
 		root.setEL("mailSpoolEnable", Caster.toString(spoolEnable, ""));
@@ -428,7 +420,7 @@ public final class ConfigAdmin {
 	 */
 	public void setMailTimeout(Integer timeout) throws SecurityException {
 		checkWriteAccess();
-		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_MAIL);
+		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_MAIL);
 		if (!hasAccess) throw new SecurityException("no access to update mail server settings");
 		root.setEL("mailConnectionTimeout", Caster.toString(timeout, ""));
 	}
@@ -441,7 +433,7 @@ public final class ConfigAdmin {
 	 */
 	public void setMailDefaultCharset(String charset) throws PageException {
 		checkWriteAccess();
-		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_MAIL);
+		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_MAIL);
 		if (!hasAccess) throw new SecurityException("no access to update mail server settings");
 
 		if (!StringUtil.isEmpty(charset)) {
@@ -470,7 +462,7 @@ public final class ConfigAdmin {
 	public void updateMailServer(int id, String hostName, String username, String password, int port, boolean tls, boolean ssl, long lifeTimeSpan, long idleTimeSpan,
 			boolean reuseConnections) throws PageException {
 		checkWriteAccess();
-		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_MAIL);
+		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_MAIL);
 		if (!hasAccess) throw new SecurityException("no access to update mail server settings");
 
 		if (port < 1) port = 21;
@@ -478,7 +470,7 @@ public final class ConfigAdmin {
 		if (hostName == null || hostName.trim().length() == 0) throw new ExpressionException("Host (SMTP) cannot be an empty value");
 		hostName = hostName.trim();
 
-		Array children = ConfigWebUtil.getAsArray("mailServers", root);
+		Array children = ConfigUtil.getAsArray("mailServers", root);
 
 		boolean checkId = id > 0;
 
@@ -512,7 +504,7 @@ public final class ConfigAdmin {
 		}
 		server.setEL("smtp", hostName);
 		server.setEL(KeyConstants._username, username);
-		server.setEL(KeyConstants._password, ConfigWebUtil.encrypt(password));
+		server.setEL(KeyConstants._password, ConfigUtil.encrypt(password));
 		server.setEL(KeyConstants._port, (port));
 		server.setEL("tls", (tls));
 		server.setEL("ssl", (ssl));
@@ -529,7 +521,7 @@ public final class ConfigAdmin {
 	 */
 	public void removeMailServer(String hostName, String username) throws SecurityException {
 		checkWriteAccess();
-		Array children = ConfigWebUtil.getAsArray("mailServers", root);
+		Array children = ConfigUtil.getAsArray("mailServers", root);
 		Key[] keys = children.keys();
 		String _hostName, _username;
 		if (children.size() > 0) {
@@ -549,7 +541,7 @@ public final class ConfigAdmin {
 
 	public void removeLogSetting(String name) throws SecurityException {
 		checkWriteAccess();
-		Struct children = ConfigWebUtil.getAsStruct("loggers", root);
+		Struct children = ConfigUtil.getAsStruct("loggers", root);
 		if (children.size() > 0) {
 			String _name;
 			Key[] keys = children.keys();
@@ -694,8 +686,7 @@ public final class ConfigAdmin {
 
 	private void _updateMapping(String virtual, String physical, String archive, String primary, short inspect, int inspectTemplateIntervalSlow, int inspectTemplateIntervalFast,
 			boolean toplevel, int listenerMode, int listenerType, boolean readOnly) throws ExpressionException, SecurityException {
-
-		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_MAPPING);
+		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_MAPPING);
 		virtual = virtual.trim();
 		if (physical == null) physical = "";
 		else physical = physical.trim();
@@ -719,7 +710,7 @@ public final class ConfigAdmin {
 
 		if (!isArchive && archive.length() > 0 && physical.length() == 0) isArchive = true;
 
-		Struct children = ConfigWebUtil.getAsStruct("mappings", root);
+		Struct children = ConfigUtil.getAsStruct("mappings", root);
 		Key[] keys = children.keys();
 		Struct el = null;
 		for (Key key: keys) {
@@ -765,7 +756,7 @@ public final class ConfigAdmin {
 		el.setEL("primary", isArchive ? "archive" : "physical");
 
 		// listener-type
-		String type = ConfigWebUtil.toListenerType(listenerType, null);
+		String type = ConfigUtil.toListenerType(listenerType, null);
 		if (type != null) {
 			el.setEL("listenerType", type);
 		}
@@ -774,7 +765,7 @@ public final class ConfigAdmin {
 		}
 
 		// listener-mode
-		String mode = ConfigWebUtil.toListenerMode(listenerMode, null);
+		String mode = ConfigUtil.toListenerMode(listenerMode, null);
 		if (mode != null) {
 			el.setEL("listenerMode", mode);
 		}
@@ -783,7 +774,7 @@ public final class ConfigAdmin {
 		}
 
 		// others
-		String str = ConfigWebUtil.inspectTemplate(inspect, "");
+		String str = ConfigUtil.inspectTemplate(inspect, "");
 		if (!StringUtil.isEmpty(str)) el.setEL("inspectTemplate", str);
 		else el.removeEL(KeyImpl.init("inspectTemplate"));
 		if (ConfigPro.INSPECT_INTERVAL_SLOW != inspectTemplateIntervalSlow && ConfigPro.INSPECT_INTERVAL_UNDEFINED != inspectTemplateIntervalSlow)
@@ -798,7 +789,7 @@ public final class ConfigAdmin {
 
 		// set / to the end
 		if (!update) {
-			children = ConfigWebUtil.getAsStruct("mappings", root);
+			children = ConfigUtil.getAsStruct("mappings", root);
 			keys = children.keys();
 			for (Key key: keys) {
 				Struct tmp = Caster.toStruct(children.get(key, null), null);
@@ -814,7 +805,6 @@ public final class ConfigAdmin {
 
 			}
 		}
-
 	}
 
 	public void updateRestMapping(String virtual, String physical, boolean _default) throws ExpressionException, SecurityException {
@@ -836,7 +826,7 @@ public final class ConfigAdmin {
 		if ((physical.length()) == 0) throw new ExpressionException("physical path cannot be an empty value");
 
 		Struct rest = _getRootElement("rest");
-		Array children = ConfigWebUtil.getAsArray("mapping", rest);
+		Array children = ConfigUtil.getAsArray("mapping", rest);
 
 		// remove existing default
 		if (_default) {
@@ -855,7 +845,7 @@ public final class ConfigAdmin {
 			Struct tmp = Caster.toStruct(children.get(i, null), null);
 			if (tmp == null) continue;
 
-			v = ConfigWebUtil.getAsString("virtual", tmp, null);
+			v = ConfigUtil.getAsString("virtual", tmp, null);
 			if (v != null && v.equals(virtual)) {
 				el = tmp;
 			}
@@ -892,7 +882,7 @@ public final class ConfigAdmin {
 		if (!virtual.equals("/") && virtual.endsWith("/")) virtual = virtual.substring(0, virtual.length() - 1);
 		if (virtual.charAt(0) != '/') throw new ExpressionException("virtual path must start with [/]");
 
-		Struct children = ConfigWebUtil.getAsStruct("mappings", root);
+		Struct children = ConfigUtil.getAsStruct("mappings", root);
 		Key[] keys = children.keys();
 		for (Key key: keys) {
 			Struct tmp = Caster.toStruct(children.get(key, null), null);
@@ -918,14 +908,14 @@ public final class ConfigAdmin {
 		if (virtual.endsWith("/")) virtual = virtual.substring(0, virtual.length() - 1);
 		if (virtual.charAt(0) != '/') virtual = "/" + virtual;
 
-		Array children = ConfigWebUtil.getAsArray("rest", "mapping", root);
+		Array children = ConfigUtil.getAsArray("rest", "mapping", root);
 		Key[] keys = children.keys();
 		for (int i = keys.length - 1; i >= 0; i--) {
 			Key key = keys[i];
 			Struct tmp = Caster.toStruct(children.get(key, null), null);
 			if (tmp == null) continue;
 
-			String v = ConfigWebUtil.getAsString("virtual", tmp, null);
+			String v = ConfigUtil.getAsString("virtual", tmp, null);
 			if (v != null) {
 				if (!v.equals("/") && v.endsWith("/")) v = v.substring(0, v.length() - 1);
 				if (v != null && v.equals(virtual)) {
@@ -944,7 +934,7 @@ public final class ConfigAdmin {
 	public void removeCustomTag(String virtual) throws SecurityException {
 		checkWriteAccess();
 
-		Array mappings = ConfigWebUtil.getAsArray("customTagMappings", root);
+		Array mappings = ConfigUtil.getAsArray("customTagMappings", root);
 		Key[] keys = mappings.keys();
 		Struct data;
 		String v;
@@ -961,7 +951,7 @@ public final class ConfigAdmin {
 	}
 
 	private void _removeScheduledTask(String name) throws ExpressionException {
-		Array tasks = ConfigWebUtil.getAsArray("scheduledTasks", root);
+		Array tasks = ConfigUtil.getAsArray("scheduledTasks", root);
 		Key[] keys = tasks.keys();
 		Struct data;
 		String n;
@@ -983,7 +973,7 @@ public final class ConfigAdmin {
 	public void removeComponentMapping(String virtual) throws SecurityException {
 		checkWriteAccess();
 
-		Array mappings = ConfigWebUtil.getAsArray("componentMappings", root);
+		Array mappings = ConfigUtil.getAsArray("componentMappings", root);
 		Key[] keys = mappings.keys();
 		Struct data;
 		String v;
@@ -1018,7 +1008,7 @@ public final class ConfigAdmin {
 
 	private void _updateCustomTag(String virtual, String physical, String archive, String primary, short inspect, int inspectTemplateIntervalSlow, int inspectTemplateIntervalFast)
 			throws ExpressionException, SecurityException {
-		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_CUSTOM_TAG);
+		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_CUSTOM_TAG);
 		if (!hasAccess) throw new SecurityException("no access to change custom tag settings");
 		if (physical == null) physical = "";
 		if (archive == null) archive = "";
@@ -1034,7 +1024,7 @@ public final class ConfigAdmin {
 			throw new ExpressionException("physical must have a value when primary has value physical");
 		}
 
-		Array mappings = ConfigWebUtil.getAsArray("customTagMappings", root);
+		Array mappings = ConfigUtil.getAsArray("customTagMappings", root);
 		Key[] keys = mappings.keys();
 		// Update
 		String v;
@@ -1049,7 +1039,7 @@ public final class ConfigAdmin {
 				el.setEL("physical", physical);
 				el.setEL("archive", archive);
 				el.setEL("primary", primary.equalsIgnoreCase("archive") ? "archive" : "physical");
-				String str = ConfigWebUtil.inspectTemplate(inspect, "");
+				String str = ConfigUtil.inspectTemplate(inspect, "");
 				if (!StringUtil.isEmpty(str)) el.setEL("inspectTemplate", str);
 				else el.removeEL(KeyImpl.init("inspectTemplate"));
 				if (ConfigPro.INSPECT_INTERVAL_SLOW != inspectTemplateIntervalSlow && ConfigPro.INSPECT_INTERVAL_UNDEFINED != inspectTemplateIntervalSlow)
@@ -1071,8 +1061,8 @@ public final class ConfigAdmin {
 		if (archive.length() > 0) el.setEL("archive", archive);
 		el.setEL("primary", primary.equalsIgnoreCase("archive") ? "archive" : "physical");
 
-		String str = ConfigWebUtil.inspectTemplate(inspect, "");
-		if (!StringUtil.isEmpty(str)) el.setEL("inspectTemplate", ConfigWebUtil.inspectTemplate(inspect, ""));
+		String str = ConfigUtil.inspectTemplate(inspect, "");
+		if (!StringUtil.isEmpty(str)) el.setEL("inspectTemplate", ConfigUtil.inspectTemplate(inspect, ""));
 		if (ConfigPro.INSPECT_INTERVAL_SLOW != inspectTemplateIntervalSlow && ConfigPro.INSPECT_INTERVAL_UNDEFINED != inspectTemplateIntervalSlow)
 			el.setEL("inspectTemplateIntervalSlow", Caster.toString(inspectTemplateIntervalSlow, ""));
 		if (ConfigPro.INSPECT_INTERVAL_FAST != inspectTemplateIntervalFast && ConfigPro.INSPECT_INTERVAL_UNDEFINED != inspectTemplateIntervalFast)
@@ -1081,7 +1071,7 @@ public final class ConfigAdmin {
 	}
 
 	private Struct _getScheduledTask(String name, boolean throwWhenNotExist) throws ExpressionException {
-		Array scheduledTasks = ConfigWebUtil.getAsArray("scheduledTasks", root);
+		Array scheduledTasks = ConfigUtil.getAsArray("scheduledTasks", root);
 		Key[] keys = scheduledTasks.keys();
 		// Update
 		Struct data = null;
@@ -1107,7 +1097,7 @@ public final class ConfigAdmin {
 	}
 
 	private Array _getScheduledTasks() {
-		return ConfigWebUtil.getAsArray("scheduledTasks", root);
+		return ConfigUtil.getAsArray("scheduledTasks", root);
 	}
 
 	public void updateComponentMapping(String virtual, String physical, String archive, String primary, short inspect, int inspectTemplateIntervalSlow,
@@ -1133,7 +1123,7 @@ public final class ConfigAdmin {
 			throw new ExpressionException("physical must have a value when primary has value physical");
 		}
 
-		Array componentMappings = ConfigWebUtil.getAsArray("componentMappings", root);
+		Array componentMappings = ConfigUtil.getAsArray("componentMappings", root);
 		Key[] keys = componentMappings.keys();
 		Struct el;
 
@@ -1152,7 +1142,7 @@ public final class ConfigAdmin {
 				data.setEL("physical", physical);
 				data.setEL("archive", archive);
 				data.setEL("primary", primary.equalsIgnoreCase("archive") ? "archive" : "physical");
-				String str = ConfigWebUtil.inspectTemplate(inspect, "");
+				String str = ConfigUtil.inspectTemplate(inspect, "");
 				if (!StringUtil.isEmpty(str)) data.setEL("inspectTemplate", str);
 				else data.removeEL(KeyImpl.init("inspectTemplate"));
 				if (ConfigPro.INSPECT_INTERVAL_SLOW != inspectTemplateIntervalSlow && ConfigPro.INSPECT_INTERVAL_UNDEFINED != inspectTemplateIntervalSlow)
@@ -1172,8 +1162,8 @@ public final class ConfigAdmin {
 		if (physical.length() > 0) el.setEL("physical", physical);
 		if (archive.length() > 0) el.setEL("archive", archive);
 		el.setEL("primary", primary.equalsIgnoreCase("archive") ? "archive" : "physical");
-		String str = ConfigWebUtil.inspectTemplate(inspect, "");
-		if (!StringUtil.isEmpty(str)) el.setEL("inspectTemplate", ConfigWebUtil.inspectTemplate(inspect, ""));
+		String str = ConfigUtil.inspectTemplate(inspect, "");
+		if (!StringUtil.isEmpty(str)) el.setEL("inspectTemplate", ConfigUtil.inspectTemplate(inspect, ""));
 		if (ConfigPro.INSPECT_INTERVAL_SLOW != inspectTemplateIntervalSlow && ConfigPro.INSPECT_INTERVAL_UNDEFINED != inspectTemplateIntervalSlow)
 			el.setEL("inspectTemplateIntervalSlow", Caster.toString(inspectTemplateIntervalSlow, ""));
 		if (ConfigPro.INSPECT_INTERVAL_FAST != inspectTemplateIntervalFast && ConfigPro.INSPECT_INTERVAL_UNDEFINED != inspectTemplateIntervalFast)
@@ -1337,13 +1327,13 @@ public final class ConfigAdmin {
 	 */
 	public void updateJavaCFX(String name, ClassDefinition cd) throws PageException {
 		checkWriteAccess();
-		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_CFX_SETTING);
+		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_CFX_SETTING);
 
 		if (!hasAccess) throw new SecurityException("no access to change cfx settings");
 
 		if (name == null || name.length() == 0) throw new ExpressionException("class name can't be an empty value");
 
-		Struct cfxs = ConfigWebUtil.getAsStruct("cfx", root);
+		Struct cfxs = ConfigUtil.getAsStruct("cfx", root);
 		Key[] keys = cfxs.keys();
 		// Update
 		for (Key key: keys) {
@@ -1352,7 +1342,7 @@ public final class ConfigAdmin {
 			if (n != null && n.equalsIgnoreCase(name)) {
 				Struct data = Caster.toStruct(cfxs.get(key, null), null);
 				if (data == null) continue;
-				if (!"java".equalsIgnoreCase(ConfigWebUtil.getAsString("type", data, ""))) throw new ExpressionException("there is already a c++ cfx tag with this name");
+				if (!"java".equalsIgnoreCase(ConfigUtil.getAsString("type", data, ""))) throw new ExpressionException("there is already a c++ cfx tag with this name");
 				setClass(data, CustomTag.class, "", cd);
 				data.setEL("type", "java");
 				return;
@@ -1410,7 +1400,7 @@ public final class ConfigAdmin {
 		// check parameters
 		if (name == null || name.length() == 0) throw new ExpressionException("name for CFX Tag can be an empty value");
 
-		Struct cfxs = ConfigWebUtil.getAsStruct("cfx", root);
+		Struct cfxs = ConfigUtil.getAsStruct("cfx", root);
 		Key[] keys = cfxs.keys();
 		for (Key key: keys) {
 			String n = key.getString();
@@ -1464,7 +1454,7 @@ public final class ConfigAdmin {
 		// check parameters
 		if (name == null || name.length() == 0) throw new ExpressionException("name can't be an empty value");
 
-		Struct children = ConfigWebUtil.getAsStruct("dataSources", root);
+		Struct children = ConfigUtil.getAsStruct("dataSources", root);
 		Key[] keys = children.keys();
 
 		boolean isUpdate = false;
@@ -1478,7 +1468,7 @@ public final class ConfigAdmin {
 				if (tmp == null) continue;
 				el = tmp;
 				isUpdate = true;
-				if (password.equalsIgnoreCase("****************")) password = ConfigWebUtil.getAsString("password", el, null);
+				if (password.equalsIgnoreCase("****************")) password = ConfigUtil.getAsString("password", el, null);
 
 				if (isNameUpdate) el.setEL("name", newName);
 				setClass(el, null, "", cd);
@@ -1488,7 +1478,7 @@ public final class ConfigAdmin {
 
 				el.setEL(KeyConstants._dsn, dsn);
 				el.setEL(KeyConstants._username, username);
-				el.setEL(KeyConstants._password, ConfigWebUtil.encrypt(password));
+				el.setEL(KeyConstants._password, ConfigUtil.encrypt(password));
 
 				el.setEL(KeyConstants._host, host);
 				if (!StringUtil.isEmpty(timezone)) el.setEL(KeyConstants._timezone, timezone);
@@ -1548,7 +1538,7 @@ public final class ConfigAdmin {
 		else if (el.containsKey(KeyConstants._id)) el.removeEL(KeyConstants._id);
 
 		el.setEL(KeyConstants._username, username);
-		el.setEL(KeyConstants._password, ConfigWebUtil.encrypt(password));
+		el.setEL(KeyConstants._password, ConfigUtil.encrypt(password));
 
 		el.setEL("host", host);
 		if (!StringUtil.isEmpty(timezone)) el.setEL("timezone", timezone);
@@ -1592,7 +1582,7 @@ public final class ConfigAdmin {
 
 		if (!cd.isBundle()) throw new ApplicationException("missing bundle name");
 
-		Struct children = ConfigWebUtil.getAsStruct("jdbcDrivers", root);
+		Struct children = ConfigUtil.getAsStruct("jdbcDrivers", root);
 		Key[] keys = children.keys();
 		// Remove
 		for (Key key: keys) {
@@ -1619,7 +1609,7 @@ public final class ConfigAdmin {
 
 		if (!cd.isBundle()) throw new ApplicationException("missing bundle name");
 
-		Array children = ConfigWebUtil.getAsArray("startupHooks", root);
+		Array children = ConfigUtil.getAsArray("startupHooks", root);
 		Key[] keys = children.keys();
 		// Remove
 		for (int i = keys.length - 1; i >= 0; i--) {
@@ -1627,7 +1617,7 @@ public final class ConfigAdmin {
 			Struct tmp = Caster.toStruct(children.get(key, null), null);
 			if (tmp == null) continue;
 
-			String n = ConfigWebUtil.getAsString("class", tmp, "");
+			String n = ConfigUtil.getAsString("class", tmp, "");
 			if (n.equalsIgnoreCase(cd.getClassName())) {
 				children.removeEL(key);
 				break;
@@ -1650,7 +1640,7 @@ public final class ConfigAdmin {
 
 	private void _removeStartupHook(String component) {
 
-		Array children = ConfigWebUtil.getAsArray("startupHooks", root);
+		Array children = ConfigUtil.getAsArray("startupHooks", root);
 		Key[] keys = children.keys();
 		// Remove
 		for (int i = keys.length - 1; i >= 0; i--) {
@@ -1694,7 +1684,7 @@ public final class ConfigAdmin {
 		// check if it is a bundle
 		if (!cd.isBundle()) throw new ApplicationException("missing bundle name for [" + label + "]");
 
-		Struct children = ConfigWebUtil.getAsStruct("jdbcDrivers", root);
+		Struct children = ConfigUtil.getAsStruct("jdbcDrivers", root);
 		Key[] keys = children.keys();
 		// Update
 		Struct child = null;
@@ -1741,7 +1731,7 @@ public final class ConfigAdmin {
 		// check if it is a bundle
 		if (!cd.isBundle()) throw new ApplicationException("missing bundle info");
 
-		Array children = ConfigWebUtil.getAsArray("startupHooks", root);
+		Array children = ConfigUtil.getAsArray("startupHooks", root);
 
 		// Update
 		Struct child = null;
@@ -1749,7 +1739,7 @@ public final class ConfigAdmin {
 			Struct tmp = Caster.toStruct(children.get(i, null), null);
 			if (tmp == null) continue;
 
-			String n = ConfigWebUtil.getAsString("class", tmp, null);
+			String n = ConfigUtil.getAsString("class", tmp, null);
 			if (n.equalsIgnoreCase(cd.getClassName())) {
 				child = tmp;
 				break;
@@ -1781,7 +1771,7 @@ public final class ConfigAdmin {
 	private void _updateStartupHook(String component) {
 		// unloadStartupIfNecessary(config, cd, false);
 
-		Array children = ConfigWebUtil.getAsArray("startupHooks", root);
+		Array children = ConfigUtil.getAsArray("startupHooks", root);
 
 		// Update
 		Struct child = null;
@@ -1789,7 +1779,7 @@ public final class ConfigAdmin {
 			Struct tmp = Caster.toStruct(children.get(i, null), null);
 			if (tmp == null) continue;
 
-			String n = ConfigWebUtil.getAsString("component", tmp, null);
+			String n = ConfigUtil.getAsString("component", tmp, null);
 			if (n.equalsIgnoreCase(component)) {
 				child = tmp;
 				break;
@@ -1809,7 +1799,7 @@ public final class ConfigAdmin {
 	public void updateGatewayEntry(String id, ClassDefinition cd, String componentPath, String listenerCfcPath, int startupMode, Struct custom, boolean readOnly)
 			throws PageException {
 		checkWriteAccess();
-		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManagerImpl.TYPE_GATEWAY);
+		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManagerImpl.TYPE_GATEWAY);
 		if (!hasAccess) throw new SecurityException("no access to update gateway entry");
 
 		_updateGatewayEntry(id, cd, componentPath, listenerCfcPath, startupMode, custom, readOnly);
@@ -1823,7 +1813,7 @@ public final class ConfigAdmin {
 
 		if ((cd == null || StringUtil.isEmpty(cd.getClassName())) && StringUtil.isEmpty(componentPath)) throw new ExpressionException("you must define className or componentPath");
 
-		Struct children = ConfigWebUtil.getAsStruct("gateways", root);
+		Struct children = ConfigUtil.getAsStruct("gateways", root);
 		Key[] keys = children.keys();
 
 		// Update
@@ -1987,7 +1977,7 @@ public final class ConfigAdmin {
 	public void updateCacheConnection(String name, ClassDefinition cd, int _default, Struct custom, boolean readOnly, boolean storage) throws PageException {
 
 		checkWriteAccess();
-		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManagerImpl.TYPE_CACHE);
+		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManagerImpl.TYPE_CACHE);
 		if (!hasAccess) throw new SecurityException("no access to update cache connection");
 
 		// check parameters
@@ -2051,7 +2041,7 @@ public final class ConfigAdmin {
 
 		// Update
 		// boolean isUpdate=false;
-		Struct conns = ConfigWebUtil.getAsStruct("caches", root);
+		Struct conns = ConfigUtil.getAsStruct("caches", root);
 		Iterator<Key> it = conns.keyIterator();
 		Key key;
 		while (it.hasNext()) {
@@ -2083,7 +2073,7 @@ public final class ConfigAdmin {
 	public void removeCacheDefaultConnection(int type) throws PageException {
 		checkWriteAccess();
 
-		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManagerImpl.TYPE_CACHE);
+		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManagerImpl.TYPE_CACHE);
 		if (!hasAccess) throw new SecurityException("no access to update cache connections");
 
 		Struct parent = _getRootElement("cache");
@@ -2118,7 +2108,7 @@ public final class ConfigAdmin {
 
 	public void updateCacheDefaultConnection(int type, String name) throws PageException {
 		checkWriteAccess();
-		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManagerImpl.TYPE_CACHE);
+		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManagerImpl.TYPE_CACHE);
 
 		if (!hasAccess) throw new SecurityException("no access to update cache default connections");
 
@@ -2165,7 +2155,7 @@ public final class ConfigAdmin {
 
 	public void _removeResourceProvider(String scheme) {
 
-		Array children = ConfigWebUtil.getAsArray("resourceProviders", root);
+		Array children = ConfigUtil.getAsArray("resourceProviders", root);
 		Key[] keys = children.keys();
 
 		// remove
@@ -2174,7 +2164,7 @@ public final class ConfigAdmin {
 			Struct tmp = Caster.toStruct(children.get(key, null), null);
 			if (tmp == null) continue;
 
-			String elScheme = ConfigWebUtil.getAsString("scheme", tmp, "");
+			String elScheme = ConfigUtil.getAsString("scheme", tmp, "");
 			if (elScheme.equalsIgnoreCase(scheme)) {
 				children.removeEL(key);
 				break;
@@ -2197,14 +2187,14 @@ public final class ConfigAdmin {
 		// check parameters
 		if (StringUtil.isEmpty(scheme)) throw new ExpressionException("scheme can't be an empty value");
 
-		Array children = ConfigWebUtil.getAsArray("resourceProviders", root);
+		Array children = ConfigUtil.getAsArray("resourceProviders", root);
 
 		// Update
 		for (int i = 1; i <= children.size(); i++) {
 			Struct el = Caster.toStruct(children.get(i, null), null);
 			if (el == null) continue;
 
-			String elScheme = ConfigWebUtil.getAsString("scheme", el, null);
+			String elScheme = ConfigUtil.getAsString("scheme", el, null);
 			if (elScheme.equalsIgnoreCase(scheme)) {
 				setClass(el, null, "", cd);
 				el.setEL("scheme", scheme);
@@ -2229,7 +2219,7 @@ public final class ConfigAdmin {
 
 		if (!hasAccess) throw new SecurityException("no access to update resources");
 
-		Array children = ConfigWebUtil.getAsArray("defaultResourceProviders", root);
+		Array children = ConfigUtil.getAsArray("defaultResourceProviders", root);
 
 		// Update
 		for (int i = 1; i <= children.size(); i++) {
@@ -2270,8 +2260,8 @@ public final class ConfigAdmin {
 	public Query getResourceProviders() throws PageException {
 		checkReadAccess();
 		// check parameters
-		Array elProviders = ConfigWebUtil.getAsArray("resourceProviders", root);
-		Array elDefaultProviders = ConfigWebUtil.getAsArray("defaultResourceProvider", root);
+		Array elProviders = ConfigUtil.getAsArray("resourceProviders", root);
+		Array elDefaultProviders = ConfigUtil.getAsArray("defaultResourceProvider", root);
 
 		ResourceProvider[] providers = config.getResourceProviders();
 		ResourceProvider defaultProvider = config.getDefaultResourceProvider();
@@ -2294,9 +2284,9 @@ public final class ConfigAdmin {
 
 	private void getResourceProviders(ResourceProvider[] providers, Query qry, Struct p, int row, Boolean def) throws PageException {
 		Array support = new ArrayImpl();
-		String cn = ConfigWebUtil.getAsString("class", p, null);
-		String name = ConfigWebUtil.getAsString("bundleName", p, null);
-		String version = ConfigWebUtil.getAsString("bundleVersion", p, null);
+		String cn = ConfigUtil.getAsString("class", p, null);
+		String name = ConfigUtil.getAsString("bundleName", p, null);
+		String version = ConfigUtil.getAsString("bundleVersion", p, null);
 		ClassDefinition cd = ClassDefinitionImpl.toClassDefinitionImpl(p, null, false, ThreadLocalPageContext.getConfig().getIdentification());
 		String scheme = Caster.toString(p.get("scheme", null), null);
 		if (StringUtil.isEmpty(scheme)) {
@@ -2332,7 +2322,7 @@ public final class ConfigAdmin {
 		// check parameters
 		if (StringUtil.isEmpty(className)) throw new ExpressionException("class name for jdbc driver cannot be empty");
 
-		Struct children = ConfigWebUtil.getAsStruct("jdbcDrivers", root);
+		Struct children = ConfigUtil.getAsStruct("jdbcDrivers", root);
 		Key[] keys = children.keys();
 		for (Key key: keys) {
 			if (key.getString().equalsIgnoreCase(className)) {
@@ -2353,7 +2343,7 @@ public final class ConfigAdmin {
 		// check parameters
 		if (name == null || name.length() == 0) throw new ExpressionException("name for Datasource Connection can be an empty value");
 
-		Struct children = ConfigWebUtil.getAsStruct("dataSources", root);
+		Struct children = ConfigUtil.getAsStruct("dataSources", root);
 		Key[] keys = children.keys();
 		for (Key key: keys) {
 			Struct tmp = Caster.toStruct(children.get(key, null), null);
@@ -2368,7 +2358,7 @@ public final class ConfigAdmin {
 	public void removeCacheConnection(String name) throws ExpressionException, SecurityException {
 		checkWriteAccess();
 
-		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManagerImpl.TYPE_CACHE);
+		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManagerImpl.TYPE_CACHE);
 		if (!hasAccess) throw new SecurityException("no access to remove cache connection");
 
 		// check parameters
@@ -2388,7 +2378,7 @@ public final class ConfigAdmin {
 		if (name.equalsIgnoreCase(Caster.toString(parent.get("defaultWebservice", null), null))) rem(parent, "defaultWebservice");
 
 		// remove element
-		Struct children = ConfigWebUtil.getAsStruct("caches", root);
+		Struct children = ConfigUtil.getAsStruct("caches", root);
 		Key[] keys = children.keys();
 		for (Key key: keys) {
 			Struct tmp = Caster.toStruct(children.get(key, null), null);
@@ -2418,15 +2408,15 @@ public final class ConfigAdmin {
 
 	public boolean cacheConnectionExists(String name) throws ExpressionException, SecurityException {
 		checkReadAccess();
-		if (!ConfigWebUtil.hasAccess(config, SecurityManagerImpl.TYPE_CACHE)) throw new SecurityException("no access to check cache connection");
+		if (!ConfigUtil.hasAccess(config, SecurityManagerImpl.TYPE_CACHE)) throw new SecurityException("no access to check cache connection");
 		if (name == null || name.isEmpty()) throw new ExpressionException("name for Cache Connection can not be an empty value");
 
-		Array children = ConfigWebUtil.getAsArray("cache", "connection", root);
+		Array children = ConfigUtil.getAsArray("cache", "connection", root);
 		for (int i = 1; i <= children.size(); i++) {
 			Struct tmp = Caster.toStruct(children.get(i, null), null);
 			if (tmp == null) continue;
 
-			String n = ConfigWebUtil.getAsString("name", tmp, null);
+			String n = ConfigUtil.getAsString("name", tmp, null);
 			if (n != null && n.equalsIgnoreCase(name)) return true;
 		}
 		return false;
@@ -2435,7 +2425,7 @@ public final class ConfigAdmin {
 	public void removeGatewayEntry(String name) throws PageException {
 		checkWriteAccess();
 
-		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManagerImpl.TYPE_GATEWAY);
+		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManagerImpl.TYPE_GATEWAY);
 		if (!hasAccess) throw new SecurityException("no access to remove gateway entry");
 
 		_removeGatewayEntry(name);
@@ -2444,7 +2434,7 @@ public final class ConfigAdmin {
 	protected void _removeGatewayEntry(String name) throws PageException {
 		if (StringUtil.isEmpty(name)) throw new ExpressionException("name for Gateway Id can be an empty value");
 
-		Struct children = ConfigWebUtil.getAsStruct("gateways", root);
+		Struct children = ConfigUtil.getAsStruct("gateways", root);
 		Key[] keys = children.keys();
 		// remove element
 		for (Key key: keys) {
@@ -2479,20 +2469,20 @@ public final class ConfigAdmin {
 
 		// SNSN
 
-		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManagerImpl.TYPE_REMOTE);
+		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManagerImpl.TYPE_REMOTE);
 		if (!hasAccess) throw new SecurityException("no access to remove remote client settings");
 
 		// check parameters
 		if (StringUtil.isEmpty(url)) throw new ExpressionException("url for Remote Client can be an empty value");
 
-		Array children = ConfigWebUtil.getAsArray("remoteClients", "remoteClient", root);
+		Array children = ConfigUtil.getAsArray("remoteClients", "remoteClient", root);
 		Key[] keys = children.keys();
 		for (int i = keys.length - 1; i >= 0; i--) {
 			Key key = keys[i];
 			Struct tmp = Caster.toStruct(children.get(key, null), null);
 			if (tmp == null) continue;
 
-			String n = ConfigWebUtil.getAsString("url", tmp, null);
+			String n = ConfigUtil.getAsString("url", tmp, null);
 			if (n != null && n.equalsIgnoreCase(url)) {
 				children.removeEL(key);
 			}
@@ -2507,7 +2497,7 @@ public final class ConfigAdmin {
 	 */
 	public void updatePSQ(Boolean psq) throws SecurityException {
 		checkWriteAccess();
-		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_DATASOURCE);
+		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_DATASOURCE);
 
 		if (!hasAccess) throw new SecurityException("no access to update datasource connections");
 
@@ -2516,7 +2506,7 @@ public final class ConfigAdmin {
 
 	public void updateInspectTemplate(String inspectTemplate, int inspectTemplateIntervalSlow, int inspectTemplateIntervalFast) throws SecurityException {
 		checkWriteAccess();
-		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
+		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 
 		if (!hasAccess) throw new SecurityException("no access to update");
 
@@ -2528,7 +2518,7 @@ public final class ConfigAdmin {
 
 	public void updateTypeChecking(Boolean typeChecking) throws SecurityException {
 		checkWriteAccess();
-		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
+		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 
 		if (!hasAccess) throw new SecurityException("no access to update");
 
@@ -2539,7 +2529,7 @@ public final class ConfigAdmin {
 
 	public void updateCachedAfterTimeRange(TimeSpan ts) throws SecurityException, ApplicationException {
 		checkWriteAccess();
-		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
+		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 		if (!hasAccess) throw new SecurityException("no access to update");
 
 		if (ts == null) rem(root, "cachedAfter");
@@ -2557,7 +2547,7 @@ public final class ConfigAdmin {
 	 */
 	public void updateScopeCascadingType(String type) throws SecurityException {
 		checkWriteAccess();
-		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
+		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 
 		if (!hasAccess) throw new SecurityException("no access to update scope setting");
 
@@ -2576,7 +2566,7 @@ public final class ConfigAdmin {
 	 */
 	public void updateScopeCascadingType(short type) throws SecurityException {
 		checkWriteAccess();
-		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
+		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 		if (!hasAccess) throw new SecurityException("no access to update scope setting");
 
 		if (type == ConfigWeb.SCOPE_STRICT) root.setEL("scopeCascading", "strict");
@@ -2593,7 +2583,7 @@ public final class ConfigAdmin {
 	 */
 	public void updateAllowImplicidQueryCall(Boolean allow) throws SecurityException {
 		checkWriteAccess();
-		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
+		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 
 		if (!hasAccess) throw new SecurityException("no access to update scope setting");
 
@@ -2603,7 +2593,7 @@ public final class ConfigAdmin {
 
 	public void updateMergeFormAndUrl(Boolean merge) throws SecurityException {
 		checkWriteAccess();
-		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
+		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 
 		if (!hasAccess) throw new SecurityException("no access to update scope setting");
 
@@ -2620,7 +2610,7 @@ public final class ConfigAdmin {
 	 */
 	public void updateRequestTimeout(TimeSpan span) throws SecurityException, ApplicationException {
 		checkWriteAccess();
-		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
+		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 
 		if (!hasAccess) throw new SecurityException("no access to update scope setting");
 
@@ -2633,7 +2623,7 @@ public final class ConfigAdmin {
 
 	public void updateApplicationPathTimeout(TimeSpan span) throws SecurityException, ApplicationException {
 		checkWriteAccess();
-		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
+		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 
 		if (!hasAccess) throw new SecurityException("no access to update scope setting");
 
@@ -2652,7 +2642,7 @@ public final class ConfigAdmin {
 	 */
 	public void updateSessionTimeout(TimeSpan span) throws SecurityException {
 		checkWriteAccess();
-		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
+		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 
 		if (!hasAccess) throw new SecurityException("no access to update scope setting");
 
@@ -2670,7 +2660,7 @@ public final class ConfigAdmin {
 
 	private void updateStorage(String storageName, String storage) throws SecurityException, ApplicationException {
 		checkWriteAccess();
-		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
+		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 
 		if (!hasAccess) throw new SecurityException("no access to update scope setting");
 		storage = validateStorage(storage);
@@ -2734,7 +2724,7 @@ public final class ConfigAdmin {
 	 */
 	public void updateClientTimeout(TimeSpan span) throws SecurityException {
 		checkWriteAccess();
-		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
+		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 
 		if (!hasAccess) throw new SecurityException("no access to update scope setting");
 
@@ -2744,7 +2734,7 @@ public final class ConfigAdmin {
 
 	public void updateCFMLWriterType(String writerType) throws SecurityException, ApplicationException {
 		checkWriteAccess();
-		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
+		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 		if (!hasAccess) throw new SecurityException("no access to update scope setting");
 
 		writerType = writerType.trim();
@@ -2769,7 +2759,7 @@ public final class ConfigAdmin {
 
 	public void updateSuppressContent(Boolean value) throws SecurityException {
 		checkWriteAccess();
-		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
+		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 
 		if (!hasAccess) throw new SecurityException("no access to update scope setting");
 
@@ -2778,7 +2768,7 @@ public final class ConfigAdmin {
 
 	public void updateShowVersion(Boolean value) throws SecurityException {
 		checkWriteAccess();
-		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
+		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 
 		if (!hasAccess) throw new SecurityException("no access to update scope setting");
 
@@ -2787,7 +2777,7 @@ public final class ConfigAdmin {
 
 	public void updateAllowCompression(Boolean value) throws SecurityException {
 		checkWriteAccess();
-		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
+		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 
 		if (!hasAccess) throw new SecurityException("no access to update scope setting");
 
@@ -2796,7 +2786,7 @@ public final class ConfigAdmin {
 
 	public void updateContentLength(Boolean value) throws SecurityException {
 		checkWriteAccess();
-		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
+		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 
 		if (!hasAccess) throw new SecurityException("no access to update scope setting");
 
@@ -2805,7 +2795,7 @@ public final class ConfigAdmin {
 
 	public void updateBufferOutput(Boolean value) throws SecurityException {
 		checkWriteAccess();
-		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
+		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 
 		if (!hasAccess) throw new SecurityException("no access to update scope setting");
 
@@ -2820,7 +2810,7 @@ public final class ConfigAdmin {
 	 */
 	public void updateApplicationTimeout(TimeSpan span) throws SecurityException {
 		checkWriteAccess();
-		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
+		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 
 		if (!hasAccess) throw new SecurityException("no access to update scope setting");
 
@@ -2830,7 +2820,7 @@ public final class ConfigAdmin {
 
 	public void updateApplicationListener(String type, String mode) throws SecurityException {
 		checkWriteAccess();
-		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
+		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 
 		if (!hasAccess) throw new SecurityException("no access to update listener type");
 
@@ -2840,7 +2830,7 @@ public final class ConfigAdmin {
 
 	public void updateCachedWithin(int type, Object value) throws SecurityException, ApplicationException {
 		checkWriteAccess();
-		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
+		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 		if (!hasAccess) throw new SecurityException("no access to update cachedwithin setting");
 
 		String t = AppListenerUtil.toCachedWithinType(type, "");
@@ -2852,7 +2842,7 @@ public final class ConfigAdmin {
 
 	public void updateProxy(boolean enabled, String server, int port, String username, String password) throws SecurityException {
 		checkWriteAccess();
-		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
+		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 
 		if (!hasAccess) throw new SecurityException("no access to update listener type");
 
@@ -2882,7 +2872,7 @@ public final class ConfigAdmin {
 	 */
 	public void updateSessionManagement(Boolean sessionManagement) throws SecurityException {
 		checkWriteAccess();
-		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
+		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 
 		if (!hasAccess) throw new SecurityException("no access to update scope setting");
 
@@ -2897,7 +2887,7 @@ public final class ConfigAdmin {
 	 */
 	public void updateClientManagement(Boolean clientManagement) throws SecurityException {
 		checkWriteAccess();
-		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
+		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 
 		if (!hasAccess) throw new SecurityException("no access to update scope setting");
 
@@ -2912,7 +2902,7 @@ public final class ConfigAdmin {
 	 */
 	public void updateClientCookies(Boolean clientCookies) throws SecurityException {
 		checkWriteAccess();
-		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
+		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 		if (!hasAccess) throw new SecurityException("no access to update scope setting");
 
 		root.setEL("clientCookies", clientCookies);
@@ -2926,7 +2916,7 @@ public final class ConfigAdmin {
 	 */
 	public void updateMode(Boolean developmode) throws SecurityException {
 		checkWriteAccess();
-		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
+		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 		if (!hasAccess) throw new SecurityException("no access to update scope setting");
 
 		root.setEL("developMode", Caster.toString(developmode, ""));
@@ -2940,7 +2930,7 @@ public final class ConfigAdmin {
 	 */
 	public void updateDomaincookies(Boolean domainCookies) throws SecurityException {
 		checkWriteAccess();
-		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
+		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 		if (!hasAccess) throw new SecurityException("no access to update scope setting");
 
 		root.setEL("domainCookies", Caster.toString(domainCookies, ""));
@@ -2954,7 +2944,7 @@ public final class ConfigAdmin {
 	 */
 	public void updateLocale(String locale) throws SecurityException {
 		checkWriteAccess();
-		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
+		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 		if (!hasAccess) throw new SecurityException("no access to update regional setting");
 
 		root.setEL("locale", locale.trim());
@@ -2971,7 +2961,7 @@ public final class ConfigAdmin {
 
 	public void updateScriptProtect(String strScriptProtect) throws SecurityException {
 		checkWriteAccess();
-		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
+		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 		if (!hasAccess) throw new SecurityException("no access to update script protect");
 
 		root.setEL("scriptProtect", strScriptProtect.trim());
@@ -2979,7 +2969,7 @@ public final class ConfigAdmin {
 
 	public void updateAllowURLRequestTimeout(Boolean allowURLRequestTimeout) throws SecurityException {
 		checkWriteAccess();
-		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
+		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 		if (!hasAccess) throw new SecurityException("no access to update AllowURLRequestTimeout");
 
 		root.setEL("requestTimeoutInURL", Caster.toString(allowURLRequestTimeout, ""));
@@ -2997,7 +2987,7 @@ public final class ConfigAdmin {
 	 */
 	public void updateTimeZone(String timeZone) throws SecurityException {
 		checkWriteAccess();
-		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
+		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 		if (!hasAccess) throw new SecurityException("no access to update regional setting");
 
 		root.setEL("timezone", timeZone.trim());
@@ -3027,7 +3017,7 @@ public final class ConfigAdmin {
 			}
 		}
 
-		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
+		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 		if (!hasAccess) throw new SecurityException("no access to update regional setting");
 
 		root.setEL("timeserver", timeServer.trim());
@@ -3037,7 +3027,7 @@ public final class ConfigAdmin {
 
 	public void updateComponentDeepSearch(Boolean deepSearch) throws SecurityException {
 		checkWriteAccess();
-		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
+		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 		if (!hasAccess) throw new SecurityException("no access to update component setting");
 		if (deepSearch != null) root.setEL("componentDeepSearch", Caster.toString(deepSearch.booleanValue()));
 		else {
@@ -3048,14 +3038,14 @@ public final class ConfigAdmin {
 
 	public void updateComponentDefaultImport(String componentDefaultImport) throws SecurityException {
 		checkWriteAccess();
-		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
+		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 		if (!hasAccess) throw new SecurityException("no access to update component setting");
 		root.setEL("componentAutoImport", componentDefaultImport);
 	}
 
 	public void updateReturnFormat(String returnFormat) throws SecurityException, ExpressionException {
 		checkWriteAccess();
-		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
+		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 		if (!hasAccess) throw new SecurityException("no access to update component setting");
 		root.setEL("returnFormat", UDFUtil.toReturnFormat(UDFUtil.toReturnFormat(returnFormat))); // i make a double toReturnFormat to validate the input
 	}
@@ -3070,7 +3060,7 @@ public final class ConfigAdmin {
 	public void updateComponentDataMemberDefaultAccess(String strAccess) throws SecurityException, ApplicationException {
 		checkWriteAccess();
 
-		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
+		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 		if (!hasAccess) throw new SecurityException("no access to update component setting");
 
 		if (StringUtil.isEmpty(strAccess)) {
@@ -3089,7 +3079,7 @@ public final class ConfigAdmin {
 	 */
 	public void updateTriggerDataMember(Boolean triggerDataMember) throws SecurityException {
 		checkWriteAccess();
-		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
+		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 		if (!hasAccess) throw new SecurityException("no access to update trigger-data-member");
 
 		root.setEL("componentImplicitNotation", Caster.toString(triggerDataMember, ""));
@@ -3097,7 +3087,7 @@ public final class ConfigAdmin {
 
 	public void updateComponentUseShadow(Boolean useShadow) throws SecurityException {
 		checkWriteAccess();
-		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
+		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 		if (!hasAccess) throw new SecurityException("no access to update use-shadow");
 
 		root.setEL("componentUseVariablesScope", Caster.toString(useShadow, ""));
@@ -3105,7 +3095,7 @@ public final class ConfigAdmin {
 
 	public void updateComponentLocalSearch(Boolean componentLocalSearch) throws SecurityException {
 		checkWriteAccess();
-		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
+		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 		if (!hasAccess) throw new SecurityException("no access to update component Local Search");
 
 		root.setEL("componentLocalSearch", Caster.toString(componentLocalSearch, ""));
@@ -3113,7 +3103,7 @@ public final class ConfigAdmin {
 
 	public void updateComponentPathCache(Boolean componentPathCache) throws SecurityException {
 		checkWriteAccess();
-		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
+		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 		if (!hasAccess) throw new SecurityException("no access to update component Cache Path");
 
 		if (!Caster.toBooleanValue(componentPathCache, false)) config.clearComponentCache();
@@ -3122,7 +3112,7 @@ public final class ConfigAdmin {
 
 	public void updateCTPathCache(Boolean ctPathCache) throws SecurityException {
 		checkWriteAccess();
-		if (!ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_CUSTOM_TAG)) throw new SecurityException("no access to update custom tag setting");
+		if (!ConfigUtil.hasAccess(config, SecurityManager.TYPE_CUSTOM_TAG)) throw new SecurityException("no access to update custom tag setting");
 
 		if (!Caster.toBooleanValue(ctPathCache, false)) config.clearCTCache();
 		root.setEL("customTagUseCachePath", Caster.toString(ctPathCache, ""));
@@ -3151,7 +3141,7 @@ public final class ConfigAdmin {
 	public void updateDebug(Boolean debug, Boolean template, Boolean database, Boolean exception, Boolean tracing, Boolean dump, Boolean timer, Boolean implicitAccess,
 			Boolean queryUsage, Boolean thread) throws SecurityException {
 		checkWriteAccess();
-		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_DEBUGGING);
+		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_DEBUGGING);
 		if (!hasAccess) throw new SecurityException("no access to change debugging settings");
 
 		if (debug != null) root.setEL("debuggingEnabled", debug.booleanValue());
@@ -3187,7 +3177,7 @@ public final class ConfigAdmin {
 
 	public void updateMonitoring(Boolean debug, Boolean metric, Boolean doc, Boolean test) throws SecurityException {
 		checkWriteAccess();
-		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_DEBUGGING);
+		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_DEBUGGING);
 		if (!hasAccess) throw new SecurityException("no access to change monitoring settings");
 
 		if (debug != null) root.setEL("showDebug", debug.booleanValue());
@@ -3211,7 +3201,7 @@ public final class ConfigAdmin {
 	 */
 	public void updateErrorTemplate(int statusCode, String template) throws SecurityException {
 		checkWriteAccess();
-		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
+		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 		if (!hasAccess) throw new SecurityException("no access to change error settings");
 
 		if (statusCode == 404) root.setEL("errorMissingTemplate", template);
@@ -3220,7 +3210,7 @@ public final class ConfigAdmin {
 
 	public void updateErrorStatusCode(Boolean doStatusCode) throws SecurityException {
 		checkWriteAccess();
-		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
+		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 		if (!hasAccess) throw new SecurityException("no access to change error settings");
 
 		root.setEL("errorStatusCode", Caster.toString(doStatusCode, ""));
@@ -3228,7 +3218,7 @@ public final class ConfigAdmin {
 
 	public void updateRegexType(String type) throws PageException {
 		checkWriteAccess();
-		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
+		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 		if (!hasAccess) throw new SecurityException("no access to change regex settings");
 
 		if (StringUtil.isEmpty(type)) rem(root, "regexType");
@@ -3243,14 +3233,14 @@ public final class ConfigAdmin {
 	 */
 	public void updateComponentDumpTemplate(String template) throws SecurityException {
 		checkWriteAccess();
-		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
+		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 		if (!hasAccess) throw new SecurityException("no access to update component setting");
 
 		root.setEL("componentDumpTemplate", template);
 	}
 
 	private Struct _getRootElement(String name) {
-		return ConfigWebUtil.getAsStruct(name, root);
+		return ConfigUtil.getAsStruct(name, root);
 	}
 
 	/**
@@ -3319,7 +3309,7 @@ public final class ConfigAdmin {
 	}
 
 	private void removeSecurityFileAccess(Struct parent) {
-		Array children = ConfigWebUtil.getAsArray("fileAccess", parent);
+		Array children = ConfigUtil.getAsArray("fileAccess", parent);
 		Key[] keys = children.keys();
 		// remove existing
 		if (children.size() > 0) {
@@ -3336,7 +3326,7 @@ public final class ConfigAdmin {
 		// insert
 		if (!ArrayUtil.isEmpty(fileAccess) && file != SecurityManager.VALUE_ALL) {
 			Struct fa;
-			Array children = ConfigWebUtil.getAsArray("fileAccess", parent);
+			Array children = ConfigUtil.getAsArray("fileAccess", parent);
 			for (int i = 0; i < fileAccess.length; i++) {
 				fa = new StructImpl();
 				fa.setEL("path", fileAccess[i].getAbsolutePath());
@@ -3377,7 +3367,7 @@ public final class ConfigAdmin {
 		if (!(config instanceof ConfigServer)) throw new SecurityException("can't change security settings from this context");
 
 		Struct security = _getRootElement("security");
-		Array children = ConfigWebUtil.getAsArray("accessor", security);
+		Array children = ConfigUtil.getAsArray("accessor", security);
 		Struct accessor = null;
 		for (int i = 1; i <= children.size(); i++) {
 			Struct tmp = Caster.toStruct(children.get(i, null), null);
@@ -3453,7 +3443,7 @@ public final class ConfigAdmin {
 	 */
 	public void updateSessionType(String type) throws SecurityException {
 		checkWriteAccess();
-		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
+		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 		if (!hasAccess) throw new SecurityException("no access to update scope setting");
 
 		type = type.toLowerCase().trim();
@@ -3463,7 +3453,7 @@ public final class ConfigAdmin {
 
 	public void updateLocalMode(String mode) throws SecurityException {
 		checkWriteAccess();
-		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
+		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 		if (!hasAccess) throw new SecurityException("no access to update scope setting");
 
 		mode = mode.toLowerCase().trim();
@@ -3514,14 +3504,14 @@ public final class ConfigAdmin {
 	 */
 	public void createSecurityManager(Password password, String id) throws PageException {
 		checkWriteAccess();
-		ConfigServerImpl cs = (ConfigServerImpl) ConfigWebUtil.getConfigServer(config, password);
+		ConfigServerImpl cs = (ConfigServerImpl) ConfigUtil.getConfigServer(config);
 		SecurityManagerImpl dsm = (SecurityManagerImpl) cs.getDefaultSecurityManager().cloneSecurityManager();
 		cs.setSecurityManager(id, dsm);
 
 		Struct security = _getRootElement("security");
 		Struct accessor = null;
 
-		Array children = ConfigWebUtil.getAsArray("accessor", security);
+		Array children = ConfigUtil.getAsArray("accessor", security);
 		for (int i = 1; i <= children.size(); i++) {
 			Struct tmp = Caster.toStruct(children.get(i, null), null);
 			if (tmp == null) continue;
@@ -3567,16 +3557,16 @@ public final class ConfigAdmin {
 	 */
 	public void removeSecurityManager(Password password, String id) throws PageException {
 		checkWriteAccess();
-		((ConfigServerImpl) ConfigWebUtil.getConfigServer(config, password)).removeSecurityManager(id);
+		((ConfigServerImpl) ConfigUtil.getConfigServer(config)).removeSecurityManager(id);
 
-		Array children = ConfigWebUtil.getAsArray("security", "accessor", root);
+		Array children = ConfigUtil.getAsArray("security", "accessor", root);
 		Key[] keys = children.keys();
 		for (int i = keys.length - 1; i >= 0; i--) {
 			Key key = keys[i];
 			Struct tmp = Caster.toStruct(children.get(key, null), null);
 			if (tmp == null) continue;
 
-			String n = ConfigWebUtil.getAsString("id", tmp, "");
+			String n = ConfigUtil.getAsString("id", tmp, "");
 			if (id.equals(n)) {
 				children.removeEL(key);
 			}
@@ -3588,7 +3578,7 @@ public final class ConfigAdmin {
 	@Deprecated
 	public void runUpdate(Password password) throws PageException {
 		checkWriteAccess();
-		ConfigServerImpl cs = (ConfigServerImpl) ConfigWebUtil.getConfigServer(config, password);
+		ConfigServerImpl cs = (ConfigServerImpl) ConfigUtil.getConfigServer(config);
 		CFMLEngineFactory factory = cs.getEngine().getCFMLEngineFactory();
 
 		synchronized (factory) {
@@ -3619,7 +3609,7 @@ public final class ConfigAdmin {
 	private void _removeUpdate(Password password, boolean onlyLatest) throws PageException {
 		checkWriteAccess();
 
-		ConfigServerImpl cs = (ConfigServerImpl) ConfigWebUtil.getConfigServer(config, password);
+		ConfigServerImpl cs = (ConfigServerImpl) ConfigUtil.getConfigServer(config);
 
 		try {
 			CFMLEngineFactory factory = cs.getEngine().getCFMLEngineFactory();
@@ -3637,7 +3627,7 @@ public final class ConfigAdmin {
 
 	public void changeVersionTo(Version version, Password password, IdentificationWeb id) throws PageException {
 		checkWriteAccess();
-		ConfigServerImpl cs = (ConfigServerImpl) ConfigWebUtil.getConfigServer(config, password);
+		ConfigServerImpl cs = (ConfigServerImpl) ConfigUtil.getConfigServer(config);
 
 		Log logger = cs.getLog("deploy");
 
@@ -3687,7 +3677,7 @@ public final class ConfigAdmin {
 
 	public void mvnChangeVersionTo(Version version, Password password, IdentificationWeb id) throws PageException {
 		checkWriteAccess();
-		ConfigServerImpl cs = (ConfigServerImpl) ConfigWebUtil.getConfigServer(config, password);
+		ConfigServerImpl cs = (ConfigServerImpl) ConfigUtil.getConfigServer(config);
 
 		Log logger = cs.getLog("deploy");
 
@@ -3863,7 +3853,7 @@ public final class ConfigAdmin {
 	 */
 	public void restart(Password password) throws PageException {
 		checkWriteAccess();
-		ConfigServerImpl cs = (ConfigServerImpl) ConfigWebUtil.getConfigServer(config, password);
+		ConfigServerImpl cs = (ConfigServerImpl) ConfigUtil.getConfigServer(config);
 		CFMLEngineFactory factory = cs.getEngine().getCFMLEngineFactory();
 
 		synchronized (factory) {
@@ -3938,7 +3928,7 @@ public final class ConfigAdmin {
 		else if ("os".equalsIgnoreCase(charset)) charset = SystemUtil.getCharset().name();
 
 		// check access
-		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
+		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 		if (!hasAccess) {
 			throw new SecurityException("Access Denied to update regional setting");
 		}
@@ -3980,7 +3970,7 @@ public final class ConfigAdmin {
 
 	public void updateCustomTagDeepSearch(boolean customTagDeepSearch) throws SecurityException {
 		checkWriteAccess();
-		if (!ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_CUSTOM_TAG)) throw new SecurityException("Access Denied to update custom tag setting");
+		if (!ConfigUtil.hasAccess(config, SecurityManager.TYPE_CUSTOM_TAG)) throw new SecurityException("Access Denied to update custom tag setting");
 
 		root.setEL("customTagDeepSearch", Caster.toString(customTagDeepSearch));
 	}
@@ -3999,13 +3989,13 @@ public final class ConfigAdmin {
 
 	public void updateCustomTagLocalSearch(boolean customTagLocalSearch) throws SecurityException {
 		checkWriteAccess();
-		if (!ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_CUSTOM_TAG)) throw new SecurityException("Access Denied to update custom tag setting");
+		if (!ConfigUtil.hasAccess(config, SecurityManager.TYPE_CUSTOM_TAG)) throw new SecurityException("Access Denied to update custom tag setting");
 		root.setEL("customTagLocalSearch", Caster.toString(customTagLocalSearch));
 	}
 
 	public void updateCustomTagExtensions(String extensions) throws PageException {
 		checkWriteAccess();
-		if (!ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_CUSTOM_TAG)) throw new SecurityException("Access Denied to update custom tag setting");
+		if (!ConfigUtil.hasAccess(config, SecurityManager.TYPE_CUSTOM_TAG)) throw new SecurityException("Access Denied to update custom tag setting");
 
 		// check
 		Array arr = ListUtil.listToArrayRemoveEmpty(extensions, ',');
@@ -4022,7 +4012,7 @@ public final class ConfigAdmin {
 
 		// SNSN
 
-		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManagerImpl.TYPE_REMOTE);
+		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManagerImpl.TYPE_REMOTE);
 		if (!hasAccess) throw new SecurityException("Access Denied to update remote client settings");
 
 		Struct clients = _getRootElement("remoteClients");
@@ -4034,14 +4024,14 @@ public final class ConfigAdmin {
 		securityKey = securityKey.trim();
 		adminPassword = adminPassword.trim();
 
-		Array children = ConfigWebUtil.getAsArray("remoteClient", clients);
+		Array children = ConfigUtil.getAsArray("remoteClient", clients);
 
 		// Update
 		for (int i = 1; i <= children.size(); i++) {
 			Struct el = Caster.toStruct(children.get(i, null), null);
 			if (el == null) continue;
 
-			String _url = ConfigWebUtil.getAsString("url", el, "");
+			String _url = ConfigUtil.getAsString("url", el, "");
 			if (_url != null && _url.equalsIgnoreCase(url)) {
 				el.setEL("label", label);
 				el.setEL("type", type);
@@ -4050,10 +4040,10 @@ public final class ConfigAdmin {
 				el.setEL("proxyServer", proxyServer);
 				el.setEL("proxyUsername", proxyUsername);
 				el.setEL("proxyPort", proxyPort);
-				el.setEL("securityKey", ConfigWebUtil.encrypt(securityKey));
-				el.setEL("adminPassword", ConfigWebUtil.encrypt(adminPassword));
-				el.setEL("serverPassword", ConfigWebUtil.encrypt(serverPassword));
-				el.setEL("proxyPassword", ConfigWebUtil.encrypt(proxyPassword));
+				el.setEL("securityKey", ConfigUtil.encrypt(securityKey));
+				el.setEL("adminPassword", ConfigUtil.encrypt(adminPassword));
+				el.setEL("serverPassword", ConfigUtil.encrypt(serverPassword));
+				el.setEL("proxyPassword", ConfigUtil.encrypt(proxyPassword));
 				return;
 			}
 		}
@@ -4069,63 +4059,11 @@ public final class ConfigAdmin {
 		el.setEL("proxyServer", proxyServer);
 		el.setEL("proxyUsername", proxyUsername);
 		el.setEL("proxyPort", proxyPort);
-		el.setEL("securityKey", ConfigWebUtil.encrypt(securityKey));
-		el.setEL("adminPassword", ConfigWebUtil.encrypt(adminPassword));
-		el.setEL("serverPassword", ConfigWebUtil.encrypt(serverPassword));
-		el.setEL("proxyPassword", ConfigWebUtil.encrypt(proxyPassword));
+		el.setEL("securityKey", ConfigUtil.encrypt(securityKey));
+		el.setEL("adminPassword", ConfigUtil.encrypt(adminPassword));
+		el.setEL("serverPassword", ConfigUtil.encrypt(serverPassword));
+		el.setEL("proxyPassword", ConfigUtil.encrypt(proxyPassword));
 		children.appendEL(el);
-	}
-
-	public void updateUpdateAdminMode(String mode, boolean merge, boolean keep) throws PageException {
-		checkWriteAccess();
-
-		if (config.getAdminMode() == ConfigImpl.ADMINMODE_MULTI) {
-			// copy the content from all web cfconfig into the server cfconfig
-			if (merge) {
-				ConfigWeb[] webs = ((ConfigServer) config).getConfigWebs();
-				for (ConfigWeb cw: webs) {
-					try {
-
-						merge(root, ConfigWebFactory.loadDocumentCreateIfFails(cw.getConfigFile(), "web"), EXCLUDE_LIST, ARRAY_INDEX);
-					}
-					catch (IOException e) {
-						throw Caster.toPageException(e);
-					}
-				}
-			}
-
-			// move all extension in installed in web context to available in server context
-			{
-				ConfigWeb[] webs = ((ConfigServer) config).getConfigWebs();
-				for (ConfigWeb cw: webs) {
-					try {
-						for (RHExtension ext: ((ConfigPro) cw).getRHExtensions()) {
-							ext.addToAvailable(cw);
-						}
-					}
-					catch (Exception e) {
-						LogUtil.log("deploy", "extension", e);
-					}
-				}
-			}
-
-			// delete all the server configs
-			if (!keep) {
-				ConfigWeb[] webs = ((ConfigServer) config).getConfigWebs();
-				for (ConfigWeb cw: webs) {
-					cw.getConfigFile().delete();
-				}
-			}
-		}
-
-		if (StringUtil.isEmpty(mode, true)) return;
-		mode = mode.trim();
-
-		if (mode.equalsIgnoreCase("m") || mode.equalsIgnoreCase("multi") || mode.equalsIgnoreCase("multiple")) mode = "multi";
-		else if (mode.equalsIgnoreCase("s") || mode.equalsIgnoreCase("single")) mode = "single";
-		else throw new ApplicationException("invalid mode [" + mode + "], valid modes are [single,multi]");
-
-		root.setEL(KeyConstants._mode, mode);
 	}
 
 	/*
@@ -4224,9 +4162,9 @@ public final class ConfigAdmin {
 	}
 
 	void _updateMonitor(ClassDefinition cd, String type, String name, boolean logEnabled) throws PageException {
-		stopMonitor(ConfigWebUtil.toMonitorType(type, Monitor.TYPE_INTERVAL), name);
+		stopMonitor(ConfigUtil.toMonitorType(type, Monitor.TYPE_INTERVAL), name);
 
-		Struct children = ConfigWebUtil.getAsStruct("monitors", root);
+		Struct children = ConfigUtil.getAsStruct("monitors", root);
 		Key[] keys = children.keys();
 		Struct monitor = null;
 		// Update
@@ -4273,14 +4211,14 @@ public final class ConfigAdmin {
 	}
 
 	private void _removeCache(ClassDefinition cd) {
-		Array children = ConfigWebUtil.getAsArray("cacheClasses", root);
+		Array children = ConfigUtil.getAsArray("cacheClasses", root);
 		Key[] keys = children.keys();
 		for (int i = keys.length - 1; i >= 0; i--) {
 			Key key = keys[i];
 			Struct el = Caster.toStruct(children.get(key, null), null);
 			if (el == null) continue;
 
-			String _class = ConfigWebUtil.getAsString("virtual", el, null);
+			String _class = ConfigUtil.getAsString("virtual", el, null);
 			if (_class != null && _class.equalsIgnoreCase(cd.getClassName())) {
 				children.removeEL(key);
 				break;
@@ -4289,7 +4227,7 @@ public final class ConfigAdmin {
 	}
 
 	private void _removeCacheHandler(String id) {
-		Struct handlers = ConfigWebUtil.getAsStruct("cacheHandlers", root);
+		Struct handlers = ConfigUtil.getAsStruct("cacheHandlers", root);
 		Key[] keys = handlers.keys();
 		for (Key key: keys) {
 			String _id = key.getString();
@@ -4308,14 +4246,14 @@ public final class ConfigAdmin {
 	}
 
 	private void _updateCache(ClassDefinition cd) throws PageException {
-		Array children = ConfigWebUtil.getAsArray("cacheClasses", root);
+		Array children = ConfigUtil.getAsArray("cacheClasses", root);
 		Struct ch = null;
 		// Update
 		for (int i = 1; i <= children.size(); i++) {
 			Struct el = Caster.toStruct(children.get(i, null), null);
 			if (el == null) continue;
 
-			String _class = ConfigWebUtil.getAsString("class", el, null);
+			String _class = ConfigUtil.getAsString("class", el, null);
 			if (_class != null && _class.equalsIgnoreCase(cd.getClassName())) {
 				ch = el;
 				break;
@@ -4331,7 +4269,7 @@ public final class ConfigAdmin {
 	}
 
 	private void _updateCacheHandler(String id, ClassDefinition cd) throws PageException {
-		Struct handlers = ConfigWebUtil.getAsStruct("cacheHandlers", root);
+		Struct handlers = ConfigUtil.getAsStruct("cacheHandlers", root);
 		Iterator<Entry<Key, Object>> it = handlers.entryIterator();
 		Struct ch = null;
 		// Update
@@ -4369,9 +4307,9 @@ public final class ConfigAdmin {
 
 	void _removeMonitor(String type, String name) {
 
-		stopMonitor(ConfigWebUtil.toMonitorType(type, Monitor.TYPE_INTERVAL), name);
+		stopMonitor(ConfigUtil.toMonitorType(type, Monitor.TYPE_INTERVAL), name);
 
-		Array children = ConfigWebUtil.getAsArray("monitors", root);
+		Array children = ConfigUtil.getAsArray("monitors", root);
 		Key[] keys = children.keys();
 		for (Key key: keys) {
 			String _name = key.getString();
@@ -4382,7 +4320,7 @@ public final class ConfigAdmin {
 	}
 
 	public void removeCacheHandler(String id) {
-		Struct handlers = ConfigWebUtil.getAsStruct("cacheHandlers", root);
+		Struct handlers = ConfigUtil.getAsStruct("cacheHandlers", root);
 		Key[] keys = handlers.keys();
 		for (Key key: keys) {
 			String _id = key.getString();
@@ -4404,7 +4342,7 @@ public final class ConfigAdmin {
 	}
 
 	public void updateExtensionProvider(String strUrl) throws MalformedURLException, PageException {
-		Array children = ConfigWebUtil.getAsArray("extensionProviders", root);
+		Array children = ConfigUtil.getAsArray("extensionProviders", root);
 		strUrl = strUrl.trim();
 
 		URL _url = HTTPUtil.toURL(strUrl, HTTPUtil.ENCODED_NO);
@@ -4426,7 +4364,7 @@ public final class ConfigAdmin {
 	}
 
 	public void removeExtensionProvider(String strUrl) {
-		Array children = ConfigWebUtil.getAsArray("extensionProviders", root);
+		Array children = ConfigUtil.getAsArray("extensionProviders", root);
 		Key[] keys = children.keys();
 		strUrl = strUrl.trim();
 		String url;
@@ -4447,7 +4385,7 @@ public final class ConfigAdmin {
 	}
 
 	public void resetORMSetting() throws SecurityException {
-		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManagerImpl.TYPE_ORM);
+		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManagerImpl.TYPE_ORM);
 
 		if (!hasAccess) throw new SecurityException("Access Denied to update ORM Settings");
 
@@ -4456,7 +4394,7 @@ public final class ConfigAdmin {
 	}
 
 	public void updateORMSetting(ORMConfiguration oc) throws SecurityException {
-		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManagerImpl.TYPE_ORM);
+		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManagerImpl.TYPE_ORM);
 
 		if (!hasAccess) throw new SecurityException("Access Denied to update ORM Settings");
 
@@ -4500,7 +4438,7 @@ public final class ConfigAdmin {
 		checkWriteAccess();
 		if (StringUtil.isEmpty(id, true)) return;
 
-		Array children = ConfigWebUtil.getAsArray("extensions", root);
+		Array children = ConfigUtil.getAsArray("extensions", root);
 		int[] keys = children.intKeys();
 		Struct child;
 		RHExtension rhe;
@@ -4545,7 +4483,7 @@ public final class ConfigAdmin {
 	public static void updateCore(ConfigServerImpl config, Resource core, boolean reload) throws PageException {
 		try {
 			// get patches directory
-			CFMLEngine engine = ConfigWebUtil.getEngine(config);
+			CFMLEngine engine = ConfigUtil.getEngine(config);
 			ConfigServerImpl cs = config;
 			Version v;
 			v = CFMLEngineFactory.toVersion(core.getName(), null);
@@ -4600,10 +4538,10 @@ public final class ConfigAdmin {
 			readOnly = Caster.toBooleanValue(StringUtil.unwrap(attr.getValue("mapping-readonly")), false);
 			topLevel = Caster.toBooleanValue(StringUtil.unwrap(attr.getValue("mapping-top-level")), false);
 
-			listMode = ConfigWebUtil.toListenerMode(StringUtil.unwrap(attr.getValue("mapping-listener-mode")), -1);
-			listType = ConfigWebUtil.toListenerType(StringUtil.unwrap(attr.getValue("mapping-listener-type")), -1);
+			listMode = ConfigUtil.toListenerMode(StringUtil.unwrap(attr.getValue("mapping-listener-mode")), -1);
+			listType = ConfigUtil.toListenerType(StringUtil.unwrap(attr.getValue("mapping-listener-type")), -1);
 
-			inspect = ConfigWebUtil.inspectTemplate(StringUtil.unwrap(attr.getValue("mapping-inspect")), Config.INSPECT_UNDEFINED);
+			inspect = ConfigUtil.inspectTemplate(StringUtil.unwrap(attr.getValue("mapping-inspect")), Config.INSPECT_UNDEFINED);
 			if (inspect == Config.INSPECT_UNDEFINED) {
 				Boolean trusted = Caster.toBoolean(StringUtil.unwrap(attr.getValue("mapping-trusted")), null);
 				if (trusted != null) {
@@ -4736,7 +4674,7 @@ public final class ConfigAdmin {
 			boolean reloadNecessary = false;
 
 			// store to xml
-			RHExtension.removeDuplicates(ConfigWebUtil.getAsArray("extensions", root));
+			RHExtension.removeDuplicates(ConfigUtil.getAsArray("extensions", root));
 			BundleDefinition[] existing = _updateExtension(ci, rhext);
 
 			// this must happen after "store"
@@ -5048,31 +4986,31 @@ public final class ConfigAdmin {
 					primary = map.get("primary");
 
 					// inspect
-					inspect = ConfigWebUtil.inspectTemplate(map.get("inspect"), Config.INSPECT_UNDEFINED);
+					inspect = ConfigUtil.inspectTemplate(map.get("inspect"), Config.INSPECT_UNDEFINED);
 
 					// inspect interval slow
 					String str = map.get("inspect-interval-slow");
 					if (StringUtil.isEmpty(str, true)) str = map.get("inspectintervalslow");
 					if (StringUtil.isEmpty(str, true)) str = map.get("inspectIntervalSlow");
-					inspectTemplateIntervalSlow = ConfigWebUtil.toListenerType(str, -1);
+					inspectTemplateIntervalSlow = ConfigUtil.toListenerType(str, -1);
 
 					// inspect interval fast
 					str = map.get("inspect-interval-fast");
 					if (StringUtil.isEmpty(str, true)) str = map.get("inspectintervalfast");
 					if (StringUtil.isEmpty(str, true)) str = map.get("inspectIntervalFast");
-					inspectTemplateIntervalFast = ConfigWebUtil.toListenerType(str, -1);
+					inspectTemplateIntervalFast = ConfigUtil.toListenerType(str, -1);
 
 					// mode
 					str = map.get("listener-mode");
 					if (StringUtil.isEmpty(str, true)) str = map.get("listenermode");
 					if (StringUtil.isEmpty(str, true)) str = map.get("listenerMode");
-					lmode = ConfigWebUtil.toListenerMode(str, -1);
+					lmode = ConfigUtil.toListenerMode(str, -1);
 
 					// type
 					String strLType = map.get("listener-type");
 					if (StringUtil.isEmpty(strLType, true)) strLType = map.get("listenertype");
 					if (StringUtil.isEmpty(strLType, true)) strLType = map.get("listenerType");
-					ltype = ConfigWebUtil.toListenerType(strLType, -1);
+					ltype = ConfigUtil.toListenerType(strLType, -1);
 
 					toplevel = Caster.toBooleanValue(map.get("toplevel"), false);
 					readonly = Caster.toBooleanValue(map.get("readonly"), false);
@@ -5512,7 +5450,7 @@ public final class ConfigAdmin {
 			String functionAddionalDirectory, String tagAddionalDirectory) throws SecurityException {
 		checkWriteAccess();
 
-		Struct fs = ConfigWebUtil.getAsStruct("fileSystem", root);
+		Struct fs = ConfigUtil.getAsStruct("fileSystem", root);
 		if (!StringUtil.isEmpty(fldDefaultDirectory, true)) {
 			fs.setEL(KeyImpl.init("fldDefaultDirectory"), fldDefaultDirectory);
 		}
@@ -5736,14 +5674,14 @@ public final class ConfigAdmin {
 		hash = hash.trim();
 		label = label.trim();
 
-		Array children = ConfigWebUtil.getAsArray("labels", "label", root);
+		Array children = ConfigUtil.getAsArray("labels", "label", root);
 
 		// Update
 		for (int i = 1; i <= children.size(); i++) {
 			Struct tmp = Caster.toStruct(children.get(i, null), null);
 			if (tmp == null) continue;
 
-			String h = ConfigWebUtil.getAsString("id", tmp, null);
+			String h = ConfigUtil.getAsString("id", tmp, null);
 			if (h != null) {
 				if (h.equals(hash)) {
 					if (label.equals(tmp.get("name", null))) return false;
@@ -5764,7 +5702,7 @@ public final class ConfigAdmin {
 
 	public void updateDebugSetting(int maxLogs) throws SecurityException {
 		checkWriteAccess();
-		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_DEBUGGING);
+		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_DEBUGGING);
 		if (!hasAccess) throw new SecurityException("Access denied to change debugging settings");
 
 		if (maxLogs == -1) rem(root, "debuggingMaxRecordsLogged");
@@ -5773,7 +5711,7 @@ public final class ConfigAdmin {
 
 	public void updateDebugEntry(String type, String iprange, String label, String path, String fullname, Struct custom) throws SecurityException, IOException {
 		checkWriteAccess();
-		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_DEBUGGING);
+		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_DEBUGGING);
 		if (!hasAccess) throw new SecurityException("Access denied to change debugging settings");
 
 		// leave this, this method throws an exception when ip range is not valid
@@ -5784,7 +5722,7 @@ public final class ConfigAdmin {
 		iprange = iprange.trim();
 		label = label.trim();
 
-		Array children = ConfigWebUtil.getAsArray("debugTemplates", root);
+		Array children = ConfigUtil.getAsArray("debugTemplates", root);
 
 		// Update
 		Struct el = null;
@@ -5792,7 +5730,7 @@ public final class ConfigAdmin {
 			Struct tmp = Caster.toStruct(children.get(i, null), null);
 			if (tmp == null) continue;
 
-			String _id = ConfigWebUtil.getAsString("id", tmp, null);
+			String _id = ConfigUtil.getAsString("id", tmp, null);
 			if (_id != null) {
 				if (_id.equals(id)) {
 					el = tmp;
@@ -5818,10 +5756,10 @@ public final class ConfigAdmin {
 
 	public void removeDebugEntry(String id) throws SecurityException {
 		checkWriteAccess();
-		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_DEBUGGING);
+		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_DEBUGGING);
 		if (!hasAccess) throw new SecurityException("Access denied to change debugging settings");
 
-		Array children = ConfigWebUtil.getAsArray("debugTemplates", root);
+		Array children = ConfigUtil.getAsArray("debugTemplates", root);
 		Key[] keys = children.keys();
 		String _id;
 		if (children.size() > 0) {
@@ -5830,7 +5768,7 @@ public final class ConfigAdmin {
 				Struct el = Caster.toStruct(children.get(key, null), null);
 				if (el == null) continue;
 
-				_id = ConfigWebUtil.getAsString("id", el, null);
+				_id = ConfigUtil.getAsString("id", el, null);
 				if (_id != null && _id.equalsIgnoreCase(id)) {
 					children.removeEL(key);
 				}
@@ -5864,7 +5802,7 @@ public final class ConfigAdmin {
 		catch (Exception e) {
 			throw Caster.toPageException(e);
 		}
-		Struct children = ConfigWebUtil.getAsStruct("loggers", root);
+		Struct children = ConfigUtil.getAsStruct("loggers", root);
 		Key[] keys = children.keys();
 		// Update
 		Struct el = null;
@@ -6292,7 +6230,7 @@ public final class ConfigAdmin {
 			throws IOException, PageException, BundleException, ConverterException {
 		if (!Decision.isUUId(extensionID)) throw new IOException("id [" + extensionID + "] is invalid, it has to be a UUID");
 
-		Array children = ConfigWebUtil.getAsArray("extensions", root);
+		Array children = ConfigUtil.getAsArray("extensions", root);
 		int[] keys = children.intKeys();
 
 		// Update
@@ -6310,7 +6248,7 @@ public final class ConfigAdmin {
 
 			id = Caster.toString(el.get(KeyConstants._id), null);
 			if (extensionID.equalsIgnoreCase(id)) {
-				bundles = RHExtension.toBundleDefinitions(ConfigWebUtil.getAsString("bundles", el, null)); // get existing bundles before populate new ones
+				bundles = RHExtension.toBundleDefinitions(ConfigUtil.getAsString("bundles", el, null)); // get existing bundles before populate new ones
 
 				// bundles
 				arr = _removeExtensionCheckOtherUsage(children, el, "bundles");
@@ -6362,7 +6300,7 @@ public final class ConfigAdmin {
 	public static void cleanBundles(RHExtension rhe, ConfigPro config, BundleDefinition[] candiatesToRemove) {
 		if (ArrayUtil.isEmpty(candiatesToRemove)) return;
 
-		BundleCollection coreBundles = ConfigWebUtil.getEngine(config).getBundleCollection();
+		BundleCollection coreBundles = ConfigUtil.getEngine(config).getBundleCollection();
 
 		// core master
 		_cleanBundles(candiatesToRemove, coreBundles.core.getSymbolicName(), coreBundles.core.getVersion());
@@ -6412,7 +6350,7 @@ public final class ConfigAdmin {
 	}
 
 	private String[] _removeExtensionCheckOtherUsage(Array children, Struct curr, String type) {
-		String currVal = ConfigWebUtil.getAsString(type, curr, null);
+		String currVal = ConfigUtil.getAsString(type, curr, null);
 		if (StringUtil.isEmpty(currVal)) return null;
 		Key[] keys = children.keys();
 		String otherVal;
@@ -6427,7 +6365,7 @@ public final class ConfigAdmin {
 
 			other = tmp;
 			if (other == curr) continue;
-			otherVal = ConfigWebUtil.getAsString(type, other, null);
+			otherVal = ConfigUtil.getAsString(type, other, null);
 			if (StringUtil.isEmpty(otherVal)) continue;
 			otherArr = ListUtil.trimItems(ListUtil.listToStringArray(otherVal, ','));
 			for (int y = 0; y < otherArr.length; y++) {
@@ -6449,7 +6387,7 @@ public final class ConfigAdmin {
 	 */
 	public BundleDefinition[] _updateExtension(ConfigPro config, RHExtension ext) throws IOException, BundleException, PageException {
 		if (!Decision.isUUId(ext.getId())) throw new IOException("id [" + ext.getId() + "] is invalid, it has to be a UUID");
-		Array children = ConfigWebUtil.getAsArray("extensions", root);
+		Array children = ConfigUtil.getAsArray("extensions", root);
 		int[] keys = children.intKeys();
 		int key;
 		// Update
@@ -6467,7 +6405,7 @@ public final class ConfigAdmin {
 				id = Caster.toString(el.get(KeyConstants._id, null), null);
 				if (StringUtil.isEmpty(id)) hasNoneId = true;
 				if (ext.getId().equalsIgnoreCase(id)) {
-					old = RHExtension.toBundleDefinitions(ConfigWebUtil.getAsString("bundles", el, null)); // get existing bundles before populate new ones
+					old = RHExtension.toBundleDefinitions(ConfigUtil.getAsString("bundles", el, null)); // get existing bundles before populate new ones
 					ext.populate(el, false);
 					old = minus(old, OSGiUtil.toBundleDefinitions(ext.getBundles()));
 					return old;
@@ -6494,7 +6432,7 @@ public final class ConfigAdmin {
 						try {
 							RHExtension _ext = RHExtension.getInstance(config, r);// TODO not load it again!
 							if (_ext != null && _ext.getId().equalsIgnoreCase(ext.getId())) {
-								old = RHExtension.toBundleDefinitions(ConfigWebUtil.getAsString("bundles", el, null)); // get existing bundles before populate new ones
+								old = RHExtension.toBundleDefinitions(ConfigUtil.getAsString("bundles", el, null)); // get existing bundles before populate new ones
 								ext.populate(el, false);
 								old = minus(old, OSGiUtil.toBundleDefinitions(ext.getBundles()));
 								return old;
@@ -6535,7 +6473,7 @@ public final class ConfigAdmin {
 	}
 
 	private RHExtension getRHExtension(final ConfigPro config, final String id, final RHExtension defaultValue) {
-		Array children = ConfigWebUtil.getAsArray("extensions", root);
+		Array children = ConfigUtil.getAsArray("extensions", root);
 
 		if (children != null) {
 			int[] keys = children.intKeys();
@@ -6575,7 +6513,7 @@ public final class ConfigAdmin {
 
 	private RHExtension _hasRHExtensionInstalled(ConfigPro config, ExtensionDefintion ed) throws PageException {
 
-		Array children = ConfigWebUtil.getAsArray("extensions", root);
+		Array children = ConfigUtil.getAsArray("extensions", root);
 		int[] keys = children.intKeys();
 		RHExtension tmp;
 		try {
@@ -6732,7 +6670,7 @@ public final class ConfigAdmin {
 
 	public void updateQueue(Integer max, Integer timeout, Boolean enable) throws SecurityException {
 		checkWriteAccess();
-		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
+		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 		if (!hasAccess) throw new SecurityException("Accces Denied to update queue settings");
 
 		// max
@@ -6748,7 +6686,7 @@ public final class ConfigAdmin {
 
 	public void updateCGIReadonly(Boolean cgiReadonly) throws SecurityException {
 		checkWriteAccess();
-		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
+		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 		if (!hasAccess) throw new SecurityException("Accces Denied to update scope setting");
 
 		root.setEL("cgiScopeReadOnly", Caster.toString(cgiReadonly, ""));
@@ -6756,7 +6694,7 @@ public final class ConfigAdmin {
 
 	public void updateFormUrlAsStruct(Boolean formUrlAsStruct) throws SecurityException {
 		checkWriteAccess();
-		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
+		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 		if (!hasAccess) throw new SecurityException("Accces Denied to update scope setting");
 
 		root.setEL("formUrlAsStruct", Caster.toString(formUrlAsStruct, ""));

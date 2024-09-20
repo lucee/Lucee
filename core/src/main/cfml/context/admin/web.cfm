@@ -1,8 +1,6 @@
 <cfscript>
 
-	request.singleMode=getApplicationSettings().singleContext;
-	
-	if(request.singleMode && right(cgi.script_name,9)!="index.cfm") {
+	if(right(cgi.script_name,9)!="index.cfm") {
 		location url="index.cfm" addtoken=false;
 	}
 
@@ -49,7 +47,7 @@
 <cfparam name="request.adminType" default="web">
 <cfparam name="form.rememberMe" default="s">
 <cfset ad = request.adminType>
-<cfset request.self = (request.singleMode?"index": request.adminType )& ".cfm">
+<cfset request.self = "index.cfm">
 <cfscript>
 	if(structKeyExists(url, "reinit") && (url.action?:"") != "logout") {
 		location url="#cgi.SCRIPT_NAME#?action=logout&full=true" addtoken="No";

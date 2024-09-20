@@ -35,7 +35,7 @@ import lucee.runtime.PageContextImpl;
 import lucee.runtime.PageSource;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigWeb;
-import lucee.runtime.config.ConfigWebUtil;
+import lucee.runtime.config.ConfigUtil;
 import lucee.runtime.engine.ThreadLocalPageContext;
 
 /**
@@ -181,7 +181,7 @@ public final class LogUtil {
 
 	public static void logGlobal(Config config, int level, String type, String msg) {
 		try {
-			CFMLEngineFactory factory = ConfigWebUtil.getCFMLEngineFactory(config);
+			CFMLEngineFactory factory = ConfigUtil.getCFMLEngineFactory(config);
 			Resource log;
 			boolean check = false;
 			if (level > Log.LEVEL_DEBUG) {

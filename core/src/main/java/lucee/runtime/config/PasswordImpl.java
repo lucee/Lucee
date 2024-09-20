@@ -285,27 +285,21 @@ public class PasswordImpl implements Password {
 			admin.storeAndReload();
 		}
 		else {
-			ConfigWebUtil.checkPassword(config, "write", passwordOld);
-			ConfigWebUtil.checkGeneralWriteAccess(config, passwordOld);
+			ConfigUtil.checkPassword(config, "write", passwordOld);
+			ConfigUtil.checkGeneralWriteAccess(config, passwordOld);
 			ConfigAdmin admin = ConfigAdmin.newInstance(config, passwordOld);
 			admin.setPassword(passwordNew);
 			admin.storeAndReload();
 		}
 	}
 
-	public static Password passwordToCompare(ConfigWeb cw, boolean server, String rawPassword) {
+	public static Password passwordToCompare(ConfigWeb cw, String rawPassword) {
 		if (StringUtil.isEmpty(rawPassword, true)) return null;
 		ConfigWebPro cwi = (ConfigWebPro) cw;
 		int pwType;
 		String pwSalt;
-		if (server) {
-			pwType = cwi.getServerPasswordType();
-			pwSalt = cwi.getServerPasswordSalt();
-		}
-		else {
-			pwType = cwi.getPasswordType();
-			pwSalt = cwi.getPasswordSalt();
-		}
+		pwType = cwi.getPasswordType();
+		pwSalt = cwi.getPasswordSalt();
 
 		// if the internal password is not using the salt yet, this hash should eigther
 		String salt = pwType == Password.HASHED ? null : pwSalt;

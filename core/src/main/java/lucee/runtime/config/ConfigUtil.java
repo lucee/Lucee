@@ -77,7 +77,7 @@ import lucee.runtime.type.util.ListUtil;
 import lucee.transformer.library.function.FunctionLib;
 import lucee.transformer.library.tag.TagLib;
 
-public final class ConfigWebUtil {
+public final class ConfigUtil {
 
 	private static String enckey;
 
@@ -131,7 +131,7 @@ public final class ConfigWebUtil {
 		}
 		catch (IOException ioe) {
 			if (throwError) throw ioe;
-			LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs), ConfigWebUtil.class.getName(), ioe);
+			LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs), ConfigUtil.class.getName(), ioe);
 		}
 	}
 
@@ -172,7 +172,7 @@ public final class ConfigWebUtil {
 			if (_src.isFile()) {
 				if (_src.length() != _trg.length()) {
 					_src.copyTo(_trg, false);
-					LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cw), Log.LEVEL_DEBUG, ConfigWebUtil.class.getName(), "write file:" + _trg);
+					LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cw), Log.LEVEL_DEBUG, ConfigUtil.class.getName(), "write file:" + _trg);
 
 				}
 			}
@@ -745,9 +745,15 @@ public final class ConfigWebUtil {
 		return mappings;
 	}
 
-	public static ConfigServer getConfigServer(Config config, Password password) throws PageException {
+	public static ConfigServer getConfigServer(Config config) {
 		if (config instanceof ConfigServer) return (ConfigServer) config;
-		return ((ConfigWeb) config).getConfigServer(password);
+		return ((ConfigWebPro) config).getConfigServer();
+	}
+
+	public static ConfigServerImpl getConfigServerImpl(Config config) {
+		if (config instanceof ConfigServerImpl) return (ConfigServerImpl) config;
+		if (config instanceof ConfigWebPro) return (ConfigServerImpl) ((ConfigWebPro) config).getConfigServer();
+		throw new RuntimeException("cannot convert/extract ConfigServer from [" + config + "]");
 	}
 
 	protected static TagLib[] duplicate(TagLib[] tlds, boolean deepCopy) {
@@ -868,25 +874,6 @@ public final class ConfigWebUtil {
 		Object obj = sct.get(KeyImpl.init(name), null);
 		if (obj == null) return defaultValue;
 		return Caster.toDoubleValue(obj, false, defaultValue);
-	}
-
-	public static short toAdminMode(String mode, short defaultValue) {
-		if (StringUtil.isEmpty(mode, true)) return defaultValue;
-
-		mode = mode.trim();
-		if ("multi".equalsIgnoreCase(mode) || "multiple".equalsIgnoreCase(mode) || "double".equalsIgnoreCase(mode)) return ConfigImpl.ADMINMODE_MULTI;
-		if ("single".equalsIgnoreCase(mode)) return ConfigImpl.ADMINMODE_SINGLE;
-		if ("auto".equalsIgnoreCase(mode)) return ConfigImpl.ADMINMODE_AUTO;
-
-		return defaultValue;
-	}
-
-	public static String toAdminMode(short mode, String defaultValue) {
-		if (ConfigImpl.ADMINMODE_MULTI == mode) return "multi";
-		if (ConfigImpl.ADMINMODE_SINGLE == mode) return "single";
-		if (ConfigImpl.ADMINMODE_AUTO == mode) return "auto";
-
-		return defaultValue;
 	}
 
 	public static Mapping getMapping(Config config, String virtual, Mapping defaultValue) {

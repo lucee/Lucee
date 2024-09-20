@@ -84,7 +84,7 @@ import lucee.runtime.cfx.customtag.CFXTagPoolImpl;
 import lucee.runtime.component.ImportDefintion;
 import lucee.runtime.component.ImportDefintionImpl;
 import lucee.runtime.config.ConfigWebFactory.Path;
-import lucee.runtime.config.ConfigWebUtil.CacheElement;
+import lucee.runtime.config.ConfigUtil.CacheElement;
 import lucee.runtime.config.gateway.GatewayMap;
 import lucee.runtime.customtag.InitFile;
 import lucee.runtime.db.ClassDefinition;
@@ -168,11 +168,6 @@ import lucee.transformer.library.tag.TagLibTagScript;
 public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 
 	private static final RHExtension[] RHEXTENSIONS_EMPTY = new RHExtension[0];
-
-	// FUTURE add to interface
-	public static final short ADMINMODE_SINGLE = 1;
-	public static final short ADMINMODE_MULTI = 2;
-	public static final short ADMINMODE_AUTO = 4;
 
 	private int mode = MODE_CUSTOM;
 
@@ -770,7 +765,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 
 		if (scheduler == null) {
 			try {
-				return new SchedulerImpl(ConfigWebUtil.getEngine(this), this, new ArrayImpl());
+				return new SchedulerImpl(ConfigUtil.getEngine(this), this, new ArrayImpl());
 			}
 			catch (PageException e) {
 			}
@@ -809,7 +804,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 
 	protected void setMappings(Mapping[] mappings) {
 		close(this.uncheckedMappings);
-		this.mappings = initMappings(this.uncheckedMappings = ConfigWebUtil.sort(mappings));
+		this.mappings = initMappings(this.uncheckedMappings = ConfigUtil.sort(mappings));
 	}
 
 	@Override
@@ -891,7 +886,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	@Override
 	public PageSource getPageSourceExisting(PageContext pc, Mapping[] mappings, String realPath, boolean onlyTopLevel, boolean useSpecialMappings, boolean useDefaultMapping,
 			boolean onlyPhysicalExisting) {
-		return ConfigWebUtil.getPageSourceExisting(pc, this, mappings, realPath, onlyTopLevel, useSpecialMappings, useDefaultMapping, onlyPhysicalExisting);
+		return ConfigUtil.getPageSourceExisting(pc, this, mappings, realPath, onlyTopLevel, useSpecialMappings, useDefaultMapping, onlyPhysicalExisting);
 	}
 
 	@Override
@@ -907,13 +902,13 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 
 	public PageSource[] getPageSources(PageContext pc, Mapping[] appMappings, String realPath, boolean onlyTopLevel, boolean useSpecialMappings, boolean useDefaultMapping,
 			boolean useComponentMappings, boolean onlyFirstMatch) {
-		return ConfigWebUtil.getPageSources(pc, this, appMappings, realPath, onlyTopLevel, useSpecialMappings, useDefaultMapping, useComponentMappings, onlyFirstMatch);
+		return ConfigUtil.getPageSources(pc, this, appMappings, realPath, onlyTopLevel, useSpecialMappings, useDefaultMapping, useComponentMappings, onlyFirstMatch);
 	}
 
 	@Override
 	public Resource[] getResources(PageContext pc, Mapping[] mappings, String realPath, boolean onlyTopLevel, boolean useSpecialMappings, boolean useDefaultMapping,
 			boolean useComponentMappings, boolean onlyFirstMatch) {
-		return ConfigWebUtil.getResources(pc, this, mappings, realPath, onlyTopLevel, useSpecialMappings, useDefaultMapping, useComponentMappings, onlyFirstMatch);
+		return ConfigUtil.getResources(pc, this, mappings, realPath, onlyTopLevel, useSpecialMappings, useDefaultMapping, useComponentMappings, onlyFirstMatch);
 	}
 
 	/**
@@ -943,7 +938,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 
 	@Override
 	public PageSource toPageSource(Mapping[] mappings, Resource res, PageSource defaultValue) {
-		return ConfigWebUtil.toPageSource(this, mappings, res, defaultValue);
+		return ConfigUtil.toPageSource(this, mappings, res, defaultValue);
 	}
 
 	@Override
@@ -2599,7 +2594,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	@Override
 	public Resource getRemoteClientDirectory() {
 		if (remoteClientDirectory == null) {
-			return ConfigWebUtil.getFile(getRootDirectory(), "client-task", "client-task", getConfigDir(), FileUtil.TYPE_DIR, ResourceUtil.LEVEL_GRAND_PARENT_FILE, this);
+			return ConfigUtil.getFile(getRootDirectory(), "client-task", "client-task", getConfigDir(), FileUtil.TYPE_DIR, ResourceUtil.LEVEL_GRAND_PARENT_FILE, this);
 		}
 
 		return remoteClientDirectory;
@@ -3107,7 +3102,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	}
 
 	private Map<String, SoftReference<PageSource>> componentPathCache = null;// new ArrayList<Page>();
-	private Map<String, SoftReference<ConfigWebUtil.CacheElement>> applicationPathCache = null;// new ArrayList<Page>();
+	private Map<String, SoftReference<ConfigUtil.CacheElement>> applicationPathCache = null;// new ArrayList<Page>();
 	private Map<String, SoftReference<InitFile>> ctPatchCache = null;// new ArrayList<Page>();
 	private Map<String, SoftReference<UDF>> udfCache = new ConcurrentHashMap<String, SoftReference<UDF>>();
 
@@ -3799,7 +3794,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 			// config server
 			else {
 				try {
-					File file = new File(ConfigWebUtil.getCFMLEngineFactory(this).getResourceRoot(), "deploy");
+					File file = new File(ConfigUtil.getCFMLEngineFactory(this).getResourceRoot(), "deploy");
 					if (!file.exists()) file.mkdirs();
 					deployDir = ResourcesImpl.getFileResourceProvider().getResource(file.getAbsolutePath());
 				}

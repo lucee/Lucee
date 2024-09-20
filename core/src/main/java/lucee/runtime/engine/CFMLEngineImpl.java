@@ -104,7 +104,6 @@ import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigAdmin;
 import lucee.runtime.config.ConfigFactory;
 import lucee.runtime.config.ConfigFactory.UpdateInfo;
-import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigServer;
 import lucee.runtime.config.ConfigServerFactory;
@@ -895,16 +894,9 @@ public final class CFMLEngineImpl implements CFMLEngine {
 			CFMLFactoryImpl factory = new CFMLFactoryImpl(this, sg);
 			if (ConfigWebFactory.LOG) LogUtil.log(configServer, Log.LEVEL_INFO, "startup", "Init factory");
 
-			boolean multi = configServer.getAdminMode() == ConfigImpl.ADMINMODE_MULTI;
-			ConfigWebPro config;
 			RefBoolean isCustomSetting = new RefBooleanImpl();
 			Resource configDir = getConfigDirectory(sg, configServer, countExistingContextes, isCustomSetting);
-			if (multi) {
-				config = ConfigWebFactory.newInstanceMulti(this, factory, configServer, configDir, sg, null);
-			}
-			else {
-				config = ConfigWebFactory.newInstanceSingle(this, factory, configServer, configDir, sg, null);
-			}
+			ConfigWebPro config = ConfigWebFactory.newInstanceSingle(this, factory, configServer, configDir, sg, null);
 
 			if (ConfigWebFactory.LOG) LogUtil.log(configServer, Log.LEVEL_INFO, "startup", "Loaded config");
 			factory.setConfig(configServer, config);

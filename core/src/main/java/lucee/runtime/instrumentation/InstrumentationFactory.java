@@ -44,7 +44,7 @@ import lucee.commons.lang.types.RefBoolean;
 import lucee.commons.lang.types.RefBooleanImpl;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigWebUtil;
+import lucee.runtime.config.ConfigUtil;
 import lucee.runtime.config.Constants;
 import lucee.runtime.engine.InfoImpl;
 import lucee.runtime.engine.ThreadLocalPageContext;
@@ -221,14 +221,14 @@ public class InstrumentationFactory {
 	}
 
 	private static Resource getDeployDirectory(Config config) {
-		Resource dir = ConfigWebUtil.getConfigServerDirectory(config);
+		Resource dir = ConfigUtil.getConfigServerDirectory(config);
 		if (dir == null || !dir.isWriteable() || !dir.isReadable()) dir = ResourceUtil.toResource(CFMLEngineFactory.getClassLoaderRoot(SystemUtil.getLoaderClassLoader()));
 
 		return dir;
 	}
 
 	private static Resource getBinDirectory(Config config) {
-		Resource dir = ConfigWebUtil.getConfigServerDirectory(config);
+		Resource dir = ConfigUtil.getConfigServerDirectory(config);
 		if (dir == null || !dir.isWriteable() || !dir.isReadable()) dir = ResourceUtil.toResource(CFMLEngineFactory.getClassLoaderRoot(SystemUtil.getLoaderClassLoader()));
 		else {
 			dir = dir.getRealResource("bin");

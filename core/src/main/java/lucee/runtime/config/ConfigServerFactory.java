@@ -156,15 +156,14 @@ public final class ConfigServerFactory extends ConfigFactory {
 			Struct root = loadDocumentCreateIfFails(configFileNew, "server");
 
 			// admin mode
-			boolean single = ConfigWebUtil.toAdminMode(ConfigWebFactory.getAttr(root, "mode"), ConfigImpl.ADMINMODE_SINGLE) == ConfigImpl.ADMINMODE_SINGLE;
-			if (single) ConfigWebFactory.createContextFiles(configDir, doNew);
+			ConfigWebFactory.createContextFiles(configDir, doNew);
 			load(config, root, false, doNew, essentialOnly);
 
 			if (!essentialOnly) {
-				double version = ConfigWebUtil.getAsDouble("version", root, 1.0d);
+				double version = ConfigUtil.getAsDouble("version", root, 1.0d);
 				boolean cleanupDatasources = version < 5.0D;
 				createContextFiles(configDir, config, doNew, cleanupDatasources);
-				((CFMLEngineImpl) ConfigWebUtil.getEngine(config)).onStart(config, false);
+				((CFMLEngineImpl) ConfigUtil.getEngine(config)).onStart(config, false);
 			}
 
 			return config;
@@ -225,7 +224,7 @@ public final class ConfigServerFactory extends ConfigFactory {
 		int iDoNew = getNew(engine, configServer.getConfigDir(), quick, UpdateInfo.NEW_NONE).updateType;
 		boolean doNew = iDoNew != NEW_NONE;
 		load(configServer, loadDocumentCreateIfFails(configFile, "server"), true, doNew, quick);
-		((CFMLEngineImpl) ConfigWebUtil.getEngine(configServer)).onStart(configServer, true);
+		((CFMLEngineImpl) ConfigUtil.getEngine(configServer)).onStart(configServer, true);
 	}
 
 	private static long second(long ms) {
@@ -245,12 +244,12 @@ public final class ConfigServerFactory extends ConfigFactory {
 	static void load(ConfigServerImpl configServer, Struct root, boolean isReload, boolean doNew, boolean essentialOnly)
 			throws ClassException, PageException, IOException, TagLibException, FunctionLibException, BundleException {
 		ConfigBase.onlyFirstMatch = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.mapping.first", null), true); // changed behaviour in 6.0
-		ConfigWebFactory.load(null, configServer, null, root, isReload, doNew, essentialOnly);
+		ConfigWebFactory.load(configServer, root, isReload, doNew, essentialOnly);
 		loadLabel(configServer, root);
 	}
 
 	private static void loadLabel(ConfigServerImpl configServer, Struct root) {
-		Array children = ConfigWebUtil.getAsArray("labels", "label", root);
+		Array children = ConfigUtil.getAsArray("labels", "label", root);
 
 		Map<String, String> labels = new HashMap<String, String>();
 		if (children != null) {
@@ -259,8 +258,8 @@ public final class ConfigServerFactory extends ConfigFactory {
 			while (it.hasNext()) {
 				data = Caster.toStruct(it.next(), null);
 				if (data == null) continue;
-				String id = ConfigWebUtil.getAsString("id", data, null);
-				String name = ConfigWebUtil.getAsString("name", data, null);
+				String id = ConfigUtil.getAsString("id", data, null);
+				String name = ConfigUtil.getAsString("name", data, null);
 				if (id != null && name != null) {
 					labels.put(id, name);
 				}

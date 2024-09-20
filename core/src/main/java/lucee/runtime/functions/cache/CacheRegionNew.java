@@ -74,7 +74,7 @@ public class CacheRegionNew extends BIF {
 	}
 
 	static String _call(PageContext pc, String cacheName, Struct properties, Boolean throwOnError, String strWebAdminPassword) throws PageException {
-		Password webAdminPassword = CacheUtil.getPassword(pc, strWebAdminPassword, false);
+		Password webAdminPassword = CacheUtil.getPassword(pc, strWebAdminPassword);
 		try {
 			ConfigAdmin adminConfig = ConfigAdmin.newInstance(pc.getConfig(), webAdminPassword);// TODO why we have here EHCache?
 			adminConfig.updateCacheConnection(cacheName, new ClassDefinitionImpl("org.lucee.extension.cache.eh.EHCache", null, null, pc.getConfig().getIdentification()),

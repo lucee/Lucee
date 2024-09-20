@@ -127,7 +127,7 @@ public class CFConfigImport {
 
 			// dynAttr = (DynamicAttributes) tag;
 			boolean isServer = "server".equalsIgnoreCase(type);
-			String strPW = ConfigWebUtil.decrypt(password);
+			String strPW = ConfigUtil.decrypt(password);
 			Password pw; // hash password if
 			if (isServer && config instanceof ConfigWebPro) {
 				pw = ((ConfigWebPro) config).isServerPasswordEqual(strPW);
@@ -209,7 +209,7 @@ public class CFConfigImport {
 			if (!hasPassword) {
 				// create password
 				try {
-					if (config instanceof ConfigWebPro && isServer) ((ConfigWebPro) config).updatePassword(isServer, null, password);
+					if (config instanceof ConfigWebPro && isServer) ((ConfigWebPro) config).updatePassword(null, password);
 					else {
 						PasswordImpl.updatePassword(config, null, password);
 					}

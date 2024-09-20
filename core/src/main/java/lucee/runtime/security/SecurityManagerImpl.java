@@ -25,12 +25,11 @@ import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.config.Config;
+import lucee.runtime.config.ConfigUtil;
 import lucee.runtime.config.ConfigWeb;
-import lucee.runtime.config.ConfigWebUtil;
 import lucee.runtime.config.Password;
 import lucee.runtime.config.PasswordImpl;
 import lucee.runtime.engine.ThreadLocalPageContext;
-import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.SecurityException;
 import lucee.runtime.type.util.ArrayUtil;
 
@@ -326,7 +325,7 @@ public final class SecurityManagerImpl implements Cloneable, SecurityManager {
 		if (getAccess(TYPE_FILE) == VALUE_ALL) return;
 
 		cw = (ConfigWeb) ThreadLocalPageContext.getConfig(cw);
-		Password serverPassword = PasswordImpl.passwordToCompare(cw, true, strServerPassword);
+		Password serverPassword = PasswordImpl.passwordToCompare(cw, strServerPassword);
 
 		// Local
 		if (getAccess(TYPE_FILE) == VALUE_LOCAL) {
@@ -409,13 +408,8 @@ public final class SecurityManagerImpl implements Cloneable, SecurityManager {
 		config = ThreadLocalPageContext.getConfig(config);
 
 		if (config == null || spw == null) return false;
-		try {
-			ConfigWebUtil.getConfigServer(config, spw);
-			return true;
-		}
-		catch (PageException e) {
-			return false;
-		}
+		ConfigUtil.getConfigServer(config);
+		return true;
 	}
 
 	@Override

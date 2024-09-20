@@ -137,7 +137,7 @@ public class ExportImportHandler {
 			m = new HashMap<String, Object>();
 			list.add(m);
 			m.put("virtual", mapping.getVirtual());
-			m.put("inspect", ConfigWebUtil.inspectTemplate(mi.getInspectTemplateRaw(), ""));
+			m.put("inspect", ConfigUtil.inspectTemplate(mi.getInspectTemplateRaw(), ""));
 			m.put("toplevel", mapping.isTopLevel());
 			m.put("readonly", mapping.isReadonly());
 			m.put("hidden", mapping.isHidden());

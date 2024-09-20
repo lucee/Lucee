@@ -37,7 +37,7 @@ public class RestDeleteApplication {
 	}
 
 	public static String call(PageContext pc, String dirPath, String strWebAdminPassword) throws PageException {
-		Password webAdminPassword = CacheUtil.getPassword(pc, strWebAdminPassword, false);
+		Password webAdminPassword = CacheUtil.getPassword(pc, strWebAdminPassword);
 
 		Resource dir = RestDeleteApplication.toResource(pc, dirPath);
 		ConfigWebPro config = (ConfigWebPro) pc.getConfig();

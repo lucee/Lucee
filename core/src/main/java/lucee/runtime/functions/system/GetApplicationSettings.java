@@ -35,7 +35,7 @@ import lucee.runtime.cache.CacheConnection;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigWebPro;
-import lucee.runtime.config.ConfigWebUtil;
+import lucee.runtime.config.ConfigUtil;
 import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.db.DataSource;
 import lucee.runtime.db.DataSourceImpl;
@@ -199,7 +199,7 @@ public class GetApplicationSettings extends BIF {
 		sct.setEL("enableNullSupport", ((ApplicationContextSupport) ac).getFullNullSupport());
 
 		// scope cascading
-		sct.setEL("scopeCascading", ConfigWebUtil.toScopeCascading(ac.getScopeCascading(), null));
+		sct.setEL("scopeCascading", ConfigUtil.toScopeCascading(ac.getScopeCascading(), null));
 
 		if (ac.getScopeCascading() != Config.SCOPE_SMALL) {
 			sct.setEL("searchImplicitScopes", ac.getScopeCascading() == Config.SCOPE_STANDARD);
@@ -208,8 +208,6 @@ public class GetApplicationSettings extends BIF {
 		sct.setEL("preciseMath", Caster.toBoolean(acs.getPreciseMath()));
 
 		sct.setEL("dotNotationUpperCase", Caster.toBoolean(((ConfigPro) pc.getConfig()).getDotNotationUpperCase()));
-		// adminMode
-		sct.setEL("singleContext", ConfigWebUtil.toAdminMode(((ConfigPro) pc.getConfig()).getAdminMode(), "single") == "single");
 
 		Struct cs = new StructImpl(Struct.TYPE_LINKED);
 		cs.setEL("web", pc.getWebCharset().name());

@@ -41,7 +41,7 @@ import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.config.ConfigWebPro;
-import lucee.runtime.config.ConfigWebUtil;
+import lucee.runtime.config.ConfigUtil;
 import lucee.runtime.db.ApplicationDataSource;
 import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.db.DBUtil;
@@ -297,7 +297,7 @@ public final class AppListenerUtil {
 			MappingData md = toMappingData(e.getValue(), source);
 			mappings.add(config.getApplicationMapping("application", virtual, md.physical, md.archive, md.physicalFirst, false, !md.physicalMatch, !md.archiveMatch));
 		}
-		return ConfigWebUtil.sort(mappings.toArray(new Mapping[mappings.size()]));
+		return ConfigUtil.sort(mappings.toArray(new Mapping[mappings.size()]));
 	}
 
 	public static Mapping[] toMappingsIgnoreInvalid(ConfigWeb cw, Object o, Resource source) {
@@ -321,7 +321,7 @@ public final class AppListenerUtil {
 			}
 
 		}
-		return ConfigWebUtil.sort(mappings.toArray(new Mapping[mappings.size()]));
+		return ConfigUtil.sort(mappings.toArray(new Mapping[mappings.size()]));
 	}
 
 	private static MappingData toMappingData(Object value, Resource source) throws PageException {
@@ -794,7 +794,7 @@ public final class AppListenerUtil {
 
 		String username = Caster.toString(data.get(KeyConstants._username, null), null);
 		if (StringUtil.isEmpty(username, true)) username = Caster.toString(data.get(KeyConstants._user, null), null);
-		String password = ConfigWebUtil.decrypt(Caster.toString(data.get(KeyConstants._password, null), null));
+		String password = ConfigUtil.decrypt(Caster.toString(data.get(KeyConstants._password, null), null));
 		username = translateValue(username);
 		password = translateValue(password);
 

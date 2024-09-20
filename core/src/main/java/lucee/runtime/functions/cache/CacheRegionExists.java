@@ -36,7 +36,7 @@ public class CacheRegionExists extends BIF {
 	private static final long serialVersionUID = 5966166102856736134L;
 
 	public static boolean call(PageContext pc, String cacheName, String strWebAdminPassword) throws PageException {
-		Password webAdminPassword = CacheUtil.getPassword(pc, strWebAdminPassword, false);
+		Password webAdminPassword = CacheUtil.getPassword(pc, strWebAdminPassword);
 		try {
 			ConfigAdmin adminConfig = ConfigAdmin.newInstance(pc.getConfig(), webAdminPassword);
 			return adminConfig.cacheConnectionExists(cacheName);

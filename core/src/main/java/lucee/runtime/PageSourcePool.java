@@ -33,7 +33,7 @@ import lucee.commons.io.res.Resource;
 import lucee.commons.io.watch.PageSourcePoolWatcher;
 import lucee.commons.lang.SerializableObject;
 import lucee.runtime.config.ConfigPro;
-import lucee.runtime.config.ConfigWebUtil;
+import lucee.runtime.config.ConfigUtil;
 import lucee.runtime.config.Constants;
 import lucee.runtime.dump.DumpData;
 import lucee.runtime.dump.DumpProperties;
@@ -323,7 +323,7 @@ public final class PageSourcePool implements Dumpable {
 	public static void flush(PageContext pc, Resource file) {
 		if (Constants.isCFML(file)) {
 			ApplicationContext ac = pc.getApplicationContext();
-			List<PageSource> sources = ConfigWebUtil.toAllLoadedPageSource((ConfigPro) pc.getConfig(), ac == null ? null : ac.getMappings(), file);
+			List<PageSource> sources = ConfigUtil.toAllLoadedPageSource((ConfigPro) pc.getConfig(), ac == null ? null : ac.getMappings(), file);
 			for (PageSource ps: sources) {
 				((PageSourceImpl) ps).resetLoaded();
 				((PageSourceImpl) ps).flush();

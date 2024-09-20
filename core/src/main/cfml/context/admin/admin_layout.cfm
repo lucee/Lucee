@@ -29,7 +29,7 @@
 </head>
 
 <cfparam name="attributes.onload" default="">
-<cfset mode=request.singleMode?"single":request.adminType>
+<cfset mode="single">
 <body id="body" class="admin-#mode# #mode#<cfif application.adminfunctions.getdata('fullscreen') eq 1> full</cfif>" onload="#attributes.onload#">
 	<div id="<cfif !hasNavigation>login<cfelse>layout</cfif>">
 		<table id="layouttbl">
@@ -38,12 +38,6 @@
 					<td colspan="2">
 						<div id="header">
 								<a id="logo" class="sprite" href="#home#"></a>
-							<cfif not request.singleMode>
-								<div id="admin-tabs" class="clearfix">
-									<a href="server.cfm#homeQS#" class="sprite server"></a>
-									<a href="web.cfm#homeQS#" class="sprite web"></a>
-								</div>
-							</cfif>
 						</div>	<!--- #header !--->
 					</td>
 				</tr>

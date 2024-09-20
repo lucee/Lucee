@@ -72,7 +72,7 @@ import lucee.loader.osgi.BundleUtil;
 import lucee.loader.util.Util;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigWebFactory;
-import lucee.runtime.config.ConfigWebUtil;
+import lucee.runtime.config.ConfigUtil;
 import lucee.runtime.config.Identification;
 import lucee.runtime.config.s3.BundleProvider;
 import lucee.runtime.engine.CFMLEngineImpl;
@@ -1305,7 +1305,7 @@ public class OSGiUtil {
 	 * @return
 	 */
 	public static List<BundleDefinition> getBundleDefinitions() {
-		CFMLEngine engine = ConfigWebUtil.getEngine(ThreadLocalPageContext.getConfig());
+		CFMLEngine engine = ConfigUtil.getEngine(ThreadLocalPageContext.getConfig());
 		return getBundleDefinitions(engine.getBundleContext());
 	}
 
@@ -1318,7 +1318,7 @@ public class OSGiUtil {
 			set.add(b.getSymbolicName() + ":" + b.getVersion());
 		}
 		// is it in jar directory but not loaded
-		CFMLEngineFactory factory = ConfigWebUtil.getCFMLEngineFactory(ThreadLocalPageContext.getConfig());
+		CFMLEngineFactory factory = ConfigUtil.getCFMLEngineFactory(ThreadLocalPageContext.getConfig());
 		try {
 			File[] children = factory.getBundleDirectory().listFiles(JAR_EXT_FILTER);
 			BundleFile bf;
@@ -1339,7 +1339,7 @@ public class OSGiUtil {
 	}
 
 	public static Bundle getBundleLoaded(String name, Version version, Bundle defaultValue) {
-		CFMLEngine engine = ConfigWebUtil.getEngine(ThreadLocalPageContext.getConfig());
+		CFMLEngine engine = ConfigUtil.getEngine(ThreadLocalPageContext.getConfig());
 		return getBundleLoaded(engine.getBundleContext(), name, version, defaultValue);
 	}
 
@@ -1358,7 +1358,7 @@ public class OSGiUtil {
 	}
 
 	public static Bundle loadBundleFromLocal(String name, Version version, List<Resource> addional, boolean loadIfNecessary, Bundle defaultValue) {
-		CFMLEngine engine = ConfigWebUtil.getEngine(ThreadLocalPageContext.getConfig());
+		CFMLEngine engine = ConfigUtil.getEngine(ThreadLocalPageContext.getConfig());
 		return loadBundleFromLocal(engine.getBundleContext(), name, version, addional, loadIfNecessary, defaultValue);
 	}
 
@@ -1376,7 +1376,7 @@ public class OSGiUtil {
 
 		// is it in jar directory but not loaded
 
-		CFMLEngineFactory factory = ConfigWebUtil.getCFMLEngineFactory(ThreadLocalPageContext.getConfig());
+		CFMLEngineFactory factory = ConfigUtil.getCFMLEngineFactory(ThreadLocalPageContext.getConfig());
 		BundleFile bf = _getBundleFile(factory, name, version, addional, null);
 		if (bf != null) {
 			try {
@@ -2326,7 +2326,7 @@ public class OSGiUtil {
 	}
 
 	public static Bundle getFrameworkBundle(Config config, Bundle defaultValue) {
-		Bundle[] bundles = ConfigWebUtil.getEngine(config).getBundleContext().getBundles();
+		Bundle[] bundles = ConfigUtil.getEngine(config).getBundleContext().getBundles();
 		Bundle b = null;
 		for (int i = 0; i < bundles.length; i++) {
 			b = bundles[i];

@@ -22,7 +22,7 @@ import java.util.TimeZone;
 
 import lucee.commons.io.log.Log;
 import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigWebUtil;
+import lucee.runtime.config.ConfigUtil;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageRuntimeException;
@@ -36,7 +36,7 @@ public class ApplicationDataSource extends DataSourceSupport {
 	private ApplicationDataSource(Config config, String name, ClassDefinition cd, String connStr, String username, String password, TagListener listener, boolean blob,
 			boolean clob, int connectionLimit, int idleTimeout, int liveTimeout, int minIdle, int maxIdle, int maxTotal, long metaCacheTimeout, TimeZone timezone, int allow,
 			boolean storage, boolean readOnly, boolean validate, boolean requestExclusive, boolean alwaysResetConnections, boolean literalTimestampWithTSOffset, Log log) {
-		super(config, name, cd, username, ConfigWebUtil.decrypt(password), listener, blob, clob, connectionLimit, idleTimeout, liveTimeout, minIdle, maxIdle, maxTotal,
+		super(config, name, cd, username, ConfigUtil.decrypt(password), listener, blob, clob, connectionLimit, idleTimeout, liveTimeout, minIdle, maxIdle, maxTotal,
 				metaCacheTimeout, timezone, allow < 0 ? ALLOW_ALL : allow, storage, readOnly, validate, requestExclusive, alwaysResetConnections, literalTimestampWithTSOffset,
 				log);
 

@@ -60,15 +60,13 @@ import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.types.RefBooleanImpl;
 import lucee.commons.lang.types.RefInteger;
 import lucee.commons.lang.types.RefIntegerImpl;
-import lucee.loader.util.Util;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigAdmin;
-import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.config.ConfigPro;
+import lucee.runtime.config.ConfigUtil;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.config.ConfigWebFactory;
 import lucee.runtime.config.ConfigWebPro;
-import lucee.runtime.config.ConfigWebUtil;
 import lucee.runtime.config.Constants;
 import lucee.runtime.config.DeployHandler;
 import lucee.runtime.converter.ConverterException;
@@ -563,7 +561,7 @@ public class RHExtension implements Serializable {
 		boolean isWeb = config instanceof ConfigWeb;
 		type = isWeb ? "web" : "server";
 		Log logger = ThreadLocalPageContext.getLog(config, "deploy");
-		Info info = ConfigWebUtil.getEngine(config).getInfo();
+		Info info = ConfigUtil.getEngine(config).getInfo();
 
 		Attributes attr = manifest.getMainAttributes();
 
@@ -573,7 +571,6 @@ public class RHExtension implements Serializable {
 		readVersion(label, StringUtil.unwrap(attr.getValue("version")));
 		label += " : " + version;
 		readId(label, StringUtil.unwrap(attr.getValue("id")));
-		readReleaseType(config, label, StringUtil.unwrap(attr.getValue("release-type")), isWeb);
 		description = StringUtil.unwrap(attr.getValue("description"));
 		trial = Caster.toBooleanValue(StringUtil.unwrap(attr.getValue("trial")), false);
 		if (_img == null) _img = StringUtil.unwrap(attr.getValue("image"));
@@ -604,7 +601,7 @@ public class RHExtension implements Serializable {
 		type = isWeb ? "web" : "server";
 
 		Log logger = ThreadLocalPageContext.getLog(config, "deploy");
-		Info info = ConfigWebUtil.getEngine(config).getInfo();
+		Info info = ConfigUtil.getEngine(config).getInfo();
 
 		readSymbolicName(label, ConfigWebFactory.getAttr(data, "symbolicName", "symbolic-name"));
 		readName(label, ConfigWebFactory.getAttr(data, "name"));
@@ -612,7 +609,6 @@ public class RHExtension implements Serializable {
 		readVersion(label, ConfigWebFactory.getAttr(data, "version"));
 		label += " : " + version;
 		readId(label, StringUtil.isEmpty(id) ? ConfigWebFactory.getAttr(data, "id") : id);
-		readReleaseType(config, label, ConfigWebFactory.getAttr(data, "releaseType", "release-type"), isWeb);
 		description = ConfigWebFactory.getAttr(data, "description");
 		trial = Caster.toBooleanValue(ConfigWebFactory.getAttr(data, "trial"), false);
 		if (_img == null) _img = ConfigWebFactory.getAttr(data, "image");
@@ -755,7 +751,7 @@ public class RHExtension implements Serializable {
 	}
 
 	public void validate(Config config) throws ApplicationException {
-		validate(ConfigWebUtil.getEngine(config).getInfo());
+		validate(ConfigUtil.getEngine(config).getInfo());
 	}
 
 	public void validate(Info info) throws ApplicationException {
@@ -785,22 +781,6 @@ public class RHExtension implements Serializable {
 			categories = ListUtil.trimItems(ListUtil.listToStringArray(cat, ","));
 		}
 		else categories = null;
-	}
-
-	private void readReleaseType(Config config, String label, String str, boolean isWeb) throws ApplicationException {
-		if (((ConfigPro) ThreadLocalPageContext.getConfig(config)).getAdminMode() == ConfigImpl.ADMINMODE_SINGLE) return;
-		// release type
-		int rt = RELEASE_TYPE_ALL;
-		if (!Util.isEmpty(str)) {
-			str = str.trim();
-			if ("server".equalsIgnoreCase(str)) rt = RELEASE_TYPE_SERVER;
-			else if ("web".equalsIgnoreCase(str)) rt = RELEASE_TYPE_WEB;
-		}
-		if ((rt == RELEASE_TYPE_SERVER && isWeb) || (rt == RELEASE_TYPE_WEB && !isWeb)) {
-			throw new ApplicationException(
-					"Cannot install the Extension [" + label + "] in the " + type + " context, this Extension has the release type [" + toReleaseType(rt, "") + "].");
-		}
-		releaseType = rt;
 	}
 
 	private void readId(String label, String id) throws ApplicationException {
@@ -949,7 +929,7 @@ public class RHExtension implements Serializable {
 			}
 		}
 
-		if (config instanceof ConfigWebPro && ((ConfigWebPro) config).isSingle()) return;
+		if (config instanceof ConfigWebPro) return;
 		// extension defined in xml
 		RHExtension[] xmlArrExtensions = ((ConfigPro) config).getRHExtensions();
 		if (xmlArrExtensions.length == getPhysicalExtensionCount(config)) return; // all is OK

@@ -1,1969 +1,2127 @@
 package lucee.runtime.config;
 
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.Serializable;
+import java.net.URL;
+import java.nio.charset.Charset;
 import java.util.Collection;
+import java.util.Enumeration;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.TimeZone;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.osgi.framework.BundleException;
-import org.xml.sax.SAXException;
+import org.osgi.framework.Version;
 
+import lucee.commons.collection.MapFactory;
+import lucee.commons.io.SystemUtil;
+import lucee.commons.io.cache.Cache;
+import lucee.commons.io.log.Log;
+import lucee.commons.io.log.LogEngine;
+import lucee.commons.io.log.LogUtil;
+import lucee.commons.io.log.LoggerAndSourceData;
 import lucee.commons.io.res.Resource;
+import lucee.commons.io.res.ResourceProvider;
+import lucee.commons.io.res.ResourcesImpl;
 import lucee.commons.io.res.ResourcesImpl.ResourceProviderFactory;
+import lucee.commons.io.res.type.compress.Compress;
+import lucee.commons.io.res.util.ResourceUtil;
+import lucee.commons.lang.CharSet;
+import lucee.commons.lang.ClassException;
 import lucee.commons.lang.PhysicalClassLoader;
+import lucee.commons.lang.types.RefBoolean;
+import lucee.commons.lock.KeyLock;
 import lucee.loader.engine.CFMLEngine;
+import lucee.runtime.CFMLFactory;
+import lucee.runtime.CFMLFactoryImpl;
+import lucee.runtime.CIPage;
+import lucee.runtime.Mapping;
+import lucee.runtime.MappingImpl;
+import lucee.runtime.PageContext;
+import lucee.runtime.PageSource;
 import lucee.runtime.ai.AIEngineFactory;
 import lucee.runtime.ai.AIEnginePool;
+import lucee.runtime.cache.CacheConnection;
+import lucee.runtime.cache.tag.CacheHandler;
+import lucee.runtime.cache.tag.CacheHandlerCollection;
+import lucee.runtime.cfx.CFXTagPool;
+import lucee.runtime.compiler.CFMLCompilerImpl;
+import lucee.runtime.component.ImportDefintion;
 import lucee.runtime.config.gateway.GatewayMap;
+import lucee.runtime.customtag.InitFile;
+import lucee.runtime.db.ClassDefinition;
+import lucee.runtime.db.DataSource;
+import lucee.runtime.db.JDBCDriver;
+import lucee.runtime.debug.DebuggerPool;
+import lucee.runtime.dump.DumpWriter;
+import lucee.runtime.dump.DumpWriterEntry;
+import lucee.runtime.engine.ExecutionLogFactory;
+import lucee.runtime.engine.ThreadQueue;
+import lucee.runtime.exp.DatabaseException;
+import lucee.runtime.exp.DeprecatedException;
+import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.exp.PageRuntimeException;
+import lucee.runtime.exp.SecurityException;
+import lucee.runtime.exp.TemplateException;
+import lucee.runtime.extension.Extension;
+import lucee.runtime.extension.ExtensionDefintion;
+import lucee.runtime.extension.ExtensionProvider;
+import lucee.runtime.extension.RHExtension;
+import lucee.runtime.extension.RHExtensionProvider;
+import lucee.runtime.gateway.GatewayEngine;
+import lucee.runtime.listener.ApplicationListener;
 import lucee.runtime.listener.JavaSettings;
+import lucee.runtime.lock.LockManager;
+import lucee.runtime.monitor.ActionMonitor;
+import lucee.runtime.monitor.ActionMonitorCollector;
+import lucee.runtime.monitor.IntervallMonitor;
+import lucee.runtime.monitor.RequestMonitor;
+import lucee.runtime.net.amf.AMFEngine;
+import lucee.runtime.net.http.ReqRspUtil;
+import lucee.runtime.net.mail.Server;
+import lucee.runtime.net.proxy.ProxyData;
+import lucee.runtime.net.rpc.WSHandler;
+import lucee.runtime.op.Caster;
+import lucee.runtime.orm.ORMConfiguration;
+import lucee.runtime.orm.ORMEngine;
+import lucee.runtime.osgi.OSGiUtil.BundleDefinition;
+import lucee.runtime.regex.Regex;
+import lucee.runtime.rest.RestSettings;
+import lucee.runtime.schedule.Scheduler;
+import lucee.runtime.search.SearchEngine;
+import lucee.runtime.security.SecurityManager;
+import lucee.runtime.spooler.SpoolerEngine;
+import lucee.runtime.tag.TagHandlerPool;
+import lucee.runtime.type.Collection.Key;
+import lucee.runtime.type.Struct;
+import lucee.runtime.type.UDF;
+import lucee.runtime.type.dt.TimeSpan;
+import lucee.runtime.type.scope.Cluster;
 import lucee.runtime.writer.CFMLWriter;
+import lucee.transformer.library.function.FunctionLib;
+import lucee.transformer.library.tag.TagLib;
 
-public class ConfigWebImpl implements ConfigWebPro {
-	private ConfigWebInner instance;
+public class ConfigWebImpl extends ConfigBase implements ConfigWebPro {
 
-	public ConfigWebImpl(ConfigWebInner instance) {
-		this.instance = instance;
-	}
-
-	@Override
-	public lucee.commons.io.res.Resource getExtensionDirectory() {
-		return instance.getExtensionDirectory();
-	}
-
-	@Override
-	public lucee.commons.io.res.Resource getSecurityDirectory() {
-		return instance.getSecurityDirectory();
-	}
-
-	@Override
-	public java.nio.charset.Charset getMailDefaultCharset() {
-		return instance.getMailDefaultCharset();
-	}
-
-	@Override
-	public java.lang.String getDebugTemplate() {
-		return instance.getDebugTemplate();
-	}
-
-	@Override
-	public lucee.runtime.gateway.GatewayEngine getGatewayEngine() throws PageException {
-		return instance.getGatewayEngine();
-	}
-
-	@Override
-	public boolean isProxyEnableFor(java.lang.String arg0) {
-		return instance.isProxyEnableFor(arg0);
-	}
-
-	@Override
-	public lucee.commons.io.res.Resource getPhysical(lucee.runtime.Mapping[] arg0, java.lang.String arg1, boolean arg2) {
-		return instance.getPhysical(arg0, arg1, arg2);
-	}
-
-	@Override
-	public void setIdentification(lucee.runtime.config.IdentificationWeb arg0) {
-		if (instance instanceof MultiContextConfigWeb) ((MultiContextConfigWeb) instance).setIdentification(arg0);
-		else((SingleContextConfigWeb) instance).setIdentification(arg0);
-		// ignored for Single, should not be called anyway
-	}
-
-	@Override
-	public boolean equals(java.lang.Object arg0) {
-		if (instance instanceof MultiContextConfigWeb) return instance.equals(arg0);
-		else return (instance).equals(arg0);
-	}
-
-	@Override
-	public boolean hasResourceProvider(java.lang.String arg0) {
-		return instance.hasResourceProvider(arg0);
-	}
-
-	@Override
-	public java.lang.String getPasswordSalt() {
-		return instance.getPasswordSalt();
-	}
-
-	public java.lang.Object[] getConsoleLayouts() throws lucee.runtime.exp.PageException {
-		if (instance instanceof MultiContextConfigWeb) return ((MultiContextConfigWeb) instance).getConsoleLayouts();
-		else return ((SingleContextConfigWeb) instance).getConsoleLayouts();
-	}
-
-	public java.lang.String getServerSalt() {
-		if (instance instanceof MultiContextConfigWeb) return ((MultiContextConfigWeb) instance).getServerSalt();
-		else return ((SingleContextConfigWeb) instance).getServerSalt();
-	}
-
-	@Override
-	public lucee.runtime.PageSource getApplicationPageSource(lucee.runtime.PageContext arg0, java.lang.String arg1, java.lang.String arg2, int arg3,
-			lucee.commons.lang.types.RefBoolean arg4) {
-		return instance.getApplicationPageSource(arg0, arg1, arg2, arg3, arg4);
-	}
-
-	@Override
-	public short getSessionType() {
-		return instance.getSessionType();
-	}
-
-	@Override
-	public short getClientType() {
-		return instance.getClientType();
-	}
-
-	@Override
-	public java.lang.String getSearchEngineDirectory() {
-		return instance.getSearchEngineDirectory();
-	}
-
-	@Override
-	public lucee.runtime.PageSource getBaseComponentPageSource(lucee.runtime.PageContext arg1, boolean force) {
-		return instance.getBaseComponentPageSource(arg1, force);
-	}
-
-	@Override
-	public lucee.commons.io.res.ResourceProvider getDefaultResourceProvider() {
-		return instance.getDefaultResourceProvider();
-	}
-
-	public lucee.commons.lang.CharSet getMailDefaultCharSet() {
-		if (instance instanceof MultiContextConfigWeb) return ((MultiContextConfigWeb) instance).getMailDefaultCharSet();
-		else return ((SingleContextConfigWeb) instance).getMailDefaultCharSet();
-	}
-
-	@Override
-	public lucee.commons.io.res.Resource getFldFile() {
-		return instance.getFldFile();
-	}
-
-	@Override
-	public lucee.commons.io.res.Resource getTldFile() {
-		return instance.getTldFile();
-	}
-
-	@Override
-	public lucee.commons.io.res.Resource[] getPhysicalResources(lucee.runtime.PageContext arg0, lucee.runtime.Mapping[] arg1, java.lang.String arg2, boolean arg3, boolean arg4,
-			boolean arg5) {
-		return instance.getPhysicalResources(arg0, arg1, arg2, arg3, arg4, arg5);
-	}
-
-	@Override
-	public double getVersion() {
-		return instance.getVersion();
-	}
-
-	@Override
-	public lucee.transformer.library.function.FunctionLib getFLDs() {
-		return instance.getFLDs();
-	}
-
-	@Override
-	public lucee.transformer.library.function.FunctionLib[] getFLDs(int dialect) { // used in image extension
-		return instance.getFLDs(dialect);
-	}
-
-	@Override
-	public java.io.PrintWriter getOutWriter() {
-		return instance.getOutWriter();
-	}
-
-	@Override
-	public lucee.runtime.listener.ApplicationListener getApplicationListener() {
-		return instance.getApplicationListener();
-	}
-
-	@Override
-	public int getComponentDataMemberDefaultAccess() {
-		return instance.getComponentDataMemberDefaultAccess();
-	}
-
-	@Override
-	public long getCacheDirSize() {
-		return instance.getCacheDirSize();
-	}
-
-	@Override
-	public lucee.runtime.engine.ThreadQueue getThreadQueue() {
-		return instance.getThreadQueue();
-	}
-
-	@Override
-	public lucee.runtime.config.DebugEntry[] getDebugEntries() {
-		return instance.getDebugEntries();
-	}
-
-	public int getDebugOptions() {
-		if (instance instanceof MultiContextConfigWeb) return ((MultiContextConfigWeb) instance).getDebugOptions();
-		else return ((SingleContextConfigWeb) instance).getDebugOptions();
-	}
-
-	@Override
-	public lucee.commons.io.res.Resource getDeployDirectory() {
-		return instance.getDeployDirectory();
-	}
-
-	@Override
-	public short getAdminMode() {
-		return instance.getAdminMode();
-	}
-
-	@Override
-	public long getApplicationPathCacheTimeout() {
-		return instance.getApplicationPathCacheTimeout();
-	}
-
-	public java.util.Map getGatewayEntries() {
-		if (instance instanceof MultiContextConfigWeb) return ((MultiContextConfigWeb) instance).getGatewayEntries();
-		else return ((SingleContextConfigWeb) instance).getGatewayEntries();
-	}
-
-	@Override
-	public int getScriptProtect() {
-		return instance.getScriptProtect();
-	}
-
-	public lucee.runtime.Mapping getScriptMapping() {
-		if (instance instanceof MultiContextConfigWeb) return ((MultiContextConfigWeb) instance).getScriptMapping();
-		else return ((SingleContextConfigWeb) instance).getScriptMapping();
-	}
-
-	@Override
-	public lucee.runtime.monitor.IntervallMonitor[] getIntervallMonitors() {
-		return instance.getIntervallMonitors();
-	}
-
-	public void resetRPCClassLoader() {
-		if (instance instanceof MultiContextConfigWeb) ((MultiContextConfigWeb) instance).resetRPCClassLoader();
-		else((SingleContextConfigWeb) instance).resetRPCClassLoader();
-	}
-
-	@Override
-	public lucee.runtime.dump.DumpWriter getDumpWriter(java.lang.String arg0) throws PageException {
-		return instance.getDumpWriter(arg0);
-	}
-
-	@Override
-	public boolean useCTPathCache() {
-		return instance.useCTPathCache();
-	}
-
-	@Override
-	public boolean getFullNullSupport() {
-		return instance.getFullNullSupport();
-	}
-
-	@Override
-	public boolean isSessionManagement() {
-		return instance.isSessionManagement();
-	}
-
-	@Override
-	public boolean allowRealPath() {
-		return instance.allowRealPath();
-	}
-
-	@Override
-	public lucee.commons.io.res.Resource getClientScopeDir() {
-		return instance.getClientScopeDir();
-	}
-
-	@Override
-	public lucee.runtime.schedule.Scheduler getScheduler() {
-		return instance.getScheduler();
-	}
-
-	@Override
-	public short getCompileType() {
-		return instance.getCompileType();
-	}
-
-	@Override
-	public lucee.commons.io.res.Resource getPhysicalResourceExisting(lucee.runtime.PageContext arg0, lucee.runtime.Mapping[] arg1, java.lang.String arg2, boolean arg3,
-			boolean arg4, boolean arg5) {
-		return instance.getPhysicalResourceExisting(arg0, arg1, arg2, arg3, arg4, arg5);
-	}
-
-	@Override
-	public java.util.Enumeration getInitParameterNames() {
-		return instance.getInitParameterNames();
-	}
-
-	@Override
-	public boolean getRestList() {
-		return instance.getRestList();
-	}
-
-	@Override
-	public int getCFMLWriterType() {
-		return instance.getCFMLWriterType();
-	}
-
-	@Override
-	public java.lang.ClassLoader getClassLoaderCore() {
-		return instance.getClassLoaderCore();
-	}
-
-	@Override
-	public ServletContext getServletContext() {
-		return instance.getServletContext();
-	}
-
-	@Override
-	public java.lang.String getSalt() {
-		return instance.getSalt();
-	}
-
-	public lucee.runtime.PageSource[] getPageSources(lucee.runtime.PageContext arg0, lucee.runtime.Mapping[] arg1, java.lang.String arg2, boolean arg3, boolean arg4, boolean arg5,
-			boolean arg6, boolean arg7) {
-
-		if (instance instanceof MultiContextConfigWeb) return ((MultiContextConfigWeb) instance).getPageSources(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7);
-		else return ((SingleContextConfigWeb) instance).getPageSources(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7);
-	}
-
-	@Override
-	public lucee.runtime.Mapping getServerTagMapping(java.lang.String arg0) {
-		return instance.getServerTagMapping(arg0);
-	}
-
-	@Override
-	public lucee.runtime.db.JDBCDriver getJDBCDriverByCD(lucee.runtime.db.ClassDefinition arg0, lucee.runtime.db.JDBCDriver arg1) {
-		return instance.getJDBCDriverByCD(arg0, arg1);
-	}
-
-	@Override
-	public void removeDatasourceConnectionPool(lucee.runtime.db.DataSource arg0) {
-		instance.removeDatasourceConnectionPool(arg0);
-	}
-
-	@Override
-	public lucee.runtime.cache.tag.CacheHandlerCollection getCacheHandlerCollection(int arg0, lucee.runtime.cache.tag.CacheHandlerCollection arg1) {
-		return instance.getCacheHandlerCollection(arg0, arg1);
-	}
-
-	@Override
-	public void setPassword(lucee.runtime.config.Password arg0) {
-		instance.setPassword(arg0);
-	}
-
-	@Override
-	public boolean isUserset() {
-		return instance.isUserset();
-	}
-
-	@Override
-	public lucee.runtime.tag.TagHandlerPool getTagHandlerPool() {
-		return instance.getTagHandlerPool();
-	}
-
-	@Override
-	public java.nio.charset.Charset getWebCharset() {
-		return instance.getWebCharset();
-	}
-
-	@Override
-	public lucee.runtime.type.UDF getFromFunctionCache(java.lang.String arg0) {
-		return instance.getFromFunctionCache(arg0);
-	}
-
-	@Override
-	public lucee.runtime.db.JDBCDriver getJDBCDriverByBundle(java.lang.String arg0, org.osgi.framework.Version arg1, lucee.runtime.db.JDBCDriver arg2) {
-		return instance.getJDBCDriverByBundle(arg0, arg1, arg2);
-	}
-
-	@Override
-	public void checkPermGenSpace(boolean arg0) {
-		instance.checkPermGenSpace(arg0);
-	}
-
-	@Override
-	public java.lang.String getDefaultEncoding() {
-		return instance.getDefaultEncoding();
-	}
-
-	@Override
-	public lucee.runtime.CIPage getBaseComponentPage(lucee.runtime.PageContext arg1) throws lucee.runtime.exp.PageException {
-		return instance.getBaseComponentPage(arg1);
-	}
-
-	@Override
-	public lucee.commons.io.log.Log getLog(java.lang.String arg0, boolean arg1) throws lucee.runtime.exp.PageException {
-		return instance.getLog(arg0, arg1);
-	}
-
-	@Override
-	public boolean isApplicationMapping(lucee.runtime.Mapping arg0) {
-		return instance.isApplicationMapping(arg0);
-	}
-
-	@Override
-	public boolean getSuppressWSBeforeArg() {
-		return instance.getSuppressWSBeforeArg();
-	}
-
-	@Override
-	public java.util.Collection getServerFunctionMappings() {
-		return instance.getServerFunctionMappings();
-	}
-
-	public void clearComponentMetadata() {
-		if (instance instanceof MultiContextConfigWeb) ((MultiContextConfigWeb) instance).clearComponentMetadata();
-		else((SingleContextConfigWeb) instance).clearComponentMetadata();
-	}
-
-	@Override
-	public boolean getPSQL() {
-		return instance.getPSQL();
-	}
-
-	public java.lang.Object[] getResourceLayouts() throws lucee.runtime.exp.PageException {
-		if (instance instanceof MultiContextConfigWeb) return ((MultiContextConfigWeb) instance).getResourceLayouts();
-		else return ((SingleContextConfigWeb) instance).getResourceLayouts();
-	}
-
-	@Override
-	public void updatePassword(boolean arg0, java.lang.String arg1, java.lang.String arg2) throws lucee.runtime.exp.PageException, IOException, SAXException, BundleException {
-		instance.updatePassword(this, arg0, arg1, arg2);
-	}
-
-	@Override
-	public lucee.runtime.dump.DumpWriter getDumpWriter(java.lang.String arg0, int arg1) throws PageException {
-		return instance.getDumpWriter(arg0, arg1);
-	}
-
-	@Override
-	public int getLocalMode() {
-		return instance.getLocalMode();
-	}
-
-	@Override
-	public long getQueueTimeout() {
-		return instance.getQueueTimeout();
-	}
-
-	@Override
-	public java.util.Collection getExtensionBundleDefintions() {
-		return instance.getExtensionBundleDefintions();
-	}
-
-	@Override
-	public lucee.runtime.Mapping getApplicationMapping(java.lang.String arg0, java.lang.String arg1, java.lang.String arg2, java.lang.String arg3, boolean arg4, boolean arg5,
-			boolean arg6, boolean arg7) {
-		return instance.getApplicationMapping(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7);
-	}
-
-	@Override
-	public boolean getCGIScopeReadonly() {
-		return instance.getCGIScopeReadonly();
-	}
-
-	@Override
-	public boolean getComponentRootSearch() {
-		return instance.getComponentRootSearch();
-	}
-
-	@Override
-	public java.lang.String getCacheDefaultConnectionName(int arg0) {
-		return instance.getCacheDefaultConnectionName(arg0);
-	}
-
-	@Override
-	public java.util.Collection getDatasourceConnectionPools() {
-		return instance.getDatasourceConnectionPools();
-	}
-
-	@Override
-	public lucee.runtime.extension.ExtensionProvider[] getExtensionProviders() {
-		return instance.getExtensionProviders();
-	}
-
-	public void flushComponentPathCache() {
-		if (instance instanceof MultiContextConfigWeb) ((MultiContextConfigWeb) instance).flushComponentPathCache();
-		else((SingleContextConfigWeb) instance).flushComponentPathCache();
-	}
-
-	@Override
-	public boolean isMailSpoolEnable() {
-		return instance.isMailSpoolEnable();
-	}
-
-	@Override
-	public java.lang.Boolean getHandleUnQuotedAttrValueAsString() {
-		return instance.getHandleUnQuotedAttrValueAsString();
-	}
-
-	@Override
-	public java.lang.String getBaseComponentTemplate(int arg0) {
-		return instance.getBaseComponentTemplate(arg0);
-	}
-
-	@Override
-	public String getBaseComponentTemplate() {
-		return instance.getBaseComponentTemplate();
-	}
-
-	@Override
-	public java.lang.Class getClusterClass() {
-		return instance.getClusterClass();
-	}
-
-	public java.lang.String createSecurityToken() {
-		if (instance instanceof MultiContextConfigWeb) return ((MultiContextConfigWeb) instance).createSecurityToken();
-		else return ((SingleContextConfigWeb) instance).createSecurityToken();
-	}
-
-	@Override
-	public void reset() {
-		instance.reset();
-	}
-
-	@Override
-	public lucee.runtime.dump.DumpWriter getDefaultDumpWriter(int arg0) {
-		return instance.getDefaultDumpWriter(arg0);
-	}
-
-	@Override
-	public lucee.runtime.cfx.CFXTagPool getCFXTagPool() throws PageException {
-		return instance.getCFXTagPool();
-	}
-
-	public lucee.commons.io.res.Resource getServerConfigDir() {
-		if (instance instanceof MultiContextConfigWeb) return ((MultiContextConfigWeb) instance).getServerConfigDir();
-		else return ((SingleContextConfigWeb) instance).getServerConfigDir();
-	}
-
-	@Override
-	public void clearFunctionCache() {
-		instance.clearFunctionCache();
-	}
-
-	@Override
-	public lucee.runtime.PageSource[] getPageSources(lucee.runtime.PageContext arg0, lucee.runtime.Mapping[] arg1, java.lang.String arg2, boolean arg3, boolean arg4, boolean arg5,
-			boolean arg6) {
-		return instance.getPageSources(arg0, arg1, arg2, arg3, arg4, arg5, arg6);
-	}
-
-	@Override
-	public IdentificationWeb getIdentification() {
-		return instance.getIdentification();
-	}
-
-	@Override
-	public java.util.Locale getLocale() {
-		return instance.getLocale();
-	}
-
-	@Override
-	public java.util.Map getCacheConnections() {
-		return instance.getCacheConnections();
-	}
-
-	public java.lang.String getCacheMD5() {
-		if (instance instanceof MultiContextConfigWeb) return ((MultiContextConfigWeb) instance).getCacheMD5();
-		else return ((SingleContextConfigWeb) instance).getCacheMD5();
-	}
-
-	@Override
-	public boolean hasIndividualSecurityManager() {
-		return instance.hasIndividualSecurityManager(this);
-	}
-
-	@Override
-	public lucee.commons.io.res.Resource getLibraryDirectory() {
-		return instance.getLibraryDirectory();
-	}
-
-	@Override
-	public boolean isDevelopMode() {
-		return instance.isDevelopMode();
-	}
-
-	@Override
-	public lucee.runtime.db.JDBCDriver[] getJDBCDrivers() {
-		return instance.getJDBCDrivers();
-	}
-
-	@Override
-	public lucee.runtime.rest.RestSettings getRestSetting() {
-		return instance.getRestSetting();
-	}
-
-	@Override
-	public lucee.runtime.db.ClassDefinition getSearchEngineClassDefinition() {
-		return instance.getSearchEngineClassDefinition();
-	}
-
-	@Override
-	public java.lang.Class getVideoExecuterClass() {
-		return instance.getVideoExecuterClass();
-	}
-
-	@Override
-	public boolean closeConnection() {
-		return instance.closeConnection();
-	}
-
-	@Override
-	public lucee.runtime.Mapping getDefaultFunctionMapping() {
-		return instance.getDefaultFunctionMapping();
-	}
-
-	@Override
-	public boolean debugLogOutput() {
-		return instance.debugLogOutput();
-	}
-
-	@Override
-	public void releaseCacheHandlers(lucee.runtime.PageContext arg0) {
-		instance.releaseCacheHandlers(arg0);
-	}
-
-	@Override
-	public boolean allowImplicidQueryCall() {
-		return instance.allowImplicidQueryCall();
-	}
-
-	@Override
-	public boolean limitEvaluation() {
-		return instance.limitEvaluation();
-	}
-
-	@Override
-	public lucee.runtime.customtag.InitFile getCTInitFile(lucee.runtime.PageContext arg0, java.lang.String arg1) {
-		return instance.getCTInitFile(arg0, arg1);
-	}
-
-	@Override
-	public java.lang.ClassLoader getClassLoader() {
-		return instance.getClassLoader();
-	}
-
-	@Override
-	public lucee.runtime.config.DatasourceConnPool getDatasourceConnectionPool(lucee.runtime.db.DataSource arg0, java.lang.String arg1, java.lang.String arg2) {
-		return instance.getDatasourceConnectionPool(arg0, arg1, arg2);
-	}
-
-	@Override
-	public lucee.runtime.db.DataSource getDataSource(java.lang.String arg0, lucee.runtime.db.DataSource arg1) {
-		return instance.getDataSource(arg0, arg1);
-	}
-
-	@Override
-	public lucee.runtime.rest.Mapping[] getRestMappings() {
-		return instance.getRestMappings();
-	}
-
-	@Override
-	public boolean useComponentPathCache() {
-		return instance.useComponentPathCache();
-	}
-
-	@Override
-	public lucee.runtime.orm.ORMEngine resetORMEngine(lucee.runtime.PageContext arg0, boolean arg1) throws lucee.runtime.exp.PageException {
-		return instance.resetORMEngine(arg0, arg1);
-	}
-
-	@Override
-	public lucee.runtime.config.Password isServerPasswordEqual(java.lang.String arg0) {
-		return instance.isServerPasswordEqual(arg0);
-	}
-
-	@Override
-	public lucee.runtime.monitor.IntervallMonitor getIntervallMonitor(java.lang.String arg0) throws lucee.runtime.exp.PageException {
-		return instance.getIntervallMonitor(arg0);
-	}
-
-	@Override
-	public boolean isSuppressContent() {
-		return instance.isSuppressContent();
-	}
-
-	public ComponentMetaData getComponentMetadata(java.lang.String arg0) {
-		if (instance instanceof MultiContextConfigWeb) return ((MultiContextConfigWeb) instance).getComponentMetadata(arg0);
-		else return ((SingleContextConfigWeb) instance).getComponentMetadata(arg0);
-	}
-
-	@Override
-	public void resetBaseComponentPage() {
-		instance.resetBaseComponentPage();
-	}
-
-	@Override
-	public lucee.commons.io.res.Resource getConfigFile() {
-		return instance.getConfigFile();
-	}
-
-	@Override
-	public java.nio.charset.Charset getResourceCharset() {
-		return instance.getResourceCharset();
-	}
-
-	@Override
-	public boolean doLocalCustomTag() {
-		return instance.doLocalCustomTag();
-	}
-
-	@Override
-	public lucee.runtime.PageSource getPageSource(lucee.runtime.Mapping[] arg0, java.lang.String arg1, boolean arg2) {
-		return instance.getPageSource(arg0, arg1, arg2);
-	}
-
-	public lucee.commons.io.cache.Cache createRAMCache(lucee.runtime.type.Struct arg0) throws java.io.IOException {
-		if (instance instanceof MultiContextConfigWeb) return ((MultiContextConfigWeb) instance).createRAMCache(arg0);
-		else return ((SingleContextConfigWeb) instance).createRAMCache(arg0);
-	}
-
-	@Override
-	public boolean doCustomTagDeepSearch() {
-		return instance.doCustomTagDeepSearch();
-	}
-
-	@Override
-	public lucee.commons.io.res.Resource getConfigServerDir() {
-		return instance.getConfigServerDir();
-	}
-
-	@Override
-	public short getScopeCascadingType() {
-		return instance.getScopeCascadingType();
-	}
-
-	@Override
-	public java.lang.String toString() {
-		return instance.toString();
-	}
-
-	@Override
-	public boolean preserveCase() {
-		return instance.preserveCase();
-	}
-
-	@Override
-	public java.lang.String getUpdateType() {
-		return instance.getUpdateType();
-	}
-
-	@Override
-	public boolean getQueueEnable() {
-		return instance.getQueueEnable();
-	}
-
-	@Override
-	public lucee.runtime.Mapping[] getApplicationMappings() {
-		return instance.getApplicationMappings();
-	}
-
-	@Override
-	public java.lang.String getComponentDumpTemplate() {
-		return instance.getComponentDumpTemplate();
-	}
-
-	@Override
-	public lucee.commons.io.res.Resource getAntiSamyPolicy() {
-		return instance.getAntiSamyPolicy();
-	}
-
-	@Override
-	public lucee.runtime.component.ImportDefintion getComponentDefaultImport() {
-		return instance.getComponentDefaultImport();
-	}
-
-	@Override
-	public lucee.commons.io.res.ResourceProvider[] getResourceProviders() {
-		return instance.getResourceProviders();
-	}
-
-	@Override
-	public lucee.runtime.config.ConfigServer getConfigServer(java.lang.String arg0, long arg1) throws lucee.runtime.exp.PageException {
-		return instance.getConfigServer(arg0, arg1);
-	}
-
-	@Override
-	public ClassLoader getRPCClassLoader(boolean arg0, JavaSettings arg1, ClassLoader parent) throws java.io.IOException {
-		return instance.getRPCClassLoader(arg0, arg1, parent);
-	}
-
-	@Override
-	public PhysicalClassLoader getDirectClassLoader(boolean reload) throws IOException {
-		return instance.getDirectClassLoader(reload);
-	}
-
-	@Override
-	public lucee.runtime.config.MockPool getDatasourceConnectionPool() {
-		return instance.getDatasourceConnectionPool();
-	}
-
-	@Override
-	public int getServerPasswordType() {
-		return instance.getServerPasswordType();
-	}
-
-	@Override
-	public lucee.runtime.PageSource getBaseComponentPageSource(int arg0) {
-		return instance.getBaseComponentPageSource(arg0);
-	}
-
-	@Override
-	public boolean checkForChangesInConfigFile() {
-		return instance.checkForChangesInConfigFile();
-	}
-
-	@Override
-	public lucee.runtime.PageSource toPageSource(lucee.runtime.Mapping[] arg0, lucee.commons.io.res.Resource arg1, lucee.runtime.PageSource arg2) {
-		return instance.toPageSource(arg0, arg1, arg2);
-	}
-
-	@Override
-	public lucee.runtime.monitor.RequestMonitor[] getRequestMonitors() {
-		return instance.getRequestMonitors();
-	}
-
-	public void setAllowURLRequestTimeout(boolean arg0) {
-		if (instance instanceof MultiContextConfigWeb) ((MultiContextConfigWeb) instance).setAllowURLRequestTimeout(arg0);
-		else((SingleContextConfigWeb) instance).setAllowURLRequestTimeout(arg0);
-	}
-
-	@Override
-	public java.lang.String getHash() {
-		return instance.getHash();
-	}
-
-	public void updatePassword(boolean arg0, lucee.runtime.config.Password arg1, lucee.runtime.config.Password arg2) throws lucee.runtime.exp.PageException {
-		if (instance instanceof MultiContextConfigWeb) ((MultiContextConfigWeb) instance).updatePassword(this, arg0, arg1, arg2);
-		// TODO what do do here?
-	}
-
-	@Override
-	public short getInspectTemplate() {
-		return instance.getInspectTemplate();
-	}
-
-	@Override
-	public lucee.runtime.monitor.ActionMonitor getActionMonitor(java.lang.String arg0) throws lucee.runtime.exp.PageException {
-		return instance.getActionMonitor(arg0);
-	}
-
-	@Override
-	public boolean getTypeChecking() {
-		return instance.getTypeChecking();
-	}
-
-	@Override
-	public lucee.runtime.config.RemoteClient[] getRemoteClients() {
-		return instance.getRemoteClients();
-	}
-
-	@Override
-	public boolean getComponentLocalSearch() {
-		return instance.getComponentLocalSearch();
-	}
-
-	@Override
-	public lucee.runtime.regex.Regex getRegex() {
-		return instance.getRegex();
-	}
-
-	@Override
-	public lucee.runtime.type.scope.Cluster createClusterScope() throws lucee.runtime.exp.PageException {
-		return instance.createClusterScope();
-	}
-
-	@Override
-	public lucee.runtime.type.dt.TimeSpan getRequestTimeout() {
-		return instance.getRequestTimeout();
-	}
-
-	@Override
-	public java.lang.String getSerialNumber() {
-		return instance.getSerialNumber();
-	}
-
-	@Override
-	public java.lang.String getInitParameter(java.lang.String arg0) {
-		return instance.getInitParameter(arg0);
-	}
-
-	protected void setPasswordSource(short arg0) {
-		if (instance instanceof MultiContextConfigWeb) ((MultiContextConfigWeb) instance).setPasswordSource(arg0);
-
-	}
+	private ConfigServerImpl cs;
+	protected Password password;
+	private ConfigWebHelper helper;
+	private ServletConfig config;
+	private CFMLFactoryImpl factory;
+	private SCCWIdentificationWeb id;
+	private Resource rootDir;
+	private Mapping[] mappings;
+	private lucee.runtime.rest.Mapping[] restMappings;
+	private Resource configDirWeb;
 
-	@Override
-	public lucee.runtime.config.Password isPasswordEqual(java.lang.String arg0) {
-		return instance.isPasswordEqual(arg0);
-	}
-
-	@Override
-	public lucee.commons.lang.CharSet getWebCharSet() {
-		return instance.getWebCharSet();
-	}
-
-	@Override
-	public lucee.runtime.Mapping getTagMapping(java.lang.String arg0) {
-		return instance.getTagMapping(arg0);
-	}
-
-	@Override
-	public java.lang.String getDefaultDataSource() {
-		return instance.getDefaultDataSource();
-	}
-
-	@Override
-	public java.io.PrintWriter getErrWriter() {
-		return instance.getErrWriter();
-	}
-
-	@Override
-	public boolean isClientCookies() {
-		return instance.isClientCookies();
-	}
-
-	@Override
-	public java.util.Collection getServerTagMappings() {
-		return instance.getServerTagMappings();
-	}
-
-	@Override
-	public int getMailTimeout() {
-		return instance.getMailTimeout();
-	}
-
-	@Override
-	public java.util.Map getAllLabels() {
-		return instance.getAllLabels();
-	}
-
-	@Override
-	public void putCTInitFile(java.lang.String arg0, lucee.runtime.customtag.InitFile arg1) {
-		instance.putCTInitFile(arg0, arg1);
-	}
-
-	@Override
-	public void resetServerFunctionMappings() {
-		instance.resetServerFunctionMappings();
-	}
-
-	@Override
-	public lucee.runtime.Mapping getDefaultTagMapping() {
-		return instance.getDefaultTagMapping();
-	}
-
-	@Override
-	public lucee.runtime.Mapping getDefaultServerTagMapping() {
-		return instance.getDefaultServerTagMapping();
-	}
-
-	@Override
-	public lucee.runtime.lock.LockManager getLockManager() {
-		return instance.getLockManager();
-	}
-
-	@Override
-	public boolean getDefaultFunctionOutput() {
-		return instance.getDefaultFunctionOutput();
-	}
-
-	@Override
-	public boolean isClientManagement() {
-		return instance.isClientManagement();
-	}
-
-	@Override
-	public lucee.runtime.type.dt.TimeSpan getClientTimeout() {
-		return instance.getClientTimeout();
-	}
-
-	@Override
-	public java.util.TimeZone getTimeZone() {
-		return instance.getTimeZone();
-	}
-
-	@Override
-	public boolean getPreciseMath() {
-		return instance.getPreciseMath();
-	}
-
-	@Override
-	public lucee.runtime.type.Struct listCTCache() {
-		return instance.listCTCache();
-	}
-
-	@Override
-	public boolean passwordEqual(lucee.runtime.config.Password arg0) {
-		return instance.passwordEqual(arg0);
-	}
-
-	@Override
-	public boolean doComponentDeepSearch() {
-		return instance.doComponentDeepSearch();
-	}
-
-	@Override
-	public lucee.commons.io.res.Resource getLocalExtensionProviderDirectory() {
-		return instance.getLocalExtensionProviderDirectory();
-	}
-
-	@Override
-	public java.lang.Class getAdminSyncClass() {
-		return instance.getAdminSyncClass();
-	}
-
-	@Override
-	public boolean hasPassword() {
-		return instance.hasPassword();
-	}
-
-	@Override
-	public boolean getDotNotationUpperCase() {
-		return instance.getDotNotationUpperCase();
-	}
-
-	@Override
-	public int getDebugMaxRecordsLogged() {
-		return instance.getDebugMaxRecordsLogged();
-	}
-
-	@Override
-	public java.util.Collection getFunctionMappings() {
-		return instance.getFunctionMappings();
-	}
-
-	@Override
-	public lucee.runtime.net.amf.AMFEngine getAMFEngine() {
-		return instance.getAMFEngine();
-	}
-
-	@Override
-	public lucee.runtime.type.dt.TimeSpan getCachedAfterTimeRange() {
-		return instance.getCachedAfterTimeRange();
-	}
-
-	@Override
-	public lucee.runtime.db.ClassDefinition getCacheDefinition(java.lang.String arg0) {
-		return instance.getCacheDefinition(arg0);
-	}
-
-	@Override
-	public java.util.Iterator getCacheHandlers() {
-		return instance.getCacheHandlers();
-	}
-
-	@Override
-	public java.lang.ClassLoader getClassLoaderEnv() {
-		return instance.getClassLoaderEnv();
-	}
-
-	@Override
-	public boolean getSessionCluster() {
-		return instance.getSessionCluster();
-	}
-
-	@Override
-	public lucee.commons.io.res.Resource getConfigDir() {
-		return instance.getConfigDir();
-	}
-
-	@Override
-	public lucee.runtime.db.DataSource getDataSource(java.lang.String arg0) throws PageException {
-		return instance.getDataSource(arg0);
-	}
-
-	@Override
-	public lucee.runtime.net.rpc.WSHandler getWSHandler() throws lucee.runtime.exp.PageException {
-		return instance.getWSHandler();
-	}
-
-	@Override
-	public lucee.runtime.Mapping getServerFunctionMapping(java.lang.String arg0) {
-		return instance.getServerFunctionMapping(arg0);
-	}
-
-	@Override
-	public lucee.runtime.debug.DebuggerPool getDebuggerPool() {
-		return instance.getDebuggerPool();
-	}
-
-	@Override
-	public boolean mergeFormAndURL() {
-		return instance.mergeFormAndURL();
-	}
-
-	@Override
-	public int getMailSpoolInterval() {
-		return instance.getMailSpoolInterval();
-	}
-
-	@Override
-	public long getLoadTime() {
-		return instance.getLoadTime();
-	}
-
-	@Override
-	public lucee.runtime.net.mail.Server[] getMailServers() {
-		return instance.getMailServers();
-	}
-
-	@Override
-	public lucee.commons.io.res.Resource getPluginDirectory() {
-		return instance.getPluginDirectory();
-	}
-
-	@Override
-	public int getQueueMax() {
-		return instance.getQueueMax();
-	}
-
-	@Override
-	public lucee.runtime.Mapping[] getComponentMappings() {
-		return instance.getComponentMappings();
-	}
-
-	public lucee.runtime.Mapping getDefaultServerFunctionMapping() {
-		if (instance instanceof MultiContextConfigWeb) return ((MultiContextConfigWeb) instance).getDefaultServerFunctionMapping();
-		else return ((SingleContextConfigWeb) instance).getDefaultServerFunctionMapping();
-	}
-
-	@Override
-	public java.lang.String getErrorTemplate(int arg0) {
-		return instance.getErrorTemplate(arg0);
-	}
-
-	@Override
-	public lucee.runtime.PageSource[] getPageSources(lucee.runtime.PageContext arg0, lucee.runtime.Mapping[] arg1, java.lang.String arg2, boolean arg3, boolean arg4,
-			boolean arg5) {
-		return instance.getPageSources(arg0, arg1, arg2, arg3, arg4, arg5);
-	}
-
-	@Override
-	public Resource[] getResources(lucee.runtime.PageContext arg0, lucee.runtime.Mapping[] arg1, java.lang.String arg2, boolean arg3, boolean arg4, boolean arg5, boolean arg6,
-			boolean arg7) {
-		return instance.getResources(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7);
-	}
-
-	@Override
-	public lucee.runtime.engine.ExecutionLogFactory getExecutionLogFactory() {
-		return instance.getExecutionLogFactory();
-	}
-
-	@Override
-	public boolean contentLength() {
-		return instance.contentLength();
-	}
-
-	public void flushApplicationPathCache() {
-		if (instance instanceof MultiContextConfigWeb) ((MultiContextConfigWeb) instance).flushApplicationPathCache();
-		else((SingleContextConfigWeb) instance).flushApplicationPathCache();
-	}
-
-	@Override
-	public boolean isMailSendPartial() {
-		return instance.isMailSendPartial();
-	}
-
-	public lucee.runtime.config.ConfigServerImpl getConfigServerImpl() {
-		if (instance instanceof MultiContextConfigWeb) return ((MultiContextConfigWeb) instance).getConfigServerImpl();
-		return ((SingleContextConfigWeb) instance).getConfigServerImpl();
-	}
-
-	@Override
-	public lucee.runtime.net.proxy.ProxyData getProxyData() {
-		return instance.getProxyData();
-	}
-
-	@Override
-	public lucee.commons.io.log.Log getLog(java.lang.String arg0) {
-		return instance.getLog(arg0);
-	}
-
-	@Override
-	@Deprecated
-	public java.lang.String getTimeServer() {
-		return instance.getTimeServer();
-	}
-
-	@Override
-	public boolean allowRequestTimeout() {
-		return instance.allowRequestTimeout();
-	}
-
-	public void createTag(lucee.transformer.library.tag.TagLib arg0, java.lang.String arg1, java.lang.String arg2) {
-		if (instance instanceof MultiContextConfigWeb) ((MultiContextConfigWeb) instance).createTag(arg0, arg1, arg2);
-		else((SingleContextConfigWeb) instance).createTag(arg0, arg1, arg2);
-	}
-
-	public lucee.commons.lang.CharSet getTemplateCharSet() {
-		if (instance instanceof MultiContextConfigWeb) return ((MultiContextConfigWeb) instance).getTemplateCharSet();
-		else return ((SingleContextConfigWeb) instance).getTemplateCharSet();
-	}
-
-	@Override
-	public lucee.commons.lock.KeyLock getContextLock() {
-		return instance.getContextLock();
-	}
-
-	@Override
-	public lucee.runtime.type.dt.TimeSpan getApplicationTimeout() {
-		return instance.getApplicationTimeout();
-	}
-
-	@Override
-	public java.lang.String getSessionStorage() {
-		return instance.getSessionStorage();
-	}
-
-	@Override
-	public lucee.runtime.config.ConfigServer getConfigServer(String password) throws lucee.runtime.exp.PageException {
-		return instance.getConfigServer(this, password);
-	}
-
-	public void setCacheMD5(java.lang.String arg0) {
-		if (instance instanceof MultiContextConfigWeb) ((MultiContextConfigWeb) instance).setCacheMD5(arg0);
-
-	}
-
-	@Override
-	public lucee.runtime.spooler.SpoolerEngine getSpoolerEngine() {
-		return instance.getSpoolerEngine();
-	}
-
-	@Override
-	public lucee.commons.io.res.Resource getEventGatewayDirectory() {
-		return instance.getEventGatewayDirectory();
-	}
-
-	@Override
-	public boolean debug() {
-		return instance.debug();
-	}
-
-	@Override
-	public boolean getShowDebug() {
-		return instance.getShowDebug();
-	}
-
-	@Override
-	public boolean getShowDoc() {
-		return instance.getShowDoc();
-	}
-
-	@Override
-	public boolean getShowMetric() {
-		return instance.getShowMetric();
-	}
-
-	@Override
-	public boolean getShowTest() {
-		return instance.getShowTest();
-	}
-
-	@Override
-	public lucee.runtime.Mapping getFunctionMapping(java.lang.String arg0) {
-		return instance.getFunctionMapping(arg0);
-	}
-
-	@Override
-	public java.util.Collection getTagMappings() {
-		return instance.getTagMappings();
-	}
-
-	@Override
-	public lucee.commons.io.res.type.compress.Compress getCompressInstance(lucee.commons.io.res.Resource arg0, int arg1, boolean arg2) throws java.io.IOException {
-		return instance.getCompressInstance(arg0, arg1, arg2);
-	}
-
-	@Override
-	public lucee.commons.io.res.Resource getTempDirectory() {
-		return instance.getTempDirectory();
+	public ConfigWebImpl(CFMLFactoryImpl factory, ConfigServerImpl cs, ServletConfig config, Resource configDirWeb) {
+		update(factory, cs, config, configDirWeb);
 	}
 
-	@Override
-	public lucee.runtime.type.Struct listComponentCache() {
-		return instance.listComponentCache();
-	}
-
-	@Override
-	public void putToFunctionCache(java.lang.String arg0, lucee.runtime.type.UDF arg1) {
-		instance.putToFunctionCache(arg0, arg1);
-	}
-
-	@Override
-	public int getLoginDelay() {
-		return instance.getLoginDelay();
-	}
-
-	@Override
-	public java.util.Map getDataSourcesAsMap() {
-		return instance.getDataSourcesAsMap();
-	}
-
-	public void flushCTPathCache() {
-		if (instance instanceof MultiContextConfigWeb) ((MultiContextConfigWeb) instance).flushCTPathCache();
-		else((SingleContextConfigWeb) instance).flushCTPathCache();
-	}
-
-	@Override
-	public lucee.runtime.CIPage getCachedPage(lucee.runtime.PageContext arg0, java.lang.String arg1) throws lucee.runtime.exp.TemplateException {
-		return instance.getCachedPage(arg0, arg1);
-	}
+	public ConfigWebImpl update(CFMLFactoryImpl factory, ConfigServerImpl cs, ServletConfig config, Resource configDirWeb) {
+		this.factory = factory;
+		this.cs = cs;
+		this.config = config;
+		this.configDirWeb = configDirWeb;
+		ResourceProvider frp = ResourcesImpl.getFileResourceProvider();
+		this.rootDir = frp.getResource(ReqRspUtil.getRootPath(config.getServletContext()));
 
-	@Override
-	public java.util.Map getTagDefaultAttributeValues() {
-		return instance.getTagDefaultAttributeValues();
-	}
-
-	@Override
-	public lucee.runtime.config.ConfigServer getConfigServer(lucee.runtime.config.Password arg0) throws lucee.runtime.exp.PageException {
-		return instance.getConfigServer(arg0);
-	}
-
-	@Override
-	public void clearApplicationCache() {
-		instance.clearApplicationCache();
-	}
+		// Fix for tomcat
+		if (this.rootDir.getName().equals(".") || this.rootDir.getName().equals("..")) this.rootDir = this.rootDir.getParentResource();
 
-	@Override
-	public java.util.Map getCacheDefinitions() {
-		return instance.getCacheDefinitions();
-	}
-
-	@Override
-	public boolean isExtensionEnabled() {
-		return instance.isExtensionEnabled();
-	}
+		helper = new ConfigWebHelper(cs, this);
 
-	@Override
-	public short getPasswordSource() {
-		return instance.getPasswordSource();
+		reload();
+		return this;
 	}
 
-	@Override
-	public lucee.runtime.db.JDBCDriver getJDBCDriverByClassName(java.lang.String arg0, lucee.runtime.db.JDBCDriver arg1) {
-		return instance.getJDBCDriverByClassName(arg0, arg1);
+	public ConfigServerImpl getConfigServerImpl() {
+		return cs;
 	}
 
 	@Override
-	public void clearCTCache() {
-		instance.clearCTCache();
-	}
-
-	public void putComponentMetadata(java.lang.String arg0, ComponentMetaData arg1) {
-		if (instance instanceof MultiContextConfigWeb) ((MultiContextConfigWeb) instance).putComponentMetadata(arg0, arg1);
-		else((SingleContextConfigWeb) instance).putComponentMetadata(arg0, arg1);
+	public ConfigServer getConfigServer() {
+		return cs;
 	}
 
 	@Override
 	public boolean isAllowURLRequestTimeout() {
-		return instance.isAllowURLRequestTimeout();
+		return cs.isAllowURLRequestTimeout();
 	}
 
 	@Override
-	public java.util.Map getStartups() {
-		return instance.getStartups();
-	}
-
-	@Override
-	public java.lang.String getLabel() {
-		return instance.getLabel();
-	}
-
-	public java.lang.String[] getLogNames() {
-		if (instance instanceof MultiContextConfigWeb) return ((MultiContextConfigWeb) instance).getLogNames();
-		else return ((SingleContextConfigWeb) instance).getLogNames();
-	}
-
-	@Override
-	public lucee.commons.io.res.Resource getClassesDirectory() {
-		return instance.getClassesDirectory();
-	}
-
-	@Override
-	public lucee.runtime.extension.Extension[] getExtensions() {
-		return instance.getExtensions();
-	}
-
-	@Override
-	@Deprecated
-	public long getTimeServerOffset() {
-		return instance.getTimeServerOffset();
-	}
-
-	@Override
-	public int getQueryVarUsage() {
-		return instance.getQueryVarUsage();
-	}
-
-	@Override
-	public ResourceProviderFactory[] getResourceProviderFactories() {
-		return instance.getResourceProviderFactories();
-	}
-
-	@Override
-	public long lastModified() {
-		return instance.lastModified();
-	}
-
-	@Override
-	public lucee.runtime.compiler.CFMLCompilerImpl getCompiler() {
-		return instance.getCompiler();
-	}
-
-	@Override
-	public boolean isMonitoringEnabled() {
-		return instance.isMonitoringEnabled();
-	}
-
-	@Override
-	public boolean hasDebugOptions(int arg0) {
-		return instance.hasDebugOptions(arg0);
-	}
-
-	@Override
-	public java.lang.String getClientStorage() {
-		return instance.getClientStorage();
-	}
-
-	@Override
-	public lucee.runtime.cache.CacheConnection getCacheDefaultConnection(int arg0) {
-		return instance.getCacheDefaultConnection(arg0);
-	}
-
-	@Override
-	public void putApplicationPageSource(java.lang.String arg0, lucee.runtime.PageSource arg1, java.lang.String arg2, int arg3, boolean arg4) {
-		instance.putApplicationPageSource(arg0, arg1, arg2, arg3, arg4);
-	}
-
-	protected void setAMFEngine(lucee.runtime.net.amf.AMFEngine arg0) {
-		if (instance instanceof MultiContextConfigWeb) ((MultiContextConfigWeb) instance).setAMFEngine(arg0);
-
-	}
-
-	@Override
-	public boolean getBufferOutput() {
-		return instance.getBufferOutput();
+	public short getCompileType() {
+		return cs.getCompileType();
 	}
 
 	@Override
 	@Deprecated
 	public void reloadTimeServerOffset() {
-		instance.reloadTimeServerOffset();
+		cs.reloadTimeServerOffset();
 	}
 
 	@Override
-	public boolean isSuppressWhitespace() {
-		return instance.isSuppressWhitespace();
+	public long lastModified() {
+		return cs.lastModified();
 	}
 
 	@Override
-	public lucee.runtime.search.SearchEngine getSearchEngine(lucee.runtime.PageContext arg0) throws lucee.runtime.exp.PageException {
-		return instance.getSearchEngine(arg0);
+	public short getScopeCascadingType() {
+		return cs.getScopeCascadingType();
 	}
 
 	@Override
-	public lucee.runtime.Mapping[] getCustomTagMappings() {
-		return instance.getCustomTagMappings();
+	public FunctionLib getFLDs() {
+		return cs.getFLDs();
 	}
 
 	@Override
-	public lucee.runtime.config.Password updatePasswordIfNecessary(boolean arg0, java.lang.String arg1) {
-		return instance.updatePasswordIfNecessary(arg0, arg1);
+	public FunctionLib[] getFLDs(int dialect) { // used in image extension
+		return cs.getFLDs(dialect);
 	}
 
 	@Override
-	public java.util.List loadLocalExtensions(boolean arg0) {
-		return instance.loadLocalExtensions(arg0);
+	public TagLib[] getTLDs() {
+		return cs.getTLDs();
 	}
 
 	@Override
-	public boolean isShowVersion() {
-		return instance.isShowVersion();
+	public boolean allowImplicidQueryCall() {
+		return cs.allowImplicidQueryCall();
 	}
 
 	@Override
-	public lucee.commons.lang.CharSet getResourceCharSet() {
-		return instance.getResourceCharSet();
+	public boolean limitEvaluation() {
+		return cs.limitEvaluation();
 	}
 
 	@Override
-	public java.net.URL getUpdateLocation() {
-		return instance.getUpdateLocation();
+	public boolean mergeFormAndURL() {
+		return cs.mergeFormAndURL();
 	}
 
 	@Override
-	public lucee.runtime.extension.RHExtension[] getServerRHExtensions() {
-		return instance.getServerRHExtensions();
+	public TimeSpan getApplicationTimeout() {
+		return cs.getApplicationTimeout();
 	}
 
 	@Override
-	public java.lang.String getServerPasswordSalt() {
-		return instance.getServerPasswordSalt();
+	public TimeSpan getSessionTimeout() {
+		return cs.getSessionTimeout();
 	}
 
-	protected void setGatewayEntries(GatewayMap entries) {
-		// TODO i think that method is never used
-		if (instance instanceof ConfigImpl) ((ConfigImpl) instance).setGatewayEntries(entries);
-	}
-
-	@Override
-	public lucee.runtime.orm.ORMEngine getORMEngine(lucee.runtime.PageContext arg0) throws lucee.runtime.exp.PageException {
-		return instance.getORMEngine(arg0);
-	}
-
-	public long getSessionScopeDirSize() {
-		if (instance instanceof MultiContextConfigWeb) return ((MultiContextConfigWeb) instance).getSessionScopeDirSize();
-		else return ((SingleContextConfigWeb) instance).getSessionScopeDirSize();
-	}
-
-	@Override
-	public int getPasswordOrigin() {
-		return instance.getPasswordOrigin();
-	}
-
-	public void clearResourceProviders() {
-		if (instance instanceof MultiContextConfigWeb) ((MultiContextConfigWeb) instance).clearResourceProviders();
-
-	}
-
-	@Override
-	public lucee.runtime.db.ClassDefinition getORMEngineClassDefintion() {
-		return instance.getORMEngineClassDefintion();
-	}
-
-	@Override
-	public lucee.commons.io.res.Resource getSessionScopeDir() {
-		return instance.getSessionScopeDir();
-	}
-
-	@Override
-	public lucee.commons.io.res.Resource getRemoteClientDirectory() {
-		return instance.getRemoteClientDirectory();
-	}
-
-	@Override
-	public java.lang.String getServletName() {
-		return instance.getServletName();
-	}
-
-	@Override
-	public lucee.commons.io.res.Resource getResource(java.lang.String arg0) {
-		return instance.getResource(arg0);
-	}
-
-	@Override
-	public boolean getClientCluster() {
-		return instance.getClientCluster();
-	}
-
-	@Override
-	public lucee.transformer.library.tag.TagLib[] getTLDs() {
-		return instance.getTLDs();
-	}
-
-	public lucee.runtime.Mapping getApplicationMapping(java.lang.String arg0, java.lang.String arg1) {
-		if (instance instanceof MultiContextConfigWeb) return ((MultiContextConfigWeb) instance).getApplicationMapping(arg0, arg1);
-		else return ((SingleContextConfigWeb) instance).getApplicationMapping(arg0, arg1);
-	}
-
-	@Override
-	public lucee.commons.io.res.Resource getRootDirectory() {
-		return instance.getRootDirectory();
-	}
-
-	@Override
-	public void clearComponentCache() {
-		instance.clearComponentCache();
-	}
-
-	@Override
-	public java.nio.charset.Charset getTemplateCharset() {
-		return instance.getTemplateCharset();
-	}
-
-	public int getMode() {
-		if (instance instanceof MultiContextConfigWeb) return ((MultiContextConfigWeb) instance).getMode();
-		else return ((SingleContextConfigWeb) instance).getMode();
-	}
-
-	@Override
-	public lucee.runtime.Mapping[] getMappings() {
-		return instance.getMappings();
-	}
-
-	@Override
-	public lucee.commons.io.res.Resource getVideoDirectory() {
-		return instance.getVideoDirectory();
-	}
-
-	@Override
-	public lucee.commons.io.log.LogEngine getLogEngine() {
-		return instance.getLogEngine();
-	}
-
-	@Override
-	public java.lang.String[] getCustomTagExtensions() {
-		return instance.getCustomTagExtensions();
-	}
-
-	@Override
-	public lucee.runtime.extension.RHExtensionProvider[] getRHExtensionProviders() {
-		return instance.getRHExtensionProviders();
-	}
-
-	public void setCacheDefinitions(java.util.Map arg0) {
-		if (instance instanceof MultiContextConfigWeb) ((MultiContextConfigWeb) instance).setCacheDefinitions(arg0);
-	}
-
-	@Override
-	public boolean isDefaultPassword() {
-		return instance.isDefaultPassword();
-	}
-
-	@Override
-	public lucee.runtime.orm.ORMConfiguration getORMConfig() {
-		return instance.getORMConfig();
-	}
-
-	@Override
-	public lucee.runtime.db.JDBCDriver getJDBCDriverById(java.lang.String arg0, lucee.runtime.db.JDBCDriver arg1) {
-		return instance.getJDBCDriverById(arg0, arg1);
-	}
-
-	@Override
-	public java.lang.Object getCachedWithin(int arg0) {
-		return instance.getCachedWithin(arg0);
-	}
-
-	@Override
-	public lucee.runtime.Mapping getApplicationMapping(java.lang.String arg0, java.lang.String arg1, java.lang.String arg2, java.lang.String arg3, boolean arg4, boolean arg5) {
-		return instance.getApplicationMapping(arg0, arg1, arg2, arg3, arg4, arg5);
-	}
-
-	@Override
-	public int getPasswordType() {
-		return instance.getPasswordType();
-	}
-
-	public lucee.runtime.db.ClassDefinition getORMEngineClass() {
-		if (instance instanceof MultiContextConfigWeb) return ((MultiContextConfigWeb) instance).getORMEngineClass();
-		else return ((SingleContextConfigWeb) instance).getORMEngineClass();
-	}
-
-	@Override
-	public lucee.runtime.monitor.RequestMonitor getRequestMonitor(java.lang.String arg0) throws lucee.runtime.exp.PageException {
-		return instance.getRequestMonitor(arg0);
-	}
-
-	@Override
-	public boolean getExecutionLogEnabled() {
-		return instance.getExecutionLogEnabled();
-	}
-
-	@Override
-	public CFMLWriter getWriter(lucee.runtime.PageContext arg0, HttpServletRequest arg1, HttpServletResponse arg2) {
-		return instance.getCFMLWriter(arg0, arg1, arg2);
-	}
-
-	@Override
-	public boolean allowCompression() {
-		return instance.allowCompression();
-	}
-
-	@Override
-	public lucee.runtime.config.DebugEntry getDebugEntry(java.lang.String arg0, lucee.runtime.config.DebugEntry arg1) {
-		return instance.getDebugEntry(arg0, arg1);
-	}
-
-	public void createFunction(lucee.transformer.library.function.FunctionLib arg0, java.lang.String arg1, java.lang.String arg2) {
-		if (instance instanceof MultiContextConfigWeb) ((MultiContextConfigWeb) instance).createFunction(arg0, arg1, arg2);
-
-	}
-
-	@Override
-	public lucee.runtime.security.SecurityManager getSecurityManager() {
-		return instance.getSecurityManager();
-	}
-
-	@Override
-	public lucee.runtime.writer.CFMLWriter getCFMLWriter(lucee.runtime.PageContext arg0, HttpServletRequest arg1, HttpServletResponse arg2) {
-		return instance.getCFMLWriter(arg0, arg1, arg2);
-	}
-
-	@Override
-	public lucee.runtime.CFMLFactory getFactory() {
-		return instance.getFactory();
-	}
-
-	@Override
-	public lucee.commons.io.res.Resource getClassDirectory() {
-		return instance.getClassDirectory();
-	}
-
-	public lucee.runtime.dump.DumpWriterEntry[] getDumpWritersEntries() {
-		if (instance instanceof MultiContextConfigWeb) return ((MultiContextConfigWeb) instance).getDumpWritersEntries();
-		else return ((SingleContextConfigWeb) instance).getDumpWritersEntries();
-	}
-
-	protected void setSecurityManager(lucee.runtime.security.SecurityManager arg0) {
-		if (instance instanceof MultiContextConfigWeb) ((MultiContextConfigWeb) instance).setSecurityManager(arg0);
-	}
-
-	@Override
-	public java.util.Collection getAllExtensionBundleDefintions() {
-		return instance.getAllExtensionBundleDefintions();
-	}
-
-	@Override
-	public lucee.runtime.db.DataSource[] getDataSources() {
-		return instance.getDataSources();
-	}
-
-	@Override
-	public lucee.commons.io.res.Resource getLogDirectory() {
-		return instance.getLogDirectory();
-	}
-
-	@Override
-	public boolean hasServerPassword() {
-		return instance.hasServerPassword();
-	}
-
-	@Override
-	public lucee.runtime.type.Struct getRemoteClientUsage() {
-		return instance.getRemoteClientUsage();
-	}
-
-	@Override
-	public java.lang.ClassLoader getRPCClassLoader(boolean arg0) throws java.io.IOException {
-		return instance.getRPCClassLoader(arg0);
-	}
-
-	@Override
-	public java.util.Collection getAllRHExtensions() {
-		return instance.getAllRHExtensions();
-	}
-
-	@Override
-	public long getClientScopeDirSize() {
-		return instance.getClientScopeDirSize();
-	}
-
-	@Override
-	public boolean useComponentShadow() {
-		return instance.useComponentShadow();
-	}
-
-	@Override
-	public lucee.runtime.PageSource getPageSourceExisting(lucee.runtime.PageContext arg0, lucee.runtime.Mapping[] arg1, java.lang.String arg2, boolean arg3, boolean arg4,
-			boolean arg5, boolean arg6) {
-		return instance.getPageSourceExisting(arg0, arg1, arg2, arg3, arg4, arg5, arg6);
-	}
-
-	@Override
-	public boolean getRememberMe() {
-		return instance.getRememberMe();
-	}
-
-	@Override
-	public int getExternalizeStringGTE() {
-		return instance.getExternalizeStringGTE();
-	}
-
-	@Override
-	public lucee.runtime.config.AdminSync getAdminSync() throws lucee.commons.lang.ClassException {
-		return instance.getAdminSync();
-	}
-
-	@Override
-	public lucee.runtime.monitor.ActionMonitorCollector getActionMonitorCollector() {
-		return instance.getActionMonitorCollector();
-	}
-
-	@Override
-	public void putCachedPageSource(java.lang.String arg0, lucee.runtime.PageSource arg1) {
-		instance.putCachedPageSource(arg0, arg1);
-	}
-
-	@Override
-	public boolean getLoginCaptcha() {
-		return instance.getLoginCaptcha();
-	}
-
-	@Override
-	public boolean getErrorStatusCode() {
-		return instance.getErrorStatusCode();
-	}
-
-	@Override
-	public lucee.runtime.type.dt.TimeSpan getSessionTimeout() {
-		return instance.getSessionTimeout();
-	}
-
-	@Override
-	public lucee.commons.io.res.Resource getCacheDir() {
-		return instance.getCacheDir();
-	}
-
-	@Override
-	public void checkPassword() throws lucee.runtime.exp.PageException {
-		instance.checkPassword();
-	}
-
 	@Override
-	public int getServerPasswordOrigin() {
-		return instance.getServerPasswordOrigin();
+	public TimeSpan getClientTimeout() {
+		return cs.getClientTimeout();
 	}
 
 	@Override
-	public lucee.runtime.type.Struct getConstants() {
-		return instance.getConstants();
+	public TimeSpan getRequestTimeout() {
+		return cs.getRequestTimeout();
 	}
 
 	@Override
-	public boolean getTriggerComponentDataMember() {
-		return instance.getTriggerComponentDataMember();
+	public boolean isClientCookies() {
+		return cs.isClientCookies();
 	}
 
 	@Override
-	public lucee.runtime.extension.RHExtension[] getRHExtensions() {
-		return instance.getRHExtensions();
+	public boolean isDevelopMode() {
+		return cs.isDevelopMode();
 	}
 
 	@Override
-	public java.util.Map getLoggers() {
-		return instance.getLoggers();
+	public boolean isClientManagement() {
+		return cs.isClientManagement();
 	}
 
 	@Override
 	public boolean isDomainCookies() {
-		return instance.isDomainCookies();
+		return cs.isDomainCookies();
 	}
 
 	@Override
-	public lucee.transformer.library.tag.TagLib getCoreTagLib() {
-		return instance.getCoreTagLib();
+	public boolean isSessionManagement() {
+		return cs.isSessionManagement();
 	}
 
-	protected void setMode(int mode) {
-		if (instance instanceof MultiContextConfigWeb) ((MultiContextConfigWeb) instance).setMode(mode);
+	@Override
+	public boolean isMailSpoolEnable() {
+		return cs.isMailSpoolEnable();
 	}
 
-	protected void setSalt(String salt) {
-		if (instance instanceof MultiContextConfigWeb) ((MultiContextConfigWeb) instance).setSalt(salt);
+	@Override
+	public boolean isMailSendPartial() {
+		return cs.isMailSendPartial();
 	}
 
-	protected void setCheckForChangesInConfigFile(boolean checkForChangesInConfigFile) {
-		if (instance instanceof MultiContextConfigWeb) ((MultiContextConfigWeb) instance).setCheckForChangesInConfigFile(checkForChangesInConfigFile);
+	@Override
+	public boolean isUserset() {
+		return cs.isUserset();
 	}
 
-	public ConfigWebPro getInstance() {
-		return instance;
+	@Override
+	public Server[] getMailServers() {
+		return cs.getMailServers();
 	}
 
-	public ConfigWebImpl setInstance(ConfigWebInner instance) {
-		if (this.instance != null) {
-			this.instance.reset();
+	@Override
+	public int getMailTimeout() {
+		return cs.getMailTimeout();
+	}
+
+	@Override
+	public boolean getPSQL() {
+		return cs.getPSQL();
+	}
+
+	@Override
+	public int getQueryVarUsage() {
+		return cs.getQueryVarUsage();
+	}
+
+	@Override
+	public ClassLoader getClassLoader() {
+		return cs.getClassLoader();
+	}
+
+	@Override
+	public ClassLoader getClassLoaderEnv() {
+		return cs.getClassLoaderEnv();
+	}
+
+	@Override
+	public ClassLoader getClassLoaderCore() {
+		return cs.getClassLoaderCore();
+	}
+
+	@Override
+	public Locale getLocale() {
+		return cs.getLocale();
+	}
+
+	@Override
+	public boolean debug() {
+		return cs.debug();
+	}
+
+	@Override
+	public boolean getShowDebug() {
+		return cs.getShowDebug();
+	}
+
+	@Override
+	public boolean getShowDoc() {
+		return cs.getShowDoc();
+	}
+
+	@Override
+	public boolean getShowMetric() {
+		return cs.getShowMetric();
+	}
+
+	@Override
+	public boolean getShowTest() {
+		return cs.getShowTest();
+	}
+
+	@Override
+	public boolean debugLogOutput() {
+		return cs.debugLogOutput();
+	}
+
+	@Override
+	public Resource getTempDirectory() {
+		return cs.getTempDirectory();
+	}
+
+	@Override
+	public int getMailSpoolInterval() {
+		return cs.getMailSpoolInterval();
+	}
+
+	@Override
+	public TimeZone getTimeZone() {
+		return cs.getTimeZone();
+	}
+
+	@Override
+	@Deprecated
+	public long getTimeServerOffset() {
+		return cs.getTimeServerOffset();
+	}
+
+	@Override
+	public Scheduler getScheduler() {
+		return cs.getScheduler();
+	}
+
+	@Override
+	public Password isPasswordEqual(String password) {
+		return cs.isPasswordEqual(password);
+	}
+
+	@Override
+	public boolean hasPassword() {
+		return cs.hasPassword();
+	}
+
+	@Override
+	public boolean passwordEqual(Password password) {
+		return cs.passwordEqual(password);
+	}
+
+	@Override
+	public Mapping[] getMappings() {
+		if (mappings == null) {
+			synchronized (this) {
+				if (mappings == null) createMapping();
+			}
 		}
-		this.instance = instance;
-		return this;
+		return mappings;// cs.getMappings();
 	}
 
 	@Override
-	public boolean isSingle() {
-		return instance.isSingle();
+	public lucee.runtime.rest.Mapping[] getRestMappings() {
+		if (restMappings == null) {
+			synchronized (this) {
+				if (restMappings == null) createRestMapping();
+			}
+		}
+		return restMappings;
+	}
+
+	@Override
+	public PageSource getPageSource(Mapping[] mappings, String realPath, boolean onlyTopLevel) {
+		throw new PageRuntimeException(new DeprecatedException("method not supported"));
+	}
+
+	@Override
+	public PageSource getPageSourceExisting(PageContext pc, Mapping[] mappings, String realPath, boolean onlyTopLevel, boolean useSpecialMappings, boolean useDefaultMapping,
+			boolean onlyPhysicalExisting) {
+		return ConfigUtil.getPageSourceExisting(pc, this, mappings, realPath, onlyTopLevel, useSpecialMappings, useDefaultMapping, onlyPhysicalExisting);
+	}
+
+	@Override
+	public PageSource[] getPageSources(PageContext pc, Mapping[] mappings, String realPath, boolean onlyTopLevel, boolean useSpecialMappings, boolean useDefaultMapping) {
+		return ConfigUtil.getPageSources(pc, this, mappings, realPath, onlyTopLevel, useSpecialMappings, useDefaultMapping, false, onlyFirstMatch);
+	}
+
+	@Override
+	public PageSource[] getPageSources(PageContext pc, Mapping[] mappings, String realPath, boolean onlyTopLevel, boolean useSpecialMappings, boolean useDefaultMapping,
+			boolean useComponentMappings) {
+		return ConfigUtil.getPageSources(pc, this, mappings, realPath, onlyTopLevel, useSpecialMappings, useDefaultMapping, useComponentMappings, onlyFirstMatch);
+	}
+
+	@Override
+	public Resource[] getResources(PageContext pc, Mapping[] mappings, String realPath, boolean onlyTopLevel, boolean useSpecialMappings, boolean useDefaultMapping,
+			boolean useComponentMappings, boolean onlyFirstMatch) {
+		return ConfigUtil.getResources(pc, this, mappings, realPath, onlyTopLevel, useSpecialMappings, useDefaultMapping, useComponentMappings, onlyFirstMatch);
+	}
+
+	@Override
+	public Resource getPhysical(Mapping[] mappings, String realPath, boolean alsoDefaultMapping) {
+		throw new PageRuntimeException(new DeprecatedException("method not supported"));
+	}
+
+	@Override
+	public Resource[] getPhysicalResources(PageContext pc, Mapping[] mappings, String realPath, boolean onlyTopLevel, boolean useSpecialMappings, boolean useDefaultMapping) {
+		throw new PageRuntimeException(new DeprecatedException("method not supported"));
+	}
+
+	@Override
+	public Resource getPhysicalResourceExisting(PageContext pc, Mapping[] mappings, String realPath, boolean onlyTopLevel, boolean useSpecialMappings, boolean useDefaultMapping) {
+		throw new PageRuntimeException(new DeprecatedException("method not supported"));
+	}
+
+	@Override
+	public PageSource toPageSource(Mapping[] mappings, Resource res, PageSource defaultValue) {
+		return ConfigUtil.toPageSource(this, mappings, res, defaultValue);
+	}
+
+	@Override
+	public Resource getConfigDir() {
+		return cs.getConfigDir();
+	}
+
+	@Override
+	public Resource getConfigFile() {
+		return cs.getConfigFile();
+	}
+
+	@Override
+	public TagLib getCoreTagLib() {
+		return cs.getCoreTagLib();
+	}
+
+	@Override
+	public Mapping[] getCustomTagMappings() {
+		return cs.getCustomTagMappings();
+	}
+
+	@Override
+	public long getLoadTime() {
+		return cs.getLoadTime();
+	}
+
+	@Override
+	public CFXTagPool getCFXTagPool() throws SecurityException {
+		return cs.getCFXTagPool();
+	}
+
+	@Override
+	public String getBaseComponentTemplate(int dialect) { // FUTURE remove
+		return cs.getBaseComponentTemplate(dialect);
+	}
+
+	@Override
+	public String getBaseComponentTemplate() {
+		return cs.getBaseComponentTemplate();
+	}
+
+	@Override
+	public PageSource getBaseComponentPageSource(int dialect) { // FUTURE remove
+		return cs.getBaseComponentPageSource(dialect);
+	}
+
+	@Override
+	public PageSource getBaseComponentPageSource(PageContext pc, boolean force) {
+		return cs.getBaseComponentPageSource(pc, force);
+	}
+
+	@Override
+	public boolean getRestList() {
+		return cs.getRestList();
+	}
+
+	@Override
+	public short getClientType() {
+		return cs.getClientType();
+	}
+
+	@Override
+	public ClassDefinition<SearchEngine> getSearchEngineClassDefinition() {
+		return cs.getSearchEngineClassDefinition();
+	}
+
+	@Override
+	public String getSearchEngineDirectory() {
+		return cs.getSearchEngineDirectory();
+	}
+
+	@Override
+	public int getComponentDataMemberDefaultAccess() {
+		return cs.getComponentDataMemberDefaultAccess();
+	}
+
+	@Override
+	public String getTimeServer() {
+		return cs.getTimeServer();
+	}
+
+	@Override
+	public String getComponentDumpTemplate() {
+		return cs.getComponentDumpTemplate();
+	}
+
+	@Override
+	public String getDebugTemplate() {
+		return cs.getDebugTemplate();
+	}
+
+	@Override
+	public String getErrorTemplate(int statusCode) {
+		return cs.getErrorTemplate(statusCode);
+	}
+
+	@Override
+	public short getSessionType() {
+		return cs.getSessionType();
+	}
+
+	@Override
+	public String getUpdateType() {
+		return null;
+	}
+
+	@Override
+	public URL getUpdateLocation() {
+		return null;
+	}
+
+	@Override
+	public Resource getClassDirectory() {
+		return cs.getClassDirectory();
+	}
+
+	@Override
+	public Resource getLibraryDirectory() {
+		return cs.getLibraryDirectory();
+	}
+
+	@Override
+	public Resource getEventGatewayDirectory() {
+		return cs.getEventGatewayDirectory();
+	}
+
+	@Override
+	public Resource getClassesDirectory() {
+		return cs.getClassesDirectory();
+	}
+
+	@Override
+	public Resource getRootDirectory() {
+		return rootDir;
+	}
+
+	@Override
+	public boolean isSuppressWhitespace() {
+		return cs.isSuppressWhitespace();
+	}
+
+	@Override
+	public boolean isSuppressContent() {
+		return cs.isSuppressContent();
+	}
+
+	@Override
+	public String getDefaultEncoding() {
+		return cs.getDefaultEncoding();
+	}
+
+	@Override
+	public Charset getTemplateCharset() {
+		return cs.getTemplateCharset();
+	}
+
+	@Override
+	public Charset getWebCharset() {
+		return cs.getWebCharset();
+	}
+
+	@Override
+	public CharSet getWebCharSet() {
+		return cs.getWebCharSet();
+	}
+
+	@Override
+	public Charset getResourceCharset() {
+		return cs.getResourceCharset();
+	}
+
+	@Override
+	public CharSet getResourceCharSet() {
+		return cs.getResourceCharSet();
+	}
+
+	@Override
+	public SecurityManager getSecurityManager() {
+		return cs.getSecurityManager();
+	}
+
+	@Override
+	public Resource getFldFile() {
+		return cs.getFldFile();
+	}
+
+	@Override
+	public Resource getTldFile() {
+		return cs.getTldFile();
+	}
+
+	@Override
+	public DataSource[] getDataSources() {
+		return cs.getDataSources();
+	}
+
+	@Override
+	public Map<String, DataSource> getDataSourcesAsMap() {
+		return cs.getDataSourcesAsMap();
+	}
+
+	@Override
+	public Charset getMailDefaultCharset() {
+		return cs.getMailDefaultCharset();
+	}
+
+	public CharSet getMailDefaultCharSet() {
+		return cs.getMailDefaultCharSet();
+	}
+
+	@Override
+	public ResourceProvider getDefaultResourceProvider() {
+		return cs.getDefaultResourceProvider();
+	}
+
+	@Override
+	public Iterator<Entry<String, Class<CacheHandler>>> getCacheHandlers() {
+		return cs.getCacheHandlers();
+	}
+
+	@Override
+	public ResourceProvider[] getResourceProviders() {
+		return cs.getResourceProviders();
+	}
+
+	@Override
+	public ResourceProviderFactory[] getResourceProviderFactories() {
+		return cs.getResourceProviderFactories();
+	}
+
+	@Override
+	public boolean hasResourceProvider(String scheme) {
+		return cs.hasResourceProvider(scheme);
+	}
+
+	@Override
+	public Resource getResource(String path) {
+		return cs.getResource(path);
+	}
+
+	@Override
+	public ApplicationListener getApplicationListener() {
+		return cs.getApplicationListener();
+	}
+
+	@Override
+	public int getScriptProtect() {
+		return cs.getScriptProtect();
+	}
+
+	@Override
+	public ProxyData getProxyData() {
+		return cs.getProxyData();
+	}
+
+	@Override
+	public boolean isProxyEnableFor(String host) {
+		return cs.isProxyEnableFor(host);
+	}
+
+	@Override
+	public boolean getTriggerComponentDataMember() {
+		return cs.getTriggerComponentDataMember();
+	}
+
+	@Override
+	public Resource getClientScopeDir() {
+		return cs.getClientScopeDir();
+	}
+
+	@Override
+	public Resource getSessionScopeDir() {
+		return cs.getSessionScopeDir();
+	}
+
+	@Override
+	public long getClientScopeDirSize() {
+		return cs.getClientScopeDirSize();
+	}
+
+	@Override
+	public ClassLoader getRPCClassLoader(boolean reload) throws IOException {
+		return cs.getRPCClassLoader(reload);
+	}
+
+	@Override
+	public ClassLoader getRPCClassLoader(boolean reload, JavaSettings js, ClassLoader parent) throws IOException {
+		return cs.getRPCClassLoader(reload, js, parent);
+	}
+
+	@Override
+	public PhysicalClassLoader getDirectClassLoader(boolean reload) throws IOException {
+		return cs.getDirectClassLoader(reload);
+	}
+
+	@Override
+	public Resource getCacheDir() {
+		return cs.getCacheDir();
+	}
+
+	@Override
+	public long getCacheDirSize() {
+		return cs.getCacheDirSize();
+	}
+
+	@Override
+	public DumpWriter getDefaultDumpWriter(int defaultType) {
+		return cs.getDefaultDumpWriter(defaultType);
+	}
+
+	@Override
+	public DumpWriter getDumpWriter(String name) throws DeprecatedException {
+		return cs.getDumpWriter(name);
+	}
+
+	@Override
+	public DumpWriter getDumpWriter(String name, int defaultType) throws ExpressionException {
+		return cs.getDumpWriter(name, defaultType);
+	}
+
+	@Override
+	public boolean useComponentShadow() {
+		return cs.useComponentShadow();
+	}
+
+	@Override
+	public boolean useComponentPathCache() {
+		return cs.useComponentPathCache();
+	}
+
+	@Override
+	public boolean useCTPathCache() {
+		return cs.useCTPathCache();
+	}
+
+	@Override
+	public DataSource getDataSource(String datasource) throws DatabaseException {
+		return cs.getDataSource(datasource);
+	}
+
+	@Override
+	public DataSource getDataSource(String datasource, DataSource defaultValue) {
+		return cs.getDataSource(datasource, defaultValue);
+	}
+
+	@Override
+	public PrintWriter getErrWriter() {
+		return cs.getErrWriter();
+	}
+
+	@Override
+	public PrintWriter getOutWriter() {
+		return cs.getOutWriter();
+	}
+
+	@Override
+	public DatasourceConnPool getDatasourceConnectionPool(DataSource ds, String user, String pass) {
+		return cs.getDatasourceConnectionPool(ds, user, pass);
+	}
+
+	@Override
+	public Collection<DatasourceConnPool> getDatasourceConnectionPools() {
+		return cs.getDatasourceConnectionPools();
+	}
+
+	@Override
+	public boolean doLocalCustomTag() {
+		return cs.doLocalCustomTag();
+	}
+
+	@Override
+	public String[] getCustomTagExtensions() {
+		return cs.getCustomTagExtensions();
+	}
+
+	@Override
+	public boolean doComponentDeepSearch() {
+		return cs.doComponentDeepSearch();
+	}
+
+	@Override
+	public boolean doCustomTagDeepSearch() {
+		return cs.doCustomTagDeepSearch();
+	}
+
+	@Override
+	public double getVersion() {
+		return cs.getVersion();
+	}
+
+	@Override
+	public boolean contentLength() {
+		return cs.contentLength();
+	}
+
+	@Override
+	public boolean allowCompression() {
+		return cs.allowCompression();
+	}
+
+	@Override
+	public Struct getConstants() {
+		return cs.getConstants();
+	}
+
+	@Override
+	public boolean isShowVersion() {
+		return cs.isShowVersion();
+	}
+
+	@Override
+	public RemoteClient[] getRemoteClients() {
+		return cs.getRemoteClients();
+	}
+
+	@Override
+	public SpoolerEngine getSpoolerEngine() {
+		return cs.getSpoolerEngine();
+		/*
+		 * if (spoolerEngine == null) { Resource dir = getRemoteClientDirectory(); if (dir != null &&
+		 * !dir.exists()) dir.mkdirs(); SpoolerEngineImpl se = (SpoolerEngineImpl) cs.getSpoolerEngine();
+		 * spoolerEngine = new SpoolerEngineImpl(this, dir, "Remote Client Spooler", getLog("remoteclient"),
+		 * se.getMaxThreads()); } return spoolerEngine;
+		 */
+	}
+
+	@Override
+	public Resource getRemoteClientDirectory() {
+		return cs.getRemoteClientDirectory();
+		/*
+		 * if (remoteClientDirectory == null) { return remoteClientDirectory =
+		 * ConfigWebUtil.getFile(getRootDirectory(), "client-task", "client-task", getConfigDir(),
+		 * FileUtil.TYPE_DIR, this); } return remoteClientDirectory;
+		 */
+	}
+
+	@Override
+	public boolean getErrorStatusCode() {
+		return cs.getErrorStatusCode();
+	}
+
+	@Override
+	public int getLocalMode() {
+		return cs.getLocalMode();
+	}
+
+	@Override
+	public Resource getVideoDirectory() {
+		return cs.getVideoDirectory();
+	}
+
+	@Override
+	public Resource getExtensionDirectory() {
+		return cs.getExtensionDirectory();
+	}
+
+	@Override
+	public ExtensionProvider[] getExtensionProviders() {
+		return cs.getExtensionProviders();
+	}
+
+	@Override
+	public RHExtensionProvider[] getRHExtensionProviders() {
+		return cs.getRHExtensionProviders();
+	}
+
+	@Override
+	public Extension[] getExtensions() {
+		return cs.getExtensions();
+	}
+
+	@Override
+	public RHExtension[] getRHExtensions() {
+		return cs.getRHExtensions();
+	}
+
+	@Override
+	public boolean isExtensionEnabled() {
+		return cs.isExtensionEnabled();
+	}
+
+	@Override
+	public boolean allowRealPath() {
+		return cs.allowRealPath();
+	}
+
+	@Override
+	public Class getClusterClass() {
+		return cs.getClusterClass();
+	}
+
+	@Override
+	public Struct getRemoteClientUsage() {
+		return cs.getRemoteClientUsage();
+	}
+
+	@Override
+	public Class<AdminSync> getAdminSyncClass() {
+		return cs.getAdminSyncClass();
+	}
+
+	@Override
+	public AdminSync getAdminSync() throws ClassException {
+		return cs.getAdminSync();
+	}
+
+	@Override
+	public Class getVideoExecuterClass() {
+		return cs.getVideoExecuterClass();
+	}
+
+	@Override
+	public Collection<Mapping> getTagMappings() {
+		return cs.getTagMappings();
+	}
+
+	@Override
+	public Mapping getTagMapping(String mappingName) {
+		return cs.getTagMapping(mappingName);
+	}
+
+	@Override
+	public Mapping getDefaultTagMapping() {
+		return cs.getDefaultTagMapping();
+	}
+
+	@Override
+	public Mapping getFunctionMapping(String mappingName) {
+		return cs.getFunctionMapping(mappingName);
+	}
+
+	@Override
+	public Mapping getDefaultFunctionMapping() {
+		return cs.getDefaultFunctionMapping();
+	}
+
+	@Override
+	public Collection<Mapping> getFunctionMappings() {
+		return cs.getFunctionMappings();
+	}
+
+	@Override
+	public String getDefaultDataSource() {
+		return cs.getDefaultDataSource();
+	}
+
+	@Override
+	public short getInspectTemplate() {
+		return cs.getInspectTemplate();
+	}
+
+	@Override
+	public boolean getTypeChecking() {
+		return cs.getTypeChecking();
+	}
+
+	@Override
+	public String getSerialNumber() {
+		return cs.getSerialNumber();
+	}
+
+	@Override
+	public Map<String, CacheConnection> getCacheConnections() {
+		return cs.getCacheConnections();
+	}
+
+	@Override
+	public CacheConnection getCacheDefaultConnection(int type) {
+		return cs.getCacheDefaultConnection(type);
+	}
+
+	@Override
+	public String getCacheDefaultConnectionName(int type) {
+		return cs.getCacheDefaultConnectionName(type);
+	}
+
+	@Override
+	public boolean getExecutionLogEnabled() {
+		return cs.getExecutionLogEnabled();
+	}
+
+	@Override
+	public ExecutionLogFactory getExecutionLogFactory() {
+		return cs.getExecutionLogFactory();
+	}
+
+	@Override
+	public ORMEngine resetORMEngine(PageContext pc, boolean force) throws PageException {
+		return cs.resetORMEngine(pc, force);
+	}
+
+	@Override
+	public ORMEngine getORMEngine(PageContext pc) throws PageException {
+		return cs.getORMEngine(pc);
+	}
+
+	@Override
+	public ClassDefinition<? extends ORMEngine> getORMEngineClassDefintion() {
+		return cs.getORMEngineClassDefintion();
+	}
+
+	@Override
+	public Mapping[] getComponentMappings() {
+		return cs.getComponentMappings();
+	}
+
+	@Override
+	public ORMConfiguration getORMConfig() {
+		return cs.getORMConfig();
+	}
+
+	@Override
+	public CIPage getCachedPage(PageContext pc, String pathWithCFC) throws TemplateException {
+		return cs.getCachedPage(pc, pathWithCFC);
+	}
+
+	@Override
+	public void putCachedPageSource(String pathWithCFC, PageSource ps) {
+		cs.putCachedPageSource(pathWithCFC, ps);
+	}
+
+	@Override
+	public InitFile getCTInitFile(PageContext pc, String key) {
+		return cs.getCTInitFile(pc, key);
+	}
+
+	@Override
+	public void putCTInitFile(String key, InitFile initFile) {
+		cs.putCTInitFile(key, initFile);
+	}
+
+	@Override
+	public Struct listCTCache() {
+		return cs.listCTCache();
+	}
+
+	@Override
+	public void clearCTCache() {
+		cs.clearCTCache();
+	}
+
+	@Override
+	public void clearFunctionCache() {
+		cs.clearFunctionCache();
+	}
+
+	@Override
+	public UDF getFromFunctionCache(String key) {
+		return cs.getFromFunctionCache(key);
+	}
+
+	@Override
+	public void putToFunctionCache(String key, UDF udf) {
+		cs.putToFunctionCache(key, udf);
+	}
+
+	@Override
+	public Struct listComponentCache() {
+		return cs.listComponentCache();
+	}
+
+	@Override
+	public void clearComponentCache() {
+		cs.clearComponentCache();
+	}
+
+	@Override
+	public void clearApplicationCache() {
+		cs.clearApplicationCache();
+	}
+
+	@Override
+	public ImportDefintion getComponentDefaultImport() {
+		return cs.getComponentDefaultImport();
+	}
+
+	@Override
+	public boolean getComponentLocalSearch() {
+		return cs.getComponentLocalSearch();
+	}
+
+	@Override
+	public boolean getComponentRootSearch() {
+		return cs.getComponentRootSearch();
+	}
+
+	@Override
+	public Compress getCompressInstance(Resource zipFile, int format, boolean caseSensitive) throws IOException {
+		return cs.getCompressInstance(zipFile, format, caseSensitive);
+	}
+
+	@Override
+	public boolean getSessionCluster() {
+		return cs.getSessionCluster();
+	}
+
+	@Override
+	public boolean getClientCluster() {
+		return cs.getClientCluster();
+	}
+
+	@Override
+	public String getClientStorage() {
+		return cs.getClientStorage();
+	}
+
+	@Override
+	public String getSessionStorage() {
+		return cs.getSessionStorage();
+	}
+
+	@Override
+	public DebugEntry[] getDebugEntries() {
+		return cs.getDebugEntries();
+	}
+
+	@Override
+	public DebugEntry getDebugEntry(String ip, DebugEntry defaultValue) {
+		return cs.getDebugEntry(ip, defaultValue);
+	}
+
+	@Override
+	public int getDebugMaxRecordsLogged() {
+		return cs.getDebugMaxRecordsLogged();
+	}
+
+	@Override
+	public boolean getDotNotationUpperCase() {
+		return cs.getDotNotationUpperCase();
+	}
+
+	@Override
+	public boolean preserveCase() {
+		return cs.preserveCase();
+	}
+
+	@Override
+	public boolean getDefaultFunctionOutput() {
+		return cs.getDefaultFunctionOutput();
+	}
+
+	@Override
+	public boolean getSuppressWSBeforeArg() {
+		return cs.getSuppressWSBeforeArg();
+	}
+
+	@Override
+	public RestSettings getRestSetting() {
+		return cs.getRestSetting();
+	}
+
+	@Override
+	public int getCFMLWriterType() {
+		return cs.getCFMLWriterType();
+	}
+
+	@Override
+	public boolean getBufferOutput() {
+		return cs.getBufferOutput();
+	}
+
+	@Override
+	public boolean hasDebugOptions(int debugOption) {
+		return cs.hasDebugOptions(debugOption);
+	}
+
+	@Override
+	public boolean checkForChangesInConfigFile() {
+		return cs.checkForChangesInConfigFile();
+	}
+
+	@Override
+	public int getExternalizeStringGTE() {
+		return cs.getExternalizeStringGTE();
+	}
+
+	@Override
+	public Map<String, LoggerAndSourceData> getLoggers() {
+		return cs.getLoggers();
+	}
+
+	@Override
+	public Log getLog(String name) {
+		return cs.getLog(name);
+	}
+
+	@Override
+	public Log getLog(String name, boolean createIfNecessary) throws PageException {
+		return cs.getLog(name, createIfNecessary);
+	}
+
+	@Override
+	public Map<Key, Map<Key, Object>> getTagDefaultAttributeValues() {
+		return cs.getTagDefaultAttributeValues();
+	}
+
+	@Override
+	public Boolean getHandleUnQuotedAttrValueAsString() {
+		return cs.getHandleUnQuotedAttrValueAsString();
+	}
+
+	@Override
+	public Object getCachedWithin(int type) {
+		return cs.getCachedWithin(type);
+	}
+
+	@Override
+	public Resource getPluginDirectory() {
+		return cs.getPluginDirectory();
+	}
+
+	@Override
+	public Resource getLogDirectory() {
+		return cs.getLogDirectory();
+	}
+
+	@Override
+	public String getSalt() {
+		return cs.getSalt();
+	}
+
+	@Override
+	public int getPasswordType() {
+		return cs.getPasswordType();
+	}
+
+	@Override
+	public String getPasswordSalt() {
+		return cs.getPasswordSalt();
+	}
+
+	@Override
+	public int getPasswordOrigin() {
+		return cs.getPasswordOrigin();
+	}
+
+	@Override
+	public Collection<BundleDefinition> getExtensionBundleDefintions() {
+		return cs.getExtensionBundleDefintions();
+	}
+
+	@Override
+	public JDBCDriver[] getJDBCDrivers() {
+		return cs.getJDBCDrivers();
+	}
+
+	@Override
+	public JDBCDriver getJDBCDriverByClassName(String className, JDBCDriver defaultValue) {
+		return cs.getJDBCDriverByClassName(className, defaultValue);
+	}
+
+	@Override
+	public JDBCDriver getJDBCDriverById(String id, JDBCDriver defaultValue) {
+		return cs.getJDBCDriverById(id, defaultValue);
+	}
+
+	@Override
+	public JDBCDriver getJDBCDriverByBundle(String bundleName, Version version, JDBCDriver defaultValue) {
+		return cs.getJDBCDriverByBundle(bundleName, version, defaultValue);
+	}
+
+	@Override
+	public JDBCDriver getJDBCDriverByCD(ClassDefinition cd, JDBCDriver defaultValue) {
+		return cs.getJDBCDriverByCD(cd, defaultValue);
+	}
+
+	@Override
+	public int getQueueMax() {
+		return cs.getQueueMax();
+	}
+
+	@Override
+	public long getQueueTimeout() {
+		return cs.getQueueTimeout();
+	}
+
+	@Override
+	public boolean getQueueEnable() {
+		return cs.getQueueEnable();
+	}
+
+	@Override
+	public boolean getCGIScopeReadonly() {
+		return cs.getCGIScopeReadonly();
+	}
+
+	@Override
+	public Resource getDeployDirectory() {
+		return cs.getDeployDirectory();
+	}
+
+	@Override
+	public Map<String, ClassDefinition> getCacheDefinitions() {
+		return cs.getCacheDefinitions();
+	}
+
+	@Override
+	public ClassDefinition getCacheDefinition(String className) {
+		return cs.getCacheDefinition(className);
+	}
+
+	@Override
+	public Resource getAntiSamyPolicy() {
+		return cs.getAntiSamyPolicy();
+	}
+
+	@Override
+	public LogEngine getLogEngine() {
+		return cs.getLogEngine();
+	}
+
+	@Override
+	public TimeSpan getCachedAfterTimeRange() {
+		return cs.getCachedAfterTimeRange();
+	}
+
+	@Override
+	public Map<String, Startup> getStartups() {
+		return cs.getStartups();
+	}
+
+	@Override
+	public Regex getRegex() {
+		return cs.getRegex();
+	}
+
+	@Override
+	public RHExtension[] getServerRHExtensions() {
+		return cs.getRHExtensions();
+	}
+
+	@Override
+	public Cluster createClusterScope() throws PageException {
+		return cs.createClusterScope();
+	}
+
+	@Override
+	public PageSource getApplicationPageSource(PageContext pc, String path, String filename, int mode, RefBoolean isCFC) {
+		return cs.getApplicationPageSource(pc, path, filename, mode, isCFC);
+	}
+
+	@Override
+	public void putApplicationPageSource(String path, PageSource ps, String filename, int mode, boolean isCFC) {
+		cs.putApplicationPageSource(path, ps, filename, mode, isCFC);
+	}
+
+	@Override
+	public Collection<BundleDefinition> getAllExtensionBundleDefintions() {
+		return cs.getAllExtensionBundleDefintions();
+	}
+
+	@Override
+	public void checkPassword() throws PageException {
+		cs.checkPassword();
+	}
+
+	@Override
+	public List<ExtensionDefintion> loadLocalExtensions(boolean validate) {
+		return cs.loadLocalExtensions(validate);
+	}
+
+	@Override
+	public Collection<RHExtension> getAllRHExtensions() {
+		return cs.getAllRHExtensions();
+	}
+
+	@Override
+	public boolean allowRequestTimeout() {
+		return cs.allowRequestTimeout();
+	}
+
+	@Override
+	public boolean closeConnection() {
+		return cs.closeConnection();
+	}
+
+	@Override
+	public void checkPermGenSpace(boolean check) {
+		cs.checkPermGenSpace(check);
+	}
+
+	@Override
+	public ActionMonitor getActionMonitor(String arg0) throws PageException {
+		return cs.getActionMonitor(arg0);
+	}
+
+	@Override
+	public ConfigServer getConfigServer(String arg0) throws PageException {
+		return cs.getConfigServer(arg0);
+	}
+
+	@Override
+	public ConfigServer getConfigServer(String arg0, long arg1) throws PageException {
+		return cs.getConfigServer(arg0, arg1);
+	}
+
+	@Override
+	public boolean getFullNullSupport() {
+		return cs.getFullNullSupport();
+	}
+
+	@Override
+	public IdentificationWeb getIdentification() {
+		if (id == null) id = new SCCWIdentificationWeb(cs.getIdentification());
+		return id;
+	}
+
+	@Override
+	public IntervallMonitor getIntervallMonitor(String arg0) throws PageException {
+		return cs.getIntervallMonitor(arg0);
+	}
+
+	@Override
+	public IntervallMonitor[] getIntervallMonitors() {
+		return cs.getIntervallMonitors();
+	}
+
+	@Override
+	public Resource getLocalExtensionProviderDirectory() {
+		return cs.getLocalExtensionProviderDirectory();
+	}
+
+	@Override
+	public boolean getLoginCaptcha() {
+		return cs.getLoginCaptcha();
+	}
+
+	@Override
+	public int getLoginDelay() {
+		return cs.getLoginDelay();
+	}
+
+	@Override
+	public boolean getRememberMe() {
+		return cs.getRememberMe();
+	}
+
+	@Override
+	public RequestMonitor getRequestMonitor(String arg0) throws PageException {
+		return cs.getRequestMonitor(arg0);
+	}
+
+	@Override
+	public RequestMonitor[] getRequestMonitors() {
+		return cs.getRequestMonitors();
+	}
+
+	@Override
+	public Resource getSecurityDirectory() {
+		return cs.getSecurityDirectory();
+	}
+
+	@Override
+	public ThreadQueue getThreadQueue() {
+		return cs.getThreadQueue();
+	}
+
+	@Override
+	public boolean hasServerPassword() {
+		return cs.hasServerPassword();
+	}
+
+	@Override
+	public boolean isMonitoringEnabled() {
+		return cs.isMonitoringEnabled();
+	}
+
+	@Override
+	public AMFEngine getAMFEngine() {
+		return helper.getAMFEngine();
+	}
+
+	@Override
+	public ConfigServer getConfigServer(Password password) throws PageException {
+		cs.checkAccess(password);
+		return cs;
+	}
+
+	@Override
+	public Resource getConfigServerDir() {
+		return cs.getConfigDir();
+	}
+
+	@Override
+	public CFMLFactory getFactory() {
+		return factory;
+	}
+
+	@Override
+	public String getLabel() {
+		return helper.getLabel();
+	}
+
+	@Override
+	public LockManager getLockManager() {
+		return helper.getLockManager();
+	}
+
+	@Override
+	public SearchEngine getSearchEngine(PageContext pc) throws PageException {
+		return helper.getSearchEngine(pc);
+	}
+
+	@Override
+	public CFMLWriter getWriter(PageContext pc, HttpServletRequest req, HttpServletResponse rsp) {
+		return getCFMLWriter(pc, req, rsp);
+	}
+
+	@Override
+	public String getInitParameter(String name) {
+		return config.getInitParameter(name);
+	}
+
+	@Override
+	public Enumeration<String> getInitParameterNames() {
+		return config.getInitParameterNames();
+	}
+
+	@Override
+	public ServletContext getServletContext() {
+		return config.getServletContext();
+	}
+
+	@Override
+	public long getApplicationPathCacheTimeout() {
+		return cs.getApplicationPathCacheTimeout();
+	}
+
+	@Override
+	public String getServletName() {
+		return config.getServletName();
+	}
+
+	@Override
+	public Mapping getDefaultServerTagMapping() {
+		return cs.defaultTagMapping;
+	}
+
+	// FYI used by Extensions, do not remove
+	public Mapping getApplicationMapping(String virtual, String physical) {
+		return getApplicationMapping("application", virtual, physical, null, true, false);
+	}
+
+	@Override
+	public Mapping getApplicationMapping(String type, String virtual, String physical, String archive, boolean physicalFirst, boolean ignoreVirtual) {
+		return getApplicationMapping(type, virtual, physical, archive, physicalFirst, ignoreVirtual, true, true);
+	}
+
+	@Override
+	public Collection<Mapping> getServerFunctionMappings() {
+		return helper.getServerFunctionMappings();
+	}
+
+	@Override
+	public Mapping getServerFunctionMapping(String mappingName) {
+		return helper.getServerFunctionMapping(mappingName);
+	}
+
+	@Override
+	public Collection<Mapping> getServerTagMappings() {
+		return helper.getServerTagMappings();
+	}
+
+	@Override
+	public Mapping getServerTagMapping(String mappingName) {
+		return helper.getServerTagMapping(mappingName);
+	}
+
+	@Override
+	public Map<String, String> getAllLabels() {
+		return cs.getLabels();
+	}
+
+	@Override
+	public boolean isDefaultPassword() {
+		// TODO no sure about this
+		return false;
+	}
+
+	@Override
+	public int getServerPasswordType() {
+		return cs.getPasswordType();
+	}
+
+	@Override
+	public String getServerPasswordSalt() {
+		return cs.getPasswordSalt();
+	}
+
+	@Override
+	public int getServerPasswordOrigin() {
+		return cs.getPasswordOrigin();
+	}
+
+	@Override
+	public GatewayEngine getGatewayEngine() throws PageException {
+		return helper.getGatewayEngineImpl(getGatewayEntries());
+	}
+
+	@Override
+	public WSHandler getWSHandler() throws PageException {
+		return helper.getWSHandler();
+	}
+
+	@Override
+	public CFMLCompilerImpl getCompiler() {
+		return helper.getCompiler();
+	}
+
+	@Override
+	public Mapping getApplicationMapping(String type, String virtual, String physical, String archive, boolean physicalFirst, boolean ignoreVirtual,
+			boolean checkPhysicalFromWebroot, boolean checkArchiveFromWebroot) {
+		return helper.getApplicationMapping(type, virtual, physical, archive, physicalFirst, ignoreVirtual, checkPhysicalFromWebroot, checkArchiveFromWebroot);
+	}
+
+	@Override
+	public Mapping[] getApplicationMappings() {
+		return helper.getApplicationMappings();
+	}
+
+	@Override
+	public boolean isApplicationMapping(Mapping mapping) {
+		return helper.isApplicationMapping(mapping);
+	}
+
+	@Override
+	public CIPage getBaseComponentPage(PageContext pc) throws PageException {
+		return helper.getBaseComponentPage(pc);
+	}
+
+	@Override
+	public void resetBaseComponentPage() {
+		helper.resetBaseComponentPage();
+	}
+
+	@Override
+	public ActionMonitorCollector getActionMonitorCollector() {
+		return cs.getActionMonitorCollector();
+	}
+
+	@Override
+	public KeyLock<String> getContextLock() {
+		return helper.getContextLock();
+	}
+
+	@Override
+	public CacheHandlerCollection getCacheHandlerCollection(int type, CacheHandlerCollection defaultValue) {
+		return helper.getCacheHandlerCollection(type, defaultValue);
+
+	}
+
+	@Override
+	public void releaseCacheHandlers(PageContext pc) {
+		helper.releaseCacheHandlers(pc);
+	}
+
+	@Override
+	public DebuggerPool getDebuggerPool() {
+		return helper.getDebuggerPool();
+	}
+
+	@Override
+	public CFMLWriter getCFMLWriter(PageContext pc, HttpServletRequest req, HttpServletResponse rsp) {
+		return helper.getCFMLWriter(pc, req, rsp);
+	}
+
+	@Override
+	public TagHandlerPool getTagHandlerPool() {
+		return helper.getTagHandlerPool();
+	}
+
+	@Override
+	public String getHash() {
+		return SystemUtil.hash(getServletContext());
+	}
+
+	@Override
+	public void updatePassword(String passwordOld, String passwordNew) throws PageException {
+		try {
+			PasswordImpl.updatePassword(cs, passwordOld, passwordNew);
+		}
+		catch (Exception e) {
+			throw Caster.toPageException(e);
+		}
+	}
+
+	@Override
+	public Password updatePasswordIfNecessary(String passwordRaw) {
+		return PasswordImpl.updatePasswordIfNecessary(cs, cs.password, passwordRaw);
+	}
+
+	@Override
+	public Password isServerPasswordEqual(String password) {
+		return cs.isPasswordEqual(password);
+	}
+
+	@Override
+	public boolean hasIndividualSecurityManager() {
+		return false;
+	}
+
+	@Override
+	public short getPasswordSource() {
+		return ConfigWebPro.PASSWORD_ORIGIN_SERVER;
+	}
+
+	@Override
+	public void reset() {
+		helper.reset();
+	}
+
+	@Override
+	public void setPassword(Password pw) {
+		cs.setPassword(pw);
+	}
+
+	private static class SCCWIdentificationWeb implements IdentificationWeb, Serializable {
+
+		private static final long serialVersionUID = -9020697769127921035L;
+
+		private IdentificationServer id;
+
+		public SCCWIdentificationWeb(IdentificationServer id) {
+			this.id = id;
+		}
+
+		@Override
+		public String getApiKey() {
+			return id.getApiKey();
+		}
+
+		@Override
+		public String getId() {
+			return id.getId();
+		}
+
+		@Override
+		public String getSecurityKey() {
+			return id.getSecurityKey();
+		}
+
+		@Override
+		public String getSecurityToken() {
+			return id.getSecurityToken();
+		}
+
+		@Override
+		public String toQueryString() {
+			return id.toQueryString();
+		}
+
+		@Override
+		public IdentificationServer getServerIdentification() {
+			return id;
+		}
+	}
+
+	public void reload() {
+		synchronized (this) {
+			createMapping();
+			createRestMapping();
+		}
+	}
+
+	private void createMapping() {
+		Map<String, Mapping> existing = getExistingMappings();
+
+		// Mapping
+		Map<String, Mapping> mappings = MapFactory.<String, Mapping>getConcurrentMap();
+		Mapping tmp;
+		boolean finished = false;
+		Mapping ex;
+		Mapping[] sm = cs.getMappings();
+		if (sm != null) {
+			for (int i = 0; i < sm.length; i++) {
+				if (!sm[i].isHidden()) {
+					if ("/".equals(sm[i].getVirtual())) finished = true;
+					ex = existing.get(sm[i].getVirtualLowerCase());
+					if (ex != null && ex.equals(sm[i])) {
+						mappings.put(ex.getVirtualLowerCase(), ex);
+						continue;
+					}
+					else if (sm[i] instanceof MappingImpl) {
+						tmp = ((MappingImpl) sm[i]).cloneReadOnly(this);
+						mappings.put(tmp.getVirtualLowerCase(), tmp);
+
+					}
+					else {
+						tmp = sm[i];
+						mappings.put(tmp.getVirtualLowerCase(), tmp);
+					}
+
+					if (ex instanceof MappingImpl) {
+						((MappingImpl) ex).flush();
+					}
+
+				}
+			}
+		}
+		if (!finished) {
+			Mapping m;
+			if (ResourceUtil.isUNCPath(getRootDirectory().getPath())) {
+				m = new MappingImpl(this, "/", getRootDirectory().getPath(), null, ConfigPro.INSPECT_UNDEFINED, ConfigPro.INSPECT_INTERVAL_UNDEFINED,
+						ConfigPro.INSPECT_INTERVAL_UNDEFINED, true, true, true, true, false, false, null, -1, -1);
+			}
+			else {
+				m = new MappingImpl(this, "/", "/", null, ConfigPro.INSPECT_UNDEFINED, ConfigPro.INSPECT_INTERVAL_UNDEFINED, ConfigPro.INSPECT_INTERVAL_UNDEFINED, true, true, true,
+						true, false, false, null, -1, -1, true, true);
+			}
+			ex = existing.get("/");
+			if (ex != null && ex.equals(m)) {
+				m = ex;
+			}
+			mappings.put("/", m);
+		}
+		this.mappings = ConfigUtil.sort(mappings.values().toArray(new Mapping[mappings.size()]));
+	}
+
+	private void createRestMapping() {
+		Map<String, lucee.runtime.rest.Mapping> mappings = MapFactory.<String, lucee.runtime.rest.Mapping>getConcurrentMap();
+		lucee.runtime.rest.Mapping[] sm = cs.getRestMappings();
+		lucee.runtime.rest.Mapping tmp;
+		if (sm != null) {
+			for (int i = 0; i < sm.length; i++) {
+				try {
+					// if (!sm[i].isHidden()) {
+					tmp = sm[i].duplicate(this, Boolean.TRUE);
+					mappings.put(tmp.getVirtual(), tmp);
+					// }
+				}
+				catch (Exception e) {
+
+				}
+			}
+		}
+		this.restMappings = mappings.values().toArray(new lucee.runtime.rest.Mapping[mappings.size()]);
+	}
+
+	private Map<String, Mapping> getExistingMappings() {
+		Map<String, Mapping> mappings = MapFactory.<String, Mapping>getConcurrentMap();
+
+		if (this.mappings != null) {
+			for (Mapping m: this.mappings) {
+				mappings.put(m.getVirtualLowerCase(), m);
+			}
+		}
+		return mappings;
+	}
+
+	@Override
+	public void removeDatasourceConnectionPool(DataSource ds) {
+		cs.removeDatasourceConnectionPool(ds);
+	}
+
+	@Override
+	public MockPool getDatasourceConnectionPool() {
+		return cs.getDatasourceConnectionPool();
+	}
+
+	@Override
+	public boolean getPreciseMath() {
+		return cs.getPreciseMath();
+	}
+
+	@Override
+	public void resetServerFunctionMappings() {
+
 	}
 
 	@Override
 	public Resource getWebConfigDir() {
-		return instance.getWebConfigDir();
-	}
-
-	public Password getPassword() {
-		if (instance instanceof MultiContextConfigWeb) return ((MultiContextConfigWeb) instance).getPassword();
-		else return ((SingleContextConfigWeb) instance).getPassword();
+		return this.configDirWeb;
 	}
 
 	@Override
 	public ServletConfig getServletConfig() {
-		return instance.getServletConfig();
+		return config;
 	}
 
 	@Override
 	public void setLastModified() {
-		instance.setLastModified();
+		cs.setLastModified();
+	}
+
+	public Object[] getConsoleLayouts() throws PageException {
+		return cs.getConsoleLayouts();
+	}
+
+	public String getServerSalt() {
+		return cs.getSalt();
+	}
+
+	public int getDebugOptions() {
+		return cs.getDebugOptions();
+	}
+
+	public GatewayMap getGatewayEntries() {
+		return cs.getGatewayEntries();
+	}
+
+	public Mapping getScriptMapping() {
+		return cs.getScriptMapping();
+	}
+
+	public void resetRPCClassLoader() {
+		cs.resetRPCClassLoader();
+	}
+
+	public PageSource[] getPageSources(PageContext arg0, Mapping[] arg1, String arg2, boolean arg3, boolean arg4, boolean arg5, boolean arg6, boolean arg7) {
+		return cs.getPageSources(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7);
+	}
+
+	public Object[] getResourceLayouts() throws PageException {
+		return cs.getResourceLayouts();
+	}
+
+	public void clearComponentMetadata() {
+		cs.clearComponentMetadata();
+	}
+
+	public void flushComponentPathCache() {
+		cs.flushApplicationPathCache();
+	}
+
+	public String createSecurityToken() {
+		return cs.createSecurityToken();
+	}
+
+	public Resource getServerConfigDir() {
+		return cs.getConfigDir();
+	}
+
+	public String getCacheMD5() {
+		return cs.getCacheMD5();
+	}
+
+	public ComponentMetaData getComponentMetadata(String arg0) {
+		return cs.getComponentMetadata(arg0);
+	}
+
+	public Cache createRAMCache(Struct arg0) throws IOException {
+		return cs.createRAMCache(arg0);
+	}
+
+	public void setAllowURLRequestTimeout(boolean arg0) {
+		cs.setAllowURLRequestTimeout(arg0);
+	}
+
+	public Mapping getDefaultServerFunctionMapping() {
+		return cs.getDefaultFunctionMapping();
+	}
+
+	public void flushApplicationPathCache() {
+		cs.flushApplicationPathCache();
+	}
+
+	public void createTag(TagLib arg0, String arg1, String arg2) {
+		cs.createTag(arg0, arg1, arg2);
+	}
+
+	public CharSet getTemplateCharSet() {
+		return cs.getTemplateCharSet();
+	}
+
+	public void flushCTPathCache() {
+		cs.flushCTPathCache();
+	}
+
+	public void putComponentMetadata(String arg0, ComponentMetaData arg1) {
+		cs.putComponentMetadata(arg0, arg1);
+	}
+
+	public String[] getLogNames() {
+		return cs.getLogNames();
+	}
+
+	public long getSessionScopeDirSize() {
+		return cs.getSessionScopeDirSize();
+	}
+
+	public int getMode() {
+		return cs.getMode();
+	}
+
+	public ClassDefinition getORMEngineClass() {
+		return cs.getORMEngineClass();
+	}
+
+	public DumpWriterEntry[] getDumpWritersEntries() {
+		return cs.getDumpWritersEntries();
+	}
+
+	@Override
+	public Password getPassword() {
+		return cs.getPassword();
+	}
+
+	@Override
+	public void setIdentification(IdentificationWeb arg0) {
+		// ignore it, should not happen
+		LogUtil.log(Log.LEVEL_FATAL, "loading", "setting a web id for single context");
 	}
 
 	@Override
 	public void checkMappings() {
-		instance.checkMappings();
+		cs.checkMappings();
 	}
 
 	@Override
 	public String getMainLogger() {
-		return instance.getMainLogger();
+		return cs.getMainLogger();
 	}
 
 	@Override
 	public int getInspectTemplateAutoInterval(boolean slow) {
-		return instance.getInspectTemplateAutoInterval(slow);
+		return cs.getInspectTemplateAutoInterval(slow);
 	}
 
 	@Override
 	public boolean getFormUrlAsStruct() {
-		return instance.getFormUrlAsStruct();
+		return cs.getFormUrlAsStruct();
 	}
 
 	@Override
 	public int getReturnFormat() {
-		return instance.getReturnFormat();
+		return cs.getReturnFormat();
 	}
 
 	@Override
 	public JavaSettings getJavaSettings(String id) {
-		return instance.getJavaSettings(id);
+		return cs.getJavaSettings(id);
 	}
 
 	@Override
 	public void setJavaSettings(String id, JavaSettings js) {
-		instance.setJavaSettings(id, js);
+		cs.setJavaSettings(id, js);
 	}
 
 	@Override
 	public Resource getMavenDir() {
-		return instance.getMavenDir();
+		return cs.getMavenDir();
 	}
 
 	@Override
 	public JavaSettings getJavaSettings() {
-		return instance.getJavaSettings();
+		return cs.getJavaSettings();
 	}
 
 	@Override
 	public Resource getExtensionInstalledDir() {
-		return instance.getExtensionInstalledDir();
+		return cs.getExtensionInstalledDir();
 	}
 
 	@Override
 	public Resource getExtensionAvailableDir() {
-		return instance.getExtensionAvailableDir();
+		return cs.getExtensionAvailableDir();
 	}
 
 	@Override
 	public Collection<String> getAIEngineFactoryNames() {
-		return instance.getAIEngineFactoryNames();
+		return cs.getAIEngineFactoryNames();
 	}
 
 	@Override
 	public AIEngineFactory getAIEngineFactory(String name) {
-		return instance.getAIEngineFactory(name);
+		return cs.getAIEngineFactory(name);
 	}
 
 	@Override
 	public AIEnginePool getAIEnginePool() {
-		return instance.getAIEnginePool();
+		return cs.getAIEnginePool();
 	}
 
 	@Override
 	public CFMLEngine getEngine() {
-		return instance.getEngine();
+		return cs.getEngine();
 	}
 }

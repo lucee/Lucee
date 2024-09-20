@@ -2,7 +2,6 @@
 <!--- language files are deployed to {lucee-web}/context/admin/resources/language by ConfigWebFactory.java and are read from there !--->
 
 <cfscript>
-	if(isNull(request.singlemode))request.singlemode=false;
 	sHelpURL = "https://www.lucee.org/help/stHelp.json";
 	param name="request.stLocalHelp" default="#structNew()#";
 	param name="request.stWebMediaHelp" default="#structNew()#";
@@ -76,8 +75,8 @@
 		}
 
 		
-		stText.menuStruct.web = createMenu( stText.menu, "web",request.singlemode?:false);
-		stText.menuStruct.server = createMenu( stText.menu, "server",request.singlemode?:false);
+		stText.menuStruct.web = createMenu( stText.menu, "web");
+		stText.menuStruct.server = createMenu( stText.menu, "server");
 
 	} else{
 		languages=application.languages;

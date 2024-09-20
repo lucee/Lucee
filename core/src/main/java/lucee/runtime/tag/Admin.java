@@ -96,14 +96,13 @@ import lucee.runtime.coder.CoderException;
 import lucee.runtime.config.AdminSync;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigAdmin;
-import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigServer;
 import lucee.runtime.config.ConfigServerImpl;
+import lucee.runtime.config.ConfigUtil;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.config.ConfigWebFactory;
 import lucee.runtime.config.ConfigWebPro;
-import lucee.runtime.config.ConfigWebUtil;
 import lucee.runtime.config.Constants;
 import lucee.runtime.config.DatasourceConnPool;
 import lucee.runtime.config.DebugEntry;
@@ -239,8 +238,6 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 	private Struct attributes = new StructImpl();
 	private String action = null;
-	private short type;
-	private boolean singleMode;
 	private Password password;
 	private ConfigAdmin admin;
 	private ConfigPro config = null;
@@ -320,13 +317,9 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			return SKIP_BODY;
 		}
 
-		// Type
-		singleMode = config.getAdminMode() == ConfigImpl.ADMINMODE_SINGLE;
-		type = singleMode ? TYPE_SERVER : toType(getString("type", "web"), true);
-
 		// has Password
 		if (action.equals("haspassword")) {
-			boolean hasPassword = type == TYPE_WEB ? pageContext.getConfig().hasPassword() : pageContext.getConfig().hasServerPassword();
+			boolean hasPassword = pageContext.getConfig().hasPassword();
 
 			pageContext.setVariable(getString("admin", action, "returnVariable", true), Caster.toBoolean(hasPassword));
 			return SKIP_BODY;
@@ -347,7 +340,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		else if (action.equals("updatepassword")) {
 
 			try {
-				((ConfigWebPro) pageContext.getConfig()).updatePassword(type != TYPE_WEB, getString("oldPassword", null), getString("admin", action, "newPassword", true));
+				((ConfigWebPro) pageContext.getConfig()).updatePassword(getString("oldPassword", null), getString("admin", action, "newPassword", true));
 			}
 			catch (Exception e) {
 				throw Caster.toPageException(e);
@@ -548,13 +541,11 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		}
 
 		if (action.equals("getextension")) {
-			if (type == TYPE_SERVER) doGetRHServerExtension();
-			else doGetRHExtension();
+			doGetRHExtension();
 			return;
 		}
 		if (action.equals("getextensions") || action.equals("getrhextensions")) {
-			if (type == TYPE_SERVER) doGetRHServerExtensions();
-			else doGetRHExtensions();
+			doGetRHExtensions();
 			return;
 		}
 		if (action.equals("getserverextensions") || action.equals("getrhserverextensions")) {
@@ -562,11 +553,11 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			return;
 		}
 
-		if (check("hashpassword", ACCESS_FREE)) {
+		if (check("hashpassword")) {
 			String raw = getString("admin", action, "pw");
-			Password pw = PasswordImpl.passwordToCompare(pageContext.getConfig(), type != TYPE_WEB, raw);
+			Password pw = PasswordImpl.passwordToCompare(pageContext.getConfig(), raw);
 
-			Password changed = ((ConfigWebPro) pageContext.getConfig()).updatePasswordIfNecessary(type == TYPE_SERVER, raw);
+			Password changed = ((ConfigWebPro) pageContext.getConfig()).updatePasswordIfNecessary(raw);
 			if (changed != null) pw = changed;
 
 			pageContext.setVariable(getString("admin", action, "returnVariable"), pw.getPassword());
@@ -576,15 +567,12 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		try {
 			// Password
 			String strPW = getString("password", "");
-			Password tmp = type == TYPE_SERVER ? configWeb.isServerPasswordEqual(strPW) : config.isPasswordEqual(strPW); // hash password if
+			Password tmp = config.isPasswordEqual(strPW); // hash password if
 			// necessary (for
 			// backward
 			// compatibility)
 			if (tmp != null) password = tmp;
 			else password = null;
-
-			// Config
-			if (type == TYPE_SERVER) config = (ConfigPro) pageContext.getConfig().getConfigServer(password);
 
 			adminSync = config.getAdminSync();
 			admin = ConfigAdmin.newInstance(config, password);
@@ -593,9 +581,9 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			throw Caster.toPageException(e);
 		}
 
-		if (check("connect", ACCESS_FREE)) {
-			ConfigWebUtil.checkPassword(config, null, password);
-			ConfigWebUtil.checkGeneralReadAccess(config, password);
+		if (check("connect")) {
+			ConfigUtil.checkPassword(config, null, password);
+			ConfigUtil.checkGeneralReadAccess(config, password);
 
 			try {
 				if (config instanceof ConfigServer) ((PageContextImpl) pageContext).setServerPassword(password);
@@ -604,268 +592,267 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 				ExceptionUtil.rethrowIfNecessary(t);
 			}
 		}
-		else if (check("getinfo", ACCESS_FREE) && check2(ACCESS_READ)) doGetInfo();
-		else if (check("surveillance", ACCESS_FREE) && check2(ACCESS_READ)) doSurveillance();
-		else if (check("getRegional", ACCESS_FREE) && check2(ACCESS_READ)) doGetRegional();
-		else if (check("isMonitorEnabled", ACCESS_NOT_WHEN_WEB) && check2(ACCESS_READ)) doIsMonitorEnabled();
-		else if (check("resetORMSetting", ACCESS_FREE) && check2(ACCESS_READ)) doResetORMSetting();
-		else if (check("getORMSetting", ACCESS_FREE) && check2(ACCESS_READ)) doGetORMSetting();
-		else if (check("getORMEngine", ACCESS_FREE) && check2(ACCESS_READ)) doGetORMEngine();
-		else if (check("updateORMSetting", ACCESS_FREE) && check2(ACCESS_READ)) doUpdateORMSetting();
-		else if (check("getApplicationListener", ACCESS_FREE) && check2(ACCESS_READ)) doGetApplicationListener();
-		else if (check("getProxy", ACCESS_FREE) && check2(ACCESS_READ)) doGetProxy();
-		else if (check("getCharset", ACCESS_FREE) && check2(ACCESS_READ)) doGetCharset();
-		else if (check("getComponent", ACCESS_FREE) && check2(ACCESS_READ)) doGetComponent();
-		else if (check("getScope", ACCESS_FREE) && check2(ACCESS_READ)) doGetScope();
-		else if (check("getDevelopMode", ACCESS_FREE) && check2(ACCESS_READ)) doGetDevelopMode();
-		else if (check("getApplicationSetting", ACCESS_FREE) && check2(ACCESS_READ)) doGetApplicationSetting();
-		else if (check("getQueueSetting", ACCESS_FREE) && check2(ACCESS_READ)) doGetQueueSetting();
-		else if (check("getOutputSetting", ACCESS_FREE) && check2(ACCESS_READ)) doGetOutputSetting();
-		else if (check("getDatasourceSetting", ACCESS_FREE) && check2(ACCESS_READ)) doGetDatasourceSetting();
-		else if (check("getCustomTagSetting", ACCESS_FREE) && check2(ACCESS_READ)) doGetCustomTagSetting();
-		else if (check("getDatasource", ACCESS_FREE) && check2(ACCESS_READ)) doGetDatasource();
-		else if (check("getDatasources", ACCESS_FREE) && check2(ACCESS_READ)) doGetDatasources();
-		else if (check("getJDBCDrivers", ACCESS_FREE) && check2(ACCESS_READ)) doGetJDBCDrivers();
-		else if (check("getCacheConnections", ACCESS_FREE) && check2(ACCESS_READ)) doGetCacheConnections();
-		else if (check("getCacheConnection", ACCESS_FREE) && check2(ACCESS_READ)) doGetCacheConnection();
-		else if (check("getCacheDefaultConnection", ACCESS_FREE) && check2(ACCESS_READ)) doGetCacheDefaultConnection();
-		else if (check("getAIConnections", ACCESS_NOT_WHEN_WEB) && check2(ACCESS_READ)) doGetAIConnections();
-		else if (check("getRemoteClients", ACCESS_FREE) && check2(ACCESS_READ)) doGetRemoteClients();
-		else if (check("getRemoteClient", ACCESS_FREE) && check2(ACCESS_READ)) doGetRemoteClient();
-		else if (check("hasRemoteClientUsage", ACCESS_FREE) && check2(ACCESS_READ)) doHasRemoteClientUsage();
-		else if (check("getRemoteClientUsage", ACCESS_FREE) && check2(ACCESS_READ)) doGetRemoteClientUsage();
-		else if (check("getSpoolerTasks", ACCESS_FREE) && check2(ACCESS_READ)) doGetSpoolerTasks();
-		else if (check("getPerformanceSettings", ACCESS_FREE) && check2(ACCESS_READ)) doGetPerformanceSettings();
-		else if (check("getLogSettings", ACCESS_FREE) && check2(ACCESS_READ)) doGetLogSettings();
-		else if (check("getCompilerSettings", ACCESS_FREE) && check2(ACCESS_READ)) doGetCompilerSettings();
-		else if (check("updatePerformanceSettings", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdatePerformanceSettings();
-		else if (check("updateCompilerSettings", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateCompilerSettings();
-		else if (check("getGatewayentries", ACCESS_NOT_WHEN_SERVER) && check2(ACCESS_READ)) doGetGatewayEntries();
-		else if (check("getGatewayentry", ACCESS_NOT_WHEN_SERVER) && check2(ACCESS_READ)) doGetGatewayEntry();
-		else if (check("getRunningThreads", ACCESS_FREE) && check2(ACCESS_READ)) doGetRunningThreads();
-		else if (check("getMonitors", ACCESS_NOT_WHEN_WEB) && check2(ACCESS_READ)) doGetMonitors();
-		else if (check("getMonitor", ACCESS_NOT_WHEN_WEB) && check2(ACCESS_READ)) doGetMonitor();
-		else if (check("getBundles", ACCESS_FREE) && check2(ACCESS_READ)) doGetBundles();
-		else if (check("getBundle", ACCESS_FREE) && check2(ACCESS_READ)) doGetBundle();
-		else if (check("getExecutionLog", ACCESS_FREE) && check2(ACCESS_READ)) doGetExecutionLog();
-		else if (check("gateway", ACCESS_NOT_WHEN_SERVER) && check2(ACCESS_READ)) doGateway();
+		else if (check("getinfo") && check2(ACCESS_READ)) doGetInfo();
+		else if (check("surveillance") && check2(ACCESS_READ)) doSurveillance();
+		else if (check("getRegional") && check2(ACCESS_READ)) doGetRegional();
+		else if (check("isMonitorEnabled") && check2(ACCESS_READ)) doIsMonitorEnabled();
+		else if (check("resetORMSetting") && check2(ACCESS_READ)) doResetORMSetting();
+		else if (check("getORMSetting") && check2(ACCESS_READ)) doGetORMSetting();
+		else if (check("getORMEngine") && check2(ACCESS_READ)) doGetORMEngine();
+		else if (check("updateORMSetting") && check2(ACCESS_READ)) doUpdateORMSetting();
+		else if (check("getApplicationListener") && check2(ACCESS_READ)) doGetApplicationListener();
+		else if (check("getProxy") && check2(ACCESS_READ)) doGetProxy();
+		else if (check("getCharset") && check2(ACCESS_READ)) doGetCharset();
+		else if (check("getComponent") && check2(ACCESS_READ)) doGetComponent();
+		else if (check("getScope") && check2(ACCESS_READ)) doGetScope();
+		else if (check("getDevelopMode") && check2(ACCESS_READ)) doGetDevelopMode();
+		else if (check("getApplicationSetting") && check2(ACCESS_READ)) doGetApplicationSetting();
+		else if (check("getQueueSetting") && check2(ACCESS_READ)) doGetQueueSetting();
+		else if (check("getOutputSetting") && check2(ACCESS_READ)) doGetOutputSetting();
+		else if (check("getDatasourceSetting") && check2(ACCESS_READ)) doGetDatasourceSetting();
+		else if (check("getCustomTagSetting") && check2(ACCESS_READ)) doGetCustomTagSetting();
+		else if (check("getDatasource") && check2(ACCESS_READ)) doGetDatasource();
+		else if (check("getDatasources") && check2(ACCESS_READ)) doGetDatasources();
+		else if (check("getJDBCDrivers") && check2(ACCESS_READ)) doGetJDBCDrivers();
+		else if (check("getCacheConnections") && check2(ACCESS_READ)) doGetCacheConnections();
+		else if (check("getCacheConnection") && check2(ACCESS_READ)) doGetCacheConnection();
+		else if (check("getCacheDefaultConnection") && check2(ACCESS_READ)) doGetCacheDefaultConnection();
+		else if (check("getAIConnections") && check2(ACCESS_READ)) doGetAIConnections();
+		else if (check("getRemoteClients") && check2(ACCESS_READ)) doGetRemoteClients();
+		else if (check("getRemoteClient") && check2(ACCESS_READ)) doGetRemoteClient();
+		else if (check("hasRemoteClientUsage") && check2(ACCESS_READ)) doHasRemoteClientUsage();
+		else if (check("getRemoteClientUsage") && check2(ACCESS_READ)) doGetRemoteClientUsage();
+		else if (check("getSpoolerTasks") && check2(ACCESS_READ)) doGetSpoolerTasks();
+		else if (check("getPerformanceSettings") && check2(ACCESS_READ)) doGetPerformanceSettings();
+		else if (check("getLogSettings") && check2(ACCESS_READ)) doGetLogSettings();
+		else if (check("getCompilerSettings") && check2(ACCESS_READ)) doGetCompilerSettings();
+		else if (check("updatePerformanceSettings") && check2(ACCESS_WRITE)) doUpdatePerformanceSettings();
+		else if (check("updateCompilerSettings") && check2(ACCESS_WRITE)) doUpdateCompilerSettings();
+		else if (check("getGatewayentries") && check2(ACCESS_READ)) doGetGatewayEntries();
+		else if (check("getGatewayentry") && check2(ACCESS_READ)) doGetGatewayEntry();
+		else if (check("getRunningThreads") && check2(ACCESS_READ)) doGetRunningThreads();
+		else if (check("getMonitors") && check2(ACCESS_READ)) doGetMonitors();
+		else if (check("getMonitor") && check2(ACCESS_READ)) doGetMonitor();
+		else if (check("getBundles") && check2(ACCESS_READ)) doGetBundles();
+		else if (check("getBundle") && check2(ACCESS_READ)) doGetBundle();
+		else if (check("getExecutionLog") && check2(ACCESS_READ)) doGetExecutionLog();
+		else if (check("gateway") && check2(ACCESS_READ)) doGateway();
 
 		// alias for getSpoolerTasks
-		else if (check("getRemoteClientTasks", ACCESS_FREE) && check2(ACCESS_READ)) doGetSpoolerTasks();
-		else if (check("getDatasourceDriverList", ACCESS_FREE) && check2(ACCESS_READ)) doGetDatasourceDriverList();
-		else if (check("getDebuggingList", ACCESS_FREE) && check2(ACCESS_READ)) doGetDebuggingList();
-		else if (check("getLoggedDebugData", ACCESS_FREE)) // no password necessary for this
+		else if (check("getRemoteClientTasks") && check2(ACCESS_READ)) doGetSpoolerTasks();
+		else if (check("getDatasourceDriverList") && check2(ACCESS_READ)) doGetDatasourceDriverList();
+		else if (check("getDebuggingList") && check2(ACCESS_READ)) doGetDebuggingList();
+		else if (check("getLoggedDebugData")) // no password necessary for this
 			doGetLoggedDebugData();
-		else if (check("PurgeDebugPool", ACCESS_FREE) && check2(ACCESS_WRITE)) doPurgeDebugPool();
-		else if (check("PurgeExpiredSessions", ACCESS_FREE) && check2(ACCESS_WRITE)) doPurgeExpiredSessions();
-		else if (check("getDebugSetting", ACCESS_FREE) && check2(ACCESS_READ)) doGetDebugSetting();
-		else if (check("getSSLCertificate", ACCESS_NOT_WHEN_WEB) && check2(ACCESS_READ)) doGetSSLCertificate();
-		else if (check("getPluginDirectory", ACCESS_FREE) && check2(ACCESS_READ)) doGetPluginDirectory();
-		else if (check("getPlugins", ACCESS_FREE) && check2(ACCESS_READ)) doGetPlugins();
-		else if (check("updatePlugin", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdatePlugin();
-		else if (check("removePlugin", ACCESS_FREE) && check2(ACCESS_WRITE)) doRemovePlugin();
+		else if (check("PurgeDebugPool") && check2(ACCESS_WRITE)) doPurgeDebugPool();
+		else if (check("PurgeExpiredSessions") && check2(ACCESS_WRITE)) doPurgeExpiredSessions();
+		else if (check("getDebugSetting") && check2(ACCESS_READ)) doGetDebugSetting();
+		else if (check("getSSLCertificate") && check2(ACCESS_READ)) doGetSSLCertificate();
+		else if (check("getPluginDirectory") && check2(ACCESS_READ)) doGetPluginDirectory();
+		else if (check("getPlugins") && check2(ACCESS_READ)) doGetPlugins();
+		else if (check("updatePlugin") && check2(ACCESS_WRITE)) doUpdatePlugin();
+		else if (check("removePlugin") && check2(ACCESS_WRITE)) doRemovePlugin();
 
-		else if (check("getContextDirectory", ACCESS_NOT_WHEN_WEB) && check2(ACCESS_READ)) getContextDirectory();
-		else if (check("updateContext", ACCESS_NOT_WHEN_WEB) && check2(ACCESS_WRITE)) doUpdateContext();
-		else if (check("removeContext", ACCESS_NOT_WHEN_WEB) && check2(ACCESS_WRITE)) doRemoveContext();
+		else if (check("getContextDirectory") && check2(ACCESS_READ)) getContextDirectory();
+		else if (check("updateContext") && check2(ACCESS_WRITE)) doUpdateContext();
+		else if (check("removeContext") && check2(ACCESS_WRITE)) doRemoveContext();
 
-		else if (check("getJars", ACCESS_FREE) && check2(ACCESS_READ)) doGetJars();
-		else if (check("getFlds", ACCESS_FREE) && check2(ACCESS_READ)) doGetFLDs();
-		else if (check("getTlds", ACCESS_FREE) && check2(ACCESS_READ)) doGetTLDs();
-		else if (check("getLocalExtension", ACCESS_FREE) && check2(ACCESS_READ)) doGetLocalExtension();
-		else if (check("getLocalExtensions", ACCESS_FREE) && check2(ACCESS_READ)) doGetLocalExtensions();
-		else if (check("getMailSetting", ACCESS_FREE) && check2(ACCESS_READ)) doGetMailSetting();
-		else if (check("getTaskSetting", ACCESS_FREE) && check2(ACCESS_READ)) doGetTaskSetting();
-		else if (check("getMailServers", ACCESS_FREE) && check2(ACCESS_READ)) doGetMailServers();
-		else if (check("getMapping", ACCESS_FREE) && check2(ACCESS_READ)) doGetMapping();
-		else if (check("getMappings", ACCESS_FREE) && check2(ACCESS_READ)) doGetMappings();
-		else if (check("getRestMappings", ACCESS_FREE) && check2(ACCESS_READ)) doGetRestMappings();
-		else if (check("getRestSettings", ACCESS_FREE) && check2(ACCESS_READ)) doGetRestSettings();
-		else if ((check("getRHExtensionProviders", ACCESS_FREE) || check("getExtensionProviders", ACCESS_FREE)) && check2(ACCESS_READ)) doGetRHExtensionProviders();
+		else if (check("getJars") && check2(ACCESS_READ)) doGetJars();
+		else if (check("getFlds") && check2(ACCESS_READ)) doGetFLDs();
+		else if (check("getTlds") && check2(ACCESS_READ)) doGetTLDs();
+		else if (check("getLocalExtension") && check2(ACCESS_READ)) doGetLocalExtension();
+		else if (check("getLocalExtensions") && check2(ACCESS_READ)) doGetLocalExtensions();
+		else if (check("getMailSetting") && check2(ACCESS_READ)) doGetMailSetting();
+		else if (check("getTaskSetting") && check2(ACCESS_READ)) doGetTaskSetting();
+		else if (check("getMailServers") && check2(ACCESS_READ)) doGetMailServers();
+		else if (check("getMapping") && check2(ACCESS_READ)) doGetMapping();
+		else if (check("getMappings") && check2(ACCESS_READ)) doGetMappings();
+		else if (check("getRestMappings") && check2(ACCESS_READ)) doGetRestMappings();
+		else if (check("getRestSettings") && check2(ACCESS_READ)) doGetRestSettings();
+		else if ((check("getRHExtensionProviders") || check("getExtensionProviders")) && check2(ACCESS_READ)) doGetRHExtensionProviders();
 
-		else if (check("getCustomTagMappings", ACCESS_FREE) && check2(ACCESS_READ)) doGetCustomTagMappings();
-		else if (check("getComponentMappings", ACCESS_FREE) && check2(ACCESS_READ)) doGetComponentMappings();
-		else if (check("getCfxTags", ACCESS_FREE) && check2(ACCESS_READ)) doGetCFXTags();
-		else if (check("getJavaCfxTags", ACCESS_FREE) && check2(ACCESS_READ)) doGetJavaCFXTags();
-		else if (check("getDebug", ACCESS_FREE) && check2(ACCESS_READ)) doGetDebug();
-		else if (check("getMonitoring", ACCESS_FREE) && check2(ACCESS_READ)) doGetMonitoring();
-		else if (check("getSecurity", ACCESS_FREE) && check2(ACCESS_READ)) doGetSecurity();
-		else if (check("getDebugEntry", ACCESS_FREE)) doGetDebugEntry();
-		else if (check("getError", ACCESS_FREE) && check2(ACCESS_READ)) doGetError();
-		else if (check("getRegex", ACCESS_FREE) && check2(ACCESS_READ)) doGetRegex();
-		else if (check("verifyremoteclient", ACCESS_FREE) && check2(ACCESS_READ)) doVerifyRemoteClient();
-		else if (check("verifyDatasource", ACCESS_FREE) && check2(ACCESS_READ)) doVerifyDatasource();
-		else if (check("verifyCacheConnection", ACCESS_FREE) && check2(ACCESS_READ)) doVerifyCacheConnection();
-		else if (check("verifyAIConnection", ACCESS_FREE) && check2(ACCESS_READ)) doVerifyAIConnection();
-		else if (check("verifyMailServer", ACCESS_FREE) && check2(ACCESS_READ)) doVerifyMailServer();
-		else if (check("verifyExtensionProvider", ACCESS_FREE) && check2(ACCESS_READ)) doVerifyExtensionProvider();
-		else if (check("verifyJavaCFX", ACCESS_FREE) && check2(ACCESS_READ)) doVerifyJavaCFX();
-		else if (check("verifyCFX", ACCESS_FREE) && check2(ACCESS_READ)) doVerifyCFX();
+		else if (check("getCustomTagMappings") && check2(ACCESS_READ)) doGetCustomTagMappings();
+		else if (check("getComponentMappings") && check2(ACCESS_READ)) doGetComponentMappings();
+		else if (check("getCfxTags") && check2(ACCESS_READ)) doGetCFXTags();
+		else if (check("getJavaCfxTags") && check2(ACCESS_READ)) doGetJavaCFXTags();
+		else if (check("getDebug") && check2(ACCESS_READ)) doGetDebug();
+		else if (check("getMonitoring") && check2(ACCESS_READ)) doGetMonitoring();
+		else if (check("getSecurity") && check2(ACCESS_READ)) doGetSecurity();
+		else if (check("getDebugEntry")) doGetDebugEntry();
+		else if (check("getError") && check2(ACCESS_READ)) doGetError();
+		else if (check("getRegex") && check2(ACCESS_READ)) doGetRegex();
+		else if (check("verifyremoteclient") && check2(ACCESS_READ)) doVerifyRemoteClient();
+		else if (check("verifyDatasource") && check2(ACCESS_READ)) doVerifyDatasource();
+		else if (check("verifyCacheConnection") && check2(ACCESS_READ)) doVerifyCacheConnection();
+		else if (check("verifyAIConnection") && check2(ACCESS_READ)) doVerifyAIConnection();
+		else if (check("verifyMailServer") && check2(ACCESS_READ)) doVerifyMailServer();
+		else if (check("verifyExtensionProvider") && check2(ACCESS_READ)) doVerifyExtensionProvider();
+		else if (check("verifyJavaCFX") && check2(ACCESS_READ)) doVerifyJavaCFX();
+		else if (check("verifyCFX") && check2(ACCESS_READ)) doVerifyCFX();
 
-		else if (check("resetId", ACCESS_FREE) && check2(ACCESS_WRITE)) doResetId();
-		else if (check("updateLoginSettings", ACCESS_NOT_WHEN_WEB) && check2(ACCESS_WRITE)) doUpdateLoginSettings();
-		else if (check("updateLogSettings", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateLogSettings();
-		else if (check("updateJar", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateJar();
-		else if (check("updateSSLCertificate", ACCESS_NOT_WHEN_WEB) && check2(ACCESS_WRITE)) doUpdateSSLCertificate();
-		else if (check("updateMonitorEnabled", ACCESS_NOT_WHEN_WEB) && check2(ACCESS_WRITE)) doUpdateMonitorEnabled();
-		else if (check("updateTLD", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateTLD();
-		else if (check("updateFLD", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateFLD();
-		else if (check("updateFilesystem", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateFilesystem();
-		else if (check("updateregional", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateRegional();
-		else if (check("updateApplicationListener", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateApplicationListener();
-		else if (check("updateCachedWithin", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateCachedWithin();
-		else if (check("updateproxy", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateProxy();
-		else if (check("updateCharset", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateCharset();
-		else if (check("updatecomponent", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateComponent();
-		else if (check("updatescope", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateScope();
-		else if (check("updateDevelopMode", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateDevelopMode();
-		else if (check("updateRestSettings", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateRestSettings();
-		else if (check("updateRestMapping", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateRestMapping();
-		else if (check("removeRestMapping", ACCESS_FREE) && check2(ACCESS_WRITE)) doRemoveRestMapping();
-		else if (check("updateApplicationSetting", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateApplicationSettings();
-		else if (check("updateOutputSetting", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateOutputSettings();
-		else if (check("updateQueueSetting", ACCESS_NOT_WHEN_WEB) && check2(ACCESS_WRITE)) doUpdateQueueSettings();
-		else if (check("updatepsq", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdatePSQ();
-		else if (check("updatedatasource", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateDatasource();
-		else if (check("updateJDBCDriver", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateJDBCDriver();
-		else if (check("updateCacheDefaultConnection", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateCacheDefaultConnection();
-		else if (check("updateCacheConnection", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateCacheConnection();
-		else if (check("updateAIConnection", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateAIConnection();
-		else if (check("updateremoteclient", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateRemoteClient();
-		else if (check("updateRemoteClientUsage", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateRemoteClientUsage();
-		else if (check("updatemailsetting", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateMailSetting();
-		else if (check("updatemailserver", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateMailServer();
-		else if (check("updatetasksetting", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateTaskSetting();
-		else if (check("updatemapping", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateMapping();
-		else if (check("updatecustomtag", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateCustomTag();
-		else if (check("updateComponentMapping", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateComponentMapping();
-		else if (check("stopThread", ACCESS_NOT_WHEN_WEB) && check2(ACCESS_WRITE)) doStopThread();
-		else if (check("updateAdminMode", ACCESS_NOT_WHEN_WEB) && check2(ACCESS_WRITE)) doUpdateAdminMode();
+		else if (check("resetId") && check2(ACCESS_WRITE)) doResetId();
+		else if (check("updateLoginSettings") && check2(ACCESS_WRITE)) doUpdateLoginSettings();
+		else if (check("updateLogSettings") && check2(ACCESS_WRITE)) doUpdateLogSettings();
+		else if (check("updateJar") && check2(ACCESS_WRITE)) doUpdateJar();
+		else if (check("updateSSLCertificate") && check2(ACCESS_WRITE)) doUpdateSSLCertificate();
+		else if (check("updateMonitorEnabled") && check2(ACCESS_WRITE)) doUpdateMonitorEnabled();
+		else if (check("updateTLD") && check2(ACCESS_WRITE)) doUpdateTLD();
+		else if (check("updateFLD") && check2(ACCESS_WRITE)) doUpdateFLD();
+		else if (check("updateFilesystem") && check2(ACCESS_WRITE)) doUpdateFilesystem();
+		else if (check("updateregional") && check2(ACCESS_WRITE)) doUpdateRegional();
+		else if (check("updateApplicationListener") && check2(ACCESS_WRITE)) doUpdateApplicationListener();
+		else if (check("updateCachedWithin") && check2(ACCESS_WRITE)) doUpdateCachedWithin();
+		else if (check("updateproxy") && check2(ACCESS_WRITE)) doUpdateProxy();
+		else if (check("updateCharset") && check2(ACCESS_WRITE)) doUpdateCharset();
+		else if (check("updatecomponent") && check2(ACCESS_WRITE)) doUpdateComponent();
+		else if (check("updatescope") && check2(ACCESS_WRITE)) doUpdateScope();
+		else if (check("updateDevelopMode") && check2(ACCESS_WRITE)) doUpdateDevelopMode();
+		else if (check("updateRestSettings") && check2(ACCESS_WRITE)) doUpdateRestSettings();
+		else if (check("updateRestMapping") && check2(ACCESS_WRITE)) doUpdateRestMapping();
+		else if (check("removeRestMapping") && check2(ACCESS_WRITE)) doRemoveRestMapping();
+		else if (check("updateApplicationSetting") && check2(ACCESS_WRITE)) doUpdateApplicationSettings();
+		else if (check("updateOutputSetting") && check2(ACCESS_WRITE)) doUpdateOutputSettings();
+		else if (check("updateQueueSetting") && check2(ACCESS_WRITE)) doUpdateQueueSettings();
+		else if (check("updatepsq") && check2(ACCESS_WRITE)) doUpdatePSQ();
+		else if (check("updatedatasource") && check2(ACCESS_WRITE)) doUpdateDatasource();
+		else if (check("updateJDBCDriver") && check2(ACCESS_WRITE)) doUpdateJDBCDriver();
+		else if (check("updateCacheDefaultConnection") && check2(ACCESS_WRITE)) doUpdateCacheDefaultConnection();
+		else if (check("updateCacheConnection") && check2(ACCESS_WRITE)) doUpdateCacheConnection();
+		else if (check("updateAIConnection") && check2(ACCESS_WRITE)) doUpdateAIConnection();
+		else if (check("updateremoteclient") && check2(ACCESS_WRITE)) doUpdateRemoteClient();
+		else if (check("updateRemoteClientUsage") && check2(ACCESS_WRITE)) doUpdateRemoteClientUsage();
+		else if (check("updatemailsetting") && check2(ACCESS_WRITE)) doUpdateMailSetting();
+		else if (check("updatemailserver") && check2(ACCESS_WRITE)) doUpdateMailServer();
+		else if (check("updatetasksetting") && check2(ACCESS_WRITE)) doUpdateTaskSetting();
+		else if (check("updatemapping") && check2(ACCESS_WRITE)) doUpdateMapping();
+		else if (check("updatecustomtag") && check2(ACCESS_WRITE)) doUpdateCustomTag();
+		else if (check("updateComponentMapping") && check2(ACCESS_WRITE)) doUpdateComponentMapping();
+		else if (check("stopThread") && check2(ACCESS_WRITE)) doStopThread();
 
-		else if (check("updatejavacfx", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateJavaCFX();
-		else if (check("updatedebug", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateDebug();
-		else if (check("updatemonitoring", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateMonitoring();
-		else if (check("updatesecurity", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateSecurity();
-		else if (check("updatedebugentry", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateDebugEntry();
-		else if (check("updatedebugsetting", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateDebugSetting();
+		else if (check("updatejavacfx") && check2(ACCESS_WRITE)) doUpdateJavaCFX();
+		else if (check("updatedebug") && check2(ACCESS_WRITE)) doUpdateDebug();
+		else if (check("updatemonitoring") && check2(ACCESS_WRITE)) doUpdateMonitoring();
+		else if (check("updatesecurity") && check2(ACCESS_WRITE)) doUpdateSecurity();
+		else if (check("updatedebugentry") && check2(ACCESS_WRITE)) doUpdateDebugEntry();
+		else if (check("updatedebugsetting") && check2(ACCESS_WRITE)) doUpdateDebugSetting();
 
-		else if (check("updateerror", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateError();
-		else if (check("updateregex", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateRegex();
-		else if (check("updateCustomTagSetting", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateCustomTagSetting();
-		// else if(check("updateExtension", ACCESS_FREE) && check2(ACCESS_WRITE))
+		else if (check("updateerror") && check2(ACCESS_WRITE)) doUpdateError();
+		else if (check("updateregex") && check2(ACCESS_WRITE)) doUpdateRegex();
+		else if (check("updateCustomTagSetting") && check2(ACCESS_WRITE)) doUpdateCustomTagSetting();
+		// else if(check("updateExtension") && check2(ACCESS_WRITE))
 		// doUpdateExtension();
-		else if ((check("updateRHExtension", ACCESS_FREE) || check("updateExtension", ACCESS_FREE)) && check2(ACCESS_WRITE)) doUpdateRHExtension(true);
-		else if ((check("removeRHExtension", ACCESS_FREE) || check("removeExtension", ACCESS_FREE)) && check2(ACCESS_WRITE)) doRemoveRHExtension();
-		else if (check("updateExtensionProvider", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateExtensionProvider();
-		else if ((check("updateRHExtensionProvider", ACCESS_FREE) || check("updateExtensionProvider", ACCESS_FREE)) && check2(ACCESS_WRITE)) doUpdateRHExtensionProvider();
-		else if (check("updateExtensionInfo", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateExtensionInfo();
-		else if (check("updateGatewayEntry", ACCESS_NOT_WHEN_SERVER) && check2(ACCESS_WRITE)) doUpdateGatewayEntry();
-		// else if(check("updateLogSettings", ACCESS_FREE) && check2(ACCESS_WRITE ))
+		else if ((check("updateRHExtension") || check("updateExtension")) && check2(ACCESS_WRITE)) doUpdateRHExtension(true);
+		else if ((check("removeRHExtension") || check("removeExtension")) && check2(ACCESS_WRITE)) doRemoveRHExtension();
+		else if (check("updateExtensionProvider") && check2(ACCESS_WRITE)) doUpdateExtensionProvider();
+		else if ((check("updateRHExtensionProvider") || check("updateExtensionProvider")) && check2(ACCESS_WRITE)) doUpdateRHExtensionProvider();
+		else if (check("updateExtensionInfo") && check2(ACCESS_WRITE)) doUpdateExtensionInfo();
+		else if (check("updateGatewayEntry") && check2(ACCESS_WRITE)) doUpdateGatewayEntry();
+		// else if(check("updateLogSettings") && check2(ACCESS_WRITE ))
 		// doUpdateUpdateLogSettings();
-		else if (check("updateMonitor", ACCESS_NOT_WHEN_WEB) && check2(ACCESS_WRITE)) doUpdateMonitor();
-		else if (check("updateCacheHandler", ACCESS_NOT_WHEN_WEB) && check2(ACCESS_WRITE)) doUpdateCacheHandler();
-		else if (check("updateORMEngine", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateORMEngine();
-		else if (check("updateExecutionLog", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateExecutionLog();
+		else if (check("updateMonitor") && check2(ACCESS_WRITE)) doUpdateMonitor();
+		else if (check("updateCacheHandler") && check2(ACCESS_WRITE)) doUpdateCacheHandler();
+		else if (check("updateORMEngine") && check2(ACCESS_WRITE)) doUpdateORMEngine();
+		else if (check("updateExecutionLog") && check2(ACCESS_WRITE)) doUpdateExecutionLog();
 
 		// else if(check("removeproxy", ACCESS_NOT_WHEN_SERVER )) doRemoveProxy();
-		else if (check("removeMonitor", ACCESS_NOT_WHEN_WEB) && check2(ACCESS_WRITE)) doRemoveMonitor();
-		else if (check("removeCacheHandler", ACCESS_NOT_WHEN_WEB) && check2(ACCESS_WRITE)) doRemoveCacheHandler();
-		else if (check("removeORMEngine", ACCESS_FREE) && check2(ACCESS_WRITE)) doRemoveORMEngine();
-		else if (check("removebundle", ACCESS_FREE) && check2(ACCESS_WRITE)) doRemoveBundle();
-		else if (check("removeTLD", ACCESS_FREE) && check2(ACCESS_WRITE)) doRemoveTLD();
-		else if (check("removeFLD", ACCESS_FREE) && check2(ACCESS_WRITE)) doRemoveFLD();
-		else if (check("removeJDBCDriver", ACCESS_FREE) && check2(ACCESS_WRITE)) doRemoveJDBCDriver();
-		else if (check("removedatasource", ACCESS_FREE) && check2(ACCESS_WRITE)) doRemoveDatasource();
-		else if (check("removeCacheConnection", ACCESS_FREE) && check2(ACCESS_WRITE)) doRemoveCacheConnection();
-		else if (check("removeAIConnection", ACCESS_FREE) && check2(ACCESS_WRITE)) doRemoveAIConnection();
-		else if (check("removeremoteclient", ACCESS_FREE) && check2(ACCESS_WRITE)) doRemoveRemoteClient();
-		else if (check("removeRemoteClientUsage", ACCESS_FREE) && check2(ACCESS_WRITE)) doRemoveRemoteClientUsage();
-		else if (check("removeSpoolerTask", ACCESS_FREE) && check2(ACCESS_WRITE)) doRemoveSpoolerTask();
-		else if (check("removeAllSpoolerTask", ACCESS_FREE) && check2(ACCESS_WRITE)) doRemoveAllSpoolerTask();
+		else if (check("removeMonitor") && check2(ACCESS_WRITE)) doRemoveMonitor();
+		else if (check("removeCacheHandler") && check2(ACCESS_WRITE)) doRemoveCacheHandler();
+		else if (check("removeORMEngine") && check2(ACCESS_WRITE)) doRemoveORMEngine();
+		else if (check("removebundle") && check2(ACCESS_WRITE)) doRemoveBundle();
+		else if (check("removeTLD") && check2(ACCESS_WRITE)) doRemoveTLD();
+		else if (check("removeFLD") && check2(ACCESS_WRITE)) doRemoveFLD();
+		else if (check("removeJDBCDriver") && check2(ACCESS_WRITE)) doRemoveJDBCDriver();
+		else if (check("removedatasource") && check2(ACCESS_WRITE)) doRemoveDatasource();
+		else if (check("removeCacheConnection") && check2(ACCESS_WRITE)) doRemoveCacheConnection();
+		else if (check("removeAIConnection") && check2(ACCESS_WRITE)) doRemoveAIConnection();
+		else if (check("removeremoteclient") && check2(ACCESS_WRITE)) doRemoveRemoteClient();
+		else if (check("removeRemoteClientUsage") && check2(ACCESS_WRITE)) doRemoveRemoteClientUsage();
+		else if (check("removeSpoolerTask") && check2(ACCESS_WRITE)) doRemoveSpoolerTask();
+		else if (check("removeAllSpoolerTask") && check2(ACCESS_WRITE)) doRemoveAllSpoolerTask();
 		// alias for executeSpoolerTask
-		else if (check("removeRemoteClientTask", ACCESS_FREE) && check2(ACCESS_WRITE)) doRemoveSpoolerTask();
-		else if (check("executeSpoolerTask", ACCESS_FREE) && check2(ACCESS_WRITE)) doExecuteSpoolerTask();
+		else if (check("removeRemoteClientTask") && check2(ACCESS_WRITE)) doRemoveSpoolerTask();
+		else if (check("executeSpoolerTask") && check2(ACCESS_WRITE)) doExecuteSpoolerTask();
 		// alias for executeSpoolerTask
-		else if (check("executeRemoteClientTask", ACCESS_FREE) && check2(ACCESS_WRITE)) doExecuteSpoolerTask();
-		else if (check("removemailserver", ACCESS_FREE) && check2(ACCESS_WRITE)) doRemoveMailServer();
-		else if (check("removemapping", ACCESS_FREE) && check2(ACCESS_WRITE)) doRemoveMapping();
-		else if (check("removecustomtag", ACCESS_FREE) && check2(ACCESS_WRITE)) doRemoveCustomTag();
-		else if (check("removecomponentmapping", ACCESS_FREE) && check2(ACCESS_WRITE)) doRemoveComponentMapping();
-		else if (check("removecfx", ACCESS_FREE) && check2(ACCESS_WRITE)) doRemoveCFX();
-		else if (check("removeExtension", ACCESS_FREE) && check2(ACCESS_WRITE)) doRemoveExtension();
-		else if (check("removeExtensionProvider", ACCESS_FREE) && check2(ACCESS_WRITE)) doRemoveExtensionProvider();
-		else if (check("removeRHExtensionProvider", ACCESS_FREE) && check2(ACCESS_WRITE)) doRemoveRHExtensionProvider();
-		else if (check("removeDefaultPassword", ACCESS_FREE) && check2(ACCESS_WRITE)) doRemoveDefaultPassword();
-		else if (check("removeGatewayEntry", ACCESS_NOT_WHEN_SERVER) && check2(ACCESS_WRITE)) doRemoveGatewayEntry();
-		else if (check("removeDebugEntry", ACCESS_FREE) && check2(ACCESS_WRITE)) doRemoveDebugEntry();
-		else if (check("removeCacheDefaultConnection", ACCESS_FREE) && check2(ACCESS_WRITE)) doRemoveCacheDefaultConnection();
-		else if (check("removeLogSetting", ACCESS_FREE) && check2(ACCESS_WRITE)) doRemoveLogSetting();
+		else if (check("executeRemoteClientTask") && check2(ACCESS_WRITE)) doExecuteSpoolerTask();
+		else if (check("removemailserver") && check2(ACCESS_WRITE)) doRemoveMailServer();
+		else if (check("removemapping") && check2(ACCESS_WRITE)) doRemoveMapping();
+		else if (check("removecustomtag") && check2(ACCESS_WRITE)) doRemoveCustomTag();
+		else if (check("removecomponentmapping") && check2(ACCESS_WRITE)) doRemoveComponentMapping();
+		else if (check("removecfx") && check2(ACCESS_WRITE)) doRemoveCFX();
+		else if (check("removeExtension") && check2(ACCESS_WRITE)) doRemoveExtension();
+		else if (check("removeExtensionProvider") && check2(ACCESS_WRITE)) doRemoveExtensionProvider();
+		else if (check("removeRHExtensionProvider") && check2(ACCESS_WRITE)) doRemoveRHExtensionProvider();
+		else if (check("removeDefaultPassword") && check2(ACCESS_WRITE)) doRemoveDefaultPassword();
+		else if (check("removeGatewayEntry") && check2(ACCESS_WRITE)) doRemoveGatewayEntry();
+		else if (check("removeDebugEntry") && check2(ACCESS_WRITE)) doRemoveDebugEntry();
+		else if (check("removeCacheDefaultConnection") && check2(ACCESS_WRITE)) doRemoveCacheDefaultConnection();
+		else if (check("removeLogSetting") && check2(ACCESS_WRITE)) doRemoveLogSetting();
 
-		else if (check("storageGet", ACCESS_FREE) && check2(ACCESS_READ)) doStorageGet();
-		else if (check("storageSet", ACCESS_FREE) && check2(ACCESS_WRITE)) doStorageSet();
+		else if (check("storageGet") && check2(ACCESS_READ)) doStorageGet();
+		else if (check("storageSet") && check2(ACCESS_WRITE)) doStorageSet();
 
-		else if (check("getdefaultpassword", ACCESS_FREE) && check2(ACCESS_READ)) doGetDefaultPassword();
-		else if (check("getContexts", ACCESS_FREE) && check2(ACCESS_READ)) doGetContexts();
-		else if (check("getContextes", ACCESS_FREE) && check2(ACCESS_READ)) doGetContexts();
-		else if (check("updatedefaultpassword", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateDefaultPassword();
-		else if (check("hasindividualsecurity", ACCESS_FREE) && check2(ACCESS_READ)) doHasIndividualSecurity();
-		else if (check("resetpassword", ACCESS_FREE) && check2(ACCESS_WRITE)) doResetPassword();
-		else if (check("stopThread", ACCESS_NOT_WHEN_WEB) && check2(ACCESS_WRITE)) doStopThread();
+		else if (check("getdefaultpassword") && check2(ACCESS_READ)) doGetDefaultPassword();
+		else if (check("getContexts") && check2(ACCESS_READ)) doGetContexts();
+		else if (check("getContextes") && check2(ACCESS_READ)) doGetContexts();
+		else if (check("updatedefaultpassword") && check2(ACCESS_WRITE)) doUpdateDefaultPassword();
+		else if (check("hasindividualsecurity") && check2(ACCESS_READ)) doHasIndividualSecurity();
+		else if (check("resetpassword") && check2(ACCESS_WRITE)) doResetPassword();
+		else if (check("stopThread") && check2(ACCESS_WRITE)) doStopThread();
 
-		else if (check("updateAuthKey", ACCESS_NOT_WHEN_WEB) && check2(ACCESS_WRITE)) doUpdateAuthKey();
-		else if (check("removeAuthKey", ACCESS_NOT_WHEN_WEB) && check2(ACCESS_WRITE)) doRemoveAuthKey();
-		else if (check("listAuthKey", ACCESS_NOT_WHEN_WEB) && check2(ACCESS_WRITE)) doListAuthKey();
+		else if (check("updateAuthKey") && check2(ACCESS_WRITE)) doUpdateAuthKey();
+		else if (check("removeAuthKey") && check2(ACCESS_WRITE)) doRemoveAuthKey();
+		else if (check("listAuthKey") && check2(ACCESS_WRITE)) doListAuthKey();
 
-		else if (check("updateAPIKey", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateAPIKey();
-		else if (check("removeAPIKey", ACCESS_FREE) && check2(ACCESS_WRITE)) doRemoveAPIKey();
-		else if (check("getAPIKey", ACCESS_FREE) && check2(ACCESS_READ)) doGetAPIKey();
+		else if (check("updateAPIKey") && check2(ACCESS_WRITE)) doUpdateAPIKey();
+		else if (check("removeAPIKey") && check2(ACCESS_WRITE)) doRemoveAPIKey();
+		else if (check("getAPIKey") && check2(ACCESS_READ)) doGetAPIKey();
 
-		else if (check("createsecuritymanager", ACCESS_NOT_WHEN_WEB) && check2(ACCESS_WRITE)) doCreateSecurityManager();
-		else if (check("getsecuritymanager", ACCESS_NOT_WHEN_WEB) && check2(ACCESS_READ)) doGetSecurityManager();
-		else if (check("removesecuritymanager", ACCESS_NOT_WHEN_WEB) && check2(ACCESS_WRITE)) doRemoveSecurityManager();
-		else if (check("getdefaultsecuritymanager", ACCESS_NOT_WHEN_WEB) && check2(ACCESS_READ)) doGetDefaultSecurityManager();
-		else if (check("updatesecuritymanager", ACCESS_NOT_WHEN_WEB) && check2(ACCESS_WRITE)) doUpdateSecurityManager();
-		else if (check("updatedefaultsecuritymanager", ACCESS_NOT_WHEN_WEB) && check2(ACCESS_WRITE)) doUpdateDefaultSecurityManager();
-		else if (check("compileMapping", ACCESS_FREE) && check2(ACCESS_WRITE)) doCompileMapping();
-		else if (check("compileComponentMapping", ACCESS_FREE) && check2(ACCESS_WRITE)) doCompileComponentMapping();
-		else if (check("compileCTMapping", ACCESS_FREE) && check2(ACCESS_WRITE)) doCompileCTMapping();
-		else if (check("createArchive", ACCESS_FREE) && check2(ACCESS_WRITE)) doCreateArchive(MAPPING_REGULAR);
-		else if (check("createComponentArchive", ACCESS_FREE) && check2(ACCESS_WRITE)) doCreateArchive(MAPPING_CFC);
-		else if (check("createCTArchive", ACCESS_FREE) && check2(ACCESS_WRITE)) doCreateArchive(MAPPING_CT);
-		else if (check("reload", ACCESS_FREE) && check2(ACCESS_WRITE)) doReload();
+		else if (check("createsecuritymanager") && check2(ACCESS_WRITE)) doCreateSecurityManager();
+		else if (check("getsecuritymanager") && check2(ACCESS_READ)) doGetSecurityManager();
+		else if (check("removesecuritymanager") && check2(ACCESS_WRITE)) doRemoveSecurityManager();
+		else if (check("getdefaultsecuritymanager") && check2(ACCESS_READ)) doGetDefaultSecurityManager();
+		else if (check("updatesecuritymanager") && check2(ACCESS_WRITE)) doUpdateSecurityManager();
+		else if (check("updatedefaultsecuritymanager") && check2(ACCESS_WRITE)) doUpdateDefaultSecurityManager();
+		else if (check("compileMapping") && check2(ACCESS_WRITE)) doCompileMapping();
+		else if (check("compileComponentMapping") && check2(ACCESS_WRITE)) doCompileComponentMapping();
+		else if (check("compileCTMapping") && check2(ACCESS_WRITE)) doCompileCTMapping();
+		else if (check("createArchive") && check2(ACCESS_WRITE)) doCreateArchive(MAPPING_REGULAR);
+		else if (check("createComponentArchive") && check2(ACCESS_WRITE)) doCreateArchive(MAPPING_CFC);
+		else if (check("createCTArchive") && check2(ACCESS_WRITE)) doCreateArchive(MAPPING_CT);
+		else if (check("reload") && check2(ACCESS_WRITE)) doReload();
 
-		else if (check("getResourceProviders", ACCESS_FREE) && check2(ACCESS_READ)) doGetResourceProviders();
-		else if (check("updateResourceProvider", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateResourceProvider();
-		else if (check("updateDefaultResourceProvider", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateDefaultResourceProvider();
-		else if (check("removeResourceProvider", ACCESS_FREE) && check2(ACCESS_WRITE)) doRemoveResourceProvider();
-		else if (check("getAdminSyncClass", ACCESS_FREE) && check2(ACCESS_READ)) doGetAdminSyncClass();
-		else if (check("updateAdminSyncClass", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateAdminSyncClass();
+		else if (check("getResourceProviders") && check2(ACCESS_READ)) doGetResourceProviders();
+		else if (check("updateResourceProvider") && check2(ACCESS_WRITE)) doUpdateResourceProvider();
+		else if (check("updateDefaultResourceProvider") && check2(ACCESS_WRITE)) doUpdateDefaultResourceProvider();
+		else if (check("removeResourceProvider") && check2(ACCESS_WRITE)) doRemoveResourceProvider();
+		else if (check("getAdminSyncClass") && check2(ACCESS_READ)) doGetAdminSyncClass();
+		else if (check("updateAdminSyncClass") && check2(ACCESS_WRITE)) doUpdateAdminSyncClass();
 
-		else if (check("terminateRunningThread", ACCESS_FREE) && check2(ACCESS_WRITE)) doTerminateRunningThread();
+		else if (check("terminateRunningThread") && check2(ACCESS_WRITE)) doTerminateRunningThread();
 
-		else if (check("updateLabel", ACCESS_NOT_WHEN_WEB) && check2(ACCESS_WRITE)) doUpdateLabel();
-		else if (check("restart", ACCESS_NOT_WHEN_WEB) && check2(ACCESS_WRITE)) doRestart();
-		else if (check("runUpdate", ACCESS_NOT_WHEN_WEB) && check2(ACCESS_WRITE)) doRunUpdate();
-		else if (check("removeUpdate", ACCESS_NOT_WHEN_WEB) && check2(ACCESS_WRITE)) doRemoveUpdate();
-		else if (check("changeVersionTo", ACCESS_NOT_WHEN_WEB) && check2(ACCESS_WRITE)) doChangeVersionTo();
-		else if (check("mvnChangeVersionTo", ACCESS_NOT_WHEN_WEB) && check2(ACCESS_WRITE)) doMvnChangeVersionTo();
-		else if (check("getUpdate", ACCESS_NOT_WHEN_WEB) && check2(ACCESS_WRITE)) doGetUpdate();
-		else if (check("getMinVersion", ACCESS_FREE) && check2(ACCESS_READ)) getMinVersion();
-		else if (check("getLoaderInfo", ACCESS_FREE) && check2(ACCESS_READ)) getLoaderInfo();
-		else if (check("listPatches", ACCESS_NOT_WHEN_WEB) && check2(ACCESS_READ)) listPatches();
-		else if (check("updateupdate", ACCESS_NOT_WHEN_WEB) && check2(ACCESS_WRITE)) doUpdateUpdate();
-		else if (check("getSerial", ACCESS_FREE) && check2(ACCESS_READ)) doGetSerial();
-		else if (check("updateSerial", ACCESS_NOT_WHEN_WEB) && check2(ACCESS_WRITE)) doUpdateSerial();
-		else if (check("heapDump", ACCESS_NOT_WHEN_WEB) && check2(ACCESS_WRITE)) doHeapDump();
-		else if (check("securitymanager", ACCESS_FREE) && check2(ACCESS_READ)) doSecurityManager();
+		else if (check("updateLabel") && check2(ACCESS_WRITE)) doUpdateLabel();
+		else if (check("restart") && check2(ACCESS_WRITE)) doRestart();
+		else if (check("runUpdate") && check2(ACCESS_WRITE)) doRunUpdate();
+		else if (check("removeUpdate") && check2(ACCESS_WRITE)) doRemoveUpdate();
+		else if (check("changeVersionTo") && check2(ACCESS_WRITE)) doChangeVersionTo();
+		else if (check("mvnChangeVersionTo") && check2(ACCESS_WRITE)) doMvnChangeVersionTo();
+		else if (check("getUpdate") && check2(ACCESS_WRITE)) doGetUpdate();
+		else if (check("getMinVersion") && check2(ACCESS_READ)) getMinVersion();
+		else if (check("getLoaderInfo") && check2(ACCESS_READ)) getLoaderInfo();
+		else if (check("listPatches") && check2(ACCESS_READ)) listPatches();
+		else if (check("updateupdate") && check2(ACCESS_WRITE)) doUpdateUpdate();
+		else if (check("getSerial") && check2(ACCESS_READ)) doGetSerial();
+		else if (check("updateSerial") && check2(ACCESS_WRITE)) doUpdateSerial();
+		else if (check("heapDump") && check2(ACCESS_WRITE)) doHeapDump();
+		else if (check("securitymanager") && check2(ACCESS_READ)) doSecurityManager();
 
 		else throw new ApplicationException("Invalid action [" + action + "] for tag admin");
 
 	}
 
 	private boolean check2(short accessRW) throws SecurityException {
-		if (accessRW == ACCESS_READ) ConfigWebUtil.checkGeneralReadAccess(config, password);
-		else if (accessRW == ACCESS_WRITE) ConfigWebUtil.checkGeneralWriteAccess(config, password);
+		if (accessRW == ACCESS_READ) ConfigUtil.checkGeneralReadAccess(config, password);
+		else if (accessRW == ACCESS_WRITE) ConfigUtil.checkGeneralWriteAccess(config, password);
 		/*
 		 * else if(accessRW==CHECK_PW) { ConfigWebUtil.checkGeneralReadAccess(config,password);
 		 * ConfigWebUtil.checkPassword(config,null,password); }
@@ -873,21 +860,8 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		return true;
 	}
 
-	private boolean check(String action, short access) throws ApplicationException {
+	private boolean check(String action) {
 		if (this.action.equalsIgnoreCase(action)) {
-			if (access == ACCESS_FREE) {
-			}
-			else if (access == ACCESS_NOT_WHEN_SERVER) {
-				throwNoAccessWhenServer();
-			}
-
-			else if (access == ACCESS_NOT_WHEN_WEB) {
-				throwNoAccessWhenWeb();
-			}
-			else if (access == ACCESS_NEVER) {
-				throwNoAccessWhenServer();
-				throwNoAccessWhenServer();
-			}
 			return true;
 		}
 		return false;
@@ -1009,9 +983,9 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			attrs.putValue("mapping-physical-first", Caster.toString(mapping.isPhysicalFirst()));
 			attrs.putValue("mapping-readonly", Caster.toString(mapping.isReadonly()));
 			attrs.putValue("mapping-top-level", Caster.toString(mapping.isTopLevel()));
-			attrs.putValue("mapping-inspect", ConfigWebUtil.inspectTemplate(mapping.getInspectTemplateRaw(), ""));
-			attrs.putValue("mapping-listener-type", ConfigWebUtil.toListenerType(mapping.getListenerType(), ""));
-			attrs.putValue("mapping-listener-mode", ConfigWebUtil.toListenerMode(mapping.getListenerMode(), ""));
+			attrs.putValue("mapping-inspect", ConfigUtil.inspectTemplate(mapping.getInspectTemplateRaw(), ""));
+			attrs.putValue("mapping-listener-type", ConfigUtil.toListenerType(mapping.getListenerType(), ""));
+			attrs.putValue("mapping-listener-mode", ConfigUtil.toListenerMode(mapping.getListenerMode(), ""));
 
 			mani.createFile(true);
 			IOUtil.write(mani, ManifestUtil.toString(mf, 100, null, null), "UTF-8", false);
@@ -1077,8 +1051,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		else if (mappingType == MAPPING_CT) mappings = config.getCustomTagMappings();
 		else mappings = config.getMappings();
 
-		for (int i = 0; i < mappings.length; i++) {
-			Mapping mapping = mappings[i];
+		for (Mapping mapping: mappings) {
 			if (mapping.getVirtualLowerCaseWithSlash().equals(virtual)) {
 				Map<String, String> errors = stoponerror ? null : MapFactory.<String, String>getConcurrentMap();
 				doCompileFile(mapping, mapping.getPhysical(), "", errors, ignoreScopes);
@@ -1204,7 +1177,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	}
 
 	private void doListAuthKey() throws PageException {
-		ConfigServerImpl cs = config instanceof ConfigServer ? (ConfigServerImpl) config : (ConfigServerImpl) ConfigWebUtil.getConfigServer(config, password);
+		ConfigServerImpl cs = ConfigUtil.getConfigServerImpl(config);
 		pageContext.setVariable(getString("admin", action, "returnVariable"), Caster.toArray(cs.getAuthenticationKeys()));
 	}
 
@@ -1214,7 +1187,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	private void doGetContexts() throws PageException {
 		CFMLFactory[] factories;
 		if (config instanceof ConfigServerImpl) {
-			ConfigServerImpl cs = (ConfigServerImpl) config;
+			ConfigServerImpl cs = ConfigUtil.getConfigServerImpl(config);
 			factories = cs.getJSPFactories();
 		}
 		else {
@@ -1281,9 +1254,8 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		pageContext.setVariable(getString("admin", action, "returnVariable"), config.getSerialNumber());
 	}
 
-	private Resource getContextDirectory() throws PageException {
-		ConfigServerImpl cs = (ConfigServerImpl) ConfigWebUtil.getConfigServer(config, password);
-		Resource dist = cs.getConfigDir().getRealResource("distribution");
+	private Resource getContextDirectory() {
+		Resource dist = config.getConfigDir().getRealResource("distribution");
 		dist.mkdirs();
 		return dist;
 	}
@@ -1313,9 +1285,9 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		String strRealpath = getString("admin", action, "destination");
 		Resource src = ResourceUtil.toResourceExisting(pageContext, strSrc);
 
-		ConfigServerImpl server = (ConfigServerImpl) ConfigWebUtil.getConfigServer(config, password);
+		ConfigServerImpl cs = ConfigUtil.getConfigServerImpl(config);
 		Resource trg, p;
-		Resource deploy = server.getConfigDir().getRealResource("web-context-deployment");
+		Resource deploy = config.getConfigDir().getRealResource("web-context-deployment");
 		deploy.mkdirs();
 
 		// deploy it
@@ -1326,18 +1298,18 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		src.copyTo(trg, false);
 		store();
 
-		ConfigWeb[] webs = server.getConfigWebs();
+		ConfigWeb[] webs = cs.getConfigWebs();
 		for (int i = 0; i < webs.length; i++) {
-			ConfigWebUtil.deployWebContext(server, webs[i], true);
+			ConfigUtil.deployWebContext(cs, webs[i], true);
 		}
 	}
 
 	private void doRemoveContext() throws PageException {
 		String strRealpath = getString("admin", action, "destination");
-		ConfigServerImpl server = config instanceof ConfigServer ? (ConfigServerImpl) config : (ConfigServerImpl) ConfigWebUtil.getConfigServer(config, password);
+		ConfigServerImpl cs = ConfigUtil.getConfigServerImpl(config);
 
 		try {
-			admin.removeContext(server, true, ThreadLocalPageContext.getLog(pageContext, "deploy"), strRealpath);
+			admin.removeContext(cs, true, ThreadLocalPageContext.getLog(pageContext, "deploy"), strRealpath);
 		}
 		catch (Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);
@@ -1516,11 +1488,6 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	}
 
 	private void doGetLoggedDebugData() throws PageException {
-
-		// to get logged debugging data config should be a ConfigWebPro,
-		// for singleMode config is always ConfigServer so config must be redefine if it was singleMode
-		if (singleMode) config = configWeb = (ConfigWebPro) pageContext.getConfig();
-
 		ConfigWebPro cw = configWeb;
 		String id = getString("id", null);
 		Array data = cw.getDebuggerPool().getData(pageContext);
@@ -1547,7 +1514,8 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	}
 
 	private void doPurgeExpiredSessions() {
-		ConfigServer cs = (ConfigServer) config;
+		ConfigServer cs = ConfigUtil.getConfigServerImpl(config);
+		;
 		ConfigWeb[] webs = cs.getConfigWebs();
 
 		for (int i = 0; i < webs.length; i++) {
@@ -1634,15 +1602,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	}
 
 	private void doUpdateDefaultSecurityManager() throws PageException {
-		if (singleMode) {
-			admin.updateDefaultSecurity(fb2("access_read"), fb2("access_write"));
-		}
-		else {
-			admin.updateDefaultSecurity(fb("setting"), SecurityManagerImpl.toShortAccessValue(getString("admin", action, "file")), getFileAcces(), fb("direct_java_access"),
-					fb("mail"), SecurityManagerImpl.toShortAccessValue(getString("admin", action, "datasource")), fb("mapping"), fb("remote"), fb("custom_tag"), fb("cfx_setting"),
-					fb("cfx_usage"), fb("debugging"), fb("search"), fb("scheduled_task"), fb("tag_execute"), fb("tag_import"), fb("tag_object"), fb("tag_registry"), fb("cache"),
-					fb("gateway"), fb("orm"), fb2("access_read"), fb2("access_write"));
-		}
+		admin.updateDefaultSecurity(fb2("access_read"), fb2("access_write"));
 		store();
 		adminSync.broadcast(attributes, config);
 	}
@@ -1680,14 +1640,14 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	 * 
 	 */
 	private void doGetDefaultSecurityManager() throws PageException {
-		ConfigServer cs = ConfigWebUtil.getConfigServer(config, password);
+		ConfigServer cs = ConfigUtil.getConfigServer(config);
 
 		SecurityManager dsm = cs.getDefaultSecurityManager();
 		_fillSecData(dsm);
 	}
 
 	private void doGetSecurityManager() throws PageException {
-		ConfigServer cs = ConfigWebUtil.getConfigServer(config, password);
+		ConfigServer cs = ConfigUtil.getConfigServer(config);
 		SecurityManager sm = cs.getSecurityManager(getString("admin", action, "id"));
 		_fillSecData(sm);
 	}
@@ -1970,7 +1930,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	 */
 	private void doUpdateComponentMapping() throws PageException {
 		admin.updateComponentMapping(getString("virtual", ""), getString("physical", ""), getString("archive", ""), getString("primary", "physical"),
-				ConfigWebUtil.inspectTemplate(getString("inspect", ""), ConfigPro.INSPECT_UNDEFINED), getInt("inspectTemplateIntervalSlow", ConfigPro.INSPECT_INTERVAL_UNDEFINED),
+				ConfigUtil.inspectTemplate(getString("inspect", ""), ConfigPro.INSPECT_UNDEFINED), getInt("inspectTemplateIntervalSlow", ConfigPro.INSPECT_INTERVAL_UNDEFINED),
 				getInt("inspectTemplateIntervalFast", ConfigPro.INSPECT_INTERVAL_UNDEFINED));
 		store();
 		adminSync.broadcast(attributes, config);
@@ -1991,7 +1951,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	 */
 	private void doUpdateCustomTag() throws PageException {
 		admin.updateCustomTag(getString("admin", action, "virtual"), getString("admin", action, "physical"), getString("admin", action, "archive"),
-				getString("admin", action, "primary"), ConfigWebUtil.inspectTemplate(getString("inspect", ""), ConfigPro.INSPECT_UNDEFINED),
+				getString("admin", action, "primary"), ConfigUtil.inspectTemplate(getString("inspect", ""), ConfigPro.INSPECT_UNDEFINED),
 				getInt("inspectTemplateIntervalSlow", ConfigPro.INSPECT_INTERVAL_UNDEFINED), getInt("inspectTemplateIntervalFast", ConfigPro.INSPECT_INTERVAL_UNDEFINED));
 		store();
 		adminSync.broadcast(attributes, config);
@@ -2027,7 +1987,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			qry.setAt("hidden", row, Caster.toBoolean(m.isHidden()));
 			qry.setAt("physicalFirst", row, Caster.toBoolean(m.isPhysicalFirst()));
 			qry.setAt("readonly", row, Caster.toBoolean(m.isReadonly()));
-			qry.setAt("inspect", row, ConfigWebUtil.inspectTemplate(m.getInspectTemplateRaw(), ""));
+			qry.setAt("inspect", row, ConfigUtil.inspectTemplate(m.getInspectTemplateRaw(), ""));
 			qry.setAt("inspectTemplateIntervalSlow", row, m.getInspectTemplateAutoInterval(true));
 			qry.setAt("inspectTemplateIntervalFast", row, m.getInspectTemplateAutoInterval(false));
 		}
@@ -2050,7 +2010,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			qry.setAt("hidden", row, Caster.toBoolean(m.isHidden()));
 			qry.setAt("physicalFirst", row, Caster.toBoolean(m.isPhysicalFirst()));
 			qry.setAt("readonly", row, Caster.toBoolean(m.isReadonly()));
-			qry.setAt("inspect", row, ConfigWebUtil.inspectTemplate(m.getInspectTemplateRaw(), ""));
+			qry.setAt("inspect", row, ConfigUtil.inspectTemplate(m.getInspectTemplateRaw(), ""));
 			qry.setAt("inspectTemplateIntervalSlow", row, m.getInspectTemplateAutoInterval(true));
 			qry.setAt("inspectTemplateIntervalFast", row, m.getInspectTemplateAutoInterval(false));
 		}
@@ -2088,10 +2048,10 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 	private void doUpdateMapping() throws PageException {
 		admin.updateMapping(getString("admin", action, "virtual"), getString("admin", action, "physical"), getString("admin", action, "archive"),
-				getString("admin", action, "primary"), ConfigWebUtil.inspectTemplate(getString("inspect", ""), ConfigPro.INSPECT_UNDEFINED),
+				getString("admin", action, "primary"), ConfigUtil.inspectTemplate(getString("inspect", ""), ConfigPro.INSPECT_UNDEFINED),
 				getInt("inspectTemplateIntervalSlow", ConfigPro.INSPECT_INTERVAL_UNDEFINED), getInt("inspectTemplateIntervalFast", ConfigPro.INSPECT_INTERVAL_UNDEFINED),
-				Caster.toBooleanValue(getString("toplevel", "true")), ConfigWebUtil.toListenerMode(getString("listenerMode", ""), -1),
-				ConfigWebUtil.toListenerType(getString("listenerType", ""), -1), Caster.toBooleanValue(getString("readonly", "false"))
+				Caster.toBooleanValue(getString("toplevel", "true")), ConfigUtil.toListenerMode(getString("listenerMode", ""), -1),
+				ConfigUtil.toListenerType(getString("listenerType", ""), -1), Caster.toBooleanValue(getString("readonly", "false"))
 
 		);
 		store();
@@ -2120,7 +2080,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			sct.set(KeyConstants._hidden, Caster.toBoolean(m.isHidden()));
 			sct.set("physicalFirst", Caster.toBoolean(m.isPhysicalFirst()));
 			sct.set("readonly", Caster.toBoolean(m.isReadonly()));
-			sct.set("inspect", ConfigWebUtil.inspectTemplate(m.getInspectTemplateRaw(), ""));
+			sct.set("inspect", ConfigUtil.inspectTemplate(m.getInspectTemplateRaw(), ""));
 			sct.set("inspectTemplateIntervalSlow", m.getInspectTemplateAutoInterval(true));
 			sct.set("inspectTemplateIntervalFast", m.getInspectTemplateAutoInterval(false));
 			sct.set("toplevel", Caster.toBoolean(m.isTopLevel()));
@@ -2162,12 +2122,12 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			qry.setAt("hidden", row, Caster.toBoolean(m.isHidden()));
 			qry.setAt("physicalFirst", row, Caster.toBoolean(m.isPhysicalFirst()));
 			qry.setAt("readonly", row, Caster.toBoolean(m.isReadonly()));
-			qry.setAt("inspect", row, ConfigWebUtil.inspectTemplate(m.getInspectTemplateRaw(), ""));
+			qry.setAt("inspect", row, ConfigUtil.inspectTemplate(m.getInspectTemplateRaw(), ""));
 			qry.setAt("inspectTemplateIntervalSlow", row, m.getInspectTemplateAutoInterval(true));
 			qry.setAt("inspectTemplateIntervalFast", row, m.getInspectTemplateAutoInterval(false));
 			qry.setAt("toplevel", row, Caster.toBoolean(m.isTopLevel()));
-			qry.setAt("listenerType", row, ConfigWebUtil.toListenerType(m.getListenerType(), "inherit"));
-			qry.setAt("listenerMode", row, ConfigWebUtil.toListenerMode(m.getListenerMode(), "inherit"));
+			qry.setAt("listenerType", row, ConfigUtil.toListenerType(m.getListenerType(), "inherit"));
+			qry.setAt("listenerMode", row, ConfigUtil.toListenerMode(m.getListenerMode(), "inherit"));
 		}
 		pageContext.setVariable(getString("admin", action, "returnVariable"), qry);
 	}
@@ -2280,7 +2240,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	private void listPatches() throws PageException {
 		try {
 
-			pageContext.setVariable(getString("admin", action, "returnVariable"), Caster.toArray(((ConfigServerImpl) config).getInstalledPatches()));
+			pageContext.setVariable(getString("admin", action, "returnVariable"), Caster.toArray(ConfigUtil.getConfigServerImpl(config).getInstalledPatches()));
 		}
 		catch (Exception e) {
 			throw Caster.toPageException(e);
@@ -2323,7 +2283,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			qry.setAt("id", row, s instanceof ServerImpl ? ((ServerImpl) s).getId() : -1);
 			qry.setAt("hostname", row, s.getHostName());
 			qry.setAt("password", row, s.isReadOnly() ? "" : s.getPassword());
-			qry.setAt("passwordEncrypted", row, s.isReadOnly() ? "" : ConfigWebUtil.encrypt(s.getPassword()));
+			qry.setAt("passwordEncrypted", row, s.isReadOnly() ? "" : ConfigUtil.encrypt(s.getPassword()));
 			qry.setAt("username", row, s.isReadOnly() ? "" : s.getUsername());
 			qry.setAt("port", row, Caster.toInteger(s.getPort()));
 			qry.setAt("readonly", row, Caster.toBoolean(s.isReadOnly()));
@@ -2344,15 +2304,10 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		lucee.runtime.type.Query qry = new QueryImpl(new String[] { "Id", "Start", "Timeout", "ThreadType", "StackTrace", "TagContext", "Label", "RootPath", "ConfigFile", "URL" },
 				0, "query");
 
-		if (type == TYPE_WEB) {
-			fillGetRunningThreads(qry, pageContext.getConfig());
-		}
-		else {
-			ConfigServer cs = pageContext.getConfig().getConfigServer(password);
-			ConfigWeb[] webs = cs.getConfigWebs();
-			for (int i = 0; i < webs.length; i++) {
-				fillGetRunningThreads(qry, webs[i]);
-			}
+		ConfigServer cs = pageContext.getConfig().getConfigServer(password);
+		ConfigWeb[] webs = cs.getConfigWebs();
+		for (int i = 0; i < webs.length; i++) {
+			fillGetRunningThreads(qry, webs[i]);
 		}
 		pageContext.setVariable(getString("admin", action, "returnVariable"), qry);
 	}
@@ -2466,10 +2421,6 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			qry.setAt("source", i + 1, StringUtil.emptyIfNull(libs[i].getSource()));
 		}
 		pageContext.setVariable(getString("admin", action, "returnVariable"), qry);
-	}
-
-	private void doGetRHServerExtension() throws PageException {
-		_doGetRHExtension(config.getServerRHExtensions());
 	}
 
 	private void doGetRHExtension() throws PageException {
@@ -2897,9 +2848,8 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			if (!StringUtil.isEmpty(proxyPassword)) pd.setPassword(proxyPassword);
 			if (proxyPort != -1) pd.setPort(proxyPort);
 		}
-		RemoteClient client = new RemoteClientImpl(getString("admin", action, "label"), type == TYPE_WEB ? "web" : "server", getString("admin", action, "url"),
-				getString("serverUsername", null), getString("serverPassword", null), getString("admin", action, "adminPassword"), pd, getString("admin", action, "securityKey"),
-				getString("admin", action, "usage")
+		RemoteClient client = new RemoteClientImpl(getString("admin", action, "label"), "web", getString("admin", action, "url"), getString("serverUsername", null),
+				getString("serverPassword", null), getString("admin", action, "adminPassword"), pd, getString("admin", action, "securityKey"), getString("admin", action, "usage")
 
 		);
 
@@ -2972,16 +2922,12 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	private void doTerminateRunningThread() throws PageException {
 		int id = getInt("admin", "RemoveRunningThread", "id");
 
-		if (type == TYPE_WEB) {
-			terminateRunningThread(pageContext.getConfig(), id);
+		ConfigServer cs = pageContext.getConfig().getConfigServer(password);
+		ConfigWeb[] webs = cs.getConfigWebs();
+		for (int i = 0; i < webs.length; i++) {
+			if (terminateRunningThread(webs[i], id)) break;
 		}
-		else {
-			ConfigServer cs = pageContext.getConfig().getConfigServer(password);
-			ConfigWeb[] webs = cs.getConfigWebs();
-			for (int i = 0; i < webs.length; i++) {
-				if (terminateRunningThread(webs[i], id)) break;
-			}
-		}
+
 	}
 
 	private static boolean terminateRunningThread(ConfigWeb configWeb, int id) {
@@ -3328,7 +3274,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			}
 		}
 
-		CFMLEngine engine = ConfigWebUtil.getEngine(config);
+		CFMLEngine engine = ConfigUtil.getEngine(config);
 		BundleCollection coreBundles = engine.getBundleCollection();
 		java.util.Collection<BundleDefinition> extBundles = config.getAllExtensionBundleDefintions();
 
@@ -3405,7 +3351,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	}
 
 	private void doGetBundles() throws PageException {
-		CFMLEngine engine = ConfigWebUtil.getEngine(config);
+		CFMLEngine engine = ConfigUtil.getEngine(config);
 		BundleCollection coreBundles = engine.getBundleCollection();
 		java.util.Collection<BundleDefinition> extBundles = config.getAllExtensionBundleDefintions();
 
@@ -3577,7 +3523,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	private void doGetMonitors() throws PageException {
 		if (!(config instanceof ConfigServerImpl)) throw new ApplicationException("invalid context for this action");
 
-		ConfigServerImpl cs = (ConfigServerImpl) config;
+		ConfigServerImpl cs = ConfigUtil.getConfigServerImpl(config);
 		IntervallMonitor[] intervalls = cs.getIntervallMonitors();
 		RequestMonitor[] requests = cs.getRequestMonitors();
 
@@ -3590,7 +3536,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 	private void doGetMonitor() throws PageException {
 		if (!(config instanceof ConfigServerImpl)) throw new ApplicationException("invalid context for this action");
-		ConfigServerImpl cs = (ConfigServerImpl) config;
+		ConfigServerImpl cs = ConfigUtil.getConfigServerImpl(config);
 
 		String type = getString("admin", action, "monitorType");
 		String name = getString("admin", action, "name");
@@ -3906,7 +3852,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 				sct.setEL(KeyConstants._dsnTranslated, d.getDsnTranslated());
 				sct.setEL(KeyConstants._timezone, toStringTimeZone(d.getTimeZone()));
 				sct.setEL(KeyConstants._password, d.getPassword());
-				sct.setEL(KeyConstants._passwordEncrypted, ConfigWebUtil.encrypt(d.getPassword()));
+				sct.setEL(KeyConstants._passwordEncrypted, ConfigUtil.encrypt(d.getPassword()));
 				sct.setEL(KeyConstants._username, d.getUsername());
 				sct.setEL(KeyConstants._readonly, Caster.toBoolean(d.isReadOnly()));
 				sct.setEL(KeyConstants._select, Boolean.valueOf(d.hasAllow(DataSource.ALLOW_SELECT)));
@@ -4118,7 +4064,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			qry.setAt("timezone", row, toStringTimeZone(d.getTimeZone()));
 			qry.setAt(KeyConstants._password, row, d.getPassword());
 
-			qry.setAt("passwordEncrypted", row, ConfigWebUtil.encrypt(d.getPassword()));
+			qry.setAt("passwordEncrypted", row, ConfigUtil.encrypt(d.getPassword()));
 			qry.setAt(KeyConstants._username, row, d.getUsername());
 			qry.setAt(KeyConstants._readonly, row, Caster.toBoolean(d.isReadOnly()));
 			qry.setAt(KeyConstants._select, row, Boolean.valueOf(d.hasAllow(DataSource.ALLOW_SELECT)));
@@ -4236,13 +4182,6 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		admin.updateCustomTagLocalSearch(getBool("admin", action, "localSearch"));
 		admin.updateCTPathCache(getBool("admin", action, "customTagPathCache"));
 		admin.updateCustomTagExtensions(getString("admin", action, "extensions"));
-		store();
-		adminSync.broadcast(attributes, config);
-	}
-
-	private void doUpdateAdminMode() throws PageException {
-		admin.updateUpdateAdminMode(getString("admin", "updateAdminMode", "mode"), getBool("admin", "updateAdminMode", "merge"), getBool("admin", "updateAdminMode", "keep"));
-		((GatewayEngineImpl) configWeb.getGatewayEngine()).stop();
 		store();
 		adminSync.broadcast(attributes, config);
 	}
@@ -4979,18 +4918,8 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		store();
 	}
 
-	private String getCallerId() throws IOException {
-		if (type == TYPE_WEB) {
-			return config.getIdentification().getId();
-		}
-		if (config instanceof ConfigWeb) {
-			ConfigWeb cw = (ConfigWeb) config;
-			return cw.getIdentification().getServerIdentification().getId();
-		}
-		if (config instanceof ConfigServer) {
-			return config.getIdentification().getId();
-		}
-		throw new IOException("can not create id");
+	private String getCallerId() {
+		return config.getIdentification().getId();
 	}
 
 	private void doUpdateApplicationListener() throws PageException {
@@ -5116,7 +5045,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 	private void doIsMonitorEnabled() throws PageException {
 		if (config instanceof ConfigServerImpl) {
-			ConfigServerImpl cs = (ConfigServerImpl) config;
+			ConfigServerImpl cs = ConfigUtil.getConfigServerImpl(config);
 			pageContext.setVariable(getString("admin", action, "returnVariable"), Caster.toBoolean(cs.isMonitoringEnabled()));
 		}
 	}
@@ -5382,15 +5311,5 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	private Object emptyIfNull(String str) {
 		if (str == null) return "";
 		return str;
-	}
-
-	private void throwNoAccessWhenWeb() throws ApplicationException {
-		if (!singleMode && type == TYPE_WEB) throw new ApplicationException("Action [" + action + "] is not available for Web Admin ( Server Admin only )");
-	}
-
-	private void throwNoAccessWhenServer() throws ApplicationException {
-		if (!singleMode && type == TYPE_SERVER) {
-			throw new ApplicationException("Action [" + action + "] is not available for Server Admin ( Web Admin only )");
-		}
 	}
 }

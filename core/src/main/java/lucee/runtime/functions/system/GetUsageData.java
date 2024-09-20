@@ -39,7 +39,7 @@ import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigServer;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.config.ConfigWebPro;
-import lucee.runtime.config.ConfigWebUtil;
+import lucee.runtime.config.ConfigUtil;
 import lucee.runtime.config.DatasourceConnPool;
 import lucee.runtime.debug.ActiveLock;
 import lucee.runtime.debug.ActiveQuery;
@@ -177,7 +177,7 @@ public final class GetUsageData implements Function {
 			}
 
 			// Template Cache
-			Mapping[] mappings = ConfigWebUtil.getAllMappings(web);
+			Mapping[] mappings = ConfigUtil.getAllMappings(web);
 			long[] tce = templateCacheElements(mappings);
 			row = tc.addRow();
 			tc.setAt(KeyConstants._web, row, web.getLabel());

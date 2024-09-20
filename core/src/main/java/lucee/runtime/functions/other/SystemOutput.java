@@ -29,7 +29,7 @@ import lucee.runtime.PageContext;
 import lucee.runtime.engine.CFMLEngineImpl;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
-import lucee.runtime.functions.dynamicEvaluation.Serialize;
+import lucee.runtime.functions.conversion.SerializeJSON;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 
@@ -47,7 +47,7 @@ public final class SystemOutput implements Function {
 		if (Decision.isSimpleValue(obj)) string = Caster.toString(obj);
 		else {
 			try {
-				string = Serialize.call(pc, obj);
+				string = SerializeJSON.call(pc, obj, "", pc.getWebCharset(), false);
 			}
 			catch (Throwable t) {
 				ExceptionUtil.rethrowIfNecessary(t);

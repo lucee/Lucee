@@ -165,15 +165,6 @@ Defaults --->
 					typeChecking="#!isNull(form.typeChecking) and form.typeChecking EQ true#"
 					remoteClients="#request.getRemoteClients()#"
 					>
-				<cfif not request.singlemode and request.adminType EQ "server">
-
-					<cfadmin
-						action="updateDevelopMode"
-						type="#request.adminType#"
-						password="#session["password"&request.adminType]#"
-						mode="#!isNull(form.mode) and form.mode EQ true#"
-					>
-				</cfif>
 			
 			</cfcase>
 		<!--- reset to server setting --->
@@ -414,23 +405,6 @@ Create Datasource --->
 						<cfset renderCodingTip( codeSample, stText.settings.codetip )>
 					</td>
 				</tr>
-				<cfif not request.singlemode and  request.adminType EQ "server">
-					<cfadmin
-						action="getDevelopMode"
-						type="#request.adminType#"
-						password="#session["password"&request.adminType]#"
-						returnVariable="mode">
-					<!--- Type Checking --->
-					<tr>
-						<th scope="row">Develop Mode</th>
-						<td class="fieldPadded">
-							<label>
-								<input class="checkbox" type="checkbox" name="mode" value="true"<cfif  mode.developMode EQ true> checked="checked"</cfif>>
-							</label>
-							<div class="comment">#stText.setting.developMode#</div>
-						</td>
-					</tr>
-				</cfif>
 				
 				<cfif hasAccess>
 					<cfmodule template="remoteclients.cfm" colspan="2">
@@ -442,8 +416,7 @@ Create Datasource --->
 					<tr>
 						<td colspan="2">
 							<input class="bl button submit" type="submit" name="mainAction" value="#stText.Buttons.update#">
-							<input class="<cfif request.adminType EQ "web">bm<cfelse>br</cfif> button reset" type="reset" name="cancel" value="#stText.Buttons.Cancel#">
-							<cfif not request.singleMode && request.adminType EQ "web"><input class="br button submit" type="submit" name="mainAction" value="#stText.Buttons.resetServerAdmin#"></cfif>
+							<input class="br button reset" type="reset" name="cancel" value="#stText.Buttons.Cancel#">
 						</td>
 					</tr>
 				</tfoot>

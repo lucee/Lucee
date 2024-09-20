@@ -47,7 +47,7 @@ import lucee.runtime.PageSourceImpl;
 import lucee.runtime.StaticScope;
 import lucee.runtime.SubPage;
 import lucee.runtime.config.ConfigPro;
-import lucee.runtime.config.ConfigWebUtil;
+import lucee.runtime.config.ConfigUtil;
 import lucee.runtime.config.Constants;
 import lucee.runtime.debug.DebugEntryTemplate;
 import lucee.runtime.exp.ApplicationException;
@@ -450,7 +450,7 @@ public class ComponentLoader {
 		if (returnType == RETURN_TYPE_COMPONENT) {
 			Resource res = ResourceUtil.toResourceExisting(pc, pathWithCFC, true, null);
 			if (res != null) {
-				ps = ConfigWebUtil.toComponentPageSource(pc, res, null);
+				ps = ConfigUtil.toComponentPageSource(pc, res, null);
 				if (ps != null) {
 					page = toCIPage(PageSourceImpl.loadPage(pc, new PageSource[] { ps }, null));
 					if (page != null) {

@@ -40,7 +40,6 @@
 <cfparam name="url.action2" default="list">
 <cfparam name="form.mainAction" default="none">
 <cfparam name="form.subAction" default="none">
-<cfset isWeb = request.admintype EQ "web" OR getApplicationSettings().singleContext>
 
 <cfadmin 
 	action="securityManager"
@@ -49,18 +48,16 @@
 	returnVariable="access"
 	secType="debugging">
     
-<cfif isWeb>
-	<cfadmin 
-		action="getLoggedDebugData"
-		type="#request.adminType#"
-		password="#session["password"&request.adminType]#"
-		returnVariable="logs">
-	<cfadmin 
-		action="getDebugEntry"
-		type="#request.adminType#"
-		password="#session["password"&request.adminType]#"
-		returnVariable="entries">
-</cfif>    
+<cfadmin 
+	action="getLoggedDebugData"
+	type="#request.adminType#"
+	password="#session["password"&request.adminType]#"
+	returnVariable="logs">
+<cfadmin 
+	action="getDebugEntry"
+	type="#request.adminType#"
+	password="#session["password"&request.adminType]#"
+	returnVariable="entries">  
 <cfadmin 
 	action="getDebugSetting"
 	type="#request.adminType#"

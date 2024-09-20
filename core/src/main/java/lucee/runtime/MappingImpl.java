@@ -45,7 +45,7 @@ import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.config.ConfigWebPro;
-import lucee.runtime.config.ConfigWebUtil;
+import lucee.runtime.config.ConfigUtil;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.listener.ApplicationListener;
@@ -169,7 +169,7 @@ public final class MappingImpl implements Mapping {
 			synchronized (this) {
 				if (physical == null && strPhysical != null) {
 					ServletContext cs = (config instanceof ConfigWeb) ? ((ConfigWeb) config).getServletContext() : null;
-					physical = ConfigWebUtil.getResource(cs, strPhysical, config.getConfigDir(), FileUtil.TYPE_DIR, config, checkPhysicalFromWebroot, false);
+					physical = ConfigUtil.getResource(cs, strPhysical, config.getConfigDir(), FileUtil.TYPE_DIR, config, checkPhysicalFromWebroot, false);
 					if (archive == null) this.physicalFirst = true;
 					else if (physical == null) this.physicalFirst = false;
 				}
@@ -182,10 +182,10 @@ public final class MappingImpl implements Mapping {
 			synchronized (this) {
 				if (archive == null && strArchive != null) {
 					ServletContext cs = (config instanceof ConfigWeb) ? ((ConfigWeb) config).getServletContext() : null;
-					Resource tmp = ConfigWebUtil.getResource(cs, strArchive, config.getConfigDir(), FileUtil.TYPE_FILE, config, checkArchiveFromWebroot, true);
+					Resource tmp = ConfigUtil.getResource(cs, strArchive, config.getConfigDir(), FileUtil.TYPE_FILE, config, checkArchiveFromWebroot, true);
 
 					if (tmp == null || archMod == tmp.lastModified()) return;
-					CFMLEngine engine = ConfigWebUtil.getEngine(config);
+					CFMLEngine engine = ConfigUtil.getEngine(config);
 					BundleContext bc = engine.getBundleContext();
 					try {
 						archiveBundle = OSGiUtil.installBundle(bc, tmp, true);
@@ -609,7 +609,7 @@ public final class MappingImpl implements Mapping {
 	private String toString(boolean forCompare) {
 		return new StringBuilder().append("StrPhysical:").append(getStrPhysical()).append(";StrArchive:").append(getStrArchive()).append(";Virtual:").append(getVirtual())
 				.append(";Archive:").append(getArchive()).append(";Physical:").append(getPhysical()).append(";topLevel:").append(topLevel).append(";inspect:")
-				.append(ConfigWebUtil.inspectTemplate(getInspectTemplateRaw(), "")).append(";config-inspect:").append(ConfigWebUtil.inspectTemplate(getConfigInspectTemplate(), ""))
+				.append(ConfigUtil.inspectTemplate(getInspectTemplateRaw(), "")).append(";config-inspect:").append(ConfigUtil.inspectTemplate(getConfigInspectTemplate(), ""))
 				.append(";physicalFirst:").append(physicalFirst).append(";hidden:").append(hidden).append(";readonly:").append(forCompare ? "" : readonly).append(";").toString();
 
 	}

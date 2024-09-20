@@ -26,7 +26,7 @@ import coldfusion.server.ServiceException;
 import coldfusion.server.ServiceMetaData;
 import lucee.runtime.PageContext;
 import lucee.runtime.config.ConfigPro;
-import lucee.runtime.config.ConfigWebUtil;
+import lucee.runtime.config.ConfigUtil;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.SecurityException;
 
@@ -69,11 +69,11 @@ public class ServiceSupport implements Service {
 	}
 
 	protected void checkWriteAccess() throws SecurityException {
-		ConfigWebUtil.checkGeneralWriteAccess(config(), null);
+		ConfigUtil.checkGeneralWriteAccess(config(), null);
 	}
 
 	protected void checkReadAccess() throws SecurityException {
-		ConfigWebUtil.checkGeneralReadAccess(config(), null);
+		ConfigUtil.checkGeneralReadAccess(config(), null);
 	}
 
 	protected ConfigPro config() {

@@ -53,6 +53,7 @@ import lucee.runtime.Mapping;
 import lucee.runtime.MappingImpl;
 import lucee.runtime.ai.AIEngineFactory;
 import lucee.runtime.ai.AIEnginePool;
+import lucee.runtime.compiler.CFMLCompilerImpl;
 import lucee.runtime.config.ConfigFactory.UpdateInfo;
 import lucee.runtime.config.gateway.GatewayMap;
 import lucee.runtime.db.ClassDefinition;
@@ -144,8 +145,6 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 	private int localExtSize = -1;
 
 	private GatewayMap gatewayEntries;
-
-	private short adminMode = ADMINMODE_SINGLE;
 
 	private Resource mvnDir;
 
@@ -399,6 +398,8 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 	private ThreadQueue threadQueue = new ThreadQueueImpl(ThreadQueuePro.MODE_BLOCKING, null); // before the queue is loaded we block all requests
 
 	private AIEnginePool aiEnginePool;
+
+	private CFMLCompilerImpl compiler;
 
 	public ThreadQueue setThreadQueue(ThreadQueue threadQueue) {
 		return this.threadQueue = threadQueue;
@@ -857,7 +858,7 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 
 	@Override
 	public void checkPassword() throws PageException {
-		CFMLEngine engine = ConfigWebUtil.getEngine(this);
+		CFMLEngine engine = ConfigUtil.getEngine(this);
 		ConfigWeb[] webs = getConfigWebs();
 		try {
 			ConfigServerFactory.reloadInstance(engine, this);
@@ -870,15 +871,6 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 			throw Caster.toPageException(e);
 		}
 
-	}
-
-	public void setAdminMode(short adminMode) {
-		this.adminMode = adminMode;
-	}
-
-	@Override
-	public short getAdminMode() {
-		return adminMode;
 	}
 
 	@Override
@@ -915,5 +907,12 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 			}
 		}
 		return aiEnginePool;
+	}
+
+	@Override
+	public CFMLCompilerImpl getCompiler() {
+		// most likely this is never used
+		if (compiler == null) compiler = new CFMLCompilerImpl();
+		return compiler;
 	}
 }

@@ -1,4 +1,3 @@
-<cfif not request.singlemode and request.admintype EQ "server"><cflocation url="#request.self#" addtoken="no"></cfif>
 <cfscript>
 	function sortByValue(struct sct) {
 		var tmp=structNew("ordered");
@@ -39,7 +38,7 @@
 	secType="search"
 	secValue="yes">
 
-<cfif request.singlemode or request.adminType EQ "web">
+<cfif true>
 	<cftry>
 		<cfswitch expression="#form.run#">
 			<!--- Index --->

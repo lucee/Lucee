@@ -48,8 +48,7 @@ this.xmlFeatures = {
 	disallowDoctypeDecl: true
 };
 
-request.singleMode=getApplicationSettings().singleContext;
-if(request.singleMode) request.adminType="server";
+request.adminType="server";
 public function onRequestStart() {
 
 	// if not logged in, we only allow access to admin|web|server[.cfm]

@@ -45,7 +45,7 @@ import lucee.commons.lang.StringUtil;
 import lucee.loader.util.Util;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigWeb;
-import lucee.runtime.config.ConfigWebUtil;
+import lucee.runtime.config.ConfigUtil;
 import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
@@ -399,14 +399,14 @@ public class Log4j2Engine extends LogEngine {
 				String path = Caster.toString(appenderArgs.get("path"), null);
 				if (!StringUtil.isEmpty(path, true)) {
 					path = path.trim();
-					path = ConfigWebUtil.translateOldPath(path);
-					res = ConfigWebUtil.getFile(config, config.getConfigDir(), path, ResourceUtil.TYPE_FILE);
+					path = ConfigUtil.translateOldPath(path);
+					res = ConfigUtil.getFile(config, config.getConfigDir(), path, ResourceUtil.TYPE_FILE);
 					if (res != null && res.isDirectory()) {
 						res = res.getRealResource(name + ".log");
 					}
 				}
 				if (res == null) {
-					res = ConfigWebUtil.getFile(config, config.getConfigDir(), "logs/" + name + ".log", ResourceUtil.TYPE_FILE);
+					res = ConfigUtil.getFile(config, config.getConfigDir(), "logs/" + name + ".log", ResourceUtil.TYPE_FILE);
 				}
 
 				// charset

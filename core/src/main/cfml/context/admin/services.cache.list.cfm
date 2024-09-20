@@ -300,10 +300,7 @@ this.cache.webservice = "#!hasWSe?"&lt;cache-name>":defaults.webservice#";
 				<tfoot>
 					<tr>
 						<td colspan="2">
-							<input type="submit" class="<cfif request.adminType EQ "web">bl<cfelse>bs</cfif> button submit" name="mainAction" value="#stText.Buttons.update#">
-							<cfif not request.singleMode and request.adminType EQ "web">
-								<input class="br button submit" type="submit" name="mainAction" value="#stText.Buttons.resetServerAdmin#">
-							</cfif>
+							<input type="submit" class="bs button submit" name="mainAction" value="#stText.Buttons.update#">
 						</td>
 					</tr>
 				</tfoot>

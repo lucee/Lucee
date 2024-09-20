@@ -261,13 +261,13 @@ public abstract class ConfigFactory {
 		else {
 			new ConverterException("inputing data is invalid, cannot cast [" + old.getClass().getName() + "] to a Resource or an InputSource");
 		}
-		Struct root = ConfigWebUtil.getAsStruct(reader.getData(), false, "cfLuceeConfiguration", "luceeConfiguration", "lucee-configuration");
+		Struct root = ConfigUtil.getAsStruct(reader.getData(), false, "cfLuceeConfiguration", "luceeConfiguration", "lucee-configuration");
 
 		//////////////////// charset ////////////////////
 		{
-			Struct charset = ConfigWebUtil.getAsStruct("charset", root);
-			Struct regional = ConfigWebUtil.getAsStruct("regional", root);
-			Struct fileSystem = ConfigWebUtil.getAsStruct("fileSystem", root);
+			Struct charset = ConfigUtil.getAsStruct("charset", root);
+			Struct regional = ConfigUtil.getAsStruct("regional", root);
+			Struct fileSystem = ConfigUtil.getAsStruct("fileSystem", root);
 			copy("charset", "templateCharset", fileSystem, root);// deprecated but still supported
 			copy("encoding", "templateCharset", fileSystem, root);// deprecated but still supported
 			move("templateCharset", charset, root);
@@ -285,15 +285,15 @@ public abstract class ConfigFactory {
 		}
 		//////////////////// regional ////////////////////
 		{
-			Struct regional = ConfigWebUtil.getAsStruct("regional", root);
+			Struct regional = ConfigUtil.getAsStruct("regional", root);
 			move("timezone", regional, root);
 			move("locale", regional, root);
 			rem("regional", root);
 		}
 		//////////////////// application ////////////////////
 		{
-			Struct application = ConfigWebUtil.getAsStruct("application", root);
-			Struct scope = ConfigWebUtil.getAsStruct("scope", root);
+			Struct application = ConfigUtil.getAsStruct("application", root);
+			Struct scope = ConfigUtil.getAsStruct("scope", root);
 			move("listenerType", application, root);
 			move("listenerMode", application, root);
 			move("typeChecking", application, root);
@@ -316,9 +316,9 @@ public abstract class ConfigFactory {
 
 		//////////////////// caches ////////////////////
 		{
-			Struct cache = ConfigWebUtil.getAsStruct("cache", root);
-			Struct caches = ConfigWebUtil.getAsStruct("caches", root);
-			Array conns = ConfigWebUtil.getAsArray("connection", cache);
+			Struct cache = ConfigUtil.getAsStruct("cache", root);
+			Struct caches = ConfigUtil.getAsStruct("caches", root);
+			Array conns = ConfigUtil.getAsArray("connection", cache);
 
 			// classes
 			move("cache", "cacheClasses", caches, root);
@@ -339,8 +339,8 @@ public abstract class ConfigFactory {
 
 		//////////////////// cache handlers ////////////////////
 		{
-			Struct handlers = ConfigWebUtil.getAsStruct("cacheHandlers", root);
-			Array handler = ConfigWebUtil.getAsArray("cacheHandler", handlers);
+			Struct handlers = ConfigUtil.getAsStruct("cacheHandlers", root);
+			Array handler = ConfigUtil.getAsArray("cacheHandler", handlers);
 
 			Key[] keys = handler.keys();
 			for (int i = keys.length - 1; i >= 0; i--) {
@@ -354,9 +354,9 @@ public abstract class ConfigFactory {
 
 		//////////////////// CFX ////////////////////
 		{
-			Struct extTags = ConfigWebUtil.getAsStruct("extTags", root);
-			Array extTag = ConfigWebUtil.getAsArray("extTag", extTags);
-			Struct cfx = ConfigWebUtil.getAsStruct("cfx", root);
+			Struct extTags = ConfigUtil.getAsStruct("extTags", root);
+			Array extTag = ConfigUtil.getAsArray("extTag", extTags);
+			Struct cfx = ConfigUtil.getAsStruct("cfx", root);
 
 			Iterator<?> it = extTag.getIterator();
 			while (it.hasNext()) {
@@ -369,7 +369,7 @@ public abstract class ConfigFactory {
 
 		//////////////////// Compiler ////////////////////
 		{
-			Struct compiler = ConfigWebUtil.getAsStruct("compiler", root);
+			Struct compiler = ConfigUtil.getAsStruct("compiler", root);
 			moveAsBool("supressWsBeforeArg", "suppressWhitespaceBeforeArgument", compiler, root);// deprecated but still supported
 			moveAsBool("suppressWsBeforeArg", "suppressWhitespaceBeforeArgument", compiler, root);
 			moveAsBool("dotNotationUpperCase", "dotNotationUpperCase", compiler, root);
@@ -382,7 +382,7 @@ public abstract class ConfigFactory {
 
 		//////////////////// Component ////////////////////
 		{
-			Struct component = ConfigWebUtil.getAsStruct("component", root);
+			Struct component = ConfigUtil.getAsStruct("component", root);
 			move("componentDefaultImport", "componentAutoImport", component, root);
 			move("base", "componentBase", component, root);// deprecated but still supported
 			move("baseCfml", "componentBase", component, root);
@@ -398,14 +398,14 @@ public abstract class ConfigFactory {
 			moveAsBool("useShadow", "componentUseVariablesScope", component, root);
 
 			// mappings
-			Array ctMappings = ConfigWebUtil.getAsArray("mapping", component);
+			Array ctMappings = ConfigUtil.getAsArray("mapping", component);
 			add(ctMappings, "componentMappings", root);
 			rem("mapping", component);
 		}
 
 		//////////////////// Custom tags ////////////////////
 		{
-			Struct ct = ConfigWebUtil.getAsStruct("customTag", root);
+			Struct ct = ConfigUtil.getAsStruct("customTag", root);
 			moveAsBool("customTagUseCachePath", "customTagUseCachePath", ct, root);
 			moveAsBool("useCachePath", "customTagUseCachePath", ct, root);
 			moveAsBool("customTagLocalSearch", "customTagLocalSearch", ct, root);
@@ -414,15 +414,15 @@ public abstract class ConfigFactory {
 			moveAsBool("customTagDeepSearch", "customTagDeepSearch", ct, root);
 			move("extensions", "customTagExtensions", ct, root);
 			move("customTagExtensions", "customTagExtensions", ct, root);
-			Array ctMappings = ConfigWebUtil.getAsArray("mapping", ct);
+			Array ctMappings = ConfigUtil.getAsArray("mapping", ct);
 			add(ctMappings, "customTagMappings", root);
 			rem("mapping", ct);
 		}
 
 		//////////////////// Constants ////////////////////
 		{
-			Struct constants = ConfigWebUtil.getAsStruct("constants", root);
-			Array constant = ConfigWebUtil.getAsArray("constant", constants);
+			Struct constants = ConfigUtil.getAsStruct("constants", root);
+			Array constant = ConfigUtil.getAsArray("constant", constants);
 			rem("constant", constants);
 
 			Key[] keys = constant.keys();
@@ -437,9 +437,9 @@ public abstract class ConfigFactory {
 
 		//////////////////// JDBC ////////////////////
 		{
-			Struct jdbc = ConfigWebUtil.getAsStruct("jdbc", root);
-			Array driver = ConfigWebUtil.getAsArray("driver", jdbc);
-			Struct jdbcDrivers = ConfigWebUtil.getAsStruct("jdbcDrivers", root);
+			Struct jdbc = ConfigUtil.getAsStruct("jdbc", root);
+			Array driver = ConfigUtil.getAsArray("driver", jdbc);
+			Struct jdbcDrivers = ConfigUtil.getAsStruct("jdbcDrivers", root);
 
 			Key[] keys = driver.keys();
 			for (int i = keys.length - 1; i >= 0; i--) {
@@ -454,7 +454,7 @@ public abstract class ConfigFactory {
 
 		//////////////////// Datasource ////////////////////
 		{
-			Struct dataSources = ConfigWebUtil.getAsStruct("dataSources", root);
+			Struct dataSources = ConfigUtil.getAsStruct("dataSources", root);
 			// preserveSingleQuote
 			Boolean b = Caster.toBoolean(dataSources.get("psq", null), null);
 			if (b == null) {
@@ -463,7 +463,7 @@ public abstract class ConfigFactory {
 			}
 			if (b != null) root.setEL("preserveSingleQuote", b.booleanValue());
 
-			Array dataSource = ConfigWebUtil.getAsArray("dataSource", dataSources);
+			Array dataSource = ConfigUtil.getAsArray("dataSource", dataSources);
 
 			Key[] keys = dataSource.keys();
 			for (int i = keys.length - 1; i >= 0; i--) {
@@ -477,7 +477,7 @@ public abstract class ConfigFactory {
 
 		//////////////////// Debugging ////////////////////
 		{
-			Struct debugging = ConfigWebUtil.getAsStruct("debugging", root);
+			Struct debugging = ConfigUtil.getAsStruct("debugging", root);
 			moveAsBool("debug", "debuggingEnabled", debugging, root);
 			moveAsBool("debugLogOutput", "debuggingLogOutput", debugging, root);
 			moveAsBool("database", "debuggingDatabase", debugging, root);
@@ -492,22 +492,22 @@ public abstract class ConfigFactory {
 			moveAsBool("thread", "debuggingThread", debugging, root);
 			moveAsInt("maxRecordsLogged", "debuggingMaxRecordsLogged", debugging, root);
 
-			Array entries = ConfigWebUtil.getAsArray("debugEntry", debugging);
+			Array entries = ConfigUtil.getAsArray("debugEntry", debugging);
 			add(entries, "debugTemplates", root);
 			rem("debugEntry", debugging);
 		}
 
 		//////////////////// Dump Writer ////////////////////
 		{
-			Struct dumpWriters = ConfigWebUtil.getAsStruct("dumpWriters", root);
-			Array dumpWriter = ConfigWebUtil.getAsArray("dumpWriter", dumpWriters);
+			Struct dumpWriters = ConfigUtil.getAsStruct("dumpWriters", root);
+			Array dumpWriter = ConfigUtil.getAsArray("dumpWriter", dumpWriters);
 			add(dumpWriter, "dumpWriters", root);
 			rem("dumpWriter", dumpWriters);
 		}
 
 		//////////////////// Error ////////////////////
 		{
-			Struct error = ConfigWebUtil.getAsStruct("error", root);
+			Struct error = ConfigUtil.getAsStruct("error", root);
 			String tmpl = Caster.toString(error.get("template", null), null);
 			String tmpl500 = Caster.toString(error.get("template500", null), null);
 			String tmpl404 = Caster.toString(error.get("template404", null), null);
@@ -526,8 +526,8 @@ public abstract class ConfigFactory {
 
 		//////////////////// Extensions ////////////////////
 		{
-			Struct extensions = ConfigWebUtil.getAsStruct("extensions", root);
-			Array rhextension = ConfigWebUtil.getAsArray("rhextension", extensions);
+			Struct extensions = ConfigUtil.getAsStruct("extensions", root);
+			Array rhextension = ConfigUtil.getAsArray("rhextension", extensions);
 			Array newExtensions = new ArrayImpl();
 			rem("enabled", extensions);
 			rem("extension", extensions);
@@ -555,8 +555,8 @@ public abstract class ConfigFactory {
 			}
 
 			// providers
-			Array rhprovider = ConfigWebUtil.getAsArray("rhprovider", extensions);
-			Array extensionProviders = ConfigWebUtil.getAsArray("extensionProviders", root);
+			Array rhprovider = ConfigUtil.getAsArray("rhprovider", extensions);
+			Array extensionProviders = ConfigUtil.getAsArray("extensionProviders", root);
 			Iterator<Object> it = rhprovider.valueIterator();
 			while (it.hasNext()) {
 				Struct data = Caster.toStruct(it.next(), null);
@@ -570,8 +570,8 @@ public abstract class ConfigFactory {
 
 		//////////////////// Gateway ////////////////////
 		{
-			Struct gateways = ConfigWebUtil.getAsStruct("gateways", root);
-			Array gateway = ConfigWebUtil.getAsArray("gateway", gateways);
+			Struct gateways = ConfigUtil.getAsStruct("gateways", root);
+			Array gateway = ConfigUtil.getAsArray("gateway", gateways);
 
 			Key[] keys = gateway.keys();
 			for (int i = keys.length - 1; i >= 0; i--) {
@@ -586,16 +586,16 @@ public abstract class ConfigFactory {
 
 		//////////////////// Java ////////////////////
 		{
-			Struct java = ConfigWebUtil.getAsStruct("java", root);
+			Struct java = ConfigUtil.getAsStruct("java", root);
 			move("inspectTemplate", java, root);
 			move("compileType", java, root);
 		}
 
 		//////////////////// Loggers ////////////////////
 		{
-			Struct logging = ConfigWebUtil.getAsStruct("logging", root);
-			Array logger = ConfigWebUtil.getAsArray("logger", logging);
-			Struct loggers = ConfigWebUtil.getAsStruct("loggers", root);
+			Struct logging = ConfigUtil.getAsStruct("logging", root);
+			Array logger = ConfigUtil.getAsArray("logger", logging);
+			Struct loggers = ConfigUtil.getAsStruct("loggers", root);
 
 			Key[] keys = logger.keys();
 			for (int i = keys.length - 1; i >= 0; i--) {
@@ -609,7 +609,7 @@ public abstract class ConfigFactory {
 
 		//////////////////// Login ////////////////////
 		{
-			Struct login = ConfigWebUtil.getAsStruct("login", root);
+			Struct login = ConfigUtil.getAsStruct("login", root);
 			moveAsBool("captcha", "loginCaptcha", login, root);
 			moveAsBool("rememberme", "loginRememberme", login, root);
 			moveAsInt("delay", "loginDelay", login, root);
@@ -617,7 +617,7 @@ public abstract class ConfigFactory {
 
 		//////////////////// Mail ////////////////////
 		{
-			Struct mail = ConfigWebUtil.getAsStruct("mail", root);
+			Struct mail = ConfigUtil.getAsStruct("mail", root);
 			moveAsBool("sendPartial", "mailSendPartial", mail, root);
 			moveAsBool("userSet", "mailUserSet", mail, root);
 			moveAsInt("spoolInterval", "mailSpoolInterval", mail, root);
@@ -625,7 +625,7 @@ public abstract class ConfigFactory {
 			moveAsBool("spoolEnable", "mailSpoolEnable", mail, root);
 			moveAsInt("timeout", "mailConnectionTimeout", mail, root);
 
-			Array server = ConfigWebUtil.getAsArray("server", mail);
+			Array server = ConfigUtil.getAsArray("server", mail);
 			add(server, "mailServers", root);
 			rem("mail", root);
 		}
@@ -633,8 +633,8 @@ public abstract class ConfigFactory {
 
 		//////////////////// Mappings ////////////////////
 		{
-			Struct mappings = ConfigWebUtil.getAsStruct("mappings", root);
-			Array mapping = ConfigWebUtil.getAsArray("mapping", mappings);
+			Struct mappings = ConfigUtil.getAsStruct("mappings", root);
+			Array mapping = ConfigUtil.getAsArray("mapping", mappings);
 
 			Key[] keys = mapping.keys();
 			for (int i = keys.length - 1; i >= 0; i--) {
@@ -648,11 +648,11 @@ public abstract class ConfigFactory {
 
 		//////////////////// Monitor ////////////////////
 		{
-			Struct monitoring = ConfigWebUtil.getAsStruct("monitoring", root);
-			Array monitor = ConfigWebUtil.getAsArray("monitor", monitoring);
+			Struct monitoring = ConfigUtil.getAsStruct("monitoring", root);
+			Array monitor = ConfigUtil.getAsArray("monitor", monitoring);
 			moveAsBool("enabled", "monitorEnable", monitoring, root);
 
-			Struct monitors = ConfigWebUtil.getAsStruct("monitors", root);
+			Struct monitors = ConfigUtil.getAsStruct("monitors", root);
 			Key[] keys = monitor.keys();
 			for (int i = keys.length - 1; i >= 0; i--) {
 				Key k = keys[i];
@@ -665,7 +665,7 @@ public abstract class ConfigFactory {
 
 		//////////////////// queue ////////////////////
 		{
-			Struct queue = ConfigWebUtil.getAsStruct("queue", root);
+			Struct queue = ConfigUtil.getAsStruct("queue", root);
 			moveAsInt("enable", "requestQueueEnable", queue, root);
 			moveAsInt("max", "requestQueueMax", queue, root);
 			moveAsInt("timeout", "requestQueueTimeout", queue, root);
@@ -673,7 +673,7 @@ public abstract class ConfigFactory {
 
 		//////////////////// regex ////////////////////
 		{
-			Struct regex = ConfigWebUtil.getAsStruct("regex", root);
+			Struct regex = ConfigUtil.getAsStruct("regex", root);
 			move("type", "regexType", regex, root);
 		}
 
@@ -685,15 +685,15 @@ public abstract class ConfigFactory {
 		//////////////////// scheduler ////////////////////
 		if (config != null) {
 			Resource configDir = config.getConfigDir();
-			Struct scheduler = ConfigWebUtil.getAsStruct("scheduler", root);
+			Struct scheduler = ConfigUtil.getAsStruct("scheduler", root);
 
 			// set scheduler
-			Resource schedulerDir = ConfigWebUtil.getFile(config.getRootDirectory(), ConfigWebFactory.getAttr(scheduler, "directory"), "scheduler", configDir, FileUtil.TYPE_DIR,
+			Resource schedulerDir = ConfigUtil.getFile(config.getRootDirectory(), ConfigWebFactory.getAttr(scheduler, "directory"), "scheduler", configDir, FileUtil.TYPE_DIR,
 					ResourceUtil.LEVEL_GRAND_PARENT_FILE, config);
 			Resource schedulerFile = schedulerDir.getRealResource("scheduler.xml");
 			if (schedulerFile.isFile()) {
 				Struct schedulerRoot = new XMLConfigReader(schedulerFile, true, new ReadRule(), new NameRule()).getData();
-				Array task = ConfigWebUtil.getAsArray("schedule", "task", schedulerRoot);
+				Array task = ConfigUtil.getAsArray("schedule", "task", schedulerRoot);
 				add(task, "scheduledTasks", root);
 			}
 			rem("scheduler", root);
@@ -701,7 +701,7 @@ public abstract class ConfigFactory {
 
 		//////////////////// Scope ////////////////////
 		{
-			Struct scope = ConfigWebUtil.getAsStruct("scope", root);
+			Struct scope = ConfigUtil.getAsStruct("scope", root);
 			move("localMode", "localScopeMode", scope, root);
 			moveAsBool("cgiReadonly", "cgiScopeReadonly", scope, root);
 			move("sessionType", "sessionType", scope, root);
@@ -731,7 +731,7 @@ public abstract class ConfigFactory {
 
 		//////////////////// Setting ////////////////////
 		{
-			Struct setting = ConfigWebUtil.getAsStruct("setting", root);
+			Struct setting = ConfigUtil.getAsStruct("setting", root);
 			moveAsBool("suppressContent", "suppressContent", setting, root);
 			move("cfmlWriter", "cfmlWriter", setting, root);
 			moveAsBool("showVersion", "showVersion", setting, root);
@@ -741,7 +741,7 @@ public abstract class ConfigFactory {
 			moveAsBool("bufferingOutput", "bufferTagBodyOutput", setting, root);
 			moveAsBool("allowCompression", "allowCompression", setting, root);
 
-			Struct _mode = ConfigWebUtil.getAsStruct("mode", root);
+			Struct _mode = ConfigUtil.getAsStruct("mode", root);
 			moveAsBool("develop", "developMode", _mode, root);
 
 			// now that mode is free we can use it for the admin mode
@@ -752,24 +752,24 @@ public abstract class ConfigFactory {
 
 		//////////////////// startup Hooks ////////////////////
 		{
-			Struct startup = ConfigWebUtil.getAsStruct("startup", root);
-			Array hook = ConfigWebUtil.getAsArray("hook", startup);
+			Struct startup = ConfigUtil.getAsStruct("startup", root);
+			Array hook = ConfigUtil.getAsArray("hook", startup);
 			add(hook, "startupHooks", root);
 			rem("startup", root);
 		}
 
 		//////////////////// System ////////////////////
 		{
-			Struct system = ConfigWebUtil.getAsStruct("system", root);
+			Struct system = ConfigUtil.getAsStruct("system", root);
 			move("out", "systemOut", system, root);
 			move("err", "systemErr", system, root);
 		}
 
 		//////////////////// Tags ////////////////////
 		{
-			Struct tags = ConfigWebUtil.getAsStruct("tags", root);
-			Array _default = ConfigWebUtil.getAsArray("default", tags);
-			Array tag = ConfigWebUtil.getAsArray("tag", tags);
+			Struct tags = ConfigUtil.getAsStruct("tags", root);
+			Array _default = ConfigUtil.getAsArray("default", tags);
+			Array tag = ConfigUtil.getAsArray("tag", tags);
 
 			add(_default, "tagDefaults", root);
 			add(tag, "tags", root);
@@ -777,21 +777,21 @@ public abstract class ConfigFactory {
 
 		//////////////////// System ////////////////////
 		{
-			Struct fs = ConfigWebUtil.getAsStruct("fileSystem", root);
+			Struct fs = ConfigUtil.getAsStruct("fileSystem", root);
 			move("tempDirectory", "tempDirectory", fs, root);
 		}
 
 		//////////////////// Update ////////////////////
 		{
-			Struct update = ConfigWebUtil.getAsStruct("update", root);
+			Struct update = ConfigUtil.getAsStruct("update", root);
 			move("location", "updateLocation", update, root);
 			move("type", "updateType", update, root);
 		}
 
 		//////////////////// Resources ////////////////////
 		{
-			Struct resources = ConfigWebUtil.getAsStruct("resources", root);
-			Array providers = ConfigWebUtil.getAsArray("resourceProvider", resources);
+			Struct resources = ConfigUtil.getAsStruct("resources", root);
+			Array providers = ConfigUtil.getAsArray("resourceProvider", resources);
 
 			// Ram -> Cache (Ram is no longer supported)
 			Iterator<Object> it = providers.valueIterator();
@@ -816,7 +816,7 @@ public abstract class ConfigFactory {
 				providers.appendEL(sct);
 			}
 
-			Array defaultProviders = ConfigWebUtil.getAsArray("defaultResourceProvider", resources);
+			Array defaultProviders = ConfigUtil.getAsArray("defaultResourceProvider", resources);
 
 			add(providers, "resourceProviders", root);
 			add(defaultProviders, "defaultResourceProvider", root);
@@ -947,7 +947,7 @@ public abstract class ConfigFactory {
 		// That step is not necessary anymore TODO remove
 		if (StringUtil.endsWithIgnoreCase(name, ".xml.cfm") || StringUtil.endsWithIgnoreCase(name, ".xml")) {
 			try {
-				return ConfigWebUtil.getAsStruct(new XMLConfigReader(res, true, new ReadRule(), new NameRule()).getData(), false, "cfLuceeConfiguration", "luceeConfiguration",
+				return ConfigUtil.getAsStruct(new XMLConfigReader(res, true, new ReadRule(), new NameRule()).getData(), false, "cfLuceeConfiguration", "luceeConfiguration",
 						"lucee-configuration");
 			}
 			catch (SAXException e) {

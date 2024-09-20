@@ -37,17 +37,14 @@
 					<td colspan="2">
 						<input type="submit" class="bl button submit" name="mainAction" value="#stText.Buttons.Update#">
 						<input type="submit" class="bm button submit" name="mainAction" value="#stText.Buttons.Purge#">
-						<input type="reset" class="<cfif request.adminType EQ "web">bm<cfelse>br</cfif> button reset" name="cancel" value="#stText.Buttons.Cancel#">
-						<cfif not request.singleMode && request.adminType EQ "web"><input class="br button submit" type="submit" name="mainAction" value="#stText.Buttons.resetServerAdmin#"></cfif>
+						<input type="reset" class="br button reset" name="cancel" value="#stText.Buttons.Cancel#">
 					</td>
 				</tr>
 			</tfoot>
 		</table>
 	</cfformClassic>
 	
-	<cfif !request.singleMode && !isWeb>
-		<p>#stText.Debug.onlyWebContext#</p>
-	<cfelseif !_debug.debug>
+	<cfif !_debug.debug>
 		<p>#stText.Debug.debuggingDisabled#</p>
 	<cfelse>
 		<!---<h2>#stText.debug.filterTitle#</h2>

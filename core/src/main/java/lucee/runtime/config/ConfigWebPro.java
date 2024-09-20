@@ -16,7 +16,6 @@ import lucee.commons.lock.KeyLock;
 import lucee.runtime.CIPage;
 import lucee.runtime.Mapping;
 import lucee.runtime.PageContext;
-import lucee.runtime.compiler.CFMLCompilerImpl;
 import lucee.runtime.debug.DebuggerPool;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.gateway.GatewayEngine;
@@ -58,8 +57,6 @@ public interface ConfigWebPro extends ConfigWeb, ConfigPro {
 
 	public GatewayEngine getGatewayEngine() throws PageException;
 
-	public CFMLCompilerImpl getCompiler();
-
 	public Mapping getApplicationMapping(String type, String virtual, String physical, String archive, boolean physicalFirst, boolean ignoreVirtual,
 			boolean checkPhysicalFromWebroot, boolean checkArchiveFromWebroot);
 
@@ -85,9 +82,11 @@ public interface ConfigWebPro extends ConfigWeb, ConfigPro {
 
 	public String getHash();
 
-	public void updatePassword(boolean server, String passwordOld, String passwordNew) throws PageException, IOException, SAXException, BundleException;
+	public void updatePassword(String passwordOld, String passwordNew) throws PageException, IOException, SAXException, BundleException;
 
-	public Password updatePasswordIfNecessary(boolean server, String passwordRaw);
+	public Password getPassword();
+
+	public Password updatePasswordIfNecessary(String passwordRaw);
 
 	public Password isServerPasswordEqual(String password);
 
@@ -97,13 +96,11 @@ public interface ConfigWebPro extends ConfigWeb, ConfigPro {
 
 	public void resetServerFunctionMappings();
 
-	public boolean isSingle();
-
 	public Resource getWebConfigDir();
 
 	public ServletConfig getServletConfig();
 
 	public void setIdentification(IdentificationWeb id);
 
-	public void checkMappings();
+	public ConfigServer getConfigServer();
 }

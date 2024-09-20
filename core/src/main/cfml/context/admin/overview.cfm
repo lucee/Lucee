@@ -1,18 +1,6 @@
 <!---
 Defaults --->
 
-<cfif structKeyExists(form,"adminMode")>		
-	<cfadmin
-		action="updateAdminMode"
-		type="#request.adminType#"
-		password="#session["password"&request.adminType]#"
-		mode="#form.adminMode#"
-		merge="#!isNull(form.switch) && form.switch=="merge"#"
-		keep="#!isNull(form.keep)#">
-	<cflocation url="#request.self#?action=#url.action#" addtoken=false>
-</cfif>
-
-
 <cfset current.label = "Lucee " & server.lucee.version & " - " & current.label>
 <cfset error.message="">
 <cfset error.detail="">
@@ -345,7 +333,7 @@ Error Output --->
     returnVariable="docsWeb">
 
 	<cfif request.adminType EQ "server">
-		<cfset names=StructKeyArray(info.servlets)>
+		<cfset names=structKeyExists(info, "servlets")? StructKeyArray(info.servlets):[]>
 		<cfif len(names) and !ArrayContainsNoCase(names,"Rest",true)>
 			<div class="warning nofocus">
 				#stText.Overview.warning.warningMsg# 
@@ -365,7 +353,6 @@ Error Output --->
 
 
 	<!--- installed libs --->
-	<cfif request.adminType EQ "web" or request.singlemode >	
 		<cfadmin
 			action="getTLDs"
 			type="#request.adminType#"
@@ -383,60 +370,8 @@ Error Output --->
 		<cfif isQuery(flds)>
 			<cfset flds=listToArray(valueList(flds.displayname))>
 		</cfif>
-	</cfif>
 
-<cfif request.adminType=="server">
-	<form method="post">
-		<input type="hidden" name="adminMode" value="#request.singlemode?"multi":"single"#">
-		<h2>#stText.Overview[request.singlemode?"modeSingle":"modeMulti"]#</h2>
-		<div class="itemintro">#stText.Overview[request.singlemode?"modeSingleDesc":"modeMultiDesc"]#</div>
-		<!--- <div id="updateInfoDesc" style="text-align: center;">
-			<p>#stText.services.update.restartDesc#</p>
-		</div> --->
-		<table class="maintbl">
-		<tbody>
-			<tr>
-				<th scope="row">
-					<h4>#stText.Overview[request.singlemode?"modeSingleSwitch":"modeMultiSwitch"]#</h4>
-#stText.Overview[request.singlemode?"modeSingleSwitchDesc":"modeMultiSwitchDesc"]#
-				</th>
-				<cfif !request.singleMode>
-	
-				<td>
-					<ul class="radiolist" id="sp_options">
-						<li>
-							<label>
-								<input type="radio" class="radio" name="switch" value="merge" checked="checked">
-								<b>#stText.Overview.switchMerge#</b>
-							</label>
-							<div class="comment">#stText.Overview.switchMergeDesc#</div>
-						</li>
-						<li>
-							<label>
-								<input type="radio" class="radio" name="switch" value="leave">
-								<b>#stText.Overview.switchLeave#</b>
-							</label>
-							<div class="comment">#stText.Overview.switchLeaveDesc#</div>
-						</li>
-					</ul>
-					<br><br>
-					<input type="checkbox" class="checkbox" name="keep" value="keep" checked="checked">
-					<div class="comment">#stText.Overview.switchKeep#</div>
-				</td>
-				</cfif>
-			</tr>
-		</tbody>
-		<tfoot>
-			<tr>
-				<td colspan="2">
-					<input type="button" class="b button submit" name="mainAction" value="#stText.Buttons.switch#" onclick="adminmode(this)">
-				</td>
-			</tr>
-		</tfoot>
-		</table>
-	</form>
 
-</cfif>
 
 
 
@@ -618,14 +553,10 @@ Error Output --->
 									<th nowrap="nowrap" scope="row">#stText.Overview.ReleaseDate#</th>
 									<td>#lsDateFormat(server.lucee['release-date'])#</td>
 								</tr>
-								<cfif request.singleMode or request.adminType EQ "web">
 								<tr>
 									<th nowrap="nowrap" scope="row">#stText.Overview.label#</th>
 									<td>#info.label?:""#</td>
 								</tr>
-								</cfif>
-
-								<cfif request.singlemode or  request.adminType EQ "web">
 								<tr>
 									<th nowrap="nowrap" scope="row">#stText.Overview.InstalledTLs#</th>
 									<td>
@@ -634,8 +565,6 @@ Error Output --->
 										</cfloop>
 									</td>
 								</tr>
-								</cfif>
-								<cfif request.singlemode or request.adminType EQ "web">
 								<tr>
 									<th nowrap="nowrap" scope="row">#stText.Overview.InstalledFLs#</th>
 									<td>
@@ -644,8 +573,6 @@ Error Output --->
 										</cfloop>
 									</td>
 								</tr>
-								</cfif>
-
 							</tbody>
 						</table>
 					</td>
@@ -687,13 +614,11 @@ Error Output --->
 									</cfif>
 									</td>
 								</tr>
-								<cfif request.singleMode or request.adminType EQ "web">
-									<tr>
-										<th scope="row">#stText.Overview.hash#</th>
-										<td>#info.hash?:""#</td>
-									</tr>
-								</cfif>
-
+								<tr>
+									<th scope="row">#stText.Overview.hash#</th>
+									<td>#info.hash?:""#</td>
+								</tr>
+							
 							</tbody>
 						</table>
 					</td>

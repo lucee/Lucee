@@ -28,8 +28,6 @@ import lucee.commons.lang.ClassUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
-import lucee.runtime.config.ConfigPro;
-import lucee.runtime.config.ConfigWebUtil;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
@@ -164,7 +162,7 @@ public final class ServerImpl extends ScopeSupport implements Server, SharedScop
 		lucee.setEL(ENVIRONMENT, jsr223 != null && jsr223.booleanValue() ? "jsr223" : "servlet");
 
 		// singleContext admin Mode
-		lucee.setEL(ADMIN_MODE, ConfigWebUtil.toAdminMode(((ConfigPro) pc.getConfig()).getAdminMode(), "single") == "single");
+		lucee.setEL(ADMIN_MODE, true);
 
 		lucee.setReadOnly(true);
 		super.setEL(KeyConstants._lucee, lucee);

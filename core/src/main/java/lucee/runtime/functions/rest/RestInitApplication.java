@@ -69,14 +69,14 @@ public class RestInitApplication {
 			if (mapping.getVirtualWithSlash().equals(virtual)) {
 				// directory has changed
 				if (!RestUtil.isMatch(pc, mapping, dir) || (defaultMapping != null && mapping.isDefault() != defaultMapping.booleanValue())) {
-					update(pc, dir, virtual, CacheUtil.getPassword(pc, webAdminPassword, false), defaultMapping == null ? mapping.isDefault() : defaultMapping.booleanValue());
+					update(pc, dir, virtual, CacheUtil.getPassword(pc, webAdminPassword), defaultMapping == null ? mapping.isDefault() : defaultMapping.booleanValue());
 				}
 				mapping.reset(pc);
 				hasResetted = true;
 			}
 		}
 		if (!hasResetted) {
-			update(pc, dir, virtual, CacheUtil.getPassword(pc, webAdminPassword, false), defaultMapping == null ? false : defaultMapping.booleanValue());
+			update(pc, dir, virtual, CacheUtil.getPassword(pc, webAdminPassword), defaultMapping == null ? false : defaultMapping.booleanValue());
 		}
 
 		return null;

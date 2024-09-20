@@ -33,7 +33,7 @@ import lucee.runtime.MappingImpl;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageSource;
 import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigWebUtil;
+import lucee.runtime.config.ConfigUtil;
 import lucee.runtime.config.Constants;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.transformer.bytecode.util.ASMUtil;
@@ -157,7 +157,7 @@ public class MappingUtil {
 		if (pc == null && config == null) config = ThreadLocalPageContext.getConfig();
 
 		// PageContext pc = ThreadLocalPageContext.get();
-		Mapping[] mappings = pc != null ? ConfigWebUtil.getAllMappings(pc) : ConfigWebUtil.getAllMappings(config);
+		Mapping[] mappings = pc != null ? ConfigUtil.getAllMappings(pc) : ConfigUtil.getAllMappings(config);
 		if (pc != null) config = pc.getConfig();
 
 		Mapping mapping;
