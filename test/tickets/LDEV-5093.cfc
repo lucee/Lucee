@@ -6,7 +6,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 				var result = isDate(ParseDateTime(dateTime));
 
 				expect( result ).toBeTrue();
-				expect( dateTimeFormat(dateTime,"zzzz") ).toBe( "India Standard Time" );
+				expect( dateTimeFormat(dateTime,"EEE") ).toBe( "Mon" );
 			});
 		} );
 	}
