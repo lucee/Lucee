@@ -6,7 +6,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				local.result = _InternalRequest(
 					template:"#uri#/testPositionalArgs.cfm"
 				);
-				expect(local.result.filecontent.trim()).toBe('Function name: someTestFunction. Arguments: ["arg1",true]');
+				expect(local.result.filecontent.trim()).toBe('[Function name: SOMETESTFUNCTION. Arguments: {"1":"arg1","2":true}]');
 			});
 
 			it( title='should trigger onMissingFunction in Application.cfc when a nonexistent function is called with named arguments',body=function( currentSpec ) {
@@ -14,7 +14,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				local.result = _InternalRequest(
 					template:"#uri#/testNamedArgs.cfm"
 				);
-				expect(local.result.filecontent.trim()).toBe('Function name: anotherTestFunction. Arguments: {"test":true}');
+				expect(local.result.filecontent.trim()).toBe('Function name: ANOTHERTESTFUNCTION. Arguments: {"test":true}');
 			});
 
 			it( title='should have lucee throw the usual missing function error when Application.cfc does not implement onMissingFunction',body=function( currentSpec ) {
@@ -22,7 +22,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				local.result = _InternalRequest(
 					template:"#uri#/test.cfm"
 				);
-				expect(local.result.filecontent.trim()).toContain('No matching function [myMissingFunction] found');
+				expect(local.result.filecontent.trim()).toBe('No matching function [myMissingFunction] found');
 			});
 		});
 	}
