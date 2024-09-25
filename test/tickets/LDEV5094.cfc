@@ -6,7 +6,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				local.result = _InternalRequest(
 					template:"#uri#/testPositionalArgs.cfm"
 				);
-				expect(local.result.filecontent.trim()).toBe('[Function name: SOMETESTFUNCTION. Arguments: {"1":"arg1","2":true}]');
+				expect(local.result.filecontent.trim()).toBe('Function name: SOMETESTFUNCTION. Arguments: {"1":"arg1","2":true}');
 			});
 
 			it( title='should trigger onMissingFunction in Application.cfc when a nonexistent function is called with named arguments',body=function( currentSpec ) {
