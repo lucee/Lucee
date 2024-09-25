@@ -4,17 +4,17 @@
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either 
+ * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public 
+ *
+ * You should have received a copy of the GNU Lesser General Public
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 package lucee.runtime.type.scope;
 
@@ -28,6 +28,9 @@ import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.ComponentScope;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
+import lucee.runtime.ComponentImpl;
+import lucee.runtime.type.util.UDFUtil;
+import lucee.runtime.type.FunctionArgument;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.Constants;
@@ -39,6 +42,7 @@ import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.functions.system.CFFunction;
 import lucee.runtime.listener.ApplicationContextSupport;
+import lucee.runtime.listener.ModernApplicationContext;
 import lucee.runtime.op.Duplicator;
 import lucee.runtime.type.BIF;
 import lucee.runtime.type.Collection;
@@ -80,7 +84,7 @@ public final class UndefinedImpl extends StructSupport implements Undefined, Obj
 
 	/**
 	 * constructor of the class
-	 * 
+	 *
 	 * @param pageContextImpl
 	 * @param type type of the undefined scope
 	 *            (ServletConfig.SCOPE_STRICT;ServletConfig.SCOPE_SMALL;ServletConfig.SCOPE_STANDART)
@@ -315,7 +319,7 @@ public final class UndefinedImpl extends StructSupport implements Undefined, Obj
 
 	/**
 	 * returns the scope that contains a specific key
-	 * 
+	 *
 	 * @param key
 	 * @return
 	 */
@@ -360,7 +364,7 @@ public final class UndefinedImpl extends StructSupport implements Undefined, Obj
 
 	/**
 	 * return a list of String with the scope names
-	 * 
+	 *
 	 * @param key
 	 * @return
 	 */
@@ -793,7 +797,7 @@ public final class UndefinedImpl extends StructSupport implements Undefined, Obj
 			return bif.call(pc, methodName, args, false);
 		}
 
-		throw new ExpressionException("No matching function [" + methodName + "] found");
+		return onMissingFunction(pc, methodName, args, null);
 	}
 
 	@Override
@@ -810,7 +814,7 @@ public final class UndefinedImpl extends StructSupport implements Undefined, Obj
 		if (bif != null) {
 			return bif.callWithNamedValues(pc, methodName, args, false);
 		}
-		throw new ExpressionException("No matching function [" + methodName + "] found");
+		return onMissingFunction(pc, methodName, null, args);
 	}
 
 	private UDF getUDF(PageContext pc, Key methodName) throws PageException {
@@ -849,5 +853,37 @@ public final class UndefinedImpl extends StructSupport implements Undefined, Obj
 
 	public short getScopeCascadingType() {
 		return type;
+	}
+
+	private Object onMissingFunction(PageContext pc, final Key methodName, Object[] _args, Struct _namedArgs) throws PageException {
+		ApplicationContextSupport ac = (ApplicationContextSupport) pc.getApplicationContext();
+		if (ac != null) {
+			if ( ac instanceof ModernApplicationContext ) {
+				ComponentImpl appcfc = (ComponentImpl)((ModernApplicationContext) ac).getComponent();
+
+				if (appcfc.contains(pc, KeyConstants._onmissingfunction)) {
+					Argument args = new ArgumentImpl();
+
+					if (_args != null) {
+						for (int i = 0; i < _args.length; i++) {
+							args.setEL(ArgumentIntKey.init(i + 1), _args[i]);
+						}
+					} else if (_namedArgs != null) {
+						UDFUtil.argumentCollection(_namedArgs, new FunctionArgument[] {});
+
+						Iterator<Entry<Key, Object>> it = _namedArgs.entryIterator();
+						Entry<Key, Object> e;
+						while (it.hasNext()) {
+							e = it.next();
+							args.setEL(e.getKey(), e.getValue());
+						}
+
+					}
+					return appcfc.call(pc, KeyConstants._onmissingfunction, new Object[] { methodName.getString(), args } );
+				}
+			}
+		}
+
+		throw new ExpressionException("No matching function [" + methodName + "] found");
 	}
 }
