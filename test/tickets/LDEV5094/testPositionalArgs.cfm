@@ -1,0 +1,1 @@
+<cfoutput>#someTestFunction( "arg1", true )#</cfoutput>
