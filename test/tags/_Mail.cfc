@@ -46,6 +46,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 
 	}
 
+	function teardown( currentMethod ){
+		createObject("java", "java.lang.System").clearProperty("lucee.mail.use.7bit.transfer.encoding.for.html.parts");
+	}
+
 
 	private array function getMails(smtpServer) localmode=true{
 		arr=[];
@@ -185,6 +189,118 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 		// dump(mails);
 	}
 
+	public function testTextOnlyPartShouldUse7bitEncoding() localmode="true"{
+		try { 
+			smtpServer=start();
+			mail to=variables.to from=variables.from subject="test mail1" spoolEnable=false {
+				echo("This is a text email!");
+			}
+		}
+		finally {
+			smtpServer.stop();
+		}
+		mails=getMails(smtpServer);
+		//debug(mails);
+
+		assertEquals(1,mails.len());
+		assertEquals("text/plain; charset=UTF-8", mails[1]["Content-Type"]?:"");
+		// single parts store their encoding in the header
+		assertEquals("7bit", mails[1]["Content-Transfer-Encoding"]?:"");
+	}
+
+	public function testHtmlOnlyPartShouldUseQuotedPrintableEncoding() localmode="true"{
+		try { 
+			smtpServer=start();
+			mail type="html" to=variables.to from=variables.from subject="test mail1" spoolEnable=false {
+				echo("<p>This is a text email!</p>#chr(10)#<p>another line</p>");
+			}
+		}
+		finally {
+			smtpServer.stop();
+		}
+		mails=getMails(smtpServer);
+		//debug(mails);
+
+		assertEquals(1,mails.len());
+		assertEquals("text/html; charset=UTF-8", mails[1]["Content-Type"]?:"");
+		// single parts store their encoding in the header
+		assertEquals("quoted-printable", mails[1]["Content-Transfer-Encoding"]?:"");
+	}
+
+	public function testMultiMailPartShouldUse7bitEncodingForTextAndQuotedPrintableEncodingForHtml() localmode="true"{
+		try { 
+			smtpServer=start();
+			mail to=variables.to from=variables.from subject="test mail1" spoolEnable=false {
+				mailpart type="html" {
+	    		echo("This is a html email!");
+				}
+				mailpart type="text" {
+	        echo("<p>This is a text email!</p>#chr(10)#<p>another line</p>");
+				}
+			}
+		}
+		finally {
+			smtpServer.stop();
+		}
+		mails=getMails(smtpServer);
+		//debug(mails);
+
+		assertEquals(1,mails.len());
+		// since we have multiple parts, we need to check the parts in the body
+		assertEquals("multipart/alternative;", mails[1]["Content-Type"]?:"");
+		assertTrue(reFindNoCase("(?m)^------=[A-Z0-9._]+Content-Type: text/plain;[^\n]*Content-Transfer-Encoding: 7bit", mails[1].body), "Wrong content encoding for Text part!");
+		assertTrue(reFindNoCase("(?m)^------=[A-Z0-9._]+Content-Type: text/html;[^\n]*Content-Transfer-Encoding: quoted-printable", mails[1].body), "Wrong content encoding for HTML part!");
+	}
+
+	public function testHtmlOnlyPartShouldUse7bitEncodingWhenSystemPropertySet() localmode="true"{
+		// fallback to the old behavior of using 7bit encoding
+		createObject("java", "java.lang.System").setProperty("lucee.mail.use.7bit.transfer.encoding.for.html.parts", "true");
+
+		try { 
+			smtpServer=start();
+			mail type="html" to=variables.to from=variables.from subject="test mail1" spoolEnable=false {
+				echo("<p>This is a text email!</p>#chr(10)#<p>another line</p>");
+			}
+		}
+		finally {
+			smtpServer.stop();
+		}
+		mails=getMails(smtpServer);
+		//debug(mails);
+
+		assertEquals(1,mails.len());
+		assertEquals("text/html; charset=UTF-8", mails[1]["Content-Type"]?:"");
+		// single parts store their encoding in the header
+		assertEquals("7bit", mails[1]["Content-Transfer-Encoding"]?:"");
+	}
+
+	public function testMultiMailPartShouldUse7bitEncodingForTextAnd7bitEncodingForHtmlWhenSystemPropertySet() localmode="true"{
+		// fallback to the old behavior of using 7bit encoding
+		createObject("java", "java.lang.System").setProperty("lucee.mail.use.7bit.transfer.encoding.for.html.parts", "true");
+
+		try { 
+			smtpServer=start();
+			mail to=variables.to from=variables.from subject="test mail1" spoolEnable=false {
+				mailpart type="html" {
+	    		echo("This is a html email!");
+				}
+				mailpart type="text" {
+	        echo("<p>This is a text email!</p>#chr(10)#<p>another line</p>");
+				}
+			}
+		}
+		finally {
+			smtpServer.stop();
+		}
+		mails=getMails(smtpServer);
+		//debug(mails);
+
+		assertEquals(1,mails.len());
+		// since we have multiple parts, we need to check the parts in the body
+		assertEquals("multipart/alternative;", mails[1]["Content-Type"]?:"");
+		assertTrue(reFindNoCase("(?m)^------=[A-Z0-9._]+Content-Type: text/plain;[^\n]*Content-Transfer-Encoding: 7bit", mails[1].body), "Wrong content encoding for Text part!");
+		assertTrue(reFindNoCase("(?m)^------=[A-Z0-9._]+Content-Type: text/html;[^\n]*Content-Transfer-Encoding: 7bit", mails[1].body), "Wrong content encoding for HTML part!");
+	}
 
 
 }
