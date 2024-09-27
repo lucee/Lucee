@@ -69,6 +69,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 				expect( as ).toHaveKey("bufferoutput");
 				expect( as ).toHaveKey("suppresscontent");
 				expect( as ).toHaveKey("componentDataMemberAccess");
+				expect( as.componentDataMemberAccess ).toBe( "public" );
+				expect( as ).toHaveKey("inspectTemplate");
+				expect( as.inspectTemplate ).toBe( "once" );
 			});
 		});
 	}
