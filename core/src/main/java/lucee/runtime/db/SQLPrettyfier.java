@@ -39,7 +39,7 @@ public class SQLPrettyfier {
 
 	public static String prettyfie(String sql, boolean validZql) {
 
-		ParserString ps = new ParserString(sql.trim());
+		ParserString ps = new ParserString(sql.trim(),true);
 		boolean insideString = false;
 		// short insideKlammer=0;
 		StringBuilder sb = new StringBuilder(sql.length());
