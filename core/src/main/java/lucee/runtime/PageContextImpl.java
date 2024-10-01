@@ -444,6 +444,10 @@ public final class PageContextImpl extends PageContext {
 		if (clone) {
 			appListenerType = tmplPC.appListenerType;
 			this.ignoreScopes = tmplPC.ignoreScopes;
+
+			this.activeComponent = tmplPC.activeComponent;
+			this.activeUDF = tmplPC.activeUDF;
+			this.activeUDFCalledName = tmplPC.activeUDFCalledName;
 		}
 		else {
 			appListenerType = ApplicationListener.TYPE_NONE;
