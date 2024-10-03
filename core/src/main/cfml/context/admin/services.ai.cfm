@@ -1,3 +1,4 @@
+<cfif request.admintype EQ "web"><cflocation url="#request.self#" addtoken="no"></cfif>
 <cfscript>
 
 	stText.Settings.ai.titleExisting="Defined AI Connections";
