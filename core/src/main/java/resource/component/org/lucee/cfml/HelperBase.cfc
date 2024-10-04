@@ -28,6 +28,20 @@
 	*/
 	public HelperBase function addParam() {
 		ArrayAppend(variables.params,arguments);
+		variables.params.each(
+			function(param) {
+				if (structKeyExists(param, "list") && param.list) {
+					// Check if the 'value' is empty
+					if (structKeyExists(param, "value") && trim(param.value) == '') {
+						var errorMsg = structKeyExists(param, "name") 
+							? "param [#param.name#] may not be empty" 
+							: "param with list [#param.list#] Value may not be empty";
+
+						throw(errorMsg, "expression");
+					}
+				}
+			}
+		);
 		return this;
 	}
 
