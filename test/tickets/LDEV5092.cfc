@@ -31,7 +31,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 				
 				// simply rethrow the exception if one did occur in any thread (no interpretation needed)
 				loop struct=cfthread index="local.k" item="local.val" {
-					if(structKeyExists(val, "ERROR")) throw val.error;
+					if(left(k,len(prefix))==prefix && structKeyExists(val, "ERROR")) throw val.error;
 				}
 			});
 		});
