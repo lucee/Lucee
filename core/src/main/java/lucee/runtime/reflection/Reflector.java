@@ -256,7 +256,7 @@ public final class Reflector {
 	 * @return converted Class (if primitive)
 	 */
 	public static Class toReferenceClass(Class c) {
-		if (c.isPrimitive()) {
+		if (c != null && c.isPrimitive()) {
 			if (c == boolean.class) return Boolean.class;
 			if (c == byte.class) return Byte.class;
 			if (c == short.class) return Short.class;
