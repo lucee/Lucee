@@ -104,6 +104,8 @@ public class FormatUtil {
 
 			"EEE MMM dd yyyy HH:mm:ss 'GMT'ZZ (z)",
 
+			"EEE MMM dd yyyy HH:mm:ss 'GMT'ZZ (zzzz)",
+
 			"yyyy/MM/dd HH:mm:ss zz",
 
 			"yyyy-MM-dd HH:mm:ss zz"
