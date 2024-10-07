@@ -67,9 +67,14 @@ public final class DateCaster {
 	// private static short MODE_MONTH_STR=2;
 	// private static short MODE_NONE=4;
 	private static long DEFAULT_VALUE = Long.MIN_VALUE;
-
 	private static DateTimeUtil util = DateTimeUtil.getInstance();
 	public static boolean classicStyle = false;
+
+	private static final int SORT_AFTER_FIRST = 500;
+	private static final int SORT_AFTER = 10000;
+
+	private static boolean firstCountCheck = true;
+	private static int countCheck = 0;
 
 	/**
 	 * converts an Object to a DateTime Object (Advanced but slower)
@@ -295,10 +300,8 @@ public final class DateCaster {
 		return (dt == null) ? defaultValue : dt;
 	}
 
-	private static int count = 0;
-
 	public static DateTime toDateTimeNew(Locale locale, String str, TimeZone tz, DateTime defaultValue, boolean useCommomDateParserAsWell) {
-		count++;
+		countCheck++;
 		str = str.trim();
 		tz = ThreadLocalPageContext.getTimeZone(tz);
 
@@ -317,16 +320,16 @@ public final class DateCaster {
 			}
 		}
 		finally {
-			if (count > 10) {
+			if (countCheck > (firstCountCheck ? SORT_AFTER_FIRST : SORT_AFTER)) {
 				synchronized (all) {
-					if (count > 500) {
+					if (countCheck > (firstCountCheck ? SORT_AFTER_FIRST : SORT_AFTER)) {
 						all.sort(Comparator.comparingInt(x -> -x.successCount));
-						count = 0;
+						countCheck = 0;
+						firstCountCheck = false;
 					}
 				}
 			}
 		}
-
 		if (useCommomDateParserAsWell) return DateCaster.toDateSimple(str, CONVERTING_TYPE_NONE, true, tz, defaultValue);
 		return defaultValue;
 	}
