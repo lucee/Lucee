@@ -2169,7 +2169,7 @@ public class SimpleQuery implements Query, ResultSet, Objects, QueryResult {
 
 	@Override
 	public java.util.Iterator getIterator() {
-		return new ForEachQueryIterator(null, this, ThreadLocalPageContext.get().getId());
+		return new ForEachQueryIterator(null, this, ThreadLocalPageContext.getId());
 	}
 
 	@Override

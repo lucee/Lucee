@@ -1778,7 +1778,7 @@ public class TOQuery extends TOCollection implements Query, com.allaire.cfx.Quer
 	@Override
 	public java.util.Iterator getIterator() {
 		log();
-		return new ForEachQueryIterator(null, this, ThreadLocalPageContext.get().getId());
+		return new ForEachQueryIterator(null, this, ThreadLocalPageContext.getId());
 	}
 
 	@Override

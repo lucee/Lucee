@@ -317,6 +317,23 @@ public final class ThreadLocalPageContext {
 		return getTimeZone((PageContext) null);
 	}
 
+	public static int getId() {
+		PageContext pc = pcThreadLocal.get();
+		if (pc != null) return pc.getId();
+
+		// pc from parent thread
+		pc = pcThreadLocalInheritable.get();
+		if (pc != null) return pc.getId();
+
+		return 0;
+	}
+
+	public static int getId(PageContext pc) {
+		// pc provided
+		if (pc != null) return pc.getId();
+		return getId();
+	}
+
 	public static PageContext get(PageContext pc) {
 		if (pc == null) return get();
 		return pc;

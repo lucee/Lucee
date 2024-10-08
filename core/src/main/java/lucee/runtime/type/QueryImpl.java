@@ -2644,7 +2644,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 
 	@Override
 	public boolean isAfterLast() throws SQLException {
-		return getCurrentrow(ThreadLocalPageContext.get().getId()) > getRecordcount();
+		return getCurrentrow(ThreadLocalPageContext.getId()) > getRecordcount();
 	}
 
 	@Override
@@ -3382,7 +3382,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 
 	@Override
 	public java.util.Iterator getIterator() {
-		return new ForEachQueryIterator(null, this, ThreadLocalPageContext.get().getId());
+		return new ForEachQueryIterator(null, this, ThreadLocalPageContext.getId());
 	}
 
 	@Override
