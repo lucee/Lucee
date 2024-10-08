@@ -12,6 +12,7 @@ import java.util.TimeZone;
 
 import lucee.commons.db.DBUtil;
 import lucee.commons.lang.ExceptionUtil;
+import lucee.commons.lang.SerializableObject;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.types.RefBoolean;
 import lucee.commons.lang.types.RefBooleanImpl;
@@ -56,7 +57,7 @@ import lucee.runtime.util.threading.Closer;
 import lucee.runtime.util.threading.StatmentClose;
 
 public class QueryLazy extends BIF {
-
+	private static final Object token = new SerializableObject();
 	private static Closer closer;
 	private static int RETURN_TYPE_QUERY = 1;
 	private static int RETURN_TYPE_ARRAY = 2;
@@ -88,7 +89,7 @@ public class QueryLazy extends BIF {
 	public static String call(PageContext pc, String strSQL, UDF listener, Object params, Struct options) throws PageException {
 
 		if (closer == null) {
-			synchronized (options) {
+			synchronized (token) {
 				if (closer == null) {
 					closer = new Closer(ThreadLocalPageContext.getLog(pc, "datasource"));
 				}
