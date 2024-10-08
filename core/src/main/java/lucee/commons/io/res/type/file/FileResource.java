@@ -263,7 +263,9 @@ public final class FileResource extends File implements Resource {
 		provider.lock(this);
 		try {
 			if (!super.exists() && !super.createNewFile()) {
-				throw new IOException("Can't create file [" + this + "]");
+				// It's possible that another process (outside this JVM) has already created the file
+				// after our initial check, so we perform a double check before throwing an exception.
+				if (!super.exists()) throw new IOException("Can't create file [" + this + "]");
 			}
 			return new BufferedOutputStream(new ResourceOutputStream(this, new FileOutputStream(this, append)));
 		}
