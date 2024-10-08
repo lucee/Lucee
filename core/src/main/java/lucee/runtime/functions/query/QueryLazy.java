@@ -13,6 +13,8 @@ import java.util.TimeZone;
 import lucee.commons.db.DBUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
+import lucee.commons.lang.types.RefBoolean;
+import lucee.commons.lang.types.RefBooleanImpl;
 import lucee.runtime.PageContext;
 import lucee.runtime.config.Constants;
 import lucee.runtime.config.NullSupportHelper;
@@ -24,6 +26,7 @@ import lucee.runtime.db.SQL;
 import lucee.runtime.db.SQLCaster;
 import lucee.runtime.db.SQLImpl;
 import lucee.runtime.db.SQLItem;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.DatabaseException;
 import lucee.runtime.exp.FunctionException;
@@ -49,9 +52,12 @@ import lucee.runtime.type.query.SimpleQuery;
 import lucee.runtime.type.scope.Argument;
 import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.QueryUtil;
+import lucee.runtime.util.threading.Closer;
+import lucee.runtime.util.threading.StatmentClose;
 
 public class QueryLazy extends BIF {
 
+	private static Closer closer;
 	private static int RETURN_TYPE_QUERY = 1;
 	private static int RETURN_TYPE_ARRAY = 2;
 	private static int RETURN_TYPE_STRUCT = 3;
@@ -80,6 +86,15 @@ public class QueryLazy extends BIF {
 
 	// name is set by evaluator
 	public static String call(PageContext pc, String strSQL, UDF listener, Object params, Struct options) throws PageException {
+
+		if (closer == null) {
+			synchronized (options) {
+				if (closer == null) {
+					closer = new Closer(ThreadLocalPageContext.getLog(pc, "datasource"));
+				}
+			}
+		}
+
 		DataSource ds = getDatasource(pc, options);
 		// credentials
 		String user = getString(pc, options, KeyConstants._username, null);
@@ -115,6 +130,7 @@ public class QueryLazy extends BIF {
 		Statement stat = null;
 		ResultSet res = null;
 		boolean hasResult = false;
+		final RefBoolean aborted = new RefBooleanImpl(false);
 		try {
 			SQLItem[] items = sql.getItems();
 			if (items.length == 0) {
@@ -136,7 +152,7 @@ public class QueryLazy extends BIF {
 			do {
 				if (hasResult) {
 					res = stat.getResultSet();
-					exe(pc, res, tz, listener, blockfactor, returntype, columnKey);
+					exe(pc, res, tz, listener, blockfactor, returntype, columnKey, aborted);
 					break;
 				}
 				throw new ApplicationException("the function QueryLazy can only be used for queries returning a resultset");
@@ -151,15 +167,22 @@ public class QueryLazy extends BIF {
 			throw Caster.toPageException(e);
 		}
 		finally {
-			DBUtil.closeEL(res);
-			DBUtil.closeEL(stat);
-			manager.releaseConnection(pc, dc);
+			// because MySQL will loop to all the remaing records, we close the resultset in a separate thread,
+			// so we not have to wait for it
+			// TODO does this make sense for other datasource types as well?
+			if (isMySQL && aborted.toBooleanValue()) {
+				closer.add(new StatmentClose(manager, dc, stat, ThreadLocalPageContext.getLog(pc, "datasource")));
+			}
+			else {
+				DBUtil.closeEL(stat);
+				manager.releaseConnection(pc, dc);
+			}
 		}
 
 		return null;
 	}
 
-	private static void exe(PageContext pc, ResultSet res, TimeZone tz, UDF listener, int blockfactor, int returntype, Collection.Key columnKey)
+	private static void exe(PageContext pc, ResultSet res, TimeZone tz, UDF listener, int blockfactor, int returntype, Collection.Key columnKey, RefBoolean aborted)
 			throws SQLException, PageException, IOException {
 		ResultSetMetaData meta = res.getMetaData();
 
@@ -229,6 +252,7 @@ public class QueryLazy extends BIF {
 					if (blockfactor == rownbr) {
 						if (!Caster.toBooleanValue(listener.call(pc, new Object[] { _arrRows }, true), true)) {
 							rownbr = 0;
+							aborted.setValue(true);
 							break;
 						}
 						_arrRows = new ArrayImpl();
@@ -240,6 +264,7 @@ public class QueryLazy extends BIF {
 					if (blockfactor == rownbr) {
 						if (!Caster.toBooleanValue(listener.call(pc, new Object[] { sctRows }, true), true)) {
 							rownbr = 0;
+							aborted.setValue(true);
 							break;
 						}
 						sctRows = new StructImpl();
@@ -250,6 +275,7 @@ public class QueryLazy extends BIF {
 					if (blockfactor == rownbr) {
 						if (!Caster.toBooleanValue(listener.call(pc, new Object[] { qryRows }, true), true)) {
 							rownbr = 0;
+							aborted.setValue(true);
 							break;
 						}
 						qryRows = new QueryImpl(tmpKeys.toArray(new Collection.Key[tmpKeys.size()]), blockfactor, "queryLazy");
@@ -258,7 +284,10 @@ public class QueryLazy extends BIF {
 				}
 			}
 			else {
-				if (!Caster.toBooleanValue(listener.call(pc, new Object[] { row }, true), true)) break;
+				if (!Caster.toBooleanValue(listener.call(pc, new Object[] { row }, true), true)) {
+					aborted.setValue(true);
+					break;
+				}
 			}
 
 		}
