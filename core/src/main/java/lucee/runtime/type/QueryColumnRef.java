@@ -181,12 +181,12 @@ public final class QueryColumnRef implements QueryColumn {
 
 	@Override
 	public Object get(String key, Object defaultValue) {
-		return get(Caster.toIntValue(key, query.getCurrentrow(ThreadLocalPageContext.get().getId())), defaultValue);
+		return get(Caster.toIntValue(key, query.getCurrentrow(ThreadLocalPageContext.getId())), defaultValue);
 	}
 
 	@Override
 	public Object get(Collection.Key key, Object defaultValue) {
-		return get(Caster.toIntValue(key, query.getCurrentrow(ThreadLocalPageContext.get().getId())), defaultValue);
+		return get(Caster.toIntValue(key, query.getCurrentrow(ThreadLocalPageContext.getId())), defaultValue);
 	}
 
 	@Override
@@ -201,12 +201,12 @@ public final class QueryColumnRef implements QueryColumn {
 
 	@Override
 	public Object setEL(String key, Object value) {
-		return setEL(Caster.toIntValue(key, query.getCurrentrow(ThreadLocalPageContext.get().getId())), value);
+		return setEL(Caster.toIntValue(key, query.getCurrentrow(ThreadLocalPageContext.getId())), value);
 	}
 
 	@Override
 	public Object setEL(Collection.Key key, Object value) {
-		return setEL(Caster.toIntValue(key, query.getCurrentrow(ThreadLocalPageContext.get().getId())), value);
+		return setEL(Caster.toIntValue(key, query.getCurrentrow(ThreadLocalPageContext.getId())), value);
 	}
 
 	@Override
@@ -248,52 +248,52 @@ public final class QueryColumnRef implements QueryColumn {
 
 	@Override
 	public String castToString() throws PageException {
-		return Caster.toString(get(query.getCurrentrow(ThreadLocalPageContext.get().getId())));
+		return Caster.toString(get(query.getCurrentrow(ThreadLocalPageContext.getId())));
 	}
 
 	@Override
 	public String castToString(String defaultValue) {
 		Object _null = NullSupportHelper.NULL();
-		Object value = get(query.getCurrentrow(ThreadLocalPageContext.get().getId()), _null);
+		Object value = get(query.getCurrentrow(ThreadLocalPageContext.getId()), _null);
 		if (value == _null) return defaultValue;
 		return Caster.toString(value, defaultValue);
 	}
 
 	@Override
 	public boolean castToBooleanValue() throws PageException {
-		return Caster.toBooleanValue(get(query.getCurrentrow(ThreadLocalPageContext.get().getId())));
+		return Caster.toBooleanValue(get(query.getCurrentrow(ThreadLocalPageContext.getId())));
 	}
 
 	@Override
 	public Boolean castToBoolean(Boolean defaultValue) {
 		Object _null = NullSupportHelper.NULL();
-		Object value = get(query.getCurrentrow(ThreadLocalPageContext.get().getId()), _null);
+		Object value = get(query.getCurrentrow(ThreadLocalPageContext.getId()), _null);
 		if (value == _null) return defaultValue;
 		return Caster.toBoolean(value, defaultValue);
 	}
 
 	@Override
 	public double castToDoubleValue() throws PageException {
-		return Caster.toDoubleValue(get(query.getCurrentrow(ThreadLocalPageContext.get().getId())));
+		return Caster.toDoubleValue(get(query.getCurrentrow(ThreadLocalPageContext.getId())));
 	}
 
 	@Override
 	public double castToDoubleValue(double defaultValue) {
 		Object _null = NullSupportHelper.NULL();
-		Object value = get(query.getCurrentrow(ThreadLocalPageContext.get().getId()), _null);
+		Object value = get(query.getCurrentrow(ThreadLocalPageContext.getId()), _null);
 		if (value == _null) return defaultValue;
 		return Caster.toDoubleValue(value, true, defaultValue);
 	}
 
 	@Override
 	public DateTime castToDateTime() throws PageException {
-		return Caster.toDate(get(query.getCurrentrow(ThreadLocalPageContext.get().getId())), null);
+		return Caster.toDate(get(query.getCurrentrow(ThreadLocalPageContext.getId())), null);
 	}
 
 	@Override
 	public DateTime castToDateTime(DateTime defaultValue) {
 		Object _null = NullSupportHelper.NULL();
-		Object value = get(query.getCurrentrow(ThreadLocalPageContext.get().getId()), _null);
+		Object value = get(query.getCurrentrow(ThreadLocalPageContext.getId()), _null);
 		if (value == _null) return defaultValue;
 		return DateCaster.toDateAdvanced(value, DateCaster.CONVERTING_TYPE_OFFSET, null, defaultValue);
 	}

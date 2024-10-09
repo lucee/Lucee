@@ -524,52 +524,52 @@ public class QueryColumnImpl implements QueryColumnPro, Objects {
 
 	@Override
 	public String castToString() throws PageException {
-		return Caster.toString(get(query.getCurrentrow(ThreadLocalPageContext.get().getId()), null));
+		return Caster.toString(get(query.getCurrentrow(ThreadLocalPageContext.getId()), null));
 	}
 
 	@Override
 	public String castToString(String defaultValue) {
 		Object _null = NullSupportHelper.NULL();
-		Object value = get(query.getCurrentrow(ThreadLocalPageContext.get().getId()), _null);
+		Object value = get(query.getCurrentrow(ThreadLocalPageContext.getId()), _null);
 		if (value == _null) return defaultValue;
 		return Caster.toString(value, defaultValue);
 	}
 
 	@Override
 	public boolean castToBooleanValue() throws PageException {
-		return Caster.toBooleanValue(get(query.getCurrentrow(ThreadLocalPageContext.get().getId()), null));
+		return Caster.toBooleanValue(get(query.getCurrentrow(ThreadLocalPageContext.getId()), null));
 	}
 
 	@Override
 	public Boolean castToBoolean(Boolean defaultValue) {
 		Object _null = NullSupportHelper.NULL();
-		Object value = get(query.getCurrentrow(ThreadLocalPageContext.get().getId()), _null);
+		Object value = get(query.getCurrentrow(ThreadLocalPageContext.getId()), _null);
 		if (value == _null) return defaultValue;
 		return Caster.toBoolean(value, defaultValue);
 	}
 
 	@Override
 	public double castToDoubleValue() throws PageException {
-		return Caster.toDoubleValue(get(query.getCurrentrow(ThreadLocalPageContext.get().getId()), null));
+		return Caster.toDoubleValue(get(query.getCurrentrow(ThreadLocalPageContext.getId()), null));
 	}
 
 	@Override
 	public double castToDoubleValue(double defaultValue) {
 		Object _null = NullSupportHelper.NULL();
-		Object value = get(query.getCurrentrow(ThreadLocalPageContext.get().getId()), _null);
+		Object value = get(query.getCurrentrow(ThreadLocalPageContext.getId()), _null);
 		if (value == _null) return defaultValue;
 		return Caster.toDoubleValue(value, true, defaultValue);
 	}
 
 	@Override
 	public DateTime castToDateTime() throws PageException {
-		return DateCaster.toDateAdvanced(get(query.getCurrentrow(ThreadLocalPageContext.get().getId()), null), null);
+		return DateCaster.toDateAdvanced(get(query.getCurrentrow(ThreadLocalPageContext.getId()), null), null);
 	}
 
 	@Override
 	public DateTime castToDateTime(DateTime defaultValue) {
 		Object _null = NullSupportHelper.NULL();
-		Object value = get(query.getCurrentrow(ThreadLocalPageContext.get().getId()), _null);
+		Object value = get(query.getCurrentrow(ThreadLocalPageContext.getId()), _null);
 		if (value == _null) return defaultValue;
 		return DateCaster.toDateAdvanced(value, DateCaster.CONVERTING_TYPE_OFFSET, null, defaultValue);
 	}
@@ -643,7 +643,7 @@ public class QueryColumnImpl implements QueryColumnPro, Objects {
 	@Override
 	public String toString() {
 		try {
-			return Caster.toString(get(query.getCurrentrow(ThreadLocalPageContext.get().getId()), null));
+			return Caster.toString(get(query.getCurrentrow(ThreadLocalPageContext.getId()), null));
 		}
 		catch (PageException e) {
 			return super.toString();

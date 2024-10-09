@@ -342,6 +342,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 		factory.setConfig(configServer, configWeb);
 
 		// createContextFiles(configDir, servletConfig, doNew);
+		settings(configWeb, ThreadLocalPageContext.getLog(configWeb, "application"));
 		createContextFilesPost(configDir, configWeb, servletConfig, false, doNew);
 		((ThreadQueueImpl) configWeb.getThreadQueue()).setMode(configWeb.getQueueEnable() ? ThreadQueuePro.MODE_ENABLED : ThreadQueuePro.MODE_DISABLED);
 
@@ -416,8 +417,8 @@ public final class ConfigWebFactory extends ConfigFactory {
 					throw Caster.toPageException(e);
 				}
 			}
-
 			((SingleContextConfigWeb) cwi.getInstance()).reload();
+			settings(cwi, null);
 			return;
 		}
 
@@ -1186,7 +1187,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 		}
 	}
 
-	private static void settings(ConfigImpl config, Log log) {
+	private static void settings(ConfigPro config, Log log) {
 		try {
 			doCheckChangesInLibraries(config);
 		}
@@ -1653,7 +1654,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 		}
 	}
 
-	private static void doCheckChangesInLibraries(ConfigImpl config) {
+	private static void doCheckChangesInLibraries(ConfigPro config) {
 		// create current hash from libs
 		TagLib[] tlds = config.getTLDs();
 		FunctionLib flds = config.getFLDs();
@@ -1709,15 +1710,14 @@ public final class ConfigWebFactory extends ConfigFactory {
 		// fld
 		sb.append(flds.getHash());
 
-		if (config instanceof MultiContextConfigWeb) {
+		if (!(config instanceof ConfigServer)) {
 			boolean hasChanged = false;
 
-			sb.append(";").append(((MultiContextConfigWeb) config).getConfigServerImpl().getLibHash());
+			if (config instanceof MultiContextConfigWeb) sb.append(";").append(((MultiContextConfigWeb) config).getConfigServerImpl().getLibHash());
 			try {
 				String hashValue = HashUtil.create64BitHashAsString(sb.toString());
 				// check and compare lib version file
 				Resource libHash = config.getConfigDir().getRealResource("lib-hash");
-
 				if (!libHash.exists()) {
 					libHash.createNewFile();
 					IOUtil.write(libHash, hashValue, SystemUtil.getCharset(), false);
@@ -1732,6 +1732,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 			}
 			// change Compile type
 			if (hasChanged) {
+
 				try {
 					// first we delete the physical classes
 					config.getClassDirectory().remove(true);
@@ -5547,7 +5548,12 @@ public final class ConfigWebFactory extends ConfigFactory {
 					}
 				}
 				String _case = getAttr(root, "dotNotationUpperCase");
-				if (!StringUtil.isEmpty(_case, true)) {
+				String _pc = getAttr(root, "preserveCase");
+
+				if (!StringUtil.isEmpty(_pc, true)) {
+					config.setDotNotationUpperCase(!Caster.toBooleanValue(_pc, false));
+				}
+				else if (!StringUtil.isEmpty(_case, true)) {
 					config.setDotNotationUpperCase(Caster.toBooleanValue(_case, true));
 				}
 				else if (hasCS) {
