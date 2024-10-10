@@ -360,6 +360,7 @@ public final class PageContextImpl extends PageContext {
 	private StackTraceElement[] timeoutStacktrace;
 
 	private static final boolean READ_CFID_FROM_URL = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.read.cfid.from.url", "true"), true);
+	private static final boolean INHERIT_JAVA_SETTINGS = false;
 	private static AtomicInteger _idCounter = new AtomicInteger(1);
 	private long lastTimeoutNoAction;
 
@@ -3857,7 +3858,8 @@ public final class PageContextImpl extends PageContext {
 		if (ac instanceof ComponentImpl) {
 			JavaSettings js = ((ComponentImpl) ac).getJavaSettings(this);
 			if (js != null) {
-				cl = config.getRPCClassLoader(reload, js, cl);
+				if (INHERIT_JAVA_SETTINGS) cl = config.getRPCClassLoader(reload, js, cl);
+				else cl = config.getRPCClassLoader(reload, js, null);
 			}
 		}
 
