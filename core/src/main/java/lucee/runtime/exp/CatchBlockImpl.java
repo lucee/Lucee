@@ -19,7 +19,6 @@
 package lucee.runtime.exp;
 
 import java.io.Serializable;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -86,19 +85,18 @@ public class CatchBlockImpl extends StructImpl implements CatchBlock, Castable, 
 
 		if (pe instanceof NativeException) {
 			Throwable throwable = ((NativeException) pe).getException();
-			Method[] mGetters = Reflector.getGetters(throwable.getClass());
-			Method getter;
+			List<lucee.transformer.dynamic.meta.Method> mGetters = Reflector.getGetters(throwable.getClass());
+
 			Collection.Key key;
 			if (!ArrayUtil.isEmpty(mGetters)) {
-				for (int i = 0; i < mGetters.length; i++) {
-					getter = mGetters[i];
+				for (lucee.transformer.dynamic.meta.Method getter: mGetters) {
 					if (getter.getDeclaringClass() == Throwable.class) {
 						continue;
 					}
 					key = KeyImpl.init(Reflector.removeGetterPrefix(getter.getName()));
 
 					if (KeyConstants._Message.equalsIgnoreCase(key) || KeyConstants._Detail.equalsIgnoreCase(key)) {
-						if (getter.getReturnType() != String.class) continue;
+						if (getter.getReturnClass() != String.class) continue;
 					}
 					else if (STACK_TRACE.equalsIgnoreCase(key) || KeyConstants._type.equalsIgnoreCase(key) || CAUSE.equalsIgnoreCase(key)) continue;
 					setEL(key, new Pair(throwable, key, getter, false));
@@ -399,17 +397,17 @@ public class CatchBlockImpl extends StructImpl implements CatchBlock, Castable, 
 	class Pair {
 		Throwable throwable;
 		Collection.Key name;
-		Method getter;
+		lucee.transformer.dynamic.meta.Method getter;
 		private boolean doEmptyStringWhenNull;
 
-		public Pair(Throwable throwable, Key name, Method method, boolean doEmptyStringWhenNull) {
+		public Pair(Throwable throwable, Key name, lucee.transformer.dynamic.meta.Method method, boolean doEmptyStringWhenNull) {
 			this.throwable = throwable;
 			this.name = name;
 			this.getter = method;
 			this.doEmptyStringWhenNull = doEmptyStringWhenNull;
 		}
 
-		public Pair(Throwable throwable, String name, Method method, boolean doEmptyStringWhenNull) {
+		public Pair(Throwable throwable, String name, lucee.transformer.dynamic.meta.Method method, boolean doEmptyStringWhenNull) {
 			this(throwable, KeyImpl.init(name), method, doEmptyStringWhenNull);
 		}
 

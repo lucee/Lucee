@@ -21,10 +21,8 @@ package lucee.commons.lang;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.net.URLDecoder;
@@ -55,8 +53,11 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.osgi.OSGiUtil;
 import lucee.runtime.osgi.OSGiUtil.BundleDefinition;
+import lucee.runtime.reflection.Reflector;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.util.ListUtil;
+import lucee.transformer.dynamic.DynamicInvoker;
+import lucee.transformer.dynamic.meta.Method;
 
 public final class ClassUtil {
 
@@ -451,7 +452,7 @@ public final class ClassUtil {
 	 */
 	public static Object loadInstance(Class clazz) throws ClassException {
 		try {
-			return newInstance(clazz);
+			return Reflector.getConstructorInstance(clazz, EMPTY_OBJ).invoke();
 		}
 		catch (InstantiationException e) {
 			ClassException ce = new ClassException("the specified class object [" + clazz.getName() + "()] cannot be instantiated");
@@ -519,6 +520,7 @@ public final class ClassUtil {
 	 * @param clazz class to load
 	 * @param args
 	 * @return matching Class
+	 * @throws PageException
 	 * @throws ClassException
 	 * @throws ClassException
 	 * @throws InvocationTargetException
@@ -526,15 +528,8 @@ public final class ClassUtil {
 	public static Object loadInstance(Class clazz, Object[] args) throws ClassException, InvocationTargetException {
 		if (args == null || args.length == 0) return loadInstance(clazz);
 
-		Class[] cArgs = new Class[args.length];
-		for (int i = 0; i < args.length; i++) {
-			cArgs[i] = args[i].getClass();
-		}
-
 		try {
-			Constructor c = clazz.getConstructor(cArgs);
-			return c.newInstance(args);
-
+			return Reflector.getConstructorInstance(clazz, args).invoke();
 		}
 		catch (SecurityException e) {
 			ClassException ce = new ClassException("there is a security violation (thrown by security manager)");
@@ -545,9 +540,9 @@ public final class ClassUtil {
 
 			StringBuilder sb = new StringBuilder(clazz.getName());
 			char del = '(';
-			for (int i = 0; i < cArgs.length; i++) {
+			for (int i = 0; i < args.length; i++) {
 				sb.append(del);
-				sb.append(cArgs[i].getName());
+				sb.append(args[i].getClass().getName());
 				del = ',';
 			}
 			sb.append(')');
@@ -572,6 +567,11 @@ public final class ClassUtil {
 			ExceptionUtil.initCauseEL(ce, e);
 			throw ce;
 		}
+		catch (Exception e) {
+			ClassException ce = new ClassException("failed to load constructor for class [" + clazz.getName() + "]");
+			ExceptionUtil.initCauseEL(ce, e);
+			throw ce;
+		}
 	}
 
 	public static Object loadInstance(PageContext pc, String className, Object[] args) throws ClassException, InvocationTargetException {
@@ -592,13 +592,7 @@ public final class ClassUtil {
 	public static Object loadInstance(Class clazz, Object[] args, Object defaultValue) {
 		if (args == null || args.length == 0) return loadInstance(clazz, defaultValue);
 		try {
-			Class[] cArgs = new Class[args.length];
-			for (int i = 0; i < args.length; i++) {
-				if (args[i] == null) cArgs[i] = Object.class;
-				else cArgs[i] = args[i].getClass();
-			}
-			Constructor c = clazz.getConstructor(cArgs);
-			return c.newInstance(args);
+			return Reflector.getConstructorInstance(clazz, args).invoke();
 
 		}
 		catch (Throwable t) {
@@ -761,22 +755,21 @@ public final class ClassUtil {
 	}
 
 	public static Method getMethodIgnoreCase(Class clazz, String methodName, Class[] args, Method defaultValue) {
-		Method[] methods = clazz.getMethods();
-		Method method;
-		Class[] params;
-		outer: for (int i = 0; i < methods.length; i++) {
-			method = methods[i];
-			if (method.getName().equalsIgnoreCase(methodName)) {
-				params = method.getParameterTypes();
-				if (params.length == args.length) {
-					for (int y = 0; y < params.length; y++) {
-						if (!params[y].equals(args[y])) {
-							continue outer;
-						}
-					}
-					return method;
-				}
+		DynamicInvoker di = DynamicInvoker.getInstance(null);
+
+		try {
+			di.getClazz(clazz, false).getMethod(methodName, args, false);
+		}
+		catch (IOException e) {
+			try {
+				di.getClazz(clazz, true).getMethod(methodName, args, false);
 			}
+			catch (Exception e1) {
+				return defaultValue;
+			}
+		}
+		catch (NoSuchMethodException e) {
+			return defaultValue;
 		}
 
 		return defaultValue;
@@ -1035,8 +1028,8 @@ public final class ClassUtil {
 		return new lucee.commons.lang.ClassLoaderHelper().getClass().getClassLoader();
 	}
 
-	public static Object newInstance(Class clazz)
-			throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
-		return clazz.getConstructor(EMPTY_CLASS).newInstance(EMPTY_OBJ);
+	public static Object newInstance(Class clazz) throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException,
+			SecurityException, PageException, IOException {
+		return Reflector.getConstructorInstance(clazz, EMPTY_OBJ).invoke();
 	}
 }

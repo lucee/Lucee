@@ -37,6 +37,8 @@ import lucee.commons.lang.ClassUtil;
 import lucee.commons.sql.SQLUtil;
 import lucee.runtime.config.Config;
 import lucee.runtime.engine.ThreadLocalPageContext;
+import lucee.runtime.exp.PageException;
+import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.tag.listener.TagListener;
 
 public abstract class DataSourceSupport implements DataSourcePro, Cloneable, Serializable {
@@ -118,6 +120,9 @@ public abstract class DataSourceSupport implements DataSourcePro, Cloneable, Ser
 		catch (IOException e) {
 			throw new RuntimeException(e);
 		}
+		catch (PageException e) {
+			throw new PageRuntimeException(e);
+		}
 		catch (IllegalArgumentException e) {
 			throw new RuntimeException(e);
 		}
@@ -165,21 +170,21 @@ public abstract class DataSourceSupport implements DataSourcePro, Cloneable, Ser
 	}
 
 	private Driver initialize(Config config) throws BundleException, InstantiationException, IllegalAccessException, IOException, IllegalArgumentException,
-			InvocationTargetException, NoSuchMethodException, SecurityException {
+			InvocationTargetException, NoSuchMethodException, SecurityException, PageException {
 		if (driver == null) {
 			return driver = _initializeDriver(cd, config);
 		}
 		return driver;
 	}
 
-	private static Driver _initializeDriver(ClassDefinition cd, Config config) throws ClassException, BundleException, InstantiationException, IllegalAccessException,
-			IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
+	private static Driver _initializeDriver(ClassDefinition cd, Config config) throws BundleException, InstantiationException, IllegalAccessException, IllegalArgumentException,
+			InvocationTargetException, NoSuchMethodException, SecurityException, IOException, PageException {
 		// load the class
 		Driver d = (Driver) ClassUtil.newInstance(cd.getClazz());
 		return d;
 	}
 
-	public static void verify(Config config, ClassDefinition cd, String connStrTranslated, String user, String pass) throws ClassException, BundleException, SQLException {
+	public static void verify(Config config, ClassDefinition cd, String connStrTranslated, String user, String pass) throws BundleException, SQLException, PageException {
 		try {
 			// Driver driver = _initializeDriver(_initializeCD(jdbc, cd, config),config);
 			Driver driver = _initializeDriver(cd, config);
@@ -201,6 +206,9 @@ public abstract class DataSourceSupport implements DataSourcePro, Cloneable, Ser
 			throw new RuntimeException(e);
 		}
 		catch (SecurityException e) {
+			throw new RuntimeException(e);
+		}
+		catch (IOException e) {
 			throw new RuntimeException(e);
 		}
 	}

@@ -20,11 +20,8 @@ package lucee.runtime.reflection;
 
 import java.io.IOException;
 import java.lang.instrument.UnmodifiableClassException;
-import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.lang.reflect.Parameter;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -40,6 +37,7 @@ import java.util.Set;
 import java.util.TimeZone;
 import java.util.Vector;
 
+import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.ClassUtil;
 import lucee.commons.lang.ExceptionUtil;
@@ -82,7 +80,10 @@ import lucee.runtime.type.util.ListUtil;
 import lucee.runtime.type.util.Type;
 import lucee.runtime.util.ObjectIdentityHashSet;
 import lucee.transformer.bytecode.util.JavaProxyFactory;
+import lucee.transformer.dynamic.DynamicInvoker;
 import lucee.transformer.dynamic.meta.Clazz;
+import lucee.transformer.dynamic.meta.Constructor;
+import lucee.transformer.dynamic.meta.Method;
 
 /**
  * Class to reflect on Objects and classes
@@ -825,8 +826,6 @@ public final class Reflector {
 		Set<String> keys = new HashSet<String>();
 		Field[] fields = clazz.getFields();
 		Field field;
-		Method[] methods = clazz.getMethods();
-		Method method;
 		String name;
 
 		for (int i = 0; i < fields.length; i++) {
@@ -834,9 +833,31 @@ public final class Reflector {
 			if (Modifier.isPublic(field.getModifiers())) keys.add(field.getName());
 		}
 
-		for (int i = 0; i < methods.length; i++) {
-			method = methods[i];
-			if (Modifier.isPublic(method.getModifiers())) {
+		// dynamic
+		DynamicInvoker di = DynamicInvoker.getInstance(null);
+		try {
+			_getPropertyKeys(clazz, di, keys, false);
+		}
+		// reflection
+		catch (IOException e) {
+			// fallback
+			LogUtil.log("dynamic", e);
+			try {
+				_getPropertyKeys(clazz, di, keys, false);
+			}
+			catch (IOException e1) {
+				LogUtil.log("dynamic", e1);
+			}
+		}
+		return keys.toArray(new String[keys.size()]);
+	}
+
+	private static void _getPropertyKeys(Class clazz, DynamicInvoker di, Set<String> keys, boolean doReflection) throws IOException {
+		Clazz clazzz = di.getClazz(clazz, doReflection);
+		List<lucee.transformer.dynamic.meta.Method> methods = clazzz.getMethods(null, true, -1);
+		String name;
+		for (lucee.transformer.dynamic.meta.Method method: methods) {
+			if (method.isPublic()) {
 				if (isGetter(method)) {
 					name = method.getName();
 					if (name.startsWith("get")) keys.add(StringUtil.lcFirst(method.getName().substring(3)));
@@ -845,19 +866,36 @@ public final class Reflector {
 				else if (isSetter(method)) keys.add(StringUtil.lcFirst(method.getName().substring(3)));
 			}
 		}
-
-		return keys.toArray(new String[keys.size()]);
 	}
 
 	public static boolean hasPropertyIgnoreCase(Class clazz, String name) {
 		if (hasFieldIgnoreCase(clazz, name)) return true;
 
-		Method[] methods = clazz.getMethods();
-		Method method;
+		// dynamic
+		DynamicInvoker di = DynamicInvoker.getInstance(null);
+		try {
+			if (_hasPropertyIgnoreCase(clazz, di, name, false)) return true;
+		}
+		// reflection
+		catch (IOException e) {
+			LogUtil.log("dynamic", e);
+			try {
+				if (_hasPropertyIgnoreCase(clazz, di, name, true)) return true;
+			}
+			catch (IOException e1) {
+				LogUtil.log("dynamic", e1);
+
+			}
+		}
+		return false;
+	}
+
+	public static boolean _hasPropertyIgnoreCase(Class clazz, DynamicInvoker di, String name, boolean doReflection) throws IOException {
 		String n;
-		for (int i = 0; i < methods.length; i++) {
-			method = methods[i];
-			if (Modifier.isPublic(method.getModifiers()) && StringUtil.endsWithIgnoreCase(method.getName(), name)) {
+		Clazz clazzz = di.getClazz(clazz, doReflection);
+		List<lucee.transformer.dynamic.meta.Method> methods = clazzz.getMethods(null, true, -1);
+		for (lucee.transformer.dynamic.meta.Method method: methods) {
+			if (method.isPublic() && StringUtil.endsWithIgnoreCase(method.getName(), name)) {
 				n = null;
 				if (isGetter(method)) {
 					n = method.getName();
@@ -1441,20 +1479,42 @@ public final class Reflector {
 		return objs;
 	}
 
-	public static boolean isGetter(Method method) {
-		if (method.getParameterTypes().length > 0) return false;
-		if (method.getReturnType() == void.class) return false;
+	public static boolean isGetter(lucee.transformer.dynamic.meta.Method method) {
+		if (method.getArgumentCount() > 0) return false;
+		if (method.getReturnClass() == void.class) return false;
 		if (!method.getName().startsWith("get") && !method.getName().startsWith("is")) return false;
 		if (method.getDeclaringClass() == Object.class) return false;
 		return true;
 	}
 
-	public static boolean isSetter(Method method) {
-		if (method.getParameterTypes().length != 1) return false;
-		if (method.getReturnType() != void.class) return false;
+	/*
+	 * public static boolean isGetter(Method method) { if (method.getParameterTypes().length > 0) return
+	 * false; if (method.getReturnType() == void.class) return false; if
+	 * (!method.getName().startsWith("get") && !method.getName().startsWith("is")) return false; if
+	 * (method.getDeclaringClass() == Object.class) return false; return true; }
+	 * 
+	 * public static boolean isSetter(Method method) { if (method.getParameterTypes().length != 1)
+	 * return false; if (method.getReturnType() != void.class) return false; if
+	 * (!method.getName().startsWith("set")) return false; if (method.getDeclaringClass() ==
+	 * Object.class) return false; return true; }
+	 */
+
+	public static boolean isSetter(lucee.transformer.dynamic.meta.Method method) {
+		if (method.getArgumentCount() != 1) return false;
+		if (method.getReturnClass() != void.class) return false;
 		if (!method.getName().startsWith("set")) return false;
 		if (method.getDeclaringClass() == Object.class) return false;
 		return true;
+	}
+
+	public static List<lucee.transformer.dynamic.meta.Method> getMethods(Class clazz) throws IOException {
+		DynamicInvoker di = DynamicInvoker.getInstance(null);
+		try {
+			return di.getClazz(clazz, false).getMethods(null, true, -1);
+		}
+		catch (IOException e) {
+			return di.getClazz(clazz, true).getMethods(null, true, -1);
+		}
 	}
 
 	/**
@@ -1462,35 +1522,70 @@ public final class Reflector {
 	 * 
 	 * @param clazz
 	 * @return
+	 * @throws IOException
 	 */
-	public static Method[] getDeclaredMethods(Class clazz) {
-		Method[] methods = clazz.getMethods();
-		ArrayList<Method> list = new ArrayList<Method>();
-		for (int i = 0; i < methods.length; i++) {
-			if (methods[i].getDeclaringClass() == clazz) list.add(methods[i]);
+	public static List<lucee.transformer.dynamic.meta.Method> getDeclaredMethods(Class clazz) throws IOException {
+		DynamicInvoker di = DynamicInvoker.getInstance(null);
+		try {
+			return di.getClazz(clazz, false).getDeclaredMethods(null, true, -1);
 		}
-		if (list.size() == 0) return new Method[0];
-		return list.toArray(new Method[list.size()]);
+		catch (IOException e) {
+			return di.getClazz(clazz, true).getDeclaredMethods(null, true, -1);
+		}
 	}
 
-	public static Method[] getSetters(Class clazz) {
-		Method[] methods = clazz.getMethods();
-		ArrayList<Method> list = new ArrayList<Method>();
-		for (int i = 0; i < methods.length; i++) {
-			if (isSetter(methods[i])) list.add(methods[i]);
+	public static List<lucee.transformer.dynamic.meta.Method> getSetters(Class clazz) {
+		DynamicInvoker di = DynamicInvoker.getInstance(null);
+		List<lucee.transformer.dynamic.meta.Method> list = new ArrayList<lucee.transformer.dynamic.meta.Method>();
+		try {
+			_getSetters(clazz, di, list, false);
+			return list;
 		}
-		if (list.size() == 0) return new Method[0];
-		return list.toArray(new Method[list.size()]);
+		catch (IOException e) {
+			LogUtil.log("dynamic", e);
+			try {
+				_getSetters(clazz, di, list, true);
+			}
+			catch (IOException e1) {
+				LogUtil.log("dynamic", e1);
+			}
+			return list;
+		}
 	}
 
-	public static Method[] getGetters(Class clazz) {
-		Method[] methods = clazz.getMethods();
-		List<Method> list = new ArrayList<Method>();
-		for (int i = 0; i < methods.length; i++) {
-			if (isGetter(methods[i])) list.add(methods[i]);
+	private static void _getSetters(Class clazz, DynamicInvoker di, List<lucee.transformer.dynamic.meta.Method> list, boolean doReflection) throws IOException {
+		Clazz clazzz = di.getClazz(clazz, doReflection);
+		List<lucee.transformer.dynamic.meta.Method> methods = clazzz.getMethods(null, true, -1);
+		for (lucee.transformer.dynamic.meta.Method method: methods) {
+			if (isSetter(method)) list.add(method);
 		}
-		if (list.size() == 0) return new Method[0];
-		return list.toArray(new Method[list.size()]);
+	}
+
+	public static List<lucee.transformer.dynamic.meta.Method> getGetters(Class clazz) {
+		DynamicInvoker di = DynamicInvoker.getInstance(null);
+		List<lucee.transformer.dynamic.meta.Method> list = new ArrayList<lucee.transformer.dynamic.meta.Method>();
+		try {
+			_getGetters(clazz, di, list, false);
+			return list;
+		}
+		catch (IOException e) {
+			LogUtil.log("dynamic", e);
+			try {
+				_getGetters(clazz, di, list, true);
+			}
+			catch (IOException e1) {
+				LogUtil.log("dynamic", e1);
+			}
+			return list;
+		}
+	}
+
+	private static void _getGetters(Class clazz, DynamicInvoker di, List<lucee.transformer.dynamic.meta.Method> list, boolean doReflection) throws IOException {
+		Clazz clazzz = di.getClazz(clazz, doReflection);
+		List<lucee.transformer.dynamic.meta.Method> methods = clazzz.getMethods(null, true, -1);
+		for (lucee.transformer.dynamic.meta.Method method: methods) {
+			if (isGetter(method)) list.add(method);
+		}
 	}
 
 	/**
@@ -1532,34 +1627,76 @@ public final class Reflector {
 		return name;
 	}
 
-	public static Method getDeclaredMethod(Class<?> clazz, String method, Class[] arguments, Method defaultValue) {
-
+	public static Method getDeclaredMethod(Class<?> clazz, String methodName, Class[] args) throws NoSuchMethodException, IOException {
+		DynamicInvoker di = DynamicInvoker.getInstance(null);
 		try {
-			return clazz.getDeclaredMethod(method, arguments);
+			return di.getClazz(clazz, false).getDeclaredMethod(methodName, args, true);
 		}
-		catch (Throwable t) {
-			ExceptionUtil.rethrowIfNecessary(t);
+		catch (IOException e) {
+			return di.getClazz(clazz, false).getDeclaredMethod(methodName, args, false);
+		}
+	}
+
+	public static Method getDeclaredMethod(Class<?> clazz, String methodName, Class[] args, Method defaultValue) {
+		DynamicInvoker di = DynamicInvoker.getInstance(null);
+		try {
+			return di.getClazz(clazz, false).getDeclaredMethod(methodName, args, true);
+		}
+		catch (IOException e) {
+			try {
+				return di.getClazz(clazz, false).getDeclaredMethod(methodName, args, false);
+			}
+			catch (Exception e1) {
+				return defaultValue;
+			}
+		}
+		catch (NoSuchMethodException e) {
 			return defaultValue;
 		}
 	}
 
-	public static Method getMethod(Class<?> clazz, String methodName, Class<?>[] args, Method defaultValue) {
+	public static Method getMethod(Class<?> clazz, String methodName, Class<?>[] args) throws NoSuchMethodException, IOException {
+		DynamicInvoker di = DynamicInvoker.getInstance(null);
 		try {
-			return clazz.getMethod(methodName, args);
+			return di.getClazz(clazz, false).getMethod(methodName, args, true);
 		}
-		catch (Exception e) {
+		catch (IOException e) {
+			return di.getClazz(clazz, false).getMethod(methodName, args, false);
+		}
+	}
+
+	public static Method getMethod(Class<?> clazz, String methodName, Class<?>[] args, Method defaultValue) {
+		DynamicInvoker di = DynamicInvoker.getInstance(null);
+		try {
+			return di.getClazz(clazz, false).getMethod(methodName, args, true);
+		}
+		catch (IOException e) {
+			try {
+				return di.getClazz(clazz, false).getMethod(methodName, args, false);
+			}
+			catch (Exception e1) {
+				return defaultValue;
+			}
+		}
+		catch (NoSuchMethodException e) {
 			return defaultValue;
 		}
 	}
 
 	public static Constructor getConstructor(Class clazz, Class[] args, Constructor defaultValue) {
-		outer: for (Constructor c: clazz.getConstructors()) {
-			Parameter[] params = c.getParameters();
-			if (params.length != args.length) continue;
-			for (int i = 0; i < params.length; i++) {
-				if (!isInstaneOf(args[i], params[i].getType(), true)) continue outer;
+		DynamicInvoker di = DynamicInvoker.getInstance(null);
+		Clazz clazzz = di.getClazz(clazz, false);
+		try {
+			outer: for (Constructor c: clazzz.getConstructors(-1)) {
+				Class[] params = c.getArgumentClasses();
+				if (params.length != args.length) continue;
+				for (int i = 0; i < params.length; i++) {
+					if (!isInstaneOf(args[i], params[i], true)) continue outer;
+				}
+				return c;
 			}
-			return c;
+		}
+		catch (Exception e) {
 		}
 		return defaultValue;
 	}

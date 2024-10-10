@@ -36,6 +36,7 @@ import lucee.commons.io.FileUtil;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
+import lucee.commons.lang.ClassUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.MappingUtil;
 import lucee.commons.lang.PhysicalClassLoader;
@@ -689,7 +690,9 @@ public final class MappingImpl implements Mapping {
 			Resource res = m.getClassRootDirectory().getRealResource(className + ".class");
 			String cn = className.replace('/', '.').replace('\\', '.');
 			Class<?> clazz = m.loadClass(cn, IOUtil.toBytes(res));
-			return (CIPage) clazz.getConstructor(SUBPAGE_CONSTR).newInstance(ps);
+
+			return (CIPage) ClassUtil.loadInstance(clazz, new Object[] { ps });
+			// return (CIPage) clazz.getConstructor(SUBPAGE_CONSTR).newInstance(ps);
 		}
 		catch (Exception e) {
 			throw Caster.toPageRuntimeException(e);

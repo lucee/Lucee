@@ -18,13 +18,14 @@
  **/
 package lucee.commons.sql;
 
-import java.lang.reflect.Method;
 import java.sql.Blob;
 import java.sql.Connection;
 
 import lucee.commons.lang.ClassUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.op.Caster;
+import lucee.runtime.reflection.Reflector;
+import lucee.transformer.dynamic.meta.Method;
 
 public class OracleBlob {
 
@@ -44,16 +45,21 @@ public class OracleBlob {
 			if (mode == null) mode = Caster.toInteger(clazz.getField("MODE_READWRITE").getInt(null));
 
 			// BLOB blob = BLOB.createTemporary(conn, false, BLOB.DURATION_SESSION);
-			if (createTemporary == null || createTemporary.getDeclaringClass() != clazz)
-				createTemporary = clazz.getMethod("createTemporary", new Class[] { Connection.class, boolean.class, int.class });
+			if (createTemporary == null || createTemporary.getDeclaringClass() != clazz) {
+				createTemporary = Reflector.getMethod(clazz, "createTemporary", new Class[] { Connection.class, boolean.class, int.class });
+			}
 			Object blob = createTemporary.invoke(null, new Object[] { conn, Boolean.FALSE, duration });
 
 			// blob.open(BLOB.MODE_READWRITE);
-			if (open == null || open.getDeclaringClass() != clazz) open = clazz.getMethod("open", new Class[] { int.class });
+			if (open == null || open.getDeclaringClass() != clazz) {
+				open = Reflector.getMethod(clazz, "open", new Class[] { int.class });
+			}
 			open.invoke(blob, new Object[] { mode });
 
 			// blob.setBytes(1,barr);
-			if (setBytes == null || setBytes.getDeclaringClass() != clazz) setBytes = clazz.getMethod("setBytes", new Class[] { long.class, byte[].class });
+			if (setBytes == null || setBytes.getDeclaringClass() != clazz) {
+				setBytes = Reflector.getMethod(clazz, "setBytes", new Class[] { long.class, byte[].class });
+			}
 			setBytes.invoke(blob, new Object[] { Long.valueOf(1), barr });
 
 			return (Blob) blob;

@@ -18,8 +18,8 @@
  **/
 package lucee.runtime.net.rpc;
 
-import java.lang.reflect.Method;
 import java.util.Iterator;
+import java.util.List;
 
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.Pair;
@@ -29,6 +29,7 @@ import lucee.runtime.reflection.Reflector;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Pojo;
+import lucee.transformer.dynamic.meta.Method;
 
 public class PojoIterator implements Iterator<Pair<Collection.Key, Object>> {
 
@@ -42,7 +43,8 @@ public class PojoIterator implements Iterator<Pair<Collection.Key, Object>> {
 	public PojoIterator(Pojo pojo) {
 		this.pojo = pojo;
 		this.clazz = pojo.getClass();
-		getters = Reflector.getGetters(pojo.getClass());
+		List<Method> tmp = Reflector.getGetters(pojo.getClass());
+		getters = tmp.toArray(new Method[tmp.size()]);
 	}
 
 	public int size() {
@@ -57,8 +59,8 @@ public class PojoIterator implements Iterator<Pair<Collection.Key, Object>> {
 	@Override
 	public Pair<Collection.Key, Object> next() {
 		Method g = getters[++index];
-		try {
 
+		try {
 			return new Pair<Collection.Key, Object>(KeyImpl.init(g.getName().substring(3)), g.invoke(pojo, EMPTY_ARG));
 		}
 		catch (Throwable t) {

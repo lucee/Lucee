@@ -88,8 +88,8 @@ public class ClassUtilImpl implements ClassUtil {
 	}
 
 	// FUTURE add to loader
-	public BIF loadBIF(PageContext pc, String name, String bundleName, Version bundleVersion) throws InstantiationException, IllegalAccessException, ClassException,
-			BundleException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
+	public BIF loadBIF(PageContext pc, String name, String bundleName, Version bundleVersion) throws InstantiationException, IllegalAccessException, BundleException,
+			IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException, PageException, IOException {
 		// first of all we chek if itis a class
 		Class<?> res = lucee.commons.lang.ClassUtil.loadClassByBundle(name, bundleName, bundleVersion, pc.getConfig().getIdentification(),
 				JavaSettingsImpl.getBundleDirectories(pc));
@@ -238,7 +238,7 @@ public class ClassUtilImpl implements ClassUtil {
 
 	@Override
 	public Method[] getDeclaredMethods(Class<?> clazz) {
-		return Reflector.getDeclaredMethods(clazz);
+		return clazz.getDeclaredMethods();
 	}
 
 	@Override
@@ -348,12 +348,31 @@ public class ClassUtilImpl implements ClassUtil {
 
 	@Override
 	public Method getMethodIgnoreCase(Class<?> clazz, String methodName, Class<?>[] args, Method defaultValue) {
-		return lucee.commons.lang.ClassUtil.getMethodIgnoreCase(clazz, methodName, args, defaultValue);
+		Method[] methods = clazz.getMethods();
+		Method method;
+		Class[] params;
+		outer: for (int i = 0; i < methods.length; i++) {
+			method = methods[i];
+			if (method.getName().equalsIgnoreCase(methodName)) {
+				params = method.getParameterTypes();
+				if (params.length == args.length) {
+					for (int y = 0; y < params.length; y++) {
+						if (!params[y].equals(args[y])) {
+							continue outer;
+						}
+					}
+					return method;
+				}
+			}
+		}
+		return defaultValue;
 	}
 
 	@Override
 	public Method getMethodIgnoreCase(Class<?> clazz, String methodName, Class<?>[] args) throws ClassException {
-		return lucee.commons.lang.ClassUtil.getMethodIgnoreCase(clazz, methodName, args);
+		Method res = getMethodIgnoreCase(clazz, methodName, args, null);
+		if (res != null) return res;
+		throw new ClassException("class " + clazz.getName() + " has no method with name " + methodName);
 	}
 
 	@Override

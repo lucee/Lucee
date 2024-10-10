@@ -3,7 +3,6 @@ package lucee.commons.io.log.log4j2.layout;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.lang.reflect.Method;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -19,8 +18,10 @@ import lucee.loader.util.Util;
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.BIF;
+import lucee.runtime.reflection.Reflector;
 import lucee.runtime.type.Struct;
 import lucee.runtime.util.Cast;
+import lucee.transformer.dynamic.meta.Method;
 
 public class DataDogLayout extends AbstractStringLayout {
 	private static final String LINE_SEPARATOR = System.getProperty("line.separator");
@@ -187,12 +188,12 @@ public class DataDogLayout extends AbstractStringLayout {
 
 			// CorrelationIdentifier.getTraceId()
 			if (getTraceId == null) {
-				getTraceId = correlationIdentifierClass.getMethod("getTraceId", EMPTY_CLASS);
+				getTraceId = Reflector.getMethod(correlationIdentifierClass, "getTraceId", EMPTY_CLASS);
 			}
 
 			// CorrelationIdentifier.getSpanId()
 			if (getSpanId == null) {
-				getSpanId = correlationIdentifierClass.getMethod("getSpanId", EMPTY_CLASS);
+				getSpanId = Reflector.getMethod(correlationIdentifierClass, "getSpanId", EMPTY_CLASS);
 			}
 			Object[] tmp = new Object[] { getTraceId.invoke(null, EMPTY_OBJ), getSpanId.invoke(null, EMPTY_OBJ) };
 

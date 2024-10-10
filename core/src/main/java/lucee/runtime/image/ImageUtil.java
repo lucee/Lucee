@@ -1,7 +1,6 @@
 package lucee.runtime.image;
 
 import java.awt.image.BufferedImage;
-import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 
 import org.osgi.framework.Version;
@@ -54,8 +53,7 @@ public class ImageUtil {
 		try {
 			Class clazz = getImageClass();
 			if (clazz != null) {
-				Constructor c = clazz.getConstructor(new Class[] { BufferedImage.class });
-				Object o = c.newInstance(new Object[] { bi });
+				Object o = ClassUtil.loadInstance(clazz, new Object[] { bi });
 				return getImageBytes(o, "png");
 			}
 		}

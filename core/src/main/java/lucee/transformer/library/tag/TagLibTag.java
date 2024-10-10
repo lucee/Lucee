@@ -52,6 +52,7 @@ import lucee.transformer.cfml.attributes.AttributeEvaluatorException;
 import lucee.transformer.cfml.evaluator.EvaluatorException;
 import lucee.transformer.cfml.evaluator.TagEvaluator;
 import lucee.transformer.cfml.tag.TagDependentBodyTransformer;
+import lucee.transformer.dynamic.meta.Method;
 import lucee.transformer.expression.Expression;
 import lucee.transformer.library.ClassDefinitionImpl;
 
@@ -782,7 +783,7 @@ public final class TagLibTag {
 		try {
 			if (StringUtil.isEmpty(typeClassName)) typeClassName = CastOther.getType(null, attr.getType()).getClassName();
 			clazz = getTagClassDefinition().getClazz();
-			java.lang.reflect.Method m = ClassUtil.getMethodIgnoreCase(clazz, setter, new Class[] { ClassUtil.loadClass(typeClassName) });
+			Method m = ClassUtil.getMethodIgnoreCase(clazz, setter, new Class[] { ClassUtil.loadClass(typeClassName) });
 			setter = m.getName();
 		}
 		catch (Exception e) {

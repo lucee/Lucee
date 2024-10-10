@@ -25,7 +25,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
-import java.lang.reflect.Method;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -152,6 +151,7 @@ import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.ListUtil;
 import lucee.runtime.type.util.StructUtil;
 import lucee.runtime.type.util.UDFUtil;
+import lucee.transformer.dynamic.meta.Method;
 import lucee.transformer.library.ClassDefinitionImpl;
 import lucee.transformer.library.function.FunctionLibException;
 import lucee.transformer.library.tag.TagLibException;
@@ -1672,7 +1672,7 @@ public final class ConfigAdmin {
 		if (startup.cd.equals(cd) && !force) return;
 
 		try {
-			Method fin = Reflector.getMethod(startup.instance.getClass(), "finalize", new Class[0], null);
+			lucee.transformer.dynamic.meta.Method fin = Reflector.getMethod(startup.instance.getClass(), "finalize", new Class[0], null);
 			if (fin != null) {
 				fin.invoke(startup.instance, new Object[0]);
 			}
@@ -3879,12 +3879,10 @@ public final class ConfigAdmin {
 
 	public void restart(ConfigServerImpl cs) throws PageException {
 		CFMLEngineFactory factory = cs.getEngine().getCFMLEngineFactory();
-
 		synchronized (factory) {
 			try {
-				Method m = factory.getClass().getDeclaredMethod("_restart", new Class[0]);
+				Method m = Reflector.getDeclaredMethod(factory.getClass(), "_restart", new Class[0]);
 				if (m == null) throw new ApplicationException("Cannot restart Lucee.");
-				m.setAccessible(true);
 				m.invoke(factory, new Object[0]);
 			}
 			catch (Exception e) {

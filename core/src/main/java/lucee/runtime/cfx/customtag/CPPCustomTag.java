@@ -18,8 +18,6 @@
  **/
 package lucee.runtime.cfx.customtag;
 
-import java.lang.reflect.Method;
-
 import com.allaire.cfx.CustomTag;
 import com.allaire.cfx.Request;
 import com.allaire.cfx.Response;
@@ -27,6 +25,8 @@ import com.allaire.cfx.Response;
 import lucee.commons.lang.ClassException;
 import lucee.commons.lang.ClassUtil;
 import lucee.runtime.cfx.CFXTagException;
+import lucee.runtime.reflection.Reflector;
+import lucee.transformer.dynamic.meta.Method;
 
 public class CPPCustomTag implements CustomTag {
 
@@ -53,9 +53,9 @@ public class CPPCustomTag implements CustomTag {
 
 			}
 			try {
-				processRequest = clazz.getMethod("processRequest", new Class[] { String.class, String.class, Request.class, Response.class, boolean.class });
+				processRequest = Reflector.getMethod(clazz, "processRequest", new Class[] { String.class, String.class, Request.class, Response.class, boolean.class });
 			}
-			catch (NoSuchMethodException e) {
+			catch (Exception e) {
 				throw new CFXTagException(e);
 			}
 		}

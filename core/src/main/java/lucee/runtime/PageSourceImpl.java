@@ -22,7 +22,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 
 import lucee.commons.io.IOUtil;
@@ -30,6 +29,7 @@ import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
+import lucee.commons.lang.ClassException;
 import lucee.commons.lang.ClassUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
@@ -526,11 +526,11 @@ public final class PageSourceImpl implements PageSource {
 		}
 	}
 
-	private Page newInstance(Class clazz)
-			throws SecurityException, IllegalArgumentException, InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
+	private Page newInstance(Class clazz) throws ClassException, InvocationTargetException {
 
-		Constructor<?> c = clazz.getConstructor(new Class[] { PageSource.class });
-		return (Page) c.newInstance(new Object[] { this });
+		return (Page) ClassUtil.loadInstance(clazz, new Object[] { this });
+		// Constructor<?> c = clazz.getConstructor(new Class[] { PageSource.class });
+		// return (Page) c.newInstance(new Object[] { this });
 	}
 
 	/**

@@ -19,10 +19,9 @@
 package lucee.runtime.dump;
 
 import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.nio.charset.Charset;
 import java.sql.ResultSet;
 import java.text.SimpleDateFormat;
@@ -68,6 +67,7 @@ import lucee.runtime.op.Decision;
 import lucee.runtime.osgi.BundleRange;
 import lucee.runtime.osgi.OSGiUtil;
 import lucee.runtime.osgi.OSGiUtil.VersionDefinition;
+import lucee.runtime.reflection.Reflector;
 import lucee.runtime.text.xml.XMLCaster;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.Collection;
@@ -79,6 +79,7 @@ import lucee.runtime.type.UDF;
 import lucee.runtime.type.dt.DateTimeImpl;
 import lucee.runtime.type.scope.CookieImpl;
 import lucee.runtime.type.util.UDFUtil;
+import lucee.transformer.dynamic.meta.Method;
 
 public class DumpUtil {
 
@@ -459,16 +460,20 @@ public class DumpUtil {
 				table.appendRow(3, new SimpleDumpData("Property Name"), new SimpleDumpData("Value"));
 
 				// collect the properties
-				Method[] methods = clazz.getMethods();
+				List<Method> methods = null;
+				try {
+					methods = Reflector.getMethods(clazz);
+				}
+				catch (IOException e) {
+				}
 				String propName;
 				Object value;
 				String exName = null;
 				String exValue = null;
-				for (int i = 0; i < methods.length; i++) {
-					Method method = methods[i];
+				if (methods != null) for (Method method: methods) {
 					if (Object.class == method.getDeclaringClass()) continue;
 					propName = method.getName();
-					if (propName.startsWith("get") && method.getParameterTypes().length == 0) {
+					if (propName.startsWith("get") && method.getArgumentCount() == 0) {
 						propName = StringUtil.lcFirst(propName.substring(3));
 						value = null;
 						try {
@@ -591,15 +596,20 @@ public class DumpUtil {
 
 			// Methods
 			StringBuilder objMethods = new StringBuilder();
-			Method[] methods = clazz.getMethods();
+			List<Method> methods = null;
+			try {
+				methods = Reflector.getMethods(clazz);
+			}
+			catch (IOException e) {
+			}
 			DumpTable methDump = new DumpTable("#d6ccc2", "#f5ebe0", "#000000");
 			methDump.appendRow(-1, new SimpleDumpData("type"), new SimpleDumpData("interface"), new SimpleDumpData("exceptions"));
 			methDump.setTitle("Methods");
 			boolean isStatic;
 			for (int i = 0; i < 2; i++) {
-				for (Method method: methods) {
+				if (methods != null) for (Method method: methods) {
 
-					isStatic = Modifier.isStatic(method.getModifiers());
+					isStatic = method.isStatic();
 					if ((i == 0 && !isStatic) || (i == 1 && isStatic)) continue;
 					if (Object.class == method.getDeclaringClass()) {
 						if (objMethods.length() > 0) objMethods.append(", ");
@@ -609,16 +619,16 @@ public class DumpUtil {
 
 					// exceptions
 					StringBuilder sbExp = new StringBuilder();
-					Class[] exceptions = method.getExceptionTypes();
+					String[] exceptions = method.getExceptions();
 					for (int p = 0; p < exceptions.length; p++) {
 						if (p > 0) sbExp.append("\n");
-						sbExp.append(Caster.toClassName(exceptions[p]));
+						sbExp.append(exceptions[p]);
 					}
 
 					// parameters
 					StringBuilder sbParams = new StringBuilder(method.getName());
 					sbParams.append('(');
-					Class[] parameters = method.getParameterTypes();
+					Class[] parameters = method.getArgumentClasses();
 					for (int p = 0; p < parameters.length; p++) {
 						if (p > 0) sbParams.append(", ");
 						sbParams.append(Caster.toClassName(parameters[p]));
@@ -630,7 +640,7 @@ public class DumpUtil {
 				}
 			}
 
-			if (methods.length > 0) table.appendRow(0, methDump);
+			if (methods != null && methods.size() > 0) table.appendRow(0, methDump);
 
 			DumpTable inherited = new DumpTable("#d6ccc2", "#f5ebe0", "#000000");
 			inherited.setTitle("java.lang.Object methods");

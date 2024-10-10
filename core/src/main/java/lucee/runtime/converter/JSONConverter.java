@@ -22,7 +22,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.Writer;
 import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetEncoder;
@@ -179,15 +178,15 @@ public final class JSONConverter extends ConverterSupport {
 		}
 		if (obj != null) {
 			// setters
-			Method[] setters = Reflector.getSetters(clazz);
-			for (int i = 0; i < setters.length; i++) {
-				sct.setEL(setters[i].getName().substring(3), CollectionUtil.NULL);
+			List<lucee.transformer.dynamic.meta.Method> setters = Reflector.getSetters(clazz);
+			for (lucee.transformer.dynamic.meta.Method setter: setters) {
+				sct.setEL(setter.getName().substring(3), CollectionUtil.NULL);
 			}
 			// getters
-			Method[] getters = Reflector.getGetters(clazz);
-			for (int i = 0; i < getters.length; i++) {
+			List<lucee.transformer.dynamic.meta.Method> getters = Reflector.getGetters(clazz);
+			for (lucee.transformer.dynamic.meta.Method getter: getters) {
 				try {
-					sct.setEL(getters[i].getName().substring(3), testRecusrion(test, getters[i].invoke(obj, ArrayUtil.OBJECT_EMPTY)));
+					sct.setEL(getter.getName().substring(3), testRecusrion(test, getter.invoke(obj, ArrayUtil.OBJECT_EMPTY)));
 
 				}
 				catch (Exception e) {
