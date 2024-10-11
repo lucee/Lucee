@@ -3676,14 +3676,14 @@ public final class ConfigWebFactory extends ConfigFactory {
 				str = getAttr(root, "allowCompression");
 			}
 			if (!StringUtil.isEmpty(str) && hasAccess) {
-				config.setAllowCompression(toBoolean(str, true));
+				config.setAllowCompression(toBoolean(str, ConfigImpl.DEFAULT_ALLOW_COMPRESSION));
 			}
 			else if (hasCS) config.setAllowCompression(configServer.allowCompression());
 
 			// mode
 			String developMode = getAttr(root, "developMode");
 			if (!StringUtil.isEmpty(developMode) && hasAccess) {
-				config.setDevelopMode(toBoolean(developMode, false));
+				config.setDevelopMode(toBoolean(developMode, ConfigImpl.DEFAULT_DEVELOP_MODE));
 			}
 			else if (hasCS) config.setDevelopMode(configServer.isDevelopMode());
 		}

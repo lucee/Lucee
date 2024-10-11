@@ -138,6 +138,7 @@ import lucee.runtime.security.SecurityManagerImpl;
 import lucee.runtime.security.SerialNumber;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
+import lucee.runtime.type.Collection;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Query;
@@ -322,7 +323,22 @@ public final class ConfigAdmin {
 		_reload();
 	}
 
+	private synchronized void _cleanup() {
+		removeIf("allowCompression", ConfigImpl.DEFAULT_ALLOW_COMPRESSION);
+		removeIf("bufferTagBodyOutput", ConfigImpl.DEFAULT_BUFFER_TAG_BODY_OUTPUT);
+		removeIf("developMode", ConfigImpl.DEFAULT_DEVELOP_MODE);
+	}
+
+	private void removeIf(String name, Boolean expected) {
+		removeIf(KeyImpl.init(name), expected);
+	}
+
+	private void removeIf(Collection.Key name, Boolean expected) {
+		if (expected.equals(Caster.toBoolean(root.get(name, null), null))) root.removeEL(name);
+	}
+
 	private synchronized void _store() throws ConverterException, IOException {
+		_cleanup();
 		JSONConverter json = new JSONConverter(true, CharsetUtil.UTF8, JSONDateFormat.PATTERN_CF, false);
 		String str = json.serialize(null, root, SerializationSettings.SERIALIZE_AS_ROW, true);
 		IOUtil.write(config.getConfigFile(), str, CharsetUtil.UTF8, false);
