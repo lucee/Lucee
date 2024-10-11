@@ -35,7 +35,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="orm" {
 				expect(trim(result)).toBe("LDEV3907");
 			});
 
-			it( title="updating any value in the ORM entity and then accesssing after an ormsave (force: false)", skip=true, body=function( currentSpec ) {
+			it( title="updating any value in the ORM entity and then accessing after an ormsave (force: false)", skip=true, body=function( currentSpec ) {
 				try {
 					local.result = _InternalRequest(
 						template : "#uri#\LDEV3907.cfm",
@@ -51,7 +51,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="orm" {
 				expect(trim(result)).toBe("LDEV3907");
 			});
 
-			it( title="updating any value in the ORM entity and then accesssing after an ormsave (force: true)", skip=notHasMssql(), body=function( currentSpec ) {
+			it( title="updating any value in the ORM entity and then accessing after an ormsave (force: true)", skip=notHasMssql(), body=function( currentSpec ) {
 				try {
 					local.result = _InternalRequest(
 						template : "#uri#\LDEV3907.cfm",

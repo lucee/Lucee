@@ -419,7 +419,7 @@ private function testResourceReadWrite(res) localMode=true {
 }
 
 private function testResourceProvider(string path) localmode=true {
-	// first we ceate a resource object
+	// first we create a resource object
 	res=createObject('java','lucee.commons.io.res.util.ResourceUtil').toResourceNotExisting(getPageContext(), path);
 
 	// delete when exists
