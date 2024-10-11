@@ -103,68 +103,6 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 
 	private static final long serialVersionUID = -8230105685329758613L;
 
-	private static final Collection.Key APPLICATION_TIMEOUT = KeyConstants._applicationTimeout;
-	private static final Collection.Key CLIENT_MANAGEMENT = KeyConstants._clientManagement;
-	private static final Collection.Key CLIENT_STORAGE = KeyConstants._clientStorage;
-	private static final Collection.Key SESSION_STORAGE = KeyConstants._sessionStorage;
-	private static final Collection.Key LOGIN_STORAGE = KeyConstants._loginStorage;
-	private static final Collection.Key SESSION_TYPE = KeyConstants._sessionType;
-	private static final Collection.Key WS_SETTINGS = KeyConstants._wssettings;
-	private static final Collection.Key WS_SETTING = KeyConstants._wssetting;
-	private static final Collection.Key TRIGGER_DATA_MEMBER = KeyConstants._triggerDataMember;
-	private static final Collection.Key INVOKE_IMPLICIT_ACCESSOR = KeyConstants._InvokeImplicitAccessor;
-	private static final Collection.Key SESSION_MANAGEMENT = KeyConstants._sessionManagement;
-	private static final Collection.Key SESSION_TIMEOUT = KeyConstants._sessionTimeout;
-	private static final Collection.Key CLIENT_TIMEOUT = KeyConstants._clientTimeout;
-	private static final Collection.Key REQUEST_TIMEOUT = KeyConstants._requestTimeout;
-	private static final Collection.Key SET_CLIENT_COOKIES = KeyConstants._setClientCookies;
-	private static final Collection.Key SET_DOMAIN_COOKIES = KeyConstants._setDomainCookies;
-	private static final Collection.Key SCRIPT_PROTECT = KeyConstants._scriptProtect;
-	private static final Collection.Key CUSTOM_TAG_PATHS = KeyConstants._customtagpaths;
-	private static final Collection.Key COMPONENT_PATHS = KeyConstants._componentpaths;
-	private static final Collection.Key FUNCTION_PATHS = KeyConstants._functionpaths;
-	private static final Collection.Key SECURE_JSON_PREFIX = KeyConstants._secureJsonPrefix;
-	private static final Collection.Key SECURE_JSON = KeyConstants._secureJson;
-	private static final Collection.Key LOCAL_MODE = KeyConstants._localMode;
-	private static final Collection.Key BUFFER_OUTPUT = KeyConstants._bufferOutput;
-	private static final Collection.Key SESSION_CLUSTER = KeyConstants._sessionCluster;
-	private static final Collection.Key CLIENT_CLUSTER = KeyConstants._clientCluster;
-
-	private static final Collection.Key DEFAULT_DATA_SOURCE = KeyConstants._defaultdatasource;
-	private static final Collection.Key DEFAULT_CACHE = KeyConstants._defaultcache;
-
-	private static final Collection.Key ORM_ENABLED = KeyConstants._ormenabled;
-	private static final Collection.Key ORM_SETTINGS = KeyConstants._ormsettings;
-	private static final Collection.Key IN_MEMORY_FILESYSTEM = KeyConstants._inmemoryfilesystem;
-	private static final Collection.Key REST_SETTING = KeyConstants._restsettings;
-	private static final Collection.Key JAVA_SETTING = KeyConstants._javasettings;
-	private static final Collection.Key SCOPE_CASCADING = KeyConstants._scopeCascading;
-	private static final Collection.Key SEARCH_IMPLICIT_SCOPES = KeyConstants._searchImplicitScopes;
-	private static final Collection.Key TYPE_CHECKING = KeyConstants._typeChecking;
-	private static final Collection.Key CGI_READONLY = KeyConstants._CGIReadOnly;
-	private static final Collection.Key SUPPRESS_CONTENT = KeyConstants._suppressRemoteComponentContent;
-
-	private static final Collection.Key SESSION_COOKIE = KeyConstants._sessioncookie;
-	private static final Collection.Key AUTH_COOKIE = KeyConstants._authcookie;
-
-	private static final Key ENABLE_NULL_SUPPORT = KeyConstants._enableNULLSupport;
-	private static final Key NULL_SUPPORT = KeyConstants._nullSupport;
-	private static final Key PRECISE_MATH = KeyConstants._preciseMath;
-	private static final Key PRECISION_EVAL = KeyConstants._precisionEvaluate;
-	private static final Key PSQ = KeyConstants._psq;
-	private static final Key PSQ_LONG = KeyConstants._preservesinglequote;
-	private static final Key VAR_USAGE = KeyConstants._varusage;
-	private static final Key VARIABLE_USAGE = KeyConstants._variableusage;
-	private static final Key CACHED_AFTER = KeyConstants._cachedAfter;
-	private static final Key BLOCKED_EXT_FOR_FILE_UPLOAD = KeyConstants._blockedExtForFileUpload;
-	private static final Key XML_FEATURES = KeyConstants._xmlFeatures;
-	private static final Key SEARCH_QUERIES = KeyConstants._searchQueries;
-	private static final Key SEARCH_RESULTS = KeyConstants._searchResults;
-	private static final Key LIMIT_EVALUATION = KeyConstants._limitEvaluation;
-	private static final Key REGEX = KeyConstants._regex;
-	private static final Key ENGINE = KeyConstants._engine;
-	private static final Key USE_JAVA_AS_REGEX_ENGINE = KeyConstants._useJavaAsRegexEngine;
-
 	private static Map<String, CacheConnection> initCacheConnections = new ConcurrentHashMap<String, CacheConnection>();
 	private static Object token = new SerializableObject();
 	private static JavaSettings defaultJavaSettings;
@@ -415,20 +353,20 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	}
 
 	public void initScopeCascading() {
-		Object o = get(component, SCOPE_CASCADING, null);
+		Object o = get(component, KeyConstants._scopeCascading, null);
 		if (o != null) {
 			scopeCascading = ConfigWebUtil.toScopeCascading(Caster.toString(o, null), (short) -1);
 		}
 		else {
-			Boolean b = Caster.toBoolean(get(component, SEARCH_IMPLICIT_SCOPES, null), null);
+			Boolean b = Caster.toBoolean(get(component, KeyConstants._searchImplicitScopes, null), null);
 			if (b != null) scopeCascading = ConfigWebUtil.toScopeCascading(b);
 		}
 
 	}
 
 	private void initAllowImplicidQueryCall() {
-		Object o = get(component, SEARCH_QUERIES, null);
-		if (o == null) o = get(component, SEARCH_RESULTS, null);
+		Object o = get(component, KeyConstants._searchQueries, null);
+		if (o == null) o = get(component, KeyConstants._searchResults, null);
 
 		if (o != null) allowImplicidQueryCall = Caster.toBooleanValue(o, allowImplicidQueryCall);
 	}
@@ -438,7 +376,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 
 		if (o instanceof Struct) {
 			Struct sct = (Struct) o;
-			o = sct.get(LIMIT_EVALUATION, null);
+			o = sct.get(KeyConstants._limitEvaluation, null);
 			if (o != null) limitEvaluation = Caster.toBooleanValue(o, limitEvaluation);
 
 		}
@@ -465,18 +403,18 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 		}
 
 		// default datasource
-		o = get(component, DEFAULT_DATA_SOURCE, null);
+		o = get(component, KeyConstants._defaultdatasource, null);
 		if (o != null) {
 			this.defaultDataSource = AppListenerUtil.toDefaultDatasource(pc.getConfig(), o, ThreadLocalPageContext.getLog(pc, "application"));
 		}
 
 		// ormenabled
-		o = get(component, ORM_ENABLED, null);
+		o = get(component, KeyConstants._ormenabled, null);
 		if (o != null && Caster.toBooleanValue(o, false)) {
 			this.ormEnabled = true;
 
 			// settings
-			o = get(component, ORM_SETTINGS, null);
+			o = get(component, KeyConstants._ormsettings, null);
 			Struct settings;
 			if (o instanceof Struct) settings = (Struct) o;
 			else settings = new StructImpl();
@@ -501,7 +439,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	public int getLoginStorage() {
 		if (!initLoginStorage) {
 			String str = null;
-			Object o = get(component, LOGIN_STORAGE, null);
+			Object o = get(component, KeyConstants._loginStorage, null);
 			if (o != null) {
 				str = Caster.toString(o, null);
 				if (str != null) loginStorage = AppListenerUtil.translateLoginStorage(str, loginStorage);
@@ -514,7 +452,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	@Override
 	public TimeSpan getApplicationTimeout() {
 		if (!initApplicationTimeout) {
-			Object o = get(component, APPLICATION_TIMEOUT, null);
+			Object o = get(component, KeyConstants._applicationTimeout, null);
 			if (o != null) applicationTimeout = Caster.toTimespan(o, applicationTimeout);
 			initApplicationTimeout = true;
 		}
@@ -524,7 +462,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	@Override
 	public TimeSpan getSessionTimeout() {
 		if (!initSessionTimeout) {
-			Object o = get(component, SESSION_TIMEOUT, null);
+			Object o = get(component, KeyConstants._sessionTimeout, null);
 			if (o != null) sessionTimeout = Caster.toTimespan(o, sessionTimeout);
 			initSessionTimeout = true;
 		}
@@ -534,7 +472,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	@Override
 	public TimeSpan getClientTimeout() {
 		if (!initClientTimeout) {
-			Object o = get(component, CLIENT_TIMEOUT, null);
+			Object o = get(component, KeyConstants._clientTimeout, null);
 			if (o != null) clientTimeout = Caster.toTimespan(o, clientTimeout);
 			initClientTimeout = true;
 		}
@@ -544,7 +482,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	@Override
 	public TimeSpan getRequestTimeout() {
 		if (!initRequestTimeout) {
-			Object o = get(component, REQUEST_TIMEOUT, null);
+			Object o = get(component, KeyConstants._requestTimeout, null);
 			if (o == null) o = get(component, KeyConstants._timeout, null);
 			if (o != null) requestTimeout = Caster.toTimespan(o, requestTimeout);
 			initRequestTimeout = true;
@@ -561,7 +499,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	@Override
 	public boolean isSetClientCookies() {
 		if (!initSetClientCookies) {
-			Object o = get(component, SET_CLIENT_COOKIES, null);
+			Object o = get(component, KeyConstants._setClientCookies, null);
 			if (o != null) setClientCookies = Caster.toBooleanValue(o, setClientCookies);
 			initSetClientCookies = true;
 		}
@@ -571,7 +509,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	@Override
 	public boolean isSetClientManagement() {
 		if (!initSetClientManagement) {
-			Object o = get(component, CLIENT_MANAGEMENT, null);
+			Object o = get(component, KeyConstants._clientManagement, null);
 			if (o != null) setClientManagement = Caster.toBooleanValue(o, setClientManagement);
 			initSetClientManagement = true;
 		}
@@ -581,7 +519,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	@Override
 	public boolean isSetDomainCookies() {
 		if (!initSetDomainCookies) {
-			Object o = get(component, SET_DOMAIN_COOKIES, null);
+			Object o = get(component, KeyConstants._setDomainCookies, null);
 			if (o != null) setDomainCookies = Caster.toBooleanValue(o, setDomainCookies);
 			initSetDomainCookies = true;
 		}
@@ -591,7 +529,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	@Override
 	public boolean isSetSessionManagement() {
 		if (!initSetSessionManagement) {
-			Object o = get(component, SESSION_MANAGEMENT, null);
+			Object o = get(component, KeyConstants._sessionManagement, null);
 			if (o != null) setSessionManagement = Caster.toBooleanValue(o, setSessionManagement);
 			initSetSessionManagement = true;
 		}
@@ -601,7 +539,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	@Override
 	public String getClientstorage() {
 		if (!initClientStorage) {
-			String str = Caster.toString(get(component, CLIENT_STORAGE, null), null);
+			String str = Caster.toString(get(component, KeyConstants._clientStorage, null), null);
 			if (!StringUtil.isEmpty(str)) clientStorage = str;
 			initClientStorage = true;
 		}
@@ -612,7 +550,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	public int getScriptProtect() {
 		if (!initScriptProtect) {
 			String str = null;
-			Object o = get(component, SCRIPT_PROTECT, null);
+			Object o = get(component, KeyConstants._scriptProtect, null);
 			if (o != null) {
 				str = Caster.toString(o, null);
 				if (str != null) scriptProtect = AppListenerUtil.translateScriptProtect(str);
@@ -625,7 +563,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	@Override
 	public boolean getTypeChecking() {
 		if (!initTypeChecking) {
-			Boolean b = Caster.toBoolean(get(component, TYPE_CHECKING, null), null);
+			Boolean b = Caster.toBoolean(get(component, KeyConstants._typeChecking, null), null);
 			if (b != null) typeChecking = b.booleanValue();
 			initTypeChecking = true;
 		}
@@ -651,7 +589,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	@Override
 	public String getSecureJsonPrefix() {
 		if (!initSecureJsonPrefix) {
-			Object o = get(component, SECURE_JSON_PREFIX, null);
+			Object o = get(component, KeyConstants._secureJsonPrefix, null);
 			if (o != null) secureJsonPrefix = Caster.toString(o, secureJsonPrefix);
 			initSecureJsonPrefix = true;
 		}
@@ -661,7 +599,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	@Override
 	public boolean getSecureJson() {
 		if (!initSecureJson) {
-			Object o = get(component, SECURE_JSON, null);
+			Object o = get(component, KeyConstants._secureJson, null);
 			if (o != null) secureJson = Caster.toBooleanValue(o, secureJson);
 			initSecureJson = true;
 		}
@@ -671,7 +609,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	@Override
 	public String getSessionstorage() {
 		if (!initSessionStorage) {
-			String str = Caster.toString(get(component, SESSION_STORAGE, null), null);
+			String str = Caster.toString(get(component, KeyConstants._sessionStorage, null), null);
 			if (!StringUtil.isEmpty(str)) sessionStorage = str;
 			initSessionStorage = true;
 		}
@@ -681,7 +619,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	@Override
 	public boolean getSessionCluster() {
 		if (!initSessionCluster) {
-			Object o = get(component, SESSION_CLUSTER, null);
+			Object o = get(component, KeyConstants._sessionCluster, null);
 			if (o != null) sessionCluster = Caster.toBooleanValue(o, sessionCluster);
 			initSessionCluster = true;
 		}
@@ -691,7 +629,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	@Override
 	public boolean getClientCluster() {
 		if (!initClientCluster) {
-			Object o = get(component, CLIENT_CLUSTER, null);
+			Object o = get(component, KeyConstants._clientCluster, null);
 			if (o != null) clientCluster = Caster.toBooleanValue(o, clientCluster);
 			initClientCluster = true;
 		}
@@ -702,7 +640,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	public short getSessionType() {
 		if (!initSessionType) {
 			String str = null;
-			Object o = get(component, SESSION_TYPE, null);
+			Object o = get(component, KeyConstants._sessionType, null);
 			if (o != null) {
 				str = Caster.toString(o, null);
 				if (str != null) sessionType = AppListenerUtil.toSessionType(str, sessionType);
@@ -732,8 +670,8 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 
 	public void initWS() {
 		if (!initWS) {
-			Object o = get(component, WS_SETTINGS, null);
-			if (o == null) o = get(component, WS_SETTING, null);
+			Object o = get(component, KeyConstants._wssettings, null);
+			if (o == null) o = get(component, KeyConstants._wssetting, null);
 			if (o instanceof Struct) {
 				Struct sct = (Struct) o;
 
@@ -763,8 +701,8 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	public boolean getTriggerComponentDataMember() {
 		if (!initTriggerComponentDataMember) {
 			Boolean b = null;
-			Object o = get(component, INVOKE_IMPLICIT_ACCESSOR, null);
-			if (o == null) o = get(component, TRIGGER_DATA_MEMBER, null);
+			Object o = get(component, KeyConstants._InvokeImplicitAccessor, null);
+			if (o == null) o = get(component, KeyConstants._triggerDataMember, null);
 			if (o != null) {
 				b = Caster.toBoolean(o, null);
 				if (b != null) triggerComponentDataMember = b.booleanValue();
@@ -883,7 +821,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 			boolean hasResource = false;
 			if (defaultCaches == null) defaultCaches = new ConcurrentHashMap<Integer, String>();
 			if (cacheConnections == null) cacheConnections = new ConcurrentHashMap<Collection.Key, CacheConnection>();
-			Struct sctDefCache = Caster.toStruct(get(component, DEFAULT_CACHE, null), null);
+			Struct sctDefCache = Caster.toStruct(get(component, KeyConstants._defaultcache, null), null);
 			if (sctDefCache == null) sctDefCache = Caster.toStruct(get(component, KeyConstants._cache, null), null);
 
 			// Default
@@ -909,7 +847,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 			}
 			// check alias inmemoryfilesystem
 			if (!hasResource) {
-				String str = Caster.toString(get(component, IN_MEMORY_FILESYSTEM, null), null);
+				String str = Caster.toString(get(component, KeyConstants._inmemoryfilesystem, null), null);
 				if (!StringUtil.isEmpty(str, true)) {
 					defaultCaches.put(Config.CACHE_TYPE_RESOURCE, str.trim());
 				}
@@ -1095,7 +1033,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	@Override
 	public Mapping[] getCustomTagMappings() {
 		if (!initCTMappings) {
-			Object o = get(component, CUSTOM_TAG_PATHS, null);
+			Object o = get(component, KeyConstants._customtagpaths, null);
 			if (o != null) ctmappings = AppListenerUtil.toCustomTagMappings(config, o, getSource(), ctmappings);
 			initCTMappings = true;
 		}
@@ -1105,7 +1043,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	@Override
 	public Mapping[] getComponentMappings() {
 		if (!initCMappings) {
-			Object o = get(component, COMPONENT_PATHS, null);
+			Object o = get(component, KeyConstants._componentpaths, null);
 			if (o != null) cmappings = AppListenerUtil.toComponentMappings(config, o, getSource(), cmappings);
 			initCMappings = true;
 		}
@@ -1115,7 +1053,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	@Override
 	public List<Resource> getFunctionDirectories() {
 		if (!initFuncDirs) {
-			Object o = get(component, FUNCTION_PATHS, null);
+			Object o = get(component, KeyConstants._functionpaths, null);
 			if (o != null) funcDirs = AppListenerUtil.loadResources(config, null, o, true);
 			initFuncDirs = true;
 		}
@@ -1131,7 +1069,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	@Override
 	public int getLocalMode() {
 		if (!initLocalMode) {
-			Object o = get(component, LOCAL_MODE, null);
+			Object o = get(component, KeyConstants._localMode, null);
 			if (o != null) localMode = AppListenerUtil.toLocalMode(o, localMode);
 			initLocalMode = true;
 		}
@@ -1424,7 +1362,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 
 	public boolean _getBufferOutput() {
 		if (!initBufferOutput) {
-			Object o = get(component, BUFFER_OUTPUT, null);
+			Object o = get(component, KeyConstants._bufferOutput, null);
 			if (o != null) bufferOutput = Caster.toBooleanValue(o, bufferOutput);
 			initBufferOutput = true;
 		}
@@ -1434,7 +1372,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	@Override
 	public boolean getSuppressContent() {
 		if (!initSuppressContent) {
-			Object o = get(component, SUPPRESS_CONTENT, null);
+			Object o = get(component, KeyConstants._suppressRemoteComponentContent, null);
 			if (o != null) suppressContent = Caster.toBooleanValue(o, suppressContent);
 			initSuppressContent = true;
 		}
@@ -1773,7 +1711,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 
 	private void initRest() {
 		if (!initRestSetting) {
-			Object o = get(component, REST_SETTING, null);
+			Object o = get(component, KeyConstants._restsettings, null);
 			if (o != null && Decision.isStruct(o)) {
 				Struct sct = Caster.toStruct(o, null);
 
@@ -1811,7 +1749,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 			}
 			initClassLoaderBefore = true;
 			cl = getDefaultClassLoader(config);
-			Object o = javaSettings != null ? null : get(component, JAVA_SETTING, null);
+			Object o = javaSettings != null ? null : get(component, KeyConstants._javasettings, null);
 			if (javaSettings != null || (o != null && Decision.isStruct(o))) {
 				if (javaSettings == null) javaSettings = JavaSettingsImpl.getInstance(config, Caster.toStruct(o, null), null);
 				cl = ((ConfigPro) config).getRPCClassLoader(false, javaSettings, cl);
@@ -1937,7 +1875,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	@Override
 	public boolean getCGIScopeReadonly() {
 		if (!initCGIScopeReadonly) {
-			Object o = get(component, CGI_READONLY, null);
+			Object o = get(component, KeyConstants._CGIReadOnly, null);
 			if (o != null) cgiScopeReadonly = Caster.toBooleanValue(o, cgiScopeReadonly);
 			initCGIScopeReadonly = true;
 		}
@@ -1958,7 +1896,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	@Override
 	public String getBlockedExtForFileUpload() {
 		if (!initBlockedExtForFileUpload) {
-			Object o = get(component, BLOCKED_EXT_FOR_FILE_UPLOAD, null);
+			Object o = get(component, KeyConstants._blockedExtForFileUpload, null);
 			blockedExtForFileUpload = Caster.toString(o, null);
 			initBlockedExtForFileUpload = true;
 		}
@@ -1968,7 +1906,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	@Override
 	public SessionCookieData getSessionCookie() {
 		if (!initSessionCookie) {
-			Struct sct = Caster.toStruct(get(component, SESSION_COOKIE, null), null);
+			Struct sct = Caster.toStruct(get(component, KeyConstants._sessioncookie, null), null);
 			if (sct != null) sessionCookie = AppListenerUtil.toSessionCookie(config, sct);
 			initSessionCookie = true;
 		}
@@ -1978,7 +1916,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	@Override
 	public AuthCookieData getAuthCookie() {
 		if (!initAuthCookie) {
-			Struct sct = Caster.toStruct(get(component, AUTH_COOKIE, null), null);
+			Struct sct = Caster.toStruct(get(component, KeyConstants._authcookie, null), null);
 			if (sct != null) authCookie = AppListenerUtil.toAuthCookie(config, sct);
 			initAuthCookie = true;
 		}
@@ -2050,8 +1988,8 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	@Override
 	public boolean getFullNullSupport() {
 		if (!initFullNullSupport) {
-			Boolean b = Caster.toBoolean(get(component, NULL_SUPPORT, null), null);
-			if (b == null) b = Caster.toBoolean(get(component, ENABLE_NULL_SUPPORT, null), null);
+			Boolean b = Caster.toBoolean(get(component, KeyConstants._nullSupport, null), null);
+			if (b == null) b = Caster.toBoolean(get(component, KeyConstants._enableNULLSupport, null), null);
 			if (b != null) fullNullSupport = b.booleanValue();
 
 			initFullNullSupport = true;
@@ -2068,8 +2006,8 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	@Override
 	public boolean getPreciseMath() {
 		if (!initPreciseMath) {
-			Boolean b = Caster.toBoolean(get(component, PRECISE_MATH, null), null);
-			if (b == null) b = Caster.toBoolean(get(component, PRECISION_EVAL, null), null);
+			Boolean b = Caster.toBoolean(get(component, KeyConstants._preciseMath, null), null);
+			if (b == null) b = Caster.toBoolean(get(component, KeyConstants._precisionEvaluate, null), null);
 			if (b != null) preciseMath = b.booleanValue();
 
 			initPreciseMath = true;
@@ -2109,8 +2047,8 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 		if (!initQueryPSQ) {
 			Struct qry = Caster.toStruct(get(component, KeyConstants._query, null), null);
 			if (qry != null) {
-				Boolean b = Caster.toBoolean(qry.get(PSQ, null), null);
-				if (b == null) b = Caster.toBoolean(qry.get(PSQ_LONG, null), null);
+				Boolean b = Caster.toBoolean(qry.get(KeyConstants._psq, null), null);
+				if (b == null) b = Caster.toBoolean(qry.get(KeyConstants._preservesinglequote, null), null);
 				if (b != null) queryPSQ = b.booleanValue();
 			}
 			initQueryPSQ = true;
@@ -2129,7 +2067,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 		if (!initQueryCacheAfter) {
 			Struct qry = Caster.toStruct(get(component, KeyConstants._query, null), null);
 			if (qry != null) {
-				TimeSpan ts = Caster.toTimespan(qry.get(CACHED_AFTER, null), null);
+				TimeSpan ts = Caster.toTimespan(qry.get(KeyConstants._cachedAfter, null), null);
 				if (ts != null) queryCachedAfter = ts;
 			}
 			initQueryCacheAfter = true;
@@ -2149,8 +2087,8 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 			Struct sct = Caster.toStruct(get(component, KeyConstants._query, null), null);
 			if (sct == null) sct = Caster.toStruct(get(component, KeyConstants._security, null), null);
 			if (sct != null) {
-				String str = Caster.toString(sct.get(VAR_USAGE, null), null);
-				if (StringUtil.isEmpty(str)) str = Caster.toString(sct.get(VARIABLE_USAGE, null), null);
+				String str = Caster.toString(sct.get(KeyConstants._varusage, null), null);
+				if (StringUtil.isEmpty(str)) str = Caster.toString(sct.get(KeyConstants._variableusage, null), null);
 				if (!StringUtil.isEmpty(str)) queryVarUsage = AppListenerUtil.toVariableUsage(str, queryVarUsage);
 			}
 			initQueryVarUsage = true;
@@ -2183,7 +2121,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	@Override
 	public Struct getXmlFeatures() {
 		if (!initXmlFeatures) {
-			Struct sct = Caster.toStruct(get(component, XML_FEATURES, null), null);
+			Struct sct = Caster.toStruct(get(component, KeyConstants._xmlFeatures, null), null);
 			if (sct != null) xmlFeatures = sct;
 			initXmlFeatures = true;
 		}
@@ -2219,10 +2157,10 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	public Regex getRegex() {
 		if (!initRegex) {
 
-			Struct sct = Caster.toStruct(get(component, REGEX, null), null);
+			Struct sct = Caster.toStruct(get(component, KeyConstants._regex, null), null);
 			boolean has = false;
 			if (sct != null) {
-				String str = Caster.toString(sct.get(ENGINE, null), null);
+				String str = Caster.toString(sct.get(KeyConstants._engine, null), null);
 				if (StringUtil.isEmpty(str, true)) str = Caster.toString(sct.get(KeyConstants._type, null), null);
 				if (StringUtil.isEmpty(str, true)) str = Caster.toString(sct.get(KeyConstants._dialect, null), null);
 				if (!StringUtil.isEmpty(str, true)) {
@@ -2237,7 +2175,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 				}
 			}
 			if (!has) {
-				Boolean res = Caster.toBoolean(get(component, USE_JAVA_AS_REGEX_ENGINE, null), null);
+				Boolean res = Caster.toBoolean(get(component, KeyConstants._useJavaAsRegexEngine, null), null);
 				if (res != null) regex = RegexFactory.toRegex(res.booleanValue());
 			}
 			initRegex = true;
