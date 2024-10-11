@@ -320,16 +320,10 @@ public final class ThreadLocalPageContext {
 	public static int getId() {
 		PageContext pc = pcThreadLocal.get();
 		if (pc != null) return pc.getId();
-
-		// pc from parent thread
-		pc = pcThreadLocalInheritable.get();
-		if (pc != null) return pc.getId();
-
-		return 0;
+		throw new NullPointerException("cannot provide the id, because there is no PageContext for this thread");
 	}
 
 	public static int getId(PageContext pc) {
-		// pc provided
 		if (pc != null) return pc.getId();
 		return getId();
 	}
