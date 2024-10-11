@@ -22,6 +22,7 @@ import java.io.ByteArrayOutputStream;
 import java.util.Locale;
 import java.util.TimeZone;
 
+import lucee.print;
 import lucee.commons.io.log.Log;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
@@ -52,7 +53,11 @@ public final class ThreadLocalPageContext {
 	 * @param pc PageContext to register
 	 */
 	public static void register(PageContext pc) {// print.ds(Thread.currentThread().getName());
-		if (pc == null) return; // TODO happens with Gateway, but should not!
+		if (pc == null) {
+			if (pc == null) throw new NullPointerException("[" + Thread.currentThread().getId() + "] null was set! ");
+			return; // TODO happens with Gateway, but should not!
+		}
+		print.e("[" + Thread.currentThread().getId() + "] pc set");
 		// TODO should i set the old one by "release"?
 		Thread t = Thread.currentThread();
 		t.setContextClassLoader(((ConfigPro) pc.getConfig()).getClassLoaderEnv());
@@ -89,7 +94,7 @@ public final class ThreadLocalPageContext {
 
 			}
 		}
-
+		if (pc == null) throw new NullPointerException("[" + Thread.currentThread().getId() + "] null in ThreadLocalPageContext ");
 		return pc;
 	}
 
