@@ -369,16 +369,16 @@ abstract class FunctionMemberDynamic implements FunctionMember {
 	public Class[] getArgumentClasses() {
 		if (argClasses == null) {
 			ClassLoader cl = Clazz.getClassLoader(this.declaringClass);
-			argClasses = new Class[argTypes.length];
+			Class[] tmp = new Class[argTypes.length];
 			for (int i = 0; i < argTypes.length; i++) {
 				try {
-
-					argClasses[i] = Clazz.toClass(cl, argTypes[i]);
+					tmp[i] = Clazz.toClass(cl, argTypes[i]);
 				}
 				catch (ClassException e) {
 					throw new PageRuntimeException(e);
 				}
 			}
+			argClasses = tmp;
 		}
 		return argClasses;
 	}
