@@ -1278,9 +1278,15 @@ public final class Reflector {
 		if (rtn != CollectionUtil.NULL) return rtn;
 
 		char first = prop.charAt(0);
-		if (first >= '0' && first <= '9') throw new ApplicationException("there is no property with name [" + prop + "]  found in [" + Caster.toTypeName(obj) + "]");
-		return callGetter(obj, prop);
+		MethodInstance getter = (first >= '0' && first <= '9') ? null : getGetterEL(obj.getClass(), prop);
+		if (getter == null) throw new ApplicationException("there is no property with name [" + prop + "]  found in [" + Caster.toTypeName(obj) + "]");
 
+		try {
+			return getter.invoke(obj);
+		}
+		catch (IOException | NoSuchMethodException e) {
+			throw Caster.toPageException(e);
+		}
 	}
 
 	/**
