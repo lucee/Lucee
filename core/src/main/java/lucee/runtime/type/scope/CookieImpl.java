@@ -136,11 +136,10 @@ public final class CookieImpl extends ScopeSupport implements Cookie, ScriptProt
 	}
 
 	@Override
-	public void clear() {
+	public synchronized void clear() {
 		raw.clear();
-		Collection.Key[] keys = keys();
-		for (int i = 0; i < keys.length; i++) {
-			removeEL(keys[i], false);
+		for (Collection.Key key: keys()) {
+			removeEL(key, false);
 		}
 	}
 
