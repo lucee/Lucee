@@ -52,7 +52,9 @@ public final class ThreadLocalPageContext {
 	 * @param pc PageContext to register
 	 */
 	public static void register(PageContext pc) {// print.ds(Thread.currentThread().getName());
-		if (pc == null) return; // TODO happens with Gateway, but should not!
+		if (pc == null) {
+			return; // TODO happens with Gateway, but should not!
+		}
 		// TODO should i set the old one by "release"?
 		Thread t = Thread.currentThread();
 		t.setContextClassLoader(((ConfigPro) pc.getConfig()).getClassLoaderEnv());
@@ -89,7 +91,6 @@ public final class ThreadLocalPageContext {
 
 			}
 		}
-
 		return pc;
 	}
 
@@ -320,16 +321,10 @@ public final class ThreadLocalPageContext {
 	public static int getId() {
 		PageContext pc = pcThreadLocal.get();
 		if (pc != null) return pc.getId();
-
-		// pc from parent thread
-		pc = pcThreadLocalInheritable.get();
-		if (pc != null) return pc.getId();
-
-		return 0;
+		throw new NullPointerException("cannot provide the id, because there is no PageContext for this thread");
 	}
 
 	public static int getId(PageContext pc) {
-		// pc provided
 		if (pc != null) return pc.getId();
 		return getId();
 	}
