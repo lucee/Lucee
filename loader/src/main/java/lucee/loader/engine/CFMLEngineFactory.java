@@ -682,11 +682,14 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 		}
 		catch (final InvocationTargetException e) {
 			log(e.getTargetException());
-			throw new ServletException(e.getTargetException());
+			ServletException se = new ServletException(e.getTargetException());
+			se.initCause(e);
+			throw se;
 		}
 		catch (final Exception e) {
-			e.printStackTrace();
-			throw new ServletException(e);
+			ServletException se = new ServletException(e);
+			se.initCause(e);
+			throw se;
 		}
 	}
 
