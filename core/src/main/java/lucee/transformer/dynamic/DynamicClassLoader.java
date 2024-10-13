@@ -249,7 +249,7 @@ public final class DynamicClassLoader extends ExtendableClassLoader {
 	 */
 	public Resource _getResource(String name) {
 		Resource f = directory == null ? null : directory.getRealResource(name);
-		if (f != null && f.exists() && f.isFile()) return f;
+		if (f != null && f.isFile()) return f;
 		return null;
 	}
 

@@ -246,7 +246,7 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 	 */
 	public Resource _getResource(String name) {
 		Resource f = directory.getRealResource(name);
-		if (f != null && f.exists() && f.isFile()) return f;
+		if (f != null && f.isFile()) return f;
 		return null;
 	}
 
