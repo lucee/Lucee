@@ -95,9 +95,9 @@ public class ClazzDynamic extends Clazz {
 
 	public static String generateClassLoderId(Class<?> clazz) {
 		ClassLoader cl = clazz.getClassLoader();
-
+		String jv = HashUtil.create64BitHashAsString(System.getProperty("java.version"), Character.MAX_RADIX);
 		if (cl == null) {
-			if (systemId == null) systemId = "s" + HashUtil.create64BitHashAsString(System.getProperty("java.version"), Character.MAX_RADIX);
+			if (systemId == null) systemId = "s" + jv;
 			return systemId;
 		}
 
@@ -110,12 +110,12 @@ public class ClazzDynamic extends Clazz {
 
 		if (cl instanceof BundleClassLoader) {
 			Bundle b = ((BundleClassLoader) cl).getBundle();
-			id = "b" + HashUtil.create64BitHashAsString(b.getSymbolicName() + ":" + b.getVersion(), Character.MAX_RADIX);
+			id = "b" + HashUtil.create64BitHashAsString(b.getSymbolicName() + ":" + b.getVersion() + ":" + jv, Character.MAX_RADIX);
 			clids.put(cl, new SoftReference<String>(id));
 			return id;
 		}
 		if (cl instanceof PhysicalClassLoader) {
-			id = "p" + HashUtil.create64BitHashAsString(((PhysicalClassLoader) cl).getDirectory().getAbsolutePath(), Character.MAX_RADIX);
+			id = "p" + HashUtil.create64BitHashAsString(((PhysicalClassLoader) cl).getDirectory().getAbsolutePath() + ":" + jv, Character.MAX_RADIX);
 			clids.put(cl, new SoftReference<String>(id));
 			return id;
 		}
@@ -123,7 +123,7 @@ public class ClazzDynamic extends Clazz {
 		ProtectionDomain protectionDomain = clazz.getProtectionDomain();
 		CodeSource codeSource = protectionDomain.getCodeSource();
 		if (codeSource != null && codeSource.getLocation() != null) {
-			id = "j" + HashUtil.create64BitHashAsString(codeSource.getLocation().toString(), Character.MAX_RADIX);
+			id = "j" + HashUtil.create64BitHashAsString(codeSource.getLocation().toString() + ":" + jv, Character.MAX_RADIX);
 			clids.put(cl, new SoftReference<String>(id));
 			return id;
 		}
