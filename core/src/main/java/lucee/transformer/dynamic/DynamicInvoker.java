@@ -137,43 +137,23 @@ public class DynamicInvoker {
 		return Clazz.getClazz(clazz, root, log, useReflection);
 	}
 
-	/*
-	 * private static double loadClassTotal = 0; private static double getMatchTotal = 0; private static
-	 * double hasMatchTotal = 0; private static double create1Total = 0; private static double
-	 * create2Total = 0;
-	 * 
-	 * private static int loadClassCount = 0; private static int getMatchCount = 0; private static int
-	 * hasMatchCount = 0; private static int create1Count = 0; private static int create2Count = 0;
-	 */
 	public Pair<FunctionMember, Object> createInstance(Class<?> clazz, Key methodName, Object[] arguments) throws NoSuchMethodException, IOException, UnmodifiableClassException,
 			InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, SecurityException, PageException {
-		// observe(clazz, methodName);
-		// double start = SystemUtil.millis();
 
 		boolean isConstr = methodName == null;
 		Clazz clazzz = getClazz(clazz);
-		/*
-		 * { loadClassCount++; loadClassTotal += (SystemUtil.millis() - start); print.e("loadClass(" +
-		 * loadClassCount + "):" + Caster.toString(loadClassTotal / loadClassCount)); start =
-		 * SystemUtil.millis(); }
-		 */
+
 		lucee.transformer.dynamic.meta.FunctionMember fm = null;
 		lucee.transformer.dynamic.meta.Method method = null;
-		lucee.transformer.dynamic.meta.Constructor constr = null;
 		// <init>
 		if (isConstr) {
-			fm = constr = Clazz.getConstructorMatch(clazzz, arguments, true);
+			fm = Clazz.getConstructorMatch(clazzz, arguments, true);
 		}
 		else {
 			// Clazz clazz, final Collection.Key methodName, final Object[] args, boolean convertArgument
 			fm = method = Clazz.getMethodMatch(clazzz, methodName, arguments, true);
 
 		}
-		/*
-		 * { getMatchCount++; getMatchTotal += (SystemUtil.millis() - start); print.e("get match(" +
-		 * getMatchCount + "):" + Caster.toString(getMatchTotal / getMatchCount)); start =
-		 * SystemUtil.millis(); }
-		 */
 
 		Type[] parameterTypes = fm.getArgumentTypes();
 		clazz = fm.getDeclaringClass(); // we wanna go as low as possible, to be as open as possible also this avoid not allow to access
@@ -186,18 +166,18 @@ public class DynamicInvoker {
 		sbClassPath.append('_').append(HashUtil.create64BitHashAsString(sbArgs, Character.MAX_RADIX));
 		String classPath = Clazz.getPackagePrefix() + sbClassPath.toString();// StringUtil.replace(sbClassPath.toString(), "javae/lang/", "java_lang/", false);
 		String className = classPath.replace('/', '.');
-		synchronized (SystemUtil.createToken("dyninvoc", className)) {
 
-			DynamicClassLoader loader = getCL(clazz);
-			if (loader.hasClass(className)) {
-				try {
-					return new Pair<FunctionMember, Object>(fm, loader.loadInstance(className));
+		DynamicClassLoader loader = getCL(clazz);
+		if (loader.hasClass(className)) {
+			try {
+				return new Pair<FunctionMember, Object>(fm, loader.loadInstance(className));
 
-				}
-				catch (Exception e) {
-					// simply ignore when fail
-				}
 			}
+			catch (Exception e) {
+				// simply ignore when fail
+			}
+		}
+		synchronized (SystemUtil.createToken("dyninvoc", className)) {
 			Class[] parameterClasses = fm.getArgumentClasses();
 
 			ClassWriter cw = ASMUtil.getClassWriter();
