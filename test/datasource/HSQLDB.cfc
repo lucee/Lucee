@@ -41,8 +41,12 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="qoq,hsqldb" {
 		defineDatasource('org.hsqldb.hsqldb','2.4.0');
 		testConnection();
 	}
-	public void function testConnection271(){
+	public void function testConnection272(){
 		defineDatasource('org.lucee.hsqldb','2.7.2.jdk8'); // last version for java 8
+		testConnection();
+	}
+	public void function testConnection273(){
+		defineDatasource('org.hsqldb.hsqldb','2.7.3');
 		testConnection();
 	}
 	public void function testConnection261() skip=true{
