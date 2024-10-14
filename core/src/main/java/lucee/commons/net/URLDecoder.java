@@ -21,9 +21,11 @@ package lucee.commons.net;
 import java.io.UnsupportedEncodingException;
 
 import org.apache.commons.codec.DecoderException;
+import org.apache.commons.codec.EncoderException;
 import org.apache.commons.codec.net.URLCodec;
 
 import lucee.commons.io.SystemUtil;
+import lucee.commons.lang.StringUtil;
 import lucee.runtime.net.http.ReqRspUtil;
 
 public class URLDecoder {
@@ -48,12 +50,45 @@ public class URLDecoder {
 		if (!force && !ReqRspUtil.needDecoding(s)) return s;
 		try {
 			URLCodec codec = new URLCodec(enc);
-			String str;
-			str = codec.decode(s);
-			return str;
+			return codec.decode(preprocessInput(codec, s, enc));
 		}
 		catch (DecoderException e) {
 			throw new UnsupportedEncodingException(e.getMessage());
 		}
+	}
+
+	public static String preprocessInput(URLCodec codec, String input, String encoding) {
+		StringBuilder result = null;
+		boolean hasEncoding;
+		if (StringUtil.isEmpty(encoding, true)) {
+			encoding = encoding.trim();
+			hasEncoding = true;
+		}
+		else {
+			hasEncoding = false;
+		}
+		try {
+			int length = input.length();
+
+			for (int i = 0; i < length; i++) {
+				char c = input.charAt(i);
+
+				if (c > 127) {
+					if (result == null) {
+						result = new StringBuilder();
+						if (i > 0) {
+							result.append(input.subSequence(0, i));
+						}
+					}
+					if (hasEncoding) result.append(codec.encode(String.valueOf(c), encoding));
+					else result.append(codec.encode(String.valueOf(c)));
+				}
+				else if (result != null) result.append(c);
+			}
+
+		}
+		catch (UnsupportedEncodingException | EncoderException uee) {
+		}
+		return result == null ? input : result.toString();
 	}
 }

@@ -21,38 +21,25 @@
  */
 package lucee.runtime.functions.other;
 
-import java.io.UnsupportedEncodingException;
-
-import org.apache.commons.codec.net.URLCodec;
-
-import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.net.URLDecoder;
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.ext.function.Function;
+import lucee.runtime.op.Caster;
 
 public final class URLDecode implements Function {
-	public static String call(PageContext pc, String str) throws ExpressionException {
+	private static final long serialVersionUID = 2975351228540450405L;
+
+	public static String call(PageContext pc, String str) throws ExpressionException, Exception {
 		return call(pc, str, "utf-8");
 	}
 
-	public static String call(PageContext pc, String str, String encoding) throws ExpressionException {
+	public static String call(PageContext pc, String str, String encoding) throws ExpressionException, Exception {
 		try {
-			URLCodec codec = new URLCodec(encoding);
-			return codec.decode(str);
+			return URLDecoder.decode(str, encoding, true);
 		}
-		catch (Throwable t) {
-			ExceptionUtil.rethrowIfNecessary(t);
-			try {
-				return URLDecoder.decode(str, encoding, true);
-			}
-			catch (UnsupportedEncodingException uee) {
-				throw new ExpressionException(uee.getMessage());
-			}
+		catch (Exception e) {
+			throw Caster.toPageException(e);
 		}
-		/*
-		 * try { return URLDecoder.decode(str,encoding); } catch (UnsupportedEncodingException e) { throw
-		 * new ExpressionException(e.getMessage()); }
-		 */
 	}
 }

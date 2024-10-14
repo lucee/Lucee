@@ -19,6 +19,7 @@
 package lucee.runtime.functions.file;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.res.Resource;
@@ -28,6 +29,7 @@ import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.PageSourcePool;
 import lucee.runtime.exp.ApplicationException;
+import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 
@@ -63,9 +65,7 @@ public class FileWrite {
 			fsw.write(data);
 		}
 		catch (IOException e) {
-			ApplicationException ae = new ApplicationException("Invalid file [" + Caster.toResource(pc, obj, false) + "]");
-			ExceptionUtil.initCauseEL(ae, e);
-			throw ae;
+			throw toApplicationException(pc, obj, charset, e);
 		}
 		finally {
 			if (close) IOUtil.closeEL(fsw);
@@ -73,5 +73,21 @@ public class FileWrite {
 		}
 
 		return null;
+	}
+
+	private static ApplicationException toApplicationException(PageContext pc, Object obj, String charset, IOException e) throws ExpressionException {
+		ApplicationException ae;
+		if (e instanceof UnsupportedEncodingException) {
+			ae = new ApplicationException("Failed to write to file [" + Caster.toResource(pc, obj, false) + "], because the given charset [" + charset + "] is not supported");
+
+		}
+		else {
+			String msg = e.getMessage();
+			String appendix = StringUtil.isEmpty(msg, true) ? "" : (", caused by [" + msg + "]");
+			ae = new ApplicationException("Failed to write to file [" + Caster.toResource(pc, obj, false) + "]" + appendix);
+
+		}
+		ExceptionUtil.initCauseEL(ae, e);
+		return ae;
 	}
 }
