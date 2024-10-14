@@ -66,7 +66,7 @@ public final class MethodInstance {
 		catch (IncompatibleClassChangeError | ClassCastException e) { // java.lang.ClassCastException
 			if (!Clazz.allowReflection()) throw e;
 			LogUtil.log("dynamic", e);
-			DynamicInvoker di = DynamicInvoker.getInstance(null);
+			DynamicInvoker di = DynamicInvoker.getExistingInstance();
 			lucee.transformer.dynamic.meta.Method method = Clazz.getMethodMatch(di.getClazz(clazz, true), methodName, args, true);
 			try {
 				return ((LegacyMethod) method).getMethod().invoke(o, args);
@@ -116,7 +116,7 @@ public final class MethodInstance {
 	private Pair<FunctionMember, Object> getResult() throws PageException {
 		if (result == null) {
 			try {
-				result = DynamicInvoker.getInstance(null).createInstance(clazz, methodName, args);
+				result = DynamicInvoker.getExistingInstance().createInstance(clazz, methodName, args);
 			}
 			catch (Throwable t) {
 				ExceptionUtil.rethrowIfNecessary(t);

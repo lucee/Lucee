@@ -1358,18 +1358,23 @@ public final class ResourceUtil {
 		return filter == null ? res.listResources() : res.listResources(filter);
 	}
 
-	public static void deleteFileOlderThan(Resource res, long date, ExtensionResourceFilter filter) {
+	public static boolean deleteFileOlderThan(Resource res, long date, ExtensionResourceFilter filter) {
+		boolean modified = false;
 		if (res.isFile()) {
-			if (res.lastModified() <= date) res.delete();
+			if (res.lastModified() <= date) {
+				res.delete();
+				modified = true;
+			}
 		}
 		else if (res.isDirectory()) {
 			Resource[] children = filter == null ? res.listResources() : res.listResources(filter);
 			if (children != null) {
 				for (int i = 0; i < children.length; i++) {
-					deleteFileOlderThan(children[i], date, filter);
+					if (deleteFileOlderThan(children[i], date, filter)) modified = true;
 				}
 			}
 		}
+		return modified;
 	}
 
 	/**

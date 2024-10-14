@@ -61,7 +61,7 @@ public final class ConstructorInstance {
 		catch (IncompatibleClassChangeError | IllegalStateException e) {
 			if (!Clazz.allowReflection()) throw e;
 			LogUtil.log("direct", e);
-			DynamicInvoker di = DynamicInvoker.getInstance(null);
+			DynamicInvoker di = DynamicInvoker.getExistingInstance();
 			lucee.transformer.dynamic.meta.Constructor constr = Clazz.getConstructorMatch(di.getClazz(clazz, true), args, true);
 			return ((LegacyConstuctor) constr).getConstructor().newInstance(args);
 		}
@@ -90,7 +90,7 @@ public final class ConstructorInstance {
 	private Pair<FunctionMember, Object> getResult() throws PageException {
 		if (result == null) {
 			try {
-				result = DynamicInvoker.getInstance(null).createInstance(clazz, null, args);
+				result = DynamicInvoker.getExistingInstance().createInstance(clazz, null, args);
 			}
 			catch (Exception e) {
 				throw Caster.toPageException(e);

@@ -834,7 +834,7 @@ public final class Reflector {
 		}
 
 		// dynamic
-		DynamicInvoker di = DynamicInvoker.getInstance(null);
+		DynamicInvoker di = DynamicInvoker.getExistingInstance();
 		try {
 			_getPropertyKeys(clazz, di, keys, false);
 		}
@@ -872,7 +872,7 @@ public final class Reflector {
 		if (hasFieldIgnoreCase(clazz, name)) return true;
 
 		// dynamic
-		DynamicInvoker di = DynamicInvoker.getInstance(null);
+		DynamicInvoker di = DynamicInvoker.getExistingInstance();
 		try {
 			if (_hasPropertyIgnoreCase(clazz, di, name, false)) return true;
 		}
@@ -1514,7 +1514,7 @@ public final class Reflector {
 	}
 
 	public static List<lucee.transformer.dynamic.meta.Method> getMethods(Class clazz) throws IOException {
-		DynamicInvoker di = DynamicInvoker.getInstance(null);
+		DynamicInvoker di = DynamicInvoker.getExistingInstance();
 		try {
 			return di.getClazz(clazz, false).getMethods(null, true, -1);
 		}
@@ -1531,7 +1531,7 @@ public final class Reflector {
 	 * @throws IOException
 	 */
 	public static List<lucee.transformer.dynamic.meta.Method> getDeclaredMethods(Class clazz) throws IOException {
-		DynamicInvoker di = DynamicInvoker.getInstance(null);
+		DynamicInvoker di = DynamicInvoker.getExistingInstance();
 		try {
 			return di.getClazz(clazz, false).getDeclaredMethods(null, true, -1);
 		}
@@ -1541,7 +1541,7 @@ public final class Reflector {
 	}
 
 	public static List<lucee.transformer.dynamic.meta.Method> getSetters(Class clazz) {
-		DynamicInvoker di = DynamicInvoker.getInstance(null);
+		DynamicInvoker di = DynamicInvoker.getExistingInstance();
 		List<lucee.transformer.dynamic.meta.Method> list = new ArrayList<lucee.transformer.dynamic.meta.Method>();
 		try {
 			_getSetters(clazz, di, list, false);
@@ -1568,7 +1568,7 @@ public final class Reflector {
 	}
 
 	public static List<lucee.transformer.dynamic.meta.Method> getGetters(Class clazz) {
-		DynamicInvoker di = DynamicInvoker.getInstance(null);
+		DynamicInvoker di = DynamicInvoker.getExistingInstance();
 		List<lucee.transformer.dynamic.meta.Method> list = new ArrayList<lucee.transformer.dynamic.meta.Method>();
 		try {
 			_getGetters(clazz, di, list, false);
@@ -1634,7 +1634,7 @@ public final class Reflector {
 	}
 
 	public static Method getDeclaredMethod(Class<?> clazz, String methodName, Class[] args) throws NoSuchMethodException, IOException {
-		DynamicInvoker di = DynamicInvoker.getInstance(null);
+		DynamicInvoker di = DynamicInvoker.getExistingInstance();
 		try {
 			return di.getClazz(clazz, false).getDeclaredMethod(methodName, args, true);
 		}
@@ -1644,7 +1644,7 @@ public final class Reflector {
 	}
 
 	public static Method getDeclaredMethod(Class<?> clazz, String methodName, Class[] args, Method defaultValue) {
-		DynamicInvoker di = DynamicInvoker.getInstance(null);
+		DynamicInvoker di = DynamicInvoker.getExistingInstance();
 		try {
 			return di.getClazz(clazz, false).getDeclaredMethod(methodName, args, true);
 		}
@@ -1662,7 +1662,7 @@ public final class Reflector {
 	}
 
 	public static Method getMethod(Class<?> clazz, String methodName, Class<?>[] args) throws NoSuchMethodException, IOException {
-		DynamicInvoker di = DynamicInvoker.getInstance(null);
+		DynamicInvoker di = DynamicInvoker.getExistingInstance();
 		try {
 			return di.getClazz(clazz, false).getMethod(methodName, args, true);
 		}
@@ -1672,7 +1672,7 @@ public final class Reflector {
 	}
 
 	public static Method getMethod(Class<?> clazz, String methodName, Class<?>[] args, Method defaultValue) {
-		DynamicInvoker di = DynamicInvoker.getInstance(null);
+		DynamicInvoker di = DynamicInvoker.getExistingInstance();
 		try {
 			return di.getClazz(clazz, false).getMethod(methodName, args, true);
 		}
@@ -1690,7 +1690,7 @@ public final class Reflector {
 	}
 
 	public static Constructor getConstructor(Class clazz, Class[] args, Constructor defaultValue) {
-		DynamicInvoker di = DynamicInvoker.getInstance(null);
+		DynamicInvoker di = DynamicInvoker.getExistingInstance();
 		Clazz clazzz = di.getClazz(clazz, false);
 		try {
 			outer: for (Constructor c: clazzz.getConstructors(-1)) {

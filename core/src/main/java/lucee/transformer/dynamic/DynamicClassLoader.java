@@ -14,6 +14,7 @@ import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.res.Resource;
+import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ExtendableClassLoader;
 
 /**
@@ -36,6 +37,8 @@ public final class DynamicClassLoader extends ClassLoader implements ExtendableC
 	private static long _start = 0L;
 	private static String start = Long.toString(_start, Character.MAX_RADIX);
 	private static final Object countToken = new Object();
+
+	private static final long MAX_AGE = 30 * 60 * 60 * 1000;
 
 	public static String uid() {
 		synchronized (countToken) {
@@ -263,5 +266,17 @@ public final class DynamicClassLoader extends ClassLoader implements ExtendableC
 
 	public boolean hasResource(String name) {
 		return _getResource(name) != null;
+	}
+
+	public void cleanup() {
+		if (directory.isDirectory()) {
+			if (ResourceUtil.deleteFileOlderThan(directory, System.currentTimeMillis() - MAX_AGE, null)) {
+				try {
+					ResourceUtil.deleteEmptyFolders(directory);
+				}
+				catch (IOException e) {
+				}
+			}
+		}
 	}
 }

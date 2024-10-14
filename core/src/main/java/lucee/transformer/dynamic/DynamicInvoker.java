@@ -92,6 +92,10 @@ public class DynamicInvoker {
 		return engine;
 	}
 
+	public static DynamicInvoker getExistingInstance() {
+		return engine;
+	}
+
 	public Object invokeStaticMethod(Class<?> clazz, Key methodName, Object[] arguments) throws Exception {
 		return invoke(null, clazz, methodName, arguments);
 	}
@@ -358,6 +362,12 @@ public class DynamicInvoker {
 			}
 		}
 		return cl;
+	}
+
+	public void cleanup() {
+		for (DynamicClassLoader cl: loaders.values()) {
+			cl.cleanup();
+		}
 	}
 
 	/**

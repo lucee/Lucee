@@ -520,7 +520,7 @@ public class VariableImpl extends ExpressionBase implements Variable {
 		ClassDefinition bifCD = bif.getClassDefinition();
 		Clazz clazzz = null;
 		try {
-			DynamicInvoker di = DynamicInvoker.getInstance(null);
+			DynamicInvoker di = DynamicInvoker.getExistingInstance();
 			clazzz = di.getClazz(bifCD.getClazz());
 		}
 		catch (Exception e) {

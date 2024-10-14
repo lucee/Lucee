@@ -22,6 +22,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 
 import lucee.commons.io.IOUtil;
@@ -526,11 +527,16 @@ public final class PageSourceImpl implements PageSource {
 		}
 	}
 
-	private Page newInstance(Class clazz) throws ClassException, InvocationTargetException {
-
+	private Page newInstance(Class clazz)
+			throws ClassException, InvocationTargetException, NoSuchMethodException, SecurityException, InstantiationException, IllegalAccessException, IllegalArgumentException {
+		// PATCH Lucee add an appendix to cfml templates classes when updated, this causes problems with
+		// DynamicClassloader createding an sload of class files in development, this is normally just a
+		// problem in development
+		if (clazz.getName().indexOf("$cf$") != -1) {
+			Constructor c = clazz.getConstructor(new Class[] { PageSource.class });
+			return (Page) c.newInstance(new Object[] { this });
+		}
 		return (Page) ClassUtil.loadInstance(clazz, new Object[] { this });
-		// Constructor<?> c = clazz.getConstructor(new Class[] { PageSource.class });
-		// return (Page) c.newInstance(new Object[] { this });
 	}
 
 	/**

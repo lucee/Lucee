@@ -55,6 +55,7 @@ import lucee.runtime.schedule.SchedulerImpl;
 import lucee.runtime.type.scope.ScopeContext;
 import lucee.runtime.type.scope.storage.StorageScopeFile;
 import lucee.runtime.type.util.ArrayUtil;
+import lucee.transformer.dynamic.DynamicInvoker;
 
 /**
  * own thread how check the main thread and his data
@@ -446,6 +447,16 @@ public final class Controler extends ParentThreasRefThread {
 				// check cache directory
 				try {
 					checkCacheFileSize(config);
+				}
+				catch (Throwable t) {
+					ExceptionUtil.rethrowIfNecessary(t);
+					if (log != null) log.error("controler", t);
+				}
+
+				// clean up dynclasses
+				try {
+					DynamicInvoker di = DynamicInvoker.getExistingInstance();
+					if (di != null) di.cleanup();
 				}
 				catch (Throwable t) {
 					ExceptionUtil.rethrowIfNecessary(t);

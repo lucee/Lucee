@@ -755,7 +755,7 @@ public final class ClassUtil {
 	}
 
 	public static Method getMethodIgnoreCase(Class clazz, String methodName, Class[] args, Method defaultValue) {
-		DynamicInvoker di = DynamicInvoker.getInstance(null);
+		DynamicInvoker di = DynamicInvoker.getExistingInstance();
 
 		try {
 			di.getClazz(clazz, false).getMethod(methodName, args, false);
