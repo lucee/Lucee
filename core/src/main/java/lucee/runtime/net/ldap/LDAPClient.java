@@ -19,8 +19,6 @@
 package lucee.runtime.net.ldap;
 
 import java.io.IOException;
-import java.security.Provider;
-import java.security.Security;
 import java.util.Enumeration;
 import java.util.Hashtable;
 
@@ -38,7 +36,6 @@ import javax.naming.directory.SearchResult;
 import javax.naming.ldap.InitialLdapContext;
 
 import lucee.commons.lang.ClassException;
-import lucee.commons.lang.ClassUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
@@ -127,33 +124,35 @@ public final class LDAPClient {
 	}
 
 	/**
-	 * sets the secure Level
+	 * Sets the secure level for the LDAP connection.
 	 * 
 	 * @param secureLevel [SECURE_CFSSL_BASIC, SECURE_CFSSL_CLIENT_AUTH, SECURE_NONE]
 	 * @throws ClassNotFoundException
 	 * @throws ClassException
 	 */
 	public void setSecureLevel(short secureLevel) throws ClassException {
-		// Security
+		// SSL basic security level
 		if (secureLevel == SECURE_CFSSL_BASIC) {
+			// Enabling SSL protocol for the connection
 			env.put("java.naming.security.protocol", "ssl");
-			env.put("java.naming.ldap.factory.socket", "javax.net.ssl.SSLSocketFactory");/* JAVJAK */
-			Class clazz = ClassUtil.loadClass("com.sun.net.ssl.internal.ssl.Provider");
 
-			try {
-				Security.addProvider((Provider) ClassUtil.newInstance(clazz));
-			}
-			catch (Exception e) {
-				throw new RuntimeException(e);
-			}
+			// Using the standard Java SSLSocketFactory for secure connections
+			env.put("java.naming.ldap.factory.socket", "javax.net.ssl.SSLSocketFactory");
 
+			// SSL client authentication level
 		}
 		else if (secureLevel == SECURE_CFSSL_CLIENT_AUTH) {
+			// Enabling SSL protocol and setting external client authentication
 			env.put("java.naming.security.protocol", "ssl");
 			env.put("java.naming.security.authentication", "EXTERNAL");
+
+			// No security (simple authentication)
 		}
 		else {
+			// Default simple authentication, no SSL
 			env.put("java.naming.security.authentication", "simple");
+
+			// Removing security-related configurations if not using SSL
 			env.remove("java.naming.security.protocol");
 			env.remove("java.naming.ldap.factory.socket");
 		}

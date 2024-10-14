@@ -56,16 +56,7 @@ import lucee.runtime.type.ArrayImpl;
  * Implements the CFML Function xmlsearch
  */
 public final class XmlSearch implements Function {
-	/*
-	 * static { System.setProperty("-Dorg.apache.xml.dtm.DTMManager",
-	 * "org.apache.xml.dtm.ref.DTMManagerDefault"); System.setProperty("org.apache.xml.dtm.DTMManager",
-	 * "org.apache.xml.dtm.ref.DTMManagerDefault");
-	 * System.setProperty("-Dcom.sun.org.apache.xml.internal.dtm.DTMManager",
-	 * "com.sun.org.apache.xml.internal.dtm.ref.DTMManagerDefault");
-	 * System.setProperty("com.sun.org.apache.xml.internal.dtm.DTMManager",
-	 * "com.sun.org.apache.xml.internal.dtm.ref.DTMManagerDefault"); }
-	 */
-	private static final long serialVersionUID = 5770611088309897382L;
+	static final long serialVersionUID = 5770611088309897382L;
 
 	private static List<String> operators = new ArrayList<String>();
 
