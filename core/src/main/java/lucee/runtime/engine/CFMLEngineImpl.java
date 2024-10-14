@@ -187,6 +187,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 
 	static {
 		System.setProperty("org.apache.commons.logging.Log", "org.apache.commons.logging.impl.NoOpLog");
+		System.setProperty("javax.xml.bind.context.factory", "com.sun.xml.bind.v2.ContextFactory");
 	}
 
 	public static final PrintStream CONSOLE_ERR = System.err;
