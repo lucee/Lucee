@@ -1421,6 +1421,9 @@ public final class SystemUtil {
 				return true;
 			}
 		}
+		catch (UnsupportedOperationException uoe) {
+			// stop is no longer supported with java 19
+		}
 		finally {
 			resumeEL(thread);
 		}
