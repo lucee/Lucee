@@ -31,8 +31,10 @@ import lucee.runtime.config.Password;
 import lucee.runtime.config.PasswordImpl;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.exp.RequestTimeoutException;
 import lucee.runtime.exp.SecurityException;
 import lucee.runtime.type.util.ArrayUtil;
+import lucee.runtime.util.PageContextUtil;
 
 /**
  * SecurityManager to control access to different services
@@ -313,12 +315,17 @@ public final class SecurityManagerImpl implements Cloneable, SecurityManager {
 	}
 
 	@Override
-	public void checkFileLocation(Resource res) throws SecurityException {
+	public void checkFileLocation(Resource res) throws SecurityException, RequestTimeoutException {
 		checkFileLocation(null, res, null);
 	}
 
 	@Override
-	public void checkFileLocation(ConfigWeb cw, Resource res, String strServerPassword) throws SecurityException {
+	public void checkFileLocation(ConfigWeb cw, Resource res, String strServerPassword) throws SecurityException, RequestTimeoutException {
+		PageContext pc = ThreadLocalPageContext.get();
+		if (pc != null) {
+			PageContextUtil.checkRequestTimeout(pc);
+		}
+
 		if (res == null || !(res.getResourceProvider() instanceof FileResourceProvider)) {
 			return;
 		}
