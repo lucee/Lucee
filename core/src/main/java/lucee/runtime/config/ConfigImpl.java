@@ -218,6 +218,8 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	private int _debug;
 	private int debugLogOutput = SERVER_BOOLEAN_FALSE;
 	private int debugOptions = 0;
+	private long debugThreadThresholdMS = 100;
+	private long debugThresholdMS = 100;
 
 	private boolean suppresswhitespace = false;
 	private boolean suppressContent = false;
@@ -3554,6 +3556,24 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 
 	protected void setDebugOptions(int debugOptions) {
 		this.debugOptions = debugOptions;
+	}
+
+	@Override
+	public long getDebugThreshold() {
+		return debugThresholdMS;
+	}
+
+	@Override
+	public long getDebugThreadThreshold() {
+		return debugThreadThresholdMS;
+	}
+
+	public void setDebugThreshold(long debugThresholdMS) {
+		this.debugThresholdMS = debugThresholdMS;
+	}
+
+	public void setDebugThreadThreshold(long debugThreadThresholdMS) {
+		this.debugThreadThresholdMS = debugThreadThresholdMS;
 	}
 
 	protected void setCheckForChangesInConfigFile(boolean checkForChangesInConfigFile) {

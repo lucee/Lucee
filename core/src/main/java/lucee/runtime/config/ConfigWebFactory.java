@@ -2221,7 +2221,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 			}
 			else {
 				if (hasServer) config.setExecutionLogFactory(configServer.getExecutionLogFactory());
-				else config.setExecutionLogFactory(new ExecutionLogFactory(ConsoleExecutionLog.class, new HashMap<String, String>()));
+				else config.setExecutionLogFactory(new ExecutionLogFactory(ConsoleExecutionLog.class, new HashMap<String, String>()));				
 			}
 		}
 		catch (Throwable t) {
@@ -4710,7 +4710,9 @@ public final class ConfigWebFactory extends ConfigFactory {
 			config.setDebugEntries(list.values().toArray(new DebugEntry[list.size()]));
 
 			// debug
-			String strDebug = getAttr(root, "debuggingEnabled");
+			Struct debuggingSettings = ConfigWebUtil.getAsStruct("debuggingSettings", root);
+
+			String strDebug = getAttr(debuggingSettings, "enabled");
 			if (hasAccess && !StringUtil.isEmpty(strDebug)) {
 				config.setDebug(toBoolean(strDebug, false) ? ConfigImpl.CLIENT_BOOLEAN_TRUE : ConfigImpl.CLIENT_BOOLEAN_FALSE);
 			}
@@ -4728,24 +4730,24 @@ public final class ConfigWebFactory extends ConfigFactory {
 			String[] debugOptions = StringUtil.isEmpty(strDebugOption) ? null : ListUtil.listToStringArray(strDebugOption, ',');
 
 			int options = 0;
-			String str = getAttr(root, "debuggingDatabase");
-			if (StringUtil.isEmpty(str)) str = getAttr(root, "debuggingShowDatabase");
+			String str = getAttr(debuggingSettings, "database");
+			if (StringUtil.isEmpty(str)) str = getAttr(debuggingSettings, "showDatabase");
 			if (hasAccess && !StringUtil.isEmpty(str)) {
 				if (toBoolean(str, false)) options += ConfigPro.DEBUG_DATABASE;
 			}
 			else if (debugOptions != null && extractDebugOption("database", debugOptions)) options += ConfigPro.DEBUG_DATABASE;
 			else if (hasCS && configServer.hasDebugOptions(ConfigPro.DEBUG_DATABASE)) options += ConfigPro.DEBUG_DATABASE;
 
-			str = getAttr(root, "debuggingException");
-			if (StringUtil.isEmpty(str)) str = getAttr(root, "debuggingShowException");
+			str = getAttr(debuggingSettings, "exception");
+			if (StringUtil.isEmpty(str)) str = getAttr(debuggingSettings, "showException");
 			if (hasAccess && !StringUtil.isEmpty(str)) {
 				if (toBoolean(str, false)) options += ConfigPro.DEBUG_EXCEPTION;
 			}
 			else if (debugOptions != null && extractDebugOption("exception", debugOptions)) options += ConfigPro.DEBUG_EXCEPTION;
 			else if (hasCS && configServer.hasDebugOptions(ConfigPro.DEBUG_EXCEPTION)) options += ConfigPro.DEBUG_EXCEPTION;
 
-			str = getAttr(root, "debuggingTemplate");
-			if (StringUtil.isEmpty(str)) str = getAttr(root, "debuggingShowTemplate");
+			str = getAttr(debuggingSettings, "template");
+			if (StringUtil.isEmpty(str)) str = getAttr(debuggingSettings, "showTemplate");
 			if (hasAccess && !StringUtil.isEmpty(str)) {
 				if (toBoolean(str, false)) options += ConfigPro.DEBUG_TEMPLATE;
 			}
@@ -4754,51 +4756,91 @@ public final class ConfigWebFactory extends ConfigFactory {
 			// default is true
 			else options += ConfigPro.DEBUG_TEMPLATE;
 
-			str = getAttr(root, "debuggingDump");
-			if (StringUtil.isEmpty(str)) str = getAttr(root, "debuggingShowDump");
+			str = getAttr(debuggingSettings, "dump");
+			if (StringUtil.isEmpty(str)) str = getAttr(debuggingSettings, "showDump");
 			if (hasAccess && !StringUtil.isEmpty(str)) {
 				if (toBoolean(str, false)) options += ConfigPro.DEBUG_DUMP;
 			}
 			else if (debugOptions != null && extractDebugOption("dump", debugOptions)) options += ConfigPro.DEBUG_DUMP;
 			else if (hasCS && configServer.hasDebugOptions(ConfigPro.DEBUG_DUMP)) options += ConfigPro.DEBUG_DUMP;
 
-			str = getAttr(root, "debuggingTracing");
-			if (StringUtil.isEmpty(str)) str = getAttr(root, "debuggingShowTracing");
-			if (StringUtil.isEmpty(str)) str = getAttr(root, "debuggingShowTrace");
+			str = getAttr(debuggingSettings, "tracing");
+			if (StringUtil.isEmpty(str)) str = getAttr(debuggingSettings, "showTracing");
+			if (StringUtil.isEmpty(str)) str = getAttr(debuggingSettings, "showTrace");
 			if (hasAccess && !StringUtil.isEmpty(str)) {
 				if (toBoolean(str, false)) options += ConfigPro.DEBUG_TRACING;
 			}
 			else if (debugOptions != null && extractDebugOption("tracing", debugOptions)) options += ConfigPro.DEBUG_TRACING;
 			else if (hasCS && configServer.hasDebugOptions(ConfigPro.DEBUG_TRACING)) options += ConfigPro.DEBUG_TRACING;
 
-			str = getAttr(root, "debuggingTimer");
-			if (StringUtil.isEmpty(str)) str = getAttr(root, "debuggingShowTimer");
+			str = getAttr(debuggingSettings, "timer");
+			if (StringUtil.isEmpty(str)) str = getAttr(debuggingSettings, "showTimer");
 			if (hasAccess && !StringUtil.isEmpty(str)) {
 				if (toBoolean(str, false)) options += ConfigPro.DEBUG_TIMER;
 			}
 			else if (debugOptions != null && extractDebugOption("timer", debugOptions)) options += ConfigPro.DEBUG_TIMER;
 			else if (hasCS && configServer.hasDebugOptions(ConfigPro.DEBUG_TIMER)) options += ConfigPro.DEBUG_TIMER;
 
-			str = getAttr(root, "debuggingImplicitAccess");
-			if (StringUtil.isEmpty(str)) str = getAttr(root, "debuggingShowImplicitAccess");
+			str = getAttr(debuggingSettings, "implicitAccess");
+			if (StringUtil.isEmpty(str)) str = getAttr(debuggingSettings, "showImplicitAccess");
 			if (hasAccess && !StringUtil.isEmpty(str)) {
 				if (toBoolean(str, false)) options += ConfigPro.DEBUG_IMPLICIT_ACCESS;
 			}
 			else if (debugOptions != null && extractDebugOption("implicit-access", debugOptions)) options += ConfigPro.DEBUG_IMPLICIT_ACCESS;
 			else if (hasCS && configServer.hasDebugOptions(ConfigPro.DEBUG_IMPLICIT_ACCESS)) options += ConfigPro.DEBUG_IMPLICIT_ACCESS;
 
-			str = getAttr(root, "debuggingQueryUsage");
-			if (StringUtil.isEmpty(str)) str = getAttr(root, "debuggingShowQueryUsage");
+			str = getAttr(debuggingSettings, "queryUsage");
+			if (StringUtil.isEmpty(str)) str = getAttr(debuggingSettings, "showQueryUsage");
 			if (hasAccess && !StringUtil.isEmpty(str)) {
 				if (toBoolean(str, false)) options += ConfigPro.DEBUG_QUERY_USAGE;
 			}
 			else if (debugOptions != null && extractDebugOption("queryUsage", debugOptions)) options += ConfigPro.DEBUG_QUERY_USAGE;
 			else if (hasCS && configServer.hasDebugOptions(ConfigPro.DEBUG_QUERY_USAGE)) options += ConfigPro.DEBUG_QUERY_USAGE;
 
-			str = getAttr(root, "debuggingThread");
+			Struct threadOptions = ConfigWebUtil.getAsStruct("thread", debuggingSettings);
+			str = getAttr(threadOptions, "enabled");
 			if (hasAccess && !StringUtil.isEmpty(str)) {
 				if (toBoolean(str, false)) options += ConfigPro.DEBUG_THREAD;
 			}
+			else if (hasCS && configServer.hasDebugOptions(ConfigPro.DEBUG_THREAD)) options += ConfigPro.DEBUG_THREAD;
+
+			long threshold = toLong(getAttr(threadOptions, "threadThresholdMs"), 100);
+			if (hasAccess) {
+				config.setDebugThreadThreshold(threshold);
+			}
+			else if (hasCS) config.setDebugThreadThreshold(configServer.getDebugThreadThreshold());
+		
+			Struct pagePartsOptions = ConfigWebUtil.getAsStruct("pageParts", debuggingSettings);
+			str = getAttr(pagePartsOptions, "enabled");
+			if (hasAccess && !StringUtil.isEmpty(str)) {
+				if (toBoolean(str, false)) options += ConfigPro.DEBUG_PAGE_PARTS;
+			}
+			else if (hasCS && configServer.hasDebugOptions(ConfigPro.DEBUG_PAGE_PARTS)) options += ConfigPro.DEBUG_PAGE_PARTS;
+			
+			str = getAttr(pagePartsOptions, "snippetsEnabled");
+			if (hasAccess && !StringUtil.isEmpty(str)) {
+				if (toBoolean(str, false)) options += ConfigPro.DEBUG_SNIPPETS_ENABLED;
+			}
+			else if (hasCS && configServer.hasDebugOptions(ConfigPro.DEBUG_SNIPPETS_ENABLED)) options += ConfigPro.DEBUG_SNIPPETS_ENABLED;
+
+			str = getAttr(pagePartsOptions, "debugLogs");
+			if (hasAccess && !StringUtil.isEmpty(str)) {
+				if (toBoolean(str, false)) options += ConfigPro.DEBUG_DEBUG_LOGS;
+			}
+			else if (hasCS && configServer.hasDebugOptions(ConfigPro.DEBUG_DEBUG_LOGS)) options += ConfigPro.DEBUG_DEBUG_LOGS;
+
+			str = getAttr(pagePartsOptions, "traceLog");
+			if (hasAccess && !StringUtil.isEmpty(str)) {
+				if (toBoolean(str, false)) options += ConfigPro.DEBUG_TRACE_LOG;
+			}
+			else if (hasCS && configServer.hasDebugOptions(ConfigPro.DEBUG_TRACE_LOG)) options += ConfigPro.DEBUG_TRACE_LOG;
+
+			threshold = toLong(getAttr(pagePartsOptions, "thresholdMs"), 100);
+			if (hasAccess) {
+				config.setDebugThreshold(threshold);
+			}
+			else if (hasCS) config.setDebugThreshold(configServer.getDebugThreshold());
+
 
 			// max records logged
 			String strMax = getAttr(root, "debuggingMaxRecordsLogged");

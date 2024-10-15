@@ -64,6 +64,10 @@ public interface ConfigPro extends Config {
 	public static final int DEBUG_DUMP = 64;
 	public static final int DEBUG_TEMPLATE = 128;
 	public static final int DEBUG_THREAD = 256;
+	public static final int DEBUG_PAGE_PARTS = 1024;
+	public static final int DEBUG_SNIPPETS_ENABLED = 2048;
+	public static final int DEBUG_DEBUG_LOGS = 4096;
+	public static final int DEBUG_TRACE_LOG = 8192;
 
 	public static final int MODE_CUSTOM = 1;
 	public static final int MODE_STRICT = 2;
@@ -123,6 +127,10 @@ public interface ConfigPro extends Config {
 	public boolean preserveCase();
 
 	public boolean hasDebugOptions(int debugOption);
+
+	public long getDebugThreshold();
+
+	public long getDebugThreadThreshold();
 
 	public int getDebugMaxRecordsLogged();
 

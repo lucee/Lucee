@@ -469,23 +469,25 @@ public abstract class ConfigFactory {
 		//////////////////// Debugging ////////////////////
 		{
 			Struct debugging = ConfigWebUtil.getAsStruct("debugging", root);
-			moveAsBool("debug", "debuggingEnabled", debugging, root);
-			moveAsBool("debugLogOutput", "debuggingLogOutput", debugging, root);
-			moveAsBool("database", "debuggingDatabase", debugging, root);
-			moveAsBool("exception", "debuggingException", debugging, root);
-			moveAsBool("templenabled", "debuggingTemplate", debugging, root);
-			moveAsBool("dump", "debuggingDump", debugging, root);
-			moveAsBool("tracing", "debuggingTracing", debugging, root);
-			moveAsBool("timer", "debuggingTimer", debugging, root);
-			moveAsBool("implicitAccess", "debuggingImplicitAccess", debugging, root);
-			moveAsBool("queryUsage", "debuggingQueryUsage", debugging, root);
-			moveAsBool("showQueryUsage", "debuggingQueryUsage", debugging, root);
-			moveAsBool("thread", "debuggingThread", debugging, root);
+			Struct debuggingSettings = new StructImpl(Struct.TYPE_LINKED);
+			moveAsBool("debug", "enabled", debugging, debuggingSettings);
+			moveAsBool("debugLogOutput", "logOutput", debugging, debuggingSettings);
+			moveAsBool("database", "database", debugging, debuggingSettings);
+			moveAsBool("exception", "exception", debugging, debuggingSettings);
+			moveAsBool("templenabled", "template", debugging, debuggingSettings);
+			moveAsBool("dump", "dump", debugging, debuggingSettings);
+			moveAsBool("tracing", "tracing", debugging, debuggingSettings);
+			moveAsBool("timer", "timer", debugging, debuggingSettings);
+			moveAsBool("implicitAccess", "implicitAccess", debugging, debuggingSettings);
+			moveAsBool("queryUsage", "queryUsage", debugging, debuggingSettings);
+			moveAsBool("showQueryUsage", "queryUsage", debugging, debuggingSettings);
+			moveAsBool("thread", "thread", debugging, debuggingSettings);
 			moveAsInt("maxRecordsLogged", "debuggingMaxRecordsLogged", debugging, root);
 
 			Array entries = ConfigWebUtil.getAsArray("debugEntry", debugging);
 			add(entries, "debugTemplates", root);
 			rem("debugEntry", debugging);
+			root.setEL("debuggingSettings", debuggingSettings);
 		}
 
 		//////////////////// Dump Writer ////////////////////
