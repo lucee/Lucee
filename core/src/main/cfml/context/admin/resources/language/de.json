@@ -50,7 +50,7 @@
 			"missingscriptprotect": "Bitte geben Sie einen Wert für das Script-Protect ein.",
 			"requesttimeout": "Request-Timeout",
 			"RequestTimeoutDesc": "Definiert, wie Lucee mit lang laufenden Requests umgeht.",
-			"requesttimeoutdescription": "Legt die Zeit fest, wie lange Lucee auf die Beendigung eines Requests warten soll. Die Ausführung des Requests wird abgebrochen, wenn diese Zeit überschritten wird. Dieses Verhalten kann durch den CFSetting-Tag überschrieben werden.",
+			"requesttimeoutdescription": "Lucee handhabt Request-Timeouts auf zwei Arten. Erstens prüft der Request-Thread an bestimmten Punkten, z. B. bevor externe Operationen ausgeführt werden (wie HTTP-Aufrufe, Datenbankabfragen oder Dateioperationen), ob der Timeout erreicht wurde, und wirft bei Bedarf eine Request Timeout Exception. Zweitens überprüft ein separater Thread regelmäßig, ob Anfragen den Timeout überschritten haben, und versucht, sie durch das Interrupten des Threads zu stoppen, was jedoch Einschränkungen hat, insbesondere in neueren Java-Versionen, in denen das erzwungene Stoppen nicht mehr unterstützt wird. Der Request-Timeout kann über den cfsetting-Tag oder das entsprechende Skript-Äquivalent konfiguriert oder überschrieben werden.",
 			"RequestTimeoutTime": "Zeit",
 			"scriptprotect": "Script-Protect",
 			"scriptprotectall": "Script-Protect überprüft alle Scopes, ob die Daten von außerhalb kommen (cgi, cookie, form, url).",

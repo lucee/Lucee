@@ -50,7 +50,7 @@
 			"missingscriptprotect": "Selecciona un valor para script-protect",
 			"requesttimeout": "Tiempo de espera de solicitud (request)",
 			"RequestTimeoutDesc": "Define cómo Lucee maneja las solicitudes de larga duración.",
-			"requesttimeoutdescription": "Establece el tiempo que el motor esperará a que una solicitud (request) termine antes de que se genere un tiempo de espera de solicitud (request). Esto significa que la ejecución de la solicitud (request) se detendrá. Esta configuración se puede anular utilizando la etiqueta \"cfsetting\" o su equivalente en script.",
+			"requesttimeoutdescription": "Lucee maneja los timeouts de las solicitudes de dos maneras. Primero, el hilo de la solicitud verifica en ciertos puntos, como antes de realizar operaciones externas (por ejemplo, llamadas HTTP, consultas a bases de datos o operaciones de archivos), si se ha alcanzado el tiempo límite y lanza una Request Timeout Exception si es necesario. Segundo, un hilo separado revisa periódicamente si las solicitudes han superado el tiempo límite e intenta detenerlas interrumpiendo el hilo, aunque este método tiene limitaciones, especialmente en versiones más recientes de Java, donde la detención forzada ya no es compatible. El timeout de la solicitud se puede configurar o sobrescribir utilizando la etiqueta cfsetting o su equivalente en script.",
 			"RequestTimeoutTime": "Tiempo",
 			"scriptprotect": "Protección de script",
 			"scriptprotectall": "La protección de script verifica en todos los Scopes los datos externos (cgi, cookie, form, url)",
