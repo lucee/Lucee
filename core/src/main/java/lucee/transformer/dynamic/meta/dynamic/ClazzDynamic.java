@@ -32,6 +32,7 @@ import lucee.commons.lang.PhysicalClassLoader;
 import lucee.commons.lang.types.RefInteger;
 import lucee.commons.lang.types.RefIntegerImpl;
 import lucee.runtime.converter.JavaConverter.ObjectInputStreamImpl;
+import lucee.transformer.bytecode.util.ASMUtil;
 import lucee.transformer.dynamic.meta.Clazz;
 import lucee.transformer.dynamic.meta.Constructor;
 import lucee.transformer.dynamic.meta.FunctionMember;
@@ -304,6 +305,19 @@ public class ClazzDynamic extends Clazz {
 				if (superName != null) {
 					try {
 						_getFunctionMembers(cl.loadClass(Type.getObjectType(superName).getClassName()), members, log);
+					}
+					catch (IllegalArgumentException iae) {
+						String v = ASMUtil.getJavaVersionFromException(iae, null);
+						if (v != null) {
+							throw new RuntimeException("The class [" + superName + "] was compiled with Java version [" + v + "], "
+									+ "which is not supported by the current version of ASM. The highest supported version is ["
+									+ ASMUtil.toStringVersionFromBytceodeVersion(ASMUtil.getMaxVersion(), "unknown") + "]. ");
+
+						}
+						throw iae;
+					}
+					catch (RuntimeException re) {
+						throw re;
 					}
 					catch (Exception e) {
 						if (log != null) log.error("dynamic", e);
