@@ -1234,7 +1234,8 @@ public final class ASMUtil {
 						else if ("20".equals(vs) || "20.0".equals(vs)) javaBytecodeVersion = Opcodes.V20;
 						else if ("21".equals(vs) || "21.0".equals(vs)) javaBytecodeVersion = Opcodes.V21;
 						else if ("22".equals(vs) || "22.0".equals(vs)) javaBytecodeVersion = Opcodes.V22;
-						else if ("23".equals(vs) || "23.0".equals(vs)) javaBytecodeVersion = 0 << 16 | 67; // FUTURE use constant when exist
+						else if ("23".equals(vs) || "23.0".equals(vs)) javaBytecodeVersion = Opcodes.V23;
+						else if ("24".equals(vs) || "24.0".equals(vs)) javaBytecodeVersion = Opcodes.V24;
 					}
 
 					// we do not use the version of the JVM by default, because this would limit the use of lucee
@@ -1247,53 +1248,48 @@ public final class ASMUtil {
 	}
 
 	public static String toStringVersion(int javaBytecodeVersion) {
-		switch (javaBytecodeVersion) {
-		case Opcodes.V1_2:
-			return "1.2";
-		case Opcodes.V1_3:
-			return "1.3";
-		case Opcodes.V1_4:
-			return "1.4";
-		case Opcodes.V1_5:
-			return "1.5";
-		case Opcodes.V1_6:
-			return "1.6";
-		case Opcodes.V1_7:
-			return "1.7";
-		case Opcodes.V1_8:
-			return "1.8";
-		case Opcodes.V9:
-			return "9";
-		case Opcodes.V10:
-			return "10";
-		case Opcodes.V11:
-			return "11";
-		case Opcodes.V12:
-			return "12";
-		case Opcodes.V13:
-			return "13";
-		case Opcodes.V14:
-			return "14";
-		case Opcodes.V15:
-			return "15";
-		case Opcodes.V16:
-			return "16";
-		case Opcodes.V17:
-			return "17";
-		case Opcodes.V18:
-			return "18";
-		case Opcodes.V19:
-			return "19";
-		case Opcodes.V20:
-			return "20";
-		case Opcodes.V21:
-			return "21";
-		case Opcodes.V22:
-			return "22";
-		case (0 << 16 | 67):
-			return "23";
+		int majorVersion = javaBytecodeVersion & 0xFF; // Extracts the rightmost 8 bits (i.e., the major version)
+
+		if (majorVersion >= 46 && majorVersion <= 52) {
+			// Java 1.x versions (1.2 to 1.8)
+			return "1." + (majorVersion - 44);
 		}
-		return "unknown";
+		else if (majorVersion >= 53) {
+			// Java 9 and above (including future versions)
+			return String.valueOf(majorVersion - 44);
+		}
+		else {
+			// Unsupported or unknown versions
+			return "unknown or unsupported version (" + majorVersion + ")";
+		}
 	}
 
+	public static String toStringVersionFromBytceodeVersion(int majorVersion, String defaultValue) {
+		if (majorVersion >= 46 && majorVersion <= 52) {
+			// Java 1.x versions (1.2 to 1.8)
+			return "1." + (majorVersion - 44);
+		}
+		else if (majorVersion >= 53) {
+			// Java 9 and above
+			return String.valueOf(majorVersion - 44);
+		}
+		else {
+			// Unsupported or unknown versions
+			return defaultValue;
+		}
+	}
+
+	public static String getJavaVersionFromException(IllegalArgumentException iae, String defaultValue) {
+		String msg = iae == null ? null : iae.getMessage();
+		// msg = "Unsupported class file major version 52";
+		if (StringUtil.isEmpty(msg)) return defaultValue;
+
+		int nbr = Caster.toIntValue(ListUtil.last(msg, ' '), -1);
+		if (nbr == -1) return defaultValue;
+		return toStringVersionFromBytceodeVersion(nbr, defaultValue);
+	}
+
+	public static int getMaxVersion() {
+		return Opcodes.V24;
+	}
 }
