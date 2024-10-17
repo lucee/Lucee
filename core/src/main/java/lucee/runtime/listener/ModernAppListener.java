@@ -349,12 +349,17 @@ public class ModernAppListener extends AppListenerSupport {
 			if (scope instanceof JSession) app = ((JSession) scope).getComponent();
 			if (app == null || !app.containsKey(ON_SESSION_END)) return;
 			PageContextImpl pc = null;
+			PageContext existing = ThreadLocalPageContext.get();
 			try {
 				pc = createPageContext(factory, app, applicationName, cfid, ON_SESSION_END, true, -1);
+				ThreadLocalPageContext.register(pc);
 				call(app, pc, ON_SESSION_END, new Object[] { pc.sessionScope(false), pc.applicationScope() }, true);
 			}
 			finally {
-				if (pc != null) {
+				if (existing != null) {
+					ThreadLocalPageContext.register(pc);
+				}
+				else if (pc != null) {
 					factory.releaseLuceePageContext(pc, true);
 				}
 			}
