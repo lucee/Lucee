@@ -49,16 +49,18 @@ public abstract class EnvUDF extends UDFImpl {
 	EnvUDF(UDFProperties properties) {
 		super(properties);
 		PageContext pc = ThreadLocalPageContext.get();
-		if (pc == null) {
+		try {
+			if (pc.undefinedScope().getCheckArguments()) {
+				this.variables = new ClosureScope(pc, pc.argumentsScope(), pc.localScope(), pc.variablesScope());
+			}
+			else {
+				this.variables = pc.variablesScope();
+				variables.setBind(true);
+			}
+		}
+		catch (NullPointerException e) {
 			print.e(Thread.currentThread().getName() + " EnvUDF");
-			System.exit(0);
-		}
-		if (pc.undefinedScope().getCheckArguments()) {
-			this.variables = new ClosureScope(pc, pc.argumentsScope(), pc.localScope(), pc.variablesScope());
-		}
-		else {
-			this.variables = pc.variablesScope();
-			variables.setBind(true);
+			throw e;
 		}
 		this.applicationContext = pc.getApplicationContext();
 	}
