@@ -20,7 +20,9 @@ package lucee.runtime.engine;
 
 import java.io.ByteArrayOutputStream;
 import java.util.Locale;
+import java.util.Map;
 import java.util.TimeZone;
+import java.util.concurrent.ConcurrentHashMap;
 
 import lucee.print;
 import lucee.commons.io.log.Log;
@@ -107,6 +109,8 @@ public final class ThreadLocalPageContext {
 
 	}
 
+	public static Map<String, Throwable> stacktraces = new ConcurrentHashMap<>();
+
 	/**
 	 * release the pagecontext for the current thread
 	 */
@@ -116,7 +120,8 @@ public final class ThreadLocalPageContext {
 		else print.e(Thread.currentThread().getName() + " do release: null");
 		pcThreadLocal.set(null);
 		pcThreadLocalInheritable.set(null);
-		print.ds(Thread.currentThread().getName() + " released");
+		print.e(Thread.currentThread().getName() + " released");
+		stacktraces.put(Thread.currentThread().getName(), new Throwable());
 	}
 
 	public static Config getConfig(PageContext pc) {

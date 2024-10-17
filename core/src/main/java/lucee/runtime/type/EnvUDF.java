@@ -59,7 +59,10 @@ public abstract class EnvUDF extends UDFImpl {
 			}
 		}
 		catch (NullPointerException e) {
+
 			print.e(Thread.currentThread().getName() + " EnvUDF");
+			print.e(e);
+			print.e(ThreadLocalPageContext.stacktraces.get(Thread.currentThread().getName()));
 			throw e;
 		}
 		this.applicationContext = pc.getApplicationContext();
