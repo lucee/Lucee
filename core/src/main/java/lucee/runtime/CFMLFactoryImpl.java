@@ -292,7 +292,7 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 			ThreadLocalPageContext.getLog(config, "application").error("release page context", e);
 		}
 		if (tmpRegister) ThreadLocalPageContext.register(beforePC);
-		if (unregisterFromThread) ThreadLocalPageContext.release();
+		else if (unregisterFromThread) ThreadLocalPageContext.release();
 
 		runningPcs.remove(Integer.valueOf(pc.getId()));
 		if (parent != null) {

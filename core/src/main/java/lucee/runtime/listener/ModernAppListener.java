@@ -351,16 +351,12 @@ public class ModernAppListener extends AppListenerSupport {
 			PageContextImpl pc = null;
 			PageContext existing = ThreadLocalPageContext.get();
 			try {
-				// pc = createPageContext(factory, app, applicationName, cfid, ON_SESSION_END, false, -1);
-				// ThreadLocalPageContext.register(pc);
-				// call(app, pc, ON_SESSION_END, new Object[] { pc.sessionScope(false), pc.applicationScope() },
-				// true);
+				pc = createPageContext(factory, app, applicationName, cfid, ON_SESSION_END, true, -1);
+				call(app, pc, ON_SESSION_END, new Object[] { pc.sessionScope(false), pc.applicationScope() }, true);
 			}
 			finally {
-				/*
-				 * if (existing != null) { ThreadLocalPageContext.register(pc); } else if (pc != null) {
-				 */ // factory.releaseLuceePageContext(pc, true);
-				// }
+				factory.releaseLuceePageContext(pc, true);
+				if (existing != null) ThreadLocalPageContext.register(existing);
 			}
 		}
 		catch (Throwable t) {
