@@ -26,7 +26,6 @@ import lucee.runtime.type.scope.Application;
 import lucee.runtime.type.scope.Argument;
 import lucee.runtime.type.scope.CGI;
 import lucee.runtime.type.scope.Client;
-import lucee.runtime.type.scope.Cluster;
 import lucee.runtime.type.scope.Cookie;
 import lucee.runtime.type.scope.Form;
 import lucee.runtime.type.scope.Local;
@@ -58,7 +57,7 @@ public final class TypeScope {
 		SCOPES[Scope.SCOPE_UNDEFINED] = Type.getType(Undefined.class);
 		SCOPES[Scope.SCOPE_URL] = Type.getType(URL.class);
 		SCOPES[Scope.SCOPE_VARIABLES] = Types.VARIABLES;
-		SCOPES[Scope.SCOPE_CLUSTER] = Type.getType(Cluster.class);
+		SCOPES[Scope.SCOPE_CLUSTER] = Types.COLLECTION;
 		SCOPES[Scope.SCOPE_VAR] = SCOPES[Scope.SCOPE_LOCAL];
 		// SCOPES[SCOPE_UNDEFINED_LOCAL]= SCOPES[Scope.SCOPE_LOCAL];
 	}
@@ -78,7 +77,7 @@ public final class TypeScope {
 		METHODS[Scope.SCOPE_UNDEFINED] = new Method("us", SCOPES[Scope.SCOPE_UNDEFINED], new Type[] {});
 		METHODS[Scope.SCOPE_URL] = new Method("urlScope", SCOPES[Scope.SCOPE_URL], new Type[] {});
 		METHODS[Scope.SCOPE_VARIABLES] = new Method("variablesScope", SCOPES[Scope.SCOPE_VARIABLES], new Type[] {});
-		METHODS[Scope.SCOPE_CLUSTER] = new Method("clusterScope", SCOPES[Scope.SCOPE_CLUSTER], new Type[] {});
+		METHODS[Scope.SCOPE_CLUSTER] = new Method("threadGet", Types.OBJECT, new Type[] {});
 		METHODS[Scope.SCOPE_VAR] = new Method("localScope", SCOPES[Scope.SCOPE_VAR], new Type[] {});
 		METHODS[SCOPE_UNDEFINED_LOCAL] = new Method("usl", SCOPE, new Type[] {});
 	}
@@ -89,6 +88,8 @@ public final class TypeScope {
 	public final static Method METHOD_LOCAL_EL = new Method("localGet", Types.OBJECT, new Type[] { Types.BOOLEAN_VALUE, Types.OBJECT });
 	public final static Method METHOD_LOCAL_BIND = new Method("localGet", Types.OBJECT, new Type[] { Types.BOOLEAN_VALUE });
 	public final static Method METHOD_LOCAL_TOUCH = new Method("localTouch", Types.OBJECT, new Type[] {});
+
+	public final static Method METHOD_THREAD_TOUCH = new Method("threadTouch", Types.OBJECT, new Type[] {});
 
 	// public final static Method METHOD_THIS_BINDX=new Method("thisGet",Types.OBJECT,new
 	// Type[]{Types.BOOLEAN_VALUE});
@@ -101,7 +102,11 @@ public final class TypeScope {
 			adapter.checkCast(Types.PAGE_CONTEXT_IMPL);
 			return invokeScope(adapter, TypeScope.METHODS[scope], Types.PAGE_CONTEXT_IMPL);
 		}
-		else return invokeScope(adapter, TypeScope.METHODS[scope], Types.PAGE_CONTEXT);
+		if (scope == Scope.SCOPE_CLUSTER) {
+			adapter.checkCast(Types.PAGE_CONTEXT_IMPL);
+			return invokeScope(adapter, TypeScope.METHODS[scope], Types.PAGE_CONTEXT_IMPL);
+		}
+		return invokeScope(adapter, TypeScope.METHODS[scope], Types.PAGE_CONTEXT);
 	}
 
 	public static Type invokeScope(GeneratorAdapter adapter, Method m, Type type) {

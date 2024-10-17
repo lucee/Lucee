@@ -40,7 +40,6 @@ import lucee.runtime.PageSource;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Struct;
-import lucee.runtime.type.scope.ClusterNotSupported;
 import lucee.runtime.type.scope.Scope;
 import lucee.runtime.type.util.KeyConstants;
 
@@ -48,7 +47,7 @@ public class FDStackFrameImpl implements IFDStackFrame {
 
 	private static final int[] SCOPES_AS_INT = new int[] { Scope.SCOPE_VARIABLES, Scope.SCOPE_CGI, Scope.SCOPE_URL, Scope.SCOPE_FORM, Scope.SCOPE_COOKIE, Scope.SCOPE_CLIENT,
 			Scope.SCOPE_APPLICATION, Scope.SCOPE_CALLER, Scope.SCOPE_CLUSTER, Scope.SCOPE_REQUEST, Scope.SCOPE_SERVER, Scope.SCOPE_SESSION };
-	private static final String[] SCOPES_AS_STRING = new String[] { "variables", "cgi", "url", "form", "cookie", "client", "application", "caller", "cluster", "request", "server",
+	private static final String[] SCOPES_AS_STRING = new String[] { "variables", "cgi", "url", "form", "cookie", "client", "application", "caller", "thread", "request", "server",
 			"session" };
 
 	private PageContextImpl pc;
@@ -141,12 +140,7 @@ public class FDStackFrameImpl implements IFDStackFrame {
 			return pc.undefinedScope().get(KeyConstants._caller, null) instanceof Struct;
 		}
 		if (Scope.SCOPE_CLUSTER == scope) {
-			try {
-				return !(pc.clusterScope() instanceof ClusterNotSupported);
-			}
-			catch (PageException e) {
-				return false;
-			}
+			return pc.hasFamily() && pc.getCurrentThreadScope() != null;
 		}
 		return true;
 	}

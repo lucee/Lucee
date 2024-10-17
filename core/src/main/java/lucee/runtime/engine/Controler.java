@@ -52,7 +52,6 @@ import lucee.runtime.net.smtp.SMTPConnectionPool;
 import lucee.runtime.op.Caster;
 import lucee.runtime.schedule.Scheduler;
 import lucee.runtime.schedule.SchedulerImpl;
-import lucee.runtime.type.scope.ScopeContext;
 import lucee.runtime.type.scope.storage.StorageScopeFile;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.transformer.dynamic.DynamicInvoker;
@@ -202,15 +201,6 @@ public final class Controler extends ParentThreasRefThread {
 
 		boolean doHour = (lastHourInterval + (1000 * 60 * 60)) < now;
 		if (doHour) lastHourInterval = now;
-
-		// broadcast cluster scope
-		try {
-			ScopeContext.getClusterScope(configServer, true).broadcast();
-		}
-		catch (Throwable t) {
-			ExceptionUtil.rethrowIfNecessary(t);
-			if (log != null) log.error("controler", t);
-		}
 
 		// every 10 seconds
 		if (do10Seconds) {

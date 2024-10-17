@@ -112,7 +112,7 @@ public final class ScopeFactory {
 		case Scope.SCOPE_VARIABLES:
 			return "variables";
 		case Scope.SCOPE_CLUSTER:
-			return "cluster";
+			return "thread";
 		}
 
 		return defaultValue;

@@ -1225,7 +1225,7 @@ public final class PageContextImpl extends PageContext {
 		case ScopeSupport.SCOPE_VAR:
 			return localScope();
 		case Scope.SCOPE_CLUSTER:
-			return clusterScope();
+			return getCurrentThreadScope();
 		}
 		return variables;
 	}
@@ -1718,18 +1718,32 @@ public final class PageContextImpl extends PageContext {
 	}
 
 	@Override
-	public Cluster clusterScope() throws PageException {
-		return clusterScope(true);
+	public Cluster clusterScope() throws PageException {// FUTURE remove
+		throw new RuntimeException("cluster scope is no longer supported");
 	}
 
 	@Override
-	public Cluster clusterScope(boolean create) throws PageException {
-		if (cluster == null && create) {
-			cluster = ScopeContext.getClusterScope(config, create);
-			// cluster.initialize(this);
+	public Cluster clusterScope(boolean create) throws PageException {// FUTURE remove
+		throw new RuntimeException("cluster scope is no longer supported");
+	}
+
+	public Object threadGet() throws PageException {
+		if (hasFamily && currentThread != null) {
+			return currentThread;
 		}
-		// else if(!cluster.isInitalized()) cluster.initialize(this);
-		return cluster;
+		return undefinedScope().get(KeyConstants._thread);
+	}
+
+	public Object threadTouch() throws PageException {
+		if (hasFamily && currentThread != null) {
+			return currentThread;
+		}
+		Collection coll = Caster.toCollection(touch(undefinedScope(), KeyConstants._thread), null);
+		if (coll == null) {
+			coll = new StructImpl();
+			set(undefinedScope(), KeyConstants._thread, coll);
+		}
+		return coll;
 	}
 
 	@Override
@@ -3706,10 +3720,10 @@ public final class PageContextImpl extends PageContext {
 	public Object getThreadScope(Collection.Key name, Object defaultValue) {
 		if (threads == null) threads = new CFThread();
 		if (name.equalsIgnoreCase(KeyConstants._cfthread)) return threads; // do not change this, this is used!
-		if (name.equalsIgnoreCase(KeyConstants._thread)) {
-			ThreadsImpl curr = getCurrentThreadScope();
-			if (curr != null) return curr;
-		}
+		/*
+		 * if (name.equalsIgnoreCase(KeyConstants._thread)) { ThreadsImpl curr = getCurrentThreadScope(); if
+		 * (curr != null) return curr; }
+		 */
 		return threads.get(name, defaultValue);
 	}
 

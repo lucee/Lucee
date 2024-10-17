@@ -497,6 +497,11 @@ public class VariableImpl extends ExpressionBase implements Variable {
 			getFactory().TRUE().writeOut(bc, MODE_VALUE);
 			m = TypeScope.METHOD_VAR_BIND;
 		}
+		else if (scope == Scope.SCOPE_CLUSTER) {
+			t = Types.PAGE_CONTEXT_IMPL;
+			adapter.checkCast(Types.PAGE_CONTEXT_IMPL);
+			m = TypeScope.METHODS[scope];
+		}
 		else m = TypeScope.METHODS[scope];
 
 		TypeScope.invokeScope(adapter, m, t);

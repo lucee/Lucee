@@ -143,7 +143,7 @@ class Surveillance {
 		webScopes.set("application", Caster.toDouble(s));
 
 		s = sc.getScopesSize(Scope.SCOPE_CLUSTER);
-		srvScopes.set("cluster", Caster.toDouble(s));
+		srvScopes.set("thread", Caster.toDouble(s));
 
 		s = sc.getScopesSize(Scope.SCOPE_SERVER);
 		srvScopes.set("server", Caster.toDouble(s));

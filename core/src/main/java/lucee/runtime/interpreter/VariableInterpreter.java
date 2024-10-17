@@ -89,7 +89,7 @@ public final class VariableInterpreter {
 		case Scope.SCOPE_VARIABLES:
 			return "variables";
 		case Scope.SCOPE_CLUSTER:
-			return "cluster";
+			return "thread";
 		case Scope.SCOPE_LOCAL:
 			return "local";
 		}
@@ -565,7 +565,6 @@ public final class VariableInterpreter {
 			if ("cgi".equals(type)) return Scope.SCOPE_CGI;
 			if ("cookie".equals(type)) return Scope.SCOPE_COOKIE;
 			if ("client".equals(type)) return Scope.SCOPE_CLIENT;
-			if ("cluster".equals(type)) return Scope.SCOPE_CLUSTER;
 		}
 		else if ('f' == c) {
 			if ("form".equals(type)) return Scope.SCOPE_FORM;
@@ -583,6 +582,9 @@ public final class VariableInterpreter {
 		else if ('u' == c) {
 			if ("url".equals(type)) return Scope.SCOPE_URL;
 		}
+		else if ('t' == c) {
+			if ("thread".equals(type)) return Scope.SCOPE_CLUSTER;
+		}
 		else if ('v' == c) {
 			if ("variables".equals(type)) return Scope.SCOPE_VARIABLES;
 		}
@@ -599,7 +601,6 @@ public final class VariableInterpreter {
 			if (KeyConstants._cgi.equalsIgnoreCase(type)) return Scope.SCOPE_CGI;
 			if (KeyConstants._cookie.equalsIgnoreCase(type)) return Scope.SCOPE_COOKIE;
 			if (KeyConstants._client.equalsIgnoreCase(type)) return Scope.SCOPE_CLIENT;
-			if (KeyConstants._cluster.equalsIgnoreCase(type)) return Scope.SCOPE_CLUSTER;
 		}
 		else if ('f' == c) {
 			if (KeyConstants._form.equalsIgnoreCase(type)) return Scope.SCOPE_FORM;
@@ -613,6 +614,9 @@ public final class VariableInterpreter {
 		}
 		else if ('u' == c) {
 			if (KeyConstants._url.equalsIgnoreCase(type)) return Scope.SCOPE_URL;
+		}
+		else if ('t' == c) {
+			if (KeyConstants._thread.equalsIgnoreCase(type)) return Scope.SCOPE_CLUSTER;
 		}
 		else if ('v' == c) {
 			if (KeyConstants._variables.equalsIgnoreCase(type)) return Scope.SCOPE_VARIABLES;
@@ -673,7 +677,8 @@ public final class VariableInterpreter {
 		case Scope.SCOPE_VAR:
 			return pc.localScope();
 		case Scope.SCOPE_CLUSTER:
-			return pc.clusterScope();
+			if (touch) return ((PageContextImpl) pc).threadTouch();
+			return ((PageContextImpl) pc).threadGet();
 
 		case Scope.SCOPE_LOCAL:
 			if (touch) return ((PageContextImpl) pc).localTouch();

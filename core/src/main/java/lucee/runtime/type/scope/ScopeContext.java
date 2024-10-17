@@ -89,7 +89,6 @@ public final class ScopeContext {
 
 	private int maxSessionTimeout = 0;
 
-	private static Cluster cluster;
 	private static Server server = null;
 
 	private StorageScopeEngine client;
@@ -172,41 +171,6 @@ public final class ScopeContext {
 			server = new ServerImpl(pc, jsr223);
 		}
 		return server;
-	}
-
-	/*
-	 * * Returns the current Cluster Scope, if there is no current Cluster Scope, this method returns
-	 * null.
-	 *
-	 * @param pc
-	 *
-	 * @param create
-	 *
-	 * @return
-	 *
-	 * @throws SecurityException / public static Cluster getClusterScope() { return cluster; }
-	 */
-
-	/**
-	 * Returns the current Cluster Scope, if there is no current Cluster Scope and create is true,
-	 * returns a new Cluster Scope. If create is false and the request has no valid Cluster Scope, this
-	 * method returns null.
-	 *
-	 * @param config
-	 * @param create
-	 * @return
-	 * @throws PageException
-	 */
-	public static Cluster getClusterScope(Config config, boolean create) throws PageException {
-		if (cluster == null && create) {
-			cluster = ((ConfigPro) config).createClusterScope();
-
-		}
-		return cluster;
-	}
-
-	public static void clearClusterScope() {
-		cluster = null;
 	}
 
 	public Client getClientScope(PageContext pc) throws PageException {
@@ -384,7 +348,6 @@ public final class ScopeContext {
 	 */
 	public long getScopesSize(int scope) throws ExpressionException {
 		if (scope == Scope.SCOPE_APPLICATION) return SizeOf.size(applicationContexts);
-		if (scope == Scope.SCOPE_CLUSTER) return SizeOf.size(cluster);
 		if (scope == Scope.SCOPE_SERVER) return SizeOf.size(server);
 		if (scope == Scope.SCOPE_SESSION) return SizeOf.size(this.cfSessionContexts);
 		if (scope == Scope.SCOPE_CLIENT) return SizeOf.size(this.cfClientContexts);

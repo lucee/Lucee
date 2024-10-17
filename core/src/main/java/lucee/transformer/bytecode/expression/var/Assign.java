@@ -165,7 +165,7 @@ public class Assign extends ExpressionBase {
 			}
 		}
 
-		boolean doOnlyScope = variable.getScope() == Scope.SCOPE_LOCAL;
+		boolean doOnlyScope = variable.getScope() == Scope.SCOPE_LOCAL || variable.getScope() == Scope.SCOPE_CLUSTER;
 
 		Type rtn = Types.OBJECT;
 		// boolean last;
@@ -254,6 +254,10 @@ public class Assign extends ExpressionBase {
 			adapter.loadArg(0);
 			if (variable.getScope() == Scope.SCOPE_LOCAL) {
 				return TypeScope.invokeScope(adapter, TypeScope.METHOD_LOCAL_TOUCH, Types.PAGE_CONTEXT);
+			}
+			else if (variable.getScope() == Scope.SCOPE_CLUSTER) {
+				adapter.checkCast(Types.PAGE_CONTEXT_IMPL);
+				return TypeScope.invokeScope(adapter, TypeScope.METHOD_THREAD_TOUCH, Types.PAGE_CONTEXT_IMPL);
 			}
 			return TypeScope.invokeScope(adapter, variable.getScope());
 		}
