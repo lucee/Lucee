@@ -18,6 +18,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="thread" {
 
 			it( title="without child thread", body= function(){
 				thread name="test_without" action="run" {
+					thread.testing = 'bloh';
 					[1].each(function(key){
 						var test = key;
 					}, false);
