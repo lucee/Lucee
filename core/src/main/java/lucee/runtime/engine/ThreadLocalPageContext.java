@@ -116,7 +116,7 @@ public final class ThreadLocalPageContext {
 		else print.e(Thread.currentThread().getName() + " do release: null");
 		pcThreadLocal.set(null);
 		pcThreadLocalInheritable.set(null);
-		print.e(Thread.currentThread().getName() + " released");
+		print.ds(Thread.currentThread().getName() + " released");
 	}
 
 	public static Config getConfig(PageContext pc) {
