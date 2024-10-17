@@ -27,7 +27,6 @@ import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.GeneratorAdapter;
 import org.objectweb.asm.commons.Method;
 
-import lucee.aprint;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.lang.ClassException;
 import lucee.commons.lang.StringUtil;
@@ -579,14 +578,11 @@ public class VariableImpl extends ExpressionBase implements Variable {
 					if (vt.index != -1) names[vt.index] = null;
 					index++;
 					// if (!Types.toType(bc, vt.type).equals(argTypes[index]))
-					// throw new TransformerException(bc, "argument type missmatch[" + vt.type + "->" + Types.toType(bc,
-					// vt.type) + "!=" + argTypes[index] + "]", line);
-					if (!Types.toType(bc, vt.type).equals(argTypes[index]))
-						aprint.e("argument type missmatch[" + vt.type + "->" + Types.toType(bc, vt.type) + "!=" + argTypes[index] + "]");
+					// aprint.e("argument type missmatch[" + vt.type + "->" + Types.toType(bc, vt.type) + "!=" +
+					// argTypes[index] + "]");
 					if (vt.value == null) ASMConstants.NULL(bc.getAdapter());
 					else vt.value.writeOut(bc, Types.isPrimitiveType(argTypes[index]) ? MODE_VALUE : MODE_REF);
 				}
-
 				for (int y = 0; y < names.length; y++) {
 					if (names[y] != null) {
 						TransformerException bce = new TransformerException(bc, "argument [" + names[y] + "] is not allowed for function [" + bif.getFlf().getName() + "]",
