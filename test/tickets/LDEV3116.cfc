@@ -18,6 +18,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="thread" {
 
 			it( title="without child thread", body= function(){
 				thread name="test_without" action="run" {
+					thread.testing = 'bloh';
 					[1].each(function(key){
 						var test = key;
 					}, false);
@@ -25,6 +26,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="thread" {
 					thread.testing = 'blah';
 				}
 				thread action="join" name="test_without";
+				systemOutput(cfthread.test_without,1,1);
 				expect( cfthread.test_without ).notToHaveKey( "error",  cfthread.test_without.error.stacktrace?: '???' );
 				expect( cfthread.test_without.testing ).toBe( "blah" );
 			} );

@@ -636,6 +636,7 @@ public class KeyConstants {
 	public static final Key _this = KeyImpl._const("this");
 	public static final Key _thistag = KeyImpl._const("thistag");
 	public static final Key _thread = KeyImpl._const("thread");
+	public static final Key _THREAD = KeyImpl._const("THREAD");
 	public static final Key _time = KeyImpl._const("time");
 	public static final Key _timers = KeyImpl._const("timers");
 	public static final Key _timespan = KeyImpl._const("timespan");

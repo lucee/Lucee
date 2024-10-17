@@ -106,7 +106,7 @@ public final class ThreadLocalPageContext {
 	/**
 	 * release the pagecontext for the current thread
 	 */
-	public static void release() {// print.ds(Thread.currentThread().getName());
+	public static void release() {
 		pcThreadLocal.set(null);
 		pcThreadLocalInheritable.set(null);
 	}
