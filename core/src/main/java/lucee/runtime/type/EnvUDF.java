@@ -22,7 +22,6 @@ import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 
-import lucee.print;
 import lucee.runtime.Component;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
@@ -49,21 +48,12 @@ public abstract class EnvUDF extends UDFImpl {
 	EnvUDF(UDFProperties properties) {
 		super(properties);
 		PageContext pc = ThreadLocalPageContext.get();
-		try {
-			if (pc.undefinedScope().getCheckArguments()) {
-				this.variables = new ClosureScope(pc, pc.argumentsScope(), pc.localScope(), pc.variablesScope());
-			}
-			else {
-				this.variables = pc.variablesScope();
-				variables.setBind(true);
-			}
+		if (pc.undefinedScope().getCheckArguments()) {
+			this.variables = new ClosureScope(pc, pc.argumentsScope(), pc.localScope(), pc.variablesScope());
 		}
-		catch (NullPointerException e) {
-
-			print.e(Thread.currentThread().getName() + " EnvUDF");
-			print.e(e);
-			print.e(ThreadLocalPageContext.stacktraces.get(Thread.currentThread().getName()));
-			throw e;
+		else {
+			this.variables = pc.variablesScope();
+			variables.setBind(true);
 		}
 		this.applicationContext = pc.getApplicationContext();
 	}
