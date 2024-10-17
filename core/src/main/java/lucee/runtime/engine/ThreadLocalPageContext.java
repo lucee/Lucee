@@ -20,11 +20,8 @@ package lucee.runtime.engine;
 
 import java.io.ByteArrayOutputStream;
 import java.util.Locale;
-import java.util.Map;
 import java.util.TimeZone;
-import java.util.concurrent.ConcurrentHashMap;
 
-import lucee.print;
 import lucee.commons.io.log.Log;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
@@ -56,17 +53,14 @@ public final class ThreadLocalPageContext {
 	 */
 	public static void register(PageContext pc) {// print.ds(Thread.currentThread().getName());
 		if (pc == null) {
-			print.e(Thread.currentThread().getName() + " register: null");
 			return; // TODO happens with Gateway, but should not!
 		}
-		print.e(Thread.currentThread().getName() + " do register: " + pc.getId());
 		// TODO should i set the old one by "release"?
 		Thread t = Thread.currentThread();
 		t.setContextClassLoader(((ConfigPro) pc.getConfig()).getClassLoaderEnv());
 		((PageContextImpl) pc).setThread(t);
 		pcThreadLocal.set(pc);
 		pcThreadLocalInheritable.set(pc);
-		print.e(Thread.currentThread().getName() + " registered: " + pc.getId());
 	}
 
 	public static PageContext get() {
@@ -109,19 +103,12 @@ public final class ThreadLocalPageContext {
 
 	}
 
-	public static Map<String, Throwable> stacktraces = new ConcurrentHashMap<>();
-
 	/**
 	 * release the pagecontext for the current thread
 	 */
 	public static void release() {
-		PageContext dodelete = get();
-		if (dodelete != null) print.e(Thread.currentThread().getName() + " do release: " + dodelete.getId());
-		else print.e(Thread.currentThread().getName() + " do release: null");
 		pcThreadLocal.set(null);
 		pcThreadLocalInheritable.set(null);
-		print.e(Thread.currentThread().getName() + " released");
-		stacktraces.put(Thread.currentThread().getName(), new Throwable());
 	}
 
 	public static Config getConfig(PageContext pc) {
