@@ -143,7 +143,7 @@
 
 	<target name="check-cache">
 		<available file="${cache}/testbox-${testboxVersion}.zip" property="testbox.present"/>
-
+		<available file="${cache}/globber.zip" property="globber.present"/>
 		<available file="${cache}/${extMySQL}-${extMySQLVersion}.lex" property="mysql.present"/>
 		<available file="${cache}/${extMSSQL}-${extMSSQLVersion}.lex" property="mssql.present"/>
 		<available file="${cache}/${extPostgreSQL}-${extPostgreSQLVersion}.lex" property="postgre.present"/>
@@ -196,6 +196,9 @@
 	</target>
 	<target name="check-testbox" depends="check-cache" unless="testbox.present">
 		<get src="${testboxURL}" dest="${cache}/testbox-${testboxVersion}.zip"/>
+	</target>
+	<target name="check-testbox-globber" depends="check-cache" unless="globber.present">
+		<get src="${globberURL}" dest="${cache}/globber.zip"/>
 	</target> 
 	<target name="addExtensions" if="buildLoaderJar">
 		<echots message="add extensions"/>
