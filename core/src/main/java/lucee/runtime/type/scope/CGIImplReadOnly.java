@@ -282,7 +282,7 @@ public final class CGIImplReadOnly extends ReadOnlyStruct implements CGI, Script
 		}
 
 		// check header
-		String headerValue = (String) headers.get(key, null);// req.getHeader(key.getString());
+		String headerValue = (String) (headers == null ? null : headers.get(key, null));// req.getHeader(key.getString());
 		if (headerValue != null) return doScriptProtect(headerValue);
 
 		return other(key, defaultValue);
