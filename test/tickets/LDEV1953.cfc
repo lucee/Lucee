@@ -1,10 +1,10 @@
 component extends="org.lucee.cfml.test.LuceeTestCase"  labels="mysql" {
 	function isMySqlNotSupported() {
 		var mySql = mySqlCredentials();
-		if(!isNull(mysql)){
-			return false;
-		} else{
+		if(isNull(mysql) || structCount(mySql)==0){
 			return true;
+		} else{
+			return false;
 		}
 	}
 
