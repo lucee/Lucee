@@ -20,6 +20,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	//processingdirective pageencoding="UTF-8";
 	variables.suffix="Query";
 
+	function afterAll(){
+		structDelete( server, "query_testAsynUDF");
+	}
+
 	public function beforeTests(){
 		defineDatasource();
 
@@ -223,17 +227,24 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		testAsyn(new query.QueryListener2(tbl),tbl,1);
 	}
 
-
+	/*
+	 	Async Query Listener UDFs get the current application scope
+	 	but get the default name="" application scope instead
+	 	https://luceeserver.atlassian.net/browse/LDEV-5187 
+	*/
 	public void function testAsynUDF() {
+		server.query_testAsynUDF=false;
 		var udf=function (caller,args,result,meta) {
 				arguments.args.sql="insert into QueryTestAsync(id,i,dec) values('6',1,1.0)"; // change SQL
-		        application.query_testAsynUDF=true;
+		        server.query_testAsynUDF=true;
 				return arguments;
 		};
 		var tbl="QueryTestAsync";
-		application.query_testAsynUDF=false;
+		expect(server.query_testAsynUDF).toBeFalse();
 		testAsyn(udf,tbl,0);
-		assertTrue(application.query_testAsynUDF);
+		sleep(800); // allow the async test to complete
+		expect(server.query_testAsynUDF).toBeTrue();
+		structDelete( server, "query_testAsynUDF");
 	}
 
 	public void function testAsynStructUDF() {
@@ -272,8 +283,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 			query name="local.qry" {
 				echo("select * from "&tbl);
 			}
-			assertTrue(qry.recordcount==1);
-			assertEquals(res,qry.id);
+			expect( qry.recordcount ).toBe ( 1 );
+			expect( res ).toBe(qry.id);
+		} catch( e ){
+			systemOutput( e, true );
 		}
 		finally {
 			dropTable(tbl);
@@ -293,9 +306,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
 			echo("select id from T"&suffix);
 		} 
-		assertEquals(1,qry.recordcount);
-		assertEquals("1234",qry.id);
-
+		expect( qry.recordcount ).toBe( 1 );
+		expect( qry.id ).toBe( "1234" );
 
 		query name="local.qry" listener={
 			after=function (caller,args,result,meta) {
@@ -305,9 +317,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		} {
 
 			echo("select id from T"&suffix);
-		} 
-		assertEquals(3,qry.recordcount);
-		assertEquals("A",qry.columnlist);
+		}
+		expect( qry.recordcount ).toBe( 3 );
+		expect( qry.columnlist ).toBe( "A" );
 		
 	}
 
@@ -329,9 +341,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
 		 {
 			echo("insert into T"&suffix&"(id,i,dec) values('2',1,1.0)");
-		} 
-		assertEquals(3,qry.recordcount);
-		assertEquals("A",qry.columnlist);
+		}
+		
+		expect( qry.recordcount ).toBe( 3 );
+		expect( qry.columnlist ).toBe( "A" );
 		
 	}
 
