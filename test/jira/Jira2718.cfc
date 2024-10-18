@@ -63,17 +63,17 @@
 	function testScriptFunctionCreateTimespan(){
 		var initVal=scriptFunctionCreateTimespan();
 		sleep(1);
-		assertEquals(true,initVal == scriptFunctionCreateTimespan());
+		expect(initVal).toBe(scriptFunctionCreateTimespan());
 		sleep(25);
-		assertEquals(false,initVal == scriptFunctionCreateTimespan());
+		expect(initVal).notToBe(scriptFunctionCreateTimespan());
 	}
 
 	function testTagFunctionCreateTimespan(){
 		var initVal=tagFunctionCreateTimespan();
 		sleep(1);
-		assertEquals(true,initVal == tagFunctionCreateTimespan());
+		expect(initVal).toBe(tagFunctionCreateTimespan());
 		sleep(25);
-		assertEquals(false,initVal == tagFunctionCreateTimespan());
+		expect(initVal).notToBe(tagFunctionCreateTimespan());
 	}
 
 	// createTimeSpan(0,0,0,0,25)
