@@ -153,10 +153,20 @@ public final class DynamicClassLoader extends ClassLoader implements ExtendableC
 				this.unavaiClasses.put(name, "");
 				throw new ClassNotFoundException("Class [" + name + "] is invalid or doesn't exist [parent:" + getParent() + "]", e);
 			}
-
 			byte[] barr = baos.toByteArray();
+			if (barr.length == 0) {
+				IOUtil.closeEL(baos);
+				this.unavaiClasses.put(name, "");
+				throw new ClassNotFoundException("Class [" + name + "] is invalid or doesn't exist [parent:" + getParent() + "]");
+			}
 			IOUtil.closeEL(baos);
-			return _loadClass(name, barr);
+			try {
+				return _loadClass(name, barr);
+			}
+			catch (LinkageError e) {
+				this.unavaiClasses.put(name, "");
+				throw new ClassNotFoundException("Class [" + name + "] is invalid or doesn't exist [parent:" + getParent() + "]", e);
+			}
 		}
 	}
 
