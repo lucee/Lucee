@@ -31,7 +31,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.TimeZone;
 
-import lucee.print;
 import lucee.commons.date.DateTimeUtil;
 import lucee.commons.date.JREDateTimeUtil;
 import lucee.commons.date.TimeZoneConstants;
@@ -312,7 +311,6 @@ public final class DateCaster {
 				try {
 					DateTimeImpl res = new DateTimeImpl(Date.from(ZonedDateTime.parse(str, fw.formatter).toInstant()).getTime(), false);
 					fw.successCount++;
-					print.e(locale);
 					return res;
 				}
 				catch (Exception e) {
