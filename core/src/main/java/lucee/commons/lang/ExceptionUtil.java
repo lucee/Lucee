@@ -28,14 +28,12 @@ import java.util.Arrays;
 import java.util.Iterator;
 
 import lucee.commons.io.SystemUtil.TemplateLine;
-import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.runtime.ComponentImpl;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.PageSource;
-import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.ExpressionException;
@@ -299,11 +297,22 @@ public final class ExceptionUtil {
 
 	public static void initCauseEL(Throwable e, Throwable cause) {
 		if (cause == null) return;
+
+		// get current root cause
+		Throwable tmp;
+		int count = 100;
+		do {
+			if (--count <= 0) break; // in case cause point to a child
+			tmp = e.getCause();
+			if (tmp == null) break;
+			e = tmp;
+		}
+		while (true);
+		// attach to root cause
 		try {
 			e.initCause(cause);
 		}
-		catch (IllegalStateException ise) { // avoid: Can't overwrite cause with ...
-			LogUtil.log((Config) null, "exception", cause);
+		catch (Exception ex) {
 		}
 	}
 
