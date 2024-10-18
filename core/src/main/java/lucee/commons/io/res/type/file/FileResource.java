@@ -271,10 +271,25 @@ public final class FileResource extends File implements Resource {
 				// ignore this
 				catch (FileAlreadyExistsException faee) {
 				}
+				catch (IOException ioe) {
+					Resource p = getParentResource();
+					if (p != null && !p.isDirectory()) {
+						IOException e = new IOException("parent directory [" + p + "] does not exist");
+						ExceptionUtil.initCauseEL(e, ioe);
+						throw e;
+					}
+					throw ioe;
+				}
 			}
 			return new BufferedOutputStream(new ResourceOutputStream(this, new FileOutputStream(this, append)));
 		}
 		catch (IOException ioe) {
+			Resource p = getParentResource();
+			if (p != null && !p.isDirectory()) {
+				IOException e = new IOException("parent directory [" + p + "] does not exist");
+				ExceptionUtil.initCauseEL(e, ioe);
+				ioe = e;
+			}
 			provider.unlock(this);
 			throw ioe;
 		}
