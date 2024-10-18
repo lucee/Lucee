@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.TimeZone;
 import java.util.concurrent.ConcurrentHashMap;
 
+import lucee.commons.io.SystemUtil;
 import lucee.commons.lang.SerializableObject;
 import lucee.runtime.engine.ThreadLocalPageContext;
 
@@ -42,16 +43,21 @@ public class JSONDateFormat {
 
 	public static String format(Date date, TimeZone tz, String pattern) {
 		tz = ThreadLocalPageContext.getTimeZone(tz);
-		String id = locale.hashCode() + "-" + tz.getID();
-		synchronized (sync) {
-			SoftReference<DateFormat> tmp = map.get(id);
-			DateFormat format = tmp == null ? null : tmp.get();
-			if (format == null) {
-				format = new SimpleDateFormat(pattern, locale);
-				format.setTimeZone(tz);
-				map.put(id, new SoftReference<DateFormat>(format));
+
+		String id = SystemUtil.createToken(locale.hashCode() + "", tz.getID());
+		SoftReference<DateFormat> tmp = map.get(id);
+		DateFormat format = tmp == null ? null : tmp.get();
+		if (format == null) {
+			synchronized (id) {
+				tmp = map.get(id);
+				format = tmp == null ? null : tmp.get();
+				if (format == null) {
+					format = new SimpleDateFormat(pattern, locale);
+					format.setTimeZone(tz);
+					map.put(id, new SoftReference<DateFormat>(format));
+				}
 			}
-			return format.format(date);
 		}
+		return format.format(date);
 	}
 }
