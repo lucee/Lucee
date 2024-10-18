@@ -244,6 +244,7 @@ public final class PhysicalClassLoader extends URLClassLoader implements Extenda
 
 		synchronized (SystemUtil.createToken("pcl", name)) {
 			Resource res = directory.getRealResource(name.replace('.', '/').concat(".class"));
+			if (!res.isFile()) throw new ClassNotFoundException("Class [" + name + "] is invalid or doesn't exist");
 
 			ByteArrayOutputStream baos = new ByteArrayOutputStream();
 			try {
