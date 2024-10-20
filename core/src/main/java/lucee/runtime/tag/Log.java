@@ -277,6 +277,12 @@ public final class Log extends TagImpl {
 			log.setLogLevel(lucee.commons.io.log.Log.LEVEL_TRACE);
 			return log;
 		}
+
+		log = FileLogPool.instance.get(res, CharsetUtil.toCharset(charset));
+		if (log != null) {
+			log.setLogLevel(lucee.commons.io.log.Log.LEVEL_TRACE);
+			return log;
+		}
 		synchronized (FileLogPool.instance) {
 			log = FileLogPool.instance.get(res, CharsetUtil.toCharset(charset));
 			if (log != null) {

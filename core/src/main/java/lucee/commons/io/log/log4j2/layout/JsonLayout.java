@@ -283,7 +283,7 @@ public class JsonLayout extends AbstractStringLayout { // TODO <Serializable>
 			// env var
 			if (envNames != null && !hasEnvLoaded) {
 				synchronized (token) {
-					if (!hasEnvLoaded) {
+					if (envNames != null && !hasEnvLoaded) {
 						envs = new StructImpl();
 						for (String v: envNames) {
 							if (!StringUtil.isEmpty(v, true)) {

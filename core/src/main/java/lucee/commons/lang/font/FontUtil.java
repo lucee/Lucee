@@ -47,19 +47,21 @@ public class FontUtil {
 	}
 
 	private static Array getAvailableFonts(boolean duplicate) {
-		synchronized (sync) {
-			if (fonts == null) {
-				fonts = new ArrayImpl();
-				GraphicsEnvironment graphicsEvn = GraphicsEnvironment.getLocalGraphicsEnvironment();
-				Font[] availableFonts = graphicsEvn.getAllFonts();
-				for (int i = 0; i < availableFonts.length; i++) {
-					fonts.appendEL(availableFonts[i]);
-				}
+		if (fonts == null) {
+			synchronized (sync) {
+				if (fonts == null) {
+					fonts = new ArrayImpl();
+					GraphicsEnvironment graphicsEvn = GraphicsEnvironment.getLocalGraphicsEnvironment();
+					Font[] availableFonts = graphicsEvn.getAllFonts();
+					for (int i = 0; i < availableFonts.length; i++) {
+						fonts.appendEL(availableFonts[i]);
+					}
 
+				}
 			}
-			if (!duplicate) return fonts;
-			return (Array) Duplicator.duplicate(fonts, false);
 		}
+		if (!duplicate) return fonts;
+		return (Array) Duplicator.duplicate(fonts, false);
 	}
 
 	public static String toString(Font font) {

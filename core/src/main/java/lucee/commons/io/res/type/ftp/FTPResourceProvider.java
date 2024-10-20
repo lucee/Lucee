@@ -128,10 +128,12 @@ public final class FTPResourceProvider implements ResourceProviderPro {
 	}
 
 	private void startCloser() {
-		synchronized (sync) {
-			if (closer == null || !closer.isAlive()) {
-				closer = new FTPResourceClientCloser(this);
-				closer.start();
+		if (closer == null || !closer.isAlive()) {
+			synchronized (sync) {
+				if (closer == null || !closer.isAlive()) {
+					closer = new FTPResourceClientCloser(this);
+					closer.start();
+				}
 			}
 		}
 	}

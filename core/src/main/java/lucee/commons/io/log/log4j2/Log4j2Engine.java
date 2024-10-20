@@ -650,8 +650,10 @@ public class Log4j2Engine extends LogEngine {
 		}
 		if (changes != null) {
 			synchronized (map) {
-				for (String k: changes) {
-					map.put(k.toLowerCase(), map.remove(k));
+				if (changes != null) {
+					for (String k: changes) {
+						map.put(k.toLowerCase(), map.remove(k));
+					}
 				}
 			}
 		}

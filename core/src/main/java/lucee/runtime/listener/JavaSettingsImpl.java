@@ -291,7 +291,7 @@ public class JavaSettingsImpl implements JavaSettings {
 			List<Resource> list = new ArrayList<Resource>();
 			_getBundlesTranslated(list, bundles, true, true);
 			bundlesTranslated = list;
-			if (bundlesTranslated != null) {
+			if (bundlesTranslated != null && bundlesTranslated.isEmpty()) {
 				synchronized (this) {
 					if (bundlesTranslated != null && bundlesTranslated.isEmpty()) {
 						bundlesTranslated = null;

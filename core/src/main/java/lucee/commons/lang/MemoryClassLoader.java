@@ -55,24 +55,25 @@ public final class MemoryClassLoader extends ClassLoader implements ExtendableCl
 
 	@Override
 	protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
-		synchronized (SystemUtil.createToken("MemoryClassLoader", name)) {
-
-			// First, check if the class has already been loaded
-			Class<?> c = findLoadedClass(name);
-			if (c == null) {
-				try {
-					c = pcl.loadClass(name);// if(name.indexOf("sub")!=-1)print.ds(name);
-				}
-				catch (Throwable t) {
-					ExceptionUtil.rethrowIfNecessary(t);
-					c = findClass(name);
+		Class<?> c = findLoadedClass(name);
+		if (c == null) {
+			synchronized (SystemUtil.createToken("MemoryClassLoader", name)) {
+				c = findLoadedClass(name);
+				if (c == null) {
+					try {
+						c = pcl.loadClass(name);// if(name.indexOf("sub")!=-1)print.ds(name);
+					}
+					catch (Throwable t) {
+						ExceptionUtil.rethrowIfNecessary(t);
+						c = findClass(name);
+					}
 				}
 			}
-			if (resolve) {
-				resolveClass(c);
-			}
-			return c;
 		}
+		if (resolve) {
+			resolveClass(c);
+		}
+		return c;
 	}
 
 	@Override

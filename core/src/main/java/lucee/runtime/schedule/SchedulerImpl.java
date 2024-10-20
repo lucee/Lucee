@@ -242,8 +242,11 @@ public final class SchedulerImpl implements Scheduler {
 	}
 
 	public void removeIfNoLonerValid(ScheduleTask task) throws IOException {
+		ScheduleTaskImpl sti = (ScheduleTaskImpl) task;
+		if (sti.isValid() || !sti.isAutoDelete()) return;
+
 		synchronized (sync) {
-			ScheduleTaskImpl sti = (ScheduleTaskImpl) task;
+			sti = (ScheduleTaskImpl) task;
 			if (sti.isValid() || !sti.isAutoDelete()) return;
 
 			try {
@@ -256,12 +259,15 @@ public final class SchedulerImpl implements Scheduler {
 
 	@Override
 	public void runScheduleTask(String name, boolean throwWhenNotExist) throws IOException, ScheduleException {
-		synchronized (sync) {
-			ScheduleTask task = getScheduleTask(name);
-			if (task != null) {
-				if (active()) execute(task);
+		ScheduleTask task = getScheduleTask(name);
+		if (task != null) {
+			synchronized (sync) {
+				task = getScheduleTask(name);
+				if (task != null) {
+					if (active()) execute(task);
+				}
+				else if (throwWhenNotExist) throw new ScheduleException("can't run schedule task [" + name + "], task doesn't exist");
 			}
-			else if (throwWhenNotExist) throw new ScheduleException("can't run schedule task [" + name + "], task doesn't exist");
 		}
 	}
 

@@ -30,6 +30,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.felix.framework.BundleWiringImpl.BundleClassLoader;
 
@@ -84,21 +85,25 @@ public final class PhysicalClassLoader extends URLClassLoader implements Extenda
 
 	private String birthplace;
 
-	private static long counter = 0L;
+	private static final AtomicLong counter = new AtomicLong(Long.MAX_VALUE - 1);
 	private static long _start = 0L;
 	private static String start = Long.toString(_start, Character.MAX_RADIX);
 	private static Object countToken = new Object();
 
 	public static String uid() {
-		synchronized (countToken) {
-			counter++;
-			if (counter < 0) {
-				counter = 1;
-				start = Long.toString(++_start, Character.MAX_RADIX);
+		long currentCounter = counter.incrementAndGet(); // Increment and get atomically
+		if (currentCounter < 0) {
+			synchronized (countToken) {
+				currentCounter = counter.incrementAndGet();
+				if (currentCounter < 0) {
+					counter.set(0L);
+					currentCounter = 0L;
+					start = Long.toString(++_start, Character.MAX_RADIX);
+				}
 			}
-			if (_start == 0L) return Long.toString(counter, Character.MAX_RADIX);
-			return start + "_" + Long.toString(counter, Character.MAX_RADIX);
 		}
+		if (_start == 0L) return Long.toString(currentCounter, Character.MAX_RADIX);
+		return start + "_" + Long.toString(currentCounter, Character.MAX_RADIX);
 	}
 
 	public static PhysicalClassLoader getPhysicalClassLoader(Config c, Resource directory, boolean reload) throws IOException {

@@ -969,23 +969,22 @@ public final class ClassUtil {
 
 		@Override
 		public Class<?> loadClass(String className, Class defaultValue, Set<Throwable> exceptions) {
-			synchronized (SystemUtil.createToken("clbcl", className)) {
-				className = className.trim();
+			className = className.trim();
+			try {
+				return cl.loadClass(className);
+			}
+			catch (Exception e) {
 				try {
-					return cl.loadClass(className);
+					return Class.forName(className, false, cl);
 				}
-				catch (Exception e) {
-					try {
-						return Class.forName(className, false, cl);
+				catch (Exception e2) {
+					if (exceptions != null) {
+						exceptions.add(e2);
 					}
-					catch (Exception e2) {
-						if (exceptions != null) {
-							exceptions.add(e2);
-						}
-						return defaultValue;
-					}
+					return defaultValue;
 				}
 			}
+
 		}
 
 		/*

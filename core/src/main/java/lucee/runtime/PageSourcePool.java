@@ -108,11 +108,13 @@ public final class PageSourcePool implements Dumpable {
 		}
 		if ((mapping.getInspectTemplate() == ConfigPro.INSPECT_AUTO) && (watcher == null || pageSources.size() == 0)) {
 			synchronized (token) {
-				if (watcher != null) {
-					watcher.stopIfNecessary();
+				if ((mapping.getInspectTemplate() == ConfigPro.INSPECT_AUTO) && (watcher == null || pageSources.size() == 0)) {
+					if (watcher != null) {
+						watcher.stopIfNecessary();
+					}
+					watcher = new PageSourcePoolWatcher(mapping, this, pageSources);
+					watcher.startIfNecessary();
 				}
-				watcher = new PageSourcePoolWatcher(mapping, this, pageSources);
-				watcher.startIfNecessary();
 			}
 		}
 

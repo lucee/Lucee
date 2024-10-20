@@ -152,35 +152,37 @@ public class DatasourceAppender extends AbstractAppender {
 	}
 
 	private void init() {
-		synchronized (token) {
-			if (!isInit) {
-				DatasourceConnection conn = null;
-				PageContext optionalPC = ThreadLocalPageContext.get();
-				SQLImpl sql = new SQLImpl("select 1 from " + tableName + " where 1=0");
-				try {
-					conn = getConnection();
+		if (!isInit) {
+			synchronized (token) {
+				if (!isInit) {
+					DatasourceConnection conn = null;
+					PageContext optionalPC = ThreadLocalPageContext.get();
+					SQLImpl sql = new SQLImpl("select 1 from " + tableName + " where 1=0");
 					try {
-						new QueryImpl(optionalPC, conn, sql, -1, -1, null, "query");
-						isInit = true;
-					}
-					catch (PageException pe) {
-						// SystemOut.printDate(pe);
+						conn = getConnection();
 						try {
-							new QueryImpl(optionalPC, conn, createSQL(conn), -1, -1, null, "query");
+							new QueryImpl(optionalPC, conn, sql, -1, -1, null, "query");
 							isInit = true;
 						}
-						catch (Exception e2) {
-							// SystemOut.printDate(e2);
-							throw pe;
+						catch (PageException pe) {
+							// SystemOut.printDate(pe);
+							try {
+								new QueryImpl(optionalPC, conn, createSQL(conn), -1, -1, null, "query");
+								isInit = true;
+							}
+							catch (Exception e2) {
+								// SystemOut.printDate(e2);
+								throw pe;
+							}
+						}
+						finally {
+							relConnection(conn);
 						}
 					}
-					finally {
-						relConnection(conn);
+					catch (PageException pe) {
+						LogUtil.logGlobal(config, "log-loading", pe);
+						isInit = false;
 					}
-				}
-				catch (PageException pe) {
-					LogUtil.logGlobal(config, "log-loading", pe);
-					isInit = false;
 				}
 			}
 		}

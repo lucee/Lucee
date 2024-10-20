@@ -19,12 +19,12 @@
 package lucee.runtime.net.smtp;
 
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Stack;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.mail.Authenticator;
 import javax.mail.MessagingException;
@@ -32,11 +32,12 @@ import javax.mail.NoSuchProviderException;
 import javax.mail.Session;
 import javax.mail.Transport;
 
+import lucee.commons.io.SystemUtil;
 import lucee.commons.lang.ExceptionUtil;
 
 public class SMTPConnectionPool {
 
-	private static Map<String, Stack<SessionAndTransport>> sessions = new HashMap<String, Stack<SessionAndTransport>>();
+	private static Map<String, Stack<SessionAndTransport>> sessions = new ConcurrentHashMap<String, Stack<SessionAndTransport>>();
 
 	public static SessionAndTransport getSessionAndTransport(Properties props, String key, Authenticator auth, long lifeTimespan, long idleTimespan) throws MessagingException {
 
@@ -126,14 +127,18 @@ public class SMTPConnectionPool {
 
 	private static Stack<SessionAndTransport> getSATStack(String key) {
 		Stack<SessionAndTransport> stack;
-		synchronized (sessions) {
-			stack = sessions.get(key);
-			if (stack == null) {
-				stack = new Stack<SessionAndTransport>();
-				sessions.put(key, stack);
+		stack = sessions.get(key);
+		if (stack == null) {
+			synchronized (SystemUtil.createToken("getSATStack", key)) {
+				stack = sessions.get(key);
+				if (stack == null) {
+					stack = new Stack<SessionAndTransport>();
+					sessions.put(key, stack);
+				}
 			}
 		}
 		return stack;
+
 	}
 
 	private static Session createSession(String key, Properties props, Authenticator auth) {

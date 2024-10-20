@@ -49,21 +49,25 @@ public class ResourceSnippetsMap {
 	 */
 	public ResourceSnippet getSnippet(PageSource ps, int startPos, int endPos, String charset) {
 		String keySnp = calcKey(ps, startPos, endPos);
-		synchronized (sync) {
-			ResourceSnippet snippet = snippets.get(keySnp);
-			if (snippet == null) {
-				Resource res = ps.getResource();
-				String keyRes = calcKey(res);
-				String src = sources.get(keyRes);
-				if (src == null) {
-					src = ResourceSnippet.getContents(res, charset);
-					sources.put(keyRes, src);
+		ResourceSnippet snippet = snippets.get(keySnp);
+		if (snippet == null) {
+
+			synchronized (sync) {
+				snippet = snippets.get(keySnp);
+				if (snippet == null) {
+					Resource res = ps.getResource();
+					String keyRes = calcKey(res);
+					String src = sources.get(keyRes);
+					if (src == null) {
+						src = ResourceSnippet.getContents(res, charset);
+						sources.put(keyRes, src);
+					}
+					snippet = ResourceSnippet.createResourceSnippet(src, startPos, endPos);
+					snippets.put(keySnp, snippet);
 				}
-				snippet = ResourceSnippet.createResourceSnippet(src, startPos, endPos);
-				snippets.put(keySnp, snippet);
 			}
-			return snippet;
 		}
+		return snippet;
 	}
 
 	public static String calcKey(Resource res) {

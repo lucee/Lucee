@@ -9,6 +9,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicLong;
 
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
@@ -33,7 +34,7 @@ public final class DynamicClassLoader extends ClassLoader implements ExtendableC
 
 	private final Map<String, SoftReference<Object>> instances = new ConcurrentHashMap<>();
 
-	private static long counter = 0L;
+	private static final AtomicLong counter = new AtomicLong(Long.MAX_VALUE - 1);
 	private static long _start = 0L;
 	private static String start = Long.toString(_start, Character.MAX_RADIX);
 	private static final Object countToken = new Object();
@@ -41,15 +42,19 @@ public final class DynamicClassLoader extends ClassLoader implements ExtendableC
 	private static final long MAX_AGE = 30 * 60 * 60 * 1000;
 
 	public static String uid() {
-		synchronized (countToken) {
-			counter++;
-			if (counter < 0) {
-				counter = 1;
-				start = Long.toString(++_start, Character.MAX_RADIX);
+		long currentCounter = counter.incrementAndGet(); // Increment and get atomically
+		if (currentCounter < 0) {
+			synchronized (countToken) {
+				currentCounter = counter.incrementAndGet();
+				if (currentCounter < 0) {
+					counter.set(0L);
+					currentCounter = 0L;
+					start = Long.toString(++_start, Character.MAX_RADIX);
+				}
 			}
-			if (_start == 0L) return Long.toString(counter, Character.MAX_RADIX);
-			return start + "_" + Long.toString(counter, Character.MAX_RADIX);
 		}
+		if (_start == 0L) return Long.toString(currentCounter, Character.MAX_RADIX);
+		return start + "_" + Long.toString(currentCounter, Character.MAX_RADIX);
 	}
 
 	/**
@@ -115,24 +120,23 @@ public final class DynamicClassLoader extends ClassLoader implements ExtendableC
 
 	@Override
 	protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
-		// First, check if the class has already been loaded
-		synchronized (SystemUtil.createToken("dcl", name)) {
-			return loadClass(name, resolve, true);
-		}
+		return loadClass(name, resolve, true);
 	}
 
 	private Class<?> loadClass(String name, boolean resolve, boolean loadFromFS) throws ClassNotFoundException {
 		// First, check if the class has already been loaded
 		Class<?> c = findLoadedClass(name);
 		if (c == null) {
-			try {
-				c = getParent().loadClass(name);
-			}
-			catch (Exception e) {
-			}
-			if (c == null) {
-				if (loadFromFS) c = findClass(name);
-				else throw new ClassNotFoundException(name);
+			synchronized (SystemUtil.createToken("dcl", name)) {
+				try {
+					c = getParent().loadClass(name);
+				}
+				catch (Exception e) {
+				}
+				if (c == null) {
+					if (loadFromFS) c = findClass(name);
+					else throw new ClassNotFoundException(name);
+				}
 			}
 		}
 		if (resolve) resolveClass(c);
@@ -141,11 +145,11 @@ public final class DynamicClassLoader extends ClassLoader implements ExtendableC
 
 	@Override
 	protected Class<?> findClass(String name) throws ClassNotFoundException {// if(name.indexOf("sub")!=-1)print.ds(name);
-		synchronized (SystemUtil.createToken("dcl", name)) {
-			if (directory == null) throw new ClassNotFoundException("Class [" + name + "] not found (memory mode)");
-			Resource res = directory.getRealResource(name.replace('.', '/').concat(".class"));
 
-			ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		if (directory == null) throw new ClassNotFoundException("Class [" + name + "] not found (memory mode)");
+		Resource res = directory.getRealResource(name.replace('.', '/').concat(".class"));
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		synchronized (SystemUtil.createToken("dcl", name)) {
 			try {
 				IOUtil.copy(res, baos, false);
 			}

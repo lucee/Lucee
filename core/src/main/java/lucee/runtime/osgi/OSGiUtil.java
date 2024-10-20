@@ -1445,9 +1445,7 @@ public class OSGiUtil {
 				Bundle result = _start(bundle, parents);
 				return result;
 			}
-			else {
-				return bundle;
-			}
+			return bundle;
 		}
 	}
 

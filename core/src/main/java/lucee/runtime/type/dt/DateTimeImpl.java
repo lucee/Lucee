@@ -179,10 +179,6 @@ public final class DateTimeImpl extends DateTime implements SimpleValue, Objects
 	@Override
 	public String toString() {
 		return castToString();
-		/*
-		 * synchronized (javaFormatter) { javaFormatter.setTimeZone(timezone); return
-		 * javaFormatter.format(this); }
-		 */
 	}
 
 	@Override

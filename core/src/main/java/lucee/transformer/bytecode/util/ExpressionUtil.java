@@ -78,11 +78,13 @@ public final class ExpressionUtil {
 
 	private void visitLine(BytecodeContext bc, int line) {
 		if (line > 0) {
-			synchronized (SystemUtil.createToken("ExpressionUtil", bc.getClassName())) {
-				if (!("" + line).equals(last.get(bc.getClassName() + ":" + bc.getId()))) {
-					bc.visitLineNumber(line);
-					last.put(bc.getClassName() + ":" + bc.getId(), "" + line);
-					last.put(bc.getClassName(), "" + line);
+			if (!("" + line).equals(last.get(bc.getClassName() + ":" + bc.getId()))) {
+				synchronized (SystemUtil.createToken("ExpressionUtil", bc.getClassName())) {
+					if (!("" + line).equals(last.get(bc.getClassName() + ":" + bc.getId()))) {
+						bc.visitLineNumber(line);
+						last.put(bc.getClassName() + ":" + bc.getId(), "" + line);
+						last.put(bc.getClassName(), "" + line);
+					}
 				}
 			}
 		}
