@@ -3,7 +3,7 @@
 
   <groupId>org.lucee</groupId>
   <artifactId>lucee</artifactId>
-  <version>6.0.4.10-SNAPSHOT</version>
+  <version>6.0.4.10</version>
   <packaging>jar</packaging>
 
   <name>Lucee Loader Build</name>
