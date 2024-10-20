@@ -18,78 +18,52 @@
  **/
 package lucee.commons.i18n;
 
+import java.lang.ref.SoftReference;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 import java.util.Map;
 import java.util.TimeZone;
-import java.util.WeakHashMap;
+import java.util.concurrent.ConcurrentHashMap;
+
+import lucee.commons.io.SystemUtil;
+import lucee.runtime.engine.ThreadLocalPageContext;
 
 public final class DateFormatPool {
 
-	private final static Map<String, SimpleDateFormat> data = new WeakHashMap();
+	private final static Map<String, SoftReference<SimpleDateFormat>> datax = new ConcurrentHashMap<>();
 
-	/**
-	 * pool for formated dates
-	 * 
-	 * @param locale
-	 * @param timeZone
-	 * @param pattern
-	 * @param date
-	 * @return date matching given values
-	 */
 	public static String format(Locale locale, TimeZone timeZone, String pattern, Date date) {
-		synchronized (data) {
-			String key = locale.toString() + '-' + timeZone.getID() + '-' + pattern;
-			Object obj = data.get(key);
-			if (obj != null) {
-				return ((SimpleDateFormat) obj).format(date);
-			}
-			SimpleDateFormat sdf = new SimpleDateFormat(pattern, locale);
-			sdf.setTimeZone(timeZone);
-			data.put(key, sdf);
-			return sdf.format(date);
-		}
+		return getSimpleDateFormat(locale, timeZone, pattern).format(date);
 	}
 
-	/**
-	 * pool for formated dates
-	 * 
-	 * @param locale
-	 * @param pattern
-	 * @param date
-	 * @return date matching given values
-	 */
 	public static String format(Locale locale, String pattern, Date date) {
-		synchronized (data) {
-			String key = locale.toString() + '-' + pattern;
-			Object obj = data.get(key);
-			if (obj != null) {
-				return ((SimpleDateFormat) obj).format(date);
-			} // print.ln(key);
-			SimpleDateFormat sdf = new SimpleDateFormat(pattern, locale);
-			data.put(key, sdf);
-			return sdf.format(date);
-		}
+		return getSimpleDateFormat(locale, null, pattern).format(date);
 	}
 
-	/**
-	 * pool for formated dates
-	 * 
-	 * @param pattern
-	 * @param date
-	 * @return date matching given values
-	 */
 	public static String format(String pattern, Date date) {
-		synchronized (data) {
-			Object obj = data.get(pattern);
-			if (obj != null) {
-				return ((SimpleDateFormat) obj).format(date);
-			} // print.ln(pattern);
-			SimpleDateFormat sdf = new SimpleDateFormat(pattern);
-			data.put(pattern, sdf);
-			return sdf.format(date);
-		}
+		return getSimpleDateFormat(null, null, pattern).format(date);
 	}
 
+	private static SimpleDateFormat getSimpleDateFormat(Locale locale, TimeZone timeZone, String pattern) {
+		if (locale == null) locale = ThreadLocalPageContext.getLocale();
+		if (timeZone == null) timeZone = ThreadLocalPageContext.getTimeZone();
+
+		String key = locale.toString() + '-' + timeZone.getID() + '-' + pattern;
+		SoftReference<SimpleDateFormat> ref = datax.get(key);
+		SimpleDateFormat sdf = ref == null ? null : ref.get();
+
+		if (sdf == null) {
+			synchronized (SystemUtil.createToken("DateFormatPool", key)) {
+				ref = datax.get(key);
+				sdf = ref == null ? null : ref.get();
+				if (sdf == null) {
+					sdf = new SimpleDateFormat(pattern, locale);
+					sdf.setTimeZone(timeZone);
+					datax.put(key, new SoftReference<>(sdf));
+				}
+			}
+		}
+		return sdf;
+	}
 }
