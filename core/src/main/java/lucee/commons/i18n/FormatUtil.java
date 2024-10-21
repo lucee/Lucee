@@ -532,7 +532,7 @@ public class FormatUtil {
 	}
 
 	@Deprecated
-	private static DateFormat getDateTimeFormat(Locale locale, TimeZone tz, String mask) {
+	public static DateFormat getDateTimeFormat(Locale locale, TimeZone tz, String mask) {
 		DateFormat df;
 		if (mask.equalsIgnoreCase("short")) df = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT, locale);
 		else if (mask.equalsIgnoreCase("medium")) df = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.MEDIUM, locale);
@@ -555,8 +555,7 @@ public class FormatUtil {
 		else if (mask.equalsIgnoreCase("iso8601")) formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssZ");
 		else formatter = DateTimeFormatter.ofPattern(mask);
 
-		if (locale != null) formatter.withLocale(locale);
-		// if (tz != null) formatter.setTimeZone(tz);
+		if (locale != null) formatter = formatter.withLocale(locale);
 		return formatter;
 	}
 

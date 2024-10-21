@@ -135,6 +135,11 @@ public final class DateTimeFormat extends BIF {
 
 		mask = StringUtil.replace(mask, "''", ZEROZERO, false);
 		boolean inside = false;
+
+		while ((mask.indexOf("ttt")) != -1) {
+			mask = StringUtil.replace(mask, "ttt", "tt", false, true);
+		}
+
 		char[] carr = mask.toCharArray();
 		StringBuilder sb = new StringBuilder();
 		for (int i = 0; i < carr.length; i++) {
@@ -312,6 +317,10 @@ public final class DateTimeFormat extends BIF {
 		str = StringUtil.replace(str, ZEROZERO, "''", false);
 		str = str.replace(ONE, 'E');
 		str = y2yyyy(str);
+		while ((str.indexOf("aa")) != -1) {
+			str = StringUtil.replace(str, "aa", "a", false, true);
+		}
+
 		return str;
 	}
 
