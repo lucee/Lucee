@@ -162,6 +162,8 @@ public final class DateTimeFormat extends BIF {
 				}
 				break;
 			// max 2
+			case 'a':
+			case 'A':
 			case 's':
 			case 'd':
 			case 'H':
@@ -309,8 +311,6 @@ public final class DateTimeFormat extends BIF {
 			// quote it
 			case 'f':
 			case 'e':
-			case 'A':
-			case 'a':
 				if (!inside) {
 					sb.append("'" + c + "'");
 				}
