@@ -317,10 +317,62 @@ public final class DateTimeFormat extends BIF {
 		str = StringUtil.replace(str, ZEROZERO, "''", false);
 		str = str.replace(ONE, 'E');
 		str = y2yyyy(str);
+
+		// TODO find a better way
 		while ((str.indexOf("aa")) != -1) {
 			str = StringUtil.replace(str, "aa", "a", false, true);
 		}
-
+		while ((str.indexOf("ddddd")) != -1) {
+			str = StringUtil.replace(str, "ddddd", "dddd", false, true);
+		}
+		while ((str.indexOf("DDDDD")) != -1) {
+			str = StringUtil.replace(str, "DDDDD", "DDDD", false, true);
+		}
+		while ((str.indexOf("EEEEE")) != -1) {
+			str = StringUtil.replace(str, "EEEEE", "EEEE", false, true);
+		}
+		while ((str.indexOf("GGG")) != -1) {
+			str = StringUtil.replace(str, "GGG", "GG", false, true);
+		}
+		while ((str.indexOf("HHH")) != -1) {
+			str = StringUtil.replace(str, "HHH", "HH", false, true);
+		}
+		while ((str.indexOf("hhh")) != -1) {
+			str = StringUtil.replace(str, "hhh", "hh", false, true);
+		}
+		while ((str.indexOf("KKK")) != -1) {
+			str = StringUtil.replace(str, "KKK", "KK", false, true);
+		}
+		while ((str.indexOf("llll")) != -1) {
+			str = StringUtil.replace(str, "llll", "lll", false, true);
+		}
+		while ((str.indexOf("LLLL")) != -1) {
+			str = StringUtil.replace(str, "LLLL", "LLL", false, true);
+		}
+		while ((str.indexOf("MMMMM")) != -1) {
+			str = StringUtil.replace(str, "MMMMM", "MMMM", false, true);
+		}
+		while ((str.indexOf("mmmmm")) != -1) {
+			str = StringUtil.replace(str, "mmmmm", "mmmm", false, true);
+		}
+		while ((str.indexOf("nnn")) != -1) {
+			str = StringUtil.replace(str, "nnn", "nn", false, true);
+		}
+		while ((str.indexOf("NNN")) != -1) {
+			str = StringUtil.replace(str, "NNN", "NN", false, true);
+		}
+		while ((str.indexOf("sss")) != -1) {
+			str = StringUtil.replace(str, "sss", "ss", false, true);
+		}
+		while ((str.indexOf("SSS")) != -1) {
+			str = StringUtil.replace(str, "SSS", "SS", false, true);
+		}
+		while ((str.indexOf("www")) != -1) {
+			str = StringUtil.replace(str, "www", "ww", false, true);
+		}
+		while ((str.indexOf("WWW")) != -1) {
+			str = StringUtil.replace(str, "WWW", "WW", false, true);
+		}
 		return str;
 	}
 
