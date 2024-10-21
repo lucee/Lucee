@@ -104,11 +104,9 @@ public final class DateTimeFormat extends BIF {
 		}
 
 		DateTimeFormatter formatter;
-		if (mask != null && mask.equalsIgnoreCase("short")) formatter = FormatUtil.getDateTimeFormatter(locale, mask);
-		else if (mask != null && mask.equalsIgnoreCase("medium")) formatter = FormatUtil.getDateTimeFormatter(locale, mask);
-		else if (mask != null && mask.equalsIgnoreCase("long")) formatter = FormatUtil.getDateTimeFormatter(locale, mask);
-		else if (mask != null && mask.equalsIgnoreCase("full")) formatter = FormatUtil.getDateTimeFormatter(locale, mask);
-		else if (mask != null && mask.equalsIgnoreCase("iso8601")) formatter = FormatUtil.getDateTimeFormatter(locale, mask);
+		if (mask != null && (mask.equalsIgnoreCase("short") || mask.equalsIgnoreCase("medium") || mask.equalsIgnoreCase("long") || mask.equalsIgnoreCase("full")
+				|| mask.equalsIgnoreCase("iso8601")))
+			formatter = FormatUtil.getDateTimeFormatter(locale, mask);
 		else {
 			formatter = FormatUtil.getDateTimeFormatter(locale, convertMask(mask));
 
