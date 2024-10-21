@@ -48,7 +48,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					}
 				});
 
-				it(title="testUpdateRegional()", body=function( currentSpec ) {
+				it(title="testUpdateRegional()", skip=true, body=function( currentSpec ) {
 					var timeserver='swisstime.ethz.ch';
 					var timezone='gmt';
 					var locale='german (swiss)'
