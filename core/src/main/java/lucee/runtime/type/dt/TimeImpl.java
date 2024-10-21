@@ -19,10 +19,11 @@
 
 package lucee.runtime.type.dt;
 
-import java.text.SimpleDateFormat;
+import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 
 import lucee.commons.date.DateTimeUtil;
+import lucee.commons.i18n.FormatUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.dump.DumpData;
 import lucee.runtime.dump.DumpProperties;
@@ -39,7 +40,7 @@ import lucee.runtime.type.SimpleValue;
  */
 public final class TimeImpl extends Time implements SimpleValue {
 
-	private static SimpleDateFormat luceeFormatter = new SimpleDateFormat("HH:mm:ss", Locale.US);
+	private static DateTimeFormatter luceeFormatter = FormatUtil.getDateTimeFormatter(Locale.US, "HH:mm:ss");
 
 	public TimeImpl() {
 		super(System.currentTimeMillis());
@@ -75,10 +76,7 @@ public final class TimeImpl extends Time implements SimpleValue {
 
 	@Override
 	public String castToString() {
-		synchronized (luceeFormatter) {
-			luceeFormatter.setTimeZone(ThreadLocalPageContext.getTimeZone());
-			return "{t '" + luceeFormatter.format(this) + "'}";
-		}
+		return "{t '" + FormatUtil.format(luceeFormatter, this, ThreadLocalPageContext.getTimeZone()) + "'}";
 	}
 
 	@Override
@@ -89,8 +87,7 @@ public final class TimeImpl extends Time implements SimpleValue {
 	@Override
 	public String castToString(String defaultValue) {
 		synchronized (luceeFormatter) {
-			luceeFormatter.setTimeZone(ThreadLocalPageContext.getTimeZone());
-			return "{t '" + luceeFormatter.format(this) + "'}";
+			return "{t '" + FormatUtil.format(luceeFormatter, this, ThreadLocalPageContext.getTimeZone()) + "'}";
 		}
 	}
 

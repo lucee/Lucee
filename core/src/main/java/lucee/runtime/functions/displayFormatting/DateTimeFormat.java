@@ -23,6 +23,7 @@ import java.text.SimpleDateFormat;
 import java.util.Locale;
 import java.util.TimeZone;
 
+import lucee.commons.i18n.FormatUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.engine.ThreadLocalPageContext;
@@ -91,9 +92,9 @@ public final class DateTimeFormat extends BIF {
 		else if ("medium".equalsIgnoreCase(mask)) format = java.text.DateFormat.getDateTimeInstance(java.text.DateFormat.MEDIUM, java.text.DateFormat.MEDIUM, locale);
 		else if ("long".equalsIgnoreCase(mask)) format = java.text.DateFormat.getDateTimeInstance(java.text.DateFormat.LONG, java.text.DateFormat.LONG, locale);
 		else if ("full".equalsIgnoreCase(mask)) format = java.text.DateFormat.getDateTimeInstance(java.text.DateFormat.FULL, java.text.DateFormat.FULL, locale);
-		else if ("iso8601".equalsIgnoreCase(mask) || "iso".equalsIgnoreCase(mask)) format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX");
+		else if ("iso8601".equalsIgnoreCase(mask) || "iso".equalsIgnoreCase(mask)) format = FormatUtil.getDateTimeFormat(null, null, "yyyy-MM-dd'T'HH:mm:ssXXX");
 		else if ("isoms".equalsIgnoreCase(mask) || "isoMillis".equalsIgnoreCase(mask) || "javascript".equalsIgnoreCase(mask))
-			format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
+			format = FormatUtil.getDateTimeFormat(null, null, "yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
 		else if ("epoch".equalsIgnoreCase(mask)) {
 			String gettime = String.valueOf(datetime.getTime() / 1000);
 			String epoch = gettime.toString();
@@ -105,12 +106,12 @@ public final class DateTimeFormat extends BIF {
 			return epoch;
 		}
 		else {
-			SimpleDateFormat sdf;
-			format = sdf = new SimpleDateFormat(convertMask(mask), locale);
+			java.text.DateFormat sdf;
+			format = sdf = FormatUtil.getDateTimeFormat(locale, null, convertMask(mask));
 			if (mask != null && StringUtil.indexOfIgnoreCase(mask, "tt") == -1 && StringUtil.indexOfIgnoreCase(mask, "t") != -1) {
 				DateFormatSymbols dfs = new DateFormatSymbols(locale);
 				dfs.setAmPmStrings(AP);
-				sdf.setDateFormatSymbols(dfs);
+				((SimpleDateFormat) sdf).setDateFormatSymbols(dfs);
 			}
 		}
 		format.setTimeZone(tz);

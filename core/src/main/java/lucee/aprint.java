@@ -39,6 +39,7 @@ import org.w3c.dom.Node;
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
 
+import lucee.commons.i18n.FormatUtil;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.res.Resource;
@@ -56,11 +57,11 @@ import lucee.runtime.type.QueryImpl;
  */
 public class aprint {
 	public static void edate(String value) {
-		e(SystemOut.FORMAT.format(new Date(System.currentTimeMillis())) + " " + value);
+		e(FormatUtil.format(SystemOut.FORMAT, new Date(System.currentTimeMillis()), null) + " " + value);
 	}
 
 	public static void date(String value) {
-		o(SystemOut.FORMAT.format(new Date(System.currentTimeMillis())) + " " + value);
+		o(FormatUtil.format(SystemOut.FORMAT, new Date(System.currentTimeMillis()), null) + " " + value);
 	}
 
 	public static void ds(boolean useOutStream) {

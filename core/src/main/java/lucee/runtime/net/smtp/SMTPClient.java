@@ -24,7 +24,7 @@ import java.io.UnsupportedEncodingException;
 import java.lang.ref.SoftReference;
 import java.net.URL;
 import java.nio.charset.Charset;
-import java.text.SimpleDateFormat;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -56,6 +56,7 @@ import com.sun.mail.smtp.SMTPMessage;
 
 import lucee.commons.activation.ResourceDataSource;
 import lucee.commons.digest.MD5;
+import lucee.commons.i18n.FormatUtil;
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.Log;
@@ -120,7 +121,7 @@ public final class SMTPClient implements Serializable {
 	private static final String MESSAGE_ID = "Message-ID";
 	// private static final SerializableObject LOCK = new SerializableObject();
 
-	private static Map<TimeZone, SoftReference<SimpleDateFormat>> formatters = new ConcurrentHashMap<TimeZone, SoftReference<SimpleDateFormat>>();
+	private static Map<TimeZone, SoftReference<DateTimeFormatter>> formatters = new ConcurrentHashMap<>();
 	// private static final int PORT = 25;
 
 	private int spool = SPOOL_UNDEFINED;
@@ -168,14 +169,13 @@ public final class SMTPClient implements Serializable {
 
 	public static String getNow(TimeZone tz) {
 		tz = ThreadLocalPageContext.getTimeZone(tz);
-		SoftReference<SimpleDateFormat> tmp = formatters.get(tz);
-		SimpleDateFormat df = tmp == null ? null : tmp.get();
+		SoftReference<DateTimeFormatter> tmp = formatters.get(tz);
+		DateTimeFormatter df = tmp == null ? null : tmp.get();
 		if (df == null) {
-			df = new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss Z (z)", Locale.US);
-			df.setTimeZone(tz);
-			formatters.put(tz, new SoftReference<SimpleDateFormat>(df));
+			df = FormatUtil.getDateTimeFormatter(Locale.US, "EEE, d MMM yyyy HH:mm:ss Z (z)");
+			formatters.put(tz, new SoftReference<DateTimeFormatter>(df));
 		}
-		return df.format(new Date());
+		return FormatUtil.format(df, new Date(), tz);
 	}
 
 	public void setSpoolenable(boolean spoolenable) {

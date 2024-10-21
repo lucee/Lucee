@@ -18,11 +18,13 @@
  **/
 package lucee.commons.date;
 
-import java.text.SimpleDateFormat;
+import java.text.DateFormat;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.Locale;
 import java.util.TimeZone;
 
+import lucee.commons.i18n.FormatUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.engine.ThreadLocalPageContext;
@@ -33,20 +35,10 @@ import lucee.runtime.type.dt.DateTimeImpl;
 
 public abstract class DateTimeUtil {
 
-	private final static SimpleDateFormat HTTP_TIME_STRING_FORMAT_OLD;
-	private final static SimpleDateFormat HTTP_TIME_STRING_FORMAT;
+	private final static DateFormat HTTP_TIME_STRING_FORMAT_OLD = FormatUtil.getDateTimeFormat(Locale.ENGLISH, TimeZoneConstants.GMT, "EE, dd MMM yyyy HH:mm:ss zz");
+	private final static DateFormat HTTP_TIME_STRING_FORMAT_NEW = FormatUtil.getDateTimeFormat(Locale.ENGLISH, TimeZoneConstants.UTC, "EE, dd-MMM-yyyy HH:mm:ss zz");
 
-	// public final static SimpleDateFormat DATETIME_FORMAT_LOCAL;
-
-	static {
-		// DATETIME_FORMAT_LOCAL = new SimpleDateFormat("yyyy-MMM-dd HH:mm:ss");
-
-		HTTP_TIME_STRING_FORMAT_OLD = new SimpleDateFormat("EE, dd MMM yyyy HH:mm:ss zz", Locale.ENGLISH);
-		HTTP_TIME_STRING_FORMAT_OLD.setTimeZone(TimeZone.getTimeZone("GMT"));
-
-		HTTP_TIME_STRING_FORMAT = new SimpleDateFormat("EE, dd-MMM-yyyy HH:mm:ss zz", Locale.ENGLISH);
-		HTTP_TIME_STRING_FORMAT.setTimeZone(TimeZoneConstants.UTC);
-	}
+	private final static DateTimeFormatter HTTP_TIME_STRING_FORMAT = FormatUtil.getDateTimeFormatter(Locale.ENGLISH, "EE, dd-MMM-yyyy HH:mm:ss zz");
 
 	private static final double DAY_MILLIS = 86400000D;
 	private static final long CF_UNIX_OFFSET = 2209161600000L;
@@ -278,13 +270,9 @@ public abstract class DateTimeUtil {
 	 */
 	public static String toHTTPTimeString(Date date, boolean oldFormat) {
 		if (oldFormat) {
-			synchronized (HTTP_TIME_STRING_FORMAT_OLD) {
-				return StringUtil.replace(HTTP_TIME_STRING_FORMAT_OLD.format(date), "+00:00", "", true);
-			}
+			return StringUtil.replace(FormatUtil.format(HTTP_TIME_STRING_FORMAT, date, TimeZoneConstants.GMT), "+00:00", "", true);
 		}
-		synchronized (HTTP_TIME_STRING_FORMAT) {
-			return StringUtil.replace(HTTP_TIME_STRING_FORMAT.format(date), "+00:00", "", true);
-		}
+		return StringUtil.replace(FormatUtil.format(HTTP_TIME_STRING_FORMAT, date, TimeZoneConstants.UTC), "+00:00", "", true);
 	}
 
 	public static String format(long time, Locale l, TimeZone tz) {

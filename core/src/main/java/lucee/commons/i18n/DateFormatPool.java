@@ -19,7 +19,7 @@
 package lucee.commons.i18n;
 
 import java.lang.ref.SoftReference;
-import java.text.SimpleDateFormat;
+import java.text.DateFormat;
 import java.util.Date;
 import java.util.Locale;
 import java.util.Map;
@@ -31,7 +31,7 @@ import lucee.runtime.engine.ThreadLocalPageContext;
 
 public final class DateFormatPool {
 
-	private final static Map<String, SoftReference<SimpleDateFormat>> datax = new ConcurrentHashMap<>();
+	private final static Map<String, SoftReference<DateFormat>> datax = new ConcurrentHashMap<>();
 
 	public static String format(Locale locale, TimeZone timeZone, String pattern, Date date) {
 		return getSimpleDateFormat(locale, timeZone, pattern).format(date);
@@ -45,21 +45,20 @@ public final class DateFormatPool {
 		return getSimpleDateFormat(null, null, pattern).format(date);
 	}
 
-	private static SimpleDateFormat getSimpleDateFormat(Locale locale, TimeZone timeZone, String pattern) {
+	private static DateFormat getSimpleDateFormat(Locale locale, TimeZone timeZone, String pattern) {
 		if (locale == null) locale = ThreadLocalPageContext.getLocale();
 		if (timeZone == null) timeZone = ThreadLocalPageContext.getTimeZone();
 
 		String key = locale.toString() + '-' + timeZone.getID() + '-' + pattern;
-		SoftReference<SimpleDateFormat> ref = datax.get(key);
-		SimpleDateFormat sdf = ref == null ? null : ref.get();
+		SoftReference<DateFormat> ref = datax.get(key);
+		DateFormat sdf = ref == null ? null : ref.get();
 
 		if (sdf == null) {
 			synchronized (SystemUtil.createToken("DateFormatPool", key)) {
 				ref = datax.get(key);
 				sdf = ref == null ? null : ref.get();
 				if (sdf == null) {
-					sdf = new SimpleDateFormat(pattern, locale);
-					sdf.setTimeZone(timeZone);
+					sdf = FormatUtil.getDateTimeFormat(locale, timeZone, pattern);
 					datax.put(key, new SoftReference<>(sdf));
 				}
 			}

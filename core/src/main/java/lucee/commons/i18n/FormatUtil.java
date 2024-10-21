@@ -27,6 +27,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
 import java.time.format.FormatStyle;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
@@ -336,16 +337,16 @@ public class FormatUtil {
 		DateFormat[] df = list.toArray(new DateFormat[list.size()]);
 		for (int i = 0; i < df.length; i++) {
 			if (df[i] instanceof SimpleDateFormat) {
-				add24AndRemoveComma(list, (SimpleDateFormat) df[i], locale, isDate, isTime);
+				add24AndRemoveComma(list, df[i], locale, isDate, isTime);
 			}
 		}
 	}
 
-	private static void add24AndRemoveComma(List<DateFormat> list, SimpleDateFormat sdf, Locale locale, boolean isDate, boolean isTime) {
+	private static void add24AndRemoveComma(List<DateFormat> list, DateFormat sdf, Locale locale, boolean isDate, boolean isTime) {
 		String p;
 
-		List<SimpleDateFormat> results = new ArrayList<SimpleDateFormat>();
-		p = sdf.toPattern() + "";
+		List<DateFormat> results = new ArrayList<>();
+		p = ((SimpleDateFormat) sdf).toPattern() + "";
 		// print.e("----- "+p);
 		if (isDate && isTime) {
 			if ((check(results, p, locale, " 'um' ", " "))) {
@@ -385,8 +386,8 @@ public class FormatUtil {
 			}
 		}
 		if (results.size() > 0) {
-			Iterator<SimpleDateFormat> it = results.iterator();
-			SimpleDateFormat _sdf;
+			Iterator<DateFormat> it = results.iterator();
+			DateFormat _sdf;
 			while (it.hasNext()) {
 				_sdf = it.next();
 				if (!list.contains(_sdf)) {
@@ -398,11 +399,12 @@ public class FormatUtil {
 
 	}
 
-	private static boolean check(List<SimpleDateFormat> results, String orgPattern, Locale locale, String from, String to) {
+	private static boolean check(List<DateFormat> results, String orgPattern, Locale locale, String from, String to) {
 		int index = orgPattern.indexOf(from);
 		if (index != -1) {
 			String p = StringUtil.replace(orgPattern, from, to, true);
-			SimpleDateFormat sdf = new SimpleDateFormat(p, locale);
+
+			DateFormat sdf = FormatUtil.getDateTimeFormat(locale, null, p);
 			results.add(sdf);
 			return true;
 		}
@@ -424,11 +426,11 @@ public class FormatUtil {
 					String content = IOUtil.toString(file, (Charset) null);
 					String[] arr = lucee.runtime.type.util.ListUtil.listToStringArray(content, '\n');
 					String line;
-					SimpleDateFormat sdf;
+					DateFormat sdf;
 					for (int i = 0; i < arr.length; i++) {
 						line = arr[i].trim();
 						if (StringUtil.isEmpty(line)) continue;
-						sdf = new SimpleDateFormat(line, locale);
+						sdf = FormatUtil.getDateTimeFormat(locale, null, line);
 						if (!list.contains(sdf)) list.add(sdf);
 					}
 
@@ -481,7 +483,7 @@ public class FormatUtil {
 		else if (mask.equalsIgnoreCase("long")) df = DateFormat.getDateInstance(DateFormat.LONG, locale);
 		else if (mask.equalsIgnoreCase("full")) df = DateFormat.getDateInstance(DateFormat.FULL, locale);
 		else {
-			df = new SimpleDateFormat(mask, locale);
+			df = FormatUtil.getDateTimeFormat(locale, null, mask);
 		}
 		df.setTimeZone(tz);
 		return df;
@@ -518,9 +520,9 @@ public class FormatUtil {
 		else if (mask.equalsIgnoreCase("long")) df = DateFormat.getTimeInstance(DateFormat.LONG, locale);
 		else if (mask.equalsIgnoreCase("full")) df = DateFormat.getTimeInstance(DateFormat.FULL, locale);
 		else {
-			df = new SimpleDateFormat(mask, locale);
+			df = locale == null ? new SimpleDateFormat(mask) : new SimpleDateFormat(mask, locale);
 		}
-		df.setTimeZone(tz);
+		if (tz != null) df.setTimeZone(tz);
 		return df;
 	}
 
@@ -533,10 +535,28 @@ public class FormatUtil {
 		else if (mask.equalsIgnoreCase("full")) df = DateFormat.getDateTimeInstance(DateFormat.FULL, DateFormat.FULL, locale);
 		else if (mask.equalsIgnoreCase("iso8601")) df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
 		else {
-			df = new SimpleDateFormat(mask, locale);
+			df = locale == null ? new SimpleDateFormat(mask) : new SimpleDateFormat(mask, locale);
 		}
-		df.setTimeZone(tz);
+		if (tz != null) df.setTimeZone(tz);
 		return df;
+	}
+
+	public static DateTimeFormatter getDateTimeFormatter(Locale locale, String mask) {
+		DateTimeFormatter formatter;
+		if (mask.equalsIgnoreCase("short")) formatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT);
+		else if (mask.equalsIgnoreCase("medium")) formatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM);
+		else if (mask.equalsIgnoreCase("long")) formatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.LONG);
+		else if (mask.equalsIgnoreCase("full")) formatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.FULL);
+		else if (mask.equalsIgnoreCase("iso8601")) formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssZ");
+		else formatter = DateTimeFormatter.ofPattern(mask);
+
+		if (locale != null) formatter.withLocale(locale);
+		// if (tz != null) formatter.setTimeZone(tz);
+		return formatter;
+	}
+
+	public static String format(DateTimeFormatter formatter, Date date, TimeZone timeZone) {
+		return date.toInstant().atZone(timeZone != null ? timeZone.toZoneId() : ZoneId.systemDefault()).format(formatter);
 	}
 
 }

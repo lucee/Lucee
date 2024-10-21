@@ -24,7 +24,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.nio.charset.Charset;
 import java.sql.ResultSet;
-import java.text.SimpleDateFormat;
+import java.text.DateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Enumeration;
@@ -46,6 +46,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import lucee.commons.date.TimeZoneUtil;
+import lucee.commons.i18n.FormatUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.CharSet;
@@ -116,8 +117,7 @@ public class DumpUtil {
 		if (o instanceof Calendar) {
 			Calendar c = (Calendar) o;
 
-			SimpleDateFormat df = new SimpleDateFormat("EE, dd MMM yyyy HH:mm:ss zz", Locale.ENGLISH);
-			df.setTimeZone(c.getTimeZone());
+			DateFormat df = FormatUtil.getDateTimeFormat(Locale.ENGLISH, c.getTimeZone(), "EE, dd MMM yyyy HH:mm:ss zz");
 
 			DumpTable table = new DumpTable("date", "#ff9900", "#ffcc00", "#000000");
 			table.setTitle("java.util.Calendar");

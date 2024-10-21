@@ -18,6 +18,7 @@
  **/
 package org.apache.taglibs.datetime;
 
+import java.text.DateFormat;
 import java.text.DateFormatSymbols;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -27,6 +28,7 @@ import java.util.TimeZone;
 import javax.servlet.jsp.tagext.BodyContent;
 import javax.servlet.jsp.tagext.BodyTagSupport;
 
+import lucee.commons.i18n.FormatUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
@@ -106,7 +108,7 @@ public final class FormatTag extends BodyTagSupport {
 
 		if (output_date != null) {
 			// Get the pattern to use
-			SimpleDateFormat sdf;
+			DateFormat sdf;
 			String pat = pattern;
 
 			if (pat == null && patternid != null) {
@@ -115,8 +117,9 @@ public final class FormatTag extends BodyTagSupport {
 			}
 
 			if (pat == null) {
-				sdf = new SimpleDateFormat();
-				pat = sdf.toPattern();
+				SimpleDateFormat tmp;
+				sdf = tmp = new SimpleDateFormat();
+				pat = tmp.toPattern();
 			}
 
 			// Get a DateFormatSymbols
@@ -134,16 +137,16 @@ public final class FormatTag extends BodyTagSupport {
 					throw new ApplicationException("datetime format tag could not find locale for localeRef \"" + localeRef + "\".");
 				}
 
-				sdf = new SimpleDateFormat(pat, locale);
+				sdf = FormatUtil.getDateTimeFormat(locale, null, pat);
 			}
 			else if (locale_flag) {
-				sdf = new SimpleDateFormat(pat, pageContext.getRequest().getLocale());
+				sdf = FormatUtil.getDateTimeFormat(pageContext.getRequest().getLocale(), null, pat);
 			}
 			else if (symbols != null) {
 				sdf = new SimpleDateFormat(pat, symbols);
 			}
 			else {
-				sdf = new SimpleDateFormat(pat);
+				sdf = FormatUtil.getDateTimeFormat(null, null, pat);
 			}
 
 			// See if there is a timeZone

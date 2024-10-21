@@ -4,12 +4,12 @@ import java.io.ByteArrayOutputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import org.apache.logging.log4j.core.LogEvent;
 import org.apache.logging.log4j.core.layout.AbstractStringLayout;
 
+import lucee.commons.i18n.FormatUtil;
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.log.LogUtil;
 import lucee.loader.engine.CFMLEngine;
@@ -44,7 +44,7 @@ public class DataDogLayout extends AbstractStringLayout {
 		super(CharsetUtil.UTF8, new byte[0], new byte[0]);
 		engine = CFMLEngineFactory.getInstance();
 		caster = engine.getCastUtil();
-		format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		format = FormatUtil.getDateTimeFormat(null, null, "yyyy-MM-dd HH:mm:ss");
 	}
 
 	@Override

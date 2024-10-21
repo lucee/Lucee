@@ -23,9 +23,10 @@ import static lucee.commons.io.SystemUtil.OUT;
 
 import java.io.PrintStream;
 import java.io.PrintWriter;
-import java.text.SimpleDateFormat;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 
+import lucee.commons.i18n.FormatUtil;
 import lucee.commons.io.DevNullOutputStream;
 import lucee.commons.io.SystemUtil;
 import lucee.runtime.PageContext;
@@ -34,7 +35,7 @@ import lucee.runtime.engine.ThreadLocalPageContext;
 
 public final class SystemOut {
 
-	public static final SimpleDateFormat FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.S");
+	public static final DateTimeFormatter FORMAT = FormatUtil.getDateTimeFormatter(null, "yyyy-MM-dd HH:mm:ss.S");
 
 	/**
 	 * logs a value
@@ -43,13 +44,13 @@ public final class SystemOut {
 	 */
 	public static void printDate(PrintWriter pw, String value) {
 		long millis = System.currentTimeMillis();
-		pw.write(FORMAT.format(new Date(millis)) + " " + value + "\n");
+		pw.write(FormatUtil.format(FORMAT, new Date(millis), null) + " " + value + "\n");
 		pw.flush();
 	}
 
 	public static void printDate(PrintWriter pw, Throwable t) {
 		long millis = System.currentTimeMillis();
-		pw.write(FORMAT.format(new Date(millis)) + "\n");
+		pw.write(FormatUtil.format(FORMAT, new Date(millis), null) + "\n");
 		t.printStackTrace(pw);
 		pw.write("\n");
 		pw.flush();

@@ -18,7 +18,6 @@
  **/
 package lucee.runtime.format;
 
-import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
@@ -27,6 +26,7 @@ import java.util.TimeZone;
 
 import lucee.commons.date.JREDateTimeUtil;
 import lucee.commons.date.TimeZoneConstants;
+import lucee.commons.i18n.FormatUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.engine.ThreadLocalPageContext;
 
@@ -81,8 +81,7 @@ public final class DateFormat extends BaseFormat implements Format {
 			else if (lcMask.equals("long")) return getAsString(calendar, java.text.DateFormat.LONG, tz);
 			else if (lcMask.equals("full")) return getAsString(calendar, java.text.DateFormat.FULL, tz);
 			else if ("iso8601".equals(lcMask) || "iso".equals(lcMask)) {
-				SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
-				formatter.setTimeZone(tz);
+				java.text.DateFormat formatter = FormatUtil.getDateTimeFormat(null, tz, "yyyy-MM-dd");
 				return formatter.format(calendar.getTime());
 			}
 
