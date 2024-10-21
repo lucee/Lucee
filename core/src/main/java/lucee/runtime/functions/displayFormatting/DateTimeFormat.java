@@ -22,6 +22,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 import java.util.TimeZone;
 
+import lucee.print;
+import lucee.commons.date.TimeZoneConstants;
 import lucee.commons.i18n.FormatUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
@@ -102,11 +104,11 @@ public final class DateTimeFormat extends BIF {
 		}
 
 		DateTimeFormatter formatter;
-		if (mask.equalsIgnoreCase("short")) formatter = FormatUtil.getDateTimeFormatter(locale, mask);
-		else if (mask.equalsIgnoreCase("medium")) formatter = FormatUtil.getDateTimeFormatter(locale, mask);
-		else if (mask.equalsIgnoreCase("long")) formatter = FormatUtil.getDateTimeFormatter(locale, mask);
-		else if (mask.equalsIgnoreCase("full")) formatter = FormatUtil.getDateTimeFormatter(locale, mask);
-		else if (mask.equalsIgnoreCase("iso8601")) formatter = FormatUtil.getDateTimeFormatter(locale, mask);
+		if (mask != null && mask.equalsIgnoreCase("short")) formatter = FormatUtil.getDateTimeFormatter(locale, mask);
+		else if (mask != null && mask.equalsIgnoreCase("medium")) formatter = FormatUtil.getDateTimeFormatter(locale, mask);
+		else if (mask != null && mask.equalsIgnoreCase("long")) formatter = FormatUtil.getDateTimeFormatter(locale, mask);
+		else if (mask != null && mask.equalsIgnoreCase("full")) formatter = FormatUtil.getDateTimeFormatter(locale, mask);
+		else if (mask != null && mask.equalsIgnoreCase("iso8601")) formatter = FormatUtil.getDateTimeFormatter(locale, mask);
 		else {
 			formatter = FormatUtil.getDateTimeFormatter(locale, convertMask(mask));
 
@@ -352,6 +354,10 @@ public final class DateTimeFormat extends BIF {
 			if (--count == 0) return true;
 		}
 		return false;
+	}
+
+	public static void main(String[] args) throws Exception {
+		print.e(invoke(new java.util.Date(), null, Locale.US, TimeZoneConstants.UTC));
 	}
 
 	/*
