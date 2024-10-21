@@ -19,7 +19,7 @@
 package lucee.commons.i18n;
 
 import java.lang.ref.SoftReference;
-import java.text.DateFormat;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.Locale;
 import java.util.Map;
@@ -31,34 +31,34 @@ import lucee.runtime.engine.ThreadLocalPageContext;
 
 public final class DateFormatPool {
 
-	private final static Map<String, SoftReference<DateFormat>> datax = new ConcurrentHashMap<>();
+	private final static Map<String, SoftReference<DateTimeFormatter>> datax = new ConcurrentHashMap<>();
 
-	public static String format(Locale locale, TimeZone timeZone, String pattern, Date date) {
-		return getSimpleDateFormat(locale, timeZone, pattern).format(date);
+	public static String format(String pattern, Date date) {
+		return format(null, ThreadLocalPageContext.getTimeZone(), pattern, date);
 	}
 
 	public static String format(Locale locale, String pattern, Date date) {
-		return getSimpleDateFormat(locale, null, pattern).format(date);
+		return format(locale, ThreadLocalPageContext.getTimeZone(), pattern, date);
 	}
 
-	public static String format(String pattern, Date date) {
-		return getSimpleDateFormat(null, null, pattern).format(date);
-	}
-
-	private static DateFormat getSimpleDateFormat(Locale locale, TimeZone timeZone, String pattern) {
-		if (locale == null) locale = ThreadLocalPageContext.getLocale();
+	public static String format(Locale locale, TimeZone timeZone, String pattern, Date date) {
 		if (timeZone == null) timeZone = ThreadLocalPageContext.getTimeZone();
+		return FormatUtil.format(getSimpleDateFormat(locale, pattern), date, timeZone);
+	}
 
-		String key = locale.toString() + '-' + timeZone.getID() + '-' + pattern;
-		SoftReference<DateFormat> ref = datax.get(key);
-		DateFormat sdf = ref == null ? null : ref.get();
+	private static DateTimeFormatter getSimpleDateFormat(Locale locale, String pattern) {
+		if (locale == null) locale = ThreadLocalPageContext.getLocale();
+
+		String key = locale.toString() + '-' + pattern;
+		SoftReference<DateTimeFormatter> ref = datax.get(key);
+		DateTimeFormatter sdf = ref == null ? null : ref.get();
 
 		if (sdf == null) {
 			synchronized (SystemUtil.createToken("DateFormatPool", key)) {
 				ref = datax.get(key);
 				sdf = ref == null ? null : ref.get();
 				if (sdf == null) {
-					sdf = FormatUtil.getDateTimeFormat(locale, timeZone, pattern);
+					sdf = FormatUtil.getDateTimeFormatter(locale, pattern);
 					datax.put(key, new SoftReference<>(sdf));
 				}
 			}

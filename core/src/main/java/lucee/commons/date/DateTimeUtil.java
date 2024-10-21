@@ -18,7 +18,6 @@
  **/
 package lucee.commons.date;
 
-import java.text.DateFormat;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.Locale;
@@ -34,9 +33,6 @@ import lucee.runtime.type.dt.DateTime;
 import lucee.runtime.type.dt.DateTimeImpl;
 
 public abstract class DateTimeUtil {
-
-	private final static DateFormat HTTP_TIME_STRING_FORMAT_OLD = FormatUtil.getDateTimeFormat(Locale.ENGLISH, TimeZoneConstants.GMT, "EE, dd MMM yyyy HH:mm:ss zz");
-	private final static DateFormat HTTP_TIME_STRING_FORMAT_NEW = FormatUtil.getDateTimeFormat(Locale.ENGLISH, TimeZoneConstants.UTC, "EE, dd-MMM-yyyy HH:mm:ss zz");
 
 	private final static DateTimeFormatter HTTP_TIME_STRING_FORMAT = FormatUtil.getDateTimeFormatter(Locale.ENGLISH, "EE, dd-MMM-yyyy HH:mm:ss zz");
 

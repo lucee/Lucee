@@ -18,8 +18,7 @@
  **/
 package lucee.runtime.functions.displayFormatting;
 
-import java.text.DateFormatSymbols;
-import java.text.SimpleDateFormat;
+import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 import java.util.TimeZone;
 
@@ -86,16 +85,8 @@ public final class DateTimeFormat extends BIF {
 	public static String invoke(DateTime datetime, String mask, Locale locale, TimeZone tz) {
 
 		if (locale == null) locale = Locale.US;
-		java.text.DateFormat format = null;
 
-		if ("short".equalsIgnoreCase(mask)) format = java.text.DateFormat.getDateTimeInstance(java.text.DateFormat.SHORT, java.text.DateFormat.SHORT, locale);
-		else if ("medium".equalsIgnoreCase(mask)) format = java.text.DateFormat.getDateTimeInstance(java.text.DateFormat.MEDIUM, java.text.DateFormat.MEDIUM, locale);
-		else if ("long".equalsIgnoreCase(mask)) format = java.text.DateFormat.getDateTimeInstance(java.text.DateFormat.LONG, java.text.DateFormat.LONG, locale);
-		else if ("full".equalsIgnoreCase(mask)) format = java.text.DateFormat.getDateTimeInstance(java.text.DateFormat.FULL, java.text.DateFormat.FULL, locale);
-		else if ("iso8601".equalsIgnoreCase(mask) || "iso".equalsIgnoreCase(mask)) format = FormatUtil.getDateTimeFormat(null, null, "yyyy-MM-dd'T'HH:mm:ssXXX");
-		else if ("isoms".equalsIgnoreCase(mask) || "isoMillis".equalsIgnoreCase(mask) || "javascript".equalsIgnoreCase(mask))
-			format = FormatUtil.getDateTimeFormat(null, null, "yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
-		else if ("epoch".equalsIgnoreCase(mask)) {
+		if ("epoch".equalsIgnoreCase(mask)) {
 			String gettime = String.valueOf(datetime.getTime() / 1000);
 			String epoch = gettime.toString();
 			return epoch;
@@ -105,17 +96,28 @@ public final class DateTimeFormat extends BIF {
 			String epoch = gettime.toString();
 			return epoch;
 		}
-		else {
-			java.text.DateFormat sdf;
-			format = sdf = FormatUtil.getDateTimeFormat(locale, null, convertMask(mask));
-			if (mask != null && StringUtil.indexOfIgnoreCase(mask, "tt") == -1 && StringUtil.indexOfIgnoreCase(mask, "t") != -1) {
-				DateFormatSymbols dfs = new DateFormatSymbols(locale);
-				dfs.setAmPmStrings(AP);
-				((SimpleDateFormat) sdf).setDateFormatSymbols(dfs);
+		if ("isoms".equalsIgnoreCase(mask) || "isoMillis".equalsIgnoreCase(mask) || "javascript".equalsIgnoreCase(mask)) {
+			DateTimeFormatter formatter = FormatUtil.getDateTimeFormatter(locale, "yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
+			return FormatUtil.format(formatter, datetime, tz);
+		}
+
+		DateTimeFormatter formatter = FormatUtil.getDateTimeFormatter(locale, convertMask(mask));
+
+		String result = FormatUtil.format(formatter, datetime, tz);
+		if (!StringUtil.isEmpty(result)) {
+			int start, end = 0;
+			String content;
+			while ((start = result.indexOf(">>>")) != -1) {
+				end = result.indexOf("<<<", start + 3);
+				if (end == -1) break;
+				content = result.substring(start + 3, end);
+				if (content.length() == 2) {
+					content = content.substring(0, 1);
+				}
+				result = result.substring(0, start) + content + result.substring(end + 3);
 			}
 		}
-		format.setTimeZone(tz);
-		return format.format(datetime);
+		return result;
 	}
 
 	@Override
@@ -156,7 +158,11 @@ public final class DateTimeFormat extends BIF {
 				break;
 			case 't':
 				if (!inside) {
-					sb.append('a');
+					if (i + 1 < carr.length && (carr[i + 1] == 't' || carr[i + 1] == 'T')) {
+						sb.append('a');
+						i++;
+					}
+					else sb.append(">>>a<<<");
 				}
 				else {
 					sb.append(carr[i]);
@@ -164,7 +170,11 @@ public final class DateTimeFormat extends BIF {
 				break;
 			case 'T':
 				if (!inside) {
-					sb.append('a');
+					if (i + 1 < carr.length && (carr[i + 1] == 't' || carr[i + 1] == 'T')) {
+						sb.append('a');
+						i++;
+					}
+					else sb.append(">>>a<<<");
 				}
 				else {
 					sb.append(carr[i]);

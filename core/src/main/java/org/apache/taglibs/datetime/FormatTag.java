@@ -18,9 +18,8 @@
  **/
 package org.apache.taglibs.datetime;
 
-import java.text.DateFormat;
-import java.text.DateFormatSymbols;
 import java.text.SimpleDateFormat;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.Locale;
 import java.util.TimeZone;
@@ -56,8 +55,6 @@ public final class FormatTag extends BodyTagSupport {
 
 	// format tag invocation variables
 
-	// The symbols object
-	private DateFormatSymbols symbols = null;
 	// The date to be formatted an output by tag
 	private Date output_date = null;
 
@@ -108,7 +105,7 @@ public final class FormatTag extends BodyTagSupport {
 
 		if (output_date != null) {
 			// Get the pattern to use
-			DateFormat sdf;
+			DateTimeFormatter formatter;
 			String pat = pattern;
 
 			if (pat == null && patternid != null) {
@@ -117,17 +114,13 @@ public final class FormatTag extends BodyTagSupport {
 			}
 
 			if (pat == null) {
-				SimpleDateFormat tmp;
-				sdf = tmp = new SimpleDateFormat();
-				pat = tmp.toPattern();
+				pat = new SimpleDateFormat().toPattern(); // TODO find a better way for this
+				formatter = FormatUtil.getDateTimeFormatter(null, pat);
 			}
 
 			// Get a DateFormatSymbols
 			if (symbolsRef != null) {
-				symbols = (DateFormatSymbols) pageContext.findAttribute(symbolsRef);
-				if (symbols == null) {
-					throw new ApplicationException("datetime format tag could not find dateFormatSymbols for symbolsRef \"" + symbolsRef + "\".");
-				}
+				throw new ApplicationException("symbols are no longer suported"); // TODO can we do that?
 			}
 
 			// Get a SimpleDateFormat using locale if necessary
@@ -136,33 +129,34 @@ public final class FormatTag extends BodyTagSupport {
 				if (locale == null) {
 					throw new ApplicationException("datetime format tag could not find locale for localeRef \"" + localeRef + "\".");
 				}
-
-				sdf = FormatUtil.getDateTimeFormat(locale, null, pat);
+				formatter = FormatUtil.getDateTimeFormatter(locale, pat);
 			}
 			else if (locale_flag) {
-				sdf = FormatUtil.getDateTimeFormat(pageContext.getRequest().getLocale(), null, pat);
-			}
-			else if (symbols != null) {
-				sdf = new SimpleDateFormat(pat, symbols);
+				formatter = FormatUtil.getDateTimeFormatter(pageContext.getRequest().getLocale(), pat);
 			}
 			else {
-				sdf = FormatUtil.getDateTimeFormat(null, null, pat);
+				formatter = FormatUtil.getDateTimeFormatter(null, pat);
 			}
 
 			// See if there is a timeZone
+			TimeZone timeZone = null;
 			if (timeZone_string != null) {
-				TimeZone timeZone = (TimeZone) pageContext.getAttribute(timeZone_string, PageContext.SESSION_SCOPE);
+				timeZone = (TimeZone) pageContext.getAttribute(timeZone_string, PageContext.SESSION_SCOPE);
 				if (timeZone == null) {
 					throw new ApplicationException("Datetime format tag timeZone " + "script variable \"" + timeZone_string + " \" does not exist");
 				}
-				sdf.setTimeZone(timeZone);
-			}
 
+			}
+			else {
+
+			}
 			// Format the date for display
-			date_formatted = sdf.format(output_date);
+			date_formatted = FormatUtil.format(formatter, output_date, timeZone);
 		}
 
-		try {
+		try
+
+		{
 			pageContext.getOut().write(date_formatted);
 		}
 		catch (Exception e) {
@@ -182,7 +176,6 @@ public final class FormatTag extends BodyTagSupport {
 		date = null;
 		localeRef = null;
 		symbolsRef = null;
-		symbols = null;
 	}
 
 	/**

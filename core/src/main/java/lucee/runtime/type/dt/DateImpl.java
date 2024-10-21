@@ -19,7 +19,7 @@
 package lucee.runtime.type.dt;
 
 import java.math.BigDecimal;
-import java.text.DateFormat;
+import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 
 import lucee.commons.date.DateTimeUtil;
@@ -39,7 +39,7 @@ import lucee.runtime.type.SimpleValue;
  */
 public final class DateImpl extends Date implements SimpleValue {
 
-	private static DateFormat luceeFormatter = FormatUtil.getDateTimeFormat(Locale.US, null, "yyyy-MM-dd");
+	private static DateTimeFormatter luceeFormatter = FormatUtil.getDateTimeFormatter(Locale.US, "yyyy-MM-dd");
 
 	// private TimeZone timezone;
 
@@ -67,10 +67,7 @@ public final class DateImpl extends Date implements SimpleValue {
 
 	@Override
 	public String castToString() {
-		synchronized (luceeFormatter) {
-			luceeFormatter.setTimeZone(ThreadLocalPageContext.getTimeZone());
-			return "{d '" + luceeFormatter.format(this) + "'}";
-		}
+		return "{d '" + FormatUtil.format(luceeFormatter, this, ThreadLocalPageContext.getTimeZone()) + "'}";
 	}
 
 	@Override

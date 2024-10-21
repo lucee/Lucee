@@ -24,7 +24,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.nio.charset.Charset;
 import java.sql.ResultSet;
-import java.text.DateFormat;
+import java.time.format.DateTimeFormatter;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Enumeration;
@@ -116,13 +116,11 @@ public class DumpUtil {
 		// Calendar
 		if (o instanceof Calendar) {
 			Calendar c = (Calendar) o;
-
-			DateFormat df = FormatUtil.getDateTimeFormat(Locale.ENGLISH, c.getTimeZone(), "EE, dd MMM yyyy HH:mm:ss zz");
-
+			DateTimeFormatter formatter = FormatUtil.getDateTimeFormatter(Locale.ENGLISH, "EE, dd MMM yyyy HH:mm:ss zz");
 			DumpTable table = new DumpTable("date", "#ff9900", "#ffcc00", "#000000");
 			table.setTitle("java.util.Calendar");
 			table.appendRow(1, new SimpleDumpData("Timezone"), new SimpleDumpData(TimeZoneUtil.toString(c.getTimeZone())));
-			table.appendRow(1, new SimpleDumpData("Time"), new SimpleDumpData(df.format(c.getTime())));
+			table.appendRow(1, new SimpleDumpData("Time"), new SimpleDumpData(FormatUtil.format(formatter, c.getTime(), c.getTimeZone())));
 
 			return table;
 		}

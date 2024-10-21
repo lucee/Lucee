@@ -3,8 +3,7 @@ package lucee.commons.io.log.log4j2.layout;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.text.DateFormat;
-import java.util.Date;
+import java.time.format.DateTimeFormatter;
 
 import org.apache.logging.log4j.core.LogEvent;
 import org.apache.logging.log4j.core.layout.AbstractStringLayout;
@@ -27,7 +26,7 @@ public class DataDogLayout extends AbstractStringLayout {
 	private static final String LINE_SEPARATOR = System.getProperty("line.separator");
 	private static final Class[] EMPTY_CLASS = new Class[0];
 	private static final Object[] EMPTY_OBJ = new Object[0];
-	private DateFormat format;
+	private DateTimeFormatter format;
 	private CFMLEngine engine;
 	private Cast caster;
 
@@ -44,7 +43,7 @@ public class DataDogLayout extends AbstractStringLayout {
 		super(CharsetUtil.UTF8, new byte[0], new byte[0]);
 		engine = CFMLEngineFactory.getInstance();
 		caster = engine.getCastUtil();
-		format = FormatUtil.getDateTimeFormat(null, null, "yyyy-MM-dd HH:mm:ss");
+		format = FormatUtil.getDateTimeFormatter(null, "yyyy-MM-dd HH:mm:ss");
 	}
 
 	@Override
@@ -57,7 +56,7 @@ public class DataDogLayout extends AbstractStringLayout {
 
 		StringBuilder data = new StringBuilder();
 
-		data.append(format.format(new Date()));
+		data.append(FormatUtil.format(format, System.currentTimeMillis(), null));
 		data.append(' ');
 		data.append(event.getLevel().toString());
 		data.append(' ');

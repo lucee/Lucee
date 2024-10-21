@@ -22,7 +22,9 @@ import java.lang.ref.SoftReference;
 import java.nio.charset.Charset;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
 import java.time.format.FormatStyle;
@@ -332,6 +334,7 @@ public class FormatUtil {
 		return clone(df);
 	}
 
+	@Deprecated
 	private static void add24AndRemoveComma(List<DateFormat> list, Locale locale, boolean isDate, boolean isTime) {
 
 		DateFormat[] df = list.toArray(new DateFormat[list.size()]);
@@ -342,6 +345,7 @@ public class FormatUtil {
 		}
 	}
 
+	@Deprecated
 	private static void add24AndRemoveComma(List<DateFormat> list, DateFormat sdf, Locale locale, boolean isDate, boolean isTime) {
 		String p;
 
@@ -399,6 +403,7 @@ public class FormatUtil {
 
 	}
 
+	@Deprecated
 	private static boolean check(List<DateFormat> results, String orgPattern, Locale locale, String from, String to) {
 		int index = orgPattern.indexOf(from);
 		if (index != -1) {
@@ -527,7 +532,7 @@ public class FormatUtil {
 	}
 
 	@Deprecated
-	public static DateFormat getDateTimeFormat(Locale locale, TimeZone tz, String mask) {
+	private static DateFormat getDateTimeFormat(Locale locale, TimeZone tz, String mask) {
 		DateFormat df;
 		if (mask.equalsIgnoreCase("short")) df = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT, locale);
 		else if (mask.equalsIgnoreCase("medium")) df = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.MEDIUM, locale);
@@ -559,4 +564,11 @@ public class FormatUtil {
 		return date.toInstant().atZone(timeZone != null ? timeZone.toZoneId() : ZoneId.systemDefault()).format(formatter);
 	}
 
+	public static String format(DateTimeFormatter formatter, long millis, TimeZone timeZone) {
+		return Instant.ofEpochMilli(millis).atZone(timeZone != null ? timeZone.toZoneId() : ZoneId.systemDefault()).format(formatter);
+	}
+
+	public static long parse(DateTimeFormatter formatter, String date, TimeZone timeZone) {
+		return ZonedDateTime.parse(date, formatter).withZoneSameInstant(timeZone != null ? timeZone.toZoneId() : ZoneId.systemDefault()).toInstant().toEpochMilli();
+	}
 }
