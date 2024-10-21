@@ -139,6 +139,9 @@ public final class DateTimeFormat extends BIF {
 		while ((mask.indexOf("ttt")) != -1) {
 			mask = StringUtil.replace(mask, "ttt", "tt", false, true);
 		}
+		while ((mask.indexOf("TTT")) != -1) {
+			mask = StringUtil.replace(mask, "TTT", "TT", false, true);
+		}
 
 		char[] carr = mask.toCharArray();
 		StringBuilder sb = new StringBuilder();
