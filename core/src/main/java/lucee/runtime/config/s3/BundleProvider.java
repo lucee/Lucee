@@ -47,6 +47,7 @@ import lucee.aprint;
 import lucee.commons.io.FileUtil;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
+import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.Pair;
@@ -84,7 +85,7 @@ public final class BundleProvider extends DefaultHandler {
 	private static URL[] defaultProviderDetail;
 	private static URL defaultProviderDetailMvn;
 	private final Map<String, List<Info>> mappings;
-
+	private static Map<String, String> latests = new ConcurrentHashMap();
 	static {
 		try {
 			DEFAULT_PROVIDER_LIST = new URL("https://bundle-download.s3.amazonaws.com/");
@@ -765,21 +766,6 @@ public final class BundleProvider extends DefaultHandler {
 		return mappings;
 	}
 
-	public static void main(String[] args) throws Exception {
-		// memcached)(bundle-version>=3.0.2
-		// print.e(getInstance().getBundleAsURL(new BundleDefinition("org.lucee.spymemcached",
-		// "2.12.3.0001"), true));
-		// getInstance().getBundle(new BundleDefinition("com.mysql.cj", "8.0.33"));
-		// getInstance().getBundle(new BundleDefinition("com.mysql.cj", "8.0.27"));
-		aprint.e("------- MAVEN -> OSGi Mappings -------");
-		getInstance().createOSGiMavenMapping(); // create java code for OSGi to Maven mapping based on
-		aprint.e("------- What can be removed from S3? -------");
-		getInstance().whatcanBeRemovedFromS3(); // create java code for OSGi to Maven mapping based on
-		// what is in the S3 bucket
-		// getInstance().whatcanBeRemovedFromS3(); // show what records can be removed from S3 bucket
-		// because we have a working link to Maven
-	}
-
 	public void createOSGiMavenMapping() throws IOException, GeneralSecurityException, SAXException {
 		Struct sct = new StructImpl();
 		Set<String> has = new HashSet<>();
@@ -842,8 +828,56 @@ public final class BundleProvider extends DefaultHandler {
 		}
 	}
 
-	private static URL createURL(URL base, Info info, String version) throws MalformedURLException {
+	private static URL createURL(URL base, Info info, String version) throws IOException {
+		if (StringUtil.isEmpty(version)) {
+			version = getVersion(base, info, version);
+		}
 		return new URL(base, info.groupId.replace('.', '/') + "/" + info.artifactId + "/" + version + "/" + info.artifactId + "-" + version + ".jar");
+	}
+
+	public static String getVersion(URL base, Info info, String defaultValue) {
+		// need a Lucee restart to get a new version // TODO a better cache for this
+		String key = info.toString();
+		String version = latests.get(key);
+		if (version == null) {
+			synchronized (SystemUtil.createToken("BundleProvider", key)) {
+				latests.get(key);
+				if (version == null) {
+					try {
+						URL metadata = new URL(base, info.groupId.replace('.', '/') + "/" + info.artifactId + "/maven-metadata.xml");
+						HTTPResponse rsp = HTTPEngine4Impl.get(metadata, null, null, MavenUpdateProvider.CONNECTION_TIMEOUT, true, null, null, null, null);
+
+						if (rsp != null) {
+							int sc = rsp.getStatusCode();
+							if (sc < 200 || sc >= 300) throw new IOException("cannot create maven endpoint URL for [" + info.toString()
+									+ "], because no explicit version was defined and it cannot be detected via [" + metadata + "].");
+						}
+						else {
+							throw new IOException("unable to invoke [" + metadata + "], no response.");
+						}
+
+						String content = rsp.getContentAsString();
+						// TODO make better
+						int start = content.lastIndexOf("<version>");
+						if (start != -1) {
+							start += 9;
+							int end = content.indexOf("</version>", start);
+							if (end > start) {
+								version = content.substring(start, end);
+								latests.put(key, version);
+							}
+						}
+					}
+					catch (Exception e) {
+						LogUtil.log(Log.LEVEL_DEBUG, "OSGi", ExceptionUtil.getStacktrace(e, true));
+					}
+				}
+			}
+		}
+		if (version != null) return version;
+
+		latests.put(key, defaultValue);
+		return defaultValue;
 	}
 
 	public static Info extractMavenInfoFromZip(InputStream is) throws IOException {

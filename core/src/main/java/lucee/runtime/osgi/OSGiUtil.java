@@ -852,9 +852,6 @@ public class OSGiUtil {
 			}
 		}
 		final Resource jarDir = ResourceUtil.toResource(factory.getBundleDirectory());
-
-		if (symbolicVersion == null) symbolicVersion = "latest";
-
 		final URL updateUrl = BundleProvider.getInstance().getBundleAsURL(new BundleDefinition(symbolicName, symbolicVersion), true);
 
 		log(Logger.LOG_INFO, "Downloading bundle [" + symbolicName + ":" + symbolicVersion + "] from [" + updateUrl + "]");
