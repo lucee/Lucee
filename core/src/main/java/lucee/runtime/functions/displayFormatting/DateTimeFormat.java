@@ -148,6 +148,8 @@ public final class DateTimeFormat extends BIF {
 		char[] carr = mask.toCharArray();
 		StringBuilder sb = new StringBuilder();
 		char c;
+		boolean reevaluate = false;
+
 		for (int i = 0; i < carr.length; i++) {
 			c = carr[i];
 			switch (c) {
@@ -165,7 +167,6 @@ public final class DateTimeFormat extends BIF {
 			case 'a':
 			case 'A':
 			case 's':
-			case 'd':
 			case 'H':
 			case 'K':
 			case 'k':
@@ -195,6 +196,7 @@ public final class DateTimeFormat extends BIF {
 			case 'Z':
 				if (!inside) {
 					if (!hasAlready(sb, c, 4)) sb.append(c);
+					else if (c == 'D' || c == 'd') reevaluate = true;
 				}
 				else {
 					sb.append(c);
@@ -227,9 +229,25 @@ public final class DateTimeFormat extends BIF {
 					sb.append(c);
 				}
 				break;
+
 			case 'D':
+			case 'd':
 				if (!inside) {
-					if (!hasAlready(sb, 'd', 2)) sb.append('d');
+					if (hasAlready(sb, 'E', 4)) {
+						;
+					}
+					else if (hasAlready(sb, 'E', 3)) {
+						sb.append('E');
+					}
+					else if (hasAlready(sb, 'd', 2)) {
+						sb.setCharAt(i - 2, 'E');
+						sb.setCharAt(i - 1, 'E');
+						sb.append('E');
+					}
+					else if (!hasAlready(sb, 'd', 2)) {
+						sb.append('d');
+					}
+					else sb.append('d');
 				}
 				else {
 					sb.append(c);
@@ -337,11 +355,16 @@ public final class DateTimeFormat extends BIF {
 				else sb.append(c);
 			}
 		}
-		String str = StringUtil.replace(sb.toString(), "''", "", false);
+
+		String str = sb.toString();
+		str = StringUtil.replace(str, "''", "", false);
 		str = StringUtil.replace(str, ZEROZERO, "''", false);
 		str = str.replace(ONE, 'E');
-		str = y2yyyy(str);
+		str =
 
+				y2yyyy(str);
+		print.e("+++++");
+		print.e(mask + "->" + str);
 		return str;
 	}
 
@@ -355,7 +378,21 @@ public final class DateTimeFormat extends BIF {
 	}
 
 	public static void main(String[] args) throws Exception {
-		print.e(invoke(new java.util.Date(), null, Locale.US, TimeZoneConstants.UTC));
+		print.e(invoke(new java.util.Date(), "d", Locale.US, TimeZoneConstants.UTC));
+		print.e(invoke(new java.util.Date(), "dd", Locale.US, TimeZoneConstants.UTC));
+		print.e(invoke(new java.util.Date(), "ddd", Locale.US, TimeZoneConstants.UTC));
+		print.e(invoke(new java.util.Date(), "dddd", Locale.US, TimeZoneConstants.UTC));
+		print.e(invoke(new java.util.Date(), "ddddd", Locale.US, TimeZoneConstants.UTC));
+		print.e(invoke(new java.util.Date(), "D", Locale.US, TimeZoneConstants.UTC));
+		print.e(invoke(new java.util.Date(), "DD", Locale.US, TimeZoneConstants.UTC));
+		print.e(invoke(new java.util.Date(), "DDD", Locale.US, TimeZoneConstants.UTC));
+		print.e(invoke(new java.util.Date(), "DDDD", Locale.US, TimeZoneConstants.UTC));
+		print.e(invoke(new java.util.Date(), "DDDDD", Locale.US, TimeZoneConstants.UTC));
+		print.e(invoke(new java.util.Date(), "E", Locale.US, TimeZoneConstants.UTC));
+		print.e(invoke(new java.util.Date(), "EE", Locale.US, TimeZoneConstants.UTC));
+		print.e(invoke(new java.util.Date(), "EEE", Locale.US, TimeZoneConstants.UTC));
+		print.e(invoke(new java.util.Date(), "EEEE", Locale.US, TimeZoneConstants.UTC));
+		print.e(invoke(new java.util.Date(), "EEEEE", Locale.US, TimeZoneConstants.UTC));
 	}
 
 	/*
