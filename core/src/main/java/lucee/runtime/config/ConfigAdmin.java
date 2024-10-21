@@ -116,7 +116,6 @@ import lucee.runtime.gateway.GatewayEntryImpl;
 import lucee.runtime.listener.AppListenerUtil;
 import lucee.runtime.listener.SerializationSettings;
 import lucee.runtime.monitor.Monitor;
-import lucee.runtime.net.ntp.NtpClient;
 import lucee.runtime.net.proxy.ProxyData;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
@@ -2885,37 +2884,6 @@ public final class ConfigAdmin {
 
 		root.setEL("timezone", timeZone.trim());
 
-	}
-
-	/**
-	 * update the timeServer
-	 * 
-	 * @param timeServer
-	 * @param useTimeServer
-	 * @throws PageException
-	 */
-	public void updateTimeServer(String timeServer, Boolean useTimeServer) throws PageException {
-		checkWriteAccess();
-		if (useTimeServer != null && useTimeServer.booleanValue() && !StringUtil.isEmpty(timeServer, true)) {
-			try {
-				new NtpClient(timeServer).getOffset();
-			}
-			catch (IOException e) {
-				try {
-					new NtpClient(timeServer).getOffset();
-				}
-				catch (IOException ee) {
-					throw Caster.toPageException(ee);
-				}
-			}
-		}
-
-		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
-		if (!hasAccess) throw new SecurityException("no access to update regional setting");
-
-		root.setEL("timeserver", timeServer.trim());
-		if (useTimeServer != null) root.setEL("useTimeserver", Caster.toBooleanValue(useTimeServer));
-		else rem(root, "useTimeserver");
 	}
 
 	public void updateComponentDeepSearch(Boolean deepSearch) throws SecurityException {
