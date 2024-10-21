@@ -101,23 +101,32 @@ public final class DateTimeFormat extends BIF {
 			return FormatUtil.format(formatter, datetime, tz);
 		}
 
-		DateTimeFormatter formatter = FormatUtil.getDateTimeFormatter(locale, convertMask(mask));
+		DateTimeFormatter formatter;
+		if (mask.equalsIgnoreCase("short")) formatter = FormatUtil.getDateTimeFormatter(locale, mask);
+		else if (mask.equalsIgnoreCase("medium")) formatter = FormatUtil.getDateTimeFormatter(locale, mask);
+		else if (mask.equalsIgnoreCase("long")) formatter = FormatUtil.getDateTimeFormatter(locale, mask);
+		else if (mask.equalsIgnoreCase("full")) formatter = FormatUtil.getDateTimeFormatter(locale, mask);
+		else if (mask.equalsIgnoreCase("iso8601")) formatter = FormatUtil.getDateTimeFormatter(locale, mask);
+		else {
+			formatter = FormatUtil.getDateTimeFormatter(locale, convertMask(mask));
 
-		String result = FormatUtil.format(formatter, datetime, tz);
-		if (!StringUtil.isEmpty(result)) {
-			int start, end = 0;
-			String content;
-			while ((start = result.indexOf(">>>")) != -1) {
-				end = result.indexOf("<<<", start + 3);
-				if (end == -1) break;
-				content = result.substring(start + 3, end);
-				if (content.length() == 2) {
-					content = content.substring(0, 1);
+			String result = FormatUtil.format(formatter, datetime, tz);
+			if (!StringUtil.isEmpty(result)) {
+				int start, end = 0;
+				String content;
+				while ((start = result.indexOf(">>>")) != -1) {
+					end = result.indexOf("<<<", start + 3);
+					if (end == -1) break;
+					content = result.substring(start + 3, end);
+					if (content.length() == 2) {
+						content = content.substring(0, 1);
+					}
+					result = result.substring(0, start) + content + result.substring(end + 3);
 				}
-				result = result.substring(0, start) + content + result.substring(end + 3);
 			}
+			return result;
 		}
-		return result;
+		return FormatUtil.format(formatter, datetime, tz);
 	}
 
 	@Override
@@ -136,162 +145,178 @@ public final class DateTimeFormat extends BIF {
 		mask = StringUtil.replace(mask, "''", ZEROZERO, false);
 		boolean inside = false;
 
-		while ((mask.indexOf("ttt")) != -1) {
-			mask = StringUtil.replace(mask, "ttt", "tt", false, true);
-		}
-		while ((mask.indexOf("TTT")) != -1) {
-			mask = StringUtil.replace(mask, "TTT", "TT", false, true);
-		}
-
 		char[] carr = mask.toCharArray();
 		StringBuilder sb = new StringBuilder();
+		char c;
 		for (int i = 0; i < carr.length; i++) {
-
-			switch (carr[i]) {
+			c = carr[i];
+			switch (c) {
+			// max 1
+			case 'W':
+			case 'F':
+				if (!inside) {
+					if (!hasAlready(sb, c, 1)) sb.append(c);
+				}
+				else {
+					sb.append(c);
+				}
+				break;
+			// max 2
+			case 's':
+			case 'd':
+			case 'H':
+			case 'K':
+			case 'k':
+			case 'h':
+			case 'w':
+				if (!inside) {
+					if (!hasAlready(sb, c, 2)) sb.append(c);
+				}
+				else {
+					sb.append(c);
+				}
+				break;
+			// max 3
+			case 'x':
+				if (!inside) {
+					if (!hasAlready(sb, c, 3)) sb.append(c);
+				}
+				else {
+					sb.append(c);
+				}
+				break;
+			// max 4
+			case 'G':
+			case 'E':
+			case 'M':
+			case 'z':
+			case 'Z':
+				if (!inside) {
+					if (!hasAlready(sb, c, 4)) sb.append(c);
+				}
+				else {
+					sb.append(c);
+				}
+				break;
+			// max 5
+			case 'X':
+				if (!inside) {
+					if (!hasAlready(sb, c, 5)) sb.append(c);
+				}
+				else {
+					sb.append(c);
+				}
+				break;
+			// max 10
+			case 'y':
+				if (!inside) {
+					if (!hasAlready(sb, c, 10)) sb.append(c);
+				}
+				else {
+					sb.append(c);
+				}
+				break;
+			// no indentical char
 			case 'm':
 				if (!inside) {
-					sb.append('M');
+					if (!hasAlready(sb, 'M', 4)) sb.append('M');
 				}
 				else {
-					sb.append(carr[i]);
+					sb.append(c);
 				}
 				break;
+			case 'D':
+				if (!inside) {
+					if (!hasAlready(sb, 'd', 2)) sb.append('d');
+				}
+				else {
+					sb.append(c);
+				}
+				break;
+
 			case 'S':
 				if (!inside) {
-					sb.append('s');
+					if (!hasAlready(sb, 's', 2)) sb.append('s');
 				}
 				else {
-					sb.append(carr[i]);
+					sb.append(c);
 				}
 				break;
+
 			case 't':
-				if (!inside) {
-					if (i + 1 < carr.length && (carr[i + 1] == 't' || carr[i + 1] == 'T')) {
-						sb.append('a');
-						i++;
-					}
-					else sb.append(">>>a<<<");
-				}
-				else {
-					sb.append(carr[i]);
-				}
-				break;
 			case 'T':
 				if (!inside) {
 					if (i + 1 < carr.length && (carr[i + 1] == 't' || carr[i + 1] == 'T')) {
-						sb.append('a');
+						if (!hasAlready(sb, 'a', 1)) sb.append('a');
 						i++;
 					}
-					else sb.append(">>>a<<<");
+					else if (!hasAlready(sb, 'a', 1)) sb.append(">>>a<<<");
 				}
 				else {
-					sb.append(carr[i]);
+					sb.append(c);
 				}
 				break;
+
 			case 'n':
 				if (!inside) {
-					sb.append('m');
+					if (!hasAlready(sb, 'm', 2)) sb.append('m');
 				}
 				else {
-					sb.append(carr[i]);
+					sb.append(c);
 				}
 				break;
 			case 'N':
 				if (!inside) {
-					sb.append('m');
+					if (!hasAlready(sb, 'm', 2)) sb.append('m');
 				}
 				else {
-					sb.append(carr[i]);
+					sb.append(c);
 				}
 				break;
 			case 'l':
-				if (!inside) {
-					sb.append('S');
+				if (!inside) {// lllllllll
+					if (!hasAlready(sb, 'S', 9)) sb.append('S');
 				}
 				else {
-					sb.append(carr[i]);
+					sb.append(c);
 				}
 				break;
 			case 'L':
 				if (!inside) {
-					sb.append('S');
+					if (!hasAlready(sb, 'S', 9)) sb.append('S');
 				}
 				else {
-					sb.append(carr[i]);
+					sb.append(c);
 				}
 				break;
 			case 'Y':
 				if (!inside) {
-					sb.append('y');
+					if (!hasAlready(sb, 'y', 10)) sb.append('y');
 				}
 				else {
-					sb.append(carr[i]);
+					sb.append(c);
 				}
 				break;
+
 			case 'g':
 				if (!inside) {
-					sb.append('G');
+					if (!hasAlready(sb, 'G', 4)) sb.append('G');
 				}
 				else {
-					sb.append(carr[i]);
+					sb.append(c);
 				}
 				break;
-
+			// quote it
 			case 'f':
-				if (!inside) {
-					sb.append("'f'");
-				}
-				else {
-					sb.append(carr[i]);
-				}
-				break;
 			case 'e':
+			case 'A':
+			case 'a':
 				if (!inside) {
-					sb.append("'e'");
+					sb.append("'" + c + "'");
 				}
 				else {
-					sb.append(carr[i]);
+					sb.append(c);
 				}
-				break;
-
-			case 'G':
-			case 'y':
-			case 'M':
-			case 'W':
-			case 'w':
-			case 'F':
-			case 'E':
-			case 'a':
-			case 'H':
-			case 'h':
-			case 'K':
-			case 'k':
-			case 'x':
-			case 'X':
-			case 'Z':
-			case 'z':
-			case 's':
-				// case '.':
-				sb.append(carr[i]);
-				break;
-
-			case 'D':
-			case 'd':
-				int len = sb.length();
-				// 2 before are D or d
-				if (len > 1 && (sb.charAt(len - 1) == 'd' || sb.charAt(len - 1) == 'D') && (sb.charAt(len - 2) == 'd' || sb.charAt(len - 2) == 'D')) {
-					sb.deleteCharAt(len - 1);
-					sb.deleteCharAt(len - 2);
-					sb.append(ONE).append(ONE).append(ONE);
-					break;
-				}
-				// 2 before are D or d
-				else if (len > 0 && sb.charAt(len - 1) == ONE) {
-					sb.append(ONE);
-					break;
-				}
-
-				sb.append(carr[i]);
 				break;
 
 			case '\'':
@@ -306,12 +331,8 @@ public final class DateTimeFormat extends BIF {
 				inside = !inside;
 				sb.append(carr[i]);
 				break;
-			/*
-			 * case '\'': if(carr.length-1>i) { if(carr[i+1]=='\'') { i++; sb.append("''"); break; } }
-			 * sb.append("''"); break;
-			 */
+
 			default:
-				char c = carr[i];
 				if (!inside && ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z'))) sb.append('\'').append(c).append('\'');
 				else sb.append(c);
 			}
@@ -321,63 +342,32 @@ public final class DateTimeFormat extends BIF {
 		str = str.replace(ONE, 'E');
 		str = y2yyyy(str);
 
-		// TODO find a better way
-		while ((str.indexOf("aa")) != -1) {
-			str = StringUtil.replace(str, "aa", "a", false, true);
-		}
-		while ((str.indexOf("ddddd")) != -1) {
-			str = StringUtil.replace(str, "ddddd", "dddd", false, true);
-		}
-		while ((str.indexOf("DDDDD")) != -1) {
-			str = StringUtil.replace(str, "DDDDD", "DDDD", false, true);
-		}
-		while ((str.indexOf("EEEEE")) != -1) {
-			str = StringUtil.replace(str, "EEEEE", "EEEE", false, true);
-		}
-		while ((str.indexOf("GGG")) != -1) {
-			str = StringUtil.replace(str, "GGG", "GG", false, true);
-		}
-		while ((str.indexOf("HHH")) != -1) {
-			str = StringUtil.replace(str, "HHH", "HH", false, true);
-		}
-		while ((str.indexOf("hhh")) != -1) {
-			str = StringUtil.replace(str, "hhh", "hh", false, true);
-		}
-		while ((str.indexOf("KKK")) != -1) {
-			str = StringUtil.replace(str, "KKK", "KK", false, true);
-		}
-		while ((str.indexOf("llll")) != -1) {
-			str = StringUtil.replace(str, "llll", "lll", false, true);
-		}
-		while ((str.indexOf("LLLL")) != -1) {
-			str = StringUtil.replace(str, "LLLL", "LLL", false, true);
-		}
-		while ((str.indexOf("MMMMM")) != -1) {
-			str = StringUtil.replace(str, "MMMMM", "MMMM", false, true);
-		}
-		while ((str.indexOf("mmmmm")) != -1) {
-			str = StringUtil.replace(str, "mmmmm", "mmmm", false, true);
-		}
-		while ((str.indexOf("nnn")) != -1) {
-			str = StringUtil.replace(str, "nnn", "nn", false, true);
-		}
-		while ((str.indexOf("NNN")) != -1) {
-			str = StringUtil.replace(str, "NNN", "NN", false, true);
-		}
-		while ((str.indexOf("sss")) != -1) {
-			str = StringUtil.replace(str, "sss", "ss", false, true);
-		}
-		while ((str.indexOf("SSS")) != -1) {
-			str = StringUtil.replace(str, "SSS", "SS", false, true);
-		}
-		while ((str.indexOf("www")) != -1) {
-			str = StringUtil.replace(str, "www", "ww", false, true);
-		}
-		while ((str.indexOf("WWW")) != -1) {
-			str = StringUtil.replace(str, "WWW", "WW", false, true);
-		}
 		return str;
 	}
+
+	private static boolean hasAlready(StringBuilder sb, char c, int count) {
+		int l = sb.length();
+		if (l < count) return false;
+		while (sb.charAt(l - count) == c) {
+			if (--count == 0) return true;
+		}
+		return false;
+	}
+
+	/*
+	 * public static void main(String[] args) throws Exception { print.e(invoke(new java.util.Date(),
+	 * "t.Z.z.X.x.F.f.m.M.W.w.k.K.h.H.E.d.m.s.n.l.y.g.a", Locale.US, TimeZoneConstants.UTC));
+	 * print.e(invoke(new java.util.Date(),
+	 * "tt.ZZ.zz.XX.xx.FF.ff.mm.MM.WW.ww.kk.KK.hh.HH.EE.dd.mm.ss.nn.ll.yy.gg.aa", Locale.US,
+	 * TimeZoneConstants.UTC)); print.e(invoke(new java.util.Date(),
+	 * "ttt.ZZZ.zzz.XXX.xxx.FFF.fff.mmm.MMM.WWW.www.kkk.KKK.hhh.HHH.EEE.ddd.mmm.sss.nnn.lll.yyy.ggg.aaa",
+	 * Locale.US, TimeZoneConstants.UTC)); print.e(invoke(new java.util.Date(),
+	 * "tttt.ZZZZ.zzzz.XXXX.xxxx.FFFF.ffff.mmmm.MMMM.WWWW.wwww.kkkk.KKKK.hhhh.HHHH.EEEE.dddd.mmmm.ssss.NNNN.llll.yyyy.gggg.aaaa",
+	 * Locale.US, TimeZoneConstants.UTC)); print.e(invoke(new java.util.Date(),
+	 * "TTTTT.ZZZZZ.zzzzzzzz.XXXXXX.xxxxx.FFFFF.fffff.mmmmm.MMMMM.WWWWW.wwwww.kkkkk.KKKKK.hhhhh.HHHHH.EEEEE.ddddd.mmmm.ssss.NNNN.llllllllllllll.yyyyyyyyyyy.ggggg.aaaaa",
+	 * Locale.US, TimeZoneConstants.UTC)); print.e(invoke(new java.util.Date(), "short", Locale.US,
+	 * TimeZoneConstants.UTC)); }
+	 */
 
 	public static String y2yyyy(String str) {
 		char[] carr = str.toCharArray();
