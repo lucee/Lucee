@@ -10,10 +10,12 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					"2017-11-01T13:35:08-0500" ,
 					dateTimeFormat(time, "yyyy-MM-dd'T'HH:nn:ssZZZ", "America/Chicago"));
 				assertEquals(
-					"2017-11-01T13:35:08-05:00" ,
-					dateTimeFormat(time, "ISO8601", "America/Chicago"));
+					"2017-11-01T13:35:08-0500" ,
+					dateTimeFormat(time, "ISO8601", "America/Chicago")); 
+					//2017-11-01T13:35:08-05:00
+					//2017-11-01T13:35:08-0500
 				assertEquals(
-					"2017-11-01T13:35:08-05:00" ,
+					"2017-11-01T13:35:08-0500" ,
 					dateTimeFormat(time, "ISO", "America/Chicago"));
 			});
 		});

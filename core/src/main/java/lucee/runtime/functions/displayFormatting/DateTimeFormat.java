@@ -180,6 +180,7 @@ public final class DateTimeFormat extends BIF {
 				break;
 			// max 3
 			case 'x':
+			case 'Z':
 				if (!inside) {
 					if (!hasAlready(sb, c, 3)) sb.append(c);
 				}
@@ -192,7 +193,6 @@ public final class DateTimeFormat extends BIF {
 			case 'E':
 			case 'M':
 			case 'z':
-			case 'Z':
 				if (!inside) {
 					if (!hasAlready(sb, c, 4)) sb.append(c);
 					else if (c == 'D' || c == 'd') reevaluate = true;
@@ -399,6 +399,22 @@ public final class DateTimeFormat extends BIF {
 	}
 
 	public static void main(String[] args) throws Exception {
+
+		print.e(invoke(new java.util.Date(), "Z", Locale.US, TimeZoneConstants.UTC));
+		print.e(invoke(new java.util.Date(), "ZZ", Locale.US, TimeZoneConstants.UTC));
+		print.e(invoke(new java.util.Date(), "ZZZ", Locale.US, TimeZoneConstants.UTC));
+		print.e(invoke(new java.util.Date(), "ZZZZ", Locale.US, TimeZoneConstants.UTC));
+		print.e(invoke(new java.util.Date(), "ZZZZZ", Locale.US, TimeZoneConstants.UTC));
+		print.e(invoke(new java.util.Date(), "ZZZZZZ", Locale.US, TimeZoneConstants.UTC));
+
+		print.e(invoke(new java.util.Date(), "z", Locale.US, TimeZoneConstants.UTC));
+		print.e(invoke(new java.util.Date(), "zz", Locale.US, TimeZoneConstants.UTC));
+		print.e(invoke(new java.util.Date(), "zzz", Locale.US, TimeZoneConstants.UTC));
+		print.e(invoke(new java.util.Date(), "zzzz", Locale.US, TimeZoneConstants.UTC));
+		print.e(invoke(new java.util.Date(), "zzzzz", Locale.US, TimeZoneConstants.UTC));
+		print.e(invoke(new java.util.Date(), "zzzzzz", Locale.US, TimeZoneConstants.UTC));
+
+		if (true) return;
 		print.e(invoke(new java.util.Date(), "d", Locale.US, TimeZoneConstants.UTC));
 		print.e(invoke(new java.util.Date(), "dd", Locale.US, TimeZoneConstants.UTC));
 		print.e(invoke(new java.util.Date(), "ddd", Locale.US, TimeZoneConstants.UTC));
