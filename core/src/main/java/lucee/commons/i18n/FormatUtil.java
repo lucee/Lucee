@@ -552,7 +552,7 @@ public class FormatUtil {
 		else if (mask.equalsIgnoreCase("medium")) formatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM);
 		else if (mask.equalsIgnoreCase("long")) formatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.LONG);
 		else if (mask.equalsIgnoreCase("full")) formatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.FULL);
-		else if (mask.equalsIgnoreCase("iso8601")) formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssZ");
+		else if (mask.equalsIgnoreCase("iso8601")) formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
 		else formatter = DateTimeFormatter.ofPattern(mask);
 
 		if (locale != null) formatter = formatter.withLocale(locale);

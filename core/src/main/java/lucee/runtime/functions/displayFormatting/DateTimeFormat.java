@@ -139,7 +139,7 @@ public final class DateTimeFormat extends BIF {
 	public static String convertMask(String mask) {
 
 		if (mask == null) return DEFAULT_MASK;
-		else if ("iso8601".equalsIgnoreCase(mask) || "iso".equalsIgnoreCase(mask)) return "yyyy-MM-dd'T'HH:mm:ssXXX";
+		else if ("iso8601".equalsIgnoreCase(mask) || "iso".equalsIgnoreCase(mask)) return "yyyy-MM-dd'T'HH:mm:ss.SSSXXX";
 		else if ("isoms".equalsIgnoreCase(mask) || "isoMillis".equalsIgnoreCase(mask) || "javascript".equalsIgnoreCase(mask)) return "yyyy-MM-dd'T'HH:mm:ss.SSSXXX";
 
 		mask = StringUtil.replace(mask, "''", ZEROZERO, false);
@@ -404,7 +404,11 @@ public final class DateTimeFormat extends BIF {
 		print.e(invoke(new java.util.Date(), "ddd", Locale.US, TimeZoneConstants.UTC));
 		print.e(invoke(new java.util.Date(), "D", Locale.US, TimeZoneConstants.UTC));
 		print.e(invoke(new java.util.Date(), "DD", Locale.US, TimeZoneConstants.UTC));
-		print.e(invoke(new java.util.Date(), "DDD", Locale.US, TimeZoneConstants.UTC));
+		print.e(invoke(new java.util.Date(), "ISO8601", Locale.US, TimeZoneConstants.UTC));
+
+		// Expected [2017-11-01T13:35:08-05:00]
+		// but received [2017-11-01T13:35:08-0500]
+
 		if (true) return;
 
 		print.e(invoke(new java.util.Date(), "d", Locale.US, TimeZoneConstants.UTC));
