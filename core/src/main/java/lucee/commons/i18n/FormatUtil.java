@@ -27,6 +27,7 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
+import java.time.format.DateTimeParseException;
 import java.time.format.FormatStyle;
 import java.util.ArrayList;
 import java.util.Date;
@@ -577,7 +578,7 @@ public class FormatUtil {
 		return Instant.ofEpochMilli(millis).atZone(timeZone != null ? timeZone.toZoneId() : ZoneId.systemDefault()).format(formatter);
 	}
 
-	public static long parse(DateTimeFormatter formatter, String date, TimeZone timeZone) {
+	public static long parse(DateTimeFormatter formatter, String date, TimeZone timeZone) throws DateTimeParseException {
 		return ZonedDateTime.parse(date, formatter).withZoneSameInstant(timeZone != null ? timeZone.toZoneId() : ZoneId.systemDefault()).toInstant().toEpochMilli();
 	}
 }

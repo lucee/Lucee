@@ -22,7 +22,6 @@
 package lucee.runtime.functions.international;
 
 import java.text.DateFormat;
-import java.text.ParseException;
 import java.util.Date;
 import java.util.Locale;
 import java.util.TimeZone;
@@ -31,9 +30,11 @@ import lucee.print;
 import lucee.commons.date.TimeZoneConstants;
 import lucee.commons.date.TimeZoneUtil;
 import lucee.commons.i18n.FormatUtil;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.engine.ThreadLocalPageContext;
+import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.op.Caster;
@@ -83,13 +84,14 @@ public final class LSParseDateTime implements Function {
 			return new DateTimeImpl(FormatUtil.parse(FormatUtil.getDateTimeFormatter(locale, format), strDate, tz));
 		}
 		catch (Exception e) {
-			if (true) throw Caster.toPageException(e);
-			try {
-				return new DateTimeImpl(df.parse(strDate));
-			}
-			catch (ParseException pe) {
-				throw Caster.toPageException(pe);
-			}
+			ExpressionException ee = new ExpressionException(
+					"could not parse the date [" + strDate + "] with the format [" + format + "] with the locale [" + locale + "] and the timezone [" + tz + "]");
+			ExceptionUtil.initCauseEL(ee, e);
+			throw ee;
+			/*
+			 * if (true) throw Caster.toPageException(e); try { return new DateTimeImpl(df.parse(strDate)); }
+			 * catch (ParseException pe) { throw Caster.toPageException(pe); }
+			 */
 			// throw Caster.toPageException(e);
 		}
 		// return new DateTimeImpl(FormatUtil.parse(FormatUtil.getDateTimeFormatter(locale, format),
@@ -97,10 +99,10 @@ public final class LSParseDateTime implements Function {
 	}
 
 	public static void main(String[] args) throws PageException {
-		print.e(_call(null, "2022-01-02T11:22:33+01:00", Locale.ENGLISH, TimeZoneConstants.UTC, null));
-		print.e(_call(null, "2022-01-02T11:22:33+01:00", Locale.ENGLISH, TimeZoneConstants.UTC, "iso"));
-		print.e(_call(null, "2022-01-02T11:22:33.444+01:00", Locale.ENGLISH, TimeZoneConstants.UTC, null));
-		print.e(_call(null, "2022-01-02T11:22:33.444+01:00", Locale.ENGLISH, TimeZoneConstants.UTC, "isoMS"));
+		print.e(_call(null, "2022-01-02T11:22:33+01:00", Locale.GERMANY, TimeZoneConstants.CET, null));
+		print.e(_call(null, "2022-01-02T11:22:33+01:00", Locale.GERMANY, TimeZoneConstants.CET, "iso"));
+		print.e(_call(null, "2022-01-02T11:22:33.444+01:00", Locale.GERMANY, TimeZoneConstants.CET, null));
+		print.e(_call(null, "2022-01-02T11:22:33.444+01:00", Locale.GERMANY, TimeZoneConstants.CET, "isoms"));
 		// print.e(_call(null, "1/30/02 7:02:33", Locale.ENGLISH, TimeZoneConstants.UTC, "m/dd/yy
 		// h:nn:ss"));
 
