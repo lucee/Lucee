@@ -570,8 +570,10 @@ public class FormatUtil {
 		else if (mask.equalsIgnoreCase("long")) formatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.LONG);
 		else if (mask.equalsIgnoreCase("full")) formatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.FULL);
 		else if (mask.equalsIgnoreCase("iso8601") || mask.equalsIgnoreCase("iso") || mask.equalsIgnoreCase("isoms") || mask.equalsIgnoreCase("isoMillis")
-				|| mask.equalsIgnoreCase("javascript"))
-			formatter = ISO_OFFSET_DATE_TIME;
+				|| mask.equalsIgnoreCase("javascript")) {
+					formatter = ISO_OFFSET_DATE_TIME;
+					locale = null;
+				}
 		else formatter = DateTimeFormatter.ofPattern(mask);
 
 		if (locale != null) formatter = formatter.withLocale(locale);

@@ -31,6 +31,7 @@ import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.BIF;
+import lucee.runtime.i18n.LocaleConstant;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.dt.DateTime;
 
@@ -53,7 +54,7 @@ public final class DateTimeFormat extends BIF {
 	 * @throws ExpressionException
 	 */
 	public static String call(PageContext pc, Object object) throws ExpressionException {
-		return invoke(pc, object, null, Locale.US, ThreadLocalPageContext.getTimeZone(pc));
+		return invoke(object, null, Locale.US, ThreadLocalPageContext.getTimeZone(pc));
 	}
 
 	/**
@@ -64,15 +65,11 @@ public final class DateTimeFormat extends BIF {
 	 * @throws ExpressionException
 	 */
 	public static String call(PageContext pc, Object object, String mask) throws ExpressionException {
-		return invoke(pc, object, mask, Locale.US, ThreadLocalPageContext.getTimeZone(pc));
+		return invoke(object, mask, Locale.US, ThreadLocalPageContext.getTimeZone(pc));
 	}
 
 	public static String call(PageContext pc, Object object, String mask, TimeZone tz) throws ExpressionException {
-		return invoke(pc, object, mask, Locale.US, tz == null ? ThreadLocalPageContext.getTimeZone(pc) : tz);
-	}
-
-	public static String invoke(PageContext pc, Object object, String mask, Locale locale, TimeZone tz) throws ExpressionException {
-		return invoke(object, mask, locale, tz);// FUTURE remove this method
+		return invoke(object, mask, Locale.US, tz == null ? ThreadLocalPageContext.getTimeZone(pc) : tz);
 	}
 
 	public static String invoke(Object object, String mask, Locale locale, TimeZone tz) throws ExpressionException {
@@ -400,65 +397,11 @@ public final class DateTimeFormat extends BIF {
 
 	public static void main(String[] args) throws Exception {
 
-		print.e(invoke(new java.util.Date(), "ISO8601", Locale.US, TimeZoneConstants.UTC));
+		print.e(invoke(new java.util.Date(), "ISO8601", LocaleConstant.ARABIC_KUWAIT, TimeZone.getTimeZone("America/Chicago")));
 		print.e(invoke(new java.util.Date(), "ISO", Locale.US, TimeZoneConstants.UTC));
 		print.e(invoke(new java.util.Date(), "javascript", Locale.US, TimeZoneConstants.UTC));
 		print.e("2017-11-01T13:35:08-05:00");
 
-		if (true) return;
-		print.e(invoke(new java.util.Date(), "ZZZZ", Locale.US, TimeZoneConstants.EUROPE_LONDON));
-		print.e(invoke(new java.util.Date(), "ZZZZZ", Locale.US, TimeZoneConstants.UTC));
-		print.e(invoke(new java.util.Date(), "ZZZZZZ", Locale.US, TimeZoneConstants.UTC));
-
-		print.e(invoke(new java.util.Date(), "z", Locale.US, TimeZoneConstants.UTC));
-		print.e(invoke(new java.util.Date(), "zz", Locale.US, TimeZoneConstants.UTC));
-		print.e(invoke(new java.util.Date(), "zzz", Locale.US, TimeZoneConstants.UTC));
-		print.e(invoke(new java.util.Date(), "zzzz", Locale.US, TimeZoneConstants.UTC));
-		print.e(invoke(new java.util.Date(), "zzzzz", Locale.US, TimeZoneConstants.UTC));
-		print.e(invoke(new java.util.Date(), "zzzzzz", Locale.US, TimeZoneConstants.UTC));
-
-		if (true) return;
-		print.e(invoke(new java.util.Date(), "d", Locale.US, TimeZoneConstants.UTC));
-		print.e(invoke(new java.util.Date(), "dd", Locale.US, TimeZoneConstants.UTC));
-		print.e(invoke(new java.util.Date(), "ddd", Locale.US, TimeZoneConstants.UTC));
-		print.e(invoke(new java.util.Date(), "D", Locale.US, TimeZoneConstants.UTC));
-		print.e(invoke(new java.util.Date(), "DD", Locale.US, TimeZoneConstants.UTC));
-
-		// Failed: Expected [2017-11-01T13:35:08-05:00]
-		// but received [2017-11-01T13:35:08-0500]
-
-		// Failed: Expected [2017-11-01T13:35:08-05:00]
-		// [2017-11-01T13:35:08.000-05:00]
-
-		// 2024-10-21T22:45:38.186Z
-		if (true) return;
-
-		print.e(invoke(new java.util.Date(), "d", Locale.US, TimeZoneConstants.UTC));
-		print.e(invoke(new java.util.Date(), "dd", Locale.US, TimeZoneConstants.UTC));
-		print.e(invoke(new java.util.Date(), "ddd", Locale.US, TimeZoneConstants.UTC));
-		print.e(invoke(new java.util.Date(), "dddd", Locale.US, TimeZoneConstants.UTC));
-		print.e(invoke(new java.util.Date(), "ddddd", Locale.US, TimeZoneConstants.UTC));
-		print.e(invoke(new java.util.Date(), "D", Locale.US, TimeZoneConstants.UTC));
-		print.e(invoke(new java.util.Date(), "DD", Locale.US, TimeZoneConstants.UTC));
-		print.e(invoke(new java.util.Date(), "DDD", Locale.US, TimeZoneConstants.UTC));
-		print.e(invoke(new java.util.Date(), "DDDD", Locale.US, TimeZoneConstants.UTC));
-		print.e(invoke(new java.util.Date(), "DDDDD", Locale.US, TimeZoneConstants.UTC));
-		print.e(invoke(new java.util.Date(), "E", Locale.US, TimeZoneConstants.UTC));
-		print.e(invoke(new java.util.Date(), "EE", Locale.US, TimeZoneConstants.UTC));
-		print.e(invoke(new java.util.Date(), "EEE", Locale.US, TimeZoneConstants.UTC));
-		print.e(invoke(new java.util.Date(), "EEEE", Locale.US, TimeZoneConstants.UTC));
-		print.e(invoke(new java.util.Date(), "EEEEE", Locale.US, TimeZoneConstants.UTC));
-		print.e(invoke(new java.util.Date(), "a", Locale.US, TimeZoneConstants.UTC));
-		print.e(invoke(new java.util.Date(), "aa", Locale.US, TimeZoneConstants.UTC));
-		print.e(invoke(new java.util.Date(), "aaa", Locale.US, TimeZoneConstants.UTC));
-		print.e(invoke(new java.util.Date(), "aaaa", Locale.US, TimeZoneConstants.UTC));
-		print.e(invoke(new java.util.Date(), "aaaaa", Locale.US, TimeZoneConstants.UTC));
-		print.e(invoke(new java.util.Date(), "A", Locale.US, TimeZoneConstants.UTC));
-		print.e(invoke(new java.util.Date(), "AA", Locale.US, TimeZoneConstants.UTC));
-		print.e(invoke(new java.util.Date(), "AAA", Locale.US, TimeZoneConstants.UTC));
-		print.e(invoke(new java.util.Date(), "AAAA", Locale.US, TimeZoneConstants.UTC));
-		print.e(invoke(new java.util.Date(), "AAAAA", Locale.US, TimeZoneConstants.UTC));
-		print.e(invoke(new java.util.Date(), "AAAAAAAAAAAAAAAAAAAAAA", Locale.US, TimeZoneConstants.UTC));
 	}
 
 	/*
