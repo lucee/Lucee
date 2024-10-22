@@ -27,6 +27,8 @@ import java.util.Date;
 import java.util.Locale;
 import java.util.TimeZone;
 
+import lucee.print;
+import lucee.commons.date.TimeZoneConstants;
 import lucee.commons.date.TimeZoneUtil;
 import lucee.commons.i18n.FormatUtil;
 import lucee.commons.lang.StringUtil;
@@ -81,14 +83,17 @@ public final class LSParseDateTime implements Function {
 			return new DateTimeImpl(df.parse(strDate));
 		}
 		catch (ParseException e) {
-			throw Caster.toPageException(e);
+			return new DateTimeImpl(FormatUtil.parse(FormatUtil.getDateTimeFormatter(locale, format), strDate, tz));
+			// throw Caster.toPageException(e);
 		}
 		// return new DateTimeImpl(FormatUtil.parse(FormatUtil.getDateTimeFormatter(locale, format),
 		// strDate, tz));
 	}
 
-	// public static void main(String[] args) throws PageException {
-	// print.e(_call(null, "1/30/02 7:02:33", Locale.ENGLISH, TimeZoneConstants.UTC, "m/dd/yy
-	// h:nn:ss"));
-	// }
+	public static void main(String[] args) throws PageException {
+		print.e(_call(null, "2022-01-02T11:22:33+01:00", Locale.ENGLISH, TimeZoneConstants.UTC, null));
+		print.e(_call(null, "2022-01-02T11:22:33.444+01:00", Locale.ENGLISH, TimeZoneConstants.UTC, null));
+		// print.e(_call(null, "1/30/02 7:02:33", Locale.ENGLISH, TimeZoneConstants.UTC, "m/dd/yy
+		// h:nn:ss"));
+	}
 }

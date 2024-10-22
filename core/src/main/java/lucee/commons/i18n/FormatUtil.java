@@ -114,7 +114,11 @@ public class FormatUtil {
 
 			"yyyy/MM/dd HH:mm:ss zz",
 
-			"yyyy-MM-dd HH:mm:ss zz"
+			"yyyy-MM-dd HH:mm:ss zz",
+
+			"yyyy-MM-dd'T'HH:mm:ssXXX",
+
+			"yyyy-MM-dd'T'HH:mm:ss.SSSXXX"
 
 	};
 
@@ -538,7 +542,8 @@ public class FormatUtil {
 		else if (mask.equalsIgnoreCase("medium")) df = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.MEDIUM, locale);
 		else if (mask.equalsIgnoreCase("long")) df = DateFormat.getDateTimeInstance(DateFormat.LONG, DateFormat.LONG, locale);
 		else if (mask.equalsIgnoreCase("full")) df = DateFormat.getDateTimeInstance(DateFormat.FULL, DateFormat.FULL, locale);
-		else if (mask.equalsIgnoreCase("iso8601")) df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
+		else if (mask.equalsIgnoreCase("iso8601") || mask.equalsIgnoreCase("iso")) df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX");
+		else if (mask.equalsIgnoreCase("isomillis") || mask.equalsIgnoreCase("isoms")) df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
 		else {
 			df = locale == null ? new SimpleDateFormat(mask) : new SimpleDateFormat(mask, locale);
 		}
