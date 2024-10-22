@@ -154,7 +154,7 @@ public final class DateTimeFormat extends BIF {
 	public static String convertMask(String mask) {
 
 		if (mask == null) return DEFAULT_MASK;
-		else if ("iso8601".equalsIgnoreCase(mask) || "iso".equalsIgnoreCase(mask)) return "yyyy-MM-dd'T'HH:mm:ss.SSSXXX";
+		else if ("iso8601".equalsIgnoreCase(mask) || "iso".equalsIgnoreCase(mask)) return "yyyy-MM-dd'T'HH:mm:ssXXX";
 		else if ("isoms".equalsIgnoreCase(mask) || "isoMillis".equalsIgnoreCase(mask) || "javascript".equalsIgnoreCase(mask)) return "yyyy-MM-dd'T'HH:mm:ss.SSSXXX";
 
 		mask = StringUtil.replace(mask, "''", ZEROZERO, false);
