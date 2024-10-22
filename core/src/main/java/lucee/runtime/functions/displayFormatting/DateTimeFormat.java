@@ -23,7 +23,6 @@ import java.util.Locale;
 import java.util.TimeZone;
 
 import lucee.print;
-import lucee.commons.date.TimeZoneConstants;
 import lucee.commons.i18n.FormatUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
@@ -96,13 +95,30 @@ public final class DateTimeFormat extends BIF {
 			return epoch;
 		}
 
-		if (mask != null && (mask.equalsIgnoreCase("iso8601") || mask.equalsIgnoreCase("iso") || mask.equalsIgnoreCase("isoms") || mask.equalsIgnoreCase("isoMillis")
-				|| mask.equalsIgnoreCase("javascript"))) {
-			mask = "yyyy-MM-dd'T'HH:nn:ssXXX";
-		}
-
 		DateTimeFormatter formatter;
-		if (mask != null && (mask.equalsIgnoreCase("short") || mask.equalsIgnoreCase("medium") || mask.equalsIgnoreCase("long") || mask.equalsIgnoreCase("full"))) {
+		if (mask != null && (
+
+		mask.equalsIgnoreCase("short") ||
+
+				mask.equalsIgnoreCase("medium") ||
+
+				mask.equalsIgnoreCase("long") ||
+
+				mask.equalsIgnoreCase("full") ||
+
+				mask.equalsIgnoreCase("iso") ||
+
+				mask.equalsIgnoreCase("iso8601") ||
+
+				mask.equalsIgnoreCase("isoms") ||
+
+				mask.equalsIgnoreCase("isomillis") ||
+
+				mask.equalsIgnoreCase("javascript")
+
+		)
+
+		) {
 			formatter = FormatUtil.getDateTimeFormatter(locale, mask);
 		}
 
@@ -396,12 +412,15 @@ public final class DateTimeFormat extends BIF {
 	}
 
 	public static void main(String[] args) throws Exception {
+		TimeZone tz = TimeZone.getTimeZone("America/Chicago");
+		print.e(">" + invoke(new java.util.Date(), "yyyy-MM-dd'T'HH:nn:ssXXX", LocaleConstant.ARABIC_KUWAIT, tz));
+		print.e(">" + invoke(new java.util.Date(), "yyyy-MM-dd'T'HH:nn:ssXXX", LocaleConstant.ARABIC_KUWAIT, tz));
 
-		print.e(">" + invoke(new java.util.Date(), "yyyy-MM-dd'T'HH:nn:ssXXX", LocaleConstant.ARABIC_KUWAIT, TimeZone.getTimeZone("America/Chicago")));
-		print.e(">" + invoke(new java.util.Date(), "ISO8601", LocaleConstant.ARABIC_KUWAIT, TimeZone.getTimeZone("America/Chicago")));
-		print.e(">" + invoke(new java.util.Date(), "ISO", Locale.US, TimeZoneConstants.UTC));
-		print.e(">" + invoke(new java.util.Date(), "javascript", Locale.US, TimeZoneConstants.UTC));
-		print.e(">2017-11-01T13:35:08-05:00");
+		print.e(">" + invoke(new java.util.Date(), "ISO8601", LocaleConstant.ARABIC_KUWAIT, tz));
+		print.e(">" + invoke(new java.util.Date(), "ISO", Locale.US, tz));
+		print.e(">" + invoke(new java.util.Date(), "ISO", LocaleConstant.ARABIC_KUWAIT, tz));
+		print.e(">" + invoke(new java.util.Date(), "ISOMillis", Locale.US, tz));
+		print.e(">" + invoke(new java.util.Date(), "javascript", Locale.US, tz));
 
 	}
 
