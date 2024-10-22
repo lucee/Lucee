@@ -215,7 +215,7 @@ public final class DateCaster {
 			dt = toDateTimeOld(locale, str, tz, null, false);
 			if (dt != null) {
 				print.e("--------- old rockx --------");
-				print.e(locale + "-" + str + "-" + tz.getID() + ":" + useCommomDateParserAsWell);
+				print.ds(locale + "-" + str + "-" + tz.getID() + ":" + useCommomDateParserAsWell);
 			}
 		}
 		if (dt == null) {
@@ -230,7 +230,10 @@ public final class DateCaster {
 	}
 
 	public static void main(String[] args) throws PageException {
-		toDateTime(LocaleConstant.ENGLISH_UNITED_KINDOM, "31/12/2008", TimeZoneConstants.CET, false);
+		toDateTime(LocaleConstant.ENGLISH_UNITED_STATES, "6/4/08", TimeZoneConstants.CET, false);
+		toDateTime(LocaleConstant.ENGLISH_UNITED_STATES, "06/04/08", TimeZoneConstants.CET, false);
+		toDateTime(LocaleConstant.ENGLISH_UNITED_STATES, "1/30/02 7:02:33", TimeZoneConstants.CET, false);
+		toDateTime(LocaleConstant.ENGLISH_UNITED_STATES, "06/04/08 01:02:03 GMT", TimeZoneConstants.CET, false);
 	}
 
 	/**
@@ -322,15 +325,13 @@ public final class DateCaster {
 
 				// if (fw.custom && fw.pattern.length() != str.length()) continue;
 				try {
-					DateTimeImpl res = new DateTimeImpl(FormatUtil.parse(fw.formatter, str, fw.type, fw.zone));
+					DateTimeImpl res = new DateTimeImpl(FormatUtil.parse(fw, str, fw.zone));
 					fw.successCount++;
+					print.e(fw.pattern + ":" + str);
+
 					return res;
 				}
 				catch (Exception e) {
-					if (fw.custom) {
-						print.e("---- " + fw.pattern + " ------");
-						print.e(e);
-					}
 				}
 			}
 		}

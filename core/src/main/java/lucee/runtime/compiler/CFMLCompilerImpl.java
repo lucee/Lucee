@@ -149,7 +149,17 @@ public final class CFMLCompilerImpl implements CFMLCompiler {
 						}
 					});
 				}
-				IOUtil.copy(new ByteArrayInputStream(result.barr), classFile, true);
+				try {
+					IOUtil.copy(new ByteArrayInputStream(result.barr), classFile, true);
+				}
+				catch (IOException ioe) {
+					Resource p = classFile.getParentResource();
+					if (!p.isDirectory()) {
+						p.mkdirs();
+						IOUtil.copy(new ByteArrayInputStream(result.barr), classFile, true);
+					}
+					else throw ioe;
+				}
 				if (result.javaFunctions != null) {
 					for (JavaFunction jf: result.javaFunctions) {
 						IOUtil.copy(new ByteArrayInputStream(jf.byteCode), classFileDirectory.getRealResource(jf.getName() + ".class"), true);

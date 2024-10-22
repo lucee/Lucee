@@ -27,6 +27,7 @@ import java.util.Locale;
 import java.util.TimeZone;
 
 import lucee.print;
+import lucee.commons.date.TimeZoneConstants;
 import lucee.commons.date.TimeZoneUtil;
 import lucee.commons.i18n.FormatUtil;
 import lucee.commons.lang.ExceptionUtil;
@@ -102,16 +103,17 @@ public final class LSParseDateTime implements Function {
 		}
 	}
 
-	/*
-	 * public static void main(String[] args) throws PageException { print.e(_call(null,
-	 * "2022-01-02T11:22:33+01:00", Locale.GERMANY, TimeZoneConstants.CET, null)); print.e(_call(null,
-	 * "2022-01-02T11:22:33+01:00", Locale.GERMANY, TimeZoneConstants.CET, "iso")); print.e(_call(null,
-	 * "2022-01-02T11:22:33.444+01:00", Locale.GERMANY, TimeZoneConstants.CET, null));
-	 * print.e(_call(null, "2022-01-02T11:22:33.444+01:00", Locale.GERMANY, TimeZoneConstants.CET,
-	 * "isoms")); print.e(_call(null, "1/30/02 7:02:33", Locale.GERMANY, TimeZoneConstants.CET,
-	 * "M/dd/yy h:mm:ss"));
-	 * 
-	 * 
-	 * }
-	 */
+	public static void main(String[] args) throws PageException {
+
+		print.e(_call(null, "06.04.08", Locale.GERMANY, TimeZoneConstants.CET, null));
+		if (true) return;
+
+		print.e(_call(null, "2022-01-02T11:22:33+01:00", Locale.GERMANY, TimeZoneConstants.CET, null));
+		print.e(_call(null, "2022-01-02T11:22:33+01:00", Locale.GERMANY, TimeZoneConstants.CET, "iso"));
+		print.e(_call(null, "2022-01-02T11:22:33.444+01:00", Locale.GERMANY, TimeZoneConstants.CET, null));
+		print.e(_call(null, "2022-01-02T11:22:33.444+01:00", Locale.GERMANY, TimeZoneConstants.CET, "isoms"));
+		print.e(_call(null, "1/30/02 7:02:33", Locale.GERMANY, TimeZoneConstants.CET, "M/dd/yy h:mm:ss"));
+
+	}
+
 }
