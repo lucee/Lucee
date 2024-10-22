@@ -18,10 +18,6 @@
  **/
 package lucee.commons.i18n;
 
-import static java.time.temporal.ChronoField.HOUR_OF_DAY;
-import static java.time.temporal.ChronoField.MINUTE_OF_HOUR;
-import static java.time.temporal.ChronoField.SECOND_OF_MINUTE;
-
 import java.lang.ref.SoftReference;
 import java.nio.charset.Charset;
 import java.text.DateFormat;
@@ -52,19 +48,6 @@ import lucee.runtime.config.Config;
 import lucee.runtime.engine.ThreadLocalPageContext;
 
 public class FormatUtil {
-
-	public static final DateTimeFormatter ISO_LOCAL_DATE_TIME;
-	public static final DateTimeFormatter ISO_LOCAL_TIME;
-	public static final DateTimeFormatter ISO_OFFSET_DATE_TIME;
-	static {
-
-		ISO_LOCAL_TIME = new DateTimeFormatterBuilder().appendValue(HOUR_OF_DAY, 2).appendLiteral(':').appendValue(MINUTE_OF_HOUR, 2).optionalStart().appendLiteral(':')
-				.appendValue(SECOND_OF_MINUTE, 2).optionalStart().toFormatter();
-
-		ISO_LOCAL_DATE_TIME = new DateTimeFormatterBuilder().parseCaseInsensitive().append(DateTimeFormatter.ISO_LOCAL_DATE).appendLiteral('T').append(ISO_LOCAL_TIME)
-				.toFormatter();
-		ISO_OFFSET_DATE_TIME = new DateTimeFormatterBuilder().parseCaseInsensitive().append(ISO_LOCAL_DATE_TIME).parseLenient().appendOffsetId().parseStrict().toFormatter();
-	}
 
 	public static final short FORMAT_TYPE_DATE = 1;
 	public static final short FORMAT_TYPE_TIME = 2;
@@ -571,8 +554,7 @@ public class FormatUtil {
 		else if (mask.equalsIgnoreCase("full")) formatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.FULL);
 		else if (mask.equalsIgnoreCase("iso8601") || mask.equalsIgnoreCase("iso") || mask.equalsIgnoreCase("isoms") || mask.equalsIgnoreCase("isoMillis")
 				|| mask.equalsIgnoreCase("javascript")) {
-					formatter = ISO_OFFSET_DATE_TIME;
-					locale = null;
+					formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:nn:ssXXX");
 				}
 		else formatter = DateTimeFormatter.ofPattern(mask);
 
