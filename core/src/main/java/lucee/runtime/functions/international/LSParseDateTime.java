@@ -81,7 +81,11 @@ public final class LSParseDateTime implements Function {
 		if (locale == null) locale = pc.getLocale();
 		DateFormat df = FormatUtil.getDateTimeFormat(locale, tz, format);
 		try {
-			return new DateTimeImpl(FormatUtil.parse(FormatUtil.getDateTimeFormatter(locale, format), strDate, tz));
+
+			return new DateTimeImpl(df.parse(strDate));
+
+			// return new DateTimeImpl(FormatUtil.parse(FormatUtil.getDateTimeFormatter(locale, format),
+			// strDate, tz));
 		}
 		catch (Exception e) {
 			ExpressionException ee = new ExpressionException("could not parse the date [" + strDate + "] with the format [" + format + "] with the locale [" + locale
@@ -103,7 +107,7 @@ public final class LSParseDateTime implements Function {
 		print.e(_call(null, "2022-01-02T11:22:33+01:00", Locale.GERMANY, TimeZoneConstants.CET, "iso"));
 		print.e(_call(null, "2022-01-02T11:22:33.444+01:00", Locale.GERMANY, TimeZoneConstants.CET, null));
 		print.e(_call(null, "2022-01-02T11:22:33.444+01:00", Locale.GERMANY, TimeZoneConstants.CET, "isoms"));
-		print.e(_call(null, "1/30/02 7:02:33", Locale.GERMANY, TimeZoneConstants.CET, "m/dd/yy h:mm:ss"));
+		print.e(_call(null, "1/30/02 7:02:33", Locale.GERMANY, TimeZoneConstants.CET, "M/dd/yy h:mm:ss"));
 
 		// print.e(_call(null, "1/30/02 7:02:33", Locale.ENGLISH, TimeZoneConstants.UTC, "m/dd/yy
 		// h:nn:ss"));

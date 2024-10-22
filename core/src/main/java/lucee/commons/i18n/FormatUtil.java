@@ -23,6 +23,7 @@ import java.nio.charset.Charset;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -578,7 +579,25 @@ public class FormatUtil {
 		return Instant.ofEpochMilli(millis).atZone(timeZone != null ? timeZone.toZoneId() : ZoneId.systemDefault()).format(formatter);
 	}
 
-	public static long parse(DateTimeFormatter formatter, String date, TimeZone timeZone) throws DateTimeParseException {
+	public static long parseSimple(DateTimeFormatter formatter, String date, TimeZone timeZone) throws DateTimeParseException {
 		return ZonedDateTime.parse(date, formatter).withZoneSameInstant(timeZone != null ? timeZone.toZoneId() : ZoneId.systemDefault()).toInstant().toEpochMilli();
+	}
+
+	public static long parse(DateTimeFormatter formatter, String date, TimeZone timeZone) throws DateTimeParseException {
+		// Parse the date using the formatter (no time zone assumption yet)
+		ZonedDateTime zonedDateTime = null;
+
+		try {
+			// Parse the date string into a ZonedDateTime
+			zonedDateTime = ZonedDateTime.parse(date, formatter);
+		}
+		catch (DateTimeParseException e) {
+			// If no time zone is provided in the input, handle it with the passed TimeZone
+			LocalDateTime localDateTime = LocalDateTime.parse(date, formatter);
+			zonedDateTime = localDateTime.atZone(timeZone != null ? timeZone.toZoneId() : ZoneId.systemDefault());
+		}
+
+		// Convert the parsed ZonedDateTime to the desired time zone and return epoch milliseconds
+		return zonedDateTime.withZoneSameInstant(timeZone != null ? timeZone.toZoneId() : ZoneId.systemDefault()).toInstant().toEpochMilli();
 	}
 }
