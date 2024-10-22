@@ -80,10 +80,16 @@ public final class LSParseDateTime implements Function {
 		if (locale == null) locale = pc.getLocale();
 		DateFormat df = FormatUtil.getDateTimeFormat(locale, tz, format);
 		try {
-			return new DateTimeImpl(df.parse(strDate));
-		}
-		catch (ParseException e) {
 			return new DateTimeImpl(FormatUtil.parse(FormatUtil.getDateTimeFormatter(locale, format), strDate, tz));
+		}
+		catch (Exception e) {
+			if (true) throw Caster.toPageException(e);
+			try {
+				return new DateTimeImpl(df.parse(strDate));
+			}
+			catch (ParseException pe) {
+				throw Caster.toPageException(pe);
+			}
 			// throw Caster.toPageException(e);
 		}
 		// return new DateTimeImpl(FormatUtil.parse(FormatUtil.getDateTimeFormatter(locale, format),
@@ -92,8 +98,13 @@ public final class LSParseDateTime implements Function {
 
 	public static void main(String[] args) throws PageException {
 		print.e(_call(null, "2022-01-02T11:22:33+01:00", Locale.ENGLISH, TimeZoneConstants.UTC, null));
+		print.e(_call(null, "2022-01-02T11:22:33+01:00", Locale.ENGLISH, TimeZoneConstants.UTC, "iso"));
 		print.e(_call(null, "2022-01-02T11:22:33.444+01:00", Locale.ENGLISH, TimeZoneConstants.UTC, null));
+		print.e(_call(null, "2022-01-02T11:22:33.444+01:00", Locale.ENGLISH, TimeZoneConstants.UTC, "isoMS"));
 		// print.e(_call(null, "1/30/02 7:02:33", Locale.ENGLISH, TimeZoneConstants.UTC, "m/dd/yy
 		// h:nn:ss"));
+
+		// expect(toString(parseDateTime("2022-01-02T11:22:33.444+01:00", "isoMs"))).toBe("{ts '2022-01-02
+		// 11:22:33'}");
 	}
 }
