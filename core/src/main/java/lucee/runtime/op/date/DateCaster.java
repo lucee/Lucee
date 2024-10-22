@@ -31,7 +31,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.TimeZone;
 
-import lucee.print;
 import lucee.commons.date.DateTimeUtil;
 import lucee.commons.date.JREDateTimeUtil;
 import lucee.commons.date.TimeZoneConstants;
@@ -213,7 +212,7 @@ public final class DateCaster {
 		DateTime dt = toDateTimeNew(locale, str, tz, null, useCommomDateParserAsWell);
 		if (dt == null) {
 			dt = toDateTimeOld(locale, str, tz, null, false);
-			if (dt != null) print.e("old.rocks(" + locale + "):" + str);
+			// if (dt != null) print.e("old.rocks(" + locale + "):" + str);
 		}
 		if (dt == null) {
 			String prefix = locale.getLanguage() + "-" + locale.getCountry() + "-";

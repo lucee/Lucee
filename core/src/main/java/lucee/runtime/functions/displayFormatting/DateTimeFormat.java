@@ -22,7 +22,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 import java.util.TimeZone;
 
-import lucee.print;
 import lucee.commons.i18n.FormatUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
@@ -30,7 +29,6 @@ import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.BIF;
-import lucee.runtime.i18n.LocaleConstant;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.dt.DateTime;
 
@@ -396,11 +394,7 @@ public final class DateTimeFormat extends BIF {
 		str = StringUtil.replace(str, "''", "", false);
 		str = StringUtil.replace(str, ZEROZERO, "''", false);
 		str = str.replace(ONE, 'E');
-		str =
-
-				y2yyyy(str);
-		print.e("+++++");
-		print.e(mask + "->" + str);
+		str = y2yyyy(str);
 		return str;
 	}
 
@@ -412,34 +406,6 @@ public final class DateTimeFormat extends BIF {
 		}
 		return false;
 	}
-
-	public static void main(String[] args) throws Exception {
-		TimeZone tz = TimeZone.getTimeZone("America/Chicago");
-		print.e(">" + invoke(new java.util.Date(), "yyyy-MM-dd'T'HH:nn:ssXXX", LocaleConstant.ARABIC_KUWAIT, tz));
-		print.e(">" + invoke(new java.util.Date(), "yyyy-MM-dd'T'HH:nn:ssXXX", LocaleConstant.ARABIC_KUWAIT, tz));
-
-		print.e(">" + invoke(new java.util.Date(), "ISO8601", LocaleConstant.ARABIC_KUWAIT, tz));
-		print.e(">" + invoke(new java.util.Date(), "ISO", Locale.US, tz));
-		print.e(">" + invoke(new java.util.Date(), "ISO", LocaleConstant.ARABIC_KUWAIT, tz));
-		print.e(">" + invoke(new java.util.Date(), "ISOMillis", Locale.US, tz));
-		print.e(">" + invoke(new java.util.Date(), "javascript", Locale.US, tz));
-
-	}
-
-	/*
-	 * public static void main(String[] args) throws Exception { print.e(invoke(new java.util.Date(),
-	 * "t.Z.z.X.x.F.f.m.M.W.w.k.K.h.H.E.d.m.s.n.l.y.g.a", Locale.US, TimeZoneConstants.UTC));
-	 * print.e(invoke(new java.util.Date(),
-	 * "tt.ZZ.zz.XX.xx.FF.ff.mm.MM.WW.ww.kk.KK.hh.HH.EE.dd.mm.ss.nn.ll.yy.gg.aa", Locale.US,
-	 * TimeZoneConstants.UTC)); print.e(invoke(new java.util.Date(),
-	 * "ttt.ZZZ.zzz.XXX.xxx.FFF.fff.mmm.MMM.WWW.www.kkk.KKK.hhh.HHH.EEE.ddd.mmm.sss.nnn.lll.yyy.ggg.aaa",
-	 * Locale.US, TimeZoneConstants.UTC)); print.e(invoke(new java.util.Date(),
-	 * "tttt.ZZZZ.zzzz.XXXX.xxxx.FFFF.ffff.mmmm.MMMM.WWWW.wwww.kkkk.KKKK.hhhh.HHHH.EEEE.dddd.mmmm.ssss.NNNN.llll.yyyy.gggg.aaaa",
-	 * Locale.US, TimeZoneConstants.UTC)); print.e(invoke(new java.util.Date(),
-	 * "TTTTT.ZZZZZ.zzzzzzzz.XXXXXX.xxxxx.FFFFF.fffff.mmmmm.MMMMM.WWWWW.wwwww.kkkkk.KKKKK.hhhhh.HHHHH.EEEEE.ddddd.mmmm.ssss.NNNN.llllllllllllll.yyyyyyyyyyy.ggggg.aaaaa",
-	 * Locale.US, TimeZoneConstants.UTC)); print.e(invoke(new java.util.Date(), "short", Locale.US,
-	 * TimeZoneConstants.UTC)); }
-	 */
 
 	public static String y2yyyy(String str) {
 		char[] carr = str.toCharArray();

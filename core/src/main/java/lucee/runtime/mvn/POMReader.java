@@ -18,11 +18,10 @@ import org.xml.sax.SAXParseException;
 import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.DefaultHandler;
 
-import lucee.print;
+import lucee.aprint;
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.res.Resource;
-import lucee.commons.io.res.ResourcesImpl;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.text.xml.XMLUtil;
 import lucee.transformer.library.function.FunctionLibEntityResolver;
@@ -84,72 +83,6 @@ public final class POMReader extends DefaultHandler {
 	private POMReader(Resource file) {
 		this.file = file;
 	}
-
-	public static void main(String[] args) throws Exception {
-		Resource file = ResourcesImpl.getFileResourceProvider().getResource("/Users/mic/Tmp3/org/lucee/lucee/6.1.0.235-RC/lucee-6.1.0.235-RC.pom");
-		file = ResourcesImpl.getFileResourceProvider().getResource("/Users/mic/Tmp3/org/apache/apache/31/apache-31.pom");
-		file = ResourcesImpl.getFileResourceProvider().getResource("/Users/mic/Tmp3/org/lucee/lucee/6.1.0.235-RC/lucee-6.1.0.235-RC.pom");
-
-		POMReader reader = new POMReader(file);
-		reader.read();
-
-		print.e("---- modelVersion ----");
-		print.e(reader.getModelVersion());
-
-		print.e("---- groupId ----");
-		print.e(reader.getGroupId());
-
-		print.e("---- artifactId ----");
-		print.e(reader.getArtifactId());
-
-		print.e("---- version ----");
-		print.e(reader.getVersion());
-
-		print.e("---- packaging ----");
-		print.e(reader.getPackaging());
-
-		print.e("---- name ----");
-		print.e(reader.getName());
-
-		print.e("---- description ----");
-		print.e(reader.getDescription());
-
-		print.e("---- url ----");
-		print.e(reader.getURL());
-
-		print.e("---- properties ----");
-		print.e(reader.getProperties());
-
-		print.e("---- repositories ----");
-		print.e(reader.getRepositories());
-
-		print.e("---- dependencies ----");
-		print.e(reader.getDependencies());
-
-		print.e("---- dependencyManagement ----");
-		print.e(reader.getDependencyManagements());
-
-		print.e("---- parent ----");
-		print.e(reader.getParent());
-
-	}
-
-	/*
-	 * public void readOld() throws IOException, GeneralSecurityException, SAXException, PageException {
-	 * 
-	 * HTTPResponse rsp = HTTPEngine4Impl.get(url, null, null, CONNECTION_TIMEOUT, true, null, null,
-	 * null, null); if (rsp != null) { int sc = rsp.getStatusCode(); if (sc < 200 || sc >= 300) throw
-	 * new IOException("unable to invoke [" + url + "], status code [" + sc + "]"); } else { throw new
-	 * IOException("unable to invoke [" + url + "], no response."); } Header[] headers =
-	 * rsp.getAllHeaders();
-	 * 
-	 * Reader r = null; try { init(new InputSource(r = IOUtil.getReader(rsp.getContentAsStream(),
-	 * (Charset) null))); } finally { IOUtil.close(r); }
-	 * 
-	 * for (Header h: headers) { if ("Last-Modified".equals(h.getName()) || "Date".equals(h.getName()))
-	 * tmpMeta.put(h.getName(), DateCaster.toDateAdvanced(h.getValue(), null)); else
-	 * tmpMeta.put(h.getName(), h.getValue()); } }
-	 */
 
 	private void read() throws IOException, SAXException {
 
@@ -258,7 +191,7 @@ public final class POMReader extends DefaultHandler {
 				else if ("version".equals(name)) parent.version = content.toString().trim();
 				else if ("scope".equals(name)) parent.scope = content.toString().trim();
 				else if ("optional".equals(name)) parent.optional = content.toString().trim();
-				else if (debug) print.e("!!!!!!! ==>" + name + ":" + content.toString().trim());
+				else if (debug) aprint.e("!!!!!!! ==>" + name + ":" + content.toString().trim());
 			}
 		}
 		else if (level == 4) {
@@ -272,13 +205,13 @@ public final class POMReader extends DefaultHandler {
 				else if ("version".equals(name)) dependency.version = content.toString().trim();
 				else if ("scope".equals(name)) dependency.scope = content.toString().trim();
 				else if ("optional".equals(name)) dependency.optional = content.toString().trim();
-				else if (debug) print.e("!!!!!!! ==>" + name + ":" + content.toString().trim());
+				else if (debug) aprint.e("!!!!!!! ==>" + name + ":" + content.toString().trim());
 			}
 			else if (insideRepositories && repository != null) {
 				if ("id".equals(name)) repository.id = content.toString().trim();
 				else if ("name".equals(name)) repository.name = content.toString().trim();
 				else if ("url".equals(name)) repository.url = content.toString().trim();
-				else if (debug) print.e("???? ==>" + name + ":" + content.toString().trim());
+				else if (debug) aprint.e("???? ==>" + name + ":" + content.toString().trim());
 			}
 		}
 		else if (level == 5) {
@@ -288,7 +221,7 @@ public final class POMReader extends DefaultHandler {
 				else if ("version".equals(name)) dependencyManagement.version = content.toString().trim();
 				else if ("scope".equals(name)) dependencyManagement.scope = content.toString().trim();
 				else if ("optional".equals(name)) dependencyManagement.optional = content.toString().trim();
-				else if (debug) print.e("xxxxxx ==>" + name + ":" + content.toString().trim());
+				else if (debug) aprint.e("xxxxxx ==>" + name + ":" + content.toString().trim());
 			}
 		}
 
