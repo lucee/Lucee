@@ -98,15 +98,17 @@ public final class DateTimeFormat extends BIF {
 			String epoch = gettime.toString();
 			return epoch;
 		}
-		if ("isoms".equalsIgnoreCase(mask) || "isoMillis".equalsIgnoreCase(mask) || "javascript".equalsIgnoreCase(mask)) {
-			DateTimeFormatter formatter = FormatUtil.getDateTimeFormatter(locale, "yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
-			return FormatUtil.format(formatter, datetime, tz);
-		}
 
 		DateTimeFormatter formatter;
-		if (mask != null && (mask.equalsIgnoreCase("short") || mask.equalsIgnoreCase("medium") || mask.equalsIgnoreCase("long") || mask.equalsIgnoreCase("full")
-				|| mask.equalsIgnoreCase("iso8601")))
+		if (mask != null && (mask.equalsIgnoreCase("short") || mask.equalsIgnoreCase("medium") || mask.equalsIgnoreCase("long") || mask.equalsIgnoreCase("full"))) {
+
 			formatter = FormatUtil.getDateTimeFormatter(locale, mask);
+		}
+		else if (mask != null && (mask.equalsIgnoreCase("iso8601") || mask.equalsIgnoreCase("iso") || mask.equalsIgnoreCase("isoms") || mask.equalsIgnoreCase("isoMillis")
+				|| mask.equalsIgnoreCase("javascript"))) {
+					tz = null;
+					formatter = FormatUtil.getDateTimeFormatter(locale, mask);
+				}
 		else {
 			formatter = FormatUtil.getDateTimeFormatter(locale, convertMask(mask));
 
@@ -139,8 +141,6 @@ public final class DateTimeFormat extends BIF {
 	public static String convertMask(String mask) {
 
 		if (mask == null) return DEFAULT_MASK;
-		else if ("iso8601".equalsIgnoreCase(mask) || "iso".equalsIgnoreCase(mask)) return "yyyy-MM-dd'T'HH:mm:ss.SSSXXX";
-		else if ("isoms".equalsIgnoreCase(mask) || "isoMillis".equalsIgnoreCase(mask) || "javascript".equalsIgnoreCase(mask)) return "yyyy-MM-dd'T'HH:mm:ss.SSSXXX";
 
 		mask = StringUtil.replace(mask, "''", ZEROZERO, false);
 		boolean inside = false;
@@ -400,10 +400,13 @@ public final class DateTimeFormat extends BIF {
 
 	public static void main(String[] args) throws Exception {
 
-		print.e(invoke(new java.util.Date(), "Z", Locale.US, TimeZoneConstants.UTC));
-		print.e(invoke(new java.util.Date(), "ZZ", Locale.US, TimeZoneConstants.UTC));
-		print.e(invoke(new java.util.Date(), "ZZZ", Locale.US, TimeZoneConstants.UTC));
-		print.e(invoke(new java.util.Date(), "ZZZZ", Locale.US, TimeZoneConstants.UTC));
+		print.e(invoke(new java.util.Date(), "ISO8601", Locale.US, TimeZoneConstants.UTC));
+		print.e(invoke(new java.util.Date(), "ISO", Locale.US, TimeZoneConstants.UTC));
+		print.e(invoke(new java.util.Date(), "javascript", Locale.US, TimeZoneConstants.UTC));
+		print.e("2017-11-01T13:35:08-05:00");
+
+		if (true) return;
+		print.e(invoke(new java.util.Date(), "ZZZZ", Locale.US, TimeZoneConstants.EUROPE_LONDON));
 		print.e(invoke(new java.util.Date(), "ZZZZZ", Locale.US, TimeZoneConstants.UTC));
 		print.e(invoke(new java.util.Date(), "ZZZZZZ", Locale.US, TimeZoneConstants.UTC));
 
@@ -420,11 +423,14 @@ public final class DateTimeFormat extends BIF {
 		print.e(invoke(new java.util.Date(), "ddd", Locale.US, TimeZoneConstants.UTC));
 		print.e(invoke(new java.util.Date(), "D", Locale.US, TimeZoneConstants.UTC));
 		print.e(invoke(new java.util.Date(), "DD", Locale.US, TimeZoneConstants.UTC));
-		print.e(invoke(new java.util.Date(), "ISO8601", Locale.US, TimeZoneConstants.UTC));
 
-		// Expected [2017-11-01T13:35:08-05:00]
+		// Failed: Expected [2017-11-01T13:35:08-05:00]
 		// but received [2017-11-01T13:35:08-0500]
 
+		// Failed: Expected [2017-11-01T13:35:08-05:00]
+		// [2017-11-01T13:35:08.000-05:00]
+
+		// 2024-10-21T22:45:38.186Z
 		if (true) return;
 
 		print.e(invoke(new java.util.Date(), "d", Locale.US, TimeZoneConstants.UTC));
