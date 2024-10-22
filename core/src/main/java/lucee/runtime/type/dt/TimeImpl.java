@@ -40,7 +40,7 @@ import lucee.runtime.type.SimpleValue;
  */
 public final class TimeImpl extends Time implements SimpleValue {
 
-	private static DateTimeFormatter luceeFormatter = FormatUtil.getDateTimeFormatter(Locale.US, "HH:mm:ss");
+	private static DateTimeFormatter luceeFormatter = FormatUtil.getDateTimeFormatter(Locale.US, "HH:mm:ss").formatter;
 
 	public TimeImpl() {
 		super(System.currentTimeMillis());

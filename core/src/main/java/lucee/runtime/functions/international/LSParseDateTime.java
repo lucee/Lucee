@@ -26,6 +26,7 @@ import java.util.Date;
 import java.util.Locale;
 import java.util.TimeZone;
 
+import lucee.print;
 import lucee.commons.date.TimeZoneUtil;
 import lucee.commons.i18n.FormatUtil;
 import lucee.commons.lang.ExceptionUtil;
@@ -79,17 +80,25 @@ public final class LSParseDateTime implements Function {
 		if (locale == null) locale = pc.getLocale();
 		DateFormat df = FormatUtil.getDateTimeFormat(locale, tz, format);
 		try {
-
-			return new DateTimeImpl(df.parse(strDate));
-			// old.rocks
-			// return new DateTimeImpl(FormatUtil.parse(FormatUtil.getDateTimeFormatter(locale, format),
-			// strDate, tz));
+			return new DateTimeImpl(FormatUtil.parse(FormatUtil.getDateTimeFormatter(locale, format), strDate, tz.toZoneId()));
 		}
-		catch (Exception e) {
-			ExpressionException ee = new ExpressionException("could not parse the date [" + strDate + "] with the format [" + format + "] with the locale [" + locale
-					+ "] and the timezone [" + (tz == null ? "" : tz.getID()) + "]");
-			ExceptionUtil.initCauseEL(ee, e);
-			throw ee;
+		catch (Exception ex) {
+			try {
+
+				DateTimeImpl res = new DateTimeImpl(df.parse(strDate));
+				print.e("--------- old rocks --------");
+				print.e(ex);
+				return res;
+				// old.rocks
+				// return new DateTimeImpl(FormatUtil.parse(FormatUtil.getDateTimeFormatter(locale, format),
+				// strDate, tz));
+			}
+			catch (Exception e) {
+				ExpressionException ee = new ExpressionException("could not parse the date [" + strDate + "] with the format [" + format + "] with the locale [" + locale
+						+ "] and the timezone [" + (tz == null ? "" : tz.getID()) + "]");
+				ExceptionUtil.initCauseEL(ee, e);
+				throw ee;
+			}
 		}
 	}
 

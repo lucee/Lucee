@@ -115,7 +115,7 @@ public final class FormatTag extends BodyTagSupport {
 
 			if (pat == null) {
 				pat = new SimpleDateFormat().toPattern(); // TODO find a better way for this
-				formatter = FormatUtil.getDateTimeFormatter(null, pat);
+				formatter = FormatUtil.getDateTimeFormatter(null, pat).formatter;
 			}
 
 			// Get a DateFormatSymbols
@@ -129,13 +129,13 @@ public final class FormatTag extends BodyTagSupport {
 				if (locale == null) {
 					throw new ApplicationException("datetime format tag could not find locale for localeRef \"" + localeRef + "\".");
 				}
-				formatter = FormatUtil.getDateTimeFormatter(locale, pat);
+				formatter = FormatUtil.getDateTimeFormatter(locale, pat).formatter;
 			}
 			else if (locale_flag) {
-				formatter = FormatUtil.getDateTimeFormatter(pageContext.getRequest().getLocale(), pat);
+				formatter = FormatUtil.getDateTimeFormatter(pageContext.getRequest().getLocale(), pat).formatter;
 			}
 			else {
-				formatter = FormatUtil.getDateTimeFormatter(null, pat);
+				formatter = FormatUtil.getDateTimeFormatter(null, pat).formatter;
 			}
 
 			// See if there is a timeZone

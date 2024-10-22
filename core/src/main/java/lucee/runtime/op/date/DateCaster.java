@@ -23,7 +23,6 @@ import java.text.DateFormat;
 import java.text.ParsePosition;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
-import java.time.ZonedDateTime;
 import java.util.Calendar;
 import java.util.Comparator;
 import java.util.Date;
@@ -31,6 +30,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.TimeZone;
 
+import lucee.print;
 import lucee.commons.date.DateTimeUtil;
 import lucee.commons.date.JREDateTimeUtil;
 import lucee.commons.date.TimeZoneConstants;
@@ -42,6 +42,7 @@ import lucee.runtime.Component;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.i18n.LocaleConstant;
 import lucee.runtime.i18n.LocaleFactory;
 import lucee.runtime.op.Castable;
 import lucee.runtime.op.Caster;
@@ -212,7 +213,10 @@ public final class DateCaster {
 		DateTime dt = toDateTimeNew(locale, str, tz, null, useCommomDateParserAsWell);
 		if (dt == null) {
 			dt = toDateTimeOld(locale, str, tz, null, false);
-			// if (dt != null) print.e("old.rocks(" + locale + "):" + str);
+			if (dt != null) {
+				print.e("--------- old rockx --------");
+				print.e(locale + "-" + str + "-" + tz.getID() + ":" + useCommomDateParserAsWell);
+			}
 		}
 		if (dt == null) {
 			String prefix = locale.getLanguage() + "-" + locale.getCountry() + "-";
@@ -223,6 +227,10 @@ public final class DateCaster {
 			// throw new ExpressionException("can't cast ["+str+"] to date value");
 		}
 		return dt;
+	}
+
+	public static void main(String[] args) throws PageException {
+		toDateTime(LocaleConstant.ENGLISH_UNITED_KINDOM, "31/12/2008", TimeZoneConstants.CET, false);
 	}
 
 	/**
@@ -311,12 +319,18 @@ public final class DateCaster {
 
 		try {
 			for (FormatterWrapper fw: all) {
+
+				// if (fw.custom && fw.pattern.length() != str.length()) continue;
 				try {
-					DateTimeImpl res = new DateTimeImpl(Date.from(ZonedDateTime.parse(str, fw.formatter).toInstant()).getTime(), false);
+					DateTimeImpl res = new DateTimeImpl(FormatUtil.parse(fw.formatter, str, fw.type, fw.zone));
 					fw.successCount++;
 					return res;
 				}
 				catch (Exception e) {
+					if (fw.custom) {
+						print.e("---- " + fw.pattern + " ------");
+						print.e(e);
+					}
 				}
 			}
 		}

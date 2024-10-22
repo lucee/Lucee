@@ -43,10 +43,10 @@ public final class DateFormatPool {
 
 	public static String format(Locale locale, TimeZone timeZone, String pattern, Date date) {
 		if (timeZone == null) timeZone = ThreadLocalPageContext.getTimeZone();
-		return FormatUtil.format(getSimpleDateFormat(locale, pattern), date, timeZone);
+		return FormatUtil.format(getSimpleDateFormat(locale, pattern, timeZone), date, timeZone);
 	}
 
-	private static DateTimeFormatter getSimpleDateFormat(Locale locale, String pattern) {
+	private static DateTimeFormatter getSimpleDateFormat(Locale locale, String pattern, TimeZone timeZone) {
 		if (locale == null) locale = ThreadLocalPageContext.getLocale();
 
 		String key = locale.toString() + '-' + pattern;
@@ -58,7 +58,7 @@ public final class DateFormatPool {
 				ref = datax.get(key);
 				sdf = ref == null ? null : ref.get();
 				if (sdf == null) {
-					sdf = FormatUtil.getDateTimeFormatter(locale, pattern);
+					sdf = FormatUtil.getDateTimeFormatter(locale, pattern, timeZone).formatter;
 					datax.put(key, new SoftReference<>(sdf));
 				}
 			}

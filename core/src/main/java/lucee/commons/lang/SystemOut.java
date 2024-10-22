@@ -35,7 +35,7 @@ import lucee.runtime.engine.ThreadLocalPageContext;
 
 public final class SystemOut {
 
-	public static final DateTimeFormatter FORMAT = FormatUtil.getDateTimeFormatter(null, "yyyy-MM-dd HH:mm:ss.S");
+	public static final DateTimeFormatter FORMAT = FormatUtil.getDateTimeFormatter(null, "yyyy-MM-dd HH:mm:ss.S").formatter;
 
 	/**
 	 * logs a value

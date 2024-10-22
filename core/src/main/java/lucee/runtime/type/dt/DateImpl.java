@@ -39,7 +39,7 @@ import lucee.runtime.type.SimpleValue;
  */
 public final class DateImpl extends Date implements SimpleValue {
 
-	private static DateTimeFormatter luceeFormatter = FormatUtil.getDateTimeFormatter(Locale.US, "yyyy-MM-dd");
+	private static DateTimeFormatter luceeFormatter = FormatUtil.getDateTimeFormatter(Locale.US, "yyyy-MM-dd").formatter;
 
 	// private TimeZone timezone;
 

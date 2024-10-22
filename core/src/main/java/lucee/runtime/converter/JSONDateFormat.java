@@ -52,7 +52,7 @@ public class JSONDateFormat {
 				tmp = map.get(id);
 				format = tmp == null ? null : tmp.get();
 				if (format == null) {
-					format = FormatUtil.getDateTimeFormatter(locale, pattern);
+					format = FormatUtil.getDateTimeFormatter(locale, pattern).formatter;
 					map.put(id, new SoftReference<DateTimeFormatter>(format));
 				}
 			}

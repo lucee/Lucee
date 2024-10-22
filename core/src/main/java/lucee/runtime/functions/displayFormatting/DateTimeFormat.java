@@ -18,11 +18,11 @@
  **/
 package lucee.runtime.functions.displayFormatting;
 
-import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 import java.util.TimeZone;
 
 import lucee.commons.i18n.FormatUtil;
+import lucee.commons.i18n.FormatterWrapper;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.engine.ThreadLocalPageContext;
@@ -93,7 +93,7 @@ public final class DateTimeFormat extends BIF {
 			return epoch;
 		}
 
-		DateTimeFormatter formatter;
+		FormatterWrapper formatter;
 		if (mask != null && (
 
 		mask.equalsIgnoreCase("short") ||
@@ -123,7 +123,7 @@ public final class DateTimeFormat extends BIF {
 		else {
 			formatter = FormatUtil.getDateTimeFormatter(locale, convertMask(mask));
 
-			String result = FormatUtil.format(formatter, datetime, tz);
+			String result = FormatUtil.format(formatter.formatter, datetime, tz);
 			if (!StringUtil.isEmpty(result)) {
 				int start, end = 0;
 				String content;
@@ -139,7 +139,7 @@ public final class DateTimeFormat extends BIF {
 			}
 			return result;
 		}
-		return FormatUtil.format(formatter, datetime, tz);
+		return FormatUtil.format(formatter.formatter, datetime, tz);
 	}
 
 	@Override

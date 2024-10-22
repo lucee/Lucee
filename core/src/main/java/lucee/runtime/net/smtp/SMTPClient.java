@@ -172,7 +172,7 @@ public final class SMTPClient implements Serializable {
 		SoftReference<DateTimeFormatter> tmp = formatters.get(tz);
 		DateTimeFormatter df = tmp == null ? null : tmp.get();
 		if (df == null) {
-			df = FormatUtil.getDateTimeFormatter(Locale.US, "EEE, d MMM yyyy HH:mm:ss Z (z)");
+			df = FormatUtil.getDateTimeFormatter(Locale.US, "EEE, d MMM yyyy HH:mm:ss Z (z)").formatter;
 			formatters.put(tz, new SoftReference<DateTimeFormatter>(df));
 		}
 		return FormatUtil.format(df, new Date(), tz);

@@ -23,7 +23,9 @@ import java.nio.charset.Charset;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -56,73 +58,80 @@ public class FormatUtil {
 	public static final short FORMAT_TYPE_DATE_TIME = 3;
 	public static final short FORMAT_TYPE_DATE_ALL = 4;
 
+	private static final LocalTime DEFAULT_TIME = LocalTime.of(0, 0, 0);
+	private static final LocalDate DEFAULT_DATE = LocalDate.of(1970, 1, 1);
+
 	private final static Map<String, SoftReference<DateFormat[]>> formats = new ConcurrentHashMap<String, SoftReference<DateFormat[]>>();
 
 	private final static Map<String, SoftReference<List<FormatterWrapper>>> cfmlFormats = new ConcurrentHashMap<>();
 	// "EEEE, MMMM d, yyyy, h:mm:ss a 'Coordinated Universal Time'"
-	private final static String[] strCfmlFormats = new String[] {
+	private final static Pattern[] strCfmlFormats = new Pattern[] {
 
-			"dd-MMM-yyyy",
+			new Pattern("dd/MM/yyyy", FORMAT_TYPE_DATE),
 
-			"dd-MMM-yy HH:mm a",
+			new Pattern("dd-MMM-yyyy", FORMAT_TYPE_DATE),
 
-			"dd-MMMM-yy HH:mm a",
+			new Pattern("dd-MMM-yy HH:mm a", FORMAT_TYPE_DATE_TIME),
 
-			"dd MMM, yyyy HH:mm:ss",
+			new Pattern("dd-MMMM-yy HH:mm a", FORMAT_TYPE_DATE_TIME),
 
-			"dd MMM yyyy HH:mm:ss zz",
+			new Pattern("dd MMM, yyyy HH:mm:ss", FORMAT_TYPE_DATE_TIME),
 
-			"MMMM d yyyy HH:mm",
+			new Pattern("dd MMM yyyy HH:mm:ss zz", FORMAT_TYPE_DATE_TIME),
 
-			"MMMM d yyyy HH:mm:ss",
+			new Pattern("MMMM d yyyy HH:mm", FORMAT_TYPE_DATE_TIME),
 
-			"MMM dd, yyyy HH:mm:ss",
+			new Pattern("MMMM d yyyy HH:mm:ss", FORMAT_TYPE_DATE_TIME),
 
-			"MMMM, dd yyyy HH:mm:ss",
+			new Pattern("MMM dd, yyyy HH:mm:ss", FORMAT_TYPE_DATE_TIME),
 
-			"MMMM d yyyy HH:mm:ssZ",
+			new Pattern("MMMM, dd yyyy HH:mm:ss", FORMAT_TYPE_DATE_TIME),
 
-			"MMM dd, yyyy HH:mm:ss a",
+			new Pattern("MMMM d yyyy HH:mm:ssZ", FORMAT_TYPE_DATE_TIME),
 
-			"MMMM, dd yyyy HH:mm:ssZ",
+			new Pattern("MMM dd, yyyy HH:mm:ss a", FORMAT_TYPE_DATE_TIME),
 
-			"MMMM, dd yyyy HH:mm:ss Z",
+			new Pattern("MMMM, dd yyyy HH:mm:ssZ", FORMAT_TYPE_DATE_TIME),
 
-			"MMMM dd, yyyy HH:mm:ss a zzz",
+			new Pattern("MMMM, dd yyyy HH:mm:ss Z", FORMAT_TYPE_DATE_TIME),
 
-			"EEE, MMM dd, yyyy HH:mm:ss",
+			new Pattern("MMMM dd, yyyy HH:mm:ss a zzz", FORMAT_TYPE_DATE_TIME),
 
-			"EEE MMM dd HH:mm:ss z yyyy",
+			new Pattern("EEE, MMM dd, yyyy HH:mm:ss", FORMAT_TYPE_DATE_TIME),
 
-			"EE, dd-MMM-yyyy HH:mm:ss zz",
+			new Pattern("EEE MMM dd HH:mm:ss z yyyy", FORMAT_TYPE_DATE_TIME),
 
-			"EE, dd MMM yyyy HH:mm:ss zz",
+			new Pattern("EE, dd-MMM-yyyy HH:mm:ss zz", FORMAT_TYPE_DATE_TIME),
 
-			"EEE d, MMM yyyy HH:mm:ss zz",
+			new Pattern("EE, dd MMM yyyy HH:mm:ss zz", FORMAT_TYPE_DATE_TIME),
 
-			"EEE, dd MMM yyyy HH:mm:ss Z",
+			new Pattern("EEE d, MMM yyyy HH:mm:ss zz", FORMAT_TYPE_DATE_TIME),
 
-			"EEE, MMM dd, yyyy HH:mm:ssZ",
+			new Pattern("EEE, dd MMM yyyy HH:mm:ss Z", FORMAT_TYPE_DATE_TIME),
 
-			"EEE, dd MMM yyyy HH:mm:ss Z",
+			new Pattern("EEE, MMM dd, yyyy HH:mm:ssZ", FORMAT_TYPE_DATE_TIME),
 
-			"EEEE, MMMM d, yyyy, h:mm:ss a z",
+			new Pattern("EEE, dd MMM yyyy HH:mm:ss Z", FORMAT_TYPE_DATE_TIME),
 
-			"EEEE, MMMM d, yyyy, h:mm:ss a zzzz",
+			new Pattern("EEEE, MMMM d, yyyy, h:mm:ss a z", FORMAT_TYPE_DATE_TIME),
 
-			"EEE MMM dd yyyy HH:mm:ss 'GMT'ZZ (z)",
+			new Pattern("EEEE, MMMM d, yyyy, h:mm:ss a zzzz", FORMAT_TYPE_DATE_TIME),
 
-			"EEE MMM dd yyyy HH:mm:ss 'GMT'ZZ (zzzz)",
+			new Pattern("EEE MMM dd yyyy HH:mm:ss 'GMT'ZZ (z)", FORMAT_TYPE_DATE_TIME),
 
-			"yyyy/MM/dd HH:mm:ss zz",
+			new Pattern("EEE MMM dd yyyy HH:mm:ss 'GMT'ZZ (zzzz)", FORMAT_TYPE_DATE_TIME),
 
-			"yyyy-MM-dd HH:mm:ss zz",
+			new Pattern("yyyy/MM/dd HH:mm:ss zz", FORMAT_TYPE_DATE_TIME),
 
-			"yyyy-MM-dd'T'HH:mm:ssXXX",
+			new Pattern("yyyy-MM-dd HH:mm:ss zz", FORMAT_TYPE_DATE_TIME),
 
-			"yyyy-MM-dd'T'HH:mm:ss.SSSXXX"
+			new Pattern("yyyy-MM-dd'T'HH:mm:ssXXX", FORMAT_TYPE_DATE_TIME),
+
+			new Pattern("yyyy-MM-dd'T'HH:mm:ss.SSSXXX", FORMAT_TYPE_DATE_TIME)
 
 	};
+
+	private static final Map<String, SoftReference<FormatterWrapper>> dateTimeFormatter = new ConcurrentHashMap<>();
 
 	public static List<FormatterWrapper> getAllFormats(Locale locale, TimeZone timeZone, boolean lenient) {
 		String key = "all:" + locale.toString() + "-" + timeZone.getID() + ":" + lenient;
@@ -166,11 +175,15 @@ public class FormatUtil {
 					ZoneId zone = timeZone.toZoneId();
 					formatter = new ArrayList<>();
 					DateTimeFormatterBuilder builder;
-					for (String f: strCfmlFormats) {
-						builder = new DateTimeFormatterBuilder().appendPattern(f);
+					for (Pattern p: strCfmlFormats) {
+						builder = new DateTimeFormatterBuilder().appendPattern(p.pattern);
 						if (lenient) builder.parseCaseInsensitive();
 						else builder.parseCaseSensitive();
-						formatter.add(new FormatterWrapper(builder.toFormatter(locale).withZone(zone)));
+
+						DateTimeFormatter dtf;
+						if (p.type == FORMAT_TYPE_DATE_TIME) dtf = builder.toFormatter(locale).withZone(zone);
+						else dtf = builder.toFormatter(locale);
+						formatter.add(new FormatterWrapper(dtf, p.pattern, p.type, zone, true));
 					}
 					cfmlFormats.put(key, new SoftReference(formatter));
 				}
@@ -190,25 +203,41 @@ public class FormatUtil {
 				if (df == null) {
 					ZoneId zone = tz.toZoneId();
 					df = new ArrayList<>();
-					df.add(new FormatterWrapper(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.FULL, FormatStyle.FULL).withLocale(locale).withZone(zone)));
-					df.add(new FormatterWrapper(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.FULL, FormatStyle.LONG).withLocale(locale).withZone(zone)));
-					df.add(new FormatterWrapper(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.FULL, FormatStyle.MEDIUM).withLocale(locale).withZone(zone)));
-					df.add(new FormatterWrapper(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.FULL, FormatStyle.SHORT).withLocale(locale).withZone(zone)));
+					df.add(new FormatterWrapper(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.FULL, FormatStyle.FULL).withLocale(locale).withZone(zone), "FULL_FULL",
+							FORMAT_TYPE_DATE_TIME, zone));
+					df.add(new FormatterWrapper(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.FULL, FormatStyle.LONG).withLocale(locale).withZone(zone), "FULL_LONG",
+							FORMAT_TYPE_DATE_TIME, zone));
+					df.add(new FormatterWrapper(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.FULL, FormatStyle.MEDIUM).withLocale(locale).withZone(zone), "FULL_MEDIUM",
+							FORMAT_TYPE_DATE_TIME, zone));
+					df.add(new FormatterWrapper(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.FULL, FormatStyle.SHORT).withLocale(locale).withZone(zone), "FULL_SHORT",
+							FORMAT_TYPE_DATE_TIME, zone));
 
-					df.add(new FormatterWrapper(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.LONG, FormatStyle.FULL).withLocale(locale).withZone(zone)));
-					df.add(new FormatterWrapper(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.LONG, FormatStyle.LONG).withLocale(locale).withZone(zone)));
-					df.add(new FormatterWrapper(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.LONG, FormatStyle.MEDIUM).withLocale(locale).withZone(zone)));
-					df.add(new FormatterWrapper(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.LONG, FormatStyle.SHORT).withLocale(locale).withZone(zone)));
+					df.add(new FormatterWrapper(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.LONG, FormatStyle.FULL).withLocale(locale).withZone(zone), "LONG_FULL",
+							FORMAT_TYPE_DATE_TIME, zone));
+					df.add(new FormatterWrapper(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.LONG, FormatStyle.LONG).withLocale(locale).withZone(zone), "LONG_LONG",
+							FORMAT_TYPE_DATE_TIME, zone));
+					df.add(new FormatterWrapper(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.LONG, FormatStyle.MEDIUM).withLocale(locale).withZone(zone), "LONG_MEDIUM",
+							FORMAT_TYPE_DATE_TIME, zone));
+					df.add(new FormatterWrapper(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.LONG, FormatStyle.SHORT).withLocale(locale).withZone(zone), "LONG_SHORT",
+							FORMAT_TYPE_DATE_TIME, zone));
 
-					df.add(new FormatterWrapper(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM, FormatStyle.FULL).withLocale(locale).withZone(zone)));
-					df.add(new FormatterWrapper(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM, FormatStyle.LONG).withLocale(locale).withZone(zone)));
-					df.add(new FormatterWrapper(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM, FormatStyle.MEDIUM).withLocale(locale).withZone(zone)));
-					df.add(new FormatterWrapper(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM, FormatStyle.SHORT).withLocale(locale).withZone(zone)));
+					df.add(new FormatterWrapper(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM, FormatStyle.FULL).withLocale(locale).withZone(zone), "MEDIUM_FULL",
+							FORMAT_TYPE_DATE_TIME, zone));
+					df.add(new FormatterWrapper(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM, FormatStyle.LONG).withLocale(locale).withZone(zone), "MEDIUM_LONG",
+							FORMAT_TYPE_DATE_TIME, zone));
+					df.add(new FormatterWrapper(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM, FormatStyle.MEDIUM).withLocale(locale).withZone(zone), "MEDIUM_MEDIUM",
+							FORMAT_TYPE_DATE_TIME, zone));
+					df.add(new FormatterWrapper(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM, FormatStyle.SHORT).withLocale(locale).withZone(zone), "MEDIUM_SHORT",
+							FORMAT_TYPE_DATE_TIME, zone));
 
-					df.add(new FormatterWrapper(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT, FormatStyle.FULL).withLocale(locale).withZone(zone)));
-					df.add(new FormatterWrapper(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT, FormatStyle.LONG).withLocale(locale).withZone(zone)));
-					df.add(new FormatterWrapper(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT, FormatStyle.MEDIUM).withLocale(locale).withZone(zone)));
-					df.add(new FormatterWrapper(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT, FormatStyle.SHORT).withLocale(locale).withZone(zone)));
+					df.add(new FormatterWrapper(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT, FormatStyle.FULL).withLocale(locale).withZone(zone), "SHORT_FULL",
+							FORMAT_TYPE_DATE_TIME, zone));
+					df.add(new FormatterWrapper(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT, FormatStyle.LONG).withLocale(locale).withZone(zone), "SHORT_LONG",
+							FORMAT_TYPE_DATE_TIME, zone));
+					df.add(new FormatterWrapper(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT, FormatStyle.MEDIUM).withLocale(locale).withZone(zone), "SHORT_MEDIUM",
+							FORMAT_TYPE_DATE_TIME, zone));
+					df.add(new FormatterWrapper(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT, FormatStyle.SHORT).withLocale(locale).withZone(zone), "SHORT_SHORT",
+							FORMAT_TYPE_DATE_TIME, zone));
 
 					cfmlFormats.put(key, new SoftReference<List<FormatterWrapper>>(df));
 				}
@@ -260,7 +289,6 @@ public class FormatUtil {
 	}
 
 	public static List<FormatterWrapper> getDateFormats(Locale locale, TimeZone tz, boolean lenient) {
-
 		String key = "d-" + locale.toString() + "-" + tz.getID() + "-" + lenient;
 		SoftReference<List<FormatterWrapper>> tmp = cfmlFormats.get(key);
 		List<FormatterWrapper> df = tmp == null ? null : tmp.get();
@@ -270,10 +298,10 @@ public class FormatUtil {
 				if (df == null) {
 					ZoneId zone = tz.toZoneId();
 					df = new ArrayList<>();
-					df.add(new FormatterWrapper(DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL).withLocale(locale).withZone(zone)));
-					df.add(new FormatterWrapper(DateTimeFormatter.ofLocalizedDate(FormatStyle.LONG).withLocale(locale).withZone(zone)));
-					df.add(new FormatterWrapper(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM).withLocale(locale).withZone(zone)));
-					df.add(new FormatterWrapper(DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT).withLocale(locale).withZone(zone)));
+					df.add(new FormatterWrapper(DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL).withLocale(locale).withZone(zone), "FULL", FORMAT_TYPE_DATE, zone));
+					df.add(new FormatterWrapper(DateTimeFormatter.ofLocalizedDate(FormatStyle.LONG).withLocale(locale).withZone(zone), "LONG", FORMAT_TYPE_DATE, zone));
+					df.add(new FormatterWrapper(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM).withLocale(locale).withZone(zone), "MEDIUM", FORMAT_TYPE_DATE, zone));
+					df.add(new FormatterWrapper(DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT).withLocale(locale).withZone(zone), "SHORT", FORMAT_TYPE_DATE, zone));
 
 					cfmlFormats.put(key, new SoftReference<List<FormatterWrapper>>(df));
 				}
@@ -511,10 +539,10 @@ public class FormatUtil {
 				if (df == null) {
 					ZoneId zone = tz.toZoneId();
 					df = new ArrayList<>();
-					df.add(new FormatterWrapper(DateTimeFormatter.ofLocalizedTime(FormatStyle.FULL).withLocale(locale).withZone(zone)));
-					df.add(new FormatterWrapper(DateTimeFormatter.ofLocalizedDate(FormatStyle.LONG).withLocale(locale).withZone(zone)));
-					df.add(new FormatterWrapper(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM).withLocale(locale).withZone(zone)));
-					df.add(new FormatterWrapper(DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT).withLocale(locale).withZone(zone)));
+					df.add(new FormatterWrapper(DateTimeFormatter.ofLocalizedTime(FormatStyle.FULL).withLocale(locale).withZone(zone), "FULL", FORMAT_TYPE_TIME, zone));
+					df.add(new FormatterWrapper(DateTimeFormatter.ofLocalizedTime(FormatStyle.LONG).withLocale(locale).withZone(zone), "LONG", FORMAT_TYPE_TIME, zone));
+					df.add(new FormatterWrapper(DateTimeFormatter.ofLocalizedTime(FormatStyle.MEDIUM).withLocale(locale).withZone(zone), "MEDIUM", FORMAT_TYPE_TIME, zone));
+					df.add(new FormatterWrapper(DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT).withLocale(locale).withZone(zone), "SHORT", FORMAT_TYPE_TIME, zone));
 
 					cfmlFormats.put(key, new SoftReference<List<FormatterWrapper>>(df));
 				}
@@ -553,22 +581,45 @@ public class FormatUtil {
 		return df;
 	}
 
-	public static DateTimeFormatter getDateTimeFormatter(Locale locale, String mask) {
-		DateTimeFormatter formatter;
-		if (mask.equalsIgnoreCase("short")) formatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT);
-		else if (mask.equalsIgnoreCase("medium")) formatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM);
-		else if (mask.equalsIgnoreCase("long")) formatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.LONG);
-		else if (mask.equalsIgnoreCase("full")) formatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.FULL);
-		else if (mask.equalsIgnoreCase("iso8601") || mask.equalsIgnoreCase("iso")) {
-			formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssXXX");
-		}
-		else if (mask.equalsIgnoreCase("isoms") || mask.equalsIgnoreCase("isoMillis") || mask.equalsIgnoreCase("javascript")) {
-			formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
-		}
-		else formatter = DateTimeFormatter.ofPattern(mask);
+	public static FormatterWrapper getDateTimeFormatter(Locale locale, String mask) {
+		return getDateTimeFormatter(locale, mask, (ZoneId) null);
+	}
 
-		if (locale != null) formatter = formatter.withLocale(locale);
-		return formatter;
+	public static FormatterWrapper getDateTimeFormatter(Locale locale, String mask, TimeZone tz) {
+		return getDateTimeFormatter(locale, mask, tz == null ? null : tz.toZoneId());
+	}
+
+	public static FormatterWrapper getDateTimeFormatter(Locale locale, String mask, ZoneId zone) {
+		String key = locale.toString() + ":" + mask;
+		SoftReference<FormatterWrapper> ref = dateTimeFormatter.get(key);
+		FormatterWrapper fw = ref == null ? null : ref.get();
+		if (fw == null) {
+			synchronized (SystemUtil.createToken("getDateTimeFormatter", key)) {
+				ref = dateTimeFormatter.get(key);
+				fw = ref == null ? null : ref.get();
+				if (fw == null) {
+					// TODO cache
+					DateTimeFormatter formatter;
+					if (mask.equalsIgnoreCase("short")) formatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT);
+					else if (mask.equalsIgnoreCase("medium")) formatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM);
+					else if (mask.equalsIgnoreCase("long")) formatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.LONG);
+					else if (mask.equalsIgnoreCase("full")) formatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.FULL);
+					else if (mask.equalsIgnoreCase("iso8601") || mask.equalsIgnoreCase("iso")) {
+						formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssXXX");
+					}
+					else if (mask.equalsIgnoreCase("isoms") || mask.equalsIgnoreCase("isoMillis") || mask.equalsIgnoreCase("javascript")) {
+						formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
+					}
+					else formatter = DateTimeFormatter.ofPattern(mask);
+
+					if (locale != null) formatter = formatter.withLocale(locale);
+
+					fw = new FormatterWrapper(formatter, mask, FORMAT_TYPE_DATE_TIME, zone);
+					dateTimeFormatter.put(key, new SoftReference<FormatterWrapper>(fw));
+				}
+			}
+		}
+		return fw;
 	}
 
 	public static String format(DateTimeFormatter formatter, Date date, TimeZone timeZone) {
@@ -583,7 +634,7 @@ public class FormatUtil {
 		return ZonedDateTime.parse(date, formatter).withZoneSameInstant(timeZone != null ? timeZone.toZoneId() : ZoneId.systemDefault()).toInstant().toEpochMilli();
 	}
 
-	public static long parse(DateTimeFormatter formatter, String date, TimeZone timeZone) throws DateTimeParseException {
+	public static long parseX(DateTimeFormatter formatter, String date, TimeZone timeZone) throws DateTimeParseException {
 		// Parse the date using the formatter (no time zone assumption yet)
 		ZonedDateTime zonedDateTime = null;
 
@@ -599,5 +650,42 @@ public class FormatUtil {
 
 		// Convert the parsed ZonedDateTime to the desired time zone and return epoch milliseconds
 		return zonedDateTime.withZoneSameInstant(timeZone != null ? timeZone.toZoneId() : ZoneId.systemDefault()).toInstant().toEpochMilli();
+	}
+
+	public static long parse(FormatterWrapper fw, String date, ZoneId zone) {
+		return parse(fw.formatter, date, fw.type, zone);
+	}
+
+	public static long parse(DateTimeFormatter formatter, String date, short type, ZoneId zone) {
+
+		if (type == FormatUtil.FORMAT_TYPE_DATE_TIME) {
+			return ZonedDateTime.parse(date, formatter).toInstant().toEpochMilli();
+		}
+		else if (type == FormatUtil.FORMAT_TYPE_DATE) {
+			return getEpochMillis(LocalDate.parse(date, formatter), DEFAULT_TIME, zone);
+
+		}
+		return getEpochMillis(DEFAULT_DATE, LocalTime.parse(date, formatter), zone);
+	}
+
+	private static long getEpochMillis(LocalDate localDate, LocalTime localTime, ZoneId zoneId) {
+		// Combine LocalDate and LocalTime into LocalDateTime
+		LocalDateTime localDateTime = LocalDateTime.of(localDate, localTime);
+
+		// Convert LocalDateTime to ZonedDateTime with the specified time zone
+		ZonedDateTime zonedDateTime = localDateTime.atZone(zoneId);
+
+		// Convert to Instant and get epoch millis
+		return zonedDateTime.toInstant().toEpochMilli();
+	}
+
+	private static class Pattern {
+		public final String pattern;
+		public final short type;
+
+		Pattern(String pattern, short type) {
+			this.pattern = pattern;
+			this.type = type;
+		}
 	}
 }

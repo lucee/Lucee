@@ -43,7 +43,7 @@ public class DataDogLayout extends AbstractStringLayout {
 		super(CharsetUtil.UTF8, new byte[0], new byte[0]);
 		engine = CFMLEngineFactory.getInstance();
 		caster = engine.getCastUtil();
-		format = FormatUtil.getDateTimeFormatter(null, "yyyy-MM-dd HH:mm:ss");
+		format = FormatUtil.getDateTimeFormatter(null, "yyyy-MM-dd HH:mm:ss").formatter;
 	}
 
 	@Override

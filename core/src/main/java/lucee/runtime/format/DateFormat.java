@@ -82,7 +82,7 @@ public final class DateFormat extends BaseFormat implements Format {
 			else if (lcMask.equals("long")) return getAsString(calendar, java.text.DateFormat.LONG, tz);
 			else if (lcMask.equals("full")) return getAsString(calendar, java.text.DateFormat.FULL, tz);
 			else if ("iso8601".equals(lcMask) || "iso".equals(lcMask)) {
-				DateTimeFormatter formatter = FormatUtil.getDateTimeFormatter(null, "yyyy-MM-dd");
+				DateTimeFormatter formatter = FormatUtil.getDateTimeFormatter(null, "yyyy-MM-dd").formatter;
 				return FormatUtil.format(formatter, calendar.getTime(), tz);
 			}
 

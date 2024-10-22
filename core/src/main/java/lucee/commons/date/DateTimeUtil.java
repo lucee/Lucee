@@ -18,12 +18,12 @@
  **/
 package lucee.commons.date;
 
-import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.Locale;
 import java.util.TimeZone;
 
 import lucee.commons.i18n.FormatUtil;
+import lucee.commons.i18n.FormatterWrapper;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.engine.ThreadLocalPageContext;
@@ -34,7 +34,7 @@ import lucee.runtime.type.dt.DateTimeImpl;
 
 public abstract class DateTimeUtil {
 
-	private final static DateTimeFormatter HTTP_TIME_STRING_FORMAT = FormatUtil.getDateTimeFormatter(Locale.ENGLISH, "EE, dd-MMM-yyyy HH:mm:ss zz");
+	private final static FormatterWrapper HTTP_TIME_STRING_FORMAT = FormatUtil.getDateTimeFormatter(Locale.ENGLISH, "EE, dd-MMM-yyyy HH:mm:ss zz");
 
 	private static final double DAY_MILLIS = 86400000D;
 	private static final long CF_UNIX_OFFSET = 2209161600000L;
@@ -266,9 +266,9 @@ public abstract class DateTimeUtil {
 	 */
 	public static String toHTTPTimeString(Date date, boolean oldFormat) {
 		if (oldFormat) {
-			return StringUtil.replace(FormatUtil.format(HTTP_TIME_STRING_FORMAT, date, TimeZoneConstants.GMT), "+00:00", "", true);
+			return StringUtil.replace(FormatUtil.format(HTTP_TIME_STRING_FORMAT.formatter, date, TimeZoneConstants.GMT), "+00:00", "", true);
 		}
-		return StringUtil.replace(FormatUtil.format(HTTP_TIME_STRING_FORMAT, date, TimeZoneConstants.UTC), "+00:00", "", true);
+		return StringUtil.replace(FormatUtil.format(HTTP_TIME_STRING_FORMAT.formatter, date, TimeZoneConstants.UTC), "+00:00", "", true);
 	}
 
 	public static String format(long time, Locale l, TimeZone tz) {

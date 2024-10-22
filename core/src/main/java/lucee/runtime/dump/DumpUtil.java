@@ -116,7 +116,7 @@ public class DumpUtil {
 		// Calendar
 		if (o instanceof Calendar) {
 			Calendar c = (Calendar) o;
-			DateTimeFormatter formatter = FormatUtil.getDateTimeFormatter(Locale.ENGLISH, "EE, dd MMM yyyy HH:mm:ss zz");
+			DateTimeFormatter formatter = FormatUtil.getDateTimeFormatter(Locale.ENGLISH, "EE, dd MMM yyyy HH:mm:ss zz").formatter;
 			DumpTable table = new DumpTable("date", "#ff9900", "#ffcc00", "#000000");
 			table.setTitle("java.util.Calendar");
 			table.appendRow(1, new SimpleDumpData("Timezone"), new SimpleDumpData(TimeZoneUtil.toString(c.getTimeZone())));
