@@ -98,7 +98,7 @@
 				assertEquals("-{ts '2008-04-06 00:00:00'}", "-#lsParseDateTime("06.04.2008")#");
 				assertEquals("-{ts '1899-12-30 01:02:03'}", "-#lsParseDateTime("01:02:03")#");
 				assertEquals("-{ts '2008-04-06 00:00:00'}", "-#lsParseDateTime("6. April 2008")#");
-				assertEquals("-{ts '1899-12-30 00:02:03'}", "-#lsParseDateTime("01:02:03 MESZ")#");
+				assertEquals("-{ts '1899-12-30 01:02:03'}", "-#lsParseDateTime("01:02:03 MEZ")#");
 				assertEquals("-{ts '2008-04-06 00:00:00'}", "-#lsParseDateTime("Sonntag, 6. April 2008")#");
 				if(getJavaVersion()==8) {
 					assertEquals("-{ts '1899-12-30 01:02:00'}", "-#lsParseDateTime("1:02 Uhr MEZ")#");
@@ -175,7 +175,7 @@
 				assertEquals("-{ts '2008-04-06 00:00:00'}", "-#lsParseDateTime("6 avr. 2008")#");
 				assertEquals("-{ts '1899-12-30 01:02:03'}", "-#lsParseDateTime("01:02:03")#");
 				assertEquals("-{ts '2008-04-06 00:00:00'}", "-#lsParseDateTime("6. avril 2008")#");
-				assertEquals("-{ts '1899-12-30 00:02:03'}", "-#lsParseDateTime("01:02:03 CEST")#");
+				assertEquals("-{ts '1899-12-30 01:02:03'}", "-#lsParseDateTime("01:02:03 CET","fr_CH","CET")#");
 				assertEquals("-{ts '2008-04-06 00:00:00'}", "-#lsParseDateTime("dimanche, 6. avril 2008")#");
 				if(getJavaVersion()==8) {
 					assertEquals("-{ts '1899-12-30 00:02:00'}", "-#lsParseDateTime("01.02. h CEST")#");
@@ -234,7 +234,7 @@
 				assertEquals("-{ts '2008-04-06 00:00:00'}", "-#lsParseDateTime("6-apr-2008")#");
 				assertEquals("-{ts '1899-12-30 01:02:03'}", "-#lsParseDateTime("01:02:03")#");
 				assertEquals("-{ts '2008-04-06 00:00:00'}", "-#lsParseDateTime("6. aprile 2008")#");
-				assertEquals("-{ts '1899-12-30 00:02:03'}", "-#lsParseDateTime("01:02:03 CEST")#");
+				assertEquals("-{ts '1899-12-30 01:02:03'}", "-#lsParseDateTime("01:02:03 CET")#");
 				assertEquals("-{ts '2008-04-06 00:00:00'}", "-#lsParseDateTime("domenica, 6. aprile 2008")#");
 				if(getJavaVersion()==8) {
 					assertEquals("-{ts '1899-12-30 00:02:00'}", "-#lsParseDateTime("1.02 h CEST")#");

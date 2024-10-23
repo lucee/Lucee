@@ -105,10 +105,11 @@ public final class LSParseDateTime implements Function {
 
 	public static void main(String[] args) throws PageException {
 
+		print.e(_call(null, "01:02:03 CEST", Locale.GERMAN, TimeZoneConstants.CET, null));
 		print.e(_call(null, "06.04.08", Locale.GERMANY, TimeZoneConstants.CET, null));
 		if (true) return;
-
-		print.e(_call(null, "2022-01-02T11:22:33+01:00", Locale.GERMANY, TimeZoneConstants.CET, null));
+		// assertEquals("-{ts '1899-12-30 00:02:03'}", "-#lsParseDateTime("01:02:03 CEST")#");
+		print.e(_call(null, "2022-01-02T11:22:33+01:00", Locale.GERMAN, TimeZoneConstants.CET, null));
 		print.e(_call(null, "2022-01-02T11:22:33+01:00", Locale.GERMANY, TimeZoneConstants.CET, "iso"));
 		print.e(_call(null, "2022-01-02T11:22:33.444+01:00", Locale.GERMANY, TimeZoneConstants.CET, null));
 		print.e(_call(null, "2022-01-02T11:22:33.444+01:00", Locale.GERMANY, TimeZoneConstants.CET, "isoms"));

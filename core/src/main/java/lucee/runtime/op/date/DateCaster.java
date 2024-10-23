@@ -327,11 +327,9 @@ public final class DateCaster {
 				try {
 					DateTimeImpl res = new DateTimeImpl(FormatUtil.parse(fw, str, fw.zone));
 					fw.successCount++;
-					print.e(fw.pattern + ":" + str);
-
 					return res;
 				}
-				catch (Exception e) {
+				catch (Exception e) {// TODO can we avoid the exception?
 				}
 			}
 		}
