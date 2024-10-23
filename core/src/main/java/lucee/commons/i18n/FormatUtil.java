@@ -61,13 +61,6 @@ public class FormatUtil {
 	private static final LocalTime DEFAULT_TIME = LocalTime.of(0, 0, 0);
 	private static final LocalDate DEFAULT_DATE = LocalDate.of(1899, 12, 30);
 
-	public static final DateTimeFormatter FULL = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.FULL);
-	public static final DateTimeFormatter LONG = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.LONG);
-	public static final DateTimeFormatter MEDIUM = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM);
-	public static final DateTimeFormatter SHORT = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT);
-	public static final DateTimeFormatter ISO8601 = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssXXX");
-	public static final DateTimeFormatter ISO8601MS = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
-
 	private final static Map<String, SoftReference<DateFormat[]>> formats = new ConcurrentHashMap<String, SoftReference<DateFormat[]>>();
 
 	private final static Map<String, SoftReference<List<FormatterWrapper>>> cfmlFormats = new ConcurrentHashMap<>();
@@ -213,10 +206,14 @@ public class FormatUtil {
 				if (df == null) {
 					ZoneId zone = tz.toZoneId();
 					df = new ArrayList<>();
-					df.add(new FormatterWrapper(FULL.withLocale(locale).withZone(zone), "FULL_FULL", FORMAT_TYPE_DATE_TIME, zone));
-					df.add(new FormatterWrapper(LONG.withLocale(locale).withZone(zone), "LONG_LONG", FORMAT_TYPE_DATE_TIME, zone));
-					df.add(new FormatterWrapper(MEDIUM.withLocale(locale).withZone(zone), "MEDIUM_MEDIUM", FORMAT_TYPE_DATE_TIME, zone));
-					df.add(new FormatterWrapper(SHORT.withLocale(locale).withZone(zone), "SHORT_SHORT", FORMAT_TYPE_DATE_TIME, zone));
+					df.add(new FormatterWrapper(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.FULL).withLocale(locale).withZone(zone), "FULL_FULL", FORMAT_TYPE_DATE_TIME,
+							zone));
+					df.add(new FormatterWrapper(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.LONG).withLocale(locale).withZone(zone), "LONG_LONG", FORMAT_TYPE_DATE_TIME,
+							zone));
+					df.add(new FormatterWrapper(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM).withLocale(locale).withZone(zone), "MEDIUM_MEDIUM", FORMAT_TYPE_DATE_TIME,
+							zone));
+					df.add(new FormatterWrapper(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT).withLocale(locale).withZone(zone), "SHORT_SHORT", FORMAT_TYPE_DATE_TIME,
+							zone));
 
 					df.add(new FormatterWrapper(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.FULL, FormatStyle.LONG).withLocale(locale).withZone(zone), "FULL_LONG",
 							FORMAT_TYPE_DATE_TIME, zone));
@@ -607,14 +604,14 @@ public class FormatUtil {
 				if (fw == null) {
 					// TODO cache
 					DateTimeFormatter formatter;
-					if (mask.equalsIgnoreCase("short")) formatter = FormatUtil.SHORT;
-					else if (mask.equalsIgnoreCase("medium")) formatter = FormatUtil.MEDIUM;
-					else if (mask.equalsIgnoreCase("long")) formatter = FormatUtil.LONG;
-					else if (mask.equalsIgnoreCase("full")) formatter = FormatUtil.FULL;
-					else if (mask.equalsIgnoreCase("iso8601") || mask.equalsIgnoreCase("iso")) formatter = FormatUtil.ISO8601;
+					if (mask.equalsIgnoreCase("short")) formatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT);
+					else if (mask.equalsIgnoreCase("medium")) formatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM);
+					else if (mask.equalsIgnoreCase("long")) formatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.LONG);
+					else if (mask.equalsIgnoreCase("full")) formatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.FULL);
+					else if (mask.equalsIgnoreCase("iso8601") || mask.equalsIgnoreCase("iso")) formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssXXX");
 
 					else if (mask.equalsIgnoreCase("isoms") || mask.equalsIgnoreCase("isoMillis") || mask.equalsIgnoreCase("javascript")) {
-						formatter = FormatUtil.ISO8601MS;
+						formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
 					}
 					else formatter = DateTimeFormatter.ofPattern(mask);
 
