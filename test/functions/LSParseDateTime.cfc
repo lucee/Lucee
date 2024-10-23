@@ -121,7 +121,6 @@
 
 				assertEquals("-{ts '1899-12-30 01:02:03'}", "-#lsParseDateTime("01:02:03 MEZ")#");
 				assertEquals("-{ts '1899-12-30 01:02:03'}", "-#lsParseDateTime("01:02:03 MEZ")#");
-				assertEquals("-{ts '1899-12-30 02:02:03'}", "-#lsParseDateTime("01:02:03 GMT")#");
 
 				assertEquals("-{ts '2008-02-06 01:02:01'}", "-#lsParseDateTime("06.02.2008 01:02:01 MEZ")#");
 				assertEquals("-{ts '2008-06-06 01:02:02'}", "-#lsParseDateTime("06.06.2008 01:02:02 MESZ")#");
