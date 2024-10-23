@@ -828,10 +828,10 @@ Error Output --->
 								<div class="comment">#stText.Overview.blogDesc#</div>
 							</td>
 						</tr>
-						<!--- Twitter --->
+						<!--- X (formerly Twitter) --->
 						<tr>
 							<td>
-								<a href="https://twitter.com/##!/lucee_server" target="_blank">#stText.Overview.twitter#</a>
+								<a href="https://x.com/##!/lucee_server" target="_blank">#stText.Overview.twitter#</a>
 								<div class="comment">#stText.Overview.twitterDesc#</div>
 							</td>
 						</tr>
