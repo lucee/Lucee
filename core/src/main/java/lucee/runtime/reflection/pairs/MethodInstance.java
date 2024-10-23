@@ -63,7 +63,7 @@ public final class MethodInstance {
 		try {
 			return ((BiFunction<Object, Object, Object>) getResult().getValue()).apply(o, args);
 		}
-		catch (LinkageError | ClassCastException e) { // java.lang.ClassCastException
+		catch (IncompatibleClassChangeError | ClassFormatError | ClassCastException e) { // java.lang.ClassCastException
 			if (!Clazz.allowReflection()) throw e;
 			LogUtil.log("dynamic", e);
 			DynamicInvoker di = DynamicInvoker.getExistingInstance();

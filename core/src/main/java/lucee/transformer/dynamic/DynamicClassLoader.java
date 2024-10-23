@@ -169,7 +169,7 @@ public final class DynamicClassLoader extends ClassLoader implements ExtendableC
 			}
 			catch (LinkageError e) {
 				this.unavaiClasses.put(name, "");
-				throw new ClassNotFoundException("Class [" + name + "] is invalid or doesn't exist [parent:" + getParent() + "]", e);
+				throw e;
 			}
 		}
 	}
@@ -208,7 +208,7 @@ public final class DynamicClassLoader extends ClassLoader implements ExtendableC
 			try {
 				return _loadClass(className, barr);
 			}
-			catch (Exception | LinkageError e) {
+			catch (Exception e) {
 			}
 
 			// new class , not in memory yet

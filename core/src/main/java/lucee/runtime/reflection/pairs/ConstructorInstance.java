@@ -58,7 +58,7 @@ public final class ConstructorInstance {
 		try {
 			return ((BiFunction<Object, Object, Object>) getResult().getValue()).apply(null, args);
 		}
-		catch (LinkageError | IllegalStateException e) {
+		catch (IncompatibleClassChangeError | ClassFormatError | IllegalStateException e) {
 			if (!Clazz.allowReflection()) throw e;
 			LogUtil.log("direct", e);
 			DynamicInvoker di = DynamicInvoker.getExistingInstance();
