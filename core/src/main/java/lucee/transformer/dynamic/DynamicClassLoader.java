@@ -128,14 +128,17 @@ public final class DynamicClassLoader extends ClassLoader implements ExtendableC
 		Class<?> c = findLoadedClass(name);
 		if (c == null) {
 			synchronized (SystemUtil.createToken("dcl", name)) {
-				try {
-					c = getParent().loadClass(name);
-				}
-				catch (Exception e) {
-				}
+				c = findLoadedClass(name);
 				if (c == null) {
-					if (loadFromFS) c = findClass(name);
-					else throw new ClassNotFoundException(name);
+					try {
+						c = getParent().loadClass(name);
+					}
+					catch (Exception e) {
+					}
+					if (c == null) {
+						if (loadFromFS) c = findClass(name);
+						else throw new ClassNotFoundException(name);
+					}
 				}
 			}
 		}

@@ -206,24 +206,29 @@ public final class PhysicalClassLoader extends URLClassLoader implements Extenda
 		// First, check if the class has already been loaded
 		Class<?> c = findLoadedClass(name);
 		if (c == null) {
-			try {
-				c = super.loadClass(name, resolve);
-			}
-			catch (Exception e) {
-			}
+			synchronized (SystemUtil.createToken("pclx", name)) {
+				c = findLoadedClass(name);
+				if (c == null) {
+					try {
+						c = super.loadClass(name, resolve);
+					}
+					catch (Exception e) {
+					}
 
-			if (addionalClassLoader != null) {
-				try {
-					c = addionalClassLoader.loadClass(name);
-				}
-				catch (Exception e) {
-				}
-			}
+					if (addionalClassLoader != null) {
+						try {
+							c = addionalClassLoader.loadClass(name);
+						}
+						catch (Exception e) {
+						}
+					}
 
-			// }
-			if (c == null) {
-				if (loadFromFS) c = findClass(name);
-				else throw new ClassNotFoundException(name);
+					// }
+					if (c == null) {
+						if (loadFromFS) c = findClass(name);
+						else throw new ClassNotFoundException(name);
+					}
+				}
 			}
 		}
 		if (resolve) resolveClass(c);
