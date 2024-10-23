@@ -42,6 +42,7 @@ import java.util.TimeZone;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import lucee.print;
 import lucee.commons.date.TimeZoneConstants;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
@@ -245,6 +246,19 @@ public class FormatUtil {
 					df.add(new FormatterWrapper(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT, FormatStyle.MEDIUM).withLocale(locale).withZone(zone), "SHORT_MEDIUM",
 							FORMAT_TYPE_DATE_TIME, zone));
 
+					// ISO8601
+					DateTimeFormatterBuilder builder = new DateTimeFormatterBuilder().appendPattern("yyyy-MM-dd'T'HH:mm:ssXXX");
+					if (lenient) builder.parseLenient();
+					else builder.parseStrict();
+					DateTimeFormatter dtf = builder.toFormatter(locale).withZone(zone);
+					df.add(new FormatterWrapper(dtf, "yyyy-MM-dd'T'HH:mm:ssXXX", FORMAT_TYPE_DATE_TIME, zone, true));
+
+					builder = new DateTimeFormatterBuilder().appendPattern("yyyy-MM-dd'T'HH:mm:ssXXX");
+					if (lenient) builder.parseLenient();
+					else builder.parseStrict();
+					dtf = builder.toFormatter(locale).withZone(zone);
+					df.add(new FormatterWrapper(dtf, "yyyy-MM-dd'T'HH:mm:ss.SSSXXX", FORMAT_TYPE_DATE_TIME, zone, true));
+
 					fromFormatToFormatter(df, getDateTimeFormatsOld(locale, tz, lenient), FORMAT_TYPE_DATE_TIME, locale, tz, lenient);
 
 					cfmlFormats.put(key, new SoftReference<List<FormatterWrapper>>(df));
@@ -259,16 +273,25 @@ public class FormatUtil {
 		ZoneId zone = tz.toZoneId();
 		DateTimeFormatterBuilder builder;
 		String p;
+		DateTimeFormatter dtf;
 		for (DateFormat f: formats) {
 
 			builder = new DateTimeFormatterBuilder().appendPattern(p = ((SimpleDateFormat) f).toPattern());
 			if (lenient) builder.parseLenient();
 			else builder.parseStrict();
-
-			DateTimeFormatter dtf;
-			// if (p.type == FORMAT_TYPE_DATE_TIME)
 			dtf = builder.toFormatter(locale).withZone(zone);
-			df.add(new FormatterWrapper(dtf, ">" + p, type, zone));
+
+			// add year flexibility yy -> y
+			if (p.indexOf("yy") != -1 && p.indexOf("yyyy") == -1) {
+				// old version handles yy as yyyy
+				p = StringUtil.replace(p, "yy", "y", true, true);
+				builder = new DateTimeFormatterBuilder().appendPattern(p);
+				if (lenient) builder.parseLenient();
+				else builder.parseStrict();
+				dtf = builder.toFormatter(locale).withZone(zone);
+				df.add(new FormatterWrapper(dtf, p, type, zone));
+			}
+			else df.add(new FormatterWrapper(dtf, p, type, zone));
 		}
 	}
 
@@ -324,6 +347,7 @@ public class FormatUtil {
 				if (df == null) {
 					ZoneId zone = tz.toZoneId();
 					df = new ArrayList<>();
+
 					df.add(new FormatterWrapper(DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL).withLocale(locale).withZone(zone), "FULL", FORMAT_TYPE_DATE, zone));
 					df.add(new FormatterWrapper(DateTimeFormatter.ofLocalizedDate(FormatStyle.LONG).withLocale(locale).withZone(zone), "LONG", FORMAT_TYPE_DATE, zone));
 					df.add(new FormatterWrapper(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM).withLocale(locale).withZone(zone), "MEDIUM", FORMAT_TYPE_DATE, zone));
@@ -335,6 +359,23 @@ public class FormatUtil {
 			}
 		}
 		return df;
+	}
+
+	public static void main(String[] args) {
+		String str = "1/30/2002";
+
+		print.e("--------- " + str + " ----------");
+		for (FormatterWrapper fw: getDateFormats(Locale.US, TimeZoneConstants.CET, true)) {
+			print.e(fw.pattern + "|" + FormatUtil.format(fw.formatter, new Date(), TimeZoneConstants.CET));
+			try {
+				print.e(FormatUtil.parse(fw, str, TimeZoneConstants.CET.toZoneId()));
+
+				break;
+			}
+			catch (DateTimeParseException e) {
+			}
+		}
+
 	}
 
 	@Deprecated
