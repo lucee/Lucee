@@ -94,7 +94,8 @@ public final class LSParseDateTime implements Function {
 				LogUtil.log(FormatUtil.debug ? Log.LEVEL_FATAL : Log.LEVEL_DEBUG, "dateformat",
 						"DateTimeFormatter failed to parse the date string [" + strDate + "] for locale [" + locale + "] and timezone [" + (tz == null ? "undefined" : tz.getID())
 								+ "]. SimpleDateFormat successfully parsed the date using the same locale and timezone.");
-
+				print.e("DateTimeFormatter failed to parse the date string [" + strDate + "] for locale [" + locale + "] and timezone [" + (tz == null ? "undefined" : tz.getID())
+						+ "]. SimpleDateFormat successfully parsed the date using the same locale and timezone.");
 				return res;
 				// old.rocks
 				// return new DateTimeImpl(FormatUtil.parse(FormatUtil.getDateTimeFormatter(locale, format),
