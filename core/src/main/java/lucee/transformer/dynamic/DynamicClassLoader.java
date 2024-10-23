@@ -192,36 +192,41 @@ public final class DynamicClassLoader extends ClassLoader implements ExtendableC
 
 	@Override
 	public Class<?> loadClass(String className, byte[] barr) throws UnmodifiableClassException {
-		Class<?> clazz = null;
+		Class<?> clazz = findLoadedClass(className);
+		if (clazz == null) {
+			// store file
+			if (directory != null) {
 
-		// store file
-		if (directory != null) {
-
-			Resource classFile = directory.getRealResource(className.replace('.', '/') + ".class");
-			classFile.getParentResource().mkdirs();
-			try {
-				IOUtil.write(classFile, barr);
+				Resource classFile = directory.getRealResource(className.replace('.', '/') + ".class");
+				classFile.getParentResource().mkdirs();
+				try {
+					IOUtil.write(classFile, barr);
+				}
+				catch (IOException e) {
+					// TODO Log
+					e.printStackTrace();
+				}
 			}
-			catch (IOException e) {
-				// TODO Log
-				e.printStackTrace();
+			synchronized (SystemUtil.createToken("dicl", className)) {
+				clazz = findLoadedClass(className);
+				if (clazz == null) {
+					try {
+						return _loadClass(className, barr);
+					}
+					catch (Exception e) {
+					}
+
+					// new class , not in memory yet
+					try {
+						return loadClass(className, false, true);
+					}
+					catch (ClassNotFoundException e) {
+						throw new RuntimeException(e);
+					}
+				}
 			}
 		}
-		synchronized (SystemUtil.createToken("dcl", className)) {
-			try {
-				return _loadClass(className, barr);
-			}
-			catch (Exception e) {
-			}
-
-			// new class , not in memory yet
-			try {
-				return loadClass(className, false, true);
-			}
-			catch (ClassNotFoundException e) {
-				throw new RuntimeException(e);
-			}
-		}
+		return clazz;
 	}
 
 	private Class<?> _loadClass(String name, byte[] barr) {

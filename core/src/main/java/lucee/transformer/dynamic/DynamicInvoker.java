@@ -181,7 +181,7 @@ public class DynamicInvoker {
 				// simply ignore when fail
 			}
 		}
-		synchronized (SystemUtil.createToken("dyninvoc", className)) {
+		synchronized (SystemUtil.createToken("dyninvocer", className)) {
 			Class[] parameterClasses = fm.getArgumentClasses();
 
 			ClassWriter cw = ASMUtil.getClassWriter();
