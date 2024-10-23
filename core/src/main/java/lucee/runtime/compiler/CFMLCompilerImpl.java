@@ -154,11 +154,8 @@ public final class CFMLCompilerImpl implements CFMLCompiler {
 				}
 				catch (IOException ioe) {
 					Resource p = classFile.getParentResource();
-					if (!p.isDirectory()) {
-						p.mkdirs();
-						IOUtil.copy(new ByteArrayInputStream(result.barr), classFile, true);
-					}
-					else throw ioe;
+					p.mkdirs();
+					IOUtil.copy(new ByteArrayInputStream(result.barr), classFile, true);
 				}
 				if (result.javaFunctions != null) {
 					for (JavaFunction jf: result.javaFunctions) {
