@@ -30,7 +30,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.TimeZone;
 
-import lucee.print;
 import lucee.commons.date.DateTimeUtil;
 import lucee.commons.date.JREDateTimeUtil;
 import lucee.commons.date.TimeZoneConstants;
@@ -43,7 +42,6 @@ import lucee.runtime.Component;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
-import lucee.runtime.i18n.LocaleConstant;
 import lucee.runtime.i18n.LocaleFactory;
 import lucee.runtime.op.Castable;
 import lucee.runtime.op.Caster;
@@ -217,8 +215,6 @@ public final class DateCaster {
 				LogUtil.log(FormatUtil.debug ? Log.LEVEL_FATAL : Log.LEVEL_DEBUG, "dateformat",
 						"DateTimeFormatter failed to parse the date string [" + str + "] for locale [" + locale + "] and timezone [" + (tz == null ? "undefined" : tz.getID())
 								+ "]. SimpleDateFormat successfully parsed the date using the same locale and timezone.");
-				print.e("DateTimeFormatter failed to parse the date string [" + str + "] for locale [" + locale + "] and timezone [" + (tz == null ? "undefined" : tz.getID())
-						+ "]. SimpleDateFormat successfully parsed the date using the same locale and timezone.");
 			}
 		}
 		if (dt == null) {
@@ -230,13 +226,6 @@ public final class DateCaster {
 			// throw new ExpressionException("can't cast ["+str+"] to date value");
 		}
 		return dt;
-	}
-
-	public static void main(String[] args) throws PageException {
-		toDateTime(LocaleConstant.ENGLISH_UNITED_STATES, "6/4/08", TimeZoneConstants.CET, false);
-		toDateTime(LocaleConstant.ENGLISH_UNITED_STATES, "06/04/08", TimeZoneConstants.CET, false);
-		toDateTime(LocaleConstant.ENGLISH_UNITED_STATES, "1/30/02 7:02:33", TimeZoneConstants.CET, false);
-		toDateTime(LocaleConstant.ENGLISH_UNITED_STATES, "06/04/08 01:02:03 GMT", TimeZoneConstants.CET, false);
 	}
 
 	/**
@@ -331,11 +320,13 @@ public final class DateCaster {
 				try {
 					DateTimeImpl res = new DateTimeImpl(FormatUtil.parse(fw, str, fw.zone));
 					fw.successCount++;
-					print.e("++++ " + fw.successCount + "|" + str + "|" + FormatUtil.format(fw.formatter, new Date(), tz) + "|" + fw.pattern + " -----");
+					// print.e("++++ " + fw.successCount + "|" + str + "|" + FormatUtil.format(fw.formatter, new Date(),
+					// tz) + "|" + fw.pattern + " -----");
 					return res;
 				}
 				catch (Exception e) {// TODO can we avoid the exception?
-					print.e("X--- " + fw.successCount + "|" + str + "|" + FormatUtil.format(fw.formatter, new Date(), tz) + "|" + fw.pattern + " -----");
+					// print.e("X--- " + fw.successCount + "|" + str + "|" + FormatUtil.format(fw.formatter, new Date(),
+					// tz) + "|" + fw.pattern + " -----");
 					// print.e(e);
 				}
 			}

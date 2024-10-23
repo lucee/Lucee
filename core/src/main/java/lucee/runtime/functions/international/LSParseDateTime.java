@@ -26,8 +26,6 @@ import java.util.Date;
 import java.util.Locale;
 import java.util.TimeZone;
 
-import lucee.print;
-import lucee.commons.date.TimeZoneConstants;
 import lucee.commons.date.TimeZoneUtil;
 import lucee.commons.i18n.FormatUtil;
 import lucee.commons.io.log.Log;
@@ -94,8 +92,6 @@ public final class LSParseDateTime implements Function {
 				LogUtil.log(FormatUtil.debug ? Log.LEVEL_FATAL : Log.LEVEL_DEBUG, "dateformat",
 						"DateTimeFormatter failed to parse the date string [" + strDate + "] for locale [" + locale + "] and timezone [" + (tz == null ? "undefined" : tz.getID())
 								+ "]. SimpleDateFormat successfully parsed the date using the same locale and timezone!");
-				print.e("DateTimeFormatter failed to parse the date string [" + strDate + "] for locale [" + locale + "] and timezone [" + (tz == null ? "undefined" : tz.getID())
-						+ "]. SimpleDateFormat successfully parsed the date using the same locale and timezone!");
 				return res;
 				// old.rocks
 				// return new DateTimeImpl(FormatUtil.parse(FormatUtil.getDateTimeFormatter(locale, format),
@@ -110,39 +106,12 @@ public final class LSParseDateTime implements Function {
 		}
 	}
 
-	public static void main(String[] args) throws PageException {
-		// 06.04.08 01:02] for locale [de_CH] and timezone [CET
-		Locale de_ch = null;
-		for (Locale l: Locale.getAvailableLocales()) {
-			if (l.toString().equalsIgnoreCase("de_ch")) de_ch = l;
-		}
-
-		// print.e(_call(null, "06.04.08", de_ch, TimeZoneConstants.CET, null));
-		// print.e(_call(null, "06.04.08, 01:02", de_ch, TimeZoneConstants.CET, null));
-		// print.e(_call(null, "1/30/02 7:02:33", Locale.ENGLISH, TimeZoneConstants.CET, null));
-		print.e(_call(null, "2018-01-04-23.40.56", Locale.US, TimeZoneConstants.CET, null));
-		// print.e(_call(null, "1/30/02 7:02:33", Locale.US, TimeZoneConstants.CET, null));
-
-		if (true) return;
-		print.e("-------");
-		print.e(_call(null, "06.04.08 01:02", Locale.ENGLISH, TimeZoneConstants.CET, null));
-		print.e("-------");
-		print.e(_call(null, "06.04.08 01:02", de_ch, TimeZoneConstants.CET, null));
-		print.e("-------");
-		print.e(_call(null, "06.04.08 01:02", de_ch, TimeZoneConstants.CET, null));
-		print.e("-------");
-		print.e(_call(null, "06.04.08 01:02", de_ch, TimeZoneConstants.CET, null));
-		print.e(_call(null, "32131313", de_ch, TimeZoneConstants.CET, null));
-		// print.e(_call(null, "01:02:03 CEST", Locale.GERMAN, TimeZoneConstants.CET, null));
-		// print.e(_call(null, "06.04.08", Locale.GERMANY, TimeZoneConstants.CET, null));
-		// assertEquals("-{ts '1899-12-30 00:02:03'}", "-#lsParseDateTime("01:02:03 CEST")#");
-		print.e(_call(null, "2022-01-02T11:22:33+01:00", Locale.GERMAN, TimeZoneConstants.CET, null));
-		print.e(_call(null, "2022-01-02T11:22:33+01:00", Locale.GERMANY, TimeZoneConstants.CET, "iso"));
-		print.e(_call(null, "2022-01-02T11:22:33.444+01:00", Locale.GERMANY, TimeZoneConstants.CET, null));
-		print.e(_call(null, "2022-01-02T11:22:33.444+01:00", Locale.GERMANY, TimeZoneConstants.CET, "isoms"));
-		print.e(_call(null, "1/30/02 7:02:33", Locale.GERMANY, TimeZoneConstants.CET, "M/dd/yy h:mm:ss"));
-
-	}
+	/*
+	 * public static void main(String[] args) throws PageException { // 06.04.08 01:02] for locale
+	 * [de_CH] and timezone [CET Locale de_ch = null; for (Locale l: Locale.getAvailableLocales()) { if
+	 * (l.toString().equalsIgnoreCase("de_ch")) de_ch = l; } print.e(_call(null, "2018-01-04-23.40.56",
+	 * Locale.US, TimeZoneConstants.CET, null)); }
+	 */
 
 	public static final boolean isUSLike(Locale locale) {
 		if (locale == null) return false;

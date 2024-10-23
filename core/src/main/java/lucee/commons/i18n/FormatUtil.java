@@ -42,7 +42,6 @@ import java.util.TimeZone;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import lucee.print;
 import lucee.commons.date.TimeZoneConstants;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
@@ -135,7 +134,7 @@ public class FormatUtil {
 	};
 
 	private static final Map<String, SoftReference<FormatterWrapper>> dateTimeFormatter = new ConcurrentHashMap<>();
-	public static final boolean debug = true;
+	public static final boolean debug = false;
 
 	public static List<FormatterWrapper> getAllFormats(Locale locale, TimeZone timeZone, boolean lenient) {
 		String key = "all:" + locale.toString() + "-" + timeZone.getID() + ":" + lenient;
@@ -354,23 +353,6 @@ public class FormatUtil {
 			}
 		}
 		return df;
-	}
-
-	public static void main(String[] args) {
-		String str = "1/30/2002";
-
-		print.e("--------- " + str + " ----------");
-		for (FormatterWrapper fw: getDateFormats(Locale.US, TimeZoneConstants.CET, true)) {
-			print.e(fw.pattern + "|" + FormatUtil.format(fw.formatter, new Date(), TimeZoneConstants.CET));
-			try {
-				print.e(FormatUtil.parse(fw, str, TimeZoneConstants.CET.toZoneId()));
-
-				break;
-			}
-			catch (DateTimeParseException e) {
-			}
-		}
-
 	}
 
 	@Deprecated
