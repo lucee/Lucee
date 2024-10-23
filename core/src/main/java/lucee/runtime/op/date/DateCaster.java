@@ -30,12 +30,12 @@ import java.util.List;
 import java.util.Locale;
 import java.util.TimeZone;
 
-import lucee.print;
 import lucee.commons.date.DateTimeUtil;
 import lucee.commons.date.JREDateTimeUtil;
 import lucee.commons.date.TimeZoneConstants;
 import lucee.commons.i18n.FormatUtil;
 import lucee.commons.i18n.FormatterWrapper;
+import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.Component;
@@ -214,8 +214,9 @@ public final class DateCaster {
 		if (dt == null) {
 			dt = toDateTimeOld(locale, str, tz, null, false);
 			if (dt != null) {
-				print.e("--------- old rockx --------");
-				print.ds(locale + "-" + str + "-" + tz.getID() + ":" + useCommomDateParserAsWell);
+				LogUtil.log(FormatUtil.debug ? Log.LEVEL_FATAL : Log.LEVEL_DEBUG, "dateformat",
+						"DateTimeFormatter failed to parse the date string [" + str + "] for locale [" + locale + "] and timezone [" + (tz == null ? "undefined" : tz.getID())
+								+ "]. SimpleDateFormat successfully parsed the date using the same locale and timezone.");
 			}
 		}
 		if (dt == null) {

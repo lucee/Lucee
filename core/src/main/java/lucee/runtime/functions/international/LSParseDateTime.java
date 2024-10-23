@@ -30,6 +30,8 @@ import lucee.print;
 import lucee.commons.date.TimeZoneConstants;
 import lucee.commons.date.TimeZoneUtil;
 import lucee.commons.i18n.FormatUtil;
+import lucee.commons.io.log.Log;
+import lucee.commons.io.log.LogUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
@@ -84,11 +86,15 @@ public final class LSParseDateTime implements Function {
 			return new DateTimeImpl(FormatUtil.parse(FormatUtil.getDateTimeFormatter(locale, format), strDate, tz.toZoneId()));
 		}
 		catch (Exception ex) {
+			LogUtil.log(pc, Log.LEVEL_DEBUG, "dateformat", ExceptionUtil.getStacktrace(ex, true));
 			try {
 
 				DateTimeImpl res = new DateTimeImpl(df.parse(strDate));
-				print.e("--------- old rocks --------");
-				print.e(ex);
+
+				LogUtil.log(FormatUtil.debug ? Log.LEVEL_FATAL : Log.LEVEL_DEBUG, "dateformat",
+						"DateTimeFormatter failed to parse the date string [" + strDate + "] for locale [" + locale + "] and timezone [" + (tz == null ? "undefined" : tz.getID())
+								+ "]. SimpleDateFormat successfully parsed the date using the same locale and timezone.");
+
 				return res;
 				// old.rocks
 				// return new DateTimeImpl(FormatUtil.parse(FormatUtil.getDateTimeFormatter(locale, format),

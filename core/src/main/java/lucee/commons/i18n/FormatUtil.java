@@ -134,6 +134,7 @@ public class FormatUtil {
 	};
 
 	private static final Map<String, SoftReference<FormatterWrapper>> dateTimeFormatter = new ConcurrentHashMap<>();
+	public static final boolean debug = true;
 
 	public static List<FormatterWrapper> getAllFormats(Locale locale, TimeZone timeZone, boolean lenient) {
 		String key = "all:" + locale.toString() + "-" + timeZone.getID() + ":" + lenient;

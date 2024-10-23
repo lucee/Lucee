@@ -120,27 +120,27 @@
 				assertEquals("-{ts '2008-04-06 01:02:03'}", "-#lsParseDateTime("Sonntag, 6. April 2008 01:02:03 MESZ")#");
 
 				assertEquals("-{ts '1899-12-30 01:02:03'}", "-#lsParseDateTime("01:02:03 MEZ")#");
-				assertEquals("-{ts '1899-12-30 00:02:03'}", "-#lsParseDateTime("01:02:03 MESZ")#");
+				assertEquals("-{ts '1899-12-30 01:02:03'}", "-#lsParseDateTime("01:02:03 MEZ")#");
 				assertEquals("-{ts '1899-12-30 02:02:03'}", "-#lsParseDateTime("01:02:03 GMT")#");
 
 				assertEquals("-{ts '2008-02-06 01:02:01'}", "-#lsParseDateTime("06.02.2008 01:02:01 MEZ")#");
 				assertEquals("-{ts '2008-06-06 01:02:02'}", "-#lsParseDateTime("06.06.2008 01:02:02 MESZ")#");
-				assertEquals("-{ts '2008-02-06 00:02:03'}", "-#lsParseDateTime("06.02.2008 01:02:03 MESZ")#");
+				assertEquals("-{ts '2008-02-06 01:02:03'}", "-#lsParseDateTime("06.02.2008 01:02:03 MEZ")#");
 				assertEquals("-{ts '2008-06-06 01:02:04'}", "-#lsParseDateTime("06.06.2008 01:02:04 MESZ")#");
 
-				assertEquals("-{ts '1899-12-30 00:02:03'}", "-#lsParseDateTime("01:02:03 MESZ")#");
+				assertEquals("-{ts '1899-12-30 01:02:03'}", "-#lsParseDateTime("01:02:03 MEZ")#");
 
 				assertEquals("-{ts '2008-04-06 00:00:00'}", "-#lsParseDateTime("06.04.08")#");
 				assertEquals("-{ts '1899-12-30 01:02:00'}", "-#lsParseDateTime("01:02")#");
 				assertEquals("-{ts '2008-04-06 00:00:00'}", "-#lsParseDateTime("06.04.2008")#");
 				assertEquals("-{ts '1899-12-30 01:02:03'}", "-#lsParseDateTime("01:02:03")#");
 				assertEquals("-{ts '2008-04-06 00:00:00'}", "-#lsParseDateTime("6. April 2008")#");
-				assertEquals("-{ts '1899-12-30 00:02:03'}", "-#lsParseDateTime("01:02:03 MESZ")#");
+				assertEquals("-{ts '1899-12-30 01:02:03'}", "-#lsParseDateTime("01:02:03 MEZ")#");
 				assertEquals("-{ts '2008-04-06 00:00:00'}", "-#lsParseDateTime("Sonntag, 6. April 2008")#");
 				assertEquals("-{ts '2008-04-06 01:02:00'}", "-#lsParseDateTime("06.04.08 01:02")#");
 				assertEquals("-{ts '2008-04-06 01:02:03'}", "-#lsParseDateTime("06.04.08 01:02:03")#");
 				if(getJavaVersion()==8) {
-					assertEquals("-{ts '2008-04-06 00:02:00'}", "-#lsParseDateTime("06.04.08 1:02 Uhr MESZ")#");
+					assertEquals("-{ts '2008-04-06 01:02:00'}", "-#lsParseDateTime("06.04.08 1:02 Uhr MEZ")#");
 					assertEquals("-{ts '2008-04-06 01:02:00'}", "-#lsParseDateTime("06.04.08 1:02 Uhr MEZ")#");
 					assertEquals("-{ts '2008-04-06 01:02:00'}", "-#lsParseDateTime("06.04.08 1:02 Uhr MEZ")#");
 				}
@@ -150,15 +150,15 @@
 				if(getJavaVersion()==8) {
 					assertEquals("-{ts '2008-01-06 01:02:00'}", "-#lsParseDateTime("06.01.2008 1:02 Uhr MEZ")#");
 					assertEquals("-{ts '2008-01-06 01:02:00'}", "-#lsParseDateTime("06.01.2008 1:02 Uhr MEZ")#");
-					assertEquals("-{ts '2008-01-06 00:02:00'}", "-#lsParseDateTime("06.01.2008 1:02 Uhr MESZ")#");
+					assertEquals("-{ts '2008-01-06 01:02:00'}", "-#lsParseDateTime("06.01.2008 1:02 Uhr MEZ")#");
 					assertEquals("-{ts '2008-01-06 01:02:00'}", "-#lsParseDateTime("06.01.2008 1:02 Uhr MEZ")#");
 					assertEquals("-{ts '2008-01-06 01:02:00'}", "-#lsParseDateTime("06.01.2008 1:02 Uhr MEZ")#");
 					assertEquals("-{ts '2008-06-06 01:02:00'}", "-#lsParseDateTime("06.06.2008 1:02 Uhr MESZ")#");
-					assertEquals("-{ts '2008-04-06 01:02:00'}", "-#lsParseDateTime("6. April 2008 1:02 Uhr MESZ")#");
-					assertEquals("-{ts '2008-04-06 01:02:00'}", "-#lsParseDateTime("Sonntag, 6. April 2008 1:02 Uhr MESZ")#");
+					assertEquals("-{ts '2008-04-06 01:02:00'}", "-#lsParseDateTime("6. April 2008 1:02 Uhr MEZ")#");
+					assertEquals("-{ts '2008-04-06 01:02:00'}", "-#lsParseDateTime("Sonntag, 6. April 2008 1:02 Uhr MEZ")#");
 					assertEquals("-{ts '1899-12-30 11:02:00'}", "-#lsParseDateTime("11:02 Uhr MEZ")#");
 				}
-				assertEquals("-{ts '2008-01-06 00:02:03'}", "-#lsParseDateTime("06.01.2008 01:02:03 MESZ")#");
+				assertEquals("-{ts '2008-01-06 01:02:03'}", "-#lsParseDateTime("06.01.2008 01:02:03 MEZ")#");
 				assertEquals("-{ts '2008-06-06 01:02:03'}", "-#lsParseDateTime("06.06.2008 01:02:03 MESZ")#");
 				assertEquals("-{ts '2008-04-06 01:02:00'}", "-#lsParseDateTime("6. April 2008 01:02")#");
 				assertEquals("-{ts '2008-04-06 01:02:03'}", "-#lsParseDateTime("6. April 2008 01:02:03")#");
@@ -194,7 +194,7 @@
 				assertEquals("-{ts '2008-04-06 00:00:00'}", "-#lsParseDateTime("6 avr. 2008")#");
 				assertEquals("-{ts '1899-12-30 01:02:03'}", "-#lsParseDateTime("01:02:03")#");
 				assertEquals("-{ts '2008-04-06 00:00:00'}", "-#lsParseDateTime("6. avril 2008")#");
-				assertEquals("-{ts '1899-12-30 00:02:03'}", "-#lsParseDateTime("01:02:03 CEST")#");
+				assertEquals("-{ts '1899-12-30 01:02:03'}", "-#lsParseDateTime("01:02:03 CET")#");
 				assertEquals("-{ts '2008-04-06 00:00:00'}", "-#lsParseDateTime("dimanche, 6. avril 2008")#");
 				if(getJavaVersion()==8) {
 					assertEquals("-{ts '1899-12-30 00:02:00'}", "-#lsParseDateTime("01.02. h CEST")#");
@@ -261,10 +261,10 @@
 				assertEquals("-{ts '2008-04-06 00:00:00'}", "-#lsParseDateTime("6-apr-2008")#");
 				assertEquals("-{ts '1899-12-30 01:02:03'}", "-#lsParseDateTime("01:02:03")#");
 				assertEquals("-{ts '2008-04-06 00:00:00'}", "-#lsParseDateTime("6. aprile 2008")#");
-				assertEquals("-{ts '1899-12-30 00:02:03'}", "-#lsParseDateTime("01:02:03 CEST")#");
+				assertEquals("-{ts '1899-12-30 01:02:03'}", "-#lsParseDateTime("01:02:03 CET")#");
 				assertEquals("-{ts '2008-04-06 00:00:00'}", "-#lsParseDateTime("domenica, 6. aprile 2008")#");
 				if(getJavaVersion()==8) {
-					assertEquals("-{ts '1899-12-30 00:02:00'}", "-#lsParseDateTime("1.02 h CEST")#");
+					assertEquals("-{ts '1899-12-30 01:02:00'}", "-#lsParseDateTime("1.02 h CET")#");
 					assertEquals("-{ts '2008-04-06 01:02:00'}", "-#lsParseDateTime("06.04.08 1.02 h CEST")#");
 					assertEquals("-{ts '2008-04-06 01:02:00'}", "-#lsParseDateTime("6-apr-2008 1.02 h CEST")#");
 					assertEquals("-{ts '2008-04-06 01:02:00'}", "-#lsParseDateTime("6. aprile 2008 1.02 h CEST")#");
@@ -359,10 +359,10 @@
 				assertEquals("-{ts '2008-04-06 00:00:00'}", "-#lsParseDateTime("06-Apr-2008")#");
 				assertEquals("-{ts '1899-12-30 01:02:03'}", "-#lsParseDateTime("01:02:03")#");
 				assertEquals("-{ts '2008-04-06 00:00:00'}", "-#lsParseDateTime("06 April 2008")#");
-				assertEquals("-{ts '1899-12-30 00:02:03'}", "-#lsParseDateTime("01:02:03 CEST")#");
+				assertEquals("-{ts '1899-12-30 01:02:03'}", "-#lsParseDateTime("01:02:03 CET")#");
 				assertEquals("-{ts '2008-04-06 00:00:00'}", "-#lsParseDateTime("Sunday, 6 April 2008")#");
 				if(getJavaVersion()==8) {
-					assertEquals("-{ts '1899-12-30 00:02:03'}", "-#lsParseDateTime("01:02:03 o'clock CEST")#");
+					assertEquals("-{ts '1899-12-30 01:02:03'}", "-#lsParseDateTime("01:02:03 o'clock CET")#");
 					assertEquals("-{ts '2008-04-06 01:02:03'}", "-#lsParseDateTime("06/04/08 01:02:03 o'clock CEST")#");
 					assertEquals("-{ts '2008-04-06 01:02:03'}", "-#lsParseDateTime("06-Apr-2008 01:02:03 o'clock CEST")#");
 					assertEquals("-{ts '2008-04-06 01:02:03'}", "-#lsParseDateTime("06 April 2008 01:02:03 o'clock CEST")#");
@@ -388,10 +388,10 @@
 				assertEquals("-{ts '2008-04-06 00:00:00'}", "-#lsParseDateTime("06-Apr-2008")#");
 				assertEquals("-{ts '1899-12-30 01:02:03'}", "-#lsParseDateTime("01:02:03")#");
 				assertEquals("-{ts '2008-04-06 00:00:00'}", "-#lsParseDateTime("06 April 2008")#");
-				assertEquals("-{ts '1899-12-30 00:02:03'}", "-#lsParseDateTime("01:02:03 CEST")#");
+				assertEquals("-{ts '1899-12-30 01:02:03'}", "-#lsParseDateTime("01:02:03 CET")#");
 				assertEquals("-{ts '2008-04-06 00:00:00'}", "-#lsParseDateTime("Sunday, 6 April 2008")#");
 				if(getJavaVersion()==8) {
-					assertEquals("-{ts '1899-12-30 00:02:03'}", "-#lsParseDateTime("01:02:03 o'clock CEST")#");
+					assertEquals("-{ts '1899-12-30 01:02:03'}", "-#lsParseDateTime("01:02:03 o'clock CET")#");
 					assertEquals("-{ts '2008-04-06 01:02:03'}", "-#lsParseDateTime("06/04/08 01:02:03 o'clock CEST")#");
 					assertEquals("-{ts '2008-04-06 01:02:03'}", "-#lsParseDateTime("06-Apr-2008 01:02:03 o'clock CEST")#");
 					assertEquals("-{ts '2008-04-06 01:02:03'}", "-#lsParseDateTime("06 April 2008 01:02:03 o'clock CEST")#");
