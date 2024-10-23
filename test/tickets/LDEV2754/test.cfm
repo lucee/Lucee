@@ -33,9 +33,8 @@
 			params = {
 				id : { value : 2, type : "integer" }
 			},
-			queryoptions = { dbtype = "query" }
+			queryoptions = { dbtype = "query", name="usingQOQ" }
 		);
 		writeOutput(usingQOQ.name);
 	}
-
 </cfscript>
