@@ -111,10 +111,27 @@ public final class LSParseDateTime implements Function {
 	}
 
 	public static void main(String[] args) throws PageException {
+		// 06.04.08 01:02] for locale [de_CH] and timezone [CET
+		Locale de_ch = null;
+		for (Locale l: Locale.getAvailableLocales()) {
+			if (l.toString().equalsIgnoreCase("de_ch")) de_ch = l;
+		}
 
-		print.e(_call(null, "01:02:03 CEST", Locale.GERMAN, TimeZoneConstants.CET, null));
-		print.e(_call(null, "06.04.08", Locale.GERMANY, TimeZoneConstants.CET, null));
+		// print.e(_call(null, "06.04.08", de_ch, TimeZoneConstants.CET, null));
+		// print.e(_call(null, "06.04.08, 01:02", de_ch, TimeZoneConstants.CET, null));
+		print.e(_call(null, "06.04.08 01:02", de_ch, TimeZoneConstants.CET, null));
+		print.e("-------");
+		print.e(_call(null, "06.04.08 01:02", de_ch, TimeZoneConstants.CET, null));
+		print.e("-------");
+		print.e(_call(null, "06.04.08 01:02", de_ch, TimeZoneConstants.CET, null));
+		print.e("-------");
+		print.e(_call(null, "06.04.08 01:02", de_ch, TimeZoneConstants.CET, null));
+		print.e("-------");
+		print.e(_call(null, "06.04.08 01:02", de_ch, TimeZoneConstants.CET, null));
+		print.e(_call(null, "32131313", de_ch, TimeZoneConstants.CET, null));
 		if (true) return;
+		// print.e(_call(null, "01:02:03 CEST", Locale.GERMAN, TimeZoneConstants.CET, null));
+		// print.e(_call(null, "06.04.08", Locale.GERMANY, TimeZoneConstants.CET, null));
 		// assertEquals("-{ts '1899-12-30 00:02:03'}", "-#lsParseDateTime("01:02:03 CEST")#");
 		print.e(_call(null, "2022-01-02T11:22:33+01:00", Locale.GERMAN, TimeZoneConstants.CET, null));
 		print.e(_call(null, "2022-01-02T11:22:33+01:00", Locale.GERMANY, TimeZoneConstants.CET, "iso"));

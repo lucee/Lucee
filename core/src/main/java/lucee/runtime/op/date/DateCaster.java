@@ -71,7 +71,7 @@ public final class DateCaster {
 	private static DateTimeUtil util = DateTimeUtil.getInstance();
 	public static boolean classicStyle = false;
 
-	private static final int SORT_AFTER_FIRST = 500;
+	private static final int SORT_AFTER_FIRST = 200;
 	private static final int SORT_AFTER = 10000;
 
 	private static boolean firstCountCheck = true;
@@ -263,6 +263,7 @@ public final class DateCaster {
 		Date d;
 		for (int i = 0; i < df.length; i++) {
 			SimpleDateFormat sdf = (SimpleDateFormat) df[i];
+
 			// print.e(sdf.format(new Date(108,3,6,1,2,1)) + " : "+sdf.toPattern());
 			pp.setErrorIndex(-1);
 			pp.setIndex(0);
@@ -322,7 +323,7 @@ public final class DateCaster {
 		str = str.trim();
 		tz = ThreadLocalPageContext.getTimeZone(tz);
 
-		List<FormatterWrapper> all = FormatUtil.getAllFormats(locale, tz, false);
+		List<FormatterWrapper> all = FormatUtil.getAllFormats(locale, tz, true);
 
 		try {
 			for (FormatterWrapper fw: all) {
@@ -334,6 +335,9 @@ public final class DateCaster {
 					return res;
 				}
 				catch (Exception e) {// TODO can we avoid the exception?
+					// print.e("---- " + fw.successCount + "|" + str + "|" + FormatUtil.format(fw.formatter, new Date(),
+					// tz) + "|" + fw.pattern + " -----");
+					// print.e(e);
 				}
 			}
 		}

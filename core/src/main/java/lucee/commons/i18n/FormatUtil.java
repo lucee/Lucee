@@ -169,6 +169,7 @@ public class FormatUtil {
 
 	public static List<FormatterWrapper> getCFMLFormats(Locale locale, TimeZone timeZone, boolean lenient) {
 		String key = "cfml:" + locale.toString() + "-" + timeZone.getID() + ":" + lenient;
+
 		SoftReference<List<FormatterWrapper>> sr = cfmlFormats.get(key);
 		List<FormatterWrapper> formatter = null;
 		if (sr == null || (formatter = sr.get()) == null) {
@@ -180,12 +181,13 @@ public class FormatUtil {
 					DateTimeFormatterBuilder builder;
 					for (Pattern p: strCfmlFormats) {
 						builder = new DateTimeFormatterBuilder().appendPattern(p.pattern);
-						if (lenient) builder.parseCaseInsensitive();
-						else builder.parseCaseSensitive();
+						if (lenient) builder.parseLenient();
+						else builder.parseStrict();
 
 						DateTimeFormatter dtf;
-						if (p.type == FORMAT_TYPE_DATE_TIME) dtf = builder.toFormatter(locale).withZone(zone);
-						else dtf = builder.toFormatter(locale);
+						// if (p.type == FORMAT_TYPE_DATE_TIME)
+						dtf = builder.toFormatter(locale).withZone(zone);
+						// else dtf = builder.toFormatter(locale);
 						formatter.add(new FormatterWrapper(dtf, p.pattern, p.type, zone, true));
 					}
 					cfmlFormats.put(key, new SoftReference(formatter));
@@ -212,8 +214,8 @@ public class FormatUtil {
 							zone));
 					df.add(new FormatterWrapper(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM).withLocale(locale).withZone(zone), "MEDIUM_MEDIUM", FORMAT_TYPE_DATE_TIME,
 							zone));
-					df.add(new FormatterWrapper(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT).withLocale(locale).withZone(zone), "SHORT_SHORT", FORMAT_TYPE_DATE_TIME,
-							zone));
+					df.add(new FormatterWrapper(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT, FormatStyle.SHORT).withLocale(locale).withZone(zone), "SHORT_SHORT",
+							FORMAT_TYPE_DATE_TIME, zone));
 
 					df.add(new FormatterWrapper(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.FULL, FormatStyle.LONG).withLocale(locale).withZone(zone), "FULL_LONG",
 							FORMAT_TYPE_DATE_TIME, zone));
@@ -243,11 +245,31 @@ public class FormatUtil {
 					df.add(new FormatterWrapper(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT, FormatStyle.MEDIUM).withLocale(locale).withZone(zone), "SHORT_MEDIUM",
 							FORMAT_TYPE_DATE_TIME, zone));
 
+					fromFormatToFormatter(df, getDateTimeFormatsOld(locale, tz, lenient), FORMAT_TYPE_DATE_TIME, locale, tz, lenient);
+
 					cfmlFormats.put(key, new SoftReference<List<FormatterWrapper>>(df));
 				}
 			}
 		}
 		return df;
+	}
+
+	public static void fromFormatToFormatter(final List<FormatterWrapper> df, DateFormat[] formats, short type, Locale locale, TimeZone tz, boolean lenient) {
+
+		ZoneId zone = tz.toZoneId();
+		DateTimeFormatterBuilder builder;
+		String p;
+		for (DateFormat f: formats) {
+
+			builder = new DateTimeFormatterBuilder().appendPattern(p = ((SimpleDateFormat) f).toPattern());
+			if (lenient) builder.parseLenient();
+			else builder.parseStrict();
+
+			DateTimeFormatter dtf;
+			// if (p.type == FORMAT_TYPE_DATE_TIME)
+			dtf = builder.toFormatter(locale).withZone(zone);
+			df.add(new FormatterWrapper(dtf, ">" + p, type, zone));
+		}
 	}
 
 	@Deprecated
@@ -306,6 +328,7 @@ public class FormatUtil {
 					df.add(new FormatterWrapper(DateTimeFormatter.ofLocalizedDate(FormatStyle.LONG).withLocale(locale).withZone(zone), "LONG", FORMAT_TYPE_DATE, zone));
 					df.add(new FormatterWrapper(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM).withLocale(locale).withZone(zone), "MEDIUM", FORMAT_TYPE_DATE, zone));
 					df.add(new FormatterWrapper(DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT).withLocale(locale).withZone(zone), "SHORT", FORMAT_TYPE_DATE, zone));
+					fromFormatToFormatter(df, getDateFormatsOld(locale, tz, lenient), FORMAT_TYPE_DATE, locale, tz, lenient);
 
 					cfmlFormats.put(key, new SoftReference<List<FormatterWrapper>>(df));
 				}
@@ -547,7 +570,7 @@ public class FormatUtil {
 					df.add(new FormatterWrapper(DateTimeFormatter.ofLocalizedTime(FormatStyle.LONG).withLocale(locale).withZone(zone), "LONG", FORMAT_TYPE_TIME, zone));
 					df.add(new FormatterWrapper(DateTimeFormatter.ofLocalizedTime(FormatStyle.MEDIUM).withLocale(locale).withZone(zone), "MEDIUM", FORMAT_TYPE_TIME, zone));
 					df.add(new FormatterWrapper(DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT).withLocale(locale).withZone(zone), "SHORT", FORMAT_TYPE_TIME, zone));
-
+					fromFormatToFormatter(df, getTimeFormatsOld(locale, tz, lenient), FORMAT_TYPE_TIME, locale, tz, lenient);
 					cfmlFormats.put(key, new SoftReference<List<FormatterWrapper>>(df));
 				}
 			}
@@ -658,23 +681,37 @@ public class FormatUtil {
 	public static long parse(FormatterWrapper fw, String date, ZoneId zone) {
 
 		if (fw.type == FormatUtil.FORMAT_TYPE_DATE_TIME) {
-			ZonedDateTime zdt = ZonedDateTime.parse(date, fw.formatter);
-			if (zdt.getYear() < 100) {
-				// TODO handle this here
-				throw new RuntimeException();
-			}
-			return zdt.toInstant().toEpochMilli();
+			return optimzeDate(ZonedDateTime.parse(date, fw.formatter)).toInstant().toEpochMilli();
 		}
 		else if (fw.type == FormatUtil.FORMAT_TYPE_DATE) {
-			LocalDate ld = LocalDate.parse(date, fw.formatter);
-			if (ld.getYear() < 100) {
-				// TODO handle this here
-				throw new RuntimeException();
-			}
-			return getEpochMillis(LocalDate.parse(date, fw.formatter), DEFAULT_TIME, zone);
+			return getEpochMillis(optimzeDate(LocalDate.parse(date, fw.formatter)), DEFAULT_TIME, zone);
 
 		}
 		return getEpochMillis(DEFAULT_DATE, LocalTime.parse(date, fw.formatter), zone);
+	}
+
+	private static ZonedDateTime optimzeDate(ZonedDateTime zdt) {
+		if (zdt.getYear() < 100) {
+			if (zdt.getYear() < 40) {
+				zdt = zdt.withYear(zdt.getYear() + 2000);
+			}
+			else {
+				zdt = zdt.withYear(zdt.getYear() + 1900);
+			}
+		}
+		return zdt;
+	}
+
+	private static LocalDate optimzeDate(LocalDate ldt) {
+		if (ldt.getYear() < 100) {
+			if (ldt.getYear() < 40) {
+				ldt = ldt.withYear(ldt.getYear() + 2000);
+			}
+			else {
+				ldt = ldt.withYear(ldt.getYear() + 1900);
+			}
+		}
+		return ldt;
 	}
 
 	private static long getEpochMillis(LocalDate localDate, LocalTime localTime, ZoneId zoneId) {
