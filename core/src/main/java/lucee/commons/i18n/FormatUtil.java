@@ -181,17 +181,9 @@ public class FormatUtil {
 					formatter = new ArrayList<>();
 					DateTimeFormatterBuilder builder;
 					for (Pattern p: strCfmlFormats) {
-						builder = new DateTimeFormatterBuilder().appendPattern(p.pattern);
-						if (lenient) builder.parseLenient();
-						else builder.parseStrict();
-
-						DateTimeFormatter dtf;
-						// if (p.type == FORMAT_TYPE_DATE_TIME)
-						dtf = builder.toFormatter(locale).withZone(zone);
-						// else dtf = builder.toFormatter(locale);
-						formatter.add(new FormatterWrapper(dtf, p.pattern, p.type, zone, true));
+						formatter.add(getFormatterWrapper(p.pattern, zone, locale, p.type, lenient));
 					}
-					cfmlFormats.put(key, new SoftReference(formatter));
+					cfmlFormats.put(key, new SoftReference<>(formatter));
 				}
 			}
 		}
@@ -247,17 +239,12 @@ public class FormatUtil {
 							FORMAT_TYPE_DATE_TIME, zone));
 
 					// ISO8601
-					DateTimeFormatterBuilder builder = new DateTimeFormatterBuilder().appendPattern("yyyy-MM-dd'T'HH:mm:ssXXX");
-					if (lenient) builder.parseLenient();
-					else builder.parseStrict();
-					DateTimeFormatter dtf = builder.toFormatter(locale).withZone(zone);
-					df.add(new FormatterWrapper(dtf, "yyyy-MM-dd'T'HH:mm:ssXXX", FORMAT_TYPE_DATE_TIME, zone, true));
-
-					builder = new DateTimeFormatterBuilder().appendPattern("yyyy-MM-dd'T'HH:mm:ssXXX");
-					if (lenient) builder.parseLenient();
-					else builder.parseStrict();
-					dtf = builder.toFormatter(locale).withZone(zone);
-					df.add(new FormatterWrapper(dtf, "yyyy-MM-dd'T'HH:mm:ss.SSSXXX", FORMAT_TYPE_DATE_TIME, zone, true));
+					df.add(getFormatterWrapper("yyyy-MM-dd'T'HH:mm:ssXXX", zone, locale, FORMAT_TYPE_DATE_TIME, lenient));
+					df.add(getFormatterWrapper("yyyy-MM-dd'T'HH:mm:ss.SSSXXX", zone, locale, FORMAT_TYPE_DATE_TIME, lenient));
+					// custom
+					if (Locale.ENGLISH.equals(locale)) {
+						df.add(getFormatterWrapper("M/d/yy H:mm:ss", zone, locale, FORMAT_TYPE_DATE_TIME, lenient));
+					}
 
 					fromFormatToFormatter(df, getDateTimeFormatsOld(locale, tz, lenient), FORMAT_TYPE_DATE_TIME, locale, tz, lenient);
 
@@ -266,6 +253,14 @@ public class FormatUtil {
 			}
 		}
 		return df;
+	}
+
+	private static lucee.commons.i18n.FormatterWrapper getFormatterWrapper(String pattern, ZoneId zone, Locale locale, short type, boolean lenient) {
+		DateTimeFormatterBuilder builder = new DateTimeFormatterBuilder().appendPattern(pattern);
+		if (lenient) builder.parseLenient();
+		else builder.parseStrict();
+		DateTimeFormatter dtf = builder.toFormatter(locale).withZone(zone);
+		return new FormatterWrapper(dtf, pattern, type, zone, true);
 	}
 
 	public static void fromFormatToFormatter(final List<FormatterWrapper> df, DateFormat[] formats, short type, Locale locale, TimeZone tz, boolean lenient) {

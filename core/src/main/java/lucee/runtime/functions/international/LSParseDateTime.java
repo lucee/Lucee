@@ -76,12 +76,11 @@ public final class LSParseDateTime implements Function {
 		String strDate = StringUtil.replaceSpecialWhiteSpace(Caster.toString(oDate));
 
 		// regular parse date time
-		if (StringUtil.isEmpty(format, true)) return DateCaster.toDateTime(locale, strDate, tz, locale.equals(Locale.US));
+		if (StringUtil.isEmpty(format, true)) return DateCaster.toDateTime(locale, strDate, tz, isUSLike(locale));
 
 		// with java based format
 		tz = ThreadLocalPageContext.getTimeZone(tz);
 		if (locale == null) locale = pc.getLocale();
-		DateFormat df = FormatUtil.getDateTimeFormat(locale, tz, format);
 		try {
 			return new DateTimeImpl(FormatUtil.parse(FormatUtil.getDateTimeFormatter(locale, format), strDate, tz.toZoneId()));
 		}
@@ -89,13 +88,14 @@ public final class LSParseDateTime implements Function {
 			LogUtil.log(pc, Log.LEVEL_DEBUG, "dateformat", ExceptionUtil.getStacktrace(ex, true));
 			try {
 
+				DateFormat df = FormatUtil.getDateTimeFormat(locale, tz, format);
 				DateTimeImpl res = new DateTimeImpl(df.parse(strDate));
 
 				LogUtil.log(FormatUtil.debug ? Log.LEVEL_FATAL : Log.LEVEL_DEBUG, "dateformat",
 						"DateTimeFormatter failed to parse the date string [" + strDate + "] for locale [" + locale + "] and timezone [" + (tz == null ? "undefined" : tz.getID())
-								+ "]. SimpleDateFormat successfully parsed the date using the same locale and timezone.");
+								+ "]. SimpleDateFormat successfully parsed the date using the same locale and timezone!");
 				print.e("DateTimeFormatter failed to parse the date string [" + strDate + "] for locale [" + locale + "] and timezone [" + (tz == null ? "undefined" : tz.getID())
-						+ "]. SimpleDateFormat successfully parsed the date using the same locale and timezone.");
+						+ "]. SimpleDateFormat successfully parsed the date using the same locale and timezone!");
 				return res;
 				// old.rocks
 				// return new DateTimeImpl(FormatUtil.parse(FormatUtil.getDateTimeFormatter(locale, format),
@@ -119,9 +119,13 @@ public final class LSParseDateTime implements Function {
 
 		// print.e(_call(null, "06.04.08", de_ch, TimeZoneConstants.CET, null));
 		// print.e(_call(null, "06.04.08, 01:02", de_ch, TimeZoneConstants.CET, null));
-		print.e(_call(null, "06.04.08 01:02", de_ch, TimeZoneConstants.CET, null));
+		// print.e(_call(null, "1/30/02 7:02:33", Locale.ENGLISH, TimeZoneConstants.CET, null));
+		print.e(_call(null, "2018-01-04-23.40.56", Locale.US, TimeZoneConstants.CET, null));
+		// print.e(_call(null, "1/30/02 7:02:33", Locale.US, TimeZoneConstants.CET, null));
+
+		if (true) return;
 		print.e("-------");
-		print.e(_call(null, "06.04.08 01:02", de_ch, TimeZoneConstants.CET, null));
+		print.e(_call(null, "06.04.08 01:02", Locale.ENGLISH, TimeZoneConstants.CET, null));
 		print.e("-------");
 		print.e(_call(null, "06.04.08 01:02", de_ch, TimeZoneConstants.CET, null));
 		print.e("-------");
@@ -129,7 +133,6 @@ public final class LSParseDateTime implements Function {
 		print.e("-------");
 		print.e(_call(null, "06.04.08 01:02", de_ch, TimeZoneConstants.CET, null));
 		print.e(_call(null, "32131313", de_ch, TimeZoneConstants.CET, null));
-		if (true) return;
 		// print.e(_call(null, "01:02:03 CEST", Locale.GERMAN, TimeZoneConstants.CET, null));
 		// print.e(_call(null, "06.04.08", Locale.GERMANY, TimeZoneConstants.CET, null));
 		// assertEquals("-{ts '1899-12-30 00:02:03'}", "-#lsParseDateTime("01:02:03 CEST")#");
@@ -141,4 +144,8 @@ public final class LSParseDateTime implements Function {
 
 	}
 
+	public static final boolean isUSLike(Locale locale) {
+		if (locale == null) return false;
+		return locale.getLanguage().equalsIgnoreCase("en") && (StringUtil.isEmpty(locale.getCountry()) || "US".equalsIgnoreCase(locale.getCountry()));
+	}
 }

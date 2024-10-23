@@ -78,7 +78,7 @@ public final class LSDateFormat extends BIF implements Function {
 	private static DateTime toDateLS(PageContext pc, Locale locale, TimeZone timeZone, Object object) throws PageException {
 		if (object instanceof DateTime) return (DateTime) object;
 		else if (object instanceof CharSequence) {
-			DateTime res = DateCaster.toDateTime(locale, Caster.toString(object), timeZone, null, locale.equals(Locale.US));
+			DateTime res = DateCaster.toDateTime(locale, Caster.toString(object), timeZone, null, LSParseDateTime.isUSLike(locale));
 			if (res != null) return res;
 		}
 		return DateCaster.toDateAdvanced(object, timeZone);

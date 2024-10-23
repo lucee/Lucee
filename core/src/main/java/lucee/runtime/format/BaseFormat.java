@@ -21,6 +21,8 @@ package lucee.runtime.format;
 import java.text.DateFormatSymbols;
 import java.util.Locale;
 
+import lucee.runtime.functions.international.LSParseDateTime;
+
 public abstract class BaseFormat implements Format {
 
 	private Locale locale;
@@ -30,7 +32,7 @@ public abstract class BaseFormat implements Format {
 	}
 
 	protected final String getMonthAsString(int month) {
-		if (getLocale().equals(Locale.US)) {
+		if (LSParseDateTime.isUSLike(getLocale())) {
 			switch (month) {
 			case 1:
 				return "January";
@@ -64,7 +66,7 @@ public abstract class BaseFormat implements Format {
 	}
 
 	protected final String getMonthShortAsString(int month) {
-		if (getLocale().equals(Locale.US)) {
+		if (LSParseDateTime.isUSLike(getLocale())) {
 			switch (month) {
 			case 1:
 				return "Jan";
@@ -98,7 +100,7 @@ public abstract class BaseFormat implements Format {
 	}
 
 	protected final String getDayOfWeekAsString(int dayOfWeek) {
-		if (getLocale().equals(Locale.US)) {
+		if (LSParseDateTime.isUSLike(getLocale())) {
 			switch (dayOfWeek) {
 			case 1:
 				return "Sunday";
@@ -122,7 +124,7 @@ public abstract class BaseFormat implements Format {
 	}
 
 	protected final String getDayOfWeekShortAsString(int dayOfWeek) {
-		if (getLocale().equals(Locale.US)) {
+		if (LSParseDateTime.isUSLike(getLocale())) {
 			switch (dayOfWeek) {
 			case 1:
 				return "Sun";

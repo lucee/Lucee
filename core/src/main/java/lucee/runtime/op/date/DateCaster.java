@@ -210,7 +210,6 @@ public final class DateCaster {
 	 * @throws PageException
 	 */
 	public static DateTime toDateTime(Locale locale, String str, TimeZone tz, boolean useCommomDateParserAsWell) throws PageException {
-
 		DateTime dt = toDateTimeNew(locale, str, tz, null, useCommomDateParserAsWell);
 		if (dt == null) {
 			dt = toDateTimeOld(locale, str, tz, null, false);
@@ -332,11 +331,11 @@ public final class DateCaster {
 				try {
 					DateTimeImpl res = new DateTimeImpl(FormatUtil.parse(fw, str, fw.zone));
 					fw.successCount++;
+					print.e("++++ " + fw.successCount + "|" + str + "|" + FormatUtil.format(fw.formatter, new Date(), tz) + "|" + fw.pattern + " -----");
 					return res;
 				}
 				catch (Exception e) {// TODO can we avoid the exception?
-					// print.e("---- " + fw.successCount + "|" + str + "|" + FormatUtil.format(fw.formatter, new Date(),
-					// tz) + "|" + fw.pattern + " -----");
+					print.e("X--- " + fw.successCount + "|" + str + "|" + FormatUtil.format(fw.formatter, new Date(), tz) + "|" + fw.pattern + " -----");
 					// print.e(e);
 				}
 			}
