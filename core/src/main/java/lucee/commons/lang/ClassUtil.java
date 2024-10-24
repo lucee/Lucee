@@ -452,7 +452,7 @@ public final class ClassUtil {
 	 */
 	public static Object loadInstance(Class clazz) throws ClassException {
 		try {
-			return Reflector.getConstructorInstance(clazz, EMPTY_OBJ).invoke();
+			return Reflector.getConstructorInstance(clazz, EMPTY_OBJ, true).invoke();
 		}
 		catch (InstantiationException e) {
 			ClassException ce = new ClassException("the specified class object [" + clazz.getName() + "()] cannot be instantiated");
@@ -1029,6 +1029,6 @@ public final class ClassUtil {
 
 	public static Object newInstance(Class clazz) throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException,
 			SecurityException, PageException, IOException {
-		return Reflector.getConstructorInstance(clazz, EMPTY_OBJ).invoke();
+		return Reflector.getConstructorInstance(clazz, EMPTY_OBJ, true).invoke();
 	}
 }

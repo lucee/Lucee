@@ -625,6 +625,11 @@ public final class Reflector {
 		return new ConstructorInstance(clazz, args);
 	}
 
+	public static ConstructorInstance getConstructorInstance(Class clazz, Object[] args, boolean exactMatchOnly) {
+		// TODO exactMatchOnly
+		return new ConstructorInstance(clazz, args);
+	}
+
 	public static Object[] cleanArgs(Object[] args) {
 		if (args == null) {
 			return new Object[0];
@@ -773,7 +778,7 @@ public final class Reflector {
 			if (args[i] instanceof JavaObject) {
 				jo = (JavaObject) args[i];
 				c = jo.getClazz();
-				cc = Reflector.getConstructorInstance(c, new Object[0]).getConstructor(null);
+				cc = Reflector.getConstructorInstance(c, new Object[0], true).getConstructor(null);
 				if (cc == null) {
 
 					throw new NoSuchMethodException("The " + pos(i + 1) + " parameter of " + methodName + "(" + getDspMethods(classes) + ") ia an object created "

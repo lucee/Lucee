@@ -197,7 +197,7 @@ public abstract class Clazz implements Serializable {
 			if (args[i] instanceof JavaObject) {
 				jo = (JavaObject) args[i];
 				c = jo.getClazz();
-				cc = Reflector.getConstructorInstance(c, new Object[0]).getConstructor(null);
+				cc = Reflector.getConstructorInstance(c, new Object[0], true).getConstructor(null);
 				if (cc == null) {
 
 					throw new NoSuchMethodException(
