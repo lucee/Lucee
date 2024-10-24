@@ -6,7 +6,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="qoq"{
 				
 				var names=[];
 				loop from=1 to=100 index="local.i" {
-					var name="dyninvoc#i#";
+					var name="t5120-1-#i#";
 					arrayAppend(names, name);
 					thread name=name {
 						// create the dynamicwrapper for the class and use it, this class get nowhere else used, so on a fresh server that should trigger it for the first time
@@ -25,7 +25,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="qoq"{
 				
 				var names=[];
 				loop from=1 to=100 index="local.i" {
-					var name="dyninvoc2#i#";
+					var name="t5120-2-#i#";
 					arrayAppend(names, name);
 					thread name=name {
 						// create the dynamicwrapper for the class and use it, this class get nowhere else used, so on a fresh server that should trigger it for the first time
