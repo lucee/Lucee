@@ -299,7 +299,7 @@ public final class ExceptionUtil {
 		return fnfe;
 	}
 
-	public static Throwable initCauseEL(Throwable e, Throwable cause) {
+	public static void initCauseEL(Throwable e, Throwable cause) {
 		if (cause == null) return;
 
 		// get current root cause
@@ -318,7 +318,6 @@ public final class ExceptionUtil {
 		}
 		catch (Exception ex) {
 		}
-		return e;
 	}
 
 	public static PageException cause(String msg, PageException cause) {
