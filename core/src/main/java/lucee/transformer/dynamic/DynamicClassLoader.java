@@ -100,11 +100,6 @@ public final class DynamicClassLoader extends ClassLoader implements ExtendableC
 		}
 	}
 
-	@Override
-	public Class<?> loadClass(String name) throws ClassNotFoundException {
-		return loadClass(name, false);
-	}
-
 	public Object loadInstance(String name) throws ClassNotFoundException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException,
 			NoSuchMethodException, SecurityException {
 		SoftReference<Object> ref = instances.get(name);
@@ -112,10 +107,28 @@ public final class DynamicClassLoader extends ClassLoader implements ExtendableC
 		if (ref != null && (value = ref.get()) != null) {
 			return value;
 		}
-		Class<?> clazz = loadClass(name, false);
+		Class<?> clazz = loadClass(name, false, true);
 		value = clazz.getConstructor().newInstance();
 		instances.put(name, new SoftReference<Object>(value));
 		return value;
+	}
+
+	public Object loadInstance(String name, byte[] barr) throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException,
+			NoSuchMethodException, SecurityException, UnmodifiableClassException, IOException {
+		SoftReference<Object> ref = instances.get(name);
+		Object value;
+		if (ref != null && (value = ref.get()) != null) {
+			return value;
+		}
+		Class<?> clazz = loadClass(name, barr);
+		value = clazz.getConstructor().newInstance();
+		instances.put(name, new SoftReference<Object>(value));
+		return value;
+	}
+
+	@Override
+	public Class<?> loadClass(String name) throws ClassNotFoundException {
+		return loadClass(name, false, true);
 	}
 
 	@Override
@@ -123,11 +136,27 @@ public final class DynamicClassLoader extends ClassLoader implements ExtendableC
 		return loadClass(name, resolve, true);
 	}
 
+	@Override
+	public Class<?> loadClass(String className, byte[] barr) throws UnmodifiableClassException, IOException {
+		Class<?> clazz = findLoadedClass(className);
+		if (clazz == null) {
+			// store file
+			write(className, barr);
+			synchronized (SystemUtil.createToken("DynamicClassLoader:load", className)) {
+				clazz = findLoadedClass(className);
+				if (clazz == null) {
+					return _loadClass(className, barr);
+				}
+			}
+		}
+		return clazz;
+	}
+
 	private Class<?> loadClass(String name, boolean resolve, boolean loadFromFS) throws ClassNotFoundException {
 		// First, check if the class has already been loaded
 		Class<?> c = findLoadedClass(name);
 		if (c == null) {
-			synchronized (SystemUtil.createToken("dcl", name)) {
+			synchronized (SystemUtil.createToken("DynamicClassLoader:load", name)) {
 				c = findLoadedClass(name);
 				if (c == null) {
 					try {
@@ -148,85 +177,10 @@ public final class DynamicClassLoader extends ClassLoader implements ExtendableC
 
 	@Override
 	protected Class<?> findClass(String name) throws ClassNotFoundException {// if(name.indexOf("sub")!=-1)print.ds(name);
-
-		if (directory == null) throw new ClassNotFoundException("Class [" + name + "] not found (memory mode)");
-		Resource res = directory.getRealResource(name.replace('.', '/').concat(".class"));
-		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		synchronized (SystemUtil.createToken("dcl", name)) {
-			try {
-				IOUtil.copy(res, baos, false);
-			}
-			catch (IOException e) {
-				this.unavaiClasses.put(name, "");
-				throw new ClassNotFoundException("Class [" + name + "] is invalid or doesn't exist [parent:" + getParent() + "]", e);
-			}
-			byte[] barr = baos.toByteArray();
-			if (barr.length == 0) {
-				IOUtil.closeEL(baos);
-				this.unavaiClasses.put(name, "");
-				throw new ClassNotFoundException("Class [" + name + "] is invalid or doesn't exist [parent:" + getParent() + "]");
-			}
-			IOUtil.closeEL(baos);
-			try {
-				return _loadClass(name, barr);
-			}
-			catch (LinkageError e) {
-				this.unavaiClasses.put(name, "");
-				throw e;
-			}
+		byte[] barr = read(name);
+		synchronized (SystemUtil.createToken("DynamicClassLoader:load", name)) {
+			return _loadClass(name, barr);
 		}
-	}
-
-	public Object loadInstance(String name, byte[] barr) throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException,
-			NoSuchMethodException, SecurityException, UnmodifiableClassException {
-		SoftReference<Object> ref = instances.get(name);
-		Object value;
-		if (ref != null && (value = ref.get()) != null) {
-			return value;
-		}
-		Class<?> clazz = loadClass(name, barr);
-		value = clazz.getConstructor().newInstance();
-		instances.put(name, new SoftReference<Object>(value));
-		return value;
-	}
-
-	@Override
-	public Class<?> loadClass(String className, byte[] barr) throws UnmodifiableClassException {
-		Class<?> clazz = findLoadedClass(className);
-		if (clazz == null) {
-			// store file
-			if (directory != null) {
-
-				Resource classFile = directory.getRealResource(className.replace('.', '/') + ".class");
-				classFile.getParentResource().mkdirs();
-				try {
-					IOUtil.write(classFile, barr);
-				}
-				catch (IOException e) {
-					// TODO Log
-					e.printStackTrace();
-				}
-			}
-			synchronized (SystemUtil.createToken("dicl", className)) {
-				clazz = findLoadedClass(className);
-				if (clazz == null) {
-					try {
-						return _loadClass(className, barr);
-					}
-					catch (Exception e) {
-					}
-
-					// new class , not in memory yet
-					try {
-						return loadClass(className, false, true);
-					}
-					catch (ClassNotFoundException e) {
-						throw new RuntimeException(e);
-					}
-				}
-			}
-		}
-		return clazz;
 	}
 
 	private Class<?> _loadClass(String name, byte[] barr) {
@@ -241,13 +195,40 @@ public final class DynamicClassLoader extends ClassLoader implements ExtendableC
 		return clazz;
 	}
 
-	@Override
-	public URL getResource(String name) {
-		return null;
+	private void write(String className, byte[] barr) throws IOException {
+		if (directory != null) {
+			synchronized (SystemUtil.createToken("DynamicClassLoader:file", className)) {
+				Resource classFile = directory.getRealResource(className.replace('.', '/') + ".class");
+				classFile.getParentResource().mkdirs();
+				IOUtil.write(classFile, barr);
+			}
+		}
 	}
 
-	public int getSize(boolean includeAllRenames) {
-		return includeAllRenames ? allLoadedClasses.size() : loadedClasses.size();
+	private byte[] read(String className) throws ClassNotFoundException {
+		if (directory != null) {
+			synchronized (SystemUtil.createToken("DynamicClassLoader:file", className)) {
+				ByteArrayOutputStream baos = new ByteArrayOutputStream();
+				try {
+					Resource res = directory.getRealResource(className.replace('.', '/').concat(".class"));
+					IOUtil.copy(res, baos, false);
+					byte[] barr = baos.toByteArray();
+					if (barr.length == 0) {
+						this.unavaiClasses.put(className, "");
+						throw new ClassNotFoundException("Class [" + className + "] is invalid or doesn't exist [parent:" + getParent() + "]");
+					}
+					return barr;
+				}
+				catch (IOException e) {
+					this.unavaiClasses.put(className, "");
+					throw new ClassNotFoundException("Class [" + className + "] is invalid or doesn't exist [parent:" + getParent() + "]", e);
+				}
+				finally {
+					IOUtil.closeEL(baos); // nice to have but not really needed
+				}
+			}
+		}
+		throw new ClassNotFoundException("Class [" + className + "] not found (memory mode)");
 	}
 
 	@Override
@@ -266,6 +247,15 @@ public final class DynamicClassLoader extends ClassLoader implements ExtendableC
 		return null;
 	}
 
+	@Override
+	public URL getResource(String name) {
+		return null;
+	}
+
+	public int getSize(boolean includeAllRenames) {
+		return includeAllRenames ? allLoadedClasses.size() : loadedClasses.size();
+	}
+
 	/**
 	 * returns matching File Object or null if file not exust
 	 * 
@@ -279,7 +269,7 @@ public final class DynamicClassLoader extends ClassLoader implements ExtendableC
 	}
 
 	public boolean hasClass(String className) {
-		return hasResource(className.replace('.', '/').concat(".class"));
+		return isClassLoaded(className) || hasResource(className.replace('.', '/').concat(".class"));
 	}
 
 	public boolean isClassLoaded(String className) {

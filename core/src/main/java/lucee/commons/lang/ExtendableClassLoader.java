@@ -18,6 +18,7 @@
  **/
 package lucee.commons.lang;
 
+import java.io.IOException;
 import java.lang.instrument.UnmodifiableClassException;
 
 public interface ExtendableClassLoader {
@@ -30,5 +31,5 @@ public interface ExtendableClassLoader {
 	 * @return
 	 * @throws UnmodifiableClassException
 	 */
-	public abstract Class<?> loadClass(String name, byte[] barr) throws UnmodifiableClassException;
+	public abstract Class<?> loadClass(String name, byte[] barr) throws UnmodifiableClassException, IOException;
 }
