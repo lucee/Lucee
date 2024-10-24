@@ -192,21 +192,19 @@ public final class PhysicalClassLoader extends URLClassLoader implements Extenda
 
 	@Override
 	public Class<?> loadClass(String name) throws ClassNotFoundException {
-		return loadClass(name, false);
+		return loadClass(name, false, true);
 	}
 
 	@Override
 	protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
-		synchronized (SystemUtil.createToken("pcl", name)) {
-			return loadClass(name, resolve, true);
-		}
+		return loadClass(name, resolve, true);
 	}
 
 	private Class<?> loadClass(String name, boolean resolve, boolean loadFromFS) throws ClassNotFoundException {
 		// First, check if the class has already been loaded
 		Class<?> c = findLoadedClass(name);
 		if (c == null) {
-			synchronized (SystemUtil.createToken("pclx", name)) {
+			synchronized (SystemUtil.createToken("PhysicalClassLoader:load", name)) {
 				c = findLoadedClass(name);
 				if (c == null) {
 					try {
@@ -223,7 +221,6 @@ public final class PhysicalClassLoader extends URLClassLoader implements Extenda
 						}
 					}
 
-					// }
 					if (c == null) {
 						if (loadFromFS) c = findClass(name);
 						else throw new ClassNotFoundException(name);
@@ -233,6 +230,22 @@ public final class PhysicalClassLoader extends URLClassLoader implements Extenda
 		}
 		if (resolve) resolveClass(c);
 		return c;
+	}
+
+	@Override
+	public Class<?> loadClass(String name, byte[] barr) throws UnmodifiableClassException {
+		Class<?> clazz = null;
+
+		synchronized (SystemUtil.createToken("PhysicalClassLoader:load", name)) {
+			try {
+				clazz = loadClass(name, false, false); // we do not load existing class from disk
+			}
+			catch (ClassNotFoundException cnf) {
+			}
+			if (clazz == null) return _loadClass(name, barr, false);
+
+			return rename(clazz, barr);
+		}
 	}
 
 	@Override
@@ -252,48 +265,31 @@ public final class PhysicalClassLoader extends URLClassLoader implements Extenda
 			}
 		}
 
-		synchronized (SystemUtil.createToken("pcl", name)) {
+		synchronized (SystemUtil.createToken("PhysicalClassLoader:load", name)) {
 			Resource res = directory.getRealResource(name.replace('.', '/').concat(".class"));
-			if (!res.isFile()) throw new ClassNotFoundException("Class [" + name + "] is invalid or doesn't exist");
-
-			ByteArrayOutputStream baos = new ByteArrayOutputStream();
-			try {
-				IOUtil.copy(res, baos, false);
-			}
-			catch (IOException e) {
-				this.unavaiClasses.put(name, "");
-				throw new ClassNotFoundException("Class [" + name + "] is invalid or doesn't exist", e);
+			if (!res.isFile()) {
+				throw new ClassNotFoundException("Class [" + name + "] is invalid or doesn't exist");
 			}
 
-			byte[] barr = baos.toByteArray();
-			IOUtil.closeEL(baos);
+			byte[] barr = read(name);
 			return _loadClass(name, barr, false);
 		}
 	}
 
-	@Override
-	public Class<?> loadClass(String name, byte[] barr) throws UnmodifiableClassException {
-		Class<?> clazz = null;
-
-		synchronized (SystemUtil.createToken("pcl", name)) {
-
-			// new class , not in memory yet
-			try {
-				clazz = loadClass(name, false, false); // we do not load existing class from disk
-			}
-			catch (ClassNotFoundException cnf) {
-			}
-			if (clazz == null) return _loadClass(name, barr, false);
-
-			// first we try to update the class what needs instrumentation object
-			/*
-			 * try { InstrumentationFactory.getInstrumentation(config).redefineClasses(new
-			 * ClassDefinition(clazz, barr)); return clazz; } catch (Exception e) { LogUtil.log(null,
-			 * "compilation", e); }
-			 */
-			// in case instrumentation fails, we rename it
-			return rename(clazz, barr);
+	private byte[] read(String name) throws ClassNotFoundException {
+		Resource res = directory.getRealResource(name.replace('.', '/').concat(".class"));
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		try {
+			IOUtil.copy(res, baos, false);
 		}
+		catch (IOException e) {
+			this.unavaiClasses.put(name, "");
+			throw new ClassNotFoundException("Class [" + name + "] is invalid or doesn't exist", e);
+		}
+		finally {
+			IOUtil.closeEL(baos);
+		}
+		return baos.toByteArray();
 	}
 
 	private Class<?> rename(Class<?> clazz, byte[] barr) {
