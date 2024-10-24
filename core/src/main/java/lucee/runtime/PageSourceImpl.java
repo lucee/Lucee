@@ -477,7 +477,9 @@ public final class PageSourceImpl implements PageSource {
 				throw new TemplateException("There is too much code inside the template [" + getDisplayPath() + "], " + Constants.NAME
 						+ " was not able to break it into pieces, move parts of your code to an include or an external component/function", msg);
 			}
-			throw new TemplateException("ClassFormatError:" + e.getMessage());
+			TemplateException te = new TemplateException("ClassFormatError:" + e.getMessage());
+			ExceptionUtil.initCauseEL(te, e);
+			throw te;
 		}
 		catch (Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);
