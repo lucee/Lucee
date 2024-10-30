@@ -75,7 +75,7 @@ public final class While extends StatementBaseNoFinal implements FlowControlBrea
 		adapter.ifZCmp(Opcodes.IFEQ, end);
 
 		body.writeOut(bc);
-		InterruptHandlerInjector.writeLoopBodyEnd(adapter, loopCounter, begin, "during for loop");
+		InterruptHandlerInjector.writeLoopBodyEnd(adapter, loopCounter, begin, "during while loop");
 
 		adapter.visitLabel(end);
 	}
