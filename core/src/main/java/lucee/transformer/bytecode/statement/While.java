@@ -26,6 +26,7 @@ import lucee.transformer.Position;
 import lucee.transformer.TransformerException;
 import lucee.transformer.bytecode.Body;
 import lucee.transformer.bytecode.BytecodeContext;
+import lucee.transformer.bytecode.util.InterruptHandlerInjector;
 import lucee.transformer.expression.ExprBoolean;
 import lucee.transformer.expression.Expression;
 
@@ -67,13 +68,14 @@ public final class While extends StatementBaseNoFinal implements FlowControlBrea
 	@Override
 	public void _writeOut(BytecodeContext bc) throws TransformerException {
 		GeneratorAdapter adapter = bc.getAdapter();
+		final int loopCounter = InterruptHandlerInjector.writeLoopInit(adapter);
 		adapter.visitLabel(begin);
 
 		expr.writeOut(bc, Expression.MODE_VALUE);
 		adapter.ifZCmp(Opcodes.IFEQ, end);
 
 		body.writeOut(bc);
-		adapter.visitJumpInsn(Opcodes.GOTO, begin);
+		InterruptHandlerInjector.writeLoopBodyEnd(adapter, loopCounter, begin, "during for loop");
 
 		adapter.visitLabel(end);
 	}

@@ -26,6 +26,7 @@ import lucee.transformer.Position;
 import lucee.transformer.TransformerException;
 import lucee.transformer.bytecode.Body;
 import lucee.transformer.bytecode.BytecodeContext;
+import lucee.transformer.bytecode.util.InterruptHandlerInjector;
 import lucee.transformer.expression.ExprBoolean;
 import lucee.transformer.expression.Expression;
 
@@ -57,14 +58,18 @@ public final class DoWhile extends StatementBaseNoFinal implements FlowControlBr
 	@Override
 	public void _writeOut(BytecodeContext bc) throws TransformerException {
 		GeneratorAdapter adapter = bc.getAdapter();
+		final int loopCounter = InterruptHandlerInjector.writeLoopInit(adapter);
+
 		adapter.visitLabel(begin);
 		body.writeOut(bc);
 
+		InterruptHandlerInjector.writeLoopBodyEnd(adapter, loopCounter, beforeEnd, "during do while");
 		adapter.visitLabel(beforeEnd);
 
 		expr.writeOut(bc, Expression.MODE_VALUE);
 		adapter.ifZCmp(Opcodes.IFNE, begin);
 
+		InterruptHandlerInjector.writePreempt(adapter, end, "after do while");
 		adapter.visitLabel(end);
 
 	}

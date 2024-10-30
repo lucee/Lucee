@@ -31,6 +31,7 @@ import lucee.transformer.bytecode.Body;
 import lucee.transformer.bytecode.BytecodeContext;
 import lucee.transformer.bytecode.expression.var.VariableRef;
 import lucee.transformer.bytecode.util.Types;
+import lucee.transformer.bytecode.util.InterruptHandlerInjector;
 import lucee.transformer.bytecode.visitor.OnFinally;
 import lucee.transformer.bytecode.visitor.TryFinallyVisitor;
 import lucee.transformer.expression.Expression;
@@ -81,6 +82,7 @@ public final class ForEach extends StatementBase implements FlowControlBreak, Fl
 		GeneratorAdapter adapter = bc.getAdapter();
 		final int it = adapter.newLocal(Types.ITERATOR);
 		final int item = adapter.newLocal(Types.REFERENCE);
+		final int loopCounter = InterruptHandlerInjector.writeLoopInit(adapter);
 
 		// Value
 		// ForEachUtil.toIterator(value)
@@ -130,7 +132,7 @@ public final class ForEach extends StatementBase implements FlowControlBreak, Fl
 
 		// Body
 		body.writeOut(bc);
-		adapter.visitJumpInsn(Opcodes.GOTO, begin);
+		InterruptHandlerInjector.writeLoopBodyEnd(adapter, loopCounter, begin, "during foreach loop");
 		adapter.visitLabel(end);
 		tfv.visitTryEnd(bc);
 

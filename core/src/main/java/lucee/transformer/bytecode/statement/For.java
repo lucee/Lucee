@@ -28,6 +28,7 @@ import lucee.transformer.TransformerException;
 import lucee.transformer.bytecode.Body;
 import lucee.transformer.bytecode.BytecodeContext;
 import lucee.transformer.bytecode.util.ASMUtil;
+import lucee.transformer.bytecode.util.InterruptHandlerInjector;
 import lucee.transformer.expression.Expression;
 
 public final class For extends StatementBaseNoFinal implements FlowControlBreak, FlowControlContinue, HasBody {
@@ -69,6 +70,7 @@ public final class For extends StatementBaseNoFinal implements FlowControlBreak,
 		Label beforeInit = new Label();
 		Label afterInit = new Label();
 		Label afterUpdate = new Label();
+		final int loopCounter = InterruptHandlerInjector.writeLoopInit(adapter);
 
 		bc.visitLine(getStart());
 		adapter.visitLabel(beforeInit);
@@ -87,6 +89,8 @@ public final class For extends StatementBaseNoFinal implements FlowControlBreak,
 			update.writeOut(bc, Expression.MODE_VALUE);
 			ASMUtil.pop(adapter, update, Expression.MODE_VALUE);
 		}
+
+		InterruptHandlerInjector.writeLoopBodyEnd(adapter, loopCounter, afterUpdate, "during for loop");
 		// ExpressionUtil.visitLine(bc, getStartLine());
 		adapter.visitLabel(afterUpdate);
 
@@ -94,6 +98,7 @@ public final class For extends StatementBaseNoFinal implements FlowControlBreak,
 		else bc.getFactory().TRUE().writeOut(bc, Expression.MODE_VALUE);
 		adapter.visitJumpInsn(Opcodes.IFNE, afterInit);
 		// ExpressionUtil.visitLine(bc, getEndLine());
+		InterruptHandlerInjector.writePreempt(adapter, end, "after for loop");
 		adapter.visitLabel(end);
 
 	}
