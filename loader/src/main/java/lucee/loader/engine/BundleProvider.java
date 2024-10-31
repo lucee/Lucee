@@ -444,6 +444,7 @@ public final class BundleProvider {
 		put(mappings, "com.sun.xml.bind.jaxb-impl", new Info("org.glassfish.jaxb", "jaxb-runtime"));
 		put(mappings, "org.lucee.commonmark", new Info("org.lucee", "commonmark"));
 		put(mappings, "org.lucee.argon2-jvm-nolibs", new Info("org.lucee", "argon2-jvm-nolibs"));
+		put(mappings, "com.fasterxml.jackson.core.jackson-core", new Info("com.fasterxml.jackson.core", "jackson-core"));
 	}
 
 	private static void put(Map<String, Info[]> mappings, String name, Info... value) {
