@@ -161,6 +161,7 @@ public final class Caster {
 	}
 	// static Map calendarsMap=new ReferenceMap(ReferenceMap.SOFT,ReferenceMap.SOFT);
 
+	private static final boolean USE_FAST_PARSER = true;
 	private static final int NUMBERS_MIN = 0;
 	private static final int NUMBERS_MAX = 999;
 	private static final String[] NUMBERS = { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23",
@@ -564,7 +565,7 @@ public final class Caster {
 			else if (curr > '9') {
 				if (curr == 'e' || curr == 'E') {
 					try {
-						return Double.parseDouble(str);
+						return NumberInput.parseDouble(str, USE_FAST_PARSER);
 					}
 					catch (NumberFormatException e) {
 						if (!alsoFromDate) throw new CasterException("cannot cast [" + str + "] string to a number value");
@@ -584,7 +585,7 @@ public final class Caster {
 				rtn += toDigit(curr);
 				if (hasDot) {
 					deep *= 10;
-					if (deep > 1000000000000000000000D) return Double.parseDouble(str); // patch for LDEV-2654
+					if (deep > 1000000000000000000000D) return NumberInput.parseDouble(str, USE_FAST_PARSER); // patch for LDEV-2654
 				}
 
 			}
@@ -703,7 +704,7 @@ public final class Caster {
 			else if (curr > '9') {
 				if (curr == 'e' || curr == 'E') {
 					try {
-						return Double.parseDouble(str);
+						return NumberInput.parseDouble(str, USE_FAST_PARSER);
 					}
 					catch (NumberFormatException e) {
 						if (!alsoFromDate) return defaultValue;
@@ -1580,7 +1581,7 @@ public final class Caster {
 		else if (o instanceof CharSequence) {
 			String str = o.toString();
 			try {
-				return Long.parseLong(str);
+				return NumberInput.parseLong(str);
 			}
 			catch (NumberFormatException nfe) {
 				return (long) toDoubleValue(str);
@@ -1603,7 +1604,7 @@ public final class Caster {
 	public static long toLongValue(String str) throws PageException {
 		BigInteger bi = null;
 		try {
-			bi = new BigInteger(str);
+			bi = NumberInput.parseBigInteger(str, USE_FAST_PARSER);
 
 		}
 		catch (Throwable t) {
@@ -1631,7 +1632,7 @@ public final class Caster {
 				return Caster.toBigDecimal(str);
 			}
 			// integer
-			BigInteger bi = new BigInteger(str);
+			BigInteger bi = NumberInput.parseBigInteger(str, USE_FAST_PARSER);
 			int l = bi.bitLength();
 			if (l < 32) return Integer.valueOf(bi.intValue());
 			if (l < 64) return Long.valueOf(bi.longValue());

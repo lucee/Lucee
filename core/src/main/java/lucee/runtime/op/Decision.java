@@ -75,12 +75,15 @@ import lucee.runtime.type.Struct;
 import lucee.runtime.type.UDF;
 import lucee.runtime.type.dt.DateTime;
 
+import com.fasterxml.jackson.core.io.NumberInput;
+
 /**
  * Object to test if an Object is a specific type
  */
 public final class Decision {
 
 	private static final String STRING_DEFAULT_VALUE = "this is a unique string";
+	private static final boolean USE_FAST_PARSER = true;
 
 	private static Pattern ssnPattern;
 	private static Pattern phonePattern;
@@ -210,7 +213,7 @@ public final class Decision {
 		}
 		if (hasExp) {
 			try {
-				if (Double.isInfinite(Double.parseDouble(str))) return false;
+				if (Double.isInfinite(NumberInput.parseDouble(str, USE_FAST_PARSER))) return false;
 
 				return true;
 			}
