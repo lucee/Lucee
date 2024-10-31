@@ -151,6 +151,8 @@ import lucee.runtime.type.wrap.MapAsStruct;
 import lucee.runtime.type.wrap.StructAsArray;
 import lucee.runtime.util.ForEachUtil;
 
+import com.fasterxml.jackson.core.io.NumberInput;
+
 /**
  * This class can cast object of one type to another by CFML rules
  */
@@ -5130,7 +5132,8 @@ public final class Caster {
 
 	public static BigDecimal toBigDecimal(String str) throws CasterException {
 		try {
-			return new BigDecimal(str.trim(), MathContext.DECIMAL128);
+			//return new BigDecimal(str.trim(), MathContext.DECIMAL128);
+			return NumberInput.parseBigDecimal(str.trim(), true);
 		}
 		catch (NumberFormatException nfe) {
 			if (Util.isEmpty(str, true)) throw new CasterException("cannot convert string[" + str + "] to a number, the string is empty");
