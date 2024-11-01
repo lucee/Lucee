@@ -9,7 +9,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mssql" {
 
 	function afterAll() {
 		if(isNotSupported()) return;
-		return;
 		query datasource=variables.datasource{
 			echo("DROP TABLE IF EXISTS LDEV4753");
 		}
