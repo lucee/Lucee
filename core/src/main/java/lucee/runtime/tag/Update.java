@@ -42,6 +42,7 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.tag.TagImpl;
 import lucee.runtime.functions.displayFormatting.DecimalFormat;
 import lucee.runtime.op.Caster;
+import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.QueryImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.scope.Form;
@@ -280,29 +281,36 @@ public final class Update extends TagImpl {
 
 		StringBuffer set = new StringBuffer();
 		StringBuffer where = new StringBuffer();
-		ArrayList setItems = new ArrayList();
-		ArrayList whereItems = new ArrayList();
+		ArrayList<SQLItem> setItems = new ArrayList<SQLItem>();
+		ArrayList<SQLItem> whereItems = new ArrayList<SQLItem>();
 		String field;
 		for (int i = 0; i < fields.length; i++) {
 			field = StringUtil.trim(fields[i], null);
 			if (StringUtil.startsWithIgnoreCase(field, "form.")) field = field.substring(5);
 
 			if (!field.equalsIgnoreCase("fieldnames")) {
+				Key fieldKey = Caster.toKey(field);
 				if (ArrayUtil.indexOfIgnoreCase(keys, field) == -1) {
 					if (set.length() == 0) set.append(" set ");
 					else set.append(",");
 					set.append(field);
 					set.append("=?");
-					ColumnInfo ci = (ColumnInfo) meta.get(field);
-					if (ci != null) setItems.add(new SQLItemImpl(form.get(field, null), ci.getType()));
-					else setItems.add(new SQLItemImpl(form.get(field, null)));
+					ColumnInfo ci = (ColumnInfo) meta.get(fieldKey);
+					if (ci != null){ 
+						Object val = form.get(fieldKey, null);
+						SQLItemImpl item = new SQLItemImpl(val, ci.getType());
+						if (ci.isNullable() && StringUtil.isEmpty(val)) item.setNulls(true);
+						setItems.add(item);
+					} else {
+						setItems.add(new SQLItemImpl(form.get(fieldKey, null)));
+					}
 				}
 				else {
 					if (where.length() == 0) where.append(" where ");
 					else where.append(" and ");
 					where.append(field);
 					where.append("=?");
-					whereItems.add(new SQLItemImpl(form.get(field, null)));
+					whereItems.add(new SQLItemImpl(form.get(fieldKey, null)));
 				}
 			}
 		}
@@ -328,19 +336,19 @@ public final class Update extends TagImpl {
 		return new SQLImpl(sql.toString(), arrayMerge(setItems, whereItems));
 	}
 
-	private SQLItem[] arrayMerge(ArrayList setItems, ArrayList whereItems) {
+	private SQLItem[] arrayMerge(ArrayList<SQLItem> setItems, ArrayList<SQLItem> whereItems) {
 		SQLItem[] items = new SQLItem[setItems.size() + whereItems.size()];
 
 		int index = 0;
 		// Item
 		int size = setItems.size();
 		for (int i = 0; i < size; i++) {
-			items[index++] = (SQLItem) setItems.get(i);
+			items[index++] = setItems.get(i);
 		}
 		// Where
 		size = whereItems.size();
 		for (int i = 0; i < size; i++) {
-			items[index++] = (SQLItem) whereItems.get(i);
+			items[index++] = whereItems.get(i);
 		}
 		return items;
 	}

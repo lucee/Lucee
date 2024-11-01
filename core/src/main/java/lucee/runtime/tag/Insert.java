@@ -42,6 +42,7 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.tag.TagImpl;
 import lucee.runtime.functions.displayFormatting.DecimalFormat;
 import lucee.runtime.op.Caster;
+import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.QueryImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
@@ -236,7 +237,7 @@ public final class Insert extends TagImpl {
 			String name;
 			while (columns.next()) {
 				name = columns.getString("COLUMN_NAME");
-				sct.setEL(name, new ColumnInfo(name, getInt(columns, "DATA_TYPE"), getBoolean(columns, "IS_NULLABLE")));
+				sct.setEL(Caster.toKey(name), new ColumnInfo(name, getInt(columns, "DATA_TYPE"), getBoolean(columns, "NULLABLE")));
 			}
 		}
 		catch (SQLException sqle) {
@@ -259,7 +260,7 @@ public final class Insert extends TagImpl {
 
 	private static boolean getBoolean(ResultSet columns, String columnLabel) throws PageException, SQLException {
 		try {
-			return columns.getBoolean(columnLabel);
+			return Caster.toBoolean(columns.getInt(columnLabel));
 		}
 		catch (Exception e) {
 			return Caster.toBooleanValue(columns.getObject(columnLabel));
@@ -292,9 +293,17 @@ public final class Insert extends TagImpl {
 				}
 				names.append(field);
 				values.append('?');
-				ColumnInfo ci = (ColumnInfo) meta.get(field, null);
-				if (ci != null) items.add(new SQLItemImpl(form.get(field, null), ci.getType()));
-				else items.add(new SQLItemImpl(form.get(field, null)));
+				Key fieldKey = Caster.toKey(field);
+				ColumnInfo ci = (ColumnInfo) meta.get(fieldKey, null);
+				if (ci != null){ 
+					Object val = form.get(fieldKey, null);
+					SQLItemImpl item = new SQLItemImpl(val, ci.getType());
+					if (ci.isNullable() && StringUtil.isEmpty(val))
+						item.setNulls(true);
+					items.add(item);
+				} else {
+					items.add(new SQLItemImpl(form.get(fieldKey, null)));
+				}
 			}
 		}
 		if (items.size() == 0) return null;
