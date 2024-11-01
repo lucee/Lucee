@@ -56,7 +56,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mssql" {
 		query name="local.q" datasource=variables.datasource params=params {
 			echo("select * from LDEV4753 where id = :id");
 		}
-		systemOutput( q, true );
 		expect ( q.recordcount ).toBe( 1, "recordcount" );
 		loop list="id,myvalue,seqno" item="local.c"{
 			expect( q[ c ] ).toBe( form[ c ] );

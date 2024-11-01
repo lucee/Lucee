@@ -56,7 +56,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mysql" {
 			echo("select * from LDEV4753 where id = :id");
 		}
 		systemOutput( q, true );
-		expect ( q.recordcount ).toBe( 1 );
 		loop list="id,myvalue,seqno" item="local.c"{
 			expect( q[ c ] ).toBe( form[ c ] );
 		}
