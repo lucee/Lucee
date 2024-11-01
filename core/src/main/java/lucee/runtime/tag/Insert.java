@@ -232,7 +232,7 @@ public final class Insert extends TagImpl {
 		Struct sct = new StructImpl();
 		try {
 			DatabaseMetaData md = dc.getConnection().getMetaData();
-			columns = md.getColumns(tableQualifier, tableOwner, tableName, null);
+			columns = md.getColumns(StringUtil.emptyAsNull(tableQualifier, true), StringUtil.emptyAsNull(tableOwner, true), tableName, "%");
 
 			String name;
 			while (columns.next()) {
