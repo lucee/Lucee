@@ -402,7 +402,6 @@
       includeantruntime="false"
       debug="true" 
       debuglevel="lines,vars,source">
-       <compilerarg arg="-XX:CompileCommand=inline,java/lang/String.charAt"/>
        <classpath refid="classpath" />
        <classpath path="${temp}/loader"/>
     </javac>
