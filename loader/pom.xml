@@ -401,7 +401,7 @@
   	<dependency>
   		<groupId>com.github.mwiede</groupId>
   		<artifactId>jsch</artifactId>
-  		<version>0.2.17</version>
+  		<version>0.2.21</version>
     	<scope>provided</scope>
   	</dependency>
   <dependency>
