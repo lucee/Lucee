@@ -564,7 +564,7 @@ component {
 					return {
 						class: 'com.mysql.cj.jdbc.Driver'
 						, bundleName: 'com.mysql.cj'
-						, bundleVersion: server.getDefaultBundleVersion( 'com.mysql.cj', '8.3.0' )
+						, bundleVersion: server.getDefaultBundleVersion( 'com.mysql.cj', '9.1.0' )
 						, connectionString: 'jdbc:mysql://#mySQL.server#:#mySQL.port#/#mySQL.database#?useUnicode=true&characterEncoding=UTF-8&useLegacyDatetimeCode=true&useSSL=false' & arguments.connectionString
 						, username: mySQL.username
 						, password: mySQL.password
