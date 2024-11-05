@@ -69,7 +69,7 @@ public class DBUtil {
 		}
 		if ("mysql".equals(type)) {
 			if (MYSQL == null) {
-				JDBCDriver jdbc = getJDBCDriver(config, "mysql", "com.mysql.cj.jdbc.Driver", "com.mysql.cj", "8.0.15", "jdbc:mysql://{host}:{port}/{database}");
+				JDBCDriver jdbc = getJDBCDriver(config, "mysql", "com.mysql.cj.jdbc.Driver", "com.mysql.cj", "9.1.0", "jdbc:mysql://{host}:{port}/{database}");
 				MYSQL = new DataSourceDefintion(jdbc.cd, jdbc.connStr, 3306);
 			}
 			return MYSQL;
