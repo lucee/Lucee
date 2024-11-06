@@ -56,7 +56,7 @@ public class HttpUtil {
 	}
 
 	public static Struct getAttributesAsStruct(HttpServletRequest req) {
-		Struct attributes = new StructImpl(StructImpl.TYPE_UNDEFINED, 64 );
+		Struct attributes = new StructImpl();
 		Enumeration e = req.getAttributeNames();
 		String name;
 		while (e.hasMoreElements()) {
