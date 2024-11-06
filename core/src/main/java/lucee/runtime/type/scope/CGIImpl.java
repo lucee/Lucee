@@ -75,7 +75,7 @@ public final class CGIImpl extends StructSupport implements CGI, ScriptProtected
 			KeyConstants._request_method, KeyConstants._request_url, KeyConstants._script_name, KeyConstants._server_name, KeyConstants._server_port,
 			KeyConstants._server_port_secure, KeyConstants._server_protocol, KeyConstants._server_software, KeyConstants._web_server_api, KeyConstants._context_path,
 			KeyConstants._local_addr, KeyConstants._local_host };
-	private static Struct staticKeys = new StructImpl();
+	private static Struct staticKeys = new StructImpl(StructImpl.TYPE_UNDEFINED, 64);
 	static {
 		for (int i = 0; i < STATIC_KEYS.length; i++) {
 			staticKeys.setEL(STATIC_KEYS[i], "");
@@ -120,7 +120,7 @@ public final class CGIImpl extends StructSupport implements CGI, ScriptProtected
 		}
 
 		// if(internal==null) {
-		internal = new StructImpl();
+		internal = new StructImpl(StructImpl.TYPE_UNDEFINED, 64);
 		aliases = new HashMap<Collection.Key, Collection.Key>();
 		String k, v;
 		Collection.Key key, alias, httpKey;
@@ -180,7 +180,7 @@ public final class CGIImpl extends StructSupport implements CGI, ScriptProtected
 
 	@Override
 	public Collection duplicate(boolean deepCopy) {
-		Struct sct = new StructImpl();
+		Struct sct = new StructImpl(StructImpl.TYPE_UNDEFINED, 64);
 		StructImpl.copy(this, sct, deepCopy);
 		return sct;
 	}

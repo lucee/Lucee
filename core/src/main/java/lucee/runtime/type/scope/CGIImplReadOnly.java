@@ -73,7 +73,7 @@ public final class CGIImplReadOnly extends ReadOnlyStruct implements CGI, Script
 			KeyConstants._request_method, KeyConstants._request_url, KeyConstants._script_name, KeyConstants._server_name, KeyConstants._server_port,
 			KeyConstants._server_port_secure, KeyConstants._server_protocol, KeyConstants._server_software, KeyConstants._web_server_api, KeyConstants._context_path,
 			KeyConstants._local_addr, KeyConstants._local_host };
-	private static Struct staticKeys = new StructImpl();
+	private static Struct staticKeys = new StructImpl(StructImpl.TYPE_UNDEFINED, 64);
 	static {
 		for (int i = 0; i < keys.length; i++) {
 			staticKeys.setEL(keys[i], "");
@@ -139,7 +139,7 @@ public final class CGIImplReadOnly extends ReadOnlyStruct implements CGI, Script
 
 	@Override
 	public Collection duplicate(boolean deepCopy) {
-		Struct sct = new StructImpl();
+		Struct sct = new StructImpl(StructImpl.TYPE_UNDEFINED, 64);
 		copy(this, sct, deepCopy);
 		return sct;
 	}
