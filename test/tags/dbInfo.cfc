@@ -1,11 +1,11 @@
 component extends="org.lucee.cfml.test.LuceeTestCase" {
 
-	variables.prefix = "dbinfo_" & left(lcase(hash(createUniqueID())), 15 ) & "_";
+	variables.prefix = "dBinfo_" & left(lcase(hash(createUniqueID())), 15 ) & "_";
 	variables._datasources = configureDatasources();
 
 	function afterAll(){
 		loop collection=variables._datasources key="local.k" value="local.v"{
-			createSchema( ds=local.v, dbtype=local.k, prefix= prefix, onlyDrop=true );
+		createSchema( ds=local.v, dbtype=local.k, prefix= prefix, onlyDrop=true );
 		}
 	};
 
@@ -18,24 +18,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 			hsqldb = server.getDatasource( "hsqldb", server._getTempDir( "tag-dbinfo-hsqldb" ) ),
 			postgres: server.getDatasource( "postgres" )
 		];
-		/*datasources = {};
-		datasources.mysql = {
-			class: "com.mysql.cj.jdbc.Driver",
-			bundleName: "com.mysql.cj",
-			bundleVersion: "8.0.33",
-			connectionString: "jdbc:mysql://localhost:33306/lucee?useUnicode=false&characterEncoding=UTF-8&serverTimezone=US/Eastern&maxReconnects=3",
-			username: "lucee",
-			password: "encrypted:d8d131548880475eb831bf209cf846a0064b6c69b066983a",
-
-			// optional settings
-			clob:true, // default: false
-			connectionLimit:10, // default:-1
-			liveTimeout:1, // default: -1; unit: minutes
-			storage:true, // default: false
-			alwaysSetTimeout:true, // default: false
-			validate:false, // default: false
-		};
-	*/
+		
 		datasources = structFilter( datasources, function( k, v ){
 			return !isEmpty( arguments.v );
 		});
@@ -167,6 +150,14 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 
 	private void function createSchema( struct ds, string dbType, string prefix, boolean onlyDrop=false ){
 
+		systemOutput(arguments, true);
+
+		function quoteIfNeeded( str, dbtype ){
+			if (arguments.dbtype != "postgres") // TODO check metadata for supportsMixedCaseQuotedIdentifiers?
+				return arguments.str;
+			else
+				return '"' & arguments.str & '"';
+		}
 
 		if (arguments.dbtype eq "oracle") { // oracle doesn't support the IF EXISTS syntax
 			try {
@@ -192,13 +183,13 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 			}
 		} else {
 			query datasource=arguments.ds {
-				echo("DROP view IF EXISTS #arguments.prefix#v_users");
+				echo('DROP view IF EXISTS #quoteIfNeeded("#arguments.prefix#v_users", arguments.dbtype)# ');
 			}
 			query datasource=arguments.ds {
-				echo("DROP TABLE IF EXISTS #arguments.prefix#users");
+				echo('DROP TABLE IF EXISTS #quoteIfNeeded("#arguments.prefix#users", arguments.dbtype)# ');
 			}
 			query datasource=arguments.ds {
-				echo("DROP TABLE IF EXISTS #arguments.prefix#roles");
+				echo('DROP TABLE IF EXISTS #quoteIfNeeded("#arguments.prefix#roles", arguments.dbtype)# ');
 			}
 		}
 
@@ -206,36 +197,40 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 			return;
 
 		query datasource=arguments.ds {
-			echo("CREATE TABLE #arguments.prefix#roles (
+			echo('CREATE TABLE #quoteIfNeeded("#arguments.prefix#roles", arguments.dbtype)# (
 				role_id INT,
 				role_name VARCHAR(100) DEFAULT NULL,
 				CONSTRAINT PK_#arguments.prefix#roles PRIMARY KEY ( role_id )
-			)");
+			)');
 	  	}
 		query datasource=arguments.ds {
-			echo("CREATE TABLE #arguments.prefix#users (
+			echo('CREATE TABLE #quoteIfNeeded("#arguments.prefix#users", arguments.dbtype)# (
 				user_id VARCHAR(50) NOT NULL,
 				user_name VARCHAR(50) NOT NULL,
 				role_id INT DEFAULT NULL,
 				CONSTRAINT PK_#arguments.prefix#users PRIMARY KEY ( user_id )
-			)");
+			)');
 		}
 		query datasource=arguments.ds {
-			echo("ALTER TABLE #arguments.prefix#users
+			echo('ALTER TABLE #quoteIfNeeded("#arguments.prefix#users", arguments.dbtype)#
 					ADD CONSTRAINT fk_#arguments.prefix#_user_role_id
 					FOREIGN KEY (role_id)
-					REFERENCES #arguments.prefix#roles ( role_id )");
+					REFERENCES #quoteIfNeeded("#arguments.prefix#roles", arguments.dbtype)# ( role_id )
+			');
 		}
 		query datasource=arguments.ds {
-			echo("CREATE INDEX idx_#arguments.prefix#_users_role_id ON #arguments.prefix#users(role_id)");
+			echo('CREATE INDEX idx_#arguments.prefix#_users_role_id 
+				ON #quoteIfNeeded("#arguments.prefix#users", arguments.dbtype)#(role_id)
+			');
 		}
 
 		query datasource=arguments.ds {
-			echo("CREATE VIEW #arguments.prefix#v_users AS
+			echo('CREATE VIEW #quoteIfNeeded("#arguments.prefix#v_users")# AS
 				SELECT	u.user_id, u.user_name, r.role_id, r.role_name
-				FROM 	#arguments.prefix#users u, #arguments.prefix#roles r
+				FROM 	#quoteIfNeeded("#arguments.prefix#users", arguments.dbtype)# u,
+						#quoteIfNeeded("#arguments.prefix#roles", arguments.dbtype)# r
 				WHERE	r.role_id = u.role_id
-			");
+			');
 		}
 		/*
 		query name="local.tables" params={ table: arguments.prefix & "%" } datasource=arguments.ds {
