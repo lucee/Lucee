@@ -75,7 +75,33 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mappings" {
         expandPath( '/');
     }
 
-     
-        
+    public void function testForDirectoryWinStyleWithPlaceholder(){
+        var uid = createUniqueID();
+        var trgWin=expandPath("{temp-directory}/#uid#\");
+        expect(right(trgWin,1)).toBe(sep, trgWin);
+        expect(trgWin).toInclude(uid);
+    }
+
+    public void function testForDirectoryUnixStyleWithPlaceholder(){
+        var uid = createUniqueID();
+        var trgUnix=expandPath("{temp-directory}/#uid#/");
+        expect(right(trgUnix,1)).toBe(sep, trgUnix);
+        expect(trgWUnix).toInclude(uid);
+    }
+
+    public void function testForDirectoryWinStyle(){
+        var uid = createUniqueID();
+        var trgWin=expandPath("#getTempDirectory()#/#uid#\");
+        expect(right(trgWin,1)).toBe(sep, trgWin);
+        expect(trgWin).toInclude(uid);
+    }
+
+    public void function testForDirectoryUnixStyle(){
+        var uid = createUniqueID();
+        var trgUnix=expandPath("#getTempDirectory()#/#uid#/");
+        expect(right(trgUnix,1)).toBe(sep, trgUnix);
+        expect(trgUnix).toInclude(uid);
+    }
+
 }
 </cfscript>
