@@ -143,6 +143,8 @@ public final class ExpandPath implements Function {
 		boolean pathEndsWithSep = StringUtil.endsWith(path, pathChar);
 		boolean realEndsWithSep = StringUtil.endsWith(realPath, '/');
 
+		if (!realEndsWithSep && SystemUtil.isWindows()) realEndsWithSep = StringUtil.endsWith(realPath, '\\');
+
 		if (realEndsWithSep) {
 			if (!pathEndsWithSep) path = path + pathChar;
 		}

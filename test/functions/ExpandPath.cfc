@@ -86,7 +86,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mappings" {
         var uid = createUniqueID();
         var trgUnix=expandPath("{temp-directory}/#uid#/");
         expect(right(trgUnix,1)).toBe(sep, trgUnix);
-        expect(trgWUnix).toInclude(uid);
+        expect(trgUnix).toInclude(uid);
     }
 
     public void function testForDirectoryWinStyle(){
