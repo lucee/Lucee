@@ -219,7 +219,7 @@ if(datasources.clob) optional.append('clob:#datasources.clob# // default: false'
 if(isNumeric(datasources.connectionLimit))optional.append('connectionLimit:#datasources.connectionLimit# // default:-1');
 if(datasources.connectionTimeout NEQ 1)optional.append('connectionTimeout:#datasources.connectionTimeout# // default: 1; unit: seconds');
 if(datasources.metaCacheTimeout NEQ 60000)optional.append(',metaCacheTimeout:#datasources.metaCacheTimeout# // default: 60000; unit: milliseconds');
-if(len(datasources.timezone))optional.append("timezone:'#replace(datasources.timezone,"'","''","all")#'");
+if(len(datasources.timezone))optional.append("timezone:'#replace(datasources.timezone,"'","''","all")#' // default is same as lucee instance");
 if(datasources.storage) optional.append('storage:#datasources.storage# // default: false');
 if(datasources.readOnly) optional.append('readOnly:#datasources.readOnly# // default: false');
 </cfscript>
