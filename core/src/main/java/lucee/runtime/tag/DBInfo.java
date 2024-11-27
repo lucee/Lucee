@@ -520,6 +520,7 @@ public final class DBInfo extends TagImpl {
 
 	private String setCase(DatabaseMetaData metaData, String id) throws SQLException {
 		if (StringUtil.isEmpty(id)) return "%";
+		if (metaData.supportsMixedCaseQuotedIdentifiers()) return id;
 		if (metaData.storesLowerCaseIdentifiers()) return id.toLowerCase();
 		if (metaData.storesUpperCaseIdentifiers()) return id.toUpperCase();
 		return id;
@@ -527,7 +528,7 @@ public final class DBInfo extends TagImpl {
 
 	private String setFilterCase(DatabaseMetaData metaData, String id) {
 		if (StringUtil.isEmpty(id)) return null;
-		else return id.toUpperCase();
+		return id.toUpperCase();
 	}
 
 	private void typeIndex(Connection conn) throws PageException, SQLException {
