@@ -164,6 +164,40 @@ public final class HTTPUtil {
 		if (port <= 0) port = url.getPort();
 
 		// decode path
+		path = decodePath(path, encodeOnlyWhenNecessary);
+
+		// decode query
+		query = decodeQuery(query, '?');
+
+		String file = path + query;
+
+		// decode ref/anchor
+		if (ref != null) {
+			file += "#" + escapeQSValue(ref, encodeOnlyWhenNecessary);
+		}
+
+		// user/password
+		if (!StringUtil.isEmpty(user)) {
+			int index = user.indexOf(':');
+			if (index != -1) {
+				user = escapeQSValue(user.substring(0, index), encodeOnlyWhenNecessary) + ":" + escapeQSValue(user.substring(index + 1), encodeOnlyWhenNecessary);
+			}
+			else user = escapeQSValue(user, encodeOnlyWhenNecessary);
+
+			String strUrl = getProtocol(url) + "://" + user + "@" + url.getHost();
+			if (port > 0) strUrl += ":" + port;
+			strUrl += file;
+			return new URL(strUrl);
+		}
+
+		// port
+		if (port <= 0) return new URL(url.getProtocol(), url.getHost(), file);
+		return new URL(url.getProtocol(), url.getHost(), port, file);
+
+	}
+
+	private static String decodePath(String path, boolean encodeOnlyWhenNecessary) {
+		// decode path
 		if (!StringUtil.isEmpty(path)) {
 			int sqIndex = path.indexOf(';');
 			String q = null;
@@ -183,7 +217,7 @@ public final class HTTPUtil {
 
 				if (StringUtil.isEmpty(str)) continue;
 				res.append("/");
-				res.append(escapeQSValue(str, encodeOnlyWhenNecessary));
+				res.append(escapePathValue(str, encodeOnlyWhenNecessary));
 			}
 			if (StringUtil.endsWith(path, '/')) res.append('/');
 			path = res.toString();
@@ -192,35 +226,7 @@ public final class HTTPUtil {
 				path += decodeQuery(q, ';');
 			}
 		}
-
-		// decode query
-		query = decodeQuery(query, '?');
-
-		String file = path + query;
-
-		// decode ref/anchor
-		if (ref != null) {
-			file += "#" + escapeQSValue(ref, encodeOnlyWhenNecessary);
-		}
-
-		// user/pasword
-		if (!StringUtil.isEmpty(user)) {
-			int index = user.indexOf(':');
-			if (index != -1) {
-				user = escapeQSValue(user.substring(0, index), encodeOnlyWhenNecessary) + ":" + escapeQSValue(user.substring(index + 1), encodeOnlyWhenNecessary);
-			}
-			else user = escapeQSValue(user, encodeOnlyWhenNecessary);
-
-			String strUrl = getProtocol(url) + "://" + user + "@" + url.getHost();
-			if (port > 0) strUrl += ":" + port;
-			strUrl += file;
-			return new URL(strUrl);
-		}
-
-		// port
-		if (port <= 0) return new URL(url.getProtocol(), url.getHost(), file);
-		return new URL(url.getProtocol(), url.getHost(), port, file);
-
+		return path;
 	}
 
 	private static String decodeQuery(String query, char startDelimiter) {
@@ -268,35 +274,7 @@ public final class HTTPUtil {
 		if (port <= 0) port = uri.getPort();
 
 		// decode path
-		if (!StringUtil.isEmpty(path)) {
-
-			int sqIndex = path.indexOf(';');
-			String q = null;
-			if (sqIndex != -1) {
-				q = path.substring(sqIndex + 1);
-				path = path.substring(0, sqIndex);
-			}
-
-			StringBuilder res = new StringBuilder();
-
-			StringList list = ListUtil.toListTrim(path, '/');
-			String str;
-
-			while (list.hasNext()) {
-				str = list.next();
-				// str=URLDecoder.decode(str);
-
-				if (StringUtil.isEmpty(str)) continue;
-				res.append("/");
-				res.append(escapeQSValue(str, true));
-			}
-			if (StringUtil.endsWith(path, '/')) res.append('/');
-			path = res.toString();
-
-			if (sqIndex != -1) {
-				path += decodeQuery(q, ';');
-			}
-		}
+		path = decodePath(path, true);
 
 		// decode query
 		query = decodeQuery(query, '?');
@@ -306,7 +284,7 @@ public final class HTTPUtil {
 			fragment = escapeQSValue(fragment, true);
 		}
 
-		// user/pasword
+		// user/password
 		if (!StringUtil.isEmpty(userInfo)) {
 			int index = userInfo.indexOf(':');
 			if (index != -1) {
@@ -369,6 +347,26 @@ public final class HTTPUtil {
 
 	public static String escapeQSValue(String str, boolean encodeOnlyWhenNecessary) {
 		if (encodeOnlyWhenNecessary && !ReqRspUtil.needEncoding(str)) return str;
+		PageContextImpl pc = (PageContextImpl) ThreadLocalPageContext.get();
+		if (pc != null) {
+			try {
+				return URLEncoder.encode(str, pc.getWebCharset());
+			}
+			catch (UnsupportedEncodingException e) {
+			}
+		}
+		return URLEncoder.encode(str);
+	}
+
+	public static String escapePathValue(String str, boolean encodeOnlyWhenNecessary) {
+		if (encodeOnlyWhenNecessary){
+			boolean hasPlus = str.indexOf('+') != -1;
+			boolean needsEncoding = ReqRspUtil.needEncoding(str, false);
+			//  in a path, space should be encoded as %20, URLEncoder.encode does this
+			if (!hasPlus && !needsEncoding) return str;
+			else if (hasPlus && !needsEncoding) return StringUtil.replace(str, "+", "%20", false);
+		} 
+
 		PageContextImpl pc = (PageContextImpl) ThreadLocalPageContext.get();
 		if (pc != null) {
 			try {
