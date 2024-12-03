@@ -359,13 +359,14 @@ public final class HTTPUtil {
 	}
 
 	public static String escapePathValue(String str, boolean encodeOnlyWhenNecessary) {
-		if (encodeOnlyWhenNecessary){
-			boolean hasPlus = str.indexOf('+') != -1;
-			boolean needsEncoding = ReqRspUtil.needEncoding(str, false);
-			//  in a path, space should be encoded as %20, URLEncoder.encode does this
-			if (!hasPlus && !needsEncoding) return str;
-			else if (hasPlus && !needsEncoding) return StringUtil.replace(str, "+", "%20", false);
-		} 
+		boolean hasPlus = str.indexOf('+') != -1;
+		boolean needsEncoding = ReqRspUtil.needEncoding(str, false);
+		//  in a path, space should be encoded as %20, URLEncoder.encode does this
+		if (!hasPlus && !needsEncoding) return str;
+		else if (hasPlus && !needsEncoding) return StringUtil.replace(str, "+", "%20", false);
+		else if (encodeOnlyWhenNecessary && !needsEncoding) return str;
+
+		if (hasPlus) str = StringUtil.replace(str, "+", " ", false); // otherwise + is encoded to %2B
 
 		PageContextImpl pc = (PageContextImpl) ThreadLocalPageContext.get();
 		if (pc != null) {
