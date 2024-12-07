@@ -92,7 +92,8 @@ component {
 	 onBundleStart = function( cfc, testResults ){
 		var meta = getComponentMetadata( cfc );
 		systemOutput( "" , true );
-		systemOutput(structKeyList(getApplicationSettings().mappings), true );
+		application name="testBundle-#meta.name#";
+		//systemOutput(structKeyList(getApplicationSettings().mappings), true );
 		SystemOut.setOut( out );
 		//SystemOut.setErr(err);
 		//"============================================================="
