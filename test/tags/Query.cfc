@@ -223,7 +223,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		testAsyn(new query.QueryListener2(tbl),tbl,1);
 	}
 
-
+	// Query Listener UDFs don't have the current application scope https://luceeserver.atlassian.net/browse/LDEV-5187 
 	public void function testAsynUDF() {
 		var udf=function (caller,args,result,meta) {
 				arguments.args.sql="insert into QueryTestAsync(id,i,dec) values('6',1,1.0)"; // change SQL
