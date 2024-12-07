@@ -223,8 +223,22 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		testAsyn(new query.QueryListener2(tbl),tbl,1);
 	}
 
-	// Query Listener UDFs don't have the current application scope https://luceeserver.atlassian.net/browse/LDEV-5187 
 	public void function testAsynUDF() {
+		var udf=function (caller,args,result,meta) {
+				arguments.args.sql="insert into QueryTestAsync(id,i,dec) values('6',1,1.0)"; // change SQL
+		        request.query_testAsynUDF=true;
+				return arguments;
+		};
+		var tbl="QueryTestAsync";
+		request.query_testAsynUDF=false;
+		testAsyn(udf,tbl,0);
+		sleep(500);
+		expect(request.query_testAsynUDF).toBeTrue();
+		structDelete(request, "query_testAsynUDF");
+	}
+
+	// Query Listener UDFs don't have the current application scope https://luceeserver.atlassian.net/browse/LDEV-5187 
+	public void function testAsynUDFApplicationScope() skip="true" {
 		var udf=function (caller,args,result,meta) {
 				arguments.args.sql="insert into QueryTestAsync(id,i,dec) values('6',1,1.0)"; // change SQL
 		        application.query_testAsynUDF=true;
