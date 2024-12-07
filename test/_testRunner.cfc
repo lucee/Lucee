@@ -1,6 +1,8 @@
 component {
 	// track which request variables exist before running tests, used for cleanup between tests
 	variables.requestKeys = ArrayToStruct( StructKeyArray( request ), true );
+	variables.requestKeys["$testId"] = "";  // used by testbox
+	variables.requestKeys["testbox"] = "";  // used by testbox
 
 	public function init (){
 		return this;
