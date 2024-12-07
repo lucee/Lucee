@@ -228,12 +228,16 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		var udf=function (caller,args,result,meta) {
 				arguments.args.sql="insert into QueryTestAsync(id,i,dec) values('6',1,1.0)"; // change SQL
 		        application.query_testAsynUDF=true;
+				systemOutput(application.query_testAsynUDF & " listener [#getApplicationSettings().name#]", true);
 				systemOutput(arguments, true);
 				return arguments;
 		};
 		var tbl="QueryTestAsync";
 		application.query_testAsynUDF=false;
+		systemOutput(application.query_testAsynUDF & " pre test, [#getApplicationSettings().name#]" , true);
 		testAsyn(udf,tbl,0);
+		sleep(500);
+		systemOutput(application.query_testAsynUDF & " post test, [#getApplicationSettings().name#]" , true);
 		expect(application.query_testAsynUDF).toBeTrue();
 	}
 
