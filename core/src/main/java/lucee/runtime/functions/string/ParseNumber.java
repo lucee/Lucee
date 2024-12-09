@@ -85,7 +85,7 @@ public class ParseNumber {
 		if (strNumber.indexOf('.') != -1 && radix != DEC) throw new ExpressionException("The radix con only be [dec] for floating point numbers");
 
 		if (radix == DEC) {
-			return Caster.toDoubleValue(strNumber);
+			return Caster.toNumber(strNumber); // this should return a bigInteger when preciseMath is enabled
 		}
 		return Integer.parseInt(strNumber, radix);
 	}
