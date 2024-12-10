@@ -114,9 +114,11 @@ component extends="org.lucee.cfml.test.LuceeTestCase"  labels="mongodb"	{
 		assertEquals(isNull(byid),true)
 	}
 
-	public void function testMongoDBID() skip="isNotSupported" {
+	public void function testMongoDBID_orig() skip="isNotSupported" {
 		if(isNotSupported()) return;
-		var id = MongoDBID();
+		var _id = MongoDBID();
+		var id = {}; // workaround https://ortussolutions.atlassian.net/browse/TESTBOX-370
+		structAppend(id, _id);
 		$assert.key(id,"date");
 		$assert.key(id,"timestamp");
 		$assert.key(id,"id");
