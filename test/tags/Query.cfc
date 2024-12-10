@@ -242,7 +242,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		var tbl="QueryTestAsync";
 		expect(server.query_testAsynUDF).toBeFalse();
 		testAsyn(udf,tbl,0);
-		sleep(200);
+		sleep(800); // allow the async test to complete
 		expect(server.query_testAsynUDF).toBeTrue();
 		structDelete( server, "query_testAsynUDF");
 	}
