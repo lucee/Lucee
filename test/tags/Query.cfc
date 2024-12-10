@@ -240,9 +240,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 				return arguments;
 		};
 		var tbl="QueryTestAsync";
-		server.query_testAsynUDF=false;
+		expect(server.query_testAsynUDF).toBeFalse();
 		testAsyn(udf,tbl,0);
-		sleep(600);
+		sleep(200);
 		expect(server.query_testAsynUDF).toBeTrue();
 		structDelete( server, "query_testAsynUDF");
 	}
