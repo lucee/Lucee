@@ -232,7 +232,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	 	but get the default name="" application scope instead
 	 	https://luceeserver.atlassian.net/browse/LDEV-5187 
 	*/
-	public void function testAsynUDF {
+	public void function testAsynUDF() {
 		server.query_testAsynUDF=false;
 		var udf=function (caller,args,result,meta) {
 				arguments.args.sql="insert into QueryTestAsync(id,i,dec) values('6',1,1.0)"; // change SQL
