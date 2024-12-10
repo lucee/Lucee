@@ -92,7 +92,7 @@ component {
 	 onBundleStart = function( cfc, testResults ){
 		var meta = getComponentMetadata( cfc );
 		systemOutput( "" , true );
-		// application name="testBundle-#meta.name#"; // TODO see https://luceeserver.atlassian.net/browse/LDEV-5187
+		application name="testBundle-#meta.name#";
 		//systemOutput(structKeyList(getApplicationSettings().mappings), true );
 		SystemOut.setOut( out );
 		//SystemOut.setErr(err);

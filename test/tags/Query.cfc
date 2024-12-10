@@ -20,6 +20,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	//processingdirective pageencoding="UTF-8";
 	variables.suffix="Query";
 
+	function afterAll(){
+		structDelete( server, "query_testAsynUDF");
+	}
+
 	public function beforeTests(){
 		defineDatasource();
 
@@ -223,36 +227,24 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		testAsyn(new query.QueryListener2(tbl),tbl,1);
 	}
 
-	public void function testAsynUDF() {
+	/*
+	 	Async Query Listener UDFs get the current application scope
+	 	but get the default name="" application scope instead
+	 	https://luceeserver.atlassian.net/browse/LDEV-5187 
+	*/
+	public void function testAsynUDF {
+		server.query_testAsynUDF=false;
 		var udf=function (caller,args,result,meta) {
 				arguments.args.sql="insert into QueryTestAsync(id,i,dec) values('6',1,1.0)"; // change SQL
-		        request.query_testAsynUDF=true;
+		        server.query_testAsynUDF=true;
 				return arguments;
 		};
 		var tbl="QueryTestAsync";
-		request.query_testAsynUDF=false;
+		server.query_testAsynUDF=false;
 		testAsyn(udf,tbl,0);
 		sleep(500);
-		expect(request.query_testAsynUDF).toBeTrue();
-		structDelete(request, "query_testAsynUDF");
-	}
-
-	// Query Listener UDFs don't have the current application scope https://luceeserver.atlassian.net/browse/LDEV-5187 
-	public void function testAsynUDFApplicationScope() skip="true" {
-		var udf=function (caller,args,result,meta) {
-				arguments.args.sql="insert into QueryTestAsync(id,i,dec) values('6',1,1.0)"; // change SQL
-		        application.query_testAsynUDF=true;
-				systemOutput(application.query_testAsynUDF & " listener [#getApplicationSettings().name#]", true);
-				systemOutput(arguments, true);
-				return arguments;
-		};
-		var tbl="QueryTestAsync";
-		application.query_testAsynUDF=false;
-		systemOutput(application.query_testAsynUDF & " pre test, [#getApplicationSettings().name#]" , true);
-		testAsyn(udf,tbl,0);
-		sleep(500);
-		systemOutput(application.query_testAsynUDF & " post test, [#getApplicationSettings().name#]" , true);
-		expect(application.query_testAsynUDF).toBeTrue();
+		expect(server.query_testAsynUDF).toBeTrue();
+		structDelete( server, "query_testAsynUDF");
 	}
 
 	public void function testAsynStructUDF() {
