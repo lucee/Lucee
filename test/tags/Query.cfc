@@ -242,7 +242,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		var tbl="QueryTestAsync";
 		server.query_testAsynUDF=false;
 		testAsyn(udf,tbl,0);
-		sleep(500);
+		sleep(600);
 		expect(server.query_testAsynUDF).toBeTrue();
 		structDelete( server, "query_testAsynUDF");
 	}
@@ -280,7 +280,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 			} 
 
 			sleep(500);
-			systemOutput("post sleep", true);
 			query name="local.qry" {
 				echo("select * from "&tbl);
 			}
