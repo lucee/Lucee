@@ -1615,7 +1615,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 		//lucee.aprint.o("");
 		//lucee.aprint.o(size);
 
-		StringBuffer sb = new StringBuffer(size);
+		StringBuffer sb = new StringBuffer();
 
 		sb.append("| Query: ").append(this.name).append("\tRecordCount: ").append(getRecordcount()).append('\n');
 
