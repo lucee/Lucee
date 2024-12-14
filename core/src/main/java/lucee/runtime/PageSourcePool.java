@@ -51,7 +51,7 @@ import lucee.runtime.type.dt.DateTimeImpl;
 public final class PageSourcePool implements Dumpable {
 	// TODO must not be thread safe, is used in sync block only
 	private final Map<String, SoftReference<PageSource>> pageSources = new ConcurrentHashMap<String, SoftReference<PageSource>>();
-	private int maxSize_min = 1000;
+	private int maxSize_min = 767;
 	private PageSourcePoolWatcher watcher;
 	private Object token = new SerializableObject();
 	private MappingImpl mapping;
