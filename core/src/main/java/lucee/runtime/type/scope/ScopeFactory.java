@@ -27,7 +27,7 @@ import lucee.runtime.PageContext;
  */
 public final class ScopeFactory {
 
-	private static final int MAX_SIZE = 47;
+	private static final int MAX_SIZE = 50;
 
 	int argumentCounter = 0;
 
