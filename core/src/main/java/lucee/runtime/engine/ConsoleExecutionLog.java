@@ -26,8 +26,8 @@ import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.util.ResourceSnippet;
 import lucee.commons.io.res.util.ResourceSnippetsMap;
 import lucee.runtime.PageContext;
+import lucee.runtime.PageSource;
 import lucee.runtime.PageContextImpl;
-import lucee.runtime.functions.math.Int;
 import lucee.runtime.op.Caster;
 
 public class ConsoleExecutionLog extends ExecutionLogSupport {
@@ -52,11 +52,12 @@ public class ConsoleExecutionLog extends ExecutionLogSupport {
 
 	@Override
 	protected void _log(int startPos, int endPos, long startTime, long endTime) {
-
+		PageSource ps = pc.getCurrentPageSource(null);
+		if (ps == null) return;
 		long diff = endTime - startTime;
-		String log = pc.getId() + ":" + pc.getCurrentPageSource().getDisplayPath() + ":";
+		String log = pc.getId() + ":" + ps.getDisplayPath() + ":";
 		if (snippet) {
-			ResourceSnippet snippet = snippetsMap.getSnippet(pc.getCurrentPageSource(), startPos, endPos, ((PageContextImpl) pc).getResourceCharset().name());
+			ResourceSnippet snippet = snippetsMap.getSnippet(ps, startPos, endPos, ((PageContextImpl) pc).getResourceCharset().name());
 			log += positions(snippet.getEndLine(), snippet.getEndLine()) + " > " + timeLongToString(diff) + " [" + snippet.getContent() + "]";
 		} else {
 			log += positions(startPos, endPos) + " > " + timeLongToString(diff);
