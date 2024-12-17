@@ -19,6 +19,8 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 					"min-time": 100,
 					"snippet": true
 				});
+				systemOutput("", true);
+				systemOutput("Logging executionLog to console", true);
 				local.result = _InternalRequest(
 					template : "#uri#/ldev5206.cfm"
 				);
