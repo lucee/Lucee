@@ -24,6 +24,9 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 				local.result = _InternalRequest(
 					template : "#uri#/ldev5206.cfm"
 				);
+				systemOutput("Logging debugEntries to console", true);
+				systemOutput(getDebugEntry(), true);
+				systemOutput("finished", true);
 			});
 
 		});
@@ -38,12 +41,20 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 		admin action="UpdateExecutionLog" type="server" password="#request.SERVERADMINPASSWORD#"
 			class="#arguments.class#" enabled= true
 			arguments=arguments.args;
-		admin action="updateDebug" type="server" password="#request.SERVERADMINPASSWORD#" debug="true";
+		admin action="updateDebug" type="server" password="#request.SERVERADMINPASSWORD#" debug="true" template="true"; // template needs to be enabled to produce debug logs
 	}
 	private function disableExecutionLog(class="lucee.runtime.engine.ConsoleExecutionLog"){
 		admin action="updateDebug" type="server" password="#request.SERVERADMINPASSWORD#" debug="false";
 
 		admin action="UpdateExecutionLog" type="server" password="#request.SERVERADMINPASSWORD#" arguments={}
 			class="#arguments.class#" enabled=false;
+		admin action="PurgeDebugPool" type="server" password="#request.SERVERADMINPASSWORD#";
 	}
+
+	private function getDebugEntry(){
+		var logs = [];
+		admin action="getDebugEntry" type="server" password="#request.SERVERADMINPASSWORD#" returnVariable="logs";
+		return logs;
+	}
+	
 }
