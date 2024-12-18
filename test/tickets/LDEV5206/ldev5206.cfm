@@ -1,4 +1,5 @@
 <cfscript>
+	// test DebugExecutionLog refers to this code, update if changed
 	sleep(5);
 	echo("back from sleep");
 	cfc = new ldev5206();
