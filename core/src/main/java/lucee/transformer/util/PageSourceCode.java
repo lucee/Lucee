@@ -29,7 +29,7 @@ import lucee.runtime.PageSource;
 public class PageSourceCode extends SourceCode {
 
 	private final Charset charset;
-	private final PageSource ps;
+	private final PageSource ps;	
 
 	public PageSourceCode(PageSource ps, Charset charset, boolean writeLog) throws IOException {
 		super(null, toString(ps, charset), writeLog);
@@ -42,6 +42,13 @@ public class PageSourceCode extends SourceCode {
 		super(null, text, writeLog);
 		this.charset = charset;
 		this.ps = ps;
+	}
+
+	public PageSourceCode(PageSource ps, String text, Charset charset, boolean writeLog, int sourceOffset) {
+		super(null, text, writeLog);
+		this.charset = charset;
+		this.ps = ps;
+		ps.setSourceOffset(sourceOffset);
 	}
 
 	public static String toString(PageSource ps, Charset charset) throws IOException {

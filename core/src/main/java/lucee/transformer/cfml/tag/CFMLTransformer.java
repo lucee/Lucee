@@ -165,7 +165,8 @@ public final class CFMLTransformer {
 
 					// try inside a cfscript
 					String text = "<" + scriptTag.getFullName() + ">" + original.getText() + "\n</" + scriptTag.getFullName() + ">";
-					sc = new PageSourceCode(ps, text, charset, writeLog);
+					int sourceOffset = ("<" + scriptTag.getFullName() + ">").length();
+					sc = new PageSourceCode(ps, text, charset, writeLog, sourceOffset);
 				}
 
 				p = transform(factory, config, sc, tlibs, flibs, ps.getResource().lastModified(), dotUpper, returnValue, ignoreScopes);
@@ -198,14 +199,15 @@ public final class CFMLTransformer {
 
 			// try inside a cfscript
 			String text = "<" + scriptTag.getFullName() + ">" + original.getText() + "\n</" + scriptTag.getFullName() + ">";
-			sc = new PageSourceCode(ps, text, charset, writeLog);
+			int sourceOffset = ("<" + scriptTag.getFullName() + ">").length();
+			sc = new PageSourceCode(ps, text, charset, writeLog, sourceOffset);
 
 			try {
 				while (true) {
 					if (sc == null) {
 						sc = new PageSourceCode(ps, charset, writeLog);
 						text = "<" + scriptTag.getFullName() + ">" + sc.getText() + "\n</" + scriptTag.getFullName() + ">";
-						sc = new PageSourceCode(ps, text, charset, writeLog);
+						sc = new PageSourceCode(ps, text, charset, writeLog, sourceOffset);
 					}
 					try {
 						_p = transform(factory, config, sc, tlibs, flibs, ps.getResource().lastModified(), dotUpper, returnValue, ignoreScopes);
