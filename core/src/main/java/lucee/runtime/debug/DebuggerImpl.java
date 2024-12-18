@@ -576,6 +576,8 @@ public final class DebuggerImpl implements Debugger {
 				qrySize = Math.min(filteredPartEntries.size(), MAX_PARTS);
 				parts = new DebugEntryTemplatePart[qrySize];
 
+				Collections.sort(filteredPartEntries, DEBUG_ENTRY_TEMPLATE_PART_COMPARATOR);
+
 				if (filteredPartEntries.size() > MAX_PARTS) parts = filteredPartEntries.subList(0, MAX_PARTS).toArray(parts);
 				else parts = filteredPartEntries.toArray(parts);
 			}	
