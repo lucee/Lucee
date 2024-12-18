@@ -21,30 +21,31 @@ package lucee.runtime.engine;
 import java.io.PrintWriter;
 import java.util.Map;
 
+import lucee.commons.io.log.Log;
+import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.util.ResourceSnippet;
 import lucee.commons.io.res.util.ResourceSnippetsMap;
+import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageSource;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.op.Caster;
 
-public class ConsoleExecutionLog extends ExecutionLogSupport {
+public class LogExecutionLog extends ExecutionLogSupport {
 
-	private PrintWriter pw;
 	private PageContext pc;
 	private ResourceSnippetsMap snippetsMap = new ResourceSnippetsMap(1024, 128);
 	private boolean snippet = false;
+	private int logLevel;
+	private String logName;
 
 	@Override
 	protected void _init(PageContext pc, Map<String, String> arguments) {
 		this.pc = pc;
 		if (Caster.toBooleanValue(arguments.get("snippet"), false)) snippet = true;
-		if (pw == null) {
-			// stream type
-			String type = arguments.get("stream-type");
-			if (type.trim().equalsIgnoreCase("error")) pw = new PrintWriter(System.err);
-			else pw = new PrintWriter(System.out);
-		}
+		String type = arguments.get("log-level");
+		logLevel = LogUtil.toLevel(type, Log.LEVEL_TRACE);
+		logName = StringUtil.toString(arguments.get("log-name"), Controler.class.getName());
 	}
 
 	@Override
@@ -59,13 +60,11 @@ public class ConsoleExecutionLog extends ExecutionLogSupport {
 		} else {
 			log += positions(startPos, endPos) + " > " + timeLongToString(diff);
 		}
-		pw.print(log + "\n");
-		pw.flush();
+		LogUtil.log(pc, logLevel, Controler.class.getName(), log);
 	}
 
 	@Override
 	protected void _release() {
-		//if (pw != null) pw.close();
 		snippetsMap = null;
 	}
 
