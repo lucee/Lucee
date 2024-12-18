@@ -158,7 +158,7 @@ public final class ExpressionUtil {
 			GeneratorAdapter adapter = bc.getAdapter();
 			adapter.loadArg(0);
 			// adapter.checkCast(Types.PAGE_CONTEXT_IMPL);
-			adapter.push(pos.pos);
+			adapter.push(pos.pos - bc.getPageSource().getSourceOffset());
 			adapter.push(id);
 			adapter.invokeVirtual(Types.PAGE_CONTEXT, method);
 		}
