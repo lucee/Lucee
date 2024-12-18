@@ -25,6 +25,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 				);
 			});
 		});
+
 		describe( "LDEV-5206 DebugExecutionLog", function(){
 			it( "test DebugExecutionLog - cfm ", function(){
 				var logs = getDebugLogs();
@@ -35,6 +36,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 				expect( pageParts ).toBeQuery();
 				//systemOutput( pageParts.toString(), true );
 				pageParts = _toPartsStruct( pageParts );
+				//systemOutput( structKeyList(pageParts), true );
 				//systemOutput( pageParts, true );
 				
 				var key = "ldev5206.cfm:3:3";
@@ -64,7 +66,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 				expect( pageParts[ key  ].snippet ).toBe( "cfc.doSleep()" ); // LDEV-5207
 			});
 
-			xit( "test DebugExecutionLog - cfc parts ", function(){
+			it( "test DebugExecutionLog - cfc parts ", function(){
 				var logs = getDebugLogs();
 				expect( len( logs ) ).toBe( 1 );
 				var log = logs[ 1 ];
@@ -74,9 +76,11 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 				//systemOutput( pageParts.toString(), true );
 				pageParts = _toPartsStruct( pageParts );
 
+				/*
 				key = "ldev5206.cfc:5:5";
 				expect( pageParts ).toHaveKey( key );
-				expect( pageParts[ key  ].snippet ).toBe( "sleep(5)" );
+				expect( pageParts[ key  ].snippet ).toBe( "sleep(5)" ); // LDEV-5207
+				*/
 
 				key = "ldev5206_tag.cfc:6:6";
 				expect( pageParts ).toHaveKey( key );

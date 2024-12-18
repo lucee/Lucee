@@ -72,7 +72,7 @@ public class ConsoleExecutionLog extends ExecutionLogSupport {
 
 	@Override
 	protected void _release() {
-		if (pw != null) pw.close();
+		//if (pw != null) pw.close();
 		snippetsMap = null;
 	}
 

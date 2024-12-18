@@ -396,5 +396,10 @@
         "sysprop": "lucee.threads.maxDefault",
         "envvar": "LUCEE_THREADS_MAXDEFAULT",
         "desc": "Sets the default max number of parallel threads, default 20"
+    },
+    {
+        "sysprop": "lucee.debugging.maxPageParts",
+        "envvar": "LUCEE_DEBUGGING_MAXPAGEPARTS",
+        "desc": "Maximum number of debugging page parts (executionLogs to output), 0 to disable max limit"
     }
 ]

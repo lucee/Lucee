@@ -21,6 +21,7 @@ package lucee.runtime.engine;
 import java.util.Map;
 
 import lucee.runtime.PageContext;
+import lucee.runtime.PageSource;
 import lucee.runtime.debug.DebugEntry;
 import lucee.runtime.util.PageContextUtil;
 
@@ -37,12 +38,14 @@ public class DebugExecutionLog extends ExecutionLogSupport {
 	protected void _log(int startPos, int endPos, long startTime, long endTime) {
 
 		if (!PageContextUtil.debug(pc)) return;
-
+		PageSource ps = pc.getCurrentPageSource(null);
+		if (ps == null) return;
+		
 		long diff = endTime - startTime;
 		if (unit == UNIT_MICRO) diff /= 1000;
 		else if (unit == UNIT_MILLI) diff /= 1000000;
 
-		DebugEntry de = pc.getDebugger().getEntry(pc, pc.getCurrentPageSource(), startPos, endPos);
+		DebugEntry de = pc.getDebugger().getEntry(pc, ps, startPos, endPos);
 		de.updateExeTime((int) diff);
 	}
 

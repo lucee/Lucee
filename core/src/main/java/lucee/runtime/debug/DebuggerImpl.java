@@ -108,7 +108,7 @@ public final class DebuggerImpl implements Debugger {
 	private static final Collection.Key GENERIC_DATA = KeyConstants._genericData;
 	private static final Collection.Key PAGE_PARTS = KeyConstants._pageParts;
 
-	private static final int MAX_PARTS = 100;
+	private static final int MAX_PARTS = Caster.toIntValue(SystemUtil.getSystemPropOrEnvVar("lucee.debugging.maxPageParts", null), 0);
 
 	private final Map<String, DebugEntryTemplateImpl> entries = new HashMap<String, DebugEntryTemplateImpl>();
 	private Map<String, DebugEntryTemplatePartImpl> partEntries;
@@ -236,7 +236,7 @@ public final class DebuggerImpl implements Debugger {
 			if (de != null) {
 				de.countPP();
 				return de;
-			}
+			} 
 		}
 		else {
 			partEntries = new HashMap<String, DebugEntryTemplatePartImpl>();
@@ -559,26 +559,31 @@ public final class DebuggerImpl implements Debugger {
 		int qrySize = 0;
 		Query qryPart = null;
 		if (hasParts) {
-			String slowestTemplate = arrPages.get(0).getPath();
-			List<DebugEntryTemplatePart> filteredPartEntries = new ArrayList();
 			java.util.Collection<DebugEntryTemplatePartImpl> col = partEntries.values();
-			for (DebugEntryTemplatePart detp: col) {
+			List<DebugEntryTemplatePart> filteredPartEntries = new ArrayList<DebugEntryTemplatePart>();
+			DebugEntryTemplatePart[] parts = new DebugEntryTemplatePart[qrySize];
+			if (MAX_PARTS == 0 || col.size() < MAX_PARTS){
+				qrySize = col.size();
+				parts = new DebugEntryTemplatePart[qrySize];
+				filteredPartEntries.addAll(col);
+				parts = filteredPartEntries.toArray(parts);
+			} else {
+				// TODO add slowest templates till we reach MAX_PARTS, currently just grabs only the slowest template's parts
+				String slowestTemplate = arrPages.get(0).getPath();
+				for (DebugEntryTemplatePart detp: col) {
+					if (detp.getPath().equals(slowestTemplate)) filteredPartEntries.add(detp);
+				}
+				qrySize = Math.min(filteredPartEntries.size(), MAX_PARTS);
+				parts = new DebugEntryTemplatePart[qrySize];
 
-				if (detp.getPath().equals(slowestTemplate)) filteredPartEntries.add(detp);
-			}
-			qrySize = Math.min(filteredPartEntries.size(), MAX_PARTS);
+				if (filteredPartEntries.size() > MAX_PARTS) parts = filteredPartEntries.subList(0, MAX_PARTS).toArray(parts);
+				else parts = filteredPartEntries.toArray(parts);
+			}	
 
 			qryPart = new QueryImpl(PAGE_PART_COLUMNS, qrySize, "query");
 			debugging.setEL(PAGE_PARTS, qryPart);
 
 			int row = 0;
-			Collections.sort(filteredPartEntries, DEBUG_ENTRY_TEMPLATE_PART_COMPARATOR);
-
-			DebugEntryTemplatePart[] parts = new DebugEntryTemplatePart[qrySize];
-
-			if (filteredPartEntries.size() > MAX_PARTS) parts = filteredPartEntries.subList(0, MAX_PARTS).toArray(parts);
-			else parts = filteredPartEntries.toArray(parts);
-
 			try {
 				DebugEntryTemplatePart de;
 				// PageSource ps;
