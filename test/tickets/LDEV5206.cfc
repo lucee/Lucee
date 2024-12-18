@@ -83,6 +83,21 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 				expect( pageParts[ key ].snippet ).toBe( "sleep(5)" );
 			});
 		});
+
+		describe( "LDEV-5210 DebugExecutionLog loop requires currentrow", function(){
+			xit( "LDEV-5210 test DebugExecutionLog - currentrow required ", function(){
+				var logs = getDebugLogs();
+				expect( len( logs ) ).toBe( 1 );
+				var log = logs[ 1 ];
+				expect( log ).toHaveKey( "pageParts" );
+				var pageParts = log.pageParts;
+				expect( pageParts ).toBeQuery();
+				//systemOutput( pageParts.toString(), true );
+				pageParts = _toPartsStructNoCurrentrow( pageParts );
+				expect( pageParts.row[1] ).toBe( 1 ); // returns ""
+				//systemOutput( pageParts.toString(), true );
+			});
+		});
 	}
 
 	private string function createURI( string calledName ){
@@ -123,6 +138,21 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 		}
 		var st = QueryToStruct(parts, "key");
 		return st;
+	}
+
+	// currentrow required LDEV-5210
+	private function _toPartsStructNoCurrentrow( query pageParts ){
+		var parts = duplicate( pageParts );
+		queryAddColumn( parts, "row" );
+		var r = 0;
+		loop query=parts {
+			var r++;
+			querySetCell( parts, "row", r );
+		}
+		loop list="path,min,max,avg,count,total,id,start,end,snippet" item="local.col" {
+			queryDeleteColumn(parts, col);
+		}
+		return parts;
 	}
 
 	function getDebugLogs() cachedwithin="request" {
