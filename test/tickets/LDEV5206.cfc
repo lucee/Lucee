@@ -37,7 +37,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 				//systemOutput( pageParts.toString(), true );
 				pageParts = _toPartsStruct( pageParts );
 				//systemOutput( structKeyList(pageParts), true );
-				//systemOutput( pageParts, true );
+				//systemOutput( pageParts.toString(), true );
 				
 				var key = "ldev5206.cfm:3:3";
 				expect( pageParts ).toHaveKey( key );
@@ -48,7 +48,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 				expect( pageParts[ key ].snippet ).toBe( "cfc = new ldev5206()" );
 			});
 
-			xit( "test DebugExecutionLog - cfm parts member", function(){
+			xit( "LDEV-5212 test DebugExecutionLog - cfm parts member", function(){
 				var logs = getDebugLogs();
 				expect( len( logs ) ).toBe( 1 );
 				var log = logs[ 1 ];
@@ -59,11 +59,11 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 
 				key = "ldev5206.cfm:6:6";
 				expect( pageParts ).toHaveKey( key );
-				expect( pageParts[ key ].snippet ).toBe( "cfc.doSleep()" ); // LDEV-5207
+				expect( pageParts[ key ].snippet ).toBe( "cfc.doSleep()" ); // LDEV-5207 only returns "cfc"
 
 				key = "ldev5206.cfm:9:9";
 				expect( pageParts ).toHaveKey( key );
-				expect( pageParts[ key  ].snippet ).toBe( "cfc.doSleep()" ); // LDEV-5207
+				expect( pageParts[ key  ].snippet ).toBe( "cfc.doSleep()" ); // LDEV-5207 only returns "cfc"
 			});
 
 			it( "test DebugExecutionLog - cfc parts ", function(){
@@ -73,18 +73,16 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 				expect( log ).toHaveKey( "pageParts" );
 				var pageParts = log.pageParts;
 				expect( pageParts ).toBeQuery();
-				//systemOutput( pageParts.toString(), true );
 				pageParts = _toPartsStruct( pageParts );
-
-				/*
-				key = "ldev5206.cfc:5:5";
-				expect( pageParts ).toHaveKey( key );
-				expect( pageParts[ key  ].snippet ).toBe( "sleep(5)" ); // LDEV-5207
-				*/
 
 				key = "ldev5206_tag.cfc:6:6";
 				expect( pageParts ).toHaveKey( key );
 				expect( pageParts[ key ].snippet ).toBe( "sleep(5)" );
+
+				key = "ldev5206.cfc:5:5";
+				expect( pageParts ).toHaveKey( key );
+				expect( pageParts[ key  ].snippet ).toBe( "sleep(5)" ); // LDEV-5207
+
 			});
 		});
 
