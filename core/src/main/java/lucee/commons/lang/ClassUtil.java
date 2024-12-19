@@ -55,6 +55,7 @@ import lucee.runtime.op.Caster;
 import lucee.runtime.osgi.OSGiUtil;
 import lucee.runtime.osgi.OSGiUtil.BundleDefinition;
 import lucee.runtime.reflection.Reflector;
+import lucee.runtime.timer.Stopwatch;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.util.ListUtil;
 import lucee.transformer.dynamic.DynamicInvoker;
@@ -312,10 +313,16 @@ public final class ClassUtil {
 
 	private static Class loadClass(ClassLoader cl, String className, Class defaultValue, Set<Throwable> exceptions) {
 
+		Stopwatch stopwatch = new Stopwatch(Stopwatch.UNIT_NANO);
+		stopwatch.start();
+
 		if (cl != null) {
 			Class clazz = _loadClass(new ClassLoaderBasedClassLoading(cl), className, defaultValue, exceptions);
 			if (clazz != null) return clazz;
 		}
+
+		lucee.aprint.o("ClassUtil.loadClass..ClassLoaderBasedClassLoading: " + stopwatch.time());
+		stopwatch.start();
 
 		// MUST javasettings?
 
@@ -323,17 +330,29 @@ public final class ClassUtil {
 		Class clazz = _loadClass(new OSGiBasedClassLoading(), className, null, exceptions);
 		if (clazz != null) return clazz;
 
+		lucee.aprint.o("ClassUtil.loadClass..osgi: " + stopwatch.time());
+		stopwatch.start();
+
+
 		// core classloader
 		if (cl != SystemUtil.getCoreClassLoader()) {
 			clazz = _loadClass(new ClassLoaderBasedClassLoading(SystemUtil.getCoreClassLoader()), className, null, exceptions);
 			if (clazz != null) return clazz;
 		}
 
+		lucee.aprint.o("ClassUtil.loadClass..core: " + stopwatch.time());
+		stopwatch.start();
+
+
 		// loader classloader
 		if (cl != SystemUtil.getLoaderClassLoader()) {
 			clazz = _loadClass(new ClassLoaderBasedClassLoading(SystemUtil.getLoaderClassLoader()), className, null, exceptions);
 			if (clazz != null) return clazz;
 		}
+
+		lucee.aprint.o("ClassUtil.loadClass.loader: " + stopwatch.time());
+		stopwatch.start();
+
 
 		return defaultValue;
 	}

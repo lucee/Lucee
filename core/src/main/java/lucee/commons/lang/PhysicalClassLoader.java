@@ -53,6 +53,7 @@ import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.listener.JavaSettings;
 import lucee.runtime.listener.JavaSettingsImpl;
 import lucee.runtime.listener.SerializationSettings;
+import lucee.runtime.timer.Stopwatch;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.util.KeyConstants;
@@ -141,7 +142,10 @@ public final class PhysicalClassLoader extends URLClassLoader implements Extenda
 					}
 					Resource dir = storeResourceMeta(c, key, js, resources);
 					// (Config config, String key, JavaSettings js, Collection<Resource> _resources)
+					Stopwatch stopwatch = new Stopwatch(Stopwatch.UNIT_NANO);
+					stopwatch.start();
 					classLoaders.put(key, rpccl = new PhysicalClassLoader(c, resources, dir, parent != null ? parent : SystemUtil.getCombinedClassLoader(), null, null, true));
+					lucee.aprint.o("PhysicalClassLoader.getRPCClassLoader: " + stopwatch.time());
 				}
 			}
 		}
@@ -158,7 +162,11 @@ public final class PhysicalClassLoader extends URLClassLoader implements Extenda
 					Resource dir = c.getClassDirectory().getRealResource("RPC/" + key);
 					if (!dir.exists()) ResourceUtil.createDirectoryEL(dir, true);
 					// (Config config, String key, JavaSettings js, Collection<Resource> _resources)
+					Stopwatch stopwatch = new Stopwatch(Stopwatch.UNIT_NANO);
+					stopwatch.start();
+					
 					classLoaders.put(key, rpccl = new PhysicalClassLoader(c, new ArrayList<Resource>(), dir, SystemUtil.getCombinedClassLoader(), bcl, null, true));
+					lucee.aprint.o("PhysicalClassLoader.getRPCClassLoader2: " + stopwatch.time());
 				}
 			}
 		}

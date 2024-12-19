@@ -71,6 +71,7 @@ import lucee.runtime.rest.RestUtil;
 import lucee.runtime.rest.Result;
 import lucee.runtime.rest.Source;
 import lucee.runtime.rest.path.Path;
+import lucee.runtime.timer.Stopwatch;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.Collection;
@@ -1164,32 +1165,40 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 	}
 
 	public JavaSettings getJavaSettings(PageContext pc, ComponentProperties properties) throws IOException {
+		Stopwatch stopwatch = new Stopwatch(Stopwatch.UNIT_NANO);
+		stopwatch.start();
+					
 		if (!initJS) {
+			lucee.aprint.o("ComponentPageImpl.getJavaSettings: getJson " + stopwatch.time());
+			String json = properties.meta == null ? null : Caster.toString(properties.meta.get(KeyConstants._javasettings, null), null);
+			if (StringUtil.isEmpty(json, true)) {
+				initJS = true;
+				lucee.aprint.o("ComponentPageImpl.getJavaSettings: skip " + stopwatch.time());
+				return js;
+			}
 			synchronized (properties) {
 				if (!initJS) {
-					// TODO cache
-					String json = properties.meta == null ? null : Caster.toString(properties.meta.get(KeyConstants._javasettings, null), null);
-					if (!StringUtil.isEmpty(json, true)) {
-						json = json.trim();
-						try {
-							if (StringUtil.endsWithIgnoreCase(json, ".json")) {
-								pc = ThreadLocalPageContext.get(pc);
-								if (pc != null) json = IOUtil.toString(ResourceUtil.toResourceExisting(pc, json), CharsetUtil.UTF8);
-								else json = IOUtil.toString(ResourceUtil.toResourceExisting(ThreadLocalPageContext.getConfig(), json), CharsetUtil.UTF8);
-							}
+					// TODO cache					
+					json = json.trim();
+					try {
+						if (StringUtil.endsWithIgnoreCase(json, ".json")) {
+							pc = ThreadLocalPageContext.get(pc);
+							if (pc != null) json = IOUtil.toString(ResourceUtil.toResourceExisting(pc, json), CharsetUtil.UTF8);
+							else json = IOUtil.toString(ResourceUtil.toResourceExisting(ThreadLocalPageContext.getConfig(), json), CharsetUtil.UTF8);
+						}
 
-							Struct sct = Caster.toStruct(new JSONExpressionInterpreter().interpret(null, json));
-							js = JavaSettingsImpl.getInstance(ThreadLocalPageContext.getConfig(pc), sct, null);
-						}
-						catch (Exception e) {
-							// LogUtil.log("component", e);
-							throw ExceptionUtil.toIOException(e);
-						}
+						Struct sct = Caster.toStruct(new JSONExpressionInterpreter().interpret(null, json));
+						js = JavaSettingsImpl.getInstance(ThreadLocalPageContext.getConfig(pc), sct, null);
+					}
+					catch (Exception e) {
+						// LogUtil.log("component", e);
+						throw ExceptionUtil.toIOException(e);
 					}
 					initJS = true;
 				}
 			}
 		}
+		lucee.aprint.o("ComponentPageImpl.getJavaSettings: " + stopwatch.time());
 		return js;
 	}
 

@@ -43,6 +43,7 @@ import lucee.runtime.mvn.POM;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 import lucee.runtime.osgi.BundleFile;
+import lucee.runtime.timer.Stopwatch;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.Struct;
@@ -352,6 +353,9 @@ public class JavaSettingsImpl implements JavaSettings {
 
 	public static JavaSettings getInstance(Config config, Struct data, Object addionalResources) {
 
+		Stopwatch stopwatch = new Stopwatch(Stopwatch.UNIT_NANO);
+		stopwatch.start();
+
 		List<String> names = new ArrayList<>();
 
 		// maven
@@ -449,6 +453,8 @@ public class JavaSettingsImpl implements JavaSettings {
 				}
 			}
 		}
+		lucee.aprint.o("JavaSettingsImpl.getInstance: add res " + stopwatch.time());
+		stopwatch.start();
 
 		// addional resources
 		if (addionalResources != null) {
@@ -548,16 +554,20 @@ public class JavaSettingsImpl implements JavaSettings {
 
 		Collections.sort(names);
 		String id = HashUtil.create64BitHashAsString(names.toString());
+		
 
 		JavaSettings js = ((ConfigPro) config).getJavaSettings(id);
 		if (js != null) {
+			lucee.aprint.o("JavaSettingsImpl.getInstance: withJs" + stopwatch.time());
 			return js;
 		}
+		lucee.aprint.o("JavaSettingsImpl.getInstance: noJs " + stopwatch.time());
+		stopwatch.start();
 
 		js = new JavaSettingsImpl(id, config, poms, osgis, paths == null ? RESOURCE_EMPTY : paths.toArray(new Resource[paths.size()]),
 				bundles == null ? RESOURCE_EMPTY : bundles.toArray(new Resource[bundles.size()]), loadCFMLClassPath, reloadOnChange, watchInterval,
 				extensions.toArray(new String[extensions.size()]));
-
+		lucee.aprint.o("JavaSettingsImpl.getInstance new JavaSettingsImpl: " + stopwatch.time());
 		((ConfigPro) config).setJavaSettings(id, js);
 		return js;
 	}

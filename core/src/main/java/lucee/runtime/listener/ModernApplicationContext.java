@@ -79,6 +79,7 @@ import lucee.runtime.rest.RestSettingImpl;
 import lucee.runtime.rest.RestSettings;
 import lucee.runtime.tag.Query;
 import lucee.runtime.tag.listener.TagListener;
+import lucee.runtime.timer.Stopwatch;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.Collection;
@@ -1742,22 +1743,34 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 
 	@Override
 	public ClassLoader getRPCClassLoader() throws IOException {
+		Stopwatch stopwatch = new Stopwatch(Stopwatch.UNIT_NANO);
+		stopwatch.start();
+		
 		if (!initClassLoader) {
 			// PATCH to avoid cycle
 			if (initClassLoaderBefore) {
 				return getDefaultClassLoader(config);
 			}
 			initClassLoaderBefore = true;
+			lucee.aprint.o("ModernApplicationContext.getRPCClassLoader getDefaultClassLoader: " + stopwatch.time());
+			stopwatch.start();
 			cl = getDefaultClassLoader(config);
 			Object o = javaSettings != null ? null : get(component, KeyConstants._javasettings, null);
+			lucee.aprint.o("ModernApplicationContext.getRPCClassLoader: b4js " + stopwatch.time());
+			stopwatch.start();
 			if (javaSettings != null || (o != null && Decision.isStruct(o))) {
 				if (javaSettings == null) javaSettings = JavaSettingsImpl.getInstance(config, Caster.toStruct(o, null), null);
+				lucee.aprint.o("ModernApplicationContext.config.getRPCClassLoader: js " + stopwatch.time());
+				stopwatch.start();
 				cl = ((ConfigPro) config).getRPCClassLoader(false, javaSettings, cl);
+				lucee.aprint.o("ModernApplicationContext.config.getRPCClassLoader: post " + stopwatch.time());
+				stopwatch.start();
 			}
 
 			initClassLoader = true;
 			initClassLoaderBefore = false;
 		}
+		lucee.aprint.o("ModernApplicationContext.getRPCClassLoader: " + stopwatch.time());
 		return cl;
 	}
 
@@ -1773,13 +1786,17 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	}
 
 	public static ClassLoader getDefaultClassLoader(ConfigWeb config) throws IOException {
+		Stopwatch stopwatch = new Stopwatch(Stopwatch.UNIT_NANO);
+		stopwatch.start();
 		if (defaultClassLoader == null) {
+			
 			synchronized (token) {
 				if (defaultClassLoader == null) {
 					defaultClassLoader = ((ConfigPro) config).getRPCClassLoader(false, ((ConfigPro) config).getJavaSettings(), null);
 				}
 			}
 		}
+		lucee.aprint.o("ModernApplicationContext.getDefaultClassLoader: " + stopwatch.time());
 		return defaultClassLoader;
 	}
 
