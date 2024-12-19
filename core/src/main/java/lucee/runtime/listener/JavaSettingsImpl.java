@@ -458,19 +458,36 @@ public class JavaSettingsImpl implements JavaSettings {
 
 		// addional resources
 		if (addionalResources != null) {
+			lucee.aprint.o(addionalResources);
 			if (mapPath == null) mapPath = new HashMap<>();
+			Stopwatch stopwatch2 = new Stopwatch(Stopwatch.UNIT_NANO);
+
 			if (addionalResources instanceof Resource[]) {
 				for (Resource r: (Resource[]) addionalResources) {
+					stopwatch2.start();
 					r = ResourceUtil.getCanonicalResourceEL(r);
+					lucee.aprint.o("JavaSettingsImpl.getInstance: res.getCanonicalResourceEL " + stopwatch2.time());
+
+					stopwatch2.start();
 					mapPath.put("paths:" + r.getAbsolutePath(), r);
+					lucee.aprint.o("JavaSettingsImpl.getInstance: res.getAbsolutePath " + stopwatch2.time());
+
 				}
 			}
 			else if (addionalResources instanceof List) {
 				for (Resource r: (List<Resource>) addionalResources) {
+
+					stopwatch2.start();
 					r = ResourceUtil.getCanonicalResourceEL(r);
+					lucee.aprint.o("JavaSettingsImpl.getInstance: list.getCanonicalResourceEL " + stopwatch2.time());
+
+					stopwatch2.start();
 					mapPath.put("paths:" + r.getAbsolutePath(), r);
+					lucee.aprint.o("JavaSettingsImpl.getInstance: list.getAbsolutePath " + stopwatch2.time());
+					
 				}
 			}
+			lucee.aprint.o(mapPath);
 		}
 		Collection<Resource> paths = null;
 		if (mapPath != null) {
