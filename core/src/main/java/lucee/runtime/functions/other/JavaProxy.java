@@ -47,6 +47,7 @@ import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 import lucee.runtime.osgi.OSGiUtil.BundleDefinition;
 import lucee.runtime.security.SecurityManager;
+import lucee.runtime.timer.Stopwatch;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.util.KeyConstants;
@@ -172,14 +173,19 @@ public final class JavaProxy implements Function {
 		// load class
 		try {
 			JavaSettingsImpl js = null;
+			Stopwatch stopwatch = new Stopwatch(Stopwatch.UNIT_NANO);
 			if (resources != null && !resources.isEmpty()) {
 				js = (JavaSettingsImpl) JavaSettingsImpl.getInstance(pc.getConfig(), null, resources);
 			}
+			stopwatch.start();
 			ClassLoader cl = pci.getRPCClassLoader(js);
+			lucee.aprint.o("JavaProxy.getRPCClassLoader: " + stopwatch.time());
 
 			Class clazz = null;
 			try {
+				stopwatch.start();
 				clazz = ClassUtil.loadClass(cl, className);
+				lucee.aprint.o("JavaProxy.loadClass: " + stopwatch.time());
 			}
 			catch (ClassException ce) {
 				// try java.lang if no package definition
