@@ -69,6 +69,26 @@ public final class ModeUtil {
 		return mode;
 	}
 
+	public static String fromOctalMode(int mode) throws IOException {
+		String octalString = String.format("%03o", mode);
+		if (octalString.length() <= 4 && octalString.length() > 3)
+			throw new IOException("can't translate [" + mode + "] to a permissions string");
+		String permString = "";
+		for (char c : octalString.toCharArray()) {
+			switch (c) {
+				case '0': permString += "---"; break;
+				case '1': permString += "--x"; break;
+				case '2': permString += "-w-"; break;
+				case '3': permString += "-wx"; break;
+				case '4': permString += "r--"; break;
+				case '5': permString += "r-x"; break;
+				case '6': permString += "rw-"; break;
+				case '7': permString += "rwx"; break;
+			}
+		}
+		return permString;
+	}
+
 	/**
 	 * Extracts the permission bits from the mode value. Logs a message if the file type bits are
 	 * removed and logging is enabled.
