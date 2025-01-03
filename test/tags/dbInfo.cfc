@@ -49,6 +49,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 			createSchema( ds, dbtype, prefix );
 
 			describe( title="Test suite for DBINFO, db: [#dbType#]", body=function() {
+				
 				it(title = "dbinfo columns [#dbType#]",
 						data = { prefix: prefix, ds: ds, dbtype: dbtype },
 						body = function( data ) {
@@ -167,75 +168,80 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 
 	private void function createSchema( struct ds, string dbType, string prefix, boolean onlyDrop=false ){
 
+		try {
 
-		if (arguments.dbtype eq "oracle") { // oracle doesn't support the IF EXISTS syntax
-			try {
-				query datasource=arguments.ds {
-					echo("DROP view #arguments.prefix#v_users");
+			if (arguments.dbtype eq "oracle") { // oracle doesn't support the IF EXISTS syntax
+				try {
+					query datasource=arguments.ds {
+						echo("DROP view #arguments.prefix#v_users");
+					}
+				} catch(e){
+					//
 				}
-			} catch(e){
-				//
-			}
-			try {
-				query datasource=arguments.ds {
-					echo("DROP TABLE #arguments.prefix#users");
+				try {
+					query datasource=arguments.ds {
+						echo("DROP TABLE #arguments.prefix#users");
+					}
+				} catch(e){
+					//
 				}
-			} catch(e){
-				//
-			}
-			try {
-				query datasource=arguments.ds {
-					echo("DROP TABLE #arguments.prefix#roles");
+				try {
+					query datasource=arguments.ds {
+						echo("DROP TABLE #arguments.prefix#roles");
+					}
+				} catch(e){
+					//
 				}
-			} catch(e){
-				//
+			} else {
+				query datasource=arguments.ds {
+					echo("DROP view IF EXISTS #arguments.prefix#v_users");
+				}
+				query datasource=arguments.ds {
+					echo("DROP TABLE IF EXISTS #arguments.prefix#users");
+				}
+				query datasource=arguments.ds {
+					echo("DROP TABLE IF EXISTS #arguments.prefix#roles");
+				}
 			}
-		} else {
-			query datasource=arguments.ds {
-				echo("DROP view IF EXISTS #arguments.prefix#v_users");
-			}
-			query datasource=arguments.ds {
-				echo("DROP TABLE IF EXISTS #arguments.prefix#users");
-			}
-			query datasource=arguments.ds {
-				echo("DROP TABLE IF EXISTS #arguments.prefix#roles");
-			}
-		}
 
-		if ( arguments.onlyDrop )
-			return;
+			if ( arguments.onlyDrop )
+				return;
 
-		query datasource=arguments.ds {
-			echo("CREATE TABLE #arguments.prefix#roles (
-				role_id INT,
-				role_name VARCHAR(100) DEFAULT NULL,
-				CONSTRAINT PK_#arguments.prefix#roles PRIMARY KEY ( role_id )
-			)");
-	  	}
-		query datasource=arguments.ds {
-			echo("CREATE TABLE #arguments.prefix#users (
-				user_id VARCHAR(50) NOT NULL,
-				user_name VARCHAR(50) NOT NULL,
-				role_id INT DEFAULT NULL,
-				CONSTRAINT PK_#arguments.prefix#users PRIMARY KEY ( user_id )
-			)");
-		}
-		query datasource=arguments.ds {
-			echo("ALTER TABLE #arguments.prefix#users
-					ADD CONSTRAINT fk_#arguments.prefix#_user_role_id
-					FOREIGN KEY (role_id)
-					REFERENCES #arguments.prefix#roles ( role_id )");
-		}
-		query datasource=arguments.ds {
-			echo("CREATE INDEX idx_#arguments.prefix#_users_role_id ON #arguments.prefix#users(role_id)");
-		}
+			query datasource=arguments.ds {
+				echo("CREATE TABLE #arguments.prefix#roles (
+					role_id INT,
+					role_name VARCHAR(100) DEFAULT NULL,
+					CONSTRAINT PK_#arguments.prefix#roles PRIMARY KEY ( role_id )
+				)");
+			}
+			query datasource=arguments.ds {
+				echo("CREATE TABLE #arguments.prefix#users (
+					user_id VARCHAR(50) NOT NULL,
+					user_name VARCHAR(50) NOT NULL,
+					role_id INT DEFAULT NULL,
+					CONSTRAINT PK_#arguments.prefix#users PRIMARY KEY ( user_id )
+				)");
+			}
+			query datasource=arguments.ds {
+				echo("ALTER TABLE #arguments.prefix#users
+						ADD CONSTRAINT fk_#arguments.prefix#_user_role_id
+						FOREIGN KEY (role_id)
+						REFERENCES #arguments.prefix#roles ( role_id )");
+			}
+			query datasource=arguments.ds {
+				echo("CREATE INDEX idx_#arguments.prefix#_users_role_id ON #arguments.prefix#users(role_id)");
+			}
 
-		query datasource=arguments.ds {
-			echo("CREATE VIEW #arguments.prefix#v_users AS
-				SELECT	u.user_id, u.user_name, r.role_id, r.role_name
-				FROM 	#arguments.prefix#users u, #arguments.prefix#roles r
-				WHERE	r.role_id = u.role_id
-			");
+			query datasource=arguments.ds {
+				echo("CREATE VIEW #arguments.prefix#v_users AS
+					SELECT	u.user_id, u.user_name, r.role_id, r.role_name
+					FROM 	#arguments.prefix#users u, #arguments.prefix#roles r
+					WHERE	r.role_id = u.role_id
+				");
+			}
+		} catch (any e){
+			systemOutput( "Error creating schema for #arguments.dbtype#: #e.message#", true );
+			rethrow;
 		}
 		/*
 		query name="local.tables" params={ table: arguments.prefix & "%" } datasource=arguments.ds {

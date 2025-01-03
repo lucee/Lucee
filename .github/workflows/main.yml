@@ -198,6 +198,7 @@ jobs:
         sudo -u postgres psql -c 'create database lucee;'
         sudo -u postgres psql -c "create user lucee with encrypted password 'lucee'";
         sudo -u postgres psql -c 'grant all privileges on database lucee to lucee;'
+        sudo -u postgres psql -c 'grant all on schema public to lucee;' -d lucee
     - name: Start MongoDB (docker)
       uses: supercharge/mongodb-github-action@1.6.0
       with:
