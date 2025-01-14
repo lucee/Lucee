@@ -24,8 +24,8 @@ import java.io.Serializable;
  * a Simple name value Pair
  */
 public final class Pair<K, V> implements Serializable {
-	private final K name;
-	private final V value;
+	final K name;
+	final V value;
 
 	/**
 	 * Constructor of the class

@@ -25,9 +25,9 @@ import java.io.UnsupportedEncodingException;
  */
 public final class ByteNameValuePair {
 
-	private final byte[] name;
-	private final byte[] value;
-	private final boolean urlEncoded;
+	final byte[] name;
+	final byte[] value;
+	final boolean urlEncoded;
 
 	/**
 	 * constructor of the class
