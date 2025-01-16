@@ -447,6 +447,7 @@ public class QueryColumnImpl implements QueryColumnPro, Objects {
 			for (int i = 0; i < data.length; i++) {
 				newData[i] = data[i];
 			}
+			lucee.aprint.o("----- newSize: " + newSize + ", previous data.length: " + data.length + ", row: " + row + ", size: " + size());
 			data = newData;
 		}
 	}
