@@ -648,12 +648,43 @@
     <version>5.13.0</version>
     <scope>provided</scope>
   </dependency>
-    <dependency>
-      <groupId>org.lucee</groupId>
-      <artifactId>commonmark</artifactId>
-      <version>0.22.0</version>
-      <scope>provided</scope>
-    </dependency>
+
+  <dependency>
+    <groupId>org.commonmark</groupId>
+    <artifactId>commonmark</artifactId>
+    <version>0.24.1-SNAPSHOT</version>
+    <scope>provided</scope>
+  </dependency>
+  <dependency>
+    <groupId>org.commonmark</groupId>
+    <artifactId>commonmark-ext-gfm-tables</artifactId>
+    <version>0.24.1-SNAPSHOT</version>
+    <scope>provided</scope>
+  </dependency>
+  <dependency>
+    <groupId>org.commonmark</groupId>
+    <artifactId>commonmark-ext-autolink</artifactId>
+    <version>0.24.1-SNAPSHOT</version>
+    <scope>provided</scope>
+  </dependency>
+  <dependency>
+      <groupId>org.nibor.autolink</groupId>
+      <artifactId>autolink</artifactId>
+      <version>0.11.1-SNAPSHOT</version>
+  </dependency>
+  <dependency>
+    <groupId>org.commonmark</groupId>
+    <artifactId>commonmark-ext-heading-anchor</artifactId>
+    <version>0.24.1-SNAPSHOT</version>
+    <scope>provided</scope>
+  </dependency>
+  <dependency>
+    <groupId>org.commonmark</groupId>
+    <artifactId>commonmark-ext-image-attributes</artifactId>
+    <version>0.24.1-SNAPSHOT</version>
+    <scope>provided</scope>
+  </dependency>
+    
   <dependency>
     <groupId>org.lucee</groupId>
     <artifactId>janino</artifactId>
