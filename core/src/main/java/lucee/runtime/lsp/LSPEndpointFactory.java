@@ -79,7 +79,7 @@ public class LSPEndpointFactory {
 			print.e("---- LSPEndpointFactory ----");
 			synchronized (SystemUtil.createToken("LSPEndpointFactory", "init")) {
 				if (forceRestart) {
-					print.e("- restart ----");
+					print.e("- LSPEndpointFactory Restarting");
 					if (instance != null) {
 						instance.stop();
 					}
@@ -87,12 +87,12 @@ public class LSPEndpointFactory {
 				}
 				else {
 					if (instance == null) {
-						print.e("- start ----");
+						print.e("- LSPEndpointFactory Starting");
 						instance = new LSPEndpointFactory(config).start();
 					}
 				}
 			}
-			print.e("- init");
+			print.e("- LSPEndpointFactory Initialized");
 		}
 		return instance;
 	}
