@@ -165,6 +165,9 @@
         <!-- Compress -->
         <not><isset property="extCompress"/></not>
         <not><isset property="extCompressVersion"/></not>
+        <!-- Markdown -->
+        <not><isset property="extMarkdown"/></not>
+        <not><isset property="extMarkdownVersion"/></not>
         </or>
     </condition>
     </fail>
@@ -248,7 +251,7 @@
         </sequential>
     </macrodef>
 
-    <target name="check" depends="check-mysql,check-mssql,check-postgre,check-jdts,check-s3,check-ehcache,check-pdf,check-admin,check-doc,check-image,check-esapi,check-compress,check-testbox,check-lucee-loader-jar,download-lucee-loader-jar">
+    <target name="check" depends="check-mysql,check-mssql,check-postgre,check-jdts,check-s3,check-ehcache,check-pdf,check-admin,check-doc,check-image,check-esapi,check-compress,check-markdown,check-testbox,check-lucee-loader-jar,download-lucee-loader-jar">
       <mkdir dir="${temp}/loader/extensions/"/>
     </target> 
 

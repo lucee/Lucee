@@ -4,10 +4,21 @@
 <scriptdef name="readRequiredExtensions" language="javascript" classpath="${nashorn_classpath}">
 	<attribute name="file" />
 	<![CDATA[
+		var echo = project.createTask( "echo" );
 		var filename = attributes.get( "file" );
 		var manifest = new java.util.jar.Manifest( new java.io.FileInputStream( new java.io.File( filename ) ) );
 		var attrs = manifest.getMainAttributes();
 		var str = attrs.getValue( "Require-Extension" );
+		if (str == null){
+			echo.setMessage( "Error reading MANIFEST.MF - Require-Extension");
+			echo.perform();
+			for (var a in attrs){
+				echo.setMessage( " - " + a );
+				echo.perform();
+			}
+			echo.setMessage( "Require-Extension: " + str );
+			echo.perform();
+		}
 		var arr = str.split( "," );
 		var count = 0;
 		var ids = "";
@@ -156,6 +167,7 @@
 		<available file="${cache}/${extImage}-${extImageVersion}.lex" property="image.present"/>
 		<available file="${cache}/${extEsapi}-${extEsapiVersion}.lex" property="esapi.present"/>
 		<available file="${cache}/${extCompress}-${extCompressVersion}.lex" property="compress.present"/>
+		<available file="${cache}/${extMarkdown}-${extMarkdownVersion}.lex" property="markdown.present"/>
 	</target>
 
 	<target name="check-mysql" depends="check-cache" unless="mysql.present">
@@ -193,6 +205,9 @@
 	</target>
 	<target name="check-compress" depends="check-cache" unless="compress.present">
 		<get src="${extURL}${extCompress}?version=${extCompressVersion}" dest="${cache}/${extCompress}-${extCompressVersion}.lex"/>
+	</target>
+	<target name="check-markdown" depends="check-cache" unless="markdown.present">
+		<get src="${extURL}${extMarkdown}?version=${extMarkdownVersion}" dest="${cache}/${extMarkdown}-${extMarkdownVersion}.lex"/>
 	</target>
 	<target name="check-testbox" depends="check-cache" unless="testbox.present">
 		<get src="${testboxURL}" dest="${cache}/testbox-${testboxVersion}.zip"/>
@@ -346,7 +361,18 @@
 			tofile="${goal}/extensions/${ext_compress.filename}"/>
 		<echo level="info">add:${goal}/extensions/${ext_compress.filename}</echo>
 		<echo file="${goal}/extensions/.index" append="true">${ext_compress.filename};</echo>
-
+		
+		<!-- add extension Markdown -->
+		<loadmf jar="${cache}/${extMarkdown}-${extMarkdownVersion}.lex" prefix="ext_markdown."/>
+		<toFileName id="${ext_markdown.id}" name="${ext_markdown.name}" version="${ext_markdown.version}" property="ext_markdown.filename"/>
+		<copy 
+			file="${cache}/${extMarkdown}-${extMarkdownVersion}.lex"
+			todir="${goal}/extensions/"/>
+		<move 
+			file="${goal}/extensions/${extMarkdown}-${extMarkdownVersion}.lex"
+			tofile="${goal}/extensions/${ext_markdown.filename}"/>
+		<echo level="info">add:${goal}/extensions/${ext_markdown.filename}</echo>
+		<echo file="${goal}/extensions/.index" append="true">${ext_markdown.filename};</echo>
 	</target>
 
 	<target name="check-lucee-loader-jar">

@@ -360,12 +360,6 @@
     </dependency>
     <dependency>
       <groupId>org.lucee</groupId>
-      <artifactId>commonmark</artifactId>
-      <version>0.22.0</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.lucee</groupId>
       <artifactId>janino</artifactId>
       <version>3.1.9</version>
     </dependency>
