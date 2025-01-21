@@ -551,7 +551,7 @@ public class HTTPEngine4Impl {
 					return new EmptyHttpEntity(ct);
 				}
 				if (wasNull && !StringUtil.isEmpty(charset, true)) return new StringEntity(str, charset.trim());
-				else return new StringEntity(str, ct);
+				return new StringEntity(str, ct);
 			}
 		}
 		catch (Exception e) {
