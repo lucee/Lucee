@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.CopyOption;
+import java.nio.file.DirectoryNotEmptyException;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
@@ -352,11 +353,16 @@ public final class FileResource extends File implements Resource {
 		}
 		provider.lock(this);
 		try {
-			if (!super.delete()) {
-				if (!super.exists()) throw new IOException("Can't delete file [" + this + "], file does not exist");
-				if (!super.canWrite()) throw new IOException("Can't delete file [" + this + "], no access");
-				throw new IOException("Can't delete file [" + this + "]");
-			}
+			Files.delete(Paths.get(getPath()));
+		}
+		catch( NoSuchFileException nfse){
+			throw new IOException("Can't delete [" + this + "], as it doesn't exist", nfse);
+		}
+		catch( DirectoryNotEmptyException dne){
+			throw new IOException("Can't delete directory as it's not empty [" + this + "]", dne);
+		}
+		catch (IOException e){
+			throw new IOException("Can't delete [" + this + "], " + e.getMessage(), e);
 		}
 		finally {
 			provider.unlock(this);
