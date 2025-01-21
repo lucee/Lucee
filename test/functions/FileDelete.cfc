@@ -18,6 +18,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 			});
 
 			it(title = "Checking FileDelete() file in use", body = function( currentSpec ) {
+				if (!isWindows()) return;
 				var src = variables.dir & "locked.txt";
 
 				systemOutput( "file in use", true );

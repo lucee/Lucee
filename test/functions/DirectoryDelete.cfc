@@ -88,7 +88,8 @@
 		expect( error ).notToBe( "" );
 	}
 
-	public function testDirectoryNonEmptyDeleteLocked() localMode="modern" {	
+	public function testDirectoryNonEmptyDeleteLocked() localMode="modern" {
+		if (!isWindows()) return;
 		dirEmpty = parent & "/notEmptyResLocked/";
 		directoryCreate(dirEmpty);
 		var src = getTempFile(dirEmpty,"empty-locked","txt");
@@ -103,6 +104,10 @@
 			fos.close();
 		}
 		expect( error ).notToBe( "" );
+	}
+
+	private function isWindows(){
+		return (server.os.name contains "windows");
 	}
 
 }
