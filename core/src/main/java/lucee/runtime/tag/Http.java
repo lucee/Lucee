@@ -887,7 +887,7 @@ public final class Http extends BodyTagImpl {
 				else if (type == HttpParamBean.TYPE_FORM) {
 					hasForm = true;
 					if (this.method == METHOD_GET)
-						throw new ApplicationException("httpparam with type formfield can only be used when the method attribute of the parent http tag is set to post");
+						throw new ApplicationException("Tag [httpparam] with [type=formfield] can only be used when the [method] is set to [post]");
 					if (eeReqPost != null) {
 						if (doMultiPart) {
 							parts.add(new FormBodyPart(param.getName(), new StringBody(param.getValueAsString(), CharsetUtil.toCharset(charset))));
@@ -925,7 +925,7 @@ public final class Http extends BodyTagImpl {
 				// File
 				else if (type == HttpParamBean.TYPE_FILE) {
 					hasForm = true;
-					if (this.method == METHOD_GET) throw new ApplicationException("httpparam type file can't only be used, when method of the tag http equal post");
+					if (this.method == METHOD_GET) throw new ApplicationException("Tag [httpparam] attribute [type=file] can only be used, when [method] is  [post]");
 					// if(param.getFile()==null) throw new ApplicationException("httpparam type file can't only be used,
 					// when method of the tag http equal
 					// post");
@@ -946,7 +946,7 @@ public final class Http extends BodyTagImpl {
 							// ResourcePartSource(param.getFile()),getContentType(param),_charset));
 						}
 						catch (FileNotFoundException e) {
-							throw new ApplicationException("can't upload file, path is invalid", e.getMessage());
+							throw new ApplicationException("Can't upload file, path is invalid", e.getMessage());
 						}
 					}
 				}
@@ -963,21 +963,22 @@ public final class Http extends BodyTagImpl {
 					hasBody = true;
 					hasContentType = true;
 					req.addHeader("Content-type", mt + "; charset=" + cs);
-					if (eeReq == null) throw new ApplicationException("type xml is only supported for methods get, delete, post, and put");
+					if (eeReq == null) throw new ApplicationException("Tag [httpparam] attribute [type=xml] is only supported for methods [get, delete, post, and put]");
 					HTTPEngine4Impl.setBody(eeReq, param.getValueAsString(), mt, cs);
 				}
 				// Body
 				else if (type == HttpParamBean.TYPE_BODY) {
-					ContentType ct = HTTPUtil.toContentType(param.getMimeType(), null);
+					if (!StringUtil.isEmpty(param.getMimeType())) throw new ApplicationException("Tag [httpparam] attribute [mimeType] is only supported for [type=file]");
+					//ContentType ct = null;
 
 					String mt = null;
-					if (ct != null && !StringUtil.isEmpty(ct.getMimeType(), true)) mt = ct.getMimeType();
+					//if (ct != null && !StringUtil.isEmpty(ct.getMimeType(), true)) mt = ct.getMimeType();
 
 					String cs = charset;
-					if (ct != null && !StringUtil.isEmpty(ct.getCharset(), true)) cs = ct.getCharset();
+					//if (ct != null && !StringUtil.isEmpty(ct.getCharset(), true)) cs = ct.getCharset();
 
 					hasBody = true;
-					if (eeReq == null) throw new ApplicationException("type body is only supported for methods get, delete, post, and put");
+					if (eeReq == null) throw new ApplicationException("Tag [httpparam] attribute [type=body] is only supported for methods [get, delete, post, and put]");
 					HTTPEngine4Impl.setBody(eeReq, param.getValue(), mt, cs);
 
 				}
