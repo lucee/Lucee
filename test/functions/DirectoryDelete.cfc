@@ -57,4 +57,52 @@
 		}
 	}
 
+	public function testDirectoryNonEmptyDelete() localMode="modern" {	
+		dirEmpty = parent & "/notEmpty/";
+		directoryCreate(dirEmpty);
+		getTempFile(dirEmpty,"empty","txt");
+		var error = "";
+		try {
+			directoryDelete(dirEmpty);
+		} catch (e){
+			error = e.message;
+		}
+		expect( error ).notToBe( "" );
+	}
+
+	public function testDeleteDirectoryMissing() localMode="modern" {	
+		dirMissing = parent & "/missingDir/";
+		directoryCreate(dirMissing);
+		var handle = FileOpen( dirMissing );
+		var res = handle.getResource();
+		directoryDelete(dirMissing, true);
+
+		var error = "";
+		try {
+			res.remove(false); // call directly to avoid exists check in directoryDelete
+		} catch (e){
+			error = e.message;
+		} finally {
+			FileClose(handle);
+		}
+		expect( error ).notToBe( "" );
+	}
+
+	public function testDirectoryNonEmptyDeleteLocked() localMode="modern" {	
+		dirEmpty = parent & "/notEmptyResLocked/";
+		directoryCreate(dirEmpty);
+		var src = getTempFile(dirEmpty,"empty-locked","txt");
+		var error = "";
+		try {
+			var f = createObject("java", "java.io.File").init(src);
+			var fos =  createObject("java", "java.io.FileOutputStream").init(f); // lock file
+			directoryDelete(dirEmpty, true);
+		} catch (e){
+			error = e.message;
+		} finally {
+			fos.close();
+		}
+		expect( error ).notToBe( "" );
+	}
+
 }

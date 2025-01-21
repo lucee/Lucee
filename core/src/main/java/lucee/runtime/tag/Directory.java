@@ -822,7 +822,7 @@ public final class Directory extends TagImpl {
 		// check directory is empty
 		Resource[] dirList = dir.listResources();
 		if (dirList != null && dirList.length > 0 && forceDelete == false)
-			throw new ApplicationException("Directory [" + dir.toString() + "] is not empty", "set recurse=true to delete sub-directories and files too");
+			throw new ApplicationException("Directory [" + dir.toString() + "] is not empty", "Set recurse=true to delete sub-directories and files");
 
 		// delete directory
 		try {
