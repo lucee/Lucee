@@ -20,6 +20,7 @@ component {
 		if ( structKeyExists( url, "rotateOnSessionStart" ) ){
 			systemOutput( "rotateOnSessionStart #cgi.SCRIPT_NAME#", true );
 			sessionRotate();
+			server.LDEV3478.start_CFML_Sessions[ session.sessionid ] = now();
 		}
 		systemOutput( "session started #cgi.SCRIPT_NAME#", true );
 		session.started = now();

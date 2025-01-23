@@ -334,6 +334,7 @@ public class ModernAppListener extends AppListenerSupport {
 			call(app, pc, ON_SESSION_START, ArrayUtil.OBJECT_EMPTY, true);
 		}
 		if (hasOnSessionEnd(pc, app)) {
+			session = pc.sessionScope(); // in case of sessionRotate() in onSessionStart
 			if (session instanceof SessionMemory) ((SessionMemory) session).setComponent(app);
 			else if (session instanceof JSession) ((JSession) session).setComponent(app);
 		}

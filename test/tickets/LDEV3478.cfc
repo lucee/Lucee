@@ -37,7 +37,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="session" {
 				expect( structKeyExists( server.LDEV3478.ended_CFML_Sessions, trim( cfmlSessionId.fileContent ) ) ).toBeTrue();
 			});
 
-			it( title='cfml session - onSessionEnd with sessionRotate() in onSessionStart', body=function( currentSpec ) {
+			it( title='LDEV-5271 cfml session - onSessionEnd with sessionRotate() in onSessionStart', body=function( currentSpec ) {
 				_reset('cfml');
 				var uri = createURI("LDEV3478");
 				var cfmlSessionId = _InternalRequest(
@@ -59,7 +59,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="session" {
 					type="server"
 					password="#request.SERVERADMINPASSWORD#";
 				_dumpSessions("post purge");
-				// let's check first that the session actually ended!
+
 				expect( _getSessionCount( appName ) ).toBe( 0 );
 				expect( structKeyExists( server.LDEV3478.ended_CFML_Sessions, trim( cfmlSessionId.fileContent ) ) ).toBeTrue();
 			});
@@ -89,7 +89,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="session" {
 				expect( structKeyExists( server.LDEV3478.ended_JEE_Sessions, trim( j2eeSessionId.fileContent ) ) ).toBeTrue();
 			});
 
-			it( title='jee session - onSessionEnd with sessionRotate() in onSessionStart', body=function( currentSpec ) {
+			it( title='LDEV-5271 jee session - onSessionEnd with sessionRotate() in onSessionStart', body=function( currentSpec ) {
 				_reset('jee');
 				var uri = createURI("LDEV3478");
 				var j2eeSessionId = _InternalRequest(
@@ -111,6 +111,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="session" {
 					type="server"
 					password="#request.SERVERADMINPASSWORD#";
 				_dumpSessions("post purge");
+
 				expect( _getSessionCount( appName ) ).toBe( 0 );
 				expect( structKeyExists( server.LDEV3478.ended_JEE_Sessions, trim( j2eeSessionId.fileContent ) ) ).toBeTrue();
 			});
