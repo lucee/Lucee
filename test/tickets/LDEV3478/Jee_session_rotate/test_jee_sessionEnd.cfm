@@ -1,5 +1,7 @@
 <cfscript>
+	systemoutput("hasCFSession:" & getPageContext().hasCFSession(), true);
 	initialSessionId = session.sessionid;
-	sessionRotate();
+	if ( !structKeyExists( url, "rotateOnSessionStart" ) )
+		sessionRotate();
 	echo( initialSessionId );
 </cfscript>
