@@ -132,6 +132,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="session" {
 	}
 
 	private function _dumpSessions( moment ){
+		return;
 		systemOutput("---#moment#", true);
 		for (var type in server.LDEV3478 ){
 			systemOutput( type & ": " & server.LDEV3478[type].toJson(), true );
@@ -139,7 +140,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="session" {
 	}
 
 	private function _reset( type="" ){
-		systemOutput( "", true );
+		//systemOutput( "", true );
 		server.LDEV3478 = {};
 		if ( arguments.type eq "cfml" ){
 			server.LDEV3478["start_CFML_Sessions"] = {};
