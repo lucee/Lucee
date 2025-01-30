@@ -47,6 +47,7 @@ import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.scope.Argument;
 import lucee.runtime.type.scope.ArgumentImpl;
+import lucee.runtime.type.scope.CookieImpl;
 import lucee.runtime.type.scope.Form;
 import lucee.runtime.type.scope.FormImpl;
 import lucee.runtime.type.scope.UrlFormImpl;
@@ -152,6 +153,7 @@ public class InternalRequest implements Function {
 
 			HttpServletResponseDummy rsp = (HttpServletResponseDummy) _pc.getHttpServletResponse();
 
+			((CookieImpl) _pc.cookieScope() ).setCookieHeaders(rsp);
 			// headers
 			Collection.Key name;
 			headers = new StructImpl();

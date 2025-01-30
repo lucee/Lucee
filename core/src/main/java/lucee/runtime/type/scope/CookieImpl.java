@@ -46,6 +46,7 @@ import lucee.runtime.security.ScriptProtect;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
+import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.dt.DateTime;
 import lucee.runtime.type.dt.TimeSpan;
 import lucee.runtime.type.util.KeyConstants;
@@ -62,6 +63,7 @@ public final class CookieImpl extends ScopeSupport implements Cookie, ScriptProt
 	private HttpServletResponse rsp;
 	private int scriptProtected = ScriptProtected.UNDEFINED;
 	private Map<String, String> raw = new ConcurrentHashMap<String, String>();
+	private Struct setCookieHeaders = new StructImpl(Struct.TYPE_LINKED, 4); 
 	private String charset;
 
 	private static final Class<?>[] IS_HTTP_ONLY_ARGS_CLASSES = new Class[] {};
@@ -141,6 +143,7 @@ public final class CookieImpl extends ScopeSupport implements Cookie, ScriptProt
 			super.removeEL(key);
 		}
 		raw.clear();
+		setCookieHeaders.clear();
 	}
 
 	@Override
@@ -313,8 +316,19 @@ public final class CookieImpl extends ScopeSupport implements Cookie, ScriptProt
 
 		String tmpSameSite = SessionCookieDataImpl.toSamesite(samesite);
 		/* Samesite */if (!StringUtil.isEmpty(tmpSameSite, true)) sb.append(";SameSite").append('=').append(tmpSameSite);
-		rsp.addHeader("Set-Cookie", sb.toString());
+		setCookieHeaders.setEL(key, sb.toString());
+	}
 
+	public Struct getSetCookieHeaders(){
+		return setCookieHeaders;
+	}
+
+	public void setCookieHeaders(HttpServletResponse rsp){
+		Iterator<Entry<Key, Object>> it = setCookieHeaders.entryIterator();
+		while (it.hasNext()) {
+			rsp.addHeader("Set-Cookie", it.next().getValue().toString());
+		}
+		setCookieHeaders.clear();
 	}
 
 	private int toExpires(String expires) throws ExpressionException {
