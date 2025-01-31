@@ -179,7 +179,7 @@ public class ChildThreadImpl extends ChildThread implements Serializable {
 				try {
 					cwi = (ConfigWebPro) config;
 					DevNullOutputStream os = DevNullOutputStream.DEV_NULL_OUTPUT_STREAM;
-					HttpSession session = oldPc != null && oldPc.getSessionType() == Config.SESSION_TYPE_JEE ? oldPc.getSession() : null;
+					HttpSession session = getSession(oldPc);
 					pc = ThreadUtil.createPageContext(cwi, os, serverName, requestURI, queryString, SerializableCookie.toCookies(cookies), headers, null, parameters, attributes,
 							true, -1, session, null);
 					pc.setRequestTimeout(requestTimeout);
@@ -286,6 +286,11 @@ public class ChildThreadImpl extends ChildThread implements Serializable {
 			if (oldPc != null) ThreadLocalPageContext.register(oldPc);
 		}
 		return null;
+	}
+
+	private HttpSession getSession(PageContext oldPc){
+		if (oldPc == null || !((PageContextImpl) oldPc).hasCFSession()) return null;
+		return oldPc.getSessionType() == Config.SESSION_TYPE_JEE ? oldPc.getSession() : null;
 	}
 
 	@Override
