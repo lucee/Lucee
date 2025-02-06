@@ -914,20 +914,19 @@ if(structKeyExists(arguments.custom, "metrics_Charts")) {
 
 				<cfoutput>
 				  cookieName: 	"#variables.cookieName#"
-				, bitmaskAll: 	Math.pow( 2, 31 ) - 1
 				, allSections: 	#serializeJSON( this.allSections )#
 				</cfoutput>
 
 				, setFlag: 		function( name ) {
 
-					var value = __LUCEE.util.getCookie( __LUCEE.debug.cookieName, __LUCEE.debug.allSections.ALL ) | __LUCEE.debug.allSections[ name ];
+					var value = BigInt(__LUCEE.util.getCookie( __LUCEE.debug.cookieName, __LUCEE.debug.allSections.ALL )) | BigInt(__LUCEE.debug.allSections[ name ]);
 					__LUCEE.util.setCookie( __LUCEE.debug.cookieName, value );
 					return value;
 				}
 
 				, clearFlag: 	function( name ) {
 
-					var value = __LUCEE.util.getCookie( __LUCEE.debug.cookieName, 0 ) & ( __LUCEE.debug.bitmaskAll - __LUCEE.debug.allSections[ name ] );
+					var value = BigInt(__LUCEE.util.getCookie( __LUCEE.debug.cookieName, 0 )) & ~BigInt(__LUCEE.debug.allSections[ name ]);
 					__LUCEE.util.setCookie( __LUCEE.debug.cookieName, value );
 					return value;
 				}
@@ -936,7 +935,7 @@ if(structKeyExists(arguments.custom, "metrics_Charts")) {
 
 					var btn = __LUCEE.util.getDomObject( "-lucee-debugging-btn-" + name );
 					var obj = __LUCEE.util.getDomObject( "-lucee-debugging-" + name );
-					var isOpen = ( __LUCEE.util.getCookie( __LUCEE.debug.cookieName, 0 ) & __LUCEE.debug.allSections[ name ] ) > 0;
+					var isOpen = ( BigInt(__LUCEE.util.getCookie( __LUCEE.debug.cookieName, 0 )) & BigInt(__LUCEE.debug.allSections[ name ]) ) > 0;
 
 					if ( isOpen ) {
 
