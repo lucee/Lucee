@@ -353,7 +353,8 @@ public final class FileTag extends BodyTagImpl {
 
 	public void setBlockedextensions(Object oExtensions) throws PageException {
 		if (StringUtil.isEmpty(oExtensions)) return;
-		this.blockedExtensions = FileUtil.toExtensionFilter(oExtensions);
+		if (oExtensions == "*" ) this.blockedExtensions = FileUtil.toExtensionFilter(""); // blocks all
+		else this.blockedExtensions = FileUtil.toExtensionFilter(oExtensions);
 	}
 
 	/**
@@ -1113,20 +1114,25 @@ public final class FileTag extends BodyTagImpl {
 					extensionAccepted = Boolean.TRUE;
 				}
 				else {
-					String blocklistedTypes = ((ApplicationContextSupport) appContext).getBlockedExtForFileUpload();
-					if (StringUtil.isEmpty(blocklistedTypes))
-						blocklistedTypes = SystemUtil.getSystemPropOrEnvVar(SystemUtil.SETTING_UPLOAD_EXT_BLACKLIST, SystemUtil.DEFAULT_UPLOAD_EXT_BLOCKLIST);
-					if (StringUtil.isEmpty(blocklistedTypes))
-						blocklistedTypes = SystemUtil.getSystemPropOrEnvVar(SystemUtil.SETTING_UPLOAD_EXT_BLOCKLIST, SystemUtil.DEFAULT_UPLOAD_EXT_BLOCKLIST);
+					String blocklistedTypes = getBlockListedTypes(appContext);
 
-					NotResourceFilter filter = new NotResourceFilter(
-							new ExtensionResourceFilter(false, true, false, ListUtil.trimItems(ListUtil.listToStringArray(blocklistedTypes, ','))));
+					ResourceFilter filter = null;
+					if (blocklistedTypes == "*") {
+						filter = FileUtil.toExtensionFilter(""); // blocks all, nothing allowed
+					} else {
+						filter = new NotResourceFilter( new ExtensionResourceFilter(false, true, false, 
+							ListUtil.trimItems(ListUtil.listToStringArray(blocklistedTypes, ','))));
+					}
 
 					if (!filter.accept(clientFile)) throw new ApplicationException("Upload of files with extension [" + ext + "] is not permitted.", DETAIL);
 				}
 			}
 		}
-		else ext = null;
+		else {
+			ext = null;
+			String blocklistedTypes = getBlockListedTypes(appContext);
+			if (blocklistedTypes == "*") throw new ApplicationException("Upload of files without an extension is not permitted.", DETAIL);
+		}
 
 		// mimetype
 		if (StringUtil.isEmpty(accept, true)) return;
@@ -1154,6 +1160,15 @@ public final class FileTag extends BodyTagImpl {
 					" set [" + accept + "] to MIME type.");
 		throw new ApplicationException("The MIME type of the uploaded file [" + contentType + "] was rejected by the server.",
 				" Only the following type(s) are allowed, [" + StringUtil.emptyIfNull(accept) + "].  Verify that you are uploading a file of the appropriate type. ");
+	}
+
+	private static String getBlockListedTypes(ApplicationContext appContext){
+		String blocklistedTypes = ((ApplicationContextSupport) appContext).getBlockedExtForFileUpload();
+		if (StringUtil.isEmpty(blocklistedTypes))
+			blocklistedTypes = SystemUtil.getSystemPropOrEnvVar(SystemUtil.SETTING_UPLOAD_EXT_BLACKLIST, SystemUtil.DEFAULT_UPLOAD_EXT_BLOCKLIST);
+		if (StringUtil.isEmpty(blocklistedTypes))
+			blocklistedTypes = SystemUtil.getSystemPropOrEnvVar(SystemUtil.SETTING_UPLOAD_EXT_BLOCKLIST, SystemUtil.DEFAULT_UPLOAD_EXT_BLOCKLIST);
+		return blocklistedTypes;
 	}
 
 	/**
