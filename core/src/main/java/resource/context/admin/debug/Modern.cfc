@@ -84,7 +84,7 @@ group("Execution Time","Execution times for templates, includes, modules, custom
 				queryAddColumn(queries, "hash",[]);
 			}
 			loop query=queries {
-				var h="h"&hash(queries.src&":"&queries.line, "quick");
+				var h="h"&hash(queries.src&":"&queries.line&":"&queries.currentrow, "quick");
 				arrayAppend(otherSections, h);
 				querySetCell(queries, "hash", h,queries.currentrow);
 			}
