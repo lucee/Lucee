@@ -901,6 +901,7 @@ public final class FileTag extends BodyTagImpl {
 			String accept, ResourceFilter allowedExtensions, ResourceFilter blockedExtensions, boolean strict, int mode, String attributes, Object acl, String serverPassword)
 			throws PageException {
 		FormItem item = getFormItem(pageContext, filefield);
+		if (item.getResource() == null) throw new ApplicationException("Uploaded file [" + item.getName() + "] was blocked from uploading by settings");
 		return _actionUpload(pageContext, securityManager, item, strDestination, nameconflict, accept, allowedExtensions, blockedExtensions, strict, mode, attributes, acl,
 				serverPassword);
 	}
@@ -928,9 +929,11 @@ public final class FileTag extends BodyTagImpl {
 		Struct sct = null;
 		Array arr = new ArrayImpl();
 		for (int i = 0; i < items.length; i++) {
-			sct = _actionUpload(pageContext, securityManager, items[i], strDestination, nameconflict, accept, allowedExtensions, blockedExtensions, strict, mode, attributes, acl,
-					serverPassword);
-			arr.appendEL(sct);
+			if (items[i].getResource() != null){
+				sct = _actionUpload(pageContext, securityManager, items[i], strDestination, nameconflict, accept, allowedExtensions, 
+					blockedExtensions, strict, mode, attributes, acl, serverPassword);
+				arr.appendEL(sct);
+			}
 		}
 		return arr;
 	}
@@ -1114,14 +1117,14 @@ public final class FileTag extends BodyTagImpl {
 					extensionAccepted = Boolean.TRUE;
 				}
 				else {
-					String blocklistedTypes = getBlockListedTypes(appContext);
+					String blockListedTypes = FileUtil.getBlockListedTypes(appContext);
 
 					ResourceFilter filter = null;
-					if (blocklistedTypes == "*") {
+					if (blockListedTypes == "*") {
 						filter = FileUtil.toExtensionFilter(""); // blocks all, nothing allowed
 					} else {
 						filter = new NotResourceFilter( new ExtensionResourceFilter(false, true, false, 
-							ListUtil.trimItems(ListUtil.listToStringArray(blocklistedTypes, ','))));
+							ListUtil.trimItems(ListUtil.listToStringArray(blockListedTypes, ','))));
 					}
 
 					if (!filter.accept(clientFile)) throw new ApplicationException("Upload of files with extension [" + ext + "] is not permitted.", DETAIL);
@@ -1130,8 +1133,8 @@ public final class FileTag extends BodyTagImpl {
 		}
 		else {
 			ext = null;
-			String blocklistedTypes = getBlockListedTypes(appContext);
-			if (blocklistedTypes == "*") throw new ApplicationException("Upload of files without an extension is not permitted.", DETAIL);
+			String blockListedTypes = FileUtil.getBlockListedTypes(appContext);
+			if (blockListedTypes == "*") throw new ApplicationException("Upload of files without an extension is not permitted.", DETAIL);
 		}
 
 		// mimetype
@@ -1160,15 +1163,6 @@ public final class FileTag extends BodyTagImpl {
 					" set [" + accept + "] to MIME type.");
 		throw new ApplicationException("The MIME type of the uploaded file [" + contentType + "] was rejected by the server.",
 				" Only the following type(s) are allowed, [" + StringUtil.emptyIfNull(accept) + "].  Verify that you are uploading a file of the appropriate type. ");
-	}
-
-	private static String getBlockListedTypes(ApplicationContext appContext){
-		String blocklistedTypes = ((ApplicationContextSupport) appContext).getBlockedExtForFileUpload();
-		if (StringUtil.isEmpty(blocklistedTypes))
-			blocklistedTypes = SystemUtil.getSystemPropOrEnvVar(SystemUtil.SETTING_UPLOAD_EXT_BLACKLIST, SystemUtil.DEFAULT_UPLOAD_EXT_BLOCKLIST);
-		if (StringUtil.isEmpty(blocklistedTypes))
-			blocklistedTypes = SystemUtil.getSystemPropOrEnvVar(SystemUtil.SETTING_UPLOAD_EXT_BLOCKLIST, SystemUtil.DEFAULT_UPLOAD_EXT_BLOCKLIST);
-		return blocklistedTypes;
 	}
 
 	/**

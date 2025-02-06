@@ -21,10 +21,13 @@ package lucee.runtime.tag.util;
 import java.util.ArrayList;
 import java.util.List;
 
+import lucee.commons.io.SystemUtil;
 import lucee.commons.io.res.filter.ExtensionResourceFilter;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.listener.ApplicationContext;
+import lucee.runtime.listener.ApplicationContextSupport;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 import lucee.runtime.type.util.ListUtil;
@@ -133,6 +136,15 @@ public class FileUtil {
 		if (str.startsWith("*.")) return str.substring(2).toLowerCase();
 		if (str.startsWith(".")) return str.substring(1).toLowerCase();
 		return str.toLowerCase();
+	}
+
+	public static String getBlockListedTypes(ApplicationContext appContext){
+		String blockListedTypes = ((ApplicationContextSupport) appContext).getBlockedExtForFileUpload();
+		if (StringUtil.isEmpty(blockListedTypes))
+			blockListedTypes = SystemUtil.getSystemPropOrEnvVar(SystemUtil.SETTING_UPLOAD_EXT_BLACKLIST, SystemUtil.DEFAULT_UPLOAD_EXT_BLOCKLIST);
+		if (StringUtil.isEmpty(blockListedTypes))
+			blockListedTypes = SystemUtil.getSystemPropOrEnvVar(SystemUtil.SETTING_UPLOAD_EXT_BLOCKLIST, SystemUtil.DEFAULT_UPLOAD_EXT_BLOCKLIST);
+		return blockListedTypes;
 	}
 
 }
