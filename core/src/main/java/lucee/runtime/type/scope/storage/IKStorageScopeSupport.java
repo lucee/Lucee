@@ -508,6 +508,16 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 	}
 
 	@Override
+	public void setDirty() {
+		hasChanges = true;
+	}
+
+	@Override
+	public void setClean() {
+		hasChanges = false;
+	}
+
+	@Override
 	public final int getType() {
 		return type;
 	}

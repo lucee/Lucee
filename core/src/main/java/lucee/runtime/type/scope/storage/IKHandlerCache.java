@@ -71,10 +71,12 @@ public class IKHandlerCache implements IKHandler {
 					cache.remove(key);
 				}
 			}
+			storageScope.setClean();
 			ScopeContext.info(log, "Store scope for [" + pc.getApplicationContext().getName() + "/" + pc.getCFID() + "] in cache [" + name + "]");
 		}
 		catch (Exception e) {
 			ScopeContext.error(log, e);
+			return;
 		}
 	}
 
