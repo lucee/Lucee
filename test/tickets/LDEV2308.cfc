@@ -19,15 +19,15 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="thread,cookie,sess
 				expect( structCount(result.cookies ) ).toBe( 0 );
 			});
 
-			it( title='JSessionID cookie should not be set by cfthread, cfml session', body=function( currentSpec ) {
+			it( title='no cookies should not be set by cfthread, cfml session', body=function( currentSpec ) {
 				uri = createURI("LDEV2308");
 				var result = test(
 					template : "/cfml-session/testThreadCookies.cfm"
 				);
 				//dumpResult(local.result);
-				expect( structCount(result.cookies ) ).toBeGT( 0 );
-				expect( structKeyExists(result.cookies, "CFID" ) ).toBeTrue();
-				expect( structKeyExists(result.cookies, "JsessionId" ) ).toBeFalse();
+				expect( structCount(result.cookies ) ).toBe( 0 );
+				//expect( structKeyExists(result.cookies, "CFID" ) ).toBeTrue();
+				//expect( structKeyExists(result.cookies, "JsessionId" ) ).toBeFalse();
 			});
 
 			// test disabled, see LDEV-4030 & LDEV-2954
@@ -36,7 +36,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="thread,cookie,sess
 					template : "/j2ee-session/testThreadCookies.cfm"
 				);
 				dumpResult(local.result);
-				systemOutput(result.cookies, true);
+				//systemOutput(result.cookies, true);
 				expect( structCount(result.cookies ) ).toBe( 0 );
 			});
 
