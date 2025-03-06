@@ -1,3 +1,4 @@
+<!--- this file uses LF line endings --->
 <cfprocessingdirective suppresswhitespace="yes">
     <cfoutput>
         Line1

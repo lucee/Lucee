@@ -18,10 +18,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 						chr(13),"CR","all"),
 					" ",".","all"
 				);
-				if ( isWindows() ) // TODO???
-					expect( text ).toBe( "Line1LFLine2LFLine3LF" );
-				else
-					expect( text ).toBe( "LFLine1LFLine2LFLine3LFLF" );
+				// test file is LF
+				expect( text ).toBe( "LFLFLine1LFLine2LFLine3LF" );
 			});
 		});
 
