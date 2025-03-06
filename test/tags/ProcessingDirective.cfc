@@ -17,7 +17,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 						chr(13),"CR","all"),
 					" ",".","all"
 				);
-				expect(text).toBe("LFLine1LFLine2LFLine3LFCRLF"); // ACF 2023 doesn't strip whitespace?
+				expect(text).toBe("Line1LFLine2LFLine3LF"); // ACF 2023 doesn't strip whitespace?
 
 			});
 		});
