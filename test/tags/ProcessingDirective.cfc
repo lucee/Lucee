@@ -58,10 +58,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 		});
 	}
 
-	private string function createURI(string calledName, boolean contract=true){
-		var base = getDirectoryFromPath( getCurrentTemplatePath() );
-		var baseURI = contract ? contractPath( base ) : "/test/#listLast(base,"\/")#";
-		return baseURI & "/" & calledName;
+	private string function createURI(string calledName){
+		var baseURI="/test/#listLast(getDirectoryFromPath(getCurrentTemplatePath()),"\/")#/";
+		return baseURI&""&calledName;
 	}
 	
 }
