@@ -4,13 +4,13 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 		describe("Tests for cfprocessingdirective", function() {
 
 			it("should correctly set page encoding", function() {
-				var result = _InternalRequest(template="#createURI('processingdirective')#/cfprocessingdirective_encoding.cfm");
+				var result = _InternalRequest(template="#createURI('processingDirective')#/cfprocessingdirective_encoding.cfm");
 				debug(result);
 				expect(result.fileContent.trim()).toBe("Encoding set to UTF-8");
 			});
 
 			it("should suppress whitespace when specified", function() {
-				var result = _InternalRequest(template="#createURI('processingdirective')#/cfprocessingdirective_whitespace.cfm");
+				var result = _InternalRequest(template="#createURI('processingDirective')#/cfprocessingdirective_whitespace.cfm");
 				var text = replace(
 						replace(
 							replace(result.fileContent,chr(10),"LF","all"),
@@ -28,7 +28,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 
 			it("should preserve case when enabled", function() {
 				var result = _InternalRequest(
-					template="#createURI('processingdirective')#/cfprocessingdirective_preservecase.cfm",
+					template="#createURI('processingDirective')#/cfprocessingdirective_preservecase.cfm",
 					url: {
 						preserve: true
 					}
@@ -38,7 +38,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 
 			it("shouldn't preserve case when disabled", function() {
 				var result = _InternalRequest(
-					template="#createURI('processingdirective')#/cfprocessingdirective_preservecase.cfm",
+					template="#createURI('processingDirective')#/cfprocessingdirective_preservecase.cfm",
 					url: {
 						preserve: false
 					}
@@ -48,7 +48,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 			
 			it("shouldn't preserve case by default, no processingdirective", function() {
 				var result = _InternalRequest(
-					template="#createURI('processingdirective')#/cfprocessingdirective_preservecase.cfm",
+					template="#createURI('processingDirective')#/cfprocessingdirective_preservecase.cfm",
 					url: {
 						default: true
 					}
