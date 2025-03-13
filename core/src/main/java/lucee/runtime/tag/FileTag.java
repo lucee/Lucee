@@ -949,10 +949,10 @@ public final class FileTag extends BodyTagImpl {
 
 		long length = formItem.getResource().length();
 		cffile.set(KeyConstants._timecreated, new DateTimeImpl());
-		cffile.set(KeyConstants._timelastmodified, new DateTimeImpl());
-		cffile.set(KeyConstants._datelastaccessed, new DateImpl());
-		cffile.set(KeyConstants._oldfilesize, Long.valueOf(length));
-		cffile.set(KeyConstants._filesize, Long.valueOf(length));
+		cffile.set(KeyConstants.CFML._timelastmodified, new DateTimeImpl());
+		cffile.set(KeyConstants.CFML._datelastaccessed, new DateImpl());
+		cffile.set(KeyConstants.CFML._oldfilesize, Long.valueOf(length));
+		cffile.set(KeyConstants.CFML._filesize, Long.valueOf(length));
 
 		// client file
 		String strClientFile = formItem.getName();
@@ -963,16 +963,16 @@ public final class FileTag extends BodyTagImpl {
 
 		// content type
 		String contentType = ResourceUtil.getMimeType(formItem.getResource(), clientFile.getName(), formItem.getContentType());
-		cffile.set(KeyConstants._contenttype, ListFirst.call(pageContext, contentType, "/", false, 1));
-		cffile.set(KeyConstants._contentsubtype, ListLast.call(pageContext, contentType, "/", false, 1));
+		cffile.set(KeyConstants.CFML._contenttype, ListFirst.call(pageContext, contentType, "/", false, 1));
+		cffile.set(KeyConstants.CFML._contentsubtype, ListLast.call(pageContext, contentType, "/", false, 1));
 
 		// check file type
 		checkContentType(contentType, accept, allowedExtensions, blockedExtensions, clientFile, strict, pageContext.getApplicationContext());
 
-		cffile.set(KeyConstants._clientdirectory, getParent(clientFile));
-		cffile.set(KeyConstants._clientfile, clientFile.getName());
-		cffile.set(KeyConstants._clientfileext, ResourceUtil.getExtension(clientFile, ""));
-		cffile.set(KeyConstants._clientfilename, ResourceUtil.getName(clientFile));
+		cffile.set(KeyConstants.CFML._clientdirectory, getParent(clientFile));
+		cffile.set(KeyConstants.CFML._clientfile, clientFile.getName());
+		cffile.set(KeyConstants.CFML._clientfileext, ResourceUtil.getExtension(clientFile, ""));
+		cffile.set(KeyConstants.CFML._clientfilename, ResourceUtil.getName(clientFile));
 
 		// check destination
 		if (StringUtil.isEmpty(strDestination)) throw new ApplicationException("Attribute [destination] is required for tag [file], when action is [" + actionValue + "]");
@@ -1004,21 +1004,21 @@ public final class FileTag extends BodyTagImpl {
 		else if (!parentDestination.isWriteable()) throw new ApplicationException("can't write to destination directory [" + parentDestination + "], no access to write");
 
 		// set server variables
-		cffile.set(KeyConstants._serverdirectory, getParent(destination));
-		cffile.set(KeyConstants._serverfile, destination.getName());
-		cffile.set(KeyConstants._serverfileext, ResourceUtil.getExtension(destination, null));
-		cffile.set(KeyConstants._serverfilename, ResourceUtil.getName(destination));
-		cffile.set(KeyConstants._attemptedserverfile, destination.getName());
+		cffile.set(KeyConstants.CFML._serverdirectory, getParent(destination));
+		cffile.set(KeyConstants.CFML._serverfile, destination.getName());
+		cffile.set(KeyConstants.CFML._serverfileext, ResourceUtil.getExtension(destination, null));
+		cffile.set(KeyConstants.CFML._serverfilename, ResourceUtil.getName(destination));
+		cffile.set(KeyConstants.CFML._attemptedserverfile, destination.getName());
 
 		// check nameconflict
 		if (nameconflict == NAMECONFLICT_FORCEUNIQUE) {
 			destination = forceUnique(destination);
 			fileWasRenamed = true;
 
-			cffile.set(KeyConstants._serverdirectory, getParent(destination));
-			cffile.set(KeyConstants._serverfile, destination.getName());
-			cffile.set(KeyConstants._serverfileext, ResourceUtil.getExtension(destination, ""));
-			cffile.set(KeyConstants._serverfilename, ResourceUtil.getName(destination));
+			cffile.set(KeyConstants.CFML._serverdirectory, getParent(destination));
+			cffile.set(KeyConstants.CFML._serverfile, destination.getName());
+			cffile.set(KeyConstants.CFML._serverfileext, ResourceUtil.getExtension(destination, ""));
+			cffile.set(KeyConstants.CFML._serverfilename, ResourceUtil.getName(destination));
 		}
 
 		if (destination.exists()) {
@@ -1027,11 +1027,11 @@ public final class FileTag extends BodyTagImpl {
 				throw new ApplicationException("Destination file [" + destination + "] already exists");
 			}
 			else if (nameconflict == NAMECONFLICT_SKIP) {
-				cffile.set(KeyConstants._fileexisted, Caster.toBoolean(fileExisted));
-				cffile.set(KeyConstants._filewasappended, Boolean.FALSE);
-				cffile.set(KeyConstants._filewasoverwritten, Boolean.FALSE);
-				cffile.set(KeyConstants._filewasrenamed, Boolean.FALSE);
-				cffile.set(KeyConstants._filewassaved, Boolean.FALSE);
+				cffile.set(KeyConstants.CFML._fileexisted, Caster.toBoolean(fileExisted));
+				cffile.set(KeyConstants.CFML._filewasappended, Boolean.FALSE);
+				cffile.set(KeyConstants.CFML._filewasoverwritten, Boolean.FALSE);
+				cffile.set(KeyConstants.CFML._filewasrenamed, Boolean.FALSE);
+				cffile.set(KeyConstants.CFML._filewassaved, Boolean.FALSE);
 				return cffile;
 			}
 			else if (nameconflict == NAMECONFLICT_MAKEUNIQUE) {
@@ -1039,10 +1039,10 @@ public final class FileTag extends BodyTagImpl {
 				fileWasRenamed = true;
 
 				// if(fileWasRenamed) {
-				cffile.set(KeyConstants._serverdirectory, getParent(destination));
-				cffile.set(KeyConstants._serverfile, destination.getName());
-				cffile.set(KeyConstants._serverfileext, ResourceUtil.getExtension(destination, ""));
-				cffile.set(KeyConstants._serverfilename, ResourceUtil.getName(destination));
+				cffile.set(KeyConstants.CFML._serverdirectory, getParent(destination));
+				cffile.set(KeyConstants.CFML._serverfile, destination.getName());
+				cffile.set(KeyConstants.CFML._serverfileext, ResourceUtil.getExtension(destination, ""));
+				cffile.set(KeyConstants.CFML._serverfilename, ResourceUtil.getName(destination));
 				// }
 			}
 			else if (nameconflict == NAMECONFLICT_OVERWRITE) {
@@ -1066,11 +1066,11 @@ public final class FileTag extends BodyTagImpl {
 
 		// Set cffile/file struct
 
-		cffile.set(KeyConstants._fileexisted, Caster.toBoolean(fileExisted));
-		cffile.set(KeyConstants._filewasappended, Caster.toBoolean(fileWasAppended));
-		cffile.set(KeyConstants._filewasoverwritten, Caster.toBoolean(fileWasOverwritten));
-		cffile.set(KeyConstants._filewasrenamed, Caster.toBoolean(fileWasRenamed));
-		cffile.set(KeyConstants._filewassaved, Boolean.TRUE);
+		cffile.set(KeyConstants.CFML._fileexisted, Caster.toBoolean(fileExisted));
+		cffile.set(KeyConstants.CFML._filewasappended, Caster.toBoolean(fileWasAppended));
+		cffile.set(KeyConstants.CFML._filewasoverwritten, Caster.toBoolean(fileWasOverwritten));
+		cffile.set(KeyConstants.CFML._filewasrenamed, Caster.toBoolean(fileWasRenamed));
+		cffile.set(KeyConstants.CFML._filewassaved, Boolean.TRUE);
 
 		setMode(destination, mode);
 		setAttributes(destination, attributes);

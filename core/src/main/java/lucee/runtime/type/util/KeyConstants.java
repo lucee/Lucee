@@ -3082,6 +3082,7 @@ public class KeyConstants {
 	public static final Key _read = KeyImpl._const("read");
 	public static final Key _write = KeyImpl._const("write");
 	public static final Key _cffile = KeyImpl._const("cffile");
+	public static final Key _ip = KeyImpl._const("ip");
 	public static final class CFML {
 		public static final Key _timelastmodified = KeyImpl._const("timelastmodified");
 		public static final Key _datelastaccessed = KeyImpl._const("datelastaccessed");
@@ -3113,7 +3114,6 @@ public class KeyConstants {
 		public static final Key _isAttributesSupported = KeyImpl._const("isAttributesSupported");
 		public static final Key _isModeSupported = KeyImpl._const("isModeSupported");
 		public static final Key _warning = KeyImpl._const("warning");
-		public static final Key _ip = KeyImpl._const("ip");
 		public static final Key _attributeType = KeyImpl._const("attributeType");
 		public static final Key _parseBody = KeyImpl._const("parseBody");
 		public static final Key _bodyType = KeyImpl._const("bodyType");

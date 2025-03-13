@@ -41,9 +41,9 @@ public class GetFileInfo {
 
 		Struct sct = new StructImpl();
 
-		sct.set(KeyConstants._canRead, Caster.toBoolean(src.isReadable()));
-		sct.set(KeyConstants._canWrite, Caster.toBoolean(src.isWriteable()));
-		sct.set(KeyConstants._isHidden, Caster.toBoolean(src.getAttribute(Resource.ATTRIBUTE_HIDDEN)));
+		sct.set(KeyConstants.CFML._canRead, Caster.toBoolean(src.isReadable()));
+		sct.set(KeyConstants.CFML._canWrite, Caster.toBoolean(src.isWriteable()));
+		sct.set(KeyConstants.CFML._isHidden, Caster.toBoolean(src.getAttribute(Resource.ATTRIBUTE_HIDDEN)));
 		sct.set(KeyConstants._lastmodified, new DateTimeImpl(src.lastModified()));
 		try {
 			attr = Files.readAttributes(file.toPath(), BasicFileAttributes.class);
@@ -61,12 +61,12 @@ public class GetFileInfo {
 		else sct.set(KeyConstants._type, "");
 
 		// supported only by lucee
-		sct.set(KeyConstants._isArchive, Caster.toBoolean(src.getAttribute(Resource.ATTRIBUTE_ARCHIVE)));
-		sct.set(KeyConstants._isSystem, Caster.toBoolean(src.getAttribute(Resource.ATTRIBUTE_SYSTEM)));
-		sct.set(KeyConstants._scheme, src.getResourceProvider().getScheme());
-		sct.set(KeyConstants._isCaseSensitive, Caster.toBoolean(src.getResourceProvider().isCaseSensitive()));
-		sct.set(KeyConstants._isAttributesSupported, Caster.toBoolean(src.getResourceProvider().isAttributesSupported()));
-		sct.set(KeyConstants._isModeSupported, Caster.toBoolean(src.getResourceProvider().isModeSupported()));
+		sct.set(KeyConstants.CFML._isArchive, Caster.toBoolean(src.getAttribute(Resource.ATTRIBUTE_ARCHIVE)));
+		sct.set(KeyConstants.CFML._isSystem, Caster.toBoolean(src.getAttribute(Resource.ATTRIBUTE_SYSTEM)));
+		sct.set(KeyConstants.CFML._scheme, src.getResourceProvider().getScheme());
+		sct.set(KeyConstants.CFML._isCaseSensitive, Caster.toBoolean(src.getResourceProvider().isCaseSensitive()));
+		sct.set(KeyConstants.CFML._isAttributesSupported, Caster.toBoolean(src.getResourceProvider().isAttributesSupported()));
+		sct.set(KeyConstants.CFML._isModeSupported, Caster.toBoolean(src.getResourceProvider().isModeSupported()));
 
 		return sct;
 	}
