@@ -256,9 +256,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mail"
 					var body=content.getBodyPart(0);
 					expect( body.getContentType() ).toBe( "text/html; charset=UTF-8" );
 					var content = body.getContent();
-					loop from="1" to=len(content) index="local.c"{
-						systemOutput("[" & asc(content[c]) & "] : []" & chr(content[c]) & "] : [" & content[c] & "]", true);
-					}
 					expect( body.getContent() ).toBe( subject );
 					
 					// attachment
