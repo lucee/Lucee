@@ -1,38 +1,36 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" labels="mail" {
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="mail"
+	javaSettings = '{
+		maven: [
+			"com.icegreen:greenmail:2.1.3"
+		]
+	}'{
 	
 	processingdirective pageencoding="UTF-8";
 
+	import com.icegreen.greenmail.util.GreenMail;
+	import com.icegreen.greenmail.util.ServerSetupTest;
+	import com.icegreen.greenmail.util.GreenMailUtil;
 
-
-	variables.port=30250;
 	variables.from="susi@sorglos.de";
 	variables.to="geisse@peter.ch";
 
-
 	function beforeAll() {
-		if(isNull(application.testSMTP)) {
-			var ServerSetup=createObject("java","com.icegreen.greenmail.util.ServerSetup","org.lucee.greenmail","1.6.15");
-			var GreenMail=createObject("java","com.icegreen.greenmail.util.GreenMail","org.lucee.greenmail","1.6.15");
-			variables.utils = createObject("java","com.icegreen.greenmail.util.GreenMailUtil","org.lucee.greenmail","1.6.15");
-			application.testSMTP = GreenMail.init(ServerSetup.init(variables.port, nullValue(), ServerSetup.PROTOCOL_SMTP));
-			application.testSMTP.start();
-		}
-		else {
-			application.testSMTP.purgeEmailFromAllMailboxes();
-		}
-
-
-    }
-
-    function afterAll() {
-        if(!isNull(application.testSMTP)) {
+		if ( !isNull( application.testSMTP ) ) {
 			application.testSMTP.purgeEmailFromAllMailboxes();
 			application.testSMTP.stop();
 		}
-    }
-	
-	
-	
+		application.testSMTP = new GreenMail( ServerSetupTest::SMTP.dynamicPort() );
+		application.testSMTP.start();
+		variables.port = application.testSMTP.getSmtp().getServerSetup().port;
+	}
+
+	function afterAll() {
+		if ( !isNull( application.testSMTP ) ) {
+			application.testSMTP.purgeEmailFromAllMailboxes();
+			application.testSMTP.stop();
+		}
+	}
+
 	function run( testResults , testBox ) {
 		describe( title="Test suite for the tag cfmail", body=function() {
 			it(title="send a simple text mail", body = function( currentSpec ) {
@@ -257,7 +255,11 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mail" {
 					// body
 					var body=content.getBodyPart(0);
 					expect( body.getContentType() ).toBe( "text/html; charset=UTF-8" );
-					expect( trim(body.getContent()) ).toBe( subject );
+					var content = body.getContent();
+					loop from="1" to=len(content) index="local.c"{
+						systemOutput("[" & asc(content[c]) & "] : []" & chr(content[c]) & "] : [" & content[c] & "]", true);
+					}
+					expect( body.getContent() ).toBe( subject );
 					
 					// attachment
 					var attachment=content.getBodyPart(1);
@@ -311,7 +313,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mail" {
 	}
 
 	private function getMessageHeaders( msg ){
-		var str = utils.getHeaders( arguments.msg );
+		var str = GreenMailUtil::getHeaders( arguments.msg );
 		var tmp = listToArray( str, chr( 10 ) );
 		var headers = structNew( "ordered" );
 		arrayEach( tmp, function( v ){
