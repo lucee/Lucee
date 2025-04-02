@@ -10,6 +10,7 @@ component {
 		// copy the lar archives into a unique directory
 		var files = directoryList(path=arguments.temp, listinfo="query",filter="*.lar");
 		for (var f in files){
+			if (f contains "testbox") continue; // testbox isn't deployed, therefore, not interesting
 			fileCopy( arguments.temp & "/" & f.name, archiveDir & f.name );
 		}
 		files = directoryList(path=archiveDir, listinfo="query",filter="*.lar");
