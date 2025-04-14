@@ -58,6 +58,7 @@ public final class _Execute extends PageContextThread {
 
 	private UDF onError;
 	private UDF onProgress;
+	private long timeout;
 
 	/**
 	 * Constructor: Execute external processes
@@ -73,8 +74,9 @@ public final class _Execute extends PageContextThread {
 	 * @param environment
 	 * @param resultVariable
 	 * @param exitCodeVariable
+	 * @param timeout
 	 */
-	public _Execute(PageContext pageContext, Object monitor, String[] commands, Resource outputfile, String variable, Resource errorFile, String errorVariable, String directory, Struct environment, String resultVariable, String exitCodeVariable, UDF onError, UDF onProgress) {
+	public _Execute(PageContext pageContext, Object monitor, String[] commands, Resource outputfile, String variable, Resource errorFile, String errorVariable, String directory, Struct environment, String resultVariable, String exitCodeVariable, UDF onError, UDF onProgress, long timeout) {
 		super(pageContext);
 		this.monitor = monitor;
 		this.commands = commands;
@@ -92,6 +94,7 @@ public final class _Execute extends PageContextThread {
 
 		this.onError = onError;
 		this.onProgress = onProgress;
+		this.timeout = timeout;
 	}
 
 	@Override
@@ -111,7 +114,7 @@ public final class _Execute extends PageContextThread {
 			if (onError != null && onProgress != null ){
 				UDFProcessListener error = new UDFProcessListener(pc, onError);
 				UDFProcessListener progress = new UDFProcessListener(pc, onProgress);
-				result = Command.execute(pc, process, progress, error);
+				result = Command.execute(pc, process, timeout, progress, error);
 			} else {
 				result = Command.execute(process);
 			}

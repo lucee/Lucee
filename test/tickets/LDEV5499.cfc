@@ -4,13 +4,13 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="execute" {
 		describe("cfexecute", function() {
 
 			it(title="cfexecute environment windows",  body=function() {
-				var env ={
+				var env = {
 					"LUCEE": "rocks",
 					"LUCEE_LDEV5499_RANDOM": createGUID()
 				};
 
 				var exe = isWindows() ? "cmd" : "bash";
-				var args = isWindows() ? "/c set" : "-c 'set'";
+				var args = isWindows() ? ["/c", "set"] : "-c 'set'";
 
 				cfexecute(name=exe, timeout="1", arguments=args , environment=env, variable="variables.result");
 				expect( find( env[ "LUCEE" ], result ) ).toBeGT( 0 ); // don't leak env

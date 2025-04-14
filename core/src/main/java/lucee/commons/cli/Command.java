@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
@@ -131,12 +132,13 @@ public final class Command {
 		}
 	}
 
-	public static CommandResult execute(PageContext pc, Process p, UDFProcessListener onError, UDFProcessListener onProgress ) throws IOException, InterruptedException {
+	public static CommandResult execute(PageContext pc, Process p, long timeout, UDFProcessListener onError, UDFProcessListener onProgress ) throws IOException, InterruptedException {
 		IOException ioe;
 		ExecutorService executorService = ThreadUtil.createExecutorService(2);
 		executorService.execute(() -> handleStream(pc, p.getInputStream(), onProgress) );
 		executorService.execute(() -> handleStream(pc, p.getErrorStream(), onError));
 		int exitCode = p.waitFor();
+		
 		/*
 		if (exitCode != 0) {
 			err.join();
@@ -146,6 +148,7 @@ public final class Command {
 		}
 		*/
 		executorService.shutdown();
+		executorService.awaitTermination(timeout, TimeUnit.SECONDS);
 		return new CommandResult("", "", exitCode);
 	}
 

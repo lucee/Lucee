@@ -126,7 +126,7 @@ public final class Execute extends BodyTagImpl {
 
 	public static void main(String[] args) throws Exception {
 		CommandResult cr = Command.execute("curl https://update.lucee.org/rest/update/provider/echoGet", true);
-		_Execute e = new _Execute(null, null, new String[] { "curl", "https://update.lucee.org/rest/update/provider/echoGet" }, null, null, null, null, null, null, null, null, null, null);
+		_Execute e = new _Execute(null, null, new String[] { "curl", "https://update.lucee.org/rest/update/provider/echoGet" }, null, null, null, null, null, null, null, null, null, null, 2);
 		e._run(null);
 	}
 
@@ -285,7 +285,7 @@ public final class Execute extends BodyTagImpl {
 			arguments.add(0, name);
 		}
 
-		_Execute execute = new _Execute(pageContext, monitor, arguments.toArray(new String[arguments.size()]), outputfile, variable, errorFile, errorVariable, directory, environment, result, exitCodeVariable, onProgress, onError);
+		_Execute execute = new _Execute(pageContext, monitor, arguments.toArray(new String[arguments.size()]), outputfile, variable, errorFile, errorVariable, directory, environment, result, exitCodeVariable, onProgress, onError, timeout);
 
 		// if(timeout<=0)execute._run();
 		// else {
