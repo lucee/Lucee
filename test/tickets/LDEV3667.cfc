@@ -6,20 +6,23 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="execute" {
 			it(title="cfexecute progress listeners",  body=function() {
 				
 				var exe = isWindows() ? "cmd" : "bash";
-				var args = isWindows() ? "/c dir" : "-c 'ls'";
+				var args = isWindows() ? "/c dir" : "-c 'ls -lH'";
 
-				var onError = function(error){
+				var onErrorListener = function( error ){
 					systemOutput("ERROR " & arguments.error, true, true );
 				};
 
-				var onProgress = function( output ){
+				var onProgressListener = function( output ){
 					systemOutput("PROGRESS " & arguments.output, true );
 				};
 
 				var dir = getDirectoryFromPath(getCurrentTemplatePath());
 
 				cfexecute(name=exe, timeout="1", arguments=args , directory=dir,
-					result="local.result", onError=onError, onProgress=onProgress);
+					result="local.result", 
+					onError=onErrorListener, 
+					onProgress=onProgressListener
+				);
 				expect( result.exitCode ).toBe( 0 ); 
 
 			});
