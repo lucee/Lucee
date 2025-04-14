@@ -181,6 +181,9 @@
 		systemOutput( "ERROR: #cfcatch.message#", true);	
 		rethrow;
 	}
+
+	new zipAnalyzer().analyze( temp );
+	
 	systemOutput( DateTimeFormat(now(),'yyyy-mm-dd HH:nn:ss') & " finished", true);
 	]]>
   </script>

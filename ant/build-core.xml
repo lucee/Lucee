@@ -551,7 +551,7 @@
     <echots message="building different archives that get bundled (admin,doc) with help of the temporary generated lucee.jar"/>
     <echots message="generating lucee bytecode for java ${javaVersionCoreDefault}"/>
     <!-- build the lucee-context.lar -->
-    <java classname="org.apache.tools.ant.launch.Launcher" dir="${ant}" fork="true" failonerror="true" errorproperty="exc" outputproperty="java.output">
+    <java classname="org.apache.tools.ant.launch.Launcher" dir="${ant}" fork="true" failonerror="true" errorproperty="exc">
       <classpath path="${java.class.path}">
           <pathelement location="${temp}/lucee.jar"/>
           <pathelement path="${runtime_classpath}"/>
