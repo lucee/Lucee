@@ -37,7 +37,8 @@ import lucee.runtime.security.SecurityManager;
 import lucee.runtime.type.util.ListUtil;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.Struct;
-
+import lucee.runtime.process.UDFProcessListener;
+import lucee.runtime.type.UDF;
 /**
  * Enables CFML developers to execute a process on a server computer.
  *
@@ -79,6 +80,8 @@ public final class Execute extends BodyTagImpl {
 	private String body;
 	private String directory;
 	private Struct environment;
+	private UDF onError;
+	private UDF onProgress;
 
 	private boolean terminateOnTimeout = false;
 
@@ -97,6 +100,8 @@ public final class Execute extends BodyTagImpl {
 		terminateOnTimeout = false;
 		directory = null;
 		environment = null;
+		onError = null;
+		onProgress = null;
 	}
 
 	/**
@@ -121,7 +126,7 @@ public final class Execute extends BodyTagImpl {
 
 	public static void main(String[] args) throws Exception {
 		CommandResult cr = Command.execute("curl https://update.lucee.org/rest/update/provider/echoGet", true);
-		_Execute e = new _Execute(null, null, new String[] { "curl", "https://update.lucee.org/rest/update/provider/echoGet" }, null, null, null, null, null, null, null, null);
+		_Execute e = new _Execute(null, null, new String[] { "curl", "https://update.lucee.org/rest/update/provider/echoGet" }, null, null, null, null, null, null, null, null, null, null);
 		e._run(null);
 	}
 
@@ -247,6 +252,16 @@ public final class Execute extends BodyTagImpl {
 		}
 	}
 
+	public void setOnprogress( Object obj ) throws PageException {
+		if (obj == null) return;
+		this.onProgress = Caster.toFunction(obj);
+	}
+
+	public void setOnerror( Object obj ) throws PageException {
+		if (obj == null) return;
+		this.onError = Caster.toFunction(obj);
+	}
+
 	@Override
 	public int doStartTag() throws PageException {
 		return EVAL_BODY_BUFFERED;
@@ -270,7 +285,7 @@ public final class Execute extends BodyTagImpl {
 			arguments.add(0, name);
 		}
 
-		_Execute execute = new _Execute(pageContext, monitor, arguments.toArray(new String[arguments.size()]), outputfile, variable, errorFile, errorVariable, directory, environment, result, exitCodeVariable);
+		_Execute execute = new _Execute(pageContext, monitor, arguments.toArray(new String[arguments.size()]), outputfile, variable, errorFile, errorVariable, directory, environment, result, exitCodeVariable, onProgress, onError);
 
 		// if(timeout<=0)execute._run();
 		// else {

@@ -18,13 +18,16 @@
  **/
 package lucee.commons.cli;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.ExecutorService;
 
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
@@ -35,6 +38,8 @@ import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ExpressionException;
+import lucee.runtime.process.UDFProcessListener;
+import lucee.runtime.thread.ThreadUtil;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.Struct;
@@ -126,6 +131,25 @@ public final class Command {
 		}
 	}
 
+	public static CommandResult execute(PageContext pc, Process p, UDFProcessListener onError, UDFProcessListener onProgress ) throws IOException, InterruptedException {
+		IOException ioe;
+		ExecutorService executorService = ThreadUtil.createExecutorService(2);
+		executorService.execute(() -> handleStream(pc, p.getInputStream(), onProgress) );
+		executorService.execute(() -> handleStream(pc, p.getErrorStream(), onError));
+		int exitCode = p.waitFor();
+		/*
+		if (exitCode != 0) {
+			err.join();
+			if ((ioe = err.getException()) != null) throw new IOException(ioe);
+			String str = err.getString();
+			if (!StringUtil.isEmpty(str)) throw new CommandException(str);
+		}
+		*/
+		executorService.
+		executorService.shutdown();
+		return new CommandResult("", "", exitCode);
+	}
+
 	public static List<String> toList(String str) {
 		if (StringUtil.isEmpty(str)) return new ArrayList<String>();
 		str = str.trim();
@@ -188,6 +212,17 @@ public final class Command {
 		tmp = tmp.trim();
 		if (!StringUtil.isEmpty(tmp)) list.add(tmp);
 		sb.delete(0, sb.length());
+	}
+
+	private static void handleStream(PageContext pc, InputStream inputStream, UDFProcessListener listener) {
+		try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
+			String line;
+			while ((line = reader.readLine()) != null) {
+				listener.listen(line);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 }
 

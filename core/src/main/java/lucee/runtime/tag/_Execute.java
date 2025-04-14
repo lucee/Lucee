@@ -27,8 +27,10 @@ import lucee.commons.io.res.Resource;
 import lucee.commons.lang.PageContextThread;
 import lucee.runtime.PageContext;
 import lucee.runtime.op.Caster;
+import lucee.runtime.process.UDFProcessListener;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
+import lucee.runtime.type.UDF;
 
 /*
  * Execute external processes
@@ -54,6 +56,9 @@ public final class _Execute extends PageContextThread {
 	private String directory;
 	private Struct environment;
 
+	private UDF onError;
+	private UDF onProgress;
+
 	/**
 	 * Constructor: Execute external processes
 	 * 
@@ -69,7 +74,7 @@ public final class _Execute extends PageContextThread {
 	 * @param resultVariable
 	 * @param exitCodeVariable
 	 */
-	public _Execute(PageContext pageContext, Object monitor, String[] commands, Resource outputfile, String variable, Resource errorFile, String errorVariable, String directory, Struct environment, String resultVariable, String exitCodeVariable) {
+	public _Execute(PageContext pageContext, Object monitor, String[] commands, Resource outputfile, String variable, Resource errorFile, String errorVariable, String directory, Struct environment, String resultVariable, String exitCodeVariable, UDF onError, UDF onProgress) {
 		super(pageContext);
 		this.monitor = monitor;
 		this.commands = commands;
@@ -84,6 +89,9 @@ public final class _Execute extends PageContextThread {
 
 		this.directory = directory;
 		this.environment = environment;
+
+		this.onError = onError;
+		this.onProgress = onProgress;
 	}
 
 	@Override
@@ -98,10 +106,16 @@ public final class _Execute extends PageContextThread {
 
 	void _run(PageContext pc) {
 		try {
-
 			process = Command.createProcess(pc, commands, directory, environment);
-
-			CommandResult result = Command.execute(process);
+			CommandResult result;
+			if (onError != null && onProgress != null ){
+				UDFProcessListener error = new UDFProcessListener(pc, onError);
+				UDFProcessListener progress = new UDFProcessListener(pc, onProgress);
+				result = Command.execute(pc, process, progress, error);
+			} else {
+				result = Command.execute(process);
+			}
+			
 			String rst = result.getOutput();
 			finished = true;
 			if (!aborted) {

@@ -1195,6 +1195,20 @@ Example:
 			<description>Variable in which to put the exit code value.</description>
 			<introduced>7.0.0.186</introduced>
 		</attribute>
+		<attribute>
+			<type>any</type>
+			<name>onProgress</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description></description>
+		</attribute>
+		<attribute>
+			<type>any</type>
+			<name>onError</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description></description>
+		</attribute>
 	</tag>
 	<!-- Exit -->
 	<tag>
