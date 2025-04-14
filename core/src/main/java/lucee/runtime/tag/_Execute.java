@@ -76,7 +76,9 @@ public final class _Execute extends PageContextThread {
 	 * @param exitCodeVariable
 	 * @param timeout
 	 */
-	public _Execute(PageContext pageContext, Object monitor, String[] commands, Resource outputfile, String variable, Resource errorFile, String errorVariable, String directory, Struct environment, String resultVariable, String exitCodeVariable, UDF onError, UDF onProgress, long timeout) {
+	public _Execute(PageContext pageContext, Object monitor, String[] commands, Resource outputfile, String variable, Resource errorFile,
+			String errorVariable, String directory, Struct environment, String resultVariable, 
+			String exitCodeVariable, UDF onProgress, UDF onError, long timeout) {
 		super(pageContext);
 		this.monitor = monitor;
 		this.commands = commands;
@@ -92,8 +94,8 @@ public final class _Execute extends PageContextThread {
 		this.directory = directory;
 		this.environment = environment;
 
-		this.onError = onError;
 		this.onProgress = onProgress;
+		this.onError = onError;
 		this.timeout = timeout;
 	}
 
@@ -109,13 +111,17 @@ public final class _Execute extends PageContextThread {
 
 	void _run(PageContext pc) {
 		try {
-			process = Command.createProcess(pc, commands, directory, environment);
 			CommandResult result;
-			if (onError != null && onProgress != null ){
-				UDFProcessListener error = new UDFProcessListener(pc, onError);
+			boolean redirectErrorStream = false;
+			if (onProgress != null ){
 				UDFProcessListener progress = new UDFProcessListener(pc, onProgress);
+				UDFProcessListener error = null;
+				if (onError != null ) error = new UDFProcessListener(pc, onError);
+				else redirectErrorStream = true;
+				process = Command.createProcess(pc, commands, directory, environment, redirectErrorStream);
 				result = Command.execute(pc, process, timeout, progress, error);
 			} else {
+				process = Command.createProcess(pc, commands, directory, environment, redirectErrorStream);
 				result = Command.execute(process);
 			}
 			

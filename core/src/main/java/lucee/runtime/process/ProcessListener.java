@@ -4,6 +4,6 @@ import lucee.runtime.exp.PageException;
 
 public interface ProcessListener {
 
-	public void listen(String part) throws PageException;
+	public Object listen(String output) throws PageException;
 
 }

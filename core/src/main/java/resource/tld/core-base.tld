@@ -1200,14 +1200,19 @@ Example:
 			<name>onProgress</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description></description>
+			<description>A UDF which receives a single argument, output.
+			If defined, output to the other variables will be null.
+			Returning false from the Listener will cancel the process execution
+			</description>
 		</attribute>
 		<attribute>
 			<type>any</type>
 			<name>onError</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description></description>
+			<description>A UDF Listener which receives a single argument, output. 
+			Optional, If a OnProgress Listener is defined, but no onError listener, the error stream is redirected to the onProgress Listener.
+			Returning false from the Listener will cancel the process execution</description>
 		</attribute>
 	</tag>
 	<!-- Exit -->

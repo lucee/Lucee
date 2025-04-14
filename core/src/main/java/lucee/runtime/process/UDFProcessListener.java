@@ -15,7 +15,7 @@ public class UDFProcessListener implements ProcessListener {
 	}
 
 	@Override
-	public void listen(String response) throws PageException {
-		listener.call(pc, new Object[] { response }, true);
+	public Object listen(String output) throws PageException {
+		return listener.call(pc, new Object[] { output }, true);
 	}
 }
