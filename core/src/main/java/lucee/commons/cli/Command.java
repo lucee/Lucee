@@ -145,7 +145,6 @@ public final class Command {
 			if (!StringUtil.isEmpty(str)) throw new CommandException(str);
 		}
 		*/
-		executorService.
 		executorService.shutdown();
 		return new CommandResult("", "", exitCode);
 	}
