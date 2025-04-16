@@ -252,7 +252,7 @@
         </sequential>
     </macrodef>
 
-    <target name="check" depends="check-mysql,check-mssql,check-postgre,check-jdts,check-s3,check-pdf,check-admin,check-doc,check-image,check-esapi,check-compress,check-testbox,check-testbox-globber,check-lucee-loader-jar,download-lucee-loader-jar">
+    <target name="check" depends="check-mysql,check-mssql,check-postgre,check-jdts,check-s3,check-pdf,check-admin,check-doc,check-image,check-esapi,check-scheduler,check-compress,check-testbox,check-testbox-globber,check-lucee-loader-jar,download-lucee-loader-jar">
       <mkdir dir="${temp}/loader/extensions/"/>
     </target> 
 
