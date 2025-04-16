@@ -29,9 +29,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		//echo(res4.filecontent.trim());
 
 		// _internalrequest(template:string [, method:string [, urls:struct [, forms:struct [, cookies:struct [, headers:struct [, body:any [, charset:string [, addtoken:boolean]]]]]]]]):struct
-		sess1=evaluate(res1.filecontent.trim());
-		sess2=evaluate(res2.filecontent.trim());
-		sess3=evaluate(res3.filecontent.trim());
+		var sess1=evaluate(res1.filecontent.trim());
+		var sess2=evaluate(res2.filecontent.trim());
+		var sess3=evaluate(res3.filecontent.trim());
 
 		// session id changed between scene 1 and 2, but not to 3
 		assertNotEquals(sess1.cfid,sess2.cfid);

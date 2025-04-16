@@ -22,7 +22,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="qoq" {
 
 	private function exe(time) {
 	    query
-	        name="qoq"
+	        name="local.qoq"
 	        dbtype="query"
 	        cachedWithin=createTimeSpan(0,0,0,time) {
 	        echo('select * from qry where a>'&time);

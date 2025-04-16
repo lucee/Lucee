@@ -22,7 +22,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				var _dir = path & "list";
 				directory action="create" directory=_dir;
 				var tmp = getTempFile(_dir, "list-me");
-				directory action="list" directory=_dir name="list";
+				directory action="list" directory=_dir name="local.list";
 				expect( listLast( tmp, "\/" ) ).toBe( list.name );
 				expect( "file" ).toBe( list.type );
 			});

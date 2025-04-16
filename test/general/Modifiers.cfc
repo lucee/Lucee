@@ -49,8 +49,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
 	public void function testModifier(){
 		var meta=getMetaData(new modifiers.Modifier());
-		meta1=meta.functions[1];
-		meta2=meta.functions[2];
+		var meta1=meta.functions[1];
+		var meta2=meta.functions[2];
 		
 		assertEquals("package",meta1.access);
 		assertEquals("test1",meta1.name);

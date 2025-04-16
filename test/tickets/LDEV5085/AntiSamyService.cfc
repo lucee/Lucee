@@ -84,7 +84,7 @@ component {
 		return _libPath;
 	}
 	private void function _setLibPath( required string libPath ) {
-		_libPath = arguments.libPath;
+		variables._libPath = arguments.libPath;
 	}
 
 	private struct function _getPolicyFiles() {

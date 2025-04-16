@@ -60,8 +60,8 @@
 						var count = 0;
 						var x = '1,2,3,4,5';
 						for (var i = 1; i <= ListLen(x); i++) {
-							var variables['myVar#i#']=file;
-							cfDocument(format="PDF" name="myVar#i#"){
+							variables['myVar#i#']=file;
+							cfDocument(format="PDF" name="variables.myVar#i#"){
 								DocumentSectionWithDynamicVariable(i);
 							}
 							cfpdf(action="merge" destination="test852.pdf" overwrite="yes"){
@@ -79,8 +79,8 @@
 						var count = 0;
 						var x = ["a","b","c","d","e"];
 						for (i in x){
-							var variables['myVar#i#']=file;
-							cfDocument(format="PDF" name="myVar#i#"){
+							variables['myVar#i#']=file;
+							cfDocument(format="PDF" name="variables.myVar#i#"){
 								DocumentSectionWithDynamicVariable(i);
 							}
 							cfpdf(action="merge" destination="test852.pdf" overwrite="yes"){

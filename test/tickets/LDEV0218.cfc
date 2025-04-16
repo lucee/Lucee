@@ -18,9 +18,9 @@
 	<cfscript>
 	function beforeAll(){
 		// runs before all testcases
-		allCountries = queryNew("Country,ShortCode");
-		CountryList = "India,Switzerland";
-		ShortCodeList = "IN,SWL";
+		variables.allCountries = queryNew("Country,ShortCode");
+		variables.CountryList = "India,Switzerland";
+		variables.ShortCodeList = "IN,SWL";
 		for(var idx=1;idx<="#listLen(CountryList)#";idx++){
 			queryAddRow(allCountries);
 			querySetCell(allCountries, "Country", listGetAt(CountryList, idx));

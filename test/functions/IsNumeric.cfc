@@ -19,23 +19,23 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				expect(isNumeric('6.62607004e-34')).toBe(true);
 				expect(isNumeric('12E4d')).toBe(false);
 				expect(isNumeric('123456789L')).toBe(false);
-                expect(isNumeric('123456789l')).toBe(false);
-                
-                expect(isNumeric(1)).tobe(true);
-                expect(isNumeric(1.3)).tobe(true);
-                expect(isNumeric("1")).tobe(true);
-                expect(isNumeric("susi")).tobe(false);
-                expect(isNumeric(true)).tobe(false);
-                expect(isNumeric("6/2017")).tobe(false);
-                expect(isNumeric(arrayNew(1))).tobe(false);
-                str = "Susi";
-                expect(isNumeric(str.length())).tobe(true);
-                expect(isNumeric(' 123 ')).tobe(true);
+				expect(isNumeric('123456789l')).toBe(false);
+				
+				expect(isNumeric(1)).tobe(true);
+				expect(isNumeric(1.3)).tobe(true);
+				expect(isNumeric("1")).tobe(true);
+				expect(isNumeric("susi")).tobe(false);
+				expect(isNumeric(true)).tobe(false);
+				expect(isNumeric("6/2017")).tobe(false);
+				expect(isNumeric(arrayNew(1))).tobe(false);
+				var str = "Susi";
+				expect(isNumeric(str.length())).tobe(true);
+				expect(isNumeric(' 123 ')).tobe(true);
 
-                expect(isNumeric(toNumeric("123.45"))).tobe(true);
-                expect(isNumeric(toNumeric("0110","bin"))).tobe(true);
-                expect(isNumeric(toNumeric("000C","hex"))).tobe(true);
-                expect(isNumeric(toNumeric("24","oct"))).tobe(true);
+				expect(isNumeric(toNumeric("123.45"))).tobe(true);
+				expect(isNumeric(toNumeric("0110","bin"))).tobe(true);
+				expect(isNumeric(toNumeric("000C","hex"))).tobe(true);
+				expect(isNumeric(toNumeric("24","oct"))).tobe(true);
 
 				expect(isNumeric('+123')).toBe(true);
 				expect(isNumeric('-123')).toBe(true);

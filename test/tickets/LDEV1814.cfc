@@ -7,31 +7,31 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 		describe( "Test suite for LDEV-1814", function() {
 			xit( title='Checking getPageContext() and cfhtmlhead tag without Application CFC', body=function( currentSpec ) {
 				local.result = _InternalRequest(
-				template:"#variables.uri#/test.cfm"
+					template:"#variables.uri#/test.cfm"
 				);
-				testContent = HtmlParse(local.result.filecontent.trim()) ;
+				var testContent = HtmlParse(local.result.filecontent.trim()) ;
 				expect(arrayLen(testContent.XmlRoot.XmlChildren[2].XmlChildren)).toBe(1);
 			});
 
 			xit( title='Checking getPageContext() with cfhtmlhead tag by using Application CFC', body=function( currentSpec ) {
 				local.result = _InternalRequest(
-				template:"#variables.uri#/sample/test1.cfm"
+					template:"#variables.uri#/sample/test1.cfm"
 				);
-				testContent = HtmlParse(local.result.filecontent.trim()) ;
+				var testContent = HtmlParse(local.result.filecontent.trim()) ;
 				expect(arrayLen(testContent.XmlRoot.XmlChildren[2].XmlChildren)).toBe(1);
 			});
 
 			xit( title='Checking cfsilent tag around the getPageContext() by using Application CFC', body=function( currentSpec ) {
 				local.result = _InternalRequest(
-				template:"#variables.uri#/sample/test2.cfm"
+					template:"#variables.uri#/sample/test2.cfm"
 				);
-				testContent = HtmlParse(local.result.filecontent.trim()) ;
+				var testContent = HtmlParse(local.result.filecontent.trim()) ;
 				expect(arrayLen(testContent.XmlRoot.XmlChildren[2].XmlChildren)).toBe(1);
 			});
 
 			it( title='Checking head tag around the getPageContext() by using Application CFC', body=function( currentSpec ) {
 				local.result = _InternalRequest(
-				template:"#variables.uri#/sample/test3.cfm"
+					template:"#variables.uri#/sample/test3.cfm"
 				);
 				var testContent = HtmlParse(local.result.filecontent.trim()) ;
 				expect(arrayLen(testContent.XmlRoot.XmlChildren[2].XmlChildren)).toBe(1);

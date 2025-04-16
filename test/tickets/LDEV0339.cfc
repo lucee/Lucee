@@ -2,7 +2,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 	function run(){
 		describe( title="Test cases for LDEV-339(arrayContainsNoCase problem)", body=function(){
 			beforeEach(function( currentSpec ){
-				x = ["user_manage"];
+				variables.x = ["user_manage"];
 			});
 			it(title="arrayContains", body=function(){
 				// This shouldn't find any result, as it is a substring.

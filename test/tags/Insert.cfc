@@ -13,7 +13,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"  labels="mysql" {
 				form.id =1 
 				form.personName ="testCase" 
 				cfinsert (tableName = "cfInsertTBL" formFields = "id,personName" datasource=str);
-				query datasource=str name="testQry"{
+				query datasource=str name="local.testQry"{
 					echo("SELECT * FROM `cfInsertTBL`");
 				}
 				expect(testQry.personName).toBe('testcase');

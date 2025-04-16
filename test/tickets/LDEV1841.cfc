@@ -2,7 +2,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 	function run( testResults , testBox ) {
 		describe( "Test suite for LDEV-1841", function() {
 			it( title='Checking Asynchronous programming with normal function call', body=function( currentSpec ) {
-				getAccountBalance = function(){
+				variables.getAccountBalance = function(){
 					var balance = 120000;
 					return balance;
 				}
@@ -16,7 +16,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					var mortgageEMI = 1000;
 					var carLeaseEMI = 750;
 					var healthInsuranceEMI = 250;
-				    return accountBalance-(mortgageEMI+carLeaseEMI+healthInsuranceEMI);
+					return accountBalance-(mortgageEMI+carLeaseEMI+healthInsuranceEMI);
 				}
 
 				var miscellenousExpenses = function(accountBalance){
@@ -29,9 +29,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				var checkBalance = function(accountBalance){
 					while(accountBalance > 5000){
 						accountBalance = miscellenousExpenses(accountBalance);
-				    }
-				    if(accountBalance < 5000)
-				    	throw (message="Account balance below threshold!!!", type="info");
+					}
+					if(accountBalance < 5000)
+						throw (message="Account balance below threshold!!!", type="info");
 				}
 
 				var errorHandler = function(error){

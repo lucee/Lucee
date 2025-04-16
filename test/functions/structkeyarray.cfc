@@ -1,7 +1,7 @@
 component extends = "org.lucee.cfml.test.LuceeTestCase"	{
 
 	function run( testResults , testBox ) {
-		animals = [
+		variables.animals = [
 			cow: "moo",
 			pig: "oink",
 			cat: "meow"

@@ -5,7 +5,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" labels="xml" {
 		fileWrite( badFile, variables.badFileContent );
 		//systemOutput("XXE badfile: #badfile#", true);
 		if ( find( "Windows", server.os.name ) > 0 )
-			badfile = createObject("java","java.io.File").init( badfile ).toURI(); //escape it for xml, hello windows!
+			variables.badfile = createObject("java","java.io.File").init( badfile ).toURI(); //escape it for xml, hello windows!
 		//systemOutput("XXE badfile (uri): #badfile#", true);
 		variables.doctypeXml = '<?xml version="1.0" encoding="ISO-8859-1"?>
 			<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN" "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">

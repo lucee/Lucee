@@ -21,7 +21,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					// remove component path
 					application action="update" componentpaths = cfcsOrg; 
 					
-					t2=objectLoad(o);
+					var t2=objectLoad(o);
 					expect(t2.getName()).toBe('Susi');
 				}
 				finally {

@@ -7,13 +7,13 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="internalRequest"  
 	function run( testResults, testBox ) {
 		describe("Testcase for LDEV-4199", function() {
 			it( title="InternalRequest() without method argument", body=function( currentSpec ) {
-				result = _internalRequest(
+				var result = _internalRequest(
 					template="#variables.uri#/LDEV4199.cfm"
 				);
 				expect(result.filecontent.trim()).toBe("GET");
 			});
 			it( title="InternalRequest() with method argument", body=function( currentSpec ) {
-				result = _internalRequest(
+				var result = _internalRequest(
 					template = "#variables.uri#/LDEV4199.cfm",
 					method="post"
 				);

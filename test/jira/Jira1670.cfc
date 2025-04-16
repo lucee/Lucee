@@ -29,10 +29,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		assertEquals(GetFunctionCalledName(),'test');
 
 		testGetFunctionCalledName('testGetFunctionCalledName');
-		abcd=testGetFunctionCalledName;
+		var abcd=testGetFunctionCalledName;
 		abcd("abcd");
 	
-		cloGetFunctionCalledName=function (name) {
+		var cloGetFunctionCalledName=function (name) {
 	 		assertEquals(name,GetFunctionCalledName());
 		};
 		cloGetFunctionCalledName("cloGetFunctionCalledName");

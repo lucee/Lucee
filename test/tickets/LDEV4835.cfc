@@ -13,7 +13,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 						
 						var mappings=getPageContext().getConfig().getRestMappings();
 						var has=false;
-						loop array=mappings item="m" {
+						loop array=mappings item="local.m" {
 								if(m.getVirtual()=='/'&name) has=true; 
 						}
 				}

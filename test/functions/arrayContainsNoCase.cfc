@@ -2,7 +2,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 	function run( testResults , testBox ) {
 		describe( title="Testcase for arrayContainsNoCase() function", body = function() {
 			it(title = "checking arrayContainsNoCase() function", body = function( currentSpec ) {
-				arr = ["hello", "world"];
+				var arr = ["hello", "world"];
 				expect(arrayContainsNoCase(arr, "World")).toBeTrue();
 				expect(arrayContainsNoCase(arr, "WORLD")).toBeTrue();
 				expect(arrayContainsNoCase(["hello", "world"], "World")).toBeTrue();
@@ -10,7 +10,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 			});
 
 			it(title = "checking arrayContainsNoCase() with memberFunction", body = function( currentSpec ) {
-				arr = ["hello", "world"];
+				var arr = ["hello", "world"];
 				expect(arr.containsNoCase("worLD")).toBeTrue();
 				expect(arr.containsNoCase("WORLD")).toBeTrue();
 				expect( ["hello", "world"].containsNoCase("worLD")).toBeTrue();

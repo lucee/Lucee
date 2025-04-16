@@ -1,26 +1,26 @@
-<!--- 
+<!---
  *
  * Copyright (c) 2016, Lucee Association Switzerland. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either 
+ * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public 
+ *
+ * You should have received a copy of the GNU Lesser General Public
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  ---><cfscript>
 component extends="org.lucee.cfml.test.LuceeTestCase" labels="zip" {
 
 	public function setUp() {
-		
-		
+
+
 		variables.currDir=server._getTempDir( "tag-zip" );
 
 		variables.root=currDir & "/zip/";
@@ -41,7 +41,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="zip" {
 	}
 
 	function afterAll(){
-		if ( directoryExists( root ) ) 
+		if ( directoryExists( root ) )
 			directoryDelete( root , true );
 	}
 
@@ -60,7 +60,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="zip" {
 			zip action="list" file=target name="local.qry";
 			assertEquals(6,qry.recordcount);
 			assertEquals('1/2.cfm,a.txt,b.txt,b/c/a.txt,n/m/b.txt,n/m/b/c/a.txt',listSort(valueList(qry.name),'textnocase'));
-			
+
 			// read
 			zip action="read" entrypath="1/2.cfm" variable="local.entry" file=target;
 			assertEquals('file 1',entry);
@@ -82,7 +82,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="zip" {
 			zip action="list" file=target name="local.qry";
 			assertEquals(4,qry.recordcount);
 			assertEquals('1/2.cfm,a.txt,b.txt,b/c/a.txt',listSort(valueList(qry.name),'textnocase'));
-			
+
 			// zip no compression
 			if( fileExists(targetStored)) fileDelete(targetStored);
 			zip action="zip" file=targetStored compressionMethod="store"{
@@ -93,20 +93,20 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="zip" {
 			}
 			// without compression, a zip file using store should be larger than a standard zip file
 			assertTrue(getFileInfo(targetStored).size GT getFileInfo(target).size);
-		
+
 
 		}
 		finally {
-			if ( directoryExists( root ) ) 
+			if ( directoryExists( root ) )
 				directoryDelete( root , true );
 		}
 	}
-	
+
 	public function testInvalidEntryName() {
 		var curr = server._getTempDir( "tag-zip-invalid" );
 		var trg=curr & "/zip/"
-		trg2 = trg & "sub/sub/";
-		if ( directoryExists( trg ) ) 
+		var trg2 = trg & "sub/sub/";
+		if ( directoryExists( trg ) )
 			directoryDelete( trg, true );
 		directoryCreate( trg );
 		directoryCreate( trg2 );
@@ -125,7 +125,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="zip" {
 			assertFalse(fileExists("#trg#invalidpath.txt"));
 		}
 		finally {
-			if (directoryExists( trg ) ) 
+			if (directoryExists( trg ) )
 				directoryDelete( trg, true );
 		}
 	}
@@ -139,10 +139,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="zip" {
 		var dest = curr & "unzip_exe";
 
 		try {
-			if ( directoryExists( src ) ) 
+			if ( directoryExists( src ) )
 				directoryDelete( src, true );
 			directoryCreate( src );
-			if ( directoryExists( dest ) ) 
+			if ( directoryExists( dest ) )
 				directoryDelete( dest, true );
 			directoryCreate( dest );
 
@@ -201,6 +201,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="zip" {
 		if (isWindows > 0 ) return true;
 		else return false;
 	}
-	
-} 
+
+}
 </cfscript>

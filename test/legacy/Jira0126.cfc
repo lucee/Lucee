@@ -21,7 +21,7 @@
 	<cffunction name="test">
 		<cfimport prefix="t" taglib="./Jira0126"> 
 		
-<cfsavecontent variable="content">
+<cfsavecontent variable="local.content">
 <t:_asso_tree>
 	<t:_asso_node level="1">
 		<t:_asso_node level="2">

@@ -28,12 +28,12 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 	function run( testResults , testBox ) {
 		describe( title = "Testcase for this.s3.defaultLocation", body = function() {
 
-			fileResult = "false";
-			dirResult = "true";
+			var fileResult = "false";
+			var dirResult = "true";
 
-			host = "s3.amazonaws.com";
-			hostRegion ="s3.eu-west-1.amazonaws.com";
-			region = "eu-west-1";
+			var host = "s3.amazonaws.com";
+			var hostRegion ="s3.eu-west-1.amazonaws.com";
+			var region = "eu-west-1";
 
 			it( title="directoryExists host s3.eu-west-1.amazonaws.com", skip=isNotSupported(), body=function( currentSpec ) {
 				var result = testS3( {

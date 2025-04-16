@@ -4,7 +4,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="image" {
 			it(title = "Checking .ico images", body = function( currentSpec ) {
 				var hasError = false;
 				try{
-					myImage=ImageRead("LDEV1620\fonts.ico"); 
+					var myImage=ImageRead("LDEV1620\fonts.ico"); 
 				} catch ( any e ){
 					hasError = true;
 				}

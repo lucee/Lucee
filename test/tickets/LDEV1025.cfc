@@ -1,7 +1,7 @@
 component extends="org.lucee.cfml.test.LuceeTestCase"{
 	function beforeALL(){
-		dateandtime = createDateTime(2009,8,9,11,22,33);
-		serverTZ = {
+		variables.dateandtime = createDateTime(2009,8,9,11,22,33);
+		variables.serverTZ = {
 			TZ: dateTimeFormat(dateandtime, "z"),
 			Offset: dateTimeFormat(dateandtime, "Z")
 		};
@@ -28,7 +28,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					setTimeZone(variables.startingTZ?:"UTC");
 				});
 				it("checking 'date' mask parsing", function() {
-					ds_date = {
+					var ds_date = {
 						df_d      : DateFormat(dateandtime, "d"),
 						df_dd     : DateFormat(dateandtime, "dd"),
 						df_ddd    : DateFormat(dateandtime, "ddd"),
@@ -49,7 +49,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				});
 
 				it("checking 'month' mask parsing", function() {
-					ds_month = {
+					var ds_month = {
 						df_m      : DateFormat(dateandtime, "m"),
 						df_mm     : DateFormat(dateandtime, "mm"),
 						df_mmm    : DateFormat(dateandtime, "mmm"),
@@ -70,7 +70,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				});
 
 				it("checking 'year' mask parsing", function() {
-					ds_year = {
+					var ds_year = {
 						df_y     : DateFormat(dateandtime, "y"),
 						df_yy    : DateFormat(dateandtime, "yy"),
 						df_yyy   : DateFormat(dateandtime, "yyy"),
@@ -95,7 +95,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				});
 
 				it("checking predefined parsing", function() {
-					ds_predefined = {
+					var ds_predefined = {
 						df_short : DateFormat(dateandtime, "short"),
 						df_medium : DateFormat(dateandtime, "medium"),
 						df_long : DateFormat(dateandtime, "long"),
@@ -125,7 +125,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					setTimeZone(variables.startingTZ?:"UTC");
 				});
 				it("checking 'date' mask parsing", function() {
-					ds_date = {
+					var ds_date = {
 						df_d      : DateTimeFormat(dateandtime, "d"),
 						df_dd     : DateTimeFormat(dateandtime, "dd"),
 						df_ddd    : DateTimeFormat(dateandtime, "ddd"),
@@ -146,7 +146,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				});
 
 				it("checking 'month' mask parsing", function() {
-					ds_month = {
+					var ds_month = {
 						df_m      : DateTimeFormat(dateandtime, "m"),
 						df_mm     : DateTimeFormat(dateandtime, "mm"),
 						df_mmm    : DateTimeFormat(dateandtime, "mmm"),
@@ -167,7 +167,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				});
 
 				it("checking 'year' mask parsing", function() {
-					ds_year = {
+					var ds_year = {
 						df_y     : DateTimeFormat(dateandtime, "y"),
 						df_yy    : DateTimeFormat(dateandtime, "yy"),
 						df_yyy   : DateTimeFormat(dateandtime, "yyy"),
@@ -192,7 +192,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				});
 				
 				it("checking 'Hour' mask parsing", function() {
-					ds_hour = {
+					var ds_hour = {
 						dtf_h  : dateTimeFormat(dateandtime,"h"),
 						dtf_hh  : dateTimeFormat(dateandtime,"hh"),
 						dtfu_H    : dateTimeFormat(dateandtime,"H"),
@@ -205,7 +205,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				});
 
 				it("checking 'minutes' mask parsing", function() {
-					ds_minutes = {
+					var ds_minutes = {
 						dtf_n  : dateTimeFormat(dateandtime,"n"),
 						dtf_nn  : dateTimeFormat(dateandtime,"nn"),
 						dtfu_N : dateTimeFormat(dateandtime,"N"),
@@ -218,7 +218,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				});
 
 				it("checking 'seconds' mask parsing", function() {
-					ds_seconds = {
+					var ds_seconds = {
 						dtf_s  : dateTimeFormat(dateandtime,"s"),
 						dtf_ss  : dateTimeFormat(dateandtime,"ss"),
 						dtfu_S  : dateTimeFormat(dateandtime,"S"),
@@ -231,7 +231,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				});
 
 				it("checking 'milliseconds' mask parsing", function() {
-					ds_milliseconds = {
+					var ds_milliseconds = {
 						dtf_ms  : dateTimeFormat(dateandtime,"l"),
 						dtfu_ms  : dateTimeFormat(dateandtime,"L")
 					};
@@ -240,7 +240,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				});
 
 				it("checking 'AMorPM' mask parsing", function() {
-					ds_AMorPM = {
+					var ds_AMorPM = {
 						dtf_t : dateTimeFormat(dateandtime,"t"),
 						dtf_tt : dateTimeFormat(dateandtime,"tt"),
 						dtfu_T : dateTimeFormat(dateandtime,"T"),
@@ -253,7 +253,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				});
 
 				it("checking 'timezone' mask parsing", function() {
-					ds_timeZone = {
+					var ds_timeZone = {
 						dtf_z  : dateTimeFormat(dateandtime, "z"),
 						dtfu_Z  : dateTimeFormat(dateandtime, "Z")
 					};
@@ -262,7 +262,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				});
 
 				it("checking predefined date parsing short", function() {
-					ds_predefined = {
+					var ds_predefined = {
 						df_short : DateTimeFormat(dateandtime, "short"),
 						dfu_SHORT : DateTimeFormat(dateandtime, "SHORT")
 					};
@@ -280,7 +280,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				});
 
 				it("checking predefined date parsing medium", function() {
-					ds_predefined = {
+					var ds_predefined = {
 						df_medium : DateTimeFormat(dateandtime, "medium"),
 						dfu_MEDIUM : DateTimeFormat(dateandtime, "MEDIUM")
 					};
@@ -298,7 +298,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				});
 				
 				it("checking predefined date parsing long", function() {
-					ds_predefined = {
+					var ds_predefined = {
 						df_long : DateTimeFormat(dateandtime, "long"),
 						dfu_LONG : DateTimeFormat(dateandtime, "LONG")
 					};
@@ -315,7 +315,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					}
 				});
 				it("checking predefined date parsing", function() {
-					ds_predefined = {
+					var ds_predefined = {
 						df_full : DateTimeFormat(dateandtime, "full"),
 						dfu_FULL : DateTimeFormat(dateandtime, "full")
 					};

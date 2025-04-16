@@ -2,8 +2,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 	function run( testResults , testBox ) {
 		describe( "Test suite for LDEV-1068 with preserve case true", function() {
 			it("Checking serializeJSON() for serializing query with preserve case true", function( currentSpec ){
-				uri = createURI("LDEV1068/test1.cfm");
-				result = _InternalRequest(
+				var uri = createURI("LDEV1068/test1.cfm");
+				var result = _InternalRequest(
 					template:uri,
 					forms: { Scene = 1 }
 				);
@@ -13,8 +13,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 			});
 
 			it("Checking cfwddx tag for serializing query with preserve case true", function( currentSpec ){
-				uri = createURI("LDEV1068/test1.cfm");
-				result = _InternalRequest(
+				var uri = createURI("LDEV1068/test1.cfm");
+				var result = _InternalRequest(
 					template:uri,
 					forms: { Scene = 2 }
 				);
@@ -22,8 +22,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 			});
 
 			it("Checking query.columnlist with preserve case true", function( currentSpec ){
-				uri = createURI("LDEV1068/test1.cfm");
-				result = _InternalRequest(
+				var uri = createURI("LDEV1068/test1.cfm");
+				var result = _InternalRequest(
 					template:uri,
 					forms: { Scene = 3 }
 				);
@@ -33,8 +33,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 
 		describe( "Test suite for LDEV-1068 with preserve case false", function() {
 			it("Checking serializeJSON() for serializing query with preserve case false", function( currentSpec ){
-				uri = createURI("LDEV1068/test2.cfm");
-				result = _InternalRequest(
+				var uri = createURI("LDEV1068/test2.cfm");
+				var result = _InternalRequest(
 					template:uri,
 					forms: { Scene = 1 }
 				);
@@ -44,8 +44,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 			});
 
 			it("Checking cfwddx tag for serializing query with preserve case false", function( currentSpec ){
-				uri = createURI("LDEV1068/test2.cfm");
-				result = _InternalRequest(
+				var uri = createURI("LDEV1068/test2.cfm");
+				var result = _InternalRequest(
 					template:uri,
 					forms: { Scene = 2 }
 				);
@@ -53,8 +53,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 			});
 
 			it("Checking query.columnlist with preserve case false", function( currentSpec ){
-				uri = createURI("LDEV1068/test2.cfm");
-				result = _InternalRequest(
+				var uri = createURI("LDEV1068/test2.cfm");
+				var result = _InternalRequest(
 					template:uri,
 					forms: { Scene = 3 }
 				);

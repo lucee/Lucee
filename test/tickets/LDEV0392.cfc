@@ -1,7 +1,7 @@
 <cfcomponent extends="org.lucee.cfml.test.LuceeTestCase" labels="image" >
 	<cffunction name="testcfimage">
 		<cftry>
-			<cfset currDir = getDIRECTORYFROMPATH(getCurrentTemplatePath()) & "LDEV0392">
+			<cfset var currDir = getDIRECTORYFROMPATH(getCurrentTemplatePath()) & "LDEV0392">
 			<cfif !directoryExists("#currDir#/conversions")>
 				<cfdirectory action="create" directory="#currDir#/conversions">
 			</cfif>

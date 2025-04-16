@@ -13,8 +13,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="session" {
 	function run( testResults , testBox ) {
 		describe( "Test suite for LDEV4166", function() {
 			it( title='cfml session - onSessionEnd with SessionInvalidate()', body=function( currentSpec ) {
-				uri = createURI("LDEV4166");
-				local.cfmlSessionId = _InternalRequest(
+				var uri = createURI("LDEV4166");
+				var cfmlSessionId = _InternalRequest(
 					template : "#uri#/cfml_session_invalidate/test_cfml_sessionend.cfm"
 				);
 				//dumpResult( "cfmlSessionId: " & cfmlSessionId.filecontent );
@@ -37,8 +37,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="session" {
 			});
 
 			it( title='jee session - onSessionEnd with SessionInvalidate()', body=function( currentSpec ) {
-				uri = createURI("LDEV4166");
-				local.j2eeSessionId = _InternalRequest(
+				var uri = createURI("LDEV4166");
+				var j2eeSessionId = _InternalRequest(
 					template : "#uri#/jee_session_invalidate/test_jee_sessionend.cfm"
 				);
 				//dumpResult( "j2eeSessionId: " & j2eeSessionId.filecontent );

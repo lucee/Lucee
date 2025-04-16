@@ -6,7 +6,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 	function run( testResults , testBox ) {
 		describe( title="Test suite for LDEV-1663", body=function() {
 			it(title = "Checking implicit getters satisfy interface methods", body = function( currentSpec ) {
-				local.result = _InternalRequest(
+				var result = _InternalRequest(
 					template:"#variables.uri#/test.cfm"
 				);
 				expect(local.result.filecontent.trim()).toBe('lucee');

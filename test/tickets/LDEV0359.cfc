@@ -14,14 +14,14 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="s3"{
 
 	function beforeAll() skip="isNotSupported"{
 		if(isNotSupported()) return;
-		s3Details = getCredentials();
-		mitrahsoftBucketName = s3Details.bucket_prefix & "0359-#lcase(hash(CreateGUID()))#";
-		base = "s3://#s3Details.ACCESS_KEY_ID#:#s3Details.SECRET_KEY#@";
-		baseWithBucketName = "s3://#s3Details.ACCESS_KEY_ID#:#s3Details.SECRET_KEY#@/#mitrahsoftBucketName#";
+		variables.s3Details = getCredentials();
+		variables.mitrahsoftBucketName = s3Details.bucket_prefix & "0359-#lcase(hash(CreateGUID()))#";
+		variables.base = "s3://#s3Details.ACCESS_KEY_ID#:#s3Details.SECRET_KEY#@";
+		variables.baseWithBucketName = "s3://#s3Details.ACCESS_KEY_ID#:#s3Details.SECRET_KEY#@/#mitrahsoftBucketName#";
 		// for skipping rest of the cases, if error occurred.
-		hasError = false;
+		variables.hasError = false;
 		// for replacing s3 access keys from error msgs
-		regEx = "\[[a-zA-Z0-9\:\/\@]+\]";
+		variables.regEx = "\[[a-zA-Z0-9\:\/\@]+\]";
 	}
 
 	function afterAll() skip="isNotSupported"{

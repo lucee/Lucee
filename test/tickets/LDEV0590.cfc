@@ -3,19 +3,19 @@
 		function run( testResults , testBox ) {
 			describe( "Checking existence of a variable in variables scope", function() {
 				it('Calling direct function & checking its variables scope',  function( currentSpec ) {
-					local.result = MakeRequest("1_1");
+					var result = MakeRequest("1_1");
 					expect(left(result.filecontent.trim(), 100)).notToBe("");
 				});
 				xit("Calling direct function & checking its closure's variables scope",  function( currentSpec ) {
-					local.result = MakeRequest("1_2");
+					var result = MakeRequest("1_2");
 					expect(left(result.filecontent.trim(), 100)).notToBe("");
 				});
 				it("Calling indirect function & checking its variables scope",  function( currentSpec ) {
-					local.result = MakeRequest("2_1");
+					var result = MakeRequest("2_1");
 					expect(left(result.filecontent.trim(), 100)).notToBe("");
 				});
 				xit("Calling indirect function & checking its closure's variables scope",  function( currentSpec ) {
-					local.result = MakeRequest("2_2");
+					var result = MakeRequest("2_2");
 					expect(left(result.filecontent.trim(), 100)).notToBe("");
 				});
 			});
@@ -27,8 +27,8 @@
 		}
 
 		private any function MakeRequest(Scene){
-			uri=createURI("LDEV0590/test.cfm");
-			local.result = _InternalRequest(
+			var uri=createURI("LDEV0590/test.cfm");
+			var result = _InternalRequest(
 				template:uri,
 				forms:{Scene=arguments.Scene}
 			);

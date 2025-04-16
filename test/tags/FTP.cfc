@@ -188,15 +188,15 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ftp" {
 	}
 
 	private struct function getFTPCredentials() {
-		return creds = server.getTestService("ftp");
+		return server.getTestService("ftp");
 	}
 
 	private struct function getFTPSCredentials() {
-		return creds = server.getTestService("ftps");
+		return server.getTestService("ftps");
 	}
 
 	private struct function getSFTPCredentials() {
-		return creds = server.getTestService("sftp");
+		return server.getTestService("sftp");
 	}
 } 
 </cfscript>

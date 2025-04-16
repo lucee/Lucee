@@ -150,8 +150,8 @@
 			<!--- cfhttp --->
 			<cfcase value="http">
 
-				<cfhttp attributeCollection="#tagAttributes#" result="tagResult">
-					<cfloop array="#tagParams#" index="param">
+				<cfhttp attributeCollection="#tagAttributes#" result="local.tagResult">
+					<cfloop array="#tagParams#" index="local.param">
 						<cfhttpParam attributeCollection="#param#">
 					</cfloop>
 				</cfhttp>

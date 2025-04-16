@@ -8,21 +8,21 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 		describe("testcase for LDEV-3714", function(){
 			it(title = "this scope as input then it invoke same page method", body = function ( currentSpec ){
 				try {
-					z = invoke(this, "foo", { x: "this scope" });
+					var z = invoke(this, "foo", { x: "this scope" });
 				} catch (any e) {
 					z = e.message;
 				}
 				expect(trim(z)).toBe("this scope");
-			});			
+			});
 			it(title = "Variables scope as input to invoke same cfm page method", body = function ( currentSpec ){
-				local.result = _InternalRequest(
+				var result = _InternalRequest(
 					template : "#uri#\LDEV3714.cfm",
 					forms : { scene = 1 }
 				);
 				expect(result.filecontent.trim()).toBe("variables scope");
 			});
 			it(title = "Empty string as input then it invoke same cfm page method", body = function ( currentSpec ){
-				local.result = _InternalRequest(
+				var result = _InternalRequest(
 					template : "#uri#\LDEV3714.cfm",
 					forms : { scene = 2 }
 				);
@@ -30,7 +30,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 			});
 			it(title = "Empty string as input then it invoke same page method", body = function ( currentSpec ){
 				try {
-					z = invoke("", "foo", { x: "empty string in cfc" });
+					var z = invoke("", "foo", { x: "empty string in cfc" });
 				} catch (any e) {
 					z = e.message;
 				}
@@ -39,7 +39,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 		});
 	}
 
-	function foo(x) { 
+	function foo(x) {
 		return arguments.x;
 	}
 

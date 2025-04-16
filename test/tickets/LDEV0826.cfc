@@ -25,7 +25,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"  labels="mysql" {
 	public void function testTransaction() {
 		if(!variables.has) return;
 
-		names="";
+		var names="";
 		loop from=1 to=10 index="local.i" {
 			var names=listAppend(names,"manual#i#");
 			names=listAppend(names,"auto#i#");

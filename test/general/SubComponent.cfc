@@ -41,7 +41,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					forms = {scene:1}
 				).fileContent.trim();
 
-				res = listToArray(result);
+				var res = listToArray(result);
 
 				expect(res[1]).toBe("from sub component");
 				expect(res[2]).toBe("from sub function");
@@ -75,7 +75,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 	// this function is helps to write the cfc files/change the source code of the cfc files
 	private function writeComponentFileWithsubComponent(String additionalFunction="") {
 
-		cfcSourceCode = '
+		var cfcSourceCode = '
 component {
 
 	this.main = "from main"

@@ -2,7 +2,7 @@
 	<cfscript>
 
 		function beforeAll(){
-			qry = querynew("id,name","Integer,Varchar", [ [1,"One"], [2,"Two"], [3,"Three"], [4,"four"], [5,"five"], [6,"six"], [7,"seven"], [8,"eight"] ])
+			variables.qry = querynew("id,name","Integer,Varchar", [ [1,"One"], [2,"Two"], [3,"Three"], [4,"four"], [5,"five"], [6,"six"], [7,"seven"], [8,"eight"] ])
 		}
 
 		function run( testResults , testBox ) {
@@ -21,24 +21,24 @@
 	</cfscript>
 
 	<cffunction name="cachedwithinRequest" access="private" returntype="numeric">
-		<cfquery name="getsRecords" dbtype="query" cachedwithin="request" maxrows="3">
+		<cfquery name="local.getsRecords" dbtype="query" cachedwithin="request" maxrows="3">
 			Select id, name From qry
 		</cfquery>
-		<cfquery name="getRecords" dbtype="query" cachedwithin="request" maxrows="6">
+		<cfquery name="local.getRecords" dbtype="query" cachedwithin="request" maxrows="6">
 			Select id, name From qry
 		</cfquery>
-		<cfset getcount2 = getRecords.RECORDCOUNT>
+		<cfset var getcount2 = getRecords.RECORDCOUNT>
 		<cfreturn getcount2>
 	</cffunction>
 
 	<cffunction name="cachedwithintimespan" access="private" returntype="numeric">
-		<cfquery name="getsRecords" dbtype="query" cachedwithin="#createTimespan(0,0,0,10)#" maxrows="4">
+		<cfquery name="local.getsRecords" dbtype="query" cachedwithin="#createTimespan(0,0,0,10)#" maxrows="4">
 			Select id, name From qry
 		</cfquery>
-		<cfquery name="getRecords" dbtype="query" cachedwithin="#createTimespan(0,0,0,10)#" maxrows="7">
+		<cfquery name="local.getRecords" dbtype="query" cachedwithin="#createTimespan(0,0,0,10)#" maxrows="7">
 			Select id, name From qry
 		</cfquery>
-		<cfset getcount2 = getRecords.RECORDCOUNT>
+		<cfset var getcount2 = getRecords.RECORDCOUNT>
 		<cfreturn getcount2>
 	</cffunction>
 </cfcomponent>

@@ -2,7 +2,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="orm"{
 	public function run( testResults , testBox ) {
 		describe( title="Testing date functions & its equivalent member functions for ORM entity's date", body=function() {
 			it(title="Testing dateDiff function", body=function( currentSpec ) {
-				uri = createURI("LDEV0374/test.cfm");
+				local.uri = createURI("LDEV0374/test.cfm");
 				// Dummy request
 				local.result = _InternalRequest(
 					template:uri,
@@ -23,7 +23,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="orm"{
 			});
 
 			it(title="Testing dateDiff's equivalent member function", body=function( currentSpec ) {
-				uri = createURI("LDEV0374/test.cfm");
+				local.uri = createURI("LDEV0374/test.cfm");
 				local.result = _InternalRequest(
 					template:uri,
 					forms:{
@@ -35,7 +35,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="orm"{
 			});
 
 			it(title="Testing dateDiff function with formatted date", body=function( currentSpec ) {
-				uri = createURI("LDEV0374/test.cfm");
+				local.uri = createURI("LDEV0374/test.cfm");
 				local.result = _InternalRequest(
 					template:uri,
 					forms:{
@@ -47,7 +47,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="orm"{
 			});
 
 			it(title="Testing dateDiff's equivalent member function function with formatted date", body=function( currentSpec ) {
-				uri = createURI("LDEV0374/test.cfm");
+				local.uri = createURI("LDEV0374/test.cfm");
 				local.result = _InternalRequest(
 					template:uri,
 					forms:{
@@ -59,7 +59,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="orm"{
 			});
 
 			it(title="Testing dateCompare function", body=function( currentSpec ) {
-				uri = createURI("LDEV0374/test.cfm");
+				local.uri = createURI("LDEV0374/test.cfm");
 				local.result = _InternalRequest(
 					template:uri,
 					forms:{
@@ -71,7 +71,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="orm"{
 			});
 
 			it(title="Testing dateCompare's equivalent member function", body=function( currentSpec ) {
-				uri = createURI("LDEV0374/test.cfm");
+				local.uri = createURI("LDEV0374/test.cfm");
 				local.result = _InternalRequest(
 					template:uri,
 					forms:{
@@ -83,7 +83,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="orm"{
 			});
 
 			it(title="Testing dateCompare function with formatted date", body=function( currentSpec ) {
-				uri = createURI("LDEV0374/test.cfm");
+				local.uri = createURI("LDEV0374/test.cfm");
 				local.result = _InternalRequest(
 					template:uri,
 					forms:{
@@ -95,7 +95,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="orm"{
 			});
 
 			it(title="Testing dateCompare's equivalent member function with formatted date", body=function( currentSpec ) {
-				uri = createURI("LDEV0374/test.cfm");
+				local.uri = createURI("LDEV0374/test.cfm");
 				local.result = _InternalRequest(
 					template:uri,
 					forms:{

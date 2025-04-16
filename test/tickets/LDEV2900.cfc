@@ -3,8 +3,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="cookie" {
 	function run( testResults , testBox ) {
 		describe( "Test suite for LDEV2900", function() {
 			it( title='check cfcookie tag defaults, httponly, samesite=strict, path', body=function( currentSpec ) {
-				uri = createURI( "LDEV2900" );
-				local.sessionReq = _InternalRequest(
+				var uri = createURI( "LDEV2900" );
+				var sessionReq = _InternalRequest(
 					template : "#uri#/tag-defaults/index.cfm",
 					url: {
 						samesite: "strict"
@@ -12,12 +12,12 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="cookie" {
 				);
 				//dumpResult( sessionReq );
 
-				local.str = getCookieFromHeaders(sessionReq.headers, "value" );
+				var str = getCookieFromHeaders(sessionReq.headers, "value" );
 				//dumpResult( str );
 
 				expect( len( trim( str ) ) ).toBeGT( 0 );
 
-				local.sct = toCookieStruct( str );
+				var sct = toCookieStruct( str );
 				//dumpResult( sct );
 				expect( structKeyExists( sct, "HTTPOnly" ) ).toBeTrue();
 				expect( sct.path ).toBe( "/test" );
@@ -27,8 +27,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="cookie" {
 			});
 
 			it( title='check cfcookie tag defaults, httponly, samesite=lax, path', body=function( currentSpec ) {
-				uri = createURI( "LDEV2900" );
-				local.sessionReq = _InternalRequest(
+				var uri = createURI( "LDEV2900" );
+				var sessionReq = _InternalRequest(
 					template : "#uri#/tag-defaults/index.cfm",
 					url: {
 						samesite: "lax"
@@ -36,12 +36,12 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="cookie" {
 				);
 				//dumpResult( sessionReq );
 
-				local.str = getCookieFromHeaders(sessionReq.headers, "value" );
+				var str = getCookieFromHeaders(sessionReq.headers, "value" );
 				//dumpResult( str );
 
 				expect( len( trim( str ) ) ).toBeGT( 0 );
 
-				local.sct = toCookieStruct( str );
+				var sct = toCookieStruct( str );
 				//dumpResult( sct );
 				expect( structKeyExists( sct, "HTTPOnly" ) ).toBeTrue();
 				expect( sct.path ).toBe( "/test" );
@@ -51,18 +51,18 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="cookie" {
 			});
 
 			it( title='check cfcookie tag defaults, httponly, no samesite, path', body=function( currentSpec ) {
-				uri = createURI( "LDEV2900" );
-				local.sessionReq = _InternalRequest(
+				var uri = createURI( "LDEV2900" );
+				var sessionReq = _InternalRequest(
 					template : "#uri#/tag-defaults/index.cfm"
 				);
 				//dumpResult( sessionReq );
 
-				local.str = getCookieFromHeaders(sessionReq.headers, "value" );
+				var str = getCookieFromHeaders(sessionReq.headers, "value" );
 				//dumpResult( str );
 
 				expect( len( trim( str ) ) ).toBeGT( 0 );
 
-				local.sct = toCookieStruct( str );
+				var sct = toCookieStruct( str );
 				//dumpResult( sct );
 				expect( structKeyExists( sct, "HTTPOnly" ) ).toBeTrue();
 				expect( sct.path ).toBe( "/test" );
@@ -72,8 +72,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="cookie" {
 			});
 
 			it( title='check cfcookie tag defaults, httponly, no samesite, path', body=function( currentSpec ) {
-				uri = createURI( "LDEV2900" );
-				local.sessionReq = _InternalRequest(
+				var uri = createURI( "LDEV2900" );
+				var sessionReq = _InternalRequest(
 					template : "#uri#/tag-defaults/index.cfm",
 					url: {
 						samesite: ""
@@ -81,12 +81,12 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="cookie" {
 				);
 				//dumpResult( sessionReq );
 
-				local.str = getCookieFromHeaders(sessionReq.headers, "value" );
+				var str = getCookieFromHeaders(sessionReq.headers, "value" );
 				//dumpResult( str );
 
 				expect( len( trim( str ) ) ).toBeGT( 0 );
 
-				local.sct = toCookieStruct( str );
+				var sct = toCookieStruct( str );
 				//dumpResult( sct );
 				expect( structKeyExists( sct, "HTTPOnly" ) ).toBeTrue();
 				expect( sct.path ).toBe( "/test" );
@@ -96,8 +96,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="cookie" {
 			});
 
 			it( title='check cfcookie tag defaults, httponly, no samesite, path, tag samesite', body=function( currentSpec ) {
-				uri = createURI( "LDEV2900" );
-				local.sessionReq = _InternalRequest(
+				var uri = createURI( "LDEV2900" );
+				var sessionReq = _InternalRequest(
 					template : "#uri#/tag-defaults/index.cfm",
 					url: {
 						tagSamesite: "none"
@@ -105,12 +105,12 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="cookie" {
 				);
 				//dumpResult( sessionReq );
 
-				local.str = getCookieFromHeaders(sessionReq.headers, "value" );
+				var str = getCookieFromHeaders(sessionReq.headers, "value" );
 				//dumpResult( str );
 
 				expect( len( trim( str ) ) ).toBeGT( 0 );
 
-				local.sct = toCookieStruct( str );
+				var sct = toCookieStruct( str );
 				//dumpResult( sct );
 				expect( structKeyExists( sct, "HTTPOnly" ) ).toBeTrue();
 				expect( sct.path ).toBe( "/test" );
@@ -120,11 +120,11 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="cookie" {
 			});
 
 			it( title='checking sessionCookie keys & values on getApplicationSettings()', body=function( currentSpec ) {
-				uri = createURI( "LDEV2900" );
-				local.sessionCookie = _InternalRequest(
+				var uri = createURI( "LDEV2900" );
+				var sessionCookie = _InternalRequest(
 					template : "#uri#/session-cookie/index.cfm"
 				).filecontent.trim();
-				result = deserializeJSON(sessionCookie);
+				var result = deserializeJSON(sessionCookie);
 
 				expect( result.SAMESITE ).toBe("strict");
 				expect( result.HTTPONLY ).toBeTrue();
@@ -140,8 +140,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="cookie" {
 	};
 
 	private string function getCookieFromHeaders( struct headers, string name ){
-		local.arr = arguments.headers[ 'Set-Cookie' ];
-		local.str = '';
+		var arr = arguments.headers[ 'Set-Cookie' ];
+		var str = '';
 		if ( isSimpleValue( arr ) ) arr = [ arr ]; // single cookies don't end up in an array
 		loop array=arr item="local.entry" {
 			if( findNoCase( arguments.name & '=', entry ) eq 1 )
@@ -151,8 +151,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="cookie" {
 	}
 
 	private struct function toCookieStruct( string str ){
-		local.arr = listToArray( str,';' );
-		local.sct={};
+		var arr = listToArray( str,';' );
+		var sct={};
 		loop array=arr item="local.entry" {
 			sct[ trim( listFirst( entry, '=' ) ) ] = listLen( entry, '=' ) == 1 ? "" : trim( listLast( entry, '=' ) );
 		}

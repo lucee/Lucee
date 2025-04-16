@@ -33,7 +33,7 @@ e">
 	
 	<cffunction name="testIndex">
 		<cfset var counter=0>
-		<cfloop file="#variables.filePath#" index="indexName" from="2" to="2">
+		<cfloop file="#variables.filePath#" index="local.indexName" from="2" to="2">
 			<cfset counter++>
 			<cfset assertEquals("b",indexName)>
 		</cfloop>
@@ -42,7 +42,7 @@ e">
 	
 	<cffunction name="testItem">
 		<cfset var counter=0>
-		<cfloop file="#variables.filePath#" item="itemName" from="2" to="2">
+		<cfloop file="#variables.filePath#" item="local.itemName" from="2" to="2">
 			<cfset counter++>
 			<cfset assertEquals("b",itemName)>
 		</cfloop>
@@ -51,7 +51,7 @@ e">
 	
 	<cffunction name="testIndexAndItem">
 		<cfset var counter=0>
-		<cfloop file="#variables.filePath#"  index="indexName" item="itemName" from="2" to="2">
+		<cfloop file="#variables.filePath#"  index="local.indexName" item="local.itemName" from="2" to="2">
 			<cfset counter++>
 			<cfset assertEquals(2,indexName)>
 			<cfset assertEquals("b",itemName)>

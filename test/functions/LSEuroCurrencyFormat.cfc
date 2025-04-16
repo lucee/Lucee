@@ -5,16 +5,16 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="currency" {
 			beforeEach( function(){
 				variables.startingTZ=getTimeZone();
 				setTimeZone("UTC");
-            });
+			});
 			afterEach( function(){
-                setTimeZone(variables.startingTZ?:"UTC");
-            });
+				setTimeZone(variables.startingTZ?:"UTC");
+			});
 			it(title="checking LSEuroCurrencyFormat() function", body = function( currentSpec ) {
 				<!--- begin old test code --->
-				orgLocale=getLocale();
+				var orgLocale=getLocale();
 				setLocale("German (Swiss)");
-				dt=CreateDateTime(2004,1,2,4,5,6);
-				euro=chr(8364);
+				var dt=CreateDateTime(2004,1,2,4,5,6);
+				var euro=chr(8364);
 
 				if(getJavaVersion()>=9) {
 					assertEquals("CHF 1.00", "#LSEuroCurrencyFormat(1)#");
@@ -51,10 +51,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="currency" {
 	}
 
 	private function getJavaVersion() {
-        var raw=server.java.version;
-        var arr=listToArray(raw,'.');
-        if(arr[1]==1) // version 1-9
-            return arr[2];
-        return arr[1];
-    }
+		var raw=server.java.version;
+		var arr=listToArray(raw,'.');
+		if(arr[1]==1) // version 1-9
+			return arr[2];
+		return arr[1];
+	}
 }

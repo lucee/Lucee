@@ -65,7 +65,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 			});
 			
 			it(title="listening on a UDF chain that does NOT fail (joining the thread);undefined",  body=function()  {
-				a.b.c.d=mySuccess;
+				var a.b.c.d=mySuccess;
 				var threadName=a.b.c.d():function(result,error) {
 					thread.result=result?:error;
 				};
@@ -149,7 +149,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 			});
 
 			it(title="listening on a UDF (joining the thread), send data to a function collection; test success", body=function() {
-				coll1={
+				var coll1={
 					onSuccess:function(result) {
 						thread.success=result;
 					}

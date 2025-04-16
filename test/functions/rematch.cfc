@@ -1,7 +1,7 @@
 component extends = "org.lucee.cfml.test.LuceeTestCase"	{
 
 	function run( testResults , testBox ) {
-		string = "1'st think i am going to loss weight upto 10 to 15 kg's";
+		variables.string = "1'st think i am going to loss weight upto 10 to 15 kg's";
 		describe( title = "Test suite for rematch in function", body = function() {
 
 			it( title = 'Test case for rematch in function',body = function( currentSpec ) {

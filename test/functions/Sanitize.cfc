@@ -43,7 +43,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
                 var input = 'config={"password": "supersecret", "api_key": "abcdef1234567890"}';
                 var expected = 'config={"password": "****", "api_key": "****"}';
                 expect(sanitize(input)).toBe(expected);
-                config={"password": "****", "api_key": "****"}
+                var config={"password": "****", "api_key": "****"}
                 config={"password": "****", "api_key": "abcdef1234567890"}
             });
             

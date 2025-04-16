@@ -6,7 +6,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 		describe( title="Testcase for LDEV-4500", body=function() {
 
 			it(title="Checking BigDecimal 2.00 casting in switch 2", body = function( currentSpec ) {
-
+				var result = "";
 				switch ( bd ){
 					case 2:
 						result="MATCHED";
@@ -20,6 +20,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 			});
 
 			it(title="Checking BigDecimal 2.00 casting in switch '2'", body = function( currentSpec ) {
+				var result = "";
 				switch ( bd ){
 					case "2":
 						result="MATCHED";

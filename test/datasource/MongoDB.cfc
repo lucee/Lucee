@@ -71,7 +71,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"  labels="mongodb"	{
 			systemOutput("XXX#chr(10)#" & ex.toString(), true, true);
 		} //*/
 
-		db = MongoDBConnect(variables.mongoDB.db, uri);
+		variables.db = MongoDBConnect(variables.mongoDB.db, uri);
  	}
 
 	//public function afterTests(){}

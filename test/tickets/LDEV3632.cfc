@@ -1,7 +1,7 @@
 component extends="org.lucee.cfml.test.LuceeTestCase" labels="qoq" {
 
 	function beforeAll() {
-		q = queryNew(
+		variables.q = queryNew(
 			'type,num',
 			'string,int',
 			[
@@ -18,7 +18,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="qoq" {
 		describe( title='QofQ Aggregation' , body=function(){
 
 			it( title='Can can aggregate unfiltered rows' , body=function() {
-				actual = QueryExecute(
+				var actual = QueryExecute(
 					sql = "SELECT sum(num) as sum, count(*) as count, 4 as brad FROM q",
 					options = { dbtype: 'query' }
 				);
@@ -30,7 +30,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="qoq" {
 			});
 
 			it( title='Can can aggregate some filtered rows' , body=function() {
-				actual = QueryExecute(
+				var actual = QueryExecute(
 					sql = "SELECT sum(num) as sum, count(*) as count, 4 as brad FROM q WHERE type='test'",
 					options = { dbtype: 'query' }
 				);
@@ -42,7 +42,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="qoq" {
 			});
 
 			it( title='Can can aggregate all filtered rows' , body=function() {
-				actual = QueryExecute(
+				var actual = QueryExecute(
 					sql = "SELECT sum(num) as sum, count(*) as count, 4 as brad FROM q WHERE 1=0",
 					options = { dbtype: 'query' }
 				);

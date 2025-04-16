@@ -1,7 +1,7 @@
 component extends="org.lucee.cfml.test.LuceeTestCase" {
 
 	function run( testResults , testBox ) {
-		mylist = "aaa,,John,aaa||||%%%%!||,,&&||||||*(*()$$$&&&&Ringo,AAA,AA|,,,||";
+		variables.mylist = "aaa,,John,aaa||||%%%%!||,,&&||||||*(*()$$$&&&&Ringo,AAA,AA|,,,||";
 
 		describe( title ="Test suite for listGetAt", body = function() {
 			it( title = 'Test case for listGetAt', body = function( currentSpec ) {

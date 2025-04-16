@@ -12,7 +12,7 @@
 			describe( title="Test suite for checking cfschedule result attribute in Lucee", body=function(){
 				beforeEach(function( currentSpec ){
 					// runs before each spec in this suite group
-					hasError = false;
+					variables.hasError = false;
 				});
 
 				afterEach(function( currentSpec ){
@@ -96,7 +96,7 @@
 	</cfscript>
 
 	<cffunction name="cfscheduleWithReturnVariableOld" access="private">
-		<cfset attrStruct = {}>
+		<cfset var attrStruct = {}>
 		<cfset attrStruct.action = "list">
 		<cfset attrStruct.returnvariable = "local.result">
 		<cfschedule attributeCollection="#attrStruct#">
@@ -110,7 +110,7 @@
 	</cffunction>
 
 	<cffunction name="cfscheduleWithResult" access="private">
-		<cfset attrStruct = {}>
+		<cfset var attrStruct = {}>
 		<cfset attrStruct.action = "list">
 		<cfset attrStruct.result = "local.result">
 		<cfschedule attributeCollection="#attrStruct#">

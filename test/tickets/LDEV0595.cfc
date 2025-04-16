@@ -8,8 +8,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="image" {
 	public function run( testResults , testBox ) {
 		describe( title="Testing imageGrayscale()", body=function() {
 			it(title='Testing imageGrayscale()', body=function( currentSpec ) {
-					uri=createURI("LDEV0595/test.cfm");
-					local.result=_InternalRequest(
+					var uri=createURI("LDEV0595/test.cfm");
+					var result=_InternalRequest(
 						template:uri
 					);
 					assertEquals("done", left(result.filecontent.trim(), 100));

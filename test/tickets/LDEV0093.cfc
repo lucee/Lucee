@@ -20,7 +20,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"  labels="pdf"{
 				//create a blank PDF
 				document format="PDF" filename=src overwrite=true{};
 				//set the author
-				info={ author:"ACME Ltd" };
+				var info={ author:"ACME Ltd" };
 				pdf action="setInfo" info=info source=src destination=src overwrite=true;
 				// check author was set
 				pdf action="getInfo" source=src name="local.infoBeforeWrite";

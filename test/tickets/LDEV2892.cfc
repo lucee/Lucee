@@ -20,7 +20,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="regex" {
 			// note this is the only different test
 			it(title = "reMatch with modern regex syntax", body = function( currentSpec ) {
 				var value = "You are the cat's pajamas!";
-				result = value.reMatch( "(?<=cat's )pajamas" );
+				var result = value.reMatch( "(?<=cat's )pajamas" );
 				expect( result ).toHaveLength( 1 );
 			});
 
@@ -36,7 +36,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="regex" {
 			});
 
 			it(title = "rematch examples with regex", body = function( currentSpec ) {
-				str = "count 1234 or one,two,THREE,four.."
+				var str = "count 1234 or one,two,THREE,four.."
 				expect(arraylen(rematch("[a-z]+",str))).toBe('5');
 				expect(rematch("[a-z]+",str)[1]).toBe('count');
 				str = "count 1234 or one,two,three,four.."
@@ -46,7 +46,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="regex" {
 			});
 
 			it(title = "rematchNoCase examples with regex", body = function( currentSpec ) {
-				str = "count 1234 or one,two,THREE,four.."
+				var str = "count 1234 or one,two,THREE,four.."
 				expect(arraylen(rematchNoCase("[a-z]+",str))).toBe('6');
 				expect(rematchNoCase("[a-z]+",str)[5]).toBe('three');
 				str = "count 1234 or one,two,three,four.."
@@ -96,7 +96,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="regex" {
 			});
 
 			it(title = "rematch examples with regex", body = function( currentSpec ) {
-				str = "count 1234 or one,two,THREE,four.."
+				var str = "count 1234 or one,two,THREE,four.."
 				expect(arraylen(rematch("[a-z]+",str))).toBe('5');
 				expect(rematch("[a-z]+",str)[1]).toBe('count');
 				str = "count 1234 or one,two,three,four.."
@@ -106,7 +106,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="regex" {
 			});
 
 			it(title = "rematchNoCase examples with regex", body = function( currentSpec ) {
-				str = "count 1234 or one,two,THREE,four.."
+				var str = "count 1234 or one,two,THREE,four.."
 				expect(arraylen(rematchNoCase("[a-z]+",str))).toBe('6');
 				expect(rematchNoCase("[a-z]+",str)[5]).toBe('three');
 				str = "count 1234 or one,two,three,four.."

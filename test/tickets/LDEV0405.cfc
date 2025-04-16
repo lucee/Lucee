@@ -19,7 +19,7 @@
 component extends="org.lucee.cfml.test.LuceeTestCase" labels="orm"	{
 
 	public void function testORMSettingsDataSource(){
-		uri=createURI("LDEV0405/index.cfm");
+		local.uri=createURI("LDEV0405/index.cfm");
 		local.result=_InternalRequest(uri);
 		local.first=trim(result.filecontent);
 

@@ -25,14 +25,12 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	//public function setUp(){}
 
 	public void function testDouble(){
-		d=0.0905;
+		var d=0.0905;
 		assertEquals("0.0905:",d&":");
-		
 	}
 	public void function testFloat(){
-		f=createObject('java','java.lang.Float').parseFloat("0.0905");
+		var f=createObject('java','java.lang.Float').parseFloat("0.0905");
 		assertEquals("0.0905",f);
-		
 	}
 } 
 </cfscript>

@@ -2,10 +2,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 	function run( testResults , testBox ) {
 		describe( "Test suite for LDEV-1483", function() {
 			it( title='checking Immediate Invoke lambda expression, with single param', body=function( currentSpec ) {
-				fn = ((x) => {
-        			return x * 10;
-    			}(1));
-    			expect(fn).toBe(10);
+				var fn = ((x) => {
+					return x * 10;
+				}(1));
+				expect(fn).toBe(10);
 			});
 
 			it( title='checking Immediate Invoke lambda expression, with multipleParam param', body=function( currentSpec ) {

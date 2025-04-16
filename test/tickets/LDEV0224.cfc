@@ -62,7 +62,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="qoq" {
 				describe( 'with new Query()' , function() {
 
 					beforeEach( function( currentSpec ) {
-						q = new Query(
+						variables.q = new Query(
 							dbtype = 'query',
 							queryWithDataIn = variables.queryWithDataIn
 						);
@@ -129,7 +129,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="qoq" {
 						it( 'when using numeric params' , function( currentSpec ) {
 
 							query
-								name = 'actual'
+								name = 'local.actual'
 								dbtype = 'query' {
 
 								WriteOutput( "
@@ -155,7 +155,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="qoq" {
 						it( 'when using numeric params and a custom separator' , function( currentSpec ) {
 
 							query
-								name = 'actual'
+								name = 'local.actual'
 								dbtype = 'query' {
 
 								WriteOutput( "
@@ -182,7 +182,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="qoq" {
 						it( 'when using string params' , function( currentSpec ) {
 
 							query
-								name = 'actual'
+								name = 'local.actual'
 								dbtype = 'query' {
 
 								WriteOutput( "

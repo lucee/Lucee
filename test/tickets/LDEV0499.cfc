@@ -39,7 +39,7 @@
 				Lucee test documents
 			</cfdocumentsection>
 		</cfdocument>
-		<cfpdf action="read" name="pdfDetails" source="#testPDF#"/>
+		<cfpdf action="read" name="local.pdfDetails" source="#testPDF#"/>
 		<cfreturn pdfDetails>
 	</cffunction>
 
@@ -50,7 +50,7 @@
 				Lucee test documents
 			</cfdocumentsection>
 		</cfdocument>
-		<cfpdf action="read" name="pdfDetails" source="#testPDF#"/>
+		<cfpdf action="read" name="local.pdfDetails" source="#testPDF#"/>
 		<cfreturn  pdfDetails>
 	</cffunction>
 
@@ -61,7 +61,7 @@
 				Lucee test documents
 			</cfdocumentsection>
 		</cfdocument>
-		<cfpdf action="read" name="pdfDetails" source="#testPDF#" password=""/>
+		<cfpdf action="read" name="local.pdfDetails" source="#testPDF#" password=""/>
 		<cfreturn pdfDetails>
 	</cffunction>
 
@@ -72,7 +72,7 @@
 				Lucee test documents
 			</cfdocumentsection>
 		</cfdocument>
-		<cfpdf action="read" name="pdfDetails" source="#testPDF#" password="Lucee"/>
+		<cfpdf action="read" name="local.pdfDetails" source="#testPDF#" password="Lucee"/>
 		<cfreturn pdfDetails>
 	</cffunction>
 </cfcomponent>

@@ -1,11 +1,11 @@
 component extends = "org.lucee.cfml.test.LuceeTestCase" {
 
 	function run( testResults , testBox ) {
-		world = ["save":"water","clean":"wastes"];
+		variables.world = ["save":"water","clean":"wastes"];
 		describe( title = "Test suite for structinsert", body = function() {
 
 			it( title = 'Test case for structinsert function',body = function( currentSpec ) {
-				res = structinsert(world,"save","money",true);
+				var res = structinsert(world,"save","money",true);
 				assertEquals('true',res);
 				res = structinsert(world,"count","money");
 				assertEquals('true',res);

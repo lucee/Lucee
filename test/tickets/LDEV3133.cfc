@@ -6,7 +6,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" labels="struct" {
 	function run ( testResults , testbox ){
 		describe("This testcase for LDEV-3133",function(){
 			it(title = "Create struct with structNew",body = function( currentSpec ){
-				animals=StructNew("sync");
+				var animals=StructNew("sync");
 				animals.Aardwolf="Proteles cristata";
 				animals.aardvark="Orycteropus afer";
 				animals.Alligator="Mississippiensis";
@@ -16,7 +16,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" labels="struct" {
 
 			// only supported with server setting (i.e. unquoted)
 			it(title = "Create struct with StructNew(casesensitive)", skip=true, body = function( currentSpec ){
-				animals=StructNew("casesensitive")
+				var animals=StructNew("casesensitive")
 				animals.Aardwolf="Proteles cristata";
 				animals.aardvark="Orycteropus afer";
 				animals.AlliGator="Mississippiensis";
@@ -26,7 +26,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" labels="struct" {
 			});
 
 			it(title = "Create struct with StructNew(casesensitive)", body = function( currentSpec ){
-				animals=StructNew("casesensitive")
+				var animals=StructNew("casesensitive")
 				animals["Aardwolf"]="Proteles cristata";
 				animals["aardwolf"]="Proteles cristata";
 				expect(structKeyList(animals)).toIncludeWithCase("Aardwolf");
@@ -35,7 +35,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" labels="struct" {
 
 			// only supported with server setting (i.e. unquoted)
 			it(title = "Create struct with StructNew(ordered-casesensitive)",skip=true, body = function( currentSpec ){
-				animals=StructNew("ordered-casesensitive");
+				var animals=StructNew("ordered-casesensitive");
 				animals.Aardwolf="Proteles cristata";
 				animals.aardvark="Orycteropus afer";
 				animals.alligator="Mississippiensis";
@@ -45,14 +45,14 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" labels="struct" {
 			});
 
 			it(title = "Create struct with StructNew(ordered-casesensitive)", body = function( currentSpec ){
-				animals=StructNew("ordered-casesensitive")
+				var animals=StructNew("ordered-casesensitive")
 				animals["Aardwolf"]="Proteles cristata";
 				animals["aardwolf"]="Proteles cristata";
 				expect(structKeyList(animals)).toBeWithCase("Aardwolf,aardwolf");
 			});
 
 			it(title = "Create casesensitive struct with Implicit notation LDEV-4505", skip=true, body = function( currentSpec ){
-				local.result = _InternalRequest(
+				var result = _InternalRequest(
 					template :  "#uri#/test.cfm",
 					forms = {scene = 4}
 				);
@@ -60,7 +60,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" labels="struct" {
 			});
 
 			it(title = "Create ordered-casesensitive struct with Implicit notation LDEV-4505", skip=true, body = function( currentSpec ){
-				local.result = _InternalRequest(
+				var result = _InternalRequest(
 					template :  "#uri#/test.cfm",
 					forms = {scene = 5}
 				);

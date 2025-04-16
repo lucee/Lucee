@@ -2,13 +2,13 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="qoq"{
 	function run( testResults , testBox ) {
 		describe( "Test suite for LDEV-272", function() {
 			beforeEach(function(){
-				empDetails = queryNew("name,age,dept","varchar,integer,varchar", [['saravana',35,'MD'],['Bob',20, 'Employee'],['pothy',25, 'Employee']]);
+				variables.empDetails = queryNew("name,age,dept","varchar,integer,varchar", [['saravana',35,'MD'],['Bob',20, 'Employee'],['pothy',25, 'Employee']]);
 			});
 
 			it("Checking QOQ with same alias for a column with some condition using it in where clause", function( currentSpec ){
-				errorMsg = "";
+				var errorMsg = "";
 				try {
-					query name="getMaxEmpAge" result="result" dbtype="query"{
+					query name="local.getMaxEmpAge" result="local.result" dbtype="query"{
 						echo('select MAX(age) AS age from empDetails WHERE age > 22');
 					}
 				} catch( any e ) {
@@ -20,9 +20,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="qoq"{
 			});
 
 			it("Checking QOQ with different alias for a column with some condition using it in where clause", function( currentSpec ){
-				errorMsg = "";
+				var errorMsg = "";
 				try {
-					query name="getMaxEmpAge" result="result" dbtype="query"{
+					query name="local.getMaxEmpAge" result="local.result" dbtype="query"{
 						echo('select MAX(age) AS MaxAge from empDetails WHERE age > 22');
 					}
 				} catch( any e ) {
@@ -34,9 +34,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="qoq"{
 			});
 
 			it("Checking QOQ with different alias for a column with some condition using it in where clause & group by clause", function( currentSpec ){
-				errorMsg = "";
+				var errorMsg = "";
 				try {
-					query name="getDeptEmpCount" result="result" dbtype="query"{
+					query name="local.getDeptEmpCount" result="local.result" dbtype="query"{
 						echo("select COUNT(dept) AS deptCount from empDetails WHERE dept = 'Employee' GROUP BY dept");
 					}
 				} catch( any e ) {

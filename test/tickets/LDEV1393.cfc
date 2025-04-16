@@ -16,12 +16,12 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="image" {
 				var imgPath="#path#originalImg.png";
 				try {
 					cfimage(
-						source="#ImageReadBase64(variables.base64)#",  
-						name="originalImg", 
-						destination=imgPath, 
-						action="resize", 
-						width="50%", 
-						height="80%", 
+						source="#ImageReadBase64(variables.base64)#",
+						name="local.originalImg",
+						destination=imgPath,
+						action="resize",
+						width="50%",
+						height="80%",
 						overwrite="yes");
 
 					var base64 = tobase64(originalImg);

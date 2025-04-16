@@ -14,7 +14,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 				directoryCreate(newDir)
 
 				file action="copy"  source="#path#\test.txt" destination=newDir nameConflict="makeUnique";
-				directory action="list" directory=newDir name="list";
+				directory action="list" directory=newDir name="local.list";
 
 				expect( list.name ).toBe( "test.txt" );
 			});
@@ -25,7 +25,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 				fileWrite("#newDir#\testMakeUnique.txt","LDEV-3122");
 
 				file action="copy"  source="#newDir#\testMakeUnique.txt" destination=newDir nameConflict="makeUnique";
-				directory action="list" directory=newDir name="list" listInfo="name";
+				directory action="list" directory=newDir name="local.list" listInfo="name";
 
 				expect( serializeJson( list ) ).toInclude( "testMakeUnique-" );
 				expect( list.recordcount ).toBe("2");
@@ -37,7 +37,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 				fileWrite("#path#\testForceUnique.txt","LDEV-3122");
 
 				file action="copy"  source="#path#\testForceUnique.txt" destination=newDir nameConflict="forceUnique";
-				directory action="list" directory=newDir name="list" listInfo="name";
+				directory action="list" directory=newDir name="local.list" listInfo="name";
 
 				expect( serializeJson( list ) ).toInclude( "testForceUnique-" );
 				expect( list.recordcount ).toBe("1");
@@ -49,7 +49,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 				fileWrite("#newDir#\testFileForceUnique.txt","LDEV-3122");
 
 				file action="copy"  source="#newDir#\testFileForceUnique.txt" destination=newDir nameConflict="forceUnique";
-				directory action="list" directory=newDir name="list" listInfo="name";
+				directory action="list" directory=newDir name="local.list" listInfo="name";
 
 				expect( serializeJson( list ) ).toInclude( "testFileForceUnique-");
 				expect( list.recordcount ).toBe("2");

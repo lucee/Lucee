@@ -18,7 +18,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="qoq" {
 					is "nulls" instead of "null", go figure!
 				*/
 
-				actual = QueryExecute(
+				var actual = QueryExecute(
 					options = {
 						dbtype: 'query'
 					},
@@ -40,7 +40,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="qoq" {
 
 			it( 'returns NULL when fed in through array parameter with null=true' , function() {
 
-				actual = QueryExecute(
+				var actual = QueryExecute(
 					options = {
 						dbtype: 'query'
 					},
@@ -62,7 +62,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="qoq" {
 
 			it( 'returns NULL when fed in through array named parameter with null=true' , function() {
 
-				actual = QueryExecute(
+				var actual = QueryExecute(
 					options = {
 						dbtype: 'query'
 					},
@@ -84,7 +84,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="qoq" {
 
 			it( 'returns NULL when fed in through struct parameter with null=true' , function() {
 
-				actual = QueryExecute(
+				var actual = QueryExecute(
 					options = {
 						dbtype: 'query'
 					},
@@ -111,14 +111,14 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="qoq" {
 
 			it( 'returns NULL when fed in through parameter with null=true' , function() {
 
-				q = new Query(
+				var q = new Query(
 					dbtype = 'query',
 					queryWithDataIn = variables.queryWithDataIn
 				);
 
 				q.addParam( type: 'integer' , value: 1 , null: true );
 
-				actual = q.execute( 
+				var actual = q.execute( 
 					sql = "
 						SELECT 
 							COALESCE( ? , 'isnull' ) AS value,
@@ -134,14 +134,14 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="qoq" {
 
 			it( 'returns NULL when fed in through named parameter with null=true' , function() {
 
-				q = new Query(
+				var q = new Query(
 					dbtype = 'query',
 					queryWithDataIn = variables.queryWithDataIn
 				);
 
 				q.addParam( name: 'input' , type: 'integer' , value: 1 , null: true );
 
-				actual = q.execute( 
+				var actual = q.execute( 
 					sql = "
 						SELECT 
 							COALESCE( :input , 'isnull' ) AS value,
@@ -162,7 +162,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="qoq" {
 			it( 'returns NULL when fed in through parameter with null=true' , function() {
 
 				query
-					name = 'actual'
+					name = 'local.actual'
 					dbtype = 'query' {
 
 					WriteOutput( "

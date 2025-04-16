@@ -2,20 +2,20 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="session" {
 
 
 	function beforeAll(){
-		server.LDEV3264_endedSessions = {};		
+		server.LDEV3264_endedSessions = {};
 	}
 
-	function afterAll(){		
+	function afterAll(){
 		//systemOutput("ended sessionids:" & structKeyList(server.LDEV3264_endedSessions), true);
 		structDelete(server, "LDEV3264_endedSessions");
-		
+
 	}
 
 	function run( testResults , testBox ) {
 		describe( "Test suite for LDEV2308", function() {
 			it( title='check onSessionEnd with cfml session', body=function( currentSpec ) {
-				uri = createURI("LDEV3264");
-				local.cfmlSessionId = _InternalRequest(
+				var uri = createURI("LDEV3264");
+				var cfmlSessionId = _InternalRequest(
 					template : "#uri#\cfml-session\testOnSessionEnd.cfm"
 				);
 				//dumpResult( "cfmlSessionId: " & cfmlSessionId.filecontent );
@@ -26,8 +26,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="session" {
 					action="purgeExpiredSessions"
 					type="server"
 					password="#request.SERVERADMINPASSWORD#";
-				
-				local.result = _InternalRequest(
+
+				var result = _InternalRequest(
 					template : "#uri#\cfml-session\testOnSessionEnd.cfm",
 					url: {
 						dumpEndedSessions: true,
@@ -39,8 +39,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="session" {
 			});
 
 			it( title='check onSessionEnd with jee session', body=function( currentSpec ) {
-				uri = createURI("LDEV3264");
-				local.j2eeSessionId = _InternalRequest(
+				var uri = createURI("LDEV3264");
+				var j2eeSessionId = _InternalRequest(
 					template : "#uri#\j2ee-session\testOnSessionEnd.cfm"
 				);
 				//dumpResult( "j2eeSessionId: " & j2eeSessionId.filecontent );
@@ -51,8 +51,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="session" {
 					action="purgeExpiredSessions"
 					type="server"
 					password="#request.SERVERADMINPASSWORD#";
-				
-				local.result = _InternalRequest(
+
+				var result = _InternalRequest(
 					template : "#uri#\j2ee-session\testOnSessionEnd.cfm",
 					url: {
 						dumpEndedSessions: true,

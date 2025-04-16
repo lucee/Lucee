@@ -19,7 +19,7 @@
 component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
 	public function setUp(){
-		qry=query(a:[10,20,30]);
+		variables.qry=query(a:[10,20,30]);
 	}
 
 	public void function testValueAccess(){

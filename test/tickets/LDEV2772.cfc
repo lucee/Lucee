@@ -62,7 +62,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 
 			// scope cascading rules are different in a .cfm file
 			// there's no local scope and the variables scope is checked after queries
-			result = _InternalRequest(
+			var result = _InternalRequest(
 				template : "#uri#/searchResults.cfm",
 				url : { scopeCascading: arguments.scopeCascading }
 			);

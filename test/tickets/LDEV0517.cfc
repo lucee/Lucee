@@ -18,13 +18,13 @@
  --->
 <cfcomponent extends="org.lucee.cfml.test.LuceeTestCase" labels="xml">
 	<cffunction name="test">
-<cfxml variable="foo">
+<cfxml variable="local.foo">
     <x>
         <y></y>
         
     </x>
     
 </cfxml>
-		<cfset result=xmlsearch(foo,"//x")>
+		<cfset var result=xmlsearch(foo,"//x")>
 	</cffunction>
 </cfcomponent>

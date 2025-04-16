@@ -18,11 +18,11 @@
 	
 
 	public void function testNoCustom(){
-		uri=createURI("LDEV1047/index.cfm");
-		local.res=_InternalRequest(template:uri);
+		var uri=createURI("LDEV1047/index.cfm");
+		var res=_InternalRequest(template:uri);
 		assertEquals("123456",res.filecontent.trim());
 
-		local.res=_InternalRequest(template:uri);
+		res=_InternalRequest(template:uri);
 		assertEquals("123456",res.filecontent.trim());
 	}
 

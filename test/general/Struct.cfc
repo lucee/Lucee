@@ -8,10 +8,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 
 			it(title="test listener struct return a value", body=function(){
 				var sct=structNew(onMissingKey:function(key,data){
-    				return "notexistingvalue";
+					return "notexistingvalue";
 				});
 				sct.a=1;
-				
+
 				expect(sct.a).toBe(1);
 				expect(sct.notexistingkey).toBe("notexistingvalue");
 				expect(structKeyList(sct)).toBe("a");
@@ -22,7 +22,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					return data[key] = "notexistingvalue";
 				});
 				sct.a=1;
-				
+
 				expect(sct.a).toBe(1);
 				expect(sct.notexistingkey).toBe("notexistingvalue");
 				expect(listSort(structKeyList(sct),"textnocase")).toBe("a,notexistingkey");
@@ -32,7 +32,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				var sct=structNew(onMissingKey:function(key,data){
 					throw "sorry but we cannot help!";
 				});
-				
+
 				var msg="";
 				try {
 					var a=sct.notexistingkey;
@@ -95,7 +95,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					_InternalRequest(template:uri);
 				}
 				catch(template e) {
-					error=true;
+					var error=true;
 				}
 				expect(error).toBeTrue();
 			});
@@ -106,7 +106,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					_InternalRequest(template:uri);
 				}
 				catch(template e) {
-					error=true;
+					var error=true;
 				}
 				expect(error).toBeTrue();
 

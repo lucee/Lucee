@@ -18,7 +18,7 @@
 				});
 
 				it(title="checking cfhttpparam in tag, with type = 'file' without file attribute", body = function( currentSpec ) {
-					result = httpparamtag();
+					var result = httpparamtag();
 					expect(result).toBe("attribute [file] is required for tag [httpparam] if type is [file]");
 				});
 			});
@@ -26,7 +26,7 @@
 	</cfscript>
 
 	<cffunction name="httpparamtag" access="private" returntype="Any">
-		<cfset result = "">
+		<cfset var result = "">
 		<cftry>
 			<cfhttp method="post" url="http://google.com">
 				<cfhttpparam type="file" name="file" value="file">
