@@ -57,7 +57,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 				expect( pageParts ).toBeQuery();
 				pageParts = _toPartsStruct( pageParts );
 
-				key = "ldev5206.cfm:6:6";
+				var key = "ldev5206.cfm:6:6";
 				expect( pageParts ).toHaveKey( key );
 				expect( pageParts[ key ].snippet ).toBe( "cfc.doSleep()" ); // LDEV-5207 only returns "cfc"
 
@@ -75,7 +75,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 				expect( pageParts ).toBeQuery();
 				pageParts = _toPartsStruct( pageParts );
 
-				key = "ldev5206_tag.cfc:6:6";
+				var key = "ldev5206_tag.cfc:6:6";
 				expect( pageParts ).toHaveKey( key );
 				expect( pageParts[ key ].snippet ).toBe( "sleep(5)" );
 

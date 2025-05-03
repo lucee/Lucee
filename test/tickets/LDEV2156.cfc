@@ -15,15 +15,15 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 			});
 
 			it(title = "ReMatchNoCase() davoid regression of fix LDEV-1467", body = function( currentSpec ) {
-					
-				REMatchTest = ArrayLen( REMatch( '.',Chr( 10 ) ) );
+
+				var REMatchTest = ArrayLen( REMatch( '.',Chr( 10 ) ) );
 				expect(REMatchTest).toBe(1);
-				REFindTest = REFind( '.',Chr( 10 ) );
+				var REFindTest = REFind( '.',Chr( 10 ) );
 				expect(REFindTest).toBe(1);
 			});
 		});
 	}
-	
+
 	private string function createURI(string calledName){
 		var baseURI="/test/#listLast(getDirectoryFromPath(getCurrenttemplatepath()),"\/")#/";
 		return baseURI&""&calledName;

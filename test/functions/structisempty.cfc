@@ -2,7 +2,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 	function run() {
 
 		describe( title="Test suite for structIsEmpty", body=function() {
-			student = {
+			variables.student = {
 				student1:{
 					id:1,
 					name:"joe"
@@ -25,7 +25,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 		});
 
 		describe( title="Test suite for structIsEmpty", body=function() {
-			studentnew = {
+			variables.studentnew = {
 				student1:{
 					id:1,
 					name:"joe"

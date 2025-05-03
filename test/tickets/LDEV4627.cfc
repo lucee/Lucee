@@ -5,7 +5,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="qoq" {
 		describe( 'QoQ rand() function' , () =>{
 
 			it( 'can handle column names of different case' , ()=>{
-				qry = queryNew( 'col', 'varchar', [['foo'],['bar']] );
+				var qry = queryNew( 'col', 'varchar', [['foo'],['bar']] );
 				var actual = QueryExecute(
 					sql = "
 						SELECT distinct col

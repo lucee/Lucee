@@ -24,7 +24,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" localMode=true {
 
 			it( title='Checking lsCurrencyFormat function round off', body=function( currentSpec ) {
 
-				origLocale = getLocale();
+				var origLocale = getLocale();
 				setLocale("en_US");
 
 				assertEquals("$1.99",lsCurrencyFormat("01.985"));

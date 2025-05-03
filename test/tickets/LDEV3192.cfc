@@ -17,7 +17,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 			it(title = "cfdirectory action=create with attribute nameconflict=skip", body = function( currentSpec ) {
 				try {
 					cfdirectory( action="create", directory=uri, nameconflict="skip");
-					res = directoryExists(uri);
+					var res = directoryExists(uri);
 				}
 				catch(any e) {
 					res = e.message;

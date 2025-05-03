@@ -77,7 +77,7 @@
 		<cfstoredproc procedure="f_is_bigint" debug="yes">
 		<cfprocparam type="In" cfsqltype="CF_SQL_BIGINT" value="2147483649" null="no">
 		<!--- result set --->
-		<cfprocresult name="data3">
+		<cfprocresult name="local.data3">
 		</cfstoredproc>
 
 

@@ -9,7 +9,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mappings" {
 
 			it( title="check mappings", body=function( currentSpec ) {
 				application action="update" name="LDEV4334-#CreateUniqueID()#";
-				res = mappingsTest( "LDEV4334/index.cfm", "with no mapping" );
+				var res = mappingsTest( "LDEV4334/index.cfm", "with no mapping" );
 				//debug(res);
 			});
 

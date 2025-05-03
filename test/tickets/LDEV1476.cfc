@@ -4,7 +4,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="image" {
 			it(title = "checking image data from tobase64() function", body = function( currentSpec ) {
 				var arrSrc=["tomcat.gif", "lucee.png","test.jpg"];
 
-				loop array=arrSrc item="src" {
+				loop array=arrSrc item="local.src" {
 					var result = "";
 					try{
 						var img = ImageRead("LDEV1476\#src#");

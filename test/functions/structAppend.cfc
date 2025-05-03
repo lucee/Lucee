@@ -2,9 +2,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 
 	function run( testResults , testBox ) {
 
-		world = {"save":"water","clean":"wastes"};
-		human = {"save":"money","clean":"food"};
-		legend = {"save":"energy","forget":"sadness"}
+		variables.world = {"save":"water","clean":"wastes"};
+		variables.human = {"save":"money","clean":"food"};
+		variables.legend = {"save":"energy","forget":"sadness"}
 		describe( title = "Test suite for structAppend", body = function() {
 
 			it( title = 'Test case for structAppend function',body = function( currentSpec ) {

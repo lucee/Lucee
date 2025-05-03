@@ -47,7 +47,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 				try {
 					var res = new LDEV3963.test3963colonQuoted();
 					var meta = getMetaData( res ).functions[ 1 ];
-					result = structKeyExists(meta,"ACCESS");
+					var result = structKeyExists(meta,"ACCESS");
 					expect( meta.access ).toBe( "remote" );
 				}
 				catch(any e) {
@@ -75,7 +75,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 				try {
 					var res = new LDEV3963.test3963quoted();
 					var meta = getMetaData( res ).functions[ 1 ];
-					result = structKeyExists(meta,"ACCESS");
+					var result = structKeyExists(meta,"ACCESS");
 					expect( meta.access ).toBe( "remote" );
 				}
 				catch(any e) {

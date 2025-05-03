@@ -3,26 +3,26 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 	function run ( testResults , testbox ){
 		describe( "Testcase for LDEV-3135", function(){
 			it(title = "arrayPop function with single parameters", body = function( currentSpec ){
-				arr = ["one","two","three","four","five"];
-				res = arrayPop(arr);
+				var arr = ["one","two","three","four","five"];
+				var res = arrayPop(arr);
 				expect(res).toBe("five");
 			});
 
 			it(title = "arrayPop member function with single parameters", body = function( currentSpec ){
-				arr = ["one","two","three","four","five"];
-				res = arr.pop();
+				var arr = ["one","two","three","four","five"];
+				var res = arr.pop();
 				expect(res).toBe("five");
 			});
 
 			it(title = "arrayPop function empty array with defaultvalue", body = function( currentSpec ){
-				arr = [];
-				res = arraypop(arr, "one");
+				var arr = [];
+				var res = arraypop(arr, "one");
 				expect(trim(res)).toBe("one");
-				try{
+				try {
 					res = arraypop(arr);
 				}
 				catch(any e) {
-					error = e.message;
+					var error = e.message;
 				}
 				expect(trim(error)).toBe("can not pop Element from array, array is empty");
 			});

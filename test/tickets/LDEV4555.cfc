@@ -9,7 +9,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mssql" {
 				if ( structCount(variables.mssql) eq 0 )
 					return;
 				// the following dsn config used to work and now throws an error
-				dsn = StructNew();
+				var dsn = StructNew();
 				dsn.type = "mssql";
 				dsn.port =  mssql.PORT;
 				dsn.database =  mssql.DATABASE
@@ -17,8 +17,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mssql" {
 				dsn.username = mssql.USERNAME;
 				dsn.password = mssql.PASSWORD;
 
-				query = new Query(datasource=dsn);
-				sql = "SELECT 1";
+				var query = new Query(datasource=dsn);
+				var sql = "SELECT 1";
 				query.setSQL(sql);
 				try {
 					var result = query.execute().getResult().recordCount();
@@ -32,9 +32,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mssql" {
 			it( title = "checking query()", body = function( currentSpec ){
 				if ( structCount(variables.mssql) eq 0 )
 					return;
-				query = new Query(datasource=mssql);
-				sql = "SELECT 1";
-				query.setSQL(sql);
+				var query = new Query(datasource=mssql);
+				var sql = "SELECT 1";
+				var query.setSQL(sql);
 				try {
 					var result = query.execute().getResult().recordCount();
 				}
@@ -47,7 +47,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mssql" {
 	}
 
 	private struct function getCredentials() {
-		return mssql = server.getDatasource(service="mssql", onlyConfig=false)
+		return server.getDatasource(service="mssql", onlyConfig=false)
 	}
 
 }

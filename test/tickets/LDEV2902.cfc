@@ -40,7 +40,6 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 	}
 
 	private boolean function hasCredentials() {
-		msSQL
 		return false;
 	}
 }

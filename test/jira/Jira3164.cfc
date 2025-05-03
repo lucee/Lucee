@@ -29,7 +29,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		sct.z="ZZZ";
 		sct.a="AAA";
 		sct.m="MMM";
-		res=structMap(sct,function(){});
+		var res=structMap(sct,function(){});
 
 		assertEquals("Z,A,M",structKeyList(res));
 	}

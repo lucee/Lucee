@@ -3,14 +3,14 @@
 		function run( testResults , testBox ) {
 			describe( "thread with closure", function() {
 				it('Calling closure thread page using _InternalRequest()',  function( currentSpec ) {
-					uri=createURI("LDEV0578/test1.cfm");
+					var uri=createURI("LDEV0578/test1.cfm");
 					_InternalRequest(
 						template:uri
 					);
 				});
 
 				it('Calling simple thread page using _InternalRequest()',  function( currentSpec ) {
-					uri=createURI("LDEV0578/test2.cfm");
+					var uri=createURI("LDEV0578/test2.cfm");
 					_InternalRequest(
 						template:uri
 					);

@@ -13,7 +13,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"  labels="mysql" {
 				form.id =1; 
 				form.myValue ="LuceeTestCase";
 				cfupdate(tableName = "cfupdatetbl" formFields = "id,myValue" datasource=str);
-				query datasource=str name="testQry"{
+				query datasource=str name="local.testQry"{
 					echo("SELECT * FROM `cfupdatetbl`");
 				}
 				expect(testQry.myValue).toBe('LuceeTestCase');

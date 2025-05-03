@@ -24,7 +24,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 		describe( "Test suite for LDEV-389", function() {
 			it("Checking directoryList, callback function with no arguments", function( currentSpec ) {
 				try {
-					result = directoryList( variables.tempDir, true, "array", function(){
+					var result = directoryList( variables.tempDir, true, "array", function(){
 						return true;
 					});
 				} catch ( any e ){
@@ -35,7 +35,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 
 			it("Checking directoryList, callback function with single argument", function( currentSpec ) {
 				try {
-					result = directoryList( variables.tempDir, true, "array", function(a){
+					var result = directoryList( variables.tempDir, true, "array", function(a){
 						return true;
 					});
 				} catch ( any e ){
@@ -47,7 +47,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 			// this isn't supported, throws UDF filter has too many arguments [2], should have at maximum 1 argument
 			it(title="Checking directoryList, callback function with two arguments", skip=true, body=function( currentSpec ) {
 				try {
-					result = directoryList( variables.tempDir, true, "array", function( a, b ){
+					var result = directoryList( variables.tempDir, true, "array", function( a, b ){
 						return true;
 					});
 				} catch ( any e ){

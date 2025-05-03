@@ -32,7 +32,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 		// Regional
 			describe( title="test-Regional functions", body=function() {
 				beforeEach(function( currentSpec ){
-					getRegional = adminweb.getRegional();
+					variables.getRegional = adminweb.getRegional();
 					assertEquals(isStruct(getRegional) ,true);
 				});
 
@@ -80,7 +80,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 		// Charset
 			describe( title="test-Charset functions", body=function() {
 				beforeEach(function( currentSpec ){
-					getCharset = adminWeb.getCharset();
+					variables.getCharset = adminWeb.getCharset();
 					assertEquals(isStruct(getCharset) ,true);
 				});
 
@@ -128,7 +128,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 		// OutputSetting
 			describe( title="test-Output Setting functions", body=function() {
 				beforeEach(function( currentSpec ){
-					getOutputSetting = adminWeb.getOutputSetting();
+					variables.getOutputSetting = adminWeb.getOutputSetting();
 					assertEquals(isStruct(getOutputSetting) ,true);
 				});
 
@@ -187,7 +187,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 		// Datasource Setting
 			describe( title="test-dataSource setting functions", body=function() {
 				beforeEach(function( currentSpec ){
-					getDatasourceSetting = adminWeb.getDatasourceSetting();
+					variables.getDatasourceSetting = adminWeb.getDatasourceSetting();
 					assertEquals((isStruct(getDatasourceSetting) && isBoolean(getDatasourceSetting.psq)) , true);
 				});
 
@@ -272,7 +272,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					if(structCount(getCredentials("mysql"))) {
 						var datasource = adminWeb.getDatasource('TestDSN1');
 						assertEquals(isstruct(datasource), true);
-						tmpStrt.name = datasource.name;
+						var tmpStrt.name = datasource.name;
 						tmpStrt.dbusername = datasource.username;
 						tmpStrt.dbpassword = datasource.password;
 						adminWeb.verifyDatasource(argumentCollection = #tmpStrt#);
@@ -344,7 +344,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 			// Mail Setting
 			describe( title="test-mail setting functions", body=function() {
 				beforeEach(function( currentSpec ){
-					getMailSetting = adminWeb.getMailSetting();
+					variables.getMailSetting = adminWeb.getMailSetting();
 					assertEquals(isStruct(getMailSetting), true);
 				});
 
@@ -726,7 +726,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 			describe( title="test CompilerSettings functions", body=function() {
 				beforeEach(function( currentSpec ){
 					if( currentSpec == 'checking getCompilerSettings()' ){
-						getCompilerSettings = adminWeb.getCompilerSettings();
+						variables.getCompilerSettings = adminWeb.getCompilerSettings();
 						assertEquals(isStruct(getCompilerSettings), true);
 					}
 				});
@@ -776,7 +776,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 			// Performance
 			describe( title="test performance functions", body=function() {
 				beforeEach(function( currentSpec ){
-					getPerformanceSettings = adminWeb.getPerformanceSettings();
+					variables.getPerformanceSettings = adminWeb.getPerformanceSettings();
 					assertEquals(isStruct(getPerformanceSettings), true);
 				});
 
@@ -888,14 +888,14 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 			// Debug
 			describe( title="test debugging functions", body=function() {
 				beforeEach(function( currentSpec ){
-					debugSettingList = "checking getDebugSetting(),checking updateDebugSetting(),checking resetDebugSetting()";
-					debugList = "checking getDebug(),checking updateDebug(),checking resetDebug()";
+					variables.debugSettingList = "checking getDebugSetting(),checking updateDebugSetting(),checking resetDebugSetting()";
+					variables.debugList = "checking getDebug(),checking updateDebug(),checking resetDebug()";
 					if(listFindNoCase(debugSettingList, currentSpec)){
-						getDebugSetting = adminWeb.getDebugSetting();
+						variables.getDebugSetting = adminWeb.getDebugSetting();
 						assertEquals(isStruct(getDebugSetting), true);
 					}
 					if(listFindNoCase(debugList, currentSpec)){
-						getDebug = adminWeb.getDebug();
+						variables.getDebug = adminWeb.getDebug();
 						assertEquals(isStruct(getDebug), true);
 					}
 				});
@@ -1071,9 +1071,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 
 			describe( title="test Tasks functions", body=function() {
 				beforeEach(function( currentSpec ){
-					taskSettingsList = "checking getTaskSetting(),checking updateTaskSetting(),checking resetTaskSetting()";
+					variables.taskSettingsList = "checking getTaskSetting(),checking updateTaskSetting(),checking resetTaskSetting()";
 					if(listFindNoCase(taskSettingsList, currentSpec)){
-						getTaskSetting = adminWeb.getTaskSetting();
+						variables.getTaskSetting = adminWeb.getTaskSetting();
 						assertEquals(isStruct(getTaskSetting), true);
 					}
 				});
@@ -1168,7 +1168,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 
 			describe( title="test LoginSettings functions", body=function() {
 				beforeEach(function( currentSpec ){
-					getLoginSettings = admin.getLoginSettings();
+					variables.getLoginSettings = admin.getLoginSettings();
 					assertEquals(isStruct(getLoginSettings), true);
 				});
 
@@ -1231,7 +1231,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 			// TODO failing APPLICATIONPATHTIMEOUT
 			describe( title="test application listener functions", skip=true, body=function() {
 				beforeEach(function( currentSpec ){
-					getApplicationListener = adminWeb.getApplicationListener();
+					variables.getApplicationListener = adminWeb.getApplicationListener();
 					// systemOutput("getApplicationListener: #getApplicationListener.toJson()#", true);
 					assertEquals(isStruct(getApplicationListener), true);
 				});
@@ -1269,7 +1269,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 
 			describe( title="test scope functions", body=function() {
 				beforeEach(function( currentSpec ){
-					getScope = adminWeb.getScope();
+					variables.getScope = adminWeb.getScope();
 				});
 
 				afterEach(function( currentSpec ){
@@ -1343,7 +1343,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 
 			describe( title="test restSettings functions", body=function() {
 				beforeEach(function( currentSpec ){
-					getRestSettings = adminWeb.getRestSettings();
+					variables.getRestSettings = adminWeb.getRestSettings();
 					assertEquals(isStruct(getRestSettings), true);
 				});
 
@@ -1411,7 +1411,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 
 			describe( title="test application functions", body=function() {
 				beforeEach(function( currentSpec ){
-					getApplicationSetting = adminWeb.getApplicationSetting();
+					variables.getApplicationSetting = adminWeb.getApplicationSetting();
 					assertEquals(isStruct(getApplicationSetting) ,true);
 				});
 
@@ -1459,7 +1459,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 
 			describe( title="test QueueSetting functions", body=function() {
 				beforeEach(function( currentSpec ){
-					getQueueSetting = admin.getQueueSetting();
+					variables.getQueueSetting = admin.getQueueSetting();
 					assertEquals(isStruct(getQueueSetting) ,true);
 				});
 
@@ -1526,7 +1526,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 			describe( title="test CustomTag functions", body=function() {
 				beforeEach(function( currentSpec ){
 					if(currentSpec == 'checking getCustomTagSetting()'){
-						customTag_Setting = adminWeb.getCustomTagSetting();
+						variables.customTag_Setting = adminWeb.getCustomTagSetting();
 					}
 				});
 
@@ -1601,8 +1601,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 			describe( title="test error functions", body=function() {
 				beforeEach(function( currentSpec ){
 					if(currentSpec == 'checking getError()'){
-						errorGet=adminWeb.getError();
-						errorTemplate = {};
+						variables.errorGet=adminWeb.getError();
+						variables.errorTemplate = {};
 						errorTemplate.template404 = errorGet.templates.404;
 						errorTemplate.template500 = errorGet.templates.500;
 					}
@@ -1651,9 +1651,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 			describe( title="test securityManager functions", skip=true, body=function() {
 				beforeEach(function( currentSpec ){
 					if(currentSpec == 'checking createSecurityManager()'){
-						getConxt=admin.getContexts();
-						contextsSingle = QueryRowData(getConxt, 1);
-						getSecManager = admin.getSecurityManager(contextsSingle.id);
+						variables.getConxt=admin.getContexts();
+						variables.contextsSingle = QueryRowData(getConxt, 1);
+						variables.getSecManager = admin.getSecurityManager(contextsSingle.id);
 					}
 				});
 
@@ -1846,22 +1846,21 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 			// Update
 			describe( title="test changeVersionTo function", body=function() {
 				it(title="checking changeVersionTo()", body=function( currentSpec ) {
-					restBasePath="/rest/update/provider/";
+					var restBasePath="/rest/update/provider/";
 					var getUpdate = admin.getUpdate();
 
-					http
-					url="#getUpdate.location##restBasePath#info/#server.lucee.version#"
-					method="get" resolveurl="no" result="local.http";
+					http url="#getUpdate.location##restBasePath#info/#server.lucee.version#"
+						method="get" resolveurl="no" result="local.http";
 
 					assertEquals(isJson(http.filecontent), true);
-					updateAvailable=deserializeJson(http.filecontent);
+					var updateAvailable=deserializeJson(http.filecontent);
 
 					if (arrayIsEmpty(updateAvailable.otherVersions)){
 						// systemOutput("WARNING: updateAvailable.otherVersions is empty", true, true);
 					}
 					else {
 
-						LatestVersion = ArrayLast(updateAvailable.otherVersions);
+						var LatestVersion = ArrayLast(updateAvailable.otherVersions);
 					}
 
 					/*if( ReplaceNocase(replaceNocase(LatestVersion, ".", "", "ALL"), "-SNAPSHOT", "") GT ReplaceNocase(replaceNocase(server.lucee.version, ".", "", "ALL"), "-SNAPSHOT", "") ){

@@ -2,8 +2,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 	function run( testResults , testBox ) {
 		describe( "Getting caches from Application.cfc", function() {
 			it('application.cfc',  function( currentSpec ) {
-				uri=createURI("LDEV1046/index.cfm");
-				local.result=_InternalRequest(
+				var uri=createURI("LDEV1046/index.cfm");
+				var result=_InternalRequest(
 					template:uri
 				);
 				var data=evaluate(trim(result.filecontent));

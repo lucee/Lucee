@@ -28,7 +28,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
 	public void function testRequestCacheHandler(){
 		
-		query name="local.qry" cachedWithin="request" result="res" {
+		query name="local.qry" cachedWithin="request" result="local.res" {
 			echo("SELECT * FROM INFORMATION_SCHEMA.SYSTEM_USERS");
 		}
 		assertFalse(res.cached);
@@ -41,7 +41,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
 	public void function testTimespanCacheHandler(){
 		
-		query name="local.qry" cachedWithin="#createTimespan(0,0,1,0)#" result="res" {
+		query name="local.qry" cachedWithin="#createTimespan(0,0,1,0)#" result="local.res" {
 			echo("SELECT * FROM INFORMATION_SCHEMA.SYSTEM_USERS");
 		}
 		assertFalse(res.cached);
@@ -59,7 +59,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	}
 
 	public void function testApplicationCFM2(){
-		uri=createURI("appCFM2/index.cfm");
+		var uri=createURI("appCFM2/index.cfm");
 		local.res=_InternalRequest(template:uri);
 		assertEquals("12",res.filecontent.trim());
 

@@ -35,7 +35,7 @@
 	<!------>
 	<cffunction name="testTagLoopScriptBreak">
 		<cfsavecontent variable="local.c" trim="true">
-		<cfloop index="o" from="1" to="2" label="outer">outer<cfloop index="i" from="1" to="2" label="inner">inner<cfscript>
+		<cfloop index="local.o" from="1" to="2" label="outer">outer<cfloop index="local.i" from="1" to="2" label="inner">inner<cfscript>
 			break outer;
 		</cfscript></cfloop></cfloop>
 		</cfsavecontent>
@@ -85,7 +85,7 @@
 	<cffunction name="testScriptLoopScriptBreak">
 		<cfscript>
 		var res="";
-		loop index="x" from="1" to="5" label="susi" {
+		loop index="local.x" from="1" to="5" label="susi" {
 			res&="o;";
 			loop index="local.x" from="1" to="5"  {
 				res&="i;";

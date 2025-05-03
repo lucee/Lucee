@@ -5,7 +5,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		describe('LDEV-458 test component',function(){
 
 			beforeEach( function() {
-				actual = GetMetadata( new LDEV0458.hasparams() ).properties;
+				variables.actual = GetMetadata( new LDEV0458.hasparams() ).properties;
 			});
 
 			it( 'has 3 properties' , function() {

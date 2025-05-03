@@ -20,60 +20,42 @@
 component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
 
-    function run(){
-        describe( 'component' , function() {
+	function run(){
+		describe( 'component' , function() {
 
-            it( 'can be initiated' , function() {
+			it( 'can be initiated' , function() {
+				var actual = new LDEV0244.good();
+				expect( actual ).toBe( 'hi' );
+			});
 
-                actual = new LDEV0244.good();
+			it( 'can be initiated even with a single line comment at the end' , function() {
+				var actual = new LDEV0244.bad();
+				expect( actual ).toBe( 'hi' );
+			});
 
-                    expect( actual ).toBe( 'hi' );
+			it( 'can be initiated even with a single line comment at the end within a cfscript' , function() {
+				var actual = new LDEV0244.SingleLine();
+				expect( actual ).toBe( 'hi' );
+			});
 
-            });
+			it( 'can be initiated even with a multi line comment at the end' , function() {
+				var actual = new LDEV0244.MultiLine();
+				expect( actual ).toBe( 'hi' );
+			});
 
-            it( 'can be initiated even with a single line comment at the end' , function() {
+			it( 'can be initiated even with a multi line comment at the end within a script' , function() {
+				var actual = new LDEV0244.MultiLineScript();
+				expect( actual ).toBe( 'hi' );
+			});
+		});
+	}
 
-                actual = new LDEV0244.bad();
-
-                    expect( actual ).toBe( 'hi' );
-
-            });
-
-            it( 'can be initiated even with a single line comment at the end within a cfscript' , function() {
-
-                actual = new LDEV0244.SingleLine();
-
-                    expect( actual ).toBe( 'hi' );
-
-            });
-
-            it( 'can be initiated even with a multi line comment at the end' , function() {
-
-                actual = new LDEV0244.MultiLine();
-
-                    expect( actual ).toBe( 'hi' );
-
-            });
-
-
-            it( 'can be initiated even with a multi line comment at the end within a script' , function() {
-
-                actual = new LDEV0244.MultiLineScript();
-
-                    expect( actual ).toBe( 'hi' );
-
-            });
-
-        });
-
-    }
-
-    /*public void function testSingleLineComment(){
-        new LDEV0244.SingleLine();
-    }
-    public void function testMultiLineComment(){
-        new LDEV0244.MultiLine();
-    }*/
+	/*public void function testSingleLineComment(){
+		new LDEV0244.SingleLine();
+	}
+	public void function testMultiLineComment(){
+		new LDEV0244.MultiLine();
+	}*/
 
 
 

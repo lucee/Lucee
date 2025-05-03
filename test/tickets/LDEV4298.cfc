@@ -2,7 +2,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="qoq" {
 	variables.typeList = 'BIGINT,BINARY,BIT,BOOLEAN,CHAR,DATE,DECIMAL,DOUBLE,INTEGER,LONGVARBINARY,LONGVARCHAR,NCHAR,NUMERIC,NVARCHAR,REAL,SMALLINT,TIME,TIMESTAMP,TINYINT,VARBINARY,VARCHAR';
 
 	function beforeAll() {
-		employees = queryNew( 'name,age,email,department,isContract,yearsEmployed,sickDaysLeft,hireDate,isActive,empID,favoriteColor', 'varchar,integer,varchar,varchar,boolean,integer,integer,date,boolean,varchar,varchar' );
+		variables.employees = queryNew( 'name,age,email,department,isContract,yearsEmployed,sickDaysLeft,hireDate,isActive,empID,favoriteColor', 'varchar,integer,varchar,varchar,boolean,integer,integer,date,boolean,varchar,varchar' );
 		// 1 Million records
 		loop from=1 to=62500 index='local.i' {
 			employees.addRow( [
@@ -26,7 +26,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="qoq" {
 		}
 
 		// Every known SQL type so we can test all possible sorting options
-		qrySort = queryNew(
+		variables.qrySort = queryNew(
 			'type,#typeList#,unicode',
 			'string,#typeList#,string' );
 		qrySort.addRow( [
@@ -36,7 +36,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="qoq" {
 				createTime(2,2,2),createObject( 'java', 'java.sql.Timestamp' ).init( createDate(2022,1,1).getTime() ),50,javaCast( 'byte[]', [8,8,8] ),'a', chr(196)&chr(246)&chr(252)&chr(223)&chr(22823)&'a' ]
 		] );
 
-		qryNullSort = queryNew(
+		variables.qryNullSort = queryNew(
 			'type,string,integer',
 			'string,string,integer' );
 		qryNullSort.addRow( [

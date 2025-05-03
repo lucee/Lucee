@@ -31,7 +31,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		createObject( "component", "Jira0247.second" );
 		assertEquals("inited",second.check());
 		
-		sct=getmetaData(second.check);
+		var sct=getmetaData(second.check);
 		assertEquals("check",sct.name);
 	}
 } 

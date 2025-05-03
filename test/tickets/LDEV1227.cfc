@@ -1,8 +1,8 @@
 component extends="org.lucee.cfml.test.LuceeTestCase"{
 	function beforeAll(){
 		var list=listChangeDelims(CGI.SCRIPT_NAME, ',', '/');
-		compPath="";
-		cfloop(list="#list#", index="idx"){
+		variables.compPath="";
+		cfloop(list="#list#", index="local.idx"){
 			if(listLast(list) != idx)
 				compPath=listAppend(compPath, idx, ".");
 		}

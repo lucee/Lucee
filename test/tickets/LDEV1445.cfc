@@ -6,7 +6,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 	function run( testResults,testBox ){
 		describe("Testcase for LDEV-1445", function() {
 			it( title = "Create datasource for MySQL with default connectionLimit", skip=checkMySqlEnvVarsAvailable(), body = function( currentSpec ){
-				adm = new Administrator('server', request.SERVERADMINPASSWORD?:server.SERVERADMINPASSWORD);
+				var adm = new Administrator('server', request.SERVERADMINPASSWORD?:server.SERVERADMINPASSWORD);
 				adm.updateDatasource(
 					name: 'datasource1',
 					newname: 'datasource1',
@@ -22,10 +22,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 					clob: true
 				);
 
-				local.rtn = adm.getdatasource(
+				var rtn = adm.getdatasource(
 					name: 'datasource1'
 				);
-				expect(local.rtn.connectionLimit).toBe(-1);
+				expect(rtn.connectionLimit).toBe(-1);
 			});
 		});
 	}
@@ -41,7 +41,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 	}
 
 	function afterAll(){
-		if(isNull(adm)) return; 
+		if(isNull(adm)) return;
 		adm.removeDatasource(
 			dsn: 'datasource1',
 			remoteClients: "arrayOfClients"

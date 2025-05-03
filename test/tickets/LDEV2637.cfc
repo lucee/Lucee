@@ -1,7 +1,7 @@
 component extends="org.lucee.cfml.test.LuceeTestCase" {
 
 	function run( testResults , testBox ) {
-		myQuery = QueryNew("myCol1,   myCol2,myCol3", "varchar,varchar,varchar");
+		variables.myQuery = QueryNew("myCol1,   myCol2,myCol3", "varchar,varchar,varchar");
 		QueryAddRow(myQuery, 1);
 
 		describe( "test suite for LDEV2637", function() {

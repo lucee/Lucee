@@ -43,7 +43,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="qoq" {
 
 				var qs_result = queryNew("dnum_auto,amount_local" , "integer,integer", [[10,10],[20,20]]);
 				```
-				<cfquery name="testquery" dbtype="query">
+				<cfquery name="local.testquery" dbtype="query">
 					select sum(amount_local) as amount_local
 					from qs_result
 					where dnum_auto = 1000
@@ -55,7 +55,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="qoq" {
 				expect( isNull( testquery.getColumn('amount_local').get(1,nullValue()) ) ).toBeTrue();
 
 				```
-				<cfquery name="testquery2" dbtype="query">
+				<cfquery name="local.testquery2" dbtype="query">
 					select sum(amount_local) as amount_local
 					from testquery 
 				</cfquery>

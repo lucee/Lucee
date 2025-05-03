@@ -52,7 +52,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="qoq"{
 			//describe( title='using param list=true' , body=function() {
 				describe( title='using param list=true, with new Query()' , body=function() {
 					beforeEach( function( currentSpec ) {
-						q = new Query(
+						variables.q = new Query(
 							dbtype = 'query',
 							queryWithDataIn = variables.queryWithDataIn
 						);
@@ -106,7 +106,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="qoq"{
 				describe( title='using param list=true, with query{} ( cfquery )' , body=function() {
 					it( title='when using numeric params' , body=function( currentSpec ) {
 						query
-							name = 'actual'
+							name = 'local.actual'
 							dbtype = 'query' {
 							WriteOutput( "
 								SELECT
@@ -129,7 +129,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="qoq"{
 
 					it( title='when using numeric params and a custom separator' , body=function( currentSpec ) {
 						query
-							name = 'actual'
+							name = 'local.actual'
 							dbtype = 'query' {
 							WriteOutput( "
 								SELECT
@@ -153,7 +153,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="qoq"{
 
 					it( title='when using string params' , body=function( currentSpec ) {
 						query
-							name = 'actual'
+							name = 'local.actual'
 							dbtype = 'query' {
 							WriteOutput( "
 								SELECT

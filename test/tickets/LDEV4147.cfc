@@ -131,7 +131,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="imap" {
 
 	private query function getInboxMails(String uid = "", String messageNumber="",number maxRows=0, number startRow=0) {
 		var mails = "";
-		attrs = {
+		var attrs = {
 			action="getAll",
 			server="#creds.imap.SERVER#",
 			username="#variables.username#",

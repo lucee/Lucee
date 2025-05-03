@@ -12,7 +12,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				expect(++0).toBe(1);
 			});
 			it( title='negate operator', body=function( currentSpec ) {
-				num = 4;
+				var num = 4;
 				DateAdd("d", -num, "01/04/2022");
 				DateAdd("d", +num, "01/04/2022");
 			});

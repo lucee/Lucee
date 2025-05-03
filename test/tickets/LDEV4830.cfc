@@ -60,7 +60,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" labels="mssql"{
 		var debug = false;
 
 		if ( len( arguments._ds ) ) {
-			dbinfo name="db_info" datasource=arguments._ds type="version";
+			dbinfo name="local.db_info" datasource=arguments._ds type="version";
 			// if ( debug )
 			// 	systemOutput( db_info, true );
 		}

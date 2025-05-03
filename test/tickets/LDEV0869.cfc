@@ -38,7 +38,7 @@ dujhmlml=4;
 			fileWrite("LDEV0869/foo.cfm",content);
 
 			// Hit the file as /foo.cfm in the browser
-			uri=createURI("LDEV0869/foo.cfm");
+			local.uri=createURI("LDEV0869/foo.cfm");
 			local.res=_InternalRequest(uri);
 			assertEquals("200",res.status);
 			assertEquals("",res.filecontent.trim());

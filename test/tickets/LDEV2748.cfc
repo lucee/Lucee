@@ -11,7 +11,7 @@
 				var meta=getMetaData(test);
 				var arrProps=meta.properties;
 				var props={};
-				loop array=arrProps item="p" {
+				loop array=arrProps item="local.p" {
 					props[p.name]=p;
 				}
 

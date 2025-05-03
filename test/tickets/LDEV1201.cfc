@@ -24,7 +24,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 			});
 
 			it(title="a.b.c.d?:'DF'", body=function(){
-				a.b.c.d=1;
+				var a.b.c.d=1;
 				var result = "";
 				try{
 					result = a.b.c.d?:'DF';

@@ -1476,7 +1476,7 @@ component {
 			if(n EQ "Debug" or n EQ "Field" or n EQ "Group" ){
 				continue;
 			}
-			tmp=createObject('component',fn);
+			var tmp=createObject('component',fn);
 			drivers[trim(tmp.getId())]=tmp;
 		}
 
@@ -2299,7 +2299,7 @@ component {
 			action="getDefaultPassword"
 			type="#variables.type#"
 			password="#variables.password#"
-			returnVariable="defaultPassword";
+			returnVariable="local.defaultPassword";
 		return defaultPassword;
 	}
 
@@ -2333,7 +2333,7 @@ component {
 			action="hashPassword"
 			type="#variables.type#"
 			pw="#variables.password#"
-			returnVariable="hashedPassword";
+			returnVariable="local.hashedPassword";
 		return hashedPassword;
 	}
 

@@ -11,7 +11,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="zip"{
 					cfzip( action="unzip", file=src, destination=trg ){
 						cfzipparam (filter="*.xml");
 					}
-					cfdirectory(action="list", directory=trg,  name="result" recurse=true);
+					cfdirectory(action="list", directory=trg,  name="local.result" recurse=true);
 					
 					var result=queryFilter(result,function(row) {
 						return row.type=="file";
@@ -32,7 +32,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="zip"{
 				if(!directoryExists(trg)) directoryCreate(trg);
 				try {
 					cfzip( action="unzip", file=src, destination=trg, filter="*.xml");
-					cfdirectory(action="list", directory=trg,  name="result" recurse=true);
+					cfdirectory(action="list", directory=trg,  name="local.result" recurse=true);
 					
 					
 					var result=queryFilter(result,function(row) {
@@ -56,7 +56,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="zip"{
 					cfzip( action="unzip", file=src, destination=trg,entrypath="/test/test.xml" ){
 						//cfzipparam (entrypath="/test/test.xml");
 					}
-					cfdirectory(action="list", directory=trg,  name="result" recurse=true);
+					cfdirectory(action="list", directory=trg,  name="local.result" recurse=true);
 					
 					var result=queryFilter(result,function(row) {
 						return row.type=="file";
@@ -81,7 +81,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="zip"{
 						cfzipparam (entrypath="/test/test.xml");
 						cfzipparam (entrypath="/test/Modern.cfc");
 					}
-					cfdirectory(action="list", directory=trg,  name="result" recurse=true);
+					cfdirectory(action="list", directory=trg,  name="local.result" recurse=true);
 					
 					var result=queryFilter(result,function(row) {
 						return row.type=="file";

@@ -6,7 +6,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="query" {
 		describe( title='LDEV-4867' , body=function(){
 			it( title='test query parsing, removing comments' , body=function() {
 				```
-				<cfquery name="test" datasource="#ds#" result="local.result">
+				<cfquery name="local.test" datasource="#ds#" result="local.result">
 					-- foo
 					/* bar */
 						SELECT 'test'
@@ -19,7 +19,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="query" {
 
 			it( title='test query parsing, with a ? in a comment' , body=function() {
 				```
-				<cfquery name="test" datasource="#ds#" result="local.result">
+				<cfquery name="local.test" datasource="#ds#" result="local.result">
 					-- foo
 					/* bar? */
 						SELECT 'test'

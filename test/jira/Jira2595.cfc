@@ -29,7 +29,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		application action="update" triggerDataMember="#true#";
 		
 		try{
-			t = new Jira2595.test();
+			var t = new Jira2595.test();
 			t.foo = 123;
 			assertEquals("FOO",structKeyList(t));
 		}

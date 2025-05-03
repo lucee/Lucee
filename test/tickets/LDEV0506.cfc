@@ -4,7 +4,7 @@
 			describe("Test suite for LDEV-506", function() {
 				it("simple function call, for cached UDF", function() {
 					try{
-						result = cachedFunction();
+						var result = cachedFunction();
 					} catch ( any e){
 						result = e.message;
 					}
@@ -12,9 +12,9 @@
 				});
 
 				it("calling cached UDF created by objectload()", function() {
-					loadObj = getObject();
+					var loadObj = getObject();
 					try{
-						result = loadObj.cachedFunction();
+						var result = loadObj.cachedFunction();
 					} catch ( any e){
 						result = e.message;
 					}
@@ -23,7 +23,7 @@
 
 				it("simple function call, for non cached UDF", function() {
 					try{
-						result = nonCachedFunction();
+						var result = nonCachedFunction();
 					} catch ( any e){
 						result = e.message;
 					}
@@ -31,9 +31,9 @@
 				});
 
 				it("calling non-cached UDF created by objectload()", function() {
-					loadObj = getObject();
+					var loadObj = getObject();
 					try{
-						result = loadObj.nonCachedFunction();
+						var result = loadObj.nonCachedFunction();
 					} catch ( any e){
 						result = e.message;
 					}
@@ -43,24 +43,24 @@
 		}
 
 		private function getObject(){
-			functions={ cachedFunction:cachedFunction, nonCachedFunction:nonCachedFunction};
-			savedObj = objectsave(functions);
-			objLoad = objectload(savedObj);
+			var functions={ cachedFunction:cachedFunction, nonCachedFunction:nonCachedFunction};
+			var savedObj = objectsave(functions);
+			var objLoad = objectload(savedObj);
 			return objLoad;
 		}
 	</cfscript>
 	<!--- Private Function  --->
 	<cffunction name="cachedFunction" cachedwithin="request" localmode="modern" access="private">
-		<cfset a = 10>
-		<cfset b = 5>
-		<cfset c = a + b>
+		<cfset var a = 10>
+		<cfset var b = 5>
+		<cfset var c = a + b>
 		<cfreturn c>
 	</cffunction>
 
 	<cffunction name="nonCachedFunction"  localmode="modern" access="private">
-		<cfset a = 100>
-		<cfset b = 50>
-		<cfset c = a + b>
+		<cfset var a = 100>
+		<cfset var b = 50>
+		<cfset var c = a + b>
 		<cfreturn c>
 	</cffunction>
 </cfcomponent>

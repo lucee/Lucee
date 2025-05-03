@@ -5,7 +5,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				var hashMap = createObject( "java", "java.util.LinkedHashMap" ).init();
 				hashMap[ "foo" ] = "bar";
 				var hashMapList = '';
-				for( key in hashMap ){
+				for( var key in hashMap ){
 					hashMapList = listAppend(hashMapList, "#key#:#hashMap[ key ] #" );
 				}
 				expect(hashMapList).toBe('foo:bar');
@@ -15,7 +15,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				var hashMap = createObject( "java", "java.util.LinkedHashMap" );
 				hashMap[ "foo" ] = "bar";
 				var hashMapList = '';
-				for( key in hashMap ){
+				for( var key in hashMap ){
 					hashMapList = listAppend(hashMapList, "#key#:#hashMap[ key ] #" );
 				}
 				expect(hashMapList).toBe('foo:bar');

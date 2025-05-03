@@ -31,7 +31,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mysql" 	{
 	public void function test(){
 		
 		if(!variables.has) return;
-		query name="qry" cachedwithin="#createTimespan(0,0,1,1)#" {
+		query name="local.qry" cachedwithin="#createTimespan(0,0,1,1)#" {
 			echo("select CURTIME() as a");
 		}
 		objectcache action="clear";

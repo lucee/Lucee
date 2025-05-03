@@ -39,7 +39,7 @@
 
 	<cffunction name="tagBased" access="private" returntype="any">
 		<cfset local.path ="#getDirectoryFromPath(getCurrenttemplatepath())#"/>
-		<cfdocument format="PDF" overwrite="true" name="pdf" filename="#variables.uri#/test.pdf">
+		<cfdocument format="PDF" overwrite="true" name="local.pdf" filename="#variables.uri#/test.pdf">
 			<cfdocumentsection>
 				Lucee test documents
 			</cfdocumentsection>

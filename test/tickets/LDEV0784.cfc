@@ -2,16 +2,16 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 	function run( testResults , testBox ) {
 		describe( "Checking CSRFVerifyToken()", function() {
 			it('With invalid data',  function( currentSpec ) {
-				uri=createURI("LDEV0784/app1/index.cfm");
-				local.result = _InternalRequest(
+				var uri=createURI("LDEV0784/app1/index.cfm");
+				var result = _InternalRequest(
 					template:uri,
 					forms:{Scene=1}
 				);
 				assertEquals("false",left(result.filecontent.trim(), 100));
 			});
 			it('With valid data(without key)',  function( currentSpec ) {
-				uri=createURI("LDEV0784/app1/index.cfm");
-				local.result=_InternalRequest(
+				var uri=createURI("LDEV0784/app1/index.cfm");
+				var result=_InternalRequest(
 					template:uri,
 					forms:{Scene=2}
 				);
@@ -19,8 +19,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 			});
 
 			it('With valid data(with key)',  function( currentSpec ) {
-				uri=createURI("LDEV0784/app1/index.cfm");
-				local.result=_InternalRequest(
+				var uri=createURI("LDEV0784/app1/index.cfm");
+				var result=_InternalRequest(
 					template:uri,
 					forms:{Scene=3}
 				);
@@ -30,16 +30,16 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 
 		describe( "this.SessionCluster = false;", function() {
 			it('forceNew=true',  function( currentSpec ) {
-				uri=createURI("LDEV0784/app1/test.cfm");
-				local.result = _InternalRequest(
+				var uri=createURI("LDEV0784/app1/test.cfm");
+				var result = _InternalRequest(
 					template:uri,
 					forms:{Scene=1}
 				);
 				assertEquals("false",left(result.filecontent.trim(), 100));
 			});
 			it('forceNew=false',  function( currentSpec ) {
-				uri=createURI("LDEV0784/app1/test.cfm");
-				local.result=_InternalRequest(
+				var uri=createURI("LDEV0784/app1/test.cfm");
+				var result=_InternalRequest(
 					template:uri,
 					forms:{Scene=2}
 				);
@@ -49,16 +49,16 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 
 		describe( "this.SessionCluster = true;", function() {
 			it('forceNew=true',  function( currentSpec ) {
-				uri=createURI("LDEV0784/app2/test.cfm");
-				local.result = _InternalRequest(
+				var uri=createURI("LDEV0784/app2/test.cfm");
+				var result = _InternalRequest(
 					template:uri,
 					forms:{Scene=1}
 				);
 				assertEquals("false",left(result.filecontent.trim(), 100));
 			});
 			it('forceNew=false',  function( currentSpec ) {
-				uri=createURI("LDEV0784/app2/test.cfm");
-				local.result=_InternalRequest(
+				var uri=createURI("LDEV0784/app2/test.cfm");
+				var result=_InternalRequest(
 					template:uri,
 					forms:{Scene=2}
 				);

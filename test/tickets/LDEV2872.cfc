@@ -15,7 +15,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				<cffile action="write" file="#uri#/filewrite/fileExists.txt" output="overwrite#randrange(0,100)#" nameconflict="makeunique">
 
 				```
-				len = arraylen(directorylist("#uri#/filewrite/"));
+				var len = arraylen(directorylist("#uri#/filewrite/"));
 				expect(len).toBeGT(1, len);
 			});
 

@@ -20,7 +20,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="thread,cookie,sess
 			});
 
 			it( title='JSessionID cookie should not be set by cfthread, cfml session', body=function( currentSpec ) {
-				uri = createURI("LDEV2308");
+				var uri = createURI("LDEV2308");
 				var result = test(
 					template : "/cfml-session/testThreadCookies.cfm"
 				);

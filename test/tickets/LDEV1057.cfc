@@ -19,7 +19,7 @@
 	public void function testRemoveAllSimple(){
 		var fields = [1];
 		assertEquals(1,arrayLen(fields));
-		for( field in fields ) {
+		for( var field in fields ) {
 			arraydelete(fields, field);
 		}
 		assertEquals(0,arrayLen(fields));
