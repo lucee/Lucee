@@ -1,3 +1,3 @@
 interface {
-	public ldev2308_A function test();
+	public ldev2038_A function test();
 }
