@@ -1,0 +1,3 @@
+component {
+	function test();
+}
