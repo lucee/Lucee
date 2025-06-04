@@ -307,6 +307,19 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mail" {
 					application.testSMTP.purgeEmailFromAllMailboxes();
 				}
 			});
+
+			
+			it(title="test smtp as application.cfc mailserver config param", body = function( currentSpec ) {
+				_testViaApplicationCFC("smtp", "using smtp")
+			});
+
+			it(title="test server as application.cfc mailserver config param", body = function( currentSpec ) {
+				_testViaApplicationCFC("server", "using server")
+			});
+
+			it(title="test host as application.cfc mailserver config param", body = function( currentSpec ) {
+				_testViaApplicationCFC("host", "using host")
+			});
 		});
 	}
 
@@ -319,4 +332,51 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mail" {
 		});
 		return headers;
 	}
+	
+	private string function createURI(string calledName, boolean contract=false){
+		var base = getDirectoryFromPath( getCurrentTemplatePath() );
+		var baseURI = contract ? contractPath( base ) : "/test/#listLast(base,"\/")#";
+		return baseURI & "/" & calledName;
+	}
+
+	private function _testViaApplicationCFC ( string serverField, string subject ){
+		lock name="test:mail" {
+			application.testSMTP.purgeEmailFromAllMailboxes();
+
+			var uri = createURI("mail/mail.cfm");
+
+			var result = InternalRequest(
+				template : createURI("mail/mail.cfm"),
+				form: {
+					from: variables.from,
+					to: variables.to,
+					port: variables.port,
+					subject: arguments.subject,
+					serverField: arguments.serverField
+				}
+			);
+			
+			var mail=application.testSMTP;
+
+			var messages = mail.getReceivedMessages();
+			expect( len(messages) ).toBe( 1 );
+			var msg=messages[1];
+			
+			// from
+			var froms=msg.getFrom();
+			expect( len(froms) ).toBe( 1 );
+			expect( froms[1].getAddress() ).toBe( variables.from );
+			
+			// to
+			var tos=msg.getAllRecipients();
+			expect( len(tos) ).toBe( 1 );
+			expect( tos[1].getAddress() ).toBe( variables.to );
+			
+			// subject
+			expect( msg.getSubject().toString() ).toBe( arguments.subject );;
+			application.testSMTP.purgeEmailFromAllMailboxes();
+			
+		}
+	}
+
 }
