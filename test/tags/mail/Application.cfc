@@ -1,4 +1,5 @@
 component {
+	this.name = "cfmail-applicationcfc-test";
 	this.mailservers = [ {
 		"#form.serverField#": "localhost",
 		port: #form.port#,
