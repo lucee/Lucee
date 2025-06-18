@@ -334,7 +334,7 @@ public final class CompressUtil {
 	 * @throws IOException
 	 */
 	public static void compressTGZ(Resource[] sources, Resource target, int mode) throws IOException {
-		File tmpTarget = File.createTempFile("_temp", "tmp");
+		File tmpTarget = File.createTempFile("_temp", ".tmp");
 		try {
 			// write Tar
 			OutputStream tmpOs = new FileOutputStream(tmpTarget);
