@@ -169,7 +169,7 @@ public final class BundleProvider extends DefaultHandler {
 
 		}
 
-		mappings = readIniFile(SystemUtil.getResourceAsStream(bundle, "META-INF/osgi-maven-mapping.ini"));
+		mappings = getMappings();
 		if (!list.toExternalForm().endsWith("/")) this.url = new URL(list.toExternalForm() + "/");
 		else this.url = list;
 
@@ -193,6 +193,18 @@ public final class BundleProvider extends DefaultHandler {
 		readers.put(key, new Pair<Long, BundleProvider>(System.currentTimeMillis(), reader));
 		return reader;
 	}
+
+	public static Map<String, List<Info>> getMappings() {
+		Bundle bundle = null;
+		try {
+			bundle = CFMLEngineFactory.getInstance().getBundleContext().getBundle();
+		}
+		catch (Exception e) {
+
+		}
+		return readIniFile(SystemUtil.getResourceAsStream(bundle, "META-INF/osgi-maven-mapping.ini"));
+	}
+
 
 	private static String toKey(URL list, URL[] details) {
 		StringBuilder sb = new StringBuilder().append(list.toExternalForm());
