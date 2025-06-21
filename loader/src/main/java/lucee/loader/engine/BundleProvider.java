@@ -305,6 +305,7 @@ public final class BundleProvider {
 		put(mappings, "org.lucee.jmagick", new Info("org.lucee", "jmagick"));
 		put(mappings, "org.lucee.jmimemagic", new Info("org.lucee", "jmimemagic"));
 		put(mappings, "org.lucee.jsch", new Info("org.lucee", "jsch"));
+		put(mappings, "com.github.mwiede.jsch", new Info("com.github.mwiede", "jsch"));
 		put(mappings, "org.lucee.jta", new Info("org.lucee", "jta"));
 		put(mappings, "org.lucee.jzlib", new Info("org.lucee", "jzlib"));
 		put(mappings, "org.lucee.launchdarkly", new Info("org.lucee", "launchdarkly"));
