@@ -427,6 +427,7 @@ public final class BundleProvider {
 		put(mappings, "org.apache.felix.main", new Info("org.apache.felix", "org.apache.felix.framework"));
 		put(mappings, "org.lucee.janinocc", new Info("org.lucee", "janino-commons-compiler"));
 		put(mappings, "org.apache.commons.commons-fileupload", new Info("commons-fileupload", "commons-fileupload"));
+		put(mappings, "org.apache.commons.commons-fileupload2-core", new Info("org.apache.commons", "commons-fileupload2-core"));
 		put(mappings, "jakarta.activation-api", new Info("jakarta.activation-api", "jakarta.activation"));
 		put(mappings, "jakarta.mail-api", new Info("jakarta.mail-api", "jakarta.mail"));
 		put(mappings, "com.sun.activation.jakarta.activation", new Info("com.sun.activation", "jakarta.activation"));
