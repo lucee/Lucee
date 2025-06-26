@@ -174,7 +174,7 @@ public final class Controler extends Thread {
 						Throwable t = new Throwable();
 						t.setStackTrace(ct.getStackTrace());
 
-						configServer.getLog("application").log(Log.LEVEL_ERROR, "controler", "was not able to stop controller thread running for " + time + "ms", t);
+						configServer.getLog("application").log(Log.LEVEL_ERROR, "controller", "was not able to stop controller thread running for " + time + "ms", t);
 					}
 				}
 			}
