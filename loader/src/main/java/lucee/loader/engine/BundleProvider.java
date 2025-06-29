@@ -452,6 +452,10 @@ public final class BundleProvider {
 		mappings.put(name, value);
 	}
 
+	public static Map getMappings() {
+		return mappings;
+	}
+
 	private static URL[] getDefaultProviderDetail() {
 		if (defaultProviderDetail == null) {
 			String str = Util.getSystemPropOrEnvVar("lucee.s3.bundle.detail", null);
