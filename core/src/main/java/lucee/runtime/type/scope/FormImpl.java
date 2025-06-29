@@ -43,6 +43,8 @@ import lucee.commons.collection.MapFactory;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.res.Resource;
+import lucee.commons.io.res.filter.ExtensionResourceFilter;
+import lucee.commons.io.SystemUtil;
 import lucee.commons.lang.ByteNameValuePair;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.net.URLItem;
@@ -86,6 +88,7 @@ public final class FormImpl extends ScopeSupport implements Form, ScriptProtecte
 	private static final int HEADER_APP_URL_ENC = 2;
 
 	private int headerType = HEADER_TYPE_UNKNOWN;
+	private final String systemBlockListedTypes = SystemUtil.getSystemPropOrEnvVar(SystemUtil.SETTING_UPLOAD_EXT_BLOCKLIST,null);
 
 	/**
 	 * standart class Constructor
@@ -177,6 +180,7 @@ public final class FormImpl extends ScopeSupport implements Form, ScriptProtecte
 			}
 		};
 
+		ExtensionResourceFilter filter = null;
 		// Parse the request
 		try {
 			FileItemIterator iter = upload.getItemIterator(context);
@@ -192,10 +196,26 @@ public final class FormImpl extends ScopeSupport implements Form, ScriptProtecte
 					list.add(new URLItem(item.getFieldName(), new String(IOUtil.toBytes(is), encoding), false));
 				}
 				else {
+					boolean fileUploadBlocked = false;
+					// currently only blocking on env var/sys prop, application context isn't available at this point yet
+					if (systemBlockListedTypes == "*"){
+						fileUploadBlocked = true; //throw new ApplicationException("Upload of files is not permitted.");
+					} else if (!StringUtil.isEmpty(systemBlockListedTypes)){
+						if (filter==null) filter = new ExtensionResourceFilter(false, true, false,
+								ListUtil.trimItems(ListUtil.listToStringArray(systemBlockListedTypes, ',')));
+						if (filter.accept(item.getName())) 
+							fileUploadBlocked = true;// throw new ApplicationException("Upload of files with extension [" + ext + "] is not permitted.", DETAIL);		
+					}
+
 					fileName = getFileName();
+					String ct = item.getContentType();
+					if (fileUploadBlocked){
+						_fileItems.put(fileName, new Item(null, ct, item.getName(), item.getFieldName()));
+						list.add(new URLItem(item.getFieldName(), "File upload was blocked", false));
+						continue;
+					}
 					tempFile = tempDir.getRealResource(fileName);
 					IOUtil.copy(is, tempFile, true);
-					String ct = item.getContentType();
 					if (StringUtil.isEmpty(ct) && tempFile.length() > 0) {
 						ct = IOUtil.getMimeType(tempFile, null);
 					}
