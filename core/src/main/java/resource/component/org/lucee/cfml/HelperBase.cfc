@@ -103,6 +103,7 @@
 		<cfswitch expression="#tagname#">
 
 			<!--- cfquery --->
+			<!--- overridden in Query.cfc
 			<cfcase value="query">
 
 				<!--- get the query array to loop --->
@@ -123,7 +124,7 @@
 
 				<cfreturn result>
 			</cfcase>
-
+		--->
 			<!--- cfftp --->
 			<cfcase value="ftp">
 
@@ -222,6 +223,9 @@
 				</cfswitch>
 
 			</cfcase>
+			<cfdefaultcase>
+				<cfthrow message="[#tagname#] not supported">
+			</cfdefaultcase>
 
 		</cfswitch>
 

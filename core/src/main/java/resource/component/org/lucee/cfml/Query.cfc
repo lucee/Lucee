@@ -26,13 +26,11 @@ component output="false" extends="HelperBase" accessors="true"{
 	}
 
 		if(structKeyExists(arguments,"sql") && len(arguments.sql)){
-			 this.setSql(arguments.sql);
+			this.setSql(arguments.sql);
 			// trace type="warning" var="arguments.sql";
 		}
-
-		//parse the sql into an array and save it
+		// parse the sql into an array and save it
 		setQArray(parseSql());
-
 		// invoke the query and return the result
 		return invokeTag();
 	}
@@ -56,75 +54,75 @@ component output="false" extends="HelperBase" accessors="true"{
 		{
 			var StartPos = Pos ;
 
-			var NextChar = Mid(Sql,Pos,1) ;
+			var NextChar = Mid(Sql,Pos,1);
 
 			// If quoted string, consume entire thing, ignoring escaped quotes.
-			if ( NextChar EQ '"' OR NextChar EQ "'" )
+			if ( NextChar === '"'  OR NextChar === "'" )
 			{
 				var Len = 1 ;
-				while ( Mid(Sql,Pos+Len,1) NEQ NextChar && ( TotalLen GT ( Pos + Len ) ) )
+				while ( TotalLen GT ( Pos + Len ) && Mid(Sql,Pos+Len,1) !== NextChar )
 				{
 					Len++ ;
 
 					// If escaped quote, skip twice.
-					if (Mid(Sql,Pos+Len,2) EQ "\" & NextChar) Len+=2;
+					if (Mid(Sql,Pos+Len,2) === ("\" & NextChar)) Len+=2;
 				}
 				// Include closing quote:
 				Len++ ;
-				result.append({type='String',value=Mid(Sql,StartPos,Len)})
+				ArrayAppend(result, Mid(Sql,StartPos,Len) );
 				Pos += Len ;
 
 			}
 			// If SQL comment found, consume until closing comment.
-			elseif ( Mid(Sql,Pos,2) EQ '/*' )
+			elseif ( Mid(Sql,Pos,2) === '/*' )
 			{
 				var Len = 2 ;
-				while ( Mid(Sql,Pos+Len,2) NEQ '*/' AND Pos LTE TotalLen )
+				while (  Pos LTE TotalLen && Mid(Sql,Pos+Len,2) !== '*/' )
 				{
 					Len++ ;
 				}
 				Len += 2 ;
 
-				result.append({type='String',value=Mid(Sql,StartPos,Len)});
+				ArrayAppend(result, Mid(Sql,StartPos,Len) );
 				Pos += Len ;
 			}
 			// If colon found outside a string, check if named param.
-			elseif (NextChar EQ ':')
+			elseif ( NextChar === ':' )
 			{
 				var Match = refind( '::' , Sql , Pos , true )
 				if (Match.Len[1] eq 2){
-					result.append({type='String',value=':'})
-						Pos += 2;
+					ArrayAppend (result, ':' );
+					pos += 2;
 				}
 				else{
 					var Match = refind( ':\w+' , Sql , Pos , true ) ;
-					if (ArrayLen(Match.Pos) and Match.Pos[1] EQ Pos)
+					if (ArrayLen(Match.Pos) AND Match.Pos[1] EQ Pos)
 					{
-						result.append( findNamedParam(namedParams, Mid(Sql,Match.Pos[1]+1,Match.Len[1]-1) ) ) ;
+						ArrayAppend(result, findNamedParam(namedParams, Mid(Sql,Match.Pos[1]+1,Match.Len[1]-1) ) ) ;
 						Pos += Match.Len[1] ;
 					}
 					else
 					{
-						result.append({type='String',value=':'})
+						ArrayAppend(result, ':');
 						Pos += 1;
 					}
 				}
 			}
 			// If question mark found outside a string, assume unnamed param.
-			elseif (NextChar EQ '?')
+			elseif (NextChar === '?')
 			{
-				result.append( positionalParams[positionalCursor] );
+				ArrayAppend( result, positionalParams[positionalCursor] );
 				positionalCursor++ ;
-				Pos++ ;
+				Pos++;
 			}
 
 			// If Pos marker has not changed, find any non-significant text and treat as string.
-			if (Pos EQ StartPos)
+			if (Pos === StartPos)
 			{
  				var Match = refind( '(?:[^:"''?/]+|/(?!\*))+' , Sql , Pos , true ) ;
 				if (ArrayLen(Match.Pos) AND Match.Pos[1] EQ Pos)
 				{
-					result.append({type='String',value=Mid(Sql,Match.Pos[1],Match.Len[1])})
+					ArrayAppend (result, Mid(Sql, Match.Pos[1], Match.Len[1]) );
 					Pos += Match.Len[1] ;
 				}
 				else
@@ -137,7 +135,6 @@ component output="false" extends="HelperBase" accessors="true"{
 			}
 
 		}
-
 		return result;
 	}
 
@@ -150,7 +147,7 @@ component output="false" extends="HelperBase" accessors="true"{
 
 		for(var item in params){
 			if(structKeyExists(item,'name')){
-				result.append(item);
+				ArrayAppend(result, item);
 			}
 		}
 
@@ -167,7 +164,7 @@ component output="false" extends="HelperBase" accessors="true"{
 
 		for(var item in params){
 			if(not structKeyExists(item,'name')){
-				result.append(item);
+				ArrayAppend(result, item);
 			}
 		}
 
@@ -218,10 +215,9 @@ component output="false" extends="HelperBase" accessors="true"{
 		query name="local.___q" attributeCollection=attrs result="local.tagResult" {
 
 			loop array=local.qArray index="Local.item" {
-				if (!isNull(item.type) && item.type == "string"){
-					echo(preserveSingleQuotes(item.value));
-				}
-				else {
+				if (isSimpleValue(item)) {
+					echo(preserveSingleQuotes(item));
+				} else {
 					queryparam attributecollection=item;
 				}
 			}
@@ -235,5 +231,4 @@ component output="false" extends="HelperBase" accessors="true"{
 
 		return result;
 	}
-	//*/
 }
