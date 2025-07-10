@@ -18,33 +18,6 @@
 
 	<cfset variables._dataCache = {} />
 	
-	
-	<cffunction name="getfavorites" returntype="struct" output="no">
-		<cfreturn getdata('favorites', {}) />
-	</cffunction>
-	
-	
-	<cffunction name="isfavorite" returntype="boolean" output="no">
-		<cfargument name="action" type="string" required="yes" />
-		<cfreturn structKeyExists(getfavorites(), arguments.action) />
-	</cffunction>
-	
-	
-	<cffunction name="addfavorite" returntype="void" output="no">
-		<cfargument name="action" type="string" required="yes" />
-		<cfset var data = getfavorites() />
-		<cfset data[arguments.action] = "" />
-		<cfset setdata('favorites', data) />
-	</cffunction>
-	
-	
-	<cffunction name="removefavorite" returntype="void" output="no">
-		<cfargument name="action" type="string" required="yes" />
-		<cfset var data = getfavorites() />
-		<cfset structDelete(data, arguments.action, false) />
-		<cfset setdata('favorites', data) />
-	</cffunction>
-	
 	<cffunction name="canAccessContext" returntype="boolean">
 		<cfif !StructKeyExists(session,"password"&request.adminType)>
 			<cfreturn false>
@@ -52,7 +25,7 @@
 		<cfreturn getApplicationSettings().security.file>
 	</cffunction>
 	
-	<cffunction name="getdata" returntype="any" output="no">
+	<cffunction name="getData" returntype="any" output="no">
 		<cfargument name="key" type="string" required="yes" />
 		<cfargument name="defaultvalue" type="any" required="no" default="" />
 		<cfif !canAccessContext()>
@@ -67,7 +40,7 @@
 	</cffunction>
 	
 	
-	<cffunction name="setdata" returntype="void" output="no">
+	<cffunction name="setData" returntype="void" output="no">
 		<cfargument name="key" type="string" required="yes" />
 		<cfargument name="value" type="any" required="yes" />
 		<cflock name="setdata_admin" timeout="1" throwontimeout="no">
@@ -99,11 +72,7 @@
 	</cffunction>
 
 	<cffunction name="getDataFilePath" access="private" output="no" returntype="string">
-		<cfif request.admintype eq "server">
-			<cfset local.datadir = expandPath("{lucee-server}/userdata") & server.separator.file />
-		<cfelse>
-			<cfset local.datadir = expandPath("{lucee-web}/admin/userdata") & server.separator.file />
-		</cfif>
+		<cfset local.datadir = expandPath("{lucee-server}/userdata") & server.separator.file />
 		<cfif not directoryExists(datadir)>
 			<cfdirectory action="create" directory="#datadir#" />
 		</cfif>

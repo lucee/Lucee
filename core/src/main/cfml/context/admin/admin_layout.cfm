@@ -67,12 +67,10 @@
 									<!-- <div id="logouts">
 									<a class="sprite tooltipMe logout" href="#request.self#?action=logout" title="Logout"></a>
 									</div> -->
-									<!--- Favorites --->
 									<cfparam name="url.action" default="">
-									<cfset pageIsFavorite = application.adminfunctions.isFavorite(url.action)>
 								</cfif>
-									<h1><cfif structKeyExists(request,'title')>#request.title#<cfelse>#attributes.title#</cfif><cfif structKeyExists(request,'subTitle')> - #request.subTitle#</cfif></h1>
-								</div>
+								<h1><cfif structKeyExists(request,'title')>#request.title#<cfelse>#attributes.title#</cfif><cfif structKeyExists(request,'subTitle')> - #request.subTitle#</cfif></h1>
+							</div>
 							<div id="innercontent" <cfif !hasNavigation>align="center"</cfif>>
 								#thistag.generatedContent#
 							</div>
