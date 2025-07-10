@@ -306,10 +306,6 @@ public final class Search extends TagImpl {
 
 	@Override
 	public int doStartTag() throws PageException {
-		// SerialNumber sn = pageContext.getConfig().getSerialNumber();
-		// if(sn.getVersion()==SerialNumber.VERSION_COMMUNITY)
-		// throw new SecurityException("no access to this functionality with the "+sn.getStringVersion()+"
-		// version of Lucee");
 		final String v = "VARCHAR", d = "DOUBLE";
 		String[] cols = new String[] { "title", "url", "summary", "score", "recordssearched", "key", "custom1", "custom2", "custom3", "custom4", "categoryTree", "category",
 				"context", "size", "rank", "author", "type", "collection" };

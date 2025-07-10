@@ -843,8 +843,6 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		else if (check("getLoaderInfo", ACCESS_FREE) && check2(ACCESS_READ)) getLoaderInfo();
 		else if (check("listPatches", ACCESS_NOT_WHEN_WEB) && check2(ACCESS_READ)) listPatches();
 		else if (check("updateupdate", ACCESS_NOT_WHEN_WEB) && check2(ACCESS_WRITE)) doUpdateUpdate();
-		else if (check("getSerial", ACCESS_FREE) && check2(ACCESS_READ)) doGetSerial();
-		else if (check("updateSerial", ACCESS_NOT_WHEN_WEB) && check2(ACCESS_WRITE)) doUpdateSerial();
 		else if (check("heapDump", ACCESS_NOT_WHEN_WEB) && check2(ACCESS_WRITE)) doHeapDump();
 		else if (check("securitymanager", ACCESS_FREE) && check2(ACCESS_READ)) doSecurityManager();
 
@@ -1239,24 +1237,6 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		store();
 		ConfigUtil.getConfigServerImpl(config).resetUpdateLocation().resetUpdateType();
 		adminSync.broadcast(attributes, config);
-	}
-
-	/**
-	 * @throws PageException
-	 * 
-	 */
-	private void doUpdateSerial() throws PageException {
-		admin.updateSerial(getString("admin", action, "serial"));
-		store();
-		pageContext.serverScope().reload();
-	}
-
-	/**
-	 * @throws PageException
-	 * 
-	 */
-	private void doGetSerial() throws PageException {
-		pageContext.setVariable(getString("admin", action, "returnVariable"), config.getSerialNumber());
 	}
 
 	private Resource getContextDirectory() throws PageException {

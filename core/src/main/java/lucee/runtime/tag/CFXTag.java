@@ -71,11 +71,6 @@ public final class CFXTag extends TagImpl implements DynamicAttributes, Appendix
 
 	@Override
 	public int doStartTag() throws PageException {
-		// RR SerialNumber sn = pageContext.getConfig().getSerialNumber();
-		// if(sn.getVersion()==SerialNumber.VERSION_COMMUNITY)
-		// throw new SecurityException("no access to this functionality with the "+sn.getStringVersion()+"
-		// version of Lucee");
-
 		CFXTagPool pool = pageContext.getConfig().getCFXTagPool();
 		CustomTag ct;
 		try {

@@ -138,7 +138,6 @@ import lucee.runtime.schedule.ScheduleTaskImpl;
 import lucee.runtime.search.SearchEngine;
 import lucee.runtime.security.SecurityManager;
 import lucee.runtime.security.SecurityManagerImpl;
-import lucee.runtime.security.SerialNumber;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.Collection;
@@ -5859,31 +5858,6 @@ public final class ConfigAdmin {
 		@Override
 		public boolean accept(Resource parent, String name) {
 			return name.equals(this.name);
-		}
-	}
-
-	public void updateSerial(String serial) throws PageException {
-
-		checkWriteAccess();
-
-		if (!StringUtil.isEmpty(serial)) {
-			serial = serial.trim();
-			if (!new SerialNumber(serial).isValid(serial)) throw new SecurityException("Serial number is invalid");
-			root.setEL("serialNumber", serial);
-		}
-		else {
-			try {
-				rem(root, "serialNumber");
-			}
-			catch (Throwable t) {
-				ExceptionUtil.rethrowIfNecessary(t);
-			}
-		}
-		try {
-			rem(root, "serial");
-		}
-		catch (Throwable t) {
-			ExceptionUtil.rethrowIfNecessary(t);
 		}
 	}
 
