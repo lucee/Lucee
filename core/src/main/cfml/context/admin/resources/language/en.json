@@ -692,7 +692,7 @@
         "tagRef": "Tag Reference"
       },
       "extension": {
-        "applications": "Applications",
+        "applications": "Extensions",
         "label": "Extension",
         "providers": "Providers"
       },
