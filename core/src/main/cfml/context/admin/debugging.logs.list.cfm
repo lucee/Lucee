@@ -45,9 +45,7 @@
 		</table>
 	</cfformClassic>
 	
-	<cfif !request.singleMode && !isWeb>
-		<p>#stText.Debug.onlyWebContext#</p>
-	<cfelseif !_debug.debug>
+	<cfif !_debug.debug>
 		<p>#stText.Debug.debuggingDisabled#</p>
 	<cfelse>
 		<!---<h2>#stText.debug.filterTitle#</h2>

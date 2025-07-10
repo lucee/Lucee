@@ -170,11 +170,6 @@ public final class Collection extends TagImpl {
 
 	@Override
 	public int doStartTag() throws PageException {
-		// SerialNumber sn = pageContext.getConfig().getSerialNumber();
-		// if(sn.getVersion()==SerialNumber.VERSION_COMMUNITY)
-		// throw new SecurityException("no access to this functionality with the "+sn.getStringVersion()+"
-		// version of Lucee");
-
 		try {
 			if (action.equals("create")) doCreate();
 			else if (action.equals("repair")) doRepair();

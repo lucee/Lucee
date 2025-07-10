@@ -2,7 +2,7 @@
 
 	request.singleMode=getApplicationSettings().singleContext;
 	
-	if(request.singleMode && right(cgi.script_name,9)!="index.cfm") {
+	if (right(cgi.script_name,9)!="index.cfm") {
 		location url="index.cfm" addtoken=false;
 	}
 
@@ -31,12 +31,6 @@
 </cfscript><cfsilent>
 
 <!--- todo: remember screenwidth, so images have the correct width etc. --->
-<!--- PK: instead of session.screenWidth, we now have:
-	application.adminfunctions.getdata('fullscreen')
-	application.adminfunctions.getdata('contentwidth')
-	If fullscreen==true, then you can use the contentwidth variable.
-	Otherwise, use the regular content width.
---->
 
 <cfif structKeyExists(url, 'enable')>
 	<cfset session.enable = url.enable>
@@ -397,8 +391,6 @@
 	// Navigation
 	// As a Set of Array and Structures, so that it is sorted
 
-	favoriteLis = "";
-
 	context='';
 	// write Naviagtion
 	current.label="Overview";
@@ -437,13 +429,8 @@
 					if (structKeyExists(stCld,'_action'))_action=stCld._action;
 					else _action=stNavi.action & '.' & stCld.action;
 					if(!hasScheduler && _action=="services.schedule") continue;
-					isfavorite = application.adminfunctions.isfavorite(_action);
-					li = '<li' & (isfavorite ? ' class="favorite"':'') & '><a '&(isActive?'class="menu_active"':'class="menu_inactive"')&' href="' & request.self & '?action=' &ListCompact( _action,'.') & '"> ' & stCld.label & '</a></li>';
+					li = '<li><a '&(isActive?'class="menu_active"':'class="menu_inactive"')&' href="' & request.self & '?action=' &ListCompact( _action,'.') & '"> ' & stCld.label & '</a></li>' & chr(10);
 					ArrayAppend(adminUrls, request.self & '?action=' &ListCompact( _action,'.'));
-					if (isfavorite)
-					{
-						favoriteLis &= '<li class="favorite"><a href="#request.self#?action=#_action#">#stNavi.label# - #stCld.label#</a></li>';
-					}
 					subNav = subNav & li;
 					//subNav = subNav & '<div class="navsub">'&arrow&'<a class="#sClass#" href="' & request.self & '?action=' & _action & '"> ' & stCld.label & '</a></div>';
 				}
@@ -460,7 +447,7 @@
 		}
 		else {
 			idName = toIDField(stNavi.label);
-			isCollapsed = !hasActiveItem && application.adminfunctions.getdata('collapsed_' & idName) == 1;
+			isCollapsed = !hasActiveItem && application.adminfunctions.getData('collapsed_' & idName) == 1;
 			strNav = strNav & '<li id="#idName#"#isCollapsed ? ' class="collapsed"':''#><a href="##">' &
 				 stNavi.label & '</a><ul#isCollapsed ? ' style="display:none"':''#>'&subNav& "</ul></li>";
 		}
@@ -563,7 +550,7 @@
 
 		<cfoutput>#strNav#</cfoutput>
 
-		<cfmodule template="admin_layout.cfm" width="960" navigation="#strNav#" right="#context#" title="#current.label#" favorites="#favoriteLis#">
+		<cfmodule template="admin_layout.cfm" width="960" navigation="#strNav#" right="#context#" title="#current.label#">
 			<cfoutput>#content#</cfoutput>
 		</cfmodule>
 	</cfif>
