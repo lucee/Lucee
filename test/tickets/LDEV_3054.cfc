@@ -10,7 +10,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 				local.result = _InternalRequest(
 					template : "#uri#\test.cfm"
 				);
-				expect(trim(result.filecontent)).toBe("true,variable [T] doesn't exist");
+				expect(trim(result.filecontent)).toBe("true,The key [T] does not exist");
 			});
 		});
 	}

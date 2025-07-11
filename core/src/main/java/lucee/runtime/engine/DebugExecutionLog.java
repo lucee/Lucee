@@ -22,6 +22,8 @@ import java.util.Map;
 
 import lucee.runtime.PageContext;
 import lucee.runtime.debug.DebugEntry;
+import lucee.runtime.config.Config;
+import lucee.runtime.config.ConfigImpl;
 
 public class DebugExecutionLog extends ExecutionLogSupport {
 
@@ -35,9 +37,15 @@ public class DebugExecutionLog extends ExecutionLogSupport {
 	@Override
 	protected void _log(int startPos, int endPos, long startTime, long endTime) {
 
-		if (!pc.getConfig().debug()) return;
+		Config config = pc.getConfig();
+
+		if (!config.debug()) return;
 
 		long diff = endTime - startTime;
+		if (config instanceof ConfigImpl) { // is instanceof checking really needed here?
+			if (((ConfigImpl) config).getDebugThreshold() > diff / 1000000) return; // the execution time less than the threshold (in mills) must not be log
+		}
+
 		if (unit == UNIT_MICRO) diff /= 1000;
 		else if (unit == UNIT_MILLI) diff /= 1000000;
 

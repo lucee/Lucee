@@ -218,8 +218,16 @@ public final class DebuggerImpl implements Debugger {
 			partEntries = new HashMap<String, DebugEntryTemplatePartImpl>();
 		}
 
-		ResourceSnippet snippet = snippetsMap.getSnippet(source, startPos, endPos, ((PageContextImpl) pc).getResourceCharset().name());
-		de = new DebugEntryTemplatePartImpl(source, startPos, endPos, snippet.getStartLine(), snippet.getEndLine(), snippet.getContent());
+		ConfigPro config = (ConfigPro) ThreadLocalPageContext.getConfig(pc);
+
+		if (config.hasDebugOptions(ConfigPro.DEBUG_SNIPPETS_ENABLED)) { // make sure snippets is enabled
+			ResourceSnippet snippet = snippetsMap.getSnippet(source, startPos, endPos, ((PageContextImpl) pc).getResourceCharset().name());
+			de = new DebugEntryTemplatePartImpl(source, startPos, endPos, snippet.getStartLine(), snippet.getEndLine(), snippet.getContent());
+		}
+		else {
+			de = new DebugEntryTemplatePartImpl(source, startPos, endPos, 0, 0, null);
+		}
+
 		partEntries.put(src, de);
 		return de;
 	}
@@ -536,56 +544,62 @@ public final class DebuggerImpl implements Debugger {
 		//////////////////////////////////////////
 		//////// PAGE PARTS ///////////////////////////
 		//////////////////////////////////////////
-		boolean hasParts = partEntries != null && !partEntries.isEmpty() && arrPages != null && !arrPages.isEmpty();
-		int qrySize = 0;
-		Query qryPart = null;
-		if (hasParts) {
-			String slowestTemplate = arrPages.get(0).getPath();
-			List<DebugEntryTemplatePart> filteredPartEntries = new ArrayList();
-			java.util.Collection<DebugEntryTemplatePartImpl> col = partEntries.values();
-			for (DebugEntryTemplatePart detp: col) {
+		if (ci.hasDebugOptions(ConfigPro.DEBUG_PAGE_PARTS)) { // make sure the page parts is enabled
+			boolean hasParts = partEntries != null && !partEntries.isEmpty() && arrPages != null && !arrPages.isEmpty();
+			int qrySize = 0;
+			Query qryPart = null;
+			if (hasParts) {
+				String slowestTemplate = arrPages.get(0).getPath();
+				List<DebugEntryTemplatePart> filteredPartEntries = new ArrayList();
+				java.util.Collection<DebugEntryTemplatePartImpl> col = partEntries.values();
+				for (DebugEntryTemplatePart detp: col) {
 
-				if (detp.getPath().equals(slowestTemplate)) filteredPartEntries.add(detp);
-			}
-			qrySize = Math.min(filteredPartEntries.size(), MAX_PARTS);
+					if (detp.getPath().equals(slowestTemplate)) filteredPartEntries.add(detp);
+				}
+				qrySize = Math.min(filteredPartEntries.size(), MAX_PARTS);
 
-			qryPart = new QueryImpl(PAGE_PART_COLUMNS, qrySize, "query");
-			debugging.setEL(PAGE_PARTS, qryPart);
+				qryPart = new QueryImpl(PAGE_PART_COLUMNS, qrySize, "query");
+				debugging.setEL(PAGE_PARTS, qryPart);
 
-			int row = 0;
-			Collections.sort(filteredPartEntries, DEBUG_ENTRY_TEMPLATE_PART_COMPARATOR);
+				int row = 0;
+				Collections.sort(filteredPartEntries, DEBUG_ENTRY_TEMPLATE_PART_COMPARATOR);
 
-			DebugEntryTemplatePart[] parts = new DebugEntryTemplatePart[qrySize];
+				DebugEntryTemplatePart[] parts = new DebugEntryTemplatePart[qrySize];
 
-			if (filteredPartEntries.size() > MAX_PARTS) parts = filteredPartEntries.subList(0, MAX_PARTS).toArray(parts);
-			else parts = filteredPartEntries.toArray(parts);
+				if (filteredPartEntries.size() > MAX_PARTS) parts = filteredPartEntries.subList(0, MAX_PARTS).toArray(parts);
+				else parts = filteredPartEntries.toArray(parts);
 
-			try {
-				DebugEntryTemplatePart de;
-				// PageSource ps;
-				for (int i = 0; i < parts.length; i++) {
-					row++;
-					de = parts[i];
+				try {
+					DebugEntryTemplatePart de;
+					// PageSource ps;
+					for (int i = 0; i < parts.length; i++) {
+						row++;
+						de = parts[i];
 
-					qryPart.setAt(KeyConstants._id, row, Caster.toInteger(de.getId()));
-					qryPart.setAt(KeyConstants._count, row, _toDouble(de.getCount()));
-					qryPart.setAt(KeyConstants._min, row, _toDouble(de.getMin()));
-					qryPart.setAt(KeyConstants._max, row, _toDouble(de.getMax()));
-					qryPart.setAt(KeyConstants._avg, row, _toDouble(de.getExeTime() / de.getCount()));
-					qryPart.setAt(KeyConstants._start, row, _toDouble(de.getStartPosition()));
-					qryPart.setAt(KeyConstants._end, row, _toDouble(de.getEndPosition()));
-					qryPart.setAt(KeyConstants._total, row, _toDouble(de.getExeTime()));
-					qryPart.setAt(KeyConstants._path, row, de.getPath());
+						qryPart.setAt(KeyConstants._id, row, Caster.toInteger(de.getId()));
+						qryPart.setAt(KeyConstants._count, row, _toDouble(de.getCount()));
+						qryPart.setAt(KeyConstants._min, row, _toDouble(de.getMin()));
+						qryPart.setAt(KeyConstants._max, row, _toDouble(de.getMax()));
+						qryPart.setAt(KeyConstants._avg, row, _toDouble(de.getExeTime() / de.getCount()));
+						qryPart.setAt(KeyConstants._start, row, _toDouble(de.getStartPosition()));
+						qryPart.setAt(KeyConstants._end, row, _toDouble(de.getEndPosition()));
+						qryPart.setAt(KeyConstants._total, row, _toDouble(de.getExeTime()));
+						qryPart.setAt(KeyConstants._path, row, de.getPath());
 
-					if (de instanceof DebugEntryTemplatePartImpl) {
+						if (de instanceof DebugEntryTemplatePartImpl) {
 
-						qryPart.setAt(KeyConstants._startLine, row, _toDouble(((DebugEntryTemplatePartImpl) de).getStartLine()));
-						qryPart.setAt(KeyConstants._endLine, row, _toDouble(((DebugEntryTemplatePartImpl) de).getEndLine()));
-						qryPart.setAt(KeyConstants._snippet, row, ((DebugEntryTemplatePartImpl) de).getSnippet());
+							qryPart.setAt(KeyConstants._startLine, row, _toDouble(((DebugEntryTemplatePartImpl) de).getStartLine()));
+							qryPart.setAt(KeyConstants._endLine, row, _toDouble(((DebugEntryTemplatePartImpl) de).getEndLine()));
+							qryPart.setAt(KeyConstants._snippet, row, ((DebugEntryTemplatePartImpl) de).getSnippet());
+						}
 					}
 				}
+				catch (PageException dbe) {
+				}
 			}
-			catch (PageException dbe) {
+			else {
+				qryPart = new QueryImpl(PAGE_PART_COLUMNS, qrySize, "query");
+				debugging.setEL(PAGE_PARTS, qryPart);
 			}
 		}
 
