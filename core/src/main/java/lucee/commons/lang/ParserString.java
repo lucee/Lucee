@@ -74,7 +74,7 @@ public final class ParserString {
 		for (int i = 0; i < len; i++) {
 			char c = str.charAt(i);
 			text[i] = c;
-			if (c == '\n' || c == '\r' || c == '\t') {
+			if (c == '\n' || c == '\r' || c == '\t' || c == '\b') {
 				lcText[i] = ' ';
 			}
 			else lcText[i] = ((c >= 'a' && c <= 'z') || (c >= '0' && c <= '9')) ? c : Character.toLowerCase(c);
@@ -281,7 +281,7 @@ public final class ParserString {
 
 	public boolean isCurrentWhiteSpace() {
 		if (!isValidIndex()) return false;
-		return (lcText[pos] == ' ' || lcText[pos] == '\b');
+		return lcText[pos] == ' ';
 		// return lcText[pos]>='a' && lcText[pos]<='z';
 	}
 
@@ -296,22 +296,22 @@ public final class ParserString {
 
 	public boolean isNextWhiteSpace() {
 		if (!hasNext()) return false;
-		return (lcText[pos + 1] == ' ' || lcText[pos + 1] == '\b');
+		return lcText[pos + 1] == ' ';
 	}
 
 	public boolean isNextNextWhiteSpace() {
 		if (!hasNextNext()) return false;
-		return (lcText[pos + 2] == ' ' || lcText[pos + 2] == '\b');
+		return lcText[pos + 2] == ' ';
 	}
 
 	public boolean isPreviousWhiteSpace() {
 		if (!hasPrevious()) return false;
-		return (lcText[pos - 1] == ' ' || lcText[pos - 1] == '\b');
+		return lcText[pos - 1] == ' ';
 	}
 
 	public boolean isPreviousPreviousWhiteSpace() {
 		if (!hasPreviousPrevious()) return false;
-		return (lcText[pos - 2] == ' ' || lcText[pos - 2] == '\b');
+		return lcText[pos - 2] == ' ';
 	}
 
 	/**
