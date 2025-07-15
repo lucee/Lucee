@@ -75,7 +75,6 @@ import lucee.runtime.db.DatasourceConnection;
 import lucee.runtime.db.SQL;
 import lucee.runtime.db.SQLCaster;
 import lucee.runtime.db.SQLItem;
-import lucee.runtime.db.SQLImpl;
 import lucee.runtime.dump.DumpData;
 import lucee.runtime.dump.DumpProperties;
 import lucee.runtime.engine.ThreadLocalPageContext;
