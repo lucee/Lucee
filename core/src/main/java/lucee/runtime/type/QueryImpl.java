@@ -408,34 +408,39 @@ public final class QueryImpl implements Query, Objects, QueryResult {
 		// boolean closeStatement=true;
 		try {
 			SQLItem[] items = sql.getItems();
-			if (items.length == 0) {
-				// throw!!!
-			}
-			else {
-				// some driver do not support second argument
-				PreparedStatement preStat = dc.getPreparedStatement(sql, createGeneratedKeys, allowToCachePreperadeStatement);
-				// closeStatement=false;
-				stat = preStat;
-				setAttributes(preStat, maxrow, fetchsize, timeout);
-				int rowsToCommit = 0;
-				for (int i = 0; i < items.length; i++) {
-					/*
-					TODO
-					- avoid reparsing sql
-					- handle structs too
-					*/
-					SQL _row = QueryParamConverter.convert(sql.getSQLString(), Caster.toArray(items[i].getValue()));
-					setItems(pc, ThreadLocalPageContext.getTimeZone(pc), preStat, _row.getItems());
-					rowsToCommit++;
-					QueryUtil.addBatch(pc, preStat);
-					if (rowsToCommit % fetchsize == 0) { // blockfactor
-						QueryUtil.executeBatch(pc, preStat);
-						rowsToCommit = 0;
-					}
+			if (items.length == 0) throw new DatabaseException("Query batch requires [params] to be passed","", sql, dc);
+			// some driver do not support second argument
+			PreparedStatement preStat = dc.getPreparedStatement(sql, createGeneratedKeys, allowToCachePreperadeStatement);
+			dc.setAutoCommit(false);
+			// closeStatement=false;
+			stat = preStat;
+			setAttributes(preStat, maxrow, fetchsize, timeout);
+			int rowsToCommit = 0;
+			int initialParamCount = 0;
+			for (int i = 0; i < items.length; i++) {
+				/* TODO
+				- avoid reparsing sql
+				- handle structs too
+				- param count check below fails before whilst reparsing sql stage
+				*/
+				SQL _row = QueryParamConverter.convert(sql.getSQLString(), Caster.toArray(items[i].getValue()));
+				SQLItem[] row = _row.getItems();
+				if (i == 0 ) initialParamCount = row.length;
+				else if (row.length != initialParamCount) throw new DatabaseException("The number of query batch params for row [" + (i+1)
+					+ "] doesn't have same number of params [" + row.length + "] as the first row [" + initialParamCount + "]", "", sql, dc);
+				setItems(pc, ThreadLocalPageContext.getTimeZone(pc), preStat, row);
+
+				rowsToCommit++;
+				QueryUtil.addBatch(pc, preStat);
+				if (rowsToCommit % fetchsize == 0) { // blockfactor
+					QueryUtil.executeBatch(pc, preStat);
+					rowsToCommit = 0;
 				}
-				if (rowsToCommit > 0) QueryUtil.executeBatch(pc, preStat);
-				hasResult = false;// QueryUtil.execute(pc, preStat);
 			}
+			if (rowsToCommit > 0) QueryUtil.executeBatch(pc, preStat);
+			hasResult = false;// QueryUtil.execute(pc, preStat);
+			setUpdateCount(qr, stat);
+			dc.commit();
 			/*
 			int uc;
 			// ResultSet res;
@@ -463,13 +468,26 @@ public final class QueryImpl implements Query, Objects, QueryResult {
 			*/
 		}
 		catch (SQLException e) {
+			try {
+				dc.rollback();
+			}
+			catch (SQLException se) {
+				e.addSuppressed(se);
+			}
 			throw new DatabaseException(e, sql, dc);
 		}
 		catch (Throwable e) {
+			try {
+				dc.rollback();
+			}
+			catch (SQLException se) {
+				e.addSuppressed(se);
+			}
 			ExceptionUtil.rethrowIfNecessary(e);
 			throw Caster.toPageException(e);
 		}
 		finally {
+			DBUtil.setAutoCommitEL(dc, true);
 			// if(closeStatement)
 			DBUtil.closeEL(stat);
 		}

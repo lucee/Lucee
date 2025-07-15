@@ -2,7 +2,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 
 	function beforeAll(){
 		variables.ds = server.getDatasource( service="h2", dbFile=server._getTempDir( "LDEV5704" ) );
-		cfquery( sql="CREATE TABLE ldev5704 (id numeric NOT NULL, name VARCHAR(25))", datasource=ds );
+		cfquery( sql="CREATE TABLE ldev5704 (id numeric NOT NULL, name VARCHAR(25),  PRIMARY KEY (id))", datasource=ds );
+		systemOutput("", true);
 	}
 
 	function run( testResults, testBox ){
@@ -32,7 +33,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 				expect( r.name[3] ).toBe( "ralio" );
 			});
 
-			it( "batch insert via individual rows", function(){
+			it( "batch insert via individual rows - no transaction", function(){
 				truncate();
 				var arr = getData( "array" );
 				var insertSql="insert into ldev5704 (id, name) values (?, ?)";
@@ -40,7 +41,22 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 				for ( var row in arr ) {
 					cfquery( sql=insertSql, params=row, datasource=ds);
 				}
-				systemOutput("individual took " & numberFormat(getTickCount()-s) & "ms for " & len ( arr ) & " rows", true)
+				systemOutput( "individual took " & numberFormat(getTickCount()-s) & "ms for " & len ( arr ) & " rows", true );
+				var r = select();
+				expect( r.recordcount ).toBe( len( arr ) );
+				expect( r.name[1] ).toBe( "lucee" );
+				expect( r.name[3] ).toBe( "ralio" );
+			});
+
+			it( "batch insert via individual rows  - transaction", function(){
+				truncate();
+				var arr = getData( "array" );
+				var insertSql="insert into ldev5704 (id, name) values (?, ?)";
+				var s = getTickCount();
+				for ( var row in arr ) {
+					cfquery( sql=insertSql, params=row, datasource=ds);
+				}
+				systemOutput( "individual (w/transaction) took " & numberFormat(getTickCount()-s) & "ms for " & len ( arr ) & " rows", true );
 				var r = select();
 				expect( r.recordcount ).toBe( len( arr ) );
 				expect( r.name[1] ).toBe( "lucee" );
@@ -48,18 +64,35 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 			});
 
 
-			it( "batch insert via array params", function(){
+			it( "batch insert via array params - automatic transaction", function(){
 				truncate();
 				var arr = getData( "array" );
 				var insertSql="insert into ldev5704 (id, name) values (?, ?)";
 				var s = getTickCount();
 				cfquery( sql=insertSql, params=arr, datasource=ds, batch=true );
-				systemOutput("batch took " & numberFormat(getTickCount()-s) & "ms for " & len ( arr ) & " rows" , true)
+				systemOutput( "batch took " & numberFormat(getTickCount()-s) & "ms for " & len ( arr ) & " rows" , true );
 				var r = select();
 				expect( r.recordcount ).toBe( len ( arr ) );
 				expect( r.name[1] ).toBe( "lucee" );
 				expect( r.name[3] ).toBe( "ralio" );
 			});
+
+			it( "batch insert via array params - validation", function(){
+				truncate();
+				var arr = getData( "array" );
+				arr = arraySlice(arr, 1, 2);
+				// delete the 2nd argument for the second row, 
+				// thus triggering an exception due to a mismatch of parameters length from the first row
+				arrayDeleteAt( arr[2], 2 );
+				var insertSql="insert into ldev5704 (id, name) values (?, ?)";
+				expect(function(){
+					cfquery( sql=insertSql, params=arr, datasource=ds, batch=true );
+				}).toThrow( "Application", ".*question marks.*" ); // TODO this will change to "The number of query batch params for row..."
+				
+				var r = select();
+				expect( r.recordcount ).toBe( 0 ); // i.e. rollback on any error
+			});
+
 
 		} );
 	}

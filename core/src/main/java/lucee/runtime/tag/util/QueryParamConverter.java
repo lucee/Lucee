@@ -190,7 +190,7 @@ public final class QueryParamConverter {
 						continue;
 					}
 
-					if (++_qm > initialParamSize) throw new ApplicationException("there are more question marks in the SQL than params defined", "SQL: " + sql + "");
+					if (++_qm > initialParamSize) throw new ApplicationException("There are more question marks in the SQL than params defined [" + initialParamSize + "]", "SQL: " + sql + "");
 				}
 				else if (c == ':') {
 
