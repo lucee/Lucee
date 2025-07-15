@@ -87,7 +87,12 @@ public class PreparedStatementProxy extends StatementProxy implements PreparedSt
 	}
 
 	@Override
-	public void addBatch() throws SQLException {
+	public int[] executeBatch(PageContext pc) throws SQLException {
+		return stat.executeBatch();
+	}
+
+	@Override
+	public void addBatch(PageContext pc) throws SQLException {
 		stat.addBatch();
 	}
 
@@ -344,5 +349,11 @@ public class PreparedStatementProxy extends StatementProxy implements PreparedSt
 	@Override
 	public void setUnicodeStream(int parameterIndex, InputStream x, int length) throws SQLException {
 		stat.setUnicodeStream(parameterIndex, x, length);
+	}
+
+	@Override
+	public void addBatch() throws SQLException {
+		// TODO Auto-generated method stub
+		throw new UnsupportedOperationException("Unimplemented method 'addBatch'");
 	}
 }

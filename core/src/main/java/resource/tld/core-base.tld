@@ -5855,6 +5855,13 @@ Params: [
 			<required>false</required>
 			<description>Attribute not supported</description>
 		</attribute>
+		<attribute>
+			<type>boolean</type>
+			<name>batch</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>batch params, bulk insert</description>
+		</attribute>
 	</tag>
 
 	<!-- QueryParam -->
