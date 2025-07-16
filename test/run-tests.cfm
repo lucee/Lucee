@@ -418,8 +418,10 @@ try {
 	arrayAppend( results, "Force GC after structClear(cfthread)");
 	createObject( "java", "java.lang.System" ).gc();
 	arrayAppend( results, "CFTHREADS: #NumberFormat( ThreadData().len() )#");
-	if ( !ManagementFactoryError )
+	if ( !ManagementFactoryError ){
+		threadCount = javaManagementFactory.getThreadMXBean().getThreadCount();
 		arrayAppend( results, "Active Threads: #NumberFormat( threadCount )#");
+	}
 	arrayAppend( results, "");
 	arrayAppend( results, reportMem( "", postTestGC.usage ).report, true );
 	
