@@ -510,6 +510,7 @@ public final class PageContextImpl extends PageContext {
 		// Scopes
 		server = ScopeContext.getServerScope(this, ignoreScopes);
 		if (clone) {
+			lucee.aprint.o("--------------------- PC cloning " + getId() + " from " + tmplPC.getId());
 			this.cfid = tmplPC.cfid;
 			this.client = tmplPC.client;
 			this.session = tmplPC.session;

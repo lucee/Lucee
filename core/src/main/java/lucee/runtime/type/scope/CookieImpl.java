@@ -81,6 +81,7 @@ public final class CookieImpl extends ScopeSupport implements Cookie, ScriptProt
 	private static Method setHttpOnly;
 	private static Method isPartitioned;
 	private static Method setPartitioned;
+	private int pcId = -1;
 
 	/**
 	 * constructor for the Cookie Scope
@@ -353,6 +354,7 @@ public final class CookieImpl extends ScopeSupport implements Cookie, ScriptProt
 			scriptProtected = ((sp & ApplicationContext.SCRIPT_PROTECT_COOKIE) > 0) ? ScriptProtected.YES : ScriptProtected.NO;
 		}
 		super.initialize(pc);
+		pcId = pc.getId();
 
 		HttpServletRequest req = pc.getHttpServletRequest();
 		this.rsp = pc.getHttpServletResponse();
@@ -364,6 +366,9 @@ public final class CookieImpl extends ScopeSupport implements Cookie, ScriptProt
 
 	@Override
 	public void release(PageContext pc) {
+		if (pcId == -1) lucee.aprint.o("--------------------- on release cookie scope release before init: -1, pc " + pc.getId());
+		else if (pc.getId() != pcId) lucee.aprint.o("--------------------- on release cookie scope has differnt pc than init, was " + pcId + ", is now " + pc.getId()) ;
+		pcId = -1;
 		raw.clear();
 		scriptProtected = ScriptProtected.UNDEFINED;
 		super.release(pc);
