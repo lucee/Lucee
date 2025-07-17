@@ -717,8 +717,7 @@ public final class PageContextImpl extends PageContext {
 		}
 		argument.release(this);
 		local = localUnsupportedScope;
-
-		cookie.release(this);
+		if (!hasFamily)	cookie.release(this);
 		application = null;// not needed at the moment -> application.releaseAfterRequest();
 		applicationContext = null;// do not release may used by child threads
 
