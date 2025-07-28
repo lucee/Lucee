@@ -27,12 +27,12 @@ import java.net.URL;
 import java.util.Random;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
 
 import jcifs.smb.NtlmPasswordAuthentication;
 import jcifs.smb.SmbException;
 import jcifs.smb.SmbFile;
 import jcifs.smb.SmbFileOutputStream;
+import lucee.commons.lang.StringUtil;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.ResourceProvider;
@@ -101,16 +101,16 @@ public class SMBResource extends ResourceSupport implements Resource {
 	private static String _userInfo(NtlmPasswordAuthentication auth, boolean addAtSign) {
 		String result = "";
 		if (auth != null) {
-			if (!StringUtils.isEmpty(auth.getDomain())) {
+			if (!StringUtil.isEmpty(auth.getDomain())) {
 				result += auth.getDomain() + ";";
 			}
-			if (!StringUtils.isEmpty(auth.getUsername())) {
+			if (!StringUtil.isEmpty(auth.getUsername())) {
 				result += auth.getUsername() + ":";
 			}
-			if (!StringUtils.isEmpty(auth.getPassword())) {
+			if (!StringUtil.isEmpty(auth.getPassword())) {
 				result += auth.getPassword();
 			}
-			if (addAtSign && !StringUtils.isEmpty(result)) {
+			if (addAtSign && !StringUtil.isEmpty(result)) {
 				result += "@";
 			}
 		}
