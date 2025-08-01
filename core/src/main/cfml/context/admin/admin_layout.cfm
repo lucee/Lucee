@@ -129,6 +129,8 @@
 		});
 	
 document.addEventListener('DOMContentLoaded', function() {
+  // Check if dark mode is enabled in the browser settings
+  const isDarkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
   // First, inject our dark mode CSS
   const darkModeStyle = document.createElement('style');
   darkModeStyle.id = 'dark-mode-styles';
@@ -148,7 +150,7 @@ document.addEventListener('DOMContentLoaded', function() {
   const darkModeEnabled = localStorage.getItem('darkMode') === 'enabled';
   
   // Apply dark mode if previously enabled
-  if (darkModeEnabled) {
+  if (darkModeEnabled || isDarkMode) {
     document.body.classList.add('dark-mode');
     toggleButton.textContent = '☀';
     
