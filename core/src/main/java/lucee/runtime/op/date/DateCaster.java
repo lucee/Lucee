@@ -160,6 +160,7 @@ public final class DateCaster {
 		timeZone = ThreadLocalPageContext.getTimeZone(timeZone);
 		DateTime dt = toDateSimple(str, convertingType, true, timeZone, defaultValue);
 		if (dt == null) {
+			str =StringUtil.suppressWhiteSpace(str);
 			dt = toDateTime(Locale.US, str, timeZone, defaultValue, false);
 		}
 		return dt;

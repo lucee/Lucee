@@ -11,6 +11,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 				{"format": "yyyy-mm-dd hh:mm:ss","example":                     "2022-09-20 12:34:00"},
 				{"format": "yyyy-mm-dd hh:mm:ss.000","example":                 "2022-09-20 12:34:00.000"},
 				{"format": "yyyy/mm/dd hh:mm:ss","example":                     "2022/09/20 12:34:00"},
+				{"format": "yyyy/mm/dd  hh:mm:ss","example":                    "2022/09/20  12:34:00"},
 				{"format": "mm-dd-yyyy hh:mm:ss","example":                     "09-20-2022 12:34 PM"},
 				{"format": "mm/dd/yyyy hh:mm:ss","example":                     "09/20/2022 12:34 PM"},
 				{"format": "short string","example":                            "9/20/22 12:34 PM"},
@@ -19,14 +20,14 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 				{"format": "bash ""$(date)"" add leading zero","example":       "Mon Mar 03 03:09:07 PDT 2025"},
 				{"format": "JavaScript: new Date()","example":                  "Tue Sep 20 2022 12:34:00 GMT-0700 (Pacific Daylight Time)"},
 				{"format": "Long month name","example":                         "September 20, 2022 12:34 PM"},
-				{"format": "JDBC/SQL Timestamp","example":                      "{ts '2022-09-20 12:34:00'}"}
+				{"format": "JDBC/SQL Timestamp","example":                      "{ts '2022-09-20 12:34:00'}"},
+				{"format": "bash ""$(date)"" add leading zero","example":       "Mon Mar  03 03:09:07 PDT 2025"},
+				{"format": "bash ""$(date)"" two spaces before day","example":  "Mon Mar  3 03:09:07 PDT 2025"},
+				{"format": "bash ""$(date)"" one digit day","example":          "Mon Mar 3 03:09:07 PDT 2025"}
 			];
 
 			var badDateFormats = [
 				{"format": "contains comma","example":                          "9/20/22, 12:34 PM"},
-				{"format": "bash ""$(date)"" add leading zero","example":       "Mon Mar  03 03:09:07 PDT 2025"},
-				{"format": "bash ""$(date)"" two spaces before day","example":  "Mon Mar  3 03:09:07 PDT 2025"},
-				{"format": "bash ""$(date)"" one digit day","example":          "Mon Mar 3 03:09:07 PDT 2025"},
 				{"format": "Oracle","example":                                  "20-SEP-22 12.34.00.000000 PM"},
 				{"format": "Syslog","example":                                  "Sep 20 12:34:00"},
 				{"format": "Apache log","example":                              "[20/Sep/2022:12:34:00 -0700]"}

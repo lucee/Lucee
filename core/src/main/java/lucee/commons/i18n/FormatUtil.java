@@ -129,6 +129,8 @@ public class FormatUtil {
 
 			new Pattern("EEE MMM dd HH:mm:ss z yyyy", FORMAT_TYPE_DATE_TIME),
 
+			new Pattern("EEE MMM d HH:mm:ss z yyyy", FORMAT_TYPE_DATE_TIME),
+
 			new Pattern("EE, dd-MMM-yyyy HH:mm:ss zz", FORMAT_TYPE_DATE_TIME),
 
 			new Pattern("EE, dd MMM yyyy HH:mm:ss zz", FORMAT_TYPE_DATE_TIME),
