@@ -1071,7 +1071,9 @@ public abstract class ConfigFactory {
 			}
 		}
 		try {
-			return Caster.toStruct(new JSONExpressionInterpreter().interpret(null, IOUtil.toString(res, CharsetUtil.UTF8)));
+			synchronized (SystemUtil.createToken("ConfigAdmin.rw_config", res.getAbsolutePath())) {
+				return Caster.toStruct(new JSONExpressionInterpreter().interpret(null, IOUtil.toString(res, CharsetUtil.UTF8)));
+			}
 			// data.set(KeyConstants._md5, Hash.md5(content));
 		}
 		catch (FileNotFoundException fnfe) {
