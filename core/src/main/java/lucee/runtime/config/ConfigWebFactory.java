@@ -762,7 +762,9 @@ public final class ConfigWebFactory extends ConfigFactory {
 		// store as json
 		JSONConverter json = new JSONConverter(true, CharsetUtil.UTF8, JSONDateFormat.PATTERN_CF, false);
 		String str = json.serialize(null, root, SerializationSettings.SERIALIZE_AS_ROW, true);
-		IOUtil.write(config.getConfigFile(), str, CharsetUtil.UTF8, false);
+		synchronized (SystemUtil.createToken("ConfigAdmin.rw_config", config.getConfigFile().getAbsolutePath())) {
+			IOUtil.write(config.getConfigFile(), str, CharsetUtil.UTF8, false);
+		}
 		root = ConfigWebFactory.loadDocumentCreateIfFails(config.getConfigFile(), "web");
 		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, ConfigWebFactory.class.getName(), "reloading configuration");
 		return root;
