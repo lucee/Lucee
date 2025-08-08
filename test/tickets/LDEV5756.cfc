@@ -1,7 +1,7 @@
 component extends = "org.lucee.cfml.test.LuceeTestCase" {
 
 	function run( testResults, textbox ) {
-		describe(title="testcase for LDEV-5751", body=function(){
+		describe(title="testcase for LDEV-5756", body=function(){
 
 			it(title = "check log appenders - pattern", body = function ( currentSpec ){
 				var token = createGUID();
@@ -15,6 +15,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 				);
 				var logfile = expandPath("{lucee-config}/logs/ldev5756-pattern.log");
 				var logs = fileRead( logFile );
+				systemOutput(logs, true);
 				expect( logs ).toInclude( token );
 			});
 
@@ -30,6 +31,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 				);
 				var logfile = expandPath("{lucee-config}/logs/ldev5756-classic.log");
 				var logs = fileRead( logFile );
+				systemOutput(logs, true);
 				expect( logs ).toInclude( token );
 			});
 

@@ -15,7 +15,7 @@ component {
 		 "ldev5756-classic": {
 			"appender":"resource",
 			"appender-arguments": {
-				"path" :"{lucee-config}/logs/ldev5756-classic.log",
+				"path" :"{lucee-config}/logs/ldev5756-classic.log"
 			},
 			"layout":"classic",
 			"level":"info",
