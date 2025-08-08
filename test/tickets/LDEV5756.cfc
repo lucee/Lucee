@@ -1,0 +1,42 @@
+component extends = "org.lucee.cfml.test.LuceeTestCase" {
+
+	function run( testResults, textbox ) {
+		describe(title="testcase for LDEV-5751", body=function(){
+
+			it(title = "check log appenders - pattern", body = function ( currentSpec ){
+				var token = createGUID();
+				var uri = createURI( "/LDEV5756" );
+				var result =_InternalRequest(
+					template: "#uri#/ldev5756.cfm",
+					url: {
+						token: token,
+						logType: "pattern"
+					}
+				);
+				var logfile = expandPath("{lucee-config}/logs/ldev5756-pattern.log");
+				var logs = fileRead( logFile );
+				expect( logs ).toInclude( token );
+			});
+
+			it(title = "check log appenders - classic", body = function ( currentSpec ){
+				var token = createGUID();
+				var uri = createURI( "/LDEV5756" );
+				var result =_InternalRequest(
+					template: "#uri#/ldev5756.cfm",
+					url: {
+						token: token,
+						logType: "classic"
+					}
+				);
+				var logfile = expandPath("{lucee-config}/logs/ldev5756-classic.log");
+				var logs = fileRead( logFile );
+				expect( logs ).toInclude( token );
+			});
+
+		});
+	}
+	private string function createURI(string calledName){
+		var baseURI = "/test/#listLast(getDirectoryFromPath(getCurrenttemplatepath()),"\/")#/";
+		return baseURI & "" & calledName;
+	}
+}
