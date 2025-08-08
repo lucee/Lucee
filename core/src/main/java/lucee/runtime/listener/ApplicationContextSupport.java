@@ -50,6 +50,7 @@ import lucee.runtime.type.Collection;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
+import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.dt.TimeSpan;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.transformer.library.ClassDefinitionImpl;
@@ -316,13 +317,27 @@ public abstract class ApplicationContextSupport implements ApplicationContext {
 
 			// appender
 			Struct sctApp = Caster.toStruct(v.get("appender", null), null);
-			ClassDefinition cdApp = ClassDefinitionImpl.toClassDefinitionImpl(sctApp, null, false, config.getIdentification());
-			if (!cdApp.isBundle()) cdApp = ((ConfigPro) config).getLogEngine().appenderClassDefintion(cdApp.getClassName());
+			ClassDefinition cdApp = null;
+			if (sctApp != null ){
+				cdApp = ClassDefinitionImpl.toClassDefinitionImpl(sctApp, null, false, config.getIdentification());
+				if (!cdApp.isBundle()) cdApp = ((ConfigPro) config).getLogEngine().appenderClassDefintion(cdApp.getClassName());
+			} else {
+				String appender = Caster.toString(v.get("appender", null), null);
+				if (appender != null) cdApp = ((ConfigPro) config).getLogEngine().appenderClassDefintion(appender);
+				sctApp = new StructImpl();
+			}
 
 			// layout
 			Struct sctLay = Caster.toStruct(v.get("layout", null), null);
-			ClassDefinition cdLay = ClassDefinitionImpl.toClassDefinitionImpl(sctLay, null, false, config.getIdentification());
-			if (!cdLay.isBundle()) cdLay = ((ConfigPro) config).getLogEngine().appenderClassDefintion(cdLay.getClassName());
+			ClassDefinition cdLay = null;
+			if (sctLay != null){
+				cdLay = ClassDefinitionImpl.toClassDefinitionImpl(sctLay, null, false, config.getIdentification());
+				if (!cdLay.isBundle()) cdLay = ((ConfigPro) config).getLogEngine().appenderClassDefintion(cdLay.getClassName());
+			} else {
+				String layout = Caster.toString(v.get("layout", null), null);
+				if (layout != null) cdLay = ((ConfigPro) config).getLogEngine().appenderClassDefintion(layout);
+				sctLay = new StructImpl();
+			}
 
 			if (cdApp != null && cdApp.hasClass()) {
 				// level
@@ -332,14 +347,13 @@ public abstract class ApplicationContextSupport implements ApplicationContext {
 				int level = LogUtil.toLevel(StringUtil.trim(strLevel, ""), Log.LEVEL_ERROR);
 
 				Struct sctAppArgs = Caster.toStruct(sctApp.get("arguments", null), null);
-				Struct sctLayArgs = Caster.toStruct(sctLay.get("arguments", null), null);
-
 				boolean readOnly = Caster.toBooleanValue(v.get("readonly", null), false);
 
 				// ignore when no appender/name is defined
 				if (!StringUtil.isEmpty(name)) {
 					Map<String, String> appArgs = toMap(sctAppArgs);
 					if (cdLay != null && cdLay.hasClass()) {
+						Struct sctLayArgs = Caster.toStruct(sctLay.get("arguments", null), null);
 						Map<String, String> layArgs = toMap(sctLayArgs);
 						las = addLogger(name, level, cdApp, appArgs, cdLay, layArgs, readOnly);
 					}
@@ -352,8 +366,9 @@ public abstract class ApplicationContextSupport implements ApplicationContext {
 	}
 
 	private static Map<String, String> toMap(Struct sct) {
+		Map<String, String> map = new ConcurrentHashMap<String, String>(); // TODO does this need to be concurrent??
+		if (sct == null) return map;
 		Iterator<Entry<Key, Object>> it = sct.entryIterator();
-		Map<String, String> map = new ConcurrentHashMap<String, String>();
 		Entry<Key, Object> e;
 		while (it.hasNext()) {
 			e = it.next();
