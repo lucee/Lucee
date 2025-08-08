@@ -138,10 +138,13 @@ public final class ResourceAppender extends AbstractAppender {
 					size = res.length();
 					writer = new OutputStreamWriter(new RetireOutputStream(res, append, timeout, listener), charset);
 					if (writeHeader) {
-						String header = new String(getLayout().getHeader(), charset);
-						size += header.length();
-						writer.write(header);
-						writer.flush();
+						byte[] layoutHeader = getLayout().getHeader();
+						if (layoutHeader != null){
+							String header = new String(layoutHeader, charset);
+							size += header.length();
+							writer.write(header);
+							writer.flush();
+						}
 						// TODO new line?
 					}
 				}
