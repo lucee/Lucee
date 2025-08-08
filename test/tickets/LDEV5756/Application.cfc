@@ -20,6 +20,13 @@ component {
 			"layout":"classic",
 			"level":"info",
 			"name":"application"
+		},
+		"ldev4153-classic": {
+			"appender":"resource",
+			"appender-arguments":"path:{lucee-config}/logs/ldev4153-classic.log",
+			"layout":"classic",
+			"level":"info",
+			"name":"application"
 		}
 	}
 	

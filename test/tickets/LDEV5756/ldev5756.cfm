@@ -1,5 +1,5 @@
 <cfscript>
 	param name="url.token";
-	param name="url.logType";
-	writeLog(text="testing #url.logType# #url.token#", log="ldev5756-#url.logType#", level="info");
+	param name="url.log";
+	writeLog(text="testing #url.log# #url.token#", log="#url.log#", level="info");
 </cfscript>
