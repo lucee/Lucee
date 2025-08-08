@@ -15,8 +15,9 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 				);
 				var logfile = expandPath("{lucee-config}/logs/ldev5756-pattern.log");
 				var logs = fileRead( logFile );
-				systemOutput(logs, true);
+				//systemOutput(logs, true);
 				expect( logs ).toInclude( token );
+				expect( logs ).toInclude( "[main] INFO" );
 			});
 
 			it(title = "check log appenders - classic", body = function ( currentSpec ){
@@ -31,8 +32,9 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 				);
 				var logfile = expandPath("{lucee-config}/logs/ldev5756-classic.log");
 				var logs = fileRead( logFile );
-				systemOutput(logs, true);
+				//systemOutput(logs, true);
 				expect( logs ).toInclude( token );
+				expect( logs ).toInclude( '"INFO","main",' );
 			});
 
 		});
