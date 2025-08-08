@@ -331,10 +331,10 @@ public abstract class ApplicationContextSupport implements ApplicationContext {
 			ClassDefinition cdLay = null;
 			if (sctLay != null){
 				cdLay = ClassDefinitionImpl.toClassDefinitionImpl(sctLay, null, false, config.getIdentification());
-				if (!cdLay.isBundle()) cdLay = ((ConfigPro) config).getLogEngine().appenderClassDefintion(cdLay.getClassName());
+				if (!cdLay.isBundle()) cdLay = ((ConfigPro) config).getLogEngine().layoutClassDefintion(cdLay.getClassName());
 			} else {
 				String layout = Caster.toString(v.get("layout", null), null);
-				if (layout != null) cdLay = ((ConfigPro) config).getLogEngine().appenderClassDefintion(layout);
+				if (layout != null) cdLay = ((ConfigPro) config).getLogEngine().layoutClassDefintion(layout);
 			}
 
 			if (cdApp != null && cdApp.hasClass()) {
