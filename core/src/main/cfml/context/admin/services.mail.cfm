@@ -1,23 +1,23 @@
-<!--- 
+<!---
 Defaults --->
 <cfparam name="form.mainAction" default="none">
 <cfparam name="error" default="#struct(message:"",detail:"")#">
 <cfparam name="stveritfymessages" default="#struct()#">
 <cfparam name="url.action2" default="list">
-<cfadmin 
+<cfadmin
 	action="securityManager"
 	type="#request.adminType#"
 	password="#session["password"&request.adminType]#"
 	returnVariable="hasAccess"
 	secType="mail"
 	secValue="yes">
-	
-<cfadmin 
+
+<cfadmin
 	action="getMailSetting"
 	type="#request.adminType#"
 	password="#session["password"&request.adminType]#"
 	returnVariable="mail">
-<cfadmin 
+<cfadmin
 	action="getMailServers"
 	type="#request.adminType#"
 	password="#session["password"&request.adminType]#"
@@ -75,26 +75,26 @@ Defaults --->
 		<!--- Setting --->
 		<cfcase value="#stText.Buttons.Setting#">
 			<cfif form._mainAction EQ stText.Buttons.update>
-				<cfadmin 
+				<cfadmin
 					action="updateMailSetting"
 					type="#request.adminType#"
 					password="#session["password"&request.adminType]#"
-					
+
 					spoolEnable="#isDefined("form.spoolenable") and form.spoolenable#"
 					timeout="#form.timeout#"
 					defaultEncoding="#form.defaultEncoding#"
 					remoteClients="#request.getRemoteClients()#">
 			<cfelseif form._mainAction EQ stText.Buttons.resetServerAdmin>
 				<!--- reset to server setting --->
-				<cfadmin 
+				<cfadmin
 					action="updateMailSetting"
 					type="#request.adminType#"
 					password="#session["password"&request.adminType]#"
-					
+
 					spoolEnable=""
 					timeout=""
 					defaultEncoding=""
-					
+
 					remoteClients="#request.getRemoteClients()#">
 			 </cfif>
 		</cfcase>
@@ -102,7 +102,7 @@ Defaults --->
 		<cfcase value="#stText.Buttons.Update#">
 			<!--- update --->
 			<cfif form.subAction EQ "#stText.Buttons.Update#">
-							
+
 				<cfset data.hosts=toArrayFromForm("hostname")>
 				<cfset data.usernames=toArrayFromForm("username")>
 				<cfset data.passwords=toArrayFromForm("password")>
@@ -113,15 +113,14 @@ Defaults --->
 				<cfset data.ids=toArrayFromForm("id")>
 				<cfset data.idles=toTimeSpan("idle")>
 				<cfset data.lifes=toTimeSpan("life")>
-				
+
 				<cfloop index="idx" from="1" to="#arrayLen(data.hosts)#">
-					<cfif isDefined("data.rows[#idx#]") and data.hosts[idx] NEQ "">
-						<cfparam name="data.ports[idx]" default="25">
-						<cfif trim(data.ports[idx]) EQ "">
-							<cfset data.ports[idx]=25>
+					<cfif arrayIsDefined(data.rows, idx) and data.hosts[idx] NEQ "">
+						<cfif NOT arrayIsDefined(data.ports, idx) OR trim(data.ports[idx]) EQ "">
+							<cfset data.ports[idx] = 25 />
 						</cfif>
 						<cfset pw=toPassword(data.hosts[idx],session["password"&request.adminType], ms)>
-						<cfadmin 
+						<cfadmin
 							action="updateMailServer"
 							type="#request.adminType#"
 							password="#pw#"
@@ -130,12 +129,10 @@ Defaults --->
 							dbpassword="#toPassword(data.hosts[idx],data.passwords[idx], ms)#"
 							life="#data.lifes[idx]#"
 							idle="#data.idles[idx]#"
-							
-
 							port="#data.ports[idx]#"
-							id="#isDefined("data.ids[#idx#]")?data.ids[idx]:''#"
-							tls="#isDefined("data.tlss[#idx#]") and data.tlss[idx]#"
-							ssl="#isDefined("data.ssls[#idx#]") and data.ssls[idx]#"
+							id="#arrayIsDefined(data.ids, idx) ? data.ids[idx] : ''#"
+							tls="#arrayIsDefined(data.tlss, idx) and data.tlss[idx]#"
+							ssl="#arrayIsDefined(data.ssls, idx) and data.ssls[idx]#"
 							remoteClients="#request.getRemoteClients()#">
 					</cfif>
 				</cfloop>
@@ -148,13 +145,12 @@ Defaults --->
 				<cflock type="exclusive" scope="application" timeout="5"></cflock> --->
 				<cfset len=arrayLen(data.hosts)>
 				<cfloop index="idx" from="1" to="#len#">
-					<cfif isDefined("data.rows[#idx#]") and data.hosts[idx] NEQ "">
-						<cfadmin 
+					<cfif arrayIsDefined(data.rows, idx) and data.hosts[idx] NEQ "">
+						<cfadmin
 							action="removeMailServer"
 							type="#request.adminType#"
 							password="#session["password"&request.adminType]#"
-							
-							id="#isDefined("data.ids[#idx#]")?data.ids[idx]:''#"
+							id="#structKeyExists(data, "ids") and arrayIsDefined(data.ids, idx) ? data.ids[idx] : ''#"
 							hostname="#data.hosts[idx]#"
 							username="#data.usernames[idx]#"
 							remoteClients="#request.getRemoteClients()#">
@@ -168,9 +164,9 @@ Defaults --->
 				<cfset data.ports=toArrayFromForm("port")>
 				<cfset doNotRedirect=true>
 				<cfloop index="idx" from="1" to="#arrayLen(data.rows)#">
-					<cfif isDefined("data.rows[#idx#]") and isDefined("data.hosts[#idx#]") and data.hosts[idx] NEQ "">
+					<cfif arrayIsDefined(data.rows, idx) and arrayIsDefined(data.hosts, idx) and data.hosts[idx] NEQ "">
 						<cftry>
-							<cfadmin 
+							<cfadmin
 								action="verifyMailServer"
 								type="#request.adminType#"
 								password="#session["password"&request.adminType]#"
@@ -217,7 +213,7 @@ Defaults --->
 	</cfcatch>
 </cftry>
 
-<!--- Redirtect to entry --->
+<!--- Redirect to entry --->
 <cfif cgi.request_method EQ "POST" and error.message EQ "" and not isDefined('doNotRedirect')>
 	<cflocation url="#request.self#?action=#url.action#" addtoken="no">
 </cfif>
