@@ -1,6 +1,28 @@
 component extends = "org.lucee.cfml.test.LuceeTestCase" {
 
 	function run( testResults, textbox ) {
+
+		describe(title="LDEV-5758 test merging cfconfig.json - extensions", body=function(){
+
+			it(title = "re-importing the same config should result in no changes", body = function ( currentSpec ){
+				var merger = _getMerger();
+
+				var current = deserializeJSON( FileRead( expandPath( "{lucee-config}/.CFConfig.json" ) ) );
+
+				var src = duplicate( current );
+				var import = duplicate( current );
+
+				merger.merge( src, import );
+
+				expect( src ).toHaveLength( structCount( current ) );
+
+				var srcJson = serializeJSON( var=src, compact="false" );
+				var currentJson = serializeJSON( var=current, compact="false" );
+				
+				expect( srcJson ).toBe( currentJson );
+			});
+		});
+
 		describe(title="LDEV-5758 test merging cfconfig.json - extensions", body=function(){
 
 			it(title = "check config import update", body = function ( currentSpec ){
