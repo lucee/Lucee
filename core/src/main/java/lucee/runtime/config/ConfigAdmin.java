@@ -93,6 +93,7 @@ import lucee.runtime.cache.CacheConnection;
 import lucee.runtime.cache.CacheUtil;
 import lucee.runtime.cfx.CFXTagException;
 import lucee.runtime.cfx.CFXTagPool;
+import lucee.runtime.config.ConfigMerge;
 import lucee.runtime.config.maven.MavenUpdateProvider;
 import lucee.runtime.converter.ConverterException;
 import lucee.runtime.converter.JSONConverter;
@@ -6915,7 +6916,7 @@ public final class ConfigAdmin {
 	public void updateConfig(Struct data, boolean flushExistingData) throws SecurityException {
 		checkWriteAccess();
 		if (flushExistingData) root.clear();
-		StructUtil.merge(root, data);
+		ConfigMerge.merge(root, data);
 	}
 
 	public static class AlreadyInstalledExtension extends ApplicationException {

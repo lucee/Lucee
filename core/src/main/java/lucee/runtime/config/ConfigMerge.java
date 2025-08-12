@@ -1,3 +1,5 @@
+package lucee.runtime.config;
+
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.Array;
