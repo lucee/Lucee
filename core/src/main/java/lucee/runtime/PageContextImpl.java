@@ -2283,8 +2283,8 @@ public final class PageContextImpl extends PageContext {
 			if (ep != null) {
 				try {
 					Struct sct = pe.getErrorBlock(this, ep);
-					variablesScope().setEL(KeyConstants._error, sct);
 					variablesScope().setEL(KeyConstants._cferror, sct);
+					variablesScope().setEL(KeyConstants._error, pe.getErrorBlock(this, new ErrorPageImpl()));
 
 					doInclude(new PageSource[] { ep.getTemplate() }, false);
 					return;
@@ -2334,6 +2334,7 @@ public final class PageContextImpl extends PageContext {
 						Struct catchBlock = pe.getCatchBlock(getConfig());
 						variablesScope().setEL(KeyConstants._cfcatch, catchBlock);
 						variablesScope().setEL(KeyConstants._catch, catchBlock);
+						variablesScope().setEL(KeyConstants._error, pe.getErrorBlock(this, new ErrorPageImpl()));
 						doInclude(template, false);
 						return;
 					}
