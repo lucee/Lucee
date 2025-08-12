@@ -57,7 +57,17 @@ public final class ParserString {
 	 * @param text CFML Code
 	 */
 	public ParserString(String text) {
-		init(text);
+		init(text, false);
+	}
+
+	/**
+	 * This constructor allows stripping comments from SQL Text
+	 * 
+	 * @param text SQL Text
+	 * @param doIgnoreComments strip sql comments from text
+	 */
+	public ParserString(String text, boolean doIgnoreComments) {
+		init(text, doIgnoreComments);
 	}
 
 	/**
@@ -66,7 +76,8 @@ public final class ParserString {
 	 * 
 	 * @param str
 	 */
-	protected void init(String str) {
+	protected void init(String str, boolean doIgnoreComments) {
+		if (doIgnoreComments) str = stripSqlComments(str);
 		int len = str.length();
 		text = new char[len];
 		lcText = new char[len];
@@ -699,6 +710,42 @@ public final class ParserString {
 			pos++;
 		}
 		return (start < pos);
+	}
+	/**
+	 * Strip out all sql comments
+	 * 
+	 * @return SQL text with comments stripped out
+	 */
+	public String stripSqlComments(String sql) {
+		char c;
+		int sqlLen = sql.length();
+		StringBuilder sb = new StringBuilder();
+
+		for (int i = 0; i < sqlLen; i++) {
+			c = sql.charAt(i);
+			if ( i < (sqlLen - 1)) {
+				// handle multi line comment
+				if (c == '/' && sql.charAt(i + 1) == '*') {
+					int end = sql.indexOf("*/", i + 2);
+					if (end != -1) {
+						i = end + 1;
+						continue;
+					}
+				}
+
+				// handle single line comment
+				if (c == '-' && i < (sqlLen - 1) && sql.charAt(i + 1) == '-') {
+					int end = sql.indexOf('\n', i + 1);
+					if (end == -1) {
+						break; // end of sql string
+					}
+					i = end;
+					continue;
+				}
+			}
+			sb.append(c);
+		}
+		return sb.toString().trim();
 	}
 
 	public void revertRemoveSpace() {
