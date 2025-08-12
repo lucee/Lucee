@@ -136,8 +136,13 @@ public class GetApplicationSettings extends BIF {
 				if (!sxml.containsKey(name)) sxml.setEL(name, xmlFeatures.get(name));
 			}
 		}
-		sct.setEL("xmlFeatures", sxml);
+		int _inspectTemplate = ((ConfigPro) pc.getConfig()).getInspectTemplate();
+		String inspectTemplate = "once";
+		if (_inspectTemplate == ConfigPro.INSPECT_ALWAYS) inspectTemplate = "always";
+		else if (_inspectTemplate == ConfigPro.INSPECT_NEVER) inspectTemplate = "never";
 
+		sct.setEL("xmlFeatures", sxml);
+		sct.setEL("inspectTemplate", inspectTemplate);
 		sct.setEL("customTagPaths", toArray(ac.getCustomTagMappings()));
 		sct.setEL("componentPaths", toArray(ac.getComponentMappings()));
 		sct.setEL("loginStorage", AppListenerUtil.translateLoginStorage(ac.getLoginStorage()));
