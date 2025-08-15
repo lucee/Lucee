@@ -2805,7 +2805,6 @@ To use cached data, the tag must be called with the exact same arguments.</descr
 		<attribute>
 			<type>boolean</type>
 			<name>stopOnError</name>
-			<status>unimplemented</status>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Stop execution on error, default is true</description>

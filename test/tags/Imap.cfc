@@ -48,7 +48,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="imap" {
 						username = imapCfg.USERNAME,
 						password = imapCfg.PASSWORD,
 						secure = true,
-						name = "local.messages"
+						name = "local.messages",
+						stopOnError = false
 					);
 					/*
 					systemOutput("----------getAll", true);
@@ -177,7 +178,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="imap" {
 							port = imapCfg.PORT_SECURE,
 							username = imapCfg.USERNAME,
 							password = imapCfg.PASSWORD,
-							secure = true
+							secure = true,
+							stopOnError = false
 						);
 					} catch ( any e ){
 						var result = e.message;

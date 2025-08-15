@@ -149,6 +149,7 @@ public abstract class MailClient implements PoolItem {
 	private final boolean secure;
 	private static Pool pool = new Pool(60000, 100, 5000);
 	private String delimiter = ",";
+	private boolean stopOnError = true;
 
 	public static MailClient getInstance(int type, String server, int port, String username, String password, boolean secure, String name, String id) throws Exception {
 		String uid;
@@ -242,6 +243,13 @@ public abstract class MailClient implements PoolItem {
 	}
 
 	/**
+	 * @param stopOnError whether to stop on error, IMAP only
+	 */
+	public void stopOnError(boolean stopOnError) {
+		this.stopOnError = stopOnError;
+	}
+
+	/**
 	 * connects to pop server
 	 * 
 	 * @throws MessagingException
@@ -321,6 +329,11 @@ public abstract class MailClient implements PoolItem {
 		try {
 			folder.setFlags(amessage, new Flags(Flags.Flag.DELETED), true);
 		}
+		catch (MessagingException e) {
+			if (this.stopOnError) {
+				throw e;
+			}
+		}
 		finally {
 			folder.close(true);
 		}
@@ -355,13 +368,18 @@ public abstract class MailClient implements PoolItem {
 		try {
 			getMessages(qry, folder, uids, messageNumbers, startrow, maxrows, all);
 		}
+		catch (MessagingException e) {
+			if (this.stopOnError) {
+				throw e;
+			}
+		}
 		finally {
 			folder.close(false);
 		}
 		return qry;
 	}
 
-	private void toQuery(Query qry, Message message, Object uid, boolean all) {
+	private void toQuery(Query qry, Message message, Object uid, boolean all) throws MessagingException {
 		int row = qry.addRow();
 		// date
 		try {
@@ -375,6 +393,9 @@ public abstract class MailClient implements PoolItem {
 			qry.setAtEL(SUBJECT, row, message.getSubject());
 		}
 		catch (MessagingException e) {
+			if (this.stopOnError) {
+				throw e;
+			}
 			qry.setAtEL(SUBJECT, row, "MessagingException:" + e.getMessage());
 		}
 
@@ -416,6 +437,9 @@ public abstract class MailClient implements PoolItem {
 			}
 		}
 		catch (MessagingException e) {
+			if (this.stopOnError) {
+				throw e;
+			}
 		}
 		qry.setAtEL(HEADER, row, content.toString());
 
@@ -856,6 +880,11 @@ public abstract class MailClient implements PoolItem {
 			srcFolder.copyMessages(amessage, trgFolder);
 			srcFolder.setFlags(amessage, new Flags(Flags.Flag.DELETED), true);
 		}
+		catch (MessagingException e) {
+			if (this.stopOnError) {
+				throw e;
+			}
+		}
 		finally {
 			srcFolder.close(true);
 			trgFolder.close(true);
@@ -871,6 +900,11 @@ public abstract class MailClient implements PoolItem {
 			folder.open(2);
 			Message[] msgs = folder.getMessages();
 			folder.setFlags(msgs, new Flags(Flags.Flag.SEEN), true);
+		}
+		catch (MessagingException e) {
+			if (this.stopOnError) {
+				throw e;
+			}
 		}
 		finally {
 			if (folder != null) folder.close(false);

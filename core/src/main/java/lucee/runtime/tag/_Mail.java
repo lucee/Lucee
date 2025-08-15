@@ -61,6 +61,7 @@ public abstract class _Mail extends TagImpl {
 	private String connection;
 	private String id;
 	private List<Credential> credentials = new ArrayList<_Mail.Credential>();
+	private boolean stopOnError = true;
 
 	public _Mail() {
 		this.id = CreateUniqueId.invoke();
@@ -87,6 +88,7 @@ public abstract class _Mail extends TagImpl {
 		newfolder = null;
 		recurse = false;
 		connection = null;
+		stopOnError = true;
 		super.release();
 	}
 
@@ -234,6 +236,13 @@ public abstract class _Mail extends TagImpl {
 		// does nothing this.debug = debug;
 	}
 
+	/**
+	 * @param stopOnError whether to stop on error
+	 */
+	public void stopOnError(boolean stopOnError) {
+		this.stopOnError = stopOnError;
+	}
+
 	@Override
 	public int doStartTag() throws PageException {
 
@@ -265,6 +274,7 @@ public abstract class _Mail extends TagImpl {
 		if (attachmentPath != null) client.setAttachmentDirectory(attachmentPath);
 
 		if (uid != null) messageNumber = null;
+		client.stopOnError( (getType() == MailClient.TYPE_IMAP) ? stopOnError : false );
 
 		try {
 			// client.connect();
