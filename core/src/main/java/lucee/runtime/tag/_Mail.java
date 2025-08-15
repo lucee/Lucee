@@ -239,7 +239,7 @@ public abstract class _Mail extends TagImpl {
 	/**
 	 * @param stopOnError whether to stop on error
 	 */
-	public void stopOnerror(boolean stopOnError) {
+	public void setStoponerror(boolean stopOnError) {
 		this.stopOnError = stopOnError;
 	}
 
