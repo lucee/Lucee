@@ -11,7 +11,7 @@
   <property name="bundleName" value="Lucee Core"/>
   <property name="bundleSymbolicName" value="lucee.core"/>
   
-  <property name="testboxVersion" value="3.2.0"/>
+  <property name="testboxVersion" value="6.0.1"/>
   <property name="testboxURL" 
     value="https://downloads.ortussolutions.com/ortussolutions/testbox/${testboxVersion}/testbox-${testboxVersion}.zip"/>
   <property name="extURL" value="https://extension.lucee.org/rest/extension/provider/full/"/>
@@ -25,6 +25,9 @@
   <property name="extRedis"     value="60772C12-F179-D555-8E2CD2B4F7428718;version=4.0.0.0-SNAPSHOT"/>
   <property name="extHibernate" value="FAD1E8CB-4F45-4184-86359145767C29DE;version=5.4.29.27-BETA"/>
   <property name="extEHCache"   value="87FE44E5-179C-43A3-A87B3D38BEF4652E;version=2.10.0.37-SNAPSHOT"/>
+
+  <property name="globberURL" 
+    value="https://github.com/Ortus-Solutions/globber/archive/refs/tags/v3.1.5.zip"/>
 
   <property name="stableLoader" value="lucee-5.3.7.48"/>
   <property name="javaVersionCoreDefault" value="11"/>
@@ -249,7 +252,7 @@
         </sequential>
     </macrodef>
 
-    <target name="check" depends="check-mysql,check-mssql,check-postgre,check-jdts,check-s3,check-pdf,check-admin,check-doc,check-image,check-esapi,check-scheduler,check-compress,check-testbox,check-lucee-loader-jar,download-lucee-loader-jar">
+    <target name="check" depends="check-mysql,check-mssql,check-postgre,check-jdts,check-s3,check-pdf,check-admin,check-doc,check-image,check-esapi,check-scheduler,check-compress,check-testbox,check-testbox-globber,check-lucee-loader-jar,download-lucee-loader-jar">
       <mkdir dir="${temp}/loader/extensions/"/>
     </target> 
 
@@ -566,7 +569,7 @@
 
       <jvmarg value="-Dsrc=${tmpContext}"/>
       <jvmarg value="-Dtemp=${temp}/archive"/>
-      <jvmarg value="-Dtestbox=${temp}/testbox/testbox"/>
+      <jvmarg value="-Dtestbox=${temp}/testbox/"/>
       <jvmarg value="-DcompileTestBox=${compileTestBox}"/>
       <jvmarg value="-Dlucee.base.dir=${temp}/archive/base"/>
       <jvmarg value="-Dlucee.web.dir=${temp}/archive/webroot"/>
@@ -591,8 +594,15 @@
     <copy 
 			file="${cache}/testbox-${testboxVersion}.zip" 
 			todir="${temp}"/>
-    <!-- testbox -->		
+      <!-- testbox -->		
     <unzip src="${temp}/testbox-${testboxVersion}.zip" dest="${temp}/testbox"/>
+
+    <!-- hack avoid needing all of commandbox for just one module -->
+    <copy 
+			file="${cache}/globber.zip" 
+			todir="${temp}"/>    
+    <unzip src="${temp}/globber.zip" dest="${temp}/testbox/system/modules"/>
+    <move file="${temp}/testbox/system/modules/globber-3.1.5" tofile="${temp}/testbox/system/modules/globber"/>
     <delete dir="${temp}/testbox-${testboxVersion}.zip"/>
 </target>
 <!--
@@ -679,8 +689,9 @@
       <jvmarg value="-Dtemp=${temp}"/>
       <jvmarg value="-Dbasedir=${baseDir}"/>
       <jvmarg value="-Dsrcall=${srcAll}"/>
+      <!-- 
       <jvmarg value="-Dlucee.allow.reflection=true"/>
-      <!-- <jvmarg value="-Djdk.attach.allowAttachSelf=true"/> -->
+      <jvmarg value="-Djdk.attach.allowAttachSelf=true"/> -->
       <jvmarg value="-DtestboxArchive=${temp}/archive/testbox.lar"/>
       <jvmarg value="-Dexecute=${testcases}"/>
       <jvmarg value="-DindividualStorageKeys=false"/>

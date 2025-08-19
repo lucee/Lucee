@@ -4,6 +4,9 @@ component {
 	structEach(request, function(key, value) {
 		requestKeys[key] = true;
 	});
+	// variables.requestKeys = ArrayToStruct( StructKeyArray( request ), true );
+	variables.requestKeys["$testId"] = "";  // used by testbox
+	variables.requestKeys["testbox"] = "";  // used by testbox
 
 	public function init (){
 		return this;
@@ -93,7 +96,8 @@ component {
 	 onBundleStart = function( cfc, testResults ){
 		var meta = getComponentMetadata( cfc );
 		systemOutput( "" , true );
-		systemOutput(structKeyList(getApplicationSettings().mappings), true );
+		application name="testBundle-#meta.name#";
+		//systemOutput(structKeyList(getApplicationSettings().mappings), true );
 		SystemOut.setOut( out );
 		//SystemOut.setErr(err);
 		//"============================================================="
