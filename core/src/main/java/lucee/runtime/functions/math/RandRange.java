@@ -41,7 +41,7 @@ public final class RandRange implements Function {
 			max = tmp;
 		}
 		int diff = max - min;
-		return Caster.toIntValue((Rand.getRandom(algo, Double.NaN).nextDouble() * (diff + 1)) + min);
+		return Caster.toIntValue((Rand.getRandom(pc, algo, Double.NaN).nextDouble() * (diff + 1)) + min);
 	}
 
 	public static int invoke(int min, int max) throws ExpressionException {

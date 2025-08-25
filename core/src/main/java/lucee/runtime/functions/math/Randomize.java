@@ -39,9 +39,9 @@ public final class Randomize implements Function {
 	public static Number call(PageContext pc, Number number, String algorithm) throws ExpressionException {
 
 		if (ThreadLocalPageContext.preciseMath(pc)) {
-			return Caster.toBigDecimal(Rand.getRandom(algorithm, Caster.toDouble(number)).nextDouble());
+			return Caster.toBigDecimal(Rand.getRandom(pc, algorithm, Caster.toDouble(number)).nextDouble());
 		}
-		return Rand.getRandom(algorithm, Caster.toDouble(number)).nextDouble();
+		return Rand.getRandom(pc, algorithm, Caster.toDouble(number)).nextDouble();
 	}
 
 }

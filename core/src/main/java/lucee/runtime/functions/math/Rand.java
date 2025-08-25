@@ -19,23 +19,29 @@
 package lucee.runtime.functions.math;
 
 import java.security.NoSuchAlgorithmException;
+import java.security.Provider;
 import java.security.SecureRandom;
-import java.util.HashMap;
+import java.security.Security;
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.Random;
+import java.util.concurrent.ConcurrentHashMap;
 
+import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.crypt.CFMXCompat;
 import lucee.runtime.crypt.Cryptor;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ExpressionException;
+import lucee.runtime.exp.FunctionException;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.op.Caster;
+import lucee.runtime.type.util.ListUtil;
 
 public final class Rand implements Function {
 
 	private static final long serialVersionUID = -9153653138698137803L;
-	private static Map<String, Random> randoms = new HashMap<String, Random>();
+	private static Map<String, Random> randoms = new ConcurrentHashMap<String, Random>();
 
 	public static Number call(PageContext pc) throws ExpressionException {
 		return call(pc, Cryptor.DEFAULT_ALGORITHM);
@@ -43,13 +49,13 @@ public final class Rand implements Function {
 
 	public static Number call(PageContext pc, String algorithm) throws ExpressionException {
 		if (ThreadLocalPageContext.preciseMath(pc)) {
-			return Caster.toBigDecimal(getRandom(algorithm, Double.NaN).nextDouble());
+			return Caster.toBigDecimal(getRandom(pc, algorithm, Double.NaN).nextDouble());
 		}
-		return getRandom(algorithm, Double.NaN).nextDouble();
+		return getRandom(pc, algorithm, Double.NaN).nextDouble();
 	}
 
 	// Helper method to get the Random instance based on the algorithm
-	static Random getRandom(String algorithm, Double seed) throws ExpressionException {
+	static Random getRandom(PageContext pc, String algorithm, Double seed) throws ExpressionException {
 		algorithm = algorithm.toLowerCase();
 
 		Random result = randoms.get(algorithm);
@@ -63,7 +69,9 @@ public final class Rand implements Function {
 					result = SecureRandom.getInstance(algorithm);
 				}
 				catch (NoSuchAlgorithmException e) {
-					throw new ExpressionException("random algorithm [" + algorithm + "] is not installed on the system", e.getMessage());
+					FunctionException fe = new FunctionException(pc, "Rand", 1, "algorithm", "The random alogrithm [" + algorithm + "] is not supported. Supported algorithms are [ " + getAvailableRandomAlgorithms() + " ]", e.getMessage());
+					ExceptionUtil.initCauseEL(fe, e);
+					throw fe;
 				}
 			}
 
@@ -73,5 +81,18 @@ public final class Rand implements Function {
 		}
 
 		return result;
+	}
+
+	private static String getAvailableRandomAlgorithms() {
+		ArrayList<String> algorithms = new ArrayList<>();
+		for (Provider provider : Security.getProviders()) {
+			for (Provider.Service service : provider.getServices()) {
+				if ("SecureRandom".equalsIgnoreCase(service.getType())) {
+					algorithms.add(service.getAlgorithm());
+				}
+			}
+		}
+		algorithms.add(CFMXCompat.ALGORITHM_NAME);
+		return ListUtil.toList(algorithms, ", ");
 	}
 }
