@@ -69,9 +69,12 @@ public final class Rand implements Function {
 					result = SecureRandom.getInstance(algorithm);
 				}
 				catch (NoSuchAlgorithmException e) {
-					FunctionException fe = new FunctionException(pc, "Rand", 1, "algorithm", "The random alogrithm [" + algorithm + "] is not supported. Supported algorithms are [ " + getAvailableRandomAlgorithms() + " ]", e.getMessage());
-					ExceptionUtil.initCauseEL(fe, e);
-					throw fe;
+					if (pc != null) {
+						FunctionException fe = new FunctionException(pc, "Rand", 1, "algorithm", "The random alogrithm [" + algorithm + "] is not supported. Supported algorithms are [ " + getAvailableRandomAlgorithms() + " ]", e.getMessage());
+						ExceptionUtil.initCauseEL(fe, e);
+						throw fe;
+					}
+					throw new ExpressionException("random algorithm [" + algorithm + "] is not available", e.getMessage());
 				}
 			}
 
