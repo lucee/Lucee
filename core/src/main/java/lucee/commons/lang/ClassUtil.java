@@ -263,30 +263,41 @@ public final class ClassUtil {
 			if (clazz != null) return clazz;
 		}
 		else {
-			clazz = classes.get(className);
+			// Use computeIfAbsent to atomically load and cache the class
+			clazz = classes.computeIfAbsent(className, k -> {
+				Class<?> loadedClass;
+				
+				// loader classloader
+				loadedClass = _loadClass(loaderCL, k, null, null);
+				if (loadedClass != null) return loadedClass;
+
+				// core classloader
+				loadedClass = _loadClass(coreCL, k, null, null);
+				if (loadedClass != null) return loadedClass;
+				
+				// System ClassLoader
+				try {
+					return Class.forName(k);
+				}
+				catch (ClassNotFoundException e) {
+					// Will be handled in fallback below
+				}
+				
+				// Return null if not found, will be handled below
+				return null;
+			});
+			
 			if (clazz != null) return clazz;
 
-			// loader classloader
-			clazz = _loadClass(loaderCL, className, null, exceptions);
-			if (clazz != null) {
-				classes.put(className, clazz);
-				return clazz;
+			// If we reach here, class wasn't found - collect exceptions for error reporting
+			_loadClass(loaderCL, className, null, exceptions);
+			_loadClass(coreCL, className, null, exceptions);
+			try {
+				Class.forName(className);
 			}
-
-			// core classloader
-			clazz = _loadClass(coreCL, className, null, exceptions);
-			if (clazz != null) {
-				classes.put(className, clazz);
-				return clazz;
+			catch (ClassNotFoundException e) {
+				exceptions.add(e);
 			}
-		}
-
-		// System ClassLoader
-		try {
-			clazz = Class.forName(className);
-		}
-		catch (ClassNotFoundException e) {
-			exceptions.add(e);
 		}
 
 		String msg = "cannot load class through its string name, because no definition for the class with the specified name [" + className + "] could be found";
@@ -336,27 +347,49 @@ public final class ClassUtil {
 
 	private static Class loadClass(ClassLoader cl, String className, Class defaultValue, Set<Throwable> exceptions) {
 
-		if (cl != null) {
-			Class clazz = _loadClass(ClassLoaderBasedClassLoading.getClassLoaderBasedClassLoading(cl), className, defaultValue, exceptions);
-			if (clazz != null) return clazz;
-		}
-
 		// MUST javasettings?
+		// Use atomic caching for thread safety under load
+		Class clazz = classes.computeIfAbsent(className, k -> {
+			Class<?> loadedClass;
+			
+			if (cl != null) {
+				loadedClass = _loadClass(ClassLoaderBasedClassLoading.getClassLoaderBasedClassLoading(cl), k, null, null);
+				if (loadedClass != null) return loadedClass;
+			}
 
-		// OSGI env
-		Class clazz = _loadClass(new OSGiBasedClassLoading(), className, null, exceptions);
+			// OSGI env
+			loadedClass = _loadClass(new OSGiBasedClassLoading(), k, null, null);
+			if (loadedClass != null) return loadedClass;
+
+			// core classloader
+			if (cl != SystemUtil.getCoreClassLoader()) {
+				loadedClass = _loadClass(ClassLoaderBasedClassLoading.getClassLoaderBasedClassLoading(SystemUtil.getCoreClassLoader()), k, null, null);
+				if (loadedClass != null) return loadedClass;
+			}
+
+			// loader classloader
+			if (cl != SystemUtil.getLoaderClassLoader()) {
+				loadedClass = _loadClass(ClassLoaderBasedClassLoading.getClassLoaderBasedClassLoading(SystemUtil.getLoaderClassLoader()), k, null, null);
+				if (loadedClass != null) return loadedClass;
+			}
+			
+			return null;
+		});
+		
 		if (clazz != null) return clazz;
-
-		// core classloader
-		if (cl != SystemUtil.getCoreClassLoader()) {
-			clazz = _loadClass(ClassLoaderBasedClassLoading.getClassLoaderBasedClassLoading(SystemUtil.getCoreClassLoader()), className, null, exceptions);
-			if (clazz != null) return clazz;
-		}
-
-		// loader classloader
-		if (cl != SystemUtil.getLoaderClassLoader()) {
-			clazz = _loadClass(ClassLoaderBasedClassLoading.getClassLoaderBasedClassLoading(SystemUtil.getLoaderClassLoader()), className, null, exceptions);
-			if (clazz != null) return clazz;
+		
+		// If class not found, populate exceptions for error reporting
+		if (exceptions != null) {
+			if (cl != null) {
+				_loadClass(ClassLoaderBasedClassLoading.getClassLoaderBasedClassLoading(cl), className, defaultValue, exceptions);
+			}
+			_loadClass(new OSGiBasedClassLoading(), className, null, exceptions);
+			if (cl != SystemUtil.getCoreClassLoader()) {
+				_loadClass(ClassLoaderBasedClassLoading.getClassLoaderBasedClassLoading(SystemUtil.getCoreClassLoader()), className, null, exceptions);
+			}
+			if (cl != SystemUtil.getLoaderClassLoader()) {
+				_loadClass(ClassLoaderBasedClassLoading.getClassLoaderBasedClassLoading(SystemUtil.getLoaderClassLoader()), className, null, exceptions);
+			}
 		}
 
 		return defaultValue;
@@ -995,14 +1028,14 @@ public final class ClassUtil {
 
 		public static ClassLoading getClassLoaderBasedClassLoading(ClassLoader cl) {
 			if (cl instanceof ClassLoading) return (ClassLoading) cl;
-			Reference<ClassLoading> ref = instances.get(cl.hashCode());
-			ClassLoading instance = null;
-			if (ref != null) {
-				instance = ref.get();
-				if (instance != null) return instance;
+			Reference<ClassLoading> ref = instances.computeIfAbsent(cl.hashCode(),
+				k -> new SoftReference<>(new ClassLoaderBasedClassLoading(cl)));
+			ClassLoading instance = ref.get();
+			if (instance == null) {
+				// SoftReference was cleared, remove stale entry and retry
+				instances.remove(cl.hashCode(), ref);
+				return getClassLoaderBasedClassLoading(cl);
 			}
-			instance = new ClassLoaderBasedClassLoading(cl);
-			instances.put(cl.hashCode(), new SoftReference<>(instance));
 			return instance;
 		}
 
