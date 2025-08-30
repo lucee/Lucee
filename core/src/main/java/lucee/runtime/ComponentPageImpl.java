@@ -63,6 +63,8 @@ import lucee.runtime.listener.ApplicationContextSupport;
 import lucee.runtime.listener.JavaSettings;
 import lucee.runtime.listener.SerializationSettings;
 import lucee.runtime.net.http.ReqRspUtil;
+import lucee.runtime.net.rpc.OpenAPIGenerator;
+import lucee.runtime.net.rpc.OpenAPIHandler;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Constants;
 import lucee.runtime.op.Decision;
@@ -216,6 +218,16 @@ public abstract class ComponentPageImpl extends ComponentPage {
 				// WSDL
 				if (qs != null && (qs.trim().equalsIgnoreCase("wsdl") || qs.trim().startsWith("wsdl&"))) {
 					callWSDL(pc, component);
+					// close(pc);
+					return null;
+				}
+				// OpenAPI/Swagger support
+				else if (qs != null && (qs.trim().equalsIgnoreCase("openapi") || qs.trim().startsWith("openapi&"))) {
+					callOpenAPI(pc, component);
+					// close(pc);
+					return null;
+				} else if (qs != null && (qs.trim().equalsIgnoreCase("swagger") || qs.trim().startsWith("swagger&"))) {
+					callSwaggerUI(pc, component);
 					// close(pc);
 					return null;
 				}
@@ -1130,6 +1142,57 @@ public abstract class ComponentPageImpl extends ComponentPage {
 	private void callWebservice(PageContext pc, Component component) throws PageException {
 		((ConfigWebPro) ThreadLocalPageContext.getConfig(pc)).getWSHandler().getWSServer(pc).doPost(pc, pc.getHttpServletRequest(), pc.getHttpServletResponse(), component);
 	}
+
+	private void callSwaggerUI(PageContext pc, Component component) throws  IOException {
+		HttpServletRequest req = pc.getHttpServletRequest();
+		OpenAPIHandler.handleSwaggerUI(pc, req, pc.getHttpServletResponse());
+	}
+
+	private void callOpenAPI(PageContext pc, Component component) throws  PageException {
+		try {
+			// Get base URL for the component
+			HttpServletRequest req = pc.getHttpServletRequest();
+			String baseURL = req.getScheme() + "://" + req.getServerName();
+			if (req.getServerPort() != 80 && req.getServerPort() != 443) {
+				baseURL += ":" + req.getServerPort();
+			}
+			baseURL += req.getContextPath() + req.getServletPath();
+			String queryString = req.getQueryString();
+			      // Check if this is a Swagger UI request
+			if (queryString != null && (queryString.contains("swaggerui") || queryString.contains("swagger-ui"))) {
+				OpenAPIHandler.handleSwaggerUI(pc, req, pc.getHttpServletResponse());
+				return;
+			}
+			
+			// Generate OpenAPI specification using your generator
+			String openApiSpec = OpenAPIGenerator.generateOpenAPI(component, baseURL, pc);
+			
+			// Set response headers
+			HttpServletResponse rsp = pc.getHttpServletResponse();
+			ReqRspUtil.setContentType(rsp, "application/json; charset=utf-8");
+			rsp.setHeader("Access-Control-Allow-Origin", "*"); // Enable CORS for API tools
+			rsp.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+			rsp.setHeader("Pragma", "no-cache");
+			rsp.setHeader("Expires", "0");
+			
+			// Write the OpenAPI spec to response
+			OutputStream os = null;
+			try {
+				os = pc.getResponseStream();
+				byte[] bytes = openApiSpec.getBytes(getCharset(pc));
+				os.write(bytes);
+			}
+			finally {
+				IOUtil.flushEL(os);
+				IOUtil.close(os);
+				((PageContextImpl) pc).getRootOut().setClosed(true);
+			}
+		}
+		catch (Exception e) {
+			throw new ApplicationException("Error generating OpenAPI specification", e.getMessage());
+		}
+	}
+
 
 	/**
 	 * default implementation of the static constructor, that does nothing
