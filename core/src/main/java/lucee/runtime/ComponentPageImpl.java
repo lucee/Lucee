@@ -1143,12 +1143,12 @@ public abstract class ComponentPageImpl extends ComponentPage {
 		((ConfigWebPro) ThreadLocalPageContext.getConfig(pc)).getWSHandler().getWSServer(pc).doPost(pc, pc.getHttpServletRequest(), pc.getHttpServletResponse(), component);
 	}
 
-	private void callSwaggerUI(PageContext pc, Component component) throws  IOException {
+	private void callSwaggerUI(PageContext pc, Component component) throws PageException, IOException {
 		HttpServletRequest req = pc.getHttpServletRequest();
 		OpenAPIHandler.handleSwaggerUI(pc, req, pc.getHttpServletResponse());
 	}
 
-	private void callOpenAPI(PageContext pc, Component component) throws  PageException {
+	private void callOpenAPI(PageContext pc, Component component) throws PageException {
 		try {
 			// Get base URL for the component
 			HttpServletRequest req = pc.getHttpServletRequest();
