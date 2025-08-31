@@ -61,6 +61,21 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="openapi" {
 
 		});
 
+		xdescribe("remote components should call onError method", function() {
+			it( title="generate error", body=function( currentSpec ){
+				var result = internalRequest(
+					template: "/test/openapi/artifacts/openapi_only.cfc",
+					url: "method=getDateFormatted&returnFormat=json&date=lucee",
+					throwOnError: false
+				);
+				expect( result.filecontent ).toBeJson( );
+				var error = deserializeJSON( result.filecontent );
+				expect( error ).toHaveKey( "error" );
+				expect( error.error).toBeTrue();
+				expect( error.message ).toInclude( "Invalid call of the function [getDateFormatted], first Argument [date] is of invalid type" );
+			});
+		});
+
 		describe("check openApi against getMetadata", function() {
 			it( title="compare openapi service metadata against cfc metadata", body=function( currentSpec ){
 				var result = internalRequest(

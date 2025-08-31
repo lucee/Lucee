@@ -5,7 +5,7 @@ component
 
 	private function onError(exception e)
 		access="remote"
-		returntype="object"
+		returnformat="json"
 		hint="Handles errors for the API"
 		httpmethod="POST" {
 
@@ -15,9 +15,22 @@ component
 		};
 	}
 
+	private function onMissingMethod( method )
+			access="remote"
+			returnformat="json"
+			hint="Handles errors for the API"
+			httpmethod="POST" {
+		header statuscode=405;
+		content type="application/json";
+		return {
+			error: true,
+			message: "Method not found: [" & method & "]"
+		};
+	}
+
 	remote function getMetadata()
 		access="remote" 
-		returntype="object" 
+		returnFormat="json" 
 		hint="Returns a getMetadata() for this cfc"
 		httpmethod="GET" {
 		
@@ -26,7 +39,7 @@ component
 
 	remote function getName(required string name)
 		access="remote" 
-		returntype="object" 
+		returnFormat="json" 
 		hint="Returns a string"
 		httpmethod="GET" {
 		
@@ -35,7 +48,7 @@ component
 
 	remote string function getArrayAsString(required array arr)
 		access="remote" 
-		returntype="object" 
+		returnFormat="json" 
 		hint="Returns an array joined as string"
 		httpmethod="GET" {
 		
@@ -44,7 +57,7 @@ component
 
 	remote string function getNumberAsCurrency(required numeric price)
 		access="remote" 
-		returntype="object" 
+		returnFormat="json" 
 		hint="Returns an array joined as string"
 		httpmethod="GET" {
 		
@@ -53,16 +66,16 @@ component
 
 	remote string function getStructAsString(required struct s)
 		access="remote" 
-		returntype="object" 
+		returnFormat="json" 
 		hint="Returns a struct as string"
 		httpmethod="GET" {
 
 		return { "result": arguments.s.toJson() };
 	}
 
-	remote function getDateFormatted(date date)
+	remote function getDateFormatted(required date date)
 		access="remote" 
-		returntype="object" 
+		returnFormat="json" 
 		hint="Returns a formatted date string"
 		httpmethod="GET" {
 
@@ -71,7 +84,7 @@ component
 
 	remote function getBooleanAsYesNo(boolean value)
 		access="remote" 
-		returntype="object" 
+		returnFormat="json" 
 		hint="Returns a boolean as yes /  no"
 		httpmethod="GET" {
 
@@ -82,7 +95,7 @@ component
 			number version="7",
 			boolean rocks=true)
 		access="remote" 
-		returntype="object" 
+		returnFormat="json" 
 		hint="Returns a arguments"
 		httpmethod="GET" {
 		
