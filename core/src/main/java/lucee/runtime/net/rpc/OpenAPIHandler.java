@@ -8,12 +8,15 @@ import jakarta.servlet.http.HttpServletResponse;
 import lucee.runtime.Component;
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.listener.SerializationSettings;
 import lucee.runtime.net.rpc.OpenAPIGenerator;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.UDF;
 import lucee.runtime.ComponentScope;
+import lucee.runtime.converter.JSONConverter;
+import lucee.runtime.type.StructImpl;
 
 import java.util.Iterator;
 import java.util.Map.Entry;
@@ -23,52 +26,49 @@ public class OpenAPIHandler {
 	private static final String SWAGGER_UI_VERSION = "4.15.5";
 
 	public static void handleOpenAPI(PageContext pc, HttpServletRequest req, HttpServletResponse rsp) throws IOException {
+		Component comp;
+		boolean openApiEnabled = false;
 		try {
 			// Get the CFC path from the request
-			Component comp = loadAndValidateComponent(pc, req);
-
-			boolean openApiEnabled = Caster.toBooleanValue(comp.getMetaData(pc).get("openApi", null), false);
-
-			// check that the component has the attribute openApi="true"
-			if (!openApiEnabled) {
-				writeErrorResponse(rsp, HttpServletResponse.SC_FORBIDDEN,
-					"Component is not enabled for OpenAPI");
-				return;
-			}
-
-			// Check if component allows remote access
-			if (!hasRemoteMethods(comp)) {
-				writeErrorResponse(rsp, HttpServletResponse.SC_METHOD_NOT_ALLOWED,
-					"No remote methods found in component");
-				return;
-			}
-
-			// Generate OpenAPI spec
-			String cfcPath = req.getServletPath();
-			if (cfcPath.endsWith(CFC_EXTENSION)) {
-				cfcPath = cfcPath.substring(0, cfcPath.length() - CFC_EXTENSION.length());
-			}
-			String baseURL = req.getScheme() + "://" + req.getServerName() +
-						":" + req.getServerPort() + req.getContextPath() + "/" + cfcPath + CFC_EXTENSION;
-
-			String openApiJson = OpenAPIGenerator.generateOpenAPI(comp, baseURL, pc);
-
-			// Set response headers
-			rsp.setContentType("application/json");
-			rsp.setCharacterEncoding("UTF-8");
-			rsp.setHeader("Access-Control-Allow-Origin", "*"); // For CORS if needed
-			rsp.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-
-			// Write response
-			rsp.getWriter().write(openApiJson);
-
+			comp = loadAndValidateComponent(pc, req);
+			openApiEnabled = Caster.toBooleanValue(comp.getMetaData(pc).get("openApi", null), false);
 		} catch (PageException e) {
-			writeErrorResponse(rsp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, escapeJson(e.getMessage()));
-		} catch (Exception e) {
-			// Handle unexpected error
-			writeErrorResponse(rsp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, escapeJson(e.getMessage()));
+			writeErrorResponse(pc, rsp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+			return;
 		}
-}
+
+		if (!openApiEnabled) {
+			writeErrorResponse(pc, rsp, HttpServletResponse.SC_FORBIDDEN,"Component is not enabled for OpenAPI");
+			return;
+		}
+		if (!hasRemoteMethods(comp)) {
+			writeErrorResponse(pc, rsp, HttpServletResponse.SC_METHOD_NOT_ALLOWED,"No remote methods found in component");
+			return;
+		}
+
+		String cfcPath = req.getServletPath();
+		if (cfcPath.endsWith(CFC_EXTENSION)) {
+			cfcPath = cfcPath.substring(0, cfcPath.length() - CFC_EXTENSION.length());
+		}
+		String baseURL = req.getScheme() + "://" + req.getServerName() +
+					":" + req.getServerPort() + req.getContextPath() + "/" + cfcPath + CFC_EXTENSION;
+
+		String openApiJson;
+		try {
+			openApiJson = OpenAPIGenerator.generateOpenAPI(comp, baseURL, pc);
+		} catch (PageException e) {
+			writeErrorResponse(pc, rsp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+			return;
+		} catch (Exception e) {
+			writeErrorResponse(pc, rsp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+			return;
+		}
+		rsp.setContentType("application/json");
+		rsp.setCharacterEncoding("UTF-8");
+		rsp.setHeader("Access-Control-Allow-Origin", "*"); // For CORS if needed
+		rsp.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+		pc.forceWrite(openApiJson);
+	}
 
 	private static Component loadAndValidateComponent(PageContext pc, HttpServletRequest req) throws PageException {
 		// Get the CFC path from the request
@@ -76,9 +76,7 @@ public class OpenAPIHandler {
 		if (cfcPath.endsWith(CFC_EXTENSION)) {
 			cfcPath = cfcPath.substring(0, cfcPath.length() - CFC_EXTENSION.length());
 		}
-
 		Component comp = pc.loadComponent(cfcPath);
-
 		return comp;
 	}
 
@@ -92,14 +90,12 @@ public class OpenAPIHandler {
 		boolean openApiEnabled = Caster.toBooleanValue(meta.get("openApi", null), false);
 
 		if (!swaggerEnabled) {
-			writeErrorResponse(rsp, HttpServletResponse.SC_FORBIDDEN,
-					"Component is not enabled for Swagger (swagger=\"true\" required)");
+			writeErrorResponse(pc, rsp, HttpServletResponse.SC_FORBIDDEN,"Component is not enabled for Swagger (swagger=\"true\" required)");
 			return;
 		}
 
 		if (!openApiEnabled) {
-			writeErrorResponse(rsp, HttpServletResponse.SC_FORBIDDEN,
-					"Component requires OpenAPI to be enabled (openApi=\"true\" required for Swagger)");
+			writeErrorResponse(pc, rsp, HttpServletResponse.SC_FORBIDDEN,"Component requires OpenAPI to be enabled (openApi=\"true\" required for Swagger)");
 			return;
 		}
 
@@ -111,13 +107,21 @@ public class OpenAPIHandler {
 		rsp.setContentType("text/html");
 		rsp.setCharacterEncoding("UTF-8");
 		rsp.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-		rsp.getWriter().write(swaggerHtml);
+		pc.forceWrite(swaggerHtml);
 	}
 
-	private static void writeErrorResponse(HttpServletResponse rsp, int statusCode, String errorMessage) throws IOException {
+	private static void writeErrorResponse(PageContext pc, HttpServletResponse rsp, int statusCode, String errorMessage) throws IOException {
+
 		rsp.setStatus(statusCode);
 		rsp.setContentType("application/json");
-		rsp.getWriter().write("{\"error\":\"" + escapeJson(errorMessage) + "\"}");
+		try {
+			Struct errorStruct = new StructImpl();
+			errorStruct.set("error", errorMessage);
+			String json = new JSONConverter(true, null).serialize(null, errorStruct,  SerializationSettings.SERIALIZE_AS_ROW);
+			pc.forceWrite(json);
+		} catch (Exception e) {
+			throw new RuntimeException("Failed to serialize error response to JSON", e);
+		}
 	}
 
 	private static boolean hasRemoteMethods(Component comp) {
@@ -143,20 +147,12 @@ public class OpenAPIHandler {
 		}
 	}
 
-	private static String escapeJson(String str) {
-		if (str == null) return "";
-		return str.replace("\\", "\\\\")
-				  .replace("\"", "\\\"")
-				  .replace("\n", "\\n")
-				  .replace("\r", "\\r")
-				  .replace("\t", "\\t");
-	}
-
 	private static String generateSwaggerHTML(String openApiUrl, String swaggerUiVersion, String cfcPath) {
 		return "<!DOCTYPE html>\n" +
 			   "<html lang=\"en\">\n" +
 			   "<head>\n" +
 			   "  <meta charset=\"UTF-8\">\n" +
+			   "  <meta name=\"robots\" content=\"noindex, nofollow\">\n" +
 			   "  <title>API Documentation - " + cfcPath + "</title>\n" +
 			   "  <link rel=\"stylesheet\" type=\"text/css\" href=\"https://unpkg.com/swagger-ui-dist@" + swaggerUiVersion + "/swagger-ui.css\" />\n" +
 			   "  <style>\n" +

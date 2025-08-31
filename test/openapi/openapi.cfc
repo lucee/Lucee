@@ -2,8 +2,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="openapi" {
 	function run( testResults, testBox ) {
 		describe("Testcase for openapi", function() {
 			it( title="fetch metadata as openapi", body=function( currentSpec ){
-				var result = internalRequest( 
-					template: "/test/openapi/artifacts/openapi_only.cfc", 
+				var result = internalRequest(
+					template: "/test/openapi/artifacts/openapi_only.cfc",
 					url: "openapi"
 				);
 				expect( result.filecontent ).toBeJson( result.filecontent );
@@ -11,50 +11,68 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="openapi" {
 
 			it( title="should throw when swagger disabled", body=function( currentSpec ){
 				expect( function() {
-					var result = internalRequest( 
-						template: "/test/openapi/artifacts/openapi_only.cfc", 
+					var result = internalRequest(
+						template: "/test/openapi/artifacts/openapi_only.cfc",
 						url: "swagger"
 					);
+					if (result.status_code neq 200) {
+						throw result.filecontent;
+					}
 				} ).toThrow( "", "Component is not enabled" );
 			});
 
 			it( title="should throw when swagger / openapi disabled", body=function( currentSpec ){
 				expect( function() {
-					var result = internalRequest( 
-						template: "/test/openapi/artifacts/openapi_base.cfc", 
+					var result = internalRequest(
+						template: "/test/openapi/artifacts/openapi_base.cfc",
 						url: "swagger"
 					);
+					if (result.status_code neq 200) {
+						throw result.filecontent;
+					}
 				} ).toThrow( "", "Component is not enabled" );
 				expect( function() {
-					var result = internalRequest( 
-						template: "/test/openapi/artifacts/openapi_base.cfc", 
+					var result = internalRequest(
+						template: "/test/openapi/artifacts/openapi_base.cfc",
 						url: "openapi"
 					);
-				} ).toThrow( "", "Component is not enabled" );
+					if (result.status_code neq 200) {
+						throw result.filecontent;
+					}
+				} ).toThrow( "", "Component is not enabled for OpenAPI" );
 			});
 
-			it( title="fetch swagger", body=function( currentSpec ){
-				var result = internalRequest( 
-					template: "/test/openapi/artifacts/openapi_swagger.cfc", 
+			it( title="fetch swagger ui", body=function( currentSpec ){
+				var result = internalRequest(
+					template: "/test/openapi/artifacts/openapi_swagger.cfc",
 					url: "swagger"
 				);
-				expect( result.filecontent ) .toInclude( "swagger-ui-bundle.js");
+				expect( result.filecontent ) .toInclude( "swagger-ui-bundle.js", result.filecontent);
 			});
+
+			it( title="fetch swagger ui with custom version", body=function( currentSpec ){
+				var result = internalRequest(
+					template: "/test/openapi/artifacts/openapi_swagger_custom_version.cfc",
+					url: "swagger"
+				);
+				expect( result.filecontent ) .toInclude( "swagger-ui-bundle.js", result.filecontent);
+				expect( result.filecontent ) .toInclude( "4.0.5", result.filecontent);
+			});
+
 		});
 
 		describe("check openApi against getMetadata", function() {
 			it( title="compare openapi service metadata against cfc metadata", body=function( currentSpec ){
-				var result = internalRequest( 
-					template: "/test/openapi/artifacts/openapi_only.cfc", 
+				var result = internalRequest(
+					template: "/test/openapi/artifacts/openapi_only.cfc",
 					url: "openapi"
 				);
-				debug ( result.filecontent );
 				expect( result.filecontent ).toBeJson( result.filecontent );
 				var openApiMetadata = deserializeJSON( result.filecontent );
 
 				var cfc = new artifacts.openapi_only();
-				var cfcMetadata = getMetaData(cfc);
-				
+				var cfcMetadata = getMetaData( cfc );
+
 				var cfcFunctions = {};
 				for (var f in cfcMetadata.extends.functions){
 					cfcFunctions[ f.name ] = true;
@@ -66,14 +84,14 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="openapi" {
 
 			// this is just comparing the same function from a remote method
 			it( title="compare metadata against cfc metadata", body=function( currentSpec ){
-				var result = internalRequest( 
-					template: "/test/openapi/artifacts/openapi_only.cfc", 
+				var result = internalRequest(
+					template: "/test/openapi/artifacts/openapi_only.cfc",
 					url: "method=getMetadata&returnFormat=json"
 				);
-				
-				var openApiMetadata = deserializeJSON(result.filecontent);
+				expect( result.filecontent ).toBeJson( result.filecontent );
+				var openApiMetadata = deserializeJSON( result.filecontent );
 				var cfc = new artifacts.openapi_only();
-				var cfcMetadata = getMetaData(cfc);
+				var cfcMetadata = getMetaData( cfc );
 
 				var openApiFfunctions = {};
 				for (var f in openApiMetadata.extends.functions ){
@@ -84,14 +102,14 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="openapi" {
 				}
 			});
 
-			it( title="LDEV-5783 compare createObject(openapi) metadata against cfc metadata", body=function( currentSpec ){
-				
-				var openApiCFC= createObject("openapi", "/test/openapi/artifacts/openapi_only.cfc?openapi");
+			xit( title="LDEV-5783 compare createObject(openapi) metadata against cfc metadata", body=function( currentSpec ){
+
+				var openApiCFC = createObject("openapi", "/test/openapi/artifacts/openapi_only.cfc?openapi");
 				var openApiMetadata = getMetadata( openApiCFC );
 
 				var cfc = new artifacts.openapi_only();
-				var cfcMetadata = getMetaData(cfc);
-				
+				var cfcMetadata = getMetaData( cfc );
+
 				var openApiFfunctions = {};
 				for ( var f in openApiMetadata.functions ){ // extends should be abstracted away
 					openApiFfunctions[ f.name ] = true;

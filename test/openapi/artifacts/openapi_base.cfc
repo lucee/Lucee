@@ -1,5 +1,5 @@
 component 
-	displayname="OpenAPI Test Service" 
+	displayname="OpenAPI Base Test Component"
 	hint="A comprehensive test service demonstrating all OpenAPI data types and patterns"
 	returnFormat="json" {
 

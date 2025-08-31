@@ -145,7 +145,7 @@ public abstract class ComponentPageImpl extends ComponentPage {
 		String client = Caster.toString(req.getAttribute("client"), null);
 		// call type (invocation, store-only)
 		String callType = Caster.toString(req.getAttribute("call-type"), null);
-		boolean internalCall = "lucee-gateway-1-0".equals(client) || "lucee-listener-1-0".equals(client);
+		boolean internalCall = "lucee-gateway-1-0".equals(client) || "lucee-listener-1-0".equals(client); //TODO this doesn't get set
 		boolean fromRest = "lucee-rest-1-0".equals(client);
 		Component component;
 		try {
@@ -222,11 +222,13 @@ public abstract class ComponentPageImpl extends ComponentPage {
 					return null;
 				}
 				// OpenAPI/Swagger support
-				else if (qs != null && (qs.trim().equalsIgnoreCase("openapi") || qs.trim().startsWith("openapi&"))) {
+				else if (qs != null && (qs.trim().equalsIgnoreCase("openapi") || qs.trim().startsWith("openapi&")
+						|| qs.trim().startsWith("openapi="))) {  // TODO openapi= workaround for internalrequest
 					callOpenAPI(pc, component);
 					// close(pc);
 					return null;
-				} else if (qs != null && (qs.trim().equalsIgnoreCase("swagger") || qs.trim().startsWith("swagger&"))) {
+				} else if (qs != null && (qs.trim().equalsIgnoreCase("swagger") || qs.trim().startsWith("swagger&")
+						|| qs.trim().startsWith("swagger="))) { // TODO swagger= workaround for internalrequest
 					callSwaggerUI(pc, component);
 					// close(pc);
 					return null;
@@ -1148,51 +1150,11 @@ public abstract class ComponentPageImpl extends ComponentPage {
 		OpenAPIHandler.handleSwaggerUI(pc, req, pc.getHttpServletResponse());
 	}
 
-	private void callOpenAPI(PageContext pc, Component component) throws PageException {
-		try {
-			// Get base URL for the component
-			HttpServletRequest req = pc.getHttpServletRequest();
-			String baseURL = req.getScheme() + "://" + req.getServerName();
-			if (req.getServerPort() != 80 && req.getServerPort() != 443) {
-				baseURL += ":" + req.getServerPort();
-			}
-			baseURL += req.getContextPath() + req.getServletPath();
-			String queryString = req.getQueryString();
-			      // Check if this is a Swagger UI request
-			if (queryString != null && (queryString.contains("swaggerui") || queryString.contains("swagger-ui"))) {
-				OpenAPIHandler.handleSwaggerUI(pc, req, pc.getHttpServletResponse());
-				return;
-			}
-			
-			// Generate OpenAPI specification using your generator
-			String openApiSpec = OpenAPIGenerator.generateOpenAPI(component, baseURL, pc);
-			
-			// Set response headers
-			HttpServletResponse rsp = pc.getHttpServletResponse();
-			ReqRspUtil.setContentType(rsp, "application/json; charset=utf-8");
-			rsp.setHeader("Access-Control-Allow-Origin", "*"); // Enable CORS for API tools
-			rsp.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-			rsp.setHeader("Pragma", "no-cache");
-			rsp.setHeader("Expires", "0");
-			
-			// Write the OpenAPI spec to response
-			OutputStream os = null;
-			try {
-				os = pc.getResponseStream();
-				byte[] bytes = openApiSpec.getBytes(getCharset(pc));
-				os.write(bytes);
-			}
-			finally {
-				IOUtil.flushEL(os);
-				IOUtil.close(os);
-				((PageContextImpl) pc).getRootOut().setClosed(true);
-			}
-		}
-		catch (Exception e) {
-			throw new ApplicationException("Error generating OpenAPI specification", e.getMessage());
-		}
+	private void callOpenAPI(PageContext pc, Component component) throws PageException, IOException {
+		HttpServletRequest req = pc.getHttpServletRequest();
+		HttpServletResponse rsp = pc.getHttpServletResponse();
+		OpenAPIHandler.handleOpenAPI(pc, req, rsp);
 	}
-
 
 	/**
 	 * default implementation of the static constructor, that does nothing

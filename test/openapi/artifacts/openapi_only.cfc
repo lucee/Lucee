@@ -1,10 +1,7 @@
-component 
-    displayname="OpenAPI Test Service" 
-    hint="A comprehensive test service demonstrating all OpenAPI data types and patterns"
-    restpath="/api/test"
-    produces="application/json"
+component
+	displayname="OpenAPI Test Service - only openAPI"
+	hint="A remote cfc supporting returing openAPI schema"
 	openapi=true
-    extends="openapi_base"
-    consumes="application/json" {
+	extends="openapi_base" {
 
 }

@@ -23,48 +23,48 @@ import lucee.runtime.type.UDF;
 public class OpenAPIGenerator {
 
 	public static String generateOpenAPI(Component comp, String baseURL, PageContext pc) throws PageException, ConverterException {
-	Struct openapi = new StructImpl();
+		Struct openapi = new StructImpl();
 
-	// OpenAPI version and info
-	openapi.setEL("openapi", "3.0.3");
+		// OpenAPI version and info
+		openapi.setEL("openapi", "3.0.3");
 
-	Struct info = new StructImpl();
-	String displayName = comp.getDisplayName();
-	if (StringUtil.isEmpty(displayName)) {
-		displayName = "Lucee Remote Component API";
+		Struct info = new StructImpl();
+		String displayName = comp.getDisplayName();
+		if (StringUtil.isEmpty(displayName)) {
+			displayName = "Lucee Remote Component API";
+		}
+		info.setEL("title", displayName);
+
+		String hint = comp.getHint();
+		if (StringUtil.isEmpty(hint)) {
+			hint = "Auto-generated OpenAPI specification for Lucee remote component";
+		}
+		info.setEL("description", hint);
+		info.setEL("version", "1.0.0");
+		openapi.setEL("info", info);
+
+		// Servers
+		Array servers = new ArrayImpl();
+		Struct server = new StructImpl();
+		server.setEL("url", baseURL);
+		servers.appendEL(server);
+		openapi.setEL("servers", servers);
+
+		// Paths - generate from remote methods
+		Struct paths = new StructImpl();
+		generatePaths(comp, paths);
+		openapi.setEL("paths", paths);
+
+		// Components/Schemas
+		Struct components = new StructImpl();
+		Struct schemas = new StructImpl();
+		generateCommonSchemas(schemas);
+		components.setEL("schemas", schemas);
+		openapi.setEL("components", components);
+
+		JSONConverter converter = new JSONConverter(true, null);
+		return converter.serialize(pc, openapi, SerializationSettings.SERIALIZE_AS_ROW);
 	}
-	info.setEL("title", displayName);
-
-	String hint = comp.getHint();
-	if (StringUtil.isEmpty(hint)) {
-		hint = "Auto-generated OpenAPI specification for Lucee remote component";
-	}
-	info.setEL("description", hint);
-	info.setEL("version", "1.0.0");
-	openapi.setEL("info", info);
-
-	// Servers
-	Array servers = new ArrayImpl();
-	Struct server = new StructImpl();
-	server.setEL("url", baseURL);
-	servers.appendEL(server);
-	openapi.setEL("servers", servers);
-
-	// Paths - generate from remote methods
-	Struct paths = new StructImpl();
-	generatePaths(comp, paths);
-	openapi.setEL("paths", paths);
-
-	// Components/Schemas
-	Struct components = new StructImpl();
-	Struct schemas = new StructImpl();
-	generateCommonSchemas(schemas);
-	components.setEL("schemas", schemas);
-	openapi.setEL("components", components);
-
-	JSONConverter converter = new JSONConverter(true, null);
-	return converter.serialize(pc, openapi, SerializationSettings.SERIALIZE_AS_ROW);
-}
 
 	private static void generatePaths(Component comp, Struct paths) throws PageException {
 		ComponentScope scope = comp.getComponentScope();
