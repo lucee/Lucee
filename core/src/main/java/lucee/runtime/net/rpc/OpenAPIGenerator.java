@@ -81,7 +81,7 @@ public class OpenAPIGenerator {
 
 				// Only include remote methods
 				if (udf.getAccess() == Component.ACCESS_REMOTE) {
-					String methodName = entry.getKey().getString();
+					String methodName = udf.getFunctionName();
 					generateMethodPath(comp, udf, methodName, paths);
 				}
 			}

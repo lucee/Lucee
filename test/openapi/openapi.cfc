@@ -90,14 +90,20 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="openapi" {
 
 				var cfcFunctions = {};
 				for (var f in cfcMetadata.extends.functions){
-					cfcFunctions[ f.name ] = f.access;
+					cfcFunctions[ f.name ] = {
+						access: f.access,
+						name: f.name
+					};
 				}
 
 				for (var path in openApiMetadata.paths){
 					var method = listLast( path, "=" );
 					expect ( cfcFunctions ).toHaveKey( method );
+					// check method has the same case
+					expect ( method ).toBeWithCase( cfcFunctions[ method ].name );
+					
 					// functions the openapi spec must have access = remote
-					if ( cfcFunctions[ method ] != "remote" ) {
+					if ( cfcFunctions[ method ].access != "remote" ) {
 						expect( false ).toBeTrue( "non remote function [#method#] should not be in openapi spec" );
 					}
 				}
