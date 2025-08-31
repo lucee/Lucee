@@ -70,6 +70,8 @@ public class OpenAPIGenerator {
 		ComponentScope scope = comp.getComponentScope();
 		Iterator<Entry<Key, Object>> it = scope.entryIterator();
 
+		// TODO REST aware
+
 		while (it.hasNext()) {
 			Entry<Key, Object> entry = it.next();
 			Object obj = entry.getValue();
@@ -80,13 +82,14 @@ public class OpenAPIGenerator {
 				// Only include remote methods
 				if (udf.getAccess() == Component.ACCESS_REMOTE) {
 					String methodName = entry.getKey().getString();
-					generateMethodPath(udf, methodName, paths);
+					generateMethodPath(comp, udf, methodName, paths);
 				}
 			}
 		}
 	}
 
-	private static void generateMethodPath(UDF udf, String methodName, Struct paths) {
+	private static void generateMethodPath(Component comp, UDF udf, String methodName, Struct paths) {
+		// TODO REST aware
 		String pathKey = "?method=" + methodName;
 
 		Struct pathItem = new StructImpl();
@@ -141,6 +144,7 @@ public class OpenAPIGenerator {
 						if (!StringUtil.isEmpty(argHint)) {
 							param.setEL("description", argHint);
 						}
+						// TODO: default value
 
 						parameters.appendEL(param);
 					}
@@ -206,6 +210,8 @@ public class OpenAPIGenerator {
 			content.setEL("application/json", jsonContent);
 			response200.setEL("content", content);
 			responses.setEL("200", response200);
+
+			// TODO this needs to be reviewed
 
 			// Error responses
 			Struct response400 = new StructImpl();

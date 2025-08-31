@@ -51,7 +51,7 @@ public class OpenAPIHandler {
 			cfcPath = cfcPath.substring(0, cfcPath.length() - CFC_EXTENSION.length());
 		}
 		String baseURL = req.getScheme() + "://" + req.getServerName() +
-					":" + req.getServerPort() + req.getContextPath() + "/" + cfcPath + CFC_EXTENSION;
+					":" + req.getServerPort() + req.getContextPath() + cfcPath + CFC_EXTENSION;
 
 		String openApiJson;
 		try {
