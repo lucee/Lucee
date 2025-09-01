@@ -132,7 +132,11 @@ public class OpenAPIGenerator {
 
 					for (FunctionArgument arg : args) {
 						Struct param = new StructImpl();
-						param.setEL("name", arg.getName().getString());
+						if (arg.getTypeAsString() == "array")
+							param.setEL("name", arg.getName().getString() + "[]");
+						else
+							param.setEL("name", arg.getName().getString());
+
 						param.setEL("in", "query");
 						param.setEL("required", arg.isRequired());
 
@@ -173,10 +177,14 @@ public class OpenAPIGenerator {
 							propSchema.setEL("description", argHint);
 						}
 
-						properties.setEL(arg.getName().getString(), propSchema);
+						String name = arg.getName().getString();
+						if (arg.getTypeAsString() == "array")
+							name += "[]";
+
+						properties.setEL(name, propSchema);
 
 						if (arg.isRequired()) {
-							required.appendEL(arg.getName().getString());
+							required.appendEL(name);
 						}
 					}
 

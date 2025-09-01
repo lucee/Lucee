@@ -39,15 +39,16 @@ component
 		return { "name": arguments.name };
 	}
 
-	remote string function getArrayAsString(required array arr)
+	// arg name needs [] suffix to match array type
+	remote function getArrayAsString(required array arr)
 			access="remote"
 			returnFormat="json"
 			hint="Returns an array joined as string"
-			httpmethod="GET" {
-		return { "result": ArrayToList(arguments.arr) };
+			httpmethod="GET,POST" {
+		return { "result": ArrayToList(arguments.arr, "$") };
 	}
 
-	remote string function getNumberAsCurrency(required numeric price)
+	remote function getNumberAsCurrency(required numeric price)
 			access="remote"
 			returnFormat="json"
 			hint="Returns an array joined as string"
@@ -56,7 +57,7 @@ component
 		return { "price": dollarFormat(arguments.price) };
 	}
 
-	remote string function getStructAsString(required struct s)
+	remote function getStructAsString(required struct s)
 			access="remote"
 			returnFormat="json"
 			hint="Returns a struct as string"

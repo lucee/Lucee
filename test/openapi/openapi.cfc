@@ -61,18 +61,30 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="openapi" {
 
 		});
 
-		xdescribe("remote components should call onError method", function() {
-			it( title="generate error", body=function( currentSpec ){
+		describe("remote components should call onError method", function() {
+			it( title="firstly check works as expected with valid date", body=function( currentSpec ){
+				var testDate = "1-jan-2025";
+				var result = internalRequest(
+					template: "/test/openapi/artifacts/openapi_only.cfc",
+					url: "method=getDateFormatted&returnFormat=json&date=#testDate#"
+				);
+				expect( result.filecontent ).toBeJson( );
+				var obj = deserializeJSON( result.filecontent );
+				expect( obj ).toHaveKey( "result" );
+				expect( obj.result ).toBe( dateFormat( arguments.date, testDate ) );
+			});
+
+			xit( title="call method with invalid date, causing error ", body=function( currentSpec ){
 				var result = internalRequest(
 					template: "/test/openapi/artifacts/openapi_only.cfc",
 					url: "method=getDateFormatted&returnFormat=json&date=lucee",
 					throwOnError: false
 				);
 				expect( result.filecontent ).toBeJson( );
-				var error = deserializeJSON( result.filecontent );
-				expect( error ).toHaveKey( "error" );
-				expect( error.error).toBeTrue();
-				expect( error.message ).toInclude( "Invalid call of the function [getDateFormatted], first Argument [date] is of invalid type" );
+				var obj = deserializeJSON( result.filecontent );
+				expect( obj ).toHaveKey( "error" );
+				expect( obj.error ).toBeTrue();
+				expect( obj.message ).toInclude( "Invalid call of the function [getDateFormatted], first Argument [date] is of invalid type" );
 			});
 		});
 
@@ -146,6 +158,20 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="openapi" {
 				}
 			});
 
+		});
+
+		describe("check array syntax for args, i.e. name[]", function() {
+			it( title="compare metadata against cfc metadata", body=function( currentSpec ){
+				var arrSuffix = urlEncode("[]");
+				var result = internalRequest(
+					template: "/test/openapi/artifacts/openapi_only.cfc",
+					url: "method=getArrayAsString&returnFormat=json&arr#arrSuffix#=1&arr#arrSuffix#=2"
+				);
+				expect( result.filecontent ).toBeJson( result.filecontent );
+				var obj = deserializeJSON( result.filecontent );
+				expect( obj ).toHaveKey( "result" );
+				expect( obj.result ).toBe("1$2");;
+			});
 		});
 
 	}
