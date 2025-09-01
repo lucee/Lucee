@@ -767,7 +767,7 @@ public abstract class ComponentPageImpl extends ComponentPage {
 			// onMissingMethod
 			if (o == null) o = component.get(pc, KeyConstants._onmissingmethod, null);
 
-			Props props = getProps(pc, o, urlReturnFormat, headerReturnFormat);
+			Props props = getProps(pc, component, o, urlReturnFormat, headerReturnFormat);
 			// if(!props.output)
 			setFormat(pc.getHttpServletResponse(), props.format, cs);
 
@@ -878,7 +878,7 @@ public abstract class ComponentPageImpl extends ComponentPage {
 		}
 	}
 
-	private static Props getProps(PageContext pc, Object o, int urlReturnFormat, int headerReturnFormat) {
+	private static Props getProps(PageContext pc, Component comp, Object o, int urlReturnFormat, int headerReturnFormat) {
 
 		ApplicationContextSupport acs = (ApplicationContextSupport) pc.getApplicationContext();
 		Props props = new Props(acs != null ? acs.getReturnFormat() : UDF.RETURN_FORMAT_WDDX);
@@ -886,6 +886,8 @@ public abstract class ComponentPageImpl extends ComponentPage {
 		props.strType = "any";
 		props.secureJson = pc.getApplicationContext().getSecureJson();
 		int udfReturnFormat = -1;
+		int componentReturnFormat = -1;
+		
 		if (o instanceof UDF) {
 			UDF udf = ((UDF) o);
 			udfReturnFormat = udf.getReturnFormat(-1);
@@ -893,14 +895,25 @@ public abstract class ComponentPageImpl extends ComponentPage {
 			props.strType = udf.getReturnTypeAsString();
 			props.output = udf.getOutput();
 			if (udf.getSecureJson() != null) props.secureJson = udf.getSecureJson().booleanValue();
-		}
 
-		// returnformat
+			if (urlReturnFormat == -1 && udfReturnFormat == -1
+					&& headerReturnFormat == -1 && comp != null) {
+				try {
+					Struct compMeta = comp.getMetaData(pc);
+					Object compReturnFormat = compMeta.get(KeyConstants._returnFormat, null);
+					if (compReturnFormat != null) {
+						componentReturnFormat = UDFUtil.toReturnFormat(Caster.toString(compReturnFormat, null), -1);
+					}
+				} catch (PageException pe) {
+				}
+			}
+		}
 
 		// format
 		if (isValid(urlReturnFormat)) props.format = urlReturnFormat;
 		else if (isValid(udfReturnFormat)) props.format = udfReturnFormat;
-		else if (isValid(headerReturnFormat)) props.format = headerReturnFormat;
+		else if (isValid(headerReturnFormat)) props.format = headerReturnFormat; // TODO should this override udfReturnFormat?
+		else if (isValid(componentReturnFormat)) props.format = componentReturnFormat;
 		else {
 			props.format = acs == null ? UDF.RETURN_FORMAT_WDDX : acs.getReturnFormat();
 		}
@@ -920,7 +933,7 @@ public abstract class ComponentPageImpl extends ComponentPage {
 	public static void writeToResponseStream(PageContext pc, Component component, String methodName, int urlReturnFormat, int headerReturnFormat, Object queryFormat, Object rtn)
 			throws ConverterException, PageException, IOException {
 		Object o = component.get(KeyImpl.init(methodName), null);
-		Props p = getProps(pc, o, urlReturnFormat, headerReturnFormat);
+		Props p = getProps(pc, component, o, urlReturnFormat, headerReturnFormat);
 		_writeOut(pc, p, queryFormat, rtn, null, true);
 	}
 
