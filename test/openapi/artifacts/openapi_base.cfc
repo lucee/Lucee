@@ -1,0 +1,98 @@
+component
+	displayname="OpenAPI Base Test Component"
+	hint="A comprehensive test service demonstrating all OpenAPI data types and patterns"
+	returnFormat="json" {
+
+	private function onError(exception e)
+		returnformat="json"
+		hint="Handles errors for the API" {
+		return {
+			error: true,
+			message: e.message
+		};
+	}
+
+	private function onMissingMethod( method )
+			returnformat="json"
+			hint="Handles errors for the API" {
+		header statuscode=405;
+		content type="application/json";
+		return {
+			error: true,
+			message: "Method not found: [" & method & "]"
+		};
+	}
+
+	remote function getMetadata()
+			access="remote"
+			returnFormat="json"
+			hint="Returns a getMetadata() for this cfc"
+			httpmethod="GET" {
+		return getMetadata(this);
+	}
+
+	remote function getName(required string name)
+			access="remote"
+			returnFormat="json"
+			hint="Returns a string"
+			httpmethod="GET" {
+		return { "name": arguments.name };
+	}
+
+	// arg name needs [] suffix to match array type
+	remote function getArrayAsString( required array arr )
+			access="remote"
+			returnFormat="json"
+			hint="Returns an array joined as string"
+			httpmethod="GET,POST" {
+		return { "result": ArrayToList( arguments.arr, "$" ) };
+	}
+
+	remote function getNumberAsCurrency( required numeric price )
+			access="remote"
+			returnFormat="json"
+			hint="Returns an array joined as string"
+			httpmethod="GET" {
+
+		return { "price": dollarFormat( arguments.price ) };
+	}
+
+	remote function getStructAsString(required struct s)
+			access="remote"
+			returnFormat="json"
+			hint="Returns a struct as string"
+			httpmethod="GET" {
+		return { "result": arguments.s.toJson() };
+	}
+
+	remote function getDateFormatted(required date date)
+			access="remote"
+			returnFormat="json"
+			hint="Returns a formatted date string"
+			httpmethod="GET" {
+		return { "result": dateFormat( arguments.date, "yyyy-mm-dd" ) };
+	}
+
+	remote function getBooleanAsYesNo(boolean value)
+			access="remote"
+			returnFormat="json"
+			hint="Returns a boolean as yes /  no"
+			httpmethod="GET" {
+		return { "result": yesNoFormat(arguments.value) };
+	}
+
+	remote function getWithDefaults(string name="Lucee",
+				number version="7",
+				boolean rocks=true)
+			access="remote"
+			returnFormat="json"
+			hint="Returns a arguments"
+			httpmethod="GET" {
+		return {"arguments": arguments};
+	}
+
+	function private(){
+		return false;
+	}
+
+}

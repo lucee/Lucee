@@ -4,5 +4,10 @@
         "loader/**",
         "temp/**"
     ],
-    "cfml.engine.name": "lucee"
+    "cfml.engine.name": "lucee",
+    "workbench.colorCustomizations": {
+        "activityBar.background": "#08296A",
+        "titleBar.activeBackground": "#0C3A94",
+        "titleBar.activeForeground": "#F8FAFE"
+    }
 }

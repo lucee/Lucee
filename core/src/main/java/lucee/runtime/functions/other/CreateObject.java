@@ -105,59 +105,24 @@ public final class CreateObject extends BIF {
 		}
 		// Webservice
 		if (type.equals("webservice") || type.equals("wsdl")) {
-			String user = null;
-			String pass = null;
-			ProxyDataImpl proxy = null;
-			if (context != null) {
-				Struct args = (serverName != null) ? Caster.toStruct(serverName) : Caster.toStruct(context);
-				// basic security
-				user = Caster.toString(args.get("username", null));
-				pass = Caster.toString(args.get("password", null));
-
-				// proxy
-				String proxyServer = Caster.toString(args.get("proxyServer", null));
-				String proxyPort = Caster.toString(args.get("proxyPort", null));
-				String proxyUser = Caster.toString(args.get("proxyUser", null));
-				if (StringUtil.isEmpty(proxyUser)) proxyUser = Caster.toString(args.get("proxyUsername", null));
-				String proxyPassword = Caster.toString(args.get("proxyPassword", null));
-
-				if (!StringUtil.isEmpty(proxyServer)) {
-					proxy = new ProxyDataImpl(proxyServer, Caster.toIntValue(proxyPort, -1), proxyUser, proxyPassword);
-				}
-
-			}
-			return doWebService(pc, toClassName(pc, objClass), user, pass, proxy);
+			AuthProxyConfig config = extractAuthProxyConfig(context, serverName);
+			return doWebService(pc, toClassName(pc, objClass), config.username, config.password, config.proxy);
 		}
 		if (type.equals("http")) {
-			String user = null;
-			String pass = null;
-			ProxyDataImpl proxy = null;
-			if (context != null) {
-				Struct args = (serverName != null) ? Caster.toStruct(serverName) : Caster.toStruct(context);
-				// basic security
-				user = Caster.toString(args.get("username", null));
-				pass = Caster.toString(args.get("password", null));
-
-				// proxy
-				String proxyServer = Caster.toString(args.get("proxyServer", null));
-				String proxyPort = Caster.toString(args.get("proxyPort", null));
-				String proxyUser = Caster.toString(args.get("proxyUser", null));
-				if (StringUtil.isEmpty(proxyUser)) proxyUser = Caster.toString(args.get("proxyUsername", null));
-				String proxyPassword = Caster.toString(args.get("proxyPassword", null));
-
-				if (!StringUtil.isEmpty(proxyServer)) {
-					proxy = new ProxyDataImpl(proxyServer, Caster.toIntValue(proxyPort, -1), proxyUser, proxyPassword);
-				}
-
-			}
-			return doHTTP(pc, toClassName(pc, objClass), user, pass, proxy);
+			AuthProxyConfig config = extractAuthProxyConfig(context, serverName);
+			return doHTTP(pc, toClassName(pc, objClass), config.username, config.password, config.proxy);
 		}
 		// .net
 		if (type.equals(".net") || type.equals("dotnet")) {
 			return doDotNet(pc, toClassName(pc, objClass));
 		}
+
+		if (type.equals("openapi")) {
+			AuthProxyConfig config = extractAuthProxyConfig(context, serverName);
+			return doOpenAPI(pc, toClassName(pc, objClass), config.username, config.password, config.proxy);
+		}
 		throw new ExpressionException(
-				"Invalid argument for function createObject, first argument (type), " + "must be (com, java, webservice or component) other types are not supported");
+				"Invalid argument for function createObject, first argument (type), " + "must be (com, java, webservice, openapi or component) other types are not supported");
 
 	}
 
@@ -205,4 +170,49 @@ public final class CreateObject extends BIF {
 	public static Object doHTTP(PageContext pc, String httpUrl, String username, String password, ProxyData proxy) throws PageException {
 		return new HTTPClient(httpUrl, username, password, proxy);
 	}
+
+	public static Object doOpenAPI(PageContext pc, String httpUrl, String username, String password, ProxyData proxy) throws PageException {
+		throw new ExpressionException("TODO implement openAPI support [" + httpUrl + "]");
+	}
+
+    /**
+     * Extracts authentication and proxy configuration from context arguments
+     */
+    private static class AuthProxyConfig {
+        public final String username;
+        public final String password;
+        public final ProxyDataImpl proxy;
+        
+        public AuthProxyConfig(String username, String password, ProxyDataImpl proxy) {
+            this.username = username;
+            this.password = password;
+            this.proxy = proxy;
+        }
+    }
+    
+    private static AuthProxyConfig extractAuthProxyConfig(Object context, Object serverName) throws PageException {
+        if (context == null) {
+            return new AuthProxyConfig(null, null, null);
+        }
+        
+        Struct args = (serverName != null) ? Caster.toStruct(serverName) : Caster.toStruct(context);
+        
+        // basic security
+        String user = Caster.toString(args.get("username", null));
+        String pass = Caster.toString(args.get("password", null));
+
+        // proxy
+        String proxyServer = Caster.toString(args.get("proxyServer", null));
+        String proxyPort = Caster.toString(args.get("proxyPort", null));
+        String proxyUser = Caster.toString(args.get("proxyUser", null));
+        if (StringUtil.isEmpty(proxyUser)) proxyUser = Caster.toString(args.get("proxyUsername", null));
+        String proxyPassword = Caster.toString(args.get("proxyPassword", null));
+
+        ProxyDataImpl proxy = null;
+        if (!StringUtil.isEmpty(proxyServer)) {
+            proxy = new ProxyDataImpl(proxyServer, Caster.toIntValue(proxyPort, -1), proxyUser, proxyPassword);
+        }
+        
+        return new AuthProxyConfig(user, pass, proxy);
+    }
 }

@@ -48,6 +48,7 @@ If your change affects a documented feature, please also submit a pull request t
 - Follow the Eclipse settings for Java code in `/org.eclipse.jdt.core.prefs`
 - Use Tabs for indentation (2 spaces for YAML/JSON/MD)
 - Avoid adding excessively verbose comments
+- Never use Lucee in naming, use cfml instead
 
 ## Testing
 

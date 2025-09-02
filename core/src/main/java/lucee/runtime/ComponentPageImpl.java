@@ -63,6 +63,8 @@ import lucee.runtime.listener.ApplicationContextSupport;
 import lucee.runtime.listener.JavaSettings;
 import lucee.runtime.listener.SerializationSettings;
 import lucee.runtime.net.http.ReqRspUtil;
+import lucee.runtime.net.rpc.OpenAPIGenerator;
+import lucee.runtime.net.rpc.OpenAPIHandler;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Constants;
 import lucee.runtime.op.Decision;
@@ -143,7 +145,7 @@ public abstract class ComponentPageImpl extends ComponentPage {
 		String client = Caster.toString(req.getAttribute("client"), null);
 		// call type (invocation, store-only)
 		String callType = Caster.toString(req.getAttribute("call-type"), null);
-		boolean internalCall = "lucee-gateway-1-0".equals(client) || "lucee-listener-1-0".equals(client);
+		boolean internalCall = "lucee-gateway-1-0".equals(client) || "lucee-listener-1-0".equals(client); //TODO this doesn't get set
 		boolean fromRest = "lucee-rest-1-0".equals(client);
 		Component component;
 		try {
@@ -216,6 +218,18 @@ public abstract class ComponentPageImpl extends ComponentPage {
 				// WSDL
 				if (qs != null && (qs.trim().equalsIgnoreCase("wsdl") || qs.trim().startsWith("wsdl&"))) {
 					callWSDL(pc, component);
+					// close(pc);
+					return null;
+				}
+				// OpenAPI/Swagger support
+				else if (qs != null && (qs.trim().equalsIgnoreCase("openapi") || qs.trim().startsWith("openapi&")
+						|| qs.trim().startsWith("openapi="))) {  // TODO openapi= workaround for internalrequest
+					callOpenAPI(pc, component);
+					// close(pc);
+					return null;
+				} else if (qs != null && (qs.trim().equalsIgnoreCase("swagger") || qs.trim().startsWith("swagger&")
+						|| qs.trim().startsWith("swagger="))) { // TODO swagger= workaround for internalrequest
+					callSwaggerUI(pc, component);
 					// close(pc);
 					return null;
 				}
@@ -753,7 +767,7 @@ public abstract class ComponentPageImpl extends ComponentPage {
 			// onMissingMethod
 			if (o == null) o = component.get(pc, KeyConstants._onmissingmethod, null);
 
-			Props props = getProps(pc, o, urlReturnFormat, headerReturnFormat);
+			Props props = getProps(pc, component, o, urlReturnFormat, headerReturnFormat);
 			// if(!props.output)
 			setFormat(pc.getHttpServletResponse(), props.format, cs);
 
@@ -864,7 +878,7 @@ public abstract class ComponentPageImpl extends ComponentPage {
 		}
 	}
 
-	private static Props getProps(PageContext pc, Object o, int urlReturnFormat, int headerReturnFormat) {
+	private static Props getProps(PageContext pc, Component comp, Object o, int urlReturnFormat, int headerReturnFormat) {
 
 		ApplicationContextSupport acs = (ApplicationContextSupport) pc.getApplicationContext();
 		Props props = new Props(acs != null ? acs.getReturnFormat() : UDF.RETURN_FORMAT_WDDX);
@@ -872,6 +886,8 @@ public abstract class ComponentPageImpl extends ComponentPage {
 		props.strType = "any";
 		props.secureJson = pc.getApplicationContext().getSecureJson();
 		int udfReturnFormat = -1;
+		int componentReturnFormat = -1;
+		
 		if (o instanceof UDF) {
 			UDF udf = ((UDF) o);
 			udfReturnFormat = udf.getReturnFormat(-1);
@@ -879,14 +895,25 @@ public abstract class ComponentPageImpl extends ComponentPage {
 			props.strType = udf.getReturnTypeAsString();
 			props.output = udf.getOutput();
 			if (udf.getSecureJson() != null) props.secureJson = udf.getSecureJson().booleanValue();
-		}
 
-		// returnformat
+			if (urlReturnFormat == -1 && udfReturnFormat == -1
+					&& headerReturnFormat == -1 && comp != null) {
+				try {
+					Struct compMeta = comp.getMetaData(pc);
+					Object compReturnFormat = compMeta.get(KeyConstants._returnFormat, null);
+					if (compReturnFormat != null) {
+						componentReturnFormat = UDFUtil.toReturnFormat(Caster.toString(compReturnFormat, null), -1);
+					}
+				} catch (PageException pe) {
+				}
+			}
+		}
 
 		// format
 		if (isValid(urlReturnFormat)) props.format = urlReturnFormat;
 		else if (isValid(udfReturnFormat)) props.format = udfReturnFormat;
-		else if (isValid(headerReturnFormat)) props.format = headerReturnFormat;
+		else if (isValid(headerReturnFormat)) props.format = headerReturnFormat; // TODO should this override udfReturnFormat?
+		else if (isValid(componentReturnFormat)) props.format = componentReturnFormat;
 		else {
 			props.format = acs == null ? UDF.RETURN_FORMAT_WDDX : acs.getReturnFormat();
 		}
@@ -906,7 +933,7 @@ public abstract class ComponentPageImpl extends ComponentPage {
 	public static void writeToResponseStream(PageContext pc, Component component, String methodName, int urlReturnFormat, int headerReturnFormat, Object queryFormat, Object rtn)
 			throws ConverterException, PageException, IOException {
 		Object o = component.get(KeyImpl.init(methodName), null);
-		Props p = getProps(pc, o, urlReturnFormat, headerReturnFormat);
+		Props p = getProps(pc, component, o, urlReturnFormat, headerReturnFormat);
 		_writeOut(pc, p, queryFormat, rtn, null, true);
 	}
 
@@ -1129,6 +1156,17 @@ public abstract class ComponentPageImpl extends ComponentPage {
 
 	private void callWebservice(PageContext pc, Component component) throws PageException {
 		((ConfigWebPro) ThreadLocalPageContext.getConfig(pc)).getWSHandler().getWSServer(pc).doPost(pc, pc.getHttpServletRequest(), pc.getHttpServletResponse(), component);
+	}
+
+	private void callSwaggerUI(PageContext pc, Component component) throws PageException, IOException {
+		HttpServletRequest req = pc.getHttpServletRequest();
+		OpenAPIHandler.handleSwaggerUI(pc, req, pc.getHttpServletResponse());
+	}
+
+	private void callOpenAPI(PageContext pc, Component component) throws PageException, IOException {
+		HttpServletRequest req = pc.getHttpServletRequest();
+		HttpServletResponse rsp = pc.getHttpServletResponse();
+		OpenAPIHandler.handleOpenAPI(pc, req, rsp);
 	}
 
 	/**
