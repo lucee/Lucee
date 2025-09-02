@@ -40,21 +40,21 @@ component
 	}
 
 	// arg name needs [] suffix to match array type
-	remote function getArrayAsString(required array arr)
+	remote function getArrayAsString( required array arr )
 			access="remote"
 			returnFormat="json"
 			hint="Returns an array joined as string"
 			httpmethod="GET,POST" {
-		return { "result": ArrayToList(arguments.arr, "$") };
+		return { "result": ArrayToList( arguments.arr, "$" ) };
 	}
 
-	remote function getNumberAsCurrency(required numeric price)
+	remote function getNumberAsCurrency( required numeric price )
 			access="remote"
 			returnFormat="json"
 			hint="Returns an array joined as string"
 			httpmethod="GET" {
 
-		return { "price": dollarFormat(arguments.price) };
+		return { "price": dollarFormat( arguments.price ) };
 	}
 
 	remote function getStructAsString(required struct s)
@@ -70,7 +70,7 @@ component
 			returnFormat="json"
 			hint="Returns a formatted date string"
 			httpmethod="GET" {
-		return { "result": dateFormat(arguments.date, "yyyy-mm-dd") };
+		return { "result": dateFormat( arguments.date, "yyyy-mm-dd" ) };
 	}
 
 	remote function getBooleanAsYesNo(boolean value)

@@ -71,7 +71,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="openapi" {
 				expect( result.filecontent ).toBeJson( );
 				var obj = deserializeJSON( result.filecontent );
 				expect( obj ).toHaveKey( "result" );
-				expect( obj.result ).toBe( dateFormat( arguments.date, testDate ) );
+				expect( obj.result ).toBe( dateFormat( testDate, "yyyy-mm-dd" ) );
 			});
 
 			xit( title="call method with invalid date, causing error ", body=function( currentSpec ){
