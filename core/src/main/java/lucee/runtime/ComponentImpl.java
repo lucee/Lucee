@@ -139,6 +139,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 	ComponentProperties properties;
 	private Map<Key, Member> _data;
 	private Map<Key, UDF> _udfs;
+	private Boolean isRestEnabled = null;
 
 	ComponentImpl top = this;
 	ComponentImpl base;
@@ -304,14 +305,13 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 			trg.properties = properties.duplicate();
 			trg.isInit = isInit;
 			trg.absFin = absFin;
+			trg.isRestEnabled = this.isRestEnabled;
 
 			// importDefintions
 			trg.importDefintions = importDefintions;
 
 			boolean useShadow = scope instanceof ComponentScopeShadow;
 			if (!useShadow) trg.scope = new ComponentScopeThis(trg);
-
-			boolean isRestEnabled = properties.meta != null && Caster.toBooleanValue(properties.meta.get("rest", Boolean.FALSE), false);
 
 			if (base != null) {
 				trg.base = base._duplicate(deepCopy, false);
@@ -463,8 +463,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 		}
 		hasInit = componentPage.hasInit();
 
-		// the defined order of functions in REST-enabled components is required for REST routing
-		boolean isRestEnabled = properties.meta != null && Caster.toBooleanValue(properties.meta.get("rest", Boolean.FALSE), false);
+		isRestEnabled = properties.meta != null && Caster.toBooleanValue(properties.meta.get("rest", Boolean.FALSE), false);
 
 		if (base != null) {
 			this.dataMemberDefaultAccess = base.dataMemberDefaultAccess;
@@ -960,7 +959,29 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 
 	@Override
 	public Iterator<Entry<Key, Object>> entryIterator(int access) {
+		if (isRestEnabled != null && isRestEnabled.booleanValue()) {
+			return new ComponentEntryIterator(this, keysPreservingOrder(access), access);
+		}
 		return new ComponentEntryIterator(this, keys(access), access);
+	}
+
+	private Collection.Key[] keysPreservingOrder(int access) {
+		List<Key> orderedKeys = new ArrayList<Key>();
+		
+		for (Key key : _udfs.keySet()) {
+			UDF udf = _udfs.get(key);
+			if (udf.getAccess() <= access) {
+				orderedKeys.add(key);
+			}
+		}
+		
+		for (Entry<Key, Member> entry : _data.entrySet()) {
+			if (entry.getValue().getAccess() <= access && !(entry.getValue() instanceof UDF)) {
+				orderedKeys.add(entry.getKey());
+			}
+		}
+		
+		return orderedKeys.toArray(new Collection.Key[orderedKeys.size()]);
 	}
 
 	@Override
