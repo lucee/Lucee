@@ -966,17 +966,20 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 	}
 
 	private Collection.Key[] keysPreservingOrder(int access) {
-		List<Key> orderedKeys = new ArrayList<Key>();
-		
-		for (Key key : _udfs.keySet()) {
-			UDF udf = _udfs.get(key);
-			if (udf.getAccess() <= access) {
-				orderedKeys.add(key);
-			}
+		if (_udfs.isEmpty() && _data.isEmpty()) {
+			return new Collection.Key[0];
 		}
 		
+		List<Key> orderedKeys = new ArrayList<Key>(_udfs.size() + _data.size());
+		
+		for (Entry<Key, UDF> entry : _udfs.entrySet()) {
+			if (entry.getValue().getAccess() <= access) {
+				orderedKeys.add(entry.getKey());
+			}
+		}
 		for (Entry<Key, Member> entry : _data.entrySet()) {
-			if (entry.getValue().getAccess() <= access && !(entry.getValue() instanceof UDF)) {
+			Member member = entry.getValue();
+			if (member.getAccess() <= access && !(member instanceof UDF)) {
 				orderedKeys.add(entry.getKey());
 			}
 		}
@@ -2567,6 +2570,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 		this._udfs = other._udfs;
 		setOwner(_udfs);
 		setOwner(_data);
+		this.isRestEnabled = other.isRestEnabled;
 		this.afterConstructor = other.afterConstructor;
 		this.base = other.base;
 		// this.componentPage=other.componentPage;
