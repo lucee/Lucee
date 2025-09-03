@@ -311,18 +311,22 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 			boolean useShadow = scope instanceof ComponentScopeShadow;
 			if (!useShadow) trg.scope = new ComponentScopeThis(trg);
 
+			boolean isRestEnabled = properties.meta != null && Caster.toBooleanValue(properties.meta.get("rest", Boolean.FALSE), false);
+
 			if (base != null) {
 				trg.base = base._duplicate(deepCopy, false);
 
 				trg._data = trg.base._data;
-				trg._udfs = duplicateUTFMap(this, trg, _udfs, new HashMap<Key, UDF>(trg.base._udfs));
+				Map<Key, UDF> baseMap = isRestEnabled ? new LinkedHashMap<Key, UDF>(trg.base._udfs) : new HashMap<Key, UDF>(trg.base._udfs);
+				trg._udfs = duplicateUTFMap(this, trg, _udfs, baseMap);
 
 				if (useShadow) trg.scope = new ComponentScopeShadow(trg, (ComponentScopeShadow) trg.base.scope, false);
 			}
 			else {
 				// clone data member, ignore udfs for the moment
 				trg._data = duplicateDataMember(trg, _data, new HashMap<Key, Member>(), deepCopy);
-				trg._udfs = duplicateUTFMap(this, trg, _udfs, new HashMap<Key, UDF>());
+				Map<Key, UDF> newMap = isRestEnabled ? new LinkedHashMap<Key, UDF>() : new HashMap<Key, UDF>();
+				trg._udfs = duplicateUTFMap(this, trg, _udfs, newMap);
 
 				if (useShadow) {
 					ComponentScopeShadow css = (ComponentScopeShadow) scope;
@@ -459,13 +463,15 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 		}
 		hasInit = componentPage.hasInit();
 
+		// the defined order of functions in REST-enabled components is required for REST routing
+		boolean isRestEnabled = properties.meta != null && Caster.toBooleanValue(properties.meta.get("rest", Boolean.FALSE), false);
+
 		if (base != null) {
 			this.dataMemberDefaultAccess = base.dataMemberDefaultAccess;
 			this._static = new StaticScope(base._static, this, componentPage, dataMemberDefaultAccess);
-			// this._triggerDataMember=base._triggerDataMember;
 			this.absFin = base.absFin;
 			_data = base._data;
-			_udfs = new HashMap<Key, UDF>(base._udfs);
+			_udfs = isRestEnabled ? new LinkedHashMap<Key, UDF>(base._udfs) : new HashMap<Key, UDF>(base._udfs);
 			setTop(this, base);
 			if (hasInit != ComponentUtil.HAS_INIT_TRUE) {
 				hasInit = base.hasInit();
@@ -476,7 +482,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 			this._static = new StaticScope(null, this, componentPage, dataMemberDefaultAccess);
 			// TODO get per CFC setting
 			// this._triggerDataMember=pageContext.getConfig().getTriggerComponentDataMember();
-			_udfs = new HashMap<Key, UDF>();
+			_udfs = isRestEnabled ? new LinkedHashMap<Key, UDF>() : new HashMap<Key, UDF>();
 			_data = MapFactory.getConcurrentMap();
 		}
 		// implements
