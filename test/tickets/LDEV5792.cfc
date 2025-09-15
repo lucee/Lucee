@@ -1,23 +1,23 @@
 component extends="org.lucee.cfml.test.LuceeTestCase" displayname="LDEV5792" {
 
 	function run(testResults, textbox) {
-		xdescribe(title="LDEV-5792 Dynamic Custom Tag Attribute NPE (repo)", body=function(){
+		describe(title="LDEV-5792 Dynamic Custom Tag Attribute NPE (repo)", body=function(){
 			it(title="function call as custom tag attribute throws error", body=function(currentSpec){
 				var result = runExample("ldev5792_simple.cfm");
-				   // Expect the correct output after bug is fixed
-				   expect(result).toInclude("test-simple");
+				// Expect the correct output after bug is fixed
+				expect(result).toInclude("test-simple");
 			});
 
 			it(title="nested function call as custom tag attribute throws error", body=function(currentSpec){
 				var result = runExample("ldev5792_nested_call.cfm");
-				   // Expect the correct output after bug is fixed
-				   expect(result).toInclude("inner-value");
+				// Expect the correct output after bug is fixed
+				expect(result).toInclude("inner-value");
 			});
 
 			it(title="nested custom tag inside attribute function call throws error", body=function(currentSpec){
 				var result = runExample("ldev5792_nested_tag.cfm");
-				   // Expect the correct output after bug is fixed
-				   expect(result).toInclude("nested-tag-value");
+				// Expect the correct output after bug is fixed
+				expect(result).toInclude("nested-tag-value");
 			});
 		});
 

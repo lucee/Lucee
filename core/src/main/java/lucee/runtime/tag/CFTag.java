@@ -175,7 +175,7 @@ public class CFTag extends BodyTagTryCatchFinallyImpl implements DynamicAttribut
 		try {
 			initFile();
 			callerScope.initialize(pageContext);
-			if (source.isCFC()) return cfcStartTag();
+			if (source != null && source.isCFC()) return cfcStartTag();
 			return cfmlStartTag();
 		}
 		finally {
@@ -188,7 +188,7 @@ public class CFTag extends BodyTagTryCatchFinallyImpl implements DynamicAttribut
 		PageContextImpl pci = (PageContextImpl) pageContext;
 		boolean old = pci.useSpecialMappings(true);
 		try {
-			if (source.isCFC()) _doCFCFinally();
+			if (source != null && source.isCFC()) _doCFCFinally();
 			return EVAL_PAGE;
 		}
 		finally {
@@ -203,14 +203,14 @@ public class CFTag extends BodyTagTryCatchFinallyImpl implements DynamicAttribut
 
 	@Override
 	public int doAfterBody() throws PageException {
-		if (source.isCFC()) return cfcEndTag();
+		if (source != null && source.isCFC()) return cfcEndTag();
 		return cfmlEndTag();
 	}
 
 	@Override
 	public void doCatch(Throwable t) throws Throwable {
 		ExceptionUtil.rethrowIfNecessary(t);
-		if (source.isCFC()) {
+		if (source != null && source.isCFC()) {
 			String source = isEndTag ? "end" : "body";
 			isEndTag = false;
 			_doCFCCatch(t, source, true);
@@ -712,7 +712,8 @@ public class CFTag extends BodyTagTryCatchFinallyImpl implements DynamicAttribut
 	}
 
 	public boolean isCFCBasedCustomTag() {
-		return getSource().isCFC();
+		InitFile src = getSource();
+		return src != null && src.isCFC();
 	}
 
 	private InitFile getSource() {
