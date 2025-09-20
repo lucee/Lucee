@@ -61,7 +61,7 @@ public final class PropertyImpl extends MemberSupport implements Property, ASMPr
 	}
 
 	public PropertyImpl(boolean axisType) {
-		super(Component.ACCESS_REMOTE);
+		super(Component.ACCESS_REMOTE); // TODO Review default access
 		this.axisType = axisType;
 	}
 
@@ -218,7 +218,14 @@ public final class PropertyImpl extends MemberSupport implements Property, ASMPr
 		if (!StringUtil.isEmpty(hint, true)) sct.setEL(KeyConstants._hint, hint);
 		if (!StringUtil.isEmpty(displayname, true)) sct.setEL(KeyConstants._displayname, displayname);
 		if (!StringUtil.isEmpty(type, true)) sct.setEL(KeyConstants._type, type);
-
+		if (_default != null) sct.setEL(KeyConstants._default, _default);
+		try {
+			sct.setEL(KeyConstants._access, lucee.runtime.type.util.ComponentUtil.toStringAccess(getAccess()));
+		}
+		catch (lucee.runtime.exp.ApplicationException e) {
+			sct.setEL(KeyConstants._access, "public");
+		}
+		
 		// dyn attributes
 
 		StructUtil.copy(dynAttrs, sct, true);
