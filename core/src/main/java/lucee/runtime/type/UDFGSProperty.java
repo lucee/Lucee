@@ -58,18 +58,32 @@ public abstract class UDFGSProperty extends MemberSupport implements UDFPlus {
 	protected final String name;
 	protected Component srcComponent;
 	private UDFPropertiesBase properties;
+	private String propertyTypeString = null;
 	private String id;
 
 	public UDFGSProperty(Component component, String name, FunctionArgument[] arguments, short rtnType) {
+		this(component, name, arguments, rtnType, null);
+	}
+
+	public UDFGSProperty(Component component, String name, FunctionArgument[] arguments, short rtnType, String propertyTypeString) {
 		super(Component.ACCESS_PUBLIC);
-		properties = UDFProperties(null, component.getPageSource(), arguments, name, rtnType);
+		properties = UDFProperties(null, component.getPageSource(), arguments, name, rtnType, propertyTypeString);
 		this.name = name;
 		this.arguments = arguments;
 		this.srcComponent = component;
+		this.propertyTypeString = propertyTypeString;
 	}
 
-	private static UDFPropertiesBase UDFProperties(Page page, PageSource pageSource, FunctionArgument[] arguments, String functionName, short returnType) {
-		return new UDFPropertiesLight(page, pageSource, arguments, functionName, returnType);
+	private static UDFPropertiesBase UDFProperties(Page page, PageSource pageSource, FunctionArgument[] arguments, String functionName, short returnType, String propertyTypeString) {
+		return new UDFPropertiesLight(page, pageSource, arguments, functionName, returnType, propertyTypeString);
+	}
+
+	@Override
+	public String getReturnTypeAsString() {
+		if (propertyTypeString != null && !propertyTypeString.isEmpty()) {
+			return propertyTypeString;
+		}
+		return properties.getReturnTypeAsString();
 	}
 
 	@Override

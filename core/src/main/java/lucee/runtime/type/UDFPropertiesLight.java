@@ -22,13 +22,15 @@ public final class UDFPropertiesLight extends UDFPropertiesBase {
 	private final FunctionArgument[] arguments;
 	private final String functionName;
 	private final short returnType;
+	private final String propertyTypeString;
 	private HashSet<Key> argumentsSet;
 
-	public UDFPropertiesLight(Page page, PageSource pageSource, FunctionArgument[] arguments, String functionName, short returnType) {
+	public UDFPropertiesLight(Page page, PageSource pageSource, FunctionArgument[] arguments, String functionName, short returnType, String propertyTypeString) {
 		super(page, pageSource, 0, 0);
 		this.arguments = arguments;
 		this.functionName = functionName;
 		this.returnType = returnType;
+		this.propertyTypeString = propertyTypeString;
 	}
 
 	@Override
@@ -75,6 +77,9 @@ public final class UDFPropertiesLight extends UDFPropertiesBase {
 
 	@Override
 	public String getReturnTypeAsString() {
+		if (propertyTypeString != null && !propertyTypeString.isEmpty()) {
+			return propertyTypeString;
+		}
 		return CFTypes.toString(returnType, "any");
 	}
 
