@@ -1027,7 +1027,7 @@ public final class OSGiUtil {
 		index = q.indexOf('-');
 		String qra = index == -1 ? "" : q.substring(index + 1).trim();
 		String qrn = index == -1 ? q : q.substring(0, index);
-		int qr = StringUtil.isEmpty(qln) ? Integer.MIN_VALUE : Caster.toIntValue(qrn, Integer.MAX_VALUE);
+		int qr = StringUtil.isEmpty(qrn) ? Integer.MIN_VALUE : Caster.toIntValue(qrn, Integer.MAX_VALUE);
 
 		if (ql > qr) return 5;
 		if (ql < qr) return -5;
