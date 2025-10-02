@@ -630,6 +630,9 @@
       <!---
       <jvmarg value="-XX:StartFlightRecording=disk=true,dumponexit=true,filename=${temp}/../lucee-compile.jfr,maxsize=1024m,maxage=1d,settings=profile,path-to-gc-roots=true"/>
       -->
+      <jvmarg value="--add-exports=jdk.jfr/jdk.jfr=ALL-UNNAMED" if:true="${jfrExports}"/>
+      <jvmarg value="--add-opens=jdk.jfr/jdk.jfr=ALL-UNNAMED" if:true="${jfrExports}"/>
+      <jvmarg value="--add-exports=jdk.jfr/jdk.jfr.consumer=ALL-UNNAMED" if:true="${jfrExports}"/>
 
       <jvmarg value="-Dsrc=${tmpContext}"/>
       <jvmarg value="-Dtemp=${temp}/archive"/>
@@ -770,6 +773,9 @@
       <jvmarg value="-XX:+AlwaysPreTouch" if:true="${UseEpsilonGC}"/>
       <jvmarg value="-XX:StartFlightRecording=disk=true,dumponexit=true,filename=${temp}/../lucee-testcases.jfr,maxsize=1024m,maxage=1d,settings=profile,path-to-gc-roots=true" if:true="${FlightRecording}"/>
 			<jvmarg value="-XX:FlightRecorderOptions=stackdepth=128" if:true="${FlightRecording}"/>
+      <jvmarg value="--add-exports=jdk.jfr/jdk.jfr=ALL-UNNAMED" if:true="${jfrExports}"/>
+      <jvmarg value="--add-opens=jdk.jfr/jdk.jfr=ALL-UNNAMED" if:true="${jfrExports}"/>
+      <jvmarg value="--add-exports=jdk.jfr/jdk.jfr.consumer=ALL-UNNAMED" if:true="${jfrExports}"/>
       <!--
       <jvmarg value="-XX:StartFlightRecording=disk=true,dumponexit=true,filename=${temp}/../lucee-testcases.jfr,maxsize=1024m,maxage=1d,settings=profile,path-to-gc-roots=true"/>
       <jvmarg value="-Dlucee.system.out=file:.../out.txt"/>

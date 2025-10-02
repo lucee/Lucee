@@ -23,13 +23,16 @@ import java.io.IOException;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageSource;
 import lucee.runtime.engine.CFMLEngineImpl;
+import lucee.commons.io.SystemUtil;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
-import lucee.runtime.ext.tag.BodyTagImpl;
+import lucee.runtime.ext.tag.BodyTagTryCatchFinallySupport;
 import lucee.runtime.op.Caster;
 import lucee.runtime.util.PageContextUtil;
+import lucee.runtime.jfr.JfrUtil;
+import lucee.runtime.jfr.TimerEvent;
 
-public final class Timer extends BodyTagImpl {
+public final class Timer extends BodyTagTryCatchFinallySupport {
 
 	private static final int TYPE_DEBUG = 0;
 	private static final int TYPE_INLINE = 1;
@@ -50,6 +53,8 @@ public final class Timer extends BodyTagImpl {
 	private long time;
 	private long exe;
 	private String variable;
+	private boolean jfr = false;
+	private TimerEvent jfrEvent;
 
 	@Override
 	public void release() {
@@ -59,6 +64,8 @@ public final class Timer extends BodyTagImpl {
 		label = "";
 		unitDesc = "ms";
 		variable = null;
+		jfr = false;
+		jfrEvent = null;
 	}
 
 	/**
@@ -117,11 +124,15 @@ public final class Timer extends BodyTagImpl {
 
 	/**
 	 * Set the value variable, tThe name of the variable in which to save the execution time into tag.
-	 * 
+	 *
 	 * @param variable value to set
 	 **/
 	public void setVariable(String variable) {
 		this.variable = variable;
+	}
+
+	public void setJfr(boolean jfr) {
+		this.jfr = jfr;
 	}
 
 	private long getCurrentTime() {
@@ -139,7 +150,19 @@ public final class Timer extends BodyTagImpl {
 
 	@Override
 	public int doStartTag() {
+		// Capture start time FIRST to minimize measurement overhead
 		time = getCurrentTime();
+
+		if( jfr && JfrUtil.isEnabled() ) {
+			jfrEvent = new TimerEvent();
+			jfrEvent.label = label;
+			PageSource ps = pageContext.getCurrentTemplatePageSource();
+			jfrEvent.template = ps != null ? ps.getDisplayPath() : "unknown";
+			jfrEvent.line = SystemUtil.getCurrentContext( null ).line;
+			// Begin JFR event immediately after setup to accurately capture duration
+			jfrEvent.begin();
+		}
+
 		if (TYPE_OUTLINE == type) {
 			try {
 				pageContext.write("<fieldset class=\"cftimer\">");
@@ -195,6 +218,29 @@ public final class Timer extends BodyTagImpl {
 	@Override
 	public int doAfterBody() {
 		return SKIP_BODY;
+	}
+
+	@Override
+	public void doCatch(Throwable t) throws Throwable {
+		if( jfrEvent != null ) {
+			jfrEvent.success = false;
+			// Ensure errorMessage is never literally "null" - use empty string if getMessage() returns null
+			String msg = t.getMessage();
+			jfrEvent.errorMessage = ( msg != null && !msg.isEmpty() ) ? msg : t.getClass().getSimpleName();
+		}
+		// super.doCatch() will rethrow the exception after we've captured it in JFR
+		super.doCatch( t );
+	}
+
+	@Override
+	public void doFinally() {
+		// Always commit JFR event in finally block to ensure it's recorded even if body throws
+		// shouldCommit() checks JFR's threshold settings to determine if event should be recorded
+		if( jfrEvent != null && jfrEvent.shouldCommit() ) {
+			jfrEvent.commit();
+			jfrEvent = null;
+		}
+		super.doFinally();
 	}
 
 }

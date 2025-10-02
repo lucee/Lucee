@@ -1319,5 +1319,21 @@
 		"category": "logging",
 		"type": "string",
 		"default": null
+	},
+	{
+		"sysprop": "lucee.jfr.enabled",
+		"envvar": "LUCEE_JFR_ENABLED",
+		"category": "logging",
+		"desc": "Boolean value to enable automatic JFR event emission for cftrace/cftimer when jfr attribute is true, default is false",
+		"type": "boolean",
+		"default": false
+	},
+	{
+		"sysprop": "lucee.jfr.stacktrace.depth",
+		"envvar": "LUCEE_JFR_STACKTRACE_DEPTH",
+		"category": "logging",
+		"desc": "Numeric value for maximum stack trace depth for JFR events, default is 64",
+		"type": "numeric",
+		"default": 64
 	}
 ]

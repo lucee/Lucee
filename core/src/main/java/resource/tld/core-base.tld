@@ -5984,6 +5984,13 @@ To use cached data, the current query must use the same SQL statement, data sour
 			<description>The name of the variable in which to save the timer execution time into.</description>
 			<introduced>6.0.0.98</introduced>
 		</attribute>
+		<attribute>
+			<type>boolean</type>
+			<name>jfr</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>If true, emits a Java Flight Recorder duration event with the timer information.</description>
+		</attribute>
 
 	</tag>
 	<!-- Transaction -->
@@ -6118,6 +6125,13 @@ To use cached data, the current query must use the same SQL statement, data sour
 			<rtexprvalue>true</rtexprvalue>
 			<status>hidden</status>
 			<description>scope used for var evaluation, if not defined the current scope is used.</description>
+		</attribute>
+		<attribute>
+			<type>boolean</type>
+			<name>jfr</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>If true, emits a Java Flight Recorder event with the trace information.</description>
 		</attribute>
 	</tag>
 	<!-- Try -->
