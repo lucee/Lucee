@@ -997,6 +997,14 @@
 		"default": false
 	},
 	{
+		"sysprop": "lucee.inspect.auto.useEvents",
+		"envvar": "LUCEE_INSPECT_AUTO_USEEVENTS",
+		"desc": "A boolean value that enables event-based file watching for inspect auto mode instead of polling. Uses Java NIO WatchService for instant file change detection on file-based resources. Falls back to polling for non-file resources (zip, ram, http) or if event-based watching fails",
+		"category": "performance",
+		"type": "boolean",
+		"default": true
+	},
+	{
 		"sysprop": "startlogdirectory",
 		"envvar": "STARTLOGDIRECTORY",
 		"desc": "Directory for startup log files",
