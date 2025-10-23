@@ -785,6 +785,14 @@
 		"default": 16
 	},
 	{
+		"sysprop": "lucee.scope.pool.maxsize",
+		"envvar": "LUCEE_SCOPE_POOL_MAXSIZE",
+		"desc": "Maximum number of scope instances (arguments and local) to keep in the recycling pool (default: 50). Higher values reduce allocation overhead but use more memory.",
+		"category": "performance",
+		"type": "int",
+		"default": 50
+	},
+	{
 		"sysprop": "lucee.scope.local.capacity",
 		"envvar": "LUCEE_SCOPE_LOCAL_CAPACITY",
 		"desc": "Sets the initial capacity (size) for the local scope hashmap",

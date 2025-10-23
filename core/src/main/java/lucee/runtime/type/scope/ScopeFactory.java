@@ -19,20 +19,28 @@
 package lucee.runtime.type.scope;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.atomic.AtomicInteger;
 
+import lucee.commons.io.SystemUtil;
 import lucee.runtime.PageContext;
+import lucee.runtime.op.Caster;
 
 /**
  * creates Local and Argument scopes and recyle it
  */
 public final class ScopeFactory {
 
-	private static final int MAX_SIZE = 50;
+	private static final int MAX_SIZE;
 
-	int argumentCounter = 0;
+	static {
+		MAX_SIZE = Caster.toIntValue( SystemUtil.getSystemPropOrEnvVar( "lucee.scope.pool.maxsize", "50" ), 50 );
+	}
 
 	private final ConcurrentLinkedQueue<Argument> arguments = new ConcurrentLinkedQueue<Argument>();
 	private final ConcurrentLinkedQueue<LocalImpl> locals = new ConcurrentLinkedQueue<LocalImpl>();
+
+	private final AtomicInteger argumentsSize = new AtomicInteger( 0 );
+	private final AtomicInteger localsSize = new AtomicInteger( 0 );
 
 	/**
 	 * @return returns an Argument scope
@@ -40,6 +48,7 @@ public final class ScopeFactory {
 	public Argument getArgumentInstance() {
 		Argument arg = arguments.poll();
 		if (arg != null) {
+			argumentsSize.decrementAndGet();
 			return arg;
 		}
 		return new ArgumentImpl();
@@ -51,6 +60,7 @@ public final class ScopeFactory {
 	public LocalImpl getLocalInstance() {
 		LocalImpl lcl = locals.poll();
 		if (lcl != null) {
+			localsSize.decrementAndGet();
 			return lcl;
 		}
 		return new LocalImpl();
@@ -60,7 +70,14 @@ public final class ScopeFactory {
 	 * @param argument recycle an Argument scope for reuse
 	 */
 	public void recycle(PageContext pc, Argument argument) {
-		if (arguments.size() >= MAX_SIZE || argument.isBind()) return;
+		if (argument.isBind()) return;
+
+		int size = argumentsSize.getAndIncrement();
+		if (size >= MAX_SIZE) {
+			argumentsSize.decrementAndGet(); // rollback
+			return;
+		}
+
 		argument.release(pc);
 		arguments.add(argument);
 	}
@@ -69,7 +86,14 @@ public final class ScopeFactory {
 	 * @param local recycle a Local scope for reuse
 	 */
 	public void recycle(PageContext pc, LocalImpl local) {
-		if (locals.size() >= MAX_SIZE || local.isBind()) return;
+		if (local.isBind()) return;
+
+		int size = localsSize.getAndIncrement();
+		if (size >= MAX_SIZE) {
+			localsSize.decrementAndGet(); // rollback
+			return;
+		}
+
 		local.release(pc);
 		locals.add(local);
 	}
