@@ -488,21 +488,41 @@ public final class PageImpl extends BodyBase implements Page {
 			tmpFunctions = tmps;
 		}
 
-		// hasInit
+		// hasInit - check for init method or custom initmethod
+		// Note: If initmethod attribute is defined, we ALWAYS return true even if the method doesn't exist
+		// This ensures we attempt to call it at runtime and get a proper error if it's missing
 		boolean hasInit = false;
 		if (isComponent(comp)) {
-			ExprString name;
-			for (Function f: tmpFunctions) {
-				name = f.getName();
-				if (!(name instanceof Literal)) {
-					hasInit = true;
-					break;
+			// Get the initmethod name if specified, otherwise default to "init"
+			String initMethodName = "init";
+			Attribute attrInitMethod = comp.getAttribute("initmethod");
+			boolean hasInitMethodAttr = attrInitMethod != null;
+			if (hasInitMethodAttr) {
+				Expression initMethodExpr = attrInitMethod.getValue();
+				if (initMethodExpr instanceof Literal) {
+					initMethodName = ((Literal) initMethodExpr).getString();
 				}
-				if ("init".equalsIgnoreCase(((Literal) name).getString())) {
-					hasInit = true;
-					break;
-				}
+			}
 
+			// If initmethod attribute is explicitly set, always return true (even if method missing - will error at runtime)
+			if (hasInitMethodAttr) {
+				hasInit = true;
+			}
+			else {
+				// No initmethod attribute, check for "init" method
+				ExprString name;
+				for (Function f: tmpFunctions) {
+					name = f.getName();
+					if (!(name instanceof Literal)) {
+						hasInit = true;
+						break;
+					}
+					if (initMethodName.equalsIgnoreCase(((Literal) name).getString())) {
+						hasInit = true;
+						break;
+					}
+
+				}
 			}
 		}
 
@@ -1452,6 +1472,9 @@ public final class PageImpl extends BodyBase implements Page {
 			LitString ls = (LitString) component.getFactory().toExprString(attr.getValue());
 			modifiers = ComponentUtil.toModifier(ls.getString(), lucee.runtime.Component.MODIFIER_NONE, lucee.runtime.Component.MODIFIER_NONE);
 		}
+
+		// initmethod - store in component attributes for metadata
+		// Don't remove it yet - let createMetaDataStruct handle it
 
 		adapter.push(persistent);
 		adapter.push(accessors);

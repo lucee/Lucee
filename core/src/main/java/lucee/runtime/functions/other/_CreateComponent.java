@@ -40,6 +40,9 @@ import lucee.runtime.type.Struct;
 import lucee.runtime.type.UDF;
 import lucee.runtime.type.util.ComponentUtil;
 import lucee.runtime.type.util.KeyConstants;
+import lucee.runtime.type.Collection.Key;
+import lucee.runtime.type.KeyImpl;
+import lucee.commons.lang.StringUtil;
 
 public final class _CreateComponent {
 
@@ -70,11 +73,14 @@ public final class _CreateComponent {
 		// cfc or throws an exception
 		Class cls = cfc == null ? cls = loadClass(pc, path, type) : null;
 
+		// Get init method key (already resolved in ComponentImpl constructor)
+		Key initKey = cfc != null ? cfc.getInitKey() : KeyConstants._init;
+
 		// no init method HAS_INIT_UNDEFINED part, this was just for older archives not having "hasInit"
 		// method
 		// FUTURE remove the
 		if (cfc != null && (cfc.hasInit() == ComponentUtil.HAS_INIT_FALSE
-				|| (cfc.hasInit() == ComponentUtil.HAS_INIT_UNDEFINED && !(cfc.get(pc, KeyConstants._init, null) instanceof UDF)))) {
+				|| (cfc.hasInit() == ComponentUtil.HAS_INIT_UNDEFINED && !(cfc.get(pc, initKey, null) instanceof UDF)))) {
 			if (objArr.length > (hasType ? 2 : 1)) { // we have arguments passed in
 				Object arg1 = objArr[0];
 				if (arg1 instanceof FunctionValue) {
@@ -94,7 +100,7 @@ public final class _CreateComponent {
 		Object rtn;
 		// no arguments
 		if (objArr.length == (hasType ? 2 : 1)) {
-			if (cfc != null) rtn = cfc.call(pc, KeyConstants._init, EMPTY);
+			if (cfc != null) rtn = cfc.call(pc, initKey, EMPTY);
 			else {
 				try {
 					rtn = ClassUtil.loadInstance(cls);
@@ -108,7 +114,7 @@ public final class _CreateComponent {
 		else if (objArr[0] instanceof FunctionValue) {
 			if (cfc == null) throw new ApplicationException("named arguments are not supported with classes.");
 			Struct args = Caster.toFunctionValues(objArr, 0, objArr.length - (hasType ? 2 : 1));
-			rtn = cfc.callWithNamedValues(pc, KeyConstants._init, args);
+			rtn = cfc.callWithNamedValues(pc, initKey, args);
 		}
 		// no name arguments
 		else {
@@ -118,7 +124,7 @@ public final class _CreateComponent {
 				if (args[i] instanceof FunctionValue)
 					throw new ExpressionException("invalid argument definition, when using named parameters to a function, every parameter must have a name.");
 			}
-			if (cfc != null) rtn = cfc.call(pc, KeyConstants._init, args);
+			if (cfc != null) rtn = cfc.call(pc, initKey, args);
 			else {
 				try {
 					rtn = ClassUtil.loadInstance(cls, args);

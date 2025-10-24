@@ -476,6 +476,13 @@ A return value from the CreateTimeSpan function, for example, "#CreateTimeSpan(0
 		</attribute>
 		<attribute>
 			<type>string</type>
+			<name>initmethod</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>Specifies the name of the initialization method to call when the component is instantiated using the `new` operator. If not specified, the default `init()` method is called. This attribute allows for custom initialization logic beyond the standard init method. Note: createObject() and createComponent() do not call initialization methods.</description>
+		</attribute>
+		<attribute>
+			<type>string</type>
 			<name>extends</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
