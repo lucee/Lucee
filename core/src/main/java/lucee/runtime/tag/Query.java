@@ -283,12 +283,24 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 	/**
 	 * set the value cachename This is specific to JTags, and allows you to give the cache a specific
 	 * name
-	 * 
+	 *
 	 * @param cachename value to set
 	 **/
 	public void setCachename(String cachename) {
 		// DeprecatedUtil.tagAttribute(pageContext,"query", "cachename");
 		// this.cachename=cachename;
+	}
+
+	/**
+	 * Set the cache prefix to use for caching query results.
+	 * If specified, this prefix will be prepended to the auto-generated cache ID.
+	 *
+	 * @param cacheprefix value to set
+	 **/
+	public void setCacheprefix(String cacheprefix) {
+		if (!StringUtil.isEmpty(cacheprefix, true)) {
+			data.cachePrefix = cacheprefix.trim();
+		}
 	}
 
 	public void setColumnkey(String columnKey) {
@@ -609,6 +621,10 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 				cacheId = CacheHandlerCollectionImpl.createId(sqlQuery, data.datasource != null ? data.datasource.getName() : null, data.username, data.password, data.returntype,
 						data.maxrows);
 
+				if (!StringUtil.isEmpty(data.cachePrefix)) {
+					cacheId = data.cachePrefix + cacheId;
+				}
+
 				CacheHandlerCollectionImpl coll = (CacheHandlerCollectionImpl) pageContext.getConfig().getCacheHandlerCollection(Config.CACHE_TYPE_QUERY, null);
 				cacheHandler = coll.getInstanceMatchingObject(data.cachedWithin, null);
 
@@ -883,6 +899,7 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 		// TODO add missing attrs
 		set(args, "cachedAfter", data.cachedAfter);
 		set(args, "cachedWithin", data.cachedWithin);
+		set(args, "cachePrefix", data.cachePrefix);
 		if (data.columnName != null) set(args, "columnName", data.columnName.getString());
 		set(args, KeyConstants._datasource, data.rawDatasource);
 		set(args, "dbtype", data.dbtype);
@@ -934,6 +951,10 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 		Object obj = args.get("cachedWithin", null);
 		if (obj != null && obj != data.cachedWithin) data.cachedWithin = obj;
 
+		// cachePrefix
+		String str = Caster.toString(args.get("cachePrefix", null), null);
+		if (str != null && str != data.cachePrefix && !StringUtil.isEmpty(str)) data.cachePrefix = str;
+
 		// columnName
 		Key k = Caster.toKey(args.get("columnName", null), null);
 		if (k != null && k != data.columnName) data.columnName = k;
@@ -946,7 +967,7 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 		}
 
 		// dbtype
-		String str = Caster.toString(args.get("dbtype", null), null);
+		str = Caster.toString(args.get("dbtype", null), null);
 		if (str != null && str != data.dbtype && !StringUtil.isEmpty(str)) data.dbtype = str;
 
 		// debug
