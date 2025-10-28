@@ -204,8 +204,18 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 			boolean realPath, String style, boolean persistent, boolean accessors, int modifier, boolean isExtended, StructImpl meta) throws ApplicationException {
 		String sub = componentPage.getSubname();
 		String appendix = StringUtil.isEmpty(sub) ? "" : "$" + sub;
+
+		// Extract initmethod from metadata and convert to Key, default to KeyConstants._init
+		Key initKey = KeyConstants._init;
+		if (meta != null) {
+			Object initMethodObj = meta.get(KeyConstants._initmethod, null);
+			if (initMethodObj instanceof String) {
+				initKey = KeyImpl.init((String) initMethodObj);
+			}
+		}
+
 		this.properties = new ComponentProperties(componentPage.getComponentName(), dspName, extend.trim(), implement, hint, output, callPath + appendix, realPath,
-				componentPage.getSubname(), _synchronized, null, persistent, accessors, modifier, meta);
+				componentPage.getSubname(), _synchronized, null, persistent, accessors, modifier, meta, initKey);
 
 		this.cp = componentPage;
 		this.pageSource = componentPage.getPageSource();
@@ -1355,6 +1365,17 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 
 	public boolean getInline() {
 		return top.properties.inline;
+	}
+
+	/**
+	 * Returns the initialization method Key specified by the initmethod component attribute.
+	 * This allows components to specify a custom initialization method instead of the default "init()".
+	 *
+	 * @return the Key for the method to call during initialization (defaults to KeyConstants._init)
+	 * @since Lucee 7.0
+	 */
+	public Key getInitKey() {
+		return properties.initKey;
 	}
 
 	@Override

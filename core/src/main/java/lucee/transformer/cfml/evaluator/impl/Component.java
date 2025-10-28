@@ -259,6 +259,16 @@ public class Component extends EvaluatorSupport {
 						"Value [" + ls.getString() + "] from attribute [modifier] of the tag [" + tlt.getFullName() + "] is invalid, valid values are [none, abstract, final]");
 			}
 		}
+
+		// initmethod
+		if (isComponent) {
+			attr = tag.getAttribute("initmethod");
+			if (attr != null) {
+				Expression expr = tag.getFactory().toExprString(attr.getValue());
+				if (!(expr instanceof LitString))
+					throw new EvaluatorException("Attribute [initmethod] of the tag [" + tlt.getFullName() + "], must contain a literal string value");
+			}
+		}
 	}
 
 	private String toString(Set<String> set) {
