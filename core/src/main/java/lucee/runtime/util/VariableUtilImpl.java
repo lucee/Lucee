@@ -89,13 +89,13 @@ public final class VariableUtilImpl implements VariableUtil {
 
 	@Override
 	public Object get(PageContext pc, Object coll, String key, Object defaultValue) {
-		// Objects
-		if (coll instanceof Objects) {
-			return ((Objects) coll).get(pc, KeyImpl.init(key), defaultValue);
-		}
-		// Collection
-		else if (coll instanceof Collection) {
+		// Collection (most common case - check first for performance)
+		if (coll instanceof Collection) {
 			return ((Collection) coll).get(key, defaultValue);
+		}
+		// Objects
+		else if (coll instanceof Objects) {
+			return ((Objects) coll).get(pc, KeyImpl.init(key), defaultValue);
 		}
 		// Map
 		else if (coll instanceof Map) {
@@ -139,13 +139,13 @@ public final class VariableUtilImpl implements VariableUtil {
 
 	@Override
 	public Object get(PageContext pc, Object coll, Collection.Key key, Object defaultValue) {
-		// Objects
-		if (coll instanceof Objects) {
-			return ((Objects) coll).get(pc, key, defaultValue);
-		}
-		// Collection
-		else if (coll instanceof Collection) {
+		// Collection (most common case - check first for performance)
+		if (coll instanceof Collection) {
 			return ((Collection) coll).get(key, defaultValue);
+		}
+		// Objects
+		else if (coll instanceof Objects) {
+			return ((Objects) coll).get(pc, key, defaultValue);
 		}
 		// Map
 		else if (coll instanceof Map) {
@@ -275,11 +275,12 @@ public final class VariableUtilImpl implements VariableUtil {
 	}
 
 	public Object get(PageContext pc, Object coll, Collection.Key key) throws PageException {
-		// Objects
+		// Check Objects first: QueryColumn implements both Objects and Collection, but only Objects.get() accepts PageContext
+		// Note: Collection.get(Key) passes null PC internally, causing NPE in QueryColumn.getChildElement()
 		if (coll instanceof Objects) {
 			return ((Objects) coll).get(pc, key);
 		}
-		// Collection
+		// Collection (Struct, Array, etc.)
 		else if (coll instanceof Collection) {
 			return ((Collection) coll).get(key);
 		}
@@ -354,13 +355,13 @@ public final class VariableUtilImpl implements VariableUtil {
 
 	@Override
 	public Object get(PageContext pc, Object coll, String key) throws PageException {
-		// Objects
+		// Check Objects first: QueryColumn implements both Objects and Collection, but only Objects.get() accepts PageContext
+		// Note: Collection.get(Key) passes null PC internally, causing NPE in QueryColumn.getChildElement()
 		if (coll instanceof Objects) {
 			return ((Objects) coll).get(pc, KeyImpl.init(key));
 		}
-		// Collection
+		// Collection (Struct, Array, etc.)
 		else if (coll instanceof Collection) {
-
 			return ((Collection) coll).get(KeyImpl.init(key));
 		}
 		// Map

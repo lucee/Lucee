@@ -4128,7 +4128,7 @@ public final class PageContextImpl extends PageContext {
 	@Override
 	public boolean getFullNullSupport() {
 		if (applicationContext == null) return config.getFullNullSupport();
-		return getApplicationContext().getFullNullSupport();
+		return applicationContext.getFullNullSupport(); // Direct access - already null-checked
 	}
 
 	public void registerLazyStatement(Statement s) {

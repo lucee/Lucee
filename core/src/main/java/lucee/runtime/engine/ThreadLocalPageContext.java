@@ -51,20 +51,25 @@ public final class ThreadLocalPageContext {
 	/**
 	 * register a pagecontext for the current thread
 	 *
-	 * @param pc PageContext to register
-	 * @deprecated Use ScopedValue.where(ThreadLocalPageContext.CURRENT, pc).run() instead
+	 * @param pc PageContext to set up classloader for
 	 */
-	@Deprecated
-	public static void register(PageContext pc) {
+	public static void setupClassLoader(PageContext pc) {
 		if (pc == null) {
 			return;
 		}
-		// Set context classloader - still needed even with ScopedValue
+		// Set context classloader - required for OSGi classloading
 		Thread t = Thread.currentThread();
 		t.setContextClassLoader(((ConfigPro) pc.getConfig()).getClassLoaderEnv());
 		((PageContextImpl) pc).setThread(t);
-		// Note: With ScopedValue, the scope should be established via ScopedValue.where()
-		// This method kept for backwards compatibility but doesn't actually register with ScopedValue
+	}
+
+	/**
+	 * @param pc PageContext to register
+	 * @deprecated Renamed to setupClassLoader() for clarity. This does NOT establish ScopedValue scope.
+	 */
+	@Deprecated
+	public static void register(PageContext pc) {
+		setupClassLoader(pc);
 	}
 
 	public static PageContext get() {
@@ -74,6 +79,8 @@ public final class ThreadLocalPageContext {
 	/**
 	 * returns pagecontext registered for the current thread
 	 *
+	 * @param cloneParentIfNotExist ignored - parent context inheritance is not supported with ScopedValue.
+	 *                              Callers must handle null return and create their own PageContext if needed.
 	 * @return pagecontext for the current thread or null if no pagecontext is registered for the current
 	 *         thread
 	 */
@@ -84,12 +91,11 @@ public final class ThreadLocalPageContext {
 			if (pc != null) return pc;
 		}
 
-		// For child threads that need parent context, we can't use InheritableThreadLocal with ScopedValue
-		// This functionality would need to be explicitly handled by passing parent PageContext to child threads
-		if (cloneParentIfNotExist) {
-			// TODO: This needs to be refactored - child threads should explicitly bind parent PageContext
-			// For now, return null to avoid issues
-		}
+		// Parent thread context inheritance (via InheritableThreadLocal) is not supported with ScopedValue
+		// Child threads that need PageContext must either:
+		// 1. Have parent explicitly pass PageContext and establish scope via ScopedValue.where(CURRENT, pc).call(...)
+		// 2. Create their own temporary PageContext (see CastImpl.fromJsonStringToStruct for example)
+		// The cloneParentIfNotExist parameter is ignored and this method always returns null if no scope is bound
 
 		return null;
 	}
@@ -125,17 +131,14 @@ public final class ThreadLocalPageContext {
 	}
 
 	public static boolean preciseMath(PageContext pc) {
-		// pc provided
+		// Fast path: pc provided (most common case in hot paths like OpUtil)
 		if (pc != null) return (pc.getApplicationContext()).getPreciseMath();
 
-		// pc from current thread
+		// Fallback: get from ScopedValue
 		pc = CURRENT.isBound() ? CURRENT.get() : null;
 		if (pc != null) return (pc.getApplicationContext()).getPreciseMath();
 
-		// pc from parent thread
-		pc = null;
-		if (pc != null) return (pc.getApplicationContext()).getPreciseMath();
-
+		// Final fallback: get from config
 		Config c = ThreadLocalConfig.get();
 		if (c instanceof ConfigPro) return ((ConfigPro) c).getPreciseMath();
 		return true;
@@ -150,14 +153,6 @@ public final class ThreadLocalPageContext {
 		}
 		// pc from current thread
 		pc = CURRENT.isBound() ? CURRENT.get() : null;
-		if (pc != null) {
-			TimeZone tz = pc.getTimeZone();
-			if (tz != null) return tz;
-			return DEFAULT_TIMEZONE;
-		}
-
-		// pc from parent thread
-		pc = null;
 		if (pc != null) {
 			TimeZone tz = pc.getTimeZone();
 			if (tz != null) return tz;
@@ -188,12 +183,6 @@ public final class ThreadLocalPageContext {
 			return ((PageContextImpl) pc).getLog(logName, createIfNecessary);
 		}
 
-		// pc from parent thread
-		pc = null;
-		if (pc instanceof PageContextImpl) {
-			return ((PageContextImpl) pc).getLog(logName, createIfNecessary);
-		}
-
 		// config
 		Config config = getConfig(pc);
 		if (config != null) {
@@ -215,12 +204,6 @@ public final class ThreadLocalPageContext {
 
 		// pc from current thread
 		PageContext pc = CURRENT.isBound() ? CURRENT.get() : null;
-		if (pc instanceof PageContextImpl && pc.getConfig() == config) {
-			return ((PageContextImpl) pc).getLog(logName, createIfNecessary);
-		}
-
-		// pc from parent thread
-		pc = null;
 		if (pc instanceof PageContextImpl && pc.getConfig() == config) {
 			return ((PageContextImpl) pc).getLog(logName, createIfNecessary);
 		}
@@ -273,14 +256,6 @@ public final class ThreadLocalPageContext {
 			return DEFAULT_LOCALE;
 		}
 
-		// pc from parent thread
-		pc = null;
-		if (pc != null) {
-			Locale l = pc.getLocale();
-			if (l != null) return l;
-			return DEFAULT_LOCALE;
-		}
-
 		// config
 		Config config = getConfig((Config) null);
 		if (config != null) {
@@ -293,14 +268,6 @@ public final class ThreadLocalPageContext {
 	public static TimeZone getTimeZone(Config config) {
 		// pc from current thread
 		PageContext pc = CURRENT.isBound() ? CURRENT.get() : null;
-		if (pc instanceof PageContextImpl && pc.getConfig() == config) {
-			TimeZone tz = pc.getTimeZone();
-			if (tz != null) return tz;
-			return DEFAULT_TIMEZONE;
-		}
-
-		// pc from parent thread
-		pc = null;
 		if (pc instanceof PageContextImpl && pc.getConfig() == config) {
 			TimeZone tz = pc.getTimeZone();
 			if (tz != null) return tz;
@@ -332,14 +299,6 @@ public final class ThreadLocalPageContext {
 		}
 		// pc from current thread
 		pc = CURRENT.isBound() ? CURRENT.get() : null;
-		if (pc != null) {
-			ClassLoader cl = ((PageContextImpl) pc).getRPCClassLoader();
-			if (cl != null) return cl;
-			return SystemUtil.getCoreClassLoader();
-		}
-
-		// pc from parent thread
-		pc = null;
 		if (pc != null) {
 			ClassLoader cl = ((PageContextImpl) pc).getRPCClassLoader();
 			if (cl != null) return cl;
