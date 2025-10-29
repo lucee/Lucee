@@ -481,6 +481,45 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="query,cache" {
 							expect(result3.executed).notToBe(result3b.executed);
 						});
 
+						it("should clear all cached queries using cacheClear with specific paths", function() {
+							var dsn = server.getDatasource("h2", server._getTempDir("LDEV5871"));
+
+							// Cache multiple queries
+							query datasource="#dsn#" name="local.result1" cacheprefix="clear-test-1-" cachedwithin="#createTimeSpan(0,0,1,0)#" {
+								echo("SELECT 1 as num, NOW() as executed");
+							}
+
+							query datasource="#dsn#" name="local.result2" cacheprefix="clear-test-2-" cachedwithin="#createTimeSpan(0,0,1,0)#" {
+								echo("SELECT 2 as num, NOW() as executed");
+							}
+
+							query datasource="#dsn#" name="local.result3" cacheprefix="clear-test-3-" cachedwithin="#createTimeSpan(0,0,1,0)#" {
+								echo("SELECT 3 as num, NOW() as executed");
+							}
+
+							sleep(1000);
+
+							// Clear the first path only
+							cacheClear("clear-test-1-*", currentProvider.name);
+
+							// Query again - 1st should be cached
+							query datasource="#dsn#" name="local.result1b" cacheprefix="clear-test-1-" cachedwithin="#createTimeSpan(0,0,1,0)#" {
+								echo("SELECT 1 as num, NOW() as executed");
+							}
+
+							query datasource="#dsn#" name="local.result2b" cacheprefix="clear-test-2-" cachedwithin="#createTimeSpan(0,0,1,0)#" {
+								echo("SELECT 2 as num, NOW() as executed");
+							}
+
+							query datasource="#dsn#" name="local.result3b" cacheprefix="clear-test-3-" cachedwithin="#createTimeSpan(0,0,1,0)#" {
+								echo("SELECT 3 as num, NOW() as executed");
+							}
+
+							expect(result1.executed).notToBe(result1b.executed);
+							expect(result2.executed).toBe(result2b.executed);
+							expect(result3.executed).toBe(result3b.executed);
+						});
+
 						it("should clear queries with and without cacheprefix", function() {
 							var dsn = server.getDatasource("h2", server._getTempDir("LDEV5871"));
 
