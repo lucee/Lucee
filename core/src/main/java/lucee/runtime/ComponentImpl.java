@@ -288,6 +288,18 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 	}
 
 	public ComponentImpl _duplicate(boolean deepCopy, boolean isTop) {
+		// If not already inside a duplication scope, establish one
+		// This handles both explicit top-level calls and calls that should be top-level
+		if (!ThreadLocalDuplication.DUPLICATION_MAP.isBound()) {
+			java.util.Map<Object, Object> duplicationMap = new java.util.IdentityHashMap<>();
+			return ScopedValue.where( ThreadLocalDuplication.DUPLICATION_MAP, duplicationMap ).call( () -> {
+				return _duplicateInternal( deepCopy, isTop );
+			} );
+		}
+		return _duplicateInternal( deepCopy, isTop );
+	}
+
+	private ComponentImpl _duplicateInternal(boolean deepCopy, boolean isTop) {
 		ComponentImpl trg = new ComponentImpl();
 		boolean inside = ThreadLocalDuplication.set(this, trg);
 		try {

@@ -36,6 +36,7 @@ import lucee.runtime.PageContext;
 import lucee.runtime.compiler.Renderer;
 import lucee.runtime.compiler.Renderer.Result;
 import lucee.runtime.engine.CFMLEngineImpl;
+import lucee.runtime.engine.ThreadLocalConfig;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
@@ -62,28 +63,43 @@ public final class ScriptEngineImpl implements ScriptEngine {
 		boolean printExceptions = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.cli.printExceptions", null), false);
 		PageContext oldPC = ThreadLocalPageContext.get();
 		PageContext pc = getPageContext(context);
+
+		// Java 25: Establish ScopedValue scope for PageContext
 		try {
-			Result res = factory.tag ? Renderer.tag(pc, script, false, true) : Renderer.script(pc, script, false, true);
-			return res.getValue();
-		}
-		catch (PageException pe) {
-			if (printExceptions) {
-				pe.printStackTrace();
-			}
-			throw toScriptException(pe);
+			return ScopedValue.where( ThreadLocalPageContext.CURRENT, pc )
+					.where( ThreadLocalConfig.CURRENT, pc.getConfig() )
+					.call( () -> {
+						try {
+							Result res = factory.tag ? Renderer.tag( pc, script, false, true ) : Renderer.script( pc, script, false, true );
+							return res.getValue();
+						}
+						catch (PageException pe) {
+							if (printExceptions) {
+								pe.printStackTrace();
+							}
+							throw new RuntimeException( toScriptException( pe ) );
+						}
+						catch (RuntimeException re) {
+							if (printExceptions) {
+								re.printStackTrace();
+							}
+							throw re;
+						}
+						catch (Throwable t) {
+							if (printExceptions) {
+								ExceptionUtil.rethrowIfNecessary( t );
+								t.printStackTrace();
+							}
+							throw new RuntimeException( t );
+						}
+					} );
 		}
 		catch (RuntimeException re) {
-			if (printExceptions) {
-				re.printStackTrace();
+			Throwable cause = re.getCause();
+			if (cause instanceof ScriptException) {
+				throw (ScriptException) cause;
 			}
 			throw re;
-		}
-		catch (Throwable t) {
-			if (printExceptions) {
-				ExceptionUtil.rethrowIfNecessary(t);
-				t.printStackTrace();
-			}
-			throw new RuntimeException(t);
 		}
 		finally {
 			releasePageContext(pc, oldPC);
@@ -95,10 +111,17 @@ public final class ScriptEngineImpl implements ScriptEngine {
 		PageContext oldPC = ThreadLocalPageContext.get();
 		PageContext pc = getPageContext(getContext());
 		try {
-			pc.undefinedScope().set(KeyImpl.init(key), value);
-		}
-		catch (PageException e) {
-			// ignored
+			// Java 25: Establish ScopedValue scope
+			ScopedValue.where( ThreadLocalPageContext.CURRENT, pc )
+					.where( ThreadLocalConfig.CURRENT, pc.getConfig() )
+					.run( () -> {
+						try {
+							pc.undefinedScope().set( KeyImpl.init( key ), value );
+						}
+						catch (PageException e) {
+							// ignored
+						}
+					} );
 		}
 		finally {
 			releasePageContext(pc, oldPC);
@@ -111,7 +134,12 @@ public final class ScriptEngineImpl implements ScriptEngine {
 		PageContext oldPC = ThreadLocalPageContext.get();
 		PageContext pc = getPageContext(getContext());
 		try {
-			return pc.undefinedScope().get(KeyImpl.init(key), null);
+			// Java 25: Establish ScopedValue scope
+			return ScopedValue.where( ThreadLocalPageContext.CURRENT, pc )
+					.where( ThreadLocalConfig.CURRENT, pc.getConfig() )
+					.call( () -> {
+						return pc.undefinedScope().get( KeyImpl.init( key ), null );
+					} );
 		}
 		finally {
 			releasePageContext(pc, oldPC);

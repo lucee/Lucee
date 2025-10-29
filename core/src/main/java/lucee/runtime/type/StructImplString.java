@@ -187,6 +187,17 @@ public final class StructImplString extends StructImpl implements Struct {
 	}
 
 	public static Struct copy(Struct src, Struct trg, boolean deepCopy) {
+		// Java 25: If not already inside a duplication scope, establish one
+		if (!ThreadLocalDuplication.DUPLICATION_MAP.isBound()) {
+			java.util.Map<Object, Object> duplicationMap = new java.util.IdentityHashMap<>();
+			return ScopedValue.where( ThreadLocalDuplication.DUPLICATION_MAP, duplicationMap ).call( () -> {
+				return copyInternal( src, trg, deepCopy );
+			} );
+		}
+		return copyInternal( src, trg, deepCopy );
+	}
+
+	private static Struct copyInternal(Struct src, Struct trg, boolean deepCopy) {
 		Iterator<Entry<Key, Object>> it = src.entryIterator();
 		Entry<Key, Object> e;
 		boolean inside = ThreadLocalDuplication.set(src, trg);

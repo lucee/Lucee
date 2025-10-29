@@ -35,9 +35,29 @@ public final class Request extends Thread {
 	}
 
 	public static void exe(PageContext pc, short type, boolean throwExcpetion, boolean registerWithThread) throws IOException, PageException {
+		if (registerWithThread) {
+			// Java 25: Establish ScopedValue scopes for PageContext and Config
+			// This provides automatic cleanup and better virtual thread support
+			ScopedValue.where(ThreadLocalPageContext.CURRENT, pc)
+					.where(ThreadLocalConfig.CURRENT, pc.getConfig())
+					.run(() -> {
+						try {
+							executeRequest(pc, type, throwExcpetion);
+						}
+						catch (IOException | PageException e) {
+							throw new RuntimeException(e);
+						}
+					});
+		}
+		else {
+			// No scope registration - direct execution
+			executeRequest(pc, type, throwExcpetion);
+		}
+	}
+
+	private static void executeRequest(PageContext pc, short type, boolean throwExcpetion) throws IOException, PageException {
 		ThreadQueue queue = null;
 		try {
-			if (registerWithThread) ThreadLocalPageContext.register(pc);
 			ThreadQueue tmp = pc.getConfig().getThreadQueue();
 			tmp.enter(pc);
 			queue = tmp;
@@ -46,7 +66,6 @@ public final class Request extends Thread {
 		}
 		finally {
 			if (queue != null) queue.exit(pc);
-			if (registerWithThread) ThreadLocalPageContext.release();
 		}
 	}
 

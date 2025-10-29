@@ -44,6 +44,7 @@ import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.config.Constants;
 import lucee.runtime.config.gateway.GatewayMap;
+import lucee.runtime.engine.ThreadLocalConfig;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
@@ -368,44 +369,45 @@ public final class GatewayEngineImpl implements GatewayEngine {
 	public Object getComponent(String cfcPath, String id) throws PageException {
 		String requestURI = toRequestURI(cfcPath);
 
-		PageContext oldPC = ThreadLocalPageContext.get();
-		PageContextImpl pc = null;
+		PageContextImpl pc = createPageContext(requestURI, id, "init", null, false, true);
+
+		// Java 25: Establish ScopedValue scope for gateway execution
+		final PageContextImpl fpc = pc;
 		try {
-			pc = createPageContext(requestURI, id, "init", null, false, true);
-			// ThreadLocalPageContext.register(pc);
-			return getCFC(pc, requestURI);
+			return ScopedValue.where( ThreadLocalPageContext.CURRENT, fpc )
+					.where( ThreadLocalConfig.CURRENT, fpc.getConfig() )
+					.call( () -> getCFC( fpc, requestURI ) );
 		}
 		finally {
 			CFMLFactory f = config.getFactory();
 			f.releaseLuceePageContext(pc, true);
-			ThreadLocalPageContext.register(oldPC);
 		}
 	}
 
 	public Object call(String cfcPath, String id, String functionName, Struct arguments, boolean cfcPeristent, Object defaultValue) throws PageException {
 		String requestURI = toRequestURI(cfcPath);
 
-		PageContext oldPC = ThreadLocalPageContext.get();
+		PageContextImpl pc = createPageContext(requestURI, id, functionName, arguments, cfcPeristent, true);
 
-		PageContextImpl pc = null;
-
+		// Java 25: Establish ScopedValue scope for gateway execution
+		final PageContextImpl fpc = pc;
 		try {
-			pc = createPageContext(requestURI, id, functionName, arguments, cfcPeristent, true);
-			// ThreadLocalPageContext.register(pc);
-			Component cfc = getCFC(pc, requestURI);
-			if (cfc != null && cfc.containsKey(functionName)) {
-				pc.executeCFML(requestURI, true, false);
-
-				// Result
-				return pc.variablesScope().get(AMF_FORWARD, null);
-			}
+			return ScopedValue.where( ThreadLocalPageContext.CURRENT, fpc )
+					.where( ThreadLocalConfig.CURRENT, fpc.getConfig() )
+					.call( () -> {
+						Component cfc = getCFC( fpc, requestURI );
+						if (cfc != null && cfc.containsKey( functionName )) {
+							fpc.executeCFML( requestURI, true, false );
+							// Result
+							return fpc.variablesScope().get( AMF_FORWARD, null );
+						}
+						return defaultValue;
+					} );
 		}
 		finally {
 			CFMLFactory f = config.getFactory();
 			f.releaseLuceePageContext(pc, true);
-			ThreadLocalPageContext.register(oldPC);
 		}
-		return defaultValue;
 	}
 
 	private Component getCFC(PageContextImpl pc, String requestURI) throws PageException {

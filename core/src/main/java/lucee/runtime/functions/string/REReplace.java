@@ -45,7 +45,7 @@ public final class REReplace extends BIF {
 	}
 
 	public static String call(PageContext pc, String string, String regExp, String replace, String scope) throws PageException {
-		Regex regex = ((PageContextImpl) ThreadLocalPageContext.get()).getRegex();
+		Regex regex = ((PageContextImpl) pc).getRegex();
 		if (scope.equalsIgnoreCase("all")) return regex.replaceAll(string, regExp, replace, true, false);
 		return regex.replace(string, regExp, replace, true, false);
 	}
