@@ -2,8 +2,13 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="query,cache" {
 
 	variables.cacheName = "testQueryCache_LDEV5871";
 	variables.cacheProviders = [];
+	variables.defaultCustom = {
+		timeToLiveSeconds: 86400,
+		timeToIdleSeconds: 86400
+	};
+	doDynamicSuiteConfig();
 
-	function beforeAll() {
+	function doDynamicSuiteConfig() {
 		// Set up RAM cache (always available)
 		setupCacheProvider("RAM", "lucee.runtime.cache.ram.RamCache");
 
@@ -40,9 +45,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="query,cache" {
 			try {
 				admin
 					action="removeCacheConnection"
-					type="web"
-					password="#request.webadminpassword#"
-					name="#provider.name#";
+					type="server"
+					password=server.SERVERADMINPASSWORD
+					name=provider.name;
 			} catch (any e) {
 				// Ignore cleanup errors
 			}
@@ -51,26 +56,31 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="query,cache" {
 
 	function run(testResults, testBox) {
 
-		describe("LDEV-5871: Query cacheprefix attribute", function() {
-
 			// Run tests for each available cache provider
 			for (var provider in variables.cacheProviders) {
 
-				describe("with #provider.type# cache provider", function() {
+				describe("Testing #provider.type# cache provider", function() {
 
 					var currentProvider = provider;
 
 					beforeEach(function() {
 						// Set this provider as the default query cache
 						admin
-							action="updateCacheConnection"
-							type="web"
-							password="#request.webadminpassword#"
-							name="#currentProvider.name#"
-							default="query";
+							action="updateCacheDefaultConnection"
+							type="server"
+							password=server.SERVERADMINPASSWORD
+							query=currentProvider.name
+							object=""
+							template=""
+							resource=""
+							function=""
+							include=""
+							http=""
+							file=""
+							webservice="";
 					});
 
-					describe("basic cacheprefix functionality", function() {
+					describe("basic cacheprefix functionality #currentProvider.name#", function() {
 
 						it("should cache queries with same SQL and cacheprefix", function() {
 							var dsn = server.getDatasource("h2", server._getTempDir("LDEV5871"));
@@ -382,9 +392,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="query,cache" {
 
 					});
 
-					describe("cacheRemove() with cacheprefix", function() {
+					describe("cacheRemoveAll() with cacheprefix", function() {
 
-						it("should remove cached query using cacheRemove", function() {
+						it("should remove cached query using cacheRemove #currentProvider.name#", function() {
 							var dsn = server.getDatasource("h2", server._getTempDir("LDEV5871"));
 							var cacheKey = "test-remove-" & createUUID();
 
@@ -395,12 +405,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="query,cache" {
 
 							sleep(1000);
 
-							// Generate the cache key (prefix + hash of SQL)
-							var sql = "SELECT 'remove-test' as col, NOW() as executed";
-							var fullCacheKey = cacheKey & hash(sql);
-
 							// Remove from cache
-							cacheRemove(fullCacheKey, false, currentProvider.name);
+							cacheRemoveAll(currentProvider.name);
 
 							// Query again - should not be cached
 							query datasource="#dsn#" name="local.result2" cacheprefix="#cacheKey#" cachedwithin="#createTimeSpan(0,0,1,0)#" {
@@ -410,7 +416,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="query,cache" {
 							expect(result1.executed).notToBe(result2.executed);
 						});
 
-						it("should remove cached query without cacheprefix using cacheRemove", function() {
+						it("should remove cached query without cacheprefix using cacheRemoveAll", function() {
 							var dsn = server.getDatasource("h2", server._getTempDir("LDEV5871"));
 
 							// Cache a query without cacheprefix
@@ -421,11 +427,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="query,cache" {
 
 							sleep(1000);
 
-							// Generate the auto cache key
-							var cacheKey = hash(sql & dsn.toString());
-
 							// Remove from cache
-							cacheRemove(cacheKey, false, currentProvider.name);
+							cacheRemoveAll(currentProvider.name);
 
 							// Query again - should not be cached
 							query datasource="#dsn#" name="local.result2" cachedwithin="#createTimeSpan(0,0,1,0)#" {
@@ -513,28 +516,23 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="query,cache" {
 
 				});
 			}
-		});
 	}
 
 	private function setupCacheProvider(required string type, required string cacheClass, struct custom={}) {
 		var cacheName = variables.cacheName & "_" & arguments.type;
 
 		try {
-			var defaultCustom = {
-				timeToLiveSeconds: 86400,
-				timeToIdleSeconds: 86400
-			};
 			structAppend(defaultCustom, arguments.custom);
 
 			admin
 				action="updateCacheConnection"
-				type="web"
-				password="#request.webadminpassword#"
-				name="#cacheName#"
-				class="#arguments.cacheClass#"
-				storage="false"
+				type="server"
+				password=server.SERVERADMINPASSWORD
+				name=cacheName
+				class=arguments.cacheClass
+				storage=false
 				default=""
-				custom="#defaultCustom#";
+				custom=variables.defaultCustom;
 
 			arrayAppend(variables.cacheProviders, {
 				type: arguments.type,
