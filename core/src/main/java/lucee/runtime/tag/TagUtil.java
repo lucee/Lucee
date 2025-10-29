@@ -43,6 +43,7 @@ import lucee.runtime.PageSource;
 import lucee.runtime.component.ComponentLoader;
 import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigWebPro;
+import lucee.runtime.engine.ThreadLocalConfig;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
@@ -258,20 +259,22 @@ public final class TagUtil {
 			ExceptionUtil.rethrowIfNecessary(t);
 			return;
 		}
-		PageContext orgPC = ThreadLocalPageContext.get();
+
+		// Java 25: Establish ScopedValue scope for tag metadata loading
+		final PageContextImpl fpc = pc;
 		try {
-			ThreadLocalPageContext.register(pc);
-
-			// MUST MOST of them are the same, so this is a huge overhead
-			_addTagMetaData(pc, cw);
-
+			ScopedValue.where( ThreadLocalPageContext.CURRENT, fpc )
+					.where( ThreadLocalConfig.CURRENT, fpc.getConfig() )
+					.run( () -> {
+						// MUST MOST of them are the same, so this is a huge overhead
+						_addTagMetaData( fpc, cw );
+					} );
 		}
 		catch (Exception e) {
 			LogUtil.log(cw, "tag", e);
 		}
 		finally {
 			pc.getConfig().getFactory().releaseLuceePageContext(pc, true);
-			ThreadLocalPageContext.register(orgPC);
 		}
 	}
 

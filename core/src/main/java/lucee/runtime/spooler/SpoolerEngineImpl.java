@@ -453,11 +453,17 @@ public final class SpoolerEngineImpl implements SpoolerEngine {
 
 		@Override
 		public void run() {
+			// Java 25: Establish ScopedValue scope for spooler execution
+			ScopedValue.where( ThreadLocalConfig.CURRENT, config ).run( () -> {
+				runWithScope();
+			} );
+		}
+
+		private void runWithScope() {
 			String[] taskNames;
 			// SpoolerTask[] tasks;
 			SpoolerTask task = null;
 			long nextExection;
-			ThreadLocalConfig.register(config);
 			// ThreadLocalPageContext.register(engine.);
 			List<TaskThread> runningTasks = new ArrayList<TaskThread>();
 			TaskThread tt;
@@ -550,10 +556,10 @@ public final class SpoolerEngineImpl implements SpoolerEngine {
 
 		@Override
 		public void run() {
-			ThreadLocalConfig.register(config);
-			engine.execute(task);
-			ThreadLocalConfig.release();
-
+			// Java 25: Establish ScopedValue scope for task execution
+			ScopedValue.where( ThreadLocalConfig.CURRENT, config ).run( () -> {
+				engine.execute( task );
+			} );
 		}
 	}
 

@@ -243,7 +243,7 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 
 		}
 		this._servlet = servlet;
-		if (register2Thread) ThreadLocalPageContext.register(pc);
+		if (register2Thread) ThreadLocalPageContext.setupClassLoader(pc);
 
 		pc.initialize(servlet, req, rsp, errorPageURL, needsSession, bufferSize, autoflush, isChild, ignoreScopes, tmplPC);
 
@@ -292,8 +292,8 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 			reuse = false;
 			ThreadLocalPageContext.getLog(config, "application").error("release page context", e);
 		}
-		if (tmpRegister) ThreadLocalPageContext.register(beforePC);
-		else if (unregisterFromThread) ThreadLocalPageContext.release();
+		if (tmpRegister) ThreadLocalPageContext.setupClassLoader(beforePC);
+		// Note: No need to call release() - ScopedValue cleanup is automatic
 
 		runningPcs.remove(Integer.valueOf(pc.getId()));
 		if (parent != null) {

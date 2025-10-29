@@ -68,9 +68,7 @@ public final class RequestDispatcherWrap implements RequestDispatcher {
 		catch (Exception e) {
 			throw Caster.toPageServletException(e);
 		}
-		finally {
-			ThreadLocalPageContext.register(pc);
-		}
+		// Java 25: No need to restore PageContext - ScopedValue scope already established by Request.exe()
 	}
 
 	@Override

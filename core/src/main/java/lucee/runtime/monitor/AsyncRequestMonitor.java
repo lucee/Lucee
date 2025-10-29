@@ -96,24 +96,19 @@ public final class AsyncRequestMonitor implements RequestMonitorPro {
 
 		@Override
 		public void run(PageContext pc) {
+			// Java 25: Scope already established by PageContextThread base class
 			try {
-				ThreadLocalPageContext.register(pc);
-				try {
-					if (init) monitor.log(pc, error);
-					else monitor.init(pc);
-				}
-				catch (IOException e) {
-					if (logEnabled) {
-						Log log = ThreadLocalPageContext.getLog(pc, "io");
-						if (log != null) {
-							addParentStacktrace(e);
-							log.log(Log.LEVEL_ERROR, "io", e);
-						}
+				if (init) monitor.log(pc, error);
+				else monitor.init(pc);
+			}
+			catch (IOException e) {
+				if (logEnabled) {
+					Log log = ThreadLocalPageContext.getLog(pc, "io");
+					if (log != null) {
+						addParentStacktrace(e);
+						log.log(Log.LEVEL_ERROR, "io", e);
 					}
 				}
-			}
-			finally {
-				ThreadLocalPageContext.release();
 			}
 		}
 	}

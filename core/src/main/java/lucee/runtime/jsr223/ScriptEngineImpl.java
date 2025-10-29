@@ -197,7 +197,7 @@ public final class ScriptEngineImpl implements ScriptEngine {
 	private PageContext getPageContext(ScriptContext context) {
 		PageContext pc = _getPageContext(true);
 		pc.setVariablesScope(toVariables(context.getBindings(ScriptContext.ENGINE_SCOPE)));
-		ThreadLocalPageContext.register(pc);
+		ThreadLocalPageContext.setupClassLoader(pc);
 		return pc;
 	}
 
@@ -221,8 +221,8 @@ public final class ScriptEngineImpl implements ScriptEngine {
 
 	private void releasePageContext(PageContext pc, PageContext oldPC) {
 		pc.flush();
-		ThreadLocalPageContext.release();
-		if (oldPC != null) ThreadLocalPageContext.register(oldPC);
+		// Note: No need to call release() - ScopedValue cleanup is automatic
+		if (oldPC != null) ThreadLocalPageContext.setupClassLoader(oldPC);
 	}
 
 	private Variables toVariables(Bindings bindings) {

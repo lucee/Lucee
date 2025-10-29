@@ -2,6 +2,7 @@ package lucee.commons.lang;
 
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
+import lucee.runtime.engine.ThreadLocalConfig;
 import lucee.runtime.engine.ThreadLocalPageContext;
 
 /**
@@ -20,15 +21,17 @@ public abstract class PageContextThread extends ParentThreasRefThread {
 	@Override
 	public final void run() {
 		Thread t = pageContext.getThread();
-		ThreadLocalPageContext.register(pageContext);// register the PageContext to this thread
-		try {
-			run(pageContext);
-		}
-		finally {
-			ThreadLocalPageContext.release();
-			if (t != null) ((PageContextImpl) pageContext).setThread(t);
-		}
-
+		// Java 25: Establish ScopedValue scope for child thread execution
+		ScopedValue.where( ThreadLocalPageContext.CURRENT, pageContext )
+				.where( ThreadLocalConfig.CURRENT, pageContext.getConfig() )
+				.run( () -> {
+					try {
+						run( pageContext );
+					}
+					finally {
+						if (t != null) ((PageContextImpl) pageContext).setThread( t );
+					}
+				} );
 	}
 
 	public abstract void run(PageContext pageContext);

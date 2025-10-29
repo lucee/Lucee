@@ -318,221 +318,223 @@ public final class Controler extends ParentThreasRefThread {
 			// need to execute them once.
 			final boolean doit = index == 0;
 
-			ThreadLocalConfig.register(config);
-
-			if (firstRun) {
-
-				checkOldClientFile(config, log);
-
-				if (doit) {
-					stopwatch.start();
-					try {
-						checkTempDirectorySize(config);
-					}
-					catch (Throwable t) {
-						ExceptionUtil.rethrowIfNecessary(t);
-						if (log != null) log.error("controler", t);
-					}
-					checkStopWatch(config, stopwatch, "checkTempDirectorySize");
-				}
-
-				if (doit) {
-					stopwatch.start();
-					try {
-						checkCacheFileSize(config);
-					}
-					catch (Throwable t) {
-						ExceptionUtil.rethrowIfNecessary(t);
-						if (log != null) log.error("controler", t);
-					}
-					checkStopWatch(config, stopwatch, "checkCacheFileSize");
-				}
-
-				stopwatch.start();
-				try {
-					cfmlFactory.getScopeContext().clearUnused();
-				}
-				catch (Throwable t) {
-					ExceptionUtil.rethrowIfNecessary(t);
-					if (log != null) log.error("controler", t);
-				}
-				checkStopWatch(config, stopwatch, "clearUnused");
-			}
-
-			ThreadLocalConfig.register(config);
-			if (do10Seconds) {
-
-			}
-
-			// every Minute
-			if (doMinute) {
-				ThreadLocalConfig.register(config);
-
-				LogUtil.log(ThreadLocalPageContext.getConfig(config), Log.LEVEL_TRACE, Controler.class.getName(), "Running background Controller maintenance (every minute).");
-
-				stopwatch.start();
-				try {
-					Scheduler scheduler = config.getScheduler();
-					if (scheduler != null) ((SchedulerImpl) scheduler).startIfNecessary();
-				}
-				catch (Exception e) {
-					if (log != null) log.error("controler", e);
-				}
-				checkStopWatch(config, stopwatch, "checkScheduler");
-
-				// double check templates
-				stopwatch.start();
-				try {
-					((ConfigWebPro) config).getCompiler().checkWatched();
-				}
-				catch (Exception e) {
-					if (log != null) log.error("controler", e);
-				}
-				checkStopWatch(config, stopwatch, "checkTemplates");
-
-				/*
-				 * stopwatch.start(); // deploy extensions, archives ... try { DeployHandler.deploy(config,
-				 * ThreadLocalPageContext.getLog(config, "deploy"), false); } catch (Throwable t) {
-				 * ExceptionUtil.rethrowIfNecessary(t); if (log != null) log.error("controler", t); }
-				 * checkStopWatch(config, stopwatch, "deploy");
-				 */
-
-				// clear unused DB Connections
-				if (doit) {
-					stopwatch.start();
-					try {
-						for (DatasourceConnPool pool: ((ConfigPro) config).getDatasourceConnectionPools()) {
-							try {
-								pool.evict();
-							}
-							catch (Exception ex) {
-								if (log != null) log.error("controler", ex);
-							}
-						}
-					}
-					catch (Exception e) {
-						if (log != null) log.error("controler", e);
-					}
-					checkStopWatch(config, stopwatch, "clearUnusedDBConnections");
-				}
-
-				if (doit) {
-					stopwatch.start();
-					// Clear unused http connections
-					try {
-						HTTPEngine4Impl.closeIdleConnections();
-					}
-					catch (Exception e) {
-						if (log != null) log.error("controler", e);
-					}
-					checkStopWatch(config, stopwatch, "clearUnusedHttpConnections");
-				}
-
-				// clear all unused scopes
-				stopwatch.start();
-				try {
-					cfmlFactory.getScopeContext().clearUnused();
-				}
-				catch (Throwable t) {
-					ExceptionUtil.rethrowIfNecessary(t);
-					if (log != null) log.error("controler", t);
-				}
-				checkStopWatch(config, stopwatch, "clearUnusedScopes");
-
-				stopwatch.start();
-				try {
-					doCheckMappings(config);
-				}
-				catch (Throwable t) {
-					ExceptionUtil.rethrowIfNecessary(t);
-					if (log != null) log.error("controler", t);
-				}
-				checkStopWatch(config, stopwatch, "checkMappings");
-
-				if (doit) {
-					stopwatch.start();
-					try {
-						doClearMailConnections();
-					}
-					catch (Throwable t) {
-						ExceptionUtil.rethrowIfNecessary(t);
-						if (log != null) log.error("controler", t);
-					}
-					checkStopWatch(config, stopwatch, "clearMailConnections");
-				}
-
-				// clean LockManager
-				stopwatch.start();
-				if (cfmlFactory.getUsedPageContextLength() == 0) try {
-					((LockManagerImpl) config.getLockManager()).clean();
-				}
-				catch (Throwable t) {
-					ExceptionUtil.rethrowIfNecessary(t);
-					if (log != null) log.error("controler", t);
-				}
-				checkStopWatch(config, stopwatch, "cleanLockManager");
-
-				/*
-				 * stopwatch.start(); try { ConfigAdmin.checkForChangesInConfigFile(config); } catch (Throwable t) {
-				 * ExceptionUtil.rethrowIfNecessary(t); if (log != null) log.error("controler", t); }
-				 * checkStopWatch(config, stopwatch, "checkForChangesInConfigFile");
-				 */
-
-			}
-			// every hour
-			if (doHour) {
-
-				LogUtil.log(ThreadLocalPageContext.getConfig(config), Log.LEVEL_TRACE, Controler.class.getName(), "Running background Controller maintenance (every hour).");
-
-				ThreadLocalConfig.register(config);
-
-				// check temp directory
-				if (doit) {
-					stopwatch.start();
-					try {
-						checkTempDirectorySize(config);
-					}
-					catch (Throwable t) {
-						ExceptionUtil.rethrowIfNecessary(t);
-						if (log != null) log.error("controler", t);
-					}
-					checkStopWatch(config, stopwatch, "checkTempDirectorySize");
-				}
-
-				// check cache directory
-				if (doit) {
-					stopwatch.start();
-					try {
-						checkCacheFileSize(config);
-					}
-					catch (Throwable t) {
-						ExceptionUtil.rethrowIfNecessary(t);
-						if (log != null) log.error("controler", t);
-					}
-					checkStopWatch(config, stopwatch, "checkCacheFileSize");
-				}
-
-				// clean up dynclasses
-				if (doit) {
-					stopwatch.start();
-					try {
-						DynamicInvoker di = DynamicInvoker.getExistingInstance();
-						if (di != null) di.cleanup();
-					}
-					catch (Throwable t) {
-						ExceptionUtil.rethrowIfNecessary(t);
-						if (log != null) log.error("controler", t);
-					}
-					checkStopWatch(config, stopwatch, "cleanupDynamicInvoker");
-				}
-			}
+			// Java 25: Establish ScopedValue scope for background thread maintenance
+			final CFMLFactoryImpl factory = cfmlFactory;
+			ScopedValue.where( ThreadLocalConfig.CURRENT, config ).run( () -> {
+				controlWithScope( factory, config, stopwatch, doit, firstRun, do10Seconds, doMinute, doHour, log );
+			} );
 		}
 		catch (Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);
 			if (log != null) log.error("controler", t);
 		}
-		finally {
-			ThreadLocalConfig.release();
+	}
+
+	private void controlWithScope(CFMLFactoryImpl cfmlFactory, ConfigWeb config, Stopwatch stopwatch, boolean doit, boolean firstRun, boolean do10Seconds, boolean doMinute, boolean doHour, Log log) {
+		if (firstRun) {
+
+			checkOldClientFile(config, log);
+
+			if (doit) {
+				stopwatch.start();
+				try {
+					checkTempDirectorySize(config);
+				}
+				catch (Throwable t) {
+					ExceptionUtil.rethrowIfNecessary(t);
+					if (log != null) log.error("controler", t);
+				}
+				checkStopWatch(config, stopwatch, "checkTempDirectorySize");
+			}
+
+			if (doit) {
+				stopwatch.start();
+				try {
+					checkCacheFileSize(config);
+				}
+				catch (Throwable t) {
+					ExceptionUtil.rethrowIfNecessary(t);
+					if (log != null) log.error("controler", t);
+				}
+				checkStopWatch(config, stopwatch, "checkCacheFileSize");
+			}
+
+			stopwatch.start();
+			try {
+				cfmlFactory.getScopeContext().clearUnused();
+			}
+			catch (Throwable t) {
+				ExceptionUtil.rethrowIfNecessary(t);
+				if (log != null) log.error("controler", t);
+			}
+			checkStopWatch(config, stopwatch, "clearUnused");
+		}
+
+		// Java 25: Config scope already established by control() method
+		if (do10Seconds) {
+
+		}
+
+		// every Minute
+		if (doMinute) {
+
+			LogUtil.log(ThreadLocalPageContext.getConfig(config), Log.LEVEL_TRACE, Controler.class.getName(), "Running background Controller maintenance (every minute).");
+
+			stopwatch.start();
+			try {
+				Scheduler scheduler = config.getScheduler();
+				if (scheduler != null) ((SchedulerImpl) scheduler).startIfNecessary();
+			}
+			catch (Exception e) {
+				if (log != null) log.error("controler", e);
+			}
+			checkStopWatch(config, stopwatch, "checkScheduler");
+
+			// double check templates
+			stopwatch.start();
+			try {
+				((ConfigWebPro) config).getCompiler().checkWatched();
+			}
+			catch (Exception e) {
+				if (log != null) log.error("controler", e);
+			}
+			checkStopWatch(config, stopwatch, "checkTemplates");
+
+			/*
+				* stopwatch.start(); // deploy extensions, archives ... try { DeployHandler.deploy(config,
+				* ThreadLocalPageContext.getLog(config, "deploy"), false); } catch (Throwable t) {
+				* ExceptionUtil.rethrowIfNecessary(t); if (log != null) log.error("controler", t); }
+				* checkStopWatch(config, stopwatch, "deploy");
+				*/
+
+			// clear unused DB Connections
+			if (doit) {
+				stopwatch.start();
+				try {
+					for (DatasourceConnPool pool: ((ConfigPro) config).getDatasourceConnectionPools()) {
+						try {
+							pool.evict();
+						}
+						catch (Exception ex) {
+							if (log != null) log.error("controler", ex);
+						}
+					}
+				}
+				catch (Exception e) {
+					if (log != null) log.error("controler", e);
+				}
+				checkStopWatch(config, stopwatch, "clearUnusedDBConnections");
+			}
+
+			if (doit) {
+				stopwatch.start();
+				// Clear unused http connections
+				try {
+					HTTPEngine4Impl.closeIdleConnections();
+				}
+				catch (Exception e) {
+					if (log != null) log.error("controler", e);
+				}
+				checkStopWatch(config, stopwatch, "clearUnusedHttpConnections");
+			}
+
+			// clear all unused scopes
+			stopwatch.start();
+			try {
+				cfmlFactory.getScopeContext().clearUnused();
+			}
+			catch (Throwable t) {
+				ExceptionUtil.rethrowIfNecessary(t);
+				if (log != null) log.error("controler", t);
+			}
+			checkStopWatch(config, stopwatch, "clearUnusedScopes");
+
+			stopwatch.start();
+			try {
+				doCheckMappings(config);
+			}
+			catch (Throwable t) {
+				ExceptionUtil.rethrowIfNecessary(t);
+				if (log != null) log.error("controler", t);
+			}
+			checkStopWatch(config, stopwatch, "checkMappings");
+
+			if (doit) {
+				stopwatch.start();
+				try {
+					doClearMailConnections();
+				}
+				catch (Throwable t) {
+					ExceptionUtil.rethrowIfNecessary(t);
+					if (log != null) log.error("controler", t);
+				}
+				checkStopWatch(config, stopwatch, "clearMailConnections");
+			}
+
+			// clean LockManager
+			stopwatch.start();
+			if (cfmlFactory.getUsedPageContextLength() == 0) try {
+				((LockManagerImpl) config.getLockManager()).clean();
+			}
+			catch (Throwable t) {
+				ExceptionUtil.rethrowIfNecessary(t);
+				if (log != null) log.error("controler", t);
+			}
+			checkStopWatch(config, stopwatch, "cleanLockManager");
+
+			/*
+				* stopwatch.start(); try { ConfigAdmin.checkForChangesInConfigFile(config); } catch (Throwable t) {
+				* ExceptionUtil.rethrowIfNecessary(t); if (log != null) log.error("controler", t); }
+				* checkStopWatch(config, stopwatch, "checkForChangesInConfigFile");
+				*/
+
+		}
+		// every hour
+		if (doHour) {
+
+			LogUtil.log(ThreadLocalPageContext.getConfig(config), Log.LEVEL_TRACE, Controler.class.getName(), "Running background Controller maintenance (every hour).");
+
+			// Java 25: Config scope already established by control() method
+
+			// check temp directory
+			if (doit) {
+				stopwatch.start();
+				try {
+					checkTempDirectorySize(config);
+				}
+				catch (Throwable t) {
+					ExceptionUtil.rethrowIfNecessary(t);
+					if (log != null) log.error("controler", t);
+				}
+				checkStopWatch(config, stopwatch, "checkTempDirectorySize");
+			}
+
+			// check cache directory
+			if (doit) {
+				stopwatch.start();
+				try {
+					checkCacheFileSize(config);
+				}
+				catch (Throwable t) {
+					ExceptionUtil.rethrowIfNecessary(t);
+					if (log != null) log.error("controler", t);
+				}
+				checkStopWatch(config, stopwatch, "checkCacheFileSize");
+			}
+
+			// clean up dynclasses
+			if (doit) {
+				stopwatch.start();
+				try {
+					DynamicInvoker di = DynamicInvoker.getExistingInstance();
+					if (di != null) di.cleanup();
+				}
+				catch (Throwable t) {
+					ExceptionUtil.rethrowIfNecessary(t);
+					if (log != null) log.error("controler", t);
+				}
+				checkStopWatch(config, stopwatch, "cleanupDynamicInvoker");
+			}
 		}
 	}
 

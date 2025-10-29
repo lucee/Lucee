@@ -125,8 +125,18 @@ public final class ScheduledTaskThread extends ParentThreasRefThread {
 
 	@Override
 	public void run() {
-		if (ThreadLocalPageContext.getConfig() == null && config != null) ThreadLocalConfig.register(config);
+		// Java 25: Establish ScopedValue scope for scheduled task execution if needed
+		if (ThreadLocalPageContext.getConfig() == null && config != null) {
+			ScopedValue.where( ThreadLocalConfig.CURRENT, config ).run( () -> {
+				runTask();
+			} );
+		}
+		else {
+			runTask();
+		}
+	}
 
+	private void runTask() {
 		try {
 			_run();
 		}

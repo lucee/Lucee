@@ -383,7 +383,7 @@ public class ModernAppListener extends AppListenerSupport {
 			}
 			finally {
 				factory.releaseLuceePageContext(pc, true);
-				if (existing != null) ThreadLocalPageContext.register(existing);
+				if (existing != null) ThreadLocalPageContext.setupClassLoader(existing);
 			}
 		}
 		catch (Throwable t) {
