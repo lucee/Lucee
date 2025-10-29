@@ -82,7 +82,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="query,cache" {
 
 					describe("basic cacheprefix functionality #currentProvider.name#", function() {
 
-						it("should cache queries with same SQL and cacheprefix", function() {
+						it("should cache queries with same SQL and cacheprefix #currentProvider.name#", function() {
 							var dsn = server.getDatasource("h2", server._getTempDir("LDEV5871"));
 
 							query datasource="#dsn#" name="local.result1" cacheprefix="test-basic-" cachedwithin="#createTimeSpan(0,0,1,0)#" {
@@ -98,7 +98,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="query,cache" {
 							expect(result1.executed).toBe(result2.executed);
 						});
 
-						it("should work with queryExecute", function() {
+						it("should work with queryExecute #currentProvider.name#", function() {
 							var dsn = server.getDatasource("h2", server._getTempDir("LDEV5871"));
 
 							var result1 = queryExecute(
@@ -128,9 +128,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="query,cache" {
 
 					});
 
-					describe("cacheprefix fallback behavior", function() {
+					describe("cacheprefix fallback behavior #currentProvider.name#", function() {
 
-						it("should fall back to auto-generated key when cacheprefix is empty", function() {
+						it("should fall back to auto-generated key when cacheprefix is empty #currentProvider.name#", function() {
 							var dsn = server.getDatasource("h2", server._getTempDir("LDEV5871"));
 
 							query datasource="#dsn#" name="local.result1" cacheprefix="" cachedwithin="#createTimeSpan(0,0,1,0)#" {
@@ -146,7 +146,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="query,cache" {
 							expect(result1.executed).toBe(result2.executed);
 						});
 
-						it("should fall back to auto-generated key when cacheprefix is whitespace", function() {
+						it("should fall back to auto-generated key when cacheprefix is whitespace #currentProvider.name#", function() {
 							var dsn = server.getDatasource("h2", server._getTempDir("LDEV5871"));
 
 							query datasource="#dsn#" name="local.result1" cacheprefix="   " cachedwithin="#createTimeSpan(0,0,1,0)#" {
@@ -164,9 +164,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="query,cache" {
 
 					});
 
-					describe("cacheprefix with other caching attributes", function() {
+					describe("cacheprefix with other caching attributes #currentProvider.name#", function() {
 
-						it("should work with cachedwithin", function() {
+						it("should work with cachedwithin #currentProvider.name#", function() {
 							var dsn = server.getDatasource("h2", server._getTempDir("LDEV5871"));
 
 							query datasource="#dsn#" name="local.result1" cacheprefix="test-cachedwithin-" cachedwithin="#createTimeSpan(0,0,1,0)#" {
@@ -182,7 +182,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="query,cache" {
 							expect(result1.executed).toBe(result2.executed);
 						});
 
-						it("should work with cachedafter", function() {
+						it("should work with cachedafter #currentProvider.name#", function() {
 							var dsn = server.getDatasource("h2", server._getTempDir("LDEV5871"));
 							var cacheAfterDate = dateAdd("s", -10, now());
 
@@ -199,7 +199,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="query,cache" {
 							expect(result1.executed).toBe(result2.executed);
 						});
 
-						it("should not cache when cacheprefix is used without cachedwithin or cachedafter", function() {
+						it("should not cache when cacheprefix is used without cachedwithin or cachedafter #currentProvider.name#", function() {
 							var dsn = server.getDatasource("h2", server._getTempDir("LDEV5871"));
 
 							query datasource="#dsn#" name="local.result1" cacheprefix="ignored-prefix-" {
@@ -217,9 +217,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="query,cache" {
 
 					});
 
-					describe("cacheprefix isolation", function() {
+					describe("cacheprefix isolation #currentProvider.name#", function() {
 
-						it("should not share cache when different SQL with same cacheprefix", function() {
+						it("should not share cache when different SQL with same cacheprefix #currentProvider.name#", function() {
 							var dsn = server.getDatasource("h2", server._getTempDir("LDEV5871"));
 
 							query datasource="#dsn#" name="local.result1" cacheprefix="shared-prefix-" cachedwithin="#createTimeSpan(0,0,1,0)#" {
@@ -237,7 +237,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="query,cache" {
 							expect(result2.col).toBe("second");
 						});
 
-						it("should not share cache when same SQL with different cacheprefix", function() {
+						it("should not share cache when same SQL with different cacheprefix #currentProvider.name#", function() {
 							var dsn = server.getDatasource("h2", server._getTempDir("LDEV5871"));
 
 							query datasource="#dsn#" name="local.result1" cacheprefix="prefix-a-" cachedwithin="#createTimeSpan(0,0,1,0)#" {
@@ -253,7 +253,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="query,cache" {
 							expect(result1.executed).notToBe(result2.executed);
 						});
 
-						it("should support multiple concurrent cacheprefix values", function() {
+						it("should support multiple concurrent cacheprefix values #currentProvider.name#", function() {
 							var dsn = server.getDatasource("h2", server._getTempDir("LDEV5871"));
 
 							query datasource="#dsn#" name="local.result1" cacheprefix="concurrent-1-" cachedwithin="#createTimeSpan(0,0,1,0)#" {
@@ -289,9 +289,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="query,cache" {
 
 					});
 
-					describe("cacheprefix edge cases", function() {
+					describe("cacheprefix edge cases #currentProvider.name#", function() {
 
-						it("should handle long cacheprefix values", function() {
+						it("should handle long cacheprefix values #currentProvider.name#", function() {
 							var dsn = server.getDatasource("h2", server._getTempDir("LDEV5871"));
 							var longPrefix = repeatString("a", 200) & "-";
 
@@ -308,7 +308,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="query,cache" {
 							expect(result1.executed).toBe(result2.executed);
 						});
 
-						it("should handle special characters in cacheprefix", function() {
+						it("should handle special characters in cacheprefix #currentProvider.name#", function() {
 							var dsn = server.getDatasource("h2", server._getTempDir("LDEV5871"));
 							var specialPrefix = "test-prefix_with.special@chars##123-";
 
@@ -325,7 +325,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="query,cache" {
 							expect(result1.executed).toBe(result2.executed);
 						});
 
-						it("should handle unicode characters in cacheprefix", function() {
+						it("should handle unicode characters in cacheprefix #currentProvider.name#", function() {
 							var dsn = server.getDatasource("h2", server._getTempDir("LDEV5871"));
 							var unicodePrefix = "test-καλημέρα-世界-";
 
@@ -342,7 +342,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="query,cache" {
 							expect(result1.executed).toBe(result2.executed);
 						});
 
-						it("should be case-sensitive", function() {
+						it("should be case-sensitive #currentProvider.name#", function() {
 							var dsn = server.getDatasource("h2", server._getTempDir("LDEV5871"));
 
 							query datasource="#dsn#" name="local.result1" cacheprefix="myprefix-" cachedwithin="#createTimeSpan(0,0,1,0)#" {
@@ -360,9 +360,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="query,cache" {
 
 					});
 
-					describe("cacheprefix with query parameters", function() {
+					describe("cacheprefix with query parameters #currentProvider.name#", function() {
 
-						it("should cache queries with query parameters", function() {
+						it("should cache queries with query parameters #currentProvider.name#", function() {
 							var dsn = server.getDatasource("h2", server._getTempDir("LDEV5871"));
 
 							var result1 = queryExecute(
@@ -392,7 +392,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="query,cache" {
 
 					});
 
-					describe("cacheRemoveAll() with cacheprefix", function() {
+					describe("cacheRemoveAll() with cacheprefix #currentProvider.name#", function() {
 
 						it("should remove cached query using cacheRemove #currentProvider.name#", function() {
 							var dsn = server.getDatasource("h2", server._getTempDir("LDEV5871"));
@@ -416,7 +416,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="query,cache" {
 							expect(result1.executed).notToBe(result2.executed);
 						});
 
-						it("should remove cached query without cacheprefix using cacheRemoveAll", function() {
+						it("should remove cached query without cacheprefix using cacheRemoveAll #currentProvider.name#", function() {
 							var dsn = server.getDatasource("h2", server._getTempDir("LDEV5871"));
 
 							// Cache a query without cacheprefix
@@ -440,9 +440,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="query,cache" {
 
 					});
 
-					describe("cacheClear() with query caches", function() {
+					describe("cacheClear() with query caches #currentProvider.name#", function() {
 
-						it("should clear all cached queries using cacheClear", function() {
+						it("should clear all cached queries using cacheClear #currentProvider.name#", function() {
 							var dsn = server.getDatasource("h2", server._getTempDir("LDEV5871"));
 
 							// Cache multiple queries
@@ -481,7 +481,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="query,cache" {
 							expect(result3.executed).notToBe(result3b.executed);
 						});
 
-						it("should clear all cached queries using cacheClear with specific paths", function() {
+						it("should clear all cached queries using cacheClear with specific paths #currentProvider.name#", function() {
 							var dsn = server.getDatasource("h2", server._getTempDir("LDEV5871"));
 
 							// Cache multiple queries
@@ -520,7 +520,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="query,cache" {
 							expect(result3.executed).toBe(result3b.executed);
 						});
 
-						it("should clear queries with and without cacheprefix", function() {
+						it("should clear queries with and without cacheprefix #currentProvider.name#", function() {
 							var dsn = server.getDatasource("h2", server._getTempDir("LDEV5871"));
 
 							// Cache with prefix
