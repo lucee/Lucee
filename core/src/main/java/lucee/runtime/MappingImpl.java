@@ -725,6 +725,10 @@ public final class MappingImpl implements Mapping {
 			ConfigWebPro cwi = (ConfigWebPro) ThreadLocalPageContext.getConfig();
 			return cwi.getApplicationMapping(type, virtual, physical, archive, physicalFirst, ignoreVirtual);
 		}
+
+		public Mapping toMapping(ConfigWebPro config) {
+			return config.getApplicationMapping(type, virtual, physical, archive, physicalFirst, ignoreVirtual);
+		}
 	}
 
 	public static CIPage loadCIPage(PageSource ps, String className) {

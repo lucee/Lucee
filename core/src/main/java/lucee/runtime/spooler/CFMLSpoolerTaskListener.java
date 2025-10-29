@@ -7,6 +7,7 @@ import lucee.commons.lang.Pair;
 import lucee.runtime.PageContext;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigWeb;
+import lucee.runtime.engine.ThreadLocalConfig;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
@@ -42,54 +43,70 @@ public abstract class CFMLSpoolerTaskListener extends SpoolerTaskListener {
 
 			pc.setRequestTimeout(config.getRequestTimeout().getMillis());
 		}
-		try {
-			Struct args = new StructImpl();
 
-			long l = task.lastExecution();
-			if (l > 0) args.set("lastExecution", new DateTimeImpl(l));
-			l = task.nextExecution();
-			if (l > 0) args.set("nextExecution", new DateTimeImpl(l));
-			args.set("created", new DateTimeImpl(task.getCreation()));
-			args.set(KeyConstants._id, task.getId());
-			args.set(KeyConstants._type, task.getType());
+		// Java 25: Establish ScopedValue scope for listener execution
+		final PageContext fpc = pc;
+		final boolean fpcCreated = pcCreated;
 
-			/* TODO: re-implement
-			Struct details = task.detail();
-			if (task instanceof MailSpoolerTask) {
-				details.set(KeyConstants._charset, ((MailSpoolerTask) task).getCharset());
-				details.set(KeyConstants._replyto, ((MailSpoolerTask) task).getReplyTos());
-				details.set("failto", ((MailSpoolerTask) task).getFailTos());
+		Runnable listenerExecution = () -> {
+			try {
+				Struct args = new StructImpl();
+
+				long l = task.lastExecution();
+				if (l > 0) args.set("lastExecution", new DateTimeImpl(l));
+				l = task.nextExecution();
+				if (l > 0) args.set("nextExecution", new DateTimeImpl(l));
+				args.set("created", new DateTimeImpl(task.getCreation()));
+				args.set(KeyConstants._id, task.getId());
+				args.set(KeyConstants._type, task.getType());
+
+				Struct details = task.detail();
+				// Mail functionality removed
+				// if (task instanceof MailSpoolerTask) {
+				// 	details.set(KeyConstants._charset, ((MailSpoolerTask) task).getCharset());
+				// 	details.set(KeyConstants._replyto, ((MailSpoolerTask) task).getReplyTos());
+				// 	details.set("failto", ((MailSpoolerTask) task).getFailTos());
+				// }
+				args.set(KeyConstants._detail, details);
+
+				args.set(KeyConstants._tries, task.tries());
+				args.set("remainingtries", e == null ? 0 : task.getPlans().length - task.tries());
+				args.set("closed", task.closed());
+				if (!before) args.set("passed", e == null);
+				if (e != null) args.set("exception", Caster.toPageException(e).getCatchBlock(cw));
+
+				Struct curr = new StructImpl();
+				args.set("caller", curr);
+				curr.set("template", currTemplate.template);
+				curr.set("line", Double.valueOf(currTemplate.line));
+
+				Struct adv = new StructImpl();
+				args.set("advanced", adv);
+				adv.set("exceptions", task.getExceptions());
+				adv.set("executedPlans", task.getPlans());
+
+				Object o = _listen(fpc, args, before);
+				// Mail functionality removed
+				// if (before && o instanceof Struct && task instanceof MailSpoolerTask) {
+				// 	((MailSpoolerTask) task).mod((Struct) o);
+				// }
+
 			}
-			args.set(KeyConstants._detail, details);
-			*/
-			args.set(KeyConstants._tries, task.tries());
-			args.set("remainingtries", e == null ? 0 : task.getPlans().length - task.tries());
-			args.set("closed", task.closed());
-			if (!before) args.set("passed", e == null);
-			if (e != null) args.set("exception", Caster.toPageException(e).getCatchBlock(cw));
-
-			Struct curr = new StructImpl();
-			args.set("caller", curr);
-			curr.set("template", currTemplate.template);
-			curr.set("line", Double.valueOf(currTemplate.line));
-
-			Struct adv = new StructImpl();
-			args.set("advanced", adv);
-			adv.set("exceptions", task.getExceptions());
-			adv.set("executedPlans", task.getPlans());
-			/* TODO: re-implement
-			Object o = _listen(pc, args, before);
-			if (before && o instanceof Struct && task instanceof MailSpoolerTask) {
-				((MailSpoolerTask) task).mod((Struct) o);
+			catch (Exception pe) {
+				LogUtil.log(ThreadLocalPageContext.get(), CFMLSpoolerTaskListener.class.getName(), pe);
 			}
-			*/
+			finally {
+				if (fpcCreated) fpc.getConfig().getFactory().releaseLuceePageContext(fpc, true);
+			}
+		};
 
-		}
-		catch (Exception pe) {
-			LogUtil.log(ThreadLocalPageContext.get(), CFMLSpoolerTaskListener.class.getName(), pe);
-		}
-		finally {
-			if (pcCreated) ThreadLocalPageContext.release();
+		// Execute with or without scope depending on whether PC was created
+		if (pcCreated) {
+			ScopedValue.where( ThreadLocalPageContext.CURRENT, fpc )
+					.where( ThreadLocalConfig.CURRENT, fpc.getConfig() )
+					.run( listenerExecution );
+		} else {
+			listenerExecution.run();
 		}
 	}
 

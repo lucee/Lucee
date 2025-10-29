@@ -609,6 +609,17 @@ public final class ArrayImplNS extends ArraySupport implements Array {
 
 	@Override
 	public Collection duplicate(boolean deepCopy) {
+		// Java 25: If not already inside a duplication scope, establish one
+		if (deepCopy && !ThreadLocalDuplication.DUPLICATION_MAP.isBound()) {
+			java.util.Map<Object, Object> duplicationMap = new java.util.IdentityHashMap<>();
+			return ScopedValue.where( ThreadLocalDuplication.DUPLICATION_MAP, duplicationMap ).call( () -> {
+				return duplicateInternal( deepCopy );
+			} );
+		}
+		return duplicateInternal(deepCopy);
+	}
+
+	private Collection duplicateInternal(boolean deepCopy) {
 		ArrayImplNS arr = new ArrayImplNS();
 		arr.dimension = dimension;
 		Iterator<Entry<Key, Object>> it = entryIterator();

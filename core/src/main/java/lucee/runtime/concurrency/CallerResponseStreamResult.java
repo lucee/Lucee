@@ -27,6 +27,7 @@ import lucee.commons.io.IOUtil;
 import lucee.commons.io.log.LogUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
+import lucee.runtime.engine.ThreadLocalConfig;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.net.http.HttpServletResponseDummy;
@@ -47,29 +48,33 @@ public abstract class CallerResponseStreamResult implements Callable<String> {
 
 	@Override
 	public final String call() throws PageException {
-		ThreadLocalPageContext.register(pc);
-		pc.getRootOut().setAllowCompression(false); // make sure content is not compressed
-		String str = null;
-		try {
-			_call(parent, pc);
-		}
-		finally {
-			try {
-				HttpServletResponseDummy rsp = (HttpServletResponseDummy) pc.getHttpServletResponse();
+		// Java 25: Establish ScopedValue scope for response streaming
+		return ScopedValue.where( ThreadLocalPageContext.CURRENT, pc )
+				.where( ThreadLocalConfig.CURRENT, pc.getConfig() )
+				.call( () -> {
+					pc.getRootOut().setAllowCompression( false ); // make sure content is not compressed
+					String str = null;
+					try {
+						_call( parent, pc );
+					}
+					finally {
+						try {
+							HttpServletResponseDummy rsp = (HttpServletResponseDummy) pc.getHttpServletResponse();
 
-				Charset cs = ReqRspUtil.getCharacterEncoding(pc, rsp);
-				// if(enc==null) enc="ISO-8859-1";
+							Charset cs = ReqRspUtil.getCharacterEncoding( pc, rsp );
+							// if(enc==null) enc="ISO-8859-1";
 
-				pc.getOut().flush(); // make sure content is flushed
+							pc.getOut().flush(); // make sure content is flushed
 
-				pc.getConfig().getFactory().releasePageContext(pc);
-				str = IOUtil.toString((new ByteArrayInputStream(baos.toByteArray())), cs); // TODO add support for none string content
-			}
-			catch (Exception e) {
-				LogUtil.log(pc, "concurrency", e);
-			}
-		}
-		return str;
+							pc.getConfig().getFactory().releasePageContext( pc );
+							str = IOUtil.toString( (new ByteArrayInputStream( baos.toByteArray() )), cs ); // TODO add support for none string content
+						}
+						catch (Exception e) {
+							LogUtil.log( pc, "concurrency", e );
+						}
+					}
+					return str;
+				} );
 	}
 
 	public abstract void _call(PageContext parent, PageContext pc) throws PageException;

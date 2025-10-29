@@ -152,14 +152,17 @@ public final class SpoolerEngineImpl implements SpoolerEngine {
 	private void start(ConfigWeb config, Task task) {
 		if (task == null) return;
 		synchronized (task) {
+			// Wrap task with its config to ensure it executes with the correct context
+			TaskWithConfig wrappedTask = new TaskWithConfig(config, task);
+
 			if (simpleThread == null || !simpleThread.isAlive()) {
-				simpleThread = new SimpleThread(config, task);
+				simpleThread = new SimpleThread(config, wrappedTask);
 
 				simpleThread.setPriority(Thread.MIN_PRIORITY);
 				simpleThread.start();
 			}
 			else {
-				simpleThread.tasks.add(task);
+				simpleThread.tasks.add(wrappedTask);
 				simpleThread.interrupt();
 			}
 		}
@@ -420,6 +423,7 @@ public final class SpoolerEngineImpl implements SpoolerEngine {
 					if (task != null) task.execute(config);
 				}
 				catch (Throwable t) {
+					lucee.aprint.o(t);
 					ExceptionUtil.rethrowIfNecessary(t);
 				}
 			}
@@ -449,11 +453,17 @@ public final class SpoolerEngineImpl implements SpoolerEngine {
 
 		@Override
 		public void run() {
+			// Java 25: Establish ScopedValue scope for spooler execution
+			ScopedValue.where( ThreadLocalConfig.CURRENT, config ).run( () -> {
+				runWithScope();
+			} );
+		}
+
+		private void runWithScope() {
 			String[] taskNames;
 			// SpoolerTask[] tasks;
 			SpoolerTask task = null;
 			long nextExection;
-			ThreadLocalConfig.register(config);
 			// ThreadLocalPageContext.register(engine.);
 			List<TaskThread> runningTasks = new ArrayList<TaskThread>();
 			TaskThread tt;
@@ -546,10 +556,10 @@ public final class SpoolerEngineImpl implements SpoolerEngine {
 
 		@Override
 		public void run() {
-			ThreadLocalConfig.register(config);
-			engine.execute(task);
-			ThreadLocalConfig.release();
-
+			// Java 25: Establish ScopedValue scope for task execution
+			ScopedValue.where( ThreadLocalConfig.CURRENT, config ).run( () -> {
+				engine.execute( task );
+			} );
 		}
 	}
 
@@ -664,6 +674,27 @@ public final class SpoolerEngineImpl implements SpoolerEngine {
 
 	public Resource getPersisDirectory(ConfigWeb config) {
 		return config.getRemoteClientDirectory();
+	}
+
+	/**
+	 * Wrapper class that carries a ConfigWeb with a Task to ensure the task executes with the correct config context.
+	 * This is necessary because SimpleThread may be reused across multiple tasks with different configs.
+	 * With Java 25 ScopedValue, we can't use ThreadLocal.register() to override the thread's config anymore.
+	 */
+	class TaskWithConfig implements Task {
+		private final Config config;
+		private final Task task;
+
+		public TaskWithConfig(Config config, Task task) {
+			this.config = config;
+			this.task = task;
+		}
+
+		@Override
+		public Object execute(Config ignoredConfig) throws PageException {
+			// Use the config that was passed when this task was added, not the thread's config
+			return task.execute(config);
+		}
 	}
 }
 

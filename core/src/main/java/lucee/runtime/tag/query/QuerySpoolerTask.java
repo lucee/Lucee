@@ -15,6 +15,7 @@ import lucee.runtime.PageSource;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.config.ConfigWebPro;
+import lucee.runtime.engine.ThreadLocalConfig;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.Abort;
 import lucee.runtime.exp.PageException;
@@ -34,12 +35,8 @@ public final class QuerySpoolerTask extends SpoolerTaskSupport {
 
 	private static final long serialVersionUID = 2450199479366505177L;
 
-	private static final ExecutionPlan[] EXECUTION_PLANS = new ExecutionPlan[] {
-			// new ExecutionPlanImpl(1,60),
-			// new ExecutionPlanImpl(1,5*60),
-			// new ExecutionPlanImpl(1,3600),
-			// new ExecutionPlanImpl(2,24*3600),
-	};
+	// Async queries should execute immediately with no retry plans
+	private static final ExecutionPlan[] EXECUTION_PLANS = null;
 
 	private transient PageContextImpl pc;
 	private String serverName;
@@ -86,27 +83,43 @@ public final class QuerySpoolerTask extends SpoolerTaskSupport {
 	}
 
 	@Override
-
 	public Object execute(Config config) throws PageException {
 		PageContext oldPc = ThreadLocalPageContext.get();
 		PageContextImpl pc = null;
+
+		// daemon
+		if (this.pc != null) {
+			pc = this.pc;
+		}
+		// task
+		else {
+			ConfigWebPro cwi = (ConfigWebPro) config;
+			HttpSession session = oldPc != null && oldPc.getSessionType() == Config.SESSION_TYPE_JEE ? oldPc.getSession() : null;
+			DevNullOutputStream os = DevNullOutputStream.DEV_NULL_OUTPUT_STREAM;
+			pc = ThreadUtil.createPageContext(cwi, os, serverName, requestURI, queryString, SerializableCookie.toCookies(cookies), headers, null, parameters, attributes, true,
+					-1, session, null);
+			pc.setRequestTimeout(requestTimeout);
+			PageSource ps = UDFPropertiesImpl.toPageSource(pc, cwi, mapping == null ? null : mapping.toMapping(cwi), relPath, relPathwV);
+			pc.addPageSource(ps, true);
+		}
+
+		// Java 25: Establish ScopedValue scope for query execution
+		final PageContextImpl fpc = pc;
 		try {
-			// daemon
-			if (this.pc != null) {
-				pc = this.pc;
-				ThreadLocalPageContext.register(pc);
-			}
-			// task
-			else {
-				ConfigWebPro cwi = (ConfigWebPro) config;
-				HttpSession session = oldPc != null && oldPc.getSessionType() == Config.SESSION_TYPE_JEE ? oldPc.getSession() : null;
-				DevNullOutputStream os = DevNullOutputStream.DEV_NULL_OUTPUT_STREAM;
-				pc = ThreadUtil.createPageContext(cwi, os, serverName, requestURI, queryString, SerializableCookie.toCookies(cookies), headers, null, parameters, attributes, true,
-						-1, session, null);
-				pc.setRequestTimeout(requestTimeout);
-				PageSource ps = UDFPropertiesImpl.toPageSource(pc, cwi, mapping == null ? null : mapping.toMapping(), relPath, relPathwV);
-				pc.addPageSource(ps, true);
-			}
+			return ScopedValue.where( ThreadLocalPageContext.CURRENT, fpc )
+					.where( ThreadLocalConfig.CURRENT, fpc.getConfig() )
+					.call( () -> executeWithScope( fpc, oldPc ) );
+		}
+		catch (PageException e) {
+			throw e;
+		}
+		catch (Exception e) {
+			throw Caster.toPageException(e);
+		}
+	}
+
+	private Object executeWithScope(PageContextImpl pc, PageContext oldPc) throws PageException {
+		try {
 
 			try {
 				Query._doEndTag(pc, data, sql, tl, false);
@@ -114,11 +127,10 @@ public final class QuerySpoolerTask extends SpoolerTaskSupport {
 			catch (Exception e) {
 				if (!Abort.isSilentAbort(e)) {
 					ConfigWeb c = pc.getConfig();
-					Log log = ThreadLocalPageContext.getLog(pc, "application");
-					if (log != null) log.log(Log.LEVEL_ERROR, "query", e);
-					PageException pe = Caster.toPageException(e);
-					// if(!serializable)catchBlock=pe.getCatchBlock(pc.getConfig());
-					return pe;
+					Log log = ThreadLocalPageContext.getLog(pc, "exception");
+					if (log != null) log.log(Log.LEVEL_ERROR, "async-query", e);
+					// Don't throw - we're in a background thread, just log the error
+					// Async queries are fire-and-forget, so this is the only way to report failures
 				}
 			}
 			finally {
@@ -136,8 +148,7 @@ public final class QuerySpoolerTask extends SpoolerTaskSupport {
 		}
 		finally {
 			pc.getConfig().getFactory().releaseLuceePageContext(pc, true);
-			pc = null;
-			if (oldPc != null) ThreadLocalPageContext.register(oldPc);
+			// Note: oldPc restore not needed - ScopedValue scope handles cleanup automatically
 		}
 		return null;
 	}

@@ -122,32 +122,38 @@ public final class Duplicator {
 		if (object instanceof Boolean) return object;
 
 		RefBoolean before = new RefBooleanImpl();
-		try {
-			Object copy = ThreadLocalDuplication.get(object, before);
-			if (copy != null) {
-				return copy;
-			}
-
-			if (object instanceof Collection) return ((Collection) object).duplicate(deepCopy);
-			if (object instanceof Duplicable) return ((Duplicable) object).duplicate(deepCopy);
-			if (object instanceof UDF) return ((UDF) object).duplicate();
-			if (object instanceof List) return duplicateList((List) object, deepCopy);
-			if (object instanceof Map) return duplicateMap((Map) object, deepCopy);
-			if (object instanceof Serializable) {
-				try {
-					String ser = JavaConverter.serialize((Serializable) object);
-					return JavaConverter.deserialize(ser);
-
-				}
-				catch (Throwable t) {
-					ExceptionUtil.rethrowIfNecessary(t);
-				}
-			}
-		}
-		finally {
-			if (!before.toBooleanValue()) ThreadLocalDuplication.reset();
+		Object copy = ThreadLocalDuplication.get( object, before );
+		if (copy != null) {
+			return copy;
 		}
 
+		// Not inside duplication scope yet - establish it
+		if (!before.toBooleanValue()) {
+			java.util.Map<Object, Object> duplicationMap = new java.util.IdentityHashMap<>();
+			return ScopedValue.where( ThreadLocalDuplication.DUPLICATION_MAP, duplicationMap ).call( () -> {
+				return duplicateInternal( object, deepCopy );
+			} );
+		}
+
+		// Already inside duplication scope - continue
+		return duplicateInternal( object, deepCopy );
+	}
+
+	private static Object duplicateInternal(Object object, boolean deepCopy) {
+		if (object instanceof Collection) return ((Collection) object).duplicate( deepCopy );
+		if (object instanceof Duplicable) return ((Duplicable) object).duplicate( deepCopy );
+		if (object instanceof UDF) return ((UDF) object).duplicate();
+		if (object instanceof List) return duplicateList( (List) object, deepCopy );
+		if (object instanceof Map) return duplicateMap( (Map) object, deepCopy );
+		if (object instanceof Serializable) {
+			try {
+				String ser = JavaConverter.serialize( (Serializable) object );
+				return JavaConverter.deserialize( ser );
+			}
+			catch (Throwable t) {
+				ExceptionUtil.rethrowIfNecessary( t );
+			}
+		}
 		return object;
 	}
 
@@ -183,53 +189,41 @@ public final class Duplicator {
 		if (doKeysLower) {
 			Map newMap;
 			try {
-				newMap = (Map) ClassUtil.loadInstance(map.getClass());
+				newMap = (Map) ClassUtil.loadInstance( map.getClass() );
 			}
 			catch (ClassException e) {
 				newMap = new HashMap();
 			}
-			boolean inside = ThreadLocalDuplication.set(map, newMap);
-			try {
-				Iterator it = map.keySet().iterator();
-				while (it.hasNext()) {
-					Object key = it.next();
-					if (deepCopy) newMap.put(StringUtil.toLowerCase(Caster.toString(key)), duplicate(map.get(key), deepCopy));
-					else newMap.put(StringUtil.toLowerCase(Caster.toString(key)), map.get(key));
-				}
+			ThreadLocalDuplication.set( map, newMap );
+			Iterator it = map.keySet().iterator();
+			while (it.hasNext()) {
+				Object key = it.next();
+				if (deepCopy) newMap.put( StringUtil.toLowerCase( Caster.toString( key ) ), duplicate( map.get( key ), deepCopy ) );
+				else newMap.put( StringUtil.toLowerCase( Caster.toString( key ) ), map.get( key ) );
 			}
-			finally {
-				if (!inside) ThreadLocalDuplication.reset();
-			}
-			//
 			return newMap;
 		}
-		return duplicateMap(map, deepCopy);
+		return duplicateMap( map, deepCopy );
 	}
 
 	public static Map duplicateMap(Map map, boolean deepCopy) {
 		Map other;
 		try {
-			other = (Map) ClassUtil.loadInstance(map.getClass());
+			other = (Map) ClassUtil.loadInstance( map.getClass() );
 		}
 		catch (ClassException e) {
 			if (map instanceof Serializable && deepCopy) { // Checks deepCopy too before using JavaConverter.serialize
 				try {
-					String ser = JavaConverter.serialize((Serializable) map);
-					return (Map) JavaConverter.deserialize(ser);
-
+					String ser = JavaConverter.serialize( (Serializable) map );
+					return (Map) JavaConverter.deserialize( ser );
 				}
 				catch (Exception t) {
 				}
 			}
 			other = new HashMap();
 		}
-		boolean inside = ThreadLocalDuplication.set(map, other);
-		try {
-			duplicateMap(map, other, deepCopy);
-		}
-		finally {
-			if (!inside) ThreadLocalDuplication.reset();
-		}
+		ThreadLocalDuplication.set( map, other );
+		duplicateMap( map, other, deepCopy );
 		return other;
 	}
 

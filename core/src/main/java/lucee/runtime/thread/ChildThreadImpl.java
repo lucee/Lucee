@@ -40,6 +40,7 @@ import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.debug.DebugEntryTemplate;
 import lucee.runtime.debug.DebuggerImpl;
+import lucee.runtime.engine.ThreadLocalConfig;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.Abort;
 import lucee.runtime.exp.PageException;
@@ -164,32 +165,42 @@ public final class ChildThreadImpl extends ChildThread implements Serializable {
 		PageContext oldPc = ThreadLocalPageContext.get(false);
 		Page p = page;
 		PageContextImpl pc = null;
+
+		// daemon
+		if (this.pc != null) {
+			pc = this.pc;
+		}
+		// task
+		else {
+			ConfigWebPro cwi;
+			try {
+				cwi = (ConfigWebPro) config;
+				DevNullOutputStream os = DevNullOutputStream.DEV_NULL_OUTPUT_STREAM;
+				HttpSession session = getExistingSession(oldPc);
+				pc = ThreadUtil.createPageContext(cwi, os, serverName, requestURI, queryString, SerializableCookie.toCookies(cookies), headers, null, parameters, attributes,
+						true, -1, session, null);
+				pc.setRequestTimeout(requestTimeout);
+				p = PageSourceImpl.loadPage(pc, cwi.getPageSources(oldPc == null ? pc : oldPc, null, template, false, false, true));
+				// p=cwi.getPageSources(oldPc,null, template, false,false,true).loadPage(cwi);
+			}
+			catch (PageException e) {
+				return e;
+			}
+			pc.addPageSource(p.getPageSource(), true);
+		}
+
+		// Java 25: Establish ScopedValue scope for thread execution
+		final PageContextImpl fpc = pc;
+		final Page fp = p;
+		return ScopedValue.where( ThreadLocalPageContext.CURRENT, fpc )
+				.where( ThreadLocalConfig.CURRENT, fpc.getConfig() )
+				.call( () -> executeWithScope( fp, fpc, oldPc ) );
+	}
+
+	private PageException executeWithScope(Page p, PageContextImpl pc, PageContext oldPc) {
 		DebugEntryTemplate debugEntry = null;
 		long time = System.nanoTime();
 		try {
-			// daemon
-			if (this.pc != null) {
-				pc = this.pc;
-				ThreadLocalPageContext.register(pc);
-			}
-			// task
-			else {
-				ConfigWebPro cwi;
-				try {
-					cwi = (ConfigWebPro) config;
-					DevNullOutputStream os = DevNullOutputStream.DEV_NULL_OUTPUT_STREAM;
-					HttpSession session = getExistingSession(oldPc);
-					pc = ThreadUtil.createPageContext(cwi, os, serverName, requestURI, queryString, SerializableCookie.toCookies(cookies), headers, null, parameters, attributes,
-							true, -1, session, null);
-					pc.setRequestTimeout(requestTimeout);
-					p = PageSourceImpl.loadPage(pc, cwi.getPageSources(oldPc == null ? pc : oldPc, null, template, false, false, true));
-					// p=cwi.getPageSources(oldPc,null, template, false,false,true).loadPage(cwi);
-				}
-				catch (PageException e) {
-					return e;
-				}
-				pc.addPageSource(p.getPageSource(), true);
-			}
 
 			if (!pc.isGatewayContext() && PageContextUtil.debug(pc)) {
 				((DebuggerImpl) pc.getDebugger()).setThreadName(tagName);
@@ -280,8 +291,7 @@ public final class ChildThreadImpl extends ChildThread implements Serializable {
 			pc.setEndTimeNS(System.nanoTime());
 			endTime = System.currentTimeMillis();
 			pc.getConfig().getFactory().releaseLuceePageContext(pc, true);
-			pc = null;
-			if (oldPc != null) ThreadLocalPageContext.register(oldPc);
+			// Note: oldPc restore not needed - ScopedValue scope handles cleanup automatically
 		}
 		return null;
 	}

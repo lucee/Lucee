@@ -220,7 +220,7 @@ public final class PageContextUtil {
 
 	public static void releasePageContext(PageContext pc, boolean register) {
 		if (pc != null) pc.getConfig().getFactory().releaseLuceePageContext(pc, register);
-		ThreadLocalPageContext.register(null);
+		// Note: No need to call setupClassLoader(null) - ScopedValue cleanup is automatic
 	}
 
 	public static TimeSpan remainingTime(PageContext pc, boolean throwWhenAlreadyTimeout) throws RequestTimeoutException {

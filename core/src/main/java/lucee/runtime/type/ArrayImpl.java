@@ -65,6 +65,13 @@ public class ArrayImpl extends ListAsArray {
 
 	@Override
 	public Collection duplicate(boolean deepCopy) {
+		// Java 25: If not already inside a duplication scope, establish one
+		if (deepCopy && !ThreadLocalDuplication.DUPLICATION_MAP.isBound()) {
+			java.util.Map<Object, Object> duplicationMap = new java.util.IdentityHashMap<>();
+			return ScopedValue.where( ThreadLocalDuplication.DUPLICATION_MAP, duplicationMap ).call( () -> {
+				return duplicate( new ArrayImpl(), deepCopy );
+			} );
+		}
 		return duplicate(new ArrayImpl(), deepCopy);
 	}
 

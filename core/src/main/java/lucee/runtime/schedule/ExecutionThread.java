@@ -62,8 +62,15 @@ class ExecutionThread extends ParentThreasRefThread {
 
 	@Override
 	public void run() {
-		if (ThreadLocalPageContext.getConfig() == null && config != null) ThreadLocalConfig.register(config);
-		execute(this, config, task, charset);
+		// Java 25: Establish ScopedValue scope for scheduled task execution if needed
+		if (ThreadLocalPageContext.getConfig() == null && config != null) {
+			ScopedValue.where( ThreadLocalConfig.CURRENT, config ).run( () -> {
+				execute( this, config, task, charset );
+			} );
+		}
+		else {
+			execute( this, config, task, charset );
+		}
 	}
 
 	public static void execute(ParentThreasRefThread ptrt, Config config, ScheduleTask task, String charset) {

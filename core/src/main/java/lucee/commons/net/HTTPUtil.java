@@ -447,9 +447,7 @@ public final class HTTPUtil {
 		catch (Exception e) {
 			throw Caster.toPageServletException(e);
 		}
-		finally {
-			ThreadLocalPageContext.register(pc);
-		}
+		// Java 25: No need to restore PageContext - ScopedValue scope already established by Request.exe()
 	}
 
 	public static ServletRequest removeWrap(ServletRequest req) {
@@ -501,7 +499,7 @@ public final class HTTPUtil {
 		}
 		finally {
 			HttpServletResponseWrap.release();
-			ThreadLocalPageContext.register(pc);
+			// Java 25: No need to restore PageContext - ScopedValue scope already established by Request.exe()
 		}
 	}
 

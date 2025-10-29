@@ -22,20 +22,25 @@ import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigPro;
 
 /**
- * class to handle thread local PageContext, do use pagecontext in classes that have no method
- * argument pagecontext
+ * class to handle thread local Config, do use config in classes that have no method
+ * argument config
  */
 public final class ThreadLocalConfig {
 
-	private static InheritableThreadLocal<Config> cThreadLocal = new InheritableThreadLocal<Config>();
+	// Java 25: ScopedValue replaces InheritableThreadLocal for automatic cleanup
+	public static final ScopedValue<Config> CURRENT = ScopedValue.newInstance();
 
 	/**
-	 * register a Config for he current thread
-	 * 
+	 * register a Config for the current thread
+	 *
 	 * @param config Config to register
+	 * @deprecated With ScopedValue this doesn't actually register - scope must be established via ScopedValue.where()
+	 * This method is kept for backwards compatibility in background threads that don't have a proper scope
 	 */
+	@Deprecated
 	public static void register(Config config) {
-		cThreadLocal.set(config);
+		// No-op: With ScopedValue, scope must be established via ScopedValue.where()
+		// This method exists for backwards compatibility but does nothing
 		if (config == null) {
 			return;
 		}
@@ -45,17 +50,19 @@ public final class ThreadLocalConfig {
 
 	/**
 	 * returns Config registered for the current thread
-	 * 
+	 *
 	 * @return Config for the current thread or null
 	 */
 	static Config get() {
-		return cThreadLocal.get();
+		return CURRENT.isBound() ? CURRENT.get() : null;
 	}
 
 	/**
-	 * release the pagecontext for the current thread
+	 * release the config for the current thread
+	 * @deprecated With ScopedValue this is a no-op - scope is automatically cleaned up
 	 */
+	@Deprecated
 	public static void release() {
-		cThreadLocal.set(null);
+		// No-op: ScopedValue automatically cleans up when scope exits
 	}
 }

@@ -24,6 +24,7 @@ import lucee.commons.net.URLItem;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.config.Config;
+import lucee.runtime.engine.ThreadLocalConfig;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.Abort;
 import lucee.runtime.exp.FunctionException;
@@ -116,76 +117,102 @@ public class InternalRequest implements Function {
 
 		PageContextImpl _pc = createPageContext(pc, template, urls, cookies, headers, _barr, reqCharset, baos, method);
 		fillForm(_pc, forms, reqCharset);
-		Collection request, session = null;
-		int status;
-		long exeTime;
-		boolean isText = false;
-		Charset _charset = null;
-		PageException pe = null;
-		Object rspCookies = cookieAsQuery
-				? new QueryImpl(new String[] { "name", "value", "path", "domain", "expires", "secure", "httpOnly", "samesite", "partitioned" }, 0, "cookies")
-				: new StructImpl(Struct.TYPE_LINKED);
 
-		try {
+		// Java 25: Establish ScopedValue scope for internal request execution
+		final PageContextImpl fpc = _pc;
+		final boolean fThrowOnError = throwonerror;
+		final boolean fCookieAsQuery = cookieAsQuery;
 
-			_pc.executeCFML(template, true, false);
-			HttpSession s;
-			if (_pc.getSessionType() == Config.SESSION_TYPE_JEE && (s = _pc.getSession()) != null) _pc.cookieScope().set(KeyConstants._JSESSIONID, s.getId());
+		class InternalRequestResult {
+			Collection request, session = null;
+			int status;
+			long exeTime;
+			boolean isText = false;
+			Charset charset = null;
+			PageException pe = null;
+			Object rspCookies;
+			Struct headers;
 		}
-		catch (Throwable t) {
-			ExceptionUtil.rethrowIfNecessary(t);
-			if (!(t instanceof Abort)) {
-				if (throwonerror) throw Caster.toPageException(t);
-				pe = Caster.toPageException(t);
-			}
-		}
-		finally {
-			_pc.flush();
-			// cookie = _pc.cookieScope().duplicate(false);
-			request = _pc.requestScope().duplicate(false);
-			session = _pc.hasCFSession() ? _pc.sessionScope().duplicate(false) : null;
-			exeTime = System.currentTimeMillis() - pc.getStartTime();
-			// debugging=_pc.getDebugger().getDebuggingData(_pc).duplicate(false);
 
-			HttpServletResponseDummy rsp = (HttpServletResponseDummy) _pc.getHttpServletResponse();
+		InternalRequestResult result = ScopedValue.where( ThreadLocalPageContext.CURRENT, fpc )
+				.where( ThreadLocalConfig.CURRENT, fpc.getConfig() )
+				.call( () -> {
+					InternalRequestResult res = new InternalRequestResult();
+					res.rspCookies = fCookieAsQuery
+							? new QueryImpl(new String[] { "name", "value", "path", "domain", "expires", "secure", "httpOnly", "samesite", "partitioned" }, 0, "cookies")
+							: new StructImpl(Struct.TYPE_LINKED);
 
-			// headers
-			Collection.Key name;
-			headers = new StructImpl();
-			Iterator<String> it = rsp.getHeaderNames().iterator();
-			java.util.Collection<String> values;
-			while (it.hasNext()) {
-				name = KeyImpl.init(it.next());
-				values = rsp.getHeaders(name.getString());
-				if (values == null || values.size() == 0) continue;
-				if (name.equals(KeyImpl.getInstance("Set-Cookie"))) {
-					String cs = _pc.getWebCharset().name();
-					for (String v: values) {
-
-						if (cookieAsQuery) Http.parseCookie((Query) rspCookies, v, cs);
-						else Http.parseCookie((Struct) rspCookies, v, cs);
+					try {
+						fpc.executeCFML(template, true, false);
+						HttpSession s;
+						if (fpc.getSessionType() == Config.SESSION_TYPE_JEE && (s = fpc.getSession()) != null) fpc.cookieScope().set(KeyConstants._JSESSIONID, s.getId());
 					}
+					catch (Throwable t) {
+						ExceptionUtil.rethrowIfNecessary(t);
+						if (!(t instanceof Abort)) {
+							if (fThrowOnError) throw Caster.toPageException(t);
+							res.pe = Caster.toPageException(t);
+						}
+					}
+					finally {
+						fpc.flush();
+						// cookie = fpc.cookieScope().duplicate(false);
+						res.request = fpc.requestScope().duplicate(false);
+						res.session = fpc.hasCFSession() ? fpc.sessionScope().duplicate(false) : null;
+						res.exeTime = System.currentTimeMillis() - pc.getStartTime();
+						// debugging=fpc.getDebugger().getDebuggingData(fpc).duplicate(false);
 
-				}
+						HttpServletResponseDummy rsp = (HttpServletResponseDummy) fpc.getHttpServletResponse();
 
-				if (values.size() > 1) headers.set(name, Caster.toArray(values));
-				else headers.set(name, values.iterator().next());
-			}
+						// headers
+						Collection.Key name;
+						res.headers = new StructImpl();
+						Iterator<String> it = rsp.getHeaderNames().iterator();
+						java.util.Collection<String> values;
+						while (it.hasNext()) {
+							name = KeyImpl.init(it.next());
+							values = rsp.getHeaders(name.getString());
+							if (values == null || values.size() == 0) continue;
+							if (name.equals(KeyImpl.getInstance("Set-Cookie"))) {
+								String cs = fpc.getWebCharset().name();
+								for (String v: values) {
+									if (fCookieAsQuery) Http.parseCookie((Query) res.rspCookies, v, cs);
+									else Http.parseCookie((Struct) res.rspCookies, v, cs);
+								}
+							}
 
-			// content type and length
-			headers.set(CONTENT_TYPE, rsp.getContentType());
-			if (rsp.getContentLength() != -1) headers.set(CONTENT_LENGTH, rsp.getContentLength());
+							if (values.size() > 1) res.headers.set(name, Caster.toArray(values));
+							else res.headers.set(name, values.iterator().next());
+						}
 
-			// status
-			status = rsp.getStatus();
-			ContentType ct = HTTPUtil.toContentType(rsp.getContentType(), null);
-			if (ct != null) {
-				isText = HTTPUtil.isTextMimeType(ct.getMimeType()) == Boolean.TRUE;
-				if (ct.getCharset() != null) _charset = CharsetUtil.toCharset(ct.getCharset(), null);
-			}
-			releasePageContext(_pc, pc);
+						// content type and length
+						res.headers.set(CONTENT_TYPE, rsp.getContentType());
+						if (rsp.getContentLength() != -1) res.headers.set(CONTENT_LENGTH, rsp.getContentLength());
 
-		}
+						// status
+						res.status = rsp.getStatus();
+						ContentType ct = HTTPUtil.toContentType(rsp.getContentType(), null);
+						if (ct != null) {
+							res.isText = HTTPUtil.isTextMimeType(ct.getMimeType()) == Boolean.TRUE;
+							if (ct.getCharset() != null) res.charset = CharsetUtil.toCharset(ct.getCharset(), null);
+						}
+
+						// Release PC (no need to restore oldPC - ScopedValue handles it)
+						fpc.getConfig().getFactory().releaseLuceePageContext(fpc, false);
+					}
+					return res;
+				} );
+
+		// Extract results from inner class
+		Collection request = result.request;
+		Collection session = result.session;
+		int status = result.status;
+		long exeTime = result.exeTime;
+		boolean isText = result.isText;
+		Charset _charset = result.charset;
+		PageException pe = result.pe;
+		Object rspCookies = result.rspCookies;
+		Struct rspHeaders = result.headers;
 		Struct rst = new StructImpl();
 
 		byte[] barr = baos.toByteArray();
@@ -194,7 +221,7 @@ public class InternalRequest implements Function {
 		rst.set(KeyConstants._cookies, rspCookies);
 		rst.set(KeyConstants._request, request);
 		if (session != null) rst.set(KeyConstants._session, session);
-		rst.set(KeyConstants._headers, headers);
+		rst.set(KeyConstants._headers, rspHeaders);
 		// rst.put(KeyConstants._debugging, debugging);
 		rst.set(KeyConstants._executionTime, Double.valueOf(exeTime));
 		rst.set(KeyConstants._status, Double.valueOf(status));
@@ -322,13 +349,6 @@ public class InternalRequest implements Function {
 			}
 		}
 		return sbQS.toString();
-	}
-
-	private static void releasePageContext(PageContext pc, PageContext oldPC) {
-		pc.flush();
-		oldPC.getConfig().getFactory().releaseLuceePageContext(pc, false);
-		ThreadLocalPageContext.release();
-		if (oldPC != null) ThreadLocalPageContext.register(oldPC);
 	}
 
 	private static String urlenc(String str, Charset charset) throws PageException {

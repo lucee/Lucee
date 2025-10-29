@@ -73,6 +73,7 @@ import lucee.runtime.dump.DumpRow;
 import lucee.runtime.dump.DumpTable;
 import lucee.runtime.dump.DumpUtil;
 import lucee.runtime.dump.SimpleDumpData;
+import lucee.runtime.engine.ThreadLocalConfig;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.ExpressionException;
@@ -288,6 +289,18 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 	}
 
 	public ComponentImpl _duplicate(boolean deepCopy, boolean isTop) {
+		// If not already inside a duplication scope, establish one
+		// This handles both explicit top-level calls and calls that should be top-level
+		if (!ThreadLocalDuplication.DUPLICATION_MAP.isBound()) {
+			java.util.Map<Object, Object> duplicationMap = new java.util.IdentityHashMap<>();
+			return ScopedValue.where( ThreadLocalDuplication.DUPLICATION_MAP, duplicationMap ).call( () -> {
+				return _duplicateInternal( deepCopy, isTop );
+			} );
+		}
+		return _duplicateInternal( deepCopy, isTop );
+	}
+
+	private ComponentImpl _duplicateInternal(boolean deepCopy, boolean isTop) {
 		ComponentImpl trg = new ComponentImpl();
 		boolean inside = ThreadLocalDuplication.set(this, trg);
 		try {
@@ -2493,65 +2506,94 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 				pc = ThreadUtil.createPageContext(config, DevNullOutputStream.DEV_NULL_OUTPUT_STREAM, "localhost", "/", "", SerializableCookie.COOKIES0, parr, null, parr,
 						new StructImpl(), true, -1, null, null);
 
-			}
-
-			// reading fails for serialized data from Lucee version 4.1.2.002
-			String name = in.readUTF();
-
-			// oldest style of serialisation
-			if (name.startsWith("evaluateComponent('") && name.endsWith("})")) {
-				readExternalOldStyle(pc, name);
-				return;
-			}
-
-			// newest version (5.2.8.16) also holds the path
-			String path = null;
-			int index = name.indexOf('|');
-			if (index != -1) {
-				path = name.substring(index + 1);
-				name = name.substring(0, index);
-			}
-
-			String md5 = in.readUTF();
-			Struct _this = Caster.toStruct(in.readObject(), null);
-			Struct _var = Caster.toStruct(in.readObject(), null);
-			String template = in.readUTF();
-
-			if (pc != null && pc.getBasePageSource() == null && !StringUtil.isEmpty(template)) {
-				Resource res = ResourceUtil.toResourceNotExisting(pc, template);
-				PageSource ps = pc.toPageSource(res, null);
-				if (ps != null) {
-					((PageContextImpl) pc).setBase(ps);
-				}
-			}
-
-			try {
-				ComponentImpl other = (ComponentImpl) EvaluateComponent.invoke(pc, name, md5, _this, _var);
-				_readExternal(other);
-			}
-			catch (PageException pe) {
-				boolean done = false;
-				if (!StringUtil.isEmpty(path)) {
-					Resource res = ResourceUtil.toResourceExisting(pc, path, false, null);
-					if (res != null) {
-						PageSource ps = pc.toPageSource(res, null);
-						if (ps != null) {
+				// Java 25: Establish ScopedValue scope for deserialization
+				final PageContext fpc = pc;
+				ScopedValue.where( ThreadLocalPageContext.CURRENT, fpc )
+						.where( ThreadLocalConfig.CURRENT, fpc.getConfig() )
+						.run( () -> {
 							try {
-								ComponentImpl other = ComponentLoader.loadComponent(pc, ps, name, false, true);
-								_readExternal(other);
-								done = true;
+								readExternalWithScope( in );
 							}
-							catch (PageException pe2) {
-								throw ExceptionUtil.toIOException(pe2);
+							catch (IOException e) {
+								throw new RuntimeException( e );
 							}
+							catch (ClassNotFoundException e) {
+								throw new RuntimeException( e );
+							}
+						} );
+			}
+			else {
+				// Scope already established by caller
+				readExternalWithScope( in );
+			}
+		}
+		catch (RuntimeException re) {
+			Throwable cause = re.getCause();
+			if (cause instanceof IOException) throw (IOException) cause;
+			if (cause instanceof ClassNotFoundException) throw (ClassNotFoundException) cause;
+			throw re;
+		}
+		finally {
+			if (pcCreated && pc != null) pc.getConfig().getFactory().releaseLuceePageContext( (PageContextImpl) pc, true );
+		}
+	}
+
+	private void readExternalWithScope(ObjectInput in) throws IOException, ClassNotFoundException {
+		PageContext pc = ThreadLocalPageContext.get();
+
+		// reading fails for serialized data from Lucee version 4.1.2.002
+		String name = in.readUTF();
+
+		// oldest style of serialisation
+		if (name.startsWith("evaluateComponent('") && name.endsWith("})")) {
+			readExternalOldStyle(pc, name);
+			return;
+		}
+
+		// newest version (5.2.8.16) also holds the path
+		String path = null;
+		int index = name.indexOf('|');
+		if (index != -1) {
+			path = name.substring(index + 1);
+			name = name.substring(0, index);
+		}
+
+		String md5 = in.readUTF();
+		Struct _this = Caster.toStruct(in.readObject(), null);
+		Struct _var = Caster.toStruct(in.readObject(), null);
+		String template = in.readUTF();
+
+		if (pc != null && pc.getBasePageSource() == null && !StringUtil.isEmpty(template)) {
+			Resource res = ResourceUtil.toResourceNotExisting(pc, template);
+			PageSource ps = pc.toPageSource(res, null);
+			if (ps != null) {
+				((PageContextImpl) pc).setBase(ps);
+			}
+		}
+
+		try {
+			ComponentImpl other = (ComponentImpl) EvaluateComponent.invoke(pc, name, md5, _this, _var);
+			_readExternal(other);
+		}
+		catch (PageException pe) {
+			boolean done = false;
+			if (!StringUtil.isEmpty(path)) {
+				Resource res = ResourceUtil.toResourceExisting(pc, path, false, null);
+				if (res != null) {
+					PageSource ps = pc.toPageSource(res, null);
+					if (ps != null) {
+						try {
+							ComponentImpl other = ComponentLoader.loadComponent(pc, ps, name, false, true);
+							_readExternal(other);
+							done = true;
+						}
+						catch (PageException pe2) {
+							throw ExceptionUtil.toIOException(pe2);
 						}
 					}
 				}
-				if (!done) throw ExceptionUtil.toIOException(pe);
 			}
-		}
-		finally {
-			if (pcCreated) ThreadLocalPageContext.release();
+			if (!done) throw ExceptionUtil.toIOException(pe);
 		}
 	}
 

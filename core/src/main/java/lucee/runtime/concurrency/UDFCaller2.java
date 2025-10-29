@@ -28,6 +28,7 @@ import lucee.commons.io.log.LogUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
+import lucee.runtime.engine.ThreadLocalConfig;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.ParentException;
@@ -77,39 +78,53 @@ public final class UDFCaller2<P> implements Callable<Data<P>> {
 	@Override
 	public final Data<P> call() throws PageException {
 		if (this.pc == null) {
-			ThreadLocalPageContext.register(parent);
-			this.pc = ThreadUtil.clonePageContext(parent, baos, false, false, false);
-		}
-		ThreadLocalPageContext.register(pc);
-		pc.getRootOut().setAllowCompression(false); // make sure content is not compressed
-		String str = null;
-		Object result = null;
-		try {
-			if (namedArguments != null) result = udf.callWithNamedValues(pc, namedArguments, doIncludePath);
-			else result = udf.call(pc, arguments, doIncludePath);
-
-		}
-		catch (PageException pe) {
-			ExceptionUtil.initCauseEL(pe, parentException);
-
-			throw pe;
-		}
-		finally {
-			try {
-				HttpServletResponseDummy rsp = (HttpServletResponseDummy) pc.getHttpServletResponse();
-
-				Charset cs = ReqRspUtil.getCharacterEncoding(pc, rsp);
-				// if(enc==null) enc="ISO-8859-1";
-
-				pc.getOut().flush(); // make sure content is flushed
-
-				pc.getConfig().getFactory().releasePageContext(pc);
-				str = IOUtil.toString((new ByteArrayInputStream(baos.toByteArray())), cs); // TODO add support for none string content
+			// Java 25: Temporarily establish parent scope for cloning
+			if (!ThreadLocalPageContext.CURRENT.isBound()) {
+				ScopedValue.where( ThreadLocalPageContext.CURRENT, parent )
+						.where( ThreadLocalConfig.CURRENT, parent.getConfig() )
+						.run( () -> {
+							this.pc = ThreadUtil.clonePageContext( parent, baos, false, false, false );
+						} );
 			}
-			catch (Exception e) {
-				LogUtil.log(pc, "loading", e);
+			else {
+				this.pc = ThreadUtil.clonePageContext(parent, baos, false, false, false);
 			}
 		}
-		return new Data<P>(str, result, passed);
+
+		// Java 25: Establish ScopedValue scope for the child PageContext
+		return ScopedValue.where( ThreadLocalPageContext.CURRENT, pc )
+				.where( ThreadLocalConfig.CURRENT, pc.getConfig() )
+				.call( () -> {
+					pc.getRootOut().setAllowCompression( false ); // make sure content is not compressed
+					String str = null;
+					Object result = null;
+					try {
+						if (namedArguments != null) result = udf.callWithNamedValues( pc, namedArguments, doIncludePath );
+						else result = udf.call( pc, arguments, doIncludePath );
+
+					}
+					catch (PageException pe) {
+						ExceptionUtil.initCauseEL( pe, parentException );
+
+						throw pe;
+					}
+					finally {
+						try {
+							HttpServletResponseDummy rsp = (HttpServletResponseDummy) pc.getHttpServletResponse();
+
+							Charset cs = ReqRspUtil.getCharacterEncoding( pc, rsp );
+							// if(enc==null) enc="ISO-8859-1";
+
+							pc.getOut().flush(); // make sure content is flushed
+
+							pc.getConfig().getFactory().releasePageContext( pc );
+							str = IOUtil.toString( (new ByteArrayInputStream( baos.toByteArray() )), cs ); // TODO add support for none string content
+						}
+						catch (Exception e) {
+							LogUtil.log( pc, "loading", e );
+						}
+					}
+					return new Data<P>( str, result, passed );
+				} );
 	}
 }

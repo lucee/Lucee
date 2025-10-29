@@ -27,21 +27,18 @@
   <property name="extEHCache"   value="87FE44E5-179C-43A3-A87B3D38BEF4652E;version=2.10.0.38"/>
 
   <property name="stableLoader" value="lucee-5.3.7.48"/>
-  <property name="javaVersionCoreDefault" value="11"/>
-  <property name="javaVersionAgent" value="11"/>
-  <property name="javaVersionLoader" value="11"/>
+  <property name="javaVersionCoreDefault" value="25"/>
+  <property name="javaVersionAgent" value="25"/>
+  <property name="javaVersionLoader" value="25"/>
   <property name="cdnUrl" value="https://cdn.lucee.org/"/>
   
   <import file="../ant/build-utils.xml"/>
   <import file="../ant/build-extensions.xml"/>
   <import file="../ant/build-bundles.xml"/>
 
-  <condition property="hasJava21">
-      <javaversion atleast="21"/>
-  </condition> 
-  <condition property="hasJava17">
-      <javaversion atleast="17"/>
-  </condition> 
+  <condition property="hasJava25">
+      <javaversion atleast="25"/>
+  </condition>
 <!-- TODO get the version number from manifest.mf -->
   
   <!-- https://www.coldbox.org/download/testbox -->
@@ -116,9 +113,7 @@
     <property name="temp" location="${rootDir}/temp"/>
     <property name="loader" location="${temp}/loader"/>
     <property name="core" location="${temp}/core"/>
-    <property name="core11" location="${temp}/corejvm11"/>
-    <property name="core17" location="${temp}/corejvm17"/>
-    <property name="core21" location="${temp}/corejvm21"/>
+    <!-- Java 25 only - no multi-version builds -->
     <property name="tmpContext" location="${temp}/context"/>
     <property name="deployLco" value=""/>    
     <!-- <property file="${rootDir}/build.properties"/> -->
@@ -391,9 +386,8 @@
   <!--
     MARK: Compile Java 11
   -->
-  <!-- temporary disbled: depends="_loader,java17core,java21core" -->
   <target name="_core" depends="_loader" description="compile the source" >
-    <echots message="compile core, java 11, (default)"/>
+    <echots message="compile core, java 25 only (no backwards compatibility)"/>
     <!-- set the loader as classpath -->
     <path id="classpath">
       <pathelement location="${temp}/loader" />
@@ -401,24 +395,18 @@
     </path>
     <!-- <pathconvert property="classpathProp" refid="classpath"/> -->
    <echo level="info" message="Using Java version ${ant.java.version}."/>
-    <!-- compile the core for Java 11 -->
-    <javac 
-      srcdir="${srcCore}" 
-      source="11" 
-      target="11" 
+    <!-- compile the core for Java 25 -->
+    <javac
+      srcdir="${srcCore}"
+      release="25"
       destdir="${core}"
       includeantruntime="false"
-      debug="true" 
+      debug="true"
       debuglevel="lines,vars,source">
        <classpath refid="classpath" />
        <classpath path="${temp}/loader"/>
+       <compilerarg value="--enable-preview"/>
     </javac>
-
-     <!-- stash java 11 classes as the core build directory is reused, for the following additional files -->
-     <copy todir="${core11}">
-      <fileset dir="${core}">
-      </fileset>
-    </copy>
 
     <!-- copy all non java files from src -->
     <copy todir="${core}">
@@ -457,56 +445,7 @@
       <attribute name="Minor-Name-Explanation" value="${name.explanation}"/>-->
     </manifest>
   </target>
-  <!--
-    MARK: Compile Java 17
-  -->
 
-  <target name="java17core" description="compile the source" if="hasJava17">
-    <echots message="compile core, java 17"/>
-    <!-- set the loader as classpath -->
-    <path id="classpath">
-      <pathelement location="${temp}/loader" />
-      <pathelement path="${dependencies}"/>
-    </path>
- 
-    <!-- compile the core for Java 17 -->
-    <javac 
-      srcdir="${srcCore}" 
-      source="17" 
-      target="17" 
-      destdir="${core17}"
-      includeantruntime="false"
-      debug="true" 
-      debuglevel="lines,vars,source">
-       <classpath refid="classpath" />
-       <classpath path="${temp}/loader"/>
-    </javac>
-
-  </target>
-  <!--
-    MARK: Compile Java 21
-  -->
-  <target name="java21core" description="compile the source" if="hasJava21">
-    <echots message="compile core, java 21"/>
-    <!-- set the loader as classpath -->
-    <path id="classpath">
-      <pathelement location="${temp}/loader" />
-      <pathelement path="${dependencies}"/>
-    </path>
- 
-    <!-- compile the core for Java 21 -->
-    <javac 
-      srcdir="${srcCore}" 
-      source="21" 
-      target="21" 
-      destdir="${core21}"
-      includeantruntime="false"
-      debug="true" 
-      debuglevel="lines,vars,source">
-       <classpath refid="classpath" />
-       <classpath path="${temp}/loader"/>
-    </javac>
-  </target>
 
   <target name="buildJars" depends="_core" description="generate temporary jars used to generate the archive" >    
     <echots message="generate temporary jars used to generate the archive"/>
@@ -900,39 +839,20 @@
     description="generate the loader jar" >
   </target>
 
-  <!-- temporary disabled: depends="createCore17,createCore21" -->
   <!--
     MARK: Create Core
   -->
   <target name="createCore" >
-    <echots message="build core .lco"/>
+    <echots message="build core .lco for Java 25 only"/>
     <echots message="output dir ${outputDir}"/>
     <echots message="temp dir ${temp}"/>
 
-     <!--- copy Java 11 in place (core dir is reused, with additional files) -->
-     <copy todir="${core}" overwrite="true">
-      <fileset dir="${core11}">
-      </fileset>
-    </copy>
-
-    <!-- create the lucee core with the default Java version -->
-    <jar 
-        basedir="${core}" 
-        jarfile="${trgLoader}/${version}.jvm11.lco" 
+    <!-- create the lucee core for Java 25 -->
+    <jar
+        basedir="${core}"
+        jarfile="${trgLoader}/${version}.lco"
         manifest="${core}/META-INF/MANIFEST.MF"/>
-    <echots message="create lco:${trgLoader}/${version}.jvm11.lco"/>
-
-    <!-- temporary disabled -->
-    <!--
-      temporary disabled: 
-    <copy 
-        file="${trgLoader}/${version}.jvm${javaVersionCoreDefault}.lco"
-        tofile="${trgLoader}/${version}.lco"/>
-    instead:
-    -->
-    <move 
-        file="${trgLoader}/${version}.jvm11.lco"
-        tofile="${trgLoader}/${version}.lco"/>
+    <echots message="create lco:${trgLoader}/${version}.lco"/>
 
 
     <!-- copy to core to the classes folder -->
@@ -954,40 +874,6 @@
       deploydir="${deployLco}"
       name="${version}.lco"/>
     <echots message="deployLco:${deployLco}"/>
-  </target>
-
-  <target name="createCore17" if="hasJava17">
-    <echots message="build core .lco, java 17"/>
-    
-    <!--- copy Java 17 in place -->
-     <copy todir="${core}" overwrite="true">
-      <fileset dir="${core17}">
-      </fileset>
-    </copy>
-
-    <!-- create the lucee core with the Java 17 version -->
-    <jar 
-        basedir="${core}" 
-        jarfile="${trgLoader}/${version}.jvm17.lco" 
-        manifest="${core}/META-INF/MANIFEST.MF"/>
-    <echots message="create lco:${trgLoader}/${version}.jvm17.lco"/>   
-  </target>
-
-  <target name="createCore21"  if="hasJava21">
-    <echots message="build core .lco, java 21"/>
-
-    <!--- copy Java 21 in place -->
-     <copy todir="${core}" overwrite="true">
-      <fileset dir="${core21}">
-      </fileset>
-    </copy>
-
-    <!-- create the lucee core with the Java 21 version -->
-    <jar
-        basedir="${core}" 
-        jarfile="${trgLoader}/${version}.jvm21.lco" 
-        manifest="${core}/META-INF/MANIFEST.MF"/>
-    <echots message="create lco:${trgLoader}/${version}.jvm21.lco"/>
   </target>
 
   <target name="createLoader" if="buildLoaderJar">
