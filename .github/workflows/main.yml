@@ -9,7 +9,7 @@ on:
       LUCEE_BUILD_JAVA_VERSION:
         required: true
         type: string
-        default: '21'
+        default: '25'
   push:
     branches:
       - '**' # thus ignoring tagging
@@ -19,7 +19,7 @@ on:
       LUCEE_BUILD_JAVA_VERSION:
         required: true
         type: string
-        default: '21'
+        default: '25'
       LUCEE_TEST_JAVA_VERSION:
         description: Optional Java Test version, default is the build java version
         required: false
@@ -34,7 +34,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       DO_DEPLOY: "${{ github.event_name == 'push' && startsWith(github.ref, 'refs/heads/7.1') }}"
-      LUCEE_BUILD_JAVA_VERSION: 21
+      LUCEE_BUILD_JAVA_VERSION: 25
       LUCEE_TEST_JAVA_VERSION: ''
     services:
       ldap:
