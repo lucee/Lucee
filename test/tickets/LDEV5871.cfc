@@ -547,11 +547,4 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="query,cache" {
 		}
 	}
 
-	private function repeatString(required string str, required numeric times) {
-		var result = "";
-		for (var i = 1; i <= times; i++) {
-			result &= str;
-		}
-		return result;
-	}
 }
