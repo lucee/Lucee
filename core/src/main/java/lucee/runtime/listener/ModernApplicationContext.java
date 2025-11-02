@@ -2028,6 +2028,9 @@ public final class ModernApplicationContext extends ApplicationContextSupport {
 
 	@Override
 	public boolean getPreciseMath() {
+		// Global kill switch for precise math - allows JIT to optimize away all precise math checks
+		if (ThreadLocalPageContext.PRECISE_MATH_GLOBALLY_DISABLED) return false;
+
 		if (!initPreciseMath) {
 			Boolean b = Caster.toBoolean(get(component, KeyConstants._preciseMath, null), null);
 			if (b == null) b = Caster.toBoolean(get(component, KeyConstants._precisionEvaluate, null), null);
@@ -2041,6 +2044,10 @@ public final class ModernApplicationContext extends ApplicationContextSupport {
 
 	@Override
 	public void setPreciseMath(boolean preciseMath) {
+		// Check if precise math has been globally disabled
+		if (ThreadLocalPageContext.isPreciseMathGloballyDisabled() && preciseMath) {
+			throw new RuntimeException( "Precise math has been globally disabled via lucee.precise.math=disabled. Cannot enable it per-application." );
+		}
 		this.preciseMath = preciseMath;
 		this.initPreciseMath = true;
 	}

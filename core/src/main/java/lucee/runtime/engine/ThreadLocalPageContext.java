@@ -48,6 +48,14 @@ public final class ThreadLocalPageContext {
 	private static ThreadLocal<Boolean> insideInheritableRegistration = new ThreadLocal<Boolean>();
 
 	/**
+	 * Global kill switch for precise math.
+	 * - null: normal behavior, per-application/config control
+	 * - "disabled": globally disabled, throws error if anyone tries to enable it
+	 */
+	private static final String PRECISE_MATH_GLOBAL = SystemUtil.getSystemPropOrEnvVar( "lucee.precise.math", null );
+	public static final boolean PRECISE_MATH_GLOBALLY_DISABLED = "disabled".equalsIgnoreCase( PRECISE_MATH_GLOBAL );
+
+	/**
 	 * register a pagecontext for he current thread
 	 * 
 	 * @param pc PageContext to register
@@ -124,7 +132,14 @@ public final class ThreadLocalPageContext {
 		return config;
 	}
 
+	public static boolean isPreciseMathGloballyDisabled() {
+		return PRECISE_MATH_GLOBALLY_DISABLED;
+	}
+
 	public static boolean preciseMath(PageContext pc) {
+		// Global kill switch - when set to "disabled", completely bypass all precise math
+		if (PRECISE_MATH_GLOBALLY_DISABLED) return false;
+
 		// pc provided
 		if (pc != null) return (pc.getApplicationContext()).getPreciseMath();
 

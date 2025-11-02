@@ -613,9 +613,9 @@
 	{
 		"sysprop": "lucee.precise.math",
 		"envvar": "LUCEE_PRECISE_MATH",
-		"desc": "A boolean value. If enabled, this improves the accuracy of floating-point calculations but makes them slightly slower",
+		"desc": "Controls precise math behavior. Values: true (enable BigDecimal for accuracy), false (use Double for performance), 'disabled' (global kill switch - completely bypass all precise math checks, throws error if applications try to enable it)",
 		"category": "performance",
-		"type": "boolean",
+		"type": "string",
 		"default": false
 	},
 	{
