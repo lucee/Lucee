@@ -1181,7 +1181,7 @@ component {
 			custom=isNull(arguments.custom) || isEmpty(arguments.custom) ? isEmpty(existing.custom)  ? {} : existing.custom  : arguments.custom
 			bundleName=isNull(arguments.bundleName) || isEmpty(arguments.bundleName) ? existing.bundleName ?: "" : arguments.bundleName
 			bundleVersion=isNull(arguments.bundleVersion) || isEmpty(arguments.bundleVersion) ? existing.bundleVersion ?: "" : arguments.bundleVersion
-			default=isNull(arguments.default) || isEmpty(arguments.default) ? existing.default ?: false : arguments.default
+			default=isNull(arguments.default) || isEmpty(arguments.default) ? existing.default ?: "" : arguments.default
 			readonly=isNull(arguments.readonly) || isEmpty(arguments.readonly) ? existing.readonly ?: false : arguments.readonly
 			storage=isNull(arguments.storage) || isEmpty(arguments.storage) ? existing.storage ?: false : arguments.storage
 
