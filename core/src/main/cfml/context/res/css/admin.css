@@ -602,6 +602,18 @@ select {
 
 }
 
+.mapping-success {
+    background-color: var(--primary-color-light);
+    border: 1px solid var(--primary-color-transparent);
+    color: var(--primary-color);
+    padding: 10px;
+    margin-bottom: 16px;
+    border-radius: 4px;
+    font-weight: bold;
+    box-sizing: border-box;
+    text-align: center;
+    font-size: 14px;
+}
 .button:hover:enabled,
 .reset:hover:enabled {
     color: rgba(255, 255, 255, 0.95);
@@ -1078,6 +1090,12 @@ div.hr {
 }
 
 .CheckError {
+    background-color: #fff;
+    border: 1px solid red;
+    padding: 16px;
+    margin-bottom: 16px;
+    border-radius: 4px;
+    box-sizing: border-box;
     font-weight: bold;
     color: red;
     font-size: 14px;

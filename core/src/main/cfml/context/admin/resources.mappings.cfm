@@ -3,6 +3,7 @@
 </cfif> --->
 <cfset error.message="">
 <cfset error.detail="">
+<cfset mappingSuccess.message="">
 
 <!--- 
 Defaults --->
@@ -49,6 +50,7 @@ Defaults --->
 						
 					</cfif>
 				</cfloop>
+				<cfset mappingSuccess.message = "Mapping compiled successfully">
 			</cfif>
 		<!--- downloadArchive --->
 			<cfset doDownload=form.subAction EQ stText.Buttons.downloadArchive>
@@ -170,7 +172,7 @@ Defaults --->
 
 <!--- 
 Redirtect to entry --->
-<cfif cgi.request_method EQ "POST" and error.message EQ "">
+<cfif cgi.request_method EQ "POST" and error.message EQ "" and mappingSuccess.message EQ "">
 	<!--- <cfif isDefined("url.action2")>
 		<cfif isDefined("url.virtual")>
 			<cflocation url="#request.self#?action=#url.action#&action2=#url.action2#&virtual=#url.virtual#" addtoken="no">
@@ -183,10 +185,19 @@ Redirtect to entry --->
 <!--- 
 Error Output--->
 <cfif error.message NEQ "">
-<cfoutput><span class="CheckError">
-#replace(error.message,chr(10),'<br />','all')#
-#replace(error.detail,chr(10),'<br />','all')#
-</span><br><br></cfoutput>
+	<cfoutput>
+		<div class="CheckError">
+		#replace(error.message,chr(10),'<br />','all')#
+		#replace(error.detail,chr(10),'<br />','all')#
+		</div><br><br>
+	</cfoutput>
+<!---Mapping Success Output--->
+<cfelseif mappingSuccess.message NEQ "">
+	<cfoutput>
+		<div class="mapping-success">
+			#mappingSuccess.message#
+		</div>
+	</cfoutput>
 </cfif>
 
 <cfadmin 
