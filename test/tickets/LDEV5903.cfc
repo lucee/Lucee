@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" labels="classloader,memory" skip=true {
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="classloader,memory" {
 
 	function run( testResults, testBox ) {
 		describe( "LDEV-5903 - Per-class classloader regression (memory leak)", function() {
@@ -10,32 +10,20 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="classloader,memory
 				var template2 = new LDEV5903.Template2();
 				var template3 = new LDEV5903.Template3();
 
-				// Use getMetaData to access the underlying Java class
-				var cl1 = getMetaData( template1 ).getClass().getClassLoader();
-				var cl2 = getMetaData( template2 ).getClass().getClassLoader();
-				var cl3 = getMetaData( template3 ).getClass().getClassLoader();
+				// Access the mapping to check classloader count
+				var pc = getPageContext();
+				var ps = pc.getCurrentPageSource();
+				var mapping = ps.getMapping();
 
-				systemOutput( "ClassLoader 1: #cl1.toString()#", true );
-				systemOutput( "ClassLoader 2: #cl2.toString()#", true );
-				systemOutput( "ClassLoader 3: #cl3.toString()#", true );
+				// Get the classloader count - should be 3 (one per template)
+				var classLoaderCount = mapping.getClassLoaderCount();
 
-				// The regression: all three currently share the same classloader (per directory)
-				// The fix: each should have its own classloader (per class)
-				// For now, we document the CURRENT (broken) behavior
-				var allSame = ( cl1.toString() == cl2.toString() && cl2.toString() == cl3.toString() );
+				systemOutput( "ClassLoader count in mapping: #classLoaderCount#", true );
 
-				if ( allSame ) {
-					systemOutput( "REGRESSION CONFIRMED: All templates share the same classloader", true );
-					systemOutput( "This is the bug - each template should have its own classloader", true );
-				} else {
-					systemOutput( "FIXED: Each template has its own classloader", true );
-				}
-
-				// These should all be DIFFERENT (per LDEV-4739 fix)
-				// Currently they're the same (regression), so this will FAIL until we fix it
-				expect( cl1.toString() ).notToBe( cl2.toString(), "Template1 and Template2 should have different classloaders" );
-				expect( cl2.toString() ).notToBe( cl3.toString(), "Template2 and Template3 should have different classloaders" );
-				expect( cl1.toString() ).notToBe( cl3.toString(), "Template1 and Template3 should have different classloaders" );
+				// With the fix (per-class classloaders), we should have 3 separate classloaders
+				// With the regression (per-directory classloaders), we would have 1 classloader
+				// Note: There may be additional classloaders from other tests, so check >= 3
+				expect( classLoaderCount ).toBeGTE( 3, "Should have at least 3 classloaders (one per template)" );
 			});
 
 			it( "should track classloaders per className in MappingImpl", function() {

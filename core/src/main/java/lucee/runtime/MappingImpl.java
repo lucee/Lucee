@@ -75,7 +75,7 @@ public final class MappingImpl implements Mapping {
 	private final int inspectTemplateAutoIntervalFast;
 
 	private boolean physicalFirst;
-	// private transient Map<String, PhysicalClassLoaderReference> loaders = new HashMap<>();
+	private transient Map<String, PhysicalClassLoaderReference> loaders = new ConcurrentHashMap<>();
 	private Resource archive;
 
 	private final Config config;
@@ -263,26 +263,45 @@ public final class MappingImpl implements Mapping {
 	}
 
 	private Class<?> loadClass(String className, byte[] code) throws IOException, ClassNotFoundException {
-		PhysicalClassLoader pcl = PhysicalClassLoader.getPhysicalClassLoader(config, getClassRootDirectory(), false);
-		/*
-		 * PhysicalClassLoaderReference pclr = loaders.get(className); PhysicalClassLoader pcl = pclr ==
-		 * null ? null : pclr.get(); if (pcl == null || code != null) {// || pcl.getSize(true) > 3 if (pcl
-		 * != null) { pcl.clear(); } pcl = PhysicalClassLoader.getPhysicalClassLoader(config,
-		 * getClassRootDirectory(), true); synchronized (loaders) { loaders.put(className, new
-		 * PhysicalClassLoaderReference(pcl)); } }
-		 */
+		// Use double-checked locking pattern with proper synchronization
+		PhysicalClassLoaderReference pclr = loaders.get(className);
+		PhysicalClassLoader pcl = pclr == null ? null : pclr.get();
+
+		if (pcl == null || code != null) {
+			// Synchronize on className to avoid creating multiple classloaders for same class
+			synchronized (SystemUtil.createToken("MappingImpl.loadClass", className)) {
+				// Re-check after acquiring lock
+				pclr = loaders.get(className);
+				pcl = pclr == null ? null : pclr.get();
+
+				if (pcl == null || code != null) {
+					if (pcl != null) {
+						pcl.clear();
+					}
+					// Create a NEW classloader for each class (per LDEV-4739 fix)
+					// Do NOT use getPhysicalClassLoader() which caches by directory (LDEV-5063 regression)
+					pcl = new PhysicalClassLoader(config, getClassRootDirectory(), pageSourcePool);
+					loaders.put(className, new PhysicalClassLoaderReference(pcl));
+				}
+			}
+		}
 
 		if (code != null) {
 			try {
 				return pcl.loadClass(className, code);
 			}
 			catch (UnmodifiableClassException e) {
-				pcl = PhysicalClassLoader.getPhysicalClassLoader(config, getClassRootDirectory(), true);
-				try {
-					return pcl.loadClass(className, code);
-				}
-				catch (UnmodifiableClassException ex) {
-					throw ExceptionUtil.toIOException(ex);
+				// If we can't modify the existing class, create a new classloader and try again
+				synchronized (SystemUtil.createToken("MappingImpl.loadClass", className)) {
+					pcl.clear();
+					pcl = new PhysicalClassLoader(config, getClassRootDirectory(), pageSourcePool);
+					loaders.put(className, new PhysicalClassLoaderReference(pcl));
+					try {
+						return pcl.loadClass(className, code);
+					}
+					catch (UnmodifiableClassException ex) {
+						throw ExceptionUtil.toIOException(ex);
+					}
 				}
 			}
 		}
@@ -291,6 +310,14 @@ public final class MappingImpl implements Mapping {
 
 	public void cleanLoaders() {
 		pageSourcePool.cleanLoaders();
+	}
+
+	/**
+	 * Get the number of classloaders currently cached for this mapping.
+	 * Used for testing per-class classloader behavior (LDEV-4739/LDEV-5903).
+	 */
+	public int getClassLoaderCount() {
+		return loaders == null ? 0 : loaders.size();
 	}
 
 	public void clear(String className) {

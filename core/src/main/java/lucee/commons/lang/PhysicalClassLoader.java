@@ -185,6 +185,14 @@ public final class PhysicalClassLoader extends URLClassLoader implements Extenda
 		return rpccl;
 	}
 
+	/**
+	 * Public constructor for per-class classloader creation (LDEV-4739)
+	 * This constructor creates a new classloader without caching, allowing each class to have its own classloader.
+	 */
+	public PhysicalClassLoader(Config c, Resource directory, PageSourcePool pageSourcePool) throws IOException {
+		this(c, new ArrayList<Resource>(), directory, null, null, pageSourcePool, false);
+	}
+
 	private PhysicalClassLoader(Config c, List<Resource> resources, Resource directory, ClassLoader parentClassLoader, ClassLoader addionalClassLoader,
 			PageSourcePool pageSourcePool, boolean rpc) throws IOException {
 		super(doURLs(resources), parentClassLoader == null ? (parentClassLoader = SystemUtil.getCombinedClassLoader()) : parentClassLoader);
