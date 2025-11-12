@@ -364,6 +364,18 @@ public final class PageSourceImpl implements PageSource {
 							LogUtil.log(pc, "compile", cnfe);
 						}
 					}
+					// LDEV-4745: if class file exists and is newer than source, try loading from classloader
+					// even if pcn.className is null (happens when PageSource cleared from memory)
+					if (!done && classFile.exists() && classFile.lastModified() >= srcLastModified) {
+						try {
+							LogUtil.log(pc, Log.LEVEL_DEBUG, "compile", "load class from ClassLoader (class file is current) [" + getDisplayPath() + "]");
+							pcn.set(page = newInstance(mapping.getPhysicalClass(this.getClassName())));
+							done = true;
+						}
+						catch (ClassNotFoundException cnfe) {
+							LogUtil.log(pc, "compile", cnfe);
+						}
+					}
 					if (!done) {
 						LogUtil.log(pc, Log.LEVEL_DEBUG, "compile", "load class from binary  [" + getDisplayPath() + "]");
 						byte[] bytes = IOUtil.toBytes(classFile);
