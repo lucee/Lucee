@@ -28,6 +28,7 @@ import lucee.commons.lang.Range;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.runtime.MappingImpl;
 import lucee.runtime.PageContext;
+import lucee.runtime.PageContextImpl;
 import lucee.runtime.PageSource;
 import lucee.runtime.config.ConfigPro;
 import lucee.runtime.engine.ThreadLocalPageContext;
@@ -189,7 +190,7 @@ public class CFMLExpressionInterpreter {
 	}
 
 	public Object interpret(PageContext pc, String str) throws PageException {
-		return interpret(pc, str, ThreadLocalPageContext.preciseMath(pc));
+		return interpret(pc, str, pc != null ? ((PageContextImpl) pc).getPreciseMath() : ThreadLocalPageContext.preciseMath(null));
 	}
 
 	public Object interpret(PageContext pc, String str, boolean preciseMath) throws PageException {

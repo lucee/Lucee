@@ -25,7 +25,7 @@ import java.math.MathContext;
 import java.math.RoundingMode;
 
 import lucee.runtime.PageContext;
-import lucee.runtime.engine.ThreadLocalPageContext;
+import lucee.runtime.PageContextImpl;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.op.Caster;
 
@@ -35,7 +35,7 @@ public final class Cos implements Function {
 	private static final MathContext mc = new MathContext(30, RoundingMode.HALF_UP);
 
 	public static Number call(PageContext pc, Number number) {
-		if (ThreadLocalPageContext.preciseMath(pc)) {
+		if (((PageContextImpl) pc).getPreciseMath()) {
 			return Caster.toBigDecimal(StrictMath.cos(Caster.toDoubleValue(number)));
 		}
 		return Caster.toDouble(StrictMath.cos(Caster.toDoubleValue(number)));

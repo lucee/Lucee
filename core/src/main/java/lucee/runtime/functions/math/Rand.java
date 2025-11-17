@@ -29,9 +29,9 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.PageContext;
+import lucee.runtime.PageContextImpl;
 import lucee.runtime.crypt.CFMXCompat;
 import lucee.runtime.crypt.Cryptor;
-import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.ext.function.Function;
@@ -48,7 +48,7 @@ public final class Rand implements Function {
 	}
 
 	public static Number call(PageContext pc, String algorithm) throws ExpressionException {
-		if (ThreadLocalPageContext.preciseMath(pc)) {
+		if (((PageContextImpl) pc).getPreciseMath()) {
 			return Caster.toBigDecimal(getRandom(pc, algorithm, Double.NaN).nextDouble());
 		}
 		return getRandom(pc, algorithm, Double.NaN).nextDouble();

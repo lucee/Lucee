@@ -19,7 +19,7 @@
 package lucee.runtime.functions.math;
 
 import lucee.runtime.PageContext;
-import lucee.runtime.engine.ThreadLocalPageContext;
+import lucee.runtime.PageContextImpl;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.op.Caster;
@@ -35,7 +35,7 @@ public final class Sqr implements Function {
 			throw new ExpressionException("invalid argument, function argument must be a positive number");
 		}
 
-		if (ThreadLocalPageContext.preciseMath(pc)) {
+		if (((PageContextImpl) pc).getPreciseMath()) {
 			return Caster.toBigDecimal(StrictMath.sqrt(numValue));
 		}
 		return StrictMath.sqrt(numValue);

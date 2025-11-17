@@ -29,7 +29,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
-import lucee.runtime.engine.ThreadLocalPageContext;
+import lucee.runtime.PageContextImpl;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
@@ -45,12 +45,12 @@ public final class LSParseNumber implements Function {
 	private static Map<Locale, SoftReference<NumberFormat>> formatters = new ConcurrentHashMap<Locale, SoftReference<NumberFormat>>();
 
 	public static Number call(PageContext pc, String string) throws PageException {
-		if (ThreadLocalPageContext.preciseMath(pc)) return toBigDecimal(pc.getLocale(), string);
+		if (((PageContextImpl) pc).getPreciseMath()) return toBigDecimal(pc.getLocale(), string);
 		return toDouble(pc.getLocale(), string);
 	}
 
 	public static Number call(PageContext pc, String string, Locale locale) throws PageException {
-		if (ThreadLocalPageContext.preciseMath(pc)) return toBigDecimal(locale == null ? pc.getLocale() : locale, string);
+		if (((PageContextImpl) pc).getPreciseMath()) return toBigDecimal(locale == null ? pc.getLocale() : locale, string);
 		return toDouble(locale == null ? pc.getLocale() : locale, string);
 	}
 

@@ -30,6 +30,7 @@ import lucee.runtime.PageContextImpl;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigServerImpl;
+import lucee.runtime.config.RuntimeProfile;
 import lucee.runtime.thread.ThreadUtil;
 
 /**
@@ -46,14 +47,6 @@ public final class ThreadLocalPageContext {
 	private static ThreadLocal<Boolean> insideServerNewInstance = new ThreadLocal<Boolean>();
 	private static ThreadLocal<Boolean> insideGateway = new ThreadLocal<Boolean>();
 	private static ThreadLocal<Boolean> insideInheritableRegistration = new ThreadLocal<Boolean>();
-
-	/**
-	 * Global kill switch for precise math.
-	 * - null: normal behavior, per-application/config control
-	 * - "disabled": globally disabled, throws error if anyone tries to enable it
-	 */
-	private static final String PRECISE_MATH_GLOBAL = SystemUtil.getSystemPropOrEnvVar( "lucee.precise.math", null );
-	public static final boolean PRECISE_MATH_GLOBALLY_DISABLED = "disabled".equalsIgnoreCase( PRECISE_MATH_GLOBAL );
 
 	/**
 	 * register a pagecontext for he current thread
@@ -132,28 +125,20 @@ public final class ThreadLocalPageContext {
 		return config;
 	}
 
-	public static boolean isPreciseMathGloballyDisabled() {
-		return PRECISE_MATH_GLOBALLY_DISABLED;
-	}
-
 	public static boolean preciseMath(PageContext pc) {
-		// Global kill switch - when set to "disabled", completely bypass all precise math
-		if (PRECISE_MATH_GLOBALLY_DISABLED) return false;
+		// Global control - when set to false, completely bypass all precise math
+		if (!RuntimeProfile.ALLOW_PRECISE_MATH) return false;
 
-		// pc provided
-		if (pc != null) return (pc.getApplicationContext()).getPreciseMath();
+		// Try provided PC or get from ThreadLocal
+		if (pc == null) pc = get();
 
-		// pc from current thread
-		pc = pcThreadLocal.get();
-		if (pc != null) return (pc.getApplicationContext()).getPreciseMath();
+		// Use PageContext cached value (provides thread isolation)
+		if (pc != null) return ((PageContextImpl) pc).getPreciseMath();
 
-		// pc from parent thread
-		pc = pcThreadLocalInheritable.get();
-		if (pc != null) return (pc.getApplicationContext()).getPreciseMath();
-
+		// Fallback to config if no PC available
 		Config c = ThreadLocalConfig.get();
 		if (c instanceof ConfigPro) return ((ConfigPro) c).getPreciseMath();
-		return true;
+		return false;
 	}
 
 	public static TimeZone getTimeZone(PageContext pc) {

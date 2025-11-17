@@ -611,11 +611,19 @@
 		"default": null
 	},
 	{
+		"sysprop": "lucee.allow.precise.math",
+		"envvar": "LUCEE_ALLOW_PRECISE_MATH",
+		"desc": "Controls whether applications are allowed to enable precise math. Values: true (default, applications can enable precise math), false (precise math is disallowed globally, throws error if applications try to enable it)",
+		"category": "performance",
+		"type": "boolean",
+		"default": true
+	},
+	{
 		"sysprop": "lucee.precise.math",
 		"envvar": "LUCEE_PRECISE_MATH",
-		"desc": "Controls precise math behavior. Values: true (enable BigDecimal for accuracy), false (use Double for performance), 'disabled' (global kill switch - completely bypass all precise math checks, throws error if applications try to enable it)",
+		"desc": "Default precise math setting. Values: true (enable BigDecimal for accuracy), false (use Double for performance). Applications can override this unless lucee.allow.precise.math is false",
 		"category": "performance",
-		"type": "string",
+		"type": "boolean",
 		"default": false
 	},
 	{

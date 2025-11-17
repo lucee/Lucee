@@ -22,7 +22,7 @@
 package lucee.runtime.functions.math;
 
 import lucee.runtime.PageContext;
-import lucee.runtime.engine.ThreadLocalPageContext;
+import lucee.runtime.PageContextImpl;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.op.Caster;
 
@@ -30,7 +30,7 @@ public final class Sin implements Function {
 	private static final long serialVersionUID = -5944535986043820873L;
 
 	public static Number call(PageContext pc, Number number) {
-		if (ThreadLocalPageContext.preciseMath(pc)) {
+		if (((PageContextImpl) pc).getPreciseMath()) {
 			return Caster.toBigDecimal(StrictMath.sin(Caster.toDoubleValue(number)));
 		}
 		return Caster.toDouble(StrictMath.sin(Caster.toDoubleValue(number)));
