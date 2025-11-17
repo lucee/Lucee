@@ -20,6 +20,7 @@ package lucee.runtime.functions.math;
 
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
+import lucee.runtime.config.RuntimeProfile;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.op.Caster;
 
@@ -33,7 +34,7 @@ public final class Sgn implements Function {
 
 		int result = numValue != 0.0d ? (numValue >= 0.0d ? 1 : -1) : 0;
 
-		if (((PageContextImpl) pc).getPreciseMath()) {
+		if (RuntimeProfile.ALLOW_PRECISE_MATH && ((PageContextImpl) pc).getPreciseMath()) {
 			return Caster.toBigDecimal(result);
 		}
 		return result;

@@ -24,6 +24,7 @@ package lucee.runtime.functions.math;
 
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
+import lucee.runtime.config.RuntimeProfile;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.BIF;
@@ -34,7 +35,7 @@ public final class Int extends BIF {
 	private static final long serialVersionUID = -1735948763737802886L;
 
 	public static Number call(PageContext pc, Number number) {
-		if (((PageContextImpl) pc).getPreciseMath()) {
+		if (RuntimeProfile.ALLOW_PRECISE_MATH && ((PageContextImpl) pc).getPreciseMath()) {
 			return Caster.toBigDecimal(number).toBigInteger();
 		}
 		return Caster.toIntValue(number);

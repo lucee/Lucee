@@ -38,6 +38,7 @@ import lucee.commons.math.MathUtil;
 import lucee.runtime.Component;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
+import lucee.runtime.config.RuntimeProfile;
 import lucee.runtime.component.Member;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ExpressionException;
@@ -399,7 +400,7 @@ public final class OpUtil {
 	 * @return difference as int
 	 */
 	public static int compare(final PageContext pc, final Number left, final Number right) {
-		if (((PageContextImpl) pc).getPreciseMath()) {
+		if (RuntimeProfile.ALLOW_PRECISE_MATH && ((PageContextImpl) pc).getPreciseMath()) {
 			return Caster.toBigDecimal(left).compareTo(Caster.toBigDecimal(right));
 		}
 		final double l = left.doubleValue();
@@ -844,7 +845,7 @@ public final class OpUtil {
 	 * @throws PageException
 	 */
 	public static double exponent(PageContext pc, Object left, Object right) throws PageException {
-		if (((PageContextImpl) pc).getPreciseMath()) {
+		if (RuntimeProfile.ALLOW_PRECISE_MATH && ((PageContextImpl) pc).getPreciseMath()) {
 			try {
 				return Caster.toBigDecimal(left).pow(Caster.toIntValue(right)).doubleValue();
 			}
@@ -855,7 +856,7 @@ public final class OpUtil {
 	}
 
 	public static double exponent(PageContext pc, Number left, Number right) {
-		if (((PageContextImpl) pc).getPreciseMath()) {
+		if (RuntimeProfile.ALLOW_PRECISE_MATH && ((PageContextImpl) pc).getPreciseMath()) {
 			try {
 				return Caster.toBigDecimal(left).pow(right.intValue()).doubleValue();
 			}
@@ -897,14 +898,14 @@ public final class OpUtil {
 	}
 
 	public final static double plus(PageContext pc, Object left, Object right) throws PageException {
-		if (((PageContextImpl) pc).getPreciseMath()) {
+		if (RuntimeProfile.ALLOW_PRECISE_MATH && ((PageContextImpl) pc).getPreciseMath()) {
 			return Caster.toBigDecimal(left).add(Caster.toBigDecimal(right)).doubleValue();
 		}
 		return Caster.toDoubleValue(left) + Caster.toDoubleValue(right);
 	}
 
 	public final static double plus(PageContext pc, Number left, Number right) {
-		if (((PageContextImpl) pc).getPreciseMath()) {
+		if (RuntimeProfile.ALLOW_PRECISE_MATH && ((PageContextImpl) pc).getPreciseMath()) {
 			return Caster.toBigDecimal(left).add(Caster.toBigDecimal(right)).doubleValue();
 		}
 		return left.doubleValue() + right.doubleValue();
@@ -918,14 +919,14 @@ public final class OpUtil {
 	 * @return result of the opertions
 	 */
 	public static double minus(PageContext pc, Number left, Number right) {
-		if (((PageContextImpl) pc).getPreciseMath()) {
+		if (RuntimeProfile.ALLOW_PRECISE_MATH && ((PageContextImpl) pc).getPreciseMath()) {
 			return Caster.toBigDecimal(left).subtract(Caster.toBigDecimal(right)).doubleValue();
 		}
 		return left.doubleValue() - right.doubleValue();
 	}
 
 	public static double minus(PageContext pc, Object left, Object right) throws PageException {
-		if (((PageContextImpl) pc).getPreciseMath()) {
+		if (RuntimeProfile.ALLOW_PRECISE_MATH && ((PageContextImpl) pc).getPreciseMath()) {
 			return Caster.toBigDecimal(left).subtract(Caster.toBigDecimal(right)).doubleValue();
 		}
 		return Caster.toDoubleValue(left) - Caster.toDoubleValue(right);
@@ -952,28 +953,28 @@ public final class OpUtil {
 	 * @throws PageException
 	 */
 	public static double divide(PageContext pc, Object left, Object right) throws PageException {
-		if (((PageContextImpl) pc).getPreciseMath()) {
+		if (RuntimeProfile.ALLOW_PRECISE_MATH && ((PageContextImpl) pc).getPreciseMath()) {
 			return MathUtil.divide(Caster.toBigDecimal(left), Caster.toBigDecimal(right)).doubleValue();
 		}
 		return Double.valueOf(Caster.toDoubleValue(left) / Caster.toDoubleValue(right));
 	}
 
 	public static double divide(PageContext pc, Number left, Number right) {
-		if (((PageContextImpl) pc).getPreciseMath()) {
+		if (RuntimeProfile.ALLOW_PRECISE_MATH && ((PageContextImpl) pc).getPreciseMath()) {
 			return MathUtil.divide(Caster.toBigDecimal(left), Caster.toBigDecimal(right)).doubleValue();
 		}
 		return Double.valueOf(left.doubleValue() / right.doubleValue());
 	}
 
 	public static double multiply(PageContext pc, Object left, Object right) throws PageException {
-		if (((PageContextImpl) pc).getPreciseMath()) {
+		if (RuntimeProfile.ALLOW_PRECISE_MATH && ((PageContextImpl) pc).getPreciseMath()) {
 			return Caster.toBigDecimal(left).multiply(Caster.toBigDecimal(right)).doubleValue();
 		}
 		return Caster.toDoubleValue(left) * Caster.toDoubleValue(right);
 	}
 
 	public static double multiply(PageContext pc, Number left, Number right) {
-		if (((PageContextImpl) pc).getPreciseMath()) {
+		if (RuntimeProfile.ALLOW_PRECISE_MATH && ((PageContextImpl) pc).getPreciseMath()) {
 			return Caster.toBigDecimal(left).multiply(Caster.toBigDecimal(right)).doubleValue();
 		}
 		return left.doubleValue() * right.doubleValue();
@@ -1002,7 +1003,7 @@ public final class OpUtil {
 	}
 
 	public static Number divideRef(PageContext pc, Number left, Number right) {
-		if (((PageContextImpl) pc).getPreciseMath()) {
+		if (RuntimeProfile.ALLOW_PRECISE_MATH && ((PageContextImpl) pc).getPreciseMath()) {
 			BigDecimal bd = Caster.toBigDecimal(right);
 			if (bd.equals(BigDecimal.ZERO)) throw new ArithmeticException("Division by zero is not possible");
 			return MathUtil.divide(Caster.toBigDecimal(left), bd);
@@ -1014,7 +1015,7 @@ public final class OpUtil {
 	}
 
 	public static Number divideRef(PageContext pc, Object left, Object right) throws PageException {
-		if (((PageContextImpl) pc).getPreciseMath()) {
+		if (RuntimeProfile.ALLOW_PRECISE_MATH && ((PageContextImpl) pc).getPreciseMath()) {
 			BigDecimal bd = Caster.toBigDecimal(right);
 			if (bd.equals(BigDecimal.ZERO)) throw new ArithmeticException("Division by zero is not possible");
 			return MathUtil.divide(Caster.toBigDecimal(left), bd);
@@ -1046,35 +1047,35 @@ public final class OpUtil {
 	}
 
 	public static Number plusRef(PageContext pc, Object left, Object right) throws PageException {
-		if (((PageContextImpl) pc).getPreciseMath()) {
+		if (RuntimeProfile.ALLOW_PRECISE_MATH && ((PageContextImpl) pc).getPreciseMath()) {
 			return Caster.toBigDecimal(left).add(Caster.toBigDecimal(right));
 		}
 		return Caster.toDouble(Caster.toDoubleValue(left) + Caster.toDoubleValue(right));
 	}
 
 	public static Number plusRef(PageContext pc, Number left, Number right) {
-		if (((PageContextImpl) pc).getPreciseMath()) {
+		if (RuntimeProfile.ALLOW_PRECISE_MATH && ((PageContextImpl) pc).getPreciseMath()) {
 			return Caster.toBigDecimal(left).add(Caster.toBigDecimal(right));
 		}
 		return Caster.toDouble(Caster.toDoubleValue(left) + Caster.toDoubleValue(right));
 	}
 
 	public static Number minusRef(PageContext pc, Object left, Object right) throws PageException {
-		if (((PageContextImpl) pc).getPreciseMath()) {
+		if (RuntimeProfile.ALLOW_PRECISE_MATH && ((PageContextImpl) pc).getPreciseMath()) {
 			return Caster.toBigDecimal(left).subtract(Caster.toBigDecimal(right));
 		}
 		return Caster.toDouble(Caster.toDoubleValue(left) - Caster.toDoubleValue(right));
 	}
 
 	public static Number minusRef(PageContext pc, Number left, Number right) {
-		if (((PageContextImpl) pc).getPreciseMath()) {
+		if (RuntimeProfile.ALLOW_PRECISE_MATH && ((PageContextImpl) pc).getPreciseMath()) {
 			return Caster.toBigDecimal(left).subtract(Caster.toBigDecimal(right));
 		}
 		return Caster.toDouble(Caster.toDoubleValue(left) - Caster.toDoubleValue(right));
 	}
 
 	public static Number modulusRef(PageContext pc, Object left, Object right) throws PageException {
-		if (((PageContextImpl) pc).getPreciseMath()) {
+		if (RuntimeProfile.ALLOW_PRECISE_MATH && ((PageContextImpl) pc).getPreciseMath()) {
 			return Caster.toBigDecimal(left).remainder(Caster.toBigDecimal(right));
 		}
 		double rightAsDouble = Caster.toDoubleValue(right);
@@ -1083,7 +1084,7 @@ public final class OpUtil {
 	}
 
 	public static Number modulusRef(PageContext pc, Number left, Number right) {
-		if (((PageContextImpl) pc).getPreciseMath()) {
+		if (RuntimeProfile.ALLOW_PRECISE_MATH && ((PageContextImpl) pc).getPreciseMath()) {
 			return Caster.toBigDecimal(left).remainder(Caster.toBigDecimal(right));
 		}
 		double rightAsDouble = Caster.toDoubleValue(right);
@@ -1092,14 +1093,14 @@ public final class OpUtil {
 	}
 
 	public static Number multiplyRef(PageContext pc, Object left, Object right) throws PageException {
-		if (((PageContextImpl) pc).getPreciseMath()) {
+		if (RuntimeProfile.ALLOW_PRECISE_MATH && ((PageContextImpl) pc).getPreciseMath()) {
 			return Caster.toBigDecimal(left).multiply(Caster.toBigDecimal(right));
 		}
 		return Caster.toDouble(Caster.toDoubleValue(left) * Caster.toDoubleValue(right));
 	}
 
 	public static Number multiplyRef(PageContext pc, Number left, Number right) {
-		if (((PageContextImpl) pc).getPreciseMath()) {
+		if (RuntimeProfile.ALLOW_PRECISE_MATH && ((PageContextImpl) pc).getPreciseMath()) {
 			return Caster.toBigDecimal(left).multiply(Caster.toBigDecimal(right));
 		}
 		return Caster.toDouble(left.doubleValue() * right.doubleValue());

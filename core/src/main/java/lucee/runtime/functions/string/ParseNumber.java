@@ -24,6 +24,7 @@ import java.math.BigInteger;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
+import lucee.runtime.config.RuntimeProfile;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
@@ -92,7 +93,7 @@ public final class ParseNumber {
 			return Caster.toNumber(pc, strNumber);
 		}
 
-		if (((PageContextImpl) pc).getPreciseMath()) {
+		if (RuntimeProfile.ALLOW_PRECISE_MATH && ((PageContextImpl) pc).getPreciseMath()) {
 			return new BigDecimal(new BigInteger(strNumber, radix));
 		}
 		return Integer.parseInt(strNumber, radix);
