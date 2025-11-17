@@ -20,6 +20,7 @@ package lucee.runtime.functions.math;
 
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
+import lucee.runtime.config.RuntimeProfile;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.op.Caster;
@@ -49,7 +50,7 @@ public final class BitMaskRead implements Function {
 		}
 
 		int result = numValue >> startValue & (1 << lengthValue) - 1;
-		if (((PageContextImpl) pc).getPreciseMath()) {
+		if (RuntimeProfile.ALLOW_PRECISE_MATH && ((PageContextImpl) pc).getPreciseMath()) {
 			return Caster.toBigDecimal(result);
 		}
 		return result;

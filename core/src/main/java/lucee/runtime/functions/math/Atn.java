@@ -23,6 +23,7 @@ package lucee.runtime.functions.math;
 
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
+import lucee.runtime.config.RuntimeProfile;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.op.Caster;
 
@@ -32,7 +33,7 @@ public final class Atn implements Function {
 
 	public static Number call(PageContext pc, Number number) {
 		double res = (StrictMath.atan(Caster.toDoubleValue(number)));
-		if (((PageContextImpl) pc).getPreciseMath()) {
+		if (RuntimeProfile.ALLOW_PRECISE_MATH && ((PageContextImpl) pc).getPreciseMath()) {
 			return Caster.toBigDecimal(res);
 		}
 		return Caster.toDouble(res);

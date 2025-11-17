@@ -20,6 +20,7 @@ package lucee.runtime.functions.math;
 
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
+import lucee.runtime.config.RuntimeProfile;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.ext.function.Function;
@@ -48,7 +49,7 @@ public final class InputBaseN implements Function {
 
 		long result = Long.parseLong(string, radixValue);
 
-		if (((PageContextImpl) pc).getPreciseMath()) {
+		if (RuntimeProfile.ALLOW_PRECISE_MATH && ((PageContextImpl) pc).getPreciseMath()) {
 			return Caster.toBigDecimal(result);
 		}
 		return result;

@@ -83,6 +83,7 @@ import lucee.runtime.ComponentScope;
 import lucee.runtime.ComponentSpecificAccess;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
+import lucee.runtime.config.RuntimeProfile;
 import lucee.runtime.coder.Base64Coder;
 import lucee.runtime.coder.CoderException;
 import lucee.runtime.component.Member;
@@ -347,7 +348,7 @@ public final class Caster {
 
 	public static Number toNumber(PageContext pc, Object o) throws PageException {
 		if (o instanceof Number) return (Number) o;
-		if (((PageContextImpl) pc).getPreciseMath()) return toBigDecimal(o);
+		if (RuntimeProfile.ALLOW_PRECISE_MATH && ((PageContextImpl) pc).getPreciseMath()) return toBigDecimal(o);
 		return Double.valueOf(toDoubleValue(o));
 
 	}
@@ -366,7 +367,7 @@ public final class Caster {
 	}
 
 	public static Number toNumber(PageContext pc, long l) {
-		if (((PageContextImpl) pc).getPreciseMath()) return BigDecimal.valueOf(l);
+		if (RuntimeProfile.ALLOW_PRECISE_MATH && ((PageContextImpl) pc).getPreciseMath()) return BigDecimal.valueOf(l);
 		return Double.valueOf(l);
 
 	}
@@ -378,7 +379,7 @@ public final class Caster {
 	}
 
 	public static Number toNumber(PageContext pc, double d) {
-		if (((PageContextImpl) pc).getPreciseMath()) return BigDecimal.valueOf(d);
+		if (RuntimeProfile.ALLOW_PRECISE_MATH && ((PageContextImpl) pc).getPreciseMath()) return BigDecimal.valueOf(d);
 		return Double.valueOf(d);
 
 	}
@@ -395,7 +396,7 @@ public final class Caster {
 	}
 
 	public static Number toNumber(PageContext pc, String str) throws PageException {
-		if (((PageContextImpl) pc).getPreciseMath()) return toBigDecimal(str);
+		if (RuntimeProfile.ALLOW_PRECISE_MATH && ((PageContextImpl) pc).getPreciseMath()) return toBigDecimal(str);
 		return toDouble(str);
 	}
 

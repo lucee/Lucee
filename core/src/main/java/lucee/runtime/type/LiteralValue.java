@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
+import lucee.runtime.config.RuntimeProfile;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.CasterException;
 import lucee.runtime.op.Caster;
@@ -83,13 +84,13 @@ public final class LiteralValue {
 	}
 
 	public static Number toNumber(PageContext pc, long l) {
-		if (((PageContextImpl) pc).getPreciseMath()) return BigDecimal.valueOf(l);
+		if (RuntimeProfile.ALLOW_PRECISE_MATH && ((PageContextImpl) pc).getPreciseMath()) return BigDecimal.valueOf(l);
 		else return Double.valueOf(l);
 
 	}
 
 	public static Number toNumber(PageContext pc, double d) {
-		if (((PageContextImpl) pc).getPreciseMath()) return BigDecimal.valueOf(d);
+		if (RuntimeProfile.ALLOW_PRECISE_MATH && ((PageContextImpl) pc).getPreciseMath()) return BigDecimal.valueOf(d);
 		else return Double.valueOf(d);
 
 	}
@@ -100,7 +101,7 @@ public final class LiteralValue {
 	}
 
 	public static Number toNumber(PageContext pc, String nbr) throws CasterException {// exception is not expected to bi driggerd
-		if (((PageContextImpl) pc).getPreciseMath()) return Caster.toBigDecimal(nbr);
+		if (RuntimeProfile.ALLOW_PRECISE_MATH && ((PageContextImpl) pc).getPreciseMath()) return Caster.toBigDecimal(nbr);
 		else return Double.valueOf(nbr);
 	}
 
@@ -111,7 +112,7 @@ public final class LiteralValue {
 	}
 
 	public static Number l0(PageContext pc) {
-		if (((PageContextImpl) pc).getPreciseMath()) return BigDecimal.ZERO;
+		if (RuntimeProfile.ALLOW_PRECISE_MATH && ((PageContextImpl) pc).getPreciseMath()) return BigDecimal.ZERO;
 		else return LO_0;
 	}
 
@@ -121,7 +122,7 @@ public final class LiteralValue {
 	}
 
 	public static Number l1(PageContext pc) {
-		if (((PageContextImpl) pc).getPreciseMath()) return BigDecimal.ONE;
+		if (RuntimeProfile.ALLOW_PRECISE_MATH && ((PageContextImpl) pc).getPreciseMath()) return BigDecimal.ONE;
 		else return LO_1;
 	}
 
@@ -131,7 +132,7 @@ public final class LiteralValue {
 	}
 
 	public static Number l2(PageContext pc) {
-		if (((PageContextImpl) pc).getPreciseMath()) return BG_2;
+		if (RuntimeProfile.ALLOW_PRECISE_MATH && ((PageContextImpl) pc).getPreciseMath()) return BG_2;
 		else return LO_2;
 	}
 
@@ -141,7 +142,7 @@ public final class LiteralValue {
 	}
 
 	public static Number l3(PageContext pc) {
-		if (((PageContextImpl) pc).getPreciseMath()) return BG_3;
+		if (RuntimeProfile.ALLOW_PRECISE_MATH && ((PageContextImpl) pc).getPreciseMath()) return BG_3;
 		else return LO_3;
 	}
 
@@ -151,7 +152,7 @@ public final class LiteralValue {
 	}
 
 	public static Number l4(PageContext pc) {
-		if (((PageContextImpl) pc).getPreciseMath()) return BG_4;
+		if (RuntimeProfile.ALLOW_PRECISE_MATH && ((PageContextImpl) pc).getPreciseMath()) return BG_4;
 		else return LO_4;
 	}
 
@@ -161,7 +162,7 @@ public final class LiteralValue {
 	}
 
 	public static Number l5(PageContext pc) {
-		if (((PageContextImpl) pc).getPreciseMath()) return BG_5;
+		if (RuntimeProfile.ALLOW_PRECISE_MATH && ((PageContextImpl) pc).getPreciseMath()) return BG_5;
 		else return LO_5;
 	}
 
@@ -171,7 +172,7 @@ public final class LiteralValue {
 	}
 
 	public static Number l6(PageContext pc) {
-		if (((PageContextImpl) pc).getPreciseMath()) return BG_6;
+		if (RuntimeProfile.ALLOW_PRECISE_MATH && ((PageContextImpl) pc).getPreciseMath()) return BG_6;
 		else return LO_6;
 	}
 
@@ -181,7 +182,7 @@ public final class LiteralValue {
 	}
 
 	public static Number l7(PageContext pc) {
-		if (((PageContextImpl) pc).getPreciseMath()) return BG_7;
+		if (RuntimeProfile.ALLOW_PRECISE_MATH && ((PageContextImpl) pc).getPreciseMath()) return BG_7;
 		else return LO_7;
 	}
 
@@ -191,7 +192,7 @@ public final class LiteralValue {
 	}
 
 	public static Number l8(PageContext pc) {
-		if (((PageContextImpl) pc).getPreciseMath()) return BG_8;
+		if (RuntimeProfile.ALLOW_PRECISE_MATH && ((PageContextImpl) pc).getPreciseMath()) return BG_8;
 		else return LO_8;
 	}
 
@@ -201,7 +202,7 @@ public final class LiteralValue {
 	}
 
 	public static Number l9(PageContext pc) {
-		if (((PageContextImpl) pc).getPreciseMath()) return BG_9;
+		if (RuntimeProfile.ALLOW_PRECISE_MATH && ((PageContextImpl) pc).getPreciseMath()) return BG_9;
 		else return LO_9;
 	}
 
@@ -211,7 +212,7 @@ public final class LiteralValue {
 	}
 
 	public static Number l10(PageContext pc) {
-		if (((PageContextImpl) pc).getPreciseMath()) return BigDecimal.TEN;
+		if (RuntimeProfile.ALLOW_PRECISE_MATH && ((PageContextImpl) pc).getPreciseMath()) return BigDecimal.TEN;
 		else return LO_10;
 	}
 
@@ -221,7 +222,7 @@ public final class LiteralValue {
 	}
 
 	public static Number l11(PageContext pc) {
-		if (((PageContextImpl) pc).getPreciseMath()) return BG_11;
+		if (RuntimeProfile.ALLOW_PRECISE_MATH && ((PageContextImpl) pc).getPreciseMath()) return BG_11;
 		else return LO_11;
 	}
 
@@ -231,7 +232,7 @@ public final class LiteralValue {
 	}
 
 	public static Number l12(PageContext pc) {
-		if (((PageContextImpl) pc).getPreciseMath()) return BG_12;
+		if (RuntimeProfile.ALLOW_PRECISE_MATH && ((PageContextImpl) pc).getPreciseMath()) return BG_12;
 		else return LO_12;
 	}
 
@@ -241,7 +242,7 @@ public final class LiteralValue {
 	}
 
 	public static Number l13(PageContext pc) {
-		if (((PageContextImpl) pc).getPreciseMath()) return BG_13;
+		if (RuntimeProfile.ALLOW_PRECISE_MATH && ((PageContextImpl) pc).getPreciseMath()) return BG_13;
 		else return LO_13;
 	}
 
@@ -251,7 +252,7 @@ public final class LiteralValue {
 	}
 
 	public static Number l14(PageContext pc) {
-		if (((PageContextImpl) pc).getPreciseMath()) return BG_14;
+		if (RuntimeProfile.ALLOW_PRECISE_MATH && ((PageContextImpl) pc).getPreciseMath()) return BG_14;
 		else return LO_14;
 	}
 
@@ -261,7 +262,7 @@ public final class LiteralValue {
 	}
 
 	public static Number l15(PageContext pc) {
-		if (((PageContextImpl) pc).getPreciseMath()) return BG_15;
+		if (RuntimeProfile.ALLOW_PRECISE_MATH && ((PageContextImpl) pc).getPreciseMath()) return BG_15;
 		else return LO_15;
 	}
 
@@ -271,7 +272,7 @@ public final class LiteralValue {
 	}
 
 	public static Number l16(PageContext pc) {
-		if (((PageContextImpl) pc).getPreciseMath()) return BG_16;
+		if (RuntimeProfile.ALLOW_PRECISE_MATH && ((PageContextImpl) pc).getPreciseMath()) return BG_16;
 		else return LO_16;
 	}
 
@@ -281,7 +282,7 @@ public final class LiteralValue {
 	}
 
 	public static Number l17(PageContext pc) {
-		if (((PageContextImpl) pc).getPreciseMath()) return BG_17;
+		if (RuntimeProfile.ALLOW_PRECISE_MATH && ((PageContextImpl) pc).getPreciseMath()) return BG_17;
 		else return LO_17;
 	}
 
@@ -291,7 +292,7 @@ public final class LiteralValue {
 	}
 
 	public static Number l18(PageContext pc) {
-		if (((PageContextImpl) pc).getPreciseMath()) return BG_18;
+		if (RuntimeProfile.ALLOW_PRECISE_MATH && ((PageContextImpl) pc).getPreciseMath()) return BG_18;
 		else return LO_18;
 	}
 
@@ -301,7 +302,7 @@ public final class LiteralValue {
 	}
 
 	public static Number l19(PageContext pc) {
-		if (((PageContextImpl) pc).getPreciseMath()) return BG_19;
+		if (RuntimeProfile.ALLOW_PRECISE_MATH && ((PageContextImpl) pc).getPreciseMath()) return BG_19;
 		else return LO_19;
 	}
 
@@ -311,7 +312,7 @@ public final class LiteralValue {
 	}
 
 	public static Number l20(PageContext pc) {
-		if (((PageContextImpl) pc).getPreciseMath()) return BG_20;
+		if (RuntimeProfile.ALLOW_PRECISE_MATH && ((PageContextImpl) pc).getPreciseMath()) return BG_20;
 		else return LO_20;
 	}
 

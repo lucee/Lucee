@@ -20,6 +20,7 @@ package lucee.runtime.functions.math;
 
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
+import lucee.runtime.config.RuntimeProfile;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.op.Caster;
@@ -39,7 +40,7 @@ public final class Log10 implements Function {
 
 		double result = LOG10_CONVERSION * StrictMath.log(numValue);
 
-		if (((PageContextImpl) pc).getPreciseMath()) {
+		if (RuntimeProfile.ALLOW_PRECISE_MATH && ((PageContextImpl) pc).getPreciseMath()) {
 			return Caster.toBigDecimal(result);
 		}
 		return result;

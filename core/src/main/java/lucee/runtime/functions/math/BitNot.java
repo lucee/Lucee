@@ -23,6 +23,7 @@ package lucee.runtime.functions.math;
 
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
+import lucee.runtime.config.RuntimeProfile;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.BIF;
 import lucee.runtime.op.Caster;
@@ -33,7 +34,7 @@ public final class BitNot extends BIF {
 
 	@Override
 	public Object invoke(PageContext pc, Object[] args) throws PageException {
-		if (((PageContextImpl) pc).getPreciseMath()) {
+		if (RuntimeProfile.ALLOW_PRECISE_MATH && ((PageContextImpl) pc).getPreciseMath()) {
 			return Caster.toBigDecimal(Caster.toBigInteger(args[0]).not());
 		}
 		return ~Caster.toLongValue(Caster.toLongValue(args[0]));
