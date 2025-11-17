@@ -19,7 +19,8 @@
 package lucee.runtime.functions.math;
 
 import lucee.runtime.PageContext;
-import lucee.runtime.engine.ThreadLocalPageContext;
+import lucee.runtime.PageContextImpl;
+import lucee.runtime.config.RuntimeProfile;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.op.Caster;
 
@@ -30,7 +31,7 @@ public final class Tan implements Function {
 	public static Number call(PageContext pc, Number number) {
 
 		double numValue = Caster.toDoubleValue(number);
-		if (ThreadLocalPageContext.preciseMath(pc)) {
+		if (RuntimeProfile.ALLOW_PRECISE_MATH && ((PageContextImpl) pc).getPreciseMath()) {
 			return Caster.toBigDecimal(StrictMath.tan(numValue));
 		}
 		return StrictMath.tan(numValue);

@@ -21,7 +21,8 @@ package lucee.runtime.functions.math;
 import java.math.RoundingMode;
 
 import lucee.runtime.PageContext;
-import lucee.runtime.engine.ThreadLocalPageContext;
+import lucee.runtime.PageContextImpl;
+import lucee.runtime.config.RuntimeProfile;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.BIF;
@@ -32,7 +33,7 @@ public final class Floor extends BIF {
 	private static final long serialVersionUID = 8816436870378089996L;
 
 	public static Number call(PageContext pc, Number number) {
-		if (ThreadLocalPageContext.preciseMath(pc)) {
+		if (RuntimeProfile.ALLOW_PRECISE_MATH && ((PageContextImpl) pc).getPreciseMath()) {
 			return Caster.toBigDecimal(number).setScale(0, RoundingMode.FLOOR);
 		}
 		return Math.floor(Caster.toDoubleValue(number));

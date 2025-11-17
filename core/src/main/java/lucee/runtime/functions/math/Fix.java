@@ -22,7 +22,8 @@
 package lucee.runtime.functions.math;
 
 import lucee.runtime.PageContext;
-import lucee.runtime.engine.ThreadLocalPageContext;
+import lucee.runtime.PageContextImpl;
+import lucee.runtime.config.RuntimeProfile;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.op.Caster;
 
@@ -37,7 +38,7 @@ public final class Fix implements Function {
 			numValue = numValue > 0 ? StrictMath.floor(numValue) : StrictMath.ceil(numValue);
 		}
 
-		if (ThreadLocalPageContext.preciseMath(pc)) {
+		if (RuntimeProfile.ALLOW_PRECISE_MATH && ((PageContextImpl) pc).getPreciseMath()) {
 			return Caster.toBigDecimal(numValue);
 		}
 		return numValue;

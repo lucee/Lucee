@@ -32,6 +32,7 @@ import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.CharSet;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.Mapping;
+import lucee.runtime.PageContextImpl;
 import lucee.runtime.PageSource;
 import lucee.runtime.cache.CacheConnection;
 import lucee.runtime.config.Config;
@@ -801,8 +802,16 @@ public final class Application extends TagImpl implements DynamicAttributes {
 			// no update because the current context has a different name
 			if (!StringUtil.isEmpty(name) && !name.equalsIgnoreCase(ac.getName())) ac = null;
 			else {
-				initORM = set(ac, true);
-				pageContext.setApplicationContext(ac); // we need to make this, so Lucee does not miss any change
+				// Child threads: update PageContext directly instead of shared ApplicationContext
+				if (pageContext instanceof PageContextImpl && ((PageContextImpl) pageContext).isChildThread()) {
+					updatePageContextSettings((PageContextImpl) pageContext);
+					// Don't initialize ORM in child threads
+				}
+				else {
+					// Parent thread: normal path - update shared ApplicationContext
+					initORM = set(ac, true);
+					pageContext.setApplicationContext(ac); // we need to make this, so Lucee does not miss any change
+				}
 			}
 		}
 		// if we do not update we have to create a new one
@@ -828,6 +837,27 @@ public final class Application extends TagImpl implements DynamicAttributes {
 		PageSource curr = pageContext.getCurrentPageSource();
 		if (curr == null) return null;
 		return ResourceUtil.getResource(pageContext, curr);
+	}
+
+	/**
+	 * Updates PageContext settings directly for child threads.
+	 * This provides thread isolation without modifying the shared ApplicationContext.
+	 * @param pci the PageContextImpl to update
+	 */
+	private void updatePageContextSettings(PageContextImpl pci) {
+		// Update thread-isolated settings on PageContext
+		if (preciseMath != null) {
+			pci.setPreciseMath(preciseMath.booleanValue());
+		}
+		if (nullSupport != null) {
+			pci.setFullNullSupport(nullSupport.booleanValue());
+		}
+		if (locale != null) {
+			pci.setLocale(locale);
+		}
+		if (timeZone != null) {
+			pci.setTimeZone(timeZone);
+		}
 	}
 
 	private boolean set(ApplicationContext ac, boolean update) throws PageException {

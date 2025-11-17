@@ -99,6 +99,7 @@ import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.config.Constants;
 import lucee.runtime.config.NullSupportHelper;
 import lucee.runtime.config.Password;
+import lucee.runtime.config.RuntimeProfile;
 import lucee.runtime.converter.JSONConverter;
 import lucee.runtime.converter.JSONDateFormat;
 import lucee.runtime.db.DataSource;
@@ -306,6 +307,8 @@ public final class PageContextImpl extends PageContext {
 	private Boolean _psq;
 	private Locale locale;
 	private TimeZone timeZone;
+	private boolean preciseMath = true; // cached from ApplicationContext for thread isolation
+	private boolean fullNullSupport = false; // cached from ApplicationContext for thread isolation
 
 	// Pools
 	private final ErrorPagePool errorPagePool = new ErrorPagePool();
@@ -402,7 +405,14 @@ public final class PageContextImpl extends PageContext {
 		tagHandlerPool = config.getTagHandlerPool();
 		this.servlet = servlet;
 		this.initApplicationContext = template != null ? template.initApplicationContext : new ClassicApplicationContext(config, "", true, null);
-		if (template != null) this.applicationContext = template.applicationContext;
+		if (template != null) {
+			this.applicationContext = template.applicationContext;
+			// Copy settings from parent for thread isolation
+			this.preciseMath = template.preciseMath;
+			this.fullNullSupport = template.fullNullSupport;
+			this.locale = template.locale;
+			this.timeZone = template.timeZone;
+		}
 		bodyContentStack = new BodyContentStack();
 		devNull = bodyContentStack.getDevNullBodyContent();
 		this.config = config;
@@ -3514,7 +3524,15 @@ public final class PageContextImpl extends PageContext {
 		application = null;
 		client = null;
 
-		if (ac != null) this.applicationContext = (ApplicationContextSupport) ac;
+		if (ac != null) {
+			// Sync settings from ApplicationContext
+			// Always sync because AC content may have changed even if reference is same
+			this.preciseMath = ac.getPreciseMath();
+			this.fullNullSupport = ac.getFullNullSupport();
+			this.locale = ac.getLocale();
+			this.timeZone = ac.getTimeZone();
+			this.applicationContext = (ApplicationContextSupport) ac;
+		}
 		else return;
 
 		int scriptProtect = applicationContext.getScriptProtect();
@@ -4138,10 +4156,49 @@ public final class PageContextImpl extends PageContext {
 		return arr;
 	}
 
+	/**
+	 * Returns the fullNullSupport setting cached on this PageContext.
+	 * This provides thread isolation - child threads can have different settings than parent.
+	 * @return true if full null support is enabled
+	 */
 	@Override
 	public boolean getFullNullSupport() {
-		if (applicationContext == null) return config.getFullNullSupport();
-		return getApplicationContext().getFullNullSupport();
+		return fullNullSupport;
+	}
+
+	/**
+	 * Sets the fullNullSupport setting for this PageContext.
+	 * Used by child threads to override the shared ApplicationContext setting.
+	 * @param fullNullSupport true to enable full null support
+	 */
+	public void setFullNullSupport(boolean fullNullSupport) {
+		this.fullNullSupport = fullNullSupport;
+	}
+
+	/**
+	 * Returns the preciseMath setting cached on this PageContext.
+	 * This provides thread isolation - child threads can have different settings than parent.
+	 * @return true if precise math is enabled
+	 */
+	public boolean getPreciseMath() {
+		return RuntimeProfile.ALLOW_PRECISE_MATH && preciseMath;
+	}
+
+	/**
+	 * Sets the preciseMath setting for this PageContext.
+	 * Used by child threads to override the shared ApplicationContext setting.
+	 * @param preciseMath true to enable precise math
+	 */
+	public void setPreciseMath(boolean preciseMath) {
+		this.preciseMath = preciseMath;
+	}
+
+	/**
+	 * Returns true if this PageContext is a child thread (created via cfthread, etc.)
+	 * @return true if child thread
+	 */
+	public boolean isChildThread() {
+		return isChild;
 	}
 
 	public void registerLazyStatement(Statement s) {

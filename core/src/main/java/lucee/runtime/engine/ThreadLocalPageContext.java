@@ -30,6 +30,7 @@ import lucee.runtime.PageContextImpl;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigServerImpl;
+import lucee.runtime.config.RuntimeProfile;
 import lucee.runtime.thread.ThreadUtil;
 
 /**
@@ -125,20 +126,19 @@ public final class ThreadLocalPageContext {
 	}
 
 	public static boolean preciseMath(PageContext pc) {
-		// pc provided
-		if (pc != null) return (pc.getApplicationContext()).getPreciseMath();
+		// Global control - when set to false, completely bypass all precise math
+		if (!RuntimeProfile.ALLOW_PRECISE_MATH) return false;
 
-		// pc from current thread
-		pc = pcThreadLocal.get();
-		if (pc != null) return (pc.getApplicationContext()).getPreciseMath();
+		// Try provided PC or get from ThreadLocal
+		if (pc == null) pc = get();
 
-		// pc from parent thread
-		pc = pcThreadLocalInheritable.get();
-		if (pc != null) return (pc.getApplicationContext()).getPreciseMath();
+		// Use PageContext cached value (provides thread isolation)
+		if (pc != null) return ((PageContextImpl) pc).getPreciseMath();
 
+		// Fallback to config if no PC available
 		Config c = ThreadLocalConfig.get();
 		if (c instanceof ConfigPro) return ((ConfigPro) c).getPreciseMath();
-		return true;
+		return false;
 	}
 
 	public static TimeZone getTimeZone(PageContext pc) {

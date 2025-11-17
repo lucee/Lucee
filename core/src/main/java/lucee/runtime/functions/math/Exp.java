@@ -22,7 +22,8 @@
 package lucee.runtime.functions.math;
 
 import lucee.runtime.PageContext;
-import lucee.runtime.engine.ThreadLocalPageContext;
+import lucee.runtime.PageContextImpl;
+import lucee.runtime.config.RuntimeProfile;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.op.Caster;
 
@@ -31,7 +32,7 @@ public final class Exp implements Function {
 	private static final long serialVersionUID = -3559574758816303574L;
 
 	public static Number call(PageContext pc, Number number) {
-		if (ThreadLocalPageContext.preciseMath(pc)) {
+		if (RuntimeProfile.ALLOW_PRECISE_MATH && ((PageContextImpl) pc).getPreciseMath()) {
 			return Caster.toBigDecimal(Math.exp(Caster.toDoubleValue(number)));
 		}
 		return Math.exp(Caster.toDoubleValue(number));

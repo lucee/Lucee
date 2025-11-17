@@ -42,6 +42,7 @@ import lucee.runtime.ai.AIEngine;
 import lucee.runtime.cache.CacheConnection;
 import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigWeb;
+import lucee.runtime.config.RuntimeProfile;
 import lucee.runtime.db.DataSource;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.DeprecatedException;
@@ -1168,12 +1169,17 @@ public final class ClassicApplicationContext extends ApplicationContextSupport {
 
 	@Override
 	public boolean getPreciseMath() {
+		if (!RuntimeProfile.ALLOW_PRECISE_MATH) return false;
 		if (preciseMath == null) return cp.getPreciseMath();
 		return preciseMath;
 	}
 
 	@Override
 	public void setPreciseMath(boolean preciseMath) {
+		// Check if precise math has been globally disallowed
+		if (!RuntimeProfile.ALLOW_PRECISE_MATH && preciseMath) {
+			throw new RuntimeException( "Precise math has been disallowed via lucee.allow.precise.math=false. Cannot enable it per-application." );
+		}
 		this.preciseMath = preciseMath;
 	}
 
