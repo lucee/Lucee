@@ -23,7 +23,7 @@ package lucee.runtime.functions.math;
 
 import lucee.commons.math.MathUtil;
 import lucee.runtime.PageContext;
-import lucee.runtime.engine.ThreadLocalPageContext;
+import lucee.runtime.PageContextImpl;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.op.Caster;
 
@@ -33,7 +33,7 @@ public final class Abs implements Function {
 
 	public static Number call(PageContext pc, Number n) {
 
-		if (ThreadLocalPageContext.preciseMath(pc)) {
+		if (((PageContextImpl) pc).getPreciseMath()) {
 			return MathUtil.abs(Caster.toBigDecimal(n));
 		}
 		return MathUtil.abs(Caster.toDoubleValue(n));

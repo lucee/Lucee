@@ -22,8 +22,8 @@
 package lucee.runtime.functions.math;
 
 import lucee.runtime.PageContext;
+import lucee.runtime.PageContextImpl;
 import lucee.runtime.crypt.Cryptor;
-import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.op.Caster;
@@ -38,7 +38,7 @@ public final class Randomize implements Function {
 
 	public static Number call(PageContext pc, Number number, String algorithm) throws ExpressionException {
 
-		if (ThreadLocalPageContext.preciseMath(pc)) {
+		if (((PageContextImpl) pc).getPreciseMath()) {
 			return Caster.toBigDecimal(Rand.getRandom(pc, algorithm, Caster.toDouble(number)).nextDouble());
 		}
 		return Rand.getRandom(pc, algorithm, Caster.toDouble(number)).nextDouble();

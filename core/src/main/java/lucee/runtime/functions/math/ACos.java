@@ -22,7 +22,7 @@
 package lucee.runtime.functions.math;
 
 import lucee.runtime.PageContext;
-import lucee.runtime.engine.ThreadLocalPageContext;
+import lucee.runtime.PageContextImpl;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.op.Caster;
@@ -35,7 +35,7 @@ public final class ACos implements Function {
 		if (number.doubleValue() >= -1d && number.doubleValue() <= 1d) res = (StrictMath.acos(Caster.toDoubleValue(number)));
 		else throw new ExpressionException("invalid range of argument for function aCos, argument range must be between -1 and 1, now is [" + number + "]");
 
-		if (ThreadLocalPageContext.preciseMath(pc)) {
+		if (((PageContextImpl) pc).getPreciseMath()) {
 			return Caster.toBigDecimal(res);
 		}
 		return Caster.toDouble(res);
