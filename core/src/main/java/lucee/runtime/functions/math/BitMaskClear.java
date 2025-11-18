@@ -19,7 +19,8 @@
 package lucee.runtime.functions.math;
 
 import lucee.runtime.PageContext;
-import lucee.runtime.engine.ThreadLocalPageContext;
+import lucee.runtime.PageContextImpl;
+import lucee.runtime.config.RuntimeProfile;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.op.Caster;
@@ -51,7 +52,7 @@ public final class BitMaskClear implements Function {
 		int result = numValue & ~((1 << lengthValue) - 1 << startValue);
 
 		// Return result based on precise math
-		if (ThreadLocalPageContext.preciseMath(pc)) {
+		if (RuntimeProfile.ALLOW_PRECISE_MATH && ((PageContextImpl) pc).getPreciseMath()) {
 			return Caster.toBigDecimal(result);
 		}
 		return result;

@@ -26,6 +26,7 @@ import lucee.runtime.type.Null;
 public final class NullSupportHelper {
 
 	public static boolean full(PageContext pc) {
+		if (!RuntimeProfile.ALLOW_FULL_NULL_SUPPORT) return false;
 
 		if (pc == null) {
 			pc = ThreadLocalPageContext.get();
@@ -35,6 +36,7 @@ public final class NullSupportHelper {
 	}
 
 	public static boolean full() {
+		if (!RuntimeProfile.ALLOW_FULL_NULL_SUPPORT) return false;
 		return full(ThreadLocalPageContext.get());
 	}
 

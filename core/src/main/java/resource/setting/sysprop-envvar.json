@@ -611,12 +611,28 @@
 		"default": null
 	},
 	{
+		"sysprop": "lucee.allow.precise.math",
+		"envvar": "LUCEE_ALLOW_PRECISE_MATH",
+		"desc": "Controls whether applications are allowed to enable precise math. Values: true (default, applications can enable precise math), false (precise math is disallowed globally, throws error if applications try to enable it)",
+		"category": "performance",
+		"type": "boolean",
+		"default": true
+	},
+	{
 		"sysprop": "lucee.precise.math",
 		"envvar": "LUCEE_PRECISE_MATH",
-		"desc": "A boolean value. If enabled, this improves the accuracy of floating-point calculations but makes them slightly slower",
+		"desc": "Default precise math setting. Values: true (enable BigDecimal for accuracy), false (use Double for performance). Applications can override this unless lucee.allow.precise.math is false",
 		"category": "performance",
 		"type": "boolean",
 		"default": false
+	},
+	{
+		"sysprop": "lucee.allow.full.null.support",
+		"envvar": "LUCEE_ALLOW_FULL_NULL_SUPPORT",
+		"desc": "Controls whether applications are allowed to enable full null support. Values: true (default, applications can enable full null support), false (full null support is disallowed globally)",
+		"category": "performance",
+		"type": "boolean",
+		"default": true
 	},
 	{
 		"sysprop": "lucee.preserve.case",

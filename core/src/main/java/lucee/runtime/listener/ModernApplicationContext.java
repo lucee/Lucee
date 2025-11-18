@@ -60,6 +60,7 @@ import lucee.runtime.config.ConfigFactoryImpl;
 import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigUtil;
 import lucee.runtime.config.ConfigWeb;
+import lucee.runtime.config.RuntimeProfile;
 import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.db.DataSource;
 import lucee.runtime.engine.ThreadLocalPageContext;
@@ -2010,6 +2011,9 @@ public final class ModernApplicationContext extends ApplicationContextSupport {
 
 	@Override
 	public boolean getFullNullSupport() {
+		// Global control for full null support - allows JIT to optimize away all null support checks
+		if (!RuntimeProfile.ALLOW_FULL_NULL_SUPPORT) return false;
+
 		if (!initFullNullSupport) {
 			Boolean b = Caster.toBoolean(get(component, KeyConstants._nullSupport, null), null);
 			if (b == null) b = Caster.toBoolean(get(component, KeyConstants._enableNULLSupport, null), null);
@@ -2022,12 +2026,19 @@ public final class ModernApplicationContext extends ApplicationContextSupport {
 
 	@Override
 	public void setFullNullSupport(boolean fullNullSupport) {
+		// Check if full null support has been globally disallowed
+		if (!RuntimeProfile.ALLOW_FULL_NULL_SUPPORT && fullNullSupport) {
+			throw new RuntimeException( "Full null support has been disallowed via lucee.allow.full.null.support=false. Cannot enable it per-application." );
+		}
 		this.fullNullSupport = fullNullSupport;
 		this.initFullNullSupport = true;
 	}
 
 	@Override
 	public boolean getPreciseMath() {
+		// Global control for precise math - allows JIT to optimize away all precise math checks
+		if (!RuntimeProfile.ALLOW_PRECISE_MATH) return false;
+
 		if (!initPreciseMath) {
 			Boolean b = Caster.toBoolean(get(component, KeyConstants._preciseMath, null), null);
 			if (b == null) b = Caster.toBoolean(get(component, KeyConstants._precisionEvaluate, null), null);
@@ -2041,6 +2052,10 @@ public final class ModernApplicationContext extends ApplicationContextSupport {
 
 	@Override
 	public void setPreciseMath(boolean preciseMath) {
+		// Check if precise math has been globally disallowed
+		if (!RuntimeProfile.ALLOW_PRECISE_MATH && preciseMath) {
+			throw new RuntimeException( "Precise math has been disallowed via lucee.allow.precise.math=false. Cannot enable it per-application." );
+		}
 		this.preciseMath = preciseMath;
 		this.initPreciseMath = true;
 	}

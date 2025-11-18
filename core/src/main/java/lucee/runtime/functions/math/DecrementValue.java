@@ -24,7 +24,8 @@ package lucee.runtime.functions.math;
 import java.math.BigDecimal;
 
 import lucee.runtime.PageContext;
-import lucee.runtime.engine.ThreadLocalPageContext;
+import lucee.runtime.PageContextImpl;
+import lucee.runtime.config.RuntimeProfile;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.op.Caster;
 
@@ -34,7 +35,7 @@ public final class DecrementValue implements Function {
 
 	public static Number call(PageContext pc, Number number) {
 
-		if (ThreadLocalPageContext.preciseMath(pc)) {
+		if (RuntimeProfile.ALLOW_PRECISE_MATH && ((PageContextImpl) pc).getPreciseMath()) {
 			return Caster.toBigDecimal(number).subtract(BigDecimal.ONE);
 		}
 		return number.doubleValue() - 1;

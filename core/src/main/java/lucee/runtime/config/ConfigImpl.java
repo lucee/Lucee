@@ -6116,6 +6116,9 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 				if (preciseMath == null) {
 					boolean pm = false;
 					String str = SystemUtil.getSystemPropOrEnvVar("lucee.precise.math", null);
+					// If set to "disabled", ignore it here - ThreadLocalPageContext handles the global kill switch
+					if ("disabled".equalsIgnoreCase(str)) str = null;
+
 					if (StringUtil.isEmpty(str, true)) str = ConfigFactoryImpl.getAttr(root, "preciseMath");
 
 					if (!StringUtil.isEmpty(str, true)) {

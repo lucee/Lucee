@@ -8276,14 +8276,14 @@ A struct that defines default ftp settings, this settings can be overwritten as 
 			<description>Sets the country/language locale for CFML processing. The locale value
 		determines the default format of date, time, number, and
 		currency values, according to language and regional
-		conventions.</description>
+		conventions. Note: When updated in a child thread (cfthread/parallel), this setting does not affect the parent thread or other child threads.</description>
 		</attribute>
 		<attribute>
 			<type>timezone</type>
 			<name>timeZone</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>change the timezone definition for the current application context.</description>
+			<description>change the timezone definition for the current application context. Note: When updated in a child thread (cfthread/parallel), this setting does not affect the parent thread or other child threads.</description>
 		</attribute>
 		<attribute>
 			<type>String</type>
@@ -8361,7 +8361,7 @@ Depending on this setting Lucee scans certain scopes to find a variable called f
 			<name>nullSupport</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>enable or disable full null support</description>
+			<description>enable or disable full null support. Note: When updated in a child thread (cfthread/parallel), this setting does not affect the parent thread or other child threads.</description>
 		</attribute>
 		<attribute>
 			<type>boolean</type>
@@ -8369,8 +8369,9 @@ Depending on this setting Lucee scans certain scopes to find a variable called f
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>
-			If set to true Lucee increases memory size for arithmetic operations and numbers. 
+			If set to true Lucee increases memory size for arithmetic operations and numbers.
 			This improves the accuracy of floating point calculations.
+			Note: When updated in a child thread (cfthread/parallel), this setting does not affect the parent thread or other child threads.
 			</description>
 			<introduced>6.0.0.114</introduced>
 		</attribute>

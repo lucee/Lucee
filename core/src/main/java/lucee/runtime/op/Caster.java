@@ -83,6 +83,7 @@ import lucee.runtime.ComponentScope;
 import lucee.runtime.ComponentSpecificAccess;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
+import lucee.runtime.config.RuntimeProfile;
 import lucee.runtime.coder.Base64Coder;
 import lucee.runtime.coder.CoderException;
 import lucee.runtime.component.Member;
@@ -347,7 +348,7 @@ public final class Caster {
 
 	public static Number toNumber(PageContext pc, Object o) throws PageException {
 		if (o instanceof Number) return (Number) o;
-		if (ThreadLocalPageContext.preciseMath(pc)) return toBigDecimal(o);
+		if (RuntimeProfile.ALLOW_PRECISE_MATH && ((PageContextImpl) pc).getPreciseMath()) return toBigDecimal(o);
 		return Double.valueOf(toDoubleValue(o));
 
 	}
@@ -366,7 +367,7 @@ public final class Caster {
 	}
 
 	public static Number toNumber(PageContext pc, long l) {
-		if (ThreadLocalPageContext.preciseMath(pc)) return BigDecimal.valueOf(l);
+		if (RuntimeProfile.ALLOW_PRECISE_MATH && ((PageContextImpl) pc).getPreciseMath()) return BigDecimal.valueOf(l);
 		return Double.valueOf(l);
 
 	}
@@ -378,7 +379,7 @@ public final class Caster {
 	}
 
 	public static Number toNumber(PageContext pc, double d) {
-		if (ThreadLocalPageContext.preciseMath(pc)) return BigDecimal.valueOf(d);
+		if (RuntimeProfile.ALLOW_PRECISE_MATH && ((PageContextImpl) pc).getPreciseMath()) return BigDecimal.valueOf(d);
 		return Double.valueOf(d);
 
 	}
@@ -395,7 +396,7 @@ public final class Caster {
 	}
 
 	public static Number toNumber(PageContext pc, String str) throws PageException {
-		if (ThreadLocalPageContext.preciseMath(pc)) return toBigDecimal(str);
+		if (RuntimeProfile.ALLOW_PRECISE_MATH && ((PageContextImpl) pc).getPreciseMath()) return toBigDecimal(str);
 		return toDouble(str);
 	}
 
@@ -3884,10 +3885,10 @@ public final class Caster {
 				break;
 			case 'd':
 				if (lctype.equals("date")) {
-					return DateCaster.toDateAdvanced(o, ThreadLocalPageContext.getTimeZone(pc));
+					return DateCaster.toDateAdvanced(o, pc.getTimeZone());
 				}
 				else if (lctype.equals("datetime")) {
-					return DateCaster.toDateAdvanced(o, ThreadLocalPageContext.getTimeZone(pc));
+					return DateCaster.toDateAdvanced(o, pc.getTimeZone());
 				}
 				else if (lctype.equals("double")) {
 					return toDouble(o);
@@ -3898,7 +3899,7 @@ public final class Caster {
 				break;
 			case 'e':
 				if (lctype.equals("eurodate")) {
-					return DateCaster.toEuroDate(o, ThreadLocalPageContext.getTimeZone(pc));
+					return DateCaster.toEuroDate(o, pc.getTimeZone());
 				}
 				else if (alsoPattern && lctype.equals("email")) {
 					return toEmail(o);
@@ -3978,7 +3979,7 @@ public final class Caster {
 					return toTimespan(o);
 				}
 				if (lctype.equals("time")) {
-					return DateCaster.toDateAdvanced(o, ThreadLocalPageContext.getTimeZone(pc));
+					return DateCaster.toDateAdvanced(o, pc.getTimeZone());
 				}
 				if (alsoPattern && lctype.equals("telephone")) {
 					return toPhone(o);
@@ -3992,7 +3993,7 @@ public final class Caster {
 					return toURL(o);
 				}
 				if (lctype.equals("usdate")) {
-					return DateCaster.toUSDate(o, ThreadLocalPageContext.getTimeZone(pc));
+					return DateCaster.toUSDate(o, pc.getTimeZone());
 					// return DateCaster.toDate(o,pc.getTimeZone());
 				}
 				break;
