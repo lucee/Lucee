@@ -627,6 +627,14 @@
 		"default": false
 	},
 	{
+		"sysprop": "lucee.allow.full.null.support",
+		"envvar": "LUCEE_ALLOW_FULL_NULL_SUPPORT",
+		"desc": "Controls whether applications are allowed to enable full null support. Values: true (default, applications can enable full null support), false (full null support is disallowed globally)",
+		"category": "performance",
+		"type": "boolean",
+		"default": true
+	},
+	{
 		"sysprop": "lucee.preserve.case",
 		"envvar": "LUCEE_PRESERVE_CASE",
 		"desc": "A boolean value. If `true`, Lucee will preserve the original case of variable names used in `dot notation` (i.e., will NOT convert to UPPER CASE). If `false` or not set, variable names will be converted to uppercase (default behavior).",

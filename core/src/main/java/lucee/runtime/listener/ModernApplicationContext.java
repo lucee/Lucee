@@ -2011,6 +2011,9 @@ public final class ModernApplicationContext extends ApplicationContextSupport {
 
 	@Override
 	public boolean getFullNullSupport() {
+		// Global control for full null support - allows JIT to optimize away all null support checks
+		if (!RuntimeProfile.ALLOW_FULL_NULL_SUPPORT) return false;
+
 		if (!initFullNullSupport) {
 			Boolean b = Caster.toBoolean(get(component, KeyConstants._nullSupport, null), null);
 			if (b == null) b = Caster.toBoolean(get(component, KeyConstants._enableNULLSupport, null), null);
@@ -2023,6 +2026,10 @@ public final class ModernApplicationContext extends ApplicationContextSupport {
 
 	@Override
 	public void setFullNullSupport(boolean fullNullSupport) {
+		// Check if full null support has been globally disallowed
+		if (!RuntimeProfile.ALLOW_FULL_NULL_SUPPORT && fullNullSupport) {
+			throw new RuntimeException( "Full null support has been disallowed via lucee.allow.full.null.support=false. Cannot enable it per-application." );
+		}
 		this.fullNullSupport = fullNullSupport;
 		this.initFullNullSupport = true;
 	}

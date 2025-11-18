@@ -4203,7 +4203,7 @@ public final class PageContextImpl extends PageContext {
 
 	@Override
 	public boolean getFullNullSupport() {
-		return fullNullSupport;
+		return RuntimeProfile.ALLOW_FULL_NULL_SUPPORT && fullNullSupport;
 	}
 
 	/**
