@@ -307,8 +307,8 @@ public final class PageContextImpl extends PageContext {
 	private Boolean _psq;
 	private Locale locale;
 	private TimeZone timeZone;
-	private boolean preciseMath = true; // cached from ApplicationContext for thread isolation
-	private boolean fullNullSupport = false; // cached from ApplicationContext for thread isolation
+	private boolean preciseMath = true; // cached from ApplicationContext for performance and child thread isolation
+	private boolean fullNullSupport = false; // cached from ApplicationContext for performance and child thread isolation
 
 	// Pools
 	private final ErrorPagePool errorPagePool = new ErrorPagePool();
@@ -407,7 +407,7 @@ public final class PageContextImpl extends PageContext {
 		this.initApplicationContext = template != null ? template.initApplicationContext : new ClassicApplicationContext(config, "", true, null);
 		if (template != null) {
 			this.applicationContext = template.applicationContext;
-			// Copy settings from parent for thread isolation
+			// Copy cached settings from parent for thread isolation
 			this.preciseMath = template.preciseMath;
 			this.fullNullSupport = template.fullNullSupport;
 			this.locale = template.locale;
@@ -3540,18 +3540,31 @@ public final class PageContextImpl extends PageContext {
 
 	@Override
 	public void setApplicationContext(ApplicationContext ac) {
+		setApplicationContext(ac, false);
+	}
+
+	/**
+	 * Sets the ApplicationContext for this PageContext.
+	 *
+	 * @param ac the ApplicationContext to set
+	 * @param skipPerChildThreadSettings when true, skips syncing per-thread settings (preciseMath, fullNullSupport, locale, timeZone)
+	 *        from AC to PC. Used for child threads that maintain isolated per-thread settings.
+	 */
+	public void setApplicationContext(ApplicationContext ac, boolean skipPerChildThreadSettings) {
 
 		session = null;
 		application = null;
 		client = null;
 
 		if (ac != null) {
-			// Sync settings from ApplicationContext
+			// Sync cached settings from ApplicationContext for performance
 			// Always sync because AC content may have changed even if reference is same
-			this.preciseMath = ac.getPreciseMath();
-			this.fullNullSupport = ac.getFullNullSupport();
-			this.locale = ac.getLocale();
-			this.timeZone = ac.getTimeZone();
+			if (!skipPerChildThreadSettings) {
+				this.preciseMath = ac.getPreciseMath();
+				this.fullNullSupport = ac.getFullNullSupport();
+				this.locale = ac.getLocale();
+				this.timeZone = ac.getTimeZone();
+			}
 			this.applicationContext = (ApplicationContextSupport) ac;
 		}
 		else return;
@@ -4188,11 +4201,6 @@ public final class PageContextImpl extends PageContext {
 
 	}
 
-	/**
-	 * Returns the fullNullSupport setting cached on this PageContext.
-	 * This provides thread isolation - child threads can have different settings than parent.
-	 * @return true if full null support is enabled
-	 */
 	@Override
 	public boolean getFullNullSupport() {
 		return fullNullSupport;
@@ -4209,7 +4217,6 @@ public final class PageContextImpl extends PageContext {
 
 	/**
 	 * Returns the preciseMath setting cached on this PageContext.
-	 * This provides thread isolation - child threads can have different settings than parent.
 	 * @return true if precise math is enabled
 	 */
 	public boolean getPreciseMath() {

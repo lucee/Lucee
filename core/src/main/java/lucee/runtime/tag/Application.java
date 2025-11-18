@@ -802,15 +802,16 @@ public final class Application extends TagImpl implements DynamicAttributes {
 			// no update because the current context has a different name
 			if (!StringUtil.isEmpty(name) && !name.equalsIgnoreCase(ac.getName())) ac = null;
 			else {
-				// Child threads: update PageContext directly instead of shared ApplicationContext
+				// Child threads: set isolated PageContext settings, then update AC (skipping per-thread settings)
 				if (pageContext instanceof PageContextImpl && ((PageContextImpl) pageContext).isChildThread()) {
-					updatePageContextSettings((PageContextImpl) pageContext);
-					// Don't initialize ORM in child threads
+					updateChildPageContextSettings((PageContextImpl) pageContext);
+					initORM = set(ac, true, true); // ignorePerChildSettings = true
+					((PageContextImpl) pageContext).setApplicationContext(ac, true); // skipPerChildThreadSettings = true
 				}
 				else {
-					// Parent thread: normal path - update shared ApplicationContext
-					initORM = set(ac, true);
-					pageContext.setApplicationContext(ac); // we need to make this, so Lucee does not miss any change
+					// Parent threads: update AC (including per-thread settings), then sync AC to PC
+					initORM = set(ac, true, false); // ignorePerChildSettings = false
+					pageContext.setApplicationContext(ac); // Syncs all settings from AC to PC
 				}
 			}
 		}
@@ -818,8 +819,17 @@ public final class Application extends TagImpl implements DynamicAttributes {
 		if (ac == null) {
 			PageSource ps = pageContext.getCurrentPageSource(null);
 			ac = new ClassicApplicationContext(pageContext.getConfig(), name, false, ps == null ? null : ps.getResourceTranslated(pageContext));
-			initORM = set(ac, false);
-			pageContext.setApplicationContext(ac);
+
+			// Child threads need isolation even for new AC
+			if (pageContext instanceof PageContextImpl && ((PageContextImpl) pageContext).isChildThread()) {
+				initORM = set(ac, false, false); // Initialize AC with all settings
+				updateChildPageContextSettings((PageContextImpl) pageContext); // Override with isolated values
+				((PageContextImpl) pageContext).setApplicationContext(ac, true); // skipPerChildThreadSettings = true
+			}
+			else {
+				initORM = set(ac, false, false); // Initialize AC with all settings
+				pageContext.setApplicationContext(ac); // Sync all to PC
+			}
 		}
 
 		// scope cascading
@@ -840,17 +850,22 @@ public final class Application extends TagImpl implements DynamicAttributes {
 	}
 
 	/**
-	 * Updates PageContext settings directly for child threads.
-	 * This provides thread isolation without modifying the shared ApplicationContext.
-	 * @param pci the PageContextImpl to update
+	 * Updates per-thread settings directly on the PageContext for child threads.
+	 * Child threads maintain isolated per-thread settings (preciseMath, fullNullSupport, locale, timeZone)
+	 * that are independent of the shared ApplicationContext.
+	 *
+	 * @param pci the PageContextImpl to update with isolated settings
 	 */
-	private void updatePageContextSettings(PageContextImpl pci) {
+	private void updateChildPageContextSettings(PageContextImpl pci) {
 		// Update thread-isolated settings on PageContext
 		if (preciseMath != null) {
 			pci.setPreciseMath(preciseMath.booleanValue());
 		}
 		if (nullSupport != null) {
 			pci.setFullNullSupport(nullSupport.booleanValue());
+		}
+		else if (enableNULLSupport != null) {
+			pci.setFullNullSupport(enableNULLSupport.booleanValue());
 		}
 		if (locale != null) {
 			pci.setLocale(locale);
@@ -860,7 +875,17 @@ public final class Application extends TagImpl implements DynamicAttributes {
 		}
 	}
 
-	private boolean set(ApplicationContext ac, boolean update) throws PageException {
+	/**
+	 * Updates ApplicationContext settings from Application.cfc attributes.
+	 *
+	 * @param ac the ApplicationContext to update
+	 * @param update whether to update existing settings
+	 * @param ignorePerChildSettings when true, skips settings that are handled per-thread via updateChildPageContextSettings()
+	 *        (preciseMath, nullSupport, locale, timeZone). Used for child threads to prevent overwriting their isolated settings.
+	 * @return true if ORM should be initialized
+	 * @throws PageException if setting update fails
+	 */
+	private boolean set(ApplicationContext ac, boolean update, boolean ignorePerChildSettings) throws PageException {
 		if (dynAttrs != null && ac instanceof ClassicApplicationContext) {
 			ClassicApplicationContext cac = (ClassicApplicationContext) ac;
 			cac.setCustomAttributes(dynAttrs);
@@ -970,10 +995,15 @@ public final class Application extends TagImpl implements DynamicAttributes {
 		if (mailListener != null) ac.setMailListener(mailListener);
 		if (queryListener != null) ac.setQueryListener(queryListener);
 		if (serializationSettings != null) ac.setSerializationSettings(serializationSettings);
-		if (locale != null) ac.setLocale(locale);
-		if (timeZone != null) ac.setTimeZone(timeZone);
-		if (nullSupport != null) ac.setFullNullSupport(nullSupport);
-		if (enableNULLSupport != null) ac.setFullNullSupport(enableNULLSupport);
+
+		// Skip per-thread settings when ignorePerChildSettings is true (handled by updateChildPageContextSettings)
+		if (!ignorePerChildSettings) {
+			if (locale != null) ac.setLocale(locale);
+			if (timeZone != null) ac.setTimeZone(timeZone);
+			if (nullSupport != null) ac.setFullNullSupport(nullSupport);
+			if (enableNULLSupport != null) ac.setFullNullSupport(enableNULLSupport);
+			if (preciseMath != null) ac.setPreciseMath(preciseMath.booleanValue());
+		}
 		if (queryPSQ != null) ac.setQueryPSQ(queryPSQ);
 		if (queryVarUsage != 0) ac.setQueryVarUsage(queryVarUsage);
 		if (queryCachedAfter != null) ac.setQueryCachedAfter(queryCachedAfter);
@@ -999,7 +1029,6 @@ public final class Application extends TagImpl implements DynamicAttributes {
 		if (clientCluster != null) ac.setClientCluster(clientCluster.booleanValue());
 		if (sessionCluster != null) ac.setSessionCluster(sessionCluster.booleanValue());
 		if (cgiReadOnly != null) ac.setCGIScopeReadonly(cgiReadOnly.booleanValue());
-		if (preciseMath != null) ac.setPreciseMath(preciseMath.booleanValue());
 		if (returnFormat != null) ac.setReturnFormat(returnFormat.intValue());
 		if (s3 != null) ac.setS3(AppListenerUtil.toS3(s3));
 		if (ftp != null) ac.setFTP(AppListenerUtil.toFTP(ftp));
