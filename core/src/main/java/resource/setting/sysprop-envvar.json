@@ -595,6 +595,15 @@
 		"default": "https://oss.sonatype.org/content/repositories/snapshots/"
 	},
 	{
+		"sysprop": "lucee.pageContext.pool.maxsize",
+		"envvar": "LUCEE_PAGECONTEXT_POOL_MAXSIZE",
+		"desc": "Maximum number of PageContext instances to pool for reuse. Pooling reduces object allocation overhead. Higher values use more memory but improve performance under high concurrency",
+		"category": "performance",
+		"type": "numeric",
+		"introduced": "7.1.0.8",
+		"default": 100
+	},
+	{
 		"sysprop": "lucee.pagePool.maxSize",
 		"envvar": "LUCEE_PAGEPOOL_MAXSIZE",
 		"desc": "Maximum size of the template pool (page pool) where Lucee holds loaded .cfm/.cfc files. No number smaller than 1000 is accepted",

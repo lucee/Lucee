@@ -28,6 +28,7 @@ import java.util.Map.Entry;
 import java.util.NoSuchElementException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import jakarta.servlet.Servlet;
 import jakarta.servlet.ServletConfig;
@@ -88,10 +89,12 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 
 	private static final long MAX_AGE = 5 * 60000; // 5 minutes
 	private static final int MAX_SIZE = 10000;
+	private static final int MAX_POOLED_PCS = Caster.toIntValue( SystemUtil.getSystemPropOrEnvVar( "lucee.pagecontext.pool.maxsize", null ), 100 );
 	private static final String LOG_TYPE_NAME = "factory";
 	private static JspEngineInfo info = new JspEngineInfoImpl("1.0");
 	private ConfigWebPro config;
 	ConcurrentLinkedDeque<PageContextImpl> pcs = new ConcurrentLinkedDeque<PageContextImpl>();
+	private final AtomicInteger pcsSize = new AtomicInteger(0);
 	private final Map<Integer, PageContextImpl> runningPcs = new ConcurrentHashMap<Integer, PageContextImpl>();
 	private final Map<Integer, PageContextImpl> runningChildPcs = new ConcurrentHashMap<Integer, PageContextImpl>();
 
@@ -141,8 +144,9 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 	 */
 	@Override
 	public void resetPageContext() {
-		LogUtil.log(config, Log.LEVEL_INFO, CFMLFactoryImpl.class.getName(), "Reset " + pcs.size() + " Unused PageContexts");
+		LogUtil.log(config, Log.LEVEL_INFO, CFMLFactoryImpl.class.getName(), "Reset " + pcsSize.get() + " Unused PageContexts");
 		pcs.clear();
+		pcsSize.set(0);
 		Iterator<PageContextImpl> it = runningPcs.values().iterator();
 		while (it.hasNext()) {
 			it.next().reset();
@@ -229,6 +233,7 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 		else {
 			try {
 				pc = pcs.pop();
+				pcsSize.decrementAndGet();
 			}
 			catch (NoSuchElementException nsee) {
 				pc = null;
@@ -302,8 +307,10 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 				((PageContextImpl) parent).removeChildPageContext(pc);
 			}
 		}
-		if (pcs.size() < 100 && ((PageContextImpl) pc).getTimeoutStackTrace() == null && reuse)// not more than 100 PCs
+		if (pcsSize.get() < MAX_POOLED_PCS && ((PageContextImpl) pc).getTimeoutStackTrace() == null && reuse) {// not more than 100 PCs
 			pcs.push((PageContextImpl) pc);
+			pcsSize.incrementAndGet();
+		}
 
 		if (runningPcs.size() > MAX_SIZE) clean(runningPcs);
 		if (runningChildPcs.size() > MAX_SIZE) clean(runningChildPcs);
