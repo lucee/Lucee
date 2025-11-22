@@ -69,23 +69,28 @@ public class UDFImpl extends MemberSupport implements UDFPlus, Externalizable {
 
 	protected Component ownerComponent;
 	public UDFPropertiesBase properties;
+	private final boolean canUseFastPath;
 
 	/**
 	 * DO NOT USE THIS CONSTRUCTOR! this constructor is only for deserialize process
 	 */
 	public UDFImpl() {
 		super(0);
+		this.canUseFastPath = false;
 	}
 
 	public UDFImpl(UDFProperties properties) {
 		super(properties.getAccess(), properties.getModifier());
 
 		this.properties = (UDFPropertiesBase) properties;
+		this.canUseFastPath = ((UDFPropertiesBase) properties).canUseFastPath;
 	}
 
 	public UDFImpl(UDFProperties properties, Component owner) {
 		super(properties.getAccess(), properties.getModifier());
 		this.properties = (UDFPropertiesBase) properties;
+		this.canUseFastPath = ((UDFPropertiesBase) properties).canUseFastPath;
+
 		setOwnerComponent(owner);
 	}
 
@@ -155,6 +160,20 @@ public class UDFImpl extends MemberSupport implements UDFPlus, Externalizable {
 		}
 		for (int i = funcArgs.length; i < args.length; i++) {
 			newArgs.setEL(ArgumentIntKey.init(i + 1), args[i]);
+		}
+	}
+
+	private void defineArgumentsFast(PageContextImpl pc, FunctionArgument[] funcArgs, Object[] args, Argument newArgs) {
+		for (int i = 0; i < args.length && i < funcArgs.length; i++) {
+			newArgs.setEL(funcArgs[i].getName(), args[i]);
+		}
+		for (int i = funcArgs.length; i < args.length; i++) {
+			newArgs.setEL(ArgumentIntKey.init(i + 1), args[i]);
+		}
+		if (args.length < funcArgs.length && !pc.getFullNullSupport()) {
+			for (int i = args.length; i < funcArgs.length; i++) {
+				newArgs.setEL(funcArgs[i].getName(), Argument.NULL);
+			}
 		}
 	}
 
@@ -304,6 +323,20 @@ public class UDFImpl extends MemberSupport implements UDFPlus, Externalizable {
 		}
 	}
 
+	private void populateArguments(PageContextImpl pci, FunctionArgument[] funcArgs, Object[] args, Struct values, Argument newArgs) throws PageException {
+		if (args != null) {
+			if (canUseFastPath && values == null) {
+				defineArgumentsFast(pci, funcArgs, args, newArgs);
+			}
+			else {
+				defineArguments(pci, funcArgs, args, newArgs);
+			}
+		}
+		else {
+			defineArguments(pci, funcArgs, values, newArgs);
+		}
+	}
+
 	private Object _call(PageContext pc, Collection.Key calledName, Object[] args, Struct values, boolean doIncludePath, Argument newArgs) throws PageException {
 		PageContextImpl pci = (PageContextImpl) pc;
 		boolean existingNewArgs = newArgs != null;
@@ -341,7 +374,8 @@ public class UDFImpl extends MemberSupport implements UDFPlus, Externalizable {
 			BodyContent bc = null;
 			Boolean wasSilent = null;
 			boolean bufferOutput = getBufferOutput(pci);
-			if (!getOutput()) {
+			boolean output = getOutput();
+			if (!output) {
 				if (bufferOutput) bc = pci.pushBody();
 				else wasSilent = pc.setSilent() ? Boolean.TRUE : Boolean.FALSE;
 			}
@@ -355,8 +389,7 @@ public class UDFImpl extends MemberSupport implements UDFPlus, Externalizable {
 
 			try {
 				if (!existingNewArgs) {
-					if (args != null) defineArguments(pci, getFunctionArguments(), args, newArgs);
-					else defineArguments(pci, getFunctionArguments(), values, newArgs);
+					populateArguments(pci, getFunctionArguments(), args, values, newArgs);
 				}
 				returnValue = implementation(pci);
 				if (ownerComponent != null) pci.setActiveUDF(parent);
@@ -364,14 +397,14 @@ public class UDFImpl extends MemberSupport implements UDFPlus, Externalizable {
 			catch (Throwable t) {
 				ExceptionUtil.rethrowIfNecessary(t);
 				if (ownerComponent != null) pci.setActiveUDF(parent);
-				if (!getOutput()) {
+				if (!output) {
 					if (bufferOutput) BodyContentUtil.flushAndPop(pc, bc);
 					else if (!wasSilent) pc.unsetSilent();
 				}
 				// BodyContentUtil.flushAndPop(pc,bc);
 				throw Caster.toPageException(t);
 			}
-			if (!getOutput()) {
+			if (!output) {
 				if (bufferOutput) BodyContentUtil.clearAndPop(pc, bc);
 				else if (!wasSilent) pc.unsetSilent();
 			}
