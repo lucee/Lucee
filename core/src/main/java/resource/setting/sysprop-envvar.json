@@ -972,6 +972,14 @@
 		"default": null
 	},
 	{
+		"sysprop": "lucee.vdirs.sharedkey",
+		"envvar": "LUCEE_VDIRS_SHAREDKEY",
+		"desc": "Shared secret key for validating x-vdirs header from mod_cfml. When set, enables automatic virtual directory mapping from Apache/IIS aliases. The x-vdirs-sharedkey header must match this value for virtual directories to be processed",
+		"category": "security",
+		"type": "string",
+		"default": null
+	},
+	{
 		"sysprop": "lucee.version",
 		"envvar": "LUCEE_VERSION",
 		"desc": "Defines the version of Lucee to load. For example, setting it to 6.1.0.0 will load that version. If not available locally, Lucee will automatically download it from Maven",
