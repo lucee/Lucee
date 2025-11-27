@@ -418,6 +418,14 @@ public abstract class StorageScopeImpl extends StructSupport implements StorageS
 		return hasChanges;
 	}
 
+	public void setDirty() {
+		hasChanges = true;
+	}
+
+	public void setClean() {
+		hasChanges = false;
+	}
+
 	@Override
 	public boolean containsValue(Object value) {
 		return sct.containsValue(value);

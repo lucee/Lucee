@@ -537,6 +537,14 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 		return false;
 	}
 
+	public void setDirty() {
+		hasChanges = true;
+	}
+
+	public void setClean() {
+		hasChanges = false;
+	}
+
 	@Override
 	public boolean containsValue(Object value) {
 		Iterator<?> it = values().iterator();
