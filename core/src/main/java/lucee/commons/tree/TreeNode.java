@@ -1,9 +1,9 @@
 package lucee.commons.tree;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 public final class TreeNode<T> {
 	private T value;
@@ -17,7 +17,7 @@ public final class TreeNode<T> {
 
 	public TreeNode(T value, boolean allowIncest) {
 		this.value = value;
-		if (!allowIncest) all = new HashSet<T>();
+		if (!allowIncest) all = ConcurrentHashMap.newKeySet();
 	}
 
 	private TreeNode(T value, TreeNode<T> parent) {
