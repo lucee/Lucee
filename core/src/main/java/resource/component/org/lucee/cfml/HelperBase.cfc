@@ -27,13 +27,17 @@
 	* Add a new param
 	*/
 	public HelperBase function addParam() {
-		  // Only validate the param being added (arguments itself)
+		// Only validate the param being added (arguments itself)
 		if (arguments.list ?: false) {
-			if (structKeyExists(arguments, "value") && trim(arguments.value) == '') {
-				var errorMsg = structKeyExists(arguments, "name") 
-					? "param [#arguments.name#] may not be empty" 
-					: "param with list [#arguments.list#] Value may not be empty";
-				throw(errorMsg, "expression");
+			if (structKeyExists(arguments, "value")) {
+				var val = arguments.value;
+				var isEmpty = isSimpleValue(val) ? trim(val) == '' : (isArray(val) && arrayLen(val) == 0);
+				if (isEmpty) {
+					var errorMsg = structKeyExists(arguments, "name")
+						? "param [#arguments.name#] may not be empty"
+						: "param with list [#arguments.list#] Value may not be empty";
+					throw(errorMsg, "expression");
+				}
 			}
 		}
 		ArrayAppend(variables.params, arguments);
