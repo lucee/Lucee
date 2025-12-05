@@ -19,6 +19,7 @@
 package lucee.runtime.engine;
 
 import lucee.runtime.config.Config;
+import lucee.runtime.config.ConfigPro;
 
 /**
  * class to handle thread local PageContext, do use pagecontext in classes that have no method
@@ -35,6 +36,12 @@ public final class ThreadLocalConfig {
 	 */
 	public static void register(Config config) {
 		cThreadLocal.set(config);
+
+		if (config == null) {
+			return;
+		}
+		Thread t = Thread.currentThread();
+		t.setContextClassLoader(((ConfigPro) config).getClassLoaderEnv());
 	}
 
 	/**
