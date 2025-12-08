@@ -1,7 +1,7 @@
 component extends="org.lucee.cfml.test.LuceeTestCase" labels="mysql" {
 
 	/**
-	 * LDEV-5961 - Connection pool issues after Lucee 6.2 upgrade
+	 * LDEV-5962 - Connection pool issues after Lucee 6.2 upgrade
 	 *
 	 * Two issues identified:
 	 * 1. maxTotal defaults to 60 when using connectionString style datasource definition,
@@ -20,7 +20,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mysql" {
 
 	function run( testResults, testBox ) {
 
-		describe( "LDEV-5961 - Connection Pool Configuration", function() {
+		describe( "LDEV-5962 - Connection Pool Configuration", function() {
 
 			describe( "connectionLimit should be respected", function() {
 
@@ -38,19 +38,19 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mysql" {
 						// maxTotal NOT set - defaults to 60 (BUG), should respect connectionLimit
 					};
 
-					application action="update" datasources={ "LDEV5961_connstr": dsConfig };
+					application action="update" datasources={ "LDEV5962_connstr": dsConfig };
 
 					// Get initial connection to create the pool
-					query datasource="LDEV5961_connstr" name="local.q" { echo( "SELECT 1" ); }
+					query datasource="LDEV5962_connstr" name="local.q" { echo( "SELECT 1" ); }
 
 					// Spawn 3 threads that hold connections for 1 second
 					var threadCount = 3;
 					var holdTime = 1;
 
 					for ( var i = 1; i <= threadCount; i++ ) {
-						thread name="LDEV5961_cs_#i#" holdSec=holdTime {
+						thread name="LDEV5962_cs_#i#" holdSec=holdTime {
 							try {
-								query datasource="LDEV5961_connstr" name="local.q" {
+								query datasource="LDEV5962_connstr" name="local.q" {
 									echo( "SELECT SLEEP(#holdSec#)" );
 								}
 								thread.success = true;
@@ -71,7 +71,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mysql" {
 
 					// Wait for threads to complete
 					for ( var i = 1; i <= threadCount; i++ ) {
-						thread action="join" name="LDEV5961_cs_#i#" timeout="#( holdTime + 3 ) * 1000#";
+						thread action="join" name="LDEV5962_cs_#i#" timeout="#( holdTime + 3 ) * 1000#";
 					}
 
 					// With connectionLimit=2 and 3 threads:
@@ -95,19 +95,19 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mysql" {
 						// maxTotal NOT set - correctly defaults to 0, so connectionLimit is used
 					};
 
-					application action="update" datasources={ "LDEV5961_typehost": dsConfig };
+					application action="update" datasources={ "LDEV5962_typehost": dsConfig };
 
 					// Get initial connection to create the pool
-					query datasource="LDEV5961_typehost" name="local.q" { echo( "SELECT 1" ); }
+					query datasource="LDEV5962_typehost" name="local.q" { echo( "SELECT 1" ); }
 
 					// Spawn 3 threads
 					var threadCount = 3;
 					var holdTime = 1;
 
 					for ( var i = 1; i <= threadCount; i++ ) {
-						thread name="LDEV5961_th_#i#" holdSec=holdTime {
+						thread name="LDEV5962_th_#i#" holdSec=holdTime {
 							try {
-								query datasource="LDEV5961_typehost" name="local.q" {
+								query datasource="LDEV5962_typehost" name="local.q" {
 									echo( "SELECT SLEEP(#holdSec#)" );
 								}
 								thread.success = true;
@@ -124,7 +124,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mysql" {
 					var metrics = getSystemMetrics();
 
 					for ( var i = 1; i <= threadCount; i++ ) {
-						thread action="join" name="LDEV5961_th_#i#" timeout="#( holdTime + 3 ) * 1000#";
+						thread action="join" name="LDEV5962_th_#i#" timeout="#( holdTime + 3 ) * 1000#";
 					}
 
 					// This should work correctly - connectionLimit=2 is respected
@@ -144,13 +144,13 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mysql" {
 						maxTotal: 2 // Explicit maxTotal should take precedence
 					};
 
-					application action="update" datasources={ "LDEV5961_maxtotal": dsConfig };
+					application action="update" datasources={ "LDEV5962_maxtotal": dsConfig };
 
 					// Spawn 3 threads
 					for ( var i = 1; i <= 3; i++ ) {
-						thread name="LDEV5961_mt_#i#" idx=i {
+						thread name="LDEV5962_mt_#i#" idx=i {
 							try {
-								query datasource="LDEV5961_maxtotal" name="local.q" {
+								query datasource="LDEV5962_maxtotal" name="local.q" {
 									echo( "SELECT SLEEP(1)" );
 								}
 								thread.success = true;
@@ -168,7 +168,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mysql" {
 
 					// Wait for threads
 					for ( var i = 1; i <= 3; i++ ) {
-						thread action="join" name="LDEV5961_mt_#i#" timeout="5000";
+						thread action="join" name="LDEV5962_mt_#i#" timeout="5000";
 					}
 
 					// With explicit maxTotal=2, should be limited to 2 active
@@ -194,12 +194,12 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mysql" {
 						connectionTimeout: 1 // 1 minute - should be used for maxWaitMillis but isn't
 					};
 
-					application action="update" datasources={ "LDEV5961_timeout": dsConfig };
+					application action="update" datasources={ "LDEV5962_timeout": dsConfig };
 
 					// First thread grabs the only connection and holds it for 5 seconds
-					thread name="LDEV5961_holder2" {
+					thread name="LDEV5962_holder2" {
 						try {
-							query datasource="LDEV5961_timeout" name="local.q" {
+							query datasource="LDEV5962_timeout" name="local.q" {
 								echo( "SELECT SLEEP(5)" ); // Hold longer than test wait time
 							}
 						}
@@ -212,10 +212,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mysql" {
 
 					// Second thread tries to get a connection
 					var startTime = getTickCount();
-					thread name="LDEV5961_waiter2" {
+					thread name="LDEV5962_waiter2" {
 						try {
 							thread.beginTime = getTickCount();
-							query datasource="LDEV5961_timeout" name="local.q" {
+							query datasource="LDEV5962_timeout" name="local.q" {
 								echo( "SELECT 1" );
 							}
 							thread.elapsed = getTickCount() - thread.beginTime;
@@ -231,13 +231,13 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mysql" {
 					// Wait max 2 seconds for waiter
 					// With proper maxWaitMillis, waiter should timeout quickly with error
 					// With bug (infinite wait), waiter will still be RUNNING
-					thread action="join" name="LDEV5961_waiter2" timeout="2000";
+					thread action="join" name="LDEV5962_waiter2" timeout="2000";
 
-					var waiterStatus = cfthread.LDEV5961_waiter2.status ?: "UNKNOWN";
+					var waiterStatus = cfthread.LDEV5962_waiter2.status ?: "UNKNOWN";
 					var elapsed = getTickCount() - startTime;
 
 					// Clean up holder thread (don't wait long, just let it go)
-					thread action="join" name="LDEV5961_holder2" timeout="100";
+					thread action="join" name="LDEV5962_holder2" timeout="100";
 
 					// BUG: With infinite maxWaitMillis (-1), waiter blocks forever waiting for pool
 					// With proper maxWaitMillis set, waiter should timeout quickly with an error
@@ -246,8 +246,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mysql" {
 					// blocked on borrowObject() with infinite wait time
 					systemOutput( "Test 4 metrics: " & serializeJSON( var=getSystemMetrics(), compact=false ), true );
 					systemOutput( "Test 4 waiterStatus: #waiterStatus#, elapsed: #elapsed#ms", true );
-					if ( structKeyExists( cfthread.LDEV5961_waiter2, "error" ) ) {
-						systemOutput( "Test 4 waiter error: #cfthread.LDEV5961_waiter2.error#", true );
+					if ( structKeyExists( cfthread.LDEV5962_waiter2, "error" ) ) {
+						systemOutput( "Test 4 waiter error: #cfthread.LDEV5962_waiter2.error#", true );
 					}
 					expect( waiterStatus ).toBe( "TERMINATED",
 						"Waiter thread status is [#waiterStatus#]. Expected TERMINATED (with pool timeout error). " &

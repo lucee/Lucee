@@ -2464,8 +2464,12 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 						if (mt <= 0) mt = Integer.MAX_VALUE;
 					}
 
+					// Use idleTimeout (in minutes) for maxWaitMillis, default to 30 seconds if not set
+					// This prevents threads from blocking forever when pool is exhausted
+					long maxWaitMillis = dsp.getIdleTimeout() > 0 ? dsp.getIdleTimeout() * 60000L : 30000L;
+
 					pool = new DatasourceConnPool(this, ds, user, pass, "datasource",
-							DatasourceConnPool.createPoolConfig(null, null, null, dsp.getMinIdle(), dsp.getMaxIdle(), mt, 0, 0, 0, 0, 0, null));
+							DatasourceConnPool.createPoolConfig(null, null, null, dsp.getMinIdle(), dsp.getMaxIdle(), mt, maxWaitMillis, 0, 0, 0, 0, null));
 					pools.put(id, pool);
 					cleanConnectionPools(id);
 				}
