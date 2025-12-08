@@ -604,7 +604,7 @@ component {
 						class: 'com.mysql.cj.jdbc.Driver'
 						, bundleName: 'com.mysql.cj'
 						, bundleVersion: server.getDefaultBundleVersion( 'com.mysql.cj', '9.3.0' )
-						, connectionString: 'jdbc:mysql://#mySQL.server#:#mySQL.port#/#mySQL.database#?useUnicode=true&characterEncoding=UTF-8&useLegacyDatetimeCode=true&useSSL=false' & arguments.connectionString
+						, connectionString: 'jdbc:mysql://#mySQL.server#:#mySQL.port#/#mySQL.database#?useUnicode=true&characterEncoding=UTF-8&useLegacyDatetimeCode=true&useSSL=false&allowPublicKeyRetrieval=true' & arguments.connectionString
 						, username: mySQL.username
 						, password: mySQL.password
 					}.append( arguments.options );
