@@ -3386,13 +3386,20 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 	<function>
 		<name>dbPoolClear</name>
 		<class>lucee.runtime.functions.system.DBPoolClear</class>
-		<description>clears all existing datasource connection</description>
+		<description>Clears idle database connections from the connection pool. By default (force=true) clears all idle connections immediately. With force=false, only evicts connections that have exceeded their idleTimeout. The controller thread runs eviction automatically every minute.</description>
 		<argument>
 			<name>datasource</name>
 			<alias>datasourceName,name,ds</alias>
 			<type>string</type>
 			<required>no</required>
 			<description>specific datasource to clear, if not set all datasources get removed.</description>
+		</argument>
+		<argument>
+			<name>force</name>
+			<type>boolean</type>
+			<required>no</required>
+			<default>true</default>
+			<description>If true (default), clears all idle connections immediately. If false, only evicts connections that have exceeded their idleTimeout.</description>
 		</argument>
 		<return>
 			<type>boolean</type>

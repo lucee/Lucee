@@ -15,11 +15,9 @@
  * 
  **/
 /**
- * Implements the CFML Function gettemplatepath
+ * Clears idle datasource connections from the pool.
  */
 package lucee.runtime.functions.system;
-
-import java.util.Iterator;
 
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
@@ -29,20 +27,30 @@ import lucee.runtime.ext.function.Function;
 
 public final class DBPoolClear implements Function {
 
-	public static boolean call(PageContext pc) {
-		return call(pc, null);
+	public static boolean call( PageContext pc ) {
+		return call( pc, null, true );
 	}
 
-	public static boolean call(PageContext pc, String dataSourceName) {
-		Iterator<DatasourceConnPool> it = ((ConfigPro) pc.getConfig()).getDatasourceConnectionPools().iterator();
-		while (it.hasNext()) {
-			DatasourceConnPool dcp = it.next();
-			if (StringUtil.isEmpty(dataSourceName) || dataSourceName.equalsIgnoreCase(dcp.getFactory().getDatasource().getName())) clear(dcp);
+	public static boolean call( PageContext pc, String dataSourceName ) {
+		return call( pc, dataSourceName, true );
+	}
+
+	public static boolean call( PageContext pc, String dataSourceName, boolean force ) {
+		for ( DatasourceConnPool pool : ((ConfigPro) pc.getConfig()).getDatasourceConnectionPools() ) {
+			if ( StringUtil.isEmpty( dataSourceName ) || dataSourceName.equalsIgnoreCase( pool.getFactory().getDatasource().getName() ) ) {
+				if ( force ) {
+					pool.clear();
+				}
+				else {
+					try {
+						pool.evict();
+					}
+					catch ( Exception e ) {
+						// evict() can throw Exception, but we don't want to fail the whole operation
+					}
+				}
+			}
 		}
 		return true;
-	}
-
-	private static void clear(DatasourceConnPool dcp) {
-		dcp.clear();
 	}
 }
