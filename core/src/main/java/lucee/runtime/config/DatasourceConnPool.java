@@ -140,7 +140,6 @@ public class DatasourceConnPool extends GenericObjectPool<DatasourceConnection> 
 		config.setTestOnBorrow(true);
 		config.setTestOnReturn(false);
 		config.setTestWhileIdle(true);
-		config.setTestWhileIdle(true);
 
 		return config;
 	}
