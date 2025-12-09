@@ -37,22 +37,32 @@ public class IKHandlerDatasource implements IKHandler {
 
 	@Override
 	public IKStorageValue loadData(PageContext pc, String appName, String name, String strType, int type, Log log) throws PageException {
-		Query query;
 		ConfigPro config = (ConfigPro) ThreadLocalPageContext.getConfig(pc);
 		DatasourceConnection dc = null;
 		try {
 			DatasourceConnPool pool = config.getDatasourceConnectionPool(pc.getDataSource(name), null, null);
 			dc = pool.borrowObject();
+			return loadData(pc, appName, name, strType, type, log, dc, true);
+		}
+		finally {
+			if (dc != null) ((DatasourceConnectionPro) dc).release();
+		}
+	}
+
+	/**
+	 * Load data using an existing connection (to avoid nested connection borrows that can deadlock)
+	 */
+	private IKStorageValue loadData(PageContext pc, String appName, String name, String strType, int type, Log log, DatasourceConnection dc, boolean checkStorage) throws PageException {
+		Query query;
+		ConfigPro config = (ConfigPro) ThreadLocalPageContext.getConfig(pc);
+		try {
 			SQLExecutor executor = SQLExecutionFactory.getInstance(dc);
 
-			if (!dc.getDatasource().isStorage()) throw new ApplicationException("storage usage for this datasource is disabled, you can enable this in the Lucee administrator.");
+			if (checkStorage && !dc.getDatasource().isStorage()) throw new ApplicationException("storage usage for this datasource is disabled, you can enable this in the Lucee administrator.");
 			query = executor.select(config, pc.getCFID(), pc.getApplicationContext().getName(), dc, type, log, true);
 		}
 		catch (SQLException se) {
 			throw Caster.toPageException(se);
-		}
-		finally {
-			if (dc != null) ((DatasourceConnectionPro) dc).release();
 		}
 
 		if (query != null) {
@@ -130,7 +140,8 @@ public class IKHandlerDatasource implements IKHandler {
 			DatasourceConnPool pool = ci.getDatasourceConnectionPool(ds, null, null);
 			dc = pool.borrowObject();
 			SQLExecutor executor = SQLExecutionFactory.getInstance(dc);
-			IKStorageValue existingVal = loadData(pc, appName, name, storageScope.getTypeAsString(), storageScope.getType(), log);
+			// LDEV-5964: pass existing connection to avoid nested borrow deadlock
+			IKStorageValue existingVal = loadData(pc, appName, name, storageScope.getTypeAsString(), storageScope.getType(), log, dc, false);
 
 			if (storageScope.hasContent()) {
 				IKStorageValue sv = new IKStorageValue(
