@@ -29,11 +29,9 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import lucee.commons.db.DBUtil;
 import lucee.commons.digest.HashUtil;
-import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.lang.Pair;
 import lucee.runtime.PageContext;
-import lucee.runtime.PageContextImpl;
 import lucee.runtime.config.ConfigPro;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.DatabaseException;
@@ -185,13 +183,10 @@ public final class DatasourceManagerImpl implements DataSourceManager {
 
 	private void releaseConnection(PageContext pc, DatasourceConnection dc, boolean ignoreRequestExclusive) {
 		if (!((DatasourceConnectionPro) dc).isManaged() && autoCommit && (ignoreRequestExclusive || !((DataSourcePro) dc.getDatasource()).isRequestExclusive())) {
-
-			if (pc != null && ((PageContextImpl) pc).getTimeoutStackTrace() != null) {
-				IOUtil.closeEL(dc);
-			}
-			else {
-				((DatasourceConnectionPro) dc).release();
-			}
+			// Always return connection to pool - don't close directly on timeout
+			// Closing directly (IOUtil.closeEL) breaks pool accounting - pool thinks
+			// connection is still borrowed when it's actually closed, causing phantom connections
+			((DatasourceConnectionPro) dc).release();
 		}
 	}
 
