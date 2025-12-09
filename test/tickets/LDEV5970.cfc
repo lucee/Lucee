@@ -1,35 +1,64 @@
 component extends="org.lucee.cfml.test.LuceeTestCase" labels="mssql" {
 
+	variables.tableName = "ldev5970_test";
+
 	function isMsSqlNotSupported() {
 		return structCount( server.getDatasource( "mssql" ) ) == 0;
 	}
 
+	function afterAll() {
+		if ( isMsSqlNotSupported() ) return;
+		var mssql = server.getDatasource( "mssql" );
+		queryExecute( "IF OBJECT_ID('#variables.tableName#', 'U') IS NOT NULL DROP TABLE #variables.tableName#", {}, { datasource: mssql } );
+	}
+
 	function run( testResults, testBox ) {
 
-		describe( "LDEV-5970: MSSQL modern mode with parameterized queries", function() {
+		describe( "LDEV-5970: MSSQL modern mode", function() {
 
-			it( title="parameterized query with result attribute - modern=false", skip=isMsSqlNotSupported(), body=function() {
-				runParameterizedQueryWithResult( modern=false );
+			describe( "SELECT parameterized with result attribute", function() {
+				it( title="modern=false", skip=isMsSqlNotSupported(), body=function() {
+					runParameterizedSelectWithResult( modern=false );
+				});
+				it( title="modern=true", skip=isMsSqlNotSupported(), body=function() {
+					runParameterizedSelectWithResult( modern=true );
+				});
 			});
 
-			it( title="parameterized query with result attribute - modern=true", skip=isMsSqlNotSupported(), body=function() {
-				runParameterizedQueryWithResult( modern=true );
+			describe( "SELECT simple with result attribute", function() {
+				it( title="modern=false", skip=isMsSqlNotSupported(), body=function() {
+					runSimpleSelectWithResult( modern=false );
+				});
+				it( title="modern=true", skip=isMsSqlNotSupported(), body=function() {
+					runSimpleSelectWithResult( modern=true );
+				});
 			});
 
-			it( title="simple query with result attribute - modern=false", skip=isMsSqlNotSupported(), body=function() {
-				runSimpleQueryWithResult( modern=false );
+			describe( "SELECT parameterized without result attribute", function() {
+				it( title="modern=false", skip=isMsSqlNotSupported(), body=function() {
+					runParameterizedSelectNoResult( modern=false );
+				});
+				it( title="modern=true", skip=isMsSqlNotSupported(), body=function() {
+					runParameterizedSelectNoResult( modern=true );
+				});
 			});
 
-			it( title="simple query with result attribute - modern=true", skip=isMsSqlNotSupported(), body=function() {
-				runSimpleQueryWithResult( modern=true );
+			describe( "INSERT with identity key", function() {
+				it( title="modern=false", skip=isMsSqlNotSupported(), body=function() {
+					runInsertWithGeneratedKey( modern=false );
+				});
+				it( title="modern=true", skip=isMsSqlNotSupported(), body=function() {
+					runInsertWithGeneratedKey( modern=true );
+				});
 			});
 
-			it( title="parameterized query without result - modern=false", skip=isMsSqlNotSupported(), body=function() {
-				runParameterizedQueryNoResult( modern=false );
-			});
-
-			it( title="parameterized query without result - modern=true", skip=isMsSqlNotSupported(), body=function() {
-				runParameterizedQueryNoResult( modern=true );
+			describe( "INSERT parameterized with identity key", function() {
+				it( title="modern=false", skip=isMsSqlNotSupported(), body=function() {
+					runParameterizedInsertWithGeneratedKey( modern=false );
+				});
+				it( title="modern=true", skip=isMsSqlNotSupported(), body=function() {
+					runParameterizedInsertWithGeneratedKey( modern=true );
+				});
 			});
 
 		});
@@ -41,7 +70,13 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mssql" {
 		field.setBoolean( nullValue(), arguments.value );
 	}
 
-	private function runParameterizedQueryWithResult( required boolean modern ) {
+	private function createTestTable() {
+		var mssql = server.getDatasource( "mssql" );
+		queryExecute( "IF OBJECT_ID('#variables.tableName#', 'U') IS NOT NULL DROP TABLE #variables.tableName#", {}, { datasource: mssql } );
+		queryExecute( "CREATE TABLE #variables.tableName# ( id INT IDENTITY(1,1) PRIMARY KEY, name VARCHAR(100) )", {}, { datasource: mssql } );
+	}
+
+	private function runParameterizedSelectWithResult( required boolean modern ) {
 		setMSSQLModern( arguments.modern );
 
 		var mssql = server.getDatasource( "mssql" );
@@ -57,7 +92,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mssql" {
 		expect( local.queryResult ).toHaveKey( "recordcount" );
 	}
 
-	private function runSimpleQueryWithResult( required boolean modern ) {
+	private function runSimpleSelectWithResult( required boolean modern ) {
 		setMSSQLModern( arguments.modern );
 
 		var mssql = server.getDatasource( "mssql" );
@@ -72,7 +107,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mssql" {
 		expect( local.queryResult ).toBeStruct();
 	}
 
-	private function runParameterizedQueryNoResult( required boolean modern ) {
+	private function runParameterizedSelectNoResult( required boolean modern ) {
 		setMSSQLModern( arguments.modern );
 
 		var mssql = server.getDatasource( "mssql" );
@@ -84,6 +119,40 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="mssql" {
 
 		expect( result ).toBeQuery();
 		expect( result.recordCount ).toBeGTE( 0 );
+	}
+
+	private function runInsertWithGeneratedKey( required boolean modern ) {
+		setMSSQLModern( arguments.modern );
+		createTestTable();
+
+		var mssql = server.getDatasource( "mssql" );
+		var result = queryExecute(
+			"INSERT INTO #variables.tableName# (name) VALUES ('test')",
+			{},
+			{ datasource: mssql, result: "local.queryResult" }
+		);
+
+		expect( local.queryResult ).toBeStruct();
+		expect( local.queryResult ).toHaveKey( "generatedKey" );
+		expect( local.queryResult.generatedKey ).toBeNumeric();
+		expect( local.queryResult.generatedKey ).toBeGTE( 1 );
+	}
+
+	private function runParameterizedInsertWithGeneratedKey( required boolean modern ) {
+		setMSSQLModern( arguments.modern );
+		createTestTable();
+
+		var mssql = server.getDatasource( "mssql" );
+		var result = queryExecute(
+			"INSERT INTO #variables.tableName# (name) VALUES (:name)",
+			{ name: { value: "test param", cfsqltype: "CF_SQL_VARCHAR" } },
+			{ datasource: mssql, result: "local.queryResult" }
+		);
+
+		expect( local.queryResult ).toBeStruct();
+		expect( local.queryResult ).toHaveKey( "generatedKey" );
+		expect( local.queryResult.generatedKey ).toBeNumeric();
+		expect( local.queryResult.generatedKey ).toBeGTE( 1 );
 	}
 
 }
