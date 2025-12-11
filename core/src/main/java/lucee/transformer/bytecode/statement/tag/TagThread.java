@@ -54,13 +54,16 @@ public final class TagThread extends TagBaseNoFinal implements ATagThread {
 		this.outputName = true;
 	}
 
-	public void init() throws TransformerException {
+	public void init() {
 		String action = ASMUtil.getAttributeString(this, "action", "run");
 		// no body
 		if (!"run".equalsIgnoreCase(action)) return;
 
-		PageImpl page = (PageImpl) ASMUtil.getAncestorPage(null, this);
-		index = page.addThread(this);
+		// In AST mode, there may be no Page ancestor (e.g., thread inside arrow function)
+		PageImpl page = (PageImpl) ASMUtil.getAncestorPage(this, null);
+		if (page != null) {
+			index = page.addThread(this);
+		}
 
 	}
 
