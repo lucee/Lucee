@@ -68,6 +68,7 @@ import lucee.transformer.bytecode.statement.For;
 import lucee.transformer.bytecode.statement.ForEach;
 import lucee.transformer.bytecode.statement.Return;
 import lucee.transformer.bytecode.statement.Switch;
+import lucee.transformer.bytecode.statement.TagIsland;
 import lucee.transformer.bytecode.statement.TryCatchFinally;
 import lucee.transformer.bytecode.statement.While;
 import lucee.transformer.bytecode.statement.tag.TagComponent;
@@ -2030,11 +2031,21 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 	private final boolean islandStatement(Data data, Body parent) throws TemplateException {
 
 		if (!data.srcCode.forwardIfCurrent(TAG_ISLAND_INDICATOR)) return false;
-		// now we have to jump into the tag parser
+
+		Position start = data.srcCode.getPosition();
+
+		// Create a TagIsland wrapper to hold the tag content
+		TagIsland island = new TagIsland(data.factory, start, null);
+
+		// now we have to jump into the tag parser, parsing into the TagIsland body
 		CFMLTransformer tag = new CFMLTransformer(true);
-		tag.transform(data, parent);
+		tag.transform(data, island);
 
 		if (!data.srcCode.forwardIfCurrent(TAG_ISLAND_INDICATOR)) throw new TemplateException(data.srcCode, "missing closing tag indicator [" + TAG_ISLAND_INDICATOR + "]");
+
+		island.setEnd(data.srcCode.getPosition());
+		parent.addStatement(island);
+
 		comments(data);
 
 		return true;
