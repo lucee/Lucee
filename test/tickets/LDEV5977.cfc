@@ -8,7 +8,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ast" {
 
 			it( "ternary alternate should be different from consequent", function() {
 				var code = fileRead( variables.testDir & "ternary.cfm" );
-				var ast = astFromString( code, "cfml" );
+				var ast = astFromString( code );
 
 				// Find the ConditionalExpression
 				var condExpr = findNodeByType( ast, "ConditionalExpression" );

@@ -8,7 +8,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ast" {
 
 			it( "queryExecute with 1 argument should have 1 argument in AST", function() {
 				var code = fileRead( variables.testDir & "queryExecute.cfm" );
-				var ast = astFromString( code, "cfml" );
+				var ast = astFromString( code );
 
 				// Find the CallExpression for queryExecute
 				var callExpr = findCallByName( ast, "QUERYEXECUTE" );
