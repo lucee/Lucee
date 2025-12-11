@@ -71,7 +71,9 @@ public class BodyBase extends StatementBaseNoFinal implements Body {
 
 		if (statement instanceof PrintOut) {
 			Expression expr = ((PrintOut) statement).getExpr();
-			if (expr instanceof LitString && concatPrintouts(((LitString) expr).getString())) return;
+			// LDEV-5983: Only concatenate if the statement doesn't already belong to another body.
+			// Otherwise concatenating modifies the original PrintOut which may still be used elsewhere.
+			if (expr instanceof LitString && statement.getParent() == null && concatPrintouts(((LitString) expr).getString())) return;
 		}
 		statement.setParent(this);
 		this.statements.add(statement);
