@@ -50,6 +50,7 @@ public class LitStringImpl extends ExpressionBase implements LitString, ExprStri
 	public static final int TYPE_LOWER = 2;
 
 	private String str;
+	private String rawSource; // Original source representation for AST dump
 	private boolean fromBracket;
 
 	/*
@@ -195,13 +196,32 @@ public class LitStringImpl extends ExpressionBase implements LitString, ExprStri
 		return fromBracket;
 	}
 
+	/**
+	 * Set the original source representation for AST dump.
+	 * This preserves the exact source text including quotes.
+	 */
+	public void setRawSource(String rawSource) {
+		this.rawSource = rawSource;
+	}
+
+	/**
+	 * Get the original source representation.
+	 */
+	public String getRawSource() {
+		return rawSource;
+	}
+
 	@Override
 	public void dump(Struct sct) {
 		super.dump(sct);
 		sct.setEL(KeyConstants._type, "StringLiteral");
 		sct.setEL(KeyConstants._value, str);
-		// Raw must be valid CFML source: escape # to ## and " to ""
-		if (str != null) {
+		// Use rawSource if available (preserves original source representation)
+		// Otherwise compute from value: escape # to ## and " to ""
+		if (rawSource != null) {
+			sct.setEL(KeyConstants._raw, rawSource);
+		}
+		else if (str != null) {
 			String escaped = str.replace("#", "##").replace("\"", "\"\"");
 			sct.setEL(KeyConstants._raw, "\"" + escaped + "\"");
 		}

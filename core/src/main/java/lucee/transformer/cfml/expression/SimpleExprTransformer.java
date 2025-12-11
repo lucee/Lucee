@@ -24,6 +24,7 @@ import lucee.transformer.Position;
 import lucee.transformer.cfml.Data;
 import lucee.transformer.cfml.ExprTransformer;
 import lucee.transformer.expression.Expression;
+import lucee.transformer.bytecode.literal.LitStringImpl;
 import lucee.transformer.expression.literal.LitString;
 import lucee.transformer.util.SourceCode;
 
@@ -56,7 +57,7 @@ public final class SimpleExprTransformer implements ExprTransformer {
 
 	/**
 	 * Liest den String ein
-	 * 
+	 *
 	 * @return Element
 	 * @throws TemplateException
 	 */
@@ -65,6 +66,8 @@ public final class SimpleExprTransformer implements ExprTransformer {
 		char quoter = cfml.getCurrentLower();
 		if (quoter != '"' && quoter != '\'') return null;
 		StringBuilder str = new StringBuilder();
+		StringBuilder rawSource = new StringBuilder();
+		rawSource.append(quoter); // Start with opening quote
 		boolean insideSpecial = false;
 
 		Position line = cfml.getPosition();
@@ -74,7 +77,7 @@ public final class SimpleExprTransformer implements ExprTransformer {
 			if (cfml.isCurrent(specialChar)) {
 				insideSpecial = !insideSpecial;
 				str.append(specialChar);
-
+				rawSource.append(specialChar);
 			}
 			// check quoter
 			else if (!insideSpecial && cfml.isCurrent(quoter)) {
@@ -82,6 +85,8 @@ public final class SimpleExprTransformer implements ExprTransformer {
 				if (cfml.isNext(quoter)) {
 					cfml.next();
 					str.append(quoter);
+					rawSource.append(quoter);
+					rawSource.append(quoter); // escaped quote in raw
 				}
 				// finish
 				else {
@@ -91,12 +96,18 @@ public final class SimpleExprTransformer implements ExprTransformer {
 			// all other character
 			else {
 				str.append(cfml.getCurrent());
+				rawSource.append(cfml.getCurrent());
 			}
 		}
 
 		if (!cfml.forwardIfCurrent(quoter)) throw new TemplateException(cfml, "Invalid Syntax Closing [" + quoter + "] not found");
 
+		rawSource.append(quoter); // End with closing quote
 		LitString rtn = f.createLitString(str.toString(), line, cfml.getPosition());
+		// Set raw source to preserve original representation for AST dump
+		if (rtn instanceof LitStringImpl) {
+			((LitStringImpl) rtn).setRawSource(rawSource.toString());
+		}
 		cfml.removeSpace();
 		return rtn;
 	}
