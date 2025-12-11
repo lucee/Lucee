@@ -8,7 +8,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ast" {
 
 			it( "simple method call should include method name in AST", function() {
 				var code = fileRead( variables.testDir & "simpleMethodCall.cfm" );
-				var ast = astFromString( code, "cfml" );
+				var ast = astFromString( code );
 
 				// Find the CallExpression
 				var callExpr = findNodeByType( ast, "CallExpression" );
@@ -41,7 +41,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ast" {
 
 			it( "chained method calls should preserve all method names", function() {
 				var code = fileRead( variables.testDir & "chainedCalls.cfm" );
-				var ast = astFromString( code, "cfml" );
+				var ast = astFromString( code );
 
 				// Find all method names in the AST
 				var methodNames = findAllMethodNames( ast );

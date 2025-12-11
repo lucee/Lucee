@@ -23,9 +23,12 @@ public final class AstFromString extends BIF {
 		Boolean script = Boolean.FALSE;
 		if (args.length == 2) {
 			String mode = Caster.toString(args[1], null);
-			//
-			if ("script".equalsIgnoreCase(mode)) script = Boolean.TRUE;
-
+			if ("script".equalsIgnoreCase(mode)) {
+				script = Boolean.TRUE;
+			}
+			else if (mode != null && !"tag".equalsIgnoreCase(mode)) {
+				throw new FunctionException(pc, "AstFromString", 2, "mode", "invalid mode [" + mode + "], valid values are [tag, script]");
+			}
 		}
 
 		return ((PageContextImpl) pc).transform(new SourceCode(null, content, false, 0), script);

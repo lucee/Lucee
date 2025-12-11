@@ -11,7 +11,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ast" {
 
 				// This currently throws:
 				// class lucee.transformer.util.SourceCode cannot be cast to class lucee.transformer.util.PageSourceCode
-				var ast = astFromString( code, "cfml" );
+				var ast = astFromString( code );
 
 				expect( ast ).toBeStruct();
 				expect( ast.type ).toBe( "Program" );
@@ -19,7 +19,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ast" {
 
 			it( "should include java function in AST body", function() {
 				var code = fileRead( variables.testDir & "javaFunction.cfm" );
-				var ast = astFromString( code, "cfml" );
+				var ast = astFromString( code );
 
 				// Find the function declaration
 				var funcDecl = findNodeByType( ast, "FunctionDeclaration" );

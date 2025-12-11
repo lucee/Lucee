@@ -8,7 +8,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ast" {
 
 			it( "should have a TagIsland node type wrapping the tag content", function() {
 				var code = fileRead( variables.testDir & "tagIsland.cfm" );
-				var ast = astFromString( code, "cfml" );
+				var ast = astFromString( code );
 
 				// Tag islands should have their own node type like TagIsland or similar
 				// Currently the backticks become StringLiteral with "\r\n" and the
@@ -21,7 +21,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ast" {
 
 			it( "tag island should not produce spurious StringLiteral from backticks", function() {
 				var code = fileRead( variables.testDir & "tagIsland.cfm" );
-				var ast = astFromString( code, "cfml" );
+				var ast = astFromString( code );
 
 				// Currently the backtick delimiters ``` become StringLiteral nodes
 				// with value "\r\n" - these shouldn't exist

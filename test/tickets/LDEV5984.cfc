@@ -8,7 +8,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ast" {
 
 			it( "raw should contain escaped hashes to allow round-tripping", function() {
 				var code = fileRead( variables.testDir & "escapedHashes.cfm" );
-				var ast = astFromString( code, "cfml" );
+				var ast = astFromString( code );
 
 				// Find the StringLiteral in the AST
 				var stringLiteral = findStringLiteral( ast );
@@ -32,7 +32,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ast" {
 				// Need ######## in test code to produce #### in parsed string
 				// ######## -> #### (in test) -> ## (in parsed value) = 2 chars per side
 				var code = "<cfscript>x = '########test########';</cfscript>";
-				var ast1 = astFromString( code, "cfml" );
+				var ast1 = astFromString( code );
 
 				var str1 = findStringLiteral( ast1 );
 				expect( isNull( str1 ) ).toBeFalse( "First parse should find StringLiteral" );
@@ -43,7 +43,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ast" {
 
 				// If we use raw to regenerate and reparse, value should be stable
 				var newCode = "<cfscript>x = " & str1.raw & ";</cfscript>";
-				var ast2 = astFromString( newCode, "cfml" );
+				var ast2 = astFromString( newCode );
 				var str2 = findStringLiteral( ast2 );
 
 				expect( isNull( str2 ) ).toBeFalse( "Second parse should find StringLiteral" );

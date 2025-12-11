@@ -10,7 +10,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ast" {
 				var code = fileRead( variables.testDir & "arrowWithThread.cfm" );
 
 				// This currently throws: missing parent Statement of Statement
-				var ast = astFromString( code, "cfml" );
+				var ast = astFromString( code );
 
 				expect( ast ).toBeStruct();
 				expect( ast.type ).toBe( "Program" );
@@ -18,7 +18,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ast" {
 
 			it( "should include thread tag in AST", function() {
 				var code = fileRead( variables.testDir & "arrowWithThread.cfm" );
-				var ast = astFromString( code, "cfml" );
+				var ast = astFromString( code );
 
 				// Find the thread tag - main thing is it parses without error
 				var threadTag = findTagByName( ast, "thread" );
