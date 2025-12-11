@@ -1361,6 +1361,9 @@ public abstract class AbstrCFMLExprTransformer {
 		while (data.srcCode.forwardIfCurrent(','));
 		comments(data);
 
+		// Snapshot original arguments before evaluators may modify them
+		bif.snapshotSourceArguments();
+
 		if (!data.srcCode.forwardIfCurrent(end)) throw new TemplateException(data.srcCode, "Invalid Syntax Closing [" + end + "] not found");
 		comments(data);
 
@@ -1860,7 +1863,9 @@ public abstract class AbstrCFMLExprTransformer {
 					FunctionLibFunctionArg arg;
 					while (it.hasNext()) {
 						arg = it.next();
-						if (arg.getDefaultValue() != null) bif.addArgument(new NamedArgumentImpl(data.factory.createLitString(arg.getName()),
+						// Skip hidden args (internal metadata like __filename, __mapping) in ast mode only
+						if (data.ast && arg.isHidden()) continue;
+						if (arg.getDefaultValue() != null)bif.addArgument(new NamedArgumentImpl(data.factory.createLitString(arg.getName()),
 								data.factory.createLitString(arg.getDefaultValue()), arg.getTypeAsString(), false));
 					}
 				}
@@ -1870,6 +1875,9 @@ public abstract class AbstrCFMLExprTransformer {
 			}
 
 			int count = getFunctionMemberAttrs(data, name, checkLibrary, fm, flf);
+
+			// Snapshot original arguments before evaluators may modify them
+			fm.snapshotSourceArguments();
 
 			if (checkLibrary) {
 				// pre
