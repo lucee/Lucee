@@ -1,0 +1,3 @@
+<cfscript>
+x = '####hello####';
+</cfscript>
