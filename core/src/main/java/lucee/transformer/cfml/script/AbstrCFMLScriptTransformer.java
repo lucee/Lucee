@@ -1258,12 +1258,23 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 			throw new TemplateException(data.srcCode, e.getMessage());
 		}
 
-		PageSourceCode psc = (PageSourceCode) data.srcCode;// TODO get PS in an other way
-		PageSource ps = psc.getPageSource();
+		// In AST mode (no PageSourceCode), we can't compile Java functions
+		// but we still need to parse past the function body
+		PageSource ps = null;
+		if (data.srcCode instanceof PageSourceCode) {
+			ps = ((PageSourceCode) data.srcCode).getPageSource();
+		}
 
 		SourceCode sc = data.srcCode;
 		Position start = sc.getPosition();
 		findTheEnd(data, start.line);
+
+		// In AST mode without PageSource, we can't compile - just return null
+		// The function body has already been parsed past by findTheEnd
+		if (ps == null) {
+			return null;
+		}
+
 		Position end = sc.getPosition();
 		String javaCode = sc.substring(start.pos, end.pos - start.pos);
 		try {
