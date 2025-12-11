@@ -47,6 +47,7 @@ import lucee.transformer.Factory;
 import lucee.transformer.Page;
 import lucee.transformer.Position;
 import lucee.transformer.bytecode.statement.StatementBase;
+import lucee.transformer.bytecode.statement.tag.TagBase;
 import lucee.transformer.bytecode.statement.tag.TagFunction;
 import lucee.transformer.cfml.Data;
 import lucee.transformer.cfml.ExprTransformer;
@@ -705,6 +706,11 @@ public final class CFMLTransformer {
 
 			// get Attributes
 			attributes(data, tagLibTag, tag);
+
+			// Snapshot attributes for AST before evaluators modify them
+			if (data.ast && tag instanceof TagBase) {
+				((TagBase) tag).snapshotSourceAttributes();
+			}
 
 			if (tagLibTag.hasAttributeEvaluator()) {
 				try {
