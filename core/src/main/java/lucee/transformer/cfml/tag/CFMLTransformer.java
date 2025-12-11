@@ -746,6 +746,11 @@ public final class CFMLTransformer {
 			// get Attributes
 			attributes(data, tagLibTag, tag);
 
+			// Snapshot attributes for AST before evaluators modify them
+			if (data.ast && tag instanceof TagBase) {
+				((TagBase) tag).snapshotSourceAttributes();
+			}
+
 			if (tagLibTag.hasAttributeEvaluator()) {
 				try {
 					tagLibTag = tagLibTag.getAttributeEvaluator().evaluate(tagLibTag, tag);
