@@ -1039,7 +1039,24 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 				if (meta == null) meta = new HashMap<String, Attribute>();
 				for (int i = 0; i < _attrs.length; i++) {
 					_attr = _attrs[i];
-					meta.put(_attr.getName(), _attr);
+					String attrName = _attr.getName();
+					// Extract known argument attributes
+					if ("hint".equalsIgnoreCase(attrName)) {
+						hint = data.factory.toExprString(_attr.getValue());
+					}
+					else if ("displayname".equalsIgnoreCase(attrName)) {
+						displayName = data.factory.toExprString(_attr.getValue());
+					}
+					else if ("default".equalsIgnoreCase(attrName) && defVal == null) {
+						defVal = _attr.getValue();
+					}
+					else if ("passbyreference".equalsIgnoreCase(attrName) || "passby".equalsIgnoreCase(attrName)) {
+						ExprBoolean eb = data.factory.toExprBoolean(_attr.getValue());
+						if (eb instanceof LitBoolean) passByRef = (LitBoolean) eb;
+					}
+					else {
+						meta.put(attrName, _attr);
+					}
 				}
 			}
 
