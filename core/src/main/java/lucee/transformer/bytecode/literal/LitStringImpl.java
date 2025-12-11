@@ -201,7 +201,12 @@ public class LitStringImpl extends ExpressionBase implements LitString, ExprStri
 		sct.setEL(KeyConstants._type, "StringLiteral");
 		sct.setEL(KeyConstants._value, str);
 		// Raw must be valid CFML source: escape # to ## and " to ""
-		String escaped = str.replace("#", "##").replace("\"", "\"\"");
-		sct.setEL(KeyConstants._raw, "\"" + escaped + "\"");
+		if (str != null) {
+			String escaped = str.replace("#", "##").replace("\"", "\"\"");
+			sct.setEL(KeyConstants._raw, "\"" + escaped + "\"");
+		}
+		else {
+			sct.setEL(KeyConstants._raw, "null");
+		}
 	}
 }
