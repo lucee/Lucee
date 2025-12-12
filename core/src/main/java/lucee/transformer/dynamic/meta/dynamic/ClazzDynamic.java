@@ -493,7 +493,15 @@ public class ClazzDynamic extends Clazz {
 
 						Type tmpType = tmpClass != null ? Type.getType(tmpClass) : null;
 						Type rtnType = rtnClass != null ? Type.getType(rtnClass) : null;
-						if (Clazz.compareAccess(fmParent, fmCurrent) >= 0) fmCurrent.setDeclaringProviderClassWithSameAccess(tmpClass, tmpType, rtnClass, rtnType);
+						// LDEV-5862: For declaringProviderClassWithSameAccess, use the parent's WithSameAccess version
+						// to avoid propagating a class where the method has different (e.g., protected) access
+						if (Clazz.compareAccess(fmParent, fmCurrent) >= 0) {
+							Class sameAccessClass = fmParent.getDeclaringProviderClassWithSameAccess(true);
+							Class sameAccessRtnClass = (fmParent instanceof Method) ? fmParent.getDeclaringProviderRtnClassWithSameAccess(true) : null;
+							Type sameAccessType = sameAccessClass != null ? Type.getType(sameAccessClass) : null;
+							Type sameAccessRtnType = sameAccessRtnClass != null ? Type.getType(sameAccessRtnClass) : null;
+							fmCurrent.setDeclaringProviderClassWithSameAccess(sameAccessClass, sameAccessType, sameAccessRtnClass, sameAccessRtnType);
+						}
 						fmCurrent.setDeclaringProviderClass(tmpClass, tmpType, rtnClass, rtnType);
 						/*
 						 * if (name.equals("nextElement")) { print.e(fm.getDeclaringProviderClassName());
@@ -640,7 +648,15 @@ public class ClazzDynamic extends Clazz {
 						Type tmpType = tmpClass != null ? Type.getType(tmpClass) : null;
 						Type rtnType = rtnClass != null ? Type.getType(rtnClass) : null;
 
-						if (Clazz.compareAccess(fmParent, fmCurrent) >= 0) fmCurrent.setDeclaringProviderClassWithSameAccess(tmpClass, tmpType, rtnClass, rtnType);
+						// LDEV-5862: For declaringProviderClassWithSameAccess, use the parent's WithSameAccess version
+						// to avoid propagating a class where the method has different (e.g., protected) access
+						if (Clazz.compareAccess(fmParent, fmCurrent) >= 0) {
+							Class sameAccessClass = fmParent.getDeclaringProviderClassWithSameAccess(true);
+							Class sameAccessRtnClass = (fmParent instanceof Method) ? fmParent.getDeclaringProviderRtnClassWithSameAccess(true) : null;
+							Type sameAccessType = sameAccessClass != null ? Type.getType(sameAccessClass) : null;
+							Type sameAccessRtnType = sameAccessRtnClass != null ? Type.getType(sameAccessRtnClass) : null;
+							fmCurrent.setDeclaringProviderClassWithSameAccess(sameAccessClass, sameAccessType, sameAccessRtnClass, sameAccessRtnType);
+						}
 						fmCurrent.setDeclaringProviderClass(tmpClass, tmpType, rtnClass, rtnType);
 
 						/*
