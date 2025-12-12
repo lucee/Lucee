@@ -223,7 +223,7 @@ public final class ClazzDynamic extends Clazz {
 		outer: for (FunctionMember fm: methods) {
 			if (/* fm.isPublic() && */ (nameCaseSensitive ? methodName.equals(fm.getName()) : methodName.equalsIgnoreCase(fm.getName()))) {
 				Type[] args = ((FunctionMemberDynamic) fm).getArgumentTypes();
-				if (types.length == types.length) {
+				if (types.length == args.length) {
 					for (int i = 0; i < args.length; i++) {
 						if (!types[i].equals(args[i])) continue outer;
 					}
