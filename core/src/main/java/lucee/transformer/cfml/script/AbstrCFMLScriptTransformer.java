@@ -1217,8 +1217,8 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 
 				// TODO cachedwithin
 
-				func.setJavaFunction(java(data, body, id, access, modifier, hint, args, attrs, rtnType, output, bufferOutput, displayName, description, returnFormat, secureJson,
-						verifyClient, localMode));
+				java(data, func, body, id, access, modifier, hint, args, attrs, rtnType, output, bufferOutput, displayName, description, returnFormat, secureJson,
+						verifyClient, localMode);
 			}
 			else {
 				func.register(data.page);
@@ -1261,7 +1261,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 		return list.toArray(new Attribute[list.size()]);
 	}
 
-	private JavaFunction java(Data data, Body body, String functionName, int access, int modifier, String hint, ArrayList<Argument> args, Attribute[] attrs, String rtnType,
+	private void java(Data data, Function func, Body body, String functionName, int access, int modifier, String hint, ArrayList<Argument> args, Attribute[] attrs, String rtnType,
 			Boolean output, Boolean bufferOutput, String displayName, String description, int returnFormat, Boolean secureJson, Boolean verifyClient, int localMode)
 			throws TemplateException {
 
@@ -1286,22 +1286,25 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 		SourceCode sc = data.srcCode;
 		Position start = sc.getPosition();
 		findTheEnd(data, start.line);
-
-		// In AST mode without PageSource, we can't compile - just return null
-		// The function body has already been parsed past by findTheEnd
-		if (ps == null) {
-			return null;
-		}
-
 		Position end = sc.getPosition();
 		String javaCode = sc.substring(start.pos, end.pos - start.pos);
+
+		// Always store raw Java source for AST round-tripping
+		func.setRawJavaSource(javaCode);
+
+		// In AST mode without PageSource, we can't compile - just store raw source
+		// The function body has already been parsed past by findTheEnd
+		if (ps == null) {
+			return;
+		}
 		try {
 			String id = data.page.registerJavaFunctionName(functionName);
 			lucee.commons.lang.compiler.SourceCode _sc = fd.createSourceCode(ps, javaCode, id, functionName, access, modifier, hint, args, output, bufferOutput, displayName,
 					description, returnFormat, secureJson, verifyClient, localMode);
 			JavaFunction jf = new JavaFunction(ps, _sc, CompilerFactory.getInstance().compile((ConfigPro) data.config, _sc));
 
-			return jf;
+			func.setJavaFunction(jf);
+			return;
 		}
 		catch (JavaCompilerException e) {
 			Throwable cause = e.getCause();

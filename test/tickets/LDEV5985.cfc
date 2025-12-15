@@ -28,6 +28,20 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ast" {
 				expect( funcDecl.type ).toBe( "FunctionDeclaration" );
 			});
 
+			it( "should preserve raw Java source in AST body for round-tripping", function() {
+				var code = fileRead( variables.testDir & "javaFunction.cfm" );
+				var ast = astFromString( code );
+
+				// Find the function declaration
+				var funcDecl = findNodeByType( ast, "FunctionDeclaration" );
+				expect( isNull( funcDecl ) ).toBeFalse( "FunctionDeclaration should be present" );
+
+				// The body should contain the raw Java source for round-tripping
+				expect( funcDecl ).toHaveKey( "body" );
+				expect( funcDecl.body ).toHaveKey( "raw" );
+				expect( funcDecl.body.raw ).toInclude( "return i*2" );
+			});
+
 		});
 
 	}

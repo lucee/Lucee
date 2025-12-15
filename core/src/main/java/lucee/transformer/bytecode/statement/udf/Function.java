@@ -153,6 +153,7 @@ public abstract class Function extends StatementBaseNoFinal implements Opcodes, 
 	Literal cachedWithin;
 	int modifier;
 	protected JavaFunction jf;
+	protected String rawJavaSource; // raw Java source for AST round-tripping
 	// private final Root root;
 	protected int index = -1;
 
@@ -614,6 +615,10 @@ public abstract class Function extends StatementBaseNoFinal implements Opcodes, 
 		this.jf = jf;
 	}
 
+	public void setRawJavaSource(String rawJavaSource) {
+		this.rawJavaSource = rawJavaSource;
+	}
+
 	public void setIndex(int index) {
 		this.index = index;
 	}
@@ -733,6 +738,10 @@ public abstract class Function extends StatementBaseNoFinal implements Opcodes, 
 		if (body != null) {
 			Struct s = new StructImpl(Struct.TYPE_LINKED);
 			body.dump(s);
+			// For Java functions, include raw Java source for round-tripping
+			if (rawJavaSource != null) {
+				s.setEL(KeyConstants._raw, rawJavaSource);
+			}
 			sct.setEL(KeyConstants._body, s);
 		}
 	}
