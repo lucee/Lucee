@@ -143,6 +143,11 @@ public final class CFMLTransformer {
 	 */
 	public Page transform(Factory factory, ConfigPro config, PageSource ps, TagLib[] tlibs, FunctionLib flibs, boolean returnValue, boolean ignoreScopes)
 			throws TemplateException, IOException {
+		return transform(factory, config, ps, tlibs, flibs, returnValue, ignoreScopes, false);
+	}
+
+	public Page transform(Factory factory, ConfigPro config, PageSource ps, TagLib[] tlibs, FunctionLib flibs, boolean returnValue, boolean ignoreScopes, boolean ast)
+			throws TemplateException, IOException {
 		Page p;
 		SourceCode sc;
 
@@ -157,7 +162,7 @@ public final class CFMLTransformer {
 		boolean hasWriteLog = false;
 		boolean hasCharset = false;
 		boolean hasUpper = false;
-		boolean allowUnknownTags = false;
+		boolean allowUnknownTags = ast;
 		while (true) {
 			PageSourceCode psc = null;
 			try {
@@ -270,7 +275,8 @@ public final class CFMLTransformer {
 			if (_p != null && !_p.isPage()) return _p;
 		}
 
-		if (isCFMLCompExt && !p.isComponent() && !p.isInterface()) {
+		// In AST mode, component stays inside cfscript so skip this validation
+		if (!ast && isCFMLCompExt && !p.isComponent() && !p.isInterface()) {
 			String msg = "template [" + ps.getDisplayPath() + "] must contain a component or an interface.";
 			if (sc != null) throw new TemplateException(sc, msg);
 			throw new TemplateException(msg);

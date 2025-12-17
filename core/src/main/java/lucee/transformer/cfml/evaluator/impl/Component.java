@@ -87,22 +87,26 @@ public class Component extends EvaluatorSupport {
 				if (p != null && (pPage = p.getParent()) instanceof Page && p.getTagLibTag().getName().equalsIgnoreCase(Constants.CFML_SCRIPT_TAG_NAME)) { // chnaged
 
 					page = (Page) pPage;
-					// move imports from script to component body
-					List<Statement> children = p.getBody().getStatements();
-					Iterator<Statement> it = children.iterator();
-					Statement stat;
-					Tag t;
-					while (it.hasNext()) {
-						stat = it.next();
-						if (!(stat instanceof Tag)) continue;
-						t = (Tag) stat;
-						if (t.getTagLibTag().getName().equals("import")) {
-							tag.getBody().addStatement(t);
-						}
-					}
 
-					// move to page
-					ASMUtil.move(tag, page);
+					// In AST mode, don't move component out of cfscript - preserve source structure
+					if (!page.isAST()) {
+						// move imports from script to component body
+						List<Statement> children = p.getBody().getStatements();
+						Iterator<Statement> it = children.iterator();
+						Statement stat;
+						Tag t;
+						while (it.hasNext()) {
+							stat = it.next();
+							if (!(stat instanceof Tag)) continue;
+							t = (Tag) stat;
+							if (t.getTagLibTag().getName().equals("import")) {
+								tag.getBody().addStatement(t);
+							}
+						}
+
+						// move to page
+						ASMUtil.move(tag, page);
+					}
 
 					// if(!inline)ASMUtil.replace(p, tag, false);
 				}
@@ -300,6 +304,19 @@ public class Component extends EvaluatorSupport {
 		while (it.hasNext()) {
 			Statement s = it.next();
 			if (s instanceof TagCIObject) return s == comp;
+			// In AST mode, component may be inside cfscript - check script body too
+			if (page.isAST() && s instanceof Tag) {
+				Tag tag = (Tag) s;
+				if (tag.getTagLibTag() != null && Constants.CFML_SCRIPT_TAG_NAME.equalsIgnoreCase(tag.getTagLibTag().getName())) {
+					if (tag.getBody() != null) {
+						Iterator<Statement> bodyIt = tag.getBody().getStatements().iterator();
+						while (bodyIt.hasNext()) {
+							Statement bs = bodyIt.next();
+							if (bs instanceof TagCIObject) return bs == comp;
+						}
+					}
+				}
+			}
 		}
 		return false;
 	}
