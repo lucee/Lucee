@@ -62,7 +62,7 @@ public final class HTTPDownloader {
 		if (SHARED_CLIENT == null) {
 			synchronized (CLIENT_LOCK) {
 				if (SHARED_CLIENT == null) {
-					HttpClientBuilder builder = HTTPEngine4Impl.getHttpClientBuilder(true, null, null, "true");
+					HttpClientBuilder builder = HTTPEngine4Impl.getHttpClientBuilder(true, null, null, null, null, true, "true");
 					SHARED_CLIENT = builder.build();
 				}
 			}
@@ -221,7 +221,7 @@ public final class HTTPDownloader {
 
 			// Handle proxy and credentials
 			ProxyData proxy = getProxyData(url.getHost());
-			HttpClientBuilder builder = HTTPEngine4Impl.getHttpClientBuilder(true, null, null, "true");
+			HttpClientBuilder builder = HTTPEngine4Impl.getHttpClientBuilder(true, null, null, null, null, true, "true");
 			HttpHost httpHost = new HttpHost(url.getHost(), url.getPort());
 			HttpContext context = HTTPEngine4Impl.setCredentials(builder, httpHost, username, password, false);
 			HTTPEngine4Impl.setProxy(url.getHost(), builder, request, proxy);
@@ -262,7 +262,7 @@ public final class HTTPDownloader {
 
 		try {
 			// Get configured HttpClientBuilder (with connection pooling, true = use pooling)
-			HttpClientBuilder builder = HTTPEngine4Impl.getHttpClientBuilder(true, null, null, "true");
+			HttpClientBuilder builder = HTTPEngine4Impl.getHttpClientBuilder(true, null, null, null, null, true, "true");
 
 			// Create HTTP HEAD request
 			HttpHead request = new HttpHead(url.toString());
@@ -305,7 +305,7 @@ public final class HTTPDownloader {
 	public static boolean exists(URL url, long connectTimeout, long readTimeout) {
 		try {
 			// Get configured HttpClientBuilder (with connection pooling, true = use pooling)
-			HttpClientBuilder builder = HTTPEngine4Impl.getHttpClientBuilder(true, null, null, "true");
+			HttpClientBuilder builder = HTTPEngine4Impl.getHttpClientBuilder(true, null, null, null, null, true, "true");
 
 			// Create HTTP HEAD request
 			HttpHead request = new HttpHead(url.toString());

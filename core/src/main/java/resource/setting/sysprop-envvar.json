@@ -1140,6 +1140,17 @@
 		"default": true
 	},
 	{
+		"sysprop": "lucee.ssl.customcacerts.enabled",
+		"envvar": "LUCEE_SSL_CUSTOMCACERTS_ENABLED",
+		"desc": "Controls whether Lucee uses a custom CA certificates keystore (custom-cacerts) in addition to the JVM's default cacerts. When enabled, certificates installed via SSLCertificateInstall() are stored in {lucee-server}/context/security/custom-cacerts and automatically trusted for all HTTPS connections. Set to `false` to disable and use only the JVM's default trust store",
+		"category": "security",
+		"tags": [ "cfhttp" ],
+		"functions": [ "SSLCertificateInstall", "SSLCertificateList", "SSLCertificateRemove" ],
+		"type": "boolean",
+		"introduced": "7.1",
+		"default": true
+	},
+	{
 		"sysprop": "lucee.status.code",
 		"envvar": "LUCEE_STATUS_CODE",
 		"desc": "A boolean value. If disabled, returns a 200 status code to the client even if an uncaught exception occurs",

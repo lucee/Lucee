@@ -335,6 +335,13 @@ public final class Http extends BodyTagImpl {
 	private String clientCertPassword;
 	private boolean autoCert = false;
 
+	/** Path to a custom trust store (JKS or PKCS12) for SSL certificate validation. */
+	private String trustStore;
+	/** Password for the custom trust store. */
+	private String trustStorePassword;
+	/** When false, disables SSL certificate and hostname verification (like curl -k). */
+	private boolean sslVerify = true;
+
 	@Override
 	public void release() {
 		super.release();
@@ -383,6 +390,9 @@ public final class Http extends BodyTagImpl {
 		cachedWithin = null;
 		usePool = true;
 		autoCert = false;
+		trustStore = null;
+		trustStorePassword = null;
+		sslVerify = true;
 	}
 
 	/**
@@ -730,7 +740,7 @@ public final class Http extends BodyTagImpl {
 		long start = System.nanoTime();
 		boolean safeToMemory = !StringUtil.isEmpty(result, true);
 
-		HttpClientBuilder builder = HTTPEngine4Impl.getHttpClientBuilder(this.usePool, this.clientCert, this.clientCertPassword, this.redirect);
+		HttpClientBuilder builder = HTTPEngine4Impl.getHttpClientBuilder(this.usePool, this.clientCert, this.clientCertPassword, this.trustStore, this.trustStorePassword, this.sslVerify, this.redirect);
 
 		// cookies
 		BasicCookieStore cookieStore = new BasicCookieStore();
@@ -1780,6 +1790,27 @@ public final class Http extends BodyTagImpl {
 	 */
 	public void setClientcertpassword(String clientCertPassword) {
 		this.clientCertPassword = clientCertPassword;
+	}
+
+	/**
+	 * @param trustStore path to custom trust store (JKS or PKCS12)
+	 */
+	public void setTruststore(String trustStore) {
+		this.trustStore = trustStore;
+	}
+
+	/**
+	 * @param trustStorePassword password for the custom trust store
+	 */
+	public void setTruststorepassword(String trustStorePassword) {
+		this.trustStorePassword = trustStorePassword;
+	}
+
+	/**
+	 * @param sslVerify when false, disables SSL certificate verification
+	 */
+	public void setSslverify(boolean sslVerify) {
+		this.sslVerify = sslVerify;
 	}
 
 	/**

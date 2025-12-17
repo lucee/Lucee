@@ -22,6 +22,8 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.security.cert.X509Certificate;
 import java.sql.Connection;
 import java.util.ArrayList;
@@ -61,6 +63,7 @@ import lucee.commons.io.log.LogEngine;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.log.LoggerAndSourceData;
 import lucee.commons.io.res.Resource;
+import lucee.commons.io.res.ResourcesImpl;
 import lucee.commons.io.res.filter.DirectoryResourceFilter;
 import lucee.commons.io.res.filter.ExtensionResourceFilter;
 import lucee.commons.io.res.filter.NotResourceFilter;
@@ -72,6 +75,7 @@ import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.IDGenerator;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.types.RefBooleanImpl;
+import lucee.commons.net.http.httpclient.HTTPEngine4Impl;
 import lucee.commons.surveillance.HeapDumper;
 import lucee.loader.engine.CFMLEngine;
 import lucee.loader.osgi.BundleCollection;
@@ -150,8 +154,10 @@ import lucee.runtime.listener.JavaSettingsImpl;
 import lucee.runtime.monitor.IntervallMonitor;
 import lucee.runtime.monitor.Monitor;
 import lucee.runtime.monitor.RequestMonitor;
+import lucee.runtime.functions.other.SSLCertificateRemove;
 import lucee.runtime.net.http.CertificateInstaller;
 import lucee.runtime.net.http.ReqRspUtil;
+import lucee.runtime.net.http.SSLUtil;
 // import lucee.runtime.net.mail.SMTPVerifier; // removed with mail functionality
 import lucee.runtime.net.mail.Server;
 import lucee.runtime.net.mail.ServerImpl;
@@ -697,6 +703,8 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		else if (check("updateLogSettings", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateLogSettings();
 		else if (check("updateJar", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateJar();
 		else if (check("updateSSLCertificate", ACCESS_NOT_WHEN_WEB) && check2(ACCESS_WRITE)) doUpdateSSLCertificate();
+		else if (check("removeSSLCertificate", ACCESS_NOT_WHEN_WEB) && check2(ACCESS_WRITE)) doRemoveSSLCertificate();
+		else if (check("getAllSSLCertificate", ACCESS_NOT_WHEN_WEB) && check2(ACCESS_READ)) doGetAllSSLCertificate();
 		else if (check("updateMonitorEnabled", ACCESS_NOT_WHEN_WEB) && check2(ACCESS_WRITE)) doUpdateMonitorEnabled();
 		else if (check("updateTLD", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateTLD();
 		else if (check("updateFLD", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateFLD();
@@ -4872,16 +4880,35 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		updateSSLCertificate(config, host, port);
 	}
 
-	public static void updateSSLCertificate(Config config, String host, int port) throws PageException {
-		Resource cacerts = config.getSecurityDirectory();
+	private void doRemoveSSLCertificate() throws PageException {
+		String alias = getString("admin", "RemoveSSLCertificate", "alias");
+		removeSSLCertificate(config, alias);
+	}
 
+	public static void removeSSLCertificate(Config config, String alias) throws PageException {
 		try {
-			CertificateInstaller installer = new CertificateInstaller(cacerts, host, port);
-			installer.installAll(true);
+			SSLCertificateRemove.call( null, alias );
+		}
+		catch (PageException pe) {
+			throw pe;
 		}
 		catch (Exception e) {
 			throw Caster.toPageException(e);
 		}
+	}
+
+	public static void updateSSLCertificate(Config config, String host, int port) throws PageException {
+		try {
+			CertificateInstaller.installToCustomCaCerts( host, port );
+			HTTPEngine4Impl.releaseConnectionManager();
+		}
+		catch (Exception e) {
+			throw Caster.toPageException(e);
+		}
+	}
+
+	private void doGetAllSSLCertificate() throws PageException {
+		pageContext.setVariable(getString("admin", action, "returnVariable"), getAllSSLCertificate(config));
 	}
 
 	private void doGetSSLCertificate() throws PageException {
@@ -4913,22 +4940,27 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	}
 
 	public static Query getAllSSLCertificate(Config config) throws PageException {
-		List<X509Certificate> certs;
 		try {
-			certs = CertificateInstaller.getAllCertificates(config.getSecurityDirectory());
+			Path customCaCertsPath = SSLUtil.getCustomCaCertsPath();
+			if ( customCaCertsPath == null || !Files.exists( customCaCertsPath ) ) {
+				return new QueryImpl(new Key[] { KeyConstants._alias, KeyConstants._subject, KeyConstants._issuer, KeyConstants._raw }, 0, "certificates");
+			}
+			Resource res = ResourcesImpl.getFileResourceProvider().getResource( customCaCertsPath.toString() );
+			Map<String, X509Certificate> certs = CertificateInstaller.getAllCertificatesWithAliases( res );
+			Query qry = new QueryImpl(new Key[] { KeyConstants._alias, KeyConstants._subject, KeyConstants._issuer, KeyConstants._raw }, certs.size(), "certificates");
+			int row = 0;
+			for ( Map.Entry<String, X509Certificate> entry : certs.entrySet() ) {
+				row++;
+				qry.setAtEL(KeyConstants._alias, row, entry.getKey());
+				qry.setAtEL(KeyConstants._subject, row, entry.getValue().getSubjectDN().getName());
+				qry.setAtEL(KeyConstants._issuer, row, entry.getValue().getIssuerDN().getName());
+				qry.setAtEL(KeyConstants._raw, row, entry.getValue());
+			}
+			return qry;
 		}
 		catch (Exception e) {
 			throw Caster.toPageException(e);
 		}
-		Query qry = new QueryImpl(new Key[] { KeyConstants._subject, KeyConstants._issuer, KeyConstants._raw }, certs.size(), "certificates");
-		int row = 0;
-		for (X509Certificate cert: certs) {
-			row++;
-			qry.setAtEL(KeyConstants._subject, row, cert.getSubjectDN().getName());
-			qry.setAtEL(KeyConstants._issuer, row, cert.getIssuerDN().getName());
-			qry.setAtEL(KeyConstants._raw, row, cert);
-		}
-		return qry;
 	}
 
 	private void doRemoveBundle() throws PageException {

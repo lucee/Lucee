@@ -14133,6 +14133,24 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<type>void</type>
 		</return>
 	</function>
+
+	<!-- SSLCertificateRemove -->
+	<function>
+		<name>SSLCertificateRemove</name>
+		<class>lucee.runtime.functions.other.SSLCertificateRemove</class>
+		<description>Removes a certificate from the custom-cacerts keystore by alias.</description>
+		<argument>
+			<name>alias</name>
+			<type>string</type>
+			<required>Yes</required>
+			<description>The alias of the certificate to remove from custom-cacerts.</description>
+		</argument>
+		<return>
+			<type>boolean</type>
+			<description>Returns true if the certificate was successfully removed.</description>
+		</return>
+	</function>
+
 	<!-- stripCr -->
 	<function>
 		<name>stripCr</name>

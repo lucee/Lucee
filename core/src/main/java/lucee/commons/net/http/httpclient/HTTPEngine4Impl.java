@@ -18,19 +18,13 @@
  **/
 package lucee.commons.net.http.httpclient;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.net.URL;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.GeneralSecurityException;
-import java.security.KeyManagementException;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableKeyException;
-import java.security.cert.CertificateException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
@@ -41,7 +35,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
 
 import org.apache.http.Header;
@@ -73,6 +67,7 @@ import org.apache.http.config.SocketConfig;
 import org.apache.http.conn.HttpClientConnectionManager;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.apache.http.conn.socket.PlainConnectionSocketFactory;
+import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.entity.ContentType;
@@ -110,6 +105,7 @@ import lucee.commons.net.http.httpclient.entity.TemporaryStreamHttpEntity;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.net.http.ReqRspUtil;
+import lucee.runtime.net.http.SSLUtil;
 import lucee.runtime.net.http.sni.DefaultHostnameVerifierImpl;
 import lucee.runtime.net.http.sni.DefaultHttpClientConnectionOperatorImpl;
 import lucee.runtime.net.http.sni.SSLConnectionSocketFactoryImpl;
@@ -272,10 +268,9 @@ public final class HTTPEngine4Impl {
 		return new HeaderImpl(header.getName(), header.getValue());
 	}
 
-	public static HttpClientBuilder getHttpClientBuilder(boolean pooling, String clientCert, String clientCertPassword, String redirect)
-			throws GeneralSecurityException, IOException {
-		String key = clientCert + ":" + clientCertPassword;
-		Registry<ConnectionSocketFactory> reg = StringUtil.isEmpty(clientCert, true) ? createRegistry() : createRegistry(clientCert, clientCertPassword);
+	public static HttpClientBuilder getHttpClientBuilder(boolean pooling, String clientCert, String clientCertPassword, String trustStore, String trustStorePassword, boolean sslVerify, String redirect) throws GeneralSecurityException {
+		String key = clientCert + ":" + clientCertPassword + ":" + trustStore + ":" + trustStorePassword + ":" + sslVerify;
+		Registry<ConnectionSocketFactory> reg = createRegistry( clientCert, clientCertPassword, trustStore, trustStorePassword, sslVerify );
 
 		if (!pooling) {
 			HttpClientBuilder builder = HttpClients.custom();
@@ -331,31 +326,43 @@ public final class HTTPEngine4Impl {
 		builder.setDefaultRequestConfig(rcBuilder.build());
 	}
 
-	private static Registry<ConnectionSocketFactory> createRegistry() throws GeneralSecurityException {
-		SSLContext sslcontext = SSLContext.getInstance("TLS");
-		sslcontext.init(null, null, new java.security.SecureRandom());
-		SSLConnectionSocketFactory defaultsslsf = new SSLConnectionSocketFactoryImpl(sslcontext, new DefaultHostnameVerifierImpl());
-		/* Register connection handlers */
-		return RegistryBuilder.<ConnectionSocketFactory>create().register("http", PlainConnectionSocketFactory.getSocketFactory()).register("https", defaultsslsf).build();
+	private static Registry<ConnectionSocketFactory> createRegistry( String clientCert, String clientCertPassword, String trustStore, String trustStorePassword, boolean sslVerify ) throws GeneralSecurityException {
+		SSLContext sslContext;
+		HostnameVerifier hostnameVerifier;
 
-	}
+		try {
+			Path clientCertPath = StringUtil.isEmpty( clientCert, true ) ? null : Paths.get( clientCert );
+			char[] clientPassword = clientCertPassword != null ? clientCertPassword.toCharArray() : null;
 
-	private static Registry<ConnectionSocketFactory> createRegistry(String clientCert, String clientCertPassword)
-			throws IOException, KeyStoreException, NoSuchAlgorithmException, CertificateException, UnrecoverableKeyException, KeyManagementException {
-		// Currently, clientCert force usePool to being ignored
-		if (clientCertPassword == null) clientCertPassword = "";
-		// Load the client cert
-		File ksFile = new File(clientCert);
-		KeyStore clientStore = KeyStore.getInstance("PKCS12");
-		clientStore.load(new FileInputStream(ksFile), clientCertPassword.toCharArray());
-		// Prepare the keys
-		KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
-		kmf.init(clientStore, clientCertPassword.toCharArray());
-		SSLContext sslcontext = SSLContext.getInstance("TLS");
-		// Configure the socket factory
-		sslcontext.init(kmf.getKeyManagers(), null, new java.security.SecureRandom());
-		SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactoryImpl(sslcontext, new DefaultHostnameVerifierImpl());
-		return RegistryBuilder.<ConnectionSocketFactory>create().register("http", PlainConnectionSocketFactory.getSocketFactory()).register("https", sslsf).build();
+			if ( !sslVerify ) {
+				// Disable all SSL verification (like curl -k)
+				sslContext = SSLUtil.createUnsafeSSLContext( clientCertPath, clientPassword );
+				hostnameVerifier = NoopHostnameVerifier.INSTANCE;
+			}
+			else if ( !StringUtil.isEmpty( trustStore, true ) ) {
+				// Use custom trust store
+				Path trustStorePath = Paths.get( trustStore );
+				char[] trustPassword = trustStorePassword != null ? trustStorePassword.toCharArray() : "changeit".toCharArray();
+				List<SSLUtil.TrustStoreConfig> additionalTrustStores = new ArrayList<>();
+				additionalTrustStores.add( new SSLUtil.TrustStoreConfig( trustStorePath, trustPassword ) );
+				sslContext = SSLUtil.createSSLContext( clientCertPath, clientPassword, additionalTrustStores );
+				hostnameVerifier = new DefaultHostnameVerifierImpl();
+			}
+			else {
+				// Standard mode with JVM + custom-cacerts
+				sslContext = SSLUtil.createSSLContext( clientCertPath, clientPassword );
+				hostnameVerifier = new DefaultHostnameVerifierImpl();
+			}
+		}
+		catch ( IOException e ) {
+			throw new GeneralSecurityException( "Failed to create SSL context", e );
+		}
+
+		SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactoryImpl( sslContext, hostnameVerifier );
+		return RegistryBuilder.<ConnectionSocketFactory>create()
+			.register( "http", PlainConnectionSocketFactory.getSocketFactory() )
+			.register( "https", sslsf )
+			.build();
 	}
 
 	public static void releaseConnectionManager() {
@@ -399,7 +406,7 @@ public final class HTTPEngine4Impl {
 		CloseableHttpClient client;
 		proxy = ProxyDataImpl.validate(proxy, url.getHost());
 
-		HttpClientBuilder builder = getHttpClientBuilder(pooling, null, null, String.valueOf(redirect));
+		HttpClientBuilder builder = getHttpClientBuilder(pooling, null, null, null, null, true, String.valueOf(redirect));
 
 		HttpHost hh = new HttpHost(url.getHost(), url.getPort());
 		setHeader(request, headers);
