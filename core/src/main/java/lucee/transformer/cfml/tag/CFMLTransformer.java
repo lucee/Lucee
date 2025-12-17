@@ -46,6 +46,7 @@ import lucee.transformer.Body;
 import lucee.transformer.Factory;
 import lucee.transformer.Page;
 import lucee.transformer.Position;
+import lucee.transformer.bytecode.PageImpl;
 import lucee.transformer.bytecode.statement.StatementBase;
 import lucee.transformer.bytecode.statement.tag.TagBase;
 import lucee.transformer.bytecode.statement.tag.TagFunction;
@@ -142,6 +143,11 @@ public final class CFMLTransformer {
 	 */
 	public Page transform(Factory factory, ConfigPro config, PageSource ps, TagLib[] tlibs, FunctionLib flibs, boolean returnValue, boolean ignoreScopes)
 			throws TemplateException, IOException {
+		return transform(factory, config, ps, tlibs, flibs, returnValue, ignoreScopes, false);
+	}
+
+	public Page transform(Factory factory, ConfigPro config, PageSource ps, TagLib[] tlibs, FunctionLib flibs, boolean returnValue, boolean ignoreScopes, boolean ast)
+			throws TemplateException, IOException {
 		Page p;
 		SourceCode sc;
 
@@ -156,7 +162,7 @@ public final class CFMLTransformer {
 		boolean hasWriteLog = false;
 		boolean hasCharset = false;
 		boolean hasUpper = false;
-		boolean allowUnknownTags = false;
+		boolean allowUnknownTags = ast;
 		while (true) {
 			PageSourceCode psc = null;
 			try {
@@ -269,7 +275,8 @@ public final class CFMLTransformer {
 			if (_p != null && !_p.isPage()) return _p;
 		}
 
-		if (isCFMLCompExt && !p.isComponent() && !p.isInterface()) {
+		// In AST mode, component stays inside cfscript so skip this validation
+		if (!ast && isCFMLCompExt && !p.isComponent() && !p.isInterface()) {
 			String msg = "template [" + ps.getDisplayPath() + "] must contain a component or an interface.";
 			if (sc != null) throw new TemplateException(sc, msg);
 			throw new TemplateException(msg);
@@ -338,6 +345,11 @@ public final class CFMLTransformer {
 		// ConfigUtil.getEngine(config).getInfo().getFullVersionInfo(), sourceLastModified,
 		// sc.getWriteLog(),config.getSuppressWSBeforeArg(), config.getDefaultFunctionOutput(), returnValue,
 		// ignoreScope);
+
+		// allowUnknownTags is used as ast flag - mark the page for AST mode
+		if (allowUnknownTags && page instanceof PageImpl) {
+			((PageImpl) page).setAST(true);
+		}
 
 		TransfomerSettings settings = new TransfomerSettings(dnuc, config.getHandleUnQuotedAttrValueAsString(), ignoreScope);
 		Data data = new Data(factory, config, page, sc, new EvaluatorPool(), settings, _tlibs, flibs, config.getCoreTagLib().getScriptTags(), false, hasWriteLog, hasUpper,

@@ -84,7 +84,7 @@ public final class CFMLCompilerImpl implements CFMLCompiler {
 
 		BytecodeFactory factory = BytecodeFactory.getInstance(config);
 		// , cwi.getFLDs()
-		PageImpl page = ((PageImpl) cfmlTagTransformer.transform(factory, config, ps, config.getTLDs(), config.getFLDs(), false, ignoreScopes));
+		PageImpl page = ((PageImpl) cfmlTagTransformer.transform(factory, config, ps, config.getTLDs(), config.getFLDs(), false, ignoreScopes, true));
 		Struct root = new StructImpl(Struct.TYPE_LINKED);
 		page.dump(root);
 
@@ -107,9 +107,8 @@ public final class CFMLCompilerImpl implements CFMLCompiler {
 
 	public Struct ast(ConfigPro config, SourceCode sc, boolean ignoreScopes, Boolean script) throws PageException {
 		BytecodeFactory factory = BytecodeFactory.getInstance(config);
-		// TODO auto when script is null
 
-		if (script != null && script) {
+		if (script) {
 			TagLibTag scriptTag = CFMLTransformer.getTLT(sc, Constants.CFML_SCRIPT_TAG_NAME, config.getIdentification());
 
 			sc.setPos(0);
@@ -124,7 +123,7 @@ public final class CFMLCompilerImpl implements CFMLCompiler {
 		Struct root = new StructImpl(Struct.TYPE_LINKED);
 		page.dump(root);
 
-		if (script != null && script) {
+		if (script) {
 			extractScriptTagInRoot(root);
 		}
 
