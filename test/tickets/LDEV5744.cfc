@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" {
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="datetime" {
 	function run( testResults , testBox ) {
 
 		describe( title="LDEV-5744 dateparsing regressions", body=function() {

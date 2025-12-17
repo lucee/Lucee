@@ -1584,4 +1584,32 @@ public final class StringUtil {
 		}
 		return SPACES.matcher(str).replaceAll(" ");
 	}
+
+	/**
+	 * Fast date-specific whitespace normalization. Handles U+00A0 (non-breaking space from HTTP headers)
+	 * and U+202F (narrow no-break space from Java's DateTimeFormatter) by converting them to regular spaces.
+	 * Also collapses multiple consecutive spaces to a single space.
+	 *
+	 * @param str the string to normalize
+	 * @return the normalized string with U+00A0 and U+202F replaced by regular spaces, and multiple spaces collapsed
+	 */
+	public static String normalizeDateWhitespace(String str) {
+		int len = str.length();
+		char c;
+		char[] carr = null;
+
+		// Replace U+00A0 (non-breaking space) and U+202F (narrow no-break space) with regular space
+		for (int i = 0; i < len; i++) {
+			c = str.charAt(i);
+			if (c == 0x00A0 || c == 0x202F) {
+				if (carr == null) carr = str.toCharArray();
+				carr[i] = ' ';
+			}
+		}
+
+		if (carr != null) str = String.valueOf(carr);
+
+		// Collapse multiple consecutive spaces to a single space
+		return SPACES.matcher(str).replaceAll(" ");
+	}
 }

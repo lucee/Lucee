@@ -30,6 +30,7 @@ import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
+import java.time.chrono.IsoChronology;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
 import java.time.format.DateTimeParseException;
@@ -215,6 +216,12 @@ public final class FormatUtil {
 		return formatter;
 	}
 
+	// TODO: Java 22+ enhancement - When minimum Java version is 22+, add .withResolverStyle(ResolverStyle.LENIENT)
+	// to these formatters. Java 22 introduced loose matching of space separators (JDK-8324665, PR #17678)
+	// which allows LENIENT mode to treat all SPACE_SEPARATOR characters (U+0020, U+00A0, U+202F, etc.)
+	// as interchangeable during parsing. This would eliminate the need for StringUtil.normalizeDateWhitespace()
+	// to handle U+202F separately. See: https://github.com/openjdk/jdk/pull/17678
+
 	public static List<FormatterWrapper> getDateTimeFormats(Locale locale, TimeZone tz, boolean lenient) {
 
 		String key = "dt-" + locale.toString() + "-" + tz.getID() + "-" + lenient;
@@ -226,42 +233,30 @@ public final class FormatUtil {
 				if (df == null) {
 					ZoneId zone = tz.toZoneId();
 					df = new ArrayList<>();
-					df.add(new FormatterWrapper(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.FULL).withLocale(locale).withZone(zone), "FULL_FULL", FORMAT_TYPE_DATE_TIME,
-							zone));
-					df.add(new FormatterWrapper(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.LONG).withLocale(locale).withZone(zone), "LONG_LONG", FORMAT_TYPE_DATE_TIME,
-							zone));
-					df.add(new FormatterWrapper(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM).withLocale(locale).withZone(zone), "MEDIUM_MEDIUM", FORMAT_TYPE_DATE_TIME,
-							zone));
-					df.add(new FormatterWrapper(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT, FormatStyle.SHORT).withLocale(locale).withZone(zone), "SHORT_SHORT",
-							FORMAT_TYPE_DATE_TIME, zone));
+					// Use space-normalized localized formatters (U+202F → space) to match normalized input
+					// TODO: Java 22+ - When minimum Java version is 22+, use ofLocalizedDateTime() with
+					// .withResolverStyle(ResolverStyle.LENIENT) instead. Java 22 supports loose space matching.
+					// See: https://github.com/openjdk/jdk/pull/17678
+					addLocalizedDateTimeFormatter(df, FormatStyle.FULL, FormatStyle.FULL, locale, zone, lenient);
+					addLocalizedDateTimeFormatter(df, FormatStyle.LONG, FormatStyle.LONG, locale, zone, lenient);
+					addLocalizedDateTimeFormatter(df, FormatStyle.MEDIUM, FormatStyle.MEDIUM, locale, zone, lenient);
+					addLocalizedDateTimeFormatter(df, FormatStyle.SHORT, FormatStyle.SHORT, locale, zone, lenient);
 
-					df.add(new FormatterWrapper(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.FULL, FormatStyle.LONG).withLocale(locale).withZone(zone), "FULL_LONG",
-							FORMAT_TYPE_DATE_TIME, zone));
-					df.add(new FormatterWrapper(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.FULL, FormatStyle.MEDIUM).withLocale(locale).withZone(zone), "FULL_MEDIUM",
-							FORMAT_TYPE_DATE_TIME, zone));
-					df.add(new FormatterWrapper(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.FULL, FormatStyle.SHORT).withLocale(locale).withZone(zone), "FULL_SHORT",
-							FORMAT_TYPE_DATE_TIME, zone));
+					addLocalizedDateTimeFormatter(df, FormatStyle.FULL, FormatStyle.LONG, locale, zone, lenient);
+					addLocalizedDateTimeFormatter(df, FormatStyle.FULL, FormatStyle.MEDIUM, locale, zone, lenient);
+					addLocalizedDateTimeFormatter(df, FormatStyle.FULL, FormatStyle.SHORT, locale, zone, lenient);
 
-					df.add(new FormatterWrapper(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.LONG, FormatStyle.FULL).withLocale(locale).withZone(zone), "LONG_FULL",
-							FORMAT_TYPE_DATE_TIME, zone));
-					df.add(new FormatterWrapper(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.LONG, FormatStyle.MEDIUM).withLocale(locale).withZone(zone), "LONG_MEDIUM",
-							FORMAT_TYPE_DATE_TIME, zone));
-					df.add(new FormatterWrapper(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.LONG, FormatStyle.SHORT).withLocale(locale).withZone(zone), "LONG_SHORT",
-							FORMAT_TYPE_DATE_TIME, zone));
+					addLocalizedDateTimeFormatter(df, FormatStyle.LONG, FormatStyle.FULL, locale, zone, lenient);
+					addLocalizedDateTimeFormatter(df, FormatStyle.LONG, FormatStyle.MEDIUM, locale, zone, lenient);
+					addLocalizedDateTimeFormatter(df, FormatStyle.LONG, FormatStyle.SHORT, locale, zone, lenient);
 
-					df.add(new FormatterWrapper(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM, FormatStyle.FULL).withLocale(locale).withZone(zone), "MEDIUM_FULL",
-							FORMAT_TYPE_DATE_TIME, zone));
-					df.add(new FormatterWrapper(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM, FormatStyle.LONG).withLocale(locale).withZone(zone), "MEDIUM_LONG",
-							FORMAT_TYPE_DATE_TIME, zone));
-					df.add(new FormatterWrapper(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM, FormatStyle.SHORT).withLocale(locale).withZone(zone), "MEDIUM_SHORT",
-							FORMAT_TYPE_DATE_TIME, zone));
+					addLocalizedDateTimeFormatter(df, FormatStyle.MEDIUM, FormatStyle.FULL, locale, zone, lenient);
+					addLocalizedDateTimeFormatter(df, FormatStyle.MEDIUM, FormatStyle.LONG, locale, zone, lenient);
+					addLocalizedDateTimeFormatter(df, FormatStyle.MEDIUM, FormatStyle.SHORT, locale, zone, lenient);
 
-					df.add(new FormatterWrapper(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT, FormatStyle.FULL).withLocale(locale).withZone(zone), "SHORT_FULL",
-							FORMAT_TYPE_DATE_TIME, zone));
-					df.add(new FormatterWrapper(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT, FormatStyle.LONG).withLocale(locale).withZone(zone), "SHORT_LONG",
-							FORMAT_TYPE_DATE_TIME, zone));
-					df.add(new FormatterWrapper(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT, FormatStyle.MEDIUM).withLocale(locale).withZone(zone), "SHORT_MEDIUM",
-							FORMAT_TYPE_DATE_TIME, zone));
+					addLocalizedDateTimeFormatter(df, FormatStyle.SHORT, FormatStyle.FULL, locale, zone, lenient);
+					addLocalizedDateTimeFormatter(df, FormatStyle.SHORT, FormatStyle.LONG, locale, zone, lenient);
+					addLocalizedDateTimeFormatter(df, FormatStyle.SHORT, FormatStyle.MEDIUM, locale, zone, lenient);
 
 					// ISO8601
 					df.add(getFormatterWrapper("yyyy-MM-dd'T'HH:mm:ssXXX", zone, locale, FORMAT_TYPE_DATE_TIME, lenient));
@@ -286,6 +281,20 @@ public final class FormatUtil {
 		else builder.parseStrict();
 		DateTimeFormatter dtf = builder.toFormatter(locale).withZone(zone);
 		return new FormatterWrapper(dtf, pattern, type, zone, true);
+	}
+
+	/**
+	 * Adds localized date/time formatters with space-normalized patterns. Since Java's ofLocalizedDateTime()
+	 * formatters use U+202F (narrow no-break space) but we normalize input to regular spaces, we extract
+	 * the localized pattern and create a formatter with U+202F replaced by regular space.
+	 */
+	private static void addLocalizedDateTimeFormatter(List<FormatterWrapper> df, FormatStyle dateStyle, FormatStyle timeStyle, Locale locale, ZoneId zone, boolean lenient) {
+		// Get the localized pattern for this style
+		String pattern = DateTimeFormatterBuilder.getLocalizedDateTimePattern(dateStyle, timeStyle, IsoChronology.INSTANCE, locale);
+		// Replace U+202F with regular space so it matches normalized input
+		String normalizedPattern = pattern.replace('\u202F', ' ');
+		// Create formatter with normalized pattern
+		df.add(getFormatterWrapper(normalizedPattern, zone, locale, FORMAT_TYPE_DATE_TIME, lenient));
 	}
 
 	public static void fromFormatToFormatter(final List<FormatterWrapper> df, DateFormat[] formats, short type, Locale locale, TimeZone tz, boolean lenient) {
