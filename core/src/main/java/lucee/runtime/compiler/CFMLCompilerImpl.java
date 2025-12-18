@@ -88,13 +88,11 @@ public final class CFMLCompilerImpl implements CFMLCompiler {
 		Struct root = new StructImpl(Struct.TYPE_LINKED);
 		page.dump(root);
 
-		// TODO better solution than simply look at the offset from script
-		if (page.getSourceCode().getSourceOffset() == 10) {
-
+		// If parser wrapped script content in cfscript tags, unwrap it in the AST output
+		if (page.getSourceCode().isWrappedInScript()) {
 			boolean isCFMLCompExt = Constants.isCFMLComponentExtension(ResourceUtil.getExtension(ps.getResource(), ""));
 			// in case of a component Lucee moves the component to the root, so at the first position is just an
-			// empty script, we simply have to emove this
-			// TODO remove the script after moving in the parser
+			// empty script, we simply have to remove this
 			if (isCFMLCompExt) {
 				removeEmptyScriptTag(root);
 			}
@@ -149,14 +147,22 @@ public final class CFMLCompilerImpl implements CFMLCompiler {
 
 	private void removeEmptyScriptTag(Struct root) {
 		Array body = Caster.toArray(root.get(KeyConstants._body, null), null);
-		if (body != null && body.size() > 1) {
+		if (body != null && body.size() >= 1) {
 			Struct first = Caster.toStruct(body.get(1, null), null);
 			if (first != null) {
 				if ("cfscript".equalsIgnoreCase(Caster.toString(first.get("fullname", null), null))) {
 					Struct body2 = Caster.toStruct(first.get(KeyConstants._body, null), null);
 					Array body3 = Caster.toArray(body2.get(KeyConstants._body, null), null);
-					if (body3 != null && body3.size() == 0) {
-						body.removeEL(1);
+					if (body3 != null) {
+						if (body3.size() == 0) {
+							// Empty cfscript - just remove it
+							body.removeEL(1);
+						}
+						else {
+							// cfscript has content (component) - extract it
+							// Replace root body with cfscript contents
+							root.setEL(KeyConstants._body, body3);
+						}
 					}
 				}
 			}

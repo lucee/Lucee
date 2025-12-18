@@ -192,6 +192,7 @@ public final class CFMLTransformer {
 						text = "<" + scriptTag.getFullName() + ">" + text + "\n</" + scriptTag.getFullName() + ">";
 						int sourceOffset = ("<" + scriptTag.getFullName() + ">").length();
 						sc = new PageSourceCode(ps, text, charset, writeLog, sourceOffset);
+						sc.setWrappedInScript(true);
 						wrapped = true;
 
 					}
@@ -238,6 +239,7 @@ public final class CFMLTransformer {
 			String text = "<" + scriptTag.getFullName() + ">" + original.getText() + "\n</" + scriptTag.getFullName() + ">";
 			int sourceOffset = ("<" + scriptTag.getFullName() + ">").length();
 			sc = new PageSourceCode(ps, text, charset, writeLog, sourceOffset);
+			sc.setWrappedInScript(true);
 
 			try {
 				while (true) {
@@ -245,6 +247,7 @@ public final class CFMLTransformer {
 						sc = new PageSourceCode(ps, charset, writeLog);
 						text = "<" + scriptTag.getFullName() + ">" + sc.getText() + "\n</" + scriptTag.getFullName() + ">";
 						sc = new PageSourceCode(ps, text, charset, writeLog, sourceOffset);
+						sc.setWrappedInScript(true);
 					}
 					try {
 						_p = transform(factory, config, sc, tlibs, flibs, ps.getResource().lastModified(), dotUpper, returnValue, ignoreScopes, hasWriteLog, hasUpper, hasCharset,

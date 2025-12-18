@@ -6,39 +6,33 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ast" {
 
 		describe( "LDEV-6007: Component inside cfscript becomes sibling instead of child", function() {
 
-			it( "should nest component inside cfscript body", function() {
+			it( "should return component at root for script-based .cfc files", function() {
+				// After fixing Quirk #22, astFromPath on .cfc files should return
+				// the component directly at root, without cfscript wrapper
 				var ast = astFromPath( variables.testDir & "scriptComponent.cfc" );
 
-				// The AST should have a single top-level element: cfscript
 				expect( ast.type ).toBe( "Program" );
 				expect( ast.body ).toBeArray();
+				expect( ast.body ).toHaveLength( 1, "Should have single body element" );
 
-				// Find the cfscript tag
-				var cfscriptTag = findTagByName( ast, "script" );
-				expect( cfscriptTag ).notToBeNull( "cfscript tag should be present in AST" );
-
-				// The component should be INSIDE the cfscript body, not as a sibling
-				var componentInBody = findTagByName( cfscriptTag, "component" );
-
-				// Currently fails: component is a sibling, not a child
-				expect( isNull( componentInBody ) ).toBeFalse(
-					"component should be nested inside cfscript body, not as a sibling" );
+				// Component should be directly at root, not wrapped in cfscript
+				expect( ast.body[1].type ).toBe( "CFMLTag" );
+				expect( ast.body[1].name ).toBe( "component",
+					"Component should be at root, got: #ast.body[1].name#" );
 			});
 
-			it( "should not have component as sibling to cfscript", function() {
+			it( "should have function inside the component body", function() {
 				var ast = astFromPath( variables.testDir & "scriptComponent.cfc" );
 
-				// Count top-level CFMLTag nodes
-				var topLevelTags = [];
-				for ( var node in ast.body ) {
-					if ( ( node.type ?: "" ) == "CFMLTag" ) {
-						arrayAppend( topLevelTags, node.name ?: "unknown" );
-					}
-				}
+				// The component should contain the function
+				var component = ast.body[1];
+				expect( component.name ).toBe( "component" );
 
-				// There should only be one top-level tag (cfscript), not two (cfscript + component)
-				expect( arrayLen( topLevelTags ) ).toBe( 1,
-					"Expected 1 top-level tag (cfscript) but found: " & arrayToList( topLevelTags ) );
+				// Find function in component body
+				var funcDecl = component.body.body.filter( function( item ) {
+					return ( item.type ?: "" ) == "FunctionDeclaration";
+				});
+				expect( funcDecl ).toHaveLength( 1, "Component should contain bar function" );
 			});
 
 		});
