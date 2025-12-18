@@ -1133,6 +1133,89 @@ public final class VariableImpl extends ExpressionBase implements Variable {
 			Struct newNode = new StructImpl(Struct.TYPE_LINKED);
 
 			if (member instanceof FunctionMember) {
+				FunctionMember fm = (FunctionMember) member;
+				String funcName = getName(fm).toString();
+
+				// LDEV-6011: Handle internal literal functions as proper AST node types
+				if (current == null && member instanceof BIF) {
+					if ("_literalStruct".equalsIgnoreCase(funcName) || "_literalOrderedStruct".equalsIgnoreCase(funcName)) {
+						// Output as ObjectExpression
+						newNode.setEL(KeyConstants._type, "ObjectExpression");
+						// Track if this is an ordered struct (bracket notation)
+						if ("_literalOrderedStruct".equalsIgnoreCase(funcName)) {
+							newNode.setEL("ordered", Boolean.TRUE);
+						}
+						Array properties = new ArrayImpl();
+						newNode.setEL("properties", properties);
+						// Each argument is a NamedArgument containing both key and value
+						Argument[] args = fm.getSourceArguments();
+						for (Argument arg : args) {
+							Struct prop = new StructImpl(Struct.TYPE_LINKED);
+							prop.setEL(KeyConstants._type, "Property");
+							if (arg instanceof NamedArgument) {
+								NamedArgument na = (NamedArgument) arg;
+								Struct keyNode = new StructImpl(Struct.TYPE_LINKED);
+								na.getName().dump(keyNode);
+								prop.setEL(KeyConstants._key, keyNode);
+								Struct valueNode = new StructImpl(Struct.TYPE_LINKED);
+								na.getValue().dump(valueNode);
+								prop.setEL(KeyConstants._value, valueNode);
+							}
+							else {
+								// Fallback for non-named arguments (shouldn't happen for struct literals)
+								Struct valueNode = new StructImpl(Struct.TYPE_LINKED);
+								arg.dump(valueNode);
+								prop.setEL(KeyConstants._value, valueNode);
+							}
+							properties.appendEL(prop);
+						}
+						current = newNode;
+						continue;
+					}
+					else if ("_literalArray".equalsIgnoreCase(funcName)) {
+						// Output as ArrayExpression
+						newNode.setEL(KeyConstants._type, "ArrayExpression");
+						Array elements = new ArrayImpl();
+						newNode.setEL("elements", elements);
+						for (Argument arg: fm.getSourceArguments()) {
+							Struct elemNode = new StructImpl(Struct.TYPE_LINKED);
+							arg.dump(elemNode);
+							elements.appendEL(elemNode);
+						}
+						current = newNode;
+						continue;
+					}
+					else if ("_createComponent".equalsIgnoreCase(funcName)) {
+						// Output as NewExpression
+						// Arguments order from parser: [constructor args..., component path, type string]
+						// Note: Component path and type are added AFTER snapshotSourceArguments(),
+						// so we need getArguments() not getSourceArguments()
+						// - args[0..n-3]: constructor arguments passed to init()
+						// - args[n-2]: component path (e.g., "MyComponent")
+						// - args[n-1]: type string (e.g., "type:undefined") - should be filtered out
+						newNode.setEL(KeyConstants._type, "NewExpression");
+						Argument[] args = fm.getArguments();
+
+						// Component path is second-to-last argument
+						if (args.length >= 2) {
+							Struct calleeNode = new StructImpl(Struct.TYPE_LINKED);
+							args[args.length - 2].dump(calleeNode);
+							newNode.setEL(KeyConstants._callee, calleeNode);
+						}
+
+						// Constructor arguments are everything except the last two
+						Array argArray = new ArrayImpl();
+						newNode.setEL(KeyConstants._arguments, argArray);
+						for (int j = 0; j < args.length - 2; j++) {
+							Struct argNode = new StructImpl(Struct.TYPE_LINKED);
+							args[j].dump(argNode);
+							argArray.appendEL(argNode);
+						}
+						current = newNode;
+						continue;
+					}
+				}
+
 				// Function call
 				newNode.setEL(KeyConstants._type, "CallExpression");
 
@@ -1146,7 +1229,7 @@ public final class VariableImpl extends ExpressionBase implements Variable {
 					// First element - base identifier
 					Struct callee = new StructImpl(Struct.TYPE_LINKED);
 					callee.setEL(KeyConstants._type, "Identifier");
-					callee.setEL(KeyConstants._name, getName((FunctionMember) member));
+					callee.setEL(KeyConstants._name, funcName);
 					newNode.setEL(KeyConstants._callee, callee);
 				}
 				else {
@@ -1158,7 +1241,7 @@ public final class VariableImpl extends ExpressionBase implements Variable {
 
 					Struct property = new StructImpl(Struct.TYPE_LINKED);
 					property.setEL(KeyConstants._type, "Identifier");
-					property.setEL(KeyConstants._name, getName((FunctionMember) member));
+					property.setEL(KeyConstants._name, funcName);
 					callee.setEL(KeyConstants._property, property);
 
 					newNode.setEL(KeyConstants._callee, callee);
@@ -1167,7 +1250,6 @@ public final class VariableImpl extends ExpressionBase implements Variable {
 				// Add arguments (use source arguments to exclude evaluator modifications)
 				Array arrArgs = new ArrayImpl();
 				newNode.setEL(KeyConstants._arguments, arrArgs);
-				FunctionMember fm = (FunctionMember) member;
 				for (Argument arg: fm.getSourceArguments()) {
 					Struct sctArg = new StructImpl(Struct.TYPE_LINKED);
 					arrArgs.appendEL(sctArg);
