@@ -49,6 +49,7 @@ import lucee.transformer.Position;
 import lucee.transformer.bytecode.PageImpl;
 import lucee.transformer.bytecode.statement.StatementBase;
 import lucee.transformer.bytecode.statement.tag.TagBase;
+import lucee.transformer.bytecode.statement.tag.TagComponent;
 import lucee.transformer.bytecode.statement.tag.TagFunction;
 import lucee.transformer.cfml.Data;
 import lucee.transformer.cfml.ExprTransformer;
@@ -223,7 +224,8 @@ public final class CFMLTransformer {
 		boolean possibleUndetectedComponent = false;
 
 		// we don't have a component or interface
-		if (!wrapped && p.isPage()) {
+		// Also check if component exists inside cfscript body (handles <cfscript>component { }</cfscript>)
+		if (!wrapped && p.isPage() && !containsComponentRecursive(p)) {
 			possibleUndetectedComponent = isCFMLCompExt;
 		}
 
@@ -286,6 +288,23 @@ public final class CFMLTransformer {
 		}
 
 		return p;
+	}
+
+	/**
+	 * Check if a body contains a component, recursively searching through tag bodies (e.g., cfscript)
+	 */
+	private static boolean containsComponentRecursive(Body body) {
+		if (body == null) return false;
+		for (Statement s : body.getStatements()) {
+			if (s instanceof TagComponent) return true;
+			if (s instanceof Tag) {
+				Tag tag = (Tag) s;
+				if (tag.getBody() != null && containsComponentRecursive(tag.getBody())) {
+					return true;
+				}
+			}
+		}
+		return false;
 	}
 
 	public static TagLibTag getTLT(SourceCode cfml, String name, Identification id) throws TemplateException {
