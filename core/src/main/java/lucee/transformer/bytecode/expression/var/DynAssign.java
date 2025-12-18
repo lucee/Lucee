@@ -92,15 +92,15 @@ public final class DynAssign extends ExpressionBase {
 	@Override
 	public void dump(Struct sct) {
 		super.dump(sct);
-		sct.setEL(KeyConstants._type, "CallExpression");
-		sct.setEL(KeyConstants._operator, "AssignmentExpression");
+		sct.setEL(KeyConstants._type, "AssignmentExpression");
+		sct.setEL(KeyConstants._operator, "ASSIGN");
 
 		Struct left = new StructImpl(Struct.TYPE_LINKED);
 		sct.setEL(KeyConstants._left, left);
-		name.dump(sct);
+		name.dump(left);
 
 		Struct right = new StructImpl(Struct.TYPE_LINKED);
 		sct.setEL(KeyConstants._right, right);
-		value.dump(sct);
+		value.dump(right);
 	}
 }
