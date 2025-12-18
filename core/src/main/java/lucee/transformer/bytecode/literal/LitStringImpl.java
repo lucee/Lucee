@@ -52,6 +52,7 @@ public class LitStringImpl extends ExpressionBase implements LitString, ExprStri
 	private String str;
 	private String rawSource; // Original source representation for AST dump
 	private boolean fromBracket;
+	private char quoteChar; // Original quote character (' or ") for AST dump
 
 	/*
 	 * public static ExprString toExprString(String str, Position start,Position end) { return new
@@ -211,6 +212,20 @@ public class LitStringImpl extends ExpressionBase implements LitString, ExprStri
 		return rawSource;
 	}
 
+	/**
+	 * Set the original quote character for AST dump.
+	 */
+	public void setQuoteChar(char quoteChar) {
+		this.quoteChar = quoteChar;
+	}
+
+	/**
+	 * Get the original quote character.
+	 */
+	public char getQuoteChar() {
+		return quoteChar;
+	}
+
 	@Override
 	public void dump(Struct sct) {
 		super.dump(sct);
@@ -227,6 +242,10 @@ public class LitStringImpl extends ExpressionBase implements LitString, ExprStri
 		}
 		else {
 			sct.setEL(KeyConstants._raw, "null");
+		}
+		// Only include quoteChar if it was set (AST mode)
+		if (quoteChar != 0) {
+			sct.setEL("quoteChar", String.valueOf(quoteChar));
 		}
 	}
 }

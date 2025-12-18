@@ -1,0 +1,3 @@
+component {
+	x = "hello";
+}
