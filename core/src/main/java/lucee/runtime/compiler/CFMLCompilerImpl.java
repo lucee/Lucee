@@ -88,8 +88,10 @@ public final class CFMLCompilerImpl implements CFMLCompiler {
 		Struct root = new StructImpl(Struct.TYPE_LINKED);
 		page.dump(root);
 
+		boolean isScript = page.getSourceCode().isWrappedInScript();
+
 		// If parser wrapped script content in cfscript tags, unwrap it in the AST output
-		if (page.getSourceCode().isWrappedInScript()) {
+		if (isScript) {
 			boolean isCFMLCompExt = Constants.isCFMLComponentExtension(ResourceUtil.getExtension(ps.getResource(), ""));
 			// in case of a component Lucee moves the component to the root, so at the first position is just an
 			// empty script, we simply have to remove this
@@ -100,6 +102,10 @@ public final class CFMLCompilerImpl implements CFMLCompiler {
 				extractScriptTagInRoot(root);
 			}
 		}
+
+		// Add compiler metadata to AST root
+		addASTMetadata(root, config, isScript);
+
 		return root;
 	}
 
@@ -125,7 +131,17 @@ public final class CFMLCompilerImpl implements CFMLCompiler {
 			extractScriptTagInRoot(root);
 		}
 
+		// Add compiler metadata to AST root
+		addASTMetadata(root, config, script);
+
 		return root;
+	}
+
+	// Add compiler settings metadata to the AST Program node
+	private void addASTMetadata(Struct root, ConfigPro config, boolean isScript) {
+		root.setEL("sourceType", isScript ? "script" : "tag");
+		root.setEL("dotNotationUpperCase", config.getDotNotationUpperCase());
+		root.setEL("handleUnquotedAttrValueAsString", config.getHandleUnQuotedAttrValueAsString());
 	}
 
 	// remove script again (a bit complicated, but atm the only way to do it)
