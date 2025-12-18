@@ -353,5 +353,9 @@ public class Assign extends ExpressionBase {
 		sct.setEL(KeyConstants._right, right);
 		value.dump(right);
 
+		// Include final modifier if set
+		if (modifier == lucee.runtime.component.Member.MODIFIER_FINAL) {
+			sct.setEL(KeyConstants._final, Boolean.TRUE);
+		}
 	}
 }
