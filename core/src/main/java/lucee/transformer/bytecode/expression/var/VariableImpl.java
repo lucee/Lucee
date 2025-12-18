@@ -1267,12 +1267,28 @@ public final class VariableImpl extends ExpressionBase implements Variable {
 				else {
 					// Member expression
 					newNode.setEL(KeyConstants._type, "MemberExpression");
-					newNode.setEL(KeyConstants._computed, false);
+					// Check if this is bracket notation (computed=true) or dot notation (computed=false)
+					Expression memberName = ((DataMember) member).getName();
+					boolean isComputed = (memberName instanceof LitString && ((LitString) memberName).fromBracket())
+							|| !(memberName instanceof Literal);
+					newNode.setEL(KeyConstants._computed, isComputed);
 					newNode.setEL(KeyConstants._object, current);
 
 					Struct property = new StructImpl(Struct.TYPE_LINKED);
-					property.setEL(KeyConstants._type, "Identifier");
-					property.setEL(KeyConstants._name, getName((DataMember) member));
+					if (isComputed && memberName instanceof Literal) {
+						// Bracket notation with literal key - output as StringLiteral
+						property.setEL(KeyConstants._type, "StringLiteral");
+						property.setEL(KeyConstants._value, memberName.toString());
+					}
+					else if (isComputed) {
+						// Bracket notation with dynamic expression - dump the expression
+						memberName.dump(property);
+					}
+					else {
+						// Dot notation - output as Identifier
+						property.setEL(KeyConstants._type, "Identifier");
+						property.setEL(KeyConstants._name, getName((DataMember) member));
+					}
 					newNode.setEL(KeyConstants._property, property);
 				}
 			}
