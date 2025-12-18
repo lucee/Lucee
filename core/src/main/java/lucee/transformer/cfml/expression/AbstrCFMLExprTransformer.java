@@ -49,6 +49,7 @@ import lucee.transformer.bytecode.expression.var.NamedArgumentImpl;
 import lucee.transformer.expression.var.NamedArgument;
 import lucee.transformer.bytecode.expression.var.UDF;
 import lucee.transformer.bytecode.literal.Identifier;
+import lucee.transformer.bytecode.literal.LitStringImpl;
 import lucee.transformer.bytecode.literal.Null;
 import lucee.transformer.bytecode.literal.NullConstant;
 import lucee.transformer.bytecode.op.OpVariable;
@@ -1179,6 +1180,11 @@ public abstract class AbstrCFMLExprTransformer {
 		if (expr instanceof Variable) {
 			Variable var = (Variable) expr;
 			var.fromHash(true);
+		}
+
+		// Set quoteChar to preserve original quote style for AST dump
+		if (expr instanceof LitStringImpl) {
+			((LitStringImpl) expr).setQuoteChar(quoter);
 		}
 
 		return expr;

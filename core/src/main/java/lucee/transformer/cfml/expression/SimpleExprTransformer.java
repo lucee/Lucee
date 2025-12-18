@@ -104,9 +104,10 @@ public final class SimpleExprTransformer implements ExprTransformer {
 
 		rawSource.append(quoter); // End with closing quote
 		LitString rtn = f.createLitString(str.toString(), line, cfml.getPosition());
-		// Set raw source to preserve original representation for AST dump
+		// Set raw source and quoteChar to preserve original representation for AST dump
 		if (rtn instanceof LitStringImpl) {
 			((LitStringImpl) rtn).setRawSource(rawSource.toString());
+			((LitStringImpl) rtn).setQuoteChar(quoter);
 		}
 		cfml.removeSpace();
 		return rtn;
