@@ -71,6 +71,7 @@ import lucee.transformer.bytecode.statement.Switch;
 import lucee.transformer.bytecode.statement.TagIsland;
 import lucee.transformer.bytecode.statement.TryCatchFinally;
 import lucee.transformer.bytecode.statement.While;
+import lucee.transformer.bytecode.statement.tag.TagBase;
 import lucee.transformer.bytecode.statement.tag.TagComponent;
 import lucee.transformer.bytecode.statement.tag.TagOther;
 import lucee.transformer.bytecode.statement.tag.TagParam;
@@ -2212,6 +2213,10 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 
 	private final void eval(TagLibTag tlt, Data data, Tag tag) throws TemplateException {
 		if (tlt.hasTTE()) {
+			// Snapshot attributes for AST before evaluators modify them
+			if (data.ast && tag instanceof TagBase) {
+				((TagBase) tag).snapshotSourceAttributes();
+			}
 			try {
 				tlt.getEvaluator().execute(data.config, tag, tlt, data.flibs, data);
 			}

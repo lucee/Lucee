@@ -39,6 +39,36 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ast" {
 				expect( attrNames ).notToInclude( "id", "Internal id attribute should not leak into AST" );
 			});
 
+			it( "cfcache tag syntax should not have internal _id attribute in AST", function() {
+				var testDir = getDirectoryFromPath( getCurrentTemplatePath() ) & "LDEV5982/";
+				var ast = astFromPath( testDir & "cfcache.cfm" );
+
+				var cacheTag = findTagByName( ast, "cache" );
+				expect( cacheTag ).notToBeNull( "cfcache tag should be present in AST" );
+
+				var attrs = cacheTag.attributes ?: [];
+				var attrNames = attrs.map( function( a ) { return a.name; } );
+
+				// Should have action, but NOT _id
+				expect( attrNames ).toInclude( "action" );
+				expect( attrNames ).notToInclude( "_id", "Internal _id attribute should not leak into AST" );
+			});
+
+			it( "cfcache script syntax should not have internal _id attribute in AST", function() {
+				var code = 'cfcache( action="flush" );';
+				var ast = astFromString( code, "script" );
+
+				var cacheTag = findTagByName( ast, "cache" );
+				expect( cacheTag ).notToBeNull( "cfcache tag should be present in AST" );
+
+				var attrs = cacheTag.attributes ?: [];
+				var attrNames = attrs.map( function( a ) { return a.name; } );
+
+				// Should have action, but NOT _id
+				expect( attrNames ).toInclude( "action" );
+				expect( attrNames ).notToInclude( "_id", "Internal _id attribute should not leak into AST (script mode)" );
+			});
+
 		});
 	}
 
