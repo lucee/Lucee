@@ -6,22 +6,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ast" {
 
 		describe( "LDEV-6006: astFromString mishandles CFML comment syntax in string literals", function() {
 
-			it( "should parse component with <!--- in string literal correctly", function() {
-				// astFromPath wraps script components in cfscript tag
-				var astFromFile = astFromPath( variables.testDir & "commentInString.cfc" );
-				expect( astFromFile.body ).toHaveLength( 1, "astFromPath should return 1 body element" );
-				expect( astFromFile.body[1].type ).toBe( "CFMLTag", "astFromPath should return CFMLTag" );
-				expect( astFromFile.body[1].name ).toBe( "script", "script-based .cfc is wrapped in cfscript" );
-
-				// Component should be inside the cfscript body
-				var scriptBody = astFromFile.body[1].body.body;
-				expect( scriptBody ).toBeArray();
-				var componentTag = scriptBody.filter( function( item ) {
-					return ( item.type ?: "" ) == "CFMLTag" && ( item.name ?: "" ) == "component";
-				});
-				expect( componentTag ).toHaveLength( 1, "component should be inside cfscript body" );
-			});
-
 			it( "handles <!--- inside string in pure script mode", function() {
 				// Pure script mode works fine
 				var code = 'x = "test <!--- comment";';
@@ -33,11 +17,12 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ast" {
 			});
 
 			it( "should handle <!--- inside string in component context", function() {
-				// Component code with <!--- in a string - auto-detected as script mode
+				// Component code with <!--- in a string - must use "script" mode
+				// astFromString defaults to tag mode, which would strip <!--- as comment
 				var code = 'component { function test() { x = "^<!---.*--->$"; } }';
-				var ast = astFromString( code );
+				var ast = astFromString( code, "script" );
 
-				// astFromString auto-detects script mode, component is at root
+				// Component is at root when using script mode
 				expect( ast.body ).toHaveLength( 1,
 					"Should have single element, got #arrayLen( ast.body )# elements" );
 				expect( ast.body[1].type ).toBe( "CFMLTag",
@@ -50,6 +35,25 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ast" {
 				var assignment = funcBody[1];
 				expect( assignment.right.value ).toInclude( "<!---",
 					"String should contain <!--- comment syntax" );
+			});
+
+			it( "astFromPath should not wrap script component in cfscript", function() {
+				// This is the fix for Quirk #22 - astFromPath should return
+				// the component directly, not wrapped in cfscript
+				var ast = astFromPath( variables.testDir & "commentInString.cfc" );
+
+				expect( ast.body ).toHaveLength( 1, "Should have single body element" );
+				expect( ast.body[1].type ).toBe( "CFMLTag", "Should be CFMLTag" );
+				expect( ast.body[1].name ).toBe( "component",
+					"Should be component directly, not wrapped in cfscript. Got: #ast.body[1].name#" );
+
+				// Verify the function is inside the component
+				var componentBody = ast.body[1].body.body;
+				expect( componentBody ).toBeArray();
+				var funcDecl = componentBody.filter( function( item ) {
+					return ( item.type ?: "" ) == "FunctionDeclaration";
+				});
+				expect( funcDecl ).toHaveLength( 1, "Component should contain test function" );
 			});
 
 		});
