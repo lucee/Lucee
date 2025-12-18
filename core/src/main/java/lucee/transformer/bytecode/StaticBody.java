@@ -17,12 +17,20 @@
  */
 package lucee.transformer.bytecode;
 
+import lucee.runtime.type.Struct;
 import lucee.transformer.Factory;
 
 public final class StaticBody extends BodyBase {
 
 	public StaticBody(Factory f) {
 		super(f);
+	}
+
+	@Override
+	public void dump(Struct sct) {
+		super.dump(sct);
+		// Mark this block as a static initializer
+		sct.setEL("static", Boolean.TRUE);
 	}
 
 }
