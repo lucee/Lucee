@@ -40,6 +40,7 @@ public final class OpString extends ExpressionBase implements ExprString {
 	private ExprString right;
 	private ExprString left;
 	private boolean fromInterpolation = false;
+	private char quoteChar; // Original quote character (' or ") for TemplateLiteral AST dump
 
 	// String concat (String)
 	private final static Method METHOD_CONCAT = new Method("concat", Types.STRING, new Type[] { Types.STRING });
@@ -57,6 +58,14 @@ public final class OpString extends ExpressionBase implements ExprString {
 
 	public boolean isFromInterpolation() {
 		return fromInterpolation;
+	}
+
+	public void setQuoteChar(char quoteChar) {
+		this.quoteChar = quoteChar;
+	}
+
+	public char getQuoteChar() {
+		return quoteChar;
 	}
 
 	public static ExprString toExprString(Expression left, Expression right, boolean concatStatic) {
@@ -108,6 +117,11 @@ public final class OpString extends ExpressionBase implements ExprString {
 			collectInterpolationParts(this, quasis, expressions);
 
 			sct.setEL(KeyConstants._type, "TemplateLiteral");
+
+			// Include quoteChar if set (for round-trip fidelity)
+			if (quoteChar != 0) {
+				sct.setEL("quoteChar", String.valueOf(quoteChar));
+			}
 
 			// Add quasis array
 			Array quasisArr = new ArrayImpl();

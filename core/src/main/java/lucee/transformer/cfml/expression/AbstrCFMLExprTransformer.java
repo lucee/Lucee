@@ -51,6 +51,7 @@ import lucee.transformer.bytecode.literal.Identifier;
 import lucee.transformer.bytecode.literal.LitStringImpl;
 import lucee.transformer.bytecode.literal.Null;
 import lucee.transformer.bytecode.literal.NullConstant;
+import lucee.transformer.bytecode.op.OpString;
 import lucee.transformer.bytecode.op.OpVariable;
 import lucee.transformer.bytecode.statement.tag.TagComponent;
 import lucee.transformer.bytecode.statement.udf.Function;
@@ -1162,6 +1163,9 @@ public abstract class AbstrCFMLExprTransformer {
 		// Set quoteChar to preserve original quote style for AST dump
 		if (expr instanceof LitStringImpl) {
 			((LitStringImpl) expr).setQuoteChar(quoter);
+		}
+		else if (expr instanceof OpString) {
+			((OpString) expr).setQuoteChar(quoter);
 		}
 
 		return expr;
