@@ -1116,7 +1116,7 @@ public abstract class AbstrCFMLExprTransformer {
 					if (str.length() != 0) {
 						exprStr = data.factory.createLitString(str.toString(), line, data.srcCode.getPosition());
 						if (expr != null) {
-							expr = data.factory.opString(expr, exprStr);
+							expr = data.factory.opStringInterpolation(expr, exprStr);
 						}
 						else expr = exprStr;
 						str = new StringBuilder();
@@ -1125,7 +1125,7 @@ public abstract class AbstrCFMLExprTransformer {
 						expr = inner;
 					}
 					else {
-						expr = data.factory.opString(expr, inner);
+						expr = data.factory.opStringInterpolation(expr, inner);
 					}
 				}
 			}
@@ -1150,7 +1150,7 @@ public abstract class AbstrCFMLExprTransformer {
 
 		if (expr == null) expr = data.factory.createLitString(str.toString(), line, data.srcCode.getPosition());
 		else if (str.length() != 0) {
-			expr = data.factory.opString(expr, data.factory.createLitString(str.toString(), line, data.srcCode.getPosition()));
+			expr = data.factory.opStringInterpolation(expr, data.factory.createLitString(str.toString(), line, data.srcCode.getPosition()));
 		}
 		comments(data);
 

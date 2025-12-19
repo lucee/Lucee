@@ -29,6 +29,14 @@ public final class OpString extends ExpressionBase implements ExprString {
 		return new OpString(left, right);
 	}
 
+	/**
+	 * For interpreter, interpolation is handled the same as regular concat.
+	 * The distinction only matters for AST dump output in bytecode version.
+	 */
+	public static ExprString toExprStringInterpolation(Expression left, Expression right) {
+		return toExprString(left, right, false);
+	}
+
 	@Override
 	public Class<?> _writeOut(InterpreterContext ic, int mode) throws PageException {
 		ic.stack(ic.getValueAsString(left).concat(ic.getValueAsString(right)));

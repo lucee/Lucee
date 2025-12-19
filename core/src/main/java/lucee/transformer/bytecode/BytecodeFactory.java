@@ -297,6 +297,11 @@ public final class BytecodeFactory extends FactoryBase {
 	}
 
 	@Override
+	public ExprString opStringInterpolation(Expression left, Expression right) {
+		return OpString.toExprStringInterpolation(left, right);
+	}
+
+	@Override
 	public ExprBoolean opBool(Expression left, Expression right, int operation) {
 		return OpBool.toExprBoolean(left, right, operation);
 	}
