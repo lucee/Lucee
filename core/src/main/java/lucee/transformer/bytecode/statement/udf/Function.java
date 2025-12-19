@@ -153,6 +153,7 @@ public abstract class Function extends StatementBaseNoFinal implements Opcodes, 
 	ExprInt localMode;
 	// protected int localIndex = -1;
 	Literal cachedWithin;
+	Expression sourceCachedWithin; // Original expression for AST fidelity (before evaluation)
 	int modifier;
 	protected JavaFunction jf;
 	// private final Root root;
@@ -591,6 +592,7 @@ public abstract class Function extends StatementBaseNoFinal implements Opcodes, 
 		}
 		else if ("cachedwithin".equals(name)) {
 			try {
+				this.sourceCachedWithin = attr.getValue(); // Preserve original for AST
 				this.cachedWithin = ASMUtil.cachedWithinValue(attr.getValue());// ASMUtil.timeSpanToLong(attr.getValue());
 			}
 			catch (EvaluatorException e) {
@@ -737,8 +739,13 @@ public abstract class Function extends StatementBaseNoFinal implements Opcodes, 
 			localMode.dump(s);
 			sct.setEL(KeyConstants._localMode, s);
 		}
-		// cachedWithin
-		if (cachedWithin != null) {
+		// cachedWithin - use original expression if available for AST fidelity
+		if (sourceCachedWithin != null) {
+			Struct s = new StructImpl(StructImpl.TYPE_LINKED_NOT_SYNC, 8);
+			sourceCachedWithin.dump(s);
+			sct.setEL(KeyConstants._cachedWithin, s);
+		}
+		else if (cachedWithin != null) {
 			Struct s = new StructImpl(StructImpl.TYPE_LINKED_NOT_SYNC, 8);
 			cachedWithin.dump(s);
 			sct.setEL(KeyConstants._cachedWithin, s);
