@@ -18,4 +18,15 @@ component {
 		return message;
 	}
 
+	/**
+	 * This hint comes from a docblock
+	 */
+	function withDocblock() {
+		return "docblock";
+	}
+
+	function withHintAttr() hint="This hint comes from an attribute" {
+		return "attribute";
+	}
+
 }

@@ -141,6 +141,7 @@ public abstract class Function extends StatementBaseNoFinal implements Opcodes, 
 	int access = Component.ACCESS_PUBLIC;
 	ExprString displayName;
 	ExprString hint;
+	String hintSource; // "docblock" or "attribute" - indicates where hint came from
 	Body body;
 	List<Argument> arguments = new ArrayList<Argument>();
 	Map<String, Attribute> metadata;
@@ -534,6 +535,7 @@ public abstract class Function extends StatementBaseNoFinal implements Opcodes, 
 
 	public final void setHint(Factory factory, String hint) {
 		this.hint = factory.createLitString(hint);
+		this.hintSource = "docblock";
 	}
 
 	public final void addAttribute(BytecodeContext bc, Attribute attr) throws TemplateException {
@@ -558,7 +560,10 @@ public abstract class Function extends StatementBaseNoFinal implements Opcodes, 
 		else if ("output".equals(name)) this.output = toLitBoolean(bc, name, attr.getValue());
 		else if ("bufferoutput".equals(name)) this.bufferOutput = toLitBoolean(bc, name, attr.getValue());
 		else if ("displayname".equals(name)) this.displayName = toLitString(bc, name, attr.getValue());
-		else if ("hint".equals(name)) this.hint = toLitString(bc, name, attr.getValue());
+		else if ("hint".equals(name)) {
+			this.hint = toLitString(bc, name, attr.getValue());
+			this.hintSource = "attribute";
+		}
 		else if ("description".equals(name)) this.description = toLitString(bc, name, attr.getValue());
 		else if ("returnformat".equals(name)) this.returnFormat = toLitString(bc, name, attr.getValue());
 		else if ("securejson".equals(name)) this.secureJson = toLitBoolean(bc, name, attr.getValue());
@@ -692,6 +697,10 @@ public abstract class Function extends StatementBaseNoFinal implements Opcodes, 
 			Struct s = new StructImpl(Struct.TYPE_LINKED);
 			hint.dump(s);
 			sct.setEL(KeyConstants._hint, s);
+		}
+		// hintSource - indicates where hint came from (docblock or attribute)
+		if (hintSource != null) {
+			sct.setEL("hintSource", hintSource);
 		}
 		// secureJson
 		if (secureJson != null) {

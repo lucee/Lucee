@@ -55,6 +55,34 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ast" {
 
 		});
 
+		describe( "LDEV-5990: Docblock hints should include source annotation", function() {
+
+			it( "should indicate hint came from docblock vs attribute", function() {
+				var ast = astFromPath( variables.testDir & "hintedParams.cfc" );
+
+				// Find the withDocblock function (has hint from docblock)
+				var func = findFunction( ast, "withDocblock" );
+				expect( func ).notToBeNull( "withDocblock function should be found in AST" );
+				expect( func ).toHaveKey( "hint" );
+				// Should have some way to know this hint came from a docblock
+				expect( func ).toHaveKey( "hintSource", "AST should indicate hint source" );
+				expect( func.hintSource ).toBe( "docblock" );
+			});
+
+			it( "should indicate hint came from attribute when using hint attribute", function() {
+				var ast = astFromPath( variables.testDir & "hintedParams.cfc" );
+
+				// Find the withHintAttr function (has hint="..." attribute)
+				var func = findFunction( ast, "withHintAttr" );
+				expect( func ).notToBeNull( "withHintAttr function should be found in AST" );
+				expect( func ).toHaveKey( "hint" );
+				// Should indicate this hint came from an attribute
+				expect( func ).toHaveKey( "hintSource", "AST should indicate hint source" );
+				expect( func.hintSource ).toBe( "attribute" );
+			});
+
+		});
+
 	}
 
 	/**
