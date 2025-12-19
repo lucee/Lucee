@@ -18,7 +18,6 @@
  **/
 package lucee.transformer.cfml.evaluator.impl;
 
-import java.util.Iterator;
 import java.util.List;
 
 import lucee.commons.lang.StringUtil;
@@ -40,7 +39,6 @@ public final class Static extends EvaluatorSupport {
 
 	@Override
 	public void evaluate(Tag tag, TagLibTag libTag) throws EvaluatorException {
-
 		// check parent
 		Body body = null;
 
@@ -70,7 +68,7 @@ public final class Static extends EvaluatorSupport {
 		// remove that tag from parent
 		ASMUtil.remove(tag);
 
-		StaticBody sb = getStaticBody(body);
+		StaticBody sb = createStaticBody(body);
 		ASMUtil.addStatements(sb, children);
 	}
 
@@ -84,16 +82,22 @@ public final class Static extends EvaluatorSupport {
 		return defaultValue;
 	}
 
-	static StaticBody getStaticBody(Body body) {
-		Iterator<Statement> it = body.getStatements().iterator();
-		Statement s;
-		while (it.hasNext()) {
-			s = it.next();
-			if (s instanceof StaticBody) return (StaticBody) s;
-		}
+	/**
+	 * Creates a new StaticBody and adds it to the component body.
+	 * Each static { } block gets its own StaticBody to preserve AST structure.
+	 */
+	static StaticBody createStaticBody(Body body) {
 		StaticBody sb = new StaticBody(body.getFactory());
 		body.addStatement(sb);
 		return sb;
+	}
+
+	/**
+	 * Creates a new StaticBody for static functions.
+	 * Each static function gets its own StaticBody to preserve AST structure.
+	 */
+	static StaticBody getStaticBodyForFunction(Body body) {
+		return createStaticBody(body);
 	}
 
 }
