@@ -27,10 +27,8 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 			});
 			it( title = 'test loop tag', body = function( currentSpec ) {
 				var result = astFromString('<cfloop from="1" to="10" index="i"></cfloop>');
-				assertEquals(
-					'{"start":{"line":1,"column":0,"offset":0},"end":{"line":1,"column":44,"offset":44},"type":"Program","body":[{"start":{"line":1,"column":0,"offset":0},"end":{"line":1,"column":44,"offset":44},"type":"CFMLTag","isBuiltIn":true,"name":"loop","nameSpace":"cf","nameSpaceSeparator":"","fullname":"cfloop","attributes":[{"name":"from","type":"Attribute","value":{"start":{"line":1,"column":13,"offset":13},"end":{"line":1,"column":16,"offset":16},"type":"NumberLiteral","raw":"1","value":1}},{"name":"to","type":"Attribute","value":{"start":{"line":1,"column":20,"offset":20},"end":{"line":1,"column":24,"offset":24},"type":"NumberLiteral","raw":"10","value":10}},{"name":"index","type":"Attribute","value":{"start":{"line":1,"column":31,"offset":31},"end":{"line":1,"column":34,"offset":34},"type":"StringLiteral","value":"i","raw":"\"i\""}}],"body":{"type":"BlockStatement","body":[]}}],"sourceType":"tag","dotNotationUpperCase":true,"handleUnquotedAttrValueAsString":true}',
-					serializeJSON(var:result,compact:true)
-					);
+				var expected = deserializeJSON( '{"start":{"line":1,"column":0,"offset":0},"end":{"line":1,"column":44,"offset":44},"type":"Program","body":[{"start":{"line":1,"column":0,"offset":0},"end":{"line":1,"column":44,"offset":44},"type":"CFMLTag","isBuiltIn":true,"name":"loop","nameSpace":"cf","nameSpaceSeparator":"","fullname":"cfloop","attributes":[{"name":"from","type":"Attribute","value":{"start":{"line":1,"column":13,"offset":13},"end":{"line":1,"column":16,"offset":16},"type":"NumberLiteral","raw":"1","value":1}},{"name":"to","type":"Attribute","value":{"start":{"line":1,"column":20,"offset":20},"end":{"line":1,"column":24,"offset":24},"type":"NumberLiteral","raw":"10","value":10}},{"name":"index","type":"Attribute","value":{"start":{"line":1,"column":31,"offset":31},"end":{"line":1,"column":34,"offset":34},"type":"StringLiteral","value":"i","raw":"\"i\"","quoteChar":"\""}}],"body":{"type":"BlockStatement","body":[]}}],"sourceType":"tag","dotNotationUpperCase":true,"handleUnquotedAttrValueAsString":true}' );
+				assertASTMatches( expected, result );
 			});
 			it( title = 'test variable assignment with single data member', body = function( currentSpec ) {
 				var result = astFromString('<cfscript>a.b.c=d;</cfscript>');
@@ -48,10 +46,8 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 			});
 			it( title = 'test variable assignment with function call', body = function( currentSpec ) {
 				var result = astFromString('<cfscript>a.b.c=d(1,true,"");</cfscript>');
-				assertEquals(
-					'{"start":{"line":1,"column":0,"offset":0},"end":{"line":1,"column":40,"offset":40},"type":"Program","body":[{"start":{"line":1,"column":0,"offset":0},"end":{"line":1,"column":40,"offset":40},"type":"CFMLTag","isBuiltIn":true,"name":"script","nameSpace":"cf","nameSpaceSeparator":"","fullname":"cfscript","attributes":[],"body":{"type":"BlockStatement","body":[{"start":{"line":1,"column":10,"offset":10},"end":{"line":1,"column":28,"offset":28},"type":"AssignmentExpression","operator":"ASSIGN","left":{"start":{"line":1,"column":10,"offset":10},"end":{"line":1,"column":11,"offset":11},"type":"MemberExpression","computed":false,"object":{"type":"MemberExpression","computed":false,"object":{"type":"Identifier","name":"A"},"property":{"type":"Identifier","name":"B"}},"property":{"type":"Identifier","name":"C"}},"right":{"start":{"line":1,"column":16,"offset":16},"end":{"line":1,"column":28,"offset":28},"type":"CallExpression","callee":{"type":"Identifier","name":"D"},"arguments":[{"start":{"line":1,"column":18,"offset":18},"end":{"line":1,"column":19,"offset":19},"type":"NumberLiteral","raw":"1","value":1},{"start":{"line":1,"column":20,"offset":20},"end":{"line":1,"column":24,"offset":24},"type":"BooleanLiteral","value":true},{"start":{"line":1,"column":25,"offset":25},"end":{"line":1,"column":27,"offset":27},"type":"StringLiteral","value":"","raw":"\"\""}]}}]}}],"sourceType":"tag","dotNotationUpperCase":true,"handleUnquotedAttrValueAsString":true}',
-					serializeJSON(var:result,compact:true)
-					);
+				var expected = deserializeJSON( '{"start":{"line":1,"column":0,"offset":0},"end":{"line":1,"column":40,"offset":40},"type":"Program","body":[{"start":{"line":1,"column":0,"offset":0},"end":{"line":1,"column":40,"offset":40},"type":"CFMLTag","isBuiltIn":true,"name":"script","nameSpace":"cf","nameSpaceSeparator":"","fullname":"cfscript","attributes":[],"body":{"type":"BlockStatement","body":[{"start":{"line":1,"column":10,"offset":10},"end":{"line":1,"column":28,"offset":28},"type":"AssignmentExpression","operator":"ASSIGN","left":{"start":{"line":1,"column":10,"offset":10},"end":{"line":1,"column":11,"offset":11},"type":"MemberExpression","computed":false,"object":{"type":"MemberExpression","computed":false,"object":{"type":"Identifier","name":"A"},"property":{"type":"Identifier","name":"B"}},"property":{"type":"Identifier","name":"C"}},"right":{"start":{"line":1,"column":16,"offset":16},"end":{"line":1,"column":28,"offset":28},"type":"CallExpression","callee":{"type":"Identifier","name":"D"},"arguments":[{"start":{"line":1,"column":18,"offset":18},"end":{"line":1,"column":19,"offset":19},"type":"NumberLiteral","raw":"1","value":1},{"start":{"line":1,"column":20,"offset":20},"end":{"line":1,"column":24,"offset":24},"type":"BooleanLiteral","value":true},{"start":{"line":1,"column":25,"offset":25},"end":{"line":1,"column":27,"offset":27},"type":"StringLiteral","value":"","raw":"\"\"","quoteChar":"\""}]}}]}}],"sourceType":"tag","dotNotationUpperCase":true,"handleUnquotedAttrValueAsString":true}' );
+				assertASTMatches( expected, result );
 			});
 			it( title = 'test variable assignment with scopes', body = function( currentSpec ) {
 				var result = astFromString('<cfscript>variables.a=url.a;</cfscript>');
@@ -62,18 +58,14 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 			});
 			it( title = 'test positional arguments', body = function( currentSpec ) {
 				var result = astFromString('<cfscript>whatever(1,true,"abc");</cfscript>');
-				assertEquals(
-					'{"start":{"line":1,"column":0,"offset":0},"end":{"line":1,"column":44,"offset":44},"type":"Program","body":[{"start":{"line":1,"column":0,"offset":0},"end":{"line":1,"column":44,"offset":44},"type":"CFMLTag","isBuiltIn":true,"name":"script","nameSpace":"cf","nameSpaceSeparator":"","fullname":"cfscript","attributes":[],"body":{"type":"BlockStatement","body":[{"start":{"line":1,"column":10,"offset":10},"end":{"line":1,"column":32,"offset":32},"type":"CallExpression","callee":{"type":"Identifier","name":"WHATEVER"},"arguments":[{"start":{"line":1,"column":19,"offset":19},"end":{"line":1,"column":20,"offset":20},"type":"NumberLiteral","raw":"1","value":1},{"start":{"line":1,"column":21,"offset":21},"end":{"line":1,"column":25,"offset":25},"type":"BooleanLiteral","value":true},{"start":{"line":1,"column":26,"offset":26},"end":{"line":1,"column":31,"offset":31},"type":"StringLiteral","value":"abc","raw":"\"abc\""}]}]}}],"sourceType":"tag","dotNotationUpperCase":true,"handleUnquotedAttrValueAsString":true}',
-					serializeJSON(var:result,compact:true)
-					);
+				var expected = deserializeJSON( '{"start":{"line":1,"column":0,"offset":0},"end":{"line":1,"column":44,"offset":44},"type":"Program","body":[{"start":{"line":1,"column":0,"offset":0},"end":{"line":1,"column":44,"offset":44},"type":"CFMLTag","isBuiltIn":true,"name":"script","nameSpace":"cf","nameSpaceSeparator":"","fullname":"cfscript","attributes":[],"body":{"type":"BlockStatement","body":[{"start":{"line":1,"column":10,"offset":10},"end":{"line":1,"column":32,"offset":32},"type":"CallExpression","callee":{"type":"Identifier","name":"WHATEVER"},"arguments":[{"start":{"line":1,"column":19,"offset":19},"end":{"line":1,"column":20,"offset":20},"type":"NumberLiteral","raw":"1","value":1},{"start":{"line":1,"column":21,"offset":21},"end":{"line":1,"column":25,"offset":25},"type":"BooleanLiteral","value":true},{"start":{"line":1,"column":26,"offset":26},"end":{"line":1,"column":31,"offset":31},"type":"StringLiteral","value":"abc","raw":"\"abc\"","quoteChar":"\""}]}]}}],"sourceType":"tag","dotNotationUpperCase":true,"handleUnquotedAttrValueAsString":true}' );
+				assertASTMatches( expected, result );
 			});
 
 			it( title = 'test named arguments', body = function( currentSpec ) {
 				var result = astFromString('<cfscript>whatever(arg1=1, arg2=true, arg3="abc");</cfscript>');
-				assertEquals(
-					'{"start":{"line":1,"column":0,"offset":0},"end":{"line":1,"column":61,"offset":61},"type":"Program","body":[{"start":{"line":1,"column":0,"offset":0},"end":{"line":1,"column":61,"offset":61},"type":"CFMLTag","isBuiltIn":true,"name":"script","nameSpace":"cf","nameSpaceSeparator":"","fullname":"cfscript","attributes":[],"body":{"type":"BlockStatement","body":[{"start":{"line":1,"column":10,"offset":10},"end":{"line":1,"column":49,"offset":49},"type":"CallExpression","callee":{"type":"Identifier","name":"WHATEVER"},"arguments":[{"type":"NamedArgument","name":{"start":{"line":1,"column":19,"offset":19},"end":{"line":1,"column":23,"offset":23},"type":"Identifier","name":"ARG1"},"value":{"start":{"line":1,"column":24,"offset":24},"end":{"line":1,"column":25,"offset":25},"type":"NumberLiteral","raw":"1","value":1}},{"type":"NamedArgument","name":{"start":{"line":1,"column":27,"offset":27},"end":{"line":1,"column":31,"offset":31},"type":"Identifier","name":"ARG2"},"value":{"start":{"line":1,"column":32,"offset":32},"end":{"line":1,"column":36,"offset":36},"type":"BooleanLiteral","value":true}},{"type":"NamedArgument","name":{"start":{"line":1,"column":38,"offset":38},"end":{"line":1,"column":42,"offset":42},"type":"Identifier","name":"ARG3"},"value":{"start":{"line":1,"column":43,"offset":43},"end":{"line":1,"column":48,"offset":48},"type":"StringLiteral","value":"abc","raw":"\"abc\""}}]}]}}],"sourceType":"tag","dotNotationUpperCase":true,"handleUnquotedAttrValueAsString":true}',
-					serializeJSON(var:result,compact:true)
-				);
+				var expected = deserializeJSON( '{"start":{"line":1,"column":0,"offset":0},"end":{"line":1,"column":61,"offset":61},"type":"Program","body":[{"start":{"line":1,"column":0,"offset":0},"end":{"line":1,"column":61,"offset":61},"type":"CFMLTag","isBuiltIn":true,"name":"script","nameSpace":"cf","nameSpaceSeparator":"","fullname":"cfscript","attributes":[],"body":{"type":"BlockStatement","body":[{"start":{"line":1,"column":10,"offset":10},"end":{"line":1,"column":49,"offset":49},"type":"CallExpression","callee":{"type":"Identifier","name":"WHATEVER"},"arguments":[{"type":"NamedArgument","name":{"start":{"line":1,"column":19,"offset":19},"end":{"line":1,"column":23,"offset":23},"type":"Identifier","name":"ARG1"},"value":{"start":{"line":1,"column":24,"offset":24},"end":{"line":1,"column":25,"offset":25},"type":"NumberLiteral","raw":"1","value":1}},{"type":"NamedArgument","name":{"start":{"line":1,"column":27,"offset":27},"end":{"line":1,"column":31,"offset":31},"type":"Identifier","name":"ARG2"},"value":{"start":{"line":1,"column":32,"offset":32},"end":{"line":1,"column":36,"offset":36},"type":"BooleanLiteral","value":true}},{"type":"NamedArgument","name":{"start":{"line":1,"column":38,"offset":38},"end":{"line":1,"column":42,"offset":42},"type":"Identifier","name":"ARG3"},"value":{"start":{"line":1,"column":43,"offset":43},"end":{"line":1,"column":48,"offset":48},"type":"StringLiteral","value":"abc","raw":"\"abc\"","quoteChar":"\""}}]}]}}],"sourceType":"tag","dotNotationUpperCase":true,"handleUnquotedAttrValueAsString":true}' );
+				assertASTMatches( expected, result );
 			});
 
 			it( title = 'test unknown tag self-closing without slash', body = function( currentSpec ) {
@@ -190,5 +182,61 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 			});
 
 		});
+	}
+
+	/**
+	 * Compare two AST structures recursively.
+	 * Returns empty string if match, otherwise returns path to first difference.
+	 */
+	private string function compareAST( required any expected, required any actual, string path = "" ) {
+		// Handle nulls
+		if ( isNull( expected ) && isNull( actual ) ) return "";
+		if ( isNull( expected ) || isNull( actual ) ) return path & " (null mismatch)";
+
+		// Simple types
+		if ( isSimpleValue( expected ) ) {
+			if ( !isSimpleValue( actual ) ) return path & " (type mismatch: expected simple, got complex)";
+			if ( expected != actual ) return path & " (value mismatch: expected [#expected#], got [#actual#])";
+			return "";
+		}
+
+		// Arrays
+		if ( isArray( expected ) ) {
+			if ( !isArray( actual ) ) return path & " (type mismatch: expected array, got #getMetaData( actual ).getName()#)";
+			if ( arrayLen( expected ) != arrayLen( actual ) ) return path & " (array length mismatch: expected #arrayLen( expected )#, got #arrayLen( actual )#)";
+			for ( var i = 1; i <= arrayLen( expected ); i++ ) {
+				var result = compareAST( expected[ i ], actual[ i ], path & "[#i#]" );
+				if ( len( result ) ) return result;
+			}
+			return "";
+		}
+
+		// Structs - check both directions for mismatches
+		if ( isStruct( expected ) ) {
+			if ( !isStruct( actual ) ) return path & " (type mismatch: expected struct, got #getMetaData( actual ).getName()#)";
+			// Check for missing keys in actual
+			for ( var key in expected ) {
+				if ( !structKeyExists( actual, key ) ) return path & ".#key# (missing key in actual)";
+				var result = compareAST( expected[ key ], actual[ key ], path & ".#key#" );
+				if ( len( result ) ) return result;
+			}
+			// Check for extra keys in actual
+			for ( var key in actual ) {
+				if ( !structKeyExists( expected, key ) ) return path & ".#key# (extra key in actual)";
+			}
+			return "";
+		}
+
+		return path & " (unknown type)";
+	}
+
+	/**
+	 * Assert AST matches expected structure exactly.
+	 */
+	private void function assertASTMatches( required any expected, required any actual, string message = "AST mismatch" ) {
+		var diff = compareAST( expected, actual );
+		if ( len( diff ) ) {
+			fail( message & ": " & diff );
+		}
 	}
 }
