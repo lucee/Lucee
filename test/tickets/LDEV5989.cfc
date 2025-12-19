@@ -4,9 +4,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ast" {
 
 	function run( testResults, testBox ) {
 
-		describe( "LDEV-5989: Interpolated attribute values have escaped hashes in raw field", function() {
+		describe( "LDEV-5989: Interpolated attribute values should be parsed as expressions", function() {
 
-			it( "raw should contain original single hashes for interpolated attributes", function() {
+			it( "interpolated condition attribute should be parsed as expression not StringLiteral", function() {
 				var code = fileRead( variables.testDir & "interpolatedAttr.cfm" );
 				var ast = astFromString( code );
 
@@ -14,40 +14,43 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ast" {
 				var attr = findAttribute( ast, "condition" );
 				expect( attr ).notToBeNull( "condition attribute should be present in AST" );
 
-				// The raw field should contain single hashes like the original source
-				// NOT escaped hashes like "##it.hasNext()##"
-				var rawValue = attr.value.raw;
-
-				// Check for doubled hashes (##) in raw - use chr(35) to avoid CFML escaping issues
-				// If raw has ##, find() will locate chr(35)&chr(35) sequence
-				var doubleHash = chr( 35 ) & chr( 35 );
-				var hasDoubleHash = find( doubleHash, rawValue ) > 0;
-
-				// If hasDoubleHash is true, raw contains ## which is the bug
-				expect( hasDoubleHash ).toBeFalse( "Raw should contain single hashes, not escaped ## - got: " & rawValue );
+				// The value should be parsed as an expression (CastExpression or CallExpression)
+				// NOT as a StringLiteral with hashes in the value
+				expect( attr.value.type ).notToBe( "StringLiteral",
+					"Interpolated attribute should be parsed as expression, not StringLiteral. Got type: " & attr.value.type );
 			});
 
-			it( "round-trip should preserve interpolated attribute values", function() {
-				// Parse file with interpolated attribute
-				var code1 = fileRead( variables.testDir & "roundtrip1.cfm" );
-				var ast1 = astFromString( code1 );
+			it( "condition with call expression should parse the function call", function() {
+				var code = fileRead( variables.testDir & "expressionAttr.cfm" );
+				var ast = astFromString( code );
 
-				var attr1 = findAttribute( ast1, "condition" );
-				expect( attr1 ).notToBeNull( "First parse should find condition attribute" );
-				var raw1 = attr1.value.raw;
+				var attr = findAttribute( ast, "condition" );
+				expect( attr ).notToBeNull( "condition attribute should be present" );
 
-				// Build round-trip file using template
-				var template = fileRead( variables.testDir & "loopTemplate.txt" );
-				var code2 = replace( template, "%%CONDITION%%", raw1 );
-				fileWrite( variables.testDir & "roundtrip2.cfm", code2 );
+				// Value should be a CastExpression (toBoolean) wrapping a CallExpression
+				// or directly a CallExpression depending on implementation
+				var valueType = attr.value.type;
+				expect( valueType == "CallExpression" || valueType == "CastExpression" ).toBeTrue(
+					"Expected CallExpression or CastExpression, got: " & valueType );
+			});
 
-				// Parse the round-trip file
-				var ast2 = astFromString( code2 );
-				var attr2 = findAttribute( ast2, "condition" );
-				expect( attr2 ).notToBeNull( "Second parse should find condition attribute" );
+			it( "condition expression should have correct call structure", function() {
+				// Parse cfloop with condition containing interpolated call expression
+				var code = fileRead( variables.testDir & "interpolatedAttr.cfm" );
+				var ast = astFromString( code );
 
-				// Raw should be stable - not doubling hashes each round
-				expect( attr2.value.raw ).toBe( raw1, "Raw should be stable after round-trip, not doubling hashes" );
+				var attr = findAttribute( ast, "condition" );
+				expect( attr ).notToBeNull( "condition attribute should be present" );
+
+				// Navigate to the actual call expression (may be wrapped in CastExpression)
+				var expr = attr.value;
+				if ( expr.type == "CastExpression" ) {
+					expr = expr.argument;
+				}
+
+				// Should be a CallExpression for it.hasNext()
+				expect( expr.type ).toBe( "CallExpression", "Should be a CallExpression" );
+				expect( expr.callee.type ).toBe( "MemberExpression", "Callee should be MemberExpression" );
 			});
 
 		});
