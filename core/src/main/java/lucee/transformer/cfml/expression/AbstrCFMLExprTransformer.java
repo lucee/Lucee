@@ -301,7 +301,8 @@ public abstract class AbstrCFMLExprTransformer {
 			}
 			else if (expr instanceof DynAssign) {
 				DynAssign da = (DynAssign) expr;
-				return new NamedArgumentImpl(da.getName(), da.getValue(), type, varKeyUpperCase);
+				// Use getSourceName() to preserve original expression type (e.g., NumberLiteral) for AST
+				return new NamedArgumentImpl(da.getSourceName(), da.getValue(), type, varKeyUpperCase);
 			}
 			else if (expr instanceof Assign && !(expr instanceof OpVariable)) {
 				Assign a = (Assign) expr;

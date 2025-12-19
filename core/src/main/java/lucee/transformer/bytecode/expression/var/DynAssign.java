@@ -38,6 +38,7 @@ public final class DynAssign extends ExpressionBase {
 
 	private ExprString name;
 	private Expression value;
+	private Expression sourceName; // Original expression before string conversion, for AST fidelity
 
 	// Object setVariable(String, Object)
 	private final static Method METHOD_SET_VARIABLE = new Method("setVariable", Types.OBJECT, new Type[] { Types.STRING, Types.OBJECT });
@@ -48,12 +49,13 @@ public final class DynAssign extends ExpressionBase {
 
 	/**
 	 * Constructor of the class
-	 * 
+	 *
 	 * @param name
 	 * @param value
 	 */
 	public DynAssign(Expression name, Expression value) {
 		super(name.getFactory(), name.getStart(), name.getEnd());
+		this.sourceName = name; // Preserve original for AST output
 		this.name = name.getFactory().toExprString(name);
 		this.value = value;
 	}
@@ -76,10 +78,17 @@ public final class DynAssign extends ExpressionBase {
 	 */
 
 	/**
-	 * @return the name
+	 * @return the name as ExprString (for bytecode generation)
 	 */
 	public ExprString getName() {
 		return name;
+	}
+
+	/**
+	 * @return the original name expression (for AST fidelity)
+	 */
+	public Expression getSourceName() {
+		return sourceName != null ? sourceName : name;
 	}
 
 	/**
@@ -97,7 +106,8 @@ public final class DynAssign extends ExpressionBase {
 
 		Struct left = new StructImpl(Struct.TYPE_LINKED);
 		sct.setEL(KeyConstants._left, left);
-		name.dump(left);
+		// Use sourceName for AST output to preserve original type (e.g., NumberLiteral)
+		getSourceName().dump(left);
 
 		Struct right = new StructImpl(Struct.TYPE_LINKED);
 		sct.setEL(KeyConstants._right, right);
