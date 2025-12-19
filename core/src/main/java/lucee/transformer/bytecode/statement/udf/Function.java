@@ -606,13 +606,28 @@ public abstract class Function extends StatementBaseNoFinal implements Opcodes, 
 
 	private final LitString toLitString(BytecodeContext bc, String name, Expression value) throws TransformerException {
 		ExprString es = value.getFactory().toExprString(value);
-		if (!(es instanceof LitString)) throw new TransformerException(bc, "Value of attribute [" + name + "] must have a literal/constant value", getStart());
+		if (!(es instanceof LitString)) {
+			// Handle unquoted identifiers like access=remote - convert Variable to LitString
+			String str = ASMUtil.toString(bc, value, null);
+			if (str != null) {
+				return value.getFactory().createLitString(str);
+			}
+			throw new TransformerException(bc, "Value of attribute [" + name + "] must have a literal/constant value", getStart());
+		}
 		return (LitString) es;
 	}
 
 	private final LitBoolean toLitBoolean(BytecodeContext bc, String name, Expression value) throws TransformerException {
 		ExprBoolean eb = value.getFactory().toExprBoolean(value);
-		if (!(eb instanceof LitBoolean)) throw new TransformerException(bc, "Value of attribute [" + name + "] must have a literal/constant value", getStart());
+		if (!(eb instanceof LitBoolean)) {
+			// Handle unquoted identifiers like output=false - convert Variable to LitBoolean
+			String str = ASMUtil.toString(bc, value, null);
+			if (str != null) {
+				if ("true".equalsIgnoreCase(str)) return value.getFactory().TRUE();
+				if ("false".equalsIgnoreCase(str)) return value.getFactory().FALSE();
+			}
+			throw new TransformerException(bc, "Value of attribute [" + name + "] must have a literal/constant value", getStart());
+		}
 		return (LitBoolean) eb;
 	}
 
