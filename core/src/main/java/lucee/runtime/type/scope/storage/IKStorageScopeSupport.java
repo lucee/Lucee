@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.Set;
 
 import lucee.commons.collection.MapFactory;
+import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.lang.StringUtil;
@@ -62,6 +63,7 @@ import lucee.runtime.type.util.StructUtil;
 public abstract class IKStorageScopeSupport extends StructSupport implements StorageScopePro, CSRFTokenSupport {
 
 	protected static final IKStorageScopeItem ONE = new IKStorageScopeItem("1");
+	private static final boolean WARN_COMPLEX_VALUES = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.storage.warn.complex.values", null), true);
 
 	private static int _id = 0;
 	private int id = 0;
@@ -490,7 +492,7 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 		// that is the downside to use complex object in storage scopes.
 		for (IKStorageScopeItem val: data0.values()) {
 			if (!Decision.isSimpleValue(val.getValue())) {
-				if (LogUtil.doesWarn(log)) {
+				if (WARN_COMPLEX_VALUES && LogUtil.doesWarn(log)) {
 					ScopeContext.warn(log, "the " + (type == Scope.SCOPE_SESSION ? "session" : "client")
 							+ " scope contains complex values, Lucee cannot proper detect changes in the values and because of that updates the storage with every request.");
 				}
