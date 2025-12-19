@@ -59,6 +59,17 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ast" {
 				expect( strLiteral.quoteChar ).toBe( "'" );
 			});
 
+			it( "should preserve single quote in TemplateLiteral (interpolated string)", function() {
+				var ast = astFromPath( variables.testDir & "templateLiteralSingle.cfc" );
+				var comp = ast.body[1];
+				var assignment = comp.body.body[1];
+				var templateLiteral = assignment.right;
+
+				expect( templateLiteral.type ).toBe( "TemplateLiteral" );
+				expect( templateLiteral ).toHaveKey( "quoteChar", "TemplateLiteral should have quoteChar field like StringLiteral" );
+				expect( templateLiteral.quoteChar ).toBe( "'", "Should preserve single quote for interpolated string" );
+			});
+
 		});
 	}
 
