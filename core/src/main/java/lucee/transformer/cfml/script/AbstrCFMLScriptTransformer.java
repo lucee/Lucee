@@ -1741,7 +1741,8 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 		Attribute attr;
 
 		// first fill all regular attribute -> name="value"
-		for (int i = attrs.length - 1; i >= 0; i--) {
+		// LDEV-6027: iterate forward to preserve declaration order in AST
+		for (int i = 0; i < attrs.length; i++) {
 			attr = attrs[i];
 			if (!isNull(attr.getValue())) {
 				if (attr.getName().equalsIgnoreCase("name")) {
