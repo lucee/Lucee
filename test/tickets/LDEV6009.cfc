@@ -50,6 +50,16 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ast" {
 				expect( ast ).toHaveKey( "handleUnquotedAttrValueAsString" );
 			});
 
+			it( "should return sourceType='script' for script component with tag islands", function() {
+				var testDir = getDirectoryFromPath( getCurrentTemplatePath() ) & "LDEV6009/";
+				var ast = astFromPath( testDir & "tagIsland.cfc" );
+
+				expect( ast.type ).toBe( "Program" );
+				expect( ast ).toHaveKey( "sourceType" );
+				// Script component should be "script" even if it contains tag islands
+				expect( ast.sourceType ).toBe( "script" );
+			});
+
 		});
 
 	}

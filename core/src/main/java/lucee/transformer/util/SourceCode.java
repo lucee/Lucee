@@ -722,8 +722,10 @@ public class SourceCode {
 	 * @return subset of the SourceCode as new SourcCode
 	 */
 	public SourceCode subCFMLString(int start, int count) {
-		return new SourceCode(this, String.valueOf(text, start, count), writeLog);
-
+		SourceCode sub = new SourceCode(this, String.valueOf(text, start, count), writeLog);
+		// Preserve wrappedInScript flag from parent so AST generation knows the original source type
+		sub.setWrappedInScript(this.wrappedInScript);
+		return sub;
 	}
 
 	/**
