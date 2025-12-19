@@ -1134,10 +1134,13 @@ public final class VariableImpl extends ExpressionBase implements Variable {
 
 			if (member instanceof FunctionMember) {
 				FunctionMember fm = (FunctionMember) member;
-				String funcName = getName(fm).toString();
+				Object funcNameObj = getName(fm);
+				// Check if this is a dynamic function name (computed property access)
+				boolean isComputedCall = funcNameObj instanceof Struct;
+				String funcName = isComputedCall ? null : funcNameObj.toString();
 
 				// LDEV-6011: Handle internal literal functions as proper AST node types
-				if (current == null && member instanceof BIF) {
+				if (current == null && member instanceof BIF && funcName != null) {
 					if ("_literalStruct".equalsIgnoreCase(funcName) || "_literalOrderedStruct".equalsIgnoreCase(funcName)) {
 						// Output as ObjectExpression
 						newNode.setEL(KeyConstants._type, "ObjectExpression");
@@ -1226,23 +1229,35 @@ public final class VariableImpl extends ExpressionBase implements Variable {
 
 				// Set callee to current chain (or base identifier)
 				if (current == null) {
-					// First element - base identifier
-					Struct callee = new StructImpl(Struct.TYPE_LINKED);
-					callee.setEL(KeyConstants._type, "Identifier");
-					callee.setEL(KeyConstants._name, funcName);
-					newNode.setEL(KeyConstants._callee, callee);
+					// First element - base identifier or computed call
+					if (isComputedCall) {
+						// Computed call like variables[expr]() - callee is the computed member expression
+						newNode.setEL(KeyConstants._callee, funcNameObj);
+					}
+					else {
+						Struct callee = new StructImpl(Struct.TYPE_LINKED);
+						callee.setEL(KeyConstants._type, "Identifier");
+						callee.setEL(KeyConstants._name, funcName);
+						newNode.setEL(KeyConstants._callee, callee);
+					}
 				}
 				else {
 					// Method call on object - create MemberExpression for callee
 					Struct callee = new StructImpl(Struct.TYPE_LINKED);
 					callee.setEL(KeyConstants._type, "MemberExpression");
-					callee.setEL(KeyConstants._computed, false);
+					callee.setEL(KeyConstants._computed, isComputedCall);
 					callee.setEL(KeyConstants._object, current);
 
-					Struct property = new StructImpl(Struct.TYPE_LINKED);
-					property.setEL(KeyConstants._type, "Identifier");
-					property.setEL(KeyConstants._name, funcName);
-					callee.setEL(KeyConstants._property, property);
+					if (isComputedCall) {
+						// Computed property access - use the dumped expression
+						callee.setEL(KeyConstants._property, funcNameObj);
+					}
+					else {
+						Struct property = new StructImpl(Struct.TYPE_LINKED);
+						property.setEL(KeyConstants._type, "Identifier");
+						property.setEL(KeyConstants._name, funcName);
+						callee.setEL(KeyConstants._property, property);
+					}
 
 					newNode.setEL(KeyConstants._callee, callee);
 				}
