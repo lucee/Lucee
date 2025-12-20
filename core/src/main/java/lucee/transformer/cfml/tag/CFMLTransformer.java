@@ -63,6 +63,7 @@ import lucee.transformer.cfml.script.AbstrCFMLScriptTransformer;
 import lucee.transformer.cfml.script.AbstrCFMLScriptTransformer.ComponentTemplateException;
 import lucee.transformer.cfml.script.CFMLScriptTransformer;
 import lucee.transformer.expression.Expression;
+import lucee.transformer.expression.literal.LitString;
 import lucee.transformer.library.function.FunctionLib;
 import lucee.transformer.library.tag.CustomTagLib;
 import lucee.transformer.library.tag.TagLib;
@@ -1129,7 +1130,19 @@ public final class CFMLTransformer {
 			pe = attr.getRtexpr();
 		}
 		// LitString.toExprString("",-1);
-		Attribute att = new Attribute(false, strName, attributeValue(data, tag, strType, pe, true, data.factory.createNull()), strType);
+		Expression value = attributeValue(data, tag, strType, pe, true, data.factory.createNull());
+
+		// For string-typed attributes, if the value is the default null (nothing was parsed),
+		// don't add the attribute. This prevents cfbreak/cfcontinue from having a meaningless
+		// label attribute with null value. For "any" type (like cfreturn), null is meaningful.
+		if ("string".equalsIgnoreCase(strType) && value instanceof LitString) {
+			LitString litStr = (LitString) value;
+			if (litStr.getString() == null) {
+				return; // Skip adding attribute with null string value
+			}
+		}
+
+		Attribute att = new Attribute(false, strName, value, strType);
 		parent.addAttribute(att);
 	}
 
