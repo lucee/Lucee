@@ -175,6 +175,11 @@ public final class ForEach extends StatementBase implements FlowControlBreak, Fl
 		super.dump(sct);
 		sct.setEL(KeyConstants._type, "ForOfStatement");
 
+		// label
+		if ( label != null ) {
+			sct.setEL(KeyConstants._label, label);
+		}
+
 		// left
 		{
 			Struct left = new StructImpl(StructImpl.TYPE_LINKED_NOT_SYNC, 8);
