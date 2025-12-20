@@ -19,11 +19,18 @@ package lucee.transformer.bytecode;
 
 import lucee.runtime.type.Struct;
 import lucee.transformer.Factory;
+import lucee.transformer.Position;
 
 public final class StaticBody extends BodyBase {
 
 	public StaticBody(Factory f) {
 		super(f);
+	}
+
+	public StaticBody(Factory f, Position start, Position end) {
+		super(f);
+		setStart(start);
+		setEnd(end);
 	}
 
 	@Override

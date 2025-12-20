@@ -151,11 +151,14 @@ public final class Function extends EvaluatorSupport {
 
 		// add to static scope
 		if (isStatic) {
+			Body body = (Body) tag.getParent();
+			// Find the index of the tag before removing it (for AST position preservation)
+			int tagIndex = body.getStatements().indexOf(tag);
+
 			// remove that tag from parent
 			ASMUtil.remove(tag);
 
-			Body body = (Body) tag.getParent();
-			StaticBody sb = Static.getStaticBodyForFunction(body);
+			StaticBody sb = Static.getStaticBodyForFunction(body, tag, tagIndex);
 			sb.addStatement(tag);
 		}
 	}
