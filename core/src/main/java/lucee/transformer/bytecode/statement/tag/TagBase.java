@@ -203,7 +203,12 @@ public abstract class TagBase extends StatementBase implements Tag {
 			sct.setEL("isBuiltIn", Boolean.TRUE);
 		}
 
-		sct.setEL(KeyConstants._name, tagLibTag.getName());
+		// For custom tags with empty name (using appendix), use the appendix as the name
+		String tagName = tagLibTag.getName();
+		if ((tagName == null || tagName.isEmpty()) && appendix != null) {
+			tagName = appendix;
+		}
+		sct.setEL(KeyConstants._name, tagName);
 		sct.setEL(KeyConstants._nameSpace, tagLibTag.getTagLib().getNameSpace());
 		sct.setEL(KeyConstants._nameSpaceSeparator, tagLibTag.getTagLib().getNameSpaceSeparator());
 		if (appendix != null) sct.setEL(KeyConstants._appendix, appendix);
@@ -214,6 +219,9 @@ public abstract class TagBase extends StatementBase implements Tag {
 		sct.setEL(KeyConstants._attributes, arrAttrs);
 		for (Entry<String, Attribute> entry: attributes.entrySet()) {
 			Attribute attr = entry.getValue();
+			// Skip default attributes - they weren't in the source
+			if (attr.isDefaultAttribute()) continue;
+
 			Struct sctAttr = new StructImpl(StructImpl.TYPE_LINKED_NOT_SYNC, 8);
 			arrAttrs.appendEL(sctAttr);
 			sctAttr.setEL(KeyConstants._name, attr.getName());
