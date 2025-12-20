@@ -132,7 +132,16 @@ public final class SimpleExprTransformer implements ExprTransformer {
 		}
 		cfml.removeSpace();
 
-		return f.createLitString(sb.toString(), line, cfml.getPosition());
+		String value = sb.toString();
+		Position end = cfml.getPosition();
+		// Check for boolean literals (case-insensitive)
+		if (value.equalsIgnoreCase("true")) {
+			return f.createLitBoolean(true, line, end);
+		}
+		if (value.equalsIgnoreCase("false")) {
+			return f.createLitBoolean(false, line, end);
+		}
+		return f.createLitString(value, line, end);
 	}
 
 }

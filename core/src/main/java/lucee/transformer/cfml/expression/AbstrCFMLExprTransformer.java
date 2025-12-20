@@ -2068,7 +2068,16 @@ public abstract class AbstrCFMLExprTransformer {
 		}
 		comments(data);
 
-		return data.factory.createLitString(sb.toString(), line, data.srcCode.getPosition());
+		String value = sb.toString();
+		Position end = data.srcCode.getPosition();
+		// Check for boolean literals (case-insensitive)
+		if (value.equalsIgnoreCase("true")) {
+			return data.factory.createLitBoolean(true, line, end);
+		}
+		if (value.equalsIgnoreCase("false")) {
+			return data.factory.createLitBoolean(false, line, end);
+		}
+		return data.factory.createLitString(value, line, end);
 	}
 
 	/**
