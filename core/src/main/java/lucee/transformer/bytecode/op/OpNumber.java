@@ -150,7 +150,7 @@ public final class OpNumber extends ExpressionBase implements ExprNumber {
 			return "DIVIDE";
 		}
 		else if (op == Factory.OP_DBL_INTDIV) {
-			return "DIVIDE";
+			return "INTDIV";
 		}
 		else if (op == Factory.OP_DBL_PLUS) {
 			return "PLUS";

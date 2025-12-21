@@ -941,7 +941,7 @@ public abstract class AbstrCFMLExprTransformer {
 				return data.factory.opNumber(data.factory.toExprNumber(expr), data.factory.createLitNumber(1), Factory.OP_DBL_PLUS);
 			}
 			comments(data);
-			return data.factory.toExprNumber(clip(data));
+			return data.factory.opNegateNumber(clip(data), Factory.OP_NEG_NBR_PLUS, line, data.srcCode.getPosition());
 		}
 		return clip(data);
 	}

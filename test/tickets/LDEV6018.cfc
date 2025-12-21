@@ -34,6 +34,215 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ast" {
 
 		});
 
+		describe( "LDEV-6018: Dynamic struct keys should not be wrapped in CastExpression", function() {
+
+			it( "should preserve MemberExpression in struct key with interpolation", function() {
+				var code = 'x = { "##arguments.name##": "value" };';
+				var ast = astFromString( code, "script" );
+
+				// Find the struct property key
+				var prop = ast.body[ 1 ].right.properties[ 1 ];
+				expect( prop.type ).toBe( "Property" );
+
+				// Bug: key is parsed as MemberExpression first time, but after round-trip
+				// with "#ARGUMENTS.NAME#" output, it becomes CastExpression
+				// The key should remain a MemberExpression (or at minimum, be consistent)
+				expect( prop.key.type ).toBe( "MemberExpression", "Struct key should be MemberExpression, not wrapped in CastExpression" );
+			});
+
+			it( "should preserve CallExpression in struct key with interpolation", function() {
+				var code = 'x = { "##getKey()##": "value" };';
+				var ast = astFromString( code, "script" );
+
+				var prop = ast.body[ 1 ].right.properties[ 1 ];
+				expect( prop.type ).toBe( "Property" );
+
+				// Bug: key is CallExpression first time, but becomes CastExpression after round-trip
+				expect( prop.key.type ).toBe( "CallExpression", "Struct key should be CallExpression, not wrapped in CastExpression" );
+			});
+
+		});
+
+		describe( "LDEV-6018: Interpolated expressions should parse consistently", function() {
+
+			it( "should parse simple interpolated function name as Identifier", function() {
+				// Simple "#funcName#"() parses callee as Identifier directly
+				var code = '"##funcName##"();';
+				var ast = astFromString( code, "script" );
+
+				var callExpr = ast.body[ 1 ];
+				expect( callExpr.type ).toBe( "CallExpression" );
+				expect( callExpr.callee.type ).toBe( "Identifier" );
+				expect( callExpr.callee.name ).toBe( "FUNCNAME" );
+			});
+
+			it( "should parse complex interpolated new expression as CastExpression", function() {
+				// new "#arguments.reporter#"() should have CastExpression callee
+				var code = 'new "##arguments.reporter##"();';
+				var ast = astFromString( code, "script" );
+
+				var newExpr = ast.body[ 1 ];
+				expect( newExpr.type ).toBe( "NewExpression" );
+
+				// The callee is a CastExpression wrapping a MemberExpression
+				expect( newExpr.callee.type ).toBe( "CastExpression", "Interpolated new callee should be CastExpression" );
+				expect( newExpr.callee.argument.type ).toBe( "MemberExpression" );
+			});
+
+			it( "should parse complex interpolated call expression as MemberExpression", function() {
+				// "#arguments.reporter#"() (not new) should have MemberExpression callee
+				var code = '"##arguments.reporter##"();';
+				var ast = astFromString( code, "script" );
+
+				var callExpr = ast.body[ 1 ];
+				expect( callExpr.type ).toBe( "CallExpression" );
+
+				// Unlike new expressions, regular calls parse the interpolated expression directly
+				expect( callExpr.callee.type ).toBe( "MemberExpression" );
+			});
+
+		});
+
+		describe( "LDEV-6018: Unary plus should be UnaryExpression, not CastExpression", function() {
+
+			it( "should parse unary plus as UnaryExpression like unary minus", function() {
+				var plusCode = 'x = +num;';
+				var minusCode = 'x = -num;';
+
+				var plusAst = astFromString( plusCode, "script" );
+				var minusAst = astFromString( minusCode, "script" );
+
+				var plusExpr = plusAst.body[1].right;
+				var minusExpr = minusAst.body[1].right;
+
+				// Unary minus correctly uses UnaryExpression
+				expect( minusExpr.type ).toBe( "UnaryExpression" );
+				expect( minusExpr.operator ).toBe( "NEGATE" );
+
+				// Bug: Unary plus uses CastExpression with typeAnnotation="number"
+				// Should be UnaryExpression with operator="PLUS" (or similar)
+				expect( plusExpr.type ).toBe( "UnaryExpression",
+					"Unary plus should be UnaryExpression, not #plusExpr.type#" );
+			});
+
+			it( "should preserve unary plus in function arguments", function() {
+				var code = 'DateAdd( "d", +num, now() );';
+				var ast = astFromString( code, "script" );
+
+				var arg = ast.body[1].arguments[2];
+
+				// The +num argument should be distinguishable from just num
+				// Currently it's CastExpression which loses the + sign
+				expect( arg.type ).toBe( "UnaryExpression",
+					"Unary plus in argument should be UnaryExpression, not #arg.type#" );
+			});
+
+		});
+
+		describe( "LDEV-6018: Integer divide should have distinct operator", function() {
+
+			it( "should distinguish integer divide from regular divide", function() {
+				var intDivCode = 'x = a \ b;';
+				var divCode = 'x = a / b;';
+
+				var intDivAst = astFromString( intDivCode, "script" );
+				var divAst = astFromString( divCode, "script" );
+
+				var intDivExpr = intDivAst.body[1].right;
+				var divExpr = divAst.body[1].right;
+
+				expect( intDivExpr.type ).toBe( "BinaryExpression" );
+				expect( divExpr.type ).toBe( "BinaryExpression" );
+
+				// Bug: Both have operator "DIVIDE" - should be different
+				// Integer divide should be "INTDIV" or "INTEGER_DIVIDE"
+				expect( divExpr.operator ).toBe( "DIVIDE" );
+				expect( intDivExpr.operator ).toBe( "INTDIV",
+					"Integer divide (\\) should have operator 'INTDIV', not '#intDivExpr.operator#'" );
+			});
+
+		});
+
+		describe( "LDEV-6018: Safe navigation should have optional flag", function() {
+
+			it( "should distinguish safe navigation from regular member access", function() {
+				var safeCode = 'x = obj?.prop;';
+				var normalCode = 'x = obj.prop;';
+
+				var safeAst = astFromString( safeCode, "script" );
+				var normalAst = astFromString( normalCode, "script" );
+
+				var safeExpr = safeAst.body[1].right;
+				var normalExpr = normalAst.body[1].right;
+
+				expect( safeExpr.type ).toBe( "MemberExpression" );
+				expect( normalExpr.type ).toBe( "MemberExpression" );
+
+				// Bug: Both look identical - safe navigation should have optional=true
+				expect( normalExpr.optional ?: false ).toBe( false );
+				expect( safeExpr ).toHaveKey( "optional",
+					"Safe navigation should have 'optional' field" );
+				expect( safeExpr.optional ).toBe( true,
+					"Safe navigation (?.) should have optional=true" );
+			});
+
+			it( "should preserve safe navigation in chained access", function() {
+				var code = 'x = obj?.nested?.value;';
+				var ast = astFromString( code, "script" );
+
+				var expr = ast.body[1].right;
+
+				// Outer member access (?.value)
+				expect( expr.type ).toBe( "MemberExpression" );
+				expect( expr ).toHaveKey( "optional" );
+				expect( expr.optional ).toBe( true );
+
+				// Inner member access (obj?.nested)
+				expect( expr.object.type ).toBe( "MemberExpression" );
+				expect( expr.object ).toHaveKey( "optional" );
+				expect( expr.object.optional ).toBe( true );
+			});
+
+		});
+
+		describe( "LDEV-6018: Compound assignment operators should be preserved", function() {
+
+			it( "should preserve modulo compound assignment", function() {
+				var code = 'x %= 3;';
+				var ast = astFromString( code, "script" );
+
+				var expr = ast.body[1];
+				expect( expr.type ).toBe( "AssignmentExpression" );
+
+				// Bug: operator is "ASSIGN" and right is expanded to x % 3
+				// Should be operator "MODULUS_ASSIGN" or similar
+				expect( expr.operator ).toBe( "MODULUS_ASSIGN",
+					"Compound %%== should have operator 'MODULUS_ASSIGN', not '#expr.operator#'" );
+			});
+
+			it( "should preserve all compound assignment operators", function() {
+				var ops = {
+					"x += 1": "PLUS_ASSIGN",
+					"x -= 1": "MINUS_ASSIGN",
+					"x *= 2": "MULTIPLY_ASSIGN",
+					"x /= 2": "DIVIDE_ASSIGN",
+					"x %= 2": "MODULUS_ASSIGN",
+					"x &= 'a'": "CONCAT_ASSIGN"
+				};
+
+				for ( var code in ops ) {
+					var expected = ops[ code ];
+					var ast = astFromString( code & ";", "script" );
+					var expr = ast.body[1];
+
+					expect( expr.type ).toBe( "AssignmentExpression" );
+					expect( expr.operator ).toBe( expected,
+						"'#code#' should have operator '#expected#', not '#expr.operator#'" );
+				}
+			});
+
+		});
+
 	}
 
 }

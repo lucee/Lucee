@@ -1248,6 +1248,10 @@ public final class VariableImpl extends ExpressionBase implements Variable {
 					Struct callee = new StructImpl(Struct.TYPE_LINKED);
 					callee.setEL(KeyConstants._type, "MemberExpression");
 					callee.setEL(KeyConstants._computed, isComputedCall);
+					// Track safe navigation (?.) as optional=true
+					if (member.getSafeNavigated()) {
+						callee.setEL(KeyConstants._optional, Boolean.TRUE);
+					}
 					callee.setEL(KeyConstants._object, current);
 
 					if (isComputedCall) {
@@ -1289,6 +1293,10 @@ public final class VariableImpl extends ExpressionBase implements Variable {
 					boolean isComputed = (memberName instanceof LitString && ((LitString) memberName).fromBracket())
 							|| !(memberName instanceof Literal);
 					newNode.setEL(KeyConstants._computed, isComputed);
+					// Track safe navigation (?.) as optional=true
+					if (member.getSafeNavigated()) {
+						newNode.setEL(KeyConstants._optional, Boolean.TRUE);
+					}
 					newNode.setEL(KeyConstants._object, current);
 
 					Struct property = new StructImpl(Struct.TYPE_LINKED);
