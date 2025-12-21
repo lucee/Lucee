@@ -142,6 +142,7 @@ public abstract class Function extends StatementBaseNoFinal implements Opcodes, 
 	ExprString displayName;
 	ExprString hint;
 	String hintSource; // "docblock" or "attribute" - indicates where hint came from
+	String rawDocblock; // raw docblock text for AST round-tripping
 	Body body;
 	List<Argument> arguments = new ArrayList<Argument>();
 	Map<String, Attribute> metadata;
@@ -539,6 +540,10 @@ public abstract class Function extends StatementBaseNoFinal implements Opcodes, 
 		this.hintSource = "docblock";
 	}
 
+	public final void setRawDocblock(String rawDocblock) {
+		this.rawDocblock = rawDocblock;
+	}
+
 	public final void addAttribute(BytecodeContext bc, Attribute attr) throws TemplateException {
 		String name = attr.getName().toLowerCase();
 		// name
@@ -718,6 +723,30 @@ public abstract class Function extends StatementBaseNoFinal implements Opcodes, 
 		// hintSource - indicates where hint came from (docblock or attribute)
 		if (hintSource != null) {
 			sct.setEL("hintSource", hintSource);
+		}
+		// docblock - raw docblock text for round-tripping (only when hintSource is docblock)
+		if (rawDocblock != null && "docblock".equals(hintSource)) {
+			sct.setEL("docblock", rawDocblock);
+		}
+		// metadata - @return, @deprecated, and other custom tags from docblock
+		if (metadata != null && !metadata.isEmpty()) {
+			Struct meta = new StructImpl(Struct.TYPE_LINKED);
+			for (Map.Entry<String, Attribute> entry: metadata.entrySet()) {
+				String key = entry.getKey();
+				Attribute attr = entry.getValue();
+				Expression val = attr.getValue();
+				if (val instanceof Literal) {
+					// For simple values, output the string directly
+					meta.setEL(key, ((Literal) val).getString());
+				}
+				else {
+					// For complex values, dump the expression
+					Struct s = new StructImpl(Struct.TYPE_LINKED);
+					val.dump(s);
+					meta.setEL(key, s);
+				}
+			}
+			sct.setEL(KeyConstants._metadata, meta);
 		}
 		// secureJson
 		if (secureJson != null) {

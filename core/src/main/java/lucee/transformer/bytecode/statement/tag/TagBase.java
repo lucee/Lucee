@@ -56,6 +56,7 @@ public abstract class TagBase extends StatementBase implements Tag {
 
 	private Map<String, Attribute> metadata;
 	private Map<String, Attribute> sourceAttributes; // original attributes before removeAttribute() calls
+	private String rawDocblock; // raw docblock text for AST round-tripping (components/interfaces)
 	// private Label finallyLabel;
 
 	public TagBase(Factory factory, Position start, Position end) {
@@ -202,6 +203,14 @@ public abstract class TagBase extends StatementBase implements Tag {
 		return metadata;
 	}
 
+	public void setRawDocblock(String rawDocblock) {
+		this.rawDocblock = rawDocblock;
+	}
+
+	public String getRawDocblock() {
+		return rawDocblock;
+	}
+
 	@Override
 	public void dump(Struct sct) {
 		super.dump(sct);
@@ -226,6 +235,8 @@ public abstract class TagBase extends StatementBase implements Tag {
 		sct.setEL(KeyConstants._nameSpaceSeparator, tagLibTag.getTagLib().getNameSpaceSeparator());
 		if (appendix != null) sct.setEL(KeyConstants._appendix, appendix);
 		if (fullname != null) sct.setEL(KeyConstants._fullname, fullname);
+		// docblock - raw docblock text for round-tripping (component/interface)
+		if (rawDocblock != null) sct.setEL("docblock", rawDocblock);
 
 		// attributes (use sourceAttributes if available, as removeAttribute() may have removed some)
 		Array arrAttrs = new ArrayImpl();

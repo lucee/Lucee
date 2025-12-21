@@ -31,6 +31,7 @@ public final class DocCommentTransformer {
 	public DocComment transform(Factory f, String str) {
 		try {
 			DocComment dc = new DocComment();
+			dc.setRawText(str); // preserve raw docblock for AST round-tripping
 			str = str.trim();
 			if (str.startsWith("/**")) str = str.substring(3);
 			if (str.endsWith("*/")) str = str.substring(0, str.length() - 2);

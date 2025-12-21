@@ -2125,7 +2125,8 @@ public abstract class AbstrCFMLExprTransformer {
 			throw new TemplateException(cfml, "block comment is not closed");
 		}
 		if (isDocComment && !data.insideFunction) {
-			String comment = cfml.substring(pos - 2, cfml.getPos() - pos);
+			// Include the full comment from /** to */ inclusive
+			String comment = cfml.substring(pos - 2, cfml.getPos() - (pos - 2));
 			data.docComment = docCommentTransformer.transform(data.factory, comment);
 		}
 		return true;
