@@ -46,6 +46,7 @@ import lucee.transformer.bytecode.expression.var.Call;
 import lucee.transformer.bytecode.expression.var.DynAssign;
 import lucee.transformer.bytecode.expression.var.FunctionMember;
 import lucee.transformer.bytecode.expression.var.NamedArgumentImpl;
+import lucee.transformer.expression.var.NamedArgument;
 import lucee.transformer.bytecode.expression.var.UDF;
 import lucee.transformer.bytecode.literal.Identifier;
 import lucee.transformer.bytecode.literal.LitStringImpl;
@@ -297,16 +298,16 @@ public abstract class AbstrCFMLExprTransformer {
 		try {
 			if (data.srcCode.forwardIfCurrent(":")) {
 				comments(data);
-				return new NamedArgumentImpl(expr, assignOp(data), type, varKeyUpperCase);
+				return new NamedArgumentImpl(expr, assignOp(data), type, varKeyUpperCase, NamedArgument.SEPARATOR_COLON);
 			}
 			else if (expr instanceof DynAssign) {
 				DynAssign da = (DynAssign) expr;
 				// Use getSourceName() to preserve original expression type (e.g., NumberLiteral) for AST
-				return new NamedArgumentImpl(da.getSourceName(), da.getValue(), type, varKeyUpperCase);
+				return new NamedArgumentImpl(da.getSourceName(), da.getValue(), type, varKeyUpperCase, NamedArgument.SEPARATOR_EQUALS);
 			}
 			else if (expr instanceof Assign && !(expr instanceof OpVariable)) {
 				Assign a = (Assign) expr;
-				return new NamedArgumentImpl(a.getVariable(), a.getValue(), type, varKeyUpperCase);
+				return new NamedArgumentImpl(a.getVariable(), a.getValue(), type, varKeyUpperCase, NamedArgument.SEPARATOR_EQUALS);
 			}
 		}
 		catch (TransformerException be) {
@@ -1529,7 +1530,9 @@ public abstract class AbstrCFMLExprTransformer {
 			}
 
 			// property
-			else invoker.addMember(member = data.factory.createDataMember(namePropUC));
+			else {
+				invoker.addMember(member = data.factory.createDataMember(namePropUC));
+			}
 
 			if (safeNavigation) {
 				member.setSafeNavigated(true);

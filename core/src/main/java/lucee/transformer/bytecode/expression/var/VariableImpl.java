@@ -1163,6 +1163,8 @@ public final class VariableImpl extends ExpressionBase implements Variable {
 								Struct valueNode = new StructImpl(Struct.TYPE_LINKED);
 								na.getValue().dump(valueNode);
 								prop.setEL(KeyConstants._value, valueNode);
+								// Track the separator used (: or =)
+								prop.setEL(KeyConstants._separator, String.valueOf(na.getSeparator()));
 							}
 							else {
 								// Fallback for non-named arguments (shouldn't happen for struct literals)
