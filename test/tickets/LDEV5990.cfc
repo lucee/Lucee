@@ -71,66 +71,40 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ast" {
 
 		});
 
-		describe( "LDEV-5990: Docblock hints should include source annotation", function() {
+		describe( "LDEV-5990: Docblock description goes to annotations.description", function() {
 
-			it( "should indicate hint came from docblock vs attribute", function() {
+			it( "docblock description should be in annotations.description", function() {
 				var ast = astFromPath( variables.testDir & "hintedParams.cfc" );
 
-				// Find the withDocblock function (has hint from docblock)
 				var func = findFunction( ast, "withDocblock" );
 				expect( func ).notToBeNull( "withDocblock function should be found in AST" );
-				expect( func ).toHaveKey( "hint" );
-				// Should have some way to know this hint came from a docblock
-				expect( func ).toHaveKey( "hintSource", "AST should indicate hint source" );
-				expect( func.hintSource ).toBe( "docblock" );
+				expect( func ).toHaveKey( "docblock", "should have docblock" );
+				expect( func ).toHaveKey( "annotations", "should have annotations" );
+				expect( func.annotations ).toHaveKey( "description", "annotations should have description" );
+				expect( func.annotations.description ).toBe( "This hint comes from a docblock" );
 			});
 
-			it( "should indicate hint came from attribute when using hint attribute", function() {
+			it( "inline hint attribute should go to metadata.hint", function() {
 				var ast = astFromPath( variables.testDir & "hintedParams.cfc" );
 
-				// Find the withHintAttr function (has hint="..." attribute)
 				var func = findFunction( ast, "withHintAttr" );
 				expect( func ).notToBeNull( "withHintAttr function should be found in AST" );
-				expect( func ).toHaveKey( "hint" );
-				// Should indicate this hint came from an attribute
-				expect( func ).toHaveKey( "hintSource", "AST should indicate hint source" );
-				expect( func.hintSource ).toBe( "attribute" );
-			});
-
-			it( "docblock hints should NOT have quoteChar (original source wasn't quoted)", function() {
-				var ast = astFromPath( variables.testDir & "hintedParams.cfc" );
-
-				// Find the withDocblock function (has hint from docblock)
-				var func = findFunction( ast, "withDocblock" );
-				expect( func ).notToBeNull( "withDocblock function should be found in AST" );
-				expect( func ).toHaveKey( "hint" );
-				expect( func.hintSource ).toBe( "docblock" );
-				// Docblock hints should NOT have quoteChar - the original source wasn't quoted
-				expect( func.hint ).notToHaveKey( "quoteChar", "docblock hints should not have quoteChar" );
-			});
-
-			it( "attribute hints SHOULD have quoteChar (original source was quoted)", function() {
-				var ast = astFromPath( variables.testDir & "hintedParams.cfc" );
-
-				// Find the withHintAttr function (has hint="..." attribute)
-				var func = findFunction( ast, "withHintAttr" );
-				expect( func ).notToBeNull( "withHintAttr function should be found in AST" );
-				expect( func ).toHaveKey( "hint" );
-				expect( func.hintSource ).toBe( "attribute" );
-				// Attribute hints SHOULD have quoteChar - the original source was quoted
-				expect( func.hint ).toHaveKey( "quoteChar", "attribute hints should have quoteChar" );
+				expect( func ).notToHaveKey( "docblock", "should not have docblock when hint from attribute" );
+				// Inline hint goes to metadata
+				expect( func ).toHaveKey( "metadata", "should have metadata for inline attributes" );
+				expect( func.metadata ).toHaveKey( "hint", "metadata should have hint" );
+				expect( func.metadata.hint ).toBe( "This hint comes from an attribute" );
 			});
 
 		});
 
 		describe( "LDEV-5990: Raw docblock should be preserved for round-tripping", function() {
 
-			it( "should include raw docblock text in AST when hintSource is docblock", function() {
+			it( "should include raw docblock text when function has docblock", function() {
 				var ast = astFromPath( variables.testDir & "hintedParams.cfc" );
 
 				var func = findFunction( ast, "withDocblock" );
 				expect( func ).notToBeNull( "withDocblock function should be found in AST" );
-				expect( func.hintSource ).toBe( "docblock" );
 				// Raw docblock should be preserved for round-trip fidelity
 				expect( func ).toHaveKey( "docblock", "AST should include raw docblock text" );
 				expect( func.docblock ).toInclude( "This hint comes from a docblock" );
@@ -139,14 +113,31 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ast" {
 				expect( func.docblock ).toInclude( "*/", "docblock should include closing */" );
 			});
 
-			it( "should NOT include docblock key when hint comes from attribute", function() {
+			it( "should NOT include docblock key when no docblock exists", function() {
 				var ast = astFromPath( variables.testDir & "hintedParams.cfc" );
 
 				var func = findFunction( ast, "withHintAttr" );
 				expect( func ).notToBeNull( "withHintAttr function should be found in AST" );
-				expect( func.hintSource ).toBe( "attribute" );
-				// No docblock when hint comes from attribute
-				expect( func ).notToHaveKey( "docblock", "AST should not have docblock when hint is from attribute" );
+				// No docblock when hint comes from attribute only
+				expect( func ).notToHaveKey( "docblock", "AST should not have docblock when none exists" );
+			});
+
+			it( "should preserve docblock EVEN when inline hint attribute also exists", function() {
+				var ast = astFromPath( variables.testDir & "hintedParams.cfc" );
+
+				var func = findFunction( ast, "docblockPlusHint" );
+				expect( func ).notToBeNull( "docblockPlusHint function should be found in AST" );
+				// MUST preserve docblock for round-tripping even when inline hint wins
+				expect( func ).toHaveKey( "docblock", "docblock must be preserved even with inline hint" );
+				expect( func.docblock ).toInclude( "Docblock description" );
+				// Docblock description goes to annotations.description
+				expect( func ).toHaveKey( "annotations" );
+				expect( func.annotations ).toHaveKey( "description" );
+				expect( func.annotations.description ).toBe( "Docblock description" );
+				// Inline hint goes to metadata.hint
+				expect( func ).toHaveKey( "metadata" );
+				expect( func.metadata ).toHaveKey( "hint" );
+				expect( func.metadata.hint ).toBe( "Attribute hint" );
 			});
 
 		});
@@ -162,6 +153,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ast" {
 				expect( func.docblock ).toInclude( "Single line docblock" );
 				expect( func.docblock ).toInclude( "/**" );
 				expect( func.docblock ).toInclude( "*/" );
+				// annotations.description should have the parsed description
+				expect( func ).toHaveKey( "annotations" );
+				expect( func.annotations ).toHaveKey( "description" );
+				expect( func.annotations.description ).toBe( "Single line docblock" );
 			});
 
 			it( "should handle docblock with only @tags no description", function() {
@@ -169,8 +164,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ast" {
 
 				var func = findFunction( ast, "onlyTags" );
 				expect( func ).notToBeNull( "onlyTags function should be found in AST" );
-				expect( func ).toHaveKey( "metadata" );
-				expect( func.metadata ).toHaveKey( "return" );
+				// @tags go into annotations, not metadata
+				expect( func ).toHaveKey( "annotations" );
+				expect( func.annotations ).toHaveKey( "return" );
 			});
 
 			it( "should handle docblock with multiple @param tags", function() {
@@ -200,11 +196,12 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ast" {
 
 				var func = findFunction( ast, "specialChars" );
 				expect( func ).notToBeNull( "specialChars function should be found in AST" );
-				expect( func ).toHaveKey( "hint" );
-				// Hint should preserve special characters
-				expect( func.hint.value ).toInclude( "<html>" );
-				expect( func.hint.value ).toInclude( "&" );
-				expect( func.hint.value ).toInclude( """" );
+				expect( func ).toHaveKey( "annotations" );
+				expect( func.annotations ).toHaveKey( "description" );
+				// Description should preserve special characters
+				expect( func.annotations.description ).toInclude( "<html>" );
+				expect( func.annotations.description ).toInclude( "&" );
+				expect( func.annotations.description ).toInclude( """" );
 			});
 
 			it( "should handle component-level docblock", function() {
@@ -218,32 +215,36 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ast" {
 				expect( componentTag ).toHaveKey( "docblock" );
 				expect( componentTag.docblock ).toInclude( "Component-level docblock" );
 				expect( componentTag.docblock ).toInclude( "@author" );
+				// annotations should have description from docblock
+				expect( componentTag ).toHaveKey( "annotations" );
+				expect( componentTag.annotations ).toHaveKey( "description" );
+				expect( componentTag.annotations.description ).toBe( "Component-level docblock" );
 			});
 
 		});
 
 		describe( "LDEV-5990: Docblock metadata tags should be in AST", function() {
 
-			it( "should include @return tag in AST metadata", function() {
+			it( "should include @return tag in AST annotations", function() {
 				var ast = astFromPath( variables.testDir & "hintedParams.cfc" );
 
 				var func = findFunction( ast, "withFullDocblock" );
 				expect( func ).notToBeNull( "withFullDocblock function should be found in AST" );
-				// @return should be accessible in AST
-				expect( func ).toHaveKey( "metadata", "AST should include metadata from docblock" );
-				expect( func.metadata ).toHaveKey( "return", "metadata should include @return" );
-				expect( func.metadata.return ).toInclude( "A greeting message" );
+				// @return should be in annotations (docblock @tags)
+				expect( func ).toHaveKey( "annotations", "AST should include annotations from docblock" );
+				expect( func.annotations ).toHaveKey( "return", "annotations should include @return" );
+				expect( func.annotations.return ).toInclude( "A greeting message" );
 			});
 
-			it( "should include @deprecated tag in AST metadata", function() {
+			it( "should include @deprecated tag in AST annotations", function() {
 				var ast = astFromPath( variables.testDir & "hintedParams.cfc" );
 
 				var func = findFunction( ast, "withFullDocblock" );
 				expect( func ).notToBeNull( "withFullDocblock function should be found in AST" );
-				// @deprecated should be accessible in AST
-				expect( func ).toHaveKey( "metadata", "AST should include metadata from docblock" );
-				expect( func.metadata ).toHaveKey( "deprecated", "metadata should include @deprecated" );
-				expect( func.metadata.deprecated ).toInclude( "Use greetV2 instead" );
+				// @deprecated should be in annotations (docblock @tags)
+				expect( func ).toHaveKey( "annotations", "AST should include annotations from docblock" );
+				expect( func.annotations ).toHaveKey( "deprecated", "annotations should include @deprecated" );
+				expect( func.annotations.deprecated ).toInclude( "Use greetV2 instead" );
 			});
 
 			it( "should include param hints from docblock @param tags", function() {
@@ -324,6 +325,104 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ast" {
 				var hintAttr = getTagAttr( comp, "hint" );
 				expect( hintAttr ).notToBeNull( "cfcomponent should have hint attribute" );
 				expect( hintAttr.value.value ).toBe( "Tag-based component hint" );
+			});
+
+		});
+
+		describe( "LDEV-5990: Metadata should separate inline attributes from docblock annotations", function() {
+
+			it( "should include inline custom attributes in metadata", function() {
+				var ast = astFromPath( variables.testDir & "metadataSources.cfc" );
+
+				var func = findFunction( ast, "inlineAttributeOnly" );
+				expect( func ).notToBeNull( "inlineAttributeOnly function should be found in AST" );
+				// Inline attributes should be in metadata
+				expect( func ).toHaveKey( "metadata", "function should have metadata for inline attributes" );
+				expect( func.metadata ).toHaveKey( "mixin", "metadata should include mixin attribute" );
+				expect( func.metadata.mixin ).toBe( "controller" );
+				// No docblock means no annotations field
+				expect( func ).notToHaveKey( "docblock", "function without docblock should not have docblock key" );
+			});
+
+			it( "should put docblock annotations in annotations field, NOT metadata", function() {
+				var ast = astFromPath( variables.testDir & "metadataSources.cfc" );
+
+				var func = findFunction( ast, "docblockAnnotationsOnly" );
+				expect( func ).notToBeNull( "docblockAnnotationsOnly function should be found in AST" );
+				// Docblock annotations should be in annotations, NOT metadata
+				expect( func ).toHaveKey( "annotations", "function should have annotations from docblock" );
+				expect( func.annotations ).toHaveKey( "changes-only.hint", "annotations should include @changes-only.hint" );
+				expect( func.annotations[ "changes-only.hint" ] ).toBe( "Only show differences" );
+				// metadata should be empty or not exist (no inline attributes)
+				if ( structKeyExists( func, "metadata" ) ) {
+					expect( structIsEmpty( func.metadata ) ).toBeTrue( "metadata should be empty when only docblock annotations exist" );
+				}
+			});
+
+			it( "should separate inline attributes and docblock annotations when both exist", function() {
+				var ast = astFromPath( variables.testDir & "metadataSources.cfc" );
+
+				var func = findFunction( ast, "bothInlineAndDocblock" );
+				expect( func ).notToBeNull( "bothInlineAndDocblock function should be found in AST" );
+				// Inline attributes go in metadata
+				expect( func ).toHaveKey( "metadata", "function should have metadata for inline attributes" );
+				expect( func.metadata ).toHaveKey( "mixin", "metadata should include mixin" );
+				expect( func.metadata.mixin ).toBe( "model" );
+				expect( func.metadata ).toHaveKey( "changesOnly", "metadata should include changesOnly" );
+				// Docblock annotations go in annotations
+				expect( func ).toHaveKey( "annotations", "function should have annotations from docblock" );
+				expect( func.annotations ).toHaveKey( "someTag.hint", "annotations should include @someTag.hint" );
+				// Annotations should NOT be in metadata
+				expect( func.metadata ).notToHaveKey( "someTag.hint", "docblock annotations should NOT be in metadata" );
+			});
+
+			it( "should preserve raw docblock for round-tripping regardless of annotations", function() {
+				var ast = astFromPath( variables.testDir & "metadataSources.cfc" );
+
+				var func = findFunction( ast, "docblockAnnotationsOnly" );
+				expect( func ).notToBeNull( "docblockAnnotationsOnly function should be found in AST" );
+				// Raw docblock should always be preserved for round-trip
+				expect( func ).toHaveKey( "docblock", "function should have raw docblock" );
+				expect( func.docblock ).toInclude( "@changes-only.hint" );
+				expect( func.docblock ).toInclude( "@format.options" );
+			});
+
+			it( "component: should have docblock annotations in annotations field", function() {
+				var ast = astFromPath( variables.testDir & "metadataSources.cfc" );
+
+				// Component has BOTH docblock annotations AND inline attributes
+				var comp = ast.body[ 1 ];
+				expect( comp.type ).toBe( "CFMLTag" );
+				expect( comp.name ).toBe( "component" );
+				// Inline attributes are in attributes array (standard for CFMLTag)
+				expect( comp ).toHaveKey( "attributes", "component should have attributes array" );
+				expect( getTagAttrValue( comp, "displayname" ) ).toBe( "MetadataTest" );
+				expect( getTagAttrValue( comp, "singleton" ) ).toBe( "true" );
+				// Docblock annotations go in separate annotations field
+				expect( comp ).toHaveKey( "annotations", "component should have annotations from docblock" );
+				// description from docblock first line
+				expect( comp.annotations ).toHaveKey( "description", "annotations should include description" );
+				expect( comp.annotations.description ).toInclude( "Test fixture for LDEV-5990" );
+				// @tags from docblock
+				expect( comp.annotations ).toHaveKey( "author", "annotations should include @author" );
+				expect( comp.annotations.author ).toBe( "Test Author" );
+				expect( comp.annotations ).toHaveKey( "version", "annotations should include @version" );
+			});
+
+			it( "component: should NOT have annotations when no docblock", function() {
+				var ast = astFromPath( variables.testDir & "componentInlineOnly.cfc" );
+
+				var comp = ast.body[ 1 ];
+				expect( comp.type ).toBe( "CFMLTag" );
+				expect( comp.name ).toBe( "component" );
+				// Inline attributes in attributes array
+				expect( comp ).toHaveKey( "attributes", "component should have attributes" );
+				expect( getTagAttrValue( comp, "displayname" ) ).toBe( "InlineOnlyComponent" );
+				expect( getTagAttrValue( comp, "singleton" ) ).toBe( "true" );
+				expect( getTagAttrValue( comp, "accessors" ) ).toBe( "true" );
+				// No docblock means no annotations
+				expect( comp ).notToHaveKey( "annotations", "component without docblock should not have annotations" );
+				expect( comp ).notToHaveKey( "docblock", "component without docblock should not have docblock" );
 			});
 
 		});
