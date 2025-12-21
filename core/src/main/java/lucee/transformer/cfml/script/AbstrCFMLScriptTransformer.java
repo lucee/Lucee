@@ -1119,6 +1119,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 		if (data.docComment != null) {
 			func.setHint(data.factory, hint = data.docComment.getHint());
 			func.setMetaData(data.docComment.getParams());
+			func.setRawDocblock(data.docComment.getRawText());
 			data.docComment = null;
 		}
 
@@ -1720,6 +1721,11 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 		if (data.docComment == null) return;
 
 		tag.addMetaData(data.docComment.getHintAsAttribute(data.factory));
+
+		// Store raw docblock for AST round-tripping
+		if (tag instanceof TagBase) {
+			((TagBase) tag).setRawDocblock(data.docComment.getRawText());
+		}
 
 		Map<String, Attribute> params = data.docComment.getParams();
 		Iterator<Attribute> it = params.values().iterator();
