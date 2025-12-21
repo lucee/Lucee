@@ -1513,15 +1513,7 @@ public abstract class AbstrCFMLExprTransformer {
 				expr = invoker;
 			}
 
-			// safe navigation
 			Member member;
-			if (safeNavigation) {
-				List<Member> members = invoker.getMembers();
-				if (members.size() > 0) {
-					member = members.get(members.size() - 1);
-					member.setSafeNavigated(true);
-				}
-			}
 
 			// Method
 			if (data.srcCode.isCurrent('(')) {
