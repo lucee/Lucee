@@ -1244,6 +1244,10 @@ public final class VariableImpl extends ExpressionBase implements Variable {
 					Struct callee = new StructImpl(Struct.TYPE_LINKED);
 					callee.setEL(KeyConstants._type, "MemberExpression");
 					callee.setEL(KeyConstants._computed, false);
+					// Track safe navigation (?.) as optional=true
+					if (member.getSafeNavigated()) {
+						callee.setEL(KeyConstants._optional, Boolean.TRUE);
+					}
 
 					// LDEV-6011: Handle _getstaticscope/_getsuperstaticscope for :: syntax
 					Struct staticInfo = extractStaticScopeInfo(current);
@@ -1289,6 +1293,10 @@ public final class VariableImpl extends ExpressionBase implements Variable {
 					boolean isComputed = (memberName instanceof LitString && ((LitString) memberName).fromBracket())
 							|| !(memberName instanceof Literal);
 					newNode.setEL(KeyConstants._computed, isComputed);
+					// Track safe navigation (?.) as optional=true
+					if (member.getSafeNavigated()) {
+						newNode.setEL(KeyConstants._optional, Boolean.TRUE);
+					}
 
 					// LDEV-6011: Handle _getstaticscope/_getsuperstaticscope for :: syntax
 					Struct staticInfo = extractStaticScopeInfo(current);

@@ -41,44 +41,58 @@ import lucee.transformer.expression.literal.Literal;
 public final class OpNegateNumber extends ExpressionBase implements ExprNumber {
 
 	private ExprNumber expr;
+	private int operation;
 
-	// public static final int PLUS = 0;
-	// public static final int MINUS = 1;
-
-	private OpNegateNumber(Expression expr, Position start, Position end) {
+	private OpNegateNumber(Expression expr, int operation, Position start, Position end) {
 		super(expr.getFactory(), start, end);
 		this.expr = expr.getFactory().toExprNumber(expr);
+		this.operation = operation;
 	}
 
 	/**
 	 * Create a String expression from an Expression
-	 * 
+	 *
 	 * @param expr
 	 * @param start
 	 * @param end
-	 * 
+	 *
 	 * @return String expression
 	 */
 	public static ExprNumber toExprNumber(Expression expr, Position start, Position end) {
-		if (expr instanceof Literal) {
-			Number n = ((Literal) expr).getNumber(null);
-			if (n != null) {
-				if (n instanceof BigDecimal) return expr.getFactory().createLitNumber(((BigDecimal) n).negate(), start, end);
-				return expr.getFactory().createLitNumber(BigDecimal.valueOf(-n.doubleValue()), start, end);
-			}
-		}
-		return new OpNegateNumber(expr, start, end);
+		return toExprNumber(expr, Factory.OP_NEG_NBR_MINUS, start, end);
 	}
 
 	public static ExprNumber toExprNumber(Expression expr, int operation, Position start, Position end) {
-		if (operation == Factory.OP_NEG_NBR_MINUS) return toExprNumber(expr, start, end);
-		return expr.getFactory().toExprNumber(expr);
+		if (operation == Factory.OP_NEG_NBR_MINUS) {
+			// For minus, try to fold literals
+			if (expr instanceof Literal) {
+				Number n = ((Literal) expr).getNumber(null);
+				if (n != null) {
+					if (n instanceof BigDecimal) return expr.getFactory().createLitNumber(((BigDecimal) n).negate(), start, end);
+					return expr.getFactory().createLitNumber(BigDecimal.valueOf(-n.doubleValue()), start, end);
+				}
+			}
+		}
+		// For plus, we could fold literals too, but the value doesn't change
+		// Still need to create the node to preserve the unary plus in AST
+		return new OpNegateNumber(expr, operation, start, end);
 	}
 
 	@Override
 	public Type _writeOut(BytecodeContext bc, int mode) throws TransformerException {
 		GeneratorAdapter adapter = bc.getAdapter();
 
+		// For unary plus, just write out the expression as a number
+		if (operation == Factory.OP_NEG_NBR_PLUS) {
+			if (mode == MODE_VALUE) {
+				expr.writeOut(bc, MODE_VALUE);
+				return Types.DOUBLE_VALUE;
+			}
+			expr.writeOut(bc, MODE_REF);
+			return Types.NUMBER;
+		}
+
+		// For unary minus, negate the value
 		if (mode == MODE_VALUE) {
 			expr.writeOut(bc, MODE_VALUE);
 			adapter.visitInsn(Opcodes.DNEG);
@@ -94,7 +108,7 @@ public final class OpNegateNumber extends ExpressionBase implements ExprNumber {
 	public void dump(Struct sct) {
 		super.dump(sct);
 		sct.setEL(KeyConstants._type, "UnaryExpression");
-		sct.setEL(KeyConstants._operator, "NEGATE");
+		sct.setEL(KeyConstants._operator, operation == Factory.OP_NEG_NBR_PLUS ? "PLUS" : "NEGATE");
 		sct.setEL(KeyConstants._prefix, Boolean.TRUE);
 		// argument
 		{
