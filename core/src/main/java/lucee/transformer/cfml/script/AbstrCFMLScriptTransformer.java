@@ -1500,7 +1500,13 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 		Tag tag = getTag(data, parent, tlt, line, null);
 		tag.setTagLibTag(tlt);
 		tag.setScriptBase(true);
-		if (!StringUtil.isEmpty(appendix)) tag.setAppendix(appendix);
+		if (!StringUtil.isEmpty(appendix)) {
+			tag.setAppendix(appendix);
+			tag.setFullname(type.concat(appendix));
+		}
+		else {
+			tag.setFullname(type);
+		}
 
 		// add component meta data
 		if (data.isCFC) {
@@ -2110,6 +2116,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 		Tag tag = getTag(data, parent, tlt, line, null);
 		tag.setScriptBase(true);
 		tag.setTagLibTag(tlt);
+		tag.setFullname(tagName);
 
 		comments(data);
 
