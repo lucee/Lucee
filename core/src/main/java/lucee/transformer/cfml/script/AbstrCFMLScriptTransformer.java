@@ -1815,7 +1815,9 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 		}
 
 		if (!hasType) {
-			property.addAttribute(new Attribute(false, "type", data.factory.createLitString("any"), "string"));
+			Attribute typeAttr = new Attribute(false, "type", data.factory.createLitString("any"), "string");
+			typeAttr.setDefaultAttribute(true);
+			property.addAttribute(typeAttr);
 		}
 		if (!hasName) throw new TemplateException(data.srcCode, "missing name declaration for property");
 
