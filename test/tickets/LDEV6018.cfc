@@ -291,6 +291,85 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ast" {
 
 		});
 
+		describe( "LDEV-6018: Increment/decrement should be UpdateExpression, not AssignmentExpression", function() {
+
+			it( "should parse pre-increment as UpdateExpression", function() {
+				var code = 'x = ++i;';
+				var ast = astFromString( code, "script" );
+
+				var expr = ast.body[1].right;
+
+				// Bug: ++i is parsed as AssignmentExpression with PLUS_ASSIGN
+				// Should be UpdateExpression with prefix=true
+				expect( expr.type ).toBe( "UpdateExpression",
+					"Pre-increment ++i should be UpdateExpression, not #expr.type#" );
+				expect( expr ).toHaveKey( "prefix" );
+				expect( expr.prefix ).toBe( true, "Pre-increment should have prefix=true" );
+				expect( expr.operator ).toBe( "++" );
+			});
+
+			it( "should parse post-increment as UpdateExpression", function() {
+				var code = 'x = i++;';
+				var ast = astFromString( code, "script" );
+
+				var expr = ast.body[1].right;
+
+				// Bug: i++ is parsed as AssignmentExpression with PLUS_ASSIGN
+				// Should be UpdateExpression with prefix=false
+				expect( expr.type ).toBe( "UpdateExpression",
+					"Post-increment i++ should be UpdateExpression, not #expr.type#" );
+				expect( expr ).toHaveKey( "prefix" );
+				expect( expr.prefix ).toBe( false, "Post-increment should have prefix=false" );
+				expect( expr.operator ).toBe( "++" );
+			});
+
+			it( "should parse pre-decrement as UpdateExpression", function() {
+				var code = 'x = --i;';
+				var ast = astFromString( code, "script" );
+
+				var expr = ast.body[1].right;
+
+				expect( expr.type ).toBe( "UpdateExpression",
+					"Pre-decrement --i should be UpdateExpression, not #expr.type#" );
+				expect( expr ).toHaveKey( "prefix" );
+				expect( expr.prefix ).toBe( true );
+				expect( expr.operator ).toBe( "--" );
+			});
+
+			it( "should parse post-decrement as UpdateExpression", function() {
+				var code = 'x = i--;';
+				var ast = astFromString( code, "script" );
+
+				var expr = ast.body[1].right;
+
+				expect( expr.type ).toBe( "UpdateExpression",
+					"Post-decrement i-- should be UpdateExpression, not #expr.type#" );
+				expect( expr ).toHaveKey( "prefix" );
+				expect( expr.prefix ).toBe( false );
+				expect( expr.operator ).toBe( "--" );
+			});
+
+			it( "should allow increment as inline expression", function() {
+				// This is the key issue - ++i must be usable as an expression
+				var code = 'x = int( 100 / count * ++i );';
+				var ast = astFromString( code, "script" );
+
+				var callExpr = ast.body[1].right;
+				expect( callExpr.type ).toBe( "CallExpression" );
+
+				// Find the ++i in the multiply expression
+				var multiplyExpr = callExpr.arguments[1];
+				expect( multiplyExpr.type ).toBe( "BinaryExpression" );
+				expect( multiplyExpr.operator ).toBe( "MULTIPLY" );
+
+				var incExpr = multiplyExpr.right;
+				// Bug: This is AssignmentExpression which can't be used inline
+				expect( incExpr.type ).toBe( "UpdateExpression",
+					"Inline ++i should be UpdateExpression for proper round-trip" );
+			});
+
+		});
+
 	}
 
 }
