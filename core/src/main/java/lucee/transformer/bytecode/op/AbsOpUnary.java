@@ -228,9 +228,35 @@ public abstract class AbsOpUnary extends ExpressionBase {
 		return "UNKNOWN_ASSIGN";
 	}
 
+	// Check if this is an increment/decrement (++i, i++, --i, i--)
+	private boolean isUpdateExpression() {
+		// Must be plus or minus operation
+		if (operation != Factory.OP_UNARY_PLUS && operation != Factory.OP_UNARY_MINUS) {
+			return false;
+		}
+		// For ++i and i++, the parser uses factory.NUMBER_ONE() singleton
+		// For x += 1, it parses the value from source creating a different object
+		// Reference equality distinguishes these cases
+		return value == var.getFactory().NUMBER_ONE();
+	}
+
 	@Override
 	public void dump(Struct sct) {
 		super.dump(sct);
+
+		// Check if this is ++i, i++, --i, i-- (UpdateExpression)
+		if (isUpdateExpression()) {
+			sct.setEL(KeyConstants._type, "UpdateExpression");
+			sct.setEL(KeyConstants._operator, operation == Factory.OP_UNARY_PLUS ? "++" : "--");
+			sct.setEL(KeyConstants._prefix, type == Factory.OP_UNARY_PRE);
+
+			// argument - the variable being updated
+			Struct argument = new StructImpl(Struct.TYPE_LINKED);
+			sct.setEL(KeyConstants._argument, argument);
+			var.dump(argument);
+			return;
+		}
+
 		// Output as AssignmentExpression with compound operator
 		sct.setEL(KeyConstants._type, "AssignmentExpression");
 		sct.setEL(KeyConstants._operator, toCompoundOperator(operation));
