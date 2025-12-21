@@ -135,6 +135,112 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ast" {
 					( arrayLen( right.arguments ) > 0 ? " - first arg: #right.arguments[1].value ?: right.arguments[1].type#" : "" ) );
 			});
 
+			it( "should distinguish colon separator from equals separator in struct properties", function() {
+				var colonCode = 'x = { a : 1 };';
+				var equalsCode = 'x = { a = 1 };';
+
+				var colonAst = astFromString( colonCode, "script" );
+				var equalsAst = astFromString( equalsCode, "script" );
+
+				var colonProp = colonAst.body[1].right.properties[1];
+				var equalsProp = equalsAst.body[1].right.properties[1];
+
+				// Both should be Property type
+				expect( colonProp.type ).toBe( "Property" );
+				expect( equalsProp.type ).toBe( "Property" );
+
+				// Should have a separator field to distinguish them
+				expect( colonProp ).toHaveKey( "separator",
+					"Property should have 'separator' field to indicate colon vs equals" );
+				expect( equalsProp ).toHaveKey( "separator",
+					"Property should have 'separator' field to indicate colon vs equals" );
+
+				// Colon syntax should have separator=":"
+				expect( colonProp.separator ).toBe( ":",
+					"Colon syntax { a : 1 } should have separator=':' but got '#colonProp.separator ?: 'null'#'" );
+
+				// Equals syntax should have separator="="
+				expect( equalsProp.separator ).toBe( "=",
+					"Equals syntax { a = 1 } should have separator='=' but got '#equalsProp.separator ?: 'null'#'" );
+			});
+
+			it( "should preserve mixed separators in same struct", function() {
+				// CFML allows mixing colon and equals in the same struct literal
+				var code = 'x = { a : 1, b = 2, c : 3 };';
+				var ast = astFromString( code, "script" );
+
+				var props = ast.body[1].right.properties;
+				expect( props ).toHaveLength( 3 );
+
+				// First property uses colon
+				expect( props[1] ).toHaveKey( "separator" );
+				expect( props[1].separator ).toBe( ":",
+					"First property 'a : 1' should have separator=':' but got '#props[1].separator ?: 'null'#'" );
+
+				// Second property uses equals
+				expect( props[2] ).toHaveKey( "separator" );
+				expect( props[2].separator ).toBe( "=",
+					"Second property 'b = 2' should have separator='=' but got '#props[2].separator ?: 'null'#'" );
+
+				// Third property uses colon
+				expect( props[3] ).toHaveKey( "separator" );
+				expect( props[3].separator ).toBe( ":",
+					"Third property 'c : 3' should have separator=':' but got '#props[3].separator ?: 'null'#'" );
+			});
+
+			it( "should distinguish colon separator from equals separator in named function arguments", function() {
+				var colonCode = 'myFunc( zac: 1, micha: 2 );';
+				var equalsCode = 'myFunc( zac=1, micha=2 );';
+
+				var colonAst = astFromString( colonCode, "script" );
+				var equalsAst = astFromString( equalsCode, "script" );
+
+				var colonArgs = colonAst.body[1].arguments;
+				var equalsArgs = equalsAst.body[1].arguments;
+
+				// Both should be NamedArgument type
+				expect( colonArgs[1].type ).toBe( "NamedArgument" );
+				expect( equalsArgs[1].type ).toBe( "NamedArgument" );
+
+				// Should have a separator field to distinguish them
+				expect( colonArgs[1] ).toHaveKey( "separator",
+					"NamedArgument should have 'separator' field to indicate colon vs equals" );
+				expect( equalsArgs[1] ).toHaveKey( "separator",
+					"NamedArgument should have 'separator' field to indicate colon vs equals" );
+
+				// Colon syntax should have separator=":"
+				expect( colonArgs[1].separator ).toBe( ":",
+					"Colon syntax myFunc( zac: 1 ) should have separator=':' but got '#colonArgs[1].separator ?: 'null'#'" );
+
+				// Equals syntax should have separator="="
+				expect( equalsArgs[1].separator ).toBe( "=",
+					"Equals syntax myFunc( zac=1 ) should have separator='=' but got '#equalsArgs[1].separator ?: 'null'#'" );
+			});
+
+			it( "should preserve mixed separators in same function call", function() {
+				// CFML allows mixing colon and equals in the same function call
+				var code = 'myFunc( a: 1, b=2, c: 3 );';
+				var ast = astFromString( code, "script" );
+
+				var args = ast.body[1].arguments;
+				expect( args ).toHaveLength( 3 );
+
+				// First arg uses colon
+				expect( args[1] ).toHaveKey( "separator" );
+				expect( args[1].separator ).toBe( ":",
+					"First arg 'a: 1' should have separator=':' but got '#args[1].separator ?: 'null'#'" );
+
+				// Second arg uses equals
+				expect( args[2] ).toHaveKey( "separator" );
+				expect( args[2].separator ).toBe( "=",
+					"Second arg 'b=2' should have separator='=' but got '#args[2].separator ?: 'null'#'" );
+
+				// Third arg uses colon
+				expect( args[3] ).toHaveKey( "separator" );
+				expect( args[3].separator ).toBe( ":",
+					"Third arg 'c: 3' should have separator=':' but got '#args[3].separator ?: 'null'#'" );
+			});
+
 		});
 
 	}
