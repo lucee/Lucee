@@ -25,8 +25,30 @@ component {
 		return "docblock";
 	}
 
+	/**
+	 * Function with full docblock annotations
+	 * @name The name parameter description
+	 * @age The age parameter description
+	 * @return string A greeting message
+	 * @deprecated Use greetV2 instead
+	 */
+	function withFullDocblock( string name, numeric age ) {
+		return "Hello #name#, you are #age#";
+	}
+
 	function withHintAttr() hint="This hint comes from an attribute" {
 		return "attribute";
+	}
+
+	/**
+	 * Docblock description
+	 */
+	function docblockPlusHint() hint="Attribute hint" {
+		return "both";
+	}
+
+	remote function remoteFunc() returnformat="json" {
+		return { "status": "ok" };
 	}
 
 }

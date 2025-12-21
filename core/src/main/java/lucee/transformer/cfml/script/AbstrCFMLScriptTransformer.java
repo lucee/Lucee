@@ -1093,10 +1093,13 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 
 		// doc comment
 		String hint = null;
-		if (data.docComment != null) {
-			func.setHint(data.factory, hint = data.docComment.getHint());
-			func.setMetaData(data.docComment.getParams());
-			func.setRawDocblock(data.docComment.getRawText());
+		DocComment docComment = data.docComment; // save reference before clearing
+		if (docComment != null) {
+			hint = docComment.getHint();
+			func.setHint(data.factory, hint);
+			func.setDocblockDescription(hint); // store for annotations.description
+			func.setAnnotations(docComment.getParams());
+			func.setRawDocblock(docComment.getRawText());
 			data.docComment = null;
 		}
 
@@ -1674,23 +1677,34 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 
 		tag.addMetaData(data.docComment.getHintAsAttribute(data.factory));
 
-		// Store raw docblock for AST round-tripping
+		// Store raw docblock and annotations for AST round-tripping
 		if (tag instanceof TagBase) {
-			((TagBase) tag).setRawDocblock(data.docComment.getRawText());
-		}
-
-		Map<String, Attribute> params = data.docComment.getParams();
-		Iterator<Attribute> it = params.values().iterator();
-		Attribute attr;
-		outer: while (it.hasNext()) {
-			attr = it.next();
-			// ignore list
-			if (!ArrayUtil.isEmpty(ignoreList)) {
-				for (int i = 0; i < ignoreList.length; i++) {
-					if (ignoreList[i].equalsIgnoreCase(attr.getName())) continue outer;
+			TagBase tb = (TagBase) tag;
+			tb.setRawDocblock(data.docComment.getRawText());
+			tb.setDocblockDescription(data.docComment.getHint()); // for annotations.description
+			// Store docblock @tags as annotations (separate from inline metadata)
+			Map<String, Attribute> params = data.docComment.getParams();
+			if (params != null && !params.isEmpty()) {
+				Map<String, Attribute> filteredParams = new HashMap<String, Attribute>();
+				for (Attribute attr: params.values()) {
+					// Apply ignore list
+					boolean ignored = false;
+					if (!ArrayUtil.isEmpty(ignoreList)) {
+						for (int i = 0; i < ignoreList.length; i++) {
+							if (ignoreList[i].equalsIgnoreCase(attr.getName())) {
+								ignored = true;
+								break;
+							}
+						}
+					}
+					if (!ignored) {
+						filteredParams.put(attr.getName(), attr);
+					}
+				}
+				if (!filteredParams.isEmpty()) {
+					tb.setAnnotations(filteredParams);
 				}
 			}
-			tag.addMetaData(attr);
 		}
 		data.docComment = null;
 	}

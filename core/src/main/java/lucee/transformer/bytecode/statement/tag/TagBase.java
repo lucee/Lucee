@@ -40,6 +40,8 @@ import lucee.transformer.bytecode.statement.StatementBase;
 import lucee.transformer.bytecode.visitor.ParseBodyVisitor;
 import lucee.transformer.library.tag.TagLibTag;
 import lucee.transformer.library.tag.TagLibTagAttr;
+import lucee.transformer.expression.Expression;
+import lucee.transformer.expression.literal.Literal;
 import lucee.transformer.statement.tag.Attribute;
 import lucee.transformer.statement.tag.Tag;
 
@@ -57,6 +59,8 @@ public abstract class TagBase extends StatementBase implements Tag {
 	private Map<String, Attribute> metadata;
 	private Map<String, Attribute> sourceAttributes; // original attributes before removeAttribute() calls
 	private String rawDocblock; // raw docblock text for AST round-tripping (components/interfaces)
+	private String docblockDescription; // parsed description from docblock for annotations.description
+	private Map<String, Attribute> annotations; // @tags from docblock (components/interfaces)
 	// private Label finallyLabel;
 
 	public TagBase(Factory factory, Position start, Position end) {
@@ -211,6 +215,18 @@ public abstract class TagBase extends StatementBase implements Tag {
 		return rawDocblock;
 	}
 
+	public void setDocblockDescription(String description) {
+		this.docblockDescription = description;
+	}
+
+	public void setAnnotations(Map<String, Attribute> annotations) {
+		this.annotations = annotations;
+	}
+
+	public Map<String, Attribute> getAnnotations() {
+		return annotations;
+	}
+
 	@Override
 	public void dump(Struct sct) {
 		super.dump(sct);
@@ -237,6 +253,31 @@ public abstract class TagBase extends StatementBase implements Tag {
 		if (fullname != null) sct.setEL(KeyConstants._fullname, fullname);
 		// docblock - raw docblock text for round-tripping (component/interface)
 		if (rawDocblock != null) sct.setEL("docblock", rawDocblock);
+		// annotations - docblock description + @tags from docblock
+		if (docblockDescription != null || (annotations != null && !annotations.isEmpty())) {
+			Struct annot = new StructImpl(Struct.TYPE_LINKED);
+			// description from docblock first line(s)
+			if (docblockDescription != null && !docblockDescription.isEmpty()) {
+				annot.setEL(KeyConstants._description, docblockDescription);
+			}
+			// @tags from docblock
+			if (annotations != null) {
+				for (Entry<String, Attribute> entry: annotations.entrySet()) {
+					String key = entry.getKey();
+					Attribute attr = entry.getValue();
+					Expression val = attr.getValue();
+					if (val instanceof Literal) {
+						annot.setEL(key, ((Literal) val).getString());
+					}
+					else {
+						Struct s = new StructImpl(Struct.TYPE_LINKED);
+						val.dump(s);
+						annot.setEL(key, s);
+					}
+				}
+			}
+			sct.setEL("annotations", annot);
+		}
 
 		// attributes (use sourceAttributes if available, as removeAttribute() may have removed some)
 		Array arrAttrs = new ArrayImpl();
