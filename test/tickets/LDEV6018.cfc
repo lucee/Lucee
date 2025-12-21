@@ -203,6 +203,54 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ast" {
 				expect( expr.object.optional ).toBe( true );
 			});
 
+			it( "should NOT bleed optional flag to previous member in mixed chain", function() {
+				// Bug: a.b.c?.d incorrectly sets optional on BOTH .d AND .c
+				// Only .d should have optional=true
+				var code = 'x = a.b.c?.d;';
+				var ast = astFromString( code, "script" );
+
+				var expr = ast.body[1].right;
+
+				// Structure: MemberExpression(.d) -> MemberExpression(.c) -> MemberExpression(.b) -> Identifier(a)
+
+				// .d - should have optional=true (we used ?.)
+				expect( expr.type ).toBe( "MemberExpression" );
+				expect( expr.property.name ).toBe( "D" );
+				expect( expr ).toHaveKey( "optional" );
+				expect( expr.optional ).toBe( true, ".d should have optional=true" );
+
+				// .c - should NOT have optional (we used regular .)
+				expect( expr.object.type ).toBe( "MemberExpression" );
+				expect( expr.object.property.name ).toBe( "C" );
+				expect( expr.object.optional ?: false ).toBe( false,
+					".c should NOT have optional=true - the flag is bleeding from ?.d" );
+
+				// .b - should NOT have optional
+				expect( expr.object.object.type ).toBe( "MemberExpression" );
+				expect( expr.object.object.property.name ).toBe( "B" );
+				expect( expr.object.object.optional ?: false ).toBe( false,
+					".b should NOT have optional=true" );
+			});
+
+			it( "should correctly mark only the safe-navigated member in middle of chain", function() {
+				// a.b?.c.d - only .c should have optional
+				var code = 'x = a.b?.c.d;';
+				var ast = astFromString( code, "script" );
+
+				var expr = ast.body[1].right;
+
+				// .d - should NOT have optional
+				expect( expr.optional ?: false ).toBe( false, ".d should NOT have optional" );
+
+				// .c - should have optional=true (we used ?.)
+				expect( expr.object ).toHaveKey( "optional" );
+				expect( expr.object.optional ).toBe( true, ".c should have optional=true" );
+
+				// .b - should NOT have optional
+				expect( expr.object.object.optional ?: false ).toBe( false,
+					".b should NOT have optional=true - the flag is bleeding from ?.c" );
+			});
+
 		});
 
 		describe( "LDEV-6018: Compound assignment operators should be preserved", function() {
