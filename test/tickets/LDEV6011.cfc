@@ -241,6 +241,83 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ast" {
 					"Third arg 'c: 3' should have separator=':' but got '#args[3].separator ?: 'null'#'" );
 			});
 
+			it( "should represent Class::method() as static MemberExpression not _getstaticscope", function() {
+				var code = 'x = MyClass::staticMethod( arg );';
+				var ast = astFromString( code, "script" );
+
+				expect( ast.body ).toHaveLength( 1 );
+				var right = ast.body[1].right;
+				expect( right.type ).toBe( "CallExpression" );
+
+				// The callee should be a MemberExpression with static=true
+				var callee = right.callee;
+				expect( callee.type ).toBe( "MemberExpression",
+					"Expected MemberExpression but got #callee.type#" );
+				expect( callee ).toHaveKey( "static",
+					"MemberExpression should have 'static' field for :: syntax" );
+				expect( callee.static ).toBe( true,
+					"Expected static=true for :: syntax but got #callee.static ?: 'null'#" );
+
+				// The object should be the class name, not _getstaticscope call
+				expect( callee.object.type ).toBe( "Identifier",
+					"Expected object to be Identifier but got #callee.object.type#" &
+					( callee.object.type == "CallExpression" ? " with callee #callee.object.callee.name ?: 'unknown'#" : "" ) );
+				expect( callee.object.name ).toBe( "MyClass",
+					"Expected object name 'MyClass' but got '#callee.object.name ?: 'null'#'" );
+
+				// The property should be the method name
+				expect( callee.property.name ).toBe( "staticMethod",
+					"Expected property name 'staticMethod' but got '#callee.property.name ?: 'null'#'" );
+			});
+
+			it( "should represent super::method() as static MemberExpression not _getsuperstaticscope", function() {
+				var code = 'x = super::parentMethod();';
+				var ast = astFromString( code, "script" );
+
+				expect( ast.body ).toHaveLength( 1 );
+				var right = ast.body[1].right;
+				expect( right.type ).toBe( "CallExpression" );
+
+				// The callee should be a MemberExpression with static=true
+				var callee = right.callee;
+				expect( callee.type ).toBe( "MemberExpression" );
+				expect( callee ).toHaveKey( "static" );
+				expect( callee.static ).toBe( true );
+
+				// The object should be "super" identifier, not _getsuperstaticscope call
+				expect( callee.object.type ).toBe( "Identifier",
+					"Expected object to be Identifier but got #callee.object.type#" &
+					( callee.object.type == "CallExpression" ? " with callee #callee.object.callee.name ?: 'unknown'#" : "" ) );
+				expect( callee.object.name ).toBe( "super",
+					"Expected object name 'super' but got '#callee.object.name ?: 'null'#'" );
+
+				// The property should be the method name
+				expect( callee.property.name ).toBe( "parentMethod" );
+			});
+
+			it( "should represent Class::CONSTANT as static MemberExpression", function() {
+				var code = 'x = MyClass::CONSTANT;';
+				var ast = astFromString( code, "script" );
+
+				expect( ast.body ).toHaveLength( 1 );
+				var right = ast.body[1].right;
+
+				// Direct static property access (not a CallExpression)
+				expect( right.type ).toBe( "MemberExpression",
+					"Expected MemberExpression but got #right.type#" );
+				expect( right ).toHaveKey( "static" );
+				expect( right.static ).toBe( true );
+
+				// The object should be the class name
+				expect( right.object.type ).toBe( "Identifier",
+					"Expected object to be Identifier but got #right.object.type#" &
+					( right.object.type == "CallExpression" ? " with callee #right.object.callee.name ?: 'unknown'#" : "" ) );
+				expect( right.object.name ).toBe( "MyClass" );
+
+				// The property should be the constant name
+				expect( right.property.name ).toBe( "CONSTANT" );
+			});
+
 		});
 
 	}
