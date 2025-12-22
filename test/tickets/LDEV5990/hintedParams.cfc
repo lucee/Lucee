@@ -51,4 +51,11 @@ component {
 		return { "status": "ok" };
 	}
 
+	/**
+	 * @cb.hint Callback function hint
+	 */
+	function withClosureDefault( function cb=function(){} ) {
+		return cb();
+	}
+
 }
