@@ -440,6 +440,8 @@ public final class CFMLTransformer {
 
 			// Comment
 			comment(data.srcCode, false);
+			// Check if we've reached the end after stripping comments (LDEV-6038)
+			if (!data.srcCode.isValidIndex()) break;
 			// Tag
 			// is Tag Beginning
 			if (data.srcCode.isCurrent('<')) {
