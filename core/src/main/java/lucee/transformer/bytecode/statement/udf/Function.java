@@ -623,9 +623,10 @@ public abstract class Function extends StatementBaseNoFinal implements Opcodes, 
 		ExprString es = value.getFactory().toExprString(value);
 		if (!(es instanceof LitString)) {
 			// Handle unquoted identifiers like access=remote - convert Variable to LitString
+			// Preserve position from original expression for AST round-tripping (LDEV-6015)
 			String str = ASMUtil.toString(bc, value, null);
 			if (str != null) {
-				return value.getFactory().createLitString(str);
+				return value.getFactory().createLitString(str, value.getStart(), value.getEnd());
 			}
 			throw new TransformerException(bc, "Value of attribute [" + name + "] must have a literal/constant value", getStart());
 		}

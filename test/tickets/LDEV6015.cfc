@@ -213,6 +213,101 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ast" {
 
 		});
 
+		describe( "Function returntype attribute quoteChar", function() {
+
+			it( "should have quoteChar for quoted returntype attribute", function() {
+				// function test() returntype="boolean" {} - quoted attribute should have quoteChar
+				var ast = astFromString( 'function test() returntype="boolean" {}', "script" );
+				var func = ast.body[1];
+
+				expect( func.type ).toBe( "FunctionDeclaration" );
+				expect( func.returnType.type ).toBe( "StringLiteral" );
+				expect( func.returnType.value ).toBe( "boolean" );
+				expect( func.returnType ).toHaveKey( "quoteChar", "quoted returntype attribute should have quoteChar" );
+				expect( func.returnType.quoteChar ).toBe( '"' );
+			});
+
+			it( "should NOT have quoteChar for inline returntype keyword", function() {
+				// boolean function test() {} - inline keyword is NOT an attribute
+				var ast = astFromString( 'boolean function test() {}', "script" );
+				var func = ast.body[1];
+
+				expect( func.type ).toBe( "FunctionDeclaration" );
+				expect( func.returnType.type ).toBe( "StringLiteral" );
+				expect( func.returnType.value ).toBe( "boolean" );
+				// Inline keyword should NOT have quoteChar - it's not quoted in source
+				expect( func.returnType ).notToHaveKey( "quoteChar", "inline returntype keyword should not have quoteChar" );
+			});
+
+			it( "should have position for unquoted returntype attribute (distinguishes from keyword)", function() {
+				// function test() returntype=boolean {} - attribute syntax has position data
+				// boolean function test() {} - keyword syntax has NO position data
+				// Position presence distinguishes attribute from keyword, not quoteChar
+				var ast = astFromString( 'function test() returntype=boolean {}', "script" );
+				var func = ast.body[1];
+
+				expect( func.type ).toBe( "FunctionDeclaration" );
+				// Attribute syntax should have position data (distinguishes from keyword)
+				expect( func.returnType ).toHaveKey( "start", "unquoted returntype attribute should have position (distinguishes from keyword)" );
+			});
+
+		});
+
+		describe( "Param shorthand type attribute", function() {
+
+			it( "should have StringLiteral WITHOUT position for shorthand type", function() {
+				// param struct e; - shorthand type produces synthetic StringLiteral (no position)
+				var ast = astFromString( 'param struct e;', "script" );
+				var paramTag = ast.body[1];
+
+				expect( paramTag.type ).toBe( "CFMLTag" );
+				expect( paramTag.name ).toBe( "param" );
+
+				var typeAttr = paramTag.attributes.filter( function( a ) { return a.name == "type"; } )[1];
+				expect( typeAttr ).toBeStruct( "param should have type attribute" );
+				expect( typeAttr.value.type ).toBe( "StringLiteral" );
+				expect( typeAttr.value.value ).toBe( "struct" );
+				// Shorthand type is synthetic - no position info
+				expect( typeAttr.value ).notToHaveKey( "start", "shorthand type should NOT have position (synthetic node)" );
+			});
+
+			it( "should have CastExpression for unquoted explicit type=", function() {
+				// param e type=struct; - unquoted explicit type parses as CastExpression
+				var ast = astFromString( 'param e type=struct;', "script" );
+				var paramTag = ast.body[1];
+
+				expect( paramTag.type ).toBe( "CFMLTag" );
+				expect( paramTag.name ).toBe( "param" );
+
+				var typeAttr = paramTag.attributes.filter( function( a ) { return a.name == "type"; } )[1];
+				expect( typeAttr ).toBeStruct( "param should have type attribute" );
+				// Unquoted type= parses as variable reference (CastExpression wrapping Identifier)
+				expect( typeAttr.value.type ).toBe( "CastExpression" );
+				expect( typeAttr.value.argument.type ).toBe( "Identifier" );
+				expect( typeAttr.value.argument.name ).toBe( "STRUCT" );
+			});
+
+			it( "should have StringLiteral WITH quoteChar for quoted explicit type=", function() {
+				// param e type="struct"; - quoted explicit type parses as StringLiteral
+				var ast = astFromString( 'param e type="struct";', "script" );
+				var paramTag = ast.body[1];
+
+				expect( paramTag.type ).toBe( "CFMLTag" );
+				expect( paramTag.name ).toBe( "param" );
+
+				var typeAttr = paramTag.attributes.filter( function( a ) { return a.name == "type"; } )[1];
+				expect( typeAttr ).toBeStruct( "param should have type attribute" );
+				expect( typeAttr.value.type ).toBe( "StringLiteral" );
+				expect( typeAttr.value.value ).toBe( "struct" );
+				// Quoted type= has quoteChar
+				expect( typeAttr.value ).toHaveKey( "quoteChar", "quoted type attribute should have quoteChar" );
+				expect( typeAttr.value.quoteChar ).toBe( '"' );
+				// And has position (real source node)
+				expect( typeAttr.value ).toHaveKey( "start", "quoted type should have position" );
+			});
+
+		});
+
 		describe( "Param name attribute quoteChar", function() {
 
 			xit( "should have quoteChar for param name attribute (shorthand syntax)", function() {
