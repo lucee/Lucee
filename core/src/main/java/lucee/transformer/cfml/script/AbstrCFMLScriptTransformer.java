@@ -1400,10 +1400,14 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 
 		try {
 			if (data.srcCode.isCurrent('{')) {
+				// Save docComment - block-style arrow functions shouldn't consume outer docblock (LDEV-5990)
+				DocComment savedDocComment = data.docComment;
 				Body prior = data.setParent(body);
 				statement(data, body, CTX_FUNCTION);
 
 				data.setParent(prior);
+				// Restore docComment - let the outer caller handle it
+				data.docComment = savedDocComment;
 			}
 			else {
 				if (data.srcCode.forwardIfCurrent("return ")) {
@@ -1417,7 +1421,8 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 				Expression expr = expression(data);
 				Return rtn = new Return(expr, line, data.srcCode.getPosition());
 				body.addStatement(rtn);
-				data.docComment = null;
+				// Don't clear docComment here - arrow functions shouldn't consume outer docblock (LDEV-5990)
+				// The outer caller (closurePart for named functions) handles docComment appropriately
 				data.context = prior;
 
 			}
