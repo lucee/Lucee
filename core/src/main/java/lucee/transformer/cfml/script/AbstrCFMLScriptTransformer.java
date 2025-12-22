@@ -2683,8 +2683,18 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 
 		comments(data);
 
-		// value
-		boolean hasValue = data.srcCode.forwardIfCurrent('=') || (allowColonSeparator && data.srcCode.forwardIfCurrent(':'));
+		// value - track which separator was used
+		char separator = Attribute.SEPARATOR_EQUALS;
+		boolean hasValue = false;
+		if (data.srcCode.forwardIfCurrent('=')) {
+			hasValue = true;
+			separator = Attribute.SEPARATOR_EQUALS;
+		}
+		else if (allowColonSeparator && data.srcCode.forwardIfCurrent(':')) {
+			hasValue = true;
+			separator = Attribute.SEPARATOR_COLON;
+		}
+
 		if (hasValue) {
 			comments(data);
 			value = attributeValue(data, allowExpression);
@@ -2708,7 +2718,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 			tlta = tlt.getAttribute(nameLC, true);
 			if (tlta != null && tlta.getName() != null) nameLC = tlta.getName();
 		}
-		return new Attribute(dynamic.toBooleanValue(), name, tlta != null ? data.factory.toExpression(value, tlta.getType()) : value, sbType.toString(), !hasValue);
+		return new Attribute(dynamic.toBooleanValue(), name, tlta != null ? data.factory.toExpression(value, tlta.getType()) : value, sbType.toString(), !hasValue, separator);
 	}
 
 	private final String attributeName(SourceCode cfml, ArrayList<String> args, TagLibTag tag, RefBoolean dynamic, StringBuilder sbType, boolean allowTwiceAttr, boolean allowColon)
