@@ -2800,8 +2800,18 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 			}
 		}
 
+		// value - track which separator was used
+		char separator = Attribute.SEPARATOR_EQUALS;
 		if (value == null) {
-			hasValue = data.srcCode.forwardIfCurrent('=') || (allowColonSeparator && data.srcCode.forwardIfCurrent(':'));
+			hasValue = false;
+			if (data.srcCode.forwardIfCurrent('=')) {
+				hasValue = true;
+				separator = Attribute.SEPARATOR_EQUALS;
+			}
+			else if (allowColonSeparator && data.srcCode.forwardIfCurrent(':')) {
+				hasValue = true;
+				separator = Attribute.SEPARATOR_COLON;
+			}
 			if (hasValue) {
 				comments(data);
 				int rawStart = data.srcCode.getPos();
@@ -2829,7 +2839,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 			tlta = tlt.getAttribute(nameLC, true);
 			if (tlta != null && tlta.getName() != null) nameLC = tlta.getName();
 		}
-		Attribute attr = new Attribute(dynamic.toBooleanValue(), name, tlta != null ? data.factory.toExpression(value, tlta.getType()) : value, sbType.toString(), !hasValue);
+		Attribute attr = new Attribute(dynamic.toBooleanValue(), name, tlta != null ? data.factory.toExpression(value, tlta.getType()) : value, sbType.toString(), !hasValue, separator);
 		if (rawValue != null) attr.setRawValue(rawValue);
 		return attr;
 	}

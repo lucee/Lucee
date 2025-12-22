@@ -24,6 +24,9 @@ import lucee.transformer.util.SourceCode;
 
 public final class Attribute {
 
+	public static final char SEPARATOR_EQUALS = '=';
+	public static final char SEPARATOR_COLON = ':';
+
 	final String nameOC;
 	final String nameLC;
 	final Expression value;
@@ -33,6 +36,7 @@ public final class Attribute {
 	private String setterName;
 	private final boolean isDefaultValue;
 	private String rawValue;
+	private char separator = SEPARATOR_EQUALS; // default to '=' for backwards compatibility
 
 	public Attribute(boolean dynamicType, String name, Expression value, String type) {
 		this(dynamicType, name, value, type, false);
@@ -84,6 +88,19 @@ public final class Attribute {
 		String doubled = new String(new char[] { c, c });
 		if (inner.replace(doubled, "").indexOf(c) != -1) return str;
 		return inner;
+	}
+
+	public Attribute(boolean dynamicType, String name, Expression value, String type, boolean isDefaultValue, char separator) {
+		this(dynamicType, name, value, type, isDefaultValue);
+		this.separator = separator;
+	}
+
+	public char getSeparator() {
+		return separator;
+	}
+
+	public void setSeparator(char separator) {
+		this.separator = separator;
 	}
 
 	public boolean isDefaultValue() {

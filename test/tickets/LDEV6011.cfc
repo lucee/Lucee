@@ -318,6 +318,29 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ast" {
 				expect( right.property.name ).toBe( "CONSTANT" );
 			});
 
+			it( "should include separator field in CFMLTag Attribute nodes", function() {
+				// CFMLTag uses Attribute nodes (not NamedArgument), which should also have separator
+				// Note: throw (type: "test") with colon is parsed as CallExpression, not CFMLTag
+				// Only throw (type="test") with equals is parsed as CFMLTag
+				var equalsCode = 'throw ( type="test" );';
+
+				var equalsAst = astFromString( equalsCode, "script" );
+
+				// Should be CFMLTag with Attribute children
+				expect( equalsAst.body[1].type ).toBe( "CFMLTag" );
+
+				var equalsAttr = equalsAst.body[1].attributes[1];
+				expect( equalsAttr.type ).toBe( "Attribute" );
+
+				// Should have a separator field
+				expect( equalsAttr ).toHaveKey( "separator",
+					"Attribute should have 'separator' field like NamedArgument does" );
+
+				// Equals syntax should have separator="="
+				expect( equalsAttr.separator ).toBe( "=",
+					"Equals syntax throw ( type='test' ) should have separator='=' but got '#equalsAttr.separator ?: 'null'#'" );
+			});
+
 		});
 
 	}
