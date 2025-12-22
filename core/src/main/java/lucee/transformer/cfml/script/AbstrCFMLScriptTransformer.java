@@ -1091,16 +1091,18 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 
 		// TagLibTag tlt = CFMLTransformer.getTLT(data.srcCode,"function");
 
-		// doc comment
+		// doc comment - only attach to named functions, not inline closures
 		String hint = null;
-		DocComment docComment = data.docComment; // save reference before clearing
-		if (docComment != null) {
-			hint = docComment.getHint();
-			func.setHint(data.factory, hint);
-			func.setDocblockDescription(hint); // store for annotations.description
-			func.setAnnotations(docComment.getParams());
-			func.setRawDocblock(docComment.getRawText());
-			data.docComment = null;
+		if (!closure) {
+			DocComment docComment = data.docComment; // save reference before clearing
+			if (docComment != null) {
+				hint = docComment.getHint();
+				func.setHint(data.factory, hint);
+				func.setDocblockDescription(hint); // store for annotations.description
+				func.setAnnotations(docComment.getParams());
+				func.setRawDocblock(docComment.getRawText());
+				data.docComment = null;
+			}
 		}
 
 		comments(data);

@@ -58,6 +58,7 @@ import lucee.transformer.bytecode.statement.tag.TagComponent;
 import lucee.transformer.bytecode.statement.udf.Function;
 import lucee.transformer.bytecode.util.ASMUtil;
 import lucee.transformer.cfml.Data;
+import lucee.transformer.cfml.script.DocComment;
 import lucee.transformer.cfml.script.DocCommentTransformer;
 import lucee.transformer.cfml.tag.CFMLTransformer;
 import lucee.transformer.expression.ExprBoolean;
@@ -1405,7 +1406,12 @@ public abstract class AbstrCFMLExprTransformer {
 	private Expression closure(Data data) throws TemplateException {
 		if (!data.srcCode.forwardIfCurrent("function", '(')) return null;
 		data.srcCode.previous();
+		// Save docComment - inline closures (e.g. in default param values) should not consume 
+		// the docblock that belongs to the outer function
+		DocComment savedDocComment = data.docComment;
 		Function func = closurePart(data, "closure_" + CreateUniqueId.invoke(), Component.ACCESS_PUBLIC, Component.MODIFIER_NONE, "any", data.srcCode.getPosition(), true);
+		// Restore docComment after closure parsing (closurePart and statement() may have cleared it)
+		data.docComment = savedDocComment;
 		func.setParent(data.getParent());
 		return new FunctionAsExpression(func);
 	}

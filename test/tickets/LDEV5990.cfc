@@ -223,6 +223,31 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ast" {
 
 		});
 
+		describe( "LDEV-5990: Docblock should NOT attach to closure default value", function() {
+
+			it( "should attach docblock to outer function, not closure default value", function() {
+				var ast = astFromPath( variables.testDir & "hintedParams.cfc" );
+
+				var func = findFunction( ast, "withClosureDefault" );
+				expect( func ).notToBeNull( "withClosureDefault function should be found in AST" );
+
+				// The docblock should be on the OUTER function
+				expect( func ).toHaveKey( "docblock", "outer function should have docblock" );
+				expect( func.docblock ).toInclude( "@cb.hint" );
+
+				// The closure default value should NOT have the docblock
+				var param = func.params[ 1 ];
+				expect( param.name.value ).toBe( "cb" );
+				expect( param ).toHaveKey( "defaultValue", "param should have defaultValue" );
+				var closure = param.defaultValue;
+				expect( closure.type ).toBeWithCase( "ClosureDeclaration" );
+				// BUG: docblock is incorrectly attached to closure instead of outer function
+				expect( closure ).notToHaveKey( "docblock", "closure default value should NOT have docblock" );
+				expect( closure ).notToHaveKey( "annotations", "closure default value should NOT have annotations" );
+			});
+
+		});
+
 		describe( "LDEV-5990: Docblock metadata tags should be in AST", function() {
 
 			it( "should include @return tag in AST annotations", function() {
