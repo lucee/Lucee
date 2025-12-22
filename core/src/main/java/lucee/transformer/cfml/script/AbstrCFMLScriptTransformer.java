@@ -2674,7 +2674,8 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 
 		}
 		else {
-			value = defaultValue;
+			// Naked attribute (no value) should be BooleanLiteral(true), not empty string
+			value = data.factory.TRUE();
 		}
 		comments(data);
 

@@ -66,6 +66,23 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ast" {
 				expect( abortAttr.value.value ).toBeTrue();
 			});
 
+			// Quirk #65: Naked boolean attributes in script mode
+			// BUG: Naked attributes like "singleton" are parsed as StringLiteral("") not BooleanLiteral(true)
+			it( title="should parse naked boolean attribute as BooleanLiteral in script mode", body=function() {
+				var ast = astFromPath( getDirectoryFromPath( getCurrentTemplatePath() ) & "LDEV6032/script-naked-singleton.cfc" );
+
+				// Find the component tag
+				var componentTag = ast.body[ 1 ];
+				expect( componentTag.type ).toBe( "CFMLTag" );
+				expect( componentTag.name ).toBe( "component" );
+
+				var singletonAttr = findAttribute( componentTag, "singleton" );
+				expect( singletonAttr ).notToBeNull( "singleton attribute should exist" );
+				// BUG: Currently StringLiteral with value "", should be BooleanLiteral with value true
+				expect( singletonAttr.value.type ).toBe( "BooleanLiteral" );
+				expect( singletonAttr.value.value ).toBeTrue();
+			} );
+
 			// Script mode string attribute test - exit method="exitTag"
 			it( title="should parse string attribute as StringLiteral in script mode", body=function() {
 				var ast = getAst( "script-exit-method.cfm" );
