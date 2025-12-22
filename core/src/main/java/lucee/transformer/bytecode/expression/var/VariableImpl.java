@@ -1252,7 +1252,16 @@ public final class VariableImpl extends ExpressionBase implements Variable {
 					if (member.getSafeNavigated()) {
 						callee.setEL(KeyConstants._optional, Boolean.TRUE);
 					}
-					callee.setEL(KeyConstants._object, current);
+
+					// LDEV-6011: Handle _getstaticscope/_getsuperstaticscope for :: syntax
+					Struct staticInfo = extractStaticScopeInfo(current);
+					if (staticInfo != null) {
+						callee.setEL(KeyConstants._static, Boolean.TRUE);
+						callee.setEL(KeyConstants._object, staticInfo);
+					}
+					else {
+						callee.setEL(KeyConstants._object, current);
+					}
 
 					if (isComputedCall) {
 						// Computed property access - use the dumped expression
@@ -1297,16 +1306,20 @@ public final class VariableImpl extends ExpressionBase implements Variable {
 					if (member.getSafeNavigated()) {
 						newNode.setEL(KeyConstants._optional, Boolean.TRUE);
 					}
-					newNode.setEL(KeyConstants._object, current);
+
+					// LDEV-6011: Handle _getstaticscope/_getsuperstaticscope for :: syntax
+					Struct staticInfo = extractStaticScopeInfo(current);
+					if (staticInfo != null) {
+						newNode.setEL(KeyConstants._static, Boolean.TRUE);
+						newNode.setEL(KeyConstants._object, staticInfo);
+					}
+					else {
+						newNode.setEL(KeyConstants._object, current);
+					}
 
 					Struct property = new StructImpl(Struct.TYPE_LINKED);
-					if (isComputed && memberName instanceof Literal) {
-						// Bracket notation with literal key - output as StringLiteral
-						property.setEL(KeyConstants._type, "StringLiteral");
-						property.setEL(KeyConstants._value, memberName.toString());
-					}
-					else if (isComputed) {
-						// Bracket notation with dynamic expression - dump the expression
+					if (isComputed) {
+						// Bracket notation - dump the expression to preserve quoteChar etc.
 						memberName.dump(property);
 					}
 					else {
@@ -1332,6 +1345,89 @@ public final class VariableImpl extends ExpressionBase implements Variable {
 		Struct name = new StructImpl(Struct.TYPE_LINKED);
 		dm.getName().dump(name);
 		return name;
+	}
+
+	/**
+	 * LDEV-6011: Check if the current AST node represents a _getstaticscope or _getsuperstaticscope call.
+	 * If so, extract the class/component name and return it as an Identifier node.
+	 * This preserves the :: syntax in the AST output instead of exposing internal function names.
+	 *
+	 * @param current The current AST Struct being built
+	 * @return An Identifier Struct with the class name, or null if not a static scope call
+	 */
+	private static Struct extractStaticScopeInfo(Struct current) {
+		if (current == null) return null;
+
+		// Check if this is a CallExpression
+		Object type = current.get(KeyConstants._type, null);
+		if (!"CallExpression".equals(type)) return null;
+
+		// Get the callee
+		Object calleeObj = current.get(KeyConstants._callee, null);
+		if (!(calleeObj instanceof Struct)) return null;
+		Struct callee = (Struct) calleeObj;
+
+		// Check if callee is an Identifier
+		Object calleeType = callee.get(KeyConstants._type, null);
+		if (!"Identifier".equals(calleeType)) return null;
+
+		// Check the function name
+		Object nameObj = callee.get(KeyConstants._name, null);
+		if (nameObj == null) return null;
+		String funcName = nameObj.toString().toLowerCase();
+
+		Struct identifier = new StructImpl(Struct.TYPE_LINKED);
+		identifier.setEL(KeyConstants._type, "Identifier");
+
+		if ("_getsuperstaticscope".equals(funcName)) {
+			// super::method() - no arguments, just return "super" identifier
+			identifier.setEL(KeyConstants._name, "super");
+			return identifier;
+		}
+		else if ("_getstaticscope".equals(funcName)) {
+			// Class::method() - first argument is the class/component name
+			Object argsObj = current.get(KeyConstants._arguments, null);
+			if (!(argsObj instanceof Array)) return null;
+			Array args = (Array) argsObj;
+			if (args.size() < 1) return null;
+
+			// Get the first argument (class name)
+			Object firstArg = args.get(1, null);
+			if (!(firstArg instanceof Struct)) return null;
+			Struct argStruct = (Struct) firstArg;
+
+			// Extract the value (should be a StringLiteral)
+			Object argType = argStruct.get(KeyConstants._type, null);
+			if (!"StringLiteral".equals(argType)) return null;
+
+			Object valueObj = argStruct.get(KeyConstants._value, null);
+			if (valueObj == null) return null;
+
+			// Check if there's a second argument indicating java: prefix
+			boolean hasJavaPrefix = false;
+			if (args.size() >= 2) {
+				Object secondArg = args.get(2, null);
+				if (secondArg instanceof Struct) {
+					Struct secondArgStruct = (Struct) secondArg;
+					Object secondValue = secondArgStruct.get(KeyConstants._value, null);
+					if ("java".equals(secondValue)) {
+						hasJavaPrefix = true;
+					}
+				}
+			}
+
+			// Build the identifier name, preserving java: prefix if present
+			String className = valueObj.toString();
+			if (hasJavaPrefix) {
+				identifier.setEL(KeyConstants._name, "java:" + className);
+			}
+			else {
+				identifier.setEL(KeyConstants._name, className);
+			}
+			return identifier;
+		}
+
+		return null;
 	}
 
 }
