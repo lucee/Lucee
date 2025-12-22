@@ -2779,8 +2779,14 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 				if (tlt == null) value = asLiteralIdentifier(data, value);
 			}
 			else {
-				// Naked attribute (no value) should be BooleanLiteral(true), not empty string
-				value = data.factory.TRUE();
+				// Naked attribute (no value) - use TRUE for boolean-like contexts, or defaultValue for positional contexts
+				// When defaultValue is NULL, it indicates positional arguments (like property type/name) that shouldn't be boolean
+				if (defaultValue instanceof Null) {
+					value = defaultValue;
+				}
+				else {
+					value = data.factory.TRUE();
+				}
 			}
 		}
 		comments(data);
