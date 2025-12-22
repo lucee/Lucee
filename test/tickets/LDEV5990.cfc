@@ -246,6 +246,82 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ast" {
 				expect( closure ).notToHaveKey( "annotations", "closure default value should NOT have annotations" );
 			});
 
+			it( "should attach docblock to outer function, not arrow function default value", function() {
+				// Arrow function defaults also consume the docblock incorrectly
+				var code = '/**
+* @data.hint Data description
+*/
+function tree( required struct data, formatUDF=()=>"" ){}';
+				var ast = astFromString( code, "script" );
+
+				var func = ast.body[ 1 ];
+				expect( func.type ).toBe( "FunctionDeclaration" );
+
+				// The docblock should be on the OUTER function
+				expect( func ).toHaveKey( "docblock", "outer function should have docblock when arrow function is default" );
+				expect( func.docblock ).toInclude( "@data.hint" );
+
+				// Param hint should be preserved
+				var param = func.params[ 1 ];
+				expect( param.name.value ).toBe( "data" );
+				expect( param ).toHaveKey( "hint", "param should have hint from docblock" );
+				expect( param.hint.value ).toBe( "Data description" );
+
+				// The arrow function default value should NOT have the docblock
+				var param2 = func.params[ 2 ];
+				expect( param2.name.value ).toBe( "formatUDF" );
+				expect( param2 ).toHaveKey( "defaultValue", "param should have defaultValue" );
+				var arrow = param2.defaultValue;
+				expect( arrow.type ).toBeWithCase( "LambdaDeclaration" );
+				expect( arrow ).notToHaveKey( "docblock", "arrow function default value should NOT have docblock" );
+				expect( arrow ).notToHaveKey( "annotations", "arrow function default value should NOT have annotations" );
+			});
+
+			it( "should attach docblock to outer function with expanded arrow function default", function() {
+				// Expanded arrow function form () => { return ""; } also loses docblock
+				var code = '/**
+* @data.hint Data description
+*/
+function tree( required struct data, formatUDF=() => { return ""; } ){}';
+				var ast = astFromString( code, "script" );
+
+				var func = ast.body[ 1 ];
+				expect( func.type ).toBe( "FunctionDeclaration" );
+
+				// The docblock should be on the OUTER function even with expanded arrow syntax
+				expect( func ).toHaveKey( "docblock", "outer function should have docblock when expanded arrow function is default" );
+				expect( func.docblock ).toInclude( "@data.hint" );
+
+				// Param hint should be preserved
+				var param = func.params[ 1 ];
+				expect( param.name.value ).toBe( "data" );
+				expect( param ).toHaveKey( "hint", "param should have hint from docblock" );
+				expect( param.hint.value ).toBe( "Data description" );
+			});
+
+			// SKIP: Feature enhancement - not part of original bug fix
+			xit( "should distinguish concise vs block arrow function syntax", function() {
+				// Concise form: () => expr
+				var conciseAst = astFromString( '() => ""', "script" );
+				var conciseLambda = conciseAst.body[ 1 ];
+				expect( conciseLambda.type ).toBe( "LambdaDeclaration" );
+
+				// Block form: () => { return expr; }
+				var blockAst = astFromString( '() => { return ""; }', "script" );
+				var blockLambda = blockAst.body[ 1 ];
+				expect( blockLambda.type ).toBe( "LambdaDeclaration" );
+
+				// AST should have a field to distinguish them (e.g., "expression" or "concise")
+				// Concise form should have expression=true or similar
+				expect( conciseLambda ).toHaveKey( "expression",
+					"LambdaDeclaration should have 'expression' field to distinguish () => expr from () => { return expr; }" );
+				expect( conciseLambda.expression ).toBeTrue( "Concise arrow () => expr should have expression=true" );
+
+				// Block form should have expression=false
+				expect( blockLambda ).toHaveKey( "expression" );
+				expect( blockLambda.expression ).toBeFalse( "Block arrow () => { } should have expression=false" );
+			});
+
 		});
 
 		describe( "LDEV-5990: Docblock metadata tags should be in AST", function() {
