@@ -2167,9 +2167,18 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 				// Check if this looks like a named attribute (identifier="literal") rather than positional
 				else if (looksLikeNamedAttribute(data, tlt)) {
 					// Parse as named attributes instead
-					Attribute[] attrs = attributes(tag, tlt, data, SEMI_BLOCK, data.factory.EMPTY(), tlt.getScript().getRtexpr() ? Boolean.TRUE : Boolean.FALSE, null, false, ',', false);
+					// Handle optional parentheses around attributes: throw (message="test")
+					boolean hasParen = data.srcCode.forwardIfCurrent('(');
+					if (hasParen) data.srcCode.removeSpace();
+					Attribute[] attrs = attributes(tag, tlt, data, hasParen ? BRACKED : SEMI_BLOCK, data.factory.EMPTY(), tlt.getScript().getRtexpr() ? Boolean.TRUE : Boolean.FALSE, null, false, ',', false);
 					for (Attribute a : attrs) {
 						tag.addAttribute(a);
+					}
+					if (hasParen) {
+						data.srcCode.removeSpace();
+						if (!data.srcCode.forwardIfCurrent(')')) {
+							throw new TemplateException(data.srcCode, "missing closing parenthesis for tag attributes");
+						}
 					}
 					handledAsNamedAttrs = true;
 				}
@@ -2222,10 +2231,18 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 	 * Check if current position looks like a named attribute (identifier="literal") for a single-attr tag.
 	 * This prevents "exit method="exitTag"" from being parsed as an assignment expression.
 	 * Only triggers for literal values (quoted strings), NOT for expressions like "include template=var".
+	 * Also handles parenthesized attributes like "throw (message="test")".
 	 */
 	private boolean looksLikeNamedAttribute(Data data, TagLibTag tlt) {
 		int pos = data.srcCode.getPos();
 		try {
+			// Skip opening paren if present (for syntax like "throw (message="test")")
+			boolean hasParen = data.srcCode.isCurrent('(');
+			if (hasParen) {
+				data.srcCode.next();
+				data.srcCode.removeSpace();
+			}
+
 			// Try to read an identifier
 			String id = CFMLTransformer.identifier(data.srcCode, false, true);
 			if (StringUtil.isEmpty(id)) return false;

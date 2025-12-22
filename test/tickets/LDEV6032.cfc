@@ -96,6 +96,24 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ast" {
 				expect( attr.value.value ).toBe( "exitTag" );
 			} );
 
+			// Parenthesized script tag attributes - throw (message="test")
+			// Same bug as above but with parentheses around attributes
+			it( title="should parse parenthesized string attribute as StringLiteral", body=function() {
+				var ast = astFromString( 'throw (message="test");', "script" );
+
+				expect( ast.body ).toBeArray();
+				expect( ast.body.len() ).toBe( 1 );
+				var throwTag = ast.body[ 1 ];
+				expect( throwTag.type ).toBe( "CFMLTag" );
+				expect( throwTag.name ).toBe( "throw" );
+
+				var attr = findAttribute( throwTag, "message" );
+				expect( attr ).notToBeNull();
+				// BUG: Currently AssignmentExpression, should be StringLiteral
+				expect( attr.value.type ).toBe( "StringLiteral", "Attribute value should be StringLiteral, not AssignmentExpression" );
+				expect( attr.value.value ).toBe( "test" );
+			} );
+
 		});
 	}
 
