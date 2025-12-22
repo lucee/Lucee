@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" {
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="ast" {
 
 	function run( testResults, testBox ) {
 		describe( "LDEV-6032: Boolean attribute values in AST", function() {
@@ -65,6 +65,19 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 				expect( abortAttr.value.type ).toBe( "BooleanLiteral" );
 				expect( abortAttr.value.value ).toBeTrue();
 			});
+
+			// Script mode string attribute test - exit method="exitTag"
+			it( title="should parse string attribute as StringLiteral in script mode", body=function() {
+				var ast = getAst( "script-exit-method.cfm" );
+				var exitTag = findScriptTag( ast, "exit" );
+
+				expect( exitTag ).notToBeNull();
+				var attr = findAttribute( exitTag, "method" );
+				expect( attr ).notToBeNull();
+				// Should be StringLiteral, not CastExpression(AssignmentExpression)
+				expect( attr.value.type ).toBe( "StringLiteral" );
+				expect( attr.value.value ).toBe( "exitTag" );
+			} );
 
 		});
 	}
