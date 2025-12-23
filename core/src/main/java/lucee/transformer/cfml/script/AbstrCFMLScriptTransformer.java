@@ -980,10 +980,12 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 			}
 
 			String typeName = "any";
+			boolean typeExplicit = false; // LDEV-6041: track if type was explicitly specified
 			if (idName == null) return defaultValue;
 			comments(data);
 			if (!data.srcCode.isCurrent(')') && !data.srcCode.isCurrent('=') && !data.srcCode.isCurrent(':') && !data.srcCode.isCurrent(',')) {
 				typeName = idName;
+				typeExplicit = true; // LDEV-6041: type was explicitly specified
 				idName = identifier(data, false); // MUST was upper case before, is this a problem?
 			}
 			else if (idName.indexOf('.') != -1 || idName.indexOf('[') != -1) {
@@ -1061,8 +1063,10 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 				}
 			}
 
-			result.add(new Argument(data.factory.createLitString(idName), data.factory.createLitString(typeName), data.factory.createLitBoolean(required), defVal, passByRef,
-					displayName, hint, meta));
+			Argument arg = new Argument(data.factory.createLitString(idName), data.factory.createLitString(typeName), data.factory.createLitBoolean(required), defVal, passByRef,
+					displayName, hint, meta);
+			arg.setTypeExplicit(typeExplicit); // LDEV-6041
+			result.add(arg);
 
 			comments(data);
 		}
@@ -1082,8 +1086,8 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 		ArrayList<Argument> args = getScriptFunctionArguments(data);
 
 		for (Argument arg: args) {
-			func.addArgument(arg.getName(), arg.getType(), arg.getRequired(), arg.getDefaultValue(), arg.isPassByReference(), arg.getDisplayName(), arg.getHint(),
-					arg.getMetaData());
+			// LDEV-6041: Use addArgument(Argument) to preserve typeExplicit flag
+			func.addArgument(arg);
 		}
 		// end )
 		comments(data);

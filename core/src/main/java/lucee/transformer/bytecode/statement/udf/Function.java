@@ -136,6 +136,7 @@ public abstract class Function extends StatementBaseNoFinal implements Opcodes, 
 
 	ExprString name;
 	ExprString returnType;
+	boolean returnTypeExplicit; // LDEV-6041: track if return type was explicitly specified
 	ExprBoolean output;
 	ExprBoolean bufferOutput;
 	// ExprBoolean abstry=LitBoolean.FALSE;
@@ -167,7 +168,9 @@ public abstract class Function extends StatementBaseNoFinal implements Opcodes, 
 		this.name = body.getFactory().createLitString(name);
 		this.access = access;
 		this.modifier = modifier;
-		if (!StringUtil.isEmpty(returnType)) this.returnType = body.getFactory().createLitString(returnType);
+		// LDEV-6041: Track if return type was explicitly specified
+		this.returnTypeExplicit = !StringUtil.isEmpty(returnType);
+		if (this.returnTypeExplicit) this.returnType = body.getFactory().createLitString(returnType);
 		else this.returnType = body.getFactory().createLitString("any");
 		this.body = body;
 		body.setParent(this);
@@ -519,6 +522,13 @@ public abstract class Function extends StatementBaseNoFinal implements Opcodes, 
 	}
 
 	/**
+	 * LDEV-6041: Add an existing Argument directly (preserves typeExplicit flag)
+	 */
+	public final void addArgument(Argument arg) {
+		arguments.add(arg);
+	}
+
+	/**
 	 * @return the arguments
 	 */
 	public final List<Argument> getArguments() {
@@ -691,6 +701,10 @@ public abstract class Function extends StatementBaseNoFinal implements Opcodes, 
 		if (returnType != null) {
 			Struct s = new StructImpl(Struct.TYPE_LINKED);
 			returnType.dump(s);
+			// LDEV-6041: Add explicit flag to distinguish "function test()" from "any function test()"
+			if (returnTypeExplicit) {
+				s.setEL(KeyConstants._explicit, Boolean.TRUE);
+			}
 			sct.setEL(KeyConstants._returnType, s);
 		}
 		// returnFormat
@@ -819,8 +833,16 @@ public abstract class Function extends StatementBaseNoFinal implements Opcodes, 
 			Struct param = new StructImpl(Struct.TYPE_LINKED);
 			params.appendEL(param);
 
-			Expression expr = arg.getType();
-			set(param, arg.getType(), KeyConstants._type);
+			// LDEV-6041: Add explicit flag to type if explicitly specified
+			Expression typeExpr = arg.getType();
+			if (typeExpr != null) {
+				Struct typeStruct = new StructImpl(Struct.TYPE_LINKED);
+				typeExpr.dump(typeStruct);
+				if (arg.isTypeExplicit()) {
+					typeStruct.setEL(KeyConstants._explicit, Boolean.TRUE);
+				}
+				param.setEL(KeyConstants._type, typeStruct);
+			}
 			set(param, arg.getName(), KeyConstants._name);
 			set(param, arg.getRequired(), KeyConstants._required);
 			set(param, arg.getDefaultValue(), KeyConstants._defaultValue);

@@ -352,8 +352,9 @@ public abstract class AbstrCFMLExprTransformer {
 		}
 
 		// patch for test()(); only works at the end of an expression!
+		// LDEV-6039: Don't treat ( as function call if there's a newline before it
 		comments(data);
-		while (data.srcCode.isCurrent('(')) {
+		while (data.srcCode.isCurrent('(') && !data.srcCode.hasNLBefore()) {
 			comments(data);
 			Call call = new Call(expr);
 			getFunctionMemberAttrs(data, null, false, call, null);
@@ -1857,6 +1858,8 @@ public abstract class AbstrCFMLExprTransformer {
 			if (checkLibrary) {
 				BIF bif = new BIF(data.factory, data.settings, flf, data);
 				// TODO data.ep.add(flf, bif, data.srcCode);
+				// LDEV-6041: Store original name for AST round-tripping
+				bif.setOriginalName(name);
 
 				bif.setArgType(flf.getArgType());
 				try {
