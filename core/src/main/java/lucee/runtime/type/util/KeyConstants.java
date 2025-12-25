@@ -759,6 +759,7 @@ public final class KeyConstants {
 	public static final Key _statustext = init("statustext");
 	public static final Key _extends = init("extends");
 	public static final Key _explicit = init("explicit");
+	public static final Key _accessExplicit = init("accessExplicit");
 	public static final Key _implements = init("implements");
 	public static final Key __toDateTime = init("_toDateTime");
 	public static final Key __toNumeric = init("_toNumeric");

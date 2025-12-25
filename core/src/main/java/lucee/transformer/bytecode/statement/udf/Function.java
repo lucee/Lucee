@@ -141,6 +141,7 @@ public abstract class Function extends StatementBaseNoFinal implements Opcodes, 
 	ExprBoolean bufferOutput;
 	// ExprBoolean abstry=LitBoolean.FALSE;
 	int access = Component.ACCESS_PUBLIC;
+	boolean accessExplicit; // LDEV-6036: track if access modifier was explicitly specified
 	ExprString displayName;
 	ExprString hint;
 	String rawDocblock; // raw docblock text for AST round-tripping
@@ -673,6 +674,11 @@ public abstract class Function extends StatementBaseNoFinal implements Opcodes, 
 		return index;
 	}
 
+	// LDEV-6036: setter for tracking if access modifier was explicitly specified
+	public void setAccessExplicit(boolean accessExplicit) {
+		this.accessExplicit = accessExplicit;
+	}
+
 	public ExprString getName() {
 		return name;
 	}
@@ -691,6 +697,10 @@ public abstract class Function extends StatementBaseNoFinal implements Opcodes, 
 		String a = toAccess(access);
 		if (a != null) {
 			sct.setEL(KeyConstants._access, a);
+		}
+		// LDEV-6036: Add explicit flag to distinguish "function test()" from "public function test()"
+		if (accessExplicit) {
+			sct.setEL(KeyConstants._accessExplicit, Boolean.TRUE);
 		}
 		// modifier
 		String m = toModifier(modifier);

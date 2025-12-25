@@ -837,7 +837,8 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 
 			}
 		}
-		// no access defined
+		// no access defined - track if it was explicit before applying default (LDEV-6036)
+		boolean accessExplicit = access != -1;
 		if (access == -1) access = Component.ACCESS_PUBLIC;
 
 		// Non access modifier
@@ -909,6 +910,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 			}
 		}
 		Function res = closurePart(data, functionName, access, modifier, returnType, line, false);
+		res.setAccessExplicit(accessExplicit); // LDEV-6036: track if access modifier was explicitly specified
 		if (isStatic) {
 
 			if (data.context == CTX_INTERFACE) throw new TemplateException(data.srcCode, "static functions are not allowed within the interface body");
@@ -1392,8 +1394,8 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 
 		// add arguments
 		for (Argument arg: args) {
-			func.addArgument(arg.getName(), arg.getType(), arg.getRequired(), arg.getDefaultValue(), arg.isPassByReference(), arg.getDisplayName(), arg.getHint(),
-					arg.getMetaData());
+			// LDEV-6041: Use addArgument(Argument) to preserve typeExplicit flag
+			func.addArgument(arg);
 		}
 
 		comments(data);
