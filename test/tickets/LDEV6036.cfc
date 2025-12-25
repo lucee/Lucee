@@ -142,7 +142,160 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ast" {
 
 			});
 
+			describe( "Script-style functions", function() {
+
+				it( "function without access should NOT have accessExplicit=true in AST", function() {
+					var ast = astFromPath( variables.testDir & "functionNoModifiers.cfc" );
+
+					// Find function with no modifiers
+					var fn = findFunction( ast, "noModifiers" );
+					expect( fn ).notToBeNull( "noModifiers function should be found in AST" );
+
+					// access should exist (default public), but accessExplicit should NOT exist
+					expect( fn ).toHaveKey( "access", "function should have access (default)" );
+					expect( fn ).notToHaveKey( "accessExplicit", "function without access in source should NOT have accessExplicit" );
+				});
+
+				it( "function without returnType should have returnType.explicit=false in AST", function() {
+					var ast = astFromPath( variables.testDir & "functionNoModifiers.cfc" );
+
+					// Find function with no modifiers
+					var fn = findFunction( ast, "noModifiers" );
+					expect( fn ).notToBeNull( "noModifiers function should be found in AST" );
+
+					// returnType should exist (default any), but explicit should be false/missing
+					expect( fn ).toHaveKey( "returnType", "function should have returnType (default)" );
+					expect( fn.returnType ).notToHaveKey( "explicit", "function without returnType in source should NOT have returnType.explicit" );
+				});
+
+				it( "function WITH explicit public should have accessExplicit=true in AST", function() {
+					var ast = astFromPath( variables.testDir & "functionNoModifiers.cfc" );
+
+					var fn = findFunction( ast, "explicitPublic" );
+					expect( fn ).notToBeNull( "explicitPublic function should be found in AST" );
+
+					// Should have access and accessExplicit since it was explicitly in source
+					expect( fn ).toHaveKey( "access", "function with explicit public should have access in AST" );
+					expect( fn.access ).toBe( "public" );
+					expect( fn ).toHaveKey( "accessExplicit", "function with explicit public should have accessExplicit" );
+					expect( fn.accessExplicit ).toBeTrue( "accessExplicit should be true for explicit public" );
+				});
+
+				it( "function WITH explicit returnType should have returnType.explicit=true in AST", function() {
+					var ast = astFromPath( variables.testDir & "functionNoModifiers.cfc" );
+
+					var fn = findFunction( ast, "explicitAnyReturn" );
+					expect( fn ).notToBeNull( "explicitAnyReturn function should be found in AST" );
+
+					// Should have returnType with explicit=true since it was explicitly in source
+					expect( fn ).toHaveKey( "returnType", "function with explicit any return should have returnType in AST" );
+					expect( fn.returnType.value ).toBe( "any" );
+					expect( fn.returnType ).toHaveKey( "explicit", "function with explicit any should have returnType.explicit" );
+					expect( fn.returnType.explicit ).toBeTrue( "returnType.explicit should be true for explicit any" );
+				});
+
+				it( "function WITH explicit public any should have both explicit flags in AST", function() {
+					var ast = astFromPath( variables.testDir & "functionNoModifiers.cfc" );
+
+					var fn = findFunction( ast, "explicitBoth" );
+					expect( fn ).notToBeNull( "explicitBoth function should be found in AST" );
+
+					expect( fn ).toHaveKey( "access", "function with explicit public should have access in AST" );
+					expect( fn.access ).toBe( "public" );
+					expect( fn ).toHaveKey( "accessExplicit", "function with explicit public should have accessExplicit" );
+					expect( fn.accessExplicit ).toBeTrue( "accessExplicit should be true" );
+
+					expect( fn ).toHaveKey( "returnType", "function with explicit any return should have returnType in AST" );
+					expect( fn.returnType.value ).toBe( "any" );
+					expect( fn.returnType ).toHaveKey( "explicit", "function with explicit any should have returnType.explicit" );
+					expect( fn.returnType.explicit ).toBeTrue( "returnType.explicit should be true" );
+				});
+
+				it( "function with only returnType should NOT have accessExplicit in AST", function() {
+					var ast = astFromPath( variables.testDir & "functionNoModifiers.cfc" );
+
+					var fn = findFunction( ast, "onlyReturnType" );
+					expect( fn ).notToBeNull( "onlyReturnType function should be found in AST" );
+
+					// access should exist (default), but accessExplicit should NOT exist
+					expect( fn ).toHaveKey( "access", "function should have access (default)" );
+					expect( fn ).notToHaveKey( "accessExplicit", "function without access in source should NOT have accessExplicit" );
+
+					// Should have returnType with explicit=true since it was explicitly in source
+					expect( fn ).toHaveKey( "returnType", "function with explicit string return should have returnType in AST" );
+					expect( fn.returnType.value ).toBe( "string" );
+					expect( fn.returnType ).toHaveKey( "explicit", "function with explicit string should have returnType.explicit" );
+					expect( fn.returnType.explicit ).toBeTrue( "returnType.explicit should be true" );
+				});
+
+				it( "function with only access should NOT have returnType.explicit in AST", function() {
+					var ast = astFromPath( variables.testDir & "functionNoModifiers.cfc" );
+
+					var fn = findFunction( ast, "onlyAccess" );
+					expect( fn ).notToBeNull( "onlyAccess function should be found in AST" );
+
+					// Should have access and accessExplicit since it was explicitly in source
+					expect( fn ).toHaveKey( "access", "function with explicit private should have access in AST" );
+					expect( fn.access ).toBe( "private" );
+					expect( fn ).toHaveKey( "accessExplicit", "function with explicit private should have accessExplicit" );
+					expect( fn.accessExplicit ).toBeTrue( "accessExplicit should be true for explicit private" );
+
+					// returnType should exist (default), but explicit should NOT exist
+					expect( fn ).toHaveKey( "returnType", "function should have returnType (default)" );
+					expect( fn.returnType ).notToHaveKey( "explicit", "function without returnType in source should NOT have returnType.explicit" );
+				});
+
+			});
+
 		});
+	}
+
+	/**
+	 * Find a function by name in the AST
+	 */
+	private function findFunction( required struct node, required string name ) {
+		var nodeType = node.type ?: "";
+
+		// Check if this is a FunctionDeclaration with matching name
+		if ( nodeType == "FunctionDeclaration" ) {
+			var fnName = "";
+			// AST uses "name" with StringLiteral containing function name
+			if ( structKeyExists( node, "name" ) && isStruct( node.name ) ) {
+				fnName = node.name.value ?: "";
+			}
+			if ( uCase( fnName ) == uCase( name ) ) {
+				return node;
+			}
+		}
+
+		// Recurse into body
+		if ( structKeyExists( node, "body" ) ) {
+			if ( isStruct( node.body ) ) {
+				var result = findFunction( node.body, name );
+				if ( !isNull( result ) ) return result;
+			} else if ( isArray( node.body ) ) {
+				for ( var child in node.body ) {
+					if ( isStruct( child ) ) {
+						var result = findFunction( child, name );
+						if ( !isNull( result ) ) return result;
+					}
+				}
+			}
+		}
+
+		// Recurse into body.body (for components)
+		if ( structKeyExists( node, "body" ) && isStruct( node.body ) && structKeyExists( node.body, "body" ) ) {
+			if ( isArray( node.body.body ) ) {
+				for ( var child in node.body.body ) {
+					if ( isStruct( child ) ) {
+						var result = findFunction( child, name );
+						if ( !isNull( result ) ) return result;
+					}
+				}
+			}
+		}
+
+		return;
 	}
 
 	/**
