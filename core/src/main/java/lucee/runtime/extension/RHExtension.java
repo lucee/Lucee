@@ -229,7 +229,7 @@ public final class RHExtension implements Serializable {
 					if (_id != null && _version != null) {
 						try {
 							metadata = read(config, _id, _version);
-							if (metadata != null) {// && data.containsKey("startBundles")) {
+							if (metadata != null) {
 								return metadata;
 							}
 						}
@@ -548,7 +548,7 @@ public final class RHExtension implements Serializable {
 						data.manifest = toManifest(config, zip.getInputStream(entry), true, null);
 					}
 					else if (!entry.isDirectory() && path.equalsIgnoreCase("META-INF/logo.png")) {
-						data.image = toBase64(zip.getInputStream(entry), true, null);
+						// Image loading deferred - will be lazy loaded via ExtensionMetadata.getImage()
 					}
 
 					// jars
@@ -1116,15 +1116,19 @@ public final class RHExtension implements Serializable {
 	}
 
 	private void populate(Query qry) {
-		_populate(new CurrentRow(qry, qry.addRow(), true), getMetadata());
+		_populate(new CurrentRow(qry, qry.addRow(), true), getMetadata(), loadImage());
 	}
 
 	private static Collection _populate(Collection coll, ExtensionMetadata md) {
+		return _populate(coll, md, md.getImage());
+	}
+
+	private static Collection _populate(Collection coll, ExtensionMetadata md, String image) {
 
 		coll.setEL(KeyConstants._id, md._getId());
 		coll.setEL(KeyConstants._name, md.getName());
 		coll.setEL(KeyConstants._symbolicName, md.getSymbolicName());
-		coll.setEL(KeyConstants._image, md.getImage());
+		coll.setEL(KeyConstants._image, image);
 		coll.setEL(KeyConstants._type, md.getType());
 		coll.setEL(KeyConstants._description, StringUtil.emptyIfNull(md.getDescription()));
 
@@ -1191,6 +1195,46 @@ public final class RHExtension implements Serializable {
 		return coll;
 	}
 
+	/**
+	 * Lazily loads the extension image (logo) from the extension file. This avoids loading and
+	 * Base64-encoding images at startup - they are only loaded when actually needed (e.g., admin UI).
+	 */
+	private String loadImage() {
+		// First check if already loaded in metadata
+		String img = getMetadata().getImage();
+		if (!StringUtil.isEmpty(img)) return img;
+
+		// Lazy load from extension file
+		if (extensionFile == null || !extensionFile.exists()) return null;
+
+		try (ZipFile zip = new ZipFile(extensionFile.getAbsolutePath())) {
+			ZipEntry entry = zip.getEntry("META-INF/logo.png");
+			if (entry == null) {
+				// Try case-insensitive search
+				var entries = zip.entries();
+				while (entries.hasMoreElements()) {
+					ZipEntry e = entries.nextElement();
+					if (e.getName().equalsIgnoreCase("META-INF/logo.png")) {
+						entry = e;
+						break;
+					}
+				}
+			}
+			if (entry != null) {
+				try (InputStream is = zip.getInputStream(entry)) {
+					byte[] bytes = IOUtil.toBytes(is);
+					if (bytes != null && bytes.length > 0) {
+						return Caster.toB64(bytes, null);
+					}
+				}
+			}
+		}
+		catch (IOException e) {
+			// Ignore - return null if we can't load the image
+		}
+		return null;
+	}
+
 	private static Array toArray(String[] arr) {
 		Array res = Caster.toArray(arr, null);
 		if (res != null) return res;
@@ -1236,18 +1280,6 @@ public final class RHExtension implements Serializable {
 		}
 		finally {
 			if (closeStream) IOUtil.closeEL(is);
-		}
-	}
-
-	private static String toBase64(InputStream is, boolean closeStream, String defaultValue) {
-		try {
-			byte[] bytes = IOUtil.toBytes(is, closeStream);
-			if (ArrayUtil.isEmpty(bytes)) return defaultValue;
-			return Caster.toB64(bytes, defaultValue);
-		}
-		catch (Throwable t) {
-			ExceptionUtil.rethrowIfNecessary(t);
-			return defaultValue;
 		}
 	}
 
