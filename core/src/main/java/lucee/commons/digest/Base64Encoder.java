@@ -81,7 +81,8 @@ public final class Base64Encoder {
 		if (precise) {
 			return Base64.getDecoder().decode(data);
 		}
-		byte[] res = Base64.getMimeDecoder().decode(data);
+		// Use Apache Commons for lenient decode - handles malformed padding that JDK rejects
+		byte[] res = org.apache.commons.codec.binary.Base64.decodeBase64(data);
 		if (res == null || res.length == 0) throw new CoderException("cannot convert the input to a binary");
 		return res;
 	}
