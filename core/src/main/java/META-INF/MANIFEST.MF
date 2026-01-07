@@ -6,7 +6,7 @@ Minor-Name-Explanation: https://en.wikipedia.org/wiki/Balto
 State: beta
 Bundle-Name: Lucee Core
 Multi-Release: true
-Require-Bundle-Fragment: slf4j.nop;bundle-version=1.7.36
+Require-Bundle-Fragment: slf4j.nop;bundle-version=2.0.17
 Bundle-ManifestVersion: 2
 Bundle-SymbolicName: lucee.core
 Bundle-ClassPath: .,META-INF/
@@ -328,8 +328,8 @@ Require-Bundle: org.apache.commons.commons-codec;bundle-version=1.15.0,
  org.lucee.commons.logging;bundle-version=1.2.0.0000L,
  org.apache.commons.commons-pool2;bundle-version=2.12.1,
  org.apache.oro;bundle-version=2.0.8,
- org.lucee.log4j-core;bundle-version=2.25.1,
- org.lucee.log4j-api;bundle-version=2.25.1,
+ org.apache.logging.log4j.core;bundle-version=2.25.3,
+ org.apache.logging.log4j.api;bundle-version=2.25.3,
  org.lucee.portlet;bundle-version=1.0.0,
  org.lucee.jta;bundle-version=1.1.0,
  fusiondebug.api.server;bundle-version=1.0.20,
@@ -341,13 +341,14 @@ Require-Bundle: org.apache.commons.commons-codec;bundle-version=1.15.0,
  jcifs;bundle-version=1.3.17,
  jencrypt;bundle-version=1.4.2.04,
  org.lucee.tika-core;bundle-version=1.28.4,
+ org.apache.aries.spifly.dynamic.bundle;bundle-version=1.3.7,
  org.objectweb.asm.tree.analysis;bundle-version=9.8,
  org.objectweb.asm.tree;bundle-version=9.8,
  org.objectweb.asm.commons;bundle-version=9.8,
  org.objectweb.asm.util;bundle-version=9.8,
  org.objectweb.asm;bundle-version=9.8,
  org.lucee.xml.resolver;bundle-version=1.2.0,
- slf4j.api;bundle-version=1.7.36,
+ slf4j.api;bundle-version=2.0.17,
  org.lucee.commons-email-all;bundle-version=1.6.0,
  tagsoup;bundle-version=1.2.1.0002L,
  org.lucee.jzlib;bundle-version=1.1.3,
