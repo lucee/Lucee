@@ -229,7 +229,9 @@ public final class BundleProvider {
 		put(mappingsFallback, "org.apache.felix.framework", new Info("org.apache.felix", "org.apache.felix.framework"));
 		put(mappingsFallback, "org.apache.fop", new Info[0]);
 		put(mappingsFallback, "org.apache.hadoop.zookeeper", new Info[0]);
+		put(mappingsFallback, "org.apache.logging.log4j.api", new Info("org.apache.logging.log4j", "log4j-api"));
 		put(mappingsFallback, "org.apache.logging.log4j.core", new Info("org.apache.logging.log4j", "log4j-core"));
+		put(mappingsFallback, "org.apache.aries.spifly.dynamic.bundle", new Info("org.apache.aries.spifly", "org.apache.aries.spifly.dynamic.bundle"));
 		put(mappingsFallback, "org.apache.oro", new Info[0]);
 		put(mappingsFallback, "org.apache.pdfbox", new Info("org.apache.pdfbox", "pdfbox"));
 		put(mappingsFallback, "org.apache.pdfbox.fontbox", new Info("org.apache.pdfbox", "fontbox"));
