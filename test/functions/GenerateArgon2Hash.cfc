@@ -1,11 +1,11 @@
-component extends="org.lucee.cfml.test.LuceeTestCase"  labels="argon2" skip="true"{
+component extends="org.lucee.cfml.test.LuceeTestCase"  labels="argon2" {
 	function run( testResults , testBox ) {
 		describe( "test case for GenerateArgon2Hash", function() {
-			it(title = "Checking with GenerateArgon2Hash()",skip=getJavaVersion()>20, body = function( currentSpec ) {
+			it(title = "Checking with GenerateArgon2Hash()", body = function( currentSpec ) {
 				assertEquals(true, Argon2CheckHash('test', GenerateArgon2Hash('test')));
 			});
 
-			it(title = "Checking with GenerateArgon2Hash",skip=getJavaVersion()>20, body = function( currentSpec ) {
+			it(title = "Checking with GenerateArgon2Hash", body = function( currentSpec ) {
 
 				assertEquals(true,"#Argon2CheckHash('test', GenerateArgon2Hash('test'))#");
 
