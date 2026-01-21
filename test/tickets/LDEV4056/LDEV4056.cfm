@@ -5,7 +5,7 @@
         }
         
         transaction {
-            // transaction without any query activites
+            // transaction without any query activities
         }
         writeoutput("success");
     }

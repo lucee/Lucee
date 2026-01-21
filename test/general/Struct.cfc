@@ -4,7 +4,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 	function afterAll(){}
 
 	function run( testResults , testBox ) {
-		describe( "tests for the type sruct", function() {
+		describe( "tests for the type struct", function() {
 
 			it(title="test listener struct return a value", body=function(){
 				var sct=structNew(onMissingKey:function(key,data){
@@ -89,7 +89,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 
 
 			it(title="short hand literal struct invalid 1", body=function(){
-				// we need to make this in a separate file because this creates a template exception (comppiler)
+				// we need to make this in a separate file because this creates a template exception (compiler)
 				var uri=createURI("Struct/invalid1.cfm");
 				try {
 					_InternalRequest(template:uri);
@@ -100,7 +100,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				expect(error).toBeTrue();
 			});
 			it(title="short hand literal struct invalid 2", body=function(){
-				// we need to make this in a separate file because this creates a template exception (comppiler)
+				// we need to make this in a separate file because this creates a template exception (compiler)
 				var uri=createURI("Struct/invalid2.cfm");
 				try {
 					_InternalRequest(template:uri);
@@ -112,7 +112,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 
 			});
 			it(title="short hand literal struct invalid 3", body=function(){
-				// we need to make this in a separate file because this creates a template exception (comppiler)
+				// we need to make this in a separate file because this creates a template exception (compiler)
 				var uri=createURI("Struct/invalid3.cfm");
 				var error=false;
 				try {

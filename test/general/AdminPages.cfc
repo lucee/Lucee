@@ -103,12 +103,12 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
             });
 
             it( title="check admin 404", body=function(){
-                // not found (page doens't exist )
+                // not found (page doesn't exist )
                 checkUrl( adminRoot, "index.cfm?action=i.dont.exist", 404 );
             });
 
             it( title="check admin 500", body=function(){
-                // 500 (mappng doesn't exist)
+                // 500 (mapping doesn't exist)
                 checkUrl( adminRoot, "index.cfm?action=resources.mappings&action2=create&virtual=/lucee/adminMissing", 500 );
             });
         });
