@@ -1,17 +1,19 @@
 component extends="org.lucee.cfml.test.LuceeTestCase" labels="classloader,memory,leak" {
 
 	function beforeAll() {
-		variables.testPrefix = "_LDEV5903_psp_tmp";
-		variables.curr = getDirectoryFromPath( getCurrentTemplatePath() ) & "/" & variables.testPrefix & "/";
-		if ( directoryExists( variables.curr ) ) {
-			directoryDelete( variables.curr, true );
+		variables.testPrefix = "LDEV5903_3_tmp";
+		variables.testWorkingDir = getDirectoryFromPath( getCurrentTemplatePath() ) & "/" & variables.testPrefix & "/";
+		if ( directoryExists( variables.testWorkingDir ) ) {
+			directoryDelete( variables.testWorkingDir, true );
 		}
-		directoryCreate( variables.curr );
+		directoryCreate( variables.testWorkingDir );
 		pagePoolClear( force=true );
 	}
 
 	function afterAll() {
-		// leave artifacts for inspection
+		if ( directoryExists( variables.testWorkingDir ) ) {
+			directoryDelete( variables.testWorkingDir, true );
+		}
 	}
 
 	function run( testResults, testBox ) {
@@ -36,7 +38,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="classloader,memory
 				// Create and modify component to trigger classloader flushes
 				// Default thresholds: count=1000, ratio=3
 				// Need >1000 classes with ratio>3 to trigger flush
-				var componentPath = variables.curr & "_LDEV5903Test.cfc";
+				var componentPath = variables.testWorkingDir & "_LDEV5903Test.cfc";
 				var componentName = variables.testPrefix & "._LDEV5903Test";
 
 				var pclHashesSeen = { "#initialPclHash#": true };
@@ -61,9 +63,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="classloader,memory
 				}
 
 				// Multiple classloaders means flushes happened
-				expect( structCount( pclHashesSeen ) ).toBeGT( 1, "Flush should have created multiple PhysicalClassLoaders" );
+				expect( structCount( pclHashesSeen ) ).toBeGT( 1, "Flush should have created multiple PhysicalClassLoaders, got #structCount( pclHashesSeen )#" );
 				// Pages should have been cleared during at least one flush
-				expect( maxPagesCleared ).toBeGT( 0, "PageSourcePool.clearPages() should have cleared pages during flush" );
+				expect( maxPagesCleared ).toBeGT( 0, "PageSourcePool.clearPages() should have cleared pages during flush, got #maxPagesCleared#" );
 			});
 		});
 	}
