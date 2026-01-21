@@ -54,7 +54,7 @@ public class PhysicalClassLoaderFactory {
 						PhysicalClassLoader existing = classLoaders.get(key);
 						if (existing != null) PhysicalClassLoader.flush(existing, c);
 					}
-					classLoaders.put(key, rpccl = new PhysicalClassLoader(c, new ArrayList<Resource>(), directory, SystemUtil.getCombinedClassLoader(), null, null, false));
+					classLoaders.put(key, rpccl = new PhysicalClassLoader(c, new ArrayList<Resource>(), directory, SystemUtil.getCombinedClassLoader(), null, false));
 					return rpccl;
 				}
 			}
@@ -93,8 +93,7 @@ public class PhysicalClassLoaderFactory {
 						resources = toSortedList(((JavaSettingsImpl) js).getAllResources());
 					}
 					Resource dir = storeResourceMeta(c, key, js, resources);
-					// (Config config, String key, JavaSettings js, Collection<Resource> _resources)
-					classLoaders.put(key, rpccl = new PhysicalClassLoader(c, resources, dir, parent != null ? parent : SystemUtil.getCombinedClassLoader(), null, null, true));
+					classLoaders.put(key, rpccl = new PhysicalClassLoader(c, resources, dir, parent != null ? parent : SystemUtil.getCombinedClassLoader(), null, true));
 					return rpccl;
 				}
 			}
@@ -122,8 +121,7 @@ public class PhysicalClassLoaderFactory {
 					}
 					Resource dir = c.getClassDirectory().getRealResource("RPC/" + key);
 					if (!dir.exists()) ResourceUtil.createDirectoryEL(dir, true);
-					// (Config config, String key, JavaSettings js, Collection<Resource> _resources)
-					classLoaders.put(key, rpccl = new PhysicalClassLoader(c, new ArrayList<Resource>(), dir, SystemUtil.getCombinedClassLoader(), bcl, null, true));
+					classLoaders.put(key, rpccl = new PhysicalClassLoader(c, new ArrayList<Resource>(), dir, SystemUtil.getCombinedClassLoader(), bcl, true));
 					return rpccl;
 				}
 			}
