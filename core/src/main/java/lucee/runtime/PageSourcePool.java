@@ -275,16 +275,22 @@ public final class PageSourcePool implements Dumpable {
 	 * 
 	 * @param cl
 	 */
-	public void clearPages(ClassLoader cl) {
+	public int clearPages(ClassLoader cl) {
 		Iterator<SoftReference<PageSource>> it = this.pageSources.values().iterator();
 		PageSourceImpl psi;
 		SoftReference<PageSource> sr;
+		int count = 0;
 		while (it.hasNext()) {
 			sr = it.next();
 			psi = sr == null ? null : (PageSourceImpl) sr.get();
 			if (psi == null) continue;
-			if (cl != null) psi.clear(cl);
-			else psi.clear();
+			if (cl != null) {
+				if (psi.clear(cl)) count++;
+			}
+			else {
+				psi.clear();
+				count++;
+			}
 		}
 
 		if (cl == null) {
@@ -292,6 +298,7 @@ public final class PageSourcePool implements Dumpable {
 		}
 
 		resetWatcherWhenEmpty(false, true);
+		return count;
 	}
 
 	public void resetPages(ClassLoader cl) {
