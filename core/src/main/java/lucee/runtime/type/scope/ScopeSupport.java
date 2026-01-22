@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import lucee.commons.io.log.LogUtil;
+import lucee.commons.io.SystemUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.net.URLDecoder;
 import lucee.commons.net.URLItem;
@@ -55,6 +56,7 @@ public abstract class ScopeSupport extends StructImpl implements Scope {
 	private static int _id = 0;
 	private int id = 0;
 	private static final byte[] EMPTY = "".getBytes();
+	private static final boolean BRACKET_NOTATION_ENABLED = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.formUrlAsStruct.bracket.notation", null), true);
 
 	/**
 	 * Field <code>isInit</code>
@@ -189,19 +191,25 @@ public abstract class ScopeSupport extends StructImpl implements Scope {
 			}
 
 			if (formUrlAsStruct && (name.indexOf('.') != -1 || name.indexOf('[') != -1)) {
-				List<String> segments = parseFormUrlName(name);
-
-				if (segments == null || segments.isEmpty()) {
-					// Malformed brackets or no segments, treat as literal key
+				// If bracket notation is disabled and the name contains brackets, treat as literal
+				if (!BRACKET_NOTATION_ENABLED && name.indexOf('[') != -1) {
 					_fill(this, name, value, true, scriptProteced, sameAsArray);
 				}
 				else {
-					// Process segments into nested structure
-					Struct parent = this;
-					for (int j = 0; j < segments.size() - 1; j++) {
-						parent = _fill(parent, segments.get(j), new CastableStruct(Struct.TYPE_LINKED), false, scriptProteced, sameAsArray);
+					List<String> segments = parseFormUrlName(name);
+
+					if (segments == null || segments.isEmpty()) {
+						// Malformed brackets or no segments, treat as literal key
+						_fill(this, name, value, true, scriptProteced, sameAsArray);
 					}
-					_fill(parent, segments.get(segments.size() - 1), value, true, scriptProteced, sameAsArray);
+					else {
+						// Process segments into nested structure
+						Struct parent = this;
+						for (int j = 0; j < segments.size() - 1; j++) {
+							parent = _fill(parent, segments.get(j), new CastableStruct(Struct.TYPE_LINKED), false, scriptProteced, sameAsArray);
+						}
+						_fill(parent, segments.get(segments.size() - 1), value, true, scriptProteced, sameAsArray);
+					}
 				}
 			}
 			else {

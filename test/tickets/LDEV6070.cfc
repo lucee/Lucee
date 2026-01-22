@@ -5,7 +5,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ajax,form,url" {
 	}
 
 	function run( testResults, testBox ) {
-		describe( "LDEV-6070: Support bracket notation in form/URL parameters", function() {
+		describe( "Bracket notation in form/URL parameters", function() {
 
 			it( "should parse simple bracket notation into nested struct", function() {
 				var result = _internalRequest(
@@ -198,6 +198,65 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="ajax,form,url" {
 					}
 				);
 				expect( result.filecontent ).toInclude( "a.b.c.d.e.f=deep" );
+			});
+
+		});
+
+		describe( "Array notation with [] suffix (existing functionality)", function() {
+
+			it( "should handle tags[] with struct format (array value)", function() {
+				var result = _internalRequest(
+					template: "#uri#/test.cfm",
+					forms: {
+						"tags[]": [ "java", "cfml", "lucee" ]
+					}
+				);
+				expect( result.filecontent ).toInclude( "tags=java,cfml,lucee" );
+			});
+
+			it( "should handle tags[] with query string format (multiple params)", function() {
+				var result = _internalRequest(
+					template: "#uri#/test.cfm",
+					forms: "tags[]=java&tags[]=cfml&tags[]=lucee"
+				);
+				expect( result.filecontent ).toInclude( "tags=java,cfml,lucee" );
+			});
+
+			it( "should handle single value with tags[]", function() {
+				var result = _internalRequest(
+					template: "#uri#/test.cfm",
+					forms: "tags[]=lucee"
+				);
+				expect( result.filecontent ).toInclude( "tags=lucee" );
+			});
+
+			it( "should handle nested array notation user[tags][]", function() {
+				var result = _internalRequest(
+					template: "#uri#/test.cfm",
+					forms: "user[tags][]=foo&user[tags][]=bar"
+				);
+				expect( result.filecontent ).toInclude( "user.tags=foo,bar" );
+			});
+
+			it( "should handle deeply nested array notation user[prefs][tags][]", function() {
+				var result = _internalRequest(
+					template: "#uri#/test.cfm",
+					forms: "user[prefs][tags][]=foo&user[prefs][tags][]=bar"
+				);
+				expect( result.filecontent ).toInclude( "user.prefs.tags=foo,bar" );
+			});
+
+		});
+
+		describe( "Original reported issue from forum", function() {
+
+			it( "should handle userData[name] and userData[sellerID] from jQuery post", function() {
+				var result = _internalRequest(
+					template: "#uri#/test.cfm",
+					forms: "userData[name]=John&userData[sellerID]=12345"
+				);
+				expect( result.filecontent ).toInclude( "userData.name=John" );
+				expect( result.filecontent ).toInclude( "userData.sellerID=12345" );
 			});
 
 		});
