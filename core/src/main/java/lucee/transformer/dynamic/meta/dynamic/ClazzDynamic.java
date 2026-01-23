@@ -86,7 +86,7 @@ public class ClazzDynamic extends Clazz {
 			synchronized (clazz) {
 				cd = classes.get(clazz);
 				if (cd == null) {
-					if (log != null) log.debug("dynamic", "extract metadata from [" + clazz.getName() + "]");
+					if (log != null) log.trace("dynamic", "extract metadata from [" + clazz.getName() + "]");
 					try {
 						cd = new ClazzDynamic(clazz, log);
 					}

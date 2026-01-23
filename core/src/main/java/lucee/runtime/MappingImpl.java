@@ -266,6 +266,7 @@ public final class MappingImpl implements Mapping {
 
 	private Class<?> loadClass(String className, byte[] code) throws IOException, ClassNotFoundException {
 		PhysicalClassLoader pcl = PhysicalClassLoaderFactory.getPhysicalClassLoader(config, getClassRootDirectory(), false);
+		pcl.registerPageSourcePool( pageSourcePool );
 		/*
 		 * PhysicalClassLoaderReference pclr = loaders.get(className); PhysicalClassLoader pcl = pclr ==
 		 * null ? null : pclr.get(); if (pcl == null || code != null) {// || pcl.getSize(true) > 3 if (pcl
@@ -280,6 +281,7 @@ public final class MappingImpl implements Mapping {
 			}
 			catch (UnmodifiableClassException e) {
 				pcl = PhysicalClassLoaderFactory.getPhysicalClassLoader(config, getClassRootDirectory(), true);
+				pcl.registerPageSourcePool( pageSourcePool );
 				try {
 					return pcl.loadClass(className, code);
 				}

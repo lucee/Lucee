@@ -54,7 +54,7 @@ public class PhysicalClassLoaderFactory {
 						PhysicalClassLoader existing = classLoaders.get(key);
 						if (existing != null) PhysicalClassLoader.flush(existing, c);
 					}
-					classLoaders.put(key, rpccl = new PhysicalClassLoader(c, new ArrayList<Resource>(), directory, SystemUtil.getCombinedClassLoader(), null, null, false));
+					classLoaders.put(key, rpccl = new PhysicalClassLoader(c, new ArrayList<Resource>(), directory, SystemUtil.getCombinedClassLoader(), null, false));
 					return rpccl;
 				}
 			}
@@ -70,9 +70,16 @@ public class PhysicalClassLoaderFactory {
 
 	public static PhysicalClassLoader getRPCClassLoader(Config c, JavaSettings js, boolean reload, ClassLoader parent) throws IOException {
 		String key = js == null ? "orphan" : ((JavaSettingsImpl) js).id();
+		String parentInfo = "null";
 		if (parent != null) {
-			if (parent instanceof PhysicalClassLoader) key += "_" + ((PhysicalClassLoader) parent).id;
-			else key += "_" + parent.hashCode();
+			if (parent instanceof PhysicalClassLoader) {
+				key += "_" + ((PhysicalClassLoader) parent).id;
+				parentInfo = "PhysicalClassLoader[id=" + ((PhysicalClassLoader) parent).id + "]";
+			}
+			else {
+				key += "_" + parent.hashCode();
+				parentInfo = parent.getClass().getName() + "@" + parent.hashCode();
+			}
 		}
 		PhysicalClassLoader rpccl = reload ? null : classLoaders.get(key);
 
@@ -93,14 +100,15 @@ public class PhysicalClassLoaderFactory {
 						resources = toSortedList(((JavaSettingsImpl) js).getAllResources());
 					}
 					Resource dir = storeResourceMeta(c, key, js, resources);
-					// (Config config, String key, JavaSettings js, Collection<Resource> _resources)
-					classLoaders.put(key, rpccl = new PhysicalClassLoader(c, resources, dir, parent != null ? parent : SystemUtil.getCombinedClassLoader(), null, null, true));
+					lucee.aprint.o( "PhysicalClassLoaderFactory.getRPCClassLoader: Creating new RPC classloader: key=[" + key + "], parent=[" + parentInfo + "], jsId=[" + (js == null ? "null" : ((JavaSettingsImpl) js).id()) + "], totalClassLoaders=" + (classLoaders.size() + 1) );
+					classLoaders.put(key, rpccl = new PhysicalClassLoader(c, resources, dir, parent != null ? parent : SystemUtil.getCombinedClassLoader(), null, true));
 					return rpccl;
 				}
 			}
 		}
 
 		// at this point we know we had an existing one
+		lucee.aprint.o( "PhysicalClassLoaderFactory.getRPCClassLoader: Reusing existing RPC classloader: key=[" + key + "], parent=[" + parentInfo + "], pclId=[" + rpccl.id + "], totalClassLoaders=" + classLoaders.size() );
 		PhysicalClassLoader flushed = PhysicalClassLoader.flushIfNecessary(rpccl, c);
 		if (flushed != null) {
 			classLoaders.put(key, rpccl = flushed);
@@ -122,8 +130,7 @@ public class PhysicalClassLoaderFactory {
 					}
 					Resource dir = c.getClassDirectory().getRealResource("RPC/" + key);
 					if (!dir.exists()) ResourceUtil.createDirectoryEL(dir, true);
-					// (Config config, String key, JavaSettings js, Collection<Resource> _resources)
-					classLoaders.put(key, rpccl = new PhysicalClassLoader(c, new ArrayList<Resource>(), dir, SystemUtil.getCombinedClassLoader(), bcl, null, true));
+					classLoaders.put(key, rpccl = new PhysicalClassLoader(c, new ArrayList<Resource>(), dir, SystemUtil.getCombinedClassLoader(), bcl, true));
 					return rpccl;
 				}
 			}
