@@ -85,7 +85,7 @@ public class PhysicalClassLoaderFactory {
 						PhysicalClassLoader existing = classLoaders.get(key);
 						if (existing != null) PhysicalClassLoader.flush(existing, c);
 					}
-					classLoaders.put(key, rpccl = new PhysicalClassLoader(key, c, new ArrayList<Resource>(), directory, SystemUtil.getCoreClassLoader(), null, null, false));
+					classLoaders.put(key, rpccl = new PhysicalClassLoader(key, c, new ArrayList<Resource>(), directory, SystemUtil.getCoreClassLoader(), null, false));
 					return rpccl;
 				}
 			}
@@ -141,7 +141,7 @@ public class PhysicalClassLoaderFactory {
 						resources = toSortedList(((JavaSettingsImpl) js).getAllResources());
 					}
 					Resource dir = storeResourceMeta(c, key, js, resources);
-					classLoaders.put(key, rpccl = new PhysicalClassLoader(key, c, resources, dir, parent, bcl, null, true));
+					classLoaders.put(key, rpccl = new PhysicalClassLoader(key, c, resources, dir, parent, bcl, true));
 					return rpccl;
 				}
 			}
