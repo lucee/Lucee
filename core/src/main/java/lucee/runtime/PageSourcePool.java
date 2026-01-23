@@ -118,6 +118,11 @@ public final class PageSourcePool implements Dumpable {
 			}
 		}
 
+		// Register with event-based watcher if active
+		if (watcher != null && ps instanceof PageSourceImpl) {
+			watcher.registerPageSource((PageSourceImpl) ps);
+		}
+
 		ps.setLastAccessTime();
 		pageSources.put(key.toLowerCase(), new SoftReference<PageSource>(ps));
 	}
