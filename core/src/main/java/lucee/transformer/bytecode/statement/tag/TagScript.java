@@ -26,8 +26,14 @@ import lucee.transformer.bytecode.visitor.IfVisitor;
 
 public final class TagScript extends TagBaseNoFinal {
 
+	/**
+	 * Constructor clears start/end positions to prevent line number emissions. The cfscript tag itself
+	 * is not executable - it's just a container for script content. Emitting line numbers for it
+	 * causes conflicts when functions are extracted and written before the body, resulting in the same
+	 * bytecode position having multiple line numbers.
+	 */
 	public TagScript(Factory f, Position start, Position end) {
-		super(f, start, end);
+		super(f, null, null);
 	}
 
 	/**

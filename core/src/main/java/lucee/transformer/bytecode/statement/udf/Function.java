@@ -216,7 +216,9 @@ public abstract class Function extends StatementBaseNoFinal implements Opcodes, 
 		// register(bc.getPage());
 		bc.visitLine(getStart());
 		_writeOut(bc, type);
-		bc.visitLine(getEnd());
+		// Skip emitting end line - it causes bytecode position conflicts when multiple functions are
+		// registered consecutively (function1 end collides with function2 start at same bytecode label).
+		// The start position is sufficient for debugging and breakpoints.
 	}
 
 	@Override

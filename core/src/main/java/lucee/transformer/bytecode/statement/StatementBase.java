@@ -83,8 +83,9 @@ public abstract class StatementBase implements BytecodeStatement {
 		BytecodeContext bc = (BytecodeContext) c;
 		bc.visitLine(start);
 		_writeOut(bc);
-		bc.visitLine(end);
-
+		// Skip emitting end line - it causes bytecode position conflicts when the next statement's
+		// start line is emitted before any bytecode is generated. The start position is sufficient
+		// for debugging and breakpoints. The end position (closing brace) isn't executable anyway.
 	}
 
 	/**
