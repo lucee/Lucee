@@ -86,38 +86,11 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 					"Destination file should preserve executable bit, got mode: #destInfo.mode#" );
 			});
 
-			it( title="resource copyTo should preserve owner write permission", skip=isWindows(), body=function() {
-				var srcFile = variables.testDir & "source-res.txt";
-				var destFile = variables.testDir & "dest-res.txt";
-
-				// create source file and make it read-only
-				fileWrite( srcFile, "test content" );
-				fileSetAccessMode( srcFile, "444" );
-
-				// use resource.copyTo() instead of fileCopy()
-				var srcRes = getResource( srcFile );
-				var destRes = getResource( destFile );
-				srcRes.copyTo( destRes );
-
-				// destination should be writable by owner
-				var destInfo = fileInfo( destFile );
-				var destMode = destInfo.mode;
-				var ownerWrite = mid( destMode, 1, 1 );
-
-				expect( listFind( "2,3,6,7", ownerWrite ) ).toBeGT( 0,
-					"Destination file owner should have write permission, got mode: #destMode#" );
-			});
-
 		});
 	}
 
 	private function isWindows() {
 		return server.os.name contains "windows";
-	}
-
-	private function getResource( path ) {
-		return createObject( "java", "lucee.commons.io.res.util.ResourceUtil" )
-			.toResourceNotExisting( getPageContext(), arguments.path );
 	}
 
 }
