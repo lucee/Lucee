@@ -67,7 +67,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 				var destFile = variables.testDir & "dest-exec.txt";
 
 				// create source file with executable permission
-				fileWrite( srcFile, "#!/bin/bash" );
+				fileWrite( srcFile, "##!/bin/bash" );
 				fileSetAccessMode( srcFile, "755" );
 
 				// verify source is executable
