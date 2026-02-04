@@ -35,6 +35,7 @@ import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.op.Castable;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
+import lucee.runtime.op.Duplicator;
 import lucee.runtime.reflection.Reflector;
 import lucee.runtime.reflection.pairs.MethodInstance;
 import lucee.runtime.type.Collection;
@@ -67,6 +68,8 @@ public final class CatchBlockImpl extends StructImpl implements CatchBlock, Cast
 	public static final Key ADDITIONAL = KeyConstants._additional;
 
 	private final PageException exception;
+	private CatchBlock cachedCause;
+	private boolean causeCached;
 
 	CatchBlockImpl(PageException pe, int level) {
 		if (level < 0) level = 0;
@@ -133,14 +136,22 @@ public final class CatchBlockImpl extends StructImpl implements CatchBlock, Cast
 		}
 
 		private CatchBlock getCauseAsCatchBlock(Config config) {
+			if (causeCached) return cachedCause;
+
 			Throwable exp;
 			if (exception instanceof NativeException) exp = ((NativeException) exception).getException();
 			else exp = exception;
 
 			Throwable cause = exp.getCause();
-			if (cause == null || exp == cause) return null;
+			if (cause == null || exp == cause) {
+				causeCached = true;
+				cachedCause = null;
+				return null;
+			}
 
-			return Caster.toPageException(cause).getCatchBlock(config);
+			cachedCause = Caster.toPageException(cause).getCatchBlock(config);
+			causeCached = true;
+			return cachedCause;
 		}
 
 		public void set(Object o) {
@@ -240,7 +251,21 @@ public final class CatchBlockImpl extends StructImpl implements CatchBlock, Cast
 
 	@Override
 	public Collection duplicate(boolean deepCopy) {
-		return StructUtil.duplicate(this, deepCopy);
+		Struct rtn = new StructImpl();
+		Key[] k = super.keys();
+		for (int i = 0; i < k.length; i++) {
+			Object value = get(k[i], null);
+			if (value != null) {
+				// Don't deep duplicate CatchBlocks to avoid infinite recursion
+				if (value instanceof CatchBlock || !deepCopy) {
+					rtn.setEL(k[i], value);
+				}
+				else {
+					rtn.setEL(k[i], Duplicator.duplicate(value, true));
+				}
+			}
+		}
+		return rtn;
 	}
 
 	@Override
