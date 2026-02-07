@@ -1078,7 +1078,7 @@ public final class PageSourceImpl implements PageSource {
 
 	public void clear() {
 		mapping.clear(pcn.className);
-		pcn.page = null;
+		pcn.reset();
 	}
 
 	/**
@@ -1089,7 +1089,7 @@ public final class PageSourceImpl implements PageSource {
 	public boolean clear(ClassLoader cl) {
 		Page page = pcn.page;
 		if (page != null && page.getClass().getClassLoader().equals(cl)) {
-			pcn.page = null;
+			pcn.reset();
 			return true;
 		}
 		return false;
