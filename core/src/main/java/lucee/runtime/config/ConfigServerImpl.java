@@ -873,6 +873,7 @@ public final class ConfigServerImpl implements ConfigServer, ConfigPro {
 					+ "registered breakpoints and the programmatic breakpoint() BIF. " + "Unlike traditional JDWP debugging, this event-driven approach incurs "
 					+ "virtually no performance penalty when no breakpoints are hit, " + "eliminating the need for slow bytecode rewriting.");
 	private Boolean dapBreakpoint;
+	private Boolean executionLogEnabled;
 
 	private static ImportDefintion DEFAULT_IMPORT_DEFINITION = new ImportDefintionImpl(Constants.DEFAULT_PACKAGE, "*");
 	private static Prop<String> metaComponentDefaultImport = Prop.str().keys("componentAutoImport", "componentDefaultImport").defaultValue(DEFAULT_IMPORT_DEFINITION.toString())
@@ -6532,9 +6533,29 @@ public final class ConfigServerImpl implements ConfigServer, ConfigPro {
 	}
 
 	@Override
-	@Deprecated
 	public boolean getExecutionLogEnabled() {
-		return getDapBreakpoint();
+		if (getDapBreakpoint()) return true;
+
+		if (executionLogEnabled == null) {
+			synchronized (SystemUtil.createToken("config", "getExecutionLogEnabled")) {
+				if (executionLogEnabled == null) {
+					Struct sct = ConfigUtil.getAsStruct("executionLog", root);
+					executionLogEnabled = Caster.toBoolean(ConfigFactoryImpl.getAttr(this, sct, "enabled"), Boolean.FALSE);
+				}
+			}
+		}
+		return executionLogEnabled;
+	}
+
+	public ConfigServerImpl resetExecutionLogEnabled() {
+		if (executionLogEnabled != null) {
+			synchronized (SystemUtil.createToken("config", "getExecutionLogEnabled")) {
+				if (executionLogEnabled != null) {
+					executionLogEnabled = null;
+				}
+			}
+		}
+		return this;
 	}
 
 	@Override

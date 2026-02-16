@@ -27,7 +27,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 		});
 
 		describe( "LDEV-5206 DebugExecutionLog", function(){
-			xit( "test DebugExecutionLog - cfm ", function(){
+			it( "test DebugExecutionLog - cfm ", function(){
 				var logs = getDebugLogs();
 				expect( len( logs ) ).toBe( 1 );
 				var log = logs[ 1 ];
@@ -66,7 +66,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 				expect( pageParts[ key  ].snippet ).toBe( "cfc.doSleep()" ); // LDEV-5207 only returns "cfc"
 			});
 
-			xit( "test DebugExecutionLog - cfc parts ", function(){
+			it( "test DebugExecutionLog - cfc parts ", function(){
 				var logs = getDebugLogs();
 				expect( len( logs ) ).toBe( 1 );
 				var log = logs[ 1 ];
