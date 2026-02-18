@@ -54,7 +54,8 @@ import lucee.runtime.type.Struct;
 
 public final class ThreadUtil {
 
-	private static final boolean ALLOW_FUTURE_THREADS = false;
+	// virtual threads are safe from Java 25+ (JEP 491: synchronized no longer pins virtual threads)
+	private static final boolean ALLOW_VIRTUAL_THREADS = SystemUtil.JAVA_VERSION >= SystemUtil.JAVA_VERSION_25;
 	// private static final Class<?> THREAD_CLASS = Thread.class;
 	private static final Class<?> RUNNABLE_CLASS = Runnable.class;
 	private static Class<?> threadBuilderClass;
@@ -220,7 +221,7 @@ public final class ThreadUtil {
 	}
 
 	public static Thread getThread(Runnable task) {
-		return getThread(task, ALLOW_FUTURE_THREADS);
+		return getThread(task, ALLOW_VIRTUAL_THREADS);
 
 	}
 
@@ -243,7 +244,7 @@ public final class ThreadUtil {
 	}
 
 	public static ExecutorService createExecutorService(int maxThreads) {
-		return createExecutorService(maxThreads, ALLOW_FUTURE_THREADS);
+		return createExecutorService(maxThreads, ALLOW_VIRTUAL_THREADS);
 	}
 
 	public static ExecutorService createExecutorService(int maxThreads, boolean allowVirtual) {
