@@ -105,7 +105,7 @@ public final class OpContional extends ExpressionBase {
 		// alternate
 		{
 			Struct alternate = new StructImpl(Struct.TYPE_LINKED);
-			left.dump(alternate);
+			right.dump(alternate);
 			sct.setEL(KeyConstants._alternate, alternate);
 		}
 	}

@@ -100,6 +100,11 @@ public final class DoWhile extends StatementBaseNoFinal implements FlowControlBr
 		super.dump(sct);
 		sct.setEL(KeyConstants._type, "DoWhileStatement");
 
+		// label
+		if ( label != null ) {
+			sct.setEL(KeyConstants._label, label);
+		}
+
 		// body
 		{
 			Struct body = new StructImpl(Struct.TYPE_LINKED);

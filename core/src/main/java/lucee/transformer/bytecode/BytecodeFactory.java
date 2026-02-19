@@ -288,12 +288,19 @@ public final class BytecodeFactory extends FactoryBase {
 
 	@Override
 	public ExprString opString(Expression left, Expression right) {
-		return OpString.toExprString(left, right, true);
+		// Pass false to preserve string literal structure for AST output (LDEV-6022)
+		// Otherwise "<c" & "fsc" merges to "<cfsc" which breaks re-parsing
+		return OpString.toExprString(left, right, false);
 	}
 
 	@Override
 	public ExprString opString(Expression left, Expression right, boolean concatStatic) {
 		return OpString.toExprString(left, right, concatStatic);
+	}
+
+	@Override
+	public ExprString opStringInterpolation(Expression left, Expression right) {
+		return OpString.toExprStringInterpolation(left, right);
 	}
 
 	@Override

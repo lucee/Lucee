@@ -22,6 +22,9 @@ import lucee.transformer.expression.Expression;
 
 public final class Attribute {
 
+	public static final char SEPARATOR_EQUALS = '=';
+	public static final char SEPARATOR_COLON = ':';
+
 	final String nameOC;
 	final String nameLC;
 	final Expression value;
@@ -30,6 +33,7 @@ public final class Attribute {
 	private boolean defaultAttribute;
 	private String setterName;
 	private final boolean isDefaultValue;
+	private char separator = SEPARATOR_EQUALS; // default to '=' for backwards compatibility
 
 	public Attribute(boolean dynamicType, String name, Expression value, String type) {
 		this(dynamicType, name, value, type, false);
@@ -42,6 +46,19 @@ public final class Attribute {
 		this.value = value;
 		this.type = type;
 		this.isDefaultValue = isDefaultValue;
+	}
+
+	public Attribute(boolean dynamicType, String name, Expression value, String type, boolean isDefaultValue, char separator) {
+		this(dynamicType, name, value, type, isDefaultValue);
+		this.separator = separator;
+	}
+
+	public char getSeparator() {
+		return separator;
+	}
+
+	public void setSeparator(char separator) {
+		this.separator = separator;
 	}
 
 	public boolean isDefaultValue() {

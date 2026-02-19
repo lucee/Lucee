@@ -1138,6 +1138,94 @@ public final class VariableImpl extends ExpressionBase implements Variable {
 			Struct newNode = new StructImpl(Struct.TYPE_LINKED);
 
 			if (member instanceof FunctionMember) {
+				FunctionMember fm = (FunctionMember) member;
+				Object funcNameObj = getName(fm);
+				// Check if this is a dynamic function name (computed property access)
+				boolean isComputedCall = funcNameObj instanceof Struct;
+				String funcName = isComputedCall ? null : funcNameObj.toString();
+
+				// LDEV-6011: Handle internal literal functions as proper AST node types
+				if (current == null && member instanceof BIF && funcName != null) {
+					if ("_literalStruct".equalsIgnoreCase(funcName) || "_literalOrderedStruct".equalsIgnoreCase(funcName)) {
+						// Output as ObjectExpression
+						newNode.setEL(KeyConstants._type, "ObjectExpression");
+						// Track if this is an ordered struct (bracket notation)
+						if ("_literalOrderedStruct".equalsIgnoreCase(funcName)) {
+							newNode.setEL("ordered", Boolean.TRUE);
+						}
+						Array properties = new ArrayImpl();
+						newNode.setEL("properties", properties);
+						// Each argument is a NamedArgument containing both key and value
+						Argument[] args = fm.getSourceArguments();
+						for (Argument arg : args) {
+							Struct prop = new StructImpl(Struct.TYPE_LINKED);
+							prop.setEL(KeyConstants._type, "Property");
+							if (arg instanceof NamedArgument) {
+								NamedArgument na = (NamedArgument) arg;
+								Struct keyNode = new StructImpl(Struct.TYPE_LINKED);
+								na.getName().dump(keyNode);
+								prop.setEL(KeyConstants._key, keyNode);
+								Struct valueNode = new StructImpl(Struct.TYPE_LINKED);
+								na.getValue().dump(valueNode);
+								prop.setEL(KeyConstants._value, valueNode);
+								// Track the separator used (: or =)
+								prop.setEL(KeyConstants._separator, String.valueOf(na.getSeparator()));
+							}
+							else {
+								// Fallback for non-named arguments (shouldn't happen for struct literals)
+								Struct valueNode = new StructImpl(Struct.TYPE_LINKED);
+								arg.dump(valueNode);
+								prop.setEL(KeyConstants._value, valueNode);
+							}
+							properties.appendEL(prop);
+						}
+						current = newNode;
+						continue;
+					}
+					else if ("_literalArray".equalsIgnoreCase(funcName)) {
+						// Output as ArrayExpression
+						newNode.setEL(KeyConstants._type, "ArrayExpression");
+						Array elements = new ArrayImpl();
+						newNode.setEL("elements", elements);
+						for (Argument arg: fm.getSourceArguments()) {
+							Struct elemNode = new StructImpl(Struct.TYPE_LINKED);
+							arg.dump(elemNode);
+							elements.appendEL(elemNode);
+						}
+						current = newNode;
+						continue;
+					}
+					else if ("_createComponent".equalsIgnoreCase(funcName)) {
+						// Output as NewExpression
+						// Arguments order from parser: [constructor args..., component path, type string]
+						// Note: Component path and type are added AFTER snapshotSourceArguments(),
+						// so we need getArguments() not getSourceArguments()
+						// - args[0..n-3]: constructor arguments passed to init()
+						// - args[n-2]: component path (e.g., "MyComponent")
+						// - args[n-1]: type string (e.g., "type:undefined") - should be filtered out
+						newNode.setEL(KeyConstants._type, "NewExpression");
+						Argument[] args = fm.getArguments();
+
+						// Component path is second-to-last argument
+						if (args.length >= 2) {
+							Struct calleeNode = new StructImpl(Struct.TYPE_LINKED);
+							args[args.length - 2].dump(calleeNode);
+							newNode.setEL(KeyConstants._callee, calleeNode);
+						}
+
+						// Constructor arguments are everything except the last two
+						Array argArray = new ArrayImpl();
+						newNode.setEL(KeyConstants._arguments, argArray);
+						for (int j = 0; j < args.length - 2; j++) {
+							Struct argNode = new StructImpl(Struct.TYPE_LINKED);
+							args[j].dump(argNode);
+							argArray.appendEL(argNode);
+						}
+						current = newNode;
+						continue;
+					}
+				}
+
 				// Function call
 				newNode.setEL(KeyConstants._type, "CallExpression");
 
@@ -1148,21 +1236,56 @@ public final class VariableImpl extends ExpressionBase implements Variable {
 
 				// Set callee to current chain (or base identifier)
 				if (current == null) {
-					// First element - base identifier
-					Struct callee = new StructImpl(Struct.TYPE_LINKED);
-					callee.setEL(KeyConstants._type, "Identifier");
-					callee.setEL(KeyConstants._name, getName((FunctionMember) member));
-					newNode.setEL(KeyConstants._callee, callee);
+					// First element - base identifier or computed call
+					if (isComputedCall) {
+						// Computed call like variables[expr]() - callee is the computed member expression
+						newNode.setEL(KeyConstants._callee, funcNameObj);
+					}
+					else {
+						Struct callee = new StructImpl(Struct.TYPE_LINKED);
+						callee.setEL(KeyConstants._type, "Identifier");
+						callee.setEL(KeyConstants._name, funcName);
+						newNode.setEL(KeyConstants._callee, callee);
+					}
 				}
 				else {
-					newNode.setEL(KeyConstants._callee, current);
+					// Method call on object - create MemberExpression for callee
+					Struct callee = new StructImpl(Struct.TYPE_LINKED);
+					callee.setEL(KeyConstants._type, "MemberExpression");
+					callee.setEL(KeyConstants._computed, isComputedCall);
+					// Track safe navigation (?.) as optional=true
+					if (member.getSafeNavigated()) {
+						callee.setEL(KeyConstants._optional, Boolean.TRUE);
+					}
+
+					// LDEV-6011: Handle _getstaticscope/_getsuperstaticscope for :: syntax
+					Struct staticInfo = extractStaticScopeInfo(current);
+					if (staticInfo != null) {
+						callee.setEL(KeyConstants._static, Boolean.TRUE);
+						callee.setEL(KeyConstants._object, staticInfo);
+					}
+					else {
+						callee.setEL(KeyConstants._object, current);
+					}
+
+					if (isComputedCall) {
+						// Computed property access - use the dumped expression
+						callee.setEL(KeyConstants._property, funcNameObj);
+					}
+					else {
+						Struct property = new StructImpl(Struct.TYPE_LINKED);
+						property.setEL(KeyConstants._type, "Identifier");
+						property.setEL(KeyConstants._name, funcName);
+						callee.setEL(KeyConstants._property, property);
+					}
+
+					newNode.setEL(KeyConstants._callee, callee);
 				}
 
-				// Add arguments
+				// Add arguments (use source arguments to exclude evaluator modifications)
 				Array arrArgs = new ArrayImpl();
 				newNode.setEL(KeyConstants._arguments, arrArgs);
-				FunctionMember fm = (FunctionMember) member;
-				for (Argument arg: fm.getArguments()) {
+				for (Argument arg: fm.getSourceArguments()) {
 					Struct sctArg = new StructImpl(Struct.TYPE_LINKED);
 					arrArgs.appendEL(sctArg);
 					arg.dump(sctArg);
@@ -1179,12 +1302,36 @@ public final class VariableImpl extends ExpressionBase implements Variable {
 				else {
 					// Member expression
 					newNode.setEL(KeyConstants._type, "MemberExpression");
-					newNode.setEL(KeyConstants._computed, false);
-					newNode.setEL(KeyConstants._object, current);
+					// Check if this is bracket notation (computed=true) or dot notation (computed=false)
+					Expression memberName = ((DataMember) member).getName();
+					boolean isComputed = (memberName instanceof LitString && ((LitString) memberName).fromBracket())
+							|| !(memberName instanceof Literal);
+					newNode.setEL(KeyConstants._computed, isComputed);
+					// Track safe navigation (?.) as optional=true
+					if (member.getSafeNavigated()) {
+						newNode.setEL(KeyConstants._optional, Boolean.TRUE);
+					}
+
+					// LDEV-6011: Handle _getstaticscope/_getsuperstaticscope for :: syntax
+					Struct staticInfo = extractStaticScopeInfo(current);
+					if (staticInfo != null) {
+						newNode.setEL(KeyConstants._static, Boolean.TRUE);
+						newNode.setEL(KeyConstants._object, staticInfo);
+					}
+					else {
+						newNode.setEL(KeyConstants._object, current);
+					}
 
 					Struct property = new StructImpl(Struct.TYPE_LINKED);
-					property.setEL(KeyConstants._type, "Identifier");
-					property.setEL(KeyConstants._name, getName((DataMember) member));
+					if (isComputed) {
+						// Bracket notation - dump the expression to preserve quoteChar etc.
+						memberName.dump(property);
+					}
+					else {
+						// Dot notation - output as Identifier
+						property.setEL(KeyConstants._type, "Identifier");
+						property.setEL(KeyConstants._name, getName((DataMember) member));
+					}
 					newNode.setEL(KeyConstants._property, property);
 				}
 			}
@@ -1203,6 +1350,89 @@ public final class VariableImpl extends ExpressionBase implements Variable {
 		Struct name = new StructImpl(Struct.TYPE_LINKED);
 		dm.getName().dump(name);
 		return name;
+	}
+
+	/**
+	 * LDEV-6011: Check if the current AST node represents a _getstaticscope or _getsuperstaticscope call.
+	 * If so, extract the class/component name and return it as an Identifier node.
+	 * This preserves the :: syntax in the AST output instead of exposing internal function names.
+	 *
+	 * @param current The current AST Struct being built
+	 * @return An Identifier Struct with the class name, or null if not a static scope call
+	 */
+	private static Struct extractStaticScopeInfo(Struct current) {
+		if (current == null) return null;
+
+		// Check if this is a CallExpression
+		Object type = current.get(KeyConstants._type, null);
+		if (!"CallExpression".equals(type)) return null;
+
+		// Get the callee
+		Object calleeObj = current.get(KeyConstants._callee, null);
+		if (!(calleeObj instanceof Struct)) return null;
+		Struct callee = (Struct) calleeObj;
+
+		// Check if callee is an Identifier
+		Object calleeType = callee.get(KeyConstants._type, null);
+		if (!"Identifier".equals(calleeType)) return null;
+
+		// Check the function name
+		Object nameObj = callee.get(KeyConstants._name, null);
+		if (nameObj == null) return null;
+		String funcName = nameObj.toString().toLowerCase();
+
+		Struct identifier = new StructImpl(Struct.TYPE_LINKED);
+		identifier.setEL(KeyConstants._type, "Identifier");
+
+		if ("_getsuperstaticscope".equals(funcName)) {
+			// super::method() - no arguments, just return "super" identifier
+			identifier.setEL(KeyConstants._name, "super");
+			return identifier;
+		}
+		else if ("_getstaticscope".equals(funcName)) {
+			// Class::method() - first argument is the class/component name
+			Object argsObj = current.get(KeyConstants._arguments, null);
+			if (!(argsObj instanceof Array)) return null;
+			Array args = (Array) argsObj;
+			if (args.size() < 1) return null;
+
+			// Get the first argument (class name)
+			Object firstArg = args.get(1, null);
+			if (!(firstArg instanceof Struct)) return null;
+			Struct argStruct = (Struct) firstArg;
+
+			// Extract the value (should be a StringLiteral)
+			Object argType = argStruct.get(KeyConstants._type, null);
+			if (!"StringLiteral".equals(argType)) return null;
+
+			Object valueObj = argStruct.get(KeyConstants._value, null);
+			if (valueObj == null) return null;
+
+			// Check if there's a second argument indicating java: prefix
+			boolean hasJavaPrefix = false;
+			if (args.size() >= 2) {
+				Object secondArg = args.get(2, null);
+				if (secondArg instanceof Struct) {
+					Struct secondArgStruct = (Struct) secondArg;
+					Object secondValue = secondArgStruct.get(KeyConstants._value, null);
+					if ("java".equals(secondValue)) {
+						hasJavaPrefix = true;
+					}
+				}
+			}
+
+			// Build the identifier name, preserving java: prefix if present
+			String className = valueObj.toString();
+			if (hasJavaPrefix) {
+				identifier.setEL(KeyConstants._name, "java:" + className);
+			}
+			else {
+				identifier.setEL(KeyConstants._name, className);
+			}
+			return identifier;
+		}
+
+		return null;
 	}
 
 }

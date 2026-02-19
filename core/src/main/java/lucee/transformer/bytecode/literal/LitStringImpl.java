@@ -50,7 +50,9 @@ public class LitStringImpl extends ExpressionBase implements LitString, ExprStri
 	public static final int TYPE_LOWER = 2;
 
 	private String str;
+	private String rawSource; // Original source representation for AST dump
 	private boolean fromBracket;
+	private char quoteChar; // Original quote character (' or ") for AST dump
 
 	/*
 	 * public static ExprString toExprString(String str, Position start,Position end) { return new
@@ -195,11 +197,55 @@ public class LitStringImpl extends ExpressionBase implements LitString, ExprStri
 		return fromBracket;
 	}
 
+	/**
+	 * Set the original source representation for AST dump.
+	 * This preserves the exact source text including quotes.
+	 */
+	public void setRawSource(String rawSource) {
+		this.rawSource = rawSource;
+	}
+
+	/**
+	 * Get the original source representation.
+	 */
+	public String getRawSource() {
+		return rawSource;
+	}
+
+	/**
+	 * Set the original quote character for AST dump.
+	 */
+	public void setQuoteChar(char quoteChar) {
+		this.quoteChar = quoteChar;
+	}
+
+	/**
+	 * Get the original quote character.
+	 */
+	public char getQuoteChar() {
+		return quoteChar;
+	}
+
 	@Override
 	public void dump(Struct sct) {
 		super.dump(sct);
 		sct.setEL(KeyConstants._type, "StringLiteral");
 		sct.setEL(KeyConstants._value, str);
-		sct.setEL(KeyConstants._raw, "\"" + str + "\"");
+		// Use rawSource if available (preserves original source representation)
+		// Otherwise compute from value: escape # to ## and " to ""
+		if (rawSource != null) {
+			sct.setEL(KeyConstants._raw, rawSource);
+		}
+		else if (str != null) {
+			String escaped = str.replace("#", "##").replace("\"", "\"\"");
+			sct.setEL(KeyConstants._raw, "\"" + escaped + "\"");
+		}
+		else {
+			sct.setEL(KeyConstants._raw, "null");
+		}
+		// Only include quoteChar if it was set (AST mode)
+		if (quoteChar != 0) {
+			sct.setEL("quoteChar", String.valueOf(quoteChar));
+		}
 	}
 }

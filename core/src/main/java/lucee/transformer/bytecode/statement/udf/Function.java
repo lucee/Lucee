@@ -67,6 +67,7 @@ import lucee.transformer.expression.literal.LitBoolean;
 import lucee.transformer.expression.literal.LitInteger;
 import lucee.transformer.expression.literal.LitString;
 import lucee.transformer.expression.literal.Literal;
+import lucee.transformer.bytecode.literal.LitStringImpl;
 import lucee.transformer.statement.Argument;
 import lucee.transformer.statement.HasBody;
 import lucee.transformer.statement.IFunction;
@@ -135,15 +136,20 @@ public abstract class Function extends StatementBaseNoFinal implements Opcodes, 
 
 	ExprString name;
 	ExprString returnType;
+	boolean returnTypeExplicit; // LDEV-6041: track if return type was explicitly specified
 	ExprBoolean output;
 	ExprBoolean bufferOutput;
 	// ExprBoolean abstry=LitBoolean.FALSE;
 	int access = Component.ACCESS_PUBLIC;
+	boolean accessExplicit; // LDEV-6036: track if access modifier was explicitly specified
 	ExprString displayName;
 	ExprString hint;
+	String rawDocblock; // raw docblock text for AST round-tripping
+	String docblockDescription; // parsed description from docblock for annotations.description
 	Body body;
 	List<Argument> arguments = new ArrayList<Argument>();
-	Map<String, Attribute> metadata;
+	Map<String, Attribute> metadata; // inline attributes (not from docblock)
+	Map<String, Attribute> annotations; // @tags from docblock
 	ExprString returnFormat;
 	ExprString description;
 	ExprBoolean secureJson;
@@ -151,8 +157,10 @@ public abstract class Function extends StatementBaseNoFinal implements Opcodes, 
 	ExprInt localMode;
 	// protected int localIndex = -1;
 	Literal cachedWithin;
+	Expression sourceCachedWithin; // Original expression for AST fidelity (before evaluation)
 	int modifier;
 	protected JavaFunction jf;
+	protected String rawJavaSource; // raw Java source for AST round-tripping
 	// private final Root root;
 	protected int index = -1;
 
@@ -161,7 +169,9 @@ public abstract class Function extends StatementBaseNoFinal implements Opcodes, 
 		this.name = body.getFactory().createLitString(name);
 		this.access = access;
 		this.modifier = modifier;
-		if (!StringUtil.isEmpty(returnType)) this.returnType = body.getFactory().createLitString(returnType);
+		// LDEV-6041: Track if return type was explicitly specified
+		this.returnTypeExplicit = !StringUtil.isEmpty(returnType);
+		if (this.returnTypeExplicit) this.returnType = body.getFactory().createLitString(returnType);
 		else this.returnType = body.getFactory().createLitString("any");
 		this.body = body;
 		body.setParent(this);
@@ -513,6 +523,13 @@ public abstract class Function extends StatementBaseNoFinal implements Opcodes, 
 	}
 
 	/**
+	 * LDEV-6041: Add an existing Argument directly (preserves typeExplicit flag)
+	 */
+	public final void addArgument(Argument arg) {
+		arguments.add(arg);
+	}
+
+	/**
 	 * @return the arguments
 	 */
 	public final List<Argument> getArguments() {
@@ -531,8 +548,20 @@ public abstract class Function extends StatementBaseNoFinal implements Opcodes, 
 		this.metadata = metadata;
 	}
 
+	public final void setAnnotations(Map<String, Attribute> annotations) {
+		this.annotations = annotations;
+	}
+
 	public final void setHint(Factory factory, String hint) {
 		this.hint = factory.createLitString(hint);
+	}
+
+	public final void setRawDocblock(String rawDocblock) {
+		this.rawDocblock = rawDocblock;
+	}
+
+	public final void setDocblockDescription(String description) {
+		this.docblockDescription = description;
 	}
 
 	public final void addAttribute(BytecodeContext bc, Attribute attr) throws TemplateException {
@@ -557,7 +586,9 @@ public abstract class Function extends StatementBaseNoFinal implements Opcodes, 
 		else if ("output".equals(name)) this.output = toLitBoolean(bc, name, attr.getValue());
 		else if ("bufferoutput".equals(name)) this.bufferOutput = toLitBoolean(bc, name, attr.getValue());
 		else if ("displayname".equals(name)) this.displayName = toLitString(bc, name, attr.getValue());
-		else if ("hint".equals(name)) this.hint = toLitString(bc, name, attr.getValue());
+		else if ("hint".equals(name)) {
+			this.hint = toLitString(bc, name, attr.getValue());
+		}
 		else if ("description".equals(name)) this.description = toLitString(bc, name, attr.getValue());
 		else if ("returnformat".equals(name)) this.returnFormat = toLitString(bc, name, attr.getValue());
 		else if ("securejson".equals(name)) this.secureJson = toLitBoolean(bc, name, attr.getValue());
@@ -575,6 +606,7 @@ public abstract class Function extends StatementBaseNoFinal implements Opcodes, 
 		}
 		else if ("cachedwithin".equals(name)) {
 			try {
+				this.sourceCachedWithin = attr.getValue(); // Preserve original for AST
 				this.cachedWithin = ASMUtil.cachedWithinValue(attr.getValue());// ASMUtil.timeSpanToLong(attr.getValue());
 			}
 			catch (EvaluatorException e) {
@@ -600,18 +632,38 @@ public abstract class Function extends StatementBaseNoFinal implements Opcodes, 
 
 	private final LitString toLitString(BytecodeContext bc, String name, Expression value) throws TransformerException {
 		ExprString es = value.getFactory().toExprString(value);
-		if (!(es instanceof LitString)) throw new TransformerException(bc, "Value of attribute [" + name + "] must have a literal/constant value", getStart());
+		if (!(es instanceof LitString)) {
+			// Handle unquoted identifiers like access=remote - convert Variable to LitString
+			// Preserve position from original expression for AST round-tripping (LDEV-6015)
+			String str = ASMUtil.toString(bc, value, null);
+			if (str != null) {
+				return value.getFactory().createLitString(str, value.getStart(), value.getEnd());
+			}
+			throw new TransformerException(bc, "Value of attribute [" + name + "] must have a literal/constant value", getStart());
+		}
 		return (LitString) es;
 	}
 
 	private final LitBoolean toLitBoolean(BytecodeContext bc, String name, Expression value) throws TransformerException {
 		ExprBoolean eb = value.getFactory().toExprBoolean(value);
-		if (!(eb instanceof LitBoolean)) throw new TransformerException(bc, "Value of attribute [" + name + "] must have a literal/constant value", getStart());
+		if (!(eb instanceof LitBoolean)) {
+			// Handle unquoted identifiers like output=false - convert Variable to LitBoolean
+			String str = ASMUtil.toString(bc, value, null);
+			if (str != null) {
+				if ("true".equalsIgnoreCase(str)) return value.getFactory().TRUE();
+				if ("false".equalsIgnoreCase(str)) return value.getFactory().FALSE();
+			}
+			throw new TransformerException(bc, "Value of attribute [" + name + "] must have a literal/constant value", getStart());
+		}
 		return (LitBoolean) eb;
 	}
 
 	public void setJavaFunction(JavaFunction jf) {
 		this.jf = jf;
+	}
+
+	public void setRawJavaSource(String rawJavaSource) {
+		this.rawJavaSource = rawJavaSource;
 	}
 
 	public void setIndex(int index) {
@@ -620,6 +672,11 @@ public abstract class Function extends StatementBaseNoFinal implements Opcodes, 
 
 	public int getIndex() {
 		return index;
+	}
+
+	// LDEV-6036: setter for tracking if access modifier was explicitly specified
+	public void setAccessExplicit(boolean accessExplicit) {
+		this.accessExplicit = accessExplicit;
 	}
 
 	public ExprString getName() {
@@ -641,6 +698,10 @@ public abstract class Function extends StatementBaseNoFinal implements Opcodes, 
 		if (a != null) {
 			sct.setEL(KeyConstants._access, a);
 		}
+		// LDEV-6036: Add explicit flag to distinguish "function test()" from "public function test()"
+		if (accessExplicit) {
+			sct.setEL(KeyConstants._accessExplicit, Boolean.TRUE);
+		}
 		// modifier
 		String m = toModifier(modifier);
 		if (m != null) {
@@ -650,6 +711,10 @@ public abstract class Function extends StatementBaseNoFinal implements Opcodes, 
 		if (returnType != null) {
 			Struct s = new StructImpl(Struct.TYPE_LINKED);
 			returnType.dump(s);
+			// LDEV-6041: Add explicit flag to distinguish "function test()" from "any function test()"
+			if (returnTypeExplicit) {
+				s.setEL(KeyConstants._explicit, Boolean.TRUE);
+			}
 			sct.setEL(KeyConstants._returnType, s);
 		}
 		// returnFormat
@@ -682,11 +747,64 @@ public abstract class Function extends StatementBaseNoFinal implements Opcodes, 
 			description.dump(s);
 			sct.setEL(KeyConstants._description, s);
 		}
-		// hint
-		if (hint != null) {
-			Struct s = new StructImpl(Struct.TYPE_LINKED);
-			hint.dump(s);
-			sct.setEL(KeyConstants._hint, s);
+		// docblock - raw docblock text for round-tripping
+		if (rawDocblock != null) {
+			sct.setEL("docblock", rawDocblock);
+		}
+		// annotations - docblock description + @tags from docblock (@return, @deprecated, etc.)
+		if (docblockDescription != null || (annotations != null && !annotations.isEmpty())) {
+			Struct annot = new StructImpl(Struct.TYPE_LINKED);
+			// description from docblock first line(s)
+			if (docblockDescription != null && !docblockDescription.isEmpty()) {
+				annot.setEL(KeyConstants._description, docblockDescription);
+			}
+			// @tags from docblock
+			if (annotations != null) {
+				for (Map.Entry<String, Attribute> entry: annotations.entrySet()) {
+					String key = entry.getKey();
+					Attribute attr = entry.getValue();
+					Expression val = attr.getValue();
+					if (val instanceof Literal) {
+						annot.setEL(key, ((Literal) val).getString());
+					}
+					else {
+						Struct s = new StructImpl(Struct.TYPE_LINKED);
+						val.dump(s);
+						annot.setEL(key, s);
+					}
+				}
+			}
+			sct.setEL("annotations", annot);
+		}
+		// metadata - inline custom attributes (not from docblock)
+		// Check if hint is from inline attribute (has quoteChar) vs docblock
+		boolean hintFromInlineAttr = false;
+		if (hint instanceof LitStringImpl) {
+			LitStringImpl ls = (LitStringImpl) hint;
+			hintFromInlineAttr = ls.getQuoteChar() != (char) 0;
+		}
+		if ((metadata != null && !metadata.isEmpty()) || hintFromInlineAttr) {
+			Struct meta = new StructImpl(Struct.TYPE_LINKED);
+			// Add inline hint to metadata if from attribute
+			if (hintFromInlineAttr) {
+				meta.setEL(KeyConstants._hint, ((LitString) hint).getString());
+			}
+			if (metadata != null) {
+				for (Map.Entry<String, Attribute> entry: metadata.entrySet()) {
+					String key = entry.getKey();
+					Attribute attr = entry.getValue();
+					Expression val = attr.getValue();
+					if (val instanceof Literal) {
+						meta.setEL(key, ((Literal) val).getString());
+					}
+					else {
+						Struct s = new StructImpl(Struct.TYPE_LINKED);
+						val.dump(s);
+						meta.setEL(key, s);
+					}
+				}
+			}
+			sct.setEL(KeyConstants._metadata, meta);
 		}
 		// secureJson
 		if (secureJson != null) {
@@ -706,8 +824,13 @@ public abstract class Function extends StatementBaseNoFinal implements Opcodes, 
 			localMode.dump(s);
 			sct.setEL(KeyConstants._localMode, s);
 		}
-		// cachedWithin
-		if (cachedWithin != null) {
+		// cachedWithin - use original expression if available for AST fidelity
+		if (sourceCachedWithin != null) {
+			Struct s = new StructImpl(Struct.TYPE_LINKED);
+			sourceCachedWithin.dump(s);
+			sct.setEL(KeyConstants._cachedWithin, s);
+		}
+		else if (cachedWithin != null) {
 			Struct s = new StructImpl(Struct.TYPE_LINKED);
 			cachedWithin.dump(s);
 			sct.setEL(KeyConstants._cachedWithin, s);
@@ -720,8 +843,16 @@ public abstract class Function extends StatementBaseNoFinal implements Opcodes, 
 			Struct param = new StructImpl(Struct.TYPE_LINKED);
 			params.appendEL(param);
 
-			Expression expr = arg.getType();
-			set(param, arg.getType(), KeyConstants._type);
+			// LDEV-6041: Add explicit flag to type if explicitly specified
+			Expression typeExpr = arg.getType();
+			if (typeExpr != null) {
+				Struct typeStruct = new StructImpl(Struct.TYPE_LINKED);
+				typeExpr.dump(typeStruct);
+				if (arg.isTypeExplicit()) {
+					typeStruct.setEL(KeyConstants._explicit, Boolean.TRUE);
+				}
+				param.setEL(KeyConstants._type, typeStruct);
+			}
 			set(param, arg.getName(), KeyConstants._name);
 			set(param, arg.getRequired(), KeyConstants._required);
 			set(param, arg.getDefaultValue(), KeyConstants._defaultValue);
@@ -733,6 +864,10 @@ public abstract class Function extends StatementBaseNoFinal implements Opcodes, 
 		if (body != null) {
 			Struct s = new StructImpl(Struct.TYPE_LINKED);
 			body.dump(s);
+			// For Java functions, include raw Java source for round-tripping
+			if (rawJavaSource != null) {
+				s.setEL(KeyConstants._raw, rawJavaSource);
+			}
 			sct.setEL(KeyConstants._body, s);
 		}
 	}

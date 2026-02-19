@@ -219,33 +219,56 @@ public abstract class AbsOpUnary extends ExpressionBase {
 		return Types.NUMBER;
 	}
 
-	private static String toString(int operation) {
-		if (operation == Factory.OP_UNARY_PLUS) return "PLUS";
-		else if (operation == Factory.OP_UNARY_MINUS) return "MINUS";
-		else if (operation == Factory.OP_UNARY_DIVIDE) return "DIVIDE";
-		else if (operation == Factory.OP_UNARY_MULTIPLY) return "MULTIPLY";
-		else if (operation == Factory.OP_UNARY_CONCAT) return "CONCAT";
-		else if (operation == Factory.OP_UNARY_CONCAT) return "CONCAT";
-		return "UNKNOWN";
+	private static String toCompoundOperator(int operation) {
+		if (operation == Factory.OP_UNARY_PLUS) return "PLUS_ASSIGN";
+		else if (operation == Factory.OP_UNARY_MINUS) return "MINUS_ASSIGN";
+		else if (operation == Factory.OP_UNARY_DIVIDE) return "DIVIDE_ASSIGN";
+		else if (operation == Factory.OP_UNARY_MULTIPLY) return "MULTIPLY_ASSIGN";
+		else if (operation == Factory.OP_UNARY_CONCAT) return "CONCAT_ASSIGN";
+		return "UNKNOWN_ASSIGN";
+	}
+
+	// Check if this is an increment/decrement (++i, i++, --i, i--)
+	private boolean isUpdateExpression() {
+		// Must be plus or minus operation
+		if (operation != Factory.OP_UNARY_PLUS && operation != Factory.OP_UNARY_MINUS) {
+			return false;
+		}
+		// For ++i and i++, the parser uses factory.NUMBER_ONE() singleton
+		// For x += 1, it parses the value from source creating a different object
+		// Reference equality distinguishes these cases
+		return value == var.getFactory().NUMBER_ONE();
 	}
 
 	@Override
 	public void dump(Struct sct) {
 		super.dump(sct);
-		sct.setEL(KeyConstants._type, "UnaryExpression");
-		sct.setEL(KeyConstants._operator, toString(operation));
-		sct.setEL(KeyConstants._prefix, (type == Factory.OP_UNARY_PRE) ? Boolean.TRUE : Boolean.FALSE);
-		// variable
-		{
-			Struct sctVar = new StructImpl(Struct.TYPE_LINKED);
-			var.dump(sctVar);
-			sct.setEL(KeyConstants._variable, sctVar);
+
+		// Check if this is ++i, i++, --i, i-- (UpdateExpression)
+		if (isUpdateExpression()) {
+			sct.setEL(KeyConstants._type, "UpdateExpression");
+			sct.setEL(KeyConstants._operator, operation == Factory.OP_UNARY_PLUS ? "++" : "--");
+			sct.setEL(KeyConstants._prefix, type == Factory.OP_UNARY_PRE);
+
+			// argument - the variable being updated
+			Struct argument = new StructImpl(Struct.TYPE_LINKED);
+			sct.setEL(KeyConstants._argument, argument);
+			var.dump(argument);
+			return;
 		}
-		// value
-		{
-			Struct sctVal = new StructImpl(Struct.TYPE_LINKED);
-			value.dump(sctVal);
-			sct.setEL(KeyConstants._value, sctVal);
-		}
+
+		// Output as AssignmentExpression with compound operator
+		sct.setEL(KeyConstants._type, "AssignmentExpression");
+		sct.setEL(KeyConstants._operator, toCompoundOperator(operation));
+
+		// left - the variable being assigned to
+		Struct left = new StructImpl(Struct.TYPE_LINKED);
+		sct.setEL(KeyConstants._left, left);
+		var.dump(left);
+
+		// right - the value being added/subtracted/etc
+		Struct right = new StructImpl(Struct.TYPE_LINKED);
+		sct.setEL(KeyConstants._right, right);
+		value.dump(right);
 	}
 }

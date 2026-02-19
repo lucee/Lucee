@@ -1,0 +1,1 @@
+<cfscript>silent bufferOutput=false { }</cfscript>

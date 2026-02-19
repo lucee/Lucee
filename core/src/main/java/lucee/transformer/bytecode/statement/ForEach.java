@@ -26,6 +26,7 @@ import org.objectweb.asm.commons.Method;
 
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
+import lucee.runtime.type.scope.Scope;
 import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.util.ForEachUtil;
 import lucee.transformer.Body;
@@ -172,6 +173,16 @@ public final class ForEach extends StatementBase implements FlowControlBreak, Fl
 	public void dump(Struct sct) {
 		super.dump(sct);
 		sct.setEL(KeyConstants._type, "ForOfStatement");
+
+		// LDEV-6041: Preserve var keyword declaration
+		if (key.getVariable().getScope() == Scope.SCOPE_VAR) {
+			sct.setEL(KeyConstants._declaration, "var");
+		}
+
+		// label
+		if ( label != null ) {
+			sct.setEL(KeyConstants._label, label);
+		}
 
 		// left
 		{

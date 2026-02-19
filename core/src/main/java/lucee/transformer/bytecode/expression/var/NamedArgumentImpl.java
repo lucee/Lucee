@@ -50,11 +50,17 @@ public final class NamedArgumentImpl extends ArgumentImpl implements NamedArgume
 
 	private Expression name;
 	private boolean varKeyUpperCase;
+	private char separator;
 
 	public NamedArgumentImpl(Expression name, Expression value, String type, boolean varKeyUpperCase) {
+		this(name, value, type, varKeyUpperCase, NamedArgument.SEPARATOR_EQUALS);
+	}
+
+	public NamedArgumentImpl(Expression name, Expression value, String type, boolean varKeyUpperCase, char separator) {
 		super(value, type);
 		this.name = name instanceof Null || name instanceof NullConstant ? name.getFactory().createLitString(varKeyUpperCase ? "NULL" : "null") : name;
 		this.varKeyUpperCase = varKeyUpperCase;
+		this.separator = separator;
 	}
 
 	@Override
@@ -109,6 +115,11 @@ public final class NamedArgumentImpl extends ArgumentImpl implements NamedArgume
 	}
 
 	@Override
+	public char getSeparator() {
+		return separator;
+	}
+
+	@Override
 	public void dump(Struct sct) {
 		sct.setEL(KeyConstants._type, "NamedArgument");
 
@@ -121,5 +132,8 @@ public final class NamedArgumentImpl extends ArgumentImpl implements NamedArgume
 		Struct value = new StructImpl(Struct.TYPE_LINKED);
 		sct.setEL(KeyConstants._value, value);
 		super.dump(value);
+
+		// separator (: or =)
+		sct.setEL(KeyConstants._separator, String.valueOf(separator));
 	}
 }

@@ -40,6 +40,9 @@ public class SourceCode {
 	private int hash;
 	private SourceCode parent;
 	private int sourceOffset;
+	// Set to true when the parser wraps script content in <cfscript> tags for parsing.
+	// Used by AST generation to know it should unwrap the cfscript in the output.
+	private boolean wrappedInScript;
 
 	public SourceCode(SourceCode parent, String strText, boolean writeLog) {
 		this(parent, strText, writeLog, 0);
@@ -719,8 +722,10 @@ public class SourceCode {
 	 * @return subset of the SourceCode as new SourcCode
 	 */
 	public SourceCode subCFMLString(int start, int count) {
-		return new SourceCode(this, String.valueOf(text, start, count), writeLog);
-
+		SourceCode sub = new SourceCode(this, String.valueOf(text, start, count), writeLog);
+		// Preserve wrappedInScript flag from parent so AST generation knows the original source type
+		sub.setWrappedInScript(this.wrappedInScript);
+		return sub;
 	}
 
 	/**
@@ -958,5 +963,13 @@ public class SourceCode {
 
 	public int getSourceOffset() {
 		return sourceOffset;
+	}
+
+	public boolean isWrappedInScript() {
+		return wrappedInScript;
+	}
+
+	public void setWrappedInScript(boolean wrappedInScript) {
+		this.wrappedInScript = wrappedInScript;
 	}
 }

@@ -68,8 +68,10 @@ import lucee.transformer.bytecode.statement.For;
 import lucee.transformer.bytecode.statement.ForEach;
 import lucee.transformer.bytecode.statement.Return;
 import lucee.transformer.bytecode.statement.Switch;
+import lucee.transformer.bytecode.statement.TagIsland;
 import lucee.transformer.bytecode.statement.TryCatchFinally;
 import lucee.transformer.bytecode.statement.While;
+import lucee.transformer.bytecode.statement.tag.TagBase;
 import lucee.transformer.bytecode.statement.tag.TagComponent;
 import lucee.transformer.bytecode.statement.tag.TagOther;
 import lucee.transformer.bytecode.statement.tag.TagParam;
@@ -835,7 +837,8 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 
 			}
 		}
-		// no access defined
+		// no access defined - track if it was explicit before applying default (LDEV-6036)
+		boolean accessExplicit = access != -1;
 		if (access == -1) access = Component.ACCESS_PUBLIC;
 
 		// Non access modifier
@@ -907,6 +910,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 			}
 		}
 		Function res = closurePart(data, functionName, access, modifier, returnType, line, false);
+		res.setAccessExplicit(accessExplicit); // LDEV-6036: track if access modifier was explicitly specified
 		if (isStatic) {
 
 			if (data.context == CTX_INTERFACE) throw new TemplateException(data.srcCode, "static functions are not allowed within the interface body");
@@ -978,10 +982,12 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 			}
 
 			String typeName = "any";
+			boolean typeExplicit = false; // LDEV-6041: track if type was explicitly specified
 			if (idName == null) return defaultValue;
 			comments(data);
 			if (!data.srcCode.isCurrent(')') && !data.srcCode.isCurrent('=') && !data.srcCode.isCurrent(':') && !data.srcCode.isCurrent(',')) {
 				typeName = idName;
+				typeExplicit = true; // LDEV-6041: type was explicitly specified
 				idName = identifier(data, false); // MUST was upper case before, is this a problem?
 			}
 			else if (idName.indexOf('.') != -1 || idName.indexOf('[') != -1) {
@@ -1038,12 +1044,31 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 				if (meta == null) meta = new HashMap<String, Attribute>();
 				for (int i = 0; i < _attrs.length; i++) {
 					_attr = _attrs[i];
-					meta.put(_attr.getName(), _attr);
+					String attrName = _attr.getName();
+					// Extract known argument attributes
+					if ("hint".equalsIgnoreCase(attrName)) {
+						hint = data.factory.toExprString(_attr.getValue());
+					}
+					else if ("displayname".equalsIgnoreCase(attrName)) {
+						displayName = data.factory.toExprString(_attr.getValue());
+					}
+					else if ("default".equalsIgnoreCase(attrName) && defVal == null) {
+						defVal = _attr.getValue();
+					}
+					else if ("passbyreference".equalsIgnoreCase(attrName) || "passby".equalsIgnoreCase(attrName)) {
+						ExprBoolean eb = data.factory.toExprBoolean(_attr.getValue());
+						if (eb instanceof LitBoolean) passByRef = (LitBoolean) eb;
+					}
+					else {
+						meta.put(attrName, _attr);
+					}
 				}
 			}
 
-			result.add(new Argument(data.factory.createLitString(idName), data.factory.createLitString(typeName), data.factory.createLitBoolean(required), defVal, passByRef,
-					displayName, hint, meta));
+			Argument arg = new Argument(data.factory.createLitString(idName), data.factory.createLitString(typeName), data.factory.createLitBoolean(required), defVal, passByRef,
+					displayName, hint, meta);
+			arg.setTypeExplicit(typeExplicit); // LDEV-6041
+			result.add(arg);
 
 			comments(data);
 		}
@@ -1063,8 +1088,8 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 		ArrayList<Argument> args = getScriptFunctionArguments(data);
 
 		for (Argument arg: args) {
-			func.addArgument(arg.getName(), arg.getType(), arg.getRequired(), arg.getDefaultValue(), arg.isPassByReference(), arg.getDisplayName(), arg.getHint(),
-					arg.getMetaData());
+			// LDEV-6041: Use addArgument(Argument) to preserve typeExplicit flag
+			func.addArgument(arg);
 		}
 		// end )
 		comments(data);
@@ -1072,12 +1097,18 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 
 		// TagLibTag tlt = CFMLTransformer.getTLT(data.srcCode,"function");
 
-		// doc comment
+		// doc comment - only attach to named functions, not inline closures
 		String hint = null;
-		if (data.docComment != null) {
-			func.setHint(data.factory, hint = data.docComment.getHint());
-			func.setMetaData(data.docComment.getParams());
-			data.docComment = null;
+		if (!closure) {
+			DocComment docComment = data.docComment; // save reference before clearing
+			if (docComment != null) {
+				hint = docComment.getHint();
+				func.setHint(data.factory, hint);
+				func.setDocblockDescription(hint); // store for annotations.description
+				func.setAnnotations(docComment.getParams());
+				func.setRawDocblock(docComment.getRawText());
+				data.docComment = null;
+			}
 		}
 
 		comments(data);
@@ -1199,8 +1230,8 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 
 				// TODO cachedwithin
 
-				func.setJavaFunction(java(data, body, id, access, modifier, hint, args, attrs, rtnType, output, bufferOutput, displayName, description, returnFormat, secureJson,
-						verifyClient, localMode));
+				java(data, func, body, id, access, modifier, hint, args, attrs, rtnType, output, bufferOutput, displayName, description, returnFormat, secureJson,
+						verifyClient, localMode);
 			}
 			else {
 				func.register(data.page);
@@ -1243,7 +1274,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 		return list.toArray(new Attribute[list.size()]);
 	}
 
-	private JavaFunction java(Data data, Body body, String functionName, int access, int modifier, String hint, ArrayList<Argument> args, Attribute[] attrs, String rtnType,
+	private void java(Data data, Function func, Body body, String functionName, int access, int modifier, String hint, ArrayList<Argument> args, Attribute[] attrs, String rtnType,
 			Boolean output, Boolean bufferOutput, String displayName, String description, int returnFormat, Boolean secureJson, Boolean verifyClient, int localMode)
 			throws TemplateException {
 
@@ -1258,21 +1289,35 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 			throw new TemplateException(data.srcCode, e.getMessage());
 		}
 
-		PageSourceCode psc = (PageSourceCode) data.srcCode;// TODO get PS in an other way
-		PageSource ps = psc.getPageSource();
+		// In AST mode (no PageSourceCode), we can't compile Java functions
+		// but we still need to parse past the function body
+		PageSource ps = null;
+		if (data.srcCode instanceof PageSourceCode) {
+			ps = ((PageSourceCode) data.srcCode).getPageSource();
+		}
 
 		SourceCode sc = data.srcCode;
 		Position start = sc.getPosition();
 		findTheEnd(data, start.line);
 		Position end = sc.getPosition();
 		String javaCode = sc.substring(start.pos, end.pos - start.pos);
+
+		// Always store raw Java source for AST round-tripping
+		func.setRawJavaSource(javaCode);
+
+		// In AST mode without PageSource, we can't compile - just store raw source
+		// The function body has already been parsed past by findTheEnd
+		if (ps == null) {
+			return;
+		}
 		try {
 			String id = data.page.registerJavaFunctionName(functionName);
 			lucee.commons.lang.compiler.SourceCode _sc = fd.createSourceCode(ps, javaCode, id, functionName, access, modifier, hint, args, output, bufferOutput, displayName,
 					description, returnFormat, secureJson, verifyClient, localMode);
 			JavaFunction jf = new JavaFunction(ps, _sc, CompilerFactory.getInstance().compile((ConfigPro) data.config, _sc));
 
-			return jf;
+			func.setJavaFunction(jf);
+			return;
 		}
 		catch (JavaCompilerException e) {
 			Throwable cause = e.getCause();
@@ -1349,8 +1394,8 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 
 		// add arguments
 		for (Argument arg: args) {
-			func.addArgument(arg.getName(), arg.getType(), arg.getRequired(), arg.getDefaultValue(), arg.isPassByReference(), arg.getDisplayName(), arg.getHint(),
-					arg.getMetaData());
+			// LDEV-6041: Use addArgument(Argument) to preserve typeExplicit flag
+			func.addArgument(arg);
 		}
 
 		comments(data);
@@ -1361,10 +1406,14 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 
 		try {
 			if (data.srcCode.isCurrent('{')) {
+				// Save docComment - block-style arrow functions shouldn't consume outer docblock (LDEV-5990)
+				DocComment savedDocComment = data.docComment;
 				Body prior = data.setParent(body);
 				statement(data, body, CTX_FUNCTION);
 
 				data.setParent(prior);
+				// Restore docComment - let the outer caller handle it
+				data.docComment = savedDocComment;
 			}
 			else {
 				if (data.srcCode.forwardIfCurrent("return ")) {
@@ -1378,7 +1427,8 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 				Expression expr = expression(data);
 				Return rtn = new Return(expr, line, data.srcCode.getPosition());
 				body.addStatement(rtn);
-				data.docComment = null;
+				// Don't clear docComment here - arrow functions shouldn't consume outer docblock (LDEV-5990)
+				// The outer caller (closurePart for named functions) handles docComment appropriately
 				data.context = prior;
 
 			}
@@ -1467,7 +1517,13 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 		Tag tag = getTag(data, parent, tlt, line, null);
 		tag.setTagLibTag(tlt);
 		tag.setScriptBase(true);
-		if (!StringUtil.isEmpty(appendix)) tag.setAppendix(appendix);
+		if (!StringUtil.isEmpty(appendix)) {
+			tag.setAppendix(appendix);
+			tag.setFullname(type.concat(appendix));
+		}
+		else {
+			tag.setFullname(type);
+		}
 
 		// add component meta data
 		if (data.isCFC) {
@@ -1634,18 +1690,34 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 
 		tag.addMetaData(data.docComment.getHintAsAttribute(data.factory));
 
-		Map<String, Attribute> params = data.docComment.getParams();
-		Iterator<Attribute> it = params.values().iterator();
-		Attribute attr;
-		outer: while (it.hasNext()) {
-			attr = it.next();
-			// ignore list
-			if (!ArrayUtil.isEmpty(ignoreList)) {
-				for (int i = 0; i < ignoreList.length; i++) {
-					if (ignoreList[i].equalsIgnoreCase(attr.getName())) continue outer;
+		// Store raw docblock and annotations for AST round-tripping
+		if (tag instanceof TagBase) {
+			TagBase tb = (TagBase) tag;
+			tb.setRawDocblock(data.docComment.getRawText());
+			tb.setDocblockDescription(data.docComment.getHint()); // for annotations.description
+			// Store docblock @tags as annotations (separate from inline metadata)
+			Map<String, Attribute> params = data.docComment.getParams();
+			if (params != null && !params.isEmpty()) {
+				Map<String, Attribute> filteredParams = new HashMap<String, Attribute>();
+				for (Attribute attr: params.values()) {
+					// Apply ignore list
+					boolean ignored = false;
+					if (!ArrayUtil.isEmpty(ignoreList)) {
+						for (int i = 0; i < ignoreList.length; i++) {
+							if (ignoreList[i].equalsIgnoreCase(attr.getName())) {
+								ignored = true;
+								break;
+							}
+						}
+					}
+					if (!ignored) {
+						filteredParams.put(attr.getName(), attr);
+					}
+				}
+				if (!filteredParams.isEmpty()) {
+					tb.setAnnotations(filteredParams);
 				}
 			}
-			tag.addMetaData(attr);
 		}
 		data.docComment = null;
 	}
@@ -1708,7 +1780,8 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 		Attribute attr;
 
 		// first fill all regular attribute -> name="value"
-		for (int i = attrs.length - 1; i >= 0; i--) {
+		// LDEV-6027: iterate forward to preserve declaration order in AST
+		for (int i = 0; i < attrs.length; i++) {
 			attr = attrs[i];
 			if (!isNull(attr.getValue())) {
 				if (attr.getName().equalsIgnoreCase("name")) {
@@ -1755,7 +1828,9 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 		}
 
 		if (!hasType) {
-			property.addAttribute(new Attribute(false, "type", data.factory.createLitString("any"), "string"));
+			Attribute typeAttr = new Attribute(false, "type", data.factory.createLitString("any"), "string");
+			typeAttr.setDefaultAttribute(true);
+			property.addAttribute(typeAttr);
 		}
 		if (!hasName) throw new TemplateException(data.srcCode, "missing name declaration for property");
 
@@ -2019,11 +2094,21 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 	private final boolean islandStatement(Data data, Body parent) throws TemplateException {
 
 		if (!data.srcCode.forwardIfCurrent(TAG_ISLAND_INDICATOR)) return false;
-		// now we have to jump into the tag parser
+
+		Position start = data.srcCode.getPosition();
+
+		// Create a TagIsland wrapper to hold the tag content
+		TagIsland island = new TagIsland(data.factory, start, null);
+
+		// now we have to jump into the tag parser, parsing into the TagIsland body
 		CFMLTransformer tag = new CFMLTransformer(true);
-		tag.transform(data, parent);
+		tag.transform(data, island);
 
 		if (!data.srcCode.forwardIfCurrent(TAG_ISLAND_INDICATOR)) throw new TemplateException(data.srcCode, "missing closing tag indicator [" + TAG_ISLAND_INDICATOR + "]");
+
+		island.setEnd(data.srcCode.getPosition());
+		parent.addStatement(island);
+
 		comments(data);
 
 		return true;
@@ -2066,6 +2151,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 		Tag tag = getTag(data, parent, tlt, line, null);
 		tag.setScriptBase(true);
 		tag.setTagLibTag(tlt);
+		tag.setFullname(tagName);
 
 		comments(data);
 
@@ -2074,6 +2160,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 		String attrName = null;
 		Expression attrValue = null;
 		short attrType = ATTR_TYPE_NONE;
+		boolean handledAsNamedAttrs = false;
 		if (attr != null) {
 			attrType = attr.getScriptSupport();
 			char c = data.srcCode.getCurrent();
@@ -2087,6 +2174,24 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 						ExceptionUtil.rethrowIfNecessary(t);
 						data.srcCode.setPos(p);
 					}
+				}
+				// Check if this looks like a named attribute (identifier="literal") rather than positional
+				else if (looksLikeNamedAttribute(data, tlt)) {
+					// Parse as named attributes instead
+					// Handle optional parentheses around attributes: throw (message="test")
+					boolean hasParen = data.srcCode.forwardIfCurrent('(');
+					if (hasParen) data.srcCode.removeSpace();
+					Attribute[] attrs = attributes(tag, tlt, data, hasParen ? BRACKED : SEMI_BLOCK, data.factory.EMPTY(), tlt.getScript().getRtexpr() ? Boolean.TRUE : Boolean.FALSE, null, false, ',', false);
+					for (Attribute a : attrs) {
+						tag.addAttribute(a);
+					}
+					if (hasParen) {
+						data.srcCode.removeSpace();
+						if (!data.srcCode.forwardIfCurrent(')')) {
+							throw new TemplateException(data.srcCode, "missing closing parenthesis for tag attributes");
+						}
+					}
+					handledAsNamedAttrs = true;
 				}
 				else attrValue = attributeValue(data, tlt.getScript().getRtexpr());
 
@@ -2102,7 +2207,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 			TagLibTagAttr tlta = tlt.getAttribute(attr.getName(), true);
 			tag.addAttribute(new Attribute(false, attrName, data.factory.toExpression(attrValue, tlta.getType()), tlta.getType()));
 		}
-		else if (ATTR_TYPE_REQUIRED == attrType) {
+		else if (ATTR_TYPE_REQUIRED == attrType && !handledAsNamedAttrs) {
 			data.srcCode.setPos(pos);
 			return null;
 		}
@@ -2131,6 +2236,54 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 
 	private boolean isOperator(char c) {
 		return c == '=' || c == '+' || c == '-';
+	}
+
+	/**
+	 * Check if current position looks like a named attribute (identifier="literal") for a single-attr tag.
+	 * This prevents "exit method="exitTag"" from being parsed as an assignment expression.
+	 * Only triggers for literal values (quoted strings), NOT for expressions like "include template=var".
+	 * Also handles parenthesized attributes like "throw (message="test")".
+	 */
+	private boolean looksLikeNamedAttribute(Data data, TagLibTag tlt) {
+		int pos = data.srcCode.getPos();
+		try {
+			// Skip opening paren if present (for syntax like "throw (message="test")")
+			boolean hasParen = data.srcCode.isCurrent('(');
+			if (hasParen) {
+				data.srcCode.next();
+				data.srcCode.removeSpace();
+			}
+
+			// Try to read an identifier
+			String id = CFMLTransformer.identifier(data.srcCode, false, true);
+			if (StringUtil.isEmpty(id)) return false;
+
+			// Skip whitespace
+			data.srcCode.removeSpace();
+
+			// Check if followed by =
+			if (!data.srcCode.isCurrent('=')) return false;
+
+			// Check if this identifier is a known attribute for this tag
+			if (tlt == null || tlt.getAttribute(id.toLowerCase(), true) == null) {
+				return false;
+			}
+
+			// Move past the =
+			data.srcCode.next();
+			data.srcCode.removeSpace();
+
+			// Only treat as named attribute if the value is a quoted string literal
+			// This distinguishes "exit method="exitTag"" from "include template=var"
+			char c = data.srcCode.getCurrent();
+			return c == '"' || c == '\'';
+		}
+		catch (TemplateException e) {
+			return false;
+		}
+		finally {
+			data.srcCode.setPos(pos);
+		}
 	}
 
 	/*
@@ -2170,6 +2323,10 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 
 	private final void eval(TagLibTag tlt, Data data, Tag tag) throws TemplateException {
 		if (tlt.hasTTE()) {
+			// Snapshot attributes for AST before evaluators modify them
+			if (data.ast && tag instanceof TagBase) {
+				((TagBase) tag).snapshotSourceAttributes();
+			}
 			try {
 				tlt.getEvaluator().execute(data.config, tag, tlt, data.flibs, data);
 			}
@@ -2537,15 +2694,32 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 
 		comments(data);
 
-		// value
-		boolean hasValue = data.srcCode.forwardIfCurrent('=') || (allowColonSeparator && data.srcCode.forwardIfCurrent(':'));
+		// value - track which separator was used
+		char separator = Attribute.SEPARATOR_EQUALS;
+		boolean hasValue = false;
+		if (data.srcCode.forwardIfCurrent('=')) {
+			hasValue = true;
+			separator = Attribute.SEPARATOR_EQUALS;
+		}
+		else if (allowColonSeparator && data.srcCode.forwardIfCurrent(':')) {
+			hasValue = true;
+			separator = Attribute.SEPARATOR_COLON;
+		}
+
 		if (hasValue) {
 			comments(data);
 			value = attributeValue(data, allowExpression);
 
 		}
 		else {
-			value = defaultValue;
+			// Naked attribute (no value) - use TRUE for boolean-like contexts, or defaultValue for positional contexts
+			// When defaultValue is NULL, it indicates positional arguments (like property type/name) that shouldn't be boolean
+			if (defaultValue instanceof Null) {
+				value = defaultValue;
+			}
+			else {
+				value = data.factory.TRUE();
+			}
 		}
 		comments(data);
 
@@ -2555,7 +2729,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 			tlta = tlt.getAttribute(nameLC, true);
 			if (tlta != null && tlta.getName() != null) nameLC = tlta.getName();
 		}
-		return new Attribute(dynamic.toBooleanValue(), name, tlta != null ? data.factory.toExpression(value, tlta.getType()) : value, sbType.toString(), !hasValue);
+		return new Attribute(dynamic.toBooleanValue(), name, tlta != null ? data.factory.toExpression(value, tlta.getType()) : value, sbType.toString(), !hasValue, separator);
 	}
 
 	private final String attributeName(SourceCode cfml, ArrayList<String> args, TagLibTag tag, RefBoolean dynamic, StringBuilder sbType, boolean allowTwiceAttr, boolean allowColon)

@@ -37,9 +37,11 @@ import lucee.transformer.expression.Expression;
 import lucee.transformer.expression.literal.Literal;
 import lucee.transformer.expression.var.Member;
 import lucee.transformer.expression.var.Variable;
+import lucee.transformer.Page;
 import lucee.transformer.statement.Statement;
 import lucee.transformer.statement.tag.Attribute;
 import lucee.transformer.statement.tag.Tag;
+import lucee.transformer.bytecode.util.ASMUtil;
 
 /**
  * sign print outs for preserver
@@ -56,6 +58,10 @@ public final class Query extends EvaluatorSupport {
 		// string
 
 		if (body != null) {
+			// In AST mode, don't transform the body - preserve original structure
+			Page page = ASMUtil.getAncestorPage(tag, null);
+			if (page != null && page.isAST()) return;
+
 			List<Statement> stats = body.getStatements();
 			if (stats != null) translateChildren(body.getStatements().iterator());
 		}

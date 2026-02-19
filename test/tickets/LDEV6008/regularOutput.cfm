@@ -1,0 +1,1 @@
+<cfoutput>#PreserveSingleQuotes( "test" )#</cfoutput>

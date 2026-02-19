@@ -182,9 +182,29 @@ public final class Loop extends EvaluatorSupport {
 				throw new EvaluatorException("Wrong Context, Invalid combination of Attributes");
 			}
 
+			// Get the condition attribute value
+			Attribute condAttr = tag.getAttribute("condition");
+			Expression condValue = condAttr.getValue();
+
+			// If the condition is already a non-literal expression (e.g., parsed in AST mode),
+			// use it directly instead of trying to re-parse from a string literal
+			if (!(condValue instanceof LitString)) {
+				// Already an expression - just ensure it's cast to boolean
+				try {
+					PageImpl page = (PageImpl) ASMUtil.getAncestorPage(null, tag);
+					tag.addAttribute(new Attribute(false, "condition", page.getFactory().toExprBoolean(condValue), "boolean"));
+				}
+				catch (Exception e) {
+					throw new EvaluatorException(e.getMessage());
+				}
+				loop.setType(TagLoop.TYPE_CONDITION);
+				return;
+			}
+
+			// Original behavior: parse the string literal as an expression
 			TagLib tagLib = tagLibTag.getTagLib();
 			ExprTransformer transformer;
-			String text = ASMUtil.getAttributeString(tag, "condition");
+			String text = ((LitString) condValue).getString();
 
 			try {
 				transformer = tagLib.getExprTransfomer();

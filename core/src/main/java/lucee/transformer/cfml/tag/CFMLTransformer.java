@@ -46,7 +46,10 @@ import lucee.transformer.Body;
 import lucee.transformer.Factory;
 import lucee.transformer.Page;
 import lucee.transformer.Position;
+import lucee.transformer.bytecode.PageImpl;
 import lucee.transformer.bytecode.statement.StatementBase;
+import lucee.transformer.bytecode.statement.tag.TagBase;
+import lucee.transformer.bytecode.statement.tag.TagComponent;
 import lucee.transformer.bytecode.statement.tag.TagFunction;
 import lucee.transformer.cfml.Data;
 import lucee.transformer.cfml.ExprTransformer;
@@ -60,6 +63,7 @@ import lucee.transformer.cfml.script.AbstrCFMLScriptTransformer;
 import lucee.transformer.cfml.script.AbstrCFMLScriptTransformer.ComponentTemplateException;
 import lucee.transformer.cfml.script.CFMLScriptTransformer;
 import lucee.transformer.expression.Expression;
+import lucee.transformer.expression.literal.LitString;
 import lucee.transformer.library.function.FunctionLib;
 import lucee.transformer.library.tag.CustomTagLib;
 import lucee.transformer.library.tag.TagLib;
@@ -141,6 +145,11 @@ public final class CFMLTransformer {
 	 */
 	public Page transform(Factory factory, ConfigPro config, PageSource ps, TagLib[] tlibs, FunctionLib flibs, boolean returnValue, boolean ignoreScopes)
 			throws TemplateException, IOException {
+		return transform(factory, config, ps, tlibs, flibs, returnValue, ignoreScopes, false);
+	}
+
+	public Page transform(Factory factory, ConfigPro config, PageSource ps, TagLib[] tlibs, FunctionLib flibs, boolean returnValue, boolean ignoreScopes, boolean ast)
+			throws TemplateException, IOException {
 		Page p;
 		SourceCode sc;
 
@@ -155,7 +164,7 @@ public final class CFMLTransformer {
 		boolean hasWriteLog = false;
 		boolean hasCharset = false;
 		boolean hasUpper = false;
-		boolean allowUnknownTags = false;
+		boolean allowUnknownTags = ast;
 		while (true) {
 			PageSourceCode psc = null;
 			try {
@@ -185,6 +194,7 @@ public final class CFMLTransformer {
 						text = "<" + scriptTag.getFullName() + ">" + text + "\n</" + scriptTag.getFullName() + ">";
 						int sourceOffset = ("<" + scriptTag.getFullName() + ">").length();
 						sc = new PageSourceCode(ps, text, charset, writeLog, sourceOffset);
+						sc.setWrappedInScript(true);
 						wrapped = true;
 
 					}
@@ -215,7 +225,8 @@ public final class CFMLTransformer {
 		boolean possibleUndetectedComponent = false;
 
 		// we don't have a component or interface
-		if (!wrapped && p.isPage()) {
+		// Also check if component exists inside cfscript body (handles <cfscript>component { }</cfscript>)
+		if (!wrapped && p.isPage() && !containsComponentRecursive(p)) {
 			possibleUndetectedComponent = isCFMLCompExt;
 		}
 
@@ -231,6 +242,7 @@ public final class CFMLTransformer {
 			String text = "<" + scriptTag.getFullName() + ">" + original.getText() + "\n</" + scriptTag.getFullName() + ">";
 			int sourceOffset = ("<" + scriptTag.getFullName() + ">").length();
 			sc = new PageSourceCode(ps, text, charset, writeLog, sourceOffset);
+			sc.setWrappedInScript(true);
 
 			try {
 				while (true) {
@@ -238,6 +250,7 @@ public final class CFMLTransformer {
 						sc = new PageSourceCode(ps, charset, writeLog);
 						text = "<" + scriptTag.getFullName() + ">" + sc.getText() + "\n</" + scriptTag.getFullName() + ">";
 						sc = new PageSourceCode(ps, text, charset, writeLog, sourceOffset);
+						sc.setWrappedInScript(true);
 					}
 					try {
 						_p = transform(factory, config, sc, tlibs, flibs, ps.getResource().lastModified(), dotUpper, returnValue, ignoreScopes, hasWriteLog, hasUpper, hasCharset,
@@ -265,16 +278,36 @@ public final class CFMLTransformer {
 				throw e.getTemplateException();
 			}
 			// we only use that result if it is a component now
-			if (_p != null && !_p.isPage()) return _p;
+			// In AST mode, isPage() returns true even when component exists inside cfscript
+			// because the component isn't moved to root. Use recursive check instead.
+			if (_p != null && (!_p.isPage() || containsComponentRecursive(_p))) return _p;
 		}
 
-		if (isCFMLCompExt && !p.isComponent() && !p.isInterface()) {
+		// In AST mode, component stays inside cfscript so skip this validation
+		if (!ast && isCFMLCompExt && !p.isComponent() && !p.isInterface()) {
 			String msg = "template [" + ps.getDisplayPath() + "] must contain a component or an interface.";
 			if (sc != null) throw new TemplateException(sc, msg);
 			throw new TemplateException(msg);
 		}
 
 		return p;
+	}
+
+	/**
+	 * Check if a body contains a component, recursively searching through tag bodies (e.g., cfscript)
+	 */
+	private static boolean containsComponentRecursive(Body body) {
+		if (body == null) return false;
+		for (Statement s : body.getStatements()) {
+			if (s instanceof TagComponent) return true;
+			if (s instanceof Tag) {
+				Tag tag = (Tag) s;
+				if (tag.getBody() != null && containsComponentRecursive(tag.getBody())) {
+					return true;
+				}
+			}
+		}
+		return false;
 	}
 
 	public static TagLibTag getTLT(SourceCode cfml, String name, Identification id) throws TemplateException {
@@ -337,6 +370,11 @@ public final class CFMLTransformer {
 		// ConfigUtil.getEngine(config).getInfo().getFullVersionInfo(), sourceLastModified,
 		// sc.getWriteLog(),config.getSuppressWSBeforeArg(), config.getDefaultFunctionOutput(), returnValue,
 		// ignoreScope);
+
+		// allowUnknownTags is used as ast flag - mark the page for AST mode
+		if (allowUnknownTags && page instanceof PageImpl) {
+			((PageImpl) page).setAST(true);
+		}
 
 		TransfomerSettings settings = new TransfomerSettings(dnuc, config.getHandleUnQuotedAttrValueAsString(), ignoreScope);
 		Data data = new Data(factory, config, page, sc, new EvaluatorPool(), settings, _tlibs, flibs, config.getCoreTagLib().getScriptTags(), false, hasWriteLog, hasUpper,
@@ -402,6 +440,8 @@ public final class CFMLTransformer {
 
 			// Comment
 			comment(data.srcCode, false);
+			// Check if we've reached the end after stripping comments (LDEV-6038)
+			if (!data.srcCode.isValidIndex()) break;
 			// Tag
 			// is Tag Beginning
 			if (data.srcCode.isCurrent('<')) {
@@ -705,6 +745,11 @@ public final class CFMLTransformer {
 
 			// get Attributes
 			attributes(data, tagLibTag, tag);
+
+			// Snapshot attributes for AST before evaluators modify them
+			if (data.ast && tag instanceof TagBase) {
+				((TagBase) tag).snapshotSourceAttributes();
+			}
 
 			if (tagLibTag.hasAttributeEvaluator()) {
 				try {
@@ -1087,7 +1132,19 @@ public final class CFMLTransformer {
 			pe = attr.getRtexpr();
 		}
 		// LitString.toExprString("",-1);
-		Attribute att = new Attribute(false, strName, attributeValue(data, tag, strType, pe, true, data.factory.createNull()), strType);
+		Expression value = attributeValue(data, tag, strType, pe, true, data.factory.createNull());
+
+		// For string-typed attributes, if the value is the default null (nothing was parsed),
+		// don't add the attribute. This prevents cfbreak/cfcontinue from having a meaningless
+		// label attribute with null value. For "any" type (like cfreturn), null is meaningful.
+		if ("string".equalsIgnoreCase(strType) && value instanceof LitString) {
+			LitString litStr = (LitString) value;
+			if (litStr.getString() == null) {
+				return; // Skip adding attribute with null string value
+			}
+		}
+
+		Attribute att = new Attribute(false, strName, value, strType);
 		parent.addAttribute(att);
 	}
 
@@ -1233,7 +1290,10 @@ public final class CFMLTransformer {
 		Expression expr;
 		try {
 			ExprTransformer transfomer = null;
-			if (parseExpression) {
+			// In AST mode, always use full expression parsing so interpolated expressions like
+			// cfloop condition="#expr#" show the parsed expression structure, not a StringLiteral.
+			// The rtexprvalue=false flag is only relevant for bytecode generation, not AST output.
+			if (parseExpression || data.ast) {
 				transfomer = tag.getTagLib().getExprTransfomer();
 			}
 			else {

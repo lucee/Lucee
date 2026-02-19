@@ -111,6 +111,11 @@ public final class While extends StatementBaseNoFinal implements FlowControlBrea
 		super.dump(sct);
 		sct.setEL(KeyConstants._type, "WhileStatement");
 
+		// label
+		if ( label != null ) {
+			sct.setEL(KeyConstants._label, label);
+		}
+
 		// test
 		{
 			Struct test = new StructImpl(Struct.TYPE_LINKED);

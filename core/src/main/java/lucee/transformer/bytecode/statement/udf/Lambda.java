@@ -18,6 +18,7 @@
 package lucee.transformer.bytecode.statement.udf;
 
 import lucee.runtime.type.Struct;
+import lucee.runtime.type.util.KeyConstants;
 import lucee.transformer.Body;
 import lucee.transformer.Position;
 import lucee.transformer.Root;
@@ -53,5 +54,7 @@ public final class Lambda extends Function {
 	@Override
 	public void dump(Struct sct) {
 		dump(sct, "LambdaDeclaration");
+		// Remove auto-generated name - lambdas shouldn't expose internal names
+		sct.removeEL(KeyConstants._name);
 	}
 }

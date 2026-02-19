@@ -80,4 +80,11 @@ public final class VariableRef extends ExpressionBase {
 	public void dump(Struct sct) {
 		variable.dump(sct);
 	}
+
+	/**
+	 * Get the underlying Variable for scope inspection
+	 */
+	public Variable getVariable() {
+		return variable;
+	}
 }

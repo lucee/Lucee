@@ -393,6 +393,7 @@ public final class KeyConstants {
 	public static final Key _dc_subject = init("dc_subject");
 	public static final Key _debug = init("debug");
 	public static final Key _debugging = init("debugging");
+	public static final Key _declaration = init("declaration");
 	public static final Key _decorator = init("decorator");
 	public static final Key _default = init("default");
 	public static final Key _delete = init("delete");
@@ -758,6 +759,8 @@ public final class KeyConstants {
 	public static final Key _statuscode = init("statuscode");
 	public static final Key _statustext = init("statustext");
 	public static final Key _extends = init("extends");
+	public static final Key _explicit = init("explicit");
+	public static final Key _accessExplicit = init("accessExplicit");
 	public static final Key _implements = init("implements");
 	public static final Key __toDateTime = init("_toDateTime");
 	public static final Key __toNumeric = init("_toNumeric");
