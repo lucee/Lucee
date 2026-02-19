@@ -344,6 +344,15 @@
 		"default": false
 	},
 	{
+		"sysprop": "lucee.formUrlAsStruct.bracket.notation",
+		"envvar": "LUCEE_FORMURLASSTRUCT_BRACKET_NOTATION",
+		"desc": "Controls whether form and URL parameters with bracket notation (e.g., user[name]=foo) are parsed into nested structs when formUrlAsStruct is enabled. When true (default), bracket notation like user[name] is parsed as user.name. When false, bracket notation is treated as literal keys for backwards compatibility",
+		"category": "application",
+		"type": "boolean",
+		"introduced": "7.1",
+		"default": true
+	},
+	{
 		"sysprop": "lucee.full.null.support",
 		"envvar": "LUCEE_FULL_NULL_SUPPORT",
 		"desc": "A boolean value to enable/disable full null support",
