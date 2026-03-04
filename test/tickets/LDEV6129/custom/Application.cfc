@@ -9,7 +9,7 @@ component {
 	this.ormSettings = {
 		dbcreate: "dropcreate",
 		dialect: "h2",
-		flushAtRequestEnd: true,
+		flushAtRequestEnd: url.flushAtRequestEnd,
 		autoManageSession: true,
 		hibernateConfig: {
 			"connection.release_mode": "after_transaction",

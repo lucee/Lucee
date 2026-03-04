@@ -1,13 +1,9 @@
 component extends="org.lucee.cfml.test.LuceeTestCase" labels="orm" {
 
-	function beforeAll() {
-		_InternalRequest( template: "#basicConfig().uri#/setup.cfm" );
-		_InternalRequest( template: "#customConfig().uri#/setup.cfm" );
-	}
-
 	function run( testResults, testBox ) {
 		runSuite( testResults, testBox, basicConfig() );
 		runSuite( testResults, testBox, customConfig() );
+		runCustomSuite( testResults, testBox, customConfig() );
 	}
 
 	private void function runSuite( testResults, testBox, required struct cfg ) {
@@ -30,9 +26,11 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="orm" {
 			 */
 			it( title="connection returned to pool even when auto-flush throws a constraint violation", body=function( currentSpec ) {
 
+				_InternalRequest( template: "#cfg.uri#/setup.cfm", url: cfg.params );
+
 				// Trigger the potential leak: unique constraint violation at request end
 				try {
-					_InternalRequest( template: "#cfg.uri#/flush_leak.cfm" );
+					_InternalRequest( template: "#cfg.uri#/flush_leak.cfm", url: cfg.params );
 				} catch ( any e ) {
 					// _InternalRequest may propagate template exceptions — that's fine,
 					// the important thing is what happens to the connection afterwards
@@ -52,7 +50,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="orm" {
 				// If the connection was leaked (active but not in pool), these will fail.
 				var N = 5;
 				for ( var i = 1; i <= N; i++ ) {
-					var result = _InternalRequest( template: "#cfg.uri#/simple.cfm" );
+					var result = _InternalRequest( template: "#cfg.uri#/simple.cfm", url: cfg.params );
 					systemOutput( "[#cfg.label#] simple request #i#: status=#result.status#, content=#trim( result.filecontent )#", true );
 					expect( result.status ).toBe( 200,
 						"simple request #i# failed — connection not available (pool exhausted?)"
@@ -83,7 +81,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="orm" {
 			 */
 			it( title="entityLoad succeeds when session isConnected() is forced false via reflection", body=function( currentSpec ) {
 
-				var result = _InternalRequest( template: "#cfg.uri#/reconnect_leak.cfm" );
+				_InternalRequest( template: "#cfg.uri#/setup.cfm", url: cfg.params );
+
+				var result = _InternalRequest( template: "#cfg.uri#/reconnect_leak.cfm", url: cfg.params );
 				systemOutput( "[#cfg.label#] reconnect_leak result: status=#result.status#, content=#trim( result.filecontent )#", true );
 
 				expect( result.status ).toBe( 200 );
@@ -97,12 +97,40 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="orm" {
 
 	}
 
+	private void function runCustomSuite( testResults, testBox, required struct cfg ) {
+
+		describe( "LDEV-6129 [#cfg.label#] - dead reconnect code triggered naturally by after_transaction release mode", function() {
+
+			/*
+			 * With connection.release_mode=after_transaction, Hibernate calls afterTransaction()
+			 * after every ormFlush(), setting physicalConnection=null → isConnected()=false.
+			 * The next ORM call then enters the dead reconnect block in getSessionAndConn(),
+			 * which calls s.reconnect() — always throws ResourceClosedException in Hibernate 5.6.
+			 */
+			it( title="entityLoad succeeds after ormFlush() with after_transaction release mode", body=function( currentSpec ) {
+
+				_InternalRequest( template: "#cfg.uri#/setup.cfm", url: { flushAtRequestEnd: false } );
+
+				var result = _InternalRequest( template: "#cfg.uri#/multi_transaction.cfm", url: { flushAtRequestEnd: false } );
+				systemOutput( "[#cfg.label#] multi_transaction result: status=#result.status#, content=#trim( result.filecontent )#", true );
+
+				expect( result.status ).toBe( 200 );
+				expect( left( trim( result.filecontent ), 2 ) ).toBe( "ok",
+					"entityLoad failed after ormFlush() with after_transaction — dead reconnect code triggered: #trim( result.filecontent )#"
+				);
+
+			} );
+
+		} );
+
+	}
+
 	private struct function basicConfig() {
-		return { label: "basic", uri: createURI( "LDEV6129/basic" ) };
+		return { label: "basic", uri: createURI( "LDEV6129/basic" ), params: {} };
 	}
 
 	private struct function customConfig() {
-		return { label: "custom (after_transaction)", uri: createURI( "LDEV6129/custom" ) };
+		return { label: "custom (after_transaction)", uri: createURI( "LDEV6129/custom" ), params: { flushAtRequestEnd: true } };
 	}
 
 	private numeric function getPoolActive( required struct metrics, required string dsName ) {
