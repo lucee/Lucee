@@ -33,6 +33,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     env:
+      ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
       DO_DEPLOY: "${{ github.event_name == 'push' && startsWith(github.ref, 'refs/heads/6.2') }}"
       LUCEE_BUILD_JAVA_VERSION: 21
       LUCEE_TEST_JAVA_VERSION: ''
