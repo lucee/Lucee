@@ -1394,21 +1394,65 @@ public final class PageImpl extends BodyBase implements Page {
 			ga.push(keys.size()); // Array size
 			ga.newArray(Types.COLLECTION_KEY);
 
-			int index = 0;
-			for (LitString ls: keys.keySet()) {
-				ga.dup();
-				ga.push(index++);
-				ga.push(ls.getString());
+			// Split into batches to avoid method size limit
+			List<LitString> keyList = new ArrayList<>(keys.keySet());
+			int batchSize = 1000;
+			int numBatches = (keyList.size() + batchSize - 1) / batchSize;
 
-				// ExpressionUtil.writeOutSilent(ls, bc, Expression.MODE_REF);
-				ga.invokeStatic(KEY_IMPL, KEY_INIT_KEYS);
-				ga.arrayStore(Types.COLLECTION_KEY);
+			if (numBatches <= 1) {
+				// Small number of keys, inline
+				int index = 0;
+				for (LitString ls: keyList) {
+					ga.dup();
+					ga.push(index++);
+					ga.push(ls.getString());
+					ga.invokeStatic(KEY_IMPL, KEY_INIT_KEYS);
+					ga.arrayStore(Types.COLLECTION_KEY);
+				}
+			} else {
+				// Large number of keys, use helper methods
+				for (int batch = 0; batch < numBatches; batch++) {
+					ga.dup();
+					ga.push(batch * batchSize);
+					ga.invokeStatic(Type.getObjectType(name), 
+						new Method("initKeysBatch" + batch, Type.VOID_TYPE, 
+							new Type[] { Types.COLLECTION_KEY_ARRAY, Type.INT_TYPE }));
+				}
 			}
+
 			ga.putStatic(Type.getObjectType(name), "keys", Types.COLLECTION_KEY_ARRAY);
 
 			ga.returnValue();
 			ga.endMethod();
 
+		}
+
+		// Generate helper methods for key batches if needed
+		List<LitString> keyList = new ArrayList<>(keys.keySet());
+		int batchSize = 1000;
+		int numBatches = (keyList.size() + batchSize - 1) / batchSize;
+
+		if (numBatches > 1) {
+			for (int batch = 0; batch < numBatches; batch++) {
+				int startIdx = batch * batchSize;
+				int endIdx = Math.min(startIdx + batchSize, keyList.size());
+
+				Method batchMethod = new Method("initKeysBatch" + batch, Type.VOID_TYPE, 
+					new Type[] { Types.COLLECTION_KEY_ARRAY, Type.INT_TYPE });
+				GeneratorAdapter batchGA = new GeneratorAdapter(
+					Opcodes.ACC_PRIVATE + Opcodes.ACC_STATIC, batchMethod, null, null, cw);
+
+				for (int i = startIdx; i < endIdx; i++) {
+					batchGA.loadArg(0);
+					batchGA.push(i);
+					batchGA.push(keyList.get(i).getString());
+					batchGA.invokeStatic(KEY_IMPL, KEY_INIT_KEYS);
+					batchGA.arrayStore(Types.COLLECTION_KEY);
+				}
+
+				batchGA.returnValue();
+				batchGA.endMethod();
+			}
 		}
 
 		// public StaticStruct getStaticStruct() {return _static;}
