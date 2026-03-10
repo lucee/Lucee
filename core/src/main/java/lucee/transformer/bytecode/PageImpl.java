@@ -118,6 +118,9 @@ public final class PageImpl extends BodyBase implements Page {
 	// Maximum UDFs per constructor helper method to avoid JVM's 64KB method bytecode limit, chosen value is a safe estimate, size depends on CFC methdod signatures
 	private static final int MAX_UDF_PER_CONSTRUCTOR_METHOD = 30;
 
+	// Maximum keys per <cinit> helper method to avoid JVM's 64KB method bytecode limit, each key generates ~30 bytes
+	private static final int MAX_KEYS_PER_CINIT_METHOD = 1000;
+
 	public static final Type NULL = Type.getType(lucee.runtime.type.Null.class);
 	public static final Type KEY_IMPL = Type.getType(KeyImpl.class);
 	public static final Type KEY_CONSTANTS = Type.getType(KeyConstants.class);
@@ -1394,29 +1397,40 @@ public final class PageImpl extends BodyBase implements Page {
 			ga.push(keys.size()); // Array size
 			ga.newArray(Types.COLLECTION_KEY);
 
-			// Split into batches to avoid method size limit
+			// Split into helper methods if there are enough keys to risk MethodTooLargeException (LDEV-6134)
 			List<LitString> keyList = new ArrayList<>(keys.keySet());
-			int batchSize = 1000;
-			int numBatches = (keyList.size() + batchSize - 1) / batchSize;
 
-			if (numBatches <= 1) {
-				// Small number of keys, inline
+			if (keyList.size() > MAX_KEYS_PER_CINIT_METHOD) {
+				int batchNum = 0;
+				for (int batchStart = 0; batchStart < keyList.size(); batchStart += MAX_KEYS_PER_CINIT_METHOD) {
+					int batchEnd = Math.min(batchStart + MAX_KEYS_PER_CINIT_METHOD, keyList.size());
+					String helperMethodName = ASMUtil.createOverfowMethod("_cinitKeys", batchNum++);
+					Method helperMethod = new Method(helperMethodName, Type.VOID_TYPE, new Type[] { Types.COLLECTION_KEY_ARRAY });
+					GeneratorAdapter helperAdapter = new GeneratorAdapter(
+						Opcodes.ACC_PRIVATE + Opcodes.ACC_STATIC + Opcodes.ACC_SYNTHETIC, helperMethod, null, null, cw);
+
+					// call helper from <cinit>
+					ga.dup();
+					ga.invokeStatic(Type.getObjectType(name), helperMethod);
+
+					// write batch into helper method
+					writeKeysBatch(helperAdapter, keyList, batchStart, batchEnd);
+
+					helperAdapter.returnValue();
+					helperAdapter.endMethod();
+				}
+			}
+			else {
+				// Small number of keys, inline directly in <cinit>
 				int index = 0;
 				for (LitString ls: keyList) {
 					ga.dup();
 					ga.push(index++);
 					ga.push(ls.getString());
+
+					// ExpressionUtil.writeOutSilent(ls, bc, Expression.MODE_REF);
 					ga.invokeStatic(KEY_IMPL, KEY_INIT_KEYS);
 					ga.arrayStore(Types.COLLECTION_KEY);
-				}
-			} else {
-				// Large number of keys, use helper methods
-				for (int batch = 0; batch < numBatches; batch++) {
-					ga.dup();
-					ga.push(batch * batchSize);
-					ga.invokeStatic(Type.getObjectType(name), 
-						new Method("initKeysBatch" + batch, Type.VOID_TYPE, 
-							new Type[] { Types.COLLECTION_KEY_ARRAY, Type.INT_TYPE }));
 				}
 			}
 
@@ -1425,34 +1439,6 @@ public final class PageImpl extends BodyBase implements Page {
 			ga.returnValue();
 			ga.endMethod();
 
-		}
-
-		// Generate helper methods for key batches if needed
-		List<LitString> keyList = new ArrayList<>(keys.keySet());
-		int batchSize = 1000;
-		int numBatches = (keyList.size() + batchSize - 1) / batchSize;
-
-		if (numBatches > 1) {
-			for (int batch = 0; batch < numBatches; batch++) {
-				int startIdx = batch * batchSize;
-				int endIdx = Math.min(startIdx + batchSize, keyList.size());
-
-				Method batchMethod = new Method("initKeysBatch" + batch, Type.VOID_TYPE, 
-					new Type[] { Types.COLLECTION_KEY_ARRAY, Type.INT_TYPE });
-				GeneratorAdapter batchGA = new GeneratorAdapter(
-					Opcodes.ACC_PRIVATE + Opcodes.ACC_STATIC, batchMethod, null, null, cw);
-
-				for (int i = startIdx; i < endIdx; i++) {
-					batchGA.loadArg(0);
-					batchGA.push(i);
-					batchGA.push(keyList.get(i).getString());
-					batchGA.invokeStatic(KEY_IMPL, KEY_INIT_KEYS);
-					batchGA.arrayStore(Types.COLLECTION_KEY);
-				}
-
-				batchGA.returnValue();
-				batchGA.endMethod();
-			}
 		}
 
 		// public StaticStruct getStaticStruct() {return _static;}
@@ -1563,6 +1549,18 @@ public final class PageImpl extends BodyBase implements Page {
 			}
 		}
 		return null;
+	}
+
+	private static void writeKeysBatch(GeneratorAdapter ga, List<LitString> keyList, int from, int to) {
+		for (int i = from; i < to; i++) {
+			ga.loadArg(0); // CollectionKey[] array
+			ga.push(i);
+			ga.push(keyList.get(i).getString());
+
+			// ExpressionUtil.writeOutSilent(ls, bc, Expression.MODE_REF);
+			ga.invokeStatic(KEY_IMPL, KEY_INIT_KEYS);
+			ga.arrayStore(Types.COLLECTION_KEY);
+		}
 	}
 
 	private void writeOutStaticConstructor(ConstrBytecodeContext constr, Map<LitString, Integer> keys, ClassWriter cw, TagCIObject component, String name)
