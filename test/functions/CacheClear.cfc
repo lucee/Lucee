@@ -18,7 +18,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="cache" {
 				password="#request.webadminpassword#"
 				name="_cacheClear"&id 
 				class= 'org.lucee.mongodb.cache.MongoDBCache'
-				bundleName= 'mongodb.extension'
+				bundleName= 'org.lucee.mongodb.extension'
 				storage="false"
 				default="object" 
 				custom="#{

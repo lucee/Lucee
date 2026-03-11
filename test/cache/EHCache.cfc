@@ -33,7 +33,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="cache,ehCache" {
 	}
 
 	public void function testClassExist() {
-		createObject('java','org.lucee.extension.cache.eh.EHCache','ehcache.extension');
+		createObject('java','org.lucee.extension.cache.eh.EHCache','org.lucee.ehcache.extension');
 	}
 
 	public void function testTimespan() {
@@ -76,7 +76,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="cache,ehCache" {
 		application action="update" 
 			caches="#{ehcache: {
 	  class: 'org.lucee.extension.cache.eh.EHCache'
-	, bundleName: 'ehcache.extension'
+	, bundleName: 'org.lucee.ehcache.extension'
 	, storage: false
 	, custom: {"bootstrapAsynchronously":"true","replicatePuts":"true","automatic_hostName":"",
 		"bootstrapType":"on","maxelementsinmemory":"10000","manual_rmiUrls":"","distributed":"off",
