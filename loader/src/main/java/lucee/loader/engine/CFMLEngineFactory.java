@@ -675,7 +675,19 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 				setEngine(engine);
 			}
 			else {
-				bundleCollection = BundleLoader.loadBundles(this, getFelixCacheDirectory(), getBundleDirectory(), lucee, bundleCollection);
+				try {
+					bundleCollection = BundleLoader.loadBundles(this, getFelixCacheDirectory(), getBundleDirectory(), lucee, bundleCollection);
+				}
+				catch (BundleException be) {
+					// LDEV-6144: stale felix cache (bundle registered at old path after rename, e.g. from LDEV-6145).
+					// Clear the cache and retry once with a fresh Felix instance.
+					if (be.getMessage() != null && be.getMessage().contains("not unique")) {
+						log(org.apache.felix.resolver.Logger.LOG_WARNING, "Felix cache is stale (bundle name conflict: " + be.getMessage() + "), clearing cache and retrying");
+						Util.deleteContent(getFelixCacheDirectory(), null);
+						bundleCollection = BundleLoader.loadBundles(this, getFelixCacheDirectory(), getBundleDirectory(), lucee, null);
+					}
+					else throw be;
+				}
 				// bundle=loadBundle(lucee);
 				log(org.apache.felix.resolver.Logger.LOG_DEBUG, "Loaded bundle: [" + bundleCollection.core.getSymbolicName() + "]");
 				setEngine(getEngine(bundleCollection));
@@ -823,9 +835,10 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 			// this could be cause by an invalid felix cache, so we simply delete it and try again
 			if (!isNew && "Error creating bundle cache.".equals(be.getMessage())) {
 				Util.deleteContent(cacheRootDir, null);
-
+				felix = new Felix(config);
+				felix.start();
 			}
-
+			else throw be;
 		}
 
 		return felix;
