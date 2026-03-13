@@ -66,7 +66,7 @@ public final class Cookie extends TagImpl {
 	private String name;
 
 	private boolean httponly;
-	private boolean preservecase;
+	private boolean preservecase = CookieImpl.PRESERVE_CASE_DEFAULT;
 	private Boolean encode = null;
 	private boolean partitioned;
 
@@ -82,7 +82,7 @@ public final class Cookie extends TagImpl {
 		expires = null;
 		name = null;
 		httponly = false;
-		preservecase = false;
+		preservecase = CookieImpl.PRESERVE_CASE_DEFAULT;
 		encode = null;
 		samesite = SessionCookieData.SAMESITE_EMPTY;
 		partitioned = false;
