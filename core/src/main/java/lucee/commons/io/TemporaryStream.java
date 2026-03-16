@@ -192,7 +192,7 @@ public final class TemporaryStream extends OutputStream {
 		}
 		File tmp = null;
 		try {
-			tmp = File.createTempFile("a", "a");
+			tmp = File.createTempFile("stream-check-temp-dir", ".tmp");
 			tempFile = ResourceUtil.toResourceNotExisting(ThreadLocalPageContext.get(), tmp.getParent());
 			// tempFile=CFMLEngineFactory.getInstance().getCastUtil().toResource(tmp.getParent(),null);
 			tempFile = getCanonicalResourceEL(tempFile);

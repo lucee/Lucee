@@ -222,7 +222,7 @@ public abstract class CFMLEngineFactorySupport {
 			}
 		}
 		try {
-			final File tmp = File.createTempFile("a", "a");
+			final File tmp = File.createTempFile("engine-check-temp-dir", ".tmp");
 			tempFile = tmp.getParentFile();
 			tempFile = getCanonicalFileEL(tempFile);
 			tmp.delete();

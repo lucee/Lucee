@@ -360,7 +360,7 @@ public final class SystemUtil {
 	public static boolean isFSCaseSensitive() {
 		if (isFSCaseSensitive == null) {
 			try {
-				_isFSCaseSensitive(File.createTempFile("abcx", "txt"));
+				_isFSCaseSensitive(File.createTempFile("abcx", ".txt"));
 			}
 			catch (IOException e) {
 				File f = new File("abcx.txt").getAbsoluteFile();

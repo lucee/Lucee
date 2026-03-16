@@ -78,7 +78,7 @@ public class BundleInfo implements Serializable {
 		BundleInfo bi = bundles.get(id);
 		if (bi != null) return bi;
 
-		File tmp = File.createTempFile("temp-extension", "lex");
+		File tmp = File.createTempFile("temp-extension-" + id + "-", ".lex");
 
 		try {
 			FileOutputStream os = new FileOutputStream(tmp);
@@ -131,7 +131,7 @@ public class BundleInfo implements Serializable {
 				else if (!StringUtil.isEmpty(exportPackage, true) || !StringUtil.isEmpty(fragementHost, true)) {
 					valid = true;
 				}
-				// has no exportPackage, fine wjhen it has other files than just class files or has no class files
+				// has no exportPackage, fine when it has other files than just class files or has no class files
 				// at all
 				else {
 					valid = true;
