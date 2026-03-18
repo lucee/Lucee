@@ -21,7 +21,6 @@ import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 
 import org.osgi.framework.BundleException;
-import org.xml.sax.SAXException;
 
 import lucee.commons.digest.Hash;
 import lucee.commons.io.SystemUtil;

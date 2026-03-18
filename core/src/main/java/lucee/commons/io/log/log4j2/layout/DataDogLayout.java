@@ -10,7 +10,6 @@ import org.apache.logging.log4j.core.layout.AbstractStringLayout;
 
 import lucee.commons.i18n.FormatUtil;
 import lucee.commons.io.CharsetUtil;
-import lucee.commons.io.log.LogUtil;
 import lucee.loader.engine.CFMLEngine;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.loader.util.Util;
@@ -203,15 +202,7 @@ public class DataDogLayout extends AbstractStringLayout {
 			}
 			return ids = new Object[] { "0", "0" };
 		}
-		catch (Exception e) {
-			// we cannot send this to a logger, because that could cause an infiniti loop
-			try {
-				LogUtil.logGlobal(CFMLEngineFactory.getInstance().getCFMLEngineFactory(), "datadog", e);
-			}
-			catch (Exception ee) {
-				e.printStackTrace();
-			}
-		}
+		catch (Exception e) {}
 
 		return ids = new Object[] { "-1", "-1" };
 	}
