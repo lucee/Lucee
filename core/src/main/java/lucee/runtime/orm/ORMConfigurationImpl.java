@@ -592,6 +592,10 @@ public final class ORMConfigurationImpl implements ORMConfiguration {
 		if ("update".equals(dbCreate)) return DBCREATE_UPDATE;
 		if ("dropcreate".equals(dbCreate)) return DBCREATE_DROP_CREATE;
 		if ("drop-create".equals(dbCreate)) return DBCREATE_DROP_CREATE;
+		if ("create".equals(dbCreate)) return DBCREATE_CREATE;
+		if ("createdrop".equals(dbCreate)) return DBCREATE_CREATE_DROP;
+		if ("create-drop".equals(dbCreate)) return DBCREATE_CREATE_DROP;
+		if ("validate".equals(dbCreate)) return DBCREATE_VALIDATE;
 		return DBCREATE_NONE;
 	}
 
@@ -602,6 +606,12 @@ public final class ORMConfigurationImpl implements ORMConfiguration {
 			return "dropcreate";
 		case DBCREATE_UPDATE:
 			return "update";
+		case DBCREATE_CREATE:
+			return "create";
+		case DBCREATE_CREATE_DROP:
+			return "createdrop";
+		case DBCREATE_VALIDATE:
+			return "validate";
 		}
 
 		return "none";
