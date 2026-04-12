@@ -49,7 +49,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="h2,orm" skip=true{
 		switch ( arguments.db ){
 			case "h2":
 				if (! structKeyExists( variables, "dbfile" ) )
-					variables.dbfile = "#getDirectoryFromPath( getCurrentTemplatePath() )#/datasource/db";
+					variables.dbfile = server._getTempDir( "LDEV3659" );
 				return server.getDatasource( "h2", variables.dbfile );
 				break;
 			case "mssql":
