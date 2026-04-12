@@ -98,6 +98,8 @@ import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.UDF;
 import lucee.runtime.type.UDFGSProperty;
+import lucee.runtime.type.UDFGetterProperty;
+import lucee.runtime.type.UDFSetterProperty;
 import lucee.runtime.type.UDFImpl;
 import lucee.runtime.type.UDFPlus;
 import lucee.runtime.type.UDFProperties;
@@ -394,7 +396,10 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 						}
 					}
 					// udf with no owner
-					if (!done) trg.put(key, udf.duplicate());
+					if (!done) {
+						if (udf instanceof UDFGSProperty) trg.put(key, udf); // LDEV-6236 flyweight accessor — stateless, safe to share
+						else trg.put(key, udf.duplicate());
+					}
 
 					// print.o(owner.pageSource.getComponentName()+":"+udf.getFunctionName());
 				}
@@ -755,6 +760,17 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 	}
 
 	Object _call(PageContext pc, Collection.Key calledName, UDF udf, Struct namedArgs, Object[] args) throws PageException {
+
+		// LDEV-6236 accessor bypass — skip full UDF dispatch for generated getters/setters
+		if (!((PageContextImpl) pc).hasDebugOptions(ConfigPro.DEBUG_TEMPLATE)) {
+			if (udf instanceof UDFGetterProperty) {
+				return ((UDFGetterProperty) udf).callDirect( this, pc );
+			}
+			if (udf instanceof UDFSetterProperty && args != null) {
+				return ((UDFSetterProperty) udf).callDirect( this, pc, args );
+			}
+		}
+
 		Object rtn = null;
 		Variables parent = null;
 

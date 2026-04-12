@@ -93,6 +93,99 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 			});
 		});
 
+		describe( title="LDEV-6236 duplicate() with accessor bypass", body=function(){
+			it( title="duplicate() preserves accessor functionality", body=function( currentSpec ){
+				var orig = new LDEV3335.testPropertyTypes();
+				orig.setAge( 25 );
+				orig.setName( "original" );
+				var copy = duplicate( orig );
+				// copy should have its own values
+				expect( copy.getAge() ).toBe( 25 );
+				expect( copy.getName() ).toBe( "original" );
+				// mutations are isolated
+				copy.setAge( 99 );
+				copy.setName( "copy" );
+				expect( orig.getAge() ).toBe( 25 );
+				expect( orig.getName() ).toBe( "original" );
+				expect( copy.getAge() ).toBe( 99 );
+				expect( copy.getName() ).toBe( "copy" );
+			});
+			it( title="duplicate() preserves typed property casting", body=function( currentSpec ){
+				var orig = new LDEV3335.testPropertyTypes();
+				var copy = duplicate( orig );
+				copy.setAge( "42" );
+				expect( copy.getAge() ).toBe( 42 );
+				expect( isNumeric( copy.getAge() ) ).toBeTrue();
+			});
+			it( title="duplicate() with inheritance - child accessors work", body=function( currentSpec ){
+				var child = new LDEV3335.testInheritChild();
+				var copy = duplicate( child );
+				expect( copy.getParentProp() ).toBe( "from parent" );
+				copy.setParentProp( "modified" );
+				expect( copy.getParentProp() ).toBe( "modified" );
+				expect( child.getParentProp() ).toBe( "from parent" );
+			});
+			it( title="duplicate() with manual override - override preserved", body=function( currentSpec ){
+				var orig = new LDEV3335.testManualSetter();
+				var copy = duplicate( orig );
+				copy.setValue( 5 );
+				// manual setter doubles the value
+				expect( copy.getValue() ).toBe( 10 );
+			});
+			it( title="duplicate() with child override - override preserved", body=function( currentSpec ){
+				var orig = new LDEV3335.testInheritChildOverride();
+				var copy = duplicate( orig );
+				expect( copy.getParentProp() ).toBe( "CHILD OVERRIDE" );
+			});
+			it( title="multiple duplicates are fully isolated", body=function( currentSpec ){
+				var orig = new LDEV3335.testWithAccessors();
+				orig.setA( "v1" );
+				var copy1 = duplicate( orig );
+				var copy2 = duplicate( orig );
+				copy1.setA( "c1" );
+				copy2.setA( "c2" );
+				expect( orig.getA() ).toBe( "v1" );
+				expect( copy1.getA() ).toBe( "c1" );
+				expect( copy2.getA() ).toBe( "c2" );
+			});
+			it( title="mixed generated and manual accessors on same component", body=function( currentSpec ){
+				// testManualGetter has accessors=true with manual getName() but generated setName()
+				var orig = new LDEV3335.testManualGetter();
+				// generated setter
+				orig.setName( "hello" );
+				// manual getter (ucases the value)
+				expect( orig.getName() ).toBe( "HELLO" );
+				// duplicate and verify both paths still work
+				var copy = duplicate( orig );
+				expect( copy.getName() ).toBe( "HELLO" );
+				copy.setName( "world" );
+				expect( copy.getName() ).toBe( "WORLD" );
+				// original unchanged
+				expect( orig.getName() ).toBe( "HELLO" );
+			});
+			it( title="mixed generated getter and manual setter on same component", body=function( currentSpec ){
+				// testManualSetter has accessors=true with manual setValue() but generated getValue()
+				var orig = new LDEV3335.testManualSetter();
+				// manual setter (doubles the value)
+				orig.setValue( 5 );
+				// generated getter
+				expect( orig.getValue() ).toBe( 10 );
+				// duplicate and verify both paths
+				var copy = duplicate( orig );
+				expect( copy.getValue() ).toBe( 10 );
+				copy.setValue( 7 );
+				expect( copy.getValue() ).toBe( 14 );
+				expect( orig.getValue() ).toBe( 10 );
+			});
+			it( title="setter chaining works on duplicate", body=function( currentSpec ){
+				var orig = new LDEV3335.testPropertyTypes();
+				var copy = duplicate( orig );
+				var result = copy.setAge( 30 );
+				// setter returns the component for chaining
+				expect( result.getName() ).toBe( "John" );
+			});
+		});
+
 		describe( title="Component size tests", body=function(){
 			xit( title="Check size of the component with no accessors", body=function( currentSpec ){
 				local.result = _InternalRequest(
