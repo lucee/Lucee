@@ -288,7 +288,8 @@ public final class Reflector {
 	 */
 	public static boolean like(Class src, Class trg) {
 		if (src == trg) return true;
-		return isInstaneOf(src, trg, true);
+		if (trg.isAssignableFrom(src)) return true;
+		return isInstaneOf(src, trg, false);
 	}
 
 	public static Object convert(Object src, Class trgClass, RefInteger rating, Object defaultValue) {

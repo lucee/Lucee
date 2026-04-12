@@ -266,7 +266,9 @@ public abstract class Clazz implements Serializable {
 			if ((args.length == fm.getArgumentCount()) && clazz.getName().equals(fm.getDeclaringClassName())) {
 				parameterTypes = fm.getArgumentClasses();
 				for (int y = 0; y < parameterTypes.length; y++) {
-					if (!Reflector.toReferenceClass(parameterTypes[y]).isAssignableFrom(args[y] == null ? Object.class : args[y].getClass())) continue outer;
+					Class argClass = args[y] == null ? Object.class : args[y].getClass();
+					Class paramClass = Reflector.toReferenceClass(parameterTypes[y]);
+					if (!paramClass.isAssignableFrom(argClass) && !Reflector.isInstaneOf(argClass, paramClass, false)) continue outer;
 				}
 				return fm;
 			}
@@ -325,8 +327,10 @@ public abstract class Clazz implements Serializable {
 					if (args[y] == null) {
 						if (parameterTypes[y].isPrimitive()) continue outer;
 					}
-					else if (!Reflector.toReferenceClass(parameterTypes[y]).isAssignableFrom(args[y].getClass())) {
-						continue outer;
+					else {
+						Class argClass = args[y].getClass();
+						Class paramClass = Reflector.toReferenceClass(parameterTypes[y]);
+						if (!paramClass.isAssignableFrom(argClass) && !Reflector.isInstaneOf(argClass, paramClass, false)) continue outer;
 					}
 				}
 				return fm;
