@@ -144,16 +144,6 @@ public final class ConfigFactoryImpl extends ConfigFactory {
 
 		((GatewayEngineImpl) configWeb.getGatewayEngine()).autoStart();
 
-		// invoke config listener if set
-		try {
-			ConfigListener listener = configServer.getConfigListener();
-			if (listener != null) listener.onLoadWebContext(configServer, configWeb);
-		}
-		catch (Throwable t) {
-			ExceptionUtil.rethrowIfNecessary(t);
-			log(configServer, t);
-		}
-
 		log(configServer, Log.LEVEL_INFO,
 				"\n===================================================================\n" + "WEB CONTEXT (" + createLabel(configServer, servletConfig) + ")\n"
 						+ "-------------------------------------------------------------------\n" + "- config:" + configDir + "\n" + "- webroot:"
