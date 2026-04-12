@@ -76,6 +76,15 @@ public final class EnvClassLoader extends URLClassLoader {
 		this.trace = log(Log.LEVEL_TRACE);
 	}
 
+	/**
+	 * Clears the caller cache, forcing re-resolution of classes on next access.
+	 * Must be called when a PhysicalClassLoader (RPC) is flushed, otherwise stale
+	 * classes from the old classloader may be returned. See LDEV-6240.
+	 */
+	public void clearCallerCache() {
+		callerCache.clear();
+	}
+
 	@Override
 	public Class<?> loadClass(String name) throws ClassNotFoundException {
 		return loadClass(name, false);
@@ -107,8 +116,11 @@ public final class EnvClassLoader extends URLClassLoader {
 
 	@Override
 	protected synchronized Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
-		Class<?> c = findLoadedClass(name);
-		if (c == null) c = (Class<?>) load(name, CLASS, true, null, true);
+		// LDEV-6240: intentionally skip findLoadedClass() - it returns classes from the JVM's
+		// internal cache which cannot be cleared. After a PhysicalClassLoader flush, the cached
+		// class may come from the old (flushed) classloader, causing isAssignableFrom failures
+		// in ServiceLoader and other JDK code. callerCache (cleared on flush) handles caching.
+		Class<?> c = (Class<?>) load(name, CLASS, true, null, true);
 		if (c == null) c = findClass(name);
 		if (resolve) resolveClass(c);
 		return c;
