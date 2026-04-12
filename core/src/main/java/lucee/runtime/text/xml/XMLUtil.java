@@ -140,6 +140,11 @@ public final class XMLUtil {
 
 	private static SAXParserFactory saxParserFactory;
 
+	// Cached pre-configured factory for the common non-validating, default-features case.
+	// Thread-safe: factory is fully configured before caching and never mutated after.
+	// newDocumentBuilder() on the JDK's DocumentBuilderFactoryImpl is a pure read→create operation.
+	private static volatile DocumentBuilderFactory cachedDefaultFactory;
+
 	private static URL transformerFactoryResource;
 
 	private static boolean disableXmlFeatureOverride = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.xmlfeatures.override.disable", "false"), false);
@@ -326,8 +331,8 @@ public final class XMLUtil {
 	public static final Document parse(InputSource xml, Object validator, EntityResolver entRes, boolean isHtml) throws SAXException, IOException {
 
 		if (!isHtml) {
-			DocumentBuilderFactory factory = (validator instanceof InputSource) ? newDocumentBuilderFactory((InputSource) validator, null)
-					: newDocumentBuilderFactory(null, (Struct) validator);
+			DocumentBuilderFactory factory = (validator instanceof InputSource) ? newDocumentBuilderFactory((InputSource) validator, null, false)
+					: newDocumentBuilderFactory(null, (Struct) validator, false);
 
 			try {
 				DocumentBuilder builder = factory.newDocumentBuilder();
@@ -357,10 +362,33 @@ public final class XMLUtil {
 	}
 
 	private static DocumentBuilderFactory newDocumentBuilderFactory(InputSource validator) {
-		return newDocumentBuilderFactory(validator, null);
+		return newDocumentBuilderFactory(validator, null, false);
 	}
 
-	private static DocumentBuilderFactory newDocumentBuilderFactory(InputSource validator, Struct xmlFeatures) {
+	/**
+	 * @param validator InputSource for schema validation, or null
+	 * @param xmlFeatures per-application feature overrides, or null
+	 * @param uncached force a fresh factory instance — use when the caller needs to mutate the factory
+	 */
+	private static DocumentBuilderFactory newDocumentBuilderFactory(InputSource validator, Struct xmlFeatures, boolean uncached) {
+		// Fast path: non-validating, no custom features — return cached factory
+		if (!uncached && validator == null && xmlFeatures == null) {
+			PageContext pc = ThreadLocalPageContext.get();
+			Struct appFeatures = null;
+			if (pc != null) {
+				ApplicationContextSupport ac = ((ApplicationContextSupport) pc.getApplicationContext());
+				appFeatures = ac == null ? null : ac.getXmlFeatures();
+			}
+			if (appFeatures == null) {
+				DocumentBuilderFactory cached = cachedDefaultFactory;
+				if (cached != null) return cached;
+				cached = createDefaultFactory();
+				cachedDefaultFactory = cached;
+				return cached;
+			}
+		}
+
+		// Slow path: validating, custom features, or explicitly uncached
 		DocumentBuilderFactory factory;
 		if (validator != null) {
 			factory = _newDocumentBuilderFactory();// DocumentBuilderFactory.newInstance();
@@ -429,7 +457,35 @@ public final class XMLUtil {
 			}
 		}
 
-		try { // set built in feature aliases
+		setSecurityFeatures( factory, featureSecure, disallowDocType, externalGeneralEntities );
+		// pass thru any additional feature directives
+		// https://xerces.apache.org/xerces2-j/features.html#disallow-doctype-decl
+		if (features != null) {
+			features.forEach((k, v) -> {
+				try {
+					factory.setFeature(k.toString().toLowerCase(), Caster.toBoolean(v));
+				}
+				catch (PageException | ParserConfigurationException ex) {
+					throw new RuntimeException(ex);
+				}
+			});
+		}
+		return factory;
+	}
+
+	// Creates the default non-validating, secure factory — called once then cached
+	private static DocumentBuilderFactory createDefaultFactory() {
+		DocumentBuilderFactory factory = _newDocumentBuilderFactory();
+		setAttributeEL( factory, XMLConstants.NON_VALIDATING_DTD_EXTERNAL, Boolean.FALSE );
+		setAttributeEL( factory, XMLConstants.NON_VALIDATING_DTD_GRAMMAR, Boolean.FALSE );
+		factory.setNamespaceAware( true );
+		factory.setValidating( false );
+		setSecurityFeatures( factory, true, true, false );
+		return factory;
+	}
+
+	private static void setSecurityFeatures(DocumentBuilderFactory factory, boolean featureSecure, boolean disallowDocType, boolean externalGeneralEntities) {
+		try {
 			if (featureSecure) {
 				// set features per
 				// https://cheatsheetseries.owasp.org/cheatsheets/XML_External_Entity_Prevention_Cheat_Sheet.html
@@ -449,19 +505,6 @@ public final class XMLUtil {
 		catch (ParserConfigurationException ex) {
 			throw new RuntimeException(ex);
 		}
-		// pass thru any additional feature directives
-		// https://xerces.apache.org/xerces2-j/features.html#disallow-doctype-decl
-		if (features != null) {
-			features.forEach((k, v) -> {
-				try {
-					factory.setFeature(k.toString().toLowerCase(), Caster.toBoolean(v));
-				}
-				catch (PageException | ParserConfigurationException ex) {
-					throw new RuntimeException(ex);
-				}
-			});
-		}
-		return factory;
 	}
 
 	public static String getXMLParserConfigurationName() {

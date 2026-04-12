@@ -120,6 +120,7 @@ public final class ClaudeSession extends AISessionSupport {
 				e = it.next();
 				if (!requestBody.containsKey(e.getKey())) {
 					requestBody.set(e.getKey(), e.getValue());
+					LogUtil.logx(null, Log.LEVEL_DEBUG, "ai", "add custom value [" + e.getKey() + "]", "ai", "application");
 				}
 			}
 		}

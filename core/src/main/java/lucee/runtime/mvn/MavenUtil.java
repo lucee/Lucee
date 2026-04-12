@@ -875,6 +875,8 @@ public final class MavenUtil {
 	}
 
 	public static GAVSO toGAVSO(Object obj, GAVSO defaultValue) {
+		if (obj instanceof GAVSO) return (GAVSO) obj;
+
 		Struct el = Caster.toStruct(obj, null, false);
 		if (el != null) {
 			String g = Caster.toString(el.get(KeyConstants._groupId, null), null);
@@ -985,8 +987,10 @@ public final class MavenUtil {
 
 	}
 
-	// LDEV-6250: not called — Maven does not restrict version format (see maven.apache.org/pom.html#version-order-specification).
-	// Versions like "v4-rev20260213-2.0.0" are valid. Downstream code (POM constructor, download) already handles null/bad versions.
+	// LDEV-6250: not called — Maven does not restrict version format (see
+	// maven.apache.org/pom.html#version-order-specification).
+	// Versions like "v4-rev20260213-2.0.0" are valid. Downstream code (POM constructor, download)
+	// already handles null/bad versions.
 	public static boolean isValidVersion(String version) {
 		if (StringUtil.isEmpty(version)) return false;
 
