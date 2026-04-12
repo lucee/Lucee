@@ -3,6 +3,7 @@ package lucee.runtime.ai.anthropic;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import lucee.commons.lang.StringUtil;
 import lucee.commons.net.HTTPUtil;
@@ -28,7 +29,6 @@ public final class ClaudeEngine extends AIEngineSupport {
 	private static final String DEFAULT_MODEL = "claude-3-sonnet-20240229";
 
 	private String label = "Claude";
-	private Struct properties;
 	private String apiKey;
 	private URL baseURL;
 	private String model;
@@ -40,18 +40,21 @@ public final class ClaudeEngine extends AIEngineSupport {
 	private String charset;
 	ProxyData proxy = null;
 	private int conversationSizeLimit = DEFAULT_CONVERSATION_SIZE_LIMIT;
+	Struct custom;
+	Map<String, String> headers;
 
 	@Override
 	public AIEngine init(ClassDefinition<? extends AIEngine> cd, Struct properties, String name, String _default, String id) throws PageException {
 		super.init(cd, properties, name, _default, id);
-		this.properties = properties;
+
+		Struct props = (Struct) properties.duplicate(true);
 
 		// API Key
-		apiKey = Caster.toStringTrim(properties.get(KeyConstants._apiKey, null), null);
+		apiKey = Caster.toStringTrim(props.remove(KeyConstants._apiKey, null), null);
 		if (Util.isEmpty(apiKey, true)) throw new ApplicationException("the property [apiKey] is required for Claude");
 
 		// Base URL
-		String urlStr = Caster.toStringTrim(properties.get(KeyConstants._URL, DEFAULT_URL), DEFAULT_URL);
+		String urlStr = Caster.toStringTrim(props.remove(KeyConstants._URL, DEFAULT_URL), DEFAULT_URL);
 		if (Util.isEmpty(urlStr, true)) urlStr = DEFAULT_URL;
 		try {
 			baseURL = HTTPUtil.toURL(urlStr, HTTPUtil.ENCODED_AUTO);
@@ -61,35 +64,40 @@ public final class ClaudeEngine extends AIEngineSupport {
 		}
 
 		// Timeout
-		connectTimeout = Caster.toIntValue(properties.get("connectTimeout", null), DEFAULT_CONNECT_TIMEOUT);
+		connectTimeout = Caster.toIntValue(props.remove("connectTimeout", null), DEFAULT_CONNECT_TIMEOUT);
 		if (connectTimeout <= 0) connectTimeout = DEFAULT_CONNECT_TIMEOUT;
 
-		socketTimeout = Caster.toIntValue(properties.get("socketTimeout", null), DEFAULT_SOCKET_TIMEOUT);
+		socketTimeout = Caster.toIntValue(props.remove("socketTimeout", null), DEFAULT_SOCKET_TIMEOUT);
 		if (socketTimeout <= 0) socketTimeout = DEFAULT_SOCKET_TIMEOUT;
 
 		// temperature
-		temperature = Caster.toDouble(properties.get(KeyConstants._temperature, null), null);
+		temperature = Caster.toDouble(props.remove(KeyConstants._temperature, null), null);
 		if (temperature != null && (temperature < 0D || temperature > 1D)) {
 			throw new ApplicationException("temperature has to be a number between 0 and 1, now it is [" + temperature + "]");
 		}
 		// conversation Size Limit
-		conversationSizeLimit = Caster.toIntValue(properties.get("conversationSizeLimit", null), DEFAULT_CONVERSATION_SIZE_LIMIT);
+		conversationSizeLimit = Caster.toIntValue(props.remove("conversationSizeLimit", null), DEFAULT_CONVERSATION_SIZE_LIMIT);
 
 		// Model
 		// TODO read available models and throw exception
-		model = Caster.toStringTrim(properties.get(KeyConstants._model, DEFAULT_MODEL), DEFAULT_MODEL);
+		model = Caster.toStringTrim(props.remove(KeyConstants._model, DEFAULT_MODEL), DEFAULT_MODEL);
 		if (StringUtil.isEmpty(model, true)) model = DEFAULT_MODEL;
 
 		// System Message
-		systemMessage = Caster.toStringTrim(properties.get(KeyConstants._message, null), null);
+		systemMessage = Caster.toStringTrim(props.remove(KeyConstants._message, null), null);
 
 		// version
-		version = Caster.toStringTrim(properties.get(KeyConstants._version, DEFAULT_VERSION), DEFAULT_VERSION);
+		version = Caster.toStringTrim(props.remove(KeyConstants._version, DEFAULT_VERSION), DEFAULT_VERSION);
 		if (StringUtil.isEmpty(version, true)) version = DEFAULT_VERSION;
 
 		// charset
-		charset = Caster.toStringTrim(properties.get(KeyConstants._charset, null), DEFAULT_CHARSET);
+		charset = Caster.toStringTrim(props.remove(KeyConstants._charset, null), DEFAULT_CHARSET);
 		if (Util.isEmpty(charset, true)) charset = DEFAULT_CHARSET;
+
+		// headers
+		headers = toHeaders(Caster.toStruct(props.remove("headers", null), null));
+
+		this.custom = props;
 
 		return this;
 	}

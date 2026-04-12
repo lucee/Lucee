@@ -6,7 +6,9 @@ import java.io.InputStreamReader;
 import java.net.SocketTimeoutException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map.Entry;
 
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
@@ -45,6 +47,7 @@ import lucee.runtime.listener.SerializationSettings;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
+import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.util.KeyConstants;
@@ -146,6 +149,18 @@ public final class OpenAISession extends AISessionSupport {
 		Double temperature = getTemperature();
 		if (temperature != null) {
 			request.set(KeyConstants._temperature, temperature);
+		}
+
+		// custom
+		if (openaiEngine.custom != null && !openaiEngine.custom.isEmpty()) {
+			Iterator<Entry<Key, Object>> it = openaiEngine.custom.entryIterator();
+			Entry<Key, Object> e;
+			while (it.hasNext()) {
+				e = it.next();
+				if (!request.containsKey(e.getKey())) {
+					request.set(e.getKey(), e.getValue());
+				}
+			}
 		}
 
 		return request;
@@ -302,6 +317,12 @@ public final class OpenAISession extends AISessionSupport {
 		HttpPost post = new HttpPost(uri);
 		post.setHeader("Content-Type", AIUtil.createJsonContentType(openaiEngine.charset));
 		post.setHeader("Authorization", "Bearer " + openaiEngine.secretKey);
+		// custom headers
+		if (this.openaiEngine.headers != null) {
+			for (Entry<String, String> e: openaiEngine.headers.entrySet()) {
+				post.setHeader(e.getKey(), e.getValue());
+			}
+		}
 
 		StringEntity entity = new StringEntity(str, openaiEngine.charset);
 		post.setEntity(entity);

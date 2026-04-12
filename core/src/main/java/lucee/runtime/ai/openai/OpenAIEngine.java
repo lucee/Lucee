@@ -129,7 +129,6 @@ public final class OpenAIEngine extends AIEngineSupport implements AIEngineFile 
 		DEFAULT_URL_GROK = tmp;
 	}
 
-	Struct properties;
 	String secretKey;
 	int socketTimeout = DEFAULT_SOCKET_TIMEOUT;
 	int connectTimeout = DEFAULT_CONNECT_TIMEOUT;
@@ -145,15 +144,16 @@ public final class OpenAIEngine extends AIEngineSupport implements AIEngineFile 
 	private int conversationSizeLimit = DEFAULT_CONVERSATION_SIZE_LIMIT;
 	private Boolean multiPartSupported;
 	URI chatCompletionsURI;
+	Struct custom;
+	Map<String, String> headers;
 
 	@Override
 	public AIEngine init(ClassDefinition<? extends AIEngine> cd, Struct properties, String name, String _default, String id) throws PageException {
 		super.init(cd, properties, name, _default, id);
-		this.properties = properties;
-
+		Struct props = (Struct) properties.duplicate(true);
 		// URL
 		/// we support some hard coded types to keep it simple
-		String str = Caster.toStringTrim(properties.get(KeyConstants._type, null), null);
+		String str = Caster.toStringTrim(props.remove(KeyConstants._type, null), null);
 		if (!Util.isEmpty(str, true) && !str.equalsIgnoreCase("other")) {
 			if ("chatgpt".equals(str) || "openai".equals(str)) {
 				label = "ChatGPT";
@@ -184,7 +184,7 @@ public final class OpenAIEngine extends AIEngineSupport implements AIEngineFile 
 					"ATM only 5 types are supported [deepseek, grok, openai, ollama, perplexity], for any other endpoint simply define the attribute `url` that looks like this [https://api.lucee.com/v1/].");
 		}
 		else {
-			str = Caster.toStringTrim(properties.get(KeyConstants._URL, null), null);
+			str = Caster.toStringTrim(props.remove(KeyConstants._URL, null), null);
 			if (!Util.isEmpty(str, true)) {
 				if (!str.endsWith("/")) str += "/";
 				try {
@@ -204,25 +204,25 @@ public final class OpenAIEngine extends AIEngineSupport implements AIEngineFile 
 		}
 
 		// secret key
-		str = Caster.toStringTrim(properties.get(KeyConstants._secretKey, null), null);
+		str = Caster.toStringTrim(props.remove(KeyConstants._secretKey, null), null);
 		if (!Util.isEmpty(str, true)) secretKey = str;
 
 		// conversation Size Limit
-		conversationSizeLimit = Caster.toIntValue(properties.get("conversationSizeLimit", null), DEFAULT_CONVERSATION_SIZE_LIMIT);
+		conversationSizeLimit = Caster.toIntValue(props.remove("conversationSizeLimit", null), DEFAULT_CONVERSATION_SIZE_LIMIT);
 
 		// timeout
-		connectTimeout = Caster.toIntValue(properties.get("connectTimeout", null), DEFAULT_CONNECT_TIMEOUT);
+		connectTimeout = Caster.toIntValue(props.remove("connectTimeout", null), DEFAULT_CONNECT_TIMEOUT);
 		if (connectTimeout <= 0) connectTimeout = DEFAULT_CONNECT_TIMEOUT;
 
-		socketTimeout = Caster.toIntValue(properties.get("socketTimeout", null), DEFAULT_SOCKET_TIMEOUT);
+		socketTimeout = Caster.toIntValue(props.remove("socketTimeout", null), DEFAULT_SOCKET_TIMEOUT);
 		if (socketTimeout <= 0) socketTimeout = DEFAULT_SOCKET_TIMEOUT;
 
 		// charset
-		charset = Caster.toStringTrim(properties.get(KeyConstants._charset, null), DEFAULT_CHARSET);
+		charset = Caster.toStringTrim(props.remove(KeyConstants._charset, null), DEFAULT_CHARSET);
 		if (Util.isEmpty(charset, true)) charset = DEFAULT_CHARSET;
 
 		// model
-		model = Caster.toStringTrim(properties.get(KeyConstants._model, null), null);
+		model = Caster.toStringTrim(props.remove(KeyConstants._model, null), null);
 		if (Util.isEmpty(model, true)) {
 			// nice to have
 			String appendix = "";
@@ -238,18 +238,24 @@ public final class OpenAIEngine extends AIEngineSupport implements AIEngineFile 
 		}
 
 		// temperature
-		temperature = Caster.toDouble(properties.get(KeyConstants._temperature, null), null);
+		temperature = Caster.toDouble(props.remove(KeyConstants._temperature, null), null);
 		if (temperature != null && (temperature < 0D || temperature > 1D)) {
 			throw new ApplicationException("temperature has to be a number between 0 and 1, now it is [" + temperature + "]");
 		}
 
 		// message
-		systemMessage = Caster.toStringTrim(properties.get(KeyConstants._message, null), null);
+		systemMessage = Caster.toStringTrim(props.remove(KeyConstants._message, null), null);
 		if (!Util.isEmpty(systemMessage, true)) systemMessage = systemMessage.trim();
 
 		// validate
-		boolean validate = Caster.toBooleanValue(properties.get(KeyConstants._validate, null), false);
+		boolean validate = Caster.toBooleanValue(props.remove(KeyConstants._validate, null), false);
 		if (validate) AIUtil.valdate(this, getConnectTimeout(), getSocketTimeout());
+
+		// headers
+		headers = toHeaders(Caster.toStruct(props.remove("headers", null), null));
+
+		this.custom = props;
+
 		return this;
 	}
 

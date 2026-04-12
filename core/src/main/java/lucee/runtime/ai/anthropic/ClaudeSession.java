@@ -2,7 +2,9 @@ package lucee.runtime.ai.anthropic;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map.Entry;
 
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
@@ -36,6 +38,7 @@ import lucee.runtime.listener.SerializationSettings;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
+import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.util.KeyConstants;
@@ -108,6 +111,19 @@ public final class ClaudeSession extends AISessionSupport {
 		}
 
 		requestBody.set("messages", messages);
+
+		// custom
+		if (engine.custom != null && !engine.custom.isEmpty()) {
+			Iterator<Entry<Key, Object>> it = engine.custom.entryIterator();
+			Entry<Key, Object> e;
+			while (it.hasNext()) {
+				e = it.next();
+				if (!requestBody.containsKey(e.getKey())) {
+					requestBody.set(e.getKey(), e.getValue());
+				}
+			}
+		}
+
 		return requestBody;
 	}
 
@@ -172,6 +188,13 @@ public final class ClaudeSession extends AISessionSupport {
 		post.setHeader("Content-Type", "application/json");
 		post.setHeader("x-api-key", engine.getApiKey());
 		post.setHeader("anthropic-version", engine.getVersion());
+
+		// custom headers
+		if (engine.headers != null) {
+			for (Entry<String, String> e: engine.headers.entrySet()) {
+				post.setHeader(e.getKey(), e.getValue());
+			}
+		}
 
 		// Convert request body to JSON
 		JSONConverter json = new JSONConverter(true, CharsetUtil.UTF8, JSONDateFormat.PATTERN_CF, false);
