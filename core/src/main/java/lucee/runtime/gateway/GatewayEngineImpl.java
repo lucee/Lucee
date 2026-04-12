@@ -20,9 +20,11 @@ package lucee.runtime.gateway;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import org.osgi.framework.BundleException;
 
@@ -73,15 +75,23 @@ public final class GatewayEngineImpl implements GatewayEngine {
 
 	}
 
-	public void addEntries(Config config, GatewayMap entries) throws ClassException, PageException, IOException, BundleException {
+	public synchronized void addEntries(Config config, GatewayMap entries) throws ClassException, PageException, IOException, BundleException {
+		Set<String> toRemove = new HashSet<>(this.entries.keySet());
+
 		Iterator<Entry<String, GatewayEntry>> it = entries.entrySet().iterator();
 		while (it.hasNext()) {
-			addEntry(config, it.next().getValue());
+			addEntry(config, it.next().getValue(), toRemove);
 		}
+
+		// remove entries no longer needed
+		for (String k: toRemove) {
+			removeEntry(k);
+		}
+
 		this.id = entries.getId();
 	}
 
-	private void addEntry(Config config, GatewayEntry ge) throws ClassException, PageException, IOException, BundleException {
+	private void addEntry(Config config, GatewayEntry ge, Set<String> toRemove) throws ClassException, PageException, IOException, BundleException {
 		String id = ge.getId().toLowerCase().trim();
 		GatewayEntry existing = entries.get(id);
 		Gateway g = null;
@@ -90,14 +100,28 @@ public final class GatewayEngineImpl implements GatewayEngine {
 		if (existing == null) {
 			entries.put(id, load(config, ge));
 		}
-		// exist but changed
-		else if (!existing.equals(ge)) {
-			g = existing.getGateway();
-			if (g.getState() == Gateway.RUNNING) g.doStop();
-			entries.put(id, load(config, ge));
+		else {
+			toRemove.remove(id); // exists in some form → not orphaned
+			if (!existing.equals(ge)) {
+				// exist but changed
+				g = existing.getGateway();
+				if (g.getState() == Gateway.RUNNING) g.doStop();
+				entries.put(id, load(config, ge));
+			}
 		}
-		// not changed
-		// else print.out("untouched:"+id);
+	}
+
+	private void removeEntry(String id) {
+		GatewayEntry existing = entries.remove(id);
+		if (existing != null) {
+			Gateway g = existing.getGateway();
+			try {
+				if (g != null && g.getState() == Gateway.RUNNING) g.doStop();
+			}
+			catch (Throwable t) {
+				ExceptionUtil.rethrowIfNecessary(t);
+			}
+		}
 	}
 
 	private GatewayEntry load(Config config, GatewayEntry ge) throws ClassException, PageException, BundleException {
