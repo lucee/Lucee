@@ -306,6 +306,45 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="cache" {
 	}
 
 	// ========================================
+	// Error and Edge Case Tests
+	// ========================================
+
+	public void function testCachedWithinIdWithInvalidObjectThrows() localmode=true {
+		expect( function() {
+			cachedWithinId( "not a cache object" );
+		}).toThrow();
+	}
+
+	public void function testCachedWithinFlushWithInvalidObjectThrows() localmode=true {
+		expect( function() {
+			cachedWithinFlush( "not a cache object" );
+		}).toThrow();
+	}
+
+	public void function testCachedWithinFlushWithInvalidObjectErrorMessage() localmode=true {
+		try {
+			cachedWithinFlush( "not a cache object" );
+			fail( "should have thrown" );
+		}
+		catch ( any e ) {
+			expect( e.message ).toInclude( "CachedWithinFlush" );
+		}
+	}
+
+	public void function testCachedWithinFlushAlreadyFlushedReturnsFalse() localmode=true {
+		// Create a cache entry
+		var firstValue = getCachedValue( 999 );
+
+		// Flush it
+		var first = cachedWithinFlush( getCachedValue, [999] );
+		expect( first ).toBeTrue();
+
+		// Flush again - entry no longer exists
+		var second = cachedWithinFlush( getCachedValue, [999] );
+		expect( second ).toBeFalse();
+	}
+
+	// ========================================
 	// Helper Functions
 	// ========================================
 
