@@ -57,9 +57,8 @@ public class KeyImpl implements Collection.Key, Castable, Comparable, Externaliz
 	// long field (8 bytes)
 	private transient long h64;
 
-	// int fields (4 bytes each) - group together
+	// int field (4 bytes)
 	private transient int wjh;
-	private transient int sfm = -1;
 
 	// static field
 	private static Map<String, Key> keys = new HashMap<String, Key>();
@@ -119,16 +118,6 @@ public class KeyImpl implements Collection.Key, Castable, Comparable, Externaliz
 			wjh = h ^ (h >>> 16);
 		}
 		return wjh;
-	}
-
-	public int slotForMap() {
-		if (sfm == -1) {
-			int h = 0;
-			h ^= hashCode();
-			h ^= (h >>> 20) ^ (h >>> 12);
-			sfm = h ^ (h >>> 7) ^ (h >>> 4);
-		}
-		return sfm;
 	}
 
 	@Override

@@ -66,6 +66,7 @@ import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.KeyImpl;
+import lucee.runtime.type.QueryColumn;
 import lucee.runtime.type.QueryColumnImpl;
 import lucee.runtime.type.QueryImpl;
 import lucee.runtime.type.comparator.QueryComparator;
@@ -301,10 +302,14 @@ public final class QoQ {
 		// Queries being joined need to have the same number of columns and the data is fully
 		// realized, so just copy it over positionally. The column names may not match, but that's
 		// fine.
+		QueryColumn[] srcCols = new QueryColumn[targetColKeys.length];
+		for (int i = 0; i < targetColKeys.length; i++) {
+			srcCols[i] = target.getColumn(targetColKeys[i]);
+		}
 		getStream(target).forEach(throwingIntConsumer(row -> {
 			int newRow = previous.addRow();
 			for (int col = 0; col < targetColKeys.length; col++) {
-				previous.setAt(previousColKeys[col], newRow, target.getColumn(targetColKeys[col]).get(row, null), true);
+				previous.setAt(previousColKeys[col], newRow, srcCols[col].get(row, null), true);
 			}
 		}));
 
