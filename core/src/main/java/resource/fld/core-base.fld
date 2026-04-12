@@ -2621,6 +2621,42 @@ The returned AST uses **neutral, language-agnostic node types** following ESTree
 		</return>
 	</function>
 	
+	<!-- ConfigMerge -->
+	<function>
+	    <name>ConfigMerge</name>
+	    <class>lucee.runtime.functions.system.ConfigMerge</class>
+	    <description>
+	        Merges two Lucee configuration structs (as used in .CFConfig.json) into a new struct,
+	        following Lucee's internal merge rules. The right-hand config takes precedence over the
+	        left-hand config for scalar values, while certain collection types (such as extensions)
+	        are appended rather than replaced. Neither input struct is modified; the result is
+	        returned as a new struct.
+	    </description>
+	    <introduced>7.0.4.5</introduced>
+	    <argument>
+	        <name>left</name>
+	        <type>struct</type>
+	        <required>Yes</required>
+	        <description>
+	            The base configuration struct. Acts as the default/fallback config. This struct is
+	            not modified by the function.
+	        </description>
+	    </argument>
+	    <argument>
+	        <name>right</name>
+	        <type>struct</type>
+	        <required>Yes</required>
+	        <description>
+	            The overriding configuration struct. Scalar values in this struct overwrite
+	            corresponding values in the left struct. Collection types such as extension arrays
+	            are merged by appending to the left struct's values rather than replacing them.
+	            This struct is not modified by the function.
+	        </description>
+	    </argument>
+	    <return>
+	        <type>struct</type>
+	    </return>
+	</function>
 	
 	
 	<!-- ConfigTranslate -->
