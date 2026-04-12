@@ -26,7 +26,7 @@ public final class DummyWSHandler implements WSHandler {
 
 	@Override
 	public String getTypeAsString() {
-		throw notInstalledEL();
+		return "";
 	}
 
 	@Override

@@ -48,6 +48,9 @@ public final class ConcurrentHashMapNullSupport<K, V> implements Map<K, V>, Seri
 	// Sentinel value for null value handling (keys cannot be null, matching legacy behavior)
 	private static final Object NULL_VALUE = new NullValue();
 
+	// Sentinel for getOrDefault — distinct from NULL_VALUE, never stored in the map
+	private static final Object ABSENT = new Object();
+
 	private final ConcurrentHashMap<K, Object> delegate;
 
 	/**
@@ -533,8 +536,8 @@ public final class ConcurrentHashMapNullSupport<K, V> implements Map<K, V>, Seri
 
 	@Override
 	public V getOrDefault(Object key, V defaultValue) {
-		V v = get(key);
-		return v != null || containsKey(key) ? v : defaultValue;
+		Object raw = delegate.getOrDefault(key, ABSENT);
+		return raw == ABSENT ? defaultValue : unwrapValue(raw);
 	}
 
 	@Override

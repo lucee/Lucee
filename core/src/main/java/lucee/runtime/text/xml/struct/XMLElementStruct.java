@@ -18,7 +18,6 @@
  **/
 package lucee.runtime.text.xml.struct;
 
-import java.lang.reflect.Method;
 
 import org.w3c.dom.Attr;
 import org.w3c.dom.DOMException;
@@ -27,10 +26,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.TypeInfo;
 
-import lucee.runtime.exp.PageRuntimeException;
-import lucee.runtime.op.Caster;
 import lucee.runtime.type.Collection;
-import lucee.runtime.type.util.ArrayUtil;
 
 public class XMLElementStruct extends XMLNodeStruct implements Element {
 
@@ -127,56 +123,24 @@ public class XMLElementStruct extends XMLNodeStruct implements Element {
 		return element.getElementsByTagNameNS(namespaceURI, localName);
 	}
 
-	// used only with java 7, do not set @Override
 	@Override
 	public void setIdAttribute(String name, boolean isId) throws DOMException {
-		// dynamic load to support jre 1.4 and 1.5
-		try {
-			Method m = element.getClass().getMethod("setIdAttribute", new Class[] { name.getClass(), boolean.class });
-			m.invoke(element, new Object[] { name, Caster.toBoolean(isId) });
-		}
-		catch (Exception e) {
-			throw new PageRuntimeException(Caster.toPageException(e));
-		}
+		element.setIdAttribute(name, isId);
 	}
 
-	// used only with java 7, do not set @Override
 	@Override
 	public void setIdAttributeNS(String namespaceURI, String localName, boolean isId) throws DOMException {
-		// dynamic load to support jre 1.4 and 1.5
-		try {
-			Method m = element.getClass().getMethod("setIdAttributeNS", new Class[] { namespaceURI.getClass(), localName.getClass(), boolean.class });
-			m.invoke(element, new Object[] { namespaceURI, localName, Caster.toBoolean(isId) });
-		}
-		catch (Exception e) {
-			throw new PageRuntimeException(Caster.toPageException(e));
-		}
+		element.setIdAttributeNS(namespaceURI, localName, isId);
 	}
 
-	// used only with java 7, do not set @Override
 	@Override
 	public void setIdAttributeNode(Attr idAttr, boolean isId) throws DOMException {
-		// dynamic load to support jre 1.4 and 1.5
-		try {
-			Method m = element.getClass().getMethod("setIdAttributeNode", new Class[] { idAttr.getClass(), boolean.class });
-			m.invoke(element, new Object[] { idAttr, Caster.toBoolean(isId) });
-		}
-		catch (Exception e) {
-			element.setAttributeNodeNS(idAttr);
-		}
+		element.setIdAttributeNode(idAttr, isId);
 	}
 
-	// used only with java 7, do not set @Override
 	@Override
 	public TypeInfo getSchemaTypeInfo() {
-		// dynamic load to support jre 1.4 and 1.5
-		try {
-			Method m = element.getClass().getMethod("getSchemaTypeInfo", new Class[] {});
-			return (TypeInfo) m.invoke(element, ArrayUtil.OBJECT_EMPTY);
-		}
-		catch (Exception e) {
-			throw new PageRuntimeException(Caster.toPageException(e));
-		}
+		return element.getSchemaTypeInfo();
 	}
 
 	/**
