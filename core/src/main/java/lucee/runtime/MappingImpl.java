@@ -35,7 +35,6 @@ import lucee.commons.io.FileUtil;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.Log;
-import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ClassUtil;
@@ -203,7 +202,7 @@ public final class MappingImpl implements Mapping {
 					catch (Throwable t) {
 						ExceptionUtil.rethrowIfNecessary(t);
 						archMod = tmp.lastModified();
-						LogUtil.log(config, "OSGi", t);
+						config.getLog("application").error("OSGi", "failed to load archive [" + tmp + "], archive is ignored", t);
 						tmp = null;
 					}
 
@@ -232,8 +231,7 @@ public final class MappingImpl implements Mapping {
 			if (archiveBundle != null) return archiveBundle.loadClass(className);
 			// else if(archiveClassLoader!=null) return archiveClassLoader.loadClass(className);
 		}
-		catch (ClassNotFoundException e) {
-		}
+		catch (ClassNotFoundException e) {}
 
 		return defaultValue;
 	}

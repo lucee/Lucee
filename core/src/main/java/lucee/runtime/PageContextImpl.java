@@ -2444,7 +2444,7 @@ public final class PageContextImpl extends PageContext {
 				if (!Abort.isSilentAbort(pe)) {
 					forceWrite(getConfig().getDefaultDumpWriter(DumpWriter.DEFAULT_RICH).toString(this, pe.toDumpData(this, 9999, DumpUtil.toDumpProperties()), true));
 					if (errorTemplateExp != null) {
-						LogUtil.log("errortemplate", errorTemplateExp);
+						LogUtil.log(Log.LEVEL_INFO, "errortemplate", "error template failed to render, original exception is exposed directly " + errorTemplateExp.getMessage());
 					}
 				}
 			}
