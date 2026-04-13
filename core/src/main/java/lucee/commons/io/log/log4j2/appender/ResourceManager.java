@@ -68,12 +68,10 @@ public final class ResourceManager extends OutputStreamManager {
 			this.filePermissions = null;
 			this.fileGroup = null;
 			if (filePermissions != null) {
-				LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), Log.LEVEL_WARN, "log-loading",
-						"Posix file attribute permissions defined but it is not supported by this files system.");
+				LogUtil.logGlobal(Log.LEVEL_WARN, "log-loading", "Posix file attribute permissions defined but it is not supported by this files system.");
 			}
 			if (fileGroup != null) {
-				LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), Log.LEVEL_WARN, "log-loading",
-						"Posix file attribute group defined but it is not supported by this files system.");
+				LogUtil.logGlobal(Log.LEVEL_WARN, "log-loading", "Posix file attribute group defined but it is not supported by this files system.");
 			}
 		}
 
@@ -83,7 +81,7 @@ public final class ResourceManager extends OutputStreamManager {
 		else {
 			this.fileOwner = null;
 			if (fileOwner != null) {
-				LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), Log.LEVEL_WARN, "log-loading", "Owner file attribute defined but it is not supported by this files system.");
+				LogUtil.logGlobal(Log.LEVEL_WARN, "log-loading", "Owner file attribute defined but it is not supported by this files system.");
 			}
 		}
 	}
@@ -133,7 +131,7 @@ public final class ResourceManager extends OutputStreamManager {
 				res.setLastModified(System.currentTimeMillis());
 			}
 			catch (Exception ex) {
-				LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), Log.LEVEL_WARN, "log-loading", "Unable to set current file time for " + filename);
+				LogUtil.logGlobal(Log.LEVEL_WARN, "log-loading", "Unable to set current file time for " + filename);
 			}
 			writeHeader(os);
 		}
@@ -372,7 +370,7 @@ public final class ResourceManager extends OutputStreamManager {
 				return rm;
 			}
 			catch (final IOException ex) {
-				LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), Log.LEVEL_ERROR, "log-loading", "FileManager (" + path + ") " + ex);
+				LogUtil.logGlobal(Log.LEVEL_ERROR, "log-loading", "FileManager (" + path + ") " + ex);
 			}
 			return null;
 		}

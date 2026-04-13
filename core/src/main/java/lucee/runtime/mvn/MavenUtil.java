@@ -49,7 +49,6 @@ import lucee.runtime.config.maven.MavenUpdateProvider;
 import lucee.runtime.config.maven.MavenUpdateProvider.Repository;
 import lucee.runtime.config.maven.RepoReader;
 import lucee.runtime.config.maven.Version;
-import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.mvn.POMReader.Dependency;
 import lucee.runtime.op.Caster;
@@ -576,7 +575,7 @@ public final class MavenUtil {
 
 					int policy = ConfigUtil.getMavenDownloadPolicy();
 					if (policy != ConfigPro.MAVEN_DOWNLOAD_POLICY_IGNORE) {
-						LogUtil.log(ConfigUtil.getConfigServerImpl(ThreadLocalPageContext.getConfig()).getMavenDownloadPolicyLogLevel(), "maven",
+						LogUtil.log(ConfigUtil.getConfigServerImpl().getMavenDownloadPolicyLogLevel(), "maven",
 								"Downloading Maven artifact [" + pom.getGroupId() + ":" + pom.getArtifactId() + ":" + pom.getVersion() + "] " + "(type: " + type
 										+ "). Maven download policy is set to '" + (policy == ConfigPro.MAVEN_DOWNLOAD_POLICY_ERROR ? "error" : "warn") + "'. "
 										+ "To change this behavior, update your .CFConfig.json: "

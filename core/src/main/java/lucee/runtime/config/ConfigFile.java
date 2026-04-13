@@ -15,7 +15,6 @@ import lucee.runtime.converter.ConverterException;
 import lucee.runtime.converter.JSONConverter;
 import lucee.runtime.converter.JSONDateFormat;
 import lucee.runtime.engine.InfoImpl;
-import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.interpreter.JSONExpressionInterpreter;
 import lucee.runtime.listener.SerializationSettings;
@@ -67,7 +66,7 @@ public class ConfigFile {
 			configFile.createNewFile();
 			IOUtil.copy(is, configFile, true);
 		}
-		LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), Log.LEVEL_DEBUG, ConfigFactory.class.getName(), "Written file: [" + configFile + "]");
+		LogUtil.logGlobal(Log.LEVEL_DEBUG, ConfigFactory.class.getName(), "Written file: [" + configFile + "]");
 	}
 
 	/////////////////// Helper methods /////////////////

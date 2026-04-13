@@ -673,6 +673,22 @@ public final class ConfigUtil {
 		return CFMLEngineFactory.getInstance();
 	}
 
+	public static CFMLEngine getCFMLEngine() {
+		if (ConfigServerImpl.instance != null) return ConfigServerImpl.instance.getEngine();
+		return CFMLEngineFactory.getInstance();
+	}
+
+	public static CFMLEngineFactory getCFMLEngineFactory() {
+		try {
+			if (ConfigServerImpl.instance != null) return ConfigServerImpl.instance.getEngine().getCFMLEngineFactory();
+			return CFMLEngineFactory.getInstance().getCFMLEngineFactory();
+		}
+		catch (RuntimeException e) {
+			if (CFMLEngineImpl.FACTORY() != null) return CFMLEngineImpl.FACTORY();
+			throw e;
+		}
+	}
+
 	public static CFMLEngineFactory getCFMLEngineFactory(Config config) {
 		try {
 			if (config instanceof ConfigWeb) return ((ConfigWeb) config).getFactory().getEngine().getCFMLEngineFactory();
@@ -1628,11 +1644,16 @@ public final class ConfigUtil {
 
 	}
 
+	public static ConfigServerImpl getConfigServerImpl() {
+		if (ConfigServerImpl.instance != null) return ConfigServerImpl.instance;
+
+		throw new RuntimeException("ConfigServerImpl not defined");
+	}
+
 	public static ConfigServerImpl getConfigServerImpl(Config config) {
 		if (config instanceof ConfigServerImpl) return (ConfigServerImpl) config;
 		if (config instanceof ConfigWebImpl) return ((ConfigWebImpl) config).getConfigServerImpl();
-		// MUST remove
-		throw new RuntimeException("getConfigServerImpl: " + (config == null ? "null" : config.getClass().getName()));
+		return getConfigServerImpl();
 	}
 
 	public static ConfigServerImpl getConfigServerImpl(PageContext pc) {
@@ -1658,7 +1679,7 @@ public final class ConfigUtil {
 		try {
 			CFMLEngine eng = CFMLEngineFactory.getInstance();
 			if (eng != null && eng.uptime() > 0) {
-				return ConfigUtil.getConfigServerImpl(ThreadLocalPageContext.getConfig()).getMavenDownloadPolicyRuntime();
+				return ConfigUtil.getConfigServerImpl().getMavenDownloadPolicyRuntime();
 			}
 		}
 		catch (Exception e) {

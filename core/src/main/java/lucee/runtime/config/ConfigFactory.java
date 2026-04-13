@@ -222,7 +222,7 @@ public abstract class ConfigFactory {
 				Resource configDir = configFile.getParentResource();
 				while ((bugFile = configDir.getRealResource("lucee-" + type + "." + (count++) + ".buggy")).exists()) {}
 
-				LogUtil.log(ThreadLocalPageContext.getConfig(), Log.LEVEL_ERROR, ConfigFactory.class.getName(),
+				LogUtil.log(Log.LEVEL_ERROR, ConfigFactory.class.getName(),
 						"The configuration file [" + configFile
 								+ "] contained syntax errors and could not be read. A new configuration file has been created, and the invalid file has been renamed to [" + bugFile
 								+ "].");
@@ -1024,10 +1024,10 @@ public abstract class ConfigFactory {
 			try {
 				file.createNewFile();
 				IOUtil.copy(is, file, true);
-				LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), Log.LEVEL_DEBUG, ConfigFactory.class.getName(), "Written file: [" + file + "]");
+				LogUtil.logGlobal(Log.LEVEL_DEBUG, ConfigFactory.class.getName(), "Written file: [" + file + "]");
 			}
 			catch (Exception e) {
-				LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), ConfigFactory.class.getName(), e);
+				LogUtil.logGlobal(ConfigFactory.class.getName(), e);
 			}
 		}
 	}
@@ -1070,7 +1070,7 @@ public abstract class ConfigFactory {
 	static void delete(Resource dbDir, String name) {
 		Resource f = dbDir.getRealResource(name);
 		if (f.exists()) {
-			LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), Log.LEVEL_INFO, ConfigFactory.class.getName(), "Delete file: [" + f + "]");
+			LogUtil.logGlobal(Log.LEVEL_INFO, ConfigFactory.class.getName(), "Delete file: [" + f + "]");
 
 			f.delete();
 		}

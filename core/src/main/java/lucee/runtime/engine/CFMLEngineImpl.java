@@ -927,14 +927,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 	private ConfigServerImpl getExistingConfigServerImpl() {
 		if (configServer != null) return configServer;
 
-		// if in process to be build, this may only exists with the thread yet
-		Config config = ThreadLocalPageContext.getConfig();
-		if (config instanceof ConfigServerImpl) return (ConfigServerImpl) config;
-		if (config instanceof ConfigWebImpl) {
-			return ((ConfigWebImpl) config).getConfigServerImpl();
-		}
-
-		return null;
+		return (ConfigServerImpl) ThreadLocalPageContext.getConfig();
 	}
 
 	// used by older loaders with reflection, to not delete

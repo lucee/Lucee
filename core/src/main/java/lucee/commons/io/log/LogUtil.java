@@ -143,7 +143,7 @@ public final class LogUtil {
 			if (Log.LEVEL_ERROR == logLevel) log.error(type, t);
 			else log.log(logLevel, type, t);
 		}
-		else logGlobal(ThreadLocalPageContext.getConfig(), logLevel, type, ExceptionUtil.getStacktrace(t, true));
+		else logGlobal(logLevel, type, ExceptionUtil.getStacktrace(t, true));
 	}
 
 	@Deprecated
@@ -198,7 +198,7 @@ public final class LogUtil {
 		Log log = ThreadLocalPageContext.getLog(logName);
 		if (log != null) log.log(level, type, msg);
 		else {
-			logGlobal(ThreadLocalPageContext.getConfig(), level, logName + ":" + type, msg);
+			logGlobal(level, logName + ":" + type, msg);
 		}
 	}
 
@@ -241,10 +241,22 @@ public final class LogUtil {
 		}
 	}
 
+	public static void logGlobal(int level, String type, String msg) {
+		CFMLEngineFactory factory = null;
+		try {
+			factory = ConfigUtil.getCFMLEngineFactory();
+		}
+		catch (RuntimeException re) {
+			aprint.e(levelToString(level, "unknown") + ":" + type + ":" + msg);
+			return;
+		}
+		logGlobal(factory, level, type, msg);
+	}
+
 	public static void logGlobal(Config config, int level, String type, String msg) {
 		CFMLEngineFactory factory = null;
 		try {
-			factory = ConfigUtil.getCFMLEngineFactory(config);
+			factory = ConfigUtil.getCFMLEngineFactory();
 		}
 		catch (RuntimeException re) {
 			aprint.e(levelToString(level, "unknown") + ":" + type + ":" + msg);
@@ -297,8 +309,16 @@ public final class LogUtil {
 		logGlobal(factory, Log.LEVEL_ERROR, type, ExceptionUtil.getStacktrace(t, true));
 	}
 
+	public static void logGlobal(String type, Throwable t) {
+		logGlobal(Log.LEVEL_ERROR, type, ExceptionUtil.getStacktrace(t, true));
+	}
+
 	public static void logGlobal(Config config, String type, Throwable t) {
 		logGlobal(config, Log.LEVEL_ERROR, type, ExceptionUtil.getStacktrace(t, true));
+	}
+
+	public static void logGlobal(String type, String msg, Throwable t) {
+		logGlobal(Log.LEVEL_ERROR, type, msg + ";" + ExceptionUtil.getStacktrace(t, true));
 	}
 
 	public static void logGlobal(Config config, String type, String msg, Throwable t) {
@@ -366,8 +386,7 @@ public final class LogUtil {
 			}
 			else return res.getAbsolutePath();
 		}
-		catch (Exception e) {
-		}
+		catch (Exception e) {}
 		return template;
 	}
 

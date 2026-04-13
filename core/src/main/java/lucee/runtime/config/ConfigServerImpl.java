@@ -247,7 +247,7 @@ public final class ConfigServerImpl implements ConfigServer, ConfigPro {
 	public static final ClassDefinition<DummyORMEngine> DEFAULT_ORM_ENGINE = new ClassDefinitionImpl<DummyORMEngine>(DummyORMEngine.class);
 	private static final long FIVE_SECONDS = 5000;
 
-	public static Config instance;
+	public static ConfigServerImpl instance;
 
 	//////////////////////////
 	// no need to expose // TODO still use Prop

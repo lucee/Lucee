@@ -147,7 +147,7 @@ public final class GetTagData implements Function {
 					_attr.set(KeyConstants._description, Caster.toString(src.get(KeyConstants._hint, "")).replaceAll("\\n\\s+", "\n"));
 					_attr.set(KeyConstants._type, src.get(KeyConstants._type, "any"));
 					_attr.set(KeyConstants._required, Caster.toBoolean(src.get(KeyConstants._required, ""), null));
-					_attr.set(KeyConstants._nameWithCase, Caster.toString(src.get(KeyConstants._nameWithCase, ""),""));
+					_attr.set(KeyConstants._nameWithCase, Caster.toString(src.get(KeyConstants._nameWithCase, ""), ""));
 					_attr.set("scriptSupport", "none");
 					_attrs.setEL(e.getKey(), _attr);
 
@@ -219,7 +219,7 @@ public final class GetTagData implements Function {
 
 		// LDEV-5901: Add attribute groups
 		lucee.runtime.type.Array groups = new lucee.runtime.type.ArrayImpl();
-		for (TagLibTagAttrGroup group : tag.getAttributeGroups()) {
+		for (TagLibTagAttrGroup group: tag.getAttributeGroups()) {
 			Struct grp = new StructImpl(StructImpl.TYPE_LINKED);
 			grp.set(KeyConstants._name, group.getName());
 			grp.set("label", group.getLabel());

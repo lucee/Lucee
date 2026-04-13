@@ -687,7 +687,7 @@ public final class MavenUpdateProvider {
 					+ "Alternatively, place the artifact manually in your local Maven repository (~/.m2/repository).");
 		}
 		else if (policy == ConfigPro.MAVEN_DOWNLOAD_POLICY_WARN) {
-			LogUtil.log(ConfigUtil.getConfigServerImpl(ThreadLocalPageContext.getConfig()).getMavenDownloadPolicyLogLevel(), "maven", "Downloading Maven artifact from [" + url
+			LogUtil.log(ConfigUtil.getConfigServerImpl().getMavenDownloadPolicyLogLevel(), "maven", "Downloading Maven artifact from [" + url
 					+ "]. Maven download policy is set to 'warn'. " + "Set 'lucee.maven.download.policy' to 'error' to block downloads " + "or 'ignore' to suppress this warning.");
 		}
 	}

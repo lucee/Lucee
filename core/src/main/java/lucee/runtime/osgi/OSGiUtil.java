@@ -1337,7 +1337,7 @@ public final class OSGiUtil {
 	 * @return
 	 */
 	public static List<BundleDefinition> getBundleDefinitions() {
-		CFMLEngine engine = ConfigUtil.getEngine(ThreadLocalPageContext.getConfig());
+		CFMLEngine engine = ConfigUtil.getCFMLEngine();
 		return getBundleDefinitions(engine.getBundleContext());
 	}
 
@@ -1357,7 +1357,7 @@ public final class OSGiUtil {
 
 		}
 		// is it in jar directory but not loaded
-		CFMLEngineFactory factory = ConfigUtil.getCFMLEngineFactory(ThreadLocalPageContext.getConfig());
+		CFMLEngineFactory factory = ConfigUtil.getCFMLEngineFactory();
 		try {
 			File[] children = factory.getBundleDirectory().listFiles(JAR_EXT_FILTER);
 			BundleFile bf;
@@ -1377,7 +1377,7 @@ public final class OSGiUtil {
 	}
 
 	public static Bundle getBundleLoaded(String name, Version version, Bundle defaultValue) {
-		CFMLEngine engine = ConfigUtil.getEngine(ThreadLocalPageContext.getConfig());
+		CFMLEngine engine = ConfigUtil.getCFMLEngine();
 		return getBundleLoaded(engine.getBundleContext(), name, version, defaultValue);
 	}
 
@@ -1396,7 +1396,7 @@ public final class OSGiUtil {
 	}
 
 	public static Bundle loadBundleFromLocal(String name, Version version, List<Resource> addional, boolean loadIfNecessary, Bundle defaultValue) {
-		CFMLEngine engine = ConfigUtil.getEngine(ThreadLocalPageContext.getConfig());
+		CFMLEngine engine = ConfigUtil.getCFMLEngine();
 		return loadBundleFromLocal(engine.getBundleContext(), name, version, addional, loadIfNecessary, defaultValue);
 	}
 
@@ -1414,7 +1414,7 @@ public final class OSGiUtil {
 
 		// is it in jar directory but not loaded
 
-		CFMLEngineFactory factory = ConfigUtil.getCFMLEngineFactory(ThreadLocalPageContext.getConfig());
+		CFMLEngineFactory factory = ConfigUtil.getCFMLEngineFactory();
 		BundleFile bf = _getBundleFile(factory, name, version, addional, null);
 		if (bf != null) {
 			try {

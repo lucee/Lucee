@@ -19,7 +19,6 @@ import org.apache.logging.log4j.core.util.CloseShieldWriter;
 
 import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
-import lucee.runtime.engine.ThreadLocalPageContext;
 
 /**
  * Appends log events to a {@link Writer}.
@@ -109,7 +108,7 @@ public final class ConsoleAppender extends AbstractWriterAppender<WriterManager>
 	@PluginFactory
 	public static ConsoleAppender createAppender(StringLayout layout, final Filter filter, final Writer target, final String name, final boolean follow, final boolean ignore) {
 		if (name == null) {
-			LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), Log.LEVEL_ERROR, "log-loading", "No name provided for WriterAppender");
+			LogUtil.logGlobal(Log.LEVEL_ERROR, "log-loading", "No name provided for WriterAppender");
 			return null;
 		}
 		if (layout == null) {

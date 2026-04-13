@@ -46,9 +46,7 @@ import lucee.commons.lang.StringUtil;
 import lucee.loader.util.Util;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigUtil;
-import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.db.ClassDefinition;
-import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
@@ -79,15 +77,12 @@ public final class Log4j2Engine extends LogEngine {
 		PrintWriter pw = errorStream ? config.getErrWriter() : config.getOutWriter();
 		if (pw == null) pw = new PrintWriter(errorStream ? System.err : System.out);
 
-		return _getLogger(config,
-				getConsoleAppender(createFullName(ThreadLocalPageContext.getConfig(), name), pw, PatternLayout.newBuilder().withPattern(DEFAULT_PATTERN).build(), true), name,
-				level);
+		return _getLogger(config, getConsoleAppender(name, pw, PatternLayout.newBuilder().withPattern(DEFAULT_PATTERN).build(), true), name, level);
 	}
 
 	@Override
 	public Log getResourceLog(Resource res, Charset charset, String name, int level, int timeout, RetireListener listener, boolean async) throws PageException {
-		Appender a = toResourceAppender(createFullName(ThreadLocalPageContext.getConfig(), name), res, new ClassicLayout(), charset, DEFAULT_MAX_BACKUP_INDEX,
-				DEFAULT_MAX_FILE_SIZE, timeout, true);
+		Appender a = toResourceAppender(name, res, new ClassicLayout(), charset, DEFAULT_MAX_BACKUP_INDEX, DEFAULT_MAX_FILE_SIZE, timeout, true);
 		if (async) {
 			a = new TaskAppender(config, a);
 		}
@@ -351,7 +346,7 @@ public final class Log4j2Engine extends LogEngine {
 					LogUtil.logGlobal(config, "loading-log", e);
 					l = new ClassicLayout();
 				}
-				appender = getConsoleAppender(createFullName(config, name), pw, l, true);
+				appender = getConsoleAppender(name, pw, l, true);
 			}
 			else if (DatasourceAppender.class.getName().equalsIgnoreCase(cd.getClassName())) {
 				// datasource
@@ -387,7 +382,7 @@ public final class Log4j2Engine extends LogEngine {
 				appenderArgs.put("custom", custom);
 				// load appender
 				try {
-					appender = getDatasourceAppender(config, createFullName(config, name), dsn, user, pass, table, custom, true);
+					appender = getDatasourceAppender(config, name, dsn, user, pass, table, custom, true);
 				}
 				catch (Exception e) {
 					LogUtil.logGlobal(config, "loading-log", e);
@@ -429,7 +424,7 @@ public final class Log4j2Engine extends LogEngine {
 				int timeout = Caster.toIntValue(appenderArgs.get("timeout"), 60); // timeout in seconds
 				appenderArgs.put("timeout", Caster.toString(timeout));
 				try {
-					appender = toResourceAppender(createFullName(config, name), res, toLayout(layout), charset, maxfiles, maxfilesize, timeout, true);
+					appender = toResourceAppender(name, res, toLayout(layout), charset, maxfiles, maxfilesize, timeout, true);
 				}
 				catch (Exception e) {
 					LogUtil.logGlobal(config, "loading-log", e);
@@ -483,7 +478,7 @@ public final class Log4j2Engine extends LogEngine {
 				appender = null;
 				l = new ClassicLayout();
 			} // l = new ClassicLayout();
-			appender = getConsoleAppender(createFullName(config, name), pw, l, true);
+			appender = getConsoleAppender(name, pw, l, true);
 		}
 
 		return appender;
@@ -500,7 +495,7 @@ public final class Log4j2Engine extends LogEngine {
 			init();
 		}
 
-		String fullname = createFullName(config, name);
+		String fullname = name;
 
 		// fullname
 
@@ -529,14 +524,8 @@ public final class Log4j2Engine extends LogEngine {
 		return la;
 	}
 
-	private static String createFullName(Config config, String name) {
-		String fullname = name;
-		if (config instanceof ConfigWeb) {
-			ConfigWeb cw = (ConfigWeb) config;
-			return "web." + cw.getLabel() + "." + name;
-		}
-		if (config == null) return name;
-		return fullname = "server." + name;
+	private static String createFullName(String name) {
+		return name;
 	}
 
 	private static void init() {
@@ -635,8 +624,7 @@ public final class Log4j2Engine extends LogEngine {
 			PrintWriter pw;
 			if (config.getErrWriter() == null) pw = new PrintWriter(System.err);
 			else pw = config.getErrWriter();
-			fallback = getConsoleAppender(createFullName(ThreadLocalPageContext.getConfig(), "fallback"), pw, PatternLayout.newBuilder().withPattern(DEFAULT_PATTERN).build(),
-					true);
+			fallback = getConsoleAppender("fallback", pw, PatternLayout.newBuilder().withPattern(DEFAULT_PATTERN).build(), true);
 		}
 		return fallback;
 	}

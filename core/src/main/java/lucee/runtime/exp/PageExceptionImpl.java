@@ -454,7 +454,7 @@ public abstract class PageExceptionImpl extends PageException {
 			tagContext.appendEL(struct);
 		}
 		catch (Exception e) {
-			LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), PageException.class.getName(), e);
+			LogUtil.logGlobal(PageException.class.getName(), e);
 		}
 	}
 

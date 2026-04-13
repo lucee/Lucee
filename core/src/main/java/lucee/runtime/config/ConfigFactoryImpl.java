@@ -208,43 +208,40 @@ public final class ConfigFactoryImpl extends ConfigFactory {
 			boolean hasConfigNew = configFileNew.exists() && configFileNew.length() > 0;
 
 			if (!hasConfigNew) {
-				LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), Log.LEVEL_INFO, ConfigFactoryImpl.class.getName(),
-						"has no json server context config [" + configFileNew + "]");
+				LogUtil.logGlobal(Log.LEVEL_INFO, ConfigFactoryImpl.class.getName(), "has no json server context config [" + configFileNew + "]");
 				hasConfigOld = configFileOld.exists() && configFileOld.length() > 0;
-				LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), Log.LEVEL_INFO, ConfigFactoryImpl.class.getName(),
-						"has " + (hasConfigOld ? "" : "no ") + "xml server context config [" + configFileOld + "]");
+				LogUtil.logGlobal(Log.LEVEL_INFO, ConfigFactoryImpl.class.getName(), "has " + (hasConfigOld ? "" : "no ") + "xml server context config [" + configFileOld + "]");
 			}
 			ConfigServerImpl config = existing != null ? existing : new ConfigServerImpl(engine, initContextes, contextes, configDir, configFileNew, ui, essentialOnly, doNew);
 			ThreadLocalConfigServer.register(config);
 			// translate to new
 			if (!hasConfigNew) {
 				if (hasConfigOld) {
-					LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), Log.LEVEL_INFO, ConfigFactoryImpl.class.getName(), "convert server context xml config to json");
+					LogUtil.logGlobal(Log.LEVEL_INFO, ConfigFactoryImpl.class.getName(), "convert server context xml config to json");
 					try {
 						translateConfigFile(config, configFileOld, configFileNew, "multi", true);
 					}
 					catch (IOException e) {
-						LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), ConfigFactoryImpl.class.getName(), e);
+						LogUtil.logGlobal(ConfigFactoryImpl.class.getName(), e);
 						throw e;
 					}
 					catch (ConverterException e) {
-						LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), ConfigFactoryImpl.class.getName(), e);
+						LogUtil.logGlobal(ConfigFactoryImpl.class.getName(), e);
 						throw e;
 					}
 					catch (SAXException e) {
-						LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), ConfigFactoryImpl.class.getName(), e);
+						LogUtil.logGlobal(ConfigFactoryImpl.class.getName(), e);
 						throw e;
 					}
 				}
 				// create config file
 				else {
-					LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), Log.LEVEL_INFO, ConfigFactoryImpl.class.getName(),
-							"create new server context json config file [" + configFileNew + "]");
+					LogUtil.logGlobal(Log.LEVEL_INFO, ConfigFactoryImpl.class.getName(), "create new server context json config file [" + configFileNew + "]");
 					ConfigFile.createConfigFile("server", configFileNew);
 					hasConfigNew = true;
 				}
 			}
-			LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), Log.LEVEL_INFO, ConfigFactoryImpl.class.getName(), "load config file");
+			LogUtil.logGlobal(Log.LEVEL_INFO, ConfigFactoryImpl.class.getName(), "load config file");
 			Struct root = loadDocumentCreateIfFails(config, configFileNew, "server");
 			config.setRoot(root);
 			// admin mode
@@ -721,9 +718,9 @@ public final class ConfigFactoryImpl extends ConfigFactory {
 		}
 		catch (Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);
-			LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), Log.LEVEL_ERROR, ConfigFactoryImpl.class.getName(), resource);
-			LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), Log.LEVEL_ERROR, ConfigFactoryImpl.class.getName(), file + "");
-			LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), ConfigFactoryImpl.class.getName(), t);
+			LogUtil.logGlobal(Log.LEVEL_ERROR, ConfigFactoryImpl.class.getName(), resource);
+			LogUtil.logGlobal(Log.LEVEL_ERROR, ConfigFactoryImpl.class.getName(), file + "");
+			LogUtil.logGlobal(ConfigFactoryImpl.class.getName(), t);
 		}
 	}
 
@@ -744,9 +741,9 @@ public final class ConfigFactoryImpl extends ConfigFactory {
 			long srcSize = barr.length;
 			if (srcSize == trgSize) return;
 
-			LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), Log.LEVEL_DEBUG, ConfigFactoryImpl.class.getName(), "update file:" + file);
-			LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), Log.LEVEL_DEBUG, ConfigFactoryImpl.class.getName(), " - source:" + srcSize);
-			LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), Log.LEVEL_DEBUG, ConfigFactoryImpl.class.getName(), " - target:" + trgSize);
+			LogUtil.logGlobal(Log.LEVEL_DEBUG, ConfigFactoryImpl.class.getName(), "update file:" + file);
+			LogUtil.logGlobal(Log.LEVEL_DEBUG, ConfigFactoryImpl.class.getName(), " - source:" + srcSize);
+			LogUtil.logGlobal(Log.LEVEL_DEBUG, ConfigFactoryImpl.class.getName(), " - target:" + trgSize);
 
 		}
 		else file.createNewFile();
@@ -1215,7 +1212,7 @@ public final class ConfigFactoryImpl extends ConfigFactory {
 					src.copyTo(trg, false);
 				}
 				catch (IOException e) {
-					LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), ConfigFactoryImpl.class.getName(), e);
+					LogUtil.logGlobal(ConfigFactoryImpl.class.getName(), e);
 				}
 			}
 

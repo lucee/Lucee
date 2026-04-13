@@ -99,10 +99,10 @@ import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.UDF;
 import lucee.runtime.type.UDFGSProperty;
 import lucee.runtime.type.UDFGetterProperty;
-import lucee.runtime.type.UDFSetterProperty;
 import lucee.runtime.type.UDFImpl;
 import lucee.runtime.type.UDFPlus;
 import lucee.runtime.type.UDFProperties;
+import lucee.runtime.type.UDFSetterProperty;
 import lucee.runtime.type.cfc.ComponentEntryIterator;
 import lucee.runtime.type.cfc.ComponentValueIterator;
 import lucee.runtime.type.dt.DateTime;
@@ -764,10 +764,10 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 		// LDEV-6236 accessor bypass — skip full UDF dispatch for generated getters/setters
 		if (!((PageContextImpl) pc).hasDebugOptions(ConfigPro.DEBUG_TEMPLATE)) {
 			if (udf instanceof UDFGetterProperty) {
-				return ((UDFGetterProperty) udf).callDirect( this, pc );
+				return ((UDFGetterProperty) udf).callDirect(this, pc);
 			}
 			if (udf instanceof UDFSetterProperty && args != null) {
-				return ((UDFSetterProperty) udf).callDirect( this, pc, args );
+				return ((UDFSetterProperty) udf).callDirect(this, pc, args);
 			}
 		}
 
