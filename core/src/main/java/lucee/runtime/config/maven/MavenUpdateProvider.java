@@ -157,6 +157,12 @@ public final class MavenUpdateProvider {
 		return merge(repoSnapshots, repoReleases, DEFAULT_REPOSITORIES_ALL);
 	}
 
+	public static Collection<Repository> getReleaseRepositories(Config config) {
+		ConfigPro cp = (ConfigPro) ThreadLocalPageContext.getConfig(config);
+		Repository[] repoReleases = cp == null ? DEFAULT_REPOSITORIES_RELEASES : cp.getMavenRepository();
+		return merge(repoReleases, DEFAULT_REPOSITORIES_ALL);
+	}
+
 	public MavenUpdateProvider(Repository[] repositories, String group, String artifact) {
 		this(Arrays.asList(repositories), group, artifact);
 	}
@@ -223,6 +229,17 @@ public final class MavenUpdateProvider {
 
 	public List<Version> list() throws IOException, GeneralSecurityException, SAXException, InterruptedException {
 		return list(repos, group, artifact);
+	}
+
+	public static List<Version> list(Collection<Repository> repos, String group, String artifact, int type) throws IOException, GeneralSecurityException, SAXException,
+			InterruptedException {
+		List<Repository> filtered = new ArrayList<>();
+		for (Repository repo: repos) {
+			if (type == TYPE_ALL || repo.type == TYPE_ALL || repo.type == type) {
+				filtered.add(repo);
+			}
+		}
+		return list(filtered, group, artifact);
 	}
 
 	public static List<Version> list(Collection<Repository> repos, String group, String artifact) throws IOException, GeneralSecurityException, SAXException, InterruptedException {
@@ -292,7 +309,7 @@ public final class MavenUpdateProvider {
 		assertDownloadAllowed(strURL);
 		if (!StringUtil.isEmpty(strURL)) {
 			// Use HTTPDownloader with DEBUG logging for Maven operations
-			return HTTPEngine.get(new URL(strURL), null, null, CONNECTION_TIMEOUT, READ_TIMEOUT, null, null, false);
+			return HTTPEngine.get(new URL(strURL), null, null, CONNECTION_TIMEOUT, READ_TIMEOUT, null, null, true);
 		}
 		return getFileStreamFromZipStream(getLoader(version));
 	}
@@ -307,7 +324,7 @@ public final class MavenUpdateProvider {
 		// Use HTTPDownloader with DEBUG logging for Maven operations
 		URL url = new URL(strURL);
 		assertDownloadAllowed(strURL);
-		return HTTPEngine.get(url, null, null, CONNECTION_TIMEOUT, READ_TIMEOUT, null, null, false);
+		return HTTPEngine.get(url, null, null, CONNECTION_TIMEOUT, READ_TIMEOUT, null, null, true);
 	}
 
 	/*
@@ -319,9 +336,8 @@ public final class MavenUpdateProvider {
 	 */
 
 	public Map<String, Object> detail(Version version, String requiredArtifactExtension, boolean throwException) throws IOException, SAXException, PageException {
-		// SNAPSHOT - snapshot have a more complicated structure, ebcause there can be udaptes/multiple
+			// SNAPSHOT - snapshot have a more complicated structure, ebcause there can be udaptes/multiple
 		// versions
-
 		boolean isSnap = version.is(Version.SNAPSHOT);
 
 		if (requiredArtifactExtension == null) requiredArtifactExtension = "jar";
@@ -362,7 +378,7 @@ public final class MavenUpdateProvider {
 					{
 						String strURL = repo.url + g + "/" + a + "/" + v + "/" + a + "-" + v + "." + requiredArtifactExtension;
 						URL urlMain = new URL(strURL);
-						HTTPDownloaderHeadResponse rsp = HTTPEngine.head(urlMain, CONNECTION_TIMEOUT, CONNECTION_TIMEOUT, false);
+						HTTPDownloaderHeadResponse rsp = HTTPEngine.head(urlMain, CONNECTION_TIMEOUT, CONNECTION_TIMEOUT, true);
 						if (rsp != null & validSatusCode(rsp.getStatusCode())) {
 							Map<String, Object> result = new LinkedHashMap<>();
 
@@ -378,7 +394,7 @@ public final class MavenUpdateProvider {
 							// pom
 							{
 								URL url = new URL(repo.url + g + "/" + a + "/" + v + "/" + a + "-" + v + ".pom");
-								rsp = HTTPEngine.head(url, CONNECTION_TIMEOUT, CONNECTION_TIMEOUT, false);
+								rsp = HTTPEngine.head(url, CONNECTION_TIMEOUT, CONNECTION_TIMEOUT, true);
 								if (rsp != null & validSatusCode(rsp.getStatusCode())) {
 									result.put("pom", url.toExternalForm());
 								}
@@ -386,7 +402,7 @@ public final class MavenUpdateProvider {
 							// lco
 							{
 								URL url = new URL(repo.url + g + "/" + a + "/" + v + "/" + a + "-" + v + ".lco");
-								rsp = HTTPEngine.head(url, CONNECTION_TIMEOUT, CONNECTION_TIMEOUT, false);
+								rsp = HTTPEngine.head(url, CONNECTION_TIMEOUT, CONNECTION_TIMEOUT, true);
 								if (rsp != null & validSatusCode(rsp.getStatusCode())) {
 									result.put("lco", url.toExternalForm());
 								}
