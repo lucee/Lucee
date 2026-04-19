@@ -1090,6 +1090,9 @@ public final class PageContextImpl extends PageContext {
 			DebugEntryTemplate debugEntry = debugger.getEntry(this, currentPage.getPageSource());
 			try {
 				addPageSource(currentPage.getPageSource(), true);
+				if (ConfigImpl.DEBUGGER) {
+					debuggerFrames.add(new DebuggerFrame(getTopmostDebuggerFrame(), currentPage.getPageSource()));
+				}
 				debugEntry.updateFileLoadTime((System.nanoTime() - time));
 				exeTime = System.nanoTime();
 				currentPage.call(this);
@@ -1113,6 +1116,9 @@ public final class PageContextImpl extends PageContext {
 				long diff = ((System.nanoTime() - exeTime) - (executionTime - currTime));
 				executionTime += (System.nanoTime() - time);
 				debugEntry.updateExeTime(diff);
+				if (ConfigImpl.DEBUGGER && !debuggerFrames.isEmpty()) {
+					debuggerFrames.removeLast();
+				}
 				removeLastPageSource(true);
 			}
 		}
@@ -1122,6 +1128,9 @@ public final class PageContextImpl extends PageContext {
 			if (runOnce && includeOnce.contains(currentPage.getPageSource())) return;
 			try {
 				addPageSource(currentPage.getPageSource(), true);
+				if (ConfigImpl.DEBUGGER) {
+					debuggerFrames.add(new DebuggerFrame(getTopmostDebuggerFrame(), currentPage.getPageSource()));
+				}
 				currentPage.call(this);
 			}
 			catch (Throwable t) {
@@ -1137,6 +1146,9 @@ public final class PageContextImpl extends PageContext {
 			}
 			finally {
 				includeOnce.add(currentPage.getPageSource());
+				if (ConfigImpl.DEBUGGER && !debuggerFrames.isEmpty()) {
+					debuggerFrames.removeLast();
+				}
 				removeLastPageSource(true);
 			}
 		}
@@ -3524,6 +3536,9 @@ public final class PageContextImpl extends PageContext {
 	 * inspect variables in any frame, not just the current one.
 	 */
 	public static final class DebuggerFrame {
+		public enum Kind { UDF, INCLUDE }
+
+		public final Kind kind;
 		public final Local local;
 		public final Argument arguments;
 		public final Variables variables;
@@ -3532,6 +3547,7 @@ public final class PageContextImpl extends PageContext {
 		private volatile int line;
 
 		DebuggerFrame(Local local, Argument arguments, Variables variables, PageSource pageSource, String functionName) {
+			this.kind = Kind.UDF;
 			this.local = local;
 			this.arguments = arguments;
 			this.variables = variables;
@@ -3540,6 +3556,17 @@ public final class PageContextImpl extends PageContext {
 			this.line = 0;
 		}
 
+		DebuggerFrame(DebuggerFrame enclosing, PageSource pageSource) {
+			this.kind = Kind.INCLUDE;
+			this.local = enclosing != null ? enclosing.local : null;
+			this.arguments = enclosing != null ? enclosing.arguments : null;
+			this.variables = enclosing != null ? enclosing.variables : null;
+			this.pageSource = pageSource;
+			this.functionName = null;
+			this.line = 0;
+		}
+
+		public Kind getKind() { return kind; }
 		public int getLine() { return line; }
 		public void setLine(int line) { this.line = line; }
 		public String getFile() { return pageSource != null ? pageSource.getDisplayPath() : null; }
