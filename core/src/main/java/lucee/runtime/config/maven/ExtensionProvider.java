@@ -199,9 +199,6 @@ public class ExtensionProvider {
 					copy(tmp, subfolders);
 					storeToCache(r, tmp);
 				}
-				catch (InterruptedException e) {
-					exceptions.add(e);
-				}
 				catch (IOException e) {
 					exceptions.add(e);
 				}
@@ -373,23 +370,27 @@ public class ExtensionProvider {
 	}
 
 	public Version last(String artifact) throws IOException, GeneralSecurityException, SAXException, InterruptedException {
-		Version last = null;
+		// try release repos first — no point hitting snapshot repos if we find a release
+		List<Version> versions = MavenUpdateProvider.list(this.repos, this.group, artifact, MavenUpdateProvider.TYPE_RELEASE);
 		Version lastRel = null;
-
-		for (Version v: list(artifact)) {
+		for (Version v: versions) {
 			if (!v.is(Version.SNAPSHOT)) {
 				if (lastRel == null || Version.compare(lastRel, v) < 0) {
 					lastRel = v;
 				}
 			}
+		}
+		if (lastRel != null) return lastRel;
 
+		// no release found — fall back to snapshot repos
+		versions = MavenUpdateProvider.list(this.repos, this.group, artifact, MavenUpdateProvider.TYPE_SNAPSHOT);
+		Version last = null;
+		for (Version v: versions) {
 			if (last == null || Version.compare(last, v) < 0) {
 				last = v;
 			}
-
 		}
-
-		return lastRel != null ? lastRel : last;
+		return last;
 	}
 
 	public Map<String, Object> detail(String artifact, Version version) throws PageException, IOException, SAXException {

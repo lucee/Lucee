@@ -38,7 +38,7 @@ public final class PomReader extends DefaultHandler {
 		// Use HTTPDownloader with DEBUG logging for Maven POM reads
 		Reader r = null;
 		try {
-			r = IOUtil.getReader(HTTPEngine.get(url, null, null, MavenUpdateProvider.CONNECTION_TIMEOUT, MavenUpdateProvider.READ_TIMEOUT, null, null, false), (Charset) null);
+			r = IOUtil.getReader(HTTPEngine.get(url, null, null, MavenUpdateProvider.CONNECTION_TIMEOUT, MavenUpdateProvider.READ_TIMEOUT, null, null, true), (Charset) null);
 			init(new InputSource(r));
 		}
 		finally {

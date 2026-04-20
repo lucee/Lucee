@@ -74,7 +74,7 @@ public final class MetadataReader extends DefaultHandler {
 		Reader r = null;
 		try {
 			// Use HTTPDownloader for the actual network call
-			r = IOUtil.getReader(HTTPEngine.get(url, null, null, MavenUpdateProvider.CONNECTION_TIMEOUT, MavenUpdateProvider.READ_TIMEOUT, null, null, false), (Charset) null);
+			r = IOUtil.getReader(HTTPEngine.get(url, null, null, MavenUpdateProvider.CONNECTION_TIMEOUT, MavenUpdateProvider.READ_TIMEOUT, null, null, true), (Charset) null);
 			init(new InputSource(r));
 		}
 		catch (IOException ioe) {
