@@ -53,7 +53,7 @@ public final class DirectoryList {
 
 	public static Object _call(PageContext pc, String path, boolean recurse, int listInfo, Object oFilter, String sort, int type) throws PageException {
 		Resource dir = ResourceUtil.toResourceNotExisting(pc, path);
-		ResourceFilter filter = UDFFilter.createResourceAndResourceNameFilter(oFilter);
+		ResourceFilter filter = UDFFilter.createResourceAndResourceNameFilter(pc, oFilter);
 		return Directory.actionList(pc, dir, null, type, filter, listInfo, recurse, sort);
 	}
 

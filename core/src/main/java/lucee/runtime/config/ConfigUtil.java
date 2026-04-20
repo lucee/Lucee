@@ -146,7 +146,7 @@ public final class ConfigUtil {
 		}
 		catch (IOException ioe) {
 			if (throwError) throw ioe;
-			LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs), ConfigUtil.class.getName(), ioe);
+			LogUtil.logGlobal(ThreadLocalPageContext.getConfigServer(cs), ConfigUtil.class.getName(), ioe);
 		}
 	}
 
@@ -168,7 +168,7 @@ public final class ConfigUtil {
 		}
 		catch (IOException ioe) {
 			if (throwError) throw ioe;
-			LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs != null ? cs : cw), ConfigAdmin.class.getName(), ioe);
+			LogUtil.logGlobal(ThreadLocalPageContext.getConfigServer(cs != null ? cs : cw), ConfigAdmin.class.getName(), ioe);
 		}
 	}
 
@@ -187,7 +187,7 @@ public final class ConfigUtil {
 			if (_src.isFile()) {
 				if (_src.length() != _trg.length()) {
 					_src.copyTo(_trg, false);
-					LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cw), Log.LEVEL_DEBUG, ConfigUtil.class.getName(), "write file:" + _trg);
+					LogUtil.logGlobal(ThreadLocalPageContext.getConfigServer(cw), Log.LEVEL_DEBUG, ConfigUtil.class.getName(), "write file:" + _trg);
 
 				}
 			}
@@ -702,10 +702,9 @@ public final class ConfigUtil {
 	}
 
 	public static Resource getConfigServerDirectory(Config config) {
-		if (config == null) config = ThreadLocalPageContext.getConfig();
-		if (config instanceof ConfigWeb) return ((ConfigWeb) config).getConfigServerDir();
-		if (config == null) return null;
-		return (config).getConfigDir();
+		ConfigServerPro cs = ThreadLocalPageContext.getConfigServer(config);
+		if (cs == null) return null;
+		return cs.getConfigDir();
 	}
 
 	public static Mapping[] getAllMappings(PageContext pc) {
@@ -875,10 +874,10 @@ public final class ConfigUtil {
 					try {
 						if (config == null) throw new ApplicationException("cannot use secret in this context");
 						if (_parts.length == 1) {
-							_prop = SecretProviderFactory.getSecret(ThreadLocalPageContext.getConfig(config), null, _parts[0], true);
+							_prop = SecretProviderFactory.getSecret(ThreadLocalPageContext.getConfigServer(config), null, _parts[0], true);
 						}
 						else {
-							_prop = SecretProviderFactory.getSecret(ThreadLocalPageContext.getConfig(config), _parts[0], _parts[1], true);
+							_prop = SecretProviderFactory.getSecret(ThreadLocalPageContext.getConfigServer(config), _parts[0], _parts[1], true);
 						}
 					}
 					catch (PageException pe) {

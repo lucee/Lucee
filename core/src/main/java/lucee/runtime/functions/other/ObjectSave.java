@@ -32,6 +32,7 @@ import lucee.runtime.converter.JavaConverter;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
+import lucee.runtime.security.SecurityManagerImpl;
 
 public final class ObjectSave {
 
@@ -51,7 +52,7 @@ public final class ObjectSave {
 			// store to file
 			if (!StringUtil.isEmpty(filepath, true)) {
 				Resource res = ResourceUtil.toResourceNotExisting(pc, filepath);
-				pc.getConfig().getSecurityManager().checkFileLocation(res);
+				SecurityManagerImpl.checkFileLocation(pc, res);
 				IOUtil.copy(new ByteArrayInputStream(barr), res, true);
 			}
 			return barr;

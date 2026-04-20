@@ -78,6 +78,11 @@ public class UDFImpl extends MemberSupport implements UDFPlus, Externalizable, C
 		super(0);
 	}
 
+	public UDFImpl(PageContext pc, UDFProperties properties) {
+		super(properties.getAccess(), properties.getModifier());
+		this.properties = (UDFPropertiesBase) properties;
+	}
+
 	public UDFImpl(UDFProperties properties) {
 		super(properties.getAccess(), properties.getModifier());
 

@@ -78,6 +78,7 @@ import lucee.loader.osgi.BundleUtil;
 import lucee.loader.util.Util;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigFactoryImpl;
+import lucee.runtime.config.ConfigServerPro;
 import lucee.runtime.config.ConfigUtil;
 import lucee.runtime.config.Identification;
 import lucee.runtime.config.s3.BundleProvider;
@@ -1528,8 +1529,8 @@ public final class OSGiUtil {
 			List<PackageQuery> failedPD = new ArrayList<PackageQuery>();
 			try {
 				if (!listBundlesPackages.getName().isEmpty()) {
-					loadBundles(bundle.getBundleContext(), listBundlesPackages.getName(), ThreadLocalPageContext.getConfig().getIdentification(), null, true, false, true, null,
-							parents);
+					loadBundles(bundle.getBundleContext(), listBundlesPackages.getName(), ThreadLocalPageContext.getConfigServer().getIdentification(), null, true, false, true,
+							null, parents);
 				}
 				if (!listBundlesPackages.getValue().isEmpty()) {
 					loadPackages(bundle.getBundleContext(), parents, loadedBundles, listBundlesPackages.getValue(), bundle, failedPD);
@@ -1538,7 +1539,7 @@ public final class OSGiUtil {
 			}
 			catch (BundleException be3) {
 				try {
-					if (resolveBundleLoadingIssues(bundle.getBundleContext(), ThreadLocalPageContext.getConfig(), be3, parents)) {
+					if (resolveBundleLoadingIssues(bundle.getBundleContext(), ThreadLocalPageContext.getConfigServer(), be3, parents)) {
 						BundleUtil.start(bundle, false);
 					}
 					else {
@@ -1601,7 +1602,7 @@ public final class OSGiUtil {
 				if (StringUtil.isEmpty(br.getName(), true)) continue;
 				// if(parents==null) parents=new HashSet<Bundle>();
 
-				b = _loadBundle(bundle.getBundleContext(), br, ThreadLocalPageContext.getConfig().getIdentification(), addional, true, parents, false, true, null);
+				b = _loadBundle(bundle.getBundleContext(), br, ThreadLocalPageContext.getConfigServer().getIdentification(), addional, true, parents, false, true, null);
 
 				loadedBundles.add(b);
 			}
@@ -2195,9 +2196,9 @@ public final class OSGiUtil {
 
 		public Bundle getBundle(Config config, List<Resource> addional, boolean versionOnlyMattersForDownload) throws BundleException {
 			if (bundle == null) {
-				config = ThreadLocalPageContext.getConfig(config);
-				bundle = OSGiUtil.loadBundle(CFMLEngineFactory.getInstance().getBundleContext(), name, getVersion(), config == null ? null : config.getIdentification(), addional,
-						false, versionOnlyMattersForDownload, true, null);
+				ConfigServerPro cs = ThreadLocalPageContext.getConfigServer(config);
+				bundle = OSGiUtil.loadBundle(CFMLEngineFactory.getInstance().getBundleContext(), name, getVersion(), cs == null ? null : cs.getIdentification(), addional, false,
+						versionOnlyMattersForDownload, true, null);
 			}
 			return bundle;
 		}
@@ -2210,7 +2211,7 @@ public final class OSGiUtil {
 		}
 
 		public BundleFile getBundleFile(boolean downloadIfNecessary, List<Resource> addional) throws BundleException {
-			Config config = ThreadLocalPageContext.getConfig();
+			ConfigServerPro config = ThreadLocalPageContext.getConfigServer();
 			return OSGiUtil.getBundleFile(name, getVersion(), config == null ? null : config.getIdentification(), addional, downloadIfNecessary);
 
 		}

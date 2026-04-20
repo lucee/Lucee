@@ -130,7 +130,7 @@ public final class TagLoop extends TagGroup implements FlowControlBreak, FlowCon
 	// int getCurrentrow()
 	static final Method GET_CURRENTROW_1 = new Method("getCurrentrow", Types.INT_VALUE, new Type[] { Types.INT_VALUE });
 
-	static final Method GO = new Method("go", Types.BOOLEAN_VALUE, new Type[] { Types.INT_VALUE, Types.INT_VALUE });
+	static final Method GOe = new Method("go", Types.BOOLEAN_VALUE, new Type[] { Types.INT_VALUE, Types.INT_VALUE });
 
 	static final Method GET_ID = new Method("getId", Types.INT_VALUE, new Type[] {});
 	private static final Method READ = new Method("read", Types.STRING, new Type[] { Types.READER, Types.INT_VALUE });
@@ -438,7 +438,7 @@ public final class TagLoop extends TagGroup implements FlowControlBreak, FlowCon
 		adapter.invokeStatic(RESOURCE_UTIL, TO_RESOURCE_EXISTING);
 		adapter.storeLocal(resource);
 
-		// pc.getConfig().getSecurityManager().checkFileLocation(resource);
+		// pc.getConfig().getSecurityManager(). checkFileLocation(resource);
 		adapter.loadArg(0);
 		adapter.invokeVirtual(Types.PAGE_CONTEXT, GET_CONFIG);
 		adapter.invokeInterface(Types.CONFIG_WEB, GET_SECURITY_MANAGER);

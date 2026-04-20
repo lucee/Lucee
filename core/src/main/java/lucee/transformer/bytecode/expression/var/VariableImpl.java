@@ -30,7 +30,6 @@ import org.objectweb.asm.commons.Method;
 import lucee.commons.lang.ClassException;
 import lucee.commons.lang.types.RefInteger;
 import lucee.commons.lang.types.RefIntegerImpl;
-import lucee.runtime.config.ConfigPro;
 import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.TemplateException;
@@ -96,8 +95,12 @@ public final class VariableImpl extends ExpressionBase implements Variable {
 	private static final int THREE2 = 2;
 
 	// Object getCollection (Object,Key[,Object])
-	private final static Method[] GET_COLLECTION = new Method[] { new Method("getCollection", Types.OBJECT, new Type[] { Types.OBJECT, Types.COLLECTION_KEY }),
-			new Method("getCollection", Types.OBJECT, new Type[] { Types.OBJECT, Types.COLLECTION_KEY, Types.OBJECT }) };
+	private final static Method[] GET_COLLECTION = new Method[] {
+
+			new Method("getCollection", Types.OBJECT, new Type[] { Types.OBJECT, Types.COLLECTION_KEY }),
+			new Method("getCollection", Types.OBJECT, new Type[] { Types.OBJECT, Types.COLLECTION_KEY, Types.OBJECT })
+
+	};
 
 	// Object get (Object,Key)
 	private final static Method[] GET = new Method[] { new Method("get", Types.OBJECT, new Type[] { Types.OBJECT, Types.COLLECTION_KEY }),
@@ -288,7 +291,7 @@ public final class VariableImpl extends ExpressionBase implements Variable {
 	private Type _writeOutListener(BytecodeContext bc, int mode, Boolean asCollection) throws TransformerException {
 		GeneratorAdapter ga = bc.getAdapter();
 		TagThread tt = new TagThread(bc.getFactory(), getStart(), listener.getEnd());
-		TagLibTag tlt = TagUtil.getTagLibTag((ConfigPro) ThreadLocalPageContext.getConfig(), "cf", "thread");
+		TagLibTag tlt = TagUtil.getTagLibTag(ThreadLocalPageContext.getConfigServer(), "cf", "thread");
 		tt.outputName();
 		tt.setTagLibTag(tlt);
 		tt.addAttribute(new Attribute(false, "action", bc.getFactory().createLitString("run"), "string"));
@@ -910,9 +913,14 @@ public final class VariableImpl extends ExpressionBase implements Variable {
 		}
 
 		if (doOnlyScope) return rtn;
+		// if (!member.getSafeNavigated() && !_last) {
+		// adapter.loadArg(0);
+		// }
+
 		getFactory().registerKey(bc, member.getName(), false);
 
 		boolean _last = !last && scope == Scope.SCOPE_UNDEFINED;
+
 		if (!member.getSafeNavigated()) {
 			adapter.invokeInterface(TypeScope.SCOPES[scope], _last ? METHOD_SCOPE_GET_COLLECTION_KEY : METHOD_SCOPE_GET_KEY);
 		}

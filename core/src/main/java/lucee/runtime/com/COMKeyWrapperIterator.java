@@ -58,7 +58,7 @@ public final class COMKeyWrapperIterator implements Iterator<Collection.Key> {
 	@Override
 	public Collection.Key next() {
 		try {
-			return Caster.toKey(COMUtil.toObject(ThreadLocalPageContext.getConfig(), wrapper, enumVariant.Next(), "", null));
+			return Caster.toKey(COMUtil.toObject(ThreadLocalPageContext.getConfigServer(), wrapper, enumVariant.Next(), "", null));
 		}
 		catch (CasterException e) {
 			throw new PageRuntimeException(e);

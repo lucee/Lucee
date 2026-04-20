@@ -39,6 +39,7 @@ import lucee.runtime.schedule.ScheduleTaskImpl;
 import lucee.runtime.schedule.ScheduleTaskPro;
 import lucee.runtime.schedule.Scheduler;
 import lucee.runtime.schedule.SchedulerImpl;
+import lucee.runtime.security.SecurityManagerImpl;
 import lucee.runtime.type.QueryImpl;
 import lucee.runtime.type.dt.Date;
 import lucee.runtime.type.dt.DateImpl;
@@ -472,7 +473,9 @@ public final class Schedule extends TagImpl {
 		else if (!StringUtil.isEmpty(strPath)) {
 			file = ResourceUtil.toResourceNotExisting(pageContext, strPath);
 		}
-		if (file != null) pageContext.getConfig().getSecurityManager().checkFileLocation(pageContext.getConfig(), file, serverPassword);
+		if (file != null) {
+			SecurityManagerImpl.checkFileLocation(pageContext, file, serverPassword);
+		}
 
 		// missing attributes
 		if (startdate == null || starttime == null || url == null || interval == null) throw new ApplicationException(message, detail);
@@ -574,8 +577,7 @@ public final class Schedule extends TagImpl {
 			}
 			pageContext.setVariable(result, query);
 		}
-		catch (DatabaseException e) {
-		}
+		catch (DatabaseException e) {}
 
 	}
 

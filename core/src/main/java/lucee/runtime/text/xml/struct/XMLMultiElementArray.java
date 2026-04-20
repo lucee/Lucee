@@ -71,7 +71,17 @@ public final class XMLMultiElementArray extends ArraySupport {
 	}
 
 	@Override
+	public Object get(PageContext pc, int key, Object defaultValue) {
+		return struct.get(key, defaultValue);
+	}
+
+	@Override
 	public Object getE(int key) throws PageException {
+		return struct.get(key);
+	}
+
+	@Override
+	public Object getE(PageContext pc, int key) throws PageException {
 		return struct.get(key);
 	}
 
@@ -163,6 +173,11 @@ public final class XMLMultiElementArray extends ArraySupport {
 
 	@Override
 	public Object setE(int key, Object value) throws PageException {
+		return struct.set(key, value);
+	}
+
+	@Override
+	public Object setE(PageContext pc, int key, Object value) throws PageException {
 		return struct.set(key, value);
 	}
 

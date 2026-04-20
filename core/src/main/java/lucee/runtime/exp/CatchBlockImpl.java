@@ -117,7 +117,7 @@ public final class CatchBlockImpl extends StructImpl implements CatchBlock, Cast
 
 		public Object get() {
 			if (level < MAX) {
-				if (key == CAUSE) return getCauseAsCatchBlock(ThreadLocalPageContext.getConfig());
+				if (key == CAUSE) return getCauseAsCatchBlock(ThreadLocalPageContext.getConfigServer());
 				if (key == ADDITIONAL) return exception.getAdditional();
 
 			}
@@ -177,8 +177,7 @@ public final class CatchBlockImpl extends StructImpl implements CatchBlock, Cast
 					}
 				}
 			}
-			catch (PageException pe) {
-			}
+			catch (PageException pe) {}
 
 			superSetEL(key, o);
 
@@ -223,8 +222,7 @@ public final class CatchBlockImpl extends StructImpl implements CatchBlock, Cast
 			try {
 				return PageContextUtil.getHandlePageException((PageContextImpl) pc, exception);
 			}
-			catch (PageException e) {
-			}
+			catch (PageException e) {}
 		}
 		return exception.getClass().getName();
 	}
@@ -312,8 +310,7 @@ public final class CatchBlockImpl extends StructImpl implements CatchBlock, Cast
 				try {
 					setter.invoke(pair.throwable);
 				}
-				catch (Exception e) {
-				}
+				catch (Exception e) {}
 				return value;
 			}
 		}

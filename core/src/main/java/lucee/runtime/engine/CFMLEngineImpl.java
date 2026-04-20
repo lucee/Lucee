@@ -1358,6 +1358,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 					try {
 						PageContext pc = ThreadLocalPageContext.get();
 						if (pc != null) {
+
 							pc.getConfig().getCacheHandlerCollection(Config.CACHE_TYPE_QUERY, null).clear(pc);
 							pc.getConfig().getCacheHandlerCollection(Config.CACHE_TYPE_FUNCTION, null).clear(pc);
 							pc.getConfig().getCacheHandlerCollection(Config.CACHE_TYPE_INCLUDE, null).clear(pc);
@@ -1760,7 +1761,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 
 	@Override
 	public Instrumentation getInstrumentation() {
-		return InstrumentationFactory.getInstrumentation(ThreadLocalPageContext.getConfig());
+		return InstrumentationFactory.getInstrumentation(ThreadLocalPageContext.getConfigServer());
 	}
 
 	public Controler getControler() {

@@ -24,7 +24,6 @@ import lucee.runtime.PageContext;
 import lucee.runtime.dump.DumpData;
 import lucee.runtime.dump.DumpProperties;
 import lucee.runtime.dump.DumpTable;
-import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.OpUtil;
@@ -115,22 +114,22 @@ public final class CastableArray extends ArrayImpl {
 
 	@Override
 	public int compareTo(boolean b) throws PageException {
-		return OpUtil.compare(ThreadLocalPageContext.get(), getValue(), b ? Boolean.TRUE : Boolean.FALSE);
+		return OpUtil.compare(null, getValue(), b ? Boolean.TRUE : Boolean.FALSE);
 	}
 
 	@Override
 	public int compareTo(DateTime dt) throws PageException {
-		return OpUtil.compare(ThreadLocalPageContext.get(), getValue(), (Date) dt);
+		return OpUtil.compare(null, getValue(), (Date) dt);
 	}
 
 	@Override
 	public int compareTo(double d) throws PageException {
-		return OpUtil.compare(ThreadLocalPageContext.get(), getValue(), Double.valueOf(d));
+		return OpUtil.compare(null, getValue(), Double.valueOf(d));
 	}
 
 	@Override
 	public int compareTo(String str) throws PageException {
-		return OpUtil.compare(ThreadLocalPageContext.get(), getValue(), str);
+		return OpUtil.compare(null, getValue(), str);
 	}
 
 	private Object getValue() throws PageException {

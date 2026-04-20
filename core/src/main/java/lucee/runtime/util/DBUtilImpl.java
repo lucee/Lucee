@@ -174,7 +174,7 @@ public final class DBUtilImpl implements DBUtil {
 
 	@Override
 	public DatasourceConnection getDatasourceConnection(Config config, DataSource datasource, String user, String pass) throws PageException {
-		ConfigWebPro ci = (ConfigWebPro) ThreadLocalPageContext.getConfig(config);
+		ConfigWebPro ci = (ConfigWebPro) ThreadLocalPageContext.getConfigServer(config);
 		return ci.getDatasourceConnectionPool().getDatasourceConnection(config, datasource, user, pass);
 	}
 

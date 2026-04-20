@@ -46,6 +46,7 @@ import lucee.runtime.interpreter.VariableInterpreter;
 import lucee.runtime.op.date.DateCaster;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.Collection.Key;
+import lucee.runtime.type.Objects;
 import lucee.runtime.type.UDF;
 import lucee.runtime.type.dt.DateTimeImpl;
 import lucee.runtime.type.ref.VariableReference;
@@ -847,8 +848,7 @@ public final class OpUtil {
 			try {
 				return Caster.toBigDecimal(left).pow(Caster.toIntValue(right)).doubleValue();
 			}
-			catch (Exception e) {
-			}
+			catch (Exception e) {}
 		}
 		return StrictMath.pow(Caster.toDoubleValue(left), Caster.toDoubleValue(right));
 	}
@@ -858,8 +858,7 @@ public final class OpUtil {
 			try {
 				return Caster.toBigDecimal(left).pow(right.intValue()).doubleValue();
 			}
-			catch (Exception e) {
-			}
+			catch (Exception e) {}
 		}
 		return StrictMath.pow(left.doubleValue(), right.doubleValue());
 	}
@@ -889,8 +888,7 @@ public final class OpUtil {
 				((Appendable) left).append(right);
 				return left;
 			}
-			catch (IOException e) {
-			}
+			catch (IOException e) {}
 		}
 		return new StringBuilder(left).append(right);
 	}
@@ -1038,8 +1036,7 @@ public final class OpUtil {
 			try {
 				return MathUtil.pow(Caster.toBigDecimal(left), Caster.toIntValue(right));
 			}
-			catch (Exception e) {
-			}
+			catch (Exception e) {}
 		}
 		return Caster.toDouble(StrictMath.pow(Caster.toDoubleValue(left), Caster.toDoubleValue(right)));
 	}
@@ -1113,6 +1110,11 @@ public final class OpUtil {
 	}
 
 	public static Number unaryPostPlus(PageContext pc, Collection coll, Collection.Key key, Number value) throws PageException {
+		if (coll instanceof Objects) {
+			Number rtn = Caster.toNumber(pc, ((Objects) coll).get(pc, key));
+			((Objects) coll).set(pc, key, plusRef(pc, rtn, value));
+			return rtn;
+		}
 		Number rtn = Caster.toNumber(pc, coll.get(key));
 		coll.set(key, plusRef(pc, rtn, value));
 		return rtn;
@@ -1130,6 +1132,12 @@ public final class OpUtil {
 	}
 
 	public static Number unaryPoPl(PageContext pc, Collection coll, Collection.Key key, Number value) throws PageException {
+		if (coll instanceof Objects) {
+			Number rtn = Caster.toNumber(pc, ((Objects) coll).get(pc, key));
+			((Objects) coll).set(pc, key, plusRef(pc, rtn, value));
+			return rtn;
+		}
+
 		Number rtn = Caster.toNumber(pc, coll.get(key));
 		coll.set(key, plusRef(pc, rtn, value));
 		return rtn;
@@ -1144,6 +1152,11 @@ public final class OpUtil {
 	}
 
 	public static Number unaryPostMinus(PageContext pc, Collection coll, Collection.Key key, Number value) throws PageException {
+		if (coll instanceof Objects) {
+			Number rtn = Caster.toNumber(pc, ((Objects) coll).get(pc, key));
+			((Objects) coll).set(pc, key, minusRef(pc, rtn, value));
+			return rtn;
+		}
 		Number rtn = Caster.toNumber(pc, coll.get(key));
 		coll.set(key, minusRef(pc, rtn, value));
 		return rtn;
@@ -1161,6 +1174,11 @@ public final class OpUtil {
 	}
 
 	public static Number unaryPoMi(PageContext pc, Collection coll, Collection.Key key, Number value) throws PageException {
+		if (coll instanceof Objects) {
+			Number rtn = Caster.toNumber(pc, ((Objects) coll).get(pc, key));
+			((Objects) coll).set(pc, key, minusRef(pc, rtn, value));
+			return rtn;
+		}
 		Number rtn = Caster.toNumber(pc, coll.get(key));
 		coll.set(key, minusRef(pc, rtn, value));
 		return rtn;
@@ -1192,6 +1210,11 @@ public final class OpUtil {
 	}
 
 	public static Number unaryPrPl(PageContext pc, Collection coll, Collection.Key key, Number value) throws PageException {
+		if (coll instanceof Objects) {
+			Number rtn = plusRef(pc, Caster.toNumber(pc, ((Objects) coll).get(pc, key)), value);
+			((Objects) coll).set(pc, key, rtn);
+			return rtn;
+		}
 		Number rtn = plusRef(pc, Caster.toNumber(pc, coll.get(key)), value);
 		coll.set(key, rtn);
 		return rtn;
@@ -1206,6 +1229,11 @@ public final class OpUtil {
 	}
 
 	public static Number unaryPreMinus(PageContext pc, Collection coll, Collection.Key key, Number value) throws PageException {
+		if (coll instanceof Objects) {
+			Number rtn = minusRef(pc, Caster.toNumber(pc, ((Objects) coll).get(pc, key)), value);
+			((Objects) coll).set(pc, key, rtn);
+			return rtn;
+		}
 		Number rtn = minusRef(pc, Caster.toNumber(pc, coll.get(key)), value);
 		coll.set(key, rtn);
 		return rtn;
@@ -1223,6 +1251,11 @@ public final class OpUtil {
 	}
 
 	public static Number unaryPrMi(PageContext pc, Collection coll, Collection.Key key, Number value) throws PageException {
+		if (coll instanceof Objects) {
+			Number rtn = minusRef(pc, Caster.toNumber(pc, ((Objects) coll).get(pc, key)), value);
+			((Objects) coll).set(pc, key, rtn);
+			return rtn;
+		}
 		Number rtn = minusRef(pc, Caster.toNumber(pc, coll.get(key)), value);
 		coll.set(key, rtn);
 		return rtn;
@@ -1237,6 +1270,11 @@ public final class OpUtil {
 	}
 
 	public static Number unaryPreMultiply(PageContext pc, Collection coll, Collection.Key key, Number value) throws PageException {
+		if (coll instanceof Objects) {
+			Number rtn = multiplyRef(pc, Caster.toNumber(pc, ((Objects) coll).get(pc, key)), value);
+			((Objects) coll).set(pc, key, rtn);
+			return rtn;
+		}
 		Number rtn = multiplyRef(pc, Caster.toNumber(pc, coll.get(key)), value);
 		coll.set(key, rtn);
 		return rtn;
@@ -1254,6 +1292,11 @@ public final class OpUtil {
 	}
 
 	public static Number unaryPrMu(PageContext pc, Collection coll, Collection.Key key, Number value) throws PageException {
+		if (coll instanceof Objects) {
+			Number rtn = multiplyRef(pc, Caster.toNumber(pc, ((Objects) coll).get(pc, key)), value);
+			((Objects) coll).set(pc, key, rtn);
+			return rtn;
+		}
 		Number rtn = multiplyRef(pc, Caster.toNumber(pc, coll.get(key)), value);
 		coll.set(key, rtn);
 		return rtn;
@@ -1268,6 +1311,11 @@ public final class OpUtil {
 	}
 
 	public static Number unaryPreDivide(PageContext pc, Collection coll, Collection.Key key, Number value) throws PageException {
+		if (coll instanceof Objects) {
+			Number rtn = divideRef(pc, Caster.toNumber(pc, ((Objects) coll).get(pc, key)), value);
+			((Objects) coll).set(pc, key, rtn);
+			return rtn;
+		}
 		Number rtn = divideRef(pc, Caster.toNumber(pc, coll.get(key)), value);
 		coll.set(key, rtn);
 		return rtn;
@@ -1285,6 +1333,11 @@ public final class OpUtil {
 	}
 
 	public static Number unaryPrDi(PageContext pc, Collection coll, Collection.Key key, Number value) throws PageException {
+		if (coll instanceof Objects) {
+			Number rtn = divideRef(pc, Caster.toNumber(pc, ((Objects) coll).get(pc, key)), value);
+			((Objects) coll).set(pc, key, rtn);
+			return rtn;
+		}
 		Number rtn = divideRef(pc, Caster.toNumber(pc, coll.get(key)), value);
 		coll.set(key, rtn);
 		return rtn;
@@ -1299,6 +1352,11 @@ public final class OpUtil {
 	}
 
 	public static String unaryPreConcat(PageContext pc, Collection coll, Collection.Key key, String value) throws PageException {
+		if (coll instanceof Objects) {
+			String rtn = Caster.toString(((Objects) coll).get(pc, key)).concat(value);
+			((Objects) coll).set(pc, key, rtn);
+			return rtn;
+		}
 		String rtn = Caster.toString(coll.get(key)).concat(value);
 		coll.set(key, rtn);
 		return rtn;

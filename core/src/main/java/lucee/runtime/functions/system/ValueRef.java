@@ -149,7 +149,7 @@ public final class ValueRef extends BIF {
 		@Override
 		public DumpData toDumpData(PageContext pc, int level, DumpProperties props) {
 			try {
-				DumpTable data = (DumpTable) DumpUtil.toDumpData(udf.call(ThreadLocalPageContext.get(), new Object[0], true), pc, level, props);
+				DumpTable data = (DumpTable) DumpUtil.toDumpData(udf.call(ThreadLocalPageContext.get(pc), new Object[0], true), pc, level, props);
 				data.setTitle("UDF Reference");
 				data.setHighLightColor("#9b1ab0");
 				data.setNormalColor("#e129ff");

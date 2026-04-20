@@ -134,7 +134,7 @@ public final class MethodCleaner extends ClassVisitor implements Opcodes {
 	}
 
 	public static void modifie(String path, String methodName, String[] argNames, String rtnName, String msg) throws IOException, ExpressionException {
-		Resource res = ResourceUtil.toResourceExisting(ThreadLocalPageContext.getConfig(), path);
+		Resource res = ResourceUtil.toResourceExisting(ThreadLocalPageContext.getConfigServer(), path);
 		Class[] args = new Class[argNames.length];
 		for (int i = 0; i < argNames.length; i++) {
 			args[i] = ClassUtil.loadClass(argNames[i]);

@@ -321,7 +321,7 @@ public final class ConfigFactoryImpl extends ConfigFactory {
 	 * @throws BundleException
 	 */
 	synchronized static void load(ConfigServerImpl config, Struct root, boolean isReload, boolean doNew, boolean essentialOnly) throws IOException {
-		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(config), Log.LEVEL_INFO, ConfigFactoryImpl.class.getName(), "start reading config");
+		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfigServer(config), Log.LEVEL_INFO, ConfigFactoryImpl.class.getName(), "start reading config");
 		ThreadLocalConfig.register(config);
 		boolean reload = false;
 		// load PW
@@ -356,6 +356,7 @@ public final class ConfigFactoryImpl extends ConfigFactory {
 		config.getStartups();
 
 		config.setLoadTime(System.currentTimeMillis());
+		ConfigServerImpl.instance = config;
 	}
 
 	private static String createLabel(ConfigServerImpl configServer, ServletConfig servletConfig) {
@@ -679,7 +680,40 @@ public final class ConfigFactoryImpl extends ConfigFactory {
 		sm.setAccess(SecurityManager.TYPE_TAG_REGISTRY, _attr(config, el, "tag_registry", SecurityManager.VALUE_YES));
 		sm.setAccess(SecurityManager.TYPE_DIRECT_JAVA_ACCESS, _attr(config, el, "direct_java_access", SecurityManager.VALUE_YES));
 		sm.setAccess(SecurityManager.TYPE_CFX_USAGE, _attr(config, el, "cfx_usage", SecurityManager.VALUE_YES));
+
+		Array fileAccess = ConfigUtil.getAsArray("fileAccess", el);
+		if (fileAccess.size() > 0) sm.setCustomFileAccess(_loadFileAccess(config, fileAccess));
+
 		return sm;
+	}
+
+	private static Resource[] _loadFileAccess(Config config, Array fileAccesses) {
+		if (fileAccesses.size() == 0) return new Resource[0];
+		java.util.List<Resource> reses = new ArrayList<Resource>();
+		String path;
+		Resource res;
+		Iterator<?> it = fileAccesses.getIterator();
+		Struct fa;
+		while (it.hasNext()) {
+			try {
+				fa = Caster.toStruct(it.next(), null);
+				if (fa == null) continue;
+
+				path = getAttr(config, fa, "path");
+				if (!StringUtil.isEmpty(path)) {
+					res = config.getResource(path);
+					if (res.isDirectory()) reses.add(res);
+				}
+			}
+			catch (Throwable t) {
+				ExceptionUtil.rethrowIfNecessary(t);
+				log(config, t);
+			}
+		}
+		// temp directory should be always accessible, even when access is local
+		Resource tempDir = config.getTempDirectory();
+		if (!reses.contains(tempDir)) reses.add(tempDir);
+		return reses.toArray(new Resource[reses.size()]);
 	}
 
 	private static short _attr(Config config, Struct el, String attr, short _default) {
@@ -868,11 +902,11 @@ public final class ConfigFactoryImpl extends ConfigFactory {
 				}
 				catch (Throwable t) {
 					ExceptionUtil.rethrowIfNecessary(t);
-					LogUtil.logGlobal(ThreadLocalPageContext.getConfig(config), ConfigFactoryImpl.class.getName(), t);
+					LogUtil.logGlobal(ThreadLocalPageContext.getConfigServer(config), ConfigFactoryImpl.class.getName(), t);
 					clazz = ConsoleExecutionLog.class;
 				}
-				if (clazz != null)
-					LogUtil.logGlobal(ThreadLocalPageContext.getConfig(config), Log.LEVEL_INFO, ConfigFactoryImpl.class.getName(), "loaded ExecutionLog class " + clazz.getName());
+				if (clazz != null) LogUtil.logGlobal(ThreadLocalPageContext.getConfigServer(config), Log.LEVEL_INFO, ConfigFactoryImpl.class.getName(),
+						"loaded ExecutionLog class " + clazz.getName());
 
 				// arguments
 				args = toArguments(el, "arguments", true, false);
@@ -935,8 +969,8 @@ public final class ConfigFactoryImpl extends ConfigFactory {
 			throws BundleException, ClassException, SQLException {
 
 		datasources.put(datasourceName.toLowerCase(),
-				new DataSourceImpl(config, datasourceName, cd, server, dsn, bundleName, bundleVersion, databasename, port, user, pass, listener, connectionLimit, idleTimeout,
-						liveTimeout, minIdle, maxIdle, maxTotal, metaCacheTimeout, blob, clob, allow, custom, false, validate, storage,
+				new DataSourceImpl(datasourceName, cd, server, dsn, bundleName, bundleVersion, databasename, port, user, pass, listener, connectionLimit, idleTimeout, liveTimeout,
+						minIdle, maxIdle, maxTotal, metaCacheTimeout, blob, clob, allow, custom, false, validate, storage,
 						StringUtil.isEmpty(timezone, true) ? null : TimeZoneUtil.toTimeZone(timezone, null), dbdriver, ps, literalTimestampWithTSOffset, alwaysSetTimeout,
 						requestExclusive, alwaysResetConnections, ThreadLocalPageContext.getLog(config, "application")));
 
@@ -1450,7 +1484,7 @@ public final class ConfigFactoryImpl extends ConfigFactory {
 			ResourceUtil.deleteEmptyFolders(wcdDir);
 		}
 		catch (IOException e) {
-			LogUtil.logGlobal(ThreadLocalPageContext.getConfig(config), ConfigFactoryImpl.class.getName(), e);
+			LogUtil.logGlobal(ThreadLocalPageContext.getConfigServer(config), ConfigFactoryImpl.class.getName(), e);
 		}
 
 		// Security / SSL

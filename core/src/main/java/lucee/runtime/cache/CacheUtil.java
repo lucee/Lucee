@@ -98,7 +98,7 @@ public final class CacheUtil {
 		}
 
 		// get default from config
-		Config config = ThreadLocalPageContext.getConfig(pc);
+		Config config = ThreadLocalPageContext.getConfigServer(pc);
 		CacheConnection cc = (config).getCacheDefaultConnection(type);
 		if (cc == null)
 			throw new CacheException("there is no default " + toStringType(type, "") + " cache defined, you need to define this default cache in the Lucee Administrator");
@@ -140,7 +140,7 @@ public final class CacheUtil {
 		pc = ThreadLocalPageContext.get(pc);
 		if (pc != null) return ((PageContextImpl) pc).getCacheConnection(cacheName);
 
-		Config config = ThreadLocalPageContext.getConfig(pc);
+		Config config = ThreadLocalPageContext.getConfigServer(pc);
 		CacheConnection cc = config.getCacheConnections().get(cacheName.toLowerCase().trim());
 
 		if (cc == null) throw noCache(config, cacheName);
@@ -151,7 +151,7 @@ public final class CacheUtil {
 		pc = ThreadLocalPageContext.get(pc);
 		if (pc != null) return ((PageContextImpl) pc).getCacheConnection(cacheName, null);
 
-		Config config = ThreadLocalPageContext.getConfig(pc);
+		Config config = ThreadLocalPageContext.getConfigServer(pc);
 		CacheConnection cc = config.getCacheConnections().get(cacheName.toLowerCase().trim());
 		if (cc == null) return defaultValue;
 		return cc;
@@ -280,8 +280,7 @@ public final class CacheUtil {
 		try {
 			release(cc);
 		}
-		catch (IOException e) {
-		}
+		catch (IOException e) {}
 	}
 
 	public static void release(CacheConnection cc) throws IOException {

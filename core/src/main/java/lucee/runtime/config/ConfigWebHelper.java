@@ -70,7 +70,6 @@ public final class ConfigWebHelper {
 	private ClassDefinition<SearchEngine> searchEngineCD;
 	private static final LockManager lockManager = LockManagerImpl.getInstance(false);
 	private AMFEngine amfEngine;
-	protected IdentificationWeb id;
 
 	public ConfigWebHelper(ConfigServerImpl cs, ConfigWebPro cw) {
 		this.cs = cs;
@@ -87,14 +86,6 @@ public final class ConfigWebHelper {
 		tagHandlerPool.reset();
 		contextLock = new KeyLockImpl<String>();
 		baseComponentPageCFML = null;
-	}
-
-	public void setIdentification(IdentificationWeb id) {
-		this.id = id;
-	}
-
-	public IdentificationWeb getIdentification() {
-		return id;
 	}
 
 	public void setAMFEngine(AMFEngine engine) {
@@ -184,9 +175,9 @@ public final class ConfigWebHelper {
 			ClassDefinition cd = ConfigUtil.getConfigServerImpl(cw).getWSHandlerClassDefinition();
 			try {
 				if (isEmpty(cd)) {
-				wsHandler = new DummyWSHandler();
-				return wsHandler;
-			}
+					wsHandler = new DummyWSHandler();
+					return wsHandler;
+				}
 				Object obj = ClassUtil.newInstance(cd.getClazz());
 				if (obj instanceof WSHandler) wsHandler = (WSHandler) obj;
 				else wsHandler = new WSHandlerReflector(obj);

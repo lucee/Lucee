@@ -37,8 +37,7 @@ import lucee.runtime.functions.system.ContractPath;
 
 public final class ResourceUtilImpl implements lucee.runtime.util.ResourceUtil {
 
-	private ResourceUtilImpl() {
-	}
+	private ResourceUtilImpl() {}
 
 	private static ResourceUtilImpl impl = new ResourceUtilImpl();
 
@@ -287,7 +286,7 @@ public final class ResourceUtilImpl implements lucee.runtime.util.ResourceUtil {
 
 	@Override
 	public Resource toResourceNotExisting(PageContext pc, String destination, boolean allowRealpath, boolean checkComponentMappings) {
-		return ResourceUtil.toResourceNotExisting(pc, destination, allowRealpath, checkComponentMappings);
+		return ResourceUtil.toResourceNotExisting(pc, null, destination, allowRealpath, checkComponentMappings);
 	}
 
 	@Override

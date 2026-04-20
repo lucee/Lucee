@@ -68,22 +68,18 @@ public class aprint {
 		new Exception("Stack trace").printStackTrace(useOutStream ? CFMLEngineImpl.CONSOLE_OUT : CFMLEngineImpl.CONSOLE_ERR);
 	}
 
-	public static void ds(int max, boolean useOutStream) {
-		printStackTrace(useOutStream ? CFMLEngineImpl.CONSOLE_OUT : CFMLEngineImpl.CONSOLE_ERR, max);
+	public static void ds(int off, int len, boolean useOutStream) {
+		printStackTrace(useOutStream ? CFMLEngineImpl.CONSOLE_OUT : CFMLEngineImpl.CONSOLE_ERR, off, len);
 	}
 
-	private static void printStackTrace(PrintStream ps, int max) {
-
-		// Guard against malicious overrides of Throwable.equals by
-		// using a Set with identity equality semantics.
-
-		// Print our stack trace
+	private static void printStackTrace(PrintStream ps, int off, int len) {
+		StringBuilder sb = new StringBuilder("-------\n");
 		StackTraceElement[] traces = new Exception("Stack trace").getStackTrace();
-		for (int i = 0; i < traces.length && i < max; i++) {
+		for (int i = off; i < traces.length && i < len + off; i++) {
 			StackTraceElement trace = traces[i];
-			ps.println("\tat " + trace);
+			sb.append("\tat ").append(trace).append('\n');
 		}
-
+		ps.println(sb.toString());
 	}
 
 	public static void ds(Object label, boolean useOutStream) {
@@ -95,8 +91,12 @@ public class aprint {
 		ds(false);
 	}
 
-	public static void ds(int max) {
-		ds(max, false);
+	public static void ds(int len) {
+		ds(0, len, false);
+	}
+
+	public static void ds(int off, int len) {
+		ds(off, len, false);
 	}
 
 	public static void ds(Object label) {
@@ -321,8 +321,7 @@ public class aprint {
 			try {
 				ps.println(IOUtil.toString(is.getCharacterStream()));
 			}
-			catch (IOException e) {
-			}
+			catch (IOException e) {}
 			finally {
 				IOUtil.closeEL(r);
 			}

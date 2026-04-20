@@ -756,24 +756,21 @@ public final class SystemUtil {
 		try {
 			Thread.sleep(time);
 		}
-		catch (InterruptedException e) {
-		}
+		catch (InterruptedException e) {}
 	}
 
 	public static void sleep(long time) {
 		try {
 			Thread.sleep(time);
 		}
-		catch (InterruptedException e) {
-		}
+		catch (InterruptedException e) {}
 	}
 
 	public static void join(Thread t) {
 		try {
 			t.join();
 		}
-		catch (InterruptedException e) {
-		}
+		catch (InterruptedException e) {}
 	}
 
 	public static void resumeEL(Thread t) {
@@ -782,8 +779,7 @@ public final class SystemUtil {
 			// t.resume(); // Java 23 no longer support this, so we use reflection that will still can compile
 			// it
 		}
-		catch (Exception e) {
-		}
+		catch (Exception e) {}
 	}
 
 	public static void suspendEL(Thread t) {
@@ -793,8 +789,7 @@ public final class SystemUtil {
 			// it
 
 		}
-		catch (Exception e) {
-		}
+		catch (Exception e) {}
 	}
 
 	/**
@@ -809,8 +804,7 @@ public final class SystemUtil {
 				lock.wait(timeout);
 			}
 		}
-		catch (InterruptedException e) {
-		}
+		catch (InterruptedException e) {}
 	}
 
 	public static void wait(Object lock, int timeout) {
@@ -819,8 +813,7 @@ public final class SystemUtil {
 				lock.wait(timeout);
 			}
 		}
-		catch (InterruptedException e) {
-		}
+		catch (InterruptedException e) {}
 	}
 
 	/**
@@ -834,8 +827,7 @@ public final class SystemUtil {
 				lock.wait();
 			}
 		}
-		catch (InterruptedException e) {
-		}
+		catch (InterruptedException e) {}
 	}
 
 	/**
@@ -1348,8 +1340,10 @@ public final class SystemUtil {
 	 *            found
 	 * @return - the value of the property referenced by propOrEnv or the defaultValue if not found
 	 *
-	 * @see core/src/main/java/resource/setting/sysprop-envvar.json for the complete list of all supported properties
-	 * @see core/src/main/java/resource/setting/sysprop-envvar-schema.md for documentation on the JSON schema format
+	 * @see core/src/main/java/resource/setting/sysprop-envvar.json for the complete list of all
+	 *      supported properties
+	 * @see core/src/main/java/resource/setting/sysprop-envvar-schema.md for documentation on the JSON
+	 *      schema format
 	 */
 	public static String getSystemPropOrEnvVar(String name, String defaultValue) {
 		// env
@@ -1979,22 +1973,22 @@ class MacAddressWrap implements ObjectWrap, Castable, Serializable {
 
 	@Override
 	public int compareTo(String str) throws PageException {
-		return OpUtil.compare(ThreadLocalPageContext.get(), toString(), str);
+		return OpUtil.compare(null, toString(), str);
 	}
 
 	@Override
 	public int compareTo(boolean b) throws PageException {
-		return OpUtil.compare(ThreadLocalPageContext.get(), castToBooleanValue() ? Boolean.TRUE : Boolean.FALSE, b ? Boolean.TRUE : Boolean.FALSE);
+		return OpUtil.compare(null, castToBooleanValue() ? Boolean.TRUE : Boolean.FALSE, b ? Boolean.TRUE : Boolean.FALSE);
 	}
 
 	@Override
 	public int compareTo(double d) throws PageException {
-		return OpUtil.compare(ThreadLocalPageContext.get(), Double.valueOf(castToDoubleValue()), Double.valueOf(d));
+		return OpUtil.compare(null, Double.valueOf(castToDoubleValue()), Double.valueOf(d));
 	}
 
 	@Override
 	public int compareTo(DateTime dt) throws PageException {
-		return OpUtil.compare(ThreadLocalPageContext.get(), toString(), dt.castToString());
+		return OpUtil.compare(null, toString(), dt.castToString());
 	}
 
 	public static long size(Class clazz) throws URISyntaxException, ZipException, IOException {

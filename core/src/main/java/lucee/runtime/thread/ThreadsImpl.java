@@ -39,6 +39,7 @@ import lucee.runtime.op.Duplicator;
 import lucee.runtime.op.ThreadLocalDuplication;
 import lucee.runtime.tag.Http;
 import lucee.runtime.type.Collection;
+import lucee.runtime.type.Null;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.dt.DateTime;
 import lucee.runtime.type.dt.DateTimeImpl;
@@ -120,8 +121,7 @@ public final class ThreadsImpl extends StructSupport implements lucee.runtime.ty
 	}
 
 	@Override
-	public void release(PageContext pc) {
-	}
+	public void release(PageContext pc) {}
 
 	@Override
 	public void clear() {
@@ -190,7 +190,8 @@ public final class ThreadsImpl extends StructSupport implements lucee.runtime.ty
 	}
 
 	private boolean isInterrupted() {
-		// LDEV-5339: this check was likely copied from getOutput() above, but output is only set for daemon threads
+		// LDEV-5339: this check was likely copied from getOutput() above, but output is only set for daemon
+		// threads
 		// (not task threads), so task threads would always return false here. This is now harmless because
 		// ChildThreadImpl.isInterrupted() tracks the interrupted flag independently of the output buffer.
 		if (ct.output == null) return false;
@@ -229,9 +230,8 @@ public final class ThreadsImpl extends StructSupport implements lucee.runtime.ty
 	@Override
 	public final Object get(PageContext pc, Key key, Object defaultValue) {
 		if (uncoupled != null) return uncoupled.get(pc, key, defaultValue);
-		Object _null = NullSupportHelper.NULL(pc);
-		Object meta = getMeta(key, _null);
-		if (meta != _null) return meta;
+		Object meta = getMeta(key, Null.NULL);
+		if (!NullSupportHelper.isNull(meta)) return meta;
 		return ct.content.get(pc, key, defaultValue);
 	}
 
@@ -274,39 +274,55 @@ public final class ThreadsImpl extends StructSupport implements lucee.runtime.ty
 
 	@Override
 	public Object remove(Key key) throws PageException {
+		return remove((PageContext) null, key);
+	}
+
+	public Object remove(PageContext pc, Key key) throws PageException {
 		if (uncoupled != null) return uncoupled.remove(key);
-		Object _null = NullSupportHelper.NULL();
-		if (isReadonly()) throw errorOutside();
-		Object meta = getMeta(key, _null);
-		if (meta != _null) throw errorMeta(key);
+		if (isReadonly(pc)) throw errorOutside();
+		Object meta = getMeta(key, Null.NULL);
+		if (!NullSupportHelper.isNull(meta)) throw errorMeta(key);
 		return ct.content.remove(key);
 	}
 
 	@Override
 	public Object removeEL(Key key) {
+		return removeEL(null, key);
+	}
+
+	public Object removeEL(PageContext pc, Key key) {
 		if (uncoupled != null) return uncoupled.removeEL(key);
-		if (isReadonly()) return null;
+		if (isReadonly(pc)) return null;
 		return ct.content.removeEL(key);
 	}
 
 	@Override
 	public Object set(Key key, Object value) throws PageException {
+		return set(null, key, value);
+	}
+
+	@Override
+	public Object set(PageContext pc, Key key, Object value) throws PageException {
 		if (uncoupled != null) return uncoupled.set(key, value);
 
-		if (isReadonly()) throw errorOutside();
-		Object _null = NullSupportHelper.NULL();
-		Object meta = getMeta(key, _null);
-		if (meta != _null) throw errorMeta(key);
+		if (isReadonly(pc)) throw errorOutside();
+		Object meta = getMeta(key, Null.NULL);
+		if (!NullSupportHelper.isNull(meta)) throw errorMeta(key);
 		return ct.content.set(key, value);
 	}
 
 	@Override
 	public Object setEL(Key key, Object value) {
+		return setEL(null, key, value);
+	}
+
+	@Override
+	public Object setEL(PageContext pc, Key key, Object value) {
 		if (uncoupled != null) return uncoupled.setEL(key, value);
-		if (isReadonly()) return null;
-		Object _null = NullSupportHelper.NULL();
+		if (isReadonly(pc)) return null;
+		Object _null = Null.NULL;
 		Object meta = getMeta(key, _null);
-		if (meta != _null) return null;
+		if (!NullSupportHelper.isNull(meta)) return null;
 		return ct.content.setEL(key, value);
 	}
 
@@ -424,9 +440,9 @@ public final class ThreadsImpl extends StructSupport implements lucee.runtime.ty
 		return ct.content.compareTo(dt);
 	}
 
-	private boolean isReadonly() {
+	private boolean isReadonly(PageContext pc) {
 		if (uncoupled != null) return false;
-		PageContext pc = ThreadLocalPageContext.get();
+		pc = ThreadLocalPageContext.get(pc);
 		if (pc == null) return true;
 		return pc.getThread() != ct;
 	}

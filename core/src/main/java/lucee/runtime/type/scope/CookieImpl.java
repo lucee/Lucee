@@ -356,7 +356,7 @@ public final class CookieImpl extends ScopeSupport implements Cookie, ScriptProt
 		HttpServletRequest req = pc.getHttpServletRequest();
 		this.rsp = pc.getHttpServletResponse();
 		Map<String, jakarta.servlet.http.Cookie> cookies = ReqRspUtil.getCookies(req, pc.getWebCharset());
-		for (jakarta.servlet.http.Cookie cookie : cookies.values()) {
+		for (jakarta.servlet.http.Cookie cookie: cookies.values()) {
 			set(config, cookie);
 		}
 	}
@@ -406,16 +406,13 @@ public final class CookieImpl extends ScopeSupport implements Cookie, ScriptProt
 	}
 
 	@Override
-	public void resetEnv(PageContext pc) {
-	}
+	public void resetEnv(PageContext pc) {}
 
 	@Override
-	public void touchBeforeRequest(PageContext pc) {
-	}
+	public void touchBeforeRequest(PageContext pc) {}
 
 	@Override
-	public void touchAfterRequest(PageContext pc) {
-	}
+	public void touchAfterRequest(PageContext pc) {}
 
 	public static void setHTTPOnly(jakarta.servlet.http.Cookie cookie) {/* JAVJAK */
 		try {

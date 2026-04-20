@@ -46,8 +46,8 @@ import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
-import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigPro;
+import lucee.runtime.config.ConfigServer;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.interpreter.JSONExpressionInterpreter;
@@ -86,14 +86,12 @@ public final class JavaSettingsImpl implements JavaSettings {
 	private final int watchInterval;
 	private final String[] watchedExtensions;
 	private boolean hasBundlesTranslated;
-	private Config config;
 
 	private Id _id;
 	private static Map<String, Reference<JavaSettings>> settings = new ConcurrentHashMap<>();
 
-	private JavaSettingsImpl(Id id, Config config, Collection<POM> poms, Collection<BD> osgis, Resource[] resources, Resource[] bundles, Boolean loadCFMLClassPath,
-			boolean reloadOnChange, int watchInterval, String[] watchedExtensions) {
-		this.config = config == null ? ThreadLocalPageContext.getConfig() : config;
+	private JavaSettingsImpl(Id id, Collection<POM> poms, Collection<BD> osgis, Resource[] resources, Resource[] bundles, Boolean loadCFMLClassPath, boolean reloadOnChange,
+			int watchInterval, String[] watchedExtensions) {
 		this._id = id;
 		this.poms = poms;
 		this.osgis = osgis;
@@ -107,7 +105,7 @@ public final class JavaSettingsImpl implements JavaSettings {
 
 	}
 
-	public static JavaSettings merge(Config config, JavaSettings l, JavaSettings r) {
+	public static JavaSettings merge(ConfigServer config, JavaSettings l, JavaSettings r) {
 		if (l == null) return r;
 		if (r == null) return l;
 
@@ -178,7 +176,7 @@ public final class JavaSettingsImpl implements JavaSettings {
 			}
 		}
 
-		js = new JavaSettingsImpl(id, config, mapPOMs.values(), mapOSGIs.values(), mapResources.values().toArray(new Resource[mapResources.size()]),
+		js = new JavaSettingsImpl(id, mapPOMs.values(), mapOSGIs.values(), mapResources.values().toArray(new Resource[mapResources.size()]),
 				mapBundles.values().toArray(new Resource[mapBundles.size()]), ri.loadCFMLClassPath, ri.reloadOnChange, ri.watchInterval,
 				mapWatched.keySet().toArray(new String[mapWatched.size()]));
 
@@ -369,7 +367,7 @@ public final class JavaSettingsImpl implements JavaSettings {
 		return watchedExtensions;
 	}
 
-	public static JavaSettings getInstance(Config config, GAVSO... gavsoArr) {
+	public static JavaSettings getInstance(ConfigServer config, GAVSO... gavsoArr) {
 		Struct sct = new StructImpl();
 		sct.setEL(KeyConstants._maven, new ArrayImpl(gavsoArr));
 		return getInstance(config, sct, null);
@@ -387,7 +385,7 @@ public final class JavaSettingsImpl implements JavaSettings {
 		return defaultValue;
 	}
 
-	public static JavaSettings getInstance(Config config, Struct data, Object addionalResources) {
+	public static JavaSettings getInstance(ConfigServer config, Struct data, Object addionalResources) {
 
 		List<String> names = new ArrayList<>();
 
@@ -576,15 +574,14 @@ public final class JavaSettingsImpl implements JavaSettings {
 				extensions.add(ext);
 			}
 		}
-
-		Id id = createId(config, names, paths, pathNames, reloadOnChange ? watchInterval : 0);
+		Id id = createId(config.getLog("application"), names, paths, pathNames, reloadOnChange ? watchInterval : 0);
 
 		JavaSettings js = ((ConfigPro) config).getJavaSettings(id.key);
 		if (js != null) {
 			return js;
 		}
 
-		js = new JavaSettingsImpl(id, config, poms, osgis,
+		js = new JavaSettingsImpl(id, poms, osgis,
 
 				paths == null || paths.size() == 0 ? RESOURCE_EMPTY : paths.toArray(new Resource[paths.size()]),
 
@@ -602,37 +599,37 @@ public final class JavaSettingsImpl implements JavaSettings {
 
 	private static final Map<String, Id> quickMapping = new ConcurrentHashMap<>();
 
-	private static Id createId(Config config, List<String> names, Collection<Resource> paths, List<String> pathNames, int watchInterval) {
+	private static Id createId(Log log, List<String> names, Collection<Resource> paths, List<String> pathNames, int watchInterval) {
 		Collections.sort(names);
 		String base = names.toString();
-		log(config, "createId (watchInterval=" + watchInterval + "s) base: " + base);
+		log(log, "createId (watchInterval=" + watchInterval + "s) base: " + base);
 
 		if (paths == null || paths.size() == 0) {
 			String id = HashUtil.create64BitHashAsString(base);
-			log(config, "no paths, returning base hash: " + id);
+			log(log, "no paths, returning base hash: " + id);
 			return new Id(id, names);
 		}
 
 		Collections.sort(pathNames);
 		String quick = HashUtil.create64BitHashAsString(base + ":" + pathNames.toString());
-		log(config, "quick hash: " + quick + " from paths: " + pathNames);
+		log(log, "quick hash: " + quick + " from paths: " + pathNames);
 
 		Id cached = quickMapping.get(quick);
 		if (cached != null) {
 			if (watchInterval <= 0) {
-				log(config, "cache hit (no expiry), returning: " + cached.key);
+				log(log, "cache hit (no expiry), returning: " + cached.key);
 				return cached;
 			}
 			long ageSeconds = (System.currentTimeMillis() - cached.created) / 1000;
 			if (ageSeconds < watchInterval) {
-				log(config, "cache hit (age=" + ageSeconds + "s < watchInterval=" + watchInterval + "s), returning: " + cached.key);
+				log(log, "cache hit (age=" + ageSeconds + "s < watchInterval=" + watchInterval + "s), returning: " + cached.key);
 				return cached;
 			}
-			log(config, "cache expired (age=" + ageSeconds + "s >= watchInterval=" + watchInterval + "s), recomputing");
+			log(log, "cache expired (age=" + ageSeconds + "s >= watchInterval=" + watchInterval + "s), recomputing");
 			quickMapping.remove(quick);
 		}
 		else {
-			log(config, "cache miss, computing slow hash");
+			log(log, "cache miss, computing slow hash");
 		}
 
 		String slow;
@@ -644,21 +641,21 @@ public final class JavaSettingsImpl implements JavaSettings {
 			}
 			Collections.sort(names);
 			slow = HashUtil.create64BitHashAsString(names.toString());
-			log(config, "slow hash: " + slow);
+			log(log, "slow hash: " + slow);
 		}
 		catch (IOException e) {
-			LogUtil.log(config, Log.LEVEL_ERROR, "page-source", "IOException computing checksums, falling back to quick hash: " + e.getMessage());
+			log.error("page-source", "IOException computing checksums, falling back to quick hash: ", e);
 			slow = quick;
 		}
 		Id id = new Id(slow, names);
 		quickMapping.put(quick, id);
-		log(config, "cached and returning: " + slow);
+		log(log, "cached and returning: " + slow);
 		return id;
 	}
 
-	private static void log(Config config, String msg) {
-		if (config != null && LogUtil.doesTrace(config.getLog("application"))) {
-			config.getLog("application").trace("page-source", msg);
+	private static void log(Log log, String msg) {
+		if (LogUtil.doesTrace(log)) {
+			log.trace("page-source", msg);
 		}
 	}
 
@@ -679,10 +676,10 @@ public final class JavaSettingsImpl implements JavaSettings {
 				if (StringUtil.endsWithIgnoreCase(json, ".json")) {
 					pc = ThreadLocalPageContext.get(pc);
 					if (pc != null) json = IOUtil.toString(ResourceUtil.toResourceExisting(pc, json), CharsetUtil.UTF8);
-					else json = IOUtil.toString(ResourceUtil.toResourceExisting(ThreadLocalPageContext.getConfig(), json), CharsetUtil.UTF8);
+					else json = IOUtil.toString(ResourceUtil.toResourceExisting(ThreadLocalPageContext.getConfigServer(), json), CharsetUtil.UTF8);
 				}
 				Struct sct = Caster.toStruct(new JSONExpressionInterpreter().interpret(null, json));
-				JavaSettings val = JavaSettingsImpl.getInstance(ThreadLocalPageContext.getConfig(pc), sct, null);
+				JavaSettings val = JavaSettingsImpl.getInstance(ThreadLocalPageContext.getConfigServer(pc), sct, null);
 				settings.put(key, new SoftReference<JavaSettings>(val));
 				return val;
 			}

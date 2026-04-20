@@ -1165,7 +1165,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 						if (pe instanceof PageExceptionImpl) {
 							try {
 								PageExceptionImpl pei = (PageExceptionImpl) pe;
-								Array context = pei.getTagContext(config);
+								Array context = pei.getTagContext(configWeb);
 								if (context.size() > 0) {
 									Struct firstContext = (Struct) context.getE(1);
 									errorInfo.set("line", firstContext.get("line", null));
@@ -1187,7 +1187,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 						if (pe instanceof PageExceptionImpl) {
 							try {
 								PageExceptionImpl pei = (PageExceptionImpl) pe;
-								Array context = pei.getTagContext(config);
+								Array context = pei.getTagContext(configWeb);
 								if (context.size() > 0) {
 									msg.append(":");
 									msg.append(Caster.toString(((Struct) context.getE(1)).get("line")));
@@ -1552,7 +1552,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			Struct sct;
 			while (it.hasNext()) {
 				sct = (Struct) it.next();
-				if (OpUtil.equalsEL(ThreadLocalPageContext.get(), id, sct.get(KeyConstants._id, ""), false, true)) {
+				if (OpUtil.equalsEL(ThreadLocalPageContext.get(pageContext), id, sct.get(KeyConstants._id, ""), false, true)) {
 					pageContext.setVariable(getString("admin", action, "returnVariable"), Duplicator.duplicate(sct, true));
 					return;
 				}
@@ -2710,8 +2710,8 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		// config.getDatasourceConnectionPool().remove(name);
 		DataSourcePro ds = null;
 		try {
-			ds = new DataSourceImpl(config, name, cd, host, dsn, bundleName, bundleVersion, database, port, username, password, null, connLimit, idleTimeout, liveTimeout, minIdle,
-					maxIdle, maxTotal, metaCacheTimeout, blob, clob, allow, custom, false, validate, storage, null, dbdriver, ps, literalTimestampWithTSOffset, alwaysSetTimeout,
+			ds = new DataSourceImpl(name, cd, host, dsn, bundleName, bundleVersion, database, port, username, password, null, connLimit, idleTimeout, liveTimeout, minIdle, maxIdle,
+					maxTotal, metaCacheTimeout, blob, clob, allow, custom, false, validate, storage, null, dbdriver, ps, literalTimestampWithTSOffset, alwaysSetTimeout,
 					requestExclusive, alwaysResetConnections, ThreadLocalPageContext.getLog(pageContext, "application"));
 		}
 		catch (Exception e) {
@@ -5322,7 +5322,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 	private void doGetLoginSettings() throws ApplicationException, PageException {
 		Struct sct = new StructImpl();
-		ConfigPro c = (ConfigPro) ThreadLocalPageContext.getConfig(config);
+		ConfigPro c = ThreadLocalPageContext.getConfigServer(config);
 		pageContext.setVariable(getString("admin", action, "returnVariable"), sct);
 		sct.set(KeyConstants._captcha, Caster.toBoolean(c.getLoginCaptcha()));
 		sct.set(KeyConstants._delay, Caster.toDouble(c.getLoginDelay()));

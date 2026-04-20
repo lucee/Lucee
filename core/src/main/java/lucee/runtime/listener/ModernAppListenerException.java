@@ -24,6 +24,7 @@ import java.io.PrintWriter;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageSource;
 import lucee.runtime.config.Config;
+import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.dump.DumpData;
 import lucee.runtime.dump.DumpProperties;
 import lucee.runtime.engine.ThreadLocalPageContext;
@@ -73,7 +74,7 @@ public final class ModernAppListenerException extends PageException {
 	}
 
 	public Struct getCatchBlock() {
-		return getCatchBlock(ThreadLocalPageContext.getConfig());
+		return getCatchBlock(ThreadLocalPageContext.getConfigServer());
 	}
 
 	@Override
@@ -173,11 +174,12 @@ public final class ModernAppListenerException extends PageException {
 		return eventName;
 	}
 
-	public String getLine(Config config) {
+	public String getLine(ConfigWeb config) {
 		return ((PageExceptionImpl) rootCause).getLine(config);
 	}
 
 	// keep this for backward compatibility to jakarta 10 RUNTIME
+	@Override
 	public Throwable getRootCause() {
 		try {
 			return (Throwable) Reflector.callMethod(rootCause, "getRootCause", new Object[] {});

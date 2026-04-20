@@ -36,7 +36,6 @@ import lucee.runtime.PageContext;
 import lucee.runtime.dump.DumpData;
 import lucee.runtime.dump.DumpProperties;
 import lucee.runtime.dump.DumpUtil;
-import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.XMLException;
@@ -389,22 +388,22 @@ public class XMLNodeStruct extends StructSupport implements XMLStruct {
 
 	@Override
 	public int compareTo(boolean b) throws PageException {
-		return OpUtil.compare(ThreadLocalPageContext.get(), castToString(), b ? Boolean.TRUE : Boolean.FALSE);
+		return OpUtil.compare(null, castToString(), b ? Boolean.TRUE : Boolean.FALSE);
 	}
 
 	@Override
 	public int compareTo(DateTime dt) throws PageException {
-		return OpUtil.compare(ThreadLocalPageContext.get(), castToString(), (Date) dt);
+		return OpUtil.compare(null, castToString(), (Date) dt);
 	}
 
 	@Override
 	public int compareTo(double d) throws PageException {
-		return OpUtil.compare(ThreadLocalPageContext.get(), castToString(), Double.valueOf(d));
+		return OpUtil.compare(null, castToString(), Double.valueOf(d));
 	}
 
 	@Override
 	public int compareTo(String str) throws PageException {
-		return OpUtil.compare(ThreadLocalPageContext.get(), castToString(), str);
+		return OpUtil.compare(null, castToString(), str);
 	}
 
 	// used only with java 7, do not set @Override

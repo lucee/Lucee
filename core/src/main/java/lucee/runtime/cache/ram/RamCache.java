@@ -35,14 +35,13 @@ import lucee.commons.io.cache.CachePro;
 import lucee.commons.io.cache.exp.CacheException;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.lang.ParentThreasRefThread;
+import lucee.loader.engine.CFMLEngineFactory;
 import lucee.runtime.cache.CacheSupport;
 import lucee.runtime.cache.ram.ref.HardRef;
 import lucee.runtime.cache.ram.ref.Ref;
 import lucee.runtime.cache.ram.ref.SoftRef;
 import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigUtil;
 import lucee.runtime.engine.CFMLEngineImpl;
-import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Constants;
 import lucee.runtime.op.Duplicator;
@@ -73,14 +72,11 @@ public final class RamCache extends CacheSupport {
 
 	// this is used by the config by reflection
 	public RamCache() {
-		Config config = ThreadLocalPageContext.getConfig();
-		if (config != null) {
-			CFMLEngineImpl engine = CFMLEngineImpl.toCFMLEngineImpl(ConfigUtil.getEngine(config), null);
-			if (engine != null) {
-				controller = new Controler(engine, this);
-				controller.setName("RamCacheCleaner");
-				controller.start();
-			}
+		CFMLEngineImpl engine = CFMLEngineImpl.toCFMLEngineImpl(CFMLEngineFactory.getInstance(), null);
+		if (engine != null) {
+			controller = new Controler(engine, this);
+			controller.setName("RamCacheCleaner");
+			controller.start();
 		}
 	}
 
@@ -89,7 +85,7 @@ public final class RamCache extends CacheSupport {
 		// RamCache is also used without calling init, because of that we have this test in constructor and
 		// here
 		if (controller == null) {
-			CFMLEngineImpl engine = CFMLEngineImpl.toCFMLEngineImpl(ConfigUtil.getEngine(config), null);
+			CFMLEngineImpl engine = CFMLEngineImpl.toCFMLEngineImpl(CFMLEngineFactory.getInstance(), null);
 			if (engine != null) {
 				controller = new Controler(engine, this);
 				controller.start();

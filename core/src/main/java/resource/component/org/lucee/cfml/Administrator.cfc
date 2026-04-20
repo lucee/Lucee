@@ -2613,7 +2613,7 @@ component {
 		string  access_write,
 		boolean search,
 		boolean scheduled_task,
-		array   file_access ) {
+		array   file_access ) { 
 		var existing = getDefaultSecurityManager();
 		admin
 			action="updateDefaultSecurityManager"

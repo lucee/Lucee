@@ -294,7 +294,8 @@ public final class ConfigAdmin {
 		try {
 			ConfigAdmin admin = ConfigAdmin.newInstance(ci, null);
 			admin.storeAndReload(false, false, true, false);
-			LogUtil.log(ThreadLocalPageContext.getConfig(config), Log.LEVEL_INFO, "deploy", ConfigAdmin.class.getName(), "reloaded the configuration [" + file + "] automatically");
+			LogUtil.log(ThreadLocalPageContext.getConfigServer(config), Log.LEVEL_INFO, "deploy", ConfigAdmin.class.getName(),
+					"reloaded the configuration [" + file + "] automatically");
 		}
 		catch (Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);
@@ -1319,14 +1320,14 @@ public final class ConfigAdmin {
 		Version version = bf.getVersion();
 		if (version == null) version = OSGiUtil.toVersion(extVersion);
 
-		LogUtil.log(ThreadLocalPageContext.getConfig(config), Log.LEVEL_INFO, ConfigAdmin.class.getName(), "failed to load [" + resJar + "] as OSGi Bundle");
+		LogUtil.log(ThreadLocalPageContext.getConfigServer(config), Log.LEVEL_INFO, ConfigAdmin.class.getName(), "failed to load [" + resJar + "] as OSGi Bundle");
 		BundleBuilderFactory bbf = new BundleBuilderFactory(resJar, name);
 		bbf.setVersion(version);
 		bbf.setIgnoreExistingManifest(false);
 		bbf.build();
 
 		bf = BundleFile.getInstance(resJar);
-		LogUtil.log(ThreadLocalPageContext.getConfig(config), Log.LEVEL_INFO, ConfigAdmin.class.getName(), "converted  [" + resJar + "] to an OSGi Bundle");
+		LogUtil.log(ThreadLocalPageContext.getConfigServer(config), Log.LEVEL_INFO, ConfigAdmin.class.getName(), "converted  [" + resJar + "] to an OSGi Bundle");
 		return installBundle(config, bf);
 	}
 
@@ -2387,7 +2388,7 @@ public final class ConfigAdmin {
 		String cn = ConfigUtil.getAsString("class", p, null);
 		String name = ConfigUtil.getAsString("bundleName", p, null);
 		String version = ConfigUtil.getAsString("bundleVersion", p, null);
-		ClassDefinition cd = ClassDefinitionImpl.toClassDefinitionImpl(p, null, false, ThreadLocalPageContext.getConfig().getIdentification());
+		ClassDefinition cd = ClassDefinitionImpl.toClassDefinitionImpl(p, null, false, ThreadLocalPageContext.getConfigServer().getIdentification());
 		String scheme = Caster.toString(p.get("scheme", null), null);
 		if (StringUtil.isEmpty(scheme)) {
 			try {
@@ -3164,7 +3165,12 @@ public final class ConfigAdmin {
 		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 		if (!hasAccess) throw new SecurityException("no access to update component Cache Path");
 
-		if (!Caster.toBooleanValue(componentPathCache, false)) config.clearComponentCache();
+		if (!Caster.toBooleanValue(componentPathCache, false)) {
+			for (ConfigWeb cw: config.getConfigWebs()) {
+				((ConfigWebPro) cw).clearComponentPathCache();
+			}
+
+		}
 		root.setEL("componentUseCachePath", Caster.toString(componentPathCache, ""));
 	}
 

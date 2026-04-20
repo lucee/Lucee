@@ -39,7 +39,6 @@ import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.Component;
-import lucee.runtime.config.ConfigPro;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
@@ -723,15 +722,14 @@ public final class DateCaster {
 		if (third == -1) {
 			return defaultValue;
 		}
-
 		if (ds.isAfterLast()) {
-			if (del == '.' && ((ConfigPro) ThreadLocalPageContext.getConfig()).getDateCasterClassicStyle()) return toDate(month, timeZone, second, first, third, defaultValue);
+			if (del == '.' && ThreadLocalPageContext.getConfigServer().getDateCasterClassicStyle()) return toDate(month, timeZone, second, first, third, defaultValue);
 			return toDate(month, timeZone, first, second, third, defaultValue);
 		}
 		ds.fwIfCurrent(' ');
 		ds.fwIfCurrent('T');
 		ds.fwIfCurrent(' ');
-		if (del == '.' && ((ConfigPro) ThreadLocalPageContext.getConfig()).getDateCasterClassicStyle())
+		if (del == '.' && ThreadLocalPageContext.getConfigServer().getDateCasterClassicStyle())
 			return parseTime(timeZone, _toDate(month, second, first, third), ds, defaultValue, -1);
 		return parseTime(timeZone, _toDate(month, first, second, third), ds, defaultValue, -1);
 

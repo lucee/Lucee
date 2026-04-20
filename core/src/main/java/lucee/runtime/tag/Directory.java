@@ -57,7 +57,7 @@ import lucee.runtime.ext.function.BIF;
 import lucee.runtime.ext.tag.TagImpl;
 import lucee.runtime.op.Caster;
 import lucee.runtime.reflection.Reflector;
-import lucee.runtime.security.SecurityManager;
+import lucee.runtime.security.SecurityManagerImpl;
 import lucee.runtime.tag.util.FileUtil;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
@@ -203,7 +203,7 @@ public final class Directory extends TagImpl {
 	}
 
 	public void setFilter(UDF filter) throws PageException {
-		this.filter = UDFFilter.createResourceAndResourceNameFilter(filter);
+		this.filter = UDFFilter.createResourceAndResourceNameFilter(pageContext, filter);
 	}
 
 	public void setFilter(String pattern) {
@@ -428,8 +428,7 @@ public final class Directory extends TagImpl {
 	public static Object actionList(PageContext pageContext, Resource directory, String serverPassword, int type, ResourceFilter filter, int listInfo, boolean recurse, String sort)
 			throws PageException {
 		// check directory
-		SecurityManager securityManager = pageContext.getConfig().getSecurityManager();
-		securityManager.checkFileLocation(pageContext.getConfig(), directory, serverPassword);
+		SecurityManagerImpl.checkFileLocation(pageContext, directory, serverPassword);
 
 		if (type != TYPE_ALL) {
 			ResourceFilter typeFilter = (type == TYPE_DIR) ? DIRECTORY_FILTER : FILE_FILTER;
@@ -533,14 +532,13 @@ public final class Directory extends TagImpl {
 
 	public static Struct getInfo(PageContext pc, Resource directory, String serverPassword) throws PageException {
 
-		SecurityManager securityManager = pc.getConfig().getSecurityManager();
-		securityManager.checkFileLocation(pc.getConfig(), directory, serverPassword);
+		SecurityManagerImpl.checkFileLocation(pc, directory, serverPassword);
 
 		if (!directory.exists()) throw new ApplicationException("Directory [" + directory.toString() + "] doesn't exist");
 		if (!directory.isDirectory()) throw new ApplicationException("[" + directory.toString() + "] isn't a directory");
 		if (!directory.canRead()) throw new ApplicationException("No access to read directory [" + directory.toString() + "]");
 
-		securityManager.checkFileLocation(pc.getConfig(), directory, serverPassword);
+		SecurityManagerImpl.checkFileLocation(pc, directory, serverPassword);
 		Struct sct = new StructImpl();
 		sct.setEL("directoryName", directory.getName());
 		sct.setEL(KeyConstants._size, Long.valueOf(directory.length()));
@@ -698,8 +696,7 @@ public final class Directory extends TagImpl {
 	public static void actionCreate(PageContext pc, Resource directory, String serverPassword, boolean createPath, int mode, Object acl, String storage, int nameConflict)
 			throws PageException {
 
-		SecurityManager securityManager = pc.getConfig().getSecurityManager();
-		securityManager.checkFileLocation(pc.getConfig(), directory, serverPassword);
+		SecurityManagerImpl.checkFileLocation(pc, directory, serverPassword);
 
 		if (directory.exists()) {
 			if (directory.isDirectory()) {
@@ -813,8 +810,7 @@ public final class Directory extends TagImpl {
 	 * @throws PageException
 	 */
 	public static void actionDelete(PageContext pc, Resource dir, boolean forceDelete, String serverPassword) throws PageException {
-		SecurityManager securityManager = pc.getConfig().getSecurityManager();
-		securityManager.checkFileLocation(pc.getConfig(), dir, serverPassword);
+		SecurityManagerImpl.checkFileLocation(pc, dir, serverPassword);
 
 		// directory doesn't exist
 		if (!dir.exists()) {
@@ -848,8 +844,7 @@ public final class Directory extends TagImpl {
 	public static String actionRename(PageContext pc, Resource directory, String strNewdirectory, String serverPassword, boolean createPath, Object acl, String storage)
 			throws PageException {
 		// check directory
-		SecurityManager securityManager = pc.getConfig().getSecurityManager();
-		securityManager.checkFileLocation(pc.getConfig(), directory, serverPassword);
+		SecurityManagerImpl.checkFileLocation(pc, directory, serverPassword);
 
 		if (!directory.exists()) throw new ApplicationException("The directory [" + directory.toString() + "] doesn't exist");
 		if (!directory.isDirectory()) throw new ApplicationException("The file [" + directory.toString() + "] exists, but it isn't a directory");
@@ -860,7 +855,8 @@ public final class Directory extends TagImpl {
 		// real to source
 		Resource newdirectory = toDestination(pc, strNewdirectory, directory);
 
-		securityManager.checkFileLocation(pc.getConfig(), newdirectory, serverPassword);
+		SecurityManagerImpl.checkFileLocation(pc, newdirectory, serverPassword);
+
 		if (newdirectory.exists()) throw new ApplicationException("New directory [" + newdirectory.toString() + "] already exists");
 
 		setS3region(pc, newdirectory, storage);
@@ -885,8 +881,7 @@ public final class Directory extends TagImpl {
 	public static void actionCopy(PageContext pc, Resource directory, String strDestination, String serverPassword, boolean createPath, Object acl, String storage,
 			final ResourceFilter filter, boolean recurse, int nameconflict) throws PageException {
 		// check directory
-		SecurityManager securityManager = pc.getConfig().getSecurityManager();
-		securityManager.checkFileLocation(pc.getConfig(), directory, serverPassword);
+		SecurityManagerImpl.checkFileLocation(pc, directory, serverPassword);
 
 		if (!directory.exists()) throw new ApplicationException("Directory [" + directory.toString() + "] doesn't exist");
 		if (!directory.isDirectory()) throw new ApplicationException("File [" + directory.toString() + "] exists, but isn't a directory");
@@ -898,8 +893,7 @@ public final class Directory extends TagImpl {
 		Resource newdirectory = toDestination(pc, strDestination, directory);
 
 		if (nameconflict == NAMECONFLICT_ERROR && newdirectory.exists()) throw new ApplicationException("New directory [" + newdirectory.toString() + "] already exists");
-
-		securityManager.checkFileLocation(pc.getConfig(), newdirectory, serverPassword);
+		SecurityManagerImpl.checkFileLocation(pc, newdirectory, serverPassword);
 
 		try {
 			boolean clearEmpty = false;

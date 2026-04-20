@@ -32,6 +32,7 @@ import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
+import lucee.runtime.security.SecurityManagerImpl;
 
 public final class FileWrite {
 
@@ -52,7 +53,7 @@ public final class FileWrite {
 			else {
 				close = true;
 				res = Caster.toResource(pc, obj, false);
-				pc.getConfig().getSecurityManager().checkFileLocation(res);
+				SecurityManagerImpl.checkFileLocation(pc, res);
 				// validate parent only works when you have access to the parent, that is not necessary a given for
 				// all FS
 				if ("file".equalsIgnoreCase(res.getResourceProvider().getScheme())) {

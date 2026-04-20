@@ -37,6 +37,7 @@ import lucee.commons.net.HTTPUtil;
 import lucee.commons.net.http.HTTPEngine;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigPro;
+import lucee.runtime.config.ConfigServerPro;
 import lucee.runtime.config.maven.MavenUpdateProvider.Repository;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
@@ -149,9 +150,9 @@ public class ExtensionProvider {
 	}
 
 	private ExtensionProvider(Config config, String group) {
-		ConfigPro cp = (ConfigPro) ThreadLocalPageContext.getConfig(config);
-		Repository[] repoSnapshots = cp == null ? MavenUpdateProvider.DEFAULT_REPOSITORIES_SNAPSHOTS : cp.getMavenSnapshotRepository();
-		Repository[] repoReleases = cp == null ? MavenUpdateProvider.DEFAULT_REPOSITORIES_RELEASES : cp.getMavenRepository();
+		ConfigServerPro cw = ThreadLocalPageContext.getConfigServer(config);
+		Repository[] repoSnapshots = cw == null ? MavenUpdateProvider.DEFAULT_REPOSITORIES_SNAPSHOTS : cw.getMavenSnapshotRepository();
+		Repository[] repoReleases = cw == null ? MavenUpdateProvider.DEFAULT_REPOSITORIES_RELEASES : cw.getMavenRepository();
 		this.repos = MavenUpdateProvider.merge(repoSnapshots, repoReleases, MavenUpdateProvider.DEFAULT_REPOSITORIES_ALL);
 		this.group = group;
 
@@ -245,7 +246,7 @@ public class ExtensionProvider {
 		if (uuidNoSet.contains(uuid)) return defaultValue;
 
 		if (investigate) {
-			config = (ConfigPro) ThreadLocalPageContext.getConfig(config);
+			config = ThreadLocalPageContext.getConfigServer(config);
 			for (String groupId: config.getExtensionProvidersGroupIds()) {
 				try {
 					ExtensionProvider ep = ExtensionProvider.getInstance(config, groupId);

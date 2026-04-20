@@ -136,21 +136,21 @@ public final class TimeImpl extends Time implements SimpleValue {
 
 	@Override
 	public int compareTo(boolean b) {
-		return OpUtil.compare(ThreadLocalPageContext.get(), Double.valueOf(castToDoubleValue()), b ? Boolean.TRUE : Boolean.FALSE);
+		return OpUtil.compare(null, Double.valueOf(castToDoubleValue()), b ? Boolean.TRUE : Boolean.FALSE);
 	}
 
 	@Override
 	public int compareTo(DateTime dt) throws PageException {
-		return OpUtil.compare(ThreadLocalPageContext.get(), (java.util.Date) this, (java.util.Date) dt);
+		return OpUtil.compare(null, (java.util.Date) this, (java.util.Date) dt);
 	}
 
 	@Override
 	public int compareTo(double d) throws PageException {
-		return OpUtil.compare(ThreadLocalPageContext.get(), Double.valueOf(castToDoubleValue()), Double.valueOf(d));
+		return OpUtil.compare(null, Double.valueOf(castToDoubleValue()), Double.valueOf(d));
 	}
 
 	@Override
 	public int compareTo(String str) throws PageException {
-		return OpUtil.compare(ThreadLocalPageContext.get(), castToString(), str);
+		return OpUtil.compare(null, castToString(), str);
 	}
 }

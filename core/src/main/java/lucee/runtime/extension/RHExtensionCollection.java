@@ -52,7 +52,7 @@ public class RHExtensionCollection {
 
 		// get match by gav (unlikely that this happen in the future)
 		if (!name.startsWith("mvn_")) {
-			GAVSO gav = ed.getGAVSO(ThreadLocalPageContext.getConfig(), true);
+			GAVSO gav = ed.getGAVSO(ThreadLocalPageContext.getConfigServer(), true);
 			if (gav != null) {
 				entry = getByName(ExtensionDefintion.getStorageName(gav));
 				if (entry != null) {

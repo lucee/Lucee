@@ -22,7 +22,6 @@ package lucee.runtime.functions.other;
 
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
-import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.SecurityException;
@@ -64,12 +63,12 @@ public final class WebserviceProxy implements Function {
 
 	public static Object doWebService(PageContext pc, String wsdlUrl) throws PageException {
 		// TODO CF8 impl. all new attributes for wsdl
-		return ((ConfigWebPro) ThreadLocalPageContext.getConfig(pc)).getWSHandler().getWSClient(wsdlUrl, null, null, null);
+		return ThreadLocalPageContext.getConfigWeb(pc).getWSHandler().getWSClient(wsdlUrl, null, null, null);
 	}
 
 	public static Object doWebService(PageContext pc, String wsdlUrl, String username, String password, ProxyData proxy) throws PageException {
 		// TODO CF8 impl. all new attributes for wsdl
-		return ((ConfigWebPro) ThreadLocalPageContext.getConfig(pc)).getWSHandler().getWSClient(wsdlUrl, username, password, proxy);
+		return ThreadLocalPageContext.getConfigWeb(pc).getWSHandler().getWSClient(wsdlUrl, username, password, proxy);
 	}
 
 	public static Object doHTTP(PageContext pc, String httpUrl) throws PageException {

@@ -201,7 +201,7 @@ public final class DatasourceResourceProvider implements ResourceProviderPro {
 
 	private DatasourceManagerImpl getManager() {
 		if (_manager == null) {
-			Config config = ThreadLocalPageContext.getConfig();
+			Config config = ThreadLocalPageContext.getConfigServer();
 			_manager = new DatasourceManagerImpl((ConfigPro) config);
 		}
 		return _manager;

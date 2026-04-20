@@ -596,15 +596,13 @@ public final class ReqRspUtil {
 			try {
 				return new JSONExpressionInterpreter().interpret(pc, toString(data, charset));
 			}
-			catch (PageException pe) {
-			}
+			catch (PageException pe) {}
 			break;
 		case UDF.RETURN_FORMAT_SERIALIZE:
 			try {
 				return new CFMLExpressionInterpreter().interpret(pc, toString(data, charset));
 			}
-			catch (PageException pe) {
-			}
+			catch (PageException pe) {}
 			break;
 		case UDF.RETURN_FORMAT_WDDX:
 			try {
@@ -612,8 +610,7 @@ public final class ReqRspUtil {
 				converter.setTimeZone(pc.getTimeZone());
 				return converter.deserialize(toString(data, charset), false);
 			}
-			catch (Exception pe) {
-			}
+			catch (Exception pe) {}
 			break;
 		case UDF.RETURN_FORMAT_XML:
 			try {
@@ -621,8 +618,7 @@ public final class ReqRspUtil {
 				InputSource validator = null;
 				return XMLCaster.toXMLStruct(XMLUtil.parse(xml, validator, false), true);
 			}
-			catch (Exception pe) {
-			}
+			catch (Exception pe) {}
 			break;
 		}
 
@@ -655,7 +651,7 @@ public final class ReqRspUtil {
 
 		pc = ThreadLocalPageContext.get(pc);
 		if (pc != null) return pc.getWebCharset();
-		Config config = ThreadLocalPageContext.getConfig(pc);
+		Config config = ThreadLocalPageContext.getConfigServer(pc);
 		return config.getWebCharset();
 	}
 

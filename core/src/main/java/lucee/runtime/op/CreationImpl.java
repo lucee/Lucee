@@ -63,7 +63,7 @@ import lucee.runtime.component.Property;
 import lucee.runtime.component.PropertyImpl;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigPro;
-import lucee.runtime.config.ConfigWeb;
+import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.config.Constants;
 import lucee.runtime.config.RemoteClient;
 import lucee.runtime.db.DatasourceConnection;
@@ -295,9 +295,9 @@ public final class CreationImpl implements Creation, Serializable {
 
 	@Override
 	public PageContext createPageContext(HttpServletRequest req, HttpServletResponse rsp, OutputStream out) {
-		Config config = ThreadLocalPageContext.getConfig();
-		if (!(config instanceof ConfigWeb)) throw new RuntimeException("need a web context to create a PageContext");
-		CFMLFactory factory = ((ConfigWeb) config).getFactory();
+		ConfigWebPro config = ThreadLocalPageContext.getConfigWeb();
+		if (config == null) throw new RuntimeException("need a web context to create a PageContext");
+		CFMLFactory factory = config.getFactory();
 
 		return (PageContext) factory.getPageContext(factory.getServlet(), req, rsp, null, false, -1, false);
 	}

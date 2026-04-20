@@ -25,8 +25,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Iterator;
-import java.util.List;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -65,6 +65,7 @@ import lucee.runtime.component.Property;
 import lucee.runtime.component.PropertyImpl;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigPro;
+import lucee.runtime.config.ConfigServerPro;
 import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.dump.DumpData;
 import lucee.runtime.dump.DumpProperties;
@@ -643,7 +644,8 @@ public final class ComponentUtil {
 		catch (ClassException e) {
 			throw Caster.toPageException(e);
 		}
-		if (axistype) clazz = ((ConfigWebPro) ThreadLocalPageContext.getConfig()).getWSHandler().toWSTypeClass(clazz);
+
+		if (axistype) clazz = ThreadLocalPageContext.getConfigWeb().getWSHandler().toWSTypeClass(clazz);
 		return Type.getType(clazz);
 
 	}
@@ -1118,12 +1120,9 @@ public final class ComponentUtil {
 					return UDFUtil.toReturnFormat(ac.getReturnFormat(), "wddx");
 				}
 			}
-			Config c = ThreadLocalPageContext.getConfig();
-			if (c instanceof ConfigPro) {
-				return UDFUtil.toReturnFormat(((ConfigPro) c).getReturnFormat(), "wddx");
-			}
 
-			return "wddx";
+			ConfigServerPro c = ThreadLocalPageContext.getConfigServer();
+			return UDFUtil.toReturnFormat(c.getReturnFormat(), "wddx");
 		}
 
 		@Override

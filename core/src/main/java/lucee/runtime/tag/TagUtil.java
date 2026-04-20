@@ -41,7 +41,7 @@ import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.PageSource;
 import lucee.runtime.component.ComponentLoader;
-import lucee.runtime.config.ConfigPro;
+import lucee.runtime.config.ConfigServerPro;
 import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
@@ -374,7 +374,7 @@ public final class TagUtil {
 		Reflector.callMethod(tag, "hasBody", new Object[] { hasBody });
 	}
 
-	public static TagLibTag getTagLibTag(ConfigPro config, String nameSpace, String strTagName) {
+	public static TagLibTag getTagLibTag(ConfigServerPro config, String nameSpace, String strTagName) {
 		TagLib[] tlds;
 		tlds = config.getTLDs();
 

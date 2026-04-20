@@ -1,7 +1,6 @@
 package lucee.runtime.net.rpc.server;
 
 import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 
@@ -13,6 +12,6 @@ public final class WSUtil {
 	}
 
 	public static Object invoke(Config config, String name, Object[] args) throws PageException {
-		return ((ConfigWebPro) ThreadLocalPageContext.getConfig(config)).getWSHandler().getWSServer(ThreadLocalPageContext.get()).invoke(name, args);
+		return (ThreadLocalPageContext.getConfigWeb(config)).getWSHandler().getWSServer(ThreadLocalPageContext.get()).invoke(name, args);
 	}
 }

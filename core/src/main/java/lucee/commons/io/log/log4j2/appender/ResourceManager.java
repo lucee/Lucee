@@ -30,7 +30,7 @@ import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.ResourcesImpl;
-import lucee.runtime.config.Config;
+import lucee.runtime.config.ConfigServerPro;
 import lucee.runtime.engine.ThreadLocalPageContext;
 
 /**
@@ -378,7 +378,7 @@ public final class ResourceManager extends OutputStreamManager {
 	}
 
 	protected static final Resource createResource(String path) {
-		Config config = ThreadLocalPageContext.getConfig();
+		ConfigServerPro config = ThreadLocalPageContext.getConfigServer();
 		if (config != null) return config.getResource(path);
 		return ResourcesImpl.getFileResourceProvider().getResource(path);
 	}

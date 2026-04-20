@@ -45,7 +45,7 @@ public final class DirectoryCopy implements Function {
 
 	public static String call(PageContext pc, String source, String destination, boolean recurse, Object filter, boolean createPath) throws PageException {
 		Resource src = ResourceUtil.toResourceNotExisting(pc, source);
-		ResourceAndResourceNameFilter fi = filter == null ? null : UDFFilter.createResourceAndResourceNameFilter(filter);
+		ResourceAndResourceNameFilter fi = filter == null ? null : UDFFilter.createResourceAndResourceNameFilter(pc, filter);
 		Directory.actionCopy(pc, src, destination, null, createPath, null, null, fi, recurse, Directory.NAMECONFLICT_DEFAULT);
 		return null;
 	}

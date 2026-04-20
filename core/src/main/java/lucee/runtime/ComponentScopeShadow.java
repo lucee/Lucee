@@ -97,8 +97,7 @@ public final class ComponentScopeShadow extends StructSupport implements Compone
 	}
 
 	@Override
-	public void initialize(PageContext pc) {
-	}
+	public void initialize(PageContext pc) {}
 
 	@Override
 	public boolean isInitalized() {
@@ -106,8 +105,7 @@ public final class ComponentScopeShadow extends StructSupport implements Compone
 	}
 
 	@Override
-	public void release(PageContext pc) {
-	}
+	public void release(PageContext pc) {}
 
 	@Override
 	public void clear() {
@@ -140,7 +138,8 @@ public final class ComponentScopeShadow extends StructSupport implements Compone
 	public Object get(PageContext pc, Key key, Object defaultValue) {
 		// fast path: shadow map lookup (covers 99%+ of property access)
 		Object val = shadow.getOrDefault(key, CollectionUtil.NULL);
-		if (val != CollectionUtil.NULL && (NullSupportHelper.full(pc) || val != null)) return val;
+
+		if (val != CollectionUtil.NULL && (val != null || NullSupportHelper.full(pc))) return val;
 
 		// slow path: special keys (SUPER/THIS/STATIC can never be in the shadow map — set() blocks them)
 		if (key.equalsIgnoreCase(KeyConstants._SUPER)) {
@@ -392,8 +391,7 @@ public final class ComponentScopeShadow extends StructSupport implements Compone
 	}
 
 	@Override
-	public void setBind(boolean bind) {
-	}
+	public void setBind(boolean bind) {}
 
 	@Override
 	public boolean isBind() {

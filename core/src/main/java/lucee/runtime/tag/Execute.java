@@ -34,6 +34,7 @@ import lucee.runtime.exp.SecurityException;
 import lucee.runtime.ext.tag.BodyTagImpl;
 import lucee.runtime.op.Caster;
 import lucee.runtime.security.SecurityManager;
+import lucee.runtime.security.SecurityManagerImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.UDF;
 import lucee.runtime.type.util.ListUtil;
@@ -206,7 +207,7 @@ public final class Execute extends BodyTagImpl {
 	public void setOutputfile(String outputfile) {
 		try {
 			this.outputfile = ResourceUtil.toResourceExistingParent(pageContext, outputfile);
-			pageContext.getConfig().getSecurityManager().checkFileLocation(this.outputfile);
+			SecurityManagerImpl.checkFileLocation(pageContext, this.outputfile);
 
 		}
 		catch (PageException e) {
@@ -228,7 +229,7 @@ public final class Execute extends BodyTagImpl {
 
 		try {
 			this.errorFile = ResourceUtil.toResourceExistingParent(pageContext, errorfile);
-			pageContext.getConfig().getSecurityManager().checkFileLocation(this.errorFile);
+			SecurityManagerImpl.checkFileLocation(pageContext, this.errorFile);
 		}
 		catch (PageException e) {
 

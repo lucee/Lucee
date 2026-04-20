@@ -18,7 +18,6 @@ import lucee.commons.lang.ClassException;
 import lucee.commons.lang.PhysicalClassLoader;
 import lucee.commons.lang.types.RefBoolean;
 import lucee.loader.engine.CFMLEngine;
-import lucee.runtime.CIPage;
 import lucee.runtime.Mapping;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageSource;
@@ -192,8 +191,6 @@ public interface ConfigPro extends Config {
 
 	public ClassLoader getRPCClassLoader(boolean reload, JavaSettings js) throws IOException;
 
-	public PageSource toPageSource(Mapping[] mappings, Resource res, PageSource defaultValue);
-
 	public boolean getRestList();
 
 	public ExecutionLogFactory getExecutionLogFactory();
@@ -244,8 +241,6 @@ public interface ConfigPro extends Config {
 	public Mapping getDefaultFunctionMapping();
 
 	public Resource getEventGatewayDirectory();
-
-	public void clearComponentCache();
 
 	public void clearApplicationCache();
 
@@ -313,8 +308,6 @@ public interface ConfigPro extends Config {
 
 	public Struct listCTCache();
 
-	public Struct listComponentCache();
-
 	public ClassLoader getClassLoaderEnv();
 
 	public JDBCDriver getJDBCDriverById(String id, JDBCDriver defaultValue);
@@ -328,10 +321,6 @@ public interface ConfigPro extends Config {
 	public InitFile getCTInitFile(PageContext pc, String key);
 
 	public void putCTInitFile(String key, InitFile initFile);
-
-	public CIPage getCachedPage(PageContext pc, String pathWithCFC) throws PageException;
-
-	public void putCachedPageSource(String pathWithCFC, PageSource ps);
 
 	/**
 	 * 
@@ -369,9 +358,6 @@ public interface ConfigPro extends Config {
 	public String getMainLogger();
 
 	public int getInspectTemplateAutoInterval(boolean slow);
-
-	public Resource[] getResources(PageContext pc, Mapping[] mappings, String realPath, boolean onlyTopLevel, boolean useSpecialMappings, boolean useDefaultMapping,
-			boolean useComponentMappings, boolean onlyFirstMatch);
 
 	public boolean getFormUrlAsStruct();
 

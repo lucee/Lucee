@@ -93,7 +93,7 @@ public final class CharsetUtil {
 	public static Charset getWebCharset() {
 		PageContext pc = ThreadLocalPageContext.get();
 		if (pc != null) return pc.getWebCharset();
-		Config config = ThreadLocalPageContext.getConfig();
+		Config config = ThreadLocalPageContext.getConfigServer();
 		if (config != null) return config.getWebCharset();
 
 		return CharsetUtil.ISO88591;

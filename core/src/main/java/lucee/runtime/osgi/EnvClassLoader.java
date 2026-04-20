@@ -26,6 +26,7 @@ import lucee.commons.io.log.LogUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.runtime.config.ConfigPro;
+import lucee.runtime.config.ConfigServerPro;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.text.xml.XMLUtil;
 import lucee.transformer.library.ClassDefinitionImpl;
@@ -63,9 +64,9 @@ public final class EnvClassLoader extends URLClassLoader {
 
 	private static final EnvClassLoader NULL_INSTANCE = new EnvClassLoader(null);
 
-	public static EnvClassLoader getInstance(ConfigPro config) {
-		config = (ConfigPro) ThreadLocalPageContext.getConfig(config);
-		if (config != null) return (EnvClassLoader) config.getClassLoaderEnv();
+	public static EnvClassLoader getInstance(ConfigServerPro cs) {
+		cs = ThreadLocalPageContext.getConfigServer(cs);
+		if (cs != null) return (EnvClassLoader) cs.getClassLoaderEnv();
 
 		return NULL_INSTANCE;
 	}
@@ -158,8 +159,7 @@ public final class EnvClassLoader extends URLClassLoader {
 						}
 					}
 				}
-				catch (IOException e) {
-				}
+				catch (IOException e) {}
 				finally {
 					inside.set(Boolean.FALSE);
 				}
@@ -256,8 +256,7 @@ public final class EnvClassLoader extends URLClassLoader {
 				if (b != null)
 					notFound.put(new SoftReference<String>(new StringBuilder(b.getSymbolicName()).append(':').append(b.getVersion()).append(':').append(name).toString()), EMPTY);
 			}
-			catch (Exception e) {
-			}
+			catch (Exception e) {}
 
 		}
 		return obj;

@@ -197,7 +197,7 @@ public final class ComponentListPackage implements Function {
 			// TODO nor working with pathes with none ascci characters, eith none ascci characters, the java
 			// class path is renamed, so make sure you rename the path as well
 			String strDir = "zip://" + archive + "!" + File.separator + path;
-			Resource dir = ResourceUtil.toResourceNotExisting(pc, strDir, true, false);
+			Resource dir = ResourceUtil.toResourceNotExisting(pc, null, strDir, true, false);
 
 			if (dir.isDirectory()) {
 				java.util.List<String> list = new ArrayList<String>();

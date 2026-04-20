@@ -713,7 +713,7 @@ public final class MappingImpl implements Mapping {
 		}
 
 		public Mapping toMapping() {
-			ConfigWebPro cwi = (ConfigWebPro) ThreadLocalPageContext.getConfig();
+			ConfigWebPro cwi = ThreadLocalPageContext.getConfigWeb();
 			return cwi.getApplicationMapping(type, virtual, physical, archive, physicalFirst, ignoreVirtual);
 		}
 	}

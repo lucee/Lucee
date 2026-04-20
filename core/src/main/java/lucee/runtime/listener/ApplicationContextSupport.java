@@ -24,17 +24,14 @@ import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
 import lucee.commons.io.log.Log;
-import lucee.commons.io.log.LogReference;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.log.LoggerAndSourceData;
-import lucee.commons.io.log.log4j2.LogAdapter;
 import lucee.commons.lang.Pair;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigWeb;
-import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.db.DataSource;
 import lucee.runtime.exp.ApplicationException;
@@ -358,8 +355,7 @@ public abstract class ApplicationContextSupport implements ApplicationContext {
 					}
 					else las = addLogger(config, name, level, cdApp, appArgs, null, null, readOnly);
 
-					rtn.put(name,
-							new Pair<Log, Struct>(config instanceof ConfigWebPro ? new LogReference((ConfigWebPro) config, (LogAdapter) las.getLog(false)) : las.getLog(false), v));
+					rtn.put(name, new Pair<Log, Struct>(las.getLog(false), v));
 				}
 			}
 		}

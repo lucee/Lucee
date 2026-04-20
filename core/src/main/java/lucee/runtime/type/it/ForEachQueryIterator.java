@@ -23,6 +23,7 @@ import java.util.Iterator;
 
 import lucee.runtime.PageContext;
 import lucee.runtime.config.NullSupportHelper;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.DatabaseException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageRuntimeException;
@@ -59,7 +60,7 @@ public final class ForEachQueryIterator implements Iterator, Resetable {
 		try {
 			if (qry.go(++current, pid)) {
 				Struct sct = new StructImpl(Struct.TYPE_LINKED);
-				Object empty = NullSupportHelper.full(pcMayNull) ? null : "";
+				Object empty = NullSupportHelper.full(this.pcMayNull = ThreadLocalPageContext.get(pcMayNull)) ? null : "";
 				for (int i = 0; i < names.length; i++) {
 					sct.setEL(names[i], qry.get(names[i], empty));
 				}

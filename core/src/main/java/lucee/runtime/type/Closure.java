@@ -20,6 +20,10 @@ public final class Closure extends EnvUDF {
 		super();
 	}
 
+	public Closure(PageContext pc, UDFProperties properties) {
+		super(pc, properties);
+	}
+
 	public Closure(UDFProperties properties) {
 		super(properties);
 	}

@@ -163,6 +163,7 @@ public final class ArrayImplNS extends ArraySupport implements Array {
 		return getE(null, key);
 	}
 
+	@Override
 	public Object getE(PageContext pc, int key) throws ExpressionException {
 		if (key < 1) {
 			throw invalidPosition(key);
@@ -243,6 +244,11 @@ public final class ArrayImplNS extends ArraySupport implements Array {
 		if (key > size) size = key;
 		arr[(offset + key) - 1] = checkValue(value);
 		return value;
+	}
+
+	@Override
+	public Object setE(PageContext pc, int key, Object value) throws ExpressionException {
+		return setE(key, value);
 	}
 
 	/**
@@ -577,8 +583,7 @@ public final class ArrayImplNS extends ArraySupport implements Array {
 			try {
 				o = getE(i);
 			}
-			catch (Exception e) {
-			}
+			catch (Exception e) {}
 			table.appendRow(1, new SimpleDumpData(i), DumpUtil.toDumpData(o, pageContext, maxlevel, dp));
 		}
 		return table;
@@ -621,8 +626,7 @@ public final class ArrayImplNS extends ArraySupport implements Array {
 				else arr.set(e.getKey(), e.getValue());
 			}
 		}
-		catch (ExpressionException ee) {
-		}
+		catch (ExpressionException ee) {}
 		finally {
 			if (!inside) ThreadLocalDuplication.reset();
 		}

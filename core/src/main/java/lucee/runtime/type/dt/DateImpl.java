@@ -125,21 +125,21 @@ public final class DateImpl extends Date implements SimpleValue {
 
 	@Override
 	public int compareTo(boolean b) {
-		return OpUtil.compare(ThreadLocalPageContext.get(), (java.util.Date) this, (Number) (b ? BigDecimal.ONE : BigDecimal.ZERO));
+		return OpUtil.compare(null, (java.util.Date) this, (Number) (b ? BigDecimal.ONE : BigDecimal.ZERO));
 	}
 
 	@Override
 	public int compareTo(DateTime dt) throws PageException {
-		return OpUtil.compare(ThreadLocalPageContext.get(), (java.util.Date) this, (java.util.Date) dt);
+		return OpUtil.compare(null, (java.util.Date) this, (java.util.Date) dt);
 	}
 
 	@Override
 	public int compareTo(double d) throws PageException {
-		return OpUtil.compare(ThreadLocalPageContext.get(), (java.util.Date) this, Double.valueOf(d));
+		return OpUtil.compare(null, (java.util.Date) this, Double.valueOf(d));
 	}
 
 	@Override
 	public int compareTo(String str) throws PageException {
-		return OpUtil.compare(ThreadLocalPageContext.get(), castToString(), str);
+		return OpUtil.compare(null, castToString(), str);
 	}
 }

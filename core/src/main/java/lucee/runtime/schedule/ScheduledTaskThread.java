@@ -142,8 +142,7 @@ public final class ScheduledTaskThread extends ParentThreasRefThread {
 			try {
 				scheduler.removeIfNoLonerValid(task);
 			}
-			catch (Exception e) {
-			}
+			catch (Exception e) {}
 		}
 
 	}

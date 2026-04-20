@@ -21,7 +21,7 @@ package lucee.runtime.com;
 import com.jacob.com.Variant;
 
 import lucee.commons.lang.ExceptionUtil;
-import lucee.runtime.config.Config;
+import lucee.runtime.config.ConfigServer;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.reflection.Reflector;
@@ -38,7 +38,7 @@ public final class COMUtil {
 	 * @param key
 	 * @return Object from Variant
 	 */
-	public static Object toObject(Config config, COMObject parent, Variant variant, String key, Object defaultValue) {
+	public static Object toObject(ConfigServer config, COMObject parent, Variant variant, String key, Object defaultValue) {
 		try {
 			return toObject(config, parent, variant, key);
 		}
@@ -56,7 +56,7 @@ public final class COMUtil {
 	 * @return Object from Variant
 	 * @throws ExpressionException
 	 */
-	public static Object toObject(Config config, COMObject parent, Variant variant, String key) throws ExpressionException {
+	public static Object toObject(ConfigServer config, COMObject parent, Variant variant, String key) throws ExpressionException {
 		short type = variant.getvt();
 		// print.ln(key+" -> variant.getvt("+toStringType(type)+")");
 

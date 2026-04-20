@@ -25,7 +25,6 @@ import lucee.runtime.PageContext;
 import lucee.runtime.dump.DumpData;
 import lucee.runtime.dump.DumpProperties;
 import lucee.runtime.dump.DumpTable;
-import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.OpUtil;
@@ -101,22 +100,22 @@ public final class DoubleStruct extends StructImpl {
 
 	@Override
 	public int compareTo(boolean b) throws PageException {
-		return OpUtil.compare(ThreadLocalPageContext.get(), Double.valueOf(castToDoubleValue()), b ? Boolean.TRUE : Boolean.FALSE);
+		return OpUtil.compare(null, Double.valueOf(castToDoubleValue()), b ? Boolean.TRUE : Boolean.FALSE);
 	}
 
 	@Override
 	public int compareTo(DateTime dt) throws PageException {
-		return OpUtil.compare(ThreadLocalPageContext.get(), Double.valueOf(castToDoubleValue()), (Date) dt);
+		return OpUtil.compare(null, Double.valueOf(castToDoubleValue()), (Date) dt);
 	}
 
 	@Override
 	public int compareTo(double d) throws PageException {
-		return OpUtil.compare(ThreadLocalPageContext.get(), Double.valueOf(castToDoubleValue()), Double.valueOf(d));
+		return OpUtil.compare(null, Double.valueOf(castToDoubleValue()), Double.valueOf(d));
 	}
 
 	@Override
 	public int compareTo(String str) throws PageException {
-		return OpUtil.compare(ThreadLocalPageContext.get(), Double.valueOf(castToDoubleValue()), str);
+		return OpUtil.compare(null, Double.valueOf(castToDoubleValue()), str);
 	}
 
 	@Override
@@ -132,8 +131,7 @@ public final class DoubleStruct extends StructImpl {
 		try {
 			table.setTitle("Double Struct (" + castToString() + ")");
 		}
-		catch (PageException pe) {
-		}
+		catch (PageException pe) {}
 		return table;
 	}
 }

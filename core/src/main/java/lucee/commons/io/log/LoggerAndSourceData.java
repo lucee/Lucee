@@ -71,7 +71,7 @@ public final class LoggerAndSourceData {
 
 	public LoggerAndSourceData init() {
 		if (_log == null) {
-			config = ThreadLocalPageContext.getConfig(config);
+			config = ThreadLocalPageContext.getConfigServer(config);
 			try {
 				layout = eng().getLayout(cdLayout, layoutArgs, cdAppender, name);
 				_appender = eng().getAppender(config, layout, name, cdAppender, appenderArgs);
@@ -144,7 +144,7 @@ public final class LoggerAndSourceData {
 
 	public Log getLog(boolean catchException) throws PageException {
 		if (_log == null) {
-			config = ThreadLocalPageContext.getConfig(config);
+			config = ThreadLocalPageContext.getConfigServer(config);
 			try {
 				layout = eng().getLayout(cdLayout, layoutArgs, cdAppender, name);
 				_appender = eng().getAppender(config, layout, name, cdAppender, appenderArgs);

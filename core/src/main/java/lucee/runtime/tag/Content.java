@@ -43,6 +43,7 @@ import lucee.runtime.exp.TemplateException;
 import lucee.runtime.ext.tag.BodyTagImpl;
 import lucee.runtime.net.http.ReqRspUtil;
 import lucee.runtime.op.Caster;
+import lucee.runtime.security.SecurityManagerImpl;
 import lucee.runtime.type.util.ListUtil;
 
 /**
@@ -213,7 +214,7 @@ public final class Content extends BodyTagImpl {
 				}
 				else {
 					// ReqRspUtil.setContentLength(rsp,file.length());
-					pageContext.getConfig().getSecurityManager().checkFileLocation(file);
+					SecurityManagerImpl.checkFileLocation(pageContext, file);
 					contentLength = totalLength = file.length();
 					is = IOUtil.toBufferedInputStream(file.getInputStream());
 				}
@@ -244,8 +245,7 @@ public final class Content extends BodyTagImpl {
 				}
 				if (!(os instanceof GZIPOutputStream)) ReqRspUtil.setContentLength(rsp, contentLength);
 			}
-			catch (IOException ioe) {
-			}
+			catch (IOException ioe) {}
 			finally {
 				IOUtil.flushEL(os);
 				IOUtil.closeEL(is, os);
@@ -281,8 +281,7 @@ public final class Content extends BodyTagImpl {
 	 * 
 	 * @param hasBody
 	 */
-	public void hasBody(boolean hasBody) {
-	}
+	public void hasBody(boolean hasBody) {}
 
 	private Range[] getRanges() {
 		HttpServletRequest req = pageContext.getHttpServletRequest();

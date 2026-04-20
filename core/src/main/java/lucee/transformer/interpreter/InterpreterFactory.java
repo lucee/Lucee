@@ -3,7 +3,6 @@ package lucee.transformer.interpreter;
 import java.math.BigDecimal;
 
 import lucee.runtime.config.Config;
-import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.transformer.Body;
@@ -59,12 +58,11 @@ public final class InterpreterFactory extends FactoryBase {
 	private final Expression NULL;
 	private final LitNumber NUMBER_ZERO;
 	private final LitNumber NUMBER_ONE;
-	private Config config;
 
 	private static InterpreterFactory instance;
 
 	public static Factory getInstance(Config config) {
-		if (instance == null) instance = new InterpreterFactory(config == null ? ThreadLocalPageContext.getConfig() : config);
+		if (instance == null) instance = new InterpreterFactory(config);
 		return instance;
 	}
 
@@ -75,7 +73,6 @@ public final class InterpreterFactory extends FactoryBase {
 		NULL = new Null(this, null, null);
 		NUMBER_ZERO = createLitNumber(0);
 		NUMBER_ONE = createLitNumber(1);
-		this.config = config;
 	}
 
 	@Override

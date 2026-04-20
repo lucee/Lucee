@@ -42,6 +42,7 @@ import lucee.runtime.type.Collection;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.UDF;
+import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.KeyConstants;
 
 /**
@@ -75,7 +76,7 @@ public final class CallStackGet implements Function {
 		if (offset > 0 || maxFrames > 0) {
 			int sliceFrom = offset + 1;
 			int sliceTo = (maxFrames > 0) ? (int) (maxFrames + offset) : 0;
-			arr = ArraySlice.get(arr, sliceFrom, sliceTo);
+			arr = ArraySlice.get(pc, ArrayUtil.toArrayPro(arr, null), sliceFrom, sliceTo);
 		}
 
 		if (type.equalsIgnoreCase("array")) return arr;

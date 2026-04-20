@@ -28,6 +28,7 @@ import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.op.Caster;
+import lucee.runtime.security.SecurityManagerImpl;
 import lucee.runtime.type.util.ListUtil;
 
 /**
@@ -55,11 +56,12 @@ public final class Extract implements Function {
 		Resource[] sources = new Resource[arrSources.length];
 		for (int i = 0; i < sources.length; i++) {
 			sources[i] = ResourceUtil.toResourceExisting(pc, arrSources[i]);
-			pc.getConfig().getSecurityManager().checkFileLocation(sources[i]);
+			SecurityManagerImpl.checkFileLocation(pc, sources[i]);
+
 		}
 
 		Resource target = singleFileFormat ? ResourceUtil.toResourceNotExisting(pc, srcTarget) : ResourceUtil.toResourceExisting(pc, srcTarget);
-		pc.getConfig().getSecurityManager().checkFileLocation(target);
+		SecurityManagerImpl.checkFileLocation(pc, target);
 
 		try {
 			CompressUtil.extract(format, sources, target);

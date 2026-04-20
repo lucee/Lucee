@@ -111,6 +111,7 @@ import lucee.runtime.net.proxy.ProxyData;
 import lucee.runtime.net.proxy.ProxyDataImpl;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
+import lucee.runtime.security.SecurityManagerImpl;
 import lucee.runtime.text.csv.CSVParser;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
@@ -1329,7 +1330,9 @@ public final class Http extends BodyTagImpl {
 				}
 
 			}
-			if (file != null) pageContext.getConfig().getSecurityManager().checkFileLocation(file);
+			if (file != null) {
+				SecurityManagerImpl.checkFileLocation(pageContext, file);
+			}
 
 			// filecontent
 

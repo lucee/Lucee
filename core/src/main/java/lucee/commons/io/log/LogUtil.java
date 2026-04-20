@@ -167,7 +167,7 @@ public final class LogUtil {
 			if (Log.LEVEL_ERROR == logLevel) log.error(type, t);
 			else log.log(logLevel, type, t);
 		}
-		else logGlobal(ThreadLocalPageContext.getConfig(config), logLevel, type, ExceptionUtil.getStacktrace(t, true));
+		else logGlobal(ThreadLocalPageContext.getConfigServer(config), logLevel, type, ExceptionUtil.getStacktrace(t, true));
 	}
 
 	public static void log(PageContext pc, String logName, String type, Throwable t, int logLevel) {
@@ -176,7 +176,7 @@ public final class LogUtil {
 			if (Log.LEVEL_ERROR == logLevel) log.error(type, t);
 			else log.log(logLevel, type, t);
 		}
-		else logGlobal(ThreadLocalPageContext.getConfig(pc), logLevel, type, ExceptionUtil.getStacktrace(t, true));
+		else logGlobal(ThreadLocalPageContext.getConfigServer(pc), logLevel, type, ExceptionUtil.getStacktrace(t, true));
 	}
 
 	public static void log(PageContext pc, String type, Throwable t, int logLevel, String... logNames) {
@@ -190,7 +190,7 @@ public final class LogUtil {
 			if (Log.LEVEL_ERROR == logLevel) log.error(type, t);
 			else log.log(logLevel, type, t);
 		}
-		else logGlobal(ThreadLocalPageContext.getConfig(pc), logLevel, type, ExceptionUtil.getStacktrace(t, true));
+		else logGlobal(ThreadLocalPageContext.getConfigServer(pc), logLevel, type, ExceptionUtil.getStacktrace(t, true));
 	}
 
 	//////////
@@ -210,7 +210,7 @@ public final class LogUtil {
 		}
 		if (log != null) log.log(level, type, msg);
 		else {
-			logGlobal(ThreadLocalPageContext.getConfig(config), level, logNames[0] + ":" + type, msg);
+			logGlobal(ThreadLocalPageContext.getConfigServer(config), level, logNames[0] + ":" + type, msg);
 		}
 	}
 
@@ -229,7 +229,7 @@ public final class LogUtil {
 			}
 		}
 
-		logGlobal(ThreadLocalPageContext.getConfig(config), level, logName + ":" + type, msg);
+		logGlobal(ThreadLocalPageContext.getConfigServer(config), level, logName + ":" + type, msg);
 
 	}
 
@@ -237,7 +237,7 @@ public final class LogUtil {
 		Log log = ThreadLocalPageContext.getLog(pc, logName);
 		if (log != null) log.log(level, type, msg);
 		else {
-			logGlobal(ThreadLocalPageContext.getConfig(pc), level, logName + ":" + type, msg);
+			logGlobal(ThreadLocalPageContext.getConfigServer(pc), level, logName + ":" + type, msg);
 		}
 	}
 

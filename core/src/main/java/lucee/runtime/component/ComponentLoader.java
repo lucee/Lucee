@@ -47,6 +47,7 @@ import lucee.runtime.StaticScope;
 import lucee.runtime.SubPage;
 import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigUtil;
+import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.config.Constants;
 import lucee.runtime.debug.DebugEntryTemplate;
 import lucee.runtime.exp.ApplicationException;
@@ -209,7 +210,7 @@ public final class ComponentLoader {
 	private static Object _search(PageContext pc, PageSource loadingLocation, String rawPath, Boolean searchLocal, Boolean searchRoot, boolean executeConstr, short returnType,
 			PageSource currPS, final boolean isExtendedComponent, boolean validate) throws PageException {
 
-		ConfigPro config = (ConfigPro) pc.getConfig();
+		ConfigWebPro config = (ConfigWebPro) pc.getConfig();
 
 		boolean doCache = config.useComponentPathCache();
 		String sub = null;
@@ -261,7 +262,7 @@ public final class ComponentLoader {
 				localCacheName = currPS.getDisplayPath().replace('\\', '/');
 				localCacheName = localCacheName.substring(0, localCacheName.lastIndexOf('/') + 1).concat(pathWithCFC);
 				if (doCache) {
-					page = config.getCachedPage(pc, localCacheName);
+					page = config.getComponentPathCache(pc, localCacheName);
 					if (page != null) {
 						return returnType == RETURN_TYPE_PAGE ? page
 								: load(pc, page, trim(path.replace('/', '.')), sub, isRealPath, returnType, isExtendedComponent, executeConstr, validate);
@@ -290,7 +291,7 @@ public final class ComponentLoader {
 			do {
 
 				if ((currDir && impDef.isWildcard()) || impDef.getName().equalsIgnoreCase(path)) {
-					page = config.getCachedPage(pc, "import:" + impDef.getPackageAsPath() + pathWithCFC);
+					page = config.getComponentPathCache(pc, "import:" + impDef.getPackageAsPath() + pathWithCFC);
 					if (page != null) {
 						return returnType == RETURN_TYPE_PAGE ? page
 								: load(pc, page, trim(path.replace('/', '.')), sub, isRealPath, returnType, isExtendedComponent, executeConstr, validate);
@@ -303,7 +304,7 @@ public final class ComponentLoader {
 
 		if (doCache) {
 			// check global in cache
-			page = config.getCachedPage(pc, pathWithCFC);
+			page = config.getComponentPathCache(pc, pathWithCFC);
 			if (page != null) {
 				return returnType == RETURN_TYPE_PAGE ? page
 						: load(pc, page, trim(path.replace('/', '.')), sub, isRealPath, returnType, isExtendedComponent, executeConstr, validate);
@@ -317,7 +318,7 @@ public final class ComponentLoader {
 			PageSource[] arr = ((PageContextImpl) pc).getRelativePageSources(pathWithCFC);
 			page = toCIPage(PageSourceImpl.loadPage(pc, arr, null));
 			if (page != null) {
-				if (doCache) config.putCachedPageSource(localCacheName, page.getPageSource());
+				if (doCache) config.putComponentPathCache(localCacheName, page.getPageSource());
 
 				return returnType == RETURN_TYPE_PAGE ? page
 						: load(pc, page, trim(path.replace('/', '.')), sub, isRealPath, returnType, isExtendedComponent, executeConstr, validate);
@@ -345,7 +346,7 @@ public final class ComponentLoader {
 						arr = ((PageContextImpl) pc).getRelativePageSources(impDef.getPackageAsPath() + pathWithCFC);
 						page = toCIPage(PageSourceImpl.loadPage(pc, arr, null));
 						if (page != null) {
-							if (doCache) config.putCachedPageSource("import:" + impDef.getPackageAsPath() + pathWithCFC, page.getPageSource());
+							if (doCache) config.putComponentPathCache("import:" + impDef.getPackageAsPath() + pathWithCFC, page.getPageSource());
 							return returnType == RETURN_TYPE_PAGE ? page
 									: load(pc, page, trim(path.replace('/', '.')), sub, isRealPath, returnType, isExtendedComponent, executeConstr, validate);
 						}
@@ -355,7 +356,7 @@ public final class ComponentLoader {
 					page = toCIPage(PageSourceImpl.loadPage(pc, ((PageContextImpl) pc).getPageSources("/" + impDef.getPackageAsPath() + pathWithCFC), null));
 					if (page != null) {
 						String key = impDef.getPackageAsPath() + pathWithCFC;
-						if (doCache && !((MappingImpl) page.getPageSource().getMapping()).isAppMapping()) config.putCachedPageSource("import:" + key, page.getPageSource());
+						if (doCache && !((MappingImpl) page.getPageSource().getMapping()).isAppMapping()) config.putComponentPathCache("import:" + key, page.getPageSource());
 						return returnType == RETURN_TYPE_PAGE ? page
 								: load(pc, page, trim(path.replace('/', '.')), sub, isRealPath, returnType, isExtendedComponent, executeConstr, validate);
 					}
@@ -370,7 +371,7 @@ public final class ComponentLoader {
 								ps = m.getPageSource(impDef.getPackageAsPath() + pathWithCFC);
 								page = toCIPage(ps.loadPageThrowTemplateException(pc, false, (Page) null));
 								if (page != null) {
-									if (doCache && z > 0) config.putCachedPageSource("import:" + impDef.getPackageAsPath() + pathWithCFC, page.getPageSource());
+									if (doCache && z > 0) config.putComponentPathCache("import:" + impDef.getPackageAsPath() + pathWithCFC, page.getPageSource());
 									return returnType == RETURN_TYPE_PAGE ? page
 											: load(pc, page, trim(path.replace('/', '.')), sub, isRealPath, returnType, isExtendedComponent, executeConstr, validate);
 								}
@@ -393,7 +394,7 @@ public final class ComponentLoader {
 		page = toCIPage(PageSourceImpl.loadPage(pc, ((PageContextImpl) pc).getPageSources(p), null));
 		if (page != null) {
 			String key = pathWithCFC;
-			if (doCache && !((MappingImpl) page.getPageSource().getMapping()).isAppMapping()) config.putCachedPageSource(key, page.getPageSource());
+			if (doCache && !((MappingImpl) page.getPageSource().getMapping()).isAppMapping()) config.putComponentPathCache(key, page.getPageSource());
 			return returnType == RETURN_TYPE_PAGE ? page : load(pc, page, trim(path.replace('/', '.')), sub, isRealPath, returnType, isExtendedComponent, executeConstr, validate);
 		}
 
@@ -419,7 +420,7 @@ public final class ComponentLoader {
 					}
 
 					if (page != null) {
-						if (doCache && y > 0) config.putCachedPageSource(pathWithCFC, page.getPageSource());
+						if (doCache && y > 0) config.putComponentPathCache(pathWithCFC, page.getPageSource());
 						return returnType == RETURN_TYPE_PAGE ? page
 								: load(pc, page, trim(path.replace('/', '.')), sub, isRealPath, returnType, isExtendedComponent, executeConstr, validate);
 					}
@@ -468,7 +469,7 @@ public final class ComponentLoader {
 				if (ps != null) {
 					page = toCIPage(PageSourceImpl.loadPage(pc, new PageSource[] { ps }, null));
 					if (page != null) {
-						if (doCache) config.putCachedPageSource("abs:" + rawPath, page.getPageSource());
+						if (doCache) config.putComponentPathCache("abs:" + rawPath, page.getPageSource());
 						return returnType == RETURN_TYPE_PAGE ? page : load(pc, page, rawPath, sub, isRealPath, returnType, isExtendedComponent, executeConstr, validate);
 					}
 				}

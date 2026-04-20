@@ -28,6 +28,7 @@ import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.op.Caster;
+import lucee.runtime.security.SecurityManagerImpl;
 import lucee.runtime.type.util.ListUtil;
 
 /**
@@ -44,7 +45,8 @@ public final class Compress implements Function {
 	}
 
 	public static boolean call(PageContext pc, String strFormat, String strSource, String srcTarget, boolean includeBaseFolder, String strMode) throws PageException {
-		// strMode is accepted for signature compatibility but only used by compress extension for tar formats
+		// strMode is accepted for signature compatibility but only used by compress extension for tar
+		// formats
 		strFormat = strFormat.trim().toLowerCase();
 		int format;
 		if (strFormat.equals("zip")) format = CompressUtil.FORMAT_ZIP;
@@ -57,11 +59,11 @@ public final class Compress implements Function {
 		Resource[] sources = new Resource[arrSources.length];
 		for (int i = 0; i < sources.length; i++) {
 			sources[i] = ResourceUtil.toResourceExisting(pc, arrSources[i]);
-			(pc.getConfig()).getSecurityManager().checkFileLocation(sources[i]);
+			SecurityManagerImpl.checkFileLocation(pc, sources[i]);
 		}
 
 		Resource target = ResourceUtil.toResourceExistingParent(pc, srcTarget);
-		(pc.getConfig()).getSecurityManager().checkFileLocation(target);
+		SecurityManagerImpl.checkFileLocation(pc, target);
 
 		try {
 			if (sources.length == 1) CompressUtil.compress(format, sources[0], target, includeBaseFolder, -1);

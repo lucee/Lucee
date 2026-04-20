@@ -31,6 +31,7 @@ import lucee.runtime.PageContext;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
+import lucee.runtime.security.SecurityManagerImpl;
 
 public final class GetTempFile implements Function {
 
@@ -44,8 +45,7 @@ public final class GetTempFile implements Function {
 		Resource dir;
 		if (StringUtil.isEmpty(strDir)) dir = pc.getConfig().getTempDirectory();
 		else dir = ResourceUtil.toResourceExisting(pc, strDir);
-		pc.getConfig().getSecurityManager().checkFileLocation(dir);
-
+		SecurityManagerImpl.checkFileLocation(pc, dir);
 		try {
 			return ResourceUtil.getUniqueTempFile(dir, prefix, extension).getCanonicalPath();
 		}

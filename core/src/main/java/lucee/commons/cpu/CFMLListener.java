@@ -23,7 +23,7 @@ public abstract class CFMLListener implements Listener {
 	private ConfigWeb config;
 
 	public CFMLListener() {
-		this.config = (ConfigWeb) ThreadLocalPageContext.getConfig();
+		this.config = ThreadLocalPageContext.getConfigWeb();
 	}
 
 	@Override

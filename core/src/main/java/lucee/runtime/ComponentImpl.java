@@ -64,6 +64,7 @@ import lucee.runtime.component.PropertyImpl;
 import lucee.runtime.component.StaticStruct;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigPro;
+import lucee.runtime.config.ConfigUtil;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.config.NullSupportHelper;
@@ -94,6 +95,7 @@ import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.FunctionArgument;
 import lucee.runtime.type.KeyImpl;
+import lucee.runtime.type.Null;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.UDF;
@@ -243,7 +245,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 									if (JavaSettingsImpl.doMerge(sct, false)) mergeConfig = true;
 									js = JavaSettingsImpl.merge(
 
-											pc.getConfig(),
+											ConfigUtil.getConfigServerImpl(pc.getConfig()),
 
 											js,
 
@@ -260,12 +262,12 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 
 					// extends
 					if (base != null) {
-						js = JavaSettingsImpl.merge(pc.getConfig(), js, base.getJavaSettings(pc));
+						js = JavaSettingsImpl.merge(ConfigUtil.getConfigServerImpl(pc.getConfig()), js, base.getJavaSettings(pc));
 					}
 
 					// current
-					js = JavaSettingsImpl.merge(pc.getConfig(), js, JavaSettingsImpl.readJavaSettings(pc, properties.meta));
-					if (mergeConfig) js = JavaSettingsImpl.merge(pc.getConfig(), ((ConfigPro) pc.getConfig()).getJavaSettings(), js);
+					js = JavaSettingsImpl.merge(ConfigUtil.getConfigServerImpl(pc.getConfig()), js, JavaSettingsImpl.readJavaSettings(pc, properties.meta));
+					if (mergeConfig) js = JavaSettingsImpl.merge(ConfigUtil.getConfigServerImpl(pc.getConfig()), ((ConfigPro) pc.getConfig()).getJavaSettings(), js);
 
 					return this.cp.setJavaSettings(js);
 				}
@@ -2321,14 +2323,12 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 	}
 
 	public boolean contains(int access, String name) {
-		Object _null = NullSupportHelper.NULL();
-		return get(access, name, _null) != _null;
+		return !NullSupportHelper.isNull(get(access, name, Null.NULL));
 	}
 
 	@Override
 	public boolean contains(int access, Key name) {
-		Object _null = NullSupportHelper.NULL();
-		return get(access, name, _null) != _null;
+		return !NullSupportHelper.isNull(get(access, name, Null.NULL));
 	}
 
 	public boolean contains(PageContext pc, int access, Key name) {
@@ -2530,22 +2530,22 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 
 	@Override
 	public int compareTo(boolean b) throws PageException {
-		return lucee.runtime.op.OpUtil.compare(ThreadLocalPageContext.get(), castToBooleanValue() ? Boolean.TRUE : Boolean.FALSE, b ? Boolean.TRUE : Boolean.FALSE);
+		return lucee.runtime.op.OpUtil.compare(null, castToBooleanValue() ? Boolean.TRUE : Boolean.FALSE, b ? Boolean.TRUE : Boolean.FALSE);
 	}
 
 	@Override
 	public int compareTo(DateTime dt) throws PageException {
-		return lucee.runtime.op.OpUtil.compare(ThreadLocalPageContext.get(), (Date) castToDateTime(), (Date) dt);
+		return lucee.runtime.op.OpUtil.compare(null, (Date) castToDateTime(), (Date) dt);
 	}
 
 	@Override
 	public int compareTo(double d) throws PageException {
-		return lucee.runtime.op.OpUtil.compare(ThreadLocalPageContext.get(), Double.valueOf(castToDoubleValue()), Double.valueOf(d));
+		return lucee.runtime.op.OpUtil.compare(null, Double.valueOf(castToDoubleValue()), Double.valueOf(d));
 	}
 
 	@Override
 	public int compareTo(String str) throws PageException {
-		return lucee.runtime.op.OpUtil.compare(ThreadLocalPageContext.get(), castToString(), str);
+		return lucee.runtime.op.OpUtil.compare(null, castToString(), str);
 	}
 
 	public void addConstructorUDF(Key key, UDF udf) throws ApplicationException {
@@ -2564,7 +2564,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 		try {
 			if (pc == null) {
 				pcCreated = true;
-				ConfigWeb config = (ConfigWeb) ThreadLocalPageContext.getConfig();
+				ConfigWeb config = ThreadLocalPageContext.getConfigWeb();
 				Pair[] parr = new Pair[0];
 				pc = ThreadUtil.createPageContext(config, DevNullOutputStream.DEV_NULL_OUTPUT_STREAM, "localhost", "/", "", SerializableCookie.COOKIES0, parr, null, parr,
 						new StructImpl(), true, -1, null, null);
@@ -2737,7 +2737,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 	private boolean triggerDataMember(PageContext pc) {
 		if (pc != null && pc.getApplicationContext() != null) return pc.getApplicationContext().getTriggerComponentDataMember();
 
-		Config config = ThreadLocalPageContext.getConfig();
+		Config config = ThreadLocalPageContext.getConfigServer();
 		if (config != null) return config.getTriggerComponentDataMember();
 
 		return false;

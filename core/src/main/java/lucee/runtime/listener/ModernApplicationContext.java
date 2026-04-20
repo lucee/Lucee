@@ -280,6 +280,9 @@ public final class ModernApplicationContext extends ApplicationContextSupport {
 	private boolean oldURL;
 	private boolean oldMerge;
 
+	public static boolean hasCustomNullSupportSetting = false;
+	public static boolean hasCustomPreciseMath = false;
+
 	public ModernApplicationContext(PageContext pc, Component cfc, RefBoolean throwsErrorWhileInit) {
 		super(pc.getConfig());
 		this.wstype = WS_TYPE_AXIS1;
@@ -292,6 +295,8 @@ public final class ModernApplicationContext extends ApplicationContextSupport {
 		oldMerge = ac.getFormUrlAsStruct();
 		initSameFieldAsArray(pc); // this needs to happen here because it reinit the scope if needed
 		initContext(pc);
+		getFullNullSupport();
+		getPreciseMath();
 
 		// ORM
 		// if (((ConfigPro) config).hasORMEngine()) {
@@ -975,7 +980,7 @@ public final class ModernApplicationContext extends ApplicationContextSupport {
 		try {
 			Method m = cd.getClazz().getMethod("init", new Class[] { Config.class, String[].class, Struct[].class });
 			if (Modifier.isStatic(m.getModifiers())) m.invoke(null, new Object[] { config, new String[] { cc.getName() }, new Struct[] { cc.getCustom() } });
-			else LogUtil.log(ThreadLocalPageContext.getConfig(config), Log.LEVEL_ERROR, ModernApplicationContext.class.getName(),
+			else LogUtil.log(ThreadLocalPageContext.getConfigServer(config), Log.LEVEL_ERROR, ModernApplicationContext.class.getName(),
 					"method [init(Config,String[],Struct[]):void] for class [" + cd.toString() + "] is not static");
 		}
 		catch (Exception e) {}
@@ -1795,10 +1800,10 @@ public final class ModernApplicationContext extends ApplicationContextSupport {
 					Object o = get(component, KeyConstants._javasettings, null);
 					if (o != null && Decision.isStruct(o)) {
 						Struct raw = Caster.toStruct(o, null);
-						javaSettings = JavaSettingsImpl.getInstance(config, raw, null);
+						javaSettings = JavaSettingsImpl.getInstance(ConfigUtil.getConfigServerImpl(config), raw, null);
 
 						if (javaSettings != null && JavaSettingsImpl.doMerge(raw, true)) {
-							javaSettings = JavaSettingsImpl.merge(config, javaSettings, ((ConfigPro) config).getJavaSettings());
+							javaSettings = JavaSettingsImpl.merge(ConfigUtil.getConfigServerImpl(config), javaSettings, ((ConfigPro) config).getJavaSettings());
 						}
 					}
 				}
@@ -2005,7 +2010,7 @@ public final class ModernApplicationContext extends ApplicationContextSupport {
 			Object oLogs = get(component, KeyConstants._logs, null);
 			if (oLogs == null) oLogs = get(component, KeyConstants._log, null);
 			Struct sct = Caster.toStruct(oLogs, null);
-			logs = initLog(ThreadLocalPageContext.getConfig(config), sct);
+			logs = initLog(ThreadLocalPageContext.getConfigServer(config), sct);
 			initLog = true;
 		}
 		catch (PageException e) {
@@ -2026,8 +2031,13 @@ public final class ModernApplicationContext extends ApplicationContextSupport {
 		if (!initFullNullSupport) {
 			Boolean b = Caster.toBoolean(get(component, KeyConstants._nullSupport, null), null);
 			if (b == null) b = Caster.toBoolean(get(component, KeyConstants._enableNULLSupport, null), null);
-			if (b != null) fullNullSupport = b.booleanValue();
-			else fullNullSupport = config.getFullNullSupport();
+			if (b != null) {
+				fullNullSupport = b.booleanValue();
+				hasCustomNullSupportSetting = true;
+			}
+			else {
+				fullNullSupport = config.getFullNullSupport();
+			}
 			initFullNullSupport = true;
 		}
 		return fullNullSupport;
@@ -2044,7 +2054,10 @@ public final class ModernApplicationContext extends ApplicationContextSupport {
 		if (!initPreciseMath) {
 			Boolean b = Caster.toBoolean(get(component, KeyConstants._preciseMath, null), null);
 			if (b == null) b = Caster.toBoolean(get(component, KeyConstants._precisionEvaluate, null), null);
-			if (b != null) preciseMath = b.booleanValue();
+			if (b != null) {
+				preciseMath = b.booleanValue();
+				hasCustomPreciseMath = true;
+			}
 			else preciseMath = ((ConfigPro) config).getPreciseMath();
 
 			initPreciseMath = true;

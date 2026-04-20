@@ -66,7 +66,7 @@ import lucee.runtime.functions.list.ListLast;
 import lucee.runtime.listener.ApplicationContext;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
-import lucee.runtime.security.SecurityManager;
+import lucee.runtime.security.SecurityManagerImpl;
 import lucee.runtime.tag.util.FileUtil;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
@@ -169,8 +169,6 @@ public final class FileTag extends BodyTagImpl {
 
 	private String result = null;
 
-	private lucee.runtime.security.SecurityManager securityManager;
-
 	private String serverPassword = null;
 	private Object acl = null;
 
@@ -207,7 +205,6 @@ public final class FileTag extends BodyTagImpl {
 		blockedExtensions = null;
 		strict = true;
 		createPath = false;
-		securityManager = null;
 		result = null;
 		serverPassword = null;
 		cachedWithin = null;
@@ -425,14 +422,12 @@ public final class FileTag extends BodyTagImpl {
 
 		if (charset == null) charset = CharsetUtil.toCharsetX(((PageContextImpl) pageContext).getResourceCharset());
 
-		securityManager = pageContext.getConfig().getSecurityManager();
-
 		switch (action) {
 		case ACTION_MOVE:
-			actionMove(pageContext, securityManager, source, strDestination, nameconflict, serverPassword, acl, mode, attributes);
+			actionMove(pageContext, source, strDestination, nameconflict, serverPassword, acl, mode, attributes);
 			break;
 		case ACTION_COPY:
-			actionCopy(pageContext, securityManager, source, strDestination, nameconflict, serverPassword, acl, mode, attributes);
+			actionCopy(pageContext, source, strDestination, nameconflict, serverPassword, acl, mode, attributes);
 			break;
 		case ACTION_DELETE:
 			actionDelete();
@@ -453,7 +448,7 @@ public final class FileTag extends BodyTagImpl {
 			actionInfo();
 			break;
 		case ACTION_TOUCH:
-			actionTouch(pageContext, securityManager, file, serverPassword, createPath, acl, mode, attributes);
+			actionTouch(pageContext, file, serverPassword, createPath, acl, mode, attributes);
 			break;
 		case ACTION_UNDEFINED:
 			throw new ApplicationException("Missing attribute action"); // should never happens
@@ -500,8 +495,8 @@ public final class FileTag extends BodyTagImpl {
 	 * 
 	 * @throws PageException
 	 */
-	public static void actionMove(PageContext pageContext, lucee.runtime.security.SecurityManager securityManager, Resource source, String strDestination, int nameconflict,
-			String serverPassword, Object acl, int mode, String attributes) throws PageException {
+	public static void actionMove(PageContext pageContext, Resource source, String strDestination, int nameconflict, String serverPassword, Object acl, int mode, String attributes)
+			throws PageException {
 		if (nameconflict == NAMECONFLICT_UNDEFINED) nameconflict = NAMECONFLICT_OVERWRITE;
 
 		if (source == null) throw new ApplicationException("Attribute [source] is required for tag [file], when the action is [" + actionValue + "]",
@@ -511,8 +506,8 @@ public final class FileTag extends BodyTagImpl {
 
 		Resource destination = toDestination(pageContext, strDestination, source);
 
-		securityManager.checkFileLocation(pageContext.getConfig(), source, serverPassword);
-		securityManager.checkFileLocation(pageContext.getConfig(), destination, serverPassword);
+		SecurityManagerImpl.checkFileLocation(pageContext, source, serverPassword);
+		SecurityManagerImpl.checkFileLocation(pageContext, destination, serverPassword);
 		if (source.equals(destination)) return;
 
 		// source
@@ -562,8 +557,8 @@ public final class FileTag extends BodyTagImpl {
 	 * 
 	 * @throws PageException
 	 */
-	public static void actionCopy(PageContext pageContext, lucee.runtime.security.SecurityManager securityManager, Resource source, String strDestination, int nameconflict,
-			String serverPassword, Object acl, int mode, String attributes) throws PageException {
+	public static void actionCopy(PageContext pageContext, Resource source, String strDestination, int nameconflict, String serverPassword, Object acl, int mode, String attributes)
+			throws PageException {
 		if (nameconflict == NAMECONFLICT_UNDEFINED) nameconflict = NAMECONFLICT_OVERWRITE;
 
 		if (source == null) throw new ApplicationException("Attribute [source] is required for tag [file], when the action is [" + actionValue + "]",
@@ -573,8 +568,8 @@ public final class FileTag extends BodyTagImpl {
 
 		Resource destination = toDestination(pageContext, strDestination, source);
 
-		securityManager.checkFileLocation(pageContext.getConfig(), source, serverPassword);
-		securityManager.checkFileLocation(pageContext.getConfig(), destination, serverPassword);
+		SecurityManagerImpl.checkFileLocation(pageContext, source, serverPassword);
+		SecurityManagerImpl.checkFileLocation(pageContext, destination, serverPassword);
 
 		// source
 		if (!source.exists()) throw new ApplicationException("Source file [" + source.toString() + "] doesn't exist");
@@ -642,7 +637,7 @@ public final class FileTag extends BodyTagImpl {
 	 * @throws PageException
 	 */
 	private void actionDelete() throws PageException {
-		checkFile(pageContext, securityManager, file, serverPassword, false, false, false, false);
+		checkFile(pageContext, file, serverPassword, false, false, false, false);
 		setACL(pageContext, file, acl);
 		try {
 			if (!file.delete()) throw new ApplicationException("Can't delete file [" + file + "]");
@@ -699,7 +694,7 @@ public final class FileTag extends BodyTagImpl {
 		}
 
 		// cache not found, process and cache result if needed
-		checkFile(pageContext, securityManager, file, serverPassword, false, false, true, false);
+		checkFile(pageContext, file, serverPassword, false, false, true, false);
 
 		try {
 			long start = System.nanoTime();
@@ -726,7 +721,7 @@ public final class FileTag extends BodyTagImpl {
 	private void actionWrite() throws PageException {
 		if (output == null) throw new ApplicationException("Attribute [output] is required for tag [file], when the action is [" + actionValue + "]",
 				"Action [" + actionValue + "] requires a tag body or attribute [output]");
-		boolean created = checkFile(pageContext, securityManager, file, serverPassword, createPath, true, false, true);
+		boolean created = checkFile(pageContext, file, serverPassword, createPath, true, false, true);
 		if (file.exists() && !created) {
 			// Error
 			if (nameconflict == NAMECONFLICT_ERROR) throw new ApplicationException("Destination file [" + file + "] already exists");
@@ -776,9 +771,9 @@ public final class FileTag extends BodyTagImpl {
 	 * @param serverPassword, booleancreatePath
 	 * @throws PageException
 	 */
-	public static void actionTouch(PageContext pageContext, SecurityManager securityManager, Resource file, String serverPassword, boolean createPath, Object acl, int mode,
-			String attributes) throws PageException {
-		checkFile(pageContext, securityManager, file, serverPassword, createPath, true, true, true);
+	public static void actionTouch(PageContext pageContext, Resource file, String serverPassword, boolean createPath, Object acl, int mode, String attributes)
+			throws PageException {
+		checkFile(pageContext, file, serverPassword, createPath, true, true, true);
 
 		try {
 			ResourceUtil.touch(file);
@@ -801,7 +796,7 @@ public final class FileTag extends BodyTagImpl {
 	private void actionAppend() throws PageException {
 		if (output == null) throw new ApplicationException("Attribute [output] is required for tag [file], when the action is [" + actionValue + "]",
 				"Action [" + actionValue + "] requires a tag body or attribute [output]");
-		checkFile(pageContext, securityManager, file, serverPassword, createPath, true, false, true);
+		checkFile(pageContext, file, serverPassword, createPath, true, false, true);
 
 		try {
 			if (!file.exists()) file.createNewFile();
@@ -841,8 +836,7 @@ public final class FileTag extends BodyTagImpl {
 	}
 
 	public static Struct getInfo(PageContext pc, Resource file, String serverPassword) throws PageException {
-		SecurityManager sm = pc.getConfig().getSecurityManager();
-		checkFile(pc, sm, file, serverPassword, false, false, false, false);
+		checkFile(pc, file, serverPassword, false, false, false, false);
 
 		File files = new File(Caster.toString(file));
 		BasicFileAttributes attr;
@@ -889,8 +883,7 @@ public final class FileTag extends BodyTagImpl {
 
 	public void actionUpload() throws PageException {
 		FormItem item = getFormItem(pageContext, filefield);
-		Struct cffile = _actionUpload(pageContext, securityManager, item, strDestination, nameconflict, accept, allowedExtensions, blockedExtensions, strict, mode, attributes, acl,
-				serverPassword);
+		Struct cffile = _actionUpload(pageContext, item, strDestination, nameconflict, accept, allowedExtensions, blockedExtensions, strict, mode, attributes, acl, serverPassword);
 		if (StringUtil.isEmpty(result)) {
 			pageContext.undefinedScope().set(KeyConstants._file, cffile);
 			pageContext.undefinedScope().set(KeyConstants._cffile, cffile);
@@ -900,17 +893,14 @@ public final class FileTag extends BodyTagImpl {
 		}
 	}
 
-	public static Struct actionUpload(PageContext pageContext, lucee.runtime.security.SecurityManager securityManager, String filefield, String strDestination, int nameconflict,
-			String accept, ResourceFilter allowedExtensions, ResourceFilter blockedExtensions, boolean strict, int mode, String attributes, Object acl, String serverPassword)
-			throws PageException {
+	public static Struct actionUpload(PageContext pageContext, String filefield, String strDestination, int nameconflict, String accept, ResourceFilter allowedExtensions,
+			ResourceFilter blockedExtensions, boolean strict, int mode, String attributes, Object acl, String serverPassword) throws PageException {
 		FormItem item = getFormItem(pageContext, filefield);
-		return _actionUpload(pageContext, securityManager, item, strDestination, nameconflict, accept, allowedExtensions, blockedExtensions, strict, mode, attributes, acl,
-				serverPassword);
+		return _actionUpload(pageContext, item, strDestination, nameconflict, accept, allowedExtensions, blockedExtensions, strict, mode, attributes, acl, serverPassword);
 	}
 
 	public void actionUploadAll() throws PageException {
-		Array arr = actionUploadAll(pageContext, securityManager, strDestination, nameconflict, accept, allowedExtensions, blockedExtensions, strict, mode, attributes, acl,
-				serverPassword);
+		Array arr = actionUploadAll(pageContext, strDestination, nameconflict, accept, allowedExtensions, blockedExtensions, strict, mode, attributes, acl, serverPassword);
 		if (StringUtil.isEmpty(result)) {
 			Struct sct;
 			if (arr != null && arr.size() > 0) sct = (Struct) arr.getE(1);
@@ -924,23 +914,20 @@ public final class FileTag extends BodyTagImpl {
 		}
 	}
 
-	public static Array actionUploadAll(PageContext pageContext, lucee.runtime.security.SecurityManager securityManager, String strDestination, int nameconflict, String accept,
-			ResourceFilter allowedExtensions, ResourceFilter blockedExtensions, boolean strict, int mode, String attributes, Object acl, String serverPassword)
-			throws PageException {
+	public static Array actionUploadAll(PageContext pageContext, String strDestination, int nameconflict, String accept, ResourceFilter allowedExtensions,
+			ResourceFilter blockedExtensions, boolean strict, int mode, String attributes, Object acl, String serverPassword) throws PageException {
 		FormItem[] items = getFormItems(pageContext);
 		Struct sct = null;
 		Array arr = new ArrayImpl();
 		for (int i = 0; i < items.length; i++) {
-			sct = _actionUpload(pageContext, securityManager, items[i], strDestination, nameconflict, accept, allowedExtensions, blockedExtensions, strict, mode, attributes, acl,
-					serverPassword);
+			sct = _actionUpload(pageContext, items[i], strDestination, nameconflict, accept, allowedExtensions, blockedExtensions, strict, mode, attributes, acl, serverPassword);
 			arr.appendEL(sct);
 		}
 		return arr;
 	}
 
-	private static Struct _actionUpload(PageContext pageContext, lucee.runtime.security.SecurityManager securityManager, FormItem formItem, String strDestination, int nameconflict,
-			String accept, ResourceFilter allowedExtensions, ResourceFilter blockedExtensions, boolean strict, int mode, String attributes, Object acl, String serverPassword)
-			throws PageException {
+	private static Struct _actionUpload(PageContext pageContext, FormItem formItem, String strDestination, int nameconflict, String accept, ResourceFilter allowedExtensions,
+			ResourceFilter blockedExtensions, boolean strict, int mode, String attributes, Object acl, String serverPassword) throws PageException {
 		if (nameconflict == NAMECONFLICT_UNDEFINED) nameconflict = NAMECONFLICT_ERROR;
 
 		boolean fileWasRenamed = false;
@@ -984,7 +971,7 @@ public final class FileTag extends BodyTagImpl {
 		if (StringUtil.isEmpty(strDestination)) throw new ApplicationException("Attribute [destination] is required for tag [file], when action is [" + actionValue + "]");
 
 		Resource destination = toDestination(pageContext, strDestination, null);
-		securityManager.checkFileLocation(pageContext.getConfig(), destination, serverPassword);
+		SecurityManagerImpl.checkFileLocation(pageContext, destination, serverPassword);
 
 		if (destination.isDirectory()) destination = destination.getRealResource(clientFileName);
 		else if (!destination.exists() && (strDestination.endsWith("/") || strDestination.endsWith("\\"))) destination = destination.getRealResource(clientFileName);
@@ -1213,12 +1200,12 @@ public final class FileTag extends BodyTagImpl {
 		return ResourceUtil.getNormalizedPathEL(parent);
 	}
 
-	private static boolean checkFile(PageContext pc, SecurityManager sm, Resource file, String serverPassword, boolean createParent, boolean create, boolean canRead,
-			boolean canWrite) throws PageException {
+	private static boolean checkFile(PageContext pc, Resource file, String serverPassword, boolean createParent, boolean create, boolean canRead, boolean canWrite)
+			throws PageException {
 		boolean created = false;
 		if (file == null) throw new ApplicationException("Attribute [file] is required for tag [file], when the action is [" + actionValue + "]");
 
-		sm.checkFileLocation(pc.getConfig(), file, serverPassword);
+		SecurityManagerImpl.checkFileLocation(pc, file, serverPassword);
 		if (!file.exists()) {
 			if (create) {
 				Resource parent = file.getParentResource();

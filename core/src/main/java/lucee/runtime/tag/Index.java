@@ -35,6 +35,7 @@ import lucee.runtime.search.IndexResult;
 import lucee.runtime.search.SearchCollection;
 import lucee.runtime.search.SearchException;
 import lucee.runtime.search.SearchIndex;
+import lucee.runtime.security.SecurityManagerImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.util.ArrayUtil;
@@ -452,10 +453,9 @@ public final class Index extends TagImpl {
 				Resource file = null;
 				try {
 					file = ResourceUtil.toResourceExisting(pageContext, key);
-					pageContext.getConfig().getSecurityManager().checkFileLocation(file);
+					SecurityManagerImpl.checkFileLocation(pageContext, file);
 				}
-				catch (ExpressionException e) {
-				}
+				catch (ExpressionException e) {}
 
 				if (file != null && file.exists() && file.isFile()) type = SearchIndex.TYPE_FILE;
 				else if (file != null && file.exists() && file.isDirectory()) type = SearchIndex.TYPE_PATH;
@@ -464,8 +464,7 @@ public final class Index extends TagImpl {
 						new URL(key);
 						type = SearchIndex.TYPE_URL;
 					}
-					catch (MalformedURLException e) {
-					}
+					catch (MalformedURLException e) {}
 				}
 			}
 		}

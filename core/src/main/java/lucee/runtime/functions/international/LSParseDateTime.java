@@ -77,7 +77,7 @@ public final class LSParseDateTime implements Function {
 		if (StringUtil.isEmpty(format, true)) return DateCaster.toDateTime(locale, strDate, tz, isUSLike(locale));
 
 		// with java based format
-		tz = ThreadLocalPageContext.getTimeZone(tz);
+		if (tz == null) tz = ThreadLocalPageContext.getTimeZone(pc);
 		if (locale == null) locale = pc.getLocale();
 		try {
 			return new DateTimeImpl(FormatUtil.parse(FormatUtil.getDateTimeFormatter(locale, format), strDate, tz.toZoneId()));

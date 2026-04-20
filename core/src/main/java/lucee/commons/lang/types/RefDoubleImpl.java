@@ -20,7 +20,6 @@ package lucee.commons.lang.types;
 
 import java.util.Date;
 
-import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Castable;
 import lucee.runtime.op.Caster;
@@ -41,8 +40,7 @@ public final class RefDoubleImpl implements RefDouble, Castable {
 	/**
 	 * Constructor of the class
 	 */
-	public RefDoubleImpl() {
-	}
+	public RefDoubleImpl() {}
 
 	@Override
 	public void setValue(double value) {
@@ -116,21 +114,21 @@ public final class RefDoubleImpl implements RefDouble, Castable {
 
 	@Override
 	public int compareTo(String other) throws PageException {
-		return OpUtil.compare(ThreadLocalPageContext.get(), castToString(), other);
+		return OpUtil.compare(null, castToString(), other);
 	}
 
 	@Override
 	public int compareTo(boolean other) throws PageException {
-		return OpUtil.compare(ThreadLocalPageContext.get(), castToBooleanValue() ? Boolean.TRUE : Boolean.FALSE, other);
+		return OpUtil.compare(null, castToBooleanValue() ? Boolean.TRUE : Boolean.FALSE, other);
 	}
 
 	@Override
 	public int compareTo(double other) throws PageException {
-		return OpUtil.compare(ThreadLocalPageContext.get(), Double.valueOf(castToDoubleValue()), Double.valueOf(other));
+		return OpUtil.compare(null, Double.valueOf(castToDoubleValue()), Double.valueOf(other));
 	}
 
 	@Override
 	public int compareTo(DateTime other) throws PageException {
-		return OpUtil.compare(ThreadLocalPageContext.get(), (Date) castToDateTime(), (Date) other);
+		return OpUtil.compare(null, (Date) castToDateTime(), (Date) other);
 	}
 }

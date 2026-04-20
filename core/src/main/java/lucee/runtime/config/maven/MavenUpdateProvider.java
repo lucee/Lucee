@@ -37,7 +37,6 @@ import lucee.commons.lang.StringUtil;
 import lucee.commons.net.http.HTTPEngine;
 import lucee.commons.net.http.HTTPEngineBasic.HTTPDownloaderHeadResponse;
 import lucee.commons.net.http.Header;
-import lucee.loader.engine.CFMLEngineFactory;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigUtil;
@@ -151,7 +150,7 @@ public final class MavenUpdateProvider {
 	}
 
 	public static Collection<Repository> getRepositories(Config config) {
-		ConfigPro cp = (ConfigPro) ThreadLocalPageContext.getConfig(config);
+		ConfigPro cp = ThreadLocalPageContext.getConfigServer(config);
 		Repository[] repoSnapshots = cp == null ? DEFAULT_REPOSITORIES_SNAPSHOTS : cp.getMavenSnapshotRepository();
 		Repository[] repoReleases = cp == null ? DEFAULT_REPOSITORIES_RELEASES : cp.getMavenRepository();
 		return merge(repoSnapshots, repoReleases, DEFAULT_REPOSITORIES_ALL);
@@ -608,7 +607,7 @@ public final class MavenUpdateProvider {
 
 		static {
 			try {
-				cacheRootDirectory = CFMLEngineFactory.getInstance().getThreadConfig().getConfigDir();
+				cacheRootDirectory = ThreadLocalPageContext.getConfigServer().getConfigDir();
 			}
 			catch (Exception e) {
 				cacheRootDirectory = SystemUtil.getTempDirectory();

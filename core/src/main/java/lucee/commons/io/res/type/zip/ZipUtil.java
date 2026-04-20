@@ -32,7 +32,7 @@ import lucee.commons.io.compress.CompressUtil;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
-import lucee.runtime.config.Config;
+import lucee.runtime.config.ConfigServerPro;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.op.Caster;
 
@@ -112,10 +112,10 @@ final class ZipUtil {
 					args.put("case-sensitive", Caster.toBoolean(caseSensitive));
 					if (temp == null) {
 						String cid = "";
-						Config config = ThreadLocalPageContext.getConfig();
-						if (config != null) {
-							cid = config.getIdentification().getId();
-							temp = config.getTempDirectory();
+						ConfigServerPro cs = ThreadLocalPageContext.getConfigServer();
+						if (cs != null) {
+							cid = cs.getIdentification().getId();
+							temp = cs.getTempDirectory();
 						}
 						if (temp == null) temp = SystemUtil.getTempDirectory();
 

@@ -124,7 +124,7 @@ public final class ResourceExecutionLog extends ExecutionLogSupport {
 			}
 			else {
 				try {
-					dir = ResourceUtil.toResourceNotExisting(pc, strDirectory, false, false);
+					dir = ResourceUtil.toResourceNotExisting(pc, null, strDirectory, false, false);
 					if (!dir.exists()) {
 						dir.createDirectory(true);
 					}

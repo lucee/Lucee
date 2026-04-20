@@ -19,182 +19,182 @@ public final class Operator {
 
 	@Deprecated
 	public static int compare(Object left, Object right) throws PageException {
-		return OpUtil.compare(ThreadLocalPageContext.get(), left, right);
+		return OpUtil.compare(null, left, right);
 	}
 
 	@Deprecated
 	public static int compare(TimeZone left, Object right) throws PageException {
-		return OpUtil.compare(ThreadLocalPageContext.get(), left, right);
+		return OpUtil.compare(null, left, right);
 	}
 
 	@Deprecated
 	public static int compare(Locale left, Object right) throws PageException {
-		return OpUtil.compare(ThreadLocalPageContext.get(), left, right);
+		return OpUtil.compare(null, left, right);
 	}
 
 	@Deprecated
 	public static int compare(Object left, Locale right) throws PageException {
-		return OpUtil.compare(ThreadLocalPageContext.get(), left, right);
+		return OpUtil.compare(null, left, right);
 	}
 
 	@Deprecated
 	public static int compare(Object left, TimeZone right) throws PageException {
-		return OpUtil.compare(ThreadLocalPageContext.get(), left, right);
+		return OpUtil.compare(null, left, right);
 	}
 
 	@Deprecated
 	public static int compare(Locale left, String right) {
-		return OpUtil.compare(ThreadLocalPageContext.get(), left, right);
+		return OpUtil.compare(null, left, right);
 	}
 
 	@Deprecated
 	public static int compare(TimeZone left, String right) {
-		return OpUtil.compare(ThreadLocalPageContext.get(), left, right);
+		return OpUtil.compare(null, left, right);
 	}
 
 	@Deprecated
 	public static int compare(String left, Locale right) {
-		return OpUtil.compare(ThreadLocalPageContext.get(), left, right);
+		return OpUtil.compare(null, left, right);
 	}
 
 	@Deprecated
 	public static int compare(String left, TimeZone right) {
-		return OpUtil.compare(ThreadLocalPageContext.get(), left, right);
+		return OpUtil.compare(null, left, right);
 	}
 
 	@Deprecated
 	public static int compare(Object left, String right) throws PageException {
-		return OpUtil.compare(ThreadLocalPageContext.get(), left, right);
+		return OpUtil.compare(null, left, right);
 	}
 
 	@Deprecated
 	public static int compare(String left, Object right) throws PageException {
-		return OpUtil.compare(ThreadLocalPageContext.get(), left, right);
+		return OpUtil.compare(null, left, right);
 	}
 
 	@Deprecated
 	public static int compare(Object left, double right) throws PageException {
-		return OpUtil.compare(ThreadLocalPageContext.get(), left, right);
+		return OpUtil.compare(null, left, right);
 	}
 
 	@Deprecated
 	public static int compare(double left, Object right) throws PageException {
-		return OpUtil.compare(ThreadLocalPageContext.get(), left, right);
+		return OpUtil.compare(null, left, right);
 	}
 
 	@Deprecated
 	public static int compare(Object left, boolean right) throws PageException {
-		return OpUtil.compare(ThreadLocalPageContext.get(), left, right);
+		return OpUtil.compare(null, left, right);
 	}
 
 	@Deprecated
 	public static int compare(boolean left, Object right) throws PageException {
-		return OpUtil.compare(ThreadLocalPageContext.get(), left, right);
+		return OpUtil.compare(null, left, right);
 	}
 
 	@Deprecated
 	public static int compare(Object left, Date right) throws PageException {
-		return OpUtil.compare(ThreadLocalPageContext.get(), left, right);
+		return OpUtil.compare(null, left, right);
 	}
 
 	@Deprecated
 	public static int compare(Date left, Object right) throws PageException {
-		return OpUtil.compare(ThreadLocalPageContext.get(), left, right);
+		return OpUtil.compare(null, left, right);
 	}
 
 	@Deprecated
 	public static int compare(Castable left, Object right) throws PageException {
-		return OpUtil.compare(ThreadLocalPageContext.get(), left, right);
+		return OpUtil.compare(null, left, right);
 	}
 
 	@Deprecated
 	public static int compare(Object left, Castable right) throws PageException {
-		return OpUtil.compare(ThreadLocalPageContext.get(), left, right);
+		return OpUtil.compare(null, left, right);
 	}
 
 	@Deprecated
 	public static int compare(String left, String right) throws PageException {
-		return OpUtil.compare(ThreadLocalPageContext.get(), left, right);
+		return OpUtil.compare(null, left, right);
 	}
 
 	@Deprecated
 	public static int compare(String left, double right) throws PageException {
-		return OpUtil.compare(ThreadLocalPageContext.get(), left, right);
+		return OpUtil.compare(null, left, right);
 	}
 
 	@Deprecated
 	public static int compare(String left, boolean right) throws PageException {
-		return OpUtil.compare(ThreadLocalPageContext.get(), left, right);
+		return OpUtil.compare(null, left, right);
 	}
 
 	@Deprecated
 	public static int compare(String left, Date right) throws PageException {
-		return OpUtil.compare(ThreadLocalPageContext.get(), left, right);
+		return OpUtil.compare(null, left, right);
 	}
 
 	@Deprecated
 	public static int compare(double left, String right) throws PageException {
-		return OpUtil.compare(ThreadLocalPageContext.get(), left, right);
+		return OpUtil.compare(null, left, right);
 	}
 
 	@Deprecated
 	public static int compare(double left, double right) {
-		return OpUtil.compare(ThreadLocalPageContext.get(), left, right);
+		return OpUtil.compare(null, left, right);
 	}
 
 	@Deprecated
 	public static int compare(long left, long right) {
-		return OpUtil.compare(ThreadLocalPageContext.get(), left, right);
+		return OpUtil.compare(null, left, right);
 	}
 
 	@Deprecated
 	public static int compare(double left, boolean right) {
-		return OpUtil.compare(ThreadLocalPageContext.get(), left, right);
+		return OpUtil.compare(null, left, right);
 	}
 
 	@Deprecated
 	public static int compare(double left, Date right) {
-		return OpUtil.compare(ThreadLocalPageContext.get(), left, right);
+		return OpUtil.compare(null, left, right);
 	}
 
 	@Deprecated
 	public static int compare(boolean left, double right) {
-		return OpUtil.compare(ThreadLocalPageContext.get(), left, right);
+		return OpUtil.compare(null, left, right);
 	}
 
 	@Deprecated
 	public static int compare(boolean left, String right) throws PageException {
-		return OpUtil.compare(ThreadLocalPageContext.get(), left, right);
+		return OpUtil.compare(null, left, right);
 	}
 
 	@Deprecated
 	public static int compare(boolean left, boolean right) {
-		return OpUtil.compare(ThreadLocalPageContext.get(), left, right);
+		return OpUtil.compare(null, left, right);
 	}
 
 	@Deprecated
 	public static int compare(boolean left, Date right) {
-		return OpUtil.compare(ThreadLocalPageContext.get(), left, right);
+		return OpUtil.compare(null, left, right);
 	}
 
 	@Deprecated
 	public static int compare(Date left, String right) throws PageException {
-		return OpUtil.compare(ThreadLocalPageContext.get(), left, right);
+		return OpUtil.compare(null, left, right);
 	}
 
 	@Deprecated
 	public static int compare(Date left, double right) {
-		return OpUtil.compare(ThreadLocalPageContext.get(), left, right);
+		return OpUtil.compare(null, left, right);
 	}
 
 	@Deprecated
 	public static int compare(Date left, boolean right) {
-		return OpUtil.compare(ThreadLocalPageContext.get(), left, right);
+		return OpUtil.compare(null, left, right);
 	}
 
 	@Deprecated
 	public static int compare(Date left, Date right) {
-		return OpUtil.compare(ThreadLocalPageContext.get(), left, right);
+		return OpUtil.compare(null, left, right);
 	}
 
 	@Deprecated

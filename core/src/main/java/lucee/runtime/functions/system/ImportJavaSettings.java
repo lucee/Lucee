@@ -7,6 +7,7 @@ import lucee.commons.io.IOUtil;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
+import lucee.runtime.config.ConfigUtil;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.BIF;
@@ -38,7 +39,7 @@ public final class ImportJavaSettings extends BIF implements Function {
 			else {
 				sct = Caster.toStruct(data);
 			}
-			JavaSettingsImpl js = (JavaSettingsImpl) JavaSettingsImpl.getInstance(pc.getConfig(), sct, null);
+			JavaSettingsImpl js = (JavaSettingsImpl) JavaSettingsImpl.getInstance(ConfigUtil.getConfigServerImpl(pc.getConfig()), sct, null);
 			// forces it do download the resources
 			js.getAllResources();
 		}

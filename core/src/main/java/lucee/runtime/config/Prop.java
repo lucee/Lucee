@@ -21,8 +21,6 @@ import lucee.commons.lang.CharsetX;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.loader.engine.CFMLEngineFactory;
-import lucee.runtime.PageContext;
-import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.op.Caster;
@@ -252,10 +250,9 @@ public class Prop<T> {
 		}
 
 		public boolean matches(Object val) {
-			PageContext pc = ThreadLocalPageContext.get();
 			for (Object v: values) {
 				try {
-					if (OpUtil.compare(pc, v, val) == 0) {
+					if (OpUtil.compare(null, v, val) == 0) {
 						return true;
 					}
 				}

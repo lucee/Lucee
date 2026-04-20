@@ -1,6 +1,7 @@
 component extends="org.lucee.cfml.test.LuceeTestCase" {
 	function beforeAll() {
 		variables.uri = createURI( "testDirFileInfo" );
+		if(directoryExists(uri)) directorydelete( uri, true );
 		directoryCreate( uri );
 		fileWrite( uri&"\testfile.txt", "fileInfo" )
 	}	

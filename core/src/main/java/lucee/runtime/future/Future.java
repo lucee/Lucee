@@ -110,7 +110,7 @@ public final class Future implements Objects {
 
 	private Future executeErrorHandler(PageContext pc, UDF udf, long timeout, Exception e) {
 		ExecutorService executor = Executors.newSingleThreadExecutor();
-		java.util.concurrent.Future<Object> f = executor.submit(new CallableUDF(pc, udf, Caster.toPageException(e).getCatchBlock(ThreadLocalPageContext.getConfig(pc))));
+		java.util.concurrent.Future<Object> f = executor.submit(new CallableUDF(pc, udf, Caster.toPageException(e).getCatchBlock(ThreadLocalPageContext.getConfigServer(pc))));
 		executor.shutdown();
 		return new Future(f, timeout);
 	}

@@ -3615,8 +3615,7 @@ public final class PageContextImpl extends PageContext {
 					line = Integer.parseInt(lineStr);
 				}
 			}
-			catch (NumberFormatException ignored) {
-			}
+			catch (NumberFormatException ignored) {}
 		}
 		String label = caught ? "Caught exception: " : "Uncaught exception: ";
 		debuggerSuspend(file, line, label + pe.getClass().getSimpleName());
@@ -3717,8 +3716,7 @@ public final class PageContextImpl extends PageContext {
 	}
 
 	/**
-	 * Resume execution after debugger suspension.
-	 * Called via reflection by the debugger extension.
+	 * Resume execution after debugger suspension. Called via reflection by the debugger extension.
 	 */
 	public void debuggerResume() {
 		debuggerSuspended = false;
@@ -3728,16 +3726,16 @@ public final class PageContextImpl extends PageContext {
 	}
 
 	/**
-	 * Check if this PageContext is currently suspended.
-	 * Available for debugger extensions via reflection.
+	 * Check if this PageContext is currently suspended. Available for debugger extensions via
+	 * reflection.
 	 */
 	public boolean isDebuggerSuspended() {
 		return debuggerSuspended;
 	}
 
 	/**
-	 * Get the label of the current suspension point, or null.
-	 * Available for debugger extensions via reflection.
+	 * Get the label of the current suspension point, or null. Available for debugger extensions via
+	 * reflection.
 	 */
 	public String getDebuggerSuspendLabel() {
 		return debuggerSuspendLabel;
@@ -4260,7 +4258,7 @@ public final class PageContextImpl extends PageContext {
 		}
 
 		if (customJS != null) {
-			js = JavaSettingsImpl.merge(config, customJS, js);
+			js = JavaSettingsImpl.merge(ConfigUtil.getConfigServerImpl(config), customJS, js);
 			cl = config.getRPCClassLoader(reload, js);
 		}
 		return cl;

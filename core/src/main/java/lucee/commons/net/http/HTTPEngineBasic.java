@@ -269,7 +269,7 @@ public abstract class HTTPEngineBasic {
 	 * Get ProxyData from ThreadLocalPageContext Config (following Http.java pattern line 1099)
 	 */
 	private static ProxyData getProxyData(String host) {
-		Config config = ThreadLocalPageContext.getConfig();
+		Config config = ThreadLocalPageContext.getConfigServer();
 		if (config != null) {
 			ProxyData proxy = config.getProxyData();
 			return ProxyDataImpl.validate(proxy, host);

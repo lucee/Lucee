@@ -29,6 +29,7 @@ import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.BIF;
 import lucee.runtime.op.Caster;
+import lucee.runtime.security.SecurityManagerImpl;
 
 public final class DirectoryExists extends BIF {
 
@@ -44,7 +45,7 @@ public final class DirectoryExists extends BIF {
 		Resource file;
 		boolean allowRealPath = (oAllowRealPath == null) ? pc.getConfig().allowRealPath() : Caster.toBooleanValue(oAllowRealPath);
 		if (allowRealPath) {
-			file = ResourceUtil.toResourceNotExisting(pc, path, allowRealPath, false);
+			file = ResourceUtil.toResourceNotExisting(pc, null, path, allowRealPath, false);
 			// TODO das else braucht es eigentlich nicht mehr
 		}
 		else {
@@ -52,7 +53,7 @@ public final class DirectoryExists extends BIF {
 			file = pc.getConfig().getResource(path);
 			if (file != null && !file.isAbsolute()) return false;
 		}
-		pc.getConfig().getSecurityManager().checkFileLocation(file);
+		SecurityManagerImpl.checkFileLocation(pc, file);
 		return file.isDirectory();
 	}
 

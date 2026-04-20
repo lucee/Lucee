@@ -4,7 +4,6 @@ import java.lang.ref.WeakReference;
 
 import lucee.commons.io.SystemUtil;
 import lucee.runtime.ComponentPageImpl;
-import lucee.runtime.PageContext;
 import lucee.runtime.PageSource;
 import lucee.runtime.exp.PageException;
 
@@ -18,7 +17,7 @@ public class ComponentPageRef {
 		ps = cp.getPageSource();
 	}
 
-	public ComponentPageImpl get(PageContext pc) throws PageException {
+	public ComponentPageImpl get() throws PageException {
 
 		ComponentPageImpl cp = ref.get();
 		if (cp == null) {
@@ -34,9 +33,9 @@ public class ComponentPageRef {
 		return cp;
 	}
 
-	public ComponentPageImpl get(PageContext pc, ComponentPageImpl defaultValue) {
+	public ComponentPageImpl get(ComponentPageImpl defaultValue) {
 		try {
-			return get(pc);
+			return get();
 		}
 		catch (Exception e) {
 			return defaultValue;

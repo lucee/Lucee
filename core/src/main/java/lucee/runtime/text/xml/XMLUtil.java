@@ -76,7 +76,6 @@ import lucee.commons.lang.ClassUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
-import lucee.runtime.config.ConfigPro;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
@@ -275,7 +274,7 @@ public final class XMLUtil {
 			synchronized (SystemUtil.createToken("XMLUtil", "newDocumentBuilderFactoryClass")) {
 				if (!initTf) {
 
-					Thread.currentThread().setContextClassLoader(EnvClassLoader.getInstance((ConfigPro) ThreadLocalPageContext.getConfig()));
+					Thread.currentThread().setContextClassLoader(EnvClassLoader.getInstance(ThreadLocalPageContext.getConfigServer()));
 					Class<TransformerFactory> clazz = null;
 					Log log = ThreadLocalPageContext.getLog("application");
 
@@ -457,7 +456,7 @@ public final class XMLUtil {
 			}
 		}
 
-		setSecurityFeatures( factory, featureSecure, disallowDocType, externalGeneralEntities );
+		setSecurityFeatures(factory, featureSecure, disallowDocType, externalGeneralEntities);
 		// pass thru any additional feature directives
 		// https://xerces.apache.org/xerces2-j/features.html#disallow-doctype-decl
 		if (features != null) {
@@ -476,11 +475,11 @@ public final class XMLUtil {
 	// Creates the default non-validating, secure factory — called once then cached
 	private static DocumentBuilderFactory createDefaultFactory() {
 		DocumentBuilderFactory factory = _newDocumentBuilderFactory();
-		setAttributeEL( factory, XMLConstants.NON_VALIDATING_DTD_EXTERNAL, Boolean.FALSE );
-		setAttributeEL( factory, XMLConstants.NON_VALIDATING_DTD_GRAMMAR, Boolean.FALSE );
-		factory.setNamespaceAware( true );
-		factory.setValidating( false );
-		setSecurityFeatures( factory, true, true, false );
+		setAttributeEL(factory, XMLConstants.NON_VALIDATING_DTD_EXTERNAL, Boolean.FALSE);
+		setAttributeEL(factory, XMLConstants.NON_VALIDATING_DTD_GRAMMAR, Boolean.FALSE);
+		factory.setNamespaceAware(true);
+		factory.setValidating(false);
+		setSecurityFeatures(factory, true, true, false);
 		return factory;
 	}
 
@@ -550,7 +549,7 @@ public final class XMLUtil {
 			synchronized (SystemUtil.createToken("XMLUtil", "newDocumentBuilderFactoryClass")) {
 				if (!initDbf) {
 
-					Thread.currentThread().setContextClassLoader(EnvClassLoader.getInstance((ConfigPro) ThreadLocalPageContext.getConfig()));
+					Thread.currentThread().setContextClassLoader(EnvClassLoader.getInstance(ThreadLocalPageContext.getConfigServer()));
 					Class<DocumentBuilderFactory> clazz = null;
 					Log log = ThreadLocalPageContext.getLog("application");
 
@@ -590,7 +589,7 @@ public final class XMLUtil {
 
 	private static SAXParserFactory newSAXParserFactory() {
 		if (saxParserFactory == null) {
-			Thread.currentThread().setContextClassLoader(EnvClassLoader.getInstance((ConfigPro) ThreadLocalPageContext.getConfig()));
+			Thread.currentThread().setContextClassLoader(EnvClassLoader.getInstance(ThreadLocalPageContext.getConfigServer()));
 			saxParserFactory = SAXParserFactory.newInstance();
 		}
 		return saxParserFactory;
@@ -611,7 +610,7 @@ public final class XMLUtil {
 	}
 
 	public static XMLReader createXMLReader() throws SAXException {
-		Thread.currentThread().setContextClassLoader(EnvClassLoader.getInstance((ConfigPro) ThreadLocalPageContext.getConfig()));
+		Thread.currentThread().setContextClassLoader(EnvClassLoader.getInstance(ThreadLocalPageContext.getConfigServer()));
 		Log log = ThreadLocalPageContext.getLog("application");
 		try {
 			return XMLReaderFactory.createXMLReader("com.sun.org.apache.xerces.internal.parsers.SAXParser");
@@ -1017,8 +1016,7 @@ public final class XMLUtil {
 				try {
 					return new XMLMultiElementStruct(array, false);
 				}
-				catch (PageException e) {
-				}
+				catch (PageException e) {}
 			}
 			if (first != null) return first;
 		}
@@ -1129,8 +1127,7 @@ public final class XMLUtil {
 			try {
 				return new XMLMultiElementStruct(array, false);
 			}
-			catch (PageException e) {
-			}
+			catch (PageException e) {}
 		}
 		return null;
 	}

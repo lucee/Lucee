@@ -15,6 +15,7 @@ import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
+import lucee.runtime.security.SecurityManagerImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.util.KeyConstants;
 
@@ -181,7 +182,7 @@ public class PartImpl implements Part {
 		if (str.length() < 4000) {
 			Resource res = ResourceUtil.toResourceExisting(pc, str, (Resource) null);
 			if (res != null) {
-				pc.getConfig().getSecurityManager().checkFileLocation(res);
+				SecurityManagerImpl.checkFileLocation(pc, res);
 				try {
 
 					return toPartImpl(res, index);

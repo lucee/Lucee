@@ -623,7 +623,7 @@ public class CFTag extends BodyTagTryCatchFinallyImpl implements DynamicAttribut
 				// Object rtn=cfc.call(pageContext, ON_ERROR, new Object[]{pe.getCatchBlock(pageContext),source});
 
 				Struct args = new StructImpl(Struct.TYPE_LINKED);
-				args.set(CFCATCH, pe.getCatchBlock(ThreadLocalPageContext.getConfig(pageContext)));
+				args.set(CFCATCH, pe.getCatchBlock(ThreadLocalPageContext.getConfigServer(pageContext)));
 				args.set(SOURCE, source);
 				Object rtn = cfc.callWithNamedValues(pageContext, ON_ERROR, args);
 

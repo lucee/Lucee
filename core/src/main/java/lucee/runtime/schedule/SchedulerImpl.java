@@ -189,7 +189,7 @@ public final class SchedulerImpl implements Scheduler {
 			return st;
 		}
 		catch (Exception e) {
-			LogUtil.log(ThreadLocalPageContext.getConfig(config), SchedulerImpl.class.getName(), e);
+			LogUtil.log(ThreadLocalPageContext.getConfigServer(config), SchedulerImpl.class.getName(), e);
 			throw Caster.toPageException(e);
 		}
 	}
@@ -304,8 +304,7 @@ public final class SchedulerImpl implements Scheduler {
 			try {
 				removeScheduleTask(task.getTask(), false);
 			}
-			catch (ScheduleException e) {
-			}
+			catch (ScheduleException e) {}
 		}
 	}
 

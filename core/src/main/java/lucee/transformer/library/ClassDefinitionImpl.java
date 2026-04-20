@@ -39,8 +39,7 @@ import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.Pair;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
-import lucee.runtime.config.ConfigPro;
-import lucee.runtime.config.ConfigUtil;
+import lucee.runtime.config.ConfigServerPro;
 import lucee.runtime.config.Identification;
 import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.engine.ThreadLocalPageContext;
@@ -193,8 +192,8 @@ public final class ClassDefinitionImpl<T> implements ClassDefinition<T>, Externa
 		PageContext pc = ThreadLocalPageContext.get(true);
 		try {
 			if (pc == null) {
-				pc = ThreadUtil.createPageContext(ConfigUtil.toConfigWeb(ThreadLocalPageContext.getConfig()), DevNullOutputStream.DEV_NULL_OUTPUT_STREAM, "localhost", "/", "",
-						null, new Pair[0], null, new Pair[0], new StructImpl(), false, -1, null, null);
+				pc = ThreadUtil.createPageContext(ThreadLocalPageContext.getConfigWeb(), DevNullOutputStream.DEV_NULL_OUTPUT_STREAM, "localhost", "/", "", null, new Pair[0], null,
+						new Pair[0], new StructImpl(), false, -1, null, null);
 			}
 			Object obj = Reflector.componentToClass(pc, pc.loadComponent(cfcName));
 			return obj.getClass();
@@ -272,9 +271,9 @@ public final class ClassDefinitionImpl<T> implements ClassDefinition<T>, Externa
 
 		// Maven
 		if (maven != null) {
-			ConfigPro config = (ConfigPro) ThreadLocalPageContext.getConfig();
+			ConfigServerPro cs = ThreadLocalPageContext.getConfigServer();
 			try {
-				return clazz = (Class<T>) config.getRPCClassLoader(false, JavaSettingsImpl.getInstance(config, getMaven())).loadClass(className);
+				return clazz = (Class<T>) cs.getRPCClassLoader(false, JavaSettingsImpl.getInstance(cs, getMaven())).loadClass(className);
 			}
 			catch (Exception e) {
 				ClassException ce = new ClassException("Failes to load class [" + className + "]");

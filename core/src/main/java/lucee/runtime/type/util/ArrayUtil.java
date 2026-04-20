@@ -163,14 +163,17 @@ public final class ArrayUtil {
 	 * @return position in array or 0
 	 */
 	public static int find(Array array, Object object) {
+		return find(ThreadLocalPageContext.get(), array, object);
+	}
+
+	public static int find(PageContext pc, Array array, Object object) {
 		int len = array.size();
 		for (int i = 1; i <= len; i++) {
 			Object tmp = array.get(i, null);
 			try {
-				if (tmp != null && lucee.runtime.op.OpUtil.compare(ThreadLocalPageContext.get(), object, tmp) == 0) return i;
+				if (tmp != null && lucee.runtime.op.OpUtil.compare(pc, object, tmp) == 0) return i;
 			}
-			catch (PageException e) {
-			}
+			catch (PageException e) {}
 		}
 		return 0;
 	}
@@ -1015,7 +1018,8 @@ public final class ArrayUtil {
 		}
 	}
 
-	public static ArrayPro toArrayPro(Array array) {
+	public static ArrayPro toArrayPro(Array array, ArrayPro defaultValue) {
+		if (array == null) return defaultValue;
 		if (array instanceof ArrayPro) return (ArrayPro) array;
 		return new ArrayAsArrayPro(array);
 	}

@@ -136,7 +136,8 @@ public final class HSQLDBHandler {
 	 * @throws SQLException
 	 * @throws PageException
 	 */
-	private static String createTable(Connection conn, PageContext pc, String dbTableName, String cfQueryName, boolean doSimpleTypes, boolean caseSensitive) throws SQLException, PageException {
+	private static String createTable(Connection conn, PageContext pc, String dbTableName, String cfQueryName, boolean doSimpleTypes, boolean caseSensitive)
+			throws SQLException, PageException {
 		return createTable(conn, pc, dbTableName, cfQueryName, doSimpleTypes, caseSensitive, null);
 	}
 
@@ -166,7 +167,8 @@ public final class HSQLDBHandler {
 		return buildCreateTableSql(pc, dbTableName, cfQueryName, doSimpleTypes, caseSensitive, null);
 	}
 
-	private static String buildCreateTableSql(PageContext pc, String dbTableName, String cfQueryName, boolean doSimpleTypes, boolean caseSensitive, Struct usedColumns) throws PageException {
+	private static String buildCreateTableSql(PageContext pc, String dbTableName, String cfQueryName, boolean doSimpleTypes, boolean caseSensitive, Struct usedColumns)
+			throws PageException {
 		Query query = Caster.toQuery(pc.getVariable(StringUtil.removeQuotes(cfQueryName, true)));
 		Key[] cols = CollectionUtil.keys(query);
 		int[] types = query.getTypes();
@@ -263,7 +265,8 @@ public final class HSQLDBHandler {
 
 		QueryColumn[] columns = targetColumns.toArray(new QueryColumn[0]);
 		int[] targetTypes = new int[count];
-		for (int i = 0; i < count; i++) targetTypes[i] = targetTypeList.get(i);
+		for (int i = 0; i < count; i++)
+			targetTypes[i] = targetTypeList.get(i);
 
 		// aprint.o(query);
 		// aprint.o(tableCols); aprint.o(srcTypes);
@@ -412,8 +415,7 @@ public final class HSQLDBHandler {
 					rs.close();
 				}
 			}
-			catch (SQLException e) {
-			}
+			catch (SQLException e) {}
 		}
 		// SystemOut.print("getUsedColumnsForQuery: took " + stopwatch.time());
 		if (tables != null) columnUsageCache.setEL(sqlKey, tables);
@@ -474,8 +476,7 @@ public final class HSQLDBHandler {
 					query.setExecutionTime(stopwatch.time());
 					return query;
 				}
-				catch (Exception ex) {
-				}
+				catch (Exception ex) {}
 			}
 			catch (Exception e) {
 				qoqException = e;
@@ -609,7 +610,8 @@ public final class HSQLDBHandler {
 		// Only log the fallback warning once per JVM
 		if (!hsqldbFallbackWarningLogged && LogUtil.doesWarn(log)) {
 			hsqldbFallbackWarningLogged = true;
-			log.warn("query-of-query", "Query-of-query statement could not be processed by the native SQL parser and is falling back to HSQLDB datasource. " + "Statement: [" + sql	+ "]. ");
+			log.warn("query-of-query",
+					"Query-of-query statement could not be processed by the native SQL parser and is falling back to HSQLDB datasource. " + "Statement: [" + sql + "]. ");
 		}
 
 		// Get or load HSQLDB class definition (cached after first load)
@@ -619,12 +621,11 @@ public final class HSQLDBHandler {
 		String dbName = "qoq_" + dbNum;
 		String connStr = "jdbc:hsqldb:mem:" + dbName + ";sql.regular_names=false;sql.enforce_strict_size=false;sql.enforce_types=false;sql.concat_nulls=false;";
 
-		// We don't use connection pooling - each query creates a fresh connection and closes it immediately.
+		// We don't use connection pooling - each query creates a fresh connection and closes it
+		// immediately.
 		// Concurrency is controlled by the BlockingQueue (dbQueue), not by connection pool limits.
-		ds = new DataSourceImpl(config, QOQ_DATASOURCE_NAME, cd, "hypersonic-hsqldb",
-				connStr, null, null, "", -1, "sa", "", null,
-				-1, -1, -1, 0, 0, 0, -1,
-				true, true, DataSource.ALLOW_ALL, new StructImpl(), false, false, false, null, "", ParamSyntaxImpl.DEFAULT, false, false, false, false, log);
+		ds = new DataSourceImpl(QOQ_DATASOURCE_NAME, cd, "hypersonic-hsqldb", connStr, null, null, "", -1, "sa", "", null, -1, -1, -1, 0, 0, 0, -1, true, true,
+				DataSource.ALLOW_ALL, new StructImpl(), false, false, false, null, "", ParamSyntaxImpl.DEFAULT, false, false, false, false, log);
 
 		dsCache[dbNum] = ds;
 		return ds;
@@ -668,81 +669,81 @@ public final class HSQLDBHandler {
 			dc = new DatasourceConnectionImpl(null, conn, (DataSourcePro) ds, null, null);
 			DBUtil.setAutoCommitEL(conn, false);
 
-				try {
-					Iterator<String> it = tables.iterator();
-					String cfQueryName = null; // name of the source cfml query variable
-					String dbTableName = null; // name of the target table in the database
-					String modSql = null;
+			try {
+				Iterator<String> it = tables.iterator();
+				String cfQueryName = null; // name of the source cfml query variable
+				String dbTableName = null; // name of the target table in the database
+				String modSql = null;
 
-					// First pass: fix up SQL table names and build the full CREATE SQL for cache key
-					StringBuilder createSql = new StringBuilder();
-					ArrayList<String[]> tableNames = new ArrayList<String[]>(); // [cfQueryName, dbTableName] pairs
-					while (it.hasNext()) {
-						cfQueryName = it.next().toString();
-						dbTableName = cfQueryName.replace('.', '_');
+				// First pass: fix up SQL table names and build the full CREATE SQL for cache key
+				StringBuilder createSql = new StringBuilder();
+				ArrayList<String[]> tableNames = new ArrayList<String[]>(); // [cfQueryName, dbTableName] pairs
+				while (it.hasNext()) {
+					cfQueryName = it.next().toString();
+					dbTableName = cfQueryName.replace('.', '_');
 
-						if (!cfQueryName.toLowerCase().equals(dbTableName.toLowerCase())) {
-							// TODO this could match the wrong strings, ??
-							modSql = StringUtil.replace(sql.getSQLString(), cfQueryName, dbTableName, false);
-							sql.setSQLString(modSql);
-						}
-						if (sql.getItems() != null && sql.getItems().length > 0) sql = new SQLImpl(sql.toString());
-						// build the full CREATE SQL (all columns) for a stable cache key
-						createSql.append(buildCreateTableSql(pc, dbTableName, cfQueryName, doSimpleTypes, caseSensitive));
-						tableNames.add(new String[] { cfQueryName, dbTableName });
+					if (!cfQueryName.toLowerCase().equals(dbTableName.toLowerCase())) {
+						// TODO this could match the wrong strings, ??
+						modSql = StringUtil.replace(sql.getSQLString(), cfQueryName, dbTableName, false);
+						sql.setSQLString(modSql);
 					}
+					if (sql.getItems() != null && sql.getItems().length > 0) sql = new SQLImpl(sql.toString());
+					// build the full CREATE SQL (all columns) for a stable cache key
+					createSql.append(buildCreateTableSql(pc, dbTableName, cfQueryName, doSimpleTypes, caseSensitive));
+					tableNames.add(new String[] { cfQueryName, dbTableName });
+				}
 
-					// check if we already know which columns are needed (cache-only check)
-					Key cacheKey = Caster.toKey(sql.toString() + createSql.toString());
-					Struct allTableColumns = (Struct) columnUsageCache.get(cacheKey, null);
+				// check if we already know which columns are needed (cache-only check)
+				Key cacheKey = Caster.toKey(sql.toString() + createSql.toString());
+				Struct allTableColumns = (Struct) columnUsageCache.get(cacheKey, null);
 
-					if (allTableColumns != null) {
-						// Cache hit — create minimal tables with only needed columns
-						for (String[] tn : tableNames) {
-							Key tableKey = Caster.toKey(tn[1]);
-							Struct tableCols = allTableColumns.containsKey(tableKey) ? ((Struct) allTableColumns.get(tableKey)) : null;
-							createTable(conn, pc, tn[1], tn[0], doSimpleTypes, caseSensitive, tableCols);
-							qoqTables.add(tn[1]);
-						}
+				if (allTableColumns != null) {
+					// Cache hit — create minimal tables with only needed columns
+					for (String[] tn: tableNames) {
+						Key tableKey = Caster.toKey(tn[1]);
+						Struct tableCols = allTableColumns.containsKey(tableKey) ? ((Struct) allTableColumns.get(tableKey)) : null;
+						createTable(conn, pc, tn[1], tn[0], doSimpleTypes, caseSensitive, tableCols);
+						qoqTables.add(tn[1]);
+					}
+				}
+				else {
+					// Cache miss — create full tables (needed for VIEW discovery), then discover used columns
+					for (String[] tn: tableNames) {
+						createTable(conn, pc, tn[1], tn[0], doSimpleTypes, caseSensitive);
+						qoqTables.add(tn[1]);
+					}
+					allTableColumns = getUsedColumnsForQuery(conn, sql, createSql);
+				}
+				// load data into tables
+				Struct tableColumns = null;
+				Key tableKey = null;
+				for (String[] tn: tableNames) {
+					tableKey = Caster.toKey(tn[1]);
+					if (allTableColumns != null && allTableColumns.containsKey(tableKey)) {
+						tableColumns = ((Struct) allTableColumns.get(tableKey));
 					}
 					else {
-						// Cache miss — create full tables (needed for VIEW discovery), then discover used columns
-						for (String[] tn : tableNames) {
-							createTable(conn, pc, tn[1], tn[0], doSimpleTypes, caseSensitive);
-							qoqTables.add(tn[1]);
-						}
-						allTableColumns = getUsedColumnsForQuery(conn, sql, createSql);
-					}
-					// load data into tables
-					Struct tableColumns = null;
-					Key tableKey = null;
-					for (String[] tn : tableNames) {
-						tableKey = Caster.toKey(tn[1]);
-						if (allTableColumns != null && allTableColumns.containsKey(tableKey)) {
-							tableColumns = ((Struct) allTableColumns.get(tableKey));
-						}
-						else {
-							tableColumns = null;
-						}
-
-						// only populate tables with data if there are used columns, or no needed column data at all
-						if (tableColumns == null || tableColumns.size() > 0) {
-							populateTable(conn, pc, tn[1], tn[0], doSimpleTypes, tableColumns);
-						}
+						tableColumns = null;
 					}
 
-					DBUtil.setReadOnlyEL(conn, true);
-					try {
-						nqr = new QueryImpl(pc, dc, sql, maxrows, fetchsize, timeout, "query", null, false, false, null);
+					// only populate tables with data if there are used columns, or no needed column data at all
+					if (tableColumns == null || tableColumns.size() > 0) {
+						populateTable(conn, pc, tn[1], tn[0], doSimpleTypes, tableColumns);
 					}
-					catch (PageException pe) {
-						throw pe;
-					}
-					finally {
-						DBUtil.setReadOnlyEL(conn, false);
-						DBUtil.commitEL(conn);
-						DBUtil.setAutoCommitEL(conn, true);
-					}
+				}
+
+				DBUtil.setReadOnlyEL(conn, true);
+				try {
+					nqr = new QueryImpl(pc, dc, sql, maxrows, fetchsize, timeout, "query", null, false, false, null);
+				}
+				catch (PageException pe) {
+					throw pe;
+				}
+				finally {
+					DBUtil.setReadOnlyEL(conn, false);
+					DBUtil.commitEL(conn);
+					DBUtil.setAutoCommitEL(conn, true);
+				}
 
 			}
 			catch (SQLException e) {

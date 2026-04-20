@@ -29,7 +29,7 @@ public final class SizeOf {
 
 	public static long size(Object object) {
 		if (object == null) return 0;
-		return MemoryInfo.deepMemoryUsageOf(InstrumentationFactory.getInstrumentation(ThreadLocalPageContext.getConfig()), object);
+		return MemoryInfo.deepMemoryUsageOf(InstrumentationFactory.getInstrumentation(ThreadLocalPageContext.getConfigServer()), object);
 	}
 
 }

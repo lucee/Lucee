@@ -98,7 +98,6 @@ import lucee.loader.engine.CFMLEngineFactory;
 import lucee.loader.util.ExtensionFilter;
 import lucee.runtime.CFMLFactory;
 import lucee.runtime.CFMLFactoryImpl;
-import lucee.runtime.CIPage;
 import lucee.runtime.Component;
 import lucee.runtime.Mapping;
 import lucee.runtime.MappingFactory;
@@ -241,7 +240,7 @@ import lucee.transformer.library.tag.TagLibTagScript;
 /**
  * Hold the definitions of the Lucee configuration.
  */
-public final class ConfigServerImpl implements ConfigServer, ConfigPro {
+public final class ConfigServerImpl implements ConfigServerPro {
 
 	private static final long POOL_MAX_IDLE = 60000;
 	public static final ClassDefinition<DummyORMEngine> DEFAULT_ORM_ENGINE = new ClassDefinitionImpl<DummyORMEngine>(DummyORMEngine.class);
@@ -288,7 +287,6 @@ public final class ConfigServerImpl implements ConfigServer, ConfigPro {
 	private AtomicBoolean insideLoggers = new AtomicBoolean(false);
 	private boolean componentRootSearch = true;
 	private long configFileLastModified;
-	private ComponentPathCache componentPathCache = new ComponentPathCache();
 	private final Map<String, DatasourceConnPool> pools = new ConcurrentHashMap<>();
 	protected MappingImpl scriptMapping;
 	private Class clusterClass = ClusterNotSupported.class;
@@ -317,6 +315,7 @@ public final class ConfigServerImpl implements ConfigServer, ConfigPro {
 	private final UpdateInfo updateInfo;
 	private IdentificationServer id;
 	private SecurityManager defaultSecurityManager;
+	private Map<String, SecurityManager> securityManagers = MapFactory.<String, SecurityManager>getConcurrentMap();
 	private Map<String, SecurityManager> managers = MapFactory.<String, SecurityManager>getConcurrentMap();
 	private Map<String, CFMLFactory> initContextes;
 	private TagLib coreTLDs;
@@ -1325,7 +1324,7 @@ public final class ConfigServerImpl implements ConfigServer, ConfigPro {
 		this.rootDir = configDir;
 		// instance=this;
 		this.updateInfo = updateInfo;
-		instance = this;
+
 	}
 
 	Map<Key, String> getPlaceHolderData() {
@@ -2981,17 +2980,6 @@ public final class ConfigServerImpl implements ConfigServer, ConfigPro {
 	public PageSource[] getPageSources(PageContext pc, Mapping[] appMappings, String realPath, boolean onlyTopLevel, boolean useSpecialMappings, boolean useDefaultMapping,
 			boolean useComponentMappings, boolean onlyFirstMatch) {
 		return ConfigUtil.getPageSources(pc, this, appMappings, realPath, onlyTopLevel, useSpecialMappings, useDefaultMapping, useComponentMappings, onlyFirstMatch);
-	}
-
-	@Override
-	public Resource[] getResources(PageContext pc, Mapping[] mappings, String realPath, boolean onlyTopLevel, boolean useSpecialMappings, boolean useDefaultMapping,
-			boolean useComponentMappings, boolean onlyFirstMatch) {
-		return ConfigUtil.getResources(pc, this, mappings, realPath, onlyTopLevel, useSpecialMappings, useDefaultMapping, useComponentMappings, onlyFirstMatch);
-	}
-
-	@Override
-	public PageSource toPageSource(Mapping[] mappings, Resource res, PageSource defaultValue) {
-		return ConfigUtil.toPageSource(this, mappings, res, defaultValue);
 	}
 
 	@Override
@@ -5009,10 +4997,6 @@ public final class ConfigServerImpl implements ConfigServer, ConfigPro {
 		return this;
 	}
 
-	public void flushComponentPathCache() {
-		componentPathCache.flush();
-	}
-
 	public void flushApplicationPathCache() {
 		if (applicationPathCache != null) applicationPathCache.clear();
 	}
@@ -6718,16 +6702,6 @@ public final class ConfigServerImpl implements ConfigServer, ConfigPro {
 	}
 
 	@Override
-	public CIPage getCachedPage(PageContext pc, String pathWithCFC) throws PageException {
-		return componentPathCache.getPage(pc, pathWithCFC);
-	}
-
-	@Override
-	public void putCachedPageSource(String pathWithCFC, PageSource ps) {
-		componentPathCache.put(pathWithCFC, ps);
-	}
-
-	@Override
 	public PageSource getApplicationPageSource(PageContext pc, String path, String filename, int mode, RefBoolean isCFC) {
 		if (applicationPathCache == null) return null;
 		String id = (path + ":" + filename + ":" + mode).toLowerCase();
@@ -6836,16 +6810,6 @@ public final class ConfigServerImpl implements ConfigServer, ConfigPro {
 	@Override
 	public void putToFunctionCache(String key, UDF udf) {
 		udfCache.put(key, new SoftReference<UDF>(udf));
-	}
-
-	@Override
-	public Struct listComponentCache() {
-		return componentPathCache.list();
-	}
-
-	@Override
-	public void clearComponentCache() {
-		componentPathCache.clear();
 	}
 
 	@Override
@@ -7664,6 +7628,7 @@ public final class ConfigServerImpl implements ConfigServer, ConfigPro {
 
 	@Override
 	public Log getLog(String name) {
+
 		try {
 			return getLog(name, true);
 		}
@@ -8605,7 +8570,6 @@ public final class ConfigServerImpl implements ConfigServer, ConfigPro {
 		ormengines.clear();
 		clearFunctionCache();
 		clearCTCache();
-		clearComponentCache();
 		clearApplicationCache();
 		clearLoggers(null);
 		clearComponentMetadata();
@@ -8821,6 +8785,7 @@ public final class ConfigServerImpl implements ConfigServer, ConfigPro {
 			synchronized (SystemUtil.createToken("config", "getDefaultSecurityManager")) {
 				if (defaultSecurityManager != null) {
 					defaultSecurityManager = null;
+					securityManagers.clear();
 				}
 			}
 		}
@@ -8871,6 +8836,21 @@ public final class ConfigServerImpl implements ConfigServer, ConfigPro {
 		SecurityManagerImpl sm = (SecurityManagerImpl) getDefaultSecurityManager();// .cloneSecurityManager();
 		// sm.setAccess(SecurityManager.TYPE_ACCESS_READ,SecurityManager.ACCESS_PROTECTED);
 		// sm.setAccess(SecurityManager.TYPE_ACCESS_WRITE,SecurityManager.ACCESS_PROTECTED);
+		return sm;
+	}
+
+	public SecurityManager getSecurityManager(Resource rootDir) {
+		SecurityManager sm = securityManagers.get(rootDir.getAbsolutePath());
+		if (sm == null) {
+			synchronized (SystemUtil.createToken("config", "getSecurityManager")) {
+				sm = securityManagers.get(rootDir.getAbsolutePath());
+				if (sm == null) {
+					SecurityManagerImpl dsm = (SecurityManagerImpl) getDefaultSecurityManager();
+					sm = dsm.duplicate().setRootDirectory(rootDir);
+					securityManagers.put(rootDir.getAbsolutePath(), sm);
+				}
+			}
+		}
 		return sm;
 	}
 
@@ -9260,5 +9240,4 @@ public final class ConfigServerImpl implements ConfigServer, ConfigPro {
 		}
 		return _id;
 	}
-
 }

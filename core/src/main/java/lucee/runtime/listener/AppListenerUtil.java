@@ -227,7 +227,7 @@ public final class AppListenerUtil {
 			if ("com.microsoft.jdbc.sqlserver.SQLServerDriver".equals(className)) {
 				data.set(KeyConstants._class, "com.microsoft.sqlserver.jdbc.SQLServerDriver");
 			}
-			ClassDefinition cd = ClassDefinitionImpl.toClassDefinitionImpl(data, null, true, ThreadLocalPageContext.getConfig().getIdentification());
+			ClassDefinition cd = ClassDefinitionImpl.toClassDefinitionImpl(data, null, true, ThreadLocalPageContext.getConfigServer().getIdentification());
 
 			try {
 				int idle = Caster.toIntValue(data.get(IDLE_TIMEOUT, null), -1);
@@ -254,7 +254,7 @@ public final class AppListenerUtil {
 			int idle = Caster.toIntValue(data.get(IDLE_TIMEOUT, null), -1);
 			if (idle == -1) idle = Caster.toIntValue(data.get(CONNECTION_TIMEOUT, null), -1);
 
-			return new DataSourceImpl(config, name, dbt.classDefinition, Caster.toString(data.get(KeyConstants._host)), dbt.connectionString,
+			return new DataSourceImpl(name, dbt.classDefinition, Caster.toString(data.get(KeyConstants._host)), dbt.connectionString,
 					Caster.toString(data.get(KeyConstants._BUNDLENAME, null), null), Caster.toString(data.get(KeyConstants._BUNDLEVERSION, null), null),
 					Caster.toString(data.get(KeyConstants._database)), Caster.toIntValue(data.get(KeyConstants._port, null), -1), user, pass, listener,
 					Caster.toIntValue(data.get(CONNECTION_LIMIT, null), -1), idle, Caster.toIntValue(data.get(LIVE_TIMEOUT, null), -1),

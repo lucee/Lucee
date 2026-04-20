@@ -62,7 +62,7 @@ public final class ClassUtilImpl implements ClassUtil {
 
 	@Override
 	public Class<?> loadClass(PageContext pc, String className, String bundleName, String bundleVersion) throws ClassException, BundleException {
-		Config config = ThreadLocalPageContext.getConfig(pc);
+		Config config = ThreadLocalPageContext.getConfigServer(pc);
 		return lucee.commons.lang.ClassUtil.loadClassByBundle(className, bundleName, bundleVersion, config.getIdentification(), JavaSettingsImpl.getBundleDirectories(pc));
 	}
 

@@ -604,7 +604,7 @@ public final class PageSourceImpl implements PageSource {
 				// synchronized (SystemUtil.createToken("PageSource", getRealpathWithVirtual())) {
 				if (archiveSource == null) {
 					String path = "zip://" + mapping.getArchive().getAbsolutePath() + "!" + relPath;
-					archiveSource = ThreadLocalPageContext.getConfig().getResource(path);
+					archiveSource = ThreadLocalPageContext.getConfigServer().getResource(path);
 				}
 			}
 		}
@@ -619,7 +619,7 @@ public final class PageSourceImpl implements PageSource {
 				// synchronized (SystemUtil.createToken("PageSource", getRealpathWithVirtual())) {
 				if (archiveClass == null) {
 					String path = "zip://" + mapping.getArchive().getAbsolutePath() + "!" + getJavaName() + ".class";
-					archiveClass = ThreadLocalPageContext.getConfig().getResource(path);
+					archiveClass = ThreadLocalPageContext.getConfigServer().getResource(path);
 				}
 			}
 		}
@@ -1043,7 +1043,7 @@ public final class PageSourceImpl implements PageSource {
 			String path = getDisplayPath();
 			if (path != null) {
 				if (path.startsWith("ra://")) path = "zip://" + path.substring(5);
-				res = ResourceUtil.toResourceNotExisting(pc, path, false, false);
+				res = ResourceUtil.toResourceNotExisting(pc, null, path, false, false);
 			}
 		}
 		return res;

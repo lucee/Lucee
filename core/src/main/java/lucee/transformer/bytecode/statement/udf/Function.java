@@ -98,7 +98,8 @@ public abstract class Function extends StatementBaseNoFinal implements Opcodes, 
 	private static final Type FUNCTION_ARGUMENT_LIGHT = Type.getType(FuncArgLite.class);
 	private static final Type FUNCTION_ARGUMENT_ARRAY = Type.getType(FunctionArgument[].class);
 
-	protected static final Method INIT_UDF_IMPL_PROP = new Method("<init>", Types.VOID, new Type[] { Types.UDF_PROPERTIES });
+	protected static final Method INIT_UDF_IMPL_PROP1 = new Method("<init>", Types.VOID, new Type[] { Types.UDF_PROPERTIES });
+	protected static final Method INIT_UDF_IMPL_PROP2 = new Method("<init>", Types.VOID, new Type[] { Types.PAGE_CONTEXT, Types.UDF_PROPERTIES });
 
 	private static final Method INIT_UDF_PROPERTIES_STRTYPE = new Method("<init>", Types.VOID,
 			new Type[] { Types.PAGE, Types.PAGE_SOURCE, Types.INT_VALUE, Types.INT_VALUE, FUNCTION_ARGUMENT_ARRAY, Types.INT_VALUE, Types.STRING, Types.STRING, Types.STRING,
@@ -369,9 +370,11 @@ public abstract class Function extends StatementBaseNoFinal implements Opcodes, 
 
 			adapter.dup();
 
+			adapter.loadArg(0);
+
 			createUDFProperties(bc, index, type);
 
-			adapter.invokeConstructor(t, INIT_UDF_IMPL_PROP);
+			adapter.invokeConstructor(t, INIT_UDF_IMPL_PROP2);
 		}
 
 	}
@@ -714,7 +717,7 @@ public abstract class Function extends StatementBaseNoFinal implements Opcodes, 
 		}
 
 		// params
-		Array params = new ArrayImpl(8, false);  // Most functions have 0-3 params, no sync needed in compiler
+		Array params = new ArrayImpl(8, false); // Most functions have 0-3 params, no sync needed in compiler
 		sct.setEL(KeyConstants._params, params);
 		for (Argument arg: arguments) {
 			Struct param = new StructImpl(StructImpl.TYPE_LINKED_NOT_SYNC, 8);

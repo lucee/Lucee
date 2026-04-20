@@ -86,16 +86,14 @@ public final class QueryColumnRef implements QueryColumn {
 	 * @throws PageException
 	 */
 	public Object touch(int row) throws PageException {
-		Object _null = NullSupportHelper.NULL();
-		Object o = query.getAt(columnName, row, _null);
-		if (o != _null) return o;
+		Object o = query.getAt(columnName, row, Null.NULL);
+		if (!NullSupportHelper.isNull(o)) return o;
 		return query.setAt(columnName, row, new StructImpl());
 	}
 
 	public Object touchEL(int row) {
-		Object _null = NullSupportHelper.NULL();
-		Object o = query.getAt(columnName, row, _null);
-		if (o != _null) return o;
+		Object o = query.getAt(columnName, row, Null.NULL);
+		if (!NullSupportHelper.isNull(o)) return o;
 		return query.setAtEL(columnName, row, new StructImpl());
 	}
 
@@ -115,12 +113,10 @@ public final class QueryColumnRef implements QueryColumn {
 	}
 
 	@Override
-	public void add(Object value) {
-	}
+	public void add(Object value) {}
 
 	@Override
-	public void addRow(int count) {
-	}
+	public void addRow(int count) {}
 
 	@Override
 	public int getType() {
@@ -133,8 +129,7 @@ public final class QueryColumnRef implements QueryColumn {
 	}
 
 	@Override
-	public void cutRowsTo(int maxrows) {
-	}
+	public void cutRowsTo(int maxrows) {}
 
 	@Override
 	public int size() {
@@ -166,8 +161,7 @@ public final class QueryColumnRef implements QueryColumn {
 	}
 
 	@Override
-	public void clear() {
-	}
+	public void clear() {}
 
 	@Override
 	public Object get(String key) throws PageException {
@@ -184,9 +178,17 @@ public final class QueryColumnRef implements QueryColumn {
 		return get(Caster.toIntValue(key, query.getCurrentrow(ThreadLocalPageContext.getId())), defaultValue);
 	}
 
+	public Object get(PageContext pc, String key, Object defaultValue) {
+		return get(Caster.toIntValue(key, query.getCurrentrow(ThreadLocalPageContext.getId(pc))), defaultValue);
+	}
+
 	@Override
 	public Object get(Collection.Key key, Object defaultValue) {
 		return get(Caster.toIntValue(key, query.getCurrentrow(ThreadLocalPageContext.getId())), defaultValue);
+	}
+
+	public Object get(PageContext pc, Collection.Key key, Object defaultValue) {
+		return get(Caster.toIntValue(key, query.getCurrentrow(ThreadLocalPageContext.getId(pc))), defaultValue);
 	}
 
 	@Override
@@ -231,20 +233,17 @@ public final class QueryColumnRef implements QueryColumn {
 
 	@Override
 	public boolean containsKey(String key) {
-		Object _null = NullSupportHelper.NULL();
-		return get(key, _null) != _null;
+		return !NullSupportHelper.isNull(get(key, Null.NULL));
 	}
 
 	@Override
 	public boolean containsKey(Collection.Key key) {
-		Object _null = NullSupportHelper.NULL();
-		return get(key, _null) != _null;
+		return !NullSupportHelper.isNull(get(key, Null.NULL));
 	}
 
 	@Override
 	public boolean containsKey(PageContext pc, Collection.Key key) {
-		Object _null = NullSupportHelper.NULL();
-		return get(key, _null) != _null;
+		return !NullSupportHelper.isNull(pc, get(pc, key, Null.NULL));
 	}
 
 	@Override
@@ -259,9 +258,8 @@ public final class QueryColumnRef implements QueryColumn {
 
 	@Override
 	public String castToString(String defaultValue) {
-		Object _null = NullSupportHelper.NULL();
-		Object value = get(query.getCurrentrow(ThreadLocalPageContext.getId()), _null);
-		if (value == _null) return defaultValue;
+		Object value = get(query.getCurrentrow(ThreadLocalPageContext.getId()), Null.NULL);
+		if (NullSupportHelper.isNull(value)) return defaultValue;
 		return Caster.toString(value, defaultValue);
 	}
 
@@ -272,9 +270,8 @@ public final class QueryColumnRef implements QueryColumn {
 
 	@Override
 	public Boolean castToBoolean(Boolean defaultValue) {
-		Object _null = NullSupportHelper.NULL();
-		Object value = get(query.getCurrentrow(ThreadLocalPageContext.getId()), _null);
-		if (value == _null) return defaultValue;
+		Object value = get(query.getCurrentrow(ThreadLocalPageContext.getId()), Null.NULL);
+		if (NullSupportHelper.isNull(value)) return defaultValue;
 		return Caster.toBoolean(value, defaultValue);
 	}
 
@@ -285,9 +282,8 @@ public final class QueryColumnRef implements QueryColumn {
 
 	@Override
 	public double castToDoubleValue(double defaultValue) {
-		Object _null = NullSupportHelper.NULL();
-		Object value = get(query.getCurrentrow(ThreadLocalPageContext.getId()), _null);
-		if (value == _null) return defaultValue;
+		Object value = get(query.getCurrentrow(ThreadLocalPageContext.getId()), Null.NULL);
+		if (NullSupportHelper.isNull(value)) return defaultValue;
 		return Caster.toDoubleValue(value, true, defaultValue);
 	}
 
@@ -298,30 +294,29 @@ public final class QueryColumnRef implements QueryColumn {
 
 	@Override
 	public DateTime castToDateTime(DateTime defaultValue) {
-		Object _null = NullSupportHelper.NULL();
-		Object value = get(query.getCurrentrow(ThreadLocalPageContext.getId()), _null);
-		if (value == _null) return defaultValue;
+		Object value = get(query.getCurrentrow(ThreadLocalPageContext.getId()), Null.NULL);
+		if (NullSupportHelper.isNull(value)) return defaultValue;
 		return DateCaster.toDateAdvanced(value, DateCaster.CONVERTING_TYPE_OFFSET, null, defaultValue);
 	}
 
 	@Override
 	public int compareTo(boolean b) throws PageException {
-		return OpUtil.compare(ThreadLocalPageContext.get(), castToBooleanValue() ? Boolean.TRUE : Boolean.FALSE, b ? Boolean.TRUE : Boolean.FALSE);
+		return OpUtil.compare(null, castToBooleanValue() ? Boolean.TRUE : Boolean.FALSE, b ? Boolean.TRUE : Boolean.FALSE);
 	}
 
 	@Override
 	public int compareTo(DateTime dt) throws PageException {
-		return OpUtil.compare(ThreadLocalPageContext.get(), (Date) castToDateTime(), (Date) dt);
+		return OpUtil.compare(null, (Date) castToDateTime(), (Date) dt);
 	}
 
 	@Override
 	public int compareTo(double d) throws PageException {
-		return OpUtil.compare(ThreadLocalPageContext.get(), Double.valueOf(castToDoubleValue()), Double.valueOf(d));
+		return OpUtil.compare(null, Double.valueOf(castToDoubleValue()), Double.valueOf(d));
 	}
 
 	@Override
 	public int compareTo(String str) throws PageException {
-		return OpUtil.compare(ThreadLocalPageContext.get(), castToString(), str);
+		return OpUtil.compare(null, castToString(), str);
 	}
 
 	@Override

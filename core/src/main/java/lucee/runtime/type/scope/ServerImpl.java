@@ -124,7 +124,8 @@ public final class ServerImpl extends ScopeSupport implements Server, SharedScop
 
 		String rootdir = "";
 		try {
-			rootdir = ThreadLocalPageContext.getConfig(pc).getRootDirectory().getAbsolutePath();
+
+			rootdir = ThreadLocalPageContext.getConfigWeb(pc).getRootDirectory().getAbsolutePath();
 		}
 		catch (Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);

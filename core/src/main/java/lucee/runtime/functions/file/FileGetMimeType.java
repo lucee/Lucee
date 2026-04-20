@@ -27,6 +27,7 @@ import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
+import lucee.runtime.security.SecurityManagerImpl;
 
 public final class FileGetMimeType {
 	public static String call(PageContext pc, Object oSrc) throws PageException {
@@ -60,7 +61,7 @@ public final class FileGetMimeType {
 				throw new FunctionException(pc, "FileGetMimeType", 1, "file", "File [" + src + "] does not exist and couldn't detect mimetype from the file extension.");
 			}
 		}
-		pc.getConfig().getSecurityManager().checkFileLocation(src);
+		SecurityManagerImpl.checkFileLocation(pc, src);
 
 		if (checkHeader && src.length() == 0) throw new FunctionException(pc, "FileGetMimeType", 1, "file", "File [" + src + "] was empty, strict was true");
 

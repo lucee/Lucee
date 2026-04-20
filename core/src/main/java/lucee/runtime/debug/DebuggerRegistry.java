@@ -2,7 +2,6 @@ package lucee.runtime.debug;
 
 import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
-import lucee.runtime.config.ConfigPro;
 import lucee.runtime.engine.ThreadLocalPageContext;
 
 /**
@@ -32,7 +31,8 @@ public final class DebuggerRegistry {
 	 * @return true if registration succeeded, false if secret is invalid
 	 */
 	public static boolean setListener(DebuggerListener l, String secret) {
-		String expectedSecret = ((ConfigPro) ThreadLocalPageContext.getConfig()).getDapSecret();
+
+		String expectedSecret = ThreadLocalPageContext.getConfigServer().getDapSecret();
 		if (expectedSecret == null) {
 			LogUtil.log(Log.LEVEL_WARN, "application", "Debugger registration rejected - LUCEE_DAP_SECRET not configured");
 			return false;

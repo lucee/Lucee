@@ -100,8 +100,7 @@ public final class DebuggerImpl implements Debugger {
 			DEFAULT_DEBUG_ENTRY = new lucee.runtime.config.DebugEntry("f1290186a5d0b1ceab27f4e77c0c5d68", "lucee-modern", "*", "default", "/lucee/admin/debug/Modern.cfc",
 					"lucee.admin.debug.Modern", custom);
 		}
-		catch (Exception e) {
-		}
+		catch (Exception e) {}
 	}
 
 	private static final Collection.Key IMPLICIT_ACCESS = KeyConstants._implicitAccess;
@@ -145,15 +144,12 @@ public final class DebuggerImpl implements Debugger {
 
 	private static final Key CACHE_TYPE = KeyConstants._cacheType;
 
-	private static final Key[] PAGE_COLUMNS = new Collection.Key[] { KeyConstants._id, KeyConstants._count, KeyConstants._min,
-			KeyConstants._max, KeyConstants._avg, KeyConstants._app, KeyConstants._load,
-			KeyConstants._query, KeyConstants._total, KeyConstants._src };
-	private static final Key[] QUERY_COLUMNS = new Collection.Key[] { KeyConstants._name, KeyConstants._time, KeyConstants._sql,
-			KeyConstants._sqlPattern, KeyConstants._paramValue, KeyConstants._paramType, KeyConstants._src, KeyConstants._line,
-			KeyConstants._count, KeyConstants._datasource, KeyConstants._usage, CACHE_TYPE };
-	private static final String[] QUERY_COLUMN_TYPES = new String[] { "VARCHAR", "DOUBLE", "VARCHAR", 
-			"VARCHAR", "ARRAY", "ARRAY", "VARCHAR", "DOUBLE", 
-			"DOUBLE", "VARCHAR", "ANY", "VARCHAR" };
+	private static final Key[] PAGE_COLUMNS = new Collection.Key[] { KeyConstants._id, KeyConstants._count, KeyConstants._min, KeyConstants._max, KeyConstants._avg,
+			KeyConstants._app, KeyConstants._load, KeyConstants._query, KeyConstants._total, KeyConstants._src };
+	private static final Key[] QUERY_COLUMNS = new Collection.Key[] { KeyConstants._name, KeyConstants._time, KeyConstants._sql, KeyConstants._sqlPattern, KeyConstants._paramValue,
+			KeyConstants._paramType, KeyConstants._src, KeyConstants._line, KeyConstants._count, KeyConstants._datasource, KeyConstants._usage, CACHE_TYPE };
+	private static final String[] QUERY_COLUMN_TYPES = new String[] { "VARCHAR", "DOUBLE", "VARCHAR", "VARCHAR", "ARRAY", "ARRAY", "VARCHAR", "DOUBLE", "DOUBLE", "VARCHAR", "ANY",
+			"VARCHAR" };
 	private static final Key[] GEN_DATA_COLUMNS = new Collection.Key[] { KeyConstants._category, KeyConstants._name, KeyConstants._value };
 	private static final Key[] TIMER_COLUMNS = new Collection.Key[] { KeyConstants._label, KeyConstants._time, KeyConstants._template, KeyConstants._line };
 	private static final Key[] DUMP_COLUMNS = new Collection.Key[] { KeyConstants._output, KeyConstants._template, KeyConstants._line };
@@ -189,8 +185,7 @@ public final class DebuggerImpl implements Debugger {
 		threadName = null;
 	}
 
-	public DebuggerImpl() {
-	}
+	public DebuggerImpl() {}
 
 	@Override
 	public DebugEntryTemplate getEntry(PageContext pc, PageSource source) {
@@ -391,8 +386,7 @@ public final class DebuggerImpl implements Debugger {
 					try {
 						args.setEL(KeyConstants._debugging, pc.getDebugger().getDebuggingData(pc));
 					}
-					catch (PageException e1) {
-					}
+					catch (PageException e1) {}
 
 					// load Pagesource of the template
 					String path = debugEntry.getPath();
@@ -437,7 +431,6 @@ public final class DebuggerImpl implements Debugger {
 		// datasources
 		debugging.setEL(KeyConstants._datasources, DatasourceConnPool.meta(((ConfigPro) pc.getConfig()).getDatasourceConnectionPools()));
 
-		ConfigPro ci = (ConfigPro) ThreadLocalPageContext.getConfig(pc);
 		//////////////////////////////////////////
 		//////// QUERIES ///////////////////////////
 		//////////////////////////////////////////
@@ -481,8 +474,8 @@ public final class DebuggerImpl implements Debugger {
 					qryQueries.setAt(CACHE_TYPE, row, qe.getCacheType());
 
 					SQLItem[] params = qe.getSQL().getItems();
-					Array paramType = new ArrayImpl( params.length );
-					Array paramValue = new ArrayImpl( params.length );
+					Array paramType = new ArrayImpl(params.length);
+					Array paramValue = new ArrayImpl(params.length);
 					for (int i = 0; i < params.length; i++) {
 						paramValue.setEL(i + 1, params[i].getValue());
 						paramType.setEL(i + 1, SQLCaster.toStringType(params[i].getType(), ""));
@@ -498,8 +491,7 @@ public final class DebuggerImpl implements Debugger {
 					else qryExe.setEL(KeyImpl.init(qe.getSrc()), Long.valueOf(((Long) o).longValue() + qe.getExecutionTime()));
 				}
 			}
-			catch (PageException dbe) {
-			}
+			catch (PageException dbe) {}
 		}
 		else {
 			queryTime = this.queryTime;
@@ -537,8 +529,7 @@ public final class DebuggerImpl implements Debugger {
 						qryPage.setAt(KeyConstants._src, row, de.getSrc());
 					}
 				}
-				catch (PageException dbe) {
-				}
+				catch (PageException dbe) {}
 			}
 		}
 		else {
@@ -614,8 +605,7 @@ public final class DebuggerImpl implements Debugger {
 					}
 				}
 			}
-			catch (PageException dbe) {
-			}
+			catch (PageException dbe) {}
 		}
 
 		//////////////////////////////////////////
@@ -687,8 +677,7 @@ public final class DebuggerImpl implements Debugger {
 						qryTimers.setAt(KeyConstants._line, row, timer.getLine());
 					}
 				}
-				catch (PageException dbe) {
-				}
+				catch (PageException dbe) {}
 			}
 		}
 
@@ -702,8 +691,7 @@ public final class DebuggerImpl implements Debugger {
 			history.addColumn(KeyConstants._id, historyId);
 			history.addColumn(KeyConstants._level, historyLevel);
 		}
-		catch (PageException e) {
-		}
+		catch (PageException e) {}
 
 		//////////////////////////////////////////
 		//////// DUMPS ///////////////////////////
@@ -727,8 +715,7 @@ public final class DebuggerImpl implements Debugger {
 						if (dd.getLine() > 0) qryDumps.setAt(KeyConstants._line, row, Double.valueOf(dd.getLine()));
 					}
 				}
-				catch (PageException dbe) {
-				}
+				catch (PageException dbe) {}
 			}
 		}
 
@@ -760,8 +747,7 @@ public final class DebuggerImpl implements Debugger {
 						qryTraces.setAt(KeyConstants._time, row, Double.valueOf(trace.getTime()));
 					}
 				}
-				catch (PageException dbe) {
-				}
+				catch (PageException dbe) {}
 			}
 		}
 
@@ -788,8 +774,7 @@ public final class DebuggerImpl implements Debugger {
 
 					}
 				}
-				catch (PageException dbe) {
-				}
+				catch (PageException dbe) {}
 			}
 		}
 

@@ -29,6 +29,7 @@ import lucee.runtime.PageContextImpl;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
+import lucee.runtime.security.SecurityManagerImpl;
 
 public final class FileRead {
 
@@ -62,7 +63,7 @@ public final class FileRead {
 	}
 
 	private static Object _call(PageContext pc, Resource res, String charset) throws PageException {
-		pc.getConfig().getSecurityManager().checkFileLocation(res);
+		SecurityManagerImpl.checkFileLocation(pc, res);
 		try {
 			return IOUtil.toString(res, charset);
 		}
@@ -72,7 +73,7 @@ public final class FileRead {
 	}
 
 	private static Object _call(PageContext pc, Resource res, String charset, int size) throws PageException {
-		pc.getConfig().getSecurityManager().checkFileLocation(res);
+		SecurityManagerImpl.checkFileLocation(pc, res);
 
 		InputStream is = null;
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();

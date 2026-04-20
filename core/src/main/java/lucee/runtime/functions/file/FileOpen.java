@@ -25,6 +25,7 @@ import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.security.SecurityManagerImpl;
 
 public final class FileOpen {
 
@@ -67,7 +68,7 @@ public final class FileOpen {
 	}
 
 	private static Resource check(PageContext pc, Resource res) throws PageException {
-		pc.getConfig().getSecurityManager().checkFileLocation(res);
+		SecurityManagerImpl.checkFileLocation(pc, res);
 		return res;
 	}
 

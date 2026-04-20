@@ -30,7 +30,7 @@ public final class FileTouch extends BIF {
 	public static String call(PageContext pc, Object file, boolean createPath) throws PageException {
 		Resource res = Caster.toResource(pc, file, false);
 
-		FileTag.actionTouch(pc, pc.getConfig().getSecurityManager(), res, null, createPath, null, -1, null);
+		FileTag.actionTouch(pc, res, null, createPath, null, -1, null);
 
 		return null;
 	}

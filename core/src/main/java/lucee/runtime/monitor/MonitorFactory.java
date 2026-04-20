@@ -62,7 +62,7 @@ public class MonitorFactory implements PropFactory<Monitor> {
 				ConstructorInstance constr = Reflector.getConstructorInstance(clazz, new Object[] { configServer }, false);
 				if (constr.getConstructor(null) != null) obj = constr.invoke();
 				else obj = ClassUtil.newInstance(clazz);
-				LogUtil.logGlobal(ThreadLocalPageContext.getConfig(configServer == null ? config : configServer), Log.LEVEL_INFO, ConfigFactoryImpl.class.getName(),
+				LogUtil.logGlobal(ThreadLocalPageContext.getConfigServer(configServer == null ? config : configServer), Log.LEVEL_INFO, ConfigFactoryImpl.class.getName(),
 						"loaded " + (strType) + " monitor [" + clazz.getName() + "]");
 				if (type == IntervallMonitor.TYPE_INTERVAL) {
 					IntervallMonitor m = obj instanceof IntervallMonitor ? (IntervallMonitor) obj : new IntervallMonitorWrap(obj);
@@ -77,7 +77,7 @@ public class MonitorFactory implements PropFactory<Monitor> {
 					RequestMonitorPro m = new RequestMonitorProImpl(obj instanceof RequestMonitor ? (RequestMonitor) obj : new RequestMonitorWrap(obj));
 					if (async) m = new AsyncRequestMonitor(m);
 					m.init(configServer, name, _log);
-					LogUtil.logGlobal(ThreadLocalPageContext.getConfig(configServer == null ? config : configServer), Log.LEVEL_INFO, ConfigFactoryImpl.class.getName(),
+					LogUtil.logGlobal(ThreadLocalPageContext.getConfigServer(configServer == null ? config : configServer), Log.LEVEL_INFO, ConfigFactoryImpl.class.getName(),
 							"initialize " + (strType) + " monitor [" + clazz.getName() + "]");
 					return m;
 				}

@@ -194,7 +194,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 						try {
 							loop from=1 to=attributes.iterations index="i" {
 								var targetRow = ( i % attributes.query.recordcount ) + 1;
-								attributes.query.go( targetRow, 0 );
+								attributes.query.go( targetRow, getPageContext().getId() );
 								var actual = attributes.query.currentRow;
 								if ( actual != targetRow ) {
 									arrayAppend( errors, "thread #attributes.t# iter #i#: expected row #targetRow# got #actual#" );

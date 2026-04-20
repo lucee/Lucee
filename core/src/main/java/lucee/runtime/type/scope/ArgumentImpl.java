@@ -160,6 +160,11 @@ public final class ArgumentImpl extends ScopeSupport implements Argument, ArrayP
 		return defaultValue;
 	}
 
+	@Override
+	public Object get(PageContext pc, int intKey, Object defaultValue) {
+		return get(intKey, defaultValue);
+	}
+
 	/**
 	 * return a value matching to key
 	 * 
@@ -179,6 +184,11 @@ public final class ArgumentImpl extends ScopeSupport implements Argument, ArrayP
 			}
 		}
 		throw new ExpressionException("invalid index [" + intKey + "] for argument scope");
+	}
+
+	@Override
+	public Object getE(PageContext pc, int intKey) throws PageException {
+		return getE(intKey);
 	}
 
 	@Override
@@ -241,6 +251,11 @@ public final class ArgumentImpl extends ScopeSupport implements Argument, ArrayP
 			}
 		}
 		throw new ExpressionException("invalid index [" + intKey + "] for argument scope");
+	}
+
+	@Override
+	public Object setE(PageContext pc, int intKey, Object value) throws PageException {
+		return setE(intKey, value);
 	}
 
 	@Override

@@ -264,12 +264,11 @@ public final class GetApplicationSettings extends BIF {
 		// ws settings
 		try {
 			Struct wssettings = new StructImpl(Struct.TYPE_LINKED);
-			wssettings.setEL(KeyConstants._type, AppListenerUtil.toWSType(ac.getWSType(), ((ConfigWebPro) ThreadLocalPageContext.getConfig(pc)).getWSHandler().getTypeAsString()));
+			wssettings.setEL(KeyConstants._type, AppListenerUtil.toWSType(ac.getWSType(), ThreadLocalPageContext.getConfigWeb(pc).getWSHandler().getTypeAsString()));
 			sct.setEL("wssettings", wssettings);
 		}
-		catch (Exception e) {
-		} // in case the extension is not loaded this will fail // TODO check if the extension is installed
-			// query
+		catch (Exception e) {} // in case the extension is not loaded this will fail // TODO check if the extension is installed
+								// query
 		{
 			Struct query = new StructImpl(Struct.TYPE_LINKED);
 			query.setEL("varusage", AppListenerUtil.toVariableUsage(acs.getQueryVarUsage(), "ignore"));

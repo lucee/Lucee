@@ -40,8 +40,8 @@ import lucee.runtime.PageContextImpl;
 import lucee.runtime.PageSource;
 import lucee.runtime.PageSourceImpl;
 import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigWeb;
+import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.config.Constants;
 import lucee.runtime.dump.DumpData;
 import lucee.runtime.dump.DumpProperties;
@@ -209,16 +209,20 @@ public abstract class PageExceptionImpl extends PageException {
 	}
 
 	public final Struct getCatchBlock() {
-		return getCatchBlock(ThreadLocalPageContext.getConfig());
+		return _getCatchBlock();
 	}
 
 	@Override
 	public final Struct getCatchBlock(PageContext pc) {
-		return getCatchBlock(ThreadLocalPageContext.getConfig(pc));
+		return _getCatchBlock();
 	}
 
 	@Override
 	public CatchBlock getCatchBlock(Config config) {
+		return _getCatchBlock();
+	}
+
+	private CatchBlock _getCatchBlock() {
 		if (catchBlock == null) {
 			catchBlock = new CatchBlockImpl(this, 0);
 		}
@@ -248,8 +252,8 @@ public abstract class PageExceptionImpl extends PageException {
 		int index = -1;
 		PageSource ps;
 
-		PageContextImpl pc = null;
-		if (config instanceof ConfigWeb) pc = (PageContextImpl) ThreadLocalPageContext.get();
+		PageContext pc = null;
+		if (config instanceof ConfigWeb) pc = ThreadLocalPageContext.get();
 
 		for (int i = 0; i < traces.length; i++) {
 			trace = traces[i];
@@ -267,7 +271,7 @@ public abstract class PageExceptionImpl extends PageException {
 				Resource res = config.getResource(template);
 
 				if (!res.exists()) {
-					PageSource _ps = pc == null ? null : pc.getPageSource(template);
+					PageSource _ps = pc == null ? null : ((PageContextImpl) pc).getPageSource(template);
 					res = _ps == null ? null : _ps.getPhyscalFile();
 					if (res == null || !res.exists()) {
 						res = config.getResource(_ps.getDisplayPath());
@@ -282,10 +286,13 @@ public abstract class PageExceptionImpl extends PageException {
 					SourceInfo si = pc != null ? MappingUtil.getMatch(pc, trace) : MappingUtil.getMatch(config, trace);
 					if (si != null && si.relativePath != null) {
 						dspPath = si.relativePath;
-						res = ResourceUtil.toResourceNotExisting(ThreadLocalPageContext.get(), si.relativePath, true, true);
+						pc = ThreadLocalPageContext.get(pc);
+						res = ResourceUtil.toResourceNotExisting(pc, null, si.relativePath, true, true);
 						if (!res.exists()) {
-							Resource _res = PageSourceImpl
-									.best(((ConfigPro) config).getResources(ThreadLocalPageContext.get(), null, si.relativePath, false, false, true, false, true));
+
+							ConfigWeb cw = pc != null ? pc.getConfig() : ThreadLocalPageContext.getConfigWeb(config);
+
+							Resource _res = PageSourceImpl.best(((ConfigWebPro) cw).getResources(pc, null, si.relativePath, false, false, true, false, true));
 							if (_res != null && _res.exists()) {
 								res = _res;
 								if (res != null && res.exists()) dspPath = res.getAbsolutePath();

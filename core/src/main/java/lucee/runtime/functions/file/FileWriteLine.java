@@ -27,6 +27,7 @@ import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
+import lucee.runtime.security.SecurityManagerImpl;
 
 public final class FileWriteLine {
 
@@ -41,7 +42,7 @@ public final class FileWriteLine {
 				else {
 					close = true;
 					Resource res = Caster.toResource(pc, obj, false);
-					pc.getConfig().getSecurityManager().checkFileLocation(res);
+					SecurityManagerImpl.checkFileLocation(pc, res);
 					fsw = new FileStreamWrapperWrite(res, ((PageContextImpl) pc).getResourceCharset().name(), false, false);
 				}
 				fsw.write(text + SystemUtil.lineSeparator());

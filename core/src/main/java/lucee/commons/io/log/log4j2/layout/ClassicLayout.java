@@ -71,7 +71,7 @@ public final class ClassicLayout extends AbstractStringLayout { // TODO <Seriali
 		else {
 			msg = message != null ? message.getFormattedMessage() : "";
 			application = "";
-			context = "";
+			context = ContextualMessage.getLabel();
 		}
 		data.append('"');
 		data.append(event.getLevel().toString());

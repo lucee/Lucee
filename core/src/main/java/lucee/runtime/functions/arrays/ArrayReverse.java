@@ -28,6 +28,7 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.BIF;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Array;
+import lucee.runtime.type.ArrayPro;
 import lucee.runtime.type.util.ArrayUtil;
 
 public final class ArrayReverse extends BIF {
@@ -35,15 +36,17 @@ public final class ArrayReverse extends BIF {
 	private static final long serialVersionUID = 5418304787535992180L;
 
 	public static Array call(PageContext pc, Array array) throws ExpressionException {
-		Array rev = ArrayUtil.getInstance(array.getDimension());
-		int len = array.size();
+		ArrayPro arr = ArrayUtil.toArrayPro(array, null);
+		ArrayPro rev = ArrayUtil.toArrayPro(ArrayUtil.getInstance(array.getDimension()), null);
+		int len = arr.size();
+
 		for (int i = 0; i < len; i++) {
 			try {
-				rev.setE(len - i, array.getE(i + 1));
+				rev.setE(pc, len - i, arr.getE(pc, i + 1));
 			}
-			catch (PageException e) {
-			}
+			catch (PageException e) {}
 		}
+
 		return rev;
 	}
 

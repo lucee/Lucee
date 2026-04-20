@@ -3831,7 +3831,7 @@ public final class Caster {
 	}
 
 	public static Object castTo(String type, Object o) throws PageException {
-		return castTo(ThreadLocalPageContext.get(), type, o, false);
+		return castTo(null, type, o, false);
 	}
 
 	/**
@@ -5017,7 +5017,7 @@ public final class Caster {
 		if (src instanceof File) src = src.toString();
 		if (src instanceof String) {
 			if (existing) return ResourceUtil.toResourceExisting(pc, (String) src, allowRealpath);
-			return ResourceUtil.toResourceNotExisting(pc, (String) src, allowRealpath, false);
+			return ResourceUtil.toResourceNotExisting(pc, null, (String) src, allowRealpath, false);
 		}
 		if (src instanceof FileStreamWrapper) return ((FileStreamWrapper) src).getResource();
 		throw new CasterException(src, "Resource");

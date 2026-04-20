@@ -388,7 +388,7 @@ public final class Reflector {
 		}
 
 		// component as class
-		PageContext pc;
+		PageContext pc = null;
 		if (src instanceof Component && trgClass.isInterface() && (pc = ThreadLocalPageContext.get()) != null) {
 			return componentToClass(pc, rating, (Component) src, null, trgClass);
 		}
@@ -437,7 +437,7 @@ public final class Reflector {
 		}
 
 		if (trgClass == Calendar.class && Decision.isDate(src, true)) {
-			TimeZone tz = ThreadLocalPageContext.getTimeZone();
+			TimeZone tz = ThreadLocalPageContext.getTimeZone(pc);
 			return Caster.toCalendar(Caster.toDate(src, tz), tz, Locale.US);
 		}
 

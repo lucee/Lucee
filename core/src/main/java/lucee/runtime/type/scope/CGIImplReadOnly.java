@@ -91,8 +91,7 @@ public final class CGIImplReadOnly extends ReadOnlyStruct implements CGI, Script
 			localAddress = addr.getHostAddress();
 			localHost = addr.getHostName();
 		}
-		catch (UnknownHostException uhe) {
-		}
+		catch (UnknownHostException uhe) {}
 	}
 
 	private transient HttpServletRequest req;
@@ -182,8 +181,7 @@ public final class CGIImplReadOnly extends ReadOnlyStruct implements CGI, Script
 					https.setEL(KeyImpl.init("http_" + k.replace('-', '_')), req.getHeader(k));
 				}
 			}
-			catch (Exception e) {
-			}
+			catch (Exception e) {}
 		}
 
 		try {
@@ -197,13 +195,13 @@ public final class CGIImplReadOnly extends ReadOnlyStruct implements CGI, Script
 					if (pc == null) pc = ThreadLocalPageContext.get();
 					return pc.getCFID();
 				}
-				if (key.equals(KeyConstants._cf_template_path)) return getPathTranslated();
+				if (key.equals(KeyConstants._cf_template_path)) return getPathTranslated(pc);
 			}
 			else if (first == 'h') {
 
 				if (lkey.startsWith("http_")) {
 
-					Object _null = NullSupportHelper.NULL();
+					Object _null = NullSupportHelper.NULL(pc);
 					Object o = https.get(key, _null);
 					if (o == _null && key.equals(KeyConstants._http_if_modified_since)) o = https.get(KeyConstants._last_modified, _null);
 					if (o != _null) return doScriptProtect((String) o);
@@ -221,8 +219,7 @@ public final class CGIImplReadOnly extends ReadOnlyStruct implements CGI, Script
 					try {
 						return ReqRspUtil.getRequestURL(req, true);
 					}
-					catch (Exception e) {
-					}
+					catch (Exception e) {}
 				}
 				if (key.equals(KeyConstants._request_uri)) return toString(req.getAttribute("jakarta.servlet.include.request_uri"));/* JAVJAK */
 				if (key.getUpperString().startsWith("REDIRECT_")) {
@@ -246,7 +243,7 @@ public final class CGIImplReadOnly extends ReadOnlyStruct implements CGI, Script
 				if (key.equals(KeyConstants._local_host)) return toString(localHost);
 			}
 			else if (first == 's') {
-				if (key.equals(KeyConstants._script_name)) return ReqRspUtil.getScriptName(null, req);
+				if (key.equals(KeyConstants._script_name)) return ReqRspUtil.getScriptName(pc, req);
 				// return StringUtil.emptyIfNull(req.getContextPath())+StringUtil.emptyIfNull(req.getServletPath());
 				if (key.equals(KeyConstants._server_name)) return toString(req.getServerName());
 				if (key.equals(KeyConstants._server_protocol)) return toString(req.getProtocol());
@@ -269,7 +266,7 @@ public final class CGIImplReadOnly extends ReadOnlyStruct implements CGI, Script
 					if (!StringUtil.isEmpty(pathInfo, true)) return pathInfo;
 					return "";
 				}
-				if (key.equals(KeyConstants._path_translated)) return getPathTranslated();
+				if (key.equals(KeyConstants._path_translated)) return getPathTranslated(pc);
 			}
 			else if (first == 'q') {
 				if (key.equals(KeyConstants._query_string)) return doScriptProtect(toString(ReqRspUtil.getQueryString(req)));
@@ -293,8 +290,7 @@ public final class CGIImplReadOnly extends ReadOnlyStruct implements CGI, Script
 					headers.setEL(KeyImpl.init(k = k.replace('-', '_')), v);
 				}
 			}
-			catch (Exception e) {
-			}
+			catch (Exception e) {}
 		}
 
 		// check header
@@ -303,22 +299,17 @@ public final class CGIImplReadOnly extends ReadOnlyStruct implements CGI, Script
 
 		// check servlet request attributes
 		/*
-		Enumeration<String> names = req.getAttributeNames();
-		String k;
-		while (names.hasMoreElements()) {
-			k = names.nextElement();
-			if (k.equalsIgnoreCase(key.getString())) {
-				return toString(req.getAttribute(k));
-			}
-		}
-		*/
+		 * Enumeration<String> names = req.getAttributeNames(); String k; while (names.hasMoreElements()) {
+		 * k = names.nextElement(); if (k.equalsIgnoreCase(key.getString())) { return
+		 * toString(req.getAttribute(k)); } }
+		 */
 
 		return other(key, defaultValue);
 	}
 
-	private Object getPathTranslated() {
+	private Object getPathTranslated(PageContext pc) {
 		try {
-			PageContext pc = ThreadLocalPageContext.get();
+			pc = ThreadLocalPageContext.get(pc);
 			PageSource bps = pc.getBasePageSource();
 			if (bps != null) {
 				Resource rt = bps.getResourceTranslated(pc);

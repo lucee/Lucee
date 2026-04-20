@@ -25,7 +25,6 @@ import lucee.runtime.dump.DumpData;
 import lucee.runtime.dump.DumpProperties;
 import lucee.runtime.dump.DumpTable;
 import lucee.runtime.dump.SimpleDumpData;
-import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
@@ -152,22 +151,22 @@ public final class TimeSpanImpl implements TimeSpan, Serializable {
 
 	@Override
 	public int compareTo(boolean b) {
-		return OpUtil.compare(ThreadLocalPageContext.get(), castToBooleanValue() ? Boolean.TRUE : Boolean.FALSE, b ? Boolean.TRUE : Boolean.FALSE);
+		return OpUtil.compare(null, castToBooleanValue() ? Boolean.TRUE : Boolean.FALSE, b ? Boolean.TRUE : Boolean.FALSE);
 	}
 
 	@Override
 	public int compareTo(DateTime dt) throws PageException {
-		return OpUtil.compare(ThreadLocalPageContext.get(), (java.util.Date) castToDateTime(), (java.util.Date) dt);
+		return OpUtil.compare(null, (java.util.Date) castToDateTime(), (java.util.Date) dt);
 	}
 
 	@Override
 	public int compareTo(double d) throws PageException {
-		return OpUtil.compare(ThreadLocalPageContext.get(), Double.valueOf(value), Double.valueOf(d));
+		return OpUtil.compare(null, Double.valueOf(value), Double.valueOf(d));
 	}
 
 	@Override
 	public int compareTo(String str) throws PageException {
-		return OpUtil.compare(ThreadLocalPageContext.get(), Double.valueOf(value), str);
+		return OpUtil.compare(null, Double.valueOf(value), str);
 	}
 
 	@Override

@@ -110,11 +110,10 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 	public IKStorageScopeSupport(PageContext pc, IKHandler handler, String appName, String name, String strType, int type, Map<Collection.Key, IKStorageScopeItem> data,
 			long lastModified, long timeSpan) {
 		// !!! do not store the pagecontext or config object, this object is Serializable !!!
-		Config config = ThreadLocalPageContext.getConfig(pc);
 		this.data0 = data;
 
-		timecreated = doNowIfNull(config, Caster.toDate(data.getOrDefault(KeyConstants._timecreated, null), false, pc.getTimeZone(), null));
-		_lastvisit = doNowIfNull(config, Caster.toDate(data.getOrDefault(KeyConstants._lastvisit, null), false, pc.getTimeZone(), null));
+		timecreated = doNowIfNull(Caster.toDate(data.getOrDefault(KeyConstants._timecreated, null), false, pc.getTimeZone(), null));
+		_lastvisit = doNowIfNull(Caster.toDate(data.getOrDefault(KeyConstants._lastvisit, null), false, pc.getTimeZone(), null));
 
 		if (_lastvisit == null) _lastvisit = timecreated;
 		lastvisit = _lastvisit == null ? 0L : _lastvisit.getTime();
@@ -788,7 +787,7 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 		return handler.getType();
 	}
 
-	protected static DateTime doNowIfNull(Config config, DateTime dt) {
+	protected static DateTime doNowIfNull(DateTime dt) {
 		if (dt == null) return new DateTimeImpl();
 		return dt;
 	}

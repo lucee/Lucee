@@ -93,8 +93,9 @@ public final class FunctionImpl extends Function {
 			else {
 				adapter.newInstance(Types.UDF_IMPL);
 				adapter.dup();
+				adapter.loadArg(0);
 				loadUDFProperties(bc, index, TYPE_UDF);
-				adapter.invokeConstructor(Types.UDF_IMPL, INIT_UDF_IMPL_PROP);
+				adapter.invokeConstructor(Types.UDF_IMPL, INIT_UDF_IMPL_PROP2);
 			}
 			// loadUDF(bc, index);
 			adapter.invokeInterface(Types.VARIABLES, SET_KEY);

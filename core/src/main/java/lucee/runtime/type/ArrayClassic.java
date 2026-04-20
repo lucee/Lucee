@@ -171,6 +171,7 @@ public final class ArrayClassic extends ArraySupport {
 		return getE(null, key);
 	}
 
+	@Override
 	public synchronized Object getE(PageContext pc, int key) throws ExpressionException {
 		if (key < 1) {
 			throw invalidPosition(key);
@@ -257,6 +258,11 @@ public final class ArrayClassic extends ArraySupport {
 		if (key > size) size = key;
 		arr[(offset + key) - 1] = checkValue(value);
 		return value;
+	}
+
+	@Override
+	public synchronized Object setE(PageContext pc, int key, Object value) throws ExpressionException {
+		return setE(key, value);
 	}
 
 	public synchronized int ensureCapacity(int cap) {
@@ -615,8 +621,7 @@ public final class ArrayClassic extends ArraySupport {
 			try {
 				o = getE(i);
 			}
-			catch (Exception e) {
-			}
+			catch (Exception e) {}
 
 			table.appendRow(1, new SimpleDumpData(i), DumpUtil.toDumpData(o, pageContext, maxlevel, dp));
 
@@ -661,8 +666,7 @@ public final class ArrayClassic extends ArraySupport {
 				else arr.set(e.getKey(), e.getValue());
 			}
 		}
-		catch (ExpressionException ee) {
-		}
+		catch (ExpressionException ee) {}
 		finally {
 			if (!inside) ThreadLocalDuplication.reset();
 		}

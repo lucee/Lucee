@@ -8,12 +8,14 @@ import org.xml.sax.SAXException;
 import jakarta.servlet.ServletConfig;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lucee.commons.io.res.Resource;
 import lucee.commons.lock.KeyLock;
 import lucee.runtime.CIPage;
 import lucee.runtime.ComponentImpl;
 import lucee.runtime.ComponentPageImpl;
 import lucee.runtime.Mapping;
 import lucee.runtime.PageContext;
+import lucee.runtime.PageSource;
 import lucee.runtime.compiler.CFMLCompilerImpl;
 import lucee.runtime.debug.DebuggerPool;
 import lucee.runtime.exp.PageException;
@@ -21,6 +23,7 @@ import lucee.runtime.gateway.GatewayEngine;
 import lucee.runtime.monitor.ActionMonitorCollector;
 import lucee.runtime.net.rpc.WSHandler;
 import lucee.runtime.tag.TagHandlerPool;
+import lucee.runtime.type.Struct;
 import lucee.runtime.writer.CFMLWriter;
 
 //FUTURE add to Config
@@ -72,4 +75,17 @@ public interface ConfigWebPro extends ConfigWeb, ConfigPro {
 	public void checkMappings();
 
 	public ComponentImpl getBaseComponentInstance(PageContext pc, ComponentPageImpl exclude, boolean executeConstr) throws PageException;
+
+	public CIPage getComponentPathCache(PageContext pc, String pathWithCFC) throws PageException;
+
+	public void putComponentPathCache(String pathWithCFC, PageSource ps);
+
+	public Struct listComponentPathCache();
+
+	public void clearComponentPathCache();
+
+	public PageSource toPageSource(Mapping[] mappings, Resource res, PageSource defaultValue);
+
+	public Resource[] getResources(PageContext pc, Mapping[] mappings, String realPath, boolean onlyTopLevel, boolean useSpecialMappings, boolean useDefaultMapping,
+			boolean useComponentMappings, boolean onlyFirstMatch);
 }

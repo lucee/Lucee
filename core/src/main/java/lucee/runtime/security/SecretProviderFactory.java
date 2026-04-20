@@ -27,7 +27,6 @@ import lucee.runtime.dump.DumpRow;
 import lucee.runtime.dump.DumpTable;
 import lucee.runtime.dump.Dumpable;
 import lucee.runtime.dump.SimpleDumpData;
-import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageRuntimeException;
@@ -188,22 +187,22 @@ public class SecretProviderFactory implements PropFactory<SecretProvider> {
 
 		@Override
 		public int compareTo(String other) throws PageException {
-			return OpUtil.compare(ThreadLocalPageContext.get(), castToString(), other);
+			return OpUtil.compare(null, castToString(), other);
 		}
 
 		@Override
 		public int compareTo(boolean other) throws PageException {
-			return OpUtil.compare(ThreadLocalPageContext.get(), castToString(), other);
+			return OpUtil.compare(null, castToString(), other);
 		}
 
 		@Override
 		public int compareTo(double other) throws PageException {
-			return OpUtil.compare(ThreadLocalPageContext.get(), castToString(), other);
+			return OpUtil.compare(null, castToString(), other);
 		}
 
 		@Override
 		public int compareTo(DateTime other) throws PageException {
-			return OpUtil.compare(ThreadLocalPageContext.get(), castToString(), (Date) other);
+			return OpUtil.compare(null, castToString(), (Date) other);
 		}
 
 		@Override

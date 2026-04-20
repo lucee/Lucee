@@ -26,7 +26,6 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.BIF;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.op.Caster;
-import lucee.runtime.security.SecurityManager;
 import lucee.runtime.tag.FileTag;
 import lucee.runtime.tag.util.FileUtil;
 import lucee.runtime.type.Struct;
@@ -77,7 +76,6 @@ public final class FileUpload extends BIF implements Function {
 
 	public static Struct call(PageContext pc, String destination, String fileField, String accept, String nameConflict, boolean strict, Object allowedExtensions,
 			Object blockedExtensions, String mode, String attributes, Object acl) throws PageException {
-		SecurityManager securityManager = pc.getConfig().getSecurityManager();
 
 		int nc = FileUtil.toNameConflict(nameConflict);
 
@@ -96,7 +94,7 @@ public final class FileUpload extends BIF implements Function {
 			blockedFilter = FileUtil.toExtensionFilter(blockedExtensions);
 		}
 
-		return FileTag.actionUpload(pc, securityManager, fileField, destination, nc, accept, allowedFilter, blockedFilter, strict, m, attributes, acl, null);
+		return FileTag.actionUpload(pc, fileField, destination, nc, accept, allowedFilter, blockedFilter, strict, m, attributes, acl, null);
 	}
 
 	@Override

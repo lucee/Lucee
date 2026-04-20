@@ -26,7 +26,7 @@ public final class InspectTemplates extends BIF implements Function {
 	}
 
 	public static void reset(Config c) {
-		if (c == null) c = ThreadLocalPageContext.getConfig();
+		if (c == null) c = ThreadLocalPageContext.getConfigServer();
 
 		if (c instanceof ConfigServer) {
 			for (ConfigWeb cw: ((ConfigServer) c).getConfigWebs()) {

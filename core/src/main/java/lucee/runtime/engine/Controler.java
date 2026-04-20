@@ -369,7 +369,8 @@ public final class Controler extends ParentThreasRefThread {
 			if (doMinute) {
 				ThreadLocalConfig.register(config);
 
-				LogUtil.log(ThreadLocalPageContext.getConfig(config), Log.LEVEL_TRACE, Controler.class.getName(), "Running background Controller maintenance (every minute).");
+				LogUtil.log(ThreadLocalPageContext.getConfigServer(config), Log.LEVEL_TRACE, Controler.class.getName(),
+						"Running background Controller maintenance (every minute).");
 
 				stopwatch.start();
 				try {
@@ -471,7 +472,7 @@ public final class Controler extends ParentThreasRefThread {
 			// every hour
 			if (doHour) {
 
-				LogUtil.log(ThreadLocalPageContext.getConfig(config), Log.LEVEL_TRACE, Controler.class.getName(), "Running background Controller maintenance (every hour).");
+				LogUtil.log(ThreadLocalPageContext.getConfigServer(config), Log.LEVEL_TRACE, Controler.class.getName(), "Running background Controller maintenance (every hour).");
 
 				ThreadLocalConfig.register(config);
 
@@ -614,12 +615,12 @@ public final class Controler extends ParentThreasRefThread {
 			size += ResourceUtil.getRealSize(f);
 		}
 
-		LogUtil.log(ThreadLocalPageContext.getConfig(config), Log.LEVEL_DEBUG, Controler.class.getName(),
+		LogUtil.log(ThreadLocalPageContext.getConfigServer(config), Log.LEVEL_DEBUG, Controler.class.getName(),
 				"Checking size of directory [" + dir + "]. Current size [" + size + "]. Max size [" + maxSize + "].");
 
 		if (count <= 100000 && size <= maxSize) return;
 
-		LogUtil.log(ThreadLocalPageContext.getConfig(config), Log.LEVEL_WARN, Controler.class.getName(),
+		LogUtil.log(ThreadLocalPageContext.getConfigServer(config), Log.LEVEL_WARN, Controler.class.getName(),
 				"Removing files from directory [" + dir + "]. Current size [" + size + "]. Max size [" + maxSize + "]. Number of files [" + count + "]");
 
 		// sort oldest first
@@ -649,7 +650,7 @@ public final class Controler extends ParentThreasRefThread {
 		}
 
 		if (deleted > 0 || failed > 0) {
-			LogUtil.log(ThreadLocalPageContext.getConfig(config), Log.LEVEL_WARN, Controler.class.getName(), "Cleanup of directory [" + dir + "]: removed [" + deleted
+			LogUtil.log(ThreadLocalPageContext.getConfigServer(config), Log.LEVEL_WARN, Controler.class.getName(), "Cleanup of directory [" + dir + "]: removed [" + deleted
 					+ "] files, failed [" + failed + "]. Remaining size [" + size + "], remaining files [" + count + "].");
 		}
 	}
@@ -658,7 +659,7 @@ public final class Controler extends ParentThreasRefThread {
 		long time = stopwatch.stop();
 		stopwatch.reset();
 		if (STEP_REPORT_THRESHOLD_MS > 0 && time > STEP_REPORT_THRESHOLD_MS)
-			LogUtil.log(ThreadLocalPageContext.getConfig(config), Log.LEVEL_INFO, Controler.class.getName(), name + " took " + time + "ms");
+			LogUtil.log(ThreadLocalPageContext.getConfigServer(config), Log.LEVEL_INFO, Controler.class.getName(), name + " took " + time + "ms");
 	}
 
 	private void doCheckMappings(ConfigWeb config) {
