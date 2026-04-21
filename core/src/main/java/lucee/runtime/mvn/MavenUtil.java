@@ -65,6 +65,13 @@ public final class MavenUtil {
 	public static final int READ_TIMEOUT_HEAD = 5000;
 	public static final int READ_TIMEOUT_GET = 5000;
 	public static final long ARTIFACT_UNAVAILABLE_CACHE_DURATION = Caster.toLongValue(SystemUtil.getSystemPropOrEnvVar("lucee.maven.negative.cache.duration", null), 60000L * 15L);
+	/**
+	 * TTL for positive {@code maven-metadata.xml} caching in the runtime
+	 * resolver. Default 24h matches maven's own {@code updatePolicy=daily}
+	 * convention — metadata churn is slow, stale-for-a-day is cheap, and
+	 * admins can tune via {@code lucee.maven.metadata.cache.duration}.
+	 */
+	public static final long METADATA_CACHE_DURATION = Caster.toLongValue(SystemUtil.getSystemPropOrEnvVar("lucee.maven.metadata.cache.duration", null), 60000L * 60L * 24L);
 
 	private static final DateTimeFormatter MAVEN_DATE_FORMATTER = DateTimeFormatter.ofPattern("EEE MMM dd HH:mm:ss z yyyy", Locale.ENGLISH);
 
@@ -226,10 +233,7 @@ public final class MavenUtil {
 			}
 		}
 
-		// PATCH TODO better solution for this
-		if (v != null && v.startsWith("[")) {
-			v = v.substring(1, v.indexOf(','));
-		}
+		v = resolveVersionRange(localDirectory, g, a, v, current.getRepositories(), log);
 
 		// optional
 		String o = rd.optional;
@@ -575,23 +579,10 @@ public final class MavenUtil {
 						//////// if (log != null) log.info("maven", "download [" + url + "]");
 						URL url;
 						CloseableHttpClient httpClient;
-						int policy = CFMLEngineImpl.getActiveDownloadPolicy();
+						assertDownloadAllowed("artifact [" + pom.getGroupId() + ":" + pom.getArtifactId() + ":" + pom.getVersion() + "] (type: " + type + ")");
 						for (Repository r: sort(repositories)) {
 							url = null;
 							httpClient = null;
-							if (policy == CFMLEngineImpl.MAVEN_DOWNLOAD_POLICY_ERROR) {
-								throw new IOException("Lucee is unable to resolve the Maven artifact [" + pom.getGroupId() + ":" + pom.getArtifactId() + ":" + pom.getVersion()
-										+ "] " + "(type: " + type + ") because Maven downloads are blocked by policy. "
-										+ "To allow downloads, set the system property or environment variable " + "'lucee.maven.download.policy' to 'warn' or 'ignore'. ");
-							}
-							else if (policy == CFMLEngineImpl.MAVEN_DOWNLOAD_POLICY_WARN) {
-								LogUtil.log(CFMLEngineImpl.MAVEN_DOWNLOAD_POLICY_LOG_LEVEL, "maven",
-										"Downloading Maven artifact [" + pom.getGroupId() + ":" + pom.getArtifactId() + ":" + pom.getVersion() + "] " + "(type: " + type
-												+ "). Maven download policy is set to 'warn'. "
-												+ "Set the system property or environment variable 'lucee.maven.download.policy' to "
-												+ "'error' to block downloads or 'ignore' to suppress this warning.");
-							}
-
 							try {
 								url = new URL(r.getUrl() + scriptName);
 								httpClient = HttpClients.createDefault();
@@ -665,6 +656,30 @@ public final class MavenUtil {
 			}
 		}
 		return res;
+	}
+
+	/**
+	 * Enforces the maven download policy. Throws {@link IOException} when
+	 * the active policy is {@link CFMLEngineImpl#MAVEN_DOWNLOAD_POLICY_ERROR},
+	 * logs a warning when {@link CFMLEngineImpl#MAVEN_DOWNLOAD_POLICY_WARN},
+	 * silent on {@code IGNORE}. Check once before entering a per-repo loop.
+	 *
+	 * @param what short identifier of what is being downloaded — interpolated
+	 *             into both the exception and warn messages, e.g.
+	 *             {@code "artifact [g:a:v] (type: jar)"} or
+	 *             {@code "maven-metadata.xml for g:a"}.
+	 */
+	static void assertDownloadAllowed(String what) throws IOException {
+		int policy = CFMLEngineImpl.getActiveDownloadPolicy();
+		if (policy == CFMLEngineImpl.MAVEN_DOWNLOAD_POLICY_ERROR) {
+			throw new IOException("Maven download for " + what + " is blocked by policy. "
+					+ "To allow downloads, set the system property or environment variable 'lucee.maven.download.policy' to 'warn' or 'ignore'.");
+		}
+		if (policy == CFMLEngineImpl.MAVEN_DOWNLOAD_POLICY_WARN) {
+			LogUtil.log(CFMLEngineImpl.MAVEN_DOWNLOAD_POLICY_LOG_LEVEL, "maven",
+					"Downloading " + what + ". Maven download policy is set to 'warn'. "
+							+ "Set 'lucee.maven.download.policy' to 'error' to block downloads or 'ignore' to suppress this warning.");
+		}
 	}
 
 	private static StringBuilder createInfo() {
@@ -753,6 +768,102 @@ public final class MavenUtil {
 		if (rtn > 0) return rtn;
 
 		return defaultValue;
+	}
+
+	/**
+	 * Resolves a maven version spec to a concrete version string.
+	 *
+	 * Uses {@link MavenVersionRange} to parse the spec properly. Without
+	 * access to {@code maven-metadata.xml} we can only return a single
+	 * version for bare/pinned specs and for bracketed ranges with an
+	 * inclusive lower bound — see {@link MavenVersionRange#bestEffortSingleVersion()}.
+	 *
+	 * Ranges with exclusive lower bounds, open lowers, wildcards, or
+	 * unions fall back to the raw spec string (same as the previous hack)
+	 * and will fail at download time. That fallback goes away once the
+	 * resolver fetches {@code maven-metadata.xml} and we can call
+	 * {@link MavenVersionRange#pickHighest(java.util.List)}.
+	 */
+	public static String resolveVersionRange(String v) {
+		if (v == null || v.isEmpty()) return v;
+		try {
+			MavenVersionRange range = new MavenVersionRange(v);
+			String best = range.bestEffortSingleVersion();
+			if (best != null) return best;
+		}
+		catch (IllegalArgumentException iae) {
+			// unparseable — fall through to raw spec, caller will fail loudly downstream
+		}
+		return v;
+	}
+
+	/**
+	 * Full-context range resolution. When the spec can't be answered from
+	 * the parse alone (bracketed ranges with exclusive bounds, wildcards,
+	 * unions), fetch {@code maven-metadata.xml} for the given coordinate
+	 * (or load it from {@code localDirectory} if a fresh cached copy
+	 * exists — see {@link MavenMetadataReader}) and call
+	 * {@link MavenVersionRange#pickHighest(java.util.List)} to return the
+	 * highest available version that satisfies the range.
+	 *
+	 * Throws {@link IOException} if the spec demands metadata and either
+	 * no repository returns a parseable metadata file, or none of the
+	 * returned versions satisfy the range. Falling through to the raw
+	 * spec at this point would produce a download URL containing the
+	 * literal range (e.g. {@code .../jaxb-api/[2.2,3)/jaxb-api-[2.2,3).jar})
+	 * which 404s with no trace of the real cause.
+	 *
+	 * Unparseable specs still fall through to the raw string — the 1-arg
+	 * form behaves the same and this matches legacy behaviour for malformed
+	 * input.
+	 */
+	public static String resolveVersionRange(Resource localDirectory, String groupId, String artifactId, String v, Collection<Repository> repositories, Log log) throws IOException {
+		if (v == null || v.isEmpty()) return v;
+		MavenVersionRange range;
+		try {
+			range = new MavenVersionRange(v);
+		}
+		catch (IllegalArgumentException iae) {
+			return v;
+		}
+		String best = range.bestEffortSingleVersion();
+		if (best != null) return best;
+
+		// Local-first: previously-installed versions already on disk are
+		// the cheapest candidate source — no HTTP, works offline.
+		List<String> local = MavenMetadataReader.listLocalVersions(localDirectory, groupId, artifactId);
+		MavenVersion picked = range.pickHighest(local);
+		if (picked != null) {
+			if (log != null) log.debug("maven", "resolved range [" + v + "] to " + picked + " from local versions for " + groupId + ":" + artifactId);
+			return picked.asString();
+		}
+
+		// Nothing local satisfies the range — fetch metadata (or load from
+		// cached xml) and pick from the published list.
+		List<String> available = MavenMetadataReader.fetchAvailableVersions(localDirectory, groupId, artifactId, repositories, log);
+		if (available.isEmpty()) {
+			throw new IOException("cannot resolve version range [" + v + "] for " + groupId + ":" + artifactId
+					+ " — no maven-metadata.xml available from repositories " + repoUrls(repositories));
+		}
+		picked = range.pickHighest(available);
+		if (picked == null) {
+			throw new IOException("cannot resolve version range [" + v + "] for " + groupId + ":" + artifactId
+					+ " — no available version matches (candidates=" + available + ")");
+		}
+		if (log != null) log.debug("maven", "resolved range [" + v + "] to " + picked + " for " + groupId + ":" + artifactId);
+		return picked.asString();
+	}
+
+	private static String repoUrls(Collection<Repository> repositories) {
+		if (repositories == null || repositories.isEmpty()) return "[]";
+		StringBuilder sb = new StringBuilder("[");
+		boolean first = true;
+		for (Repository r: repositories) {
+			if (!first) sb.append(", ");
+			sb.append(r.getUrl());
+			first = false;
+		}
+		return sb.append(']').toString();
 	}
 
 	public static int toScope(String scope, int defaultValue) {
