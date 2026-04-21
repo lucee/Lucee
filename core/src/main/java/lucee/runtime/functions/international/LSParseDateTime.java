@@ -21,13 +21,13 @@
  */
 package lucee.runtime.functions.international;
 
-import java.text.DateFormat;
 import java.util.Date;
 import java.util.Locale;
 import java.util.TimeZone;
 
 import lucee.commons.date.TimeZoneUtil;
 import lucee.commons.i18n.FormatUtil;
+import lucee.commons.i18n.FormatterWrapper;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.lang.ExceptionUtil;
@@ -86,8 +86,8 @@ public final class LSParseDateTime implements Function {
 			LogUtil.log(pc, Log.LEVEL_DEBUG, "dateformat", ExceptionUtil.getStacktrace(ex, true));
 			try {
 
-				DateFormat df = FormatUtil.getDateTimeFormat(locale, tz, format);
-				DateTimeImpl res = new DateTimeImpl(df.parse(strDate));
+				FormatterWrapper formatter = FormatUtil.getDateTimeFormatter(locale, format, tz);
+				DateTimeImpl res = new DateTimeImpl(FormatUtil.parse(formatter, strDate, tz.toZoneId()));
 
 				LogUtil.log(FormatUtil.debug ? Log.LEVEL_FATAL : Log.LEVEL_DEBUG, "dateformat",
 						"DateTimeFormatter failed to parse the date string [" + strDate + "] for locale [" + locale + "] and timezone [" + (tz == null ? "undefined" : tz.getID())

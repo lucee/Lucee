@@ -3217,51 +3217,60 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		</return>
 	</function>
 	<!-- dateAdd -->
-	<function>
-		<name>dateAdd</name>
-		<class>lucee.runtime.functions.dateTime.DateAdd</class>
-		<member-name>add</member-name>
-		<member-position>3</member-position>
-		
-		<description>Adds units of time to a date.
-        [datePart - quickly]
-        yyyy: Year; q: Quarter; m: Month; y: Day of year; d: Day
-        w: Weekday; ww: Week; h: Hour; n: Minute; s: Second;
-        l: Millisecond</description>
-		<argument>
-			<name>datePart</name>
-			<type>string</type>
-			<required>Yes</required>
-		<description>one of the following:
-- yyyy: Year
-- q: Quarter
-- m: Month
-- y: Day of year
-- d: Day
-- w: Weekday
-- ww: Week
-- h: Hour
-- n: Minute
-- s: Second
-- l: Millisecond
-		</description>
+<function>
+    <name>dateAdd</name>
+    <class>lucee.runtime.functions.dateTime.DateAdd</class>
+    <member-name>add</member-name>
+    <member-position>3</member-position>
+
+    <description>Adds units of time to a date, returning a new datetime.
+
+`dateAdd(datePart, number, date)` or member form: `date.add(datePart, number)`
+
+**datePart** — quickly:
+`yyyy`: Year | `q`: Quarter | `m`: Month | `y`: Day of year | `d`: Day |
+`w`: Weekday (Mon–Fri only, weekends skipped) | `ww`: Week | `h`: Hour | `n`: Minute | `s`: Second | `l`: Millisecond</description>
+
+    <argument>
+        <name>datePart</name>
+        <type>string</type>
+        <required>Yes</required>
+        <description>Specifies the unit of time to add. One of the following:
+
+- `yyyy`: Year
+- `q`: Quarter (3 months)
+- `m`: Month
+- `y`: Day of year (equivalent to `d`)
+- `d`: Day
+- `w`: Weekday — only Monday through Friday count; Saturday and Sunday are skipped
+- `ww`: Week (7 calendar days)
+- `h`: Hour
+- `n`: Minute
+- `s`: Second
+- `l`: Millisecond
+        </description>
     </argument>
-		<argument>
-			<name>number</name>
-			<type>number</type>
-			<required>Yes</required>
-		<description>Number of units of datePart to add to date (positive, to get dates in the future; negative, to get dates in the past). Number must be an integer.</description>
+
+    <argument>
+        <name>number</name>
+        <type>number</type>
+        <required>Yes</required>
+        <description>Number of units of `datePart` to add to `date`. Must be an integer.
+Use a positive value to get a date in the future, a negative value to get a date in the past.</description>
     </argument>
-		<argument>
-			<name>date</name>
-			<type>datetime</type>
-			<required>Yes</required>
-		<description>a datetime object</description>
+
+    <argument>
+        <name>date</name>
+        <type>datetime</type>
+        <required>Yes</required>
+        <description>The datetime object to add to.</description>
     </argument>
-		<return>
-			<type>datetime</type>
-		</return>
-	</function>
+
+    <return>
+        <type>datetime</type>
+        <description>A new datetime object with the specified units added. The original date is not modified.</description>
+    </return>
+</function>
 	
 	<!-- dateCompare -->
 	<function>

@@ -59,7 +59,7 @@ public final class DateAdd extends BIF {
 		else if (first == 'n') return new DateTimeImpl(date.getTime() + (l * 60000));
 		else if (first == 'h') return new DateTimeImpl(date.getTime() + (l * 3600000));
 
-		Calendar c = JREDateTimeUtil.getThreadCalendar();
+		Calendar c = JREDateTimeUtil.getThreadCalendar(pc.getTimeZone());
 		// if (c == null)c=JREDateTimeUtil.newInstance();
 		// synchronized (c) {
 		// c.clear();

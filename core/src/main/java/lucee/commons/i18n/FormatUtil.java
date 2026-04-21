@@ -19,20 +19,16 @@
 package lucee.commons.i18n;
 
 import java.lang.ref.SoftReference;
-import java.nio.charset.Charset;
 import java.text.DateFormat;
 import java.text.ParsePosition;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
-import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
-import java.time.format.DateTimeParseException;
 import java.time.format.FormatStyle;
 import java.time.temporal.ChronoField;
 import java.time.temporal.TemporalAccessor;
@@ -49,21 +45,15 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 import lucee.commons.date.DateTimeException;
 import lucee.commons.date.DateTimeUtil;
-import lucee.commons.date.TimeZoneConstants;
-import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
-import lucee.commons.io.res.Resource;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
-import lucee.runtime.config.Config;
-import lucee.runtime.engine.ThreadLocalPageContext;
 
 public final class FormatUtil {
 
-	public static final short FORMAT_TYPE_DATE = 1;
-	public static final short FORMAT_TYPE_TIME = 2;
-	public static final short FORMAT_TYPE_DATE_TIME = 3;
-	public static final short FORMAT_TYPE_DATE_ALL = 4;
+	private static final short FORMAT_TYPE_DATE = 1;
+	private static final short FORMAT_TYPE_TIME = 2;
+	private static final short FORMAT_TYPE_DATE_TIME = 3;
 
 	private static final LocalTime DEFAULT_TIME = LocalTime.of(0, 0, 0);
 	private static final LocalDate DEFAULT_DATE = LocalDate.of(1899, 12, 30);
@@ -87,8 +77,6 @@ public final class FormatUtil {
 		DEFAULT_MILLISECOND = DEFAULT_TIME.isSupported(ChronoField.MILLI_OF_SECOND) ? DEFAULT_TIME.get(ChronoField.MILLI_OF_SECOND) : 0;
 	}
 
-	private final static Map<String, SoftReference<DateFormat[]>> formats = new ConcurrentHashMap<String, SoftReference<DateFormat[]>>();
-
 	private final static Map<String, SoftReference<List<FormatterWrapper>>> cfmlFormats = new ConcurrentHashMap<>();
 	// "EEEE, MMMM d, yyyy, h:mm:ss a 'Coordinated Universal Time'"
 	private final static Pattern[] strCfmlFormats = new Pattern[] {
@@ -98,6 +86,8 @@ public final class FormatUtil {
 			// new Pattern("MM/dd/yyyy", FORMAT_TYPE_DATE),
 
 			new Pattern("dd-MMM-yyyy", FORMAT_TYPE_DATE),
+
+			new Pattern("dd-MMMM-yyyy", FORMAT_TYPE_DATE),
 
 			new Pattern("dd-MMM-yy HH:mm a", FORMAT_TYPE_DATE_TIME),
 
@@ -271,7 +261,7 @@ public final class FormatUtil {
 						df.add(getFormatterWrapper("M/d/yy H:mm:ss", zone, locale, FORMAT_TYPE_DATE_TIME, lenient));
 					}
 
-					fromFormatToFormatter(df, getDateTimeFormatsOld(locale, tz, lenient), FORMAT_TYPE_DATE_TIME, locale, tz, lenient);
+					extractLegacyDateTimePatterns(df, locale, tz, lenient);
 
 					cfmlFormats.put(key, new SoftReference<List<FormatterWrapper>>(df));
 				}
@@ -281,79 +271,38 @@ public final class FormatUtil {
 	}
 
 	private static lucee.commons.i18n.FormatterWrapper getFormatterWrapper(String pattern, ZoneId zone, Locale locale, short type, boolean lenient) {
-		DateTimeFormatterBuilder builder = new DateTimeFormatterBuilder().appendPattern(pattern);
+		DateTimeFormatterBuilder builder = new DateTimeFormatterBuilder()
+
+				.parseCaseInsensitive()
+
+				.appendPattern(pattern);
 		if (lenient) builder.parseLenient();
 		else builder.parseStrict();
 		DateTimeFormatter dtf = builder.toFormatter(locale).withZone(zone);
 		return new FormatterWrapper(dtf, pattern, type, zone, true);
 	}
 
-	public static void fromFormatToFormatter(final List<FormatterWrapper> df, DateFormat[] formats, short type, Locale locale, TimeZone tz, boolean lenient) {
+	public static FormatterWrapper fromFormatToFormatter(DateFormat format, short type, Locale locale, TimeZone tz, boolean lenient) {
 		ZoneId zone = tz.toZoneId();
-		DateTimeFormatterBuilder builder;
 		String p;
-		DateTimeFormatter dtf;
-		for (DateFormat f: formats) {
 
-			builder = new DateTimeFormatterBuilder().appendPattern(p = ((SimpleDateFormat) f).toPattern());
+		DateTimeFormatterBuilder builder = new DateTimeFormatterBuilder().appendPattern(p = ((SimpleDateFormat) format).toPattern());
+		if (lenient) builder.parseLenient();
+		else builder.parseStrict();
+		DateTimeFormatter dtf = builder.toFormatter(locale).withZone(zone);
+
+		// add year flexibility yy -> y
+		if (p.indexOf("yy") != -1 && p.indexOf("yyyy") == -1) {
+			// old version handles yy as yyyy
+			p = StringUtil.replace(p, "yy", "y", true, true);
+			builder = new DateTimeFormatterBuilder().appendPattern(p);
 			if (lenient) builder.parseLenient();
 			else builder.parseStrict();
 			dtf = builder.toFormatter(locale).withZone(zone);
-
-			// add year flexibility yy -> y
-			if (p.indexOf("yy") != -1 && p.indexOf("yyyy") == -1) {
-				// old version handles yy as yyyy
-				p = StringUtil.replace(p, "yy", "y", true, true);
-				builder = new DateTimeFormatterBuilder().appendPattern(p);
-				if (lenient) builder.parseLenient();
-				else builder.parseStrict();
-				dtf = builder.toFormatter(locale).withZone(zone);
-				df.add(new FormatterWrapper(dtf, p, type, zone));
-			}
-			else df.add(new FormatterWrapper(dtf, p, type, zone));
+			return new FormatterWrapper(dtf, p, type, zone);
 		}
-	}
+		return new FormatterWrapper(dtf, p, type, zone);
 
-	@Deprecated
-	public static DateFormat[] getDateTimeFormatsOld(Locale locale, TimeZone tz, boolean lenient) {
-
-		String id = "dt-" + locale.toString() + "-" + tz.getID() + "-" + lenient;
-		SoftReference<DateFormat[]> tmp = formats.get(id);
-		DateFormat[] df = tmp == null ? null : tmp.get();
-		if (df == null) {
-			List<DateFormat> list = new ArrayList<DateFormat>();
-			list.add(DateFormat.getDateTimeInstance(DateFormat.FULL, DateFormat.FULL, locale));
-			list.add(DateFormat.getDateTimeInstance(DateFormat.FULL, DateFormat.LONG, locale));
-			list.add(DateFormat.getDateTimeInstance(DateFormat.FULL, DateFormat.MEDIUM, locale));
-			list.add(DateFormat.getDateTimeInstance(DateFormat.FULL, DateFormat.SHORT, locale));
-
-			list.add(DateFormat.getDateTimeInstance(DateFormat.LONG, DateFormat.FULL, locale));
-			list.add(DateFormat.getDateTimeInstance(DateFormat.LONG, DateFormat.LONG, locale));
-			list.add(DateFormat.getDateTimeInstance(DateFormat.LONG, DateFormat.MEDIUM, locale));
-			list.add(DateFormat.getDateTimeInstance(DateFormat.LONG, DateFormat.SHORT, locale));
-
-			list.add(DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.FULL, locale));
-			list.add(DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.LONG, locale));
-			list.add(DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.MEDIUM, locale));
-			list.add(DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT, locale));
-
-			list.add(DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.FULL, locale));
-			list.add(DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.LONG, locale));
-			list.add(DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.MEDIUM, locale));
-			list.add(DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT, locale));
-			add24AndRemoveComma(list, locale, true, true);
-			addCustom(list, locale, FORMAT_TYPE_DATE_TIME);
-
-			df = list.toArray(new DateFormat[list.size()]);
-
-			for (int i = 0; i < df.length; i++) {
-				df[i].setLenient(lenient);
-				df[i].setTimeZone(tz);
-			}
-
-			formats.put(id, new SoftReference<DateFormat[]>(df));
-		}
-		return clone(df);
 	}
 
 	public static List<FormatterWrapper> getDateFormats(Locale locale, TimeZone tz, boolean lenient) {
@@ -371,7 +320,8 @@ public final class FormatUtil {
 					df.add(new FormatterWrapper(DateTimeFormatter.ofLocalizedDate(FormatStyle.LONG).withLocale(locale).withZone(zone), "LONG", FORMAT_TYPE_DATE, zone));
 					df.add(new FormatterWrapper(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM).withLocale(locale).withZone(zone), "MEDIUM", FORMAT_TYPE_DATE, zone));
 					df.add(new FormatterWrapper(DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT).withLocale(locale).withZone(zone), "SHORT", FORMAT_TYPE_DATE, zone));
-					fromFormatToFormatter(df, getDateFormatsOld(locale, tz, lenient), FORMAT_TYPE_DATE, locale, tz, lenient);
+
+					extractLegacyDatePatterns(df, locale, tz, lenient);
 
 					cfmlFormats.put(key, new SoftReference<List<FormatterWrapper>>(df));
 				}
@@ -380,75 +330,68 @@ public final class FormatUtil {
 		return df;
 	}
 
-	@Deprecated
-	public static DateFormat[] getDateFormatsOld(Locale locale, TimeZone tz, boolean lenient) {
-		String id = "d-" + locale.toString() + "-" + tz.getID() + "-" + lenient;
-		SoftReference<DateFormat[]> tmp = formats.get(id);
-		DateFormat[] df = tmp == null ? null : tmp.get();
+	private static void extractLegacyDatePatterns(List<FormatterWrapper> wrappers, Locale locale, TimeZone tz, boolean lenient) {
+		List<DateFormat> list = new ArrayList<DateFormat>();
+		list.add(DateFormat.getDateInstance(DateFormat.FULL, locale));
+		list.add(DateFormat.getDateInstance(DateFormat.LONG, locale));
+		list.add(DateFormat.getDateInstance(DateFormat.MEDIUM, locale));
+		list.add(DateFormat.getDateInstance(DateFormat.SHORT, locale));
 
-		if (df == null) {
-			List<DateFormat> list = new ArrayList<DateFormat>();
-			list.add(DateFormat.getDateInstance(DateFormat.FULL, locale));
-			list.add(DateFormat.getDateInstance(DateFormat.LONG, locale));
-			list.add(DateFormat.getDateInstance(DateFormat.MEDIUM, locale));
-			list.add(DateFormat.getDateInstance(DateFormat.SHORT, locale));
-			add24AndRemoveComma(list, locale, true, false);
-			addCustom(list, locale, FORMAT_TYPE_DATE);
-			df = list.toArray(new DateFormat[list.size()]);
-
-			for (int i = 0; i < df.length; i++) {
-				df[i].setLenient(lenient);
-				df[i].setTimeZone(tz);
-			}
-			formats.put(id, new SoftReference<DateFormat[]>(df));
-		}
-		return clone(df);
+		extractLegacy(wrappers, list, locale, tz, lenient, FORMAT_TYPE_DATE);
 	}
 
-	private static DateFormat[] clone(DateFormat[] src) {
-		DateFormat[] trg = new DateFormat[src.length];
-		for (int i = 0; i < src.length; i++) {
-			trg[i] = (DateFormat) ((SimpleDateFormat) src[i]).clone();
-		}
-		return trg;
+	private static void extractLegacyTimePatterns(List<FormatterWrapper> wrappers, Locale locale, TimeZone tz, boolean lenient) {
+		List<DateFormat> list = new ArrayList<DateFormat>();
+		list.add(DateFormat.getTimeInstance(DateFormat.FULL, locale));
+		list.add(DateFormat.getTimeInstance(DateFormat.LONG, locale));
+		list.add(DateFormat.getTimeInstance(DateFormat.MEDIUM, locale));
+		list.add(DateFormat.getTimeInstance(DateFormat.SHORT, locale));
+
+		extractLegacy(wrappers, list, locale, tz, lenient, FORMAT_TYPE_TIME);
 	}
 
-	@Deprecated
-	public static DateFormat[] getTimeFormatsOld(Locale locale, TimeZone tz, boolean lenient) {
-		String id = "t-" + locale.toString() + "-" + tz.getID() + "-" + lenient;
-		SoftReference<DateFormat[]> tmp = formats.get(id);
-		DateFormat[] df = tmp == null ? null : tmp.get();
+	private static void extractLegacyDateTimePatterns(List<FormatterWrapper> wrappers, Locale locale, TimeZone tz, boolean lenient) {
+		List<DateFormat> list = new ArrayList<DateFormat>();
+		list.add(DateFormat.getDateTimeInstance(DateFormat.FULL, DateFormat.FULL, locale));
+		list.add(DateFormat.getDateTimeInstance(DateFormat.FULL, DateFormat.LONG, locale));
+		list.add(DateFormat.getDateTimeInstance(DateFormat.FULL, DateFormat.MEDIUM, locale));
+		list.add(DateFormat.getDateTimeInstance(DateFormat.FULL, DateFormat.SHORT, locale));
 
-		if (df == null) {
-			List<DateFormat> list = new ArrayList<DateFormat>();
-			list.add(DateFormat.getTimeInstance(DateFormat.FULL, locale));
-			list.add(DateFormat.getTimeInstance(DateFormat.LONG, locale));
-			list.add(DateFormat.getTimeInstance(DateFormat.MEDIUM, locale));
-			list.add(DateFormat.getTimeInstance(DateFormat.SHORT, locale));
-			add24AndRemoveComma(list, locale, false, true);
-			addCustom(list, locale, FORMAT_TYPE_TIME);
-			df = list.toArray(new DateFormat[list.size()]);
+		list.add(DateFormat.getDateTimeInstance(DateFormat.LONG, DateFormat.FULL, locale));
+		list.add(DateFormat.getDateTimeInstance(DateFormat.LONG, DateFormat.LONG, locale));
+		list.add(DateFormat.getDateTimeInstance(DateFormat.LONG, DateFormat.MEDIUM, locale));
+		list.add(DateFormat.getDateTimeInstance(DateFormat.LONG, DateFormat.SHORT, locale));
 
-			for (int i = 0; i < df.length; i++) {
-				df[i].setLenient(lenient);
-				df[i].setTimeZone(tz);
-			}
-			formats.put(id, new SoftReference<DateFormat[]>(df));
-		}
-		return clone(df);
+		list.add(DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.FULL, locale));
+		list.add(DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.LONG, locale));
+		list.add(DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.MEDIUM, locale));
+		list.add(DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT, locale));
+
+		list.add(DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.FULL, locale));
+		list.add(DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.LONG, locale));
+		list.add(DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.MEDIUM, locale));
+		list.add(DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT, locale));
+
+		extractLegacy(wrappers, list, locale, tz, lenient, FORMAT_TYPE_DATE_TIME);
 	}
 
-	@Deprecated
-	private static void add24AndRemoveComma(List<DateFormat> list, Locale locale, boolean isDate, boolean isTime) {
-		DateFormat[] df = list.toArray(new DateFormat[list.size()]);
-		for (int i = 0; i < df.length; i++) {
-			if (df[i] instanceof SimpleDateFormat) {
-				add24AndRemoveComma(list, df[i], locale, isDate, isTime);
+	private static void extractLegacy(List<FormatterWrapper> wrappers, List<DateFormat> list, Locale locale, TimeZone tz, boolean lenient, short type) {
+		// add 24 and remove comma
+		DateFormat[] formats = list.toArray(new DateFormat[list.size()]);
+		for (int i = 0; i < formats.length; i++) {
+			if (formats[i] instanceof SimpleDateFormat) {
+				add24AndRemoveComma(list, formats[i], locale, type != FORMAT_TYPE_TIME, type != FORMAT_TYPE_DATE);
 			}
 		}
+
+		// lenient and timezone
+		for (DateFormat df: list) {
+			df.setLenient(lenient);
+			df.setTimeZone(tz);
+			wrappers.add(fromFormatToFormatter(df, type, locale, tz, lenient));
+		}
 	}
 
-	@Deprecated
 	private static void add24AndRemoveComma(List<DateFormat> list, DateFormat sdf, Locale locale, boolean isDate, boolean isTime) {
 		String p = ((SimpleDateFormat) sdf).toPattern() + "";
 		add24AndRemoveComma(list, p, locale, isDate, isTime);
@@ -497,7 +440,6 @@ public final class FormatUtil {
 
 	}
 
-	@Deprecated
 	private static boolean check(List<DateFormat> results, String orgPattern, Locale locale, String from, String to) {
 		int index = orgPattern.indexOf(from);
 		if (index != -1) {
@@ -508,84 +450,6 @@ public final class FormatUtil {
 			return true;
 		}
 		return false;
-	}
-
-	private static void addCustom(List<DateFormat> list, Locale locale, short formatType) {
-		// get custom formats from file
-		Config cs = ThreadLocalPageContext.getConfigServer();
-		Resource dir = cs != null ? cs.getConfigDir().getRealResource("locales") : null;
-		if (dir != null && dir.isDirectory()) {
-			String appendix = "-datetime";
-			if (formatType == FORMAT_TYPE_DATE) appendix = "-date";
-			if (formatType == FORMAT_TYPE_TIME) appendix = "-time";
-
-			Resource file = dir.getRealResource(locale.getLanguage() + "-" + locale.getCountry() + appendix + ".df");
-			if (file.isFile()) {
-				try {
-					String content = IOUtil.toString(file, (Charset) null);
-					String[] arr = lucee.runtime.type.util.ListUtil.listToStringArray(content, '\n');
-					String line;
-					DateFormat sdf;
-					for (int i = 0; i < arr.length; i++) {
-						line = arr[i].trim();
-						if (StringUtil.isEmpty(line)) continue;
-						sdf = FormatUtil.getDateTimeFormat(locale, null, line);
-						if (!list.contains(sdf)) list.add(sdf);
-					}
-
-				}
-				catch (Throwable t) {
-					ExceptionUtil.rethrowIfNecessary(t);
-				}
-			}
-		}
-	}
-
-	public static DateFormat[] getFormats(Locale locale, TimeZone tz, boolean lenient, short formatType) {
-		if (FORMAT_TYPE_DATE_TIME == formatType) return getDateTimeFormatsOld(locale, TimeZoneConstants.GMT, true);
-		if (FORMAT_TYPE_DATE == formatType) return getDateFormatsOld(locale, TimeZoneConstants.GMT, true);
-		if (FORMAT_TYPE_TIME == formatType) return getTimeFormatsOld(locale, TimeZoneConstants.GMT, true);
-
-		DateFormat[] dt = getDateTimeFormatsOld(locale, TimeZoneConstants.GMT, true);
-		DateFormat[] d = getDateFormatsOld(locale, TimeZoneConstants.GMT, true);
-		DateFormat[] t = getTimeFormatsOld(locale, TimeZoneConstants.GMT, true);
-
-		DateFormat[] all = new DateFormat[dt.length + d.length + t.length];
-		for (int i = 0; i < dt.length; i++) {
-			all[i] = dt[i];
-		}
-		for (int i = 0; i < d.length; i++) {
-			all[i + dt.length] = d[i];
-		}
-		for (int i = 0; i < t.length; i++) {
-			all[i + dt.length + d.length] = t[i];
-		}
-		return getDateTimeFormatsOld(locale, TimeZoneConstants.GMT, true);
-	}
-
-	public static String[] getSupportedPatterns(Locale locale, short formatType) {
-		DateFormat[] _formats = getFormats(locale, TimeZoneConstants.GMT, true, formatType);
-		String[] patterns = new String[_formats.length];
-		for (int i = 0; i < _formats.length; i++) {
-			if (!(_formats[i] instanceof SimpleDateFormat)) return null; // all or nothing
-			patterns[i] = ((SimpleDateFormat) _formats[i]).toPattern();
-		}
-
-		return patterns;
-	}
-
-	@Deprecated
-	public static DateFormat getDateFormat(Locale locale, TimeZone tz, String mask) {
-		DateFormat df;
-		if (mask.equalsIgnoreCase("short")) df = DateFormat.getDateInstance(DateFormat.SHORT, locale);
-		else if (mask.equalsIgnoreCase("medium")) df = DateFormat.getDateInstance(DateFormat.MEDIUM, locale);
-		else if (mask.equalsIgnoreCase("long")) df = DateFormat.getDateInstance(DateFormat.LONG, locale);
-		else if (mask.equalsIgnoreCase("full")) df = DateFormat.getDateInstance(DateFormat.FULL, locale);
-		else {
-			df = FormatUtil.getDateTimeFormat(locale, null, mask);
-		}
-		df.setTimeZone(tz);
-		return df;
 	}
 
 	public static List<FormatterWrapper> getTimeFormats(Locale locale, TimeZone tz, boolean lenient) {
@@ -603,7 +467,9 @@ public final class FormatUtil {
 					df.add(new FormatterWrapper(DateTimeFormatter.ofLocalizedTime(FormatStyle.LONG).withLocale(locale).withZone(zone), "LONG", FORMAT_TYPE_TIME, zone));
 					df.add(new FormatterWrapper(DateTimeFormatter.ofLocalizedTime(FormatStyle.MEDIUM).withLocale(locale).withZone(zone), "MEDIUM", FORMAT_TYPE_TIME, zone));
 					df.add(new FormatterWrapper(DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT).withLocale(locale).withZone(zone), "SHORT", FORMAT_TYPE_TIME, zone));
-					fromFormatToFormatter(df, getTimeFormatsOld(locale, tz, lenient), FORMAT_TYPE_TIME, locale, tz, lenient);
+
+					extractLegacyTimePatterns(df, locale, tz, lenient);
+
 					cfmlFormats.put(key, new SoftReference<List<FormatterWrapper>>(df));
 				}
 			}
@@ -611,22 +477,7 @@ public final class FormatUtil {
 		return df;
 	}
 
-	@Deprecated
-	public static DateFormat getTimeFormat(Locale locale, TimeZone tz, String mask) {
-		DateFormat df;
-		if (mask.equalsIgnoreCase("short")) df = DateFormat.getTimeInstance(DateFormat.SHORT, locale);
-		else if (mask.equalsIgnoreCase("medium")) df = DateFormat.getTimeInstance(DateFormat.MEDIUM, locale);
-		else if (mask.equalsIgnoreCase("long")) df = DateFormat.getTimeInstance(DateFormat.LONG, locale);
-		else if (mask.equalsIgnoreCase("full")) df = DateFormat.getTimeInstance(DateFormat.FULL, locale);
-		else {
-			df = locale == null ? new SimpleDateFormat(mask) : new SimpleDateFormat(mask, locale);
-		}
-		if (tz != null) df.setTimeZone(tz);
-		return df;
-	}
-
-	@Deprecated
-	public static DateFormat getDateTimeFormat(Locale locale, TimeZone tz, String mask) {
+	private static DateFormat getDateTimeFormat(Locale locale, TimeZone tz, String mask) {
 		DateFormat df;
 		if (mask.equalsIgnoreCase("short")) df = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT, locale);
 		else if (mask.equalsIgnoreCase("medium")) df = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.MEDIUM, locale);
@@ -689,35 +540,15 @@ public final class FormatUtil {
 		return Instant.ofEpochMilli(millis).atZone(DateTimeUtil.toOffsetIfNeeded(timeZone != null ? timeZone.toZoneId() : ZoneId.systemDefault(), millis)).format(formatter);
 	}
 
-	public static long parseSimple(DateTimeFormatter formatter, String date, TimeZone timeZone) throws DateTimeParseException {
-		return ZonedDateTime.parse(date, formatter).withZoneSameInstant(timeZone != null ? timeZone.toZoneId() : ZoneId.systemDefault()).toInstant().toEpochMilli();
-	}
-
-	public static long parseOld(DateTimeFormatter formatter, String date, TimeZone timeZone) throws DateTimeParseException {
-		// Parse the date using the formatter (no time zone assumption yet)
-		ZonedDateTime zonedDateTime = null;
-
-		try {
-			// Parse the date string into a ZonedDateTime
-			zonedDateTime = ZonedDateTime.parse(date, formatter);
-		}
-		catch (DateTimeParseException e) {
-			// If no time zone is provided in the input, handle it with the passed TimeZone
-			LocalDateTime localDateTime = LocalDateTime.parse(date, formatter);
-			zonedDateTime = localDateTime.atZone(timeZone != null ? timeZone.toZoneId() : ZoneId.systemDefault());
-		}
-
-		// Convert the parsed ZonedDateTime to the desired time zone and return epoch milliseconds
-		return zonedDateTime.withZoneSameInstant(timeZone != null ? timeZone.toZoneId() : ZoneId.systemDefault()).toInstant().toEpochMilli();
-	}
-
 	public static Long parse(FormatterWrapper fw, String date, ZoneId zone) throws DateTimeException {
 		ParsePosition position = new ParsePosition(0);
 		TemporalAccessor accessor = fw.formatter.parseUnresolved(date, position);
 
 		// Check if parsing was successful and consumed the entire string
 		if (position.getErrorIndex() >= 0 || position.getIndex() < date.length()) {
-			throw new DateTimeException("cannot parse the string [" + date + "] to a date using this pattern [" + fw.pattern + "] with the time zone [" + zone.toString() + "]");
+			throw new DateTimeException("cannot parse the string [" + date + "] to a date using this pattern [" + fw.pattern + "] with the time zone [" + zone.toString() + "] (" +
+
+					position.getErrorIndex() + ":" + position.getIndex() + ":" + date.length() + ")");
 		}
 		try {
 			ZoneId tmp;
@@ -867,17 +698,6 @@ public final class FormatUtil {
 			return year + 1900;
 		}
 		return year;
-	}
-
-	private static long getEpochMillis(LocalDate localDate, LocalTime localTime, ZoneId zoneId) {
-		// Combine LocalDate and LocalTime into LocalDateTime
-		LocalDateTime localDateTime = LocalDateTime.of(localDate, localTime);
-
-		// Convert LocalDateTime to ZonedDateTime with the specified time zone
-		ZonedDateTime zonedDateTime = localDateTime.atZone(zoneId);
-
-		// Convert to Instant and get epoch millis
-		return zonedDateTime.toInstant().toEpochMilli();
 	}
 
 	private static class Pattern {

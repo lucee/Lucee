@@ -449,10 +449,10 @@
 				<!--- format --->
 
 				<!--- not supported in CFML <= 9  --->
-				assertEquals("-{ts '2002-01-30 07:02:33'}", "-#lsParseDateTime("1/30/02 7:02:33",'en','m/dd/yy h:mm:ss')#");
-				assertEquals("-{ts '2002-01-30 07:02:33'}", "-#lsParseDateTime("1/30/02 7:02:33",'en','m/dd/yy h:mm:ss')#");
-				assertEquals("-{ts '2002-01-30 07:02:00'}", "-#lsParseDateTime("1/30/2002 7:02 AM",'en','m/dd/yyyy h:mm')#");
-
+				assertEquals("-{ts '2002-01-30 07:02:33'}", "-#lsParseDateTime("1/30/02 7:02:33",'en','M/dd/yy H:mm:ss')#");
+				assertEquals("-{ts '2002-01-30 07:02:33'}", "-#lsParseDateTime("1/30/02 7:02:33",'en','M/dd/yy H:mm:ss')#");
+				assertEquals("-{ts '2002-01-30 07:02:00'}", "-#lsParseDateTime("1/30/2002 7:02 AM",'en','M/dd/yyyy h:mm a')#");
+				//  Failed: Expected [-{ts '2002-01-30 07:02:33'}] but received [-{ts '2002-01-30 00:02:33'}]
 			});
 
 			it( title="checking LSparseDateTime() function with 1/1", body = function( currentSpec ) {

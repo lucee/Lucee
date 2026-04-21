@@ -203,7 +203,7 @@ public final class QueryImpl implements Query, Objects, QueryResult {
 		// stopwatch.start();
 		long start = System.nanoTime();
 		try {
-			fillResult(this, null, null, null, result, maxrow, true, false, tz);
+			fillResult(null, this, null, null, null, result, maxrow, true, false, tz);
 		}
 		catch (SQLException e) {
 			throw new DatabaseException(e, null);
@@ -223,7 +223,7 @@ public final class QueryImpl implements Query, Objects, QueryResult {
 		this.name = name;
 
 		try {
-			fillResult(this, null, null, null, result, -1, true, false, tz);
+			fillResult(null, this, null, null, null, result, -1, true, false, tz);
 		}
 		catch (SQLException e) {
 			throw new DatabaseException(e, null);
@@ -324,7 +324,7 @@ public final class QueryImpl implements Query, Objects, QueryResult {
 				if (hasResult) {
 					// res=stat.getResultSet();
 					// if(fillResult(dc,res, maxrow, true,createGeneratedKeys,tz))break;
-					if (fillResult(qry, qr, keyName, dc, stat.getResultSet(), maxrow, true, createGeneratedKeys, tz)) break;
+					if (fillResult(pc, qry, qr, keyName, dc, stat.getResultSet(), maxrow, true, createGeneratedKeys, tz)) break;
 				}
 				else if ((uc = setUpdateCount(qry != null ? qry : qr, stat)) != -1) {
 					if (uc > 0 && createGeneratedKeys && qry != null) qry.setGeneratedKeys(dc, stat, tz);
@@ -430,7 +430,7 @@ public final class QueryImpl implements Query, Objects, QueryResult {
 
 				if (hasResult) {
 
-					if (fillResult(qry, qr, keyName, dc, stat.getResultSet(), maxrow, true, createGeneratedKeys, tz)) {
+					if (fillResult(pc, qry, qr, keyName, dc, stat.getResultSet(), maxrow, true, createGeneratedKeys, tz)) {
 						/*
 						 * When using the MSSQL driver, we need to iterate through ALL results because: 1. Deferred
 						 * exceptions (like RAISERROR) only surface when calling getMoreResults() 2. There may be additional
@@ -600,8 +600,8 @@ public final class QueryImpl implements Query, Objects, QueryResult {
 		return 0;
 	}
 
-	private static boolean fillResult(QueryImpl qry, QueryResult qr, Collection.Key keyName, DatasourceConnection dc, ResultSet result, int maxrow, boolean closeResult,
-			boolean createGeneratedKeys, TimeZone tz) throws SQLException, IOException, PageException {
+	private static boolean fillResult(PageContext pcMayNull, QueryImpl qry, QueryResult qr, Collection.Key keyName, DatasourceConnection dc, ResultSet result, int maxrow,
+			boolean closeResult, boolean createGeneratedKeys, TimeZone tz) throws SQLException, IOException, PageException {
 		if (result == null) return false;
 
 		int recordcount = 0, columncount = 0;
@@ -676,6 +676,7 @@ public final class QueryImpl implements Query, Objects, QueryResult {
 					}
 				}
 				// Get Calendar once for reuse across all rows - avoids repeated ThreadLocal lookups
+				if (tz == null) tz = ThreadLocalPageContext.getTimeZone(pcMayNull);
 				Calendar cal = JREDateTimeUtil.getThreadCalendar(tz);
 				if (index != -1) {
 					Object o;
@@ -713,6 +714,7 @@ public final class QueryImpl implements Query, Objects, QueryResult {
 				Object k;
 				boolean full = NullSupportHelper.full();
 				// Get Calendar once for reuse across all rows - avoids repeated ThreadLocal lookups
+				if (tz == null) tz = ThreadLocalPageContext.getTimeZone(pcMayNull);
 				Calendar cal = JREDateTimeUtil.getThreadCalendar(tz);
 				while (result.next()) {
 					if (maxrow > -1 && recordcount >= maxrow) {

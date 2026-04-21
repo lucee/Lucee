@@ -30,7 +30,6 @@ import java.util.TimeZone;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.engine.ThreadLocalPageContext;
-import lucee.runtime.op.Caster;
 import lucee.runtime.type.dt.DateTime;
 
 public final class JREDateTimeUtil extends DateTimeUtil {
@@ -288,18 +287,6 @@ public final class JREDateTimeUtil extends DateTimeUtil {
 	 * 
 	 * @return calendar instance
 	 */
-	public static Calendar getThreadCalendar() {
-		Calendar c = calendar.get();
-		c.clear();
-		return c;
-	}
-
-	/**
-	 * important:this function returns always the same instance for a specific thread, so make sure only
-	 * use one thread calendar instance at time.
-	 * 
-	 * @return calendar instance
-	 */
 	public static Calendar getThreadCalendar(TimeZone tz) {
 		Calendar c = calendar.get();
 		c.clear();
@@ -344,15 +331,6 @@ public final class JREDateTimeUtil extends DateTimeUtil {
 		return c;
 	}
 
-	static void toString(StringBuilder sb, int i, int amount) {
-		String str = Caster.toString(i);
-
-		amount = amount - str.length();
-		while (amount-- > 0) {
-			sb.append('0');
-		}
-		sb.append(str);
-	}
 }
 
 class CalendarThreadLocal extends ThreadLocal<Calendar> {

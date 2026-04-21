@@ -5045,15 +5045,13 @@ public final class Caster {
 	}
 
 	public static Calendar toCalendar(Date date, TimeZone tz, Locale l) {
-		tz = ThreadLocalPageContext.getTimeZone(tz);
-		Calendar c = tz == null ? JREDateTimeUtil.newInstance(tz, l) : JREDateTimeUtil.newInstance(tz, l);
+		Calendar c = JREDateTimeUtil.newInstance(ThreadLocalPageContext.getTimeZone(tz), l);
 		c.setTime(date);
 		return c;
 	}
 
 	public static Calendar toCalendar(long time, TimeZone tz, Locale l) {
-		tz = ThreadLocalPageContext.getTimeZone(tz);
-		Calendar c = tz == null ? JREDateTimeUtil.newInstance(tz, l) : JREDateTimeUtil.newInstance(tz, l);
+		Calendar c = JREDateTimeUtil.newInstance(ThreadLocalPageContext.getTimeZone(tz), l);
 		c.setTimeInMillis(time);
 		return c;
 	}

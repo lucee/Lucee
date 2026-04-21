@@ -29,10 +29,12 @@ import java.util.TimeZone;
 
 import lucee.commons.i18n.FormatUtil;
 import lucee.commons.i18n.FormatterWrapper;
+import lucee.commons.io.SystemUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.functions.displayFormatting.DateTimeFormat;
+import lucee.runtime.op.Caster;
 import lucee.runtime.type.dt.DateTime;
 import lucee.runtime.type.dt.DateTimeImpl;
 import lucee.runtime.type.dt.Time;
@@ -134,8 +136,13 @@ public abstract class DateTimeUtil {
 
 	public static DateTimeUtil getInstance() {
 		if (instance == null) {
-			// try to load jar Date TimeUtil
-			instance = new JREDateTimeUtil();
+			String type = SystemUtil.getSystemPropOrEnvVar("lucee.datetime.util", "jre");
+			if ("jre".equals(type)) {
+				instance = new JREDateTimeUtil();
+			}
+			else {
+				instance = new JavaTimeDateTimeUtil();
+			}
 		}
 		return instance;
 	}
@@ -389,4 +396,13 @@ public abstract class DateTimeUtil {
 		return DateTimeFormat.invoke(new DateTimeImpl(time), null, ThreadLocalPageContext.getLocale(l), ThreadLocalPageContext.getTimeZone(tz));
 	}
 
+	static void toString(StringBuilder sb, int i, int amount) {
+		String str = Caster.toString(i);
+
+		amount = amount - str.length();
+		while (amount-- > 0) {
+			sb.append('0');
+		}
+		sb.append(str);
+	}
 }

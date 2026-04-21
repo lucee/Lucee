@@ -19,9 +19,6 @@
 // TODO Time constructor muss auch noch entfernt werden und durch DateUtil methode ersetzen
 package lucee.runtime.op.date;
 
-import java.text.DateFormat;
-import java.text.ParsePosition;
-import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.util.Calendar;
 import java.util.Comparator;
@@ -31,11 +28,9 @@ import java.util.Locale;
 import java.util.TimeZone;
 
 import lucee.commons.date.DateTimeUtil;
-import lucee.commons.date.JREDateTimeUtil;
 import lucee.commons.date.TimeZoneConstants;
 import lucee.commons.i18n.FormatUtil;
 import lucee.commons.i18n.FormatterWrapper;
-import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.Component;
@@ -61,7 +56,6 @@ public final class DateCaster {
 	public static final short CONVERTING_TYPE_NONE = 0;
 	public static final short CONVERTING_TYPE_YEAR = 1;
 	public static final short CONVERTING_TYPE_OFFSET = 2;
-	public static final boolean DO_OLD_DATE_PARSER = true;
 
 	// private static short MODE_DAY_STR=1;
 	// private static short MODE_MONTH_STR=2;
@@ -208,18 +202,8 @@ public final class DateCaster {
 	 * @throws PageException
 	 */
 	public static DateTime toDateTime(Locale locale, String str, TimeZone tz, boolean useCommomDateParserAsWell) throws PageException {
-		DateTime dt = toDateTimeNew(locale, str, tz, null, useCommomDateParserAsWell);
+		DateTime dt = toDateTime(locale, str, tz, null, useCommomDateParserAsWell);
 		if (dt != null) return dt;
-
-		if (DO_OLD_DATE_PARSER) {
-			dt = toDateTimeOld(locale, str, tz, null, false);
-			if (dt != null) {
-				LogUtil.log(FormatUtil.debug ? Log.LEVEL_FATAL : Log.LEVEL_DEBUG, "dateformat",
-						"DateTimeFormatter failed to parse the date string [" + str + "] for locale [" + locale + "] and timezone [" + (tz == null ? "undefined" : tz.getID())
-								+ "]. SimpleDateFormat successfully parsed the date using the same locale and timezone.");
-				return dt;
-			}
-		}
 
 		String prefix = locale.getLanguage() + "-" + locale.getCountry() + "-";
 		throw new ExpressionException("can't cast [" + str + "] to date value",
@@ -228,89 +212,7 @@ public final class DateCaster {
 
 	}
 
-	/**
-	 * parse a string to a Datetime Object, returns null if can't convert
-	 * 
-	 * @param locale
-	 * @param str String representation of a locale Date
-	 * @param tz
-	 * @param defaultValue
-	 * @return datetime object
-	 */
-	public static DateTime toDateTimeOld(Locale locale, String str, TimeZone tz, DateTime defaultValue, boolean useCommomDateParserAsWell) {
-		str = str.trim();
-		tz = ThreadLocalPageContext.getTimeZone(tz);
-		DateFormat[] df;
-
-		// get Calendar
-		Calendar c = JREDateTimeUtil.getThreadCalendar(locale, tz);
-
-		// datetime
-		ParsePosition pp = new ParsePosition(0);
-		df = FormatUtil.getDateTimeFormatsOld(locale, tz, false);// dfc[FORMATS_DATE_TIME];
-		Date d;
-		for (int i = 0; i < df.length; i++) {
-			SimpleDateFormat sdf = (SimpleDateFormat) df[i];
-
-			// print.e(sdf.format(new Date(108,3,6,1,2,1)) + " : "+sdf.toPattern());
-			pp.setErrorIndex(-1);
-			pp.setIndex(0);
-			sdf.setTimeZone(tz);
-			d = sdf.parse(str, pp);
-			if (pp.getIndex() == 0 || d == null || pp.getIndex() < str.length()) continue;
-
-			optimzeDate(c, tz, d);
-			return new DateTimeImpl(c.getTime());
-		}
-
-		// date
-		df = FormatUtil.getDateFormatsOld(locale, tz, false);
-		for (int i = 0; i < df.length; i++) {
-			SimpleDateFormat sdf = (SimpleDateFormat) df[i];
-			// print.e(sdf.format(new Date(108,3,6,1,2,1)) + " : "+sdf.toPattern());
-			pp.setErrorIndex(-1);
-			pp.setIndex(0);
-			sdf.setTimeZone(tz);
-			d = sdf.parse(str, pp);
-			if (pp.getIndex() == 0 || d == null || pp.getIndex() < str.length()) continue;
-			optimzeDate(c, tz, d);
-			return new DateTimeImpl(c.getTime());
-		}
-
-		// time
-		df = FormatUtil.getTimeFormatsOld(locale, tz, false);// dfc[FORMATS_TIME];
-		for (int i = 0; i < df.length; i++) {
-			SimpleDateFormat sdf = (SimpleDateFormat) df[i];
-			// print.e(sdf.format(new Date(108,3,6,1,2,1))+ " : "+sdf.toPattern());
-			pp.setErrorIndex(-1);
-			pp.setIndex(0);
-			sdf.setTimeZone(tz);
-			d = sdf.parse(str, pp);
-			if (pp.getIndex() == 0 || d == null || pp.getIndex() < str.length()) continue;
-			c.setTimeZone(tz);
-			c.setTime(d);
-			c.set(Calendar.YEAR, 1899);
-			c.set(Calendar.MONTH, 11);
-			c.set(Calendar.DAY_OF_MONTH, 30);
-			c.setTimeZone(tz);
-			return new DateTimeImpl(c.getTime());
-		}
-
-		if (useCommomDateParserAsWell) return DateCaster.toDateSimple(str, CONVERTING_TYPE_NONE, true, tz, defaultValue);
-		return defaultValue;
-	}
-
 	public static DateTime toDateTime(Locale locale, String str, TimeZone tz, DateTime defaultValue, boolean useCommomDateParserAsWell) {
-		DateTime dt = toDateTimeNew(locale, str, tz, null, useCommomDateParserAsWell);
-		if (dt != null) return dt;
-		if (DO_OLD_DATE_PARSER) {
-			dt = toDateTimeOld(locale, str, tz, null, false);
-			return (dt == null) ? defaultValue : dt;
-		}
-		return defaultValue;
-	}
-
-	public static DateTime toDateTimeNew(Locale locale, String str, TimeZone tz, DateTime defaultValue, boolean useCommomDateParserAsWell) {
 		countCheck++;
 		str = StringUtil.normalize(str.trim());
 		tz = ThreadLocalPageContext.getTimeZone(tz);
