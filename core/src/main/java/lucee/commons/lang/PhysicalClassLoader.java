@@ -39,6 +39,7 @@ import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigPro;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.op.Caster;
+import lucee.runtime.osgi.EnvClassLoader;
 import lucee.runtime.type.Query;
 import lucee.transformer.bytecode.util.ASMUtil;
 import lucee.transformer.bytecode.util.ClassRenamer;
@@ -148,6 +149,15 @@ public final class PhysicalClassLoader extends URLClassLoader implements Extenda
 		}
 
 		ClazzDynamic.flush(existing);
+
+		// LDEV-6240: clear EnvClassLoader's caller cache when an RPC classloader is flushed.
+		// EnvClassLoader delegates to RPC classloaders on the call stack and caches the results.
+		// After flush, those cached classes come from the old (dead) classloader, causing
+		// isAssignableFrom failures in ServiceLoader and other JDK code.
+		if (existing.isRPC()) {
+			EnvClassLoader envCL = EnvClassLoader.getInstance(config instanceof ConfigPro ? (ConfigPro) config : null);
+			if (envCL != null) envCL.clearCallerCache();
+		}
 
 		return clone;
 	}
