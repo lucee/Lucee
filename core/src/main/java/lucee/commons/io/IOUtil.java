@@ -51,6 +51,9 @@ import java.util.zip.ZipFile;
 import org.apache.tika.Tika;
 import org.apache.tika.metadata.Metadata;
 
+import org.apache.commons.io.ByteOrderMark;
+import org.apache.commons.io.input.BOMInputStream;
+
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.type.file.FileResource;
 import lucee.commons.io.res.util.ResourceUtil;
@@ -828,6 +831,7 @@ public final class IOUtil {
 		return new BufferedReader(new InputStreamReader(is, charset));
 	}
 
+
 	/**
 	 * @deprecated use instead <code>{@link #toString(InputStream, Charset)}</code>
 	 * @param is
@@ -849,7 +853,21 @@ public final class IOUtil {
 	 * @throws IOException
 	 */
 	public static String toString(InputStream is, Charset charset) throws IOException {
-		return toString(getReader(is, charset));
+		if (charset == null) charset = SystemUtil.getCharset();
+		// BOM detection via commons-io, no BufferedReader — read with pooled 64KB char buffer
+		BOMInputStream bomIn = BOMInputStream.builder().setInputStream(is)
+				.setByteOrderMarks(ByteOrderMark.UTF_8, ByteOrderMark.UTF_16BE, ByteOrderMark.UTF_16LE, ByteOrderMark.UTF_32BE)
+				.get();
+		String bomCharset = bomIn.getBOMCharsetName();
+		if (bomCharset != null) charset = Charset.forName(bomCharset);
+		InputStreamReader isr = new InputStreamReader(bomIn, charset);
+		char[] buf = CHAR_BUFFER_POOL.get();
+		StringBuilder sb = new StringBuilder(512);
+		int len;
+		while ((len = isr.read(buf)) != -1) {
+			sb.append(buf, 0, len);
+		}
+		return sb.toString();
 	}
 
 	/**
@@ -862,6 +880,7 @@ public final class IOUtil {
 	 * @throws IOException
 	 */
 	public static String toString(InputStream is, Charset charset, long timeout) throws IOException {
+		if (timeout < 1) return toString(is, charset);
 		return toString(getReader(is, charset), timeout);
 	}
 
@@ -878,7 +897,7 @@ public final class IOUtil {
 	}
 
 	public static String toString(byte[] barr, Charset charset) throws IOException {
-		return toString(getReader(new ByteArrayInputStream(barr), charset));
+		return toString(new ByteArrayInputStream(barr), charset);
 	}
 
 	/**
