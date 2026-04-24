@@ -25,7 +25,8 @@ public final class Methods {
 
 	// Caster String
 	// String toString (Object)
-	final public static Method METHOD_TO_STRING = new Method("toString", Types.STRING, new Type[] { Types.OBJECT });
+	final public static Method METHOD_TO_STRING1 = new Method("toString", Types.STRING, new Type[] { Types.OBJECT });
+	final public static Method METHOD_TO_STRING2 = new Method("str", Types.STRING, new Type[] { Types.OBJECT, Types.PAGE_CONTEXT });
 	// String toString (String)
 	// final public static Method METHOD_TO_STRING_FROM_STRING = new Method("toString",Types.STRING,new
 	// Type[]{Types.STRING});

@@ -2120,6 +2120,15 @@ public final class Caster {
 		return -1;
 	}
 
+	// used in compiled code in transformer
+	public final static String str(Object o, PageContext pc) throws PageException {
+		return toString(pc, o);
+	}
+
+	public final static String toString(Object o) throws PageException {
+		return toString(null, o);
+	}
+
 	/**
 	 * cast an Object to a String
 	 * 
@@ -2127,14 +2136,15 @@ public final class Caster {
 	 * @return casted String
 	 * @throws PageException
 	 */
-	public static String toString(Object o) throws PageException {
+	public final static String toString(PageContext pc, Object o) throws PageException {
 		if (o instanceof CharSequence) return o.toString();
 		else if (o instanceof Number) return toString(((Number) o));
 		else if (o instanceof Boolean) return toString(((Boolean) o).booleanValue());
+		else if (pc != null && o instanceof CastablePro) return ((CastablePro) o).castToString(pc);
 		else if (o instanceof Castable) return ((Castable) o).castToString();
 		else if (o instanceof Date) {
 			if (o instanceof DateTime) return ((DateTime) o).castToString();
-			return new DateTimeImpl((Date) o).castToString();
+			return new DateTimeImpl((Date) o).castToString(pc);
 		}
 		else if (o instanceof Clob) return toString((Clob) o);
 		else if (o instanceof Locale) return toString((Locale) o);
@@ -2161,7 +2171,7 @@ public final class Caster {
 			return toString((Throwable) o, true);
 		}
 		else if (o instanceof InputStream) {
-			PageContextImpl pc = (PageContextImpl) ThreadLocalPageContext.get();
+			pc = ThreadLocalPageContext.get(pc);
 			InputStream r = null;
 			try {
 				return IOUtil.toString(r = (InputStream) o, pc.getWebCharset());
@@ -2179,7 +2189,7 @@ public final class Caster {
 			}
 		}
 		else if (o instanceof byte[]) {
-			PageContextImpl pc = (PageContextImpl) ThreadLocalPageContext.get();
+			pc = ThreadLocalPageContext.get(pc);
 
 			try {
 				return new String((byte[]) o, pc.getWebCharset());
@@ -2190,8 +2200,8 @@ public final class Caster {
 			}
 		}
 		else if (o instanceof char[]) return new String((char[]) o);
-		else if (o instanceof ObjectWrap) return toString(((ObjectWrap) o).getEmbededObject());
-		else if (o instanceof Calendar) return toString(((Calendar) o).getTime());
+		else if (o instanceof ObjectWrap) return toString(pc, ((ObjectWrap) o).getEmbededObject());
+		else if (o instanceof Calendar) return toString(pc, ((Calendar) o).getTime());
 		else if (o == null) return "";
 
 		// INFO Collection is new of type Castable
@@ -2236,7 +2246,11 @@ public final class Caster {
 	 * @return casted String
 	 */
 	public static String toString(Object o, String defaultValue) {
-		return toString(o, true, defaultValue);
+		return toString(null, o, true, defaultValue);
+	}
+
+	public static String toString(PageContext pc, Object o, String defaultValue) {
+		return toString(pc, o, true, defaultValue);
 	}
 
 	public static String toStringTrim(Object o, String defaultValue) {
@@ -2246,9 +2260,14 @@ public final class Caster {
 	}
 
 	public static String toString(Object o, boolean executeDefaultToStringMethod, String defaultValue) {
+		return toString(null, o, executeDefaultToStringMethod, defaultValue);
+	}
+
+	public static String toString(PageContext pc, Object o, boolean executeDefaultToStringMethod, String defaultValue) {
 		if (o instanceof CharSequence) return o.toString();
 		else if (o instanceof Boolean) return toString(((Boolean) o).booleanValue());
 		else if (o instanceof Number) return toString(((Number) o));
+		else if (pc != null && o instanceof CastablePro) return ((CastablePro) o).castToString(pc, defaultValue);
 		else if (o instanceof Castable) return ((Castable) o).castToString(defaultValue);
 		else if (o instanceof Date) {
 			if (o instanceof DateTime) {
@@ -4984,7 +5003,7 @@ public final class Caster {
 			return toXML(((ObjectWrap) value).getEmbededObject());
 		}
 		try {
-			return XMLCaster.toXMLStruct(XMLUtil.parse(XMLUtil.toInputSource(null, value), null, false), false);
+			return XMLCaster.toXMLStruct(XMLUtil.parse(null, XMLUtil.toInputSource(null, value), null, false), false);
 		}
 		catch (Exception outer) {
 			throw Caster.toPageException(outer);

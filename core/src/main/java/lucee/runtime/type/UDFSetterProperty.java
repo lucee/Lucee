@@ -91,17 +91,17 @@ public final class UDFSetterProperty extends UDFGSProperty {
 	}
 
 	/**
-	 * Direct accessor bypass — called from ComponentImpl._call() to skip UDF dispatch overhead.
-	 * The caller already knows the component, so we skip getComponent(pc) resolution.
+	 * Direct accessor bypass — called from ComponentImpl._call() to skip UDF dispatch overhead. The
+	 * caller already knows the component, so we skip getComponent(pc) resolution.
 	 */
-	public Object callDirect( ComponentImpl comp, PageContext pc, Object[] args ) throws PageException {
+	public Object callDirect(ComponentImpl comp, PageContext pc, Object[] args) throws PageException {
 		if (args == null || args.length < 1)
-			throw new ExpressionException( "The parameter " + prop.getName() + " to function " + getFunctionName() + " is required but was not passed in." );
-		validate( validate, validateParams, args[0] );
-		comp.getComponentScope().set( propName, cast( pc, this.arguments[0], args[0], 1 ) );
+			throw new ExpressionException("The parameter " + prop.getName() + " to function " + getFunctionName() + " is required but was not passed in.");
+		validate(pc, validate, validateParams, args[0]);
+		comp.getComponentScope().set(propName, cast(pc, this.arguments[0], args[0], 1));
 
 		ApplicationContext appContext = pc.getApplicationContext();
-		if (appContext.isORMEnabled() && comp.isPersistent()) ORMUtil.getSession( pc );
+		if (appContext.isORMEnabled() && comp.isPersistent()) ORMUtil.getSession(pc);
 
 		return comp;
 	}
@@ -109,7 +109,7 @@ public final class UDFSetterProperty extends UDFGSProperty {
 	@Override
 	public Object _call(PageContext pageContext, Object[] args, boolean doIncludePath) throws PageException {
 		if (args.length < 1) throw new ExpressionException("The parameter " + prop.getName() + " to function " + getFunctionName() + " is required but was not passed in.");
-		validate(validate, validateParams, args[0]);
+		validate(pageContext, validate, validateParams, args[0]);
 		Component c = getComponent(pageContext);
 		c.getComponentScope().set(propName, cast(pageContext, this.arguments[0], args[0], 1));
 
@@ -128,7 +128,7 @@ public final class UDFSetterProperty extends UDFGSProperty {
 		Component c = getComponent(pageContext);
 
 		if (value == null) {
-			Key[] keys = CollectionUtil.keys(values);
+			Key[] keys = CollectionUtil.keys(pageContext, values);
 			if (keys.length == 1) {
 				value = values.get(keys[0]);
 			}
@@ -166,6 +166,7 @@ public final class UDFSetterProperty extends UDFGSProperty {
 		return null;
 	}
 
+	@Override
 	public Property getProperty() {
 		return prop;
 	}

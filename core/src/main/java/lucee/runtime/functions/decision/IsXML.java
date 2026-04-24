@@ -42,7 +42,7 @@ public final class IsXML implements Function {
 				return call(pc, xml);
 			}
 			else {
-				XMLUtil.parse(new InputSource(new StringReader(Caster.toString(xml))), xmlFeatures, null, false);
+				XMLUtil.parse(pc, new InputSource(new StringReader(Caster.toString(xml))), xmlFeatures, null, false);
 				return true;
 			}
 		}
@@ -55,7 +55,7 @@ public final class IsXML implements Function {
 		if (xml instanceof Node) return true;
 
 		try {
-			XMLUtil.parse(new InputSource(new StringReader(Caster.toString(xml))), null, false);
+			XMLUtil.parse(pc, new InputSource(new StringReader(Caster.toString(xml))), null, false);
 			return true;
 		}
 		catch (Exception e) {

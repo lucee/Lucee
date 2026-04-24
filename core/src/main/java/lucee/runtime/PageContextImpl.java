@@ -1403,58 +1403,58 @@ public final class PageContextImpl extends PageContext {
 	}
 
 	public Object vs(Collection.Key key) throws PageException {
-		return variables.get(key);
+		return variables.get(this, key);
 	}
 
 	public Object vs(Collection.Key key1, Collection.Key key2) throws PageException {
-		return variableUtil.get(this, variables.get(key1), key2);
+		return variableUtil.get(this, variables.get(this, key1), key2);
 	}
 
 	public Object vs(Collection.Key key1, Collection.Key key2, Collection.Key key3) throws PageException {
-		return variableUtil.get(this, variableUtil.getCollection(this, variables.get(key1), key2), key3);
+		return variableUtil.get(this, variableUtil.getCollection(this, variables.get(this, key1), key2), key3);
 	}
 
 	public Object vs(Collection.Key key1, Collection.Key key2, Collection.Key key3, Collection.Key key4) throws PageException {
-		return variableUtil.get(this, variableUtil.getCollection(this, variableUtil.getCollection(this, variables.get(key1), key2), key3), key4);
+		return variableUtil.get(this, variableUtil.getCollection(this, variableUtil.getCollection(this, variables.get(this, key1), key2), key3), key4);
 	}
 
 	public Object vsc(Collection.Key key1, Collection.Key key2) throws PageException {
-		return variableUtil.getCollection(this, variables.get(key1), key2);
+		return variableUtil.getCollection(this, variables.get(this, key1), key2);
 	}
 
 	public Object vsc(Collection.Key key1, Collection.Key key2, Collection.Key key3) throws PageException {
-		return variableUtil.getCollection(this, variableUtil.getCollection(this, variables.get(key1), key2), key3);
+		return variableUtil.getCollection(this, variableUtil.getCollection(this, variables.get(this, key1), key2), key3);
 	}
 
 	public Object vsc(Collection.Key key1, Collection.Key key2, Collection.Key key3, Collection.Key key4) throws PageException {
-		return variableUtil.getCollection(this, variableUtil.getCollection(this, variableUtil.getCollection(this, variables.get(key1), key2), key3), key4);
+		return variableUtil.getCollection(this, variableUtil.getCollection(this, variableUtil.getCollection(this, variables.get(this, key1), key2), key3), key4);
 	}
 
 	public Object vs(Collection.Key key, Object value) throws PageException {
-		variables.set(key, value);
+		variables.set(this, key, value);
 		return value;
 	}
 
 	public Object vs(Collection.Key key1, Collection.Key key2, Object value) throws PageException {
-		Object o = variables.get(key1, null);
+		Object o = variables.get(this, key1, null);
 		if (o == null) {
-			o = variables.set(key1, new StructImpl());
+			o = variables.set(this, key1, new StructImpl());
 		}
 		return set(o, key2, value);
 	}
 
 	public Object vs(Collection.Key key1, Collection.Key key2, Collection.Key key3, Object value) throws PageException {
-		Object o = variables.get(key1, null);
+		Object o = variables.get(this, key1, null);
 		if (o == null) {
-			o = variables.set(key1, new StructImpl());
+			o = variables.set(this, key1, new StructImpl());
 		}
 		return set(touch(o, key2), key3, value);
 	}
 
 	public Object vs(Collection.Key key1, Collection.Key key2, Collection.Key key3, Collection.Key key4, Object value) throws PageException {
-		Object o = variables.get(key1, null);
+		Object o = variables.get(this, key1, null);
 		if (o == null) {
-			o = variables.set(key1, new StructImpl());
+			o = variables.set(this, key1, new StructImpl());
 		}
 		return set(touch(touch(o, key2), key3), key4, value);
 	}
@@ -1957,7 +1957,7 @@ public final class PageContextImpl extends PageContext {
 				setVariable(name, value);
 			}
 			else {
-				if (!Decision.isCastableTo(type, value, true, true, maxLength)) {
+				if (!Decision.isCastableTo(null, type, value, true, true, maxLength)) {
 					if (maxLength > -1 && ("email".equalsIgnoreCase(type) || "url".equalsIgnoreCase(type) || "string".equalsIgnoreCase(type))) {
 						StringBuilder msg = new StringBuilder(CasterException.createMessage(value, type));
 						msg.append(" with a maximum length of " + maxLength + " characters");

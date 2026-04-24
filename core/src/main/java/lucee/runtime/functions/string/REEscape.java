@@ -17,7 +17,7 @@ public final class REEscape extends BIF {
 	private static final long serialVersionUID = -1240669656936340678L;
 
 	public static String call(PageContext pc, String string) throws PageException {
-		Regex regex = ((PageContextImpl) ThreadLocalPageContext.get()).getRegex();
+		Regex regex = ((PageContextImpl) ThreadLocalPageContext.get(pc)).getRegex();
 		return regex.escape(string);
 	}
 

@@ -94,6 +94,7 @@ import lucee.runtime.thread.ThreadUtil;
 import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.FunctionArgument;
+import lucee.runtime.type.IteratorablePro;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Null;
 import lucee.runtime.type.Struct;
@@ -130,7 +131,7 @@ import lucee.transformer.bytecode.util.SimpleMethodUDF;
  * %**% MUST add handling for new attributes (style, namespace, serviceportname, porttypename,
  * wsdlfile, bindingname, and output)
  */
-public final class ComponentImpl extends StructSupport implements Externalizable, Component, coldfusion.runtime.TemplateProxy, AccessModifier {
+public final class ComponentImpl extends StructSupport implements IteratorablePro, Externalizable, Component, coldfusion.runtime.TemplateProxy, AccessModifier {
 	private static final long serialVersionUID = -245618330485511484L; // do not change this
 
 	private static final Interface[] EMPTY = new Interface[0];
@@ -1022,6 +1023,11 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 	@Override
 	public Iterator<Object> valueIterator() {
 		return valueIterator(getAccess(ThreadLocalPageContext.get()));
+	}
+
+	@Override
+	public Iterator<Object> valueIterator(PageContext pc) {
+		return valueIterator(getAccess(pc));
 	}
 
 	@Override
@@ -2014,7 +2020,11 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 
 	@Override
 	public void registerUDF(Collection.Key key, UDFProperties prop) throws ApplicationException {
-		registerUDF(key, new UDFImpl(prop), useShadow, false);
+		registerUDF(null, key, new UDFImpl(prop), useShadow, false);
+	}
+
+	public void registerUDF(Collection.Key key, UDFProperties prop, PageContext pc) throws ApplicationException {
+		registerUDF(pc, key, new UDFImpl(prop), useShadow, false);
 	}
 
 	public void regJavaFunction(Collection.Key key, String className) throws ClassException, ClassNotFoundException, IOException, ApplicationException {
@@ -2024,18 +2034,23 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 	}
 
 	public void registerStaticUDF(Key key, UDFProperties prop) {
-		_static.put(key, new UDFImpl(prop, this));
+		_static.setEL(null, key, new UDFImpl(prop, this));
 	}
 
-	/*
-	 * @deprecated injected is not used
-	 */
+	public void registerStaticUDF(Key key, UDFProperties prop, PageContext pc) {
+		_static.setEL(pc, key, new UDFImpl(prop, this));
+	}
+
 	public void registerUDF(Key key, UDF udf, boolean useShadow, boolean injected) throws ApplicationException {
+		registerUDF(null, key, udf, useShadow, injected);
+	}
+
+	public void registerUDF(PageContext pc, Key key, UDF udf, boolean useShadow, boolean injected) throws ApplicationException {
 
 		if (udf instanceof UDFPlus) ((UDFPlus) udf).setOwnerComponent(this);
 
 		if (insideStaticConstrThread.get()) {
-			_static.put(key, udf);
+			_static.setEL(pc, key, udf);
 			return;
 		}
 
@@ -2342,8 +2357,18 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 	}
 
 	@Override
+	public Iterator<Collection.Key> keyIterator(PageContext pc) {
+		return keyIterator(getAccess(pc));
+	}
+
+	@Override
 	public Iterator<String> keysAsStringIterator() {
 		return keysAsStringIterator(getAccess(ThreadLocalPageContext.get()));
+	}
+
+	@Override
+	public Iterator<String> keysAsStringIterator(PageContext pc) {
+		return keysAsStringIterator(getAccess(pc));
 	}
 
 	@Override
@@ -2352,8 +2377,18 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 	}
 
 	@Override
+	public Iterator<Entry<Key, Object>> entryIterator(PageContext pc) {
+		return entryIterator(getAccess(pc));
+	}
+
+	@Override
 	public Collection.Key[] keys() {
 		return keys(getAccess(ThreadLocalPageContext.get()));
+	}
+
+	@Override
+	public Collection.Key[] keys(PageContext pc) {
+		return keys(getAccess(pc));
 	}
 
 	@Override

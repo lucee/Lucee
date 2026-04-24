@@ -608,7 +608,7 @@ public final class ReqRspUtil {
 			try {
 				WDDXConverter converter = new WDDXConverter(pc.getTimeZone(), false, true);
 				converter.setTimeZone(pc.getTimeZone());
-				return converter.deserialize(toString(data, charset), false);
+				return converter.deserialize(pc, toString(data, charset), false);
 			}
 			catch (Exception pe) {}
 			break;
@@ -616,7 +616,7 @@ public final class ReqRspUtil {
 			try {
 				InputSource xml = XMLUtil.toInputSource(pc, toString(data, charset));
 				InputSource validator = null;
-				return XMLCaster.toXMLStruct(XMLUtil.parse(xml, validator, false), true);
+				return XMLCaster.toXMLStruct(XMLUtil.parse(pc, xml, validator, false), true);
 			}
 			catch (Exception pe) {}
 			break;

@@ -170,7 +170,7 @@ public final class HSQLDBHandler {
 	private static String buildCreateTableSql(PageContext pc, String dbTableName, String cfQueryName, boolean doSimpleTypes, boolean caseSensitive, Struct usedColumns)
 			throws PageException {
 		Query query = Caster.toQuery(pc.getVariable(StringUtil.removeQuotes(cfQueryName, true)));
-		Key[] cols = CollectionUtil.keys(query);
+		Key[] cols = CollectionUtil.keys(pc, query);
 		int[] types = query.getTypes();
 
 		String comma = "";
@@ -215,7 +215,7 @@ public final class HSQLDBHandler {
 		// stopwatch.start();
 		Query query = Caster.toQuery(pc.getVariable(StringUtil.removeQuotes(cfQueryName, true)));
 
-		Key[] cols = CollectionUtil.keys(query);
+		Key[] cols = CollectionUtil.keys(pc, query);
 		ArrayList<QueryColumn> targetColumns = new ArrayList<QueryColumn>();
 
 		int[] srcTypes = query.getTypes();

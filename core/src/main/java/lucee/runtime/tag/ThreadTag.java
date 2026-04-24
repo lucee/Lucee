@@ -471,8 +471,8 @@ public final class ThreadTag extends BodyTagImpl implements DynamicAttributes {
 				}
 				catch (InterruptedException e) {}
 			}
-			if (throwonerror && threadError == null && ts.containsKey(KeyConstants._error)) {
-				threadError = lucee.runtime.tag.Throw.toPageException(ts.get(KeyConstants._error), null);
+			if (throwonerror && threadError == null && ts.containsKey(pageContext, KeyConstants._error)) {
+				threadError = lucee.runtime.tag.Throw.toPageException(ts.get(pageContext, KeyConstants._error), null);
 			}
 		}
 		if (throwonerror && threadError != null) throw threadError;

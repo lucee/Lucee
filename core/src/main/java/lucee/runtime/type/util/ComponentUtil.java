@@ -81,7 +81,7 @@ import lucee.runtime.listener.ApplicationContextSupport;
 import lucee.runtime.listener.JavaSettings;
 import lucee.runtime.net.rpc.server.WSServer;
 import lucee.runtime.net.rpc.server.WSUtil;
-import lucee.runtime.op.Castable;
+import lucee.runtime.op.CastablePro;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.OpUtil;
 import lucee.runtime.type.Array;
@@ -944,7 +944,7 @@ public final class ComponentUtil {
 			func.setEL(KeyConstants._position, pos);
 		}
 
-		int format = udfProps.getReturnFormat();
+		int format = udfProps.getReturnFormat(pc);
 		if (format == UDF.RETURN_FORMAT_JSON) func.set(KeyConstants._returnFormat, "json");
 		else if (format == UDF.RETURN_FORMAT_PLAIN) func.set(KeyConstants._returnFormat, "plain");
 		else if (format == UDF.RETURN_FORMAT_WDDX) func.set(KeyConstants._returnFormat, "wddx");
@@ -1025,7 +1025,7 @@ public final class ComponentUtil {
 		return list;
 	}
 
-	private static class ReturnFormatValue implements Castable, SimpleValue, CharSequence, Dumpable {
+	private static class ReturnFormatValue implements CastablePro, SimpleValue, CharSequence, Dumpable {
 
 		/**
 		 *
@@ -1074,12 +1074,22 @@ public final class ComponentUtil {
 
 		@Override
 		public String castToString() throws PageException {
-			return getReturnFormat(ThreadLocalPageContext.get());
+			return castToString((PageContext) null);
 		}
 
 		@Override
 		public String castToString(String defaultValue) {
-			return getReturnFormat(ThreadLocalPageContext.get());
+			return castToString((PageContext) null, defaultValue);
+		}
+
+		@Override
+		public String castToString(PageContext pc) throws PageException {
+			return getReturnFormat(ThreadLocalPageContext.get(pc));
+		}
+
+		@Override
+		public String castToString(PageContext pc, String defaultValue) {
+			return getReturnFormat(ThreadLocalPageContext.get(pc));
 		}
 
 		@Override

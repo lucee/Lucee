@@ -3,14 +3,15 @@ package lucee.runtime.type.scope.storage;
 import java.io.Serializable;
 import java.util.Date;
 
+import lucee.runtime.PageContext;
 import lucee.runtime.exp.PageException;
-import lucee.runtime.op.Castable;
+import lucee.runtime.op.CastablePro;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.OpUtil;
 import lucee.runtime.type.ObjectWrap;
 import lucee.runtime.type.dt.DateTime;
 
-public final class IKStorageScopeItem implements Serializable, ObjectWrap, Castable {
+public final class IKStorageScopeItem implements Serializable, ObjectWrap, CastablePro {
 
 	private static final long serialVersionUID = -8187816208907138226L;
 
@@ -111,6 +112,16 @@ public final class IKStorageScopeItem implements Serializable, ObjectWrap, Casta
 	@Override
 	public String castToString(String df) {
 		return Caster.toString(getValue(), df);
+	}
+
+	@Override
+	public String castToString(PageContext pc) throws PageException {
+		return Caster.toString(pc, getValue());
+	}
+
+	@Override
+	public String castToString(PageContext pc, String df) {
+		return Caster.toString(pc, getValue(), df);
 	}
 
 	@Override

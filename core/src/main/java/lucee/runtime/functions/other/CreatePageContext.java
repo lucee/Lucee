@@ -71,11 +71,11 @@ public final class CreatePageContext implements Function {
 
 		HttpSession session = pc != null && pc.getSessionType() == Config.SESSION_TYPE_JEE ? pc.getSession() : null;
 		return ThreadUtil.createPageContext(pc.getConfig(), DevNullOutputStream.DEV_NULL_OUTPUT_STREAM, serverName, scriptName, queryString, toCookies(cookies),
-				toPair(headers, true), null, toPair(parameters, true), castValuesToString(attributes), true, -1, session, null);
+				toPair(headers, true), null, toPair(parameters, true), castValuesToString(pc, attributes), true, -1, session, null);
 	}
 
-	public static Struct castValuesToString(Struct sct) throws PageException {
-		Key[] keys = CollectionUtil.keys(sct);
+	public static Struct castValuesToString(PageContext pc, Struct sct) throws PageException {
+		Key[] keys = pc != null ? CollectionUtil.keys(pc, sct) : CollectionUtil.keys(sct);
 		for (int i = 0; i < keys.length; i++) {
 			sct.set(keys[i], Caster.toString(sct.get(keys[i])));
 		}

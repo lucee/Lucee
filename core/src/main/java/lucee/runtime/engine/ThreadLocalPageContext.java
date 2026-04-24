@@ -156,6 +156,7 @@ public final class ThreadLocalPageContext {
 	}
 
 	public static PageContext get() {
+		// print.ds(4, 2);
 		return get(false);
 	}
 
@@ -166,7 +167,6 @@ public final class ThreadLocalPageContext {
 	 *         thread
 	 */
 	public static PageContext get(boolean cloneParentIfNotExist) {
-		// print.ds(5, 8);
 		PageContext pc = pcThreadLocal.get();
 		if (cloneParentIfNotExist && pc == null) {
 			PageContext pci = pcThreadLocalInheritable.get();

@@ -410,7 +410,7 @@ public final class UndefinedImpl extends StructSupport implements Undefined, Obj
 		Object _null = CollectionUtil.NULL;
 
 		if (checkArguments) {
-			rtn = local.get(key, _null);
+			rtn = local.get(pc, key, _null);
 			if (rtn != _null) return rtn;
 			rtn = argument.getFunctionArgument(key, _null);
 			if (rtn != _null) {
@@ -429,7 +429,7 @@ public final class UndefinedImpl extends StructSupport implements Undefined, Obj
 		}
 
 		// variable
-		rtn = variable.get(key, _null);
+		rtn = variable.get(pc, key, _null);
 		if (rtn != _null) {
 			if (debug && checkArguments) debugCascadedAccess(pc, variable, rtn, key);
 			return rtn;

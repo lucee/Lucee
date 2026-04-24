@@ -643,7 +643,7 @@ public final class Decision {
 	 * @param o Object to check
 	 * @return boolean
 	 */
-	public static boolean isWddx(Object o) {
+	public static boolean isWddx(PageContext pc, Object o) {
 		if (!(o instanceof String)) return false;
 		String str = o.toString();
 		if (!(str.indexOf("wddxPacket") > 0)) return false;
@@ -651,7 +651,7 @@ public final class Decision {
 		// wrong timezone but this isent importend because date will not be used
 		WDDXConverter converter = new WDDXConverter(TimeZone.getDefault(), false, true);
 		try {
-			converter.deserialize(Caster.toString(o), true);
+			converter.deserialize(pc, Caster.toString(o), true);
 		}
 		catch (Exception e) {
 			return false;
@@ -665,13 +665,13 @@ public final class Decision {
 	 * @param o Object to check
 	 * @return boolean
 	 */
-	public static boolean isXML(Object o) {
+	public static boolean isXML(PageContext pc, Object o) {
 		if (o instanceof Node || o instanceof NodeList) return true;
 		if (o instanceof ObjectWrap) {
-			return isXML(((ObjectWrap) o).getEmbededObject(null));
+			return isXML(pc, ((ObjectWrap) o).getEmbededObject(null));
 		}
 		try {
-			XMLCaster.toXMLStruct(XMLUtil.parse(XMLUtil.toInputSource(null, o), null, false), false);
+			XMLCaster.toXMLStruct(XMLUtil.parse(pc, XMLUtil.toInputSource(null, o), null, false), false);
 			return true;
 		}
 		catch (Exception outer) {
@@ -820,7 +820,7 @@ public final class Decision {
 	 */
 	public static boolean isObject(Object o) {
 		if (o == null) return false;
-		return isComponent(o) || (!isArray(o) && !isQuery(o) && !isSimpleValue(o) && !isStruct(o) && !isUserDefinedFunction(o) && !isXML(o));
+		return isComponent(o) || (!isArray(o) && !isQuery(o) && !isSimpleValue(o) && !isStruct(o) && !isUserDefinedFunction(o) && !isXML(null, o));
 	}
 
 	/**
@@ -997,8 +997,8 @@ public final class Decision {
 		return isString(o);
 	}
 
-	public static boolean isValid(String type, Object value) throws ExpressionException {
-		PageContext pc = ThreadLocalPageContext.get();
+	public static boolean isValid(PageContext pc, String type, Object value) throws ExpressionException {
+		pc = ThreadLocalPageContext.get(pc);
 		type = StringUtil.toLowerCase(type.trim());
 		char first = type.charAt(0);
 		switch (first) {
@@ -1047,7 +1047,7 @@ public final class Decision {
 		case 'n':
 			if ("numeric".equals(type)) return isCastableToNumeric(value);
 			if ("number".equals(type)) return isCastableToNumeric(value);
-			if ("node".equals(type)) return isXML(value);
+			if ("node".equals(type)) return isXML(pc, value);
 			break;
 		case 'o':
 			if ("object".equals(type)) return isObject(value);
@@ -1078,7 +1078,7 @@ public final class Decision {
 			if ("variablename".equals(type)) return isVariableName(Caster.toString(value, ""));
 			break;
 		case 'x':
-			if ("xml".equals(type)) return isXML(value); // DIFF 23
+			if ("xml".equals(type)) return isXML(pc, value); // DIFF 23
 			break;
 		case 'z':
 			if ("zip".equals(type)) return isZipCode(value);
@@ -1099,7 +1099,7 @@ public final class Decision {
 	 * @param maxlength only used for email,url, string, ignored otherwise
 	 * @return
 	 */
-	public static boolean isCastableTo(String type, Object o, boolean alsoAlias, boolean alsoPattern, int maxlength) {
+	public static boolean isCastableTo(PageContext pc, String type, Object o, boolean alsoAlias, boolean alsoPattern, int maxlength) {
 
 		type = StringUtil.toLowerCase(type).trim();
 		if (type.length() > 2) {
@@ -1199,7 +1199,7 @@ public final class Decision {
 				}
 
 				if (alsoAlias) {
-					if (type.equals("node")) return isXML(o);
+					if (type.equals("node")) return isXML(pc, o);
 					else if (type.equals("nvarchar") || type.equals("nchar")) {
 						if (maxlength > -1) {
 							String str = Caster.toString(o, null);
@@ -1315,7 +1315,7 @@ public final class Decision {
 				break;
 			case 'x':
 				if (type.equals("xml")) {
-					return isXML(o);
+					return isXML(pc, o);
 				}
 				break;
 			case 'z':
@@ -1395,7 +1395,7 @@ public final class Decision {
 		case CFTypes.TYPE_IMAGE:
 			return ImageUtil.isCastableToImage(pc, o);
 		case CFTypes.TYPE_XML:
-			return isXML(o);
+			return isXML(pc, o);
 		}
 
 		return _isCastableTo(pc, strType, o);

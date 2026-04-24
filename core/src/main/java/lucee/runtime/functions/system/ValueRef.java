@@ -12,7 +12,7 @@ import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.BIF;
-import lucee.runtime.op.Castable;
+import lucee.runtime.op.CastablePro;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.OpUtil;
 import lucee.runtime.type.SimpleValue;
@@ -33,7 +33,7 @@ public final class ValueRef extends BIF {
 		else throw new FunctionException(pc, "LuceeValueRef", 1, 1, args.length);
 	}
 
-	private static class UDFValue implements Castable, SimpleValue, Dumpable {
+	private static class UDFValue implements CastablePro, SimpleValue, Dumpable {
 		private static final long serialVersionUID = -5028960028109980321L;
 		private UDF udf;
 
@@ -90,13 +90,23 @@ public final class ValueRef extends BIF {
 
 		@Override
 		public String castToString() throws PageException {
-			return Caster.toString(udf.call(ThreadLocalPageContext.get(), new Object[0], true));
+			return castToString((PageContext) null);
 		}
 
 		@Override
 		public String castToString(String defaultValue) {
+			return castToString((PageContext) null, defaultValue);
+		}
+
+		@Override
+		public String castToString(PageContext pc) throws PageException {
+			return Caster.toString(udf.call(ThreadLocalPageContext.get(pc), new Object[0], true));
+		}
+
+		@Override
+		public String castToString(PageContext pc, String defaultValue) {
 			try {
-				return Caster.toString(udf.call(ThreadLocalPageContext.get(), new Object[0], true), defaultValue);
+				return Caster.toString(udf.call(ThreadLocalPageContext.get(pc), new Object[0], true), defaultValue);
 			}
 			catch (PageException e) {
 				return defaultValue;

@@ -31,6 +31,7 @@ import lucee.runtime.dump.DumpProperties;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.DatabaseException;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.op.CastablePro;
 import lucee.runtime.op.Caster;
 import lucee.runtime.query.caster.Cast;
 import lucee.runtime.type.Collection;
@@ -42,7 +43,7 @@ import lucee.runtime.type.it.EntryIterator;
 import lucee.runtime.type.scope.Undefined;
 import lucee.runtime.type.util.QueryUtil;
 
-public final class SimpleQueryColumn implements QueryColumn {
+public final class SimpleQueryColumn implements QueryColumn, CastablePro {
 
 	private static final long serialVersionUID = 288731277532671308L;
 
@@ -228,6 +229,16 @@ public final class SimpleQueryColumn implements QueryColumn {
 	@Override
 	public String castToString(String defaultValue) {
 		return Caster.toString(get(key, defaultValue), defaultValue);
+	}
+
+	@Override
+	public String castToString(PageContext pc) throws PageException {
+		return Caster.toString(pc, get(key));
+	}
+
+	@Override
+	public String castToString(PageContext pc, String defaultValue) {
+		return Caster.toString(pc, get(key, defaultValue), defaultValue);
 	}
 
 	@Override

@@ -23,7 +23,6 @@ package lucee.runtime.functions.string;
 
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
-import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.BIF;
@@ -36,12 +35,12 @@ public final class REReplaceNoCase extends BIF implements Function {
 	private static final long serialVersionUID = 3261493342788819694L;
 
 	public static String call(PageContext pc, String string, String regExp, String replace) throws PageException {
-		Regex regex = ((PageContextImpl) ThreadLocalPageContext.get()).getRegex();
+		Regex regex = ((PageContextImpl) pc).getRegex();
 		return regex.replace(string, regExp, replace, false, false);
 	}
 
 	public static String call(PageContext pc, String string, String regExp, String replace, String scope) throws PageException {
-		Regex regex = ((PageContextImpl) ThreadLocalPageContext.get()).getRegex();
+		Regex regex = ((PageContextImpl) pc).getRegex();
 		if (scope.equalsIgnoreCase("all")) return regex.replaceAll(string, regExp, replace, false, false);
 		return regex.replace(string, regExp, replace, false, false);
 	}

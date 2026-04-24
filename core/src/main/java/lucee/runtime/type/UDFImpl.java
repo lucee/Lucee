@@ -392,7 +392,7 @@ public class UDFImpl extends MemberSupport implements UDFPlus, Externalizable, C
 
 			if (returnValue == null && pci.getFullNullSupport()) return returnValue;
 			if (properties.getReturnType() == CFTypes.TYPE_ANY || !pci.getTypeChecking()) return returnValue;
-			if (Decision.isCastableTo(properties.getReturnTypeAsString(), returnValue, false, false, -1)) return returnValue;
+			if (Decision.isCastableTo(pc, properties.getReturnTypeAsString(), returnValue, false, false, -1)) return returnValue;
 			throw new UDFCasterException(this, properties.getReturnTypeAsString(), returnValue);
 
 			// REALCAST return Caster.castTo(pageContext,returnType,returnValue,false);
@@ -558,7 +558,8 @@ public class UDFImpl extends MemberSupport implements UDFPlus, Externalizable, C
 
 	@Override
 	public int getReturnFormat() {
-		if (properties.getReturnFormat() < 0) {
+		int format = properties.getReturnFormat(null);
+		if (format < 0) {
 			PageContext pc = ThreadLocalPageContext.get();
 			if (pc != null) {
 				ApplicationContextSupport acs = (ApplicationContextSupport) pc.getApplicationContext();
@@ -566,13 +567,14 @@ public class UDFImpl extends MemberSupport implements UDFPlus, Externalizable, C
 			}
 			return UDF.RETURN_FORMAT_WDDX;
 		}
-		return properties.getReturnFormat();
+		return format;
 	}
 
 	@Override
 	public int getReturnFormat(int defaultValue) {
-		if (properties.getReturnFormat() < 0) return defaultValue;
-		return properties.getReturnFormat();
+		int format = properties.getReturnFormat(null);
+		if (format < 0) return defaultValue;
+		return format;
 	}
 
 	public final String getReturnFormatAsString() {

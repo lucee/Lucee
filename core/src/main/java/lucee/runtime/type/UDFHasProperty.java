@@ -84,7 +84,7 @@ public final class UDFHasProperty extends UDFGSProperty {
 		Key key = arguments[0].getName();
 		Object value = values.get(key, null);
 		if (value == null) {
-			Key[] keys = CollectionUtil.keys(values);
+			Key[] keys = CollectionUtil.keys(pageContext, values);
 			if (keys.length > 0) {
 				value = values.get(keys[0]);
 			}

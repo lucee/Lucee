@@ -3966,13 +3966,13 @@ public final class ConfigAdmin {
 		IOUtil.write(storage, wddx, "UTF-8", false);
 	}
 
-	public Object storageGet(Config config, String key) throws ConverterException, IOException, SecurityException {
+	public Object storageGet(PageContext pc, Config config, String key) throws ConverterException, IOException, SecurityException {
 		checkReadAccess();
 		Resource storageDir = getStoragDir(config);
 		Resource storage = storageDir.getRealResource(key + ".wddx");
 		if (!storage.exists()) throw new IOException("There is no storage named [" + key + "]");
 		WDDXConverter converter = new WDDXConverter(config.getTimeZone(), true, true);
-		return converter.deserialize(IOUtil.toString(storage, "UTF-8"), true);
+		return converter.deserialize(pc, IOUtil.toString(storage, "UTF-8"), true);
 	}
 
 	public void updateCustomTagDeepSearch(boolean customTagDeepSearch) throws SecurityException {
@@ -6618,7 +6618,7 @@ public final class ConfigAdmin {
 		boolean hp = !prefix.isEmpty();
 		// validate class
 		try {
-			Class clazz = cd.getClazz();
+			Class clazz = cd instanceof ClassDefinitionImpl ? ((ClassDefinitionImpl) cd).getClazz(false) : cd.getClazz();
 
 			if (instanceOfClass != null && !Reflector.isInstaneOf(clazz, instanceOfClass, false))
 				throw new ApplicationException("Class [" + clazz.getName() + "] is not of type [" + instanceOfClass.getName() + "]");

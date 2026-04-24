@@ -488,9 +488,9 @@ public final class WDDXConverter extends ConverterSupport {
 	 * @throws IOException
 	 * @throws FactoryConfigurationError
 	 */
-	public Object deserialize(String strWddx, boolean validate) throws ConverterException, IOException, FactoryConfigurationError {
+	public Object deserialize(PageContext pc, String strWddx, boolean validate) throws ConverterException, IOException, FactoryConfigurationError {
 		try {
-			Document doc = XMLUtil.parse(XMLUtil.toInputSource(strWddx), null, validate ? new WDDXEntityResolver() : null, false);
+			Document doc = XMLUtil.parse(pc, XMLUtil.toInputSource(strWddx), null, validate ? new WDDXEntityResolver() : null, false);
 
 			// WDDX Package
 			NodeList docChldren = doc.getChildNodes();

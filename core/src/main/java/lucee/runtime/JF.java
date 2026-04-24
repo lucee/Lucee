@@ -41,7 +41,7 @@ public abstract class JF implements UDF {
 		props.localMode = localMode;
 
 		props.cachedWithin = null;// TODO
-		props.strReturnFormat = UDFUtil.toReturnFormat(props.getReturnFormat(), "wddx");
+		props.strReturnFormat = UDFUtil.toReturnFormat(props.getReturnFormat(null), "wddx");
 		props.meta = null; // TODO
 
 	}
@@ -131,7 +131,7 @@ public abstract class JF implements UDF {
 
 	@Override
 	public int getReturnFormat() {
-		return props.getReturnFormat();
+		return props.getReturnFormat(null);
 	}
 
 	@Override

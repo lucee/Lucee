@@ -195,8 +195,7 @@ public final class JSONConverter extends ConverterSupport {
 					sct.setEL(getter.getName().substring(3), testRecusrion(getter.invoke(obj, ArrayUtil.OBJECT_EMPTY), tmp));
 
 				}
-				catch (Exception e) {
-				}
+				catch (Exception e) {}
 			}
 		}
 
@@ -540,7 +539,7 @@ public final class JSONConverter extends ConverterSupport {
 
 		boolean preCase = getPreserveCase(pc, preserveCase, true); // UPPERCASE column keys by default for Query
 
-		Collection.Key[] _keys = CollectionUtil.keys(query);
+		Collection.Key[] _keys = CollectionUtil.keys(pc, query);
 
 		if (queryFormat == SerializationSettings.SERIALIZE_AS_STRUCT) {
 			sb.append(indent());

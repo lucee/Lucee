@@ -27,10 +27,12 @@ import java.util.Set;
 
 import lucee.commons.digest.Hash;
 import lucee.commons.lang.ExceptionUtil;
+import lucee.runtime.PageContext;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.op.OpUtil;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.Collection.Key;
+import lucee.runtime.type.IteratorablePro;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
 
@@ -93,7 +95,19 @@ public final class CollectionUtil {
 
 	public static Key[] keys(Collection coll) {
 		if (coll == null) return new Key[0];
+
 		Iterator<Key> it = coll.keyIterator();
+		List<Key> rtn = new ArrayList<Key>();
+		if (it != null) while (it.hasNext()) {
+			rtn.add(it.next());
+		}
+		return rtn.toArray(new Key[rtn.size()]);
+	}
+
+	public static Key[] keys(PageContext pc, Collection coll) {
+		if (coll == null) return new Key[0];
+
+		Iterator<Key> it = coll instanceof IteratorablePro ? ((IteratorablePro) coll).keyIterator(pc) : coll.keyIterator();
 		List<Key> rtn = new ArrayList<Key>();
 		if (it != null) while (it.hasNext()) {
 			rtn.add(it.next());

@@ -7,13 +7,14 @@ import lucee.runtime.PageContext;
 import lucee.runtime.dump.DumpData;
 import lucee.runtime.dump.DumpProperties;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.op.CastablePro;
 import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Query;
 import lucee.runtime.type.dt.DateTime;
 
-public class CurrentRow implements Collection {
+public class CurrentRow implements Collection, CastablePro {
 
 	private Query qry;
 	private int row;
@@ -57,6 +58,22 @@ public class CurrentRow implements Collection {
 
 	@Override
 	public String castToString(String defaultValue) {
+		return qry.castToString(defaultValue);
+	}
+
+	@Override
+	public String castToString(PageContext pc) throws PageException {
+		if (qry instanceof CastablePro) {
+			return ((CastablePro) qry).castToString(pc);
+		}
+		return qry.castToString();
+	}
+
+	@Override
+	public String castToString(PageContext pc, String defaultValue) {
+		if (qry instanceof CastablePro) {
+			return ((CastablePro) qry).castToString(pc, defaultValue);
+		}
 		return qry.castToString(defaultValue);
 	}
 
@@ -191,8 +208,7 @@ public class CurrentRow implements Collection {
 			try {
 				createColumnIfMissing(key);
 			}
-			catch (Exception e) {
-			}
+			catch (Exception e) {}
 		}
 		return qry.setAtEL(key, row, value);
 	}

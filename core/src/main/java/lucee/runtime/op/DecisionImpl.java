@@ -148,12 +148,12 @@ public final class DecisionImpl implements lucee.runtime.util.Decision {
 
 	@Override
 	public boolean isWddx(Object o) {
-		return Decision.isWddx(o);
+		return Decision.isWddx(null, o);
 	}
 
 	@Override
 	public boolean isXML(Object o) {
-		return Decision.isXML(o);
+		return Decision.isXML(null, o);
 	}
 
 	@Override
@@ -208,7 +208,7 @@ public final class DecisionImpl implements lucee.runtime.util.Decision {
 
 	@Override
 	public boolean isCastableTo(String type, Object o, boolean alsoAlias, boolean alsoPattern, int maxlength) {
-		return Decision.isCastableTo(type, o, alsoAlias, alsoPattern, maxlength);
+		return Decision.isCastableTo(null, type, o, alsoAlias, alsoPattern, maxlength);
 	}
 
 	@Override
@@ -268,7 +268,7 @@ public final class DecisionImpl implements lucee.runtime.util.Decision {
 
 	@Override
 	public boolean is(String type, Object o) throws ExpressionException {
-		return Decision.isValid(type, o);
+		return Decision.isValid(null, type, o);
 	}
 
 	@Override

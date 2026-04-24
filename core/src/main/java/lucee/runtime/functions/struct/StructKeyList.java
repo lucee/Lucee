@@ -29,6 +29,7 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.BIF;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Collection.Key;
+import lucee.runtime.type.IteratorablePro;
 import lucee.runtime.type.Struct;
 
 public final class StructKeyList extends BIF {
@@ -43,7 +44,7 @@ public final class StructKeyList extends BIF {
 		// return KeyImpl.toList(CollectionUtil.keys(struct), delimiter);
 
 		if (struct == null) return "";
-		Iterator<Key> it = struct.keyIterator();
+		Iterator<Key> it = struct instanceof IteratorablePro ? ((IteratorablePro) struct).keyIterator(pc) : struct.keyIterator();
 
 		// first
 		if (!it.hasNext()) return "";

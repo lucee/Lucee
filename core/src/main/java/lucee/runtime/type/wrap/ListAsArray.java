@@ -83,6 +83,7 @@ public class ListAsArray extends ArraySupport implements Array, List {
 		return get(null, key, defaultValue);
 	}
 
+	@Override
 	public final Object get(PageContext pc, int key, Object defaultValue) {
 		if (key <= 0) return defaultValue;
 		if (key > list.size()) return defaultValue;
@@ -369,7 +370,7 @@ public class ListAsArray extends ArraySupport implements Array, List {
 	public final Object get(PageContext pc, String key, Object defaultValue) {
 		double index = Caster.toIntValue(key, Integer.MIN_VALUE);
 		if (index == Integer.MIN_VALUE) return defaultValue;
-		return get((int) index, defaultValue);
+		return get(pc, (int) index, defaultValue);
 	}
 
 	@Override

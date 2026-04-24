@@ -227,7 +227,7 @@ public final class QueryUtil {
 
 	public static DumpData toDumpData(Query query, PageContext pageContext, int maxlevel, DumpProperties dp) {
 		maxlevel--;
-		Collection.Key[] keys = CollectionUtil.keys(query);
+		Collection.Key[] keys = CollectionUtil.keys(pageContext, query);
 		boolean[] showColumn = new boolean[keys.length];
 		int columnCount = 0;
 		for (int i = 0; i < keys.length; i++) {

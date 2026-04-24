@@ -39,7 +39,7 @@ public final class StructCopy extends BIF {
 	public static Object call(PageContext pc, Struct src) throws PageException {
 
 		Collection trg = (Collection) Duplicator.duplicate(src, false);
-		Collection.Key[] keys = CollectionUtil.keys(trg);
+		Collection.Key[] keys = CollectionUtil.keys(pc, trg);
 		Collection.Key key;
 		Object o;
 		for (int i = 0; i < keys.length; i++) {

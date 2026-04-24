@@ -1036,7 +1036,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 						mapping.getInspectTemplateRaw(), mapping.getInspectTemplateAutoIntervalRaw(true), mapping.getInspectTemplateAutoIntervalRaw(false), mapping.isTopLevel(),
 						mapping.getListenerMode(), mapping.getListenerType(), mapping.getListenerSingelton(), mapping.isReadonly());
 				store();
-				ConfigUtil.getConfigWebIfPossible(config).resetMappings();
+				((ConfigWebPro) pageContext.getConfig()).resetMappings();
 			}
 
 		}
@@ -1437,7 +1437,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 	private void doStorageGet() throws PageException {
 		try {
-			pageContext.setVariable(getString("admin", action, "returnVariable"), admin.storageGet(config, getString("admin", action, "key")));
+			pageContext.setVariable(getString("admin", action, "returnVariable"), admin.storageGet(pageContext, config, getString("admin", action, "key")));
 		}
 		catch (Exception e) {
 			throw Caster.toPageException(e);
@@ -2089,7 +2089,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	private void doRemoveMapping() throws PageException {
 		admin.removeMapping(getString("admin", action, "virtual"));
 		store();
-		ConfigUtil.getConfigWebIfPossible(config).resetMappings();
+		((ConfigWebPro) pageContext.getConfig()).resetMappings();
 		adminSync.broadcast(attributes, config);
 	}
 
@@ -2123,7 +2123,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 		);
 		store();
-		ConfigUtil.getConfigWebIfPossible(config).resetMappings();
+		((ConfigWebPro) pageContext.getConfig()).resetMappings();
 		adminSync.broadcast(attributes, config);
 	}
 

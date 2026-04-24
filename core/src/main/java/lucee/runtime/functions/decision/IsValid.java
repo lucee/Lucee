@@ -48,7 +48,7 @@ public final class IsValid implements Function {
 		if ("regex".equalsIgnoreCase(type) || "regular_expression".equalsIgnoreCase(type))
 			throw new FunctionException(pc, "isValid", 1, "type", "for [regex] you have to define a pattern");
 
-		return Decision.isValid(type, value);
+		return Decision.isValid(pc, type, value);
 	}
 
 	/**

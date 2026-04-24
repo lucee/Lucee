@@ -34,6 +34,7 @@ import lucee.runtime.dump.DumpUtil;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.op.CastablePro;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.OpUtil;
 import lucee.runtime.op.date.DateCaster;
@@ -52,7 +53,7 @@ import lucee.runtime.util.VariableUtilImpl;
 /**
  * class to handle initialising and call native object from lucee
  */
-public class JavaObject implements Objects, ObjectWrap {
+public class JavaObject implements Objects, ObjectWrap, CastablePro {
 
 	private static final long serialVersionUID = -3716657460843769960L;
 	private static final Object[] EMPTY = new Object[0];
@@ -361,6 +362,21 @@ public class JavaObject implements Objects, ObjectWrap {
 	public String castToString(String defaultValue) {
 		try {
 			return Caster.toString(getEmbededObject(), defaultValue);
+		}
+		catch (PageException e) {
+			return defaultValue;
+		}
+	}
+
+	@Override
+	public String castToString(PageContext pc) throws PageException {
+		return Caster.toString(pc, getEmbededObject());
+	}
+
+	@Override
+	public String castToString(PageContext pc, String defaultValue) {
+		try {
+			return Caster.toString(pc, getEmbededObject(), defaultValue);
 		}
 		catch (PageException e) {
 			return defaultValue;

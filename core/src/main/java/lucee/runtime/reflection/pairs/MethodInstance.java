@@ -49,9 +49,10 @@ public final class MethodInstance {
 		Clazz clazzz = di.toClazz(clazz);
 		try {
 			this.method = clazzz.getMethod(methodName.getString(), args, nameCaseSensitive, true, convertComparsion);
+			initMethod = false;
 		}
 		catch (NoSuchMethodException e) {}
-		initMethod = false;
+
 	}
 
 	public Object invoke(Object o) throws Exception {

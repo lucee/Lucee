@@ -53,7 +53,7 @@ public final class StructToSorted extends BIF {
 		else if (sortOrder.equalsIgnoreCase("desc")) isAsc = false;
 		else throw new ExpressionException("Invalid sort order type [" + sortOrder + "], sort order types are [asc and desc]");
 
-		Collection.Key[] keys = CollectionUtil.keys(base);
+		Collection.Key[] keys = CollectionUtil.keys(pc, base);
 		SortRegister[] arr = new SortRegister[keys.length];
 
 		for (int i = 0; i < keys.length; i++) {
@@ -84,7 +84,7 @@ public final class StructToSorted extends BIF {
 	}
 
 	public static Struct _call(PageContext pc, Struct base, UDF sortFunc) throws PageException {
-		Collection.Key[] keys = CollectionUtil.keys(base);
+		Collection.Key[] keys = CollectionUtil.keys(pc, base);
 		StructSortRegister[] arr = new StructSortRegister[keys.length];
 
 		for (int i = 0; i < keys.length; i++) {

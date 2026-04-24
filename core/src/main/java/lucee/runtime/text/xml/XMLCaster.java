@@ -776,7 +776,7 @@ public final class XMLCaster {
 		return XMLStructFactory.newInstance(node, caseSensitive);
 	}
 
-	public static Element toRawElement(Object value, Element defaultValue) {
+	public static Element toRawElement(PageContext pc, Object value, Element defaultValue) {
 		if (value instanceof Node) {
 			Node node = XMLCaster.toRawNode((Node) value);
 			if (node instanceof Document) return ((Document) node).getDocumentElement();
@@ -784,7 +784,7 @@ public final class XMLCaster {
 			return defaultValue;
 		}
 		try {
-			return XMLUtil.parse(new InputSource(new StringReader(Caster.toString(value))), null, false).getDocumentElement();
+			return XMLUtil.parse(pc, new InputSource(new StringReader(Caster.toString(value))), null, false).getDocumentElement();
 		}
 		catch (Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);

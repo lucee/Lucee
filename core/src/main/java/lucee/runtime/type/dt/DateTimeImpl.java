@@ -34,6 +34,7 @@ import lucee.runtime.dump.SimpleDumpData;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.op.CastablePro;
 import lucee.runtime.op.OpUtil;
 import lucee.runtime.reflection.Reflector;
 import lucee.runtime.type.Collection.Key;
@@ -45,7 +46,7 @@ import lucee.runtime.type.util.MemberUtil;
 /**
  * Printable and Castable DateTime Object
  */
-public final class DateTimeImpl extends DateTime implements SimpleValue, Objects {
+public final class DateTimeImpl extends DateTime implements CastablePro, SimpleValue, Objects {
 
 	private static final long serialVersionUID = 1287979666244112798L;
 
@@ -98,7 +99,7 @@ public final class DateTimeImpl extends DateTime implements SimpleValue, Objects
 
 	@Override
 	public DumpData toDumpData(PageContext pageContext, int maxlevel, DumpProperties dp) {
-		String str = castToString(pageContext.getTimeZone());
+		String str = _castToString(pageContext);
 		DumpTable table = new DumpTable("date", "#ff6600", "#ffcc99", "#000000");
 		if (dp.getMetainfo()) table.appendRow(1, new SimpleDumpData("Date Time (" + pageContext.getTimeZone().getID() + ")"));
 		else table.appendRow(1, new SimpleDumpData("Date Time"));
@@ -108,17 +109,28 @@ public final class DateTimeImpl extends DateTime implements SimpleValue, Objects
 
 	@Override
 	public String castToString() {
-		return castToString((TimeZone) null);
+		return _castToString(null);
 	}
 
 	@Override
 	public String castToString(String defaultValue) {
-		return castToString((TimeZone) null);
+		return _castToString(null);
 	}
 
-	public String castToString(TimeZone tz) {// MUST move to DateTimeUtil
-		return DateTimeUtil.getInstance().toString(ThreadLocalPageContext.get(), this, tz, null);
+	@Override
+	public String castToString(PageContext pc) {
+		return _castToString(pc);
+	}
 
+	@Override
+	public String castToString(PageContext pc, String defaultValue) {
+		return _castToString(pc);
+	}
+
+	private String _castToString(PageContext pc) {// MUST move to DateTimeUtil
+		pc = ThreadLocalPageContext.get(pc);
+		TimeZone tz = pc != null ? pc.getTimeZone() : null;
+		return DateTimeUtil.getInstance().toString(pc, this, tz, null);
 	}
 
 	@Override

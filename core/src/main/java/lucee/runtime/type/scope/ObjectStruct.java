@@ -28,6 +28,7 @@ import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.java.JavaObject;
+import lucee.runtime.op.CastablePro;
 import lucee.runtime.reflection.Reflector;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.KeyImpl;
@@ -40,7 +41,7 @@ import lucee.runtime.type.it.StringIterator;
 import lucee.runtime.type.it.ValueIterator;
 import lucee.runtime.type.util.StructSupport;
 
-public final class ObjectStruct extends StructSupport implements Struct, Objects {
+public final class ObjectStruct extends StructSupport implements Struct, Objects, CastablePro {
 
 	private JavaObject jo;
 
@@ -217,6 +218,16 @@ public final class ObjectStruct extends StructSupport implements Struct, Objects
 	@Override
 	public String castToString(String defaultValue) {
 		return jo.castToString(defaultValue);
+	}
+
+	@Override
+	public String castToString(PageContext pc) throws PageException {
+		return jo.castToString(pc);
+	}
+
+	@Override
+	public String castToString(PageContext pc, String defaultValue) {
+		return jo.castToString(pc, defaultValue);
 	}
 
 	@Override

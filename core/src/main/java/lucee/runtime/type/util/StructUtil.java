@@ -115,7 +115,8 @@ public final class StructUtil {
 	}
 
 	public static Set<String> keySet(Struct sct) {
-		boolean linked = sct instanceof StructSupport && (((StructSupport) sct).getType() == Struct.TYPE_LINKED || ((StructSupport) sct).getType() == StructImpl.TYPE_LINKED_NOT_SYNC);
+		boolean linked = sct instanceof StructSupport
+				&& (((StructSupport) sct).getType() == Struct.TYPE_LINKED || ((StructSupport) sct).getType() == StructImpl.TYPE_LINKED_NOT_SYNC);
 
 		Iterator<Key> it = sct.keyIterator();
 		Set<String> set = linked ? new LinkedHashSet<String>() : new HashSet<String>();
@@ -126,8 +127,9 @@ public final class StructUtil {
 	}
 
 	public static DumpTable toDumpTable(Struct sct, String title, PageContext pageContext, int maxlevel, DumpProperties dp) {
-		Key[] keys = CollectionUtil.keys(sct);
-		if (!(sct instanceof StructSupport) || (((StructSupport) sct).getType() != Struct.TYPE_LINKED && ((StructSupport) sct).getType() != StructImpl.TYPE_LINKED_NOT_SYNC)) keys = order(sct, CollectionUtil.keys(sct));
+		Key[] keys = CollectionUtil.keys(pageContext, sct);
+		if (!(sct instanceof StructSupport) || (((StructSupport) sct).getType() != Struct.TYPE_LINKED && ((StructSupport) sct).getType() != StructImpl.TYPE_LINKED_NOT_SYNC))
+			keys = order(sct, CollectionUtil.keys(sct));
 		DumpTable table = new DumpTable("struct", "#468faf", "#89c2d9", "#000000");// "#9999ff","#ccccff","#000000"
 
 		int maxkeys = dp.getMaxKeys();

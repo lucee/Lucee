@@ -139,7 +139,7 @@ public final class DumpUtil {
 				try {
 					WDDXConverter converter = new WDDXConverter(pageContext.getTimeZone(), false, true);
 					converter.setTimeZone(pageContext.getTimeZone());
-					Object rst = converter.deserialize(str, false);
+					Object rst = converter.deserialize(pageContext, str, false);
 					DumpData data = toDumpData(rst, pageContext, maxlevel, props);
 
 					DumpTable table = new DumpTable("string", "#ff6600", "#ffcc99", "#000000");

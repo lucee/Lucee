@@ -30,6 +30,7 @@ import lucee.runtime.db.SQL;
 import lucee.runtime.dump.DumpData;
 import lucee.runtime.dump.DumpProperties;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.op.CastablePro;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.Objects;
@@ -39,7 +40,7 @@ import lucee.runtime.type.QueryImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.dt.DateTime;
 
-public final class QueryFQ implements Query, Objects, QueryResult, Serializable {
+public final class QueryFQ implements Query, Objects, QueryResult, Serializable, CastablePro {
 
 	private Query qry;
 	private transient QueryResult qr;
@@ -310,6 +311,22 @@ public final class QueryFQ implements Query, Objects, QueryResult, Serializable 
 
 	@Override
 	public String castToString(String defaultValue) {
+		return qry.castToString(defaultValue);
+	}
+
+	@Override
+	public String castToString(PageContext pc) throws PageException {
+		if (qry instanceof CastablePro) {
+			return ((CastablePro) qry).castToString(pc);
+		}
+		return qry.castToString();
+	}
+
+	@Override
+	public String castToString(PageContext pc, String defaultValue) {
+		if (qry instanceof CastablePro) {
+			return ((CastablePro) qry).castToString(pc, defaultValue);
+		}
 		return qry.castToString(defaultValue);
 	}
 

@@ -32,7 +32,7 @@ import lucee.runtime.config.Config;
 import lucee.runtime.dump.DumpData;
 import lucee.runtime.dump.DumpProperties;
 import lucee.runtime.engine.ThreadLocalPageContext;
-import lucee.runtime.op.Castable;
+import lucee.runtime.op.CastablePro;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 import lucee.runtime.reflection.Reflector;
@@ -54,7 +54,7 @@ import lucee.runtime.type.util.StructSupport;
 import lucee.runtime.type.util.StructUtil;
 import lucee.runtime.util.PageContextUtil;
 
-public final class CatchBlockImpl extends StructImpl implements CatchBlock, Castable, Objects {
+public final class CatchBlockImpl extends StructImpl implements CatchBlock, CastablePro, Objects {
 
 	private static final long serialVersionUID = -3680961614605720352L;
 
@@ -212,12 +212,22 @@ public final class CatchBlockImpl extends StructImpl implements CatchBlock, Cast
 
 	@Override
 	public String castToString() throws ExpressionException {
-		return castToString(null);
+		return castToString(null, null);
 	}
 
 	@Override
 	public String castToString(String defaultValue) {
-		PageContext pc = ThreadLocalPageContext.get();
+		return castToString(null, defaultValue);
+	}
+
+	@Override
+	public String castToString(PageContext pc) throws ExpressionException {
+		return castToString(pc, null);
+	}
+
+	@Override
+	public String castToString(PageContext pc, String defaultValue) {
+		pc = ThreadLocalPageContext.get(pc);
 		if (pc instanceof PageContextImpl) {
 			try {
 				return PageContextUtil.getHandlePageException((PageContextImpl) pc, exception);

@@ -39,6 +39,7 @@ import lucee.runtime.exp.DeprecatedException;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageRuntimeException;
+import lucee.runtime.op.CastablePro;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Duplicator;
 import lucee.runtime.op.ThreadLocalDuplication;
@@ -57,7 +58,7 @@ import lucee.runtime.util.ArrayIterator;
 /**
  * implementation of the query column
  */
-public class QueryColumnImpl implements QueryColumnPro, Objects {
+public class QueryColumnImpl implements QueryColumnPro, Objects, CastablePro {
 
 	private static final long serialVersionUID = -5544446523204021493L;
 	private static final int CAPACITY = 32;
@@ -519,14 +520,24 @@ public class QueryColumnImpl implements QueryColumnPro, Objects {
 
 	@Override
 	public String castToString() throws PageException {
-		return Caster.toString(get(query.getCurrentrow(ThreadLocalPageContext.getId()), null));
+		return castToString((PageContext) null);
 	}
 
 	@Override
 	public String castToString(String defaultValue) {
-		Object value = get(query.getCurrentrow(ThreadLocalPageContext.getId()), Null.NULL);
+		return castToString((PageContext) null, defaultValue);
+	}
+
+	@Override
+	public String castToString(PageContext pc) throws PageException {
+		return Caster.toString(pc, get(query.getCurrentrow(ThreadLocalPageContext.getId(pc)), null));
+	}
+
+	@Override
+	public String castToString(PageContext pc, String defaultValue) {
+		Object value = get(query.getCurrentrow(ThreadLocalPageContext.getId(pc)), Null.NULL);
 		if (NullSupportHelper.isNull(value)) return defaultValue;
-		return Caster.toString(value, defaultValue);
+		return Caster.toString(pc, value, defaultValue);
 	}
 
 	@Override

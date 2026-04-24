@@ -31,13 +31,14 @@ import lucee.runtime.dump.DumpTable;
 import lucee.runtime.dump.SimpleDumpData;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.op.CastablePro;
 import lucee.runtime.op.OpUtil;
 import lucee.runtime.type.SimpleValue;
 
 /**
  * Printable and Castable Date Object (no visible time)
  */
-public final class DateImpl extends Date implements SimpleValue {
+public final class DateImpl extends Date implements SimpleValue, CastablePro {
 
 	private static DateTimeFormatter luceeFormatter = FormatUtil.getDateTimeFormatter(Locale.US, "yyyy-MM-dd").formatter;
 
@@ -66,8 +67,13 @@ public final class DateImpl extends Date implements SimpleValue {
 	}
 
 	@Override
+	public String castToString(PageContext pc) {
+		return "{d '" + FormatUtil.format(luceeFormatter, this, ThreadLocalPageContext.getTimeZone(pc)) + "'}";
+	}
+
+	@Override
 	public String castToString() {
-		return "{d '" + FormatUtil.format(luceeFormatter, this, ThreadLocalPageContext.getTimeZone()) + "'}";
+		return castToString((PageContext) null);
 	}
 
 	@Override
@@ -78,6 +84,11 @@ public final class DateImpl extends Date implements SimpleValue {
 	@Override
 	public String castToString(String defaultValue) {
 		return castToString();
+	}
+
+	@Override
+	public String castToString(PageContext pc, String defaultValue) {
+		return castToString(pc);
 	}
 
 	@Override

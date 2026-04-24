@@ -1142,6 +1142,10 @@ public final class QueryImpl implements Query, Objects, QueryResult {
 
 	@Override
 	public final Object getAt(Collection.Key key, int row, Object defaultValue) {
+		return getAt(null, key, row, defaultValue);
+	}
+
+	public final Object getAt(PageContext pc, Collection.Key key, int row, Object defaultValue) {
 		int index = getIndexFromKey(key);
 		if (index != -1) {
 			// we only return default value if row exists
@@ -1149,7 +1153,7 @@ public final class QueryImpl implements Query, Objects, QueryResult {
 			if (row > 0 && row <= getRecordcount()) {
 				Object val = columns[index].get(row, CollectionUtil.NULL);
 				if (val != CollectionUtil.NULL) return val;
-				return NullSupportHelper.full() ? null : "";
+				return NullSupportHelper.full(pc) ? null : "";
 			}
 			else return defaultValue;
 			// */
@@ -1158,7 +1162,7 @@ public final class QueryImpl implements Query, Objects, QueryResult {
 		if (key.length() >= 10) {
 			if (key.equals(KeyConstants._RECORDCOUNT)) return Double.valueOf(getRecordcount());
 			if (key.equals(KeyConstants._CURRENTROW)) return Double.valueOf(row);
-			if (key.equals(KeyConstants._COLUMNLIST)) return getColumnlist(getKeyCase(ThreadLocalPageContext.get()));
+			if (key.equals(KeyConstants._COLUMNLIST)) return getColumnlist(getKeyCase(ThreadLocalPageContext.get(pc)));
 		}
 		return defaultValue;
 	}
@@ -1170,19 +1174,23 @@ public final class QueryImpl implements Query, Objects, QueryResult {
 
 	@Override
 	public Object getAt(Collection.Key key, int row) throws PageException {
+		return getAt(null, key, row);
+	}
+
+	public Object getAt(PageContext pc, Collection.Key key, int row) throws PageException {
 		int index = getIndexFromKey(key);
 		if (index != -1) {
 			Object val = columns[index].get(row, CollectionUtil.NULL);
 			if (val != CollectionUtil.NULL) return val;
-			return NullSupportHelper.full() ? null : "";
+			return NullSupportHelper.full(pc) ? null : "";
 		}
 		if (key.length() >= 10) {
 			if (key.equals(KeyConstants._RECORDCOUNT)) return Double.valueOf(getRecordcount());
 			if (key.equals(KeyConstants._CURRENTROW)) return Double.valueOf(row);
-			if (key.equals(KeyConstants._COLUMNLIST)) return getColumnlist(getKeyCase(ThreadLocalPageContext.get()));
+			if (key.equals(KeyConstants._COLUMNLIST)) return getColumnlist(getKeyCase(ThreadLocalPageContext.get(pc)));
 		}
-		throw new DatabaseException("Column [" + key + "] not found in query", "available columns are [" + getColumnlist(getKeyCase(ThreadLocalPageContext.get()), ", ") + "]", sql,
-				null);
+		throw new DatabaseException("Column [" + key + "] not found in query", "available columns are [" + getColumnlist(getKeyCase(ThreadLocalPageContext.get(pc)), ", ") + "]",
+				sql, null);
 	}
 
 	@Override
@@ -2189,12 +2197,12 @@ public final class QueryImpl implements Query, Objects, QueryResult {
 
 	@Override
 	public Object get(PageContext pc, Key key, Object defaultValue) {
-		return getAt(key, getDefaultRow(pc.getId()), defaultValue);
+		return getAt(pc, key, getDefaultRow(pc.getId()), defaultValue);
 	}
 
 	@Override
 	public Object get(PageContext pc, Key key) throws PageException {
-		return getAt(key, getDefaultRow(pc.getId()));
+		return getAt(pc, key, getDefaultRow(pc.getId()));
 	}
 
 	public boolean isInitalized() {

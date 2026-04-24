@@ -105,7 +105,7 @@ public final class UDFAddProperty extends UDFGSProperty {
 			Key valueName = arguments[0].getName();
 			Object value = values.get(valueName, null);
 			if (value == null) {
-				Key[] keys = CollectionUtil.keys(values);
+				Key[] keys = CollectionUtil.keys(pageContext, values);
 				if (keys.length == 1) {
 					value = values.get(keys[0]);
 				}

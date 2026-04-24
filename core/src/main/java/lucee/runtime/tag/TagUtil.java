@@ -38,7 +38,6 @@ import lucee.runtime.Component;
 import lucee.runtime.ComponentImpl;
 import lucee.runtime.ComponentSpecificAccess;
 import lucee.runtime.PageContext;
-import lucee.runtime.PageContextImpl;
 import lucee.runtime.PageSource;
 import lucee.runtime.component.ComponentLoader;
 import lucee.runtime.config.ConfigServerPro;
@@ -248,9 +247,9 @@ public final class TagUtil {
 	 * @param cw
 	 * @param log
 	 */
-	public static void addTagMetaData(ConfigWebPro cw) {
-
-		PageContextImpl pc = null;
+	public static void addTagMetaData(PageContext pc) {
+		PageContext orgPC = pc;
+		ConfigWebPro cw = (ConfigWebPro) pc.getConfig();
 		try {
 			pc = ThreadUtil.createPageContext(cw, DevNullOutputStream.DEV_NULL_OUTPUT_STREAM, "localhost", "/", "", SerializableCookie.COOKIES0, new Pair[0], null, new Pair[0],
 					new StructImpl(), false, -1, null, null);
@@ -260,7 +259,7 @@ public final class TagUtil {
 			ExceptionUtil.rethrowIfNecessary(t);
 			return;
 		}
-		PageContext orgPC = ThreadLocalPageContext.get();
+
 		try {
 			ThreadLocalPageContext.register(pc);
 

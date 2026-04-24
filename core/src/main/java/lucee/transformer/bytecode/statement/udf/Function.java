@@ -87,8 +87,10 @@ public abstract class Function extends StatementBaseNoFinal implements Opcodes, 
 
 	static final Method SET_KEY = new Method("set", Types.OBJECT, new Type[] { Types.COLLECTION_KEY, Types.OBJECT });
 
-	static final Method REG_UDF_KEY = new Method("registerUDF", Types.VOID, new Type[] { Types.COLLECTION_KEY, Types.UDF_PROPERTIES });
-	static final Method REG_STATIC_UDF_KEY = new Method("registerStaticUDF", Types.VOID, new Type[] { Types.COLLECTION_KEY, Types.UDF_PROPERTIES });
+	static final Method REG_UDF_KEY2 = new Method("registerUDF", Types.VOID, new Type[] { Types.COLLECTION_KEY, Types.UDF_PROPERTIES });
+	static final Method REG_UDF_KEY3 = new Method("registerUDF", Types.VOID, new Type[] { Types.COLLECTION_KEY, Types.UDF_PROPERTIES, Types.PAGE_CONTEXT });
+	static final Method REG_STATIC_UDF_KEY2 = new Method("registerStaticUDF", Types.VOID, new Type[] { Types.COLLECTION_KEY, Types.UDF_PROPERTIES });
+	static final Method REG_STATIC_UDF_KEY3 = new Method("registerStaticUDF", Types.VOID, new Type[] { Types.COLLECTION_KEY, Types.UDF_PROPERTIES, Types.PAGE_CONTEXT });
 
 	// private static final ExprString ANY = LitString.toExprString("any");
 

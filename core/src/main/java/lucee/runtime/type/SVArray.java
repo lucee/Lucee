@@ -25,6 +25,7 @@ import lucee.runtime.dump.DumpData;
 import lucee.runtime.dump.DumpProperties;
 import lucee.runtime.dump.DumpTable;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.op.CastablePro;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.OpUtil;
 import lucee.runtime.op.date.DateCaster;
@@ -34,7 +35,7 @@ import lucee.runtime.type.ref.Reference;
 /**
  * Simple Value Array, an Array that can't cast to a Simple Value
  */
-public final class SVArray extends ArrayImpl implements Reference {
+public final class SVArray extends ArrayImpl implements Reference, CastablePro {
 
 	private int position = 1;
 
@@ -137,6 +138,18 @@ public final class SVArray extends ArrayImpl implements Reference {
 		Object value = get(position, null);
 		if (value == null) return defaultValue;
 		return Caster.toString(value, defaultValue);
+	}
+
+	@Override
+	public String castToString(PageContext pc) throws PageException {
+		return Caster.toString(pc, getE(pc, position));
+	}
+
+	@Override
+	public String castToString(PageContext pc, String defaultValue) {
+		Object value = get(pc, position, null);
+		if (value == null) return defaultValue;
+		return Caster.toString(pc, value, defaultValue);
 	}
 
 	@Override

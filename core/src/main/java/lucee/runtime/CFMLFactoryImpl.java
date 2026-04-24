@@ -268,7 +268,8 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 		PageContext parent = pc.getParentPageContext();
 
 		// when pc was registered with an other thread, we register with this thread when calling release
-		PageContext beforePC = ThreadLocalPageContext.get();
+		PageContext beforePC = ThreadLocalPageContext.get(false);
+
 		boolean tmpRegister = false;
 		if (beforePC != pc) {
 			if (parent != null) ThreadLocalPageContext.registerChild(pc);
@@ -581,14 +582,12 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 			try {
 				if (PageContextUtil.debug(pc)) data.setEL("debugger", pc.getDebugger().getDebuggingData(pc));
 			}
-			catch (PageException e2) {
-			}
+			catch (PageException e2) {}
 
 			try {
 				data.setEL(KeyConstants._id, Hash.call(pc, pc.getId() + ":" + pc.getStartTime()));
 			}
-			catch (PageException e1) {
-			}
+			catch (PageException e1) {}
 
 			data.setEL(KeyConstants._hash, cw.getHash());
 			data.setEL("contextId", cw.getIdentification().getId());
@@ -601,20 +600,17 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 			try {
 				scopes.setEL(KeyConstants._application, pc.applicationScope());
 			}
-			catch (PageException pe) {
-			}
+			catch (PageException pe) {}
 
 			try {
 				scopes.setEL(KeyConstants._session, pc.sessionScope());
 			}
-			catch (PageException pe) {
-			}
+			catch (PageException pe) {}
 
 			try {
 				scopes.setEL(KeyConstants._client, pc.clientScope());
 			}
-			catch (PageException pe) {
-			}
+			catch (PageException pe) {}
 			scopes.setEL(KeyConstants._cookie, pc.cookieScope());
 			scopes.setEL(KeyConstants._variables, pc.variablesScope());
 			if (!(pc.localScope() instanceof LocalNotSupportedScope)) {
@@ -652,8 +648,7 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 					break;
 				}
 			}
-			catch (PageException e1) {
-			}
+			catch (PageException e1) {}
 
 		}
 		// }

@@ -204,7 +204,7 @@ public final class Wddx extends TagImpl {
 	private Object wddx2cfml(String input) throws ConverterException, IOException, FactoryConfigurationError {
 		WDDXConverter converter = new WDDXConverter(pageContext.getTimeZone(), xmlConform, true);
 		converter.setTimeZone(pageContext.getTimeZone());
-		return converter.deserialize(input, validate);
+		return converter.deserialize(pageContext, input, validate);
 	}
 
 	private String cfml2js(Object input) throws ConverterException, ApplicationException {

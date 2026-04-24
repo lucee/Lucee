@@ -28,8 +28,8 @@ import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.Abort;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.FunctionException;
-import lucee.runtime.exp.RequestTimeoutException;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.exp.RequestTimeoutException;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.functions.other.CreatePageContext;
 import lucee.runtime.net.http.HttpServletResponseDummy;
@@ -296,7 +296,7 @@ public class InternalRequest implements Function {
 
 		return ThreadUtil.createPageContext(pc.getConfig(), os, pc.getHttpServletRequest().getServerName(), template, toQueryString(urls, charset),
 				CreatePageContext.toCookies(cookies), CreatePageContext.toPair(headers, true), body, CreatePageContext.toPair(new StructImpl(), true),
-				CreatePageContext.castValuesToString(new StructImpl()), true, -1, session, method);
+				CreatePageContext.castValuesToString(pc, new StructImpl()), true, -1, session, method);
 	}
 
 	private static String toQueryString(Struct urls, Charset charset) throws PageException {

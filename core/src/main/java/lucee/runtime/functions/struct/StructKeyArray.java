@@ -35,7 +35,7 @@ public final class StructKeyArray extends BIF {
 	private static final long serialVersionUID = -3177185567576262172L;
 
 	public static Array call(PageContext pc, lucee.runtime.type.Struct struct) {
-		return KeyImpl.toArray(CollectionUtil.keys(struct));
+		return KeyImpl.toArray(CollectionUtil.keys(pc, struct));
 	}
 
 	@Override

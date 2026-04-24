@@ -71,16 +71,16 @@ public final class EvaluateComponent extends BIF implements Function {
 		catch (Exception e) {
 			throw Caster.toPageException(e);
 		}
-		setInternalState(comp, sctThis, sctVariables);
+		setInternalState(pc, comp, sctThis, sctVariables);
 		return comp;
 	}
 
-	public static void setInternalState(Component comp, Struct sctThis, Struct sctVariables) throws PageException {
+	public static void setInternalState(PageContext pc, Component comp, Struct sctThis, Struct sctVariables) throws PageException {
 
 		// this
 		// delete this scope data members
 		ComponentSpecificAccess cw = ComponentSpecificAccess.toComponentSpecificAccess(Component.ACCESS_PRIVATE, comp);
-		Collection.Key[] cwKeys = CollectionUtil.keys(cw);
+		Collection.Key[] cwKeys = CollectionUtil.keys(pc, cw);
 		Object member;
 		for (int i = 0; i < cwKeys.length; i++) {
 			member = cw.get(cwKeys[i]);
@@ -102,7 +102,7 @@ public final class EvaluateComponent extends BIF implements Function {
 		ComponentScope scope = comp.getComponentScope();
 
 		// delete variables scope data members
-		Key[] sKeys = CollectionUtil.keys(scope);
+		Key[] sKeys = CollectionUtil.keys(pc, scope);
 		for (int i = 0; i < sKeys.length; i++) {
 			if (KeyConstants._this.equals(sKeys[i])) continue;
 			if (scope.get(sKeys[i]) instanceof UDF) continue;

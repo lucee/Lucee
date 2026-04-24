@@ -33,6 +33,7 @@ import lucee.runtime.Mapping;
 import lucee.runtime.MappingImpl;
 import lucee.runtime.MappingImpl.SerMapping;
 import lucee.runtime.Page;
+import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.PageSource;
 import lucee.runtime.PageSourceImpl;
@@ -290,12 +291,12 @@ public final class UDFPropertiesImpl extends UDFPropertiesBase {
 	}
 
 	@Override
-	public int getReturnFormat() {
+	public int getReturnFormat(PageContext pc) {
 		return returnFormat;
 	}
 
 	@Override
-	public String getReturnFormatAsString() {
+	public String getReturnFormatAsString(PageContext pc) {
 		return strReturnFormat;
 	}
 

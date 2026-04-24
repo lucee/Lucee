@@ -65,7 +65,8 @@ public abstract class UDFGSProperty extends MemberSupport implements UDFPlus {
 
 	public UDFGSProperty(Component component, String name, FunctionArgument[] arguments, short rtnType) {
 		super(Component.ACCESS_PUBLIC);
-		// LDEV-3335: Support null component for stateless flyweight UDFs (bytecode-generated static accessors)
+		// LDEV-3335: Support null component for stateless flyweight UDFs (bytecode-generated static
+		// accessors)
 		// For backwards compatibility with older bytecode, we still support non-null component
 		properties = UDFProperties(null, component != null ? component.getPageSource() : null, arguments, name, rtnType);
 		this.name = name;
@@ -228,7 +229,8 @@ public abstract class UDFGSProperty extends MemberSupport implements UDFPlus {
 
 	@Override
 	public Struct getMetaData(PageContext pc) throws PageException {
-		// LDEV-3335: Pass 'this' UDF instance so ComponentUtil can call getPageSource() with proper fallback
+		// LDEV-3335: Pass 'this' UDF instance so ComponentUtil can call getPageSource() with proper
+		// fallback
 		return ComponentUtil.getMetaData(pc, this, properties, null);
 	}
 
@@ -237,11 +239,11 @@ public abstract class UDFGSProperty extends MemberSupport implements UDFPlus {
 		throw new UDFCasterException(this, arg, value, index);
 	}
 
-	final static void validate(String validate, Struct validateParams, Object obj) throws PageException {
+	final static void validate(PageContext pc, String validate, Struct validateParams, Object obj) throws PageException {
 		if (StringUtil.isEmpty(validate, true)) return;
 		validate = validate.trim().toLowerCase();
 
-		if (!validate.equals("regex") && !Decision.isValid(validate, obj)) throw new ExpressionException(createMessage(validate, obj));
+		if (!validate.equals("regex") && !Decision.isValid(pc, validate, obj)) throw new ExpressionException(createMessage(validate, obj));
 
 		// range
 		if (validateParams == null) return;

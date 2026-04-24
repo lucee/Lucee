@@ -25,6 +25,7 @@ import lucee.runtime.PageContext;
 import lucee.runtime.dump.DumpData;
 import lucee.runtime.dump.DumpProperties;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.op.CastablePro;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Duplicator;
 import lucee.runtime.op.OpUtil;
@@ -35,7 +36,7 @@ import lucee.runtime.type.it.EntryIterator;
 import lucee.runtime.type.ref.Reference;
 import lucee.runtime.type.util.StructSupport;
 
-public final class SVStruct extends StructSupport implements Reference, Struct {
+public final class SVStruct extends StructSupport implements Reference, Struct, CastablePro {
 
 	private Collection.Key key;
 	private StructImpl parent = new StructImpl();
@@ -186,15 +187,25 @@ public final class SVStruct extends StructSupport implements Reference, Struct {
 
 	@Override
 	public String castToString() throws PageException {
-		return Caster.toString(get(key));
+		return castToString((PageContext) null);
 	}
 
 	@Override
 	public String castToString(String defaultValue) {
-		Object value = get(key, null);
+		return castToString((PageContext) null, defaultValue);
+	}
+
+	@Override
+	public String castToString(PageContext pc) throws PageException {
+		return Caster.toString(pc, get(pc, key));
+	}
+
+	@Override
+	public String castToString(PageContext pc, String defaultValue) {
+		Object value = get(pc, key, null);
 		if (value == null) return defaultValue;
 
-		return Caster.toString(value, defaultValue);
+		return Caster.toString(pc, value, defaultValue);
 	}
 
 	@Override

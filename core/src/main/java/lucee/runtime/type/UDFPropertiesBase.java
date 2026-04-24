@@ -21,8 +21,7 @@ public abstract class UDFPropertiesBase implements UDFProperties {
 	protected int startLine;
 	protected int endLine;
 
-	public UDFPropertiesBase() {
-	}
+	public UDFPropertiesBase() {}
 
 	public UDFPropertiesBase(Page page, PageSource ps, int startLine, int endLine) {
 		psOrg = ps;
@@ -103,9 +102,9 @@ public abstract class UDFPropertiesBase implements UDFProperties {
 
 	public abstract String getDescription();
 
-	public abstract int getReturnFormat();
+	public abstract int getReturnFormat(PageContext pc);
 
-	public abstract String getReturnFormatAsString();
+	public abstract String getReturnFormatAsString(PageContext pc);
 
 	public abstract int getIndex();
 

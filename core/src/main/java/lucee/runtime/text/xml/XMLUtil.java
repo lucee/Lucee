@@ -312,8 +312,8 @@ public final class XMLUtil {
 		return tf;
 	}
 
-	public static final Document parse(InputSource xml, InputSource validator, boolean isHtml) throws SAXException, IOException {
-		return parse(xml, validator, new XMLEntityResolverDefaultHandler(validator), isHtml);
+	public static final Document parse(PageContext pc, InputSource xml, InputSource validator, boolean isHtml) throws SAXException, IOException {
+		return parse(pc, xml, validator, new XMLEntityResolverDefaultHandler(validator), isHtml);
 	}
 
 	/**
@@ -327,11 +327,11 @@ public final class XMLUtil {
 	 * @throws SAXException
 	 * @throws IOException
 	 */
-	public static final Document parse(InputSource xml, Object validator, EntityResolver entRes, boolean isHtml) throws SAXException, IOException {
+	public static final Document parse(PageContext pc, InputSource xml, Object validator, EntityResolver entRes, boolean isHtml) throws SAXException, IOException {
 
 		if (!isHtml) {
-			DocumentBuilderFactory factory = (validator instanceof InputSource) ? newDocumentBuilderFactory((InputSource) validator, null, false)
-					: newDocumentBuilderFactory(null, (Struct) validator, false);
+			DocumentBuilderFactory factory = (validator instanceof InputSource) ? newDocumentBuilderFactory(pc, (InputSource) validator, null, false)
+					: newDocumentBuilderFactory(pc, null, (Struct) validator, false);
 
 			try {
 				DocumentBuilder builder = factory.newDocumentBuilder();
@@ -360,8 +360,8 @@ public final class XMLUtil {
 		}
 	}
 
-	private static DocumentBuilderFactory newDocumentBuilderFactory(InputSource validator) {
-		return newDocumentBuilderFactory(validator, null, false);
+	private static DocumentBuilderFactory newDocumentBuilderFactory(PageContext pc, InputSource validator) {
+		return newDocumentBuilderFactory(pc, validator, null, false);
 	}
 
 	/**
@@ -369,10 +369,10 @@ public final class XMLUtil {
 	 * @param xmlFeatures per-application feature overrides, or null
 	 * @param uncached force a fresh factory instance — use when the caller needs to mutate the factory
 	 */
-	private static DocumentBuilderFactory newDocumentBuilderFactory(InputSource validator, Struct xmlFeatures, boolean uncached) {
+	private static DocumentBuilderFactory newDocumentBuilderFactory(PageContext pc, InputSource validator, Struct xmlFeatures, boolean uncached) {
 		// Fast path: non-validating, no custom features — return cached factory
 		if (!uncached && validator == null && xmlFeatures == null) {
-			PageContext pc = ThreadLocalPageContext.get();
+			pc = ThreadLocalPageContext.get(pc);
 			Struct appFeatures = null;
 			if (pc != null) {
 				ApplicationContextSupport ac = ((ApplicationContextSupport) pc.getApplicationContext());
@@ -411,7 +411,7 @@ public final class XMLUtil {
 		Struct features = null;
 
 		// can be overriden per application
-		PageContext pc = ThreadLocalPageContext.get();
+		pc = ThreadLocalPageContext.get(pc);
 		if (pc != null || xmlFeatures != null) {
 			if (xmlFeatures != null) {
 				features = xmlFeatures;
@@ -1164,9 +1164,14 @@ public final class XMLUtil {
 	 * @throws ParserConfigurationException
 	 * @throws FactoryConfigurationError
 	 */
+
 	public static Document newDocument() throws ParserConfigurationException, FactoryConfigurationError {
+		return newDocument(null);
+	}
+
+	public static Document newDocument(PageContext pc) throws ParserConfigurationException, FactoryConfigurationError {
 		if (docBuilder == null) {
-			docBuilder = newDocumentBuilderFactory(null).newDocumentBuilder();
+			docBuilder = newDocumentBuilderFactory(pc, null).newDocumentBuilder();
 		}
 		return docBuilder.newDocument();
 	}
@@ -1381,8 +1386,8 @@ public final class XMLUtil {
 	 * @throws SAXException
 	 * @throws IOException
 	 */
-	public static String transform(InputSource xml, InputSource xsl) throws TransformerException, SAXException, IOException {
-		return transform(parse(xml, null, false), xsl, null);
+	public static String transform(PageContext pc, InputSource xml, InputSource xsl) throws TransformerException, SAXException, IOException {
+		return transform(parse(pc, xml, null, false), xsl, null);
 	}
 
 	/**
@@ -1396,8 +1401,8 @@ public final class XMLUtil {
 	 * @throws SAXException
 	 * @throws IOException
 	 */
-	public static String transform(InputSource xml, InputSource xsl, Map<String, Object> parameters) throws TransformerException, SAXException, IOException {
-		return transform(parse(xml, null, false), xsl, parameters);
+	public static String transform(PageContext pc, InputSource xml, InputSource xsl, Map<String, Object> parameters) throws TransformerException, SAXException, IOException {
+		return transform(parse(pc, xml, null, false), xsl, parameters);
 	}
 
 	/**
@@ -1590,10 +1595,10 @@ public final class XMLUtil {
 		else parent.appendChild(node);
 	}
 
-	public static Document createDocument(Resource res, boolean isHTML) throws IOException, XMLException {
+	public static Document createDocument(PageContext pc, Resource res, boolean isHTML) throws IOException, XMLException {
 		InputStream is = null;
 		try {
-			return parse(toInputSource(res, null), null, isHTML);
+			return parse(pc, toInputSource(res, null), null, isHTML);
 		}
 		catch (SAXException saxe) {
 			final String msg = saxe.getMessage();
@@ -1620,12 +1625,12 @@ public final class XMLUtil {
 		}
 	}
 
-	public static Document createDocument(String xml, boolean isHTML) throws SAXException, IOException {
-		return parse(toInputSource(xml), null, isHTML);
+	public static Document createDocument(PageContext pc, String xml, boolean isHTML) throws SAXException, IOException {
+		return parse(pc, toInputSource(xml), null, isHTML);
 	}
 
-	public static Document createDocument(InputStream is, boolean isHTML) throws SAXException, IOException {
-		return parse(new InputSource(is), null, isHTML);
+	public static Document createDocument(PageContext pc, InputStream is, boolean isHTML) throws SAXException, IOException {
+		return parse(pc, new InputSource(is), null, isHTML);
 	}
 
 	public static InputSource toInputSource(Object value) throws IOException {
