@@ -207,7 +207,7 @@ public class PhysicalClassLoaderFactory {
 		int evicted = 0;
 		for (Map.Entry<String, CachedLoader> entry: classLoaders.entrySet()) {
 			CachedLoader cached = entry.getValue();
-			if (cached.isIdle()) {
+			if (cached.isIdle() && !cached.loader.isRPC()) {
 				// atomic remove guards against a race where the entry was just refreshed
 				if (classLoaders.remove(entry.getKey(), cached)) {
 					PhysicalClassLoader.flush(cached.loader, config, false);

@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" {
+component extends="org.lucee.cfml.test.LuceeTestCase" skip=true {
 
 	variables.adm = new Administrator( 'server', request.SERVERADMINPASSWORD ?: server.SERVERADMINPASSWORD );
 

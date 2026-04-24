@@ -208,7 +208,8 @@ public final class ConfigUtil {
 
 		Resource rel = directory.getRealResource(path);
 		Resource abs = config.getResource(path);
-		boolean isChildOf = abs.getParentResource().getParentResource() != null && ResourceUtil.isChildOf(abs, directory);
+		Resource absParent = abs.getParentResource();
+		boolean isChildOf = absParent != null && absParent.getParentResource() != null && ResourceUtil.isChildOf(abs, directory);
 
 		for (short level: new short[] { ResourceUtil.LEVEL_PARENT_FILE, ResourceUtil.LEVEL_GRAND_PARENT_FILE, ResourceUtil.LEVEL_ALL }) {
 			if (!StringUtil.isEmpty(path, true)) {
