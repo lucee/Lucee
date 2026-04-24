@@ -214,6 +214,55 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 				expect( errors.len() ).toBe( 0, errors.len() > 0 ? errors[ 1 ] : "" );
 			} );
 
+			// Disabled by default — CyclicBarrier-synchronised stress test that reliably repros
+			// the first-access races in setCurrentRow() (map creation + creatorPid).
+			// Fresh query per iteration so creatorPid=0 / currRow=null every time.
+			// Enable locally to stress-test concurrency changes: remove skip=true
+			it( title="barrier stress: repro first-access race in setCurrentRow", skip=true, body=function() {
+				var iterations = 5000;
+				var threadCount = 32;
+				var failures = 0;
+				var firstFailure = "";
+
+				loop from=1 to=iterations index="iter" {
+					var q = queryNew( "id", "integer" );
+					loop times=10 {
+						var r = queryAddRow( q );
+						querySetCell( q, "id", r, r );
+					}
+
+					var barrier = createObject( "java", "java.util.concurrent.CyclicBarrier" ).init( javaCast( "int", threadCount ) );
+					var errors = [];
+
+					loop from=1 to=threadCount index="t" {
+						thread name="bstress_#iter#_#t#" query=q barrier=barrier errors=errors t=t {
+							try {
+								attributes.barrier.await();
+								var targetRow = ( attributes.t % attributes.query.recordcount ) + 1;
+								attributes.query.go( targetRow, 0 );
+								var actual = attributes.query.currentRow;
+								if ( actual != targetRow ) {
+									arrayAppend( attributes.errors, "thread #attributes.t#: expected #targetRow# got #actual#", true );
+								}
+							} catch ( any e ) {
+								arrayAppend( attributes.errors, "thread #attributes.t#: #e.message#", true );
+							}
+						}
+					}
+
+					loop from=1 to=threadCount index="t" {
+						thread action="join" name="bstress_#iter#_#t#" timeout=10000;
+					}
+
+					if ( errors.len() > 0 ) {
+						failures++;
+						if ( firstFailure == "" ) firstFailure = "iter #iter#: #errors[ 1 ]#";
+					}
+				}
+
+				expect( failures ).toBe( 0, "#failures#/#iterations# iterations failed. first: #firstFailure#" );
+			} );
+
 		} );
 	}
 

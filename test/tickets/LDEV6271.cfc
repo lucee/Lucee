@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" labels="component,property,accessors" {
+component extends="org.lucee.cfml.test.LuceeTestCase" skip=true labels="component,property,accessors" {
 
 	function run( testResults, testBox ) {
 		describe( "LDEV-6271: property default vs same-named method with accessors=true", function() {

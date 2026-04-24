@@ -138,7 +138,7 @@ public final class QueryImpl implements Query, Objects, QueryResult {
 	private SQL sql;
 	// single-threaded fast path: creator always uses currentRow field directly
 	// non-creator threads use currRow map, allocated on first non-creator write
-	private int creatorPid; // set on first write, effectively final after that
+	private volatile int creatorPid; // set on first write via DCL, effectively final after that
 	private int currentRow; // creator's row — 0 means "no position" (before first row)
 	private volatile ConcurrentHashMap<Integer, Integer> currRow; // null until non-creator access
 	private AtomicInteger recordcount = new AtomicInteger(0);
@@ -1085,34 +1085,31 @@ public final class QueryImpl implements Query, Objects, QueryResult {
 	}
 
 	private void setCurrentRow(PageContext pc, int row) {
-		int pid = pc.getId();
-		if (creatorPid == 0) {
-			creatorPid = pid;
-		}
-		if (pid == creatorPid) {
-			currentRow = row;
-			return;
-		}
-		// non-creator — use map
-		if (currRow == null) {
-			currRow = new ConcurrentHashMap<>();
-		}
-		currRow.put(pid, row);
+		setCurrentRow(pc.getId(), row);
 	}
 
 	private void setCurrentRow(int pid, int row) {
 		if (creatorPid == 0) {
-			creatorPid = pid;
+			synchronized (this) {
+				if (creatorPid == 0) creatorPid = pid;
+			}
 		}
 		if (pid == creatorPid) {
 			currentRow = row;
 			return;
 		}
-		// non-creator — use map
-		if (currRow == null) {
-			currRow = new ConcurrentHashMap<>();
+		// non-creator — use map (DCL ensures exactly one map, local var keeps put() on it)
+		ConcurrentHashMap<Integer, Integer> map = currRow;
+		if (map == null) {
+			synchronized (this) {
+				map = currRow;
+				if (map == null) {
+					map = new ConcurrentHashMap<>();
+					currRow = map;
+				}
+			}
 		}
-		currRow.put(pid, row);
+		map.put(pid, row);
 	}
 
 	@Override
