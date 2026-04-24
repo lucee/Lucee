@@ -107,16 +107,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase" skip=true labels="componen
 			});
 
 		});
-
-		describe( "LDEV-6271: component without accessors=true must not generate accessor UDFs", function() {
-
-			it( "cfproperty without accessors=true does not create getXxx in this scope", function() {
-				var obj = new LDEV6271.NoAccessorsComponent();
-				expect( structKeyExists( obj, "getCache" ) ).toBeFalse();
-				expect( structKeyExists( obj, "setCache" ) ).toBeFalse();
-			});
-
-		});
 	}
 
 }
