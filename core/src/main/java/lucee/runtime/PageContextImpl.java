@@ -1994,59 +1994,6 @@ public final class PageContextImpl extends PageContext {
 
 	}
 
-	/*
-	 * private void paramX(String type, String name, Object defaultValue, double min,double max, String
-	 * strPattern, int maxLength) throws PageException {
-	 * 
-	 * // check attributes type if(type==null)type="any"; else type=type.trim().toLowerCase();
-	 * 
-	 * // check attributes name if(StringUtil.isEmpty(name)) throw new
-	 * ExpressionException("The attribute name is required");
-	 * 
-	 * Object value=null; boolean isNew=false;
-	 * 
-	 * // get value value=VariableInterpreter.getVariableEL(this,name,NullSupportHelper.NULL(this));
-	 * if(NullSupportHelper.NULL(this)==value) { if(defaultValue==null) throw new
-	 * ExpressionException("The required parameter ["+name+"] was not provided."); value=defaultValue;
-	 * isNew=true; }
-	 * 
-	 * // cast and set value if(!"any".equals(type)) { // range if("range".equals(type)) { boolean
-	 * hasMin=Decision.isValid(min); boolean hasMax=Decision.isValid(max); double number =
-	 * Caster.toDoubleValue(value);
-	 * 
-	 * if(!hasMin && !hasMax) throw new
-	 * ExpressionException("you need to define one of the following attributes [min,max], when type is set to [range]"
-	 * );
-	 * 
-	 * if(hasMin && number<min) throw new ExpressionException("The number ["+Caster.toString(number)
-	 * +"] is to small, the number must be at least ["+Caster.toString(min)+"]");
-	 * 
-	 * if(hasMax && number>max) throw new ExpressionException("The number ["+Caster.toString(number)
-	 * +"] is to big, the number cannot be bigger than ["+Caster.toString(max)+"]");
-	 * 
-	 * setVariable(name,Caster.toDouble(number)); } // regex else if("regex".equals(type) ||
-	 * "regular_expression".equals(type)) { String str=Caster.toString(value);
-	 * 
-	 * if(strPattern==null) throw new ExpressionException("Missing attribute [pattern]");
-	 * 
-	 * if(!Perl5Util.matches(strPattern, str)) throw new
-	 * ExpressionException("The value ["+str+"] doesn't match the provided pattern ["+strPattern+"]");
-	 * setVariable(name,str); } else if ( type.equals( "int" ) || type.equals( "integer" ) ) {
-	 * 
-	 * if ( !Decision.isInteger( value ) ) throw new ExpressionException( "The value [" + value +
-	 * "] is not a valid integer" );
-	 * 
-	 * setVariable( name, value ); } else { if(!Decision.isCastableTo(type,value,true,true,maxLength)) {
-	 * if(maxLength>-1 && ("email".equalsIgnoreCase(type) || "url".equalsIgnoreCase(type) ||
-	 * "string".equalsIgnoreCase(type))) { StringBuilder msg=new
-	 * StringBuilder(CasterException.createMessage(value, type));
-	 * msg.append(" with a maximum length of "+maxLength+" characters"); throw new
-	 * CasterException(msg.toString()); } throw new CasterException(value,type); }
-	 * 
-	 * setVariable(name,value); //REALCAST setVariable(name,Caster.castTo(this,type,value,true)); } }
-	 * else if(isNew) setVariable(name,value); }
-	 */
-
 	@Override
 	public Object removeVariable(String var) throws PageException {
 		return VariableInterpreter.removeVariable(this, var);
