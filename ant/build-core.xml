@@ -18,17 +18,17 @@
   <property name="extURLMaven" value="https://repo1.maven.org/maven2/"/>
   <property name="extURLCDN" value="https://cdn.lucee.org/"/>
   
-  <property name="extMongo"     value="org.lucee:mongodb-extension:3.12.13.9"/>
+  <property name="extMongo"     value="org.lucee:mongodb-extension:3.12.13.10"/>
   <property name="extH2"        value="465E1E35-2425-4F4E-8B3FAB638BD7280A;version=2.1.214.0001L"/>
   <property name="extOracle"    value="org.lucee:oracle-jdbc-extension:23.26.0.0-ojdbc11"/>
-  <property name="extLucene"    value="org.lucee:lucene-search-extension:3.0.0.163"/>
-  <property name="extAxis"      value="org.lucee:axis-extension:1.5.0.5"/>
-  <property name="extChart"     value="org.lucee:chart-extension:2.0.0.2-SNAPSHOT"/>
-  <property name="extRedis"     value="org.lucee:redis-extension:4.0.1.0-SNAPSHOT"/>
-  <property name="extHibernate" value="org.lucee:hibernate-extension:5.4.29.27-BETA"/>
+  <property name="extLucene"    value="org.lucee:lucene-search-extension:3.0.0.171-SNAPSHOT"/>
+  <property name="extAxis"      value="org.lucee:axis-extension:1.5.0.6"/>
+  <property name="extChart"     value="org.lucee:chart-extension:2.0.0.3-SNAPSHOT"/>
+  <property name="extRedis"     value="org.lucee:redis-extension:4.0.1.1-SNAPSHOT"/>
+  <property name="extHibernate" value="org.lucee:hibernate-extension:5.6.15.13-SNAPSHOT"/>
   <property name="extEHCache"   value="org.lucee:ehcache-extension:2.10.0.38"/>
   <property name="extJtds"      value="org.lucee:jtds-jdbc-extension:1.3.1"/>
-  <property name="extFtp"      value="org.lucee:ftp-extension:1.0.0.1-BETA"/>
+  <property name="extFtp"      value="org.lucee:ftp-extension:1.0.0.5-RC"/>
 
 
   <property name="stableLoader" value="lucee-5.3.7.48"/>
