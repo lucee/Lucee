@@ -30,7 +30,7 @@ public final class StatmentClose implements CloserJob {
 	@Override
 	public void execute() throws PageException {
 		// TODO add virtual threads
-		new Thread(() -> {
+		Thread t = new Thread(() -> {
 			try {
 				DBUtil.closeEL(stat);
 				manager.releaseConnection(null, dc);
@@ -39,7 +39,9 @@ public final class StatmentClose implements CloserJob {
 			catch (Exception e) {
 				if (log != null) log.error("StatementClose", e);
 			}
-		}).start();
+		});
+		t.setDaemon(true);
+		t.start();
 	}
 
 }

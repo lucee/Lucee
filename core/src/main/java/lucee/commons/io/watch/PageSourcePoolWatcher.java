@@ -33,6 +33,7 @@ public final class PageSourcePoolWatcher {
 						thread.active(false);
 					}
 					thread = new PageSourcePoolWatcherThread();
+					thread.setDaemon(true);
 					thread.setPriority(Thread.MIN_PRIORITY);
 					thread.setName("PageSourcePoolWatcher");
 					thread.start();

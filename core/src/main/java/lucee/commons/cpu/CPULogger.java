@@ -32,6 +32,7 @@ public final class CPULogger {
 	public void startIt() {
 		if (logger == null || !logger.isAlive() || !logger.run) {
 			logger = new Logger(slotTime, threshold, listeners);
+			logger.setDaemon(true);
 			logger.start();
 		}
 	}
