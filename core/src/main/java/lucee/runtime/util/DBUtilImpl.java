@@ -30,7 +30,7 @@ import java.util.TimeZone;
 import lucee.commons.sql.SQLUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigWebPro;
+import lucee.runtime.config.ConfigServerPro;
 import lucee.runtime.db.DataSource;
 import lucee.runtime.db.DataSourceUtil;
 import lucee.runtime.db.DatasourceConnection;
@@ -174,8 +174,8 @@ public final class DBUtilImpl implements DBUtil {
 
 	@Override
 	public DatasourceConnection getDatasourceConnection(Config config, DataSource datasource, String user, String pass) throws PageException {
-		ConfigWebPro ci = (ConfigWebPro) ThreadLocalPageContext.getConfigServer(config);
-		return ci.getDatasourceConnectionPool().getDatasourceConnection(config, datasource, user, pass);
+		ConfigServerPro cs = ThreadLocalPageContext.getConfigServer(config);
+		return cs.getDatasourceConnectionPool().getDatasourceConnection(cs, datasource, user, pass);
 	}
 
 	@Override
