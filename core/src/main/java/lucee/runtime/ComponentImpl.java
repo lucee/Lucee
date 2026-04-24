@@ -2491,7 +2491,8 @@ public final class ComponentImpl extends StructSupport implements IteratorablePr
 		}
 
 		// LDEV-3335: Add static flyweight accessor UDFs to _data and scope
-		Map<Key, UDF> staticAccessorUDFs = top.cp != null ? top.cp.getStaticAccessorUDFs() : null;
+		// Only add accessors if the component has accessors enabled or is persistent
+		Map<Key, UDF> staticAccessorUDFs = top.cp != null && (top.properties.accessors || top.properties.persistent) ? top.cp.getStaticAccessorUDFs() : null;
 		if (staticAccessorUDFs != null && !staticAccessorUDFs.isEmpty()) {
 			Iterator<Map.Entry<Key, UDF>> it = staticAccessorUDFs.entrySet().iterator();
 			while (it.hasNext()) {
