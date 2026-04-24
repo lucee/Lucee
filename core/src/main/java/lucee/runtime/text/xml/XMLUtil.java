@@ -312,8 +312,18 @@ public final class XMLUtil {
 		return tf;
 	}
 
+	// used in extensions
+	public static final Document parse(InputSource xml, InputSource validator, boolean isHtml) throws SAXException, IOException {
+		return parse((PageContext) null, xml, validator, new XMLEntityResolverDefaultHandler(validator), isHtml);
+	}
+
 	public static final Document parse(PageContext pc, InputSource xml, InputSource validator, boolean isHtml) throws SAXException, IOException {
 		return parse(pc, xml, validator, new XMLEntityResolverDefaultHandler(validator), isHtml);
+	}
+
+	// used in extensions
+	public static final Document parse(InputSource xml, Object validator, EntityResolver entRes, boolean isHtml) throws SAXException, IOException {
+		return parse((PageContext) null, xml, validator, entRes, isHtml);
 	}
 
 	/**
