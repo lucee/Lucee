@@ -2074,7 +2074,16 @@ public final class ComponentImpl extends StructSupport implements IteratorablePr
 
 		_udfs.put(key, udf);
 		_data.put(key, udf);
-		if (useShadow) scope.setEL(key, udf);
+		if (useShadow) {
+			// LDEV-3335: Don't overwrite a property default value in the scope with a same-named UDF.
+			// Property defaults are now set during initProperties() (before the body runs),
+			// but body UDFs are hoisted and registered after — so the UDF would stomp the default.
+			// The UDF remains callable via _udfs; the property value stays in scope for variables access.
+			Object existing = scope.get(key, Null.NULL);
+			if (existing == Null.NULL || existing instanceof UDF) {
+				scope.setEL(key, udf);
+			}
+		}
 	}
 
 	@Override
