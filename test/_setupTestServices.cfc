@@ -178,7 +178,7 @@ component {
 	public void function loadServiceConfig() localmode=true {
 		systemOutput( "", true) ;
 		systemOutput("-------------- Test Services ------------", true );
-		services = ListToArray("oracle,MySQL,MSsql,postgres,h2,mongoDb,smtp,pop,imap,s3,s3_custom,s3_google,s3_backblaze,ftp,sftp,memcached,redis,ldap,httpbin");
+		services = ListToArray("oracle,MySQL,MSsql,postgres,h2,mongoDb,smtp,pop,imap,s3,s3_custom,s3_google,s3_backblaze,ftp,sftp,memcached,redis,ldap,httpbin,orm");
 		// can take a while, so we check them them in parallel
 
 		services.each( function( service ) localmode=true {
@@ -249,6 +249,9 @@ component {
 							break;
 						case "httpbin":
 							verify = verifyHttpbin(cfg);
+							break;
+						case "orm":
+							verify = "ORM engine: " & ( cfg.class ?: "installed" );
 							break;
 						default:
 							verify = verifyDatasource(cfg);
@@ -738,6 +741,17 @@ component {
 						port: 80
 					};
 				}
+				break;
+			case "orm":
+				try {
+					admin
+						action="getORMEngine"
+						type="server"
+						password="#server.SERVERADMINPASSWORD#"
+						returnVariable="local.ormEngine";
+					if ( structKeyExists( ormEngine, "class" ) && len( trim( ormEngine.class ) ) && ormEngine.class neq "lucee.runtime.orm.DummyORMEngine" )
+						return ormEngine;
+				} catch (e) {}
 				break;
 			default:
 				break;
