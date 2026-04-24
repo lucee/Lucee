@@ -88,6 +88,8 @@ public final class GetFunctionData implements Function {
 		// else if(inside.equals("introduced")) att.setIntroduced(value);
 
 		sct.set(KeyConstants._description, StringUtil.emptyIfNull(function.getDescription()).replaceAll("\\n\\s+", "\n"));
+		if (!StringUtil.isEmpty(function.getAlias(), true)) sct.set(KeyConstants._alias, function.getAlias());
+		if (!StringUtil.isEmpty(function.getAliasOf(), true)) sct.set("aliasOf", function.getAliasOf());
 		if (!ArrayUtil.isEmpty(function.getKeywords())) sct.set("keywords", Caster.toArray(function.getKeywords()));
 
 		sct.set(RETURN_TYPE, StringUtil.emptyIfNull(function.getReturnTypeAsString()));
