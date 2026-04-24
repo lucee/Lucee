@@ -476,28 +476,28 @@ public final class ConfigServerImpl implements ConfigServerPro {
 	private Resource tempDirectory;
 	private boolean tempDirectoryReload;
 
-	private static Prop<TimeSpan> metaClientTimeout = Prop.timespan().keys("clientTimeout").systemPropEnvVar("lucee.clienttimeout").defaultValue(new TimeSpanImpl(0, 0, 90, 0))
+	private static Prop<TimeSpan> metaClientTimeout = Prop.timespan().keys("clientTimeout").systemPropEnvVar("lucee.client.timeout").defaultValue(new TimeSpanImpl(0, 0, 90, 0))
 			.description("Sets the amount of time Lucee will keep the client scope alive.");
 	private TimeSpan clientTimeout;
 
-	private static Prop<TimeSpan> metaSessionTimeout = Prop.timespan().keys("sessionTimeout").systemPropEnvVar("lucee.sessiontimeout").defaultValue(new TimeSpanImpl(0, 0, 30, 0))
+	private static Prop<TimeSpan> metaSessionTimeout = Prop.timespan().keys("sessionTimeout").systemPropEnvVar("lucee.session.timeout").defaultValue(new TimeSpanImpl(0, 0, 30, 0))
 			.description("Sets the amount of time Lucee will keep the session scope alive. This behaviour can be overridden by the tag cfapplication.");
 	private TimeSpan sessionTimeout;
 
-	private static Prop<TimeSpan> metaApplicationTimeout = Prop.timespan().keys("applicationTimeout").systemPropEnvVar("lucee.applicationtimeout")
+	private static Prop<TimeSpan> metaApplicationTimeout = Prop.timespan().keys("applicationTimeout").systemPropEnvVar("lucee.application.timeout")
 			.defaultValue(new TimeSpanImpl(1, 0, 0, 0))
 			.description("Sets the amount of time Lucee will keep the application scope alive. This behaviour can be overridden by the tag cfapplication.");
 	private TimeSpan applicationTimeout;
 
-	private static Prop<TimeSpan> metaRequestTimeout = Prop.timespan().keys("requestTimeout").systemPropEnvVar("lucee.requesttimeout").defaultValue(new TimeSpanImpl(0, 0, 0, 50))
+	private static Prop<TimeSpan> metaRequestTimeout = Prop.timespan().keys("requestTimeout").systemPropEnvVar("lucee.request.timeout").defaultValue(new TimeSpanImpl(0, 0, 0, 50))
 			.description("Defines how Lucee handles long running requests.");
 	private TimeSpan requestTimeout;
 
-	private static Prop<Boolean> metaSessionManagement = Prop.bool().keys("sessionManagement").systemPropEnvVar("lucee.sessionmanagement").defaultValue(true)
+	private static Prop<Boolean> metaSessionManagement = Prop.bool().keys("sessionManagement").systemPropEnvVar("lucee.session.management").defaultValue(true)
 			.description("By default session management can be enabled. This behaviour can be overridden by the tag cfapplication.");
 	private Boolean sessionManagement;
 
-	private static Prop<Boolean> metaClientManagement = Prop.bool().keys("clientManagement").systemPropEnvVar("lucee.clientmanagement").defaultValue(false)
+	private static Prop<Boolean> metaClientManagement = Prop.bool().keys("clientManagement").systemPropEnvVar("lucee.client.management").defaultValue(false)
 			.description("By default client management can be enabled. This behaviour can be overridden by the tag cfapplication.");
 	private Boolean clientManagement;
 

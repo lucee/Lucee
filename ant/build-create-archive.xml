@@ -118,6 +118,11 @@
 	fileWrite( versionFile, defaultVersionFile );
 
 /************************************
+			   Config Schema
+************************************/
+	schema=serializeJson(var:configSchema(true),compact:false);
+	fileWrite("#temp#/config-schema.json",schema);
+/************************************
 			   LUCEE/DOC
 ************************************/
 	systemOutput("#DateTimeFormat(now(),'yyyy-mm-dd HH:nn:ss')# Generating archive #temp#/lucee-doc.lar ", true);

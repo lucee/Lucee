@@ -3,7 +3,7 @@
 
   <groupId>org.lucee</groupId>
   <artifactId>lucee</artifactId>
-  <version>7.2.0.57-ALPHA</version>
+  <version>8.0.0.57-ALPHA</version>
   <packaging>jar</packaging>
 
   <name>Lucee Loader Build</name>
@@ -316,6 +316,23 @@
                           </artifacts>
                       </configuration>
                   </execution>
+
+                  <execution>
+                    <id>attach-artifact-config-schema</id>
+                    <phase>package</phase>
+                    <goals>
+                        <goal>attach-artifact</goal>
+                    </goals>
+                    <configuration>
+                        <artifacts>
+                            <artifact>
+                                <file>${project.build.directory}/config-schema.json</file>
+                                <type>json</type>
+                                <classifier>config-schema</classifier>
+                            </artifact>
+                        </artifacts>
+                    </configuration>
+                </execution>
               </executions>
           </plugin>
 
