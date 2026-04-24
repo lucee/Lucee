@@ -3721,7 +3721,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	private void doGetCacheConnections() throws PageException {
 		Map conns = config.getCacheConnections();
 		Iterator it = conns.entrySet().iterator();
-		lucee.runtime.type.Query qry = new QueryImpl(new String[] { "class", "bundleName", "bundleVersion", "name", "custom", "default", "readOnly", "storage" }, 0, "connections");
+		lucee.runtime.type.Query qry = new QueryImpl(new String[] { "class", "bundleName", "bundleVersion", "maven", "name", "custom", "default", "readOnly", "storage" }, 0, "connections");
 		Map.Entry entry;
 		CacheConnection cc;
 		CacheConnection defObj = config.getCacheDefaultConnection(ConfigPro.CACHE_TYPE_OBJECT);
@@ -3755,6 +3755,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			qry.setAtEL(KeyConstants._class, row, cc.getClassDefinition().getClassName());
 			qry.setAtEL(KeyConstants._bundleName, row, cc.getClassDefinition().getName());
 			qry.setAtEL(KeyConstants._bundleVersion, row, cc.getClassDefinition().getVersionAsString());
+			qry.setAtEL(KeyImpl.init("maven"), row, cc.getClassDefinition() instanceof ClassDefinitionImpl ? ((ClassDefinitionImpl) cc.getClassDefinition()).getMavenRaw() : null);
 			qry.setAtEL(KeyConstants._name, row, cc.getName());
 			qry.setAtEL(KeyConstants._custom, row, cc.getCustom());
 			qry.setAtEL(KeyConstants._default, row, def);
