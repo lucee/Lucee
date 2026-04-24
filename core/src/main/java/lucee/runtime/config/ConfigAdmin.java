@@ -70,7 +70,6 @@ import lucee.commons.io.res.type.file.FileResourceProvider;
 import lucee.commons.io.res.util.FileWrapper;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ClassException;
-import lucee.commons.lang.ClassUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.net.HTTPUtil;
@@ -1793,7 +1792,9 @@ public final class ConfigAdmin {
 		// check if label exists
 		if (StringUtil.isEmpty(label)) throw new ApplicationException("missing label for jdbc driver [" + cd.getClassName() + "]");
 		// check if it is a bundle
-		if (!cd.isBundle()) throw new ApplicationException("missing bundle name for [" + label + "]");
+		if (!cd.isBundle() && !(cd instanceof ClassDefinitionImpl && ((ClassDefinitionImpl) cd).isMaven())) {
+			throw new ApplicationException("missing OSGi bundle or Maven coordinates for [" + label + "]");
+		}
 
 		Struct children = ConfigUtil.getAsStruct("jdbcDrivers", root);
 		Key[] keys = children.keys();
@@ -1839,7 +1840,9 @@ public final class ConfigAdmin {
 	private void _updateStartupHook(ClassDefinitionImpl cd) throws PageException {
 		unloadStartupIfNecessary(config, cd, false);
 		// check if it is a bundle or maven
-		if (!cd.isBundle() && !cd.isMaven()) throw new ApplicationException("Cannot register extension startup hook [" + cd + "]: missing bundle name or maven coordinates");
+		if (!cd.isBundle() && !cd.isMaven()) {
+			throw new ApplicationException("Cannot register extension startup hook [" + cd + "]: missing bundle name or maven coordinates");
+		}
 
 		Array children = ConfigUtil.getAsArray("startupHooks", root);
 
@@ -2090,15 +2093,11 @@ public final class ConfigAdmin {
 		// following names are reserved words [object,template]");
 
 		try {
-			Class clazz;
-			if (cd.getClassName() != null && cd.getClassName().endsWith(".EHCacheLite"))
-				clazz = ClassUtil.loadClass(config.getClassLoader(), "org.lucee.extension.cache.eh.EHCache");
-			else clazz = ClassUtil.loadClass(config.getClassLoader(), cd.getClassName());
-
+			Class clazz = cd.getClazz();
 			if (!Reflector.isInstaneOf(clazz, Cache.class, false)) throw new ExpressionException("class [" + clazz.getName() + "] is not of type [" + Cache.class.getName() + "]");
 		}
-		catch (ClassException e) {
-			throw new ExpressionException(e.getMessage());
+		catch (ClassException | BundleException e) {
+			throw Caster.toPageException(e);
 		}
 
 		Struct parent = _getRootElement("cache");
@@ -4807,7 +4806,7 @@ public final class ConfigAdmin {
 				while (itl.hasNext()) {
 					map = itl.next();
 					ClassDefinition cd = ClassDefinitionImpl.toClassDefinition(map, false, config.getIdentification());
-					if (cd != null && cd.isBundle()) {
+					if (cd != null && (cd.isBundle() || (cd instanceof ClassDefinitionImpl && ((ClassDefinitionImpl) cd).isMaven()))) {
 						_updateCache(cd);
 						filter.add("resetCacheDefinitions");
 						filter.add("resetCacheAll");

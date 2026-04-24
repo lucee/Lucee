@@ -73,13 +73,13 @@ public class DataSourceFactory implements PropFactory<DataSource> {
 							}
 						}
 						// we only have a class
-						else if (!cd.isBundle()) {
+						else if (!cd.isBundle() && !((ClassDefinitionImpl) cd).isMaven()) {
 							jdbc = config.getJDBCDriverByClassName(cd.getClassName(), null);
 							if (jdbc != null && jdbc.cd != null && jdbc.cd.isBundle()) cd = jdbc.cd;
 						}
 
 						// still no bundle!
-						if (!cd.isBundle()) cd = patchJDBCClass(config, cd);
+						if (!cd.isBundle() && !((ClassDefinitionImpl) cd).isMaven()) cd = patchJDBCClass(config, cd);
 						int idle = Caster.toIntValue(ConfigFactoryImpl.getAttr(config, dataSource, "idleTimeout"), -1);
 						if (idle == -1) idle = Caster.toIntValue(ConfigFactoryImpl.getAttr(config, dataSource, "connectionTimeout"), -1);
 						int defLive = 15;

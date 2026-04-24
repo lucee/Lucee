@@ -972,6 +972,11 @@ public final class ModernApplicationContext extends ApplicationContextSupport {
 		// class definition
 		ClassDefinition cd = ClassDefinitionImpl.toClassDefinitionImpl(data, null, true, config.getIdentification());
 
+		if (!cd.isBundle() && !((ClassDefinitionImpl) cd).isMaven()) {
+			ClassDefinition _cd = ((ConfigPro) config).getCacheDefinition(cd.getClassName());
+			if (_cd != null) cd = _cd;
+		}
+
 		CacheConnectionImpl cc = new CacheConnectionImpl(config, name, cd, Caster.toStruct(data.get(KeyConstants._custom, null), null),
 				Caster.toBooleanValue(data.get(KeyConstants._readonly, null), false), Caster.toBooleanValue(data.get(KeyConstants._storage, null), false));
 		String id = cc.id();

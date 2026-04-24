@@ -35,7 +35,7 @@ public class CacheConnectionFactory implements PropFactory<CacheConnection> {
 		try {
 
 			cd = ConfigFactoryImpl.getClassDefinition(config, data, "", config.getIdentification());
-			if (!cd.isBundle()) {
+			if (!cd.isBundle() && !((ClassDefinitionImpl) cd).isMaven()) {
 				ClassDefinition _cd = config.getCacheDefinition(cd.getClassName());
 				if (_cd != null) cd = _cd;
 			}
