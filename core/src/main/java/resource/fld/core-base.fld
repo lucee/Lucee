@@ -2658,6 +2658,33 @@ The returned AST uses **neutral, language-agnostic node types** following ESTree
 	    </return>
 	</function>
 	
+	<!-- ConfigSchema -->
+	<function>
+	    <name>ConfigSchema</name>
+	    <class>lucee.runtime.functions.system.ConfigSchema</class>
+	    <description>
+	        Returns the JSON Schema (Draft 2020-12) describing all supported Lucee configuration 
+	        properties (.CFConfig.json), including types, defaults, and allowed values. Useful for 
+	        validation and IDE autocompletion.
+	    </description>
+	    <introduced>7.2.0.56</introduced>
+	    <argument>
+	        <name>strict</name>
+	        <type>boolean</type>
+	        <required>No</required>
+	        <default>true</default>
+	        <description>
+	            true: canonical Lucee property names only — use when creating or editing a config 
+	            (e.g. in an IDE). false: also includes compatibility aliases for other CFML engines 
+	            (e.g. ACF's "componentPaths" alongside Lucee's "componentMappings") — use when 
+	            reading/validating an existing config that may originate from another engine.
+	        </description>
+	    </argument>
+	    <return>
+	        <type>struct</type>
+	    </return>
+	</function>
+	
 	
 	<!-- ConfigTranslate -->
 	<function>
