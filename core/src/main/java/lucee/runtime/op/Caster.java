@@ -5003,7 +5003,7 @@ public final class Caster {
 			return toXML(((ObjectWrap) value).getEmbededObject());
 		}
 		try {
-			return XMLCaster.toXMLStruct(XMLUtil.parse(null, XMLUtil.toInputSource(null, value), null, false), false);
+			return XMLCaster.toXMLStruct(XMLUtil.parse(XMLUtil.toInputSource(null, value), null, false), false);
 		}
 		catch (Exception outer) {
 			throw Caster.toPageException(outer);
