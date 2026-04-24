@@ -7425,6 +7425,7 @@ if this attribute is not provided all types are returned.</description>
 	<function>
 		<name>GetSystemPropOrEnvVar</name>
 		<introduced>6.2.1.23</introduced>
+		<status>deprecated</status>
 		<class>lucee.runtime.functions.system.GetSystemPropOrEnvVar</class>
 		<description>Return the list of supported system properties or env vars Lucee supports.</description>
 		<argument>
@@ -7436,6 +7437,22 @@ if this attribute is not provided all types are returned.</description>
 		<return>
 			<type>any</type>
 		</return>
+	</function>
+	
+	<!-- GetSystemPropOrEnvVarInfo -->
+	<function>
+	    <name>GetSystemPropOrEnvVarInfo</name>
+	    <introduced>7.2.0.57</introduced>
+	    <class>lucee.runtime.functions.system.GetSystemPropOrEnvVarInfo</class>
+	    <description>
+	        Returns a query of all system settings supported by Lucee, listing for each entry 
+	        the accepted system property names (-D flags), their equivalent environment variable 
+	        names, and a description of what the setting controls. Useful for discovering how to 
+	        configure Lucee from outside the application at startup.
+	    </description>
+	    <return>
+	        <type>query</type>
+	    </return>
 	</function>
 
 	<!-- getSystemTotalMemory -->

@@ -326,7 +326,7 @@ public final class ConfigServerImpl implements ConfigServerPro {
 	//////////////////////////
 	//////////////////////////
 
-	private static Prop<Boolean> metaOnlyFirstMatch = Prop.bool().keys("onlyFirstMatch").systemPropEnvVar("lucee.mapping.first").defaultValue(true);
+	private static Prop<Boolean> metaOnlyFirstMatch = Prop.bool().keys("onlyFirstMatch").systemPropEnvVar("lucee.mapping.first").defaultValue(true).hidden();
 	private static Boolean onlyFirstMatch;
 
 	private static Prop<CacheConnection> metaCacheConnection = Prop.custom(CacheConnectionFactory.getInstance(), Prop.TYPE_MAP).keys("caches").lowerCaseKeys().lowerCaseKeys()
@@ -334,44 +334,48 @@ public final class ConfigServerImpl implements ConfigServerPro {
 					+ " Supports OSGi/Maven driver loading and specific role assignments like 'storage' or 'default' query caching.");
 	private Map<String, CacheConnection> caches;
 
-	private static String depText = "set instead 'default' with the cache connection itself";
 	private static Prop<String> metaCacheDefaultConnectionNamesResource = Prop.str().keys("defaultResource", "cacheDefaultResource").parent("cache").deprecated()
-			.description(depText);
+			.description("default resource cache used");
 	private boolean initCacheDefaultResource;
 	private String cacheDefaultResource;
 
 	private static Prop<String> metaCacheDefaultConnectionNamesFunction = Prop.str().keys("defaultFunction", "cacheDefaultFunction").parent("cache").deprecated()
-			.description(depText);
+			.description("default function cache used");
 	private boolean initCacheDefaultFunction;
 	private String cacheDefaultFunction;
 
-	private static Prop<String> metaCacheDefaultConnectionNamesInclude = Prop.str().keys("defaultInclude", "cacheDefaultInclude").parent("cache").deprecated().description(depText);
+	private static Prop<String> metaCacheDefaultConnectionNamesInclude = Prop.str().keys("defaultInclude", "cacheDefaultInclude").parent("cache").deprecated()
+			.description("default include cache used");
 	private boolean initCacheDefaultInclude;
 	private String cacheDefaultInclude;
 
-	private static Prop<String> metaCacheDefaultConnectionNamesQuery = Prop.str().keys("defaultQuery", "cacheDefaultQuery").parent("cache").deprecated().description(depText);
+	private static Prop<String> metaCacheDefaultConnectionNamesQuery = Prop.str().keys("defaultQuery", "cacheDefaultQuery").parent("cache").deprecated()
+			.description("default query cache used");
 	private boolean initCacheDefaultQuery;
 	private String cacheDefaultQuery;
 
 	private static Prop<String> metaCacheDefaultConnectionNamesTemplate = Prop.str().keys("defaultTemplate", "cacheDefaultTemplate").parent("cache").deprecated()
-			.description(depText);
+			.description("default template cache used");
 	private boolean initCacheDefaultTemplate;
 	private String cacheDefaultTemplate;
 
-	private static Prop<String> metaCacheDefaultConnectionNamesObject = Prop.str().keys("defaultObject", "cacheDefaultObject").parent("cache").deprecated().description(depText);
+	private static Prop<String> metaCacheDefaultConnectionNamesObject = Prop.str().keys("defaultObject", "cacheDefaultObject").parent("cache").deprecated()
+			.description("default object cache used");
 	private boolean initCacheDefaultObject;
 	private String cacheDefaultObject;
 
-	private static Prop<String> metaCacheDefaultConnectionNamesFile = Prop.str().keys("defaultFile", "cacheDefaultFile").parent("cache").deprecated().description(depText);
+	private static Prop<String> metaCacheDefaultConnectionNamesFile = Prop.str().keys("defaultFile", "cacheDefaultFile").parent("cache").deprecated()
+			.description("default file cache used");
 	private boolean initCacheDefaultFile;
 	private String cacheDefaultFile;
 
-	private static Prop<String> metaCacheDefaultConnectionNamesHTTP = Prop.str().keys("defaultHTTP", "cacheDefaultHTTP").parent("cache").deprecated().description(depText);
+	private static Prop<String> metaCacheDefaultConnectionNamesHTTP = Prop.str().keys("defaultHTTP", "cacheDefaultHTTP").parent("cache").deprecated()
+			.description("default http cache used");
 	private boolean initCacheDefaultHTTP;
 	private String cacheDefaultHTTP;
 
 	private static Prop<String> metaCacheDefaultConnectionNamesWebservice = Prop.str().keys("defaultWebservice", "cacheDefaultWebservice").parent("cache").deprecated()
-			.description(depText);
+			.description("default webservice cache used");
 	private boolean initCacheDefaultWebservice;
 	private String cacheDefaultWebservice;
 
@@ -402,8 +406,8 @@ public final class ConfigServerImpl implements ConfigServerPro {
 					"When a variable has no scope defined (Example: #myVar# instead of #variables.myVar#), Lucee will also search available resultsets (CFML Standard) or not");
 	private Boolean cascadeToResultset;
 
-	private static Prop<Boolean> metaLimitEvaluation = Prop.bool().keys("limitEvaluation")
-			.systemPropEnvVar("lucee.security.limitEvaluation", "lucee.security.isdefined", "lucee.isdefined.limit").defaultValue(false).parent("security").description(
+	private static Prop<Boolean> metaLimitEvaluation = Prop.bool().keys("limitEvaluation").systemPropEnvVar("lucee.security.isdefined", "lucee.isdefined.limit").defaultValue(false)
+			.parent("security").description(
 					"If enable you cannot use expression within \"[ ]\" like this susi[getVariableName()] . This affects the following functions [IsDefined, structGet, empty] and the following tags [savecontent attribute \"variable\"].");
 	private Boolean securityLimitEvaluation;
 
@@ -412,7 +416,8 @@ public final class ConfigServerImpl implements ConfigServerPro {
 	private Map<String, LoggerAndSourceData> loggers;
 	private static LogEngine logEngine;
 
-	private static Prop<Boolean> metaDebugLogOutput = Prop.bool().keys("debuggingLogOutput").defaultValue(false);
+	private static Prop<Boolean> metaDebugLogOutput = Prop.bool().keys("debuggingLogOutput").defaultValue(false).description(
+			"When enabled, Lucee intercepts all response output and records each text fragment together with the source template and line number that produced it. The data is accessible via the debugger as a query (columns: text, template, line). Has no effect when debugging is disabled.");
 	private Boolean debuggingLogOutput;
 
 	// debug options
@@ -545,7 +550,7 @@ public final class ConfigServerImpl implements ConfigServerPro {
 			.description("mailserver to use for sending mails.");
 	private Server[] mailServers;
 
-	private static Prop<String> metaExtensionProviders = Prop.str(Prop.TYPE_LIST).keys("extensionProviders").systemPropEnvVar("lucee.extensionProviders")
+	private static Prop<String> metaExtensionProviders = Prop.str(Prop.TYPE_LIST).keys("extensionProviders")
 			.description("Maven groupIds used to discover Lucee extensions. "
 					+ "Lucee scans each groupId for artifacts whose artifactId ends with '-extension' (e.g. 'yaml-extension'). " + "Defaults to 'org.lucee'. "
 					+ "Example: [\"org.lucee\", \"com.rasia\"]");
@@ -578,7 +583,7 @@ public final class ConfigServerImpl implements ConfigServerPro {
 	private Locale locale;
 
 	private static Prop<Boolean> metaPsq = Prop.bool().keys("preserveSingleQuote", "datasourcePreserveSingleQuotes").defaultValue(false)
-			.description("Preserve single quotes (\") in the SQL defined with the tag cfquery");
+			.description("Preserve single quotes (') in SQL defined with the cfquery tag.");
 	private Boolean preserveSingleQuote;
 
 	private static Prop<String> metaErrorTemplate500 = Prop.str().keys("errorGeneralTemplate", "generalErrorTemplate").access(SecurityManager.TYPE_DEBUGGING)
@@ -592,11 +597,11 @@ public final class ConfigServerImpl implements ConfigServerPro {
 	private String errorMissingTemplate;
 
 	private static Prop<Password> metaPassword = Prop.custom(PasswordFactory.getInstance()).keys("hspw", "adminhspw", "adminpw", "pw", "adminpassword", "password")
-			.systemPropEnvVar("lucee.admin.password");
+			.systemPropEnvVar("lucee.admin.password").description("password used by Lucee to access the configuration, can be clear text or encrypted");
 	protected Password hspw;
 	private boolean initPassword = true;
 
-	private static Prop<String> metaSalt = Prop.str().keys("salt", "adminSalt").systemPropEnvVar("lucee.admin.salt");
+	private static Prop<String> metaSalt = Prop.str().keys("salt", "adminSalt").systemPropEnvVar("lucee.admin.salt").description("salt used for password encryption");
 	private String salt;
 
 	private static Prop<Mapping> metaMappings = Prop.custom(MappingFactory.getInstance(MappingFactory.TYPE_REGULAR), Prop.TYPE_MAP).keys("mappings", "CFMappings").lowerCaseKeys()
@@ -621,7 +626,7 @@ public final class ConfigServerImpl implements ConfigServerPro {
 	private Mapping[] componentMappings;
 
 	private static Prop<CFXTagClass> metaCfxTagPool = Prop.custom(JavaCFXTagClassFactory.getInstance(), Prop.TYPE_MAP).keys("cfx").access(SecurityManager.TYPE_CFX_SETTING)
-			.deprecated().lowerCaseKeys();
+			.deprecated().lowerCaseKeys().hidden();
 	private CFXTagPool cfx;
 
 	private static Prop<Boolean> metaRestList = Prop.bool().keys("list").parent("rest").defaultValue(false).description("List Services when \"/rest/\" is called");
@@ -655,7 +660,7 @@ public final class ConfigServerImpl implements ConfigServerPro {
 	private static Prop<Short> metaClientType = Prop.shor().keys("clientType").defaultValue(Config.CLIENT_SCOPE_TYPE_COOKIE)
 			.choices(new Choice<Short>(Config.CLIENT_SCOPE_TYPE_FILE, "file"), new Choice<Short>(Config.CLIENT_SCOPE_TYPE_DB, "db", "database"),
 					new Choice<Short>(Config.CLIENT_SCOPE_TYPE_COOKIE, "cookie"))
-			.deprecated();
+			.deprecated().description("defines how Lucee stores the client scope, default is cookie, possible values are: cookie,file,db");
 	private Short clientType;
 
 	private static Prop<String> metaComponentDumpTemplate = Prop.str().keys("componentDumpTemplate").defaultValue("/lucee/component-dump.cfm")
@@ -750,32 +755,28 @@ public final class ConfigServerImpl implements ConfigServerPro {
 			.description("Determines which scopes are sanitized for XSS protection, accepting 'all', 'none', or a comma-separated list of scopes like 'url,form,cookie,cgi'.");
 	private Integer scriptProtect;
 
-	private static Prop<Boolean> metaProxyEnabled = Prop.bool().keys("enabled").systemPropEnvVar("lucee.proxy.enabled").access(SecurityManager.TYPE_SETTING).parent("proxy")
-			.defaultValue(true).description("enable proxy");
+	private static Prop<Boolean> metaProxyEnabled = Prop.bool().keys("enabled").access(SecurityManager.TYPE_SETTING).parent("proxy").defaultValue(true).description("enable proxy");
 	private Boolean proxyEnabled;
 
-	private static Prop<String> metaProxyServer = Prop.str().keys("server", "host", "updateProxyHost").systemPropEnvVar("lucee.proxy.host", "lucee.proxy.server")
-			.access(SecurityManager.TYPE_SETTING).parent("proxy").description("proxy host");
+	private static Prop<String> metaProxyServer = Prop.str().keys("server", "host", "updateProxyHost").access(SecurityManager.TYPE_SETTING).parent("proxy")
+			.description("proxy host");
 	private String proxyServer;
 
-	private static Prop<String> metaProxyUsername = Prop.str().keys("username", "user", "updateProxyUsername").systemPropEnvVar("lucee.proxy.username")
-			.access(SecurityManager.TYPE_SETTING).parent("proxy").description("proxy username");
+	private static Prop<String> metaProxyUsername = Prop.str().keys("username", "user", "updateProxyUsername").access(SecurityManager.TYPE_SETTING).parent("proxy")
+			.description("proxy username");
 	private String proxyUsername;
 
-	private static Prop<String> metaProxyPassword = Prop.str().keys("password", "pass", "updateProxyPassword").systemPropEnvVar("lucee.proxy.password")
-			.access(SecurityManager.TYPE_SETTING).parent("proxy").description("proxy password");
+	private static Prop<String> metaProxyPassword = Prop.str().keys("password", "pass", "updateProxyPassword").access(SecurityManager.TYPE_SETTING).parent("proxy")
+			.description("proxy password");
 	private String proxyPassword;
 
-	private static Prop<Integer> metaProxyPort = Prop.integer().keys("port", "updateProxyPort").systemPropEnvVar("lucee.proxy.port").access(SecurityManager.TYPE_SETTING)
-			.parent("proxy").description("proxy port");
+	private static Prop<Integer> metaProxyPort = Prop.integer().keys("port", "updateProxyPort").access(SecurityManager.TYPE_SETTING).parent("proxy").description("proxy port");
 	private Integer proxyPort;
 
-	private static Prop<String> metaProxyIncludes = Prop.str().keys("includes").systemPropEnvVar("lucee.proxy.includes").access(SecurityManager.TYPE_SETTING).parent("proxy")
-			.description("proxy includes");
+	private static Prop<String> metaProxyIncludes = Prop.str().keys("includes").access(SecurityManager.TYPE_SETTING).parent("proxy").description("proxy includes");
 	private String proxyIncludes;
 
-	private static Prop<String> metaProxyExcludes = Prop.str().keys("excludes").systemPropEnvVar("lucee.proxy.excludes").access(SecurityManager.TYPE_SETTING).parent("proxy")
-			.description("proxy excludes");
+	private static Prop<String> metaProxyExcludes = Prop.str().keys("excludes").access(SecurityManager.TYPE_SETTING).parent("proxy").description("proxy excludes");
 	private String proxyExcludes;
 	private ProxyData proxy = null;
 
@@ -787,8 +788,7 @@ public final class ConfigServerImpl implements ConfigServerPro {
 			.description("Defines the maximum allowable disk space for the client scope storage directory, accepting values with unit suffixes like kb, mb, gb, or tb.");
 	private Long clientDirectoryMaxSize;
 
-	private static Prop<String> metaCacheDir = Prop.str().keys("cacheDirectory").defaultValue("100mb")
-			.description("Defines the maximum allowable disk space for the client scope storage directory, accepting values with unit suffixes like kb, mb, gb, or tb.");
+	private static Prop<String> metaCacheDir = Prop.str().keys("cacheDirectory").defaultValue("100mb").description("Defines the directory used by Lucee for file-based caching.");
 	private Resource cacheDirectory;
 
 	private static Prop<String> metaCacheDirSize = Prop.str().keys("cacheDirectoryMaxSize").systemPropEnvVar("lucee.cache.directory.max.size").defaultValue("100mb")
@@ -834,7 +834,7 @@ public final class ConfigServerImpl implements ConfigServerPro {
 			.description("look for custom tags locally.");
 	private Boolean customTagLocalSearch;
 
-	private static Prop<Struct> metaConstants = Prop.sct().keys("constants").defaultValue(new StructImpl());
+	private static Prop<Struct> metaConstants = Prop.sct().keys("constants").defaultValue(new StructImpl()).hidden();
 	private Struct constants = null;
 
 	private static Prop<Boolean> metaAllowURLRequestTimeout = Prop.bool().keys("requestTimeoutInURL", "allowUrlRequesttimeout").defaultValue(false)
@@ -856,7 +856,8 @@ public final class ConfigServerImpl implements ConfigServerPro {
 					"Controls how unscoped variable assignments behave inside functions. The 'always' mode is recommended for modern applications to ensure better encapsulation and thread safety.");
 	private Integer localScopeMode;
 
-	private static Prop<Boolean> metaAllowRealPath = Prop.bool().keys("allowRealpath").parent("fileSystem").defaultValue(true);
+	private static Prop<Boolean> metaAllowRealPath = Prop.bool().keys("allowRealpath").parent("fileSystem").defaultValue(true)
+			.description("If true, Lucee resolves file paths used in code against the current context.");
 	private Boolean fileSystemAllowRealpath;
 
 	private static Prop<String> metaCustomTagExtensions = Prop.str().keys("customTagExtensions").defaultValue(ListUtil.arrayToList(Constants.getExtensions(), ","))
@@ -867,13 +868,13 @@ public final class ConfigServerImpl implements ConfigServerPro {
 			.defaultValue(true).description("check the types defined with function arguments and return type");
 	private Boolean typeChecking;
 
-	private static Prop<String> metaDapSecret = Prop.str().keys("secret").parent("dap").systemPropEnvVar("lucee.dap.secret")
+	private static Prop<String> metaDapSecret = Prop.str().keys("secret").parent("dap")
 			.description("Security token used to authenticate the connection between the IDE and Lucee's Debug Adapter Protocol (DAP) server. "
 					+ "This ensures that only authorized clients can attach to the process for step debugging,access variable scopes, or trigger programmatic breakpoints.");
 	private String dapSecret;
 	private boolean initDapSecret = true;
 
-	private static Prop<Boolean> metaDapBreakpoint = Prop.bool().keys("breakpoint").parent("dap").systemPropEnvVar("lucee.dap.breakpoint").defaultValue(false)
+	private static Prop<Boolean> metaDapBreakpoint = Prop.bool().keys("breakpoint").parent("dap").defaultValue(false)
 			.description("Enables zero-overhead instrumentation for step debugging and breakpoints. When enabled, Lucee leverages its internal execution hooks to monitor for "
 					+ "registered breakpoints and the programmatic breakpoint() BIF. " + "Unlike traditional JDWP debugging, this event-driven approach incurs "
 					+ "virtually no performance penalty when no breakpoints are hit, " + "eliminating the need for slow bytecode rewriting.");
@@ -889,11 +890,11 @@ public final class ConfigServerImpl implements ConfigServerPro {
 	private Boolean componentLocalSearch;
 
 	private static Prop<Boolean> metaUseComponentPathCache = Prop.bool().keys("componentUseCachePath").defaultValue(true)
-			.description("If enabled, Lucee caches where it did find components, what speedup futher access");
+			.description("If enabled, Lucee caches the resolved location of components, speeding up subsequent access.");
 	private Boolean componentUseCachePath;
 
 	private static Prop<Boolean> metaUseCTPathCache = Prop.bool().keys("customTagUseCachePath", "customTagCachePaths").access(SecurityManager.TYPE_CUSTOM_TAG).defaultValue(true)
-			.description("If enabled, Lucee caches where it did find custom tags, what speedup futher access");
+			.description("If enabled, Lucee caches the resolved location of custom tags, speeding up subsequent access.");
 	private Boolean customTagUseCachePath;
 
 	@SuppressWarnings("unchecked")
@@ -959,14 +960,15 @@ public final class ConfigServerImpl implements ConfigServerPro {
 	private Boolean handleUnquotedAttributeValueAsString;
 
 	private static Prop<Integer> metaQueueMax = Prop.integer().keys("requestQueueMax").systemPropEnvVar("lucee.queue.max").defaultValue(100)
-			.description("maximal size of the request quque size");
+			.description("Maximum number of requests allowed in the queue.");
 	private int requestQueueMax = -1;
 
 	private static Prop<Long> metaQueueTimeout = Prop.loong().keys("requestQueueTimeout").systemPropEnvVar("lucee.queue.timeout").defaultValue(0L)
 			.description("timeout for an element in the queue in milliseconds");
 	private long requestQueueTimeout = -1;
 
-	private static Prop<Boolean> metaQueueEnable = Prop.bool().keys("requestQueueEnable").systemPropEnvVar("lucee.queue.enable").defaultValue(false);
+	private static Prop<Boolean> metaQueueEnable = Prop.bool().keys("requestQueueEnable").systemPropEnvVar("lucee.queue.enable").defaultValue(false)
+			.description("defines if Lucee uses a queue for incoming request or not.");
 	private Boolean requestQueueEnable;
 
 	@SuppressWarnings("unchecked")
@@ -1033,28 +1035,31 @@ public final class ConfigServerImpl implements ConfigServerPro {
 			"This setting defines if the scopes URL and Form will be merged together (CFML Default is false). If a key already exists in Form and URL Scopes, the value from the Form Scope is used.");
 	private Boolean mergeUrlForm;
 
-	private static Prop<Boolean> metaShowDebug = Prop.bool().keys("showDebug").systemPropEnvVar("lucee.monitoring.showDebug").defaultValue(false);
+	private static Prop<Boolean> metaShowDebug = Prop.bool().keys("showDebug").systemPropEnvVar("lucee.monitoring.showDebug").defaultValue(false)
+			.description("show debug output in the monitoring at the bottom of the page");
 	private Boolean showDebug;
 
 	private static Prop<Boolean> metaShowDoc = Prop.bool().keys("showDoc", "doc", "documentation", "showReference", "reference").systemPropEnvVar("lucee.monitoring.showDoc")
-			.defaultValue(false);
+			.defaultValue(false).description("show documentation output in the monitoring at the bottom of the page");
 	private Boolean showDoc;
 
 	private static Prop<Boolean> metaShowMetric = Prop.bool().keys("showMetric", "showMetrics", "metric", "metrics").systemPropEnvVar("lucee.monitoring.showMetric")
-			.defaultValue(false);
+			.description("show metrics output in the monitoring at the bottom of the page").defaultValue(false);
 	private Boolean showMetric;
 
-	private static Prop<Boolean> metaShowTest = Prop.bool().keys("showTest", "showTests", "test").systemPropEnvVar("lucee.monitoring.showTest").defaultValue(false);
+	private static Prop<Boolean> metaShowTest = Prop.bool().keys("showTest", "showTests", "test").systemPropEnvVar("lucee.monitoring.showTest").defaultValue(false)
+			.description("Show test output in the monitoring at the bottom of the page (not supported yet)");
 	private Boolean showTest;
 
-	private static Prop<Boolean> metafullNullSupport = Prop.bool().keys("nullSupport", "fullNullSupport").systemPropEnvVar("lucee.full.null.support").defaultValue(false);
+	private static Prop<Boolean> metafullNullSupport = Prop.bool().keys("nullSupport", "fullNullSupport").systemPropEnvVar("lucee.full.null.support").defaultValue(false)
+			.description("having full null support enabled or not");
 	private Boolean nullSupport;
 
 	private static Prop<SecretProvider> metaSecretProviders = Prop.custom(SecretProviderFactory.getInstance(), Prop.TYPE_MAP).keys("secretProvider", "secretProviders")
 			.lowerCaseKeys();
 	protected Map<String, SecretProvider> secretProvider;
 
-	private static Prop<ClassDefinition> metacCacheDefinitions = Prop.custom(ClassDefinitionFactory.getInstance(), Prop.TYPE_LIST).keys("cacheClasses").deprecated();
+	private static Prop<ClassDefinition> metacCacheDefinitions = Prop.custom(ClassDefinitionFactory.getInstance(), Prop.TYPE_LIST).keys("cacheClasses").deprecated().hidden();
 	private Map<String, ClassDefinition> cacheClasses;
 
 	private static Prop<GatewayEntry> metaGatewayEntries = Prop.custom(GatewayEntryFactory.getInstance(), Prop.TYPE_MAP).keys("gateways").access(SecurityManagerImpl.TYPE_GATEWAY)
@@ -1065,7 +1070,8 @@ public final class ConfigServerImpl implements ConfigServerPro {
 	private static Prop<Boolean> metaCgiScopeReadonly = Prop.bool().keys("cgiScopeReadOnly").defaultValue(true).description("make the cgi scope read only or not");
 	private Boolean cgiScopeReadonly;
 
-	private static Prop<Integer> metaDebugMaxRecordsLogged = Prop.integer().keys("debuggingMaxRecordsLogged", "debuggingShowMaxRecordsLogged").defaultValue(10);
+	private static Prop<Integer> metaDebugMaxRecordsLogged = Prop.integer().keys("debuggingMaxRecordsLogged", "debuggingShowMaxRecordsLogged").defaultValue(10)
+			.description("defines the size of the debbugging stack that holds the debugging results of the last requests, by default this is 10");
 	private Integer debuggingMaxRecordsLogged;
 
 	private static Prop<Boolean> metaCheckForChangesInConfigFile = Prop.bool().keys("checkForChanges").systemPropEnvVar("lucee.check.for.changes").defaultValue(false)
@@ -1259,13 +1265,13 @@ public final class ConfigServerImpl implements ConfigServerPro {
 			"Enables the background monitoring service in Lucee. When active, the engine collects real-time performance data and health metrics at regular intervals.");
 	private Boolean monitoringEnabled;
 
-	private static Prop<Boolean> metaCaptcha = Prop.bool().keys("loginCaptcha").defaultValue(false).deprecated();
+	private static Prop<Boolean> metaCaptcha = Prop.bool().keys("loginCaptcha").defaultValue(false).deprecated().description("is a captcha used for the Lucee admin to login.");
 	private Boolean loginCaptcha;
 
 	private static Prop<Boolean> metaClassicDateParsing = Prop.bool().keys("classicDateParsing").defaultValue(false).deprecated();
 	private Boolean classicDateParsing;
 
-	private static Prop<Boolean> metaRememberMe = Prop.bool().keys("loginRememberme").defaultValue(true).deprecated();
+	private static Prop<Boolean> metaRememberMe = Prop.bool().keys("loginRememberme").defaultValue(true).deprecated().hidden();
 	private Boolean rememberMe;
 
 	private static Prop<String> metaUpdateLocation = Prop.str().keys("updateLocation", "updateSiteURL").defaultValue(Constants.DEFAULT_UPDATE_URL.toExternalForm()).deprecated();

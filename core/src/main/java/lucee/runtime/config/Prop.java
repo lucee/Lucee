@@ -7,11 +7,13 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.Set;
 import java.util.TimeZone;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -30,6 +32,8 @@ import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.KeyImpl;
+import lucee.runtime.type.Query;
+import lucee.runtime.type.QueryImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.dt.TimeSpan;
@@ -47,7 +51,7 @@ public class Prop<T> {
 	T defaultValue;
 
 	Choice<T>[] choices;
-	String[] envVarSystemProps;
+	String[] customEnvVarSystemProps;
 	String description;
 	private String parent;
 	// private Class<T> type;
@@ -59,6 +63,7 @@ public class Prop<T> {
 	private final short type;
 	private boolean lowerCaseKeys;
 	private boolean handleEmptyAsNull = true;
+	private String[] envVarSystemProps;
 
 	private Prop(PropFactory<T> factory) {
 		this(factory, TYPE_SIMPLE);
@@ -200,7 +205,7 @@ public class Prop<T> {
 	}
 
 	public Prop<T> systemPropEnvVar(String... envVarSystemProps) {
-		this.envVarSystemProps = envVarSystemProps;
+		this.customEnvVarSystemProps = envVarSystemProps;
 		return this;
 	}
 
@@ -300,26 +305,24 @@ public class Prop<T> {
 		}
 
 		try {
-			if (envVarSystemProps != null) {
-				for (String key: envVarSystemProps) {
-					str = SystemUtil.getSystemPropOrEnvVar(key, null);
-					if (!StringUtil.isEmpty(str, true)) {
-						str = str.trim();
+			for (String key: envVarSystemProps()) {
+				str = SystemUtil.getSystemPropOrEnvVar(key, null);
+				if (!StringUtil.isEmpty(str, true)) {
+					str = str.trim();
 
-						if (choices != null) {
-							for (Choice<T> choice: choices) {
-								if (choice.matches(str)) {
-									return choice.value;
-								}
-
+					if (choices != null) {
+						for (Choice<T> choice: choices) {
+							if (choice.matches(str)) {
+								return choice.value;
 							}
-							return defaultValue;
+
 						}
-						if (str == null || (handleEmptyAsNull && StringUtil.isEmpty(str, true))) {
-							return defaultValue;
-						}
-						return factory.evaluate(config, key, str);
+						return defaultValue;
 					}
+					if (str == null || (handleEmptyAsNull && StringUtil.isEmpty(str, true))) {
+						return defaultValue;
+					}
+					return factory.evaluate(config, key, str);
 				}
 			}
 
@@ -392,7 +395,7 @@ public class Prop<T> {
 
 		try {
 			// TODO
-			if (envVarSystemProps != null) {
+			if (customEnvVarSystemProps != null) {
 				throw new RuntimeException("not supported yet");
 			}
 
@@ -447,23 +450,21 @@ public class Prop<T> {
 		}
 
 		try {
-			if (envVarSystemProps != null) {
-				String str;
-				for (String key: envVarSystemProps) {
-					str = SystemUtil.getSystemPropOrEnvVar(key, null);
-					if (!StringUtil.isEmpty(str, true)) {
-						str = str.trim();
-						T tmp;
-						int index = 0;
-						for (String val: ListUtil.listToStringArray(str.trim(), ',')) {
-							if (val == null || (handleEmptyAsNull && StringUtil.isEmpty(val, true))) {
-								continue;
-							}
-							tmp = factory.evaluate(config, "" + (++index), val);
-							if (tmp != null) list.add(tmp);
+			String str;
+			for (String key: envVarSystemProps()) {
+				str = SystemUtil.getSystemPropOrEnvVar(key, null);
+				if (!StringUtil.isEmpty(str, true)) {
+					str = str.trim();
+					T tmp;
+					int index = 0;
+					for (String val: ListUtil.listToStringArray(str.trim(), ',')) {
+						if (val == null || (handleEmptyAsNull && StringUtil.isEmpty(val, true))) {
+							continue;
 						}
-						return list;
+						tmp = factory.evaluate(config, "" + (++index), val);
+						if (tmp != null) list.add(tmp);
 					}
+					return list;
 				}
 			}
 
@@ -573,6 +574,33 @@ public class Prop<T> {
 		 * }
 		 */
 		return root;
+	}
+
+	public static Query createSystemPropEnvVar() throws PageException {
+		Key keySP = KeyImpl.init("systemProperties");
+		Key keyEV = KeyImpl.init("environmentVariables");
+
+		Query qry = new QueryImpl(new Key[] { KeyConstants._description, keySP, keyEV }, 0, "env vars");
+		int row;
+		for (Prop<?> p: instances) {
+			if (p.hidden || p.type == TYPE_MAP || p.deprecated) continue;
+			row = qry.addRow();
+
+			qry.setAt(KeyConstants._description, row, p.description);
+			String[] raw = p.envVarSystemProps();
+
+			// system properties
+			qry.setAt(keySP, row, new ArrayImpl(raw));
+
+			// env var
+			ArrayImpl arr = new ArrayImpl();
+			for (String r: raw) {
+				arr.add(SystemUtil.convertSystemPropToEnvVar(r));
+			}
+			qry.setAt(keyEV, row, new ArrayImpl(raw));
+		}
+
+		return qry;
 	}
 
 	public static Struct createConfigSchema(boolean strict) {
@@ -691,6 +719,30 @@ public class Prop<T> {
 			}
 		}
 		return internalValue;
+	}
+
+	private String[] envVarSystemProps() {
+		if (envVarSystemProps == null) {
+			Set<String> set = new LinkedHashSet<>();
+			if (customEnvVarSystemProps != null) {
+				for (String k: customEnvVarSystemProps) {
+					set.add(k);
+				}
+			}
+
+			for (String k: keys) {
+				StringBuilder sb = new StringBuilder("lucee");
+				// parent
+				if (!StringUtil.isEmpty(parent, true)) {
+					sb.append('.').append(parent);
+				}
+				// keys
+				sb.append('.').append(k);
+				set.add(sb.toString());
+			}
+			envVarSystemProps = ListUtil.toStringArray(set);
+		}
+		return envVarSystemProps;
 	}
 
 	private static Struct getOrCreateParentProps(Struct rootProps, String parentName) {
