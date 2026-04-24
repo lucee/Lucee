@@ -2,7 +2,6 @@ package lucee.runtime.engine;
 
 import java.util.Map;
 
-import lucee.commons.io.res.Resource;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.PageSource;
@@ -61,23 +60,19 @@ public final class DebuggerExecutionLog implements ExecutionLogPro {
 		DebuggerListener listener = DebuggerRegistry.getListener();
 		if (listener == null || !listener.isClientConnected()) return;
 
-		// Get file from debugger frame if available, otherwise from current page source
+		// Always resolve file from pathList - it correctly tracks cfinclude boundaries.
+		// Frames only supply defining file, which goes stale when a UDF cfincludes a template.
+		// getDisplayPath() is cached on PageSourceImpl and matches the DebuggerListener contract.
 		String file = null;
+		PageSource ps = pci.getCurrentPageSource(null);
+		if (ps != null) file = ps.getDisplayPath();
+
 		PageContextImpl.DebuggerFrame frame = pci.getTopmostDebuggerFrame();
 		if (frame != null) {
 			frame.setLine(line);
-			file = frame.getFile();
 		}
 		else {
-			// Top-level code (outside functions) - get file from page source
-			PageSource ps = pci.getCurrentPageSource(null);
-			if (ps != null) {
-				Resource res = ps.getPhyscalFile();
-				if (res != null) {
-					file = res.getAbsolutePath();
-				}
-			}
-			// Store in thread-local for breakpoint() to use
+			// Top-level code (outside functions) - store in thread-local for breakpoint() to use
 			currentTopLevelFile.set(file);
 			int[] lineHolder = currentTopLevelLine.get();
 			if (lineHolder == null) {
