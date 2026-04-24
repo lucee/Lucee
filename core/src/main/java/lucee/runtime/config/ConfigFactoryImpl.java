@@ -1202,8 +1202,9 @@ public final class ConfigFactoryImpl extends ConfigFactory {
 			f = dir.getRealResource("interruptThread." + TEMPLATE_EXTENSION);
 			if (!f.exists() || doNew) createFileFromResourceEL("/resource/library/function/interruptThread." + TEMPLATE_EXTENSION, f);
 
+			// LDEV-6282: throw() is now a Java BIF; remove any stale CFML wrapper.
 			f = dir.getRealResource("throw." + TEMPLATE_EXTENSION);
-			if (!f.exists() || doNew) createFileFromResourceEL("/resource/library/function/throw." + TEMPLATE_EXTENSION, f);
+			if (f.exists()) delete(dir, "throw." + TEMPLATE_EXTENSION);
 
 			f = dir.getRealResource("trace." + TEMPLATE_EXTENSION);
 			if (!f.exists() || doNew) createFileFromResourceEL("/resource/library/function/trace." + TEMPLATE_EXTENSION, f);

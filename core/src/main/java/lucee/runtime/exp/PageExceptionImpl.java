@@ -89,6 +89,9 @@ public abstract class PageExceptionImpl extends PageException {
 
 	protected CatchBlockImpl catchBlock;
 
+	// LDEV-6282: dedup marker — debugger suspends once per exception regardless of which notify path fires first.
+	private transient volatile boolean debuggerNotified;
+
 	/**
 	 * Class Constructor
 	 * 
@@ -137,6 +140,13 @@ public abstract class PageExceptionImpl extends PageException {
 			this.setExtendedInfo(pe.getExtendedInfo());
 		}
 		this.type = type.trim();
+	}
+
+	// LDEV-6282: returns true if this call is the first to mark (caller should notify); false if already marked.
+	public synchronized boolean markDebuggerNotified() {
+		if (debuggerNotified) return false;
+		debuggerNotified = true;
+		return true;
 	}
 
 	private static String filterSecrets(String msg, int startIndex) {

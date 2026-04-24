@@ -382,7 +382,10 @@ public class UDFImpl extends MemberSupport implements UDFPlus, Externalizable, C
 					else if (!wasSilent) pc.unsetSilent();
 				}
 				// BodyContentUtil.flushAndPop(pc,bc);
-				throw Caster.toPageException(t);
+				// LDEV-6282: notify before finally pops the UDF frame; marker dedups nested catches.
+				PageException pe = Caster.toPageException(t);
+				if (pci.getExecutionLogEnabled()) pci.debuggerNotifyThrow(pe);
+				throw pe;
 			}
 			if (!getOutput()) {
 				if (bufferOutput) BodyContentUtil.clearAndPop(pc, bc);
@@ -393,7 +396,9 @@ public class UDFImpl extends MemberSupport implements UDFPlus, Externalizable, C
 			if (returnValue == null && pci.getFullNullSupport()) return returnValue;
 			if (properties.getReturnType() == CFTypes.TYPE_ANY || !pci.getTypeChecking()) return returnValue;
 			if (Decision.isCastableTo(pc, properties.getReturnTypeAsString(), returnValue, false, false, -1)) return returnValue;
-			throw new UDFCasterException(this, properties.getReturnTypeAsString(), returnValue);
+			UDFCasterException uce = new UDFCasterException(this, properties.getReturnTypeAsString(), returnValue);
+			if (pci.getExecutionLogEnabled()) pci.debuggerNotifyThrow(uce);
+			throw uce;
 
 			// REALCAST return Caster.castTo(pageContext,returnType,returnValue,false);
 			//////////////////////////////////////////

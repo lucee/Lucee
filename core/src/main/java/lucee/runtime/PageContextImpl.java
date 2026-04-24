@@ -1109,6 +1109,8 @@ public final class PageContextImpl extends PageContext {
 						FDSignal.signal(pe, false);
 					}
 					pe.addContext(currentPage.getPageSource(), -187, -187, null);// TODO was soll das 187
+					if (getExecutionLogEnabled() && !debuggerFrames.isEmpty()) debuggerNotifyThrow(pe);
+
 					throw pe;
 				}
 			}
@@ -1142,6 +1144,7 @@ public final class PageContextImpl extends PageContext {
 				}
 				else {
 					pe.addContext(currentPage.getPageSource(), -187, -187, null);
+					if (getExecutionLogEnabled() && !debuggerFrames.isEmpty()) debuggerNotifyThrow(pe);
 					throw pe;
 				}
 			}
@@ -2797,8 +2800,9 @@ public final class PageContextImpl extends PageContext {
 				if (fdEnabled) {
 					FDSignal.signal(pe, false);
 				}
-				// External debugger extension - uncaught exception
-				if (debuggerFrames != null) {
+				// External debugger extension - uncaught exception.
+				// Skip if no live CFML frame (top-level 404/compile error); throw-site hooks dedup the rest.
+				if (getExecutionLogEnabled() && !debuggerFrames.isEmpty()) {
 					DebuggerListener debugListener = DebuggerRegistry.getListener();
 					debuggerNotifyException(debugListener, pe, false);
 				}
@@ -3583,6 +3587,8 @@ public final class PageContextImpl extends PageContext {
 	 * Notify the debugger listener of an exception and suspend if requested.
 	 */
 	private void debuggerNotifyException(DebuggerListener listener, PageException pe, boolean caught) {
+		// LDEV-6282: skip uncaught path if throw-site already notified; caught path always fires.
+		if (!caught && pe instanceof PageExceptionImpl && !((PageExceptionImpl) pe).markDebuggerNotified()) return;
 		if (listener == null || !listener.isClientConnected() || !listener.onException(this, pe, caught)) return;
 		String file = null;
 		int line = 0;
@@ -3599,6 +3605,29 @@ public final class PageContextImpl extends PageContext {
 		}
 		String label = caught ? "Caught exception: " : "Uncaught exception: ";
 		debuggerSuspend(file, line, label + pe.getClass().getSimpleName());
+	}
+
+	// LDEV-6282: notify at throw site while frames are still live; marker dedups later notify paths.
+	public void debuggerNotifyThrow(PageException pe) {
+		if (!getExecutionLogEnabled()) return;
+		DebuggerListener listener = DebuggerRegistry.getListener();
+		if (listener == null || !listener.isClientConnected()) return;
+		if (pe instanceof PageExceptionImpl && !((PageExceptionImpl) pe).markDebuggerNotified()) return;
+		if (!listener.onException(this, pe, false)) return;
+		String file = null;
+		int line = 0;
+		if (pe instanceof PageExceptionImpl) {
+			PageExceptionImpl pei = (PageExceptionImpl) pe;
+			file = pei.getFile(getConfig());
+			try {
+				String lineStr = pei.getLine(getConfig());
+				if (lineStr != null && !lineStr.isEmpty()) {
+					line = Integer.parseInt(lineStr);
+				}
+			}
+			catch (NumberFormatException ignored) {}
+		}
+		debuggerSuspend(file, line, "Uncaught exception: " + pe.getClass().getSimpleName());
 	}
 
 	// Debugger suspension support
