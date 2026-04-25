@@ -24,7 +24,7 @@ import java.lang.invoke.MethodType;
 import java.util.Map;
 
 import lucee.commons.collection.concurrent.ConcurrentHashMapNullSupport;
-import lucee.commons.collection.concurrent.ConcurrentHashMapNullSupportLegacy;
+import lucee.commons.collection.concurrent.ConcurrentHashMapNullSupportJDK;
 import lucee.commons.io.SystemUtil;
 
 public final class MapFactory {
@@ -82,17 +82,21 @@ public final class MapFactory {
 	}
 
 	public static <K, V> Map<K, V> getConcurrentMap() {
-		return getConcurrentMap(ConcurrentHashMapNullSupport.DEFAULT_INITIAL_CAPACITY);
+		return getConcurrentMap(ConcurrentHashMapNullSupportJDK.DEFAULT_INITIAL_CAPACITY);
 	}
 
 	public static <K, V> Map<K, V> getConcurrentMap(int initialCapacity) {
-		if (LEGACY) return new ConcurrentHashMapNullSupportLegacy<>(initialCapacity);
+		// Note on naming: ConcurrentHashMapNullSupport (no suffix) is the segmented pre-7.1
+		// implementation, restored under its original name so pre-7.1 serialised sessions
+		// deserialise transparently. ConcurrentHashMapNullSupportJDK is the LDEV-5098
+		// JDK-backed wrapper, the default since 7.1. See LDEV-6288 for full rationale.
+		if (LEGACY) return new ConcurrentHashMapNullSupport<>(initialCapacity);
 		Map<K, Object> delegate = newDelegate(initialCapacity);
-		return delegate != null ? new ConcurrentHashMapNullSupport<>(delegate) : new ConcurrentHashMapNullSupport<>(initialCapacity);
+		return delegate != null ? new ConcurrentHashMapNullSupportJDK<>(delegate) : new ConcurrentHashMapNullSupportJDK<>(initialCapacity);
 	}
 
 	public static <K, V> Map<K, V> getConcurrentMap(Map<K, V> map) {
-		if (LEGACY) return new ConcurrentHashMapNullSupportLegacy<>(map);
+		if (LEGACY) return new ConcurrentHashMapNullSupport<>(map);
 		Map<K, V> result = getConcurrentMap(map.size());
 		result.putAll(map);
 		return result;
