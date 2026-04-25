@@ -39,7 +39,17 @@ public final class MapFactory {
 		boolean takesInt = false;
 		if (CONCURRENT_MAP != null && !LEGACY) {
 			try {
-				Class<?> cls = Class.forName(CONCURRENT_MAP);
+				// Look in MapFactory's classloader first (matches Class.forName semantics);
+				// fall back to the system classloader so users can drop the delegate jar on
+				// the JVM primary classpath (Tomcat lib/, CATALINA_OPTS -cp, etc.) without
+				// needing it bundled inside lucee.core's OSGi bundle scope.
+				Class<?> cls;
+				try {
+					cls = Class.forName(CONCURRENT_MAP);
+				}
+				catch (ClassNotFoundException e) {
+					cls = ClassLoader.getSystemClassLoader().loadClass(CONCURRENT_MAP);
+				}
 				MethodHandles.Lookup lookup = MethodHandles.publicLookup();
 				try {
 					mh = lookup.findConstructor(cls, MethodType.methodType(void.class, int.class));
@@ -49,8 +59,11 @@ public final class MapFactory {
 					mh = lookup.findConstructor(cls, MethodType.methodType(void.class));
 				}
 			}
-			catch (Exception e) {
-				throw new RuntimeException("lucee.concurrent.map: failed to resolve [" + CONCURRENT_MAP + "]", e);
+			catch (Throwable t) {
+				String msg = "lucee.concurrent.map.impl: failed to resolve [" + CONCURRENT_MAP
+						+ "] (" + t.getClass().getName() + ": " + t.getMessage()
+						+ "); remove the property or set to 'legacy' to recover";
+				throw new RuntimeException(msg, t);
 			}
 		}
 		DELEGATE_CTOR = mh;
@@ -64,7 +77,7 @@ public final class MapFactory {
 			return (Map<K, Object>) (DELEGATE_CTOR_TAKES_INT ? DELEGATE_CTOR.invoke(initialCapacity) : DELEGATE_CTOR.invoke());
 		}
 		catch (Throwable t) {
-			throw new RuntimeException("lucee.concurrent.map: failed to instantiate [" + CONCURRENT_MAP + "]", t);
+			throw new RuntimeException("lucee.concurrent.map.impl: failed to instantiate [" + CONCURRENT_MAP + "]", t);
 		}
 	}
 
@@ -75,17 +88,13 @@ public final class MapFactory {
 	public static <K, V> Map<K, V> getConcurrentMap(int initialCapacity) {
 		if (LEGACY) return new ConcurrentHashMapNullSupportLegacy<>(initialCapacity);
 		Map<K, Object> delegate = newDelegate(initialCapacity);
-		return delegate != null ? ConcurrentHashMapNullSupport.withDelegate(delegate) : new ConcurrentHashMapNullSupport<>(initialCapacity);
+		return delegate != null ? new ConcurrentHashMapNullSupport<>(delegate) : new ConcurrentHashMapNullSupport<>(initialCapacity);
 	}
 
 	public static <K, V> Map<K, V> getConcurrentMap(Map<K, V> map) {
 		if (LEGACY) return new ConcurrentHashMapNullSupportLegacy<>(map);
-		Map<K, Object> delegate = newDelegate(map.size());
-		if (delegate != null) {
-			ConcurrentHashMapNullSupport<K, V> result = ConcurrentHashMapNullSupport.withDelegate(delegate);
-			result.putAll(map);
-			return result;
-		}
-		return new ConcurrentHashMapNullSupport<>(map);
+		Map<K, V> result = getConcurrentMap(map.size());
+		result.putAll(map);
+		return result;
 	}
 }
