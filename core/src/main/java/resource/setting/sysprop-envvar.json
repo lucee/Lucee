@@ -169,6 +169,15 @@
 		"default": true
 	},
 	{
+		"sysprop": "lucee.concurrent.map.impl",
+		"envvar": "LUCEE_CONCURRENT_MAP_IMPL",
+		"desc": "Selects the concurrent Map implementation used internally by Lucee's null-supporting concurrent map wrapper (e.g. for TYPE_SYNC structs). Value is either the keyword `legacy` (restores the pre-7.1 segmented impl) or a fully-qualified class name for a `java.util.Map` implementation that has a no-arg or `int` capacity constructor. Defaults to the JDK `java.util.concurrent.ConcurrentHashMap`. Example values: `legacy`, `org.eclipse.collections.impl.map.mutable.ConcurrentHashMap`, `org.eclipse.collections.impl.map.mutable.ConcurrentHashMapUnsafe`, `org.jctools.maps.NonBlockingHashMap`",
+		"category": "performance",
+		"type": "string",
+		"introduced": "7.1",
+		"default": null
+	},
+	{
 		"sysprop": "lucee.controller.disabled",
 		"envvar": "LUCEE_CONTROLLER_DISABLED",
 		"desc": "Boolean value to disable the background controller thread that handles periodic tasks",

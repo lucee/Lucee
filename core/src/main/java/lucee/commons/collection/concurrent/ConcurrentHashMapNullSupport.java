@@ -51,7 +51,7 @@ public final class ConcurrentHashMapNullSupport<K, V> implements Map<K, V>, Seri
 	// Sentinel for getOrDefault — distinct from NULL_VALUE, never stored in the map
 	private static final Object ABSENT = new Object();
 
-	private final ConcurrentHashMap<K, Object> delegate;
+	private final Map<K, Object> delegate;
 
 	/**
 	 * Default initial capacity (same as legacy implementation for compatibility)
@@ -62,6 +62,14 @@ public final class ConcurrentHashMapNullSupport<K, V> implements Map<K, V>, Seri
 	 * Default load factor (same as legacy implementation for compatibility)
 	 */
 	public static final float DEFAULT_LOAD_FACTOR = 0.75f;
+
+	public static <K, V> ConcurrentHashMapNullSupport<K, V> withDelegate(Map<K, Object> delegate) {
+		return new ConcurrentHashMapNullSupport<>(delegate, true);
+	}
+
+	private ConcurrentHashMapNullSupport(Map<K, Object> delegate, boolean unused) {
+		this.delegate = delegate;
+	}
 
 	/**
 	 * Creates a new, empty map with default initial capacity (32) and load factor (0.75).
