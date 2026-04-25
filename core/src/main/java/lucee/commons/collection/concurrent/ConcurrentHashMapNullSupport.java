@@ -72,6 +72,17 @@ public final class ConcurrentHashMapNullSupport<K, V> implements Map<K, V>, Seri
 	}
 
 	/**
+	 * Creates a map that uses the given map as its backing delegate.
+	 * The delegate is used as-is — not copied. Null values must be wrapped
+	 * before being stored in the delegate; this class handles that transparently.
+	 *
+	 * @param delegate the backing map. Must not be null.
+	 */
+	public ConcurrentHashMapNullSupport(Map<K, Object> delegate) {
+		this.delegate = delegate;
+	}
+
+	/**
 	 * Creates a new, empty map with default initial capacity (32) and load factor (0.75).
 	 */
 	public ConcurrentHashMapNullSupport() {
@@ -113,20 +124,6 @@ public final class ConcurrentHashMapNullSupport<K, V> implements Map<K, V>, Seri
 	public ConcurrentHashMapNullSupport(int initialCapacity, float loadFactor, int concurrencyLevel) {
 		// In Java 8+, concurrencyLevel is ignored - the new algorithm doesn't use segments
 		this.delegate = new ConcurrentHashMap<>(initialCapacity, loadFactor);
-	}
-
-	/**
-	 * Creates a new map with the same mappings as the given map.
-	 * The map is created with a capacity of 1.5 times the number of mappings in the given map
-	 * or 32 (whichever is greater), and default load factor (0.75).
-	 *
-	 * @param m the map
-	 */
-	public ConcurrentHashMapNullSupport(Map<? extends K, ? extends V> m) {
-		// Match legacy behavior: capacity = max(m.size() / loadFactor + 1, DEFAULT_INITIAL_CAPACITY)
-		int capacity = Math.max((int) (m.size() / DEFAULT_LOAD_FACTOR) + 1, DEFAULT_INITIAL_CAPACITY);
-		this.delegate = new ConcurrentHashMap<>(capacity, DEFAULT_LOAD_FACTOR);
-		putAll(m);
 	}
 
 	// Sentinel marker class for null value handling
