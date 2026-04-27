@@ -75,7 +75,7 @@ public class IKHandlerDatasource implements IKHandler {
 		boolean _isNew = query.getRecordcount() == 0;
 
 		if (_isNew) {
-			ScopeContext.debug(log, "create new " + strType + " scope for " + pc.getApplicationContext().getName() + "/" + pc.getCFID() + " in datasource [" + name + "]");
+			ScopeContext.debug(log, "Create new " + strType + " scope for [" + pc.getApplicationContext().getName() + "/" + pc.getCFID() + "] in datasource [" + name + "]");
 			return null;
 		}
 		String str = Caster.toString(query.getAt(KeyConstants._data, 1));
@@ -94,8 +94,8 @@ public class IKHandlerDatasource implements IKHandler {
 
 		try {
 			IKStorageValue data = (IKStorageValue) JavaConverter.deserialize(str);
-			ScopeContext.info(log, "load existing data from [" + name + "." + PREFIX + "_" + strType + "_data] to create " + strType + " scope for "
-					+ pc.getApplicationContext().getName() + "/" + pc.getCFID());
+			ScopeContext.trace(log, "Load existing data from [" + name + "." + PREFIX + "_" + strType + "_data] to create " + strType + " scope for ["
+					+ pc.getApplicationContext().getName() + "/" + pc.getCFID() + "]");
 			return data;
 		}
 		catch (Exception e) {
@@ -147,11 +147,11 @@ public class IKHandlerDatasource implements IKHandler {
 				IKStorageValue sv = new IKStorageValue(
 						IKStorageScopeSupport.prepareToStore(data, existingVal, storageScope.lastModified(), storageScope.lastModifiedAtInit(), log, type));
 				executor.update(ci, pc.getCFID(), appName, dc, storageScope.getType(), sv, storageScope.getTimeSpan(), log);
-				ScopeContext.info(log, "Store scope for [" + pc.getApplicationContext().getName() + "/" + pc.getCFID() + "] in datasource [" + name + "]");
+				ScopeContext.trace(log, "Store scope for [" + pc.getApplicationContext().getName() + "/" + pc.getCFID() + "] in datasource [" + name + "]");
 			}
 			else if (existingVal != null) {
 				executor.delete(ci, pc.getCFID(), appName, dc, storageScope.getType(), log);
-				ScopeContext.info(log, "Remove scope for [" + pc.getApplicationContext().getName() + "/" + pc.getCFID() + "] from datasource [" + name + "]");
+				ScopeContext.debug(log, "Remove scope for [" + pc.getApplicationContext().getName() + "/" + pc.getCFID() + "] from datasource [" + name + "]");
 			}
 		}
 		catch (Exception e) {
