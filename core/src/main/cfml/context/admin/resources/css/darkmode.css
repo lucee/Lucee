@@ -3,8 +3,8 @@
   /* Light Mode (Default) */
   --bg-color: white;
   --text-color: #333;
-  --link-color: #5f8731;
-  --header-color: #5f8731;
+  --link-color: #76a83d;
+  --header-color: #76a83d;
   --border-color: rgba(95, 135, 49, 0.3);
   --nav-bg: white;
   --content-bg: white;
@@ -12,7 +12,7 @@
   --table-border: rgba(95, 135, 49, 0.25);
   --input-bg: #fff;
   --input-border: #e2e0da;
-  --button-bg: #5f8731;
+  --button-bg: #76a83d;
   --button-text: rgba(255, 255, 255, 0.75);
   --error-color: red;
   --warning-bg: #FC6;
@@ -24,25 +24,25 @@
 
 /* Dark Mode */
 body.dark-mode {
-  --bg-color: #1e1e1e;
-  --text-color: #ddd;
-  --link-color: #5f8731;
-  --header-color: #5f8731;
+  --bg-color: #15203b;
+  --text-color: #cbd5e1;
+  --link-color: #76a83d;
+  --header-color: #76a83d;
   --border-color: rgba(143, 187, 87, 0.4);
-  --nav-bg: #1e1e1e;
-  --content-bg: #1e1e1e;
-  --table-header-bg: rgba(143, 187, 87, 0.3);
+  --nav-bg: #15203b;
+  --content-bg: #15203b;
+  --table-header-bg: rgba(143, 187, 87, 0.4);
   --table-border: rgba(143, 187, 87, 0.3);
-  --input-bg: #333;
+  --input-bg: #1F283b;
   --input-border: #444;
   --button-bg: #5f8731;
-  --button-text: #fff;
+  --button-text: #cbd5e1;
   --error-color: #ff6666;
   --warning-bg: #FC6;
-  --message-bg: #0a5e0a;
+  --message-bg: #15203b;
   --comment-color: #aaa;
   --copyright-color: #aaa;
-  --chart-bg: #333;
+  --chart-bg: #15203b;
 }
 
 /* Direct element styling for dark mode */
@@ -435,5 +435,5 @@ body.dark-mode * {
 }
 
 body.dark-mode .version-number {
-  color: #5f8731 !important;
+  color: #76a83d !important;
 }
