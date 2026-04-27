@@ -51,7 +51,7 @@ public final class RestDeleteApplication {
 				mapping = mappings[i];
 				if (RestUtil.isMatch(pc, mapping, dir)) {
 					admin.removeRestMapping(mapping.getVirtual());
-					admin.storeAndReload();
+					admin.store();
 					config.resetRestMappings();
 				}
 			}

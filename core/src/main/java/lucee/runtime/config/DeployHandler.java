@@ -103,7 +103,7 @@ public final class DeployHandler {
 								try {
 									if (ConfigFactoryImpl.isConfigFileName(child.getName())) {
 										log.log(Log.LEVEL_INFO, "deploy handler", "Importing config file [" + child.getName() + "]");
-										CFConfigImport ci = new CFConfigImport(config, child, config.getResourceCharset(), null, "server", null, false, false, false);
+										CFConfigImport ci = new CFConfigImport(config, child, config.getResourceCharset(), null, null, false, false, false);
 										ci.execute(true);
 										child.delete();
 									}

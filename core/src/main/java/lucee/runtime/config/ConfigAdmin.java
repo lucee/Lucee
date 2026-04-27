@@ -209,7 +209,7 @@ public final class ConfigAdmin {
 		return new ConfigAdmin((ConfigPro) config, password);
 	}
 
-	public static ConfigAdmin newInstance(Config config, Password password, boolean optionalPW) throws IOException, PageException {
+	public static ConfigAdmin newInstance(Config config, Password password, boolean optionalPW) {
 		return new ConfigAdmin((ConfigPro) config, password, optionalPW);
 	}
 
@@ -269,30 +269,29 @@ public final class ConfigAdmin {
 		}
 	}
 
-	private ConfigAdmin(ConfigPro config, Password password) throws IOException, PageException {
+	private ConfigAdmin(ConfigPro config, Password password) {
 		this.config = ConfigUtil.getConfigServerImpl(config);
 		this.password = password;
-		root = ConfigFactoryImpl.loadDocument(config, config.getConfigFile());
+		root = this.config.raw();
 	}
 
-	private ConfigAdmin(ConfigPro config, Password password, boolean optionalPW) throws IOException, PageException {
+	private ConfigAdmin(ConfigPro config, Password password, boolean optionalPW) {
 		this.config = ConfigUtil.getConfigServerImpl(config);
 		this.password = password;
-		root = ConfigFactoryImpl.loadDocument(config, config.getConfigFile());
+		root = this.config.raw();
 		this.optionalPW = optionalPW;
 	}
 
 	public static void checkForChangesInConfigFile(Config config) {
-		ConfigPro ci = (ConfigPro) config;
-		if (!ci.checkForChangesInConfigFile()) return;
+		ConfigServerImpl cs = ConfigUtil.getConfigServerImpl(config);
+		if (!cs.checkForChangesInConfigFile() || !wasConfigFileChangedOutside(cs)) return;
 
 		Resource file = config.getConfigFile();
-		long diff = file.lastModified() - ci.lastModified();
+		long diff = file.lastModified() - cs.configLastModified();
 		if (diff < 10 && diff > -10) return;
 		// reload
 		try {
-			ConfigAdmin admin = ConfigAdmin.newInstance(ci, null);
-			admin.storeAndReload(false, false, true, false);
+			cs.load(file);
 			LogUtil.log(ThreadLocalPageContext.getConfigServer(config), Log.LEVEL_INFO, "deploy", ConfigAdmin.class.getName(),
 					"reloaded the configuration [" + file + "] automatically");
 		}
@@ -301,32 +300,21 @@ public final class ConfigAdmin {
 		}
 	}
 
-	protected static void _storeAndReload(ConfigPro config)
-			throws PageException, ClassException, IOException, TagLibException, FunctionLibException, BundleException, ConverterException {
-		ConfigAdmin admin = new ConfigAdmin(config, null, true);
-		admin.storeAndReload(false, true, true, false);
+	public static boolean wasConfigFileChangedOutside(ConfigServerImpl cs) {
+		Resource file = cs.getConfigFile();
+		long diff = file.lastModified() - cs.configLastModified();
+
+		return diff > 10 && diff < -10;
 	}
 
-	protected void _storeAndReload() throws PageException, ClassException, IOException, TagLibException, FunctionLibException, BundleException, ConverterException {
-		storeAndReload(false, true, true, false);
+	public void store() throws PageException, ClassException, IOException, TagLibException, FunctionLibException, ConverterException {
+		store(true);
 	}
 
-	public void storeAndReload() throws PageException, ClassException, IOException, TagLibException, FunctionLibException, BundleException, ConverterException {
-		storeAndReload(true, true, true, false);
-	}
-
-	public void storeAndReload(boolean checkWriteAccess, boolean store, boolean reload, boolean refreshSchedulerWhenReload)
-			throws PageException, ClassException, IOException, TagLibException, FunctionLibException, BundleException, ConverterException {
-		if (!checkWriteAccess && !store && !reload) return;
+	public void store(boolean checkWriteAccess) throws PageException, ClassException, IOException, TagLibException, FunctionLibException, ConverterException {
 		if (checkWriteAccess) checkWriteAccess();
-		if (store) _store();
-		if (reload) _reload(refreshSchedulerWhenReload);
+		_store();
 
-	}
-
-	public void storeAndReload(boolean refreshScheduler)
-			throws PageException, ClassException, IOException, TagLibException, FunctionLibException, BundleException, ConverterException {
-		storeAndReload(true, true, true, refreshScheduler);
 	}
 
 	private synchronized void _cleanup() {
@@ -345,11 +333,16 @@ public final class ConfigAdmin {
 
 	private void _store() throws ConverterException, IOException {
 		_cleanup();
-		ConfigFile.write(config.getConfigFile(), root);
+		config.update();
 
 	}
 
-	private void _reload(boolean refreshScheduler) throws PageException, ClassException, IOException, TagLibException, FunctionLibException, BundleException {
+	protected static void _store(ConfigPro config) throws PageException, ClassException, IOException, TagLibException, FunctionLibException, ConverterException {
+		ConfigAdmin admin = new ConfigAdmin(config, null, true);
+		admin.store(false);
+	}
+
+	private void _reloadOLd(boolean refreshScheduler) throws PageException, ClassException, IOException, TagLibException, FunctionLibException, BundleException {
 
 		// if(storeInMemoryData)XMLCaster.writeTo(doc,config.getConfigFile());
 		CFMLEngine engine = ConfigUtil.getCFMLEngine(config);
@@ -567,37 +560,34 @@ public final class ConfigAdmin {
 
 	protected static void updateMapping(ConfigPro config, String virtual, String physical, String archive, String primary, short inspect, int inspectTemplateIntervalSlow,
 			int inspectTemplateIntervalFast, boolean toplevel, int listenerMode, int listenerType, boolean listenerSingleton, boolean readonly, boolean reload)
-			throws IOException, PageException, BundleException, ConverterException {
+			throws IOException, PageException, ConverterException {
 		ConfigAdmin admin = new ConfigAdmin(config, null, true);
 		admin._updateMapping(virtual, physical, archive, primary, inspect, inspectTemplateIntervalSlow, inspectTemplateIntervalFast, toplevel, listenerMode, listenerType,
 				listenerSingleton, readonly);
-		admin.storeAndReload(false, true, false, false);
+		admin.store(false);
 		ConfigUtil.getConfigWebIfPossible(config).resetMappings();
-		admin.storeAndReload(false, false, reload, false);
 	}
 
 	protected static void updateComponentMapping(ConfigPro config, String virtual, String physical, String archive, String primary, short inspect, int inspectTemplateIntervalSlow,
-			int inspectTemplateIntervalFast, boolean reload) throws IOException, PageException, BundleException, ConverterException {
+			int inspectTemplateIntervalFast, boolean reload) throws IOException, PageException, ConverterException {
 		ConfigAdmin admin = new ConfigAdmin(config, null, true);
 		admin._updateComponentMapping(virtual, physical, archive, primary, inspect, inspectTemplateIntervalSlow, inspectTemplateIntervalFast);
-		admin.storeAndReload(false, true, false, false);
+		admin.store(false);
 		ConfigUtil.getConfigServerImpl(config).resetComponentMappings();
-		admin.storeAndReload(false, false, reload, false);
 	}
 
 	protected static void updateCustomTagMapping(ConfigPro config, String virtual, String physical, String archive, String primary, short inspect, int inspectTemplateIntervalSlow,
-			int inspectTemplateIntervalFast, boolean reload) throws IOException, PageException, BundleException, ConverterException {
+			int inspectTemplateIntervalFast, boolean reload) throws IOException, PageException, ConverterException {
 		ConfigAdmin admin = new ConfigAdmin(config, null, true);
 		admin._updateCustomTag(virtual, physical, archive, primary, inspect, inspectTemplateIntervalSlow, inspectTemplateIntervalFast);
-		admin.storeAndReload(false, true, false, false);
+		admin.store(false);
 		ConfigUtil.getConfigServerImpl(config).resetCustomTagMappings();
-		admin.storeAndReload(false, false, reload, false);
 	}
 
-	public static Array updateScheduledTask(ConfigPro config, ScheduleTask task, boolean reload) throws IOException, PageException, BundleException, ConverterException {
+	public static Array updateScheduledTask(ConfigPro config, ScheduleTask task, boolean reload) throws IOException, PageException, ConverterException {
 		ConfigAdmin admin = new ConfigAdmin(config, null);
 		admin._updateScheduledTask(task);
-		admin.storeAndReload(false, true, reload, false);
+		admin.store(false);
 		return admin._getScheduledTasks();
 	}
 
@@ -656,7 +646,7 @@ public final class ConfigAdmin {
 	}
 
 	public static void pauseScheduledTask(ConfigPro config, String name, boolean pause, boolean throwWhenNotExist, boolean reload)
-			throws PageException, IOException, ConverterException, BundleException {
+			throws PageException, IOException, ConverterException {
 		ConfigAdmin admin = new ConfigAdmin(config, null);
 		Struct data = null;
 		try {
@@ -667,14 +657,15 @@ public final class ConfigAdmin {
 			return;
 		}
 		data.setEL("paused", pause);
-
-		admin.storeAndReload(false, true, reload, false);
+		admin.store(false);
+		ConfigUtil.getConfigServerImpl(config).resetScheduledTasks();
 	}
 
-	public static void removeScheduledTask(ConfigPro config, String name, boolean reload) throws PageException, IOException, ConverterException, BundleException {
+	public static void removeScheduledTask(ConfigPro config, String name, boolean reload) throws PageException, IOException, ConverterException {
 		ConfigAdmin admin = new ConfigAdmin(config, null);
 		admin._removeScheduledTask(name);
-		admin.storeAndReload(false, true, reload, false);
+		admin.store(false);
+		ConfigUtil.getConfigServerImpl(config).resetScheduledTasks();
 	}
 
 	/**
@@ -1686,10 +1677,11 @@ public final class ConfigAdmin {
 
 	}
 
-	protected static void removeJDBCDriver(ConfigPro config, ClassDefinition cd, boolean reload) throws IOException, PageException, BundleException, ConverterException {
+	protected static void removeJDBCDriver(ConfigServerImpl config, ClassDefinition cd, boolean reload) throws IOException, PageException, ConverterException {
 		ConfigAdmin admin = new ConfigAdmin(config, null, true);
 		admin._removeJDBCDriver(cd);
-		admin.storeAndReload(false, true, reload, false);
+		admin.store(false);
+		ConfigUtil.getConfigServerImpl(config).resetJDBCDrivers();
 	}
 
 	private void _removeJDBCDriver(ClassDefinition cd) throws PageException {
@@ -1947,12 +1939,11 @@ public final class ConfigAdmin {
 		el.setEL("readOnly", Caster.toString(readOnly));
 	}
 
-	protected static void removeSearchEngine(ConfigPro config, boolean reload) throws IOException, PageException, BundleException, ConverterException {
+	protected static void removeSearchEngine(ConfigPro config, boolean reload) throws IOException, PageException, ConverterException {
 		ConfigAdmin admin = new ConfigAdmin(config, null, true);
 		admin._removeSearchEngine();
-		admin.storeAndReload(false, true, false, false);
+		admin.store(false);
 		ConfigUtil.getConfigServerImpl(config).resetSearchEngineClassDefinition().resetSearchEngineDirectory();
-		admin.storeAndReload(false, false, reload, false);
 	}
 
 	private void _removeSearchEngine() {
@@ -1979,12 +1970,11 @@ public final class ConfigAdmin {
 
 	}
 
-	protected static void removeORMEngine(ConfigPro config, boolean reload) throws IOException, PageException, BundleException, ConverterException {
+	protected static void removeORMEngine(ConfigPro config, boolean reload) throws IOException, PageException, ConverterException {
 		ConfigAdmin admin = new ConfigAdmin(config, null, true);
 		admin._removeORMEngine();
-		admin.storeAndReload(false, true, false, false);
+		admin.store(false);
 		ConfigUtil.getConfigServerImpl(config).resetORMEngineClassDefintion().resetORMConfig();
-		admin.storeAndReload(false, false, reload, false);
 	}
 
 	private void _removeORMEngine() {
@@ -4223,12 +4213,11 @@ public final class ConfigAdmin {
 		IOUtil.closeEL(monitor);
 	}
 
-	protected static void removeCacheHandler(ConfigPro config, String id, boolean reload) throws IOException, PageException, BundleException, ConverterException {
+	protected static void removeCacheHandler(ConfigPro config, String id, boolean reload) throws IOException, PageException, ConverterException {
 		ConfigAdmin admin = new ConfigAdmin(config, null, true);
 		admin._removeCacheHandler(id);
-		admin.storeAndReload(false, true, false, false);
+		admin.store(false);
 		ConfigUtil.getConfigServerImpl(config).resetCacheHandlers();
-		admin.storeAndReload(false, false, reload, false);
 	}
 
 	private void _removeCache(ClassDefinition cd) {
@@ -4449,7 +4438,7 @@ public final class ConfigAdmin {
 		try {
 			ConfigAdmin admin = new ConfigAdmin(config, null);
 			admin.updateArchive(config, arc);
-			admin.storeAndReload(false, true, reload, false);
+			admin.store(false);
 		}
 		catch (Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);
@@ -5120,7 +5109,7 @@ public final class ConfigAdmin {
 			// reload
 			// if(reloadNecessary){
 			reloadNecessary = true;
-			storeAndReload(false, true, reload && reloadNecessary, false);
+			store(false);
 
 			// Trigger startup hooks if they were added/updated (LDEV-5955)
 			if (filter.allow("resetStartups")) {
@@ -5736,13 +5725,6 @@ public final class ConfigAdmin {
 
 	}
 
-	public void updateAdminSyncClass(ClassDefinition cd) throws PageException {
-
-		if (cd.getClassName() == null) cd = new ClassDefinitionImpl(AdminSyncNotSupported.class.getName());
-
-		setClass(root, AdminSync.class, "adminSync", cd);
-	}
-
 	public void removeRemoteClientUsage(String code) {
 		Struct usage = config.getRemoteClientUsage();
 		usage.removeEL(KeyImpl.init(code));
@@ -6014,14 +5996,13 @@ public final class ConfigAdmin {
 		}
 	}
 
-	Resource[] updateConfigs(InputStream is, String realpath, boolean closeStream, boolean store) throws PageException, IOException, BundleException, ConverterException {
+	Resource[] updateConfigs(InputStream is, String realpath, boolean closeStream, boolean store) throws IOException {
 		List<Resource> filesDeployed = new ArrayList<Resource>();
 		_updateConfigs(config, is, realpath, closeStream, filesDeployed, store);
 		return filesDeployed.toArray(new Resource[filesDeployed.size()]);
 	}
 
-	private static void _updateConfigs(Config config, InputStream is, String realpath, boolean closeStream, List<Resource> filesDeployed, boolean store)
-			throws PageException, IOException, BundleException, ConverterException {
+	private static void _updateConfigs(Config config, InputStream is, String realpath, boolean closeStream, List<Resource> filesDeployed, boolean store) throws IOException {
 		Resource configs = config.getConfigDir(); // MUST get that dynamically
 		Resource trg = configs.getRealResource(realpath);
 		if (trg.exists()) trg.remove(true);
@@ -6029,17 +6010,15 @@ public final class ConfigAdmin {
 		if (!p.isDirectory()) p.createDirectory(true);
 		IOUtil.copy(is, trg.getOutputStream(false), closeStream, true);
 		filesDeployed.add(trg);
-		if (store) _storeAndReload((ConfigPro) config);
 	}
 
-	Resource[] updateComponent(InputStream is, String realpath, boolean closeStream, boolean store) throws PageException, IOException, BundleException, ConverterException {
+	Resource[] updateComponent(InputStream is, String realpath, boolean closeStream, boolean store) throws IOException {
 		List<Resource> filesDeployed = new ArrayList<Resource>();
 		_updateComponent(config, is, realpath, closeStream, filesDeployed, store);
 		return filesDeployed.toArray(new Resource[filesDeployed.size()]);
 	}
 
-	private static void _updateComponent(Config config, InputStream is, String realpath, boolean closeStream, List<Resource> filesDeployed, boolean store)
-			throws PageException, IOException, BundleException, ConverterException {
+	private static void _updateComponent(Config config, InputStream is, String realpath, boolean closeStream, List<Resource> filesDeployed, boolean store) throws IOException {
 		Resource comps = config.getConfigDir().getRealResource("components"); // MUST get that dynamically
 		Resource trg = comps.getRealResource(realpath);
 		if (trg.exists()) trg.remove(true);
@@ -6047,67 +6026,24 @@ public final class ConfigAdmin {
 		if (!p.isDirectory()) p.createDirectory(true);
 		IOUtil.copy(is, trg.getOutputStream(false), closeStream, true);
 		filesDeployed.add(trg);
-		if (store) _storeAndReload((ConfigPro) config);
 	}
 
-	Resource[] updateContext(InputStream is, String realpath, boolean closeStream, boolean store) throws PageException, IOException, BundleException, ConverterException {
+	Resource[] updateContext(InputStream is, String realpath, boolean closeStream, boolean store) throws IOException {
 		List<Resource> filesDeployed = new ArrayList<Resource>();
 		_updateContext(config, is, realpath, closeStream, filesDeployed, store);
 		return filesDeployed.toArray(new Resource[filesDeployed.size()]);
 	}
 
-	private static void _updateContext(Config config, InputStream is, String realpath, boolean closeStream, List<Resource> filesDeployed, boolean store)
-			throws PageException, IOException, BundleException, ConverterException {
+	private static void _updateContext(Config config, InputStream is, String realpath, boolean closeStream, List<Resource> filesDeployed, boolean store) throws IOException {
 		Resource trg = config.getConfigDir().getRealResource("context").getRealResource(realpath);
 		if (trg.exists()) trg.remove(true);
 		Resource p = trg.getParentResource();
 		if (!p.isDirectory()) p.createDirectory(true);
 		IOUtil.copy(is, trg.getOutputStream(false), closeStream, true);
 		filesDeployed.add(trg);
-		if (store) _storeAndReload((ConfigPro) config);
 	}
 
-	@Deprecated
-	static Resource[] updateContextClassic(ConfigPro config, InputStream is, String realpath, boolean closeStream)
-			throws PageException, IOException, BundleException, ConverterException {
-		List<Resource> filesDeployed = new ArrayList<Resource>();
-		ConfigAdmin._updateContextClassic(config, is, realpath, closeStream, filesDeployed);
-		return filesDeployed.toArray(new Resource[filesDeployed.size()]);
-	}
-
-	@Deprecated
-	private static void _updateContextClassic(Config config, InputStream is, String realpath, boolean closeStream, List<Resource> filesDeployed)
-			throws PageException, IOException, BundleException, ConverterException {
-		if (config instanceof ConfigServer) {
-			ConfigWeb[] webs = ((ConfigServer) config).getConfigWebs();
-			if (webs.length == 0) return;
-			if (webs.length == 1) {
-				_updateContextClassic(webs[0], is, realpath, closeStream, filesDeployed);
-				return;
-			}
-			try {
-				byte[] barr = IOUtil.toBytes(is);
-				for (int i = 0; i < webs.length; i++) {
-					_updateContextClassic(webs[i], new ByteArrayInputStream(barr), realpath, true, filesDeployed);
-				}
-			}
-			finally {
-				if (closeStream) IOUtil.close(is);
-			}
-			return;
-		}
-
-		// ConfigWeb
-		Resource trg = config.getConfigDir().getRealResource("context").getRealResource(realpath);
-		if (trg.exists()) trg.remove(true);
-		Resource p = trg.getParentResource();
-		if (!p.isDirectory()) p.createDirectory(true);
-		IOUtil.copy(is, trg.getOutputStream(false), closeStream, true);
-		filesDeployed.add(trg);
-		_storeAndReload((ConfigPro) config);
-	}
-
-	public boolean removeConfigs(Config config, boolean store, String... realpathes) throws PageException, IOException, BundleException, ConverterException {
+	public boolean removeConfigs(Config config, boolean store, String... realpathes) throws IOException {
 		if (ArrayUtil.isEmpty(realpathes)) return false;
 		boolean force = false;
 		for (int i = 0; i < realpathes.length; i++) {
@@ -6116,20 +6052,19 @@ public final class ConfigAdmin {
 		return force;
 	}
 
-	private boolean _removeConfigs(Config config, String realpath, boolean _store) throws PageException, IOException, BundleException, ConverterException {
+	private boolean _removeConfigs(Config config, String realpath, boolean _store) throws IOException {
 
 		Resource context = config.getConfigDir(); // MUST get dyn
 		Resource trg = context.getRealResource(realpath);
 		if (trg.exists()) {
 			trg.remove(true);
-			if (_store) ConfigAdmin._storeAndReload((ConfigPro) config);
 			ResourceUtil.removeEmptyFolders(context, null);
 			return true;
 		}
 		return false;
 	}
 
-	public boolean removeComponents(Config config, boolean store, String... realpathes) throws PageException, IOException, BundleException, ConverterException {
+	public boolean removeComponents(Config config, boolean store, String... realpathes) throws IOException {
 		if (ArrayUtil.isEmpty(realpathes)) return false;
 		boolean force = false;
 		for (int i = 0; i < realpathes.length; i++) {
@@ -6138,20 +6073,19 @@ public final class ConfigAdmin {
 		return force;
 	}
 
-	private boolean _removeComponent(Config config, String realpath, boolean _store) throws PageException, IOException, BundleException, ConverterException {
+	private boolean _removeComponent(Config config, String realpath, boolean _store) throws IOException {
 
 		Resource context = config.getConfigDir().getRealResource("components"); // MUST get dyn
 		Resource trg = context.getRealResource(realpath);
 		if (trg.exists()) {
 			trg.remove(true);
-			if (_store) ConfigAdmin._storeAndReload((ConfigPro) config);
 			ResourceUtil.removeEmptyFolders(context, null);
 			return true;
 		}
 		return false;
 	}
 
-	public boolean removeContext(Config config, boolean store, Log logger, String... realpathes) throws PageException, IOException, BundleException, ConverterException {
+	public boolean removeContext(Config config, boolean store, Log logger, String... realpathes) throws PageException, IOException, ConverterException {
 		if (ArrayUtil.isEmpty(realpathes)) return false;
 		boolean force = false;
 		for (int i = 0; i < realpathes.length; i++) {
@@ -6161,21 +6095,20 @@ public final class ConfigAdmin {
 		return force;
 	}
 
-	private boolean _removeContext(Config config, String realpath, boolean _store) throws PageException, IOException, BundleException, ConverterException {
+	private boolean _removeContext(Config config, String realpath, boolean _store) throws PageException, IOException, ConverterException {
 
 		Resource context = config.getConfigDir().getRealResource("context");
 		Resource trg = context.getRealResource(realpath);
 		if (trg.exists()) {
 			LogUtil.log(config, Log.LEVEL_INFO, "deploy", "_removeContext() removing: " + trg.getAbsolutePath());
 			trg.remove(true);
-			if (_store) ConfigAdmin._storeAndReload((ConfigPro) config);
-			ResourceUtil.removeEmptyFolders(context, null);
+			if (_store) ConfigAdmin._store((ConfigPro) config);
 			return true;
 		}
 		return false;
 	}
 
-	public boolean removeWebContexts(Config config, boolean store, Log logger, String... realpathes) throws PageException, IOException, BundleException, ConverterException {
+	public boolean removeWebContexts(Config config, boolean store, Log logger, String... realpathes) throws PageException, IOException, ConverterException {
 		if (ArrayUtil.isEmpty(realpathes)) return false;
 
 		if (config instanceof ConfigWeb) {
@@ -6190,7 +6123,7 @@ public final class ConfigAdmin {
 		return force;
 	}
 
-	private boolean _removeWebContexts(Config config, String realpath, boolean _store) throws PageException, IOException, BundleException, ConverterException {
+	private boolean _removeWebContexts(Config config, String realpath, boolean _store) throws PageException, IOException, ConverterException {
 
 		if (config instanceof ConfigServer) {
 			ConfigServer cs = ((ConfigServer) config);
@@ -6300,8 +6233,7 @@ public final class ConfigAdmin {
 		}
 	}
 
-	public static void removeRHExtensions(ConfigPro config, Log log, java.util.Collection<RHExtension> rhexs, boolean removePhysical, ResetFilter filter)
-			throws IOException, PageException {
+	public static void removeRHExtensions(ConfigPro config, Log log, java.util.Collection<RHExtension> rhexs, boolean removePhysical, ResetFilter filter) {
 		ConfigAdmin admin = new ConfigAdmin(config, null);
 		for (RHExtension rhe: rhexs) {
 			try {

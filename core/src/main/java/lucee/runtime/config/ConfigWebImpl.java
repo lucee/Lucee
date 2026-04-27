@@ -36,7 +36,6 @@ import lucee.commons.io.res.ResourcesImpl;
 import lucee.commons.io.res.ResourcesImpl.InnerResourceProviderFactory;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.CharsetX;
-import lucee.commons.lang.ClassException;
 import lucee.commons.lang.PhysicalClassLoader;
 import lucee.commons.lang.types.RefBoolean;
 import lucee.commons.lock.KeyLock;
@@ -653,8 +652,8 @@ public final class ConfigWebImpl implements ConfigWebPro {
 	}
 
 	@Override
-	public long lastModified() {
-		return cs.lastModified();
+	public long configLastModified() {
+		return cs.configLastModified();
 	}
 
 	@Override
@@ -1323,11 +1322,6 @@ public final class ConfigWebImpl implements ConfigWebPro {
 	}
 
 	@Override
-	public AdminSync getAdminSync() throws ClassException {
-		return cs.getAdminSync();
-	}
-
-	@Override
 	public Class getVideoExecuterClass() {
 		return cs.getVideoExecuterClass();
 	}
@@ -1870,11 +1864,6 @@ public final class ConfigWebImpl implements ConfigWebPro {
 	@Override
 	public boolean getPreciseMath() {
 		return cs.getPreciseMath();
-	}
-
-	@Override
-	public void setLastModified() {
-		cs.setLastModified();
 	}
 
 	public Object[] getConsoleLayouts() throws PageException {

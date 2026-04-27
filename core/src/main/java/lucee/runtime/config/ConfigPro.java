@@ -14,7 +14,6 @@ import lucee.commons.io.log.LogEngine;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.ResourcesImpl.InnerResourceProviderFactory;
 import lucee.commons.lang.CharsetX;
-import lucee.commons.lang.ClassException;
 import lucee.commons.lang.PhysicalClassLoader;
 import lucee.commons.lang.types.RefBoolean;
 import lucee.loader.engine.CFMLEngine;
@@ -246,8 +245,6 @@ public interface ConfigPro extends Config {
 
 	public Map<String, Startup> getStartups();
 
-	public AdminSync getAdminSync() throws ClassException;
-
 	public Password isPasswordEqual(String password);
 
 	public JDBCDriver[] getJDBCDrivers();
@@ -337,7 +334,7 @@ public interface ConfigPro extends Config {
 
 	public boolean checkForChangesInConfigFile();
 
-	public long lastModified();
+	public long configLastModified();
 
 	public Collection<RHExtension> getAllRHExtensions();
 
@@ -350,8 +347,6 @@ public interface ConfigPro extends Config {
 	public long getApplicationPathCacheTimeout();
 
 	public boolean getPreciseMath();
-
-	public void setLastModified();
 
 	public boolean limitEvaluation();
 

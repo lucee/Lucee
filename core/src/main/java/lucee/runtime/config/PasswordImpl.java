@@ -209,6 +209,12 @@ public final class PasswordImpl implements Password {
 		return pw;
 	}
 
+	public static Password writeToStruct(Struct root, String salt, String passwordRaw) {
+		Password pw = new PasswordImpl(ORIGIN_UNKNOW, passwordRaw, salt);
+		writeToStruct(root, pw);
+		return pw;
+	}
+
 	private static String getSalt(Struct data) {
 		String salt = Caster.toString(data.get("salt", null), null);
 		if (StringUtil.isEmpty(salt, true)) salt = Caster.toString(data.get("adminsalt", null), null);
@@ -303,16 +309,15 @@ public final class PasswordImpl implements Password {
 
 	}
 
-	public static void updatePassword(ConfigPro config, Password passwordOld, Password passwordNew) throws IOException, PageException, BundleException, ConverterException {
+	public static void updatePassword(ConfigPro config, Password passwordOld, Password passwordNew) throws IOException, PageException, ConverterException {
 		if (!config.hasPassword()) {
 			config.setPassword(passwordNew);
 
 			ConfigAdmin admin = ConfigAdmin.newInstance(config, passwordNew);
 			admin.setPassword(passwordNew);
 
-			admin.storeAndReload(true, true, false, false);
+			admin.store(true);
 			ConfigUtil.getConfigServerImpl(config).resetPassword().resetSalt();
-			admin.storeAndReload(false, false, true, false);
 			// validate
 			ConfigUtil.checkPassword(config, "write", passwordNew);
 
@@ -322,9 +327,8 @@ public final class PasswordImpl implements Password {
 			ConfigUtil.checkGeneralWriteAccess(config, passwordOld);
 			ConfigAdmin admin = ConfigAdmin.newInstance(config, passwordOld);
 			admin.setPassword(passwordNew);
-			admin.storeAndReload(true, true, false, false);
+			admin.store(true);
 			ConfigUtil.getConfigServerImpl(config).resetPassword().resetSalt();
-			admin.storeAndReload(false, false, true, false);
 		}
 	}
 

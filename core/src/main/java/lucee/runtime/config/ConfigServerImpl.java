@@ -22,6 +22,7 @@ import static lucee.runtime.db.DatasourceManagerImpl.QOQ_DATASOURCE_NAME;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.lang.ref.SoftReference;
@@ -58,6 +59,7 @@ import lucee.commons.digest.Hash;
 import lucee.commons.digest.HashUtil;
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.FileUtil;
+import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.cache.Cache;
 import lucee.commons.io.log.Log;
@@ -130,6 +132,9 @@ import lucee.runtime.config.gateway.GatewayMap;
 import lucee.runtime.config.maven.MavenUpdateProvider;
 import lucee.runtime.config.maven.MavenUpdateProvider.Repository;
 import lucee.runtime.config.maven.MavenUpdateProvider.RepositoryFactory;
+import lucee.runtime.converter.ConverterException;
+import lucee.runtime.converter.JSONConverter;
+import lucee.runtime.converter.JSONDateFormat;
 import lucee.runtime.customtag.InitFile;
 import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.db.DataSource;
@@ -143,6 +148,8 @@ import lucee.runtime.dump.DumpWriterEntry;
 import lucee.runtime.dump.HTMLDumpWriter;
 import lucee.runtime.engine.CFMLEngineImpl;
 import lucee.runtime.engine.ExecutionLogFactory;
+import lucee.runtime.engine.InfoImpl;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.engine.ThreadQueue;
 import lucee.runtime.engine.ThreadQueueImpl;
 import lucee.runtime.exp.ApplicationException;
@@ -158,15 +165,18 @@ import lucee.runtime.extension.ExtensionDefintionFactory;
 import lucee.runtime.extension.ExtensionProvider;
 import lucee.runtime.extension.RHExtension;
 import lucee.runtime.extension.RHExtensionProvider;
+import lucee.runtime.functions.other.CreateUUID;
 import lucee.runtime.functions.other.CreateUniqueId;
 import lucee.runtime.gateway.GatewayEntry;
 import lucee.runtime.gateway.GatewayEntryFactory;
+import lucee.runtime.interpreter.JSONExpressionInterpreter;
 import lucee.runtime.listener.AppListenerUtil;
 import lucee.runtime.listener.ApplicationContext;
 import lucee.runtime.listener.ApplicationListener;
 import lucee.runtime.listener.JavaSettings;
 import lucee.runtime.listener.JavaSettingsImpl;
 import lucee.runtime.listener.ModernAppListener;
+import lucee.runtime.listener.SerializationSettings;
 import lucee.runtime.monitor.ActionMonitor;
 import lucee.runtime.monitor.ActionMonitorCollector;
 import lucee.runtime.monitor.ActionMonitorFatory;
@@ -180,6 +190,7 @@ import lucee.runtime.net.mail.ServerFactory;
 import lucee.runtime.net.proxy.ProxyData;
 import lucee.runtime.net.proxy.ProxyDataImpl;
 import lucee.runtime.op.Caster;
+import lucee.runtime.op.Decision;
 import lucee.runtime.orm.DummyORMEngine;
 import lucee.runtime.orm.ORMConfiguration;
 import lucee.runtime.orm.ORMConfigurationImpl;
@@ -260,7 +271,6 @@ public final class ConfigServerImpl implements ConfigServerPro {
 	protected Mapping defaultTagMapping;
 	protected final Map<String, Mapping> tagMappings = new ConcurrentHashMap<String, Mapping>();
 	private RHExtensionProvider[] rhextensionProviders;
-	private Class adminSyncClass;
 	private Map<String, ComponentMetaData> componentMetaData;
 	private DumpWriterEntry[] dumpWriters;
 
@@ -291,7 +301,6 @@ public final class ConfigServerImpl implements ConfigServerPro {
 	protected MappingImpl scriptMapping;
 	private Class clusterClass = ClusterNotSupported.class;
 	private Class videoExecuterClass = VideoExecuterNotSupported.class;
-	private AdminSync adminSync;
 	private Map<Integer, CacheConnection> cacheDefaultConnection = null;
 	private ClassLoader envClassLoader;
 	private static Object token = new Object();
@@ -601,7 +610,7 @@ public final class ConfigServerImpl implements ConfigServerPro {
 	protected Password hspw;
 	private boolean initPassword = true;
 
-	private static Prop<String> metaSalt = Prop.str().keys("salt", "adminSalt").systemPropEnvVar("lucee.admin.salt").description("salt used for password encryption");
+	public static Prop<String> metaSalt = Prop.str().keys("salt", "adminSalt").systemPropEnvVar("lucee.admin.salt").description("salt used for password encryption");
 	private String salt;
 
 	private static Prop<Mapping> metaMappings = Prop.custom(MappingFactory.getInstance(MappingFactory.TYPE_REGULAR), Prop.TYPE_MAP).keys("mappings", "CFMappings").lowerCaseKeys()
@@ -1373,6 +1382,15 @@ public final class ConfigServerImpl implements ConfigServerPro {
 		return this.placeHolderdata;
 	}
 
+	public Struct raw() {
+		return root;
+	}
+
+	@Override
+	public Struct getRawData() {
+		return (Struct) root.duplicate(true);
+	}
+
 	@Override
 	public String replacePlaceHolder(String str) {
 		return ConfigUtil.replacePlaceHolder(this, str, getPlaceHolderData());
@@ -1848,12 +1866,11 @@ public final class ConfigServerImpl implements ConfigServerPro {
 	}
 
 	@Override
-	public long lastModified() {
+	public long configLastModified() {
 		return configFileLastModified;
 	}
 
-	@Override
-	public void setLastModified() {
+	private void setConfigLastModified() {
 		this.configFileLastModified = configFile.lastModified();
 	}
 
@@ -3463,9 +3480,6 @@ public final class ConfigServerImpl implements ConfigServerPro {
 	/**
 	 * @param loadTime The loadTime to set.
 	 */
-	protected void setLoadTime(long loadTime) {
-		this.loadTime = loadTime;
-	}
 
 	/**
 	 * @return Returns the configLogger. / public Log getConfigLogger() { return configLogger; }
@@ -5878,61 +5892,6 @@ public final class ConfigServerImpl implements ConfigServerPro {
 	}
 
 	@Override
-	public Class<AdminSync> getAdminSyncClass() {
-		if (adminSyncClass == null) {
-			synchronized (SystemUtil.createToken("config", "getAdminSyncClass")) {
-				if (adminSyncClass == null) {
-					try {
-						ClassDefinition asc = ConfigFactoryImpl.getClassDefinition(this, root, "adminSync", getIdentification());
-						if (!asc.hasClass()) asc = ConfigFactoryImpl.getClassDefinition(this, root, "adminSynchronisation", getIdentification());
-
-						if (asc.hasClass()) {
-
-							Class clazz = asc.getClazz();
-							if (!Reflector.isInstaneOf(clazz, AdminSync.class, false))
-								throw new ApplicationException("class [" + clazz.getName() + "] does not implement interface [" + AdminSync.class.getName() + "]");
-							adminSyncClass = clazz;
-
-						}
-					}
-					catch (Throwable t) {
-						ExceptionUtil.rethrowIfNecessary(t);
-						LogUtil.logGlobal(this, ConfigFactoryImpl.class.getName(), t);
-
-					}
-					if (adminSyncClass == null) adminSyncClass = AdminSyncNotSupported.class;
-				}
-			}
-		}
-		return adminSyncClass;
-	}
-
-	@Override
-	public AdminSync getAdminSync() throws ClassException {
-		if (adminSync == null) {
-			synchronized (SystemUtil.createToken("config", "getAdminSyncClass")) {
-				if (adminSync == null) {
-					adminSync = (AdminSync) ClassUtil.loadInstance(getAdminSyncClass());
-				}
-			}
-
-		}
-		return this.adminSync;
-	}
-
-	public ConfigServerImpl resetAdminSyncClass() {
-		if (adminSyncClass != null) {
-			synchronized (SystemUtil.createToken("config", "getAdminSyncClass")) {
-				if (adminSyncClass != null) {
-					adminSyncClass = null;
-					adminSync = null;
-				}
-			}
-		}
-		return this;
-	}
-
-	@Override
 	public Class getVideoExecuterClass() {
 		return videoExecuterClass;
 	}
@@ -7917,7 +7876,9 @@ public final class ConfigServerImpl implements ConfigServerPro {
 			synchronized (SystemUtil.createToken("config", "getSalt")) {
 				if (salt == null) {
 					this.salt = metaSalt.get(this, root);
-					if (StringUtil.isEmpty(this.salt, true)) throw new RuntimeException("context is invalid, there is no salt!");
+					if (StringUtil.isEmpty(this.salt, true)) {
+						throw new RuntimeException("context is invalid, there is no salt!");
+					}
 
 				}
 			}
@@ -8654,8 +8615,100 @@ public final class ConfigServerImpl implements ConfigServerPro {
 		return coreTLDs;
 	}
 
-	public void setRoot(Struct root) {
-		this.root = root;
+	public void update() throws IOException, ConverterException {
+		ConfigFile.write(getConfigFile(), root, null);
+		setConfigLastModified();
+	}
+
+	public void load(Resource configFile) throws IOException, PageException {
+
+		// we have an update
+		if (this.loadTime != 0) {
+			try {
+				resetAll();
+			}
+			catch (Exception e) {
+				throw Caster.toPageException(e);
+			}
+		}
+
+		try {
+			root = ConfigFile.read(configFile, null);
+		}
+		catch (Exception e) {
+			// rename buggy config files
+			if (configFile.exists()) {
+				Resource bugFile;
+				int count = 1;
+				Resource configDir = configFile.getParentResource();
+				while ((bugFile = configDir.getRealResource("corrupt-" + (count++) + "-" + ConfigFactory.CONFIG_FILE_NAMES[0] + ".")).exists()) {}
+
+				LogUtil.log(Log.LEVEL_ERROR, ConfigFactory.class.getName(),
+						"The configuration file [" + configFile
+								+ "] contained syntax errors and could not be read. A new configuration file has been created, and the invalid file has been renamed to [" + bugFile
+								+ "].");
+				LogUtil.log(ThreadLocalPageContext.get(), ConfigFactory.class.getName(), e);
+
+				IOUtil.copy(configFile, bugFile);
+				configFile.delete();
+			}
+			ConfigFile.createConfigFile(configFile);
+			root = ConfigFile.read(configFile, null);
+		}
+		this.setConfigLastModified();
+		this.loadTime = System.currentTimeMillis();
+
+		createSaltAndPW(root);
+	}
+
+	public void createSaltAndPW() throws IOException {
+		createSaltAndPW(root);
+	}
+
+	private void createSaltAndPW(Struct root) throws IOException {
+		if (root == null) return;
+
+		boolean update = false;
+		String salt = metaSalt.get(this, root);
+		// not existing?
+		if (StringUtil.isEmpty(salt, true) || !Decision.isUUId(salt)) {
+			// create salt
+			root.setEL("salt", salt = CreateUUID.invoke());
+			update = true;
+		}
+
+		Password pw = metaPassword.get(this, root);
+
+		// no password yet
+		if (pw == null) {
+			Resource pwFile = getConfigDir().getRealResource("password.txt");
+			if (pwFile.isFile()) {
+				try {
+					String strPW = IOUtil.toString(pwFile, (Charset) null);
+					if (!StringUtil.isEmpty(strPW, true)) {
+						PasswordImpl.writeToStruct(root, salt, strPW.trim());
+						pwFile.delete();
+						update = true;
+					}
+				}
+				catch (IOException e) {
+					LogUtil.logGlobal(this, "application", e);
+				}
+			}
+			else {
+				LogUtil.log(this, Log.LEVEL_DEBUG, "application", "no password set and no password file found at [" + pwFile + "]");
+			}
+		}
+
+		resetSalt().resetPassword();
+		if (update) {
+			try {
+				ConfigFile.write(getConfigFile(), root, null);
+			}
+			catch (ConverterException e) {
+				throw ExceptionUtil.toIOException(e);
+			}
+		}
 	}
 
 	public UpdateInfo getUpdateInfo() {
@@ -9246,4 +9299,52 @@ public final class ConfigServerImpl implements ConfigServerPro {
 		}
 		return _id;
 	}
+
+	public static class ConfigFile {
+
+		public static void write(Resource configFile, Struct root, Charset charset) throws IOException, ConverterException {
+			if (charset == null) charset = CharsetUtil.UTF8;
+			LogUtil.logGlobal((Config) null, Log.LEVEL_INFO, ConfigFactoryImpl.class.getName(), "writing the config file [" + configFile + "]");
+
+			JSONConverter json = new JSONConverter(true, CharsetUtil.UTF8, JSONDateFormat.PATTERN_CF, false);
+			String str = json.serialize(null, root, SerializationSettings.SERIALIZE_AS_ROW, true);
+			synchronized (SystemUtil.createToken("ConfigFile", ResourceUtil.getNormalizedPathEL(configFile))) {
+				IOUtil.write(configFile, str, CharsetUtil.UTF8, false);
+			}
+		}
+
+		public static Struct read(Resource configFile, Charset charset) throws PageException, IOException {
+			if (charset == null) charset = CharsetUtil.UTF8;
+			LogUtil.logGlobal((Config) null, Log.LEVEL_INFO, ConfigFactoryImpl.class.getName(), "read the config file [" + configFile + "]");
+
+			String raw;
+			synchronized (SystemUtil.createToken("ConfigFile", ResourceUtil.getNormalizedPathEL(configFile))) {
+				raw = IOUtil.toString(configFile, CharsetUtil.UTF8);
+			}
+			return Caster.toStruct(new JSONExpressionInterpreter().interpret(null, raw));
+		}
+
+		public static void createConfigFile(Resource configFile) throws IOException {
+			String resource = "/resource/config/server.json";
+			InputStream is = InfoImpl.class.getResourceAsStream(resource);
+			if (is == null) is = SystemUtil.getResourceAsStream(null, resource);
+			if (is == null) throw new IOException("File [" + resource + "] does not exist.");
+
+			configFile = configFile.getAbsoluteResource();
+
+			synchronized (SystemUtil.createToken("ConfigFile", ResourceUtil.getNormalizedPathEL(configFile))) {
+				if (configFile.exists()) configFile.delete();
+				configFile.createNewFile();
+				IOUtil.copy(is, configFile, true);
+			}
+			LogUtil.logGlobal(Log.LEVEL_DEBUG, ConfigFactory.class.getName(), "Written file: [" + configFile + "]");
+		}
+
+	}
+
+	@Override
+	public Class<AdminSync> getAdminSyncClass() {
+		throw new RuntimeException("no longer supported");
+	}
+
 }

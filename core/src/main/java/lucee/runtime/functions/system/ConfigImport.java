@@ -1,5 +1,6 @@
 package lucee.runtime.functions.system;
 
+import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.Map;
 
@@ -52,8 +53,13 @@ public final class ConfigImport extends BIF {
 		// charset
 		Charset cs = StringUtil.isEmpty(charset, true) ? pc.getResourceCharset() : CharsetUtil.toCharset(charset);
 
-		return (res != null ? new lucee.runtime.config.CFConfigImport(pc.getConfig(), res, cs, password, type, placeHolderData, true, true, flushExistingData)
-				: new CFConfigImport(pc.getConfig(), data, cs, password, type, placeHolderData, true, true, flushExistingData)).execute(true);
+		try {
+			return (res != null ? new lucee.runtime.config.CFConfigImport(pc.getConfig(), res, cs, password, placeHolderData, true, true, flushExistingData)
+					: new CFConfigImport(pc.getConfig(), data, password, placeHolderData, true, true, flushExistingData)).execute(true);
+		}
+		catch (IOException e) {
+			throw Caster.toPageException(e);
+		}
 	}
 
 	@Override

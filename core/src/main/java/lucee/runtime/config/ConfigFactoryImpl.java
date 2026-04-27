@@ -71,6 +71,7 @@ import lucee.runtime.PageContext;
 import lucee.runtime.ai.AIEngine;
 import lucee.runtime.ai.AIEngineFactory;
 import lucee.runtime.component.ImportDefintion;
+import lucee.runtime.config.ConfigServerImpl.ConfigFile;
 import lucee.runtime.config.component.ComponentFactory;
 import lucee.runtime.converter.ConverterException;
 import lucee.runtime.db.ClassDefinition;
@@ -98,7 +99,6 @@ import lucee.runtime.engine.ThreadQueueImpl;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
-import lucee.runtime.functions.other.CreateUUID;
 import lucee.runtime.gateway.GatewayEngineImpl;
 import lucee.runtime.monitor.ActionMonitor;
 import lucee.runtime.net.http.ReqRspUtil;
@@ -199,53 +199,26 @@ public final class ConfigFactoryImpl extends ConfigFactory {
 			UpdateInfo ui = getNew(engine, configDir, essentialOnly, UpdateInfo.NEW_NONE);
 			boolean doNew = ui.updateType != NEW_NONE;
 
-			Resource configFileOld = configDir.getRealResource("lucee-server.xml");
-
 			// config file
-			Resource configFileNew = getConfigFile(configDir, true, false);
+			Resource configFile = getConfigFile(configDir, true, false);
+			boolean hasConfig = configFile.exists() && configFile.length() > 0;
 
-			boolean hasConfigOld = false;
-			boolean hasConfigNew = configFileNew.exists() && configFileNew.length() > 0;
-
-			if (!hasConfigNew) {
-				LogUtil.logGlobal(Log.LEVEL_INFO, ConfigFactoryImpl.class.getName(), "has no json server context config [" + configFileNew + "]");
-				hasConfigOld = configFileOld.exists() && configFileOld.length() > 0;
-				LogUtil.logGlobal(Log.LEVEL_INFO, ConfigFactoryImpl.class.getName(), "has " + (hasConfigOld ? "" : "no ") + "xml server context config [" + configFileOld + "]");
+			if (!hasConfig) {
+				LogUtil.logGlobal(Log.LEVEL_INFO, ConfigFactoryImpl.class.getName(), "has no json server context config [" + configFile + "]");
 			}
-			ConfigServerImpl config = existing != null ? existing : new ConfigServerImpl(engine, initContextes, contextes, configDir, configFileNew, ui, essentialOnly, doNew);
+			ConfigServerImpl config = existing != null ? existing : new ConfigServerImpl(engine, initContextes, contextes, configDir, configFile, ui, essentialOnly, doNew);
 			ThreadLocalConfigServer.register(config);
 			// translate to new
-			if (!hasConfigNew) {
-				if (hasConfigOld) {
-					LogUtil.logGlobal(Log.LEVEL_INFO, ConfigFactoryImpl.class.getName(), "convert server context xml config to json");
-					try {
-						translateConfigFile(config, configFileOld, configFileNew, "multi", true);
-					}
-					catch (IOException e) {
-						LogUtil.logGlobal(ConfigFactoryImpl.class.getName(), e);
-						throw e;
-					}
-					catch (ConverterException e) {
-						LogUtil.logGlobal(ConfigFactoryImpl.class.getName(), e);
-						throw e;
-					}
-					catch (SAXException e) {
-						LogUtil.logGlobal(ConfigFactoryImpl.class.getName(), e);
-						throw e;
-					}
-				}
-				// create config file
-				else {
-					LogUtil.logGlobal(Log.LEVEL_INFO, ConfigFactoryImpl.class.getName(), "create new server context json config file [" + configFileNew + "]");
-					ConfigFile.createConfigFile("server", configFileNew);
-					hasConfigNew = true;
-				}
+			if (!hasConfig) {
+				LogUtil.logGlobal(Log.LEVEL_INFO, ConfigFactoryImpl.class.getName(), "create new server context json config file [" + configFile + "]");
+				ConfigFile.createConfigFile(configFile);
+				hasConfig = true;
 			}
 			LogUtil.logGlobal(Log.LEVEL_INFO, ConfigFactoryImpl.class.getName(), "load config file");
-			Struct root = loadDocumentCreateIfFails(config, configFileNew, "server");
-			config.setRoot(root);
+			config.load(configFile);
+
 			// admin mode
-			load(config, root, false, doNew, essentialOnly);
+			load(config, essentialOnly);
 
 			if (!essentialOnly) {
 				createContextFiles(configDir, config, doNew);
@@ -289,14 +262,20 @@ public final class ConfigFactoryImpl extends ConfigFactory {
 		boolean quick = CFMLEngineImpl.quick(engine);
 		Resource configFile = configServer.getConfigFile();
 		if (configFile == null) return;
-		if (second(configServer.getLoadTime()) > second(configFile.lastModified())) {
-			if (!configServer.getConfigDir().getRealResource("password.txt").isFile()) return;
+
+		// we only update if the config file has changed outside ConfigAdmin
+		// lastModified() == last modified by the
+		if (!ConfigAdmin.wasConfigFileChangedOutside(configServer)) {
+			// if we have a password.txt we only reload that
+			if (configServer.getConfigDir().getRealResource("password.txt").isFile()) {
+				configServer.createSaltAndPW();
+			}
+			return;
 		}
-		int iDoNew = getNew(engine, configServer.getConfigDir(), quick, UpdateInfo.NEW_NONE).updateType;
-		boolean doNew = iDoNew != NEW_NONE;
-		Struct root = loadDocumentCreateIfFails(null, configFile, "server");
-		configServer.setRoot(root);
-		load(configServer, root, true, doNew, quick);
+
+		// we reload in case the config file was changed from outside
+
+		load(configServer, quick);
 		try {
 			((CFMLEngineImpl) ConfigUtil.getEngine(configServer)).onStart(configServer, true);
 		}
@@ -320,28 +299,9 @@ public final class ConfigFactoryImpl extends ConfigFactory {
 	 * @throws PageException
 	 * @throws BundleException
 	 */
-	synchronized static void load(ConfigServerImpl config, Struct root, boolean isReload, boolean doNew, boolean essentialOnly) throws IOException {
+	synchronized static void load(ConfigServerImpl config, boolean essentialOnly) throws IOException {
 		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfigServer(config), Log.LEVEL_INFO, ConfigFactoryImpl.class.getName(), "start reading config");
 		ThreadLocalConfig.register(config);
-		boolean reload = false;
-		// load PW
-		try {
-			if (createSaltAndPW(root, config, essentialOnly)) reload = true;
-			if (LOG) log(config, Log.LEVEL_INFO, "set salt");
-
-			// reload when an old version of xml got updated
-			if (reload) {
-				root = reload(root, config, null);
-				reload = false;
-			}
-
-		}
-		catch (Throwable t) {
-			ExceptionUtil.rethrowIfNecessary(t);
-			log(config, t);
-		}
-
-		config.setLastModified();
 
 		if (LOG) log(config, Log.LEVEL_INFO, "loaded filesystem");
 		if (!essentialOnly) {
@@ -355,7 +315,6 @@ public final class ConfigFactoryImpl extends ConfigFactory {
 		// Trigger startup hooks (lazy-loaded)
 		config.getStartups();
 
-		config.setLoadTime(System.currentTimeMillis());
 		ConfigServerImpl.instance = config;
 	}
 
@@ -389,53 +348,6 @@ public final class ConfigFactoryImpl extends ConfigFactory {
 
 		cwi.reload();
 		return;
-	}
-
-	private static boolean createSaltAndPW(Struct root, ConfigServerImpl config, boolean essentialOnly) {
-		if (root == null) return false;
-
-		// salt
-		String salt = getAttr(null, root, "adminSalt");
-		if (StringUtil.isEmpty(salt, true)) salt = getAttr(config, root, "salt");
-		boolean rtn = false;
-		if (StringUtil.isEmpty(salt, true) || !Decision.isUUId(salt)) {
-			// create salt
-			root.setEL("salt", salt = CreateUUID.invoke());
-			rtn = true;
-		}
-
-		// no password yet
-		if (!essentialOnly && StringUtil.isEmpty(root.get("hspw", ""), true) && StringUtil.isEmpty(root.get("adminhspw", ""), true) && StringUtil.isEmpty(root.get("pw", ""), true)
-				&& StringUtil.isEmpty(root.get("adminpw", ""), true) && StringUtil.isEmpty(root.get("password", ""), true)
-				&& StringUtil.isEmpty(root.get("adminpassword", ""), true)) {
-			Resource pwFile = config.getConfigDir().getRealResource("password.txt");
-			if (pwFile.isFile()) {
-				try {
-					String pw = IOUtil.toString(pwFile, (Charset) null);
-					if (!StringUtil.isEmpty(pw, true)) {
-						pw = pw.trim();
-						String hspw = new PasswordImpl(Password.ORIGIN_UNKNOW, pw, salt).getPassword();
-						root.setEL("hspw", hspw);
-						pwFile.delete();
-						rtn = true;
-					}
-				}
-				catch (IOException e) {
-					LogUtil.logGlobal(config, "application", e);
-				}
-			}
-			else {
-				LogUtil.log(config, Log.LEVEL_DEBUG, "application", "no password set and no password file found at [" + pwFile + "]");
-			}
-		}
-		return rtn;
-	}
-
-	private static Struct reload(Struct root, ConfigServerImpl config, ConfigServerImpl cs) throws IOException, ConverterException {
-		// store as json
-
-		root = ConfigFile.reload(config.getConfigFile(), root);
-		return root;
 	}
 
 	public static ResourceProvider toDefaultResourceProvider(Class defaultProviderClass, Map arguments) throws ClassException {
