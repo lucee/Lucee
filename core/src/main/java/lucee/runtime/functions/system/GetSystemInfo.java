@@ -30,6 +30,7 @@ import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.pool.PoolStats;
 
+import lucee.commons.lang.StringUtil;
 import lucee.commons.net.http.httpclient.HTTPEngine4Impl;
 import lucee.runtime.CFMLFactoryImpl;
 import lucee.runtime.PageContext;
@@ -64,18 +65,22 @@ public final class GetSystemInfo implements Function {
 			for (DatasourceConnPool pool: config.getDatasourceConnectionPools()) {
 				idle += pool.getNumIdle();
 				active += pool.getNumActive();
-				idle += pool.getNumWaiters();
+				waiters += pool.getNumWaiters();
 				if ((pool.getNumActive() + pool.getNumIdle() + pool.getNumWaiters()) == 0) {
 					continue;
 				}
+				String dsName = StringUtil.emptyIfNull(pool.getFactory().getDatasource().getName());
+				String dsUser = StringUtil.emptyIfNull(pool.getFactory().getUsername());
+				String dsHash = Integer.toHexString(pool.getFactory().getDatasource().hashCode());
 				Struct dc = new StructImpl();
 				dc.put("activeDatasourceConnections", pool.getNumActive());
 				dc.put("idleDatasourceConnections", pool.getNumIdle());
 				dc.put("waitingForConn", pool.getNumWaiters());
 				dc.put("jdbcDriverClass", pool.getFactory().getDatasource().getClassDefinition().getName());
-				dc.put("name", pool.getFactory().getDatasource().getName());
+				dc.put("name", dsName);
+				dc.put("username", dsUser);
 				dc.put("connectionString", pool.getFactory().getDatasource().getConnectionStringTranslated());
-				dsPoolInfo.put(pool.getFactory().getDatasource().hashCode(), dc);
+				dsPoolInfo.put(dsName + ":" + dsUser + ":" + dsHash, dc);
 			}
 			sct.put("activeDatasourceConnections", active);
 			sct.put("idleDatasourceConnections", idle);
