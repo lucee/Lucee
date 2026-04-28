@@ -23,8 +23,10 @@ import lucee.commons.lang.CharsetX;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.loader.engine.CFMLEngineFactory;
+import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageRuntimeException;
+import lucee.runtime.exp.SecurityException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 import lucee.runtime.op.OpUtil;
@@ -263,8 +265,11 @@ public class Prop<T> {
 				}
 				catch (PageException pe) {}
 			}
-
 			return false;
+		}
+
+		public boolean equal(Object obj) {
+			return this.value.equals(obj);
 		}
 
 		public Choice<T> description(String description) {
@@ -287,6 +292,10 @@ public class Prop<T> {
 	}
 
 	public T get(ConfigServerImpl config, Struct root) {
+		return get(config, root, true);
+	}
+
+	public T get(ConfigServerImpl config, Struct root, boolean checkEnv) {
 		if (type != TYPE_SIMPLE) { // only happens when set wrong in code
 			throw new RuntimeException("Invalid type [" + type + "]");
 		}
@@ -305,24 +314,27 @@ public class Prop<T> {
 		}
 
 		try {
-			for (String key: envVarSystemProps()) {
-				str = SystemUtil.getSystemPropOrEnvVar(key, null);
-				if (!StringUtil.isEmpty(str, true)) {
-					str = str.trim();
+			// check system properties and env var
+			if (checkEnv) {
+				for (String key: envVarSystemProps()) {
+					str = SystemUtil.getSystemPropOrEnvVar(key, null);
+					if (!StringUtil.isEmpty(str, true)) {
+						str = str.trim();
 
-					if (choices != null) {
-						for (Choice<T> choice: choices) {
-							if (choice.matches(str)) {
-								return choice.value;
+						if (choices != null) {
+							for (Choice<T> choice: choices) {
+								if (choice.matches(str)) {
+									return choice.value;
+								}
+
 							}
-
+							return defaultValue;
 						}
-						return defaultValue;
+						if (str == null || (handleEmptyAsNull && StringUtil.isEmpty(str, true))) {
+							return defaultValue;
+						}
+						return factory.evaluate(config, key, str);
 					}
-					if (str == null || (handleEmptyAsNull && StringUtil.isEmpty(str, true))) {
-						return defaultValue;
-					}
-					return factory.evaluate(config, key, str);
 				}
 			}
 
@@ -370,6 +382,55 @@ public class Prop<T> {
 			}
 		}
 		return defaultValue;
+	}
+
+	public void write(ConfigServerImpl config, Struct input) throws PageException {
+
+		Struct root = config.raw();
+
+		if (access != -1) {
+			if (!ConfigUtil.hasAccess(config, access)) {
+				// TODO improve exception message
+				throw new SecurityException("no access to update this setting");
+			}
+		}
+
+		T existing = get(config, input, false);
+		Object serialized = null;
+		if (choices != null) {
+			boolean matchFound = false;
+			for (Choice<T> choice: choices) {
+				if (choice.equal(existing)) {
+					serialized = choice.values[0];
+					matchFound = true;
+					break;
+				}
+			}
+			if (!matchFound) {
+				// TODO improve
+				throw new ApplicationException("no matching choice found");
+			}
+		}
+		else {
+			serialized = this.factory.serialize(config, existing);
+		}
+
+		Struct data;
+		if (parent == null) {
+			data = root;
+		}
+		else {
+			data = ConfigUtil.getAsStruct(parent, root);
+		}
+
+		Key key = KeyImpl.init(keys[0]);
+		if (existing == defaultValue) {
+			data.removeEL(key);
+		}
+		else {
+			data.set(key, serialized);
+		}
+
 	}
 
 	public Map<String, T> map(ConfigServerImpl config, Struct root) {

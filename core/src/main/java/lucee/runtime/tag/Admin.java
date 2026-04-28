@@ -229,6 +229,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	private Password password;
 	private ConfigAdmin admin;
 	private ConfigPro config = null;
+	private ConfigServerImpl configServer = null;
 	private ConfigWebPro configWeb = null;
 
 	private static final ResourceFilter FILTER_CFML_TEMPLATES = new OrResourceFilter(
@@ -259,8 +260,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	@Override
 	public int doStartTag() throws PageException {
 		config = configWeb = (ConfigWebPro) pageContext.getConfig();
-
-		// print();
+		configServer = ConfigUtil.getConfigServerImpl(config);
 
 		// Action
 		Object objAction = attributes.get(KeyConstants._action);
@@ -680,25 +680,122 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		else if (check("updateTLD", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateTLD();
 		else if (check("updateFLD", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateFLD();
 		else if (check("updateFilesystem", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateFilesystem();
-		else if (check("updateregional", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateRegional();
+		else if (check("updateregional", ACCESS_FREE) && check2(ACCESS_WRITE)) {
+			try {
+				ConfigServerImpl.metaLocale.write(configServer, attributes);
+				ConfigServerImpl.metaTimeZone.write(configServer, attributes);
+			}
+			finally {
+				store();
+				ConfigUtil.getConfigServerImpl(config).resetLocale().resetTimeZone();
+			}
+		}
 		else if (check("updateApplicationListener", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateApplicationListener();
 		else if (check("updateCachedWithin", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateCachedWithin();
 		else if (check("updateproxy", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateProxy();
 		else if (check("updateCharset", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateCharset();
 		else if (check("updatecomponent", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateComponent();
-		else if (check("updatescope", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateScope();
-		else if (check("updateDevelopMode", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateDevelopMode();
-		else if (check("updateRestSettings", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateRestSettings();
+		else if (check("updatescope", ACCESS_FREE) && check2(ACCESS_WRITE)) {
+
+			admin.checkWriteAccess();
+
+			ConfigServerImpl.metaScopeType.write(configServer, attributes);
+			ConfigServerImpl.metaAllowImplicidQueryCall.write(configServer, attributes);
+			ConfigServerImpl.metaMergeFormAndURL.write(configServer, attributes);
+			ConfigServerImpl.metaSessionManagement.write(configServer, attributes);
+			ConfigServerImpl.metaClientManagement.write(configServer, attributes);
+			ConfigServerImpl.metaDomainCookies.write(configServer, attributes);
+			ConfigServerImpl.metaClientCookies.write(configServer, attributes);
+			ConfigServerImpl.metaClientTimeout.write(configServer, attributes);
+			ConfigServerImpl.metaSessionTimeout.write(configServer, attributes);
+			ConfigServerImpl.metaClientStorage.write(configServer, attributes);
+			ConfigServerImpl.metaSessionStorage.write(configServer, attributes);
+			ConfigServerImpl.metaApplicationTimeout.write(configServer, attributes);
+			ConfigServerImpl.metaSessionType.write(configServer, attributes);
+			ConfigServerImpl.metaLocalMode.write(configServer, attributes);
+			ConfigServerImpl.metaCgiScopeReadonly.write(configServer, attributes);
+			ConfigServerImpl.metaFormUrlAsStruct.write(configServer, attributes);
+
+			store();
+			ConfigUtil.getConfigServerImpl(config).resetLocalMode().resetCGIScopeReadonly().resetSessionType().resetScopeCascadingType().resetAllowImplicidQueryCall()
+					.resetMergeFormAndURL().resetClientStorage().resetSessionStorage().resetClientTimeout().resetSessionTimeout().resetApplicationTimeout().resetClientType()
+					.resetSessionManagement().resetClientManagement().resetClientCookies().resetDomainCookies().resetFormUrlAsStruct();// MUST
+
+		}
+		else if (check("updateDevelopMode", ACCESS_FREE) && check2(ACCESS_WRITE)) {
+			admin.checkWriteAccess();
+			ConfigServerImpl.metaDevelopMode.write(configServer, attributes);
+			store();
+			ConfigUtil.getConfigServerImpl(config).resetDevelopMode();
+		}
+		else if (check("updateRestSettings", ACCESS_FREE) && check2(ACCESS_WRITE)) {
+			admin.checkWriteAccess();
+			ConfigServerImpl.metaRestList.write(configServer, attributes);
+			store();
+			ConfigUtil.getConfigServerImpl(config).resetRestList();
+		}
 		else if (check("updateRestMapping", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateRestMapping();
 		else if (check("removeRestMapping", ACCESS_FREE) && check2(ACCESS_WRITE)) doRemoveRestMapping();
-		else if (check("updateApplicationSetting", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateApplicationSettings();
-		else if (check("updateOutputSetting", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateOutputSettings();
-		else if (check("updateQueueSetting", ACCESS_NOT_WHEN_WEB) && check2(ACCESS_WRITE)) doUpdateQueueSettings();
-		else if (check("updatepsq", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdatePSQ();
+		else if (check("updateApplicationSetting", ACCESS_FREE) && check2(ACCESS_WRITE)) {
+			admin.checkWriteAccess();
+			admin.updateRequestTimeout(attributes);
+			admin.updateScriptProtect(attributes);
+			admin.updateAllowURLRequestTimeout(attributes);
+			store();
+			ConfigUtil.getConfigServerImpl(config).resetAllowURLRequestTimeout().resetRequestTimeout().resetScriptProtect();
+		}
+		else if (check("updateOutputSetting", ACCESS_FREE) && check2(ACCESS_WRITE)) {
+			admin.checkWriteAccess();
+
+			ConfigServerImpl.metaCfmlWriter.write(configServer, attributes);
+			ConfigServerImpl.metaSuppressContent.write(configServer, attributes);
+			ConfigServerImpl.metaAllowCompression.write(configServer, attributes);
+			ConfigServerImpl.metaContentLength.write(configServer, attributes);
+			ConfigServerImpl.metaBufferTagBodyOutput.write(configServer, attributes);
+
+			store();
+			ConfigUtil.getConfigServerImpl(config).resetShowVersion().resetContentLength().resetBufferOutput().resetAllowCompression().resetCFMLWriterType().resetSuppressContent();
+		}
+		else if (check("updateQueueSetting", ACCESS_NOT_WHEN_WEB) && check2(ACCESS_WRITE)) {
+			admin.checkWriteAccess();
+			ConfigServerImpl.metaQueueMax.write(configServer, attributes);
+			ConfigServerImpl.metaQueueTimeout.write(configServer, attributes);
+			ConfigServerImpl.metaQueueEnable.write(configServer, attributes);
+
+			store();
+			ConfigUtil.getConfigServerImpl(config).resetQueueEnable().resetQueueMax().resetQueueTimeout();
+		}
+		else if (check("updatepsq", ACCESS_FREE) && check2(ACCESS_WRITE)) {
+			admin.checkWriteAccess();
+			ConfigServerImpl.metaPsq.write(configServer, attributes);
+			store();
+			ConfigUtil.getConfigServerImpl(config).resetPSQL();
+		}
 		else if (check("updatedatasource", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateDatasource();
 		else if (check("updateJDBCDriver", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateJDBCDriver();
-		else if (check("updateCacheDefaultConnection", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateCacheDefaultConnection();
-		else if (check("updateCacheConnection", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateCacheConnection();
+		else if (check("updateCacheDefaultConnection", ACCESS_FREE) && check2(ACCESS_WRITE)) {
+			admin.checkWriteAccess();
+
+			ConfigServerImpl.metaCacheDefaultConnectionNamesObject.write(configServer, attributes);
+			ConfigServerImpl.metaCacheDefaultConnectionNamesTemplate.write(configServer, attributes);
+			ConfigServerImpl.metaCacheDefaultConnectionNamesQuery.write(configServer, attributes);
+			ConfigServerImpl.metaCacheDefaultConnectionNamesResource.write(configServer, attributes);
+			ConfigServerImpl.metaCacheDefaultConnectionNamesFunction.write(configServer, attributes);
+			ConfigServerImpl.metaCacheDefaultConnectionNamesInclude.write(configServer, attributes);
+			ConfigServerImpl.metaCacheDefaultConnectionNamesHTTP.write(configServer, attributes);
+			ConfigServerImpl.metaCacheDefaultConnectionNamesFile.write(configServer, attributes);
+			ConfigServerImpl.metaCacheDefaultConnectionNamesWebservice.write(configServer, attributes);
+
+			store();
+			ConfigUtil.getConfigServerImpl(config).resetCacheAll();
+		}
+		else if (check("updateCacheConnection", ACCESS_FREE) && check2(ACCESS_WRITE)) {
+			ClassDefinition cd = ClassDefinitionImpl.toClassDefinitionImpl(attributes, null, true, config.getIdentification());
+			admin.updateCacheConnection(getString("admin", action, "name"), cd, toCacheConstant("default"), getStruct("admin", action, "custom"), getBoolV("readOnly", false),
+					getBoolV("storage", false));
+			store();
+			ConfigUtil.getConfigServerImpl(config).resetCacheAll();
+		}
 		else if (check("updateAIConnection", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateAIConnection();
 		else if (check("updateremoteclient", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateRemoteClient();
 		else if (check("updateRemoteClientUsage", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateRemoteClientUsage();
@@ -709,18 +806,56 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		else if (check("updatecustomtag", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateCustomTag();
 		else if (check("updateComponentMapping", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateComponentMapping();
 		else if (check("stopThread", ACCESS_NOT_WHEN_WEB) && check2(ACCESS_WRITE)) doStopThread();
-		else if (check("updateAdminMode", ACCESS_NOT_WHEN_WEB) && check2(ACCESS_WRITE)) doUpdateAdminMode();
+		else if (check("updateAdminMode", ACCESS_NOT_WHEN_WEB) && check2(ACCESS_WRITE)) {
+			admin.updateUpdateAdminMode(getString("admin", "updateAdminMode", "mode"), getBool("admin", "updateAdminMode", "merge"), getBool("admin", "updateAdminMode", "keep"));
+			((GatewayEngineImpl) configWeb.getGatewayEngine()).stop();
+			store();
+		}
 
-		else if (check("updatejavacfx", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateJavaCFX();
+		else if (check("updatejavacfx", ACCESS_FREE) && check2(ACCESS_WRITE)) {
+			String name = getString("admin", action, "name");
+			if (StringUtil.startsWithIgnoreCase(name, "cfx_")) name = name.substring(4);
+			lucee.runtime.db.ClassDefinition cd = ClassDefinitionImpl.toClassDefinitionImpl(attributes, null, true, config.getIdentification());
+			admin.updateJavaCFX(name, cd);
+			store();
+			ConfigUtil.getConfigServerImpl(config).resetCFXTagPool();
+		}
 		else if (check("updatedebug", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateDebug();
 		else if (check("updatemonitoring", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateMonitoring();
 		else if (check("updatesecurity", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateSecurity();
 		else if (check("updatedebugentry", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateDebugEntry();
-		else if (check("updatedebugsetting", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateDebugSetting();
+		else if (check("updatedebugsetting", ACCESS_FREE) && check2(ACCESS_WRITE)) {
+			admin.checkWriteAccess();
+			ConfigServerImpl.metaDebugMaxRecordsLogged.write(configServer, attributes);
+			store();
+			ConfigUtil.getConfigServerImpl(config).resetDebugMaxRecordsLogged();
+		}
 
-		else if (check("updateerror", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateError();
-		else if (check("updateregex", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateRegex();
-		else if (check("updateCustomTagSetting", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateCustomTagSetting();
+		else if (check("updateerror", ACCESS_FREE) && check2(ACCESS_WRITE)) {
+			admin.checkWriteAccess();
+			ConfigServerImpl.metaErrorTemplate500.write(configServer, attributes);
+			ConfigServerImpl.metaErrorTemplate404.write(configServer, attributes);
+			ConfigServerImpl.metaErrorStatusCode.write(configServer, attributes);
+			store();
+			ConfigUtil.getConfigServerImpl(config).resetErrorTemplates().resetErrorStatusCode();
+		}
+		else if (check("updateregex", ACCESS_FREE) && check2(ACCESS_WRITE)) {
+			admin.checkWriteAccess();
+			ConfigServerImpl.metaRegex.write(configServer, attributes);
+			store();
+			ConfigUtil.getConfigServerImpl(config).resetRegex();
+		}
+		else if (check("updateCustomTagSetting", ACCESS_FREE) && check2(ACCESS_WRITE)) {
+			admin.checkWriteAccess();
+
+			ConfigServerImpl.metaDoCustomTagDeepSearch.write(configServer, attributes);
+			ConfigServerImpl.metaDoLocalCustomTag.write(configServer, attributes);
+			ConfigServerImpl.metaUseCTPathCache.write(configServer, attributes);
+			ConfigServerImpl.metaCustomTagExtensions.write(configServer, attributes);
+			store();
+			ConfigUtil.getConfigServerImpl(config).resetUseCTPathCache().resetLocalCustomTag().resetCustomTagExtensions().resetCustomTagDeepSearch();// MUST add more here
+
+		}
 		else if ((check("updateRHExtension", ACCESS_FREE)) && check2(ACCESS_WRITE)) doUpdateRHExtension(true);
 		else if ((check("updateExtension", ACCESS_FREE)) && check2(ACCESS_WRITE)) doUpdateExtension(true);
 		else if ((check("removeRHExtension", ACCESS_FREE)) && check2(ACCESS_WRITE)) doRemoveRHExtension();
@@ -1799,17 +1934,6 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 	}
 
-	private void doUpdateDebugSetting() throws PageException {
-		String str = getString("admin", action, "maxLogs");
-		int maxLogs;
-		if (StringUtil.isEmpty(str, true)) maxLogs = -1;
-		else maxLogs = Caster.toIntValue(str);
-		admin.updateDebugSetting(maxLogs);
-		store();
-		ConfigUtil.getConfigServerImpl(config).resetDebugMaxRecordsLogged();
-
-	}
-
 	private void doUpdateDebugEntry() throws PageException {
 		try {
 			admin.updateDebugEntry(getString("admin", "updateDebugEntry", "debugtype"), getString("admin", "updateDebugEntry", "iprange"),
@@ -1844,38 +1968,6 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			qry.setAtEL(KeyConstants._readOnly, row, Caster.toBoolean(de.isReadOnly()));
 			qry.setAtEL(KeyConstants._custom, row, de.getCustom());
 		}
-	}
-
-	private void doUpdateError() throws PageException {
-
-		admin.updateErrorTemplate(500, getString("admin", action, "template500"));
-		admin.updateErrorTemplate(404, getString("admin", action, "template404"));
-		admin.updateErrorStatusCode(getBoolObject("admin", action, "statuscode"));
-		store();
-		ConfigUtil.getConfigServerImpl(config).resetErrorTemplates().resetErrorStatusCode();
-
-	}
-
-	private void doUpdateRegex() throws PageException {
-
-		admin.updateRegexType(getString("admin", action, "regextype"));
-		store();
-		ConfigUtil.getConfigServerImpl(config).resetRegex();
-
-	}
-
-	/**
-	 * @throws PageException
-	 * 
-	 */
-	private void doUpdateJavaCFX() throws PageException {
-		String name = getString("admin", action, "name");
-		if (StringUtil.startsWithIgnoreCase(name, "cfx_")) name = name.substring(4);
-		lucee.runtime.db.ClassDefinition cd = ClassDefinitionImpl.toClassDefinitionImpl(attributes, null, true, config.getIdentification());
-		admin.updateJavaCFX(name, cd);
-		store();
-		ConfigUtil.getConfigServerImpl(config).resetCFXTagPool();
-
 	}
 
 	private void doVerifyJavaCFX() throws PageException {
@@ -2695,15 +2787,6 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 	}
 
-	private void doUpdateCacheConnection() throws PageException {
-		ClassDefinition cd = ClassDefinitionImpl.toClassDefinitionImpl(attributes, null, true, config.getIdentification());
-		admin.updateCacheConnection(getString("admin", action, "name"), cd, toCacheConstant("default"), getStruct("admin", action, "custom"), getBoolV("readOnly", false),
-				getBoolV("storage", false));
-		store();
-		ConfigUtil.getConfigServerImpl(config).resetCacheAll();
-
-	}
-
 	private void doUpdateAIConnection() throws PageException {
 		String name = getString("admin", action, "name");
 		ClassDefinition cd = ClassDefinitionImpl.toClassDefinitionImpl(attributes, null, true, config.getIdentification());
@@ -2754,21 +2837,6 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		if (def.equals("webservice")) return ConfigPro.CACHE_TYPE_WEBSERVICE;
 
 		throw new ApplicationException("Invalid default type [" + def + "], valid default types are [object,template,query,resource,function]");
-	}
-
-	private void doUpdateCacheDefaultConnection() throws PageException {
-		admin.updateCacheDefaultConnection(ConfigPro.CACHE_TYPE_OBJECT, getString("admin", action, "object"));
-		admin.updateCacheDefaultConnection(ConfigPro.CACHE_TYPE_TEMPLATE, getString("admin", action, "template"));
-		admin.updateCacheDefaultConnection(ConfigPro.CACHE_TYPE_QUERY, getString("admin", action, "query"));
-		admin.updateCacheDefaultConnection(ConfigPro.CACHE_TYPE_RESOURCE, getString("admin", action, "resource"));
-		admin.updateCacheDefaultConnection(ConfigPro.CACHE_TYPE_FUNCTION, getString("admin", action, "function"));
-		admin.updateCacheDefaultConnection(ConfigPro.CACHE_TYPE_INCLUDE, getString("admin", action, "include"));
-		admin.updateCacheDefaultConnection(ConfigPro.CACHE_TYPE_HTTP, getString("admin", action, "http"));
-		admin.updateCacheDefaultConnection(ConfigPro.CACHE_TYPE_FILE, getString("admin", action, "file"));
-		admin.updateCacheDefaultConnection(ConfigPro.CACHE_TYPE_WEBSERVICE, getString("admin", action, "webservice"));
-		store();
-		ConfigUtil.getConfigServerImpl(config).resetCacheAll();
-
 	}
 
 	private void doRemoveCacheDefaultConnection() throws PageException {
@@ -2943,17 +3011,6 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		catch (Exception e) {
 			throw Caster.toPageException(e);
 		}
-	}
-
-	/**
-	 * @throws PageException
-	 * 
-	 */
-	private void doUpdatePSQ() throws PageException {
-		admin.updatePSQ(getBoolObject("admin", action, "psq"));
-		store();
-		ConfigUtil.getConfigServerImpl(config).resetPSQL();
-
 	}
 
 	private void doReload() throws PageException {
@@ -4164,104 +4221,6 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		pageContext.setVariable(getString("admin", action, "returnVariable"), qry);
 	}
 
-	/**
-	 * @throws PageException
-	 * 
-	 */
-	private void doUpdateScope() throws PageException {
-
-		admin.updateScopeCascadingType(getString("admin", action, "scopeCascadingType"));
-		admin.updateAllowImplicidQueryCall(getBoolObject("admin", action, "allowImplicidQueryCall"));
-		admin.updateMergeFormAndUrl(getBoolObject("admin", action, "mergeFormAndUrl"));
-		admin.updateSessionManagement(getBoolObject("admin", action, "sessionManagement"));
-		admin.updateClientManagement(getBoolObject("admin", action, "clientManagement"));
-		admin.updateDomaincookies(getBoolObject("admin", action, "domainCookies"));
-		admin.updateClientCookies(getBoolObject("admin", action, "clientCookies"));
-		// admin.updateRequestTimeout(getTimespan("admin",action,"requestTimeout"));
-		admin.updateClientTimeout(getTimespan("admin", action, "clientTimeout"));
-		admin.updateSessionTimeout(getTimespan("admin", action, "sessionTimeout"));
-		admin.updateClientStorage(getString("admin", action, "clientStorage"));
-		admin.updateSessionStorage(getString("admin", action, "sessionStorage"));
-		admin.updateApplicationTimeout(getTimespan("admin", action, "applicationTimeout"));
-		admin.updateSessionType(getString("admin", action, "sessionType"));
-		admin.updateLocalMode(getString("admin", action, "localMode"));
-		admin.updateCGIReadonly(getBoolObject("admin", action, "cgiReadonly"));
-		admin.updateFormUrlAsStruct(getBoolObject("admin", action, "formUrlAsStruct"));
-
-		config.getFormUrlAsStruct();
-
-		store();
-		ConfigUtil.getConfigServerImpl(config).resetLocalMode().resetCGIScopeReadonly().resetSessionType().resetScopeCascadingType().resetAllowImplicidQueryCall()
-				.resetMergeFormAndURL().resetClientStorage().resetSessionStorage().resetClientTimeout().resetSessionTimeout().resetApplicationTimeout().resetClientType()
-				.resetSessionManagement().resetClientManagement().resetClientCookies().resetDomainCookies().resetFormUrlAsStruct();// MUST
-
-	}
-
-	/**
-	 * @throws PageException
-	 * 
-	 */
-	private void doUpdateDevelopMode() throws PageException {
-
-		admin.updateMode(getBoolObject("admin", action, "mode"));
-		store();
-		ConfigUtil.getConfigServerImpl(config).resetDevelopMode();
-
-	}
-
-	private void doUpdateRestSettings() throws PageException {
-
-		admin.updateRestList(getBool("list", null));
-		store();
-		ConfigUtil.getConfigServerImpl(config).resetRestList();
-
-	}
-
-	private void doUpdateApplicationSettings() throws PageException {
-		admin.updateRequestTimeout(getTimespan("admin", action, "requestTimeout"));
-		admin.updateScriptProtect(getString("admin", action, "scriptProtect"));
-		admin.updateAllowURLRequestTimeout(getBoolObject("admin", action, "allowURLRequestTimeout")); // DIFF 23
-		store();
-		ConfigUtil.getConfigServerImpl(config).resetAllowURLRequestTimeout().resetRequestTimeout().resetScriptProtect();
-
-	}
-
-	private void doUpdateQueueSettings() throws PageException {
-		admin.updateQueue(getInteger("admin", action, "max"), getInteger("admin", action, "timeout"), getBoolObject("admin", action, "enable"));
-		store();
-		ConfigUtil.getConfigServerImpl(config).resetQueueEnable().resetQueueMax().resetQueueTimeout();
-
-	}
-
-	private void doUpdateOutputSettings() throws PageException {
-		admin.updateCFMLWriterType(getString("admin", action, "cfmlWriter"));
-		admin.updateSuppressContent(getBoolObject("admin", action, "suppressContent"));
-		// admin.updateShowVersion(getBoolObject("admin",action, "showVersion"));
-		admin.updateAllowCompression(getBoolObject("admin", action, "allowCompression"));
-		admin.updateContentLength(getBoolObject("admin", action, "contentLength"));
-		admin.updateBufferOutput(getBoolObject("admin", action, "bufferOutput"));
-		store();
-		ConfigUtil.getConfigServerImpl(config).resetShowVersion().resetContentLength().resetBufferOutput().resetAllowCompression().resetCFMLWriterType().resetSuppressContent();
-
-	}
-
-	private void doUpdateCustomTagSetting() throws PageException {
-		admin.updateCustomTagDeepSearch(getBool("admin", action, "deepSearch"));
-		admin.updateCustomTagLocalSearch(getBool("admin", action, "localSearch"));
-		admin.updateCTPathCache(getBool("admin", action, "customTagPathCache"));
-		admin.updateCustomTagExtensions(getString("admin", action, "extensions"));
-		store();
-		ConfigUtil.getConfigServerImpl(config).resetUseCTPathCache().resetLocalCustomTag().resetCustomTagExtensions().resetCustomTagDeepSearch();// MUST add more here
-
-	}
-
-	private void doUpdateAdminMode() throws PageException {
-		admin.updateUpdateAdminMode(getString("admin", "updateAdminMode", "mode"), getBool("admin", "updateAdminMode", "merge"), getBool("admin", "updateAdminMode", "keep"));
-		((GatewayEngineImpl) configWeb.getGatewayEngine()).stop();
-		store();
-
-	}
-
 	private void doUpdateMonitor() throws PageException {
 		ClassDefinition cd = ClassDefinitionImpl.toClassDefinitionImpl(attributes, null, true, config.getIdentification());
 
@@ -4612,23 +4571,24 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	 * 
 	 */
 	private void doUpdateComponent() throws PageException {
+		try {
+			admin.checkWriteAccess();
 
-		admin.updateComponentDeepSearch(getBoolObject("admin", action, "deepSearch"));
-		admin.updateComponentDumpTemplate(getString("admin", action, "componentDumpTemplate"));
-		admin.updateComponentDataMemberDefaultAccess(getString("admin", action, "componentDataMemberDefaultAccess"));
-		admin.updateTriggerDataMember(getBoolObject("admin", action, "triggerDataMember"));
-		admin.updateComponentUseShadow(getBoolObject("admin", action, "useShadow"));
-		admin.updateComponentDefaultImport(getString("admin", action, "componentDefaultImport"));
-		admin.updateComponentLocalSearch(getBoolObject("admin", action, "componentLocalSearch"));
-		admin.updateComponentPathCache(getBoolObject("admin", action, "componentPathCache"));
-
-		String returnFormat = getString("returnFormat", null);
-		if (!StringUtil.isEmpty(returnFormat, true)) {
-			admin.updateReturnFormat(returnFormat);
+			ConfigServerImpl.metaDoComponentTagDeepSearch.write(configServer, attributes);
+			ConfigServerImpl.metaComponentDumpTemplate.write(configServer, attributes);
+			ConfigServerImpl.metaComponentDataMemberDefaultAccess.write(configServer, attributes);
+			ConfigServerImpl.metaTriggerComponentDataMember.write(configServer, attributes);
+			ConfigServerImpl.metaUseComponentShadow.write(configServer, attributes);
+			ConfigServerImpl.metaComponentDefaultImport.write(configServer, attributes);
+			ConfigServerImpl.metaComponentLocalSearch.write(configServer, attributes);
+			ConfigServerImpl.metaUseComponentPathCache.write(configServer, attributes);
+			ConfigServerImpl.metaReturnFormat.write(configServer, attributes);
 		}
-		store();
-		ConfigUtil.getConfigServerImpl(config).resetReturnFormat().resetComponentDefaultImport().resetComponentDeepSearch().resetComponentDumpTemplate()
-				.resetComponentDataMemberDefaultAccess().resetTriggerComponentDataMember().resetComponentLocalSearch().resetComponentPathCache().resetComponentShadow(); // MUST
+		finally {
+			store();
+			ConfigUtil.getConfigServerImpl(config).resetReturnFormat().resetComponentDefaultImport().resetComponentDeepSearch().resetComponentDumpTemplate()
+					.resetComponentDataMemberDefaultAccess().resetTriggerComponentDataMember().resetComponentLocalSearch().resetComponentPathCache().resetComponentShadow(); // MUST
+		}
 
 	}
 
@@ -4660,22 +4620,6 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		sct.set("componentLocalSearch", config.getComponentLocalSearch());
 		sct.set("componentPathCache", config.useComponentPathCache());
 		sct.set(KeyConstants._returnFormat, UDFUtil.toReturnFormat(config.getReturnFormat(), "wddx"));
-
-	}
-
-	/**
-	 * @throws PageException
-	 * 
-	 */
-	private void doUpdateRegional() throws PageException {
-		try {
-			admin.updateLocale(getString("admin", action, "locale"));
-			admin.updateTimeZone(getString("admin", action, "timezone"));
-		}
-		finally {
-			store();
-			ConfigUtil.getConfigServerImpl(config).resetLocale().resetTimeZone();
-		}
 
 	}
 
@@ -5047,9 +4991,11 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	}
 
 	private void doUpdateRemoteClientUsage() throws PageException {
-		admin.updateRemoteClientUsage(getString("admin", action, "code"), getString("admin", action, "displayname")
 
-		);
+		// metaRemoteClientsUsage
+
+		admin.updateRemoteClientUsage(getString("admin", action, "code"), getString("admin", action, "displayname"));
+
 		store();
 		ConfigUtil.getConfigServerImpl(config).resetRemoteClientUsage();
 	}

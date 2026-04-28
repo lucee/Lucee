@@ -7,6 +7,7 @@ import java.util.TimeZone;
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.lang.CharsetX;
 import lucee.commons.lang.StringUtil;
+import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Array;
@@ -43,6 +44,11 @@ public interface PropFactory<T> {
 	 * @return
 	 */
 	public T evaluate(Config config, String name, Object val) throws PageException;
+
+	default Object serialize(Config config, T val) throws PageException {
+		if (false) throw new ApplicationException("never"); // never runs, but satisfies compiler
+		throw new UnsupportedOperationException("serialize() is not implemented");
+	}
 
 	public Struct schema(Prop<T> prop);
 
@@ -139,6 +145,11 @@ public interface PropFactory<T> {
 		}
 
 		@Override
+		public Object serialize(Config config, String val) throws PageException {
+			return val;
+		}
+
+		@Override
 		public Struct schema(Prop<String> prop) {
 			Struct sct = new StructImpl(Struct.TYPE_LINKED);
 			sct.setEL(KeyConstants._type, "string");
@@ -160,6 +171,11 @@ public interface PropFactory<T> {
 		}
 
 		@Override
+		public Object serialize(Config config, Boolean val) throws PageException {
+			return val;
+		}
+
+		@Override
 		public Struct schema(Prop<Boolean> prop) {
 			Struct sct = new StructImpl(Struct.TYPE_LINKED);
 			sct.setEL(KeyConstants._type, "boolean");
@@ -178,6 +194,11 @@ public interface PropFactory<T> {
 		@Override
 		public TimeSpan evaluate(Config config, String name, Object val) throws PageException {
 			return Caster.toTimespan(val);
+		}
+
+		@Override
+		public Object serialize(Config config, TimeSpan val) throws PageException {
+			return val.getDay() + "," + val.getHour() + "," + val.getMinute() + "," + val.getSecond();
 		}
 
 		@Override
@@ -222,6 +243,11 @@ public interface PropFactory<T> {
 		}
 
 		@Override
+		public Object serialize(Config config, Locale val) throws PageException {
+			return Caster.toString(val);
+		}
+
+		@Override
 		public Struct schema(Prop<Locale> prop) {
 			Struct sct = new StructImpl(Struct.TYPE_LINKED);
 			sct.setEL(KeyConstants._type, "string");
@@ -246,6 +272,11 @@ public interface PropFactory<T> {
 		@Override
 		public TimeZone evaluate(Config config, String name, Object val) throws PageException {
 			return Caster.toTimeZone(val);
+		}
+
+		@Override
+		public Object serialize(Config config, TimeZone val) throws PageException {
+			return Caster.toString(val);
 		}
 
 		@Override
@@ -334,6 +365,11 @@ public interface PropFactory<T> {
 		@Override
 		public Integer evaluate(Config config, String name, Object val) throws PageException {
 			return Caster.toInteger(val);
+		}
+
+		@Override
+		public Object serialize(Config config, Integer val) throws PageException {
+			return val;
 		}
 
 		@Override

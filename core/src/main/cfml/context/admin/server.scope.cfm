@@ -32,10 +32,10 @@ Defaults --->
 					password="#session["password"&request.adminType]#"
 					
 					sessionType="#form.sessionType#"
-					localMode="#form.localMode#"
+					localScopeMode="#form.localMode#"
 					scopeCascadingType="#form.scopeCascadingType#"
-					allowImplicidQueryCall="#isDefined("form.allowImplicidQueryCall") and form.allowImplicidQueryCall#"
-					mergeFormAndUrl="#isDefined("form.mergeFormAndUrl") and form.mergeFormAndUrl#"
+					cascadeToResultset="#isDefined("form.allowImplicidQueryCall") and form.allowImplicidQueryCall#"
+					mergeUrlForm="#isDefined("form.mergeFormAndUrl") and form.mergeFormAndUrl#"
 					formUrlAsStruct="#isDefined("form.formUrlAsStruct") and form.formUrlAsStruct#"
 					
 					clientTimeout="#CreateTimeSpan(form.client_days,form.client_hours,form.client_minutes,form.client_seconds)#"
@@ -47,7 +47,7 @@ Defaults --->
 					domaincookies="#isDefined("form.domaincookies") and form.domaincookies#"
 					sessionStorage="#form.sessionStorage#"
 					clientStorage="#form.clientStorage#"
-					cgiReadonly="#isDefined("form.cgiReadonly") and form.cgiReadonly#"
+					cgiScopeReadOnly="#isDefined("form.cgiReadonly") and form.cgiReadonly#"
 					remoteClients="#request.getRemoteClients()#">
 				
 			</cfcase>
@@ -59,10 +59,10 @@ Defaults --->
 					password="#session["password"&request.adminType]#"
 					
 					sessionType=""
-					localMode=""
+					localScopeMode=""
 					scopeCascadingType=""
-					allowImplicidQueryCall=""
-					mergeFormAndUrl=""
+					cascadeToResultset=""
+					mergeUrlForm=""
 					formUrlAsStruct=""
 					sessionTimeout=""
 					applicationTimeout=""
@@ -73,7 +73,7 @@ Defaults --->
 					clientTimeout=""
 					sessionStorage=""
 					clientStorage=""
-					cgiReadonly=""
+					cgiScopeReadOnly=""
 					remoteClients="#request.getRemoteClients()#">
 				
 			</cfcase>

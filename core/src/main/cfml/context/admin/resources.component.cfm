@@ -211,7 +211,7 @@ Defaults --->
                     componentDefaultImport="#form.componentDefaultImport#"
                     componentLocalSearch="#isDefined('form.componentLocalSearch')#"
                     componentPathCache="#isDefined('form.componentPathCache')#"
-                    deepSearch="#isDefined('form.componentDeepSearchDesc') and form.componentDeepSearchDesc EQ true#"
+                    componentDeepSearch="#isDefined('form.componentDeepSearchDesc') and form.componentDeepSearchDesc EQ true#"
 					returnformat="#form.returnformat?:"wddx"#"
 						
                     

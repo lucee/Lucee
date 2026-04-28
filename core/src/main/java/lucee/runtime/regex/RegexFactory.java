@@ -72,6 +72,11 @@ public final class RegexFactory implements PropFactory<Regex> {
 	}
 
 	@Override
+	public Object serialize(Config config, Regex val) throws PageException {
+		return val.getTypeName();
+	}
+
+	@Override
 	public Struct schema(Prop<Regex> prop) {
 		Struct sct = new StructImpl(Struct.TYPE_LINKED);
 		sct.setEL(KeyConstants._type, "string");

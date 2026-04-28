@@ -74,9 +74,9 @@ Defaults --->
 					type="#request.adminType#"
 					password="#session["password"&request.adminType]#"
 
-					enable="#structKeyExists(form,'ConcurrentRequestEnable') and form.ConcurrentRequestEnable#"
-					max="#structKeyExists(form,'ConcurrentRequestMax')?form.ConcurrentRequestMax:""#"
-					timeout="#timeoutMS#"
+					requestQueueEnable="#structKeyExists(form,'ConcurrentRequestEnable') and form.ConcurrentRequestEnable#"
+					requestQueueMax="#structKeyExists(form,'ConcurrentRequestMax')?form.ConcurrentRequestMax:""#"
+					requestQueueTimeout="#timeoutMS#"
 					remoteClients="#request.getRemoteClients()#">
 				</cfif>
 
@@ -101,9 +101,9 @@ Defaults --->
 					type="#request.adminType#"
 					password="#session["password"&request.adminType]#"
 
-					max=""
-					timeout=""
-					enable=""
+					requestQueueMax=""
+					requestQueueTimeout=""
+					requestQueueEnable=""
 					remoteClients="#request.getRemoteClients()#">
 				</cfif>
 

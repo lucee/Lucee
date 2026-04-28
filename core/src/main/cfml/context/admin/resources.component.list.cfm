@@ -143,7 +143,7 @@
 				<cfset stText.Components.returnFormat="Default return format">
 				<cfset stText.Components.returnFormatDesc="This setting allows you to define the return format for data from remote function calls, 
 				ensuring compatibility with various client-side requirements. 
-				Available formats include CFML, JSON, WDDX, XML, and plain text, catering to different data parsing and presentation needs. Additionally, this global setting can be overridden in the application.cfc using the this.returnFormat setting or directly within the function itself via the returnFormat attribute, providing flexibility for specific use cases.">
+				Available formats include CFML, JSON, WDDX and plain text, catering to different data parsing and presentation needs. Additionally, this global setting can be overridden in the application.cfc using the this.returnFormat setting or directly within the function itself via the returnFormat attribute, providing flexibility for specific use cases.">
 				<tr>
 					<th scope="row">#stText.Components.returnFormat#</th>
 					<td>
@@ -151,7 +151,7 @@
 						<cfif hasAccess>
 							<cfset df=component.returnFormat?:"wddx">
 							<select name="returnformat" class="medium">
-								<cfloop list="cfml,json,wddx,xml,pLain" item="format">
+								<cfloop list="cfml,json,wddx,pLain" item="format">
 								<option value="#format#" <cfif format EQ df>selected</cfif>>#Ucase(format)#</option>
 								</cfloop>
 							</select>

@@ -343,47 +343,47 @@ public final class ConfigServerImpl implements ConfigServerPro {
 					+ " Supports OSGi/Maven driver loading and specific role assignments like 'storage' or 'default' query caching.");
 	private Map<String, CacheConnection> caches;
 
-	private static Prop<String> metaCacheDefaultConnectionNamesResource = Prop.str().keys("defaultResource", "cacheDefaultResource").parent("cache").deprecated()
+	public final static Prop<String> metaCacheDefaultConnectionNamesResource = Prop.str().keys("defaultResource", "cacheDefaultResource").parent("cache").deprecated()
 			.description("default resource cache used");
 	private boolean initCacheDefaultResource;
 	private String cacheDefaultResource;
 
-	private static Prop<String> metaCacheDefaultConnectionNamesFunction = Prop.str().keys("defaultFunction", "cacheDefaultFunction").parent("cache").deprecated()
+	public final static Prop<String> metaCacheDefaultConnectionNamesFunction = Prop.str().keys("defaultFunction", "cacheDefaultFunction").parent("cache").deprecated()
 			.description("default function cache used");
 	private boolean initCacheDefaultFunction;
 	private String cacheDefaultFunction;
 
-	private static Prop<String> metaCacheDefaultConnectionNamesInclude = Prop.str().keys("defaultInclude", "cacheDefaultInclude").parent("cache").deprecated()
+	public final static Prop<String> metaCacheDefaultConnectionNamesInclude = Prop.str().keys("defaultInclude", "cacheDefaultInclude").parent("cache").deprecated()
 			.description("default include cache used");
 	private boolean initCacheDefaultInclude;
 	private String cacheDefaultInclude;
 
-	private static Prop<String> metaCacheDefaultConnectionNamesQuery = Prop.str().keys("defaultQuery", "cacheDefaultQuery").parent("cache").deprecated()
+	public final static Prop<String> metaCacheDefaultConnectionNamesQuery = Prop.str().keys("defaultQuery", "cacheDefaultQuery").parent("cache").deprecated()
 			.description("default query cache used");
 	private boolean initCacheDefaultQuery;
 	private String cacheDefaultQuery;
 
-	private static Prop<String> metaCacheDefaultConnectionNamesTemplate = Prop.str().keys("defaultTemplate", "cacheDefaultTemplate").parent("cache").deprecated()
+	public final static Prop<String> metaCacheDefaultConnectionNamesTemplate = Prop.str().keys("defaultTemplate", "cacheDefaultTemplate").parent("cache").deprecated()
 			.description("default template cache used");
 	private boolean initCacheDefaultTemplate;
 	private String cacheDefaultTemplate;
 
-	private static Prop<String> metaCacheDefaultConnectionNamesObject = Prop.str().keys("defaultObject", "cacheDefaultObject").parent("cache").deprecated()
+	public final static Prop<String> metaCacheDefaultConnectionNamesObject = Prop.str().keys("defaultObject", "cacheDefaultObject").parent("cache").deprecated()
 			.description("default object cache used");
 	private boolean initCacheDefaultObject;
 	private String cacheDefaultObject;
 
-	private static Prop<String> metaCacheDefaultConnectionNamesFile = Prop.str().keys("defaultFile", "cacheDefaultFile").parent("cache").deprecated()
+	public final static Prop<String> metaCacheDefaultConnectionNamesFile = Prop.str().keys("defaultFile", "cacheDefaultFile").parent("cache").deprecated()
 			.description("default file cache used");
 	private boolean initCacheDefaultFile;
 	private String cacheDefaultFile;
 
-	private static Prop<String> metaCacheDefaultConnectionNamesHTTP = Prop.str().keys("defaultHTTP", "cacheDefaultHTTP").parent("cache").deprecated()
+	public final static Prop<String> metaCacheDefaultConnectionNamesHTTP = Prop.str().keys("defaultHTTP", "cacheDefaultHTTP").parent("cache").deprecated()
 			.description("default http cache used");
 	private boolean initCacheDefaultHTTP;
 	private String cacheDefaultHTTP;
 
-	private static Prop<String> metaCacheDefaultConnectionNamesWebservice = Prop.str().keys("defaultWebservice", "cacheDefaultWebservice").parent("cache").deprecated()
+	public final static Prop<String> metaCacheDefaultConnectionNamesWebservice = Prop.str().keys("defaultWebservice", "cacheDefaultWebservice").parent("cache").deprecated()
 			.description("default webservice cache used");
 	private boolean initCacheDefaultWebservice;
 	private String cacheDefaultWebservice;
@@ -397,7 +397,7 @@ public final class ConfigServerImpl implements ConfigServerPro {
 	private Map<String, DataSource> datasourcesNoQoQ;
 
 	@SuppressWarnings("unchecked")
-	private static Prop<Short> metaScopeType = Prop.shor().keys("scopeCascading").defaultValue(SCOPE_STANDARD)
+	public final static Prop<Short> metaScopeType = Prop.shor().keys("scopeCascading", "scopeCascadingType").defaultValue(SCOPE_STANDARD)
 			.choices(
 					new Choice<Short>(SCOPE_STRICT, "strict").description(
 							"High Performance: Scans 'Arguments', 'Local' (within functions), and 'Variables' scopes only. External scopes like URL/Form are ignored."),
@@ -410,7 +410,7 @@ public final class ConfigServerImpl implements ConfigServerPro {
 			.description("Defines the search strategy for unscoped variables. 'Strict' is recommended for modern, secure applications to prevent unintended scope injection.");
 	private Short scopeCascading;
 
-	private static Prop<Boolean> metaAllowImplicidQueryCall = Prop.bool().keys("cascadeToResultset", "searchResults").systemPropEnvVar("lucee.cascade.to.resultset")
+	public final static Prop<Boolean> metaAllowImplicidQueryCall = Prop.bool().keys("cascadeToResultset", "searchResults").systemPropEnvVar("lucee.cascade.to.resultset")
 			.defaultValue(true).description(
 					"When a variable has no scope defined (Example: #myVar# instead of #variables.myVar#), Lucee will also search available resultsets (CFML Standard) or not");
 	private Boolean cascadeToResultset;
@@ -473,7 +473,7 @@ public final class ConfigServerImpl implements ConfigServerPro {
 			.defaultValue(false).access(SecurityManager.TYPE_DEBUGGING).description("Select this option to also log threads.");
 	private Boolean debuggingThread;
 
-	private static Prop<Boolean> metaSuppressContent = Prop.bool().keys("suppressContent").defaultValue(false)
+	public final static Prop<Boolean> metaSuppressContent = Prop.bool().keys("suppressContent").defaultValue(false)
 			.description("Suppress content written to response stream when a Component is invoked remotely. Only works if the content was not flushed before.");
 	private Boolean suppressContent;
 
@@ -485,48 +485,49 @@ public final class ConfigServerImpl implements ConfigServerPro {
 	private Resource tempDirectory;
 	private boolean tempDirectoryReload;
 
-	private static Prop<TimeSpan> metaClientTimeout = Prop.timespan().keys("clientTimeout").systemPropEnvVar("lucee.client.timeout").defaultValue(new TimeSpanImpl(0, 0, 90, 0))
-			.description("Sets the amount of time Lucee will keep the client scope alive.");
+	public final static Prop<TimeSpan> metaClientTimeout = Prop.timespan().keys("clientTimeout").systemPropEnvVar("lucee.client.timeout")
+			.defaultValue(new TimeSpanImpl(0, 0, 90, 0)).description("Sets the amount of time Lucee will keep the client scope alive.");
 	private TimeSpan clientTimeout;
 
-	private static Prop<TimeSpan> metaSessionTimeout = Prop.timespan().keys("sessionTimeout").systemPropEnvVar("lucee.session.timeout").defaultValue(new TimeSpanImpl(0, 0, 30, 0))
+	public final static Prop<TimeSpan> metaSessionTimeout = Prop.timespan().keys("sessionTimeout").systemPropEnvVar("lucee.session.timeout")
+			.defaultValue(new TimeSpanImpl(0, 0, 30, 0))
 			.description("Sets the amount of time Lucee will keep the session scope alive. This behaviour can be overridden by the tag cfapplication.");
 	private TimeSpan sessionTimeout;
 
-	private static Prop<TimeSpan> metaApplicationTimeout = Prop.timespan().keys("applicationTimeout").systemPropEnvVar("lucee.application.timeout")
+	public final static Prop<TimeSpan> metaApplicationTimeout = Prop.timespan().keys("applicationTimeout").systemPropEnvVar("lucee.application.timeout")
 			.defaultValue(new TimeSpanImpl(1, 0, 0, 0))
 			.description("Sets the amount of time Lucee will keep the application scope alive. This behaviour can be overridden by the tag cfapplication.");
 	private TimeSpan applicationTimeout;
 
-	private static Prop<TimeSpan> metaRequestTimeout = Prop.timespan().keys("requestTimeout").systemPropEnvVar("lucee.request.timeout").defaultValue(new TimeSpanImpl(0, 0, 0, 50))
-			.description("Defines how Lucee handles long running requests.");
+	public final static Prop<TimeSpan> metaRequestTimeout = Prop.timespan().keys("requestTimeout").systemPropEnvVar("lucee.request.timeout")
+			.defaultValue(new TimeSpanImpl(0, 0, 0, 50)).description("Defines how Lucee handles long running requests.");
 	private TimeSpan requestTimeout;
 
-	private static Prop<Boolean> metaSessionManagement = Prop.bool().keys("sessionManagement").systemPropEnvVar("lucee.session.management").defaultValue(true)
+	public final static Prop<Boolean> metaSessionManagement = Prop.bool().keys("sessionManagement").systemPropEnvVar("lucee.session.management").defaultValue(true)
 			.description("By default session management can be enabled. This behaviour can be overridden by the tag cfapplication.");
 	private Boolean sessionManagement;
 
-	private static Prop<Boolean> metaClientManagement = Prop.bool().keys("clientManagement").systemPropEnvVar("lucee.client.management").defaultValue(false)
+	public final static Prop<Boolean> metaClientManagement = Prop.bool().keys("clientManagement").systemPropEnvVar("lucee.client.management").defaultValue(false)
 			.description("By default client management can be enabled. This behaviour can be overridden by the tag cfapplication.");
 	private Boolean clientManagement;
 
-	private static Prop<Boolean> metaClientCookies = Prop.bool().keys("clientCookies").defaultValue(true)
+	public final static Prop<Boolean> metaClientCookies = Prop.bool().keys("clientCookies").defaultValue(true)
 			.description("Enable or disable client cookies. This behaviour can be overridden by the tag cfapplication.");
 	private Boolean clientCookies;
 
-	private static Prop<Boolean> metaDevelopMode = Prop.bool().keys("developMode").defaultValue(DEFAULT_DEVELOP_MODE);
+	public final static Prop<Boolean> metaDevelopMode = Prop.bool().keys("developMode").defaultValue(DEFAULT_DEVELOP_MODE);
 	private Boolean developMode;
 
-	private static Prop<Boolean> metaDomainCookies = Prop.bool().keys("domainCookies").defaultValue(false)
+	public final static Prop<Boolean> metaDomainCookies = Prop.bool().keys("domainCookies").defaultValue(false)
 			.description("Enable or disable domain cookies. This behaviour can be overridden by the tag cfapplication.");
 	private Boolean domainCookies;
 
-	private static Prop<String> metaSessionStorage = Prop.str().keys("sessionStorage").defaultValue(DEFAULT_STORAGE_SESSION)
+	public final static Prop<String> metaSessionStorage = Prop.str().keys("sessionStorage").defaultValue(DEFAULT_STORAGE_SESSION)
 			.description("The default storage for sessions can be set to \"memory\" for non-persistent in-memory data, \"file\" to store data on the local filesystem, "
 					+ "or the specific name of a cache or datasource instance provided that \"Storage\" has been enabled for that instance.");
 	private String sessionStorage;
 
-	private static Prop<String> metaClientStorage = Prop.str().keys("clientStorage").defaultValue(DEFAULT_STORAGE_CLIENT)
+	public final static Prop<String> metaClientStorage = Prop.str().keys("clientStorage").defaultValue(DEFAULT_STORAGE_CLIENT)
 			.description("The default storage for client can be set to \"memory\" for non-persistent in-memory data, \"file\" to store data on the local filesystem, "
 					+ "or the specific name of a cache or datasource instance provided that \"Storage\" has been enabled for that instance.");
 	private String clientStorage;
@@ -566,19 +567,18 @@ public final class ConfigServerImpl implements ConfigServerPro {
 	private List<String> extensionProviders;
 
 	@SuppressWarnings("unchecked")
-	private static Prop<Integer> metaReturnFormat = Prop.integer().keys("returnFormat").defaultValue(UDF.RETURN_FORMAT_WDDX).choices(
+	public final static Prop<Integer> metaReturnFormat = Prop.integer().keys("returnFormat").defaultValue(UDF.RETURN_FORMAT_WDDX).choices(
 			new Choice<Integer>(UDF.RETURN_FORMAT_WDDX, "wddx").description("Web Distributed Data eXchange (WDDX) format. This is the legacy default for CFML remote calls."),
 			new Choice<Integer>(UDF.RETURN_FORMAT_JSON, "json").description("Javascript Object Notation (JSON). The modern standard for web APIs and AJAX requests."),
 			new Choice<Integer>(UDF.RETURN_FORMAT_PLAIN, "text", "plain").description("Returns the raw string output of the function without any additional serialization."),
 			new Choice<Integer>(UDF.RETURN_FORMAT_JAVA, "java").description("Binary-encoded Java objects. Used for high-performance communication between Java-based systems."),
 			new Choice<Integer>(UDF.RETURN_FORMAT_SERIALIZE, "cfm", "cfml", "serialize")
-					.description("Lucee's internal object serialization format, ideal for passing complex objects between Lucee instances."),
-			new Choice<Integer>(UDF.RETURN_FORMAT_XML, "xml").description("Structured eXtensible Markup Language (XML). Used for legacy SOAP services or XML-based data exchange."))
+					.description("Lucee's internal object serialization format, ideal for passing complex objects between Lucee instances."))
 			.description(
 					"Defines the serialization format for remote function calls. While 'wddx' is the default for backward compatibility, 'json' is recommended for modern web applications.");
 	private Integer returnFormat;
 
-	private static Prop<TimeZone> metaTimeZone = Prop.timezone().keys("timezone", "thisTimezone")
+	public final static Prop<TimeZone> metaTimeZone = Prop.timezone().keys("timezone", "thisTimezone")
 			.defaultValue(TimeZone.getDefault() != null ? TimeZone.getDefault() : TimeZoneConstants.UTC)
 			.description("Define the desired time zone for Lucee. This will also change the time for the context of the web.");
 	private TimeZone timeZone;
@@ -587,20 +587,20 @@ public final class ConfigServerImpl implements ConfigServerPro {
 			.description("search engine directory");
 	private String searchDirectory;
 
-	private static Prop<Locale> metaLocale = Prop.locale().keys("locale", "thisLocale").defaultValue(Locale.US)
+	public static final Prop<Locale> metaLocale = Prop.locale().keys("locale", "thisLocale").defaultValue(Locale.US).access(SecurityManager.TYPE_SETTING)
 			.description("Define the desired time locale for Lucee, this will change the default locale for the context of the web.");
 	private Locale locale;
 
-	private static Prop<Boolean> metaPsq = Prop.bool().keys("preserveSingleQuote", "datasourcePreserveSingleQuotes").defaultValue(false)
+	public static final Prop<Boolean> metaPsq = Prop.bool().keys("preserveSingleQuote", "datasourcePreserveSingleQuotes", "psq").defaultValue(false)
 			.description("Preserve single quotes (') in SQL defined with the cfquery tag.");
 	private Boolean preserveSingleQuote;
 
-	private static Prop<String> metaErrorTemplate500 = Prop.str().keys("errorGeneralTemplate", "generalErrorTemplate").access(SecurityManager.TYPE_DEBUGGING)
+	public final static Prop<String> metaErrorTemplate500 = Prop.str().keys("errorGeneralTemplate", "generalErrorTemplate", "template500").access(SecurityManager.TYPE_DEBUGGING)
 			.defaultValue("/lucee/templates/error/error." + (Constants.getCFMLTemplateExtensions()[0])).description(
 					"This setting specifies the custom file path for the template rendered during all uncaught internal server exceptions, providing a tailored response for unexpected application failures.");
 	private String errorGeneralTemplate;
 
-	private static Prop<String> metaErrorTemplate404 = Prop.str().keys("errorMissingTemplate", "missingErrorTemplate").access(SecurityManager.TYPE_DEBUGGING)
+	public final static Prop<String> metaErrorTemplate404 = Prop.str().keys("errorMissingTemplate", "missingErrorTemplate", "template404").access(SecurityManager.TYPE_DEBUGGING)
 			.defaultValue("/lucee/templates/error/error." + (Constants.getCFMLTemplateExtensions()[0])).description(
 					"This setting specifies the custom file path for the template rendered whenever a requested resource is not found on the server, ensuring a controlled and helpful response for status 404 missing page exceptions.");
 	private String errorMissingTemplate;
@@ -610,7 +610,7 @@ public final class ConfigServerImpl implements ConfigServerPro {
 	protected Password hspw;
 	private boolean initPassword = true;
 
-	public static Prop<String> metaSalt = Prop.str().keys("salt", "adminSalt").systemPropEnvVar("lucee.admin.salt").description("salt used for password encryption");
+	private static Prop<String> metaSalt = Prop.str().keys("salt", "adminSalt").systemPropEnvVar("lucee.admin.salt").description("salt used for password encryption");
 	private String salt;
 
 	private static Prop<Mapping> metaMappings = Prop.custom(MappingFactory.getInstance(MappingFactory.TYPE_REGULAR), Prop.TYPE_MAP).keys("mappings", "CFMappings").lowerCaseKeys()
@@ -638,7 +638,7 @@ public final class ConfigServerImpl implements ConfigServerPro {
 			.deprecated().lowerCaseKeys().hidden();
 	private CFXTagPool cfx;
 
-	private static Prop<Boolean> metaRestList = Prop.bool().keys("list").parent("rest").defaultValue(false).description("List Services when \"/rest/\" is called");
+	public final static Prop<Boolean> metaRestList = Prop.bool().keys("list").parent("rest").defaultValue(false).description("List Services when \"/rest/\" is called");
 	private Boolean restList;
 
 	private static Prop<Boolean> metaRestSkipCFCWithError = Prop.bool().keys("skipCFCWithError").parent("rest").defaultValue(false)
@@ -672,31 +672,34 @@ public final class ConfigServerImpl implements ConfigServerPro {
 			.deprecated().description("defines how Lucee stores the client scope, default is cookie, possible values are: cookie,file,db");
 	private Short clientType;
 
-	private static Prop<String> metaComponentDumpTemplate = Prop.str().keys("componentDumpTemplate").defaultValue("/lucee/component-dump.cfm")
+	public final static Prop<String> metaComponentDumpTemplate = Prop.str().keys("componentDumpTemplate").defaultValue("/lucee/component-dump.cfm")
 
 			.description("If you call a component directly this template will be invoked to dump the component. (Example: http://localhost:8888/lucee/Admin.cfc)");
 	private String componentDumpTemplate;
 
 	@SuppressWarnings("unchecked")
-	private static Prop<Integer> metaComponentDataMemberDefaultAccess = Prop.integer().keys("componentDataMemberAccess").defaultValue(Component.ACCESS_PUBLIC).choices(
-			new Choice<Integer>(Component.ACCESS_REMOTE, "remote").description("External/API: Allows data members to be accessed via remote protocols."),
+	public final static Prop<Integer> metaComponentDataMemberDefaultAccess = Prop.integer().keys("componentDataMemberAccess", "componentDataMemberDefaultAccess")
+			.defaultValue(Component.ACCESS_PUBLIC)
+			.choices(new Choice<Integer>(Component.ACCESS_REMOTE, "remote").description("External/API: Allows data members to be accessed via remote protocols."),
 
-			new Choice<Integer>(Component.ACCESS_PUBLIC, "public").description("Open: Data members are accessible from any other component or script (Default)."),
+					new Choice<Integer>(Component.ACCESS_PUBLIC, "public").description("Open: Data members are accessible from any other component or script (Default)."),
 
-			new Choice<Integer>(Component.ACCESS_PACKAGE, "package").description("Restricted: Data members are only accessible by components within the same directory/package."),
+					new Choice<Integer>(Component.ACCESS_PACKAGE, "package")
+							.description("Restricted: Data members are only accessible by components within the same directory/package."),
 
-			new Choice<Integer>(Component.ACCESS_PRIVATE, "private")
-					.description("Strict: Data members are only accessible within the component itself or by components that extend it."))
+					new Choice<Integer>(Component.ACCESS_PRIVATE, "private")
+							.description("Strict: Data members are only accessible within the component itself or by components that extend it."))
 			.description(
 					"Determines the default visibility for data members in the 'this' scope of a component. This allows you to control how internal state is exposed to the rest of the application or external consumers.");
 	private Integer componentDataMemberAccess;
 
-	private static Prop<Boolean> metaTriggerComponentDataMember = Prop.bool().keys("componentImplicitNotation", "triggerComponentDataMember").defaultValue(false).description(
-			"If there is no accessible data member (property, element of the this scope) inside a component, Lucee searches for available matching \"getters\" or \"setters\" for the requested property. The following example should clarify this behaviour. \"somevar = myComponent.properyName\". If \"myComponent\" has no accessible data member named \"propertyName\", Lucee searches for a function member (method) named \"getPropertyName\".");
+	public final static Prop<Boolean> metaTriggerComponentDataMember = Prop.bool().keys("componentImplicitNotation", "triggerComponentDataMember", "triggerDataMember")
+			.defaultValue(false).description(
+					"If there is no accessible data member (property, element of the this scope) inside a component, Lucee searches for available matching \"getters\" or \"setters\" for the requested property. The following example should clarify this behaviour. \"somevar = myComponent.properyName\". If \"myComponent\" has no accessible data member named \"propertyName\", Lucee searches for a function member (method) named \"getPropertyName\".");
 	private Boolean componentImplicitNotation;
 
 	@SuppressWarnings("unchecked")
-	private static Prop<Short> metaSessionType = Prop.shor().keys("sessionType").defaultValue(SESSION_TYPE_APPLICATION).choices(
+	public final static Prop<Short> metaSessionType = Prop.shor().keys("sessionType").defaultValue(SESSION_TYPE_APPLICATION).choices(
 			new Choice<Short>(Config.SESSION_TYPE_APPLICATION, "cfml", "cfm", "c", "application")
 					.description("Lucee Native: Managed entirely by the engine. Uses 'CFID' and 'CFTOKEN' cookies. Does not require a restart to modify settings."),
 
@@ -760,7 +763,7 @@ public final class ConfigServerImpl implements ConfigServerPro {
 	private Boolean listenerSingleton;
 	private ApplicationListener applicationListener;
 
-	private static Prop<String> metaScriptProtect = Prop.str().keys("scriptProtect").systemPropEnvVar("lucee.script.protect").defaultValue("all")
+	public final static Prop<String> metaScriptProtect = Prop.str().keys("scriptProtect").systemPropEnvVar("lucee.script.protect").defaultValue("all")
 			.description("Determines which scopes are sanitized for XSS protection, accepting 'all', 'none', or a comma-separated list of scopes like 'url,form,cookie,cgi'.");
 	private Integer scriptProtect;
 
@@ -804,7 +807,7 @@ public final class ConfigServerImpl implements ConfigServerPro {
 			.description("Defines the maximum allowable disk space for the cache directory, accepting values with unit suffixes like kb, mb, gb, or tb.");
 	private Long cacheDirectoryMaxSize;
 
-	private static Prop<Boolean> metaUseComponentShadow = Prop.bool().keys("componentUseVariablesScope").defaultValue(true)
+	public final static Prop<Boolean> metaUseComponentShadow = Prop.bool().keys("componentUseVariablesScope", "useShadow").defaultValue(true)
 			.description("Defines whether a component has an independent variables scope parallel to the \"this\" scope (CFML standard) or not.");
 	private Boolean componentUseVariablesScope;
 
@@ -816,11 +819,11 @@ public final class ConfigServerImpl implements ConfigServerPro {
 			"Defines the destination for standard error output, supporting values like 'system', 'log', 'null', or specific paths using 'file:' and custom implementations via 'class:'.");
 	private PrintWriter systemErr;
 
-	private static Prop<Boolean> metaDoCustomTagDeepSearch = Prop.bool().keys("customTagDeepSearch", "customTagSearchSubdirectories").access(SecurityManager.TYPE_CUSTOM_TAG)
+	public final static Prop<Boolean> metaDoCustomTagDeepSearch = Prop.bool().keys("customTagDeepSearch", "customTagSearchSubdirectories").access(SecurityManager.TYPE_CUSTOM_TAG)
 			.defaultValue(false).description("Search for custom tags in subdirectories.");
 	private Boolean customTagDeepSearch = null;
 
-	private static Prop<Boolean> metaDoComponentTagDeepSearch = Prop.bool().keys("componentDeepSearch", "componentSearchSubdirectories").defaultValue(false)
+	public final static Prop<Boolean> metaDoComponentTagDeepSearch = Prop.bool().keys("componentDeepSearch", "componentSearchSubdirectories").defaultValue(false)
 			.description("Search for CFCs in the subdirectories.");
 	private Boolean componentDeepSearch;
 
@@ -831,31 +834,31 @@ public final class ConfigServerImpl implements ConfigServerPro {
 			"This setting specifies whether every HTTP response should instruct the client and any intermediate proxies to terminate the network connection immediately after the request is fulfilled, preventing the connection from being reused for additional traffic.");
 	private Boolean closeConnection;
 
-	private static Prop<Boolean> metaContentLength = Prop.bool().keys("contentLength").defaultValue(true).deprecated();
+	public final static Prop<Boolean> metaContentLength = Prop.bool().keys("contentLength").defaultValue(true).deprecated();
 	private Boolean contentLength;
 
-	private static Prop<Boolean> metaAllowCompression = Prop.bool().keys("allowCompression").systemPropEnvVar("lucee.allow.compression")
+	public final static Prop<Boolean> metaAllowCompression = Prop.bool().keys("allowCompression").systemPropEnvVar("lucee.allow.compression")
 			.defaultValue(ConfigPro.DEFAULT_ALLOW_COMPRESSION).description(
 					"This setting determines whether the response stream is compressed using GZIP; when enabled, Lucee inspects the client's request headers and, if the client supports it, automatically compresses the output to reduce bandwidth usage and improve page load times.");
 	private Boolean allowCompression;
 
-	private static Prop<Boolean> metaDoLocalCustomTag = Prop.bool().keys("customTagLocalSearch", "customTagSearchLocal").access(SecurityManager.TYPE_CUSTOM_TAG).defaultValue(true)
-			.description("look for custom tags locally.");
+	public final static Prop<Boolean> metaDoLocalCustomTag = Prop.bool().keys("customTagLocalSearch", "customTagSearchLocal").access(SecurityManager.TYPE_CUSTOM_TAG)
+			.defaultValue(true).description("look for custom tags locally.");
 	private Boolean customTagLocalSearch;
 
 	private static Prop<Struct> metaConstants = Prop.sct().keys("constants").defaultValue(new StructImpl()).hidden();
 	private Struct constants = null;
 
-	private static Prop<Boolean> metaAllowURLRequestTimeout = Prop.bool().keys("requestTimeoutInURL", "allowUrlRequesttimeout").defaultValue(false)
+	public final static Prop<Boolean> metaAllowURLRequestTimeout = Prop.bool().keys("requestTimeoutInURL", "allowUrlRequesttimeout").defaultValue(false)
 			.description("Defines if it is possible to overwrite the request timeout with the query string [requestTimeout] in the URL.");
 	private Boolean requestTimeoutInURL;
 
-	private static Prop<Boolean> metaErrorStatusCode = Prop.bool().keys("errorStatusCode").systemPropEnvVar("lucee.status.code").defaultValue(true)
+	public final static Prop<Boolean> metaErrorStatusCode = Prop.bool().keys("errorStatusCode", "statuscode").systemPropEnvVar("lucee.status.code").defaultValue(true)
 			.access(SecurityManager.TYPE_DEBUGGING).description("In case of an exception, should individual status codes be returned? Untick to always return 200 status code.");
 	private Boolean errorStatusCode;
 
 	@SuppressWarnings("unchecked")
-	private static Prop<Integer> metaLocalMode = Prop.integer().keys("localScopeMode").defaultValue(Undefined.MODE_LOCAL_OR_ARGUMENTS_ONLY_WHEN_EXISTS).choices(
+	public final static Prop<Integer> metaLocalMode = Prop.integer().keys("localScopeMode").defaultValue(Undefined.MODE_LOCAL_OR_ARGUMENTS_ONLY_WHEN_EXISTS).choices(
 			new Choice<Integer>(Undefined.MODE_LOCAL_OR_ARGUMENTS_ALWAYS, "always", "modern", Boolean.TRUE).description(
 					"Modern: Unscoped assignments inside a function are automatically placed in the 'local' scope. Encourages cleaner code and prevents variable leaks to the 'variables' scope."),
 
@@ -869,7 +872,7 @@ public final class ConfigServerImpl implements ConfigServerPro {
 			.description("If true, Lucee resolves file paths used in code against the current context.");
 	private Boolean fileSystemAllowRealpath;
 
-	private static Prop<String> metaCustomTagExtensions = Prop.str().keys("customTagExtensions").defaultValue(ListUtil.arrayToList(Constants.getExtensions(), ","))
+	public final static Prop<String> metaCustomTagExtensions = Prop.str().keys("customTagExtensions").defaultValue(ListUtil.arrayToList(Constants.getExtensions(), ","))
 			.access(SecurityManager.TYPE_CUSTOM_TAG).description("this are the file extensions Lucee allows for custom tags.");
 	private String[] customTagExtensions = null;
 
@@ -890,24 +893,25 @@ public final class ConfigServerImpl implements ConfigServerPro {
 	private Boolean dapBreakpoint;
 
 	private static ImportDefintion DEFAULT_IMPORT_DEFINITION = new ImportDefintionImpl(Constants.DEFAULT_PACKAGE, "*");
-	private static Prop<String> metaComponentDefaultImport = Prop.str().keys("componentAutoImport", "componentDefaultImport").defaultValue(DEFAULT_IMPORT_DEFINITION.toString())
+	public final static Prop<String> metaComponentDefaultImport = Prop.str().keys("componentAutoImport", "componentDefaultImport")
+			.defaultValue(DEFAULT_IMPORT_DEFINITION.toString())
 			.description("Defines a package that is automatically imported for all components. Defaults to 'org.lucee.cfml.*' and requires the wildcard suffix.");
 	private ImportDefintion componentAutoImport;
 
-	private static Prop<Boolean> metaComponentLocalSearch = Prop.bool().keys("componentLocalSearch").defaultValue(true)
+	public final static Prop<Boolean> metaComponentLocalSearch = Prop.bool().keys("componentLocalSearch").defaultValue(true)
 			.description("If enabled, Lucee looks for component relative to the local position.");
 	private Boolean componentLocalSearch;
 
-	private static Prop<Boolean> metaUseComponentPathCache = Prop.bool().keys("componentUseCachePath").defaultValue(true)
+	public final static Prop<Boolean> metaUseComponentPathCache = Prop.bool().keys("componentUseCachePath", "componentPathCache").defaultValue(true)
 			.description("If enabled, Lucee caches the resolved location of components, speeding up subsequent access.");
 	private Boolean componentUseCachePath;
 
-	private static Prop<Boolean> metaUseCTPathCache = Prop.bool().keys("customTagUseCachePath", "customTagCachePaths").access(SecurityManager.TYPE_CUSTOM_TAG).defaultValue(true)
-			.description("If enabled, Lucee caches the resolved location of custom tags, speeding up subsequent access.");
+	public final static Prop<Boolean> metaUseCTPathCache = Prop.bool().keys("customTagUseCachePath", "customTagCachePaths").access(SecurityManager.TYPE_CUSTOM_TAG)
+			.defaultValue(true).description("If enabled, Lucee caches the resolved location of custom tags, speeding up subsequent access.");
 	private Boolean customTagUseCachePath;
 
 	@SuppressWarnings("unchecked")
-	private static Prop<Integer> metaCfmlWriter = Prop.integer().keys("cfmlWriter", "whitespaceManagement").systemPropEnvVar("lucee.cfml.writer")
+	public final static Prop<Integer> metaCfmlWriter = Prop.integer().keys("cfmlWriter", "whitespaceManagement").systemPropEnvVar("lucee.cfml.writer")
 			.defaultValue(ConfigPro.CFML_WRITER_REGULAR)
 			.choices(
 					new Choice<Integer>(ConfigPro.CFML_WRITER_REGULAR, "regular", "normal")
@@ -968,15 +972,15 @@ public final class ConfigServerImpl implements ConfigServerPro {
 			.description("Controls if unquoted tag attributes are treated as literal strings (true) or as variable references (false) for evaluation.");
 	private Boolean handleUnquotedAttributeValueAsString;
 
-	private static Prop<Integer> metaQueueMax = Prop.integer().keys("requestQueueMax").systemPropEnvVar("lucee.queue.max").defaultValue(100)
+	public final static Prop<Integer> metaQueueMax = Prop.integer().keys("requestQueueMax").systemPropEnvVar("lucee.queue.max").defaultValue(100)
 			.description("Maximum number of requests allowed in the queue.");
 	private int requestQueueMax = -1;
 
-	private static Prop<Long> metaQueueTimeout = Prop.loong().keys("requestQueueTimeout").systemPropEnvVar("lucee.queue.timeout").defaultValue(0L)
+	public final static Prop<Long> metaQueueTimeout = Prop.loong().keys("requestQueueTimeout").systemPropEnvVar("lucee.queue.timeout").defaultValue(0L)
 			.description("timeout for an element in the queue in milliseconds");
 	private long requestQueueTimeout = -1;
 
-	private static Prop<Boolean> metaQueueEnable = Prop.bool().keys("requestQueueEnable").systemPropEnvVar("lucee.queue.enable").defaultValue(false)
+	public final static Prop<Boolean> metaQueueEnable = Prop.bool().keys("requestQueueEnable").systemPropEnvVar("lucee.queue.enable").defaultValue(false)
 			.description("defines if Lucee uses a queue for incoming request or not.");
 	private Boolean requestQueueEnable;
 
@@ -999,7 +1003,7 @@ public final class ConfigServerImpl implements ConfigServerPro {
 	private TimeSpan cachedAfter;
 	private boolean initCachedAfter = true;
 
-	private static Prop<Regex> metaRegex = Prop.custom(RegexFactory.getInstance()).keys("regexType").systemPropEnvVar("lucee.regex.type")
+	public final static Prop<Regex> metaRegex = Prop.custom(RegexFactory.getInstance()).keys("regexType").systemPropEnvVar("lucee.regex.type")
 			.defaultValue(RegexFactory.toRegex(RegexFactory.TYPE_PERL, null))
 			.description("Which regular expression dialect should be used. Modern (Java dialect) or Classic (Perl5 dialect).");
 	private Regex regexType;
@@ -1035,12 +1039,12 @@ public final class ConfigServerImpl implements ConfigServerPro {
 	private int inspectTemplateAutoIntervalSlow = ConfigPro.INSPECT_INTERVAL_UNDEFINED;
 	private int inspectTemplateAutoIntervalFast = ConfigPro.INSPECT_INTERVAL_UNDEFINED;
 
-	private static Prop<Boolean> metaFormUrlAsStruct = Prop.bool().keys("formUrlAsStruct").defaultValue(true)
+	public final static Prop<Boolean> metaFormUrlAsStruct = Prop.bool().keys("formUrlAsStruct").defaultValue(true)
 			.description("When enabled, Lucee parses dot-notation in URL/Form keys into nested structures. " + "For example, 'index.cfm?person.name=John' becomes URL.person.name. "
 					+ "If disabled, it remains a flat key: URL['person.name'].");
 	private Boolean formUrlAsStruct;
 
-	private static Prop<Boolean> metaMergeFormAndURL = Prop.bool().keys("mergeUrlForm").defaultValue(false).description(
+	public final static Prop<Boolean> metaMergeFormAndURL = Prop.bool().keys("mergeUrlForm").defaultValue(false).description(
 			"This setting defines if the scopes URL and Form will be merged together (CFML Default is false). If a key already exists in Form and URL Scopes, the value from the Form Scope is used.");
 	private Boolean mergeUrlForm;
 
@@ -1076,10 +1080,11 @@ public final class ConfigServerImpl implements ConfigServerPro {
 					"Defines Event Gateways for asynchronous communication (SMS, XMPP, File Watcher, etc.). Configures the driver class, listener CFC, and custom protocol parameters.");
 	private GatewayMap gateways;
 
-	private static Prop<Boolean> metaCgiScopeReadonly = Prop.bool().keys("cgiScopeReadOnly").defaultValue(true).description("make the cgi scope read only or not");
+	public final static Prop<Boolean> metaCgiScopeReadonly = Prop.bool().keys("cgiScopeReadOnly").defaultValue(true).description("make the cgi scope read only or not");
 	private Boolean cgiScopeReadonly;
 
-	private static Prop<Integer> metaDebugMaxRecordsLogged = Prop.integer().keys("debuggingMaxRecordsLogged", "debuggingShowMaxRecordsLogged").defaultValue(10)
+	public final static Prop<Integer> metaDebugMaxRecordsLogged = Prop.integer().keys("debuggingMaxRecordsLogged", "debuggingShowMaxRecordsLogged").defaultValue(10)
+			.access(SecurityManager.TYPE_DEBUGGING)
 			.description("defines the size of the debbugging stack that holds the debugging results of the last requests, by default this is 10");
 	private Integer debuggingMaxRecordsLogged;
 
@@ -1126,7 +1131,7 @@ public final class ConfigServerImpl implements ConfigServerPro {
 					+ "only the first one encountered is honored, and others are downgraded to non-default.");
 	private lucee.runtime.rest.Mapping[] restMapping;
 
-	private static Prop<Struct> metaRemoteClientsUsage = Prop.sct().keys("usage").parent("remoteClients").defaultValue(new StructImpl()).deprecated();
+	public final static Prop<Struct> metaRemoteClientsUsage = Prop.sct().keys("usage").parent("remoteClients").defaultValue(new StructImpl()).deprecated();
 	private Struct remoteClientsUsage;
 
 	private static Prop<String> metaCachedWithinFunction = Prop.str().keys("cachedWithinFunction").description("Enables and defines the default caching for function calls. "
@@ -1168,7 +1173,7 @@ public final class ConfigServerImpl implements ConfigServerPro {
 					+ "between consecutive <cfargument> tags. This ensures that source code formatting "
 					+ "inside a function definition does not produce unintended output in the response stream.");
 	private Boolean suppressWhitespaceBeforeArgument;
-	private static Prop<Boolean> metaBufferTagBodyOutput = Prop.bool().keys("bufferTagBodyOutput").defaultValue(DEFAULT_BUFFER_TAG_BODY_OUTPUT)
+	public final static Prop<Boolean> metaBufferTagBodyOutput = Prop.bool().keys("bufferTagBodyOutput", "bufferOutput").defaultValue(DEFAULT_BUFFER_TAG_BODY_OUTPUT)
 			.description("Determines how Lucee handles content generated within a tag's body when an exception occurs. "
 					+ "If enabled (true), the body output is buffered and displayed even if the tag fails. "
 					+ "If disabled (false), any content generated within the body prior to a failure is ignored and not sent to the response stream.");
@@ -1290,7 +1295,7 @@ public final class ConfigServerImpl implements ConfigServerPro {
 	private static Prop<String> metaUpdateType = Prop.str().keys("updateType").defaultValue("manual").deprecated();
 	private String updateType;
 
-	private static Prop<String> metaAuthKeys = Prop.str().keys("authKeys").defaultValue(null).deprecated();
+	public final static Prop<String> metaAuthKeys = Prop.str().keys("authKeys").defaultValue(null).deprecated();
 	private String[] authKeys;
 
 	private static Prop<Integer> metaLoginDelay = Prop.integer().keys("loginDelay").defaultValue(1).deprecated();
@@ -6867,7 +6872,7 @@ public final class ConfigServerImpl implements ConfigServerPro {
 		if (clientStorage == null) {
 			synchronized (SystemUtil.createToken("config", "")) {
 				if (clientStorage == null) {
-					clientStorage = metaClientStorage.get(this, root);
+					clientStorage = validateStorage(metaClientStorage.get(this, root));
 				}
 			}
 		}
@@ -6890,7 +6895,7 @@ public final class ConfigServerImpl implements ConfigServerPro {
 		if (sessionStorage == null) {
 			synchronized (SystemUtil.createToken("config", "getSessionStorage")) {
 				if (sessionStorage == null) {
-					sessionStorage = metaSessionStorage.get(this, root);
+					sessionStorage = validateStorage(metaSessionStorage.get(this, root));
 				}
 			}
 		}
@@ -6906,6 +6911,54 @@ public final class ConfigServerImpl implements ConfigServerPro {
 			}
 		}
 		return this;
+	}
+
+	// TODO make this a PropFactory
+	private String validateStorage(String storage) {
+		storage = storage.trim().toLowerCase();
+
+		// empty
+		if (StringUtil.isEmpty(storage, true)) return "";
+
+		// standard storages
+		if ("cookie".equals(storage) || "memory".equals(storage) || "file".equals(storage)) return storage;
+
+		// aliases
+		if ("ram".equals(storage)) return "memory";
+		if ("registry".equals(storage)) return "file";
+
+		// datasource
+		DataSource ds = getDataSource(storage, null);
+		if (ds != null) {
+			if (ds.isStorage()) return storage;
+			throw new PageRuntimeException(new ApplicationException("datasource [" + storage + "] is not enabled to be used as session/client storage"));
+		}
+
+		// cache
+		CacheConnection cc = getCacheConnections().get(storage);
+		if (cc != null) {
+			if (cc.isStorage()) return storage;
+			throw new PageRuntimeException(new ApplicationException("cache [" + storage + "] is not enabled to be used as session/client storage"));
+		}
+
+		String sdx = StringUtil.soundex(storage);
+
+		// check if a datasource has a similar name
+		DataSource[] sources = getDataSources();
+		for (int i = 0; i < sources.length; i++) {
+			if (StringUtil.soundex(sources[i].getName()).equals(sdx))
+				throw new PageRuntimeException(new ApplicationException("no matching storage for [" + storage + "] found, did you mean [" + sources[i].getName() + "]"));
+		}
+
+		// check if a cache has a similar name
+		Iterator<String> it = getCacheConnections().keySet().iterator();
+		String name;
+		while (it.hasNext()) {
+			name = it.next();
+			if (StringUtil.soundex(name).equals(sdx))
+				throw new PageRuntimeException(new ApplicationException("no matching storage for [" + storage + "] found, did you mean [" + name + "]"));
+		}
+		throw new PageRuntimeException(new ApplicationException("no matching storage for [" + storage + "] found"));
 	}
 
 	public ComponentMetaData getComponentMetadata(String key) {

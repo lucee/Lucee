@@ -124,7 +124,6 @@ import lucee.runtime.osgi.BundleInfo;
 import lucee.runtime.osgi.OSGiUtil;
 import lucee.runtime.osgi.OSGiUtil.BundleDefinition;
 import lucee.runtime.reflection.Reflector;
-import lucee.runtime.regex.RegexFactory;
 import lucee.runtime.schedule.ScheduleTask;
 import lucee.runtime.schedule.ScheduleTaskImpl;
 import lucee.runtime.search.SearchEngine;
@@ -213,7 +212,7 @@ public final class ConfigAdmin {
 		return new ConfigAdmin((ConfigPro) config, password, optionalPW);
 	}
 
-	private void checkWriteAccess() throws SecurityException {
+	public void checkWriteAccess() throws SecurityException {
 		if (!optionalPW) ConfigUtil.checkGeneralWriteAccess(config, password);
 	}
 
@@ -2197,42 +2196,6 @@ public final class ConfigAdmin {
 		}
 	}
 
-	public void updateCacheDefaultConnection(int type, String name) throws PageException {
-		checkWriteAccess();
-		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManagerImpl.TYPE_CACHE);
-
-		if (!hasAccess) throw new SecurityException("no access to update cache default connections");
-
-		Struct parent = _getRootElement("cache");
-		if (type == ConfigPro.CACHE_TYPE_OBJECT) {
-			parent.setEL("defaultObject", name);
-		}
-		else if (type == ConfigPro.CACHE_TYPE_TEMPLATE) {
-			parent.setEL("defaultTemplate", name);
-		}
-		else if (type == ConfigPro.CACHE_TYPE_QUERY) {
-			parent.setEL("defaultQuery", name);
-		}
-		else if (type == ConfigPro.CACHE_TYPE_RESOURCE) {
-			parent.setEL("defaultResource", name);
-		}
-		else if (type == ConfigPro.CACHE_TYPE_FUNCTION) {
-			parent.setEL("defaultFunction", name);
-		}
-		else if (type == ConfigPro.CACHE_TYPE_INCLUDE) {
-			parent.setEL("defaultInclude", name);
-		}
-		else if (type == ConfigPro.CACHE_TYPE_HTTP) {
-			parent.setEL("defaultHttp", name);
-		}
-		else if (type == ConfigPro.CACHE_TYPE_FILE) {
-			parent.setEL("defaultFile", name);
-		}
-		else if (type == ConfigPro.CACHE_TYPE_WEBSERVICE) {
-			parent.setEL("defaultWebservice", name);
-		}
-	}
-
 	public void removeResourceProvider(String scheme) throws PageException {
 		checkWriteAccess();
 		SecurityManager sm = config.getSecurityManager();
@@ -2575,21 +2538,6 @@ public final class ConfigAdmin {
 		}
 	}
 
-	/**
-	 * update PSQ State
-	 * 
-	 * @param psq Preserver Single Quote
-	 * @throws SecurityException
-	 */
-	public void updatePSQ(Boolean psq) throws SecurityException {
-		checkWriteAccess();
-		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_DATASOURCE);
-
-		if (!hasAccess) throw new SecurityException("no access to update datasource connections");
-
-		root.setEL("preserveSingleQuote", Caster.toBooleanValue(psq, true));
-	}
-
 	public void updateInspectTemplate(String inspectTemplate, int inspectTemplateIntervalSlow, int inspectTemplateIntervalFast) throws SecurityException {
 		checkWriteAccess();
 		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
@@ -2631,25 +2579,6 @@ public final class ConfigAdmin {
 	 * @param type (SCOPE_XYZ)
 	 * @throws SecurityException
 	 */
-	public void updateScopeCascadingType(String type) throws SecurityException {
-		checkWriteAccess();
-		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
-
-		if (!hasAccess) throw new SecurityException("no access to update scope setting");
-
-		if (type.equalsIgnoreCase("strict")) root.setEL("scopeCascading", "strict");
-		else if (type.equalsIgnoreCase("small")) root.setEL("scopeCascading", "small");
-		else if (type.equalsIgnoreCase("standard")) root.setEL("scopeCascading", "standard");
-		else root.setEL("scopeCascading", "standard");
-
-	}
-
-	/**
-	 * sets the scope cascading type
-	 * 
-	 * @param type (SCOPE_XYZ)
-	 * @throws SecurityException
-	 */
 	public void updateScopeCascadingType(short type) throws SecurityException {
 		checkWriteAccess();
 		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
@@ -2659,52 +2588,6 @@ public final class ConfigAdmin {
 		else if (type == ConfigWeb.SCOPE_SMALL) root.setEL("scopeCascading", "small");
 		else if (type == ConfigWeb.SCOPE_STANDARD) root.setEL("scopeCascading", "standard");
 
-	}
-
-	/**
-	 * sets if allowed implicid query call
-	 * 
-	 * @param allow
-	 * @throws SecurityException
-	 */
-	public void updateAllowImplicidQueryCall(Boolean allow) throws SecurityException {
-		checkWriteAccess();
-		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
-
-		if (!hasAccess) throw new SecurityException("no access to update scope setting");
-
-		root.setEL("cascadeToResultset", allow);
-
-	}
-
-	public void updateMergeFormAndUrl(Boolean merge) throws SecurityException {
-		checkWriteAccess();
-		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
-
-		if (!hasAccess) throw new SecurityException("no access to update scope setting");
-
-		root.setEL("mergeUrlForm", merge);
-
-	}
-
-	/**
-	 * updates request timeout value
-	 * 
-	 * @param span
-	 * @throws SecurityException
-	 * @throws ApplicationException
-	 */
-	public void updateRequestTimeout(TimeSpan span) throws SecurityException, ApplicationException {
-		checkWriteAccess();
-		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
-
-		if (!hasAccess) throw new SecurityException("no access to update scope setting");
-
-		if (span != null) {
-			if (span.getMillis() <= 0) throw new ApplicationException("value must be a positive number");
-			root.setEL("requestTimeout", span.getDay() + "," + span.getHour() + "," + span.getMinute() + "," + span.getSecond());
-		}
-		else rem(root, "requestTimeout");
 	}
 
 	public void updateApplicationPathTimeout(TimeSpan span) throws SecurityException, ApplicationException {
@@ -2718,138 +2601,6 @@ public final class ConfigAdmin {
 			root.setEL("applicationPathTimeout", span.getDay() + "," + span.getHour() + "," + span.getMinute() + "," + span.getSecond());
 		}
 		else rem(root, "applicationPathTimeout");
-	}
-
-	/**
-	 * updates session timeout value
-	 * 
-	 * @param span
-	 * @throws SecurityException
-	 */
-	public void updateSessionTimeout(TimeSpan span) throws SecurityException {
-		checkWriteAccess();
-		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
-
-		if (!hasAccess) throw new SecurityException("no access to update scope setting");
-
-		if (span != null) root.setEL("sessiontimeout", span.getDay() + "," + span.getHour() + "," + span.getMinute() + "," + span.getSecond());
-		else rem(root, "sessiontimeout");
-	}
-
-	public void updateClientStorage(String storage) throws SecurityException, ApplicationException {
-		updateStorage("client", storage);
-	}
-
-	public void updateSessionStorage(String storage) throws SecurityException, ApplicationException {
-		updateStorage("session", storage);
-	}
-
-	private void updateStorage(String storageName, String storage) throws SecurityException, ApplicationException {
-		checkWriteAccess();
-		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
-
-		if (!hasAccess) throw new SecurityException("no access to update scope setting");
-		storage = validateStorage(storage);
-
-		if (!StringUtil.isEmpty(storage, true)) root.setEL(storageName + "Storage", storage);
-		else rem(root, storageName + "Storage");
-	}
-
-	private String validateStorage(String storage) throws ApplicationException {
-		storage = storage.trim().toLowerCase();
-
-		// empty
-		if (StringUtil.isEmpty(storage, true)) return "";
-
-		// standard storages
-		if ("cookie".equals(storage) || "memory".equals(storage) || "file".equals(storage)) return storage;
-
-		// aliases
-		if ("ram".equals(storage)) return "memory";
-		if ("registry".equals(storage)) return "file";
-
-		// datasource
-		DataSource ds = config.getDataSource(storage, null);
-		if (ds != null) {
-			if (ds.isStorage()) return storage;
-			throw new ApplicationException("datasource [" + storage + "] is not enabled to be used as session/client storage");
-		}
-
-		// cache
-		CacheConnection cc = CacheUtil.getCacheConnection(ThreadLocalPageContext.get(config), storage, null);
-		if (cc != null) {
-			if (cc.isStorage()) return storage;
-			throw new ApplicationException("cache [" + storage + "] is not enabled to be used as session/client storage");
-		}
-
-		String sdx = StringUtil.soundex(storage);
-
-		// check if a datasource has a similar name
-		DataSource[] sources = config.getDataSources();
-		for (int i = 0; i < sources.length; i++) {
-			if (StringUtil.soundex(sources[i].getName()).equals(sdx))
-				throw new ApplicationException("no matching storage for [" + storage + "] found, did you mean [" + sources[i].getName() + "]");
-		}
-
-		// check if a cache has a similar name
-		Iterator<String> it = config.getCacheConnections().keySet().iterator();
-		String name;
-		while (it.hasNext()) {
-			name = it.next();
-			if (StringUtil.soundex(name).equals(sdx)) throw new ApplicationException("no matching storage for [" + storage + "] found, did you mean [" + name + "]");
-		}
-
-		throw new ApplicationException("no matching storage for [" + storage + "] found");
-	}
-
-	/**
-	 * updates session timeout value
-	 * 
-	 * @param span
-	 * @throws SecurityException
-	 */
-	public void updateClientTimeout(TimeSpan span) throws SecurityException {
-		checkWriteAccess();
-		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
-
-		if (!hasAccess) throw new SecurityException("no access to update scope setting");
-
-		if (span != null) root.setEL("clientTimeout", span.getDay() + "," + span.getHour() + "," + span.getMinute() + "," + span.getSecond());
-		else rem(root, "clientTimeout");
-	}
-
-	public void updateCFMLWriterType(String writerType) throws SecurityException, ApplicationException {
-		checkWriteAccess();
-		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
-		if (!hasAccess) throw new SecurityException("no access to update scope setting");
-
-		writerType = writerType.trim();
-
-		// remove
-		if (StringUtil.isEmpty(writerType)) {
-			if (root.containsKey("cfmlWriter")) rem(root, "cfmlWriter");
-			return;
-		}
-
-		if ("smart".equalsIgnoreCase(writerType)) writerType = "white-space-pref";
-		else if (Decision.isBoolean(writerType)) {
-			writerType = Caster.toBooleanValue(writerType, false) ? "white-space" : "regular";
-		}
-
-		// update
-		if (!"white-space".equalsIgnoreCase(writerType) && !"white-space-pref".equalsIgnoreCase(writerType) && !"regular".equalsIgnoreCase(writerType))
-			throw new ApplicationException("invalid writer type definition [" + writerType + "], valid types are [white-space, white-space-pref, regular]");
-
-		root.setEL("cfmlWriter", writerType.toLowerCase());
-	}
-
-	public void updateSuppressContent(Boolean value) throws SecurityException {
-		checkWriteAccess();
-		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
-
-		if (!hasAccess) throw new SecurityException("no access to update scope setting");
-
-		root.setEL("suppressContent", Caster.toString(value, ""));
 	}
 
 	public void updateShowVersion(Boolean value) throws SecurityException {
@@ -2877,31 +2628,6 @@ public final class ConfigAdmin {
 		if (!hasAccess) throw new SecurityException("no access to update scope setting");
 
 		root.setEL("showContentLength", Caster.toString(value, ""));
-	}
-
-	public void updateBufferOutput(Boolean value) throws SecurityException {
-		checkWriteAccess();
-		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
-
-		if (!hasAccess) throw new SecurityException("no access to update scope setting");
-
-		root.setEL("bufferTagBodyOutput", value);
-	}
-
-	/**
-	 * updates request timeout value
-	 * 
-	 * @param span
-	 * @throws SecurityException
-	 */
-	public void updateApplicationTimeout(TimeSpan span) throws SecurityException {
-		checkWriteAccess();
-		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
-
-		if (!hasAccess) throw new SecurityException("no access to update scope setting");
-
-		if (span != null) root.setEL("applicationTimeout", span.getDay() + "," + span.getHour() + "," + span.getMinute() + "," + span.getSecond());
-		else rem(root, "applicationTimeout");
 	}
 
 	public void updateApplicationListener(String type, String mode, Boolean singleton) throws SecurityException {
@@ -2958,21 +2684,6 @@ public final class ConfigAdmin {
 	}
 
 	/**
-	 * enable or desable client management
-	 * 
-	 * @param clientManagement
-	 * @throws SecurityException
-	 */
-	public void updateClientManagement(Boolean clientManagement) throws SecurityException {
-		checkWriteAccess();
-		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
-
-		if (!hasAccess) throw new SecurityException("no access to update scope setting");
-
-		root.setEL("clientManagement", Caster.toString(clientManagement, ""));
-	}
-
-	/**
 	 * set if client cookies are enabled or not
 	 * 
 	 * @param clientCookies
@@ -2986,48 +2697,6 @@ public final class ConfigAdmin {
 		root.setEL("clientCookies", clientCookies);
 	}
 
-	/**
-	 * set if it's develop mode or not
-	 * 
-	 * @param developmode
-	 * @throws SecurityException
-	 */
-	public void updateMode(Boolean developmode) throws SecurityException {
-		checkWriteAccess();
-		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
-		if (!hasAccess) throw new SecurityException("no access to update scope setting");
-
-		root.setEL("developMode", Caster.toString(developmode, ""));
-	}
-
-	/**
-	 * set if domain cookies are enabled or not
-	 * 
-	 * @param domainCookies
-	 * @throws SecurityException
-	 */
-	public void updateDomaincookies(Boolean domainCookies) throws SecurityException {
-		checkWriteAccess();
-		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
-		if (!hasAccess) throw new SecurityException("no access to update scope setting");
-
-		root.setEL("domainCookies", Caster.toString(domainCookies, ""));
-	}
-
-	/**
-	 * update the locale
-	 * 
-	 * @param locale
-	 * @throws SecurityException
-	 */
-	public void updateLocale(String locale) throws SecurityException {
-		checkWriteAccess();
-		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
-		if (!hasAccess) throw new SecurityException("no access to update regional setting");
-
-		root.setEL("locale", locale.trim());
-	}
-
 	public void updateMonitorEnabled(boolean updateMonitorEnabled) throws SecurityException {
 		checkWriteAccess();
 		_updateMonitorEnabled(updateMonitorEnabled);
@@ -3036,52 +2705,6 @@ public final class ConfigAdmin {
 	void _updateMonitorEnabled(boolean updateMonitorEnabled) {
 		Struct monitoring = ConfigUtil.getAsStruct("monitoring", root);
 		monitoring.setEL(KeyConstants._enabled, updateMonitorEnabled);
-	}
-
-	public void updateScriptProtect(String strScriptProtect) throws SecurityException {
-		checkWriteAccess();
-		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
-		if (!hasAccess) throw new SecurityException("no access to update script protect");
-
-		root.setEL("scriptProtect", strScriptProtect.trim());
-	}
-
-	public void updateAllowURLRequestTimeout(Boolean allowURLRequestTimeout) throws SecurityException {
-		checkWriteAccess();
-		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
-		if (!hasAccess) throw new SecurityException("no access to update AllowURLRequestTimeout");
-
-		root.setEL("requestTimeoutInURL", Caster.toString(allowURLRequestTimeout, ""));
-	}
-
-	public void updateScriptProtect(int scriptProtect) throws SecurityException {
-		updateScriptProtect(AppListenerUtil.translateScriptProtect(scriptProtect));
-	}
-
-	/**
-	 * update the timeZone
-	 * 
-	 * @param timeZone
-	 * @throws SecurityException
-	 */
-	public void updateTimeZone(String timeZone) throws SecurityException {
-		checkWriteAccess();
-		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
-		if (!hasAccess) throw new SecurityException("no access to update regional setting");
-
-		root.setEL("timezone", timeZone.trim());
-
-	}
-
-	public void updateComponentDeepSearch(Boolean deepSearch) throws SecurityException {
-		checkWriteAccess();
-		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
-		if (!hasAccess) throw new SecurityException("no access to update component setting");
-		if (deepSearch != null) root.setEL("componentDeepSearch", Caster.toString(deepSearch.booleanValue()));
-		else {
-			if (root.containsKey("componentDeepSearch")) rem(root, "componentDeepSearch");
-		}
-
 	}
 
 	public void updateComponentDefaultImport(String componentDefaultImport) throws SecurityException {
@@ -3119,56 +2742,12 @@ public final class ConfigAdmin {
 		}
 	}
 
-	/**
-	 * update the Component Data Member default access type
-	 * 
-	 * @param triggerDataMember
-	 * @throws SecurityException
-	 */
-	public void updateTriggerDataMember(Boolean triggerDataMember) throws SecurityException {
-		checkWriteAccess();
-		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
-		if (!hasAccess) throw new SecurityException("no access to update trigger-data-member");
-
-		root.setEL("componentImplicitNotation", Caster.toString(triggerDataMember, ""));
-	}
-
-	public void updateComponentUseShadow(Boolean useShadow) throws SecurityException {
-		checkWriteAccess();
-		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
-		if (!hasAccess) throw new SecurityException("no access to update use-shadow");
-
-		root.setEL("componentUseVariablesScope", Caster.toString(useShadow, ""));
-	}
-
 	public void updateComponentLocalSearch(Boolean componentLocalSearch) throws SecurityException {
 		checkWriteAccess();
 		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 		if (!hasAccess) throw new SecurityException("no access to update component Local Search");
 
 		root.setEL("componentLocalSearch", Caster.toString(componentLocalSearch, ""));
-	}
-
-	public void updateComponentPathCache(Boolean componentPathCache) throws SecurityException {
-		checkWriteAccess();
-		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
-		if (!hasAccess) throw new SecurityException("no access to update component Cache Path");
-
-		if (!Caster.toBooleanValue(componentPathCache, false)) {
-			for (ConfigWeb cw: config.getConfigWebs()) {
-				((ConfigWebPro) cw).clearComponentPathCache();
-			}
-
-		}
-		root.setEL("componentUseCachePath", Caster.toString(componentPathCache, ""));
-	}
-
-	public void updateCTPathCache(Boolean ctPathCache) throws SecurityException {
-		checkWriteAccess();
-		if (!ConfigUtil.hasAccess(config, SecurityManager.TYPE_CUSTOM_TAG)) throw new SecurityException("no access to update custom tag setting");
-
-		if (!Caster.toBooleanValue(ctPathCache, false)) config.clearCTCache();
-		root.setEL("customTagUseCachePath", Caster.toString(ctPathCache, ""));
 	}
 
 	public void updateSecurity(String varUsage, Boolean limitEvaluation) throws SecurityException {
@@ -3244,52 +2823,6 @@ public final class ConfigAdmin {
 
 		if (test != null) root.setEL("showTest", test.booleanValue());
 		else rem(root, "showTest");
-	}
-
-	/**
-	 * updates the ErrorTemplate
-	 * 
-	 * @param template
-	 * @throws SecurityException
-	 */
-	public void updateErrorTemplate(int statusCode, String template) throws SecurityException {
-		checkWriteAccess();
-		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
-		if (!hasAccess) throw new SecurityException("no access to change error settings");
-
-		if (statusCode == 404) root.setEL("errorMissingTemplate", template);
-		else root.setEL("errorGeneralTemplate", template);
-	}
-
-	public void updateErrorStatusCode(Boolean doStatusCode) throws SecurityException {
-		checkWriteAccess();
-		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
-		if (!hasAccess) throw new SecurityException("no access to change error settings");
-
-		root.setEL("errorStatusCode", Caster.toString(doStatusCode, ""));
-	}
-
-	public void updateRegexType(String type) throws PageException {
-		checkWriteAccess();
-		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
-		if (!hasAccess) throw new SecurityException("no access to change regex settings");
-
-		if (StringUtil.isEmpty(type)) rem(root, "regexType");
-		else root.setEL("regexType", RegexFactory.toType(RegexFactory.toType(type), "perl"));
-	}
-
-	/**
-	 * updates the DebugTemplate
-	 * 
-	 * @param template
-	 * @throws SecurityException
-	 */
-	public void updateComponentDumpTemplate(String template) throws SecurityException {
-		checkWriteAccess();
-		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
-		if (!hasAccess) throw new SecurityException("no access to update component setting");
-
-		root.setEL("componentDumpTemplate", template);
 	}
 
 	private Struct _getRootElement(String name) {
@@ -3471,43 +3004,6 @@ public final class ConfigAdmin {
 
 		accessor.setEL("access_read", SecurityManagerImpl.toStringAccessRWValue(accessRead));
 		accessor.setEL("access_write", SecurityManagerImpl.toStringAccessRWValue(accessWrite));
-	}
-
-	/**
-	 * session type update
-	 * 
-	 * @param type
-	 * @throws SecurityException
-	 */
-	public void updateSessionType(String type) throws SecurityException {
-		checkWriteAccess();
-		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
-		if (!hasAccess) throw new SecurityException("no access to update scope setting");
-
-		type = type.toLowerCase().trim();
-
-		root.setEL("sessionType", type);
-	}
-
-	public void updateLocalMode(String mode) throws SecurityException {
-		checkWriteAccess();
-		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
-		if (!hasAccess) throw new SecurityException("no access to update scope setting");
-
-		mode = mode.toLowerCase().trim();
-		root.setEL("localScopeMode", mode);
-	}
-
-	public void updateRestList(Boolean list) throws SecurityException {
-		checkWriteAccess();
-		boolean hasAccess = true;
-		if (!hasAccess) throw new SecurityException("no access to update rest setting");
-
-		Struct rest = _getRootElement("rest");
-		if (list == null) {
-			if (rest.containsKey("list")) rem(rest, "list");
-		}
-		else rest.setEL("list", Caster.toString(list.booleanValue()));
 	}
 
 	/**
@@ -3964,13 +3460,6 @@ public final class ConfigAdmin {
 		return converter.deserialize(pc, IOUtil.toString(storage, "UTF-8"), true);
 	}
 
-	public void updateCustomTagDeepSearch(boolean customTagDeepSearch) throws SecurityException {
-		checkWriteAccess();
-		if (!ConfigUtil.hasAccess(config, SecurityManager.TYPE_CUSTOM_TAG)) throw new SecurityException("Access Denied to update custom tag setting");
-
-		root.setEL("customTagDeepSearch", Caster.toString(customTagDeepSearch));
-	}
-
 	public void resetId() throws PageException {
 		checkWriteAccess();
 		Resource res = config.getConfigDir().getRealResource("id");
@@ -3981,25 +3470,6 @@ public final class ConfigAdmin {
 			throw Caster.toPageException(e);
 		}
 
-	}
-
-	public void updateCustomTagLocalSearch(boolean customTagLocalSearch) throws SecurityException {
-		checkWriteAccess();
-		if (!ConfigUtil.hasAccess(config, SecurityManager.TYPE_CUSTOM_TAG)) throw new SecurityException("Access Denied to update custom tag setting");
-		root.setEL("customTagLocalSearch", Caster.toString(customTagLocalSearch));
-	}
-
-	public void updateCustomTagExtensions(String extensions) throws PageException {
-		checkWriteAccess();
-		if (!ConfigUtil.hasAccess(config, SecurityManager.TYPE_CUSTOM_TAG)) throw new SecurityException("Access Denied to update custom tag setting");
-
-		// check
-		Array arr = ListUtil.listToArrayRemoveEmpty(extensions, ',');
-		ListUtil.trimItems(arr);
-		// throw new ApplicationException("you must define at least one extension");
-
-		// update charset
-		root.setEL("customTagExtensions", ListUtil.arrayToList(arr, ","));
 	}
 
 	public void updateRemoteClient(String label, String url, String type, String securityKey, String usage, String adminPassword, String serverUsername, String serverPassword,
@@ -5806,15 +5276,6 @@ public final class ConfigAdmin {
 		return true;
 	}
 
-	public void updateDebugSetting(int maxLogs) throws SecurityException {
-		checkWriteAccess();
-		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_DEBUGGING);
-		if (!hasAccess) throw new SecurityException("Access denied to change debugging settings");
-
-		if (maxLogs == -1) rem(root, "debuggingMaxRecordsLogged");
-		else root.setEL("debuggingMaxRecordsLogged", maxLogs);
-	}
-
 	public void updateDebugEntry(String type, String iprange, String label, String path, String fullname, Struct custom) throws SecurityException, IOException {
 		checkWriteAccess();
 		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_DEBUGGING);
@@ -6597,30 +6058,6 @@ public final class ConfigAdmin {
 
 	}
 
-	public void updateQueue(Integer max, Integer timeout, Boolean enable) throws SecurityException {
-		checkWriteAccess();
-		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
-		if (!hasAccess) throw new SecurityException("Accces Denied to update queue settings");
-
-		// max
-		if (max == null) rem(root, "requestQueueMax");
-		else root.setEL("requestQueueMax", max);
-		// total
-		if (timeout == null) rem(root, "requestQueueTimeout");
-		else root.setEL("requestQueueTimeout", timeout);
-		// enable
-		if (enable == null) rem(root, "requestQueueEnable");
-		else root.setEL("requestQueueEnable", enable);
-	}
-
-	public void updateCGIReadonly(Boolean cgiReadonly) throws SecurityException {
-		checkWriteAccess();
-		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
-		if (!hasAccess) throw new SecurityException("Accces Denied to update scope setting");
-
-		root.setEL("cgiScopeReadOnly", Caster.toString(cgiReadonly, ""));
-	}
-
 	public void updateFormUrlAsStruct(Boolean formUrlAsStruct) throws SecurityException {
 		checkWriteAccess();
 		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
@@ -6639,5 +6076,17 @@ public final class ConfigAdmin {
 		public AlreadyInstalledExtension(RHExtension ext) {
 			super("the extension " + ext.getMetadata().getName() + " (id: " + ext.getId() + ") in version " + ext.getVersion() + " is already installed");
 		}
+	}
+
+	public void updateRequestTimeout(Struct data) throws PageException {
+		ConfigServerImpl.metaRequestTimeout.write(config, data);
+	}
+
+	public void updateScriptProtect(Struct data) throws PageException {
+		ConfigServerImpl.metaScriptProtect.write(config, data);
+	}
+
+	public void updateAllowURLRequestTimeout(Struct data) throws PageException {
+		ConfigServerImpl.metaAllowURLRequestTimeout.write(config, data);
 	}
 }

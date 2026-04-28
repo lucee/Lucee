@@ -150,13 +150,10 @@
 						type="#request.adminType#"
 						password="#session["password"&request.adminType]#"
 						
-						deepSearch="#form.customTagDeepSearchDesc?:false#"
-						localSearch="#form.customTagLocalSearchDesc?:false#"
-						customTagPathCache="#form.customTagPathCache?:false#"
-						
-						
-						
-						extensions="#form.extensions#"
+						customTagDeepSearch="#form.customTagDeepSearchDesc?:false#"
+						customTagLocalSearch="#form.customTagLocalSearchDesc?:false#"
+						customTagUseCachePath="#form.customTagPathCache?:false#"
+						customTagExtensions="#form.extensions#"
 			remoteClients="#request.getRemoteClients()#">
 			<cfelseif form.subAction EQ "#stText.Buttons.Update#">
 				<cfset data.names=toArrayFromForm("name")>
