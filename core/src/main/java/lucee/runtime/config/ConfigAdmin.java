@@ -5077,6 +5077,9 @@ public final class ConfigAdmin {
 				// LDEV-6297: refresh cached JavaSettings so the new maven entries reach the RPC classloader without a server restart
 				if (mavenUpdated && config instanceof ConfigImpl) {
 					ConfigWebFactory._loadJavaSettings(null, (ConfigImpl) config, root, logger);
+					// also invalidate the JVM-level default classloader cached in ModernApplicationContext,
+					// otherwise CFML createObject calls keep getting the stale classloader from before the refresh
+					lucee.runtime.listener.ModernApplicationContext.resetDefaultClassLoader();
 				}
 			}
 
