@@ -1,386 +1,55 @@
 /* Dark Mode for Lucee Admin */
 :root {
-  /* Light Mode (Default) */
+  /* Light Mode (Default)
   --bg-color: white;
   --text-color: #333;
-  --link-color: #76a83d;
   --header-color: #76a83d;
-  --border-color: rgba(95, 135, 49, 0.3);
-  --nav-bg: white;
-  --content-bg: white;
-  --table-header-bg: rgba(95, 135, 49, 0.15);
-  --table-border: rgba(95, 135, 49, 0.25);
-  --input-bg: #fff;
-  --input-border: #e2e0da;
-  --button-bg: #76a83d;
+  --button-bg: #5f8731;
   --button-text: rgba(255, 255, 255, 0.75);
   --error-color: red;
   --warning-bg: #FC6;
-  --message-bg: #0C0;
-  --comment-color: #555;
   --copyright-color: #000;
-  --chart-bg: #ffffff;
-}
+
+} */
 
 /* Dark Mode */
 body.dark-mode {
-  --bg-color: #15203b;
-  --text-color: #cbd5e1;
-  --link-color: #76a83d;
-  --header-color: #76a83d;
-  --border-color: rgba(143, 187, 87, 0.4);
-  --nav-bg: #15203b;
-  --content-bg: #15203b;
-  --table-header-bg: rgba(143, 187, 87, 0.4);
-  --table-border: rgba(143, 187, 87, 0.3);
-  --input-bg: #1F283b;
-  --input-border: #444;
-  --button-bg: #5f8731;
-  --button-text: #cbd5e1;
-  --error-color: #ff6666;
-  --warning-bg: #FC6;
-  --message-bg: #15203b;
-  --comment-color: #aaa;
-  --copyright-color: #aaa;
-  --chart-bg: #15203b;
-}
+  --front-rgb: 160, 160, 160;
+  --back-rgb: 33, 33, 33;
+  --input-rgb: 40, 40, 40;
+    --primary-color-rgb: 92, 135, 46;
 
-/* Direct element styling for dark mode */
-body.dark-mode {
-  background-color: var(--bg-color);
-  color: var(--text-color);
-}
 
-/* Layout elements */
-body.dark-mode #layout {
-  background-color: var(--bg-color);
-}
-
-body.dark-mode #layouttbl {
-  background-color: var(--bg-color);
-}
-
-body.dark-mode td.lotd {
-  background-color: var(--bg-color);
-}
-
-/* Navigation panel */
-body.dark-mode #navtd {
-  background-color: var(--nav-bg);
-  border-right: 1px solid var(--border-color);
-}
-
-body.dark-mode #nav {
-  background-color: var(--nav-bg);
-}
-
-/* Menu styling */
-body.dark-mode #menu li a {
-  color: var(--link-color);
-}
-
-body.dark-mode #menu li li a {
-  color: var(--text-color);
-}
-
-body.dark-mode #menu li li a:hover,
-body.dark-mode #menu li li a.menu_active {
-  color: var(--link-color);
-}
-
-body.dark-mode #menu li li a.menu_active {
-  background-color: rgba(143, 187, 87, 0.2);
-}
-
-/* Content area */
-body.dark-mode #contenttd {
-  background-color: var(--content-bg);
-}
-
-body.dark-mode #content {
-  background-color: var(--content-bg);
-}
-
-body.dark-mode #innercontent {
-  background-color: var(--content-bg);
-}
-
-/* Header and titles */
-body.dark-mode h1,
-body.dark-mode h2,
-body.dark-mode h3,
-body.dark-mode h4,
-body.dark-mode h5,
-body.dark-mode .box {
-  color: var(--header-color);
-}
-
-body.dark-mode #header {
-  background-color: var(--bg-color);
-}
-
-body.dark-mode #maintitle {
-  background-color: var(--bg-color);
-}
-
-/* Tables */
-body.dark-mode .maintbl {
-  background-color: var(--bg-color);
-}
-
-body.dark-mode .maintbl th {
-  color: var(--text-color);
-  background-color: rgba(95, 135, 49, 0.2) !important;
-}
-
-body.dark-mode .maintbl td {
-  border: 1px solid var(--table-border);
-  background-color: var(--bg-color);
-}
-
-body.dark-mode table {
-  background-color: transparent;
-}
-
-body.dark-mode tr {
-  background-color: transparent;
-}
-
-body.dark-mode tr > th > a {
-  color: var(--text-color);
-}
-
-/* Links */
-body.dark-mode a {
-  color: var(--link-color);
-}
-
-/* Inputs */
-body.dark-mode input,
-body.dark-mode select,
-body.dark-mode textarea {
-  background-color: var(--input-bg);
-  color: var(--text-color);
-}
-
-/* Buttons */
-body.dark-mode .button,
-body.dark-mode .submit,
-body.dark-mode .reset {
-  background: var(--button-bg);
-  color: var(--button-text);
-}
-
-/* Comments and messages */
-body.dark-mode .comment {
-  color: var(--comment-color) !important;
-}
-
-body.dark-mode div.error {
-  border: 1px solid var(--error-color);
-  color: var(--error-color) !important;
-}
-
-body.dark-mode div.error a,
-body.dark-mode div.message a {
-    color: var(--error-color) !important;
-    text-decoration: none;
+    --title-color: rgba(var(--front-rgb), 1);
+    --text-color: rgba(var(--front-rgb), 0.8);
+    
+    --primary-color: rgba(var(--primary-color-rgb), 1);
+    --link-color: rgba(var(--primary-color-rgb), 0.8);
+    --lines: rgba(var(--front-rgb), 0.3);
+    --linesbright: rgba(var(--front-rgb), 0.4);
+    --cell-back: rgba(var(--front-rgb), 0.1);
+    --back: rgba(var(--back-rgb), 1);
+    --bright: rgba(var(--input-rgb), 1);
+    --input-bg: rgba(var(--input-rgb), 0.9);
+    --input-text: rgba(var(--front-rgb), 0.8);
+    
+    /* button */
+    --button-text: rgba(var(--button-text-rgb), 0.8);
+    --button-bg: rgba(var(--primary-color-rgb), 0.8);
 }
 
 
 
-body.dark-mode div.warning {
-  border-color: var(--warning-bg);
-  color: var(--warning-bg)  !important; 
-  background-color: rgba(255, 204, 102, 0.1);
-}
-
-body.dark-mode td.OK,
-body.dark-mode tr.OK td,
-body.dark-mode td.active {
-    background-color: rgb(0, 153, 51, 0.1);
-}
-
-body.dark-mode td.installed {
-    background-color: rgba(255, 255, 255, 0.1);
-}
-
-body.dark-mode td.notOK,
-body.dark-mode tr.notOK td,
-body.dark-mode td.notinstalled {
-    background-color: rgb(250, 0, 0, 0.1);
-}
-
-body.dark-mode .tblContentYellow  td,
-body.dark-mode td.resolved {
-    background-color: rgb(255, 255, 0, 0.05);
-}
-
-body.dark-mode div.message {
-  border-color: var(--message-bg);
-  color: #66cc66; /* Brighter color for better visibility */
-  background-color: rgba(0, 204, 0, 0.1);
-}
-
-/* Status colors */
-body.dark-mode .CheckOk {
-  color: #5cb85c;
-}
-
-body.dark-mode .CheckError {
-  color: #ff6666;
-}
-
-/* Charts */
-body.dark-mode #heap,
-body.dark-mode #nonheap,
-body.dark-mode #cpuSystem {
-  background-color: var(--chart-bg);
-}
-
-/* Copyright */
-body.dark-mode #copyright {
-  color: var(--copyright-color);
-}
-
-body.dark-mode #copyright a {
-  color: var(--copyright-color);
-}
-
-/* Form styling */
-body.dark-mode .filterform {
-  background-color: rgba(50, 50, 50, 0.7);
-}
-
-/* Logo inversion for dark mode */
-body.dark-mode #logo {
-  filter: brightness(1);
-}
-
-/* Fix for the Lucee admin dump output */
-body.dark-mode .-lucee-dump table {
-  color: var(--text-color);
-}
-
-body.dark-mode .-lucee-dump td {
-  border-color: #555;
-}
-
-/* Page intro text */
-body.dark-mode .pageintro {
-  color: var(--text-color) !important;
-}
-
-/* Item intro text */
-body.dark-mode .itemintro {
-  color: var(--text-color) !important;
-}
-
-/* All paragraph tags */
-body.dark-mode p {
-  color: var(--text-color);
-}
-
-/* All div text that doesn't have a specific class */
-body.dark-mode div:not([class]) {
-  color: var(--text-color);
-}
 
 /* Coding tips */
 body.dark-mode .coding-tip-trigger,
 body.dark-mode div.coding-tip-trigger,
 body.dark-mode #innercontent .coding-tip-trigger {
-  color: var(--link-color) !important;
   cursor: pointer !important;
   text-decoration: underline !important;
 }
 
-body.dark-mode .coding-tip {
-  background-color: #2a2a2a !important;
-  border: 1px solid var(--border-color) !important;
-}
 
-body.dark-mode .coding-tip code {
-  background-color: #222 !important;
-  color: #88eeff !important;
-}
-
-/* Additional specific elements */
-body.dark-mode span.ext-name{
-  color: #6D6D6D !important;
-}
-
-body.dark-mode span,
-body.dark-mode label,
-body.dark-mode tbody,
-body.dark-mode option {
-  color: var(--text-color);
-}
-
-/* Form table cells and contents */
-body.dark-mode table tr td div,
-body.dark-mode table tbody tr td div {
-  color: var(--text-color);
-}
-
-/* Fix for radio button labels and descriptions */
-body.dark-mode table tr td h3,
-body.dark-mode table tr td div {
-  color: var(--text-color) !important;
-}
-
-/* Target borderless table cells */
-body.dark-mode td[style*="border:0"] div {
-  color: var(--text-color) !important;
-}
-
-/* Override inline styles */
-body.dark-mode [style*="color"] {
-  color: var(--text-color) !important;
-}
-
-/* Exception for special elements */
-body.dark-mode a[style*="color"],
-body.dark-mode h1[style*="color"],
-body.dark-mode h2[style*="color"],
-body.dark-mode h3[style*="color"],
-body.dark-mode h4[style*="color"],
-body.dark-mode h5[style*="color"],
-body.dark-mode .box[style*="color"],
-body.dark-mode #menu li a[style*="color"] {
-  color: var(--link-color) !important;
-}
-
-/* Fix for comment blocks on settings pages */
-body.dark-mode td[style*="border:0;padding:3px;margin:0px"] div,
-body.dark-mode td[style*="border:0;padding:3px;margin:0px"] div.comment {
-  color: var(--text-color) !important;
-}
-
-/* Target the interval description text specially */
-body.dark-mode td[style*="border:0;padding:3px;margin:0px"] div.comment {
-  color: var(--comment-color) !important;
-}
-
-/* Fix table text in admin */
-body.dark-mode table.maintbl tbody td {
-  color: var(--text-color);
-}
-
-body.dark-mode table.maintbl tfoot td {
-    border: none;
-    box-shadow: none;
-}
-
-/* Fix for typeahead dropdown */
-body.dark-mode .tt-menu.tt-open {
-  background-color: var(--bg-color) !important;
-  border: 1px solid var(--border-color);
-}
-
-body.dark-mode .tt-suggestion.tt-selectable {
-  color: var(--text-color);
-}
 
 body.dark-mode .tt-suggestion.tt-selectable:hover {
   background-color: #555 !important;
@@ -395,8 +64,8 @@ body.dark-mode .tt-suggestion.tt-selectable:hover {
   right: 55px;
   width: 32px;
   height: 32px;
-  background: rgba(95, 135, 49, 0.2);
-  color: white;
+  background: var(--cell-back);
+  color:var(--button-text);
   border: none;
   border-radius: 50%; /* Make it perfectly round */
   padding: 0;
@@ -407,21 +76,17 @@ body.dark-mode .tt-suggestion.tt-selectable:hover {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background-color 0.3s, transform 0.3s;
+  xtransition: background-color 0.3s, transform 0.3s;
 }
 
 .dark-mode-toggle:hover {
-  transform: scale(1.4);
-  background: rgba(95, 135, 49, 0.7);
+  transform: scale(1.2);
 }
 
-body.dark-mode .dark-mode-toggle {
-  background: rgba(95, 135, 49, 0.2);
-  color: white;
-}
+
 
 body.dark-mode .dark-mode-toggle:hover {
-  background: rgba(95, 135, 49, 0.7);
+  background: rgba(var(--front-rgb), 0.4);
 }
 
 /* Fix specific elements */
@@ -429,11 +94,4 @@ body.dark-mode img[src*="spinner16.gif.cfm"] {
   filter: invert(1);
 }
 
-/* Make everything inherit color by default */
-body.dark-mode * {
-  color: inherit;
-}
 
-body.dark-mode .version-number {
-  color: #76a83d !important;
-}
