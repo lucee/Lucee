@@ -8,8 +8,8 @@ import lucee.runtime.type.scope.Session;
 import lucee.runtime.type.scope.storage.IKStorageScopeSupport;
 import lucee.runtime.type.scope.storage.StorageScopeImpl;
 
-public final class SessionCommit implements Function {
-	private static final long serialVersionUID = -2243745577257724777L;
+public class SessionTouch implements Function {
+	private static final long serialVersionUID = 4287563982175634891L;
 
 	public static String call( PageContext pc ) throws PageException {
 		Session session = ((PageContextImpl) pc).sessionScope();
@@ -19,7 +19,6 @@ public final class SessionCommit implements Function {
 		else if ( session instanceof StorageScopeImpl ) {
 			((StorageScopeImpl) session).setDirty();
 		}
-		session.touchAfterRequest( pc );
 		return null;
 	}
 }

@@ -24,7 +24,6 @@
 	thread action="join" name="#_threads.toList()#";
 	session.afterJoin = 'goodbye';
 	echo( session.toJson() );
-	//systemOutput(session.toJson(), true);
+	// This top-level assignment triggers hasChanges=true, so no sessionCommit/sessionTouch needed
 	session.topLevel = true;
-	//sessionCommit();
 </cfscript>

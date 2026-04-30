@@ -13646,12 +13646,23 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<name>SessionCommit</name>
 		<introduced>6.2.1.15</introduced>
 		<class>lucee.runtime.functions.system.SessionCommit</class>
-		<description>Force saving the session to storage, useful when sessionCluster is enabled.</description>
+		<description>Force saving the session to storage immediately, useful when sessionCluster is enabled.</description>
 		<return>
 			<type>void</type>
 		</return>
 	</function>
-	
+
+	<!-- SessionTouch -->
+	<function>
+		<name>SessionTouch</name>
+		<introduced>6.2.4</introduced>
+		<class>lucee.runtime.functions.system.SessionTouch</class>
+		<description>Mark the session as dirty so it will be saved to storage at the end of the request, useful when you have modified nested session data that Lucee cannot detect.</description>
+		<return>
+			<type>void</type>
+		</return>
+	</function>
+
 	<!-- SessionStartTime -->
 	<function>
 		<name>SessionStartTime</name>

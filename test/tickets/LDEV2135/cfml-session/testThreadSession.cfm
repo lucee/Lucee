@@ -27,5 +27,8 @@
 	echo( session.ldev3125.toJson() );
 	//systemOutput(session.toJson(), true);
 	//session.topLevel = true;
-	//sessionCommit();
+	if ( structKeyExists( url, "sessionCommit" ) )
+		sessionCommit();
+	else if ( structKeyExists( url, "sessionTouch" ) )
+		sessionTouch();
 </cfscript>

@@ -170,10 +170,12 @@ public final class IKHandlerDatasource implements IKHandler {
 		}
 		catch (Exception e) {
 			ScopeContext.error(log, e);
+			return;
 		}
 		finally {
 			if (dc != null) dc.release();
 		}
+		storageScope.setClean();
 	}
 
 	@Override
