@@ -5,19 +5,25 @@
     --input-rgb: 255, 255, 255;
     --button-text-rgb: 255, 255, 255;
     --primary-color-rgb: 72, 105, 36;
+    --okay-color-rgb: 0, 125, 12;
+    --error-color-rgb: 220, 0, 0;
+    --warn-color-rgb: 220, 140, 0;
+    --sun-moon-rgb: 52, 143, 235;
 
-    --title-color: rgba(var(--front-rgb), 1);
+    --title-color: rgba(var(--primary-color-rgb), 1);
     --text-color: rgba(var(--front-rgb), 0.8);
     
     --primary-color: rgba(var(--primary-color-rgb), 1);
     --link-color: rgba(var(--primary-color-rgb), 0.8);
     --lines: rgba(var(--front-rgb), 0.3);
     --linesbright: rgba(var(--front-rgb), 0.4);
-    --cell-back: rgba(var(--front-rgb), 0.1);
+    --cell-back: rgba(var(--primary-color-rgb), 0.1);
     --back: rgba(var(--back-rgb), 1);
     --bright: rgba(var(--input-rgb), 1);
     --input-bg: rgba(var(--input-rgb), 0.85);
     --input-text: rgba(var(--front-rgb), 0.8);
+    --sun-moon-fg: rgba(var(--sun-moon-rgb), 0.6);
+    --sun-moon-bg: rgba(var(--sun-moon-rgb), 0.1);
     
     /* button */
     --button-text: rgba(var(--button-text-rgb), 0.8);
@@ -165,8 +171,8 @@ body {
 body,
 td,
 th {
-    font-family: Arial, Helvetica, sans-serif;
-    font-size: 14px;
+    font-family:  Helvetica, sans-serif;
+    font-size: 16px;
     color: var(--text-color);
     line-height: 1.3;
 }
@@ -185,24 +191,24 @@ h5 {
 }
 
 h1 {
-    font-size: 32px;
+    font-size: 38px;
     padding-bottom: 10px
 }
 
 h2 {
-    font-size: 24px;
+    font-size: 30px;
 }
 
 h3 {
-    font-size: 18px;
+    font-size: 24px;
 }
 
 h4 {
-    font-size: 16px;
+    font-size: 20px;
 }
 
 h5 {
-    font-size: 13px;
+    font-size: 16px;
 }
 
 *+h1,
@@ -329,15 +335,18 @@ td.lotd {
 }
 
 #logo {
-    dmargin: 35px 0 0 0;
-    padding: 0px;
+    margin: 5px 0 0 0;
+    padding: 0;
     display: inline-block;
     width: 172px;
     height: 81px;
+
     background-image: url("data:image/svg+xml,%3Csvg version='1.1' viewBox='0 0 2048 962' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath transform='translate(688,364)' d='m0 0h12l13 4 6 4 8 7 8 14 2 9-1 11-8 16-11 12-7 6-14 7-20 8-13 8-15 13-10 10-8 10-13 18-12 20-9 16-8 18-2 6v9l4 6 5 4 6 1 8-2 17-8 14-8 22-13 32-21 17-12 14-10 57-42 21-16 17-14 13-11 12-11 10-9 7-7 7-8 22-22 14-10 13-6 11-3 12-1 13 2 10 5 10 9 6 9 1 3v14l-6 11-8 10-10 10-7 8-12 14-10 16-8 16-6 16-7 26-6 31v23l3 12 6 9 6 5 6 2 11-1 22-6 20-8 21-10 11-8 10-9 9-11 14-18 9-11 11-12 9-10 20-20 8-7 11-10 11-9 15-12 18-13 17-12 17-11 20-12 23-12 20-8 23-7 26-6 20-3h20l13 3 10 5 10 8 7 9 4 8 1 4v13l-6 12-9 10-9 7-12 5-14 3h-22l-8-4-22-22-8-4-8 2-12 6-19 13-18 13-16 12-15 13-31 29-7 8-11 12-8 10-13 16-12 19-10 19-5 14 1 9 5 8 6 5 6 2h11l15-3 24-6 46-15 36-13 40-15 24-10 8-6 7-8 10-13 9-11 15-16 9-10 8-7 8-8 8-7 11-10 14-11 15-12 14-10 16-11 20-13 15-9 23-12 19-8 26-8 27-6 18-3h21l14 4 11 6 10 9 6 9 3 7 1 6v8l-3 8-8 11-12 11-27 18-25 15-25 14-34 18-56 28-28 13-39 18-18 8-6 4-5 6-6 12-3 9v8l5 8 6 5 9 3h15l28-7 36-13 29-12 32-13 26-10 40-17 10-7 13-17 9-11 9-10 7-8 5-6h2l2-4 9-9 8-7 16-15 11-9 16-13 18-13 17-12 23-15 15-9 23-12 20-8 22-7 30-7 22-3h14l16 4 11 6 11 10 7 11 2 6v13l-3 8-9 13-9 9-22 18-16 11-22 14-26 15-22 12-23 11-30 14-27 11-29 11-23 8-14 6-9 7-5 8-3 11 1 9 4 10 5 6v2l4 2 13 8 13 5 19 4 9 1h36l27-4 28-7 20-7 21-9 23-12 18-12 10-8 14-12 12-13 7-8 7-5 5 1 2 4v14l-7 14-10 13-12 13-11 9-14 11-19 12-18 10-25 12-29 11-29 9-29 7-30 5-27 3h-43l-24-3-20-5-15-6-11-6-10-8-7-7-6-12-2-7-2-22v-5l-15 5-28 12-38 16-73 30-25 10-21 6-23 4h-18l-12-3-16-8-9-7-8-9-6-10-6-19-3-10-11 2-53 19-35 12-43 13-35 9-24 5-7 1h-18l-13-5-15-8-10-9-6-7-14-28-6-5-6 1-8 4-38 25-21 12-15 7-15 5-11 2h-16l-12-3-10-6-10-10-7-12-3-11v-21l4-26 5-22 9-34 9-29 2-6v-9l-6-6h-7l-17 7-24 13-25 16-22 15-16 12-14 11-14 12-13 11-11 9-15 13-14 12-17 13-15 12-16 11-23 15-17 9-13 4h-20l-12-4-10-6-10-10-6-10-3-10v-19l4-21 6-17 8-16 8-14 20-30 13-18 16-21 12-16 18-22 12-14 12-13 7-8 9-10 10-13 11-13 5-6 8-7 10-7 11-5zm1165 63-12 5-19 11-15 10-11 8-14 11-12 11-9 9-4 6v2l8 1 18-6 18-8 24-12 24-14 12-8 9-7 2-3-1-7-7-8-1-1zm-297 7-14 5-16 9-18 12-19 14-14 12-14 14-3 5 1 3h9l19-7 25-12 25-13 24-15 10-8 2-5-4-8-7-6z' fill='%23486924'/%3E%3Cpath transform='translate(629,40)' d='m0 0 19 1 12 3 10 5 10 8 6 8 4 9 1 6v12l-4 15-6 14-13 21-13 17-9 11-12 13-9 10-27 27-8 7-10 9-11 9-10 9-11 9-13 11-11 9-11 10-11 9-15 13-12 11-10 9-12 12-8 7-49 49-7 8-20 20-7 8-11 13-12 16-14 19-12 17-11 18-12 23-17 36-12 28-9 24-7 28-3 21-1 14v32l2 20 4 15 6 11 6 7 10 7 14 6 9 2 9 1h23l25-3 99-21 60-12 73-13 51-7 51-5 33-2h90l22 2 14 4 10 6 8 7 3 6v6l-5 9-4 5-8 5-4 1h-20l-25-2h-21l-32 3-55 8-51 9-58 12-63 14-36 10-36 11-29 10-35 15-29 12-30 11-31 9-20 4-16 2-14 1h-45l-20-3-19-7-14-8-11-9-10-10-9-14-6-13-4-15-2-17v-23l2-24 4-23 6-24 12-36 14-34 12-26 22-44 13-23 15-26 14-23 7-11 15-24 25-37 14-20 26-36 16-21 10-13 11-14 13-15 11-14 12-14 12-15 10-13 12-15 12-16 14-18 10-13 13-17 10-13 8-10 11-14 13-16 8-10 11-13 18-20 7-8 12-12 10-8 14-9 15-7 15-4z' fill='%23486924'/%3E%3C/svg%3E");
+
     background-repeat: no-repeat;
     background-size: contain;
 }
+
 
 
 #logo.scale-up {
@@ -900,12 +909,14 @@ td.resolved {
 
 div.error,
 div.warning,
+div.okay,
 div.warningops,
 div.message {
-    border: 1px solid red !important;
+    border: 1px solid rgba(var(--error-color-rgb), 0.7) !important;
     padding: 10px;
     margin: 10px 0px;
-    color: red !important;
+    color: rgba(var(--error-color-rgb), 0.7) !important;
+    background-color: rgba(var(--error-color-rgb), 0.05) !important;
     border-radius: 5px;
     line-height: 1.6;
 }
@@ -920,8 +931,16 @@ div.message a {
 
 div.warning,
 div.warningops {
-    border: 1px solid #FC6 !important;
-    color: #C93 !important;
+    border: 1px solid rgba(var(--warn-color-rgb), 0.7) !important;
+    color: rgba(var(--warn-color-rgb), 0.7) !important;
+    background-color: rgba(var(--warn-color-rgb), 0.05) !important;
+}
+
+div.err {
+    color: rgba(var(--error-color-rgb), 0.7) !important;
+}
+div.warn {
+    color: rgba(var(--warn-color-rgb), 0.7) !important;
 }
 
 div.message {
@@ -929,9 +948,10 @@ div.message {
     color: #000;
 }
 
-div.ok {
-    border-color: #dcdad3;
-    color: #dcdad3;
+div.okay {
+    border: 1px solid rgba(var(--okay-color-rgb), 0.7) !important;
+    color: rgba(var(--okay-color-rgb), 0.7) !important;
+    background-color: rgba(var(--okay-color-rgb), 0.05) !important;
 }
 
 #logouts {
@@ -1303,4 +1323,29 @@ tbody#extproviderlist td {
     height: 15px;
     background-color: var(--primary-color);
     color: var(--bright);
+}
+
+.dark-mode-toggle  {
+  position: fixed;
+  top: 10px;
+  right: 55px;
+  width: 32px;
+  height: 32px;
+  background: var(--sun-moon-bg);
+  color:var(--sun-moon-fg);
+  border: none;
+  border-radius: 50%; /* Make it perfectly round */
+  padding: 0;
+  cursor: pointer;
+  z-index: 1000;
+  font-size: 18px;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  xtransition: background-color 0.3s, transform 0.3s;
+}
+
+.dark-mode-toggle:hover {
+  transform: scale(1.2);
 }

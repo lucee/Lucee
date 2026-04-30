@@ -4,15 +4,18 @@
 	error.detail="";
 	if(isNull(form.mainAction)) form.mainAction="none";
 
-	// load asynchron all extension providers 
-	/*if(isNull(application.preloadedExtensionProviders)) application.preloadedExtensionProviders=false;
-	if(!application.preloadedExtensionProviders) {
-		thread name="preloadedExtensionProviders#createUniqueID()#" {
-			include "ext.functions.cfm";
-			external=getLuceeExtensions(getExtensionGroups());
-		}
-		application.preloadedExtensionProviders=true;
-	}*/
+	stText.Overview.skill = "AI Skill"
+stText.Overview.skillDescShort = "Machine-readable skill file for AI assistants (Claude, etc.) — always up to date with the latest Lucee documentation."
+
+stText.Overview.skillDesc = "A machine-readable skill file for AI assistants (Claude, ChatGPT, etc.) that gives them 
+            deep knowledge of Lucee. It includes a full recipe index covering configuration, caching, 
+            datasources, threading, Docker, ORM, extensions, AI integration, and more — plus direct 
+            links to technical specs for APIs, class names, and function signatures. 
+            Automatically updated whenever new documentation is added.
+            Copy the URL into your AI assistant's custom instructions or system prompt 
+            to get accurate, Lucee-specific answers.";
+
+
 </cfscript>
 
 <cftry>
@@ -341,7 +344,10 @@ Error Output --->
 			<cfset flds=listToArray(valueList(flds.displayname))>
 		</cfif>
 	</cfif>
-
+	<div class="okay"><a href="https://docs.lucee.org/lucee.skill" target="_blank">
+		<h4>#stText.Overview.skill#</h4>
+		#stText.Overview.skillDescShort#
+	</a></div>
 	<table style="width:100%">
 		<tr>
 			<div id="updateInfoDesc"><div style="text-align: center;"><img src="../res/img/spinner16.gif.cfm"></div></div>
@@ -683,6 +689,13 @@ Error Output --->
 				<h2>#stText.Overview.resources#</h2>--->
 				<table class="maintbl">
 					<tbody>
+						<!--- Lucee AI Skill --->
+						<tr>
+							<td>
+								<a href="https://docs.lucee.org/lucee.skill" target="_blank">#stText.Overview.skill#</a>
+								<div class="comment">#stText.Overview.skillDesc#</div>
+							</td>
+						</tr>
 						<!--- Prof Support --->
 						<tr>
 							<td>

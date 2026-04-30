@@ -23,18 +23,22 @@
 		hasNavigation = len(attributes.navigation) GT 0;
 		request.mode = "full";
 		resNameAppendix = hash(server.lucee.version & server.lucee["release-date"], "quick");
-		
-		// load darkmode css
-		if(!structKeyExists(application,"darkmodeCSS") or session.alwaysNew?:false) {
-			application.darkmodeCSS=fileRead("resources/css/darkmode.css");
-		}
 	</cfscript>
 <cfcontent reset="yes"><!DOCTYPE html>
 <cfoutput>
 <html>
 <head>
 	<title>#attributes.title# - Lucee #ucFirst(request.adminType)# Administrator</title>
+	<script>
+	if (localStorage.getItem('darkMode') === 'enabled') {
+		document.documentElement.classList.add('dark-mode');
+	}
+	</script>
 	<link rel="stylesheet" href="../res/css/admin.css.cfm" type="text/css">
+	<link rel="stylesheet" href="../res/css/darkmode.css.cfm" type="text/css">
+	
+
+
 	<meta name="robots" content="noindex,nofollow">
 	<cfhtmlhead action="flush">
 </head>
@@ -48,7 +52,20 @@
 						<div id="header">
 							<a id="logo" href="index.cfm"></a>
 						</div>
-						<cfif hasNavigation><div class="version-number">#server.lucee.version#</div></cfif>
+						<cfif hasNavigation>
+							<cfif 
+								findNoCase("-SNAPSHOT", server.lucee.version) 
+								or findNoCase("-RC", server.lucee.version)>
+							    <div class="version-number warn">#server.lucee.version#</div>
+							<cfelseif 
+								findNoCase("-ALPHA", server.lucee.version) 
+								or findNoCase("-BETA", server.lucee.version) >
+							    <div class="version-number err">#server.lucee.version#</div>
+							<cfelse>
+							    <div class="version-number">#server.lucee.version#</div>
+							</cfif>
+								
+						</cfif>
 					</td>
 				</tr>
 				<tr>
@@ -134,14 +151,7 @@
 		}); // jQuery ready
 	
 		document.addEventListener('DOMContentLoaded', function() {
-			// First, inject our dark mode CSS
-			const darkModeStyle = document.createElement('style');
-			darkModeStyle.id = 'dark-mode-styles';
-			
-			// CSS content will be inserted here from the CSS artifact
-			darkModeStyle.textContent = `#application.darkmodeCSS#`;
-			
-			document.head.appendChild(darkModeStyle);
+
 			
 			// Create toggle button
 			const toggleButton = document.createElement('button');
@@ -154,7 +164,7 @@
 			
 			// Apply dark mode if previously enabled
 			if (darkModeEnabled) {
-				document.body.classList.add('dark-mode');
+				document.documentElement.classList.add('dark-mode');
 				toggleButton.textContent = '☀';
 				
 				// Force reload charts if they exist
@@ -164,10 +174,10 @@
 			// Add click event
 			toggleButton.addEventListener('click', function() {
 				// Toggle dark mode class on body
-				document.body.classList.toggle('dark-mode');
+				document.documentElement.classList.toggle('dark-mode');
 				
 				// Save preference to localStorage
-				if (document.body.classList.contains('dark-mode')) {
+				if (document.documentElement.classList.contains('dark-mode')) {
 					localStorage.setItem('darkMode', 'enabled');
 					toggleButton.textContent = '☀';
 				} else {
@@ -195,7 +205,7 @@
 						const chartElement = document.getElementById(chartId);
 						if (chartElement && window[chartId]) {
 							// Update chart background color
-							const isDarkMode = document.body.classList.contains('dark-mode');
+							const isDarkMode = document.documentElement.classList.contains('dark-mode');
 							const chartInstance = window[chartId];
 							
 							// Get the chart options
