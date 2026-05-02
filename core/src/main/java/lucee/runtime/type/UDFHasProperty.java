@@ -73,13 +73,13 @@ public final class UDFHasProperty extends UDFGSProperty {
 	}
 
 	@Override
-	public Object _call(PageContext pageContext, Object[] args, boolean doIncludePath) throws PageException {
-		if (args.length < 1) return has(pageContext);
-		return has(pageContext, args[0]);
+	public Object _call(PageContext pageContext, Component comp, Object[] args) throws PageException {
+		if (args.length < 1) return has(comp);
+		return has(comp, args[0]);
 	}
 
 	@Override
-	public Object _callWithNamedValues(PageContext pageContext, Struct values, boolean doIncludePath) throws PageException {
+	public Object _callWithNamedValues(PageContext pageContext, Component comp, Struct values) throws PageException {
 		UDFUtil.argumentCollection(values, getFunctionArguments());
 		Key key = arguments[0].getName();
 		Object value = values.get(key, null);
@@ -88,14 +88,14 @@ public final class UDFHasProperty extends UDFGSProperty {
 			if (keys.length > 0) {
 				value = values.get(keys[0]);
 			}
-			else return has(pageContext);
+			else return has(comp);
 		}
 
-		return has(pageContext, value);
+		return has(comp, value);
 	}
 
-	private boolean has(PageContext pageContext) {
-		Object propValue = getComponent(pageContext).getComponentScope().get(propName, null);
+	private boolean has(Component comp) {
+		Object propValue = comp.getComponentScope().get(propName, null);
 
 		// struct
 		if (isStruct()) {
@@ -118,8 +118,8 @@ public final class UDFHasProperty extends UDFGSProperty {
 
 	}
 
-	private boolean has(PageContext pageContext, Object value) throws PageException {
-		Object propValue = getComponent(pageContext).getComponentScope().get(propName, null);
+	private boolean has(Component comp, Object value) throws PageException {
+		Object propValue = comp.getComponentScope().get(propName, null);
 
 		// struct
 		if (isStruct()) {

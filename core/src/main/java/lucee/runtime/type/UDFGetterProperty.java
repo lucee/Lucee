@@ -20,7 +20,6 @@ package lucee.runtime.type;
 
 import lucee.commons.lang.CFTypes;
 import lucee.runtime.Component;
-import lucee.runtime.ComponentImpl;
 import lucee.runtime.PageContext;
 import lucee.runtime.component.Property;
 import lucee.runtime.component.PropertyImpl;
@@ -47,22 +46,14 @@ public final class UDFGetterProperty extends UDFGSProperty {
 		return new UDFGetterProperty(srcComponent, prop);
 	}
 
-	/**
-	 * Direct accessor bypass — called from ComponentImpl._call() to skip UDF dispatch overhead.
-	 * The caller already knows the component, so we skip getComponent(pc) resolution.
-	 */
-	public Object callDirect( ComponentImpl comp, PageContext pc ) {
-		return comp.getComponentScope().get( pc, propName, null );
+	@Override
+	public Object _call(PageContext pageContext, Component comp, Object[] args) throws PageException {
+		return comp.getComponentScope().get(pageContext, propName, null);
 	}
 
 	@Override
-	public Object _call(PageContext pageContext, Object[] args, boolean doIncludePath) throws PageException {
-		return getComponent(pageContext).getComponentScope().get(pageContext, propName, null);
-	}
-
-	@Override
-	public Object _callWithNamedValues(PageContext pageContext, Struct values, boolean doIncludePath) throws PageException {
-		return getComponent(pageContext).getComponentScope().get(pageContext, propName, null);
+	public Object _callWithNamedValues(PageContext pageContext, Component comp, Struct values) throws PageException {
+		return comp.getComponentScope().get(pageContext, propName, null);
 	}
 
 	@Override

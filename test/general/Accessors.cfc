@@ -377,12 +377,11 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 					foo.setA( "mutated-after-dup" );
 					expect( refDup() ).toBe( "mutated-after-dup" );
 				});
-				xit( title="re-extracting an injected accessor rebinds again — confirms unwrap on assignment", body=function( currentSpec ){
-					// SKIPPED — known-failing on baseline. The slow-path extraction on 7.0/baseline-7.1
-					// returns the raw UDFGetterProperty with srcComponent fallback (reads from foo);
-					// the rebind contract only kicks in via the BoundUDF wrap on extraction. Once
-					// BoundUDF lands in trunk, flip back to it() and this asserts the fast/slow
-					// dispatch paths agree on receiver = host (bar).
+				it( title="re-extracting an injected accessor rebinds again — confirms unwrap on assignment", body=function( currentSpec ){
+					// LDEV-6298 v2: the BoundUDF wrap on extraction is what makes this pass — the
+					// slow-path extraction now returns a wrapper bound to the host (bar), so fast/slow
+					// dispatch paths agree on receiver. Pre-v2 (7.0/baseline-7.1) this fails because
+					// the raw UDFGetterProperty falls back to srcComponent and reads from foo.
 					var foo = new accessors.testWithAccessors();
 					var bar = new accessors.testWithAccessors();
 					foo.setA( "from-foo" );
@@ -390,6 +389,35 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 					bar.injected = foo.getA;
 					var ref = bar.injected;
 					expect( ref() ).toBe( "from-bar" );
+				});
+			});
+
+			describe( "BoundUDF wrapper transparency under equality", function(){
+				// LDEV-6298 v2: BoundUDF wraps every slow-path extraction (one fresh wrapper per
+				// `obj.method` read). For Component.equals to keep behaving like baseline, the wrapper
+				// must compare equal to other wrappers around the same inner, and to the raw inner
+				// UDFGSProperty itself. Hibernate's HBMCreator.createFKColumnName depends on this:
+				// `_cfc.equals(cfc)` walks the component's data slots and compares accessor UDFs by
+				// signature — without wrapper-transparent equals, FK column resolution breaks for
+				// every one-to-many / many-to-one relationship. Pre-v2 contract: UDFGSProperty.equals
+				// is signature-based (UDFImpl.equals).
+				it( title="two fresh instances of the same CFC compare equal — drives Hibernate FK resolution", body=function( currentSpec ){
+					var a = new accessors.testWithAccessors();
+					var b = new accessors.testWithAccessors();
+					expect( ObjectEquals( a, b ) ).toBeTrue();
+				});
+				it( title="two refs to the same accessor on different instances compare equal", body=function( currentSpec ){
+					var a = new accessors.testWithAccessors();
+					var b = new accessors.testWithAccessors();
+					var refA = a.getA;
+					var refB = b.getA;
+					expect( ObjectEquals( refA, refB ) ).toBeTrue();
+				});
+				it( title="two refs from the SAME instance — repeated extraction yields equal wrappers", body=function( currentSpec ){
+					var foo = new accessors.testWithAccessors();
+					var ref1 = foo.getA;
+					var ref2 = foo.getA;
+					expect( ObjectEquals( ref1, ref2 ) ).toBeTrue();
 				});
 			});
 
