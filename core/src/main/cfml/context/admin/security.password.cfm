@@ -20,9 +20,9 @@
 					action="updateLoginSettings"
 					type="#request.adminType#"
 					password="#session["password" & request.adminType]#"
-					rememberme="#structKeyExists(form,"remembermeEnable") and form.remembermeEnable#"
-					captcha="#structKeyExists(form,"captcha") and form.captcha#"
-					delay="#form.delay#">
+					loginRememberme="#structKeyExists(form,"remembermeEnable") and form.remembermeEnable#"
+					loginCaptcha="#structKeyExists(form,"loginCaptcha") and form.loginCaptcha#"
+					loginDelay="#form.delay#">
 
 		</cfcase>
 	<!--- CHANGE --->
@@ -89,8 +89,16 @@ Error Output --->
 					<tr>
 						<th scope="row">#stText.Login.useCaptcha#</th>
 						<td>
-							<cfinputClassic type="checkbox" class="checkbox" name="captcha" checked="#settings.captcha#" value="true">
-							<div class="comment">#stText.Login.useCaptchaDesc#</div>
+							<cfmodule template="systemSetting.cfm" 
+								name="loginCaptcha" 
+								value="#settings.captcha#"
+								access="#hasAccess#"
+								description="#stText.Login.useCaptchaDesc#"
+								br=false
+								sp=true
+								descOnTop=true>
+								<cfinputClassic type="checkbox" class="checkbox" name="loginCaptcha" checked="#settings.captcha#" value="true">
+							</cfmodule>
 						</td>
 					</tr>
 					<tr>

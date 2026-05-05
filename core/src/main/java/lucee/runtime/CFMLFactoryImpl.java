@@ -100,17 +100,18 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 	private CFMLEngineImpl engine;
 	private ArrayList<String> cfmlExtensions;
 	private ServletConfig servletConfig;
-	private float memoryThreshold;
-	private float cpuThreshold;
-	private int concurrentReqThreshold;
+	// private float memoryThreshold;
+	// private float cpuThreshold;
+	// private int concurrentReqThreshold;
 	private ConfigServerImpl configServer;
 
 	public CFMLFactoryImpl(CFMLEngineImpl engine, ServletConfig sg) {
 		this.engine = engine;
 		this.servletConfig = sg;
-		memoryThreshold = getSystemPropOrEnvVarAsFloat("lucee.requesttimeout.memorythreshold");
-		cpuThreshold = getSystemPropOrEnvVarAsFloat("lucee.requesttimeout.cputhreshold");
-		concurrentReqThreshold = getSystemPropOrEnvVarAsInt("lucee.requesttimeout.concurrentrequestthreshold");
+		// memoryThreshold = getSystemPropOrEnvVarAsFloat("lucee.requesttimeout.memorythreshold");
+		// cpuThreshold = getSystemPropOrEnvVarAsFloat("lucee.requesttimeout.cputhreshold");
+		// concurrentReqThreshold =
+		// getSystemPropOrEnvVarAsInt("lucee.requesttimeout.concurrentrequestthreshold");
 	}
 
 	private static float getSystemPropOrEnvVarAsFloat(String name) {
@@ -399,18 +400,18 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 	}
 
 	public boolean reachedConcurrentReqThreshold() {
-		if (concurrentReqThreshold == 0) return true;
-		return concurrentReqThreshold <= runningPcs.size();
+		if (configServer.getRequestTimeoutConcurrentRequestThreshold() == 0) return true;
+		return configServer.getRequestTimeoutConcurrentRequestThreshold() <= runningPcs.size();
 	}
 
 	public boolean reachedMemoryThreshold() {
-		if (memoryThreshold == 0) return true;
-		return memoryThreshold <= SystemUtil.getMemoryPercentage();
+		if (configServer.getRequestTimeoutMemoryThreshold() == 0f) return true;
+		return configServer.getRequestTimeoutMemoryThreshold() <= SystemUtil.getMemoryPercentage();
 	}
 
 	public boolean reachedCPUThreshold() {
-		if (cpuThreshold == 0) return true;
-		return cpuThreshold <= SystemUtil.getCpuPercentage();
+		if (configServer.getRequestTimeoutCPUThreshold() == 0) return true;
+		return configServer.getRequestTimeoutCPUThreshold() <= SystemUtil.getCpuPercentage();
 	}
 
 	public static void terminate(PageContextImpl pc, boolean async) {

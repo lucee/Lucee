@@ -21,7 +21,7 @@ public class DebugEntryFactory implements PropFactory<DebugEntry> {
 	}
 
 	@Override
-	public DebugEntry evaluate(Config config, String name, Object val) throws PageException {
+	public DebugEntry evaluate(Config config, String name, Object val, short source) throws PageException {
 		try {
 			Struct data = Caster.toStruct(val);
 			return new DebugEntry(ConfigFactoryImpl.getAttr(config, data, "id"), ConfigFactoryImpl.getAttr(config, data, "type"),

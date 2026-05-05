@@ -17,6 +17,7 @@ import java.util.Set;
 import java.util.TimeZone;
 import java.util.concurrent.ConcurrentHashMap;
 
+import lucee.print;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.lang.CharsetX;
@@ -34,8 +35,6 @@ import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.KeyImpl;
-import lucee.runtime.type.Query;
-import lucee.runtime.type.QueryImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.dt.TimeSpan;
@@ -43,6 +42,10 @@ import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.ListUtil;
 
 public class Prop<T> {
+
+	public static short SOURCE_INTERNAL = 0;
+	public static short SOURCE_CFCONFIG = 1;
+	public static short SOURCE_SYSPROPENVVAR = 2;
 
 	public static short TYPE_SIMPLE = 1;
 	public static short TYPE_MAP = 2;
@@ -140,6 +143,10 @@ public class Prop<T> {
 
 	public static Prop<Double> dbl() {
 		return new Prop<Double>(PropFactory.DOUBLE_FACTORY);
+	}
+
+	public static Prop<Float> procentage() {
+		return new Prop<Float>(PropFactory.PROCENTAGE_FACTORY);
 	}
 
 	public static Prop<Double> dbl(short type) {
@@ -303,75 +310,39 @@ public class Prop<T> {
 		if (access != -1) {
 			if (!ConfigUtil.hasAccess(config, access)) return defaultValue;
 		}
-		Object val;
-		String str;
-		Struct data;
-		if (parent == null) {
-			data = root;
-		}
-		else {
-			data = ConfigUtil.getAsStruct(parent, root);
-		}
+
+		Struct data = null;
 
 		try {
 			// check system properties and env var
 			if (checkEnv) {
 				for (String key: envVarSystemProps()) {
-					str = SystemUtil.getSystemPropOrEnvVar(key, null);
-					if (!StringUtil.isEmpty(str, true)) {
-						str = str.trim();
-
-						if (choices != null) {
-							for (Choice<T> choice: choices) {
-								if (choice.matches(str)) {
-									return choice.value;
-								}
-
-							}
-							return defaultValue;
-						}
-						if (str == null || (handleEmptyAsNull && StringUtil.isEmpty(str, true))) {
-							return defaultValue;
-						}
-						return factory.evaluate(config, key, str);
-					}
+					final Object val = SystemUtil.getSystemPropOrEnvVarObject(key, null);
+					if (StringUtil.isEmpty(val)) continue;
+					return get(config, key, val, Prop.SOURCE_SYSPROPENVVAR);
 				}
 			}
 
-			for (String key: keys) {
-				val = data.get(KeyImpl.init(key), null);
-				if (val == null) continue;
+			if (parent == null) {
+				data = root;
+			}
+			else {
+				data = ConfigUtil.getAsStruct(parent, root);
+			}
 
-				if (Decision.isSimpleValue(val)) {
-					str = Caster.toString(val);
-					if (!StringUtil.isEmpty(str, true)) {
-						str = config.replacePlaceHolder(str.trim());
-						if (choices != null) {
-							for (Choice<T> choice: choices) {
-								if (choice.matches(str)) {
-									return choice.value;
-								}
-							}
-							return defaultValue;
-						}
-						if (str == null || (handleEmptyAsNull && StringUtil.isEmpty(str, true))) {
-							return defaultValue;
-						}
-						return factory.evaluate(config, key, str);
-					}
-				}
-				else {
-					if (val == null || (handleEmptyAsNull && StringUtil.isEmpty(val, true))) {
-						return defaultValue;
-					}
-					return factory.evaluate(config, key, val);
-				}
+			for (String key: keys) {
+				final Object val = data.get(KeyImpl.init(key), null);
+				if (StringUtil.isEmpty(val)) continue;
+				return get(config, key, val, Prop.SOURCE_CFCONFIG);
 			}
 		}
 		catch (Exception ex) {
 			ConfigFactoryImpl.log(config, ex);
 
 			try {
+				if (data == null) {
+					throw new PageRuntimeException(ex);
+				}
 				String s = CFMLEngineFactory.getInstance().getCastUtil().fromStructToJsonString(data);
 				PageRuntimeException pre = new PageRuntimeException("could not load [" + s + "]");
 				ExceptionUtil.initCauseEL(pre, ex);
@@ -382,6 +353,61 @@ public class Prop<T> {
 			}
 		}
 		return defaultValue;
+	}
+
+	private T get(ConfigServerImpl config, String key, Object val, short source) throws PageException {
+		if (Decision.isSimpleValue(val)) {
+			String str = Caster.toString(val);
+			if (!StringUtil.isEmpty(str, true)) {
+				str = config.replacePlaceHolder(str.trim());
+				if (choices != null) {
+					for (Choice<T> choice: choices) {
+						if (choice.matches(str)) {
+							return choice.value;
+						}
+					}
+					return defaultValue;
+				}
+				if (str == null || (handleEmptyAsNull && StringUtil.isEmpty(str, true))) {
+					return defaultValue;
+				}
+				return factory.evaluate(config, key, str, source);
+			}
+		}
+		else {
+			if ((handleEmptyAsNull && StringUtil.isEmpty(val, true))) {
+				return defaultValue;
+			}
+			return factory.evaluate(config, key, val, source);
+		}
+		return null;
+	}
+
+	private Object getSystemPropOrEnvVar(Config config, String key) throws PageException {
+
+		// simple value
+		String str = SystemUtil.getSystemPropOrEnvVar(key, null);
+		if (!StringUtil.isEmpty(str, true)) {
+			str = str.trim();
+
+			if (choices != null) {
+				for (Choice<T> choice: choices) {
+					if (choice.matches(str)) {
+						return choice.value;
+					}
+
+				}
+				return defaultValue;
+			}
+			if (str == null || (handleEmptyAsNull && StringUtil.isEmpty(str, true))) {
+				return defaultValue;
+			}
+			return factory.evaluate(config, key, str, Prop.SOURCE_SYSPROPENVVAR);
+		}
+
+		// structure
+
+		return null;
 	}
 
 	public void write(ConfigServerImpl config, Struct input) throws PageException {
@@ -434,46 +460,58 @@ public class Prop<T> {
 	}
 
 	public Map<String, T> map(ConfigServerImpl config, Struct root) {
-		return map(config, root, new ConcurrentHashMap<>());
+		return map(config, root, new ConcurrentHashMap<>(), true);
 	}
 
 	public Map<String, T> map(ConfigServerImpl config, Struct root, Map<String, T> map) {
+		return map(config, root, map, true);
+	}
+
+	public Map<String, T> map(ConfigServerImpl config, Struct root, Map<String, T> map, boolean checkEnv) {
 		if (type != TYPE_MAP) { // only happens when set wrong in code
 			throw new RuntimeException("Invalid type [" + type + "]");
 		}
 		if (access != -1) {
 			if (!ConfigUtil.hasAccess(config, access)) return map;
 		}
-
-		Struct data;
-
-		if (parent == null) {
-			data = root;
-		}
-		else {
-			data = ConfigUtil.getAsStruct(parent, root);
-		}
-
+		Struct data = null;
 		try {
 			// TODO
 			if (customEnvVarSystemProps != null) {
 				throw new RuntimeException("not supported yet");
 			}
+			print.e("--- check var ---");
 
-			data = ConfigUtil.getAsStruct(config, data, true, keys);
-			Iterator<Entry<Key, Object>> it = data.entryIterator();
-			Entry<Key, Object> e;
-			String key;
-			Object val;
-			while (it.hasNext()) {
-				e = it.next();
-				key = lowerCaseKeys ? e.getKey().getLowerString() : e.getKey().getString();
-				val = e.getValue();
-				if (val == null || (handleEmptyAsNull && StringUtil.isEmpty(val, true))) {
-					continue;
+			// env var
+			if (checkEnv) {
+				for (String key: envVarSystemProps()) {
+					Object val = SystemUtil.getSystemPropOrEnvVarObject(key, null);
+					print.e(val);
+					if (StringUtil.isEmpty(val)) continue;
+
+					print.e("not empty");
+					Struct sct = Caster.toStruct(val, null);
+					print.e(sct);
+					if (sct == null) {
+						sct = arrayToStruct(val, null);
+					}
+
+					print.e("is struct");
+					print.e(sct);
+					if (sct == null) continue;
+					_map(config, sct, map, Prop.SOURCE_SYSPROPENVVAR);
 				}
-				map.put(key, factory.evaluate(config, key, e.getValue()));
 			}
+
+			// CFConfig data
+			if (parent == null) {
+				data = root;
+			}
+			else {
+				data = ConfigUtil.getAsStruct(parent, root);
+			}
+			data = ConfigUtil.getAsStruct(config, data, true, keys);
+			_map(config, data, map, Prop.SOURCE_CFCONFIG);
 			return map;
 		}
 		catch (Exception ex) {
@@ -481,6 +519,9 @@ public class Prop<T> {
 			else ConfigFactoryImpl.log(config, ex);
 
 			try {
+				if (data == null) {
+					throw new PageRuntimeException(ex);
+				}
 				String str = CFMLEngineFactory.getInstance().getCastUtil().fromStructToJsonString(data);
 				PageRuntimeException pre = new PageRuntimeException("could not load [" + str + "]");
 				ExceptionUtil.initCauseEL(pre, ex);
@@ -492,7 +533,52 @@ public class Prop<T> {
 		}
 	}
 
+	private Struct arrayToStruct(Object val, Struct defaultValue) {
+		print.e("array-2-struct");
+		Object[] arr = Caster.toNativeArray(val, null);
+		print.e(arr);
+
+		if (arr == null || arr.length == 0) return defaultValue;
+		print.e(arr.length);
+		Struct structs = new StructImpl();
+		Struct tmp;
+		String name;
+		for (Object o: arr) {
+			tmp = Caster.toStruct(o, null);
+			print.e(tmp);
+
+			if (tmp == null) continue;
+			name = Caster.toString(tmp.get(KeyConstants._name, null), null);
+			print.e(name);
+			if (StringUtil.isEmpty(name)) continue;
+			structs.setEL(name, tmp);
+		}
+		print.e(structs);
+
+		return structs;
+	}
+
+	private void _map(ConfigServerImpl config, Struct data, Map<String, T> map, short source) throws PageException {
+		Iterator<Entry<Key, Object>> it = data.entryIterator();
+		Entry<Key, Object> e;
+		String key;
+		Object val;
+		while (it.hasNext()) {
+			e = it.next();
+			key = lowerCaseKeys ? e.getKey().getLowerString() : e.getKey().getString();
+			val = e.getValue();
+			if (val == null || (handleEmptyAsNull && StringUtil.isEmpty(val, true)) || map.containsKey(key)) {
+				continue;
+			}
+			map.put(key, factory.evaluate(config, key, e.getValue(), source));
+		}
+	}
+
 	public List<T> list(ConfigServerImpl config, Struct root) {
+		return list(config, root, true);
+	}
+
+	public List<T> list(ConfigServerImpl config, Struct root, boolean checkEnv) {
 		if (type != TYPE_LIST) { // only happens when set wrong in code
 			throw new RuntimeException("Invalid type [" + type + "]");
 		}
@@ -501,54 +587,38 @@ public class Prop<T> {
 			if (!ConfigUtil.hasAccess(config, access)) return list;
 		}
 
-		Struct data;
-
-		if (parent == null) {
-			data = root;
-		}
-		else {
-			data = ConfigUtil.getAsStruct(parent, root);
-		}
+		Struct data = null;
 
 		try {
-			String str;
-			for (String key: envVarSystemProps()) {
-				str = SystemUtil.getSystemPropOrEnvVar(key, null);
-				if (!StringUtil.isEmpty(str, true)) {
-					str = str.trim();
-					T tmp;
-					int index = 0;
-					for (String val: ListUtil.listToStringArray(str.trim(), ',')) {
-						if (val == null || (handleEmptyAsNull && StringUtil.isEmpty(val, true))) {
-							continue;
-						}
-						tmp = factory.evaluate(config, "" + (++index), val);
-						if (tmp != null) list.add(tmp);
-					}
-					return list;
+			if (checkEnv) {
+				for (String key: envVarSystemProps()) {
+					Object val = SystemUtil.getSystemPropOrEnvVarObject(key, null);
+					if (StringUtil.isEmpty(val)) continue;
+					Array arr = Caster.toArray(val, null);
+					if (arr == null) continue;
+					list(config, arr, list, Prop.SOURCE_SYSPROPENVVAR);
+
 				}
+			}
+
+			if (parent == null) {
+				data = root;
+			}
+			else {
+				data = ConfigUtil.getAsStruct(parent, root);
 			}
 
 			Array arr = ConfigUtil.getAsArray(config, data, true, keys);
-			Iterator<Entry<Key, Object>> it = arr.entryIterator();
-			Entry<Key, Object> e;
-			String key;
-			Object val;
-			while (it.hasNext()) {
-				e = it.next();
-				key = lowerCaseKeys ? e.getKey().getLowerString() : e.getKey().getString();
-				val = e.getValue();
-				if (val == null || (handleEmptyAsNull && StringUtil.isEmpty(val, true))) {
-					continue;
-				}
-				list.add(factory.evaluate(config, key, val));
-			}
+			list(config, arr, list, Prop.SOURCE_CFCONFIG);
 			return list;
 		}
 		catch (Exception ex) {
 			if (logGlobal) LogUtil.logGlobal(config, "config-loading", ex);
 			else ConfigFactoryImpl.log(config, ex);
 			try {
+				if (data == null) {
+					throw new PageRuntimeException(ex);
+				}
 				String str = CFMLEngineFactory.getInstance().getCastUtil().fromStructToJsonString(data);
 				PageRuntimeException pre = new PageRuntimeException("could not load [" + str + "]");
 				ExceptionUtil.initCauseEL(pre, ex);
@@ -558,6 +628,22 @@ public class Prop<T> {
 				throw new PageRuntimeException(ex);
 			}
 
+		}
+	}
+
+	private void list(ConfigServerImpl config, Array raw, List<T> list, short source) throws PageException {
+		Iterator<Entry<Key, Object>> it = raw.entryIterator();
+		Entry<Key, Object> e;
+		String key;
+		Object val;
+		while (it.hasNext()) {
+			e = it.next();
+			key = lowerCaseKeys ? e.getKey().getLowerString() : e.getKey().getString();
+			val = e.getValue();
+			if (val == null || (handleEmptyAsNull && StringUtil.isEmpty(val, true))) {
+				continue;
+			}
+			list.add(factory.evaluate(config, key, val, source));
 		}
 	}
 
@@ -637,31 +723,38 @@ public class Prop<T> {
 		return root;
 	}
 
-	public static Query createSystemPropEnvVar() throws PageException {
+	public static Struct createSystemPropEnvVar() throws PageException {
 		Key keySP = KeyImpl.init("systemProperties");
 		Key keyEV = KeyImpl.init("environmentVariables");
-
-		Query qry = new QueryImpl(new Key[] { KeyConstants._description, keySP, keyEV }, 0, "env vars");
+		Struct data = new StructImpl(Struct.TYPE_LINKED), item;
 		int row;
+		String key;
 		for (Prop<?> p: instances) {
-			if (p.hidden || p.type == TYPE_MAP || p.deprecated) continue;
-			row = qry.addRow();
+			if (p.hidden || p.deprecated) continue;
+			key = StringUtil.isEmpty(p.parent) ? p.keys[0] : p.parent + "_" + p.keys[0];
 
-			qry.setAt(KeyConstants._description, row, p.description);
+			item = new StructImpl(Struct.TYPE_LINKED);
+			data.set(KeyImpl.init(key), item);
+
+			if (p.type == TYPE_MAP) item.set(KeyConstants._type, "map");
+			else if (p.type == TYPE_LIST) item.set(KeyConstants._type, "list");
+			else item.set(KeyConstants._type, "simple");
+
+			item.set(KeyConstants._description, p.description);
+
 			String[] raw = p.envVarSystemProps();
 
 			// system properties
-			qry.setAt(keySP, row, new ArrayImpl(raw));
-
+			item.set(keySP, new ArrayImpl(raw));
 			// env var
 			ArrayImpl arr = new ArrayImpl();
 			for (String r: raw) {
 				arr.add(SystemUtil.convertSystemPropToEnvVar(r));
 			}
-			qry.setAt(keyEV, row, new ArrayImpl(raw));
+			item.set(keyEV, arr);
 		}
 
-		return qry;
+		return data;
 	}
 
 	public static Struct createConfigSchema(boolean strict) {
@@ -785,11 +878,6 @@ public class Prop<T> {
 	private String[] envVarSystemProps() {
 		if (envVarSystemProps == null) {
 			Set<String> set = new LinkedHashSet<>();
-			if (customEnvVarSystemProps != null) {
-				for (String k: customEnvVarSystemProps) {
-					set.add(k);
-				}
-			}
 
 			for (String k: keys) {
 				StringBuilder sb = new StringBuilder("lucee");
@@ -800,6 +888,12 @@ public class Prop<T> {
 				// keys
 				sb.append('.').append(k);
 				set.add(sb.toString());
+			}
+
+			if (customEnvVarSystemProps != null) {
+				for (String k: customEnvVarSystemProps) {
+					set.add(k);
+				}
 			}
 			envVarSystemProps = ListUtil.toStringArray(set);
 		}
@@ -849,5 +943,11 @@ public class Prop<T> {
 
 	public Choice<T>[] getChoices() {
 		return choices;
+	}
+
+	public static String toSource(short source, String defaultValue) {
+		if (source == SOURCE_CFCONFIG) return "cfconfig";
+		if (source == SOURCE_SYSPROPENVVAR) return "sysprop_envvar";
+		return defaultValue;
 	}
 }

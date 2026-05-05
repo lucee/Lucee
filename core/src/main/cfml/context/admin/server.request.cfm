@@ -45,6 +45,7 @@ Defaults --->
 					<cfparam name="form.scriptProtect_custom" default="none">
 					<cfset form.scriptProtect=form.scriptProtect_custom>
 				</cfif>
+				
 
 				<cfadmin
 					action="updateApplicationSetting"
@@ -52,18 +53,29 @@ Defaults --->
 					password="#session["password"&request.adminType]#"
 
 					scriptProtect="#form.scriptProtect#"
-					AllowURLRequestTimeout="#structKeyExists(form,'AllowURLRequestTimeout') and form.AllowURLRequestTimeout#"
-					requestTimeout="#CreateTimeSpan(form.request_days,form.request_hours,form.request_minutes,form.request_seconds)#"
-					remoteClients="#request.getRemoteClients()#">
+					AllowURLRequestTimeout="#structKeyExists(form,'requestTimeoutInURL') and form.requestTimeoutInURL#"
+					requestTimeout="#
+						{
+							"span":CreateTimeSpan(form.requestTimeout_span_days,form.requestTimeout_span_hours,form.requestTimeout_span_minutes,form.requestTimeout_span_seconds),
+							"concurrentrequestthreshold":form.requestTimeout_concurrentrequestthreshold?:0,
+							"cputhreshold":form.requestTimeout_cputhreshold?:0,
+							"memorythreshold":form.requestTimeout_memorythreshold?:0
+
+							
+						}
+					#"
+					
+					
+					>
 
 				<cfif request.admintype =="server">
 					<cfscript>
-						if(structKeyExists(form,'timeout_days')) {
+						if(structKeyExists(form,'requestQueueTimeout_days')) {
 							timeoutMS=
-								(form.timeout_seconds*1000)+
-								(form.timeout_minutes*60*1000)+
-								(form.timeout_hours*60*60*1000)+
-								(form.timeout_days*60*60*24*1000);
+								(form.requestQueueTimeout_seconds*1000)+
+								(form.requestQueueTimeout_minutes*60*1000)+
+								(form.requestQueueTimeout_hours*60*60*1000)+
+								(form.requestQueueTimeout_days*60*60*24*1000);
 						}
 						else timeoutMS="";// emty string==removed
 					</cfscript>
@@ -74,7 +86,7 @@ Defaults --->
 					type="#request.adminType#"
 					password="#session["password"&request.adminType]#"
 
-					requestQueueEnable="#structKeyExists(form,'ConcurrentRequestEnable') and form.ConcurrentRequestEnable#"
+					requestQueueEnable="#structKeyExists(form,'requestQueueEnable') and form.requestQueueEnable#"
 					requestQueueMax="#structKeyExists(form,'ConcurrentRequestMax')?form.ConcurrentRequestMax:""#"
 					requestQueueTimeout="#timeoutMS#"
 					remoteClients="#request.getRemoteClients()#">
@@ -91,7 +103,7 @@ Defaults --->
 
 					scriptProtect=""
 					AllowURLRequestTimeout=""
-					requestTimeout=""
+					requestTimeout="#{}#"
 					applicationPathTimeout=""
 					
 					remoteClients="#request.getRemoteClients()#">
@@ -119,10 +131,10 @@ Defaults --->
 					type="#request.adminType#"
 					password="#session["password"&request.adminType]#"
 
-					listenerType="#form.type#"
-					listenerMode="#form.mode#"
-					listenerSingleton="#form.singleton?:false#"
-					applicationPathTimeout="#CreateTimeSpan(form.apppath_days?:0,form.apppath_hours?:0,form.apppath_minutes?:0,form.apppath_seconds?:0)#"
+					listenerType="#form.listenerType#"
+					listenerMode="#form.listenerMode#"
+					listenerSingleton="#form.listenerSingleton?:false#"
+					applicationPathTimeout="#CreateTimeSpan(form.applicationPathTimeout_days?:0,form.applicationPathTimeout_hours?:0,form.applicationPathTimeout_minutes?:0,form.applicationPathTimeout_seconds?:0)#"
 					
 					remoteClients="#request.getRemoteClients()#">
 
@@ -222,7 +234,15 @@ Error Output --->
 			<tbody>
 				<tr>
 					<td>
-						<cfif hasAccess>
+						<cfmodule template="systemSetting.cfm" 
+							name="scriptProtect" 
+							value="#appSettings.scriptProtect#"
+							access="#hasAccess#"
+							description=""
+							br=true
+							sp=true
+							descOnTop=false>
+						
 							<cfset isNone=appSettings.scriptProtect EQ  "none">
 							<cfset isAll=appSettings.scriptProtect EQ  "all">
 							<cfset isCustom=not isNone and not isAll>
@@ -271,15 +291,7 @@ Error Output --->
 									<div class="comment">#stText.application.scriptProtectAll#</div>
 								</li>
 							</ul>
-						<cfelse>
-							<!---<input type="hidden" name="scriptProtect" value="#appSettings.scriptProtect#">--->
-							<b>#appSettings.scriptProtect#</b>
-						</cfif>
-<cfsavecontent variable="codeSample">
-	this.scriptprotect="#appSettings.scriptProtect#";
-</cfsavecontent>
-<cfset renderCodingTip( codeSample)>
-<cfset renderSysPropEnvVar( name:"lucee.script.protect",value:appSettings.scriptProtect)>
+						</cfmodule>
 					</td>
 				</tr>
 				</tbody>
@@ -306,6 +318,14 @@ Error Output --->
 				<tr>
 					<th scope="row">#stText.application.RequestTimeoutTime#</th>
 					<td>
+						<cfmodule template="systemSetting.cfm" 
+							name="requestTimeout_span" 
+							value="#appSettings.requestTimeout#"
+							access="#hasAccess#"
+							description="#stText.application.RequestTimeoutDescription#"
+							br=true
+							sp=true
+							descOnTop=true>
 						<cfset timeout=appSettings.requestTimeout>
 						<table class="maintbl" style="width:auto">
 							<thead>
@@ -317,90 +337,111 @@ Error Output --->
 								</tr>
 							</thead>
 							<tbody>
-								<cfif hasAccess>
-									<tr>
-										<td><cfinputClassic type="text" name="request_days" value="#appSettings.requestTimeout_day#"
-											class="number" required="yes" validate="integer"
-											message="#stText.Scopes.TimeoutDaysValue#request#stText.Scopes.TimeoutEndValue#"></td>
-										<td><cfinputClassic type="text" name="request_hours" value="#appSettings.requestTimeout_hour#"
-											class="number" required="yes" validate="integer"
-											message="#stText.Scopes.TimeoutHoursValue#request#stText.Scopes.TimeoutEndValue#"></td>
-										<td><cfinputClassic type="text" name="request_minutes" value="#appSettings.requestTimeout_minute#"
-											class="number" required="yes" validate="integer"
-											message="#stText.Scopes.TimeoutMinutesValue#request#stText.Scopes.TimeoutEndValue#"></td>
-										<td><cfinputClassic type="text" name="request_seconds" value="#appSettings.requestTimeout_second#"
-											class="number" required="yes" validate="integer"
-											message="#stText.Scopes.TimeoutSecondsValue#request#stText.Scopes.TimeoutEndValue#"></td>
-									</tr>
-								<cfelse>
-									<tr>
-										<td class="right"><b>#appSettings.requestTimeout_day#</b></td>
-										<td class="right"><b>#appSettings.requestTimeout_hour#</b></td>
-										<td class="right"><b>#appSettings.requestTimeout_minute#</b></td>
-										<td class="right"><b>#appSettings.requestTimeout_second#</b></td>
-									</tr>
-								</cfif>
+								<tr>
+									<td><cfinputClassic type="text" name="requestTimeout_span_days" value="#appSettings.requestTimeout_day#"
+										class="number" required="yes" validate="integer"
+										message="#stText.Scopes.TimeoutDaysValue#request#stText.Scopes.TimeoutEndValue#"></td>
+									<td><cfinputClassic type="text" name="requestTimeout_span_hours" value="#appSettings.requestTimeout_hour#"
+										class="number" required="yes" validate="integer"
+										message="#stText.Scopes.TimeoutHoursValue#request#stText.Scopes.TimeoutEndValue#"></td>
+									<td><cfinputClassic type="text" name="requestTimeout_span_minutes" value="#appSettings.requestTimeout_minute#"
+										class="number" required="yes" validate="integer"
+										message="#stText.Scopes.TimeoutMinutesValue#request#stText.Scopes.TimeoutEndValue#"></td>
+									<td><cfinputClassic type="text" name="requestTimeout_span_seconds" value="#appSettings.requestTimeout_second#"
+										class="number" required="yes" validate="integer"
+										message="#stText.Scopes.TimeoutSecondsValue#request#stText.Scopes.TimeoutEndValue#"></td>
+								</tr>
 							</tbody>
 
 						</table>
-						<div class="comment">#stText.application.RequestTimeoutDescription#</div>
-
-
-<cfsavecontent variable="codeSample">
-	<cfset total=
-		appSettings.requestTimeout_second +
-		(appSettings.requestTimeout_minute*60) +
-		(appSettings.requestTimeout_hour*3600) +
-		(appSettings.requestTimeout_day*3600*24)>
-	this.requestTimeout=createTimeSpan(#appSettings.requestTimeout_day#,#appSettings.requestTimeout_hour#,#appSettings.requestTimeout_minute#,#appSettings.requestTimeout_second#);
-</cfsavecontent>
-<cfset renderCodingTip( codeSample)>
+						</cfmodule>
 					</td>
 				</tr>
 				<!--- request timeout url --->
 				<tr>
 					<th scope="row">#stText.application.AllowURLRequestTimeout#</th>
 					<td>
-						<cfif hasAccess>
-							<input type="checkbox" name="AllowURLRequestTimeout" value="true" class="checkbox"
+						<cfmodule template="systemSetting.cfm" 
+							name="requestTimeoutInURL" 
+							value="#appSettings.AllowURLRequestTimeout#"
+							access="#hasAccess#"
+							description="#stText.application.AllowURLRequestTimeoutDesc#"
+							br=false
+							sp=false
+							descOnTop=false>
+							<input type="checkbox" name="requestTimeoutInURL" value="true" class="checkbox"
 							<cfif appSettings.AllowURLRequestTimeout>  checked="checked"</cfif>>
-						<cfelse>
-							<!---<input type="hidden" name="AllowURLRequestTimeout" value="#appSettings.AllowURLRequestTimeout#">--->
-							<b>#yesNoFormat(appSettings.AllowURLRequestTimeout)#</b>
-						</cfif>
-						<div class="comment">#stText.application.AllowURLRequestTimeoutDesc#</div>
+						</cfmodule>
 					</td>
 				</tr>
-				<!--- allow request timeout --->
+				<!--- allow request timeout
 				<tr>
 					<th scope="row">#stText.application.AllowRequestTimeout#</th>
 					<td>
 						<div class="comment">#stText.application.AllowRequestTimeoutDesc#</div>
-						<cfset renderSysPropEnvVar( name:"lucee.requesttimeout",defaultValue:true)>
+						<cfset renderSettings( "requestTimeout",true)>
 					</td>
-				</tr>
+				</tr> --->
 				<!--- concurrentrequestthreshold --->
 				<tr>
 					<th scope="row">#stText.application.concurrentrequestthreshold#</th>
 					<td>
-						<div class="comment">#stText.application.concurrentrequestthresholdDesc#</div>
-						<cfset renderSysPropEnvVar( name:"lucee.requesttimeout.concurrentrequestthreshold",defaultValue:0)>
+						<cfmodule template="systemSetting.cfm" 
+							name="requestTimeout_concurrentrequestthreshold" 
+							value="#appSettings.RequestTimeoutConcurrentRequestThreshold#"
+							access="#hasAccess#"
+							description="#stText.application.concurrentrequestthresholdDesc#"
+							br=false
+							sp=false
+							descOnTop=true>
+						
+							<cfinputClassic type="text" name="requestTimeout_concurrentrequestthreshold" value="#appSettings.RequestTimeoutConcurrentRequestThreshold?:0#"
+									validate="integer" id="RequestTimeoutConcurrentRequestThreshold">
+						
+						</cfmodule>
 					</td>
 				</tr>
+<!---
+						sct.set("RequestTimeoutConcurrentRequestThreshold", Caster.toDouble(config.getRequestTimeoutConcurrentRequestThreshold()));
+		sct.set("RequestTimeoutCPUThreshold", Caster.toDouble(config.getRequestTimeoutCPUThreshold()));
+		sct.set("RequestTimeoutMemoryThreshold", Caster.toDouble(config.getRequestTimeoutMemoryThreshold()));
+--->
 				<!--- cputhreshold --->
 				<tr>
 					<th scope="row">#stText.application.cputhreshold#</th>
 					<td>
-						<div class="comment">#stText.application.cputhresholdDesc#</div>
-						<cfset renderSysPropEnvVar( name:"lucee.requesttimeout.cputhreshold",defaultValue:0)>
+						<cfmodule template="systemSetting.cfm" 
+							name="requestTimeout_cputhreshold" 
+							value="#decimalFormat(appSettings.RequestTimeoutCPUThreshold?:0)#"
+							access="#hasAccess#"
+							description="#stText.application.cputhresholdDesc#"
+							br=false
+							sp=false
+							descOnTop=true>
+						
+							<cfinputClassic type="text" name="requestTimeout_cputhreshold" value="#decimalFormat(appSettings.RequestTimeoutCPUThreshold?:0)#"
+									 id="RequestTimeoutCPUThreshold">
+						
+						</cfmodule>
 					</td>
 				</tr>
 				<!--- memorythreshold --->
 				<tr>
 					<th scope="row">#stText.application.memorythreshold#</th>
 					<td>
-						<div class="comment">#stText.application.memorythresholdDesc#</div>
-						<cfset renderSysPropEnvVar( name:"lucee.requesttimeout.memorythreshold",defaultValue:0)>
+						<cfmodule template="systemSetting.cfm" 
+							name="requestTimeout_memorythreshold" 
+							value="#decimalFormat(appSettings.RequestTimeoutMemoryThreshold?:0)#"
+							access="#hasAccess#"
+							description="#stText.application.memorythresholdDesc#"
+							br=false
+							sp=false
+							descOnTop=true>
+						
+							<cfinputClassic type="text" name="requestTimeout_memorythreshold" value="#decimalFormat(appSettings.RequestTimeoutMemoryThreshold?:0)#"
+									 id="RequestTimeoutMemoryThreshold">
+						
+						</cfmodule>
 					</td>
 				</tr>
 
@@ -431,34 +472,39 @@ Error Output --->
 				<tr>
 					<th scope="row">#stText.application.ConcurrentRequestEnable#</th>
 					<td>
-						<span id="ConcurrentRequestEnableSpan"><cfif hasAccess>
-							<input type="checkbox" name="ConcurrentRequestEnable" value="true" class="checkbox"
+						<cfmodule template="systemSetting.cfm" 
+							name="requestQueueEnable" 
+							value="#queueSettings.enable#"
+							access="#hasAccess#"
+							description="#stText.application.ConcurrentRequestEnableDesc#"
+							br=false
+							sp=false
+							descOnTop=false>
+						<span id="ConcurrentRequestEnableSpan">
+							<input type="checkbox" name="requestQueueEnable" value="true" class="checkbox"
 							<cfif queueSettings.enable>  checked="checked"</cfif>>
-						<cfelse>
-							<b>#yesNoFormat(queueSettings.enable)#</b>
-						</cfif>
-						<div class="comment">#stText.application.ConcurrentRequestEnableDesc#</div></span>
-
-						<cfsavecontent variable="codeSample">
-						example
-						</cfsavecontent>
-						<cfset renderSysPropEnvVar( "lucee.queue.enable",queueSettings.enable)>
+						
+						</span>
+</cfmodule>
 					</td>
 				</tr>
 
 				<tr>
 					<th scope="row">#stText.application.ConcurrentRequestMax#</th>
 					<td>
-						<cfif hasAccess>
+						<cfmodule template="systemSetting.cfm" 
+							name="requestQueueMax" 
+							value="#queueSettings.max#"
+							access="#hasAccess#"
+							description="#stText.application.ConcurrentRequestMaxDesc#"
+							br=false
+							sp=false
+							descOnTop=false>
 							<cfinputClassic type="text" name="ConcurrentRequestMax" value="#queueSettings.max#"
 									class="number" required="yes" validate="integer" id="ConcurrentRequestMax"
 									message="#stText.application.ConcurrentRequestMaxError#">
 
-						<cfelse>
-							<b>#yesNoFormat(queueSettings.max)#</b>
-						</cfif>
-						<div class="comment">#stText.application.ConcurrentRequestMaxDesc#</div>
-						<cfset renderSysPropEnvVar( name:"lucee.queue.max",value:queueSettings.max)>
+						</cfmodule>
 					</td>
 				</tr>
 
@@ -466,20 +512,26 @@ Error Output --->
 				<tr>
 					<th scope="row">#stText.application.ConcurrentRequestTimeout#</th>
 					<td>
-						<cfif hasAccess>
-							<!---<cfinputClassic type="text" name="ConcurrentRequestTimeout" value="#queueSettings.timeout#"
-									class="number" required="yes" validate="integer"  id="ConcurrentRequestTimeoutOld"
-									message="#stText.application.ConcurrentRequestTimeoutError#">--->
+						<cfscript>
+							seconds=int(queueSettings.timeout/1000);
+							minutes=int(seconds/60);
+							seconds-=minutes*60;
+							hours=int(minutes/60);
+							minutes-=hours*60;
+							days=int(hours/24);
+							hours-=days*24;
 
-							<cfscript>
-								seconds=int(queueSettings.timeout/1000);
-								minutes=int(seconds/60);
-								seconds-=minutes*60;
-								hours=int(minutes/60);
-								minutes-=hours*60;
-								days=int(hours/24);
-								hours-=days*24;
-							</cfscript>
+							ts=createTimespan(days,hours,minutes,seconds);
+						</cfscript>
+						<cfmodule template="systemSetting.cfm" 
+							name="requestQueueTimeout" 
+							value="#ts#"
+							access="#hasAccess#"
+							description="#stText.application.ConcurrentRequestTimeoutDesc#"
+							br=false
+							sp=false
+							descOnTop=true>
+							
 							<table class="maintbl" style="width:auto" id="ConcurrentRequestTimeout">
 							<thead>
 								<tr>
@@ -490,46 +542,23 @@ Error Output --->
 								</tr>
 							</thead>
 							<tbody>
-								<cfif hasAccess>
-
-
-									<tr>
-										<td><cfinputClassic type="text" name="timeout_days" value="#days#"
-											class="number" required="yes" validate="integer"
-											message="#stText.Scopes.TimeoutDaysValue#request#stText.Scopes.TimeoutEndValue#"></td>
-										<td><cfinputClassic type="text" name="timeout_hours" value="#hours#"
-											class="number" required="yes" validate="integer"
-											message="#stText.Scopes.TimeoutHoursValue#request#stText.Scopes.TimeoutEndValue#"></td>
-										<td><cfinputClassic type="text" name="timeout_minutes" value="#minutes#"
-											class="number" required="yes" validate="integer"
-											message="#stText.Scopes.TimeoutMinutesValue#request#stText.Scopes.TimeoutEndValue#"></td>
-										<td><cfinputClassic type="text" name="timeout_seconds" value="#seconds#"
-											class="number" required="yes" validate="integer"
-											message="#stText.Scopes.TimeoutSecondsValue#request#stText.Scopes.TimeoutEndValue#"></td>
-									</tr>
-								<cfelse>
-									<tr>
-										<td class="right"><b>#days#</b></td>
-										<td class="right"><b>#hours#</b></td>
-										<td class="right"><b>#minutes#</b></td>
-										<td class="right"><b>#seconds#</b></td>
-									</tr>
-								</cfif>
+								<tr>
+									<td><cfinputClassic type="text" name="requestQueueTimeout_days" value="#days#"
+										class="number" required="yes" validate="integer"
+										message="#stText.Scopes.TimeoutDaysValue#request#stText.Scopes.TimeoutEndValue#"></td>
+									<td><cfinputClassic type="text" name="requestQueueTimeout_hours" value="#hours#"
+										class="number" required="yes" validate="integer"
+										message="#stText.Scopes.TimeoutHoursValue#request#stText.Scopes.TimeoutEndValue#"></td>
+									<td><cfinputClassic type="text" name="requestQueueTimeout_minutes" value="#minutes#"
+										class="number" required="yes" validate="integer"
+										message="#stText.Scopes.TimeoutMinutesValue#request#stText.Scopes.TimeoutEndValue#"></td>
+									<td><cfinputClassic type="text" name="requestQueueTimeout_seconds" value="#seconds#"
+										class="number" required="yes" validate="integer"
+										message="#stText.Scopes.TimeoutSecondsValue#request#stText.Scopes.TimeoutEndValue#"></td>
+								</tr>
 							</tbody>
-
-						</table>
-
-
-
-
-						<cfelse>
-							<b>#yesNoFormat(queueSettings.timeout)#</b>
-						</cfif>
-						<div class="comment">#stText.application.ConcurrentRequestTimeoutDesc#</div>
-						<cfset renderSysPropEnvVar( name:"lucee.queue.timeout",value:queueSettings.timeout)>
-
-
-						
+							</table>
+						</cfmodule>
 					</td>
 				</tr>
 
@@ -570,18 +599,20 @@ Error Output --->
 				<tr>
 					<th scope="row">#stText.application.singleton#</th>
 					<td>
-						<span id="singleton"><cfif hasAccess>
+						<cfmodule template="systemSetting.cfm" 
+							name="listenerSingleton" 
+							value="#listener.singleton?:false#"
+							access="#hasAccess#"
+							description="#stText.application.singletonDesc#"
+							br=false
+							sp=false
+							descOnTop=false>
+						
+						<span id="singleton">
 							<input type="checkbox" name="singleton" value="true" class="checkbox"
 							<cfif (listener.singleton?:false)>  checked="checked"</cfif>>
-						<cfelse>
-							<b>#yesNoFormat(listener.singleton?:false)#</b>
-						</cfif>
-						<div class="comment">#stText.application.singletonDesc#</div></span>
-
-						<cfsavecontent variable="codeSample">
-						example
-						</cfsavecontent>
-						<cfset renderSysPropEnvVar( "lucee.application.singleton",listener.singleton?:false)>
+						</span>
+						</cfmodule>
 					</td>
 				</tr>
 
@@ -596,53 +627,56 @@ Error Output --->
 						</cfif>
 					</th>
 					<td>
-						<cfif hasAccess>
+						<cfmodule template="systemSetting.cfm" 
+							name="listenerType" 
+							value="#listener.type#"
+							access="#hasAccess#"
+							description=""
+							br=false
+							sp=false
+							descOnTop=true>
+						
 							<ul class="radiolist">
 								<cfloop index="key" list="none,classic,modern,mixed">
 									<li>
 										<label>
-											<input type="radio" class="radio" name="type" value="#key#" <cfif listener.type EQ key>checked="checked"</cfif>>
+											<input type="radio" class="radio" name="listenerType" value="#key#" <cfif listener.type EQ key>checked="checked"</cfif>>
 											<b>#stText.application['listenerType_' & key]#</b>
 										</label>
 										<div class="comment">#stText.application['listenerTypeDescription_' & key]#</div>
 									</li>
 								</cfloop>
 							</ul>
-						<cfelse>
-							<!---<input type="hidden" name="type" value="#listener.type#">--->
-							<b>#listener.type#</b>
-							<div class="comment">#stText.application['listenerTypeDescription_' & listener.type]#</div>
-						</cfif>
-						<cfset renderSysPropEnvVar( "lucee.application.listener",listener.type)>
+						</cfmodule>
 					</td>
 				</tr>
 
 				<!--- listener mode --->
 				<tr>
 					<th>#stText.application.listenerMode#
-						<cfif hasAccess>
-							<div class="comment">#stText.application.listenerModeDescription#</div>
-						</cfif>
 					</th>
 					<td>
-						<cfif hasAccess>
+						<cfmodule template="systemSetting.cfm" 
+							name="listenerMode" 
+							value="#listener.mode#"
+							access="#hasAccess#"
+							description="#stText.application.listenerModeDescription#"
+							br=false
+							sp=false
+							descOnTop=true>
+						
 							<ul class="radiolist">
 								<cfloop index="key" list="curr2root,currorroot,root,current">
 									<li>
 										<label>
-											<input type="radio" class="radio" name="mode" value="#key#" <cfif listener.mode EQ key>checked="checked"</cfif>>
+											<input type="radio" class="radio" name="listenerMode" value="#key#" <cfif listener.mode EQ key>checked="checked"</cfif>>
 											<b>#stText.application['listenerMode_' & key]#</b>
 										</label>
 										<div class="comment">#stText.application['listenerModeDescription_' & key]#</div>
 									</li>
 								</cfloop>
 							</ul>
-						<cfelse>
-							<!---<input type="hidden" name="type" value="#listener.mode#">--->
-							<b>#listener.mode#</b>
-							<div class="comment">#stText.application['listenerModeDescription_' & listener.mode]#</div>
-						</cfif>
-							<cfset renderSysPropEnvVar( "lucee.application.mode",listener.mode)>
+						</cfmodule>
 					</td>
 				</tr>
 <cfset stText.application.appPathEnvVar="This can also be defined using an environment variable as follows">
@@ -653,6 +687,15 @@ Error Output --->
 				<tr>
 					<th scope="row">#stText.application.appPathTimeout#</th>
 					<td>
+						<cfmodule template="systemSetting.cfm" 
+							name="applicationPathTimeout" 
+							value="#appSettings.applicationPathTimeout#"
+							access="#hasAccess#"
+							description="#stText.application.appPathTimeoutDesc#"
+							br=false
+							sp=false
+							descOnTop=true>
+						
 						<cfset timeout=appSettings.requestTimeout>
 						<table class="maintbl" style="width:auto">
 							<thead>
@@ -666,16 +709,16 @@ Error Output --->
 							<tbody>
 								<cfif hasAccess>
 									<tr>
-										<td><cfinputClassic type="text" name="apppath_days" value="#appSettings.applicationPathTimeout_day#"
+										<td><cfinputClassic type="text" name="applicationPathTimeout_days" value="#appSettings.applicationPathTimeout_day#"
 											class="number" required="yes" validate="integer"
 											message="#stText.Scopes.TimeoutDaysValue#request#stText.Scopes.TimeoutEndValue#"></td>
-										<td><cfinputClassic type="text" name="apppath_hours" value="#appSettings.applicationPathTimeout_hour#"
+										<td><cfinputClassic type="text" name="applicationPathTimeout_hours" value="#appSettings.applicationPathTimeout_hour#"
 											class="number" required="yes" validate="integer"
 											message="#stText.Scopes.TimeoutHoursValue#request#stText.Scopes.TimeoutEndValue#"></td>
-										<td><cfinputClassic type="text" name="apppath_minutes" value="#appSettings.applicationPathTimeout_minute#"
+										<td><cfinputClassic type="text" name="applicationPathTimeout_minutes" value="#appSettings.applicationPathTimeout_minute#"
 											class="number" required="yes" validate="integer"
 											message="#stText.Scopes.TimeoutMinutesValue#request#stText.Scopes.TimeoutEndValue#"></td>
-										<td><cfinputClassic type="text" name="apppath_seconds" value="#appSettings.applicationPathTimeout_second#"
+										<td><cfinputClassic type="text" name="applicationPathTimeout_seconds" value="#appSettings.applicationPathTimeout_second#"
 											class="number" required="yes" validate="integer"
 											message="#stText.Scopes.TimeoutSecondsValue#request#stText.Scopes.TimeoutEndValue#"></td>
 									</tr>
@@ -690,14 +733,7 @@ Error Output --->
 							</tbody>
 
 						</table>
-						<div class="comment">#stText.application.appPathTimeoutDesc#</div>
-
-
-<cfsavecontent variable="codeSample">
-	LUCEE_APPLICATION_PATH_CACHE_TIMEOUT=60000
-</cfsavecontent>
-<cfset renderCodingTip( codeSample,stText.application.appPathEnvVar)>
-
+						</cfmodule>
 					</td>
 				</tr>
 

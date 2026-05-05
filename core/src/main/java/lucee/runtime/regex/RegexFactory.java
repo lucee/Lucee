@@ -60,7 +60,7 @@ public final class RegexFactory implements PropFactory<Regex> {
 	}
 
 	@Override
-	public Regex evaluate(Config config, String name, Object val) throws PageException {
+	public Regex evaluate(Config config, String name, Object val, short source) throws PageException {
 		String strRegex = Caster.toString(val);
 		if (StringUtil.isEmpty(strRegex, true)) {
 			throw new ApplicationException("regex cannot be an empty string");

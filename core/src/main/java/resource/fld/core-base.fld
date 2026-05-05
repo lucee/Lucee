@@ -7451,7 +7451,7 @@ if this attribute is not provided all types are returned.</description>
 	        configure Lucee from outside the application at startup.
 	    </description>
 	    <return>
-	        <type>query</type>
+	        <type>struct</type>
 	    </return>
 	</function>
 

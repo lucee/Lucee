@@ -26,7 +26,7 @@ public class StartupFactory implements PropFactory<Startup> {
 	}
 
 	@Override
-	public Startup evaluate(Config config, String name, Object val) throws PageException {
+	public Startup evaluate(Config config, String name, Object val, short source) throws PageException {
 
 		try {
 			Struct child = Caster.toStruct(val);

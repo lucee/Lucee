@@ -469,6 +469,7 @@ public final class ModernApplicationContext extends ApplicationContextSupport {
 	public boolean isSetClientCookies() {
 		if (!initSetClientCookies) {
 			Object o = get(component, KeyConstants._setClientCookies, null);
+			if (o == null) o = get(component, KeyConstants._clientCookies, null);
 			if (o != null) setClientCookies = Caster.toBooleanValue(o, config.isClientCookies());
 			else setClientCookies = config.isClientCookies();
 			initSetClientCookies = true;
@@ -491,6 +492,8 @@ public final class ModernApplicationContext extends ApplicationContextSupport {
 	public boolean isSetDomainCookies() {
 		if (!initSetDomainCookies) {
 			Object o = get(component, KeyConstants._setDomainCookies, null);
+			if (o == null) o = get(component, KeyConstants._domainCookies, null);
+
 			if (o != null) setDomainCookies = Caster.toBooleanValue(o, config.isDomainCookies());
 			else setDomainCookies = config.isDomainCookies();
 			initSetDomainCookies = true;
@@ -551,6 +554,7 @@ public final class ModernApplicationContext extends ApplicationContextSupport {
 	public boolean getAllowCompression() {
 		if (!initAllowCompression) {
 			Boolean b = Caster.toBoolean(get(component, KeyConstants._compression, null), null);
+			if (b == null) b = Caster.toBoolean(get(component, KeyConstants._allowCompression, null), null);
 			if (b != null) allowCompression = b.booleanValue();
 			else allowCompression = ((ConfigPro) config).allowCompression();
 			initAllowCompression = true;
@@ -686,6 +690,7 @@ public final class ModernApplicationContext extends ApplicationContextSupport {
 			Boolean b = null;
 			Object o = get(component, KeyConstants._InvokeImplicitAccessor, null);
 			if (o == null) o = get(component, KeyConstants._triggerDataMember, null);
+			if (o == null) o = get(component, KeyConstants._componentImplicitNotation, null);
 			if (o != null) {
 				b = Caster.toBoolean(o, null);
 				if (b != null) triggerComponentDataMember = b.booleanValue();
@@ -1105,6 +1110,7 @@ public final class ModernApplicationContext extends ApplicationContextSupport {
 	public int getLocalMode() {
 		if (!initLocalMode) {
 			Object o = get(component, KeyConstants._localMode, null);
+			if (o == null) o = get(component, KeyConstants._localScopeMode, null);
 			if (o != null) localMode = AppListenerUtil.toLocalMode(o, config.getLocalMode());
 			else localMode = config.getLocalMode();
 			initLocalMode = true;
@@ -1385,6 +1391,14 @@ public final class ModernApplicationContext extends ApplicationContextSupport {
 					if (web != null) webCharset = web;
 				}
 			}
+			if (webCharset == null) {
+				o = get(component, KeyConstants._WEBCHARSET, null);
+				if (o != null) {
+					CharsetX web = CharsetUtil.toCharsetX(Caster.toString(o, null), null);
+					if (web != null) webCharset = web;
+				}
+			}
+
 			if (webCharset == null) webCharset = ((ConfigPro) config).getWebCharsetX();
 		}
 		return webCharset;
@@ -1405,6 +1419,13 @@ public final class ModernApplicationContext extends ApplicationContextSupport {
 					if (web != null) resourceCharset = web;
 				}
 			}
+			if (resourceCharset == null) {
+				o = get(component, KeyConstants._RESOURCECHARSET, null);
+				if (o != null) {
+					CharsetX web = CharsetUtil.toCharsetX(Caster.toString(o, null), null);
+					if (web != null) resourceCharset = web;
+				}
+			}
 			if (resourceCharset == null) resourceCharset = ((ConfigPro) config).getResourceCharsetX();
 		}
 		return resourceCharset;
@@ -1414,6 +1435,7 @@ public final class ModernApplicationContext extends ApplicationContextSupport {
 	public boolean getBufferOutput() {
 		if (!initBufferOutput) {
 			Object o = get(component, KeyConstants._bufferOutput, null);
+			if (o == null) o = get(component, KeyConstants._bufferTagBodyOutput, null);
 			if (o != null) bufferOutput = Caster.toBooleanValue(o, ((ConfigPro) config).getBufferOutput());
 			else bufferOutput = ((ConfigPro) config).getBufferOutput();
 			initBufferOutput = true;
@@ -1425,6 +1447,7 @@ public final class ModernApplicationContext extends ApplicationContextSupport {
 	public boolean getSuppressContent() {
 		if (!initSuppressContent) {
 			Object o = get(component, KeyConstants._suppressRemoteComponentContent, null);
+			if (o == null) o = get(component, KeyConstants._suppressContent, null);
 			if (o != null) suppressContent = Caster.toBooleanValue(o, ((ConfigPro) config).isSuppressContent());
 			else suppressContent = ((ConfigPro) config).isSuppressContent();
 			initSuppressContent = true;
@@ -1926,6 +1949,7 @@ public final class ModernApplicationContext extends ApplicationContextSupport {
 	public boolean getCGIScopeReadonly() {
 		if (!initCGIScopeReadonly) {
 			Object o = get(component, KeyConstants._CGIReadOnly, null);
+			if (o == null) o = get(component, KeyConstants._cgiScopeReadOnly, null);
 			if (o != null) cgiScopeReadonly = Caster.toBooleanValue(o, ((ConfigPro) config).getCGIScopeReadonly());
 			else cgiScopeReadonly = ((ConfigPro) config).getCGIScopeReadonly();
 			initCGIScopeReadonly = true;
@@ -2250,6 +2274,7 @@ public final class ModernApplicationContext extends ApplicationContextSupport {
 		if (allowImplicidQueryCall == null) {
 			Object o = get(component, KeyConstants._searchQueries, null);
 			if (o == null) o = get(component, KeyConstants._searchResults, null);
+			if (o == null) o = get(component, KeyConstants._cascadeToResultset, null);
 			if (o != null) allowImplicidQueryCall = Caster.toBoolean(o, config.allowImplicidQueryCall());
 			else allowImplicidQueryCall = config.allowImplicidQueryCall();
 		}
@@ -2279,12 +2304,23 @@ public final class ModernApplicationContext extends ApplicationContextSupport {
 							has = true;
 							regex = tmp;
 						}
-						else regex = ((ConfigPro) config).getRegex();
 					}
 				}
-				else regex = ((ConfigPro) config).getRegex();
 			}
-			else regex = ((ConfigPro) config).getRegex();
+
+			if (regex == null) {
+				int type = RegexFactory.toType(Caster.toString(get(component, KeyConstants._regexType, null), null), -1);
+				if (type != -1) {
+					Regex tmp = RegexFactory.toRegex(type, null);
+					if (tmp != null) {
+						has = true;
+						regex = tmp;
+					}
+				}
+			}
+
+			if (regex == null) regex = ((ConfigPro) config).getRegex();
+
 			if (!has) {
 				Boolean res = Caster.toBoolean(get(component, KeyConstants._useJavaAsRegexEngine, null), null);
 				if (res != null) regex = RegexFactory.toRegex(res.booleanValue());

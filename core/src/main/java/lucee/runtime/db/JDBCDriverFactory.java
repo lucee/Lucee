@@ -33,7 +33,7 @@ public class JDBCDriverFactory implements PropFactory<JDBCDriver> {
 	}
 
 	@Override
-	public JDBCDriver evaluate(Config config, String name, Object val) throws PageException {
+	public JDBCDriver evaluate(Config config, String name, Object val, short source) throws PageException {
 		try {
 			ClassDefinition cd;
 			String label, id, connStr;

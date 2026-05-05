@@ -81,6 +81,7 @@ import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.util.ArrayUtil;
+import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.ListUtil;
 import lucee.transformer.library.function.FunctionLib;
 import lucee.transformer.library.tag.TagLib;
@@ -948,8 +949,27 @@ public final class ConfigUtil {
 		Object obj;
 		for (String name: names) {
 			obj = input.get(name, null);
-			if (obj instanceof Struct && !(sct = (Struct) obj).isEmpty()) {
-				break;
+			if (obj != null) {
+				// already a struct
+				if (obj instanceof Struct && !(sct = (Struct) obj).isEmpty()) {
+					break;
+				}
+				// an array
+				if (obj instanceof Array && ((Array) obj).size() > 0) {
+					Array tmpArr = (Array) obj;
+					Struct tmpSct = new StructImpl(Struct.TYPE_LINKED), record;
+					String tmpName;
+					Iterator<?> it = tmpArr.getIterator();
+					while (it.hasNext()) {
+						record = Caster.toStruct(it.next(), null);
+						if (record == null) continue;
+						tmpName = Caster.toString(record.get(KeyConstants._name, null), null);
+						if (StringUtil.isEmpty(tmpName, true)) continue;
+						tmpSct.setEL(tmpName, tmpArr);
+					}
+					sct = tmpSct;
+					break;
+				}
 			}
 		}
 
@@ -1001,7 +1021,8 @@ public final class ConfigUtil {
 			sct.put(name, tmp);
 			return tmp;
 		}
-		return (Struct) obj;
+		if (obj instanceof Struct) return (Struct) obj;
+		return new StructImpl(Struct.TYPE_LINKED);
 	}
 
 	// TODO

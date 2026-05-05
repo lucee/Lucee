@@ -35,9 +35,9 @@ public class LogFactory implements PropFactory<LoggerAndSourceData> {
 	}
 
 	@Override
-	public LoggerAndSourceData evaluate(Config config, String name, Object val) throws PageException {
+	public LoggerAndSourceData evaluate(Config config, String name, Object val, short source) throws PageException {
 		try {
-			return loadLogger((ConfigPro) config, name, Caster.toStruct(val));
+			return loadLogger((ConfigPro) config, name, Caster.toStruct(val), source);
 		}
 		catch (Exception e) {
 			throw Caster.toPageException(e);
@@ -95,7 +95,7 @@ public class LogFactory implements PropFactory<LoggerAndSourceData> {
 		return value;
 	}
 
-	private static LoggerAndSourceData loadLogger(ConfigPro config, final String name, final Struct data) {
+	private static LoggerAndSourceData loadLogger(ConfigPro config, final String name, final Struct data, short source) {
 
 		try {
 			// loggers
@@ -138,9 +138,9 @@ public class LogFactory implements PropFactory<LoggerAndSourceData> {
 				// ignore when no appender/name is defined
 				if (cdAppender.hasClass() && !StringUtil.isEmpty(name)) {
 					if (cdLayout.hasClass()) {
-						return createLogger(config, name, level, cdAppender, appenderArgs, cdLayout, layoutArgs, readOnly, false).init();
+						return createLogger(config, name, level, cdAppender, appenderArgs, cdLayout, layoutArgs, readOnly, false, source).init();
 					}
-					return createLogger(config, name, level, cdAppender, appenderArgs, null, null, readOnly, false).init();
+					return createLogger(config, name, level, cdAppender, appenderArgs, null, null, readOnly, false, source).init();
 				}
 			}
 			catch (Throwable t) {
@@ -157,8 +157,8 @@ public class LogFactory implements PropFactory<LoggerAndSourceData> {
 	}
 
 	public static LoggerAndSourceData createLogger(Config config, String name, int level, ClassDefinition appender, Map<String, String> appenderArgs, ClassDefinition layout,
-			Map<String, String> layoutArgs, boolean readOnly, boolean dyn) {
+			Map<String, String> layoutArgs, boolean readOnly, boolean dyn, short source) {
 		String id = LoggerAndSourceData.id(name.toLowerCase(), appender, appenderArgs, layout, layoutArgs, level, readOnly);
-		return new LoggerAndSourceData(config, id, name.toLowerCase(), appender, appenderArgs, layout, layoutArgs, level, readOnly, dyn);
+		return new LoggerAndSourceData(config, id, name.toLowerCase(), appender, appenderArgs, layout, layoutArgs, level, readOnly, dyn).setSource(source);
 	}
 }

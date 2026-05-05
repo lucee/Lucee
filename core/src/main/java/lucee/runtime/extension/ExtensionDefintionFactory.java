@@ -27,7 +27,7 @@ public class ExtensionDefintionFactory implements PropFactory<ExtensionDefintion
 	}
 
 	@Override
-	public ExtensionDefintion evaluate(Config config, String name, Object val) throws PageException {
+	public ExtensionDefintion evaluate(Config config, String name, Object val, short source) throws PageException {
 
 		try {
 			Struct childSct = Caster.toStruct(val);

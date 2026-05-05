@@ -68,6 +68,10 @@ Redirtect to entry --->
 	<cfif connections.recordcount and access EQ "yes">
 		<h1>#stText.Settings.ai.titleExisting#</h1>
 		<div class="itemintro">#stText.Settings.ai.descExisting#</div>
+
+		<cfset renderSettings("ai",{columns:["name","class","bundleName","bundleVersion","maven","component","custom","default"], value:removeCoreBundle(connections)} )>
+
+
 		<cfformClassic onerror="customError" action="#request.self#?action=#url.action#" method="post">
 			<table class="maintbl checkboxtbl">
 				<thead>

@@ -86,20 +86,21 @@ Error Output --->
 				<tr>
 					<th scope="row">#stText.charset.templateCharset#</th>
 					<td>
-						<cfif hasAccess>
-							<input type="text" class="small" name="templateCharset" value="#charset.templateCharset#" />
-						<cfelse>
-							<input type="hidden" name="templateCharset" value="#charset.templateCharset#">
-							<b>#charset.templateCharset#</b>
-						</cfif>
-						<div class="comment">#stText.charset.templateCharsetDescription#</div>
-						<cfsavecontent variable="codeSample">
+						<cfsavecontent variable="codeTip">
 &lt;cfprocessingdirective pageEncoding="#charset.templateCharset#">
 &lt;!--- or --->
 &lt;cfscript>processingdirective pageEncoding="#charset.templateCharset#";&lt;/cfscript>
 						</cfsavecontent>
-						<cfset renderCodingTip( codeSample, stText.settings.codetip)>
-						<cfset renderSysPropEnvVar( "lucee.template.charset",charset.templateCharset )>
+						<cfmodule template="systemSetting.cfm" 
+							name="templateCharset" 
+							value="#charset.templateCharset#"
+							access="#hasAccess#"
+							description="#stText.charset.templateCharsetDescription#"
+							codeTip="#codeTip#"
+							codeTipDesc="#stText.settings.codetip#"
+							br=true>
+							<input type="text" class="small" name="templateCharset" value="#charset.templateCharset#" />
+					</cfmodule>
 					</td>
 				</tr>
 				
@@ -107,18 +108,14 @@ Error Output --->
 				<tr>
 					<th scope="row">#stText.charset.webCharset#</th>
 					<td>
-						<cfif hasAccess>
+						<cfmodule template="systemSetting.cfm" 
+							name="webCharset" 
+							value="#charset.webCharset#"
+							access="#hasAccess#"
+							description="#stText.charset.webCharsetDescription#"
+							br=true>
 							<input type="text" class="small" name="webCharset" value="#charset.webCharset#">
-						<cfelse>
-							<input type="hidden" name="webCharset" value="#charset.webCharset#">
-							<b>#charset.webCharset#</b>
-						</cfif>
-						<div class="comment">#stText.charset.webCharsetDescription#</div>
-						<cfsavecontent variable="codeSample">
-							this.charset.web="#charset.webCharset#";
-						</cfsavecontent>
-						<cfset renderCodingTip( codeSample)>
-						<cfset renderSysPropEnvVar( "lucee.web.charset",charset.webCharset )>
+						</cfmodule>
 					</td>
 				</tr>
 				
@@ -126,18 +123,15 @@ Error Output --->
 				<tr>
 					<th scope="row">#stText.charset.resourceCharset#</th>
 					<td>
-						<cfif hasAccess>
+						<cfmodule template="systemSetting.cfm" 
+							name="resourceCharset" 
+							value="#charset.resourceCharset#"
+							access="#hasAccess#"
+							description="#stText.charset.resourceCharsetDescription#"
+							br=true>
 							<input type="text" class="small" name="resourceCharset" value="#charset.resourceCharset#">
-						<cfelse>
-							<input type="hidden" name="resourceCharset" value="#charset.resourceCharset#">
-							<b>#charset.resourceCharset#</b>
-						</cfif>
-						<div class="comment">#stText.charset.resourceCharsetDescription#</div>
-						<cfsavecontent variable="codeSample">
-							this.charset.resource="#charset.resourceCharset#";
-						</cfsavecontent>
-						<cfset renderCodingTip( codeSample)>
-						<cfset renderSysPropEnvVar( "lucee.resource.charset",charset.resourceCharset )>
+						</cfmodule>
+						
 					</td>
 				</tr>
 				<cfif hasAccess>

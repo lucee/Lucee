@@ -28,7 +28,7 @@ public class JavaCFXTagClassFactory implements PropFactory<CFXTagClass> {
 	}
 
 	@Override
-	public CFXTagClass evaluate(Config config, String name, Object val) throws PageException {
+	public CFXTagClass evaluate(Config config, String name, Object val, short source) throws PageException {
 		Struct cfxTag = Caster.toStruct(val);
 
 		try {

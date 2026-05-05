@@ -24,7 +24,7 @@ Defaults --->
 					action="updateRegex"
 					type="#request.adminType#"
 					password="#session["password"&request.adminType]#"
-					regexType="#form.type#"
+					regexType="#form.regexType#"
 					
 					remoteClients="#request.getRemoteClients()#">
 				
@@ -109,31 +109,27 @@ Error Output --->
 				<tr>
 					<th scope="row">#stText.regex.type#</th>
 					<td>
-						<div class="comment">#stText.regex.typeDesc#</div>
-						<cfif hasAccess>
+						<cfmodule template="systemSetting.cfm" 
+							name="regexType" 
+							value="#regex.type#"
+							access="#hasAccess#"
+							description="#stText.regex.typeDesc#"
+							br=false
+							sp=true
+							descOnTop=true>
 							<ul class="radiolist">
 
 								<cfloop list="java,perl" item="_type">
 								<li>
 									<label>
-										<input class="radio" type="radio" name="type" value="#_type#"<cfif regex.type EQ _type> checked="checked"</cfif>>
+										<input class="radio" type="radio" name="regexType" value="#_type#"<cfif regex.type EQ _type> checked="checked"</cfif>>
 										<b>#stText.regex['type_'&_type]#</b>
 									</label>
 									<div class="comment">#stText.regex['typedesc_'&_type]#</div>
 								</li>
 								</cfloop>
-								
 							</ul>
-						<cfelse>
-							<input type="hidden" name="type" value="#regex.type#">
-							<b>#stText.regex['type_'&regex.type]#</b><br />
-							<div class="comment">#stText.regex['typedesc_'&regex.type]#</div>
-						</cfif>
-						
-						<cfsavecontent variable="codeSample">
-							this.regex.type = "#regex.type#";
-						</cfsavecontent>
-						<cfset renderCodingTip( codeSample )>
+						</cfmodule>
 					</td>
 				</tr>
 				

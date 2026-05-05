@@ -36,7 +36,7 @@ public class DataSourceFactory implements PropFactory<DataSource> {
 	}
 
 	@Override
-	public DataSource evaluate(Config c, String name, Object val) throws PageException {
+	public DataSource evaluate(Config c, String name, Object val, short source) throws PageException {
 		ConfigPro config = (ConfigPro) c;
 		try {
 

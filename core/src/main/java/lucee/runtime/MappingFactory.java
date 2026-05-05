@@ -44,7 +44,7 @@ public class MappingFactory implements PropFactory<Mapping> {
 	}
 
 	@Override
-	public Mapping evaluate(Config config, String name, Object val) throws PageException {
+	public Mapping evaluate(Config config, String name, Object val, short source) throws PageException {
 
 		Struct el = Caster.toStruct(val);
 
@@ -132,7 +132,7 @@ public class MappingFactory implements PropFactory<Mapping> {
 			boolean physicalFirst = primary == null || !"archive".equalsIgnoreCase(primary);
 
 			return new MappingImpl(config, virtual, physical, archive, insTemp, insTempSlow, insTempFast, physicalFirst, hidden, readonly, toplevel, appMapping, ignoreVirtual,
-					listener, listenerMode, listenerType);
+					listener, listenerMode, listenerType).setSource(source);
 		}
 		throw new ApplicationException("you need to define [physical] or [archive]");
 	}

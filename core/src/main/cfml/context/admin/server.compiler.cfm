@@ -20,12 +20,16 @@ Defaults --->
 	<cfswitch expression="#form.mainAction#">
 	<!--- UPDATE --->
 		<cfcase value="#stText.Buttons.Update#">
-			<cfset dotNotUpper=true>
+			<cfset preserveCase=false>
 			<cfif isDefined('form.dotNotation') and form.dotNotation EQ "oc">
-            	<cfset dotNotUpper=false>
+            	<cfset preserveCase=true>
             </cfif>
-            <cfif not isDefined('form.suppressWSBeforeArg')>
-            	<cfset form.suppressWSBeforeArg=false>
+			<cfif isDefined('form.preserveCase') >
+            	<cfset preserveCase=form.preserveCase>
+            </cfif>
+
+            <cfif not isDefined('form.suppressWhitespaceBeforeArgument')>
+            	<cfset form.suppressWhitespaceBeforeArgument=false>
             </cfif>
             <cfif not isDefined('form.nullSupport')>
             	<cfset form.nullSupport=false>
@@ -33,19 +37,19 @@ Defaults --->
             <cfif not isDefined('form.preciseMath')>
             	<cfset form.preciseMath=false>
             </cfif>
-			<cfif not isDefined('form.handleUnquotedAttrValueAsString')>
-            	<cfset form.handleUnquotedAttrValueAsString=false>
+			<cfif not isDefined('form.handleUnquotedAttributeValueAsString')>
+            	<cfset form.handleUnquotedAttributeValueAsString=false>
             </cfif>
-            
+            <cfset systemOutput("preserveCase: #preserveCase#",1,1)>
 			<cfadmin 
 				action="updateCompilerSettings"
 				type="#request.adminType#"
 				password="#session["password"&request.adminType]#"
 				
 				nullSupport="#form.nullSupport#"
-				dotNotationUpperCase="#dotNotUpper#"
-                suppressWSBeforeArg="#form.suppressWSBeforeArg#"
-                handleUnquotedAttrValueAsString="#form.handleUnquotedAttrValueAsString#"
+				preserveCase="#preserveCase#"
+                suppressWSBeforeArg="#form.suppressWhitespaceBeforeArgument#"
+                handleUnquotedAttrValueAsString="#form.handleUnquotedAttributeValueAsString#"
 				templateCharset="#form.templateCharset#"
 				externalizeStringGTE="#form.externalizeStringGTE#"
 				preciseMath="#form.preciseMath#"
@@ -61,7 +65,7 @@ Defaults --->
 				password="#session["password"&request.adminType]#"
 				
 				nullSupport=""
-				dotNotationUpperCase=""
+				preserveCase=""
 				suppressWSBeforeArg=""
 				templateCharset=""
 				handleUnquotedAttrValueAsString=""
@@ -113,20 +117,20 @@ Redirtect to entry --->
 				<tr>
 					<th scope="row">#stText.charset.templateCharset#</th>
 					<td>
-						<cfif hasAccess>
-							<input type="text" class="small" name="templateCharset" value="#setting.templateCharset#" />
-						<cfelse>
-							<input type="hidden" name="templateCharset" value="#setting.templateCharset#">
-							<b>#setting.templateCharset#</b>
-						</cfif>
-						<div class="comment">#stText.charset.templateCharsetDescription#</div>
 						<cfsavecontent variable="codeSample">
 &lt;cfprocessingdirective pageEncoding="#setting.templateCharset#">
 &lt;!--- or --->
 &lt;cfscript>processingdirective pageEncoding="#setting.templateCharset#";&lt;/cfscript>
 						</cfsavecontent>
-						<cfset renderCodingTip( codeSample ,stText.settings.codetip)>
-						<cfset renderSysPropEnvVar( "lucee.template.charset",setting.templateCharset)>
+						<cfmodule template="systemSetting.cfm" 
+							name="templateCharset" 
+							value="#setting.templateCharset#"
+							description="#stText.charset.templateCharsetDescription#"
+							access="#hasAccess#"
+							codeTip="#codeSample#"
+							codeTipDesc="#stText.settings.codetip#">
+							<input type="text" class="small" name="templateCharset" value="#setting.templateCharset#" />
+						</cfmodule>
 					</td>
 				</tr>
 
@@ -141,11 +145,14 @@ Redirtect to entry --->
 				<tr>
 					<th scope="row">#stText.setting.externalizeStringGTE?:""#</th>
 					<td>
-						<cfif hasAccess>
-
-
+						
+						<cfmodule template="systemSetting.cfm" 
+							name="externalizeStringGte" 
+							value="#setting.externalizeStringGTE#"
+							description="#stText.setting.externalizeStringGTEDesc#"
+							access="#hasAccess#"
+							sp=false>
 							<ul class="radiolist">
-								
 								<!--- not --->
 								<cfloop list="-1,1000,100,10" item="val">
 									<li>
@@ -155,14 +162,8 @@ Redirtect to entry --->
 										</label>
 									</li>
 								</cfloop>
-								<!--- <div class="comment">#replace(stText.setting.dotNotationOriginalCaseDesc, server.separator.line, '<br />', 'all')#</div> --->
-								
 							</ul>
-						<cfelse>
-							<input type="hidden" name="externalizeStringGTE" value="#setting.externalizeStringGTE#">
-							<b><cfif setting.externalizeStringGTE==-1>#yesNoFormat(false)#<cfelse>#stText.setting["externalizeString"&replace(setting.externalizeStringGTE,"-","_")]#</cfif></b>
-						</cfif>
-						<div class="comment">#stText.setting.externalizeStringGTEDesc#</div>
+						</cfmodule>
 						
 					</td>
 				</tr>
@@ -171,7 +172,12 @@ Redirtect to entry --->
 				<tr>
 					<th scope="row">#stText.compiler.nullSupport#</th>
 					<td>
-						<cfif hasAccess >
+						<cfmodule template="systemSetting.cfm" 
+							name="nullSupport" 
+							value="#setting.nullSupport#"
+							access="#hasAccess#"
+							sp=false>
+
 							<ul class="radiolist">
 								<li>
 									<!--- full --->
@@ -190,13 +196,7 @@ Redirtect to entry --->
 									<div class="comment">#stText.compiler.nullSupportPartialDesc#</div>
 								</li>
 							</ul>
-						<cfelse>
-							<cfset strNullSupport=setting.nullSupport?"full":"partial">
-							<input type="hidden" name="nullSupport" value="#setting.nullSupport#">
-							<b>#stText.compiler["nullSupport"& strNullSupport]#</b><br />
-							<div class="comment">#stText.compiler["nullSupport"& strNullSupport&"Desc"]#</div>
-						</cfif>
-						<cfset renderSysPropEnvVar( "lucee.full.null.support",setting.nullSupport)>
+						</cfmodule>
 					</td>
 				</tr>
 
@@ -204,7 +204,19 @@ Redirtect to entry --->
 				<tr>
 					<th scope="row">#stText.setting.dotNotation#</th>
 					<td>
-						<cfif hasAccess>
+<cfsavecontent variable="codeSample">
+&lt;cfprocessingdirective preserveCase="#!setting.DotNotationUpperCase#">
+&lt;!--- or --->
+&lt;cfscript>processingdirective preserveCase="#!setting.DotNotationUpperCase#";&lt;/cfscript>
+</cfsavecontent>
+
+						<cfmodule template="systemSetting.cfm" 
+							name="preserveCase" 
+							value="#setting.nullSupport#"
+							access="#hasAccess#"
+							codeTip="#codeSample#"
+							codeTipDesc="#stText.settings.codetip#"
+							descOnTop=true>
 							<ul class="radiolist">
 								<li>
 									<!--- original case --->
@@ -223,20 +235,8 @@ Redirtect to entry --->
 									<div class="comment">#replace(stText.setting.dotNotationUpperCaseDesc, server.separator.line, '<br />', 'all')#</div>
 								</li>
 							</ul>
-						<cfelse>
-							<cfset strDotNotation=setting.dotNotationUpperCase?"uc":"oc">
-							<cfset strDotNotationID=setting.dotNotationUpperCase?"Upper":"Original">
-							<input type="hidden" name="dotNotation" value="#strDotNotation#">
-							<b>#stText.setting["dotNotation"& strDotNotationID &"Case"]#</b><br />
-							<div class="comment">#replace(stText.setting["dotNotation"& strDotNotationID &"CaseDesc"], server.separator.line, '<br />', 'all')#</div>
-						</cfif>
-						<cfsavecontent variable="codeSample">
-&lt;cfprocessingdirective preserveCase="#!setting.DotNotationUpperCase#">
-&lt;!--- or --->
-&lt;cfscript>processingdirective preserveCase="#!setting.DotNotationUpperCase#";&lt;/cfscript>
-						</cfsavecontent>
-						<cfset renderCodingTip( codeSample ,stText.settings.codetip)>
-						<cfset renderSysPropEnvVar( "lucee.preserve.case",!setting.DotNotationUpperCase)>
+						
+						</cfmodule>
 					</td>
 				</tr>
 				
@@ -244,17 +244,15 @@ Redirtect to entry --->
 				<tr>
 					<th scope="row">#stText.setting.preciseMath#</th>
 					<td>
-						<cfif hasAccess>
-        					<input class="checkbox" type="checkbox" name="preciseMath" value="true" <cfif setting.preciseMath>checked="checked"</cfif> />
-						<cfelse>
-							<b>#yesNoFormat(setting.preciseMath)#</b><br /><input type="hidden" name="suppresspreciseMathWSBeforeArg" value="#setting.preciseMath#">
-						</cfif>
-						<div class="comment">#stText.setting.preciseMathDesc#</div>
-						<cfsavecontent variable="codeSample">
-							this.preciseMath = #setting.preciseMath#;
-						</cfsavecontent>
-						<cfset renderCodingTip( codeSample )>
-						<cfset renderSysPropEnvVar( "lucee.precise.math",setting.preciseMath)>
+
+						<cfmodule template="systemSetting.cfm" 
+							name="preciseMath" 
+							value="#setting.preciseMath#"
+							access="#hasAccess#"
+							description="#stText.setting.preciseMathDesc#">
+						<input class="checkbox" type="checkbox" name="preciseMath" value="true" <cfif setting.preciseMath>checked="checked"</cfif> />
+						</cfmodule>
+
 					</td>
 				</tr>
 				
@@ -262,13 +260,14 @@ Redirtect to entry --->
 				<tr>
 					<th scope="row">#stText.setting.suppressWSBeforeArg#</th>
 					<td>
-						<cfif hasAccess>
-        					<input class="checkbox" type="checkbox" name="suppressWSBeforeArg" value="true" <cfif setting.suppressWSBeforeArg>checked="checked"</cfif> />
-						<cfelse>
-							<b>#yesNoFormat(setting.suppressWSBeforeArg)#</b><br /><input type="hidden" name="suppressWSBeforeArg" value="#setting.suppressWSBeforeArg#">
-						</cfif>
-						<div class="comment">#stText.setting.suppressWSBeforeArgDesc#</div>
-						<cfset renderSysPropEnvVar( "lucee.suppress.ws.before.arg",setting.suppressWSBeforeArg)>
+						<cfmodule template="systemSetting.cfm" 
+							name="suppressWhitespaceBeforeArgument" 
+							value="#setting.suppressWSBeforeArg#"
+							access="#hasAccess#"
+							description="#stText.setting.suppressWSBeforeArgDesc#"
+							sp=false>
+						<input class="checkbox" type="checkbox" name="suppressWhitespaceBeforeArgument" value="true" <cfif setting.suppressWSBeforeArg>checked="checked"</cfif> />
+						</cfmodule>
 					</td>
 				</tr>
 				
@@ -276,13 +275,14 @@ Redirtect to entry --->
 				<tr>
 					<th scope="row">#stText.setting.handleUnquotedAttrValueAsString#</th>
 					<td>
-						<cfif hasAccess>
-        					<input class="checkbox" type="checkbox" name="handleUnquotedAttrValueAsString" value="true" <cfif setting.handleUnquotedAttrValueAsString>checked="checked"</cfif> />
-						<cfelse>
-							<b>#yesNoFormat(setting.handleUnquotedAttrValueAsString)#</b><br /><input type="hidden" 
-							name="handleUnquotedAttrValueAsString" value="#setting.handleUnquotedAttrValueAsString#">
-						</cfif>
-						<div class="comment">#stText.setting.handleUnquotedAttrValueAsStringDesc#</div>
+						<cfmodule template="systemSetting.cfm" 
+							name="handleUnquotedAttributeValueAsString" 
+							value="#setting.handleUnquotedAttrValueAsString#"
+							access="#hasAccess#"
+							description="#stText.setting.handleUnquotedAttrValueAsStringDesc#"
+							sp=false>
+							<input class="checkbox" type="checkbox" name="handleUnquotedAttributeValueAsString" value="true" <cfif setting.handleUnquotedAttrValueAsString>checked="checked"</cfif> />
+						</cfmodule>
 					</td>
 				</tr>
 

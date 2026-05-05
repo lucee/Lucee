@@ -105,7 +105,7 @@ public final class AIEngineFactory implements PropFactory<AIEngine> {
 	}
 
 	@Override
-	public AIEngine evaluate(Config config, String name, Object val) throws PageException {
+	public AIEngine evaluate(Config config, String name, Object val, short source) throws PageException {
 		try {
 			return getInstance(config, name, Caster.toStruct(val));
 		}

@@ -26,7 +26,7 @@ public class MappingFactory implements PropFactory<Mapping> {
 	}
 
 	@Override
-	public Mapping evaluate(Config config, String name, Object val) throws PageException {
+	public Mapping evaluate(Config config, String name, Object val, short source) throws PageException {
 		try {
 			Struct el = Caster.toStruct(val);
 

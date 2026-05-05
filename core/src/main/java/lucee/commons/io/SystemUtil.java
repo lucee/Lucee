@@ -46,6 +46,7 @@ import java.security.ProtectionDomain;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -67,6 +68,7 @@ import com.jezhumble.javasysmon.JavaSysMon;
 import com.jezhumble.javasysmon.MemoryStats;
 
 import jakarta.servlet.ServletContext;
+import lucee.print;
 import lucee.commons.collection.AccessOrderLimitedSizeMap;
 import lucee.commons.digest.MD5;
 import lucee.commons.io.log.Log;
@@ -104,14 +106,18 @@ import lucee.runtime.functions.other.CreateUniqueId;
 import lucee.runtime.functions.system.ContractPath;
 import lucee.runtime.functions.system.ExpandPath;
 import lucee.runtime.net.http.ReqRspUtil;
+import lucee.runtime.op.CastImpl;
 import lucee.runtime.op.Castable;
 import lucee.runtime.op.Caster;
+import lucee.runtime.op.Decision;
 import lucee.runtime.op.OpUtil;
 import lucee.runtime.op.date.DateCaster;
 import lucee.runtime.osgi.OSGiUtil;
 import lucee.runtime.reflection.Reflector;
 import lucee.runtime.type.Array;
+import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.Collection;
+import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.ObjectWrap;
 import lucee.runtime.type.Query;
@@ -1360,6 +1366,111 @@ public final class SystemUtil {
 		if (value != null) return value;
 
 		return defaultValue;
+	}
+
+	public static Object getSystemPropOrEnvVarObject(String name, String defaultValue) {
+		String simple = getSystemPropOrEnvVar(name, null);
+		if (simple != null) return simple;
+
+		Collection data = _getSystemPropOrEnvVarObject(System.getProperties(), name, '.', null);
+		if (data != null) return data;
+		name = convertSystemPropToEnvVar(name);
+		data = _getSystemPropOrEnvVarObject(System.getenv(), name, '_', null);
+		if (data != null) return data;
+		return defaultValue;
+	}
+
+	private static Collection _getSystemPropOrEnvVarObject(Map<?, ?> props, String name, char separator, Collection defaultValue) {
+
+		String prefix = name + separator;
+
+		// collect matching entries and sort longest key first
+		// so deeper paths (structs) are always built before shallower ones (scalars)
+		List<Map.Entry<?, ?>> matching = new ArrayList<>();
+		for (Map.Entry<?, ?> e: props.entrySet()) {
+			String k = Caster.toString(e.getKey(), null);
+			if (k != null && k.startsWith(prefix)) matching.add(e);
+		}
+		matching.sort((a, b) -> Caster.toString(b.getKey(), "").length() - Caster.toString(a.getKey(), "").length());
+
+		Struct data = new StructImpl(Struct.TYPE_LINKED);
+
+		for (Map.Entry<?, ?> e: matching) {
+			String k = Caster.toString(e.getKey(), null);
+			String[] parts = ListUtil.listToStringArray(k.substring(prefix.length()), separator);
+			Object v = e.getValue();
+			if (v == null) continue;
+
+			Struct current = data;
+			for (int i = 0; i < parts.length - 1; i++) {
+				String part = parts[i];
+				Object existing = current.get(part, null);
+				if (existing instanceof Struct) {
+					current = (Struct) existing;
+				}
+				else {
+					Struct next = new StructImpl(Struct.TYPE_LINKED);
+					// struct wins — no promotion, any existing scalar is dropped
+					current.setEL(part, next);
+					current = next;
+				}
+			}
+			// leaf: if a struct already exists here (built from a deeper key), skip
+			String leaf = parts[parts.length - 1];
+			Object existing = current.get(leaf, null);
+			if (!(existing instanceof Struct)) {
+				current.setEL(leaf, v);
+			}
+		}
+
+		return data.isEmpty() ? defaultValue : toArrayIfNeeded(data);
+	}
+
+	private static Collection toArrayIfNeeded(Struct data) {
+		if (data.isEmpty()) return data;
+		// check if it can be converted to an Array
+		Iterator<Entry<Key, Object>> it = data.entryIterator();
+		Key k;
+		boolean can = true;
+		while (it.hasNext()) {
+			Entry<Key, Object> e = it.next();
+			k = e.getKey();
+			Object v = e.getValue();
+			if (v instanceof Struct) {
+				data.setEL(k, toArrayIfNeeded((Struct) v));
+			}
+
+			if (!Decision.isInteger(k.getString())) {
+				can = false;
+				break;
+			}
+		}
+
+		if (can) {
+			it = data.entryIterator();
+			Array arr = new ArrayImpl(1);
+			while (it.hasNext()) {
+				Entry<Key, Object> e = it.next();
+				arr.setEL(e.getKey(), e.getValue());
+			}
+			return arr;
+		}
+
+		return data;
+	}
+
+	public static void main(String[] args) throws PageException {
+		Map<String, Object> props = new HashMap<>();
+		props.put("test.a", 1);
+		props.put("test.b.cc", 2);
+		props.put("test.b.cc.ddd", 3);
+		props.put("test.b.dd.eee.ffff.ggggg", 5);
+
+		Collection result = _getSystemPropOrEnvVarObject(props, "test", '.', null);
+
+		Struct sct = new StructImpl();
+		sct.set("root", result);
+		print.e(new CastImpl().fromStructToJsonString(sct));
 	}
 
 	public static void addLibraryPathIfNoExist(Resource res, Log log) {

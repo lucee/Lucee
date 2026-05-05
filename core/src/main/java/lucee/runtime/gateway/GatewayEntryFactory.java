@@ -28,7 +28,7 @@ public class GatewayEntryFactory implements PropFactory<GatewayEntry> {
 	}
 
 	@Override
-	public GatewayEntry evaluate(Config config, String name, Object val) throws PageException {
+	public GatewayEntry evaluate(Config config, String name, Object val, short source) throws PageException {
 		// validate input
 		if (StringUtil.isEmpty(name)) {
 			throw new ApplicationException("missing id");

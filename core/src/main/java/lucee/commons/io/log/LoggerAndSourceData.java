@@ -50,6 +50,8 @@ public final class LoggerAndSourceData {
 	private final String id;
 	private boolean dyn;
 
+	private short source;
+
 	public LoggerAndSourceData(Config config, String id, String name, ClassDefinition appender, Map<String, String> appenderArgs, ClassDefinition layout,
 			Map<String, String> layoutArgs, int level, boolean readOnly, boolean dyn) {
 		this.config = config;
@@ -182,6 +184,15 @@ public final class LoggerAndSourceData {
 			e = it.next();
 			sb.append(e.getKey()).append(':').append(e.getValue()).append('|');
 		}
+	}
+
+	public LoggerAndSourceData setSource(short source) {
+		this.source = source;
+		return this;
+	}
+
+	public short getSource() {
+		return source;
 	}
 
 }

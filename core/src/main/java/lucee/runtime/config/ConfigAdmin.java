@@ -2538,41 +2538,6 @@ public final class ConfigAdmin {
 		}
 	}
 
-	public void updateInspectTemplate(String inspectTemplate, int inspectTemplateIntervalSlow, int inspectTemplateIntervalFast) throws SecurityException {
-		checkWriteAccess();
-		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
-
-		if (!hasAccess) throw new SecurityException("no access to update");
-
-		root.setEL("inspectTemplate", inspectTemplate);
-		root.setEL("inspectTemplateIntervalSlow", inspectTemplateIntervalSlow);
-		root.setEL("inspectTemplateIntervalFast", inspectTemplateIntervalFast);
-
-	}
-
-	public void updateTypeChecking(Boolean typeChecking) throws SecurityException {
-		checkWriteAccess();
-		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
-
-		if (!hasAccess) throw new SecurityException("no access to update");
-
-		if (typeChecking == null) rem(root, "typeChecking");
-		else root.setEL("typeChecking", Caster.toString(typeChecking.booleanValue()));
-
-	}
-
-	public void updateCachedAfterTimeRange(TimeSpan ts) throws SecurityException, ApplicationException {
-		checkWriteAccess();
-		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
-		if (!hasAccess) throw new SecurityException("no access to update");
-
-		if (ts == null) rem(root, "cachedAfter");
-		else {
-			if (ts.getMillis() < 0) throw new ApplicationException("value cannot be a negative number");
-			root.setEL("cachedAfter", ts.getDay() + "," + ts.getHour() + "," + ts.getMinute() + "," + ts.getSecond());
-		}
-	}
-
 	/**
 	 * sets the scope cascading type
 	 * 
@@ -2762,67 +2727,6 @@ public final class ConfigAdmin {
 			else rem(el, "limitEvaluation");
 		}
 
-	}
-
-	/**
-	 * updates if debugging or not
-	 * 
-	 * @param debug if value is null server setting is used
-	 * @throws SecurityException
-	 */
-	public void updateDebug(Boolean debug, Boolean template, Boolean database, Boolean exception, Boolean tracing, Boolean dump, Boolean timer, Boolean implicitAccess,
-			Boolean queryUsage, Boolean thread) throws SecurityException {
-		checkWriteAccess();
-		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_DEBUGGING);
-		if (!hasAccess) throw new SecurityException("no access to change debugging settings");
-
-		if (debug != null) root.setEL("debuggingEnabled", debug.booleanValue());
-		else rem(root, "debuggingEnabled");
-
-		if (database != null) root.setEL("debuggingDatabase", database.booleanValue());
-		else rem(root, "debuggingDatabase");
-
-		if (template != null) root.setEL("debuggingTemplate", template.booleanValue());
-		else rem(root, "debuggingTemplate");
-
-		if (exception != null) root.setEL("debuggingException", exception.booleanValue());
-		else rem(root, "debuggingException");
-
-		if (tracing != null) root.setEL("debuggingTracing", tracing.booleanValue());
-		else rem(root, "debuggingTracing");
-
-		if (dump != null) root.setEL("debuggingDump", dump.booleanValue());
-		else rem(root, "debuggingDump");
-
-		if (timer != null) root.setEL("debuggingTimer", timer.booleanValue());
-		else rem(root, "debuggingTimer");
-
-		if (implicitAccess != null) root.setEL("debuggingImplicitAccess", implicitAccess.booleanValue());
-		else rem(root, "debuggingImplicitAccess");
-
-		if (queryUsage != null) root.setEL("debuggingQueryUsage", queryUsage.booleanValue());
-		else rem(root, "debuggingQueryUsage");
-
-		if (thread != null) root.setEL("debuggingThread", thread.booleanValue());
-		else rem(root, "debuggingThread");
-	}
-
-	public void updateMonitoring(Boolean debug, Boolean metric, Boolean doc, Boolean test) throws SecurityException {
-		checkWriteAccess();
-		boolean hasAccess = ConfigUtil.hasAccess(config, SecurityManager.TYPE_DEBUGGING);
-		if (!hasAccess) throw new SecurityException("no access to change monitoring settings");
-
-		if (debug != null) root.setEL("showDebug", debug.booleanValue());
-		else rem(root, "showDebug");
-
-		if (metric != null) root.setEL("showMetric", metric.booleanValue());
-		else rem(root, "showMetric");
-
-		if (doc != null) root.setEL("showDoc", doc.booleanValue());
-		else rem(root, "showDoc");
-
-		if (test != null) root.setEL("showTest", test.booleanValue());
-		else rem(root, "showTest");
 	}
 
 	private Struct _getRootElement(String name) {
@@ -5343,12 +5247,6 @@ public final class ConfigAdmin {
 		}
 	}
 
-	public void updateLoginSettings(boolean captcha, boolean rememberMe, int delay) {
-		root.setEL("loginCaptcha", captcha);
-		root.setEL("loginRememberme", rememberMe);
-		root.setEL("loginDelay", delay);
-	}
-
 	public void updateLogSettings(String name, int level, ClassDefinition appenderCD, Struct appenderArgs, ClassDefinition layoutCD, Struct layoutArgs) throws PageException {
 		checkWriteAccess();
 
@@ -5396,18 +5294,12 @@ public final class ConfigAdmin {
 		if (el.containsKey("layout")) rem(el, "layout");
 	}
 
-	public void updateCompilerSettings(Boolean dotNotationUpperCase, Boolean suppressWSBeforeArg, Boolean nullSupport, Boolean handleUnQuotedAttrValueAsString,
-			Integer externalizeStringGTE, Boolean preciseMath) throws PageException {
+	public void updateCompilerSettings(Boolean suppressWSBeforeArg, Boolean nullSupport, Boolean handleUnQuotedAttrValueAsString, Integer externalizeStringGTE, Boolean preciseMath)
+			throws PageException {
 
 		// Struct element = _getRootElement("compiler");
 
 		checkWriteAccess();
-		if (dotNotationUpperCase == null) {
-			if (root.containsKey("dotNotationUpperCase")) rem(root, "dotNotationUpperCase");
-		}
-		else {
-			root.setEL("dotNotationUpperCase", dotNotationUpperCase);
-		}
 
 		if (suppressWSBeforeArg == null) {
 			if (root.containsKey("suppressWhitespaceBeforeArgument")) rem(root, "suppressWhitespaceBeforeArgument");
@@ -6078,15 +5970,4 @@ public final class ConfigAdmin {
 		}
 	}
 
-	public void updateRequestTimeout(Struct data) throws PageException {
-		ConfigServerImpl.metaRequestTimeout.write(config, data);
-	}
-
-	public void updateScriptProtect(Struct data) throws PageException {
-		ConfigServerImpl.metaScriptProtect.write(config, data);
-	}
-
-	public void updateAllowURLRequestTimeout(Struct data) throws PageException {
-		ConfigServerImpl.metaAllowURLRequestTimeout.write(config, data);
-	}
 }

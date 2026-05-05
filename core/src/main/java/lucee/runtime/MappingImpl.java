@@ -111,6 +111,8 @@ public final class MappingImpl implements Mapping {
 
 	private Log log;
 
+	private short source = 0;
+
 	public MappingImpl(Config config, String virtual, String strPhysical, String strArchive, short inspect, int inspectTemplateAutoIntervalSlow,
 			int inspectTemplateAutoIntervalFast, boolean physicalFirst, boolean hidden, boolean readonly, boolean topLevel, boolean appMapping, boolean ignoreVirtual,
 			ApplicationListener appListener, int listenerMode, int listenerType) {
@@ -733,5 +735,14 @@ public final class MappingImpl implements Mapping {
 		catch (Exception e) {
 			throw Caster.toPageRuntimeException(e);
 		}
+	}
+
+	public MappingImpl setSource(short source) {
+		this.source = source;
+		return this;
+	}
+
+	public short getSource() {
+		return source;
 	}
 }

@@ -37,7 +37,7 @@ public class ClassDefinitionFactory implements PropFactory<ClassDefinition> {
 	}
 
 	@Override
-	public ClassDefinition evaluate(Config config, String name, Object val) throws PageException {
+	public ClassDefinition evaluate(Config config, String name, Object val, short source) throws PageException {
 		Struct cache = Caster.toStruct(val);
 		ClassDefinitionImpl cd = (ClassDefinitionImpl) ConfigFactoryImpl.getClassDefinition(config, cache, prefix, config.getIdentification());
 		return cd;

@@ -140,7 +140,12 @@ Create Datasource --->
 				<tr>
 					<th scope="row">#stText.Regional.Locale#</th>
 					<td>
-						<cfif hasAccess>
+						<cfmodule template="systemSetting.cfm" 
+							name="locale" 
+							value="#regional.locale#"
+							access="#hasAccess#"
+							description="#stText.Regional.LocaleDescription#"
+							br=true>
 							<cfset hasFound=false>
 							<cfset keys=structSort(locales,'textnocase')>
 							<select name="locale" class="large">
@@ -148,22 +153,18 @@ Create Datasource --->
 								 ---><cfloop collection="#keys#" item="i"><cfset key=keys[i]><option value="#key#" <cfif key EQ regional.locale>selected<cfset hasFound=true></cfif>>#locales[key]#</option><!--- 
 								 ---></cfloop>
 							</select>
-							<!--- <input type="text" name="locale_other" value="<cfif not hasFound>#regional.locale#</cfif>" style="width:200px"> --->
-						<cfelse>
-							<b>#regional.locale#</b>
-						</cfif>
-						<div class="comment">#stText.Regional.LocaleDescription#</div>
-
-						<cfsavecontent variable="codeSample">
-							this.locale = "#regional.locale#";
-						</cfsavecontent>
-						<cfset renderCodingTip( codeSample )>
+						</cfmodule>
 					</td>
 				</tr>
 				<tr>
 					<th scope="row">#stText.Regional.TimeZone#</th>
 					<td>
-						<cfif hasAccess>
+						<cfmodule template="systemSetting.cfm" 
+							name="timezone" 
+							value="#regional.timezone#"
+							access="#hasAccess#"
+							description="#stText.Regional.TimeZoneDescription#"
+							br=true>
 							<select name="timezone" class="large">
 								<option selected value=""> --- #stText.Regional.ServerProp[request.adminType]# --- </option>
 								<cfoutput query="timezones">
@@ -172,16 +173,7 @@ Create Datasource --->
 									#timezones.id# - #timezones.display#</option>
 								</cfoutput>
 							</select>
-						<cfelse>
-							<b>#regional.timezone#</b>
-						</cfif>
-						<!--- <cfinputClassic type="text" name="timezone" value="#config.timezone.getId()#" style="width:200px" required="yes" message="Missing value for timezone"> --->
-						<div class="comment">#stText.Regional.TimeZoneDescription#</div>
-						
-						<cfsavecontent variable="codeSample">
-							this.timezone = "#regional.timezone#";
-						</cfsavecontent>
-						<cfset renderCodingTip( codeSample )>
+						</cfmodule>
 					</td>
 				</tr>
 				<cfif hasAccess>

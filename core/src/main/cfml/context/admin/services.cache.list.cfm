@@ -171,6 +171,11 @@ Redirtect to entry --->
 	<cfif srcLocal.recordcount and access EQ "yes">
 		<h2>#stText.Settings.cache.titleExisting#</h2>
 		<div class="itemintro">#stText.Settings.cache.descExisting#</div>
+		<cfset renderSettings("caches",{columns:[
+			"name",
+			"class","bundleName","bundleVersion","maven","component",
+			"custom","readOnly","storage"
+			], value:removeCoreBundle(srcLocal)} )>
 		<cfformClassic onerror="customError" action="#request.self#?action=#url.action#" method="post">
 			<table class="maintbl checkboxtbl">
 				<thead>
@@ -259,11 +264,17 @@ function defaultValue(field) {
 							<td>
 								<select name="default_#type#" class="small" onchange="defaultValue(this);">
 									<option value="">------</option>
+									<cfset val="">
 									<cfloop query="connections">
-										<option value="#connections.name#" <cfif connections.default EQ type><cfset defaults[type]=connections.name>selected="selected"</cfif>>#connections.name#</option>
+										<option value="#connections.name#" <cfif connections.default EQ type><cfset defaults[type]=connections.name><cfset val=connections.name>selected="selected"</cfif>>#connections.name#</option>
 									</cfloop>
 								</select>
 								<div class="comment">#stText.Settings.cache['defaulttype' &type& 'Desc']#</div>
+<cfsavecontent variable="codeSample">
+this.cache.#type# = "#val#";	
+</cfsavecontent>
+								<cfset renderCodingTip( codeSample )>
+								
 							</td>
 						</tr>
 					</cfloop>
@@ -292,7 +303,7 @@ this.cache.http = "#!hasHTT?"&lt;cache-name>":defaults.http#";
 this.cache.file = "#!hasFil?"&lt;cache-name>":defaults.file#";	
 this.cache.webservice = "#!hasWSe?"&lt;cache-name>":defaults.webservice#";	
 </cfsavecontent>
-<cfset renderCodingTip( codeSample )>
+<!--- <cfset renderCodingTip( codeSample )> --->
 
 						</td>
 						</tr>

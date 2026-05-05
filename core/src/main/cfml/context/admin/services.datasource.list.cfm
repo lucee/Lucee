@@ -108,6 +108,7 @@ Error Output --->
 							<b>#yesNoFormat(dbSetting.psq)#</b>
 						</cfif>
 						<div class="comment">#stText.Settings.PreserveSingleQuotesDescription#</div>
+						<cfset renderSettings("preserveSingleQuote",dbSetting.psq )>
 					</td>
 				</tr>
 				<cfif access NEQ 0>

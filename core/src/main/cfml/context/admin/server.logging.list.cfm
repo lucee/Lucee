@@ -17,8 +17,17 @@
 				</cfif>
 			</cfloop>
 		</cfcase>
+		<cfcase value="#stText.Buttons.update#">
+			<cfadmin 
+					action="updateMainLog"
+					type="#request.adminType#"
+					password="#session["password"&request.adminType]#"
+					mainLogger="#form.mainLog#">
+			
+		</cfcase>
+
 	</cfswitch>
-	<cfcatch>
+	<cfcatch><cfrethrow>
 		<cfset error.message=cfcatch.message>
 		<cfset error.detail=cfcatch.Detail>
 	</cfcatch>
@@ -108,6 +117,13 @@ Redirtect to entry --->
 	<cfif logs.recordcount and hasReadable>
 		<h2>#stText.Settings.logging.title#</h2>
 		<div class="itemintro">#stText.Settings.logging.desc#</div>
+
+		<cfset renderSettings("loggers",{columns:[
+			"name","level","readOnly"
+			,"appenderClass","appenderArgs","appenderBundleName","appenderBundleVersion","appenderMaven","appenderComponent"
+			,"layoutClass","layoutArgs","layoutBundleName","layoutBundleVersion","layoutMaven","layoutComponent"
+		], value:removeCoreBundle(logs)} )>
+		
 		<cfformClassic onerror="customError" action="#request.self#?action=#url.action#" method="post">
 			<table class="maintbl checkboxtbl">
 				<thead>
@@ -137,7 +153,15 @@ Redirtect to entry --->
 							<td><cfif showLayout>#isNull(layout)?listLast(logs.layoutClass,'.'):layout.getLabel()#<cfelse>&nbsp;</cfif></td>
 							<td>#logs.level#</td>
 							<td>
-								<cfif !isNull(appender)><a href="#request.self#?action=#url.action#&action2=create&name=#Hash(logs.name)#" >Edit</a></cfif>
+								<cfif logs.readOnly>
+									#lockedReadOnly()#
+								<cfelseif logs.source EQ "sysprop_envvar">
+									#lockedSysOpEnvVar()#
+								<cfelseif !isNull(appender)>
+									#renderEditButton("#request.self#?action=#url.action#&action2=create&name=#Hash(logs.name)#")#
+								</cfif>
+
+
 							</td>
 						</tr>
 					</cfloop>
@@ -167,20 +191,55 @@ function defaultValue(field) {
 }
 </script>
 
-<!--- Main Logger --->
+
 <cfoutput>
+	<cfset hasAccess=true>
 	<h2>#stText.Settings.logging.main#</h2>
-	<table class="maintbl">
-		<tbody>
-			<tr>
-				<td>
-					<div class="comment">#stText.Settings.logging.mainDesc#</div>
-					<cfset renderSysPropEnvVar( name:"lucee.logging.main",defaultValue:"")>
-				</td>
-			</tr>
-		</tbody>
-	</table>   
+	<cfformClassic onerror="customError" action="#request.self#?action=#url.action#" method="post">
+		<table class="maintbl">
+			<tbody>
+				<tr>
+					<td>
+						<cfmodule template="systemSetting.cfm"
+							name="mainLogger" 
+							value="#mainLog?:""#"
+							access="#hasAccess#"
+							description="#stText.Settings.logging.mainDesc?:""#"
+							br=true
+							sp=false
+							descOnTop=true>
+						
+							<select name="mainLog" class="large">
+								<cfoutput query="logs">
+									<option value="#logs.name#"
+									<cfif logs.name EQ mainLog?:"">selected</cfif>>
+									#logs.name#</option>
+								</cfoutput>
+							</select>
+						</cfmodule>
+					</td>
+				</tr>
+
+			</tbody>
+		
+				<tfoot>
+					<tr>
+						<td colspan="2">
+							<input class="bl button submit" type="submit" name="mainAction" value="#stText.Buttons.Update#">
+							<input class="<cfif request.adminType EQ "web">bm<cfelse>br</cfif> button reset" type="reset" name="cancel" value="#stText.Buttons.Cancel#">
+							<cfif not request.singleMode and request.adminType EQ "web"><input class="br button submit" type="submit" name="mainAction" value="#stText.Buttons.resetServerAdmin#"></cfif>
+						</td>
+					</tr>
+				</tfoot>
+
+		</table>
+	</cfformClassic>
 </cfoutput>
+
+
+
+
+
 
 
 

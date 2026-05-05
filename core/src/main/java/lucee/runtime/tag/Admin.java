@@ -108,6 +108,7 @@ import lucee.runtime.config.DeployHandler;
 import lucee.runtime.config.Identification;
 import lucee.runtime.config.Password;
 import lucee.runtime.config.PasswordImpl;
+import lucee.runtime.config.Prop;
 import lucee.runtime.config.RemoteClient;
 import lucee.runtime.config.RemoteClientImpl;
 import lucee.runtime.config.ResetFilter;
@@ -682,12 +683,26 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		else if (check("updateFilesystem", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateFilesystem();
 		else if (check("updateregional", ACCESS_FREE) && check2(ACCESS_WRITE)) {
 			try {
+				admin.checkWriteAccess();
 				ConfigServerImpl.metaLocale.write(configServer, attributes);
 				ConfigServerImpl.metaTimeZone.write(configServer, attributes);
 			}
 			finally {
 				store();
 				ConfigUtil.getConfigServerImpl(config).resetLocale().resetTimeZone();
+			}
+		}
+		else if (check("getMainLog", ACCESS_FREE) && check2(ACCESS_READ)) {
+			pageContext.setVariable(getString("admin", action, "returnVariable"), config.getMainLogger());
+		}
+		else if (check("updateMainLog", ACCESS_FREE) && check2(ACCESS_WRITE)) {
+			try {
+				admin.checkWriteAccess();
+				ConfigServerImpl.metaMainLoggerName.write(configServer, attributes);
+			}
+			finally {
+				store();
+				ConfigUtil.getConfigServerImpl(config).resetMainLogger();
 			}
 		}
 		else if (check("updateApplicationListener", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateApplicationListener();
@@ -738,11 +753,20 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		else if (check("removeRestMapping", ACCESS_FREE) && check2(ACCESS_WRITE)) doRemoveRestMapping();
 		else if (check("updateApplicationSetting", ACCESS_FREE) && check2(ACCESS_WRITE)) {
 			admin.checkWriteAccess();
-			admin.updateRequestTimeout(attributes);
-			admin.updateScriptProtect(attributes);
-			admin.updateAllowURLRequestTimeout(attributes);
+
+			ConfigServerImpl.metaRequestTimeoutOld.write(configServer, new StructImpl());
+			ConfigServerImpl.metaRequestTimeoutNew.write(configServer, attributes);
+
+			ConfigServerImpl.metaRequestTimeoutConcurrentRequestThreshold.write(configServer, attributes);
+			ConfigServerImpl.metaRequestTimeoutCPUThreshold.write(configServer, attributes);
+			ConfigServerImpl.metaRequestTimeoutMemorythreshold.write(configServer, attributes);
+
+			ConfigServerImpl.metaScriptProtect.write(configServer, attributes);
+			ConfigServerImpl.metaAllowURLRequestTimeout.write(configServer, attributes);
 			store();
-			ConfigUtil.getConfigServerImpl(config).resetAllowURLRequestTimeout().resetRequestTimeout().resetScriptProtect();
+			ConfigUtil.getConfigServerImpl(config).resetAllowURLRequestTimeout().resetScriptProtect()
+
+					.resetRequestTimeout().resetRequestTimeoutConcurrentRequestThreshold().resetRequestTimeoutCPUThreshold().resetRequestTimeoutMemoryThreshold();
 		}
 		else if (check("updateOutputSetting", ACCESS_FREE) && check2(ACCESS_WRITE)) {
 			admin.checkWriteAccess();
@@ -1906,22 +1930,33 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	 * 
 	 */
 	private void doUpdateDebug() throws PageException {
-		admin.updateDebug(Caster.toBoolean(getString("debug", ""), null), Caster.toBoolean(getString("template", ""), null), Caster.toBoolean(getString("database", ""), null),
-				Caster.toBoolean(getString("exception", ""), null), Caster.toBoolean(getString("tracing", ""), null), Caster.toBoolean(getString("dump", ""), null),
-				Caster.toBoolean(getString("timer", ""), null), Caster.toBoolean(getString("implicitAccess", ""), null), Caster.toBoolean(getString("queryUsage", ""), null),
-				Caster.toBoolean(getString("thread", ""), null));
 
-		// TODO?admin.updateDebugTemplate(getString("admin", action, "debugTemplate"));
+		admin.checkWriteAccess();
+
+		ConfigServerImpl.metaDebugOptionsDatabase.write(configServer, attributes);
+		ConfigServerImpl.metaDebugOptionsTemplate.write(configServer, attributes);
+		ConfigServerImpl.metaDebugOptionsException.write(configServer, attributes);
+		ConfigServerImpl.metaDebugOptionsTracing.write(configServer, attributes);
+		ConfigServerImpl.metaDebugOptionsDump.write(configServer, attributes);
+		ConfigServerImpl.metaDebugOptionsTimer.write(configServer, attributes);
+		ConfigServerImpl.metaDebugOptionsImplicitAccess.write(configServer, attributes);
+		ConfigServerImpl.metaDebugOptionsQueryUsage.write(configServer, attributes);
+		ConfigServerImpl.metaDebugOptionsThread.write(configServer, attributes);
+
 		store();
 		ConfigUtil.getConfigServerImpl(config).resetDebugOptions();
 
 	}
 
 	private void doUpdateMonitoring() throws PageException {
-		admin.updateMonitoring(Caster.toBoolean(getString("debug", ""), null), Caster.toBoolean(getString("metric", ""), null), Caster.toBoolean(getString("doc", ""), null),
-				Caster.toBoolean(getString("test", ""), null));
 
-		// TODO?admin.updateDebugTemplate(getString("admin", action, "debugTemplate"));
+		admin.checkWriteAccess();
+
+		ConfigServerImpl.metaShowDebug.write(configServer, attributes);
+		ConfigServerImpl.metaShowMetric.write(configServer, attributes);
+		ConfigServerImpl.metaShowDoc.write(configServer, attributes);
+		ConfigServerImpl.metaShowTest.write(configServer, attributes);
+
 		store();
 		ConfigUtil.getConfigServerImpl(config).resetShowDebug().resetShowTest().resetShowMetric().resetShowDoc();
 
@@ -2110,7 +2145,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	private void doGetCustomTagMappings() throws PageException {
 		Mapping[] mappings = config.getCustomTagMappings();
 		lucee.runtime.type.Query qry = new QueryImpl(new String[] { "archive", "strarchive", "physical", "strphysical", "virtual", "hidden", "physicalFirst", "readonly", "inspect",
-				"inspectTemplateIntervalSlow", "inspectTemplateIntervalFast" }, mappings.length, "query");
+				"inspectTemplateIntervalSlow", "inspectTemplateIntervalFast", "source" }, mappings.length, "query");
 
 		for (int i = 0; i < mappings.length; i++) {
 			MappingImpl m = (MappingImpl) mappings[i];
@@ -2126,6 +2161,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			qry.setAt("inspect", row, ConfigUtil.inspectTemplate(m.getInspectTemplateRaw(), ""));
 			qry.setAt("inspectTemplateIntervalSlow", row, m.getInspectTemplateAutoInterval(true));
 			qry.setAt("inspectTemplateIntervalFast", row, m.getInspectTemplateAutoInterval(false));
+			qry.setAt("source", row, Prop.toSource(m.getSource(), ""));
 		}
 		pageContext.setVariable(getString("admin", action, "returnVariable"), qry);
 	}
@@ -2133,7 +2169,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	private void doGetComponentMappings() throws PageException {
 		Mapping[] mappings = config.getComponentMappings();
 		lucee.runtime.type.Query qry = new QueryImpl(new String[] { "archive", "strarchive", "physical", "strphysical", "virtual", "hidden", "physicalFirst", "readonly", "inspect",
-				"inspectTemplateIntervalSlow", "inspectTemplateIntervalFast" }, mappings.length, "query");
+				"inspectTemplateIntervalSlow", "inspectTemplateIntervalFast", "source" }, mappings.length, "query");
 
 		for (int i = 0; i < mappings.length; i++) {
 			MappingImpl m = (MappingImpl) mappings[i];
@@ -2149,6 +2185,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			qry.setAt("inspect", row, ConfigUtil.inspectTemplate(m.getInspectTemplateRaw(), ""));
 			qry.setAt("inspectTemplateIntervalSlow", row, m.getInspectTemplateAutoInterval(true));
 			qry.setAt("inspectTemplateIntervalFast", row, m.getInspectTemplateAutoInterval(false));
+			qry.setAt("source", row, Prop.toSource(m.getSource(), ""));
 		}
 		pageContext.setVariable(getString("admin", action, "returnVariable"), qry);
 	}
@@ -2223,6 +2260,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			sct.set("inspectTemplateIntervalSlow", m.getInspectTemplateAutoInterval(true));
 			sct.set("inspectTemplateIntervalFast", m.getInspectTemplateAutoInterval(false));
 			sct.set("toplevel", Caster.toBoolean(m.isTopLevel()));
+			sct.set("source", Prop.toSource(m.getSource(), ""));
 
 			pageContext.setVariable(getString("admin", action, "returnVariable"), sct);
 			return;
@@ -2242,7 +2280,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 		Mapping[] mappings = config.getMappings();
 		lucee.runtime.type.Query qry = new QueryImpl(new String[] { "archive", "strarchive", "physical", "strphysical", "virtual", "hidden", "physicalFirst", "readonly", "inspect",
-				"inspectTemplateIntervalSlow", "inspectTemplateIntervalFast", "toplevel", "listenerType", "listenerMode" }, mappings.length, "query");
+				"inspectTemplateIntervalSlow", "inspectTemplateIntervalFast", "toplevel", "listenerType", "listenerMode", "source" }, mappings.length, "query");
 
 		for (int i = 0; i < mappings.length; i++) {
 			MappingImpl m = (MappingImpl) mappings[i];
@@ -2261,6 +2299,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			qry.setAt("toplevel", row, Caster.toBoolean(m.isTopLevel()));
 			qry.setAt("listenerType", row, ConfigUtil.toListenerType(m.getListenerType(), "inherit"));
 			qry.setAt("listenerMode", row, ConfigUtil.toListenerMode(m.getListenerMode(), "inherit"));
+			qry.setAt("source", row, Prop.toSource(m.getSource(), ""));
 		}
 		pageContext.setVariable(getString("admin", action, "returnVariable"), qry);
 	}
@@ -3162,18 +3201,13 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	}
 
 	private void doUpdatePerformanceSettings() throws SecurityException, PageException {
+		admin.checkWriteAccess();
 
-		admin.updateInspectTemplate(getString("admin", action, "inspectTemplate"), getInt("inspectTemplateIntervalSlow", ConfigPro.INSPECT_INTERVAL_UNDEFINED),
-				getInt("inspectTemplateIntervalFast", ConfigPro.INSPECT_INTERVAL_UNDEFINED));
-
-		admin.updateTypeChecking(getBoolObject("admin", action, "typeChecking"));
-
-		// cached after
-		Object obj = getObject("cachedAfter", null);
-		if (StringUtil.isEmpty(obj)) obj = null;
-
-		if (obj != null) admin.updateCachedAfterTimeRange(Caster.toTimeSpan(obj));
-		else admin.updateCachedAfterTimeRange(null);
+		ConfigServerImpl.metaInspectTemplate.write(configServer, attributes);
+		ConfigServerImpl.metaInspectTemplateAutoIntervalSlow.write(configServer, attributes);
+		ConfigServerImpl.metaInspectTemplateAutoIntervalFast.write(configServer, attributes);
+		ConfigServerImpl.metaTypeChecking.write(configServer, attributes);
+		ConfigServerImpl.metaCachedAfterTimeRange.write(configServer, attributes);
 
 		store();
 		ConfigUtil.getConfigServerImpl(config).resetInspectTemplate().resetInspectTemplateAutoInterval().resetTypeChecking().resetCachedAfterTimeRange();
@@ -3181,8 +3215,11 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	}
 
 	private void doUpdateCompilerSettings() throws SecurityException, PageException {
-		admin.updateCompilerSettings(getBoolObject("admin", "UpdateCompilerSettings", "dotNotationUpperCase"),
-				getBoolObject("admin", "UpdateCompilerSettings", "suppressWSBeforeArg"), getBoolObject("admin", "UpdateCompilerSettings", "nullSupport"),
+		admin.checkWriteAccess();
+
+		ConfigServerImpl.metaPreserveCase.write(configServer, attributes);
+
+		admin.updateCompilerSettings(getBoolObject("admin", "UpdateCompilerSettings", "suppressWSBeforeArg"), getBoolObject("admin", "UpdateCompilerSettings", "nullSupport"),
 				getBoolObject("admin", "UpdateCompilerSettings", "handleUnquotedAttrValueAsString"), getInteger("admin", "UpdateCompilerSettings", "externalizeStringGTE"),
 				getBoolObject("admin", "UpdateCompilerSettings", "preciseMath"));
 		admin.updateTemplateCharset(getString("admin", action, "templateCharset"));
@@ -3239,7 +3276,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		// TODO no longer go via getLoggers
 		Map<String, LoggerAndSourceData> loggers = ConfigUtil.getConfigServerImpl(config).getLoggers();
 		Query qry = new QueryImpl(new String[] { "name", "level", "appenderClass", "appenderBundleName", "appenderBundleVersion", "appenderArgs", "layoutClass", "layoutBundleName",
-				"layoutBundleVersion", "layoutArgs", "readonly" }, 0, lucee.runtime.type.util.ListUtil.last("logs", '.'));
+				"layoutBundleVersion", "layoutArgs", "readonly", "source" }, 0, lucee.runtime.type.util.ListUtil.last("logs", '.'));
 		int row = 0;
 		Iterator<Entry<String, LoggerAndSourceData>> it = loggers.entrySet().iterator();
 		Entry<String, LoggerAndSourceData> e;
@@ -3263,6 +3300,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 			qry.setAtEL("layoutArgs", row, toStruct(logger.getLayoutArgs(true)));
 			qry.setAtEL("readonly", row, logger.getReadOnly());
+			qry.setAtEL("source", row, Prop.toSource(logger.getSource(), ""));
 		}
 		return qry;
 	}
@@ -4475,6 +4513,10 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		// AllowURLRequestTimeout
 		sct.set("AllowURLRequestTimeout", Caster.toBoolean(config.isAllowURLRequestTimeout()));
 
+		sct.set("RequestTimeoutConcurrentRequestThreshold", Caster.toDouble(config.getRequestTimeoutConcurrentRequestThreshold()));
+		sct.set("RequestTimeoutCPUThreshold", Caster.toDouble(config.getRequestTimeoutCPUThreshold()));
+		sct.set("RequestTimeoutMemoryThreshold", Caster.toDouble(config.getRequestTimeoutMemoryThreshold()));
+
 	}
 
 	private void doGetQueueSetting() throws PageException {
@@ -4704,10 +4746,13 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	}
 
 	private void doUpdateLoginSettings() throws PageException {
-		boolean rememberMe = getBool("admin", "UpdateLoginSettings", "rememberme");
-		boolean captcha = getBool("admin", "UpdateLoginSettings", "captcha");
-		int delay = getInt("admin", "UpdateLoginSettings", "delay");
-		admin.updateLoginSettings(captcha, rememberMe, delay);
+
+		admin.checkWriteAccess();
+
+		ConfigServerImpl.metaCaptcha.write(configServer, attributes);
+		ConfigServerImpl.metaLoginDelay.write(configServer, attributes);
+		ConfigServerImpl.metaRememberMe.write(configServer, attributes);
+
 		store();
 		ConfigUtil.getConfigServerImpl(config).resetLoginDelay().resetLoginCaptcha().resetRememberMe();
 	}

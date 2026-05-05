@@ -52,6 +52,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Version;
 
+import lucee.print;
 import lucee.commons.collection.LinkedHashMapMaxSize;
 import lucee.commons.collection.MapFactory;
 import lucee.commons.date.TimeZoneConstants;
@@ -430,47 +431,49 @@ public final class ConfigServerImpl implements ConfigServerPro {
 	private Boolean debuggingLogOutput;
 
 	// debug options
-	private static Prop<Boolean> metaDebugOptionsDatabase = Prop.bool().keys("debuggingDatabase", "debuggingShowDatabase").systemPropEnvVar("lucee.monitoring.debuggingDatabase")
-			.defaultValue(false).access(SecurityManager.TYPE_DEBUGGING)
+	public final static Prop<Boolean> metaDebugOptionsDatabase = Prop.bool().parent("monitoring").keys("debuggingDatabase", "debuggingShowDatabase")
+			.systemPropEnvVar("lucee.monitoring.debuggingDatabase").defaultValue(false).access(SecurityManager.TYPE_DEBUGGING)
 			.description("Select this option to log the database activity for the SQL Query events and Stored Procedure events.");
 	private Boolean debuggingDatabase;
 
-	private static Prop<Boolean> metaDebugOptionsException = Prop.bool().keys("debuggingException", "debuggingShowException")
+	public final static Prop<Boolean> metaDebugOptionsException = Prop.bool().parent("monitoring").keys("debuggingException", "debuggingShowException")
 			.systemPropEnvVar("lucee.monitoring.debuggingException").defaultValue(false).access(SecurityManager.TYPE_DEBUGGING)
 			.description("Select this option to log all exceptions raised for the request.");
 	private Boolean debuggingException;
 
-	private static Prop<Boolean> metaDebugOptionsTemplate = Prop.bool().keys("debuggingTemplate", "debuggingShowTemplate").systemPropEnvVar("lucee.monitoring.debuggingTemplate")
-			.defaultValue(false).access(SecurityManager.TYPE_DEBUGGING).description("Select this option log template activity for all cfm and cfc templates.");
+	public final static Prop<Boolean> metaDebugOptionsTemplate = Prop.bool().parent("monitoring").keys("debuggingTemplate", "debuggingShowTemplate")
+			.systemPropEnvVar("lucee.monitoring.debuggingTemplate").defaultValue(false).access(SecurityManager.TYPE_DEBUGGING)
+			.description("Select this option log template activity for all cfm and cfc templates.");
 	private Boolean debuggingTemplate;
 
-	private static Prop<Boolean> metaDebugOptionsDump = Prop.bool().keys("debuggingDump", "debuggingShowDump").systemPropEnvVar("lucee.monitoring.debuggingDump")
-			.defaultValue(false).access(SecurityManager.TYPE_DEBUGGING)
+	public final static Prop<Boolean> metaDebugOptionsDump = Prop.bool().parent("monitoring").keys("debuggingDump", "debuggingShowDump")
+			.systemPropEnvVar("lucee.monitoring.debuggingDump").defaultValue(false).access(SecurityManager.TYPE_DEBUGGING)
 			.description("Select this option to enable output produced with help of the tag cfdump and send to debugging.");
 	private Boolean debuggingDump;
 
-	private static Prop<Boolean> metaDebugOptionsTracing = Prop.bool().keys("debuggingTracing", "debuggingShowTracing", "debuggingShowTrace")
+	public final static Prop<Boolean> metaDebugOptionsTracing = Prop.bool().parent("monitoring").keys("debuggingTracing", "debuggingShowTracing", "debuggingShowTrace")
 			.systemPropEnvVar("lucee.monitoring.debuggingTracing").defaultValue(false).access(SecurityManager.TYPE_DEBUGGING)
 			.description("Select this option to log trace event information. Tracing lets a developer track program flow and efficiency through the use of the CFTRACE tag.");
 	private Boolean debuggingTracing;
 
-	private static Prop<Boolean> metaDebugOptionsTimer = Prop.bool().keys("debuggingTimer", "debuggingShowTimer").systemPropEnvVar("lucee.monitoring.debuggingTimer")
-			.defaultValue(false).access(SecurityManager.TYPE_DEBUGGING).description(
+	public final static Prop<Boolean> metaDebugOptionsTimer = Prop.bool().parent("monitoring").keys("debuggingTimer", "debuggingShowTimer")
+			.systemPropEnvVar("lucee.monitoring.debuggingTimer").defaultValue(false).access(SecurityManager.TYPE_DEBUGGING).description(
 					"Select this option to show timer event information. Timers let a developer track the execution time of the code between the start and end tags of the CFTIMER tag.");
 	private Boolean debuggingTimer;
 
-	private static Prop<Boolean> metaDebugOptionsImplicitAccess = Prop.bool().keys("debuggingImplicitAccess", "debuggingImplicitVariableAccess", "debuggingShowImplicitAccess")
-			.systemPropEnvVar("lucee.monitoring.debuggingImplicitAccess").defaultValue(false).access(SecurityManager.TYPE_DEBUGGING)
+	public final static Prop<Boolean> metaDebugOptionsImplicitAccess = Prop.bool().parent("monitoring")
+			.keys("debuggingImplicitAccess", "debuggingImplicitVariableAccess", "debuggingShowImplicitAccess").systemPropEnvVar("lucee.monitoring.debuggingImplicitAccess")
+			.defaultValue(false).access(SecurityManager.TYPE_DEBUGGING)
 			.description("Select this option to log all accesses to scopes, queries and threads that happens implicit (cascaded).");
 	private Boolean debuggingImplicitAccess;
 
-	private static Prop<Boolean> metaDebugOptionsQueryUsage = Prop.bool().keys("debuggingQueryUsage", "debuggingShowQueryUsage")
+	public final static Prop<Boolean> metaDebugOptionsQueryUsage = Prop.bool().parent("monitoring").keys("debuggingQueryUsage", "debuggingShowQueryUsage")
 			.systemPropEnvVar("lucee.monitoring.debuggingQueryUsage").defaultValue(false).access(SecurityManager.TYPE_DEBUGGING)
 			.description("Select this option to also log query usage.");
 	private Boolean debuggingQueryUsage;
 
-	private static Prop<Boolean> metaDebugOptionsThread = Prop.bool().keys("debuggingThread", "debuggingShowThread").systemPropEnvVar("lucee.monitoring.debuggingThread")
-			.defaultValue(false).access(SecurityManager.TYPE_DEBUGGING).description("Select this option to also log threads.");
+	public final static Prop<Boolean> metaDebugOptionsThread = Prop.bool().parent("monitoring").keys("debuggingThread", "debuggingShowThread")
+			.systemPropEnvVar("lucee.monitoring.debuggingThread").defaultValue(false).access(SecurityManager.TYPE_DEBUGGING).description("Select this option to also log threads.");
 	private Boolean debuggingThread;
 
 	public final static Prop<Boolean> metaSuppressContent = Prop.bool().keys("suppressContent").defaultValue(false)
@@ -499,9 +502,25 @@ public final class ConfigServerImpl implements ConfigServerPro {
 			.description("Sets the amount of time Lucee will keep the application scope alive. This behaviour can be overridden by the tag cfapplication.");
 	private TimeSpan applicationTimeout;
 
-	public final static Prop<TimeSpan> metaRequestTimeout = Prop.timespan().keys("requestTimeout").systemPropEnvVar("lucee.request.timeout")
-			.defaultValue(new TimeSpanImpl(0, 0, 0, 50)).description("Defines how Lucee handles long running requests.");
+	public final static Prop<TimeSpan> metaRequestTimeoutOld = Prop.timespan().keys("requestTimeout").systemPropEnvVar("lucee.request.timeout").hidden()
+			.defaultValue(new TimeSpanImpl(0, 0, 0, 0)).description("Defines how Lucee handles long running requests.");
+
+	public final static Prop<TimeSpan> metaRequestTimeoutNew = Prop.timespan().parent("requestTimeout").keys("span", "value").defaultValue(new TimeSpanImpl(0, 0, 0, 50))
+			.description("Defines how Lucee handles long running requests.");
 	private TimeSpan requestTimeout;
+
+	public final static Prop<Float> metaRequestTimeoutMemorythreshold = Prop.procentage().parent("requestTimeout").keys("memorythreshold").defaultValue(0f).description("	\n"
+			+ "This setting permits the establishment of a memory usage threshold, guiding Lucee on when to begin enforcing request timeouts based on the system's current memory consumption. The threshold value is a float from 0.0 (indicating 0% memory usage) to 1.0 (representing 100% memory usage). By monitoring memory usage against this threshold, Lucee intelligently decides whether to enforce or relax request timeouts, offering a dynamic approach to resource management. This is particularly advantageous for preventing system overloads and ensuring stable performance by not strictly applying timeouts when memory usage is below the defined threshold. The default threshold is set to 0.0, meaning Lucee will apply request timeouts without considering memory usage. Adjusting this threshold allows for more nuanced control over how your applications respond under various memory load conditions, optimizing both performance and reliability. This setting is only possible via System Property / Enviroment Variable.");
+	private Float requestTimeoutMemoryThreshold;
+
+	public final static Prop<Float> metaRequestTimeoutCPUThreshold = Prop.procentage().parent("requestTimeout").keys("cputhreshold").defaultValue(0f).description(
+			"This configuration option allows you to set a CPU usage threshold that Lucee monitors before enforcing request timeouts. The threshold value is a float ranging from 0.0 (representing 0% CPU usage) to 1.0 (indicating 100% CPU usage). When the system's CPU usage is below this threshold, Lucee processes requests without applying the request timeout rule, enabling smoother handling under varying system loads. This mechanism is particularly useful for managing resource allocation and maintaining optimal application responsiveness, especially during periods of high demand or limited system resources. The default setting is 0.0, which means request timeouts are applied regardless of CPU usage. Adjusting this threshold provides a strategic lever to balance between system performance and request responsiveness, tailoring Lucee's behavior to your specific operational needs. This setting is only possible via System Property / Enviroment Variable.");
+	private Float requestTimeoutCPUThreshold;
+
+	public final static Prop<Integer> metaRequestTimeoutConcurrentRequestThreshold = Prop.integer().parent("requestTimeout").keys("concurrentrequestthreshold").defaultValue(0)
+			.description(
+					"This setting enables you to specify a threshold for the number of concurrent requests that Lucee can handle before beginning to enforce request timeouts. By adjusting this threshold, you can fine-tune how Lucee manages request timeouts under varying loads. A higher threshold allows more concurrent requests to be processed without enforcing timeouts, potentially improving performance under heavy load at the risk of longer request times. The default threshold is set to 0, meaning request timeouts are enforced immediately for all requests. This setting is only possible via System Property / Enviroment Variable.");
+	private Integer requestTimeoutConcurrentRequestThreshold;
 
 	public final static Prop<Boolean> metaSessionManagement = Prop.bool().keys("sessionManagement").systemPropEnvVar("lucee.session.management").defaultValue(true)
 			.description("By default session management can be enabled. This behaviour can be overridden by the tag cfapplication.");
@@ -712,15 +731,15 @@ public final class ConfigServerImpl implements ConfigServerPro {
 	private static Prop<String> metaDeployDirectory = Prop.str().keys("deployDirectory").parent("fileSystem").description("folder where Lucee stores template classes");
 	private Resource fileSystemDeployDirectory;
 
-	private static Prop<CharsetX> metaResourceCharset = Prop.charSet().keys("resourceCharset").systemPropEnvVar("lucee.resource.charset").defaultValue(SystemUtil.getCharsetX())
-			.description("Default character set for reading from/writing to various resources");
+	private static Prop<CharsetX> metaResourceCharset = Prop.charSet().keys("resourceCharset").systemPropEnvVar("lucee.resource.charset", "lucee.charset.resource")
+			.defaultValue(SystemUtil.getCharsetX()).description("Default character set for reading from/writing to various resources");
 	private CharsetX resourceCharset;
 
-	private static Prop<CharsetX> metaTemplateCharset = Prop.charSet().keys("templateCharset").systemPropEnvVar("lucee.template.charset").defaultValue(SystemUtil.getCharsetX())
-			.description("Default character used to read templates (*.cfm and *.cfc files)");
+	private static Prop<CharsetX> metaTemplateCharset = Prop.charSet().keys("templateCharset").systemPropEnvVar("lucee.template.charset", "lucee.charset.template")
+			.defaultValue(SystemUtil.getCharsetX()).description("Default character used to read templates (*.cfm and *.cfc files)");
 	private CharsetX templateCharset;
 
-	private static Prop<CharsetX> metaWebCharset = Prop.charSet().keys("webCharset").systemPropEnvVar("lucee.web.charset").defaultValue(CharsetX.UTF8)
+	private static Prop<CharsetX> metaWebCharset = Prop.charSet().keys("webCharset").systemPropEnvVar("lucee.web.charset", "lucee.charset.web").defaultValue(CharsetX.UTF8)
 			.description("Default character set for output streams, form-, url-, and cgi scope variables and reading/writing the header");
 	private CharsetX webCharset;
 
@@ -876,7 +895,7 @@ public final class ConfigServerImpl implements ConfigServerPro {
 			.access(SecurityManager.TYPE_CUSTOM_TAG).description("this are the file extensions Lucee allows for custom tags.");
 	private String[] customTagExtensions = null;
 
-	private static Prop<Boolean> metaTypeChecking = Prop.bool().keys("typeChecking", "UDFTypeChecking").systemPropEnvVar("lucee.type.checking", "lucee.udf.type.checking")
+	public final static Prop<Boolean> metaTypeChecking = Prop.bool().keys("typeChecking", "UDFTypeChecking").systemPropEnvVar("lucee.type.checking", "lucee.udf.type.checking")
 			.defaultValue(true).description("check the types defined with function arguments and return type");
 	private Boolean typeChecking;
 
@@ -998,7 +1017,7 @@ public final class ConfigServerImpl implements ConfigServerPro {
 					"Controls how Lucee handles raw variables used inside 'cfquery' tags. Enabling 'error' mode effectively prevents SQL injection by mandating parameterized queries.");
 	private Integer securityVariableUsage;
 
-	private static Prop<TimeSpan> metaCachedAfterTimeRange = Prop.timespan().keys("cachedAfter")
+	public final static Prop<TimeSpan> metaCachedAfterTimeRange = Prop.timespan().keys("cachedAfter")
 			.description("In case the attribute \"cacheAfter\" is set without the attribute \"cachedwithin\" in the tag \"query\" this time span is used for the element cached.");
 	private TimeSpan cachedAfter;
 	private boolean initCachedAfter = true;
@@ -1019,7 +1038,7 @@ public final class ConfigServerImpl implements ConfigServerPro {
 			.description("If enabled, this improves the accuracy of floating point calculations but makes them slightly slower.");
 	private Boolean preciseMath;
 
-	private static Prop<String> metaMainLoggerName = Prop.str().keys("mainLogger").systemPropEnvVar("lucee.logging.main").defaultValue("application")
+	public final static Prop<String> metaMainLoggerName = Prop.str().keys("mainLogger").systemPropEnvVar("lucee.logging.main").defaultValue("application")
 			.description("defines the main logger used by Lucee, this logger is used when no log name was provided or the provided name does not exist.");
 	private String mainLogger;
 
@@ -1035,8 +1054,42 @@ public final class ConfigServerImpl implements ConfigServerPro {
 			.description(
 					"Determines how Lucee handles previously compiled templates (bytecode) after an engine restart. Balancing startup speed against the risk of executing stale code.");
 	private short compileType = -1;
+
+	@SuppressWarnings("unchecked")
+	public final static Prop<Short> metaInspectTemplate = Prop.shor().keys("inspectTemplate").defaultValue(INSPECT_AUTO)
+			.choices(
+					new Choice<Short>(INSPECT_AUTO, "auto").description("Optimized Performance: Lucee performs background checks intermittently to detect template modifications "
+							+ "without blocking requests. When a change is detected, Lucee temporarily increases check frequency, "
+							+ "then gradually returns to the standard interval. Configure the standard and accelerated check intervals "
+							+ "(in milliseconds) to balance update responsiveness with request throughput."),
+
+					new Choice<Short>(INSPECT_ALWAYS, "always").description("Not Recommended: All files in the template cache are checked for updates on every request. "
+							+ "Guarantees the latest template version is always used, but increases file system overhead and may impact performance."),
+
+					new Choice<Short>(INSPECT_NEVER, "never").description("Best Performance: Cached templates are never re-inspected for changes at runtime. "
+							+ "Ideal for production environments where templates are static during the server's uptime."),
+
+					new Choice<Short>(INSPECT_ONCE, "once").description("Good: Each template is inspected for changes exactly once after it enters the cache. "
+							+ "Balances file system overhead with the ability to pick up updates made earlier in the server's uptime."))
+
+			.description("Controls how Lucee checks whether cached templates (CFM/CFC) have been modified. "
+					+ "'auto' is recommended for most environments as it minimizes request overhead while still detecting changes. "
+					+ "'never' gives maximum performance for static deployments. 'always' is available but not recommended for production.");
+
 	private short inspectTemplate = -1;
+
+	public final static Prop<Integer> metaInspectTemplateAutoIntervalSlow = Prop.integer().keys("inspectTemplateIntervalSlow").access(SecurityManager.TYPE_SETTING)
+			.defaultValue(ConfigPro.INSPECT_INTERVAL_SLOW)
+			.description("The standard background check interval (in milliseconds) used in 'auto' mode to detect template modifications. "
+					+ "When no recent changes have been detected, Lucee polls at this frequency. "
+					+ "After a period of heightened monitoring, Lucee gradually transitions back to this interval.");
 	private int inspectTemplateAutoIntervalSlow = ConfigPro.INSPECT_INTERVAL_UNDEFINED;
+
+	public final static Prop<Integer> metaInspectTemplateAutoIntervalFast = Prop.integer().keys("inspectTemplateIntervalFast").access(SecurityManager.TYPE_SETTING)
+			.defaultValue(ConfigPro.INSPECT_INTERVAL_FAST)
+			.description("The accelerated background check interval (in milliseconds) used in 'auto' mode after a template change is detected. "
+					+ "Lucee temporarily switches to this shorter interval to remain responsive to any further modifications, "
+					+ "before gradually transitioning back to the standard interval over time.");
 	private int inspectTemplateAutoIntervalFast = ConfigPro.INSPECT_INTERVAL_UNDEFINED;
 
 	public final static Prop<Boolean> metaFormUrlAsStruct = Prop.bool().keys("formUrlAsStruct").defaultValue(true)
@@ -1048,20 +1101,20 @@ public final class ConfigServerImpl implements ConfigServerPro {
 			"This setting defines if the scopes URL and Form will be merged together (CFML Default is false). If a key already exists in Form and URL Scopes, the value from the Form Scope is used.");
 	private Boolean mergeUrlForm;
 
-	private static Prop<Boolean> metaShowDebug = Prop.bool().keys("showDebug").systemPropEnvVar("lucee.monitoring.showDebug").defaultValue(false)
+	public final static Prop<Boolean> metaShowDebug = Prop.bool().parent("monitoring").keys("showDebug").systemPropEnvVar("lucee.monitoring.showDebug").defaultValue(false)
 			.description("show debug output in the monitoring at the bottom of the page");
 	private Boolean showDebug;
 
-	private static Prop<Boolean> metaShowDoc = Prop.bool().keys("showDoc", "doc", "documentation", "showReference", "reference").systemPropEnvVar("lucee.monitoring.showDoc")
-			.defaultValue(false).description("show documentation output in the monitoring at the bottom of the page");
+	public final static Prop<Boolean> metaShowDoc = Prop.bool().parent("monitoring").keys("showDoc", "doc", "documentation", "showReference", "reference")
+			.systemPropEnvVar("lucee.monitoring.showDoc").defaultValue(false).description("show documentation output in the monitoring at the bottom of the page");
 	private Boolean showDoc;
 
-	private static Prop<Boolean> metaShowMetric = Prop.bool().keys("showMetric", "showMetrics", "metric", "metrics").systemPropEnvVar("lucee.monitoring.showMetric")
-			.description("show metrics output in the monitoring at the bottom of the page").defaultValue(false);
+	public final static Prop<Boolean> metaShowMetric = Prop.bool().parent("monitoring").keys("showMetric", "showMetrics", "metric", "metrics")
+			.systemPropEnvVar("lucee.monitoring.showMetric").description("show metrics output in the monitoring at the bottom of the page").defaultValue(false);
 	private Boolean showMetric;
 
-	private static Prop<Boolean> metaShowTest = Prop.bool().keys("showTest", "showTests", "test").systemPropEnvVar("lucee.monitoring.showTest").defaultValue(false)
-			.description("Show test output in the monitoring at the bottom of the page (not supported yet)");
+	public final static Prop<Boolean> metaShowTest = Prop.bool().parent("monitoring").keys("showTest", "showTests", "test").systemPropEnvVar("lucee.monitoring.showTest")
+			.defaultValue(false).description("Show test output in the monitoring at the bottom of the page (not supported yet)");
 	private Boolean showTest;
 
 	private static Prop<Boolean> metafullNullSupport = Prop.bool().keys("nullSupport", "fullNullSupport").systemPropEnvVar("lucee.full.null.support").defaultValue(false)
@@ -1179,7 +1232,12 @@ public final class ConfigServerImpl implements ConfigServerPro {
 					+ "If disabled (false), any content generated within the body prior to a failure is ignored and not sent to the response stream.");
 	private Boolean bufferTagBodyOutput;
 
-	private Boolean dotNotationUpperCase;
+	public final static Prop<Boolean> metaPreserveCase = Prop.bool().keys("preserveCase").systemPropEnvVar("lucee.preserve.case").defaultValue(false)
+			.description("When enabled, struct keys defined via dot notation preserve their original casing (e.g. sct.myKey → \"myKey\"). "
+					+ "When disabled (CFML default), dot-notation keys are converted to uppercase (e.g. sct.myKey → \"MYKEY\"). "
+					+ "Keys defined via bracket notation always preserve their original case regardless of this setting.");
+	private Boolean preserveCase;
+
 	private static Prop<Boolean> metaDefaultFunctionOutput = Prop.bool().keys("defaultFunctionOutput").defaultValue(true)
 			.description("Specifies the default value for the 'output' attribute of the <cffunction> tag. "
 					+ "If set to true, functions will allow white space and content within their body to be "
@@ -1279,13 +1337,14 @@ public final class ConfigServerImpl implements ConfigServerPro {
 			"Enables the background monitoring service in Lucee. When active, the engine collects real-time performance data and health metrics at regular intervals.");
 	private Boolean monitoringEnabled;
 
-	private static Prop<Boolean> metaCaptcha = Prop.bool().keys("loginCaptcha").defaultValue(false).deprecated().description("is a captcha used for the Lucee admin to login.");
+	public final static Prop<Boolean> metaCaptcha = Prop.bool().keys("loginCaptcha").defaultValue(false).deprecated()
+			.description("is a captcha used for the Lucee admin to login.");
 	private Boolean loginCaptcha;
 
 	private static Prop<Boolean> metaClassicDateParsing = Prop.bool().keys("classicDateParsing").defaultValue(false).deprecated();
 	private Boolean classicDateParsing;
 
-	private static Prop<Boolean> metaRememberMe = Prop.bool().keys("loginRememberme").defaultValue(true).deprecated().hidden();
+	public final static Prop<Boolean> metaRememberMe = Prop.bool().keys("loginRememberme").defaultValue(true).deprecated().hidden();
 	private Boolean rememberMe;
 
 	private static Prop<String> metaUpdateLocation = Prop.str().keys("updateLocation", "updateSiteURL").defaultValue(Constants.DEFAULT_UPDATE_URL.toExternalForm()).deprecated();
@@ -1298,7 +1357,7 @@ public final class ConfigServerImpl implements ConfigServerPro {
 	public final static Prop<String> metaAuthKeys = Prop.str().keys("authKeys").defaultValue(null).deprecated();
 	private String[] authKeys;
 
-	private static Prop<Integer> metaLoginDelay = Prop.integer().keys("loginDelay").defaultValue(1).deprecated();
+	public final static Prop<Integer> metaLoginDelay = Prop.integer().keys("loginDelay").defaultValue(1).deprecated();
 	private Integer loginDelay;
 
 	private static Prop<String> metaMavenDirectory = Prop.str().keys("mavenDirectory").systemPropEnvVar("lucee.maven.local.repository")
@@ -2092,7 +2151,14 @@ public final class ConfigServerImpl implements ConfigServerPro {
 		if (requestTimeout == null) {
 			synchronized (SystemUtil.createToken("config", "getRequestTimeout")) {
 				if (requestTimeout == null) {
-					requestTimeout = metaRequestTimeout.get(this, root);
+					// we first check if we have a struct requesttimeout
+					Object rt = root.get(KeyConstants._requestTimeout, null);
+
+					TimeSpan tmp = rt instanceof Struct ? null : metaRequestTimeoutOld.get(this, root);
+					if (tmp == null || tmp.getMillis() == 0) {
+						tmp = metaRequestTimeoutNew.get(this, root);
+					}
+					requestTimeout = tmp;
 				}
 			}
 		}
@@ -2104,6 +2170,75 @@ public final class ConfigServerImpl implements ConfigServerPro {
 			synchronized (SystemUtil.createToken("config", "getRequestTimeout")) {
 				if (requestTimeout != null) {
 					requestTimeout = null;
+				}
+			}
+		}
+		return this;
+	}
+
+	@Override
+	public int getRequestTimeoutConcurrentRequestThreshold() {
+		if (requestTimeoutConcurrentRequestThreshold == null) {
+			synchronized (SystemUtil.createToken("config", "getRequestTimeoutConcurrentRequestThreshold")) {
+				if (requestTimeoutConcurrentRequestThreshold == null) {
+					requestTimeoutConcurrentRequestThreshold = metaRequestTimeoutConcurrentRequestThreshold.get(this, root);
+				}
+			}
+		}
+		return requestTimeoutConcurrentRequestThreshold;
+	}
+
+	public ConfigServerImpl resetRequestTimeoutConcurrentRequestThreshold() {
+		if (requestTimeoutConcurrentRequestThreshold != null) {
+			synchronized (SystemUtil.createToken("config", "getRequestTimeoutConcurrentRequestThreshold")) {
+				if (requestTimeoutConcurrentRequestThreshold != null) {
+					requestTimeoutConcurrentRequestThreshold = null;
+				}
+			}
+		}
+		return this;
+	}
+
+	@Override
+	public float getRequestTimeoutCPUThreshold() {
+		if (requestTimeoutCPUThreshold == null) {
+			synchronized (SystemUtil.createToken("config", "getRequestTimeoutCPUthreshold")) {
+				if (requestTimeoutCPUThreshold == null) {
+					requestTimeoutCPUThreshold = metaRequestTimeoutCPUThreshold.get(this, root);
+				}
+			}
+		}
+		return requestTimeoutCPUThreshold;
+	}
+
+	public ConfigServerImpl resetRequestTimeoutCPUThreshold() {
+		if (requestTimeoutCPUThreshold != null) {
+			synchronized (SystemUtil.createToken("config", "getRequestTimeoutCPUthreshold")) {
+				if (requestTimeoutCPUThreshold != null) {
+					requestTimeoutCPUThreshold = null;
+				}
+			}
+		}
+		return this;
+	}
+
+	@Override
+	public float getRequestTimeoutMemoryThreshold() {
+		if (requestTimeoutMemoryThreshold == null) {
+			synchronized (SystemUtil.createToken("config", "getRequestTimeoutMemoryThreshold")) {
+				if (requestTimeoutMemoryThreshold == null) {
+					requestTimeoutMemoryThreshold = metaRequestTimeoutMemorythreshold.get(this, root);
+				}
+			}
+		}
+		return requestTimeoutMemoryThreshold;
+	}
+
+	public ConfigServerImpl resetRequestTimeoutMemoryThreshold() {
+		if (requestTimeoutMemoryThreshold != null) {
+			synchronized (SystemUtil.createToken("config", "getRequestTimeoutMemoryThreshold")) {
+				if (requestTimeoutMemoryThreshold != null) {
+					requestTimeoutMemoryThreshold = null;
 				}
 			}
 		}
@@ -2907,17 +3042,21 @@ public final class ConfigServerImpl implements ConfigServerPro {
 
 	private Mapping[] initMappings(Mapping[] mappings) {
 		if (mappings == null) return null;
-		List<Mapping> list = new ArrayList<Mapping>();
+		Map<String, Mapping> map = new HashMap<>();
+
 		for (Mapping m: mappings) {
+
 			try {
 				m.check();
-				list.add(m);
+				if (!map.containsKey(m.getVirtualLowerCaseWithSlash())) {
+					map.put(m.getVirtualLowerCaseWithSlash(), m);
+				}
 			}
 			catch (Exception e) {
 				LogUtil.log(this, "mappings", e);
 			}
 		}
-		return list.toArray(new Mapping[list.size()]);
+		return map.values().toArray(new Mapping[map.size()]);
 	}
 
 	protected void close(Mapping[] mappings) {
@@ -5989,14 +6128,11 @@ public final class ConfigServerImpl implements ConfigServerPro {
 	 */
 	@Override
 	public short getInspectTemplate() {
+
 		if (inspectTemplate == -1) {
 			synchronized (SystemUtil.createToken("config", "getInspectTemplate")) {
 				if (inspectTemplate == -1) {
-					String strInspectTemplate = ConfigFactoryImpl.getAttr(this, root, "inspectTemplate");
-					if (!StringUtil.isEmpty(strInspectTemplate, true)) {
-						inspectTemplate = ConfigUtil.inspectTemplate(strInspectTemplate, ConfigPro.INSPECT_AUTO);
-					}
-					if (inspectTemplate == -1) inspectTemplate = INSPECT_AUTO;
+					inspectTemplate = metaInspectTemplate.get(this, root);
 				}
 			}
 		}
@@ -6042,10 +6178,8 @@ public final class ConfigServerImpl implements ConfigServerPro {
 		if (inspectTemplateAutoIntervalSlow == ConfigPro.INSPECT_INTERVAL_UNDEFINED) {
 			synchronized (SystemUtil.createToken("config", "getInspectTemplateAutoInterval")) {
 				if (inspectTemplateAutoIntervalSlow == ConfigPro.INSPECT_INTERVAL_UNDEFINED) {
-					inspectTemplateAutoIntervalFast = Caster.toIntValue(ConfigFactoryImpl.getAttr(this, root, "inspectTemplateIntervalFast"), ConfigPro.INSPECT_INTERVAL_FAST);
-					if (inspectTemplateAutoIntervalFast <= 0) inspectTemplateAutoIntervalFast = ConfigPro.INSPECT_INTERVAL_FAST;
-					inspectTemplateAutoIntervalSlow = Caster.toIntValue(ConfigFactoryImpl.getAttr(this, root, "inspectTemplateIntervalSlow"), ConfigPro.INSPECT_INTERVAL_SLOW);
-					if (inspectTemplateAutoIntervalSlow <= 0) inspectTemplateAutoIntervalSlow = ConfigPro.INSPECT_INTERVAL_SLOW;
+					inspectTemplateAutoIntervalFast = metaInspectTemplateAutoIntervalFast.get(this, root);
+					inspectTemplateAutoIntervalSlow = metaInspectTemplateAutoIntervalSlow.get(this, root);
 				}
 			}
 		}
@@ -7051,29 +7185,21 @@ public final class ConfigServerImpl implements ConfigServerPro {
 
 	@Override
 	public boolean getDotNotationUpperCase() {
-		if (dotNotationUpperCase == null) {
+		if (preserveCase == null) {
 			synchronized (SystemUtil.createToken("config", "getDotNotationUpperCase")) {
-				if (dotNotationUpperCase == null) {
-					Boolean tmp = Caster.toBoolean(SystemUtil.getSystemPropOrEnvVar("lucee.preserve.case", null), null);
-					if (tmp != null) tmp = !tmp; // invert: lucee.preserve.case=true means dotNotationUpperCase=false
-					if (tmp == null) tmp = Caster.toBoolean(ConfigFactoryImpl.getAttr(this, root, "dotNotationUpperCase"), null);
-					if (tmp == null) {
-						tmp = Caster.toBoolean(ConfigFactoryImpl.getAttr(this, root, "preserveCase"), null);
-						if (tmp != null) tmp = !tmp;
-					}
-					if (tmp == null) dotNotationUpperCase = Boolean.TRUE;
-					else dotNotationUpperCase = tmp;
+				if (preserveCase == null) {
+					preserveCase = metaPreserveCase.get(this, root);
 				}
 			}
 		}
-		return dotNotationUpperCase;
+		return !preserveCase;// invert: lucee.preserve.case=true means dotNotationUpperCase=false
 	}
 
 	public ConfigServerImpl resetDotNotationUpperCase() {
-		if (dotNotationUpperCase != null) {
+		if (preserveCase != null) {
 			synchronized (SystemUtil.createToken("config", "getDotNotationUpperCase")) {
-				if (dotNotationUpperCase != null) {
-					dotNotationUpperCase = null;
+				if (preserveCase != null) {
+					preserveCase = null;
 				}
 			}
 		}
@@ -7675,7 +7801,7 @@ public final class ConfigServerImpl implements ConfigServerPro {
 
 			ClassDefinition appender = getLogEngine().appenderClassDefintion("console");
 			ClassDefinition layout = getLogEngine().layoutClassDefintion("pattern");
-			las = LogFactory.createLogger(this, name, Log.LEVEL_ERROR, appender, null, layout, null, true, true);
+			las = LogFactory.createLogger(this, name, Log.LEVEL_ERROR, appender, null, layout, null, true, true, Prop.SOURCE_INTERNAL);
 
 			String id = LoggerAndSourceData.id(name.toLowerCase(), appender, null, layout, null, Log.LEVEL_ERROR, true);
 			LoggerAndSourceData existing = loggers != null ? loggers.get(name.toLowerCase()) : null;
@@ -9400,4 +9526,9 @@ public final class ConfigServerImpl implements ConfigServerPro {
 		throw new RuntimeException("no longer supported");
 	}
 
+	public static void main(String[] args) throws PageException {
+		Struct res = Prop.createSystemPropEnvVar();
+
+		print.e(res.get("componentMappings"));
+	}
 }

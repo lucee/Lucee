@@ -26,7 +26,7 @@ public class CacheConnectionFactory implements PropFactory<CacheConnection> {
 	}
 
 	@Override
-	public CacheConnection evaluate(Config c, String name, Object val) throws PageException {
+	public CacheConnection evaluate(Config c, String name, Object val, short source) throws PageException {
 		ConfigPro config = (ConfigPro) c;
 		Struct data = Caster.toStruct(val);
 		ClassDefinition cd;

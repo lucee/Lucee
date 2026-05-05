@@ -1,4 +1,6 @@
 <cfscript>
+NL="
+";
 function ComponentListPackageAsStruct(string package, cfcNames=structnew("linked")){
 	try{
 		arguments._cfcNames=ComponentListPackage(arguments.package);
@@ -300,7 +302,174 @@ function _byteFormatShort(numeric left,numeric right,string suffix){
 }
 
 
+function renderSettings(name, value, text="",boolean isExpand=false) {
+	if(isNull(application.systemPropOrEnvVarInfo)) {
+		application.systemPropOrEnvVarInfo=GetSystemPropOrEnvVarInfo();
+	}
+	if(isNull(formatForConsole)) {
+		var stText=caller.stText;
+		var formatForConsole=caller.formatForConsole;
+	}
+	var data=application.systemPropOrEnvVarInfo[name];
+	var desc  = len(arguments.text) ? arguments.text:  stText.settings.sysopenvvar;
+	
+	
+	
+	// SIMPLE
+	if(data.type == "simple") {
+		if(!arguments.isExpand) {
+			echo('<div class="coding-tip-trigger">% #stText.settings.syspropenvvar# %</div>');
+		}
+
+		echo('<div class="coding-tip #arguments.isExpand ? 'expanded' : ''#">');
+		echo('<div class="disp-flex"><cfif len(desc)><span class="comment">#desc#</span></cfif> <span class="copy flex-pull-right">copy</span></div>');
+		var res=formatForConsole(arguments.value);
+		echo('
+System Property:
+<code>-D#data.systemProperties[1]#=#res.sp#</code>
+Enviroment Variable:
+<code>#data.environmentVariables[1]#=#res.ev#</code>
+		');
+		echo('</div>');
+	}
+	
+	// LIST
+	else {
+		var qry=arguments.value.value;
+
+		if(!arguments.isExpand) {
+			echo('<div class="coding-tip-trigger">% System Properties %</div>');
+		}
+		echo('<div class="coding-tip #arguments.isExpand ? 'expanded' : ''#">');
+		echo('<div class="disp-flex"><cfif len(desc)><span class="comment">#desc#</span></cfif> <span class="copy flex-pull-right">copy</span></div>');
+		//dump(qry.columnlist);
+		
+		echo('System Properties:<code>');
+		var cols=arguments.value.columns;
+		loop query=qry {
+			if(qry.currentrow>1) echo(NL);
+			loop array=cols item="local.col" {
+				if(!queryColumnExists(qry,col)) continue;
+				printVar("sp","-D#data.systemProperties[1]#.#qry.currentrow#.#col#",qry[col]);
+			}
+		}
+		echo('</code>');
+		echo('</div>');
+
+		if(!arguments.isExpand) {
+			echo('<div class="coding-tip-trigger">% Enviroment Variables %</div>');
+		}
+		echo('<div class="coding-tip #arguments.isExpand ? 'expanded' : ''#">');
+		echo('<div class="disp-flex"><cfif len(desc)><span class="comment">#desc#</span></cfif> <span class="copy flex-pull-right">copy</span></div>');
+		echo('Enviroment Variables:<code>');
+		var cols=arguments.value.columns;
+		loop query=qry {
+			if(qry.currentrow>1) echo(NL);
+			loop array=cols item="local.col" {
+				if(!queryColumnExists(qry,col)) continue;
+				printVar("ev","#data.environmentVariables[1]#_#qry.currentrow#_#ucase(col)#",qry[col]);
+			}
+		}
+		echo('</code>');
+		echo('</div>');
+		
+	}
+}
+
+function printVar(type,prefix,val) {
+	if(isNull(val) || isEmpty(val)) {
+		// do noting
+	}
+	else if(isStruct(val) || isArray(val)) {
+		loop collection=val index="local.k" item="local.v" {
+			if(type=="sp") printVar(type,"#prefix#.#k#",v);
+			else printVar(type,"#prefix#_#ucase(k)#",v);
+		}
+	}
+	else {
+		echo("#prefix#=#formatForConsole(val)[type]##NL#");
+	}
+	
+}
+
+function formatForConsole(value) {
+	var res={};
+	if(isBoolean(arguments.value) or isNumeric(arguments.value)) {
+		res.ev=res.sp=arguments.value;
+	}
+	else if(isStruct(arguments.value)) {
+		res.ev=res.sp= serializeJson(arguments.value);
+	}
+	else {
+		res.sp="'#trim(arguments.value)#'";
+		res.ev="""#trim(arguments.value)#""";
+	}
+	return res;
+}
+
+function addPrimary(qry) {
+	var col=[];
+	loop query=qry {
+		arrayAppend(col,qry.physicalFirst?"physical":"archive");
+	}
+	
+	queryAddColumn(qry,"primary",col);
+
+	return qry;
+}
+
+function removeCoreBundle(qry) {
+	qry=duplicate(qry);
+	var cols=queryColumnArray(qry);
+	loop query=qry {
+		loop array=cols item="local.col" {
+			if(len(col)>10 && right(col,10)=="bundleName" && qry[col] == "lucee.core") {
+				var prefix=left(col,len(col)-10);
+				querySetCell(qry,col,"",qry.currentrow);
+				if(queryColumnExists(qry,prefix&"BundleVersion"))querySetCell(qry,prefix&"BundleVersion","",qry.currentrow);
+
+			}
+		}
+	}
+	return qry;
+}
+
+
+function renderSysPropEnvVar(name, value, text="",defaultValue=true,boolean isExpand=false) {
+	var uname=replace(ucase(arguments.name),".","_","all");
+	var stText= application.stText[session.lucee_admin_lang];
+	var desc  = len(arguments.text) ? arguments.text : stText.settings.sysopenvvar;
+
+	if(isNull(arguments.value)) {
+		arguments.value=server.system.environment[uname]?:(server.system.properties[name]?:arguments.defaultValue);
+	}
+	if(isBoolean(arguments.value) or isNumeric(arguments.value)) {
+		local.ev=local.sp=arguments.value;
+	}
+	else {
+		local.sp="'#trim(arguments.value)#'";
+		local.ev="""#trim(arguments.value)#""";
+	}
+	if(!arguments.isExpand) {
+		echo('<div class="coding-tip-trigger">% #stText.settings.syspropenvvar# %</div>');
+	}
+	```
+<cfoutput>
+<div class="coding-tip #arguments.isExpand ? 'expanded' : ''#">
+<div class="disp-flex"><cfif !(isBoolean(desc) && !desc)>#desc#:</cfif> <span class="copy flex-pull-right">copy</span></div>
+<code>// System Property
+-D#trim(arguments.name)#=#sp# 
+// Enviroment Variable
+#uname#=#ev#</code>
+	</div>
+</cfoutput>
+	```
+}
+
 </cfscript>
+
+
+
 
 <cffunction name="createUIDFolder" output="no"
     	hint="create a new step cfc">
@@ -348,39 +517,7 @@ function _byteFormatShort(numeric left,numeric right,string suffix){
 	</div>
 </cffunction>
 
-<cffunction name="renderSysPropEnvVar" output="true">
-	<cfargument name="name">
-	<cfargument name="value">
-	<cfargument name="text" default="">
-	<cfargument name="defaultValue" default="#true#">
-	<cfargument name="isExpand"     default="#false#" type="boolean">
-<cfsilent>
-	<cfset local.uname=replace(ucase(arguments.name),".","_","all")>
-	<cfset var stText= application.stText[session.lucee_admin_lang]>
-	<cfset var desc  = len(arguments.text) ? arguments.text : stText.settings.sysopenvvar>
-	<cfif isNull(arguments.value)>
-		<cfset arguments.value=server.system.environment[uname]?:(server.system.properties[name]?:arguments.defaultValue)>
-	</cfif>
-	
-	
-	<cfif isBoolean(arguments.value) or isNumeric(arguments.value)>
-		<cfset local.ev=local.sp="#(arguments.value)#">
-	<cfelse>
-		<cfset local.sp="'#trim(arguments.value)#'">
-		<cfset local.ev="""#trim(arguments.value)#""">
-	</cfif>
-</cfsilent>
-	<cfif !arguments.isExpand>
-		<div class="coding-tip-trigger">% #stText.settings.syspropenvvar# %</div>
-	</cfif>
-	<div class="coding-tip #arguments.isExpand ? 'expanded' : ''#">
-		<div class="disp-flex"><cfif !(isBoolean(desc) && !desc)>#desc#:</cfif> <span class="copy flex-pull-right">copy</span></div>
-		<code>// System Property
--D#trim(arguments.name)#=#sp# 
-// Enviroment Variable
-#uname#=#ev#</code>
-	</div>
-</cffunction>
+
 
 
 
@@ -419,5 +556,21 @@ function _byteFormatShort(numeric left,numeric right,string suffix){
 		else
 			return htmlEditFormat(arguments.str);
 	}
+
+	function lockedReadOnly () {
+		var info="this record cannot be modified here, because because it is set as readonly.
+				To modify the record, you will need to change the readonly flag inside the configuration file and then restart the server.";
+
+		return '<span class="locked-indicator" data-tooltip="#info#">&##128274;</span>';
+	}
+
+	function lockedSysOpEnvVar (){
+		 var info="this record cannot be modified here, because it is set as an environment variables or system properties on this server.
+				To modify the value, you will need to remove the environment variables or the system properties and then restart the server.";
+		return '<span class="locked-indicator" data-tooltip="#info#">&##128274;</span>';
+	}
+
+
+
 
 </cfscript>

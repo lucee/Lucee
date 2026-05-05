@@ -413,4 +413,11 @@ public interface ConfigPro extends Config {
 	public String replacePlaceHolder(String str);
 
 	public String replacePlaceHolder(String str, Map<Key, String> customPlaceHolderData);
+
+	public int getRequestTimeoutConcurrentRequestThreshold();
+
+	public float getRequestTimeoutCPUThreshold();
+
+	public float getRequestTimeoutMemoryThreshold();
+
 }

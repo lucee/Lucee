@@ -230,8 +230,8 @@ public final class MavenUpdateProvider {
 		return list(repos, group, artifact);
 	}
 
-	public static List<Version> list(Collection<Repository> repos, String group, String artifact, int type) throws IOException, GeneralSecurityException, SAXException,
-			InterruptedException {
+	public static List<Version> list(Collection<Repository> repos, String group, String artifact, int type)
+			throws IOException, GeneralSecurityException, SAXException, InterruptedException {
 		List<Repository> filtered = new ArrayList<>();
 		for (Repository repo: repos) {
 			if (type == TYPE_ALL || repo.type == TYPE_ALL || repo.type == type) {
@@ -335,7 +335,7 @@ public final class MavenUpdateProvider {
 	 */
 
 	public Map<String, Object> detail(Version version, String requiredArtifactExtension, boolean throwException) throws IOException, SAXException, PageException {
-			// SNAPSHOT - snapshot have a more complicated structure, ebcause there can be udaptes/multiple
+		// SNAPSHOT - snapshot have a more complicated structure, ebcause there can be udaptes/multiple
 		// versions
 		boolean isSnap = version.is(Version.SNAPSHOT);
 
@@ -531,7 +531,7 @@ public final class MavenUpdateProvider {
 		}
 
 		@Override
-		public Repository evaluate(Config config, String name, Object val) throws PageException {
+		public Repository evaluate(Config config, String name, Object val, short source) throws PageException {
 			Struct data = Caster.toStruct(val, null);
 			if (data != null) {
 				String url = Caster.toString(data.get(KeyConstants._url));

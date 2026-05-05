@@ -26,7 +26,7 @@ public class ServerFactory implements PropFactory<Server> {
 	private ServerFactory() {}
 
 	@Override
-	public Server evaluate(Config config, String name, Object val) throws PageException {
+	public Server evaluate(Config config, String name, Object val, short source) throws PageException {
 
 		int index = Caster.toIntValue(name, 0); // in case of an array, the name is the index
 		Struct el = Caster.toStruct(val);

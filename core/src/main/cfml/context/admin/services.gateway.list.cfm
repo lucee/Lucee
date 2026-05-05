@@ -210,7 +210,10 @@ Redirtect to entry --->
 	<cfif qry.recordcount>
 		<h2>#type=='local'?stText.Settings.gateway.titleExisting:stText.Settings.gateway.titleReadONly#</h2>
 		<div class="itemintro">#type=='local'?stText.Settings.gateway.descExisting:stText.settings.gateway.descreadonly#</div>
-    	<cfformClassic onerror="customError" action="#request.self#?action=#url.action#" method="post">
+    	<cfset renderSettings("gateways",{columns:[
+			"cfcPath","listenerCFCPath","startupMode","custom",
+			"class","bundleName","bundleVersion","maven","component"], value:removeCoreBundle(qry)} )>
+		<cfformClassic onerror="customError" action="#request.self#?action=#url.action#" method="post">
 			<table class="maintbl checkboxtbl">
 				<thead>
 					<tr>

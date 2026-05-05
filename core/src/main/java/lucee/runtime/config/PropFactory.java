@@ -33,6 +33,7 @@ public interface PropFactory<T> {
 	public static LongPropFactory LONG_FACTORY = new LongPropFactory();
 	public static CharsetPropFactory CHARSET_FACTORY = new CharsetPropFactory();
 	public static CharsetXPropFactory CHARSETX_FACTORY = new CharsetXPropFactory();
+	public static ProcentagePropFactory PROCENTAGE_FACTORY = new ProcentagePropFactory();
 
 	/**
 	 * evaluates
@@ -43,11 +44,11 @@ public interface PropFactory<T> {
 	 * @param defaultValue
 	 * @return
 	 */
-	public T evaluate(Config config, String name, Object val) throws PageException;
+	public T evaluate(Config config, String name, Object val, short source) throws PageException;
 
 	default Object serialize(Config config, T val) throws PageException {
 		if (false) throw new ApplicationException("never"); // never runs, but satisfies compiler
-		throw new UnsupportedOperationException("serialize() is not implemented");
+		throw new UnsupportedOperationException("serialize() is not implemented; " + this.getClass().getName());
 	}
 
 	public Struct schema(Prop<T> prop);
@@ -65,7 +66,7 @@ public interface PropFactory<T> {
 		}
 
 		@Override
-		public Array evaluate(Config config, String name, Object val) throws PageException {
+		public Array evaluate(Config config, String name, Object val, short source) throws PageException {
 			return Caster.toArray(val);
 		}
 
@@ -102,7 +103,7 @@ public interface PropFactory<T> {
 		private StructPropFactory() {}
 
 		@Override
-		public Struct evaluate(Config config, String name, Object val) throws PageException {
+		public Struct evaluate(Config config, String name, Object val, short source) throws PageException {
 			return Caster.toStruct(val);
 		}
 
@@ -140,7 +141,7 @@ public interface PropFactory<T> {
 		private StringPropFactory() {}
 
 		@Override
-		public String evaluate(Config config, String name, Object val) throws PageException {
+		public String evaluate(Config config, String name, Object val, short source) throws PageException {
 			return Caster.toString(val);
 		}
 
@@ -166,7 +167,7 @@ public interface PropFactory<T> {
 		private BooleanPropFactory() {}
 
 		@Override
-		public Boolean evaluate(Config config, String name, Object val) throws PageException {
+		public Boolean evaluate(Config config, String name, Object val, short source) throws PageException {
 			return Caster.toBoolean(val);
 		}
 
@@ -192,7 +193,7 @@ public interface PropFactory<T> {
 		private TimeSpanPropFactory() {}
 
 		@Override
-		public TimeSpan evaluate(Config config, String name, Object val) throws PageException {
+		public TimeSpan evaluate(Config config, String name, Object val, short source) throws PageException {
 			return Caster.toTimespan(val);
 		}
 
@@ -238,7 +239,7 @@ public interface PropFactory<T> {
 		private LocalePropFactory() {}
 
 		@Override
-		public Locale evaluate(Config config, String name, Object val) throws PageException {
+		public Locale evaluate(Config config, String name, Object val, short source) throws PageException {
 			return Caster.toLocale(val);
 		}
 
@@ -270,7 +271,7 @@ public interface PropFactory<T> {
 		private TimeZonePropFactory() {}
 
 		@Override
-		public TimeZone evaluate(Config config, String name, Object val) throws PageException {
+		public TimeZone evaluate(Config config, String name, Object val, short source) throws PageException {
 			return Caster.toTimeZone(val);
 		}
 
@@ -321,8 +322,13 @@ public interface PropFactory<T> {
 		private ShortPropFactory() {}
 
 		@Override
-		public Short evaluate(Config config, String name, Object val) throws PageException {
+		public Short evaluate(Config config, String name, Object val, short source) throws PageException {
 			return Caster.toShort(val);
+		}
+
+		@Override
+		public Object serialize(Config config, Short val) throws PageException {
+			return val != null ? Caster.toInteger(val) : null;
 		}
 
 		@Override
@@ -342,8 +348,13 @@ public interface PropFactory<T> {
 		private DoublePropFactory() {}
 
 		@Override
-		public Double evaluate(Config config, String name, Object val) throws PageException {
+		public Double evaluate(Config config, String name, Object val, short source) throws PageException {
 			return Caster.toDouble(val);
+		}
+
+		@Override
+		public Object serialize(Config config, Double val) throws PageException {
+			return val;
 		}
 
 		@Override
@@ -359,11 +370,49 @@ public interface PropFactory<T> {
 		}
 	}
 
+	public static class ProcentagePropFactory implements PropFactory<Float> {
+		private ProcentagePropFactory() {}
+
+		@Override
+		public Float evaluate(Config config, String name, Object val, short source) throws PageException {
+
+			String str = Caster.toString(val);
+			if (StringUtil.isEmpty(str)) return 0F;
+			str = StringUtil.unwrap(str);
+			if (StringUtil.isEmpty(str)) return 0F;
+
+			float res = Caster.toFloatValue(str, 0F);
+			if (res < 0F) return 0F;
+			if (res > 1F) return 1F;
+			return res;
+		}
+
+		@Override
+		public Object serialize(Config config, Float val) throws PageException {
+			if (val == null) return 0f;
+			if (val < 0F) return 0F;
+			if (val > 1F) return 1F;
+			return val;
+		}
+
+		@Override
+		public Struct schema(Prop<Float> prop) {
+			Struct sct = new StructImpl(Struct.TYPE_LINKED);
+			sct.setEL(KeyConstants._type, "number");
+			return sct;
+		}
+
+		@Override
+		public Object resolvedValue(Float value) {
+			return value;
+		}
+	}
+
 	public static class IntegerPropFactory implements PropFactory<Integer> {
 		private IntegerPropFactory() {}
 
 		@Override
-		public Integer evaluate(Config config, String name, Object val) throws PageException {
+		public Integer evaluate(Config config, String name, Object val, short source) throws PageException {
 			return Caster.toInteger(val);
 		}
 
@@ -389,8 +438,13 @@ public interface PropFactory<T> {
 		private LongPropFactory() {}
 
 		@Override
-		public Long evaluate(Config config, String name, Object val) throws PageException {
+		public Long evaluate(Config config, String name, Object val, short source) throws PageException {
 			return Caster.toLong(val);
+		}
+
+		@Override
+		public Object serialize(Config config, Long val) throws PageException {
+			return val;
 		}
 
 		@Override
@@ -410,8 +464,13 @@ public interface PropFactory<T> {
 		private CharsetPropFactory() {}
 
 		@Override
-		public Charset evaluate(Config config, String name, Object val) throws PageException {
+		public Charset evaluate(Config config, String name, Object val, short source) throws PageException {
 			return CharsetUtil.toCharset(Caster.toString(val));
+		}
+
+		@Override
+		public Object serialize(Config config, Charset val) throws PageException {
+			return Caster.toString(val);
 		}
 
 		@Override
@@ -478,8 +537,13 @@ public interface PropFactory<T> {
 		private CharsetXPropFactory() {}
 
 		@Override
-		public CharsetX evaluate(Config config, String name, Object val) throws PageException {
+		public CharsetX evaluate(Config config, String name, Object val, short source) throws PageException {
 			return CharsetUtil.toCharsetX(Caster.toString(val));
+		}
+
+		@Override
+		public Object serialize(Config config, CharsetX val) throws PageException {
+			return Caster.toString(val);
 		}
 
 		@Override

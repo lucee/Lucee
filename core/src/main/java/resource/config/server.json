@@ -20,7 +20,7 @@
 	"mailSpoolInterval": 5,
 	"mergeUrlForm": false,
 	"preserveSingleQuote": false,
-	"requestTimeout": "0,0,0,50",
+	"requestTimeout": {"span":"0,0,0,50"},
 	"scopeCascading": "standard",
 	"sessionManagement": true,
 	"sessionTimeout": "0,0,30,0",

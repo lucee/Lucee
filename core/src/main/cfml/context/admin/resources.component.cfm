@@ -205,13 +205,13 @@ Defaults --->
                     password="#session["password"&request.adminType]#"
                     
                     componentDumpTemplate="#form.componentDumpTemplate#"
-                    componentDataMemberDefaultAccess="#form.componentDataMemberDefaultAccess#"
+                    componentDataMemberDefaultAccess="#form.componentDataMemberAccess#"
                     triggerDataMember="#isDefined('form.triggerDataMember')#"
-                    useShadow="#isDefined('form.useShadow')#"
-                    componentDefaultImport="#form.componentDefaultImport#"
+                    useShadow="#isDefined('form.componentUseVariablesScope')#"
+                    componentDefaultImport="#form.componentAutoImport#"
                     componentLocalSearch="#isDefined('form.componentLocalSearch')#"
-                    componentPathCache="#isDefined('form.componentPathCache')#"
-                    componentDeepSearch="#isDefined('form.componentDeepSearchDesc') and form.componentDeepSearchDesc EQ true#"
+                    componentPathCache="#isDefined('form.componentUseCachePath')#"
+                    componentDeepSearch="#isDefined('form.componentDeepSearch') and form.componentDeepSearch EQ true#"
 					returnformat="#form.returnformat?:"wddx"#"
 						
                     

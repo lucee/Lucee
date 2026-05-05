@@ -15,26 +15,34 @@
 				<tr>
 					<th scope="row">#stText.Components.AutoImport#</th>
 					<td>
-						<cfif hasAccess>
-							<cfinputClassic type="text" name="componentDefaultImport" value="#component.componentDefaultImport#" style="width:350px" 
+						<cfmodule template="systemSetting.cfm" 
+							name="componentAutoImport" 
+							value="#component.componentDefaultImport#"
+							access="#hasAccess#"
+							description="#stText.Components.AutoImportDescription#"
+							br=false
+							sp=false
+							descOnTop=true>
+							<cfinputClassic type="text" name="componentAutoImport" value="#component.componentDefaultImport#" style="width:350px" 
 								required="no" 
 								message="#stText.Components.AutoImportMissing#">
-						<cfelse>
-							<b>#component.componentDefaultImport#</b>
-						</cfif>
-						<div class="comment">#stText.Components.AutoImportDescription#</div>
+						</cfmodule>
 					</td>
 				</tr>
 				<!--- Search Local ---->
 				<tr>
 					<th scope="row">#stText.Components.componentLocalSearch#</th>
 					<td>
-						<cfif hasAccess>
+						<cfmodule template="systemSetting.cfm" 
+							name="componentLocalSearch" 
+							value="#component.componentLocalSearch#"
+							access="#hasAccess#"
+							description="#stText.Components.componentLocalSearchDesc#"
+							br=false
+							sp=false
+							descOnTop=false>
 							<input type="checkbox" class="checkbox" name="componentLocalSearch" value="yes" <cfif component.componentLocalSearch>checked</cfif>>
-						<cfelse>
-							<b>#YesNoFormat(component.componentLocalSearch)#</b>
-						</cfif>
-						<div class="comment">#stText.Components.componentLocalSearchDesc#</div>
+						</cfmodule>
 					</td>
 				</tr>
 				<!--- Search Mappings ---->
@@ -49,27 +57,35 @@
 				<tr>
 					<th scope="row">#stText.Components.componentDeepSearch#</th>
 					<td>
-						<cfif hasAccess>
-							<input type="checkbox" class="checkbox" name="componentDeepSearchDesc" value="yes" <cfif component.deepsearch>checked</cfif>>
-						<cfelse>
-							<b>#yesNoFormat(component.deepsearch)#</b>
-						</cfif>
-						<div class="comment">#stText.Components.componentDeepSearchDesc#</div>
+						<cfmodule template="systemSetting.cfm" 
+							name="componentDeepSearch" 
+							value="#component.deepsearch#"
+							access="#hasAccess#"
+							description="#stText.Components.componentDeepSearchDesc#"
+							br=false
+							sp=false
+							descOnTop=false>
+							<input type="checkbox" class="checkbox" name="componentDeepSearch" value="yes" <cfif component.deepsearch>checked</cfif>>
+						</cfmodule>
 					</td>
 				</tr>
 				<!--- component path cache ---->
 				<tr>
 					<th scope="row">#stText.Components.componentPathCache#</th>
 					<td>
-						<cfif hasAccess>
-							<input type="checkbox" class="checkbox" name="componentPathCache" value="yes" <cfif component.componentPathCache>checked</cfif>>
-							<div class="comment">#stText.Components.componentPathCacheDesc#</div>
-							<cfif component.componentPathCache>
-								<input type="submit" class="button submit" name="mainAction" value="#flushName#">
-							</cfif>
-						<cfelse>
-							<b>#YesNoFormat(component.componentPathCache)#</b>
-							<div class="comment">#stText.Components.componentPathCacheDesc#</div>
+						<cfmodule template="systemSetting.cfm" 
+							name="componentUseCachePath" 
+							value="#component.componentPathCache#"
+							access="#hasAccess#"
+							description="#stText.Components.componentPathCacheDesc#"
+							br=false
+							sp=false
+							descOnTop=false>
+							<input type="checkbox" class="checkbox" name="componentUseCachePath" value="yes" <cfif component.componentPathCache>checked</cfif>>
+						</cfmodule>
+
+						<cfif hasAccess and component.componentPathCache>
+							<br><input type="submit" class="button submit" name="mainAction" value="#flushName#">
 						</cfif>
 					</td>
 				</tr>
@@ -79,15 +95,19 @@
 					<cfset css=iif(len(component.componentDumpTemplate) EQ 0 and len(component.strComponentDumpTemplate) NEQ 0,de('Red'),de(''))>
 					<td class="tblContent#css#" title="#component.strcomponentDumpTemplate#
 #component.componentDumpTemplate#">
-						<cfif hasAccess>
+						<cfset _url="#findNoCase("https",cgi.server_protocol)?"https":"http"#://#cgi.http_host##cgi.context_path#/lucee/Admin.cfc">
+						<cfmodule template="systemSetting.cfm" 
+							name="componentDumpTemplate" 
+							value="#component.strcomponentDumpTemplate#"
+							access="#hasAccess#"
+							description="#replace(stText.Components.ComponentDumpTemplateDescription,'{url}',"<a href=""#_url#"">#_url#</a>",'all')#"
+							br=false
+							sp=false
+							descOnTop=true>
 							<cfinputClassic type="text" name="componentDumpTemplate" value="#component.strcomponentDumpTemplate#" class="large"
 								required="no" 
 								message="#stText.Components.ComponentDumpTemplateMissing#">
-						<cfelse>
-							<b>#component.strcomponentDumpTemplate#</b>
-						</cfif>
-						<cfset _url="#findNoCase("https",cgi.server_protocol)?"https":"http"#://#cgi.http_host##cgi.context_path#/lucee/Admin.cfc">
-						<div class="comment">#replace(stText.Components.ComponentDumpTemplateDescription,'{url}',"<a href=""#_url#"">#_url#</a>",'all')#</div>
+						</cfmodule>
 					</td>
 				</tr>
 
@@ -96,17 +116,21 @@
 					<th scope="row">#stText.Components.DataMemberAccessType#</th>
 					<td>
 						<cfset access=component.componentDataMemberDefaultAccess>
-						<cfif hasAccess>
-							<select name="componentDataMemberDefaultAccess" class="medium">
+						<cfmodule template="systemSetting.cfm" 
+							name="componentDataMemberAccess" 
+							value="#access#"
+							access="#hasAccess#"
+							description="#stText.Components.DataMemberAccessTypeDescription#"
+							br=false
+							sp=false
+							descOnTop=true>
+							<select name="componentDataMemberAccess" class="medium">
 								<option value="private" <cfif access EQ "private">selected</cfif>>#stText.Components.DMATPrivate#</option>
 								<option value="package" <cfif access EQ "package">selected</cfif>>#stText.Components.DMATPackage#</option>
 								<option value="public" <cfif access EQ "public">selected</cfif>>#stText.Components.DMATPublic#</option>
 								<option value="remote" <cfif access EQ "remote">selected</cfif>>#stText.Components.DMATRemote#</option>
 							</select>
-						<cfelse>
-							<b>#access#</b>
-						</cfif>
-						<div class="comment">#stText.Components.DataMemberAccessTypeDescription#</div>
+						</cfmodule>
 					</td>
 				</tr>
 				<!---
@@ -114,15 +138,17 @@
 				<tr>
 					<th scope="row">#stText.Components.triggerDataMember#</th>
 					<td>
-						<cfif hasAccess>
+						<cfmodule template="systemSetting.cfm" 
+							name="componentImplicitNotation" 
+							value="#component.triggerDataMember#"
+							access="#hasAccess#"
+							description="#stText.Components.triggerDataMemberDescription#"
+							br=false
+							sp=true
+							descOnTop=false>
 							<input class="checkbox" type="checkbox" class="checkbox" name="triggerDataMember" 
 							value="yes" <cfif component.triggerDataMember>checked</cfif>>
-						<cfelse>
-							<b>#iif(component.triggerDataMember,de('Yes'),de('No'))#</b>
-						</cfif>
-						<div class="comment">#stText.Components.triggerDataMemberDescription#</div>
-						<!--- Tip --->
-						<cfset renderCodingTip( "this.invokeImplicitAccessor = "&component.triggerDataMember&";" )>
+						</cfmodule>
 					</td>
 				</tr>
 				<!---
@@ -130,13 +156,17 @@
 				<tr>
 					<th scope="row">#stText.Components.useShadow#</th>
 					<td>
-						<cfif hasAccess>
-							<input class="checkbox" type="checkbox" class="checkbox" name="useShadow" 
+						<cfmodule template="systemSetting.cfm" 
+							name="componentUseVariablesScope" 
+							value="#component.useShadow#"
+							access="#hasAccess#"
+							description="#stText.Components.useShadowDescription#"
+							br=false
+							sp=false
+							descOnTop=false>
+							<input class="checkbox" type="checkbox" class="checkbox" name="componentUseVariablesScope" 
 							value="yes" <cfif component.useShadow>checked</cfif>>
-						<cfelse>
-							<b>#iif(component.useShadow,de('Yes'),de('No'))#</b>
-						</cfif>
-						<div class="comment">#stText.Components.useShadowDescription#</div>
+						</cfmodule>
 					</td>
 				</tr>
 				<!--- default return format --->
@@ -148,19 +178,21 @@
 					<th scope="row">#stText.Components.returnFormat#</th>
 					<td>
 						<cfset access=component.componentDataMemberDefaultAccess>
-						<cfif hasAccess>
+						<cfmodule template="systemSetting.cfm" 
+							name="returnFormat" 
+							value="#component.returnFormat#"
+							access="#hasAccess#"
+							description="#stText.Components.returnFormatDesc#"
+							br=false
+							sp=true
+							descOnTop=true>
 							<cfset df=component.returnFormat?:"wddx">
 							<select name="returnformat" class="medium">
 								<cfloop list="cfml,json,wddx,pLain" item="format">
 								<option value="#format#" <cfif format EQ df>selected</cfif>>#Ucase(format)#</option>
 								</cfloop>
 							</select>
-						<cfelse>
-							<b>#ucase(df)#</b>
-						</cfif>
-						<div class="comment">#stText.Components.returnFormatDesc#</div>
-						<!--- Tip --->
-						<cfset renderCodingTip( "this.returnformat = """&(component.returnFormat?:"wddx")&""";" )>
+						</cfmodule>
 					</td>
 				</tr>
 				<cfif hasAccess>
@@ -184,6 +216,9 @@
 	
 	<h2>#stText.Components.componentMappings#</h2>
 	<div class="itemintro">#stText.Components.componentMappingsDesc#</div>
+
+	<cfset renderSettings("ComponentMappings",{columns:["virtual","physical","archive","primary","listenerType","listenerMode","readonly","hidden","toplevel"
+		,"inspect","inspectTemplateIntervalSlow","inspectTemplateIntervalFast"], value:addPrimary(mappings)} )>
 	<cfformClassic onerror="customError" action="#request.self#?action=#url.action#" method="post">
 		<table class="maintbl checkboxtbl">
 			<thead>
@@ -203,6 +238,7 @@
 			</thead>
 			<tbody>
 				<cfset count=0>
+				
 				<cfloop query="mappings">
 					<tr>
 						
@@ -250,7 +286,12 @@
 						</td>
 						<!--- edit --->
 						<td>
-							<cfif not mappings.readOnly>
+							
+							<cfif mappings.readOnly>
+								#lockedReadOnly()#
+							<cfelseif mappings.source EQ "sysprop_envvar">
+								#lockedSysOpEnvVar()#
+							<cfelse>
 								#renderEditButton("#request.self#?action=#url.action#&action2=create&virtual=#mappings.virtual#")#
 							</cfif>
 						</td>

@@ -37,7 +37,7 @@ public class MonitorFactory implements PropFactory<Monitor> {
 	}
 
 	@Override
-	public Monitor evaluate(Config config, String nameX, Object val) throws PageException {
+	public Monitor evaluate(Config config, String nameX, Object val, short source) throws PageException {
 
 		ConfigServer configServer = ConfigUtil.getConfigServerImpl(config);
 

@@ -957,6 +957,7 @@ public final class KeyConstants {
 	public static final Key _scale = init("scale");
 	public static final Key _include = init("include");
 	public static final Key _compression = init("compression");
+	public static final Key _allowCompression = init("allowCompression");
 	public static final Key _invoke = init("invoke");
 	public static final Key _static = init("static");
 	public static final Key _STATIC = init("STATIC");
@@ -2578,11 +2579,14 @@ public final class KeyConstants {
 	public static final Key _wssetting = init("wssetting");
 	public static final Key _triggerDataMember = init("triggerDataMember");
 	public static final Key _InvokeImplicitAccessor = init("InvokeImplicitAccessor");
+	public static final Key _componentImplicitNotation = init("componentImplicitNotation");
 	public static final Key _sessionManagement = init("sessionManagement");
 	public static final Key _sessionTimeout = init("sessionTimeout");
 	public static final Key _clientTimeout = init("clientTimeout");
 	public static final Key _requestTimeout = init("requestTimeout");
+	public static final Key _clientCookies = init("clientCookies");
 	public static final Key _setClientCookies = init("setClientCookies");
+	public static final Key _domainCookies = init("domainCookies");
 	public static final Key _setDomainCookies = init("setDomainCookies");
 	public static final Key _scriptProtect = init("scriptProtect");
 	public static final Key _customtagpaths = init("customtagpaths");
@@ -2591,7 +2595,9 @@ public final class KeyConstants {
 	public static final Key _secureJsonPrefix = init("secureJsonPrefix");
 	public static final Key _secureJson = init("secureJson");
 	public static final Key _localMode = init("localMode");
+	public static final Key _localScopeMode = init("localScopeMode");
 	public static final Key _bufferOutput = init("bufferOutput");
+	public static final Key _bufferTagBodyOutput = init("bufferTagBodyOutput");
 	public static final Key _sessionCluster = init("sessionCluster");
 	public static final Key _clientCluster = init("clientCluster");
 	public static final Key _defaultdatasource = init("defaultdatasource");
@@ -2605,7 +2611,9 @@ public final class KeyConstants {
 	public static final Key _searchImplicitScopes = init("searchImplicitScopes");
 	public static final Key _typeChecking = init("typeChecking");
 	public static final Key _CGIReadOnly = init("CGIReadOnly");
+	public static final Key _cgiScopeReadOnly = init("cgiScopeReadOnly");
 	public static final Key _suppressRemoteComponentContent = init("suppressRemoteComponentContent");
+	public static final Key _suppressContent = init("suppressContent");
 	public static final Key _sessioncookie = init("sessioncookie");
 	public static final Key _authcookie = init("authcookie");
 	public static final Key _enableNULLSupport = init("enableNULLSupport");
@@ -2621,8 +2629,10 @@ public final class KeyConstants {
 	public static final Key _xmlFeatures = init("xmlFeatures");
 	public static final Key _searchQueries = init("searchQueries");
 	public static final Key _searchResults = init("searchResults");
+	public static final Key _cascadeToResultset = init("cascadeToResultset");
 	public static final Key _limitEvaluation = init("limitEvaluation");
 	public static final Key _regex = init("regex");
+	public static final Key _regexType = init("regexType");
 	public static final Key _engine = init("engine");
 	public static final Key _useJavaAsRegexEngine = init("useJavaAsRegexEngine");
 	public static final Key _applicationname = init("applicationname");

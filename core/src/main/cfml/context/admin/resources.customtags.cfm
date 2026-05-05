@@ -150,9 +150,9 @@
 						type="#request.adminType#"
 						password="#session["password"&request.adminType]#"
 						
-						customTagDeepSearch="#form.customTagDeepSearchDesc?:false#"
-						customTagLocalSearch="#form.customTagLocalSearchDesc?:false#"
-						customTagUseCachePath="#form.customTagPathCache?:false#"
+						customTagDeepSearch="#form.customTagDeepSearch?:false#"
+						customTagLocalSearch="#form.customTagLocalSearch?:false#"
+						customTagUseCachePath="#form.customTagUseCachePath?:false#"
 						customTagExtensions="#form.extensions#"
 			remoteClients="#request.getRemoteClients()#">
 			<cfelseif form.subAction EQ "#stText.Buttons.Update#">

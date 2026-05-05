@@ -77,7 +77,7 @@ public class SecretProviderFactory implements PropFactory<SecretProvider> {
 	}
 
 	@Override
-	public SecretProvider evaluate(Config config, String name, Object val) throws PageException {
+	public SecretProvider evaluate(Config config, String name, Object val, short source) throws PageException {
 		try {
 			return getInstance(config, name, Caster.toStruct(val));
 		}

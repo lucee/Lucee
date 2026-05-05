@@ -45,7 +45,7 @@ public class ResourceProviderDefFactory implements PropFactory<ResourceProviderD
 	}
 
 	@Override
-	public ResourceProviderDef evaluate(Config config, String name, Object val) throws PageException {
+	public ResourceProviderDef evaluate(Config config, String name, Object val, short source) throws PageException {
 		try {
 			// can be an array with a single entry
 			Array arr = Caster.toArray(val, null);

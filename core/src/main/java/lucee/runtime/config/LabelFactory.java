@@ -34,7 +34,7 @@ public class LabelFactory implements PropFactory<LabelFactory.Label> {
 	}
 
 	@Override
-	public Label evaluate(Config config, String name, Object val) throws PageException {
+	public Label evaluate(Config config, String name, Object val, short source) throws PageException {
 
 		Struct data = Caster.toStruct(val);
 

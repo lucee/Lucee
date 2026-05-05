@@ -6,7 +6,7 @@
     --button-text-rgb: 255, 255, 255;
     --primary-color-rgb: 72, 105, 36;
     --okay-color-rgb: 0, 125, 12;
-    --error-color-rgb: 220, 0, 0;
+    --error-color-rgb: 191, 79, 54;
     --warn-color-rgb: 220, 140, 0;
     --sun-moon-rgb: 52, 143, 235;
 
@@ -78,10 +78,8 @@ body {
     width: auto;
 }
 
-.optionslist td,
-.optionslist th {
-    padding: 3px;
-    vertical-align: top;
+.optionslist > tbody > tr > td,
+.optionslist > tbody > tr > th {
     border: 0 !important;
 }
 
@@ -810,8 +808,13 @@ label:hover {
 }
 
 .commentError {
-    font-size: 12px;
-    color: #bf4f36;
+    font-size: 14px;
+    color: rgba(var(--error-color-rgb), 0.7) !important;
+    text-decoration: none;
+}
+.commentWarn {
+    font-size: 14px;
+    color: rgba(var(--warn-color-rgb), 0.7) !important;
     text-decoration: none;
 }
 
@@ -1040,8 +1043,8 @@ div.whitePanel {
     padding: 0.5rem;
     border: 0px;
     border-radius: 0.5em;
-    background-color: #f1f0f5;
-    color: #666;
+    background-color: var(--cell-back);
+    color: var(--text-color);
 }
 
 .coding-tip .copy {
@@ -1349,3 +1352,49 @@ tbody#extproviderlist td {
 .dark-mode-toggle:hover {
   transform: scale(1.2);
 }
+
+.locked-indicator {
+    display: inline-block;
+    cursor: help;
+    color: #e6a817;
+    font-size: 1rem;
+    position: relative;
+}
+
+.locked-indicator::after {
+    content: attr(data-tooltip);
+    display: none;
+    position: absolute;
+    bottom: 125%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #333;
+    color: #fff;
+    padding: 6px 10px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    white-space: nowrap;
+    max-width: 280px;
+    white-space: normal;
+    width: max-content;
+    z-index: 100;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+}
+
+.locked-indicator::before {
+    content: '';
+    display: none;
+    position: absolute;
+    bottom: 105%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 5px solid transparent;
+    border-top-color: #333;
+    z-index: 100;
+}
+
+.locked-indicator:hover::after,
+.locked-indicator:hover::before {
+    display: block;
+}
+

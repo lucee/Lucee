@@ -2084,6 +2084,21 @@ public final class ConfigWebImpl implements ConfigWebPro {
 		return cs.getExtensionProvidersGroupIds();
 	}
 
+	@Override
+	public int getRequestTimeoutConcurrentRequestThreshold() {
+		return cs.getRequestTimeoutConcurrentRequestThreshold();
+	}
+
+	@Override
+	public float getRequestTimeoutCPUThreshold() {
+		return cs.getRequestTimeoutCPUThreshold();
+	}
+
+	@Override
+	public float getRequestTimeoutMemoryThreshold() {
+		return cs.getRequestTimeoutMemoryThreshold();
+	}
+
 	private static class SCCWIdentificationWeb implements IdentificationWeb, Serializable {
 
 		private static final long serialVersionUID = -9020697769127921035L;

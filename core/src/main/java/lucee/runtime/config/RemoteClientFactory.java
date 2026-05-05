@@ -24,7 +24,7 @@ public class RemoteClientFactory implements PropFactory<RemoteClient> {
 	}
 
 	@Override
-	public RemoteClient evaluate(Config config, String name, Object val) throws PageException {
+	public RemoteClient evaluate(Config config, String name, Object val, short source) throws PageException {
 
 		try {
 			Struct client = Caster.toStruct(val);
