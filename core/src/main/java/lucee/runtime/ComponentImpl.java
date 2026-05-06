@@ -115,6 +115,9 @@ import lucee.runtime.type.scope.Argument;
 import lucee.runtime.type.scope.ArgumentImpl;
 import lucee.runtime.type.scope.ArgumentIntKey;
 import lucee.runtime.type.scope.Variables;
+
+import java.lang.reflect.Method;
+import java.util.concurrent.ConcurrentHashMap;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.ComponentUtil;
 import lucee.runtime.type.util.KeyConstants;
@@ -367,6 +370,8 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 				if (useShadow) {
 					addUDFS(trg, ((ComponentScopeShadow) scope).getShadow(), ((ComponentScopeShadow) trg.scope).getShadow());
 				}
+
+				reFireExpressionDefaults(trg);
 			}
 		}
 		finally {
@@ -374,6 +379,69 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 		}
 
 		return trg;
+	}
+
+	// SEED_METHOD_NONE flags "Page class compiled by pre-LDEV-6303 Lucee" (cross-version compat).
+	private static final java.util.Map<Class<?>, Method> SEED_METHOD_CACHE = new ConcurrentHashMap<Class<?>, Method>();
+	private static final Method SEED_METHOD_NONE;
+	static {
+		Method tmp = null;
+		try {
+			tmp = Object.class.getDeclaredMethod("hashCode");
+		}
+		catch (NoSuchMethodException e) {}
+		SEED_METHOD_NONE = tmp;
+	}
+
+	private static Method lookupSeedMethod(Class<?> pageClass) {
+		Method m = SEED_METHOD_CACHE.get(pageClass);
+		if (m != null) return m == SEED_METHOD_NONE ? null : m;
+		try {
+			m = pageClass.getDeclaredMethod("_seedExpressionDefaults", PageContext.class);
+			SEED_METHOD_CACHE.put(pageClass, m);
+			return m;
+		}
+		catch (NoSuchMethodException e) {
+			SEED_METHOD_CACHE.put(pageClass, SEED_METHOD_NONE);
+			return null;
+		}
+	}
+
+	private static void reFireExpressionDefaults(ComponentImpl trg) {
+		PageContext pc = ThreadLocalPageContext.get();
+		if (pc == null) return;
+
+		Variables prevVars = pc.variablesScope();
+		try {
+			if (trg.scope instanceof Variables) pc.setVariablesScope((Variables) trg.scope);
+
+			ComponentImpl walker = trg;
+			while (walker != null) {
+				if (walker.pageSource != null) {
+					try {
+						lucee.runtime.Page page = walker.pageSource.loadPage(pc, false);
+						if (page != null) {
+							Method seed = lookupSeedMethod(page.getClass());
+							if (seed != null) {
+								try {
+									seed.invoke(null, pc);
+								}
+								catch (Throwable t) {
+									ExceptionUtil.rethrowIfNecessary(t);
+								}
+							}
+						}
+					}
+					catch (PageException pe) {
+						break;
+					}
+				}
+				walker = (ComponentImpl) walker.base;
+			}
+		}
+		finally {
+			if (prevVars != null) pc.setVariablesScope(prevVars);
+		}
 	}
 
 	private static void addUDFS(ComponentImpl trgComp, Map src, Map trg) {

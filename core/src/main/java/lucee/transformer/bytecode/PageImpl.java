@@ -765,6 +765,8 @@ public final class PageImpl extends BodyBase implements Page {
 		// newInstance/initComponent/call
 		writeOutStatic(optionalPS, constr, keys, cw, comp, className);
 
+		writeOutSeedExpressionDefaults(optionalPS, constr, keys, cw, comp, className);
+
 		// set field subs
 		FieldVisitor fv = cw.visitField(Opcodes.ACC_PRIVATE, "subs", "[Llucee/runtime/CIPage;", null, null);
 		fv.visitEnd();
@@ -1229,10 +1231,9 @@ public final class PageImpl extends BodyBase implements Page {
 								// prop.setDefault(value) if it's a simple literal
 								// Only handle simple literals (Literal interface) - complex expressions like now()
 								// or #myVar# need PageContext and must be evaluated at runtime, not class-load time
-								if (propDefaultAttr != null && propDefaultAttr.getValue() instanceof Literal) {
+								if (propDefaultAttr != null && propDefaultAttr.getValue() != null) {
 									Expression defaultExpr = propDefaultAttr.getValue();
 
-									// Handle simple literals only - complex expressions handled at runtime
 									if (defaultExpr instanceof LitStringImpl) {
 										String value = ((LitStringImpl) defaultExpr).getString();
 										ga.loadLocal(propLocal);
@@ -1253,7 +1254,31 @@ public final class PageImpl extends BodyBase implements Page {
 										ga.box(Type.BOOLEAN_TYPE);
 										ga.invokeVirtual(Types.PROPERTY_IMPL, new Method("setDefault", Type.VOID_TYPE, new Type[] { Types.OBJECT }));
 									}
-									// else: complex expression - will be handled at runtime in TagProperty
+									else {
+										String source;
+										try {
+											int start = defaultExpr.getStart().pos;
+											int end = defaultExpr.getEnd().pos;
+											// json() consumes opening { or [ before recording position; back up
+											if (start > 0) {
+												String peek = sourceCode.subCFMLString(start - 1, 1).toString();
+												if (peek.length() == 1 && (peek.charAt(0) == '{' || peek.charAt(0) == '[')) {
+													start--;
+												}
+											}
+											source = sourceCode.subCFMLString(start, end - start).toString();
+										}
+										catch (Exception e) {
+											source = "";
+										}
+										Type EXPRESSION_DEFAULT = Type.getType("Llucee/runtime/component/ExpressionDefault;");
+										ga.loadLocal(propLocal);
+										ga.newInstance(EXPRESSION_DEFAULT);
+										ga.dup();
+										ga.push(source);
+										ga.invokeConstructor(EXPRESSION_DEFAULT, new Method("<init>", Type.VOID_TYPE, new Type[] { Types.STRING }));
+										ga.invokeVirtual(Types.PROPERTY_IMPL, new Method("setDefault", Type.VOID_TYPE, new Type[] { Types.OBJECT }));
+									}
 								}
 
 								// Collect dynamic attributes (non-standard attributes)
@@ -1538,6 +1563,59 @@ public final class PageImpl extends BodyBase implements Page {
 			ga.endMethod();
 		}
 
+	}
+
+	private void writeOutSeedExpressionDefaults(PageSource optionalPS, ConstrBytecodeContext constr, Map<LitString, Integer> keys, ClassWriter cw, TagCIObject component,
+			String name) throws TransformerException {
+		if (component == null || component.getBody() == null) return;
+		List<Statement> statements = component.getBody().getStatements();
+		if (statements == null) return;
+
+		List<TagProperty> exprDefProps = new ArrayList<TagProperty>();
+		for (Statement stmt: statements) {
+			if (!(stmt instanceof TagProperty)) continue;
+			TagProperty tagProp = (TagProperty) stmt;
+			Attribute defaultAttr = tagProp.getAttribute("default");
+			if (defaultAttr == null || defaultAttr.getValue() == null) continue;
+			Expression defaultExpr = defaultAttr.getValue();
+			if (defaultExpr instanceof LitStringImpl || defaultExpr instanceof LitNumberImpl || defaultExpr instanceof LitBooleanImpl) continue;
+			Attribute nameAttr = tagProp.getAttribute("name");
+			if (nameAttr == null || nameAttr.getValue() == null) continue;
+			exprDefProps.add(tagProp);
+		}
+
+		// Method shell always emitted on component classes — empty body is JIT no-op; ensures
+		// presence-of-method is stable for ComponentImpl._duplicate's reflection lookup.
+		Method seedMethod = new Method("_seedExpressionDefaults", Types.VOID, new Type[] { Types.PAGE_CONTEXT });
+		GeneratorAdapter ga = new GeneratorAdapter(Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC, seedMethod, null, new Type[] { Types.THROWABLE }, cw);
+		BytecodeContext bc = new BytecodeContext(config, optionalPS, constr, this, keys, cw, name, ga, seedMethod, writeLog(), suppressWSbeforeArg, output, returnValue,
+				sourceCode.getSourceOffset());
+
+		Method METHOD_VARIABLES_SCOPE = new Method("variablesScope", Types.VARIABLES, new Type[] {});
+		Method METHOD_SET_EL = new Method("setEL", Types.OBJECT, new Type[] { Types.COLLECTION_KEY, Types.OBJECT });
+
+		for (TagProperty tagProp: exprDefProps) {
+			Attribute nameAttr = tagProp.getAttribute("name");
+			Attribute defaultAttr = tagProp.getAttribute("default");
+			String propName = nameAttr.getValue() instanceof Literal ? ((Literal) nameAttr.getValue()).getString() : null;
+			if (propName == null) continue;
+			Expression defaultExpr = defaultAttr.getValue();
+
+			defaultExpr.writeOut(bc, Expression.MODE_REF);
+			int defaultLocal = ga.newLocal(Types.OBJECT);
+			ga.storeLocal(defaultLocal);
+
+			ga.loadArg(0);
+			ga.invokeVirtual(Types.PAGE_CONTEXT, METHOD_VARIABLES_SCOPE);
+			ga.push(propName);
+			ga.invokeStatic(KEY_IMPL, KEY_INIT);
+			ga.loadLocal(defaultLocal);
+			ga.invokeInterface(Types.SCOPE, METHOD_SET_EL);
+			ga.pop();
+		}
+
+		ga.returnValue();
+		ga.endMethod();
 	}
 
 	private String getTagAttributeValue(Tag tag, String attrName) {
