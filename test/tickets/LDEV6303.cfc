@@ -362,107 +362,43 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="orm" {
 
 			});
 
-			describe( "duplicate() re-fires expression-form defaults — fresh per-instance evaluation", function(){
+			describe( "duplicate() — deep-copy semantic, no re-fire (option 6 contract)", function(){
+				// Core duplicate is a deep copy of state, not a re-construction. Hibernate (which
+				// needs fresh per-entity evaluation) handles its template→entity re-firing at the
+				// extension layer. See test/functions/Duplicate.cfc for the broader user-mutation
+				// preservation contract.
 
-				it( "duplicate fires fresh #now()# — dup gets a later timestamp than src after sleep", function(){
-					// Contract: duplicate re-fires expression-form defaults so each duplicate
-					// gets a fresh per-instance evaluation. The natural reading of
-					// default="#now()#" is "the time this instance came into existence" — and
-					// duplicates ARE new instances coming into existence.
-					var src = new LDEV6303.ExpressionDefaultsCfc();
-					sleep( 1100 );
-					var dup = duplicate( src );
-
-					expect( dateCompare( dup.getNowDef(), src.getNowDef(), "s" ) ).toBeGT( 0,
-						"duplicate must re-evaluate now() — dup's timestamp should be later than src's"
-					);
-				});
-
-				it( "duplicate fires fresh #createUUID()# — dup's UUID differs from src's", function(){
-					var src = new LDEV6303.ExpressionDefaultsCfc();
-					var dup = duplicate( src );
-
-					expect( dup.getUuidDef() ).notToBe( src.getUuidDef(),
-						"duplicate must re-evaluate createUUID() — dup gets a fresh UUID"
-					);
-					// sanity: both look like UUIDs
-					expect( len( dup.getUuidDef() ) ).toBeGT( 0 );
-					expect( len( src.getUuidDef() ) ).toBeGT( 0 );
-				});
-
-				it( "duplicate fires fresh deterministic expression (eval gives same value but separate computation)", function(){
-					// Deterministic expressions naturally give the same value either way.
-					// This test documents that they continue to work — fresh eval of
-					// repeatString('x',5) gives "xxxxx" same as src's value.
+				it( "deterministic expression-form value round-trips through duplicate as deep copy", function(){
 					var src = new LDEV6303.ExpressionDefaultsCfc();
 					var dup = duplicate( src );
 					expect( dup.getExpressionDef() ).toBe( "xxxxx" );
 					expect( dup.getExpressionDef() ).toBe( src.getExpressionDef() );
 				});
 
-				it( "duplicate gives dup its own array — mutating dup does not leak to src", function(){
-					// Mutable expression-form defaults (#[]#, #{}#) must produce a fresh
-					// container per duplicate. Without re-fire, a shallow-copy duplicate
-					// would share the array reference with src — silent leak.
+				it( "deep duplicate gives dup its own array — mutating dup does not leak to src", function(){
+					// Even without re-fire, deep duplicate must give dup a fresh array reference
+					// (Duplicator.duplicate handles container deep-copy).
 					var src = new LDEV6303.ExpressionDefaultsCfc();
 					var dup = duplicate( src );
 
 					arrayAppend( dup.getFreshArrayDef(), "added-to-dup" );
 
 					expect( arrayLen( src.getFreshArrayDef() ) ).toBe( 0,
-						"src's array must be unaffected by mutation on dup's array (separate references via re-fire)"
+						"src's array must be unaffected by mutation on dup's deep-copy array"
 					);
 					expect( arrayLen( dup.getFreshArrayDef() ) ).toBe( 1 );
 				});
 
-				it( "duplicate(src, false) — shallow duplicate also re-fires expression-form (Hibernate path)", function(){
-					// Hibernate's CFCInstantiator uses cfc.duplicate(false) to create
-					// entity instances. The shallow flag must NOT prevent re-fire of
-					// expression-form defaults — otherwise every entity from a cached
-					// template gets the template's frozen UUID/now/[]/{}.
-					var src = new LDEV6303.ExpressionDefaultsCfc();
-					var dup = duplicate( src, false );
-
-					expect( dup.getUuidDef() ).notToBe( src.getUuidDef(),
-						"duplicate(src, false) must re-evaluate expression-form defaults too"
-					);
-
-					// Mutation on dup's struct must not leak to src
-					var s = dup.getNowStructDef();
-					s.n = 999;
-
-					expect( src.getNowStructDef().n ).toBe( 1,
-						"src's struct must be a separate reference from dup's (no shared-ref leak via shallow duplicate)"
-					);
-				});
-
-				it( "explicit assignment after duplicate still wins — user values aren't clobbered by re-fire", function(){
-					// Re-fire seeds dup's scope at duplicate-time. Subsequent explicit
-					// assignment by the user must override the re-fire'd value.
+				it( "explicit assignment after duplicate wins over the deep-copied value", function(){
 					var src = new LDEV6303.ExpressionDefaultsCfc();
 					var dup = duplicate( src );
 
 					var freshTs = now();
 					dup.setNowDef( freshTs );
 
-					expect( dateCompare( dup.getNowDef(), freshTs, "s" ) ).toBe( 0,
-						"explicit setNowDef on dup must win over re-fire'd value"
-					);
+					expect( dateCompare( dup.getNowDef(), freshTs, "s" ) ).toBe( 0 );
 					expect( dateCompare( src.getNowDef(), freshTs, "s" ) ).toBeLTE( 0,
 						"src's nowDef must be unchanged by mutation on the duplicate"
-					);
-				});
-
-				it( "inherited expression-form default re-fires on the child duplicate", function(){
-					// Child class instance, inheriting a #now()# default from parent.
-					// duplicate of the child must re-fire the parent's expression-form
-					// default — inheritance walk in _duplicate.
-					var src = new LDEV6303.ChildExprDefCfc();
-					sleep( 1100 );
-					var dup = duplicate( src );
-
-					expect( dateCompare( dup.getParentNowDef(), src.getParentNowDef(), "s" ) ).toBeGT( 0,
-						"inherited #now()# default must re-fire on the child's duplicate"
 					);
 				});
 

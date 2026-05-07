@@ -380,17 +380,7 @@ public final class PageImpl extends BodyBase implements Page {
 		String[] interfaces = null;
 		if (isComponent(comp)) {
 			parent = ComponentPageImpl.class.getName();// "lucee/runtime/ComponentPage";
-			List<TagProperty> exprDefProps = collectExpressionFormProperties(comp);
-			boolean hasExprDefaults = !exprDefProps.isEmpty();
-			if (isSub && hasExprDefaults) {
-				interfaces = new String[] { SubPage.class.getName().replace('.', '/'), "lucee/runtime/component/ExpressionDefaultSeeder" };
-			}
-			else if (isSub) {
-				interfaces = new String[] { SubPage.class.getName().replace('.', '/') };
-			}
-			else if (hasExprDefaults) {
-				interfaces = new String[] { "lucee/runtime/component/ExpressionDefaultSeeder" };
-			}
+			if (isSub) interfaces = new String[] { SubPage.class.getName().replace('.', '/') };
 		}
 		else if (isInterface(comp)) parent = InterfacePageImpl.class.getName();// "lucee/runtime/InterfacePage";
 		parent = parent.replace('.', '/');
@@ -774,8 +764,6 @@ public final class PageImpl extends BodyBase implements Page {
 
 		// newInstance/initComponent/call
 		writeOutStatic(optionalPS, constr, keys, cw, comp, className);
-
-		writeOutSeedExpressionDefaults(optionalPS, constr, keys, cw, comp, className);
 
 		// set field subs
 		FieldVisitor fv = cw.visitField(Opcodes.ACC_PRIVATE, "subs", "[Llucee/runtime/CIPage;", null, null);
@@ -1559,47 +1547,6 @@ public final class PageImpl extends BodyBase implements Page {
 			ga.endMethod();
 		}
 
-	}
-
-	private static List<TagProperty> collectExpressionFormProperties(TagCIObject component) {
-		List<TagProperty> result = new ArrayList<TagProperty>();
-		if (component == null || component.getBody() == null) return result;
-		List<Statement> statements = component.getBody().getStatements();
-		if (statements == null) return result;
-		for (Statement stmt: statements) {
-			if (!(stmt instanceof TagProperty)) continue;
-			TagProperty tagProp = (TagProperty) stmt;
-			Attribute defaultAttr = tagProp.getAttribute("default");
-			if (defaultAttr == null || defaultAttr.getValue() == null) continue;
-			Expression defaultExpr = defaultAttr.getValue();
-			if (defaultExpr instanceof LitStringImpl || defaultExpr instanceof LitNumberImpl || defaultExpr instanceof LitBooleanImpl) continue;
-			Attribute nameAttr = tagProp.getAttribute("name");
-			if (nameAttr == null || nameAttr.getValue() == null) continue;
-			result.add(tagProp);
-		}
-		return result;
-	}
-
-	private void writeOutSeedExpressionDefaults(PageSource optionalPS, ConstrBytecodeContext constr, Map<LitString, Integer> keys, ClassWriter cw, TagCIObject component,
-			String name) throws TransformerException {
-		List<TagProperty> exprDefProps = collectExpressionFormProperties(component);
-		if (exprDefProps.isEmpty()) return;
-
-		Method seedMethod = new Method("_seedExpressionDefaults", Types.VOID, new Type[] { Types.PAGE_CONTEXT });
-		GeneratorAdapter ga = new GeneratorAdapter(Opcodes.ACC_PUBLIC, seedMethod, null, new Type[] { Types.THROWABLE }, cw);
-		BytecodeContext bc = new BytecodeContext(config, optionalPS, constr, this, keys, cw, name, ga, seedMethod, writeLog(), suppressWSbeforeArg, output, returnValue,
-				sourceCode.getSourceOffset());
-
-		for (TagProperty tagProp: exprDefProps) {
-			Attribute nameAttr = tagProp.getAttribute("name");
-			Attribute defaultAttr = tagProp.getAttribute("default");
-			String propName = nameAttr.getValue() instanceof Literal ? ((Literal) nameAttr.getValue()).getString() : null;
-			if (propName == null) continue;
-			TagProperty.emitExpressionEvalAndSet(bc, propName, defaultAttr.getValue());
-		}
-
-		ga.returnValue();
-		ga.endMethod();
 	}
 
 	private String getTagAttributeValue(Tag tag, String attrName) {

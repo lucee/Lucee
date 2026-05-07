@@ -75,11 +75,9 @@ public final class TagProperty extends TagBase {
 		bc.visitLine(tag.getEnd());
 	}
 
-	/**
-	 * Emits eval + variablesScope.setEL bytecode for a single cfproperty expression-form default.
-	 * Shared by construction-time pseudo-constructor and the duplicate-time _seedExpressionDefaults
-	 * method so both paths emit identical eval bytecode and stay in lockstep.
-	 */
+	/** Emits eval + variablesScope.setEL bytecode for one cfproperty expression-form default,
+	 *  inline in the pseudo-constructor. Slot is empty at this point — ComponentImpl skips
+	 *  eager-setting the wrapper into scope at init for expression-form defaults. */
 	public static void emitExpressionEvalAndSet(BytecodeContext bc, String propName, Expression defaultExpr) throws TransformerException {
 		final GeneratorAdapter adapter = bc.getAdapter();
 		defaultExpr.writeOut(bc, Expression.MODE_REF);

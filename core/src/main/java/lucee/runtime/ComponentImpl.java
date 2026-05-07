@@ -57,7 +57,6 @@ import lucee.runtime.component.AbstractFinal.UDFB;
 import lucee.runtime.component.ComponentLoader;
 import lucee.runtime.component.ComponentPageRef;
 import lucee.runtime.component.DataMember;
-import lucee.runtime.component.ExpressionDefaultSeeder;
 import lucee.runtime.component.ImportDefintion;
 import lucee.runtime.component.Member;
 import lucee.runtime.component.MetaDataSoftReference;
@@ -368,8 +367,6 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 				if (useShadow) {
 					addUDFS(trg, ((ComponentScopeShadow) scope).getShadow(), ((ComponentScopeShadow) trg.scope).getShadow());
 				}
-
-				reFireExpressionDefaults(trg);
 			}
 		}
 		finally {
@@ -377,41 +374,6 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 		}
 
 		return trg;
-	}
-
-	private static void reFireExpressionDefaults(ComponentImpl trg) {
-		PageContext pc = ThreadLocalPageContext.get();
-		if (pc == null) return;
-
-		Variables prevVars = pc.variablesScope();
-		try {
-			if (trg.scope instanceof Variables) pc.setVariablesScope((Variables) trg.scope);
-
-			ComponentImpl walker = trg;
-			while (walker != null) {
-				if (walker.pageSource != null) {
-					try {
-						lucee.runtime.Page page = walker.pageSource.loadPage(pc, false);
-						if (page instanceof ExpressionDefaultSeeder) {
-							try {
-								((ExpressionDefaultSeeder) page)._seedExpressionDefaults(pc);
-							}
-							catch (Throwable t) {
-								ExceptionUtil.rethrowIfNecessary(t);
-								throw new lucee.runtime.exp.PageRuntimeException(Caster.toPageException(t));
-							}
-						}
-					}
-					catch (PageException pe) {
-						throw new lucee.runtime.exp.PageRuntimeException(pe);
-					}
-				}
-				walker = (ComponentImpl) walker.base;
-			}
-		}
-		finally {
-			if (prevVars != null) pc.setVariablesScope(prevVars);
-		}
 	}
 
 	private static void addUDFS(ComponentImpl trgComp, Map src, Map trg) {
@@ -2480,9 +2442,12 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 		}
 
 		top.properties.properties.put(propNameLower, propImpl);
-		if (propImpl.getDefaultAsObject() != null) {
+		Object defaultObj = propImpl.getDefaultAsObject();
+		if (defaultObj != null && !(defaultObj instanceof lucee.runtime.component.ExpressionDefault)) {
+			// Expression-form defaults are seeded by the pseudo-constructor's inline emission
+			// (see TagProperty.emitExpressionEvalAndSet); only literal defaults are eager-set here.
 			Key propKey = propImpl.getNameAsKey();
-			scope.setEL(propKey, propImpl.getDefaultAsObject());
+			scope.setEL(propKey, defaultObj);
 			if (ownPropertyDefaults == null) ownPropertyDefaults = new HashSet<>();
 			ownPropertyDefaults.add(propKey);
 		}
