@@ -468,6 +468,118 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="orm" {
 
 			});
 
+			describe( "serializeJson shape — programmatic discriminability for consumers", function(){
+
+				it( "literal-form metadata.default serialises as a bare string in JSON", function(){
+					var inst = new LDEV6303.ExpressionDefaultsCfc();
+					var json = serializeJson( getMetadata( inst ) );
+					var parsed = deserializeJson( json );
+					var meta = findProperty( parsed.properties, "literalDef" );
+					expect( meta.default ).toBe( "hello" );
+					expect( isSimpleValue( meta.default ) ).toBeTrue(
+						"literal-form must round-trip through JSON as a simple string"
+					);
+				});
+
+				it( "expression-form metadata.default serialises as a struct with key 'expression' in JSON", function(){
+					var inst = new LDEV6303.ExpressionDefaultsCfc();
+					var json = serializeJson( getMetadata( inst ) );
+					var parsed = deserializeJson( json );
+					var meta = findProperty( parsed.properties, "expressionDef" );
+					expect( isStruct( meta.default ) ).toBeTrue(
+						"expression-form must round-trip through JSON as a struct (programmatically discriminable from a literal default)"
+					);
+					expect( structKeyExists( meta.default, "expression" ) ).toBeTrue(
+						"the JSON struct must use the lowercase key 'expression'"
+					);
+					expect( meta.default.expression ).toBe( "repeatString( 'x', 5 )" );
+				});
+
+				it( "JSON for #now()# expression-form is a struct with the source CFML, not an evaluated DateTime", function(){
+					var inst = new LDEV6303.ExpressionDefaultsCfc();
+					var json = serializeJson( getMetadata( inst ) );
+					var parsed = deserializeJson( json );
+					var meta = findProperty( parsed.properties, "nowDef" );
+					expect( isStruct( meta.default ) ).toBeTrue();
+					expect( meta.default.expression ).toBe( "now()",
+						"JSON for #now()# must carry the source string, not a frozen evaluated DateTime"
+					);
+				});
+
+				it( "JSON for struct-literal expression-form preserves the source verbatim with embedded quotes escaped", function(){
+					var inst = new LDEV6303.ExpressionDefaultsCfc();
+					var json = serializeJson( getMetadata( inst ) );
+					var parsed = deserializeJson( json );
+					var meta = findProperty( parsed.properties, "nowStructDef" );
+					expect( isStruct( meta.default ) ).toBeTrue();
+					// The CFC declares default='#{"ts":now(),"n":1}#' so source is {"ts":now(),"n":1}
+					expect( meta.default.expression ).toInclude( "now()" );
+					expect( meta.default.expression ).toInclude( "ts" );
+					expect( meta.default.expression ).toInclude( "n" );
+				});
+
+			});
+
+			describe( "Castable behaviour — wrapper coerces to source string in CFML coercion paths", function(){
+
+				it( "string concat coerces metadata.default to the source CFML", function(){
+					var inst = new LDEV6303.ExpressionDefaultsCfc();
+					var meta = findProperty( getMetadata( inst ).properties, "expressionDef" );
+					var concat = meta.default & "";
+					expect( concat ).toBe( "repeatString( 'x', 5 )",
+						"string-concat with empty string must coerce wrapper to source via toString()"
+					);
+				});
+
+				it( "len() of the wrapper returns the source string length", function(){
+					var inst = new LDEV6303.ExpressionDefaultsCfc();
+					var meta = findProperty( getMetadata( inst ).properties, "nowDef" );
+					expect( len( meta.default ) ).toBe( len( "now()" ) );
+				});
+
+				it( "ucase()/lcase() coerce the wrapper through string casting", function(){
+					var inst = new LDEV6303.ExpressionDefaultsCfc();
+					var meta = findProperty( getMetadata( inst ).properties, "expressionDef" );
+					expect( ucase( meta.default ) ).toBe( "REPEATSTRING( 'X', 5 )" );
+				});
+
+			});
+
+			describe( "external serialisation — ExpressionDefault survives objectSave/objectLoad rehydration", function(){
+
+				it( "objectSave + objectLoad round-trips an instance and metadata.default for expression-form is still an Expression wrapper", function(){
+					var src = new LDEV6303.ExpressionDefaultsCfc();
+					var bin = objectSave( src );
+					var dup = objectLoad( bin );
+
+					// instance scope values must round-trip (variables-scope per-instance evaluation)
+					expect( dup.getExpressionDef() ).toBe( "xxxxx",
+						"variables-scope evaluated value must survive objectSave/objectLoad"
+					);
+
+					// metadata.default for expression-form must still be the wrapper after rehydration
+					var meta = findProperty( getMetadata( dup ).properties, "expressionDef" );
+					expect( structKeyExists( meta, "default" ) ).toBeTrue();
+					expect( isObject( meta.default ) ).toBeTrue(
+						"rehydrated metadata.default for expression-form must still be an Expression wrapper, not flattened to a string"
+					);
+					expect( "" & meta.default ).toBe( "repeatString( 'x', 5 )",
+						"rehydrated wrapper must stringify to the same source CFML"
+					);
+				});
+
+				it( "objectSave + objectLoad preserves literal-form metadata.default as a simple string", function(){
+					var src = new LDEV6303.ExpressionDefaultsCfc();
+					var bin = objectSave( src );
+					var dup = objectLoad( bin );
+
+					var meta = findProperty( getMetadata( dup ).properties, "literalDef" );
+					expect( meta.default ).toBe( "hello" );
+					expect( isSimpleValue( meta.default ) ).toBeTrue();
+				});
+
+			});
+
 		});
 	}
 

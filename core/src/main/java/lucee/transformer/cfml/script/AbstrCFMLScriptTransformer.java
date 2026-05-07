@@ -2541,18 +2541,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 		if (hasValue) {
 			comments(data);
 			value = attributeValue(data, allowExpression);
-			if (value != null && value.getStart() != null && value.getEnd() != null) {
-				int start = value.getStart().pos;
-				int end = value.getEnd().pos;
-				// json() records position after consuming opening { or [; back up so the slice
-				// includes the opening delimiter (the post-delimiter behaviour is correct for
-				// json()'s 40 stack-trace callers — only the source-slice case wants pre-delimiter)
-				if (start > 0) {
-					String peek = data.srcCode.subCFMLString(start - 1, 1).toString();
-					if (peek.length() == 1 && (peek.charAt(0) == '{' || peek.charAt(0) == '[')) start--;
-				}
-				if (end > start) rawValue = data.srcCode.subCFMLString(start, end - start).toString();
-			}
+			rawValue = Attribute.sliceSource(data.srcCode, value);
 		}
 		else {
 			value = defaultValue;

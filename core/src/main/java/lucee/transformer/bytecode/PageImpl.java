@@ -1265,8 +1265,6 @@ public final class PageImpl extends BodyBase implements Page {
 										ga.invokeVirtual(Types.PROPERTY_IMPL, new Method("setDefault", Type.VOID_TYPE, new Type[] { Types.OBJECT }));
 									}
 									else {
-										// WIP: raw value includes attribute wrapping syntax (quotes + hashes); contract for
-										// metadata.default source TBD. See LDEV-6303-code-review.md for state.
 										String source = propDefaultAttr.getRawValue();
 										if (source == null) source = "";
 										Type EXPRESSION_DEFAULT = Type.getType("Llucee/runtime/component/ExpressionDefault;");

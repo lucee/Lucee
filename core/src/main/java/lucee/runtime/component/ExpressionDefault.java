@@ -11,11 +11,11 @@ import lucee.runtime.dump.DumpTable;
 import lucee.runtime.dump.Dumpable;
 import lucee.runtime.dump.SimpleDumpData;
 
-/** Immutable source-string wrapper for non-foldable cfproperty expression-form defaults.
- *  Serialises to JSON as { "expression": "<source>" } so consumers can programmatically
- *  distinguish expression-form metadata.default from literal-form (which serialises as a bare string). */
+/** Immutable wrapper for cfproperty expression-form defaults; surfaces in metadata.default. */
 public final class ExpressionDefault implements Dumpable, ScriptConvertable {
 
+	// Required by Serializable (inherited via Dumpable) but never consulted: components rehydrate
+	// via ComponentImpl.readExternal which re-instantiates from the compiled class, not byte-level.
 	private static final long serialVersionUID = 1L;
 
 	private final String source;
@@ -47,6 +47,8 @@ public final class ExpressionDefault implements Dumpable, ScriptConvertable {
 
 	@Override
 	public String serialize(Set<Object> done) {
+		// escapeJS produces JSON-compatible string output (already wraps in quotes); same pattern
+		// JSONConverter uses for date serialisation.
 		return "{\"expression\":" + StringUtil.escapeJS(source, '"') + "}";
 	}
 
