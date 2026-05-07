@@ -63,35 +63,36 @@ public final class TagProperty extends TagBase {
 		Attribute defaultAttr = tag.getAttribute("default");
 		Attribute nameAttr = tag.getAttribute("name");
 
-		// Only handle complex defaults - simple literals are already handled in CLINIT
 		if (defaultAttr != null && nameAttr != null && defaultAttr.getValue() != null) {
 			Expression defaultExpr = defaultAttr.getValue();
 			String propName = getLiteralString(nameAttr);
 
-			// Check if it's a complex expression (not a simple literal)
-			boolean isComplex = !isSimpleLiteral(defaultExpr);
-
-			if (isComplex && propName != null) {
-				final GeneratorAdapter adapter = bc.getAdapter();
-
-				// Evaluate the default expression with the current PageContext
-				defaultExpr.writeOut(bc, Expression.MODE_REF);
-				int defaultLocal = adapter.newLocal(Types.OBJECT);
-				adapter.storeLocal(defaultLocal);
-
-				// Get PageContext from arg0 and set the value in variables scope
-				// pc.variablesScope().setEL(KeyImpl.init(propName), defaultValue)
-				adapter.loadArg(0); // Load PageContext pc
-				adapter.invokeVirtual(Types.PAGE_CONTEXT, new Method("variablesScope", Types.VARIABLES, new Type[] {}));
-				adapter.push(propName);
-				adapter.invokeStatic(Type.getType("Llucee/runtime/type/KeyImpl;"), new Method("init", Types.COLLECTION_KEY, new Type[] { Types.STRING }));
-				adapter.loadLocal(defaultLocal);
-				adapter.invokeInterface(Types.SCOPE, new Method("setEL", Types.OBJECT, new Type[] { Types.COLLECTION_KEY, Types.OBJECT }));
-				adapter.pop(); // Pop return value
+			if (!isSimpleLiteral(defaultExpr) && propName != null) {
+				emitExpressionEvalAndSet(bc, propName, defaultExpr);
 			}
 		}
 
 		bc.visitLine(tag.getEnd());
+	}
+
+	/**
+	 * Emits eval + variablesScope.setEL bytecode for a single cfproperty expression-form default.
+	 * Shared by construction-time pseudo-constructor and the duplicate-time _seedExpressionDefaults
+	 * method so both paths emit identical eval bytecode and stay in lockstep.
+	 */
+	public static void emitExpressionEvalAndSet(BytecodeContext bc, String propName, Expression defaultExpr) throws TransformerException {
+		final GeneratorAdapter adapter = bc.getAdapter();
+		defaultExpr.writeOut(bc, Expression.MODE_REF);
+		int defaultLocal = adapter.newLocal(Types.OBJECT);
+		adapter.storeLocal(defaultLocal);
+
+		adapter.loadArg(0);
+		adapter.invokeVirtual(Types.PAGE_CONTEXT, new Method("variablesScope", Types.VARIABLES, new Type[] {}));
+		adapter.push(propName);
+		adapter.invokeStatic(Type.getType("Llucee/runtime/type/KeyImpl;"), new Method("init", Types.COLLECTION_KEY, new Type[] { Types.STRING }));
+		adapter.loadLocal(defaultLocal);
+		adapter.invokeInterface(Types.SCOPE, new Method("setEL", Types.OBJECT, new Type[] { Types.COLLECTION_KEY, Types.OBJECT }));
+		adapter.pop();
 	}
 
 	private boolean isSimpleLiteral(Expression expr) {

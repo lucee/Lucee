@@ -2532,6 +2532,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 		else if (oAllowExpression instanceof String) allowExpression = ((String) oAllowExpression).equalsIgnoreCase(nameLC);
 
 		Expression value = null;
+		String rawValue = null;
 
 		comments(data);
 
@@ -2540,7 +2541,18 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 		if (hasValue) {
 			comments(data);
 			value = attributeValue(data, allowExpression);
-
+			if (value != null && value.getStart() != null && value.getEnd() != null) {
+				int start = value.getStart().pos;
+				int end = value.getEnd().pos;
+				// json() records position after consuming opening { or [; back up so the slice
+				// includes the opening delimiter (the post-delimiter behaviour is correct for
+				// json()'s 40 stack-trace callers — only the source-slice case wants pre-delimiter)
+				if (start > 0) {
+					String peek = data.srcCode.subCFMLString(start - 1, 1).toString();
+					if (peek.length() == 1 && (peek.charAt(0) == '{' || peek.charAt(0) == '[')) start--;
+				}
+				if (end > start) rawValue = data.srcCode.subCFMLString(start, end - start).toString();
+			}
 		}
 		else {
 			value = defaultValue;
@@ -2553,7 +2565,9 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 			tlta = tlt.getAttribute(nameLC, true);
 			if (tlta != null && tlta.getName() != null) nameLC = tlta.getName();
 		}
-		return new Attribute(dynamic.toBooleanValue(), name, tlta != null ? data.factory.toExpression(value, tlta.getType()) : value, sbType.toString(), !hasValue);
+		Attribute attr = new Attribute(dynamic.toBooleanValue(), name, tlta != null ? data.factory.toExpression(value, tlta.getType()) : value, sbType.toString(), !hasValue);
+		if (rawValue != null) attr.setRawValue(rawValue);
+		return attr;
 	}
 
 	private final String attributeName(SourceCode cfml, ArrayList<String> args, TagLibTag tag, RefBoolean dynamic, StringBuilder sbType, boolean allowTwiceAttr, boolean allowColon)

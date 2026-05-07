@@ -380,7 +380,17 @@ public final class PageImpl extends BodyBase implements Page {
 		String[] interfaces = null;
 		if (isComponent(comp)) {
 			parent = ComponentPageImpl.class.getName();// "lucee/runtime/ComponentPage";
-			if (isSub) interfaces = new String[] { SubPage.class.getName().replace('.', '/') };
+			List<TagProperty> exprDefProps = collectExpressionFormProperties(comp);
+			boolean hasExprDefaults = !exprDefProps.isEmpty();
+			if (isSub && hasExprDefaults) {
+				interfaces = new String[] { SubPage.class.getName().replace('.', '/'), "lucee/runtime/component/ExpressionDefaultSeeder" };
+			}
+			else if (isSub) {
+				interfaces = new String[] { SubPage.class.getName().replace('.', '/') };
+			}
+			else if (hasExprDefaults) {
+				interfaces = new String[] { "lucee/runtime/component/ExpressionDefaultSeeder" };
+			}
 		}
 		else if (isInterface(comp)) parent = InterfacePageImpl.class.getName();// "lucee/runtime/InterfacePage";
 		parent = parent.replace('.', '/');
@@ -1255,22 +1265,10 @@ public final class PageImpl extends BodyBase implements Page {
 										ga.invokeVirtual(Types.PROPERTY_IMPL, new Method("setDefault", Type.VOID_TYPE, new Type[] { Types.OBJECT }));
 									}
 									else {
-										String source;
-										try {
-											int start = defaultExpr.getStart().pos;
-											int end = defaultExpr.getEnd().pos;
-											// json() consumes opening { or [ before recording position; back up
-											if (start > 0) {
-												String peek = sourceCode.subCFMLString(start - 1, 1).toString();
-												if (peek.length() == 1 && (peek.charAt(0) == '{' || peek.charAt(0) == '[')) {
-													start--;
-												}
-											}
-											source = sourceCode.subCFMLString(start, end - start).toString();
-										}
-										catch (Exception e) {
-											source = "";
-										}
+										// WIP: raw value includes attribute wrapping syntax (quotes + hashes); contract for
+										// metadata.default source TBD. See LDEV-6303-code-review.md for state.
+										String source = propDefaultAttr.getRawValue();
+										if (source == null) source = "";
 										Type EXPRESSION_DEFAULT = Type.getType("Llucee/runtime/component/ExpressionDefault;");
 										ga.loadLocal(propLocal);
 										ga.newInstance(EXPRESSION_DEFAULT);
@@ -1565,13 +1563,11 @@ public final class PageImpl extends BodyBase implements Page {
 
 	}
 
-	private void writeOutSeedExpressionDefaults(PageSource optionalPS, ConstrBytecodeContext constr, Map<LitString, Integer> keys, ClassWriter cw, TagCIObject component,
-			String name) throws TransformerException {
-		if (component == null || component.getBody() == null) return;
+	private static List<TagProperty> collectExpressionFormProperties(TagCIObject component) {
+		List<TagProperty> result = new ArrayList<TagProperty>();
+		if (component == null || component.getBody() == null) return result;
 		List<Statement> statements = component.getBody().getStatements();
-		if (statements == null) return;
-
-		List<TagProperty> exprDefProps = new ArrayList<TagProperty>();
+		if (statements == null) return result;
 		for (Statement stmt: statements) {
 			if (!(stmt instanceof TagProperty)) continue;
 			TagProperty tagProp = (TagProperty) stmt;
@@ -1581,37 +1577,27 @@ public final class PageImpl extends BodyBase implements Page {
 			if (defaultExpr instanceof LitStringImpl || defaultExpr instanceof LitNumberImpl || defaultExpr instanceof LitBooleanImpl) continue;
 			Attribute nameAttr = tagProp.getAttribute("name");
 			if (nameAttr == null || nameAttr.getValue() == null) continue;
-			exprDefProps.add(tagProp);
+			result.add(tagProp);
 		}
+		return result;
+	}
 
-		// Method shell always emitted on component classes — empty body is JIT no-op; ensures
-		// presence-of-method is stable for ComponentImpl._duplicate's reflection lookup.
+	private void writeOutSeedExpressionDefaults(PageSource optionalPS, ConstrBytecodeContext constr, Map<LitString, Integer> keys, ClassWriter cw, TagCIObject component,
+			String name) throws TransformerException {
+		List<TagProperty> exprDefProps = collectExpressionFormProperties(component);
+		if (exprDefProps.isEmpty()) return;
+
 		Method seedMethod = new Method("_seedExpressionDefaults", Types.VOID, new Type[] { Types.PAGE_CONTEXT });
-		GeneratorAdapter ga = new GeneratorAdapter(Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC, seedMethod, null, new Type[] { Types.THROWABLE }, cw);
+		GeneratorAdapter ga = new GeneratorAdapter(Opcodes.ACC_PUBLIC, seedMethod, null, new Type[] { Types.THROWABLE }, cw);
 		BytecodeContext bc = new BytecodeContext(config, optionalPS, constr, this, keys, cw, name, ga, seedMethod, writeLog(), suppressWSbeforeArg, output, returnValue,
 				sourceCode.getSourceOffset());
-
-		Method METHOD_VARIABLES_SCOPE = new Method("variablesScope", Types.VARIABLES, new Type[] {});
-		Method METHOD_SET_EL = new Method("setEL", Types.OBJECT, new Type[] { Types.COLLECTION_KEY, Types.OBJECT });
 
 		for (TagProperty tagProp: exprDefProps) {
 			Attribute nameAttr = tagProp.getAttribute("name");
 			Attribute defaultAttr = tagProp.getAttribute("default");
 			String propName = nameAttr.getValue() instanceof Literal ? ((Literal) nameAttr.getValue()).getString() : null;
 			if (propName == null) continue;
-			Expression defaultExpr = defaultAttr.getValue();
-
-			defaultExpr.writeOut(bc, Expression.MODE_REF);
-			int defaultLocal = ga.newLocal(Types.OBJECT);
-			ga.storeLocal(defaultLocal);
-
-			ga.loadArg(0);
-			ga.invokeVirtual(Types.PAGE_CONTEXT, METHOD_VARIABLES_SCOPE);
-			ga.push(propName);
-			ga.invokeStatic(KEY_IMPL, KEY_INIT);
-			ga.loadLocal(defaultLocal);
-			ga.invokeInterface(Types.SCOPE, METHOD_SET_EL);
-			ga.pop();
+			TagProperty.emitExpressionEvalAndSet(bc, propName, defaultAttr.getValue());
 		}
 
 		ga.returnValue();

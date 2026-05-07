@@ -30,6 +30,7 @@ public final class Attribute {
 	private boolean defaultAttribute;
 	private String setterName;
 	private final boolean isDefaultValue;
+	private String rawValue;
 
 	public Attribute(boolean dynamicType, String name, Expression value, String type) {
 		this(dynamicType, name, value, type, false);
@@ -42,6 +43,16 @@ public final class Attribute {
 		this.value = value;
 		this.type = type;
 		this.isDefaultValue = isDefaultValue;
+	}
+
+	/** Raw source text of the attribute value (between the `=` and the next attribute boundary).
+	 *  Captured at parse time when available; null for synthesised or default-injected attributes. */
+	public String getRawValue() {
+		return rawValue;
+	}
+
+	public void setRawValue(String rawValue) {
+		this.rawValue = rawValue;
 	}
 
 	public boolean isDefaultValue() {
