@@ -1,3 +1,6 @@
+<!--- skipped: Application.cfc creates an Oracle synonym, but the CI test user
+      (gvenzl/oracle-xe APP_USER) only has CONNECT + RESOURCE — CREATE SYNONYM
+      is not granted. Un-skip once the extension-jdbc-oracle workflow grants it. --->
 <cfcomponent extends="org.lucee.cfml.test.LuceeTestCase" labels="oracle" skip=true>
 	<cfscript>
 		public function isNotSupported(){

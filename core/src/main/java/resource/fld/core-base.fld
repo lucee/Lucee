@@ -3187,12 +3187,12 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 	<function>
 		<name>datasourceFlushMetaCache</name>
 		<class>lucee.runtime.functions.other.DatasourceFlushMetaCache</class>
-		<description>Flush the meta data stored for a certain datasource used for stored procedures, this is only supported for Oracle datasources</description>
+		<description>Flushes cached stored procedure metadata. Oracle datasources only. Returns true if at least one cache was cleared, false if there was nothing to clear.</description>
 		<argument>
 			<name>datasourceName</name>
 			<type>string</type>
 			<required>no</required>
-			<description>name of the datasource to flush, when not defined all caches are flushed</description>
+			<description>datasource to flush; when omitted, all datasource caches are flushed</description>
 		</argument>
 		<return>
 			<type>boolean</type>
