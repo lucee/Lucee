@@ -376,6 +376,15 @@ public final class MavenUtil {
 			return arr;
 		}
 
+		public static Array toArray(GAVSO[] list) {
+			ArrayImpl arr = new ArrayImpl();
+			if (list == null || list.length == 0) return arr;
+			for (GAVSO gavso: list) {
+				arr.appendEL(gavso.populate(new StructImpl(Struct.TYPE_LINKED)));
+			}
+			return arr;
+		}
+
 		/**
 		 * same group and artifact id, but version MAY differ
 		 * 

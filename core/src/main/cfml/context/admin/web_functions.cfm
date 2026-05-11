@@ -335,7 +335,7 @@ Enviroment Variable:
 	
 	// LIST
 	else {
-		var qry=arguments.value.value;
+		var val=arguments.value.value;
 
 		if(!arguments.isExpand) {
 			echo('<div class="coding-tip-trigger">% System Properties %</div>');
@@ -345,12 +345,21 @@ Enviroment Variable:
 		//dump(qry.columnlist);
 		
 		echo('System Properties:<code>');
-		var cols=arguments.value.columns;
-		loop query=qry {
-			if(qry.currentrow>1) echo(NL);
-			loop array=cols item="local.col" {
-				if(!queryColumnExists(qry,col)) continue;
-				printVar("sp","-D#data.systemProperties[1]#.#qry.currentrow#.#col#",qry[col]);
+		if(isQuery(val)) {
+			var qry=val;
+			var cols=arguments.value.columns;
+			loop query=qry {
+				if(qry.currentrow>1) echo(NL);
+				loop array=cols item="local.col" {
+					if(!queryColumnExists(qry,col)) continue;
+					printVar("sp","-D#data.systemProperties[1]#.#qry.currentrow#.#col#",qry[col]);
+				}
+			}
+		}
+		else if(isArray(val)) {
+			var arr=val;
+			loop array=arr index="local.i" item="local.record" {
+				printVar("sp","-D#data.systemProperties[1]#.#i#",record);
 			}
 		}
 		echo('</code>');
@@ -362,14 +371,23 @@ Enviroment Variable:
 		echo('<div class="coding-tip #arguments.isExpand ? 'expanded' : ''#">');
 		echo('<div class="disp-flex"><cfif len(desc)><span class="comment">#desc#</span></cfif> <span class="copy flex-pull-right">copy</span></div>');
 		echo('Enviroment Variables:<code>');
-		var cols=arguments.value.columns;
-		loop query=qry {
-			if(qry.currentrow>1) echo(NL);
-			loop array=cols item="local.col" {
-				if(!queryColumnExists(qry,col)) continue;
-				printVar("ev","#data.environmentVariables[1]#_#qry.currentrow#_#ucase(col)#",qry[col]);
+		if(isQuery(val)) {
+			var qry=val;
+			var cols=arguments.value.columns;
+			loop query=qry {
+				if(qry.currentrow>1) echo(NL);
+				loop array=cols item="local.col" {
+					if(!queryColumnExists(qry,col)) continue;
+					printVar("ev","#data.environmentVariables[1]#_#qry.currentrow#_#ucase(col)#",qry[col]);
+				}
 			}
 		}
+		else if(isArray(val)) {
+			var arr=val;
+			loop array=arr index="local.i" item="local.record" {
+				printVar("ev","#data.environmentVariables[1]#_#i#",record);
+			}
+		}	
 		echo('</code>');
 		echo('</div>');
 		
@@ -432,6 +450,52 @@ function removeCoreBundle(qry) {
 		}
 	}
 	return qry;
+}
+
+function renderEditButton2(nameMetaData,nameField,value,editlink="") {
+	if(isNull(application.systemPropOrEnvVarInfo)) {
+		application.systemPropOrEnvVarInfo=GetSystemPropOrEnvVarInfo();
+	}
+	var data=application.systemPropOrEnvVarInfo[nameMetaData];
+
+	// filter all matching environment variables 
+	var matches={"ev":{},"sp":{}};
+	//dump(data.environmentVariables);
+	//dump(structKeyArray(server.system.environment));
+	loop array=structKeyArray(server.system.environment) item="local.key" {
+		if(len(nameField)) {
+			loop array=data.environmentVariables item="local.ev" {
+				if(right(local.key,len(nameField)+1) == "_"&nameField && left(local.key, len(ev)+1) == ev&"_" && server.system.environment[local.key] == arguments.value) {
+					return lockedEnvVar();
+				}
+			}
+		}
+		else {
+			loop array=data.environmentVariables item="local.ev" {
+				if(left(local.key, len(ev)+1) == ev&"_" && server.system.environment[local.key] == arguments.value) {
+					return lockedEnvVar();
+				}
+			}
+		}
+	}
+	// filter all matching system Properties
+	loop array=structKeyArray(server.system.properties) item="local.key" {
+		if(len(nameField)) {
+			loop array=data.systemProperties item="local.sp" {
+				if(right(local.key,5) == "."&nameField && left(local.key, len(sp)+1) == sp&"." && server.system.properties[local.key] == arguments.value) {
+					return  lockedSysOp();
+				}
+			}
+		}
+		else {
+			loop array=data.systemProperties item="local.sp" {
+				if(left(local.key, len(sp)+1) == sp&"." && server.system.properties[local.key] == arguments.value) {
+					return  lockedSysOp();
+				}
+			}
+		}
+	}
+	return isEmpty(editlink)?"":renderEditButton(editlink);
 }
 
 
@@ -561,6 +625,18 @@ function renderSysPropEnvVar(name, value, text="",defaultValue=true,boolean isEx
 		var info="this record cannot be modified here, because because it is set as readonly.
 				To modify the record, you will need to change the readonly flag inside the configuration file and then restart the server.";
 
+		return '<span class="locked-indicator" data-tooltip="#info#">&##128274;</span>';
+	}
+
+	function lockedEnvVar (){
+		 var info="this record cannot be modified here, because it is set as an environment variables on this server.
+				To modify the value, you will need to remove the environment variables and then restart the server.";
+		return '<span class="locked-indicator" data-tooltip="#info#">&##128274;</span>';
+	}
+
+	function  lockedSysOp(){
+		 var info="this record cannot be modified here, because it is set as a system properties on this server.
+				To modify the value, you will need to remove the system properties and then restart the server.";
 		return '<span class="locked-indicator" data-tooltip="#info#">&##128274;</span>';
 	}
 

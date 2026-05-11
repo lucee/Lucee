@@ -12,6 +12,7 @@
 	password="#session["password"&request.adminType]#"
 	returnVariable="entries">
     
+
 <cfadmin 
 	action="securityManager"
 	type="#request.adminType#"
@@ -31,29 +32,29 @@
 <cfset driverNames=ComponentListPackageAsStruct("gdriver",driverNames)>
 
 <cfloop collection="#driverNames#" index="n" item="fn">
-	
 	<cfif n NEQ "Gateway" and n NEQ "Field" and n NEQ "Group">
 		<cfset tmp = createObject("component",fn)>
 		<cfset drivers[n]=tmp>
 	</cfif>
 </cfloop>
-	
+
+
 <!--- add driver to query --->
 <cfset QueryAddColumn(entries,"driver",array())>
 <cfloop query="entries">
     <cfloop collection="#drivers#" index="key" item="d">
-    	<cfif 
+		<cfif 
 			(StructKeyExists(d,'getCFCPath')?d.getCFCPath() EQ entries.cfcPath:"" EQ entries.cfcPath)
 			and 
 			(StructKeyExists(d,'getClass')?d.getClass() EQ entries.class:"" EQ entries.class)
 			>
+			
 			<cfset QuerySetCell(entries,"driver",d,entries.currentrow)>
             
 		</cfif>
     </cfloop>
     
 </cfloop>
-
 
 <cfswitch expression="#url.action2#">
 	<cfcase value="list"><cfinclude template="services.gateway.list.cfm"/></cfcase>

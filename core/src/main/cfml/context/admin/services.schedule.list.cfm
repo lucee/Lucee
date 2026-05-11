@@ -192,7 +192,6 @@ Redirtect to entry --->
 				<div class="clear"></div>
 			</cfformClassic>
 		</div>
-
 		<cfformClassic onerror="customError" action="#request.self#?action=#url.action#" method="post">
 			<cfset sort = "asc">
 			<cfif sort EQ 'asc'>

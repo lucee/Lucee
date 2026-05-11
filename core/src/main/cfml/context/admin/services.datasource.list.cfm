@@ -46,14 +46,12 @@
 		</cfcase>
         <!--- update --->
 		<cfcase value="#stText.Buttons.Update#">
-			
 			<cfadmin 
 				action="updatePSQ"
 				type="#request.adminType#"
 				password="#session["password"&request.adminType]#"
 				
-				psq="#structKeyExists(form,"psq") and form.psq#"
-				remoteClients="#request.getRemoteClients()#">
+				psq="#structKeyExists(form,"preserveSingleQuote") and form.preserveSingleQuote#">
 		</cfcase>
 	<!--- reset to server setting --->
 		<cfcase value="#stText.Buttons.resetServerAdmin#">
@@ -102,13 +100,16 @@ Error Output --->
 				<tr>
 					<th scope="row">#stText.Settings.PreserveSingleQuotes#</th>
 					<td>
-						<cfif access NEQ 0>
-							<input type="checkbox" class="checkbox" name="psq" value="yes" <cfif dbSetting.psq>checked</cfif>>
-						<cfelse>
-							<b>#yesNoFormat(dbSetting.psq)#</b>
-						</cfif>
-						<div class="comment">#stText.Settings.PreserveSingleQuotesDescription#</div>
-						<cfset renderSettings("preserveSingleQuote",dbSetting.psq )>
+						<cfmodule template="systemSetting.cfm" 
+							name="preserveSingleQuote" 
+							value="#dbSetting.psq#"
+							access="#access NEQ 0#"
+							description="#stText.Settings.PreserveSingleQuotesDescription#"
+							br=false
+							sp=false
+							descOnTop=false>
+							<input type="checkbox" class="checkbox" name="preserveSingleQuote" value="yes" <cfif dbSetting.psq>checked</cfif>>
+						</cfmodule>
 					</td>
 				</tr>
 				<cfif access NEQ 0>
@@ -142,125 +143,22 @@ Error Output --->
 list all mappings and display necessary edit fields --->
 
 
-<!--- <cfset srcLocal=struct()>
-<cfset srcGlobal=struct()>
-<cfloop collection="#sources#" item="key">
-	<cfif sources[key].isReadOnly()>
-		<cfset srcGlobal[key]=sources[key]>
-	<cfelse>
-		<cfset srcLocal[key]=sources[key]>
-	</cfif>
-</cfloop> --->
 <cfset querySort(datasources,"name")>
-<cfset srcLocal=queryNew("name,classname,dsn,username,password,readonly,storage,openConnections,idleConnections,activeConnections,waitingForConnection,host,port")>
-<cfset srcGlobal=queryNew("name,classname,dsn,username,password,readonly,storage,openConnections,idleConnections,activeConnections,waitingForConnection,host,port")>
-<cfloop query="datasources">
-	<cfif not datasources.readOnly>
-		<cfset row=QueryAddRow(srcLocal)>
-		<cfset QuerySetCell(srcLocal,"name",datasources.name,row)>
-		<cfset QuerySetCell(srcLocal,"classname",datasources.classname,row)>
-		<cfset QuerySetCell(srcLocal,"dsn",datasources.dsn,row)>
-		<cfset QuerySetCell(srcLocal,"username",datasources.username,row)>
-		<cfset QuerySetCell(srcLocal,"password",datasources.password,row)>
-		<cfset QuerySetCell(srcLocal,"openConnections",datasources.openConnections,row)>
-		<cfset QuerySetCell(srcLocal,"idleConnections",datasources.idleConnections,row)>
-		<cfset QuerySetCell(srcLocal,"activeConnections",datasources.activeConnections,row)>
-		<cfset QuerySetCell(srcLocal,"waitingForConnection",datasources.waitingForConnection,row)>
-		<cfset QuerySetCell(srcLocal,"readonly",datasources.readonly,row)>
-		<cfset QuerySetCell(srcLocal,"storage",datasources.storage,row)>
-		<cfset QuerySetCell(srcLocal,"host",datasources.host?:'',row)>
-		<cfset QuerySetCell(srcLocal,"port",datasources.port?:'',row)>
-	<cfelse>
-		<cfset row=QueryAddRow(srcGlobal)>
-		<cfset QuerySetCell(srcGlobal,"name",datasources.name,row)>
-		<cfset QuerySetCell(srcGlobal,"classname",datasources.classname,row)>
-		<cfset QuerySetCell(srcGlobal,"dsn",datasources.dsn,row)>
-		<cfset QuerySetCell(srcGlobal,"username",datasources.username,row)>
-		<cfset QuerySetCell(srcGlobal,"password",datasources.password,row)>
-		<cfset QuerySetCell(srcGlobal,"openConnections",datasources.openConnections,row)>
-		<cfset QuerySetCell(srcGlobal,"idleConnections",datasources.idleConnections,row)>
-		<cfset QuerySetCell(srcGlobal,"activeConnections",datasources.activeConnections,row)>
-		<cfset QuerySetCell(srcGlobal,"waitingForConnection",datasources.waitingForConnection,row)>
-		<cfset QuerySetCell(srcGlobal,"readonly",datasources.readonly,row)>
-		<cfset QuerySetCell(srcGlobal,"storage",datasources.storage,row)>
-		<cfset QuerySetCell(srcGlobal,"host",datasources.host?:'',row)>
-		<cfset QuerySetCell(srcGlobal,"port",datasources.port?:'',row)>
-	</cfif>
-</cfloop>
 
-<cfif request.adminType EQ "web" and srcGlobal.recordcount>
-	<cfoutput>
-		<h2>#stText.Settings.ReadOnlyDatasources#</h2>
-		<div class="itemintro">#stText.Settings.ReadOnlyDatasourcesDescription#</div>
-		<cfformClassic onerror="customError" action="#request.self#?action=#url.action#" method="post">
-			<table class="maintbl checkboxtbl">
-				<thead>
-					<tr>
-						<th width="3%"><input type="checkbox" class="checkbox" name="rowreadonly" onclick="selectAll(this)" /></th>
-						<th>#stText.Settings.Name#</th>
-						<th>#stText.Settings.Type#</th>
-						<th>#stText.Settings.dbHost#:#stText.Settings.dbPort#</th>
-						<th title="#stText.Settings.activeConn#" width="8%">#stText.Settings.active#</th>
-						<th title="#stText.Settings.idleConn#" width="8%">#stText.Settings.idle#</th>
-						<th width="8%">#stText.Settings.dbStorage#</th>
-						<th width="6%">#stText.Settings.DBCheck#</th>
-					</tr>
-				</thead>
-				<tbody>
-					<cfloop query="srcGlobal">
-						<!--- and now display --->
-						<tr>
-							<td>
-								<input type="checkbox" class="checkbox" name="row_#srcGlobal.currentrow#" value="#srcLocal.currentrow#">
-							</td>
-							<td>
-								<input type="hidden" name="name_#srcGlobal.currentrow#" value="#srcGlobal.name#">
-								#srcGlobal.name#
-							</td>
-							<td>#getDbDriverTypeName(srcGlobal.ClassName,srcGlobal.dsn)#
-							<cfif StructKeyExists(stVerifyMessages, srcGlobal.name) && stVerifyMessages[srcGlobal.name].label neq "OK">
-								<div class="CheckError">#stVerifyMessages[srcGlobal.name].message#</div>
-							</cfif>
-							</td>
-							<td>#listCompact("#srcGlobal.host?:''#:#srcGlobal.port?:''#",":")#</td>
-							<td>#srcGlobal.activeConnections#</td>
-							<td>#srcGlobal.idleConnections#</td>
-							<td>#yesNoFormat(srcGlobal.storage)#</td>
-							<td>
-								<cfif StructKeyExists(stVerifyMessages, srcGlobal.name)>
-									<cfif stVerifyMessages[srcGlobal.name].label eq "OK">
-										<span class="CheckOk">#stVerifyMessages[srcGlobal.name].label#</span>
-									<cfelse>
-										<span class="CheckError" title="#stVerifyMessages[srcGlobal.name].message##Chr(13)#">#stVerifyMessages[srcGlobal.name].label#</span>
-										<!---
-										IMAGE DOESN'T EXIST!
-										&nbsp;<img src="resources/img/red-info.gif.cfm" width="9" height="9" title="#stVerifyMessages[srcGlobal.name].message##Chr(13)#">
-										--->
-									</cfif>
-								<cfelse>
-									&nbsp;				
-								</cfif>
-							</td>
-						</tr>
-					</cfloop>
-				</tbody>
-				<tfoot>
-					<tr>
-						<td colspan="5">
-							<input type="submit" class="button submit enablebutton" name="mainAction" value="#stText.Buttons.Verify#">
-							<input type="reset" class="reset enablebutton" id="clickCancel" name="cancel" value="#stText.Buttons.Cancel#">
-						 </td>
-					</tr>
-				</tfoot>
-			</table>
-		</cfformClassic>
-	</cfoutput>
-</cfif>
 
-<cfif srcLocal.recordcount>
+<cfif datasources.recordcount>
 	<cfoutput>
 		<h2>#stText.Settings.ListDatasources#</h2>
 		<div class="itemintro">#stText.Settings['ListDatasourcesDesc'& request.adminType ]#</div>
+		<cfset renderSettings("datasources",{columns:[
+			"name",
+			"class","bundleName","bundleVersion","maven","component",
+			"database","host","port","username","password",
+			"connectionString","idleTimeout","liveTimeout","connectionLimit","minIdle","maxIdle","maxTotal","metaCacheTimeout",
+			"blob","clob","timezone","dbdriver",
+			"literalTimestampWithTSOffset","alwaysSetTimeout","requestExclusive","alwaysResetConnections",
+			"custom","storage","validate"
+			], value:removeCoreBundle(datasources)} )>
 		<cfformClassic onerror="customError" action="#request.self#?action=#url.action#" method="post">
 			<table class="maintbl checkboxtbl">
 				<thead>
@@ -277,56 +175,62 @@ list all mappings and display necessary edit fields --->
 					</tr>	
 				</thead>
 				<tbody>
-					<cfloop query="srcLocal">
+					<cfloop query="datasources">
 						<cfset hasDriver=false>
 						<cftry>
 
-							<cfset label=getDbDriverTypeName(srcLocal.ClassName,srcLocal.dsn)>
+							<cfset label=getDbDriverTypeName(datasources.ClassName,datasources.dsn)>
 							<cfset hasDriver=true>
-							<!--- <cfset hasDriver=!isNull(installed[srcLocal.className]) && installed[srcLocal.className]> --->
+							<!--- <cfset hasDriver=!isNull(installed[datasources.className]) && installed[datasources.className]> --->
 							<cfcatch>
-								<cfset label=srcLocal.ClassName>
+								<cfset label=datasources.ClassName>
 							</cfcatch>
 						</cftry>
 						<cfset css=hasDriver?"":"Red">
 						<!--- and now display --->
 						<tr>
 							<td class="tblContent#css# longwords">
-								 <input type="checkbox" class="checkbox" name="row_#srcLocal.currentrow#" value="#srcLocal.currentrow#">
+								 <input type="checkbox" class="checkbox" name="row_#datasources.currentrow#" value="#datasources.currentrow#">
 							</td>
-							<td class="tblContent#css# longwords"><input type="hidden" name="name_#srcLocal.currentrow#" value="#srcLocal.name#">#srcLocal.name#</td>
+							<td class="tblContent#css# longwords"><input type="hidden" name="name_#datasources.currentrow#" value="#datasources.name#">#datasources.name#</td>
 							<td class="tblContent#css# longwords">#label#
 								<cfif !hasDriver><div class="commentError">#stText.Settings.noDriver#</div></cfif>
-								<cfif !isNull( stVerifyMessages[srcLocal.name].dbInfo ) && stVerifyMessages[srcLocal.name].dbInfo.recordCount>
-									<cfset qDbInfo = stVerifyMessages[srcLocal.name].dbInfo>
+								<cfif !isNull( stVerifyMessages[datasources.name].dbInfo ) && stVerifyMessages[datasources.name].dbInfo.recordCount>
+									<cfset qDbInfo = stVerifyMessages[datasources.name].dbInfo>
 									<div class="comment">#stText.settings.datasource.databaseName#: #qDbInfo.DATABASE_PRODUCTNAME# #qDbInfo.DATABASE_VERSION#</div>
 									<div class="comment">#stText.settings.datasource.driverName#: #qDbInfo.DRIVER_NAME# #qDbInfo.DRIVER_VERSION# (JDBC #qDbInfo.JDBC_MAJOR_VERSION#.#qDbInfo.JDBC_MINOR_VERSION#)</div>
-								<cfelseif StructKeyExists(stVerifyMessages, srcLocal.name) && stVerifyMessages[srcLocal.name].label neq "OK">
-									<div class="CheckError">#stVerifyMessages[srcLocal.name].message#</div>
+								<cfelseif StructKeyExists(stVerifyMessages, datasources.name) && stVerifyMessages[datasources.name].label neq "OK">
+									<div class="CheckError">#stVerifyMessages[datasources.name].message#</div>
 								</cfif>
 							</td>
-							<td class="tblContent#css# longwords">#listCompact("#srcLocal.host?:''#:#srcLocal.port?:''#",":")#</td>
-							<td class="tblContent#css# longwords">#srcLocal.activeConnections# </td>
-							<td class="tblContent#css# longwords">#srcLocal.idleConnections# </td>
-							<td class="tblContent#css# longwords">#yesNoFormat(srcLocal.storage)#</td>
+							<td class="tblContent#css# longwords">#listCompact("#datasources.host?:''#:#datasources.port?:''#",":")#</td>
+							<td class="tblContent#css# longwords">#datasources.activeConnections# </td>
+							<td class="tblContent#css# longwords">#datasources.idleConnections# </td>
+							<td class="tblContent#css# longwords">#yesNoFormat(datasources.storage)#</td>
 							<td class="tblContent#css# longwords">
-								<cfif StructKeyExists(stVerifyMessages, srcLocal.name)>
-									<cfif stVerifyMessages[srcLocal.name].label eq "OK">
-										<span class="CheckOk">#stVerifyMessages[srcLocal.name].label#</span>
+								<cfif StructKeyExists(stVerifyMessages, datasources.name)>
+									<cfif stVerifyMessages[datasources.name].label eq "OK">
+										<span class="CheckOk">#stVerifyMessages[datasources.name].label#</span>
 									<cfelse>
-										<span class="CheckError" title="#stVerifyMessages[srcLocal.name].message##Chr(13)#">#stVerifyMessages[srcLocal.name].label#</span>
+										<span class="CheckError" title="#stVerifyMessages[datasources.name].message##Chr(13)#">#stVerifyMessages[datasources.name].label#</span>
 										<!---
 										IMAGE DOESN'T EXIST!
-										&nbsp;<img src="resources/img/red-info.gif.cfm" width="9" height="9" title="#stVerifyMessages[srcLocal.name].message##Chr(13)#">
+										&nbsp;<img src="resources/img/red-info.gif.cfm" width="9" height="9" title="#stVerifyMessages[datasources.name].message##Chr(13)#">
 										--->
 									</cfif>
 								<cfelse>
 									&nbsp;				
 								</cfif>
 							</td>
-							<td class="tblContent#css# longwords"><cfif hasDriver>#renderEditButton("#request.self#?action=#url.action#&action2=create&name=#srcLocal.name#")#</cfif>
-					
-
+							<td class="tblContent#css# longwords">
+								<cfif hasDriver>
+							<cfif datasources.readOnly>
+								#lockedReadOnly()#
+							<cfelse>
+								#renderEditButton2("dataSources","name",dataSources.name,"#request.self#?action=#url.action#&action2=create&name=#datasources.name#")#
+							</cfif>	
+							</cfif>
+							</td>
 						</tr>			
 					</cfloop>
 					<cfmodule template="remoteclients.cfm" colspan="6" line="true">
@@ -346,7 +250,7 @@ list all mappings and display necessary edit fields --->
 	</cfoutput>
 </cfif>
 
-<cfif access EQ -1 or access GT srcLocal.recordcount>
+<cfif access EQ -1 or access GT datasources.recordcount>
 	<cfoutput>
 		<!--- Create Datasource --->
 		<h2>#stText.Settings.DatasourceModify#</h2>

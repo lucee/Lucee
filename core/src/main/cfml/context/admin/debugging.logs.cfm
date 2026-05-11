@@ -81,7 +81,7 @@
 				action="updateDebugSetting"
 				type="#request.adminType#"
 				password="#session["password"&request.adminType]#"				
-                debuggingMaxRecordsLogged="#form.maxLogs#"
+                debuggingMaxRecordsLogged="#form.debuggingMaxRecordsLogged?:10#"
 				remoteClients="#request.getRemoteClients()#">
 			
 		</cfcase>

@@ -174,7 +174,7 @@ Redirtect to entry --->
 		<cfset renderSettings("caches",{columns:[
 			"name",
 			"class","bundleName","bundleVersion","maven","component",
-			"custom","readOnly","storage"
+			"custom","storage"
 			], value:removeCoreBundle(srcLocal)} )>
 		<cfformClassic onerror="customError" action="#request.self#?action=#url.action#" method="post">
 			<table class="maintbl checkboxtbl">
@@ -218,7 +218,11 @@ Redirtect to entry --->
 								</cfif>
 							</td>
 							<td>
-								#renderEditButton("#request.self#?action=#url.action#&action2=create&name=#Hash(srcLocal.name)#")#
+								<cfif qry.readonly?:false>
+									#lockedReadOnly()#
+								<cfelse>
+									#renderEditButton2("caches","name",srcLocal.name,"#request.self#?action=#url.action#&action2=create&name=#Hash(srcLocal.name)#")#
+								</cfif>
 							</td>
 						</tr>
 					</cfloop>

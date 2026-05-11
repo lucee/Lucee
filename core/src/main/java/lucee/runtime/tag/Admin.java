@@ -149,6 +149,7 @@ import lucee.runtime.listener.JavaSettingsImpl;
 import lucee.runtime.monitor.IntervallMonitor;
 import lucee.runtime.monitor.Monitor;
 import lucee.runtime.monitor.RequestMonitor;
+import lucee.runtime.mvn.MavenUtil;
 import lucee.runtime.mvn.MavenUtil.GAVSO;
 import lucee.runtime.net.http.CertificateInstaller;
 import lucee.runtime.net.http.ReqRspUtil;
@@ -190,6 +191,7 @@ import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.dt.DateTimeImpl;
 import lucee.runtime.type.dt.TimeSpan;
 import lucee.runtime.type.dt.TimeSpanImpl;
+import lucee.runtime.type.query.CurrentRow;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.ComponentUtil;
 import lucee.runtime.type.util.KeyConstants;
@@ -4005,12 +4007,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		pageContext.setVariable(getString("admin", action, "returnVariable"), sct);
 	}
 
-	/**
-	 * @throws PageException
-	 * 
-	 */
 	private void doGetDatasource() throws PageException {
-
 		String name = getString("admin", action, "name");
 		Map ds = config.getDataSourcesAsMap();
 		Iterator it = ds.keySet().iterator();
@@ -4018,59 +4015,8 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		while (it.hasNext()) {
 			String key = (String) it.next();
 			if (key.equalsIgnoreCase(name)) {
-				DataSource d = (DataSource) ds.get(key);
 				Struct sct = new StructImpl();
-				ClassDefinition cd = d.getClassDefinition();
-
-				sct.setEL(KeyConstants._name, key);
-				sct.setEL(KeyConstants._host, d.getHost());
-				sct.setEL(KeyConstants._classname, cd.getClassName());
-				sct.setEL(KeyConstants._class, cd.getClassName());
-				sct.setEL(KeyConstants._bundleName, cd.getName());
-				sct.setEL(KeyConstants._bundleVersion, cd.getVersionAsString());
-				sct.setEL(KeyConstants._dsn, d.getDsnOriginal());
-				sct.setEL(KeyConstants._database, d.getDatabase());
-				sct.setEL(KeyConstants._port, d.getPort() < 1 ? "" : Caster.toString(d.getPort()));
-				sct.setEL(KeyConstants._dsnTranslated, d.getDsnTranslated());
-				sct.setEL(KeyConstants._timezone, toStringTimeZone(d.getTimeZone()));
-				sct.setEL(KeyConstants._password, d.getPassword());
-				sct.setEL(KeyConstants._passwordEncrypted, ConfigUtil.encrypt(d.getPassword()));
-				sct.setEL(KeyConstants._username, d.getUsername());
-				sct.setEL(KeyConstants._readonly, Caster.toBoolean(d.isReadOnly()));
-				sct.setEL(KeyConstants._select, Boolean.valueOf(d.hasAllow(DataSource.ALLOW_SELECT)));
-				sct.setEL(KeyConstants._delete, Boolean.valueOf(d.hasAllow(DataSource.ALLOW_DELETE)));
-				sct.setEL(KeyConstants._update, Boolean.valueOf(d.hasAllow(DataSource.ALLOW_UPDATE)));
-				sct.setEL(KeyConstants._insert, Boolean.valueOf(d.hasAllow(DataSource.ALLOW_INSERT)));
-				sct.setEL(KeyConstants._create, Boolean.valueOf(d.hasAllow(DataSource.ALLOW_CREATE)));
-				sct.setEL(KeyConstants._insert, Boolean.valueOf(d.hasAllow(DataSource.ALLOW_INSERT)));
-				sct.setEL(KeyConstants._drop, Boolean.valueOf(d.hasAllow(DataSource.ALLOW_DROP)));
-				sct.setEL(KeyConstants._grant, Boolean.valueOf(d.hasAllow(DataSource.ALLOW_GRANT)));
-				sct.setEL(KeyConstants._revoke, Boolean.valueOf(d.hasAllow(DataSource.ALLOW_REVOKE)));
-				sct.setEL(KeyConstants._alter, Boolean.valueOf(d.hasAllow(DataSource.ALLOW_ALTER)));
-
-				sct.setEL("connectionLimit", d.getConnectionLimit() < 1 ? "-1" : Caster.toString(d.getConnectionLimit()));
-				sct.setEL("connectionTimeout", d.getConnectionTimeout() < 1 ? "" : Caster.toString(d.getConnectionTimeout()));
-				sct.setEL("metaCacheTimeout", Caster.toDouble(d.getMetaCacheTimeout()));
-				sct.setEL("custom", d.getCustoms());
-				sct.setEL("blob", Boolean.valueOf(d.isBlob()));
-				sct.setEL("clob", Boolean.valueOf(d.isClob()));
-				sct.setEL("validate", Boolean.valueOf(d.validate()));
-				sct.setEL("storage", Boolean.valueOf(d.isStorage()));
-				if (d instanceof DataSourcePro) {
-					DataSourcePro dp = ((DataSourcePro) d);
-					sct.setEL("requestExclusive", Boolean.valueOf(dp.isRequestExclusive()));
-					sct.setEL("alwaysResetConnections", Boolean.valueOf(dp.isAlwaysResetConnections()));
-					sct.setEL("liveTimeout", dp.getLiveTimeout() < 1 ? "" : Caster.toString(dp.getLiveTimeout()));
-				}
-
-				if (d instanceof DataSourceImpl) {
-					DataSourceImpl di = ((DataSourceImpl) d);
-					sct.setEL("literalTimestampWithTSOffset", Boolean.valueOf(di.getLiteralTimestampWithTSOffset()));
-					sct.setEL("alwaysSetTimeout", Boolean.valueOf(di.getAlwaysSetTimeout()));
-					sct.setEL("dbdriver", Caster.toString(di.getDbDriver(), ""));
-					sct.setEL("minIdle", di.getMinIdle() < 1 ? "" : Caster.toString(di.getMinIdle()));
-					sct.setEL("maxIdle", di.getMaxIdle() < 1 ? "" : Caster.toString(di.getMaxIdle()));
-				}
+				doGetDatasource(config, (DataSource) ds.get(key), key, sct);
 				pageContext.setVariable(getString("admin", action, "returnVariable"), sct);
 				return;
 			}
@@ -4078,7 +4024,112 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		throw new ApplicationException("There is no datasource with name [" + name + "]");
 	}
 
-	private Object toStringTimeZone(TimeZone timeZone) {
+	private void doGetDatasources() throws PageException {
+		Map ds = config.getDataSourcesAsMap();
+		Iterator it = ds.keySet().iterator();
+		lucee.runtime.type.Query qry = new QueryImpl(new Collection.Key[] { KeyConstants._name }, ds.size(), "query");
+		int row = 0;
+		while (it.hasNext()) {
+			String key = (String) it.next();
+			DataSource d = (DataSource) ds.get(key);
+			row++;
+
+			doGetDatasource(config, (DataSource) ds.get(key), key, new CurrentRow(qry, row, true));
+
+		}
+		pageContext.setVariable(getString("admin", action, "returnVariable"), qry);
+	}
+
+	/**
+	 * @throws PageException
+	 * 
+	 */
+	private static void doGetDatasource(ConfigPro config, DataSource d, String name, Collection sct) throws PageException {
+		ClassDefinition cd = d.getClassDefinition();
+
+		sct.setEL(KeyConstants._name, name);
+		sct.setEL(KeyConstants._host, d.getHost());
+		sct.setEL(KeyConstants._classname, cd.getClassName());
+		sct.setEL(KeyConstants._class, cd.getClassName());
+		sct.setEL(KeyConstants._bundleName, cd.getName());
+		sct.setEL(KeyConstants._bundleVersion, cd.getVersionAsString());
+		sct.setEL(KeyConstants._bundleVersion, cd.getVersionAsString());
+		if (cd instanceof ClassDefinitionImpl && ((ClassDefinitionImpl) cd).isMaven()) {
+			sct.setEL(KeyConstants._maven, MavenUtil.GAVSO.toArray(((ClassDefinitionImpl) cd).getMaven()));
+		}
+
+		sct.setEL(KeyConstants._connectionString, d.getDsnOriginal());
+		sct.setEL(KeyConstants._dsn, d.getDsnOriginal());
+		sct.setEL(KeyConstants._database, d.getDatabase());
+		sct.setEL(KeyConstants._port, d.getPort() < 1 ? "" : Caster.toString(d.getPort()));
+		sct.setEL(KeyConstants._dsnTranslated, d.getDsnTranslated());
+		sct.setEL(KeyConstants._timezone, toStringTimeZone(d.getTimeZone()));
+		sct.setEL(KeyConstants._password, d.getPassword());
+		sct.setEL(KeyConstants._passwordEncrypted, ConfigUtil.encrypt(d.getPassword()));
+		sct.setEL(KeyConstants._username, d.getUsername());
+		sct.setEL(KeyConstants._readonly, Caster.toBoolean(d.isReadOnly()));
+		sct.setEL(KeyConstants._select, Boolean.valueOf(d.hasAllow(DataSource.ALLOW_SELECT)));
+		sct.setEL(KeyConstants._delete, Boolean.valueOf(d.hasAllow(DataSource.ALLOW_DELETE)));
+		sct.setEL(KeyConstants._update, Boolean.valueOf(d.hasAllow(DataSource.ALLOW_UPDATE)));
+		sct.setEL(KeyConstants._insert, Boolean.valueOf(d.hasAllow(DataSource.ALLOW_INSERT)));
+		sct.setEL(KeyConstants._create, Boolean.valueOf(d.hasAllow(DataSource.ALLOW_CREATE)));
+		sct.setEL(KeyConstants._insert, Boolean.valueOf(d.hasAllow(DataSource.ALLOW_INSERT)));
+		sct.setEL(KeyConstants._drop, Boolean.valueOf(d.hasAllow(DataSource.ALLOW_DROP)));
+		sct.setEL(KeyConstants._grant, Boolean.valueOf(d.hasAllow(DataSource.ALLOW_GRANT)));
+		sct.setEL(KeyConstants._revoke, Boolean.valueOf(d.hasAllow(DataSource.ALLOW_REVOKE)));
+		sct.setEL(KeyConstants._alter, Boolean.valueOf(d.hasAllow(DataSource.ALLOW_ALTER)));
+
+		//////////////////////
+		// open connections
+		int idle = 0, active = 0, waiters = 0;
+		for (DatasourceConnPool pool: config.getDatasourceConnectionPools()) {
+			if (!d.getName().equalsIgnoreCase(pool.getFactory().getDatasource().getName())) continue;
+			idle += pool.getNumIdle();
+			active += pool.getNumActive();
+			waiters += pool.getNumWaiters();
+		}
+
+		sct.setEL(KeyConstants._timezone, toStringTimeZone(d.getTimeZone()));
+		sct.setEL("openConnections", idle + active);
+		sct.setEL("idleConnections", idle);
+		sct.setEL("activeConnections", active);
+		sct.setEL("waitingForConnection", waiters);
+		sct.setEL(KeyConstants._idleTimeout, d.getIdleTimeout() < 1 ? "" : Caster.toString(d.getIdleTimeout()));
+		sct.setEL(KeyConstants._liveTimeout, d.getLiveTimeout() < 1 ? "" : Caster.toString(d.getLiveTimeout()));
+		sct.setEL("metaCacheTimeout", Caster.toDouble(d.getMetaCacheTimeout()));
+		/////////////////
+
+		sct.setEL(KeyConstants._connectionLimit, d.getConnectionLimit() < 1 ? "-1" : Caster.toString(d.getConnectionLimit()));
+		sct.setEL(KeyConstants._connectionTimeout, d.getConnectionTimeout() < 1 ? "" : Caster.toString(d.getConnectionTimeout()));
+		sct.setEL("metaCacheTimeout", Caster.toDouble(d.getMetaCacheTimeout()));
+		sct.setEL("customSettings", d.getCustoms());
+		sct.setEL(KeyConstants._custom, d.getCustoms());
+
+		sct.setEL("www", d.getAlwaysSetTimeout());
+
+		sct.setEL(KeyConstants._blob, Boolean.valueOf(d.isBlob()));
+		sct.setEL(KeyConstants._clob, Boolean.valueOf(d.isClob()));
+		sct.setEL(KeyConstants._validate, Boolean.valueOf(d.validate()));
+		sct.setEL(KeyConstants._storage, Boolean.valueOf(d.isStorage()));
+		if (d instanceof DataSourcePro) {
+			DataSourcePro dp = ((DataSourcePro) d);
+			sct.setEL("requestExclusive", Boolean.valueOf(dp.isRequestExclusive()));
+			sct.setEL("alwaysResetConnections", Boolean.valueOf(dp.isAlwaysResetConnections()));
+			sct.setEL("liveTimeout", dp.getLiveTimeout() < 1 ? "" : Caster.toString(dp.getLiveTimeout()));
+			sct.setEL("literalTimestampWithTSOffset", Boolean.valueOf(dp.getLiteralTimestampWithTSOffset()));
+			sct.setEL("alwaysSetTimeout", Boolean.valueOf(dp.getAlwaysSetTimeout()));
+			sct.setEL("minIdle", dp.getMinIdle() < 1 ? "" : Caster.toString(dp.getMinIdle()));
+			sct.setEL("maxIdle", dp.getMaxIdle() < 1 ? "" : Caster.toString(dp.getMaxIdle()));
+			sct.setEL("maxTotal", dp.getMaxTotal() < 0 ? "" : Caster.toString(dp.getMaxTotal()));
+		}
+
+		if (d instanceof DataSourceImpl) {
+			DataSourceImpl di = ((DataSourceImpl) d);
+			sct.setEL("dbdriver", Caster.toString(di.getDbDriver(), ""));
+		}
+	}
+
+	private static Object toStringTimeZone(TimeZone timeZone) {
 		if (timeZone == null) return "";
 		return timeZone.getID();
 	}
@@ -4192,72 +4243,6 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	 * @throws PageException
 	 * 
 	 */
-	private void doGetDatasources() throws PageException {
-
-		Map ds = config.getDataSourcesAsMap();
-		Iterator it = ds.keySet().iterator();
-		lucee.runtime.type.Query qry = new QueryImpl(new String[] { "name", "host", "classname", "bundleName", "bundleVersion", "dsn", "DsnTranslated", "database", "port",
-				"timezone", "username", "password", "passwordEncrypted", "readonly", "grant", "drop", "create", "revoke", "alter", "select", "delete", "update", "insert",
-				"connectionLimit", "openConnections", "idleConnections", "activeConnections", "waitingForConnection", "connectionTimeout", "clob", "blob", "validate", "storage",
-				"customSettings", "metaCacheTimeout" }, ds.size(), "query");
-
-		int row = 0;
-
-		while (it.hasNext()) {
-			Object key = it.next();
-			DataSource d = (DataSource) ds.get(key);
-			row++;
-
-			qry.setAt(KeyConstants._name, row, key);
-			qry.setAt(KeyConstants._host, row, d.getHost());
-			qry.setAt("classname", row, d.getClassDefinition().getClassName());
-			qry.setAt("bundleName", row, d.getClassDefinition().getName());
-			qry.setAt("bundleVersion", row, d.getClassDefinition().getVersionAsString());
-			qry.setAt("dsn", row, d.getDsnOriginal());
-			qry.setAt("database", row, d.getDatabase());
-			qry.setAt(KeyConstants._port, row, d.getPort() < 1 ? "" : Caster.toString(d.getPort()));
-			qry.setAt("dsnTranslated", row, d.getDsnTranslated());
-			qry.setAt("timezone", row, toStringTimeZone(d.getTimeZone()));
-			qry.setAt(KeyConstants._password, row, d.getPassword());
-
-			qry.setAt("passwordEncrypted", row, ConfigUtil.encrypt(d.getPassword()));
-			qry.setAt(KeyConstants._username, row, d.getUsername());
-			qry.setAt(KeyConstants._readonly, row, Caster.toBoolean(d.isReadOnly()));
-			qry.setAt(KeyConstants._select, row, Boolean.valueOf(d.hasAllow(DataSource.ALLOW_SELECT)));
-			qry.setAt(KeyConstants._delete, row, Boolean.valueOf(d.hasAllow(DataSource.ALLOW_DELETE)));
-			qry.setAt(KeyConstants._update, row, Boolean.valueOf(d.hasAllow(DataSource.ALLOW_UPDATE)));
-			qry.setAt(KeyConstants._create, row, Boolean.valueOf(d.hasAllow(DataSource.ALLOW_CREATE)));
-			qry.setAt(KeyConstants._insert, row, Boolean.valueOf(d.hasAllow(DataSource.ALLOW_INSERT)));
-			qry.setAt(KeyConstants._drop, row, Boolean.valueOf(d.hasAllow(DataSource.ALLOW_DROP)));
-			qry.setAt(KeyConstants._grant, row, Boolean.valueOf(d.hasAllow(DataSource.ALLOW_GRANT)));
-			qry.setAt(KeyConstants._revoke, row, Boolean.valueOf(d.hasAllow(DataSource.ALLOW_REVOKE)));
-			qry.setAt(KeyConstants._alter, row, Boolean.valueOf(d.hasAllow(DataSource.ALLOW_ALTER)));
-
-			// open connections
-			int idle = 0, active = 0, waiters = 0;
-			for (DatasourceConnPool pool: config.getDatasourceConnectionPools()) {
-				if (!d.getName().equalsIgnoreCase(pool.getFactory().getDatasource().getName())) continue;
-				idle += pool.getNumIdle();
-				active += pool.getNumActive();
-				waiters += pool.getNumWaiters();
-			}
-
-			qry.setAt("openConnections", row, idle + active);
-			qry.setAt("idleConnections", row, idle);
-			qry.setAt("activeConnections", row, active);
-			qry.setAt("waitingForConnection", row, waiters);
-			qry.setAt("connectionLimit", row, d.getConnectionLimit() < 1 ? "" : Caster.toString(d.getConnectionLimit()));
-			qry.setAt("connectionTimeout", row, d.getConnectionTimeout() < 1 ? "" : Caster.toString(d.getConnectionTimeout()));
-			qry.setAt("customSettings", row, d.getCustoms());
-			qry.setAt("blob", row, Boolean.valueOf(d.isBlob()));
-			qry.setAt("clob", row, Boolean.valueOf(d.isClob()));
-			qry.setAt("validate", row, Boolean.valueOf(d.validate()));
-			qry.setAt("storage", row, Boolean.valueOf(d.isStorage()));
-			qry.setAt("metaCacheTimeout", row, Caster.toDouble(d.getMetaCacheTimeout()));
-
-		}
-		pageContext.setVariable(getString("admin", action, "returnVariable"), qry);
-	}
 
 	private void doUpdateMonitor() throws PageException {
 		ClassDefinition cd = ClassDefinitionImpl.toClassDefinitionImpl(attributes, null, true, config.getIdentification());
@@ -4749,7 +4734,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 		admin.checkWriteAccess();
 
-		ConfigServerImpl.metaCaptcha.write(configServer, attributes);
+		ConfigServerImpl.metaLoginCaptcha.write(configServer, attributes);
 		ConfigServerImpl.metaLoginDelay.write(configServer, attributes);
 		ConfigServerImpl.metaRememberMe.write(configServer, attributes);
 

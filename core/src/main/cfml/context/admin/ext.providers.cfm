@@ -133,6 +133,8 @@ list all mappings and display necessary edit fields --->
 
 
 	<div class="itemintro">#stText.ext.prov.IntroText#</div>
+
+	<cfset renderSettings("extensionProviders",{ value:groupIds} )>
 	<cfformClassic onerror="customError" action="#request.self#?action=#url.action#" method="post">
 		<div class="pageintro">#stText.ext.provext.list#</div>
 		<table class="maintbl checkboxtbl">
@@ -148,7 +150,13 @@ list all mappings and display necessary edit fields --->
 					<tr>
 						<!--- checkbox ---->
 						<td>
-							<cfif groupId NEQ "org.lucee"><input type="checkbox" class="checkbox" name="row_#index#" value="#index#"></cfif>
+							<cfset edit=renderEditButton2("extensionProviders","",groupId)>
+							<cfif groupId EQ "org.lucee">
+							<cfelseif len(edit) EQ 0>
+								<input type="checkbox" class="checkbox" name="row_#index#" value="#index#">
+							<cfelse>
+								#edit#
+							</cfif>
 						</td>
 						<!--- GroupId --->
 						<td>

@@ -199,6 +199,7 @@ public interface PropFactory<T> {
 
 		@Override
 		public Object serialize(Config config, TimeSpan val) throws PageException {
+			if (val == null) return null;
 			return val.getDay() + "," + val.getHour() + "," + val.getMinute() + "," + val.getSecond();
 		}
 

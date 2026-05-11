@@ -9,7 +9,15 @@
 				<tr>
 					<th scope="row">#stText.debug.maxLogs#</th>
 					<td>
-						<select name="maxLogs">
+						<cfmodule template="systemSetting.cfm" 
+								name="debuggingMaxRecordsLogged" 
+								value="#setting.maxLogs#" 
+								access="true"
+								description=""
+								br=false
+								sp=false
+								descOnTop=false>
+							<select name="debuggingMaxRecordsLogged">
 							<cfset selected=false>
 							<cfloop list="10,20,50,100,200,500,1000" index="idx">
 								<option <cfif idx EQ setting.maxLogs><cfset selected=true>selected="selected"</cfif> value="#idx#">#idx#</option>
@@ -18,6 +26,7 @@
 								<option selected="selected" value="#setting.maxLogs#">#setting.maxLogs#</option>
 							</cfif>
 						</select>
+						</cfmodule>
 					</td>
 				</tr>
 				<!---

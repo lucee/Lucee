@@ -460,14 +460,14 @@ public class Prop<T> {
 	}
 
 	public Map<String, T> map(ConfigServerImpl config, Struct root) {
-		return map(config, root, new ConcurrentHashMap<>(), true);
+		return map(config, root, new ConcurrentHashMap<>(), true, KeyConstants._name);
 	}
 
 	public Map<String, T> map(ConfigServerImpl config, Struct root, Map<String, T> map) {
-		return map(config, root, map, true);
+		return map(config, root, map, true, KeyConstants._name);
 	}
 
-	public Map<String, T> map(ConfigServerImpl config, Struct root, Map<String, T> map, boolean checkEnv) {
+	public Map<String, T> map(ConfigServerImpl config, Struct root, Map<String, T> map, boolean checkEnv, Key fieldName) {
 		if (type != TYPE_MAP) { // only happens when set wrong in code
 			throw new RuntimeException("Invalid type [" + type + "]");
 		}
@@ -493,7 +493,7 @@ public class Prop<T> {
 					Struct sct = Caster.toStruct(val, null);
 					print.e(sct);
 					if (sct == null) {
-						sct = arrayToStruct(val, null);
+						sct = arrayToStruct(fieldName, val, null);
 					}
 
 					print.e("is struct");
@@ -533,7 +533,7 @@ public class Prop<T> {
 		}
 	}
 
-	private Struct arrayToStruct(Object val, Struct defaultValue) {
+	private Struct arrayToStruct(Key fieldName, Object val, Struct defaultValue) {
 		print.e("array-2-struct");
 		Object[] arr = Caster.toNativeArray(val, null);
 		print.e(arr);
@@ -548,7 +548,7 @@ public class Prop<T> {
 			print.e(tmp);
 
 			if (tmp == null) continue;
-			name = Caster.toString(tmp.get(KeyConstants._name, null), null);
+			name = Caster.toString(tmp.get(fieldName, null), null);
 			print.e(name);
 			if (StringUtil.isEmpty(name)) continue;
 			structs.setEL(name, tmp);
@@ -730,7 +730,7 @@ public class Prop<T> {
 		int row;
 		String key;
 		for (Prop<?> p: instances) {
-			if (p.hidden || p.deprecated) continue;
+			// if (p.hidden || p.deprecated) continue;
 			key = StringUtil.isEmpty(p.parent) ? p.keys[0] : p.parent + "_" + p.keys[0];
 
 			item = new StructImpl(Struct.TYPE_LINKED);

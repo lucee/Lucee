@@ -1337,14 +1337,13 @@ public final class ConfigServerImpl implements ConfigServerPro {
 			"Enables the background monitoring service in Lucee. When active, the engine collects real-time performance data and health metrics at regular intervals.");
 	private Boolean monitoringEnabled;
 
-	public final static Prop<Boolean> metaCaptcha = Prop.bool().keys("loginCaptcha").defaultValue(false).deprecated()
-			.description("is a captcha used for the Lucee admin to login.");
+	public final static Prop<Boolean> metaLoginCaptcha = Prop.bool().keys("loginCaptcha").defaultValue(false).description("is a captcha used for the Lucee admin to login.");
 	private Boolean loginCaptcha;
 
 	private static Prop<Boolean> metaClassicDateParsing = Prop.bool().keys("classicDateParsing").defaultValue(false).deprecated();
 	private Boolean classicDateParsing;
 
-	public final static Prop<Boolean> metaRememberMe = Prop.bool().keys("loginRememberme").defaultValue(true).deprecated().hidden();
+	public final static Prop<Boolean> metaRememberMe = Prop.bool().keys("loginRememberme").defaultValue(true);
 	private Boolean rememberMe;
 
 	private static Prop<String> metaUpdateLocation = Prop.str().keys("updateLocation", "updateSiteURL").defaultValue(Constants.DEFAULT_UPDATE_URL.toExternalForm()).deprecated();
@@ -1357,7 +1356,7 @@ public final class ConfigServerImpl implements ConfigServerPro {
 	public final static Prop<String> metaAuthKeys = Prop.str().keys("authKeys").defaultValue(null).deprecated();
 	private String[] authKeys;
 
-	public final static Prop<Integer> metaLoginDelay = Prop.integer().keys("loginDelay").defaultValue(1).deprecated();
+	public final static Prop<Integer> metaLoginDelay = Prop.integer().keys("loginDelay").defaultValue(1);
 	private Integer loginDelay;
 
 	private static Prop<String> metaMavenDirectory = Prop.str().keys("mavenDirectory").systemPropEnvVar("lucee.maven.local.repository")
@@ -1829,7 +1828,7 @@ public final class ConfigServerImpl implements ConfigServerPro {
 		if (loginCaptcha == null) {
 			synchronized (SystemUtil.createToken("config", "getLoginCaptcha")) {
 				if (loginCaptcha == null) {
-					loginCaptcha = metaCaptcha.get(this, root);
+					loginCaptcha = metaLoginCaptcha.get(this, root);
 				}
 			}
 		}
@@ -2861,7 +2860,7 @@ public final class ConfigServerImpl implements ConfigServerPro {
 					close(this.uncheckedMappings);
 
 					// check for specific mappings to exist
-					Map<String, Mapping> tmpMappings = metaMappings.map(this, root);
+					Map<String, Mapping> tmpMappings = metaMappings.map(this, root, new ConcurrentHashMap<>(), true, KeyConstants._virtual);
 					boolean finished = true;
 					boolean hasServerContext = false; // TODO still needed?
 					boolean hasWebContext = false;

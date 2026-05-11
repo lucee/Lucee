@@ -99,7 +99,7 @@ Redirtect to entry --->
 							<td nowrap>#connections.custom.model?:"-"#</td>
 							<td nowrap><cfif structKeyExists(sctDefaults, connections.default)> #stText.Settings.ai["defaultType"&connections.default]?:(ucFirst(connections.default?:"-"))#</cfif></td>
 							<td>
-								#renderEditButton("#request.self#?action=#url.action#&action2=create&name=#Hash(connections.name)#")#
+								#renderEditButton2("ai","name",connections.name,"#request.self#?action=#url.action#&action2=create&name=#Hash(connections.name)#")#
 							</td>
 						</tr>
 					<cfif StructKeyExists(stVeritfyMessages, connections.name)>

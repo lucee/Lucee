@@ -289,10 +289,8 @@
 							
 							<cfif mappings.readOnly>
 								#lockedReadOnly()#
-							<cfelseif mappings.source EQ "sysprop_envvar">
-								#lockedSysOpEnvVar()#
 							<cfelse>
-								#renderEditButton("#request.self#?action=#url.action#&action2=create&virtual=#mappings.virtual#")#
+								#renderEditButton2("componentMappings","virtual",mappings.virtual,"#request.self#?action=#url.action#&action2=create&virtual=#mappings.virtual#")#
 							</cfif>
 						</td>
 					</tr>

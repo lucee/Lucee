@@ -14,9 +14,9 @@
                 action="updateRestSettings"
                 type="#request.adminType#"
                 password="#session["password"&request.adminType]#"
-                remoteClients="#request.getRemoteClients()#"
-
-                list="#structKeyExists(form,'list') and form.list#"
+				rest="#{
+					"list": form.rest_list?:false
+				}#"
                 >
 		</cfcase>
         <!--- reset/settings --->
@@ -141,9 +141,17 @@ list all mappings and display necessary edit fields --->
 				<tr>
 					<th scope="row">#stText.rest.list#</th>
 					<td>
-						<cfif hasAccess NEQ 0><input type="checkbox" class="checkbox" name="list" value="yes" <cfif settings.list>checked</cfif>>
-						<cfelse><b>#yesNoFormat(settings.list)#</b></cfif>
-						<div class="comment">#stText.rest.listDesc#</div>
+						<cfmodule template="systemSetting.cfm" 
+								name="rest_list" 
+								value="#settings.list#" 
+								access="#hasAccess#"
+								description="#stText.rest.listDesc#"
+								br=false
+								sp=false
+								descOnTop=false>
+						
+						<input type="checkbox" class="checkbox" name="rest_list" value="yes" <cfif settings.list>checked</cfif>>
+						</cfmodule>
 					</td>
 				</tr>
 <!---
@@ -176,6 +184,15 @@ list all mappings and display necessary edit fields --->
 	<!--- Mappings --->
 	<h2>#stText.rest.mapping#</h2>
 	<div class="itemintro">#stText.rest.mappingDesc#</div>
+
+	<cfscript>
+		dbl=duplicate(rest);
+		loop query=dbl {
+			if(isEmpty(dbl.physical[dbl.currentrow]))dbl.physical[dbl.currentrow]=dbl.strphysical[dbl.currentrow];
+		}
+	</cfscript>
+
+	<cfset renderSettings("rest_mapping",{columns:["virtual","physical","readonly","hidden","default"], value:dbl} )>
 	<cfformClassic onerror="customError" action="#request.self#?action=#url.action#" method="post">
 		<table class="maintbl checkboxtbl">
 			<thead>
@@ -194,8 +211,14 @@ list all mappings and display necessary edit fields --->
 							<!--- checkbox ---->
 							<td>
 								<input type="hidden" name="stopOnError_#rest.currentrow#" value="yes">
-								<cfif not rest.readOnly>
+								
+								<cfset edit=renderEditButton2("rest_mapping","virtual",rest.virtual,"")>
+								<cfif rest.readOnly>
+									#lockedReadOnly()#
+								<cfelseif len(edit) EQ 0>
 									<input type="checkbox" class="checkbox" name="row_#rest.currentrow#" value="#rest.currentrow#">
+								<cfelse>
+									#edit#
 								</cfif>
 							</td>
 							<cfset css=iif(len(rest.physical) EQ 0 and len(rest.strPhysical) NEQ 0,de(''),de(''))>

@@ -30,7 +30,6 @@
 	<cfset entry.custom=struct()>
 </cfif>
 
-
 <cftry>
 	<cfset stVeritfyMessages = StructNew()>
 	<cfswitch expression="#form.mainAction#">
@@ -71,7 +70,10 @@
 		</cfcase>
 	</cfswitch>
 	<cfcatch>
-		<cfset driver.onBeforeError(cfcatch)>
+		<cfrethrow>
+		<cfif not isNull(driver)>
+			<cfset driver.onBeforeError(cfcatch)>
+		</cfif>
 		<cfset error.message=cfcatch.message>
 		<cfset error.detail=cfcatch.Detail>
 		<cfset error.cfcatch=cfcatch>
@@ -83,12 +85,10 @@ Redirtect to entry --->
 	<cflocation url="#request.self#?action=#url.action#" addtoken="no">
 </cfif>
 
-
 <cfoutput>
 	<!--- 
 	Error Output--->
 	<cfset printError(error)>
-
 	<h2>#driver.getLabel()#</h2>
 	<div class="pageintro">#driver.getDescription()#</div>
 	<cfformClassic onerror="customError" action="#request.self#?action=#url.action#&action2=create#iif(isDefined('url.id'),de('&id=##url.id##'),de(''))#" method="post">
@@ -165,6 +165,7 @@ Redirtect to entry --->
 					<cfelseif type EQ "time">
 						<cfsilent>
 							<cfset doBR=false>
+							<cfif isEmpty(default)><cfset default=0></cfif>
 							<cfset default=default+0>
 							<cfset s=default>
 							<cfset m=0>

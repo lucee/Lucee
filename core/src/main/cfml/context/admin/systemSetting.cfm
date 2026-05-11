@@ -73,7 +73,6 @@
 	txt=trim(isEmpty(trim(attributes.description?:""))?data.description:attributes.description);
 </cfscript>
 <cfoutput>
-!!!
 	<cfif attributes.descOnTop?:false and len(txt)>
 		#txt#<br><br>
 	</cfif>	

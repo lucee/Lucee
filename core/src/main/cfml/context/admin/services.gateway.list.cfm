@@ -109,109 +109,27 @@ Redirtect to entry --->
 <cfif cgi.request_method EQ "POST" and error.message EQ "" and form.mainAction neq stText.Buttons.verify>
 	<cflocation url="#request.self#?action=#url.action#" addtoken="no">
 </cfif>
-    
-<cfset querySort(entries,"id")>
-<cfset src.local=queryNew("id,class,cfcpath,custom,readonly,driver,state")>
-<cfset src.global=queryNew("id,class,cfcpath,custom,readonly,driver,state")>
+<cfscript>
+	querySort(entries,"id");
+	queryAddColumn(entries,"name",[]);
+	loop query=entries {
+		entries.name[entries.currentrow]=entries.id[entries.currentrow];
+	}
 
-<cfloop query="entries">	
-	<cfif !entries.readOnly>
-    	<cfset tmp=src.local>
-	<cfelse>
-    	<cfset tmp=src.global>
-	</cfif>
-	<cfset QueryAddRow(tmp)>
-    <cfset QuerySetCell(tmp,"id",entries.id)>
-    <cfset QuerySetCell(tmp,"class",entries.class)>
-    <cfset QuerySetCell(tmp,"cfcPath",entries.cfcPath)>
-    <cfset QuerySetCell(tmp,"custom",entries.custom)>
-    <cfset QuerySetCell(tmp,"readonly",entries.readonly)>
-    <cfset QuerySetCell(tmp,"driver",entries.driver)>
-    <cfset QuerySetCell(tmp,"state",entries.state)>
-</cfloop>
-<!---<cfdump var="#getPageContext().getConfig().getGatewayEntries()#">
-<cfdump var="#drivers#">
-<cfdump var="#variables#">
-<cfabort>--->
+</cfscript>
+
 <cfoutput>
 	<!--- Error Output--->
 	<cfset printError(error)>
 
-	<!---- READ ONLY 
-	<cfif request.adminType EQ "web" and srcGlobal.recordcount>
-		<h2>#stText.Settings.gateway.titleReadOnly#</h2>
-		
-		<div class="pageintro">#stText.Settings.cache.descReadOnly#</div>
-		<cfformClassic onerror="customError" action="#request.self#?action=#url.action#" method="post">
-			<table class="maintbl checkboxtbl">
-				<thead>
-					<tr>
-						<th width="3%"><input type="checkbox" class="checkbox" name="rowreadonly" onclick="selectAll(this)"></th>
-						<th width="31%">#stText.Settings.gateway.id#</th>
-						<th width="31%">#stText.Settings.gateway.type#</th>
-						<th width="31%">#stText.Settings.gateway.state#</th>
-						<th width="4%">#stText.Settings.DBCheck#</th>
-					</tr>
-				</thead>
-				<tbody>
-					<cfloop query="srcGlobal">
-						<cfif IsSimpleValue(srcGlobal.driver)>
-							<cfcontinue>
-						</cfif>
-						<cfswitch expression="#srcGlobal.state#">
-							<cfcase value="running"><cfset css="Green"></cfcase>
-							<cfcase value="failed,stopped"><cfset css="Red"></cfcase>
-							<cfdefaultcase><cfset css="Yellow"></cfdefaultcase>
-						</cfswitch>
-						<cfset driver=drivers[srcGlobal.class]>
-						<tr>
-							<td>
-								<input type="checkbox" class="checkbox" name="row_#srcGlobal.currentrow#" value="#srcGlobal.currentrow#">
-							</td>
-							<td class="tblContent#css#"><input type="hidden" name="id_#srcGlobal.currentrow#" value="#srcGlobal.id#">#srcGlobal.id#</td>
-							<td class="tblContent#css#">#driver.getLabel()#</td>
-							<td class="tblContent#css#">#srcGlobal.state#</td>
-							<td class="tblContent#css# center">
-								<cfif StructKeyExists(stVeritfyMessages, srcGlobal.id)>
-									<cfif stVeritfyMessages[srcGlobal.id].label eq "OK">
-										<span class="CheckOk">#stVeritfyMessages[srcGlobal.id].label#</span>
-									<cfelse>
-										<span class="CheckError" title="#stVeritfyMessages[srcGlobal.id].message##Chr(13)#">#stVeritfyMessages[srcGlobal.id].label#</span>
-										&nbsp;<img src="resources/img/red-info.gif.cfm" 
-											width="9" 
-											height="9" 
-											border="0" 
-											title="#stVeritfyMessages[srcGlobal.id].message##Chr(13)#">
-									</cfif>
-								<cfelse>
-									&nbsp;				
-								</cfif>
-							</td>
-						</tr>
-					</cfloop>
-				</tbody>
-				<tfoot>
-					<tr>
-						<td></td>
-						<td colspan="3">
-							<input type="submit" class="bl button submit" name="mainAction" value="#stText.Buttons.refresh#">
-							<input type="reset" class="br button reset" name="cancel" value="#stText.Buttons.Cancel#">
-						</td>	
-					</tr>
-				</tfoot>
-			</table>
-		</cfformClassic>
-	</cfif> --->
 
 	<!--- LIST --->
-	<cfloop list="global,local" item="type">
-		<cfset qry=src[type]>
-	
+	<cfset qry=entries>
 	<cfif qry.recordcount>
-		<h2>#type=='local'?stText.Settings.gateway.titleExisting:stText.Settings.gateway.titleReadONly#</h2>
-		<div class="itemintro">#type=='local'?stText.Settings.gateway.descExisting:stText.settings.gateway.descreadonly#</div>
+		<h2>#stText.Settings.gateway.titleExisting#</h2>
+		<div class="itemintro">#stText.Settings.gateway.descExisting#</div>
     	<cfset renderSettings("gateways",{columns:[
-			"cfcPath","listenerCFCPath","startupMode","custom",
+			"name","cfcPath","listenerCFCPath","startupMode","custom",
 			"class","bundleName","bundleVersion","maven","component"], value:removeCoreBundle(qry)} )>
 		<cfformClassic onerror="customError" action="#request.self#?action=#url.action#" method="post">
 			<table class="maintbl checkboxtbl">
@@ -225,8 +143,7 @@ Redirtect to entry --->
 						<th width="30%">#stText.Settings.gateway.id#</th>
 						<th width="30%">#stText.Settings.gateway.type#</th>
 						<th width="30%">#stText.Settings.gateway.state#</th>
-						<!---<th width="4%">#stText.Settings.DBCheck#</th>--->
-						<cfif type=='local'><th width="3%">&nbsp;</th></cfif>
+						<th width="3%">&nbsp;</th>
 	
 
 					</tr>
@@ -249,21 +166,13 @@ Redirtect to entry --->
 								<td>#qry.driver.getLabel()#</td>
 							</cfif>							
 							<td class="tblContent#css#" nowrap>#qry.state#</td>
-							<!---<cfif StructKeyExists(stVeritfyMessages, qry.id)>
-								<td class="tblContent#css# center">
-									<cfif stVeritfyMessages[qry.id].label eq "OK">
-										<span class="CheckOk">#stVeritfyMessages[qry.id].label#</span>
-									<cfelse>
-										<span class="CheckError" title="#stVeritfyMessages[qry.id].message##Chr(13)#">#stVeritfyMessages[qry.id].label#</span>
-										&nbsp;<img src="resources/img/red-info.gif.cfm" width="9" height="9" title="#stVeritfyMessages[qry.id].message##Chr(13)#" />
-									</cfif>
-								</td>
-							<cfelse>
-								<td>&nbsp;</td>
-							</cfif>--->
-							<cfif type=='local'><td>
-								#renderEditButton("#request.self#?action=#url.action#&action2=create&id=#Hash(qry.id)#")#
-							</td></cfif>
+							<td>
+								<cfif qry.readonly?:false>
+									#lockedReadOnly()#
+								<cfelse>
+									#renderEditButton2("gateways","name",qry.name,"#request.self#?action=#url.action#&action2=create&id=#Hash(qry.id)#")#
+								</cfif>
+							</td>
 						</tr>
 					</cfloop>
 				</tbody>
@@ -271,7 +180,7 @@ Redirtect to entry --->
 					<tr>
 						<td colspan="4" id="btns">
 							<input type="submit" class="bl button" name="mainAction" value="#stText.Buttons.refresh#">
-							<cfif type=='local'><input type="submit" class="bm button submit" name="mainAction" value="#stText.Buttons.delete#"></cfif>
+							<input type="submit" class="bm button submit" name="mainAction" value="#stText.Buttons.delete#">
 							<input type="submit" class="bm button submit" name="mainAction" value="#stText.Buttons.restart#">
 							<input type="submit" class="br button submit" name="mainAction" value="#stText.Buttons.stopstart#">
 						</td>	
@@ -280,7 +189,6 @@ Redirtect to entry --->
 			</table>
 		</cfformClassic>
 	</cfif>
-	</cfloop>
 
 
 </cfoutput>
