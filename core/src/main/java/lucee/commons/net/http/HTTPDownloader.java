@@ -42,6 +42,13 @@ public final class HTTPDownloader {
 	public static final long DEFAULT_READ_TIMEOUT = 60000; // 60 seconds
 	private static final String DEFAULT_USER_AGENT = "Lucee";
 
+	// Internal downloads talk to a small fixed set of hosts (update.lucee.org, Maven Central)
+	// and are typically sequential. The pool here is intentionally separate from HTTPEngine4Impl's
+	// cfhttp pool — see LDEV-5571 plan. User cert installs invalidate cfhttp pools without affecting
+	// bundle/update downloads, and bundle download lifecycle is decoupled from user request traffic.
+	private static final int POOL_MAX_CONN = 16;
+	private static final int POOL_MAX_CONN_PER_ROUTE = 4;
+
 	private HTTPDownloader() {
 		// Utility class, prevent instantiation
 	}
@@ -52,7 +59,7 @@ public final class HTTPDownloader {
 	public static void releaseSharedClient() {
 		synchronized (CLIENT_LOCK) {
 			if (SHARED_CLIENT != null) {
-				IOUtil.closeEL(SHARED_CLIENT);
+				IOUtil.closeEL(SHARED_CLIENT); // managerShared=false → cascades to the owned pool
 				SHARED_CLIENT = null;
 			}
 		}
@@ -62,8 +69,7 @@ public final class HTTPDownloader {
 		if (SHARED_CLIENT == null) {
 			synchronized (CLIENT_LOCK) {
 				if (SHARED_CLIENT == null) {
-					HttpClientBuilder builder = HTTPEngine4Impl.getHttpClientBuilder(true, null, null, null, null, true, "true");
-					SHARED_CLIENT = builder.build();
+					SHARED_CLIENT = HTTPEngine4Impl.buildUnmanagedClient(null, null, null, null, true, POOL_MAX_CONN_PER_ROUTE, POOL_MAX_CONN, "true");
 				}
 			}
 		}

@@ -373,6 +373,29 @@ public final class HTTPEngine4Impl {
 		}
 	}
 
+	/**
+	 * Builds a CloseableHttpClient backed by a fresh connection pool that is NOT registered in
+	 * the shared connectionManagers map. The client owns the pool (managerShared=false), so
+	 * closing the client closes the pool. Use for internal infrastructure traffic whose lifecycle
+	 * must be independent of user-driven releaseConnectionManager() calls.
+	 */
+	public static CloseableHttpClient buildUnmanagedClient(String clientCert, String clientCertPassword, String trustStore, String trustStorePassword,
+			boolean sslVerify, int maxPerRoute, int maxTotal, String redirect) throws GeneralSecurityException {
+		Registry<ConnectionSocketFactory> reg = createRegistry(clientCert, clientCertPassword, trustStore, trustStorePassword, sslVerify);
+		PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager(new DefaultHttpClientConnectionOperatorImpl(reg), null, POOL_CONN_TTL_MS,
+				TimeUnit.MILLISECONDS);
+		cm.setDefaultMaxPerRoute(maxPerRoute);
+		cm.setMaxTotal(maxTotal);
+		cm.setDefaultSocketConfig(SocketConfig.copy(SocketConfig.DEFAULT).setTcpNoDelay(true).setSoReuseAddress(true).setSoLinger(0).build());
+
+		HttpClientBuilder builder = HttpClients.custom().setConnectionManager(cm).setConnectionManagerShared(false)
+				.setConnectionTimeToLive(POOL_CONN_TTL_MS, TimeUnit.MILLISECONDS).setConnectionReuseStrategy(new DefaultClientConnectionReuseStrategy())
+				.setRedirectStrategy("lax".equalsIgnoreCase(redirect) ? new LaxRedirectStrategy() : new DefaultRedirectStrategy())
+				.setRetryHandler(new NoHttpResponseExceptionHttpRequestRetryHandler());
+		if (!Caster.toBooleanValue(redirect, true)) builder.disableRedirectHandling();
+		return builder.build();
+	}
+
 	public static boolean isShutDown(PoolingHttpClientConnectionManager cm, boolean defaultValue) {
 		if (cm != null && !cannotAccess) {
 			try {

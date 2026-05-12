@@ -1359,7 +1359,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 			Controler cntr = getControler();
 			if (cntr != null) cntr.close();
 
-			// release HTTP Pool
+			// release HTTP Pools — cfhttp's shared pools and HTTPDownloader's separate internal pool
 			HTTPEngine4Impl.releaseConnectionManager();
 			HTTPDownloader.releaseSharedClient();
 
