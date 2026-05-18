@@ -21,6 +21,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.config.RequestConfig;
@@ -540,6 +541,8 @@ public class MavenUtil {
 					String scriptName = pom.getGroupId().replace('.', '/') + "/" + pom.getArtifactId() + "/" + pom.getVersion() + "/" + pom.getArtifactId() + "-" + pom.getVersion()
 							+ "." + type;
 					StringBuilder info = null;
+					StringBuilder failureSummary = null;
+					Exception lastException = null;
 					try {
 						if (repositories == null || repositories.isEmpty()) repositories = pom.getRepositories();
 
@@ -595,18 +598,40 @@ public class MavenUtil {
 									}
 								}
 								else {
+									String retryAfter = null;
+									if (sc == 429 || sc == 503) {
+										Header h = response.getFirstHeader("Retry-After");
+										if (h != null) retryAfter = h.getValue();
+									}
 									if (info == null) info = createInfo();
-									info.append(r).append(".error=").append('\n');
+									// match Apache Maven Resolver convention: empty .error= for 404 (NOT_FOUND), status code otherwise
+									info.append(r).append(".error=").append(sc == 404 ? "" : String.valueOf(sc)).append('\n');
 									info.append(r).append(".lastUpdated=").append(System.currentTimeMillis()).append('\n');
 									EntityUtils.consume(entity); // Ensure the response entity is fully consumed
-									// throw new IOException("Failed to download: " + url + " for [" + pom + "] - " +
-									// response.getStatusLine().getStatusCode());
+									String detail = String.valueOf(sc) + (retryAfter != null ? " (Retry-After: " + retryAfter + ")" : "");
+									failureSummary = appendFailure(failureSummary, repoLabel(r), detail);
+									if (log != null) {
+										// 404 is "not on this repo" — expected during fallback flows, demote to INFO
+										// other status codes (429 rate-limit, 5xx, 4xx-non-404) are actionable failures
+										String logMsg = "download failed for [" + pom + ":" + type + "] from [" + url + "] - HTTP " + sc
+												+ (retryAfter != null ? ", Retry-After: " + retryAfter : "");
+										if (sc == 404) log.info("maven", logMsg);
+										else log.error("maven", logMsg);
+									}
 								}
 							}
 							catch (Exception e) {
+								String safeMsg = e.getMessage() == null ? "" : e.getMessage().replace('\n', ' ').replace('\r', ' ');
+								String exSummary = e.getClass().getSimpleName() + (safeMsg.isEmpty() ? "" : ": " + safeMsg);
 								if (info == null) info = createInfo();
-								info.append(r).append(".error=").append('\n');
+								info.append(r).append(".error=").append(exSummary).append('\n');
 								info.append(r).append(".lastUpdated=").append(System.currentTimeMillis()).append('\n');
+								lastException = e;
+								failureSummary = appendFailure(failureSummary, repoLabel(r), exSummary);
+								if (log != null) {
+									log.error("maven", "download failed for [" + pom + ":" + type + "] from [" + (url != null ? url : r.getUrl()) + "] - "
+											+ e.getClass().getName() + ": " + safeMsg);
+								}
 							}
 							finally {
 								if (httpClient != null) httpClient.close();
@@ -614,14 +639,21 @@ public class MavenUtil {
 						}
 					}
 					catch (IOException ioe) {
-						createLastUpdated(res, info);
-						IOException ex = new IOException("Failed to download [ " + pom + ":" + type + "]");
-						ExceptionUtil.initCauseEL(ex, ioe);
+						if (info != null) createLastUpdated(res, info);
+						StringBuilder m = new StringBuilder("Failed to download [").append(pom).append(":").append(type).append("]");
+						if (failureSummary != null) m.append(" - ").append(failureSummary);
+						IOException ex = new IOException(m.toString());
+						ExceptionUtil.initCauseEL(ex, lastException != null ? lastException : ioe);
 						// MUST add again ResourceUtil.deleteEmptyFoldersInside(pom.getLocalDirectory());
 						throw ex;
 					}
 					createLastUpdated(res, info);
-					throw new IOException("Failed to download [" + pom + ":" + type + "] from " + repositories.size() + " repositories");
+					StringBuilder m = new StringBuilder("Failed to download [").append(pom).append(":").append(type).append("] from ").append(repositories.size())
+							.append(" repositories");
+					if (failureSummary != null) m.append(" - ").append(failureSummary);
+					IOException ex = new IOException(m.toString());
+					if (lastException != null) ExceptionUtil.initCauseEL(ex, lastException);
+					throw ex;
 				}
 			}
 		}
@@ -630,6 +662,21 @@ public class MavenUtil {
 	private static StringBuilder createInfo() {
 		return new StringBuilder("#NOTE: This is a Maven Resolver internal implementation file (created by Lucee), its format can be changed without prior notice.\n#")
 				.append(ZonedDateTime.now().format(MAVEN_DATE_FORMATTER)).append('\n');
+	}
+
+	private static StringBuilder appendFailure(StringBuilder sb, String label, String detail) {
+		if (sb == null) sb = new StringBuilder();
+		else sb.append("; ");
+		sb.append(label).append(": ").append(detail);
+		return sb;
+	}
+
+	private static String repoLabel(Repository r) {
+		String name = r.getName();
+		if (!StringUtil.isEmpty(name)) return name;
+		String id = r.getId();
+		if (!StringUtil.isEmpty(id)) return id;
+		return r.getUrl();
 	}
 
 	private static void createLastUpdated(Resource res, StringBuilder info) throws IOException {
