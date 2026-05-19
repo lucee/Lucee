@@ -1469,6 +1469,7 @@
 				},
 				"class": "Class",
 				"clearCache": "Cache leeren ( {count} Element(e) )",
+				"clearCacheUnsupported": "Cache leeren (Anzahl nicht unterstützt)",
 				"clearCacheTitle": "Cache leeren",
 				"Default": "Standard",
 				"defaultDesc": "Definiert die Standard-Cache-Verbindung für Template (cfcache) und Objekte (cacheGet, cachePut ...). Diese Verbindung wird verwendet, wenn kein Cache-Name explizit definiert ist",

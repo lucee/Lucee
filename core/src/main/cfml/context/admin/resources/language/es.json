@@ -1442,6 +1442,7 @@
 				},
 				"class": "Clase",
 				"clearCache": "Borrar caché ({count} elemento(s))",
+				"clearCacheUnsupported": "Borrar caché (recuento no admitido)",
 				"clearCacheTitle": "Borrar caché",
 				"Default": "Predeterminado",
 				"defaultDesc": "Define la conexión de caché predeterminada para plantillas (cfcache) y objetos (cacheGet, cachePut, ...), esta conexión se utiliza cuando no se especifica ningún nombre de caché de forma explícita",
