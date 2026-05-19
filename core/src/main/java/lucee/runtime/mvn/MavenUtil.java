@@ -159,7 +159,8 @@ public class MavenUtil {
 	public static List<POM> getDependencies(List<POMReader.Dependency> rawDependencies, POM current, POM parent, Map<String, String> properties, Resource localDirectory,
 			boolean management, Log log) throws IOException {
 		List<POM> dependencies = new ArrayList<>();
-		ExecutorService executor = ThreadUtil.createExecutorService(Runtime.getRuntime().availableProcessors());
+		// LDEV-6320: single-threaded to avoid triggering 429 from Maven Central
+		ExecutorService executor = ThreadUtil.createExecutorService(1);
 
 		if (parent != null) {
 			List<POM> tmp = parent.getDependencies();
