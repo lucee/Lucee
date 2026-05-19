@@ -70,8 +70,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="memcached" {
 		cachePut(id=cacheId, value=testData, cacheName=variables.cacheName);
 
 		// getting back without waiting on it
-		theValue = cacheGet(id=cacheId, cacheName=variables.cacheName);
-		wasFound=!isNull(theValue);
+		var theValue = cacheGet(id=cacheId, cacheName=variables.cacheName);
+		var wasFound=!isNull(theValue);
 		assertTrue(wasFound);
 
 		// getting back after at least a second
@@ -86,7 +86,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="memcached" {
 		if ( isEmpty( memcached ) )
 			return false;
 		//try {
-			application action="update" 
+			application action="update"
 				caches="#{memcached:{
 						  class: 'org.lucee.extension.io.cache.memcache.MemCacheRaw'
 						, bundleName: 'memcached.extension'
