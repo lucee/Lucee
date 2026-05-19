@@ -156,10 +156,12 @@ public class IKHandlerDatasource implements IKHandler {
 		}
 		catch (Exception e) {
 			ScopeContext.error(log, e);
+			return;
 		}
 		finally {
 			if (dc != null) ((DatasourceConnectionPro) dc).release();
 		}
+		storageScope.setClean();
 	}
 
 	@Override

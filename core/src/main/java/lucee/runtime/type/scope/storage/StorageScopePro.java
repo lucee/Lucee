@@ -24,14 +24,26 @@ import lucee.runtime.type.Collection;
 // FUTURE merge into loader
 
 /**
- * scope that can be stored, in a storage
+ * Extended storage scope interface with token management and dirty/clean state tracking.
  */
 public interface StorageScopePro extends StorageScope {
-	
+
 	public boolean verifyToken(String token, String key, boolean remove);
 
 	public Map<Collection.Key, String> getTokens();
 
 	public void setTokens(Map<Collection.Key, String> tokens);
+
+	/**
+	 * Mark the scope as dirty so it will be persisted to storage at end of request.
+	 * Use this when you've modified nested data that Lucee's change detection cannot track.
+	 */
+	public void setDirty();
+
+	/**
+	 * Mark the scope as clean, indicating no pending changes need to be persisted.
+	 * Called after successfully writing to storage.
+	 */
+	public void setClean();
 
 }
