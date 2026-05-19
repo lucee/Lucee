@@ -420,7 +420,9 @@ public class MavenUtil {
 					gavso = getDependency(rd, current, properties, true);
 				}
 				catch (IOException ioe) {
-					LogUtil.log(null, "mvn", ioe, Log.LEVEL_WARN, "application");
+					// LDEV-6321: benign upstream-POM pattern (e.g. Google's dangling ${jackson-core-asl.version}).
+					// Apache Maven core does the same (MNG-5982): warn and skip. Resolution continues without this entry.
+					if (log != null) log.trace("mvn", "Dropping <dependencyManagement> entry: " + ioe.getMessage());
 				}
 				if (gavso == null) continue;
 				POM p = POM.getInstance(localDirectory, current.getRepositories(), gavso.g, gavso.a, gavso.v, gavso.s, gavso.o, gavso.c, current.getDependencyScope(),
@@ -488,7 +490,7 @@ public class MavenUtil {
 			if (!modifed) break;
 		}
 		if (value != null && value.indexOf("${") != -1) {
-			throw new IOException("Cannot resolve [" + value + "] for [" + pom + "], available properties are [" + ListUtil.toList(properties.keySet(), ", ") + "]");
+			throw new IOException("Cannot resolve [" + value + "] in POM [" + pom + "]");
 		}
 		return value;
 	}
