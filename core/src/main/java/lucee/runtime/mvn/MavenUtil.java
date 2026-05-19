@@ -159,9 +159,7 @@ public class MavenUtil {
 	public static List<POM> getDependencies(List<POMReader.Dependency> rawDependencies, POM current, POM parent, Map<String, String> properties, Resource localDirectory,
 			boolean management, Log log) throws IOException {
 		List<POM> dependencies = new ArrayList<>();
-		// LDEV-6299: parallel transitive-dep resolution against Maven Central trips per-IP 429 rate limits
-		// 7.0+ already removed the executor entirely; on 6.2 we keep the structure but force single-threaded
-		ExecutorService executor = ThreadUtil.createExecutorService(1);
+		ExecutorService executor = ThreadUtil.createExecutorService(Runtime.getRuntime().availableProcessors());
 
 		if (parent != null) {
 			List<POM> tmp = parent.getDependencies();

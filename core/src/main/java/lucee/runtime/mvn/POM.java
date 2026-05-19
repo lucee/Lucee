@@ -599,10 +599,7 @@ public class POM {
 		try {
 			List<POM> deps = pom.getDependencies();
 			if (deps != null && deps.size() > 0) {
-				// LDEV-6299: recursive walker fan-out to N=deps.size() threads per pom node
-				// trips per-IP 429 on Maven Central and races shared transitive POMs.
-				// Force single-threaded; preserves existing executor plumbing.
-				executor = ThreadUtil.createExecutorService(1, false);
+				executor = ThreadUtil.createExecutorService(deps.size(), false);
 				List<Future<Pair<IOException, POM>>> futures = new ArrayList<>();
 				for (POM p: deps) {
 					if (!node.addChild(p) || (!optional && p.getOptional())) continue;
