@@ -86,6 +86,7 @@ public class POM {
 	public static final int SCOPE_NONE = 0;
 	public static final int SCOPE_NOT_TEST = SCOPE_COMPILE + SCOPE_PROVIDED + SCOPE_RUNTIME + SCOPE_SYSTEM + SCOPE_IMPORT;
 	public static final int SCOPE_ALL = SCOPE_NOT_TEST + SCOPE_TEST;
+	public static final int SCOPES_FOR_RUNTIME = SCOPE_COMPILE + SCOPE_RUNTIME;
 
 	private Resource localDirectory;
 	private final String groupId;

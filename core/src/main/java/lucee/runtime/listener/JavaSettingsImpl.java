@@ -335,7 +335,7 @@ public class JavaSettingsImpl implements JavaSettings {
 				Log log = LogUtil.getLog(config, "mvn", "application");
 				for (GAVSO gavso: gavsoArr) {
 					if (gavso != null) {
-						POM tmp = POM.getInstance(dir, gavso.g, gavso.a, gavso.v, MavenUtil.toScopes(gavso.s, POM.SCOPE_COMPILE), log);
+						POM tmp = POM.getInstance(dir, gavso.g, gavso.a, gavso.v, MavenUtil.toScopes(gavso.s, POM.SCOPES_FOR_RUNTIME), log);
 						mapPoms.put("maven:" + tmp.getGroupId() + ":" + tmp.getArtifactId() + ":" + tmp.getVersion(), tmp);
 					}
 				}
@@ -398,7 +398,7 @@ public class JavaSettingsImpl implements JavaSettings {
 					while (it.hasNext()) {
 						MavenUtil.GAVSO gavso = MavenUtil.toGAVSO(it.next(), null);
 						if (gavso != null) {
-							POM tmp = POM.getInstance(dir, gavso.g, gavso.a, gavso.v, MavenUtil.toScopes(gavso.s, POM.SCOPE_COMPILE), log);
+							POM tmp = POM.getInstance(dir, gavso.g, gavso.a, gavso.v, MavenUtil.toScopes(gavso.s, POM.SCOPES_FOR_RUNTIME), log);
 							mapPoms.put("maven:" + tmp.getGroupId() + ":" + tmp.getArtifactId() + ":" + tmp.getVersion(), tmp);
 						}
 

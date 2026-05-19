@@ -3,11 +3,13 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 		describe( title="Testcase for MavenLoad() function", body=function() {
 			
 			it(title="load com.github.tjake", body=function( currentSpec ) {
+				// LDEV-6325 — pre-fix this was 37 (runtime-scoped transitives were dropped on 6.2);
+				// matches 7.0/7.1's expectation now.
 				var l=len(mavenLoad([
 					"com.github.tjake:jlama-core:0.7.0",
 					"com.github.tjake:jlama-native:0.7.0"
 				]));
-				expect(l).toBe(37);
+				expect(l).toBe(40);
 			});
 
 			it(title="load org.apache.commons", body=function( currentSpec ) {
