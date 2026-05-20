@@ -38,6 +38,7 @@ import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.listener.ApplicationContext;
+import lucee.runtime.listener.ApplicationContextSupport;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 import lucee.runtime.type.Collection;
@@ -96,10 +97,12 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 	protected String strType;
 	protected int type;
 	private long timeSpan = -1;
+	private long keepAlive = -1;
 	private String storage;
 	private Struct tokens = new StructImpl(Struct.TYPE_SYNC, 4);
 	private long lastModified;
 	private final long lastModifiedAtInit;
+	private long lastStored;
 
 	private IKHandler handler;
 	private String appName;
@@ -129,6 +132,8 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 
 		// last modified
 		lastModifiedAtInit = this.lastModified = lastModified;
+		// LDEV-6331: seed lastStored so staleness check works after scope reconstruction
+		lastStored = lastModified;
 
 		this.hitcount = (type == SCOPE_CLIENT) ? Caster.toIntValue(data.getOrDefault(KeyConstants._hitcount, ONE), 1) : 1;
 		this.strType = strType;
@@ -267,6 +272,15 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 	void setTimeSpan(PageContext pc) {
 		ApplicationContext ac = pc.getApplicationContext();
 		this.timeSpan = getType() == SCOPE_SESSION ? ac.getSessionTimeout().getMillis() : ac.getClientTimeout().getMillis();
+
+		// LDEV-6331: keepAlive controls periodic refresh of persisted scope expiry on read-heavy patterns.
+		// Default is half the scope timeout; users can override via this.sessionKeepAlive / this.clientKeepAlive.
+		TimeSpan ka = null;
+		if (ac instanceof ApplicationContextSupport) {
+			ApplicationContextSupport acs = (ApplicationContextSupport) ac;
+			ka = getType() == SCOPE_SESSION ? acs.getSessionKeepAlive() : acs.getClientKeepAlive();
+		}
+		this.keepAlive = (ka != null) ? ka.getMillis() : this.timeSpan / 2;
 	}
 
 	@Override
@@ -510,10 +524,20 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 	}
 
 	/**
-	 * @return the hasChanges
+	 * @return true when the scope needs to be persisted — either real CFML mutations (isDirty) or
+	 *         periodic TTL refresh (isStale).
 	 */
 	public boolean hasChanges(PageContext pc, Log log) {
+		if (isDirty(pc, log)) return true;
+		if (isStale(pc, log)) return true;
+		if (LogUtil.doesDebug(log)) {
+			ScopeContext.debug(log, "no change detected in the " + (Scope.SCOPE_SESSION == type ? "session" : "client") + " scope for " + pc.getApplicationContext().getName() + "/"
+					+ pc.getCFID() + ".");
+		}
+		return false;
+	}
 
+	private boolean isDirty(PageContext pc, Log log) {
 		if (hasChanges) {
 			if (LogUtil.doesDebug(log)) {
 				ScopeContext.debug(log, "detected a change in the root keys of the " + (Scope.SCOPE_SESSION == type ? "session" : "client") + " scope for "
@@ -527,14 +551,26 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 				ScopeContext.debug(log, "detected a change in one of the values in the " + (Scope.SCOPE_SESSION == type ? "session" : "client") + " scope for "
 						+ pc.getApplicationContext().getName() + "/" + pc.getCFID() + ".");
 			}
-
 			return true;
 		}
-		if (LogUtil.doesDebug(log)) {
-			ScopeContext.debug(log, "no change detected in the " + (Scope.SCOPE_SESSION == type ? "session" : "client") + " scope for " + pc.getApplicationContext().getName() + "/"
-					+ pc.getCFID() + ".");
-		}
 		return false;
+	}
+
+	// LDEV-6331: persisted expiry needs periodic refresh on read-heavy patterns.
+	// keepAlive=0 (or negative) disables the periodic refresh — use that to opt out.
+	private boolean isStale(PageContext pc, Log log) {
+		if (keepAlive <= 0) return false;
+		long elapsed = System.currentTimeMillis() - lastStored;
+		if (elapsed <= keepAlive) return false;
+		if (LogUtil.doesDebug(log)) {
+			ScopeContext.debug(log, "periodic refresh of stored " + (Scope.SCOPE_SESSION == type ? "session" : "client") + " scope expiry for "
+					+ pc.getApplicationContext().getName() + "/" + pc.getCFID() + " — last stored " + elapsed + "ms ago, keepAlive " + keepAlive + "ms.");
+		}
+		return true;
+	}
+
+	public void markStored() {
+		lastStored = System.currentTimeMillis();
 	}
 
 	@Override

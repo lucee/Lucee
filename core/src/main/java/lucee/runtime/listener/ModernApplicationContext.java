@@ -121,6 +121,8 @@ public final class ModernApplicationContext extends ApplicationContextSupport {
 	private TimeSpan applicationTimeout;
 	private TimeSpan sessionTimeout;
 	private TimeSpan clientTimeout;
+	private TimeSpan sessionKeepAlive;
+	private TimeSpan clientKeepAlive;
 	private TimeSpan requestTimeout;
 	private int loginStorage = Scope.SCOPE_SESSION;
 	private int scriptProtect;
@@ -182,6 +184,8 @@ public final class ModernApplicationContext extends ApplicationContextSupport {
 	private boolean initApplicationTimeout;
 	private boolean initSessionTimeout;
 	private boolean initClientTimeout;
+	private boolean initSessionKeepAlive;
+	private boolean initClientKeepAlive;
 	private boolean initRequestTimeout;
 	private boolean initSetClientCookies;
 	private boolean initSetClientManagement;
@@ -436,6 +440,26 @@ public final class ModernApplicationContext extends ApplicationContextSupport {
 			initClientTimeout = true;
 		}
 		return clientTimeout;
+	}
+
+	@Override
+	public TimeSpan getSessionKeepAlive() {
+		if (!initSessionKeepAlive) {
+			Object o = get(component, KeyConstants._sessionKeepAlive, null);
+			if (o != null) sessionKeepAlive = Caster.toTimespan(o, null);
+			initSessionKeepAlive = true;
+		}
+		return sessionKeepAlive;
+	}
+
+	@Override
+	public TimeSpan getClientKeepAlive() {
+		if (!initClientKeepAlive) {
+			Object o = get(component, KeyConstants._clientKeepAlive, null);
+			if (o != null) clientKeepAlive = Caster.toTimespan(o, null);
+			initClientKeepAlive = true;
+		}
+		return clientKeepAlive;
 	}
 
 	@Override

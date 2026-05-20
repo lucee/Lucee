@@ -45,6 +45,7 @@ import lucee.runtime.type.Collection;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
+import lucee.runtime.type.dt.TimeSpan;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.transformer.library.ClassDefinitionImpl;
 import lucee.transformer.library.tag.TagLib;
@@ -127,6 +128,17 @@ public abstract class ApplicationContextSupport implements ApplicationContext {
 		this.cookiedomain = cookiedomain;
 		this.idletimeout = idletimeout;
 
+	}
+
+	// LDEV-6331: keepAlive controls periodic refresh of persisted scope expiry on read-heavy patterns.
+	// Override in concrete impls to expose this.sessionKeepAlive / this.clientKeepAlive from Application.cfc.
+	// Returning null means "use the default" (half the scope timeout).
+	public TimeSpan getSessionKeepAlive() {
+		return null;
+	}
+
+	public TimeSpan getClientKeepAlive() {
+		return null;
 	}
 
 	@Override

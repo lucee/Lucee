@@ -65,6 +65,7 @@ public final class IKHandlerCache implements IKHandler {
 							: IKStorageValue.toByteRepresentation(
 									IKStorageScopeSupport.prepareToStore(data, existingVal, storageScope.lastModified(), storageScope.lastModifiedAtInit(), log, type)),
 							Long.valueOf(storageScope.getTimeSpan()), null);
+					storageScope.markStored();
 				}
 				else if (existingVal != null) {
 					cache.remove(key);

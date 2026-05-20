@@ -2582,6 +2582,8 @@ public final class KeyConstants {
 	public static final Key _sessionManagement = init("sessionManagement");
 	public static final Key _sessionTimeout = init("sessionTimeout");
 	public static final Key _clientTimeout = init("clientTimeout");
+	public static final Key _sessionKeepAlive = init("sessionKeepAlive");
+	public static final Key _clientKeepAlive = init("clientKeepAlive");
 	public static final Key _requestTimeout = init("requestTimeout");
 	public static final Key _setClientCookies = init("setClientCookies");
 	public static final Key _setDomainCookies = init("setDomainCookies");
