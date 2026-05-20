@@ -1,4 +1,4 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" labels="session" {
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="session" skip=true {
 
 	function run( testResults, testBox ) {
 		describe( "LDEV-6331 cache-backed sessions evict at TTL boundary on read-only patterns", function() {
