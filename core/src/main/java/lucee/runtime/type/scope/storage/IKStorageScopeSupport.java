@@ -132,7 +132,6 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 
 		// last modified
 		lastModifiedAtInit = this.lastModified = lastModified;
-		// LDEV-6331: seed lastStored so staleness check works after scope reconstruction
 		lastStored = lastModified;
 
 		this.hitcount = (type == SCOPE_CLIENT) ? Caster.toIntValue(data.getOrDefault(KeyConstants._hitcount, ONE), 1) : 1;
@@ -272,9 +271,6 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 	void setTimeSpan(PageContext pc) {
 		ApplicationContext ac = pc.getApplicationContext();
 		this.timeSpan = getType() == SCOPE_SESSION ? ac.getSessionTimeout().getMillis() : ac.getClientTimeout().getMillis();
-
-		// LDEV-6331: keepAlive controls periodic refresh of persisted scope expiry on read-heavy patterns.
-		// Default is half the scope timeout; users can override via this.sessionKeepAlive / this.clientKeepAlive.
 		TimeSpan ka = null;
 		if (ac instanceof ApplicationContextSupport) {
 			ApplicationContextSupport acs = (ApplicationContextSupport) ac;
@@ -313,8 +309,6 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 
 	@Override
 	public void touchAfterRequest(PageContext pc) {
-
-		setTimeSpan(pc);
 		data0.put(KeyConstants._lastvisit, new IKStorageScopeItem(_lastvisit, lastModifiedAtInit()));
 		data0.put(KeyConstants._timecreated, new IKStorageScopeItem(timecreated, lastModifiedAtInit()));
 
@@ -325,7 +319,16 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 		if (ac != null && (this.tokens == null || this.tokens.isEmpty()) && ac.getSessionCluster() && isSessionStorage(pc)) {
 			data0.remove(KeyConstants._csrf_token);
 		}
+		commit(pc);
+	}
+
+	public void commit(PageContext pc) {
+		setTimeSpan(pc);
 		store(pc);
+	}
+
+	public void markStale() {
+		lastStored = 0;
 	}
 
 	@Override
@@ -523,10 +526,6 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 		unstore(ThreadLocalPageContext.get());
 	}
 
-	/**
-	 * @return true when the scope needs to be persisted — either real CFML mutations (isDirty) or
-	 *         periodic TTL refresh (isStale).
-	 */
 	public boolean hasChanges(PageContext pc, Log log) {
 		if (isDirty(pc, log)) return true;
 		if (isStale(pc, log)) return true;
@@ -556,9 +555,14 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 		return false;
 	}
 
-	// LDEV-6331: persisted expiry needs periodic refresh on read-heavy patterns.
-	// keepAlive=0 (or negative) disables the periodic refresh — use that to opt out.
 	private boolean isStale(PageContext pc, Log log) {
+		if (lastStored == 0) {
+			if (LogUtil.doesDebug(log)) {
+				ScopeContext.debug(log, "explicit refresh requested for " + (Scope.SCOPE_SESSION == type ? "session" : "client") + " scope for "
+						+ pc.getApplicationContext().getName() + "/" + pc.getCFID() + " (markStale).");
+			}
+			return true;
+		}
 		if (keepAlive <= 0) return false;
 		long elapsed = System.currentTimeMillis() - lastStored;
 		if (elapsed <= keepAlive) return false;
@@ -571,6 +575,8 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 
 	public void markStored() {
 		lastStored = System.currentTimeMillis();
+		hasChanges = false;
+		hash = ScopeContext.hash(data0, type, true);
 	}
 
 	@Override

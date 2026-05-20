@@ -130,9 +130,6 @@ public abstract class ApplicationContextSupport implements ApplicationContext {
 
 	}
 
-	// LDEV-6331: keepAlive controls periodic refresh of persisted scope expiry on read-heavy patterns.
-	// Override in concrete impls to expose this.sessionKeepAlive / this.clientKeepAlive from Application.cfc.
-	// Returning null means "use the default" (half the scope timeout).
 	public TimeSpan getSessionKeepAlive() {
 		return null;
 	}
