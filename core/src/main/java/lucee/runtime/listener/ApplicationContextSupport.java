@@ -130,12 +130,20 @@ public abstract class ApplicationContextSupport implements ApplicationContext {
 
 	}
 
-	public TimeSpan getSessionKeepAlive() {
+	public TimeSpan getSessionCommitInterval() {
 		return null;
 	}
 
-	public TimeSpan getClientKeepAlive() {
+	public TimeSpan getClientCommitInterval() {
 		return null;
+	}
+
+	public void setSessionCommitInterval(TimeSpan sessionCommitInterval) {
+		// override in subclass
+	}
+
+	public void setClientCommitInterval(TimeSpan clientCommitInterval) {
+		// override in subclass
 	}
 
 	@Override

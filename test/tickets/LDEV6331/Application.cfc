@@ -1,18 +1,20 @@
 component {
 	param name="url.sessionStorage" default="ram";
 	param name="url.sessionCluster" default=false;
-	param name="url.sessionKeepAlive" default="";
+	param name="url.sessionCommitInterval" default="";
+	// ttlSeconds is the session timeout used by the test. Default sessionCommitInterval = ttlSeconds/2.
+	// Redis EXPIRE is seconds-precision, so 2s is the practical floor across all backends — bump if flaky on slow CI.
+	param name="url.ttlSeconds" default="2";
 
 	this.name = "ldev-6331-#url.sessionStorage#-cluster#url.sessionCluster#-" & hash( getCurrentTemplatePath() );
 	this.sessionManagement = true;
 	this.setClientCookies = true;
 	this.sessionType = "application";
 	this.sessionCluster = url.sessionCluster;
-	// 4s session timeout. Default sessionKeepAlive = sessionTimeout/2 = 2s — mid-TTL GET at 2.5s past keepAlive triggers a refresh.
-	this.sessionTimeout = createTimespan( 0, 0, 0, 4 );
+	this.sessionTimeout = createTimespan( 0, 0, 0, javacast( "int", url.ttlSeconds ) );
 	this.applicationTimeout = createTimespan( 0, 1, 0, 0 );
-	if ( len( url.sessionKeepAlive ) )
-		this.sessionKeepAlive = createTimespan( 0, 0, 0, javacast( "int", url.sessionKeepAlive ) );
+	if ( len( url.sessionCommitInterval ) )
+		this.sessionCommitInterval = createTimespan( 0, 0, 0, javacast( "int", url.sessionCommitInterval ) );
 
 	if ( url.sessionStorage eq "redis" ) {
 		// Redis honours per-put TTL (sessionTimeoutMs) as EXPIRE on the key.
@@ -37,14 +39,14 @@ component {
 		this.dataSource = datasourceName;
 		this.sessionStorage = datasourceName;
 	} else {
-		// RAM cache: explicitly set timeToLiveSeconds=4 so the entry's "until"
+		// RAM cache: explicitly set timeToLiveSeconds so the entry's "until"
 		// absolute lifetime is checked independently of read-driven idle resets
 		// — matches Memcached/Redis put-TTL semantics where reads don't refresh.
 		this.cache.connections[ "ldev6331cache" ] = {
 			class: "lucee.runtime.cache.ram.RamCache",
 			storage: true,
 			custom: {
-				timeToLiveSeconds: 4,
+				timeToLiveSeconds: javacast( "int", url.ttlSeconds ),
 				timeToIdleSeconds: 0
 			}
 		};

@@ -97,7 +97,7 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 	protected String strType;
 	protected int type;
 	private long timeSpan = -1;
-	private long keepAlive = -1;
+	private long commitInterval = -1;
 	private String storage;
 	private Struct tokens = new StructImpl(Struct.TYPE_SYNC, 4);
 	private long lastModified;
@@ -271,12 +271,12 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 	void setTimeSpan(PageContext pc) {
 		ApplicationContext ac = pc.getApplicationContext();
 		this.timeSpan = getType() == SCOPE_SESSION ? ac.getSessionTimeout().getMillis() : ac.getClientTimeout().getMillis();
-		TimeSpan ka = null;
+		TimeSpan ci = null;
 		if (ac instanceof ApplicationContextSupport) {
 			ApplicationContextSupport acs = (ApplicationContextSupport) ac;
-			ka = getType() == SCOPE_SESSION ? acs.getSessionKeepAlive() : acs.getClientKeepAlive();
+			ci = getType() == SCOPE_SESSION ? acs.getSessionCommitInterval() : acs.getClientCommitInterval();
 		}
-		this.keepAlive = (ka != null) ? ka.getMillis() : this.timeSpan / 2;
+		this.commitInterval = (ci != null) ? ci.getMillis() : this.timeSpan / 2;
 	}
 
 	@Override
@@ -322,11 +322,13 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 		commit(pc);
 	}
 
+	// bare write — skips the metadata churn (_lastvisit/_timecreated/_hitcount/csrf) in touchAfterRequest
 	public void commit(PageContext pc) {
 		setTimeSpan(pc);
 		store(pc);
 	}
 
+	// sentinel: lastStored=0 forces isStale() true on the next store-path check
 	public void markStale() {
 		lastStored = 0;
 	}
@@ -545,7 +547,9 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 			return true;
 		}
 		// we have set "ignoreSimpleValues" to true, because this is already covered by "hasChanges" above
-		if (ScopeContext.hash(data0, type, true) != hash) {
+		int newHash = ScopeContext.hash(data0, type, true);
+		if (newHash != hash) {
+			hash = newHash;
 			if (LogUtil.doesDebug(log)) {
 				ScopeContext.debug(log, "detected a change in one of the values in the " + (Scope.SCOPE_SESSION == type ? "session" : "client") + " scope for "
 						+ pc.getApplicationContext().getName() + "/" + pc.getCFID() + ".");
@@ -563,20 +567,19 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 			}
 			return true;
 		}
-		if (keepAlive <= 0) return false;
+		if (commitInterval <= 0) return false;
 		long elapsed = System.currentTimeMillis() - lastStored;
-		if (elapsed <= keepAlive) return false;
+		if (elapsed <= commitInterval) return false;
 		if (LogUtil.doesDebug(log)) {
 			ScopeContext.debug(log, "periodic refresh of stored " + (Scope.SCOPE_SESSION == type ? "session" : "client") + " scope expiry for "
-					+ pc.getApplicationContext().getName() + "/" + pc.getCFID() + " — last stored " + elapsed + "ms ago, keepAlive " + keepAlive + "ms.");
+					+ pc.getApplicationContext().getName() + "/" + pc.getCFID() + " — last stored " + elapsed + "ms ago, commitInterval " + commitInterval + "ms.");
 		}
 		return true;
 	}
 
-	public void markStored() {
+	void markStored() {
 		lastStored = System.currentTimeMillis();
 		hasChanges = false;
-		hash = ScopeContext.hash(data0, type, true);
 	}
 
 	@Override

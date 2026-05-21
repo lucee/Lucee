@@ -121,8 +121,8 @@ public final class ModernApplicationContext extends ApplicationContextSupport {
 	private TimeSpan applicationTimeout;
 	private TimeSpan sessionTimeout;
 	private TimeSpan clientTimeout;
-	private TimeSpan sessionKeepAlive;
-	private TimeSpan clientKeepAlive;
+	private TimeSpan sessionCommitInterval;
+	private TimeSpan clientCommitInterval;
 	private TimeSpan requestTimeout;
 	private int loginStorage = Scope.SCOPE_SESSION;
 	private int scriptProtect;
@@ -184,8 +184,8 @@ public final class ModernApplicationContext extends ApplicationContextSupport {
 	private boolean initApplicationTimeout;
 	private boolean initSessionTimeout;
 	private boolean initClientTimeout;
-	private boolean initSessionKeepAlive;
-	private boolean initClientKeepAlive;
+	private boolean initSessionCommitInterval;
+	private boolean initClientCommitInterval;
 	private boolean initRequestTimeout;
 	private boolean initSetClientCookies;
 	private boolean initSetClientManagement;
@@ -443,23 +443,35 @@ public final class ModernApplicationContext extends ApplicationContextSupport {
 	}
 
 	@Override
-	public TimeSpan getSessionKeepAlive() {
-		if (!initSessionKeepAlive) {
-			Object o = get(component, KeyConstants._sessionKeepAlive, null);
-			if (o != null) sessionKeepAlive = Caster.toTimespan(o, null);
-			initSessionKeepAlive = true;
+	public TimeSpan getSessionCommitInterval() {
+		if (!initSessionCommitInterval) {
+			Object o = get(component, KeyConstants._sessionCommitInterval, null);
+			if (o != null) sessionCommitInterval = Caster.toTimespan(o, null);
+			initSessionCommitInterval = true;
 		}
-		return sessionKeepAlive;
+		return sessionCommitInterval;
 	}
 
 	@Override
-	public TimeSpan getClientKeepAlive() {
-		if (!initClientKeepAlive) {
-			Object o = get(component, KeyConstants._clientKeepAlive, null);
-			if (o != null) clientKeepAlive = Caster.toTimespan(o, null);
-			initClientKeepAlive = true;
+	public TimeSpan getClientCommitInterval() {
+		if (!initClientCommitInterval) {
+			Object o = get(component, KeyConstants._clientCommitInterval, null);
+			if (o != null) clientCommitInterval = Caster.toTimespan(o, null);
+			initClientCommitInterval = true;
 		}
-		return clientKeepAlive;
+		return clientCommitInterval;
+	}
+
+	@Override
+	public void setSessionCommitInterval(TimeSpan sessionCommitInterval) {
+		this.sessionCommitInterval = sessionCommitInterval;
+		initSessionCommitInterval = true;
+	}
+
+	@Override
+	public void setClientCommitInterval(TimeSpan clientCommitInterval) {
+		this.clientCommitInterval = clientCommitInterval;
+		initClientCommitInterval = true;
 	}
 
 	@Override

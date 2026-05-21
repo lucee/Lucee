@@ -82,6 +82,8 @@ public final class ClassicApplicationContext extends ApplicationContextSupport {
 	private TimeSpan sessionTimeout;
 	private TimeSpan requestTimeout;
 	private TimeSpan clientTimeout;
+	private TimeSpan sessionCommitInterval;
+	private TimeSpan clientCommitInterval;
 	private TimeSpan applicationTimeout;
 	private int loginStorage = -1;
 	private String clientstorage;
@@ -346,6 +348,24 @@ public final class ClassicApplicationContext extends ApplicationContextSupport {
 	@Override
 	public void setClientTimeout(TimeSpan clientTimeout) {
 		this.clientTimeout = clientTimeout;
+	}
+
+	@Override
+	public TimeSpan getSessionCommitInterval() {
+		return sessionCommitInterval;
+	}
+
+	@Override
+	public TimeSpan getClientCommitInterval() {
+		return clientCommitInterval;
+	}
+
+	public void setSessionCommitInterval(TimeSpan sessionCommitInterval) {
+		this.sessionCommitInterval = sessionCommitInterval;
+	}
+
+	public void setClientCommitInterval(TimeSpan clientCommitInterval) {
+		this.clientCommitInterval = clientCommitInterval;
 	}
 
 	@Override

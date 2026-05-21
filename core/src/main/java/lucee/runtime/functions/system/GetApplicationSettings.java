@@ -107,6 +107,7 @@ public final class GetApplicationSettings extends BIF {
 		sct.setEL("sessionStorage", ac.getSessionstorage());
 		sct.setEL("sessionType", AppListenerUtil.toSessionType(((PageContextImpl) pc).getSessionType(), "application"));
 		sct.setEL("sessionTimeout", ac.getSessionTimeout());
+		if (acs.getSessionCommitInterval() != null) sct.setEL("sessionCommitInterval", acs.getSessionCommitInterval());
 		sct.setEL("setDomainCookies", Caster.toBoolean(ac.isSetDomainCookies()));
 		sct.setEL("loginStorage", AppListenerUtil.translateLoginStorage(ac.getLoginStorage()));
 
@@ -127,6 +128,7 @@ public final class GetApplicationSettings extends BIF {
 		sct.setEL("clientManagement", Caster.toBoolean(ac.isSetClientManagement()));
 		sct.setEL("clientStorage", ac.getClientstorage());
 		sct.setEL("clientTimeout", ac.getClientTimeout());
+		if (acs.getClientCommitInterval() != null) sct.setEL("clientCommitInterval", acs.getClientCommitInterval());
 		sct.setEL("setClientCookies", Caster.toBoolean(ac.isSetClientCookies()));
 		
 		ProxyData ProxyData = acs.getProxyData();
