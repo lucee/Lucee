@@ -329,9 +329,9 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 		store(pc);
 	}
 
-	// sentinel: lastStored=0 forces isStale() true on the next store-path check
+	// sentinel: lastStored=-1 forces isStale() true on the next store-path check (matches timeSpan/commitInterval init convention)
 	public void markStale() {
-		lastStored = 0;
+		lastStored = -1;
 	}
 
 	@Override
@@ -561,7 +561,7 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 	}
 
 	private boolean isStale(PageContext pc, Log log) {
-		if (lastStored == 0) {
+		if (lastStored < 0) {
 			if (LogUtil.doesDebug(log)) {
 				ScopeContext.debug(log, "explicit refresh requested for " + (Scope.SCOPE_SESSION == type ? "session" : "client") + " scope for "
 						+ pc.getApplicationContext().getName() + "/" + pc.getCFID() + " (markStale).");
