@@ -60,6 +60,38 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="session" {
 					& "markStored() must clear the dirty flag and rebaseline the hash."
 				);
 			});
+
+			// Regression: sessionCommit mid-request must NOT trigger touchAfterRequest's metadata churn
+			// (_lastvisit / _timecreated bumps, csrf cleanup). The bare commit path writes data0 as-is.
+			it( title="sessionCommit does not bump _lastvisit mid-request", body=function() {
+				var uri = createURI( "LDEV5941" );
+
+				var first = _InternalRequest( template: "#uri#/testCommitOnly.cfm" );
+				expect( first.fileContent ).toBeJson();
+
+				var cookies = {
+					cfid: first.session.cfid,
+					cftoken: first.session.cftoken
+				};
+
+				// sleep so this request's _lastvisit is distinguishable from the prior request-end's persisted _lastvisit
+				sleep( 100 );
+
+				var second = _InternalRequest( template: "#uri#/testCommitNoMetadataBump.cfm", cookies: cookies );
+				expect( second.fileContent ).toBeJson();
+				var data = deserializeJSON( second.fileContent );
+
+				expect( data.lastvisitAfter ).toBe(
+					data.lastvisitBefore,
+					"BUG LDEV-5941: sessionCommit() mid-request bumped persisted _lastvisit from #data.lastvisitBefore# to #data.lastvisitAfter#. "
+					& "Should match prior request-end's _lastvisit (#data.lastvisitBefore#) — sessionCommit must not call touchAfterRequest mid-request."
+				);
+				// sanity: the cache write actually happened (lastModified bumped) — guards against trivial pass when no write fires
+				expect( data.lastModifiedAfter ).notToBe(
+					data.lastModifiedBefore,
+					"Test fixture issue: sessionCommit did not fire a cache write — before/after _lastvisit comparison is meaningless."
+				);
+			});
 		});
 	}
 

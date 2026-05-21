@@ -1,16 +1,14 @@
 <cfscript>
-	// Store a CFC in session — internal changes to CFC properties are invisible to Lucee's change tracking.
+	// Store a CFC in session, commit, then mutate a nested property.
+	// LDEV-5930 makes ComponentImpl.hashCode content-aware, so the hash check at request end
+	// catches the post-commit mutation even though the CFC reference is unchanged — the redundant
+	// write fires and "changedAfterCommit" IS persisted. The check template asserts that.
 	session.data = new SessionData();
 	session.data.value = "committed";
 
-	// sessionCommit writes to storage and markStored() clears the dirty flag + rebaselines the hash.
 	sessionCommit();
 
-	// Nested mutation AFTER commit — not detected by hasChanges flag, not detected by hash (CFC ref unchanged).
 	session.data.value = "changedAfterCommit";
 
-	echo( serializeJSON( { nestedValue: "committed" } ) );
-
-	// At request end: touchAfterRequest fires, but hasChanges is false (cleared by markStored) and hash matches.
-	// No redundant write. "changedAfterCommit" stays in memory only, never persisted.
+	echo( serializeJSON( { nestedValue: session.data.value } ) );
 </cfscript>

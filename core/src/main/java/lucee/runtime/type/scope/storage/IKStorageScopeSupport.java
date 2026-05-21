@@ -309,6 +309,7 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 
 	@Override
 	public void touchAfterRequest(PageContext pc) {
+		setTimeSpan(pc);
 		data0.put(KeyConstants._lastvisit, new IKStorageScopeItem(_lastvisit, lastModifiedAtInit()));
 		data0.put(KeyConstants._timecreated, new IKStorageScopeItem(timecreated, lastModifiedAtInit()));
 
@@ -319,7 +320,7 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 		if (ac != null && (this.tokens == null || this.tokens.isEmpty()) && ac.getSessionCluster() && isSessionStorage(pc)) {
 			data0.remove(KeyConstants._csrf_token);
 		}
-		commit(pc);
+		store(pc);
 	}
 
 	// bare write — skips the metadata churn (_lastvisit/_timecreated/_hitcount/csrf) in touchAfterRequest
