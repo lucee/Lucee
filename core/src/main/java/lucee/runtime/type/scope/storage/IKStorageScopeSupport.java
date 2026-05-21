@@ -323,15 +323,16 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 		store(pc);
 	}
 
-	// bare write — skips the metadata churn (_lastvisit/_timecreated/_hitcount/csrf) in touchAfterRequest
-	public void commit(PageContext pc) {
-		setTimeSpan(pc);
-		store(pc);
-	}
-
 	// sentinel: lastStored=-1 forces isStale() true on the next store-path check (matches timeSpan/commitInterval init convention)
 	public void markStale() {
 		lastStored = -1;
+	}
+
+	// force an immediate persist mid-request — used by sessionCommit() BIF
+	public void forceStore(PageContext pc) {
+		markStale();
+		setTimeSpan(pc);
+		store(pc);
 	}
 
 	@Override

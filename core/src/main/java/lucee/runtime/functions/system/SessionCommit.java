@@ -10,9 +10,7 @@ public final class SessionCommit implements Function {
 	private static final long serialVersionUID = -2243745577257724777L;
 
 	public static String call(PageContext pc) throws PageException {
-		IKStorageScopeSupport ss = (IKStorageScopeSupport) ((PageContextImpl) pc).sessionScope();
-		ss.markStale();
-		ss.commit(pc);
+		((IKStorageScopeSupport) ((PageContextImpl) pc).sessionScope()).forceStore(pc);
 		return null;
 	}
 }
