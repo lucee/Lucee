@@ -25,7 +25,7 @@
   <property name="extAxis"      value="org.lucee:axis-extension:1.5.0.6"/>
   <property name="extChart"     value="org.lucee:chart-extension:2.0.0.3-SNAPSHOT"/>
   <property name="extRedis"     value="org.lucee:redis-extension:4.1.0.0-SNAPSHOT"/>
-  <property name="extHibernate" value="org.lucee:hibernate-extension:5.6.15.15-SNAPSHOT"/>
+  <property name="extHibernate" value="org.lucee:hibernate-extension:5.6.15.17-SNAPSHOT"/>
   <property name="extEHCache"   value="org.lucee:ehcache-extension:2.10.0.39"/>
 
 
