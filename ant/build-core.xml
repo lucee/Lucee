@@ -23,7 +23,7 @@
   <property name="extAxis"          value="DF28D0A4-6748-44B9-A2FDC12E4E2E4D38;version=1.4.0.38-SNAPSHOT"/>
   <property name="extChart"          value="D46B46A9-A0E3-44E1-D972A04AC3A8DC10;version=2.0.0.3-SNAPSHOT"/>
   <property name="extRedis"          value="60772C12-F179-D555-8E2CD2B4F7428718;version=4.1.0.0-SNAPSHOT"/>
-  <property name="extHibernate"          value="FAD1E8CB-4F45-4184-86359145767C29DE;version=5.6.15.15-SNAPSHOT"/>
+  <property name="extHibernate"          value="FAD1E8CB-4F45-4184-86359145767C29DE;version=5.6.15.17-SNAPSHOT"/>
 
   <property name="stableLoader" value="lucee-5.3.7.48"/>
   <property name="javaVersionCoreDefault" value="11"/>
