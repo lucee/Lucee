@@ -22,11 +22,11 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="session" {
 				test( {sessionCluster: false, sessionStorage: "redis"} );
 			});
 
-			xit( title='thread looses session variables - redis - sessionCluster=true', body=function( currentSpec ) {
+			it( title='thread looses session variables - redis - sessionCluster=true', body=function( currentSpec ) {
 				test( {sessionCluster: true, sessionStorage: "redis"} );
 			});
 
-			xit( title='thread looses session topLevel variables - redis - sessionCluster=true', body=function( currentSpec ) {
+			it( title='thread looses session topLevel variables - redis - sessionCluster=true', body=function( currentSpec ) {
 				test( {sessionCluster: true, sessionStorage: "redis"}, "TopLevel" );
 			});
 		});
