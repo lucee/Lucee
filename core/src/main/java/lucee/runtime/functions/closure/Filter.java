@@ -198,19 +198,24 @@ public final class Filter extends BIF implements ClosureFunc {
 		Query rtn = new QueryImpl(colNames, 0, qry.getName());
 		final int pid = pc.getId();
 		ForEachQueryIterator it = new ForEachQueryIterator(pc, qry, pid);
-		int rowNbr;
-		Object row;
-		boolean async = es != null;
-		Object res;
-		ParentException parentException = new ParentException();
-		while (it.hasNext()) {
-			row = it.next();
-			rowNbr = qry.getCurrentrow(pid);
+		try {
+			int rowNbr;
+			Object row;
+			boolean async = es != null;
+			Object res;
+			ParentException parentException = new ParentException();
+			while (it.hasNext()) {
+				row = it.next();
+				rowNbr = qry.getCurrentrow(pid);
 
-			res = _inv(pc, parentException, udf, new Object[] { row, Caster.toDoubleValue(rowNbr), qry }, rowNbr, qry, es, futures);
-			if (!async && Caster.toBooleanValue(res)) {
-				addRow(qry, rtn, rowNbr);
+				res = _inv(pc, parentException, udf, new Object[] { row, Caster.toDoubleValue(rowNbr), qry }, rowNbr, qry, es, futures);
+				if (!async && Caster.toBooleanValue(res)) {
+					addRow(qry, rtn, rowNbr);
+				}
 			}
+		}
+		finally {
+			it.reset();
 		}
 		return rtn;
 	}

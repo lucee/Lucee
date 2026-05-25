@@ -141,13 +141,17 @@ public final class Reduce extends BIF implements ClosureFunc {
 	private static Object invoke(PageContext pc, Query qry, UDF udf, Object initalValue) throws CasterException, PageException {
 		final int pid = pc.getId();
 		ForEachQueryIterator it = new ForEachQueryIterator(pc, qry, pid);
-		int rowNbr;
-
-		Object row;
-		while (it.hasNext()) {
-			row = it.next();
-			rowNbr = qry.getCurrentrow(pid);
-			initalValue = udf.call(pc, new Object[] { initalValue, row, Caster.toDoubleValue(rowNbr), qry }, true);
+		try {
+			int rowNbr;
+			Object row;
+			while (it.hasNext()) {
+				row = it.next();
+				rowNbr = qry.getCurrentrow(pid);
+				initalValue = udf.call(pc, new Object[] { initalValue, row, Caster.toDoubleValue(rowNbr), qry }, true);
+			}
+		}
+		finally {
+			it.reset();
 		}
 		return initalValue;
 	}

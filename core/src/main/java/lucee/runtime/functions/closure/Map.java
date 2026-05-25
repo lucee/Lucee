@@ -232,19 +232,24 @@ public final class Map extends BIF implements ClosureFunc {
 		}
 		final int pid = pc.getId();
 		ForEachQueryIterator it = new ForEachQueryIterator(pc, qry, pid);
-		int rowNbr;
-		Object row, res;
+		try {
+			int rowNbr;
+			Object row, res;
 
-		ParentException parentException = new ParentException();
-		boolean async = es != null;
-		while (it.hasNext()) {
-			row = it.next();
-			rowNbr = qry.getCurrentrow(pid);
+			ParentException parentException = new ParentException();
+			boolean async = es != null;
+			while (it.hasNext()) {
+				row = it.next();
+				rowNbr = qry.getCurrentrow(pid);
 
-			res = _inv(pc, parentException, udf, new Object[] { row, rowNbr, qry }, rowNbr, es, futures);
-			if (!async) {
-				addRow(Caster.toStruct(res), rtn);
+				res = _inv(pc, parentException, udf, new Object[] { row, rowNbr, qry }, rowNbr, es, futures);
+				if (!async) {
+					addRow(Caster.toStruct(res), rtn);
+				}
 			}
+		}
+		finally {
+			it.reset();
 		}
 		return rtn;
 	}
