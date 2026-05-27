@@ -12,7 +12,9 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.security.CodeSource;
 import java.security.GeneralSecurityException;
 import java.util.ArrayList;
@@ -452,16 +454,22 @@ public final class BundleProvider extends DefaultHandler {
 	// 1146:size:305198;bundle:name:xmlgraphics.batik.awt.util;version:version EQ 1.8.0;;last-mod:{ts
 	// '2024-01-14 22:32:05'};
 
+	private URL markerURL(String key) throws MalformedURLException {
+		// S3 object keys can contain characters (e.g. spaces) that are illegal in a URI
+		// query and would otherwise abort the entire paginated listing walk.
+		return new URL(this.url.toExternalForm() + "?marker=" + URLEncoder.encode(key, StandardCharsets.UTF_8));
+	}
+
 	public List<Element> read(boolean flush) throws IOException, GeneralSecurityException, SAXException {
 		if (elementsSorted == null) {
 			synchronized (elements) {
 				if (elementsSorted == null) {
 					int count = 100;
 					URL url = null;
-					if (lastKey != null) url = new URL(this.url.toExternalForm() + "?marker=" + lastKey);
+					if (lastKey != null) url = markerURL(lastKey);
 
 					do {
-						if (url == null) url = isTruncated ? new URL(this.url.toExternalForm() + "?marker=" + this.lastKey) : this.url;
+						if (url == null) url = isTruncated ? markerURL(this.lastKey) : this.url;
 						HTTPResponse rsp = HTTPEngine4Impl.get(url, null, null, BundleProvider.CONNECTION_TIMEOUT, true, null, null, null, null);
 						if (rsp != null) {
 							int sc = rsp.getStatusCode();
