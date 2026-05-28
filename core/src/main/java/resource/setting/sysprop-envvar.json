@@ -424,6 +424,14 @@
 		"default": null
 	},
 	{
+		"sysprop": "lucee.jfr.events.enabled",
+		"envvar": "LUCEE_JFR_EVENTS_ENABLED",
+		"desc": "Master kill switch for Lucee's custom JDK Flight Recorder events (classloader/pagesource diagnostics). When false, all Lucee JFR event emission is short-circuited before per-event isEnabled() checks. Has no effect on JDK built-in events. Use the lucee-classloader.jfc profile under lucee/runtime/jfr/ to enable individual event categories",
+		"category": "performance",
+		"type": "boolean",
+		"default": true
+	},
+	{
 		"sysprop": "lucee.library.additional.function",
 		"envvar": "LUCEE_LIBRARY_ADDITIONAL_FUNCTION",
 		"desc": "Path to a directory for additional CFML-based functions Lucee should load to make these functions available in the application",
