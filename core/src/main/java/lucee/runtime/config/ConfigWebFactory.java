@@ -4353,7 +4353,8 @@ public final class ConfigWebFactory extends ConfigFactory {
 	private static void _loadJava(ConfigServerImpl configServer, ConfigImpl config, Struct root, Log log) {
 		try {
 			boolean hasCS = configServer != null;
-			String strInspectTemplate = getAttr(root, "inspectTemplate");
+			String strInspectTemplate = SystemUtil.getSystemPropOrEnvVar("lucee.inspect.template", null);
+			if (StringUtil.isEmpty(strInspectTemplate, true)) strInspectTemplate = getAttr(root, "inspectTemplate");
 			int inspectTemplateAutoIntervalSlow = Caster.toIntValue(getAttr(root, "inspectTemplateIntervalSlow"), ConfigPro.INSPECT_INTERVAL_SLOW);
 			int inspectTemplateAutoIntervalFast = Caster.toIntValue(getAttr(root, "inspectTemplateIntervalFast"), ConfigPro.INSPECT_INTERVAL_FAST);
 
