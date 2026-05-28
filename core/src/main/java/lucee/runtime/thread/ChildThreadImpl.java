@@ -124,7 +124,7 @@ public final class ChildThreadImpl extends ChildThread implements Serializable {
 		this.serializable = serializable;
 		this.tagName = tagName;
 		this.threadIndex = threadIndex;
-		this.parentException = new ParentException();
+		this.parentException = new ParentException(parent != null ? parent.getCurrentPageSource() : null, tagName);
 		this.separateScopes = separateScopes;
 		start = System.currentTimeMillis();
 		if (attrs == null) this.attrs = new StructImpl();
