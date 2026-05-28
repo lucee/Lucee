@@ -41,6 +41,8 @@ import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.compiler.CFMLCompilerImpl.Result;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigPro;
+import lucee.runtime.config.ConfigServerImpl;
+import lucee.runtime.config.ConfigWebImpl;
 import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.config.ConfigWebUtil;
 import lucee.runtime.config.Constants;
@@ -334,6 +336,7 @@ public final class PageSourceImpl implements PageSource {
 							LogUtil.log(config, Log.LEVEL_DEBUG, "compile", "recompile [" + getDisplayPath() + "] because loaded page has changed");
 							pcn.set(page = compile(config, mapping.getClassRootDirectory(), page, false, pci != null && pci.ignoreScopes()));
 							page.setPageSource(this);
+							signalRecompileToInspectTicker();
 						}
 					}
 				}
@@ -1185,6 +1188,16 @@ public final class PageSourceImpl implements PageSource {
 	public int getSourceOffset() {
 		// lucee.aprint.o("sourceOffset:"+ sourceOffset);
 		return sourceOffset;
+	}
+
+	private void signalRecompileToInspectTicker() {
+		if (mapping.getInspectTemplate() != ConfigPro.INSPECT_AUTO) return;
+		Config cfg = mapping.getConfig();
+		ConfigServerImpl cs;
+		if (cfg instanceof ConfigServerImpl) cs = (ConfigServerImpl) cfg;
+		else if (cfg instanceof ConfigWebImpl) cs = ((ConfigWebImpl) cfg).getConfigServerImpl();
+		else return;
+		cs.requestFastTick();
 	}
 
 }
