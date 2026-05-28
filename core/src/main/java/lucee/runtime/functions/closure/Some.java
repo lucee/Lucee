@@ -149,7 +149,7 @@ public final class Some extends BIF implements ClosureFunc {
 		boolean async = es != null;
 		double r;
 		Object res, row;
-		ParentException parentException = new ParentException();
+		ParentException parentException = es != null ? new ParentException() : null;
 		try {
 			while (it.hasNext()) {
 				row = it.next();
@@ -171,7 +171,7 @@ public final class Some extends BIF implements ClosureFunc {
 		Entry e;
 		boolean async = es != null;
 		Object res;
-		ParentException parentException = new ParentException();
+		ParentException parentException = es != null ? new ParentException() : null;
 		while (it.hasNext()) {
 			e = (Entry) it.next();
 			res = _inv(pc, parentException, udf, new Object[] { e.getValue(), Caster.toDoubleValue(e.getKey()), arr }, e.getKey(), e.getValue(), es, futures);
@@ -188,7 +188,7 @@ public final class Some extends BIF implements ClosureFunc {
 		Entry e;
 		boolean async = es != null;
 		Object res;
-		ParentException parentException = new ParentException();
+		ParentException parentException = es != null ? new ParentException() : null;
 		while (it.hasNext()) {
 			e = (Entry) it.next();
 			res = _inv(pc, parentException, udf, new Object[] { e.getValue(), Caster.toDoubleValue(e.getKey()), sld.list, sld.delimiter }, e.getKey(), e.getValue(), es, futures);
@@ -205,7 +205,7 @@ public final class Some extends BIF implements ClosureFunc {
 		Object res, v;
 		int index;
 		ArgumentIntKey k;
-		ParentException parentException = new ParentException();
+		ParentException parentException = es != null ? new ParentException() : null;
 		while (it.hasNext()) {
 			index = it.nextIndex();
 			k = ArgumentIntKey.init(index);
@@ -221,7 +221,7 @@ public final class Some extends BIF implements ClosureFunc {
 		Entry<Key, Object> e;
 		boolean async = es != null;
 		Object res;
-		ParentException parentException = new ParentException();
+		ParentException parentException = es != null ? new ParentException() : null;
 		while (it.hasNext()) {
 			e = it.next();
 			res = _inv(pc, parentException, udf, new Object[] { e.getKey().getString(), e.getValue(), sct }, e.getKey(), e.getValue(), es, futures);
@@ -235,7 +235,7 @@ public final class Some extends BIF implements ClosureFunc {
 		Entry e;
 		boolean async = es != null;
 		Object res;
-		ParentException parentException = new ParentException();
+		ParentException parentException = es != null ? new ParentException() : null;
 		while (it.hasNext()) {
 			e = it.next();
 			res = _inv(pc, parentException, udf, new Object[] { e.getKey(), e.getValue(), map }, e.getKey(), e.getValue(), es, futures);
@@ -250,7 +250,7 @@ public final class Some extends BIF implements ClosureFunc {
 		Entry<Key, Object> e;
 		boolean async = es != null;
 		Object res;
-		ParentException parentException = new ParentException();
+		ParentException parentException = es != null ? new ParentException() : null;
 		while (it.hasNext()) {
 			e = it.next();
 			res = _inv(pc, parentException, udf, new Object[] { e.getKey().getString(), e.getValue() }, e.getKey(), e.getValue(), es, futures);
@@ -266,7 +266,7 @@ public final class Some extends BIF implements ClosureFunc {
 		Object res;
 		int count = 0;
 		ArgumentIntKey k;
-		ParentException parentException = new ParentException();
+		ParentException parentException = es != null ? new ParentException() : null;
 		while (it.hasNext()) {
 			v = it.next();
 			k = ArgumentIntKey.init(++count);
@@ -283,7 +283,7 @@ public final class Some extends BIF implements ClosureFunc {
 		Object res;
 		int count = 0;
 		ArgumentIntKey k;
-		ParentException parentException = new ParentException();
+		ParentException parentException = es != null ? new ParentException() : null;
 		while (e.hasMoreElements()) {
 			v = e.nextElement();
 			k = ArgumentIntKey.init(++count);
