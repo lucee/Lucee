@@ -4,18 +4,5 @@
         "loader/**",
         "temp/**"
     ],
-    "cfml.engine.name": "lucee",
-    "workbench.colorCustomizations": {
-        "activityBar.background": "#9B4207",
-        "titleBar.activeBackground": "#D95D0A",
-        "titleBar.activeForeground": "#FFF8F4",
-        "titleBar.inactiveBackground": "#9B4207",
-        "titleBar.inactiveForeground": "#FFF8F4",
-        "statusBar.background": "#9B4207",
-        "statusBar.foreground": "#FFF8F4",
-        "statusBar.debuggingBackground": "#9B4207",
-        "statusBar.debuggingForeground": "#FFF8F4",
-        "statusBar.noFolderBackground": "#9B4207",
-        "statusBar.noFolderForeground": "#FFF8F4"
-    }
+    "cfml.engine.name": "lucee"
 }

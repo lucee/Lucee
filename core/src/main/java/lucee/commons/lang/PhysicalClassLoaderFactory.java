@@ -12,8 +12,6 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.felix.framework.BundleWiringImpl.BundleClassLoader;
 
-import jdk.jfr.FlightRecorder;
-
 import lucee.commons.digest.HashUtil;
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.IOUtil;
@@ -29,7 +27,6 @@ import lucee.runtime.converter.ConverterException;
 import lucee.runtime.converter.JSONConverter;
 import lucee.runtime.converter.JSONDateFormat;
 import lucee.runtime.exp.ApplicationException;
-import lucee.runtime.jfr.classloader.PCLPoolSnapshotEvent;
 import lucee.runtime.listener.JavaSettings;
 import lucee.runtime.listener.JavaSettingsImpl;
 import lucee.runtime.listener.SerializationSettings;
@@ -52,20 +49,6 @@ public class PhysicalClassLoaderFactory {
 	private static RC rc = new RC();
 
 	private static Map<String, CachedLoader> classLoaders = new ConcurrentHashMap<>();
-
-	// Register PCLPoolSnapshot as a JFR @Period event. JFR's own recorder thread
-	// fires the hook on the cadence declared on the event class (5 s) — independent
-	// of the Lucee Controller thread, which gets starved under heavy request load.
-	static {
-		if (PhysicalClassLoader.JFR_ENABLED) {
-			try {
-				FlightRecorder.addPeriodicEvent(PCLPoolSnapshotEvent.class, () -> emitPoolSnapshot(0));
-			}
-			catch (Throwable t) {
-				LogUtil.log(Log.LEVEL_WARN, "physical-classloader", "could not register PCLPoolSnapshot periodic hook: " + t.getMessage());
-			}
-		}
-	}
 
 	static String uid() {
 		long currentCounter = counter.incrementAndGet(); // Increment and get atomically
@@ -110,7 +93,7 @@ public class PhysicalClassLoaderFactory {
 					// if we have a reload, clear the existing before set a new one
 					if (reload) {
 						CachedLoader existing = classLoaders.get(key);
-						if (existing != null) PhysicalClassLoader.flush(existing.get(), c, false, "reinit");
+						if (existing != null) PhysicalClassLoader.flush(existing.get(), c, false);
 					}
 					PhysicalClassLoader pcl = new PhysicalClassLoader(key, c, new ArrayList<Resource>(), directory, SystemUtil.getCoreClassLoader(), null, false);
 					classLoaders.put(key, cached = new CachedLoader(pcl));
@@ -177,7 +160,7 @@ public class PhysicalClassLoaderFactory {
 					// if we have a reload, clear the existing before set a new one
 					if (reload) {
 						CachedLoader existing = classLoaders.get(key);
-						if (existing != null) PhysicalClassLoader.flush(existing.get(), c, false, "reinit");
+						if (existing != null) PhysicalClassLoader.flush(existing.get(), c, false);
 					}
 					List<Resource> resources;
 					if (js == null) {
@@ -218,7 +201,6 @@ public class PhysicalClassLoaderFactory {
 
 		if (sizeBefore <= IDLE_MINSIZE) {
 			if (doesTrace) LogUtil.log(Log.LEVEL_TRACE, "physical-classloader", "clean skipped, size " + sizeBefore + " is within min size threshold " + IDLE_MINSIZE);
-			emitPoolSnapshot(0);
 			return;
 		}
 
@@ -228,7 +210,7 @@ public class PhysicalClassLoaderFactory {
 			if (cached.isIdle() && !cached.loader.isRPC()) {
 				// atomic remove guards against a race where the entry was just refreshed
 				if (classLoaders.remove(entry.getKey(), cached)) {
-					PhysicalClassLoader.flush(cached.loader, config, false, "idle");
+					PhysicalClassLoader.flush(cached.loader, config, false);
 					evicted++;
 				}
 			}
@@ -236,40 +218,6 @@ public class PhysicalClassLoaderFactory {
 
 		if (doesTrace) LogUtil.log(Log.LEVEL_TRACE, "physical-classloader",
 				"clean finished, evicted " + evicted + " of " + sizeBefore + " PhysicalClassLoaders, remaining: " + classLoaders.size());
-
-		emitPoolSnapshot(evicted);
-	}
-
-	// Sweep the live pool and emit a periodic JFR snapshot. Called at the tail of clean(), which
-	// already runs every 5s on the Lucee Controller thread.
-	private static void emitPoolSnapshot(int evictedThisTick) {
-		if (!PhysicalClassLoader.JFR_ENABLED) return;
-		PCLPoolSnapshotEvent e = new PCLPoolSnapshotEvent();
-		if (!e.isEnabled()) return;
-
-		int rpcCount = 0;
-		int pageCount = 0;
-		long totalAll = 0;
-		long totalUnique = 0;
-		long totalBytes = 0;
-		int liveCount = 0;
-		for (CachedLoader cached: classLoaders.values()) {
-			PhysicalClassLoader pcl = cached.loader;
-			liveCount++;
-			if (pcl.isRPC()) rpcCount++;
-			else pageCount++;
-			totalAll += pcl.getAllLoadedSize();
-			totalUnique += pcl.getUniqueLoadedSize();
-			totalBytes += pcl.getAllLoadedBytes();
-		}
-		e.liveCount = liveCount;
-		e.rpcCount = rpcCount;
-		e.pageCount = pageCount;
-		e.totalAllClasses = totalAll;
-		e.totalUniqueClasses = totalUnique;
-		e.totalBytecodeBytes = totalBytes;
-		e.evictedThisTick = evictedThisTick;
-		e.commit();
 	}
 
 	static Resource storeResourceMeta(Config config, String key, JavaSettings js, Collection<Resource> _resources) throws IOException {
