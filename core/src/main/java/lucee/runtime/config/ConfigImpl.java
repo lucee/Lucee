@@ -4408,7 +4408,8 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 		if (inspectTemplate == -1) {
 			synchronized (SystemUtil.createToken("ConfigImpl", "getInspectTemplate")) {
 				if (inspectTemplate == -1) {
-					String strInspectTemplate = ConfigFactoryImpl.getAttr(this, root, "inspectTemplate");
+					String strInspectTemplate = SystemUtil.getSystemPropOrEnvVar("lucee.inspect.template", null);
+					if (StringUtil.isEmpty(strInspectTemplate, true)) strInspectTemplate = ConfigFactoryImpl.getAttr(this, root, "inspectTemplate");
 					if (!StringUtil.isEmpty(strInspectTemplate, true)) {
 						inspectTemplate = ConfigUtil.inspectTemplate(strInspectTemplate, ConfigPro.INSPECT_AUTO);
 					}
