@@ -126,6 +126,9 @@ public final class POM {
 		if (groupId == null) throw new IllegalArgumentException("groupId cannot be null");
 		if (artifactId == null) throw new IllegalArgumentException("artifactId cannot be null");
 
+		// treat a blank version the same as null, so the latest release is resolved below
+		if (version != null && version.trim().isEmpty()) version = null;
+
 		if (repositories == null) {
 			// only include snapshot repos when we actually need a snapshot
 			boolean needsSnapshots = version != null && version.toUpperCase().contains("SNAPSHOT");

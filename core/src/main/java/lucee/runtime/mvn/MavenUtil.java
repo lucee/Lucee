@@ -894,7 +894,8 @@ public final class MavenUtil {
 
 			if (!StringUtil.isEmpty(g) && !StringUtil.isEmpty(a)) {
 				String v = Caster.toString(el.get(KeyConstants._version, null), null);
-				if (StringUtil.isEmpty(v)) v = Caster.toString(el.get(KeyConstants._v, null), null);
+				if (StringUtil.isEmpty(v, true)) v = Caster.toString(el.get(KeyConstants._v, null), null);
+				if (StringUtil.isEmpty(v, true)) v = null;
 
 				return new GAVSO(g, a,
 
@@ -952,8 +953,8 @@ public final class MavenUtil {
 			if (StringUtil.isEmpty(a)) throw new ApplicationException("Missing required field: artifactId. Ensure that the 'artifactId' key is present and not empty.");
 
 			String v = Caster.toString(el.get(KeyConstants._version, null), null);
-			if (StringUtil.isEmpty(v)) v = Caster.toString(el.get(KeyConstants._v, null), null);
-			if (StringUtil.isEmpty(v)) throw new ApplicationException("Missing required field: version. Ensure that the 'version' key is present and not empty.");
+			if (StringUtil.isEmpty(v, true)) v = Caster.toString(el.get(KeyConstants._v, null), null);
+			if (StringUtil.isEmpty(v, true)) v = null;
 
 			return new GAVSO(g, a, v,
 
