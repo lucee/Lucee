@@ -30,8 +30,8 @@ import org.objectweb.asm.commons.Method;
 import lucee.commons.lang.ClassException;
 import lucee.commons.lang.types.RefInteger;
 import lucee.commons.lang.types.RefIntegerImpl;
+import lucee.runtime.config.ConfigUtil;
 import lucee.runtime.db.ClassDefinition;
-import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.TemplateException;
 import lucee.runtime.tag.TagUtil;
 import lucee.runtime.type.Array;
@@ -291,7 +291,7 @@ public final class VariableImpl extends ExpressionBase implements Variable {
 	private Type _writeOutListener(BytecodeContext bc, int mode, Boolean asCollection) throws TransformerException {
 		GeneratorAdapter ga = bc.getAdapter();
 		TagThread tt = new TagThread(bc.getFactory(), getStart(), listener.getEnd());
-		TagLibTag tlt = TagUtil.getTagLibTag(ThreadLocalPageContext.getConfigServer(), "cf", "thread");
+		TagLibTag tlt = TagUtil.getTagLibTag(ConfigUtil.getConfigServerImpl(bc.getConfig()), "cf", "thread");
 		tt.outputName();
 		tt.setTagLibTag(tlt);
 		tt.addAttribute(new Attribute(false, "action", bc.getFactory().createLitString("run"), "string"));

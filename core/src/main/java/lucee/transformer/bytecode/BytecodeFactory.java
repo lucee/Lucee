@@ -27,7 +27,6 @@ import org.objectweb.asm.Type;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigServerPro;
 import lucee.runtime.config.ConfigUtil;
-import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.CasterException;
 import lucee.runtime.type.util.KeyConstants;
 import lucee.transformer.Body;
@@ -88,7 +87,7 @@ public final class BytecodeFactory extends FactoryBase {
 	private static Map<String, BytecodeFactory> instances = new ConcurrentHashMap<>();
 
 	public static BytecodeFactory getInstance(Config config) {
-		if (config == null) config = ThreadLocalPageContext.getConfig();
+		if (config == null) throw new NullPointerException("config must not be null");
 
 		String key = config.hashCode() + ":" + config.getIdentification().getId();
 		BytecodeFactory instance = instances.get(key);
@@ -399,7 +398,7 @@ public final class BytecodeFactory extends FactoryBase {
 
 	@Override
 	public Page createPage(SourceCode sc, long sourceLastModified, boolean returnValue, boolean ignoreScopes) {
-		ConfigServerPro cs = ThreadLocalPageContext.getConfigServer(config);
+		ConfigServerPro cs = ConfigUtil.getConfigServerImpl(config);
 
 		return new PageImpl(this, config, sc, null, ConfigUtil.getCFMLEngine(config).getInfo().getFullVersionInfo(), sourceLastModified, sc.getWriteLog(),
 				cs.getSuppressWSBeforeArg(), cs.getDefaultFunctionOutput(), returnValue, ignoreScopes);
