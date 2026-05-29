@@ -25,7 +25,6 @@ import java.io.InputStream;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 
-import lucee.print;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
@@ -96,7 +95,6 @@ public final class PageSourceImpl implements PageSource {
 		private String _className;
 
 		public void reset() {
-			if (this._page != null) print.ds("clear : " + ((this._page != null) ? this._page.getPageSource().getDisplayPath() : ""));
 			this._page = null;
 			this._className = null;
 		}
