@@ -54,7 +54,7 @@
 			break;
 		}
 	}
-	has.one=has.env or has.prop or not attributes.access?:true;
+	has.one=has.env or has.prop or not (attributes.access?:true);
 	content=thisTag.generatedContent;
 	thisTag.generatedContent ="";
 
