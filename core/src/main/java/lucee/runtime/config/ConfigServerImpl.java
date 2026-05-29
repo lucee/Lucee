@@ -336,7 +336,7 @@ public final class ConfigServerImpl implements ConfigServerPro {
 	//////////////////////////
 
 	private static Prop<Boolean> metaOnlyFirstMatch = Prop.bool().keys("onlyFirstMatch").systemPropEnvVar("lucee.mapping.first").defaultValue(true).hidden();
-	private static Boolean onlyFirstMatch;
+	private final ConfigValue<Boolean> onlyFirstMatch = new ConfigValue<>(metaOnlyFirstMatch);
 
 	private static Prop<CacheConnection> metaCacheConnection = Prop.custom(CacheConnectionFactory.getInstance(), Prop.TYPE_MAP).keys("caches").lowerCaseKeys().lowerCaseKeys()
 			.access(SecurityManager.TYPE_DATASOURCE).description("Defines cache connections for data storage, sessions, and distributed locks."
@@ -345,48 +345,39 @@ public final class ConfigServerImpl implements ConfigServerPro {
 
 	public final static Prop<String> metaCacheDefaultConnectionNamesResource = Prop.str().keys("defaultResource", "cacheDefaultResource", "resource").parent("cache").deprecated()
 			.description("default resource cache used");
-	private boolean initCacheDefaultResource;
-	private String cacheDefaultResource;
+	private final ConfigValue<String> cacheDefaultResource = new ConfigValue<>(metaCacheDefaultConnectionNamesResource);
 
 	public final static Prop<String> metaCacheDefaultConnectionNamesFunction = Prop.str().keys("defaultFunction", "cacheDefaultFunction", "function").parent("cache").deprecated()
 			.description("default function cache used");
-	private boolean initCacheDefaultFunction;
-	private String cacheDefaultFunction;
+	private final ConfigValue<String> cacheDefaultFunction = new ConfigValue<>(metaCacheDefaultConnectionNamesFunction);
 
 	public final static Prop<String> metaCacheDefaultConnectionNamesInclude = Prop.str().keys("defaultInclude", "cacheDefaultInclude", "include").parent("cache").deprecated()
 			.description("default include cache used");
-	private boolean initCacheDefaultInclude;
-	private String cacheDefaultInclude;
+	private final ConfigValue<String> cacheDefaultInclude = new ConfigValue<>(metaCacheDefaultConnectionNamesInclude);
 
 	public final static Prop<String> metaCacheDefaultConnectionNamesQuery = Prop.str().keys("defaultQuery", "cacheDefaultQuery", "query").parent("cache").deprecated()
 			.description("default query cache used");
-	private boolean initCacheDefaultQuery;
-	private String cacheDefaultQuery;
+	private final ConfigValue<String> cacheDefaultQuery = new ConfigValue<>(metaCacheDefaultConnectionNamesQuery);
 
 	public final static Prop<String> metaCacheDefaultConnectionNamesTemplate = Prop.str().keys("defaultTemplate", "cacheDefaultTemplate", "template").parent("cache").deprecated()
 			.description("default template cache used");
-	private boolean initCacheDefaultTemplate;
-	private String cacheDefaultTemplate;
+	private final ConfigValue<String> cacheDefaultTemplate = new ConfigValue<>(metaCacheDefaultConnectionNamesTemplate);
 
 	public final static Prop<String> metaCacheDefaultConnectionNamesObject = Prop.str().keys("defaultObject", "cacheDefaultObject", "object").parent("cache").deprecated()
 			.description("default object cache used");
-	private boolean initCacheDefaultObject;
-	private String cacheDefaultObject;
+	private final ConfigValue<String> cacheDefaultObject = new ConfigValue<>(metaCacheDefaultConnectionNamesObject);
 
 	public final static Prop<String> metaCacheDefaultConnectionNamesFile = Prop.str().keys("defaultFile", "cacheDefaultFile", "file").parent("cache").deprecated()
 			.description("default file cache used");
-	private boolean initCacheDefaultFile;
-	private String cacheDefaultFile;
+	private final ConfigValue<String> cacheDefaultFile = new ConfigValue<>(metaCacheDefaultConnectionNamesFile);
 
 	public final static Prop<String> metaCacheDefaultConnectionNamesHTTP = Prop.str().keys("defaultHTTP", "cacheDefaultHTTP", "http").parent("cache").deprecated()
 			.description("default http cache used");
-	private boolean initCacheDefaultHTTP;
-	private String cacheDefaultHTTP;
+	private final ConfigValue<String> cacheDefaultHTTP = new ConfigValue<>(metaCacheDefaultConnectionNamesHTTP);
 
 	public final static Prop<String> metaCacheDefaultConnectionNamesWebservice = Prop.str().keys("defaultWebservice", "cacheDefaultWebservice", "webservice").parent("cache").deprecated()
 			.description("default webservice cache used");
-	private boolean initCacheDefaultWebservice;
-	private String cacheDefaultWebservice;
+	private final ConfigValue<String> cacheDefaultWebservice = new ConfigValue<>(metaCacheDefaultConnectionNamesWebservice);
 
 	private Map<Integer, String> cacheDefaultConnectionNames = null;
 
@@ -554,19 +545,19 @@ public final class ConfigServerImpl implements ConfigServerPro {
 
 	private static Prop<Integer> metaSpoolInterval = Prop.integer().keys("mailSpoolInterval").defaultValue(30).access(SecurityManager.TYPE_MAIL)
 			.description("interval in seconds Lucee checks for new mails to send");
-	private int mailSpoolInterval = -1;
+	private final ConfigValue<Integer> mailSpoolInterval = new ConfigValue<>(metaSpoolInterval);
 
 	private static Prop<Boolean> metaSpoolEnable = Prop.bool().keys("mailSpoolEnable").defaultValue(true).access(SecurityManager.TYPE_MAIL)
 			.description("if true, the mails are sent in a background thread and the main request does not have to wait until the mails are sent.");
-	private Boolean mailSpoolEnable;
+	private final ConfigValue<Boolean> mailSpoolEnable = new ConfigValue<>(metaSpoolEnable);
 
 	private static Prop<Boolean> metaSendPartial = Prop.bool().keys("mailSendPartial").defaultValue(false).access(SecurityManager.TYPE_MAIL).description(
 			"This setting determines whether the SMTP protocol should deliver a message to all valid recipients when some addresses are invalid, rather than failing the entire delivery attempt if a single recipient is rejected.");
-	private Boolean mailSendPartial;//
+	private final ConfigValue<Boolean> mailSendPartial = new ConfigValue<>(metaSendPartial);//
 
 	private static Prop<Boolean> metaUserSet = Prop.bool().keys("mailUserSet").defaultValue(true).access(SecurityManager.TYPE_MAIL).description(
 			"This setting determines whether the SMTP protocol should explicitly use the sender's identity for the \"From\" address during the mail handshake, rather than relying on the default server identity or an automatically generated system address.");
-	private Boolean mailUserSet;//
+	private final ConfigValue<Boolean> mailUserSet = new ConfigValue<>(metaUserSet);//
 
 	private static Prop<CharsetX> metaMailDefaultCharset = Prop.charSet().keys("mailDefaultEncoding", "mailDefaultCharset").access(SecurityManager.TYPE_MAIL)
 			.defaultValue(CharsetX.UTF8).description("default charset used for sending mails");
@@ -574,7 +565,7 @@ public final class ConfigServerImpl implements ConfigServerPro {
 
 	private static Prop<Integer> metaMailTimeout = Prop.integer().keys("mailConnectionTimeout", "mailTimeout").access(SecurityManager.TYPE_MAIL).defaultValue(30)
 			.description("default mail connection timeout in seconds");
-	private int mailConnectionTimeout = -1;
+	private final ConfigValue<Integer> mailConnectionTimeout = new ConfigValue<>(metaMailTimeout);
 
 	private static Prop<Server> metaMailServers = Prop.custom(ServerFactory.getInstance(), Prop.TYPE_LIST).keys("mailServers").access(SecurityManager.TYPE_MAIL)
 			.description("mailserver to use for sending mails.");
@@ -609,7 +600,7 @@ public final class ConfigServerImpl implements ConfigServerPro {
 
 	public static final Prop<Locale> metaLocale = Prop.locale().keys("locale", "thisLocale").defaultValue(Locale.US).access(SecurityManager.TYPE_SETTING)
 			.description("Define the desired time locale for Lucee, this will change the default locale for the context of the web.");
-	private Locale locale;
+	private final ConfigValue<Locale> locale = new ConfigValue<>(metaLocale);
 
 	public static final Prop<Boolean> metaPsq = Prop.bool().keys("preserveSingleQuote", "datasourcePreserveSingleQuotes", "psq").defaultValue(false)
 			.description("Preserve single quotes (') in SQL defined with the cfquery tag.");
@@ -618,12 +609,12 @@ public final class ConfigServerImpl implements ConfigServerPro {
 	public final static Prop<String> metaErrorTemplate500 = Prop.str().keys("errorGeneralTemplate", "generalErrorTemplate", "template500").access(SecurityManager.TYPE_DEBUGGING)
 			.defaultValue("/lucee/templates/error/error." + (Constants.getCFMLTemplateExtensions()[0])).description(
 					"This setting specifies the custom file path for the template rendered during all uncaught internal server exceptions, providing a tailored response for unexpected application failures.");
-	private String errorGeneralTemplate;
+	private final ConfigValue<String> errorGeneralTemplate = new ConfigValue<>(metaErrorTemplate500);
 
 	public final static Prop<String> metaErrorTemplate404 = Prop.str().keys("errorMissingTemplate", "missingErrorTemplate", "template404").access(SecurityManager.TYPE_DEBUGGING)
 			.defaultValue("/lucee/templates/error/error." + (Constants.getCFMLTemplateExtensions()[0])).description(
 					"This setting specifies the custom file path for the template rendered whenever a requested resource is not found on the server, ensuring a controlled and helpful response for status 404 missing page exceptions.");
-	private String errorMissingTemplate;
+	private final ConfigValue<String> errorMissingTemplate = new ConfigValue<>(metaErrorTemplate404);
 
 	private static Prop<Password> metaPassword = Prop.custom(PasswordFactory.getInstance()).keys("hspw", "adminhspw", "adminpw", "pw", "adminpassword", "password")
 			.systemPropEnvVar("lucee.admin.password").description("password used by Lucee to access the configuration, can be clear text or encrypted");
@@ -841,14 +832,14 @@ public final class ConfigServerImpl implements ConfigServerPro {
 
 	public final static Prop<Boolean> metaDoCustomTagDeepSearch = Prop.bool().keys("customTagDeepSearch", "customTagSearchSubdirectories").access(SecurityManager.TYPE_CUSTOM_TAG)
 			.defaultValue(false).description("Search for custom tags in subdirectories.");
-	private Boolean customTagDeepSearch = null;
+	private final ConfigValue<Boolean> customTagDeepSearch = new ConfigValue<>(metaDoCustomTagDeepSearch);
 
 	public final static Prop<Boolean> metaDoComponentTagDeepSearch = Prop.bool().keys("componentDeepSearch", "componentSearchSubdirectories").defaultValue(false)
 			.description("Search for CFCs in the subdirectories.");
 	private final ConfigValue<Boolean> componentDeepSearch = new ConfigValue<>(metaDoComponentTagDeepSearch);
 
 	private static Prop<Double> metaVersion = Prop.dbl().keys("version").defaultValue(DEFAULT_VERSION).hidden();
-	private Double version = null;
+	private final ConfigValue<Double> version = new ConfigValue<>(metaVersion);
 
 	private static Prop<Boolean> metaCloseConnection = Prop.bool().keys("closeConnection").defaultValue(false).description(
 			"This setting specifies whether every HTTP response should instruct the client and any intermediate proxies to terminate the network connection immediately after the request is fulfilled, preventing the connection from being reused for additional traffic.");
@@ -890,7 +881,7 @@ public final class ConfigServerImpl implements ConfigServerPro {
 
 	private static Prop<Boolean> metaAllowRealPath = Prop.bool().keys("allowRealpath").parent("fileSystem").defaultValue(true)
 			.description("If true, Lucee resolves file paths used in code against the current context.");
-	private Boolean fileSystemAllowRealpath;
+	private final ConfigValue<Boolean> fileSystemAllowRealpath = new ConfigValue<>(metaAllowRealPath);
 
 	public final static Prop<String> metaCustomTagExtensions = Prop.str().keys("customTagExtensions").defaultValue(ListUtil.arrayToList(Constants.getExtensions(), ","))
 			.access(SecurityManager.TYPE_CUSTOM_TAG).description("this are the file extensions Lucee allows for custom tags.");
@@ -903,8 +894,7 @@ public final class ConfigServerImpl implements ConfigServerPro {
 	private static Prop<String> metaDapSecret = Prop.str().keys("secret").parent("dap")
 			.description("Security token used to authenticate the connection between the IDE and Lucee's Debug Adapter Protocol (DAP) server. "
 					+ "This ensures that only authorized clients can attach to the process for step debugging,access variable scopes, or trigger programmatic breakpoints.");
-	private String dapSecret;
-	private boolean initDapSecret = true;
+	private final ConfigValue<String> dapSecret = new ConfigValue<>(metaDapSecret);
 
 	private static Prop<Boolean> metaDapBreakpoint = Prop.bool().keys("breakpoint").parent("dap").defaultValue(false)
 			.description("Enables zero-overhead instrumentation for step debugging and breakpoints. When enabled, Lucee leverages its internal execution hooks to monitor for "
@@ -944,7 +934,7 @@ public final class ConfigServerImpl implements ConfigServerPro {
 							"Advanced Optimization: Uses an intelligent algorithm to remove unnecessary whitespace while preserving critical spacing (e.g., inside 'pre' or 'textarea' tags)."))
 			.description(
 					"Specifies the white-space management strategy for the output stream. Using 'smart' optimization can significantly reduce page weight without breaking HTML layout.");
-	protected Integer cfmlWriter;
+	protected final ConfigValue<Integer> cfmlWriter = new ConfigValue<>(metaCfmlWriter);
 
 	// "lucee.mvn.repo.snapshots"
 
@@ -970,13 +960,13 @@ public final class ConfigServerImpl implements ConfigServerPro {
 					new Choice<Integer>(ConfigPro.MAVEN_DOWNLOAD_POLICY_ERROR, "error")
 							.description("Block all Maven artifact downloads during startup. May prevent Lucee from starting if required artifacts are missing."))
 			.description("Controls whether Lucee is allowed to download Maven artifacts during startup.");
-	protected Integer mavenDownloadPolicyStartup;
+	protected final ConfigValue<Integer> mavenDownloadPolicyStartup = new ConfigValue<>(metaMavenDownloadPolicyStartup);
 
 	@SuppressWarnings("unchecked")
 	private static Prop<Integer> metaMavenDownloadPolicyRuntime = Prop.integer().keys("downloadPolicyRuntime").parent("maven")
 			.systemPropEnvVar("lucee.maven.download.policy.runtime").defaultValue(ConfigPro.MAVEN_DOWNLOAD_POLICY_IGNORE).choices(metaMavenDownloadPolicyStartup.getChoices())
 			.description("Controls whether Lucee is allowed to download Maven artifacts at runtime, after startup is complete.");
-	protected Integer mavenDownloadPolicyRuntime;
+	protected final ConfigValue<Integer> mavenDownloadPolicyRuntime = new ConfigValue<>(metaMavenDownloadPolicyRuntime);
 
 	@SuppressWarnings("unchecked")
 	private static Prop<Integer> metaMavenDownloadPolicyLogLevel = Prop.integer().keys("downloadPolicyLogLevel").parent("maven")
@@ -986,7 +976,7 @@ public final class ConfigServerImpl implements ConfigServerPro {
 					new Choice<Integer>(Log.LEVEL_WARN, "warn").description("Log at warn level."), new Choice<Integer>(Log.LEVEL_ERROR, "error").description("Log at error level."),
 					new Choice<Integer>(Log.LEVEL_FATAL, "fatal").description("Log at fatal level."))
 			.description("Log level used when the Maven download policy is set to 'warn'. Has no effect when the policy is 'ignore' or 'error'.");
-	protected Integer mavenDownloadPolicyLogLevel;
+	protected final ConfigValue<Integer> mavenDownloadPolicyLogLevel = new ConfigValue<>(metaMavenDownloadPolicyLogLevel);
 
 	private static Prop<Boolean> metaHandleUnquotedAttributeValueAsString = Prop.bool().keys("handleUnquotedAttributeValueAsString").defaultValue(true)
 			.description("Controls if unquoted tag attributes are treated as literal strings (true) or as variable references (false) for evaluation.");
@@ -994,11 +984,11 @@ public final class ConfigServerImpl implements ConfigServerPro {
 
 	public final static Prop<Integer> metaQueueMax = Prop.integer().keys("requestQueueMax").systemPropEnvVar("lucee.queue.max").defaultValue(100)
 			.description("Maximum number of requests allowed in the queue.");
-	private int requestQueueMax = -1;
+	private final ConfigValue<Integer> requestQueueMax = new ConfigValue<>(metaQueueMax);
 
 	public final static Prop<Long> metaQueueTimeout = Prop.loong().keys("requestQueueTimeout").systemPropEnvVar("lucee.queue.timeout").defaultValue(0L)
 			.description("timeout for an element in the queue in milliseconds");
-	private long requestQueueTimeout = -1;
+	private final ConfigValue<Long> requestQueueTimeout = new ConfigValue<>(metaQueueTimeout);
 
 	public final static Prop<Boolean> metaQueueEnable = Prop.bool().keys("requestQueueEnable").systemPropEnvVar("lucee.queue.enable").defaultValue(false)
 			.description("defines if Lucee uses a queue for incoming request or not.");
@@ -1016,7 +1006,7 @@ public final class ConfigServerImpl implements ConfigServerPro {
 					.description("Strict/Secure: Blocks any 'cfquery' that contains variables not wrapped in 'cfqueryparam'. Highly recommended for modern, secure environments."))
 			.description(
 					"Controls how Lucee handles raw variables used inside 'cfquery' tags. Enabling 'error' mode effectively prevents SQL injection by mandating parameterized queries.");
-	private Integer securityVariableUsage;
+	private final ConfigValue<Integer> securityVariableUsage = new ConfigValue<>(metaVarUsage);
 
 	public final static Prop<TimeSpan> metaCachedAfterTimeRange = Prop.timespan().keys("cachedAfter")
 			.description("In case the attribute \"cacheAfter\" is set without the attribute \"cachedwithin\" in the tag \"query\" this time span is used for the element cached.");
@@ -1026,7 +1016,7 @@ public final class ConfigServerImpl implements ConfigServerPro {
 	public final static Prop<Regex> metaRegex = Prop.custom(RegexFactory.getInstance()).keys("regexType").systemPropEnvVar("lucee.regex.type")
 			.defaultValue(RegexFactory.toRegex(RegexFactory.TYPE_PERL, null))
 			.description("Which regular expression dialect should be used. Modern (Java dialect) or Classic (Perl5 dialect).");
-	private Regex regexType;
+	private final ConfigValue<Regex> regexType = new ConfigValue<>(metaRegex);
 
 	private static Prop<TimeSpan> metaApplicationPathCacheTimeout = Prop.timespan().keys("applicationPathTimeout").systemPropEnvVar("lucee.application.path.cache.timeout")
 			.defaultValue(TimeSpanImpl.fromMillis(20000L)) // 20 seconds
@@ -1054,7 +1044,7 @@ public final class ConfigServerImpl implements ConfigServerPro {
 					"Lazy Reload: Retains existing templates initially, but background tasks gradually re-verify and recompile templates as they are accessed after the system is online."))
 			.description(
 					"Determines how Lucee handles previously compiled templates (bytecode) after an engine restart. Balancing startup speed against the risk of executing stale code.");
-	private short compileType = -1;
+	private final ConfigValue<Short> compileType = new ConfigValue<>(metaCompileType);
 
 	@SuppressWarnings("unchecked")
 	public final static Prop<Short> metaInspectTemplate = Prop.shor().keys("inspectTemplate").defaultValue(INSPECT_AUTO)
@@ -1077,7 +1067,7 @@ public final class ConfigServerImpl implements ConfigServerPro {
 					+ "'auto' is recommended for most environments as it minimizes request overhead while still detecting changes. "
 					+ "'never' gives maximum performance for static deployments. 'always' is available but not recommended for production.");
 
-	private short inspectTemplate = -1;
+	private final ConfigValue<Short> inspectTemplate = new ConfigValue<>(metaInspectTemplate);
 
 	public final static Prop<Integer> metaInspectTemplateAutoIntervalSlow = Prop.integer().keys("inspectTemplateIntervalSlow").access(SecurityManager.TYPE_SETTING)
 			.defaultValue(ConfigPro.INSPECT_INTERVAL_SLOW)
@@ -1112,15 +1102,15 @@ public final class ConfigServerImpl implements ConfigServerPro {
 
 	public final static Prop<Boolean> metaShowMetric = Prop.bool().parent("monitoring").keys("showMetric", "showMetrics", "metric", "metrics")
 			.systemPropEnvVar("lucee.monitoring.showMetric").description("show metrics output in the monitoring at the bottom of the page").defaultValue(false);
-	private Boolean showMetric;
+	private final ConfigValue<Boolean> showMetric = new ConfigValue<>(metaShowMetric);
 
 	public final static Prop<Boolean> metaShowTest = Prop.bool().parent("monitoring").keys("showTest", "showTests", "test").systemPropEnvVar("lucee.monitoring.showTest")
 			.defaultValue(false).description("Show test output in the monitoring at the bottom of the page (not supported yet)");
-	private Boolean showTest;
+	private final ConfigValue<Boolean> showTest = new ConfigValue<>(metaShowTest);
 
 	private static Prop<Boolean> metafullNullSupport = Prop.bool().keys("nullSupport", "fullNullSupport").systemPropEnvVar("lucee.full.null.support").defaultValue(false)
 			.description("having full null support enabled or not");
-	private Boolean nullSupport;
+	private final ConfigValue<Boolean> nullSupport = new ConfigValue<>(metafullNullSupport);
 
 	private static Prop<SecretProvider> metaSecretProviders = Prop.custom(SecretProviderFactory.getInstance(), Prop.TYPE_MAP).keys("secretProvider", "secretProviders")
 			.lowerCaseKeys();
@@ -1186,7 +1176,7 @@ public final class ConfigServerImpl implements ConfigServerPro {
 	private lucee.runtime.rest.Mapping[] restMapping;
 
 	public final static Prop<Struct> metaRemoteClientsUsage = Prop.sct().keys("usage").parent("remoteClients").defaultValue(new StructImpl()).deprecated();
-	private Struct remoteClientsUsage;
+	private final ConfigValue<Struct> remoteClientsUsage = new ConfigValue<>(metaRemoteClientsUsage);
 
 	private static Prop<String> metaCachedWithinFunction = Prop.str().keys("cachedWithinFunction").description("Enables and defines the default caching for function calls. "
 			+ "If set, all functions that support caching will be cached for this duration unless overridden in the code.").deprecated();
@@ -1246,8 +1236,7 @@ public final class ConfigServerImpl implements ConfigServerPro {
 	private final ConfigValue<Boolean> defaultFunctionOutput = new ConfigValue<>(metaDefaultFunctionOutput);
 
 	private static Prop<ClassDefinition> metacWsHandlerCD = Prop.custom(ClassDefinitionFactory.getInstance()).keys("webservice").deprecated();
-	private ClassDefinition wsHandlerCD;
-	private boolean initWsHandlerCD = true;
+	private final ConfigValue<ClassDefinition> wsHandlerCD = new ConfigValue<>(metacWsHandlerCD);
 
 	private static Prop<JDBCDriver> metaJdbcDrivers = Prop.custom(JDBCDriverFactory.getInstance(), Prop.TYPE_MAP).keys("jdbcDrivers")
 			.description("A map of registered JDBC drivers, primarily managed by Lucee extensions. "
@@ -1292,7 +1281,7 @@ public final class ConfigServerImpl implements ConfigServerPro {
 					+ "and 'engineBundleVersion' required to load the ORM implementation (e.g., Hibernate) via "
 					+ "OSGi or Maven, and it stores the ORM configuration settings. These settings include "
 					+ "database dialects, CFC locations, caching providers, and 'dbcreate' behaviors, " + "which can be defined globally or per-datasource.");
-	private Struct orm;
+	private final ConfigValue<Struct> orm = new ConfigValue<>(metaOrm);
 	private ClassDefinition<? extends ORMEngine> ormCD;
 	private ORMConfiguration ormConfig;
 	private boolean initOrmConfig = true;
@@ -1332,11 +1321,11 @@ public final class ConfigServerImpl implements ConfigServerPro {
 			.description("Defines the legacy 'classic' scheduled tasks for the engine. "
 					+ "In modern versions of Lucee, these have been largely superseded by the Quartz-based scheduler. "
 					+ "While this property remains for backward compatibility.");
-	private Array scheduledTasks;
+	private final ConfigValue<Array> scheduledTasks = new ConfigValue<>(metaScheduledTasks);
 
 	private static Prop<Boolean> metaMonitoringEnabled = Prop.bool().keys("enabled").parent("monitoring").defaultValue(false).description(
 			"Enables the background monitoring service in Lucee. When active, the engine collects real-time performance data and health metrics at regular intervals.");
-	private Boolean monitoringEnabled;
+	private final ConfigValue<Boolean> monitoringEnabled = new ConfigValue<>(metaMonitoringEnabled);
 
 	public final static Prop<Boolean> metaLoginCaptcha = Prop.bool().keys("loginCaptcha").defaultValue(false).description("is a captcha used for the Lucee admin to login.");
 	private final ConfigValue<Boolean> loginCaptcha = new ConfigValue<>(metaLoginCaptcha);
@@ -1352,7 +1341,7 @@ public final class ConfigServerImpl implements ConfigServerPro {
 	private URL updateLocationURL;
 
 	private static Prop<String> metaUpdateType = Prop.str().keys("updateType").defaultValue("manual").deprecated();
-	private String updateType;
+	private final ConfigValue<String> updateType = new ConfigValue<>(metaUpdateType);
 
 	public final static Prop<String> metaAuthKeys = Prop.str().keys("authKeys").defaultValue(null).deprecated();
 	private String[] authKeys;
@@ -1491,24 +1480,11 @@ public final class ConfigServerImpl implements ConfigServerPro {
 	}
 
 	public boolean getOnlyFirstMatch() {
-		if (onlyFirstMatch == null) {
-			synchronized (SystemUtil.createToken("config", "onlyFirstMatch")) {
-				if (onlyFirstMatch == null) {
-					onlyFirstMatch = metaOnlyFirstMatch.get(this, root);
-				}
-			}
-		}
-		return onlyFirstMatch;
+		return onlyFirstMatch.get(this, root);
 	}
 
 	public ConfigServerImpl resetOnlyFirstMatch() {
-		if (onlyFirstMatch != null) {
-			synchronized (SystemUtil.createToken("config", "onlyFirstMatch")) {
-				if (monitors != null) {
-					onlyFirstMatch = null;
-				}
-			}
-		}
+		onlyFirstMatch.reset();
 		return this;
 	}
 
@@ -1713,24 +1689,11 @@ public final class ConfigServerImpl implements ConfigServerPro {
 
 	@Override
 	public String getUpdateType() {
-		if (updateType == null) {
-			synchronized (SystemUtil.createToken("config", "getUpdateType")) {
-				if (updateType == null) {
-					updateType = metaUpdateType.get(this, root);
-				}
-			}
-		}
-		return updateType;
+		return updateType.get(this, root);
 	}
 
 	public ConfigServerImpl resetUpdateType() {
-		if (updateType != null) {
-			synchronized (SystemUtil.createToken("config", "getUpdateType")) {
-				if (updateType != null) {
-					updateType = null;
-				}
-			}
-		}
+		updateType.reset();
 		return this;
 	}
 
@@ -1797,24 +1760,11 @@ public final class ConfigServerImpl implements ConfigServerPro {
 
 	@Override
 	public final boolean isMonitoringEnabled() {
-		if (monitoringEnabled == null) {
-			synchronized (SystemUtil.createToken("config", "isMonitoringEnabled")) {
-				if (monitoringEnabled == null) {
-					monitoringEnabled = metaMonitoringEnabled.get(this, root);
-				}
-			}
-		}
-		return monitoringEnabled;
+		return monitoringEnabled.get(this, root);
 	}
 
 	public ConfigServerImpl resetMonitoringEnabled() {
-		if (monitoringEnabled != null) {
-			synchronized (SystemUtil.createToken("config", "isMonitoringEnabled")) {
-				if (monitoringEnabled != null) {
-					monitoringEnabled = null;
-				}
-			}
-		}
+		monitoringEnabled.reset();
 		return this;
 	}
 
@@ -1850,24 +1800,11 @@ public final class ConfigServerImpl implements ConfigServerPro {
 
 	@Override
 	public short getCompileType() {
-		if (compileType == -1) {
-			synchronized (SystemUtil.createToken("config", "getCompileType")) {
-				if (compileType == -1) {
-					compileType = metaCompileType.get(this, root);
-				}
-			}
-		}
-		return compileType;
+		return compileType.get(this, root);
 	}
 
 	public ConfigServerImpl resetCompileType() {
-		if (compileType != -1) {
-			synchronized (SystemUtil.createToken("config", "getCompileType")) {
-				if (compileType != -1) {
-					compileType = -1;
-				}
-			}
-		}
+		compileType.reset();
 		return this;
 	}
 
@@ -2111,73 +2048,31 @@ public final class ConfigServerImpl implements ConfigServerPro {
 
 	@Override
 	public boolean isMailSpoolEnable() {
-		// TODO
-		if (mailSpoolEnable == null) {
-			synchronized (SystemUtil.createToken("config", "mail")) {
-				if (mailSpoolEnable == null) {
-					mailSpoolEnable = metaSpoolEnable.get(this, root);
-				}
-			}
-		}
-		return mailSpoolEnable;
+		return mailSpoolEnable.get(this, root);
 	}
 
 	public ConfigServerImpl resetMailSpoolEnable() {
-		if (mailSpoolEnable != null) {
-			synchronized (SystemUtil.createToken("config", "mail")) {
-				if (mailSpoolEnable != null) {
-					mailSpoolEnable = null;
-				}
-			}
-		}
+		mailSpoolEnable.reset();
 		return this;
 	}
 
 	@Override
 	public boolean isMailSendPartial() {
-		// TODO
-		if (mailSendPartial == null) {
-			synchronized (SystemUtil.createToken("config", "mail")) {
-				if (mailSendPartial == null) {
-					mailSendPartial = metaSendPartial.get(this, root);
-				}
-			}
-		}
-		return mailSendPartial;
+		return mailSendPartial.get(this, root);
 	}
 
 	public ConfigServerImpl resetMailSendPartial() {
-		if (mailSendPartial != null) {
-			synchronized (SystemUtil.createToken("config", "mail")) {
-				if (mailSendPartial != null) {
-					mailSendPartial = null;
-				}
-			}
-		}
+		mailSendPartial.reset();
 		return this;
 	}
 
 	@Override
 	public boolean isUserset() {
-		// TODO
-		if (mailUserSet == null) {
-			synchronized (SystemUtil.createToken("config", "mail")) {
-				if (mailUserSet == null) {
-					mailUserSet = metaUserSet.get(this, root);
-				}
-			}
-		}
-		return mailUserSet;
+		return mailUserSet.get(this, root);
 	}
 
 	public ConfigServerImpl resetUserset() {
-		if (mailUserSet != null) {
-			synchronized (SystemUtil.createToken("config", "mail")) {
-				if (mailUserSet != null) {
-					mailUserSet = null;
-				}
-			}
-		}
+		mailUserSet.reset();
 		return this;
 	}
 
@@ -2208,49 +2103,21 @@ public final class ConfigServerImpl implements ConfigServerPro {
 
 	@Override
 	public int getMailTimeout() {
-		// TODO
-		if (mailConnectionTimeout == -1) {
-			synchronized (SystemUtil.createToken("config", "mail")) {
-				if (mailConnectionTimeout == -1) {
-					mailConnectionTimeout = metaMailTimeout.get(this, root);
-				}
-			}
-		}
-		return mailConnectionTimeout;
+		return mailConnectionTimeout.get(this, root);
 	}
 
 	public ConfigServerImpl resetMailTimeout() {
-		if (mailConnectionTimeout != -1) {
-			synchronized (SystemUtil.createToken("config", "mail")) {
-				if (mailConnectionTimeout != -1) {
-					mailConnectionTimeout = -1;
-				}
-			}
-		}
+		mailConnectionTimeout.reset();
 		return this;
 	}
 
 	@Override
 	public int getQueryVarUsage() {
-		// TODO
-		if (securityVariableUsage == null) {
-			synchronized (SystemUtil.createToken("config", "getQueryVarUsage")) {
-				if (securityVariableUsage == null) {
-					securityVariableUsage = metaVarUsage.get(this, root);
-				}
-			}
-		}
-		return securityVariableUsage;
+		return securityVariableUsage.get(this, root);
 	}
 
 	public ConfigServerImpl resetQueryVarUsage() {
-		if (securityVariableUsage != null) {
-			synchronized (SystemUtil.createToken("config", "getQueryVarUsage")) {
-				if (securityVariableUsage != null) {
-					securityVariableUsage = null;
-				}
-			}
-		}
+		securityVariableUsage.reset();
 		return this;
 	}
 
@@ -2295,24 +2162,11 @@ public final class ConfigServerImpl implements ConfigServerPro {
 
 	@Override
 	public Locale getLocale() {
-		if (locale == null) {
-			synchronized (SystemUtil.createToken("config", "getLocale")) {
-				if (locale == null) {
-					locale = metaLocale.get(this, root);
-				}
-			}
-		}
-		return locale;
+		return locale.get(this, root);
 	}
 
 	public ConfigServerImpl resetLocale() {
-		if (locale != null) {
-			synchronized (SystemUtil.createToken("config", "getLocale")) {
-				if (locale != null) {
-					locale = null;
-				}
-			}
-		}
+		locale.reset();
 		return this;
 	}
 
@@ -2343,47 +2197,21 @@ public final class ConfigServerImpl implements ConfigServerPro {
 
 	@Override
 	public boolean getShowMetric() {
-		if (showMetric == null) {
-			synchronized (SystemUtil.createToken("config", "getShowMetric")) {
-				if (showMetric == null) {
-					showMetric = metaShowMetric.get(this, root);
-				}
-			}
-		}
-		return this.showMetric;
+		return showMetric.get(this, root);
 	}
 
 	public ConfigServerImpl resetShowMetric() {
-		if (showMetric != null) {
-			synchronized (SystemUtil.createToken("config", "getShowMetric")) {
-				if (showMetric != null) {
-					showMetric = null;
-				}
-			}
-		}
+		showMetric.reset();
 		return this;
 	}
 
 	@Override
 	public boolean getShowTest() {
-		if (showTest == null) {
-			synchronized (SystemUtil.createToken("config", "getShowTest")) {
-				if (showTest == null) {
-					showTest = metaShowTest.get(this, root);
-				}
-			}
-		}
-		return this.showTest;
+		return showTest.get(this, root);
 	}
 
 	public ConfigServerImpl resetShowTest() {
-		if (showTest != null) {
-			synchronized (SystemUtil.createToken("config", "getShowTest")) {
-				if (showTest != null) {
-					showTest = null;
-				}
-			}
-		}
+		showTest.reset();
 		return this;
 	}
 
@@ -2401,25 +2229,11 @@ public final class ConfigServerImpl implements ConfigServerPro {
 
 	@Override
 	public int getMailSpoolInterval() {
-		// TODO
-		if (mailSpoolInterval == -1) {
-			synchronized (SystemUtil.createToken("config", "mail")) {
-				if (mailSpoolInterval == -1) {
-					mailSpoolInterval = metaSpoolInterval.get(this, root);
-				}
-			}
-		}
-		return mailSpoolInterval;
+		return mailSpoolInterval.get(this, root);
 	}
 
 	public ConfigServerImpl resetMailSpoolInterval() {
-		if (mailSpoolInterval != -1) {
-			synchronized (SystemUtil.createToken("config", "mail")) {
-				if (mailSpoolInterval != -1) {
-					mailSpoolInterval = -1;
-				}
-			}
-		}
+		mailSpoolInterval.reset();
 		return this;
 	}
 
@@ -2696,24 +2510,11 @@ public final class ConfigServerImpl implements ConfigServerPro {
 	}
 
 	public Array getScheduledTasks() {
-		if (scheduledTasks == null) {
-			synchronized (SystemUtil.createToken("config", "getScheduledTasks")) {
-				if (scheduledTasks == null) {
-					scheduledTasks = metaScheduledTasks.get(this, root);
-				}
-			}
-		}
-		return scheduledTasks;
+		return scheduledTasks.get(this, root);
 	}
 
 	public ConfigServerImpl resetScheduledTasks() {
-		if (scheduledTasks != null) {
-			synchronized (SystemUtil.createToken("config", "getScheduledTasks")) {
-				if (scheduledTasks != null) {
-					this.scheduledTasks = null;
-				}
-			}
-		}
+		scheduledTasks.reset();
 		return this;
 	}
 
@@ -3477,7 +3278,6 @@ public final class ConfigServerImpl implements ConfigServerPro {
 				if (clientType != null) {
 					clientType = null;
 				}
-
 			}
 		}
 		return this;
@@ -3578,42 +3378,13 @@ public final class ConfigServerImpl implements ConfigServerPro {
 
 	@Override
 	public String getErrorTemplate(int statusCode) {
-
-		if (statusCode == 404) {
-			if (errorMissingTemplate == null) {
-				synchronized (SystemUtil.createToken("config", "getErrorTemplate404")) {
-					if (errorMissingTemplate == null) {
-						errorMissingTemplate = metaErrorTemplate404.get(this, root);
-					}
-				}
-			}
-			return errorMissingTemplate;
-		}
-		if (errorGeneralTemplate == null) {
-			synchronized (SystemUtil.createToken("config", "getErrorTemplate500")) {
-				if (errorGeneralTemplate == null) {
-					errorGeneralTemplate = metaErrorTemplate500.get(this, root);
-				}
-			}
-		}
-		return errorGeneralTemplate;
+		if (statusCode == 404) return errorMissingTemplate.get(this, root);
+		return errorGeneralTemplate.get(this, root);
 	}
 
 	public ConfigServerImpl resetErrorTemplates() {
-		if (errorMissingTemplate != null) {
-			synchronized (SystemUtil.createToken("config", "getErrorTemplate404")) {
-				if (errorMissingTemplate != null) {
-					errorMissingTemplate = null;
-				}
-			}
-		}
-		if (errorGeneralTemplate != null) {
-			synchronized (SystemUtil.createToken("config", "getErrorTemplate500")) {
-				if (errorGeneralTemplate != null) {
-					errorGeneralTemplate = null;
-				}
-			}
-		}
+		errorMissingTemplate.reset();
+		errorGeneralTemplate.reset();
 		return this;
 	}
 
@@ -4761,24 +4532,11 @@ public final class ConfigServerImpl implements ConfigServerPro {
 
 	@Override
 	public boolean doCustomTagDeepSearch() {
-		if (customTagDeepSearch == null) {
-			synchronized (SystemUtil.createToken("config", "doCustomTagDeepSearch")) {
-				if (customTagDeepSearch == null) {
-					customTagDeepSearch = metaDoCustomTagDeepSearch.get(this, root);
-				}
-			}
-		}
-		return customTagDeepSearch;
+		return customTagDeepSearch.get(this, root);
 	}
 
 	public ConfigServerImpl resetCustomTagDeepSearch() {
-		if (customTagDeepSearch != null) {
-			synchronized (SystemUtil.createToken("config", "doCustomTagDeepSearch")) {
-				if (customTagDeepSearch != null) {
-					customTagDeepSearch = null;
-				}
-			}
-		}
+		customTagDeepSearch.reset();
 		return this;
 	}
 
@@ -4787,25 +4545,11 @@ public final class ConfigServerImpl implements ConfigServerPro {
 	 */
 	@Override
 	public double getVersion() {
-		if (version == null) {
-			synchronized (SystemUtil.createToken("config", "getVersion")) {
-				if (version == null) {
-					version = metaVersion.get(this, root);
-				}
-			}
-
-		}
-		return version;
+		return version.get(this, root);
 	}
 
 	public ConfigServerImpl resetVersion() {
-		if (version != null) {
-			synchronized (SystemUtil.createToken("config", "getVersion")) {
-				if (version != null) {
-					version = null;
-				}
-			}
-		}
+		version.reset();
 		return this;
 	}
 
@@ -5240,25 +4984,11 @@ public final class ConfigServerImpl implements ConfigServerPro {
 
 	@Override
 	public boolean allowRealPath() {
-		if (fileSystemAllowRealpath == null) {
-			synchronized (SystemUtil.createToken("config", "allowRealPath")) {
-				if (fileSystemAllowRealpath == null) {
-					fileSystemAllowRealpath = metaAllowRealPath.get(this, root);
-				}
-			}
-		}
-		return fileSystemAllowRealpath;
+		return fileSystemAllowRealpath.get(this, root);
 	}
 
 	public ConfigServerImpl resetAllowRealPath() {
-		if (fileSystemAllowRealpath != null) {
-			synchronized (SystemUtil.createToken("config", "allowRealPath")) {
-				if (fileSystemAllowRealpath != null) {
-					fileSystemAllowRealpath = null;
-
-				}
-			}
-		}
+		fileSystemAllowRealpath.reset();
 		return this;
 	}
 	// = true
@@ -5280,25 +5010,11 @@ public final class ConfigServerImpl implements ConfigServerPro {
 
 	@Override
 	public Struct getRemoteClientUsage() {
-		if (remoteClientsUsage == null) {
-			synchronized (SystemUtil.createToken("config", "getRemoteClientUsage")) {
-				if (remoteClientsUsage == null) {
-					remoteClientsUsage = metaRemoteClientsUsage.get(this, root);
-				}
-			}
-		}
-		return remoteClientsUsage;
+		return remoteClientsUsage.get(this, root);
 	}
 
 	public ConfigServerImpl resetRemoteClientUsage() {
-		if (remoteClientsUsage != null) {
-			synchronized (SystemUtil.createToken("config", "getRemoteClientUsage")) {
-				if (remoteClientsUsage != null) {
-					remoteClientsUsage = null;
-
-				}
-			}
-		}
+		remoteClientsUsage.reset();
 		return this;
 	}
 
@@ -5395,25 +5111,11 @@ public final class ConfigServerImpl implements ConfigServerPro {
 	 */
 	@Override
 	public short getInspectTemplate() {
-
-		if (inspectTemplate == -1) {
-			synchronized (SystemUtil.createToken("config", "getInspectTemplate")) {
-				if (inspectTemplate == -1) {
-					inspectTemplate = metaInspectTemplate.get(this, root);
-				}
-			}
-		}
-		return inspectTemplate;
+		return inspectTemplate.get(this, root);
 	}
 
 	public ConfigServerImpl resetInspectTemplate() {
-		if (inspectTemplate != -1) {
-			synchronized (SystemUtil.createToken("config", "getInspectTemplate")) {
-				if (inspectTemplate != -1) {
-					inspectTemplate = -1;
-				}
-			}
-		}
+		inspectTemplate.reset();
 		return this;
 	}
 
@@ -5472,218 +5174,83 @@ public final class ConfigServerImpl implements ConfigServerPro {
 	}
 
 	public String getCacheDefaultResource() {
-		if (!initCacheDefaultResource) {
-			synchronized (SystemUtil.createToken("config", "cacheDefaultResource")) {
-				if (!initCacheDefaultResource) {
-					cacheDefaultResource = metaCacheDefaultConnectionNamesResource.get(this, root);
-					initCacheDefaultResource = true;
-				}
-			}
-		}
-		return cacheDefaultResource;
+		return cacheDefaultResource.get(this, root);
 	}
 
 	public ConfigServerImpl resetCacheDefaultResource() {
-		if (initCacheDefaultResource) {
-			synchronized (SystemUtil.createToken("config", "cacheDefaultResource")) {
-				if (initCacheDefaultResource) {
-					cacheDefaultResource = null;
-					initCacheDefaultResource = false;
-				}
-			}
-		}
+		cacheDefaultResource.reset();
 		return this;
 	}
 
 	public String getCacheDefaultFunction() {
-		if (!initCacheDefaultFunction) {
-			synchronized (SystemUtil.createToken("config", "cacheDefaultFunction")) {
-				if (!initCacheDefaultFunction) {
-					cacheDefaultFunction = metaCacheDefaultConnectionNamesFunction.get(this, root);
-					initCacheDefaultFunction = true;
-				}
-			}
-		}
-		return cacheDefaultFunction;
+		return cacheDefaultFunction.get(this, root);
 	}
 
 	public ConfigServerImpl resetCacheDefaultFunction() {
-		if (initCacheDefaultFunction) {
-			synchronized (SystemUtil.createToken("config", "cacheDefaultFunction")) {
-				if (initCacheDefaultFunction) {
-					cacheDefaultFunction = null;
-					initCacheDefaultFunction = false;
-				}
-			}
-		}
+		cacheDefaultFunction.reset();
 		return this;
 	}
 
 	public String getCacheDefaultInclude() {
-		if (!initCacheDefaultInclude) {
-			synchronized (SystemUtil.createToken("config", "cacheDefaultInclude")) {
-				if (!initCacheDefaultInclude) {
-					cacheDefaultInclude = metaCacheDefaultConnectionNamesInclude.get(this, root);
-					initCacheDefaultInclude = true;
-				}
-			}
-		}
-		return cacheDefaultInclude;
+		return cacheDefaultInclude.get(this, root);
 	}
 
 	public ConfigServerImpl resetCacheDefaultInclude() {
-		if (initCacheDefaultInclude) {
-			synchronized (SystemUtil.createToken("config", "cacheDefaultInclude")) {
-				if (initCacheDefaultInclude) {
-					cacheDefaultInclude = null;
-					initCacheDefaultInclude = false;
-				}
-			}
-		}
+		cacheDefaultInclude.reset();
 		return this;
 	}
 
 	public String getCacheDefaultQuery() {
-		if (!initCacheDefaultQuery) {
-			synchronized (SystemUtil.createToken("config", "cacheDefaultQuery")) {
-				if (!initCacheDefaultQuery) {
-					cacheDefaultQuery = metaCacheDefaultConnectionNamesQuery.get(this, root);
-					initCacheDefaultQuery = true;
-				}
-			}
-		}
-		return cacheDefaultQuery;
+		return cacheDefaultQuery.get(this, root);
 	}
 
 	public ConfigServerImpl resetCacheDefaultQuery() {
-		if (initCacheDefaultQuery) {
-			synchronized (SystemUtil.createToken("config", "cacheDefaultQuery")) {
-				if (initCacheDefaultQuery) {
-					cacheDefaultQuery = null;
-					initCacheDefaultQuery = false;
-				}
-			}
-		}
+		cacheDefaultQuery.reset();
 		return this;
 	}
 
 	public String getCacheDefaultTemplate() {
-		if (!initCacheDefaultTemplate) {
-			synchronized (SystemUtil.createToken("config", "cacheDefaultTemplate")) {
-				if (!initCacheDefaultTemplate) {
-					cacheDefaultTemplate = metaCacheDefaultConnectionNamesTemplate.get(this, root);
-					initCacheDefaultTemplate = true;
-				}
-			}
-		}
-		return cacheDefaultTemplate;
+		return cacheDefaultTemplate.get(this, root);
 	}
 
 	public ConfigServerImpl resetCacheDefaultTemplate() {
-		if (initCacheDefaultTemplate) {
-			synchronized (SystemUtil.createToken("config", "cacheDefaultTemplate")) {
-				if (initCacheDefaultTemplate) {
-					cacheDefaultTemplate = null;
-					initCacheDefaultTemplate = false;
-				}
-			}
-		}
+		cacheDefaultTemplate.reset();
 		return this;
 	}
 
 	public String getCacheDefaultObject() {
-		if (!initCacheDefaultObject) {
-			synchronized (SystemUtil.createToken("config", "cacheDefaultObject")) {
-				if (!initCacheDefaultObject) {
-					cacheDefaultObject = metaCacheDefaultConnectionNamesObject.get(this, root);
-					initCacheDefaultObject = true;
-				}
-			}
-		}
-		return cacheDefaultObject;
+		return cacheDefaultObject.get(this, root);
 	}
 
 	public ConfigServerImpl resetCacheDefaultObject() {
-		if (initCacheDefaultObject) {
-			synchronized (SystemUtil.createToken("config", "cacheDefaultObject")) {
-				if (initCacheDefaultObject) {
-					cacheDefaultObject = null;
-					initCacheDefaultObject = false;
-				}
-			}
-		}
+		cacheDefaultObject.reset();
 		return this;
 	}
 
 	public String getCacheDefaultFile() {
-		if (!initCacheDefaultFile) {
-			synchronized (SystemUtil.createToken("config", "cacheDefaultFile")) {
-				if (!initCacheDefaultFile) {
-					cacheDefaultFile = metaCacheDefaultConnectionNamesFile.get(this, root);
-					initCacheDefaultFile = true;
-				}
-			}
-		}
-		return cacheDefaultFile;
+		return cacheDefaultFile.get(this, root);
 	}
 
 	public ConfigServerImpl resetCacheDefaultFile() {
-		if (initCacheDefaultFile) {
-			synchronized (SystemUtil.createToken("config", "cacheDefaultFile")) {
-				if (initCacheDefaultFile) {
-					cacheDefaultFile = null;
-					initCacheDefaultFile = false;
-				}
-			}
-		}
+		cacheDefaultFile.reset();
 		return this;
 	}
 
 	public String getCacheDefaultHTTP() {
-		if (!initCacheDefaultHTTP) {
-			synchronized (SystemUtil.createToken("config", "cacheDefaultHTTP")) {
-				if (!initCacheDefaultHTTP) {
-					cacheDefaultHTTP = metaCacheDefaultConnectionNamesHTTP.get(this, root);
-					initCacheDefaultHTTP = true;
-				}
-			}
-		}
-		return cacheDefaultHTTP;
+		return cacheDefaultHTTP.get(this, root);
 	}
 
 	public ConfigServerImpl resetCacheDefaultHTTP() {
-		if (initCacheDefaultHTTP) {
-			synchronized (SystemUtil.createToken("config", "cacheDefaultHTTP")) {
-				if (initCacheDefaultHTTP) {
-					cacheDefaultHTTP = null;
-					initCacheDefaultHTTP = false;
-				}
-			}
-		}
+		cacheDefaultHTTP.reset();
 		return this;
 	}
 
 	public String getCacheDefaultWebservice() {
-		if (!initCacheDefaultWebservice) {
-			synchronized (SystemUtil.createToken("config", "cacheDefaultWebservice")) {
-				if (!initCacheDefaultWebservice) {
-					cacheDefaultWebservice = metaCacheDefaultConnectionNamesWebservice.get(this, root);
-					initCacheDefaultWebservice = true;
-				}
-			}
-		}
-		return cacheDefaultWebservice;
+		return cacheDefaultWebservice.get(this, root);
 	}
 
 	public ConfigServerImpl resetCacheDefaultWebservice() {
-		if (initCacheDefaultWebservice) {
-			synchronized (SystemUtil.createToken("config", "cacheDefaultWebservice")) {
-				if (initCacheDefaultWebservice) {
-					cacheDefaultWebservice = null;
-					initCacheDefaultWebservice = false;
-				}
-			}
-		}
+		cacheDefaultWebservice.reset();
 		return this;
 	}
 
@@ -5844,24 +5411,11 @@ public final class ConfigServerImpl implements ConfigServerPro {
 
 	@Override
 	public String getDapSecret() {
-		if (initDapSecret) {
-			synchronized (SystemUtil.createToken("config", "dapSecret")) {
-				if (initDapSecret) {
-					dapSecret = metaDapSecret.get(this, root);
-				}
-			}
-		}
-		return dapSecret;
+		return dapSecret.get(this, root);
 	}
 
 	public ConfigServerImpl resetDapSecret() {
-		if (!initDapSecret) {
-			synchronized (SystemUtil.createToken("config", "dapSecret")) {
-				if (!initDapSecret) {
-					dapSecret = null;
-				}
-			}
-		}
+		dapSecret.reset();
 		return this;
 	}
 
@@ -5956,25 +5510,11 @@ public final class ConfigServerImpl implements ConfigServerPro {
 	}
 
 	public Struct getORM() {
-		if (orm == null) {
-			synchronized (SystemUtil.createToken("config", "getORMConfig")) {
-				if (orm == null) {
-
-					orm = metaOrm.get(this, root);
-				}
-			}
-		}
-		return orm;
+		return orm.get(this, root);
 	}
 
 	public ConfigServerImpl resetORM() {
-		if (orm != null) {
-			synchronized (SystemUtil.createToken("config", "orm")) {
-				if (orm != null) {
-					orm = null;
-				}
-			}
-		}
+		orm.reset();
 		return this;
 	}
 
@@ -6521,24 +6061,11 @@ public final class ConfigServerImpl implements ConfigServerPro {
 	// do not move to Config interface, do instead setCFMLWriterClass
 	@Override
 	public int getCFMLWriterType() {
-		if (cfmlWriter == null) {
-			synchronized (SystemUtil.createToken("config", "getCFMLWriterType")) {
-				if (cfmlWriter == null) {
-					cfmlWriter = metaCfmlWriter.get(this, root);
-				}
-			}
-		}
-		return cfmlWriter;
+		return cfmlWriter.get(this, root);
 	}
 
 	public ConfigServerImpl resetCFMLWriterType() {
-		if (cfmlWriter != null) {
-			synchronized (SystemUtil.createToken("config", "getCFMLWriterType")) {
-				if (cfmlWriter != null) {
-					cfmlWriter = null;
-				}
-			}
-		}
+		cfmlWriter.reset();
 		return this;
 	}
 
@@ -7082,48 +6609,21 @@ public final class ConfigServerImpl implements ConfigServerPro {
 
 	@Override
 	public int getQueueMax() {
-		if (requestQueueMax == -1) {
-			synchronized (SystemUtil.createToken("config", "getQueueMax")) {
-				if (requestQueueMax == -1) {
-					requestQueueMax = metaQueueMax.get(this, root);
-				}
-			}
-		}
-		return requestQueueMax;
+		return requestQueueMax.get(this, root);
 	}
 
 	public ConfigServerImpl resetQueueMax() {
-		if (requestQueueMax != -1) {
-			synchronized (SystemUtil.createToken("config", "getQueueMax")) {
-				if (requestQueueMax != -1) {
-					requestQueueMax = -1;
-				}
-			}
-		}
+		requestQueueMax.reset();
 		return this;
 	}
 
 	@Override
 	public long getQueueTimeout() {
-		if (requestQueueTimeout == -1) {
-			synchronized (SystemUtil.createToken("config", "getQueueTimeout")) {
-				if (requestQueueTimeout == -1) {
-					requestQueueTimeout = metaQueueTimeout.get(this, root);
-					;
-				}
-			}
-		}
-		return requestQueueTimeout;
+		return requestQueueTimeout.get(this, root);
 	}
 
 	public ConfigServerImpl resetQueueTimeout() {
-		if (requestQueueTimeout != -1) {
-			synchronized (SystemUtil.createToken("config", "getQueueTimeout")) {
-				if (requestQueueTimeout != -1) {
-					requestQueueTimeout = -1;
-				}
-			}
-		}
+		requestQueueTimeout.reset();
 		return this;
 	}
 
@@ -7241,26 +6741,11 @@ public final class ConfigServerImpl implements ConfigServerPro {
 	}
 
 	protected ClassDefinition getWSHandlerClassDefinition() {
-		if (initWsHandlerCD) {
-			synchronized (SystemUtil.createToken("config", "getWSHandlerClassDefinition")) {
-				if (initWsHandlerCD) {
-					wsHandlerCD = metacWsHandlerCD.get(this, root);
-					initWsHandlerCD = false;
-				}
-			}
-		}
-		return wsHandlerCD;
+		return wsHandlerCD.get(this, root);
 	}
 
 	protected ConfigServerImpl resetWSHandlerClassDefinition() {
-		if (!initWsHandlerCD) {
-			synchronized (SystemUtil.createToken("config", "getWSHandlerClassDefinition")) {
-				if (!initWsHandlerCD) {
-					wsHandlerCD = null;
-					initWsHandlerCD = true;
-				}
-			}
-		}
+		wsHandlerCD.reset();
 		return this;
 	}
 
@@ -7270,24 +6755,11 @@ public final class ConfigServerImpl implements ConfigServerPro {
 
 	@Override
 	public final boolean getFullNullSupport() {
-		if (nullSupport == null) {
-			synchronized (SystemUtil.createToken("config", "getFullNullSupport")) {
-				if (nullSupport == null) {
-					nullSupport = metafullNullSupport.get(this, root);
-				}
-			}
-		}
-		return nullSupport;
+		return nullSupport.get(this, root);
 	}
 
 	public final ConfigServerImpl resetFullNullSupport() {
-		if (nullSupport != null) {
-			synchronized (SystemUtil.createToken("config", "getFullNullSupport")) {
-				if (nullSupport != null) {
-					nullSupport = null;
-				}
-			}
-		}
+		nullSupport.reset();
 		return this;
 	}
 
@@ -7374,20 +6846,11 @@ public final class ConfigServerImpl implements ConfigServerPro {
 
 	@Override
 	public Regex getRegex() {
-		if (regexType == null) {
-			synchronized (SystemUtil.createToken("config", "getRegex")) {
-				regexType = metaRegex.get(this, root);
-			}
-		}
-		return regexType;
+		return regexType.get(this, root);
 	}
 
 	public ConfigServerImpl resetRegex() {
-		if (regexType != null) {
-			synchronized (SystemUtil.createToken("config", "getRegex")) {
-				if (regexType != null) regexType = null;
-			}
-		}
+		regexType.reset();
 		return this;
 	}
 
@@ -8154,66 +7617,27 @@ public final class ConfigServerImpl implements ConfigServerPro {
 	}
 
 	public int getMavenDownloadPolicyStartup() {
-		if (mavenDownloadPolicyStartup == null) {
-			synchronized (SystemUtil.createToken("config", "mavenDownloadPolicyStartup")) {
-				if (mavenDownloadPolicyStartup == null) {
-					mavenDownloadPolicyStartup = metaMavenDownloadPolicyStartup.get(this, root);
-				}
-			}
-		}
-		return mavenDownloadPolicyStartup;
+		return mavenDownloadPolicyStartup.get(this, root);
 	}
 
 	public void resetMavenDownloadPolicyStartup() {
-		if (mavenDownloadPolicyStartup != null) {
-			synchronized (SystemUtil.createToken("config", "mavenDownloadPolicyStartup")) {
-				if (mavenDownloadPolicyStartup != null) {
-					mavenDownloadPolicyStartup = null;
-				}
-			}
-		}
+		mavenDownloadPolicyStartup.reset();
 	}
 
 	public int getMavenDownloadPolicyRuntime() {
-		if (mavenDownloadPolicyRuntime == null) {
-			synchronized (SystemUtil.createToken("config", "mavenDownloadPolicyRuntime")) {
-				if (mavenDownloadPolicyRuntime == null) {
-					mavenDownloadPolicyRuntime = metaMavenDownloadPolicyRuntime.get(this, root);
-				}
-			}
-		}
-		return mavenDownloadPolicyRuntime;
+		return mavenDownloadPolicyRuntime.get(this, root);
 	}
 
 	public void resetMavenDownloadPolicyRuntime() {
-		if (mavenDownloadPolicyRuntime != null) {
-			synchronized (SystemUtil.createToken("config", "mavenDownloadPolicyRuntime")) {
-				if (mavenDownloadPolicyRuntime != null) {
-					mavenDownloadPolicyRuntime = null;
-				}
-			}
-		}
+		mavenDownloadPolicyRuntime.reset();
 	}
 
 	public int getMavenDownloadPolicyLogLevel() {
-		if (mavenDownloadPolicyLogLevel == null) {
-			synchronized (SystemUtil.createToken("config", "mavenDownloadPolicyLogLevel")) {
-				if (mavenDownloadPolicyLogLevel == null) {
-					mavenDownloadPolicyLogLevel = metaMavenDownloadPolicyLogLevel.get(this, root);
-				}
-			}
-		}
-		return mavenDownloadPolicyLogLevel;
+		return mavenDownloadPolicyLogLevel.get(this, root);
 	}
 
 	public void resetMavenDownloadPolicyLogLevel() {
-		if (mavenDownloadPolicyLogLevel != null) {
-			synchronized (SystemUtil.createToken("config", "mavenDownloadPolicyLogLevel")) {
-				if (mavenDownloadPolicyLogLevel != null) {
-					mavenDownloadPolicyLogLevel = null;
-				}
-			}
-		}
+		mavenDownloadPolicyLogLevel.reset();
 	}
 
 	@Override
