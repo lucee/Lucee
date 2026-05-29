@@ -355,7 +355,8 @@ public class Prop<T> {
 	}
 
 	private T get(ConfigServerImpl config, String key, Object val, short source) throws PageException {
-		if (Decision.isSimpleValue(val)) {
+		// only string values can contain placeholders (${...}); resolve them before evaluating
+		if (Decision.isSimpleValue(val) && val instanceof String) {
 			String str = Caster.toString(val);
 			if (!StringUtil.isEmpty(str, true)) {
 				str = config.replacePlaceHolder(str.trim());
@@ -372,14 +373,26 @@ public class Prop<T> {
 				}
 				return factory.evaluate(config, key, str, source);
 			}
+			return null;
 		}
 		else {
+			// non-string values (TimeSpan, numbers, booleans, ...) are handed to the factory as-is;
+			// stringifying them here would be lossy, e.g. a TimeSpan becomes a fractional-day decimal
+			// and loses sub-second precision when parsed back (50 minutes -> 49 minutes 59 seconds)
 			if ((handleEmptyAsNull && StringUtil.isEmpty(val, true))) {
+				return defaultValue;
+			}
+			if (choices != null) {
+				String str = Caster.toString(val);
+				for (Choice<T> choice: choices) {
+					if (choice.matches(str)) {
+						return choice.value;
+					}
+				}
 				return defaultValue;
 			}
 			return factory.evaluate(config, key, val, source);
 		}
-		return null;
 	}
 
 	private Object getSystemPropOrEnvVar(Config config, String key) throws PageException {
