@@ -1172,9 +1172,12 @@ public final class IOUtil {
 	}
 
 	public static byte[] toBytes(InputStream is, boolean closeStream) throws IOException {
-		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		copy(is, baos, closeStream, true);
-		return baos.toByteArray();
+		try {
+			return is.readAllBytes();
+		}
+		finally {
+			if (closeStream) close(is);
+		}
 	}
 
 	public static byte[] toBytesMax(InputStream is, long max, RefBoolean maxReached) throws IOException {
@@ -1185,9 +1188,7 @@ public final class IOUtil {
 
 	public static byte[] toBytes(InputStream is, boolean closeStream, byte[] defaultValue) {
 		try {
-			ByteArrayOutputStream baos = new ByteArrayOutputStream();
-			copy(is, baos, closeStream, true);
-			return baos.toByteArray();
+			return toBytes(is, closeStream);
 		}
 		catch (Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);
@@ -1196,9 +1197,7 @@ public final class IOUtil {
 	}
 
 	public static byte[] toBytesMax(InputStream is, int max) throws IOException {
-		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		copy(is, baos, 0, max);
-		return baos.toByteArray();
+		return is.readNBytes(max);
 	}
 
 	/**
