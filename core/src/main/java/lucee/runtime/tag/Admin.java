@@ -3219,6 +3219,13 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	private void doUpdateCompilerSettings() throws SecurityException, PageException {
 		admin.checkWriteAccess();
 
+		// the config stores "preserveCase", but the Administrator.cfc API sends the inverted
+		// "dotNotationUpperCase" flag (the web admin page already sends "preserveCase"); bridge the
+		// former to the latter so both round-trips persist
+		Object dotNotationUpperCase = attributes.get(KeyImpl.init("dotNotationUpperCase"), null);
+		if (!StringUtil.isEmpty(dotNotationUpperCase) && StringUtil.isEmpty(attributes.get(KeyImpl.init("preserveCase"), null))) {
+			attributes.setEL(KeyImpl.init("preserveCase"), !Caster.toBooleanValue(dotNotationUpperCase));
+		}
 		ConfigServerImpl.metaPreserveCase.write(configServer, attributes);
 
 		admin.updateCompilerSettings(getBoolObject("admin", "UpdateCompilerSettings", "suppressWSBeforeArg"), getBoolObject("admin", "UpdateCompilerSettings", "nullSupport"),

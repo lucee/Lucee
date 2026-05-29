@@ -343,47 +343,47 @@ public final class ConfigServerImpl implements ConfigServerPro {
 					+ " Supports OSGi/Maven driver loading and specific role assignments like 'storage' or 'default' query caching.");
 	private Map<String, CacheConnection> caches;
 
-	public final static Prop<String> metaCacheDefaultConnectionNamesResource = Prop.str().keys("defaultResource", "cacheDefaultResource").parent("cache").deprecated()
+	public final static Prop<String> metaCacheDefaultConnectionNamesResource = Prop.str().keys("defaultResource", "cacheDefaultResource", "resource").parent("cache").deprecated()
 			.description("default resource cache used");
 	private boolean initCacheDefaultResource;
 	private String cacheDefaultResource;
 
-	public final static Prop<String> metaCacheDefaultConnectionNamesFunction = Prop.str().keys("defaultFunction", "cacheDefaultFunction").parent("cache").deprecated()
+	public final static Prop<String> metaCacheDefaultConnectionNamesFunction = Prop.str().keys("defaultFunction", "cacheDefaultFunction", "function").parent("cache").deprecated()
 			.description("default function cache used");
 	private boolean initCacheDefaultFunction;
 	private String cacheDefaultFunction;
 
-	public final static Prop<String> metaCacheDefaultConnectionNamesInclude = Prop.str().keys("defaultInclude", "cacheDefaultInclude").parent("cache").deprecated()
+	public final static Prop<String> metaCacheDefaultConnectionNamesInclude = Prop.str().keys("defaultInclude", "cacheDefaultInclude", "include").parent("cache").deprecated()
 			.description("default include cache used");
 	private boolean initCacheDefaultInclude;
 	private String cacheDefaultInclude;
 
-	public final static Prop<String> metaCacheDefaultConnectionNamesQuery = Prop.str().keys("defaultQuery", "cacheDefaultQuery").parent("cache").deprecated()
+	public final static Prop<String> metaCacheDefaultConnectionNamesQuery = Prop.str().keys("defaultQuery", "cacheDefaultQuery", "query").parent("cache").deprecated()
 			.description("default query cache used");
 	private boolean initCacheDefaultQuery;
 	private String cacheDefaultQuery;
 
-	public final static Prop<String> metaCacheDefaultConnectionNamesTemplate = Prop.str().keys("defaultTemplate", "cacheDefaultTemplate").parent("cache").deprecated()
+	public final static Prop<String> metaCacheDefaultConnectionNamesTemplate = Prop.str().keys("defaultTemplate", "cacheDefaultTemplate", "template").parent("cache").deprecated()
 			.description("default template cache used");
 	private boolean initCacheDefaultTemplate;
 	private String cacheDefaultTemplate;
 
-	public final static Prop<String> metaCacheDefaultConnectionNamesObject = Prop.str().keys("defaultObject", "cacheDefaultObject").parent("cache").deprecated()
+	public final static Prop<String> metaCacheDefaultConnectionNamesObject = Prop.str().keys("defaultObject", "cacheDefaultObject", "object").parent("cache").deprecated()
 			.description("default object cache used");
 	private boolean initCacheDefaultObject;
 	private String cacheDefaultObject;
 
-	public final static Prop<String> metaCacheDefaultConnectionNamesFile = Prop.str().keys("defaultFile", "cacheDefaultFile").parent("cache").deprecated()
+	public final static Prop<String> metaCacheDefaultConnectionNamesFile = Prop.str().keys("defaultFile", "cacheDefaultFile", "file").parent("cache").deprecated()
 			.description("default file cache used");
 	private boolean initCacheDefaultFile;
 	private String cacheDefaultFile;
 
-	public final static Prop<String> metaCacheDefaultConnectionNamesHTTP = Prop.str().keys("defaultHTTP", "cacheDefaultHTTP").parent("cache").deprecated()
+	public final static Prop<String> metaCacheDefaultConnectionNamesHTTP = Prop.str().keys("defaultHTTP", "cacheDefaultHTTP", "http").parent("cache").deprecated()
 			.description("default http cache used");
 	private boolean initCacheDefaultHTTP;
 	private String cacheDefaultHTTP;
 
-	public final static Prop<String> metaCacheDefaultConnectionNamesWebservice = Prop.str().keys("defaultWebservice", "cacheDefaultWebservice").parent("cache").deprecated()
+	public final static Prop<String> metaCacheDefaultConnectionNamesWebservice = Prop.str().keys("defaultWebservice", "cacheDefaultWebservice", "webservice").parent("cache").deprecated()
 			.description("default webservice cache used");
 	private boolean initCacheDefaultWebservice;
 	private String cacheDefaultWebservice;
