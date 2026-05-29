@@ -1602,15 +1602,15 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		pageContext.setVariable(getString("admin", action, "returnVariable"), sct);
 
 		sct.set(KeyConstants._debug, Caster.toBoolean(config.debug()));
-		sct.set(KeyConstants._database, Caster.toBoolean(config.hasDebugOptions(ConfigPro.DEBUG_DATABASE)));
-		sct.set(KeyConstants._exception, Caster.toBoolean(config.hasDebugOptions(ConfigPro.DEBUG_EXCEPTION)));
-		sct.set(KeyConstants._template, Caster.toBoolean(config.hasDebugOptions(ConfigPro.DEBUG_TEMPLATE)));
-		sct.set("tracing", Caster.toBoolean(config.hasDebugOptions(ConfigPro.DEBUG_TRACING)));
-		sct.set(KeyConstants._dump, Caster.toBoolean(config.hasDebugOptions(ConfigPro.DEBUG_DUMP)));
-		sct.set("timer", Caster.toBoolean(config.hasDebugOptions(ConfigPro.DEBUG_TIMER)));
-		sct.set("implicitAccess", Caster.toBoolean(config.hasDebugOptions(ConfigPro.DEBUG_IMPLICIT_ACCESS)));
-		sct.set("queryUsage", Caster.toBoolean(config.hasDebugOptions(ConfigPro.DEBUG_QUERY_USAGE)));
-		sct.set("thread", Caster.toBoolean(config.hasDebugOptions(ConfigPro.DEBUG_THREAD)));
+		sct.set("debuggingDatabase", Caster.toBoolean(config.hasDebugOptions(ConfigPro.DEBUG_DATABASE)));
+		sct.set("debuggingException", Caster.toBoolean(config.hasDebugOptions(ConfigPro.DEBUG_EXCEPTION)));
+		sct.set("debuggingTemplate", Caster.toBoolean(config.hasDebugOptions(ConfigPro.DEBUG_TEMPLATE)));
+		sct.set("debuggingTracing", Caster.toBoolean(config.hasDebugOptions(ConfigPro.DEBUG_TRACING)));
+		sct.set("debuggingDump", Caster.toBoolean(config.hasDebugOptions(ConfigPro.DEBUG_DUMP)));
+		sct.set("debuggingTimer", Caster.toBoolean(config.hasDebugOptions(ConfigPro.DEBUG_TIMER)));
+		sct.set("debuggingImplicitAccess", Caster.toBoolean(config.hasDebugOptions(ConfigPro.DEBUG_IMPLICIT_ACCESS)));
+		sct.set("debuggingQueryUsage", Caster.toBoolean(config.hasDebugOptions(ConfigPro.DEBUG_QUERY_USAGE)));
+		sct.set("debuggingThread", Caster.toBoolean(config.hasDebugOptions(ConfigPro.DEBUG_THREAD)));
 	}
 
 	private void doGetMonitoring() throws PageException {
@@ -1966,7 +1966,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 	private void doGetDebugSetting() throws PageException {
 		Struct sct = new StructImpl();
-		sct.set("maxLogs", Caster.toDouble(config.getDebugMaxRecordsLogged()));
+		sct.set("debuggingMaxRecordsLogged", Caster.toDouble(config.getDebugMaxRecordsLogged()));
 		pageContext.setVariable(getString("admin", action, "returnVariable"), sct);
 
 	}
@@ -3350,13 +3350,10 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	private void doGetCustomTagSetting() throws PageException {
 		Struct sct = new StructImpl();
 		pageContext.setVariable(getString("admin", action, "returnVariable"), sct);
-		sct.set("customTagDeepSearch", Caster.toBoolean(config.doCustomTagDeepSearch()));// deprecated
-		sct.set("customTagLocalSearch", Caster.toBoolean(config.doLocalCustomTag()));// deprecated
-
-		sct.set("deepSearch", Caster.toBoolean(config.doCustomTagDeepSearch()));
-		sct.set("localSearch", Caster.toBoolean(config.doLocalCustomTag()));
-		sct.set("customTagPathCache", Caster.toBoolean(config.useCTPathCache()));
-		sct.set("extensions", new ArrayImpl(config.getCustomTagExtensions()));
+		sct.set("customTagDeepSearch", Caster.toBoolean(config.doCustomTagDeepSearch()));
+		sct.set("customTagLocalSearch", Caster.toBoolean(config.doLocalCustomTag()));
+		sct.set("customTagUseCachePath", Caster.toBoolean(config.useCTPathCache()));
+		sct.set("customTagExtensions", new ArrayImpl(config.getCustomTagExtensions()));
 	}
 
 	private void doGetDatasourceDriverList() throws PageException {
@@ -4498,18 +4495,18 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		// AllowURLRequestTimeout
 		sct.set("AllowURLRequestTimeout", Caster.toBoolean(config.isAllowURLRequestTimeout()));
 
-		sct.set("RequestTimeoutConcurrentRequestThreshold", Caster.toDouble(config.getRequestTimeoutConcurrentRequestThreshold()));
-		sct.set("RequestTimeoutCPUThreshold", Caster.toDouble(config.getRequestTimeoutCPUThreshold()));
-		sct.set("RequestTimeoutMemoryThreshold", Caster.toDouble(config.getRequestTimeoutMemoryThreshold()));
+		sct.set("requestTimeoutConcurrentRequestThreshold", Caster.toDouble(config.getRequestTimeoutConcurrentRequestThreshold()));
+		sct.set("requestTimeoutCPUThreshold", Caster.toDouble(config.getRequestTimeoutCPUThreshold()));
+		sct.set("requestTimeoutMemoryThreshold", Caster.toDouble(config.getRequestTimeoutMemoryThreshold()));
 
 	}
 
 	private void doGetQueueSetting() throws PageException {
 		Struct sct = new StructImpl();
 		pageContext.setVariable(getString("admin", action, "returnVariable"), sct);
-		sct.set(KeyConstants._max, Caster.toInteger(config.getQueueMax()));
-		sct.set(KeyConstants._timeout, Caster.toInteger(config.getQueueTimeout()));
-		sct.set("enable", Caster.toBoolean(config.getQueueEnable()));
+		sct.set("requestQueueMax", Caster.toInteger(config.getQueueMax()));
+		sct.set("requestQueueTimeout", Caster.toInteger(config.getQueueTimeout()));
+		sct.set("requestQueueEnable", Caster.toBoolean(config.getQueueEnable()));
 	}
 
 	private void doGetOutputSetting() throws PageException {
@@ -5268,9 +5265,9 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		Struct sct = new StructImpl();
 		ConfigPro c = ThreadLocalPageContext.getConfigServer(config);
 		pageContext.setVariable(getString("admin", action, "returnVariable"), sct);
-		sct.set(KeyConstants._captcha, Caster.toBoolean(c.getLoginCaptcha()));
-		sct.set(KeyConstants._delay, Caster.toDouble(c.getLoginDelay()));
-		sct.set(KeyConstants._rememberMe, Caster.toBoolean(c.getRememberMe()));
+		sct.set("loginCaptcha", Caster.toBoolean(c.getLoginCaptcha()));
+		sct.set("loginDelay", Caster.toDouble(c.getLoginDelay()));
+		sct.set("loginRememberme", Caster.toBoolean(c.getRememberMe()));
 		if (c instanceof ConfigWebPro) {
 			ConfigWebPro cw = (ConfigWebPro) c;
 			sct.set(KeyConstants._origin, "server");

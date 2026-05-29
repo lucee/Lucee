@@ -965,13 +965,13 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				it(title="checking getDebugSetting()", body=function( currentSpec ) {
 					var deguggingListSetting = admin.getDebugSetting();
 					assertEquals(isstruct(deguggingListSetting) ,true);
-					assertEquals(listSort( structKeyList(deguggingListSetting),'textnocase'), 'maxLogs');
+					assertEquals(listSort( structKeyList(deguggingListSetting),'textnocase'), 'debuggingMaxRecordsLogged');
 				});
 
 				it(title="checking updateDebugSetting()", body=function( currentSpec ) {
-					admin.updateDebugSetting( maxLogs=100 );
+					admin.updateDebugSetting( debuggingMaxRecordsLogged=100 );
 					var debuggingListSetting = admin.getDebugSetting();
-					assertEquals(debuggingListSetting.maxLogs EQ 100, true);
+					assertEquals(debuggingListSetting.debuggingMaxRecordsLogged EQ 100, true);
 				});
 
 				it(title="checking resetDebugSetting()", body=function( currentSpec ) {
@@ -979,14 +979,14 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					adminWeb.resetDebugSetting();
 					var adminWebDebuggingListSetting = adminWeb.getDebugSetting();
 
-					assertEquals(adminWebDebuggingListSetting.maxLogs EQ adminDebuggingListSetting.maxLogs, true);
+					assertEquals(adminWebDebuggingListSetting.debuggingMaxRecordsLogged EQ adminDebuggingListSetting.debuggingMaxRecordsLogged, true);
 				});
 
 				it(title="checking getDebug()", body=function( currentSpec ) {
 					var debuggingSetting = admin.getDebug();
 					assertEquals(isstruct(debuggingSetting) ,true);
-					var props="database,debug,dump,exception,implicitAccess,queryUsage,timer,tracing,"
-						& "template,thread"; // new in 6
+					var props="debuggingDatabase,debug,debuggingDump,debuggingException,debuggingImplicitAccess,debuggingQueryUsage,debuggingTimer,debuggingTracing,"
+						& "debuggingTemplate,debuggingThread"; // new in 6
 					loop list=props item="local.prop"{
 						expect( debuggingSetting ).toHaveKey( prop );
 					}
@@ -994,16 +994,16 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				});
 
 				it(title="checking updateDebug()", body=function( currentSpec ) {
-					admin.updateDebug( implicitAccess=true );
+					admin.updateDebug( debuggingImplicitAccess=true );
 					var debuggingSetting = admin.getDebug();
-					assertEquals(debuggingSetting.implicitAccess EQ true, true);
+					assertEquals(debuggingSetting.debuggingImplicitAccess EQ true, true);
 				});
 
 				it(title="checking resetDebug()", body=function( currentSpec ) {
 					var adminDebuggingSetting = admin.getDebug();
 					adminWeb.resetDebug();
 					var adminWebDebuggingSetting = adminWeb.getDebug();
-					var columnlists = ["database","debug","dump","exception","implicitAccess","queryUsage","timer","tracing"];
+					var columnlists = ["debuggingDatabase","debug","debuggingDump","debuggingException","debuggingImplicitAccess","debuggingQueryUsage","debuggingTimer","debuggingTracing"];
 
 					for(var columnlist in columnlists){
 						// assertEquals(adminWebDebuggingSetting["#columnlist#"] EQ adminDebuggingSetting["#columnlist#"], true);
@@ -1188,18 +1188,18 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				it(title="checking getLoginSettings()", body=function( currentSpec ) {
 					var loginSettings = admin.getLoginSettings();
 					assertEquals(isstruct(loginSettings) ,true);
-					loop list="captcha,delay,rememberme" item="local.prop" {
+					loop list="loginCaptcha,loginDelay,loginRememberme" item="local.prop" {
 						expect(loginSettings).toHaveKey(prop);
 					}
 				});
 
 				it(title="checking updateLoginSettings()", body=function( currentSpec ) {
 					var tmpStrt = {};
-					tmpStrt.captcha = "true";
+					tmpStrt.loginCaptcha = "true";
 					admin.updateLoginSettings(argumentCollection=tmpStrt);
 					var loginSettings = admin.getLoginSettings();
 					assertEquals(isstruct(loginSettings) ,true);
-					assertEquals(loginSettings.captcha EQ 'true' ,true);
+					assertEquals(loginSettings.loginCaptcha EQ 'true' ,true);
 				});
 			});
 
@@ -1433,6 +1433,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					assertEquals(isStruct(appSetting) ,true);
 					var props="AllowURLRequestTimeout,requestTimeout,requestTimeout_day,requestTimeout_hour,"
 						& "requestTimeout_minute,requestTimeout_second,scriptProtect,"
+						& "requestTimeoutConcurrentRequestThreshold,requestTimeoutCPUThreshold,requestTimeoutMemoryThreshold,"
 						& "applicationPathTimeout,applicationPathTimeout_day,applicationPathTimeout_hour,applicationPathTimeout_minute,applicationPathTimeout_second"; // new in 6
 					loop list=props item="local.prop" {
 						expect( appSetting ).toHaveKey( prop );
@@ -1479,16 +1480,16 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				it(title="checking getQueueSetting()", body=function( currentSpec ) {
 					var queueSettings = admin.getQueueSetting();
 					assertEquals(isstruct(queueSettings) ,true);
-					assertEquals(listSort( structKeyList(queueSettings),'textnocase'), 'enable,max,timeout');
+					assertEquals(listSort( structKeyList(queueSettings),'textnocase'), 'requestQueueEnable,requestQueueMax,requestQueueTimeout');
 				});
 
 				it(title="checking updateQueueSetting()", body=function( currentSpec ) {
-					admin.updateQueueSetting(enable=true,max="100",timeout='3600');
+					admin.updateQueueSetting(requestQueueEnable=true,requestQueueMax="100",requestQueueTimeout='3600');
 					var updateQueueSetting = admin.getQueueSetting();
 					assertEquals(isStruct(updateQueueSetting),true);
-					assertEquals(structKeyExists(updateQueueSetting, "enable") && isBoolean(updateQueueSetting.enable),true);
-					assertEquals(structKeyExists(updateQueueSetting, "max") && (updateQueueSetting.max EQ 100),true);
-					assertEquals(structKeyExists(updateQueueSetting, "timeout") && (updateQueueSetting.timeout EQ 3600), true);
+					assertEquals(structKeyExists(updateQueueSetting, "requestQueueEnable") && isBoolean(updateQueueSetting.requestQueueEnable),true);
+					assertEquals(structKeyExists(updateQueueSetting, "requestQueueMax") && (updateQueueSetting.requestQueueMax EQ 100),true);
+					assertEquals(structKeyExists(updateQueueSetting, "requestQueueTimeout") && (updateQueueSetting.requestQueueTimeout EQ 3600), true);
 				});
 			});
 
@@ -1531,7 +1532,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 
 				afterEach(function( currentSpec ){
 					if(currentSpec == 'checking updateCustomTagSetting()'){
-						customTag_Setting.extensions = ArraytoList(customTag_Setting.extensions);
+						customTag_Setting.customTagExtensions = ArraytoList(customTag_Setting.customTagExtensions);
 						adminWeb.updateCustomTagSetting(argumentCollection = customTag_Setting);
 					}
 
@@ -1543,7 +1544,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				it(title="checking getCustomTagSetting()", body=function( currentSpec ) {
 					var customTagSetting = adminWeb.getCustomTagSetting();
 					assertEquals(isstruct(customTagSetting) ,true);
-					var props = "customTagDeepSearch,customTagLocalSearch,customTagPathCache,deepSearch,extensions,localSearch";
+					var props = "customTagDeepSearch,customTagExtensions,customTagLocalSearch,customTagUseCachePath";
 					loop list=props item="local.prop" {
 						expect( customTagSetting ).toHaveKey( prop );
 					}
@@ -1552,12 +1553,12 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 
 				it(title="checking updateCustomTagSetting()", body=function( currentSpec ) {
 					var customTagSetting = adminWeb.getCustomTagSetting();
-					customTagSetting.deepSearch = true;
+					customTagSetting.customTagDeepSearch = true;
 					customTagSetting.customTagLocalSearch = false;
-					customTagSetting.extensions = ArraytoList(customTagSetting.extensions);
+					customTagSetting.customTagExtensions = ArraytoList(customTagSetting.customTagExtensions);
 					adminWeb.updateCustomTagSetting(argumentCollection = customTagSetting);
 					var updatedSetting = adminWeb.getCustomTagSetting();
-					assertEquals( updatedSetting.deepSearch EQ true, true );
+					assertEquals( updatedSetting.customTagDeepSearch EQ true, true );
 				});
 
 				it(title="checking updatecustomtag()", body=function( currentSpec ) {

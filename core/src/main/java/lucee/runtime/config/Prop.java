@@ -410,6 +410,8 @@ public class Prop<T> {
 		return null;
 	}
 
+	// the admin input is always a flat struct keyed by the config key(s), so the value is read flat
+	// (ignoring any parent), while it is stored under this prop's canonical parent + keys[0]
 	public void write(ConfigServerImpl config, Struct input) throws PageException {
 
 		Struct root = config.raw();
@@ -421,7 +423,7 @@ public class Prop<T> {
 			}
 		}
 
-		T existing = get(config, input, false);
+		T existing = getFromInput(config, input);
 		Object serialized = null;
 		if (choices != null) {
 			boolean matchFound = false;
@@ -459,6 +461,15 @@ public class Prop<T> {
 
 	}
 
+	private T getFromInput(ConfigServerImpl config, Struct input) throws PageException {
+		for (String key: keys) {
+			final Object val = input.get(KeyImpl.init(key), null);
+			if (StringUtil.isEmpty(val)) continue;
+			return get(config, key, val, Prop.SOURCE_CFCONFIG);
+		}
+		return defaultValue;
+	}
+
 	public Map<String, T> map(ConfigServerImpl config, Struct root) {
 		return map(config, root, new ConcurrentHashMap<>(), true, KeyConstants._name);
 	}
@@ -480,7 +491,6 @@ public class Prop<T> {
 			if (customEnvVarSystemProps != null) {
 				throw new RuntimeException("not supported yet");
 			}
-			print.e("--- check var ---");
 
 			// env var
 			if (checkEnv) {

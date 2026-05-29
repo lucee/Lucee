@@ -22,7 +22,7 @@
 					password="#session["password" & request.adminType]#"
 					loginRememberme="#structKeyExists(form,"loginRememberme") and form.loginRememberme#"
 					loginCaptcha="#structKeyExists(form,"loginCaptcha") and form.loginCaptcha#"
-					loginDelay="#form.delay#">
+					loginDelay="#form.loginDelay#">
 
 		</cfcase>
 	<!--- CHANGE --->
@@ -91,13 +91,13 @@ Error Output --->
 						<td>
 							<cfmodule template="systemSetting.cfm" 
 								name="loginCaptcha" 
-								value="#settings.captcha#"
+								value="#settings.loginCaptcha#"
 								access="true"
 								description="#stText.Login.useCaptchaDesc#"
 								br=false
 								sp=false
 								descOnTop=false>
-								<cfinputClassic type="checkbox" class="checkbox" name="loginCaptcha" checked="#settings.captcha#" value="true">
+								<cfinputClassic type="checkbox" class="checkbox" name="loginCaptcha" checked="#settings.loginCaptcha#" value="true">
 							</cfmodule>
 						</td>
 					</tr>
@@ -106,15 +106,15 @@ Error Output --->
 						<td>
 							<cfmodule template="systemSetting.cfm" 
 								name="loginDelay" 
-								value="#settings.delay#"
+								value="#settings.loginDelay#"
 								access="true"
 								description="#stText.Login.delayDesc#"
 								br=false
 								sp=false
 								descOnTop=false>
-							<select name="delay"><cfset hasDelay=false>
-								<cfloop list="0,1,5,10,30,60" index="i"><option  value="#i#" <cfif settings.delay EQ i><cfset hasDelay=true>selected="selected"</cfif>>#i#  #stText.Login.seconds#</option></cfloop>
-								<cfif not hasDelay><option value="#settings.delay#" selected="selected">#settings.delay# #stText.Login.seconds#</option></cfif>
+							<select name="loginDelay"><cfset hasDelay=false>
+								<cfloop list="0,1,5,10,30,60" index="i"><option  value="#i#" <cfif settings.loginDelay EQ i><cfset hasDelay=true>selected="selected"</cfif>>#i#  #stText.Login.seconds#</option></cfloop>
+								<cfif not hasDelay><option value="#settings.loginDelay#" selected="selected">#settings.loginDelay# #stText.Login.seconds#</option></cfif>
 							</select> 
 							</cfmodule>
 							<div class="comment">#stText.Login.delayDesc#</div>
@@ -125,13 +125,13 @@ Error Output --->
 						<td>
 							<cfmodule template="systemSetting.cfm" 
 								name="loginRememberme" 
-								value="#settings.rememberme#" 
+								value="#settings.loginRememberme#" 
 								access="true"
 								description="#stText.Login.rememberMeEnableDesc#"
 								br=false
 								sp=false
 								descOnTop=false>
-								<cfinputClassic type="checkbox" class="checkbox" name="loginRememberme" checked="#settings.rememberme#" value="true">
+								<cfinputClassic type="checkbox" class="checkbox" name="loginRememberme" checked="#settings.loginRememberme#" value="true">
 							</cfmodule>
 						</td>
 					</tr>

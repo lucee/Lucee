@@ -38,25 +38,30 @@
 			<cfadmin action="updateDebug"
 					type="#request.adminType#"
 					password="#session["password"&request.adminType]#"
-					monitoring="#{
-						"debuggingDatabase":form.monitoring_debuggingDatabase?:false,
-						"debuggingException":form.monitoring_debuggingException?:false,
-						"debuggingTracing" :form.monitoring_debuggingTracing?:false,
-						"debuggingDump":form.monitoring_debuggingDump?:false,
-						"debuggingTimer" :form.monitoring_debuggingTimer?:false,
-						"debuggingImplicitAccess" :form.monitoring_debuggingImplicitAccess?:false,
-						"debuggingQueryUsage" :form.monitoring_debuggingQueryUsage?:false,
-						"debuggingTemplate":form.monitoring_debuggingTemplate?:false,
-						"debuggingThread":form.monitoring_debuggingThread?:false
-					}#">
+					debuggingDatabase="#form.debuggingDatabase?:false#"
+					debuggingException="#form.debuggingException?:false#"
+					debuggingTracing="#form.debuggingTracing?:false#"
+					debuggingDump="#form.debuggingDump?:false#"
+					debuggingTimer="#form.debuggingTimer?:false#"
+					debuggingImplicitAccess="#form.debuggingImplicitAccess?:false#"
+					debuggingQueryUsage="#form.debuggingQueryUsage?:false#"
+					debuggingTemplate="#form.debuggingTemplate?:false#"
+					debuggingThread="#form.debuggingThread?:false#">
 		</cfcase>
 		<cfcase value="#stText.Buttons.resetServerAdmin#">
 
 				<cfadmin action="updateDebug"
 					type="#request.adminType#"
 					password="#session["password"&request.adminType]#"
-					
-					monitoring="#{}#">
+					debuggingDatabase=""
+					debuggingException=""
+					debuggingTracing=""
+					debuggingDump=""
+					debuggingTimer=""
+					debuggingImplicitAccess=""
+					debuggingQueryUsage=""
+					debuggingTemplate=""
+					debuggingThread="">
 		</cfcase>
 
 	</cfswitch>
@@ -116,21 +121,22 @@ Redirtect to entry --->
 								
 
 										<cfloop list="template,database,exception,tracing,dump,timer,implicitAccess,thread" item="item">
+										<cfset cfgKey = "debugging" & ucFirst(item)>
 										<tr>
 											<th scope="row">#stText.debug.settings[item]#</th>
 											<td>
-												<cfset lbl = _debug[item] ? stText.general.yes : stText.general.no>
+												<cfset lbl = _debug[cfgKey] ? stText.general.yes : stText.general.no>
 												
 												<cfmodule template="systemSetting.cfm"
-													name="monitoring_debugging#ucFirst(item)#" 
-													value="#_debug[item]#"
+													name="#cfgKey#" 
+													value="#_debug[cfgKey]#"
 													access="#hasAccess#"
 													description="#stText.debug.settings[item&"Desc"]#"
 													br=false
 													sp=true
 													descOnTop=false>
 													<label>
-														<input type="checkbox" class="checkbox" name="monitoring_debugging#ucFirst(item)#" value="true"  <cfif item EQ "database">id="sp_radio_qu"</cfif> #_debug[item] ? 'checked="checked"' : ''#>
+														<input type="checkbox" class="checkbox" name="#cfgKey#" value="true"  <cfif item EQ "database">id="sp_radio_qu"</cfif> #_debug[cfgKey] ? 'checked="checked"' : ''#>
 													</label>
 												</cfmodule>
 												<cfif structKeyExists(stText.debug.settings, item&"Alert")>
@@ -146,17 +152,17 @@ Redirtect to entry --->
 														<th scope="row">#stText.debug.settings.queryUsage#</th>
 														<td>
 															<cfmodule template="systemSetting.cfm"
-																name="monitoring_debuggingQueryUsage" 
-																value="#_debug.queryUsage#"
+																name="debuggingQueryUsage" 
+																value="#_debug.debuggingQueryUsage#"
 																access="#hasAccess#"
 																description="#stText.debug.settings["queryUsageDesc"]#"
 																br=false
 																sp=true
-																descOnTop=false>#_debug.queryUsage#
-															<cfset lbl = _debug.queryUsage ? stText.general.yes : stText.general.no>
+																descOnTop=false>#_debug.debuggingQueryUsage#
+															<cfset lbl = _debug.debuggingQueryUsage ? stText.general.yes : stText.general.no>
 																<label><input type="checkbox" class="checkbox" 
-																	name="monitoring_debuggingQueryUsage" 
-																	value="true" #_debug.queryUsage ? 'checked="checked"' : ''#>
+																	name="debuggingQueryUsage" 
+																	value="true" #_debug.debuggingQueryUsage ? 'checked="checked"' : ''#>
 																</label>
 															</cfmodule>
 														</td>

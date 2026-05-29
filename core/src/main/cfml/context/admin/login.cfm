@@ -61,7 +61,7 @@
 						</select>
 					</td>
 				</tr>
-				<cfif loginSettings.captcha>
+				<cfif loginSettings.loginCaptcha>
 					<cfif extensionExists("B03E92E1-F2F3-4380-981922D0BDFEF2B8")>
 						<cfset cap=createRandomText(6)>
 						<cfset session.cap=cap>
@@ -103,7 +103,7 @@
 						</tr>
 					</cfif>
 				</cfif>
-				<cfif loginSettings.rememberMe>
+				<cfif loginSettings.loginRememberme>
 				<tr>
 					<th scope="row" class="right" nowrap="nowrap">#stText.Login.rememberMe#</th>
 					<td>

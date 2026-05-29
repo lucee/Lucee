@@ -75,7 +75,7 @@
 		type="#request.adminType#"
 		returnVariable="loginSettings">
 
-	<cfset loginPause = loginSettings.delay>
+	<cfset loginPause = loginSettings.loginDelay>
 	<cfset keyLTL="lastTryToLogin"&":"& request.adminType&":"&(cgi.context_path?:"")>
 	<cfif loginPause && structKeyExists(application, keyLTL) && isDate(application[keyLTL]) && DateDiff("s", application[keyLTL], now()) LT loginPause>
 		<cfset login_error = "Login disabled until #lsDateFormat(dateAdd("s", loginPause, application[keyLTL]))# #lsTimeFormat(dateAdd("s", loginPause, application[keyLTL]),'hh:mm:ss')#">
@@ -83,7 +83,7 @@
 		<cfset application[keyLTL] = now()>
 		<cfparam name="form.captcha" default="">
 
-		<cfif loginSettings.captcha && structKeyExists(session, "cap") && compare(form.captcha,session.cap) != 0>
+		<cfif loginSettings.loginCaptcha && structKeyExists(session, "cap") && compare(form.captcha,session.cap) != 0>
 			<cfset login_error = "Invalid security code (captcha) definition">
 		<cfelse>
 			<cfadmin action="hashPassword"

@@ -54,18 +54,10 @@ Defaults --->
 
 					scriptProtect="#form.scriptProtect#"
 					AllowURLRequestTimeout="#structKeyExists(form,'requestTimeoutInURL') and form.requestTimeoutInURL#"
-					requestTimeout="#
-						{
-							"span":CreateTimeSpan(form.requestTimeout_span_days,form.requestTimeout_span_hours,form.requestTimeout_span_minutes,form.requestTimeout_span_seconds),
-							"concurrentrequestthreshold":form.requestTimeout_concurrentrequestthreshold?:0,
-							"cputhreshold":form.requestTimeout_cputhreshold?:0,
-							"memorythreshold":form.requestTimeout_memorythreshold?:0
-
-							
-						}
-					#"
-					
-					
+					requestTimeout="#CreateTimeSpan(form.requestTimeout_span_days,form.requestTimeout_span_hours,form.requestTimeout_span_minutes,form.requestTimeout_span_seconds)#"
+					requestTimeoutConcurrentRequestThreshold="#form.requestTimeout_concurrentrequestthreshold?:0#"
+					requestTimeoutCPUThreshold="#form.requestTimeout_cputhreshold?:0#"
+					requestTimeoutMemoryThreshold="#form.requestTimeout_memorythreshold?:0#"
 					>
 
 				<cfif request.admintype =="server">
@@ -103,7 +95,7 @@ Defaults --->
 
 					scriptProtect=""
 					AllowURLRequestTimeout=""
-					requestTimeout="#{}#"
+					requestTimeout=""
 					applicationPathTimeout=""
 					
 					remoteClients="#request.getRemoteClients()#">
@@ -474,7 +466,7 @@ Error Output --->
 					<td>
 						<cfmodule template="systemSetting.cfm" 
 							name="requestQueueEnable" 
-							value="#queueSettings.enable#"
+							value="#queueSettings.requestQueueEnable#"
 							access="#hasAccess#"
 							description="#stText.application.ConcurrentRequestEnableDesc#"
 							br=false
@@ -482,7 +474,7 @@ Error Output --->
 							descOnTop=false>
 						<span id="ConcurrentRequestEnableSpan">
 							<input type="checkbox" name="requestQueueEnable" value="true" class="checkbox"
-							<cfif queueSettings.enable>  checked="checked"</cfif>>
+							<cfif queueSettings.requestQueueEnable>  checked="checked"</cfif>>
 						
 						</span>
 </cfmodule>
@@ -494,13 +486,13 @@ Error Output --->
 					<td>
 						<cfmodule template="systemSetting.cfm" 
 							name="requestQueueMax" 
-							value="#queueSettings.max#"
+							value="#queueSettings.requestQueueMax#"
 							access="#hasAccess#"
 							description="#stText.application.ConcurrentRequestMaxDesc#"
 							br=false
 							sp=false
 							descOnTop=false>
-							<cfinputClassic type="text" name="ConcurrentRequestMax" value="#queueSettings.max#"
+							<cfinputClassic type="text" name="ConcurrentRequestMax" value="#queueSettings.requestQueueMax#"
 									class="number" required="yes" validate="integer" id="ConcurrentRequestMax"
 									message="#stText.application.ConcurrentRequestMaxError#">
 
@@ -513,7 +505,7 @@ Error Output --->
 					<th scope="row">#stText.application.ConcurrentRequestTimeout#</th>
 					<td>
 						<cfscript>
-							seconds=int(queueSettings.timeout/1000);
+							seconds=int(queueSettings.requestQueueTimeout/1000);
 							minutes=int(seconds/60);
 							seconds-=minutes*60;
 							hours=int(minutes/60);

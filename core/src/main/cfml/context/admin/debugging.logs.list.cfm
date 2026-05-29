@@ -11,7 +11,7 @@
 					<td>
 						<cfmodule template="systemSetting.cfm" 
 								name="debuggingMaxRecordsLogged" 
-								value="#setting.maxLogs#" 
+								value="#setting.debuggingMaxRecordsLogged#" 
 								access="true"
 								description=""
 								br=false
@@ -20,10 +20,10 @@
 							<select name="debuggingMaxRecordsLogged">
 							<cfset selected=false>
 							<cfloop list="10,20,50,100,200,500,1000" index="idx">
-								<option <cfif idx EQ setting.maxLogs><cfset selected=true>selected="selected"</cfif> value="#idx#">#idx#</option>
+								<option <cfif idx EQ setting.debuggingMaxRecordsLogged><cfset selected=true>selected="selected"</cfif> value="#idx#">#idx#</option>
 							</cfloop>
 							<cfif !selected>
-								<option selected="selected" value="#setting.maxLogs#">#setting.maxLogs#</option>
+								<option selected="selected" value="#setting.debuggingMaxRecordsLogged#">#setting.debuggingMaxRecordsLogged#</option>
 							</cfif>
 						</select>
 						</cfmodule>
