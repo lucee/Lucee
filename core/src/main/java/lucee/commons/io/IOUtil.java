@@ -74,6 +74,9 @@ public final class IOUtil {
 	private static final ThreadLocal<byte[]> BYTE_ARRAY_POOL = ThreadLocal.withInitial( () -> new byte[DEFAULT_BLOCK_SIZE] );
 	private static final ThreadLocal<char[]> CHAR_BUFFER_POOL = ThreadLocal.withInitial( () -> new char[DEFAULT_BLOCK_SIZE] );
 
+	// Tika.detect is thread-safe; share a single instance across all getMimeType callers
+	private static final Tika TIKA = new Tika();
+
 	/**
 	 * copy an inputstream to an outputstream
 	 * 
@@ -1264,8 +1267,7 @@ public final class IOUtil {
 	 */
 	public static String getMimeType(byte[] barr, String defaultValue) {
 		try {
-			Tika tika = new Tika();
-			return tika.detect(barr);
+			return TIKA.detect(barr);
 		}
 		catch (Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);
@@ -1279,8 +1281,7 @@ public final class IOUtil {
 
 	public static String getMimeType(String fileName, String defaultValue) {
 		try {
-			Tika tika = new Tika();
-			return tika.detect(fileName);
+			return TIKA.detect(fileName);
 		}
 		catch (Exception e) {
 			return defaultValue;
@@ -1297,8 +1298,7 @@ public final class IOUtil {
 
 		InputStream is = null;
 		try {
-			Tika tika = new Tika();
-			String result = tika.detect(is = res.getInputStream(), md);
+			String result = TIKA.detect(is = res.getInputStream(), md);
 			if (result.indexOf("tika") != -1) {
 				String tmp = ResourceUtil.EXT_MT.get(ext != null ? ext : ResourceUtil.getExtension(res, "").toLowerCase());
 				if (!StringUtil.isEmpty(tmp)) return tmp;
@@ -1318,8 +1318,7 @@ public final class IOUtil {
 
 	public static String getMimeType(URL url, String defaultValue) {
 		try {
-			Tika tika = new Tika();
-			return tika.detect(url);
+			return TIKA.detect(url);
 		}
 		catch (Exception e) {
 			return defaultValue;
