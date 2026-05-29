@@ -3,7 +3,9 @@
 	if(isNull(application.systemPropOrEnvVarInfo)) {
 		application.systemPropOrEnvVarInfo=GetSystemPropOrEnvVarInfo();
 	}
-	data=application.systemPropOrEnvVarInfo[attributes.name];
+	// the form field uses the flat config key (attributes.name), while the env-var/system-prop info is
+	// keyed by the parent-qualified name (e.g. "monitoring_debuggingTemplate"); allow them to differ
+	data=application.systemPropOrEnvVarInfo[attributes.propName?:attributes.name];
 	renderCodingTip=caller.renderCodingTip;
 	formatForConsole=caller.formatForConsole;
 	stText=caller.stText;
@@ -161,7 +163,7 @@
 	<cfif attributes.sp?:true>
 		<cfset renderCodingTip( codeTip, attributes.codeTipDesc?:"")>
 	</cfif>
-	<cfset caller.renderSettings( attributes.name,settingsVal)>
+	<cfset caller.renderSettings( attributes.propName?:attributes.name,settingsVal)>
 
 </cfoutput>
 

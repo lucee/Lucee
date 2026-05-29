@@ -601,7 +601,7 @@ Error Output --->
 							descOnTop=false>
 						
 						<span id="singleton">
-							<input type="checkbox" name="singleton" value="true" class="checkbox"
+							<input type="checkbox" name="listenerSingleton" value="true" class="checkbox"
 							<cfif (listener.singleton?:false)>  checked="checked"</cfif>>
 						</span>
 						</cfmodule>

@@ -62,9 +62,10 @@ public class ResourceProviderDefFactory implements PropFactory<ResourceProviderD
 			if (schemeRequired && StringUtil.isEmpty(scheme)) {
 				throw new ApplicationException("scheme is required");
 			}
+			// no class defined: let the engine inject the built-in default provider for this scheme
+			// (e.g. a declared "s3" entry without a class falls back to DummyS3ResourceProvider)
 			if (!cd.hasClass()) {
-				throw new ApplicationException("no class defined");
-
+				return null;
 			}
 			if ("lucee.commons.io.res.type.ftp.FTPResourceProvider".equals(cd.getClassName())) {
 				cd = new ClassDefinitionImpl("org.lucee.extension.ftp.vfs.FTPResourceProvider", "org.lucee:ftp");

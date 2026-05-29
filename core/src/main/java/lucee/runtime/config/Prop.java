@@ -17,7 +17,6 @@ import java.util.Set;
 import java.util.TimeZone;
 import java.util.concurrent.ConcurrentHashMap;
 
-import lucee.print;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.lang.CharsetX;
@@ -496,18 +495,13 @@ public class Prop<T> {
 			if (checkEnv) {
 				for (String key: envVarSystemProps()) {
 					Object val = SystemUtil.getSystemPropOrEnvVarObject(key, null);
-					print.e(val);
 					if (StringUtil.isEmpty(val)) continue;
 
-					print.e("not empty");
 					Struct sct = Caster.toStruct(val, null);
-					print.e(sct);
 					if (sct == null) {
 						sct = arrayToStruct(fieldName, val, null);
 					}
 
-					print.e("is struct");
-					print.e(sct);
 					if (sct == null) continue;
 					_map(config, sct, map, Prop.SOURCE_SYSPROPENVVAR);
 				}
@@ -544,26 +538,20 @@ public class Prop<T> {
 	}
 
 	private Struct arrayToStruct(Key fieldName, Object val, Struct defaultValue) {
-		print.e("array-2-struct");
 		Object[] arr = Caster.toNativeArray(val, null);
-		print.e(arr);
 
 		if (arr == null || arr.length == 0) return defaultValue;
-		print.e(arr.length);
 		Struct structs = new StructImpl();
 		Struct tmp;
 		String name;
 		for (Object o: arr) {
 			tmp = Caster.toStruct(o, null);
-			print.e(tmp);
 
 			if (tmp == null) continue;
 			name = Caster.toString(tmp.get(fieldName, null), null);
-			print.e(name);
 			if (StringUtil.isEmpty(name)) continue;
 			structs.setEL(name, tmp);
 		}
-		print.e(structs);
 
 		return structs;
 	}
@@ -580,7 +568,9 @@ public class Prop<T> {
 			if (val == null || (handleEmptyAsNull && StringUtil.isEmpty(val, true)) || map.containsKey(key)) {
 				continue;
 			}
-			map.put(key, factory.evaluate(config, key, e.getValue(), source));
+			T evaluated = factory.evaluate(config, key, e.getValue(), source);
+			if (evaluated == null) continue;
+			map.put(key, evaluated);
 		}
 	}
 
@@ -653,7 +643,9 @@ public class Prop<T> {
 			if (val == null || (handleEmptyAsNull && StringUtil.isEmpty(val, true))) {
 				continue;
 			}
-			list.add(factory.evaluate(config, key, val, source));
+			T evaluated = factory.evaluate(config, key, val, source);
+			if (evaluated == null) continue;
+			list.add(evaluated);
 		}
 	}
 

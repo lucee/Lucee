@@ -129,6 +129,7 @@ Redirtect to entry --->
 												
 												<cfmodule template="systemSetting.cfm"
 													name="#cfgKey#" 
+													propName="monitoring_#cfgKey#"
 													value="#_debug[cfgKey]#"
 													access="#hasAccess#"
 													description="#stText.debug.settings[item&"Desc"]#"
@@ -153,6 +154,7 @@ Redirtect to entry --->
 														<td>
 															<cfmodule template="systemSetting.cfm"
 																name="debuggingQueryUsage" 
+																propName="monitoring_debuggingQueryUsage"
 																value="#_debug.debuggingQueryUsage#"
 																access="#hasAccess#"
 																description="#stText.debug.settings["queryUsageDesc"]#"

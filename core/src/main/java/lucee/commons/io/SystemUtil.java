@@ -68,7 +68,6 @@ import com.jezhumble.javasysmon.JavaSysMon;
 import com.jezhumble.javasysmon.MemoryStats;
 
 import jakarta.servlet.ServletContext;
-import lucee.print;
 import lucee.commons.collection.AccessOrderLimitedSizeMap;
 import lucee.commons.digest.MD5;
 import lucee.commons.io.log.Log;
@@ -106,7 +105,6 @@ import lucee.runtime.functions.other.CreateUniqueId;
 import lucee.runtime.functions.system.ContractPath;
 import lucee.runtime.functions.system.ExpandPath;
 import lucee.runtime.net.http.ReqRspUtil;
-import lucee.runtime.op.CastImpl;
 import lucee.runtime.op.Castable;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
@@ -1470,7 +1468,6 @@ public final class SystemUtil {
 
 		Struct sct = new StructImpl();
 		sct.set("root", result);
-		print.e(new CastImpl().fromStructToJsonString(sct));
 	}
 
 	public static void addLibraryPathIfNoExist(Resource res, Log log) {

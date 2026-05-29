@@ -994,9 +994,29 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				});
 
 				it(title="checking updateDebug()", body=function( currentSpec ) {
-					admin.updateDebug( debuggingImplicitAccess=true );
+					// round-trip every updatable debug option to verify the renamed update attribute and
+					// the getDebug() return key line up (debuggingTemplate has no update argument)
+					var options = "debuggingDatabase,debuggingException,debuggingTracing,debuggingDump,"
+						& "debuggingTimer,debuggingImplicitAccess,debuggingQueryUsage,debuggingThread";
+
+					var args = {};
+					loop list=options item="local.opt" {
+						args[ opt ] = true;
+					}
+					admin.updateDebug( argumentCollection=args );
 					var debuggingSetting = admin.getDebug();
-					assertEquals(debuggingSetting.debuggingImplicitAccess EQ true, true);
+					loop list=options item="local.opt" {
+						assertEquals( debuggingSetting[ opt ], true, opt & " should be true" );
+					}
+
+					loop list=options item="local.opt" {
+						args[ opt ] = false;
+					}
+					admin.updateDebug( argumentCollection=args );
+					debuggingSetting = admin.getDebug();
+					loop list=options item="local.opt" {
+						assertEquals( debuggingSetting[ opt ], false, opt & " should be false" );
+					}
 				});
 
 				it(title="checking resetDebug()", body=function( currentSpec ) {
@@ -1196,10 +1216,14 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				it(title="checking updateLoginSettings()", body=function( currentSpec ) {
 					var tmpStrt = {};
 					tmpStrt.loginCaptcha = "true";
+					tmpStrt.loginRememberme = "false";
+					tmpStrt.loginDelay = 7;
 					admin.updateLoginSettings(argumentCollection=tmpStrt);
 					var loginSettings = admin.getLoginSettings();
 					assertEquals(isstruct(loginSettings) ,true);
-					assertEquals(loginSettings.loginCaptcha EQ 'true' ,true);
+					assertEquals(loginSettings.loginCaptcha EQ true ,true);
+					assertEquals(loginSettings.loginRememberme EQ false ,true);
+					assertEquals(loginSettings.loginDelay EQ 7 ,true);
 				});
 			});
 
