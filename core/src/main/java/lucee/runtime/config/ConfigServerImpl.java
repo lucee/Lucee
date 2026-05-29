@@ -7595,6 +7595,7 @@ public final class ConfigServerImpl implements ConfigServerPro {
 		ignores.add("getExtensionProviders");
 		ignores.add("getExtensions");
 		ignores.add("getConfigListener");
+		ignores.add("getAdminSyncClass");
 
 		if (filter == null) {
 			for (Method method: methods) {
