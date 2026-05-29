@@ -694,8 +694,13 @@ public class Prop<T> {
 						sct = root;
 					}
 					val = field.get(cs);
+					// LDEV-6362 unwrap lazy ConfigValue holders, mirroring the old nullable field semantics
+					if (val instanceof ConfigValue) {
+						ConfigValue<?> cv = (ConfigValue<?>) val;
+						val = cv.isInitialized() ? cv.peek() : null;
+					}
 					if (val != null && (full || !val.equals(p.defaultValue))) {
-						sct.set(name, field.get(cs));
+						sct.set(name, val);
 						sct.set(name.getString() + "_default", p.defaultValue);
 					}
 					// print.e("ok: " + key);
