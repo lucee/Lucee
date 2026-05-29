@@ -26,6 +26,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.Closeable;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -69,6 +70,8 @@ import lucee.runtime.reflection.Reflector;
 public final class IOUtil {
 
 	private static final int DEFAULT_BLOCK_SIZE = 0xffff;// 65535
+
+	public static final byte[] EMPTY_BYTE_ARRAY = new byte[0];
 
 	// ThreadLocal buffer pools to avoid repeated allocations in hot paths
 	private static final ThreadLocal<byte[]> BYTE_ARRAY_POOL = ThreadLocal.withInitial( () -> new byte[DEFAULT_BLOCK_SIZE] );
@@ -1098,11 +1101,25 @@ public final class IOUtil {
 	 */
 	@Deprecated
 	public static byte[] toBytes(File file) throws IOException {
+		long len = file.length();
+		if (len > 0 && len <= Integer.MAX_VALUE) {
+			// Size known — single direct allocation, no BAOS growth chain.
+			FileInputStream fis = null;
+			try {
+				fis = new FileInputStream(file);
+				byte[] result = new byte[(int) len];
+				int read = fis.readNBytes(result, 0, (int) len);
+				return (read == result.length) ? result : java.util.Arrays.copyOf(result, read);
+			}
+			finally {
+				close(fis);
+			}
+		}
+		// Unknown / zero (could be empty or unknown) — fall back to BAOS+pool path.
 		BufferedFileInputStream bfis = null;
 		try {
 			bfis = new BufferedFileInputStream(file);
-			byte[] barr = toBytes(bfis);
-			return barr;
+			return toBytes(bfis);
 		}
 		finally {
 			close(bfis);
@@ -1115,11 +1132,25 @@ public final class IOUtil {
 	 * @throws IOException
 	 */
 	public static byte[] toBytes(Resource res) throws IOException {
+		long len = res.length();
+		if (len > 0 && len <= Integer.MAX_VALUE) {
+			// Size known — single direct allocation, no BAOS growth chain.
+			InputStream is = null;
+			try {
+				is = res.getInputStream();
+				byte[] result = new byte[(int) len];
+				int read = is.readNBytes(result, 0, (int) len);
+				return (read == result.length) ? result : java.util.Arrays.copyOf(result, read);
+			}
+			finally {
+				close(is);
+			}
+		}
+		// Unknown / zero — fall back to BAOS+pool path.
 		BufferedInputStream bfis = null;
 		try {
 			bfis = toBufferedInputStream(res.getInputStream());
-			byte[] barr = toBytes(bfis);
-			return barr;
+			return toBytes(bfis);
 		}
 		finally {
 			close(bfis);
@@ -1173,7 +1204,12 @@ public final class IOUtil {
 
 	public static byte[] toBytes(InputStream is, boolean closeStream) throws IOException {
 		try {
-			return is.readAllBytes();
+			// Unknown-size path: BAOS+pool. copy() uses BYTE_ARRAY_POOL ThreadLocal
+			// for read chunks. Size-known callers (toBytes(Resource), toBytes(File),
+			// HTTP request body handlers) allocate directly and skip BAOS entirely.
+			ByteArrayOutputStream baos = new ByteArrayOutputStream();
+			copy(is, baos, false, true);
+			return baos.toByteArray();
 		}
 		finally {
 			if (closeStream) close(is);
@@ -1197,7 +1233,9 @@ public final class IOUtil {
 	}
 
 	public static byte[] toBytesMax(InputStream is, int max) throws IOException {
-		return is.readNBytes(max);
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		copy(is, baos, 0, max);
+		return baos.toByteArray();
 	}
 
 	/**

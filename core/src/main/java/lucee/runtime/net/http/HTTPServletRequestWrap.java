@@ -270,6 +270,12 @@ public final class HTTPServletRequestWrap implements HttpServletRequest, Seriali
 	}
 
 	private void storeEL() {
+		// Empty-body fast path — servlet API tells us upfront, avoids any stream read.
+		// Common in GET handlers that still call storeEL via getInputStream().
+		if (req.getContentLengthLong() == 0) {
+			bytes = IOUtil.EMPTY_BYTE_ARRAY;
+			return;
+		}
 		ServletInputStream is = null;
 		RefBoolean maxReached = new RefBooleanImpl();
 		try {
