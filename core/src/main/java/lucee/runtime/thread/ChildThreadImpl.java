@@ -107,6 +107,10 @@ public final class ChildThreadImpl extends ChildThread implements Serializable {
 
 	String contentEncoding;
 
+	// when virtual=true the body runs on this (virtual) carrier thread instead of this ChildThread itself
+	private volatile Thread carrier;
+	private boolean virtual;
+
 	private Object threadScope;
 
 	private ParentException parentException;
@@ -166,6 +170,59 @@ public final class ChildThreadImpl extends ChildThread implements Serializable {
 	@Override
 	public void run() {
 		execute(null);
+	}
+
+	public void setVirtual(boolean virtual) {
+		this.virtual = virtual;
+	}
+
+	public boolean isVirtualThread() {
+		return virtual;
+	}
+
+	/**
+	 * Starts the thread body. When {@link #isVirtualThread()} is true the body is executed on a Java
+	 * virtual thread (carrier), otherwise this ChildThread is started as a regular platform thread.
+	 */
+	public void startThread(int priority) {
+		if (virtual) {
+			carrier = ThreadUtil.getThread(this, true);
+			carrier.setName(getName());
+			carrier.start();
+		}
+		else {
+			setPriority(priority);
+			setDaemon(false);
+			start();
+		}
+	}
+
+	/**
+	 * @return the thread that actually executes the body: the virtual carrier when virtual, otherwise this
+	 */
+	public Thread getExecutionThread() {
+		Thread c = carrier;
+		return c != null ? c : this;
+	}
+
+	public boolean isThreadAlive() {
+		return getExecutionThread().isAlive();
+	}
+
+	public void joinThread() throws InterruptedException {
+		getExecutionThread().join();
+	}
+
+	public void joinThread(long millis) throws InterruptedException {
+		getExecutionThread().join(millis);
+	}
+
+	public Thread.State getExecutionState() {
+		return getExecutionThread().getState();
+	}
+
+	public StackTraceElement[] threadStackTrace() {
+		return getExecutionThread().getStackTrace();
 	}
 
 	public PageException execute(Config config) {
@@ -333,12 +390,16 @@ public final class ChildThreadImpl extends ChildThread implements Serializable {
 	@Override
 	public void interrupt() {
 		interrupted = true;
-		super.interrupt();
+		Thread c = carrier;
+		if (c != null) c.interrupt();
+		else super.interrupt();
 	}
 
 	@Override
 	public boolean isInterrupted() {
-		return interrupted || super.isInterrupted();
+		if (interrupted) return true;
+		Thread c = carrier;
+		return c != null ? c.isInterrupted() : super.isInterrupted();
 	}
 
 	/**

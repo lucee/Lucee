@@ -26,12 +26,14 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import lucee.commons.io.SystemUtil;
+import lucee.commons.io.log.Log;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.RandomUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.Page;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
@@ -98,6 +100,11 @@ public final class ThreadTag extends BodyTagImpl implements DynamicAttributes {
 	private Struct attrs;
 	private boolean separateScopes = true;
 	private boolean throwonerror = false;
+	private Boolean virtual;
+
+	// global default for the "virtual" attribute, overridable via system property / env var
+	private static final boolean DEFAULT_VIRTUAL = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.thread.virtual", "false"), false);
+	private static final java.util.concurrent.atomic.AtomicBoolean virtualWarned = new java.util.concurrent.atomic.AtomicBoolean(false);
 
 	@Override
 	public void release() {
@@ -113,6 +120,7 @@ public final class ThreadTag extends BodyTagImpl implements DynamicAttributes {
 		pc = null;
 		separateScopes = true;
 		throwonerror = false;
+		virtual = null;
 	}
 
 	/**
@@ -139,6 +147,13 @@ public final class ThreadTag extends BodyTagImpl implements DynamicAttributes {
 
 	public void setSeparatescopes(boolean separateScopes) {
 		this.separateScopes = separateScopes;
+	}
+
+	/**
+	 * @param virtual when true and supported, run the thread body on a Java virtual thread
+	 */
+	public void setVirtual(boolean virtual) {
+		this.virtual = virtual ? Boolean.TRUE : Boolean.FALSE;
 	}
 
 	/**
@@ -329,9 +344,8 @@ public final class ThreadTag extends BodyTagImpl implements DynamicAttributes {
 				PageContextImpl root = (PageContextImpl) getRootPageContext(pc);
 				root.setAllThreadScope(name, t);
 				pc.setThreadScope(name, t);
-				ct.setPriority(priority);
-				ct.setDaemon(false);
-				ct.start();
+				ct.setVirtual(useVirtual(pc));
+				ct.startThread(priority);
 			}
 			else {
 				ChildThreadImpl ct = new ChildThreadImpl((PageContextImpl) pc, currentPage, name.getString(), threadIndex, attrs, true, separateScopes);
@@ -427,6 +441,23 @@ public final class ThreadTag extends BodyTagImpl implements DynamicAttributes {
 
 	}
 
+	private boolean useVirtual(PageContext pc) {
+		boolean requested = virtual != null ? virtual.booleanValue() : DEFAULT_VIRTUAL;
+		if (!requested) return false;
+		if (SystemUtil.JAVA_VERSION >= SystemUtil.JAVA_VERSION_21) return true;
+		// virtual threads require Java 21+, fall back to a platform thread and warn once
+		if (virtualWarned.compareAndSet(false, true)) {
+			Log log = ThreadLocalPageContext.getLog(pc.getConfig(), "application");
+			if (log != null) log.log(Log.LEVEL_WARN, "thread", "cfthread attribute [virtual=true] requires Java 21 or newer, the current JVM is ["
+					+ System.getProperty("java.version") + "]. Falling back to a platform thread.");
+		}
+		return false;
+	}
+
+	private static boolean isAlive(ChildThread ct) {
+		return ct instanceof ChildThreadImpl ? ((ChildThreadImpl) ct).isThreadAlive() : ct.isAlive();
+	}
+
 	private void doJoin() throws ApplicationException, PageException {
 		List<String> all = null, names;
 		Key name = name(false);
@@ -464,10 +495,16 @@ public final class ThreadTag extends BodyTagImpl implements DynamicAttributes {
 
 			}
 
-			if (ct.isAlive()) {
+			if (isAlive(ct)) {
 				try {
-					if (remining > 0) ct.join(remining);
-					else ct.join();
+					if (ct instanceof ChildThreadImpl) {
+						if (remining > 0) ((ChildThreadImpl) ct).joinThread(remining);
+						else ((ChildThreadImpl) ct).joinThread();
+					}
+					else {
+						if (remining > 0) ct.join(remining);
+						else ct.join();
+					}
 				}
 				catch (InterruptedException e) {}
 			}
@@ -485,9 +522,9 @@ public final class ThreadTag extends BodyTagImpl implements DynamicAttributes {
 		if (ts == null) throw new ApplicationException("Terminate thread failed, there is no thread running with the name [" + nameAsString(false) + "]");
 		ChildThread ct = ts.getChildThread();
 
-		if (ct.isAlive()) {
+		if (isAlive(ct)) {
 			ct.terminated();
-			SystemUtil.stop(ct);
+			SystemUtil.stop(ct instanceof ChildThreadImpl ? ((ChildThreadImpl) ct).getExecutionThread() : ct);
 		}
 
 	}
@@ -504,7 +541,7 @@ public final class ThreadTag extends BodyTagImpl implements DynamicAttributes {
 		Threads ts = ThreadTag.getThreadScope(pc, name);
 		if (ts == null) throw new ApplicationException("Interrupt thread failed, there is no thread running with the name [" + nameAsString(false) + "]");
 		ChildThread ct = ts.getChildThread();
-		if (ct.isAlive()) {
+		if (isAlive(ct)) {
 			ct.interrupt();
 		}
 	}

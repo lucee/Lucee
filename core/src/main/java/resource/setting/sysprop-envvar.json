@@ -1224,6 +1224,16 @@
 		"default": 100
 	},
 	{
+		"sysprop": "lucee.thread.virtual",
+		"envvar": "LUCEE_THREAD_VIRTUAL",
+		"desc": "Global default for the `cfthread` `virtual` attribute (action=\"run\", type=\"daemon\"). When `true`, cfthreads run on Java virtual threads instead of platform threads unless the tag overrides it with `virtual=false`. Requires Java 21 or newer, otherwise it is ignored and a platform thread is used",
+		"category": "performance",
+		"tags": [ "cfthread" ],
+		"type": "boolean",
+		"introduced": "7.0.0.334",
+		"default": false
+	},
+	{
 		"sysprop": "lucee.threads.maxDefault",
 		"envvar": "LUCEE_THREADS_MAXDEFAULT",
 		"desc": "Sets the maximum number of parallel threads",

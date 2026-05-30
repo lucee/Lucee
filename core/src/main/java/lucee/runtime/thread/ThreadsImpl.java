@@ -60,9 +60,10 @@ public final class ThreadsImpl extends StructSupport implements lucee.runtime.ty
 	private static final Key KEY_STATUS = KeyConstants._STATUS;
 	private static final Key KEY_STACKTRACE = KeyConstants._STACKTRACE;
 	private static final Key KEY_CHILD_THREADS = KeyConstants._childThreads;
+	private static final Key KEY_VIRTUAL = KeyConstants._VIRTUAL;
 
 	private static final Key[] DEFAULT_KEYS = new Key[] { KEY_ELAPSEDTIME, KeyConstants._NAME, KEY_OUTPUT, KEY_PRIORITY, KEY_STARTTIME, KEY_STATUS, KEY_STACKTRACE,
-			KEY_CHILD_THREADS, KeyConstants._INTERRUPTED };
+			KEY_CHILD_THREADS, KeyConstants._INTERRUPTED, KEY_VIRTUAL };
 
 	private ChildThreadImpl ct;
 	private StructImpl uncoupled = null;
@@ -151,6 +152,7 @@ public final class ThreadsImpl extends StructSupport implements lucee.runtime.ty
 		if (KEY_ELAPSEDTIME.equalsIgnoreCase(key)) return getState().equals("TERMINATED") ? 0 : Double.valueOf(ct.getEndTime() - ct.getStartTime());
 		if (KeyConstants._NAME.equalsIgnoreCase(key)) return ct.getTagName();
 		if (KeyConstants._INTERRUPTED.equalsIgnoreCase(key)) return isInterrupted();
+		if (KEY_VIRTUAL.equalsIgnoreCase(key)) return Boolean.valueOf(ct.isVirtualThread());
 		if (KEY_OUTPUT.equalsIgnoreCase(key)) return getOutput();
 		if (KEY_PRIORITY.equalsIgnoreCase(key)) return ThreadUtil.toStringPriority(ct.getPriority());
 		if (KEY_STARTTIME.equalsIgnoreCase(key)) return new DateTimeImpl(ct.getStartTime());
@@ -168,7 +170,7 @@ public final class ThreadsImpl extends StructSupport implements lucee.runtime.ty
 	private String getStackTrace() {
 		StringBuilder sb = new StringBuilder();
 		try {
-			StackTraceElement[] trace = ct.getStackTrace();
+			StackTraceElement[] trace = ct.threadStackTrace();
 			if (trace != null) for (int i = 0; i < trace.length; i++) {
 				sb.append("\tat ");
 				sb.append(trace[i]);
@@ -200,7 +202,7 @@ public final class ThreadsImpl extends StructSupport implements lucee.runtime.ty
 
 	private Object getState() {
 		try {
-			State state = ct.getState();
+			State state = ct.getExecutionState();
 			if (State.NEW.equals(state)) return "NOT_STARTED";
 			if (State.WAITING.equals(state)) return "WAITING";
 			if (State.TERMINATED.equals(state)) {
@@ -215,7 +217,7 @@ public final class ThreadsImpl extends StructSupport implements lucee.runtime.ty
 			ExceptionUtil.rethrowIfNecessary(t);
 			if (ct.terminated || ct.catchBlock != null) return "TERMINATED";
 			if (ct.completed) return "COMPLETED";
-			if (!ct.isAlive()) return "WAITING";
+			if (!ct.isThreadAlive()) return "WAITING";
 			return "RUNNING";
 
 		}
@@ -444,7 +446,7 @@ public final class ThreadsImpl extends StructSupport implements lucee.runtime.ty
 		if (uncoupled != null) return false;
 		pc = ThreadLocalPageContext.get(pc);
 		if (pc == null) return true;
-		return pc.getThread() != ct;
+		return pc.getThread() != ct.getExecutionThread();
 	}
 
 	private ApplicationException errorOutside() {

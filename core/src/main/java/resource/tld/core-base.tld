@@ -5625,7 +5625,7 @@ To use cached data, the current query must use the same SQL statement, data sour
 				<name>run</name>
 				<label>Run Thread</label>
 				<description>`action="run"` - Create and execute a new thread with custom processing (supports dynamic attributes)</description>
-				<attributes>name,type,priority,retryInterval,separateScopes</attributes>
+				<attributes>name,type,priority,retryInterval,separateScopes,virtual</attributes>
 			</group>
 			<group>
 				<name>join</name>
@@ -5793,6 +5793,25 @@ To use cached data, the current query must use the same SQL statement, data sour
 				* When `false`: The thread directly accesses the caller's scopes. Changes made in the thread are immediately visible to the parent context. Use with caution as this can lead to race conditions and thread safety issues.
 
 				This attribute is useful when you need threads to share state, but requires careful synchronization to avoid data corruption.
+			</description>
+		</attribute>
+		<attribute>
+			<type>boolean</type>
+			<name>virtual</name>
+			<required>false</required>
+			<default-value>false</default-value>
+			<rtexprvalue>true</rtexprvalue>
+			<introduced>7.0.0.334</introduced>
+			<description>
+				Only applicable with `action="run"` and `type="daemon"`. Controls whether the thread runs on a Java virtual thread instead of a platform (operating system) thread. Defaults to `false`.
+
+				* When `true`: The thread body runs on a Java virtual thread. Virtual threads are lightweight and well suited to high-concurrency, I/O-bound workloads (for example many parallel HTTP calls or queries), allowing far more concurrent threads at a much lower cost than platform threads.
+
+				* When `false` (default): The thread runs on a regular platform thread, as in previous versions.
+
+				Requires Java 21 or newer. On older JVMs `virtual="true"` is ignored and the thread falls back to a platform thread (a warning is logged once). The global default can be changed with the system property `lucee.thread.virtual` (environment variable `LUCEE_THREAD_VIRTUAL`); this attribute always overrides that default.
+
+				Note that the `priority` attribute has no effect on virtual threads, as the JVM does not apply thread priorities to them.
 			</description>
 		</attribute>
 	</tag>
