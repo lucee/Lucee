@@ -684,8 +684,8 @@ public final class ScopeContext {
 					});
 
 			// store session/client scope and remove from memory
-			storeUnusedStorageScope(factory, Scope.SCOPE_CLIENT);
-			storeUnusedStorageScope(factory, Scope.SCOPE_SESSION);
+			storeUnusedStorageScope(factory, Scope.SCOPE_CLIENT, force);
+			storeUnusedStorageScope(factory, Scope.SCOPE_SESSION, force);
 
 			// remove unused memory based client/session scope (invoke onSessonEnd)
 			clearUnusedMemoryScope(factory, Scope.SCOPE_CLIENT);
@@ -753,7 +753,7 @@ public final class ScopeContext {
 		}
 	}
 
-	private void storeUnusedStorageScope(CFMLFactoryImpl cfmlFactory, int type) {
+	private void storeUnusedStorageScope(CFMLFactoryImpl cfmlFactory, int type, boolean force) {
 		Map<String, Map<String, Scope>> contexts = type == Scope.SCOPE_CLIENT ? cfClientContexts : cfSessionContexts;
 		long timespan = type == Scope.SCOPE_CLIENT ? CLIENT_MEMORY_TIMESPAN : SESSION_MEMORY_TIMESPAN;
 		String strType = VariableInterpreter.scopeInt2String(type);
@@ -775,7 +775,7 @@ public final class ScopeContext {
 					o = fhm.get(cfid);
 					if (!(o instanceof StorageScope)) continue;
 					StorageScope scope = (StorageScope) o;
-					if (scope.lastVisit() + timespan < now) {
+					if (scope.lastVisit() + timespan < now || (force && scope.isExpired())) {
 						if (!(scope instanceof MemoryScope)) {
 							getLog().log(Log.LEVEL_INFO, "scope-context",
 									"remove " + strType + " scope [" + applicationName + "/" + cfid + "] from memory, it remain in storage [" + scope.getStorage() + "]");

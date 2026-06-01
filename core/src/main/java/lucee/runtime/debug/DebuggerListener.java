@@ -46,6 +46,17 @@ public interface DebuggerListener {
 	void onResume(PageContext pc);
 
 	/**
+	 * Called when a request is about to be released (PageContext.release()).
+	 * Fires near the top of release(), before scopes are nulled, so the listener
+	 * can still read pc state (e.g. getRequestId() for cleanup keyed by request lifetime).
+	 *
+	 * @param pc The PageContext being released
+	 */
+	default void onRequestEnd(PageContext pc) {
+		// default: no-op
+	}
+
+	/**
 	 * Check if execution should suspend at the given location.
 	 * Called by DebuggerExecutionLog.start() on every line execution.
 	 * Must be fast - avoid synchronization if possible.

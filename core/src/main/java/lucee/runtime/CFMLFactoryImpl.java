@@ -377,8 +377,8 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 						}
 					}
 				}
-				// after 10 seconds downgrade priority of the thread
-				else if (pc.getStartTime() + 10000 < System.currentTimeMillis() && (th = pc.getThread()) != null && th.getPriority() != Thread.MIN_PRIORITY) {
+				// after 10 seconds downgrade priority of the thread (adjusted for debugger suspend time)
+				else if (pc.getStartTime() + 10000 + suspendedMillis < System.currentTimeMillis() && (th = pc.getThread()) != null && th.getPriority() != Thread.MIN_PRIORITY) {
 					Log log = ThreadLocalPageContext.getLog(pc, "requesttimeout");
 					if (log != null) {
 						PageContext root = pc.getRootPageContext();

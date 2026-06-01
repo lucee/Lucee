@@ -396,6 +396,15 @@
 		"default": true
 	},
 	{
+		"sysprop": "lucee.extensions.config.only",
+		"envvar": "LUCEE_EXTENSIONS_CONFIG_ONLY",
+		"desc": "Controls whether the manifest's Require-Extension entries are honoured on startup. When true, they are ignored, and the full lucee jar behaves like lucee-light at the extension-install layer (only the config file and the lucee.extensions env var drive installs). Bundled .lex files in the jar still copy to disk on boot but only install if referenced. No-op on lucee-light. Default false; Lucee 8 will default to true.",
+		"category": "extensions",
+		"type": "boolean",
+		"introduced": "7.0.5.7",
+		"default": false
+	},
+	{
 		"sysprop": "lucee.fileupload.allow.mimetype.detection",
 		"envvar": "LUCEE_FILEUPLOAD_ALLOW_MIMETYPE_DETECTION",
 		"desc": "Boolean value that enables using Tika to detect the mime type for unknown file uploads",
