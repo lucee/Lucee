@@ -31,7 +31,6 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.SecurityException;
 import lucee.runtime.ext.function.BIF;
 import lucee.runtime.op.Caster;
-import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.ListUtil;
@@ -39,6 +38,7 @@ import lucee.runtime.type.util.ListUtil;
 public final class CacheSetProperties extends BIF {
 
 	private static final long serialVersionUID = -5700264673510261084L;
+
 	public static Object call(PageContext pc, Struct properties) throws PageException {
 		try {
 			Object obj = properties.removeEL(KeyConstants._objecttype);

@@ -27,7 +27,6 @@ import lucee.runtime.config.ConfigServer;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
-import lucee.runtime.type.Collection;
 import lucee.runtime.type.DoubleStruct;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;

@@ -61,7 +61,6 @@ import lucee.runtime.security.SecurityManagerImpl;
 import lucee.runtime.tag.util.FileUtil;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
-import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.Query;
 import lucee.runtime.type.QueryImpl;
 import lucee.runtime.type.Struct;

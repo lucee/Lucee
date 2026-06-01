@@ -21,7 +21,6 @@ package lucee.runtime.exp;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageSource;
 import lucee.runtime.config.Config;
-import lucee.runtime.type.Collection;
 import lucee.runtime.type.util.KeyConstants;
 
 /**

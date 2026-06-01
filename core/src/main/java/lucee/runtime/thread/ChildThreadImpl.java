@@ -49,7 +49,6 @@ import lucee.runtime.net.http.HttpUtil;
 import lucee.runtime.net.http.ReqRspUtil;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Duplicator;
-import lucee.runtime.type.Collection;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
@@ -105,7 +104,8 @@ public final class ChildThreadImpl extends ChildThread implements Serializable {
 
 	String contentEncoding;
 
-	// when virtual=true the body runs on this (virtual) carrier thread instead of this ChildThread itself
+	// when virtual=true the body runs on this (virtual) carrier thread instead of this ChildThread
+	// itself
 	private volatile Thread carrier;
 	private boolean virtual;
 
@@ -196,7 +196,8 @@ public final class ChildThreadImpl extends ChildThread implements Serializable {
 	}
 
 	/**
-	 * @return the thread that actually executes the body: the virtual carrier when virtual, otherwise this
+	 * @return the thread that actually executes the body: the virtual carrier when virtual, otherwise
+	 *         this
 	 */
 	public Thread getExecutionThread() {
 		Thread c = carrier;
@@ -305,8 +306,7 @@ public final class ChildThreadImpl extends ChildThread implements Serializable {
 						try {
 							log.log(Log.LEVEL_ERROR, this.getName(), t);
 						}
-						catch (Exception ex) {
-						}
+						catch (Exception ex) {}
 					}
 
 					PageException pe = Caster.toPageException(t);

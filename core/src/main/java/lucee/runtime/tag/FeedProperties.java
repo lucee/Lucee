@@ -20,7 +20,6 @@ package lucee.runtime.tag;
 
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Duplicator;
-import lucee.runtime.type.Collection;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.StructUtil;

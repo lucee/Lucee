@@ -26,7 +26,6 @@ import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.functions.system.GetApplicationSettings;
 import lucee.runtime.listener.ApplicationContext;
-import lucee.runtime.type.Collection;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.util.KeyConstants;
 

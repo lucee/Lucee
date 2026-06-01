@@ -21,7 +21,6 @@ package lucee.runtime.cache;
 import lucee.commons.io.cache.CacheEntry;
 import lucee.commons.io.cache.CacheEventListener;
 import lucee.runtime.Component;
-import lucee.runtime.type.Collection;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.util.KeyConstants;
 

@@ -45,7 +45,6 @@ import lucee.runtime.op.Caster;
 import lucee.runtime.timer.Stopwatch;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
-import lucee.runtime.type.Collection;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.Query;
 import lucee.runtime.type.QueryColumn;
@@ -316,8 +315,7 @@ public final class DBInfo extends TagImpl {
 						set = toSet(metaData.getPrimaryKeys(tblCat, tblScheme, tblName), true, "COLUMN_NAME");
 						primaries.put(tblName, set);
 					}
-					catch (Exception e) {
-					}
+					catch (Exception e) {}
 				}
 				isPrimary.append(set != null && set.contains(qry.getAt(KeyConstants._COLUMN_NAME, i)) ? "YES" : "NO");
 			}

@@ -22,7 +22,6 @@ import java.io.Serializable;
 import java.util.Map;
 
 import lucee.runtime.component.Property;
-import lucee.runtime.type.Collection;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.util.KeyConstants;
 

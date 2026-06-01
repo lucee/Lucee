@@ -25,7 +25,6 @@ import lucee.runtime.PageContext;
 import lucee.runtime.listener.ApplicationContext;
 import lucee.runtime.net.http.ReqRspUtil;
 import lucee.runtime.op.Caster;
-import lucee.runtime.type.Collection;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.util.KeyConstants;
 
@@ -81,8 +80,7 @@ public final class URLImpl extends ScopeSupport implements URL, ScriptProtected 
 				Caster.toDoubleValue(o, false, -1);
 			}
 		}
-		catch (Exception e) {
-		}
+		catch (Exception e) {}
 	}
 
 	@Override

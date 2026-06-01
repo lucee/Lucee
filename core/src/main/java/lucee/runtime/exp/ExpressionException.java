@@ -20,7 +20,6 @@
 package lucee.runtime.exp;
 
 import lucee.runtime.config.Config;
-import lucee.runtime.type.Collection;
 import lucee.runtime.type.util.KeyConstants;
 
 /**
