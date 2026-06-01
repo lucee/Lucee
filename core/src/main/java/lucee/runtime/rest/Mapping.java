@@ -21,11 +21,13 @@ package lucee.runtime.rest;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 import lucee.commons.io.FileUtil;
 import lucee.commons.io.SystemUtil;
+import lucee.commons.io.log.Log;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.filter.AndResourceFilter;
 import lucee.commons.io.res.filter.ExtensionResourceFilter;
@@ -42,10 +44,11 @@ import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.config.ConfigUtil;
 import lucee.runtime.config.Constants;
+import lucee.runtime.engine.ThreadLocalPageContext;
+import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Struct;
-import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.KeyConstants;
 
@@ -151,7 +154,52 @@ public final class Mapping {
 				if (!settings.getSkipCFCWithError()) throw Caster.toPageException(t);
 			}
 		}
+
+		failOnDuplicateRestPaths(pc, mapping, sources);
 		return sources;
+	}
+
+	/**
+	 * LDEV-6306 case 4: refuse to register a REST mapping when two CFCs claim
+	 * the same restpath. Pre-fix behaviour silently shadowed the loser and
+	 * which CFC won depended on filesystem iteration order. Mirrors the
+	 * JAX-RS / ACF rule of failing at app init.
+	 */
+	private static void failOnDuplicateRestPaths(PageContext pc, Mapping mapping, List<Source> sources) throws PageException {
+		Map<String, List<Source>> byPath = new LinkedHashMap<String, List<Source>>();
+		for (int i = 0; i < sources.size(); i++) {
+			Source s = sources.get(i);
+			List<Source> bucket = byPath.get(s.getRawPath());
+			if (bucket == null) {
+				bucket = new ArrayList<Source>();
+				byPath.put(s.getRawPath(), bucket);
+			}
+			bucket.add(s);
+		}
+
+		List<String> errors = new ArrayList<String>();
+		Log log = ThreadLocalPageContext.getLog(pc, "rest");
+		for (Map.Entry<String, List<Source>> e : byPath.entrySet()) {
+			List<Source> bucket = e.getValue();
+			if (bucket.size() < 2) continue;
+			StringBuilder sb = new StringBuilder("duplicate REST path [").append(e.getKey()).append("] in mapping [").append(mapping.getVirtual()).append("]: ");
+			for (int i = 0; i < bucket.size(); i++) {
+				if (i > 0) sb.append(", ");
+				sb.append(bucket.get(i).getPageSource().getDisplayPath());
+			}
+			String msg = sb.toString();
+			if (log != null) log.error("REST", msg);
+			errors.add(msg);
+		}
+
+		if (!errors.isEmpty()) {
+			StringBuilder sb = new StringBuilder("REST mapping [").append(mapping.getVirtual()).append("] has duplicate restpaths: ");
+			for (int i = 0; i < errors.size(); i++) {
+				if (i > 0) sb.append("; ");
+				sb.append(errors.get(i));
+			}
+			throw new ApplicationException(sb.toString());
+		}
 	}
 
 	public lucee.runtime.rest.Mapping duplicate(Config config, Boolean readOnly) {
@@ -209,23 +257,14 @@ public final class Mapping {
 	public Result getResult(PageContext pc, String path, Struct matrix, int format, boolean hasFormatExtension, List<MimeType> accept, MimeType contentType, Result defaultValue)
 			throws PageException {
 		List<Source> sources = init(pc, false);
-		Iterator<Source> it = sources.iterator();
-		Source src;
-		String[] arrPath, subPath;
-		int index;
-		while (it.hasNext()) {
-			src = it.next();
-			Struct variables = new StructImpl();
-			arrPath = RestUtil.splitPath(path);
-			index = RestUtil.matchPath(variables, src.getPath(), arrPath);
-			if (index != -1) {
-				subPath = new String[(arrPath.length - 1) - index];
-				System.arraycopy(arrPath, index + 1, subPath, 0, subPath.length);
-				return new Result(src, variables, subPath, matrix, format, hasFormatExtension, accept, contentType);
-			}
-		}
+		String[] arrPath = RestUtil.splitPath(path);
+		SourceMatch match = RestUtil.resolve(sources, arrPath);
+		if (match == null) return defaultValue;
 
-		return defaultValue;
+		int index = match.getMatchedIndex();
+		String[] subPath = new String[(arrPath.length - 1) - index];
+		System.arraycopy(arrPath, index + 1, subPath, 0, subPath.length);
+		return new Result(match.getSource(), match.getVariables(), subPath, matrix, format, hasFormatExtension, accept, contentType);
 	}
 
 	public List<String> listSources(PageContext pc) throws PageException {

@@ -34,6 +34,7 @@ import lucee.runtime.type.Collection;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Query;
+import lucee.runtime.type.QueryColumn;
 import lucee.runtime.type.QueryImpl;
 
 /**
@@ -43,6 +44,8 @@ public final class QueryComparator implements Comparator<Integer> {
 
 	private Comparator[] sorts;
 	private Key[] cols;
+	// Pre-resolved column refs — sort calls compare() N log N times, name lookup per call dominates.
+	private QueryColumn[] cachedCols;
 	private Query target;
 	private Collection.Key paramKey = new KeyImpl("?");
 	private int numSorts = 0;
@@ -54,6 +57,7 @@ public final class QueryComparator implements Comparator<Integer> {
 	public QueryComparator(PageContext pc, QueryImpl target, Expression[] sortExpressions, boolean isUnion, SQL sql) throws PageException {
 		this.sorts = new Comparator[sortExpressions.length];
 		this.cols = new Key[sortExpressions.length];
+		this.cachedCols = new QueryColumn[sortExpressions.length];
 		this.target = target;
 
 		// Build up an array of comparators based on the valid sort expressions, in order
@@ -99,7 +103,9 @@ public final class QueryComparator implements Comparator<Integer> {
 	private void addSOrt(Key columnKey, boolean isAsc) throws PageException {
 		cols[numSorts] = columnKey;
 
-		int type = target.getColumn(columnKey).getType();
+		QueryColumn column = target.getColumn(columnKey);
+		cachedCols[numSorts] = column;
+		int type = column.getType();
 		// These types use a numeric sort
 		if (type == Types.BIGINT || type == Types.BIT || type == Types.INTEGER || type == Types.SMALLINT || type == Types.TINYINT || type == Types.DECIMAL || type == Types.DOUBLE
 				|| type == Types.NUMERIC || type == Types.REAL) {
@@ -115,24 +121,17 @@ public final class QueryComparator implements Comparator<Integer> {
 	@Override
 	public int compare(Integer oLeft, Integer oRight) {
 		int currentResult = 0;
-		try {
-			// Loop over all our sorts. We'll keep checking until we find a column that sorts above or below,
-			// or until we run out of sorts to check
-			for (int i = 0; i < numSorts; i++) {
-				currentResult = sorts[i].compare(target.getAt(cols[i], oLeft), target.getAt(cols[i], oRight));
-				// Short circuit if one row is already sorted above or below another
-				if (currentResult != 0) {
-					return currentResult;
-				}
-				// If the current sorts were the same for both rows, we continue to the next sort
+		for (int i = 0; i < numSorts; i++) {
+			QueryColumn column = cachedCols[i];
+			currentResult = sorts[i].compare(column.get(oLeft, null), column.get(oRight, null));
+			// Short circuit if one row is already sorted above or below another
+			if (currentResult != 0) {
+				return currentResult;
 			}
-			// If we made it all the way through the sorts, return the last value
-			return currentResult;
+			// If the current sorts were the same for both rows, we continue to the next sort
 		}
-		catch (PageException e) {
-			// throw new RuntimeException(e);
-			return 0;
-		}
+		// If we made it all the way through the sorts, return the last value
+		return currentResult;
 	}
 
 }

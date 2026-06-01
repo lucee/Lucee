@@ -916,6 +916,17 @@
 		"default": false
 	},
 	{
+		"sysprop": "lucee.qoq.hsqldb.orderBy.nullsLastInDesc",
+		"envvar": "LUCEE_QOQ_HSQLDB_ORDERBY_NULLSLASTINDESC",
+		"desc": "When true, the HSQLDB engine sorts nulls to the end of `ORDER BY ... DESC` (and keeps them at the start of `ORDER BY ... ASC`), making HSQLDB and Lucee's native QoQ engine agree on null sort order. Without this, the two engines diverge on DESC: HSQLDB places nulls first regardless of direction (its own default), while native treats nulls as a low value (last in DESC). Set to false only if application code depends on HSQLDB's legacy behaviour.",
+		"category": "query",
+		"tags": [ "cfquery" ],
+		"functions": [ "queryExecute" ],
+		"type": "boolean",
+		"introduced": "7.1.0.118",
+		"default": true
+	},
+	{
 		"sysprop": "lucee.qoq.hsqldb.poolsize",
 		"envvar": "LUCEE_QOQ_HSQLDB_POOLSIZE",
 		"desc": "Controls the number of concurrent HSQLDB database instances for Query of Queries operations. Each instance can process one query at a time, enabling parallel QoQ execution. Higher values allow more concurrent queries but consume more memory. Default is the minimum of available processor cores or 8",
@@ -929,11 +940,12 @@
 	{
 		"sysprop": "lucee.qoq.parallelism",
 		"envvar": "LUCEE_QOQ_PARALLELISM",
-		"desc": "Controls the parallelism level for Query of Queries operations",
+		"desc": "Controls the parallelism level for Query of Queries operations. No longer supported in Lucee 7.1+; native QoQ build is single-threaded because per-column lock contention and FJP overhead made parallel streams a net loss across nearly all measured workloads. Honoured in earlier versions (introduced 6.0.0.336).",
 		"category": "query",
 		"tags": [ "cfquery" ],
 		"functions": [ "queryExecute" ],
 		"type": "numeric",
+		"deprecated": "7.1",
 		"default": 50
 	},
 	{

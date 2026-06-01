@@ -68,6 +68,75 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="xml" {
 				<!--- end old test code --->
 			});
 
+			describe( "duplicate of a CFC with expression-form property defaults — user-set values must survive", function(){
+				// Locks the 6.2 / 7.0 / published-7.1 contract: duplicate is a deep copy of current
+				// state, NOT a re-construction. User mutations to expression-form-default properties
+				// must round-trip through duplicate, just like literal-form defaults and ad-hoc vars do.
+				it( title="user-set value on an expression-form createUUID() property survives deep duplicate", body=function( currentSpec ){
+					var src = new Duplicate.ExprDefaults();
+					src.setUuidDef( "user-saved-uuid-12345" );
+					var dup = duplicate( src );
+					expect( dup.getUuidDef() ).toBe( "user-saved-uuid-12345" );
+				});
+				it( title="user-set value on an expression-form createUUID() property survives shallow duplicate (Hibernate path)", body=function( currentSpec ){
+					var src = new Duplicate.ExprDefaults();
+					src.setUuidDef( "user-saved-uuid-12345" );
+					var dup = duplicate( src, false );
+					expect( dup.getUuidDef() ).toBe( "user-saved-uuid-12345" );
+				});
+				it( title="user-set value on an expression-form now() property survives deep duplicate", body=function( currentSpec ){
+					var src = new Duplicate.ExprDefaults();
+					var savedTs = createDateTime( 2020, 1, 1, 0, 0, 0 );
+					src.setNowDef( savedTs );
+					var dup = duplicate( src );
+					expect( dateCompare( dup.getNowDef(), savedTs, "s" ) ).toBe( 0 );
+				});
+				it( title="user-set value on an expression-form now() property survives shallow duplicate", body=function( currentSpec ){
+					var src = new Duplicate.ExprDefaults();
+					var savedTs = createDateTime( 2020, 1, 1, 0, 0, 0 );
+					src.setNowDef( savedTs );
+					var dup = duplicate( src, false );
+					expect( dateCompare( dup.getNowDef(), savedTs, "s" ) ).toBe( 0 );
+				});
+				it( title="user-set value on an expression-form struct-literal property survives deep duplicate", body=function( currentSpec ){
+					var src = new Duplicate.ExprDefaults();
+					src.setNowStructDef( { ts: createDateTime(2019,6,1,12,0,0), n: 99 } );
+					var dup = duplicate( src );
+					expect( dup.getNowStructDef().n ).toBe( 99 );
+					expect( dateCompare( dup.getNowStructDef().ts, createDateTime(2019,6,1,12,0,0), "s" ) ).toBe( 0 );
+				});
+				it( title="user-set value on a literal-form property survives deep duplicate (baseline parity)", body=function( currentSpec ){
+					var src = new Duplicate.ExprDefaults();
+					src.setLiteralDef( "user-set-literal-value" );
+					var dup = duplicate( src );
+					expect( dup.getLiteralDef() ).toBe( "user-set-literal-value" );
+				});
+				it( title="multiple user-set values across expression-form properties all survive deep duplicate", body=function( currentSpec ){
+					var src = new Duplicate.ExprDefaults();
+					src.setUuidDef( "saved-uuid" );
+					src.setNowDef( createDateTime( 2021, 3, 15, 10, 30, 0 ) );
+					src.setLiteralDef( "saved-literal" );
+					var dup = duplicate( src );
+					expect( dup.getUuidDef() ).toBe( "saved-uuid" );
+					expect( dateCompare( dup.getNowDef(), createDateTime(2021,3,15,10,30,0), "s" ) ).toBe( 0 );
+					expect( dup.getLiteralDef() ).toBe( "saved-literal" );
+				});
+				it( title="duplicate(src) of a freshly-constructed instance produces a CFC whose values match src — duplicate is deep copy, not re-construction", body=function( currentSpec ){
+					// Locks the 6.2/7.0/published-7.1 deep-copy semantic: duplicate copies src's
+					// current variables-scope state. A freshly-constructed src has its construction-
+					// time-evaluated UUID and now() in scope; the duplicate sees those same values.
+					// (NB: under this semantic, Hibernate's template.duplicate(false) gives every
+					// entity the SAME UUID — the LDEV-4121 problem. Resolving that without
+					// regressing user-mutation preservation is what LDEV-6303 needs to figure out.)
+					var src = new Duplicate.ExprDefaults();
+					var srcUuid = src.getUuidDef();
+					var srcNow  = src.getNowDef();
+					var dup = duplicate( src );
+					expect( dup.getUuidDef() ).toBe( srcUuid );
+					expect( dateCompare( dup.getNowDef(), srcNow, "s" ) ).toBe( 0 );
+				});
+			});
+
 			describe( "duplicate of a CFC — per-instance state isolation", function(){
 				it( title="cfc.variables.x assigned then duplicated — duplicate has independent value", body=function( currentSpec ){
 					var orig = new Duplicate.Tagged();
