@@ -35,18 +35,18 @@ public final class QueryEach extends BIF {
 	private static final long serialVersionUID = 3004432895753378644L;
 
 	public static String call(PageContext pc, Query qry, UDF udf) throws PageException {
-		return _call(pc, qry, udf, false, 20);
+		return _call(pc, qry, udf, "false", 20);
 	}
 
-	public static String call(PageContext pc, Query qry, UDF udf, boolean parallel) throws PageException {
+	public static String call(PageContext pc, Query qry, UDF udf, String parallel) throws PageException {
 		return _call(pc, qry, udf, parallel, 20);
 	}
 
-	public static String call(PageContext pc, Query qry, UDF udf, boolean parallel, Number maxThreads) throws PageException {
+	public static String call(PageContext pc, Query qry, UDF udf, String parallel, Number maxThreads) throws PageException {
 		return _call(pc, qry, udf, parallel, Caster.toIntValue(maxThreads));
 	}
 
-	private static String _call(PageContext pc, Query qry, UDF udf, boolean parallel, int maxThreads) throws PageException {
+	private static String _call(PageContext pc, Query qry, UDF udf, String parallel, int maxThreads) throws PageException {
 		return Each.call(pc, qry, udf, parallel, maxThreads);
 	}
 
@@ -54,8 +54,8 @@ public final class QueryEach extends BIF {
 	public Object invoke(PageContext pc, Object[] args) throws PageException {
 
 		if (args.length == 2) return call(pc, Caster.toQuery(args[0]), Caster.toFunction(args[1]));
-		if (args.length == 3) return call(pc, Caster.toQuery(args[0]), Caster.toFunction(args[1]), Caster.toBooleanValue(args[2]));
-		if (args.length == 4) return call(pc, Caster.toQuery(args[0]), Caster.toFunction(args[1]), Caster.toBooleanValue(args[2]), Caster.toDoubleValue(args[3]));
+		if (args.length == 3) return call(pc, Caster.toQuery(args[0]), Caster.toFunction(args[1]), Caster.toString(args[2]));
+		if (args.length == 4) return call(pc, Caster.toQuery(args[0]), Caster.toFunction(args[1]), Caster.toString(args[2]), Caster.toDoubleValue(args[3]));
 
 		throw new FunctionException(pc, "QueryEach", 2, 4, args.length);
 	}

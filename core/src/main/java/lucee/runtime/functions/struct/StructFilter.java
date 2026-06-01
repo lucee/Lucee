@@ -35,18 +35,18 @@ import lucee.runtime.type.UDF;
 public final class StructFilter extends BIF {
 
 	public static Struct call(PageContext pc, Struct sct, UDF udf) throws PageException {
-		return _call(pc, sct, udf, false, 20);
+		return _call(pc, sct, udf, "false", 20);
 	}
 
-	public static Struct call(PageContext pc, Struct sct, UDF udf, boolean parallel) throws PageException {
+	public static Struct call(PageContext pc, Struct sct, UDF udf, String parallel) throws PageException {
 		return _call(pc, sct, udf, parallel, 20);
 	}
 
-	public static Struct call(PageContext pc, Struct sct, UDF udf, boolean parallel, Number maxThreads) throws PageException {
+	public static Struct call(PageContext pc, Struct sct, UDF udf, String parallel, Number maxThreads) throws PageException {
 		return _call(pc, sct, udf, parallel, Caster.toIntValue(maxThreads));
 	}
 
-	public static Struct _call(PageContext pc, Struct sct, UDF filter, boolean parallel, int maxThreads) throws PageException {
+	public static Struct _call(PageContext pc, Struct sct, UDF filter, String parallel, int maxThreads) throws PageException {
 
 		// check UDF return type
 		int type = filter.getReturnType();
@@ -59,8 +59,8 @@ public final class StructFilter extends BIF {
 	@Override
 	public Object invoke(PageContext pc, Object[] args) throws PageException {
 		if (args.length == 2) return call(pc, Caster.toStruct(args[0]), Caster.toFunction(args[1]));
-		if (args.length == 3) return call(pc, Caster.toStruct(args[0]), Caster.toFunction(args[1]), Caster.toBooleanValue(args[2]));
-		if (args.length == 4) return call(pc, Caster.toStruct(args[0]), Caster.toFunction(args[1]), Caster.toBooleanValue(args[2]), Caster.toDoubleValue(args[3]));
+		if (args.length == 3) return call(pc, Caster.toStruct(args[0]), Caster.toFunction(args[1]), Caster.toString(args[2]));
+		if (args.length == 4) return call(pc, Caster.toStruct(args[0]), Caster.toFunction(args[1]), Caster.toString(args[2]), Caster.toDoubleValue(args[3]));
 		throw new FunctionException(pc, "StructFilter", 2, 4, args.length);
 	}
 }

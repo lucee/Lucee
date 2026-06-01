@@ -435,9 +435,9 @@ All elements in the array must contain values that can be converted to numeric.<
 		</argument>
 		<argument>
 			<name>parallel</name>
-			<type>boolean</type>
+			<type>string</type>
 			<required>No</required>
-			<description>execute closures parallel</description>
+			<description>controls parallel execution; use one of [none, thread, virtual]. The boolean values true/false are deprecated and only kept for backward compatibility (false=none, true uses regular threads, or virtual threads when "lucee.thread.virtual" is enabled)</description>
 		</argument>
 		<argument>
 			<name>maxThreads</name>
@@ -498,9 +498,9 @@ All elements in the array must contain values that can be converted to numeric.<
 		<argument>
 			<name>parallel</name>
 			<default>false</default>
-			<type>boolean</type>
+			<type>string</type>
 			<required>No</required>
-			<description>execute closures parallel</description>
+			<description>controls parallel execution; use one of [none, thread, virtual]. The boolean values true/false are deprecated and only kept for backward compatibility (false=none, true uses regular threads, or virtual threads when "lucee.thread.virtual" is enabled)</description>
 		</argument>
 		<argument>
 			<name>maxThreads</name>
@@ -538,9 +538,9 @@ All elements in the array must contain values that can be converted to numeric.<
 		</argument>
 		<argument>
 			<name>parallel</name>
-			<type>boolean</type>
+			<type>string</type>
 			<required>No</required>
-			<description>execute closures parallel</description>
+			<description>controls parallel execution; use one of [none, thread, virtual]. The boolean values true/false are deprecated and only kept for backward compatibility (false=none, true uses regular threads, or virtual threads when "lucee.thread.virtual" is enabled)</description>
 		</argument>
 		<argument>
 			<name>maxThreads</name>
@@ -730,9 +730,9 @@ Remember CFML arrays start at 1 not 0.</description>
 		</argument>
 		<argument>
 			<name>parallel</name>
-			<type>boolean</type>
+			<type>string</type>
 			<required>No</required>
-			<description>execute closures parallel</description>
+			<description>controls parallel execution; use one of [none, thread, virtual]. The boolean values true/false are deprecated and only kept for backward compatibility (false=none, true uses regular threads, or virtual threads when "lucee.thread.virtual" is enabled)</description>
 		</argument>
 		<argument>
 			<name>maxThreads</name>
@@ -770,9 +770,9 @@ Remember CFML arrays start at 1 not 0.</description>
 		</argument>
 		<argument>
 			<name>parallel</name>
-			<type>boolean</type>
+			<type>string</type>
 			<required>No</required>
-			<description>execute closures parallel</description>
+			<description>controls parallel execution; use one of [none, thread, virtual]. The boolean values true/false are deprecated and only kept for backward compatibility (false=none, true uses regular threads, or virtual threads when "lucee.thread.virtual" is enabled)</description>
 		</argument>
 		<argument>
 			<name>maxThreads</name>
@@ -832,9 +832,9 @@ Remember CFML arrays start at 1 not 0.</description>
 		<argument>
 			<name>parallel</name>
 			<default>false</default>
-			<type>boolean</type>
+			<type>string</type>
 			<required>No</required>
-			<description>execute closures parallel</description>
+			<description>controls parallel execution; use one of [none, thread, virtual]. The boolean values true/false are deprecated and only kept for backward compatibility (false=none, true uses regular threads, or virtual threads when "lucee.thread.virtual" is enabled)</description>
 		</argument>
 		<argument>
 			<name>maxThreads</name>
@@ -874,9 +874,9 @@ Remember CFML arrays start at 1 not 0.</description>
 		</argument>
 		<argument>
 			<name>parallel</name>
-			<type>boolean</type>
+			<type>string</type>
 			<required>No</required>
-			<description>execute closures parallel</description>
+			<description>controls parallel execution; use one of [none, thread, virtual]. The boolean values true/false are deprecated and only kept for backward compatibility (false=none, true uses regular threads, or virtual threads when "lucee.thread.virtual" is enabled)</description>
 		</argument>
 		<argument>
 			<name>maxThreads</name>
@@ -922,9 +922,9 @@ Remember CFML arrays start at 1 not 0.</description>
     	</argument>
 		<argument>
 			<name>parallel</name>
-			<type>boolean</type>
+			<type>string</type>
 			<required>No</required>
-			<description>execute closures parallel</description>
+			<description>controls parallel execution; use one of [none, thread, virtual]. The boolean values true/false are deprecated and only kept for backward compatibility (false=none, true uses regular threads, or virtual threads when "lucee.thread.virtual" is enabled)</description>
 		</argument>
 		<argument>
 			<name>maxThreads</name>
@@ -9244,9 +9244,9 @@ The following things are considered to be empty:
 		<argument>
 			<name>parallel</name>
 			<default>false</default>
-			<type>boolean</type>
+			<type>string</type>
 			<required>No</required>
-			<description>execute closures parallel</description>
+			<description></description>
 		</argument>
 		<argument>
 			<name>maxThreads</name>
@@ -14318,9 +14318,9 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		</argument>
 		<argument>
 			<name>parallel</name>
-			<type>boolean</type>
+			<type>string</type>
 			<required>No</required>
-			<description>execute closures parallel</description>
+			<description>controls parallel execution; use one of [none, thread, virtual]. The boolean values true/false are deprecated and only kept for backward compatibility (false=none, true uses regular threads, or virtual threads when "lucee.thread.virtual" is enabled)</description>
 		</argument>
 		<argument>
 			<name>maxThreads</name>
@@ -14358,9 +14358,9 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		</argument>
 		<argument>
 			<name>parallel</name>
-			<type>boolean</type>
+			<type>string</type>
 			<required>No</required>
-			<description>execute closures parallel</description>
+			<description>controls parallel execution; use one of [none, thread, virtual]. The boolean values true/false are deprecated and only kept for backward compatibility (false=none, true uses regular threads, or virtual threads when "lucee.thread.virtual" is enabled)</description>
 		</argument>
 		<argument>
 			<name>maxThreads</name>
@@ -14397,9 +14397,9 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		</argument>
 		<argument>
 			<name>parallel</name>
-			<type>boolean</type>
+			<type>string</type>
 			<required>No</required>
-			<description>execute closures parallel</description>
+			<description>controls parallel execution; use one of [none, thread, virtual]. The boolean values true/false are deprecated and only kept for backward compatibility (false=none, true uses regular threads, or virtual threads when "lucee.thread.virtual" is enabled)</description>
 		</argument>
 		<argument>
 			<name>maxThreads</name>
@@ -14435,9 +14435,9 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		</argument>
 		<argument>
 			<name>parallel</name>
-			<type>boolean</type>
+			<type>string</type>
 			<required>No</required>
-			<description>execute closures parallel</description>
+			<description>controls parallel execution; use one of [none, thread, virtual]. The boolean values true/false are deprecated and only kept for backward compatibility (false=none, true uses regular threads, or virtual threads when "lucee.thread.virtual" is enabled)</description>
 		</argument>
 		<argument>
 			<name>maxThreads</name>
@@ -14474,9 +14474,9 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		</argument>
 		<argument>
 			<name>parallel</name>
-			<type>boolean</type>
+			<type>string</type>
 			<required>No</required>
-			<description>execute closures parallel</description>
+			<description>controls parallel execution; use one of [none, thread, virtual]. The boolean values true/false are deprecated and only kept for backward compatibility (false=none, true uses regular threads, or virtual threads when "lucee.thread.virtual" is enabled)</description>
 		</argument>
 		<argument>
 			<name>maxThreads</name>
@@ -14705,9 +14705,9 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		</argument>
 		<argument>
 			<name>parallel</name>
-			<type>boolean</type>
+			<type>string</type>
 			<required>No</required>
-			<description>execute closures parallel</description>
+			<description>controls parallel execution; use one of [none, thread, virtual]. The boolean values true/false are deprecated and only kept for backward compatibility (false=none, true uses regular threads, or virtual threads when "lucee.thread.virtual" is enabled)</description>
 		</argument>
 		<argument>
 			<name>maxThreads</name>
@@ -14745,9 +14745,9 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		</argument>
 		<argument>
 			<name>parallel</name>
-			<type>boolean</type>
+			<type>string</type>
 			<required>No</required>
-			<description>execute closures parallel</description>
+			<description>controls parallel execution; use one of [none, thread, virtual]. The boolean values true/false are deprecated and only kept for backward compatibility (false=none, true uses regular threads, or virtual threads when "lucee.thread.virtual" is enabled)</description>
 		</argument>
 		<argument>
 			<name>maxThreads</name>
@@ -14785,9 +14785,9 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		</argument>
 		<argument>
 			<name>parallel</name>
-			<type>boolean</type>
+			<type>string</type>
 			<required>No</required>
-			<description>execute closures parallel</description>
+			<description>controls parallel execution; use one of [none, thread, virtual]. The boolean values true/false are deprecated and only kept for backward compatibility (false=none, true uses regular threads, or virtual threads when "lucee.thread.virtual" is enabled)</description>
 		</argument>
 		<argument>
 			<name>maxThreads</name>
@@ -14847,10 +14847,10 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		</argument>
 		<argument>
 			<name>parallel</name>
-			<type>boolean</type>
+			<type>string</type>
 			<default>false</default>
 			<required>No</required>
-			<description>execute closures parallel</description>
+			<description>controls parallel execution; use one of [none, thread, virtual]. The boolean values true/false are deprecated and only kept for backward compatibility (false=none, true uses regular threads, or virtual threads when "lucee.thread.virtual" is enabled)</description>
 		</argument>
 		<argument>
 			<name>maxThreads</name>
@@ -14888,9 +14888,9 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		</argument>
 		<argument>
 			<name>parallel</name>
-			<type>boolean</type>
+			<type>string</type>
 			<required>No</required>
-			<description>execute closures parallel</description>
+			<description>controls parallel execution; use one of [none, thread, virtual]. The boolean values true/false are deprecated and only kept for backward compatibility (false=none, true uses regular threads, or virtual threads when "lucee.thread.virtual" is enabled)</description>
 		</argument>
 		<argument>
 			<name>maxThreads</name>
@@ -14928,9 +14928,9 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		</argument>
 		<argument>
 			<name>parallel</name>
-			<type>boolean</type>
+			<type>string</type>
 			<required>No</required>
-			<description>execute closures parallel</description>
+			<description>controls parallel execution; use one of [none, thread, virtual]. The boolean values true/false are deprecated and only kept for backward compatibility (false=none, true uses regular threads, or virtual threads when "lucee.thread.virtual" is enabled)</description>
 		</argument>
 		<argument>
 			<name>maxThreads</name>
@@ -14967,9 +14967,9 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		</argument>
 		<argument>
 			<name>parallel</name>
-			<type>boolean</type>
+			<type>string</type>
 			<required>No</required>
-			<description>execute closures parallel</description>
+			<description>controls parallel execution; use one of [none, thread, virtual]. The boolean values true/false are deprecated and only kept for backward compatibility (false=none, true uses regular threads, or virtual threads when "lucee.thread.virtual" is enabled)</description>
 		</argument>
 		<argument>
 			<name>maxThreads</name>
@@ -15008,9 +15008,9 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		</argument>
 		<argument>
 			<name>parallel</name>
-			<type>boolean</type>
+			<type>string</type>
 			<required>No</required>
-			<description>execute closures parallel</description>
+			<description>controls parallel execution; use one of [none, thread, virtual]. The boolean values true/false are deprecated and only kept for backward compatibility (false=none, true uses regular threads, or virtual threads when "lucee.thread.virtual" is enabled)</description>
 		</argument>
 		<argument>
 			<name>maxThreads</name>
@@ -15070,9 +15070,9 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<argument>
 			<name>parallel</name>
 			<default>false</default>
-			<type>boolean</type>
+			<type>string</type>
 			<required>No</required>
-			<description>execute closures parallel</description>
+			<description>controls parallel execution; use one of [none, thread, virtual]. The boolean values true/false are deprecated and only kept for backward compatibility (false=none, true uses regular threads, or virtual threads when "lucee.thread.virtual" is enabled)</description>
 		</argument>
 		<argument>
 			<name>maxThreads</name>
@@ -15110,9 +15110,9 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		</argument>
 		<argument>
 			<name>parallel</name>
-			<type>boolean</type>
+			<type>string</type>
 			<required>No</required>
-			<description>execute closures parallel</description>
+			<description>controls parallel execution; use one of [none, thread, virtual]. The boolean values true/false are deprecated and only kept for backward compatibility (false=none, true uses regular threads, or virtual threads when "lucee.thread.virtual" is enabled)</description>
 		</argument>
 		<argument>
 			<name>maxThreads</name>
@@ -15150,9 +15150,9 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		</argument>
 		<argument>
 			<name>parallel</name>
-			<type>boolean</type>
+			<type>string</type>
 			<required>No</required>
-			<description>execute closures parallel</description>
+			<description>controls parallel execution; use one of [none, thread, virtual]. The boolean values true/false are deprecated and only kept for backward compatibility (false=none, true uses regular threads, or virtual threads when "lucee.thread.virtual" is enabled)</description>
 		</argument>
 		<argument>
 			<name>maxThreads</name>

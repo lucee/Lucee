@@ -30,6 +30,7 @@ import java.util.concurrent.Future;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.concurrency.Data;
+import lucee.runtime.concurrency.ParallelUtil;
 import lucee.runtime.concurrency.UDFCaller2;
 import lucee.runtime.exp.CasterException;
 import lucee.runtime.exp.FunctionException;
@@ -56,33 +57,34 @@ public final class Every extends BIF implements ClosureFunc {
 	private static final long serialVersionUID = -5940580562772523622L;
 
 	public static boolean call(PageContext pc, Object obj, UDF udf) throws PageException {
-		return _call(pc, obj, udf, false, Each.DEFAULT_MAX_THREAD, TYPE_UNDEFINED);
+		return _call(pc, obj, udf, "false", Each.DEFAULT_MAX_THREAD, TYPE_UNDEFINED);
 	}
 
-	public static boolean call(PageContext pc, Object obj, UDF udf, boolean parallel) throws PageException {
+	public static boolean call(PageContext pc, Object obj, UDF udf, String parallel) throws PageException {
 		return _call(pc, obj, udf, parallel, Each.DEFAULT_MAX_THREAD, TYPE_UNDEFINED);
 	}
 
-	public static boolean call(PageContext pc, Object obj, UDF udf, boolean parallel, Number maxThreads) throws PageException {
+	public static boolean call(PageContext pc, Object obj, UDF udf, String parallel, Number maxThreads) throws PageException {
 		return _call(pc, obj, udf, parallel, Caster.toIntValue(maxThreads), TYPE_UNDEFINED);
 	}
 
-	public static boolean call(PageContext pc, Object obj, UDF udf, boolean parallel, Number maxThreads, short type) throws PageException {
+	public static boolean call(PageContext pc, Object obj, UDF udf, String parallel, Number maxThreads, short type) throws PageException {
 		return _call(pc, obj, udf, parallel, Caster.toIntValue(maxThreads), type);
 	}
 
-	private static boolean _call(PageContext pc, Object obj, UDF udf, boolean parallel, int maxThreads, short type) throws PageException {
+	private static boolean _call(PageContext pc, Object obj, UDF udf, String parallel, int maxThreads, short type) throws PageException {
 
 		Thread thread = null;
 		ExecutorService execute = null;
 		List<Future<Data<Object>>> futures = null;
+		short pm = ParallelUtil.toParallel(parallel);
 		// 0 or less == default
 		if (maxThreads < 1) maxThreads = Each.DEFAULT_MAX_THREAD;
 		// 1 == not parallel
-		else if (maxThreads == 1) parallel = false;
+		else if (maxThreads == 1) pm = ParallelUtil.PARALLEL_NONE;
 
-		if (parallel) {
-			execute = ThreadUtil.createExecutorService(maxThreads);
+		if (pm != ParallelUtil.PARALLEL_NONE) {
+			execute = ThreadUtil.createExecutorService(maxThreads, pm == ParallelUtil.PARALLEL_VIRTUAL);
 			futures = new ArrayList<Future<Data<Object>>>();
 			thread = ((PageContextImpl) pc).getThread();
 		}
@@ -142,7 +144,7 @@ public final class Every extends BIF implements ClosureFunc {
 		}
 		else throw new FunctionException(pc, "Every", 1, "data", "Cannot iterate over this type [" + Caster.toTypeName(obj.getClass()) + "]");
 
-		if (parallel) res = afterCall(pc, futures, execute, thread);
+		if (execute != null) res = afterCall(pc, futures, execute, thread);
 
 		return res;
 	}
@@ -335,8 +337,8 @@ public final class Every extends BIF implements ClosureFunc {
 	public Object invoke(PageContext pc, Object[] args) throws PageException {
 
 		if (args.length == 2) return call(pc, (args[0]), Caster.toFunction(args[1]));
-		if (args.length == 3) return call(pc, (args[0]), Caster.toFunction(args[1]), Caster.toBooleanValue(args[2]));
-		if (args.length == 4) return call(pc, (args[0]), Caster.toFunction(args[1]), Caster.toBooleanValue(args[2]), Caster.toNumber(args[3]));
+		if (args.length == 3) return call(pc, (args[0]), Caster.toFunction(args[1]), Caster.toString(args[2]));
+		if (args.length == 4) return call(pc, (args[0]), Caster.toFunction(args[1]), Caster.toString(args[2]), Caster.toNumber(args[3]));
 
 		throw new FunctionException(pc, "Every", 2, 4, args.length);
 
