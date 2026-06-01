@@ -563,7 +563,8 @@ public final class POM {
 		try {
 			List<POM> deps = pom.getDependencies();
 			if (deps != null && deps.size() > 0) {
-				executor = ThreadUtil.createExecutorService(deps.size(), false);
+				// LDEV-6320: single-threaded to avoid triggering 429 from Maven Central
+				executor = ThreadUtil.createExecutorService(1, false);
 				List<Future<Pair<IOException, POM>>> futures = new ArrayList<>();
 				for (POM p: deps) {
 
