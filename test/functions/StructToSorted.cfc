@@ -139,6 +139,32 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 				expect( res.valueArray() ).toBe( [ 1, 2 ] );
 			});
 		});
+		// LDEV-6302: toSorted() required a sort direction
+		describe("test case for LDEV-6302: struct.toSorted/StructToSorted", function() {
+			it( title="member toSorted('text') with one argument defaults to ascending order", body=function( currentSpec ) {
+				expect(
+					structKeyList(duplicate(myStr).toSorted("text"), ",")
+				).toBe("aa,bb,cc,dd");
+			} );
+
+			it( title="member toSorted('textNoCase') with one argument defaults to ascending order", body=function( currentSpec ) {
+				expect(
+					structKeyList(duplicate(myStr).toSorted("textNoCase"), ",")
+				).toBe("aa,bb,cc,dd");
+			} );
+
+			it( title="member toSorted('numeric') with one argument defaults to ascending order", body=function( currentSpec ) {
+				expect(
+					structKeyList(duplicate(myNumb).toSorted("numeric"), ",")
+				).toBe("1,2,3,4");
+			} );
+
+			it( title="StructToSorted(base,'text') with one argument defaults to ascending order", body=function( currentSpec ) {
+				expect(
+					structKeyList(StructToSorted(duplicate(myStr), "text"), ",")
+				).toBe("aa,bb,cc,dd");
+			} );
+		} );
 		
 	}
 }

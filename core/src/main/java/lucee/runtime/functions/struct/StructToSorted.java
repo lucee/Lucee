@@ -33,7 +33,7 @@ public final class StructToSorted extends BIF {
 	}
 
 	public static Struct call(PageContext pc, Struct base, Object sortTypeOrSortFunc) throws PageException {
-		if (Decision.isSimpleValue(sortTypeOrSortFunc)) call(pc, base, Caster.toString(sortTypeOrSortFunc), "asc", false);
+		if (Decision.isSimpleValue(sortTypeOrSortFunc)) return call(pc, base, Caster.toString(sortTypeOrSortFunc), "asc", false);
 		return _call(pc, base, Caster.toFunction(sortTypeOrSortFunc));
 	}
 
