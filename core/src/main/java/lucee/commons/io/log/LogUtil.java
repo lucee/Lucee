@@ -25,6 +25,7 @@ import lucee.aprint;
 import lucee.commons.i18n.FormatUtil;
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.IOUtil;
+import lucee.commons.io.SystemUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ExceptionUtil;
@@ -44,6 +45,11 @@ import lucee.runtime.engine.ThreadLocalPageContext;
 public final class LogUtil {
 
 	public static Resource ERR, OUT;
+	private static int MIN_LEVEL;
+
+	static {
+		MIN_LEVEL = LogUtil.toLevel(SystemUtil.getSystemPropOrEnvVar("lucee.system.log.level", null), Log.LEVEL_WARN);
+	}
 
 	public static int toLevel(String strLevel, int defaultValue) {
 		if (strLevel == null) return defaultValue;
@@ -266,6 +272,9 @@ public final class LogUtil {
 	}
 
 	public static void logGlobal(CFMLEngineFactory factory, int level, String type, String msg) {
+
+		if (level < MIN_LEVEL) return;
+
 		try {
 			Resource log;
 			boolean check = false;
