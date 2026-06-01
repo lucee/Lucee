@@ -2,10 +2,10 @@ package lucee.runtime.config;
 
 import java.lang.ref.Reference;
 import java.lang.ref.SoftReference;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
 
 import lucee.runtime.CIPage;
 import lucee.runtime.Page;
@@ -17,7 +17,7 @@ import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 
 public class ComponentPathCache {
-	private final Map<String, Reference<PageSource>> componentPathCache = new HashMap<>();
+	private final Map<String, Reference<PageSource>> componentPathCache = new ConcurrentHashMap<>();
 
 	public CIPage getPage(PageContext pc, String pathWithCFC) throws PageException {
 		Reference<PageSource> tmp = componentPathCache.get(pathWithCFC.toLowerCase());
