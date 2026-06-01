@@ -230,16 +230,4 @@ public final class ThreadUtil {
 		return Executors.newVirtualThreadPerTaskExecutor();
 	}
 
-	/**
-	 * Closes an ExecutorService by delegating to {@link ExecutorService#close()}, which initiates an
-	 * orderly shutdown and blocks until all previously submitted tasks have completed and the executor
-	 * has terminated, restoring the interrupt status if interrupted while waiting.
-	 *
-	 * @param executor the ExecutorService to close
-	 * @throws Exception if an exception occurs during the close operation
-	 */
-	public static void close(ExecutorService executor) throws Exception {
-		executor.close();
-	}
-
 }

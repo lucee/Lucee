@@ -4802,8 +4802,7 @@ public final class ConfigServerImpl implements ConfigServerPro {
 
 					// start bundles in parallel but wait for them to finish
 					CountDownLatch latch = new CountDownLatch(exts.size());
-					ExecutorService executor = ThreadUtil.createExecutorService();
-					try {
+					try (ExecutorService executor = ThreadUtil.createExecutorService()) {
 
 						for (RHExtension ext: exts.values()) {
 							executor.submit(() -> {
@@ -4830,16 +4829,6 @@ public final class ConfigServerImpl implements ConfigServerPro {
 						catch (InterruptedException e) {
 							Thread.currentThread().interrupt();
 							throw new RuntimeException("Interrupted while waiting for extension processing", e);
-						}
-					}
-					finally {
-						try {
-							ThreadUtil.close(executor);
-						}
-						catch (Exception ex) {
-							if (LogUtil.doesError(log)) {
-								log.error("start-bundles", ex);
-							}
 						}
 					}
 
