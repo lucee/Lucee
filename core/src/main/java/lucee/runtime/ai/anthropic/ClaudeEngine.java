@@ -64,10 +64,10 @@ public final class ClaudeEngine extends AIEngineSupport {
 		}
 
 		// Timeout
-		connectTimeout = Caster.toIntValue(props.remove("connectTimeout", null), DEFAULT_CONNECT_TIMEOUT);
+		connectTimeout = Caster.toIntValue(props.remove(KeyConstants._connectTimeout, null), DEFAULT_CONNECT_TIMEOUT);
 		if (connectTimeout <= 0) connectTimeout = DEFAULT_CONNECT_TIMEOUT;
 
-		socketTimeout = Caster.toIntValue(props.remove("socketTimeout", null), DEFAULT_SOCKET_TIMEOUT);
+		socketTimeout = Caster.toIntValue(props.remove(KeyConstants._socketTimeout, null), DEFAULT_SOCKET_TIMEOUT);
 		if (socketTimeout <= 0) socketTimeout = DEFAULT_SOCKET_TIMEOUT;
 
 		// temperature
@@ -76,7 +76,7 @@ public final class ClaudeEngine extends AIEngineSupport {
 			throw new ApplicationException("temperature has to be a number between 0 and 1, now it is [" + temperature + "]");
 		}
 		// conversation Size Limit
-		conversationSizeLimit = Caster.toIntValue(props.remove("conversationSizeLimit", null), DEFAULT_CONVERSATION_SIZE_LIMIT);
+		conversationSizeLimit = Caster.toIntValue(props.remove(KeyConstants._conversationSizeLimit, null), DEFAULT_CONVERSATION_SIZE_LIMIT);
 
 		// Model
 		// TODO read available models and throw exception
@@ -95,7 +95,10 @@ public final class ClaudeEngine extends AIEngineSupport {
 		if (Util.isEmpty(charset, true)) charset = DEFAULT_CHARSET;
 
 		// headers
-		headers = toHeaders(Caster.toStruct(props.remove("headers", null), null));
+		headers = toHeaders(Caster.toStruct(props.remove(KeyConstants._headers, null), null));
+
+		props.remove(KeyConstants._timeout, null);
+		props.remove(KeyConstants._apikey, null);
 
 		this.custom = props;
 
