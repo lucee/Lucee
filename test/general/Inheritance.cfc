@@ -82,7 +82,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 			});
 
 			describe( "multi-level property pulldown (3-level extends, mappedSuperClass shape)", function(){
-				it( title="3-level extends — accessors at every level dispatch on the leaf", body=function( currentSpec ){
+				it( title="3-level extends — accessors at every level dispatch on the CFC instance", body=function( currentSpec ){
 					var c = new inheritance.Child();
 					expect( c.getGprop() ).toBe( "g-default" );
 					expect( c.getPprop() ).toBe( "p-default" );
@@ -94,7 +94,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 					expect( c.getPprop() ).toBe( "p-set" );
 					expect( c.getCprop() ).toBe( "c-set" );
 				});
-				it( title="duplicate of leaf — accessors at every level still dispatch", body=function( currentSpec ){
+				it( title="duplicate of the CFC instance — accessors at every level still dispatch", body=function( currentSpec ){
 					var c = new inheritance.Child();
 					c.setGprop( "g1" );
 					c.setPprop( "p1" );
@@ -200,7 +200,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 					expect( right( snap.extends, len( ".inheritance.Parent" ) ) ).toBe( ".inheritance.Parent" );
 					expect( snap.accessors ).toBeTrue();
 				});
-				it( title="getMetaData on leaf surfaces inherited properties from every level", body=function( currentSpec ){
+				it( title="getMetaData on the CFC instance surfaces inherited properties from every level", body=function( currentSpec ){
 					var c = new inheritance.Child();
 					var meta = getMetaData( c );
 					var propNames = [];

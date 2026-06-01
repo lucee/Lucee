@@ -167,6 +167,177 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="xml" {
 					expect( copy.customMethod() ).toBe( "from copy" );
 					expect( function(){ orig.customMethod(); } ).toThrow();
 				});
+
+				it( title="getter via UDF reference returns the duplicate's value, not the original's", body=function( currentSpec ){
+					// LDEV-6298: accessor UDFs are shared across original+duplicate. Direct dispatch
+					// (E.getName()) hits the LDEV-6236 fast path and works. Indirect dispatch via a
+					// UDF reference falls through to UDFGSProperty._call → srcComponent.getComponentScope(),
+					// which on a shared flyweight points at the original. Must return the duplicate's value.
+					var orig = new test.general.accessors.testPropertyTypes();
+					orig.setName( "alpha-A" );
+					var copy = duplicate( orig );
+					copy.setName( "echo-E" );
+
+					var ref = copy.getName;
+					expect( ref() ).toBe( "echo-E" );
+				});
+
+				it( title="getter via bracket lookup returns the duplicate's value", body=function( currentSpec ){
+					var orig = new test.general.accessors.testPropertyTypes();
+					orig.setName( "alpha-A" );
+					var copy = duplicate( orig );
+					copy.setName( "echo-E" );
+
+					var ref = copy[ "getName" ];
+					expect( ref() ).toBe( "echo-E" );
+				});
+
+				it( title="getter passed to higher-order function returns the duplicate's value", body=function( currentSpec ){
+					var orig = new test.general.accessors.testPropertyTypes();
+					orig.setName( "alpha-A" );
+					var copy = duplicate( orig );
+					copy.setName( "echo-E" );
+
+					var caller = function( fn ) { return fn(); };
+					expect( caller( copy.getName ) ).toBe( "echo-E" );
+				});
+
+				it( title="setter via UDF reference writes to the duplicate, not the original", body=function( currentSpec ){
+					// Worse than the getter case: silent data corruption. The shared UDFSetterProperty
+					// flyweight's srcComponent points at the original, so calling the setter via a ref
+					// extracted from the duplicate writes to the original's scope.
+					var orig = new test.general.accessors.testPropertyTypes();
+					orig.setName( "alpha-A" );
+					var copy = duplicate( orig );
+					copy.setName( "echo-E" );
+
+					var ref = copy.setName;
+					ref( "via-ref-on-copy" );
+
+					expect( copy.getName() ).toBe( "via-ref-on-copy" );
+					expect( orig.getName() ).toBe( "alpha-A" );
+				});
+
+				it( title="setter via bracket lookup writes to the duplicate, not the original", body=function( currentSpec ){
+					var orig = new test.general.accessors.testPropertyTypes();
+					orig.setName( "alpha-A" );
+					var copy = duplicate( orig );
+					copy.setName( "echo-E" );
+
+					var ref = copy[ "setName" ];
+					ref( "via-bracket-on-copy" );
+
+					expect( copy.getName() ).toBe( "via-bracket-on-copy" );
+					expect( orig.getName() ).toBe( "alpha-A" );
+				});
+
+				it( title="UDF references obtained via arrayMap dispatch correctly per-duplicate", body=function( currentSpec ){
+					var p1 = new test.general.accessors.testPropertyTypes();
+					p1.setName( "first" );
+					var p2 = duplicate( p1 );
+					p2.setName( "second" );
+					var p3 = duplicate( p1 );
+					p3.setName( "third" );
+
+					var refs = [ p1, p2, p3 ].map( function( cfc ) { return cfc.getName; } );
+					var values = refs.map( function( g ) { return g(); } );
+
+					expect( values ).toBe( [ "first", "second", "third" ] );
+				});
+
+				it( title="duplicate via Duplicate(struct containing cfc) — accessors on the inner cfc dispatch correctly via UDF ref", body=function( currentSpec ){
+					// Duplicator.duplicate routes Component instances through ComponentImpl.duplicate
+					// when a deep-copied container holds them, propagating the share regression to
+					// CFCs inside structs/arrays — not just explicit Duplicate(cfc).
+					var orig = new test.general.accessors.testPropertyTypes();
+					orig.setName( "alpha-A" );
+					var container = { person: orig };
+					var containerCopy = duplicate( container );
+					containerCopy.person.setName( "echo-E" );
+
+					expect( containerCopy.person.getName() ).toBe( "echo-E" );
+					var ref = containerCopy.person.getName;
+					expect( ref() ).toBe( "echo-E" );
+				});
+
+				it( title="duplicate via Duplicate(array containing cfc) — accessors dispatch correctly via UDF ref", body=function( currentSpec ){
+					var orig = new test.general.accessors.testPropertyTypes();
+					orig.setName( "alpha-A" );
+					var arr = [ orig ];
+					var arrCopy = duplicate( arr );
+					arrCopy[ 1 ].setName( "echo-E" );
+
+					expect( arrCopy[ 1 ].getName() ).toBe( "echo-E" );
+					var ref = arrCopy[ 1 ].getName;
+					expect( ref() ).toBe( "echo-E" );
+				});
+			});
+
+			describe( "LDEV-6298 v2 — BoundUDF wrapper semantics", function(){
+
+				it( title="extracted refs read live state, not snapshots", body=function( currentSpec ){
+					// Each extraction binds to the component (not the value), so a ref captured
+					// before a write still sees the new value. Confirms the wrapper holds a
+					// component reference, not a cached scope read.
+					var e = new test.general.accessors.testPropertyTypes();
+					e.setName( "first" );
+					var a = e.getName;
+					e.setName( "second" );
+					var b = e.getName;
+
+					expect( a() ).toBe( "second" );
+					expect( b() ).toBe( "second" );
+				});
+
+				it( title="direct ref invocation dispatches via the source component", body=function( currentSpec ){
+					// var ref = e.getName; ref() — bound to e for direct invocation. The wrapper
+					// carries the receiver across extraction so slow-path dispatch lands on e.
+					var e = new test.general.accessors.testPropertyTypes();
+					e.setName( "from-E" );
+
+					var ref = e.getName;
+					expect( ref() ).toBe( "from-E" );
+				});
+
+				it( title="LDEV-1962: ref assigned into another component rebinds to the new host", body=function( currentSpec ){
+					// f.x = e.getName followed by f.x() must dispatch via f — established 2017
+					// mixin contract used by ColdBox/WireBox virtual inheritance. The wrapper is
+					// unwrapped on assignment so the host component becomes the receiver.
+					var e = new test.general.accessors.testPropertyTypes();
+					e.setName( "from-E" );
+					var f = new test.general.accessors.testPropertyTypes();
+					f.setName( "from-F" );
+
+					f.callMethod = e.getName;
+					expect( f.callMethod() ).toBe( "from-F" );
+				});
+
+				it( title="LDEV-1962: setter ref assigned into another component writes to the new host", body=function( currentSpec ){
+					var e = new test.general.accessors.testPropertyTypes();
+					e.setName( "from-E" );
+					var f = new test.general.accessors.testPropertyTypes();
+					f.setName( "from-F" );
+
+					f.writeMethod = e.setName;
+					f.writeMethod( "rewritten-via-F" );
+
+					expect( e.getName() ).toBe( "from-E" );
+					expect( f.getName() ).toBe( "rewritten-via-F" );
+				});
+
+				it( title="ref captured before duplicate dispatches via the source", body=function( currentSpec ){
+					// Capturing a ref before duplication binds to the source. The duplicate's later
+					// state changes don't affect the bound ref under direct invocation.
+					var src = new test.general.accessors.testPropertyTypes();
+					src.setName( "src-name" );
+					var refBeforeDup = src.getName;
+
+					var dup = duplicate( src );
+					dup.setName( "dup-name" );
+
+					expect( refBeforeDup() ).toBe( "src-name" );
+					expect( dup.getName() ).toBe( "dup-name" );
+				});
 			});
 
 			describe( "mass duplication (ORM hot path)", function(){

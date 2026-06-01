@@ -451,14 +451,6 @@ public final class ComponentImpl extends StructSupport implements IteratorablePr
 			for (Entry<Key, UDF> e: srcMap.entrySet()) {
 				udf = e.getValue();
 
-				// pageSource compare so chained duplicates match
-				if (udf instanceof UDFGSProperty) {
-					if (udf.getOwnerComponent().getPageSource() == src.getPageSource()) {
-						trgMap.put(e.getKey(), udf);
-					}
-					continue;
-				}
-
 				if (udf.getOwnerComponent() == src) {
 					UDF clone = e.getValue().duplicate();
 					if (clone instanceof UDFPlus) {
