@@ -121,6 +121,9 @@ public final class XMLUtil {
 	public static final Collection.Key KEY_FEATURE_EXTERNAL_GENERAL_ENTITIES = KeyConstants._externalGeneralEntities;
 	public static final Collection.Key KEY_FEATURE_EXTERNAL_GENERAL_ENTITIES_ACF = KeyConstants._allowExternalEntities;
 
+	// Sentinel for "name not found" path; must never escape this class.
+	private static final Object NOT_FOUND = new Object();
+
 	// public final static String
 	// DEFAULT_SAX_PARSER="org.apache.xerces.parsers.SAXParser";
 
@@ -845,7 +848,8 @@ public final class XMLUtil {
 	 */
 	public static Object getProperty(Node node, Collection.Key k, boolean caseSensitive, Object defaultValue) {
 		try {
-			return getProperty(node, k, caseSensitive);
+			Object o = getPropertyOrSentinel(node, k, caseSensitive);
+			return o == NOT_FOUND ? defaultValue : o;
 		}
 		catch (SAXException e) {
 			return defaultValue;
@@ -866,6 +870,13 @@ public final class XMLUtil {
 	 * @throws SAXException
 	 */
 	public static Object getProperty(Node node, Collection.Key k, boolean caseSensitive) throws SAXException {
+		Object o = getPropertyOrSentinel(node, k, caseSensitive);
+		if (o == NOT_FOUND) throw new SAXException("Attribute [" + k.getString() + "] not found");
+		return o;
+	}
+
+	// Non-throwing core: returns NOT_FOUND for "name not found" so defaultValue callers avoid the throw.
+	private static Object getPropertyOrSentinel(Node node, Collection.Key k, boolean caseSensitive) throws SAXException {
 		// String lcKey=StringUtil.toLowerCase(key);
 		if (k.getLowerString().startsWith("xml")) {
 			// Comment
@@ -1030,7 +1041,7 @@ public final class XMLUtil {
 			}
 			if (first != null) return first;
 		}
-		throw new SAXException("Attribute [" + k.getString() + "] not found");
+		return NOT_FOUND;
 	}
 
 	private static SAXException undefined(Key key, Node node) {

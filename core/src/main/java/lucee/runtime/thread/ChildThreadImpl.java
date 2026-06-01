@@ -33,6 +33,7 @@ import lucee.commons.lang.Pair;
 import lucee.runtime.Page;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
+import lucee.runtime.PageSource;
 import lucee.runtime.PageSourceImpl;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigPro;
@@ -111,7 +112,7 @@ public final class ChildThreadImpl extends ChildThread implements Serializable {
 
 	private Object threadScope;
 
-	private ParentException parentException;
+	private final PageSource parentPageSource;
 
 	private final boolean separateScopes;
 
@@ -126,7 +127,7 @@ public final class ChildThreadImpl extends ChildThread implements Serializable {
 		this.serializable = serializable;
 		this.tagName = tagName;
 		this.threadIndex = threadIndex;
-		this.parentException = new ParentException(parent != null ? parent.getCurrentPageSource() : null, tagName);
+		this.parentPageSource = parent != null ? parent.getCurrentPageSource() : null;
 		this.separateScopes = separateScopes;
 		start = System.currentTimeMillis();
 		if (attrs == null) this.attrs = new StructImpl();
@@ -300,7 +301,7 @@ public final class ChildThreadImpl extends ChildThread implements Serializable {
 				ExceptionUtil.rethrowIfNecessary(t);
 				if (!Abort.isSilentAbort(t)) {
 					ConfigWeb c = pc.getConfig();
-					ExceptionUtil.initCauseEL(t, parentException);
+					ExceptionUtil.initCauseEL(t, new ParentException(parentPageSource, tagName));
 					Log log = ThreadLocalPageContext.getLog(c, "thread");
 					if (log != null) {
 						try {

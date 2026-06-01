@@ -331,6 +331,7 @@ public class XMLNodeStruct extends StructSupport implements XMLStruct {
 		return caseSensitive;
 	}
 
+	// Routes through get(key, null) → XMLUtil's defaultValue overload — intentionally non-throwing.
 	@Override
 	public boolean containsKey(Collection.Key key) {
 		return get(key, null) != null;
