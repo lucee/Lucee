@@ -19,14 +19,10 @@
 package lucee.runtime.thread;
 
 import java.io.OutputStream;
-import java.lang.invoke.MethodHandle;
-import java.lang.invoke.MethodHandles;
-import java.lang.invoke.MethodType;
 import java.util.Iterator;
 import java.util.Map.Entry;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -34,8 +30,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import lucee.aprint;
 import lucee.commons.io.DevNullOutputStream;
-import lucee.commons.io.SystemUtil;
-import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.Pair;
@@ -56,16 +50,6 @@ public final class ThreadUtil {
 
 	private static final boolean ALLOW_FUTURE_THREADS = false;
 	// private static final Class<?> THREAD_CLASS = Thread.class;
-	private static final Class<?> RUNNABLE_CLASS = Runnable.class;
-	private static Class<?> threadBuilderClass;
-	private static boolean virtualDisabled = false;
-
-	public static Class<?> getThreadBuilderClass() throws ClassNotFoundException {
-		if (threadBuilderClass == null) {
-			threadBuilderClass = Class.forName("java.lang.Thread$Builder$OfVirtual");
-		}
-		return threadBuilderClass;
-	}
 
 	// do not change, used in Redis extension
 	public static PageContextImpl clonePageContext(PageContext pc, OutputStream os, boolean stateless, boolean register2Thread, boolean register2RunningThreads) {
@@ -225,19 +209,8 @@ public final class ThreadUtil {
 	}
 
 	public static Thread getThread(Runnable task, boolean allowVirtual) {
-		if (allowVirtual && SystemUtil.JAVA_VERSION >= SystemUtil.JAVA_VERSION_19) {
-
-			try {
-				// Get Thread.ofVirtual()
-				MethodHandles.Lookup lookup = MethodHandles.lookup();
-				MethodHandle ofVirtualHandle = lookup.findStatic(Thread.class, "ofVirtual", MethodType.methodType(getThreadBuilderClass()));
-				MethodHandle unstartedHandle = lookup.findVirtual(Class.forName("java.lang.Thread$Builder"), "unstarted", MethodType.methodType(Thread.class, Runnable.class));
-				return (Thread) unstartedHandle.bindTo(ofVirtualHandle.invoke()).invoke(task);
-			}
-			catch (Throwable e) {
-				ExceptionUtil.rethrowIfNecessary(e);
-				LogUtil.log("threading", e);
-			}
+		if (allowVirtual) {
+			return Thread.ofVirtual().unstarted(task);
 		}
 		return new Thread(task);
 	}
@@ -247,82 +220,26 @@ public final class ThreadUtil {
 	}
 
 	public static ExecutorService createExecutorService(int maxThreads, boolean allowVirtual) {
-		if (!virtualDisabled) {
-			if (allowVirtual && SystemUtil.JAVA_VERSION >= SystemUtil.JAVA_VERSION_19) {
-				// FUTURE use newVirtualThreadPerTaskExecutor natively
-				try {
-					MethodHandles.Lookup lookup = MethodHandles.lookup();
-					MethodType methodType = MethodType.methodType(ExecutorService.class);
-					MethodHandle methodHandle = lookup.findStatic(Executors.class, "newVirtualThreadPerTaskExecutor", methodType);
-					return (ExecutorService) methodHandle.invoke();
-				}
-				catch (Throwable e) {
-					virtualDisabled = true;
-					ExceptionUtil.rethrowIfNecessary(e);
-					LogUtil.log("threading", e);
-				}
-			}
+		if (allowVirtual) {
+			return Executors.newVirtualThreadPerTaskExecutor();
 		}
 		return Executors.newFixedThreadPool(maxThreads);
 	}
 
 	public static ExecutorService createExecutorService() {
-		if (SystemUtil.JAVA_VERSION >= SystemUtil.JAVA_VERSION_19) {
-			// FUTURE use newVirtualThreadPerTaskExecutor natively
-			try {
-				MethodHandles.Lookup lookup = MethodHandles.lookup();
-				MethodType methodType = MethodType.methodType(ExecutorService.class);
-				MethodHandle methodHandle = lookup.findStatic(Executors.class, "newVirtualThreadPerTaskExecutor", methodType);
-				return (ExecutorService) methodHandle.invoke();
-			}
-			catch (Throwable e) {
-				ExceptionUtil.rethrowIfNecessary(e);
-				LogUtil.log("threading", e);
-			}
-		}
-		return Executors.newSingleThreadExecutor();
+		return Executors.newVirtualThreadPerTaskExecutor();
 	}
 
 	/**
-	 * Closes an ExecutorService, mimicking the behavior of ExecutorService.close() from Java 21.
-	 * <p>
-	 * This utility method provides backward compatibility for Java 11 environments by:
-	 * <ul>
-	 * <li>Using AutoCloseable.close() if the executor implements it (for future compatibility)
-	 * <li>Otherwise performing a graceful shutdown, waiting indefinitely for tasks to complete
-	 * <li>Handling interruptions by initiating an immediate shutdown
-	 * <li>Preserving the interrupted status of the current thread if interruption occurred
-	 * </ul>
-	 * </p>
+	 * Closes an ExecutorService by delegating to {@link ExecutorService#close()}, which initiates an
+	 * orderly shutdown and blocks until all previously submitted tasks have completed and the executor
+	 * has terminated, restoring the interrupt status if interrupted while waiting.
 	 *
 	 * @param executor the ExecutorService to close
 	 * @throws Exception if an exception occurs during the close operation
 	 */
 	public static void close(ExecutorService executor) throws Exception {
-		if (executor instanceof AutoCloseable) {
-			((AutoCloseable) executor).close();
-		}
-		else {
-			boolean terminated = executor.isTerminated();
-			if (!terminated) {
-				executor.shutdown();
-				boolean interrupted = false;
-				while (!terminated) {
-					try {
-						terminated = executor.awaitTermination(1L, TimeUnit.DAYS);
-					}
-					catch (InterruptedException e) {
-						if (!interrupted) {
-							executor.shutdownNow();
-							interrupted = true;
-						}
-					}
-				}
-				if (interrupted) {
-					Thread.currentThread().interrupt();
-				}
-			}
-		}
+		executor.close();
 	}
 
 }
