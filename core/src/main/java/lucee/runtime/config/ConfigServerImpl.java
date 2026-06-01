@@ -47,6 +47,10 @@ import java.util.TimeZone;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.osgi.framework.BundleException;
@@ -1082,6 +1086,18 @@ public final class ConfigServerImpl implements ConfigServerPro {
 					+ "Lucee temporarily switches to this shorter interval to remain responsive to any further modifications, "
 					+ "before gradually transitioning back to the standard interval over time.");
 	private int inspectTemplateAutoIntervalFast = ConfigPro.INSPECT_INTERVAL_UNDEFINED;
+
+	// LDEV: background ticker that periodically re-inspects "auto" inspectTemplate mappings, replacing the
+	// old PageSourcePoolWatcher polling thread. Started lazily on first page load, sped up after a change.
+	private final ScheduledExecutorService inspectScheduler = Executors.newSingleThreadScheduledExecutor(r -> {
+		Thread t = new Thread(r, "InspectAutoRefresh");
+		t.setDaemon(true);
+		t.setPriority(Thread.MIN_PRIORITY);
+		return t;
+	});
+	private volatile ScheduledFuture<?> nextTick;
+	private final Object tickToken = new Object();
+	private final AtomicBoolean fastRequested = new AtomicBoolean(false);
 
 	public final static Prop<Boolean> metaFormUrlAsStruct = Prop.bool().keys("formUrlAsStruct").defaultValue(true)
 			.description("When enabled, Lucee parses dot-notation in URL/Form keys into nested structures. " + "For example, 'index.cfm?person.name=John' becomes URL.person.name. "
@@ -5102,6 +5118,9 @@ public final class ConfigServerImpl implements ConfigServerPro {
 	 */
 	@Override
 	public short getInspectTemplate() {
+		// allow overriding the configured inspectTemplate via system property / environment variable
+		String strInspectTemplate = SystemUtil.getSystemPropOrEnvVar("lucee.inspect.template", null);
+		if (!StringUtil.isEmpty(strInspectTemplate, true)) return ConfigUtil.inspectTemplate(strInspectTemplate, ConfigPro.INSPECT_AUTO);
 		return inspectTemplate.get(this, root);
 	}
 
@@ -5143,6 +5162,125 @@ public final class ConfigServerImpl implements ConfigServerPro {
 			}
 		}
 		return this;
+	}
+
+	public void shutdown() {
+		inspectScheduler.shutdownNow();
+	}
+
+	public void ensureInspectTickerStarted() {
+		ScheduledFuture<?> f = nextTick;
+		if (f != null && !f.isDone()) return;
+		synchronized (tickToken) {
+			f = nextTick;
+			if (f != null && !f.isDone()) return;
+			scheduleNextTick(getInspectTemplateAutoInterval(true));
+		}
+	}
+
+	public void requestFastTick() {
+		fastRequested.set(true);
+
+		long fast = getInspectTemplateAutoInterval(false);
+		ScheduledFuture<?> existing = nextTick;
+		if (existing == null || existing.isDone()) {
+			synchronized (tickToken) {
+				existing = nextTick;
+				if (existing == null || existing.isDone()) {
+					scheduleNextTick(fast);
+					return;
+				}
+			}
+		}
+		if (existing.getDelay(TimeUnit.MILLISECONDS) > fast) {
+			synchronized (tickToken) {
+				ScheduledFuture<?> cur = nextTick;
+				if (cur != null && cur.getDelay(TimeUnit.MILLISECONDS) > fast) {
+					scheduleNextTick(fast);
+				}
+			}
+		}
+	}
+
+	private void scheduleNextTick(long delayMs) {
+		ScheduledFuture<?> old = nextTick;
+		if (old != null) old.cancel(false);
+		try {
+			nextTick = inspectScheduler.schedule(this::runInspectTick, delayMs, TimeUnit.MILLISECONDS);
+		}
+		catch (java.util.concurrent.RejectedExecutionException ree) {
+			nextTick = null;
+		}
+	}
+
+	private void runInspectTick() {
+		try {
+			boolean anyAuto = inspectAllAutoMappings();
+			synchronized (tickToken) {
+				boolean fast = fastRequested.getAndSet(false);
+				if (anyAuto) {
+					long delay = fast ? getInspectTemplateAutoInterval(false) : getInspectTemplateAutoInterval(true);
+					scheduleNextTick(delay);
+				}
+				else nextTick = null;
+			}
+		}
+		catch (Throwable t) {
+			if (inspectScheduler.isShutdown()) return;
+			LogUtil.log(this, "inspect-ticker", t);
+			scheduleNextTick(getInspectTemplateAutoInterval(true));
+		}
+	}
+
+	private boolean inspectAllAutoMappings() {
+		boolean anyAuto = false;
+		anyAuto |= resetMatching(getMappings());
+		anyAuto |= resetMatching(getCustomTagMappings());
+		anyAuto |= resetMatching(getComponentMappings());
+		anyAuto |= resetMatching(getFunctionMappings());
+		anyAuto |= resetMatching(getTagMappings());
+		for (ConfigWeb cw: getConfigWebs()) {
+			if (!(cw instanceof ConfigWebPro)) continue;
+			ConfigWebPro cwp = (ConfigWebPro) cw;
+			anyAuto |= resetMatching(cwp.getMappings());
+			anyAuto |= resetMatching(cwp.getCustomTagMappings());
+			anyAuto |= resetMatching(cwp.getComponentMappings());
+			anyAuto |= resetMatching(cwp.getFunctionMappings());
+			anyAuto |= resetMatching(cwp.getTagMappings());
+			anyAuto |= resetMatching(cwp.getApplicationMappings());
+		}
+		return anyAuto;
+	}
+
+	private static boolean resetMatching(Mapping[] mappings) {
+		if (mappings == null) return false;
+		boolean any = false;
+		for (Mapping m: mappings) {
+			if (matchesAutoPhysical(m)) {
+				any = true;
+				((MappingImpl) m).resetPages(null);
+			}
+		}
+		return any;
+	}
+
+	private static boolean resetMatching(Collection<Mapping> mappings) {
+		if (mappings == null) return false;
+		boolean any = false;
+		for (Mapping m: mappings) {
+			if (matchesAutoPhysical(m)) {
+				any = true;
+				((MappingImpl) m).resetPages(null);
+			}
+		}
+		return any;
+	}
+
+	private static boolean matchesAutoPhysical(Mapping m) {
+		if (m == null) return false;
+		if (m.getInspectTemplate() != ConfigPro.INSPECT_AUTO) return false;
+		if (m.getPhysical() == null) return false;
+		return true;
 	}
 
 	@Override
