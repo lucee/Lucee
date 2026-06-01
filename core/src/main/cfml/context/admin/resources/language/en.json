@@ -1510,6 +1510,7 @@
         },
         "class": "Class",
         "clearCache": "Clear cache ( {count} element(s) )",
+        "clearCacheUnsupported": "Clear cache (count unsupported)",
         "clearCacheTitle": "Clear cache",
         "Default": "Default",
         "defaultDesc": "Define the default cache connection for templates (cfcache) and object (cacheGet, cachePut ...), this connection is used when no cache name is explicit defined",

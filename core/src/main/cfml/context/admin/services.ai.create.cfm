@@ -92,7 +92,6 @@ Redirtect to entry --->
 </cfif>
 
 <cfset isNew=false>
-<cfset unsupportedCacheCountExt="memcached.extension">
 <cfif StructKeyExists(url,'name')>
 	<cfloop query="connections" >
 		<cfif hash(connections.name) EQ url.name>
@@ -112,8 +111,7 @@ Redirtect to entry --->
 					<cfset error.message = cfcatch.message>
 				</cfcatch>
 			</cftry>
-			<cfset btnClearCache = connection.bundleName != unsupportedCacheCountExt ? stText.Settings.cache.clearCache : "Clear Cache" />
-		</cfif> 
+		</cfif>
 	</cfloop>
 <cfelse>
 	<cfset isNew=true>
@@ -123,7 +121,6 @@ Redirtect to entry --->
 	<cfset connection.default=false>
 	<cfset connection.custom=struct()>
 	<cfset driver=drivers[form.class]>
-	<cfset btnClearCache = "">
 	<!--- <cfset connection.name=lcase(driver.getLabel())&"_"&FormatBaseN(randRange(1,999999),36)> --->
 	<cfset connection.name="">
 </cfif>

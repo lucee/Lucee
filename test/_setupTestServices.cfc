@@ -407,13 +407,14 @@ component {
 				throw "MemCached port closed #memcached.server#:#memcached.port#"; // otherwise the cache keeps trying and logging
 			try {
 				testCacheName = "testMemcached";
-				application 
-					action="update" 
+				bundleVersion = server.getDefaultBundleVersion( 'org.lucee.memcached.extension', '4.0.0.14' );
+				application
+					action="update"
 					caches="#{
 						testMemcached: {
 							class: 'org.lucee.extension.cache.mc.MemcachedCache'
-							, bundleName: 'memcached.extension'
-							, bundleVersion: '4.0.0.10-SNAPSHOT'
+							, bundleName: 'org.lucee.memcached.extension'
+							, bundleVersion: bundleVersion
 							, storage: false
 							, custom: {
 								"socket_timeout": "3",
@@ -441,7 +442,7 @@ component {
 				if ( !valid ) {
 					throw "MemCached configured, but not available";
 				} else {
-					return "MemCached connection verified";
+					return "MemCached connection verified, extension bundle [#bundleVersion#]";
 				}
 			} catch (e){
 				application action="update" caches="#{}#";
