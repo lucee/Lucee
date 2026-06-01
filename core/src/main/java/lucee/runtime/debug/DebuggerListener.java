@@ -11,6 +11,12 @@ import lucee.runtime.PageContext;
 public interface DebuggerListener {
 
 	/**
+	 * Contract version this listener implements. Non-default — every implementation must declare.
+	 * Version 1: baseline (extension 3.0.0.8+).
+	 */
+	int getApiVersion();
+
+	/**
 	 * Get the name of this debugger for logging purposes.
 	 *
 	 * @return A human-readable name (e.g., "debugger")

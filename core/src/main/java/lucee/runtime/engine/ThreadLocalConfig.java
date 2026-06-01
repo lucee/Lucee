@@ -28,10 +28,17 @@ import lucee.runtime.config.ConfigPro;
 public final class ThreadLocalConfig {
 
 	private static InheritableThreadLocal<Config> cThreadLocal = new InheritableThreadLocal<Config>();
+	// SavedCCL holder distinguishes "saved null" from "never saved" so the re-entrancy guard works on threads with a null CCL.
+	private static ThreadLocal<SavedCCL> prevCCL = new ThreadLocal<>();
+
+	private static final class SavedCCL {
+		final ClassLoader value;
+		SavedCCL(ClassLoader value) { this.value = value; }
+	}
 
 	/**
 	 * register a Config for he current thread
-	 * 
+	 *
 	 * @param config Config to register
 	 */
 	public static void register(Config config) {
@@ -40,12 +47,19 @@ public final class ThreadLocalConfig {
 			return;
 		}
 		Thread t = Thread.currentThread();
+		// capture the original CCL on the first register so release() can restore
+		// it. The null check is a re-entrancy guard: Controler.run calls
+		// register(config) 4x before its single release(); without the guard, the
+		// second register would clobber the original save with the Lucee CCL.
+		if (prevCCL.get() == null) {
+			prevCCL.set(new SavedCCL(t.getContextClassLoader()));
+		}
 		t.setContextClassLoader(((ConfigPro) config).getClassLoaderEnv());
 	}
 
 	/**
 	 * returns Config registered for the current thread
-	 * 
+	 *
 	 * @return Config for the current thread or null
 	 */
 	static Config get() {
@@ -57,5 +71,10 @@ public final class ThreadLocalConfig {
 	 */
 	public static void release() {
 		cThreadLocal.set(null);
+		SavedCCL prev = prevCCL.get();
+		if (prev != null) {
+			Thread.currentThread().setContextClassLoader(prev.value);
+			prevCCL.remove();
+		}
 	}
 }

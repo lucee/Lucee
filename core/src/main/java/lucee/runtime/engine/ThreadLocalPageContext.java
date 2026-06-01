@@ -52,6 +52,13 @@ public final class ThreadLocalPageContext {
 	private static ThreadLocal<Boolean> insideServerNewInstance = new ThreadLocal<Boolean>();
 	private static ThreadLocal<Boolean> insideGateway = new ThreadLocal<Boolean>();
 	private static ThreadLocal<Boolean> insideInheritableRegistration = new ThreadLocal<Boolean>();
+	// SavedCCL holder distinguishes "saved null" from "never saved" so the re-entrancy guard works on threads with a null CCL.
+	private static ThreadLocal<SavedCCL> prevCCL = new ThreadLocal<>();
+
+	private static final class SavedCCL {
+		final ClassLoader value;
+		SavedCCL(ClassLoader value) { this.value = value; }
+	}
 
 	/**
 	 * Register a NEW or PARENT PageContext for the current thread.
@@ -85,8 +92,12 @@ public final class ThreadLocalPageContext {
 		if (pc == null) {
 			return; // TODO happens with Gateway, but should not!
 		}
-		// TODO should i set the old one by "release"?
 		Thread t = Thread.currentThread();
+		// capture the original CCL on the first register so release() can restore
+		// it; the null check guards re-entrant register from clobbering the save.
+		if (prevCCL.get() == null) {
+			prevCCL.set(new SavedCCL(t.getContextClassLoader()));
+		}
 		t.setContextClassLoader(((ConfigPro) pc.getConfig()).getClassLoaderEnv());
 		((PageContextImpl) pc).setThread(t);
 		pcThreadLocal.set(pc);
@@ -149,6 +160,11 @@ public final class ThreadLocalPageContext {
 			return; // TODO happens with Gateway, but should not!
 		}
 		Thread t = Thread.currentThread();
+		// capture the original CCL on the first register so release() can restore
+		// it; the null check guards re-entrant register from clobbering the save.
+		if (prevCCL.get() == null) {
+			prevCCL.set(new SavedCCL(t.getContextClassLoader()));
+		}
 		t.setContextClassLoader(((ConfigPro) pc.getConfig()).getClassLoaderEnv());
 		((PageContextImpl) pc).setThread(t);
 		pcThreadLocal.set(pc);
@@ -235,6 +251,11 @@ public final class ThreadLocalPageContext {
 	public static void release() {
 		pcThreadLocal.set(null);
 		pcThreadLocalInheritable.set(null);
+		SavedCCL prev = prevCCL.get();
+		if (prev != null) {
+			Thread.currentThread().setContextClassLoader(prev.value);
+			prevCCL.remove();
+		}
 	}
 
 	public static Config getConfig(PageContext pc) {

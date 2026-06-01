@@ -16,6 +16,10 @@ import lucee.runtime.engine.ThreadLocalPageContext;
  */
 public final class DebuggerRegistry {
 
+	/** Minimum listener API version accepted. Extensions reporting below this are rejected at register time.
+	 *  Set to 0 in this commit to land the mechanism without enforcement; bump to 1 when ready to reject pre-3.0.0.8 extensions. */
+	public static final int MIN_LISTENER_API_VERSION = 0;
+
 	private static volatile DebuggerListener listener;
 
 	private DebuggerRegistry() {
@@ -28,28 +32,60 @@ public final class DebuggerRegistry {
 	 *
 	 * @param l The listener to register, or null to unregister
 	 * @param secret The secret that must match LUCEE_DAP_SECRET
-	 * @return true if registration succeeded, false if secret is invalid
+	 * @return true if registration succeeded, false on any failure (reason is logged but not returned)
+	 * @deprecated Use {@link #register(DebuggerListener, String)} which returns the rejection reason
+	 *             so the extension can surface it to the IDE. Kept for pre-3.0.0.8 extensions still
+	 *             using the boolean-return reflection lookup.
 	 */
+	@Deprecated
 	public static boolean setListener(DebuggerListener l, String secret) {
+		return register(l, secret) == null;
+	}
 
+	/**
+	 * Register the debugger listener. Requires the correct secret from LUCEE_DAP_SECRET.
+	 * Only one listener is supported - registering a new one replaces the old.
+	 *
+	 * @param l The listener to register, or null to unregister
+	 * @param secret The secret that must match LUCEE_DAP_SECRET
+	 * @return null on success; an error message string on failure (suitable for surfacing to the IDE via DAP attach)
+	 */
+	public static String register(DebuggerListener l, String secret) {
 		String expectedSecret = ThreadLocalPageContext.getConfigServer().getDapSecret();
 		if (expectedSecret == null) {
-			LogUtil.log(Log.LEVEL_WARN, "application", "Debugger registration rejected - LUCEE_DAP_SECRET not configured");
-			return false;
+			String msg = "LUCEE_DAP_SECRET not configured on server";
+			LogUtil.log(Log.LEVEL_WARN, "application", "Debugger registration rejected - " + msg);
+			return msg;
 		}
 		if (!expectedSecret.equals(secret)) {
-			LogUtil.log(Log.LEVEL_WARN, "application", "Debugger registration rejected - invalid secret");
-			return false;
+			String msg = "invalid secret";
+			LogUtil.log(Log.LEVEL_WARN, "application", "Debugger registration rejected - " + msg);
+			return msg;
 		}
 		if (l == null) {
 			listener = null;
 			LogUtil.log(Log.LEVEL_INFO, "application", "External debugger unregistered");
+			return null;
 		}
-		else {
-			listener = l;
-			LogUtil.log(Log.LEVEL_INFO, "application", "External debugger registered [" + l.getName() + "]");
+		// version gate: pre-3.0.0.8 extensions have no getApiVersion case in their proxy switch,
+		// proxy returns null, JVM NPEs on int unbox -> treat as v0 and reject.
+		int apiVersion;
+		try {
+			apiVersion = l.getApiVersion();
 		}
-		return true;
+		catch (NullPointerException npe) {
+			apiVersion = 0;
+		}
+		if (apiVersion < MIN_LISTENER_API_VERSION) {
+			String msg = "debugger extension reports API v" + apiVersion
+				+ ", needs >= " + MIN_LISTENER_API_VERSION + " - update the extension";
+			LogUtil.log(Log.LEVEL_WARN, "application", "Debugger registration rejected - " + msg);
+			return msg;
+		}
+		listener = l;
+		LogUtil.log(Log.LEVEL_INFO, "application",
+			"External debugger registered [" + l.getName() + "] (API v" + apiVersion + ")");
+		return null;
 	}
 
 	/**
