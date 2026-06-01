@@ -42,8 +42,6 @@ import lucee.runtime.type.UDF;
 public final class UDFCaller2<P> implements Callable<Data<P>> {
 
 	private PageContext parent;
-	private PageContextImpl pc;
-	private ByteArrayOutputStream baos;
 
 	private UDF udf;
 	private boolean doIncludePath;
@@ -54,8 +52,6 @@ public final class UDFCaller2<P> implements Callable<Data<P>> {
 
 	private UDFCaller2(PageContext parent) {
 		this.parent = parent;
-		this.baos = new ByteArrayOutputStream();
-
 	}
 
 	public UDFCaller2(PageContext parent, ParentException parentException, UDF udf, Object[] arguments, P passed, boolean doIncludePath) {
@@ -78,26 +74,36 @@ public final class UDFCaller2<P> implements Callable<Data<P>> {
 
 	@Override
 	public final Data<P> call() throws PageException {
-		if (this.pc == null) {
+		// reuse a clone from the operation's pool when available, otherwise fall back to a per-task clone
+		PageContextPool pool = parent instanceof PageContextImpl ? ((PageContextImpl) parent).getParallelPool() : null;
+		PageContextPool.Entry entry = null;
+		PageContextImpl pc;
+		ByteArrayOutputStream baos;
+		if (pool != null) {
+			entry = pool.borrow();
+			pc = entry.pc;
+			baos = entry.baos;
+		}
+		else {
 			ThreadLocalPageContext.register(parent);
-			this.pc = ThreadUtil.clonePageContext(parent, baos, false, false, false);
-
+			baos = new ByteArrayOutputStream();
+			pc = ThreadUtil.clonePageContext(parent, baos, false, false, false);
 			// Capture spawn offset for execution log
-			PageContextImpl pci = this.pc;
-			ExecutionLog execLog = pci.getExecutionLog();
-			if (execLog != null && execLog instanceof ExecutionLogSupport) {
-				PageContextImpl parentPci = (PageContextImpl) parent;
-				((ExecutionLogSupport) execLog).setSpawnOffsetNano(System.nanoTime() - parentPci.getStartTimeNS());
+			ExecutionLog execLog = pc.getExecutionLog();
+			if (execLog instanceof ExecutionLogSupport) {
+				((ExecutionLogSupport) execLog).setSpawnOffsetNano(System.nanoTime() - ((PageContextImpl) parent).getStartTimeNS());
 			}
 		}
+
 		ThreadLocalPageContext.registerChild(pc);
 		pc.getRootOut().setAllowCompression(false); // make sure content is not compressed
 		String str = null;
 		Object result = null;
+		boolean succeeded = false;
 		try {
 			if (namedArguments != null) result = udf.callWithNamedValues(pc, namedArguments, doIncludePath);
 			else result = udf.call(pc, arguments, doIncludePath);
-
+			succeeded = true;
 		}
 		catch (PageException pe) {
 			ExceptionUtil.initCauseEL(pe, parentException);
@@ -113,8 +119,16 @@ public final class UDFCaller2<P> implements Callable<Data<P>> {
 
 				pc.getOut().flush(); // make sure content is flushed
 
-				pc.getConfig().getFactory().releasePageContext(pc);
 				str = IOUtil.toString((new ByteArrayInputStream(baos.toByteArray())), cs); // TODO add support for none string content
+
+				if (pool != null) {
+					// only hand a clean clone back for reuse; a failed task may leave inconsistent state,
+					// so that clone stays tracked and is released when the pool is closed
+					if (succeeded) pool.giveBack(entry);
+				}
+				else {
+					pc.getConfig().getFactory().releasePageContext(pc);
+				}
 			}
 			catch (Exception e) {
 				LogUtil.log(pc, "loading", e);

@@ -30,6 +30,7 @@ import java.util.concurrent.Future;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.concurrency.Data;
+import lucee.runtime.concurrency.PageContextPool;
 import lucee.runtime.concurrency.ParallelUtil;
 import lucee.runtime.concurrency.UDFCaller2;
 import lucee.runtime.exp.CasterException;
@@ -87,6 +88,7 @@ public final class Every extends BIF implements ClosureFunc {
 			execute = ThreadUtil.createExecutorService(maxThreads, pm == ParallelUtil.PARALLEL_VIRTUAL);
 			futures = new ArrayList<Future<Data<Object>>>();
 			thread = ((PageContextImpl) pc).getThread();
+			((PageContextImpl) pc).setParallelPool(new PageContextPool(pc));
 		}
 
 		boolean res;
@@ -329,6 +331,7 @@ public final class Every extends BIF implements ClosureFunc {
 		}
 		finally {
 			((PageContextImpl) pc).setThread(thread);
+			Each.closeParallelPool(pc);
 			if (es != null) es.shutdown();
 		}
 	}

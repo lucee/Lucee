@@ -35,6 +35,7 @@ import lucee.commons.io.SystemUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.concurrency.Data;
+import lucee.runtime.concurrency.PageContextPool;
 import lucee.runtime.concurrency.ParallelUtil;
 import lucee.runtime.concurrency.UDFCaller2;
 import lucee.runtime.exp.FunctionException;
@@ -86,6 +87,7 @@ public final class Each extends BIF implements ClosureFunc {
 			execute = ThreadUtil.createExecutorService(maxThreads, pm == ParallelUtil.PARALLEL_VIRTUAL);
 			futures = new ArrayList<Future<Data<Object>>>();
 			thread = ((PageContextImpl) pc).getThread();
+			((PageContextImpl) pc).setParallelPool(new PageContextPool(pc));
 		}
 
 		// !!!! Don't combine the first 2 ifs with the ifs below, type overrules instanceof check
@@ -176,7 +178,16 @@ public final class Each extends BIF implements ClosureFunc {
 		}
 		finally {
 			((PageContextImpl) pc).setThread(thread);
+			closeParallelPool(pc);
 			if (es != null) es.shutdown();
+		}
+	}
+
+	static void closeParallelPool(PageContext pc) {
+		PageContextPool pool = ((PageContextImpl) pc).getParallelPool();
+		if (pool != null) {
+			pool.close();
+			((PageContextImpl) pc).setParallelPool(null);
 		}
 	}
 

@@ -348,6 +348,7 @@ public final class PageContextImpl extends PageContext {
 
 	private List<String> parentTags;
 	private Queue<PageContext> children = null;
+	private lucee.runtime.concurrency.PageContextPool parallelPool = null;
 	private List<Statement> lazyStats;
 	private boolean fdEnabled;
 	private ExecutionLog execLog;
@@ -637,6 +638,12 @@ public final class PageContextImpl extends PageContext {
 
 	@Override
 	public void release() {
+		// safety net: a parallel iteration normally closes its pool itself, this releases any leftover
+		// clones should the operation have been aborted before reaching its cleanup
+		if (parallelPool != null) {
+			parallelPool.close();
+			parallelPool = null;
+		}
 		if (getExecutionLogEnabled()) {
 			DebuggerListener listener = DebuggerRegistry.getListener();
 			if (listener != null) {
@@ -3949,6 +3956,18 @@ public final class PageContextImpl extends PageContext {
 
 	public void setThread(Thread thread) {
 		this.thread = thread;
+	}
+
+	/**
+	 * @return the pool of reusable PageContext clones for the parallel iteration currently running on
+	 *         this context, or null when no parallel iteration is active
+	 */
+	public lucee.runtime.concurrency.PageContextPool getParallelPool() {
+		return parallelPool;
+	}
+
+	public void setParallelPool(lucee.runtime.concurrency.PageContextPool parallelPool) {
+		this.parallelPool = parallelPool;
 	}
 
 	@Override
