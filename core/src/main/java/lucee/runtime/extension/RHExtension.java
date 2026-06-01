@@ -1921,4 +1921,30 @@ public final class RHExtension implements Serializable {
 			installed = false;
 		}
 	}
+
+	public static void removeDisabled(Array arrExtensions) throws PageException {
+		Iterator<Entry<Key, Object>> it = arrExtensions.entryIterator();
+		Entry<Key, Object> e;
+		Struct child;
+		boolean enabled;
+		List<Integer> toremove = null;
+		while (it.hasNext()) {
+			e = it.next();
+			child = Caster.toStruct(e.getValue(), null);
+			if (child == null) continue;
+			enabled = Caster.toBooleanValue(child.get(KeyConstants._enabled, null), true);
+			if (!enabled) {
+				if (toremove == null) toremove = new ArrayList<>();
+				toremove.add(Caster.toInteger(e.getKey()));
+			}
+		}
+
+		if (toremove != null) {
+			int[] removes = ArrayUtil.toIntArray(toremove);
+			Arrays.sort(removes);
+			for (int i = removes.length - 1; i >= 0; i--) {
+				arrExtensions.removeE(removes[i]);
+			}
+		}
+	}
 }

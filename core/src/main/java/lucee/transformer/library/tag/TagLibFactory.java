@@ -200,8 +200,9 @@ public final class TagLibFactory extends DefaultHandler {
 
 		inside = qName;
 		// Only convert attributes to Map for elements that need them
-		if ((qName.equals("tag-class") || qName.equals("tagclass") || qName.equals("tte-class") ||
-		     qName.equals("ttt-class") || qName.equals("tdbt-class") || qName.equals("att-class") ||
+		if ((qName.equals("tag-class") || qName.equals("tagclass") || qName.equals("jakarta-tag-class") ||
+		     qName.equals("tte-class") || qName.equals("ttt-class") ||
+		     qName.equals("tdbt-class") || qName.equals("att-class") ||
 		     qName.equals("el-class")) && attributes.getLength() > 0) {
 			this.attributes = SaxUtil.toMap(attributes);
 		} else {

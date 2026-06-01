@@ -4943,6 +4943,8 @@ public final class ConfigServerImpl implements ConfigServerPro {
 					Array raw = ConfigUtil.getAsArray("extensions", root);
 					try {
 						RHExtension.removeDuplicates(raw);
+						// LDEV-6329: skip extensions explicitly disabled via the "enabled" flag
+						RHExtension.removeDisabled(raw);
 					}
 					catch (Throwable t) {
 						ExceptionUtil.rethrowIfNecessary(t);
