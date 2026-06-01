@@ -90,7 +90,10 @@ public final class DatasourceConnectionFactory extends BasePooledObjectFactory<D
 		}
 
 		try {
-			if (dc.getConnection().isClosed()) return false;
+			if (dc.getConnection().isClosed()) {
+				LogUtil.log(config, Log.LEVEL_DEBUG, logName, "connection", "datasource connection is closed: " + datasource.getName());
+				return false;
+			}
 		}
 		catch (Exception e) {
 			LogUtil.log(config, "connection", e, Log.LEVEL_ERROR, logName);
@@ -98,7 +101,10 @@ public final class DatasourceConnectionFactory extends BasePooledObjectFactory<D
 		}
 
 		try {
-			if (dc.getDatasource().validate() && !DataSourceUtil.isValid(dc, 1000)) return false;
+			if (dc.getDatasource().validate() && !DataSourceUtil.isValid(dc, 1)) {
+				LogUtil.log(config, Log.LEVEL_DEBUG, logName, "connection", "datasource connection failed isValid check: " + datasource.getName());
+				return false;
+			}
 		}
 		catch (Exception e) {
 			LogUtil.log(config, "connection", e, Log.LEVEL_ERROR, logName);
@@ -132,6 +138,14 @@ public final class DatasourceConnectionFactory extends BasePooledObjectFactory<D
 	}
 
 	public static String createId(DataSource datasource, String user, String pass) {
+		// Normalise credentials that match the datasource's own to (null, null) so the
+		// pool key collapses onto the server-cred pool. Without this, a cfquery passing
+		// matching credentials creates a duplicate (shadow) pool — see LDEV-6296.
+		if (!StringUtil.isEmpty(user) && StringUtil.emptyIfNull(user).equals(StringUtil.emptyIfNull(datasource.getUsername()))
+				&& StringUtil.emptyIfNull(pass).equals(StringUtil.emptyIfNull(datasource.getPassword()))) {
+			user = null;
+			pass = null;
+		}
 		String str = new StringBuilder().append(datasource.id()).append("::").append(user).append(":").append(pass).toString();
 		String lock = tokens.putIfAbsent(str, str);
 		if (lock == null) {
