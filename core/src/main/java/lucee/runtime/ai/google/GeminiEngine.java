@@ -81,7 +81,7 @@ public final class GeminiEngine extends AIEngineSupport {
 		}
 		else {
 			// beta?
-			if (Caster.toBooleanValue(Caster.toStringTrim(props.remove("beta", null), null), false)) {
+			if (Caster.toBooleanValue(Caster.toStringTrim(props.remove(KeyConstants._beta, null), null), false)) {
 				baseURL = DEFAULT_URL_BETA;
 			}
 			else {
@@ -91,14 +91,15 @@ public final class GeminiEngine extends AIEngineSupport {
 		}
 
 		// api key
-		str = Caster.toStringTrim(props.remove("apikey", null), null);
+		str = Caster.toStringTrim(props.remove(KeyConstants._apikey, null), null);
+		if (Util.isEmpty(str, true)) str = Caster.toStringTrim(props.remove(KeyConstants._apiKey, null), null);
 		if (Util.isEmpty(str, true)) {
 			throw new ApplicationException("the property [apikey] is required for the AI Engine Gemini!");
 		}
 		apikey = str;
 
 		// conversation Size Limit
-		conversationSizeLimit = Caster.toIntValue(props.remove("conversationSizeLimit", null), DEFAULT_CONVERSATION_SIZE_LIMIT);
+		conversationSizeLimit = Caster.toIntValue(props.remove(KeyConstants._conversationSizeLimit, null), DEFAULT_CONVERSATION_SIZE_LIMIT);
 
 		// temperature
 		temperature = Caster.toDouble(props.remove(KeyConstants._temperature, null), null);
@@ -111,10 +112,10 @@ public final class GeminiEngine extends AIEngineSupport {
 		if (Util.isEmpty(location, true)) location = DEFAULT_LOCATION;
 
 		// timeout
-		connectTimeout = Caster.toIntValue(props.remove("connectTimeout", null), DEFAULT_CONNECT_TIMEOUT);
+		connectTimeout = Caster.toIntValue(props.remove(KeyConstants._connectTimeout, null), DEFAULT_CONNECT_TIMEOUT);
 		if (connectTimeout <= 0) connectTimeout = DEFAULT_CONNECT_TIMEOUT;
 
-		socketTimeout = Caster.toIntValue(props.remove("socketTimeout", null), DEFAULT_SOCKET_TIMEOUT);
+		socketTimeout = Caster.toIntValue(props.remove(KeyConstants._socketTimeout, null), DEFAULT_SOCKET_TIMEOUT);
 		if (socketTimeout <= 0) socketTimeout = DEFAULT_SOCKET_TIMEOUT;
 
 		// charset
@@ -135,13 +136,15 @@ public final class GeminiEngine extends AIEngineSupport {
 		}
 
 		// responseSchema
-		generationConfig = Caster.toStruct(props.remove("generationConfig", null), null);
+		generationConfig = Caster.toStruct(props.remove(KeyConstants._generationConfig, null), null);
 
 		// message
 		systemMessage = Caster.toStringTrim(props.remove(KeyConstants._message, null), null);
 
 		// headers
-		headers = toHeaders(Caster.toStruct(props.remove("headers", null), null));
+		headers = toHeaders(Caster.toStruct(props.remove(KeyConstants._headers, null), null));
+
+		props.remove(KeyConstants._timeout, null);
 
 		this.custom = props;
 		return this;

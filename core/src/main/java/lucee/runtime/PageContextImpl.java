@@ -32,11 +32,10 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Queue;
 import java.util.Set;
 import java.util.Stack;
 import java.util.TimeZone;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import jakarta.el.ELContext;
@@ -347,7 +346,7 @@ public final class PageContextImpl extends PageContext {
 	private PageContextImpl root = null;
 
 	private List<String> parentTags;
-	private Queue<PageContext> children = null;
+	private Set<PageContext> children = null;
 	private lucee.runtime.concurrency.PageContextPool parallelPool = null;
 	private List<Statement> lazyStats;
 	private boolean fdEnabled;
@@ -614,7 +613,7 @@ public final class PageContextImpl extends PageContext {
 			if (tmplPC.children == null) {
 				synchronized (tmplPC) {
 					if (tmplPC.children == null) {
-						tmplPC.children = new ConcurrentLinkedQueue<PageContext>();
+						tmplPC.children = ConcurrentHashMap.newKeySet();
 					}
 				}
 			}
@@ -838,7 +837,7 @@ public final class PageContextImpl extends PageContext {
 	private boolean lastStanding() {
 		if (!hasFamily()) return true;
 		// active childern?
-		Queue<PageContext> tmp = this.children;
+		Set<PageContext> tmp = this.children;
 		if (tmp != null) {
 			for (PageContext p: tmp) {
 				if (p.getStartTime() > 0) return false;
@@ -4097,7 +4096,7 @@ public final class PageContextImpl extends PageContext {
 		return root;
 	}
 
-	public Queue<PageContext> getChildPageContexts() {
+	public Set<PageContext> getChildPageContexts() {
 		return children;
 	}
 

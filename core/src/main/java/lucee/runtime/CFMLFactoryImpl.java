@@ -319,6 +319,7 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 		while (it.hasNext()) {
 			pci = it.next();
 			if (pci.isGatewayContext() || pci.getStartTime() + MAX_AGE > now) continue;
+			it.remove();
 		}
 	}
 

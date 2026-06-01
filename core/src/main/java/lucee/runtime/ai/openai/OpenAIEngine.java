@@ -208,13 +208,13 @@ public final class OpenAIEngine extends AIEngineSupport implements AIEngineFile 
 		if (!Util.isEmpty(str, true)) secretKey = str;
 
 		// conversation Size Limit
-		conversationSizeLimit = Caster.toIntValue(props.remove("conversationSizeLimit", null), DEFAULT_CONVERSATION_SIZE_LIMIT);
+		conversationSizeLimit = Caster.toIntValue(props.remove(KeyConstants._conversationSizeLimit, null), DEFAULT_CONVERSATION_SIZE_LIMIT);
 
 		// timeout
-		connectTimeout = Caster.toIntValue(props.remove("connectTimeout", null), DEFAULT_CONNECT_TIMEOUT);
+		connectTimeout = Caster.toIntValue(props.remove(KeyConstants._connectTimeout, null), DEFAULT_CONNECT_TIMEOUT);
 		if (connectTimeout <= 0) connectTimeout = DEFAULT_CONNECT_TIMEOUT;
 
-		socketTimeout = Caster.toIntValue(props.remove("socketTimeout", null), DEFAULT_SOCKET_TIMEOUT);
+		socketTimeout = Caster.toIntValue(props.remove(KeyConstants._socketTimeout, null), DEFAULT_SOCKET_TIMEOUT);
 		if (socketTimeout <= 0) socketTimeout = DEFAULT_SOCKET_TIMEOUT;
 
 		// charset
@@ -252,7 +252,10 @@ public final class OpenAIEngine extends AIEngineSupport implements AIEngineFile 
 		if (validate) AIUtil.valdate(this, getConnectTimeout(), getSocketTimeout());
 
 		// headers
-		headers = toHeaders(Caster.toStruct(props.remove("headers", null), null));
+		headers = toHeaders(Caster.toStruct(props.remove(KeyConstants._headers, null), null));
+
+		props.remove(KeyConstants._timeout, null);
+		props.remove(KeyConstants._apikey, null);
 
 		this.custom = props;
 

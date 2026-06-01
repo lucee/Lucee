@@ -3085,7 +3085,10 @@ public final class KeyConstants {
 	public static final Key _limit = init("limit");
 	public static final Key _question = init("question");
 	public static final Key _conversationSizeLimit = init("conversationSizeLimit");
+	public static final Key _connectTimeout = init("connectTimeout");
 	public static final Key _socketTimeout = init("socketTimeout");
+	public static final Key _generationConfig = init("generationConfig");
+	public static final Key _apikey = init("apikey");
 	public static final Key _componentMappings = init("componentMappings");
 	public static final Key _operator = init("operator");
 	public static final Key _argument = init("argument");
