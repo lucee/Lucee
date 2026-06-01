@@ -25,6 +25,8 @@ import lucee.runtime.interpreter.ref.Ref;
 import lucee.runtime.interpreter.ref.RefSupport;
 import lucee.runtime.interpreter.ref.Set;
 import lucee.runtime.interpreter.ref.literal.LString;
+import lucee.runtime.interpreter.ref.func.BIFCall;
+import lucee.runtime.interpreter.ref.func.UDFCall;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Query;
@@ -61,13 +63,13 @@ public final class Variable extends RefSupport implements Set {
 
 	@Override
 	public Object getValue(PageContext pc) throws PageException {
-		if (limited) throw new SecurityInterpreterException("invalid syntax, variables are not supported.");
+		if (limited) checkSecurity(refKey);
 		return pc.get(parent.getCollection(pc), KeyImpl.init(getKeyAsString(pc)));
 	}
 
 	@Override
 	public Object touchValue(PageContext pc) throws PageException {
-		if (limited) throw new SecurityInterpreterException("invalid syntax, variables are not supported.");
+		if (limited) checkSecurity(refKey);
 		Object p = parent.touchValue(pc);
 		if (p instanceof Query) {
 			Object o = ((Query) p).getColumn(KeyImpl.init(getKeyAsString(pc)), null);
@@ -80,7 +82,7 @@ public final class Variable extends RefSupport implements Set {
 
 	@Override
 	public Object getCollection(PageContext pc) throws PageException {
-		if (limited) throw new SecurityInterpreterException("invalid syntax, variables are not supported.");
+		if (limited) checkSecurity(refKey);
 		Object p = parent.getValue(pc);
 		if (p instanceof Query) {
 			return ((Query) p).getColumn(KeyImpl.init(getKeyAsString(pc)));
@@ -90,7 +92,7 @@ public final class Variable extends RefSupport implements Set {
 
 	@Override
 	public Object setValue(PageContext pc, Object obj) throws PageException {
-		if (limited) throw new SecurityInterpreterException("invalid syntax, variables are not supported.");
+		if (limited) checkSecurity(refKey);
 		return pc.set(parent.touchValue(pc), KeyImpl.init(getKeyAsString(pc)), obj);
 	}
 
@@ -114,5 +116,30 @@ public final class Variable extends RefSupport implements Set {
 	@Override
 	public Ref getParent(PageContext pc) throws PageException {
 		return parent;
+	}
+
+	/**
+	 * Checks if the given Ref is safe to evaluate when limitEvaluation is enabled.
+	 * Blocks function calls and assignments, but allows simple variable dereferencing.
+	 *
+	 * @param ref the Ref to check
+	 * @throws SecurityInterpreterException if the Ref contains unsafe operations
+	 */
+	private void checkSecurity(Ref ref) throws SecurityInterpreterException {
+		if (ref == null) return;
+
+		// Block function calls
+		if (ref instanceof BIFCall || ref instanceof UDFCall) {
+			throw new SecurityInterpreterException( "invalid syntax, function calls are not supported." );
+		}
+
+		// Block assignments (Assign and DynAssign are in the same package)
+		String className = ref.getClass().getSimpleName();
+		if ("Assign".equals( className ) || "DynAssign".equals( className )) {
+			throw new SecurityInterpreterException( "invalid syntax, assignments are not supported." );
+		}
+
+		// Allow literals (strings, numbers, etc) and variable lookups
+		// These are safe because they don't execute arbitrary code
 	}
 }
