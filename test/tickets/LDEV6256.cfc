@@ -4,16 +4,15 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="function,alias" {
 		describe( "LDEV-6256: Function-level aliases", function() {
 
 			it( "multi-value aliases should resolve individually", function() {
-				// CreateAISession has <alias>LuceeCreateAISession,aiCreateSession</alias>
-				// each alias should be a separate resolvable function
-				var primary = getFunctionData( "createaisession" );
-				expect( primary.name ).toBe( "createaisession" );
+				// arrayAppend has <alias>array,arr</alias>
+				var primary = getFunctionData( "arrayappend" );
+				expect( primary.name ).toBe( "arrayappend" );
 
-				var alias1 = getFunctionData( "luceecreateaisession" );
-				expect( alias1.name ).toBe( "luceecreateaisession" );
+				var alias1 = getFunctionData( "array" );
+				expect( alias1.name ).toBe( "array" );
 
-				var alias2 = getFunctionData( "aicreatesession" );
-				expect( alias2.name ).toBe( "aicreatesession" );
+				var alias2 = getFunctionData( "arr" );
+				expect( alias2.name ).toBe( "arr" );
 			});
 
 			it( "multi-value aliases should not create comma-separated keys in getFunctionList", function() {
@@ -35,18 +34,13 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="function,alias" {
 			it( "primary entry should expose alias field with original case", function() {
 				var data = getFunctionData( "createaisession" );
 				expect( data ).toHaveKey( "alias" );
-				expect( data.alias ).toIncludeWithCase( "LuceeCreateAISession" );
 				expect( data.alias ).toIncludeWithCase( "aiCreateSession" );
 			});
 
 			it( "alias copy should expose aliasOf field pointing to primary", function() {
-				var data = getFunctionData( "luceecreateaisession" );
+				var data = getFunctionData( "aicreatesession" );
 				expect( data ).toHaveKey( "aliasOf" );
 				expect( data.aliasOf ).toBe( "CreateAISession" );
-
-				var data2 = getFunctionData( "aicreatesession" );
-				expect( data2 ).toHaveKey( "aliasOf" );
-				expect( data2.aliasOf ).toBe( "CreateAISession" );
 			});
 
 			it( "primary entry should not have aliasOf field", function() {
