@@ -5,7 +5,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="function,alias" {
 
 			it( "multi-value aliases should resolve individually", function() {
 				// CreateAISession has <alias>LuceeCreateAISession,aiCreateSession</alias>
-				// each alias should be a separate resolvable function
 				var primary = getFunctionData( "createaisession" );
 				expect( primary.name ).toBe( "createaisession" );
 

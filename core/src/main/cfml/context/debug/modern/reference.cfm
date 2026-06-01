@@ -722,7 +722,7 @@ Documentation Context: #serializeJSON(searchResultsAsArray)#";
 				
 				if(!isEmpty(form.id?:"")) {
 					if(!structKeyExists(session, "documentationAISession") || (session.documentationAISession.id?:"") != form.id) {
-						ais=LuceeCreateAISession("id:"&form.id, 
+						ais=createAISession("id:"&form.id, 
 						"You are a Lucee expert and documentation guide. "
 						&"Users will ask questions about Lucee functions, tags, or configurations running Lucee version #server.lucee.version#. "
 						&"Some queries will include relevant documentation context while others may not have matching documentation. "
