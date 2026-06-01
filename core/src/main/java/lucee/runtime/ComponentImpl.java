@@ -317,7 +317,11 @@ public final class ComponentImpl extends StructSupport implements IteratorablePr
 			trg.isExtended = isExtended;
 			trg.afterConstructor = afterConstructor;
 			trg.dataMemberDefaultAccess = dataMemberDefaultAccess;
-			trg.properties = properties.duplicate();
+			// LDEV-6298 follow-up: ComponentProperties is treated as immutable post-init
+			// (its only post-init mutator setInline() runs in ComponentLoader before any
+			// duplicate, and the inner property/meta maps are populated once during init).
+			// Share the wrapper rather than allocating a fresh one per duplicate.
+			trg.properties = properties;
 			trg.isInit = isInit;
 			trg.absFin = absFin;
 			trg.isRestEnabled = this.isRestEnabled;
@@ -446,6 +450,14 @@ public final class ComponentImpl extends StructSupport implements IteratorablePr
 			UDF udf;
 			for (Entry<Key, UDF> e: srcMap.entrySet()) {
 				udf = e.getValue();
+
+				// pageSource compare so chained duplicates match
+				if (udf instanceof UDFGSProperty) {
+					if (udf.getOwnerComponent().getPageSource() == src.getPageSource()) {
+						trgMap.put(e.getKey(), udf);
+					}
+					continue;
+				}
 
 				if (udf.getOwnerComponent() == src) {
 					UDF clone = e.getValue().duplicate();
