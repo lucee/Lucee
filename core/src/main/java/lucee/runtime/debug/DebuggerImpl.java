@@ -103,10 +103,6 @@ public final class DebuggerImpl implements Debugger {
 		catch (Exception e) {}
 	}
 
-	private static final Collection.Key IMPLICIT_ACCESS = KeyConstants._implicitAccess;
-	private static final Collection.Key GENERIC_DATA = KeyConstants._genericData;
-	private static final Collection.Key PAGE_PARTS = KeyConstants._pageParts;
-
 	private static final int MAX_PARTS = Caster.toIntValue(SystemUtil.getSystemPropOrEnvVar("lucee.debugging.maxPageParts", null), 0);
 
 	private final Map<String, DebugEntryTemplateImpl> entries = new HashMap<String, DebugEntryTemplateImpl>();
@@ -142,12 +138,10 @@ public final class DebuggerImpl implements Debugger {
 	final static Comparator DEBUG_ENTRY_TEMPLATE_COMPARATOR = new DebugEntryTemplateComparator();
 	final static Comparator DEBUG_ENTRY_TEMPLATE_PART_COMPARATOR = new DebugEntryTemplatePartComparator();
 
-	private static final Key CACHE_TYPE = KeyConstants._cacheType;
-
 	private static final Key[] PAGE_COLUMNS = new Collection.Key[] { KeyConstants._id, KeyConstants._count, KeyConstants._min, KeyConstants._max, KeyConstants._avg,
 			KeyConstants._app, KeyConstants._load, KeyConstants._query, KeyConstants._total, KeyConstants._src };
 	private static final Key[] QUERY_COLUMNS = new Collection.Key[] { KeyConstants._name, KeyConstants._time, KeyConstants._sql, KeyConstants._sqlPattern, KeyConstants._paramValue,
-			KeyConstants._paramType, KeyConstants._src, KeyConstants._line, KeyConstants._count, KeyConstants._datasource, KeyConstants._usage, CACHE_TYPE };
+			KeyConstants._paramType, KeyConstants._src, KeyConstants._line, KeyConstants._count, KeyConstants._datasource, KeyConstants._usage, KeyConstants._cacheType };
 	private static final String[] QUERY_COLUMN_TYPES = new String[] { "VARCHAR", "DOUBLE", "VARCHAR", "VARCHAR", "ARRAY", "ARRAY", "VARCHAR", "DOUBLE", "DOUBLE", "VARCHAR", "ANY",
 			"VARCHAR" };
 	private static final Key[] GEN_DATA_COLUMNS = new Collection.Key[] { KeyConstants._category, KeyConstants._name, KeyConstants._value };
@@ -471,7 +465,7 @@ public final class DebuggerImpl implements Debugger {
 					else qryQueries.setAt(KeyConstants._src, row, qe.getSrc());
 					qryQueries.setAt(KeyConstants._count, row, Integer.valueOf(qe.getRecordcount()));
 					qryQueries.setAt(KeyConstants._datasource, row, qe.getDatasource());
-					qryQueries.setAt(CACHE_TYPE, row, qe.getCacheType());
+					qryQueries.setAt(KeyConstants._cacheType, row, qe.getCacheType());
 
 					SQLItem[] params = qe.getSQL().getItems();
 					Array paramType = new ArrayImpl(params.length);
@@ -577,7 +571,7 @@ public final class DebuggerImpl implements Debugger {
 			}
 
 			qryPart = new QueryImpl(PAGE_PART_COLUMNS, qrySize, "query");
-			debugging.setEL(PAGE_PARTS, qryPart);
+			debugging.setEL(KeyConstants._pageParts, qryPart);
 
 			int row = 0;
 			try {
@@ -630,7 +624,7 @@ public final class DebuggerImpl implements Debugger {
 		Map<String, Map<String, List<String>>> genData = getGenericData();
 		if (genData != null && genData.size() > 0) {
 			qryGenData = new QueryImpl(GEN_DATA_COLUMNS, 0, "query");
-			debugging.setEL(GENERIC_DATA, qryGenData);
+			debugging.setEL(KeyConstants._genericData, qryGenData);
 			Iterator<Entry<String, Map<String, List<String>>>> it = genData.entrySet().iterator();
 			Entry<String, Map<String, List<String>>> e;
 			Iterator<Entry<String, List<String>>> itt;
@@ -757,7 +751,7 @@ public final class DebuggerImpl implements Debugger {
 		if (PageContextUtil.hasDebugOptions(pc, ConfigPro.DEBUG_IMPLICIT_ACCESS)) {
 			int len = implicitAccesses == null ? 0 : implicitAccesses.size();
 			Query qryImplicitAccesseses = new QueryImpl(IMPLICIT_ACCESS_COLUMNS, len, "implicitAccess");
-			debugging.setEL(IMPLICIT_ACCESS, qryImplicitAccesseses);
+			debugging.setEL(KeyConstants._implicitAccess, qryImplicitAccesseses);
 			if (len > 0) {
 				try {
 					Iterator<ImplicitAccessImpl> it = implicitAccesses.values().iterator();

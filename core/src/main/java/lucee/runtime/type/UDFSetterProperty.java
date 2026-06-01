@@ -43,7 +43,6 @@ public final class UDFSetterProperty extends UDFGSProperty {
 	 */
 	private static final long serialVersionUID = 378348754607851563L;
 
-	private static final Collection.Key VALIDATE_PARAMS = KeyConstants._validateParams;
 	private final Key propName;
 	private String validate;
 	private Struct validateParams;
@@ -71,7 +70,7 @@ public final class UDFSetterProperty extends UDFGSProperty {
 		this.validate = Caster.toString(da.get(KeyConstants._validate, null), null);
 		if (!StringUtil.isEmpty(this.validate, true)) {
 			this.validate = this.validate.trim().toLowerCase();
-			Object o = da.get(VALIDATE_PARAMS, null);
+			Object o = da.get(KeyConstants._validateParams, null);
 			if (o != null) {
 				if (Decision.isStruct(o)) validateParams = Caster.toStruct(o);
 				else {

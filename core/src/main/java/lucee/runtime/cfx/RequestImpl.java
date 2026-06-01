@@ -36,8 +36,6 @@ import lucee.runtime.type.util.KeyConstants;
  */
 public final class RequestImpl implements Request {
 
-	private static final Collection.Key QUERY = KeyConstants._query;
-	private static final Collection.Key DEBUG = KeyConstants._debug;
 	private Struct attributes;
 	private Struct settings;
 	private Query query;
@@ -51,17 +49,17 @@ public final class RequestImpl implements Request {
 	 */
 	public RequestImpl(PageContext pc, Struct attributes) throws PageException {
 		this.attributes = attributes;
-		Object o = attributes.get(QUERY, null);
+		Object o = attributes.get(KeyConstants._query, null);
 		String varName = Caster.toString(o, null);
 
 		if (o != null) {
 			if (varName != null) {
 				this.query = new QueryWrap(Caster.toQuery(pc.getVariable(varName)));
-				attributes.removeEL(QUERY);
+				attributes.removeEL(KeyConstants._query);
 			}
 			else if (Decision.isQuery(o)) {
 				this.query = new QueryWrap(Caster.toQuery(o));
-				attributes.removeEL(QUERY);
+				attributes.removeEL(KeyConstants._query);
 			}
 			else {
 				throw new ApplicationException("Attribute query doesn't contain a Query or a Name of a Query");
@@ -89,7 +87,7 @@ public final class RequestImpl implements Request {
 
 	@Override
 	public boolean debug() {
-		Object o = attributes.get(DEBUG, Boolean.FALSE);
+		Object o = attributes.get(KeyConstants._debug, Boolean.FALSE);
 		if (o == null) return false;
 		return Caster.toBooleanValue(o, false);
 	}

@@ -40,8 +40,6 @@ import lucee.runtime.type.util.KeyConstants;
 
 public final class ModernAppListenerException extends PageException {
 
-	private static final Collection.Key ROOT_CAUSE = KeyConstants._rootCause;
-	private static final Collection.Key CAUSE = KeyConstants._cause;
 	private PageException rootCause;
 	private String eventName;
 
@@ -88,8 +86,8 @@ public final class ModernAppListenerException extends PageException {
 		Collection cause = (Collection) Duplicator.duplicate(cb, false);
 		// rtn.setEL("message", getMessage());
 		if (!cb.containsKey(KeyConstants._detail)) cb.setEL(KeyConstants._detail, "Exception thrown while invoking function [" + eventName + "] in application event handler ");
-		cb.setEL(ROOT_CAUSE, cause);
-		cb.setEL(CAUSE, cause);
+		cb.setEL(KeyConstants._rootCause, cause);
+		cb.setEL(KeyConstants._cause, cause);
 		// cb.setEL("stacktrace", getStackTraceAsString());
 		// rtn.setEL("tagcontext", new ArrayImpl());
 		// rtn.setEL("type", getTypeAsString());

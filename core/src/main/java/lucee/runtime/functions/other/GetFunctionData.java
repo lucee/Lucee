@@ -50,11 +50,6 @@ import lucee.transformer.library.function.FunctionLibFunctionArg;
 import lucee.transformer.library.tag.TagLibFactory;
 
 public final class GetFunctionData implements Function {
-	private static final Collection.Key SOURCE = KeyConstants._source;
-	private static final Collection.Key RETURN_TYPE = KeyConstants._returnType;
-	private static final Collection.Key ARGUMENT_TYPE = KeyConstants._argumentType;
-	private static final Collection.Key ARG_MIN = KeyConstants._argMin;
-	private static final Collection.Key ARG_MAX = KeyConstants._argMax;
 	static final Collection.Key INTRODUCED = KeyConstants._introduced;
 
 	public static Struct call(PageContext pc, String strFunctionName) throws PageException {
@@ -92,10 +87,10 @@ public final class GetFunctionData implements Function {
 		if (!StringUtil.isEmpty(function.getAliasOf(), true)) sct.set("aliasOf", function.getAliasOf());
 		if (!ArrayUtil.isEmpty(function.getKeywords())) sct.set("keywords", Caster.toArray(function.getKeywords()));
 
-		sct.set(RETURN_TYPE, StringUtil.emptyIfNull(function.getReturnTypeAsString()));
-		sct.set(ARGUMENT_TYPE, StringUtil.emptyIfNull(function.getArgTypeAsString()));
-		sct.set(ARG_MIN, Caster.toDouble(function.getArgMin()));
-		sct.set(ARG_MAX, Caster.toDouble(function.getArgMax()));
+		sct.set(KeyConstants._returnType, StringUtil.emptyIfNull(function.getReturnTypeAsString()));
+		sct.set(KeyConstants._argumentType, StringUtil.emptyIfNull(function.getArgTypeAsString()));
+		sct.set(KeyConstants._argMin, Caster.toDouble(function.getArgMin()));
+		sct.set(KeyConstants._argMax, Caster.toDouble(function.getArgMax()));
 		sct.set(KeyConstants._type, "java");
 		String[] names = function.getMemberNames();
 		if (!ArrayUtil.isEmpty(names) && function.getMemberType() != CFTypes.TYPE_UNKNOW) {
@@ -144,11 +139,11 @@ public final class GetFunctionData implements Function {
 
 		sct.set(KeyConstants._name, function.getName());
 		sct.set(KeyConstants._nameWithCase, function.getNameWithCase());
-		sct.set(ARGUMENT_TYPE, "fixed");
+		sct.set(KeyConstants._argumentType, "fixed");
 		sct.set(KeyConstants._description, StringUtil.emptyIfNull(udf.getHint()).replaceAll("\\n\\s+", "\n"));
-		sct.set(RETURN_TYPE, StringUtil.emptyIfNull(udf.getReturnTypeAsString()));
+		sct.set(KeyConstants._returnType, StringUtil.emptyIfNull(udf.getReturnTypeAsString()));
 		sct.set(KeyConstants._type, "cfml");
-		sct.set(SOURCE, udf.getSource());
+		sct.set(KeyConstants._source, udf.getSource());
 		sct.set(KeyConstants._status, "implemented");
 
 		FunctionArgument[] fas = udf.getFunctionArguments();
@@ -176,8 +171,8 @@ public final class GetFunctionData implements Function {
 
 			_args.append(_arg);
 		}
-		sct.set(ARG_MIN, Caster.toDouble(min));
-		sct.set(ARG_MAX, Caster.toDouble(max));
+		sct.set(KeyConstants._argMin, Caster.toDouble(min));
+		sct.set(KeyConstants._argMax, Caster.toDouble(max));
 
 		return sct;
 	}

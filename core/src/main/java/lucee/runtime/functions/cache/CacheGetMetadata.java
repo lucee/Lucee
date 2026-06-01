@@ -38,14 +38,6 @@ public final class CacheGetMetadata extends BIF {
 
 	private static final long serialVersionUID = -470089623854482521L;
 
-	private static final Collection.Key CACHE_HITCOUNT = KeyConstants._cache_hitcount;
-	private static final Collection.Key CACHE_MISSCOUNT = KeyConstants._cache_misscount;
-	private static final Collection.Key CACHE_CUSTOM = KeyConstants._cache_custom;
-	private static final Collection.Key CREATED_TIME = KeyConstants._createdtime;
-	private static final Collection.Key IDLE_TIME = KeyConstants._idletime;
-	private static final Collection.Key LAST_HIT = KeyConstants._lasthit;
-	private static final Collection.Key LAST_UPDATED = KeyConstants._lastupdated;
-
 	public static Struct call(PageContext pc, String id) throws PageException {
 		return call(pc, id, null);
 	}
@@ -56,16 +48,16 @@ public final class CacheGetMetadata extends BIF {
 			CacheEntry entry = cache.getCacheEntry(CacheUtil.key(id));
 
 			Struct info = new StructImpl();
-			info.set(CACHE_HITCOUNT, Double.valueOf(cache.hitCount()));
-			info.set(CACHE_MISSCOUNT, Double.valueOf(cache.missCount()));
-			info.set(CACHE_CUSTOM, cache.getCustomInfo());
+			info.set(KeyConstants._cache_hitcount, Double.valueOf(cache.hitCount()));
+			info.set(KeyConstants._cache_misscount, Double.valueOf(cache.missCount()));
+			info.set(KeyConstants._cache_custom, cache.getCustomInfo());
 			info.set(KeyConstants._custom, entry.getCustomInfo());
 
-			info.set(CREATED_TIME, entry.created());
+			info.set(KeyConstants._createdtime, entry.created());
 			info.set(KeyConstants._hitcount, Double.valueOf(entry.hitCount()));
-			info.set(IDLE_TIME, Double.valueOf(entry.idleTimeSpan()));
-			info.set(LAST_HIT, entry.lastHit());
-			info.set(LAST_UPDATED, entry.lastModified());
+			info.set(KeyConstants._idletime, Double.valueOf(entry.idleTimeSpan()));
+			info.set(KeyConstants._lasthit, entry.lastHit());
+			info.set(KeyConstants._lastupdated, entry.lastModified());
 			info.set(KeyConstants._size, Double.valueOf(entry.size()));
 			info.set(KeyConstants._timespan, Double.valueOf(entry.liveTimeSpan()));
 			return info;

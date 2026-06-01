@@ -52,18 +52,8 @@ import lucee.runtime.type.util.StructSupport;
 
 public final class ThreadsImpl extends StructSupport implements lucee.runtime.type.scope.Threads {
 
-	private static final Key KEY_ERROR = KeyConstants._ERROR;
-	private static final Key KEY_ELAPSEDTIME = KeyConstants._ELAPSEDTIME;
-	private static final Key KEY_OUTPUT = KeyConstants._OUTPUT;
-	private static final Key KEY_PRIORITY = KeyConstants._PRIORITY;
-	private static final Key KEY_STARTTIME = KeyConstants._STARTTIME;
-	private static final Key KEY_STATUS = KeyConstants._STATUS;
-	private static final Key KEY_STACKTRACE = KeyConstants._STACKTRACE;
-	private static final Key KEY_CHILD_THREADS = KeyConstants._childThreads;
-	private static final Key KEY_VIRTUAL = KeyConstants._VIRTUAL;
-
-	private static final Key[] DEFAULT_KEYS = new Key[] { KEY_ELAPSEDTIME, KeyConstants._NAME, KEY_OUTPUT, KEY_PRIORITY, KEY_STARTTIME, KEY_STATUS, KEY_STACKTRACE,
-			KEY_CHILD_THREADS, KeyConstants._INTERRUPTED, KEY_VIRTUAL };
+	private static final Key[] DEFAULT_KEYS = new Key[] { KeyConstants._ELAPSEDTIME, KeyConstants._NAME, KeyConstants._OUTPUT, KeyConstants._PRIORITY, KeyConstants._STARTTIME,
+			KeyConstants._STATUS, KeyConstants._STACKTRACE, KeyConstants._childThreads, KeyConstants._INTERRUPTED, KeyConstants._VIRTUAL };
 
 	private ChildThreadImpl ct;
 	private StructImpl uncoupled = null;
@@ -149,17 +139,17 @@ public final class ThreadsImpl extends StructSupport implements lucee.runtime.ty
 	}
 
 	private Object getMeta(Key key, Object defaultValue) {
-		if (KEY_ELAPSEDTIME.equalsIgnoreCase(key)) return getState().equals("TERMINATED") ? 0 : Double.valueOf(ct.getEndTime() - ct.getStartTime());
+		if (KeyConstants._ELAPSEDTIME.equalsIgnoreCase(key)) return getState().equals("TERMINATED") ? 0 : Double.valueOf(ct.getEndTime() - ct.getStartTime());
 		if (KeyConstants._NAME.equalsIgnoreCase(key)) return ct.getTagName();
 		if (KeyConstants._INTERRUPTED.equalsIgnoreCase(key)) return isInterrupted();
-		if (KEY_VIRTUAL.equalsIgnoreCase(key)) return Boolean.valueOf(ct.isVirtualThread());
-		if (KEY_OUTPUT.equalsIgnoreCase(key)) return getOutput();
-		if (KEY_PRIORITY.equalsIgnoreCase(key)) return ThreadUtil.toStringPriority(ct.getPriority());
-		if (KEY_STARTTIME.equalsIgnoreCase(key)) return new DateTimeImpl(ct.getStartTime());
-		if (KEY_STATUS.equalsIgnoreCase(key)) return getState();
-		if (KEY_ERROR.equalsIgnoreCase(key)) return ct.catchBlock;
-		if (KEY_STACKTRACE.equalsIgnoreCase(key)) return getStackTrace();
-		if (KEY_CHILD_THREADS.equalsIgnoreCase(key)) return Duplicator.duplicate(getThreads(), false);
+		if (KeyConstants._VIRTUAL.equalsIgnoreCase(key)) return Boolean.valueOf(ct.isVirtualThread());
+		if (KeyConstants._OUTPUT.equalsIgnoreCase(key)) return getOutput();
+		if (KeyConstants._PRIORITY.equalsIgnoreCase(key)) return ThreadUtil.toStringPriority(ct.getPriority());
+		if (KeyConstants._STARTTIME.equalsIgnoreCase(key)) return new DateTimeImpl(ct.getStartTime());
+		if (KeyConstants._STATUS.equalsIgnoreCase(key)) return getState();
+		if (KeyConstants._ERROR.equalsIgnoreCase(key)) return ct.catchBlock;
+		if (KeyConstants._STACKTRACE.equalsIgnoreCase(key)) return getStackTrace();
+		if (KeyConstants._childThreads.equalsIgnoreCase(key)) return Duplicator.duplicate(getThreads(), false);
 		return defaultValue;
 	}
 
@@ -264,7 +254,7 @@ public final class ThreadsImpl extends StructSupport implements lucee.runtime.ty
 			rtn[index] = DEFAULT_KEYS[index];
 		}
 		if (ct.catchBlock != null) {
-			rtn[index] = KEY_ERROR;
+			rtn[index] = KeyConstants._ERROR;
 			index++;
 		}
 

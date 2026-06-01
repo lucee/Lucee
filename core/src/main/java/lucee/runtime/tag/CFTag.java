@@ -81,16 +81,6 @@ public class CFTag extends BodyTagTryCatchFinallyImpl implements DynamicAttribut
 	private static Collection.Key EXECUTE_BODY = KeyConstants._EXECUTEBODY;
 	private static Collection.Key PARENT = KeyConstants._PARENT;
 	private static Collection.Key CFCATCH = KeyConstants._CFCATCH;
-	private static Collection.Key SOURCE = KeyConstants._SOURCE;
-
-	private static final Collection.Key ON_ERROR = KeyConstants._onError;
-	private static final Collection.Key ON_FINALLY = KeyConstants._onFinally;
-	private static final Collection.Key ON_START_TAG = KeyConstants._onStartTag;
-	private static final Collection.Key ON_END_TAG = KeyConstants._onEndTag;
-
-	private static final Collection.Key ATTRIBUTE_TYPE = KeyConstants._attributetype;
-	private static final Collection.Key SCRIPT = KeyConstants._script;
-	private static final Collection.Key RT_EXPR_VALUE = KeyConstants._rtexprvalue;
 	private static final String MARKER = "2w12801";
 
 	/**
@@ -390,12 +380,12 @@ public class CFTag extends BodyTagTryCatchFinallyImpl implements DynamicAttribut
 				rtn = cfc.callWithNamedValues(pageContext, KeyConstants._init, args);
 			}
 
-			if (cfc.contains(pageContext, ON_START_TAG)) {
+			if (cfc.contains(pageContext, KeyConstants._onStartTag)) {
 				Struct args = new StructImpl();
 				args.set(KeyConstants._ATTRIBUTES, attributesScope);
 				setCaller(pageContext, args);
 
-				rtn = cfc.callWithNamedValues(pageContext, ON_START_TAG, args);
+				rtn = cfc.callWithNamedValues(pageContext, KeyConstants._onStartTag, args);
 			}
 			exeBody = Caster.toBooleanValue(rtn, true);
 		}
@@ -487,10 +477,10 @@ public class CFTag extends BodyTagTryCatchFinallyImpl implements DynamicAttribut
 		// TAG
 
 		// type
-		String type = Caster.toString(meta.get(ATTRIBUTE_TYPE, "dynamic"), "dynamic");
+		String type = Caster.toString(meta.get(KeyConstants._attributetype, "dynamic"), "dynamic");
 
 		// script
-		String script = Caster.toString(meta.get(SCRIPT, null), null);
+		String script = Caster.toString(meta.get(KeyConstants._script, null), null);
 		if (!StringUtil.isEmpty(script, true)) {
 			script = script.trim();
 			TagLibTagScript tlts = new TagLibTagScript(tag);
@@ -543,7 +533,7 @@ public class CFTag extends BodyTagTryCatchFinallyImpl implements DynamicAttribut
 
 					if (!runtime) {
 						attr.setDescription(Caster.toString(sct.get(KeyConstants._hint, null), null));
-						attr.setRtexpr(Caster.toBooleanValue(sct.get(RT_EXPR_VALUE, Boolean.TRUE), true));
+						attr.setRtexpr(Caster.toBooleanValue(sct.get(KeyConstants._rtexprvalue, Boolean.TRUE), true));
 					}
 				}
 				tag.setAttribute(attr);
@@ -560,18 +550,18 @@ public class CFTag extends BodyTagTryCatchFinallyImpl implements DynamicAttribut
 			String output = null;
 			Object rtn = Boolean.FALSE;
 
-			if (cfc.contains(pageContext, ON_END_TAG)) {
+			if (cfc.contains(pageContext, KeyConstants._onEndTag)) {
 				try {
 					output = bodyContent.getString();
 					bodyContent.clearBody();
-					// rtn=cfc.call(pageContext, ON_END_TAG, new
+					// rtn=cfc.call(pageContext, KeyConstants._onEndTag, new
 					// Object[]{attributesScope,pageContext.variablesScope(),output});
 
 					Struct args = new StructImpl(Struct.TYPE_LINKED);
 					args.set(KeyConstants._ATTRIBUTES, attributesScope);
 					setCaller(pageContext, args);
 					args.set(GENERATED_CONTENT, output);
-					rtn = cfc.callWithNamedValues(pageContext, ON_END_TAG, args);
+					rtn = cfc.callWithNamedValues(pageContext, KeyConstants._onEndTag, args);
 
 				}
 				finally {
@@ -618,14 +608,14 @@ public class CFTag extends BodyTagTryCatchFinallyImpl implements DynamicAttribut
 		if (throwIfCFCNotExists && cfc == null) throw Caster.toPageException(t);
 
 		try {
-			if (cfc != null && cfc.contains(pageContext, ON_ERROR)) {
+			if (cfc != null && cfc.contains(pageContext, KeyConstants._onError)) {
 				PageException pe = Caster.toPageException(t);
-				// Object rtn=cfc.call(pageContext, ON_ERROR, new Object[]{pe.getCatchBlock(pageContext),source});
+				// Object rtn=cfc.call(pageContext, KeyConstants._onError, new Object[]{pe.getCatchBlock(pageContext),source});
 
 				Struct args = new StructImpl(Struct.TYPE_LINKED);
 				args.set(CFCATCH, pe.getCatchBlock(ThreadLocalPageContext.getConfigServer(pageContext)));
-				args.set(SOURCE, source);
-				Object rtn = cfc.callWithNamedValues(pageContext, ON_ERROR, args);
+				args.set(KeyConstants._SOURCE, source);
+				Object rtn = cfc.callWithNamedValues(pageContext, KeyConstants._onError, args);
 
 				if (Caster.toBooleanValue(rtn, false)) throw t;
 			}
@@ -641,9 +631,9 @@ public class CFTag extends BodyTagTryCatchFinallyImpl implements DynamicAttribut
 	}
 
 	private void _doCFCFinally() {
-		if (cfc != null && cfc.contains(pageContext, ON_FINALLY)) {
+		if (cfc != null && cfc.contains(pageContext, KeyConstants._onFinally)) {
 			try {
-				cfc.call(pageContext, ON_FINALLY, ArrayUtil.OBJECT_EMPTY);
+				cfc.call(pageContext, KeyConstants._onFinally, ArrayUtil.OBJECT_EMPTY);
 			}
 			catch (PageException pe) {
 				throw new PageRuntimeException(pe);

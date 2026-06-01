@@ -24,23 +24,6 @@ public final class ExtensionInfo extends BIF implements Function {
 
 	private static final long serialVersionUID = 2627423175121799118L;
 
-	private static final Key TLDS = KeyConstants._tlds;
-	private static final Key FLDS = KeyConstants._flds;
-	private static final Key EVENT_GATEWAYS = KeyConstants._eventGateways;
-	private static final Key TAGS = KeyConstants._tags;
-	private static final Key FUNCTIONS = KeyConstants._functions;
-	private static final Key ARCHIVES = KeyConstants._archives;
-	private static final Key CONTEXTS = KeyConstants._contexts;
-	private static final Key WEBCONTEXTS = KeyConstants._webcontexts;
-	private static final Key CONFIG = KeyConstants._config;
-	private static final Key APPLICATIONS = KeyConstants._applications;
-	private static final Key CATEGORIES = KeyConstants._categories;
-	private static final Key PLUGINS = KeyConstants._plugins;
-	private static final Key START_BUNDLES = KeyConstants._startBundles;
-	private static final Key TRIAL = KeyConstants._trial;
-	private static final Key RELEASE_TYPE = KeyConstants._releaseType;
-	private static final Key SYMBOLIC_NAME = KeyConstants._symbolicName;
-
 	public static Struct call(PageContext pc, String id) throws PageException {
 		if (StringUtil.isEmpty(id, true)) return new StructImpl();
 		return getInfo(id.trim(), ((ConfigWebPro) pc.getConfig()).getRHExtensions());
@@ -60,28 +43,28 @@ public final class ExtensionInfo extends BIF implements Function {
 				String ver = ext.getVersion().toString();
 				String sName = md.getSymbolicName();
 				sct.set(KeyConstants._id, ext.getId());
-				sct.set(SYMBOLIC_NAME, sName);
+				sct.set(KeyConstants._symbolicName, sName);
 				sct.set(KeyConstants._name, md.getName());
 				sct.set(KeyConstants._image, md.getImage());
 				sct.set(KeyConstants._description, md.getDescription());
 				sct.set(KeyConstants._version, ver == null ? null : ver);
-				sct.set(TRIAL, md.isTrial());
-				sct.set(RELEASE_TYPE, RHExtension.toReleaseType(md.getReleaseType(), "all"));
+				sct.set(KeyConstants._trial, md.isTrial());
+				sct.set(KeyConstants._releaseType, RHExtension.toReleaseType(md.getReleaseType(), "all"));
 				try {
-					sct.set(FLDS, Caster.toArray(md.getFlds()));
-					sct.set(TLDS, Caster.toArray(md.getTlds()));
-					sct.set(FUNCTIONS, Caster.toArray(md.getFunctions()));
-					sct.set(ARCHIVES, Caster.toArray(md.getArchives()));
-					sct.set(TAGS, Caster.toArray(md.getTags()));
-					sct.set(CONTEXTS, Caster.toArray(md.getContexts()));
-					sct.set(WEBCONTEXTS, Caster.toArray(md.getWebContexts()));
-					sct.set(CONFIG, Caster.toArray(md.getConfigs()));
-					sct.set(EVENT_GATEWAYS, Caster.toArray(md.getEventGateways()));
-					sct.set(CATEGORIES, Caster.toArray(md.getCategories()));
-					sct.set(APPLICATIONS, Caster.toArray(md.getApplications()));
+					sct.set(KeyConstants._flds, Caster.toArray(md.getFlds()));
+					sct.set(KeyConstants._tlds, Caster.toArray(md.getTlds()));
+					sct.set(KeyConstants._functions, Caster.toArray(md.getFunctions()));
+					sct.set(KeyConstants._archives, Caster.toArray(md.getArchives()));
+					sct.set(KeyConstants._tags, Caster.toArray(md.getTags()));
+					sct.set(KeyConstants._contexts, Caster.toArray(md.getContexts()));
+					sct.set(KeyConstants._webcontexts, Caster.toArray(md.getWebContexts()));
+					sct.set(KeyConstants._config, Caster.toArray(md.getConfigs()));
+					sct.set(KeyConstants._eventGateways, Caster.toArray(md.getEventGateways()));
+					sct.set(KeyConstants._categories, Caster.toArray(md.getCategories()));
+					sct.set(KeyConstants._applications, Caster.toArray(md.getApplications()));
 					sct.set(KeyConstants._components, Caster.toArray(md.getComponents()));
-					sct.set(PLUGINS, Caster.toArray(md.getPlugins()));
-					sct.set(START_BUNDLES, Caster.toBoolean(md.isStartBundles()));
+					sct.set(KeyConstants._plugins, Caster.toArray(md.getPlugins()));
+					sct.set(KeyConstants._startBundles, Caster.toBoolean(md.isStartBundles()));
 
 					BundleInfo[] bfs = md.getBundles();
 					Query qryBundles = new QueryImpl(new Key[] { KeyConstants._name, KeyConstants._version }, bfs == null ? 0 : bfs.length, "bundles");

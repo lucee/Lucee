@@ -66,8 +66,6 @@ public final class ChildThreadImpl extends ChildThread implements Serializable {
 
 	private static final long serialVersionUID = -8902836175312356628L;
 
-	private static final Collection.Key KEY_ATTRIBUTES = KeyConstants._attributes;
-
 	// private static final Set EMPTY = new HashSet();
 
 	private int threadIndex;
@@ -288,7 +286,7 @@ public final class ChildThreadImpl extends ChildThread implements Serializable {
 				// local
 				newLocal = pc.getScopeFactory().getLocalInstance();
 				oldLocal = pc.localScope();
-				newLocal.setEL(KEY_ATTRIBUTES, newArgs);
+				newLocal.setEL(KeyConstants._attributes, newArgs);
 
 				oldMode = undefined.setMode(Undefined.MODE_LOCAL_OR_ARGUMENTS_ALWAYS);
 				pc.setFunctionScopes(newLocal, newArgs);

@@ -28,9 +28,6 @@ import lucee.runtime.type.util.KeyConstants;
 public final class ComponentCacheEventListener implements CacheEventListener {
 
 	private static final long serialVersionUID = 6271280246677734153L;
-	private static final Collection.Key ON_EXPIRES = KeyConstants._onExpires;
-	private static final Collection.Key ON_PUT = KeyConstants._onPut;
-	private static final Collection.Key ON_REMOVE = KeyConstants._onRemove;
 	private Component component;
 
 	public ComponentCacheEventListener(Component component) {
@@ -39,17 +36,17 @@ public final class ComponentCacheEventListener implements CacheEventListener {
 
 	@Override
 	public void onRemove(CacheEntry entry) {
-		call(ON_REMOVE, entry);
+		call(KeyConstants._onRemove, entry);
 	}
 
 	@Override
 	public void onPut(CacheEntry entry) {
-		call(ON_PUT, entry);
+		call(KeyConstants._onPut, entry);
 	}
 
 	@Override
 	public void onExpires(CacheEntry entry) {
-		call(ON_EXPIRES, entry);
+		call(KeyConstants._onExpires, entry);
 	}
 
 	private void call(Key methodName, CacheEntry entry) {

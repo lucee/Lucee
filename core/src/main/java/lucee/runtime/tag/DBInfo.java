@@ -65,31 +65,6 @@ import lucee.runtime.type.util.KeyConstants;
  **/
 public final class DBInfo extends TagImpl {
 
-	private static final Key TABLE_NAME = KeyConstants._TABLE_NAME;
-	private static final Key COLUMN_NAME = KeyConstants._COLUMN_NAME;
-	private static final Key IS_PRIMARYKEY = KeyConstants._IS_PRIMARYKEY;
-	private static final Key IS_FOREIGNKEY = KeyConstants._IS_FOREIGNKEY;
-	private static final Key COLUMN_DEF = KeyConstants._COLUMN_DEF;
-	private static final Key COLUMN_DEFAULT_VALUE = KeyConstants._COLUMN_DEFAULT_VALUE;
-	private static final Key COLUMN_DEFAULT = KeyConstants._COLUMN_DEFAULT;
-	private static final Key REFERENCED_PRIMARYKEY = KeyConstants._REFERENCED_PRIMARYKEY;
-	private static final Key REFERENCED_PRIMARYKEY_TABLE = KeyConstants._REFERENCED_PRIMARYKEY_TABLE;
-	private static final Key USER = KeyConstants._USER;
-	private static final Key TABLE_SCHEM = KeyConstants._TABLE_SCHEM;
-	private static final Key DECIMAL_DIGITS = KeyConstants._DECIMAL_DIGITS;
-
-	private static final Key DATABASE_NAME = KeyConstants._database_name;
-	private static final Key TABLE_CAT = KeyConstants._TABLE_CAT;
-	private static final Key PROCEDURE = KeyConstants._procedure;
-	private static final Key CATALOG = KeyConstants._catalog;
-	private static final Key SCHEMA = KeyConstants._schema;
-	private static final Key DATABASE_PRODUCTNAME = KeyConstants._DATABASE_PRODUCTNAME;
-	private static final Key DATABASE_VERSION = KeyConstants._DATABASE_VERSION;
-	private static final Key DRIVER_NAME = KeyConstants._DRIVER_NAME;
-	private static final Key DRIVER_VERSION = KeyConstants._DRIVER_VERSION;
-	private static final Key JDBC_MAJOR_VERSION = KeyConstants._JDBC_MAJOR_VERSION;
-	private static final Key JDBC_MINOR_VERSION = KeyConstants._JDBC_MINOR_VERSION;
-
 	private static final int TYPE_NONE = 0;
 	private static final int TYPE_DBNAMES = 1;
 	private static final int TYPE_TABLES = 2;
@@ -101,8 +76,6 @@ public final class DBInfo extends TagImpl {
 	private static final int TYPE_INDEX = 8;
 	private static final int TYPE_USERS = 9;
 	private static final int TYPE_TERMS = 10;
-	private static final Collection.Key CARDINALITY = KeyConstants._CARDINALITY;
-
 	private DataSource datasource;
 	private String name;
 	private int type;
@@ -307,17 +280,17 @@ public final class DBInfo extends TagImpl {
 		int len = qry.getRecordcount();
 		if (len == 0) checkTable(metaData, _dbName); // only check if no columns get returned, otherwise it exists
 
-		if (qry.getColumn(COLUMN_DEF, null) != null) qry.rename(COLUMN_DEF, COLUMN_DEFAULT_VALUE);
-		else if (qry.getColumn(COLUMN_DEFAULT, null) != null) qry.rename(COLUMN_DEFAULT, COLUMN_DEFAULT_VALUE);
+		if (qry.getColumn(KeyConstants._COLUMN_DEF, null) != null) qry.rename(KeyConstants._COLUMN_DEF, KeyConstants._COLUMN_DEFAULT_VALUE);
+		else if (qry.getColumn(KeyConstants._COLUMN_DEFAULT, null) != null) qry.rename(KeyConstants._COLUMN_DEFAULT, KeyConstants._COLUMN_DEFAULT_VALUE);
 
 		// make sure decimal digits exists
-		QueryColumn col = qry.getColumn(DECIMAL_DIGITS, null);
+		QueryColumn col = qry.getColumn(KeyConstants._DECIMAL_DIGITS, null);
 		if (col == null) {
 			Array arr = new ArrayImpl();
 			for (int i = 1; i <= len; i++) {
 				arr.append(lucee.runtime.op.Constants.DOUBLE_ZERO);
 			}
-			qry.addColumn(DECIMAL_DIGITS, arr);
+			qry.addColumn(KeyConstants._DECIMAL_DIGITS, arr);
 		}
 
 		if (!"columns_minimal".equals(this.strType)) {
@@ -330,12 +303,12 @@ public final class DBInfo extends TagImpl {
 			for (int i = 1; i <= len; i++) {
 
 				// decimal digits
-				o = qry.getAt(DECIMAL_DIGITS, i, null);
-				if (o == null) qry.setAtEL(DECIMAL_DIGITS, i, lucee.runtime.op.Constants.DOUBLE_ZERO);
+				o = qry.getAt(KeyConstants._DECIMAL_DIGITS, i, null);
+				if (o == null) qry.setAtEL(KeyConstants._DECIMAL_DIGITS, i, lucee.runtime.op.Constants.DOUBLE_ZERO);
 
-				tblCat = StringUtil.emptyAsNull(Caster.toString(qry.getAt(TABLE_CAT, i), null), true);
-				tblScheme = StringUtil.emptyAsNull(Caster.toString(qry.getAt(TABLE_SCHEM, i), null), true);
-				tblName = StringUtil.emptyAsNull(Caster.toString(qry.getAt(TABLE_NAME, i), null), true);
+				tblCat = StringUtil.emptyAsNull(Caster.toString(qry.getAt(KeyConstants._TABLE_CAT, i), null), true);
+				tblScheme = StringUtil.emptyAsNull(Caster.toString(qry.getAt(KeyConstants._TABLE_SCHEM, i), null), true);
+				tblName = StringUtil.emptyAsNull(Caster.toString(qry.getAt(KeyConstants._TABLE_NAME, i), null), true);
 
 				set = primaries.get(tblName);
 				if (set == null) {
@@ -346,10 +319,10 @@ public final class DBInfo extends TagImpl {
 					catch (Exception e) {
 					}
 				}
-				isPrimary.append(set != null && set.contains(qry.getAt(COLUMN_NAME, i)) ? "YES" : "NO");
+				isPrimary.append(set != null && set.contains(qry.getAt(KeyConstants._COLUMN_NAME, i)) ? "YES" : "NO");
 			}
 
-			qry.addColumn(IS_PRIMARYKEY, isPrimary);
+			qry.addColumn(KeyConstants._IS_PRIMARYKEY, isPrimary);
 
 			// add is foreignkey
 			Map foreigns = new HashMap();
@@ -361,16 +334,16 @@ public final class DBInfo extends TagImpl {
 			Map<String, SVArray> inner;
 			for (int i = 1; i <= len; i++) {
 
-				tblCat = StringUtil.emptyAsNull(Caster.toString(qry.getAt(TABLE_CAT, i), null), true);
-				tblScheme = StringUtil.emptyAsNull(Caster.toString(qry.getAt(TABLE_SCHEM, i), null), true);
-				tblName = StringUtil.emptyAsNull(Caster.toString(qry.getAt(TABLE_NAME, i), null), true);
+				tblCat = StringUtil.emptyAsNull(Caster.toString(qry.getAt(KeyConstants._TABLE_CAT, i), null), true);
+				tblScheme = StringUtil.emptyAsNull(Caster.toString(qry.getAt(KeyConstants._TABLE_SCHEM, i), null), true);
+				tblName = StringUtil.emptyAsNull(Caster.toString(qry.getAt(KeyConstants._TABLE_NAME, i), null), true);
 
 				map = (Map) foreigns.get(tblName);
 				if (map == null) {
 					map = toMap(metaData.getImportedKeys(tblCat, tblScheme, tblName), true, "FKCOLUMN_NAME", new String[] { "PKCOLUMN_NAME", "PKTABLE_NAME" });
 					foreigns.put(tblName, map);
 				}
-				inner = map.get(qry.getAt(COLUMN_NAME, i));
+				inner = map.get(qry.getAt(KeyConstants._COLUMN_NAME, i));
 				if (inner != null) {
 					isForeign.append("YES");
 					refPrim.append(inner.get("PKCOLUMN_NAME"));
@@ -383,9 +356,9 @@ public final class DBInfo extends TagImpl {
 				}
 			}
 
-			qry.addColumn(IS_FOREIGNKEY, isForeign);
-			qry.addColumn(REFERENCED_PRIMARYKEY, refPrim);
-			qry.addColumn(REFERENCED_PRIMARYKEY_TABLE, refPrimTbl);
+			qry.addColumn(KeyConstants._IS_FOREIGNKEY, isForeign);
+			qry.addColumn(KeyConstants._REFERENCED_PRIMARYKEY, refPrim);
+			qry.addColumn(KeyConstants._REFERENCED_PRIMARYKEY_TABLE, refPrimTbl);
 		}
 		qry.setExecutionTime(stopwatch.time());
 
@@ -460,20 +433,20 @@ public final class DBInfo extends TagImpl {
 		String value;
 		// catalog
 		for (int i = 1; i <= len; i++) {
-			value = (String) catalogs.getAt(TABLE_CAT, i);
+			value = (String) catalogs.getAt(KeyConstants._TABLE_CAT, i);
 			if (!matchPattern(value, p)) continue;
 			qry.addRow();
-			qry.setAt(DATABASE_NAME, row, value);
+			qry.setAt(KeyConstants._database_name, row, value);
 			qry.setAt(KeyConstants._type, row, "CATALOG");
 			row++;
 		}
 		// scheme
 		len = scheme.getRecordcount();
 		for (int i = 1; i <= len; i++) {
-			value = (String) scheme.getAt(TABLE_SCHEM, i);
+			value = (String) scheme.getAt(KeyConstants._TABLE_SCHEM, i);
 			if (!matchPattern(value, p)) continue;
 			qry.addRow();
-			qry.setAt(DATABASE_NAME, row, value);
+			qry.setAt(KeyConstants._database_name, row, value);
 			qry.setAt(KeyConstants._type, row, "SCHEMA");
 			row++;
 		}
@@ -576,8 +549,8 @@ public final class DBInfo extends TagImpl {
 			qry.setAt(KeyConstants._type, row, strType);
 
 			// CARDINALITY
-			card = Caster.toIntValue(qry.getAt(CARDINALITY, row), 0);
-			qry.setAt(CARDINALITY, row, Caster.toDouble(card));
+			card = Caster.toIntValue(qry.getAt(KeyConstants._CARDINALITY, row), 0);
+			qry.setAt(KeyConstants._CARDINALITY, row, Caster.toDouble(card));
 
 		}
 		qry.setExecutionTime(stopwatch.time());
@@ -627,9 +600,9 @@ public final class DBInfo extends TagImpl {
 
 	private void typeTerms(DatabaseMetaData metaData) throws SQLException, PageException {
 		Struct sct = new StructImpl();
-		sct.setEL(PROCEDURE, metaData.getProcedureTerm());
-		sct.setEL(CATALOG, metaData.getCatalogTerm());
-		sct.setEL(SCHEMA, metaData.getSchemaTerm());
+		sct.setEL(KeyConstants._procedure, metaData.getProcedureTerm());
+		sct.setEL(KeyConstants._catalog, metaData.getCatalogTerm());
+		sct.setEL(KeyConstants._schema, metaData.getSchemaTerm());
 
 		pageContext.setVariable(name, sct);
 	}
@@ -683,17 +656,18 @@ public final class DBInfo extends TagImpl {
 		Stopwatch stopwatch = new Stopwatch(Stopwatch.UNIT_NANO);
 		stopwatch.start();
 
-		Key[] columns = new Key[] { DATABASE_PRODUCTNAME, DATABASE_VERSION, DRIVER_NAME, DRIVER_VERSION, JDBC_MAJOR_VERSION, JDBC_MINOR_VERSION };
+		Key[] columns = new Key[] { KeyConstants._DATABASE_PRODUCTNAME, KeyConstants._DATABASE_VERSION, KeyConstants._DRIVER_NAME, KeyConstants._DRIVER_VERSION,
+				KeyConstants._JDBC_MAJOR_VERSION, KeyConstants._JDBC_MINOR_VERSION };
 		String[] types = new String[] { "VARCHAR", "VARCHAR", "VARCHAR", "VARCHAR", "DOUBLE", "DOUBLE" };
 
 		lucee.runtime.type.Query qry = new QueryImpl(columns, types, 1, "query");
 
-		qry.setAt(DATABASE_PRODUCTNAME, 1, metaData.getDatabaseProductName());
-		qry.setAt(DATABASE_VERSION, 1, metaData.getDatabaseProductVersion());
-		qry.setAt(DRIVER_NAME, 1, metaData.getDriverName());
-		qry.setAt(DRIVER_VERSION, 1, metaData.getDriverVersion());
-		qry.setAt(JDBC_MAJOR_VERSION, 1, Double.valueOf(metaData.getJDBCMajorVersion()));
-		qry.setAt(JDBC_MINOR_VERSION, 1, Double.valueOf(metaData.getJDBCMinorVersion()));
+		qry.setAt(KeyConstants._DATABASE_PRODUCTNAME, 1, metaData.getDatabaseProductName());
+		qry.setAt(KeyConstants._DATABASE_VERSION, 1, metaData.getDatabaseProductVersion());
+		qry.setAt(KeyConstants._DRIVER_NAME, 1, metaData.getDriverName());
+		qry.setAt(KeyConstants._DRIVER_VERSION, 1, metaData.getDriverVersion());
+		qry.setAt(KeyConstants._JDBC_MAJOR_VERSION, 1, Double.valueOf(metaData.getJDBCMajorVersion()));
+		qry.setAt(KeyConstants._JDBC_MINOR_VERSION, 1, Double.valueOf(metaData.getJDBCMinorVersion()));
 
 		qry.setExecutionTime(stopwatch.time());
 
@@ -710,7 +684,7 @@ public final class DBInfo extends TagImpl {
 		ResultSet result = metaData.getSchemas();
 		Query qry = new QueryImpl(result, "query", pageContext.getTimeZone());
 
-		qry.rename(TABLE_SCHEM, USER);
+		qry.rename(KeyConstants._TABLE_SCHEM, KeyConstants._USER);
 
 		qry.setExecutionTime(stopwatch.time());
 

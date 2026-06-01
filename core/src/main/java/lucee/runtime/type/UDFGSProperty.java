@@ -53,9 +53,6 @@ public abstract class UDFGSProperty extends MemberSupport implements UDFPlus {
 
 	private static final long serialVersionUID = 285652503901488683L;
 
-	private static final Collection.Key MIN_LENGTH = KeyConstants._minLength;
-	private static final Collection.Key MAX_LENGTH = KeyConstants._maxLength;
-
 	protected final FunctionArgument[] arguments;
 	protected final String name;
 	protected Component srcComponent;
@@ -258,8 +255,8 @@ public abstract class UDFGSProperty extends MemberSupport implements UDFPlus {
 				throw new ExpressionException(validate + " [" + Caster.toString(d) + "] is out of range, value must be less than or equal to [" + max + "]");
 		}
 		else if (validate.equals("string")) {
-			double min = Caster.toDoubleValue(validateParams.get(MIN_LENGTH, null), false, Double.NaN);
-			double max = Caster.toDoubleValue(validateParams.get(MAX_LENGTH, null), false, Double.NaN);
+			double min = Caster.toDoubleValue(validateParams.get(KeyConstants._minLength, null), false, Double.NaN);
+			double max = Caster.toDoubleValue(validateParams.get(KeyConstants._maxLength, null), false, Double.NaN);
 			String str = Caster.toString(obj);
 			int l = str.length();
 			if (!Double.isNaN(min) && l < ((int) min))

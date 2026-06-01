@@ -85,14 +85,6 @@ public class ModernAppListener extends AppListenerSupport {
 
 	public static final ModernAppListener instance = new ModernAppListener();
 
-	private static final Collection.Key ON_REQUEST = KeyConstants._onRequest;
-	private static final Collection.Key ON_REQUEST_END = KeyConstants._onRequestEnd;
-	private static final Collection.Key ON_APPLICATION_START = KeyConstants._onApplicationStart;
-	private static final Collection.Key ON_APPLICATION_END = KeyConstants._onApplicationEnd;
-	private static final Collection.Key ON_SESSION_START = KeyConstants._onSessionStart;
-	private static final Collection.Key ON_SESSION_END = KeyConstants._onSessionEnd;
-	private static final Collection.Key ON_MISSING_TEMPLATE = KeyConstants._onMissingTemplate;
-
 	// private Map<String,Component> apps=new HashMap<String,Component>();// TODO no longer use this,
 	// find a better way to store components for end methods
 	protected int mode = MODE_CURRENT2ROOT;
@@ -235,7 +227,7 @@ public class ModernAppListener extends AppListenerSupport {
 				}
 				else {
 					try {
-						if (!isComp && app.contains(pc, ON_REQUEST)) call(app, pci, ON_REQUEST, new Object[] { targetPage }, false);
+						if (!isComp && app.contains(pc, KeyConstants._onRequest)) call(app, pci, KeyConstants._onRequest, new Object[] { targetPage }, false);
 						else pci._doInclude(new PageSource[] { requestedPage }, false, null);
 					}
 					catch (PageException pe) {
@@ -245,9 +237,9 @@ public class ModernAppListener extends AppListenerSupport {
 				}
 			}
 			// onRequestEnd
-			if (goon.toBooleanValue() && app.contains(pc, ON_REQUEST_END)) {
+			if (goon.toBooleanValue() && app.contains(pc, KeyConstants._onRequestEnd)) {
 				try {
-					call(app, pci, ON_REQUEST_END, new Object[] { targetPage }, false);
+					call(app, pci, KeyConstants._onRequestEnd, new Object[] { targetPage }, false);
 				}
 				catch (PageException pe) {
 					pe = handlePageException(pci, app, pe, requestedPage, targetPage, goon);
@@ -282,9 +274,9 @@ public class ModernAppListener extends AppListenerSupport {
 			if (_pe instanceof MissingIncludeException) {
 				if (((MissingIncludeException) _pe).getPageSource().equals(requestedPage)) {
 
-					if (app.contains(pci, ON_MISSING_TEMPLATE)) {
+					if (app.contains(pci, KeyConstants._onMissingTemplate)) {
 						goon.setValue(false);
-						if (!Caster.toBooleanValue(call(app, pci, ON_MISSING_TEMPLATE, new Object[] { targetPage }, true), true)) return pe;
+						if (!Caster.toBooleanValue(call(app, pci, KeyConstants._onMissingTemplate, new Object[] { targetPage }, true), true)) return pe;
 					}
 					else return pe;
 				}
@@ -313,12 +305,12 @@ public class ModernAppListener extends AppListenerSupport {
 	public boolean onApplicationStart(PageContext pc, Application application) throws PageException {
 		Component app = getComponent(pc);
 
-		if (app != null && app.contains(pc, ON_APPLICATION_END)) {
+		if (app != null && app.contains(pc, KeyConstants._onApplicationEnd)) {
 			if (application instanceof ApplicationImpl) ((ApplicationImpl) application).setComponent(app);
 		}
 
-		if (app != null && app.contains(pc, ON_APPLICATION_START)) {
-			Object rtn = call(app, pc, ON_APPLICATION_START, ArrayUtil.OBJECT_EMPTY, true);
+		if (app != null && app.contains(pc, KeyConstants._onApplicationStart)) {
+			Object rtn = call(app, pc, KeyConstants._onApplicationStart, ArrayUtil.OBJECT_EMPTY, true);
 			return Caster.toBooleanValue(rtn, true);
 		}
 		return true;
@@ -336,8 +328,8 @@ public class ModernAppListener extends AppListenerSupport {
 		PageContextImpl pc = (PageContextImpl) ThreadLocalPageContext.get();
 		boolean createPc = pc == null;
 		try {
-			if (createPc) pc = createPageContext(factory, app, applicationName, null, ON_APPLICATION_END, true, -1);
-			call(app, pc, ON_APPLICATION_END, new Object[] { pc.applicationScope() }, true);
+			if (createPc) pc = createPageContext(factory, app, applicationName, null, KeyConstants._onApplicationEnd, true, -1);
+			call(app, pc, KeyConstants._onApplicationEnd, new Object[] { pc.applicationScope() }, true);
 		}
 		finally {
 			if (createPc && pc != null) {
@@ -357,7 +349,7 @@ public class ModernAppListener extends AppListenerSupport {
 		// component
 		Component app = getComponent(pc);
 		if (hasOnSessionStart(pc, app)) {
-			call(app, pc, ON_SESSION_START, ArrayUtil.OBJECT_EMPTY, true);
+			call(app, pc, KeyConstants._onSessionStart, ArrayUtil.OBJECT_EMPTY, true);
 		}
 		if (hasOnSessionEnd(pc, app)) {
 			session = pc.sessionScope(); // in case of sessionRotate() in onSessionStart
@@ -374,12 +366,12 @@ public class ModernAppListener extends AppListenerSupport {
 
 			if (scope instanceof SessionMemory) app = ((SessionMemory) scope).getComponent();
 			if (scope instanceof JSession) app = ((JSession) scope).getComponent();
-			if (app == null || !app.containsKey(ON_SESSION_END)) return;
+			if (app == null || !app.containsKey(KeyConstants._onSessionEnd)) return;
 			PageContextImpl pc = null;
 			PageContext existing = ThreadLocalPageContext.get();
 			try {
-				pc = createPageContext(factory, app, applicationName, cfid, ON_SESSION_END, true, -1);
-				call(app, pc, ON_SESSION_END, new Object[] { pc.sessionScope(false), pc.applicationScope() }, true);
+				pc = createPageContext(factory, app, applicationName, cfid, KeyConstants._onSessionEnd, true, -1);
+				call(app, pc, KeyConstants._onSessionEnd, new Object[] { pc.sessionScope(false), pc.applicationScope() }, true);
 			}
 			finally {
 				factory.releaseLuceePageContext(pc, true);
@@ -570,11 +562,11 @@ public class ModernAppListener extends AppListenerSupport {
 	}
 
 	private boolean hasOnSessionStart(PageContext pc, Component app) {
-		return app != null && app.contains(pc, ON_SESSION_START);
+		return app != null && app.contains(pc, KeyConstants._onSessionStart);
 	}
 
 	private boolean hasOnSessionEnd(PageContext pc, Component app) {
-		return app != null && app.contains(pc, ON_SESSION_END);
+		return app != null && app.contains(pc, KeyConstants._onSessionEnd);
 	}
 
 	public static ModernAppListener getInstance() {

@@ -215,13 +215,6 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	private static final short ACCESS_READ = 10;
 	private static final short ACCESS_WRITE = 11;
 
-	private static final Key HAS_OWN_SEC_CONTEXT = KeyConstants._hasOwnSecContext;
-	private static final Key CONFIG_FILE = KeyConstants._config_file;
-	private static final Key CLIENT_SIZE = KeyConstants._clientSize;
-	private static final Key SESSION_SIZE = KeyConstants._sessionSize;
-	private static final Key CLIENT_ELEMENTS = KeyConstants._clientElements;
-	private static final Key SESSION_ELEMENTS = KeyConstants._sessionElements;
-
 	private static final short MAPPING_REGULAR = 1;
 	private static final short MAPPING_CT = 2;
 	private static final short MAPPING_CFC = 4;
@@ -237,13 +230,6 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 	private static final ResourceFilter FILTER_CFML_TEMPLATES = new OrResourceFilter(
 			new ResourceFilter[] { new DirectoryResourceFilter(), new ExtensionResourceFilter(Constants.getExtensions()) });
-	private static final Key FRAGMENT = KeyConstants._fragment;
-	private static final Key HEADERS = KeyConstants._headers;
-	private static final Key SYMBOLIC_NAME = KeyConstants._symbolicName;
-	private static final Key VENDOR = KeyConstants._vendor;
-	private static final Key USED_BY = KeyConstants._usedBy;
-	private static final Key PATH = KeyConstants._path;
-
 	@Override
 	public void release() {
 		super.release();
@@ -1420,8 +1406,8 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			factories = new CFMLFactory[] { cw.getFactory() };
 		}
 
-		lucee.runtime.type.Query qry = new QueryImpl(new Collection.Key[] { KeyConstants._path, KeyConstants._id, KeyConstants._hash, KeyConstants._label, HAS_OWN_SEC_CONTEXT,
-				KeyConstants._url, CONFIG_FILE, CLIENT_SIZE, CLIENT_ELEMENTS, SESSION_SIZE, SESSION_ELEMENTS }, factories.length, getString("admin", action, "returnVariable"));
+		lucee.runtime.type.Query qry = new QueryImpl(new Collection.Key[] { KeyConstants._path, KeyConstants._id, KeyConstants._hash, KeyConstants._label, KeyConstants._hasOwnSecContext,
+				KeyConstants._url, KeyConstants._config_file, KeyConstants._clientSize, KeyConstants._clientElements, KeyConstants._sessionSize, KeyConstants._sessionElements }, factories.length, getString("admin", action, "returnVariable"));
 		pageContext.setVariable(getString("admin", action, "returnVariable"), qry);
 		ConfigWebPro cw;
 		for (int i = 0; i < factories.length; i++) {
@@ -1430,16 +1416,16 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			cw = (ConfigWebPro) factory.getConfig();
 			qry.setAtEL(KeyConstants._path, row, ReqRspUtil.getRootPath(factory.getConfig().getServletContext()));
 
-			qry.setAtEL(CONFIG_FILE, row, factory.getConfig().getConfigFile().getAbsolutePath());
+			qry.setAtEL(KeyConstants._config_file, row, factory.getConfig().getConfigFile().getAbsolutePath());
 			if (factory.getURL() != null) qry.setAtEL(KeyConstants._url, row, factory.getURL().toExternalForm());
 			Identification id = factory.getConfig().getIdentification();
 			qry.setAtEL(KeyConstants._id, row, id == null ? "" : id.getId());
 			qry.setAtEL(KeyConstants._hash, row, SystemUtil.hash(factory.getConfig().getServletContext()));
 			qry.setAtEL(KeyConstants._label, row, factory.getLabel());
-			qry.setAtEL(HAS_OWN_SEC_CONTEXT, row, Caster.toBoolean(false));
+			qry.setAtEL(KeyConstants._hasOwnSecContext, row, Caster.toBoolean(false));
 
-			setScopeDirInfo(qry, row, CLIENT_SIZE, CLIENT_ELEMENTS, cw.getClientScopeDir());
-			setScopeDirInfo(qry, row, SESSION_SIZE, SESSION_ELEMENTS, cw.getSessionScopeDir());
+			setScopeDirInfo(qry, row, KeyConstants._clientSize, KeyConstants._clientElements, cw.getClientScopeDir());
+			setScopeDirInfo(qry, row, KeyConstants._sessionSize, KeyConstants._sessionElements, cw.getSessionScopeDir());
 		}
 	}
 
@@ -3450,17 +3436,17 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		Struct sct = new StructImpl();
 		pageContext.setVariable(getString("admin", action, "returnVariable"), sct);
 
-		sct.set(SYMBOLIC_NAME, bd.getName());
+		sct.set(KeyConstants._symbolicName, bd.getName());
 		sct.set(KeyConstants._title, bd.getName());
 		sct.set(KeyConstants._version, bd.getVersionAsString());
-		sct.set(USED_BY, _usedBy(bd.getName(), bd.getVersion(), coreBundles, extBundles));
+		sct.set(KeyConstants._usedBy, _usedBy(bd.getName(), bd.getVersion(), coreBundles, extBundles));
 		try {
 			if (b != null) {
-				sct.set(PATH, b.getLocation());
+				sct.set(KeyConstants._path, b.getLocation());
 			}
 			else {
 				if (bf == null) bf = bd.getBundleFile(false, JavaSettingsImpl.getBundleDirectories(pageContext));
-				sct.set(PATH, bf.getFile());
+				sct.set(KeyConstants._path, bf.getFile());
 			}
 
 		}
@@ -3473,7 +3459,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			sct.set(KeyConstants._version, bd.getVersion().toString());
 			sct.set(KeyConstants._id, b.getBundleId());
 			sct.set(KeyConstants._state, OSGiUtil.toState(b.getState(), null));
-			sct.set(FRAGMENT, OSGiUtil.isFragment(b));
+			sct.set(KeyConstants._fragment, OSGiUtil.isFragment(b));
 
 			headers = OSGiUtil.getHeaders(b);
 		}
@@ -3483,7 +3469,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 				if (bf == null) bf = bd.getBundleFile(false, null);
 				sct.set(KeyConstants._version, bf.getVersionAsString());
-				sct.set(FRAGMENT, OSGiUtil.isFragment(bf));
+				sct.set(KeyConstants._fragment, OSGiUtil.isFragment(bf));
 				headers = bf.getHeaders();
 
 			}
@@ -3493,7 +3479,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 		if (headers != null) {
 			Struct h = Caster.toStruct(headers, false);
-			sct.set(HEADERS, h);
+			sct.set(KeyConstants._headers, h);
 
 			// title
 			String str = Caster.toString(h.get("Bundle-Title", null), null);
@@ -3512,7 +3498,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			str = Caster.toString(h.get("Bundle-Vendor", null), null);
 			if (StringUtil.isEmpty(str)) str = Caster.toString(h.get("Implementation-Vendor", null), null);
 			if (StringUtil.isEmpty(str)) str = Caster.toString(h.get("Specification-Vendor", null), null);
-			if (!StringUtil.isEmpty(str)) sct.set(VENDOR, str);
+			if (!StringUtil.isEmpty(str)) sct.set(KeyConstants._vendor, str);
 
 		}
 
@@ -3528,25 +3514,25 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		BundleDefinition bd;
 		Bundle b;
 		String str;
-		Query qry = new QueryImpl(new Key[] { SYMBOLIC_NAME, KeyConstants._title, KeyConstants._description, KeyConstants._version, VENDOR, KeyConstants._state, PATH, USED_BY,
-				KeyConstants._id, FRAGMENT, HEADERS }, bds.size(), "bundles");
+		Query qry = new QueryImpl(new Key[] { KeyConstants._symbolicName, KeyConstants._title, KeyConstants._description, KeyConstants._version, KeyConstants._vendor, KeyConstants._state, KeyConstants._path, KeyConstants._usedBy,
+				KeyConstants._id, KeyConstants._fragment, KeyConstants._headers }, bds.size(), "bundles");
 		int row = 0;
 		while (it.hasNext()) {
 			row++;
 			bd = it.next();
 			b = bd.getLoadedBundle();
-			qry.setAt(SYMBOLIC_NAME, row, bd.getName());
+			qry.setAt(KeyConstants._symbolicName, row, bd.getName());
 			qry.setAt(KeyConstants._title, row, bd.getName());
 			qry.setAt(KeyConstants._version, row, bd.getVersionAsString());
-			qry.setAt(USED_BY, row, _usedBy(bd.getName(), bd.getVersion(), coreBundles, extBundles));
+			qry.setAt(KeyConstants._usedBy, row, _usedBy(bd.getName(), bd.getVersion(), coreBundles, extBundles));
 			BundleFile bf = null;
 			try {
 				if (b != null) {
-					qry.setAt(PATH, row, b.getLocation());
+					qry.setAt(KeyConstants._path, row, b.getLocation());
 				}
 				else {
 					bf = bd.getBundleFile(false, null);
-					qry.setAt(PATH, row, bf.getFile());
+					qry.setAt(KeyConstants._path, row, bf.getFile());
 				}
 			}
 			catch (Throwable t) {
@@ -3558,7 +3544,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 				qry.setAt(KeyConstants._version, row, bd.getVersion().toString());
 				qry.setAt(KeyConstants._id, row, b.getBundleId());
 				qry.setAt(KeyConstants._state, row, OSGiUtil.toState(b.getState(), null));
-				qry.setAt(FRAGMENT, row, OSGiUtil.isFragment(b));
+				qry.setAt(KeyConstants._fragment, row, OSGiUtil.isFragment(b));
 
 				headers = OSGiUtil.getHeaders(b);
 			}
@@ -3568,7 +3554,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 				try {
 					if (b != null) {
 						qry.setAt(KeyConstants._version, row, b.getVersion().toString());
-						qry.setAt(FRAGMENT, row, OSGiUtil.isFragment(b));
+						qry.setAt(KeyConstants._fragment, row, OSGiUtil.isFragment(b));
 						Dictionary<String, String> dic = b.getHeaders();
 						Enumeration<String> keys = dic.keys();
 						headers = new HashMap<String, Object>();
@@ -3582,7 +3568,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 						if (bf == null) bf = bd.getBundleFile(false, null);
 						qry.setAt(KeyConstants._version, row, bf.getVersionAsString());
 						// qry.setAt(KeyConstants._id, row, bf.getBundleId());
-						qry.setAt(FRAGMENT, row, OSGiUtil.isFragment(bf));
+						qry.setAt(KeyConstants._fragment, row, OSGiUtil.isFragment(bf));
 						headers = bf.getHeaders();
 					}
 
@@ -3593,7 +3579,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 			if (headers != null) {
 				Struct h = Caster.toStruct(headers, false);
-				qry.setAt(HEADERS, row, h);
+				qry.setAt(KeyConstants._headers, row, h);
 
 				// title
 				str = Caster.toString(h.get("Bundle-Title", null), null);
@@ -3612,7 +3598,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 				str = Caster.toString(h.get("Bundle-Vendor", null), null);
 				if (StringUtil.isEmpty(str)) str = Caster.toString(h.get("Implementation-Vendor", null), null);
 				if (StringUtil.isEmpty(str)) str = Caster.toString(h.get("Specification-Vendor", null), null);
-				if (!StringUtil.isEmpty(str)) qry.setAt(VENDOR, row, str);
+				if (!StringUtil.isEmpty(str)) qry.setAt(KeyConstants._vendor, row, str);
 
 				// Specification-Vendor,Bundle-Vendor
 			}

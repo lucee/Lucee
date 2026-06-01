@@ -41,10 +41,8 @@ import lucee.runtime.type.util.KeyConstants;
  **/
 public final class Associate extends TagImpl {
 
-	private static final Key ASSOC_ATTRS = KeyConstants._AssocAttribs;
-
 	/** The name of the structure in which the base tag stores subtag data. */
-	private Collection.Key datacollection = ASSOC_ATTRS;
+	private Collection.Key datacollection = KeyConstants._AssocAttribs;
 
 	/** The name of the base tag. */
 	private String basetag;
@@ -52,7 +50,7 @@ public final class Associate extends TagImpl {
 	@Override
 	public void release() {
 		super.release();
-		datacollection = ASSOC_ATTRS;
+		datacollection = KeyConstants._AssocAttribs;
 	}
 
 	/**

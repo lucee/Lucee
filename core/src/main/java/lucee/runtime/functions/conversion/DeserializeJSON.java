@@ -52,8 +52,6 @@ public final class DeserializeJSON extends BIF implements Function {
 	static {
 		allowEmpty = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.deserializejson.allowempty", null), false);
 	}
-	private static final Key ROWCOUNT = KeyConstants._ROWCOUNT;
-
 	public static Object call(PageContext pc, String JSONVar) throws PageException {
 		return _call(pc, JSONVar, true, JSONExpressionInterpreter.FORMAT_JSON5); // for backward compatibility we need to allow json5 (most comments are allowed in Lucee 5)
 	}
@@ -103,7 +101,7 @@ public final class DeserializeJSON extends BIF implements Function {
 
 			// rowcount
 			int rowcount = -1;
-			if (contains(keys, ROWCOUNT)) rowcount = toRowCount(sct.get(ROWCOUNT, null));
+			if (contains(keys, KeyConstants._ROWCOUNT)) rowcount = toRowCount(sct.get(KeyConstants._ROWCOUNT, null));
 			else if (contains(keys, KeyConstants._RECORDCOUNT)) rowcount = toRowCount(sct.get(KeyConstants._RECORDCOUNT, null));
 
 			if (columns != null) {

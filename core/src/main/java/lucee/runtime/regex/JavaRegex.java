@@ -15,10 +15,6 @@ import lucee.runtime.type.util.KeyConstants;
 class JavaRegex implements Regex {
 
 	private static final Double ZERO = Double.valueOf(0);
-	private static final Key LEN = KeyConstants._len;
-	private static final Key POS = KeyConstants._pos;
-	private static final Key MATCH = KeyConstants._match;
-
 	@Override
 	public boolean matches(String strPattern, String strInput) throws PageException {
 		try {
@@ -201,13 +197,13 @@ class JavaRegex implements Regex {
 		Struct sct = new StructImpl(StructImpl.TYPE_LINKED);
 		Array a = new ArrayImpl();
 		a.appendEL(ZERO);
-		sct.setEL(LEN, a);
+		sct.setEL(KeyConstants._len, a);
 		a = new ArrayImpl();
 		a.appendEL(ZERO);
-		sct.setEL(POS, a);
+		sct.setEL(KeyConstants._pos, a);
 		a = new ArrayImpl();
 		a.appendEL("");
-		sct.setEL(MATCH, a);
+		sct.setEL(KeyConstants._match, a);
 		return sct;
 	}
 
@@ -223,9 +219,9 @@ class JavaRegex implements Regex {
 			matchArray.appendEL(matcher.group(i));
 		}
 
-		sct.setEL(POS, posArray);
-		sct.setEL(LEN, lenArray);
-		sct.setEL(MATCH, matchArray);
+		sct.setEL(KeyConstants._pos, posArray);
+		sct.setEL(KeyConstants._len, lenArray);
+		sct.setEL(KeyConstants._match, matchArray);
 		return sct;
 	}
 

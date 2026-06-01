@@ -186,17 +186,6 @@ public final class Http extends BodyTagImpl {
 	private static final short GET_AS_BINARY_YES = 1;
 	private static final short GET_AS_BINARY_AUTO = 2;
 
-	private static final Key STATUSCODE = KeyConstants._statuscode;
-	private static final Key CHARSET = KeyConstants._charset;
-
-	private static final Key ERROR_DETAIL = KeyConstants._errordetail;
-	private static final Key STATUS_CODE = KeyConstants._status_code;
-	private static final Key STATUS_TEXT = KeyConstants._status_text;
-	private static final Key HTTP_VERSION = KeyConstants._http_version;
-	private static final Key LOCATIONS = KeyConstants._locations;
-
-	private static final Key EXPLANATION = KeyConstants._explanation;
-	private static final Key RESPONSEHEADER = KeyConstants._responseheader;
 	private static final Key SET_COOKIE = KeyImpl.getInstance("set-cookie");
 
 	private static final short AUTH_TYPE_BASIC = 0;
@@ -1139,7 +1128,7 @@ public final class Http extends BodyTagImpl {
 			if (httpContext == null) httpContext = new HttpClientContext();
 
 			HTTPStruct cfhttp = new HTTPStruct(cacheId);
-			cfhttp.setEL(ERROR_DETAIL, "");
+			cfhttp.setEL(KeyConstants._errordetail, "");
 			if (safeToMemory) pageContext.setVariable(result, cfhttp);
 
 			/////////////////////////////////////////// EXECUTE
@@ -1205,12 +1194,12 @@ public final class Http extends BodyTagImpl {
 			String rspCharset = null;
 
 			// status code
-			cfhttp.set(STATUSCODE, ((rsp.getStatusCode() + " " + rsp.getStatusText()).trim()));
-			cfhttp.set(STATUS_CODE, Double.valueOf(statCode = rsp.getStatusCode()));
-			cfhttp.set(STATUS_TEXT, (rsp.getStatusText()));
-			cfhttp.set(HTTP_VERSION, (rsp.getProtocolVersion()));
+			cfhttp.set(KeyConstants._statuscode, ((rsp.getStatusCode() + " " + rsp.getStatusText()).trim()));
+			cfhttp.set(KeyConstants._status_code, Double.valueOf(statCode = rsp.getStatusCode()));
+			cfhttp.set(KeyConstants._status_text, (rsp.getStatusText()));
+			cfhttp.set(KeyConstants._http_version, (rsp.getProtocolVersion()));
 			Array locations = rsp.getLocations();
-			if (locations != null) cfhttp.set(LOCATIONS, locations);
+			if (locations != null) cfhttp.set(KeyConstants._locations, locations);
 
 			// responseHeader
 			lucee.commons.net.http.Header[] headers = rsp.getAllHeaders();
@@ -1264,10 +1253,10 @@ public final class Http extends BodyTagImpl {
 			rspCharset = tmpCharset != null ? tmpCharset[1] : null;
 
 			cfhttp.set(KeyConstants._error, Boolean.FALSE); // default
-			cfhttp.set(RESPONSEHEADER, responseHeader);
+			cfhttp.set(KeyConstants._responseheader, responseHeader);
 			cfhttp.set(KeyConstants._cookies, cookies);
-			responseHeader.set(STATUS_CODE, Double.valueOf(statCode = rsp.getStatusCode()));
-			responseHeader.set(EXPLANATION, (rsp.getStatusText()));
+			responseHeader.set(KeyConstants._status_code, Double.valueOf(statCode = rsp.getStatusCode()));
+			responseHeader.set(KeyConstants._explanation, (rsp.getStatusText()));
 			if (setCookie.size() > 0) responseHeader.set(SET_COOKIE, setCookie);
 
 			// is text
@@ -1311,7 +1300,7 @@ public final class Http extends BodyTagImpl {
 			else cfhttp.set(KeyConstants._mimetype, NO_MIMETYPE);
 
 			// charset
-			cfhttp.set(CHARSET, rspCharset != null ? rspCharset : "");
+			cfhttp.set(KeyConstants._charset, rspCharset != null ? rspCharset : "");
 
 			// File
 			Resource file = null;
@@ -1389,7 +1378,7 @@ public final class Http extends BodyTagImpl {
 			cfhttp.set(KeyConstants._header, raw.toString());
 			if (!isStatusOK(rsp.getStatusCode())) {
 				String msg = rsp.getStatusCode() + " " + rsp.getStatusText();
-				cfhttp.setEL(ERROR_DETAIL, msg);
+				cfhttp.setEL(KeyConstants._errordetail, msg);
 				if (throwonerror) {
 					URL url = rsp.getURL();
 					String details = getMethodAsVerb(method) + " " + url.toExternalForm();
@@ -1625,29 +1614,29 @@ public final class Http extends BodyTagImpl {
 	}
 
 	private void setUnknownHost(Struct cfhttp, Throwable t) {
-		cfhttp.setEL(CHARSET, "");
-		cfhttp.setEL(ERROR_DETAIL, "Unknown host: " + t.getMessage());
+		cfhttp.setEL(KeyConstants._charset, "");
+		cfhttp.setEL(KeyConstants._errordetail, "Unknown host: " + t.getMessage());
 		cfhttp.setEL(KeyConstants._filecontent, "Connection Failure");
 		cfhttp.setEL(KeyConstants._header, "");
 		cfhttp.setEL(KeyConstants._mimetype, "Unable to determine MIME type of file.");
-		cfhttp.setEL(RESPONSEHEADER, new StructImpl());
-		cfhttp.setEL(STATUSCODE, "Connection Failure. Status code unavailable.");
-		cfhttp.setEL(STATUS_CODE, Double.valueOf(0));
-		cfhttp.setEL(STATUS_TEXT, "Connection Failure");
+		cfhttp.setEL(KeyConstants._responseheader, new StructImpl());
+		cfhttp.setEL(KeyConstants._statuscode, "Connection Failure. Status code unavailable.");
+		cfhttp.setEL(KeyConstants._status_code, Double.valueOf(0));
+		cfhttp.setEL(KeyConstants._status_text, "Connection Failure");
 		cfhttp.setEL(KeyConstants._text, Boolean.TRUE);
 		cfhttp.setEL(KeyConstants._error, Boolean.TRUE);
 	}
 
 	private void setRequestTimeout(Struct cfhttp) {
-		cfhttp.setEL(CHARSET, "");
-		cfhttp.setEL(ERROR_DETAIL, "");
+		cfhttp.setEL(KeyConstants._charset, "");
+		cfhttp.setEL(KeyConstants._errordetail, "");
 		cfhttp.setEL(KeyConstants._filecontent, "Connection Timeout");
 		cfhttp.setEL(KeyConstants._header, "");
 		cfhttp.setEL(KeyConstants._mimetype, "Unable to determine MIME type of file.");
-		cfhttp.setEL(RESPONSEHEADER, new StructImpl());
-		cfhttp.setEL(STATUSCODE, "408 Request Time-out");
-		cfhttp.setEL(STATUS_CODE, Double.valueOf(408));
-		cfhttp.setEL(STATUS_TEXT, "Request Time-out");
+		cfhttp.setEL(KeyConstants._responseheader, new StructImpl());
+		cfhttp.setEL(KeyConstants._statuscode, "408 Request Time-out");
+		cfhttp.setEL(KeyConstants._status_code, Double.valueOf(408));
+		cfhttp.setEL(KeyConstants._status_text, "Request Time-out");
 		cfhttp.setEL(KeyConstants._text, Boolean.TRUE);
 		cfhttp.setEL(KeyConstants._error, Boolean.TRUE);
 	}
@@ -1683,7 +1672,7 @@ public final class Http extends BodyTagImpl {
 		if (log == null) log = ThreadLocalPageContext.getLog(pc, "application");
 		if (log != null) {
 			if (t != null || LogUtil.doesInfo(log)) {
-				String msg = "httpRequest [" + method + "] to [" + url + "], returned [" + data.get(STATUSCODE) + "] in " + (executionTimeNS / 1000000) + "ms, "
+				String msg = "httpRequest [" + method + "] to [" + url + "], returned [" + data.get(KeyConstants._statuscode) + "] in " + (executionTimeNS / 1000000) + "ms, "
 						+ (cached ? "(cached response)" : "") + " at " + CallStackGet.call(pc, "text");
 
 				if (t != null) log.error("cfhttp", msg, t);

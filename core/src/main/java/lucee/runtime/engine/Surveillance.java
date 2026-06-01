@@ -37,11 +37,6 @@ import lucee.runtime.type.util.KeyConstants;
 
 class Surveillance {
 
-	private static final Collection.Key PAGE_POOL = KeyConstants._pagePool;
-	private static final Collection.Key CLASS_LOADER = KeyConstants._classLoader;
-	private static final Collection.Key QUERY_CACHE = KeyConstants._queryCache;
-	private static final Collection.Key PAGE_CONTEXT_STACK = KeyConstants._pageContextStack;
-
 	public static Struct getInfo(Config config) throws PageException {
 
 		Struct sct = new StructImpl();
@@ -157,7 +152,7 @@ class Surveillance {
 
 	private static void infoPageContextStack(Struct parent, CFMLFactory factory) throws PageException {
 		long size = ((CFMLFactoryImpl) factory).getPageContextsSize();
-		parent.set(PAGE_CONTEXT_STACK, Caster.toDouble(size));
+		parent.set(KeyConstants._pageContextStack, Caster.toDouble(size));
 	}
 
 }

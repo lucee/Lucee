@@ -35,7 +35,6 @@ import lucee.runtime.type.util.ListUtil;
 
 public final class Login extends BodyTagImpl {
 
-	private static final Key CFLOGIN = KeyConstants._cflogin;
 	private int idletimeout = 1800;
 	private String applicationtoken;
 	private String cookiedomain;
@@ -128,12 +127,12 @@ public final class Login extends BodyTagImpl {
 		Struct sct = new StructImpl();
 		sct.setEL(KeyConstants._name, username);
 		sct.setEL(KeyConstants._password, password);
-		pageContext.undefinedScope().setEL(CFLOGIN, sct);
+		pageContext.undefinedScope().setEL(KeyConstants._cflogin, sct);
 	}
 
 	@Override
 	public int doEndTag() {
-		pageContext.undefinedScope().removeEL(CFLOGIN);
+		pageContext.undefinedScope().removeEL(KeyConstants._cflogin);
 		return EVAL_PAGE;
 	}
 

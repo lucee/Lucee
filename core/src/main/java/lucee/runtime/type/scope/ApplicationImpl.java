@@ -37,7 +37,6 @@ public final class ApplicationImpl extends ScopeSupport implements Application, 
 
 	private static final long serialVersionUID = 700830188207594563L;
 
-	private static final Collection.Key APPLICATION_NAME = KeyConstants._applicationname;
 	private long lastAccess;
 	private long timeSpan;
 	private long created;
@@ -65,7 +64,7 @@ public final class ApplicationImpl extends ScopeSupport implements Application, 
 	@Override
 	public void touchBeforeRequest(PageContext pc) {
 		ApplicationContext appContext = pc.getApplicationContext();
-		setEL(APPLICATION_NAME, appContext.getName());
+		setEL(KeyConstants._applicationname, appContext.getName());
 		timeSpan = appContext.getApplicationTimeout().getMillis();
 		lastAccess = System.currentTimeMillis();
 	}

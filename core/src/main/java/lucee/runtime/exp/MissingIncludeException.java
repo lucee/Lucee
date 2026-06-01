@@ -31,10 +31,6 @@ public final class MissingIncludeException extends PageExceptionImpl {
 
 	private static final long serialVersionUID = -5254296461674334440L;
 
-	private static final Collection.Key MISSING_FILE_NAME = KeyConstants._MissingFileName;
-	private static final Collection.Key MISSING_FILE_NAME_REL = KeyConstants._MissingFileName_rel;
-	private static final Collection.Key MISSING_FILE_NAME_ABS = KeyConstants._MissingFileName_abs;
-
 	private PageSource pageSource;
 
 	/**
@@ -88,10 +84,10 @@ public final class MissingIncludeException extends PageExceptionImpl {
 				mapping = pageSource.getMapping().getVirtual();
 				if (StringUtil.endsWith(mapping, '/')) mapping = mapping.substring(0, mapping.length() - 1);
 			}
-			sct.setEL(MISSING_FILE_NAME, mapping + pageSource.getRealpath());
+			sct.setEL(KeyConstants._MissingFileName, mapping + pageSource.getRealpath());
 
-			sct.setEL(MISSING_FILE_NAME_REL, mapping + pageSource.getRealpath());
-			sct.setEL(MISSING_FILE_NAME_ABS, pageSource.getDisplayPath());
+			sct.setEL(KeyConstants._MissingFileName_rel, mapping + pageSource.getRealpath());
+			sct.setEL(KeyConstants._MissingFileName_abs, pageSource.getDisplayPath());
 		}
 		return catchBlock;
 	}

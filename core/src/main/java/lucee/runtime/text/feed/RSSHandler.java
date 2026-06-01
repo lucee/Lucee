@@ -47,17 +47,11 @@ import lucee.runtime.type.util.KeyConstants;
 
 public final class RSSHandler extends DefaultHandler {
 
-	private static final Key RSSLINK = KeyConstants._RSSLINK;
-	private static final Key CONTENT = KeyConstants._CONTENT;
-
-	private static final Key LINK = KeyConstants._LINK;
-	private static final Key DESCRIPTION = KeyConstants._DESCRIPTION;
-
 	private static Collection.Key[] COLUMNS = new Collection.Key[] { KeyConstants._AUTHOREMAIL, KeyConstants._AUTHORNAME, KeyConstants._AUTHORURI, KeyConstants._CATEGORYLABEL,
-			KeyConstants._CATEGORYSCHEME, KeyConstants._CATEGORYTERM, KeyConstants._COMMENTS, CONTENT, KeyConstants._CONTENTMODE, KeyConstants._CONTENTSRC,
+			KeyConstants._CATEGORYSCHEME, KeyConstants._CATEGORYTERM, KeyConstants._COMMENTS, KeyConstants._CONTENT, KeyConstants._CONTENTMODE, KeyConstants._CONTENTSRC,
 			KeyConstants._CONTENTTYPE, KeyConstants._CONTRIBUTOREMAIL, KeyConstants._CONTRIBUTORNAME, KeyConstants._CONTRIBUTORURI, KeyConstants._CREATEDDATE,
 			KeyConstants._EXPIRATIONDATE, KeyConstants._ID, KeyConstants._IDPERMALINK, KeyConstants._LINKHREF, KeyConstants._LINKHREFLANG, KeyConstants._LINKLENGTH,
-			KeyConstants._LINKREL, KeyConstants._LINKTITLE, KeyConstants._LINKTYPE, KeyConstants._PUBLISHEDDATE, KeyConstants._RIGHTS, RSSLINK, KeyConstants._SOURCE,
+			KeyConstants._LINKREL, KeyConstants._LINKTITLE, KeyConstants._LINKTYPE, KeyConstants._PUBLISHEDDATE, KeyConstants._RIGHTS, KeyConstants._RSSLINK, KeyConstants._SOURCE,
 			KeyConstants._SOURCEURL, KeyConstants._SUMMARY, KeyConstants._SUMMARYMODE, KeyConstants._SUMMARYSRC, KeyConstants._SUMMARYTYPE, KeyConstants._TITLE,
 			KeyConstants._TITLETYPE, KeyConstants._UPDATEDDATE, KeyConstants._URI, KeyConstants._XMLBASE };
 
@@ -217,8 +211,8 @@ public final class RSSHandler extends DefaultHandler {
 	}
 
 	private Collection.Key toItemColumn(Collection.Key key) {
-		if (key.equalsIgnoreCase(LINK)) return RSSLINK;
-		else if (key.equalsIgnoreCase(DESCRIPTION)) return CONTENT;
+		if (key.equalsIgnoreCase(KeyConstants._LINK)) return KeyConstants._RSSLINK;
+		else if (key.equalsIgnoreCase(KeyConstants._DESCRIPTION)) return KeyConstants._CONTENT;
 		return key;
 	}
 

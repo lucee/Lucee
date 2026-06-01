@@ -50,34 +50,8 @@ public final class ServerImpl extends ScopeSupport implements Server, SharedScop
 
 	private static final DateTimeImpl expired = new DateTimeImpl(2145913200000L);
 
-	private static final Key PRODUCT_NAME = KeyConstants._productname;
-	private static final Key PRODUCT_LEVEL = KeyConstants._productlevel;
-	private static final Key PRODUCT_VERSION = KeyConstants._productversion;
-	private static final Key SERIAL_NUMBER = KeyConstants._serialnumber;
-	private static final Key EXPIRATION = KeyConstants._expiration;
-	private static final Key INSTALL_KIT = KeyConstants._installkit;
-	private static final Key ROOT_DIR = KeyConstants._rootdir;
-	private static final Key SUPPORTED_LOCALES = KeyConstants._supportedlocales;
-	private static final Key ARCH = KeyConstants._arch;
-	private static final Key MAC_ADDRESS = KeyConstants._macAddress;
-	private static final Key ARCH_MODEL = KeyConstants._archModel;
 	// private static final Key JAVA_AGENT_PATH = KeyConstants._javaAgentPath;
-	private static final Key JAVA_EXECUTION_PATH = KeyConstants._executionPath;
-	private static final Key JAVA_AGENT_SUPPORTED = KeyConstants._javaAgentSupported;
-	private static final Key LOADER_VERSION = KeyConstants._loaderVersion;
-	private static final Key LOADER_PATH = KeyConstants._loaderPath;
-	private static final Key ADDITIONAL_INFORMATION = KeyConstants._additionalinformation;
-	private static final Key BUILD_NUMBER = KeyConstants._buildnumber;
 	private static final Key RELEASE_DATE = KeyImpl.getInstance("release-date");
-	private static final Key VENDOR = KeyConstants._vendor;
-	private static final Key FREE_MEMORY = KeyConstants._freeMemory;
-	private static final Key MAX_MEMORY = KeyConstants._maxMemory;
-	private static final Key TOTAL_MEMORY = KeyConstants._totalMemory;
-	private static final Key VERSION_NAME = KeyConstants._versionName;
-	private static final Key VERSION_NAME_EXPLANATION = KeyConstants._versionNameExplanation;
-	private static final Key HOST_NAME = KeyConstants._hostname;
-	private static final Key ADMIN_MODE = KeyConstants._singleContext;
-
 	private static String jep;
 
 	/*
@@ -111,16 +85,16 @@ public final class ServerImpl extends ScopeSupport implements Server, SharedScop
 	public void reload(PageContext pc, Boolean jsr223) {
 		Info info = pc.getConfig().getFactory().getEngine().getInfo();
 		ReadOnlyStruct coldfusion = new ReadOnlyStruct();
-		coldfusion.setEL(PRODUCT_LEVEL, info.getLevel());
-		// coldfusion.setEL(PRODUCT_VERSION,"11,0,07,296330");
-		coldfusion.setEL(PRODUCT_VERSION, "2016,0,03,300357");
-		coldfusion.setEL(SERIAL_NUMBER, "0");
-		coldfusion.setEL(PRODUCT_NAME, "Lucee");
+		coldfusion.setEL(KeyConstants._productlevel, info.getLevel());
+		// coldfusion.setEL(KeyConstants._productversion,"11,0,07,296330");
+		coldfusion.setEL(KeyConstants._productversion, "2016,0,03,300357");
+		coldfusion.setEL(KeyConstants._serialnumber, "0");
+		coldfusion.setEL(KeyConstants._productname, "Lucee");
 
 		// TODO scope server missing values
 		coldfusion.setEL(KeyConstants._appserver, "");// Jrun
-		coldfusion.setEL(EXPIRATION, expired);//
-		coldfusion.setEL(INSTALL_KIT, "");//
+		coldfusion.setEL(KeyConstants._expiration, expired);//
+		coldfusion.setEL(KeyConstants._installkit, "");//
 
 		String rootdir = "";
 		try {
@@ -130,39 +104,39 @@ public final class ServerImpl extends ScopeSupport implements Server, SharedScop
 		catch (Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);
 		}
-		coldfusion.setEL(ROOT_DIR, rootdir);//
+		coldfusion.setEL(KeyConstants._rootdir, rootdir);//
 
-		coldfusion.setEL(SUPPORTED_LOCALES, LocaleFactory.getLocaleList());//
+		coldfusion.setEL(KeyConstants._supportedlocales, LocaleFactory.getLocaleList());//
 
 		coldfusion.setReadOnly(true);
 		super.setEL(KeyConstants._coldfusion, coldfusion);
 
 		ReadOnlyStruct os = new ReadOnlyStruct();
 		os.setEL(KeyConstants._name, System.getProperty("os.name"));
-		os.setEL(ARCH, System.getProperty("os.arch"));
-		os.setEL(MAC_ADDRESS, SystemUtil.getMacAddressAsWrap());
+		os.setEL(KeyConstants._arch, System.getProperty("os.arch"));
+		os.setEL(KeyConstants._macAddress, SystemUtil.getMacAddressAsWrap());
 		int arch = SystemUtil.getOSArch();
-		if (arch != SystemUtil.ARCH_UNKNOW) os.setEL(ARCH_MODEL, Double.valueOf(arch));
+		if (arch != SystemUtil.ARCH_UNKNOW) os.setEL(KeyConstants._archModel, Double.valueOf(arch));
 		os.setEL(KeyConstants._version, System.getProperty("os.version"));
-		os.setEL(ADDITIONAL_INFORMATION, "");
-		os.setEL(BUILD_NUMBER, "");
-		os.setEL(HOST_NAME, SystemUtil.getLocalHostName());
+		os.setEL(KeyConstants._additionalinformation, "");
+		os.setEL(KeyConstants._buildnumber, "");
+		os.setEL(KeyConstants._hostname, SystemUtil.getLocalHostName());
 
 		os.setReadOnly(true);
 		super.setEL(KeyConstants._os, os);
 
 		ReadOnlyStruct lucee = new ReadOnlyStruct();
 		lucee.setEL(KeyConstants._version, info.getVersion().toString());
-		lucee.setEL(VERSION_NAME, info.getVersionName());
-		lucee.setEL(VERSION_NAME_EXPLANATION, info.getVersionNameExplanation());
+		lucee.setEL(KeyConstants._versionName, info.getVersionName());
+		lucee.setEL(KeyConstants._versionNameExplanation, info.getVersionNameExplanation());
 		lucee.setEL(KeyConstants._state, getStateAsString(info.getVersion()));
 		lucee.setEL(RELEASE_DATE, new DateTimeImpl(info.getRealeaseTime()));
-		lucee.setEL(LOADER_VERSION, Caster.toDouble(SystemUtil.getLoaderVersion()));
-		lucee.setEL(LOADER_PATH, ClassUtil.getSourcePathForClass(pc, "lucee.loader.servlet.CFMLServlet", ""));
+		lucee.setEL(KeyConstants._loaderVersion, Caster.toDouble(SystemUtil.getLoaderVersion()));
+		lucee.setEL(KeyConstants._loaderPath, ClassUtil.getSourcePathForClass(pc, "lucee.loader.servlet.CFMLServlet", ""));
 		lucee.setEL(KeyConstants._environment, jsr223 != null && jsr223.booleanValue() ? "jsr223" : "servlet");
 
 		// singleContext admin Mode
-		lucee.setEL(ADMIN_MODE, Boolean.TRUE);
+		lucee.setEL(KeyConstants._singleContext, Boolean.TRUE);
 
 		lucee.setReadOnly(true);
 		super.setEL(KeyConstants._lucee, lucee);
@@ -178,21 +152,21 @@ public final class ServerImpl extends ScopeSupport implements Server, SharedScop
 		java.setEL(KeyConstants._version, System.getProperty("java.version"));
 
 		java.setEL(KeyConstants._javaCompilerVersion, ASMUtil.toStringVersion(ASMUtil.getJavaVersionForBytecodeGeneration()));
-		java.setEL(VENDOR, System.getProperty("java.vendor"));
+		java.setEL(KeyConstants._vendor, System.getProperty("java.vendor"));
 		arch = SystemUtil.getJREArch();
-		if (arch != SystemUtil.ARCH_UNKNOW) java.setEL(ARCH_MODEL, Double.valueOf(arch));
+		if (arch != SystemUtil.ARCH_UNKNOW) java.setEL(KeyConstants._archModel, Double.valueOf(arch));
 		Runtime rt = Runtime.getRuntime();
-		java.setEL(FREE_MEMORY, Double.valueOf(rt.freeMemory()));
-		java.setEL(TOTAL_MEMORY, Double.valueOf(rt.totalMemory()));
-		java.setEL(MAX_MEMORY, Double.valueOf(rt.maxMemory()));
-		java.setEL(JAVA_AGENT_SUPPORTED, Boolean.TRUE);
+		java.setEL(KeyConstants._freeMemory, Double.valueOf(rt.freeMemory()));
+		java.setEL(KeyConstants._totalMemory, Double.valueOf(rt.totalMemory()));
+		java.setEL(KeyConstants._maxMemory, Double.valueOf(rt.maxMemory()));
+		java.setEL(KeyConstants._javaAgentSupported, Boolean.TRUE);
 
 		if (jep == null) {
 			String temp = System.getProperty("user.dir", "");
 			if (!StringUtil.isEmpty(temp) && !temp.endsWith(File.separator)) temp = temp + File.separator;
 			jep = temp;
 		}
-		java.setEL(JAVA_EXECUTION_PATH, jep);
+		java.setEL(KeyConstants._executionPath, jep);
 
 		java.setReadOnly(true);
 		super.setEL(KeyConstants._java, java);

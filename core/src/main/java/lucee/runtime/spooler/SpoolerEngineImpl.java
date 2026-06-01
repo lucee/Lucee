@@ -63,13 +63,6 @@ public final class SpoolerEngineImpl implements SpoolerEngine {
 
 	private static final TaskFileFilter FILTER = new TaskFileFilter();
 
-	private static final Collection.Key LAST_EXECUTION = KeyConstants._lastExecution;
-	private static final Collection.Key NEXT_EXECUTION = KeyConstants._nextExecution;
-
-	private static final Collection.Key CLOSED = KeyConstants._closed;
-	private static final Collection.Key TRIES = KeyConstants._tries;
-	private static final Collection.Key TRIES_MAX = KeyConstants._triesmax;
-
 	private String label;
 
 	// private LinkedList<SpoolerTask> openTaskss=new LinkedList<SpoolerTask>();
@@ -367,11 +360,11 @@ public final class SpoolerEngineImpl implements SpoolerEngine {
 			qry.setAt(KeyConstants._detail, row, task.detail());
 			qry.setAt(KeyConstants._id, row, task.getId());
 
-			qry.setAt(LAST_EXECUTION, row, new DateTimeImpl(task.lastExecution()));
-			qry.setAt(NEXT_EXECUTION, row, new DateTimeImpl(task.nextExecution()));
-			qry.setAt(CLOSED, row, Caster.toBoolean(task.closed()));
-			qry.setAt(TRIES, row, Caster.toDouble(task.tries()));
-			qry.setAt(TRIES_MAX, row, Caster.toDouble(task.tries()));
+			qry.setAt(KeyConstants._lastExecution, row, new DateTimeImpl(task.lastExecution()));
+			qry.setAt(KeyConstants._nextExecution, row, new DateTimeImpl(task.nextExecution()));
+			qry.setAt(KeyConstants._closed, row, Caster.toBoolean(task.closed()));
+			qry.setAt(KeyConstants._tries, row, Caster.toDouble(task.tries()));
+			qry.setAt(KeyConstants._triesmax, row, Caster.toDouble(task.tries()));
 			qry.setAt(KeyConstants._exceptions, row, translateTime(task.getExceptions()));
 
 			int triesMax = 0;
@@ -379,7 +372,7 @@ public final class SpoolerEngineImpl implements SpoolerEngine {
 			for (int y = 0; y < plans.length; y++) {
 				triesMax += plans[y].getTries();
 			}
-			qry.setAt(TRIES_MAX, row, Caster.toDouble(triesMax));
+			qry.setAt(KeyConstants._triesmax, row, Caster.toDouble(triesMax));
 		}
 		catch (Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);

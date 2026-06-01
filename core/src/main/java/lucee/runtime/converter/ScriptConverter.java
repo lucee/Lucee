@@ -68,7 +68,6 @@ import lucee.runtime.type.util.KeyConstants;
  * class to serialize and desirilize WDDX Packes
  */
 public final class ScriptConverter extends ConverterSupport {
-	private static final Collection.Key REMOTING_FETCH = KeyConstants._remotingFetch;
 	private static final char QUOTE_CHR = '"';
 	private static final String QUOTE_STR = String.valueOf(QUOTE_CHR);
 
@@ -333,7 +332,7 @@ public final class ScriptConverter extends ConverterSupport {
 				if (!ignoreRemotingFetch) {
 					p = (Property) props.get(k, null);
 					if (p != null) {
-						remotingFetch = Caster.toBoolean(p.getDynamicAttributes().get(REMOTING_FETCH, null), null);
+						remotingFetch = Caster.toBoolean(p.getDynamicAttributes().get(KeyConstants._remotingFetch, null), null);
 						if (remotingFetch == null) {
 							if (isPeristent && ORMUtil.isRelated(p)) continue;
 						}

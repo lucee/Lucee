@@ -50,8 +50,7 @@ public abstract class CFMLListener implements Listener {
 		}
 	}
 
-	private static final Key PERCENTAGE = KeyConstants._percentage;
-	private static final Key[] columns = new Key[] { KeyConstants._name, PERCENTAGE, KeyConstants._stacktrace, KeyConstants._time, KeyConstants._total };
+	private static final Key[] columns = new Key[] { KeyConstants._name, KeyConstants._percentage, KeyConstants._stacktrace, KeyConstants._time, KeyConstants._total };
 
 	protected Object toQuery(List<StaticData> list) throws PageException {
 		StaticData sd = null;
@@ -62,7 +61,7 @@ public abstract class CFMLListener implements Listener {
 			row++;
 			sd = it.next();
 			qry.setAt(KeyConstants._name, row, sd.name);
-			qry.setAt(PERCENTAGE, row, sd.getPercentage());
+			qry.setAt(KeyConstants._percentage, row, sd.getPercentage());
 			qry.setAt(KeyConstants._stacktrace, row, sd.getStacktrace());
 			qry.setAt(KeyConstants._time, row, sd.getTime());
 			qry.setAt(KeyConstants._total, row, sd.getTotal());

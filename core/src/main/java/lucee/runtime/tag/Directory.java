@@ -82,11 +82,6 @@ public final class Directory extends TagImpl {
 	public static final ResourceFilter DIRECTORY_FILTER = new DirectoryResourceFilter();
 	public static final ResourceFilter FILE_FILTER = new FileResourceFilter();
 
-	private static final Key MODE = KeyConstants._mode;
-	private static final Key META = KeyConstants._meta;
-	private static final Key DATE_LAST_MODIFIED = KeyConstants._dateLastModified;
-	private static final Key ATTRIBUTES = KeyConstants._attributes;
-	private static final Key DIRECTORY = KeyConstants._directory;
 	private static final boolean IS_WINDOWS = SystemUtil.isWindows();
 	private static final boolean IS_UNIX = SystemUtil.isUnix();
 
@@ -576,16 +571,16 @@ public final class Directory extends TagImpl {
 				query.setAt(KeyConstants._size, count, Double.valueOf(isDir ? 0 : list[i].length()));
 				query.setAt(KeyConstants._type, count, isDir ? "Dir" : "File");
 				if (modeSupported) {
-					query.setAt(MODE, count, new ModeObjectWrap(list[i]));
+					query.setAt(KeyConstants._mode, count, new ModeObjectWrap(list[i]));
 				}
-				query.setAt(DATE_LAST_MODIFIED, count, new Date(list[i].lastModified()));
-				query.setAt(ATTRIBUTES, count, getFileAttribute(list[i]));
+				query.setAt(KeyConstants._dateLastModified, count, new Date(list[i].lastModified()));
+				query.setAt(KeyConstants._attributes, count, getFileAttribute(list[i]));
 
 				if (hasMeta) {
-					query.setAt(META, count, ((ResourceMetaData) list[i]).getMetaData());
+					query.setAt(KeyConstants._meta, count, ((ResourceMetaData) list[i]).getMetaData());
 				}
 
-				query.setAt(DIRECTORY, count, dir);
+				query.setAt(KeyConstants._directory, count, dir);
 			}
 			return count;
 		}
@@ -607,16 +602,16 @@ public final class Directory extends TagImpl {
 				query.setAt(KeyConstants._size, count, Double.valueOf(isDir ? 0 : list[i].length()));
 				query.setAt(KeyConstants._type, count, isDir ? "Dir" : "File");
 				if (modeSupported) {
-					query.setAt(MODE, count, new ModeObjectWrap(list[i]));
+					query.setAt(KeyConstants._mode, count, new ModeObjectWrap(list[i]));
 				}
-				query.setAt(DATE_LAST_MODIFIED, count, new Date(list[i].lastModified()));
-				query.setAt(ATTRIBUTES, count, getFileAttribute(list[i]));
+				query.setAt(KeyConstants._dateLastModified, count, new Date(list[i].lastModified()));
+				query.setAt(KeyConstants._attributes, count, getFileAttribute(list[i]));
 
 				if (hasMeta) {
-					query.setAt(META, count, ((ResourceMetaData) list[i]).getMetaData());
+					query.setAt(KeyConstants._meta, count, ((ResourceMetaData) list[i]).getMetaData());
 				}
 
-				query.setAt(DIRECTORY, count, dir);
+				query.setAt(KeyConstants._directory, count, dir);
 			}
 			if (recurse && isDir) count = _fillQueryAll(query, list[i], filter, count, hasMeta, recurse);
 		}

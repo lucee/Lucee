@@ -26,30 +26,23 @@ import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.StructUtil;
 
 public final class FeedProperties {
-	private static final Collection.Key ITEM = KeyConstants._ITEM;
-	private static final Collection.Key ITEMS = KeyConstants._ITEMS;
-	private static final Collection.Key ENTRY = KeyConstants._ENTRY;
-	private static final Collection.Key RDF = KeyConstants._RDF;
-	private static final Collection.Key RSS = KeyConstants._RSS;
-	private static final Collection.Key CHANNEL = KeyConstants._channel;
-
 	public static Struct toProperties(Struct data) {
 		data = (Struct) Duplicator.duplicate(data, true);
 
-		Struct rdf = Caster.toStruct(data.removeEL(RDF), null, false);
-		if (rdf == null) rdf = Caster.toStruct(data.removeEL(RSS), null, false);
+		Struct rdf = Caster.toStruct(data.removeEL(KeyConstants._RDF), null, false);
+		if (rdf == null) rdf = Caster.toStruct(data.removeEL(KeyConstants._RSS), null, false);
 		if (rdf != null) {
-			rdf.removeEL(ITEM);
-			Struct channel = Caster.toStruct(rdf.get(CHANNEL, null), null, false);
+			rdf.removeEL(KeyConstants._ITEM);
+			Struct channel = Caster.toStruct(rdf.get(KeyConstants._channel, null), null, false);
 			if (channel != null) {
-				channel.removeEL(ITEMS);
+				channel.removeEL(KeyConstants._ITEMS);
 				StructUtil.copy(channel, data, true);
 
 			}
 		}
 
-		data.removeEL(ITEM);
-		data.removeEL(ENTRY);
+		data.removeEL(KeyConstants._ITEM);
+		data.removeEL(KeyConstants._ENTRY);
 
 		return data;
 	}
