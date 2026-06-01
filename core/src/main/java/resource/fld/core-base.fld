@@ -10584,7 +10584,7 @@ For exception analysis and debugging, lower temperatures (0.2-0.3) are recommend
 			<alias>aiSession</alias>
 			<type>any</type>
 			<required>yes</required>
-			<description>The AI session object returned by LuceeCreateAISession(). This session maintains the conversation history and configuration settings like temperature and system message.</description>
+			<description>The AI session object returned by createAISession(). This session maintains the conversation history and configuration settings like temperature and system message.</description>
 		</argument>
 		<argument>
 			<name>question</name>
@@ -10792,7 +10792,7 @@ Use `LoadAISession()` to restore a serialized session.
 			<alias>aiSession</alias>
 			<type>any</type>
 			<required>yes</required>
-			<description>The AI session object returned by LuceeCreateAISession(). This session maintains the conversation history and configuration settings like temperature and system message.</description>
+			<description>The AI session object returned by createAISession(). This session maintains the conversation history and configuration settings like temperature and system message.</description>
 		</argument>
 		<argument>
 			<name>maxlength</name>
