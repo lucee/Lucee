@@ -159,8 +159,12 @@ jobs:
     - name: Extract version number
       id: extract-version
       run: |
-        VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout | tr -d '[:space:]\r\n')
+        VERSION=$(mvn -f loader/pom.xml help:evaluate -Dexpression=project.version -q -DforceStdout | tr -d '[:space:]\r\n')
         echo "VERSION: '$VERSION'"
+        if [[ ! "$VERSION" =~ ^[0-9]+(\.[0-9]+)+(-[A-Za-z]+)?$ ]]; then
+          echo "::error::Invalid extracted version '$VERSION' — aborting before any deploy"
+          exit 1
+        fi
         echo "VERSION=$VERSION" >> $GITHUB_ENV
     - name: Build Lucee with Maven
       env:
