@@ -789,9 +789,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 					expect( final ).toBeLTE( ( threadCount * 1000 ) + perThread );
 				});
 				it( title="50 threads × 10 addX on the SAME instance — all entries land in the array", body=function( currentSpec ){
-					// WIP regression detector — passes 500/500 on baseline, fails ~480/500 under
-					// LDEV-6298 v2 (UDFAddProperty._call race: unsynchronised lazy-init + appendEL).
-					// Stays as it() so it fails visibly until synchronized(c) wraps _call.
+					// LDEV-6298: regression guard for the DCL lazy-init in UDFAddProperty._call.
+					// Was flaky pre-fix (any change that widened cfthread startup parallelism — LDEV-6298 v2, LDEV-5866 — exposed the race).
 					var cfc = new accessors.testCollectionArray();
 					var threadCount = 50;
 					var perThread = 10;
@@ -809,6 +808,27 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 					var allTags = cfc.getTags();
 					for ( var tname in threadNames ) structDelete( cfthread, tname );
 					expect( arrayLen( allTags ) ).toBe( threadCount * perThread );
+				});
+				it( title="50 threads × 10 addX on the SAME instance (struct property) — all entries land in the struct", body=function( currentSpec ){
+					// LDEV-6298: same DCL race, struct/HashMap branch of UDFAddProperty._call.
+					// Lazy-init goes to new HashMap(); raw HashMap.put under concurrent writes corrupts without synchronized(propValue).
+					var cfc = new accessors.testCollectionStruct();
+					var threadCount = 50;
+					var perThread = 10;
+					var threadNames = [];
+					for ( var t=1; t<=threadCount; t++ ) {
+						var tname = "addmeta-shared-" & t;
+						arrayAppend( threadNames, tname );
+						thread name="#tname#" tid=t perThread=perThread sharedCfc=cfc {
+							for ( var i=1; i<=attributes.perThread; i++ ) {
+								attributes.sharedCfc.addMeta( key="t" & attributes.tid & "-i" & i, meta="v" & attributes.tid & "-" & i );
+							}
+						}
+					}
+					thread action="join" name="#arrayToList( threadNames )#";
+					var allMeta = cfc.getMeta();
+					for ( var tname in threadNames ) structDelete( cfthread, tname );
+					expect( structCount( allMeta ) ).toBe( threadCount * perThread );
 				});
 				it( title="50 threads × 20 fresh addTags — collection helpers isolated per instance", body=function( currentSpec ){
 					var threadCount = 50;

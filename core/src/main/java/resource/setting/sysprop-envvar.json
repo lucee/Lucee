@@ -1094,6 +1094,22 @@
 		"default": 16
 	},
 	{
+		"sysprop": "lucee.scope.pool.maxsize",
+		"envvar": "LUCEE_SCOPE_POOL_MAXSIZE",
+		"desc": "Maximum size of the per-PageContext recycle pool for Argument and Local scope instances. Each PageContext has its own pool; this is the per-pool cap.",
+		"category": "performance",
+		"type": "numeric",
+		"default": 50
+	},
+	{
+		"sysprop": "lucee.pageContext.pool.maxsize",
+		"envvar": "LUCEE_PAGECONTEXT_POOL_MAXSIZE",
+		"desc": "Maximum number of idle PageContext instances kept in the per-CFMLFactory recycle pool for reuse. Default is core-aware: max(100, cores * 16).",
+		"category": "performance",
+		"type": "numeric",
+		"default": "max(100, cores * 16)"
+	},
+	{
 		"sysprop": "lucee.script.protect",
 		"envvar": "LUCEE_SCRIPT_PROTECT",
 		"desc": "Script protect setting used by default. Consult the Lucee admin page /Settings/Request for details on possible settings",

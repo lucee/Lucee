@@ -87,6 +87,12 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 
 	private static final long MAX_AGE = 5 * 60000; // 5 minutes
 	private static final int MAX_SIZE = 10000;
+	private static final int PC_POOL_MAX_SIZE;
+	static {
+		// core-aware default: ~16 warm PCs per core, floor 100 so dev/small VMs are unchanged
+		int defaultSize = Math.max(100, Runtime.getRuntime().availableProcessors() * 16);
+		PC_POOL_MAX_SIZE = Caster.toIntValue(SystemUtil.getSystemPropOrEnvVar("lucee.pageContext.pool.maxsize", String.valueOf(defaultSize)), defaultSize);
+	}
 	private static final String LOG_TYPE_NAME = "factory";
 	private static JspEngineInfo info = new JspEngineInfoImpl("1.0");
 	private ConfigWebPro config;
@@ -299,7 +305,7 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 				((PageContextImpl) parent).removeChildPageContext(pc);
 			}
 		}
-		if (pcs.size() < 100 && ((PageContextImpl) pc).getTimeoutStackTrace() == null && reuse)// not more than 100 PCs
+		if (pcs.size() < PC_POOL_MAX_SIZE && ((PageContextImpl) pc).getTimeoutStackTrace() == null && reuse)
 			pcs.push((PageContextImpl) pc);
 
 		if (runningPcs.size() > MAX_SIZE) clean(runningPcs);
