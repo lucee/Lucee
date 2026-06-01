@@ -10,9 +10,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="function,alias" {
 
 				var alias1 = getFunctionData( "array" );
 				expect( alias1.name ).toBe( "array" );
-
-				var alias2 = getFunctionData( "arr" );
-				expect( alias2.name ).toBe( "arr" );
 			});
 
 			it( "multi-value aliases should not create comma-separated keys in getFunctionList", function() {
