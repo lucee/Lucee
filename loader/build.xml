@@ -56,6 +56,15 @@
     <condition property="java11+">
       <javaversion atleast="11"/>
     </condition>
+    <condition property="java21+">
+      <javaversion atleast="21"/>
+    </condition>
+    <fail unless="java21+">
+
+Lucee 7 must be built with Java 21 or newer, but the build is running on Java ${ant.java.version} (${java.home}).
+Point Ant at a JDK 21+ before building, e.g.:
+  export JAVACMD=$(/usr/libexec/java_home -v 21)/bin/java
+    </fail>
   </target>
 
   <!-- java 15 onwards doesn't bundle a javascript engine, nashorn is compiled for java 11, i.e. don't use for jdk 8 -->

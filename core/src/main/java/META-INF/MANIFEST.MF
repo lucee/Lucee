@@ -8,6 +8,7 @@ Bundle-Name: Lucee Core
 Multi-Release: true
 Require-Bundle-Fragment: slf4j.nop;bundle-version=1.7.36
 Bundle-ManifestVersion: 2
+Bundle-RequiredExecutionEnvironment: JavaSE-21
 Bundle-SymbolicName: lucee.core
 Bundle-ClassPath: .,META-INF/
 Import-Package: coldfusion.xml.rpc,com.allaire.cfx,

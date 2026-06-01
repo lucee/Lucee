@@ -114,7 +114,7 @@ import lucee.transformer.statement.tag.Tag;
 
 public final class ASMUtil {
 
-	public static final int DEFAULT_JAVA_BYTECODE_VERSION = Opcodes.V11;
+	public static final int DEFAULT_JAVA_BYTECODE_VERSION = Opcodes.V21;
 	public static final int CLASSWRITER_ARGS = ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES;
 
 	private static int javaBytecodeVersion = -1;

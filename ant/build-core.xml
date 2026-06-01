@@ -32,9 +32,9 @@
 
 
   <property name="stableLoader" value="lucee-5.3.7.48"/>
-  <property name="javaVersionCoreDefault" value="11"/>
-  <property name="javaVersionAgent" value="11"/>
-  <property name="javaVersionLoader" value="11"/>
+  <property name="javaVersionCoreDefault" value="21"/>
+  <property name="javaVersionAgent" value="21"/>
+  <property name="javaVersionLoader" value="21"/>
   <property name="cdnUrl" value="https://cdn.lucee.org/"/>
   
   <import file="../ant/build-utils.xml"/>
@@ -461,7 +461,7 @@
   -->
   <!-- temporary disbled: depends="_loader,java17core,java21core" -->
   <target name="_core" depends="_loader" description="compile the source" >
-    <echots message="compile core, java 11, (default)"/>
+    <echots message="compile core, java ${javaVersionCoreDefault}, (default)"/>
     <!-- set the loader as classpath -->
     <path id="classpath">
       <pathelement location="${temp}/loader" />
@@ -469,11 +469,11 @@
     </path>
     <!-- <pathconvert property="classpathProp" refid="classpath"/> -->
    <echo level="info" message="Using Java version ${ant.java.version}."/>
-    <!-- compile the core for Java 11 -->
+    <!-- compile the core for Java ${javaVersionCoreDefault} -->
     <javac 
       srcdir="${srcCore}" 
-      source="11" 
-      target="11" 
+      source="${javaVersionCoreDefault}" 
+      target="${javaVersionCoreDefault}" 
       destdir="${core}"
       includeantruntime="false"
       debug="true" 
@@ -997,9 +997,9 @@
     <!-- create the lucee core with the default Java version -->
     <jar 
         basedir="${core}" 
-        jarfile="${trgLoader}/${version}.jvm11.lco" 
+        jarfile="${trgLoader}/${version}.jvm${javaVersionCoreDefault}.lco" 
         manifest="${core}/META-INF/MANIFEST.MF"/>
-    <echots message="create lco:${trgLoader}/${version}.jvm11.lco"/>
+    <echots message="create lco:${trgLoader}/${version}.jvm${javaVersionCoreDefault}.lco"/>
 
     <!-- temporary disabled -->
     <!--
@@ -1010,7 +1010,7 @@
     instead:
     -->
     <move 
-        file="${trgLoader}/${version}.jvm11.lco"
+        file="${trgLoader}/${version}.jvm${javaVersionCoreDefault}.lco"
         tofile="${trgLoader}/${version}.lco"/>
 
 
