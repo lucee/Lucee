@@ -621,6 +621,20 @@ public final class MavenUtil {
 						CloseableHttpClient httpClient;
 						Version version = Version.parseVersion(pom.getVersion());
 						boolean isSnap = version.is(Version.SNAPSHOT);
+
+						// LDEV-6322: snapshots are only resolved against snapshot-capable repositories (and releases
+						// against release-capable ones). If none of the configured repositories can serve this version
+						// type, fail fast with a clear, actionable message instead of pointlessly probing every repo.
+						int eligibleRepoCount = 0;
+						for (Repository r: repositories) {
+							if (r.handle(version)) eligibleRepoCount++;
+						}
+						if (eligibleRepoCount == 0) {
+							throw new IOException("Failed to download Maven artifact [" + pom.getGroupId() + ":" + pom.getArtifactId() + ":" + pom.getVersion() + "] " + "(type: "
+									+ type + "). No " + (isSnap ? "snapshot-capable" : "release-capable") + " repository is configured among the " + repositories.size()
+									+ " available. " + "Configure a repository that serves " + (isSnap ? "snapshot" : "release") + " artifacts.");
+						}
+
 						for (Repository r: sort(repositories)) {
 							if (!r.handle(version)) continue;
 							url = null;
@@ -630,7 +644,9 @@ public final class MavenUtil {
 								if (isSnap) {
 									RepoReader repoReader = new RepoReader(r.url, pom.getGroupId(), pom.getArtifactId(), version);
 									Map<String, Object> result = repoReader.read(type);
-									String strUrl = Caster.toString(result.get(type));
+									// result is null when the repo has no snapshot metadata for this artifact (404/not found);
+									// leave url null so we fall through to the direct artifact URL (yielding a clean 404, not an NPE)
+									String strUrl = result == null ? null : Caster.toString(result.get(type));
 									if (!StringUtil.isEmpty(strUrl)) url = new URL(strUrl);
 								}
 
