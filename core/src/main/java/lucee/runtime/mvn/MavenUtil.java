@@ -460,7 +460,9 @@ public final class MavenUtil {
 					pom = getDependency(localDirectory, rd, current, properties, true, log);
 				}
 				catch (IOException ioe) {
-					LogUtil.log((Config) null, "mvn", ioe, Log.LEVEL_WARN, "application");
+					// LDEV-6321: benign upstream-POM pattern (e.g. Google's dangling ${jackson-core-asl.version}).
+					// Apache Maven core does the same (MNG-5982): warn and skip. Resolution continues without this entry.
+					if (log != null) log.trace("mvn", "Dropping <dependencyManagement> entry: " + ioe.getMessage());
 				}
 				if (pom == null) continue;
 
@@ -527,8 +529,7 @@ public final class MavenUtil {
 			if (!modifed) break;
 		}
 		if (value != null && value.indexOf("${") != -1) {
-			throw new IOException("Cannot resolve placeholder in [" + value + "] for POM [" + pom + "]. " + "Available properties: [" + ListUtil.toList(properties.keySet(), ", ")
-					+ "]. " + "Ensure the property is defined in the POM, parent POM, or system properties.");
+			throw new IOException("Cannot resolve [" + value + "] in POM [" + pom + "]");
 		}
 		return value;
 	}
@@ -713,6 +714,7 @@ public final class MavenUtil {
 					}
 					catch (IOException ioe) {
 						if (info != null) createLastUpdated(res, info);
+						if (failureSummary == null && lastException == null) throw ioe;
 						StringBuilder m = new StringBuilder("Failed to download Maven artifact [").append(pom.getGroupId()).append(":").append(pom.getArtifactId()).append(":")
 								.append(pom.getVersion()).append("] (type: ").append(type).append("). Check network connectivity and repository availability.");
 						if (failureSummary != null) m.append(" - ").append(failureSummary);

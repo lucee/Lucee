@@ -433,8 +433,10 @@ public final class CFMLEngineImpl implements CFMLEngine {
 		Set<ExtensionDefintion> extensions;
 		Set<RHExtension> extensionsToRemove = null;
 
+		boolean configOnly = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.extensions.config.only", null), true);
+
 		if (installExtensions && (updateInfo.updateType == ConfigFactory.NEW_FRESH || updateInfo.updateType == ConfigFactory.NEW_FROM4)) {
-			List<ExtensionDefintion> ext = info.getRequiredExtension();
+			List<ExtensionDefintion> ext = configOnly ? new ArrayList<ExtensionDefintion>() : info.getRequiredExtension();
 			extensions = toSet(null, ext);
 			LogUtil.log(Log.LEVEL_INFO, LOG_NAME, LOG_TYPE_NAME, "Found Extensions to install (new;" + updateInfo.getUpdateTypeAsString() + "):" + toList(extensions));
 		}
@@ -445,53 +447,54 @@ public final class CFMLEngineImpl implements CFMLEngine {
 			extensionsToRemove = new HashSet<RHExtension>();
 
 			checkInvalidExtensions(this, cs, extensions, extensionsToRemove);
-
-			Iterator<ExtensionDefintion> it = info.getRequiredExtension().iterator();
-			ExtensionDefintion ed;
-			RHExtension rhe, installed = null;
-			Version edVersion, installedVersion;
-			while (it.hasNext()) {
-				ed = it.next();
-				edVersion = OSGiUtil.toVersion(ed.getVersion(), null);
-				if (ed.getVersion() == null) {
-					continue; // no version definition no update
-				}
-				try {
-					rhe = RHExtension.getInstance(cs, ed, false, null);
-					boolean add = true;
-					if (rhe != null) {
-						// available but not installed
-						if (!rhe.installed()) {
-							installed = RHExtension.getInstalledDifferentVersion(cs, ed, null);
-							// we have another version installed
-							if (installed != null) {
-								installedVersion = OSGiUtil.toVersion(installed.getVersion(), null);
-								if (installedVersion != null && OSGiUtil.isNewerThan(edVersion, installedVersion)) {
-									LogUtil.log(Log.LEVEL_INFO, LOG_NAME, LOG_TYPE_NAME,
-											"Lucee requires a never version [" + edVersion + "] than the insatlled version [" + installedVersion + "] for Extension [" + ed + "]");
-									extensions.add(ed);
-									add = false;
+			if (!configOnly) {
+				Iterator<ExtensionDefintion> it = info.getRequiredExtension().iterator();
+				ExtensionDefintion ed;
+				RHExtension rhe, installed = null;
+				Version edVersion, installedVersion;
+				while (it.hasNext()) {
+					ed = it.next();
+					edVersion = OSGiUtil.toVersion(ed.getVersion(), null);
+					if (ed.getVersion() == null) {
+						continue; // no version definition no update
+					}
+					try {
+						rhe = RHExtension.getInstance(cs, ed, false, null);
+						boolean add = true;
+						if (rhe != null) {
+							// available but not installed
+							if (!rhe.installed()) {
+								installed = RHExtension.getInstalledDifferentVersion(cs, ed, null);
+								// we have another version installed
+								if (installed != null) {
+									installedVersion = OSGiUtil.toVersion(installed.getVersion(), null);
+									if (installedVersion != null && OSGiUtil.isNewerThan(edVersion, installedVersion)) {
+										LogUtil.log(Log.LEVEL_INFO, LOG_NAME, LOG_TYPE_NAME,
+												"Lucee requires a never version [" + edVersion + "] than the insatlled version [" + installedVersion + "] for Extension [" + ed + "]");
+										extensions.add(ed);
+										add = false;
+									}
 								}
 							}
+							// extension already is installed
+							else {
+								add = false;
+							}
 						}
-						// extension already is installed
-						else {
-							add = false;
+
+						if (add) {
+							Version since = ed.getSince();
+							if (since == null || updateInfo.oldVersion == null || !OSGiUtil.isNewerThan(since, updateInfo.oldVersion)) continue; // not installed we do not update
+
+							LogUtil.log(Log.LEVEL_INFO, LOG_NAME, LOG_TYPE_NAME, "Detected newer [" + since + ":" + updateInfo.oldVersion + "] Extension version [" + ed + "]");
+							extensions.add(ed);
 						}
+
 					}
-
-					if (add) {
-						Version since = ed.getSince();
-						if (since == null || updateInfo.oldVersion == null || !OSGiUtil.isNewerThan(since, updateInfo.oldVersion)) continue; // not installed we do not update
-
-						LogUtil.log(Log.LEVEL_INFO, LOG_NAME, LOG_TYPE_NAME, "Detected newer [" + since + ":" + updateInfo.oldVersion + "] Extension version [" + ed + "]");
+					catch (Exception e) {
+						LogUtil.log(LOG_NAME, LOG_TYPE_NAME, e);
 						extensions.add(ed);
 					}
-
-				}
-				catch (Exception e) {
-					LogUtil.log(LOG_NAME, LOG_TYPE_NAME, e);
-					extensions.add(ed);
 				}
 			}
 			if (!extensions.isEmpty()) {
