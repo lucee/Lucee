@@ -267,7 +267,7 @@ public final class DatasourceConnectionImpl implements DatasourceConnection, Tas
 
 	@Override
 	public PreparedStatement prepareStatement(String sql, int resultSetType, int resultSetConcurrency) throws SQLException {
-		return connection.prepareStatement(sql, resultSetType, resultSetConcurrency, resultSetConcurrency);
+		return connection.prepareStatement(sql, resultSetType, resultSetConcurrency);
 	}
 
 	@Override
