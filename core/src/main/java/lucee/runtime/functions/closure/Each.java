@@ -61,11 +61,11 @@ public final class Each extends BIF implements ClosureFunc {
 	private static final long serialVersionUID = 1955185705863596525L;
 
 	public static String call(PageContext pc, Object obj, UDF udf) throws PageException {
-		return _call(pc, obj, udf, "false", DEFAULT_MAX_THREAD, TYPE_UNDEFINED);
+		return _call(pc, obj, udf, "false", 0, TYPE_UNDEFINED);
 	}
 
 	public static String call(PageContext pc, Object obj, UDF udf, String parallel) throws PageException {
-		return _call(pc, obj, udf, parallel, DEFAULT_MAX_THREAD, TYPE_UNDEFINED);
+		return _call(pc, obj, udf, parallel, 0, TYPE_UNDEFINED);
 	}
 
 	public static String call(PageContext pc, Object obj, UDF udf, String parallel, Number maxThreads) throws PageException {
@@ -77,10 +77,10 @@ public final class Each extends BIF implements ClosureFunc {
 		List<Future<Data<Object>>> futures = null;
 		Thread thread = null;
 		short pm = ParallelUtil.toParallel(parallel);
-		// 0 or less == default
-		if (maxThreads < 1) maxThreads = DEFAULT_MAX_THREAD;
-		// 1 == not parallel
-		else if (maxThreads == 1) pm = ParallelUtil.PARALLEL_NONE;
+		// a concurrency of 1 means one at a time, i.e. not parallel
+		if (maxThreads == 1) pm = ParallelUtil.PARALLEL_NONE;
+		// platform threads need a concrete pool size; virtual threads stay unbounded when no limit is given
+		else if (pm == ParallelUtil.PARALLEL_THREAD && maxThreads < 1) maxThreads = DEFAULT_MAX_THREAD;
 
 		if (pm != ParallelUtil.PARALLEL_NONE) {
 			execute = ThreadUtil.createExecutorService(maxThreads, pm == ParallelUtil.PARALLEL_VIRTUAL);

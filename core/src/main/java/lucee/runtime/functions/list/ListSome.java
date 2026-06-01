@@ -32,24 +32,24 @@ public final class ListSome extends BIF {
 	private static final long serialVersionUID = -9092877950301316754L;
 
 	public static boolean call(PageContext pc, String list, UDF udf) throws PageException {
-		return call(pc, list, udf, ",", false, true, "false", 20);
+		return call(pc, list, udf, ",", false, true, "false", 0);
 	}
 
 	public static boolean call(PageContext pc, String list, UDF udf, String delimiter) throws PageException {
-		return call(pc, list, udf, delimiter, false, true, "false", 20);
+		return call(pc, list, udf, delimiter, false, true, "false", 0);
 	}
 
 	public static boolean call(PageContext pc, String list, UDF udf, String delimiter, boolean includeEmptyFields) throws PageException {
-		return call(pc, list, udf, delimiter, includeEmptyFields, true, "false", 20);
+		return call(pc, list, udf, delimiter, includeEmptyFields, true, "false", 0);
 	}
 
 	public static boolean call(PageContext pc, String list, UDF udf, String delimiter, boolean includeEmptyFields, boolean multiCharacterDelimiter) throws PageException {
-		return call(pc, list, udf, delimiter, includeEmptyFields, multiCharacterDelimiter, "false", 20);
+		return call(pc, list, udf, delimiter, includeEmptyFields, multiCharacterDelimiter, "false", 0);
 	}
 
 	public static boolean call(PageContext pc, String list, UDF udf, String delimiter, boolean includeEmptyFields, boolean multiCharacterDelimiter, String parallel)
 			throws PageException {
-		return call(pc, list, udf, delimiter, includeEmptyFields, multiCharacterDelimiter, parallel, 20);
+		return call(pc, list, udf, delimiter, includeEmptyFields, multiCharacterDelimiter, parallel, 0);
 	}
 
 	public static boolean call(PageContext pc, String list, UDF udf, String delimiter, boolean includeEmptyFields, boolean multiCharacterDelimiter, String parallel,

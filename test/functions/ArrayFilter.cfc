@@ -26,6 +26,15 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				assertEquals( expected, arrayToList( arrayFilter( data, isEven, "virtual", 4 ) ) );
 			});
 
+			it(title="filters with parallel='virtual' unbounded (no concurrency limit)", body = function( currentSpec ) {
+				assertEquals( expected, arrayToList( arrayFilter( data, isEven, "virtual" ) ) );
+			});
+
+			it(title="accepts maxConcurrency by name (maxThreads is an alias)", body = function( currentSpec ) {
+				assertEquals( expected, arrayToList( arrayFilter( array=data, closure=isEven, parallel="virtual", maxConcurrency=2 ) ) );
+				assertEquals( expected, arrayToList( arrayFilter( array=data, closure=isEven, parallel="thread", maxThreads=2 ) ) );
+			});
+
 			it(title="still accepts the deprecated boolean true/false", body = function( currentSpec ) {
 				assertEquals( expected, arrayToList( arrayFilter( data, isEven, true, 4 ) ) );
 				assertEquals( expected, arrayToList( arrayFilter( data, isEven, false ) ) );

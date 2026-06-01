@@ -440,12 +440,12 @@ All elements in the array must contain values that can be converted to numeric.<
 			<description>controls parallel execution; use one of [none, thread, virtual]. The boolean values true/false are deprecated and only kept for backward compatibility (false=none, true uses regular threads, or virtual threads when "lucee.thread.virtual" is enabled)</description>
 		</argument>
 		<argument>
-			<name>maxThreads</name>
-			<alias>maxThreadCount</alias>
+			<name>maxConcurrency</name>
+			<alias>maxThreads,maxThreadCount</alias>
 			<type>number</type>
 			<required>No</required>
-			<default>20</default>
-			<description>maximum number of threads executed, ignored when argument "parallel" is set to false</description>
+			<default>0</default>
+			<description>maximum number of closures executed concurrently. 0 (the default) lets Lucee decide: "thread" mode uses a bounded pool, "virtual" mode is unbounded. A value of 1 runs sequentially (not parallel). Ignored when argument "parallel" is "none"/false. The former name "maxThreads" is still accepted as an alias</description>
 		</argument>
 		<return>
 			<type>void</type>
@@ -503,12 +503,12 @@ All elements in the array must contain values that can be converted to numeric.<
 			<description>controls parallel execution; use one of [none, thread, virtual]. The boolean values true/false are deprecated and only kept for backward compatibility (false=none, true uses regular threads, or virtual threads when "lucee.thread.virtual" is enabled)</description>
 		</argument>
 		<argument>
-			<name>maxThreads</name>
-			<alias>maxThreadCount</alias>
+			<name>maxConcurrency</name>
+			<alias>maxThreads,maxThreadCount</alias>
 			<type>number</type>
 			<required>No</required>
-			<default>20</default>
-			<description>maximum number of threads executed, ignored when argument "parallel" is set to false</description>
+			<default>0</default>
+			<description>maximum number of closures executed concurrently. 0 (the default) lets Lucee decide: "thread" mode uses a bounded pool, "virtual" mode is unbounded. A value of 1 runs sequentially (not parallel). Ignored when argument "parallel" is "none"/false. The former name "maxThreads" is still accepted as an alias</description>
 		</argument>
 		<return>
 			<type>void</type>
@@ -543,12 +543,12 @@ All elements in the array must contain values that can be converted to numeric.<
 			<description>controls parallel execution; use one of [none, thread, virtual]. The boolean values true/false are deprecated and only kept for backward compatibility (false=none, true uses regular threads, or virtual threads when "lucee.thread.virtual" is enabled)</description>
 		</argument>
 		<argument>
-			<name>maxThreads</name>
-			<alias>maxThreadCount</alias>
+			<name>maxConcurrency</name>
+			<alias>maxThreads,maxThreadCount</alias>
 			<type>number</type>
 			<required>No</required>
-			<default>20</default>
-			<description>maximum number of threads executed, ignored when argument "parallel" is set to false</description>
+			<default>0</default>
+			<description>maximum number of closures executed concurrently. 0 (the default) lets Lucee decide: "thread" mode uses a bounded pool, "virtual" mode is unbounded. A value of 1 runs sequentially (not parallel). Ignored when argument "parallel" is "none"/false. The former name "maxThreads" is still accepted as an alias</description>
 		</argument>
 		<return>
 			<type>array</type>
@@ -735,12 +735,12 @@ Remember CFML arrays start at 1 not 0.</description>
 			<description>controls parallel execution; use one of [none, thread, virtual]. The boolean values true/false are deprecated and only kept for backward compatibility (false=none, true uses regular threads, or virtual threads when "lucee.thread.virtual" is enabled)</description>
 		</argument>
 		<argument>
-			<name>maxThreads</name>
-			<alias>maxThreadCount</alias>
+			<name>maxConcurrency</name>
+			<alias>maxThreads,maxThreadCount</alias>
 			<type>number</type>
 			<required>No</required>
-			<default>20</default>
-			<description>maximum number of threads executed, ignored when argument "parallel" is set to false</description>
+			<default>0</default>
+			<description>maximum number of closures executed concurrently. 0 (the default) lets Lucee decide: "thread" mode uses a bounded pool, "virtual" mode is unbounded. A value of 1 runs sequentially (not parallel). Ignored when argument "parallel" is "none"/false. The former name "maxThreads" is still accepted as an alias</description>
 		</argument>
 		<return>
 			<type>object</type>
@@ -775,12 +775,12 @@ Remember CFML arrays start at 1 not 0.</description>
 			<description>controls parallel execution; use one of [none, thread, virtual]. The boolean values true/false are deprecated and only kept for backward compatibility (false=none, true uses regular threads, or virtual threads when "lucee.thread.virtual" is enabled)</description>
 		</argument>
 		<argument>
-			<name>maxThreads</name>
-			<alias>maxThreadCount</alias>
+			<name>maxConcurrency</name>
+			<alias>maxThreads,maxThreadCount</alias>
 			<type>number</type>
 			<required>No</required>
-			<default>20</default>
-			<description>maximum number of threads executed, ignored when argument "parallel" is set to false</description>
+			<default>0</default>
+			<description>maximum number of closures executed concurrently. 0 (the default) lets Lucee decide: "thread" mode uses a bounded pool, "virtual" mode is unbounded. A value of 1 runs sequentially (not parallel). Ignored when argument "parallel" is "none"/false. The former name "maxThreads" is still accepted as an alias</description>
 		</argument>
 		<return>
 			<type>array</type>
@@ -837,12 +837,12 @@ Remember CFML arrays start at 1 not 0.</description>
 			<description>controls parallel execution; use one of [none, thread, virtual]. The boolean values true/false are deprecated and only kept for backward compatibility (false=none, true uses regular threads, or virtual threads when "lucee.thread.virtual" is enabled)</description>
 		</argument>
 		<argument>
-			<name>maxThreads</name>
-			<alias>maxThreadCount</alias>
+			<name>maxConcurrency</name>
+			<alias>maxThreads,maxThreadCount</alias>
 			<type>number</type>
 			<required>No</required>
-			<default>20</default>
-			<description>maximum number of threads executed, ignored when argument "parallel" is set to false</description>
+			<default>0</default>
+			<description>maximum number of closures executed concurrently. 0 (the default) lets Lucee decide: "thread" mode uses a bounded pool, "virtual" mode is unbounded. A value of 1 runs sequentially (not parallel). Ignored when argument "parallel" is "none"/false. The former name "maxThreads" is still accepted as an alias</description>
 		</argument>
 		<return>
 			<type>string</type>
@@ -879,12 +879,12 @@ Remember CFML arrays start at 1 not 0.</description>
 			<description>controls parallel execution; use one of [none, thread, virtual]. The boolean values true/false are deprecated and only kept for backward compatibility (false=none, true uses regular threads, or virtual threads when "lucee.thread.virtual" is enabled)</description>
 		</argument>
 		<argument>
-			<name>maxThreads</name>
-			<alias>maxThreadCount</alias>
+			<name>maxConcurrency</name>
+			<alias>maxThreads,maxThreadCount</alias>
 			<type>number</type>
 			<required>No</required>
-			<default>20</default>
-			<description>maximum number of threads executed, ignored when argument "parallel" is set to false</description>
+			<default>0</default>
+			<description>maximum number of closures executed concurrently. 0 (the default) lets Lucee decide: "thread" mode uses a bounded pool, "virtual" mode is unbounded. A value of 1 runs sequentially (not parallel). Ignored when argument "parallel" is "none"/false. The former name "maxThreads" is still accepted as an alias</description>
 		</argument>
 		<return>
 			<type>struct</type>
@@ -927,12 +927,12 @@ Remember CFML arrays start at 1 not 0.</description>
 			<description>controls parallel execution; use one of [none, thread, virtual]. The boolean values true/false are deprecated and only kept for backward compatibility (false=none, true uses regular threads, or virtual threads when "lucee.thread.virtual" is enabled)</description>
 		</argument>
 		<argument>
-			<name>maxThreads</name>
-			<alias>maxThreadCount</alias>
+			<name>maxConcurrency</name>
+			<alias>maxThreads,maxThreadCount</alias>
 			<type>number</type>
 			<required>No</required>
-			<default>20</default>
-			<description>maximum number of threads executed, ignored when argument "parallel" is set to false</description>
+			<default>0</default>
+			<description>maximum number of closures executed concurrently. 0 (the default) lets Lucee decide: "thread" mode uses a bounded pool, "virtual" mode is unbounded. A value of 1 runs sequentially (not parallel). Ignored when argument "parallel" is "none"/false. The former name "maxThreads" is still accepted as an alias</description>
 		</argument>
 		<return>
 			<type>query</type>
@@ -9249,12 +9249,12 @@ The following things are considered to be empty:
 			<description></description>
 		</argument>
 		<argument>
-			<name>maxThreads</name>
-			<alias>maxThreadCount</alias>
+			<name>maxConcurrency</name>
+			<alias>maxThreads,maxThreadCount</alias>
 			<type>number</type>
 			<required>No</required>
-			<default>20</default>
-			<description>maximum number of threads executed, ignored when argument "parallel" is set to false</description>
+			<default>0</default>
+			<description>maximum number of closures executed concurrently. 0 (the default) lets Lucee decide: "thread" mode uses a bounded pool, "virtual" mode is unbounded. A value of 1 runs sequentially (not parallel). Ignored when argument "parallel" is "none"/false. The former name "maxThreads" is still accepted as an alias</description>
 		</argument>
 		
 		<return>
@@ -14323,12 +14323,12 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<description>controls parallel execution; use one of [none, thread, virtual]. The boolean values true/false are deprecated and only kept for backward compatibility (false=none, true uses regular threads, or virtual threads when "lucee.thread.virtual" is enabled)</description>
 		</argument>
 		<argument>
-			<name>maxThreads</name>
-			<alias>maxThreadCount</alias>
+			<name>maxConcurrency</name>
+			<alias>maxThreads,maxThreadCount</alias>
 			<type>number</type>
 			<required>No</required>
-			<default>20</default>
-			<description>maximum number of threads executed, ignored when argument "parallel" is set to false</description>
+			<default>0</default>
+			<description>maximum number of closures executed concurrently. 0 (the default) lets Lucee decide: "thread" mode uses a bounded pool, "virtual" mode is unbounded. A value of 1 runs sequentially (not parallel). Ignored when argument "parallel" is "none"/false. The former name "maxThreads" is still accepted as an alias</description>
 		</argument>
 		<return>
 			<type>void</type>
@@ -14363,12 +14363,12 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<description>controls parallel execution; use one of [none, thread, virtual]. The boolean values true/false are deprecated and only kept for backward compatibility (false=none, true uses regular threads, or virtual threads when "lucee.thread.virtual" is enabled)</description>
 		</argument>
 		<argument>
-			<name>maxThreads</name>
-			<alias>maxThreadCount</alias>
+			<name>maxConcurrency</name>
+			<alias>maxThreads,maxThreadCount</alias>
 			<type>number</type>
 			<required>No</required>
-			<default>20</default>
-			<description>maximum number of threads executed, ignored when argument "parallel" is set to false</description>
+			<default>0</default>
+			<description>maximum number of closures executed concurrently. 0 (the default) lets Lucee decide: "thread" mode uses a bounded pool, "virtual" mode is unbounded. A value of 1 runs sequentially (not parallel). Ignored when argument "parallel" is "none"/false. The former name "maxThreads" is still accepted as an alias</description>
 		</argument>
 		<return>
 			<type>void</type>
@@ -14402,12 +14402,12 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<description>controls parallel execution; use one of [none, thread, virtual]. The boolean values true/false are deprecated and only kept for backward compatibility (false=none, true uses regular threads, or virtual threads when "lucee.thread.virtual" is enabled)</description>
 		</argument>
 		<argument>
-			<name>maxThreads</name>
-			<alias>maxThreadCount</alias>
+			<name>maxConcurrency</name>
+			<alias>maxThreads,maxThreadCount</alias>
 			<type>number</type>
 			<required>No</required>
-			<default>20</default>
-			<description>maximum number of threads executed, ignored when argument "parallel" is set to false</description>
+			<default>0</default>
+			<description>maximum number of closures executed concurrently. 0 (the default) lets Lucee decide: "thread" mode uses a bounded pool, "virtual" mode is unbounded. A value of 1 runs sequentially (not parallel). Ignored when argument "parallel" is "none"/false. The former name "maxThreads" is still accepted as an alias</description>
 		</argument>
 		<return>
 			<type>void</type>
@@ -14440,12 +14440,12 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<description>controls parallel execution; use one of [none, thread, virtual]. The boolean values true/false are deprecated and only kept for backward compatibility (false=none, true uses regular threads, or virtual threads when "lucee.thread.virtual" is enabled)</description>
 		</argument>
 		<argument>
-			<name>maxThreads</name>
-			<alias>maxThreadCount</alias>
+			<name>maxConcurrency</name>
+			<alias>maxThreads,maxThreadCount</alias>
 			<type>number</type>
 			<required>No</required>
-			<default>20</default>
-			<description>maximum number of threads executed, ignored when argument "parallel" is set to false</description>
+			<default>0</default>
+			<description>maximum number of closures executed concurrently. 0 (the default) lets Lucee decide: "thread" mode uses a bounded pool, "virtual" mode is unbounded. A value of 1 runs sequentially (not parallel). Ignored when argument "parallel" is "none"/false. The former name "maxThreads" is still accepted as an alias</description>
 		</argument>
 		<return>
 			<type>struct</type>
@@ -14479,12 +14479,12 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<description>controls parallel execution; use one of [none, thread, virtual]. The boolean values true/false are deprecated and only kept for backward compatibility (false=none, true uses regular threads, or virtual threads when "lucee.thread.virtual" is enabled)</description>
 		</argument>
 		<argument>
-			<name>maxThreads</name>
-			<alias>maxThreadCount</alias>
+			<name>maxConcurrency</name>
+			<alias>maxThreads,maxThreadCount</alias>
 			<type>number</type>
 			<required>No</required>
-			<default>20</default>
-			<description>maximum number of threads executed, ignored when argument "parallel" is set to false</description>
+			<default>0</default>
+			<description>maximum number of closures executed concurrently. 0 (the default) lets Lucee decide: "thread" mode uses a bounded pool, "virtual" mode is unbounded. A value of 1 runs sequentially (not parallel). Ignored when argument "parallel" is "none"/false. The former name "maxThreads" is still accepted as an alias</description>
 		</argument>
 		<return>
 			<type>query</type>
@@ -14710,12 +14710,12 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<description>controls parallel execution; use one of [none, thread, virtual]. The boolean values true/false are deprecated and only kept for backward compatibility (false=none, true uses regular threads, or virtual threads when "lucee.thread.virtual" is enabled)</description>
 		</argument>
 		<argument>
-			<name>maxThreads</name>
-			<alias>maxThreadCount</alias>
+			<name>maxConcurrency</name>
+			<alias>maxThreads,maxThreadCount</alias>
 			<type>number</type>
 			<required>No</required>
-			<default>20</default>
-			<description>maximum number of threads executed, ignored when argument "parallel" is set to false</description>
+			<default>0</default>
+			<description>maximum number of closures executed concurrently. 0 (the default) lets Lucee decide: "thread" mode uses a bounded pool, "virtual" mode is unbounded. A value of 1 runs sequentially (not parallel). Ignored when argument "parallel" is "none"/false. The former name "maxThreads" is still accepted as an alias</description>
 		</argument>
 		<return>
 			<type>object</type>
@@ -14750,12 +14750,12 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<description>controls parallel execution; use one of [none, thread, virtual]. The boolean values true/false are deprecated and only kept for backward compatibility (false=none, true uses regular threads, or virtual threads when "lucee.thread.virtual" is enabled)</description>
 		</argument>
 		<argument>
-			<name>maxThreads</name>
-			<alias>maxThreadCount</alias>
+			<name>maxConcurrency</name>
+			<alias>maxThreads,maxThreadCount</alias>
 			<type>number</type>
 			<required>No</required>
-			<default>20</default>
-			<description>maximum number of threads executed, ignored when argument "parallel" is set to false</description>
+			<default>0</default>
+			<description>maximum number of closures executed concurrently. 0 (the default) lets Lucee decide: "thread" mode uses a bounded pool, "virtual" mode is unbounded. A value of 1 runs sequentially (not parallel). Ignored when argument "parallel" is "none"/false. The former name "maxThreads" is still accepted as an alias</description>
 		</argument>
 		<return>
 			<type>boolean</type>
@@ -14790,12 +14790,12 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<description>controls parallel execution; use one of [none, thread, virtual]. The boolean values true/false are deprecated and only kept for backward compatibility (false=none, true uses regular threads, or virtual threads when "lucee.thread.virtual" is enabled)</description>
 		</argument>
 		<argument>
-			<name>maxThreads</name>
-			<alias>maxThreadCount</alias>
+			<name>maxConcurrency</name>
+			<alias>maxThreads,maxThreadCount</alias>
 			<type>number</type>
 			<required>No</required>
-			<default>20</default>
-			<description>maximum number of threads executed, ignored when argument "parallel" is set to false</description>
+			<default>0</default>
+			<description>maximum number of closures executed concurrently. 0 (the default) lets Lucee decide: "thread" mode uses a bounded pool, "virtual" mode is unbounded. A value of 1 runs sequentially (not parallel). Ignored when argument "parallel" is "none"/false. The former name "maxThreads" is still accepted as an alias</description>
 		</argument>
 		<return>
 			<type>boolean</type>
@@ -14853,12 +14853,12 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<description>controls parallel execution; use one of [none, thread, virtual]. The boolean values true/false are deprecated and only kept for backward compatibility (false=none, true uses regular threads, or virtual threads when "lucee.thread.virtual" is enabled)</description>
 		</argument>
 		<argument>
-			<name>maxThreads</name>
-			<alias>maxThreadCount</alias>
+			<name>maxConcurrency</name>
+			<alias>maxThreads,maxThreadCount</alias>
 			<type>number</type>
 			<required>No</required>
-			<default>20</default>
-			<description>maximum number of threads executed, ignored when argument "parallel" is set to false</description>
+			<default>0</default>
+			<description>maximum number of closures executed concurrently. 0 (the default) lets Lucee decide: "thread" mode uses a bounded pool, "virtual" mode is unbounded. A value of 1 runs sequentially (not parallel). Ignored when argument "parallel" is "none"/false. The former name "maxThreads" is still accepted as an alias</description>
 		</argument>
 		<return>
 			<type>boolean</type>
@@ -14893,12 +14893,12 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<description>controls parallel execution; use one of [none, thread, virtual]. The boolean values true/false are deprecated and only kept for backward compatibility (false=none, true uses regular threads, or virtual threads when "lucee.thread.virtual" is enabled)</description>
 		</argument>
 		<argument>
-			<name>maxThreads</name>
-			<alias>maxThreadCount</alias>
+			<name>maxConcurrency</name>
+			<alias>maxThreads,maxThreadCount</alias>
 			<type>number</type>
 			<required>No</required>
-			<default>20</default>
-			<description>maximum number of threads executed, ignored when argument "parallel" is set to false</description>
+			<default>0</default>
+			<description>maximum number of closures executed concurrently. 0 (the default) lets Lucee decide: "thread" mode uses a bounded pool, "virtual" mode is unbounded. A value of 1 runs sequentially (not parallel). Ignored when argument "parallel" is "none"/false. The former name "maxThreads" is still accepted as an alias</description>
 		</argument>
 		<return>
 			<type>boolean</type>
@@ -14933,12 +14933,12 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<description>controls parallel execution; use one of [none, thread, virtual]. The boolean values true/false are deprecated and only kept for backward compatibility (false=none, true uses regular threads, or virtual threads when "lucee.thread.virtual" is enabled)</description>
 		</argument>
 		<argument>
-			<name>maxThreads</name>
-			<alias>maxThreadCount</alias>
+			<name>maxConcurrency</name>
+			<alias>maxThreads,maxThreadCount</alias>
 			<type>number</type>
 			<required>No</required>
-			<default>20</default>
-			<description>maximum number of threads executed, ignored when argument "parallel" is set to false</description>
+			<default>0</default>
+			<description>maximum number of closures executed concurrently. 0 (the default) lets Lucee decide: "thread" mode uses a bounded pool, "virtual" mode is unbounded. A value of 1 runs sequentially (not parallel). Ignored when argument "parallel" is "none"/false. The former name "maxThreads" is still accepted as an alias</description>
 		</argument>
 		<return>
 			<type>boolean</type>
@@ -14972,12 +14972,12 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<description>controls parallel execution; use one of [none, thread, virtual]. The boolean values true/false are deprecated and only kept for backward compatibility (false=none, true uses regular threads, or virtual threads when "lucee.thread.virtual" is enabled)</description>
 		</argument>
 		<argument>
-			<name>maxThreads</name>
-			<alias>maxThreadCount</alias>
+			<name>maxConcurrency</name>
+			<alias>maxThreads,maxThreadCount</alias>
 			<type>number</type>
 			<required>No</required>
-			<default>20</default>
-			<description>maximum number of threads executed, ignored when argument "parallel" is set to false</description>
+			<default>0</default>
+			<description>maximum number of closures executed concurrently. 0 (the default) lets Lucee decide: "thread" mode uses a bounded pool, "virtual" mode is unbounded. A value of 1 runs sequentially (not parallel). Ignored when argument "parallel" is "none"/false. The former name "maxThreads" is still accepted as an alias</description>
 		</argument>
 		<return>
 			<type>boolean</type>
@@ -15013,12 +15013,12 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<description>controls parallel execution; use one of [none, thread, virtual]. The boolean values true/false are deprecated and only kept for backward compatibility (false=none, true uses regular threads, or virtual threads when "lucee.thread.virtual" is enabled)</description>
 		</argument>
 		<argument>
-			<name>maxThreads</name>
-			<alias>maxThreadCount</alias>
+			<name>maxConcurrency</name>
+			<alias>maxThreads,maxThreadCount</alias>
 			<type>number</type>
 			<required>No</required>
-			<default>20</default>
-			<description>maximum number of threads executed, ignored when argument "parallel" is set to false</description>
+			<default>0</default>
+			<description>maximum number of closures executed concurrently. 0 (the default) lets Lucee decide: "thread" mode uses a bounded pool, "virtual" mode is unbounded. A value of 1 runs sequentially (not parallel). Ignored when argument "parallel" is "none"/false. The former name "maxThreads" is still accepted as an alias</description>
 		</argument>
 		<return>
 			<type>boolean</type>
@@ -15075,12 +15075,12 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<description>controls parallel execution; use one of [none, thread, virtual]. The boolean values true/false are deprecated and only kept for backward compatibility (false=none, true uses regular threads, or virtual threads when "lucee.thread.virtual" is enabled)</description>
 		</argument>
 		<argument>
-			<name>maxThreads</name>
-			<alias>maxThreadCount</alias>
+			<name>maxConcurrency</name>
+			<alias>maxThreads,maxThreadCount</alias>
 			<type>number</type>
 			<required>No</required>
-			<default>20</default>
-			<description>maximum number of threads executed, ignored when argument "parallel" is set to false</description>
+			<default>0</default>
+			<description>maximum number of closures executed concurrently. 0 (the default) lets Lucee decide: "thread" mode uses a bounded pool, "virtual" mode is unbounded. A value of 1 runs sequentially (not parallel). Ignored when argument "parallel" is "none"/false. The former name "maxThreads" is still accepted as an alias</description>
 		</argument>
 		<return>
 			<type>boolean</type>
@@ -15115,12 +15115,12 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<description>controls parallel execution; use one of [none, thread, virtual]. The boolean values true/false are deprecated and only kept for backward compatibility (false=none, true uses regular threads, or virtual threads when "lucee.thread.virtual" is enabled)</description>
 		</argument>
 		<argument>
-			<name>maxThreads</name>
-			<alias>maxThreadCount</alias>
+			<name>maxConcurrency</name>
+			<alias>maxThreads,maxThreadCount</alias>
 			<type>number</type>
 			<required>No</required>
-			<default>20</default>
-			<description>maximum number of threads executed, ignored when argument "parallel" is set to false</description>
+			<default>0</default>
+			<description>maximum number of closures executed concurrently. 0 (the default) lets Lucee decide: "thread" mode uses a bounded pool, "virtual" mode is unbounded. A value of 1 runs sequentially (not parallel). Ignored when argument "parallel" is "none"/false. The former name "maxThreads" is still accepted as an alias</description>
 		</argument>
 		<return>
 			<type>boolean</type>
@@ -15155,12 +15155,12 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<description>controls parallel execution; use one of [none, thread, virtual]. The boolean values true/false are deprecated and only kept for backward compatibility (false=none, true uses regular threads, or virtual threads when "lucee.thread.virtual" is enabled)</description>
 		</argument>
 		<argument>
-			<name>maxThreads</name>
-			<alias>maxThreadCount</alias>
+			<name>maxConcurrency</name>
+			<alias>maxThreads,maxThreadCount</alias>
 			<type>number</type>
 			<required>No</required>
-			<default>20</default>
-			<description>maximum number of threads executed, ignored when argument "parallel" is set to false</description>
+			<default>0</default>
+			<description>maximum number of closures executed concurrently. 0 (the default) lets Lucee decide: "thread" mode uses a bounded pool, "virtual" mode is unbounded. A value of 1 runs sequentially (not parallel). Ignored when argument "parallel" is "none"/false. The former name "maxThreads" is still accepted as an alias</description>
 		</argument>
 		<return>
 			<type>boolean</type>

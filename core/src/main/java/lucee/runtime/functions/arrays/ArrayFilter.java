@@ -35,11 +35,11 @@ import lucee.runtime.type.UDF;
 public final class ArrayFilter extends BIF {
 
 	public static Array call(PageContext pc, Array array, UDF udf) throws PageException {
-		return _call(pc, array, udf, "false", 20);
+		return _call(pc, array, udf, "false", 0);
 	}
 
 	public static Array call(PageContext pc, Array array, UDF udf, String parallel) throws PageException {
-		return _call(pc, array, udf, parallel, 20);
+		return _call(pc, array, udf, parallel, 0);
 	}
 
 	public static Array call(PageContext pc, Array array, UDF udf, String parallel, Number maxThreads) throws PageException {

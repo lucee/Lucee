@@ -34,15 +34,15 @@ public final class QueryMap extends BIF {
 	private static final long serialVersionUID = 5225631181634029456L;
 
 	public static Query call(PageContext pc, Query qry, UDF udf) throws PageException {
-		return _call(pc, qry, udf, null, "false", 20);
+		return _call(pc, qry, udf, null, "false", 0);
 	}
 
 	public static Query call(PageContext pc, Query qry, UDF udf, Query resQuery) throws PageException {
-		return _call(pc, qry, udf, resQuery, "false", 20);
+		return _call(pc, qry, udf, resQuery, "false", 0);
 	}
 
 	public static Query call(PageContext pc, Query qry, UDF udf, Query resQuery, String parallel) throws PageException {
-		return _call(pc, qry, udf, resQuery, parallel, 20);
+		return _call(pc, qry, udf, resQuery, parallel, 0);
 	}
 
 	public static Query call(PageContext pc, Query qry, UDF udf, Query resQuery, String parallel, Number maxThreads) throws PageException {

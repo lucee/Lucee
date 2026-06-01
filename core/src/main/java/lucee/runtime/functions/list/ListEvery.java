@@ -35,24 +35,24 @@ public final class ListEvery extends BIF {
 	private static final long serialVersionUID = -7873096972268260607L;
 
 	public static boolean call(PageContext pc, String list, UDF udf) throws PageException {
-		return _call(pc, list, udf, ",", false, true, "false", 20);
+		return _call(pc, list, udf, ",", false, true, "false", 0);
 	}
 
 	public static boolean call(PageContext pc, String list, UDF udf, String delimiter) throws PageException {
-		return _call(pc, list, udf, delimiter, false, true, "false", 20);
+		return _call(pc, list, udf, delimiter, false, true, "false", 0);
 	}
 
 	public static boolean call(PageContext pc, String list, UDF udf, String delimiter, boolean includeEmptyFields) throws PageException {
-		return _call(pc, list, udf, delimiter, includeEmptyFields, true, "false", 20);
+		return _call(pc, list, udf, delimiter, includeEmptyFields, true, "false", 0);
 	}
 
 	public static boolean call(PageContext pc, String list, UDF udf, String delimiter, boolean includeEmptyFields, boolean multiCharacterDelimiter) throws PageException {
-		return _call(pc, list, udf, delimiter, includeEmptyFields, multiCharacterDelimiter, "false", 20);
+		return _call(pc, list, udf, delimiter, includeEmptyFields, multiCharacterDelimiter, "false", 0);
 	}
 
 	public static boolean call(PageContext pc, String list, UDF udf, String delimiter, boolean includeEmptyFields, boolean multiCharacterDelimiter, String parallel)
 			throws PageException {
-		return _call(pc, list, udf, delimiter, includeEmptyFields, multiCharacterDelimiter, parallel, 20);
+		return _call(pc, list, udf, delimiter, includeEmptyFields, multiCharacterDelimiter, parallel, 0);
 	}
 
 	public static boolean call(PageContext pc, String list, UDF udf, String delimiter, boolean includeEmptyFields, boolean multiCharacterDelimiter, String parallel,
@@ -70,13 +70,13 @@ public final class ListEvery extends BIF {
 	@Override
 	public Object invoke(PageContext pc, Object[] args) throws PageException {
 
-		if (args.length == 2) return _call(pc, Caster.toString(args[0]), Caster.toFunction(args[1]), ",", false, true, "false", 20);
-		if (args.length == 3) return _call(pc, Caster.toString(args[0]), Caster.toFunction(args[1]), Caster.toString(args[2]), false, true, "false", 20);
-		if (args.length == 4) return _call(pc, Caster.toString(args[0]), Caster.toFunction(args[1]), Caster.toString(args[2]), Caster.toBooleanValue(args[3]), true, "false", 20);
+		if (args.length == 2) return _call(pc, Caster.toString(args[0]), Caster.toFunction(args[1]), ",", false, true, "false", 0);
+		if (args.length == 3) return _call(pc, Caster.toString(args[0]), Caster.toFunction(args[1]), Caster.toString(args[2]), false, true, "false", 0);
+		if (args.length == 4) return _call(pc, Caster.toString(args[0]), Caster.toFunction(args[1]), Caster.toString(args[2]), Caster.toBooleanValue(args[3]), true, "false", 0);
 		if (args.length == 5) return _call(pc, Caster.toString(args[0]), Caster.toFunction(args[1]), Caster.toString(args[2]), Caster.toBooleanValue(args[3]),
-				Caster.toBooleanValue(args[4]), "false", 20);
+				Caster.toBooleanValue(args[4]), "false", 0);
 		if (args.length == 6) return _call(pc, Caster.toString(args[0]), Caster.toFunction(args[1]), Caster.toString(args[2]), Caster.toBooleanValue(args[3]),
-				Caster.toBooleanValue(args[4]), Caster.toString(args[5]), 20);
+				Caster.toBooleanValue(args[4]), Caster.toString(args[5]), 0);
 		if (args.length == 7) return call(pc, Caster.toString(args[0]), Caster.toFunction(args[1]), Caster.toString(args[2]), Caster.toBooleanValue(args[3]),
 				Caster.toBooleanValue(args[4]), Caster.toString(args[5]), Caster.toDoubleValue(args[6]));
 

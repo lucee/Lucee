@@ -35,11 +35,11 @@ public final class QueryEach extends BIF {
 	private static final long serialVersionUID = 3004432895753378644L;
 
 	public static String call(PageContext pc, Query qry, UDF udf) throws PageException {
-		return _call(pc, qry, udf, "false", 20);
+		return _call(pc, qry, udf, "false", 0);
 	}
 
 	public static String call(PageContext pc, Query qry, UDF udf, String parallel) throws PageException {
-		return _call(pc, qry, udf, parallel, 20);
+		return _call(pc, qry, udf, parallel, 0);
 	}
 
 	public static String call(PageContext pc, Query qry, UDF udf, String parallel, Number maxThreads) throws PageException {

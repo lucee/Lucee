@@ -219,11 +219,13 @@ public final class ThreadUtil {
 		return createExecutorService(maxThreads, ALLOW_FUTURE_THREADS);
 	}
 
-	public static ExecutorService createExecutorService(int maxThreads, boolean allowVirtual) {
+	public static ExecutorService createExecutorService(int maxConcurrency, boolean allowVirtual) {
 		if (allowVirtual) {
-			return Executors.newVirtualThreadPerTaskExecutor();
+			// virtual threads are unbounded unless an explicit concurrency limit (>0) is given
+			if (maxConcurrency < 1) return Executors.newVirtualThreadPerTaskExecutor();
+			return new BoundedExecutorService(Executors.newVirtualThreadPerTaskExecutor(), maxConcurrency);
 		}
-		return Executors.newFixedThreadPool(maxThreads);
+		return Executors.newFixedThreadPool(maxConcurrency < 1 ? 20 : maxConcurrency);
 	}
 
 	public static ExecutorService createExecutorService() {
