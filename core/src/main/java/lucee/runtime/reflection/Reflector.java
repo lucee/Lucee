@@ -484,6 +484,8 @@ public final class Reflector {
 	}
 
 	private static Object componentToClass(PageContext pc, RefInteger rating, Component src, Class trgClass, Class... interfaces) throws PageException {
+		if (pc == null) throw new ApplicationException("cannot convert component [" + (src == null ? "" : src.getName())
+				+ "] to a Java class, because there is no PageContext available for the current thread");
 		try {
 			JavaAnnotation ja = getJavaAnnotation(pc, trgClass != null ? trgClass.getClassLoader() : SystemUtil.getCoreClassLoader(), src);
 			Class<?> _extends = ja != null && ja.extend != null ? ja.extend : null;

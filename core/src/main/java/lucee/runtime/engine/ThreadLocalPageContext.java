@@ -52,6 +52,9 @@ public final class ThreadLocalPageContext {
 	private static ThreadLocal<Boolean> insideServerNewInstance = new ThreadLocal<Boolean>();
 	private static ThreadLocal<Boolean> insideGateway = new ThreadLocal<Boolean>();
 	private static ThreadLocal<Boolean> insideInheritableRegistration = new ThreadLocal<Boolean>();
+	// general purpose, thread scoped switch (default enabled); while disabled the ambient (thread bound)
+	// PageContext is not consulted as a fallback, see fallback(boolean)
+	private static ThreadLocal<Boolean> fallbackTL = new ThreadLocal<Boolean>();
 	// SavedCCL holder distinguishes "saved null" from "never saved" so the re-entrancy guard works on threads with a null CCL.
 	private static ThreadLocal<SavedCCL> prevCCL = new ThreadLocal<>();
 
@@ -171,6 +174,52 @@ public final class ThreadLocalPageContext {
 		// Skip pcThreadLocalInheritable - child contexts don't need inheritance
 	}
 
+	/**
+	 * Controls whether the ambient (thread bound) PageContext is consulted as a fallback when no
+	 * PageContext is passed in explicitly. This is a general purpose, thread scoped switch: while
+	 * disabled every "grab the PageContext from the current thread" lookup behaves as if no
+	 * PageContext is registered, so callers resolve deterministic config/server defaults instead of
+	 * inheriting state from whatever request happens to run on the thread. Use it wherever the result
+	 * must not depend on the calling request, e.g. while compiling or other cache shared computations.
+	 *
+	 * <p>
+	 * The switch is sticky on the thread, so always restore the previous value in a finally block
+	 * (this also makes it safe to nest):
+	 * </p>
+	 *
+	 * <pre>
+	 * boolean prev = ThreadLocalPageContext.fallback(false);
+	 * try {
+	 * 	...
+	 * }
+	 * finally {
+	 * 	ThreadLocalPageContext.fallback(prev);
+	 * }
+	 * </pre>
+	 *
+	 * @param enable true to allow ambient lookups (the default), false to disable them
+	 * @return the previous value, so it can be restored
+	 */
+	public static boolean fallback(boolean enable) {
+		Boolean prev = fallbackTL.get();
+		fallbackTL.set(enable ? Boolean.TRUE : Boolean.FALSE);
+		return prev == null || prev.booleanValue();
+	}
+
+	private static boolean fallbackEnabled() {
+		Boolean b = fallbackTL.get();
+		return b == null || b.booleanValue();
+	}
+
+	// gated access to the thread bound PageContext, honoring fallback(boolean)
+	private static PageContext pcCurrent() {
+		return fallbackEnabled() ? pcThreadLocal.get() : null;
+	}
+
+	private static PageContext pcParent() {
+		return fallbackEnabled() ? pcThreadLocalInheritable.get() : null;
+	}
+
 	public static PageContext get() {
 		// print.ds(4, 2);
 		return get(false);
@@ -183,9 +232,9 @@ public final class ThreadLocalPageContext {
 	 *         thread
 	 */
 	public static PageContext get(boolean cloneParentIfNotExist) {
-		PageContext pc = pcThreadLocal.get();
+		PageContext pc = pcCurrent();
 		if (cloneParentIfNotExist && pc == null) {
-			PageContext pci = pcThreadLocalInheritable.get();
+			PageContext pci = pcParent();
 			// we have one from parent
 			if (pci != null && pci.getRequest() != null) {
 				try {
@@ -285,11 +334,11 @@ public final class ThreadLocalPageContext {
 
 		if (ModernApplicationContext.hasCustomPreciseMath) {
 			// pc from current thread
-			pc = pcThreadLocal.get();
+			pc = pcCurrent();
 			if (pc != null) return (pc.getApplicationContext()).getPreciseMath();
 
 			// pc from parent thread
-			pc = pcThreadLocalInheritable.get();
+			pc = pcParent();
 			if (pc != null) return (pc.getApplicationContext()).getPreciseMath();
 		}
 		ConfigServerPro c = getConfigServer();
@@ -309,13 +358,13 @@ public final class ThreadLocalPageContext {
 			return ((PageContextImpl) pc).getLog(logName, createIfNecessary);
 		}
 		// pc from current thread
-		pc = pcThreadLocal.get();
+		pc = pcCurrent();
 		if (pc instanceof PageContextImpl) {
 			return ((PageContextImpl) pc).getLog(logName, createIfNecessary);
 		}
 
 		// pc from parent thread
-		pc = pcThreadLocalInheritable.get();
+		pc = pcParent();
 		if (pc instanceof PageContextImpl) {
 			return ((PageContextImpl) pc).getLog(logName, createIfNecessary);
 		}
@@ -360,7 +409,7 @@ public final class ThreadLocalPageContext {
 			return DEFAULT_LOCALE;
 		}
 		// pc from current thread
-		pc = pcThreadLocal.get();
+		pc = pcCurrent();
 		if (pc != null) {
 			Locale l = pc.getLocale();
 			if (l != null) return l;
@@ -368,7 +417,7 @@ public final class ThreadLocalPageContext {
 		}
 
 		// pc from parent thread
-		pc = pcThreadLocalInheritable.get();
+		pc = pcParent();
 		if (pc != null) {
 			Locale l = pc.getLocale();
 			if (l != null) return l;
@@ -407,7 +456,7 @@ public final class ThreadLocalPageContext {
 			return DEFAULT_TIMEZONE;
 		}
 		// pc from current thread
-		pc = pcThreadLocal.get();
+		pc = pcCurrent();
 		if (pc != null) {
 			TimeZone tz = pc.getTimeZone();
 			if (tz != null) return tz;
@@ -415,7 +464,7 @@ public final class ThreadLocalPageContext {
 		}
 
 		// pc from parent thread
-		pc = pcThreadLocalInheritable.get();
+		pc = pcParent();
 		if (pc != null) {
 			TimeZone tz = pc.getTimeZone();
 			if (tz != null) return tz;
@@ -452,7 +501,7 @@ public final class ThreadLocalPageContext {
 			return SystemUtil.getCoreClassLoader();
 		}
 		// pc from current thread
-		pc = pcThreadLocal.get();
+		pc = pcCurrent();
 		if (pc != null) {
 			ClassLoader cl = ((PageContextImpl) pc).getRPCClassLoader();
 			if (cl != null) return cl;
@@ -460,7 +509,7 @@ public final class ThreadLocalPageContext {
 		}
 
 		// pc from parent thread
-		pc = pcThreadLocalInheritable.get();
+		pc = pcParent();
 		if (pc != null) {
 			ClassLoader cl = ((PageContextImpl) pc).getRPCClassLoader();
 			if (cl != null) return cl;
@@ -484,7 +533,7 @@ public final class ThreadLocalPageContext {
 	}
 
 	public static int getId() {
-		PageContext pc = pcThreadLocal.get();
+		PageContext pc = pcCurrent();
 		if (pc != null) return pc.getId();
 		throw new NullPointerException("cannot provide the id, because there is no PageContext for this thread");
 	}

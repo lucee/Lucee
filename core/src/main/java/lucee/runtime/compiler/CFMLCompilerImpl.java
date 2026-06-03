@@ -39,6 +39,7 @@ import lucee.runtime.PageSource;
 import lucee.runtime.PageSourceImpl;
 import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.Constants;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.TemplateException;
 import lucee.runtime.op.Caster;
@@ -181,6 +182,20 @@ public final class CFMLCompilerImpl implements CFMLCompiler {
 	}
 
 	private Result _compile(ConfigPro config, PageSource ps, SourceCode sc, String className, TagLib[] tld, FunctionLib fld, Resource classRootDir, boolean returnValue,
+			boolean ignoreScopes) throws TemplateException, IOException {
+		// compilation must not depend on the request that happens to trigger it (the resulting bytecode is
+		// cached and shared across applications/requests); disable the ambient PageContext fallback so any
+		// indirect lookup resolves deterministic config/server defaults instead of inheriting request state
+		boolean prevFallback = ThreadLocalPageContext.fallback(false);
+		try {
+			return _compile0(config, ps, sc, className, tld, fld, classRootDir, returnValue, ignoreScopes);
+		}
+		finally {
+			ThreadLocalPageContext.fallback(prevFallback);
+		}
+	}
+
+	private Result _compile0(ConfigPro config, PageSource ps, SourceCode sc, String className, TagLib[] tld, FunctionLib fld, Resource classRootDir, boolean returnValue,
 			boolean ignoreScopes) throws TemplateException, IOException {
 
 		String javaName;
