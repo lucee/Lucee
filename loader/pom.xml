@@ -3,7 +3,7 @@
 
   <groupId>org.lucee</groupId>
   <artifactId>lucee</artifactId>
-  <version>6.2.7.16-RC</version>
+  <version>6.2.7.16</version>
   <packaging>jar</packaging>
 
   <name>Lucee Loader Build</name>
@@ -704,13 +704,13 @@
       <dependency>
           <groupId>org.apache.tomcat.embed</groupId>
           <artifactId>tomcat-embed-core</artifactId>
-          <version>9.0.117</version>
+          <version>9.0.118</version>
       </dependency>
       <!-- https://mvnrepository.com/artifact/org.apache.tomcat/tomcat-annotations-api -->
       <dependency>
           <groupId>org.apache.tomcat</groupId>
           <artifactId>tomcat-annotations-api</artifactId>
-          <version>9.0.117</version>
+          <version>9.0.118</version>
       </dependency>
 
     <dependency>
