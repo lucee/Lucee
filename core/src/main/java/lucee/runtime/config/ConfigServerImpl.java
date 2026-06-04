@@ -751,6 +751,17 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 	}
 
 	@Override
+	public ConfigImpl resetInspectTemplate() {
+		super.resetInspectTemplate();
+		// Admin inspect-mode change drops resolution caches on all web configs — entries
+		// populated under the previous mode contract shouldn't carry across the boundary.
+		for (ConfigWeb cw: getConfigWebs()) {
+			if (cw instanceof ConfigWebPro) ((ConfigWebPro) cw).clearResolvedMappingPaths();
+		}
+		return this;
+	}
+
+	@Override
 	public void reset() {
 		super.reset();
 		getThreadQueue().clear();
@@ -840,6 +851,9 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 			anyAuto |= resetMatching(cwp.getFunctionMappings());
 			anyAuto |= resetMatching(cwp.getTagMappings());
 			anyAuto |= resetMatching(cwp.getApplicationMappings());
+			// Re-check negative entries in the resolution cache for AUTO ConfigWebs only.
+			// On a healthy config (all paths exist) this is a zero-syscall walk.
+			if (cwp.getInspectTemplate() == ConfigPro.INSPECT_AUTO) cwp.revalidateNegativeMappingPaths();
 		}
 		return anyAuto;
 	}

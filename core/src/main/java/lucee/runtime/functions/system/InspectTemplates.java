@@ -37,6 +37,9 @@ public final class InspectTemplates extends BIF implements Function {
 
 		ConfigWebPro config = (ConfigWebPro) c;
 
+		// clear cached Application.cfc mapping-path resolutions so the next request re-validates
+		config.clearResolvedMappingPaths();
+
 		// application
 		reset(config, config.getApplicationMappings());
 

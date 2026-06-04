@@ -8,6 +8,7 @@ import org.xml.sax.SAXException;
 import jakarta.servlet.ServletConfig;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lucee.commons.io.res.Resource;
 import lucee.commons.lock.KeyLock;
 import lucee.runtime.CIPage;
 import lucee.runtime.ComponentImpl;
@@ -40,6 +41,12 @@ public interface ConfigWebPro extends ConfigWeb, ConfigPro {
 	public Mapping[] getApplicationMappings();
 
 	public boolean isApplicationMapping(Mapping mapping);
+
+	public ConfigWebHelper.ResolvedMapping resolveApplicationMappingPath(Resource source, String rawPath);
+
+	public void clearResolvedMappingPaths();
+
+	public void revalidateNegativeMappingPaths();
 
 	public CIPage getBaseComponentPage(PageContext pc) throws PageException;
 
