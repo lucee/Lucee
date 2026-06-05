@@ -161,12 +161,11 @@
 	{
 		"sysprop": "lucee.compiler.block.bytecode",
 		"envvar": "LUCEE_COMPILER_BLOCK_BYTECODE",
-		"desc": "Controls whether Lucee blocks the direct execution of precompiled bytecode files (.cfm). When `true`, only source code CFML files are allowed. Bytecode execution is blocked by default in Lucee 7 for security reasons",
+		"desc": "Controls whether Lucee blocks the direct execution of precompiled bytecode files (.cfm|.cfc|.cfs). When `true`, only source code CFML files are allowed.",
 		"category": "security",
 		"type": "boolean",
 		"introduced": "6.1.1.114",
-		"defaultSince": "7.0",
-		"default": true
+		"default": false
 	},
 	{
 		"sysprop": "lucee.controller.disabled",
