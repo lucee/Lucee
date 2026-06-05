@@ -91,6 +91,11 @@ public final class PageSourceImpl implements PageSource {
 	private long lastAccess;
 	private RefIntegerSync accessCount = new RefIntegerSync();
 	private boolean flush = false;
+	// Negative-lookup cache for NEVER mappings. When loadPhysical confirms the underlying file is
+	// missing (srcLastModified == 0), this flag short-circuits future calls so repeated lookups of
+	// the same non-existent path skip the lastModified() syscall. Cleared by resetLoaded() and
+	// clear() so inspectTemplates() / PagePoolClear / classloader-clear all invalidate it.
+	private volatile boolean notFound;
 
 	private static class PageAndClassName {
 		private Page _page;
@@ -286,13 +291,18 @@ public final class PageSourceImpl implements PageSource {
 			config = ThreadLocalPageContext.getConfig();
 		}
 
+		if (notFound && mapping.getInspectTemplate() == Config.INSPECT_NEVER) return null;
+
 		if ((mapping.getInspectTemplate() == Config.INSPECT_NEVER || mapping.getInspectTemplate() == ConfigPro.INSPECT_AUTO || (pci != null && pci.isTrusted(page)))
 				&& isLoad(LOAD_PHYSICAL))
 			return page;
 		Resource srcFile = getPhyscalFile();
 
 		long srcLastModified = srcFile.lastModified();
-		if (srcLastModified == 0L) return null;
+		if (srcLastModified == 0L) {
+			if (mapping.getInspectTemplate() == Config.INSPECT_NEVER) notFound = true;
+			return null;
+		}
 		// Page exists
 		if (page != null) {
 			// if(page!=null && !recompileAlways) {
@@ -1055,17 +1065,19 @@ public final class PageSourceImpl implements PageSource {
 	public void clear() {
 		mapping.clear(pcn.getClassName());
 		pcn.reset();
+		notFound = false;
 	}
 
 	/**
 	 * clear page, but only when page use the same classloader as provided
-	 * 
+	 *
 	 * @param cl
 	 */
 	public boolean clear(ClassLoader cl) {
 		Page page = pcn.getPage();
 		if (page != null && page.getClass().getClassLoader().equals(cl)) {
 			pcn.reset();
+			notFound = false;
 			return true;
 		}
 		return false;
@@ -1156,6 +1168,7 @@ public final class PageSourceImpl implements PageSource {
 		if (LogUtil.doesTrace(mapping.getLog())) mapping.getLog().trace("page-source", "reset loaded [" + getDisplayPath() + "]");
 		Page p = pcn.getPage();
 		if (p != null) p.setLoadType((byte) 0);
+		notFound = false;
 	}
 
 	private void signalRecompileToInspectTicker() {
