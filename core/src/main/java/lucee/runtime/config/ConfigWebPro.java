@@ -44,6 +44,12 @@ public interface ConfigWebPro extends ConfigWeb, ConfigPro {
 
 	public boolean isApplicationMapping(Mapping mapping);
 
+	public ConfigWebHelper.ResolvedMapping resolveApplicationMappingPath(Resource source, String rawPath);
+
+	public void clearResolvedMappingPaths();
+
+	public void revalidateNegativeMappingPaths();
+
 	public CIPage getBaseComponentPage(PageContext pc) throws PageException;
 
 	public void resetBaseComponentPage();

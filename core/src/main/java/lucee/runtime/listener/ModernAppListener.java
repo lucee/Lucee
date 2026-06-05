@@ -47,6 +47,7 @@ import lucee.runtime.PageContextImpl;
 import lucee.runtime.PageSource;
 import lucee.runtime.PageSourceImpl;
 import lucee.runtime.component.ComponentLoader;
+import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.config.Constants;
 import lucee.runtime.debug.DebuggerImpl;
 import lucee.runtime.engine.ThreadLocalPageContext;
@@ -304,6 +305,13 @@ public class ModernAppListener extends AppListenerSupport {
 	@Override
 	public boolean onApplicationStart(PageContext pc, Application application) throws PageException {
 		Component app = getComponent(pc);
+
+		// Application scope is being created/restarted — re-check any cached negative mapping
+		// resolutions so newly-deployed paths get picked up without inspectTemplates().
+		// Positives are left alone (deletions surface as downstream 404s).
+		if (pc.getConfig() instanceof ConfigWebPro) {
+			((ConfigWebPro) pc.getConfig()).revalidateNegativeMappingPaths();
+		}
 
 		if (app != null && app.contains(pc, KeyConstants._onApplicationEnd)) {
 			if (application instanceof ApplicationImpl) ((ApplicationImpl) application).setComponent(app);

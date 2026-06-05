@@ -43,6 +43,7 @@ import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigUtil;
 import lucee.runtime.config.ConfigWeb;
+import lucee.runtime.config.ConfigWebHelper;
 import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.db.ApplicationDataSource;
 import lucee.runtime.db.ClassDefinition;
@@ -300,7 +301,7 @@ public final class AppListenerUtil {
 		while (it.hasNext()) {
 			e = it.next();
 			virtual = translateMappingVirtual(e.getKey().getString());
-			MappingData md = toMappingData(e.getValue(), source);
+			MappingData md = toMappingData(cw, e.getValue(), source);
 			mappings.add(config.getApplicationMapping("application", virtual, md.physical, md.archive, md.physicalFirst, false, !md.physicalMatch, !md.archiveMatch));
 		}
 		return ConfigUtil.sort(mappings.toArray(new Mapping[mappings.size()]));
@@ -319,7 +320,7 @@ public final class AppListenerUtil {
 			e = it.next();
 			virtual = translateMappingVirtual(e.getKey().getString());
 			try {
-				MappingData md = toMappingData(e.getValue(), source);
+				MappingData md = toMappingData(cw, e.getValue(), source);
 				mappings.add(config.getApplicationMapping("application", virtual, md.physical, md.archive, md.physicalFirst, false, !md.physicalMatch, !md.archiveMatch));
 			}
 			catch (Exception ex) {
@@ -330,7 +331,7 @@ public final class AppListenerUtil {
 		return ConfigUtil.sort(mappings.toArray(new Mapping[mappings.size()]));
 	}
 
-	private static MappingData toMappingData(Object value, Resource source) throws PageException {
+	private static MappingData toMappingData(ConfigWeb cw, Object value, Resource source) throws PageException {
 		MappingData md = new MappingData();
 
 		if (Decision.isStruct(value)) {
@@ -342,13 +343,13 @@ public final class AppListenerUtil {
 			// physical
 			String physical = Caster.toString(map.get("physical", null), null);
 			if (!StringUtil.isEmpty(physical, true)) {
-				translateMappingPhysical(md, physical.trim(), source, allowRelPath, false);
+				translateMappingPhysical(cw, md, physical.trim(), source, allowRelPath, false);
 			}
 
 			// archive
 			String archive = Caster.toString(map.get("archive", null), null);
 			if (!StringUtil.isEmpty(archive, true)) {
-				translateMappingPhysical(md, archive.trim(), source, allowRelPath, true);
+				translateMappingPhysical(cw, md, archive.trim(), source, allowRelPath, true);
 			}
 
 			if (archive == null && physical == null) throw new ApplicationException("you must define archive or/and physical!");
@@ -366,33 +367,51 @@ public final class AppListenerUtil {
 		// simple value == only a physical path
 		else {
 			md.physicalFirst = true;
-			translateMappingPhysical(md, Caster.toString(value).trim(), source, true, false);
+			translateMappingPhysical(cw, md, Caster.toString(value).trim(), source, true, false);
 		}
 
 		return md;
 	}
 
-	private static void translateMappingPhysical(MappingData md, String path, Resource source, boolean allowRelPath, boolean isArchive) {
+	private static void translateMappingPhysical(ConfigWeb cw, MappingData md, String path, Resource source, boolean allowRelPath, boolean isArchive) {
+		String resolvedPath;
+		boolean matched;
+
 		if (source == null || !allowRelPath) {
-			if (isArchive) md.archive = path;
-			else md.physical = path;
-			return;
+			resolvedPath = path;
+			matched = false;
 		}
-		source = source.getParentResource().getRealResource(path);
-		if (source.exists()) {
-			if (isArchive) {
-				md.archive = source.getAbsolutePath();
-				md.archiveMatch = true;
+		else {
+			int inspect = cw == null ? Config.INSPECT_UNDEFINED : cw.getInspectTemplate();
+			boolean cacheable = inspect == Config.INSPECT_NEVER || inspect == ConfigPro.INSPECT_AUTO;
+
+			if (cacheable) {
+				ConfigWebHelper.ResolvedMapping rm = ((ConfigWebPro) cw).resolveApplicationMappingPath(source, path);
+				resolvedPath = rm.path;
+				matched = rm.matched;
 			}
 			else {
-				md.physical = source.getAbsolutePath();
-				md.physicalMatch = true;
+				// Legacy path — unchanged behaviour for ONCE and ALWAYS
+				Resource resolved = source.getParentResource().getRealResource(path);
+				if (resolved.exists()) {
+					resolvedPath = resolved.getAbsolutePath();
+					matched = true;
+				}
+				else {
+					resolvedPath = path;
+					matched = false;
+				}
 			}
-			return;
 		}
 
-		if (isArchive) md.archive = path;
-		else md.physical = path;
+		if (isArchive) {
+			md.archive = resolvedPath;
+			md.archiveMatch = matched;
+		}
+		else {
+			md.physical = resolvedPath;
+			md.physicalMatch = matched;
+		}
 	}
 
 	private static String translateMappingVirtual(String virtual) {
@@ -449,7 +468,7 @@ public final class AppListenerUtil {
 					if (virtual.length() == 0) virtual = "/";
 					if (!virtual.startsWith("/")) virtual = "/" + virtual;
 					if (!virtual.equals("/") && virtual.endsWith("/")) virtual = virtual.substring(0, virtual.length() - 1);
-					MappingData md = toMappingData(e.getValue(), source);
+					MappingData md = toMappingData(cw, e.getValue(), source);
 					list.add(config.getApplicationMapping(type, virtual, md.physical, md.archive, md.physicalFirst, true, !md.physicalMatch, !md.archiveMatch));
 				}
 				return list.toArray(new Mapping[list.size()]);
@@ -467,7 +486,7 @@ public final class AppListenerUtil {
 		MappingImpl[] mappings = new MappingImpl[array.size()];
 		for (int i = 0; i < mappings.length; i++) {
 
-			MappingData md = toMappingData(array.getE(i + 1), source);
+			MappingData md = toMappingData(cw, array.getE(i + 1), source);
 			mappings[i] = (MappingImpl) config.getApplicationMapping(type, "/" + i, md.physical, md.archive, md.physicalFirst, true, !md.physicalMatch, !md.archiveMatch);
 		}
 		return mappings;
