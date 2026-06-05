@@ -439,6 +439,14 @@
 		"default": null
 	},
 	{
+		"sysprop": "lucee.io.block.size",
+		"envvar": "LUCEE_IO_BLOCK_SIZE",
+		"desc": "Buffer size in bytes/chars used by IOUtil copy operations and the IOUtil ThreadLocal byte/char buffer pools. Lower values reduce per-thread memory tax for short-lived threads (e.g. cfthread storm workloads); higher values amortise fewer reads on long-lived threads doing big copies. Range typically 1024-65535.",
+		"category": "performance",
+		"type": "integer",
+		"default": 65535
+	},
+	{
 		"sysprop": "lucee.isdefined.limit",
 		"envvar": "LUCEE_ISDEFINED_LIMIT",
 		"desc": "Alias for lucee.security.limitEvaluation, limits variable evaluation in isDefined",

@@ -699,8 +699,8 @@ public final class PageContextImpl extends PageContext {
 			threads = null;
 			allThreads = null;
 			currentThread = null;
-			cgiR = new CGIImplReadOnly();
-			cgiRW = new CGIImpl();
+			cgiR = null;
+			cgiRW = null;
 			if (lastStanding) cookie.release(this);
 		}
 		else {

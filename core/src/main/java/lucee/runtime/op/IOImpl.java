@@ -127,12 +127,12 @@ public final class IOImpl implements IO {
 
 	@Override
 	public Reader getReader(InputStream is, Charset charset) throws IOException {
-		return IOUtil.getReader(is, charset);
+		return IOUtil.toBufferedReader(IOUtil.getReader(is, charset));
 	}
 
 	@Override
 	public Reader getReader(Resource res, Charset charset) throws IOException {
-		return IOUtil.getReader(res, charset);
+		return IOUtil.toBufferedReader(IOUtil.getReader(res, charset));
 	}
 
 	@Override
