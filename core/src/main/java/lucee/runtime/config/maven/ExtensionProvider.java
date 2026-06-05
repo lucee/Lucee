@@ -213,11 +213,17 @@ public class ExtensionProvider {
 			thread.join();
 		}
 
-		// handle exceptions
-		if (exceptions.size() > 0) {
-			Exception e = exceptions.pop();
-			if (e instanceof InterruptedException) throw (InterruptedException) e;
-			throw ExceptionUtil.toIOException(e);
+		// only escalate when every endpoint failed, otherwise the reachable repos still provide a result
+		Exception toThrow = (exceptions.size() > 0 && exceptions.size() >= repos.size()) ? exceptions.pop() : null;
+
+		// log the endpoint failures we swallow (i.e. all except the one we rethrow, if any)
+		for (Exception e: exceptions) {
+			LogUtil.log((Config) null, "extension-provider", e, Log.LEVEL_WARN, "mvn");
+		}
+
+		if (toThrow != null) {
+			if (toThrow instanceof InterruptedException) throw (InterruptedException) toThrow;
+			throw ExceptionUtil.toIOException(toThrow);
 		}
 		return subfolders;
 	}
