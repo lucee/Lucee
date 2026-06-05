@@ -367,4 +367,4 @@ Require-Extension: org.lucee:mysql-jdbc-extension:9.6.0,
  org.lucee:scheduler-classic-extension:1.0.0.1,
  org.lucee:compress-extension:2.1.0.2-SNAPSHOT,
  org.lucee:mail-extension:1.1.0.6,
- org.lucee:ftp-extension:1.0.0.5-RC
+ org.lucee:ftp-extension:1.0.0.6-RC

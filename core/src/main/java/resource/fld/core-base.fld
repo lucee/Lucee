@@ -2747,7 +2747,68 @@ The returned AST uses **neutral, language-agnostic node types** following ESTree
 			<type>struct</type>
 		</return>
 	</function>
-
+	
+	<!-- compileToBytecode -->
+	<function>
+		<name>compileToBytecode</name>
+		<class>lucee.runtime.functions.system.CompileToBytecode</class>
+		<description>Compile CFML templates to bytecode and replace the source file in place. Optionally keep a dot-prefixed copy of the source and encrypt the bytecode with an RSA private key.</description>
+		<argument>
+			<name>path</name>
+			<type>string</type>
+			<required>Yes</required>
+			<description>Path (relative or absolute) to a CFML file or directory to compile.</description>
+		</argument>
+		<argument>
+			<name>keepSource</name>
+			<type>boolean</type>
+			<required>No</required>
+			<default>false</default>
+			<description>When true, a copy of the source is stored alongside the template using a dot prefix (for example index.cfm becomes .index.cfm).</description>
+		</argument>
+		<argument>
+			<name>privateKey</name>
+			<type>string</type>
+			<required>No</required>
+			<description>RSA private key used to encrypt the bytecode. The matching public key must be configured as PUBLIC_KEY environment variable or system property on the server that executes the template.</description>
+		</argument>
+		<argument>
+			<name>recursive</name>
+			<type>boolean</type>
+			<required>No</required>
+			<default>true</default>
+			<description>When path is a directory, also compile CFML files in subdirectories.</description>
+		</argument>
+		<return>
+			<type>struct</type>
+			<description>Struct with keys compiled, skipped, errors and warnings.</description>
+		</return>
+	</function>
+	
+	<!-- restoreToSource -->
+	<function>
+		<name>restoreToSource</name>
+		<class>lucee.runtime.functions.system.RestoreToSource</class>
+		<description>Restore CFML source files from dot-prefixed backups created by compileToBytecode. Replaces bytecode templates with their source and deletes the backup file.</description>
+		<argument>
+			<name>path</name>
+			<type>string</type>
+			<required>Yes</required>
+			<description>Path (relative or absolute) to a CFML file or directory to restore.</description>
+		</argument>
+		<argument>
+			<name>recursive</name>
+			<type>boolean</type>
+			<required>No</required>
+			<default>true</default>
+			<description>When path is a directory, also restore CFML files in subdirectories.</description>
+		</argument>
+		<return>
+			<type>struct</type>
+			<description>Struct with keys restored, skipped and errors.</description>
+		</return>
+	</function>
+	
 	<!-- compress -->
 	<function>
 		<name>compress</name>
