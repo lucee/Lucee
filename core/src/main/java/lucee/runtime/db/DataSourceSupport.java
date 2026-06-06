@@ -62,7 +62,7 @@ public abstract class DataSourceSupport implements DataSourcePro, Cloneable, Ser
 	private final ClassDefinition cd;
 
 	private transient Map<String, SoftReference<ProcMetaCollection>> procedureColumnCache;
-	private transient Driver driver;
+	private transient volatile Driver driver;
 	private transient Log log;
 	private final TagListener listener;
 	private final boolean requestExclusive;
@@ -147,10 +147,13 @@ public abstract class DataSourceSupport implements DataSourcePro, Cloneable, Ser
 	}
 
 	private Driver initialize(Config config) throws Exception {
-		if (driver == null) {
+		Driver d = driver;
+		if (d != null) return d;
+		synchronized (this) {
+			d = driver;
+			if (d != null) return d;
 			return driver = _initializeDriver(cd, config);
 		}
-		return driver;
 	}
 
 	private static Driver _initializeDriver(ClassDefinition cd, Config config) throws Exception {
