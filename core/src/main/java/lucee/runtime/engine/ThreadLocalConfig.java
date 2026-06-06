@@ -28,13 +28,9 @@ import lucee.runtime.config.ConfigPro;
 public final class ThreadLocalConfig {
 
 	private static InheritableThreadLocal<Config> cThreadLocal = new InheritableThreadLocal<Config>();
-	// SavedCCL holder distinguishes "saved null" from "never saved" so the re-entrancy guard works on threads with a null CCL.
-	private static ThreadLocal<SavedCCL> prevCCL = new ThreadLocal<>();
-
-	private static final class SavedCCL {
-		final ClassLoader value;
-		SavedCCL(ClassLoader value) { this.value = value; }
-	}
+	// CCL_UNSET sentinel distinguishes "never saved" from "saved a null CCL"; some boot/gateway threads legitimately have a null context classloader.
+	private static final ClassLoader CCL_UNSET = new ClassLoader(null) {};
+	private static ThreadLocal<ClassLoader> prevCCL = ThreadLocal.withInitial(() -> CCL_UNSET);
 
 	/**
 	 * register a Config for he current thread
@@ -47,14 +43,15 @@ public final class ThreadLocalConfig {
 			return;
 		}
 		Thread t = Thread.currentThread();
-		// capture the original CCL on the first register so release() can restore
-		// it. The null check is a re-entrancy guard: Controler.run calls
-		// register(config) 4x before its single release(); without the guard, the
-		// second register would clobber the original save with the Lucee CCL.
-		if (prevCCL.get() == null) {
-			prevCCL.set(new SavedCCL(t.getContextClassLoader()));
+		ClassLoader target = ((ConfigPro) config).getClassLoaderEnv();
+		ClassLoader current = t.getContextClassLoader();
+		// fast path: re-entrant register where the CCL already matches (e.g. Controler.run's 4x register cycle)
+		if (current == target) return;
+		// first register on this thread captures the pre-Lucee CCL; nested register with a different target keeps the original save
+		if (prevCCL.get() == CCL_UNSET) {
+			prevCCL.set(current);
 		}
-		t.setContextClassLoader(((ConfigPro) config).getClassLoaderEnv());
+		t.setContextClassLoader(target);
 	}
 
 	/**
@@ -71,9 +68,9 @@ public final class ThreadLocalConfig {
 	 */
 	public static void release() {
 		cThreadLocal.set(null);
-		SavedCCL prev = prevCCL.get();
-		if (prev != null) {
-			Thread.currentThread().setContextClassLoader(prev.value);
+		ClassLoader prev = prevCCL.get();
+		if (prev != CCL_UNSET) {
+			Thread.currentThread().setContextClassLoader(prev);
 			prevCCL.remove();
 		}
 	}
