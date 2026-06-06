@@ -15,6 +15,7 @@ import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.DatasourceConnPool;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.DatabaseException;
 import lucee.runtime.exp.PageException;
 
@@ -27,6 +28,7 @@ public final class DatasourceConnectionFactory extends BasePooledObjectFactory<D
 	private final String username;
 	private final String password;
 	private final String logName;
+	private final Log log;
 
 	public DatasourceConnectionFactory(Config config, DataSource datasource, String username, String password, String logName) {
 		this.config = config;
@@ -42,6 +44,7 @@ public final class DatasourceConnectionFactory extends BasePooledObjectFactory<D
 		}
 
 		this.logName = StringUtil.isEmpty(logName) ? null : logName;
+		this.log = ThreadLocalPageContext.getLog(config, this.logName != null ? this.logName : "application");
 		// TODO use socketTimeout
 	}
 
@@ -51,7 +54,7 @@ public final class DatasourceConnectionFactory extends BasePooledObjectFactory<D
 
 	@Override
 	public DatasourceConnection create() throws IOException {
-		LogUtil.log(config, Log.LEVEL_DEBUG, logName, "connection", "create datasource connection: " + datasource.getName());
+		if (LogUtil.doesDebug(log)) log.log(Log.LEVEL_DEBUG, "connection", "create datasource connection: " + datasource.getName());
 
 		Connection conn = null;
 		try {
@@ -76,22 +79,22 @@ public final class DatasourceConnectionFactory extends BasePooledObjectFactory<D
 
 	@Override
 	public boolean validateObject(PooledObject<DatasourceConnection> p) {
-		LogUtil.log(config, Log.LEVEL_DEBUG, logName, "connection", "validate datasource connection: " + datasource.getName());
+		if (LogUtil.doesDebug(log)) log.log(Log.LEVEL_DEBUG, "connection", "validate datasource connection: " + datasource.getName());
 		DatasourceConnection dc = p.getObject();
 
 		if (dc.isTimeout()) {
-			LogUtil.log(config, Log.LEVEL_DEBUG, logName, "connection", "reached idle timeout for datasource connection: " + datasource.getName());
+			if (LogUtil.doesDebug(log)) log.log(Log.LEVEL_DEBUG, "connection", "reached idle timeout for datasource connection: " + datasource.getName());
 			return false;
 		}
 
 		if (dc.isLifecycleTimeout()) {
-			LogUtil.log(config, Log.LEVEL_DEBUG, logName, "connection", "reached life timeout for datasource connection: " + datasource.getName());
+			if (LogUtil.doesDebug(log)) log.log(Log.LEVEL_DEBUG, "connection", "reached life timeout for datasource connection: " + datasource.getName());
 			return false;
 		}
 
 		try {
 			if (dc.getConnection().isClosed()) {
-				LogUtil.log(config, Log.LEVEL_DEBUG, logName, "connection", "datasource connection is closed: " + datasource.getName());
+				if (LogUtil.doesDebug(log)) log.log(Log.LEVEL_DEBUG, "connection", "datasource connection is closed: " + datasource.getName());
 				return false;
 			}
 		}
@@ -102,7 +105,7 @@ public final class DatasourceConnectionFactory extends BasePooledObjectFactory<D
 
 		try {
 			if (dc.getDatasource().validate() && !DataSourceUtil.isValid(dc, 1)) {
-				LogUtil.log(config, Log.LEVEL_DEBUG, logName, "connection", "datasource connection failed isValid check: " + datasource.getName());
+				if (LogUtil.doesDebug(log)) log.log(Log.LEVEL_DEBUG, "connection", "datasource connection failed isValid check: " + datasource.getName());
 				return false;
 			}
 		}
@@ -120,13 +123,13 @@ public final class DatasourceConnectionFactory extends BasePooledObjectFactory<D
 
 	@Override
 	public void activateObject(PooledObject<DatasourceConnection> p) throws PageException {
-		LogUtil.log(config, Log.LEVEL_DEBUG, logName, "connection", "activate datasource connection: " + datasource.getName());
+		if (LogUtil.doesDebug(log)) log.log(Log.LEVEL_DEBUG, "connection", "activate datasource connection: " + datasource.getName());
 		((DatasourceConnectionImpl) p.getObject()).using();
 	}
 
 	@Override
 	public void destroyObject(PooledObject<DatasourceConnection> p) throws PageException {
-		LogUtil.log(config, Log.LEVEL_DEBUG, logName, "connection", "destroy datasource connection: " + datasource.getName());
+		if (LogUtil.doesDebug(log)) log.log(Log.LEVEL_DEBUG, "connection", "destroy datasource connection: " + datasource.getName());
 		DatasourceConnection dc = null;
 		try {
 			dc = p.getObject();

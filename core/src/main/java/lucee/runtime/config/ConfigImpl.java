@@ -222,10 +222,10 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 
 	private Boolean mergeFormAndURL;
 
-	private Map<String, LoggerAndSourceData> loggers;
+	private volatile Map<String, LoggerAndSourceData> loggers;
 
 	private Integer debugLogOutput;
-	private Integer debugOptions;
+	private volatile Integer debugOptions;
 
 	private boolean suppresswhitespace = false;
 	private Boolean suppressContent;
