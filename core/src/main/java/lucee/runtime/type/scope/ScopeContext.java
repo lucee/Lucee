@@ -143,6 +143,10 @@ public final class ScopeContext {
 		error(getLog(), t);
 	}
 
+	public static void trace(Log log, String msg) {
+		if (LogUtil.doesTrace(log)) log.log(Log.LEVEL_TRACE, "scope-context", msg + "; " + ExceptionUtil.getTagContextLine(null));
+	}
+
 	public static void debug(Log log, String msg) {
 		if (LogUtil.doesDebug(log)) log.log(Log.LEVEL_DEBUG, "scope-context", msg + "; " + ExceptionUtil.getTagContextLine(null));
 	}
@@ -311,8 +315,7 @@ public final class ScopeContext {
 			}
 		}
 		else {
-			getLog().log(Log.LEVEL_INFO, "scope-context",
-					"use existing " + (isSession ? "session" : "client") + " scope for " + appContext.getName() + "/" + pc.getCFID() + " from storage " + storage);
+			trace(getLog(), "Use existing " + (isSession ? "session" : "client") + " scope for [" + appContext.getName() + "/" + pc.getCFID() + "] from storage " + storage);
 		}
 		scope.touchBeforeRequest(pc);
 		return scope;
@@ -548,7 +551,7 @@ public final class ScopeContext {
 		Map<String, Map<String, Scope>> contexts = type == Scope.SCOPE_CLIENT ? cfClientContexts : cfSessionContexts;
 		Map<String, Scope> context = getSubMap(contexts, appName);
 		Object res = context.remove(cfid);
-		getLog().log(Log.LEVEL_INFO, "scope-context", "remove " + VariableInterpreter.scopeInt2String(type) + " scope " + appName + "/" + cfid + " from memory");
+		debug(getLog(), "Remove " + VariableInterpreter.scopeInt2String(type) + " scope [" + appName + "/" + cfid + "] from memory");
 
 		return res != null;
 	}
@@ -584,11 +587,22 @@ public final class ScopeContext {
 			jSession = (JSession) session;
 			try {
 				if (jSession.isExpired()) {
-					if (httpSession == null) jSession.touch();
-					else jSession = createNewJSession(pc, httpSession);
-
+					if (httpSession == null) {
+						jSession.touch();
+						debug(getLog(), "JSession expired (no httpSession) — touched for [" + appContext.getName() + "/" + pc.getCFID() + "]");
+					}
+					else {
+						long now = System.currentTimeMillis();
+						long jsessionLastAccessAgo = now - jSession.getLastAccess();
+						long httpLastAccessedAgo = now - httpSession.getLastAccessedTime();
+						info(getLog(), "JSession expired but HttpSession still alive for [" + appContext.getName() + "/" + pc.getCFID() + "]"
+								+ " — replacing data (jsession.lastAccess=" + jsessionLastAccessAgo + "ms ago, httpSession.lastAccessed=" + httpLastAccessedAgo + "ms ago, gap=" + (jsessionLastAccessAgo - httpLastAccessedAgo) + "ms)");
+						jSession = createNewJSession(pc, httpSession);
+					}
 				}
-				info(getLog(), "use existing JSession for " + appContext.getName() + "/" + pc.getCFID());
+				else {
+					trace(getLog(), "Use existing JSession for [" + appContext.getName() + "/" + pc.getCFID() + "]");
+				}
 
 			}
 			catch (ClassCastException cce) {
@@ -611,12 +625,45 @@ public final class ScopeContext {
 
 	private JSession createNewJSession(PageContext pc, HttpSession httpSession) {
 		ApplicationContext appContext = pc.getApplicationContext();
-		debug(getLog(), "create new JSession for " + appContext.getName() + "/" + pc.getCFID());
+		Map<String, Scope> context = getSubMap(cfSessionContexts, appContext.getName());
+
+		Object prior = context.get(pc.getCFID());
+		Log log = getLog();
+		if (prior == null) {
+			if (LogUtil.doesDebug(log)) {
+				log.log(Log.LEVEL_DEBUG, "scope-context",
+						"Create new JSession for [" + appContext.getName() + "/" + pc.getCFID() + "]"
+								+ " — no prior cfSessionContexts entry" + diagSuffix(httpSession));
+			}
+		}
+		else if (prior instanceof JSession) {
+			if (LogUtil.doesInfo(log)) {
+				JSession priorJSession = (JSession) prior;
+				long lastAccessAgo = System.currentTimeMillis() - priorJSession.getLastAccess();
+				log.log(Log.LEVEL_INFO, "scope-context",
+						"Create new JSession for [" + appContext.getName() + "/" + pc.getCFID() + "]"
+								+ " — replacing prior JSession (lastAccess=" + lastAccessAgo + "ms ago, expired=" + priorJSession.isExpired() + ")"
+								+ diagSuffix(httpSession));
+			}
+		}
+		else {
+			if (LogUtil.doesWarn(log)) {
+				log.log(Log.LEVEL_WARN, "scope-context",
+						"Create new JSession for [" + appContext.getName() + "/" + pc.getCFID() + "]"
+								+ " — prior entry was non-JSession: " + prior.getClass().getName() + diagSuffix(httpSession));
+			}
+		}
+
 		JSession jSession = new JSession();
 		httpSession.setAttribute(appContext.getName(), jSession);
-		Map<String, Scope> context = getSubMap(cfSessionContexts, appContext.getName());
 		context.put(pc.getCFID(), jSession);
 		return jSession;
+	}
+
+	private static String diagSuffix(HttpSession httpSession) {
+		return " httpSessionId=" + httpSession.getId()
+				+ " httpSessionAge=" + (System.currentTimeMillis() - httpSession.getCreationTime()) + "ms"
+				+ " maxInactiveInterval=" + httpSession.getMaxInactiveInterval() + "s";
 	}
 
 	/**
@@ -684,12 +731,12 @@ public final class ScopeContext {
 					});
 
 			// store session/client scope and remove from memory
-			storeUnusedStorageScope(factory, Scope.SCOPE_CLIENT, force);
-			storeUnusedStorageScope(factory, Scope.SCOPE_SESSION, force);
+			int clientStored = storeUnusedStorageScope(factory, Scope.SCOPE_CLIENT, force);
+			int sessionStored = storeUnusedStorageScope(factory, Scope.SCOPE_SESSION, force);
 
 			// remove unused memory based client/session scope (invoke onSessonEnd)
-			clearUnusedMemoryScope(factory, Scope.SCOPE_CLIENT);
-			clearUnusedMemoryScope(factory, Scope.SCOPE_SESSION);
+			int clientEnded = clearUnusedMemoryScope(factory, Scope.SCOPE_CLIENT);
+			int sessionEnded = clearUnusedMemoryScope(factory, Scope.SCOPE_SESSION);
 
 			// session must be executed first, because session creates a reference from client scope
 			session.clean(force);
@@ -697,6 +744,11 @@ public final class ScopeContext {
 
 			// clean all unused application scopes
 			clearUnusedApplications(factory);
+
+			if (sessionEnded + clientEnded + sessionStored + clientStored > 0) {
+				info(getLog(), "Scope expiry: ended " + sessionEnded + " session(s), " + clientEnded + " client scope(s); moved to backing storage "
+						+ sessionStored + " session(s), " + clientStored + " client scope(s)");
+			}
 		}
 		catch (Exception t) {
 			error(t);
@@ -753,13 +805,14 @@ public final class ScopeContext {
 		}
 	}
 
-	private void storeUnusedStorageScope(CFMLFactoryImpl cfmlFactory, int type, boolean force) {
+	private int storeUnusedStorageScope(CFMLFactoryImpl cfmlFactory, int type, boolean force) {
 		Map<String, Map<String, Scope>> contexts = type == Scope.SCOPE_CLIENT ? cfClientContexts : cfSessionContexts;
 		long timespan = type == Scope.SCOPE_CLIENT ? CLIENT_MEMORY_TIMESPAN : SESSION_MEMORY_TIMESPAN;
 		String strType = VariableInterpreter.scopeInt2String(type);
 
-		if (contexts.size() == 0) return;
+		if (contexts.size() == 0) return 0;
 		long now = System.currentTimeMillis();
+		int removed = 0;
 		Object[] arrContexts = contexts.keySet().toArray();
 		Object applicationName, cfid, o;
 		Map<String, Scope> fhm;
@@ -777,21 +830,23 @@ public final class ScopeContext {
 					StorageScope scope = (StorageScope) o;
 					if (scope.lastVisit() + timespan < now || (force && scope.isExpired())) {
 						if (!(scope instanceof MemoryScope)) {
-							getLog().log(Log.LEVEL_INFO, "scope-context",
-									"remove " + strType + " scope [" + applicationName + "/" + cfid + "] from memory, it remain in storage [" + scope.getStorage() + "]");
+							debug(getLog(), "Remove " + strType + " scope [" + applicationName + "/" + cfid + "] from memory, it remains in storage [" + scope.getStorage() + "]");
 							fhm.remove(arrClients[y]);
 							count--;
+							removed++;
 						}
 						else if (!((MemoryScope) scope).hasContent()) {
-							getLog().log(Log.LEVEL_INFO, "scope-context", "remove " + strType + " scope [" + applicationName + "/" + cfid + "] from memory, because it is empty.");
+							debug(getLog(), "Remove " + strType + " scope [" + applicationName + "/" + cfid + "] from memory, because it is empty.");
 							fhm.remove(arrClients[y]);
 							count--;
+							removed++;
 						}
 					}
 				}
 				if (count == 0) contexts.remove(arrContexts[i]);
 			}
 		}
+		return removed;
 	}
 
 	/**
@@ -844,9 +899,10 @@ public final class ScopeContext {
 	 * @param cfmlFactory
 	 *
 	 */
-	private void clearUnusedMemoryScope(CFMLFactoryImpl cfmlFactory, int type) {
+	private int clearUnusedMemoryScope(CFMLFactoryImpl cfmlFactory, int type) {
 		Map<String, Map<String, Scope>> contexts = type == Scope.SCOPE_CLIENT ? cfClientContexts : cfSessionContexts;
-		if (contexts.size() == 0) return;
+		if (contexts.size() == 0) return 0;
+		int ended = 0;
 		Object[] arrContexts = contexts.keySet().toArray();
 		ApplicationListener listener = cfmlFactory.getConfig().getApplicationListener();
 		Object applicationName, cfid, o;
@@ -888,15 +944,16 @@ public final class ScopeContext {
 							if (application != null) application.setLastAccess(appLastAccess);
 							fhm.remove(cfids[y]);
 							scope.release(ThreadLocalPageContext.get());
-							getLog().log(Log.LEVEL_INFO, "scope-context",
-									"remove memory based " + VariableInterpreter.scopeInt2String(type) + " scope for [" + applicationName + "/" + cfid + "]");
+							debug(getLog(), "Remove memory based " + VariableInterpreter.scopeInt2String(type) + " scope for [" + applicationName + "/" + cfid + "]");
 							count--;
+							ended++;
 						}
 					}
 				}
 				if (count == 0) contexts.remove(arrContexts[i]);
 			}
 		}
+		return ended;
 	}
 
 	private void clearUnusedApplications(CFMLFactoryImpl jspFactory) {
@@ -952,6 +1009,14 @@ public final class ScopeContext {
 		boolean hasClientManagement = appContext.isSetClientManagement();
 		boolean hasSessionManagement = appContext.isSetSessionManagement();
 		boolean isJ2EESession = pc.getSessionType() == Config.SESSION_TYPE_JEE;
+
+		Log log = getLog();
+		if (LogUtil.doesDebug(log)) {
+			log.log(Log.LEVEL_DEBUG, "scope-context",
+					"Invalidate user scope [" + appContext.getName() + "/" + pc.getCFID() + "]"
+							+ " sessionType=" + (isJ2EESession ? "jee" : "cf")
+							+ " migrate=" + migrateSessionData);
+		}
 
 		// get in memory scopes
 		UserScope oldClient = null;
