@@ -29,6 +29,7 @@ import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.tag.TagImpl;
 import lucee.runtime.net.ldap.LDAPClient;
+import lucee.runtime.net.ldap.LDAPSSLSocketFactory;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Query;
 import lucee.runtime.type.util.ArrayUtil;
@@ -386,44 +387,48 @@ public final class Ldap extends TagImpl {
 	}
 
 	private int _doStartTag() throws NamingException, PageException, IOException, ClassException {
+		try {
+			// LDAPClient client=new
+			// LDAPClient(server,port,secureLevel,returnAsBinary,username,password,referral);
+			LDAPClient client = new LDAPClient(server, port, timeout, returnAsBinary);
+			if (secureLevel != LDAPClient.SECURE_NONE) client.setSecureLevel(secureLevel, clientCert, clientCertPassword);
+			if (username != null) client.setCredential(username, password);
+			if (referral > 0) client.setReferral(referral);
 
-		// LDAPClient client=new
-		// LDAPClient(server,port,secureLevel,returnAsBinary,username,password,referral);
-		LDAPClient client = new LDAPClient(server, port, timeout, returnAsBinary);
-		if (secureLevel != LDAPClient.SECURE_NONE) client.setSecureLevel(secureLevel, clientCert, clientCertPassword);
-		if (username != null) client.setCredential(username, password);
-		if (referral > 0) client.setReferral(referral);
+			if (action.equals("add")) {
+				required("LDAP", action, "attributes", attributes);
+				required("LDAP", action, "dn", dn);
+				client.add(dn, attributes, delimiter, separator);
+			}
+			else if (action.equals("delete")) {
+				required("LDAP", action, "dn", dn);
+				client.delete(dn);
+			}
+			else if (action.equals("modifydn")) {
+				required("LDAP", action, "attributes", attributes);
+				required("LDAP", action, "dn", dn);
+				client.modifydn(dn, attributes);
+			}
+			else if (action.equals("modify")) {
+				required("LDAP", action, "attributes", attributes);
+				required("LDAP", action, "dn", dn);
+				client.modify(dn, modifyType, attributes, delimiter, separator);
+			}
+			else if (action.equals("query")) {
+				required("LDAP", action, "start", start);
+				required("LDAP", action, "attributes", attributes);
+				required("LDAP", action, "name", name);
+				Query qry = client.query(attributes, scope, startrow, maxrows, timeout, sort, sortType, sortDirection, start, separator, filter);
+				pageContext.setVariable(name, qry);
 
-		if (action.equals("add")) {
-			required("LDAP", action, "attributes", attributes);
-			required("LDAP", action, "dn", dn);
-			client.add(dn, attributes, delimiter, separator);
-		}
-		else if (action.equals("delete")) {
-			required("LDAP", action, "dn", dn);
-			client.delete(dn);
-		}
-		else if (action.equals("modifydn")) {
-			required("LDAP", action, "attributes", attributes);
-			required("LDAP", action, "dn", dn);
-			client.modifydn(dn, attributes);
-		}
-		else if (action.equals("modify")) {
-			required("LDAP", action, "attributes", attributes);
-			required("LDAP", action, "dn", dn);
-			client.modify(dn, modifyType, attributes, delimiter, separator);
-		}
-		else if (action.equals("query")) {
-			required("LDAP", action, "start", start);
-			required("LDAP", action, "attributes", attributes);
-			required("LDAP", action, "name", name);
-			Query qry = client.query(attributes, scope, startrow, maxrows, timeout, sort, sortType, sortDirection, start, separator, filter);
-			pageContext.setVariable(name, qry);
+			}
+			else throw new ApplicationException("invalid value for attribute action [" + action + "], valid values are [add,delete,modifydn,modify,query]");
 
+			return SKIP_BODY;
 		}
-		else throw new ApplicationException("invalid value for attribute action [" + action + "], valid values are [add,delete,modifydn,modify,query]");
-
-		return SKIP_BODY;
+		finally {
+			LDAPSSLSocketFactory.clear();
+		}
 	}
 
 }
