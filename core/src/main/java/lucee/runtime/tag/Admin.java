@@ -1921,19 +1921,41 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 		admin.checkWriteAccess();
 
-		ConfigServerImpl.metaDebugOptionsDatabase.write(configServer, attributes);
-		ConfigServerImpl.metaDebugOptionsTemplate.write(configServer, attributes);
-		ConfigServerImpl.metaDebugOptionsException.write(configServer, attributes);
-		ConfigServerImpl.metaDebugOptionsTracing.write(configServer, attributes);
-		ConfigServerImpl.metaDebugOptionsDump.write(configServer, attributes);
-		ConfigServerImpl.metaDebugOptionsTimer.write(configServer, attributes);
-		ConfigServerImpl.metaDebugOptionsImplicitAccess.write(configServer, attributes);
-		ConfigServerImpl.metaDebugOptionsQueryUsage.write(configServer, attributes);
-		ConfigServerImpl.metaDebugOptionsThread.write(configServer, attributes);
+		Struct input = mapLegacyDebugAttributes(attributes);
+
+		ConfigServerImpl.metaDebugOptionsDatabase.write(configServer, input);
+		ConfigServerImpl.metaDebugOptionsTemplate.write(configServer, input);
+		ConfigServerImpl.metaDebugOptionsException.write(configServer, input);
+		ConfigServerImpl.metaDebugOptionsTracing.write(configServer, input);
+		ConfigServerImpl.metaDebugOptionsDump.write(configServer, input);
+		ConfigServerImpl.metaDebugOptionsTimer.write(configServer, input);
+		ConfigServerImpl.metaDebugOptionsImplicitAccess.write(configServer, input);
+		ConfigServerImpl.metaDebugOptionsQueryUsage.write(configServer, input);
+		ConfigServerImpl.metaDebugOptionsThread.write(configServer, input);
 
 		store();
 		ConfigUtil.getConfigServerImpl(config).resetDebugOptions();
 
+	}
+
+	private static Struct mapLegacyDebugAttributes(Struct attributes) throws PageException {
+		Struct input = (Struct) Duplicator.duplicate(attributes, false);
+		mapLegacyDebugAttribute(input, "template", "debuggingTemplate");
+		mapLegacyDebugAttribute(input, "database", "debuggingDatabase");
+		mapLegacyDebugAttribute(input, "exception", "debuggingException");
+		mapLegacyDebugAttribute(input, "tracing", "debuggingTracing");
+		mapLegacyDebugAttribute(input, "dump", "debuggingDump");
+		mapLegacyDebugAttribute(input, "timer", "debuggingTimer");
+		mapLegacyDebugAttribute(input, "implicitAccess", "debuggingImplicitAccess");
+		mapLegacyDebugAttribute(input, "queryUsage", "debuggingQueryUsage");
+		mapLegacyDebugAttribute(input, "thread", "debuggingThread");
+		return input;
+	}
+
+	private static void mapLegacyDebugAttribute(Struct input, String legacy, String canonical) {
+		if (input.containsKey(legacy) && !input.containsKey(canonical)) {
+			input.setEL(canonical, input.get(legacy, null));
+		}
 	}
 
 	private void doUpdateMonitoring() throws PageException {
