@@ -297,6 +297,9 @@ public final class StoredProc extends BodyTagTryCatchFinallySupport {
 
 			try {
 				DataSourceSupport ds = ((DataSourceSupport) dc.getDatasource());
+				if (!(dc instanceof DatasourceConnectionImpl)) {
+					throw new ApplicationException("stored procedure metadata cache requires a pooled datasource connection, got [" + dc.getClass().getName() + "]");
+				}
 				DatasourceConnPool pool = ((DatasourceConnectionImpl) dc).getPool();
 				long cacheTimeout = ds.getMetaCacheTimeout();
 				// cache lives on the pool, which is partitioned by (ds.id(), user, pass);
