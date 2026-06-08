@@ -906,6 +906,10 @@ public final class ConfigServerImpl implements ConfigServerPro {
 					+ "virtually no performance penalty when no breakpoints are hit, " + "eliminating the need for slow bytecode rewriting.");
 	private final ConfigValue<Boolean> dapBreakpoint = new ConfigValue<>(metaDapBreakpoint);
 
+	private static Prop<Boolean> metaExecutionLogEnabled = Prop.bool().keys("enabled").parent("executionLog").defaultValue(false)
+			.description("Enables execution time logging. When enabled without an explicit class, Lucee uses DebuggerExecutionLog for breakpoint support.");
+	private final ConfigValue<Boolean> executionLogEnabled = new ConfigValue<>(metaExecutionLogEnabled);
+
 	private static ImportDefintion DEFAULT_IMPORT_DEFINITION = new ImportDefintionImpl(Constants.DEFAULT_PACKAGE, "*");
 	public final static Prop<String> metaComponentDefaultImport = Prop.str().keys("componentAutoImport", "componentDefaultImport")
 			.defaultValue(DEFAULT_IMPORT_DEFINITION.toString())
@@ -5567,9 +5571,14 @@ public final class ConfigServerImpl implements ConfigServerPro {
 	}
 
 	@Override
-	@Deprecated
 	public boolean getExecutionLogEnabled() {
-		return getDapBreakpoint();
+		if (getDapBreakpoint()) return true;
+		return executionLogEnabled.get(this, root);
+	}
+
+	public ConfigServerImpl resetExecutionLogEnabled() {
+		executionLogEnabled.reset();
+		return this;
 	}
 
 	@Override

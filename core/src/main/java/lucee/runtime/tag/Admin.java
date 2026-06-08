@@ -4262,7 +4262,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		lucee.runtime.db.ClassDefinition cd = ClassDefinitionImpl.toClassDefinitionImpl(attributes, null, true, config.getIdentification());
 		admin.updateExecutionLog(cd, getStruct("admin", "updateExecutionLog", "arguments"), getBool("admin", "updateExecutionLog", "enabled"));
 		store();
-		ConfigUtil.getConfigServerImpl(config).resetDapBreakpoint().resetDapSecret().resetExecutionLogFactory();
+		ConfigUtil.getConfigServerImpl(config).resetExecutionLogEnabled().resetExecutionLogFactory();
 
 	}
 
