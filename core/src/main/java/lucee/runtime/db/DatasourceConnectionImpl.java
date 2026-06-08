@@ -99,6 +99,15 @@ public final class DatasourceConnectionImpl implements DatasourceConnection, Tas
 		return datasource;
 	}
 
+	/**
+	 * Returns the pool this connection was borrowed from. Core-internal —
+	 * not exposed on the loader {@code DatasourceConnection} interface.
+	 * Used by {@code cfstoredproc} to reach the per-pool procedure metadata cache.
+	 */
+	public DatasourceConnPool getPool() {
+		return pool;
+	}
+
 	@Override
 	public boolean isTimeout() {
 		int timeout = datasource.getIdleTimeout();

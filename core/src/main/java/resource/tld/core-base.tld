@@ -7965,13 +7965,13 @@ Valid only for cfinput type="text".</description>
 			<name>session</name>
 			<label>Session Management</label>
 			<description>Configure session scope behavior and storage</description>
-			<attributes>sessionManagement,sessionType,sessionStorage,sessionTimeout,sessionCluster,sessionCookie</attributes>
+			<attributes>sessionManagement,sessionType,sessionStorage,sessionTimeout,sessionCommitInterval,sessionCluster,sessionCookie</attributes>
 		</group>
 		<group>
 			<name>client</name>
 			<label>Client Management</label>
 			<description>Configure client scope behavior and storage</description>
-			<attributes>clientManagement,clientStorage,clientTimeout,clientCluster,setClientCookies,authCookie</attributes>
+			<attributes>clientManagement,clientStorage,clientTimeout,clientCommitInterval,clientCluster,setClientCookies,authCookie</attributes>
 		</group>
 		<group>
 			<name>cache</name>
@@ -8233,12 +8233,31 @@ Suport for cookie was removed in Lucee 7
 		</attribute>
 		<attribute>
 			<type>timespan</type>
+			<name>sessionCommitInterval</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>For storage-backed sessions (cache/Redis/datasource), controls how often an unmodified session
+		is re-persisted to refresh its storage TTL or expires column. Without this, a read-heavy session
+		silently evicts at the original TTL boundary. Defaults to sessionTimeout/2. Set to createTimespan(0,0,0,0)
+		to disable the periodic refresh.</description>
+		</attribute>
+		<attribute>
+			<type>timespan</type>
 			<name>clientTimeout</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Enter the CreateTimeSpan function and values in days, hours, minutes, and seconds, separated
 		by commas, to specify the lifespan of client variables. The default value is specified in the
 		Variables page of the Lucee Administrator.</description>
+		</attribute>
+		<attribute>
+			<type>timespan</type>
+			<name>clientCommitInterval</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>For storage-backed client scopes, controls how often an unmodified scope is re-persisted to refresh
+		its storage TTL or expires column. Defaults to clientTimeout/2. Set to createTimespan(0,0,0,0) to disable
+		the periodic refresh.</description>
 		</attribute>
 		<attribute>
 			<type>timespan</type>

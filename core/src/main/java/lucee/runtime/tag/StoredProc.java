@@ -50,12 +50,14 @@ import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.config.Constants;
+import lucee.runtime.config.DatasourceConnPool;
 import lucee.runtime.db.CFTypes;
 import lucee.runtime.db.DataSource;
 import lucee.runtime.db.DataSourceManager;
 import lucee.runtime.db.DataSourceSupport;
 import lucee.runtime.db.DataSourceUtil;
 import lucee.runtime.db.DatasourceConnection;
+import lucee.runtime.db.DatasourceConnectionImpl;
 import lucee.runtime.db.ProcMeta;
 import lucee.runtime.db.ProcMetaCollection;
 import lucee.runtime.db.SQLCaster;
@@ -295,10 +297,15 @@ public final class StoredProc extends BodyTagTryCatchFinallySupport {
 
 			try {
 				DataSourceSupport ds = ((DataSourceSupport) dc.getDatasource());
+				if (!(dc instanceof DatasourceConnectionImpl)) {
+					throw new ApplicationException("stored procedure metadata cache requires a pooled datasource connection, got [" + dc.getClass().getName() + "]");
+				}
+				DatasourceConnPool pool = ((DatasourceConnectionImpl) dc).getPool();
 				long cacheTimeout = ds.getMetaCacheTimeout();
-				Map<String, SoftReference<ProcMetaCollection>> procParamsCache = ds.getProcedureColumnCache();
-				int numCfProcParams = this.params.size();
-				String cacheId = procedure.toLowerCase() + "-" + numCfProcParams + "-" + ds.getUsername(); // each user might see different procs
+				// cache lives on the pool, which is partitioned by (ds.id(), user, pass);
+				// the user dimension is implicit so the key is just the procedure name
+				Map<String, SoftReference<ProcMetaCollection>> procParamsCache = pool.getProcMetaCache();
+				String cacheId = procedure.toLowerCase();
 				SoftReference<ProcMetaCollection> tmp = procParamsCache.get(cacheId);
 				ProcMetaCollection procParams = tmp == null ? null : tmp.get();
 

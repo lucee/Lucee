@@ -163,6 +163,7 @@ public final class IKHandlerDatasource implements IKHandler {
 				IKStorageValue sv = new IKStorageValue(
 						IKStorageScopeSupport.prepareToStore(data, existingVal, storageScope.lastModified(), storageScope.lastModifiedAtInit(), log, type));
 				executor.update(ci, pc.getCFID(), appName, dc, storageScope.getType(), sv, storageScope.getTimeSpan(), log);
+				storageScope.markStored();
 			}
 			else if (existingVal != null) {
 				executor.delete(ci, pc.getCFID(), appName, dc, storageScope.getType(), log);
