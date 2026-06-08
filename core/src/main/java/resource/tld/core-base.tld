@@ -3327,6 +3327,20 @@ To use cached data, the function must be called with the exact same arguments.
 			<description>Specifies the character that cfldap uses to separate multiple attribute name/value pairs when more than one attribute is specified in the attribute attribute or the attribute that you want to use has the default delimiter character, which is the semicolon (;), such as mgrpmsgrejecttext;lang-en. The delimiter character is used by the query, add, and
 		modify action attributes, and is used by cfldap to output multi-value attributes</description>
 		</attribute>
+		<attribute>
+			<type>string</type>
+			<name>clientCert</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>Full path to the PKCS12 keystore file containing the client certificate. Used with secure="CFSSL_CLIENT_AUTH".</description>
+		</attribute>
+		<attribute>
+			<type>string</type>
+			<name>clientCertPassword</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>Password for the client certificate keystore. Used with secure="CFSSL_CLIENT_AUTH".</description>
+		</attribute>
 	</tag>
 	<!-- Location -->
 	<tag>
