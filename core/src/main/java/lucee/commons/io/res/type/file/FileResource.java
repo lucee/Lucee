@@ -109,14 +109,11 @@ public final class FileResource extends File implements Resource {
 	}
 
 	private void applyPermissionsFromResource(Resource res) {
-		// executable?
-		boolean e = res instanceof File && ((File) res).canExecute();
-		boolean w = res.isWriteable();
-		boolean r = res.isReadable();
-
-		if (e) this.setExecutable(true);
-		if (w != this.isWriteable()) this.setWritable(w);
-		if (r != this.isReadable()) this.setReadable(r);
+		// preserve executable bit from source
+		if (res instanceof File && ((File) res).canExecute()) this.setExecutable(true);
+		// LDEV-6095: ensure owner can read/write the file they just created
+		this.setReadable(true);
+		this.setWritable(true);
 	}
 
 	@Override
@@ -138,13 +135,11 @@ public final class FileResource extends File implements Resource {
 	}
 
 	private void applyPermissionsToResource(Resource res) {
-		boolean e = canExecute();
-		boolean w = isWriteable();
-		boolean r = isReadable();
-
-		if (e && res instanceof File) ((File) res).setExecutable(true);
-		if (w != res.isWriteable()) res.setWritable(w);
-		if (r != res.isReadable()) res.setReadable(r);
+		// preserve executable bit from source
+		if (canExecute() && res instanceof File) ((File) res).setExecutable(true);
+		// LDEV-6095: ensure owner can read/write the file they just created
+		res.setReadable(true);
+		res.setWritable(true);
 	}
 
 	public Resource getNormalizedResource() {
