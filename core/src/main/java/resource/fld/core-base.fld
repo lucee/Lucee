@@ -13709,12 +13709,22 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<name>SessionCommit</name>
 		<introduced>6.2.1.15</introduced>
 		<class>lucee.runtime.functions.system.SessionCommit</class>
-		<description>Force saving the session to storage, useful when sessionCluster is enabled.</description>
+		<description>Force saving the session to storage immediately, useful for cross-request visibility (cluster siblings, parallel AJAX) when sessionCluster is enabled.</description>
 		<return>
 			<type>void</type>
 		</return>
 	</function>
-	
+
+	<!-- SessionTouch -->
+	<function>
+		<name>SessionTouch</name>
+		<class>lucee.runtime.functions.system.SessionTouch</class>
+		<description>Marks the session as needing persistence; the write happens at the natural request-end store path. Deferred sibling of sessionCommit() — use when you don't need synchronous cross-request visibility.</description>
+		<return>
+			<type>void</type>
+		</return>
+	</function>
+
 	<!-- SessionStartTime -->
 	<function>
 		<name>SessionStartTime</name>

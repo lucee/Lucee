@@ -1,113 +1,144 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" labels="session" skip=true {
+component extends="org.lucee.cfml.test.LuceeTestCase" labels="session" {
+
+	// Bug: IKHandlerCache.store() / IKHandlerDatasource.store() only persist when hasChanges()
+	// is true. hasChanges() flips on real CFML writes (session.foo=bar). Lucee's own _lastvisit
+	// bump uses direct data0.put() and bypasses change detection, so a "login then read-heavy"
+	// pattern never refreshes the storage entry's TTL / expires column.
+	//
+	// Fix: isStale() branch in hasChanges() returns true after wall-clock since last store
+	// exceeds sessionCommitInterval (defaults to sessionTimeout/2).
+	//
+	// Test flow per storage backend (TTL = variables.ttlSeconds, commitInterval = TTL/2):
+	//   t=0           SET — single real session write, persists with TTL
+	//   t=TTL*0.7s    mid-TTL GET — past commitInterval, before TTL, fix triggers refresh
+	//   t=TTL*1.3s    final GET — past original TTL, within refreshed TTL (~TTL*1.7s)
+	//
+	// Without fix: final GET finds storage entry gone (sessionInStorage=false).
+	// With fix:    final GET finds storage entry still alive.
+	// Redis EXPIRE is seconds-precision, so 2s is the practical floor — bump if flaky on slow CI.
+	variables.ttlSeconds = 2;
 
 	function run( testResults, testBox ) {
-		describe( "LDEV-6331 cache-backed sessions evict at TTL boundary on read-only patterns", function() {
 
-			// Bug: IKHandlerCache.store() only calls cache.put() when hasChanges() is true.
-			// hasChanges() flips on real CFML writes (session.foo=bar). Lucee's own
-			// _lastvisit bump uses direct data0.put() and bypasses change detection,
-			// so a "login then read-heavy" pattern never refreshes the cache TTL.
-			//
-			// Test mechanism (per storage + cluster combination):
-			//   1. SET — single real session write, fires cache.put with TTL=2s.
-			//   2. Sleep 2.5s — past both the cache TTL and the session timeout.
-			//   3. purgeExpiredSessions — clears the in-memory copy via the force-flag
-			//      path (storeUnusedStorageScope honouring scope.isExpired()).
-			//   4. GET — no in-memory, cache evicted, fresh session created → session.user
-			//      is lost.
-			//
-			// Matrix:
-			//   - RAM cache vs Redis (Redis skipped if test service unavailable)
-			//   - sessionCluster=false vs sessionCluster=true
-			//
-			// Before fix: assertions FAIL — session.user is "(undefined)".
-			// After fix:  assertions PASS — touch path refreshes the cache TTL before
-			//             the boundary so the cache still has the entry.
+		describe( "LDEV-6331 RAM cache-backed sessions: storage entry refreshed before TTL boundary", function() {
+			it( title="sessionCluster=false", body=function() {
+				testStorageRefresh( storage: "ram", sessionCluster: false );
+			});
+			it( title="sessionCluster=true", body=function() {
+				testStorageRefresh( storage: "ram", sessionCluster: true );
+			});
+		});
 
-			it( title="RAM cache, sessionCluster=false: session preserved across cache-TTL boundary", body=function( currentSpec ) {
-				testCacheBackedSessionEviction( storage: "ram", sessionCluster: false );
+		describe( "LDEV-6331 Redis cache-backed sessions: storage entry refreshed before TTL boundary", function() {
+			it( title="sessionCluster=false", skip=skipRedis(), body=function() {
+				testStorageRefresh( storage: "redis", sessionCluster: false );
+			});
+			it( title="sessionCluster=true", skip=skipRedis(), body=function() {
+				testStorageRefresh( storage: "redis", sessionCluster: true );
+			});
+		});
+
+		describe( "LDEV-6331 + LDEV-4670 Datasource (MySQL) sessions: cf_session_data.expires refreshed", function() {
+			it( title="sessionCluster=false", skip=skipMysql(), body=function() {
+				testStorageRefresh( storage: "datasource", sessionCluster: false );
+			});
+			it( title="sessionCluster=true", skip=skipMysql(), body=function() {
+				testStorageRefresh( storage: "datasource", sessionCluster: true );
+			});
+		});
+
+		describe( "LDEV-6331 opt-out: this.sessionCommitInterval = createTimespan(0,0,0,0) disables periodic refresh", function() {
+			it( title="zero sessionCommitInterval — storage entry evicts at original TTL (pre-fix behaviour preserved)", body=function() {
+				testStorageRefresh( storage: "ram", sessionCluster: false, sessionCommitInterval: 0, expectInStorage: false );
+			});
+		});
+
+		describe( "LDEV-6331 getApplicationSettings() exposes sessionCommitInterval", function() {
+			it( title="absent from struct when not set (default applies)", body=function() {
+				var uri = createURI( "LDEV6331" );
+				var resp = _InternalRequest( template: "#uri#/settings.cfm", url: { sessionStorage: "ram", sessionCluster: false, ttlSeconds: variables.ttlSeconds } );
+				var data = deserializeJSON( resp.fileContent );
+				expect( data.hasSessionCommitInterval ).toBeFalse(
+					"getApplicationSettings() should not contain sessionCommitInterval when unset — surfaces the default-applies semantic."
+				);
 			});
 
-			it( title="RAM cache, sessionCluster=true: session preserved across cache-TTL boundary", body=function( currentSpec ) {
-				testCacheBackedSessionEviction( storage: "ram", sessionCluster: true );
-			});
-
-			it( title="Redis, sessionCluster=false: session preserved across cache-TTL boundary", skip=skipRedis(), body=function( currentSpec ) {
-				testCacheBackedSessionEviction( storage: "redis", sessionCluster: false );
-			});
-
-			it( title="Redis, sessionCluster=true: session preserved across cache-TTL boundary", skip=skipRedis(), body=function( currentSpec ) {
-				testCacheBackedSessionEviction( storage: "redis", sessionCluster: true );
+			it( title="present with explicit value when set", body=function() {
+				var uri = createURI( "LDEV6331" );
+				var resp = _InternalRequest( template: "#uri#/settings.cfm", url: { sessionStorage: "ram", sessionCluster: false, ttlSeconds: variables.ttlSeconds, sessionCommitInterval: 5 } );
+				var data = deserializeJSON( resp.fileContent );
+				expect( data.hasSessionCommitInterval ).toBeTrue( "getApplicationSettings() should contain sessionCommitInterval when set." );
+				expect( data.sessionCommitInterval ).toBe( 5000, "sessionCommitInterval should be exposed as 5000ms TimeSpan." );
 			});
 		});
 	}
 
-	private function testCacheBackedSessionEviction( required string storage, required boolean sessionCluster ) {
+	private function testStorageRefresh( required string storage, required boolean sessionCluster, string sessionCommitInterval="", boolean expectInStorage=true ) {
 		var uri = createURI( "LDEV6331" );
-		var label = "#arguments.storage# cluster=#arguments.sessionCluster#";
+		var label = "#arguments.storage# cluster=#arguments.sessionCluster#" & ( len( arguments.sessionCommitInterval ) ? " commitInterval=#arguments.sessionCommitInterval#" : "" );
+		var userValue = "user-" & createUUID();
+		var ttlMs = variables.ttlSeconds * 1000;
+		var midSleep = round( ttlMs * 0.7 );
+		var finalSleep = round( ttlMs * 0.6 );
 		var urlArgs = {
-			user: "zac",
+			user: userValue,
 			sessionStorage: arguments.storage,
-			sessionCluster: arguments.sessionCluster
+			sessionCluster: arguments.sessionCluster,
+			ttlSeconds: variables.ttlSeconds,
+			sessionCommitInterval: arguments.sessionCommitInterval
 		};
 
-		// 1. SET — the one and only real session write
+		// t=0 — SET, cache.put / DB insert fires with TTL/expires at t+TTL
 		var setResp = _InternalRequest( template: "#uri#/set.cfm", url: urlArgs );
 		expect( setResp.fileContent ).toBeJson();
-		var setData = deserializeJSON( setResp.fileContent );
-		expect( setData.sessionUser ).toBe( "zac" );
+		expect( deserializeJSON( setResp.fileContent ).sessionUser ).toBe( userValue );
 
 		var cookies = {
 			cfid: setResp.session.cfid,
 			cftoken: setResp.session.cftoken
 		};
-		var appName = setData.applicationName;
+		var getUrlArgs = {
+			sessionStorage: arguments.storage,
+			sessionCluster: arguments.sessionCluster,
+			ttlSeconds: variables.ttlSeconds,
+			sessionCommitInterval: arguments.sessionCommitInterval
+		};
 
-		expect( getSessionCount( appName ) ).toBe( 1, "[#label#] session should be in memory after SET" );
+		// t~TTL*0.7s — mid-TTL GET, past commitInterval=TTL/2, fix's isStale() triggers a refresh write at end of request
+		sleep( midSleep );
+		_InternalRequest( template: "#uri#/get.cfm", url: getUrlArgs, cookies: cookies );
 
-		// 2. Sleep past cache TTL AND session timeout (both 2s)
-		sleep( 2500 );
+		// t~TTL*1.3s — past original TTL, within refreshed TTL (~TTL*1.7s)
+		sleep( finalSleep );
+		var finalResp = _InternalRequest( template: "#uri#/get.cfm", url: getUrlArgs, cookies: cookies );
+		var finalData = deserializeJSON( finalResp.fileContent );
 
-		// 3. Force purge — relies on clearUnused honouring force flag for
-		//    cache-backed sessions (the storeUnusedStorageScope fix).
-		admin
-			action="purgeExpiredSessions"
-			type="server"
-			password="#request.SERVERADMINPASSWORD#";
-
-		expect( getSessionCount( appName ) ).toBe( 0, "[#label#] in-memory session should be purged after sleep > sessionTimeout + purgeExpiredSessions" );
-
-		// 4. GET — no in-memory, cache evicted, must create fresh session
-		var getResp = _InternalRequest(
-			template: "#uri#/get.cfm",
-			url: {
-				sessionStorage: arguments.storage,
-				sessionCluster: arguments.sessionCluster
-			},
-			cookies: cookies
-		);
-		expect( getResp.fileContent ).toBeJson();
-		var getData = deserializeJSON( getResp.fileContent );
-
-		expect( getData.sessionUser ).toBe(
-			"zac",
-			"BUG LDEV-6331 [#label#]: cache-backed session evicted at cache TTL boundary. "
-			& "Expected session.user='zac' but got '#getData.sessionUser#'. "
-			& "The fix should refresh the cache TTL on read-only requests so the entry survives."
-		);
-	}
-
-	private numeric function getSessionCount( applicationName ) {
-		var sess = getPageContext().getCFMLFactory().getScopeContext().getAllCFSessionScopes();
-		if ( structKeyExists( sess, arguments.applicationName ) )
-			return len( sess[ arguments.applicationName ] );
-		else
-			return 0;
+		if ( arguments.expectInStorage ) {
+			expect( finalData.sessionInStorage ).toBeTrue(
+				"BUG LDEV-6331 [#label#]: persisted session entry evicted at original TTL boundary "
+				& "despite a mid-TTL read that should have refreshed it."
+			);
+			expect( finalData.sessionUser ).toBe(
+				userValue,
+				"BUG LDEV-6331 [#label#]: session payload lost on final GET — expected #userValue#, got #finalData.sessionUser#. "
+				& "Storage entry survived but session data did not round-trip."
+			);
+		} else {
+			expect( finalData.sessionInStorage ).toBeFalse(
+				"LDEV-6331 [#label#]: opt-out failed — storage entry survived past original TTL even with sessionCommitInterval=0. "
+				& "Periodic refresh should be disabled when commitInterval <= 0."
+			);
+		}
 	}
 
 	private boolean function skipRedis() {
 		var redis = server.getTestService( "redis" );
 		return isNull( redis ) || structCount( redis ) == 0;
+	}
+
+	private boolean function skipMysql() {
+		var mysql = server.getDatasource( "mysql" );
+		return isEmpty( mysql );
 	}
 
 	private string function createURI( required string calledName ) {
