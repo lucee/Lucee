@@ -62,6 +62,7 @@ import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.types.RefBoolean;
 import lucee.commons.net.URLEncoder;
+import lucee.runtime.op.Caster;
 import lucee.runtime.reflection.Reflector;
 
 /**
@@ -69,7 +70,8 @@ import lucee.runtime.reflection.Reflector;
  */
 public final class IOUtil {
 
-	private static final int DEFAULT_BLOCK_SIZE = 0xffff;// 65535
+	// override via -Dlucee.io.block.size=<n> / LUCEE_IO_BLOCK_SIZE — buffer size for IOUtil copy + the IOUtil ThreadLocal pools
+	private static final int DEFAULT_BLOCK_SIZE = Caster.toIntValue(SystemUtil.getSystemPropOrEnvVar("lucee.io.block.size", "65535"), 0xffff);
 
 	public static final byte[] EMPTY_BYTE_ARRAY = new byte[0];
 
@@ -224,9 +226,10 @@ public final class IOUtil {
 	}
 
 	public static final void copy(InputStream in, OutputStream out, long offset, long length) throws IOException {
+		// Single buffer reused across both offset-skip and write loops; pool the
+		// DEFAULT_BLOCK_SIZE case to skip per-call allocation entirely.
+		byte[] buffer = BYTE_ARRAY_POOL.get();
 		int len;
-		byte[] buffer;
-		int block = DEFAULT_BLOCK_SIZE;
 
 		// first offset to start
 		if (offset > 0) {
@@ -240,40 +243,35 @@ public final class IOUtil {
 			}
 
 			if (skipped <= 0) {
-				while (true) {
-					if (block > offset) block = (int) offset;
-					buffer = new byte[block];
-					len = in.read(buffer);
+				while (offset > 0) {
+					int toRead = (int) Math.min(buffer.length, offset);
+					len = in.read(buffer, 0, toRead);
 					if (len == -1) throw new IOException("reading offset is bigger than input itself");
-					// dnos.write(buffer, 0, len);
 					offset -= len;
-					if (offset <= 0) break;
 				}
 			}
 		}
 
 		// write part
 		if (length < 0) {
-			copy(in, out, block);
+			copy(in, out, DEFAULT_BLOCK_SIZE);
 			return;
 		}
 
-		while (true) {
-			if (block > length) block = (int) length;
-			buffer = new byte[block];
-			len = in.read(buffer);
+		while (length > 0) {
+			int toRead = (int) Math.min(buffer.length, length);
+			len = in.read(buffer, 0, toRead);
 			if (len == -1) break;
 			out.write(buffer, 0, len);
 			length -= len;
-			if (length <= 0) break;
 		}
 	}
 
 	public static final void copy(InputStream in, OutputStream out, int offset, int length, int blockSize) throws IOException {
-
+		// Single buffer reused across both offset-skip and write loops; pool the
+		// DEFAULT_BLOCK_SIZE case to skip per-call allocation entirely.
+		byte[] buffer = (blockSize == DEFAULT_BLOCK_SIZE) ? BYTE_ARRAY_POOL.get() : new byte[blockSize];
 		int len;
-		byte[] buffer;
-		int block;
 
 		// first offset to start
 		if (offset > 0) {
@@ -287,15 +285,11 @@ public final class IOUtil {
 			}
 
 			if (skipped <= 0) {
-				block = blockSize;
-				while (true) {
-					if (block > offset) block = offset;
-					buffer = new byte[block];
-					len = in.read(buffer);
+				while (offset > 0) {
+					int toRead = Math.min(buffer.length, offset);
+					len = in.read(buffer, 0, toRead);
 					if (len == -1) throw new IOException("reading offset is bigger than input itself");
-					// dnos.write(buffer, 0, len);
 					offset -= len;
-					if (offset <= 0) break;
 				}
 			}
 		}
@@ -305,33 +299,29 @@ public final class IOUtil {
 			copy(in, out, blockSize);
 			return;
 		}
-		block = blockSize;
-		while (true) {
-			if (block > length) block = length;
-			buffer = new byte[block];
-			len = in.read(buffer);
+
+		while (length > 0) {
+			int toRead = Math.min(buffer.length, length);
+			len = in.read(buffer, 0, toRead);
 			if (len == -1) break;
 			out.write(buffer, 0, len);
 			length -= len;
-			if (length <= 0) break;
 		}
 	}
 
 	/**
-	 * Copies data from the given input stream to the output stream using Java NIO.
-	 * 
-	 * This method uses NIO channels and buffers for efficient data transfer, especially beneficial for
-	 * handling large amounts of data. It reads data from the input stream into a buffer and then writes
-	 * it to the output stream, continuing this process until all data is transferred.
+	 * Copies data from the given input stream to the output stream.
+	 *
+	 * Streams via a byte[] buffer of the given block size. For DEFAULT_BLOCK_SIZE, the buffer is drawn
+	 * from a per-thread pool (LDEV-5953); other sizes allocate per call.
 	 *
 	 * Note: This method does not close the provided InputStream and OutputStream; it is the
 	 * responsibility of the caller to close these resources.
 	 *
 	 * @param in The input stream from which data is to be read. Must not be null.
 	 * @param out The output stream to which data is to be written. Must not be null.
-	 * @param blockSize The size of the buffer used for transferring data. This size can significantly
-	 *            affect the performance of the data transfer. A larger buffer size may improve
-	 *            performance, especially for large data transfers, but will also require more memory.
+	 * @param blockSize The size of the buffer used for transferring data. Larger buffers may improve
+	 *            throughput on large transfers at the cost of memory.
 	 * @throws IOException If an I/O error occurs during the copy operation.
 	 */
 	private static final void copy(InputStream in, OutputStream out, int blockSize) throws IOException {
@@ -834,7 +824,7 @@ public final class IOUtil {
 	 */
 	private static Reader _getReader(InputStream is, Charset charset) throws IOException {
 		if (charset == null) charset = SystemUtil.getCharset();
-		return new BufferedReader(new InputStreamReader(is, charset));
+		return new InputStreamReader(is, charset);
 	}
 
 

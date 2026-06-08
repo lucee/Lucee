@@ -1,6 +1,9 @@
 package lucee.runtime.config;
 
+import java.lang.ref.SoftReference;
 import java.util.Collection;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.pool2.impl.BaseObjectPoolConfig;
 import org.apache.commons.pool2.impl.GenericObjectPool;
@@ -12,6 +15,7 @@ import lucee.runtime.db.ApplicationDataSource;
 import lucee.runtime.db.DataSource;
 import lucee.runtime.db.DatasourceConnection;
 import lucee.runtime.db.DatasourceConnectionFactory;
+import lucee.runtime.db.ProcMetaCollection;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Struct;
@@ -21,6 +25,7 @@ import lucee.runtime.type.util.KeyConstants;
 public final class DatasourceConnPool extends GenericObjectPool<DatasourceConnection> {
 
 	private long lastBorrowed;
+	private final Map<String, SoftReference<ProcMetaCollection>> procMetaCache = new ConcurrentHashMap<String, SoftReference<ProcMetaCollection>>();
 
 	public DatasourceConnPool(Config config, DataSource ds, String user, String pass, String logName, GenericObjectPoolConfig<DatasourceConnection> genericObjectPoolConfig) {
 		super(new DatasourceConnectionFactory(config, ds, user, pass, logName), genericObjectPoolConfig);
@@ -40,11 +45,21 @@ public final class DatasourceConnPool extends GenericObjectPool<DatasourceConnec
 
 	/**
 	 * Returns the timestamp of when a connection was last borrowed from this pool.
-	 * 
+	 *
 	 * @return timestamp in milliseconds, or -1 if no connection has been borrowed
 	 */
 	public long getLastBorrowed() {
 		return this.lastBorrowed;
+	}
+
+	/**
+	 * Cache of resolved Oracle stored-procedure metadata, keyed by procedure name.
+	 * Lives on the pool (not the DataSource instance) so that all callers reaching
+	 * this pool see a single canonical cache regardless of which DataSource accessor
+	 * surfaced it (server admin, app plural, app singular default, ORM).
+	 */
+	public Map<String, SoftReference<ProcMetaCollection>> getProcMetaCache() {
+		return procMetaCache;
 	}
 
 	@Override

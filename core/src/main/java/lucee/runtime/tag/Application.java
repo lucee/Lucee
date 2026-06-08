@@ -93,6 +93,8 @@ public final class Application extends TagImpl implements DynamicAttributes {
 	private TimeSpan applicationTimeout;
 	private TimeSpan sessionTimeout;
 	private TimeSpan clientTimeout;
+	private TimeSpan sessionCommitInterval;
+	private TimeSpan clientCommitInterval;
 	private TimeSpan requestTimeout;
 	private Mapping[] mappings;
 	private Mapping[] customTagMappings;
@@ -193,6 +195,8 @@ public final class Application extends TagImpl implements DynamicAttributes {
 		setClientManagement = null;
 		sessionTimeout = null;
 		clientTimeout = null;
+		sessionCommitInterval = null;
+		clientCommitInterval = null;
 		requestTimeout = null;
 		applicationTimeout = null;
 		mappings = null;
@@ -506,6 +510,14 @@ public final class Application extends TagImpl implements DynamicAttributes {
 
 	public void setClienttimeout(TimeSpan clientTimeout) {
 		this.clientTimeout = clientTimeout;
+	}
+
+	public void setSessioncommitinterval(TimeSpan sessionCommitInterval) {
+		this.sessionCommitInterval = sessionCommitInterval;
+	}
+
+	public void setClientcommitinterval(TimeSpan clientCommitInterval) {
+		this.clientCommitInterval = clientCommitInterval;
 	}
 
 	public void setRequesttimeout(TimeSpan requestTimeout) {
@@ -840,6 +852,11 @@ public final class Application extends TagImpl implements DynamicAttributes {
 		if (applicationTimeout != null) ac.setApplicationTimeout(applicationTimeout);
 		if (sessionTimeout != null) ac.setSessionTimeout(sessionTimeout);
 		if (clientTimeout != null) ac.setClientTimeout(clientTimeout);
+		if (ac instanceof ApplicationContextSupport) {
+			ApplicationContextSupport acs = (ApplicationContextSupport) ac;
+			if (sessionCommitInterval != null) acs.setSessionCommitInterval(sessionCommitInterval);
+			if (clientCommitInterval != null) acs.setClientCommitInterval(clientCommitInterval);
+		}
 		if (requestTimeout != null) ac.setRequestTimeout(requestTimeout);
 		if (clientstorage != null) {
 			ac.setClientstorage(clientstorage);

@@ -2583,6 +2583,8 @@ public final class KeyConstants {
 	public static final Key _sessionManagement = init("sessionManagement");
 	public static final Key _sessionTimeout = init("sessionTimeout");
 	public static final Key _clientTimeout = init("clientTimeout");
+	public static final Key _sessionCommitInterval = init("sessionCommitInterval");
+	public static final Key _clientCommitInterval = init("clientCommitInterval");
 	public static final Key _requestTimeout = init("requestTimeout");
 	public static final Key _clientCookies = init("clientCookies");
 	public static final Key _setClientCookies = init("setClientCookies");

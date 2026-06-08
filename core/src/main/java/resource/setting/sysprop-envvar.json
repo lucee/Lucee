@@ -116,6 +116,15 @@
 		"default": "DEBUG"
 	},
 	{
+		"sysprop": "lucee.cookie.preservecase",
+		"envvar": "LUCEE_COOKIE_PRESERVECASE",
+		"desc": "When set to `true`, cookie names preserve their original casing instead of being uppercased. Defaults to `false` for backwards compatibility. Will default to `true` in a future version to match ACF behaviour (LDEV-970)",
+		"category": "cookie",
+		"type": "boolean",
+		"introduced": "7.1",
+		"default": false
+	},
+	{
 		"sysprop": "lucee.cfid.url.allow",
 		"envvar": "LUCEE_CFID_URL_ALLOW",
 		"desc": "Controls whether Lucee accepts CFID values from URL query strings. Set to `false` to enhance security by requiring CFIDs to be passed via cookies only. Setting this to `false` is strongly recommended for all production environments. Replaces lucee.read.cfid.from.url in Lucee 6.2.1.59",
@@ -437,6 +446,15 @@
 		"category": "compiler",
 		"type": "string",
 		"default": null
+	},
+	{
+		"sysprop": "lucee.io.block.size",
+		"envvar": "LUCEE_IO_BLOCK_SIZE",
+		"desc": "Buffer size in bytes/chars used by IOUtil copy operations and the IOUtil ThreadLocal byte/char buffer pools. Lower values reduce per-thread memory tax for short-lived threads (e.g. cfthread storm workloads); higher values amortise fewer reads on long-lived threads doing big copies. Range typically 1024-65535.",
+		"category": "performance",
+		"type": "integer",
+		"default": 65535,
+		"introduced": "7.1.0.155"
 	},
 	{
 		"sysprop": "lucee.isdefined.limit",
@@ -868,6 +886,15 @@
 		"category": "performance",
 		"type": "numeric",
 		"default": 10000
+	},
+	{
+		"sysprop": "lucee.pagePool.never.strongRef",
+		"envvar": "LUCEE_PAGEPOOL_NEVER_STRONGREF",
+		"desc": "When true (default), PageSource entries for INSPECT_NEVER mappings are held by strong reference instead of SoftReference, so they cannot be cleared by GC pressure. Honours the NEVER contract (no recheck after load) and avoids lastModified() syscalls under load. Set to false to restore legacy SoftReference behaviour.",
+		"category": "performance",
+		"type": "boolean",
+		"default": true,
+		"introduced": "7.1.0.156"
 	},
 	{
 		"sysprop": "lucee.password.enc.key",

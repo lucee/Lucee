@@ -127,17 +127,15 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="classLoader" {
 					});
 				});
 
-				it( "out-of-order release leaves CCL stuck at an intermediate state (by-design contract)", function() {
-					// Spec contract: each register API maintains its OWN prevCCL slot.
-					// Releasing the outer (TLC) before the inner (TLPC) means TLC's
-					// release restores to sentinel, then TLPC's release restores to
-					// the value it captured (Lucee CCL from TLC.register). Final CCL
-					// is stuck on Lucee CCL.
+				it( "out-of-order release composes correctly when both registers share the same target CCL", function() {
+					// With the fast-path register, the inner TLPC.register is a no-op
+					// when pc.getConfig() shares the same env CCL as the outer TLC's
+					// config — TLPC's prevCCL stays UNSET, so TLPC.release does
+					// nothing. Only TLC.release restores the original CCL.
 					//
-					// This test does not assert what we WANT; it pins what we GET, so
-					// a future change that "fixes" out-of-order release (e.g. by
-					// coupling the two slots into a stack) fails this test loudly and
-					// the contract change is deliberate.
+					// Out-of-order release is therefore safe in the common case
+					// (same Lucee instance / same Config). The reverse-order rule
+					// only matters when the two registers target different CCLs.
 					inIsolatedScope( function( sentinel, pc, config ) {
 						var thread = getThread();
 						var TLC = getTLC();
@@ -150,8 +148,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="classLoader" {
 						TLC.release();
 						TLPC.release();
 
-						expect( sentinel.equals( thread.getContextClassLoader() ) ).toBeFalse(
-							"out-of-order release should leave CCL stuck at the intermediate (Lucee) state — if this test passes, the contract has changed and the spec's reverse-order rule no longer holds"
+						expect( sentinel.equals( thread.getContextClassLoader() ) ).toBeTrue(
+							"fast path made inner register a no-op; out-of-order release composes correctly when targets match"
 						);
 					});
 				});
@@ -184,7 +182,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" labels="classLoader" {
 				});
 
 				it( "prevCCL is per-thread — child cfthread register/release does not pollute parent's saved CCL", function() {
-					// Plain ThreadLocal<SavedCCL> (not InheritableThreadLocal) means each
+					// Plain ThreadLocal<ClassLoader> (not InheritableThreadLocal) means each
 					// thread has its own prevCCL slot. A child doing its own register/release
 					// must not affect the parent's saved CCL — otherwise the parent's
 					// subsequent release would restore the wrong value.

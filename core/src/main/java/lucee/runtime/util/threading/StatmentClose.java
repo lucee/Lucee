@@ -7,6 +7,7 @@ import lucee.commons.io.log.Log;
 import lucee.runtime.db.DatasourceConnection;
 import lucee.runtime.db.DatasourceManagerImpl;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.thread.ThreadUtil;
 
 public final class StatmentClose implements CloserJob {
 
@@ -29,8 +30,7 @@ public final class StatmentClose implements CloserJob {
 
 	@Override
 	public void execute() throws PageException {
-		// TODO add virtual threads
-		Thread t = new Thread(() -> {
+		ThreadUtil.getThread(() -> {
 			try {
 				DBUtil.closeEL(stat);
 				manager.releaseConnection(null, dc);
@@ -39,9 +39,7 @@ public final class StatmentClose implements CloserJob {
 			catch (Exception e) {
 				if (log != null) log.error("StatementClose", e);
 			}
-		});
-		t.setDaemon(true);
-		t.start();
+		}).start();
 	}
 
 }

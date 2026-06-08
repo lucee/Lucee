@@ -42,13 +42,13 @@ import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.Log;
+import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ByteNameValuePair;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.net.URLItem;
 import lucee.runtime.PageContext;
-import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.listener.ApplicationContext;
 import lucee.runtime.net.http.ServletInputStreamDummy;
@@ -244,8 +244,7 @@ public final class FormImpl extends ScopeSupport implements Form, ScriptProtecte
 			fillDecoded(raw, encoding, scriptProteced, pc.getApplicationContext().getSameFieldAsArray(SCOPE_FORM), pc.getApplicationContext().getFormUrlAsStruct());
 		}
 		catch (Exception e) {
-			Log log = ThreadLocalPageContext.getLog(pc, "application");
-			if (log != null) log.error("form.scope", e);
+			LogUtil.log(pc, "application", "form.scope", e, Log.LEVEL_DEBUG);
 			fillDecodedEL(new URLItem[0], encoding, scriptProteced, pc.getApplicationContext().getSameFieldAsArray(SCOPE_FORM), pc.getApplicationContext().getFormUrlAsStruct());
 			initException = e;
 		}
@@ -301,8 +300,7 @@ public final class FormImpl extends ScopeSupport implements Form, ScriptProtecte
 			fillDecoded(raw, encoding, scriptProteced, pc.getApplicationContext().getSameFieldAsArray(SCOPE_FORM), pc.getApplicationContext().getFormUrlAsStruct());
 		}
 		catch (Exception e) {
-			Log log = ThreadLocalPageContext.getLog(pc, "application");
-			if (log != null) log.error("form.scope", e);
+			LogUtil.log(pc, "application", "form.scope", e, Log.LEVEL_DEBUG);
 			fillDecodedEL(new URLItem[0], encoding, scriptProteced, pc.getApplicationContext().getSameFieldAsArray(SCOPE_FORM), pc.getApplicationContext().getFormUrlAsStruct());
 			initException = e;
 		}
@@ -311,8 +309,7 @@ public final class FormImpl extends ScopeSupport implements Form, ScriptProtecte
 				IOUtil.close(reader);
 			}
 			catch (IOException e) {
-				Log log = ThreadLocalPageContext.getLog(pc, "application");
-				if (log != null) log.error("form.scope", e);
+				LogUtil.log(pc, "application", "form.scope", e, Log.LEVEL_DEBUG);
 			}
 		}
 	}

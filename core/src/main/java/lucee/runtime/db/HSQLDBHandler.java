@@ -586,7 +586,7 @@ public final class HSQLDBHandler {
 						}
 						cd = new ClassDefinitionImpl<>("org.hsqldb.jdbcDriver", "org.lucee.hsqldb", "2.7.2.jdk11", config.getIdentification());
 						try {
-							cd.getClass();
+							cd.getClazz();
 						}
 						catch (Exception e) {
 							ApplicationException ae = new ApplicationException("Failed to load HSQLDB driver for query-of-query fallback. " + "Please install the HSQLDB extension "

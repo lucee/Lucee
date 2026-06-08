@@ -174,7 +174,7 @@ public final class ThreadsImpl extends StructSupport implements lucee.runtime.ty
 	}
 
 	private Object getOutput() {
-		if (ct.output == null) return "";
+		if (ct.output == null || ct.output.size() == 0) return "";
 
 		InputStream is = new ByteArrayInputStream(ct.output.toByteArray());
 		return Http.getOutput(is, ct.contentType, ct.contentEncoding, true);

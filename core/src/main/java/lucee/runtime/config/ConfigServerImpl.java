@@ -417,7 +417,7 @@ public final class ConfigServerImpl implements ConfigServerPro {
 
 	private static Prop<LoggerAndSourceData> metaLoggers = Prop.custom(LogFactory.getInstance(), Prop.TYPE_MAP).keys("loggers").logGlobal().lowerCaseKeys()
 			.description("definition of all logs for Lucee");
-	private Map<String, LoggerAndSourceData> loggers;
+	private volatile Map<String, LoggerAndSourceData> loggers;
 	private static LogEngine logEngine;
 
 	private static Prop<Boolean> metaDebugLogOutput = Prop.bool().keys("debuggingLogOutput").defaultValue(false).description(

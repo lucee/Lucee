@@ -42,6 +42,7 @@ import lucee.runtime.type.Collection;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
+import lucee.runtime.type.dt.TimeSpan;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.transformer.library.ClassDefinitionImpl;
 import lucee.transformer.library.tag.TagLib;
@@ -124,6 +125,22 @@ public abstract class ApplicationContextSupport implements ApplicationContext {
 		this.cookiedomain = cookiedomain;
 		this.idletimeout = idletimeout;
 
+	}
+
+	public TimeSpan getSessionCommitInterval() {
+		return null;
+	}
+
+	public TimeSpan getClientCommitInterval() {
+		return null;
+	}
+
+	public void setSessionCommitInterval(TimeSpan sessionCommitInterval) {
+		// override in subclass
+	}
+
+	public void setClientCommitInterval(TimeSpan clientCommitInterval) {
+		// override in subclass
 	}
 
 	@Override

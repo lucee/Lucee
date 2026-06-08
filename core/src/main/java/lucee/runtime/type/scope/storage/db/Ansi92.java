@@ -144,7 +144,7 @@ public final class Ansi92 extends SQLExecutorSupport {
 			query = new QueryImpl(pc, dc, sqlSelect, -1, -1, null, scopeName + "_storage");
 		}
 
-		ScopeContext.debug(log, sqlSelect.toString());
+		ScopeContext.trace(log, sqlSelect.toString());
 		return query;
 	}
 
@@ -170,7 +170,7 @@ public final class Ansi92 extends SQLExecutorSupport {
 			throws SQLException, PageException {
 		SQLImpl sql = new SQLImpl(strSQL, new SQLItem[] { new SQLItemImpl(createExpires(config, timeSpan), Types.VARCHAR),
 				new SQLItemImpl(serialize(data, ignoreSet), Types.VARCHAR), new SQLItemImpl(cfid, Types.VARCHAR), new SQLItemImpl(applicationName, Types.VARCHAR) });
-		ScopeContext.debug(log, sql.toString());
+		ScopeContext.trace(log, sql.toString());
 
 		return execute(null, conn, sql, tz);
 	}
@@ -193,7 +193,7 @@ public final class Ansi92 extends SQLExecutorSupport {
 		String strSQL = "DELETE FROM " + PREFIX + "_" + strType + "_data WHERE cfid=? AND name=?";
 		SQLImpl sql = new SQLImpl(strSQL, new SQLItem[] { new SQLItemImpl(cfid, Types.VARCHAR), new SQLItemImpl(applicationName, Types.VARCHAR) });
 		execute(null, dc.getConnection(), sql, ThreadLocalPageContext.getTimeZone());
-		ScopeContext.debug(log, sql.toString());
+		ScopeContext.trace(log, sql.toString());
 
 	}
 
@@ -222,7 +222,7 @@ public final class Ansi92 extends SQLExecutorSupport {
 
 			if (listener != null) listener.doEnd(engine, cleaner, name, cfid);
 
-			ScopeContext.info(log, "remove " + strType + "/" + name + "/" + cfid + " from datasource " + dc.getDatasource().getName());
+			ScopeContext.debug(log, "Remove " + strType + " [" + name + "/" + cfid + "] from datasource [" + dc.getDatasource().getName() + "]");
 			engine.remove(type, name, cfid);
 			SQLImpl sql = new SQLImpl("DELETE FROM " + PREFIX + "_" + strType + "_data WHERE cfid=? and name=?",
 					new SQLItem[] { new SQLItemImpl(cfid, Types.VARCHAR), new SQLItemImpl(name, Types.VARCHAR) });
