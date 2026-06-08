@@ -48,6 +48,8 @@ public final class Ldap extends TagImpl {
 	private int port = 389;
 	private boolean usetls = false;
 	private short secureLevel = LDAPClient.SECURE_NONE;
+	private String clientCert;
+	private String clientCertPassword;
 	private String[] returnAsBinary = new String[0];
 	private String attributes = null;
 	private String username;
@@ -78,6 +80,8 @@ public final class Ldap extends TagImpl {
 		port = 389;
 		usetls = false;
 		secureLevel = LDAPClient.SECURE_NONE;
+		clientCert = null;
+		clientCertPassword = null;
 		returnAsBinary = new String[0];
 		username = null;
 		password = null;
@@ -205,6 +209,20 @@ public final class Ldap extends TagImpl {
 	 */
 	public void setUsername(String username) {
 		this.username = username;
+	}
+
+	/**
+	 * @param clientCert full path to the PKCS12 keystore containing the client certificate
+	 */
+	public void setClientcert(String clientCert) {
+		this.clientCert = clientCert;
+	}
+
+	/**
+	 * @param clientCertPassword password for the client certificate keystore
+	 */
+	public void setClientcertpassword(String clientCertPassword) {
+		this.clientCertPassword = clientCertPassword;
 	}
 
 	/**
@@ -372,7 +390,7 @@ public final class Ldap extends TagImpl {
 		// LDAPClient client=new
 		// LDAPClient(server,port,secureLevel,returnAsBinary,username,password,referral);
 		LDAPClient client = new LDAPClient(server, port, timeout, returnAsBinary);
-		if (secureLevel != LDAPClient.SECURE_NONE) client.setSecureLevel(secureLevel);
+		if (secureLevel != LDAPClient.SECURE_NONE) client.setSecureLevel(secureLevel, clientCert, clientCertPassword);
 		if (username != null) client.setCredential(username, password);
 		if (referral > 0) client.setReferral(referral);
 

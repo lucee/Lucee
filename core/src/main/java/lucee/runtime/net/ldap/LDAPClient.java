@@ -18,9 +18,16 @@
  **/
 package lucee.runtime.net.ldap;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.security.KeyStore;
+import java.security.SecureRandom;
 import java.util.Enumeration;
 import java.util.Hashtable;
+
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLContext;
 
 import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
@@ -125,33 +132,42 @@ public final class LDAPClient {
 
 	/**
 	 * Sets the secure level for the LDAP connection.
-	 * 
+	 *
 	 * @param secureLevel [SECURE_CFSSL_BASIC, SECURE_CFSSL_CLIENT_AUTH, SECURE_NONE]
-	 * @throws ClassException
+	 * @param clientCert path to PKCS12 keystore containing the client certificate (SECURE_CFSSL_CLIENT_AUTH only)
+	 * @param clientCertPassword password for the client certificate keystore
+	 * @throws Exception
 	 */
-	public void setSecureLevel(short secureLevel) throws ClassException {
-		// SSL basic security level
+	public void setSecureLevel(short secureLevel, String clientCert, String clientCertPassword) throws IOException {
 		if (secureLevel == SECURE_CFSSL_BASIC) {
-			// Enabling SSL protocol for the connection
 			env.put("java.naming.security.protocol", "ssl");
-
-			// Using the standard Java SSLSocketFactory for secure connections
 			env.put("java.naming.ldap.factory.socket", "javax.net.ssl.SSLSocketFactory");
-
-			// SSL client authentication level
 		}
 		else if (secureLevel == SECURE_CFSSL_CLIENT_AUTH) {
-			// Enabling SSL protocol and setting external client authentication
 			env.put("java.naming.security.protocol", "ssl");
-			env.put("java.naming.security.authentication", "EXTERNAL");
 
-			// No security (simple authentication)
+			if (clientCert != null && !clientCert.isEmpty()) {
+				try {
+					if (clientCertPassword == null) clientCertPassword = "";
+					KeyStore ks = KeyStore.getInstance("PKCS12");
+					ks.load(new FileInputStream(new File(clientCert)), clientCertPassword.toCharArray());
+					KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+					kmf.init(ks, clientCertPassword.toCharArray());
+					SSLContext ctx = SSLContext.getInstance("TLS");
+					ctx.init(kmf.getKeyManagers(), null, new SecureRandom());
+					LDAPSSLSocketFactory.set(ctx.getSocketFactory());
+					env.put("java.naming.ldap.factory.socket", LDAPSSLSocketFactory.class.getName());
+				}
+				catch (Exception e) {
+					throw new IOException("failed to load client certificate [" + clientCert + "]: " + e.getMessage(), e);
+				}
+			}
+			else {
+				env.put("java.naming.ldap.factory.socket", "javax.net.ssl.SSLSocketFactory");
+			}
 		}
 		else {
-			// Default simple authentication, no SSL
 			env.put("java.naming.security.authentication", "simple");
-
-			// Removing security-related configurations if not using SSL
 			env.remove("java.naming.security.protocol");
 			env.remove("java.naming.ldap.factory.socket");
 		}
