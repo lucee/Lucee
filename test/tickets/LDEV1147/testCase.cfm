@@ -1,11 +1,11 @@
 <cfparam name="FORM.Scene" default="1">
 <cffunction name="isDataAvail" access="public" returntype="boolean">
 	<cfquery name="tmpQry">
-			SELECT CAST(OBJECT_NAME AS varchar2(50)) || '|' || CAST(OBJECT_TYPE AS varchar2(50)) || '|' || CAST( OWNER AS varchar2(30) ) AS Name FROM ALL_OBJECTS WHERE OBJECT_NAME = 'LUCEE_BUG_TEST' AND STATUS = 'VALID'
+			SELECT CAST(OBJECT_NAME AS varchar2(50)) || '|' || CAST(OBJECT_TYPE AS varchar2(50)) || '|' || CAST( OWNER AS varchar2(30) ) AS Name FROM ALL_OBJECTS WHERE OBJECT_NAME = 'LDEV1147_PKG' AND STATUS = 'VALID'
 	</cfquery>
 	<cfset tmpList = valueList(tmpQry.Name)>
 	<cfset variables.Owner = listLast(tmpList, "|")>
-	<cfreturn !(tmpQry.RecordCount == 2 && findNoCase("LUCEE_BUG_TEST|PACKAGE", tmpList) && findNoCase("LUCEE_BUG_TEST|PACKAGE BODY", tmpList))>
+	<cfreturn !(tmpQry.RecordCount == 2 && findNoCase("LDEV1147_PKG|PACKAGE", tmpList) && findNoCase("LDEV1147_PKG|PACKAGE BODY", tmpList))>
 </cffunction>
 
 <cffunction name="PackageWithoutParameter">
@@ -14,7 +14,7 @@
 	</cfif>
 	<cfset hasError = "False">
 	<cftry>
-		<cfstoredproc procedure="#variables.Owner#.lucee_bug_test.testproc">
+		<cfstoredproc procedure="#variables.Owner#.ldev1147_pkg.testproc">
 		<cfcatch>
 			<cfset hasError = cfcatch.detail>
 		</cfcatch>
@@ -28,7 +28,7 @@
 	</cfif>
 	<cfset hasError = "False">
 	<cftry>
-		<cfstoredproc procedure="#variables.Owner#.lucee_bug_test.testproc2" >
+		<cfstoredproc procedure="#variables.Owner#.ldev1147_pkg.testproc2" >
 			<cfprocparam cfsqltype="cf_sql_varchar" value="foo">
 		</cfstoredproc>
 		<cfcatch>
@@ -44,7 +44,7 @@
 	</cfif>
 	<cfset hasError = "False">
 	<cftry>
-		<cfstoredproc procedure="#variables.Owner#.BU##.testproc" >
+		<cfstoredproc procedure="#variables.Owner#.LDEV1147_SYN##.testproc" >
 		<cfcatch>
 			<cfset hasError = cfcatch.detail>
 		</cfcatch>
@@ -58,7 +58,7 @@
 	</cfif>
 	<cfset hasError = "False">
 	<cftry>
-		<cfstoredproc procedure="#variables.Owner#.BU##.testproc2" >
+		<cfstoredproc procedure="#variables.Owner#.LDEV1147_SYN##.testproc2" >
 			<cfprocparam cfsqltype="cf_sql_varchar" value="foo">
 		</cfstoredproc>
 		<cfcatch>
