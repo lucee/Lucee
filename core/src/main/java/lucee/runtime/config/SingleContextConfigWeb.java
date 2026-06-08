@@ -1926,6 +1926,16 @@ class SingleContextConfigWeb extends ConfigBase implements ConfigWebInner {
 	}
 
 	@Override
+	public void removeDatasourceConnectionPool(String name) {
+		cs.removeDatasourceConnectionPool(name);
+	}
+
+	@Override
+	public void cleanDatasourceConnectionPools() {
+		cs.cleanDatasourceConnectionPools();
+	}
+
+	@Override
 	public MockPool getDatasourceConnectionPool() {
 		return cs.getDatasourceConnectionPool();
 	}

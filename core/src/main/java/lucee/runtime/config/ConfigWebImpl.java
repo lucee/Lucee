@@ -342,6 +342,16 @@ public class ConfigWebImpl implements ConfigWebPro {
 	}
 
 	@Override
+	public void removeDatasourceConnectionPool(String name) {
+		instance.removeDatasourceConnectionPool(name);
+	}
+
+	@Override
+	public void cleanDatasourceConnectionPools() {
+		instance.cleanDatasourceConnectionPools();
+	}
+
+	@Override
 	public lucee.runtime.cache.tag.CacheHandlerCollection getCacheHandlerCollection(int arg0, lucee.runtime.cache.tag.CacheHandlerCollection arg1) {
 		return instance.getCacheHandlerCollection(arg0, arg1);
 	}

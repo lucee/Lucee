@@ -21,6 +21,7 @@ import lucee.runtime.type.util.KeyConstants;
 public class DatasourceConnPool extends GenericObjectPool<DatasourceConnection> {
 
 	private long lastBorrowed;
+	private volatile boolean evictionCandidate;
 
 	public DatasourceConnPool(Config config, DataSource ds, String user, String pass, String logName, GenericObjectPoolConfig<DatasourceConnection> genericObjectPoolConfig) {
 		super(new DatasourceConnectionFactory(config, ds, user, pass, logName), genericObjectPoolConfig);
@@ -31,6 +32,7 @@ public class DatasourceConnPool extends GenericObjectPool<DatasourceConnection> 
 	public DatasourceConnection borrowObject() throws PageException {
 		try {
 			this.lastBorrowed = System.currentTimeMillis();
+			this.evictionCandidate = false;
 			return super.borrowObject();
 		}
 		catch (Exception e) {
@@ -40,11 +42,23 @@ public class DatasourceConnPool extends GenericObjectPool<DatasourceConnection> 
 
 	/**
 	 * Returns the timestamp of when a connection was last borrowed from this pool.
-	 * 
+	 *
 	 * @return timestamp in milliseconds, or -1 if no connection has been borrowed
 	 */
 	public long getLastBorrowed() {
 		return this.lastBorrowed;
+	}
+
+	public void setLastBorrowed(long v) {
+		this.lastBorrowed = v;
+	}
+
+	boolean isEvictionCandidate() {
+		return this.evictionCandidate;
+	}
+
+	void setEvictionCandidate(boolean v) {
+		this.evictionCandidate = v;
 	}
 
 	@Override
