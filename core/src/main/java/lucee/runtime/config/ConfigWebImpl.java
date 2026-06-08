@@ -1860,6 +1860,16 @@ public final class ConfigWebImpl extends ConfigBase implements ConfigWebPro {
 	}
 
 	@Override
+	public void removeDatasourceConnectionPool(String name) {
+		cs.removeDatasourceConnectionPool(name);
+	}
+
+	@Override
+	public void cleanDatasourceConnectionPools() {
+		cs.cleanDatasourceConnectionPools();
+	}
+
+	@Override
 	public MockPool getDatasourceConnectionPool() {
 		return cs.getDatasourceConnectionPool();
 	}

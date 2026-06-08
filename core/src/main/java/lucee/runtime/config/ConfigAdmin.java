@@ -2451,6 +2451,7 @@ public final class ConfigAdmin {
 
 			if (key.getString().equalsIgnoreCase(name)) {
 				children.removeEL(key);
+				config.removeDatasourceConnectionPool(name);
 			}
 		}
 	}

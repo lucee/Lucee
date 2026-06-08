@@ -3584,30 +3584,25 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 					pool = new DatasourceConnPool(this, ds, user, pass, "datasource", DatasourceConnPool.createPoolConfig(null, null, null, dsp.getMinIdle(), dsp.getMaxIdle(), mt,
 							maxWaitMillis, minEvictableIdleTimeMillis, 0, 0, 0, null));
 					pools.put(id, pool);
-					cleanConnectionPools(id);
 				}
 			}
 		}
 		return pool;
 	}
 
-	private void cleanConnectionPools(String excludeId) {
-		DatasourceConnPool pool;
-		List<String> keysToRemove = null;
+	// mark-then-sweep across two ticks: any borrow between mark and sweep clears the mark
+	public void cleanDatasourceConnectionPools() {
+		long now = System.currentTimeMillis();
 		for (Entry<String, DatasourceConnPool> e: pools.entrySet()) {
-			if (excludeId.equals(e.getKey())) {
-				continue;
-			}
-			pool = e.getValue();
-			if ((pool.getNumActive() + pool.getNumIdle() + pool.getNumWaiters()) == 0 && (pool.getLastBorrowed() + POOL_MAX_IDLE) < System.currentTimeMillis()) {
-				if (keysToRemove == null) keysToRemove = new ArrayList<>();
-				keysToRemove.add(e.getKey());
-			}
-		}
-
-		if (keysToRemove != null) {
-			for (String k: keysToRemove) {
-				pools.remove(k);
+			DatasourceConnPool pool = e.getValue();
+			if ((pool.getNumActive() + pool.getNumIdle() + pool.getNumWaiters()) == 0 && (pool.getLastBorrowed() + POOL_MAX_IDLE) < now) {
+				if (pool.isEvictionCandidate()) {
+					pool.close();
+					pools.remove(e.getKey(), pool);
+				}
+				else {
+					pool.setEvictionCandidate(true);
+				}
 			}
 		}
 	}
@@ -3624,13 +3619,23 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 
 	@Override
 	public void removeDatasourceConnectionPool(DataSource ds) {
+		removeDatasourceConnectionPool(ds.getName());
+	}
+
+	@Override
+	public void removeDatasourceConnectionPool(String name) {
+		List<Entry<String, DatasourceConnPool>> matches = null;
 		for (Entry<String, DatasourceConnPool> e: pools.entrySet()) {
-			if (e.getValue().getFactory().getDatasource().getName().equalsIgnoreCase(ds.getName())) {
-				synchronized (e.getKey()) {
-					pools.remove(e.getKey());
-				}
-				e.getValue().clear();
+			if (e.getValue().getFactory().getDatasource().getName().equalsIgnoreCase(name)) {
+				if (matches == null) matches = new ArrayList<>();
+				matches.add(e);
 			}
+		}
+		if (matches == null) return;
+		// close first, then CAS-remove: if close() throws, entry stays in the map and bg sweep retries
+		for (Entry<String, DatasourceConnPool> e: matches) {
+			e.getValue().close();
+			pools.remove(e.getKey(), e.getValue()); // CAS — only remove if value unchanged
 		}
 	}
 
