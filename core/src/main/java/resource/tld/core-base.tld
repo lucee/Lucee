@@ -188,50 +188,6 @@
   the page. To accomplish this, cfcache creates temporary files that contain the static HTML returned from
   a page. You can use cfcache for simple URLs and URLs that contain URL parameters.</description>
 		<attribute-type>fixed</attribute-type>
-		<attribute-groups>
-			<group>
-				<name>cache</name>
-				<label>Cache Page</label>
-				<description>`action="cache"` - Server and client-side template caching (alias `"optimal"`)</description>
-				<attributes>useCache,useQueryString,stripWhiteSpace,timeSpan,idleTime</attributes>
-			</group>
-			<group>
-				<name>get</name>
-				<label>Get Cached Object</label>
-				<description>`action="get"` - Retrieve value from object cache</description>
-				<attributes>id,name,metadata,cacheName,throwOnError</attributes>
-			</group>
-			<group>
-				<name>put</name>
-				<label>Put to Object Cache</label>
-				<description>`action="put"` - Store value in object cache</description>
-				<attributes>id,value,timeSpan,idleTime,cacheName,throwOnError</attributes>
-			</group>
-			<group>
-				<name>content</name>
-				<label>Cache Tag Body</label>
-				<description>`action="content"` - Cache only the body of the tag</description>
-				<attributes>key,useCache,useQueryString,stripWhiteSpace,dependsOn,cacheName,timeSpan,idleTime</attributes>
-			</group>
-			<group>
-				<name>flush</name>
-				<label>Flush Cache</label>
-				<description>`action="flush"` - Clear cached pages</description>
-				<attributes>id,expireURL,directory,cacheDirectory,cacheName,throwOnError</attributes>
-			</group>
-			<group>
-				<name>clientCache</name>
-				<label>Client-Side Cache</label>
-				<description>`action="clientCache"` - Browser-side caching only</description>
-				<attributes>timeSpan,idleTime</attributes>
-			</group>
-			<group>
-				<name>serverCache</name>
-				<label>Server-Side Cache</label>
-				<description>`action="serverCache"` - Server-side caching only</description>
-				<attributes>directory,cacheDirectory,port,useQueryString,cacheName,timeSpan,idleTime</attributes>
-			</group>
-		</attribute-groups>
 		<attribute>
 			<type>string</type>
 			<name>action</name>
@@ -239,71 +195,73 @@
 			<default-value>cache</default-value>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>
-			- cache (default): server-side and client-side template caching (alias "optimal").
+		<description>
+			- cache (default): server-side and client-side template caching.
 			- flush: refresh cached pages (template caching).
 			- clientCache: browser-side caching only. To cache a personalized page, use this option.
 			- serverCache: server-side caching only. Not recommended.
+			- optimal: same as "cache".
 			- content: same as cache, but cache only the body of the tag, not the complete template (template caching).
 			- put: adds a key value pair to object cache (see function cachePut for more details)
 			- get: gets value matching given key from object cache (see function cacheGet for more details)
 			</description>
-		</attribute>
+	</attribute>
 		<attribute>
 			<type>string</type>
 			<name>key</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>key to access cache</description>
-		</attribute>
+		<description>key to access cache</description>
+	</attribute>
 		<attribute>
 			<type>any</type>
 			<name>id</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>Id of the cached object</description>
-		</attribute>
+		<description>Id of the cached object</description>
+	</attribute>
 		<attribute>
 			<type>boolean</type>
 			<name>throwOnError</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>A Boolean value specifying whether to throw an error if the
+		<description>A Boolean value specifying whether t throw an error if the
 flush
 action encounters an error. Otherwise the action does not generate an error if it fails. If this attribute is
 true
 you can handle the error in a
 cfcatch
 block, for example, if a specified id value is invalid</description>
-		</attribute>
+	</attribute>
+
 		<attribute>
 			<type>string</type>
 			<name>name</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>name of return variable, valid with action="get"</description>
-		</attribute>
+		<description>name of return variable, valid with action="get"</description>
+	</attribute>
 		<attribute>
 			<type>string</type>
 			<name>metadata</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>Name of the struct variable</description>
-		</attribute>
+		<description>Name of the struct variable</description>
+	</attribute>
 		<attribute>
 			<type>any</type>
 			<name>value</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>For action="set", object which needs to be stored</description>
-		</attribute>
+		<description>For action="set", object which needs to be stored</description>
+	</attribute>
 		<attribute>
 			<type>string</type>
 			<name>cacheName</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>definition of the cache used by name, when not set the "default Object Cache" defined in Lucee Administrator is used instead.</description>
-		</attribute>
+		<description>definition of the cache used by name, when not set the "default Object Cache" defined in Lucee Administrator is used instead.</description>
+	</attribute>
 		<attribute>
 			<type>string</type>
 			<name>username</name>
@@ -416,6 +374,7 @@ A return value from the CreateTimeSpan function, for example, "#CreateTimeSpan(0
 			<description>A list of additional variables which invalidate the cache when changed.</description>
 			<status>unimplemented</status>
 		</attribute>
+		
 	</tag>
 
 	<!-- Case -->
@@ -866,75 +825,6 @@ A return value from the CreateTimeSpan function, for example, "#CreateTimeSpan(0
 		</script>
 		<description>Lets you retrieve information about a data source, including details about the database, tables, queries, procedures, foreign keys, indexes, and version information about the database, driver, and JDBC. This tag supports only JDBC drivers, and does not support ODBC-based drivers, including the Microsoft Access driver.</description>
 		<attribute-type>fixed</attribute-type>
-	<attribute-groups>
-		<group>
-			<name>dbNames</name>
-			<label>Database Names</label>
-			<description>`type="dbNames"` - Get database name and type</description>
-			<attributes>pattern</attributes>
-		</group>
-		<group>
-			<name>tables</name>
-			<label>Table Information</label>
-			<description>`type="tables"` - Get information about all tables</description>
-			<attributes>pattern,Filter</attributes>
-		</group>
-		<group>
-			<name>columns</name>
-			<label>Column Information</label>
-			<description>`type="columns"` - Get column info with FK/PK relationships</description>
-			<attributes>table</attributes>
-		</group>
-		<group>
-			<name>columns_minimal</name>
-			<label>Column Info (Fast)</label>
-			<description>`type="columns_minimal"` - Get column info without FK/PK (much faster)</description>
-			<attributes>table</attributes>
-		</group>
-		<group>
-			<name>version</name>
-			<label>Version Information</label>
-			<description>`type="version"` - Get database version info</description>
-			<attributes></attributes>
-		</group>
-		<group>
-			<name>procedures</name>
-			<label>Stored Procedures</label>
-			<description>`type="procedures"` - Get information about all procedures</description>
-			<attributes>pattern</attributes>
-		</group>
-		<group>
-			<name>procedure_columns</name>
-			<label>Procedure Columns</label>
-			<description>`type="procedure_columns"` - Get column info for a procedure</description>
-			<attributes>procedure</attributes>
-		</group>
-		<group>
-			<name>foreignKeys</name>
-			<label>Foreign Keys</label>
-			<description>`type="foreignKeys"` - Get foreign key information</description>
-			<attributes>table</attributes>
-		</group>
-		<group>
-			<name>index</name>
-			<label>Index Information</label>
-			<description>`type="index"` - Get index information</description>
-			<attributes>table</attributes>
-		</group>
-		<group>
-			<name>users</name>
-			<label>Database Users</label>
-			<description>`type="users"` - List database users</description>
-			<attributes></attributes>
-		</group>
-		<group>
-			<name>terms</name>
-			<label>Vendor Terms</label>
-			<description>`type="terms"` - Get vendor preferred terminology</description>
-			<attributes></attributes>
-		</group>
-	</attribute-groups>
-
 		<attribute>
 			<type>object</type>
 			<name>datasource</name>
@@ -1065,51 +955,6 @@ Each Database implementation has it's own supported types
 		</script>
 		<description>Handles interactions with directories.</description>
 		<attribute-type>fixed</attribute-type>
-		<attribute-groups>
-			<group>
-				<name>list</name>
-				<label>List Directory</label>
-				<description>`action="list"` - Get directory contents</description>
-				<attributes>directory,name,type,filter,filterDelimiters,listInfo,recurse,sort</attributes>
-			</group>
-			<group>
-				<name>create</name>
-				<label>Create Directory</label>
-				<description>`action="create"` - Create a new directory</description>
-				<attributes>directory,createPath,mode,nameConflict,storeAcl,storeLocation</attributes>
-			</group>
-			<group>
-				<name>delete</name>
-				<label>Delete Directory</label>
-				<description>`action="delete"` - Delete a directory</description>
-				<attributes>directory,recurse</attributes>
-			</group>
-			<group>
-				<name>forceDelete</name>
-				<label>Force Delete Directory</label>
-				<description>`action="forceDelete"` - Force delete a directory and all contents</description>
-				<attributes>directory</attributes>
-			</group>
-			<group>
-				<name>rename</name>
-				<label>Rename Directory</label>
-				<description>`action="rename"` - Rename a directory</description>
-				<attributes>directory,newDirectory,name,createPath,storeAcl,storeLocation</attributes>
-			</group>
-			<group>
-				<name>copy</name>
-				<label>Copy Directory</label>
-				<description>`action="copy"` - Copy directory to new location</description>
-				<attributes>directory,destination,filter,recurse,nameConflict,createPath,storeAcl,storeLocation</attributes>
-			</group>
-			<group>
-				<name>info</name>
-				<label>Get Directory Info</label>
-				<description>`action="info"` - Retrieve directory metadata</description>
-				<attributes>directory,name</attributes>
-			</group>
-		</attribute-groups>
-
 		<attribute>
 			<type>string</type>
 			<name>action</name>
@@ -1656,74 +1501,6 @@ Example:
 		<description>Handles all interactions with files. The attributes you use with cffile depend on the value of the action attribute.
  For example, if the action = "write", use the attributes associated with writing a text file.</description>
 		<attribute-type>fixed</attribute-type>
-		<attribute-groups>
-			<group>
-				<name>read</name>
-				<label>Read File</label>
-				<description>`action="read"` - Read text content from a file</description>
-				<attributes>file,variable,charset,cachedWithin</attributes>
-			</group>
-			<group>
-				<name>readBinary</name>
-				<label>Read Binary File</label>
-				<description>`action="readBinary"` - Read binary content from a file</description>
-				<attributes>file,variable,cachedWithin</attributes>
-			</group>
-			<group>
-				<name>write</name>
-				<label>Write File</label>
-				<description>`action="write"` - Write text content to a file</description>
-				<attributes>file,output,charset,addNewLine,fixNewLine,createPath,mode,attributes,storeAcl</attributes>
-			</group>
-			<group>
-				<name>append</name>
-				<label>Append to File</label>
-				<description>`action="append"` - Append content to existing file</description>
-				<attributes>file,output,charset,addNewLine,fixNewLine,createPath,mode,attributes,storeAcl</attributes>
-			</group>
-			<group>
-				<name>upload</name>
-				<label>Upload File</label>
-				<description>`action="upload"` - Handle file uploads from forms</description>
-				<attributes>destination,fileField,nameConflict,accept,strict,result,allowedExtensions,blockedExtensions,attributes,storeAcl</attributes>
-			</group>
-			<group>
-				<name>uploadAll</name>
-				<label>Upload All Files</label>
-				<description>`action="uploadAll"` - Handle multiple file uploads from forms</description>
-				<attributes>destination,nameConflict,accept,strict,result,allowedExtensions,blockedExtensions,attributes,storeAcl</attributes>
-			</group>
-			<group>
-				<name>copy</name>
-				<label>Copy File</label>
-				<description>`action="copy"` - Copy file to new location</description>
-				<attributes>source,destination,mode,attributes,storeAcl</attributes>
-			</group>
-			<group>
-				<name>move</name>
-				<label>Move/Rename File</label>
-				<description>`action="move"` (alias `"rename"`) - Move or rename a file</description>
-				<attributes>source,destination,mode,attributes,storeAcl</attributes>
-			</group>
-			<group>
-				<name>delete</name>
-				<label>Delete File</label>
-				<description>`action="delete"` - Delete a file</description>
-				<attributes>file,storeAcl</attributes>
-			</group>
-			<group>
-				<name>info</name>
-				<label>Get File Info</label>
-				<description>`action="info"` - Retrieve file metadata</description>
-				<attributes>file,variable</attributes>
-			</group>
-			<group>
-				<name>touch</name>
-				<label>Touch File</label>
-				<description>`action="touch"` - Create empty file or update timestamp</description>
-				<attributes>file,createPath,storeAcl</attributes>
-			</group>
-		</attribute-groups>
 		<attribute>
 			<type>object</type>
 			<name>storeAcl</name>
@@ -1828,6 +1605,7 @@ if set to false, it supports file extension/mimetypes in the accept attribute
    if set to false (default), expects all parent directories to exist, true will generate necessary directories
    </description>
 		</attribute>
+
 		<attribute>
 			<type>string</type>
 			<name>file</name>
@@ -1855,7 +1633,7 @@ if set to false, it supports file extension/mimetypes in the accept attribute
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<introduced>5.0.0.0</introduced>
-			<description>
+		<description>
 possible values are:
 String "request": If original content was created within the current request, cached content data is used.
 a timeSpan (created with function CreateTimeSpan): If original content date falls within the time span, cached content data is used.
@@ -2150,56 +1928,6 @@ To use cached data, the tag must be called with the exact same arguments. Only u
   GET operations and create a query object from a text file. POST operations lets you upload MIME file
   types to a server, or post cookie, form field, URL, file, or CGI variables directly to a specified server.</description>
 		<attribute-type>fixed</attribute-type>
-		<attribute-groups>
-			<group>
-				<name>get</name>
-				<label>GET Request</label>
-				<description>`method="get"` - Retrieve content from a URL</description>
-				<attributes>getAsBinary,resolveURL,cachedWithin,name,columns,path,file,delimiter,textQualifier,firstRowAsHeaders</attributes>
-			</group>
-			<group>
-				<name>post</name>
-				<label>POST Request</label>
-				<description>`method="post"` - Send data to a server</description>
-				<attributes>charset,multipart,multiPartType</attributes>
-			</group>
-			<group>
-				<name>put</name>
-				<label>PUT Request</label>
-				<description>`method="put"` - Upload/replace resource on server</description>
-				<attributes>charset</attributes>
-			</group>
-			<group>
-				<name>delete</name>
-				<label>DELETE Request</label>
-				<description>`method="delete"` - Remove resource from server</description>
-				<attributes></attributes>
-			</group>
-			<group>
-				<name>head</name>
-				<label>HEAD Request</label>
-				<description>`method="head"` - Retrieve headers only, no body content</description>
-				<attributes></attributes>
-			</group>
-			<group>
-				<name>options</name>
-				<label>OPTIONS Request</label>
-				<description>`method="options"` - Get allowed methods for resource</description>
-				<attributes></attributes>
-			</group>
-			<group>
-				<name>trace</name>
-				<label>TRACE Request</label>
-				<description>`method="trace"` - Diagnostic method for request/response chain</description>
-				<attributes></attributes>
-			</group>
-			<group>
-				<name>patch</name>
-				<label>PATCH Request</label>
-				<description>`method="patch"` - Partially update existing resource</description>
-				<attributes>charset</attributes>
-			</group>
-		</attribute-groups>
 		<attribute>
 			<type>string</type>
 			<name>url</name>
@@ -2237,7 +1965,7 @@ To use cached data, the tag must be called with the exact same arguments. Only u
 			<name>result</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>return variable name, default "cfhttp"</description>
+			<description>return variable name, default "cfhhtp"</description>
 		</attribute>
 		<attribute>
 			<type>boolean</type>
@@ -3094,39 +2822,6 @@ To use cached data, the function must be called with the exact same arguments.
 		<description>Provides an interface to LDAP Lightweight Directory Access Protocol
   directory servers like the Netscape Directory Server.</description>
 		<attribute-type>fixed</attribute-type>
-	<attribute-groups>
-		<group>
-			<name>query</name>
-			<label>Query LDAP</label>
-			<description>Search and retrieve LDAP entries</description>
-			<attributes>name,maxRows,start,scope,attributes,filter,filterFile,sort,sortControl,startRow,separator,delimiter,returnAsBinary</attributes>
-		</group>
-		<group>
-			<name>add</name>
-			<label>Add LDAP Entry</label>
-			<description>Add new entry to LDAP directory</description>
-			<attributes>dn,attributes,separator,delimiter</attributes>
-		</group>
-		<group>
-			<name>modify</name>
-			<label>Modify LDAP Entry</label>
-			<description>Update existing LDAP entry</description>
-			<attributes>dn,attributes,modifyType,separator,delimiter</attributes>
-		</group>
-		<group>
-			<name>modifyDn</name>
-			<label>Modify DN</label>
-			<description>Change distinguished name of entry</description>
-			<attributes>dn,attributes</attributes>
-		</group>
-		<group>
-			<name>delete</name>
-			<label>Delete LDAP Entry</label>
-			<description>Remove entry from LDAP directory</description>
-			<attributes>dn</attributes>
-		</group>
-	</attribute-groups>
-
 		<attribute>
 			<type>string</type>
 			<name>returnAsBinary</name>
@@ -3607,56 +3302,6 @@ To use cached data, the function must be called with the exact same arguments.
 		<description>Looping is a very powerful programming technique that lets you repeat a set of instructions or
   display output repeatedly until one or more conditions are met. cfloop supports five types of loops.</description>
 		<attribute-type>fixed</attribute-type>
-		<attribute-groups>
-			<group>
-				<name>index</name>
-				<label>Index Loop</label>
-				<description>Index loop - Loop with a counter from/to/step</description>
-				<attributes>index,item,from,to,step</attributes>
-			</group>
-			<group>
-				<name>condition</name>
-				<label>Conditional Loop</label>
-				<description>Conditional loop - Loop while a condition is true</description>
-				<attributes>condition</attributes>
-			</group>
-			<group>
-				<name>list</name>
-				<label>List Loop</label>
-				<description>List loop - Iterate through delimited strings</description>
-				<attributes>list,index,item,delimiters</attributes>
-			</group>
-			<group>
-				<name>array</name>
-				<label>Array Loop</label>
-				<description>Array loop - Iterate through array elements</description>
-				<attributes>array,index,item</attributes>
-			</group>
-			<group>
-				<name>collection</name>
-				<label>Collection/Struct Loop</label>
-				<description>Collection/Struct loop - Iterate through struct keys and values (aliases: `key` for `index`, `value` for `item`)</description>
-				<attributes>collection,struct,index,item</attributes>
-			</group>
-			<group>
-				<name>query</name>
-				<label>Query Loop</label>
-				<description>Query loop - Iterate through query recordset</description>
-				<attributes>query,startRow,endRow,maxRows,group</attributes>
-			</group>
-			<group>
-				<name>file</name>
-				<label>File Loop</label>
-				<description>File loop - Read file line by line (aliases: `from`/`to` for `startLine`/`endLine`)</description>
-				<attributes>file,index,item,characters,startLine,from,endLine,to,charset</attributes>
-			</group>
-			<group>
-				<name>times</name>
-				<label>Times Loop</label>
-				<description>Times loop - Loop a specific number of times</description>
-				<attributes>times</attributes>
-			</group>
-		</attribute-groups>
 		<attribute>
 			<type>string</type>
 			<name>index</name>
@@ -4310,27 +3955,6 @@ Lucee uses the number of characters in the file.</description>
 		</script>
 		<description>Passes SQL statements to a data source. Not limited to queries.</description>
 		<attribute-type>fixed</attribute-type>
-	<attribute-groups>
-		<group>
-			<name>database</name>
-			<label>Database Query</label>
-			<description>Execute SQL against a datasource</description>
-			<attributes>dataSource,username,password,blockFactor,timeout,cachedAfter,cachedWithin,timezone,sql,async,listener,cacheId,cacheName,tags</attributes>
-		</group>
-		<group>
-			<name>qoq</name>
-			<label>Query of Query</label>
-			<description>Query existing query objects</description>
-			<attributes>dbType,cachedWithin,sql,psq</attributes>
-		</group>
-		<group>
-			<name>hql</name>
-			<label>Hibernate Query (HQL)</label>
-			<description>Execute HQL queries against ORM entities</description>
-			<attributes>dbType,ormOptions,unique</attributes>
-		</group>
-	</attribute-groups>
-
 		<attribute>
 			<type>string</type>
 			<name>name</name>
@@ -4989,45 +4613,6 @@ Params: [
   is performed in order to populate the data on the page.
   </description>
 		<attribute-type>fixed</attribute-type>
-	<attribute-groups>
-		<group>
-			<name>update</name>
-			<label>Create/Update Task</label>
-			<description>`action="update"` - Create or update a scheduled task</description>
-			<attributes>task,url,startDate,startTime,interval,endDate,endTime,publish,file,path,requestTimeOut,username,password,proxyServer,proxyPort,proxyUser,proxyPassword,userAgent,resolveURL,port,paused,hidden,readonly,autoDelete,unique,serverPassword</attributes>
-		</group>
-		<group>
-			<name>run</name>
-			<label>Run Task</label>
-			<description>`action="run"` - Execute a scheduled task immediately</description>
-			<attributes>task</attributes>
-		</group>
-		<group>
-			<name>delete</name>
-			<label>Delete Task</label>
-			<description>`action="delete"` - Remove a scheduled task</description>
-			<attributes>task</attributes>
-		</group>
-		<group>
-			<name>list</name>
-			<label>List Tasks</label>
-			<description>`action="list"` - Get all scheduled tasks</description>
-			<attributes>result</attributes>
-		</group>
-		<group>
-			<name>pause</name>
-			<label>Pause Task</label>
-			<description>`action="pause"` - Pause execution of a scheduled task</description>
-			<attributes>task</attributes>
-		</group>
-		<group>
-			<name>resume</name>
-			<label>Resume Task</label>
-			<description>`action="resume"` - Resume execution of a paused task</description>
-			<attributes>task</attributes>
-		</group>
-	</attribute-groups>
-
 		<attribute>
 			<type>string</type>
 			<name>action</name>
@@ -5620,38 +5205,6 @@ To use cached data, the current query must use the same SQL statement, data sour
 			Each thread gets its own isolated variable scope (`thread`) that persists across the thread's lifetime and can be accessed from other parts of your application.
 		</description>
 		<attribute-type>mixed</attribute-type>
-		<attribute-groups>
-			<group>
-				<name>run</name>
-				<label>Run Thread</label>
-				<description>`action="run"` - Create and execute a new thread with custom processing (supports dynamic attributes)</description>
-				<attributes>name,type,priority,retryInterval,separateScopes</attributes>
-			</group>
-			<group>
-				<name>join</name>
-				<label>Join Threads</label>
-				<description>`action="join"` - Synchronize with other threads, waiting for their completion</description>
-				<attributes>name,timeout,throwOnError</attributes>
-			</group>
-			<group>
-				<name>sleep</name>
-				<label>Sleep Thread</label>
-				<description>`action="sleep"` - Pause the current thread for a specified duration</description>
-				<attributes>duration</attributes>
-			</group>
-			<group>
-				<name>terminate</name>
-				<label>Terminate Thread</label>
-				<description>`action="terminate"` - Forcibly stop a thread immediately</description>
-				<attributes>name</attributes>
-			</group>
-			<group>
-				<name>interrupt</name>
-				<label>Interrupt Thread</label>
-				<description>`action="interrupt"` - Request cooperative termination of a thread</description>
-				<attributes>name</attributes>
-			</group>
-		</attribute-groups>
 		<attribute>
 			<type>string</type>
 			<name>action</name>
@@ -5771,28 +5324,12 @@ To use cached data, the current query must use the same SQL statement, data sour
 			<introduced>6.2.1.24</introduced>
 			<description>
 				Only applicable with `action="join"`. Determines whether exceptions thrown in joined threads should propagate to the joining thread.
-
+				
 				* When `true`: If any of the joined threads have encountered errors, the first error found will be thrown as an exception in the current thread. This allows for easier error detection by propagating errors up the call stack.
-
+				
 				* When `false` (default): Errors in joined threads remain isolated in their respective thread scopes and won't affect the current thread's execution. You must explicitly check the thread status to identify errors.
-
+				
 				This attribute is useful for implementing fail-fast behavior in situations where thread errors should immediately stop dependent operations.
-			</description>
-		</attribute>
-		<attribute>
-			<type>boolean</type>
-			<name>separateScopes</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<introduced>6.1.0.151</introduced>
-			<description>
-				Only applicable with `action="run"`. Controls whether the thread gets its own isolated copy of the caller's scopes or shares them directly. Defaults to `true`.
-
-				* When `true` (default): The thread receives a deep copy of the caller's scopes at thread creation time. Changes made within the thread do not affect the parent context, and vice versa. This provides isolation and prevents concurrency issues.
-
-				* When `false`: The thread directly accesses the caller's scopes. Changes made in the thread are immediately visible to the parent context. Use with caution as this can lead to race conditions and thread safety issues.
-
-				This attribute is useful when you need threads to share state, but requires careful synchronization to avoid data corruption.
 			</description>
 		</attribute>
 	</tag>
@@ -7960,86 +7497,6 @@ Valid only for cfinput type="text".</description>
 			for session and application variables. Session and application variables are stored in memory.
 		</description>
 		<attribute-type>mixed</attribute-type>
-	<attribute-groups>
-		<group>
-			<name>session</name>
-			<label>Session Management</label>
-			<description>Configure session scope behavior and storage</description>
-			<attributes>sessionManagement,sessionType,sessionStorage,sessionTimeout,sessionCluster,sessionCookie</attributes>
-		</group>
-		<group>
-			<name>client</name>
-			<label>Client Management</label>
-			<description>Configure client scope behavior and storage</description>
-			<attributes>clientManagement,clientStorage,clientTimeout,clientCluster,setClientCookies,authCookie</attributes>
-		</group>
-		<group>
-			<name>cache</name>
-			<label>Cache Configuration</label>
-			<description>Configure application caching behavior</description>
-			<attributes>caches,cacheObject,cacheFunction,cacheQuery,cacheTemplate,cacheResource,cacheInclude,cacheHTTP,cacheFile,cacheWebservice</attributes>
-		</group>
-		<group>
-			<name>database</name>
-			<label>Database Configuration</label>
-			<description>Configure datasources for the application</description>
-			<attributes>datasource,defaultDatasource,datasources</attributes>
-		</group>
-		<group>
-			<name>debugging</name>
-			<label>Debugging Settings</label>
-			<description>Control debug output and logging</description>
-			<attributes>showdebug,showdoc,showmetric,showtest,debuggingDatabase,debuggingException,debuggingDump,debuggingTracing,debuggingTimer,debuggingImplicitAccess,debuggingQueryUsage,debuggingThread,debuggingTemplate</attributes>
-		</group>
-		<group>
-			<name>paths</name>
-			<label>Path Mappings</label>
-			<description>Configure custom paths for components, tags, and functions</description>
-			<attributes>mappings,functionPaths,customTagPaths,componentPaths</attributes>
-		</group>
-		<group>
-			<name>orm</name>
-			<label>ORM Configuration</label>
-			<description>Configure Hibernate ORM settings</description>
-			<attributes>ormEnabled,ormSettings</attributes>
-		</group>
-		<group>
-			<name>mail</name>
-			<label>Mail Configuration</label>
-			<description>Configure SMTP mail servers and listeners</description>
-			<attributes>mailservers,mailListener</attributes>
-		</group>
-		<group>
-			<name>remote</name>
-			<label>Remote Services</label>
-			<description>Configure S3, FTP and proxy settings</description>
-			<attributes>s3,ftp,proxy</attributes>
-		</group>
-		<group>
-			<name>security</name>
-			<label>Security Settings</label>
-			<description>Configure security and cookie policies</description>
-			<attributes>setDomainCookies,secureJson,secureJsonPrefix,scriptProtect,blockedExtForFileUpload</attributes>
-		</group>
-		<group>
-			<name>timeouts</name>
-			<label>Timeout Configuration</label>
-			<description>Configure application and request timeouts</description>
-			<attributes>applicationTimeout,requestTimeout</attributes>
-		</group>
-		<group>
-			<name>behavior</name>
-			<label>Application Behavior</label>
-			<description>General application behavior and configuration</description>
-			<attributes>bufferOutput,cgiReadonly,loginStorage,localMode,locale,timeZone,webCharset,resourceCharset,scopeCascading,searchImplicitScopes,searchResults,enableNULLSupport,nullSupport,preciseMath,typeChecking,compression,wstype,onMissingTemplate,SerializationSettings,tag,logs,cachedAfter,javaSettings,xmlFeatures,regex,sameFormFieldsAsArray,sameURLFieldsAsArray,variableUsage,suppressRemoteComponentContent</attributes>
-		</group>
-		<group>
-			<name>query</name>
-			<label>Query Configuration</label>
-			<description>Configure query behavior and listeners</description>
-			<attributes>queryListener,psq,triggerDataMember,InvokeImplicitAccessor</attributes>
-		</group>
-	</attribute-groups>
 		<attribute>
 			<type>string</type>
 			<name>name</name>
@@ -9564,33 +9021,6 @@ Each type-value pair must start with a hyphen.</description>
 		<description>Reads, writes, and deletes keys and values in the system registry. The cfregistry tag is supported
   on all platforms, including Linux, Solaris, and HP-UX.</description>
 		<attribute-type>fixed</attribute-type>
-	<attribute-groups>
-		<group>
-			<name>getAll</name>
-			<label>Get All Entries</label>
-			<description>Retrieve all keys and values from a branch</description>
-			<attributes>type,name,sort</attributes>
-		</group>
-		<group>
-			<name>get</name>
-			<label>Get Single Entry</label>
-			<description>Retrieve a single registry value</description>
-			<attributes>entry,type,variable</attributes>
-		</group>
-		<group>
-			<name>set</name>
-			<label>Set Registry Value</label>
-			<description>Create or update a registry entry</description>
-			<attributes>entry,type,value</attributes>
-		</group>
-		<group>
-			<name>delete</name>
-			<label>Delete Registry Entry</label>
-			<description>Remove a registry entry</description>
-			<attributes>entry</attributes>
-		</group>
-	</attribute-groups>
-
 		<attribute>
 			<type>string</type>
 			<name>action</name>
