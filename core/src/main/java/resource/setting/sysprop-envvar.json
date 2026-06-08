@@ -116,6 +116,15 @@
 		"default": "DEBUG"
 	},
 	{
+		"sysprop": "lucee.cookie.preservecase",
+		"envvar": "LUCEE_COOKIE_PRESERVECASE",
+		"desc": "When set to `true`, cookie names preserve their original casing instead of being uppercased. Defaults to `false` for backwards compatibility. Will default to `true` in a future version to match ACF behaviour (LDEV-970)",
+		"category": "cookie",
+		"type": "boolean",
+		"introduced": "7.1",
+		"default": false
+	},
+	{
 		"sysprop": "lucee.cfid.url.allow",
 		"envvar": "LUCEE_CFID_URL_ALLOW",
 		"desc": "Controls whether Lucee accepts CFID values from URL query strings. Set to `false` to enhance security by requiring CFIDs to be passed via cookies only. Setting this to `false` is strongly recommended for all production environments. Replaces lucee.read.cfid.from.url in Lucee 6.2.1.59",
