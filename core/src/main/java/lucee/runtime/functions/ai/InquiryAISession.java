@@ -69,34 +69,15 @@ public final class InquiryAISession extends BIF {
 	}
 
 	private Object extractAnswer(Response rsp) {
-
-		if (!rsp.isMultiPart()) return rsp.getAnswer();
+		if (rsp == null) return null;
 
 		List<Part> answers = rsp.getAnswers();
-		if (AIUtil.isTextOnly(answers)) {
-			StringBuilder sb = new StringBuilder();
-			String a;
-			for (Part rp: rsp.getAnswers()) {
-				a = rp.getAsString();
-				if (a != null) sb.append(a);
-			}
-			return sb.toString();
-		}
+		if (AIUtil.isTextOnly(answers)) return AIUtil.extractStringAnswer(rsp);
 
 		return new ComplexAnswer(rsp);
 	}
 
 	public static String extractStringAnswer(Response rsp) {
-		if (rsp.isMultiPart()) {
-			StringBuilder sb = new StringBuilder();
-			String a;
-			for (Part rp: rsp.getAnswers()) {
-				a = rp.getAsString();
-				if (a != null) sb.append(a);
-			}
-			return sb.toString();
-		}
-		return rsp.getAnswer();
-
+		return AIUtil.extractStringAnswer(rsp);
 	}
 }

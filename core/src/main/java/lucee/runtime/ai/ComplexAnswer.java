@@ -20,7 +20,11 @@ public class ComplexAnswer extends ArrayImpl implements CharSequence {
 			appendEL(item);
 			item.setEL(KeyConstants._contenttype, a.getContentType());
 
-			if (a.isText()) {
+			if (a.isStructured()) {
+				item.setEL(KeyConstants._type, "struct");
+				item.setEL(KeyConstants._content, a.getAsStruct());
+			}
+			else if (a.isText()) {
 				item.setEL(KeyConstants._type, "text");
 				item.setEL(KeyConstants._content, a.getAsString());
 			}
@@ -37,7 +41,7 @@ public class ComplexAnswer extends ArrayImpl implements CharSequence {
 	@Override
 	public DumpData toDumpData(PageContext pageContext, int maxlevel, DumpProperties dp) {
 		DumpTable dt = (DumpTable) super.toDumpData(pageContext, maxlevel, dp);
-		dt.setTitle("Array (Complext Answer)");
+		dt.setTitle("Array (Complex Answer)");
 		dt.setComment("this Object can be handled like an array, but also like a string.");
 		return dt;
 	}

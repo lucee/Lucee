@@ -190,17 +190,17 @@ public final class AIUtil {
 	}
 
 	public static String extractStringAnswer(Response rsp) {
-		if (rsp.isMultiPart()) {
-			StringBuilder sb = new StringBuilder();
-			String a;
-			for (Part rp: rsp.getAnswers()) {
-				a = rp.getAsString();
-				if (a != null) sb.append(a);
-			}
-			return sb.toString();
-		}
-		return rsp.getAnswer();
+		List<Part> parts = rsp.getAnswers();
+		if (parts.isEmpty()) return rsp.getAnswer();
 
+		StringBuilder sb = new StringBuilder();
+		String a;
+		for (Part rp: parts) {
+			if (rp.isStructured() || !rp.isText()) continue;
+			a = rp.getAsString();
+			if (a != null) sb.append(a);
+		}
+		return sb.length() > 0 ? sb.toString() : rsp.getAnswer();
 	}
 
 	public static List<Part> getAnswersFromAnswer(Response rsp) {
@@ -462,8 +462,9 @@ public final class AIUtil {
 	}
 
 	public static boolean isTextOnly(List<Part> answers) {
+		if (answers == null || answers.isEmpty()) return true;
 		for (Part a: answers) {
-			if (!a.isText()) return false;
+			if (a.isStructured() || !a.isText()) return false;
 		}
 		return true;
 	}

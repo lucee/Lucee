@@ -1,7 +1,15 @@
-component extends="org.lucee.cfml.test.LuceeTestCase" {
+	component extends="org.lucee.cfml.test.LuceeTestCase" {
 
 	private any function claudeResponse( struct raw ) {
 		return createObject( "java", "lucee.runtime.ai.anthropic.ClaudeResponse" ).init( raw, "UTF-8" );
+	}
+
+	private any function complexAnswer( any resp ) {
+		return createObject( "java", "lucee.runtime.ai.ComplexAnswer" ).init( resp );
+	}
+
+	private any function aiUtil() {
+		return createObject( "java", "lucee.runtime.ai.AIUtil" );
 	}
 
 	function run( testResults, testBox ) {
@@ -178,6 +186,74 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 				expect( arrayLen( resp.getAnswers() ) ).toBe( 2 );
 				expect( resp.getAnswer() ).toBe( "Caption:" );
 				expect( resp.isMultiPart() ).toBeTrue();
+			});
+
+		});
+
+		describe( title="ComplexAnswer from Claude responses", body=function() {
+
+			it( title="exposes tool_use as struct parts", body=function() {
+				var resp = claudeResponse( {
+					content: [
+						{
+							type: "tool_use",
+							id: "toolu_01",
+							name: "get_weather",
+							input: { location: "Vienna" }
+						}
+					]
+				} );
+				expect( aiUtil().isTextOnly( resp.getAnswers() ) ).toBeFalse();
+				var answer = complexAnswer( resp );
+				expect( isArray( answer ) ).toBeTrue();
+				expect( answer[ 1 ].type ).toBe( "struct" );
+				expect( answer[ 1 ].contenttype ).toBe( "application/json" );
+				expect( answer[ 1 ].content.name ).toBe( "get_weather" );
+				expect( answer[ 1 ].content.input.location ).toBe( "Vienna" );
+			});
+
+			it( title="handles mixed text, struct, and binary parts", body=function() {
+				var resp = claudeResponse( {
+					content: [
+						{ type: "text", text: "Result:" },
+						{
+							type: "tool_use",
+							id: "toolu_01",
+							name: "get_weather",
+							input: { location: "Vienna" }
+						},
+						{
+							type: "image",
+							source: {
+								type: "base64",
+								media_type: "image/png",
+								data: toBase64( "png-bytes" )
+							}
+						}
+					]
+				} );
+				var answer = complexAnswer( resp );
+				expect( arrayLen( answer ) ).toBe( 3 );
+				expect( answer[ 1 ].type ).toBe( "text" );
+				expect( answer[ 2 ].type ).toBe( "struct" );
+				expect( answer[ 3 ].type ).toBe( "binary" );
+				expect( aiUtil().extractStringAnswer( resp ) ).toBe( "Result:" );
+			});
+
+			it( title="string coercion ignores structured parts", body=function() {
+				var resp = claudeResponse( {
+					content: [
+						{ type: "text", text: "Before " },
+						{
+							type: "tool_use",
+							id: "toolu_01",
+							name: "get_weather",
+							input: {}
+						},
+						{ type: "text", text: "after" }
+					]
+				} );
+				expect( aiUtil().extractStringAnswer( resp ) ).toBe( "Before after" );
 			});
 
 		});

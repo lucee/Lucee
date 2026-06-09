@@ -10644,7 +10644,7 @@ For exception analysis and debugging, lower temperatures (0.2-0.3) are recommend
 		<class>lucee.runtime.functions.ai.InquiryAISession</class>
 		<description>Sends a question/message to an AI session and returns the response. The function maintains conversation context from previous interactions within the same session.
 	
-The response is returned as a string when it contains only text. When the AI returns multipart content that includes binary data (such as images), the function returns an array-like object where each element is a struct with `type`, `contenttype`, and `content` keys. That object can also be used as a string containing the concatenated text parts.
+The response is returned as a string when it contains only plain text parts. When the AI returns structured data (such as tool calls), binary content (such as images), or a mix of part types, the function returns an array-like object where each element is a struct with `type`, `contenttype`, and `content` keys. That object can also be used as a string containing the concatenated plain text parts.
 
 An optional listener function receives response chunks as they arrive for real-time processing.</description>
 		<argument>
@@ -10697,14 +10697,14 @@ When a listener is provided, the function still returns the complete response us
 			<type>any</type>
 			<description>Returns the complete response from the AI.
 
-When all response parts are text, a string is returned. If the response contains multiple text parts, they are concatenated into a single string.
+When all response parts are plain text, a string is returned. If the response contains multiple text parts, they are concatenated into a single string.
 
-When the response includes non-text parts (such as images), an array-like object is returned. Each element is a struct:
-- `type`: `"text"` or `"binary"`
+When the response includes structured, binary, or mixed parts, an array-like object is returned. Each element is a struct:
+- `type`: `"text"`, `"struct"`, or `"binary"`
 - `contenttype`: MIME type of the part
-- `content`: string for text parts, binary for non-text parts
+- `content`: string for text parts, struct for structured parts (such as tool calls), binary for non-text parts
 
-That object also behaves as a string containing the concatenated text parts.</description>
+That object also behaves as a string containing the concatenated plain text parts.</description>
 		</return>
 	</function>
 	
