@@ -10567,13 +10567,16 @@ mavenLoad([
 			<alias>aiName,nameAI</alias>
 			<type>string</type>
 			<required>yes</required>
-			<description>Specifies which AI endpoint configuration to use. Can be provided in two formats:
+			<description>Specifies which AI endpoint configuration to use. Can be provided in three formats:
 
 1. Direct endpoint name:
    The name of an endpoint as defined in the Lucee Administrator (similar to how datasource names work)
 
 2. Default reference:
    Using the format "default:category" to use the endpoint configured as the default for that specific category in the Lucee Administrator.
+
+3. Engine ID reference:
+   Using the format "id:uuid" to use an AI engine registered by its unique identifier.
 
 Currently supported default categories:
 - exception: For exception analysis
@@ -10602,9 +10605,10 @@ The system message persists throughout the session and influences all responses.
 			<alias>conversationHistoryLimit</alias>
 			<type>numeric</type>
 			<required>no</required>
-			<default>50</default>
 			<description>Maximum number of question-answer pairs to keep in the conversation history. Once reached, older messages will be removed.
 		
+When omitted or zero, the conversation size limit configured on the AI endpoint is used.
+
 Consider:
 - Higher limits provide more context but consume more memory
 - Lower limits are more memory efficient but may lose important context
@@ -10615,9 +10619,10 @@ Consider:
 			<name>temperature</name>
 			<type>numeric</type>
 			<required>no</required>
-			<default>0.7</default>
 		<description>Controls response randomness (0.0 to 1.0). Lower values make responses more focused and deterministic, higher values make them more creative and varied.
 		
+When omitted or zero, the temperature configured on the AI endpoint is used. Values greater than 1.0 are rejected.
+
 Recommended settings:
 - 0.0-0.3: Technical analysis, debugging, code review
 - 0.3-0.5: Documentation generation, error explanations
@@ -10639,7 +10644,9 @@ For exception analysis and debugging, lower temperatures (0.2-0.3) are recommend
 		<class>lucee.runtime.functions.ai.InquiryAISession</class>
 		<description>Sends a question/message to an AI session and returns the response. The function maintains conversation context from previous interactions within the same session.
 	
-	The response can either be returned as a complete string or streamed in chunks to a listener function for real-time processing.</description>
+The response is returned as a string when it contains only text. When the AI returns multipart content that includes binary data (such as images), the function returns an array-like object where each element is a struct with `type`, `contenttype`, and `content` keys. That object can also be used as a string containing the concatenated text parts.
+
+An optional listener function receives response chunks as they arrive for real-time processing.</description>
 		<argument>
 			<name>session</name>
 			<alias>aiSession</alias>
@@ -10676,13 +10683,28 @@ The question becomes part of the conversation history and provides context for f
 			<required>no</required>
 			<description>A user-defined function that receives the response in chunks as they arrive from the AI. This enables real-time processing or display of the response.
 	
-	The listener function should accept a single argument which will contain the response chunk.
+The listener is called with six arguments:
+1. `part` - the chunk content (string for text, binary for non-text parts)
+2. `chunkIndex` - the 1-based index of the chunk within the current part
+3. `isComplete` - true when the current part has finished streaming
+4. `type` - `"text"` or `"binary"`
+5. `contentType` - MIME type of the chunk (for example `"text/plain"` or `"image/png"`)
+6. `partIndex` - the 1-based index of the content part in a multipart response
 	
-	When a listener is provided, the function still returns the complete response as a string, but also streams each chunk to the listener as it arrives.</description>
+When a listener is provided, the function still returns the complete response using the same rules as without a listener.</description>
 		</argument>
 		<return>
-			<type>string</type>
-			<description>Returns the complete response from the AI as a string. If a listener was provided, this is the same complete response that was streamed in chunks to the listener.</description>
+			<type>any</type>
+			<description>Returns the complete response from the AI.
+
+When all response parts are text, a string is returned. If the response contains multiple text parts, they are concatenated into a single string.
+
+When the response includes non-text parts (such as images), an array-like object is returned. Each element is a struct:
+- `type`: `"text"` or `"binary"`
+- `contenttype`: MIME type of the part
+- `content`: string for text parts, binary for non-text parts
+
+That object also behaves as a string containing the concatenated text parts.</description>
 		</return>
 	</function>
 	
@@ -10709,18 +10731,22 @@ The question becomes part of the conversation history and provides context for f
 			<type>boolean</type>
 			<required>false</required>
 			<default>false</default>
-			<description>When true, includes additional detailed information:
-	- Models: List of available models with their names, labels, descriptions, and custom settings
-	- Files: For file-capable engines, lists associated files with their IDs, purposes, sizes, creation dates, and status information</description>
+			<description>When true, includes additional detailed information where supported by the engine:
+	- models: Query of available models with their names, labels, descriptions, and custom settings (may be empty for engines that do not expose model lists)
+	- files: For file-capable engines, query of associated files with their IDs, purposes, sizes, creation dates, and status information</description>
 		</argument>
 		<return>
 			<type>struct</type>
-			<description>Returns a structure containing:
+			<description>Returns a structure containing endpoint metadata, including:
 	- label: The display label of the endpoint
 	- model: The current model being used
-	- name: The engine factory name (if available)
-	- models: Query object with model details (if detailed=true)
-	- files: Query object with file information (if detailed=true and engine supports files)</description>
+	- id: The engine identifier
+	- name: The engine factory name
+	- temperature: The configured temperature (when set)
+	- connectTimeout: Connection timeout in milliseconds
+	- conversationSizeLimit: Maximum conversation history size
+	- models: Query of model details (when detailed=true and the engine supports model listing)
+	- files: Query of file information (when detailed=true and the engine supports file storage)</description>
 		</return>
 	</function>
 	
@@ -10772,7 +10798,7 @@ The question becomes part of the conversation history and provides context for f
 Restores an AI session from a serialized JSON string or struct. This function recreates an AI session with:
 
 - Original configuration settings (temperature, limits, timeouts)
-- Complete conversation history
+- Conversation history
 - System message prompt
 
 The function supports loading sessions by:
@@ -10787,13 +10813,16 @@ This function pairs with `SerializeAISession()` to provide persistence for AI co
 			<alias>aiName,nameAI</alias>
 			<type>string</type>
 			<required>yes</required>
-			<description>Specifies which AI endpoint configuration to use. Can be provided in two formats:
+			<description>Specifies which AI endpoint configuration to use. Can be provided in three formats:
 
 1. Direct endpoint name:
    The name of an endpoint as defined in the Lucee Administrator (similar to how datasource names work)
 
 2. Default reference:
    Using the format "default:category" to use the endpoint configured as the default for that specific category in the Lucee Administrator.
+
+3. Engine ID reference:
+   Using the format "id:uuid" to use an AI engine registered by its unique identifier.
 
 Currently supported default categories:
 - exception: For exception analysis
@@ -10818,13 +10847,18 @@ Must contain the following keys:
 - `connectionTimeout`: Connection timeout in milliseconds
 - `socketTimeout`: Socket timeout in milliseconds 
 - `systemMessage`: (Optional) System message that guides AI behavior
-- `history`: Array of conversation exchanges (questions and answers)
+- `history`: Array of conversation exchanges
+
+Each history entry contains:
+- `question`: A string, or an array of part structs for multipart questions (`type`, `contenttype`, `content`)
+- `answer`: The response text as a string
 
 Incomplete or improperly formatted data may cause initialization errors.
 			</description>
 		</argument>
 		<return>
-			<type>any</type>
+			<type>object</type>
+			<description>Returns an AI session object restored from the serialized data, with the saved configuration and conversation history.</description>
 		</return>
 	</function>
 	
@@ -10837,7 +10871,9 @@ Incomplete or improperly formatted data may cause initialization errors.
 Serializes an AI session to a JSON string that includes its configuration and conversation history. The serialized content includes:
 
 - Configuration settings (temperature, limits, timeouts, system message)
-- Complete conversation history with questions and answers
+- Conversation history with questions and answers
+
+Multipart questions in the history are stored as arrays of part structs with `type`, `contenttype`, and `content` keys. Multipart responses in the history are not supported and cause an error during serialization.
 
 This function is useful for:
 
@@ -10871,7 +10907,7 @@ Use `LoadAISession()` to restore a serialized session.
 			<alias>summarize</alias>
 			<type>boolean</type>
 			<required>no</required>
-			<description>Controls whether the conversation history should be condensed before serialization. When set to true, the function will intelligently summarize older parts of the conversation while preserving essential context. This reduces the overall token count and storage requirements while maintaining the important elements of the conversation history. Default is false, which preserves the complete conversation history.</description>
+			<description>Controls whether the conversation history should be condensed before serialization. When set to true, the function uses the same AI engine to summarize the conversation history into a shorter JSON representation. This reduces token count and storage requirements. Default is false, which preserves the complete conversation history.</description>
 		</argument>
 		<return>
 			<type>String</type>
