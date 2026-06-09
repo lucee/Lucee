@@ -1,12 +1,14 @@
 package lucee.runtime.ai.openai;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import lucee.commons.io.CharsetUtil;
+import lucee.commons.lang.StringUtil;
 import lucee.runtime.ai.AIResponseListener;
-import lucee.runtime.ai.AIUtil;
 import lucee.runtime.ai.Response;
 import lucee.runtime.ai.Part;
+import lucee.runtime.ai.PartImpl;
 import lucee.runtime.converter.ConverterException;
 import lucee.runtime.converter.JSONConverter;
 import lucee.runtime.converter.JSONDateFormat;
@@ -20,11 +22,12 @@ import lucee.runtime.type.util.KeyConstants;
 public final class OpenAIStreamResponse implements Response {
 
 	private Struct raw = null;
-	private Array choices = null;
 
 	private String charset;
 	private StringBuilder answer = new StringBuilder();
 	private AIResponseListener listener;
+	private final List<Part> binaryParts = new ArrayList<>();
+	private List<Part> cachedParts;
 
 	public OpenAIStreamResponse(String charset, AIResponseListener listener) {
 		this.charset = charset;
@@ -53,18 +56,41 @@ public final class OpenAIStreamResponse implements Response {
 
 	public void addPart(Struct part, int index, boolean complete) throws PageException {
 		if (raw == null) raw = part;
-		// raw.appendEL(part);
+
 		Array arr = Caster.toArray(part.get("choices", null), null);
 		if (arr == null) return;
-		Struct sct = Caster.toStruct(arr.get(1, null), null);
-		if (sct == null) return;
-		if (choices == null) choices = arr;
-		else choices.appendEL(sct);
-		sct = Caster.toStruct(sct.get(KeyConstants._delta, null), null);
-		if (sct == null) return;
-		String str = Caster.toString(sct.get(KeyConstants._content, null), null);
-		answer.append(str);
-		if (listener != null) listener.listen(str, index, complete);
+		Struct choice = Caster.toStruct(arr.get(1, null), null);
+		if (choice == null) return;
+
+		Struct contentSource = Caster.toStruct(choice.get(KeyConstants._delta, null), null);
+		if (contentSource == null) contentSource = Caster.toStruct(choice.get(KeyConstants._message, null), null);
+		if (contentSource == null) return;
+
+		Object content = contentSource.get(KeyConstants._content, null);
+		if (content == null) return;
+
+		if (content instanceof CharSequence) {
+			String str = content.toString();
+			if (StringUtil.isEmpty(str, true)) return;
+			answer.append(str);
+			if (listener != null) listener.listen(str, index, complete);
+			return;
+		}
+
+		List<Part> parts = OpenAIResponseUtil.parseContent(content);
+		for (Part p: parts) {
+			if (p.isText()) {
+				String str = p.getAsString();
+				if (!StringUtil.isEmpty(str, true)) {
+					answer.append(str);
+					if (listener != null) listener.listen(str, index, complete);
+				}
+			}
+			else {
+				binaryParts.add(new PartImpl(null, binaryParts.size(), p.getAsBinary(), p.getContentType()));
+				if (listener != null) listener.listen(p.getAsBinary(), p.getContentType(), index, binaryParts.size() - 1, complete);
+			}
+		}
 	}
 
 	@Override
@@ -74,13 +100,22 @@ public final class OpenAIStreamResponse implements Response {
 
 	@Override
 	public List<Part> getAnswers() {
-		// TODO add support for multipart
-		return AIUtil.getAnswersFromAnswer(this);
+		if (cachedParts != null) return cachedParts;
+
+		List<Part> results = new ArrayList<>();
+		String fullText = answer.toString();
+		if (!StringUtil.isEmpty(fullText, true)) {
+			results.add(new PartImpl(fullText, 0));
+		}
+		if (!binaryParts.isEmpty()) {
+			results.addAll(binaryParts);
+		}
+
+		return cachedParts = results;
 	}
 
 	@Override
 	public boolean isMultiPart() {
-		// TODO add support for multipart
-		return false;
+		return !binaryParts.isEmpty() || getAnswers().size() > 1;
 	}
 }

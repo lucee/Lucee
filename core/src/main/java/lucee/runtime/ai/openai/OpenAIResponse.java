@@ -3,7 +3,6 @@ package lucee.runtime.ai.openai;
 import java.util.List;
 
 import lucee.commons.io.CharsetUtil;
-import lucee.runtime.ai.AIUtil;
 import lucee.runtime.ai.Response;
 import lucee.runtime.ai.Part;
 import lucee.runtime.converter.ConverterException;
@@ -11,15 +10,14 @@ import lucee.runtime.converter.JSONConverter;
 import lucee.runtime.converter.JSONDateFormat;
 import lucee.runtime.listener.SerializationSettings;
 import lucee.runtime.op.Caster;
-import lucee.runtime.type.Array;
 import lucee.runtime.type.Struct;
-import lucee.runtime.type.util.KeyConstants;
 
 public final class OpenAIResponse implements Response {
 
 	private Struct raw;
 	private String charset;
 	private long tokens = -1L;
+	private List<Part> cachedParts;
 
 	public OpenAIResponse(Struct raw, String charset) {
 		this.raw = raw;
@@ -39,14 +37,17 @@ public final class OpenAIResponse implements Response {
 
 	@Override
 	public String getAnswer() {
-		Array arr = Caster.toArray(raw.get("choices", null), null);
+		List<Part> parts = getAnswers();
+		if (parts.isEmpty()) return null;
 
-		if (arr == null) return null;
-		Struct sct = Caster.toStruct(arr.get(1, null), null);
-		if (sct == null) return null;
-		sct = Caster.toStruct(sct.get(KeyConstants._message, null), null);
-		if (sct == null) return null;
-		return Caster.toString(sct.get(KeyConstants._content, null), null);
+		StringBuilder sb = new StringBuilder();
+		String text;
+		for (Part part: parts) {
+			if (!part.isText()) continue;
+			text = part.getAsString();
+			if (text != null) sb.append(text);
+		}
+		return sb.length() > 0 ? sb.toString() : null;
 	}
 
 	public Struct getData() {
@@ -65,13 +66,13 @@ public final class OpenAIResponse implements Response {
 
 	@Override
 	public List<Part> getAnswers() {
-		// TODO add support for multipart
-		return AIUtil.getAnswersFromAnswer(this);
+		if (cachedParts != null) return cachedParts;
+		return cachedParts = OpenAIResponseUtil.getAnswersFromRaw(raw);
 	}
 
 	@Override
 	public boolean isMultiPart() {
-		// TODO add support for multipart
-		return false;
+		List<Part> parts = getAnswers();
+		return parts.size() > 1 || (parts.size() == 1 && !parts.get(0).isText());
 	}
 }
