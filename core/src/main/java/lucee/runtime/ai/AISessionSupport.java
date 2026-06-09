@@ -143,7 +143,6 @@ public abstract class AISessionSupport implements AISessionMultipart {
 		return builder;
 	}
 
-	// TODO add to interface
 	@Override
 	public abstract String getSystemMessage();
 
