@@ -49,6 +49,13 @@
 			"response": { "content": "serialize-me" }
 		},
 		{
+			"match": { "userMessage": "claude-thinking" },
+			"response": {
+				"content": "Final answer.",
+				"reasoning": "Let me consider..."
+			}
+		},
+		{
 			"match": {},
 			"response": { "content": "aimock-echo" }
 		}
