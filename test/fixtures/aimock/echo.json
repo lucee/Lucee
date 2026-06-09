@@ -1,0 +1,56 @@
+{
+	"fixtures": [
+		{
+			"match": { "userMessage": "ping" },
+			"response": { "content": "ping" }
+		},
+		{
+			"match": { "userMessage": "Hello LDEV-6388" },
+			"response": { "content": "Hello LDEV-6388" }
+		},
+		{
+			"match": { "userMessage": "Hello from InquiryAISession" },
+			"response": { "content": "Hello from InquiryAISession" }
+		},
+		{
+			"match": { "userMessage": "first" },
+			"response": { "content": "first" }
+		},
+		{
+			"match": { "userMessage": "second" },
+			"response": { "content": "second" }
+		},
+		{
+			"match": { "userMessage": "stored" },
+			"response": { "content": "stored" }
+		},
+		{
+			"match": { "userMessage": "restored" },
+			"response": { "content": "restored" }
+		},
+		{
+			"match": { "userMessage": "struct-load" },
+			"response": { "content": "struct-load" }
+		},
+		{
+			"match": { "userMessage": "continued" },
+			"response": { "content": "continued" }
+		},
+		{
+			"match": { "userMessage": "round-trip" },
+			"response": { "content": "round-trip" }
+		},
+		{
+			"match": { "userMessage": "again" },
+			"response": { "content": "again" }
+		},
+		{
+			"match": { "userMessage": "serialize-me" },
+			"response": { "content": "serialize-me" }
+		},
+		{
+			"match": {},
+			"response": { "content": "aimock-echo" }
+		}
+	]
+}

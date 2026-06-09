@@ -1,0 +1,8 @@
+{
+	"port": 4010,
+	"host": "127.0.0.1",
+	"llm": {
+		"fixtures": "echo.json",
+		"providers": ["claude", "gemini"]
+	}
+}

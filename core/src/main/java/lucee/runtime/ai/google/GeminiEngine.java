@@ -74,13 +74,20 @@ public final class GeminiEngine extends AIEngineSupport {
 		Struct props = (Struct) properties.duplicate(true);
 
 		// base URL
-		String str = Caster.toStringTrim(props.remove(KeyConstants._URL, null), null);
-		if (!Util.isEmpty(str, true)) {
-			baseURL = str;
+		String type = Caster.toStringTrim(props.remove(KeyConstants._type, null), null);
+		String urlStr = Caster.toStringTrim(props.remove(KeyConstants._URL, null), null);
+		if (Util.isEmpty(type, true)) type = "gemini";
+		else if (!type.equalsIgnoreCase("gemini") && !type.equalsIgnoreCase("other")) {
+			throw new ApplicationException("only [gemini] and [other] are supported for the property [type] for Gemini");
+		}
+
+		if (type.equalsIgnoreCase("other")) {
+			if (Util.isEmpty(urlStr, true)) throw new ApplicationException("the property [url] is required when [type] is [other] for Gemini");
+			baseURL = urlStr;
 			if (!baseURL.endsWith("/")) baseURL += '/';
+			props.remove(KeyConstants._beta, null);
 		}
 		else {
-			// beta?
 			if (Caster.toBooleanValue(Caster.toStringTrim(props.remove(KeyConstants._beta, null), null), false)) {
 				baseURL = DEFAULT_URL_BETA;
 			}
@@ -91,7 +98,7 @@ public final class GeminiEngine extends AIEngineSupport {
 		}
 
 		// api key
-		str = Caster.toStringTrim(props.remove(KeyConstants._apikey, null), null);
+		String str = Caster.toStringTrim(props.remove(KeyConstants._apikey, null), null);
 		if (Util.isEmpty(str, true)) str = Caster.toStringTrim(props.remove(KeyConstants._apiKey, null), null);
 		if (Util.isEmpty(str, true)) {
 			throw new ApplicationException("the property [apikey] is required for the AI Engine Gemini!");

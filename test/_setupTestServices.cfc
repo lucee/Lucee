@@ -174,6 +174,7 @@ component {
 
 			,"AIMOCK_SERVER": "localhost"
 			//"AIMOCK_PORT": 6556
+			//"AIMOCK_MULTI_PORT": 4010
 
 		};
 	}
@@ -514,12 +515,14 @@ component {
 			throw "not configured";
 		}
 
-		var baseUrl = "http://#aimock.server#:#aimock.port#";
-		var connectionName = aimock.connectionName ?: "aimock";
+		var multiPort = aimock.multiPort ?: 4010;
+		var openaiUrl = "http://#aimock.server#:#aimock.port#";
+		var multiUrl = "http://#aimock.server#:#multiPort#";
+		var connections = aimock.connections ?: {};
 
-		cfhttp( url="#baseUrl#/health", method="GET", timeout="2", throwOnError=true );
+		cfhttp( url="#openaiUrl#/health", method="GET", timeout="2", throwOnError=true );
 
-		cfhttp( url="#baseUrl#/v1/chat/completions", method="POST", timeout="5", throwOnError=true ) {
+		cfhttp( url="#openaiUrl#/v1/chat/completions", method="POST", timeout="5", throwOnError=true ) {
 			cfhttpparam( type="header", name="Content-Type", value="application/json" );
 			cfhttpparam( type="body", value='{"model":"gpt-4","messages":[{"role":"user","content":"ping"}]}' );
 		}
@@ -528,11 +531,11 @@ component {
 			action="updateAIConnection"
 			type="server"
 			password="#server.SERVERADMINPASSWORD#"
-			name="#connectionName#"
+			name="#connections.openai ?: 'aimock-openai'#"
 			class="lucee.runtime.ai.openai.OpenAIEngine"
 			custom="#{
 				type: "other",
-				url: "#baseUrl#/v1/",
+				url: "#openaiUrl#/v1/",
 				secretKey: "mock",
 				message: "You are a test assistant",
 				model: "gpt-4",
@@ -542,7 +545,63 @@ component {
 				temperature: 0.7
 			}#";
 
-		return "Mock AI service verified at #baseUrl#";
+		cfhttp( url="#multiUrl#/v1/messages", method="POST", timeout="5", throwOnError=true ) {
+			cfhttpparam( type="header", name="Content-Type", value="application/json" );
+			cfhttpparam( type="header", name="x-api-key", value="mock" );
+			cfhttpparam( type="header", name="anthropic-version", value="2023-06-01" );
+			cfhttpparam( type="body", value='{"model":"claude-3-sonnet-20240229","max_tokens":256,"messages":[{"role":"user","content":"ping"}]}' );
+		}
+
+		var claudeConnection = connections.claude ?: "aimock-claude";
+		var geminiConnection = connections.gemini ?: "aimock-gemini";
+
+		admin
+			action="updateAIConnection"
+			type="server"
+			password="#server.SERVERADMINPASSWORD#"
+			name="#claudeConnection#"
+			class="lucee.runtime.ai.anthropic.ClaudeEngine"
+			custom="#{
+				type: "other",
+				url: "#multiUrl#/v1/",
+				apiKey: "mock",
+				message: "You are a test assistant",
+				model: "claude-3-sonnet-20240229",
+				connectTimeout: 2000,
+				socketTimeout: 20000,
+				conversationSizeLimit: 100,
+				temperature: 0.7
+			}#";
+
+		admin
+			action="updateAIConnection"
+			type="server"
+			password="#server.SERVERADMINPASSWORD#"
+			name="#geminiConnection#"
+			class="lucee.runtime.ai.google.GeminiEngine"
+			custom="#{
+				type: "other",
+				url: "#multiUrl#/v1beta/",
+				apikey: "mock",
+				message: "You are a test assistant",
+				model: "gemini-1.5-flash",
+				connectTimeout: 2000,
+				socketTimeout: 20000,
+				conversationSizeLimit: 100,
+				temperature: 0.7
+			}#";
+
+		var claudeAis = createAISession( name=claudeConnection );
+		if ( inquiryAISession( claudeAis, "ping" ) != "ping" ) {
+			throw "Claude mock verification failed";
+		}
+
+		var geminiAis = createAISession( name=geminiConnection );
+		if ( inquiryAISession( geminiAis, "ping" ) != "ping" ) {
+			throw "Gemini mock verification failed";
+		}
+
+		return "Mock AI services verified at #openaiUrl# (OpenAI) and #multiUrl# (Claude/Gemini)";
 	}
 
 	public function addSupportFunctions() {
@@ -788,7 +847,13 @@ component {
 			case "aimock":
 				aimock = server._getSystemPropOrEnvVars( "SERVER, PORT", "AIMOCK_" );
 				if ( aimock.count() eq 2 ){
-					aimock.connectionName = "aimock";
+					multiPortCfg = server._getSystemPropOrEnvVars( "MULTI_PORT", "AIMOCK_" );
+					aimock.multiPort = structKeyExists( multiPortCfg, "MULTI_PORT" ) ? multiPortCfg.MULTI_PORT : 4010;
+					aimock.connections = {
+						openai: "aimock-openai",
+						claude: "aimock-claude",
+						gemini: "aimock-gemini"
+					};
 					return aimock;
 				}
 				break;

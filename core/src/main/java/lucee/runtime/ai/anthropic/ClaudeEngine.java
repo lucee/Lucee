@@ -54,8 +54,19 @@ public final class ClaudeEngine extends AIEngineSupport {
 		if (Util.isEmpty(apiKey, true)) throw new ApplicationException("the property [apiKey] is required for Claude");
 
 		// Base URL
-		String urlStr = Caster.toStringTrim(props.remove(KeyConstants._URL, DEFAULT_URL), DEFAULT_URL);
-		if (Util.isEmpty(urlStr, true)) urlStr = DEFAULT_URL;
+		String type = Caster.toStringTrim(props.remove(KeyConstants._type, null), null);
+		String urlStr = Caster.toStringTrim(props.remove(KeyConstants._URL, null), null);
+		if (Util.isEmpty(type, true)) type = "claude";
+		else if (!type.equalsIgnoreCase("claude") && !type.equalsIgnoreCase("other")) {
+			throw new ApplicationException("only [claude] and [other] are supported for the property [type] for Claude");
+		}
+
+		if (type.equalsIgnoreCase("other")) {
+			if (Util.isEmpty(urlStr, true)) throw new ApplicationException("the property [url] is required when [type] is [other] for Claude");
+		}
+		else {
+			urlStr = DEFAULT_URL;
+		}
 		try {
 			baseURL = HTTPUtil.toURL(urlStr, HTTPUtil.ENCODED_AUTO);
 		}

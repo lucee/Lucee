@@ -74,6 +74,16 @@ jobs:
           docker push ghcr.io/lucee/mock-llm:test-mirror
           echo "Successfully mirrored mock-llm"
 
+      - name: Mirror aimock
+        run: |
+          echo "Pulling ghcr.io/copilotkit/aimock:latest"
+          docker pull ghcr.io/copilotkit/aimock:latest
+          echo "Tagging as ghcr.io/lucee/aimock:test-mirror"
+          docker tag ghcr.io/copilotkit/aimock:latest ghcr.io/lucee/aimock:test-mirror
+          echo "Pushing to ghcr.io/lucee/aimock:test-mirror"
+          docker push ghcr.io/lucee/aimock:test-mirror
+          echo "Successfully mirrored aimock"
+
       - name: Mirror MS SQL Server
         run: |
           echo "Pulling mcr.microsoft.com/mssql/server:2022-latest"

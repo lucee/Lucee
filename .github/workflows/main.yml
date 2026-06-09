@@ -160,6 +160,12 @@ jobs:
       run: |
         docker run -d --name memcached -p 11211:11211 memcached:latest
         sleep 5
+    - name: Start aimock (docker)
+      run: |
+        docker run -d --name aimock -p 4010:4010 \
+          -v "${{ github.workspace }}/test/fixtures/aimock:/fixtures" \
+          ghcr.io/copilotkit/aimock --config /fixtures/aimock.json --host 0.0.0.0
+        sleep 3
     - name: Extract version number
       id: extract-version
       run: |
@@ -220,6 +226,7 @@ jobs:
         HTTPBIN_PORT: 8081
         AIMOCK_SERVER: localhost
         AIMOCK_PORT: 6556
+        AIMOCK_MULTI_PORT: 4010
         S3_ACCESS_KEY_ID: ${{ secrets.S3_ACCESS_ID_TEST }}
         S3_SECRET_KEY: ${{ secrets.S3_SECRET_KEY_TEST }}
         S3_BUCKET_PREFIX: lucee-ldev-6-
