@@ -64,6 +64,16 @@ jobs:
           docker push ghcr.io/lucee/httpbin:test-mirror
           echo "Successfully mirrored httpbin"
 
+      - name: Mirror Mock LLM
+        run: |
+          echo "Pulling ghcr.io/dwmkerr/mock-llm:latest"
+          docker pull ghcr.io/dwmkerr/mock-llm:latest
+          echo "Tagging as ghcr.io/lucee/mock-llm:test-mirror"
+          docker tag ghcr.io/dwmkerr/mock-llm:latest ghcr.io/lucee/mock-llm:test-mirror
+          echo "Pushing to ghcr.io/lucee/mock-llm:test-mirror"
+          docker push ghcr.io/lucee/mock-llm:test-mirror
+          echo "Successfully mirrored mock-llm"
+
       - name: Mirror MS SQL Server
         run: |
           echo "Pulling mcr.microsoft.com/mssql/server:2022-latest"

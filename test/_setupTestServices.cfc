@@ -172,13 +172,16 @@ component {
 			"HTTPBIN_SERVER": "localhost"
 			//"HTTPBIN_PORT": 8081
 
+			,"AIMOCK_SERVER": "localhost"
+			//"AIMOCK_PORT": 6556
+
 		};
 	}
 
 	public void function loadServiceConfig() localmode=true {
 		systemOutput( "", true) ;
 		systemOutput("-------------- Test Services ------------", true );
-		services = ListToArray("oracle,MySQL,MSsql,postgres,h2,mongoDb,smtp,pop,imap,s3,s3_custom,s3_google,s3_backblaze,ftp,sftp,memcached,redis,ldap,httpbin,orm");
+		services = ListToArray("oracle,MySQL,MSsql,postgres,h2,mongoDb,smtp,pop,imap,s3,s3_custom,s3_google,s3_backblaze,ftp,sftp,memcached,redis,ldap,httpbin,aimock,orm");
 		// can take a while, so we check them them in parallel
 
 		services.each( function( service ) localmode=true {
@@ -249,6 +252,9 @@ component {
 							break;
 						case "httpbin":
 							verify = verifyHttpbin(cfg);
+							break;
+						case "aimock":
+							verify = verifyAimock(cfg);
 							break;
 						case "orm":
 							verify = "ORM engine: " & ( cfg.class ?: "installed" );
@@ -503,6 +509,42 @@ component {
 		throw "not configured";
 	}
 
+	public function verifyAimock ( aimock ) localmode=true {
+		if ( !structKeyExists( aimock, "server" ) || !structKeyExists( aimock, "port" ) ){
+			throw "not configured";
+		}
+
+		var baseUrl = "http://#aimock.server#:#aimock.port#";
+		var connectionName = aimock.connectionName ?: "aimock";
+
+		cfhttp( url="#baseUrl#/health", method="GET", timeout="2", throwOnError=true );
+
+		cfhttp( url="#baseUrl#/v1/chat/completions", method="POST", timeout="5", throwOnError=true ) {
+			cfhttpparam( type="header", name="Content-Type", value="application/json" );
+			cfhttpparam( type="body", value='{"model":"gpt-4","messages":[{"role":"user","content":"ping"}]}' );
+		}
+
+		admin
+			action="updateAIConnection"
+			type="server"
+			password="#server.SERVERADMINPASSWORD#"
+			name="#connectionName#"
+			class="lucee.runtime.ai.openai.OpenAIEngine"
+			custom="#{
+				type: "other",
+				url: "#baseUrl#/v1/",
+				secretKey: "mock",
+				message: "You are a test assistant",
+				model: "gpt-4",
+				connectTimeout: 2000,
+				socketTimeout: 20000,
+				conversationSizeLimit: 100,
+				temperature: 0.7
+			}#";
+
+		return "Mock AI service verified at #baseUrl#";
+	}
+
 	public function addSupportFunctions() {
 		server._getTempDir = function ( string prefix="" ) localmode=true{
 			if ( len( arguments.prefix ) eq 0 ) {
@@ -741,6 +783,13 @@ component {
 						server: "httpbin.org",
 						port: 80
 					};
+				}
+				break;
+			case "aimock":
+				aimock = server._getSystemPropOrEnvVars( "SERVER, PORT", "AIMOCK_" );
+				if ( aimock.count() eq 2 ){
+					aimock.connectionName = "aimock";
+					return aimock;
 				}
 				break;
 			case "orm":
