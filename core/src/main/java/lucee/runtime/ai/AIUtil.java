@@ -271,19 +271,7 @@ public final class AIUtil {
 			req = c.getRequest();
 			if (req.isMultiPart()) {
 				Array _arr = new ArrayImpl();
-				for (Part p: req.getQuestions()) {
-					Struct _sct = new StructImpl();
-					_arr.append(_sct);
-					_sct.set(KeyConstants._contenttype, p.getContentType());
-					if (p.isText()) {
-						_sct.set(KeyConstants._type, "text");
-						_sct.set(KeyConstants._content, p.getAsString());
-					}
-					else {
-						_sct.set(KeyConstants._type, "binary");
-						_sct.set(KeyConstants._content, Caster.toBase64(p.getAsBinary()));
-					}
-				}
+				appendParts(_arr, req.getQuestions());
 				sct.set(KeyConstants._question, _arr);
 			}
 			else {
@@ -292,8 +280,14 @@ public final class AIUtil {
 
 			// response
 			rsp = c.getResponse();
-			if (rsp.isMultiPart()) throw new ApplicationException("serialising multi part response is not supported yet");
-			sct.set(KeyConstants._answer, rsp.getAnswer());
+			if (serializeAnswerAsParts(rsp)) {
+				Array _arr = new ArrayImpl();
+				appendParts(_arr, rsp.getAnswers());
+				sct.set(KeyConstants._answer, _arr);
+			}
+			else {
+				sct.set(KeyConstants._answer, rsp.getAnswer());
+			}
 		}
 		data.setEL(KeyConstants._history, arr);
 
@@ -371,11 +365,47 @@ public final class AIUtil {
 
 					req,
 
-					new SimpleResponse(Caster.toString(sct.get(KeyConstants._answer)))
+					toResponse(sct.get(KeyConstants._answer))
 
 			);
 		}
 		return conversations;
+	}
+
+	private static Response toResponse(Object obj) throws PageException {
+		if (obj == null) return new SimpleResponse(null);
+		if (obj instanceof CharSequence) return new SimpleResponse(Caster.toString(obj));
+		return new PartsResponse(toParts(Caster.toArray(obj)));
+	}
+
+	private static boolean serializeAnswerAsParts(Response rsp) {
+		if (rsp.isMultiPart()) return true;
+		List<Part> parts = rsp.getAnswers();
+		if (parts.isEmpty()) return false;
+		if (parts.size() > 1) return true;
+		Part part = parts.get(0);
+		return part.isStructured() || !part.isText();
+	}
+
+	private static void appendParts(Array arr, List<Part> parts) throws PageException {
+		Struct _sct;
+		for (Part p: parts) {
+			_sct = new StructImpl();
+			arr.append(_sct);
+			_sct.set(KeyConstants._contenttype, p.getContentType());
+			if (p.isStructured()) {
+				_sct.set(KeyConstants._type, "struct");
+				_sct.set(KeyConstants._content, p.getAsStruct());
+			}
+			else if (p.isText()) {
+				_sct.set(KeyConstants._type, "text");
+				_sct.set(KeyConstants._content, p.getAsString());
+			}
+			else {
+				_sct.set(KeyConstants._type, "binary");
+				_sct.set(KeyConstants._content, Caster.toBase64(p.getAsBinary()));
+			}
+		}
 	}
 
 	private static List<Part> toParts(Array array) throws PageException {
@@ -388,8 +418,11 @@ public final class AIUtil {
 			type = Caster.toString(sct.get(KeyConstants._type));
 			contenttype = Caster.toString(sct.get(KeyConstants._contenttype));
 
+			if ("struct".equals(type)) {
+				list.add(new PartImpl(null, list.size(), Caster.toStruct(sct.get(KeyConstants._content)), contenttype));
+			}
 			// text
-			if ("text".equals(type)) {
+			else if ("text".equals(type)) {
 				list.add(new PartImpl(null, list.size(), Caster.toString(sct.get(KeyConstants._content)), contenttype));
 			}
 			else {

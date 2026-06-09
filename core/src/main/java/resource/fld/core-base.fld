@@ -10851,7 +10851,7 @@ Must contain the following keys:
 
 Each history entry contains:
 - `question`: A string, or an array of part structs for multipart questions (`type`, `contenttype`, `content`)
-- `answer`: The response text as a string
+- `answer`: A string, or an array of part structs for multipart answers (`type`, `contenttype`, `content`)
 
 Incomplete or improperly formatted data may cause initialization errors.
 			</description>
@@ -10873,7 +10873,7 @@ Serializes an AI session to a JSON string that includes its configuration and co
 - Configuration settings (temperature, limits, timeouts, system message)
 - Conversation history with questions and answers
 
-Multipart questions in the history are stored as arrays of part structs with `type`, `contenttype`, and `content` keys. Multipart responses in the history are not supported and cause an error during serialization.
+Multipart questions and answers in the history are stored as arrays of part structs with `type`, `contenttype`, and `content` keys. Text parts use `type: "text"`, binary parts use `type: "binary"` with base64-encoded content, and structured JSON parts use `type: "struct"`.
 
 This function is useful for:
 
