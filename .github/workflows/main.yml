@@ -160,21 +160,30 @@ jobs:
       run: |
         docker run -d --name memcached -p 11211:11211 memcached:latest
         sleep 5
-    - name: Start aimock (docker)
+    - name: Start aimock
       run: |
-        docker run -d --name aimock -p 4010:4010 \
-          -v "${{ github.workspace }}/test/fixtures/aimock:/fixtures" \
-          -w /fixtures \
-          ghcr.io/copilotkit/aimock --config /fixtures/aimock.json --host 0.0.0.0
-        for i in 1 2 3 4 5 6 7 8 9 10; do
-          curl -sf -X POST http://localhost:4010/v1/messages \
+        cd "${{ github.workspace }}/test/fixtures/aimock"
+        nohup npx -y @copilotkit/aimock --config aimock.json --host 0.0.0.0 --port 4010 > "$RUNNER_TEMP/aimock.log" 2>&1 &
+        echo $! > "$RUNNER_TEMP/aimock.pid"
+        for i in $(seq 1 30); do
+          if curl -sf -X POST http://127.0.0.1:4010/v1/messages \
             -H "Content-Type: application/json" \
             -H "x-api-key: mock" \
             -H "anthropic-version: 2023-06-01" \
-            -d '{"model":"claude-3-sonnet-20240229","max_tokens":10,"messages":[{"role":"user","content":"ping"}]}' \
-            && break
+            -d '{"model":"claude-3-sonnet-20240229","max_tokens":10,"messages":[{"role":"user","content":"ping"}]}' >/dev/null; then
+            echo "aimock ready on port 4010"
+            exit 0
+          fi
+          if [ -f "$RUNNER_TEMP/aimock.pid" ] && ! kill -0 "$(cat "$RUNNER_TEMP/aimock.pid")" 2>/dev/null; then
+            echo "aimock process exited early"
+            cat "$RUNNER_TEMP/aimock.log"
+            exit 1
+          fi
           sleep 2
         done
+        echo "aimock failed to become ready"
+        cat "$RUNNER_TEMP/aimock.log"
+        exit 1
     - name: Extract version number
       id: extract-version
       run: |
