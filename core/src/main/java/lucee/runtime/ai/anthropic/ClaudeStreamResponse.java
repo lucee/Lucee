@@ -1,13 +1,14 @@
 package lucee.runtime.ai.anthropic;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.ai.AIResponseListener;
-import lucee.runtime.ai.AIUtil;
 import lucee.runtime.ai.Response;
 import lucee.runtime.ai.Part;
+import lucee.runtime.ai.PartImpl;
 import lucee.runtime.converter.ConverterException;
 import lucee.runtime.converter.JSONConverter;
 import lucee.runtime.converter.JSONDateFormat;
@@ -22,6 +23,8 @@ public final class ClaudeStreamResponse implements Response {
 	private String charset;
 	private StringBuilder answer = new StringBuilder();
 	private AIResponseListener listener;
+	private final List<Part> binaryParts = new ArrayList<>();
+	private List<Part> cachedParts;
 
 	public ClaudeStreamResponse(String charset, AIResponseListener listener) {
 		this.charset = charset;
@@ -44,17 +47,29 @@ public final class ClaudeStreamResponse implements Response {
 		return answer.toString();
 	}
 
-	/*
-	 * public Struct getData() { return raw; }
-	 */
-
 	public void addPart(Struct part, int index, boolean complete) throws PageException {
 
 		if (raw == null) raw = part;
 
 		String type = Caster.toString(part.get(KeyConstants._type, null), null);
+		if (StringUtil.isEmpty(type)) return;
 
-		if (StringUtil.isEmpty(type) || !type.startsWith("content_block")) return;
+		if ("content_block_start".equals(type)) {
+			Struct block = Caster.toStruct(part.get("content_block", null), null);
+			if (block == null) return;
+			String blockType = Caster.toString(block.get(KeyConstants._type, null), null);
+			if ("image".equals(blockType) || "document".equals(blockType)) {
+				List<Part> parsed = ClaudeResponseUtil.parseContent(block);
+				for (Part p: parsed) {
+					if (p.isText()) continue;
+					binaryParts.add(new PartImpl(null, binaryParts.size(), p.getAsBinary(), p.getContentType()));
+					if (listener != null) listener.listen(p.getAsBinary(), p.getContentType(), index, binaryParts.size() - 1, complete);
+				}
+			}
+			return;
+		}
+
+		if (!type.startsWith("content_block")) return;
 
 		Struct delta = Caster.toStruct(part.get("delta", null), null);
 		if (delta == null) return;
@@ -71,19 +86,27 @@ public final class ClaudeStreamResponse implements Response {
 
 	@Override
 	public long getTotalTokenUsed() {
-		// Claude's streaming response doesn't provide token counts in the stream
 		return 0;
 	}
 
 	@Override
 	public List<Part> getAnswers() {
-		// TODO add support for multipart
-		return AIUtil.getAnswersFromAnswer(this);
+		if (cachedParts != null) return cachedParts;
+
+		List<Part> results = new ArrayList<>();
+		String fullText = answer.toString();
+		if (!StringUtil.isEmpty(fullText, true)) {
+			results.add(new PartImpl(fullText, 0));
+		}
+		if (!binaryParts.isEmpty()) {
+			results.addAll(binaryParts);
+		}
+
+		return cachedParts = results;
 	}
 
 	@Override
 	public boolean isMultiPart() {
-		// TODO add support for multipart
-		return false;
+		return !binaryParts.isEmpty() || getAnswers().size() > 1;
 	}
 }
