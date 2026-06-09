@@ -164,8 +164,17 @@ jobs:
       run: |
         docker run -d --name aimock -p 4010:4010 \
           -v "${{ github.workspace }}/test/fixtures/aimock:/fixtures" \
+          -w /fixtures \
           ghcr.io/copilotkit/aimock --config /fixtures/aimock.json --host 0.0.0.0
-        sleep 3
+        for i in 1 2 3 4 5 6 7 8 9 10; do
+          curl -sf -X POST http://localhost:4010/v1/messages \
+            -H "Content-Type: application/json" \
+            -H "x-api-key: mock" \
+            -H "anthropic-version: 2023-06-01" \
+            -d '{"model":"claude-3-sonnet-20240229","max_tokens":10,"messages":[{"role":"user","content":"ping"}]}' \
+            && break
+          sleep 2
+        done
     - name: Extract version number
       id: extract-version
       run: |
