@@ -230,6 +230,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 	private static final ResourceFilter FILTER_CFML_TEMPLATES = new OrResourceFilter(
 			new ResourceFilter[] { new DirectoryResourceFilter(), new ExtensionResourceFilter(Constants.getExtensions()) });
+
 	@Override
 	public void release() {
 		super.release();
@@ -1406,8 +1407,10 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			factories = new CFMLFactory[] { cw.getFactory() };
 		}
 
-		lucee.runtime.type.Query qry = new QueryImpl(new Collection.Key[] { KeyConstants._path, KeyConstants._id, KeyConstants._hash, KeyConstants._label, KeyConstants._hasOwnSecContext,
-				KeyConstants._url, KeyConstants._config_file, KeyConstants._clientSize, KeyConstants._clientElements, KeyConstants._sessionSize, KeyConstants._sessionElements }, factories.length, getString("admin", action, "returnVariable"));
+		lucee.runtime.type.Query qry = new QueryImpl(
+				new Collection.Key[] { KeyConstants._path, KeyConstants._id, KeyConstants._hash, KeyConstants._label, KeyConstants._hasOwnSecContext, KeyConstants._url,
+						KeyConstants._config_file, KeyConstants._clientSize, KeyConstants._clientElements, KeyConstants._sessionSize, KeyConstants._sessionElements },
+				factories.length, getString("admin", action, "returnVariable"));
 		pageContext.setVariable(getString("admin", action, "returnVariable"), qry);
 		ConfigWebPro cw;
 		for (int i = 0; i < factories.length; i++) {
@@ -1938,7 +1941,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 	}
 
-	private static Struct mapLegacyDebugAttributes(Struct attributes) throws PageException {
+	private static Struct mapLegacyDebugAttributes(Struct attributes) {
 		Struct input = (Struct) Duplicator.duplicate(attributes, false);
 		mapLegacyDebugAttribute(input, "template", "debuggingTemplate");
 		mapLegacyDebugAttribute(input, "database", "debuggingDatabase");
@@ -3536,8 +3539,8 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		BundleDefinition bd;
 		Bundle b;
 		String str;
-		Query qry = new QueryImpl(new Key[] { KeyConstants._symbolicName, KeyConstants._title, KeyConstants._description, KeyConstants._version, KeyConstants._vendor, KeyConstants._state, KeyConstants._path, KeyConstants._usedBy,
-				KeyConstants._id, KeyConstants._fragment, KeyConstants._headers }, bds.size(), "bundles");
+		Query qry = new QueryImpl(new Key[] { KeyConstants._symbolicName, KeyConstants._title, KeyConstants._description, KeyConstants._version, KeyConstants._vendor,
+				KeyConstants._state, KeyConstants._path, KeyConstants._usedBy, KeyConstants._id, KeyConstants._fragment, KeyConstants._headers }, bds.size(), "bundles");
 		int row = 0;
 		while (it.hasNext()) {
 			row++;

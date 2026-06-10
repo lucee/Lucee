@@ -19,8 +19,7 @@ import lucee.runtime.type.util.KeyConstants;
 
 final class OpenAIResponseUtil {
 
-	private OpenAIResponseUtil() {
-	}
+	private OpenAIResponseUtil() {}
 
 	static List<Part> getAnswersFromRaw(Struct raw) {
 		try {
@@ -173,7 +172,7 @@ final class OpenAIResponseUtil {
 		return null;
 	}
 
-	private static Part parseFilePart(Struct block, int index) throws PageException {
+	private static Part parseFilePart(Struct block, int index) {
 		Struct file = Caster.toStruct(block.get(KeyConstants._file, null), null);
 		if (file == null) return null;
 
@@ -189,19 +188,19 @@ final class OpenAIResponseUtil {
 		return null;
 	}
 
-	private static Object extractMessageContent(Struct raw) throws PageException {
+	private static Object extractMessageContent(Struct raw) {
 		Struct message = extractMessage(raw);
 		if (message == null) return null;
 		return message.get(KeyConstants._content, null);
 	}
 
-	private static String extractMessageRefusal(Struct raw) throws PageException {
+	private static String extractMessageRefusal(Struct raw) {
 		Struct message = extractMessage(raw);
 		if (message == null) return null;
 		return Caster.toString(message.get(KeyImpl.init("refusal"), null), null);
 	}
 
-	private static Struct extractMessage(Struct raw) throws PageException {
+	private static Struct extractMessage(Struct raw) {
 		Array choices = Caster.toArray(raw.get("choices", null), null);
 		if (choices == null || choices.size() == 0) return null;
 
