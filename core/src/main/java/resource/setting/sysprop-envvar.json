@@ -40,6 +40,14 @@
 		"default": true
 	},
 	{
+		"sysprop": "lucee.allow.virtual.threads",
+		"envvar": "LUCEE_ALLOW_VIRTUAL_THREADS",
+		"desc": "Allow the use of virtual threads on Java 25+. Experimental.",
+		"category": "performance",
+		"type": "boolean",
+		"default": false
+	},
+	{
 		"sysprop": "lucee.application.listener",
 		"envvar": "LUCEE_APPLICATION_LISTENER",
 		"desc": "Which kind of Application Listener is supported? Possible values: `None` - no listener at all, `Classical` - Classic handling. Lucee looks for `Application.cfm` and `OnRequestEnd.cfm`, `Modern` - Modern handling. Lucee only looks for `Application.cfc`, `Mixed` - Mixed handling. Lucee looks for `Application.cfm`/`OnRequestEnd.cfm` as well as `Application.cfc`. This is an alias for lucee.listener.type",

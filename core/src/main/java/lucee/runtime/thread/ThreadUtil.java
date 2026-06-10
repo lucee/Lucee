@@ -35,6 +35,7 @@ import jakarta.servlet.http.HttpSession;
 import lucee.aprint;
 import lucee.commons.io.DevNullOutputStream;
 import lucee.commons.io.SystemUtil;
+import lucee.runtime.op.Caster;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.ExceptionUtil;
@@ -54,8 +55,11 @@ import lucee.runtime.type.Struct;
 
 public final class ThreadUtil {
 
-	// virtual threads are safe from Java 25+ (JEP 491: synchronized no longer pins virtual threads)
-	private static final boolean ALLOW_VIRTUAL_THREADS = SystemUtil.JAVA_VERSION >= SystemUtil.JAVA_VERSION_25;
+	// virtual threads are safe from Java 25+ (JEP 491: synchronized no longer pins virtual threads).
+	// Default off — virtual threads on Java 25+ are experimental. Opt-in via lucee.allow.virtual.threads.
+	private static final boolean ALLOW_VIRTUAL_THREADS =
+			SystemUtil.JAVA_VERSION >= SystemUtil.JAVA_VERSION_25
+			&& Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.allow.virtual.threads", "false"), false);
 	// private static final Class<?> THREAD_CLASS = Thread.class;
 	private static final Class<?> RUNNABLE_CLASS = Runnable.class;
 	private static Class<?> threadBuilderClass;
