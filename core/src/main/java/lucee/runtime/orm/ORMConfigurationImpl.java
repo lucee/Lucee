@@ -78,6 +78,11 @@ public final class ORMConfigurationImpl implements ORMConfiguration {
 
 	private boolean autogenmap = true;
 	private Resource[] cfcLocations;
+	// Lazy cfcLocation resolution: avoids per-request File.isDirectory probes when getCfcLocations()
+	// is not read on the hot path (typical apps use simple entity names).
+	private volatile boolean cfcLocationsResolved;
+	private Object cfcLocationsRaw;
+	private Resource defaultCfcLocation;
 	private Boolean eventHandling = null;
 	private boolean flushAtRequestEnd = true;
 	private boolean logSQL;
@@ -129,23 +134,14 @@ public final class ORMConfigurationImpl implements ORMConfiguration {
 		if (dc == null) dc = new ORMConfigurationImpl();
 		ORMConfigurationImpl c = dc.duplicate();
 		c.config = config;
-		c.cfcLocations = defaultCFCLocation == null ? new Resource[0] : new Resource[] { defaultCFCLocation };
 
 		// autogenmap
 		c.autogenmap = Caster.toBooleanValue(settings.get(AUTO_GEN_MAP, dc.autogenmap()), dc.autogenmap());
 
-		// cfclocation
-		Object obj = settings.get(KeyConstants._cfcLocation, null);
-
-		if (obj != null) {
-			java.util.List<Resource> list = AppListenerUtil.loadResources(config, ac, obj, true);
-
-			if (list != null && list.size() > 0) {
-				c.cfcLocations = list.toArray(new Resource[list.size()]);
-				c.isDefaultCfcLocation = false;
-			}
-		}
-		if (c.cfcLocations == null) c.cfcLocations = defaultCFCLocation == null ? new Resource[0] : new Resource[] { defaultCFCLocation };
+		// cfclocation — lazy: stash raw setting + default; resolved on first getCfcLocations()
+		c.cfcLocationsRaw = settings.get(KeyConstants._cfcLocation, null);
+		c.defaultCfcLocation = defaultCFCLocation;
+		Object obj;
 
 		// catalog
 		obj = settings.get(CATALOG, null);
@@ -322,8 +318,8 @@ public final class ORMConfigurationImpl implements ORMConfiguration {
 	private ORMConfigurationImpl duplicate() {
 		ORMConfigurationImpl other = new ORMConfigurationImpl();
 		other.autogenmap = autogenmap;
-		other.cfcLocations = cfcLocations;
-		other.isDefaultCfcLocation = isDefaultCfcLocation;
+		// cfcLocations / isDefaultCfcLocation / cfcLocationsRaw / defaultCfcLocation / cfcLocationsResolved
+		// intentionally NOT copied — set fresh per _load() call (lazy resolution per instance).
 		other.dbCreateMap = dbCreateMap;
 		other.eventHandler = eventHandler;
 		other.namingStrategy = namingStrategy;
@@ -427,12 +423,35 @@ public final class ORMConfigurationImpl implements ORMConfiguration {
 	 */
 	@Override
 	public Resource[] getCfcLocations() {
+		if (!cfcLocationsResolved) resolveCfcLocations();
 		return cfcLocations;
 	}
 
 	@Override
 	public boolean isDefaultCfcLocation() {
+		if (!cfcLocationsResolved) resolveCfcLocations();
 		return isDefaultCfcLocation;
+	}
+
+	private void resolveCfcLocations() {
+		synchronized (this) {
+			if (cfcLocationsResolved) return;
+			Resource[] resolved = null;
+			boolean usingUserPaths = false;
+			if (cfcLocationsRaw != null) {
+				java.util.List<Resource> list = AppListenerUtil.loadResources(config, ac, cfcLocationsRaw, true);
+				if (list != null && list.size() > 0) {
+					resolved = list.toArray(new Resource[list.size()]);
+					usingUserPaths = true;
+				}
+			}
+			if (resolved == null) {
+				resolved = defaultCfcLocation == null ? new Resource[0] : new Resource[] { defaultCfcLocation };
+			}
+			cfcLocations = resolved;
+			isDefaultCfcLocation = !usingUserPaths;
+			cfcLocationsResolved = true;
+		}
 	}
 
 	@Override
