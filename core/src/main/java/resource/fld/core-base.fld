@@ -10373,6 +10373,94 @@ The following things are considered to be empty:
 		</return>
 	</function>
 	
+	<!-- MavenExists -->
+	<function>
+		<name>MavenExists</name>
+		<class>lucee.runtime.functions.mvn.MavenExists</class>
+		<introduced>7.1.0.98</introduced>
+		<keywords>maven,classloading,dependencies,jars</keywords>
+		<description>Checks whether a Maven artifact is present in Lucee's local maven cache directory.
+
+This is a cheap filesystem-only predicate - it does not contact any remote repository and does not resolve transitive dependencies. 
+
+Useful as a quick check or audit, or before calling `mavenLoad` or `mavenInfo` to avoid re-resolving an artifact that is already available locally.
+
+Accepts either three separate arguments (groupId, artifactId, version) or a single gradle-style coordinate string (`"group:artifact"` or `"group:artifact:version"`). If the version is omitted, returns true when any version of the coord is cached locally.</description>
+		<argument>
+			<name>groupId</name>
+			<type>string</type>
+			<required>Yes</required>
+			<description>The Maven group identifier, or a gradle-style coordinate string `"group:artifact"` / `"group:artifact:version"` when passed as the only argument.</description>
+		</argument>
+		<argument>
+			<name>artifactId</name>
+			<type>string</type>
+			<required>No</required>
+			<description>The Maven artifact identifier. Omit when passing a gradle-style coordinate as the first argument.</description>
+		</argument>
+		<argument>
+			<name>version</name>
+			<type>string</type>
+			<required>No</required>
+			<description>The specific version to check for. If omitted, the function returns true when any cached version of the coord is present.</description>
+		</argument>
+		<return>
+			<description>Returns true if a jar for the given coord (and version, if provided) exists in the local maven cache, false otherwise.</description>
+			<type>boolean</type>
+		</return>
+	</function>
+
+	<!-- MavenExport -->
+	<function>
+		<name>MavenExport</name>
+		<class>lucee.runtime.functions.mvn.MavenExport</class>
+		<introduced>7.1.0.98</introduced>
+		<keywords>maven,classloading,dependencies,jars</keywords>
+		<description>Walks Lucee's local maven cache directory and returns a pom.xml string listing every cached artifact as a `&lt;dependency&gt;` entry.
+
+The emitted pom uses a synthetic self-identifier (`com.example.lucee:mvn-cache-export:0`) with `&lt;packaging&gt;pom&lt;/packaging&gt;` - it is a manifest of what is cached, not a buildable project. 
+
+Scope is not recorded on disk so no `&lt;scope&gt;` is emitted; classifier is derived from the jar filename when present (e.g. native libraries like `sqlite-jdbc-3.47.0.0-linux-x86_64.jar` are exported with `&lt;classifier&gt;linux-x86_64&lt;/classifier&gt;`).
+
+Pairs with `mavenImport` to snapshot and restore a cache state. Use `fileWrite( path, mavenExport() )` to persist the output.</description>
+		<return>
+			<description>Returns the pom.xml as a string.</description>
+			<type>string</type>
+		</return>
+	</function>
+
+	<!-- MavenImport -->
+	<function>
+		<name>MavenImport</name>
+		<class>lucee.runtime.functions.mvn.MavenImport</class>
+		<introduced>7.1.0.98</introduced>
+		<keywords>maven,classloading,dependencies,jars</keywords>
+		<description>Parses a `pom.xml` and resolves each declared `&lt;dependency&gt;` into Lucee's local maven cache, fetching any that are not already present.
+
+By default only the literal dependencies listed in the pom are resolved - pairs symmetrically with `mavenExport`, which writes the full cache contents as a flat list. 
+
+Pass `includeTransitive = true` to also walk the dependency tree for each entry (same behaviour as `mavenLoad`).
+
+Returns a query with the same shape as `mavenInfo`, showing what was resolved.</description>
+		<argument>
+			<name>pomPath</name>
+			<type>string</type>
+			<required>Yes</required>
+			<description>Filesystem path to a pom.xml file to import.</description>
+		</argument>
+		<argument>
+			<name>includeTransitive</name>
+			<type>boolean</type>
+			<default>false</default>
+			<required>No</required>
+			<description>If false (default), only the literal `&lt;dependency&gt;` entries in the pom are resolved. If true, the full transitive dependency tree is resolved for each entry.</description>
+		</argument>
+		<return>
+			<description>Returns a query with columns `groupId, artifactId, version, scope, optional, checksum, url, path` describing the resolved artifacts.</description>
+			<type>query</type>
+		</return>
+	</function>
+
 	<!-- MavenInfo -->
 	<function>
 		<name>MavenInfo</name>

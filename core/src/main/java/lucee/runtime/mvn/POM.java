@@ -450,9 +450,19 @@ public final class POM {
 	}
 
 	public static Resource local(Resource dir, String groupId, String artifactId, String version, String extension) {
-		Resource parent = dir.getRealResource(groupId.replace('.', '/') + "/" + artifactId + "/" + version + "/");
+		Resource parent = localDir(dir, groupId, artifactId, version);
 		if (!parent.isDirectory()) parent.mkdirs();
 		return parent.getRealResource(artifactId + "-" + version + "." + extension);
+	}
+
+	/** Pure path resolution for the {@code {mvnDir}/{group}/{artifact}/{version}/} directory. No side effects. */
+	public static Resource localDir(Resource dir, String groupId, String artifactId, String version) {
+		return dir.getRealResource(groupId.replace('.', '/') + "/" + artifactId + "/" + version + "/");
+	}
+
+	/** Pure path resolution for the {@code {mvnDir}/{group}/{artifact}/} directory. No side effects. */
+	public static Resource localArtifactDir(Resource dir, String groupId, String artifactId) {
+		return dir.getRealResource(groupId.replace('.', '/') + "/" + artifactId);
 	}
 
 	public URL getArtifactAsURL(String type, Collection<Repository> repositories, boolean validate) throws IOException {

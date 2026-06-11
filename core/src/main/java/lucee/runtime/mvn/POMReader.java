@@ -80,6 +80,17 @@ public final class POMReader extends DefaultHandler {
 		return pr;
 	}
 
+	/**
+	 * Parses {@code file} directly, no caching. Use this for user-supplied poms whose contents may
+	 * change between calls — {@link #getInstance(Resource)} is keyed on absolute path alone and
+	 * can return stale data.
+	 */
+	public static POMReader parse(Resource file) throws IOException, SAXException {
+		POMReader pr = new POMReader(file);
+		pr.read();
+		return pr;
+	}
+
 	private POMReader(Resource file) {
 		this.file = file;
 	}
