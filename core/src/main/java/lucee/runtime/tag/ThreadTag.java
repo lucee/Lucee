@@ -405,9 +405,9 @@ public final class ThreadTag extends BodyTagImpl implements DynamicAttributes {
 
 		PageContext root = getRootPageContext(current);
 
-		// now we get all threads and filter out ancestors
+		// snapshot under root's lock so we can iterate without racing concurrent writers
 		java.util.Collection<Threads> result = new HashSet<Threads>();
-		Map<Key, Threads> threads = ((PageContextImpl) root).getAllThreadScope();
+		Map<Key, Threads> threads = ((PageContextImpl) root).snapshotAllThreadScope();
 		if (threads != null) {
 			Iterator<Entry<Key, Threads>> it = threads.entrySet().iterator();
 			Entry<Key, Threads> e;
@@ -421,16 +421,10 @@ public final class ThreadTag extends BodyTagImpl implements DynamicAttributes {
 	}
 
 	public static Threads getThreadScope(PageContext pc, Key name) {
-		Threads t = null;
-
-		// get from root
+		// read via synchronised accessor on root to avoid racing concurrent writers
+		// from parallel iteration closures spawning cfthread
 		PageContext root = getRootPageContext(pc);
-		Map<Key, Threads> scopes = ((PageContextImpl) root).getAllThreadScope();
-		if (scopes != null) {
-			t = scopes.get(name);
-			if (t != null) return t;
-		}
-		return null;
+		return ((PageContextImpl) root).getAllThreadScope(name);
 	}
 
 	private void doSleep() throws ExpressionException {
