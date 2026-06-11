@@ -306,8 +306,11 @@ public final class BundleProvider extends DefaultHandler {
 		CFMLEngine eng = CFMLEngineFactory.getInstance();
 		final File jarDir = eng.getCFMLEngineFactory().getBundleDirectory();
 
+		File jar = new File(jarDir, bd.getName() + "-" + bd.getVersionAsString() + ".jar");
+		if (jar.isFile()) return jar;
+
 		// before we download we check if we have it bundled
-		File jar = deployBundledBundle(jarDir, bd.getName(), bd.getVersionAsString());
+		jar = deployBundledBundle(jarDir, bd.getName(), bd.getVersionAsString());
 		if (jar != null && jar.isFile()) return jar;
 		if (jar != null) {
 			LogUtil.log(Log.LEVEL_INFO, "deploy", "bundle-download",
@@ -351,8 +354,11 @@ public final class BundleProvider extends DefaultHandler {
 		String nameAndVersion = symbolicName + "|" + symbolicVersion;
 		String osgiFileName = symbolicName + "-" + symbolicVersion + ".jar";
 
+		File trg = new File(bundleDirectory, osgiFileName);
+		if (trg.isFile()) return trg;
+
 		// first we look for an exact match
-		InputStream is = getClass().getResourceAsStream("bundles/" + osgiFileName);
+		InputStream is = CFMLEngineFactory.class.getResourceAsStream("/bundles/" + osgiFileName);
 		if (is == null) is = getClass().getResourceAsStream("/bundles/" + osgiFileName);
 
 		if (is != null) LogUtil.log(Log.LEVEL_DEBUG, "deploy", "bundle-download", "Found ]/bundles/" + osgiFileName + "] in lucee.jar");
@@ -367,7 +373,6 @@ public final class BundleProvider extends DefaultHandler {
 				Util.copy(new BufferedInputStream(is), new FileOutputStream(temp), true, true);
 
 				// adding bundle
-				File trg = new File(bundleDirectory, osgiFileName);
 				FileUtil.move(temp, trg);
 				LogUtil.log(Log.LEVEL_DEBUG, "deploy", "bundle-download", "Adding bundle [" + symbolicName + "] in version [" + symbolicVersion + "] to [" + trg + "]");
 				return trg;
@@ -408,7 +413,7 @@ public final class BundleProvider extends DefaultHandler {
 
 							bundleInfo = BundleLoader.loadBundleInfo(temp);
 							if (bundleInfo != null && nameAndVersion.equals(bundleInfo)) {
-								File trg = new File(bundleDirectory, name);
+								trg = new File(bundleDirectory, name);
 								temp.renameTo(trg);
 								LogUtil.log(Log.LEVEL_DEBUG, "deploy", "bundle-download",
 										"Adding bundle [" + symbolicName + "] in version [" + symbolicVersion + "] to [" + trg + "]");

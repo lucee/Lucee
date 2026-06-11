@@ -362,6 +362,19 @@ public final class PageSourceImpl implements PageSource {
 							LogUtil.log(config, "compile", cnfe);
 						}
 					}
+					// when classFile is at least as fresh as source, try loading by name first;
+					// avoids the defineClass rename storm when pcn.className was reset (e.g. by clear())
+					// but the underlying class is still loaded in the PhysicalClassLoader.
+					if (!done && classFile.exists() && classFile.lastModified() >= srcLastModified) {
+						try {
+							LogUtil.log(config, Log.LEVEL_DEBUG, "compile", "load class from ClassLoader (class file is current) [" + getDisplayPath() + "]");
+							pcn.set(page = newInstance(mapping.getPhysicalClass(this.getClassName())));
+							done = true;
+						}
+						catch (ClassNotFoundException cnfe) {
+							LogUtil.log(config, "compile", cnfe);
+						}
+					}
 					if (!done) {
 						LogUtil.log(config, Log.LEVEL_DEBUG, "compile", "load class from binary  [" + getDisplayPath() + "]");
 						byte[] bytes = IOUtil.toBytes(classFile);
