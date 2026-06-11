@@ -5500,19 +5500,19 @@ If omitted, the file's attributes are maintained.</description>
 	<function>
 		<name>fileCopy</name>
 		<class>lucee.runtime.functions.file.FileCopy</class>
-		<description>Copies the specified on-disk or in-memory source file to the specified destination file.</description>
+		<description>Copies the specified on-disk or in-memory source file to the specified destination file. File Attributes are applied to destination file, but read and write are set to true.</description>
 		<argument>
 			<name>source</name>
 			<type>any</type>
 			<required>Yes</required>
-		<description>path to copy.</description>
-    </argument>
+			<description>Path to source file to copy.</description>
+    	</argument>
 		<argument>
 			<name>destination</name>
 			<type>any</type>
 			<required>Yes</required>
-		<description>Pathname of the destination file.</description>
-    </argument>
+			<description>Path to the destination file.</description>
+    	</argument>
 		<return>
 			<type>void</type>
 		</return>

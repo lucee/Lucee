@@ -25,6 +25,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.ByteBuffer;
 import java.nio.file.CopyOption;
 import java.nio.file.DirectoryNotEmptyException;
 import java.nio.file.FileAlreadyExistsException;
@@ -40,7 +41,9 @@ import java.nio.file.attribute.DosFileAttributes;
 import java.nio.file.attribute.PosixFileAttributes;
 import java.nio.file.attribute.PosixFilePermission;
 import java.nio.file.attribute.PosixFilePermissions;
+import java.nio.file.attribute.UserDefinedFileAttributeView;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -66,6 +69,7 @@ public final class FileResource extends File implements Resource {
 	private static final CopyOption[] COPY_OPTIONS = new CopyOption[] { StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.COPY_ATTRIBUTES };
 	private static final boolean IS_WINDOWS = SystemUtil.isWindows();
 	private static final boolean IS_UNIX = SystemUtil.isUnix();
+	private static final String READONLY_ATTRIBUTE = "lucee.readonly";
 
 	private final FileResourceProvider provider;
 
@@ -96,7 +100,7 @@ public final class FileResource extends File implements Resource {
 		if (res instanceof File && (!append || !this.isFile())) {
 			try {
 				Files.copy(((File) res).toPath(), this.toPath(), COPY_OPTIONS);
-				applyPermissionsFromResource(res);
+				applyPermissionsAfterCopy(this, res, true);
 				return;
 			}
 			catch (Exception e) {
@@ -105,18 +109,7 @@ public final class FileResource extends File implements Resource {
 		}
 
 		IOUtil.copy(res, this.getOutputStream(append), true);
-		applyPermissionsFromResource(res);
-	}
-
-	private void applyPermissionsFromResource(Resource res) {
-		// executable?
-		boolean e = res instanceof File && ((File) res).canExecute();
-		boolean w = res.isWriteable();
-		boolean r = res.isReadable();
-
-		if (e) this.setExecutable(true);
-		if (w != this.isWriteable()) this.setWritable(w);
-		if (r != this.isReadable()) this.setReadable(r);
+		applyPermissionsAfterCopy(this, res, false);
 	}
 
 	@Override
@@ -125,7 +118,7 @@ public final class FileResource extends File implements Resource {
 		if (res instanceof File && (!append || !res.isFile())) {
 			try {
 				Files.copy(this.toPath(), ((File) res).toPath(), COPY_OPTIONS);
-				applyPermissionsToResource(res);
+				applyPermissionsAfterCopy(res, this, true);
 				return;
 			}
 			catch (Exception e) {
@@ -134,17 +127,242 @@ public final class FileResource extends File implements Resource {
 		}
 
 		IOUtil.copy(this, res.getOutputStream(append), true);
-		applyPermissionsToResource(res);
+		applyPermissionsAfterCopy(res, this, false);
 	}
 
-	private void applyPermissionsToResource(Resource res) {
-		boolean e = canExecute();
-		boolean w = isWriteable();
-		boolean r = isReadable();
+	/**
+	 * LDEV-6095: after copy, ensure the owner can read/write the new file without altering group/other bits
+	 * (ModeUtil-based setReadable/setWritable would set all roles and break mode preservation).
+	 * When {@code attributeCopyUsed} is true, {@link StandardCopyOption#COPY_ATTRIBUTES} already copied
+	 * readonly/hidden/etc.; only add missing owner write when the POSIX mode lacks it (e.g. chmod 444).
+	 * Readonly set via {@link #setWritable(boolean)} is tracked with a user xattr so it can be distinguished
+	 * from a plain {@code fileSetAccessMode} change during copy.
+	 */
+	private static void applyPermissionsAfterCopy(Resource dest, Resource source, boolean attributeCopyUsed) {
+		if (dest instanceof FileResource) {
+			((FileResource) dest).applyPermissionsAfterCopy(source, attributeCopyUsed);
+			return;
+		}
+		if (dest instanceof File) {
+			applyPermissionsAfterCopy(((File) dest).toPath(), source, attributeCopyUsed);
+		}
+	}
 
-		if (e && res instanceof File) ((File) res).setExecutable(true);
-		if (w != res.isWriteable()) res.setWritable(w);
-		if (r != res.isReadable()) res.setReadable(r);
+	private void applyPermissionsAfterCopy(Resource source, boolean attributeCopyUsed) {
+		if (IS_UNIX) {
+			applyPermissionsAfterCopyUnix(this, source, attributeCopyUsed);
+			return;
+		}
+
+		if (attributeCopyUsed && !source.isWriteable()) return;
+		ensureOwnerReadWriteJava();
+	}
+
+	private static void applyPermissionsAfterCopy(Path dest, Resource source, boolean attributeCopyUsed) {
+		if (IS_UNIX) {
+			applyPermissionsAfterCopyUnix(dest, source, attributeCopyUsed);
+			return;
+		}
+
+		if (attributeCopyUsed && !source.isWriteable()) return;
+		File f = dest.toFile();
+		f.setReadable(true);
+		f.setWritable(true);
+	}
+
+	private static void applyPermissionsAfterCopyUnix(Resource dest, Resource source, boolean attributeCopyUsed) {
+		try {
+			if (hasReadonlyAttribute(source)) {
+				copyReadonlyAttribute(source, dest);
+				if (!attributeCopyUsed) setReadonlyOnDest(dest);
+				return;
+			}
+
+			if (attributeCopyUsed) {
+				int destMode = getDestMode(dest);
+				if (!ModeUtil.isWritable(destMode)) {
+					ensureOwnerReadWrite(dest);
+				}
+				return;
+			}
+
+			if (sourceCanExecute(source) && !destCanExecute(dest)) {
+				ensureOwnerExecutable(dest);
+			}
+			if (!ModeUtil.isWritable(getSourceMode(source)) || (source.isWriteable() && !dest.isWriteable())) {
+				ensureOwnerReadWrite(dest);
+			}
+		}
+		catch (IOException e) {
+			LogUtil.warn("file-resource-provider", e);
+		}
+	}
+
+	private static void applyPermissionsAfterCopyUnix(Path dest, Resource source, boolean attributeCopyUsed) {
+		try {
+			if (hasReadonlyAttribute(source)) {
+				copyReadonlyAttribute(source, dest);
+				if (!attributeCopyUsed) dest.toFile().setReadOnly();
+				return;
+			}
+
+			if (attributeCopyUsed) {
+				int destMode = getMode(dest);
+				if (!ModeUtil.isWritable(destMode)) {
+					ensureOwnerReadWrite(dest);
+				}
+				return;
+			}
+
+			File destFile = dest.toFile();
+			if (sourceCanExecute(source) && !destFile.canExecute()) {
+				ensureOwnerExecutable(dest);
+			}
+			if (!ModeUtil.isWritable(getSourceMode(source)) || (source.isWriteable() && !destFile.canWrite())) {
+				ensureOwnerReadWrite(dest);
+			}
+		}
+		catch (IOException e) {
+			LogUtil.warn("file-resource-provider", e);
+		}
+	}
+
+	private static void setReadonlyOnDest(Resource dest) {
+		if (dest instanceof FileResource) {
+			((FileResource) dest).setWritable(false);
+		}
+		else if (dest instanceof File) {
+			((File) dest).setReadOnly();
+		}
+	}
+
+	private static void copyReadonlyAttribute(Resource source, Resource dest) throws IOException {
+		if (dest instanceof FileResource) {
+			copyReadonlyAttribute(source, ((FileResource) dest).toPath());
+		}
+		else if (dest instanceof File) {
+			copyReadonlyAttribute(source, ((File) dest).toPath());
+		}
+	}
+
+	private static void copyReadonlyAttribute(Resource source, Path dest) throws IOException {
+		setReadonlyAttribute(dest, true);
+	}
+
+	private static int getSourceMode(Resource source) {
+		if (source instanceof FileResource) return ((FileResource) source).getMode();
+		if (source instanceof File) return getMode(((File) source).toPath());
+		return 0;
+	}
+
+	private static boolean sourceCanExecute(Resource source) {
+		return source instanceof File && ((File) source).canExecute();
+	}
+
+	private static boolean destCanExecute(Resource dest) {
+		return dest instanceof File && ((File) dest).canExecute();
+	}
+
+	private static int getDestMode(Resource dest) {
+		if (dest instanceof FileResource) return ((FileResource) dest).getMode();
+		if (dest instanceof File) return getMode(((File) dest).toPath());
+		return 0;
+	}
+
+	private static boolean hasReadonlyAttribute(Resource res) {
+		if (!(res instanceof File)) return false;
+		return hasReadonlyAttribute(((File) res).toPath());
+	}
+
+	private static boolean hasReadonlyAttribute(Path path) {
+		try {
+			UserDefinedFileAttributeView view = Files.getFileAttributeView(path, UserDefinedFileAttributeView.class);
+			if (view == null || !view.list().contains(READONLY_ATTRIBUTE)) return false;
+			int size = (int) view.size(READONLY_ATTRIBUTE);
+			ByteBuffer buf = ByteBuffer.allocate(size);
+			view.read(READONLY_ATTRIBUTE, buf);
+			buf.flip();
+			return buf.get() != 0;
+		}
+		catch (Exception e) {
+			return false;
+		}
+	}
+
+	private static void setReadonlyAttribute(Path path, boolean readonly) throws IOException {
+		UserDefinedFileAttributeView view = Files.getFileAttributeView(path, UserDefinedFileAttributeView.class);
+		if (view == null) return;
+		if (readonly) view.write(READONLY_ATTRIBUTE, ByteBuffer.wrap(new byte[] { 1 }));
+		else {
+			try {
+				view.delete(READONLY_ATTRIBUTE);
+			}
+			catch (IOException e) {
+				// attribute was not set
+			}
+		}
+	}
+
+	private static void ensureOwnerReadWrite(Resource dest) throws IOException {
+		if (dest instanceof FileResource) {
+			((FileResource) dest).ensureOwnerReadWrite();
+		}
+		else if (dest instanceof File) {
+			ensureOwnerReadWrite(((File) dest).toPath());
+		}
+	}
+
+	private static void ensureOwnerExecutable(Resource dest) throws IOException {
+		if (dest instanceof FileResource) {
+			((FileResource) dest).ensureOwnerExecutable();
+		}
+		else if (dest instanceof File) {
+			ensureOwnerExecutable(((File) dest).toPath());
+		}
+	}
+
+	private void ensureOwnerReadWrite() {
+		try {
+			provider.lock(this);
+			ensureOwnerReadWrite(toPath());
+		}
+		catch (IOException e) {
+			LogUtil.warn("file-resource-provider", e);
+		}
+		finally {
+			provider.unlock(this);
+		}
+	}
+
+	private static void ensureOwnerReadWrite(Path path) throws IOException {
+		Set<PosixFilePermission> perms = new HashSet<>(Files.getPosixFilePermissions(path));
+		perms.add(PosixFilePermission.OWNER_READ);
+		perms.add(PosixFilePermission.OWNER_WRITE);
+		Files.setPosixFilePermissions(path, perms);
+	}
+
+	private void ensureOwnerExecutable() {
+		try {
+			provider.lock(this);
+			ensureOwnerExecutable(toPath());
+		}
+		catch (IOException e) {
+			LogUtil.warn("file-resource-provider", e);
+		}
+		finally {
+			provider.unlock(this);
+		}
+	}
+
+	private static void ensureOwnerExecutable(Path path) throws IOException {
+		Set<PosixFilePermission> perms = new HashSet<>(Files.getPosixFilePermissions(path));
+		perms.add(PosixFilePermission.OWNER_EXECUTE);
+		Files.setPosixFilePermissions(path, perms);
+	}
+
+	private void ensureOwnerReadWriteJava() {
+		super.setReadable(true);
+		super.setWritable(true);
 	}
 
 	public Resource getNormalizedResource() {
@@ -552,11 +770,27 @@ public final class FileResource extends File implements Resource {
 	public boolean setWritable(boolean value) {
 		// setReadonly
 		if (!value) {
+			if (IS_UNIX) {
+				try {
+					setReadonlyAttribute(toPath(), true);
+				}
+				catch (IOException e) {
+					return false;
+				}
+			}
 			try {
 				provider.lock(this);
 				if (!super.setReadOnly()) throw new IOException("Can't set resource read-only");
 			}
 			catch (IOException ioe) {
+				if (IS_UNIX) {
+					try {
+						setReadonlyAttribute(toPath(), false);
+					}
+					catch (IOException e) {
+						// ignore cleanup failure
+					}
+				}
 				return false;
 			}
 			finally {
@@ -566,9 +800,11 @@ public final class FileResource extends File implements Resource {
 		}
 
 		if (IS_UNIX) {
-			// need no lock because get/setmode has one
 			try {
-				setMode(ModeUtil.setWritable(getMode(), value));
+				if (!super.setWritable(true)) {
+					setMode(ModeUtil.setWritable(getMode(), value));
+				}
+				setReadonlyAttribute(toPath(), false);
 			}
 			catch (IOException e) {
 				return false;
