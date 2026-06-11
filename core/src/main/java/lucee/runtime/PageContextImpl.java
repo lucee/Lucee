@@ -696,8 +696,12 @@ public final class PageContextImpl extends PageContext {
 			variables = null;
 			variablesRoot = null;
 			// if(threads!=null && threads.size()>0) threads.clear();
-			threads = null;
-			allThreads = null;
+			// nulled under the same lock that synchronises setAllThreadScope / read accessors so
+			// a long-running daemon or orphan-VT can't race teardown.
+			synchronized (this) {
+				threads = null;
+				allThreads = null;
+			}
 			currentThread = null;
 			cgiR = null;
 			cgiRW = null;
@@ -4191,21 +4195,40 @@ public final class PageContextImpl extends PageContext {
 	}
 
 	/**
-	 * 
-	 * @param name
-	 * @param ct
+	 * Parallel iteration closures (arrayMap/each/filter with parallel=true) spawn cfthread
+	 * from concurrent worker PCs that all share this.root, so writes here must be synchronised
+	 * against the new safe-read accessors below.
 	 */
 	public void setAllThreadScope(Collection.Key name, Threads ct) {
 		hasFamily = true;
-		if (allThreads == null) allThreads = new LinkedHashMap<Collection.Key, Threads>();
-		else if (allThreads.size() >= CFThread.getThreadLimit()) {
-			CFThread.removeOldest(allThreads);
+		synchronized (this) {
+			if (allThreads == null) allThreads = new LinkedHashMap<Collection.Key, Threads>();
+			else if (allThreads.size() >= CFThread.getThreadLimit()) {
+				CFThread.removeOldest(allThreads);
+			}
+			allThreads.put(name, ct);
 		}
-		allThreads.put(name, ct);
 	}
 
+	public Threads getAllThreadScope(Collection.Key name) {
+		synchronized (this) {
+			return allThreads == null ? null : allThreads.get(name);
+		}
+	}
+
+	public Map<Collection.Key, Threads> snapshotAllThreadScope() {
+		synchronized (this) {
+			return allThreads == null ? null : new LinkedHashMap<Collection.Key, Threads>(allThreads);
+		}
+	}
+
+	/**
+	 * Returns a defensive snapshot so external callers can iterate without racing
+	 * concurrent cfthread spawns from parallel iteration. Use the (Key) overload
+	 * for single-name lookups to avoid the copy.
+	 */
 	public Map<Collection.Key, Threads> getAllThreadScope() {
-		return allThreads;
+		return snapshotAllThreadScope();
 	}
 
 	@Override
