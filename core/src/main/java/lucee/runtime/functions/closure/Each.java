@@ -166,21 +166,28 @@ public final class Each extends BIF implements ClosureFunc {
 	}
 
 	public static void afterCall(PageContext pc, List<Future<Data<Object>>> futures, ExecutorService es, Thread thread) throws PageException {
+		Exception first = null;
 		try {
 			Iterator<Future<Data<Object>>> it = futures.iterator();
-			// Future<String> f;
 			while (it.hasNext()) {
-				pc.write(it.next().get().output);
+				try {
+					pc.write(it.next().get().output);
+				}
+				catch (Exception e) {
+					if (first == null) first = e;
+				}
 			}
 		}
-		catch (Exception e) {
-			throw Caster.toPageException(e);
-		}
 		finally {
-			((PageContextImpl) pc).setThread(thread);
-			closeParallelPool(pc);
-			if (es != null) es.shutdown();
+			finishParallelCall(pc, es, thread);
 		}
+		if (first != null) throw Caster.toPageException(first);
+	}
+
+	static void finishParallelCall(PageContext pc, ExecutorService es, Thread thread) {
+		((PageContextImpl) pc).setThread(thread);
+		if (es != null) es.shutdown();
+		closeParallelPool(pc);
 	}
 
 	static void closeParallelPool(PageContext pc) {

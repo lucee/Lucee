@@ -343,24 +343,26 @@ public final class Map extends BIF implements ClosureFunc {
 
 	public static void afterCall(PageContext pc, Collection coll, List<Future<Data<Object>>> futures, ExecutorService es, Thread thread) throws PageException {
 		boolean isQuery = coll instanceof Query;
+		Exception first = null;
 		try {
 			Iterator<Future<Data<Object>>> it = futures.iterator();
 			Data<Object> d;
 			while (it.hasNext()) {
-				d = it.next().get();
-				if (isQuery) addRow(Caster.toStruct(d.result), (Query) coll);
-				else coll.set(KeyImpl.toKey(d.passed), d.result);
-				pc.write(d.output);
+				try {
+					d = it.next().get();
+					if (isQuery) addRow(Caster.toStruct(d.result), (Query) coll);
+					else coll.set(KeyImpl.toKey(d.passed), d.result);
+					pc.write(d.output);
+				}
+				catch (Exception e) {
+					if (first == null) first = e;
+				}
 			}
 		}
-		catch (Exception e) {
-			throw Caster.toPageException(e);
-		}
 		finally {
-			((PageContextImpl) pc).setThread(thread);
-			Each.closeParallelPool(pc);
-			if (es != null) es.shutdown();
+			Each.finishParallelCall(pc, es, thread);
 		}
+		if (first != null) throw Caster.toPageException(first);
 	}
 
 	@Override

@@ -316,24 +316,27 @@ public final class Every extends BIF implements ClosureFunc {
 	}
 
 	public static boolean afterCall(PageContext pc, List<Future<Data<Object>>> futures, ExecutorService es, Thread thread) throws PageException {
+		boolean every = true;
+		Exception first = null;
 		try {
 			Iterator<Future<Data<Object>>> it = futures.iterator();
 			Data<Object> d;
 			while (it.hasNext()) {
-				d = it.next().get();
-				if (!Caster.toBooleanValue(d.result)) return false;
-				pc.write(d.output);
+				try {
+					d = it.next().get();
+					if (!Caster.toBooleanValue(d.result)) every = false;
+					pc.write(d.output);
+				}
+				catch (Exception e) {
+					if (first == null) first = e;
+				}
 			}
-			return true;
-		}
-		catch (Exception e) {
-			throw Caster.toPageException(e);
 		}
 		finally {
-			((PageContextImpl) pc).setThread(thread);
-			Each.closeParallelPool(pc);
-			if (es != null) es.shutdown();
+			Each.finishParallelCall(pc, es, thread);
 		}
+		if (first != null) throw Caster.toPageException(first);
+		return every;
 	}
 
 	@Override

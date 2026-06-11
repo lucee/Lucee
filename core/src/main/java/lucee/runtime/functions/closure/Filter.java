@@ -338,34 +338,33 @@ public final class Filter extends BIF implements ClosureFunc {
 	}
 
 	public static void afterCall(PageContext pc, Collection coll, List<Future<Data<Pair<Object, Object>>>> futures, ExecutorService es, Thread thread) throws PageException {
+		boolean isArray = coll instanceof Array;
+		boolean isQuery = coll instanceof Query;
+		Exception first = null;
 		try {
-			boolean isArray = false;
-			boolean isQuery = false;
-			if (coll instanceof Array) isArray = true;
-			else if (coll instanceof Query) isQuery = true;
-
 			Iterator<Future<Data<Pair<Object, Object>>>> it = futures.iterator();
 			Data<Pair<Object, Object>> d;
 			while (it.hasNext()) {
-				d = it.next().get();
+				try {
+					d = it.next().get();
 
-				if (Caster.toBooleanValue(d.result)) {
-					if (isArray) ((Array) coll).append(d.passed.getValue());
-					else if (isQuery) addRow((Query) d.passed.getValue(), (Query) coll, Caster.toIntValue(d.passed.getName()));
-					else coll.set(KeyImpl.toKey(d.passed.getName()), d.passed.getValue());
+					if (Caster.toBooleanValue(d.result)) {
+						if (isArray) ((Array) coll).append(d.passed.getValue());
+						else if (isQuery) addRow((Query) d.passed.getValue(), (Query) coll, Caster.toIntValue(d.passed.getName()));
+						else coll.set(KeyImpl.toKey(d.passed.getName()), d.passed.getValue());
+					}
+
+					pc.write(d.output);
 				}
-
-				pc.write(d.output);
+				catch (Exception e) {
+					if (first == null) first = e;
+				}
 			}
 		}
-		catch (Exception e) {
-			throw Caster.toPageException(e);
-		}
 		finally {
-			((PageContextImpl) pc).setThread(thread);
-			Each.closeParallelPool(pc);
-			if (es != null) es.shutdown();
+			Each.finishParallelCall(pc, es, thread);
 		}
+		if (first != null) throw Caster.toPageException(first);
 	}
 
 	@Override
