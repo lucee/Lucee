@@ -2685,6 +2685,21 @@ The returned AST uses **neutral, language-agnostic node types** following ESTree
 	    </return>
 	</function>
 	
+	<!-- EnvVars -->
+	<function>
+	    <name>EnvVars</name>
+	    <class>lucee.runtime.functions.system.EnvVars</class>
+	    <description>
+	        Returns a catalog of all supported Lucee system properties and environment variables,
+	        merged from the static runtime catalog and declarative Prop definitions. Shipped as
+	        env-vars.json with every build.
+	    </description>
+	    <introduced>7.2.0.57</introduced>
+	    <return>
+	        <type>struct</type>
+	    </return>
+	</function>
+	
 	
 	<!-- ConfigTranslate -->
 	<function>

@@ -1,5 +1,6 @@
 package lucee.runtime.config;
 
+import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.nio.charset.Charset;
@@ -7,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
@@ -17,6 +19,8 @@ import java.util.Set;
 import java.util.TimeZone;
 import java.util.concurrent.ConcurrentHashMap;
 
+import lucee.commons.io.CharsetUtil;
+import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.lang.CharsetX;
@@ -27,6 +31,7 @@ import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.exp.SecurityException;
+import lucee.runtime.interpreter.JSONExpressionInterpreter;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 import lucee.runtime.op.OpUtil;
@@ -775,6 +780,134 @@ public class Prop<T> {
 		}
 
 		return data;
+	}
+
+	public static Struct createEnvVars() throws PageException {
+		Key keySysprop = KeyImpl.init("sysprop");
+		Key keyEnvvar = KeyImpl.init("envvar");
+		Key keyDesc = KeyImpl.init("desc");
+		Key keyCategory = KeyImpl.init("category");
+		Key keyType = KeyImpl.init("type");
+		Key keySource = KeyImpl.init("source");
+		Key keyCfconfig = KeyImpl.init("cfconfig");
+		Key keyDeprecated = KeyImpl.init("deprecated");
+
+		Map<String, Struct> bySysprop = new LinkedHashMap<>();
+
+		Array staticEntries = loadStaticSyspropEnvvarEntries();
+		Iterator<Object> it = staticEntries.valueIterator();
+		while (it.hasNext()) {
+			Struct entry = Caster.toStruct(it.next());
+			String sysprop = Caster.toString(entry.get(keySysprop, null), null);
+			if (StringUtil.isEmpty(sysprop)) continue;
+			Struct copy = (Struct) entry.duplicate(true);
+			copy.set(keySource, "runtime");
+			bySysprop.put(sysprop, copy);
+		}
+
+		for (Prop<?> p: instances) {
+			if (p.hidden) continue;
+
+			for (String sysprop: p.envVarSystemProps()) {
+				Struct entry = bySysprop.get(sysprop);
+				if (entry == null) {
+					entry = new StructImpl(Struct.TYPE_LINKED);
+					entry.set(keySysprop, sysprop);
+					entry.set(keyEnvvar, SystemUtil.convertSystemPropToEnvVar(sysprop));
+					bySysprop.put(sysprop, entry);
+				}
+
+				if (!StringUtil.isEmpty(p.description)) {
+					entry.set(keyDesc, p.description);
+				}
+				else if (entry.get(keyDesc, null) == null) {
+					entry.set(keyDesc, "");
+				}
+
+				entry.set(keyType, p.envVarType());
+
+				if (p.defaultValue != null) {
+					entry.set(KeyConstants._default, p.getDefaultValueResolved());
+				}
+
+				if (entry.get(keyCategory, null) == null) {
+					entry.set(keyCategory, p.envVarCategory());
+				}
+
+				String cfconfig = p.cfconfigKey();
+				if (cfconfig != null) {
+					entry.set(keyCfconfig, cfconfig);
+				}
+
+				entry.set(keySource, "prop");
+
+				if (p.deprecated && entry.get(keyDeprecated, null) == null) {
+					entry.set(keyDeprecated, true);
+				}
+			}
+		}
+
+		List<String> sorted = new ArrayList<>(bySysprop.keySet());
+		sorted.sort(String.CASE_INSENSITIVE_ORDER);
+
+		Array entries = new ArrayImpl();
+		for (String sysprop: sorted) {
+			Struct entry = bySysprop.get(sysprop);
+			if (entry.get(keyEnvvar, null) == null) {
+				entry.set(keyEnvvar, SystemUtil.convertSystemPropToEnvVar(sysprop));
+			}
+			entries.appendEL(entry);
+		}
+
+		Struct root = new StructImpl(Struct.TYPE_LINKED);
+		root.setEL(KeyImpl.init("$schema"), "https://lucee.org/schemas/env-vars-1.json");
+		root.setEL(KeyConstants._title, "Lucee System Properties & Environment Variables");
+		root.setEL(KeyImpl.init("entries"), entries);
+		return root;
+	}
+
+	private static Array loadStaticSyspropEnvvarEntries() throws PageException {
+		InputStream is = null;
+		try {
+			is = Prop.class.getClassLoader().getResourceAsStream("/resource/setting/sysprop-envvar.json");
+			if (is == null) throw new ApplicationException("Failed to read [/resource/setting/sysprop-envvar.json]");
+			String raw = IOUtil.toString(is, CharsetUtil.UTF8);
+			return Caster.toArray(new JSONExpressionInterpreter(false, JSONExpressionInterpreter.FORMAT_JSON5).interpret(null, raw));
+		}
+		catch (PageException pe) {
+			throw pe;
+		}
+		catch (Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
+			throw Caster.toPageException(t);
+		}
+		finally {
+			IOUtil.closeEL(is);
+		}
+	}
+
+	private String envVarType() {
+		if (factory == PropFactory.BOOLEAN_FACTORY) return "boolean";
+		if (factory == PropFactory.TIMESPAN_FACTORY) return "timespan";
+		if (factory == PropFactory.INTEGER_FACTORY || factory == PropFactory.LONG_FACTORY || factory == PropFactory.SHORT_FACTORY || factory == PropFactory.DOUBLE_FACTORY
+				|| factory == PropFactory.PROCENTAGE_FACTORY) {
+			return "numeric";
+		}
+		return "string";
+	}
+
+	private String envVarCategory() {
+		if (!StringUtil.isEmpty(parent, true)) {
+			if ("monitoring".equalsIgnoreCase(parent)) return "debugging";
+			return parent.toLowerCase(Locale.ENGLISH);
+		}
+		return "deployment";
+	}
+
+	private String cfconfigKey() {
+		if (keys == null || keys.length == 0) return null;
+		if (!StringUtil.isEmpty(parent, true)) return parent + "." + keys[0];
+		return keys[0];
 	}
 
 	public static Struct createConfigSchema(boolean strict) {

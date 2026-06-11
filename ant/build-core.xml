@@ -928,6 +928,7 @@
     <copy file="${temp}/archive/lucee-admin.lar" tofile="${core}/resource/context/lucee-admin.lar"/> 
     <copy file="${temp}/archive/lucee-doc.lar" tofile="${core}/resource/context/lucee-doc.lar"/> 
     <copy file="${temp}/archive/config-schema.json" tofile="${trgLoader}/config-schema.json"/> 
+    <copy file="${temp}/archive/env-vars.json" tofile="${trgLoader}/env-vars.json"/> 
   </target>
   <!--
   MARK: Felix

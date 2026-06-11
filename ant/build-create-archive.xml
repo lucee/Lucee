@@ -123,6 +123,11 @@
 	schema=serializeJson(var:configSchema(true),compact:false);
 	fileWrite("#temp#/config-schema.json",schema);
 /************************************
+			   Env Vars
+************************************/
+	envVars=serializeJson(var:envVars(),compact:false);
+	fileWrite("#temp#/env-vars.json",envVars);
+/************************************
 			   LUCEE/DOC
 ************************************/
 	systemOutput("#DateTimeFormat(now(),'yyyy-mm-dd HH:nn:ss')# Generating archive #temp#/lucee-doc.lar ", true);
