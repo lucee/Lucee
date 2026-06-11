@@ -149,7 +149,9 @@ public final class LDAPClient {
 				try {
 					if (clientCertPassword == null) clientCertPassword = "";
 					KeyStore ks = KeyStore.getInstance("PKCS12");
-					ks.load(new FileInputStream(new File(clientCert)), clientCertPassword.toCharArray());
+					try (FileInputStream fis = new FileInputStream(new File(clientCert))) {
+						ks.load(fis, clientCertPassword.toCharArray());
+					}
 					KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
 					kmf.init(ks, clientCertPassword.toCharArray());
 					SSLContext ctx = SSLContext.getInstance("TLS");

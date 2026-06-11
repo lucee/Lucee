@@ -164,6 +164,10 @@ public interface ConfigPro extends Config {
 
 	public void removeDatasourceConnectionPool(DataSource ds);
 
+	public void removeDatasourceConnectionPool(String name);
+
+	public void cleanDatasourceConnectionPools();
+
 	public void clearCTCache();
 
 	public void clearFunctionCache();

@@ -25,6 +25,7 @@ import lucee.runtime.type.util.KeyConstants;
 public final class DatasourceConnPool extends GenericObjectPool<DatasourceConnection> {
 
 	private long lastBorrowed;
+	private volatile boolean evictionCandidate;
 	private final Map<String, SoftReference<ProcMetaCollection>> procMetaCache = new ConcurrentHashMap<String, SoftReference<ProcMetaCollection>>();
 
 	public DatasourceConnPool(Config config, DataSource ds, String user, String pass, String logName, GenericObjectPoolConfig<DatasourceConnection> genericObjectPoolConfig) {
@@ -36,6 +37,7 @@ public final class DatasourceConnPool extends GenericObjectPool<DatasourceConnec
 	public DatasourceConnection borrowObject() throws PageException {
 		try {
 			this.lastBorrowed = System.currentTimeMillis();
+			this.evictionCandidate = false;
 			return super.borrowObject();
 		}
 		catch (Exception e) {
@@ -50,6 +52,18 @@ public final class DatasourceConnPool extends GenericObjectPool<DatasourceConnec
 	 */
 	public long getLastBorrowed() {
 		return this.lastBorrowed;
+	}
+
+	public void setLastBorrowed(long v) {
+		this.lastBorrowed = v;
+	}
+
+	boolean isEvictionCandidate() {
+		return this.evictionCandidate;
+	}
+
+	void setEvictionCandidate(boolean v) {
+		this.evictionCandidate = v;
 	}
 
 	/**

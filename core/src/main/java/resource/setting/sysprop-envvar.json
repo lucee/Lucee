@@ -250,6 +250,15 @@
 		"default": null
 	},
 	{
+		"sysprop": "lucee.datasource.pool.maxIdle",
+		"envvar": "LUCEE_DATASOURCE_POOL_MAXIDLE",
+		"desc": "Window in seconds a datasource pool must be quiet before becoming eligible for background cleanup. The pool is then closed after surviving one Controler bg-sweep tick (one minute). Floored to ~60s effective minimum since the bg sweep runs once per minute.",
+		"category": "datasource",
+		"type": "numeric",
+		"introduced": "7.1.0.167",
+		"default": 60
+	},
+	{
 		"sysprop": "lucee.datasource.timeout.validation",
 		"envvar": "LUCEE_DATASOURCE_TIMEOUT_VALIDATION",
 		"desc": "Timeout in seconds for validating pooled datasource connections via Connection.isValid(). Used as fallback when the datasource has no networkTimeout configured.",
