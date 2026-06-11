@@ -259,7 +259,9 @@ public final class ThreadUtil {
 					MethodHandles.Lookup lookup = MethodHandles.lookup();
 					MethodType methodType = MethodType.methodType(ExecutorService.class);
 					MethodHandle methodHandle = lookup.findStatic(Executors.class, "newVirtualThreadPerTaskExecutor", methodType);
-					return (ExecutorService) methodHandle.invoke();
+					ExecutorService vtExec = (ExecutorService) methodHandle.invoke();
+					// VT-per-task has no parallelism cap — wrap to honour maxThreads contract
+					return new SemaphoreBoundedExecutor(vtExec, maxThreads);
 				}
 				catch (Throwable e) {
 					virtualDisabled = true;
