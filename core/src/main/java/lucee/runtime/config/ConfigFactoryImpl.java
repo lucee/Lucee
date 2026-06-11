@@ -438,6 +438,13 @@ public final class ConfigFactoryImpl extends ConfigFactory {
 		// Trigger startup hooks (lazy-loaded)
 		config.getStartups();
 
+		// Eagerly initialise the ExecutionLogFactory so its marker check + cfclasses
+		// purge (loadExeLog) runs BEFORE any request can reach PageSourceImpl.loadPhysical.
+		// Without this, loadExeLog runs lazily inside the first compile, by which point
+		// path 2 has already defined stale-version classes into the fresh PCL —
+		// purging cfclasses on disk then can't unload them and the rename storm runs.
+		config.getExecutionLogFactory();
+
 		config.setLoadTime(System.currentTimeMillis());
 	}
 
@@ -1574,6 +1581,35 @@ public final class ConfigFactoryImpl extends ConfigFactory {
 		return las;
 	}
 
+	/**
+	 * Human-readable description of what changed in the exeLog marker between boots.
+	 * The marker val format is "executionLogEnabled:lineBased:engineVersion" — emit a
+	 * specific reason for each component that actually differs.
+	 */
+	private static String describeMarkerChange(String previousVal, String newVal) {
+		if (previousVal == null) {
+			return "purging cfclasses: marker file not present (fresh install or first boot of this Lucee version) [" + newVal + "]";
+		}
+		String[] oldParts = previousVal.split(":", -1);
+		String[] newParts = newVal.split(":", -1);
+		StringBuilder reasons = new StringBuilder();
+		if (oldParts.length >= 1 && newParts.length >= 1 && !oldParts[0].equals(newParts[0])) {
+			reasons.append("execution log enabled: ").append(oldParts[0]).append(" -> ").append(newParts[0]);
+		}
+		if (oldParts.length >= 2 && newParts.length >= 2 && !oldParts[1].equals(newParts[1])) {
+			if (reasons.length() > 0) reasons.append("; ");
+			reasons.append("execution log lineBased: ").append(oldParts[1]).append(" -> ").append(newParts[1]);
+		}
+		if (oldParts.length >= 3 && newParts.length >= 3 && !oldParts[2].equals(newParts[2])) {
+			if (reasons.length() > 0) reasons.append("; ");
+			reasons.append("Lucee engine version: ").append(oldParts[2]).append(" -> ").append(newParts[2]);
+		}
+		if (reasons.length() == 0) {
+			reasons.append("marker mismatch with no specific delta detected [previous=").append(previousVal).append(", current=").append(newVal).append("]");
+		}
+		return "purging cfclasses, templates will recompile under the current engine (" + reasons + ")";
+	}
+
 	public static ExecutionLogFactory loadExeLog(ConfigImpl config, Struct root) {
 		try {
 			Struct el = ConfigUtil.getAsStruct("executionLog", root);
@@ -1627,33 +1663,54 @@ public final class ConfigFactoryImpl extends ConfigFactory {
 
 			ExecutionLogFactory factory = new ExecutionLogFactory(clazz, args);
 
-			// Track ExecutionLog mode in marker file to detect config changes.
-			// Format: "enabled:lineBased" (e.g. "true:true" for debugger, "true:false" for console)
-			// If mode changes, purge cfclasses to force recompile with correct bytecode.
-			String val = config.getExecutionLogEnabled() + ":" + factory.isLineBased();
-			boolean hasChanged = false;
+			// Track ExecutionLog mode + engine version in marker file to detect
+			// restart-triggered cache invariants. Format:
+			//   "enabled:lineBased:engineVersion"
+			// If any component changes, purge cfclasses so we recompile under the new
+			// engine. Engine-version inclusion catches Lucee upgrades; without it,
+			// .class files compiled by the previous engine survive on disk and get
+			// loaded by the new engine via path 2 in PageSourceImpl.loadPhysical,
+			// then trigger phantom-rename storms (every page-reload recompiles).
+			String engineVersion = ConfigUtil.getCFMLEngine(config).getInfo().getVersion().toString();
+			String val = config.getExecutionLogEnabled() + ":" + factory.isLineBased() + ":" + engineVersion;
 
+			// Default to "cfclasses is untrusted; purge". Only skip the purge if the
+			// marker file exists AND matches the current val exactly. Any read
+			// failure also falls through to purge — when we can't prove the cache is
+			// valid, we don't trust it.
+			boolean cacheValid = false;
+			String previousVal = null;
 			try {
-				Resource contextDir = config.getConfigDir();
-				Resource exeLog = contextDir.getRealResource("exeLog");
-
-				if (!exeLog.exists()) {
-					exeLog.createNewFile();
-					IOUtil.write(exeLog, val, SystemUtil.getCharset(), false);
-					hasChanged = true;
-				}
-				else if (!IOUtil.toString(exeLog, SystemUtil.getCharset()).equals(val)) {
-					IOUtil.write(exeLog, val, SystemUtil.getCharset(), false);
-					hasChanged = true;
+				Resource exeLog = config.getConfigDir().getRealResource("exeLog");
+				if (exeLog.exists()) {
+					previousVal = IOUtil.toString(exeLog, SystemUtil.getCharset());
+					cacheValid = val.equals(previousVal);
 				}
 			}
 			catch (IOException e) {
 				log(config, e);
 			}
 
-			if (hasChanged) {
+			if (!cacheValid) {
+				// Only log when there's actually something to purge. Fresh installs with
+				// an empty cfclasses dir don't need noise. Logged at DEBUG so it routes
+				// to out.log (informational) rather than err.log (problems).
 				try {
-					if (config.getClassDirectory().exists()) config.getClassDirectory().remove(true);
+					if (config.getClassDirectory().exists()) {
+						log(config, Log.LEVEL_DEBUG, describeMarkerChange(previousVal, val));
+						config.getClassDirectory().remove(true);
+					}
+				}
+				catch (IOException e) {
+					log(config, e);
+				}
+				// Write the marker AFTER the purge so a crash between purge and write
+				// leaves the marker stale/missing — next boot detects and purges again
+				// rather than trusting a half-purged cfclasses.
+				try {
+					Resource exeLog = config.getConfigDir().getRealResource("exeLog");
+					if (!exeLog.exists()) exeLog.createNewFile();
+					IOUtil.write(exeLog, val, SystemUtil.getCharset(), false);
 				}
 				catch (IOException e) {
 					log(config, e);
