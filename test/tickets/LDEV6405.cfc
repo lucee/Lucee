@@ -25,8 +25,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 			});
 
 			it(title="SolrSearchExtensionLister builds search URL from repository URL", body=function(currentSpec) {
-				var url = createObject("java", "lucee.runtime.config.maven.extensionlist.SolrSearchExtensionLister").buildSearchUrl("http://localhost:8856/", "org.lucee", 0);
-				expect(url).toStartWith("http://localhost:8856/solrsearch/select?q=g%3Aorg.lucee");
+				var searchUrl = createObject("java", "lucee.runtime.config.maven.extensionlist.SolrSearchExtensionLister").buildSearchUrl("http://localhost:8856/", "org.lucee", 0);
+				var expectedPrefix = "http://localhost:8856/solrsearch/select?q=g%3Aorg.lucee";
+				expect(left(searchUrl, len(expectedPrefix))).toBe(expectedPrefix);
 			});
 
 			it(title="SolrSearchExtensionLister parses artifact ids from JSON", body=function(currentSpec) {
