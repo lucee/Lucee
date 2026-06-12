@@ -160,6 +160,169 @@
 	    ]]>
 	</scriptdef>
 
+	<scriptdef name="getExtensionLex" language="javascript" classpath="${nashorn_classpath}">
+		<attribute name="group" />
+		<attribute name="artifact" />
+		<attribute name="version" />
+		<attribute name="dest" />
+		<![CDATA[
+			function normalizeUrl(base) {
+				return base.endsWith("/") ? base : base + "/";
+			}
+
+			function isSnapshot(version) {
+				return version.toUpperCase().indexOf("SNAPSHOT") !== -1;
+			}
+
+			function groupPath(group) {
+				return group.replace(/\./g, "/");
+			}
+
+			function literalLexUrl(repoUrl, group, artifact, version) {
+				var g = groupPath(group);
+				return normalizeUrl(repoUrl) + g + "/" + artifact + "/" + version + "/" + artifact + "-" + version + ".lex";
+			}
+
+			function resolvedLexUrl(repoUrl, group, artifact, version, resolvedValue) {
+				var g = groupPath(group);
+				return normalizeUrl(repoUrl) + g + "/" + artifact + "/" + version + "/" + artifact + "-" + resolvedValue + ".lex";
+			}
+
+			function httpStatus(url) {
+				var conn = new java.net.URL(String(url)).openConnection();
+				conn.setRequestMethod("HEAD");
+				conn.setConnectTimeout(10000);
+				conn.setReadTimeout(60000);
+				conn.setInstanceFollowRedirects(true);
+				try {
+					conn.connect();
+					return conn.getResponseCode();
+				} catch (e) {
+					return -1;
+				}
+			}
+
+			function fetchText(url) {
+				var conn = new java.net.URL(String(url)).openConnection();
+				conn.setConnectTimeout(10000);
+				conn.setReadTimeout(60000);
+				conn.setInstanceFollowRedirects(true);
+				var is = conn.getInputStream();
+				var reader = new java.io.BufferedReader(new java.io.InputStreamReader(is, "UTF-8"));
+				var sb = new java.lang.StringBuilder();
+				var line;
+				while ((line = reader.readLine()) != null) {
+					sb.append(line);
+				}
+				reader.close();
+				return sb.toString();
+			}
+
+			function childText(node, name) {
+				var children = node.getChildNodes();
+				for (var i = 0; i < children.getLength(); i++) {
+					var child = children.item(i);
+					if (child.getNodeName() === name) {
+						return child.getTextContent().trim();
+					}
+				}
+				return null;
+			}
+
+			function resolveSnapshotLexValue(repoUrl, group, artifact, version) {
+				var g = groupPath(group);
+				var metaUrl = normalizeUrl(repoUrl) + g + "/" + artifact + "/" + version + "/maven-metadata.xml";
+				try {
+					var xml = fetchText(metaUrl);
+					var factory = javax.xml.parsers.DocumentBuilderFactory.newInstance();
+					factory.setNamespaceAware(false);
+					var doc = factory.newDocumentBuilder().parse(new org.xml.sax.InputSource(new java.io.StringReader(xml)));
+					var nodes = doc.getElementsByTagName("snapshotVersion");
+					var fallback = null;
+					for (var i = 0; i < nodes.getLength(); i++) {
+						var node = nodes.item(i);
+						var ext = childText(node, "extension");
+						var classifier = childText(node, "classifier");
+						var value = childText(node, "value");
+						if (ext === "lex" && value) {
+							if (!classifier) {
+								return value;
+							}
+							if (fallback === null) {
+								fallback = value;
+							}
+						}
+					}
+					return fallback;
+				} catch (e) {
+					return null;
+				}
+			}
+
+			function tryDownload(url, dest, tried) {
+				var urlStr = String(url);
+				tried.push(urlStr);
+				var status = httpStatus(urlStr);
+				if (status >= 200 && status < 300) {
+					project.log("Downloading extension from " + urlStr);
+					var get = project.createTask("get");
+					get.setSrc(new java.net.URL(urlStr));
+					get.setDest(new java.io.File(dest));
+					get.perform();
+					return true;
+				}
+				project.log("Extension not found (" + status + "): " + urlStr);
+				return false;
+			}
+
+			var group = attributes.get("group").trim();
+			var artifact = attributes.get("artifact").trim();
+			var version = attributes.get("version").trim();
+			var dest = attributes.get("dest").trim();
+
+			if (version.startsWith('"') && version.endsWith('"')) {
+				version = version.substring(1, version.length() - 1).trim();
+			}
+
+			var repos = [];
+			if (isSnapshot(version)) {
+				repos.push(project.getProperty("extURLCDN"));
+				repos.push(project.getProperty("extURLSnapshot"));
+				repos.push(project.getProperty("extURLMaven"));
+			} else {
+				repos.push(project.getProperty("extURLMaven"));
+				repos.push(project.getProperty("extURLCDN"));
+			}
+
+			var tried = [];
+			var downloaded = false;
+			for (var r = 0; r < repos.length && !downloaded; r++) {
+				var repoUrl = repos[r];
+				if (!repoUrl) {
+					continue;
+				}
+
+				if (tryDownload(literalLexUrl(repoUrl, group, artifact, version), dest, tried)) {
+					downloaded = true;
+				}
+
+				if (!downloaded && isSnapshot(version)) {
+					var resolved = resolveSnapshotLexValue(repoUrl, group, artifact, version);
+					if (resolved) {
+						downloaded = tryDownload(resolvedLexUrl(repoUrl, group, artifact, version, resolved), dest, tried);
+					}
+				}
+			}
+
+			if (!downloaded) {
+				throw new java.lang.RuntimeException(
+					"Could not download [" + group + ":" + artifact + ":" + version + ".lex] from any repository. Tried:\n- "
+					+ tried.join("\n- ")
+				);
+			}
+		]]>
+	</scriptdef>
+
 	<target name="check-cache">
 		<available file="${cache}/testbox-${testboxVersion}.zip" property="testbox.present"/>
 
@@ -179,70 +342,96 @@
 	</target>
 
 	<target name="check-mysql" depends="check-cache" unless="mysql.present">
-		<get 
-			src="${extURLMaven}${extMysqlJdbcExtensionGroupPath}/${extMysqlJdbcExtensionArtifact}/${extMysqlJdbcExtensionVersion}/${extMysqlJdbcExtensionArtifact}-${extMysqlJdbcExtensionVersion}.lex" 
+		<getExtensionLex
+			group="${extMysqlJdbcExtensionGroup}"
+			artifact="${extMysqlJdbcExtensionArtifact}"
+			version="${extMysqlJdbcExtensionVersion}"
 			dest="${cache}/mvn_${extMysqlJdbcExtension}_${extMysqlJdbcExtensionVersion}.lex"/>
 	</target> 
 	
 	<target name="check-mssql" depends="check-cache" unless="mssql.present">
-		<get 
-			src="${extURLMaven}${extMssqlJdbcExtensionGroupPath}/${extMssqlJdbcExtensionArtifact}/${extMssqlJdbcExtensionVersion}/${extMssqlJdbcExtensionArtifact}-${extMssqlJdbcExtensionVersion}.lex" 
+		<getExtensionLex
+			group="${extMssqlJdbcExtensionGroup}"
+			artifact="${extMssqlJdbcExtensionArtifact}"
+			version="${extMssqlJdbcExtensionVersion}"
 			dest="${cache}/mvn_${extMssqlJdbcExtension}_${extMssqlJdbcExtensionVersion}.lex"/>
 	</target> 
 
 	<target name="check-postgre" depends="check-cache" unless="postgre.present">
-		<get 
-			src="${extURLMaven}${extPostgresqlJdbcExtensionGroupPath}/${extPostgresqlJdbcExtensionArtifact}/${extPostgresqlJdbcExtensionVersion}/${extPostgresqlJdbcExtensionArtifact}-${extPostgresqlJdbcExtensionVersion}.lex" 
+		<getExtensionLex
+			group="${extPostgresqlJdbcExtensionGroup}"
+			artifact="${extPostgresqlJdbcExtensionArtifact}"
+			version="${extPostgresqlJdbcExtensionVersion}"
 			dest="${cache}/mvn_${extPostgresqlJdbcExtension}_${extPostgresqlJdbcExtensionVersion}.lex"/>
 	</target> 
 	<target name="check-s3" depends="check-cache" unless="s3.present">
-		<get 
-			src="${extURLMaven}${extS3ExtensionGroupPath}/${extS3ExtensionArtifact}/${extS3ExtensionVersion}/${extS3ExtensionArtifact}-${extS3ExtensionVersion}.lex" 
+		<getExtensionLex
+			group="${extS3ExtensionGroup}"
+			artifact="${extS3ExtensionArtifact}"
+			version="${extS3ExtensionVersion}"
 			dest="${cache}/mvn_${extS3Extension}_${extS3ExtensionVersion}.lex"/>
 	</target>
 	<target name="check-pdf" depends="check-cache" unless="pdf.present">
-		<get 
-			src="${extURLCDN}${extPdfExtensionGroupPath}/${extPdfExtensionArtifact}/${extPdfExtensionVersion}/${extPdfExtensionArtifact}-${extPdfExtensionVersion}.lex" 
+		<getExtensionLex
+			group="${extPdfExtensionGroup}"
+			artifact="${extPdfExtensionArtifact}"
+			version="${extPdfExtensionVersion}"
 			dest="${cache}/mvn_${extPdfExtension}_${extPdfExtensionVersion}.lex"/>
 	</target>
 	<target name="check-admin" depends="check-cache" unless="admin.present">
-		<get 
-			src="${extURLMaven}${extAdministratorExtensionGroupPath}/${extAdministratorExtensionArtifact}/${extAdministratorExtensionVersion}/${extAdministratorExtensionArtifact}-${extAdministratorExtensionVersion}.lex" 
+		<getExtensionLex
+			group="${extAdministratorExtensionGroup}"
+			artifact="${extAdministratorExtensionArtifact}"
+			version="${extAdministratorExtensionVersion}"
 			dest="${cache}/mvn_${extAdministratorExtension}_${extAdministratorExtensionVersion}.lex"/>
 	</target>
 	<target name="check-doc" depends="check-cache" unless="doc.present">
-		<get 
-			src="${extURLMaven}${extDocumentationExtensionGroupPath}/${extDocumentationExtensionArtifact}/${extDocumentationExtensionVersion}/${extDocumentationExtensionArtifact}-${extDocumentationExtensionVersion}.lex" 
+		<getExtensionLex
+			group="${extDocumentationExtensionGroup}"
+			artifact="${extDocumentationExtensionArtifact}"
+			version="${extDocumentationExtensionVersion}"
 			dest="${cache}/mvn_${extDocumentationExtension}_${extDocumentationExtensionVersion}.lex"/>
 	</target>
 	<target name="check-image" depends="check-cache" unless="image.present">
-		<get 
-			src="${extURLMaven}${extImageExtensionGroupPath}/${extImageExtensionArtifact}/${extImageExtensionVersion}/${extImageExtensionArtifact}-${extImageExtensionVersion}.lex" 
+		<getExtensionLex
+			group="${extImageExtensionGroup}"
+			artifact="${extImageExtensionArtifact}"
+			version="${extImageExtensionVersion}"
 			dest="${cache}/mvn_${extImageExtension}_${extImageExtensionVersion}.lex"/>
 	</target>
 	<target name="check-esapi" depends="check-cache" unless="esapi.present">
-		<get 
-			src="${extURLMaven}${extEsapiExtensionGroupPath}/${extEsapiExtensionArtifact}/${extEsapiExtensionVersion}/${extEsapiExtensionArtifact}-${extEsapiExtensionVersion}.lex" 
+		<getExtensionLex
+			group="${extEsapiExtensionGroup}"
+			artifact="${extEsapiExtensionArtifact}"
+			version="${extEsapiExtensionVersion}"
 			dest="${cache}/mvn_${extEsapiExtension}_${extEsapiExtensionVersion}.lex"/>
 	</target>
 	<target name="check-scheduler" depends="check-cache" unless="scheduler.present">
-		<get 
-			src="${extURLMaven}${extSchedulerClassicExtensionGroupPath}/${extSchedulerClassicExtensionArtifact}/${extSchedulerClassicExtensionVersion}/${extSchedulerClassicExtensionArtifact}-${extSchedulerClassicExtensionVersion}.lex" 
+		<getExtensionLex
+			group="${extSchedulerClassicExtensionGroup}"
+			artifact="${extSchedulerClassicExtensionArtifact}"
+			version="${extSchedulerClassicExtensionVersion}"
 			dest="${cache}/mvn_${extSchedulerClassicExtension}_${extSchedulerClassicExtensionVersion}.lex"/>
 	</target>
 	<target name="check-compress" depends="check-cache" unless="compress.present">
-		<get 
-			src="${extURLCDN}${extCompressExtensionGroupPath}/${extCompressExtensionArtifact}/${extCompressExtensionVersion}/${extCompressExtensionArtifact}-${extCompressExtensionVersion}.lex" 
+		<getExtensionLex
+			group="${extCompressExtensionGroup}"
+			artifact="${extCompressExtensionArtifact}"
+			version="${extCompressExtensionVersion}"
 			dest="${cache}/mvn_${extCompressExtension}_${extCompressExtensionVersion}.lex"/>
 	</target>
 	<target name="check-mail" depends="check-cache" unless="mail.present">
-		<get 
-			src="${extURLMaven}${extMailExtensionGroupPath}/${extMailExtensionArtifact}/${extMailExtensionVersion}/${extMailExtensionArtifact}-${extMailExtensionVersion}.lex" 
+		<getExtensionLex
+			group="${extMailExtensionGroup}"
+			artifact="${extMailExtensionArtifact}"
+			version="${extMailExtensionVersion}"
 			dest="${cache}/mvn_${extMailExtension}_${extMailExtensionVersion}.lex"/>
 	</target>
 	<target name="check-ftp" depends="check-cache" unless="ftp.present">
-		<get 
-			src="${extURLMaven}${extFtpExtensionGroupPath}/${extFtpExtensionArtifact}/${extFtpExtensionVersion}/${extFtpExtensionArtifact}-${extFtpExtensionVersion}.lex" 
+		<getExtensionLex
+			group="${extFtpExtensionGroup}"
+			artifact="${extFtpExtensionArtifact}"
+			version="${extFtpExtensionVersion}"
 			dest="${cache}/mvn_${extFtpExtension}_${extFtpExtensionVersion}.lex"/>
 	</target>
 

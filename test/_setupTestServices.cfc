@@ -505,7 +505,7 @@ component {
 			cfhttp(url="#baseUrl#/status/200", method="GET", timeout="2", throwOnError=true);			// Test JSON response with /json endpoint
 			cfhttp(url="#baseUrl#/json", method="GET", timeout="2", throwOnError=true);
 
-			return "HTTPBin service verified at #baseUrl#";
+			return "HTTPBin service verified at #baseUrl# (embedded mock)";
 		}
 		throw "not configured";
 	}
@@ -836,13 +836,19 @@ component {
 			case "httpbin":
 				httpbin = server._getSystemPropOrEnvVars( "SERVER, PORT", "HTTPBIN_" );
 				if ( httpbin.count() eq 2 ){
-					return httpbin;
-				} else {
 					return {
-						server: "httpbin.org",
-						port: 80
+						server: httpbin.SERVER,
+						port: httpbin.PORT
 					};
 				}
+				if ( !structKeyExists( application, "__luceeHttpbinMock" ) ) {
+					lock name="luceeHttpbinMockInit" type="exclusive" timeout="5" {
+						if ( !structKeyExists( application, "__luceeHttpbinMock" ) ) {
+							application.__luceeHttpbinMock = new test._HttpbinMock();
+						}
+					}
+				}
+				return application.__luceeHttpbinMock.start();
 				break;
 			case "aimock":
 				aimock = server._getSystemPropOrEnvVars( "SERVER, PORT", "AIMOCK_" );

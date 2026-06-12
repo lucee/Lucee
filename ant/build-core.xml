@@ -17,13 +17,14 @@
   <property name="extURL" value="https://extension.lucee.org/rest/extension/provider/full/"/>
   <property name="extURLMaven" value="https://repo1.maven.org/maven2/"/>
   <property name="extURLCDN" value="https://cdn.lucee.org/"/>
+  <property name="extURLSnapshot" value="https://central.sonatype.com/repository/maven-snapshots/"/>
   
   <property name="extMongo"     value="org.lucee:mongodb-extension:3.12.13.10"/>
   <property name="extH2"        value="465E1E35-2425-4F4E-8B3FAB638BD7280A;version=2.1.214.0001L"/>
   <property name="extOracle"    value="org.lucee:oracle-jdbc-extension:23.26.0.0-ojdbc11"/>
   <property name="extLucene"    value="org.lucee:lucene-search-extension:3.0.0.171-SNAPSHOT"/>
   <property name="extAxis"      value="org.lucee:axis-extension:1.5.0.6"/>
-  <property name="extChart"     value="org.lucee:chart-extension:2.0.0.3-SNAPSHOT"/>
+  <property name="extChart"     value="org.lucee:chart-extension:3.0.0.0-BETA"/>
   <property name="extRedis"     value="org.lucee:redis-extension:4.1.0.0-SNAPSHOT"/>
   <property name="extHibernate" value="org.lucee:hibernate-extension:5.6.15.17-SNAPSHOT"/>
   <property name="extEHCache"   value="org.lucee:ehcache-extension:2.10.0.39"/>
