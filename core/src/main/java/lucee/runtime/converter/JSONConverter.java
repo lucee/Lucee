@@ -281,14 +281,25 @@ public final class JSONConverter extends ConverterSupport {
 	 * @throws IOException
 	 */
 	private void _serializeList(PageContext pc, List list, Appendable sb, int queryFormat, Boolean preserveCase, Set<Object> done) throws ConverterException, IOException {
+		// snapshot — caller's list may be concurrently mutated (LDEV-3367). toArray on its own
+		// can still race on some List impls (e.g. ArrayList AIOOBE if shrunk between size() and copy);
+		// fall back to a synchronized copy on any failure.
+		Object[] snapshot;
+		try {
+			snapshot = list.toArray();
+		}
+		catch (Throwable t) {
+			synchronized (list) {
+				snapshot = list.toArray();
+			}
+		}
+
 		sb.append("[");
 		sb.append(eol);
 		right();
 
-		boolean doIt = false;
-		ListIterator it = list.listIterator();
-		while (it.hasNext()) {
-			if (doIt) {
+		for (int i = 0; i < snapshot.length; i++) {
+			if (i > 0) {
 				sb.append(',');
 				sb.append(eol);
 				sb.append(indent());
@@ -296,8 +307,7 @@ public final class JSONConverter extends ConverterSupport {
 			else {
 				sb.append(indent());
 			}
-			doIt = true;
-			_serialize(pc, it.next(), sb, queryFormat, preserveCase, done);
+			_serialize(pc, snapshot[i], sb, queryFormat, preserveCase, done);
 		}
 
 		sb.append(eol);

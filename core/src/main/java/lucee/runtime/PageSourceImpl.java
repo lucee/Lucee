@@ -399,10 +399,13 @@ public final class PageSourceImpl implements PageSource {
 				}
 			}
 
-			// check if version changed or lasMod
-			if (!isNew && (srcLastModified != page.getSourceLastModified() || page.getVersion() != ConfigUtil.getCFMLEngine(config).getInfo().getFullVersionInfo())) {
+			// check if source mtime changed (real source edit during runtime).
+			// version-hash check removed — version drift between boot & current engine is
+			// handled eagerly at engine init via the cfclasses marker (LDEV-NNNN); checking
+			// here per-page-reload only triggered phantom-rename storms.
+			if (!isNew && srcLastModified != page.getSourceLastModified()) {
 				isNew = true;
-				LogUtil.log(config, Log.LEVEL_DEBUG, "compile", "recompile [" + getDisplayPath() + "] because unloaded page has changed");
+				LogUtil.log(config, Log.LEVEL_DEBUG, "compile", "recompile [" + getDisplayPath() + "] due to source template timestamp change");
 				pcn.set(page = compile(config, classRootDir, page, false, pci != null && pci.ignoreScopes()));
 			}
 			page.setPageSource(this);
