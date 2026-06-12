@@ -17,9 +17,14 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 				expect(artifacts.size()).toBe(0);
 			});
 
-			it(title="MavenCentralSearchExtensionLister parses artifact ids from JSON", body=function(currentSpec) {
+			it(title="SolrSearchExtensionLister builds search URL from repository URL", body=function(currentSpec) {
+				var url = createObject("java", "lucee.runtime.config.maven.extensionlist.SolrSearchExtensionLister").buildSearchUrl("http://localhost:8856/", "org.lucee", 0);
+				expect(url).toStartWith("http://localhost:8856/solrsearch/select?q=g%3Aorg.lucee");
+			});
+
+			it(title="SolrSearchExtensionLister parses artifact ids from JSON", body=function(currentSpec) {
 				var json = '{"response":{"numFound":2,"docs":[{"a":"s3-extension","g":"org.lucee"},{"a":"../bad","g":"org.lucee"}]}}';
-				var page = createObject("java", "lucee.runtime.config.maven.extensionlist.MavenCentralSearchExtensionLister").parse(json);
+				var page = createObject("java", "lucee.runtime.config.maven.extensionlist.SolrSearchExtensionLister").parse(json);
 				expect(page.numFound).toBe(2);
 				expect(page.artifacts.size()).toBe(1);
 				expect(page.artifacts.contains("s3-extension")).toBeTrue();

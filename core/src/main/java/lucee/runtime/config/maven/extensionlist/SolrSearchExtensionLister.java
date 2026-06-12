@@ -20,32 +20,37 @@ import lucee.runtime.op.Caster;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.Struct;
 
-public final class MavenCentralSearchExtensionLister implements ExtensionLister {
+public final class SolrSearchExtensionLister implements ExtensionLister {
 
-	private static final String SEARCH_URL = "https://central.sonatype.com/solrsearch/select";
+	private static final String SEARCH_PATH = "solrsearch/select";
 	private static final int PAGE_SIZE = 200;
 
 	@Override
 	public String getName() {
-		return "central-search";
+		return "solr-search";
+	}
+
+	public static String buildSearchUrl(String repoUrl, String groupId, int start) {
+		String base = ExtensionListUtil.normalizeBaseUrl(repoUrl);
+		return base + SEARCH_PATH + "?q=" + URLEncoder.encode("g:" + groupId, StandardCharsets.UTF_8) + "&rows=" + PAGE_SIZE + "&start=" + start + "&wt=json";
 	}
 
 	@Override
 	public Set<String> list(Repository repo, String groupId) throws IOException {
 		ExtensionListUtil.validateGroupId(groupId);
-		ExtensionListUtil.logInfo(getName(), "listing artifacts for group [" + groupId + "] via Maven Central Search API");
+		ExtensionListUtil.logInfo(getName(), "listing artifacts for group [" + groupId + "] via Solr search API at [" + repo.getUrl() + "]");
 		Set<String> artifacts = new HashSet<>();
+		String baseUrl = ExtensionListUtil.normalizeBaseUrl(repo.getUrl());
 		int start = 0;
 		int numFound = -1;
 
 		try {
 			while (numFound < 0 || start < numFound) {
-				String url = SEARCH_URL + "?q=" + URLEncoder.encode("g:" + groupId, StandardCharsets.UTF_8) + "&rows=" + PAGE_SIZE + "&start=" + start + "&wt=json";
-				ExtensionListUtil.logDebug(getName(), "fetching page from [" + url + "]");
-				String json = fetch(url);
-				if (StringUtil.isEmpty(json, true)) break;
+				PageFetch fetch = fetchPage(baseUrl, groupId, start);
+				baseUrl = fetch.baseUrl;
+				if (StringUtil.isEmpty(fetch.body, true)) break;
 
-				Page page = parse(json);
+				Page page = parse(fetch.body);
 				if (numFound < 0) numFound = page.numFound;
 				if (page.artifacts.isEmpty()) break;
 
@@ -57,16 +62,45 @@ public final class MavenCentralSearchExtensionLister implements ExtensionLister 
 			return artifacts;
 		}
 		catch (IOException e) {
-			ExtensionListUtil.logWarn(getName(), "failed listing artifacts for group [" + groupId + "] via Maven Central Search API", e);
+			if (!artifacts.isEmpty()) {
+				ExtensionListUtil.logWarn(getName(), "failed listing remaining artifacts for group [" + groupId + "], returning " + artifacts.size() + " partial result(s)", e);
+				return artifacts;
+			}
+			if (isUnavailable(e)) {
+				ExtensionListUtil.logDebug(getName(), "no Solr search API for group [" + groupId + "] at [" + repo.getUrl() + "]: " + e.getMessage());
+				return new HashSet<>();
+			}
+			ExtensionListUtil.logWarn(getName(), "failed listing artifacts for group [" + groupId + "] via Solr search API at [" + repo.getUrl() + "]", e);
 			throw e;
 		}
+	}
+
+	private PageFetch fetchPage(String baseUrl, String groupId, int start) throws IOException {
+		String url = buildSearchUrl(baseUrl, groupId, start);
+		ExtensionListUtil.logDebug(getName(), "fetching page from [" + url + "]");
+		try {
+			return new PageFetch(baseUrl, fetchSingle(url));
+		}
+		catch (IOException e) {
+			String altBase = ExtensionListUtil.flipProtocol(baseUrl);
+			if (altBase == null || !ExtensionListUtil.isProtocolMismatch(e)) throw e;
+			String altUrl = buildSearchUrl(altBase, groupId, start);
+			ExtensionListUtil.logDebug(getName(), "retrying with alternate protocol [" + altUrl + "]");
+			return new PageFetch(altBase, fetchSingle(altUrl));
+		}
+	}
+
+	private static boolean isUnavailable(IOException e) {
+		String msg = e.getMessage();
+		if (msg == null) return false;
+		return msg.contains("HTTP 404") || msg.contains("HTTP 403") || msg.contains("HTTP 501");
 	}
 
 	public static Page parse(String json) throws IOException {
 		try {
 			Struct root = Caster.toStruct(new JSONExpressionInterpreter(false, JSONExpressionInterpreter.FORMAT_JSON).interpret(null, json));
 			Struct response = Caster.toStruct(root.get("response", null), null);
-			if (response == null) throw new IOException("invalid Maven Central Search response");
+			if (response == null) throw new IOException("invalid Solr search response");
 
 			int numFound = Caster.toIntValue(response.get("numFound", 0), 0);
 			Array docs = Caster.toArray(response.get("docs", null), null);
@@ -87,9 +121,9 @@ public final class MavenCentralSearchExtensionLister implements ExtensionLister 
 		}
 	}
 
-	private static String fetch(String url) throws IOException {
+	private static String fetchSingle(String url) throws IOException {
 		HTTPResponse4Impl response = HTTPEngine.get(new URL(url), null, null, 2000, MavenUpdateProvider.CONNECTION_TIMEOUT, MavenUpdateProvider.READ_TIMEOUT, true, null,
-				"Maven-Central-Search/1.0", null, null, true);
+				"Solr-Search/1.0", null, null, true);
 		try {
 			int sc = response.getStatusCode();
 			if (sc != 200) throw new IOException("HTTP " + sc + " for URL: " + url);
@@ -97,6 +131,16 @@ public final class MavenCentralSearchExtensionLister implements ExtensionLister 
 		}
 		finally {
 			response.close();
+		}
+	}
+
+	private static final class PageFetch {
+		private final String baseUrl;
+		private final String body;
+
+		private PageFetch(String baseUrl, String body) {
+			this.baseUrl = baseUrl;
+			this.body = body;
 		}
 	}
 

@@ -1,6 +1,8 @@
 package lucee.runtime.config.maven.extensionlist;
 
 import java.io.IOException;
+
+import javax.net.ssl.SSLException;
 import java.util.regex.Pattern;
 
 import lucee.commons.io.log.Log;
@@ -24,6 +26,27 @@ final class ExtensionListUtil {
 
 	static boolean isValidArtifactId(String artifactId) {
 		return !StringUtil.isEmpty(artifactId, true) && !artifactId.contains("..") && !artifactId.contains("/") && COORDINATE_PATTERN.matcher(artifactId).matches();
+	}
+
+	static String normalizeBaseUrl(String url) {
+		if (StringUtil.isEmpty(url, true)) return url;
+		return url.endsWith("/") ? url : url + "/";
+	}
+
+	static String flipProtocol(String url) {
+		if (url.startsWith("https://")) return "http://" + url.substring(8);
+		if (url.startsWith("http://")) return "https://" + url.substring(7);
+		return null;
+	}
+
+	static boolean isProtocolMismatch(IOException e) {
+		Throwable t = e;
+		while (t != null) {
+			if (t instanceof SSLException) return true;
+			t = t.getCause();
+		}
+		String msg = e.getMessage();
+		return msg != null && msg.contains("Unsupported or unrecognized SSL message");
 	}
 
 	static void logDebug(String lister, String msg) {

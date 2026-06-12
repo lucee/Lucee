@@ -72,9 +72,12 @@ public final class MavenUpdateProvider {
 	public static final int CONNECTION_TIMEOUT = 10000; // 10 seconds - for establishing connection
 	public static final int READ_TIMEOUT = 60000; // 60 seconds - for reading response data
 
+	public static final Repository REPOSITORY_FORGEBOX = new Repository("Forgebox", "https://forgebox-712327080957.europe-west1.run.app/", TYPE_ALL, Repository.TIMEOUT_1HOUR,
+			Repository.TIMEOUT_NEVER, null, ExtensionListers.DEFAULT);
+
 	// MAVEN
 	public static final Repository REPOSITORY_MAVEN_CENTRAL_RELEASES = new Repository("Maven Release Repository", "https://repo1.maven.org/maven2/", TYPE_RELEASE,
-			Repository.TIMEOUT_1HOUR, Repository.TIMEOUT_NEVER, null, ExtensionListers.DEFAULT);
+			Repository.TIMEOUT_1HOUR, Repository.TIMEOUT_NEVER, null, ExtensionListers.CENTRAL);
 
 	// SONATYPE
 	public static final Repository REPOSITORY_SONATYPE_SNAPSHOTS = new Repository("Sonatype Repositry for Snapshots (last 90 days)",
@@ -82,7 +85,7 @@ public final class MavenUpdateProvider {
 
 	// LUCEE
 	public static final Repository REPOSITORY_LUCEE = new Repository("Lucee Maven repository", "https://cdn.lucee.org/", TYPE_ALL, Repository.TIMEOUT_1HOUR,
-			Repository.TIMEOUT_NEVER, null, ExtensionListers.DEFAULT);
+			Repository.TIMEOUT_NEVER, null, ExtensionListers.LUCEE);
 
 	// GOOGLE
 	public static final Repository REPOSITORY_GOOGLE_RELEASES = new Repository("Google Maven", "https://maven.google.com/", TYPE_RELEASE, Repository.TIMEOUT_1HOUR,
@@ -104,7 +107,7 @@ public final class MavenUpdateProvider {
 
 	public static final Repository[] DEFAULT_REPOSITORIES_SNAPSHOTS = new Repository[] { REPOSITORY_SONATYPE_SNAPSHOTS };
 	public static final Repository[] DEFAULT_REPOSITORIES_RELEASES = new Repository[] { REPOSITORY_MAVEN_CENTRAL_RELEASES, REPOSITORY_LUCEE };
-	public static final Repository[] DEFAULT_REPOSITORIES_ALL = new Repository[] { REPOSITORY_LUCEE };
+	public static final Repository[] DEFAULT_REPOSITORIES_ALL = new Repository[] { REPOSITORY_LUCEE, REPOSITORY_FORGEBOX };
 
 	// private static final Repository[] DEFAULT_REPOSITORY_MIXED = new Repository[] {
 	// DEFAULT_REPOSITORY_LUCEE };
@@ -579,7 +582,8 @@ public final class MavenUpdateProvider {
 			addProp(properties, "label", "string", "A human-readable name for the repository.");
 			addProp(properties, "timeoutList", "string", "Caching duration for the extension list (e.g., '0,0,5,0').");
 			addProp(properties, "timeoutDetail", "string", "Caching duration for specific extension details.");
-			addProp(properties, "listingMode", "string", "Extension discovery lister name, e.g. scraping, group-metadata, central-search, or group-metadata-then-central-search-then-scraping (default).");
+			addProp(properties, "listingMode", "string",
+					"Extension discovery lister name, e.g. scraping, group-metadata, solr-search, or group-metadata-then-solr-search-then-scraping (default). central-search is accepted as an alias for solr-search.");
 
 			Array required = new ArrayImpl();
 			required.appendEL("url");
