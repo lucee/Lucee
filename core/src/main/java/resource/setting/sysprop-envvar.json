@@ -766,10 +766,10 @@
 	{
 		"sysprop": "lucee.mvn.repo.releases",
 		"envvar": "LUCEE_MVN_REPO_RELEASES",
-		"desc": "Maven repository endpoint used by Lucee >= 6 to load release versions",
+		"desc": "Comma-separated Maven repository URLs used by Lucee to load release versions. When unset, defaults to Maven Central and the Google Cloud Maven Central mirror.",
 		"category": "osgi",
 		"type": "string",
-		"default": "https://oss.sonatype.org/service/local/repositories/releases/content/"
+		"default": "https://repo1.maven.org/maven2/,https://maven-central.storage-download.googleapis.com/maven2/"
 	},
 	{
 		"sysprop": "lucee.mvn.repo.snapshots",
