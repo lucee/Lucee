@@ -58,7 +58,9 @@ public final class MavenUpdateProvider {
 	private static final Repository[] DEFAULT_REPOSITORY_SNAPSHOTS = new Repository[] { DEFAULT_REPOSITORY_SONATYPE_LAST90 };
 
 	private static final Repository[] DEFAULT_REPOSITORY_RELEASES = new Repository[] {
-			new Repository("Maven Release Repository", "https://repo1.maven.org/maven2/", Repository.TIMEOUT_1HOUR, Repository.TIMEOUT_NEVER) };
+			new Repository("Maven Release Repository", "https://repo1.maven.org/maven2/", Repository.TIMEOUT_1HOUR, Repository.TIMEOUT_NEVER),
+			new Repository("Google Cloud Maven Central mirror", "https://maven-central.storage-download.googleapis.com/maven2/", Repository.TIMEOUT_1HOUR,
+					Repository.TIMEOUT_NEVER) };
 
 	private static final Repository[] DEFAULT_REPOSITORY_MIXED = new Repository[] {
 			// versions provided by Lucee
