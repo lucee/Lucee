@@ -17,6 +17,13 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 				expect(artifacts.size()).toBe(0);
 			});
 
+			it(title="EmptyExtensionLister returns empty set without network access", body=function(currentSpec) {
+				var Repository = createObject("java", "lucee.runtime.config.maven.MavenUpdateProvider$Repository");
+				var repo = Repository.init("Sonatype Snapshots", "https://central.sonatype.com/repository/maven-snapshots/", 1, 0, 0);
+				var artifacts = createObject("java", "lucee.runtime.config.maven.extensionlist.EmptyExtensionLister").list(repo, "org.lucee");
+				expect(artifacts.size()).toBe(0);
+			});
+
 			it(title="SolrSearchExtensionLister builds search URL from repository URL", body=function(currentSpec) {
 				var url = createObject("java", "lucee.runtime.config.maven.extensionlist.SolrSearchExtensionLister").buildSearchUrl("http://localhost:8856/", "org.lucee", 0);
 				expect(url).toStartWith("http://localhost:8856/solrsearch/select?q=g%3Aorg.lucee");

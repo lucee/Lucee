@@ -81,7 +81,7 @@ public final class MavenUpdateProvider {
 
 	// SONATYPE
 	public static final Repository REPOSITORY_SONATYPE_SNAPSHOTS = new Repository("Sonatype Repositry for Snapshots (last 90 days)",
-			"https://central.sonatype.com/repository/maven-snapshots/", TYPE_SNAPSHOT, Repository.TIMEOUT_1HOUR, Repository.TIMEOUT_NEVER);
+			"https://central.sonatype.com/repository/maven-snapshots/", TYPE_SNAPSHOT, Repository.TIMEOUT_1HOUR, Repository.TIMEOUT_NEVER, null, ExtensionListers.EMPTY);
 
 	// LUCEE
 	public static final Repository REPOSITORY_LUCEE = new Repository("Lucee Maven repository", "https://cdn.lucee.org/", TYPE_ALL, Repository.TIMEOUT_1HOUR,
@@ -582,8 +582,7 @@ public final class MavenUpdateProvider {
 			addProp(properties, "label", "string", "A human-readable name for the repository.");
 			addProp(properties, "timeoutList", "string", "Caching duration for the extension list (e.g., '0,0,5,0').");
 			addProp(properties, "timeoutDetail", "string", "Caching duration for specific extension details.");
-			addProp(properties, "listingMode", "string",
-					"Extension discovery lister name, e.g. scraping, group-metadata, solr-search, or group-metadata-then-solr-search-then-scraping (default). central-search is accepted as an alias for solr-search.");
+			addProp(properties, "listingMode", "string", "Extension discovery lister name, e.g. scraping, group-metadata, solr-search, empty, or group-metadata-then-solr-search-then-scraping (default). central-search is accepted as an alias for solr-search.");
 
 			Array required = new ArrayImpl();
 			required.appendEL("url");
