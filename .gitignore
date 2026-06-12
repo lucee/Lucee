@@ -40,3 +40,4 @@ buildVersionNumber.txt
 
 /test-output
 /.claude
+node_modules/
