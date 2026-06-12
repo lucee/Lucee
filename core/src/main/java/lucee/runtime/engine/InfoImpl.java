@@ -61,6 +61,7 @@ public final class InfoImpl implements Info {
 	private String versionNameExplanation;
 	private final long releaseTime;
 	private Version version;
+	private long fullVersionInfo;
 	private String level;
 	private List<ExtensionDefintion> requiredExtensions;
 
@@ -86,6 +87,7 @@ public final class InfoImpl implements Info {
 			// state=toIntState(mf.getValue("State"));
 			level = "os";
 			version = OSGiUtil.toVersion(mf.getValue("Bundle-Version"));
+			fullVersionInfo = KeyImpl.createHash64(version.toString());
 
 			String str = mf.getValue("Require-Extension");
 			if (StringUtil.isEmpty(str, true)) requiredExtensions = new ArrayList<ExtensionDefintion>();
@@ -350,7 +352,7 @@ public final class InfoImpl implements Info {
 
 	@Override
 	public long getFullVersionInfo() {
-		return KeyImpl.createHash64(getVersion().toString());// +state;
+		return fullVersionInfo;
 	}
 
 	@Override
