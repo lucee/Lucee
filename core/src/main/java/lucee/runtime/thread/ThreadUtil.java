@@ -23,9 +23,11 @@ import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map.Entry;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 import jakarta.servlet.http.Cookie;
@@ -288,6 +290,32 @@ public final class ThreadUtil {
 			}
 		}
 		return Executors.newSingleThreadExecutor();
+	}
+
+	// Wait for any in-flight futures to finish so orphan workers can't race the caller's
+	// post-parallel mutations (LDEV-6395). Swallows per-future exceptions: caller has already
+	// surfaced the relevant one via afterCall.
+	public static void drainFutures(List<? extends Future<?>> futures) {
+		if (futures == null) return;
+		for (Future<?> f : futures) {
+			if (!f.isDone()) {
+				try {
+					f.get();
+				}
+				catch (Exception ignored) {}
+			}
+		}
+	}
+
+	// Shared cleanup for the parallel section of Each/Map/Filter/Some/Every (LDEV-6395):
+	// restore the parent's thread, shut down the executor, drain any remaining futures.
+	// Safe to call when parts were never set up — null pc/thread/es/futures are no-ops.
+	public static void finishParallelSection(PageContext pc, ExecutorService es, Thread thread, List<? extends Future<?>> futures) {
+		if (pc != null && thread != null) ((PageContextImpl) pc).setThread(thread);
+		if (es != null) {
+			es.shutdown();
+			drainFutures(futures);
+		}
 	}
 
 	/**

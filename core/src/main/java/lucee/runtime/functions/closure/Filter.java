@@ -78,20 +78,29 @@ public final class Filter extends BIF implements ClosureFunc {
 	}
 
 	private static Collection _call(PageContext pc, Object obj, UDF udf, boolean parallel, int maxThreads, short type) throws PageException {
-
-		Thread thread = null;
-		ExecutorService execute = null;
-		List<Future<Data<Pair<Object, Object>>>> futures = null;
 		// 0 or less == default
 		if (maxThreads < 1) maxThreads = Each.DEFAULT_MAX_THREAD;
 		// 1 == not parallel
 		else if (maxThreads == 1) parallel = false;
-		if (parallel) {
-			execute = ThreadUtil.createExecutorService(maxThreads);
-			futures = new ArrayList<Future<Data<Pair<Object, Object>>>>();
-			thread = ((PageContextImpl) pc).getThread();
-		}
 
+		if (!parallel) return dispatch(pc, obj, udf, type, null, null);
+
+		ExecutorService execute = ThreadUtil.createExecutorService(maxThreads);
+		List<Future<Data<Pair<Object, Object>>>> futures = new ArrayList<Future<Data<Pair<Object, Object>>>>();
+		Thread thread = ((PageContextImpl) pc).getThread();
+		Collection coll;
+		try {
+			coll = dispatch(pc, obj, udf, type, execute, futures);
+			afterCall(pc, coll, futures);
+		}
+		finally {
+			// drain orphans so they can't race the caller's post-parallel state (LDEV-6395)
+			ThreadUtil.finishParallelSection(pc, execute, thread, futures);
+		}
+		return coll;
+	}
+
+	private static Collection dispatch(PageContext pc, Object obj, UDF udf, short type, ExecutorService execute, List<Future<Data<Pair<Object, Object>>>> futures) throws PageException {
 		Collection coll;
 		// !!!! Don't combine the first 3 ifs with the ifs below, type overrules instanceof check
 		// Array
@@ -144,9 +153,6 @@ public final class Filter extends BIF implements ClosureFunc {
 			coll = invoke(pc, (StringListData) obj, udf, execute, futures);
 		}
 		else throw new FunctionException(pc, "Filter", 1, "data", "Cannot iterate over this type [" + Caster.toTypeName(obj.getClass()) + "]");
-
-		if (parallel) afterCall(pc, coll, futures, execute, thread);
-
 		return coll;
 	}
 
@@ -333,7 +339,7 @@ public final class Filter extends BIF implements ClosureFunc {
 		return null;
 	}
 
-	public static void afterCall(PageContext pc, Collection coll, List<Future<Data<Pair<Object, Object>>>> futures, ExecutorService es, Thread thread) throws PageException {
+	public static void afterCall(PageContext pc, Collection coll, List<Future<Data<Pair<Object, Object>>>> futures) throws PageException {
 		try {
 			boolean isArray = false;
 			boolean isQuery = false;
@@ -356,10 +362,6 @@ public final class Filter extends BIF implements ClosureFunc {
 		}
 		catch (Exception e) {
 			throw Caster.toPageException(e);
-		}
-		finally {
-			((PageContextImpl) pc).setThread(thread);
-			if (es != null) es.shutdown();
 		}
 	}
 
