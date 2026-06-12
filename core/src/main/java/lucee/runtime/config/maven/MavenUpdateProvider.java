@@ -79,6 +79,7 @@ public final class MavenUpdateProvider {
 	public static final Repository REPOSITORY_MAVEN_CENTRAL_RELEASES = new Repository("Maven Release Repository", "https://repo1.maven.org/maven2/", TYPE_RELEASE,
 			Repository.TIMEOUT_1HOUR, Repository.TIMEOUT_NEVER, null, ExtensionListers.CENTRAL);
 
+	// GOOGLE
 	public static final Repository REPOSITORY_GOOGLE_CENTRAL_MIRROR = new Repository("Google Cloud Maven Central mirror",
 			"https://maven-central.storage-download.googleapis.com/maven2/", TYPE_RELEASE, Repository.TIMEOUT_1HOUR, Repository.TIMEOUT_NEVER, null, ExtensionListers.EMPTY);
 
@@ -93,8 +94,7 @@ public final class MavenUpdateProvider {
 	////////////////////////////
 
 	public static final Repository[] DEFAULT_REPOSITORIES_SNAPSHOTS = new Repository[] { REPOSITORY_SONATYPE_SNAPSHOTS };
-	public static final Repository[] DEFAULT_REPOSITORIES_RELEASES = new Repository[] { REPOSITORY_MAVEN_CENTRAL_RELEASES, REPOSITORY_GOOGLE_CENTRAL_MIRROR,
-			REPOSITORY_LUCEE };
+	public static final Repository[] DEFAULT_REPOSITORIES_RELEASES = new Repository[] { REPOSITORY_MAVEN_CENTRAL_RELEASES, REPOSITORY_GOOGLE_CENTRAL_MIRROR, REPOSITORY_LUCEE };
 	public static final Repository[] DEFAULT_REPOSITORIES_ALL = new Repository[] { REPOSITORY_LUCEE, REPOSITORY_FORGEBOX };
 
 	// private static final Repository[] DEFAULT_REPOSITORY_MIXED = new Repository[] {
@@ -570,7 +570,8 @@ public final class MavenUpdateProvider {
 			addProp(properties, "label", "string", "A human-readable name for the repository.");
 			addProp(properties, "timeoutList", "string", "Caching duration for the extension list (e.g., '0,0,5,0').");
 			addProp(properties, "timeoutDetail", "string", "Caching duration for specific extension details.");
-			addProp(properties, "listingMode", "string", "Extension discovery lister name, e.g. scraping, group-metadata, solr-search, empty, or group-metadata-then-solr-search-then-scraping (default). central-search is accepted as an alias for solr-search.");
+			addProp(properties, "listingMode", "string",
+					"Extension discovery lister name, e.g. scraping, group-metadata, solr-search, empty, or group-metadata-then-solr-search-then-scraping (default). central-search is accepted as an alias for solr-search.");
 
 			Array required = new ArrayImpl();
 			required.appendEL("url");
