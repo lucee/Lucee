@@ -319,6 +319,7 @@ public class ExtensionProvider {
 	}
 
 	private void storeToCache(Repository repository, Set<String> subfolders) {
+		if (repository.cacheDirectory == null) return;
 		try {
 			Resource resLastmod = repository.cacheDirectory.getRealResource("artifacts_" + HashUtil.create64BitHashAsString(group + "_lastmod", Character.MAX_RADIX));
 			Resource resVersions = repository.cacheDirectory.getRealResource("artifacts_" + HashUtil.create64BitHashAsString(group + "_versions", Character.MAX_RADIX));
@@ -336,6 +337,7 @@ public class ExtensionProvider {
 	}
 
 	private Set<String> readFromCache(Repository repository) {
+		if (repository.cacheDirectory == null) return null;
 		try {
 			Resource resLastmod = repository.cacheDirectory.getRealResource("artifacts_" + HashUtil.create64BitHashAsString(group + "_lastmod", Character.MAX_RADIX));
 			if (resLastmod.isFile()) {

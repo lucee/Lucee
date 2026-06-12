@@ -650,10 +650,10 @@ public final class MavenUpdateProvider {
 			this.type = type;
 			this.timeoutList = timeoutList;
 			this.timeoutDetail = timeoutDetail;
-			this.cacheDirectory = cacheDirectory;
+			this.cacheDirectory = cacheDirectory != null ? cacheDirectory : getCacheDirectory(url);
 			this.extensionLister = extensionLister != null ? extensionLister : ExtensionListers.resolve(null, url);
 			if (Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.repos.flush", null), false)) {
-				ResourceUtil.deleteContent(cacheDirectory, null);
+				ResourceUtil.deleteContent(this.cacheDirectory, null);
 			}
 		}
 

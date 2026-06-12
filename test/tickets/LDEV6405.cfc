@@ -4,7 +4,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 		describe(title="LDEV-6405 ExtensionLister strategies", body=function() {
 
 			it(title="GroupMetadataExtensionLister parses artifact ids from group metadata XML", body=function(currentSpec) {
-				var xml = '<metadata><groupId>org.lucee</groupId><artifacts><artifact><artifactId>redis-extension</artifactId><latest>4.1.0.0-SNAPSHOT</latest><release>4.0.0.2</release></artifact><artifact><artifactId>lib-not-extension</artifactId></artifact><artifact><artifactId>s3-extension</artifactId></artifact></artifacts><lastUpdated>20260612153000</lastUpdated></metadata>';
+				var xml = '<metadata><groupId>org.lucee</groupId><artifacts><artifact><artifactId>redis-extension</artifactId><latest>4.1.0.0-SNAPSHOT</latest><release>4.0.0.2</release></artifact><artifact><artifactId>activation</artifactId></artifact><artifact><artifactId>s3-extension</artifactId></artifact></artifacts><lastUpdated>20260612153000</lastUpdated></metadata>';
 				var artifacts = createObject("java", "lucee.runtime.config.maven.extensionlist.GroupMetadataExtensionLister").parse(xml);
 				expect(artifacts.size()).toBe(2);
 				expect(artifacts.contains("redis-extension")).toBeTrue();
