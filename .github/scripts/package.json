@@ -4,6 +4,9 @@
   "description": "Organizes Lucee S3 artifacts into Maven repository structure",
   "main": "organize-s3-artifacts.js",
   "type": "module",
+  "scripts": {
+    "test": "node --test maven-group-metadata.test.js"
+  },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.490.0"
   }
