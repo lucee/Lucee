@@ -42,6 +42,8 @@ import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigUtil;
 import lucee.runtime.config.Prop;
 import lucee.runtime.config.PropFactory;
+import lucee.runtime.config.maven.extensionlist.ExtensionLister;
+import lucee.runtime.config.maven.extensionlist.ExtensionListers;
 import lucee.runtime.converter.ConverterException;
 import lucee.runtime.converter.JSONConverter;
 import lucee.runtime.converter.JSONDateFormat;
@@ -72,7 +74,7 @@ public final class MavenUpdateProvider {
 
 	// MAVEN
 	public static final Repository REPOSITORY_MAVEN_CENTRAL_RELEASES = new Repository("Maven Release Repository", "https://repo1.maven.org/maven2/", TYPE_RELEASE,
-			Repository.TIMEOUT_1HOUR, Repository.TIMEOUT_NEVER);
+			Repository.TIMEOUT_1HOUR, Repository.TIMEOUT_NEVER, null, ExtensionListers.DEFAULT);
 
 	// SONATYPE
 	public static final Repository REPOSITORY_SONATYPE_SNAPSHOTS = new Repository("Sonatype Repositry for Snapshots (last 90 days)",
@@ -80,7 +82,7 @@ public final class MavenUpdateProvider {
 
 	// LUCEE
 	public static final Repository REPOSITORY_LUCEE = new Repository("Lucee Maven repository", "https://cdn.lucee.org/", TYPE_ALL, Repository.TIMEOUT_1HOUR,
-			Repository.TIMEOUT_NEVER);
+			Repository.TIMEOUT_NEVER, null, ExtensionListers.DEFAULT);
 
 	// GOOGLE
 	public static final Repository REPOSITORY_GOOGLE_RELEASES = new Repository("Google Maven", "https://maven.google.com/", TYPE_RELEASE, Repository.TIMEOUT_1HOUR,
@@ -541,14 +543,15 @@ public final class MavenUpdateProvider {
 				int type = toType(Caster.toString(data.get(KeyConstants._label, null), null), this.type);
 				TimeSpan tList = Caster.toTimespan(data.get("timeoutList", null), null);
 				TimeSpan tDetail = Caster.toTimespan(data.get("timeoutDetail", null), null);
+				String listingMode = Caster.toString(data.get("listingMode", null), null);
 
 				return new Repository(StringUtil.isEmpty(label, true) ? null : label, url, type, tList != null ? tList.getMillis() : Repository.TIMEOUT_5MINUTES,
-						tDetail != null ? tDetail.getMillis() : Repository.TIMEOUT_NEVER);
+						tDetail != null ? tDetail.getMillis() : Repository.TIMEOUT_NEVER, null, ExtensionListers.resolve(listingMode, url));
 			}
 			// coming from env var/sys op
 			String url = Caster.toString(val, null);
 			if (!StringUtil.isEmpty(url, true)) {
-				return new Repository(null, url, TYPE_ALL, Repository.TIMEOUT_5MINUTES, Repository.TIMEOUT_NEVER);
+				return new Repository(null, url, TYPE_ALL, Repository.TIMEOUT_5MINUTES, Repository.TIMEOUT_NEVER, null, ExtensionListers.resolve(null, url));
 			}
 
 			throw new ApplicationException("a repository need to be a URL string or a struct containing at least the key url");
@@ -576,6 +579,7 @@ public final class MavenUpdateProvider {
 			addProp(properties, "label", "string", "A human-readable name for the repository.");
 			addProp(properties, "timeoutList", "string", "Caching duration for the extension list (e.g., '0,0,5,0').");
 			addProp(properties, "timeoutDetail", "string", "Caching duration for specific extension details.");
+			addProp(properties, "listingMode", "string", "Extension discovery lister name, e.g. scraping, group-metadata, central-search, or group-metadata-then-central-search-then-scraping (default).");
 
 			Array required = new ArrayImpl();
 			required.appendEL("url");
@@ -620,6 +624,7 @@ public final class MavenUpdateProvider {
 		public final long timeoutList;
 		public final long timeoutDetail;
 		public final Resource cacheDirectory;
+		public final ExtensionLister extensionLister;
 
 		static {
 			try {
@@ -631,10 +636,14 @@ public final class MavenUpdateProvider {
 		}
 
 		public Repository(String label, String url, int type, long timeoutList, long timeoutDetail) {
-			this(label, url, type, timeoutList, timeoutDetail, getCacheDirectory(url));
+			this(label, url, type, timeoutList, timeoutDetail, getCacheDirectory(url), null);
 		}
 
 		public Repository(String label, String url, int type, long timeoutList, long timeoutDetail, Resource cacheDirectory) {
+			this(label, url, type, timeoutList, timeoutDetail, cacheDirectory, null);
+		}
+
+		public Repository(String label, String url, int type, long timeoutList, long timeoutDetail, Resource cacheDirectory, ExtensionLister extensionLister) {
 			if (!url.endsWith("/")) url += "/";
 			this.label = label;
 			this.url = url;
@@ -642,6 +651,7 @@ public final class MavenUpdateProvider {
 			this.timeoutList = timeoutList;
 			this.timeoutDetail = timeoutDetail;
 			this.cacheDirectory = cacheDirectory;
+			this.extensionLister = extensionLister != null ? extensionLister : ExtensionListers.resolve(null, url);
 			if (Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.repos.flush", null), false)) {
 				ResourceUtil.deleteContent(cacheDirectory, null);
 			}
@@ -663,7 +673,7 @@ public final class MavenUpdateProvider {
 		}
 
 		public Repository duplicate() {
-			return new Repository(label, url, type, timeoutList, timeoutDetail, cacheDirectory);
+			return new Repository(label, url, type, timeoutList, timeoutDetail, cacheDirectory, extensionLister);
 		}
 
 		@Override

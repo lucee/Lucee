@@ -176,7 +176,7 @@ public class ExtensionProvider {
 		// snap
 		List<Repository> list = new ArrayList<>();
 		for (Repository r: this.repos) {
-			list.add(new Repository(r.label, r.url, r.type, Repository.TIMEOUT_ZERO, Repository.TIMEOUT_ZERO, r.cacheDirectory));
+			list.add(new Repository(r.label, r.url, r.type, Repository.TIMEOUT_ZERO, Repository.TIMEOUT_ZERO, r.cacheDirectory, r.extensionLister));
 		}
 
 		// TODO Auto-generated method stub
@@ -190,11 +190,9 @@ public class ExtensionProvider {
 		for (Repository r: repos) {
 			Thread thread = ThreadUtil.getThread(() -> {
 				try {
-					String strURL = (r.url.endsWith("/") ? r.url : (r.url + "/")) + group.replace('.', '/') + "/";
 					Set<String> tmp = readFromCache(r);
 					if (tmp == null) {
-						tmp = new HashSet<>();
-						new HtmlDirectoryScraper().getSubfolderLinks(strURL, tmp);
+						tmp = r.extensionLister.list(r, group);
 					}
 					copy(tmp, subfolders);
 					storeToCache(r, tmp);
