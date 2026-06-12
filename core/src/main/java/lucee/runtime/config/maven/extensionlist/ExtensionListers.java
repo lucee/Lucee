@@ -24,6 +24,12 @@ public final class ExtensionListers {
 			}
 			return DEFAULT;
 		}
+		if (!StringUtil.isEmpty(repoUrl, true)) {
+			String url = repoUrl.toLowerCase();
+			if (url.contains("maven-central.storage-download.googleapis.com")) return EMPTY;
+			if (url.contains("repo1.maven.org")) return CENTRAL;
+			if (url.contains("cdn.lucee.org")) return LUCEE;
+		}
 		return DEFAULT;
 	}
 

@@ -79,34 +79,22 @@ public final class MavenUpdateProvider {
 	public static final Repository REPOSITORY_MAVEN_CENTRAL_RELEASES = new Repository("Maven Release Repository", "https://repo1.maven.org/maven2/", TYPE_RELEASE,
 			Repository.TIMEOUT_1HOUR, Repository.TIMEOUT_NEVER, null, ExtensionListers.CENTRAL);
 
+	public static final Repository REPOSITORY_GOOGLE_CENTRAL_MIRROR = new Repository("Google Cloud Maven Central mirror",
+			"https://maven-central.storage-download.googleapis.com/maven2/", TYPE_RELEASE, Repository.TIMEOUT_1HOUR, Repository.TIMEOUT_NEVER, null, ExtensionListers.EMPTY);
+
 	// SONATYPE
-	public static final Repository REPOSITORY_SONATYPE_SNAPSHOTS = new Repository("Sonatype Repositry for Snapshots (last 90 days)",
+	public static final Repository REPOSITORY_SONATYPE_SNAPSHOTS = new Repository("Sonatype Repository for Snapshots (last 90 days)",
 			"https://central.sonatype.com/repository/maven-snapshots/", TYPE_SNAPSHOT, Repository.TIMEOUT_1HOUR, Repository.TIMEOUT_NEVER, null, ExtensionListers.EMPTY);
 
 	// LUCEE
 	public static final Repository REPOSITORY_LUCEE = new Repository("Lucee Maven repository", "https://cdn.lucee.org/", TYPE_ALL, Repository.TIMEOUT_1HOUR,
 			Repository.TIMEOUT_NEVER, null, ExtensionListers.LUCEE);
 
-	// GOOGLE
-	public static final Repository REPOSITORY_GOOGLE_RELEASES = new Repository("Google Maven", "https://maven.google.com/", TYPE_RELEASE, Repository.TIMEOUT_1HOUR,
-			Repository.TIMEOUT_NEVER);
-
-	// APACHE: only apache specific stuff
-	public static final Repository REPOSITORY_APACHE_RELEASES = new Repository("Apache Repository", "https://repository.apache.org/content/repositories/releases/", TYPE_RELEASE,
-			Repository.TIMEOUT_1HOUR, Repository.TIMEOUT_NEVER);
-	public static final Repository REPOSITORY_APACHE_SNAPSHOTS = new Repository("Apache Repository", "https://repository.apache.org/content/repositories/snapshots/", TYPE_SNAPSHOT,
-			Repository.TIMEOUT_1HOUR, Repository.TIMEOUT_NEVER);
-
-	// SPRING: only spring specific stuff
-	public static final Repository REPOSITORY_SPRING_RELEASES = new Repository("Spring Repository", "https://repo.spring.io/release/", TYPE_RELEASE, Repository.TIMEOUT_1HOUR,
-			Repository.TIMEOUT_NEVER);
-	public static final Repository REPOSITORY_SPRING_SNAPSHOTS = new Repository("Spring Repository", "https://repo.spring.io/snapshot/", TYPE_SNAPSHOT, Repository.TIMEOUT_1HOUR,
-			Repository.TIMEOUT_NEVER);
-
 	////////////////////////////
 
 	public static final Repository[] DEFAULT_REPOSITORIES_SNAPSHOTS = new Repository[] { REPOSITORY_SONATYPE_SNAPSHOTS };
-	public static final Repository[] DEFAULT_REPOSITORIES_RELEASES = new Repository[] { REPOSITORY_MAVEN_CENTRAL_RELEASES, REPOSITORY_LUCEE };
+	public static final Repository[] DEFAULT_REPOSITORIES_RELEASES = new Repository[] { REPOSITORY_MAVEN_CENTRAL_RELEASES, REPOSITORY_GOOGLE_CENTRAL_MIRROR,
+			REPOSITORY_LUCEE };
 	public static final Repository[] DEFAULT_REPOSITORIES_ALL = new Repository[] { REPOSITORY_LUCEE, REPOSITORY_FORGEBOX };
 
 	// private static final Repository[] DEFAULT_REPOSITORY_MIXED = new Repository[] {
