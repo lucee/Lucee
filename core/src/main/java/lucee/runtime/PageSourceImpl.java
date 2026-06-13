@@ -349,7 +349,7 @@ public final class PageSourceImpl implements PageSource {
 							done = true;
 						}
 						catch (ClassNotFoundException cnfe) {
-							LogUtil.log(config, "compile", cnfe);
+							LogUtil.log(config, "compile", cnfe, Log.LEVEL_DEBUG, "application");
 						}
 					}
 					// when classFile is at least as fresh as source, try loading by name first;
@@ -362,7 +362,7 @@ public final class PageSourceImpl implements PageSource {
 							done = true;
 						}
 						catch (ClassNotFoundException cnfe) {
-							LogUtil.log(config, "compile", cnfe);
+							LogUtil.log(config, "compile", cnfe, Log.LEVEL_DEBUG, "application");
 						}
 					}
 					if (!done) {
