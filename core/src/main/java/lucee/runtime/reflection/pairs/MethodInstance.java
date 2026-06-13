@@ -34,30 +34,19 @@ public final class MethodInstance {
 	private Class clazz;
 	private Key methodName;
 	private Object[] args;
-	private boolean convertComparsion;
-	private boolean nameCaseSensitive;
 	private Method method;
-	private boolean initMethod = true;
 
 	public MethodInstance(Class clazz, Key methodName, Object[] args, boolean nameCaseSensitive, boolean convertComparsion) {
 		this.clazz = clazz;
 		this.methodName = methodName;
 		this.args = Reflector.cleanArgs(args);
-		this.convertComparsion = convertComparsion;
-		this.nameCaseSensitive = nameCaseSensitive;
 		DynamicInvoker di = DynamicInvoker.getExistingInstance();
 		Clazz clazzz = di.toClazz(clazz);
-		try {
-			this.method = clazzz.getMethod(methodName.getString(), args, nameCaseSensitive, true, convertComparsion);
-			initMethod = false;
-		}
-		catch (NoSuchMethodException e) {}
+		this.method = clazzz.getMethod(methodName.getString(), args, nameCaseSensitive, true, convertComparsion, null);
 	}
 
 	public Object invoke(Object o) throws Exception {
-		getMethod(null);
-		return method.invoke(o, args);
-
+		return getMethod().invoke(o, args);
 	}
 
 	public static Object invoke(Object obj, Key methodName, Object[] args, boolean nameCaseSensitive, boolean convertComparsion) throws PageException {
@@ -80,40 +69,19 @@ public final class MethodInstance {
 			return true;
 		}
 
-		return getMethod(null) != null;
+		return method != null;
 	}
 
 	public Method getMethod() throws PageException {
-		if (method == null && initMethod) {
-			DynamicInvoker di = DynamicInvoker.getExistingInstance();
-			Clazz clazzz = di.toClazz(clazz);
-			try {
-				method = clazzz.getMethod(methodName.getString(), args, nameCaseSensitive, true, convertComparsion);
-			}
-			catch (Exception ex) {
-				throw Caster.toPageException(ex);
-			}
-			finally {
-				initMethod = false;
-			}
+		if (method == null) {
+			throw Caster.toPageException(new NoSuchMethodException(
+					"No matching method for " + clazz.getName() + "." + methodName.getString()
+							+ "(" + Reflector.getDspMethods(Reflector.getClasses(args)) + ") found."));
 		}
 		return method;
 	}
 
 	public Method getMethod(Method defaultValue) {
-		if (method == null && initMethod) {
-			DynamicInvoker di = DynamicInvoker.getExistingInstance();
-			Clazz clazzz = di.toClazz(clazz);
-			try {
-				method = clazzz.getMethod(methodName.getString(), args, nameCaseSensitive, true, convertComparsion);
-			}
-			catch (Exception ex) {
-				return defaultValue;
-			}
-			finally {
-				initMethod = false;
-			}
-		}
 		return method == null ? defaultValue : method;
 	}
 }
