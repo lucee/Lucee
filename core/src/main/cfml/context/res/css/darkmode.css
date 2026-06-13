@@ -1,65 +1,130 @@
-/* Dark Mode for Lucee Admin */
+/* Dark Mode — Datadog-style palette */
 
+html.dark-mode,
+html.dark-mode body {
+    --cell-back: #373b45;
 
-/* Dark Mode */
-html.dark-mode body,
-html.dark-mode    {
+    --front-rgb: 212, 212, 212;
+    --back-rgb: 34, 33, 38;
+    --input-rgb: 42, 47, 57;
+    --primary-color-rgb: 0, 112, 204;
+    --error-color-rgb: 244, 135, 113;
+    --warn-color-rgb: 204, 167, 0;
+    --okay-color-rgb: 78, 201, 176;
+    --sun-moon-rgb: 212, 212, 212;
 
-    --front-rgb: 176, 179, 167;
-    --back-rgb: 20, 21, 5;
-    --input-rgb: 15, 16, 0;
-    --primary-color-rgb: 139, 164, 86;
-    --sun-moon-rgb: 235, 205, 52;
+    --chrome-top-text: rgb(var(--nav-text-rgb));
 
+    --title-color: rgba(228, 228, 228, 1);
+    --text-color: rgba(var(--front-rgb), 1);
+    --comment-text: rgba(157, 157, 157, 1);
 
-    --title-color: rgba(var(--primary-color-rgb), 1);
-    --text-color: rgba(var(--front-rgb), 0.8);
-    
     --primary-color: rgba(var(--primary-color-rgb), 1);
-    --link-color: rgba(var(--primary-color-rgb), 0.8);
-    --lines: rgba(var(--front-rgb), 0.3);
-    --linesbright: rgba(var(--front-rgb), 0.4);
-    --cell-back: rgba(var(--primary-color-rgb), 0.1);
-    --back: rgba(var(--back-rgb), 1);
-    --bright: rgba(var(--input-rgb), 1);
-    --input-bg: rgba(var(--input-rgb), 0.85);
-    --input-text: rgba(var(--front-rgb), 0.8);
-    --sun-moon-fg: rgba(var(--sun-moon-rgb), 0.6);
-    --sun-moon-bg: rgba(var(--sun-moon-rgb), 0.1);
-    
-    /* button */
-    --button-text: rgba(var(--button-text-rgb), 0.8);
-    --button-bg: rgba(var(--primary-color-rgb), 0.8);
+    --link-color: rgba(var(--primary-color-rgb), 0.95);
+    --lines: rgba(255, 255, 255, 0.12);
+    --linesbright: rgba(255, 255, 255, 0.18);
+    --back: #222126;
+    --bright: rgba(42, 47, 57, 1);
+    --input-bg: rgba(var(--input-rgb), 1);
+    --input-text: rgba(var(--front-rgb), 1);
+    --sun-moon-fg: rgba(var(--sun-moon-rgb), 0.85);
+    --sun-moon-bg: rgba(255, 255, 255, 0.08);
+
+    --button-text: rgba(var(--button-text-rgb), 1);
+    --button-bg: rgba(0, 112, 204, 1);
+
+    --table-shadow: 0 1px 4px rgba(0, 0, 0, 0.45);
 }
 
-
-
-
-/* Coding tips */
-body.dark-mode .coding-tip-trigger,
-body.dark-mode div.coding-tip-trigger,
-body.dark-mode #innercontent .coding-tip-trigger {
-  cursor: pointer !important;
-  text-decoration: underline !important;
+html.dark-mode .maintbl,
+html.dark-mode table.tbl,
+html.dark-mode div.pageintro {
+    box-shadow: var(--table-shadow);
 }
 
-
-
-body.dark-mode .tt-suggestion.tt-selectable:hover {
-  background-color: #555 !important;
-  color: white;
+html.dark-mode .maintbl th,
+html.dark-mode table.tbl th {
+    color: rgb(var(--nav-text-rgb));
 }
 
-
-
-
-body.dark-mode .dark-mode-toggle:hover {
-  background: rgba(var(--front-rgb), 0.4);
+html.dark-mode #copyrighttd #copyright,
+html.dark-mode #copyrighttd #copyright a {
+    color: var(--text-color);
 }
 
-/* Fix specific elements */
-body.dark-mode img[src*="spinner16.gif.cfm"] {
-  filter: invert(1);
+html.dark-mode .coding-tip-trigger,
+html.dark-mode div.coding-tip-trigger,
+html.dark-mode #innercontent .coding-tip-trigger {
+    cursor: pointer !important;
+    text-decoration: underline !important;
 }
 
+html.dark-mode .maintbl.checkboxtbl > tbody > tr:hover > td {
+    background-color: rgba(0, 112, 204, 0.15);
+}
 
+html.dark-mode .tt-suggestion.tt-selectable:hover {
+    background-color: #2a2d2e !important;
+    color: var(--text-color);
+}
+
+html.dark-mode .tt-menu.tt-open {
+    background-color: var(--bright) !important;
+    color: var(--text-color);
+    border: 1px solid var(--lines);
+}
+
+html.dark-mode .logout {
+    background: rgba(255, 255, 255, 0.08);
+    filter: brightness(0) saturate(100%) invert(1) opacity(0.75);
+}
+
+html.dark-mode .dark-mode-toggle {
+    background: rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.85);
+}
+
+html.dark-mode .dark-mode-toggle:hover {
+    background: rgba(255, 255, 255, 0.14);
+}
+
+html.dark-mode img[src*="spinner16.gif.cfm"] {
+    filter: invert(1);
+}
+
+html.dark-mode .normal,
+html.dark-mode .filterform,
+html.dark-mode a.inactivTab,
+html.dark-mode a.activTab,
+html.dark-mode .alertMsg,
+html.dark-mode div.message,
+html.dark-mode .commentHead {
+    color: var(--text-color);
+}
+
+html.dark-mode div.error,
+html.dark-mode div.err {
+    color: rgba(var(--error-color-rgb), 0.95) !important;
+}
+
+html.dark-mode div.warning,
+html.dark-mode div.warningops,
+html.dark-mode div.warn {
+    color: rgba(var(--warn-color-rgb), 0.95) !important;
+}
+
+html.dark-mode div.okay {
+    color: rgba(var(--okay-color-rgb), 0.95) !important;
+}
+
+html.dark-mode div.error.collapsible-banner-box .collapsible-banner-summary {
+    color: rgba(var(--error-color-rgb), 0.95) !important;
+}
+
+html.dark-mode div.warning.collapsible-banner-box .collapsible-banner-summary {
+    color: rgba(var(--warn-color-rgb), 0.95) !important;
+}
+
+html.dark-mode div.okay.collapsible-banner-box .collapsible-banner-summary {
+    color: var(--title-color) !important;
+}

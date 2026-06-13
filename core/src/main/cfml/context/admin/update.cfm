@@ -84,23 +84,18 @@
 
 		<cfsavecontent variable="content" trim="true">
 			<cfoutput>
-				<!--- Core --->
-				<cfif adminType == "server" and hasUpdate>
-					<div class="error">
-						<a href="?action=services.update">
+				<cfif ( adminType == "server" and hasUpdate ) or ( extensions.recordcount and len( ext ) )>
+					<cfif adminType == "server" and hasUpdate>
+						<p><a href="?action=services.update">
 							#replace( stText.services.update.update, { '{available}': available, '{current}': server.lucee.version } )#
-						</a>
-					</div>
-				</cfif>
-				
-				<!--- Extension --->
-				<cfif extensions.recordcount and len(ext)>
-				<div class="error">
-					<a href="?action=ext.applications">
-						There are updates available for your installed Extension(s).<br>
-						#ext#
-					</a>
-				</div>
+						</a></p>
+					</cfif>
+					<cfif extensions.recordcount and len( ext )>
+						<p><a href="?action=ext.applications">
+							There are updates available for your installed Extension(s).<br>
+							#ext#
+						</a></p>
+					</cfif>
 				</cfif>
 			</cfoutput>
 		</cfsavecontent>

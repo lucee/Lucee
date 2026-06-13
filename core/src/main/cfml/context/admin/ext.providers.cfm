@@ -122,6 +122,9 @@ catch(any cfcatch) {
 	stText.ext.provext.new="Add Extension Provider";
 	stText.ext.provext.list="List of Maven groupIds Lucee scans for available extensions. Each groupId must host artifacts ending in ""-extension"" (e.g. ""yaml-extension"").";
 	stText.ext.provext.groupIdsDesc="Maven groupId to scan for extensions (e.g. org.lucee, com.rasia)";
+
+	stText.ext.forgeboxTitle = "Forgebox Extensions";
+	stText.ext.forgeboxDescProviders = "To browse and install extensions from Forgebox, add the Maven groupId ""io.forgebox"" below.";
 </cfscript>
 
 
@@ -131,6 +134,14 @@ list all mappings and display necessary edit fields --->
 
 <cfoutput>
 
+	<div class="okay collapsible-banner-box" tabindex="0">
+		<div class="collapsible-banner-panel">
+			<div class="collapsible-banner-summary">#stText.ext.forgeboxTitle#</div>
+			<div class="collapsible-banner-body">
+				<div class="comment">#stText.ext.forgeboxDescProviders#</div>
+			</div>
+		</div>
+	</div>
 
 	<div class="itemintro">#stText.ext.prov.IntroText#</div>
 

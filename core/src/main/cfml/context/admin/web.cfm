@@ -137,7 +137,7 @@
 <!--- cookie ---->
 
 <cfset fromCookie=false>
-<cfif !structKeyExists(session, "password" & request.adminType) && structKeyExists(cookie,'lucee_admin_pw_#ad#')>
+<cfif !structKeyExists(session, "password" & request.adminType) && structKeyExists(cookie,'lucee_admin_pw_#ad#') && len(trim(cookie['lucee_admin_pw_#ad#']))>
 	<cfset fromCookie=true>
 	
 	<cftry>
@@ -179,6 +179,10 @@
 		<cfcatch>
 			<cfset login_error=cfcatch.message>
 			<cfset structDelete(session, "password" & request.adminType)>
+			<cfif fromCookie>
+				<cfcookie expires="Now" name="lucee_admin_pw_#ad#" value="">
+				<cfset fromCookie=false>
+			</cfif>
 		</cfcatch>
 	</cftry>
 </cfif>
@@ -540,6 +544,15 @@
 			</cfif>
 		</cfif>
 	</cfsavecontent>
+
+	<cfset adminAIExcludeActions = "admin.ai,chartAjax">
+	<cfif listFindNoCase(adminAIExcludeActions, current.action) EQ 0>
+		<cfsavecontent variable="content">
+			<cfmodule template="adminAI.cfm" pageTitle="#current.label#" pageAction="#current.action#" allowModify="true">
+				<cfoutput>#content#</cfoutput>
+			</cfmodule>
+		</cfsavecontent>
+	</cfif>
 
 	<cfif request.disableFrame>
 		<cfoutput>#content#</cfoutput>

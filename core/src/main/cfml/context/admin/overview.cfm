@@ -4,10 +4,18 @@
 	error.detail="";
 	if(isNull(form.mainAction)) form.mainAction="none";
 
-	stText.Overview.skill = "AI Skill"
-stText.Overview.skillDescShort = "Machine-readable skill file for AI assistants (Claude, etc.) — always up to date with the latest Lucee documentation."
+	stText.Overview.aiFeatures = "AI features"
+	stText.Overview.updates = "Updates"
 
-stText.Overview.skillDesc = "A machine-readable skill file for AI assistants (Claude, ChatGPT, etc.) that gives them 
+	stText.Overview.skill = "AI Skill"
+	stText.Overview.skillDescShort = "Machine-readable skill file for AI assistants (Claude, etc.) — always up to date with the latest Lucee documentation."
+	stText.Overview.skillUrl = "https://docs.lucee.org/lucee.skill"
+
+	stText.Overview.mcp = "Lucee MCP Server"
+	stText.Overview.mcpDescShort = "Model Context Protocol (MCP) server for Lucee — connect AI assistants (Claude, Cursor, etc.) to Lucee documentation and tools."
+	stText.Overview.mcpUrl = "https://mcp.lucee.org"
+
+	stText.Overview.skillDesc = "A machine-readable skill file for AI assistants (Claude, ChatGPT, etc.) that gives them 
             deep knowledge of Lucee. It includes a full recipe index covering configuration, caching, 
             datasources, threading, Docker, ORM, extensions, AI integration, and more — plus direct 
             links to technical specs for APIs, class names, and function signatures. 
@@ -344,22 +352,39 @@ Error Output --->
 			<cfset flds=listToArray(valueList(flds.displayname))>
 		</cfif>
 	</cfif>
-	<div class="okay"><a href="https://docs.lucee.org/lucee.skill" target="_blank">
-		<h4>#stText.Overview.skill#</h4>
-		#stText.Overview.skillDescShort#
-	</a></div>
+	<div class="okay collapsible-banner-box" tabindex="0">
+		<div class="collapsible-banner-panel">
+			<div class="collapsible-banner-summary">#stText.Overview.aiFeatures#</div>
+			<div class="collapsible-banner-body">
+				<h4>#stText.Overview.skill#</h4>
+				<div class="comment">#stText.Overview.skillDescShort#</div>
+				<a href="#stText.Overview.skillUrl#" target="_blank" rel="noopener" class="longwords" style="text-decoration:underline">#stText.Overview.skillUrl#</a>
+				<h4 style="margin-top:1em">#stText.Overview.mcp#</h4>
+				<div class="comment">#stText.Overview.mcpDescShort#</div>
+				<a href="#stText.Overview.mcpUrl#" target="_blank" rel="noopener" class="longwords" style="text-decoration:underline">#stText.Overview.mcpUrl#</a>
+			</div>
+		</div>
+	</div>
+	<div id="updateInfoBox" class="error collapsible-banner-box" tabindex="0" style="display:none">
+		<div class="collapsible-banner-panel">
+			<div class="collapsible-banner-summary">#stText.Overview.updates#</div>
+			<div class="collapsible-banner-body">
+				<div id="updateInfoDesc"></div>
+			</div>
+		</div>
+	</div>
+	<cfhtmlbody>
+		<script type="text/javascript">
+			$( function() {
+				$('##updateInfoDesc').load('?action=update&adminType=#request.admintype#', function(response) {
+					if ($.trim(response) !== '') {
+						$('##updateInfoBox').show();
+					}
+				});
+			} );
+		</script>
+	</cfhtmlbody>
 	<table style="width:100%">
-		<tr>
-			<div id="updateInfoDesc"><div style="text-align: center;"><img src="../res/img/spinner16.gif.cfm"></div></div>
-			<cfhtmlbody>
-				<script type="text/javascript">
-					$( function() {
-						$('##updateInfoDesc').load('?action=update&adminType=#request.admintype#');
-					} );
-				</script>
-			</cfhtmlbody>
-		</tr>
-
 		<tr>
 			<td valign="top" colspan="3">
 				<h2>#stText.setting.info#</h2>

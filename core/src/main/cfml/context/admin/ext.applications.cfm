@@ -2,6 +2,11 @@
 	include "ext.functions.cfm";
 	
 	external=getLuceeExtensions(getExtensionGroups());
+
+	stText.ext.forgeboxTitle = "Forgebox Extensions";
+	stText.ext.forgeboxDescApps = "Extensions published on Forgebox are available once you add the Maven groupId ""io.forgebox"" on the Extension Providers page.";
+	stText.ext.forgeboxProvidersAction = "ext.providers";
+	stText.ext.forgeboxProvidersLink = "Extension/Providers";
 </cfscript>
 
 <cfparam name="inc" default="">
@@ -121,6 +126,20 @@ Error Output --->
 Redirect to entry --->
 <cfif cgi.request_method EQ "POST" and error.message EQ "">
 	<cflocation url="#request.self#?action=#url.action#&reinit=true" addtoken="no">
+</cfif>
+
+<cfif url.action2 eq "list">
+<cfoutput>
+	<div class="okay collapsible-banner-box" tabindex="0">
+		<div class="collapsible-banner-panel">
+			<div class="collapsible-banner-summary">#stText.ext.forgeboxTitle#</div>
+			<div class="collapsible-banner-body">
+				<div class="comment">#stText.ext.forgeboxDescApps#</div>
+				<a href="#request.self#?action=#stText.ext.forgeboxProvidersAction#" style="text-decoration:underline">#stText.ext.forgeboxProvidersLink#</a>
+			</div>
+		</div>
+	</div>
+</cfoutput>
 </cfif>
 
 <cfoutput>#inc#</cfoutput>
