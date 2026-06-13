@@ -953,9 +953,19 @@ public final class Reflector {
 	 * @return return Value of the getter Method
 	 */
 	public static MethodInstance getGetterEL(Class clazz, String prop, boolean nameCaseSensitive) {
-		prop = "get" + StringUtil.ucFirst(prop);
-		MethodInstance mi = getMethodInstance(clazz, KeyImpl.init(prop), ArrayUtil.OBJECT_EMPTY, nameCaseSensitive, false);
-		if (!mi.hasMethod()) return null;
+		String ucFirst = StringUtil.ucFirst(prop);
+		MethodInstance mi = getMethodInstance(clazz, KeyImpl.init("get" + ucFirst), ArrayUtil.OBJECT_EMPTY, nameCaseSensitive, false);
+		if (!mi.hasMethod()) {
+			mi = getMethodInstance(clazz, KeyImpl.init("is" + ucFirst), ArrayUtil.OBJECT_EMPTY, nameCaseSensitive, false);
+			if (!mi.hasMethod()) return null;
+			try {
+				Class rtn = mi.getMethod().getReturnClass();
+				if (rtn != Boolean.class && rtn != boolean.class) return null;
+			}
+			catch (PageException e) {
+				return null;
+			}
+		}
 		try {
 			if (mi.getMethod().getReturnClass() == void.class) return null;
 		}
