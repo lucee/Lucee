@@ -279,33 +279,40 @@ public final class HTTPServletRequestWrap implements HttpServletRequest, Seriali
 		ServletInputStream is = null;
 		RefBoolean maxReached = new RefBooleanImpl();
 		try {
-			{
-				try {
-					is = req.getInputStream();
-					bytes = IOUtil.toBytesMax(is, MAX_MEMORY_SIZE, maxReached);
-
-					if (!maxReached.toBooleanValue()) {
-						return;
-					}
+			try {
+				is = req.getInputStream();
+				// Body already consumed by form/multipart/URL scope parser — nothing to snapshot.
+				// Skip the read AND the temp-file fallback that pre-fix would create on the next throw.
+				if (is.isFinished()) {
+					bytes = IOUtil.EMPTY_BYTE_ARRAY;
+					return;
 				}
-				catch (Exception e) {
-				}
+				bytes = IOUtil.toBytesMax(is, MAX_MEMORY_SIZE, maxReached);
+				if (!maxReached.toBooleanValue()) return;
 			}
+			catch (Exception e) {
+				// First read failed (closed stream, broken upload, etc). No bytes to seed the file-spill,
+				// nothing useful to do. Pre-fix this fell through to the file-backup block and created a
+				// doomed temp file (registered with deleteOnExit) for every consumed-body request.
+				bytes = IOUtil.EMPTY_BYTE_ARRAY;
+				return;
+			}
+			// Body exceeded MAX_MEMORY_SIZE — spill the rest to a temp file so orphan threads can re-read.
 			FileOutputStream fos = null;
 			try {
 				file = File.createTempFile("upload", ".tmp");
 				fos = new FileOutputStream(file);
 				// first we store what we did already load
-				if (maxReached.toBooleanValue()) {
-					IOUtil.copy(new ByteArrayInputStream(bytes), fos, true, false);
-					bytes = null;
-				}
-				if (is == null) is = req.getInputStream();
+				IOUtil.copy(new ByteArrayInputStream(bytes), fos, true, false);
+				bytes = null;
 				// now we store the rest
 				IOUtil.copy(is, fos, 0xfffff, true, true);
 				file.deleteOnExit();
 			}
 			catch (Exception e) {
+				// Spill failed mid-stream — drop the half-written file instead of leaking it.
+				if (file != null && !file.delete()) file.deleteOnExit();
+				file = null;
 			}
 			finally {
 				IOUtil.closeEL(fos);
