@@ -47,6 +47,8 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.LinkedList;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.zip.ZipFile;
 
 import org.apache.tika.Tika;
@@ -70,14 +72,79 @@ import lucee.runtime.reflection.Reflector;
  */
 public final class IOUtil {
 
-	// override via -Dlucee.io.block.size=<n> / LUCEE_IO_BLOCK_SIZE — buffer size for IOUtil copy + the IOUtil ThreadLocal pools
+	// override via -Dlucee.io.block.size=<n> / LUCEE_IO_BLOCK_SIZE — buffer size for IOUtil copy + the IOUtil shared buffer pools
 	private static final int DEFAULT_BLOCK_SIZE = Caster.toIntValue(SystemUtil.getSystemPropOrEnvVar("lucee.io.block.size", "65535"), 0xffff);
+
+	// override via -Dlucee.io.buffer.pool.max=<n> / LUCEE_IO_BUFFER_POOL_MAX — cap per pool to bound memory under bursty
+	// concurrency (eg. arrayEach with high parallel max, sustained VT load). Above the cap, callers allocate per-call.
+	// Default tracks the PageContext pool sizing (CFMLFactoryImpl): max(100, cores * 16).
+	private static final int POOL_MAX;
+	static {
+		int defaultMax = Math.max(100, Runtime.getRuntime().availableProcessors() * 16);
+		POOL_MAX = Caster.toIntValue(SystemUtil.getSystemPropOrEnvVar("lucee.io.buffer.pool.max", String.valueOf(defaultMax)), defaultMax);
+	}
 
 	public static final byte[] EMPTY_BYTE_ARRAY = new byte[0];
 
-	// ThreadLocal buffer pools to avoid repeated allocations in hot paths
-	private static final ThreadLocal<byte[]> BYTE_ARRAY_POOL = ThreadLocal.withInitial( () -> new byte[DEFAULT_BLOCK_SIZE] );
-	private static final ThreadLocal<char[]> CHAR_BUFFER_POOL = ThreadLocal.withInitial( () -> new char[DEFAULT_BLOCK_SIZE] );
+	// Shared buffer pools — borrowed on entry, released in finally. Bounded queue caps memory growth;
+	// pooled buffers tenure to old gen so VTs (and platform threads) skip the OutsideTLAB slow-path allocator.
+	private static final LinkedBlockingQueue<byte[]> BYTE_POOL = new LinkedBlockingQueue<>(POOL_MAX);
+	private static final LinkedBlockingQueue<char[]> CHAR_POOL = new LinkedBlockingQueue<>(POOL_MAX);
+	private static final AtomicInteger BYTE_ACTIVE = new AtomicInteger();
+	private static final AtomicInteger CHAR_ACTIVE = new AtomicInteger();
+
+	private static byte[] borrowByteBuffer() {
+		BYTE_ACTIVE.incrementAndGet();
+		byte[] b = BYTE_POOL.poll();
+		return b != null ? b : new byte[DEFAULT_BLOCK_SIZE];
+	}
+
+	private static void releaseByteBuffer(byte[] b) {
+		if (b.length != DEFAULT_BLOCK_SIZE) return;
+		BYTE_ACTIVE.decrementAndGet();
+		BYTE_POOL.offer(b);
+	}
+
+	private static char[] borrowCharBuffer() {
+		CHAR_ACTIVE.incrementAndGet();
+		char[] b = CHAR_POOL.poll();
+		return b != null ? b : new char[DEFAULT_BLOCK_SIZE];
+	}
+
+	private static void releaseCharBuffer(char[] b) {
+		if (b.length != DEFAULT_BLOCK_SIZE) return;
+		CHAR_ACTIVE.decrementAndGet();
+		CHAR_POOL.offer(b);
+	}
+
+	public static int byteBufferPoolSize() {
+		return BYTE_POOL.size();
+	}
+
+	public static int charBufferPoolSize() {
+		return CHAR_POOL.size();
+	}
+
+	public static int byteBufferActiveCount() {
+		return BYTE_ACTIVE.get();
+	}
+
+	public static int charBufferActiveCount() {
+		return CHAR_ACTIVE.get();
+	}
+
+	public static int getBufferPoolMax() {
+		return POOL_MAX;
+	}
+
+	public static int getDefaultBlockSize() {
+		return DEFAULT_BLOCK_SIZE;
+	}
+
+	public static void clearBufferPools() {
+		BYTE_POOL.clear();
+		CHAR_POOL.clear();
+	}
 
 	// Tika.detect is thread-safe; share a single instance across all getMimeType callers
 	private static final Tika TIKA = new Tika();
@@ -226,94 +293,105 @@ public final class IOUtil {
 	}
 
 	public static final void copy(InputStream in, OutputStream out, long offset, long length) throws IOException {
-		// Single buffer reused across both offset-skip and write loops; pool the
-		// DEFAULT_BLOCK_SIZE case to skip per-call allocation entirely.
-		byte[] buffer = BYTE_ARRAY_POOL.get();
-		int len;
+		// Single buffer reused across both offset-skip and write loops; borrow from the shared
+		// DEFAULT_BLOCK_SIZE pool to skip per-call allocation entirely.
+		byte[] buffer = borrowByteBuffer();
+		try {
+			int len;
 
-		// first offset to start
-		if (offset > 0) {
-			long skipped = 0;
-			try {
-				skipped = in.skip(offset);
-			}
-			catch (Throwable t) {
-				ExceptionUtil.rethrowIfNecessary(t);
-				// skipped will be -1, see below
-			}
+			// first offset to start
+			if (offset > 0) {
+				long skipped = 0;
+				try {
+					skipped = in.skip(offset);
+				}
+				catch (Throwable t) {
+					ExceptionUtil.rethrowIfNecessary(t);
+					// skipped will be -1, see below
+				}
 
-			if (skipped <= 0) {
-				while (offset > 0) {
-					int toRead = (int) Math.min(buffer.length, offset);
-					len = in.read(buffer, 0, toRead);
-					if (len == -1) throw new IOException("reading offset is bigger than input itself");
-					offset -= len;
+				if (skipped <= 0) {
+					while (offset > 0) {
+						int toRead = (int) Math.min(buffer.length, offset);
+						len = in.read(buffer, 0, toRead);
+						if (len == -1) throw new IOException("reading offset is bigger than input itself");
+						offset -= len;
+					}
 				}
 			}
-		}
 
-		// write part
-		if (length < 0) {
-			copy(in, out, DEFAULT_BLOCK_SIZE);
-			return;
-		}
+			// write part
+			if (length < 0) {
+				copy(in, out, DEFAULT_BLOCK_SIZE);
+				return;
+			}
 
-		while (length > 0) {
-			int toRead = (int) Math.min(buffer.length, length);
-			len = in.read(buffer, 0, toRead);
-			if (len == -1) break;
-			out.write(buffer, 0, len);
-			length -= len;
+			while (length > 0) {
+				int toRead = (int) Math.min(buffer.length, length);
+				len = in.read(buffer, 0, toRead);
+				if (len == -1) break;
+				out.write(buffer, 0, len);
+				length -= len;
+			}
+		}
+		finally {
+			releaseByteBuffer(buffer);
 		}
 	}
 
 	public static final void copy(InputStream in, OutputStream out, int offset, int length, int blockSize) throws IOException {
-		// Single buffer reused across both offset-skip and write loops; pool the
-		// DEFAULT_BLOCK_SIZE case to skip per-call allocation entirely.
-		byte[] buffer = (blockSize == DEFAULT_BLOCK_SIZE) ? BYTE_ARRAY_POOL.get() : new byte[blockSize];
-		int len;
+		// Single buffer reused across both offset-skip and write loops; borrow from the shared
+		// DEFAULT_BLOCK_SIZE pool to skip per-call allocation entirely. Non-default sizes allocate
+		// per call and are silently dropped on release (length check in releaseByteBuffer).
+		byte[] buffer = (blockSize == DEFAULT_BLOCK_SIZE) ? borrowByteBuffer() : new byte[blockSize];
+		try {
+			int len;
 
-		// first offset to start
-		if (offset > 0) {
-			long skipped = 0;
-			try {
-				skipped = in.skip(offset);
-			}
-			catch (Throwable t) {
-				ExceptionUtil.rethrowIfNecessary(t);
-				// skipped will be -1, see below
-			}
+			// first offset to start
+			if (offset > 0) {
+				long skipped = 0;
+				try {
+					skipped = in.skip(offset);
+				}
+				catch (Throwable t) {
+					ExceptionUtil.rethrowIfNecessary(t);
+					// skipped will be -1, see below
+				}
 
-			if (skipped <= 0) {
-				while (offset > 0) {
-					int toRead = Math.min(buffer.length, offset);
-					len = in.read(buffer, 0, toRead);
-					if (len == -1) throw new IOException("reading offset is bigger than input itself");
-					offset -= len;
+				if (skipped <= 0) {
+					while (offset > 0) {
+						int toRead = Math.min(buffer.length, offset);
+						len = in.read(buffer, 0, toRead);
+						if (len == -1) throw new IOException("reading offset is bigger than input itself");
+						offset -= len;
+					}
 				}
 			}
-		}
 
-		// write part
-		if (length < 0) {
-			copy(in, out, blockSize);
-			return;
-		}
+			// write part
+			if (length < 0) {
+				copy(in, out, blockSize);
+				return;
+			}
 
-		while (length > 0) {
-			int toRead = Math.min(buffer.length, length);
-			len = in.read(buffer, 0, toRead);
-			if (len == -1) break;
-			out.write(buffer, 0, len);
-			length -= len;
+			while (length > 0) {
+				int toRead = Math.min(buffer.length, length);
+				len = in.read(buffer, 0, toRead);
+				if (len == -1) break;
+				out.write(buffer, 0, len);
+				length -= len;
+			}
+		}
+		finally {
+			releaseByteBuffer(buffer);
 		}
 	}
 
 	/**
 	 * Copies data from the given input stream to the output stream.
 	 *
-	 * Streams via a byte[] buffer of the given block size. For DEFAULT_BLOCK_SIZE, the buffer is drawn
-	 * from a per-thread pool (LDEV-5953); other sizes allocate per call.
+	 * Streams via a byte[] buffer of the given block size. For DEFAULT_BLOCK_SIZE, the buffer is borrowed
+	 * from a shared pool (LDEV-5953 / LDEV-6410); other sizes allocate per call.
 	 *
 	 * Note: This method does not close the provided InputStream and OutputStream; it is the
 	 * responsibility of the caller to close these resources.
@@ -326,17 +404,15 @@ public final class IOUtil {
 	 */
 	private static final void copy(InputStream in, OutputStream out, int blockSize) throws IOException {
 		// Use pooled buffer for default block size, otherwise allocate
-		byte[] buffer;
-		if ( blockSize == DEFAULT_BLOCK_SIZE ) {
-			buffer = BYTE_ARRAY_POOL.get();
+		byte[] buffer = (blockSize == DEFAULT_BLOCK_SIZE) ? borrowByteBuffer() : new byte[blockSize];
+		try {
+			int len;
+			while ((len = in.read(buffer)) != -1) {
+				out.write(buffer, 0, len);
+			}
 		}
-		else {
-			buffer = new byte[blockSize];
-		}
-
-		int len;
-		while ( ( len = in.read( buffer ) ) != -1 ) {
-			out.write( buffer, 0, len );
+		finally {
+			releaseByteBuffer(buffer);
 		}
 	}
 
@@ -349,18 +425,23 @@ public final class IOUtil {
 	 * @throws IOException
 	 */
 	public static final boolean copyMax(InputStream in, OutputStream out, long max) throws IOException {
-		byte[] buffer = BYTE_ARRAY_POOL.get();
-		int len;
-		long total = 0;
-		while ((len = in.read(buffer)) != -1) {
-			total += len;
-			out.write(buffer, 0, len);
-			if (total > max) {
-				// print.e("reached:" + len + ":" + total);
-				return true;
+		byte[] buffer = borrowByteBuffer();
+		try {
+			int len;
+			long total = 0;
+			while ((len = in.read(buffer)) != -1) {
+				total += len;
+				out.write(buffer, 0, len);
+				if (total > max) {
+					// print.e("reached:" + len + ":" + total);
+					return true;
+				}
 			}
+			return false;
 		}
-		return false;
+		finally {
+			releaseByteBuffer(buffer);
+		}
 	}
 
 	private static final void merge(InputStream in1, InputStream in2, OutputStream out, int blockSize) throws IOException {
@@ -412,17 +493,15 @@ public final class IOUtil {
 	private static final void copy(Reader r, Writer w, int blockSize, long timeout) throws IOException {
 		if (timeout < 1) {
 			// Use pooled buffer for default block size, otherwise allocate
-			char[] buffer;
-			if ( blockSize == DEFAULT_BLOCK_SIZE ) {
-				buffer = CHAR_BUFFER_POOL.get();
+			char[] buffer = (blockSize == DEFAULT_BLOCK_SIZE) ? borrowCharBuffer() : new char[blockSize];
+			try {
+				int len;
+				while ((len = r.read(buffer)) != -1)
+					w.write(buffer, 0, len);
 			}
-			else {
-				buffer = new char[blockSize];
+			finally {
+				releaseCharBuffer(buffer);
 			}
-			int len;
-
-			while ((len = r.read(buffer)) != -1)
-				w.write(buffer, 0, len);
 		}
 		else {
 			Copy c = new Copy(r, w, blockSize, timeout);
@@ -857,13 +936,18 @@ public final class IOUtil {
 		String bomCharset = bomIn.getBOMCharsetName();
 		if (bomCharset != null) charset = Charset.forName(bomCharset);
 		InputStreamReader isr = new InputStreamReader(bomIn, charset);
-		char[] buf = CHAR_BUFFER_POOL.get();
-		StringBuilder sb = new StringBuilder(512);
-		int len;
-		while ((len = isr.read(buf)) != -1) {
-			sb.append(buf, 0, len);
+		char[] buf = borrowCharBuffer();
+		try {
+			StringBuilder sb = new StringBuilder(512);
+			int len;
+			while ((len = isr.read(buf)) != -1) {
+				sb.append(buf, 0, len);
+			}
+			return sb.toString();
 		}
-		return sb.toString();
+		finally {
+			releaseCharBuffer(buf);
+		}
 	}
 
 	/**
@@ -1194,7 +1278,7 @@ public final class IOUtil {
 
 	public static byte[] toBytes(InputStream is, boolean closeStream) throws IOException {
 		try {
-			// Unknown-size path: BAOS+pool. copy() uses BYTE_ARRAY_POOL ThreadLocal
+			// Unknown-size path: BAOS+pool. copy() borrows from the shared BYTE_POOL
 			// for read chunks. Size-known callers (toBytes(Resource), toBytes(File),
 			// HTTP request body handlers) allocate directly and skip BAOS entirely.
 			ByteArrayOutputStream baos = new ByteArrayOutputStream();

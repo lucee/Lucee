@@ -467,11 +467,20 @@
 	{
 		"sysprop": "lucee.io.block.size",
 		"envvar": "LUCEE_IO_BLOCK_SIZE",
-		"desc": "Buffer size in bytes/chars used by IOUtil copy operations and the IOUtil ThreadLocal byte/char buffer pools. Lower values reduce per-thread memory tax for short-lived threads (e.g. cfthread storm workloads); higher values amortise fewer reads on long-lived threads doing big copies. Range typically 1024-65535.",
+		"desc": "Buffer size in bytes/chars used by IOUtil copy operations and the shared IOUtil byte/char buffer pools. Lower values reduce per-thread memory tax for short-lived threads (e.g. cfthread storm workloads); higher values amortise fewer reads on long-lived threads doing big copies. Range typically 1024-65535.",
 		"category": "performance",
 		"type": "integer",
 		"default": 65535,
 		"introduced": "7.1.0.155"
+	},
+	{
+		"sysprop": "lucee.io.buffer.pool.max",
+		"envvar": "LUCEE_IO_BUFFER_POOL_MAX",
+		"desc": "Maximum number of pooled buffers per IOUtil pool (byte and char tracked separately). Caps memory growth under bursty concurrency (e.g. arrayEach with high parallel max, sustained virtual-thread load). Above the cap, callers allocate per-call rather than reuse a pooled buffer. Default tracks the PageContext pool sizing: max(100, cores * 16).",
+		"category": "performance",
+		"type": "integer",
+		"default": "max(100, cores * 16)",
+		"introduced": "7.1.0.182"
 	},
 	{
 		"sysprop": "lucee.isdefined.limit",
