@@ -718,13 +718,16 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 	};
 
 	@Override
-	public void setTokens(Map<Collection.Key, String> tokens) {
-		tokens.clear();
-		Iterator<Entry<Key, String>> it = tokens.entrySet().iterator();
+	public void setTokens(Map<Collection.Key, String> newTokens) {
+		this.tokens.clear();
+		Iterator<Entry<Key, String>> it = newTokens.entrySet().iterator();
 		Entry<Key, String> e;
 		while (it.hasNext()) {
 			e = it.next();
-			tokens.put(e.getKey(), e.getValue());
+			// put() handles String → Key conversion via KeyImpl.toKey; tokens
+			// reloaded from storage can come back with String keys, so setEL
+			// (which requires Collection.Key) would ClassCastException.
+			this.tokens.put(e.getKey(), e.getValue());
 		}
 	};
 
